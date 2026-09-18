@@ -9,6 +9,37 @@ Fehler bleibt roh: {= 2+ =}, Code bleibt roh: \`{= 1+1 =}\`.
 "
 `;
 
+exports[`Portable-Export-Snapshots > konvertiert Datensatz-Blöcke zu statischen Tabellen (4T-001548) 1`] = `
+"---
+titel: Bestellungen
+db-table:
+  name: Bestellungen
+  fields:
+    - name: kunde
+      label: Kunde
+    - name: menge
+      type: number
+      options:
+        decimals: 2
+    - name: geliefert
+      type: boolean
+    - name: termin
+      type: date
+    - name: bemerkung
+      type: multiline
+---
+<!-- perspective-portable -->
+
+# Datensatz-Block
+
+Die Spalten stehen in der Definition im Frontmatter dieser Datei, nicht im
+Block: Der Block trägt allein die Datensätze.
+
+<table><thead><tr><th scope="col">Kunde</th><th scope="col" style="text-align: right;">menge</th><th scope="col" style="text-align: center;">geliefert</th><th scope="col">termin</th><th scope="col">bemerkung</th></tr></thead><tbody><tr><td>Anna Beispiel</td><td style="text-align: right;">12.50</td><td style="text-align: center;">✓</td><td>2026-03-01</td><td>Erste Lieferung,<br>zweite Zeile derselben Zelle.</td></tr><tr><td>Bert Muster</td><td style="text-align: right;">3.00</td><td style="text-align: center;"></td><td>2026-04-15</td><td>Eine Zelle, deren zweite Zeile mit einem maskierten Marker beginnt:<br>| das bleibt Inhalt.</td></tr></tbody></table>
+Text nach dem Block bleibt gewöhnlicher Fließtext.
+"
+`;
+
 exports[`Portable-Export-Snapshots > konvertiert Ereignis-Blöcke zu statischen Tabellen (4T-000512) 1`] = `
 "<!-- perspective-portable -->
 
@@ -281,6 +312,48 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert custom-containers-por
 </div></div><div class="callout callout-danger" style="border-left:4px solid #b02a37;background:rgba(176,42,55,0.12);border-radius:6px;margin:1em 0;"><div class="callout-header" style="display:flex;align-items:center;gap:0.5em;padding:0.4em 0.8em;font-weight:600;color:#b02a37;"><span class="callout-icon" style="display:inline-flex;align-items:center;color:#b02a37;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span class="callout-title">Eigene Überschrift</span></div><div class="callout-body" style="padding:0.4em 0.8em 0.6em 0.8em;"><p>Mit Override-Titel.</p>
 </div></div><div class="custom-container container-neutrale-box" style="border:1px solid #ccc;border-radius:6px;padding:0.4em 0.8em;margin:1em 0;"><p>Unbekannter Name als neutrale Box mit Inline-Style.</p>
 </div>"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert datensatz-block.md stabil 1`] = `
+"<div class="frontmatter-block" data-source-line="1"><button type="button" class="frontmatter-header" aria-expanded="false"><span class="frontmatter-chevron" aria-hidden="true"></span><span class="frontmatter-label" data-i18n="frontmatter.line.label">Frontmatter</span><span class="frontmatter-count" data-fm-count="2"></span></button><pre class="frontmatter-yaml"><code class="hljs language-yaml"><span class="hljs-attr">titel:</span> <span class="hljs-string">Bestellungen</span>
+<span class="hljs-attr">db-table:</span>
+  <span class="hljs-attr">name:</span> <span class="hljs-string">Bestellungen</span>
+  <span class="hljs-attr">fields:</span>
+    <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">kunde</span>
+      <span class="hljs-attr">label:</span> <span class="hljs-string">Kunde</span>
+    <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">menge</span>
+      <span class="hljs-attr">type:</span> <span class="hljs-string">number</span>
+      <span class="hljs-attr">options:</span>
+        <span class="hljs-attr">decimals:</span> <span class="hljs-number">2</span>
+    <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">geliefert</span>
+      <span class="hljs-attr">type:</span> <span class="hljs-string">boolean</span>
+    <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">termin</span>
+      <span class="hljs-attr">type:</span> <span class="hljs-string">date</span>
+    <span class="hljs-bullet">-</span> <span class="hljs-attr">name:</span> <span class="hljs-string">bemerkung</span>
+      <span class="hljs-attr">type:</span> <span class="hljs-string">multiline</span></code></pre></div>
+<h1 id="datensatz-block" data-source-line="20">Datensatz-Block</h1>
+<p data-source-line="22">Die Spalten stehen in der Definition im Frontmatter dieser Datei, nicht im
+Block: Der Block trägt allein die Datensätze.</p>
+<div class="perspective-records" data-rec-index="0" data-rec-line-start="25" data-rec-line-end="40" data-source-line="25" data-rec-source="|- id=&quot;r-00001&quot;
+| Anna Beispiel
+| 12.5
+| x
+| 2026-03-01
+| Erste Lieferung,
+zweite Zeile derselben Zelle.
+|- id=&quot;r-00002&quot;
+| Bert Muster
+| 3
+|
+| 2026-04-15
+| Eine Zelle, deren zweite Zeile mit einem maskierten Marker beginnt:
+\\| das bleibt Inhalt.
+"><table class="prc-table"><thead><tr><th class="prc-head prc-type-string">Kunde</th><th class="prc-head prc-type-number">menge</th><th class="prc-head prc-type-boolean">geliefert</th><th class="prc-head prc-type-date">termin</th><th class="prc-head prc-type-multiline">bemerkung</th></tr></thead><tbody><tr class="prc-row" data-rec-id="r-00001"><td class="prc-cell prc-type-string">Anna Beispiel</td><td class="prc-cell prc-type-number">12.50</td><td class="prc-cell prc-type-boolean">✓</td><td class="prc-cell prc-type-date">2026-03-01</td><td class="prc-cell prc-type-multiline">Erste Lieferung,
+zweite Zeile derselben Zelle.</td></tr><tr class="prc-row" data-rec-id="r-00002"><td class="prc-cell prc-type-string">Bert Muster</td><td class="prc-cell prc-type-number">3.00</td><td class="prc-cell prc-type-boolean"></td><td class="prc-cell prc-type-date">2026-04-15</td><td class="prc-cell prc-type-multiline">Eine Zelle, deren zweite Zeile mit einem maskierten Marker beginnt:
+| das bleibt Inhalt.
+</td></tr></tbody></table></div>
+<p data-source-line="42">Text nach dem Block bleibt gewöhnlicher Fließtext.</p>
+"
 `;
 
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert datentabelle.md stabil 1`] = `

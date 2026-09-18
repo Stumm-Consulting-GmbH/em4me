@@ -69,6 +69,8 @@
   "properties.profileTypeLocked": "Typ durch Profil «{profile}» vorgegeben",
   "properties.profileHint.typeMismatch": "Wert entspricht nicht dem definierten Typ ({type}).",
   "properties.profileHint.outsideValues": "Wert liegt außerhalb des festen Wertebereichs.",
+  "properties.profileHint.tooLong": "Wert ist länger als die angegebene Höchstlänge ({max} Zeichen). Er wird nicht gekürzt.",
+  "properties.profileHint.tooManyDecimals": "Wert hat mehr Nachkommastellen als angegeben ({decimals}). Er wird nicht gerundet.",
   "properties.profileHint.emptySource": "Der Wertevorrat dieses Feldes ist leer — die angegebene Quelle fehlt oder liefert nichts. Eigene Werte bleiben möglich.",
   "properties.profileBadge": "Profil {profile} — gefunden über {via}",
   "properties.fieldOrigin": "Feld aus Profil «{profile}» — gefunden über {via}",

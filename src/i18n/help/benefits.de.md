@@ -91,6 +91,20 @@ Ein Dokument wächst manchmal über das hinaus, was sich flüssig bearbeiten lä
 
 Ausführlich: [Teilung großer Dokumente](document-parts.md).
 
+## Daten und Prosa in denselben Dateien
+
+Ein Ordner mit Markdown-Dateien kann zugleich eine Datenbank sein, und Sie erklären ihn nicht eigens dazu: Sobald ein Dokument die Datenbank beschreibt, führt der Bereich eine Datenbank, und eine eigene Übersicht beantwortet an einer Stelle, was in ihm liegt, also Name und Beschreibung, die Tabellen mit der Zahl ihrer Felder und die Fehlerlagen im Klartext. Die Tabellen selbst sind gewöhnliche Dateien: Die Definition steht im Kopf, die Datensätze stehen im Körper darunter, und damit ist eine Tabelle in einer Datei vollständig. Der eigentliche Gewinn liegt daneben. Aus einem beliebigen Text des Bereichs heraus verweisen Sie auf eine einzelne Zeile einer Tabelle, so wie Sie sonst auf eine Datei verweisen; die Notiz über eine Besprechung zeigt damit auf den Datensatz der Person, über die sie spricht.
+
+- **Der Bereich wird zur Datenbank**, sobald ein Dokument sie beschreibt, und bekommt seine eigene Übersicht als reine Lese-Ansicht.
+- **Die Tabelle steht in ihrer Datei**: Felder im Kopf, Datensätze im Körper. Umbenennen und Verschieben ändern daran nichts, auch außerhalb der Anwendung.
+- **Acht Spalten-Typen** mit Beschriftungen, die in mehreren Sprachen vorliegen dürfen.
+- **Der Verweis auf einen einzelnen Datensatz** wird wie ein Anker geschrieben und verhält sich wie jeder andere Verweis: Der Linter zeigt an, ob er gilt, und ein Klick öffnet die Tabellen-Datei.
+- **Große Bestände bleiben eine Tabelle**: Ab etwa 0,7 MB verteilt die Anwendung die Datensätze beim Speichern auf mehrere Dateien nebeneinander, ohne dass ein Verweis davon berührt wird.
+
+Was dieser erste Ausbau noch nicht bringt: Erfasst werden Datensätze weiterhin im Text der Datei, es gibt keine Eingabe-Maske, keine Prüfung der Werte beim Schreiben und keine Abfrage über die Datensätze.
+
+Ausführlich: [Datenbank](database.md).
+
 ## Die Anwendung passt sich an — und kommt mit
 
 Wer lange mit einem Programm arbeitet, formt es: Farben, Tastenkürzel, Schaltflächen, Vorlagen und Lesezeichen wachsen mit der eigenen Arbeitsweise, und irgendwann gehört auch die Sprache dazu, in der die Oberfläche spricht. Diese Arbeit war bisher an einen Rechner gebunden und an die mitgelieferten Sprachen. Beides ist offen: Die eigene Einrichtung lässt sich in eine lesbare Datei schreiben und anderswo wieder einlesen, und wer eine sechste Sprache braucht, übersetzt die Oberfläche selbst. Dazu kommt der Blick auf das Ganze — eine Seite, die alle eigenen Arbeitsbereiche, Bereiche, Bücher und Bücherregale nebeneinander zeigt, auch die, die gerade nicht angeschlossen sind.

@@ -90,6 +90,7 @@
   "help.shortcut.openHistory": "Ouvrir l'historique du document actif",
   "help.shortcut.areaGraph": "Ouvrir le graphe de l'espace dans son propre onglet",
   "help.shortcut.areaStats": "Ouvrir les statistiques de la zone dans son propre onglet",
+  "help.shortcut.databaseOverview": "Ouvrir la vue d’ensemble de la base de données dans son propre onglet",
   "help.shortcut.myExtendedMemory": "Ouvrir My Extended Memory dans son propre onglet",
   "help.shortcut.commandPalette": "Ouvrir la palette de commandes",
   "help.shortcut.toggleReminders": "Afficher ou masquer le panneau des rappels",
@@ -162,5 +163,6 @@
   "help.shortcut.exportLocaleTemplate": "Enregistrer dans un fichier un modèle pour votre propre langue d’interface",
   "help.shortcut.importLocale": "Charger un fichier de langue traduit comme votre propre langue d’interface",
   "help.shortcut.removeLocale": "Supprimer de l’application une de vos propres langues d’interface",
-  "help.shortcut.updateLocale": "Enregistrer votre propre fichier de langue à l’état de la version en cours d’exécution, les entrées manquantes en anglais"
+  "help.shortcut.updateLocale": "Enregistrer votre propre fichier de langue à l’état de la version en cours d’exécution, les entrées manquantes en anglais",
+  "help.group.database": "Base de données"
 }

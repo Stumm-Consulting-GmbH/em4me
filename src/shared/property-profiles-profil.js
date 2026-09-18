@@ -106,4 +106,8 @@ function parseProfileHeritage(data) {
   const icon = normalizeIcon(data.icon, errors);
   return { parent, exclude, icon, errors };
 }
-module.exports = { parseProfileHeritage };
+// 4T-001507 (Epic 3E-000250, E5.5): `grapheme` wird seither auch von der
+// Längen-Angabe gebraucht (property-profiles-editor.js) und deshalb von hier
+// weitergereicht, statt ein zweites Mal geschrieben zu werden. Die Regel «eine
+// Zahl an einem Ort» gilt für eine Zähl-Regel genauso.
+module.exports = { parseProfileHeritage, grapheme };

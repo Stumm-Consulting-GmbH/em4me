@@ -32,6 +32,16 @@
 // Der Vergleich läuft über den ROHEN Text samt BOM und CRLF, denn die Offsets
 // der Suche zählen ebenso — und dadurch bleiben beide von selbst erhalten.
 //
+// **4T-001671: Der Vergleich läuft auf der Ebene, auf der ermittelt wurde.**
+// Trägt eine Datei einen Datensatz-Block, hält der Vorrat sie ohne dessen
+// Inhalt; sein Text ist mit keiner Datei zeichengleich, und ein roher Vergleich
+// müsste zwangsläufig scheitern und «fremd geändert» melden, obwohl niemand
+// etwas geändert hat. Für einen solchen Bezugs-Stand wird der frisch gelesene
+// Text derselben Bereinigung unterzogen und **zusätzlich die Rücknahme-Karte
+// verglichen**: Sie ist die Rechnung, mit der die Offsets entstanden sind, und
+// eine Änderung INNERHALB des Datenblocks verschiebt jede Fundstelle dahinter,
+// ohne den bereinigten Text anzutasten. Beides gleich heißt: derselbe Stand.
+//
 // **Best-Effort über die Dateien hinweg**, wie bei der Verweis-Nachführung
 // (`documents/link-update.js`): Ein Fehlschlag je Datei stoppt den Lauf nicht,
 // sondern erscheint im Ergebnis. Ein Lauf über zweihundert Dateien, den die
@@ -51,6 +61,8 @@ const { readPartLine } = require('../../shared/document-parts.js');
 // zweiten Aufrufer (Puffer offener Reiter) im geteilten Kern.
 const { baueSuchAusdruck, wendeErsetzungenAn } = require('../../shared/ersetzen-kern.js');
 const { suchStandFuer, gibBereichsVorratFrei } = require('./area-search.js');
+// 4T-001671: dieselbe Bereinigung, mit der der Bezugs-Stand entstanden ist.
+const { bereinigeSuchtext } = require('./area-search-datensaetze.js');
 // 4T-001531 (Epic 3E-000175): Der Frontmatter-Anteil der Tag-Umbenennung. Die
 // Regel liegt im geteilten Modul, der Schreibweg hier.
 const { benenneTagImFrontmatterUm } = require('../../shared/tag-erkennung.js');
@@ -83,6 +95,33 @@ function relPfad(absPfad, wurzel) {
  * @param {Function} deps.recordMddOnSave Protokollierung einer Speicherung.
  * @returns {{ersetzeImBereich: Function}} Der Lauf über einen Bereich.
  */
+// 4T-001671: Ist der frisch gelesene Text derselbe Stand, auf dem die
+// Fundstellen ermittelt wurden?
+//
+// Bei einem rohen Bezugs-Stand (offener Puffer, Datei ohne Datensatz-Block) ist
+// das der zeichengenaue Vergleich wie bisher. Bei einem bereinigten Stand wird
+// derselbe Schnitt auf den gelesenen Text angewandt und neben dem Text auch die
+// Ruecknahme-Karte verglichen: Ohne sie bliebe eine Aenderung innerhalb des
+// Datenblocks unbemerkt, obwohl sie jede Fundstelle dahinter verschiebt.
+function istDerselbeStand(roh, bezug) {
+  if (!bezug || typeof bezug.text !== 'string') return false;
+  if (bezug.ebene !== 'bereinigt') return roh === bezug.text;
+  const b = bereinigeSuchtext(roh);
+  if (!b) return false;
+  if (b.text !== bezug.text) return false;
+  return gleicheKarte(b.karte, bezug.karte);
+}
+
+function gleicheKarte(a, b) {
+  const x = Array.isArray(a) ? a : [];
+  const y = Array.isArray(b) ? b : [];
+  if (x.length !== y.length) return false;
+  for (let i = 0; i < x.length; i++) {
+    if (x[i].ab !== y[i].ab || x[i].verschiebung !== y[i].verschiebung) return false;
+  }
+  return true;
+}
+
 function createAreaReplace(deps) {
   const { resolveHistoryFor, recordMddOnSave } = deps;
 
@@ -127,7 +166,7 @@ function createAreaReplace(deps) {
     // der häufigste Fall und bekommt einen eigenen Grund, weil der Anwender
     // dort etwas tun kann (speichern), während er bei einer fremden Änderung
     // nur neu suchen kann.
-    if (roh !== bezug.text) {
+    if (!istDerselbeStand(roh, bezug)) {
       return bezug.quelle === 'puffer' ? { art: 'fehler', grund: 'offen' } : { art: 'veraendert' };
     }
 

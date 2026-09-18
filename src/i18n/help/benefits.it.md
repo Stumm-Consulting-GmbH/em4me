@@ -91,6 +91,20 @@ A volte un documento cresce oltre ciò che si riesce a modificare con scorrevole
 
 In dettaglio: [Divisione di documenti grandi](document-parts.md).
 
+## Dati e prosa negli stessi file
+
+Una cartella di file Markdown può essere al tempo stesso una banca dati, e non occorre dichiararla tale: non appena un documento descrive la banca dati, l'area ne contiene una, e una panoramica propria risponde in un solo punto alla domanda su che cosa vi si trovi, cioè nome e descrizione, le tabelle con il numero dei propri campi e le anomalie in chiaro. Le tabelle stesse sono file ordinari: la definizione sta nell'intestazione, i record stanno nel corpo sottostante, e così una tabella è completa in un solo file. Il guadagno vero sta accanto. Da un qualunque testo dell'area rimandi a una singola riga di una tabella, così come altrove rimandi a un file; la nota su una riunione punta allora al record della persona di cui parla.
+
+- **L'area diventa una banca dati** non appena un documento la descrive, e riceve la propria panoramica come vista di sola lettura.
+- **La tabella risiede nel suo file**: i campi nell'intestazione, i record nel corpo. Rinominare e spostare non cambiano nulla, neppure fuori dall'applicazione.
+- **Otto tipi di colonna**, con etichette che possono esistere in più lingue.
+- **Il collegamento a un singolo record** si scrive come un'ancora e si comporta come ogni altro collegamento: il linter Markdown indica se vale, e un clic apre il file della tabella.
+- **I grandi insiemi restano una sola tabella**: da circa 0,7 MB in poi l'applicazione distribuisce i record al salvataggio su più file affiancati, senza che alcun collegamento ne risenta.
+
+Ciò che questa prima tappa non porta ancora: i record si inseriscono ancora nel testo del file, non c'è una maschera di inserimento, né una verifica dei valori in scrittura, né un'interrogazione sui record.
+
+In dettaglio: [Banca dati](database.md).
+
 ## L’applicazione si adatta — e ti segue
 
 Chi lavora a lungo con un programma finisce per plasmarlo: colori, scorciatoie da tastiera, pulsanti, modelli e segnalibri crescono con il tuo modo di lavorare, e a un certo punto ne fa parte anche la lingua in cui parla l’interfaccia. Finora questo lavoro era legato a un solo computer e alle lingue fornite con l’applicazione. Entrambe le cose sono aperte: la tua configurazione può essere scritta in un file leggibile e riletta altrove, e chi ha bisogno di una sesta lingua traduce da sé l’interfaccia. A questo si aggiunge lo sguardo d’insieme: una pagina che mostra affiancati tutti i tuoi spazi di lavoro, aree, libri e librerie, comprese quelle che al momento non sono collegate.
@@ -115,7 +129,7 @@ In dettaglio: [Perspective Table](perspective-table.md).
 
 ## Tabelle che calcolano
 
-Per i numeri invece del testo c'è il secondo tipo di tabella. La Perspective Datatable è una tabella di dati tipizzata: ogni colonna ha un tipo di valore, le celle accettano solo valori conformi, le righe di aggregato calcolano dal vivo e le colonne calcolate valutano un'espressione per riga. Si modifica direttamente nella griglia renderizzata, senza passare dal testo sorgente. Questo regge spese, registrazione dei tempi o inventari senza diventare un file di database, perché tutto resta testo in chiaro nel documento.
+Per i numeri invece del testo c'è il secondo tipo di tabella. La Perspective Datatable è una tabella di dati tipizzata: ogni colonna ha un tipo di valore, le celle accettano solo valori conformi, le righe di aggregato calcolano dal vivo e le colonne calcolate valutano un'espressione per riga. Si modifica direttamente nella griglia renderizzata, senza passare dal testo sorgente. Questo regge spese, registrazione dei tempi o inventari senza diventare un file di banca dati, perché tutto resta testo in chiaro nel documento.
 
 - **Tipi di valore fissi** per colonna, così i numeri restano numeri e le date restano date.
 - **Aggregati** che calcolano dal vivo e **colonne calcolate** per riga.

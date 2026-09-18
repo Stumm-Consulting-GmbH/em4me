@@ -14,6 +14,331 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.137.0.2953] - 2026-09-18 — Stufe 1 der Datenbank: Tabellen, Datensätze und der Bereich als Datenbank
+
+Zug 3E-000277,
+die erste Ausbaustufe der Datenbank-Funktionalität aus vier Mitglieds-Epics.
+Mitglied 1:
+3E-000250,
+eine Markdown-Datei beschreibt sich selbst als Tabelle, und eine einzige Stelle
+der Anwendung liest diese Beschreibungen (Abschluss-Anteil in
+4T-001512).
+Mitglied 2:
+3E-000251,
+die Datensätze stehen im Körper derselben Datei, erscheinen als Tabelle und
+verteilen sich bei Größe auf mehrere Dateien
+(4T-001552).
+Mitglied 3:
+3E-000252,
+der Zugriff auf einen einzelnen Datensatz läuft über den Index, und der
+Datensatz-Block bleibt aus dem Suchraum der Bereichs-Suche
+(4T-001614).
+Mitglied 4:
+3E-000253,
+ein Bereich mit Datenbank ist eine eigene Bereichs-Art mit eigener Übersicht,
+und die gesamte Datenbank hängt an einem Erweiterungs-Schalter
+(4T-001763).
+
+**Was diese Stufe bewusst noch nicht bringt:** Geschrieben wird an einem
+Datensatz weiterhin im Text der Datei. Eine Erfassungs-Maske, eine Prüfung der
+Werte beim Schreiben und Abfragen über die Datensätze gehören in spätere Stufen.
+
+### Neu
+
+- **Eine Markdown-Datei kann eine Datenbank-Tabelle sein** (`4T-001506`,
+  `4T-001507`, `4T-001508`). Der Frontmatter-Behälter `db-table` weist eine
+  Datei als Tabelle aus und trägt unter `fields` je einen Eintrag pro Spalte, im
+  Definitions-Format der Eigenschafts-Profile und mit dem Namen als einziger
+  Pflichtangabe. Eine Spalte trägt einen von acht Typen, darunter den Verweis
+  auf einen **Datensatz** einer anderen Tabelle; berechnete Felder,
+  strukturierte Werte und mehrwertige Spalten sind in einer Tabelle
+  ausgeschlossen und nennen bei der Meldung ihren Grund. Die Beschriftung steht
+  als Text oder als Zuordnung von Sprache zu Text, während der Feld-Name
+  sprachneutral bleibt. Dazu die Angaben zur Tabelle als Ganzes: der
+  Hochwasserstand `lastId` der internen Datensatz-Kennung `r-00042`, der ein-
+  oder mehrteilige fachliche Schlüssel und die Anzeige-Form.
+- **Steckbrief der Datenbank** (`4T-001509`). Der Behälter `db-database` im
+  Frontmatter eines eigenen Dokuments trägt Name, Beschreibung, Schema-Version
+  und Rückfall-Sprache. Jede Angabe fehlt für sich, und ohne Steckbrief bleiben
+  die Tabellen vollständig deutbar.
+- **Katalog der Definitionen** (`4T-001510`). Zwei Auskünfte des
+  Haupt-Prozesses, ein Überblick mit Steckbrief, Tabellen-Namen und Fehlerlagen
+  sowie die vollständige Definition einer einzelnen Tabelle. Den Bestand liefert
+  der vorhandene Link-Index über eine neue Marke je Datei; von einer großen
+  Tabelle liest der Katalog nur den Metadaten-Block. Der Bereichs-Cache steigt
+  dafür um eine Schema-Version.
+- **Die Datensätze einer Tabelle stehen im Körper ihrer Datei** (`4T-001545`,
+  `4T-001546`, `4T-001559`). Der Block `perspective-records` trägt einen
+  Datensatz je Zeilen-Marker `|-` und eine Zelle je `|`, beide **nur in
+  Spalte 0**; jede eingerückte Zeile ist Inhalt, und der Rückstrich ist der
+  Notausgang für einen Text, der selbst mit einem Marker beginnt. Es gibt
+  **keine Kopfzeile**: Die Zuordnung Zelle zu Feld ist positionsbasiert, und die
+  Reihenfolge der Felder in der Definition ist der Vertrag. Überzählige Zellen
+  bleiben unangetastet stehen, statt still weggeschrieben zu werden. Die interne
+  Kennung steht als Angabe am Marker in der Attribut-Grammatik des Hauses
+  (`|- id="r-00042"`); die knappere namenlose Form wird beim Lesen ausdrücklich
+  gemeldet, damit ein Datensatz mit gemeinter Kennung nicht als kennungslos
+  durchgeht. Aus dem Zell-Text entsteht der Wert nach dem Typ seiner Spalte, das
+  Datum kalendarisch geprüft wie in der Datentabelle, die Uhrzeit mit optionalen
+  Sekunden wie in den Eigenschafts-Profilen.
+- **Anzeige des Datenblocks** (`4T-001547`). In Lese-Ansicht und
+  Änderungs-Modus erscheint der Block als Tabelle mit den Spalten der
+  Definition, jeder Wert nach dem Typ seiner Spalte dargestellt. Oberhalb von
+  **2000 Datensätzen** zeigt die Anzeige ein Fenster statt einer Kappung; die
+  Lage der Grenze ist gemessen und danach festgeschrieben. Der Live-Modus
+  rendert jeden Block isoliert und bekommt deshalb den Frontmatter-Vorspann mit,
+  weil dies das erste Konstrukt ist, dessen Bedeutung außerhalb seiner Fence
+  steht.
+- **Aufteilung großer Tabellen-Ablagen** (`4T-001549`, `4T-001550`). Eine
+  Tabellen-Datei wird an ihren **Datensatz-Grenzen** geschnitten, als zweite
+  Schnittpunkt-Art in der vorhandenen Teilungs-Mechanik und als Weiche vor der
+  Überschriften-Suche; erkannt wird an der Marke der Datei und nicht am
+  Aufrufer. Die Schwelle liegt bei rund **0,7 MB** statt der 1 MB gewöhnlicher
+  Dokumente. Jedes Folge-Segment nennt seine Spalten im Frontmatter, als
+  Lese-Hilfe ohne Vertragswirkung; bei Widerspruch gewinnt die Kopf-Datei.
+- **Der Zugriff auf einen einzelnen Datensatz läuft über den Index**
+  (`4T-001610`, `4T-001611`). Der Link-Index führt je Datei den
+  Datensatz-Bestand mit interner Kennung, Schlüssel-Wert, Anzeige-Form und
+  Fundort, **ohne Zellwerte**; daraus entstehen die beiden umgekehrten
+  Zuordnungen. Der fachliche Schlüssel eines Folge-Segments kommt über einen
+  **Vorlauf** aus der Kopf-Datei, und die Zuordnung führt die Signatur mit,
+  gegen die sie entstanden ist, damit eine geänderte Schlüssel-Spalte nicht
+  still veraltete Werte stehen lässt. Ein doppelter Schlüssel-Wert ergibt einen
+  benannten Uneindeutigkeits-Zustand mit allen Fundorten statt eines stillen
+  Erst-Treffers. Der Bereichs-Cache steht mit diesem Zug auf Schema-Version 5;
+  ein Cache aus einer älteren Programmfassung wird verworfen und beim nächsten
+  Öffnen des Bereichs neu aufgebaut.
+- **Ein Verweis kann einen einzelnen Datensatz meinen** (`4T-001612`). Die
+  Schreibweise `[[Personen#^r-00042]]` gilt als bestehender Verweis, wenn die
+  Tabelle den Datensatz führt, und als gebrochener, wenn nicht; sie funktioniert
+  auch dann, wenn der Datensatz nicht in der Kopf-Datei, sondern in einem
+  Folge-Segment steht. Die Anker-Prüfung hat dafür eine **dritte Herkunft**
+  bekommen, geordnet hinter Überschriften-Slug und Block-Anker, sodass kein
+  bestehender Verweis umgedeutet wird. Der Sprung auf den einzelnen Datensatz
+  gehört zur Masken-Stufe und ist nicht Teil dieses Standes.
+- **Ein Bereich mit Datenbank ist eine eigene Bereichs-Art** (`4T-001758`). Ein
+  Bereich gilt als Datenbank-Bereich, sobald sein Bestand ein Dokument mit dem
+  **Steckbrief** der Datenbank führt. Eine Bereichs-Einstellung dafür gibt es
+  nicht, und das Datenformat der Bereichsdatei bleibt unverändert. Die Frage
+  wird an **einer** Stelle beantwortet, im Katalog des Haupt-Prozesses, und
+  reist als Feld des vorhandenen Überblicks-Kanals nach außen; im
+  Anzeige-Prozess fragt genau ein Helfer diesen Kanal, hält die Antwort bis zum
+  Bereichs-Wechsel und verwirft sie bei jeder Meldung des Index, weil ein neu
+  geschriebener Steckbrief den Bereich in diesem Moment zur Datenbank macht.
+  Dazu der Einstellungs-Abschnitt **«Datenbank»** in der Gruppe «Aktueller
+  Bereich»: lesend Name, Beschreibung, Zahl der Tabellen und Zahl der
+  Fehlerlagen, dazu die Option «Übersicht beim Öffnen des Bereichs zeigen», die
+  als eigene Sektion in der Bereichsdatei liegt. Der Abschnitt trägt über die
+  Gruppen-Regel hinaus eine eigene Sichtbarkeits-Bedingung und erscheint nur in
+  einem Bereich, der eine Datenbank führt.
+- **Die Übersicht der Datenbank als eigene Seite** (`4T-001759`). Eine lesende
+  System-Seite nach dem Vorbild der Bereichs-Statistik, mit Steckbrief (Name und
+  Beschreibung, in der Sprache des Anwenders aufgelöst), der Tabellen-Liste je
+  mit der Zahl ihrer Felder und den Fehlerlagen des Definitions-Katalogs im
+  Klartext. Das Kommando `database.openOverview` steht ohne vorbelegtes Kürzel
+  in der Kommando-Registry; erreichbar ist die Seite über das Ansichtsmenü
+  unmittelbar hinter der Bereichs-Statistik, über das Kontextmenü des
+  Bereichs-Panels und über die Kommando-Palette, und die Option des
+  Einstellungs-Abschnitts öffnet sie beim Binden des Bereichs. Für jeden
+  Hinweis-Code des Diagnose-Katalogs liegt ein ganzer Satz in allen fünf
+  Sprachfassungen vor, **abgeleitet** aus dem Katalog statt abgeschrieben,
+  sodass ein künftiger Code ohne Satz im Prüflauf auffällt und nicht beim
+  Anwender. Für Menüs beantwortet der Helfer die Bereichs-Art zusätzlich
+  **synchron** aus der zuletzt bereiten Antwort, weil ein Kontextmenü im Moment
+  des Klicks entsteht und auf keine Auskunft warten kann.
+- **Die gesamte Datenbank hängt an einem Erweiterungs-Schalter** (`4T-001760`).
+  Die Registry führt den Eintrag `database` in der Kategorie Werkzeuge,
+  unmittelbar hinter den Ereignissen, mit eigenen Namens- und
+  Beschreibungs-Texten in allen fünf Sprachfassungen, der Abhängigkeit von den
+  Eigenschafts-Profilen, dem Kommando der Übersichts-Seite und der Kennung des
+  Einstellungs-Abschnitts. Die Katalog-Zeilen der Gruppe «Datenbank» sind aus
+  der Kern-Liste des Prüf-Wissens an die Erweiterung umgezogen; im Aus-Zustand
+  tragen sie auf der Funktions-Seite die Kennzeichnung «abgeschaltet», statt zu
+  verschwinden oder Funktionen zu behaupten, die es dann nicht gibt. Bis zu
+  diesem Vorgang zeigten zwei Stellen des Programms auf die Kennung `database`,
+  ohne dass sie je abschaltbar gewesen wäre, weil eine nicht registrierte
+  Kennung als Kern gilt und damit immer als eingeschaltet. Wer die
+  Eigenschafts-Profile abschaltet, schaltet die Datenbank mit ab.
+- **Der Aus-Zustand ist vollständig hergestellt und je Zusage nachgewiesen**
+  (`4T-001761`). Sieben Zusagen, jede mit eigenem Nachweis:
+  - Der Datensatz-Block erscheint als gewöhnlicher Code-Block, in der
+    Lese-Ansicht, im Änderungs-Modus und im portablen Export.
+  - Die Kommandos der Datenbank sind in allen Verbrauchern der
+    Kommando-Filterung gefiltert.
+  - Der Einstellungs-Abschnitt entfällt, und die Übersichts-Seite entfällt samt
+    allen vier Zugängen. Sie laufen dafür durch **ein** Tor an der Wurzel der
+    Öffnen-Funktion; ein zweites Tor steht in der Bindungs-Strecke vor dem Holen
+    der Auskunft, damit eine abgeschaltete Erweiterung beim Binden eines
+    Bereichs nichts kostet.
+  - Der **Datensatz-Bestand des Index ruht** über einen eigenen Schalter im
+    Index-Subsystem, der von außen gesetzt wird, weil kein Modul dieses
+    Subsystems den Einstellungs-Speicher liest. Die **Marke** der Tabellen-Datei
+    wird weiter erfasst, denn sie kostet je Datei einen Blick ins Frontmatter
+    und trägt zwei Zusagen, die im Aus-Zustand bestehen bleiben.
+  - Das **Umlegen des Schalters baut die offenen Indizes neu auf**, weil der
+    Umfang des Bestands beim Lesen der Datei entsteht und sich nachträglich
+    nicht herstellen lässt. Gelesen wird dabei, geschrieben nicht.
+  - Ein **Verweis auf einen einzelnen Datensatz bleibt unmarkiert**. Ohne
+    Bestand ist die Kennung im Aus-Zustand nicht prüfbar, und ein nicht
+    prüfbares Ziel trägt in dieser Anwendung keine Markierung; der Verweis gilt
+    damit als bestehend.
+  - Der **Suchraum-Schnitt bleibt bestehen**, weil er an der Marke der
+    Tabellen-Datei hängt und nicht an der Erweiterung; die Katalog-Zeile, die
+    ihn beschreibt, ist deshalb in die Kern-Liste zurückgezogen. Das Abschalten
+    löst keinen Schreibvorgang aus: Die Dateien bleiben byte-gleich, das
+    Wiedereinschalten stellt alles ohne Zutun des Anwenders her.
+
+### Geändert
+
+- **Zwei neue Angaben für Eigenschafts-Profile** (`4T-001507`). Ein Text-Feld
+  kann eine Höchstlänge tragen (`maxLength`), ein Zahl-Feld eine Angabe der
+  Nachkommastellen (`decimals`). Beide sind ein Hinweis am Feld und ändern den
+  gespeicherten Wert nicht, es wird nicht gekürzt und nicht gerundet.
+- **Die Bereichs-Suche nimmt den Datensatz-Block einer Tabellen-Datei nicht mehr
+  auf, das Dokument darüber schon** (`4T-001609`). Das ist eine nach außen
+  sichtbare Verhaltensänderung: Datensätze erscheinen nicht mehr in der
+  Trefferliste einer Bereichs-Suche, der erklärende Text derselben Datei
+  weiterhin, und wer die Tabellen-Datei öffnet und darin sucht, findet seine
+  Datensätze unverändert. Der Grund liegt im Bereich und nicht in der Tabelle:
+  Der Suchraum hält die Texte aller Markdown-Dateien im Speicher und trägt eine
+  Obergrenze über den ganzen Bereich, die schon wenige große Tabellen reißen
+  würden, und von da an suchte **jedes** Prosa-Dokument des Bereichs langsamer.
+  Der Schnitt greift auf allen vier Wegen, auf denen Text in die Suche gelangt,
+  und der Speicher-Deckel misst seither den bereinigten Umfang statt der
+  Datei-Größen.
+- **Der Sprung aus der Bereichs-Trefferliste sucht die Fundstelle über ihre
+  Position, statt sie abzuzählen** (`4T-001609`, Eingriff in ausgelieferten Code
+  eines fremden Vorhabens). Ohne diese Umstellung zählte die Trefferliste anders
+  als das geöffnete Dokument, sobald die Datensätze aus ihr verschwinden, und
+  der Sprung landete in einem Tabellen-Dokument auf der falschen Stelle.
+- **Eine Fundstelle in einer Tabellen-Datei zeigt wieder auf ihre Stelle in der
+  Datei** (`4T-001671`). Weil die Suche den Datensatz-Block einer Tabelle
+  auslässt, ist ihr Text kürzer als die Datei; jede Fundstelle **hinter** dem
+  Block läge damit zu früh. Die Bereinigung führt seither ihre Rücknahme-Karte
+  mit, und jeder Offset, der den Suchraum verlässt, ist ein Datei-Offset. Ohne
+  das hätte die bereichsweite **Tag-Umbenennung** aus 1.131.0 in einer
+  Tabellen-Datei an falscher Stelle geschrieben, und das bereichsweite
+  **Ersetzen** hätte dort «von außen verändert» gemeldet, ohne dass etwas
+  verändert war. Beides ist nie ausgeliefert worden, weil der Suchraum-Schnitt
+  mit diesem Zug zum ersten Mal erscheint.
+- **Der letzte Teil eines geteilten Dokuments rotiert nur noch, wenn die
+  Änderung ihn berührt** (`4T-001550`). Der bisherige Stand teilte ihn ohne
+  diese Frage und ließ damit ein unberührtes Segment allein wegen einer
+  gesunkenen Schwelle zerfallen; die Zusicherung, ein vorhandenes Segment nicht
+  neu zu schneiden, galt so nicht. Für gewöhnliche Dokumente ändert sich nichts,
+  weil der geänderte Bereich dort im wachsenden letzten Teil liegt.
+- **Der portable Export kennt den Datenblock** (`4T-001548`) und gibt ihn
+  **vollständig** aus, ohne Fenster. Er weicht auf den Rohtext zurück, wo er
+  etwas verlöre, also bei fehlender Definition, überzähligen Zellen, losem Text
+  oder einer nicht ausgelegten Angabe am Marker; fehlende Zellen exportieren
+  normal, dort ist nichts zu verlieren. Vorausgegangen ist ein Schnitt an
+  `markdown.js`, dessen Fence-Konvertierung nach `portable-fences.js` gewandert
+  ist; kein bestehender Snapshot hat sich dabei geändert.
+- **Die Meldungen unter dem Datensatz-Block sind Sätze statt Codewörter**
+  (`4T-001584`). Wo bisher `recordIdInvalid [8]` stand, steht jetzt ein ganzer
+  Satz, der die Position des Datensatzes nennt und, wo der Befund sie trägt, die
+  Zahl der Felder einsetzt. Alle fünf Codes des Blocks liegen in allen fünf
+  Sprachfassungen vor, und zwar unter demselben Präfix wie die übrigen Codes
+  desselben Diagnose-Katalogs, damit ein Code nicht je nach Anzeige zwei
+  Formulierungen bekommt. Es gibt **zwei Satzformen**, weil es zwei Lagen gibt:
+  einen Befund am einzelnen Datensatz und einen am ganzen Block, etwa losen Text
+  vor dem ersten Datensatz oder eine Datei ohne Tabellen-Definition. Das
+  Daten-Attribut mit dem Code bleibt als Adressierungs-Weg für Prüfung und
+  Oberfläche erhalten; die Zell-Befunde sind unberührt und tragen weiterhin
+  keinen sichtbaren Text.
+- **Die Handbuch-Seite «Teilung großer Dokumente» ist berichtigt** (`4T-001551`,
+  `4T-001613`). Schwelle, Schnittstelle und Ankündigung beschrieben den
+  ausgelieferten Stand nicht mehr zutreffend, und die Seite sagte zugleich zu,
+  alles Weitere gelte für Tabellen-Dateien unverändert, während sie die Suche
+  über das geteilte Dokument als Ganzes verspricht. Vier weitere Handbuch-Seiten
+  sind im selben Zug nachgezogen.
+
+### i18n
+
+- **Funktions-Katalog und Handbuch** (`4T-001511`, `4T-001551`, `4T-001613`,
+  `4T-001762`). Der Funktions-Katalog hat eine **eigene Gruppe «Datenbank»**
+  bekommen, die über den Zug auf zwölf Einträge gewachsen ist: die
+  Tabellen-Definition, ihre Spalten-Typen, Datensatz-Kennung und fachlicher
+  Schlüssel, der Steckbrief, die Datensätze im Datenblock und ihre Anzeige, die
+  Aufteilung großer Datenbestände, die Datensätze in der Bereichs-Suche, der
+  Verweis auf einen einzelnen Datensatz, der Bereich als Datenbank, die
+  Übersichts-Seite und der Schalter samt Aus-Zustand, je mit Name, Beschreibung
+  und Zugang. Dazu die neue Handbuch-Seite **«Datenbank»** hinter der
+  Datentabelle, die über den Zug auf vierzehn Abschnitte gewachsen ist, von der
+  Tabellen-Datei über Spalten-Typen,
+  Datensätze, Anzeige, Auffindbarkeit, Aufteilung und Steckbrief bis zum Bereich
+  als Datenbank und dem Abschalten; die Abschnitts-Aufzählung der
+  Handbuch-Überblicksseite ist mitgezogen. Die beiden neuen Angaben für
+  Eigenschafts-Profile stehen auf der Seite «Eigenschafts-Profile», wo der
+  Anwender sie sucht. Alles in **allen fünf Sprachfassungen**.
+- **Demo-Bereich** (`4T-001551`, `4T-001613`, `4T-001762`). Der mitgelieferte
+  Demo-Bereich zeigt die Stufe an einem echten Bestand: eine Demo-Tabelle mit
+  Definition, Datenblock und typisierter Anzeige über vierundzwanzig Datensätze,
+  ein echter Datensatz-Verweis in der Station zu Verweisen und Struktur sowie
+  das Steckbrief-Dokument, das den Demo-Bereich zu einem Datenbank-Bereich
+  macht.
+- **Begriffs-Einheit der Datenbank-Texte in den vier Fremdsprachen**
+  (`4T-001505`). Oberfläche, Handbuch und Demo-Bereich benannten denselben
+  Gegenstand verschieden, weil ihre Texte in getrennten Vorgängen entstanden
+  sind. Vereinheitlicht sind: im Englischen durchgängig «fact sheet» statt
+  «database profile», in der Oberfläche wie im Demo-Bereich; im Französischen
+  «fiche d'identité», «base de données» und «zone» statt «espace» in den
+  Datenbank-Texten der Oberfläche; im Spanischen «ficha» und «base de datos»; im
+  Italienischen durchgängig «banca dati», einschließlich der Überschrift der
+  Handbuch-Seite, des Gruppen-Namens im Funktions-Katalog und der
+  Verweis-Beschriftungen, dazu «tabella di banca dati». Der Abschalt-Absatz der
+  Handbuch-Seite nennt in Französisch, Spanisch und Italienisch die
+  Voraussetzung jetzt eindeutig.
+
+### Dokumentation
+
+- **Die Nutzen-Darstellung führt die Arbeits-Form der Stufe** (`4T-001505`,
+  Entscheidungen des Product Owners vom 2026-09-09 und 2026-09-17). Der neue
+  Abschnitt «Daten und Prosa in denselben Dateien» steht in **beiden**
+  Ausspielungen, auf der Nutzen-Seite des Handbuchs und auf der Nutzen-Seite der
+  Produkt-Webseite, und in allen fünf Sprachfassungen. Er nimmt den Bereich als
+  Datenbank samt seiner Übersicht als Einstieg: Ein Ordner mit Markdown-Dateien
+  wird zur Datenbank, sobald ein Dokument sie beschreibt, eine Tabelle steht
+  vollständig in ihrer Datei, und aus beliebigem Text des Bereichs heraus zeigt
+  ein Verweis auf einen einzelnen Datensatz. Er benennt im selben Zug, was diese
+  Stufe nicht bringt. Der Erweiterungs-Schalter bleibt nach der Entscheidung des
+  Product Owners bewusst draußen, weil er keine Arbeits-Form eröffnet.
+- **Die Grenze der Verweis-Spalten steht auf der Handbuch-Seite «Datenbank»**
+  (`4T-001505`): Spalten der Typen `link` und `record` werden in dieser Stufe
+  als Text gezeigt und noch nicht aufgelöst. In allen fünf Sprachfassungen
+  ergänzt, damit die Seite nicht mehr verspricht, als der ausgelieferte Stand
+  einlöst.
+- **Modul-Karte der Architektur gegenständlich nachgezählt** (`4T-001505`). Die
+  Zahlen im Kapitel zur Code-Struktur waren mehrere Züge lang nicht nachgeführt
+  und lagen unter dem realen Bestand. Haupt-Prozess, Module des
+  Anzeige-Prozesses, gemeinsame Module und Demo-Bereich sind am Baum ausgezählt
+  und mit ihrem Stand vermerkt.
+
+### Intern
+
+- **Zwei Dateien geschnitten, statt den Größen-Wächter zu lockern**
+  (`4T-001505`). Die Brücke zwischen Haupt- und Anzeige-Prozess und die
+  Start-Sequenz des Anzeige-Prozesses haben nach dem neunten Rebase-Lauf des
+  Zuges ihr Datei-Budget von 500 Code-Zeilen gerissen (501 und 502), weil der Zug
+  und das Release `1.136.0` dieselben beiden Dateien verlängert haben, jede Seite
+  für sich innerhalb des Budgets. Geschnitten ist je ein fachlich geschlossener
+  Block: der Bücher-Anteil der Brücke nach `src/main/preload-buecher.js`, nach
+  dem Muster des Datenbank-Anteils aus `4T-001758`, und die Wiederherstellung der
+  Spalten aus dem Sitzungs-Abbild nach
+  `src/renderer/modules/app/sitzungs-wiederherstellung.js`, nach dem Muster der
+  Auszüge aus `4T-001001`. Beide Rümpfe sind unverändert verschoben, kein
+  Kanal-Name und keine Aufruf-Reihenfolge sind berührt, und die Ausnahmeliste des
+  Größen-Budgets bleibt unverändert. Die beiden Dateien stehen danach bei 482 und
+  437 Code-Zeilen.
+- **Trennzeichen der Tabellen-Signatur als Escape-Sequenz statt als literales
+  Steuerzeichen** (`4T-001505`). Die Konstante `TRENNER` in
+  `src/main/index/datensatz-erfassung.js` trug ein literales NUL-Byte, entgegen
+  ihrem eigenen Kommentar; Git führte die Datei deshalb als binär, und ihr Diff
+  erschien in keinem Review. Geschrieben ist jetzt die Escape-Sequenz, der Wert
+  ist derselbe und das Verhalten unverändert. Befund aus der Vorbereitung der
+  Test-Iteration, Entscheidung des Product Owners vom 2026-09-18 in der
+  Release-Strecke.
+
 ## [1.136.0.2891] - 2026-09-17 — Canvas Stufe 4: Karten-Liste und Bedienung ohne Maus
 
 Zug 3E-000312,

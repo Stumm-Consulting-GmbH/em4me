@@ -26,10 +26,59 @@ const {
 const { parseFile, parseFileAsync } = require('./parse.js');
 const { readBlockDataAsync, readBlockDataSync } = require('./block-data.js');
 const { cacheRelPath, loadAreaCache, scheduleCacheWrite } = require('./cache.js');
+// 4T-001610 (Epic 3E-000252): Erfassung der Datensaetze. Der Vorlauf holt die
+// Definitionen der geteilten Tabellen, bevor die Haupt-Schleife laeuft; ohne
+// ihn koennte ein Folge-Segment, das vor seiner Kopf-Datei an die Reihe kommt,
+// seine Zellen nicht zuordnen (Begruendung im Erfassungs-Modul).
+const {
+  kopfDateiFuer,
+  vergissDefinition,
+  definitionFuerSegment,
+  holeDefinitionenVorab,
+  erfasseAusDatei,
+  merkeDefinitionAusDatei,
+} = require('./datensatz-erfassung.js');
 
 // B-21 (4T-000187): Wartezeit nach einem Watcher-Fehler, bevor ein neuer
 // Bedarf den Index wieder aufbauen darf.
 const WATCHER_ERROR_BACKOFF_MS = 30 * 1000;
+
+// 4T-001610 (Epic 3E-000252): Passt der zwischengespeicherte Datensatz-Stand
+// einer Datei noch zur heutigen Definition?
+//
+// Fuer alles ausser einem Folge-Segment ist die Antwort immer ja: Eine
+// Kopf-Datei traegt ihre Definition selbst, und wer sie aendert, aendert die
+// Datei — das faengt schon der Abgleich ueber mtime und Groesse. Nur das
+// Folge-Segment erbt seine Zuordnung von einer anderen Datei, und nur dort
+// braucht es den Vergleich.
+function segmentStandPasst(parsed, filePath) {
+  const kopfPfad = kopfDateiFuer(filePath);
+  if (!kopfPfad) return true;
+  const heute = definitionFuerSegment(filePath);
+  return String((parsed && parsed.recordDefSig) || '') === String((heute && heute.signatur) || '');
+}
+
+// 4T-001610 (Epic 3E-000252): Ordnet die Folge-Segmente einer Tabelle neu zu,
+// deren Definition sich geaendert hat.
+//
+// Gelaufen wird ueber `recordsPerFile` und nicht ueber alle Dateien: Dort
+// stehen allein die Dateien mit Datensaetzen, und das sind wenige. Nur die
+// Datensatz-Ebene wird neu gesetzt; Links, Anker und Tags eines Segments
+// haengen nicht an der Definition, und ein vollstaendiger Neu-Eintrag
+// zerschnitte ohne Not die Groessen- und Zeit-Buchfuehrung der Datei.
+function ordneSegmenteNeuZu(entry, kopfPfad) {
+  for (const pfad of [...entry.recordsPerFile.keys()]) {
+    if (kopfDateiFuer(pfad) !== kopfPfad) continue;
+    const erfasst = erfasseAusDatei(pfad);
+    if (!erfasst) {
+      entry.recordsPerFile.delete(pfad);
+      entry.recordDefSigPerFile.delete(pfad);
+      continue;
+    }
+    entry.recordsPerFile.set(pfad, erfasst.records);
+    entry.recordDefSigPerFile.set(pfad, erfasst.defSignatur);
+  }
+}
 
 // B-14 (4T-000181): asynchroner Initial-Aufbau mit Batch-Yielding. Bricht
 // still ab, wenn der Eintrag zwischenzeitlich abgebaut wurde (Teardown
@@ -59,6 +108,15 @@ async function buildIndexAsync(rootPath, entry) {
     if (!stillCurrent()) return;
   }
 
+  // 4T-001610 (Epic 3E-000252): Vorlauf der Datensatz-Erfassung. Er liest je
+  // GETEILTER Tabelle einmal den Kopf ihrer ersten Datei, damit ein
+  // Folge-Segment seine Zellen auch dann zuordnen kann, wenn es vor seiner
+  // Kopf-Datei an die Reihe kommt. Erkannt werden die Segmente am Dateinamen,
+  // ohne jeden Datei-Zugriff; in einem Bereich ohne geteilte Tabelle — dem
+  // Regelfall — laeuft er ueber die Namensliste und liest nichts.
+  await holeDefinitionenVorab(scan.files);
+  if (!stillCurrent()) return;
+
   // Initial-Parse aller Dateien (Batch-Yield alle BUILD_BATCH_SIZE).
   let sinceYield = 0;
   for (const f of scan.files) {
@@ -69,12 +127,19 @@ async function buildIndexAsync(rootPath, entry) {
     if (cache) {
       const cached = cache.get(cacheRelPath(f, rootPath));
       if (cached && cached.mtimeMs === mtimeMs && cached.size === size) {
-        parsed = cached.parsed;
-        hash = cached.hash;
+        // 4T-001610 (Epic 3E-000252): Ein Folge-Segment traegt seinen bereits
+        // ZUGEORDNETEN Bestand im Zwischenspeicher. Aendert der Anwender die
+        // Schluessel-Spalte, aendert sich die Segment-Datei nicht, und mtime
+        // und Groesse allein liessen den veralteten Stand stehen. Deshalb
+        // zaehlt hier zusaetzlich die Signatur der Definition.
+        if (segmentStandPasst(cached.parsed, f)) {
+          parsed = cached.parsed;
+          hash = cached.hash;
+        }
       }
     }
     if (!parsed) {
-      const res = await parseFileAsync(f);
+      const res = await parseFileAsync(f, definitionFuerSegment(f));
       if (!stillCurrent()) return;
       if (res) {
         parsed = res;
@@ -203,6 +268,16 @@ function applyParsedFile(entry, filePath, parsed) {
   if (Array.isArray(parsed.tasks) && parsed.tasks.length > 0) {
     entry.tasksPerFile.set(filePath, parsed.tasks);
   }
+  // 4T-001510 (Epic 3E-000250): Marken der Datenbank-Behaelter pro Datei ablegen.
+  if (Array.isArray(parsed.dbKinds) && parsed.dbKinds.length > 0) {
+    entry.dbKindsPerFile.set(filePath, parsed.dbKinds);
+  }
+  // 4T-001610 (Epic 3E-000252): Datensaetze der Datei ablegen, dazu bei einem
+  // Folge-Segment die Signatur der Definition, gegen die zugeordnet wurde.
+  if (Array.isArray(parsed.records) && parsed.records.length > 0) {
+    entry.recordsPerFile.set(filePath, parsed.records);
+    if (parsed.recordDefSig != null) entry.recordDefSigPerFile.set(filePath, parsed.recordDefSig);
+  }
   // 4T-000402 (Epic 3E-000076): geaenderte Links machen den Link-Graphen ungueltig.
   entry.linkGraph = null;
   // 4T-000952 (Epic 3E-000198): und mit ihm den ueberlagerten der Graphenansicht.
@@ -300,6 +375,14 @@ function removeFileFromIndex(entry, filePath) {
   entry.blockDataPerFile.delete(filePath);
   // 4T-000502 (Epic 3E-000096): Task-Zeilen der Datei mit entfernen.
   entry.tasksPerFile.delete(filePath);
+  // 4T-001510 (Epic 3E-000250): Datenbank-Marken der Datei mit entfernen.
+  entry.dbKindsPerFile.delete(filePath);
+  // 4T-001610 (Epic 3E-000252): Datensaetze der Datei mit entfernen. Eine
+  // geloeschte Datei hinterlaesst keinen Eintrag; war sie die Kopf-Datei einer
+  // Tabelle, faellt auch ihre Definition aus der Ablage.
+  entry.recordsPerFile.delete(filePath);
+  entry.recordDefSigPerFile.delete(filePath);
+  vergissDefinition(filePath);
   entry.byteSize -= entry.fileSizes.get(filePath) || 0;
   entry.fileSizes.delete(filePath);
   // 4T-000402 (Epic 3E-000076): Datei-Zeiten und Link-Graph mit austragen.
@@ -358,7 +441,7 @@ function onWatcherChange(entry, filePath, kind) {
     markOversized(entry);
     return;
   }
-  const parsed = parseFile(filePath);
+  const parsed = parseFile(filePath, definitionFuerSegment(filePath));
   // B-11 (4T-000175): Lesefehler (Datei kurz gesperrt/gerade geloescht)
   // ueberschreibt die bestehenden Index-Daten nicht mit einem Leer-
   // Ergebnis; der naechste Event bzw. unlink raeumt regulaer auf.
@@ -371,6 +454,20 @@ function onWatcherChange(entry, filePath, kind) {
   entry.fileStats.set(filePath, { ctimeMs, mtimeMs });
   entry.byteSize += size;
   applyParsedFile(entry, filePath, parsed);
+  // 4T-001610 (Epic 3E-000252): Hat sich die Definition einer Kopf-Datei
+  // geaendert, ist die Zuordnung ihrer Folge-Segmente ueberholt — deren
+  // Dateien selbst haben sich nicht bewegt und melden sich nie. Erkannt wird
+  // das an der Signatur, die das Parse-Ergebnis mitbringt; nachgezogen wird
+  // nur bei tatsaechlicher Aenderung und nur an den Segmenten dieser Tabelle.
+  if (!kopfDateiFuer(filePath)) {
+    const vorher = entry.recordDefSigPerFile.get(filePath);
+    const nachher = parsed.recordDefSig;
+    if (nachher != null) entry.recordDefSigPerFile.set(filePath, nachher);
+    if (vorher !== undefined && vorher !== nachher) {
+      merkeDefinitionAusDatei(filePath);
+      ordneSegmenteNeuZu(entry, filePath);
+    }
+  }
   // 4T-000408 (Epic 3E-000077): Block-Daten der .mdd nachziehen (removeFileFromIndex
   // hat den alten Stand mit ausgetragen); sync wie parseFile in diesem Pfad.
   const blocks = readBlockDataSync(filePath);
@@ -401,6 +498,9 @@ function markOversized(entry) {
   entry.propertiesPerFile.clear();
   entry.blockDataPerFile.clear();
   entry.tasksPerFile.clear();
+  entry.dbKindsPerFile.clear();
+  entry.recordsPerFile.clear();
+  entry.recordDefSigPerFile.clear();
   entry.fileSizes.clear();
   // 4T-000402 (Epic 3E-000076): Datei-Zeiten und Link-Graph mit leeren.
   entry.fileStats.clear();

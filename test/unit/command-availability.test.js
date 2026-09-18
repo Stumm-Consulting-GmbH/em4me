@@ -377,6 +377,12 @@ const MENUE_BASISLINIE = new Map([
   ['history.open', 'fileTab'],
   ['graph.openArea', 'area'],
   ['stats.openArea', 'area'],
+  // 4T-001759 (Epic 3E-000253): Die Uebersicht der Datenbank. Sie stand am
+  // 2026-09-09 nicht im gemessenen Menue, weil sie erst hier entsteht; ihre
+  // Basislinie ist deshalb die Bedingung, mit der sie in das Menue eingehaengt
+  // wird — der gebundene Bereich, wie bei ihren beiden Nachbarn. Dass der
+  // Bereich auch eine Datenbank fuehrt, entscheidet der Anzeige-Prozess.
+  ['database.openOverview', 'area'],
   // 4T-001599 (Epic 3E-000191): My Extended Memory ist an keinen Bereich gebunden.
   ['memory.openPage', 'immer'],
   ['view.toggleEdit', 'fileTab'],

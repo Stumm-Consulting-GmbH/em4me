@@ -1,0 +1,6 @@
+{
+  "records.window": "Excerpt: {shown} of {total} records",
+  "records.empty": "No records",
+  "records.noDefinition": "No table definition in this file’s front matter",
+  "records.hints": "Notes on the record block:"
+}

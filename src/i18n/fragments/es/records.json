@@ -1,0 +1,6 @@
+{
+  "records.window": "Extracto: {shown} de {total} registros",
+  "records.empty": "Sin registros",
+  "records.noDefinition": "Sin definición de tabla en el frontmatter de este archivo",
+  "records.hints": "Avisos sobre el bloque de registros:"
+}

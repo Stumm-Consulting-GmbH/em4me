@@ -92,6 +92,8 @@
     { "name": "search", "praefixe": ["search", "searchResults", "areaReplace"] },
     { "name": "query", "praefixe": ["query"] },
     { "name": "datatable", "praefixe": ["datatable"] },
+    { "name": "records", "praefixe": ["records"] },
+    { "name": "database", "praefixe": ["database", "settings.database"] },
     {
       "name": "properties",
       "praefixe": [

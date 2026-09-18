@@ -214,6 +214,10 @@ export function buildBlockWidgetValue(state) {
       if (blockKlapptAuf(name, activeLines, fromLine.number, toLine.number)) return;
       const source = state.doc.sliceString(node.from, node.to);
       let cacheKey;
+      // 4T-001547: Vorspann für Konstrukte, deren Bedeutung außerhalb ihrer
+      // Fence steht; leer für alle übrigen, damit deren Render-Ergebnis
+      // unverändert bleibt.
+      let docPrefix = '';
       if (name === 'Table') {
         cacheKey = `table:${mermaidHash(source)}`;
       } else {
@@ -253,7 +257,26 @@ export function buildBlockWidgetValue(state) {
           );
           return;
         }
-        if (lang === 'perspective-table') {
+        if (lang === 'perspective-records') {
+          // 4T-001547 (Epic 3E-000251): Der einzige Block, dessen Bedeutung
+          // AUSSERHALB seiner Fence steht — die Spalten stehen in der
+          // Definition im Frontmatter derselben Datei (E3.2). Er bekommt den
+          // Frontmatter-Block als Vorspann mit, sonst zeigte der
+          // Änderungs-Modus eine Folge unbenannter Werte, während die
+          // Lese-Ansicht eine Tabelle zeigt.
+          //
+          // Gelesen wird nur bis zum Ende des Frontmatters und nicht das ganze
+          // Dokument: Genau diese Dateien werden groß, und der Aufbau der
+          // Dekorationen läuft bei jeder Änderung.
+          docPrefix =
+            frontmatterEndLine > 0
+              ? state.doc.sliceString(0, state.doc.line(frontmatterEndLine).to) + '\n'
+              : '';
+          // Die Definition gehört in den Cache-Schlüssel: Ohne sie zeigte ein
+          // Widget nach einer Spalten-Umbenennung weiter die alten Köpfe.
+          // Dasselbe Muster wie der Stichtag bei den Ereignissen.
+          cacheKey = `perspective-records:${mermaidHash(docPrefix)}:${mermaidHash(source)}`;
+        } else if (lang === 'perspective-table') {
           cacheKey = `perspective-table:${mermaidHash(source)}`;
         } else if (lang === 'perspective-events') {
           // 4T-000512 (Epic 3E-000092): Stichtag im Cache-Key — die Differenz-
@@ -266,7 +289,7 @@ export function buildBlockWidgetValue(state) {
       }
       ranges.push(
         Decoration.replace({
-          widget: new MarkdownBlockWidget(source, basePath, cacheKey),
+          widget: new MarkdownBlockWidget(source, basePath, cacheKey, docPrefix),
         }).range(node.from, node.to),
       );
     },

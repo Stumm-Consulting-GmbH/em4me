@@ -67,6 +67,14 @@ function reconstructParsed(entry, absPath) {
     properties: entry.propertiesPerFile.get(absPath) || {},
     // 4T-000502 (Epic 3E-000096): Task-Zeilen für den Cache mit rekonstruieren.
     tasks: entry.tasksPerFile.get(absPath) || [],
+    // 4T-001510 (Epic 3E-000250): Datenbank-Marken für den Cache mit rekonstruieren.
+    dbKinds: entry.dbKindsPerFile.get(absPath) || [],
+    // 4T-001610 (Epic 3E-000252): Datensatz-Bestand für den Cache mit
+    // rekonstruieren, dazu die Signatur der Definition eines Folge-Segments.
+    // Ohne sie liesse der Warmstart einen Bestand stehen, der gegen eine
+    // inzwischen geänderte Schlüssel-Spalte zugeordnet worden ist.
+    records: entry.recordsPerFile.get(absPath) || [],
+    recordDefSig: entry.recordDefSigPerFile.get(absPath) ?? null,
   };
 }
 
@@ -105,6 +113,13 @@ async function loadAreaCache(cachePath, wurzel) {
         // 4T-000502 (Epic 3E-000096): Task-Zeilen aus dem Cache lesen (Schema-
         // Version 3; Alt-Caches verwirft parseCacheContainer ueber die Version).
         tasks: Array.isArray(p.tasks) ? p.tasks : [],
+        // 4T-001510 (Epic 3E-000250): Datenbank-Marken aus dem Cache lesen
+        // (Schema-Version 4).
+        dbKinds: Array.isArray(p.dbKinds) ? p.dbKinds : [],
+        // 4T-001610 (Epic 3E-000252): Datensatz-Bestand aus dem Cache lesen
+        // (Schema-Version 5).
+        records: Array.isArray(p.records) ? p.records : [],
+        recordDefSig: typeof p.recordDefSig === 'string' ? p.recordDefSig : null,
       },
     });
   }
@@ -136,6 +151,11 @@ async function writeAreaCache(entry) {
         properties: parsed.properties || {},
         // 4T-000502 (Epic 3E-000096): Task-Zeilen mit persistieren.
         tasks: parsed.tasks || [],
+        // 4T-001510 (Epic 3E-000250): Datenbank-Marken mit persistieren.
+        dbKinds: parsed.dbKinds || [],
+        // 4T-001610 (Epic 3E-000252): Datensatz-Bestand mit persistieren.
+        records: parsed.records || [],
+        recordDefSig: parsed.recordDefSig ?? null,
       },
     };
   }

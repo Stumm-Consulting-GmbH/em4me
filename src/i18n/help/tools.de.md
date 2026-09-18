@@ -87,7 +87,7 @@ Außerhalb der einzelnen Datei erscheinen die Treffer im Sidebar-Panel **Sucherg
 
 Die **offene Datei steht an erster Stelle** der Liste, und zwar mit ihrem ungespeicherten Stand: Was gerade im Editor steht, wird gefunden, auch wenn es noch nicht gespeichert ist. Ihre Treffer sind wie gewohnt direkt im Text markiert, die Liste kommt hinzu. Für alle übrigen Dateien gilt der gespeicherte Stand auf der Festplatte.
 
-Gesucht wird in den Markdown-Dateien des Bereichs. Andere Dateien und die Begleitdateien der Anwendung bleiben außen vor.
+Gesucht wird in den Markdown-Dateien des Bereichs. Andere Dateien und die Begleitdateien der Anwendung bleiben außen vor. Eine **Tabellen-Datei der [Datenbank](database.md)** geht ohne den Inhalt ihres Datensatz-Blocks ein: Ihr erklärender Text bleibt durchsuchbar, ihre Datensätze werden über diesen Weg nicht gefunden. Wer die Datei öffnet und darin sucht, findet sie unverändert.
 
 Ist **kein Reiter offen**, gilt der Bereich trotzdem: Suchen und Ersetzen erreichen seinen Bestand, ohne dass erst eine Datei geöffnet werden müsste. Zwei Dinge entfallen dann, weil es sie ohne offene Datei nicht gibt — die Liste wird rein alphabetisch geordnet, statt eine Datei voranzustellen, und im Text ist nichts markiert.
 

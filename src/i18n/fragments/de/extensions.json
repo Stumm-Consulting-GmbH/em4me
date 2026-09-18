@@ -55,5 +55,7 @@
   "settings.extensionsExternal.action.devTools": "Entwickler-Werkzeuge",
   "settings.extensionsExternal.diagnose.hint": "Meldungen einer Erweiterung erscheinen in der Konsole der Entwickler-Werkzeuge. Sie öffnen sich für dieses Fenster und lassen sich mit derselben Schaltfläche wieder schließen.",
   "extension.events.name": "Ereignisse",
-  "extension.events.description": "Eingebettete Ereignis-Verwaltung im Dokument und Aggregation über Frontmatter-Eigenschaften, mit Zeitdifferenz-Staffelung, Meilensteinen und Jahres-Wiederkehr."
+  "extension.events.description": "Eingebettete Ereignis-Verwaltung im Dokument und Aggregation über Frontmatter-Eigenschaften, mit Zeitdifferenz-Staffelung, Meilensteinen und Jahres-Wiederkehr.",
+  "extension.database.name": "Datenbank",
+  "extension.database.description": "Tabellen-Definitionen im Frontmatter, Datensätze als typisierte Tabelle im Dokument, Verweise auf einzelne Datensätze und die Übersicht des Datenbank-Bereichs. Setzt die Eigenschafts-Profile voraus; abgeschaltet bleibt ein Datensatz-Block ein gewöhnlicher Code-Block, die Dateien bleiben unverändert."
 }

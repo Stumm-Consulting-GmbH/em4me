@@ -59,6 +59,25 @@ describe('Bereich Erweiterungen (4T-000295)', () => {
     expect(katexToggle.checked).toBe(true);
   });
 
+  // 4T-001760 (Epic 3E-000253, AK7): Die Sichtprüfung an der gebauten
+  // Programmdatei bleibt der Nachweis für den Anwender; dieser Fall hält die
+  // Einordnung fest, damit die Zeile nicht unbemerkt in einen anderen Block
+  // rutscht. Gemessen wird die Nachbarschaft im DOM, weil die Zeilen keine
+  // eigene Kategorie-Marke tragen: Maßgeblich ist die letzte Gruppen-
+  // Überschrift vor der Zeile.
+  it('die Zeile der Datenbank steht in der Kategorie Werkzeuge', () => {
+    const container = mountPage();
+    activateSection(container, 'extensions');
+    const row = container.querySelector('.settings-extension-row[data-extension-id="database"]');
+    expect(row).toBeTruthy();
+    let el = row.previousElementSibling;
+    while (el && !el.classList.contains('settings-extensions-group-title')) {
+      el = el.previousElementSibling;
+    }
+    expect(el).toBeTruthy();
+    expect(el.textContent).toBe('settings.extensions.category.tools');
+  });
+
   it('Abwählen von wiki-links sperrt wiki-embeds mit Abhängigkeits-Hinweis (nur Entwurf)', () => {
     const container = mountPage();
     activateSection(container, 'extensions');

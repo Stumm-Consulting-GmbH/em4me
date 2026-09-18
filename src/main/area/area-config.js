@@ -1,7 +1,8 @@
-// Konfigurations-Sektionen der Bereichsdatei (Area_Settings.mdda): die acht
+// Konfigurations-Sektionen der Bereichsdatei (Area_Settings.mdda): die neun
 // strukturgleichen Leser samt der beiden Aufloeser fuer Anlagen und Vorlagen,
-// dazu die Schreib-Wege der Start-Seite, der Bereichs-Verknuepfungen und
-// (seit 4T-001588) der Kalender-Systeme.
+// dazu die Schreib-Wege der Start-Seite, der Bereichs-Verknuepfungen,
+// (seit 4T-001588) der Kalender-Systeme und (seit 4T-001758) der
+// Datenbank-Anzeige.
 //
 // Auszug aus main.js, 4T-000998 (Epic 3E-000196). Alle Leser teilen denselben
 // Migrations-Lese-Pfad (readAreaSettingsRaw zieht eine vorhandene Alt-Datei
@@ -374,6 +375,71 @@ function createAreaConfig(deps) {
     return path.relative(rootPath, absolute).split(path.sep).join('/');
   }
 
+  // 4T-001758 (Epic 3E-000253): database-Sektion der Bereichsdatei lesen. Sie
+  // traegt heute genau eine Angabe, den Schalter «Uebersicht beim Oeffnen des
+  // Bereichs zeigen». undefined = keine Sektion oder Bereichsdatei fehlt/ist
+  // defekt; das wirkt wie «nicht gesetzt» und damit wie «nicht zeigen».
+  // Gleicher Migrations-Lese-Pfad wie die uebrigen Sektionen.
+  //
+  // **Die Bereichs-ART steht hier bewusst NICHT.** Ob ein Bereich eine
+  // Datenbank fuehrt, sagt allein der Steckbrief im Bestand (Entscheidung des
+  // Product Owners vom 2026-09-15); eine zweite Erklaerung in der Bereichsdatei
+  // koennte ihm widersprechen. Diese Sektion traegt nur, was der Anwender
+  // ueber die ANZEIGE entscheidet.
+  async function readAreaDatabaseConfig(rootPath) {
+    const raw = await readAreaSettingsRaw({
+      mddaPath: path.join(rootPath, mddStore.MDDA_FILENAME),
+      mddbPath: path.join(rootPath, mddStore.LEGACY_MDDB_FILENAME),
+      readFile: (p) => fs.readFile(p, 'utf8'),
+      rename: (from, to) => fs.rename(from, to),
+      markSelfWriting,
+    });
+    if (raw === undefined) return undefined;
+    const parsed = mddStore.parseSettingsContainer(raw);
+    if (!parsed.ok) return undefined;
+    return parsed.container.settings.database;
+  }
+
+  // 4T-001758: Wirksamer Stand der Datenbank-Sektion, immer ein Objekt. Eine
+  // fehlende Sektion, eine fehlende oder defekte Bereichsdatei und ein
+  // unbrauchbarer Wert sind fuer den Aufrufer derselbe Fall: nichts gesetzt.
+  // Der Schalter ist aus, solange ihn niemand eingeschaltet hat — eine
+  // Uebersicht, die sich ungefragt vor das Dokument des Anwenders schiebt,
+  // waere die falsche Vorgabe.
+  function normalisiereDatenbankKonfig(roh) {
+    const gesetzt = roh && typeof roh === 'object' && !Array.isArray(roh) ? roh : {};
+    return { overviewOnOpen: gesetzt.overviewOnOpen === true };
+  }
+
+  // 4T-001758: Datenbank-Sektion schreiben. Muster writeAreaStartPage: Die
+  // Bereichsdatei entsteht erst beim ersten tatsaechlichen Setzen, eine defekte
+  // wird nie ueberschrieben, unbekannte Sektionen ueberleben (der ganze
+  // Container wird gelesen und zurueckgeschrieben), und der Vorgabewert
+  // entfernt die Sektion, statt sie als leeres Feld stehen zu lassen.
+  async function writeAreaDatabaseConfig(rootPath, config) {
+    const normalisiert = normalisiereDatenbankKonfig(config);
+    const leer = normalisiert.overviewOnOpen === false;
+    const mddaPath = path.join(rootPath, mddStore.MDDA_FILENAME);
+    let container = mddStore.emptySettingsContainer();
+    let raw = null;
+    try {
+      raw = await fs.readFile(mddaPath, 'utf8');
+    } catch (err) {
+      if (err && err.code !== 'ENOENT') throw err;
+    }
+    if (raw !== null) {
+      const parsed = mddStore.parseSettingsContainer(raw);
+      if (!parsed.ok) return { ok: false, error: `mdda defekt: ${parsed.error}` };
+      container = parsed.container;
+    }
+    if (leer) delete container.settings.database;
+    else container.settings.database = normalisiert;
+    if (raw === null && leer) return { ok: true }; // nichts anzulegen
+    const serialized = mddStore.serializeContainer(container);
+    await ersetzeDateiOderWirf(mddaPath, serialized, { markSelfWriting });
+    return { ok: true };
+  }
+
   // 4T-001450 (Epic 3E-000190): areaLinks-Sektion der Bereichsdatei lesen
   // (Verknuepfungen zu anderen Bereichen). Liefert stets eine LISTE, nie
   // undefined: Eine fehlende Sektion, eine fehlende oder defekte Bereichsdatei
@@ -519,6 +585,9 @@ function createAreaConfig(deps) {
     resolveAreaStartPage,
     writeAreaStartPage,
     startPageRelative,
+    readAreaDatabaseConfig,
+    writeAreaDatabaseConfig,
+    normalisiereDatenbankKonfig,
     readAreaLinks,
     writeAreaLinks,
     resolveTemplatesForWindow,

@@ -213,5 +213,17 @@
   "help.featureAccess.canvasStacking": "Ansicht → Reihenfolge auf der Fläche; Kontextmenü des gewählten Elements; Kommando-Palette → 'Ganz nach vorn', 'Eine Stufe vor', 'Eine Stufe zurück' und 'Ganz nach hinten'",
   "help.featureAccess.canvasLinkCards": "Ansicht → Verweis-Karte auf der Fläche anlegen; Kontextmenü der Fläche → Verweis-Karte auf der Fläche anlegen; Kontextmenü der Karte → Verweis setzen…, Ziel öffnen, Verweis entfernen; Leiste der gewählten Karte; Kommando-Palette → ‚Verweis-Karte auf der Fläche anlegen‘",
   "help.featureAccess.canvasImageCards": "Ansicht → Bild-Karte auf der Fläche anlegen; Kontextmenü der Fläche → Bild-Karte auf der Fläche anlegen; Kontextmenü der Karte → Bild setzen…, Ziel öffnen, Bild entfernen; Leiste der gewählten Karte; Kommando-Palette → ‚Bild-Karte auf der Fläche anlegen‘",
-  "help.featureAccess.canvasList": "Statusleiste → Karten-Liste; Ansicht → Sidebar → Panels → Karten-Liste; Kommando-Palette → ‚Karten-Liste‘; in der Liste Pfeil auf und ab, Pos1 und Ende, Eingabetaste, Entf, Kontextmenü-Taste und Umschalt+F10 sowie Escape; Kontextmenü einer Karte → ‚Verbindung auf der Fläche anlegen…‘; Filter-Feld im Kopf der Liste, in der Canvas-Ansicht auch über Standard Strg+F"
+  "help.featureAccess.canvasList": "Statusleiste → Karten-Liste; Ansicht → Sidebar → Panels → Karten-Liste; Kommando-Palette → ‚Karten-Liste‘; in der Liste Pfeil auf und ab, Pos1 und Ende, Eingabetaste, Entf, Kontextmenü-Taste und Umschalt+F10 sowie Escape; Kontextmenü einer Karte → ‚Verbindung auf der Fläche anlegen…‘; Filter-Feld im Kopf der Liste, in der Canvas-Ansicht auch über Standard Strg+F",
+  "help.featureAccess.databaseTable": "Frontmatter der Tabellen-Datei, Behälter `db-table`",
+  "help.featureAccess.databaseColumnTypes": "Frontmatter der Tabellen-Datei, Angabe `type` einer Spalte",
+  "help.featureAccess.databaseRecordKey": "Frontmatter der Tabellen-Datei, Angaben `lastId`, `key` und `display`",
+  "help.featureAccess.databaseInfo": "Frontmatter eines Dokuments der Datenbank, Behälter `db-database`",
+  "help.featureAccess.databaseRecords": "Körper der Tabellen-Datei, Block `perspective-records`",
+  "help.featureAccess.databaseRecordsView": "Lese-Ansicht und Änderungs-Modus einer Tabellen-Datei",
+  "help.featureAccess.databaseSegments": "Automatisch beim Speichern, sobald der Datenbestand die Schwelle überschreitet",
+  "help.featureAccess.databaseSearchScope": "Wirkt bei jeder Suche über einen geöffneten Bereich (Standard Strg+F)",
+  "help.featureAccess.databaseRecordLink": "Im Text geschrieben, Form `[[Tabelle#^r-00042]]`",
+  "help.featureAccess.databaseArea": "Einstellungen → Aktueller Bereich → Datenbank",
+  "help.featureAccess.databaseOverview": "Ansicht → Übersicht der Datenbank; Kontextmenü des Bereichs-Panels; Kommando-Palette",
+  "help.featureAccess.databaseExtension": "Einstellungen → Erweiterungen → Datenbank"
 }

@@ -26,6 +26,12 @@ import { normalizeForCompare } from '../area.js';
 import { handleSpellcheckContext } from '../editor/editor-context-menu.js';
 import { refreshAreaVariants } from '../sidebar-variants.js';
 import { refreshAreaPanels } from '../area-panel.js';
+// 4T-001758 (Epic 3E-000253): Die Datenbank-Auskunft des Bereichs ist
+// bereichs-gebunden und wird beim Binding-Wechsel verworfen.
+import { verwirfDatenbankAuskunft } from '../database/datenbank-bereich.js';
+// 4T-001759 (Epic 3E-000253): Beim Binden eines Bereichs wird die Uebersicht
+// gezeigt, sofern der Anwender das fuer ihn eingestellt hat.
+import { zeigeUebersichtBeimBinden } from '../database/datenbank-uebersicht-seite.js';
 import { refreshCalendarPanels } from '../calendar/calendar-panel.js';
 import { loadAreaBookmarks } from '../bookmarks/bookmarks.js';
 import {
@@ -186,6 +192,19 @@ export function registerAppBroadcasts(deps) {
     // 4T-000327 (Epic 3E-000059): Bereichs-Wechsel (Bindung einer leeren App)
     // baut die Bereichs-Panels frisch auf.
     if (prevAreaPath !== state.areaPath) {
+      // 4T-001758 (Epic 3E-000253): Zuerst die gehaltene Datenbank-Auskunft
+      // verwerfen, denn sie gehoert zum alten Bereich. Sie steht vor den
+      // Nachzuegen darunter, weil die Einstellungs-Seite sie beim Neuaufbau
+      // gleich wieder abfragt.
+      verwirfDatenbankAuskunft({ bereichsWechsel: true });
+      // 4T-001759 (Epic 3E-000253): Danach die Auskunft fuer den NEUEN Bereich
+      // holen. Sie oeffnet die Uebersichts-Seite, wenn der Anwender das fuer
+      // diesen Bereich eingestellt hat, und waermt zugleich die synchrone
+      // Antwort, auf die Kontextmenue und Menue-Zugang angewiesen sind.
+      // Waehrend der Sitzungs-Wiederherstellung unterbleibt der Aufruf, weil
+      // sie die Spalten neu aufbaut und einen vorher geoeffneten Reiter
+      // verwerfen wuerde; fuer diesen Fall ruft init() am Ende selbst.
+      if (initDone()) void zeigeUebersichtBeimBinden();
       refreshAreaPanels();
       // 4T-000612 (Epic 3E-000115): Bereichs-Lesezeichen sind bereichs-gebunden und
       // ziehen beim Binding-Wechsel nach (Bereichs-Abschnitt neu laden bzw.

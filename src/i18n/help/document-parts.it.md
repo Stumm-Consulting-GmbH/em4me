@@ -12,6 +12,8 @@ La prima divisione di un documento viene annunciata. Puoi rifiutarla: il file re
 
 Se il salvataggio automatico è attivo in secondo piano, non viene diviso nulla senza richiesta. La scheda resta semplicemente modificata finché non salvi una volta manualmente e rispondi alla domanda.
 
+**Per le tabelle di banca dati tutto questo funziona in modo un po' diverso.** Un file di tabella della [banca dati](database.md) è un archivio tecnico e non il tuo testo: viene diviso già a partire da circa 0,7 MB, il taglio si colloca tra due record anziché prima di un titolo, e non viene annunciato nulla — quel file non è mai stato un luogo in cui lavorare a mano. Tutto il resto di questa pagina vale per esso invariato, con un'eccezione: la ricerca sull'area accoglie un file di tabella senza i suoi record, in qualunque parte si trovino.
+
 ## Dove avviene il taglio
 
 Il taglio avviene esclusivamente prima di un **titolo dei primi due livelli**, cioè prima di una riga che inizia con uno o due cancelletti:

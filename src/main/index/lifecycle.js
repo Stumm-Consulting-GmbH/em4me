@@ -12,6 +12,10 @@ const { indexes, broadcast, scheduleInvalidate, resolveRootInfo } = require('./s
 const { buildIndexAsync } = require('./build.js');
 const { writeAreaCache } = require('./cache.js');
 const { normalizeBlockEntries } = require('./block-data.js');
+// 4T-001761 (Epic 3E-000253): Die abgeleiteten Zuordnungen des Datensatz-
+// Zugriffs hängen am Bestand und nicht an der Wurzel; ein Neuaufbau, der den
+// Bestand ändert, verwirft sie mit.
+const { zwischenspeicherLeeren } = require('./datensatz-zugriff.js');
 
 const SOFT_TIMEOUT_MS = 60 * 1000;
 
@@ -95,6 +99,27 @@ function ensureIndex(rootPath, ownerKey, isArea) {
     // läuft pro Datei gegen diese Map (bewusst keine inverse Wert-Map).
     //   propertiesPerFile: Map<absPath, { [keyLower]: string | string[] }>
     propertiesPerFile: new Map(),
+    // 4T-001510 (Epic 3E-000250): Marken der Datenbank-Behälter pro Datei (nur
+    // Dateien mit Marke). Die Auskunft «welche Dateien sind Tabellen bzw. der
+    // Steckbrief», aus der der Katalog seinen Bestand bildet; die Definition
+    // selbst steht in der Datei und nicht hier.
+    //   dbKindsPerFile: Map<absPath, Array<'table'|'database'>>
+    dbKindsPerFile: new Map(),
+    // 4T-001610 (Epic 3E-000252): Datensätze pro Datei einer Datenbank-Tabelle
+    // (nur Dateien mit Datensätzen). Je Datensatz die interne Kennung, die Werte
+    // des fachlichen Schlüssels, die Anzeige-Form und die Zeile in der Datei —
+    // **nie die Zellwerte** (Entscheidung A1 vom 2026-09-08; sie hielten die
+    // ganze Datenbank im Speicher). Vorwärts-Map wie die Nachbarn; der Zugriff
+    // über Kennung und Schlüssel folgt in 4T-001611.
+    //   recordsPerFile: Map<absPath, Array<{ id, key, display, zeile }>>
+    recordsPerFile: new Map(),
+    // 4T-001610: Zu einem Folge-Segment die Signatur der Definition, gegen die
+    // seine Datensätze zugeordnet wurden. Trägt die Gültigkeit im
+    // Platten-Zwischenspeicher: Ändert sich die Schlüssel-Spalte in der
+    // Kopf-Datei, ändert sich die Segment-Datei nicht, und ohne den Vergleich
+    // zeigte der Bestand dauerhaft veraltete Schlüsselwerte.
+    //   recordDefSigPerFile: Map<absPath, string>
+    recordDefSigPerFile: new Map(),
     // 4T-000408 (Epic 3E-000077): Block-Daten pro Datei aus der blockData-Sektion
     // der .mdd-Begleitdatei (nur Dateien mit Eintraegen). Grundlage des
     // BLOCKS-Scopes der Abfrage; Pflege ueber Index-Aufbau, Watcher-Pfad und
@@ -172,6 +197,45 @@ function ensureIndex(rootPath, ownerKey, isArea) {
     broadcast('backlinks:invalidated', { wurzel: rootPath });
   });
   return entry;
+}
+
+// 4T-001761 (Epic 3E-000253): Alle offenen Indizes verwerfen und mit denselben
+// Besitzern neu aufbauen.
+//
+// **Wofür.** Der Umfang des Bestands hängt seit diesem Vorgang am Schalter der
+// Erweiterung «Datenbank» (index-schalter.js). Wird er umgelegt, ist jeder
+// stehende Index nach der alten Regel gebaut: Beim Abschalten hielte er
+// Datensätze, die niemand mehr sehen darf, beim Einschalten fehlten sie. Der
+// Neuaufbau ist der einzige Weg, weil die Erfassung beim Parsen der Datei
+// geschieht und der Bestand danach nicht nachträglich entsteht.
+//
+// **Das Muster ist der Rebuild aus `ensureIndex`** (Upgrade bereichslos ->
+// Bereich und Watcher-Fehler): Besitzer sichern, mit `force` abbauen, je
+// Besitzer neu anfragen. Der Aufbau läuft asynchron wie sonst auch, und die
+// wartenden Ansichten holt der `backlinks:invalidated`-Broadcast ab.
+//
+// Der Arbeitsbaum des Anwenders wird dabei **nicht** angefasst: Es wird
+// gelesen, nicht geschrieben. Die eine Ausnahme ist der Zwischenspeicher einer
+// Bereichs-Wurzel, den der Abbau ohnehin seit jeher sichert.
+function alleIndizesNeuAufbauen() {
+  const wurzeln = [];
+  for (const [rootPath, entry] of indexes) {
+    wurzeln.push({ rootPath, owners: new Set(entry.ownerKeys), isArea: entry.isArea });
+  }
+  // Die abgeleiteten Zuordnungen des Datensatz-Zugriffs zeigen auf den alten
+  // Bestand. Sie verfallen zwar ohnehin mit dem nächsten Index-Stand; sie hier
+  // zu leeren macht die Zusage unabhängig davon, ob ein Aufbau seinen Stand
+  // schon gemeldet hat.
+  zwischenspeicherLeeren();
+  for (const { rootPath, owners, isArea } of wurzeln) {
+    teardownIndex(rootPath, { force: true });
+    // Eine Wurzel OHNE Besitzer steht in ihrem Soft-Fenster und verschwindet
+    // ohnehin binnen einer Minute; sie wird abgebaut und nicht neu gebaut. Ein
+    // Neuaufbau ohne Besitzer bekäme weder Soft-Timer noch Freigabe und bliebe
+    // für die Lebensdauer der Anwendung liegen. Der nächste Bedarf baut sie
+    // nach der neuen Regel wieder auf.
+    for (const key of owners) ensureIndex(rootPath, key, isArea);
+  }
 }
 
 // Invalidierungs-Pfad der Block-Ebene: main.js ruft dies nach jeder blockData-
@@ -296,6 +360,9 @@ function ensureAreaIndex(areaRoot, ownerKey) {
 
 module.exports = {
   ensureIndex,
+  // 4T-001761 (Epic 3E-000253): Neuaufbau aller Indizes nach dem Umlegen des
+  // Erweiterungs-Schalters.
+  alleIndizesNeuAufbauen,
   releaseRoot,
   releaseAllForOwner,
   ensureIndexForDemand,

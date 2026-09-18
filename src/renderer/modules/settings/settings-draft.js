@@ -46,6 +46,8 @@ import { normalizeTimestampDraft, readPdfExportFromStore } from './settings-smal
 import { readTemplatesFromConfig } from './settings-templates.js';
 // 4T-001455 (Epic 3E-000190): Verknuepfungen des Bereichs.
 import { readAreaLinksFromConfig } from './settings-area-links.js';
+// 4T-001758 (Epic 3E-000253): Datenbank-Auskunft und Anzeige-Option des Bereichs.
+import { readDatabaseFromConfig } from './settings-database.js';
 
 // 4T-000179/R5-08: Merge fuer den Appearance-Broadcast eines anderen
 // Fensters — der offene Entwurfs-Snapshot zieht mit, sonst revertiert
@@ -210,6 +212,17 @@ function ladeAppearanceInDraft() {
     pageState.draft.journalsSnapshot = values.snapshot;
     if (pageState.activeSectionId === 'journals') renderActiveSection();
   });
+  // 4T-001758 (Epic 3E-000253): Datenbank des Bereichs. Anders als die uebrigen
+  // Nachzuege baut dieser die NAVIGATION neu auf und nicht nur den aktiven
+  // Bereich: Von dieser Antwort haengt ab, ob die Sektion ueberhaupt erscheint.
+  readDatabaseFromConfig().then((values) => {
+    if (generation !== pageState.generation || !pageState.draft) return;
+    pageState.draft.database = values.draft;
+    pageState.draft.databaseSnapshot = values.snapshot;
+    const els = settingsPageEls();
+    if (els && els.nav && els.nav.isConnected) buildSettingsNavEntries(els.nav);
+    if (pageState.activeSectionId === 'database') renderActiveSection();
+  });
   // 4T-000450 (Epic 3E-000083): Profil-Konfiguration des Bereichs.
   readProfilesFromConfig().then((values) => {
     if (generation !== pageState.generation || !pageState.draft) return;
@@ -356,6 +369,17 @@ export function refreshSettingsPageForAreaChange() {
     pageState.draft.calendar = values.draft;
     pageState.draft.calendarSnapshot = values.snapshot;
     rerenderIfActive(['calendarSystems']);
+  });
+  // 4T-001758 (Epic 3E-000253): Die Datenbank-Auskunft gehoert zum alten
+  // Bereich und wird vollstaendig neu geholt; mit ihr entscheidet sich, ob die
+  // Sektion im neuen Bereich ueberhaupt erscheint, deshalb der Navigations-Neubau.
+  readDatabaseFromConfig().then((values) => {
+    if (generation !== pageState.generation || !pageState.draft) return;
+    pageState.draft.database = values.draft;
+    pageState.draft.databaseSnapshot = values.snapshot;
+    const nav = settingsPageEls();
+    if (nav && nav.nav && nav.nav.isConnected) buildSettingsNavEntries(nav.nav);
+    rerenderIfActive(['database']);
   });
   const els = settingsPageEls();
   if (els && els.nav && els.nav.isConnected) {

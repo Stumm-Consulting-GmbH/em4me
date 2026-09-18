@@ -66,6 +66,19 @@ const EXPECTED_FILES = [
   // Ordner-Lage: alle sechs Seiten liegen im Wurzelverzeichnis.
   'Ages.md',
   'Distances.md',
+  // 4T-001551 (Epic 3E-000251): die Datenbank-Tabelle der Demo-Area. Sie steht
+  // bewusst neben der Tour und nicht als Kapitel in ihr: Eine Tabellen-Datei
+  // ist technische Ablage, die man ansieht, aber nicht durcharbeitet.
+  'Library.md',
+  // 4T-001762 (Epic 3E-000253, Demo-Area-Prüfschritt): das Steckbrief-Dokument
+  // der Demo-Datenbank, angelegt auf die Entscheidung des Product Owners vom
+  // 2026-09-17, mit der die dort vorgelegte Ergänzungs-Frage beantwortet ist. Es
+  // trägt allein den Behälter `db-database` im Frontmatter und macht die
+  // Demo-Area damit zum Datenbank-Bereich; erst dadurch sind die Übersicht der
+  // Datenbank-Objekte und der Einstellungs-Abschnitt «Datenbank» in der Sandbox
+  // überhaupt sichtbar. Der Name folgt dem von `Library.md`: ohne
+  // Nummern-Präfix, weil beide neben der Tour stehen und nicht in ihr.
+  'Library Database.md',
   'Light Speed.md',
   'Milky Way.md',
   'Milky Way∕Proxima Centauri.md',

@@ -110,3 +110,65 @@ describe('such-bereich (4T-000616)', () => {
     expect(res.treffer).toEqual([]);
   });
 });
+
+// 4T-001609 (Epic 3E-000252): Der Sprung zählt nicht mehr ab, sondern trifft die
+// Stelle.
+//
+// Beide Wege haben je einen eigenen Prüfgegenstand, weil die beiden Ansichten
+// verschiedene Handhaben bieten: Im Editor gibt es Zeichen-Positionen, in der
+// Lese-Ansicht nur DOM-Marken. Geprüft werden hier die beiden Entscheidungen
+// selbst; ihre Verdrahtung in markiereOffeneDatei ist eine Zeile je Weg.
+describe('such-bereich: Sprung in ein Tabellen-Dokument (4T-001609)', () => {
+  it('findet die Fundstelle über Zeile und Spalte statt über die Ordnungszahl', async () => {
+    const { trefferIndexNachStelle } =
+      await import('../../../src/renderer/modules/search/search-area.js');
+    const { search } = await import('../../../src/renderer/modules/search/search.js');
+    // Ein Dokument mit Prosa vor und hinter dem Datenblock. Die Fundstellen im
+    // Block stehen NICHT in der Bereichs-Trefferliste, wohl aber in den
+    // Fundstellen des Editors — genau daran ging das Abzählen fehl.
+    const inhalt = ['Merkwort oben', '|- id="r-1"', '| Merkwort im Satz', 'Merkwort unten'].join(
+      '\n',
+    );
+    search.matches = [];
+    let ab = 0;
+    for (const zeile of inhalt.split('\n')) {
+      const pos = zeile.indexOf('Merkwort');
+      if (pos >= 0) search.matches.push({ from: ab + pos, to: ab + pos + 8 });
+      ab += zeile.length + 1;
+    }
+    expect(search.matches).toHaveLength(3);
+    // Der Bereichs-Treffer ist der zweite der LISTE (Zeile 3), im Dokument aber
+    // die dritte Fundstelle. Das Abzählen läge auf der zweiten und damit falsch.
+    const treffer = { sprung: { zeile: 3, spalte: 0, kennung: 'C:/Bereich/t.md' } };
+    const idx = trefferIndexNachStelle(dokument('C:/Bereich/t.md', inhalt), treffer);
+    expect(idx).toBe(2);
+  });
+
+  it('meldet -1, wenn an der Stelle keine Fundstelle liegt', async () => {
+    const { trefferIndexNachStelle } =
+      await import('../../../src/renderer/modules/search/search-area.js');
+    const { search } = await import('../../../src/renderer/modules/search/search.js');
+    search.matches = [{ from: 0, to: 3 }];
+    const treffer = { sprung: { zeile: 99, spalte: 0 } };
+    expect(trefferIndexNachStelle(dokument('C:/Bereich/t.md', 'kurz'), treffer)).toBe(-1);
+  });
+
+  it('nimmt die Marken im gerenderten Datensatz-Block aus der Zählung', async () => {
+    const { zaehlbareMarken } = await import('../../../src/renderer/modules/search/search-area.js');
+    document.body.innerHTML =
+      '<div id="w"><mark id="a"></mark>' +
+      '<div class="perspective-records"><mark id="b"></mark></div>' +
+      '<mark id="c"></mark></div>';
+    const alle = [...document.querySelectorAll('mark')];
+    expect(alle).toHaveLength(3);
+    const gezaehlt = zaehlbareMarken(alle);
+    expect(gezaehlt.map((m) => m.id)).toEqual(['a', 'c']);
+  });
+
+  it('lässt ein Dokument ohne Datensatz-Block unverändert zählen', async () => {
+    const { zaehlbareMarken } = await import('../../../src/renderer/modules/search/search-area.js');
+    document.body.innerHTML = '<div id="w"><mark id="a"></mark><mark id="b"></mark></div>';
+    const alle = [...document.querySelectorAll('mark')];
+    expect(zaehlbareMarken(alle)).toEqual(alle);
+  });
+});

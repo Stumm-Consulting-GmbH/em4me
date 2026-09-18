@@ -15,6 +15,10 @@
 'use strict';
 
 const { cleanString, DERIVED_TYPES } = require('./property-profiles-format.js');
+// 4T-001507 (Epic 3E-000250, E5.5): Die Längen-Angabe zählt Grapheme, nicht
+// Code-Einheiten. Die Zähl-Regel steht seit 4T-001161 bei der Symbol-Angabe und
+// wird von dort geladen, statt hier ein zweites Mal zu entstehen.
+const { grapheme } = require('./property-profiles-profil.js');
 
 // 4T-001185 (Epic 3E-000221, E1): Ein abgeleitetes Feld hat keinen eigenen Wert.
 // Es wird deshalb weder vorgeschlagen noch übernommen — beides legte es als
@@ -143,7 +147,41 @@ function fieldDefinitionHint(def, value) {
     const allowed = (item) => def.values.some((v) => v === item || String(v) === String(item));
     if (!items.every(allowed)) return 'outsideValues';
   }
+  // 4T-001507 (Epic 3E-000250, E5.5): Längen-Angabe und Nachkommastellen wirken
+  // als **Hinweis ohne Wert-Änderung**. Dass ein Datenspeicher nichts still
+  // wegschreiben darf, ist mit E3.7 für überzählige Zellen entschieden und gilt
+  // für einen zu langen Wert ebenso; deshalb steht hier ein Hinweis und nirgends
+  // ein Kürzen oder Runden.
+  //
+  // Beide stehen NACH den beiden bestehenden Prüfungen: Ein Wert falschen Typs
+  // oder außerhalb seines Wertebereichs hat das grundsätzlichere Problem, und
+  // eine Meldung über seine Länge ginge daran vorbei.
+  const optionen = def.options || {};
+  if (typeof optionen.maxLength === 'number') {
+    const items = Array.isArray(value) ? value : [value];
+    if (items.some((v) => typeof v === 'string' && grapheme(v) > optionen.maxLength))
+      return 'tooLong';
+  }
+  if (typeof optionen.decimals === 'number') {
+    const items = Array.isArray(value) ? value : [value];
+    if (items.some((v) => typeof v === 'number' && nachkommastellen(v) > optionen.decimals))
+      return 'tooManyDecimals';
+  }
   return null;
+}
+
+// 4T-001507: Nachkommastellen einer Zahl, wie JavaScript sie schreibt.
+// Die Exponential-Schreibweise wird mitgezählt (1e-7 hat sieben Stellen), weil
+// die Laufzeit sie ab einer gewissen Kleinheit von sich aus wählt und ein
+// Zählen allein am Punkt dort null ergäbe.
+function nachkommastellen(n) {
+  if (!Number.isFinite(n)) return 0;
+  const s = String(n);
+  const m = /^-?(\d+)(?:\.(\d+))?(?:e([+-]?\d+))?$/i.exec(s);
+  if (!m) return 0;
+  const stellen = m[2] ? m[2].length : 0;
+  const exponent = m[3] ? parseInt(m[3], 10) : 0;
+  return Math.max(0, stellen - exponent);
 }
 
 // 4T-001157 (Epic 3E-000219, E12): Hinweis zur QUELLE eines Wertevorrats, im

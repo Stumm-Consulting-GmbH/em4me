@@ -213,5 +213,17 @@
   "help.featureAccess.canvasStacking": "View → Canvas stacking order; context menu of the selected element; command palette → 'Bring to front', 'Bring forward', 'Send backward' and 'Send to back'",
   "help.featureAccess.canvasLinkCards": "View → Add link card to canvas; canvas context menu → Add link card to canvas; card context menu → Set link…, Open target, Remove link; toolbar of the selected card; command palette → ‘Add link card to canvas’",
   "help.featureAccess.canvasImageCards": "View → Add image card to canvas; canvas context menu → Add image card to canvas; card context menu → Set image…, Open target, Remove image; toolbar of the selected card; command palette → ‘Add image card to canvas’",
-  "help.featureAccess.canvasList": "Status bar → Canvas list; View → Sidebar → Panels → Canvas list; command palette → ‘Canvas list’; inside the list arrow up and down, Home and End, Enter, Del, the context-menu key and Shift+F10 as well as Escape; card context menu → ‘Add connection to canvas…’; filter field at the head of the list, in the canvas view also through default Ctrl+F"
+  "help.featureAccess.canvasList": "Status bar → Canvas list; View → Sidebar → Panels → Canvas list; command palette → ‘Canvas list’; inside the list arrow up and down, Home and End, Enter, Del, the context-menu key and Shift+F10 as well as Escape; card context menu → ‘Add connection to canvas…’; filter field at the head of the list, in the canvas view also through default Ctrl+F",
+  "help.featureAccess.databaseTable": "Frontmatter of the table file, container `db-table`",
+  "help.featureAccess.databaseColumnTypes": "Frontmatter of the table file, setting `type` of a column",
+  "help.featureAccess.databaseRecordKey": "Frontmatter of the table file, settings `lastId`, `key` and `display`",
+  "help.featureAccess.databaseInfo": "Frontmatter of a document of the database, container `db-database`",
+  "help.featureAccess.databaseRecords": "Body of the table file, block `perspective-records`",
+  "help.featureAccess.databaseRecordsView": "Reading view and edit mode of a table file",
+  "help.featureAccess.databaseSegments": "Automatically when saving, as soon as the data exceeds the threshold",
+  "help.featureAccess.databaseSearchScope": "Applies to every search across an open area (default Ctrl+F)",
+  "help.featureAccess.databaseRecordLink": "Written in the text, form `[[Table#^r-00042]]`",
+  "help.featureAccess.databaseArea": "Settings → Current area → Database",
+  "help.featureAccess.databaseOverview": "View → Database overview; context menu of the area panel; command palette",
+  "help.featureAccess.databaseExtension": "Settings → Extensions → Database"
 }

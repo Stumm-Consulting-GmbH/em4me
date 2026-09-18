@@ -55,5 +55,7 @@
   "settings.extensionsExternal.action.devTools": "Developer tools",
   "settings.extensionsExternal.diagnose.hint": "Messages from an extension appear in the developer tools console. They open for this window and close again with the same button.",
   "extension.events.name": "Events",
-  "extension.events.description": "Embedded event management in the document and aggregation via frontmatter properties, with tiered time differences, milestones and yearly recurrence."
+  "extension.events.description": "Embedded event management in the document and aggregation via frontmatter properties, with tiered time differences, milestones and yearly recurrence.",
+  "extension.database.name": "Database",
+  "extension.database.description": "Table definitions in the frontmatter, records as a typed table in the document, links to individual records and the overview of the database area. Requires property profiles; when switched off, a record block remains an ordinary code block and the files stay unchanged."
 }

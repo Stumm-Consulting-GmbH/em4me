@@ -90,6 +90,7 @@
   "help.shortcut.openHistory": "Apri la cronologia del documento attivo",
   "help.shortcut.areaGraph": "Apri il grafo dell'area in una scheda dedicata",
   "help.shortcut.areaStats": "Apri le statistiche dell'area in una scheda dedicata",
+  "help.shortcut.databaseOverview": "Apri la panoramica della banca dati in una scheda dedicata",
   "help.shortcut.myExtendedMemory": "Apri My Extended Memory in una scheda dedicata",
   "help.shortcut.commandPalette": "Apri la palette dei comandi",
   "help.shortcut.toggleReminders": "Mostra o nascondi il pannello dei promemoria",
@@ -162,5 +163,6 @@
   "help.shortcut.exportLocaleTemplate": "Salvare in un file un modello per la propria lingua dell’interfaccia",
   "help.shortcut.importLocale": "Caricare un file di lingua tradotto come lingua dell’interfaccia propria",
   "help.shortcut.removeLocale": "Rimuovere dall’applicazione una lingua dell’interfaccia propria",
-  "help.shortcut.updateLocale": "Salvare il proprio file di lingua allo stato della versione in esecuzione, con le voci mancanti in inglese"
+  "help.shortcut.updateLocale": "Salvare il proprio file di lingua allo stato della versione in esecuzione, con le voci mancanti in inglese",
+  "help.group.database": "Banca dati"
 }

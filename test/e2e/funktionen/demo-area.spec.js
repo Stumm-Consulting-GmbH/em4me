@@ -7,7 +7,8 @@
 // DA-01: Erstellen kopiert den mitgelieferten Bestand und bindet das Fenster.
 // DA-02: nicht-leeres Ziel wird abgelehnt, der Ordner bleibt unverändert.
 // DA-03: jede Demo-Markdown-Seite des Bestands öffnet linter-sauber.
-// DA-04: die erste Abfrage (TABLE über #demo) liefert dreizehn Treffer-Zeilen.
+// DA-04: die erste Abfrage (TABLE über #demo) liefert eine Zeile je Demo-Seite
+//        mit diesem Schlagwort.
 // DA-05: Erweiterung aus entfernt das Kommando aus der Kommando-Palette.
 // describe-Titel tragen die Matrix-IDs F-132 (Funktion) und S-091 (Kommando).
 'use strict';
@@ -37,6 +38,34 @@ const MD_PAGES = fs
   .filter((e) => e.isFile() && e.name.endsWith('.md'))
   .map((e) => e.name)
   .sort();
+// 4T-001552 (Epic 3E-000251): Auch die Trefferzahl der Demo-Abfrage wird aus dem
+// BESTAND gerechnet statt als Literal geführt. Derselbe Befund wie bei MD_PAGES
+// oben, hier ein zweites Mal eingetreten: Die Demo-Datenbank `Library.md` aus
+// 4T-001551 traegt das Schlagwort `demo` und hob die Trefferzahl von 12 auf 13,
+// worauf DA-04 rot lief, obwohl nichts kaputt war. Die Abfrage lautet
+// `TABLE ... FROM #demo`, also ist ihre Quelle genau die Menge der Demo-Seiten
+// mit diesem Schlagwort (Registerklasse L10/U2, verortete Massnahme 4T-001541).
+function hatDemoSchlagwort(name) {
+  const text = fs.readFileSync(path.join(DEMO_DIR, name), 'utf8');
+  const fm = /^---\r?\n([\s\S]*?)\r?\n---/.exec(text);
+  if (!fm) return false;
+  const inline = /^tags:\s*\[(.*)\]\s*$/m.exec(fm[1]);
+  if (inline) {
+    return inline[1]
+      .split(',')
+      .map((s) => s.trim())
+      .includes('demo');
+  }
+  // Block-Form: `tags:` gefolgt von eingerueckten `- wert`-Zeilen.
+  const block = /^tags:\s*$\n((?:[ \t]+-.*\n?)+)/m.exec(fm[1] + '\n');
+  if (!block) return false;
+  return block[1]
+    .split('\n')
+    .map((z) => z.replace(/^[ \t]*-\s*/, '').trim())
+    .includes('demo');
+}
+const DEMO_TAGGED = MD_PAGES.filter(hatDemoSchlagwort);
+
 const EXPECTED_FILES = [
   ...MD_PAGES,
   'Templates/Meeting Note.md',
@@ -184,7 +213,7 @@ test.describe('DA-03: Demo-Seiten sind linter-sauber (F-132)', () => {
 });
 
 test.describe('DA-04: Abfrage liefert Treffer aus der Demo-Area (F-132)', () => {
-  test('die erste TABLE-Abfrage über #demo rendert dreizehn Treffer-Zeilen ohne Fehler', async () => {
+  test('die erste TABLE-Abfrage über #demo rendert eine Zeile je Demo-Seite mit diesem Schlagwort, ohne Fehler', async () => {
     test.setTimeout(90000);
     const { app, page, userData } = await launchApp();
     const target = mkTempDir();
@@ -203,10 +232,16 @@ test.describe('DA-04: Abfrage liefert Treffer aus der Demo-Area (F-132)', () => 
       await expect(page.locator(SEL.tabs0)).toHaveCount(2);
 
       // Erste perspective-query (TABLE ... FROM #demo SORT chapter): sobald der
-      // Bereichs-Index steht, rendert die Tabelle eine Zeile je Demo-Seite.
+      // Bereichs-Index steht, rendert die Tabelle eine Zeile je Demo-Seite mit
+      // dem Schlagwort `demo`. Der Erwartungswert kommt aus dem Bestand, nicht
+      // aus einer Zahl im Code; die Gegenprobe darauf, dass die Ableitung
+      // ueberhaupt greift, ist die Untergrenze darunter.
+      expect(DEMO_TAGGED.length).toBeGreaterThan(1);
       const table = page.locator(`${SEL.markdownBody0} table.perspective-query-table`).first();
       await expect(table).toBeVisible({ timeout: 30000 });
-      await expect.poll(() => table.locator('tbody tr').count(), { timeout: 30000 }).toBe(13);
+      await expect
+        .poll(() => table.locator('tbody tr').count(), { timeout: 30000 })
+        .toBe(DEMO_TAGGED.length);
 
       // Kein Abfrage-Syntaxfehler in der gesamten Seite (pinnt die Query-Syntax
       // aller sieben Demo-Abfragen; 4T-001075 ergaenzte die Selbstbezugs-Quelle

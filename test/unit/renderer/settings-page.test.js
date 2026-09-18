@@ -45,8 +45,10 @@ describe('Bereichs-Registry (settings-page.js, 4T-000278)', () => {
     // „Zeitstempel" (erweiterungs-eigener Bereich der Erweiterung spellcheck).
     // 4T-001455 (Epic 3E-000190): Bereich „Bereichs-Verknüpfungen" hinter
     // „templatesArea" — die Verknüpfung trägt das Opt-in für die Vorlagen-Kette.
+    // 4T-001758 (Epic 3E-000253): Bereich „Datenbank" hinter „areaLinks" — beide
+    // beschreiben den Bereich als Ganzes.
     const ids = settingsPage.settingsSections().map((s) => s.id);
-    expect(ids.slice(0, 20)).toEqual([
+    expect(ids.slice(0, 21)).toEqual([
       'appearance',
       'colorSchemes',
       'behavior',
@@ -59,6 +61,7 @@ describe('Bereichs-Registry (settings-page.js, 4T-000278)', () => {
       'templates',
       'templatesArea',
       'areaLinks',
+      'database',
       'journals',
       'calendarSystems',
       'propertyProfiles',

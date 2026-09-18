@@ -1,0 +1,6 @@
+{
+  "records.window": "Extrait : {shown} enregistrements sur {total}",
+  "records.empty": "Aucun enregistrement",
+  "records.noDefinition": "Aucune définition de table dans l’en-tête de ce fichier",
+  "records.hints": "Remarques sur le bloc d’enregistrements :"
+}

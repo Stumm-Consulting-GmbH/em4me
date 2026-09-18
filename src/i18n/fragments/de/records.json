@@ -1,0 +1,6 @@
+{
+  "records.window": "Ausschnitt: {shown} von {total} Datensätzen",
+  "records.empty": "Keine Datensätze",
+  "records.noDefinition": "Ohne Tabellen-Definition im Frontmatter dieser Datei",
+  "records.hints": "Hinweise zum Datensatz-Block:"
+}

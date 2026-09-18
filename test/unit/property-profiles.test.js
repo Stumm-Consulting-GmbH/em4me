@@ -613,7 +613,7 @@ describe('parseProfileFields — Typ-Ausbau und typ-eigene Optionen (4T-001155)'
         index: 0,
         name: 'budget',
         key: 'options',
-        expected: ['step', 'min', 'max'],
+        expected: ['step', 'min', 'max', 'decimals'],
       },
     ]);
   });
@@ -727,7 +727,7 @@ describe('parseProfileFields — Typ-Ausbau und typ-eigene Optionen (4T-001155)'
         index: 0,
         name: 'rolle',
         key: 'options',
-        expected: ['step', 'min', 'max'],
+        expected: ['step', 'min', 'max', 'decimals'],
         path: ['teilnehmer'],
       },
     ]);

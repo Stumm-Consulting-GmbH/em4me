@@ -4,9 +4,16 @@
 //
 // Beide Richtungen müssen exakt zueinander passen. Die Umkehr-Eigenschaft
 // steht in document-assembly.js: Die Rümpfe werden beim Lesen OHNE
-// Trennzeichen aneinandergehängt. Hier wird deshalb vor der Überschriftszeile
+// Trennzeichen aneinandergehängt. Hier wird deshalb vor der Schnittzeile
 // geschnitten und nichts angefügt; das schlichte Aneinanderhängen ergibt den
 // Ausgangstext zeichengleich zurück.
+//
+// **Wo geschnitten werden darf, steht seit 4T-001550 nebenan** in
+// document-split-punkte.js: Schwellen, Byte-Maß und die beiden
+// Schnittpunkt-Arten. Dieses Modul beantwortet die andere Hälfte — wie aus
+// Schnittpunkten Grenzen werden und welche Datei-Inhalte daraus entstehen. Es
+// reicht die Nachbar-Schnittstelle unverändert weiter, damit kein Aufrufer
+// beide Module kennen muss (Muster property-profiles.js).
 //
 // Prozessneutral und ohne Datei-Zugriff: Es bekommt den Puffer-Text und die
 // vorhandenen Teile und gibt fertige Datei-Inhalte zurück; das Schreiben
@@ -14,8 +21,10 @@
 // Electron-frei (CommonJS, Vorbild src/shared/subpages.js).
 'use strict';
 
-const { extractFrontmatter } = require('./markdown/frontmatter.js');
-const { FENCE_RE } = require('./markdown/link-scan.js');
+const { extractFrontmatter, writeFrontmatter } = require('./markdown/frontmatter.js');
+// 4T-001550 (E26.3): Der Schlüssel der Lese-Hilfe und ihre Form; ausgelegt wird
+// die Definition hier nicht, die Namen reicht der Aufrufer herein.
+const { formatSegmentFelder, DB_SEGMENT_FIELDS_KEY } = require('./database/behaelter.js');
 const { assembleParts } = require('./document-assembly.js');
 const {
   buildPartBasename,
@@ -23,102 +32,16 @@ const {
   writePartLine,
   FIRST_PART_INDEX,
 } = require('./document-parts.js');
-
-// Schwellen in Byte (O1/O2, Entscheidung des Product Owners vom 2026-08-29;
-// die Auslegung von «MB» als 2^20 am 2026-08-31 bestätigt). Gemessen wird die
-// Byte-Größe, nicht die Zeilenzahl: Sie steht beim Lesen kostenlos im
-// Verzeichnis-Eintrag, und beim Schreiben ist der Text ohnehin zur Hand.
-const DOKUMENT_SCHWELLE = 1024 * 1024; // 1 MB für Dokumente des Anwenders
-const ABLAGE_SCHWELLE = Math.round(0.7 * 1024 * 1024); // 0,7 MB für die technische Ablage
-
-// Zulässiger Schnittpunkt (O3): eine Überschrift der obersten ZWEI Ebenen an
-// Spalte 0, gefolgt von Leerraum oder Zeilenende.
-//
-// Die Bedingung «Spalte 0» erledigt die Unteilbarkeits-Regel O4 ohne eigene
-// Konstrukt-Erkennung: Eine Überschrift ganz links beendet in Markdown jeden
-// Absatz, jede Liste, jede Tabelle und jeden Callout, die davor offen waren.
-// Was eingerückt ist (Listen-Unterpunkte) oder mit '>' beginnt (Callouts,
-// Zitate), trifft das Muster gar nicht erst. Das ist strenger als CommonMark,
-// das bis zu drei führende Leerzeichen erlaubt — und die Strenge ist der Zweck:
-// ein Schnitt an einer eingerückten Überschrift läge mitten in einem Konstrukt.
-const SCHNITT_RE = /^#{1,2}([ \t]|$)/;
-
-// Byte-Länge eines Textes in UTF-8, ohne Zwischen-Puffer.
-//
-// Bewusst ohne Buffer und TextEncoder: src/shared/ ist prozessneutral und
-// nutzt beides an keiner Stelle; TextEncoder allozierte zudem bei jedem Aufruf
-// ein Array in Dokument-Größe — bei genau den Dateien, um die es hier geht.
-function byteLength(text) {
-  const s = String(text == null ? '' : text);
-  let n = 0;
-  for (let i = 0; i < s.length; i++) {
-    const c = s.charCodeAt(i);
-    if (c < 0x80) n += 1;
-    else if (c < 0x800) n += 2;
-    else if (c >= 0xd800 && c <= 0xdbff && i + 1 < s.length) {
-      n += 4; // Surrogat-Paar: zwei Code-Units, vier Byte
-      i++;
-    } else n += 3;
-  }
-  return n;
-}
-
-// Liegt der Text über der Schwelle?
-//
-// Der Schnellweg vorn ist der Regelfall und kostet eine Multiplikation: Kein
-// Zeichen wird in UTF-8 zu mehr als drei Byte je Code-Unit, ein Text unter
-// einem Drittel der Schwelle kann sie also nicht reißen. Erst darüber wird
-// wirklich gezählt.
-function ueberSchwelle(text, schwelle) {
-  const s = String(text == null ? '' : text);
-  if (s.length * 3 <= schwelle) return false;
-  return byteLength(s) > schwelle;
-}
-
-/**
- * Sucht die zulässigen Schnittpunkte eines Dokument-Textes.
- *
- * Liefert eine aufsteigende Liste von { offset, byteOffset }; `offset` ist die
- * Position der Überschriftszeile im Text, an der ein neuer Teil BEGINNT.
- *
- * Ausgeschlossen sind der Frontmatter (er gehört unteilbar zur Kopf-Datei),
- * alles innerhalb eines Code-Zauns (Maske über FENCE_RE aus link-scan.js, also
- * dieselbe Quelle wie Backlinks-Index, Block-Anker und Rewrite-Kern) und der
- * Beginn des Rumpfes selbst — ein Schnitt dort ergäbe einen ersten Teil, der
- * nur aus Frontmatter besteht.
- *
- * Erwartet auf LF normalisierten Text, wie ihn der Schreib-Weg herstellt;
- * jeder Zeilentrenner zählt deshalb genau ein Byte.
- */
-function findSplitPoints(text) {
-  const s = String(text == null ? '' : text);
-  const bodyStart = extractFrontmatter(s).endOffset || 0;
-  const zeilen = s.split('\n');
-  const punkte = [];
-  let offset = 0;
-  let byteOffset = 0;
-  let imZaun = false;
-  let zaunZeichen = null;
-  for (let i = 0; i < zeilen.length; i++) {
-    const zeile = zeilen[i];
-    const zaun = zeile.match(FENCE_RE);
-    if (zaun) {
-      const ch = zaun[1].charAt(0);
-      if (!imZaun) {
-        imZaun = true;
-        zaunZeichen = ch;
-      } else if (ch === zaunZeichen) {
-        imZaun = false;
-        zaunZeichen = null;
-      }
-    } else if (!imZaun && offset > bodyStart && SCHNITT_RE.test(zeile)) {
-      punkte.push({ offset, byteOffset });
-    }
-    offset += zeile.length + 1; // +1 für das LF
-    byteOffset += byteLength(zeile) + 1;
-  }
-  return punkte;
-}
+const {
+  DOKUMENT_SCHWELLE,
+  ABLAGE_SCHWELLE,
+  SCHNITT_RE,
+  byteLength,
+  ueberSchwelle,
+  istTabellenDatei,
+  schwelleFuer,
+  findSplitPoints,
+} = require('./document-split-punkte.js');
 
 // Greedy-Füllung eines Bereichs: liefert die Grenzen (Offsets) zwischen `von`
 // und `bis`, so dass jeder entstehende Abschnitt möglichst dicht unter der
@@ -213,9 +136,39 @@ function fuehreGrenzenNach(altText, neuText, alteGrenzen) {
 // Teil 1 behält seinen Frontmatter und bekommt die Zuordnungs-Zeile ergänzt;
 // jeder Folgeteil bekommt einen frischen Frontmatter, der ausschließlich die
 // Zuordnung trägt. Genau diesen entfernt das Zusammensetzen wieder.
-function baueTeilInhalt(rumpf, index, base) {
+//
+// 4T-001550 (E26.3): Bei einer Tabellen-Datei kommt in jedem **Folge**-Segment
+// die Namensliste hinzu. Die Kopf-Datei bekommt sie nicht — sie trägt die
+// Definition selbst, und eine zweite Liste daneben wäre eine zweite Heimat für
+// dieselbe Aussage. Die Namen reicht der Aufrufer herein, statt dass dieses
+// Modul die Definition auslegt: Das Auslege-Modul zieht die ganze
+// Profil-Maschinerie nach sich, und die allgemeine Teilung soll nicht an ihr
+// hängen.
+function baueTeilInhalt(rumpf, index, base, segmentFelder) {
   const geschrieben = writePartLine(rumpf, { index, base });
-  return geschrieben.ok ? geschrieben.text : null;
+  if (!geschrieben.ok) return null;
+  if (index === FIRST_PART_INDEX || !segmentFelder) return geschrieben.text;
+  const ergaenzt = writeSegmentFelder(geschrieben.text, segmentFelder);
+  return ergaenzt.ok ? ergaenzt.text : null;
+}
+
+// Schreibt die Namensliste in den Frontmatter eines Folge-Segments.
+//
+// **Die Liste wird immer neu geschrieben, nie fortgeschrieben.** Das ist die
+// Reparatur aus E26.3: Wird ein Feld umbenannt, veraltet die Liste eines alten
+// Segments, und der nächste Schreibvorgang setzt sie richtig — dasselbe Muster,
+// mit dem E3.6 die Fence-Länge behandelt. Eine leere Liste entfernt den
+// Schlüssel, statt ihn leer stehen zu lassen.
+function writeSegmentFelder(text, namen) {
+  const wert = formatSegmentFelder(namen);
+  const fm = extractFrontmatter(text);
+  if (fm.parseError) return { ok: false, error: fm.parseError };
+  const data = {
+    ...(fm.data && typeof fm.data === 'object' && !Array.isArray(fm.data) ? fm.data : {}),
+  };
+  if (wert === null) delete data[DB_SEGMENT_FIELDS_KEY];
+  else data[DB_SEGMENT_FIELDS_KEY] = wert;
+  return writeFrontmatter(text, data);
 }
 
 // Schneidet einen Text an den gegebenen Grenzen in Abschnitte.
@@ -240,6 +193,10 @@ function schneide(text, grenzen) {
  * @param {Array}  [opts.bestand] Vorhandene Teile als [{index, basename, content}],
  *                                nach Position geordnet; leer oder fehlend bei
  *                                einem bisher ungeteilten Dokument.
+ * @param {string[]} [opts.segmentFelder] Feld-Namen in ihrer Reihenfolge; nur bei
+ *                                einer Tabellen-Datei gesetzt. Jedes Folge-Segment
+ *                                bekommt sie als Lese-Hilfe in seinen Frontmatter
+ *                                (4T-001550, E26.3).
  *
  * Liefert bei einem Dokument, das ungeteilt bleibt:
  *   { geteilt: false, grund: 'unter-schwelle' | 'kein-schnittpunkt' }
@@ -250,7 +207,7 @@ function schneide(text, grenzen) {
  * werden muss; `neu` kennzeichnet eine noch nicht existierende Datei. Ein
  * Fehler beim Schreiben des Frontmatters ergibt { ok: false, error }.
  */
-function planeZerlegung({ text, base, schwelle = DOKUMENT_SCHWELLE, bestand }) {
+function planeZerlegung({ text, base, schwelle = DOKUMENT_SCHWELLE, bestand, segmentFelder }) {
   const neu = String(text == null ? '' : text);
   const grundname = baseBasenameOf(base);
   const vorhanden = Array.isArray(bestand) ? bestand : [];
@@ -301,12 +258,31 @@ function planeZerlegung({ text, base, schwelle = DOKUMENT_SCHWELLE, bestand }) {
     // bleibt groß — der Preis dieser Regel, vom Product Owner am 2026-08-31
     // ausdrücklich angenommen.
     const letzterStart = grenzen.length > 0 ? grenzen[grenzen.length - 1] : 0;
-    // Über den Rest gezählt statt über den Anfang: Der letzte Teil ist klein,
-    // der Text vor ihm kann das ganze Dokument sein.
-    const letzterStartByte = gesamtByte - byteLength(neu.slice(letzterStart));
-    grenzen = grenzen.concat(
-      greedyGrenzen(punkte, letzterStart, letzterStartByte, gesamtByte, schwelle),
-    );
+    // 4T-001550 (E26.2, Weg A, Entscheidung des Product Owners vom 2026-09-07):
+    // **Die Rotation greift nur, wenn die Änderung den letzten Teil wirklich
+    // berührt.** Ohne diese Bedingung schnitt sie ihn allein deshalb neu, weil
+    // die Schwelle inzwischen gesunken war — gemessen an einem Bestand aus zwei
+    // Segmenten zerfiel das unberührte zweite, während der Anwender vorn eine
+    // Zelle änderte. Genau das schließt die Zusicherung aus, nach der ein
+    // vorhandenes Segment nicht neu geschnitten wird, nur weil die Schwelle
+    // gesunken ist.
+    //
+    // Ein LEERER geänderter Bereich zählt nicht als Berührung: Bei
+    // unverändertem Text und beim Löschen am Ende fallen `von` und `bis`
+    // zusammen. Im ersten Fall gibt es nichts zu tun, im zweiten ist der letzte
+    // Teil kleiner geworden und kann die Schwelle nicht neu reißen.
+    //
+    // Für gewöhnliche Dokumente ändert sich dadurch nichts: Wächst der letzte
+    // Teil, liegt der geänderte Bereich in ihm, und er rotiert wie bisher.
+    const letzterBeruehrt = nach.bis > nach.von && nach.bis > letzterStart;
+    if (letzterBeruehrt) {
+      // Über den Rest gezählt statt über den Anfang: Der letzte Teil ist klein,
+      // der Text vor ihm kann das ganze Dokument sein.
+      const letzterStartByte = gesamtByte - byteLength(neu.slice(letzterStart));
+      grenzen = grenzen.concat(
+        greedyGrenzen(punkte, letzterStart, letzterStartByte, gesamtByte, schwelle),
+      );
+    }
   }
 
   // Nummern: die bestehenden Teile behalten ihre, neue zählen ab der höchsten
@@ -318,7 +294,7 @@ function planeZerlegung({ text, base, schwelle = DOKUMENT_SCHWELLE, bestand }) {
   for (let i = 0; i < stuecke.length; i++) {
     const bisher = vorhanden[i];
     const index = bisher ? bisher.index : ++hoechste;
-    const inhalt = baueTeilInhalt(stuecke[i], index, grundname);
+    const inhalt = baueTeilInhalt(stuecke[i], index, grundname, segmentFelder);
     if (inhalt === null) {
       return { ok: false, error: 'Zuordnungs-Zeile nicht schreibbar', teilIndex: index };
     }
@@ -376,6 +352,8 @@ module.exports = {
   schreibReihenfolge,
   byteLength,
   ueberSchwelle,
+  istTabellenDatei,
+  schwelleFuer,
   findSplitPoints,
   greedyGrenzen,
   fuehreGrenzenNach,

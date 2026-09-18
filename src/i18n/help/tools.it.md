@@ -87,7 +87,7 @@ Oltre il singolo file, le corrispondenze compaiono nel pannello **Risultati dell
 
 Il **file aperto viene per primo**, e con il suo stato non salvato: ciò che si trova nell'editor viene trovato, anche prima del salvataggio. Le sue corrispondenze restano evidenziate nel testo come sempre, l'elenco si aggiunge. Per gli altri file vale lo stato salvato su disco.
 
-La ricerca copre i file Markdown dell'area. Gli altri file e i file di accompagnamento dell'applicazione restano fuori.
+La ricerca copre i file Markdown dell'area. Gli altri file e i file di accompagnamento dell'applicazione restano fuori. Un **file di tabella della [banca dati](database.md)** vi entra senza il contenuto del suo blocco di record: il suo testo esplicativo resta consultabile, i suoi record non vengono trovati per questa via. Chi apre il file e vi cerca dentro li ritrova immutati.
 
 Se **non è aperta alcuna scheda**, l'area vale comunque: cercare e sostituire raggiungono i suoi file senza che occorra prima aprire un documento. Due cose vengono meno, perché senza file aperto non esistono: l'elenco è ordinato in modo puramente alfabetico invece di anteporre un file, e nel testo non è evidenziato nulla.
 

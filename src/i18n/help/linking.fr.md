@@ -33,6 +33,8 @@ L'ancre ne se présente pas de la même façon selon la vue. La vue rendue ne l'
 
 Les cibles d'ancres cassées sont signalées par le [linter Markdown](tools.md) dans l'éditeur.
 
+Dans un fichier de table de la [base de données](database.md), `#^` désigne en outre l'identifiant d'un enregistrement isolé : `[[Personen#^r-00042]]`. Un tel lien vaut si la table porte cet enregistrement ; une ancre de bloc de même nom garde la priorité.
+
 ## Liens Markdown vers des fichiers
 
 Les liens Markdown classiques ouvrent aussi les cibles `.md` en onglet ; les ancres fonctionnent pareil. Les liens d'ancre internes au document sautent dans la page — en direct ici : [vers le chapitre Tags](#tags).

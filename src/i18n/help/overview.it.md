@@ -41,6 +41,7 @@ Benvenuto nel manuale di EM4me. Questa pagina di panoramica è il punto di ingre
 - [Proprietà del blocco](block-properties.md) — proprietà tipizzate per ancora di blocco: pannello che segue il cursore, dati orfani, ridenominazione delle ancore, indicatore sul blocco.
 - [Query Perspective](frontmatter-query.md) — elenchi e tabelle di file dinamici: linguaggio a clausole, fonti, campi del file, funzioni, ordinamento, multicolonna, esportazione.
 - [Perspective Datatable](datatable.md) — tabella dati tipizzata con funzioni di calcolo: tipi di colonna, aggregati, colonne calcolate, modifica in griglia, ordinamento e filtro.
+- [Banca dati](database.md) — tabelle con file proprio: definizione nel frontmatter, otto tipi di colonna con indicazioni proprie del tipo, etichette in più lingue, identificatore di record con chiave funzionale, la scheda della banca dati, i record nel blocco dati insieme alla loro visualizzazione, la loro reperibilità tramite ricerca e collegamenti, la suddivisione di grandi insiemi su più file, l'area come banca dati con la sua panoramica e la disattivazione della banca dati.
 - [Blocchi di script](scripts.md) — JavaScript nel documento: sandbox isolata, modello di fiducia disattivato per impostazione predefinita, API pq in sola lettura con funzioni di dati, output e supporto, esempi.
 
 ## Collegare e organizzare

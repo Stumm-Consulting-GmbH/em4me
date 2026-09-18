@@ -21,6 +21,15 @@
 // Prozess-neutral (kein Electron, kein DOM).
 'use strict';
 
+// 4T-001507 (Epic 3E-000250, E5.5): Obergrenze der Nachkommastellen-Angabe.
+// **Bewusst dieselbe Zahl wie das Vorbild** `number(n)` der Datentabelle
+// (`MAX_DECIMALS` in src/shared/markdown/perspective-datatable-kopf.js), aber
+// bewusst **keine** gemeinsame Konstante: Dort begrenzt sie die Kopfzeilen-
+// Syntax eines eigenen Konstrukts, hier eine Angabe der Eigenschafts-Profile.
+// Eine Kopplung machte aus zwei unabhängigen Grenzen eine, ohne dass jemand das
+// entschieden hätte, und dieses Modul bliebe nicht das Blatt, das es ist.
+const MAX_DECIMALS = 10;
+
 function alsText(v) {
   if (typeof v !== 'string') return null;
   const s = v.trim();
@@ -33,6 +42,17 @@ function pruefeZahl(v) {
 
 function pruefeGanzzahl(v) {
   return typeof v === 'number' && Number.isInteger(v) ? v : null;
+}
+
+// 4T-001507 (Epic 3E-000250, E5.5): Ganzzahl in einem geschlossenen Bereich.
+// Eine Längen-Angabe von null oder weniger verböte jeden Wert, eine
+// Nachkommastellen-Angabe von unter null ergäbe keinen Sinn; beides ist ein
+// Irrtum und keine Angabe, die still gelten soll.
+function pruefeGanzzahlIm(min, max) {
+  return (v) => {
+    const n = pruefeGanzzahl(v);
+    return n !== null && n >= min && n <= max ? n : null;
+  };
 }
 
 // Ein Pfad oder eine Pfad-Liste; ein defekter Eintrag setzt die ganze Angabe
@@ -60,10 +80,30 @@ function pruefeAuswahl(erlaubt) {
 // maschinen-lesbare Erwartung für die Meldung (Hinweis-Gestalt aus 4T-001143:
 // die Übersetzung setzt sie ein, statt sie zu erzeugen).
 const OPTION_SPECS = {
+  // 4T-001507 (Epic 3E-000250, E5.5): Die Längen-Angabe. Sie steht am Typ
+  // `string` und **nicht** an `multiline`, der als Langtext beliebiger Länge
+  // definiert ist; die Zuordnung je Typ erledigt diesen Ausschluss von selbst.
+  //
+  // Ebenso wenig steht sie an `multistring`, und das ist eine Auslassung mit
+  // Absicht: E5.5 nennt genau einen Typ, und eine Mehrfach-Textangabe kommt in
+  // einer Datenbank-Spalte gar nicht vor (keine mehrwertige Spalte, E5). Für
+  // Dokument-Eigenschaften bliebe sie additiv nachrüstbar, ohne dass heute
+  // jemand für sie entschieden hätte.
+  string: {
+    maxLength: {
+      expected: 'positive-integer',
+      pruef: pruefeGanzzahlIm(1, Number.MAX_SAFE_INTEGER),
+    },
+  },
   number: {
     step: { expected: 'number', pruef: pruefeZahl },
     min: { expected: 'number', pruef: pruefeZahl },
     max: { expected: 'number', pruef: pruefeZahl },
+    // 4T-001507 (E5.5): die Nachkommastellen. **Anzeige-Format, keine Rundung
+    // beim Schreiben** — das Speicherformat bleibt Punkt-Dezimal und der Wert
+    // unverändert; ein Wert mit mehr Stellen ist ein Hinweis
+    // (`fieldDefinitionHint`), kein Anlass, etwas wegzuschreiben.
+    decimals: { expected: 'integer-0-10', pruef: pruefeGanzzahlIm(0, MAX_DECIMALS) },
   },
   date: {
     shift: { expected: 'integer', pruef: pruefeGanzzahl },
@@ -126,8 +166,20 @@ function optionSpecsFor(type, hasValueSource) {
 // zwischen «keine Angabe» und «Angabe, deren Inhalt verworfen wurde» bleibt
 // damit sichtbar.
 function normalizeOptions(raw, type, hasValueSource) {
+  return pruefeGegenSpec(raw, optionSpecsFor(type, hasValueSource));
+}
+
+// 4T-001507 (Epic 3E-000250): Dieselbe Prüfung gegen einen **übergebenen**
+// Katalog. Herausgezogen, weil die Datenbank-Spalten den geteilten Katalog um
+// eigene Angaben ergänzen (der Datensatz-Verweis nennt seine Ziel-Tabelle) und
+// diese Angaben nichts in einer Dokument-Eigenschaft zu suchen haben. Ohne
+// diesen Einstieg müsste die Datenbank die Schleife samt weicher Linie ein
+// zweites Mal führen — und zwei Fassungen derselben Regel driften.
+//
+// `normalizeOptions` bleibt die Fassung für Dokument-Eigenschaften und
+// verhält sich unverändert; sie ist jetzt der Aufruf mit dem Katalog des Typs.
+function pruefeGegenSpec(raw, spec) {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return null;
-  const spec = optionSpecsFor(type, hasValueSource);
   const zulaessig = Object.keys(spec);
   const options = {};
   const hints = [];
@@ -153,4 +205,4 @@ function normalizeOptions(raw, type, hasValueSource) {
   return { options, hints };
 }
 
-module.exports = { OPTION_SPECS, optionSpecsFor, normalizeOptions };
+module.exports = { OPTION_SPECS, MAX_DECIMALS, optionSpecsFor, normalizeOptions, pruefeGegenSpec };

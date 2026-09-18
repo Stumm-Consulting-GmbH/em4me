@@ -18,6 +18,10 @@
 const fs = require('node:fs/promises');
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
+// 4T-001761 (Epic 3E-000253): Der Schalter, mit dem der Datensatz-Bestand des
+// Index ruht. Er wird von aussen gesetzt, weil das Index-Subsystem den
+// Einstellungs-Speicher nicht liest (Begruendung im Kopf des Moduls).
+const { setzeDatensatzErfassung } = require('../index/index-schalter.js');
 const { createTaskStatusTypeResolver } = require('../../shared/markdown/plugins.js');
 const { computeLineReplacement } = require('../documents/task-line-edit.js');
 const { createAreaReplace } = require('../area/area-replace.js');
@@ -69,6 +73,18 @@ function registerIndexViewsIpc(handle, deps) {
   // 4T-000999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
   // Der Bezeichner bleibt `store`, damit die Handler-Rumpfe unveraendert sind.
   const store = getStore();
+
+  // 4T-001761 (Epic 3E-000253): Der Start-Stand des Datensatz-Bestands. Die
+  // Registrierung der IPC-Kanaele laeuft im Rumpf von `app.whenReady`
+  // unmittelbar nach dem Laden des Speichers und VOR dem ersten Fenster; kein
+  // Index kann zu diesem Zeitpunkt aufgebaut sein, weil jeder Aufbau entweder
+  // ueber einen dieser Kanaele oder ueber das Oeffnen eines Bereichs kommt.
+  // Damit ist dies die frueheste Stelle, an der Speicher-Stand und Index-
+  // Subsystem zusammentreffen. Jedes spaetere Umlegen faehrt ueber die
+  // Verteilung der Einstellungs-Aenderung (settings-verteilung.js).
+  setzeDatensatzErfassung(
+    isExtensionEnabled('database', store ? store.get('extensions.disabled') : []),
+  );
 
   // 4T-001524 (Epic 3E-000169): Die Ersetzen-Strecke braucht die Historie und
   // steht deshalb hier statt als freie Funktion. Gebaut wird sie einmal bei der

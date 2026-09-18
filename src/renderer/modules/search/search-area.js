@@ -136,7 +136,15 @@ function markiereOffeneDatei() {
     // performSourceSearch füllt search.matches aus dem Editor-Dokument und
     // setzt die Decorations; danach genügt das Umsetzen des aktiven Treffers.
     performSourceSearch(regex, -1);
-    if (nummer >= 0 && nummer < search.matches.length) setCurrentMatch(nummer);
+    // 4T-001609: Die STELLE bestimmt den Treffer, nicht mehr seine
+    // Ordnungszahl. Beide Wege stimmten überein, solange die Trefferliste des
+    // Bereichs dieselbe Menge zählte wie das geöffnete Dokument. Seit der
+    // Datensatz-Block aus dem Suchraum genommen ist, tut sie das nicht mehr:
+    // In einem Tabellen-Dokument mit Prosa hinter dem Datenblock zählt die
+    // Liste weniger Fundstellen, und das Abzählen landete auf der falschen.
+    const idx = trefferIndexNachStelle(tab, treffer);
+    if (idx >= 0) setCurrentMatch(idx);
+    else if (nummer >= 0 && nummer < search.matches.length) setCurrentMatch(nummer);
     return;
   }
 
@@ -146,10 +154,56 @@ function markiereOffeneDatei() {
   search.matches = marks;
   search.currentIndex = -1;
   if (nummer < 0) return;
-  const ziel = marks[nummer];
+  // 4T-001609: In der Lese-Ansicht gibt es keine Offsets, sondern DOM-Marken.
+  // Gezählt werden deshalb nur die Marken AUSSERHALB des gerenderten
+  // Datensatz-Blocks; damit misst die Anzeige wieder dieselbe Menge wie die
+  // Trefferliste. Markiert bleiben alle, denn die Dokument-Suche selbst ist von
+  // der Grenze des Bereichs-Suchraums nicht betroffen.
+  const ziel = zaehlbareMarken(marks)[nummer];
   if (!ziel) return;
-  search.currentIndex = nummer;
+  // Der Zähler zeigt in search.matches, und dort stehen ALLE Marken; die
+  // gezählte Liste ist nur der Weg zur richtigen.
+  search.currentIndex = marks.indexOf(ziel);
   ziel.classList.add('mdv-match-current');
+}
+
+// 4T-001609: Die Marken, die die Trefferliste des Bereichs mitzählt.
+//
+// Der gerenderte Datensatz-Block trägt den Container `div.perspective-records`.
+// Seine Fundstellen stehen nicht in der Bereichs-Trefferliste, dürfen die
+// Zählung also nicht verschieben. Ein Dokument ohne solchen Block kostet nichts:
+// Dann trifft das `closest` nie, und die Liste ist dieselbe.
+const RECORDS_SEL = '.perspective-records';
+
+export function zaehlbareMarken(marks) {
+  const liste = Array.isArray(marks) ? marks : [];
+  return liste.filter((m) => !(m && typeof m.closest === 'function' && m.closest(RECORDS_SEL)));
+}
+
+// 4T-001609: Der Index der Fundstelle im Editor-Dokument, die zum Bereichs-Treffer
+// gehört — bestimmt über Zeile und Spalte statt über die Ordnungszahl.
+//
+// Zeile und Spalte überstehen den Suchraum-Schnitt unverändert, weil er Zeilen
+// nur leert und keine entfernt; der Zeichen-Offset tut es nicht und steht bei
+// einer bereinigten Datei deshalb auf `null` (siehe area-search.js). Gerechnet
+// wird gegen den Inhalt des Reiters, also gegen dasselbe Dokument, das der
+// Editor zeigt.
+//
+// Liefert -1, wenn keine Fundstelle an der Stelle liegt; der Aufrufer fällt dann
+// auf das bisherige Abzählen zurück, statt gar nicht zu markieren.
+export function trefferIndexNachStelle(tab, treffer) {
+  const sprung = treffer && treffer.sprung;
+  if (!sprung || typeof sprung.zeile !== 'number' || typeof sprung.spalte !== 'number') return -1;
+  const text = tab && typeof tab.content === 'string' ? tab.content : null;
+  if (text === null) return -1;
+  let off = 0;
+  for (let i = 0; i < sprung.zeile; i++) {
+    const nl = text.indexOf('\n', off);
+    if (nl < 0) return -1;
+    off = nl + 1;
+  }
+  const stelle = off + sprung.spalte;
+  return search.matches.findIndex((m) => m && m.from === stelle);
 }
 
 // Der aktuelle Raum-Treffer, sofern er in der offenen Datei liegt. Die

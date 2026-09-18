@@ -54,5 +54,6 @@
   "manual.page.templates.title": "Modèles",
   "manual.page.journals.title": "Journaux",
   "manual.page.propertyProfiles.title": "Profils de propriétés",
-  "manual.page.canvas.title": "Surface Canvas"
+  "manual.page.canvas.title": "Surface Canvas",
+  "manual.page.database.title": "Base de données"
 }

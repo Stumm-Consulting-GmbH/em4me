@@ -54,5 +54,6 @@
   "manual.page.templates.title": "Modelli",
   "manual.page.journals.title": "Diari",
   "manual.page.propertyProfiles.title": "Profili di proprietà",
-  "manual.page.canvas.title": "Superficie Canvas"
+  "manual.page.canvas.title": "Superficie Canvas",
+  "manual.page.database.title": "Banca dati"
 }

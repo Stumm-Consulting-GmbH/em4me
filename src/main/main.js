@@ -72,6 +72,8 @@ const { registerRemindersIpc } = require('./ipc/reminders');
 const { registerTemplatesIpc } = require('./ipc/templates');
 const { registerAreaFeaturesIpc } = require('./ipc/area-features');
 const { registerProfilesIpc } = require('./ipc/profiles');
+// 4T-001510 (Epic 3E-000250): Kanaele des Datenbank-Katalogs.
+const { registerDatabaseIpc } = require('./ipc/database');
 const { registerExtensionsIpc } = require('./ipc/extensions');
 const { registerHelpIpc } = require('./ipc/help');
 // 4T-001587 (Epic 3E-000160): Ex- und Import der eigenen Einrichtung.
@@ -298,6 +300,7 @@ function registerIpc() {
   registerTemplatesIpc(registriere, ipcDeps);
   registerAreaFeaturesIpc(registriere, ipcDeps);
   registerProfilesIpc(registriere, ipcDeps);
+  registerDatabaseIpc(registriere, ipcDeps);
   registerExtensionsIpc(registriere, ipcDeps);
   registerHelpIpc(registriere, ipcDeps);
   registerExchangeIpc(registriere, ipcDeps);

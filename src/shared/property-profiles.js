@@ -34,7 +34,14 @@ const {
   buildHint,
   cleanString,
   scalarToString,
+  normalizeValuesList,
+  normalizeDefault,
 } = require('./property-profiles-format.js');
+// 4T-001507 (Epic 3E-000250, E5.5): Der Options-Katalog wird seit den
+// Datenbank-Spalten auch von außen gebraucht — sie ergänzen ihn um eigene
+// Angaben und prüfen gegen den zusammengesetzten Katalog. Die Fassade reicht
+// beides weiter, damit auch dieser Verbraucher nur hier lädt.
+const { optionSpecsFor, pruefeGegenSpec } = require('./property-profiles-options.js');
 // 4T-001183 (Epic 3E-000221, E1): Auswertung der abgeleiteten Felder. Eigene
 // Fachlichkeit in eigener Datei — sie rechnet, während das Format-Modul liest;
 // die Fassade reicht sie weiter wie alles andere.
@@ -345,6 +352,12 @@ module.exports = {
   DEFAULT_ASSIGN_FIELD,
   normalizeProfilesConfig,
   parseProfileFields,
+  // 4T-001507: Normalisierer und Options-Katalog für Verbraucher, die dasselbe
+  // Definitions-Format tragen (Datenbank-Spalten).
+  normalizeValuesList,
+  normalizeDefault,
+  optionSpecsFor,
+  pruefeGegenSpec,
   // 4T-001142: Vererbung zwischen Profilen.
   parseProfileHeritage,
   attachHeritageHints,

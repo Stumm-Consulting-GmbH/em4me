@@ -95,6 +95,8 @@ import { openAreaGraphTab } from '../graph/graph-tab.js';
 import { openAreaStatsPage } from '../area-stats-page.js';
 // 4T-001599 (Epic 3E-000191): My Extended Memory als System-Seite.
 import { openMemoryPage } from '../memory-page.js';
+// 4T-001759 (Epic 3E-000253): Uebersicht der Datenbank als System-Seite.
+import { oeffneDatenbankUebersicht } from '../database/datenbank-uebersicht-seite.js';
 import { showCommandPalette } from '../command-palette.js';
 import { zeigeDateiOeffnen } from '../datei-oeffnen.js';
 import {
@@ -688,6 +690,12 @@ export const commandHandlers = {
   // Statusbar-Platzierung; der Menue-Weg laeuft ueber seinen eigenen Kanal.
   'stats.openArea': () => {
     openAreaStatsPage();
+  },
+  // 4T-001759 (Epic 3E-000253): Uebersicht der Datenbank. Ausfuehrungs-Pfad
+  // fuer Kommando-Palette, belegtes Kuerzel und Statusbar-Platzierung; der
+  // Menue-Weg laeuft ueber seinen eigenen Kanal.
+  'database.openOverview': () => {
+    oeffneDatenbankUebersicht();
   },
   // 4T-001599 (Epic 3E-000191): My Extended Memory. Ausfuehrungs-Pfad fuer
   // Kommando-Palette, belegtes Kuerzel und Statusbar-Platzierung; der

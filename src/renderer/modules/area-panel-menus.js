@@ -24,6 +24,10 @@ import { t } from '../i18n.js';
 import { state } from './app/app-state.js';
 import { openAreaGraphTab, setzeBaumWurzel } from './graph/graph-tab.js';
 import { openAreaStatsPage } from './area-stats-page.js';
+// 4T-001759 (Epic 3E-000253): der dritte panel-weite Eintrag samt der Frage,
+// ob der Bereich ueberhaupt eine Datenbank fuehrt.
+import { oeffneDatenbankUebersicht } from './database/datenbank-uebersicht-seite.js';
+import { istDatenbankBereichSofort } from './database/datenbank-bereich.js';
 import { hideContextMenu, placeContextMenuAt } from './dialogs/context-menu-utils.js';
 import { isExtensionActive } from './extensions/extension-lifecycle.js';
 import { addAreaBookmarkForPath } from './bookmarks/bookmarks-actions.js';
@@ -46,8 +50,10 @@ function appendSeparator(menu) {
 // Bereichs-Graph. Ausgelagert, weil sie sowohl auf freier Panel-Flaeche als
 // auch auf Datei-Zeilen erreichbar bleiben muessen.
 // 4T-000620 (Epic 3E-000117): seither zwei unabhaengige Einstiege — Bereichs-Graph
-// und Bereichs-Statistik — mit je eigener Erweiterung. Das Menue erscheint,
-// sobald MINDESTENS EINE der beiden aktiv ist, und zeigt genau die aktiven.
+// und Bereichs-Statistik — mit je eigener Erweiterung. 4T-001759 (Epic
+// 3E-000253): dazu die Uebersicht der Datenbank. Das Menue erscheint, sobald
+// MINDESTENS EINER der Einstiege verfuegbar ist, und zeigt genau die
+// verfuegbaren.
 function areaPanelEntries() {
   if (!state.areaPath) return [];
   const entries = [];
@@ -63,6 +69,29 @@ function areaPanelEntries() {
       id: 'area-panel-stats',
       labelKey: 'menu.view.areaStats',
       run: openAreaStatsPage,
+    });
+  }
+  // 4T-001759 (Epic 3E-000253): Die Uebersicht der Datenbank — der dritte
+  // panel-weite Eintrag, und der erste mit einer Bedingung am BESTAND statt an
+  // einer Erweiterung: Er erscheint nur, wo der Bereich eine Datenbank fuehrt.
+  // In jedem anderen Bereich waere er ein Eintrag ohne Gegenstand.
+  //
+  // Gefragt wird synchron, weil ein Kontextmenue im Moment des Klicks entsteht
+  // und nicht auf eine Antwort warten kann; der Helfer haelt dafuer die zuletzt
+  // bereite Antwort bereit. Ist sie noch nicht da — der Index baut beim Binden
+  // des Bereichs noch auf —, erscheint der Eintrag nicht, statt eine Datenbank
+  // zu behaupten, die noch niemand gesehen hat.
+  //
+  // 4T-001761 (Epic 3E-000253): Dazu kommt die Bedingung, die seine beiden
+  // Nachbarn schon tragen — der Schalter der Erweiterung. Der Eintrag traegt
+  // damit ZWEI Bedingungen, und beide muessen erfuellt sein: Die Erweiterung
+  // sagt, ob es die Funktion gibt, der Bestand, ob sie hier etwas zu zeigen
+  // haette.
+  if (isExtensionActive('database') && istDatenbankBereichSofort()) {
+    entries.push({
+      id: 'area-panel-database-overview',
+      labelKey: 'menu.view.databaseOverview',
+      run: oeffneDatenbankUebersicht,
     });
   }
   return entries;

@@ -43,7 +43,8 @@ El subobjeto `options` lleva las indicaciones que solo rigen para un tipo determ
 
 | Tipo | Indicación | Significado |
 | --- | --- | --- |
-| `number` | `step`, `min`, `max` | paso y límites del campo numérico |
+| `string` | `maxLength` | longitud máxima en caracteres; un valor más largo se señala y **no se recorta** |
+| `number` | `step`, `min`, `max`, `decimals` | paso y límites del campo numérico; `decimals` son los decimales esperados (de cero a diez), un valor con más decimales se señala y **no se redondea** |
 | `date` | `shift` | desplazamiento en días; rellena previamente un campo **vacío** al primer clic, una fecha existente permanece intacta |
 | `link` | `restrictTo`, `display`, `sort` | ruta de carpeta (o lista) a la que se limitan las sugerencias; campo de metadatos del destino como nombre mostrado; orden `name` o `path` |
 | campo de selección | `control: cycle` | la selección simple se convierte en un botón que pasa al siguiente valor al hacer clic; el valor guardado sigue siendo el mismo que sin la opción |

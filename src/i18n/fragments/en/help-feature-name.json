@@ -213,5 +213,17 @@
   "help.featureName.canvasStacking": "Canvas stacking order",
   "help.featureName.canvasLinkCards": "Link cards on the canvas",
   "help.featureName.canvasImageCards": "Image cards on the canvas",
-  "help.featureName.canvasList": "Canvas list"
+  "help.featureName.canvasList": "Canvas list",
+  "help.featureName.databaseTable": "Table definition",
+  "help.featureName.databaseColumnTypes": "Column types of a table",
+  "help.featureName.databaseRecordKey": "Record identifier and business key",
+  "help.featureName.databaseInfo": "Fact sheet of the database",
+  "help.featureName.databaseRecords": "Records in the data block",
+  "help.featureName.databaseRecordsView": "Display of the records",
+  "help.featureName.databaseSegments": "Splitting large data sets",
+  "help.featureName.databaseSearchScope": "Records and the search across the area",
+  "help.featureName.databaseRecordLink": "Reference to a single record",
+  "help.featureName.databaseArea": "Area as a database",
+  "help.featureName.databaseOverview": "Overview of the database objects",
+  "help.featureName.databaseExtension": "Database as a switchable extension"
 }

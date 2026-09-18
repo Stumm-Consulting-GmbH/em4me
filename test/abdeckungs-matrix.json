@@ -3193,6 +3193,120 @@
       ],
       "hinweis": "4T-001598/4T-001599/4T-001603 (Epic 3E-000191): My Extended Memory als zentrale Seite ueber die eingetragenen Gefaesse. memory-entries.test.js misst die reine Listen-Logik des Hauptprozesses (Normalisieren, Eintragen mit Dedup ueber den Schluessel, Entfernen, Bauen des Vorschlags aus den zuletzt geoeffneten Gefaessen und den Arbeitsbereichen), memory-detect.test.js die Erkennung der Gefaess-Art eines Ordners in der Reihenfolge Regal, Buch, Bereich. renderer/memory-page.test.js misst die Seite: Leer-Zustand, Abschnitte je Art, Zeilen mit Pfad, Stand und Kennzeichen der Nicht-Erreichbarkeit, Vorschlags-Block und die Aktionen. my-extended-memory-extension.test.js traegt den Schalter: Registrierung als Werkzeug-Erweiterung mit den Katalog-Keys, Filterung des Kommandos memory.openPage im Aus-Zustand samt Gegenprobe, und dass das Schalten keine Kaskade ausloest und die eingetragene Gefaess-Liste nicht anruehrt. 4T-001601: renderer/memory-page.test.js traegt zusaetzlich die Detail-Sicht je Gefaess-Art (Zusammenstellung der Kennzahlen je Art, nicht verfuegbare Kennzahl gegen gezaehlte Null, Gleichheit mit den gelieferten Werten, Weg zur ausfuehrlichen Bereichs-Statistik).",
       "sichtbarkeit": ["test/e2e/funktionen/my-extended-memory.spec.js"]
+    },
+    {
+      "key": "help.feature.databaseTable",
+      "id": "F-298",
+      "testart": "unit",
+      "tests": ["test/unit/db-table-definition.test.js", "test/unit/db-katalog.test.js"],
+      "sichtbarkeit": "entfällt: kein Bedienelement; die Definition steht im Frontmatter der Tabellen-Datei und wird vom Katalog des Hauptprozesses gelesen",
+      "hinweis": "4T-001506 und 4T-001510 (Epic 3E-000250): Behälter db-table mit dem internen Profil, das seine Gestalt beschreibt, und der Katalog, der Definitionen liest und normalisiert. Testart unit, weil die Zusagen am Format und an der Fehler-Isolation hängen: einzige Pflichtangabe Name, weiche Linie je Angabe und je Eintrag, und die Abgrenzung gegen den Profil-Katalog."
+    },
+    {
+      "key": "help.feature.databaseColumnTypes",
+      "id": "F-301",
+      "testart": "unit",
+      "tests": [
+        "test/unit/db-table-columns.test.js",
+        "test/unit/property-profiles-laenge-nachkomma.test.js"
+      ],
+      "sichtbarkeit": "entfällt: kein eigenes Bedienelement; die beiden geteilten Angaben erscheinen als Hinweis am Feld der bestehenden Eigenschafts-Editoren (eigenschafts-profile.spec.js)",
+      "hinweis": "4T-001507 (Epic 3E-000250, E5 und E5.5): die acht Spalten-Typen, die drei nach ihrem Grund getrennten Ausschlüsse und die typ-eigenen Angaben. Höchstlänge und Nachkommastellen stehen im geteilten Optionen-Katalog und laufen in jedem Prüffall beide Wege, über parseProfileFields und über parseTableDefinition; die tragende Zusage ist, dass keine der beiden einen Wert ändert."
+    },
+    {
+      "key": "help.feature.databaseRecordKey",
+      "id": "F-302",
+      "testart": "unit",
+      "tests": ["test/unit/db-record-identity.test.js"],
+      "sichtbarkeit": "entfällt: kein Bedienelement; Kennung, fachlicher Schlüssel und Anzeige-Form sind Angaben der Definition im Frontmatter",
+      "hinweis": "4T-001508 (Epic 3E-000250, E5.1 und E5.2): Kennungs-Format mit Mindest-Breite ohne Obergrenze, der Hochwasserstand lastId als Quelle der nächsten Kennung, der ein- oder mehrteilige fachliche Schlüssel und die Auflösung der Anzeige-Form in einer Funktion."
+    },
+    {
+      "key": "help.feature.databaseInfo",
+      "id": "F-306",
+      "testart": "unit",
+      "tests": ["test/unit/db-steckbrief.test.js"],
+      "sichtbarkeit": "entfällt: kein Bedienelement; der Steckbrief steht im Frontmatter eines Dokuments der Datenbank",
+      "hinweis": "4T-001509 (Epic 3E-000250): Behälter db-database mit Name, Beschreibung, Schema-Version und Rückfall-Sprache. Testart unit, weil die Zusagen am Lesen hängen: jede Angabe fehlt für sich, die Schema-Version bleibt Text statt still zur Zahl zu werden, und die Rückfall-Sprache leitet sich aus dem Steckbrief selbst ab, wenn sie fehlt."
+    },
+    {
+      "key": "help.feature.databaseRecords",
+      "id": "F-295",
+      "testart": "unit",
+      "tests": ["test/unit/db-record-block.test.js"],
+      "sichtbarkeit": "entfällt: kein Bedienelement; die Datensätze stehen im Körper der Tabellen-Datei",
+      "hinweis": "4T-001551 (Epic 3E-000251, E3): Format und Parser des Datensatz-Blocks — Zeilen- und Zell-Grammatik, Marker nur in Spalte 0, Rückstrich als Notausgang, positionsbasierte Zuordnung ohne Kopfzeile. Testart unit, weil die Zusagen am Lesen und Zurückschreiben hängen: fehlende Zellen bleiben leer, überzählige bleiben stehen, und der Rundlauf ist zeichengleich."
+    },
+    {
+      "key": "help.feature.databaseRecordsView",
+      "id": "F-296",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-tabelle.spec.js",
+        "test/unit/db-record-anzeige.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in Lese-Ansicht und Änderungs-Modus, sobald eine Tabellen-Datei geöffnet ist",
+      "hinweis": "4T-001551 (Epic 3E-000251, E3.7 und E29.2): Anzeige des Datensatz-Blocks als Tabelle mit typisierten Werten, das gemessene Fenster bei 2000 Datensätzen und der vollständige portable Export. Testart e2e, weil die Darstellung in beiden Ansichten am gebauten Programm hängt; die Unit-Ebene trägt Fenster, Typ-Anzeige und die Fälle ohne Tabelle."
+    },
+    {
+      "key": "help.feature.databaseSegments",
+      "id": "F-297",
+      "testart": "unit",
+      "tests": ["test/unit/document-split.test.js"],
+      "sichtbarkeit": "entfällt: geschieht beim Speichern ohne Bedienelement und ohne Rückfrage",
+      "hinweis": "4T-001551 (Epic 3E-000251, E26): Aufteilung der Tabellen-Ablage auf Segmente — Ablage-Schwelle statt Dokument-Schwelle, Schnitt nur an der Datensatz-Grenze, Lese-Hilfe im Folge-Segment und die beiden Zusicherungen der Schreib-Politik. Testart unit, weil die Zusagen am Zerlegen und Zusammensetzen hängen und ohne Dateisystem prüfbar sind."
+    },
+    {
+      "key": "help.feature.databaseSearchScope",
+      "id": "F-299",
+      "testart": "unit",
+      "tests": [
+        "test/unit/area-suchraum-datensaetze.test.js",
+        "test/unit/renderer/such-bereich.test.js"
+      ],
+      "sichtbarkeit": "entfällt: kein Bedienelement; die Grenze wirkt im Suchraum der Bereichs-Suche, und was der Anwender sieht, ist das Ausbleiben von Datensatz-Treffern in der bestehenden Trefferliste",
+      "hinweis": "4T-001609 (Epic 3E-000252, E16.2): der Datensatz-Block bleibt aus dem Volltext-Suchraum draußen, das Dokument nicht. Testart unit, weil die Zusagen an der Bereinigung und an allen vier Wegen der Bereichs-Suche hängen: Vorrat, Direkt-Suche oberhalb des Deckels, einzelne große Dateien und der Puffer-Stand offener Dokumente, dazu der Zwischenspeicher und die stellen-erhaltende Fundstelle. Die vier Fälle in such-bereich.test.js decken den Sprung ab, der von der Ordnungszahl auf die Stelle umgestellt wurde."
+    },
+    {
+      "key": "help.feature.databaseRecordLink",
+      "id": "F-300",
+      "testart": "unit",
+      "tests": ["test/unit/datensatz-verweis.test.js"],
+      "sichtbarkeit": "entfällt: kein eigenes Bedienelement; der Verweis wird von Hand geschrieben, und seine Gültigkeit zeigt der Editor-Linter im Änderungs-Modus an derselben Markierung wie bei jedem anderen Verweis",
+      "hinweis": "4T-001612 (Epic 3E-000252): die dritte Anker-Herkunft in anchorExistsInFile, geordnet nach dem Block-Anker, sodass kein bestehender Verweis umgedeutet wird. Testart unit, weil die Zusagen an der Auflösung hängen: vorhandene und fehlende Kennung, Folge-Segment, Zusammentreffen beider Anker-Arten und die unveränderte Zusicherung, dass eine Kennung in einem Code-Beispiel einer Nicht-Tabelle kein Anker ist. Der Sprung nach dem Klick gehört zu E16.3 und damit zur Masken-Stufe."
+    },
+    {
+      "key": "help.shortcut.databaseOverview",
+      "id": "S-151",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/datenbank-uebersicht.spec.js"],
+      "hinweis": "4T-001759 (Epic 3E-000253): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Uebersicht der Datenbank' (Menue-, Kontextmenue- und Paletten-Weg, belegbar). DB-UEB-01 zeigt den Eintrag im gebauten Ansichtsmenue und im Kontextmenue des Bereichs-Panels, oeffnet die Seite ueber den Kontextmenue-Weg und prueft Steckbrief, Tabellen samt Feld-Zahl und die Fehlerlagen im Klartext; der zweite Fall zeigt das Ausbleiben des Zugangs in einem Bereich ohne Datenbank, der dritte das Oeffnen beim Binden eines Bereichs mit gesetzter Anzeige-Option. Die Katalog-Zeile der Funktion (help.feature.*) entsteht mit ihrem Matrix-Eintrag im Hilfe- und Handbuch-Task 4T-001762 und nennt denselben Prueffall."
+    },
+    {
+      "key": "help.feature.databaseArea",
+      "id": "F-303",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/datenbank-bereich.spec.js"],
+      "hinweis": "4T-001758 (Epic 3E-000253): der Bereich als Datenbank — die Erkennung am Steckbrief im Bestand und der Einstellungs-Abschnitt «Datenbank» der Navigations-Gruppe «Aktueller Bereich» mit Name, Beschreibung, Tabellen-Zahl, Fehler-Zahl und der Option «Übersicht beim Öffnen des Bereichs zeigen». DB-BER-01 zeigt den Abschnitt in der gerenderten Navigation eines Bereichs mit Datenbank, sein Ausbleiben in einem Bereich ohne Datenbank und den Weg der Option bis in die Bereichsdatei und zurück. Testart e2e, weil die Bereichs-Art an einem echten Bestand über einen echten Index erkannt wird und kein jsdom-Fall einen Index hat. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001762 entstanden und nennt diesen bereits vorliegenden Prüffall, statt einen neuen zu verlangen."
+    },
+    {
+      "key": "help.feature.databaseOverview",
+      "id": "F-304",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/datenbank-uebersicht.spec.js"],
+      "hinweis": "4T-001759 (Epic 3E-000253): die Übersichts-Seite der Datenbank-Objekte mit Steckbrief, Tabellen samt Feld-Zahl und den Fehlerlagen im Klartext, dazu ihre drei Zugänge. DB-UEB-01 zeigt den Eintrag im gebauten Ansichtsmenü und im Kontextmenü des Bereichs-Panels, öffnet die Seite über den Kontextmenü-Weg und prüft ihren Inhalt; der zweite Fall zeigt das Ausbleiben des Zugangs in einem Bereich ohne Datenbank, der dritte das Öffnen beim Binden eines Bereichs mit gesetzter Anzeige-Option. Testart e2e, weil Ansichtsmenü und Kontextmenü der Haupt-Prozess je Fenster baut und kein jsdom-Fall sie sieht. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001762 entstanden und nennt denselben Prüffall wie die Kürzel-Zeile help.shortcut.databaseOverview."
+    },
+    {
+      "key": "help.feature.databaseExtension",
+      "id": "F-305",
+      "testart": "unit",
+      "tests": [
+        "test/unit/render/extensions-aus.test.js",
+        "test/unit/datensatz-aus-zustand.test.js",
+        "test/unit/renderer/settings-extensions.test.js"
+      ],
+      "sichtbarkeit": ["test/e2e/funktionen/erweiterungen.spec.js"],
+      "hinweis": "4T-001760 und 4T-001761 (Epic 3E-000253): der Schalter «Datenbank» unter Einstellungen → Erweiterungen in der Kategorie Werkzeuge, seine Abhängigkeit von den Eigenschafts-Profilen und der vollständige Aus-Zustand. extensions-aus.test.js hält Registrierung, Kategorie, Abhängigkeit, die zehn zugeordneten Katalog-Zeilen, das gefilterte Kommando der Übersicht und den entfallenden Einstellungs-Abschnitt; extensions-aus.test.js zeigt zudem den Datensatz-Block als gewöhnlichen Code-Block in Lese-Ansicht, Änderungs-Modus und portablem Export; datensatz-aus-zustand.test.js den ruhenden Datensatz-Bestand des Index, den nicht mehr gebrochenen Datensatz-Verweis und die unveränderten Dateien über Ab- und Wiedereinschalten; settings-extensions.test.js die Zeile in der gerenderten Erweiterungs-Liste. Testart unit, weil jede dieser Zusagen an einem Prädikat, an der Render-Kette oder am Index über einem Temp-Bereich hängt und keine gestartete Anwendung braucht. Sichtbarkeit über EW-01 bis EW-04, die den Einstellungs-Bereich «Erweiterungen» mit seiner aus der Registry gebauten Liste in der realen Anordnung rendern; die Zeile «Datenbank» entsteht dort aus demselben Eintrag. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001762 entstanden; sie beschreibt den Schalter selbst und steht deshalb in der Kern-Liste test/unit/funktions-seite-kern.js statt am Feld featureKeys der Erweiterung."
     }
   ]
 }

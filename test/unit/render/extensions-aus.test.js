@@ -16,6 +16,7 @@ import { extensionById, internalExtensions } from '../../../src/shared/extension
 import {
   disabledCommandIdSet,
   disabledFeatureKeySet,
+  disabledSettingsSectionIdSet,
   effectiveDisabledSet,
   isExtensionEnabled,
 } from '../../../src/shared/extensions/extensions-core.js';
@@ -632,6 +633,246 @@ describe('Erweiterung canvas: Registry und Aus-Zustand (4T-001656)', () => {
     }
   });
 });
+// 4T-001760 (Epic 3E-000253, Story 4S-000946): Registrierung der Datenbank als
+// Werkzeug-Erweiterung und der Teil ihres Aus-Zustands, den die Registrierung
+// selbst bewirkt. Die Schablone ist der Canvas-Block darüber, weil auch hier
+// beide Seiten zusammenkommen: ein Render-Konstrukt (der Datensatz-Block) und
+// die deklarative Seite (Kommando, Einstellungs-Bereich, Abhängigkeit).
+//
+// Die tiefergehenden Zusagen des Aus-Zustands (Live-Ansicht, ruhender
+// Datensatz-Bestand im Index, Verweis-Auflösung, Suchraum-Schnitt) gehören zu
+// 4T-001761 und stehen bewusst nicht hier.
+describe('Erweiterung database: Registry und Aus-Zustand (4T-001760)', () => {
+  // Ein Tabellen-Dokument: Die Spalten des Datensatz-Blocks stehen nicht in
+  // seiner Fence, sondern in der Definition im Frontmatter derselben Datei.
+  const TABELLE = [
+    '---',
+    'db-table:',
+    '  fields:',
+    '    - name: name',
+    '---',
+    '',
+    '```perspective-records',
+    '|-',
+    '| Anna',
+    '```',
+    '',
+  ].join('\n');
+
+  it('AK1: ist als Werkzeug-Erweiterung mit eigenen Texten registriert', () => {
+    const manifest = extensionById('database');
+    expect(manifest).not.toBeNull();
+    expect(manifest.category).toBe('tools');
+    // Gebündelte Erweiterung: eigene extension.*-Texte statt einer
+    // Katalog-Zeile, weil sie mehrere Zeilen zusammenfasst.
+    expect(manifest.nameKey).toBe('extension.database.name');
+    expect(manifest.descKey).toBe('extension.database.description');
+    // Ab Werk eingeschaltet: der Default der Disabled-Liste ist leer.
+    expect(isExtensionEnabled('database', [])).toBe(true);
+    expect(internalExtensions().some((m) => m.id === 'database')).toBe(true);
+  });
+
+  it('AK3: nennt die zehn Katalog-Zeilen der Gruppe «Datenbank»', () => {
+    const manifest = extensionById('database');
+    // 4T-001761 (Epic 3E-000253): Acht statt der ursprünglichen neun. Die Zeile
+    // zum Suchraum-Schnitt ist in die Kern-Liste zurückgezogen, weil der
+    // Schnitt an der Marke der Tabellen-Datei hängt und im Aus-Zustand
+    // bestehen bleibt (Entscheidung E-C).
+    //
+    // 4T-001762 (Epic 3E-000253): Zehn statt acht. Die Katalog-Zeilen zum
+    // Datenbank-Bereich und zu seiner Übersichts-Seite sind mit dem Hilfe- und
+    // Handbuch-Task entstanden; beide beschreiben Bedienelemente, die im
+    // Aus-Zustand entfallen, und gehören deshalb an die Erweiterung. Die dritte
+    // neue Zeile, help.feature.databaseExtension, bleibt draußen: Sie
+    // beschreibt den Schalter selbst und steht in der Kern-Liste.
+    expect(manifest.featureKeys).toEqual([
+      'help.feature.databaseTable',
+      'help.feature.databaseColumnTypes',
+      'help.feature.databaseRecordKey',
+      'help.feature.databaseInfo',
+      'help.feature.databaseRecords',
+      'help.feature.databaseRecordsView',
+      'help.feature.databaseSegments',
+      'help.feature.databaseRecordLink',
+      'help.feature.databaseArea',
+      'help.feature.databaseOverview',
+    ]);
+    expect(manifest.featureKeys).not.toContain('help.feature.databaseSearchScope');
+    expect(manifest.featureKeys).not.toContain('help.feature.databaseExtension');
+    // Im Aus-Zustand tragen sie damit die Kennzeichnung der Funktions-Seite,
+    // statt zu verschwinden; im An-Zustand keine von ihnen.
+    const aus = disabledFeatureKeySet(['database']);
+    for (const key of manifest.featureKeys) expect(aus.has(key)).toBe(true);
+    const an = disabledFeatureKeySet([]);
+    for (const key of manifest.featureKeys) expect(an.has(key)).toBe(false);
+  });
+
+  it('AK4: führt das Kommando der Übersicht, und es ist registriert', () => {
+    const manifest = extensionById('database');
+    expect(manifest.commands).toEqual(['database.openOverview']);
+    const registrierte = new Set(COMMANDS.map((c) => c.id));
+    expect(registrierte.has('database.openOverview')).toBe(true);
+  });
+
+  it('AK4: der Aus-Zustand filtert genau dieses Kommando, der An-Zustand keines', () => {
+    const aus = disabledCommandIdSet(['database']);
+    expect(aus.has('database.openOverview')).toBe(true);
+    // Die Nachbarn im selben Ansichtsmenü bleiben unberührt.
+    for (const id of ['stats.openArea', 'graph.openArea']) {
+      expect(aus.has(id), `${id} darf nicht mitgefiltert werden`).toBe(false);
+    }
+    expect(disabledCommandIdSet([]).has('database.openOverview')).toBe(false);
+  });
+
+  it('AK4: der Einstellungs-Bereich «Datenbank» entfällt im Aus-Zustand', () => {
+    const manifest = extensionById('database');
+    expect(manifest.settingsSections).toEqual(['database']);
+    expect(disabledSettingsSectionIdSet(['database']).has('database')).toBe(true);
+    expect(disabledSettingsSectionIdSet([]).has('database')).toBe(false);
+  });
+
+  it('AK5: der Datensatz-Block erscheint abgeschaltet als gewöhnlicher Code-Block', () => {
+    // Nicht-Vakuitäts-Probe zuerst: eingeschaltet ist es die typisierte Tabelle.
+    expect(renderMarkdown(TABELLE, 'de')).toContain('class="perspective-records"');
+    const off = renderOff('database', TABELLE);
+    expect(off).not.toContain('class="perspective-records"');
+    expect(off).toContain('language-perspective-records');
+    // Der Inhalt bleibt lesbar — abgeschaltet wird die Darstellung, nicht die
+    // Angabe.
+    expect(off).toContain('| Anna');
+  });
+
+  it('AK5: das Wiedereinschalten stellt den Block zeichengleich wieder her', () => {
+    const vorher = renderMarkdown(TABELLE, 'de');
+    renderOff('database', TABELLE);
+    configureExtensions([]);
+    expect(renderMarkdown(TABELLE, 'de')).toBe(vorher);
+  });
+
+  it('AK5: auch der portable Export lässt die Fence als Rohtext stehen', () => {
+    // Derselbe Weg, dieselbe Weiche: Der portable Konverter nutzt die zweite
+    // Instanz derselben Pipeline.
+    configureExtensions(['database']);
+    const portabel = convertMarkdownPortable(TABELLE, true, 'de');
+    expect(portabel).toContain('```perspective-records');
+    expect(portabel).not.toContain('<table>');
+  });
+
+  it('AK6: das Abschalten der Eigenschafts-Profile schaltet die Datenbank mit ab', () => {
+    // Die Gestalt einer Tabellen-Definition wird über ein internes Profil
+    // beschrieben und geprüft (E15.3); ohne den Profil-Mechanismus entfiele
+    // diese Prüfung.
+    const manifest = extensionById('database');
+    expect(manifest.dependencies).toEqual(['property-profiles']);
+    expect(effectiveDisabledSet(['property-profiles']).has('database')).toBe(true);
+    expect(isExtensionEnabled('database', ['property-profiles'])).toBe(false);
+    // Und die Wirkung reicht bis in die Darstellung.
+    expect(renderOff('property-profiles', TABELLE)).not.toContain('class="perspective-records"');
+    // Umgekehrt nicht: die Datenbank abzuschalten lässt die Profile stehen.
+    expect(isExtensionEnabled('property-profiles', ['database'])).toBe(true);
+  });
+
+  it('der eigene Schalter-Stand bleibt beim transitiven Abschalten erhalten', () => {
+    // Wirk-Semantik der Persistenz: 'extensions.disabled' trägt nur die bewusst
+    // abgeschalteten Kennungen; die Datenbank kehrt mit den Profilen zurück.
+    expect(isExtensionEnabled('database', ['property-profiles'])).toBe(false);
+    expect(isExtensionEnabled('database', [])).toBe(true);
+  });
+
+  it('zieht keine andere Erweiterung mit', () => {
+    expect([...effectiveDisabledSet(['database'])]).toEqual(['database']);
+    for (const m of internalExtensions()) {
+      expect((m.dependencies || []).includes('database'), `${m.id} hängt an database`).toBe(false);
+    }
+  });
+});
+// 4T-001761 (Epic 3E-000253, Story 4S-000946): Der vollständige Aus-Zustand
+// der Datenbank, soweit er an der Render-Pipeline hängt.
+//
+// **Abgrenzung zum Block darüber.** 4T-001760 hat die Registrierung gebaut und
+// den Teil des Aus-Zustands geprüft, den sie selbst bewirkt: Lese-Ansicht,
+// portabler Export, Kommando-Filterung, Einstellungs-Bereich, Abhängigkeit.
+// Hier steht, was jene Registrierung NICHT von allein leistet — allen voran
+// der **Änderungs-Modus**, dessen Live-Widget die Pipeline mit dem
+// Frontmatter-Vorspann der Datei anwirft und deshalb einen eigenen Nachweis
+// braucht.
+//
+// **Was hier bewusst NICHT noch einmal steht.** Der portable Export (AK2) und
+// die Kommando-Filterung (AK3) sind im Block darüber geprüft; eine zweite
+// Fassung derselben Messung wäre eine zweite Antwort auf dieselbe Frage. Die
+// übrigen Zusagen liegen außerhalb der Render-Pipeline und haben ihre eigenen
+// Prüfdateien: die Übersichts-Seite samt ihren Zugängen (AK4) in
+// `test/unit/renderer/datenbank-uebersicht-zugaenge.test.js` und
+// `…-beim-binden.test.js`, der ruhende Datensatz-Bestand mit Verweis-Auflösung,
+// unveränderten Dateien und Wiedereinschalten (AK5 bis AK8) in
+// `test/unit/datensatz-aus-zustand.test.js`, der bestehen bleibende
+// Suchraum-Schnitt (AK9) in `test/unit/area-suchraum-datensaetze.test.js`.
+describe('Erweiterung database: vollständiger Aus-Zustand (4T-001761)', () => {
+  // Der Frontmatter-Vorspann einer Tabellen-Datei: Hier stehen die Spalten,
+  // nicht in der Fence (E3.2). Er wird getrennt gehalten, weil der
+  // Änderungs-Modus genau ihn als Vorspann vor die Fence setzt.
+  const VORSPANN = [
+    '---',
+    'db-table:',
+    '  fields:',
+    '    - name: Kürzel',
+    '    - name: Titel',
+    '  key: Kürzel',
+    '---',
+    '',
+  ].join('\n');
+
+  const FENCE = ['```perspective-records', '|- id="r-00001"', '| K-1', '| Anna', '```', ''].join(
+    '\n',
+  );
+
+  const DOKUMENT = VORSPANN + '\n# Kundenliste\n\nEine Beschreibung.\n\n' + FENCE;
+
+  it('AK2: die Lese-Ansicht zeigt den Block als gewöhnlichen Code-Block', () => {
+    // Nicht-Vakuitäts-Probe: eingeschaltet trägt die Tabelle die Spalten-Köpfe
+    // aus dem Vorspann, ist also wirklich die typisierte Darstellung.
+    const an = renderMarkdown(DOKUMENT, 'de');
+    expect(an).toContain('class="perspective-records"');
+    expect(an).toContain('Kürzel');
+
+    const aus = renderOff('database', DOKUMENT);
+    expect(aus).not.toContain('class="perspective-records"');
+    expect(aus).toContain('language-perspective-records');
+    // Abgeschaltet wird die Darstellung, nicht die Angabe: Der Rohtext bleibt
+    // vollständig lesbar, samt Kennung.
+    expect(aus).toContain('r-00001');
+    expect(aus).toContain('| Anna');
+    // Und die Prosa der Datei bleibt, was sie war.
+    expect(aus).toContain('Eine Beschreibung.');
+  });
+
+  it('AK2: der Änderungs-Modus zeigt denselben Code-Block', () => {
+    // Das Live-Widget des Änderungs-Modus rendert NUR die Fence, stellt ihr
+    // aber den Frontmatter-Vorspann der Datei voran und unterdrückt dessen
+    // Anzeige (live-block-field.js baut den Vorspann, live-widget-render.js
+    // ruft damit). Über die Preload-Brücke steht an der Stelle der Sprache der
+    // Basis-Pfad; der Kern-Aufruf darunter ist dieser hier.
+    const an = renderMarkdown(VORSPANN + FENCE, 'de', { frontmatterBlock: false });
+    expect(an).toContain('class="perspective-records"');
+
+    configureExtensions(['database']);
+    const aus = renderMarkdown(VORSPANN + FENCE, 'de', { frontmatterBlock: false });
+    expect(aus).not.toContain('class="perspective-records"');
+    expect(aus).toContain('<pre');
+    expect(aus).toContain('language-perspective-records');
+    expect(aus).toContain('| Anna');
+  });
+
+  it('AK2: auch transitiv über die Eigenschafts-Profile fällt der Änderungs-Modus zurück', () => {
+    // Derselbe Weg wie beim eigenen Schalter — die Wirkung des Aus-Zustands
+    // darf nicht daran hängen, WELCHER Schalter ihn ausgelöst hat.
+    configureExtensions(['property-profiles']);
+    const aus = renderMarkdown(VORSPANN + FENCE, 'de', { frontmatterBlock: false });
+    expect(aus).not.toContain('class="perspective-records"');
+    expect(aus).toContain('language-perspective-records');
+  });
+});
+
 describe('area-links: Aus-Zustand der Bereichs-Verknuepfungen (4T-001457)', () => {
   it('an: der Kuerzel-Link traegt Marke und Herkunft', () => {
     // Nicht-Vakuitaets-Probe: ohne sie belegt der Aus-Fall nichts.

@@ -271,18 +271,34 @@ export class WikiEmbedWidget extends WidgetType {
 // nicht, eq() bleibt gleich, Widget-Re-Build entfaellt; bei Block-
 // Aenderungen springt der cacheKey, neuer Cache-Eintrag.
 export class MarkdownBlockWidget extends WidgetType {
-  constructor(source, basePath, cacheKey) {
+  // 4T-001547 (Epic 3E-000251): `docPrefix` ist der Frontmatter-Block der Datei,
+  // und er ist die Ausnahme, nicht die Regel.
+  //
+  // **Warum es ihn braucht.** Dieses Widget rendert einen Block **isoliert** —
+  // es reicht genau seinen Quelltext an die Pipeline. Für jedes bisherige
+  // Konstrukt genügt das, weil es sich selbst erklärt. Der Datensatz-Block der
+  // Datenbank tut das nicht: Seine Spalten stehen nach E3.2 in der Definition
+  // im Frontmatter derselben Datei, und ohne sie wäre er im Änderungs-Modus
+  // eine Folge unbenannter Werte, während er in der Lese-Ansicht als Tabelle
+  // erscheint. Wer den Vorspann mitgibt, bekommt dieselbe Pipeline mit
+  // demselben Ergebnis; der Frontmatter-Block selbst wird dabei unterdrückt.
+  //
+  // Gesetzt wird er nur dort, wo ein Konstrukt ihn braucht (live-block-field.js),
+  // damit kein anderes Konstrukt sein Render-Ergebnis unbemerkt ändert.
+  constructor(source, basePath, cacheKey, docPrefix) {
     super();
     this.source = source;
     this.basePath = basePath || '';
     this.cacheKey = cacheKey;
+    this.docPrefix = docPrefix || '';
   }
   eq(other) {
     return (
       other instanceof MarkdownBlockWidget &&
       other.source === this.source &&
       other.basePath === this.basePath &&
-      other.cacheKey === this.cacheKey
+      other.cacheKey === this.cacheKey &&
+      other.docPrefix === this.docPrefix
     );
   }
   toDOM() {
@@ -298,7 +314,14 @@ export class MarkdownBlockWidget extends WidgetType {
       return container;
     }
     try {
-      const html = api.renderMarkdown(this.source, this.basePath);
+      // 4T-001547: Mit Vorspann rendert die Pipeline denselben Block mit dem
+      // Wissen seiner Datei; der Frontmatter-Block selbst bleibt unsichtbar,
+      // sonst stuende er in jedem Widget noch einmal.
+      const html = this.docPrefix
+        ? api.renderMarkdown(this.docPrefix + this.source, this.basePath, {
+            frontmatterBlock: false,
+          })
+        : api.renderMarkdown(this.source, this.basePath);
       const tmp = document.createElement('div');
       tmp.innerHTML = html;
       // markdown-it wickelt Inhalte ggf. in <p>. Bei Tabellen liegt das
@@ -315,10 +338,13 @@ export class MarkdownBlockWidget extends WidgetType {
       // 4T-001668 (Epic 3E-000287): .perspective-canvas ebenso VOR table und
       // pre — der Block trägt seine Stellen-Attribute am Wrapper, und ohne ihn
       // verlöre das Live-Widget Kopfzeile, Zugang und Klapp-Griff.
+      // 4T-001547 (Epic 3E-000251): .perspective-records aus demselben Grund
+      // VOR table — ohne den Wrapper verlöre das Live-Widget die Zuordnung zur
+      // Fence und den Fenster-Hinweis.
       const child =
         tmp.querySelector(
-          '.perspective-events, .perspective-datatable, .perspective-canvas, table, pre, ' +
-            '.katex-display, .katex',
+          '.perspective-events, .perspective-datatable, .perspective-canvas, ' +
+            '.perspective-records, table, pre, .katex-display, .katex',
         ) || tmp.firstElementChild;
       if (child) {
         liveBlockCacheSet(this.cacheKey, child);

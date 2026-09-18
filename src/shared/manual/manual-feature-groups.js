@@ -315,6 +315,43 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.pasteLink',
     ],
   },
+  // 4T-001511: eigene Gruppe der Datenbank (Entscheidung des Product Owners vom
+  // 2026-09-06), zwischen Bearbeitung und Ansicht; Begruendung im Task.
+  {
+    groupKey: 'help.group.database',
+    features: [
+      'help.feature.databaseTable',
+      'help.feature.databaseColumnTypes',
+      'help.feature.databaseRecordKey',
+      'help.feature.databaseInfo',
+      // 4T-001551 (Epic 3E-000251): die Daten hinter der Definition, in der
+      // Reihenfolge, in der der Anwender ihnen begegnet — erst wie sie in der
+      // Datei stehen, dann wie sie erscheinen, zuletzt was geschieht, wenn es
+      // viele werden. Die Aufteilung ist ein eigener Eintrag und kein Absatz
+      // beim ersten: Sie ist fuer den Anwender eine Zusage darueber, was NICHT
+      // passiert, und die findet er nur, wenn sie eine eigene Zeile hat.
+      'help.feature.databaseRecords',
+      'help.feature.databaseRecordsView',
+      'help.feature.databaseSegments',
+      // 4T-001613 (Epic 3E-000252): am Ende der Gruppe, weil beide Zeilen die
+      // Tabelle von aussen betreffen — wie man ihre Daten findet und wie man
+      // auf einen einzelnen Datensatz zeigt. Sie folgen damit auf die drei
+      // Zeilen der Ablage, in der Reihenfolge, in der der Anwender ihnen
+      // begegnet: erst die Suche, die er ohnehin benutzt, dann der Verweis,
+      // den er selbst schreibt.
+      'help.feature.databaseSearchScope',
+      'help.feature.databaseRecordLink',
+      // 4T-001762 (Epic 3E-000253): die drei Zeilen des Bereichs am Ende der
+      // Gruppe, in der Reihenfolge, in der der Anwender ihnen begegnet — erst
+      // der Bereich, der eine Datenbank führt, dann die Übersicht, die er in
+      // ihm öffnet, zuletzt der Schalter, mit dem er das Ganze abschaltet. Sie
+      // folgen auf die Zeilen der einzelnen Tabelle, weil sie über ihr stehen:
+      // Die Tabelle ist ein Dokument, der Bereich ist die Datenbank.
+      'help.feature.databaseArea',
+      'help.feature.databaseOverview',
+      'help.feature.databaseExtension',
+    ],
+  },
   {
     groupKey: 'help.group.view',
     features: [

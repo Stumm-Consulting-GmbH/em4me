@@ -30,6 +30,8 @@ This decision is binding. ^decision-1
 
 The link [[04 Links and Structure#^decision-1]] jumps straight to it. The rendered view hides the anchor entirely; the live view replaces it with a discreet marker at the end of the line — hover it to read the identifier, click it to edit the raw text. Anchors also carry [[05 Properties and Profiles|block properties]].
 
+The same notation reaches a single row of a database table: [[Library#^r-00016]] points at one record of [[Library]] instead of the whole file. Such a link counts as valid as long as the table carries that record.
+
 ## Tags
 
 ```markdown

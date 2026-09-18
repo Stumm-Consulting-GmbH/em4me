@@ -33,6 +33,8 @@ L'ancora si presenta in modo diverso a seconda della vista. La vista renderizzat
 
 Le destinazioni di ancora rotte vengono segnalate dal [linter Markdown](tools.md) nell'editor.
 
+In un file di tabella della [banca dati](database.md), `#^` indica inoltre l'identificatore di un singolo record: `[[Personen#^r-00042]]`. Un collegamento del genere vale se la tabella porta quel record; un'ancora di blocco con lo stesso nome mantiene la precedenza.
+
 ## Collegamenti Markdown a file
 
 Anche i collegamenti Markdown classici aprono destinazioni `.md` come scheda; le ancore funzionano allo stesso modo. I collegamenti di àncora interni saltano dentro la pagina — dal vivo qui: [al capitolo Tag](#tag).

@@ -72,7 +72,38 @@ function bezugsPfad(code) {
  *
  * @type {Array<{sprache: string, schluessel: string, grund: string}>}
  */
-const ABWEICHUNGEN = [];
+const ABWEICHUNGEN = [
+  {
+    sprache: 'de',
+    schluessel: 'help.feature.propertyProfiles',
+    grund:
+      'Zug 3E-000277 (4T-001507, 4T-001511): Katalog-Text der Eigenschafts-Profile um die beiden geteilten Spalten-Optionen erweitert, bevor der Bezugsstand 1.132.0 entstand',
+  },
+  {
+    sprache: 'en',
+    schluessel: 'help.feature.propertyProfiles',
+    grund:
+      'Zug 3E-000277 (4T-001507, 4T-001511): Katalog-Text der Eigenschafts-Profile um die beiden geteilten Spalten-Optionen erweitert, bevor der Bezugsstand 1.132.0 entstand',
+  },
+  {
+    sprache: 'fr',
+    schluessel: 'help.feature.propertyProfiles',
+    grund:
+      'Zug 3E-000277 (4T-001507, 4T-001511): Katalog-Text der Eigenschafts-Profile um die beiden geteilten Spalten-Optionen erweitert, bevor der Bezugsstand 1.132.0 entstand',
+  },
+  {
+    sprache: 'es',
+    schluessel: 'help.feature.propertyProfiles',
+    grund:
+      'Zug 3E-000277 (4T-001507, 4T-001511): Katalog-Text der Eigenschafts-Profile um die beiden geteilten Spalten-Optionen erweitert, bevor der Bezugsstand 1.132.0 entstand',
+  },
+  {
+    sprache: 'it',
+    schluessel: 'help.feature.propertyProfiles',
+    grund:
+      'Zug 3E-000277 (4T-001507, 4T-001511): Katalog-Text der Eigenschafts-Profile um die beiden geteilten Spalten-Optionen erweitert, bevor der Bezugsstand 1.132.0 entstand',
+  },
+];
 
 /**
  * Vergleicht einen Bezugs-Katalog gegen den heutigen Ist-Katalog einer Sprache.

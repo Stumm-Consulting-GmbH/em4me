@@ -830,6 +830,62 @@ const INTERNAL_EXTENSIONS = [
     dependencies: ['property-profiles'],
     commands: ['edit.insertEvents'],
   },
+  // 4T-001760 (Epic 3E-000253, E15/E18.4): Die Datenbank als schaltbare
+  // Werkzeug-Erweiterung. Ein einziger Schalter trägt die gesamte
+  // Funktionalität (E15.1): Keine Schicht arbeitet ohne die darunter, und eine
+  // halb abgeschaltete Datenbank ergäbe keinen brauchbaren Zustand.
+  // Abhängigkeit von den Eigenschafts-Profilen nach dem Vorbild der Ereignisse
+  // darüber (E15.3): Die Gestalt einer Tabellen-Definition wird über ein
+  // internes Profil beschrieben und geprüft; ohne den Profil-Mechanismus
+  // entfiele diese Prüfung, und die transitive Mit-Deaktivierung nimmt die
+  // Datenbank deshalb mit, statt sie halb funktionsfähig zurückzulassen.
+  // Gebündelte Erweiterung mit eigenen extension.*-Texten, weil sie die
+  // Katalog-Zeilen der Gruppe «Datenbank» zusammenfasst und keiner einzelnen
+  // von ihnen entspricht; bis zu diesem Vorgang standen sie in der Kern-Liste
+  // von test/unit/funktions-seite-kern.js und sind mit ihm umgezogen.
+  // 4T-001761 (Epic 3E-000253): Acht statt neun — die Zeile zum Suchraum-
+  // Schnitt ist in die Kern-Liste zurückgezogen, weil der Schnitt an der Marke
+  // der Tabellen-Datei hängt und im Aus-Zustand bestehen bleibt (E-C).
+  // 4T-001762 (Epic 3E-000253): Zehn statt acht — die Katalog-Zeilen zum
+  // Datenbank-Bereich und zu seiner Übersichts-Seite sind mit dem Hilfe- und
+  // Handbuch-Task entstanden und gehören hierher: Beide beschreiben
+  // Bedienelemente, die im Aus-Zustand entfallen. Die dritte neue Zeile,
+  // help.feature.databaseExtension, steht bewusst NICHT hier, sondern in der
+  // Kern-Liste von test/unit/funktions-seite-kern.js: Sie beschreibt den
+  // Schalter selbst und gilt in beiden Stellungen.
+  // Im Aus-Zustand (eigener Schalter oder transitiv über die Profile) bleibt
+  // der Datensatz-Block ein gewöhnlicher Code-Block in Lese-Ansicht und
+  // portablem Export, das Kommando der Übersicht ist gefiltert und der
+  // Einstellungs-Bereich entfällt; die Dateien bleiben unangetastet, das
+  // Wiedereinschalten bringt alles zurück (E15.4). Die übrigen Zusagen des
+  // Aus-Zustands stellt 4T-001761 her.
+  {
+    id: 'database',
+    category: 'tools',
+    nameKey: 'extension.database.name',
+    descKey: 'extension.database.description',
+    featureKeys: [
+      'help.feature.databaseTable',
+      'help.feature.databaseColumnTypes',
+      'help.feature.databaseRecordKey',
+      'help.feature.databaseInfo',
+      'help.feature.databaseRecords',
+      'help.feature.databaseRecordsView',
+      'help.feature.databaseSegments',
+      'help.feature.databaseRecordLink',
+      'help.feature.databaseArea',
+      'help.feature.databaseOverview',
+    ],
+    dependencies: ['property-profiles'],
+    // 4T-001759 (Epic 3E-000253): die Übersichts-Seite des Datenbank-Bereichs;
+    // mit dem Kommando entfallen im Aus-Zustand Ansichtsmenü, Kontextmenü des
+    // Bereichs-Panels, Kommando-Palette und die erzeugte Tastenkürzel-Seite.
+    commands: ['database.openOverview'],
+    // 4T-001758 (Epic 3E-000253): der Einstellungs-Bereich «Datenbank» der
+    // Gruppe „Aktueller Bereich"; seine abgelegten Werte bleiben beim
+    // Abschalten erhalten.
+    settingsSections: ['database'],
+  },
   // 4T-000538 (Epic 3E-000098): Arbeitsbereiche als schaltbare Werkzeug-
   // Erweiterung (Workshop-Punkt 8 vom 2026-07-11), ohne Abhaengigkeiten.
   // Im Aus-Zustand entfallen die vier Kommandos (Menue-Block, Palette,

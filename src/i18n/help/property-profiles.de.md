@@ -43,7 +43,8 @@ Das Unterobjekt `options` trägt die Angaben, die nur für einen bestimmten Typ 
 
 | Typ | Angabe | Bedeutung |
 | --- | --- | --- |
-| `number` | `step`, `min`, `max` | Schrittweite und Grenzen des Zahlenfelds |
+| `string` | `maxLength` | Höchstlänge in Zeichen; ein längerer Wert wird gemeldet und **nicht gekürzt** |
+| `number` | `step`, `min`, `max`, `decimals` | Schrittweite und Grenzen des Zahlenfelds; `decimals` sind die erwarteten Nachkommastellen (null bis zehn), ein Wert mit mehr Stellen wird gemeldet und **nicht gerundet** |
 | `date` | `shift` | Verschiebung in Tagen; sie belegt ein **leeres** Feld beim ersten Anklicken vor, ein vorhandenes Datum bleibt unangetastet |
 | `link` | `restrictTo`, `display`, `sort` | Ordner-Pfad (oder Liste), auf den die Vorschläge eingegrenzt werden; Frontmatter-Feld des Ziels als Anzeige-Name; Reihenfolge `name` oder `path` |
 | Auswahl-Feld | `control: cycle` | Die Einfach-Auswahl wird ein Knopf, der beim Klick zum nächsten Wert schaltet; der gespeicherte Wert bleibt derselbe wie ohne die Option |

@@ -26,6 +26,14 @@ const markdownItFootnote = require('markdown-it-footnote');
 
 const { escapeHtml, githubLikeSlug } = require('./slug.js');
 const { extractFrontmatter } = require('./frontmatter.js');
+// 4T-001547 (Epic 3E-000251): Der Datensatz-Block ist das erste Konstrukt,
+// dessen Bedeutung AUSSERHALB seiner Fence steht — die Spalten stehen in der
+// Definition im Frontmatter derselben Datei (E3.2). Die Pipeline liest sie
+// deshalb einmal je Render-Lauf und reicht sie über env durch, nach dem Muster
+// von env.headingNumbering.
+const { parseTableDefinition } = require('../database/table-definition.js');
+const { parseRecordBlock, RECORD_FENCE } = require('../database/record-block.js');
+const { renderRecordsFence, RECORD_LABEL_KEYS } = require('./perspective-records-html.js');
 const { effectiveDisabledSet } = require('../extensions/extensions-core.js');
 // 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
 const { isLocale, FALLBACK_LOCALE } = require('../locales.js');
@@ -51,22 +59,13 @@ const {
   calendarValuesPlugin,
   CALENDAR_SPAN_LABEL_KEYS,
 } = require('./plugins.js');
-const {
-  renderPerspectiveTable,
-  convertPerspectiveTableBlockToHtml,
-} = require('./perspective-table.js');
-// 4T-000418 (Epic 3E-000079): Perspective Datatable — Grid-HTML für den Fence-
-// Override und statische Tabellen-Konvertierung für den Portable-Export.
-const {
-  renderPerspectiveDatatableViewer,
-  convertPerspectiveDatatableBlockToHtml,
-} = require('./perspective-datatable.js');
-// 4T-000512 (Epic 3E-000092): Ereignis-Fence — Tabellen-HTML für den Fence-
-// Override und statische Tabellen-Konvertierung für den Portable-Export.
+const { renderPerspectiveTable } = require('./perspective-table.js');
+// 4T-000418 (Epic 3E-000079): Perspective Datatable — Grid-HTML für den Fence-Override.
+const { renderPerspectiveDatatableViewer } = require('./perspective-datatable.js');
+// 4T-000512 (Epic 3E-000092): Ereignis-Fence — Tabellen-HTML für den Fence-Override.
 const {
   localTodayIso,
   renderPerspectiveEventsViewer,
-  convertPerspectiveEventsBlockToHtml,
   PORTABLE_EVENT_LABEL_KEYS,
 } = require('./perspective-events.js');
 // 4T-001668 (Epic 3E-000287): Canvas-Fence — der Block, mit dem die Fläche
@@ -74,6 +73,10 @@ const {
 // das Nachbar-Modul; hier bleibt allein die Weiche.
 const { CANVAS_EXTENSION_ID } = require('../canvas/canvas-core.js');
 const { CANVAS_BLOCK_LABEL_KEYS, renderCanvasBlock } = require('./canvas-block.js');
+// 4T-001548 (Epic 3E-000251): Die statische Konvertierung aller Fence-Konstrukte
+// des portablen Exports; hier bleibt allein die Klammer darum (KaTeX-Abschaltung
+// und Marker an der Datei-Spitze).
+const { convertPortableFences } = require('./portable-fences.js');
 
 // 4T-000023: highlight.js als Core-Bundle plus kuratierte Sprachliste. Damit
 // landet nur das benoetigte Set im Bundle, nicht das gesamte Default-Bundle
@@ -612,6 +615,26 @@ function buildPipelines(enabled) {
           })}</div>\n`
         );
       }
+      // 4T-001547 (Epic 3E-000251, E3): Der Datensatz-Block der Datenbank.
+      // Anders als seine beiden Geschwister trägt er seine Spalten NICHT in der
+      // Fence, sondern in der Definition im Frontmatter derselben Datei (E3.2);
+      // die Pipeline hat sie in env.dbTable. Container und Tabelle baut
+      // perspective-records-html.js, samt der Begründung für beides.
+      if (lang === RECORD_FENCE && enabled('database')) {
+        const offset = (env && env.sourceLineOffset) || 0;
+        const body = String(token.content || '');
+        const felder = (env && env.dbTable && env.dbTable.fields) || [];
+        return renderRecordsFence(parseRecordBlock(body, felder), felder, {
+          body,
+          index:
+            env && typeof env === 'object'
+              ? (env.__perspectiveRecordsCount = (env.__perspectiveRecordsCount || 0) + 1) - 1
+              : 0,
+          lineStart: token.map ? token.map[0] + 1 + offset : 0,
+          lineEnd: token.map ? token.map[1] + offset : 0,
+          labels: portableLabels((env && env.lang) || 'de'),
+        });
+      }
       // 4T-000435 (Epic 3E-000081): perspective-journal-nav rendert als leerer
       // Platzhalter-Container; Kontext-Ermittlung (Datei-Pfad -> Journal/
       // Periode) und Navigation baut ausschliesslich der Renderer
@@ -877,6 +900,10 @@ function renderMarkdown(text, lang, opts) {
     lang: lang || 'de',
     sourceLineOffset,
     headingNumbering: resolveHeadingNumbering(fm.data),
+    // 4T-001547: Die Feld-Definition der Tabelle, gelesen aus dem Frontmatter
+    // derselben Datei. Der Aufruf ist billig, weil er ohne den Behälter
+    // `db-table` sofort zurückkommt; ein Dokument ohne Tabelle zahlt nichts.
+    dbTable: parseTableDefinition(fm.data),
     // 4T-000546 (Epic 3E-000097): Kalender-Konfiguration fuer die Wert-Badges.
     calendarSystems: activeCalendarConfig,
     // 4T-000748: Einheiten-Namen der Zeitspannen-Badges.
@@ -963,7 +990,7 @@ function portableLabels(lang, labelCatalog) {
 }
 
 /**
- * Die drei Beschriftungs-Gruppen aus einem Katalog herauslösen.
+ * Die vier Beschriftungs-Gruppen aus einem Katalog herauslösen.
  *
  * 4T-001595: `rueckfall` füllt je Schlüssel auf, was der Katalog nicht kennt.
  * Kennt ihn auch der Rückfall nicht, bleibt die Beschriftung wie bisher aus —
@@ -975,6 +1002,7 @@ function labelsAus(dict, rueckfall) {
     ...PORTABLE_EVENT_LABEL_KEYS,
     ...CALENDAR_SPAN_LABEL_KEYS,
     ...CANVAS_BLOCK_LABEL_KEYS,
+    ...RECORD_LABEL_KEYS,
   ]) {
     if (typeof dict[key] === 'string') labels[key] = dict[key];
     else if (rueckfall && typeof rueckfall[key] === 'string') labels[key] = rueckfall[key];
@@ -983,26 +1011,14 @@ function labelsAus(dict, rueckfall) {
 }
 
 function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', labelCatalog) {
-  const fenceRegex = /^( {0,3}`{3,})perspective-table[^\n]*\n([\s\S]*?)\n\1\s*$/gm;
-  // 4T-000418 (Epic 3E-000079): perspective-datatable wird beim Export zur
-  // statischen HTML-Tabelle (alle Zeilen, mit Aggregat-Zeile); bei
-  // Struktur-Fehlern bleibt der Fence unveraendert (Konverter liefert
-  // null). Wie perspective-table an die eigene Erweiterung gebunden
-  // (PO-Festlegung 2026-07-09): deaktiviert wird nicht konvertiert.
-  const datatableFenceRegex = /^( {0,3}`{3,})perspective-datatable[^\n]*\n([\s\S]*?)\n\1\s*$/gm;
-  // 4T-000512 (Epic 3E-000092): perspective-events (Art 1) wird zur statischen
-  // Tabelle mit Staffelung zum Export-Stichtag; Art 2 (query-Direktive)
-  // und Struktur-Fehler bleiben unveraendert (Konverter liefert null,
-  // PO-Festlegung 2026-07-15).
-  const eventsFenceRegex = /^( {0,3}`{3,})perspective-events[^\n]*\n([\s\S]*?)\n\1\s*$/gm;
   const source = String(markdownText || '');
   // 4T-000293: pro Erweiterung konvertiert der Export nur bei aktivem
   // Schalter; die Marker-ERKENNUNG in renderMarkdown bleibt Kern, damit
   // frueher exportierte Dateien ihre eingebetteten Tabellen weiter
-  // anzeigen.
+  // anzeigen. Die uebrigen drei Schalter liest portable-fences.js aus
+  // denselben Mengen; dieser bleibt hier, weil das Alt-Verhalten unten an
+  // ihm haengt.
   const tableEnabled = !activeEffectiveDisabled.has('perspective-table');
-  const datatableEnabled = !activeEffectiveDisabled.has('perspective-datatable');
-  const eventsEnabled = !activeEffectiveDisabled.has('events');
   // K-01 (4T-000189): YAML-Frontmatter intakt am Datei-Anfang lassen — der
   // Marker davor brach die '---'-in-Zeile-1-Erkennung sowohl der eigenen
   // App (Properties-Sidebar leer, Block als Fliesstext) als auch fremder
@@ -1048,45 +1064,37 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', la
   // Inhalte rekursiv hierher zurueckruft — ein einfaches try/finally
   // wuerde KaTeX sonst schon nach der ersten inneren Zelle reaktivieren.
   disablePortableMath();
-  let converted;
-  let datatableConverted = false;
-  let eventsConverted = false;
+  let fences;
   try {
-    converted = restAfterCalc;
-    if (tableEnabled) {
-      converted = converted.replace(fenceRegex, (match, fence, content) => {
-        const html = convertPerspectiveTableBlockToHtml(content);
-        return html !== null ? html : match;
-      });
-    }
-    if (datatableEnabled) {
-      converted = converted.replace(datatableFenceRegex, (match, fence, content) => {
-        const html = convertPerspectiveDatatableBlockToHtml(content);
-        if (html === null) return match;
-        datatableConverted = true;
-        return html;
-      });
-    }
-    if (eventsEnabled) {
-      converted = converted.replace(eventsFenceRegex, (match, fence, content) => {
-        const html = convertPerspectiveEventsBlockToHtml(content, {
-          labels: portableLabels(lang, labelCatalog),
-        });
-        if (html === null) return match;
-        eventsConverted = true;
-        return html;
-      });
-    }
+    // 4T-001548: Der Datensatz-Block bekommt als einziges Konstrukt die
+    // Feld-Definition seiner Datei mit; seine Spalten stehen nach E3.2
+    // ausserhalb der Fence, im Frontmatter, das oben schon gelesen ist.
+    fences = convertPortableFences(restAfterCalc, {
+      tableEnabled,
+      datatableEnabled: !activeEffectiveDisabled.has('perspective-datatable'),
+      eventsEnabled: !activeEffectiveDisabled.has('events'),
+      recordsEnabled: !activeEffectiveDisabled.has('database'),
+      fields: (parseTableDefinition(fm.data) || {}).fields || [],
+      labels: portableLabels(lang, labelCatalog),
+    });
   } finally {
     enablePortableMath();
   }
+  const converted = fences.text;
   if (!addMarker) return head + converted;
   // Alt-Verhalten bei deaktivierter Perspective-Table-Erweiterung: ohne
   // konvertierte Datatable bleibt der Text komplett unveraendert (kein
   // Marker — er dient allein den eingebetteten HTML-Tabellen). 4T-000479:
   // gestrippte Kommentare erzwingen den zusammengesetzten Rueckgabe-Pfad,
-  // brauchen aber selbst keinen Marker.
-  if (!tableEnabled && !datatableConverted && !eventsConverted && !inlineCalcConverted) {
+  // brauchen aber selbst keinen Marker. 4T-001548: der Datensatz-Block reiht
+  // sich ein — seine Tabelle braucht den Marker aus demselben Grund.
+  if (
+    !tableEnabled &&
+    !fences.datatable &&
+    !fences.events &&
+    !fences.records &&
+    !inlineCalcConverted
+  ) {
     return commentsStripped || headingMarkersStripped ? head + converted : source;
   }
   const sep = converted.startsWith('\n') ? '\n' : '\n\n';

@@ -165,6 +165,21 @@ describe('Portable-Export-Snapshots', () => {
     expect(out).toContain('Zeitdifferenz');
   });
 
+  // 4T-001548 (Epic 3E-000251, E29.2): Der Datensatz-Block wird zur statischen
+  // Tabelle — **vollständig**, weil der Export kein Anzeige-Fenster kennt, und
+  // mit den Spalten aus der Definition im Frontmatter derselben Datei. Der
+  // Snapshot friert dazu die beiden Formen ein, die es nur hier gibt: die
+  // Inline-Ausrichtung je Typ und den mehrzeiligen Wert mit `<br>`.
+  it('konvertiert Datensatz-Blöcke zu statischen Tabellen (4T-001548)', () => {
+    const src = fs.readFileSync(path.join(FIXTURE_DIR, 'datensatz-block.md'), 'utf8');
+    const out = convertMarkdownPortable(src, true, 'de');
+    expect(out).toMatchSnapshot();
+    // Das Frontmatter mit der Definition bleibt am Datei-Anfang stehen (K-01).
+    expect(out.startsWith('---\n')).toBe(true);
+    expect(out).toContain('db-table:');
+    expect(out).toContain('<td>Anna Beispiel</td>');
+  });
+
   it('mark- und Footnote-Rendering des Portable-Renderers (Inline-Styles)', () => {
     const portable =
       '<!-- perspective-portable -->\n\nText ==markiert== mit Fussnote[^a].\n\n[^a]: Definition.\n';

@@ -41,6 +41,7 @@ Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; c
 - [Propiedades de bloque](block-properties.md) — propiedades tipadas por ancla de bloque: panel que sigue al cursor, datos huérfanos, renombrado de anclas, indicador en el bloque.
 - [Consulta Perspective](frontmatter-query.md) — listas y tablas de archivos dinámicas: lenguaje de cláusulas, fuentes, campos de archivo, funciones, ordenación, multicolumna, exportación.
 - [Perspective Datatable](datatable.md) — tabla de datos tipada con funciones de cálculo: tipos de columna, agregados, columnas calculadas, edición en cuadrícula, ordenación y filtrado.
+- [Base de datos](database.md) — tablas con archivo propio: definición en el frontmatter, ocho tipos de columna con indicaciones propias del tipo, etiquetas en varios idiomas, identificador de registro con clave funcional, la ficha de la base de datos, los registros en el bloque de datos junto con su visualización, su localizabilidad mediante la búsqueda y los enlaces, el reparto de grandes conjuntos entre varios archivos, el área como base de datos con su resumen y la desactivación de la base de datos.
 - [Bloques de script](scripts.md) — JavaScript en el documento: sandbox aislado, modelo de confianza desactivado por defecto, API pq de solo lectura con funciones de datos, salida y ayuda, ejemplos.
 
 ## Conectar y organizar

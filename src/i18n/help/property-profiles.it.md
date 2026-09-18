@@ -43,7 +43,8 @@ Il sotto-oggetto `options` porta le indicazioni che valgono solo per un determin
 
 | Tipo | Indicazione | Significato |
 | --- | --- | --- |
-| `number` | `step`, `min`, `max` | passo e limiti del campo numerico |
+| `string` | `maxLength` | lunghezza massima in caratteri; un valore più lungo viene segnalato e **non troncato** |
+| `number` | `step`, `min`, `max`, `decimals` | passo e limiti del campo numerico; `decimals` sono i decimali attesi (da zero a dieci), un valore con più decimali viene segnalato e **non arrotondato** |
 | `date` | `shift` | spostamento in giorni; precompila un campo **vuoto** al primo clic, una data esistente resta intatta |
 | `link` | `restrictTo`, `display`, `sort` | percorso di cartella (o elenco) a cui i suggerimenti sono limitati; campo di metadati della destinazione come nome visualizzato; ordine `name` o `path` |
 | campo a scelta | `control: cycle` | la scelta singola diventa un pulsante che passa al valore successivo al clic; il valore salvato resta lo stesso che senza l'opzione |

@@ -76,6 +76,7 @@ import { openHistoryPageForActiveTab } from '../views/history-page.js';
 import { openAreaGraphTab } from '../graph/graph-tab.js';
 import { openAreaStatsPage } from '../area-stats-page.js';
 import { openMemoryPage } from '../memory-page.js';
+import { oeffneDatenbankUebersicht } from '../database/datenbank-uebersicht-seite.js';
 import { showCommandPalette } from '../command-palette.js';
 import { zeigeDateiOeffnen } from '../datei-oeffnen.js';
 import { moveActiveChapterFile } from '../books/book-repair.js';
@@ -246,6 +247,11 @@ export function bindMenuEvents() {
   // Kennzahlen-Seite (und erhebt bei bereits offener Seite neu).
   if (typeof api.onMenuOpenAreaStats === 'function') {
     api.onMenuOpenAreaStats(() => openAreaStatsPage());
+  }
+  // 4T-001759 (Epic 3E-000253): Ansicht -> Uebersicht der Datenbank oeffnet die
+  // Uebersichts-Seite (ohne gebundenen Bereich bleibt es beim Hinweis).
+  if (typeof api.onMenuOpenDatabaseOverview === 'function') {
+    api.onMenuOpenDatabaseOverview(() => oeffneDatenbankUebersicht());
   }
   // 4T-001599 (Epic 3E-000191): Ansicht -> My Extended Memory oeffnet die Seite
   // der eingetragenen Gefaesse (bei offener Seite aktiviert sie den Reiter).

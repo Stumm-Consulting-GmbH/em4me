@@ -213,5 +213,17 @@
   "help.featureName.canvasStacking": "Ordine di sovrapposizione della tela",
   "help.featureName.canvasLinkCards": "Schede di collegamento sulla tela",
   "help.featureName.canvasImageCards": "Schede immagine sulla tela",
-  "help.featureName.canvasList": "Elenco della tela"
+  "help.featureName.canvasList": "Elenco della tela",
+  "help.featureName.databaseTable": "Definizione di tabella",
+  "help.featureName.databaseColumnTypes": "Tipi di colonna di una tabella",
+  "help.featureName.databaseRecordKey": "Identificatore di record e chiave funzionale",
+  "help.featureName.databaseInfo": "Scheda della banca dati",
+  "help.featureName.databaseRecords": "Record nel blocco dati",
+  "help.featureName.databaseRecordsView": "Visualizzazione dei record",
+  "help.featureName.databaseSegments": "Suddivisione di grandi insiemi di dati",
+  "help.featureName.databaseSearchScope": "I record e la ricerca nell'area",
+  "help.featureName.databaseRecordLink": "Collegamento a un singolo record",
+  "help.featureName.databaseArea": "Area come banca dati",
+  "help.featureName.databaseOverview": "Panoramica degli oggetti della banca dati",
+  "help.featureName.databaseExtension": "Banca dati come estensione attivabile"
 }

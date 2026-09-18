@@ -112,6 +112,29 @@ const KERN_ZEILEN = [
   'help.feature.taskUrgency',
   'help.feature.editorContextMenu',
   'help.feature.pasteLink',
+  // help.group.database — 4T-001760 (Epic 3E-000253): Die neun Katalog-Zeilen
+  // der Gruppe «Datenbank» standen hier bis zum 2026-09-15 vorlaeufig als Kern,
+  // weil es die Erweiterung, die sie abschaltet, noch nicht gab. Sie ist mit
+  // diesem Vorgang entstanden (Registry-Eintrag `database`), und die neun
+  // Zeilen sind an ihr Feld featureKeys umgezogen; der Waechter erzwingt es,
+  // weil eine Zeile an beiden Orten als zwei Antworten auffaellt.
+  //
+  // 4T-001761: Der Suchraum-Schnitt haengt an der Marke der Tabellen-Datei und
+  // bleibt im Aus-Zustand bestehen (Entscheidung E-C); die Zeile beschreibt
+  // deshalb Kern-Verhalten. Sie ist damit als einzige der neun zurueck in
+  // dieser Liste, und die Erweiterung nannte danach acht.
+  'help.feature.databaseSearchScope',
+  // 4T-001762: Die Zeile beschreibt den Schalter selbst und seinen Aus-Zustand;
+  // sie gilt in beiden Schalter-Stellungen und darf nicht als abgeschaltet
+  // gekennzeichnet werden. Stünde sie im Feld featureKeys der Erweiterung,
+  // trüge ausgerechnet die Erklärung des Aus-Zustands im Aus-Zustand die
+  // Kennzeichnung «abgeschaltet», und der Anwender sähe sie durchgestrichen,
+  // wo er nachliest, warum etwas fehlt. Vorbild im Bestand ist
+  // 'help.feature.extensions' weiter unten: die Zeile über das Schalten
+  // selbst steht ebenfalls im Kern. Die beiden anderen neuen Zeilen des
+  // Vorgangs, databaseArea und databaseOverview, sind dagegen an die
+  // Erweiterung gegangen; sie nennt seither zehn statt acht.
+  'help.feature.databaseExtension',
   // help.group.view — Ansichten, Sidebar, Darstellung, Uhr
   'help.feature.viewModes',
   'help.feature.livePreview',

@@ -213,5 +213,17 @@
   "help.featureName.canvasStacking": "Reihenfolge auf der Canvas",
   "help.featureName.canvasLinkCards": "Verweis-Karten auf der Canvas",
   "help.featureName.canvasImageCards": "Bild-Karten auf der Canvas",
-  "help.featureName.canvasList": "Karten-Liste der Canvas"
+  "help.featureName.canvasList": "Karten-Liste der Canvas",
+  "help.featureName.databaseTable": "Tabellen-Definition",
+  "help.featureName.databaseColumnTypes": "Spalten-Typen einer Tabelle",
+  "help.featureName.databaseRecordKey": "Datensatz-Kennung und fachlicher Schlüssel",
+  "help.featureName.databaseInfo": "Steckbrief der Datenbank",
+  "help.featureName.databaseRecords": "Datensätze im Datenblock",
+  "help.featureName.databaseRecordsView": "Anzeige der Datensätze",
+  "help.featureName.databaseSegments": "Aufteilung großer Datenbestände",
+  "help.featureName.databaseSearchScope": "Datensätze und die Suche im Bereich",
+  "help.featureName.databaseRecordLink": "Verweis auf einen einzelnen Datensatz",
+  "help.featureName.databaseArea": "Bereich als Datenbank",
+  "help.featureName.databaseOverview": "Übersicht der Datenbank-Objekte",
+  "help.featureName.databaseExtension": "Datenbank als schaltbare Erweiterung"
 }

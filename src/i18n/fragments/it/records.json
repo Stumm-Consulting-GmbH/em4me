@@ -1,0 +1,6 @@
+{
+  "records.window": "Estratto: {shown} di {total} record",
+  "records.empty": "Nessun record",
+  "records.noDefinition": "Nessuna definizione di tabella nel frontmatter di questo file",
+  "records.hints": "Note sul blocco di record:"
+}

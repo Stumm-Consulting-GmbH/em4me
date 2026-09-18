@@ -91,6 +91,20 @@ A veces un documento crece más allá de lo que se puede editar con fluidez. En 
 
 En detalle: [División de documentos grandes](document-parts.md).
 
+## Datos y prosa en los mismos archivos
+
+Una carpeta de archivos Markdown puede ser al mismo tiempo una base de datos, y no hace falta que la declares: en cuanto un documento describe la base de datos, el área contiene una, y un resumen propio responde en un solo lugar a qué hay en ella, es decir el nombre y la descripción, las tablas con el número de sus campos y las incidencias en claro. Las tablas mismas son archivos corrientes: la definición está en el encabezado, los registros están en el cuerpo debajo, y así una tabla queda completa en un único archivo. La verdadera ganancia está al lado. Desde cualquier texto del área enlazas a una sola fila de una tabla, igual que enlazas a un archivo en otro sitio; la nota sobre una reunión apunta entonces al registro de la persona de la que habla.
+
+- **El área se convierte en base de datos** en cuanto un documento la describe, y recibe su propio resumen como vista de solo lectura.
+- **La tabla reside en su archivo**: los campos en el encabezado, los registros en el cuerpo. Renombrar y mover no cambian nada de eso, tampoco fuera de la aplicación.
+- **Ocho tipos de columna**, con etiquetas que pueden existir en varios idiomas.
+- **El enlace a un registro concreto** se escribe como un ancla y se comporta como cualquier otro enlace: el linter de Markdown indica si vale, y un clic abre el archivo de tabla.
+- **Los grandes conjuntos siguen siendo una sola tabla**: a partir de unos 0,7 MB, la aplicación reparte los registros al guardar entre varios archivos contiguos, sin que ningún enlace se vea afectado.
+
+Lo que esta primera etapa todavía no trae: los registros se siguen introduciendo en el texto del archivo, no hay formulario de entrada, ni comprobación de los valores al escribir, ni consulta sobre los registros.
+
+En detalle: [Base de datos](database.md).
+
 ## La aplicación se adapta — y te acompaña
 
 Quien trabaja mucho tiempo con un programa acaba moldeándolo: colores, atajos de teclado, botones, plantillas y favoritos crecen con tu manera de trabajar, y en algún momento también el idioma en el que habla la interfaz forma parte de ello. Hasta ahora ese trabajo estaba ligado a un solo ordenador y a los idiomas que vienen con la aplicación. Ambas cosas están abiertas: tu configuración puede escribirse en un archivo legible y volver a leerse en otro sitio, y quien necesita un sexto idioma traduce la interfaz por su cuenta. A ello se suma la vista del conjunto: una página que muestra uno junto a otro todos tus espacios de trabajo, áreas, libros y estanterías, incluidos los que ahora mismo no están conectados.

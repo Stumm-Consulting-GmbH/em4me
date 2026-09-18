@@ -22,7 +22,9 @@ const {
   writeDocumentParts,
   rejoinDocument,
 } = require('../documents/document-parts-io');
-const { planeZerlegung, ueberSchwelle, DOKUMENT_SCHWELLE } = require('../../shared/document-split');
+const { planeZerlegung, ueberSchwelle } = require('../../shared/document-split');
+// 4T-001550: Schwelle, Lese-Hilfe und Ankuendigung je nach Art der Datei.
+const { teilungsOptionen } = require('../documents/teilungs-optionen');
 const { assembleParts } = require('../../shared/document-assembly');
 
 // 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
@@ -293,11 +295,13 @@ function registerFilesIpc(handle, deps) {
         return { ok: false, reason: 'conflict' };
       }
       const zielPfad = stand.ok && stand.headPath ? stand.headPath : absolute;
+      const teilung = teilungsOptionen(normalized); // 4T-001550: dreifach gebraucht
       const plan = planeZerlegung({
         text: normalized,
         base: stand.ok ? stand.basisName : path.parse(absolute).name,
-        schwelle: DOKUMENT_SCHWELLE,
+        schwelle: teilung.schwelle,
         bestand: stand.ok && stand.geteilt ? stand.teile : [],
+        segmentFelder: teilung.segmentFelder,
       });
       if (plan.ok === false) return { ok: false, error: plan.error };
 
@@ -307,7 +311,9 @@ function registerFilesIpc(handle, deps) {
         // Anwender gehoert, wird angekuendigt, mit «nur lesen» als Ausweg.
         // Weitere Teile kommen still dazu, weil er die Teilung dann bereits
         // angenommen hat (Entscheidung des Product Owners vom 2026-08-31).
-        if (plan.neuGeteilt) {
+        // 4T-001550: Bei der technischen Ablage entfaellt sie (Auflage der
+        // Architektur) — dort war die Datei nie sein Eigentum.
+        if (plan.neuGeteilt && !teilung.istTabelle) {
           // Im Hintergrund wird NICHT gefragt und nicht geteilt. Ein Fenster,
           // das ungefragt aufspringt, waehrend der Anwender in einer anderen
           // Datei tippt, waere ein Uebergriff — dieselbe Ueberlegung, aus der
@@ -395,7 +401,8 @@ function registerFilesIpc(handle, deps) {
     // Der Schreib-Weg teilt das Dokument beim naechsten Speichern sofort
     // wieder. Ohne diesen Satz waere der Befehl fuer den Anwender wirkungslos
     // und unerklaerlich.
-    const zuGross = ueberSchwelle(stand.text, DOKUMENT_SCHWELLE);
+    // 4T-001550: an der Schwelle gemessen, die fuer DIESE Datei gilt.
+    const zuGross = ueberSchwelle(stand.text, teilungsOptionen(stand.text).schwelle);
     const owner = senderWindow(event);
     const t = (k) => tForWindow(owner, k);
     const antwort = await dialog.showMessageBox(owner || undefined, {

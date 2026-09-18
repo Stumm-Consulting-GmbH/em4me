@@ -464,4 +464,10 @@ module.exports = {
   // vergleichen Namen nach denselben Regeln wie das Parsen).
   cleanString,
   scalarToString,
+  // 4T-001507 (Epic 3E-000250): Wertebereich und Vorgabewert einer
+  // Spalten-Definition laufen durch dieselben Normalisierer wie die einer
+  // Dokument-Eigenschaft — E19 verlangt EIN Definitions-Format, und ein
+  // zweiter Normalisierer wäre der Anfang eines zweiten.
+  normalizeValuesList,
+  normalizeDefault,
 };

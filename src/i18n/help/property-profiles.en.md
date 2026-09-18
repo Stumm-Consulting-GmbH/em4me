@@ -43,7 +43,8 @@ The sub-object `options` carries the settings that apply to one type only:
 
 | Type | Setting | Meaning |
 | --- | --- | --- |
-| `number` | `step`, `min`, `max` | step size and limits of the number field |
+| `string` | `maxLength` | maximum length in characters; a longer value is reported and **not truncated** |
+| `number` | `step`, `min`, `max`, `decimals` | step size and limits of the number field; `decimals` are the expected decimal places (zero to ten), a value with more places is reported and **not rounded** |
 | `date` | `shift` | shift in days; it presets an **empty** field on first focus, an existing date stays untouched |
 | `link` | `restrictTo`, `display`, `sort` | folder path (or list) the suggestions are limited to; frontmatter field of the target as display name; order `name` or `path` |
 | choice field | `control: cycle` | the single choice becomes a button that switches to the next value on click; the stored value stays the same as without the option |

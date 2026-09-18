@@ -41,6 +41,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 - [Block-Eigenschaften](block-properties.md) — typisierte Eigenschaften pro Block-Anker: Panel mit Cursor-Folge, verwaiste Daten, Anker umbenennen, Indikator am Block.
 - [Perspective-Abfrage](frontmatter-query.md) — dynamische Datei-Listen und -Tabellen: Klausel-Sprache, Quellen, Datei-Felder, Funktionen, Sortierung, Mehrspaltigkeit, Export.
 - [Perspective Datatable](datatable.md) — typisierte Datentabelle mit Rechenfunktionen: Spalten-Typen, Aggregate, berechnete Spalten, Grid-Bearbeitung, Sortieren und Filtern.
+- [Datenbank](database.md) — Tabellen mit eigener Datei: Definition im Frontmatter, acht Spalten-Typen mit typ-eigenen Angaben, Beschriftung in mehreren Sprachen, Datensatz-Kennung mit fachlichem Schlüssel, der Steckbrief der Datenbank, die Datensätze im Datenblock samt ihrer Anzeige, ihre Auffindbarkeit über Suche und Verweise, die Aufteilung großer Bestände auf mehrere Dateien, der Bereich als Datenbank mit seiner Übersicht und das Abschalten der Datenbank.
 - [Skript-Blöcke](scripts.md) — JavaScript im Dokument: isolierte Sandbox, Vertrauensmodell mit Standard aus, lesende pq-API mit Daten-, Ausgabe- und Helfer-Funktionen, Beispiele.
 
 ## Vernetzen und organisieren

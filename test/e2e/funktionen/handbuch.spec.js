@@ -15,6 +15,11 @@ const { SEL } = require('../helpers/selectors');
 const { MANUAL_PAGES } = require('../../../src/shared/manual/manual-pages');
 // 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
 const { LOCALE_CODES } = require('../../../src/shared/locales.js');
+// 4T-001511 (Epic 3E-000250): Die Zahl der Katalog-Gruppen kommt aus der
+// Registry und steht nicht als Zahl in der Erwartung — sie waechst mit jedem
+// neuen Katalog-Block, und eine eingefrorene Zahl macht aus dem planmaessigen
+// Zuwachs einen roten Lauf statt einer Aussage ueber die erzeugte Seite.
+const { HELP_FEATURE_GROUPS } = require('../../../src/shared/manual/manual-feature-groups');
 
 async function openManualPage(page, pageId) {
   await page.evaluate((id) => {
@@ -192,7 +197,7 @@ test.describe('HB-06: Schließen ohne Rückfrage', () => {
 // 4T-000212: generierte Seiten — Funktions-Tabelle und Tastenkuerzel.
 
 test.describe('HB-07: Generierte Funktions-Seite', () => {
-  test('fünf Gruppen-Tabellen mit Kurznamen in der ersten Spalte', async () => {
+  test('je Katalog-Gruppe eine Tabelle mit Kurznamen in der ersten Spalte', async () => {
     const { app, page, userData } = await launchApp();
     try {
       await setLanguage(page, 'de');
@@ -200,10 +205,11 @@ test.describe('HB-07: Generierte Funktions-Seite', () => {
       await expect(page.locator(SEL.activeTab0).locator('.tab-title')).toHaveText('Funktionen');
       const body = page.locator(SEL.markdownBody0);
       await expect(body.locator('h1')).toHaveText('Funktionen');
-      // Fuenf Gruppen (H2) mit je einer Tabelle.
-      await expect(body.locator('h2')).toHaveCount(5);
+      // Je Registry-Gruppe eine Ueberschrift und eine Tabelle.
+      const gruppen = HELP_FEATURE_GROUPS.length;
+      await expect(body.locator('h2')).toHaveCount(gruppen);
       await expect(body.locator('h2').first()).toHaveText('Datei und Sitzung');
-      await expect(body.locator('table')).toHaveCount(5);
+      await expect(body.locator('table')).toHaveCount(gruppen);
       // Kurzname der ersten Funktion (fett in der ersten Spalte).
       await expect(
         body.locator('table').first().locator('tbody tr').first().locator('td').first(),

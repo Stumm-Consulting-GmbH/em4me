@@ -69,6 +69,8 @@
   "properties.profileTypeLocked": "Type set by profile «{profile}»",
   "properties.profileHint.typeMismatch": "Value does not match the defined type ({type}).",
   "properties.profileHint.outsideValues": "Value is outside the fixed value range.",
+  "properties.profileHint.tooLong": "Value is longer than the specified maximum length ({max} characters). It is not truncated.",
+  "properties.profileHint.tooManyDecimals": "Value has more decimal places than specified ({decimals}). It is not rounded.",
   "properties.profileHint.emptySource": "This field’s value set is empty — the given source is missing or returns nothing. Custom values remain possible.",
   "properties.profileBadge": "Profile {profile} — found via {via}",
   "properties.fieldOrigin": "Field from profile «{profile}» — found via {via}",

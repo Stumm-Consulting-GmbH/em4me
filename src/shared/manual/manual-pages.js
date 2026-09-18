@@ -169,6 +169,11 @@ const MANUAL_PAGES = [
   // 4T-000422 (Epic 3E-000079): Perspective Datatable (typisierte Datentabelle
   // mit Aggregaten, berechneten Spalten, Grid-Bearbeitung, Ansichts-Filter).
   { id: 'datatable', titleKey: 'manual.page.datatable.title', source: 'bundled' },
+  // 4T-001511 (Epic 3E-000250): Datenbank — Tabellen-Definition im Frontmatter,
+  // Spalten-Typen, Datensatz-Kennung mit fachlichem Schluessel und der
+  // Steckbrief der Datenbank. Steht unmittelbar hinter der Datentabelle, weil
+  // die Abgrenzung zwischen beiden genau dort gebraucht wird.
+  { id: 'database', titleKey: 'manual.page.database.title', source: 'bundled' },
   // 4T-000518 (Epic 3E-000092): Ereignisse (perspective-events-Fence mit
   // Direktiven und Datenzeilen, internes Profil, Staffelung/Meilensteine,
   // Ansichten, Aggregation ueber Frontmatter, Verknuepfungen).

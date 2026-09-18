@@ -33,6 +33,8 @@ In den Ansichten sieht der Anker verschieden aus. Die gerenderte Ansicht zeigt i
 
 Defekte Anker-Ziele markiert der [Markdown-Linter](tools.md) im Editor.
 
+In einer Tabellen-Datei der [Datenbank](database.md) zeigt `#^` außerdem auf die Kennung eines einzelnen Datensatzes: `[[Personen#^r-00042]]`. Ein solcher Verweis gilt, wenn die Tabelle den Datensatz führt; ein Block-Anker gleichen Namens behält dabei den Vorrang.
+
 ## Markdown-Links auf Dateien
 
 Auch klassische Markdown-Links öffnen `.md`-Ziele als Tab; Anker funktionieren ebenso. Dokument-interne Anker-Links springen innerhalb der Seite — hier live: [zum Tags-Kapitel](#tags).

@@ -43,7 +43,8 @@ Le sous-objet `options` porte les indications qui ne valent que pour un type don
 
 | Type | Indication | Signification |
 | --- | --- | --- |
-| `number` | `step`, `min`, `max` | pas et limites du champ numérique |
+| `string` | `maxLength` | longueur maximale en caractères ; une valeur plus longue est signalée et **non tronquée** |
+| `number` | `step`, `min`, `max`, `decimals` | pas et limites du champ numérique ; `decimals` est le nombre de décimales attendu (de zéro à dix), une valeur comportant davantage de décimales est signalée et **non arrondie** |
 | `date` | `shift` | décalage en jours ; il pré-remplit un champ **vide** au premier clic, une date existante reste intacte |
 | `link` | `restrictTo`, `display`, `sort` | chemin de dossier (ou liste) auquel les suggestions sont limitées ; champ de métadonnées de la cible comme nom affiché ; ordre `name` ou `path` |
 | champ de choix | `control: cycle` | le choix simple devient un bouton qui passe à la valeur suivante au clic ; la valeur enregistrée reste la même que sans l'option |

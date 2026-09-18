@@ -90,6 +90,7 @@
   "help.shortcut.openHistory": "Open the document history of the active document",
   "help.shortcut.areaGraph": "Open the area graph as its own tab",
   "help.shortcut.areaStats": "Open the area statistics as its own tab",
+  "help.shortcut.databaseOverview": "Open the database overview as its own tab",
   "help.shortcut.myExtendedMemory": "Open My Extended Memory as its own tab",
   "help.shortcut.commandPalette": "Open the command palette",
   "help.shortcut.toggleReminders": "Show or hide the reminders panel",
@@ -162,5 +163,6 @@
   "help.shortcut.exportLocaleTemplate": "Save a template for your own interface language as a file",
   "help.shortcut.importLocale": "Load a translated language file as your own interface language",
   "help.shortcut.removeLocale": "Remove one of your own interface languages from the application",
-  "help.shortcut.updateLocale": "Save your own language file at the state of the running program version, missing entries in English"
+  "help.shortcut.updateLocale": "Save your own language file at the state of the running program version, missing entries in English",
+  "help.group.database": "Database"
 }

@@ -23,6 +23,12 @@
 'use strict';
 
 const { SPELLCHECK_KEY } = require('../../shared/spellcheck');
+// 4T-001761 (Epic 3E-000253): Der Umfang des Datensatz-Bestands im Index haengt
+// am Schalter der Erweiterung «Datenbank»; wird er umgelegt, ist jeder stehende
+// Index nach der alten Regel gebaut.
+const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
+const { setzeDatensatzErfassung } = require('../index/index-schalter.js');
+const { alleIndizesNeuAufbauen } = require('../backlinks.js');
 const { CLOCK_ALARMS_KEY } = require('../../shared/clock/clock-alarms.js');
 const { CLOCK_TIMERS_KEY } = require('../../shared/clock/clock-timers.js');
 
@@ -192,6 +198,15 @@ function createSettingsVerteilung(deps) {
       // 4T-000630 (Epic 3E-000102): Erweiterung 'workspaces' aus -> Standard-
       // Titelleiste; ein -> Arbeitsbereichs-Farbe wieder anwenden.
       updateAllCaptionColors();
+      // 4T-001761 (Epic 3E-000253, Entscheidung E-B): Der Datensatz-Bestand des
+      // Index ruht mit der Erweiterung «Datenbank». Gefragt wird nach dem
+      // EFFEKTIVEN Stand, damit das Abschalten der Eigenschafts-Profile die
+      // Datenbank mitnimmt wie ueberall sonst. Nur eine echte Aenderung loest
+      // den Neuaufbau aus; er liest die Dateien erneut und schreibt nichts an
+      // ihnen (AK6).
+      if (setzeDatensatzErfassung(isExtensionEnabled('database', value))) {
+        alleIndizesNeuAufbauen();
+      }
     }
     // 4T-000298 (Epic 3E-000053): Schalt-Zustand der EXTERNEN Erweiterungen an
     // alle Fenster broadcasten (auch an den Sender — der Empfangspfad laedt

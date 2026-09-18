@@ -55,5 +55,7 @@
   "settings.extensionsExternal.action.devTools": "Herramientas de desarrollo",
   "settings.extensionsExternal.diagnose.hint": "Los mensajes de una extensión aparecen en la consola de las herramientas de desarrollo. Se abren para esta ventana y se cierran con el mismo botón.",
   "extension.events.name": "Eventos",
-  "extension.events.description": "Gestión de eventos integrada en el documento y agregación mediante las propiedades del frontmatter, con escalonamiento de las diferencias de tiempo, hitos y recurrencia anual."
+  "extension.events.description": "Gestión de eventos integrada en el documento y agregación mediante las propiedades del frontmatter, con escalonamiento de las diferencias de tiempo, hitos y recurrencia anual.",
+  "extension.database.name": "Base de datos",
+  "extension.database.description": "Definiciones de tablas en el frontmatter, registros como tabla tipada en el documento, enlaces a registros concretos y el resumen del área de base de datos. Requiere los perfiles de propiedades; desactivada, un bloque de registros queda como un bloque de código corriente y los archivos permanecen sin cambios."
 }

@@ -96,6 +96,7 @@
   "menu.view.history": "Historial del documento",
   "menu.view.areaGraph": "Grafo del área",
   "menu.view.areaStats": "Estadísticas del área",
+  "menu.view.databaseOverview": "Resumen de la base de datos",
   "menu.view.myExtendedMemory": "My Extended Memory",
   "menu.view.commandPalette": "Paleta de comandos",
   "menu.view.reminders": "Recordatorios",

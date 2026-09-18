@@ -213,5 +213,17 @@
   "help.featureName.canvasStacking": "Orden de apilamiento del lienzo",
   "help.featureName.canvasLinkCards": "Tarjetas de enlace en el lienzo",
   "help.featureName.canvasImageCards": "Tarjetas de imagen en el lienzo",
-  "help.featureName.canvasList": "Lista del lienzo"
+  "help.featureName.canvasList": "Lista del lienzo",
+  "help.featureName.databaseTable": "Definición de tabla",
+  "help.featureName.databaseColumnTypes": "Tipos de columna de una tabla",
+  "help.featureName.databaseRecordKey": "Identificador de registro y clave funcional",
+  "help.featureName.databaseInfo": "Ficha de la base de datos",
+  "help.featureName.databaseRecords": "Registros en el bloque de datos",
+  "help.featureName.databaseRecordsView": "Visualización de los registros",
+  "help.featureName.databaseSegments": "Reparto de grandes conjuntos de datos",
+  "help.featureName.databaseSearchScope": "Los registros y la búsqueda en el área",
+  "help.featureName.databaseRecordLink": "Enlace a un registro concreto",
+  "help.featureName.databaseArea": "Área como base de datos",
+  "help.featureName.databaseOverview": "Resumen de los objetos de la base de datos",
+  "help.featureName.databaseExtension": "Base de datos como extensión activable"
 }

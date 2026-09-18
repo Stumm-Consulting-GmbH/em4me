@@ -137,6 +137,13 @@ import {
   dirtyAreaLinksSection,
   applyAreaLinksSection,
 } from './settings-area-links.js';
+// 4T-001758 (Epic 3E-000253): Datenbank des Bereichs.
+import {
+  applyDatabaseSection,
+  dirtyDatabaseSection,
+  renderDatabaseSection,
+  sichtbarDatabaseSection,
+} from './settings-database.js';
 
 export const SETTINGS_PAGE_ID = 'settings';
 
@@ -174,6 +181,17 @@ function closeSettingsTab() {
 //             (state.areaPath). Ohne Angabe gilt 'general' (Gruppe
 //             „Allgemein", immer sichtbar); das ist auch der Default für
 //             dynamisch registrierte Sektionen.
+//   sichtbar  optional (4T-001758, Epic 3E-000253); zusätzliche Bedingung über
+//             die Gruppen-Regel hinaus. Liefert der Haken false, erscheint die
+//             Sektion weder in der Navigation noch als Inhalt; ein offener
+//             Bereich, dessen Bedingung entfällt, fällt auf „Darstellung"
+//             zurück. Der Haken liest ausschließlich den Entwurf, damit die
+//             Navigation ihn ohne Warten auswerten kann; wer eine Auskunft aus
+//             dem Haupt-Prozess braucht, lädt sie in den Entwurf und baut die
+//             Navigation danach neu auf. Er greift NICHT in apply, validate
+//             und dirty ein: Eine unsichtbare Sektion darf keinen halb
+//             angefangenen Entwurf schreiben, und ihre Hooks tragen die
+//             Bedingung ohnehin selbst.
 //   origin    optional (4T-000889, Epic 3E-000168); 'external' kennzeichnet den
 //             Beitrag einer EXTERNEN Erweiterung. Gesetzt wird die Marke
 //             allein vom Erweiterungs-Host beim Durchreichen des Beitrags
@@ -313,6 +331,23 @@ const FIXED_SECTIONS = [
     validate: validateAreaLinksSection,
     dirty: dirtyAreaLinksSection,
     apply: applyAreaLinksSection,
+  },
+  // 4T-001758 (Epic 3E-000253): Datenbank des Bereichs — Auskunft zur Datenbank
+  // und die Option, ihre Übersicht beim Öffnen des Bereichs zu zeigen. Sektion
+  // der Gruppe „Aktueller Bereich" mit zusätzlicher Sichtbarkeits-Bedingung:
+  // Sie erscheint nur, wenn der Bereich eine Datenbank führt. Position hinter
+  // den Bereichs-Verknüpfungen, weil beide Sektionen den Bereich als Ganzes
+  // beschreiben. Die Sektions-Kennung `database` ist zugleich die, die der
+  // Erweiterungs-Schalter aufnimmt (Feld `settingsSections` der Registry); die
+  // Registrierung selbst gehört zum Task der Erweiterung, nicht hierher.
+  {
+    id: 'database',
+    titleKey: 'settings.database.title',
+    group: 'area',
+    sichtbar: sichtbarDatabaseSection,
+    render: renderDatabaseSection,
+    dirty: dirtyDatabaseSection,
+    apply: applyDatabaseSection,
   },
   // 4T-000436 (Epic 3E-000081): Journale (Regale und Journal-Definitionen der
   // Bereichsdatei). Erweiterungs-eigener Bereich der journals-Erweiterung

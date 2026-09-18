@@ -41,6 +41,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 - [Block properties](block-properties.md) — typed properties per block anchor: panel following the cursor, orphaned data, anchor renaming, indicator on the block.
 - [Perspective Query](frontmatter-query.md) — dynamic file lists and tables: clause language, sources, file fields, functions, sorting, multi-column layout, export.
 - [Perspective Datatable](datatable.md) — typed data table with calculation functions: column types, aggregates, computed columns, grid editing, sorting and filtering.
+- [Database](database.md) — tables with a file of their own: definition in the frontmatter, eight column types with type-specific settings, labels in several languages, record identifier with business key, the fact sheet of the database, the records in the data block together with their display, their findability through search and links, the splitting of large data sets across several files, the area as a database with its overview, and switching the database off.
 - [Script blocks](scripts.md) — JavaScript in the document: isolated sandbox, trust model with default off, read-only pq API with data, output, and helper functions, examples.
 
 ## Connecting and organizing

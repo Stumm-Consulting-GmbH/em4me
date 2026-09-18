@@ -12,6 +12,8 @@ Das erste Teilen eines Dokuments wird angekündigt. Sie können es ablehnen: Dan
 
 Läuft das automatische Speichern im Hintergrund, wird **nicht** ungefragt geteilt. Der Reiter bleibt so lange geändert stehen, bis Sie einmal von Hand speichern und die Frage beantworten.
 
+**Für Datenbank-Tabellen gilt all das etwas anders.** Eine Tabellen-Datei der [Datenbank](database.md) ist technische Ablage und nicht Ihr Text: Sie wird schon ab rund 0,7 MB geteilt, der Schnitt liegt zwischen zwei Datensätzen statt vor einer Überschrift, und angekündigt wird nichts — die Datei war nie etwas, in dem Sie von Hand arbeiten. Alles Weitere auf dieser Seite gilt für sie unverändert, mit einer Ausnahme: Die Suche über den Bereich nimmt eine Tabellen-Datei ohne ihre Datensätze auf, gleich in welchem Teil sie stehen.
+
 ## Wo geschnitten wird
 
 Geschnitten wird ausschließlich vor einer **Überschrift der obersten zwei Ebenen**, also vor einer Zeile, die mit einer oder zwei Rauten beginnt:

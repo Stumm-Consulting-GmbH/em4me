@@ -33,6 +33,8 @@ El ancla se presenta de forma distinta según la vista. La vista renderizada no 
 
 Los destinos de ancla rotos los marca el [linter Markdown](tools.md) en el editor.
 
+En un archivo de tabla de la [base de datos](database.md), `#^` señala además el identificador de un registro concreto: `[[Personen#^r-00042]]`. Un enlace así vale si la tabla lleva ese registro; un ancla de bloque del mismo nombre conserva la preferencia.
+
 ## Enlaces Markdown a archivos
 
 También los enlaces Markdown clásicos abren destinos `.md` como pestaña; las anclas funcionan igual. Los enlaces de ancla internos saltan dentro de la página — en vivo aquí: [al capítulo Etiquetas](#etiquetas).

@@ -69,6 +69,8 @@
   "properties.profileTypeLocked": "Tipo establecido por el perfil «{profile}»",
   "properties.profileHint.typeMismatch": "El valor no corresponde al tipo definido ({type}).",
   "properties.profileHint.outsideValues": "El valor está fuera del rango de valores fijo.",
+  "properties.profileHint.tooLong": "El valor supera la longitud máxima indicada ({max} caracteres). No se recorta.",
+  "properties.profileHint.tooManyDecimals": "El valor tiene más decimales de los indicados ({decimals}). No se redondea.",
   "properties.profileHint.emptySource": "El conjunto de valores de este campo está vacío: la fuente indicada falta o no devuelve nada. Los valores propios siguen siendo posibles.",
   "properties.profileBadge": "Perfil {profile}: encontrado mediante {via}",
   "properties.fieldOrigin": "Campo del perfil «{profile}»: encontrado mediante {via}",

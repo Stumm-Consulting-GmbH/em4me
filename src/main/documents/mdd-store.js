@@ -133,8 +133,15 @@ const MDDA_CACHE_FILENAME = 'Area_Cache.mdda';
 // invalidieren. Version 2: Properties-Map im parsed-Objekt. Version 3
 // (4T-000502, Epic 3E-000096): Task-Zeilen-Liste im parsed-Objekt — Alt-Caches
 // ohne sie müssen verworfen werden, sonst lieferte der Warmstart leere
-// Task-Treffer für unveränderte Dateien.
-const MDDA_CACHE_SCHEMA_VERSION = 3;
+// Task-Treffer für unveränderte Dateien. Version 4 (4T-001510, Epic
+// 3E-000250): Marken der Datenbank-Behälter im parsed-Objekt, aus demselben
+// Grund — aus einem Alt-Cache käme der Warmstart mit leerem Tabellen-Bestand
+// zurück, und der Katalog meldete für unveränderte Dateien, es gebe keine
+// Datenbank. Version 5 (4T-001610, Epic 3E-000252): der Datensatz-Bestand im
+// parsed-Objekt, dazu bei einem Folge-Segment die Signatur der Definition,
+// gegen die zugeordnet wurde. Ein Alt-Cache trägt beides nicht, und ein
+// Warmstart aus ihm meldete für unveränderte Tabellen einen leeren Bestand.
+const MDDA_CACHE_SCHEMA_VERSION = 5;
 
 // Format: { schemaVersion, linkIndex: { files: { <relPath>: { mtimeMs, size,
 // hash, parsed } } } }. `parsed` traegt das Datei-Parse-Ergebnis (hits,

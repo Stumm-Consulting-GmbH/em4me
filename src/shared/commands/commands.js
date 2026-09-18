@@ -669,6 +669,22 @@ const COMMANDS = [
     availability: 'area',
   },
   {
+    // 4T-001759 (Epic 3E-000253): Uebersicht der Datenbank als read-only
+    // System-Seite; ohne Default-Binding (Menue-Weg, Kuerzel belegbar). Die
+    // Menue-Bedingung ist wie bei den beiden Nachbarn der gebundene Bereich;
+    // dass der Bereich auch eine Datenbank fuehrt, entscheidet der Renderer,
+    // weil die Antwort darauf aus dem Index kommt und der Menue-Zustand des
+    // Haupt-Prozesses sie nicht fuehrt.
+    id: 'database.openOverview',
+    defaultBindings: [],
+    labelKey: 'menu.view.databaseOverview',
+    descKey: 'help.shortcut.databaseOverview',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'area',
+  },
+  {
     // 4T-001599 (Epic 3E-000191): My Extended Memory als System-Seite; ohne
     // Default-Binding (Menue-Weg, Kuerzel belegbar). Anders als die beiden
     // Nachbarn braucht die Seite KEINEN geoeffneten Bereich — sie zeigt die

@@ -1047,6 +1047,16 @@ function buildMenu(win, state, actions) {
           enabled: avail('stats.openArea'),
           click: send('menu:openAreaStats'),
         }),
+        unless('database.openOverview', {
+          // 4T-001759 (Epic 3E-000253): Uebersicht der Datenbank, unmittelbar
+          // hinter der Bereichs-Statistik — beide sind bereichsweite
+          // Auswertungen. Aktiv bei gebundenem Bereich; ob er eine Datenbank
+          // fuehrt, prueft der Anzeige-Prozess beim Oeffnen.
+          label: t('menu.view.databaseOverview'),
+          accelerator: acc('database.openOverview'),
+          enabled: avail('database.openOverview'),
+          click: send('menu:openDatabaseOverview'),
+        }),
         unless('memory.openPage', {
           // 4T-001599 (Epic 3E-000191): My Extended Memory als vierter Eintrag
           // im Block der Folge-Ansichten. Immer aktiv — die Seite zeigt die

@@ -87,7 +87,7 @@ Au-delà du fichier isolé, les occurrences apparaissent dans le panneau **Résu
 
 Le **fichier ouvert vient en premier**, et avec son état non enregistré : ce qui se trouve dans l’éditeur est trouvé, même avant l’enregistrement. Ses occurrences restent mises en évidence dans le texte comme d’habitude, la liste s’y ajoute. Pour les autres fichiers, c’est l’état enregistré sur le disque qui compte.
 
-La recherche porte sur les fichiers Markdown de la zone. Les autres fichiers et les fichiers d’accompagnement de l’application restent à l’écart.
+La recherche porte sur les fichiers Markdown de la zone. Les autres fichiers et les fichiers d’accompagnement de l’application restent à l’écart. Un **fichier de table de la [base de données](database.md)** y entre sans le contenu de son bloc d’enregistrements : son texte explicatif reste consultable, ses enregistrements ne sont pas trouvés par cette voie. Qui ouvre le fichier et y cherche les retrouve inchangés.
 
 Si **aucun onglet n’est ouvert**, la zone compte tout de même : rechercher et remplacer atteignent ses fichiers sans qu’un document doive être ouvert au préalable. Deux choses disparaissent alors, faute de fichier ouvert — la liste est classée purement par ordre alphabétique au lieu de placer un fichier en tête, et rien n’est mis en évidence dans un texte.
 

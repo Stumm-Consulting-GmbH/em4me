@@ -38,6 +38,10 @@ const { configureTaskStates, configureTaskMarkers } = require('../shared/markdow
 // 4T-000298 (Epic 3E-000053): Loader der externen Markdown-Plugins (vm-
 // Evaluierung im Preload-Kontext, siehe Kopf-Kommentar des Moduls).
 const { configureExternalExtensions } = require('./extensions/extension-loader.js');
+// 4T-001758 (Epic 3E-000253): Kanal-Bindungen rund um die Datenbank.
+const { datenbankBruecke } = require('./preload-datenbank.js');
+// 4T-001505 (Zug 3E-000277): Kanal-Bindungen rund um Buecher.
+const { buecherBruecke } = require('./preload-buecher.js');
 
 // 4T-000017: Electron-Standard-Zoom (Strg + +/-/0, Strg + Mausrad) komplett
 // abschalten. Der Renderer implementiert einen eigenen, pro-Tab gehaltenen
@@ -600,71 +604,9 @@ contextBridge.exposeInMainWorld('api', {
   beurteileAreaLinks: (a) => ipcRenderer.invoke('areaLink:beurteile', a),
   getAreaLinkConfig: () => ipcRenderer.invoke('areaLink:getConfig'),
   setAreaLinkConfig: (l) => ipcRenderer.invoke('areaLink:setConfig', l),
-  // 4T-000843 (Epic 3E-000147): Buecher. Eigener Namensraum statt flacher
-  // book*-Namen, weil der Block als Ganzes zu einer schaltbaren Erweiterung
-  // gehoert und der Renderer ihn an EINER Stelle greift.
-  //
-  // getState liefert { active: null | { bookDir, bookFileName, tree,
-  // readingOrder, unlinked, missing, missingSuggestions } } fuer die
-  // Applikation des Fensters; `missingSuggestions` bildet einen fehlenden
-  // Kapitel-Pfad auf seine namensgleichen Funde ab (4T-000848, nur Eintraege
-  // mit Fund). `tree` ist der Kapitel-Baum aus { path, children }-Knoten mit
-  // buch-relativen Pfaden. onStateChanged meldet jedes Oeffnen, Schliessen,
-  // Anlegen und die Sitzungs-Wiederherstellung an alle Fenster der App.
-  books: {
-    getState: () => ipcRenderer.invoke('books:getState'),
-    openDialog: () => ipcRenderer.invoke('books:openDialog'),
-    createDialog: () => ipcRenderer.invoke('books:createDialog'),
-    close: () => ipcRenderer.invoke('books:close'),
-    openChapter: (relPath) => ipcRenderer.invoke('books:openChapter', relPath),
-    onStateChanged: (cb) => ipcRenderer.on('books:stateChanged', (_e, state) => cb(state)),
-    // Dialog-freie Pfad-Einstiege beider Wege (Muster openAreaPath und
-    // createDemoAreaAt): identische Strecke ab der Ordner-Wahl, damit
-    // Oeffnen und Anlegen ohne den nativen Dialog automatisiert pruefbar
-    // sind.
-    openPath: (bookDir) => ipcRenderer.invoke('books:openPath', bookDir),
-    createAt: (parentDir, name) => ipcRenderer.invoke('books:createAt', { parentDir, name }),
-    // 4T-000845 (Story 4S-000754): Struktur-Pflege. EINE Baum-Operation je Aufruf;
-    // waehrend eines Zuges wird nichts geschrieben, erst die Ablage loest
-    // genau einen applyTreeOp aus. Op-Formen (`parentPath: null` = oberste
-    // Ebene, `index: null` = ans Ende der Ziel-Ebene):
-    //   { type: 'insert', path, parentPath, index }
-    //   { type: 'remove', path }
-    //   { type: 'moveWithinLevel', path, direction: 'up'|'down' }
-    //   { type: 'move', path, parentPath, index }
-    //   { type: 'indent', path }
-    //   { type: 'outdent', path }
-    // Ergebnis { ok } bzw. { ok: false, error }; eine abgelehnte Operation
-    // schreibt nichts. createChapter legt genau eine leere Markdown-Datei an
-    // (im Ordner der Eltern-Kapitel-Datei, auf oberster Ebene im Buch-Ordner)
-    // und haengt sie unmittelbar ein.
-    applyTreeOp: (op) => ipcRenderer.invoke('books:applyTreeOp', op),
-    createChapter: (parentPath, name) =>
-      ipcRenderer.invoke('books:createChapter', { parentPath, name }),
-    // 4T-000847 (Story 4S-000756): Kapitel-Datei physisch innerhalb des
-    // Buch-Ordners verschieben. Der Ordner-Dialog läuft im Main, das Ziel
-    // MUSS im Buch-Ordner liegen; die Links des Bestands und der
-    // Kapitel-Baum-Eintrag der Begleitdatei ziehen im selben Zug nach.
-    // Ergebnis { ok: true, relPath, path, linkUpdate }, { ok: false,
-    // canceled: true } beim Abbruch des Dialogs oder { ok: false, error }.
-    // moveChapterFileTo ist der dialogfreie Pfad-Einstieg (Muster openPath).
-    moveChapterFile: (relPath) => ipcRenderer.invoke('books:moveChapterFile', relPath),
-    moveChapterFileTo: (relPath, targetDir) =>
-      ipcRenderer.invoke('books:moveChapterFileTo', { relPath, targetDir }),
-    // 4T-000848 (Story 4S-000757): Reparatur fehlender Kapitel. suggestMissing
-    // liefert { ok: true, suggestions: [buch-relative Pfade] } — namensgleiche
-    // Dateien an anderer Stelle des Buch-Ordners, nie automatisch uebernommen.
-    // reassignChapter ordnet dem Baum-Eintrag eine andere Datei zu (`newPath`
-    // buch-relativ oder absolut, immer im Buch-Ordner); die Baum-Position
-    // bleibt. reassignChapterDialog ist derselbe Weg mit vorgeschaltetem
-    // Datei-Dialog des Main-Prozesses (Muster moveChapterFile) und meldet den
-    // Abbruch als { ok: false, canceled: true }.
-    suggestMissing: (missingPath) => ipcRenderer.invoke('books:suggestMissing', missingPath),
-    reassignChapter: (missingPath, newPath) =>
-      ipcRenderer.invoke('books:reassignChapter', { missingPath, newPath }),
-    reassignChapterDialog: (missingPath) =>
-      ipcRenderer.invoke('books:reassignChapterDialog', missingPath),
-  },
+  // 4T-001505 (Zug 3E-000277): Der Buecher-Anteil der Bruecke liegt in einem
+  // eigenen Modul; die Begruendung des Schnitts steht dort.
+  ...buecherBruecke(ipcRenderer),
   // 4T-000867 (Epic 3E-000162): Buecherregale — Zustand des aktiven Regals,
   // beide Oeffnungswege, Neuanlage, Schliessen und die Zuordnung. Die
   // dialog-freien Pfad-Einstiege (openPath, createAt) spiegeln das
@@ -891,6 +833,9 @@ contextBridge.exposeInMainWorld('api', {
   profilesLinkTargets: (params) => ipcRenderer.invoke('profiles:linkTargets', params),
   profilesFieldValues: (params) => ipcRenderer.invoke('profiles:fieldValues', params),
   profilesLookup: (params) => ipcRenderer.invoke('profiles:lookup', params),
+  // 4T-001758 (Epic 3E-000253): Der Datenbank-Anteil der Bruecke liegt in einem
+  // eigenen Modul; die Begruendung des Schnitts steht dort.
+  ...datenbankBruecke(ipcRenderer),
   // 4T-000339 (Epic 3E-000061): Datei umbenennen plus Nachzug-Broadcast an alle
   // Fenster (Tabs, Lesezeichen, Sitzungs-Pfade).
   onMenuRenameFile: (cb) => ipcRenderer.on('menu:renameFile', () => cb()),

@@ -90,6 +90,7 @@
   "help.shortcut.openHistory": "Dokument-Historie des aktiven Dokuments öffnen",
   "help.shortcut.areaGraph": "Bereichs-Graph als eigenen Tab öffnen",
   "help.shortcut.areaStats": "Bereichs-Statistik als eigenen Tab öffnen",
+  "help.shortcut.databaseOverview": "Übersicht der Datenbank als eigenen Tab öffnen",
   "help.shortcut.myExtendedMemory": "My Extended Memory als eigenen Tab öffnen",
   "help.shortcut.commandPalette": "Kommando-Palette öffnen",
   "help.shortcut.toggleReminders": "Erinnerungs-Panel ein-/ausblenden",
@@ -162,5 +163,6 @@
   "help.shortcut.exportLocaleTemplate": "Vorlage für eine eigene Oberflächen-Sprache als Datei ausgeben",
   "help.shortcut.importLocale": "Eine übersetzte Sprachdatei als eigene Oberflächen-Sprache einspielen",
   "help.shortcut.removeLocale": "Eine eigene Oberflächen-Sprache aus der Anwendung entfernen",
-  "help.shortcut.updateLocale": "Die eigene Sprachdatei auf dem Stand der laufenden Programmfassung speichern, fehlende Einträge auf Englisch"
+  "help.shortcut.updateLocale": "Die eigene Sprachdatei auf dem Stand der laufenden Programmfassung speichern, fehlende Einträge auf Englisch",
+  "help.group.database": "Datenbank"
 }

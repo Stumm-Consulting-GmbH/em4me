@@ -39,6 +39,9 @@ const wertevorrat = require('./index/profil-wertevorrat.js');
 const eigenschaftsWerte = require('./index/eigenschafts-werte.js');
 // 4T-001184 (Epic 3E-000221): Treffer eines Lookup-Feldes.
 const lookup = require('./index/profil-lookup.js');
+// 4T-001510 (Epic 3E-000250): Index-Sicht des Datenbank-Bestands fuer den Katalog.
+const datenbank = require('./index/datenbank-bestand.js');
+const datensatzZugriff = require('./index/datensatz-zugriff.js');
 
 module.exports = {
   attachBroadcast: store.attachBroadcast,
@@ -55,6 +58,9 @@ module.exports = {
   ensureIndexForDemand: lifecycle.ensureIndexForDemand,
   // 4T-000348 (Epic 3E-000062): proaktiver Bereichs-Index beim Bereichs-Oeffnen.
   ensureAreaIndex: lifecycle.ensureAreaIndex,
+  // 4T-001761 (Epic 3E-000253): Neuaufbau aller offenen Indizes, wenn der
+  // Schalter der Erweiterung «Datenbank» den Umfang des Bestands aendert.
+  alleIndizesNeuAufbauen: lifecycle.alleIndizesNeuAufbauen,
   // 4T-000020: Linter-Lookup fuer broken-wiki-link.
   existingWikiTargets: resolve.existingWikiTargets,
   // 4T-000050: Aliases-Aufloesung fuer Wiki-Link-Klick.
@@ -74,6 +80,12 @@ module.exports = {
   // 4T-000953 (Epic 3E-000198): Overlays einer Wurzel — die offenen Dokumente
   // mit ungespeicherten Aenderungen, fuer den Stand-Hinweis der Bereichs-Statistik.
   overlaysUnder: overlay.overlaysUnder,
+  // 4T-001510 (Epic 3E-000250): Sicht auf den Datenbank-Bestand einer Wurzel.
+  datenbankSicht: datenbank.datenbankSicht,
+  // 4T-001611 (Epic 3E-000252): Zugriff auf einen einzelnen Datensatz ueber
+  // seine interne Kennung oder seinen fachlichen Schluessel.
+  datensatzNachKennung: datensatzZugriff.datensatzNachKennung,
+  datensatzNachSchluessel: datensatzZugriff.datensatzNachSchluessel,
   // 4T-000515 (Epic 3E-000092): Ereignis-Aggregation ueber das Frontmatter.
   eventsForQuery: queryData.eventsForQuery,
   // 4T-000525 (Epic 3E-000095): Roh-Task-Zeilen fuer den Erinnerungs-Pruefer.

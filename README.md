@@ -37,6 +37,16 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   calculate live; queries embed file lists that keep themselves current,
   filtered by properties, tags or tasks. All of it stays plain text inside
   your file.
+- **A database made of Markdown files** — a file can state in its own head
+  that it is a table: which fields it has, of what type, with labels in
+  several languages and a key of your choosing. The records live in the body
+  of that same file, one line per record, and are shown as a typed table while
+  you read and while you write. A link can point at a single record, and a
+  table that grows large is spread over several files at the record boundary,
+  never inside a record. Because the description travels with the data, a
+  table stays complete when you rename it, move it or hand it on, and it stays
+  readable in any editor. Records are still written as text in this stage:
+  there is no input form and no check of your values on saving yet.
 - **Journals from day to year** — daily, weekly, monthly, quarterly and
   yearly entries from your own folder and naming scheme, with built-in
   navigation through the periods.
@@ -55,12 +65,16 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   result list doubles as the preview: a checkbox in front of every match
   decides what is exchanged before anything is written. Each file that
   changes keeps its previous version in the document history, even when
-  history is switched off, so an entire run can be taken back.
+  history is switched off, so an entire run can be taken back. The records
+  inside a database table stay out of that search, so that a few large tables
+  cannot slow down every other search of the area; open the table itself and
+  you find them as before.
 - **No size limit on a document** — a document that grows beyond about a
   megabyte is split across several files when saving and joined back into
   one when opening: one continuous text, one undo history, one search hit.
   Cuts are made only at headings, so no table, list or code block is ever
-  torn apart, and every part stays an ordinary Markdown file.
+  torn apart; a database table is cut between two of its records instead. Every
+  part stays an ordinary Markdown file.
 - **Every change kept, if you want it** — optional per-document history
   recorded next to the file; compare versions line by line and restore any
   of them. Each entry also records the login name and the machine it came

@@ -213,5 +213,17 @@
   "help.featureName.canvasStacking": "Ordre de superposition du canevas",
   "help.featureName.canvasLinkCards": "Cartes de lien sur le canevas",
   "help.featureName.canvasImageCards": "Cartes d’image sur le canevas",
-  "help.featureName.canvasList": "Liste du canevas"
+  "help.featureName.canvasList": "Liste du canevas",
+  "help.featureName.databaseTable": "Définition de table",
+  "help.featureName.databaseColumnTypes": "Types de colonne d'une table",
+  "help.featureName.databaseRecordKey": "Identifiant d'enregistrement et clé fonctionnelle",
+  "help.featureName.databaseInfo": "Fiche d'identité de la base de données",
+  "help.featureName.databaseRecords": "Enregistrements dans le bloc de données",
+  "help.featureName.databaseRecordsView": "Affichage des enregistrements",
+  "help.featureName.databaseSegments": "Répartition des grands ensembles de données",
+  "help.featureName.databaseSearchScope": "Les enregistrements et la recherche dans la zone",
+  "help.featureName.databaseRecordLink": "Lien vers un enregistrement isolé",
+  "help.featureName.databaseArea": "Zone en tant que base de données",
+  "help.featureName.databaseOverview": "Vue d'ensemble des objets de la base de données",
+  "help.featureName.databaseExtension": "Base de données comme extension activable"
 }

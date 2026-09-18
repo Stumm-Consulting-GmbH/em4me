@@ -22,6 +22,10 @@ const { indexes, resolveRootInfo } = require('./store.js');
 const { ensureIndex } = require('./lifecycle.js');
 // 4T-000952 (Epic 3E-000198, Befund E-04): Puffer-Overlay der Rueckverweise.
 const { entryWithOverlay, overlaysUnder } = require('./overlay.js');
+// 4T-001612 (Epic 3E-000252): die dritte Anker-Herkunft, die Datensatz-Kennung.
+const { kennungInTabelle } = require('./datensatz-zugriff.js');
+// 4T-001761 (Epic 3E-000253): Der Schalter, mit dem der Datensatz-Bestand ruht.
+const { datensatzErfassungAktiv } = require('./index-schalter.js');
 
 // 4T-000050: Liefert alle Dateien im Index, die den gegebenen Alias fuehren.
 // Case-insensitive Lookup. Leeres Array bei keinem Treffer.
@@ -375,15 +379,54 @@ function existingWikiTargets(filePath, targets, areaRoot) {
 // fuehrt, die dem Anker entspricht. Anker mit '^'-Prefix sind Block-IDs;
 // alle anderen werden via githubLikeSlug zu einem Slug normalisiert und
 // gegen die Heading-Slugs der Datei geprueft.
+//
+// 4T-001612 (Epic 3E-000252): Dazu kommt eine DRITTE Herkunft. Der
+// Funktions-Katalog sagt dem Anwender die Schreibweise `[[Tabelle#^r-00042]]`
+// zu; sie lief bis dahin als gebrochener Verweis, weil die Erfassung der
+// Block-Anker Fence-Inhalt ausdruecklich ueberspringt und die Datensatz-Kennung
+// genau dort steht.
+//
+// **Die Reihenfolge ist nicht beliebig:** Der Block-Anker wird zuerst geprueft,
+// die Datensatz-Kennung danach. Eine Datei, die beides traegt, behaelt damit ihr
+// bisheriges Verhalten, und der neue Fall greift nur dort, wo heute ein
+// gebrochener Verweis stuende — die Aenderung kann keinen bestehenden Verweis
+// entwerten.
+//
+// **Die Anker-Erfassung selbst bleibt unberuehrt.** Naheliegend waere, die
+// Kennungen einfach in die Block-Anker aufzunehmen; das ist verworfen, weil die
+// Block-Anker die Zusicherung tragen, dass Anker in Code-Beispielen nicht
+// zaehlen. Sie fuer einen Sonderfall aufzuweichen aenderte das Verhalten jedes
+// Dokuments mit einem Code-Beispiel.
 function anchorExistsInFile(entry, filePath, anchor) {
   if (!entry || !entry.anchorsPerFile) return false;
-  const meta = entry.anchorsPerFile.get(filePath);
-  if (!meta) return false;
   if (typeof anchor !== 'string' || !anchor) return false;
+  const meta = entry.anchorsPerFile.get(filePath);
   if (anchor.startsWith('^')) {
     const id = anchor.slice(1);
-    return meta.blockIds.has(id);
+    if (meta && meta.blockIds.has(id)) return true;
+    // Eine Tabellen-Datei traegt ihre Kennungen im Datensatz-Block. Die Marke
+    // entscheidet, nicht der Aufrufer, und die Frage geht ueber die TABELLE:
+    // Ein Datensatz in einem Folge-Segment ist damit ohne eigene Regel erfasst.
+    const marken = entry.dbKindsPerFile && entry.dbKindsPerFile.get(filePath);
+    if (Array.isArray(marken) && marken.includes('table')) {
+      // 4T-001761 (Epic 3E-000253, Entscheidung E-B): Im Aus-Zustand der
+      // Erweiterung «Datenbank» ruht der Datensatz-Bestand — und damit ist die
+      // Datensatz-Kennung keine geprüfte Anker-Herkunft mehr. Der Verweis gilt
+      // dann als **nicht prüfbar und damit als bestehend**, so wie der Bestand
+      // seit jeher jedes unprüfbare Ziel unmarkiert lässt (Status `indexing`
+      // und `unavailable`).
+      //
+      // **Warum nicht als gebrochen.** Ohne Bestand fände die Prüfung KEINE
+      // Kennung, und jeder Datensatz-Verweis des Bereichs trüge auf einen
+      // Schlag die Fehler-Kennzeichnung. Der Anwender läse einen Datenverlust,
+      // den allein ein Anzeige-Schalter ausgelöst hat. Das Wiedereinschalten
+      // baut den Bestand neu auf und stellt die genaue Prüfung her.
+      if (!datensatzErfassungAktiv()) return true;
+      return kennungInTabelle(entry, filePath, id);
+    }
+    return false;
   }
+  if (!meta) return false;
   const slug = githubLikeSlug(anchor);
   return meta.headings.has(slug);
 }

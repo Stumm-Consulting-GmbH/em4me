@@ -33,6 +33,8 @@ The anchor looks different from view to view. The rendered view does not show it
 
 Broken anchor targets are flagged by the [Markdown linter](tools.md) in the editor.
 
+In a table file of the [database](database.md), `#^` also points at the identifier of a single record: `[[Personen#^r-00042]]`. Such a reference holds if the table carries that record; a block anchor of the same name keeps precedence.
+
 ## Markdown links to files
 
 Classic Markdown links also open `.md` targets as tabs; anchors work the same. In-document anchor links jump within the page — live here: [to the Tags chapter](#tags).

@@ -1,14 +1,16 @@
 // Start-Sequenz des Renderers: Zustands-Flags und Warteschlangen des Fensters,
-// die Registrierung der Broadcast-Empfaenger, init() samt Sitzungs-
-// Wiederherstellung und die Aufruf-Sequenz der UI-Bindings.
+// die Registrierung der Broadcast-Empfaenger, init() und die Aufruf-Sequenz der
+// UI-Bindings.
 // 4T-000179 (Epic 3E-000039): aus renderer.js extrahiertes Modul (mechanischer
 // Schnitt in Original-Reihenfolge; Verdrahtung ueber ESM-Live-Bindings).
 // 4T-001001 (Epic 3E-000196): Broadcast-Empfaenger, Kommando-Tabelle, Bindings und
 // Splitter liegen seither in den Modulen unter modules/app/; hier bleiben der
 // Zustand des Fensters, sein Aufbau und die Verdrahtungs-Reihenfolge.
+// 4T-001505 (Zug 3E-000277): dazu die Wiederherstellung der Spalten aus dem
+// Sitzungs-Abbild, ausgezogen nach app/sitzungs-wiederherstellung.js.
 'use strict';
 
-import { loadTranslations, applyTranslations, t, normalizeLocale } from '../i18n.js';
+import { loadTranslations, applyTranslations, normalizeLocale } from '../i18n.js';
 // 4T-001594 (Epic 3E-000129): Rueckfall-Sprache aus der einen Quelle — sie ist
 // das, was die Auswahl zeigt, wenn die eingestellte eigene Sprache fehlt.
 import { FALLBACK_LOCALE } from '../../shared/locales.js';
@@ -16,11 +18,8 @@ import { liveRebuildEffect } from './live/live-shared.js';
 import { api } from './app/api.js';
 import { rerenderAllMermaidBlocks, resetMermaidConfiguredTheme } from './render-mermaid.js';
 import {
-  MAX_PANES,
   applyThemePrefToButton,
   contextMenu,
-  createEmptyPane,
-  createTab,
   getPaneEls,
   langSelect,
   normalizeSidebarCollapsed,
@@ -120,10 +119,6 @@ import {
 import { applyAllLayouts, markFileMissing, reloadFile } from './views/pane-render.js';
 import { openDraftsAsUntitled } from './views/untitled-tabs.js';
 import { persistSetting, showStatusbarHint } from './views/views.js';
-// 4T-000459 (Epic 3E-000085): Gruppen-Anteil der Sitzungs-Wiederherstellung
-// (frische IDs, defensive Normalisierung; Alt-Snapshots ohne groups laden
-// unveraendert).
-import { restoreGroupsIntoPane } from './tabs/tab-groups.js';
 // 4T-000332 (Epic 3E-000060): Statusbar-Element der Dokument-Historie.
 import { initHistoryStatus, updateHistoryStatus } from './views/history-status.js';
 // 4T-000333 (Epic 3E-000060): Historien-Ansicht — Registrierung explizit über
@@ -142,6 +137,10 @@ import { initShelfViewPage } from './books/shelf-view.js';
 // 4T-001599 (Epic 3E-000191): My Extended Memory als System-Seite,
 // Registrierung explizit ueber initMemoryPage (Muster shelf-view.js).
 import { initMemoryPage } from './memory-page.js';
+// 4T-001759 (Epic 3E-000253): Die Uebersicht der Datenbank beim Binden des
+// Bereichs — hier fuer das frisch gestartete Fenster, dessen Fenster-Meldung
+// waehrend der Wiederherstellung eintrifft (Begruendung an der Funktion).
+import { zeigeUebersichtBeimBinden } from './database/datenbank-uebersicht-seite.js';
 // 4T-000480 (Epic 3E-000089): Kommando-Palette; initCommandPalette injiziert den
 // Ausfuehrungs-Pfad ueber die commandHandlers-Map (Zyklus-Vermeidung).
 import { initCommandPalette } from './command-palette.js';
@@ -238,6 +237,7 @@ import { bindAppUi } from './app/app-bindings.js';
 import { bindInputEvents, bindOverlayAndBlurEvents } from './app/app-input-bindings.js';
 import { bindMenuEvents } from './app/app-menu-bindings.js';
 import { bindPaneEvents, initOuterSplitter } from './app/app-pane-bindings.js';
+import { restorePanes } from './app/sitzungs-wiederherstellung.js';
 
 // --- Initialer Main-Zustand -------------------------------------------------
 // Der Main-Prozess schickt nach did-finish-load IMMER ein 'window:initialState'.
@@ -802,6 +802,9 @@ async function init() {
   // nach bindUi(); Tests, die unmittelbar nach dem Fenster-Start klicken oder
   // tippen, warten darauf. Fuer den Produktivbetrieb ohne Wirkung.
   document.body.setAttribute('data-renderer-ready', '1');
+  // 4T-001759 (Epic 3E-000253): Anlauf der Datenbank-Übersicht für das frisch
+  // gestartete Fenster; die Begründung steht an der Funktion.
+  void zeigeUebersichtBeimBinden();
   // 4T-000644 (Epic 3E-000127): Erststart-Anlauf der geführten Produkt-Tour. Der
   // Aufruf liegt bewusst NACH dem Bereitschafts-Signal, weil die Tour die
   // fertig gebundenen Bedienelemente hervorhebt und ihre Anker erst dann
@@ -835,96 +838,6 @@ async function init() {
     pendingExtensionsChange = null;
     await applyExtensionsState(ids, { persist: false });
     updateWindowTitle();
-  }
-}
-
-async function restorePanes(saved) {
-  // saved = [{paths, activeIndex, viewMode (legacy)?, tabSettings?}, ...]
-  // W-14 (4T-000308): Zahl der nicht lesbaren Tabs sammeln, um am Ende einen
-  // Hinweis zu geben (statt still zu verwerfen).
-  let missingCount = 0;
-  state.panes = [];
-  for (let i = 0; i < Math.min(saved.length, MAX_PANES); i++) {
-    state.panes.push(createEmptyPane());
-  }
-  if (state.panes.length === 0) state.panes.push(createEmptyPane());
-
-  for (let i = 0; i < state.panes.length; i++) {
-    const entry = saved[i];
-    const paths = Array.isArray(entry.paths) ? entry.paths : [];
-    const tabSettings = Array.isArray(entry.tabSettings) ? entry.tabSettings : [];
-    // Migration: alter Pane-viewMode → für alle Tabs der Pane übernehmen.
-    const legacyViewMode = entry.viewMode;
-    for (let j = 0; j < paths.length; j++) {
-      const p = paths[j];
-      try {
-        const data = await api.readFile(p);
-        // W-01 (4T-000309): {ok,error}-Vertrag — Lesefehler ueber den catch
-        // (missing-Tab, W-14) statt frueherer IPC-Exception.
-        if (!data || !data.ok) throw new Error((data && data.error) || 'read failed');
-        const settings = tabSettings[j] || {};
-        if (legacyViewMode && !settings.viewMode) settings.viewMode = legacyViewMode;
-        Object.assign(settings, { readOnly: !!data.nurLesen, fehlendeTeile: data.fehlend });
-        state.panes[i].tabs.push(createTab(data.path, data.content, settings));
-      } catch {
-        // W-14 (4T-000308): Tab nicht still verwerfen. Der Fehler trifft nicht
-        // nur geloeschte Dateien, sondern auch transiente Faelle (Lock,
-        // Berechtigung), bei denen die Datei noch existiert; ein Verwerfen
-        // wuerde den Tab beim naechsten persistState() dauerhaft aus der
-        // Sitzung entfernen. Stattdessen als missing-Tab aufnehmen (Muster
-        // markFileMissing) — beim naechsten Start wird die Datei erneut
-        // gelesen, ein transienter Fehler kostet den Tab nicht mehr.
-        const settings = tabSettings[j] || {};
-        if (legacyViewMode && !settings.viewMode) settings.viewMode = legacyViewMode;
-        const tab = createTab(p, '', settings);
-        tab.missing = true;
-        state.panes[i].tabs.push(tab);
-        missingCount++;
-      }
-    }
-    const wantedActive = Number.isInteger(entry.activeIndex) ? entry.activeIndex : 0;
-    // R3-13 (4T-000187): den aktiven Tab ueber den PFAD in der bereinigten
-    // Liste suchen — geloeschte Dateien verschieben sonst den Index und
-    // ein Nachbar-Tab wird aktiv.
-    const wantedPath = paths[wantedActive];
-    let restoredActive = state.panes[i].tabs.findIndex((tb) => tb.path === wantedPath);
-    if (restoredActive < 0) {
-      restoredActive = Math.min(wantedActive, state.panes[i].tabs.length - 1);
-    }
-    state.panes[i].activeIndex =
-      state.panes[i].tabs.length === 0 ? -1 : Math.max(0, restoredActive);
-
-    // 4T-000459 (Epic 3E-000085): Tab-Gruppen der Pane wiederherstellen. Jeder
-    // Snapshot-Pfad erzeugt oben genau einen Tab (missing eingeschlossen),
-    // daher fluchten die tabSettings-Indizes mit den Tab-Indizes. Alte
-    // Snapshots ohne groups-Feld laufen unveraendert durch (No-op).
-    restoreGroupsIntoPane(
-      state.panes[i],
-      entry.groups,
-      tabSettings.map((s) => (s && Number.isInteger(s.group) ? s.group : -1)),
-    );
-  }
-
-  // Wenn linke Pane leer und rechte gefüllt: rechte hochziehen.
-  if (
-    state.panes.length === 2 &&
-    state.panes[0].tabs.length === 0 &&
-    state.panes[1].tabs.length > 0
-  ) {
-    state.panes = [state.panes[1]];
-  } else if (state.panes.length === 2 && state.panes[1].tabs.length === 0) {
-    state.panes.pop();
-  }
-  state.activePaneIndex = 0;
-
-  // W-14 (4T-000308): sichtbares Feedback, wenn Tabs nicht gelesen werden
-  // konnten (statt stillem Verwerfen). Sie bleiben als missing-Tabs erhalten.
-  if (missingCount > 0) {
-    showStatusbarHint('session.restoreMissing', {
-      error: true,
-      duration: 4000,
-      text: t('session.restoreMissing').replace('{count}', String(missingCount)),
-    });
   }
 }
 

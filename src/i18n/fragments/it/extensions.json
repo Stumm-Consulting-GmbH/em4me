@@ -55,5 +55,7 @@
   "settings.extensionsExternal.action.devTools": "Strumenti di sviluppo",
   "settings.extensionsExternal.diagnose.hint": "I messaggi di un'estensione compaiono nella console degli strumenti di sviluppo. Si aprono per questa finestra e si richiudono con lo stesso pulsante.",
   "extension.events.name": "Eventi",
-  "extension.events.description": "Gestione degli eventi integrata nel documento e aggregazione tramite le proprietà del frontmatter, con scaglionamento delle differenze di tempo, traguardi e ricorrenza annuale."
+  "extension.events.description": "Gestione degli eventi integrata nel documento e aggregazione tramite le proprietà del frontmatter, con scaglionamento delle differenze di tempo, traguardi e ricorrenza annuale.",
+  "extension.database.name": "Banca dati",
+  "extension.database.description": "Definizioni di tabelle nel frontmatter, record come tabella tipizzata nel documento, collegamenti a singoli record e la panoramica dell'area della banca dati. Richiede i profili di proprietà; disattivata, un blocco di record resta un normale blocco di codice e i file restano invariati."
 }

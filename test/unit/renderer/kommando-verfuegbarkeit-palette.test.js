@@ -133,7 +133,9 @@ const SECHS_FAELLE = [
 // der Massstab, und die eingefrorene Kopie kennt sie nicht. 4T-001747 (Epic
 // 3E-000289): die Kommandos der Verweis- und der Bild-Karten ebenso. 4T-001770
 // (Epic 3E-000290): das Kommando der Verbindung ohne Maus, aus demselben Grund.
+// 4T-001759 (Epic 3E-000253): die Uebersicht der Datenbank aus demselben Grund.
 const NACH_DER_MESSUNG = new Set([
+  'database.openOverview',
   'view.modeCanvas',
   'canvas.addCard',
   'canvas.addShape',

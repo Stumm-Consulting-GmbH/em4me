@@ -213,5 +213,17 @@
   "help.featureAccess.canvasStacking": "Affichage → Ordre de superposition du canevas ; menu contextuel de l’élément sélectionné ; palette de commandes → «Mettre au premier plan», «Avancer d’un niveau», «Reculer d’un niveau» et «Mettre à l’arrière-plan»",
   "help.featureAccess.canvasLinkCards": "Affichage → Ajouter une carte de lien au canevas ; menu contextuel du canevas → Ajouter une carte de lien au canevas ; menu contextuel de la carte → Définir le lien…, Ouvrir la cible, Supprimer le lien ; barre de la carte sélectionnée ; palette de commandes → « Ajouter une carte de lien au canevas »",
   "help.featureAccess.canvasImageCards": "Affichage → Ajouter une carte d’image au canevas ; menu contextuel du canevas → Ajouter une carte d’image au canevas ; menu contextuel de la carte → Définir l’image…, Ouvrir la cible, Supprimer l’image ; barre de la carte sélectionnée ; palette de commandes → « Ajouter une carte d’image au canevas »",
-  "help.featureAccess.canvasList": "Barre d’état → Liste du canevas ; Affichage → Barre latérale → Panneaux → Liste du canevas ; palette de commandes → « Liste du canevas » ; dans la liste flèches haut et bas, Origine et Fin, Entrée, Suppr, la touche de menu contextuel et Maj+F10 ainsi qu’Échap ; menu contextuel de la carte → « Ajouter une connexion au canevas… » ; champ de filtre en tête de liste, dans la vue canevas également par Ctrl+F par défaut"
+  "help.featureAccess.canvasList": "Barre d’état → Liste du canevas ; Affichage → Barre latérale → Panneaux → Liste du canevas ; palette de commandes → « Liste du canevas » ; dans la liste flèches haut et bas, Origine et Fin, Entrée, Suppr, la touche de menu contextuel et Maj+F10 ainsi qu’Échap ; menu contextuel de la carte → « Ajouter une connexion au canevas… » ; champ de filtre en tête de liste, dans la vue canevas également par Ctrl+F par défaut",
+  "help.featureAccess.databaseTable": "Frontmatter du fichier de table, conteneur `db-table`",
+  "help.featureAccess.databaseColumnTypes": "Frontmatter du fichier de table, indication `type` d'une colonne",
+  "help.featureAccess.databaseRecordKey": "Frontmatter du fichier de table, indications `lastId`, `key` et `display`",
+  "help.featureAccess.databaseInfo": "Frontmatter d'un document de la base de données, conteneur `db-database`",
+  "help.featureAccess.databaseRecords": "Corps du fichier de table, bloc `perspective-records`",
+  "help.featureAccess.databaseRecordsView": "Mode lecture et mode édition d'un fichier de table",
+  "help.featureAccess.databaseSegments": "Automatiquement à l'enregistrement, dès que les données dépassent le seuil",
+  "help.featureAccess.databaseSearchScope": "S'applique à chaque recherche portant sur une zone ouverte (défaut Ctrl+F)",
+  "help.featureAccess.databaseRecordLink": "Écrit dans le texte, forme `[[Table#^r-00042]]`",
+  "help.featureAccess.databaseArea": "Paramètres → Zone actuelle → Base de données",
+  "help.featureAccess.databaseOverview": "Affichage → Vue d’ensemble de la base de données ; menu contextuel du panneau de zone ; palette de commandes",
+  "help.featureAccess.databaseExtension": "Paramètres → Extensions → Base de données"
 }

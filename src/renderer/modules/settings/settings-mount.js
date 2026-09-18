@@ -108,6 +108,15 @@ function meldeUnerfuellteBereichsAnsprueche(beansprucht) {
 // bereichsgebundene Sektion bleibt im Bereichs-Block, auch wenn sie zu
 // einer Erweiterung gehört (z.B. journals, templatesArea) — der Bezug zum
 // geöffneten Bereich ist für die Bedienung die stärkere Klammer.
+// 4T-001758 (Epic 3E-000253): Zusätzliche Sichtbarkeits-Bedingung einer
+// Sektion, über die Gruppen-Regel hinaus. Ohne Haken ist die Antwort «ja»; der
+// Haken liest allein den Entwurf und wird deshalb auch ohne ihn nicht gefragt,
+// solange die Seite keinen hat.
+function sektionSichtbar(section) {
+  if (typeof section.sichtbar !== 'function') return true;
+  return section.sichtbar(pageState.draft) === true;
+}
+
 function navGroupOfSection(section, extensionSectionIds) {
   if (section.group === 'area') return 'area';
   if (section.origin === 'external') return 'extensionsExternal';
@@ -130,6 +139,7 @@ export function buildSettingsNavEntries(nav) {
   meldeUnerfuellteBereichsAnsprueche(extensionSectionIds);
   const byGroup = new Map(NAV_GROUP_DEFS.map((def) => [def.id, []]));
   for (const section of settingsSections()) {
+    if (!sektionSichtbar(section)) continue;
     byGroup.get(navGroupOfSection(section, extensionSectionIds)).push(section);
   }
 
@@ -218,6 +228,13 @@ export function renderActiveSection() {
   // nicht erreichbar (Navigations-Gruppe fehlt) — entfällt die Bindung
   // einer offenen Sektion, fällt die Seite auf den ersten Bereich zurück.
   if (section && section.group === 'area' && !state.areaPath) {
+    pageState.activeSectionId = 'appearance';
+    section = sectionById('appearance');
+  }
+  // 4T-001758 (Epic 3E-000253): Dieselbe Rückfall-Regel für die zusätzliche
+  // Sichtbarkeits-Bedingung. Sie kann während einer offenen Seite entfallen,
+  // etwa beim Wechsel in einen Bereich ohne Datenbank.
+  if (section && !sektionSichtbar(section)) {
     pageState.activeSectionId = 'appearance';
     section = sectionById('appearance');
   }

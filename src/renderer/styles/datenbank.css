@@ -1,0 +1,202 @@
+/* 4T-001547 (Epic 3E-000251): Darstellung des Datensatz-Blocks der Datenbank.
+ *
+ * Eigene Datei statt eines Anhangs an abfragen-und-ereignisse.css: Die
+ * Datenbank ist eine dritte Konstrukt-Familie neben Abfragen und Ereignissen
+ * und wächst über mehrere Stufen weiter; jene Datei trägt bereits 775 Zeilen
+ * für zwei Familien.
+ *
+ * Die Regeln greifen in beiden Ansichten, weil das Live-Widget seinen
+ * Container ebenfalls mit `markdown-body` auszeichnet — dasselbe, worauf die
+ * beiden Geschwister-Konstrukte bauen. */
+
+.markdown-body .perspective-records {
+  margin: 0.6em 0;
+  overflow-x: auto;
+}
+
+.markdown-body .prc-table {
+  border-collapse: collapse;
+  width: auto;
+  max-width: 100%;
+}
+
+.markdown-body .prc-table .prc-head {
+  text-align: left;
+  border-bottom: 2px solid var(--border);
+  padding: 0.25em 0.6em;
+  white-space: nowrap;
+}
+
+.markdown-body .prc-table .prc-cell {
+  border-bottom: 1px solid var(--border);
+  padding: 0.25em 0.6em;
+  vertical-align: top;
+}
+
+/* Zahlen rechts, Wahrheitswerte mittig: dieselbe Lesehilfe, die die
+ * Datentabelle für dieselben Typen gibt. */
+.markdown-body .prc-table .prc-type-number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.markdown-body .prc-table .prc-type-boolean {
+  text-align: center;
+}
+
+/* Ein mehrzeiliger Wert behält seine Zeilenumbrüche; ohne das stünde ein
+ * Langtext als eine lange Zeile in der Tabelle. */
+.markdown-body .prc-table .prc-type-multiline {
+  white-space: pre-wrap;
+}
+
+/* Eine Zelle mit Befund behält ihren Rohtext und wird kenntlich gemacht,
+ * statt ersetzt zu werden (E3.7, kein stiller Verlust). Farben wie bei der
+ * Zell-Fehler-Markierung der Datentabelle, damit dieselbe Lage gleich
+ * aussieht. */
+.markdown-body .prc-table .prc-error {
+  background-color: #ffebee;
+  color: #b71c1c;
+  cursor: help;
+}
+[data-theme='dark'] .markdown-body .prc-table .prc-error {
+  background-color: #4a1f1f;
+  color: #ff8a80;
+}
+
+/* Der Fenster-Hinweis. Er ist kein Rand-Detail, sondern der Unterschied
+ * zwischen einem Ausschnitt und einer stillen Kappung. */
+.markdown-body .prc-window {
+  color: var(--fg-muted);
+  font-style: italic;
+  font-size: 0.9em;
+  margin: 0.3em 0;
+}
+
+.markdown-body .prc-empty,
+.markdown-body .prc-note {
+  color: var(--fg-muted);
+  font-style: italic;
+  padding: 0.25em 0.6em;
+}
+
+.markdown-body .prc-hints {
+  margin: 0.3em 0;
+  font-size: 0.9em;
+}
+.markdown-body .prc-hints-title {
+  color: var(--fg-muted);
+}
+.markdown-body .prc-hints ul {
+  margin: 0.1em 0 0;
+  padding-left: 1.4em;
+}
+.markdown-body .prc-hint {
+  color: var(--fg-muted);
+  font-family: var(--font-mono, monospace);
+}
+
+/* 4T-001759 (Epic 3E-000253): Die Übersichts-Seite der Datenbank.
+ *
+ * Die Maße folgen der Seite der Bereichs-Statistik, weil beide dieselbe
+ * Gattung sind: eine lesende System-Seite mit Abschnitten, Tabelle und
+ * Hinweis-Liste. Eigene Klassen statt der geliehenen `area-stats-*`: Zwei
+ * Seiten, die sich Klassen teilen, sind bei der nächsten Änderung an einer
+ * von beiden ein Fehler, den niemand sucht. */
+
+.db-overview-page {
+  padding: 16px 20px;
+  max-width: 920px;
+  font-size: 13px;
+}
+.db-overview-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.db-overview-heading {
+  margin: 0;
+  font-size: 16px;
+}
+.db-overview-refresh {
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+.db-overview-refresh:hover:not(:disabled) {
+  background: var(--hover);
+}
+.db-overview-refresh:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.db-overview-note,
+.db-overview-empty {
+  color: var(--fg-muted);
+  margin: 8px 0;
+}
+.db-overview-section {
+  margin: 18px 0 0;
+}
+.db-overview-section-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--fg-muted);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 3px;
+}
+.db-overview-row {
+  display: flex;
+  gap: 12px;
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+}
+.db-overview-row-label {
+  color: var(--fg-muted);
+  min-width: 140px;
+}
+.db-overview-row-value {
+  overflow-wrap: anywhere;
+}
+.db-overview-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.db-overview-table th,
+.db-overview-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 3px 8px;
+  text-align: left;
+}
+.db-overview-table th {
+  color: var(--fg-muted);
+  font-weight: 600;
+}
+.db-overview-table-fields {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.db-overview-issues {
+  margin: 4px 0;
+  padding-left: 1.4em;
+}
+.db-overview-issue {
+  margin: 2px 0;
+}
+/* Der Tabellen-Name vor der Meldung: Er sagt, WO die Fehlerlage sitzt, und
+ * steht deshalb vor ihr statt in ihr — sonst müsste jeder der Sätze ihn
+ * selbst tragen. */
+.db-overview-issue-source {
+  color: var(--fg-muted);
+  font-family: var(--font-mono, monospace);
+  margin-right: 6px;
+}

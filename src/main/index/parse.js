@@ -1,7 +1,7 @@
 // 4T-000977 (Epic 3E-000196): Datei-Parser des Backlinks-Index, herausgelöst aus
 // src/main/backlinks.js. Extrahiert aus einer Markdown-Datei die Link-Treffer,
-// Aliases, Heading-Slugs, Block-IDs, Tags, Frontmatter-Properties und
-// Task-Zeilen. Alle Funktionen sind zustandsfrei gegenüber dem Index (reine
+// Aliases, Heading-Slugs, Block-IDs, Tags, Frontmatter-Properties,
+// Task-Zeilen und die Datensaetze einer Tabellen-Datei. Alle Funktionen sind zustandsfrei gegenüber dem Index (reine
 // Eingabe → Ergebnis); die Eintrags-Pflege übernimmt build.js, die Leser der
 // blockData-Sektion der .mdd-Begleitdatei liegen in block-data.js.
 //
@@ -58,6 +58,10 @@ const {
   maskiereFuerTagScan,
   TAG_RE,
 } = require('../../shared/tag-erkennung.js');
+// 4T-001510 (Epic 3E-000250): Der Index merkt sich, DASS eine Datei sich als
+// Tabelle oder als Steckbrief der Datenbank erklärt — nie den Inhalt ihrer
+// Definition. Begründung und beide Behälter-Schlüssel im Blatt-Modul.
+const { datenbankMarken } = require('../../shared/database/behaelter.js');
 // 4T-000502 (Epic 3E-000096): Marker-Kern fuer den TASKS-Scope der Abfrage —
 // Task-Zeilen werden beim Indexieren als Roh-Zeilen gesammelt und erst im
 // Query-Zweig zum Modell geparst (Index bleibt schlank, Re-Parse trivial).
@@ -65,6 +69,12 @@ const { parseTaskLine } = require('../../shared/tasks/task-markers.js');
 // 4T-000348 (Epic 3E-000062): Hash fuer die Index-Persistenz (Cache-Absicherung
 // des Parse-Ergebnisses).
 const { hashText } = require('../documents/mdd-store.js');
+// 4T-001610 (Epic 3E-000252): Datensaetze einer Tabellen-Datei. Zustandsfrei
+// wie alles hier — die Definition eines Folge-Segments kommt als Argument
+// herein; wer sie beschafft, steht im Erfassungs-Modul.
+const { erfasseDatensaetze } = require('./datensatz-erfassung.js');
+// 4T-001761 (Epic 3E-000253): Der Schalter, mit dem der Datensatz-Bestand ruht.
+const { datensatzErfassungAktiv } = require('./index-schalter.js');
 
 // B-19 (4T-000181): Einzeldatei-Limit — groessere Dateien werden nicht
 // geparst (Index bleibt funktionsfaehig, Datei traegt keine Links bei).
@@ -146,21 +156,17 @@ function kartenZiel(filePath, wert) {
 // `aliases:`, Liste oder einzelner String). Wiki-Link- und Markdown-Link-
 // Scan ueberspringt Frontmatter-Zeilen, damit YAML-Inhalte nicht als
 // ausgehende Links indexiert werden.
-function parseFile(filePath) {
+function parseFile(filePath, segmentDefinition) {
   let content;
   try {
     // B-19 (4T-000181): Einzeldatei-Limit vor dem Lesen — uebergrosse
     // Dateien werden nicht geparst (leeres Ergebnis statt Speicherlast).
+    // 4T-001610: Die Leer-Form kommt aus dem Parser selbst statt aus einem
+    // Literal. Zuvor stand sie hier und in der Async-Variante woertlich und
+    // nannte weder `dbKinds` noch `tasks`; jeder neue Bestand haette dieselbe
+    // Luecke ein drittes Mal aufgerissen.
     if (fs.statSync(filePath).size > MAX_FILE_BYTES) {
-      return {
-        hits: [],
-        aliases: [],
-        headings: [],
-        blockIds: [],
-        tags: [],
-        properties: {},
-        hash: '',
-      };
+      return { ...parseContent(filePath, ''), hash: '' };
     }
     content = fs.readFileSync(filePath, 'utf8');
   } catch {
@@ -170,37 +176,29 @@ function parseFile(filePath) {
   }
   // 4T-000348 (Epic 3E-000062): SHA-256 des Roh-Inhalts als Cache-Absicherung
   // mitfuehren (die Abgleich-Entscheidung bleibt mtime+size).
-  const parsed = parseContent(filePath, content);
+  const parsed = parseContent(filePath, content, segmentDefinition);
   parsed.hash = hashText(content);
   return parsed;
 }
 
 // B-14 (4T-000181): Async-Variante fuer den Initial-Aufbau (kein Sync-IO im
 // Main-Loop); der Parser-Kern ist mit dem Watcher-Pfad geteilt.
-async function parseFileAsync(filePath) {
+async function parseFileAsync(filePath, segmentDefinition) {
   let content;
   try {
     if ((await fs.promises.stat(filePath)).size > MAX_FILE_BYTES) {
-      return {
-        hits: [],
-        aliases: [],
-        headings: [],
-        blockIds: [],
-        tags: [],
-        properties: {},
-        hash: '',
-      };
+      return { ...parseContent(filePath, ''), hash: '' };
     }
     content = await fs.promises.readFile(filePath, 'utf8');
   } catch {
     return null;
   }
-  const parsed = parseContent(filePath, content);
+  const parsed = parseContent(filePath, content, segmentDefinition);
   parsed.hash = hashText(content);
   return parsed;
 }
 
-function parseContent(filePath, content) {
+function parseContent(filePath, content, segmentDefinition) {
   // M-04 (4T-000173): UTF-8-BOM entfernen — gleicher Fix wie in file:read
   // (main.js). Ohne Strip schluege die Frontmatter-Erkennung in Zeile 1
   // fehl und Aliases/Tags der Datei fehlten im Index. \uFEFF explizit
@@ -220,6 +218,7 @@ function parseContent(filePath, content) {
   const fmBodyStartLine = frontmatterBodyStart(lines);
   let aliases = [];
   let properties = {};
+  let dbKinds = [];
   const tagsSet = new Set(); // Sammelt Inline- und Frontmatter-Tags (case-preserving)
   if (fmBodyStartLine > 0) {
     // YAML-Block ist lines[1 .. fmBodyStartLine-2] (Schluss-Zeile ausgeschlossen).
@@ -230,6 +229,8 @@ function parseContent(filePath, content) {
         aliases = normalizeAliases(parsed.aliases);
         // 4T-000354 (Epic 3E-000065): abfragbare Frontmatter-Properties mitnehmen.
         properties = extractProperties(parsed);
+        // 4T-001510 (Epic 3E-000250): Marken der Datenbank-Behälter mitnehmen.
+        dbKinds = datenbankMarken(parsed);
         // 4T-000056: Frontmatter-Tags akzeptieren YAML-Liste, einzelnen String
         // oder mehrzeilige Liste. Normalisierungs-Funktion wird mit Aliases
         // geteilt.
@@ -483,7 +484,29 @@ function parseContent(filePath, content) {
       });
     }
   }
-  return { hits: out, aliases, headings, blockIds, tags: [...tagsSet], properties, tasks };
+  // 4T-001610: `recordDefSig` steht nur bei einem Folge-Segment und nennt die
+  // Definition, gegen die zugeordnet wurde; der Zwischenspeicher vergleicht sie.
+  //
+  // 4T-001761 (Epic 3E-000253, Entscheidung E-B): Im Aus-Zustand der
+  // Erweiterung «Datenbank» ruht der Datensatz-Bestand — der Index führt dann
+  // keine Kennungen, keine Schlüssel und keine Anzeige-Formen mehr, und der
+  // Speicher dafür bleibt frei. Die **Marken** der Tabellen-Datei (`dbKinds`
+  // oben) werden weiter erfasst: Sie kosten je Datei einen Blick ins
+  // Frontmatter und tragen den Suchraum-Schnitt sowie die Verweis-Regel, die
+  // beide im Aus-Zustand bestehen bleiben (Entscheidung E-C).
+  const erfasst = datensatzErfassungAktiv() ? erfasseDatensaetze(content, segmentDefinition) : null;
+  return {
+    hits: out,
+    aliases,
+    headings,
+    blockIds,
+    tags: [...tagsSet],
+    properties,
+    dbKinds,
+    tasks,
+    records: erfasst ? erfasst.records : [],
+    recordDefSig: erfasst ? erfasst.defSignatur : null,
+  };
 }
 
 // 4T-000502 (Epic 3E-000096): schnelle Kandidaten-Vorpruefung fuer Task-Zeilen

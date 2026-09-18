@@ -18,7 +18,15 @@ const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 const path = require('node:path');
 const crypto = require('node:crypto');
 
-const CACHE_SCHEMA_VERSION = 1;
+// 4T-001609 (Epic 3E-000252): 1 -> 2. Seit dem Suchraum-Schnitt haelt der Cache
+// TABELLEN-Dateien ohne den Inhalt ihres Datensatz-Blocks. Ein Cache aus der
+// Zeit davor traegt die vollen Texte und wuerde beim Abgleich ueber
+// Aenderungszeit und Groesse unveraendert weiterverwendet; die Erhoehung
+// verwirft ihn, statt den eingesparten Speicher stillschweigend zurueckzugeben.
+// 4T-001671 hebt die Version von 2 auf 3: Der Eintrag traegt seither die
+// Ruecknahme-Karte. Ein Cache der Vorversion gilt damit als versionsfremd und
+// wird einmalig neu aufgebaut — genau das, wofuer die Versions-Zahl da ist.
+const CACHE_SCHEMA_VERSION = 3;
 
 let cacheVerzeichnis = null;
 
@@ -65,6 +73,11 @@ async function ladeCache(wurzel) {
       text: d.text,
       mtimeMs: typeof d.mtimeMs === 'number' ? d.mtimeMs : 0,
       size: typeof d.size === 'number' ? d.size : 0,
+      // 4T-001609: Wurde der Datensatz-Block dieser Datei geleert? Daran haengt,
+      // ob ein Offset im Suchtext zurueckzurechnen ist.
+      bereinigt: d.bereinigt === true,
+      // 4T-001671: die Ruecknahme-Karte dieser Bereinigung.
+      karte: Array.isArray(d.karte) ? d.karte : null,
     });
   }
   return map;
@@ -84,6 +97,8 @@ async function schreibeCache(wurzel, dateien) {
       mtimeMs: eintrag.mtimeMs,
       size: eintrag.size,
       text: eintrag.text,
+      ...(eintrag.bereinigt ? { bereinigt: true } : {}),
+      ...(eintrag.karte && eintrag.karte.length > 0 ? { karte: eintrag.karte } : {}),
     });
   }
   try {

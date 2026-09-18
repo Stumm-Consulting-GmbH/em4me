@@ -87,7 +87,7 @@ Más allá del archivo suelto, las coincidencias aparecen en el panel **Resultad
 
 El **archivo abierto va en primer lugar**, y con su estado sin guardar: lo que está en el editor se encuentra, incluso antes de guardarlo. Sus coincidencias siguen resaltadas en el texto como siempre, la lista se añade. Para los demás archivos vale el estado guardado en el disco.
 
-La búsqueda abarca los archivos Markdown del área. Otros archivos y los archivos de acompañamiento de la aplicación quedan fuera.
+La búsqueda abarca los archivos Markdown del área. Otros archivos y los archivos de acompañamiento de la aplicación quedan fuera. Un **archivo de tabla de la [base de datos](database.md)** entra sin el contenido de su bloque de registros: su texto explicativo sigue siendo consultable, sus registros no se encuentran por esta vía. Quien abre el archivo y busca dentro de él los encuentra sin cambio alguno.
 
 Si **no hay ninguna pestaña abierta**, el área cuenta igualmente: buscar y sustituir alcanzan sus archivos sin que haya que abrir antes un documento. Dos cosas desaparecen entonces, porque sin archivo abierto no existen: la lista se ordena de forma puramente alfabética en lugar de anteponer un archivo, y no hay nada resaltado en ningún texto.
 

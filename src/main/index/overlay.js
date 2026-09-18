@@ -36,6 +36,12 @@ const { isFilesystemCaseInsensitive } = require('../../shared/platform.js');
 const { isInsideArea } = require('../area/area-path.js');
 const { bufferOverlays } = require('./store.js');
 const { parseContent } = require('./parse.js');
+// 4T-001610 (Epic 3E-000252): Ein offenes Folge-Segment erbt die Definition
+// seiner Kopf-Datei; ohne sie koennte der geschriebene Stand seine Zellen nicht
+// zuordnen. Die Ablage haelt sie bereits, weil der Index-Aufbau sie geholt hat;
+// nur ein Segment, das VOR seiner Kopf-Datei geoeffnet wird, kostet einmalig
+// das Lesen eines Datei-Kopfes.
+const { definitionFuerSegment } = require('./datensatz-erfassung.js');
 
 // 4T-000952 (Epic 3E-000198): Aenderungs-Stand der Overlay-Schicht, nach dem
 // Muster von indexStand in store.js. Eine Zahl, die bei jeder Aenderung der
@@ -57,7 +63,8 @@ function overlayStand() {
 function setBufferOverlay(filePath, content) {
   if (typeof filePath !== 'string' || !filePath) return false;
   if (typeof content !== 'string') return false;
-  bufferOverlays.set(filePath, { parsed: parseContent(filePath, content), text: content });
+  const parsed = parseContent(filePath, content, definitionFuerSegment(filePath));
+  bufferOverlays.set(filePath, { parsed, text: content });
   overlayZaehler += 1;
   return true;
 }
@@ -149,6 +156,14 @@ function entryWithOverlay(entry, overlays) {
     files: patchOf('files', (p) => p.hits),
     propertiesPerFile: patchOf('propertiesPerFile', (p) => p.properties || {}),
     tasksPerFile: patchOf('tasksPerFile', (p) => (Array.isArray(p.tasks) ? p.tasks : [])),
+    // 4T-001510 (Epic 3E-000250): Die Datenbank-Marken folgen dem geschriebenen
+    // Stand, damit eine gerade angelegte, noch nicht gespeicherte Tabelle im
+    // Katalog erscheint (Puffer-Overlay-Zusicherung, E25).
+    dbKindsPerFile: patchOf('dbKindsPerFile', (p) => (Array.isArray(p.dbKinds) ? p.dbKinds : [])),
+    // 4T-001610 (Epic 3E-000252): Der Datensatz-Bestand folgt dem geschriebenen
+    // Stand, aus demselben Grund und mit derselben Zusicherung (E25): Ein
+    // gerade angelegter, noch nicht gespeicherter Datensatz ist auffindbar.
+    recordsPerFile: patchOf('recordsPerFile', (p) => (Array.isArray(p.records) ? p.records : [])),
     tagsPerFile: patchOf('tagsPerFile', (p) => p.tags || []),
     aliasesPerFile: patchOf('aliasesPerFile', (p) => p.aliases || []),
     anchorsPerFile: patchOf('anchorsPerFile', (p) => ({

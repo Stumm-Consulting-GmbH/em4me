@@ -213,5 +213,17 @@
   "help.featureAccess.canvasStacking": "Ver → Orden de apilamiento del lienzo; menú contextual del elemento seleccionado; paleta de comandos → 'Traer al frente', 'Traer adelante', 'Enviar atrás' y 'Enviar al fondo'",
   "help.featureAccess.canvasLinkCards": "Ver → Añadir tarjeta de enlace al lienzo; menú contextual del lienzo → Añadir tarjeta de enlace al lienzo; menú contextual de la tarjeta → Definir enlace…, Abrir destino, Quitar enlace; barra de la tarjeta seleccionada; paleta de comandos → «Añadir tarjeta de enlace al lienzo»",
   "help.featureAccess.canvasImageCards": "Ver → Añadir tarjeta de imagen al lienzo; menú contextual del lienzo → Añadir tarjeta de imagen al lienzo; menú contextual de la tarjeta → Definir imagen…, Abrir destino, Quitar imagen; barra de la tarjeta seleccionada; paleta de comandos → «Añadir tarjeta de imagen al lienzo»",
-  "help.featureAccess.canvasList": "Barra de estado → Lista del lienzo; Ver → Barra lateral → Paneles → Lista del lienzo; paleta de comandos → «Lista del lienzo»; dentro de la lista flechas arriba y abajo, Inicio y Fin, Intro, Supr, la tecla de menú contextual y Mayús+F10, así como Escape; menú contextual de la tarjeta → «Añadir conexión al lienzo…»; campo de filtro en la cabecera de la lista, en la vista de lienzo también mediante Ctrl+F predeterminado"
+  "help.featureAccess.canvasList": "Barra de estado → Lista del lienzo; Ver → Barra lateral → Paneles → Lista del lienzo; paleta de comandos → «Lista del lienzo»; dentro de la lista flechas arriba y abajo, Inicio y Fin, Intro, Supr, la tecla de menú contextual y Mayús+F10, así como Escape; menú contextual de la tarjeta → «Añadir conexión al lienzo…»; campo de filtro en la cabecera de la lista, en la vista de lienzo también mediante Ctrl+F predeterminado",
+  "help.featureAccess.databaseTable": "Frontmatter del archivo de tabla, contenedor `db-table`",
+  "help.featureAccess.databaseColumnTypes": "Frontmatter del archivo de tabla, indicación `type` de una columna",
+  "help.featureAccess.databaseRecordKey": "Frontmatter del archivo de tabla, indicaciones `lastId`, `key` y `display`",
+  "help.featureAccess.databaseInfo": "Frontmatter de un documento de la base de datos, contenedor `db-database`",
+  "help.featureAccess.databaseRecords": "Cuerpo del archivo de tabla, bloque `perspective-records`",
+  "help.featureAccess.databaseRecordsView": "Vista de lectura y modo de edición de un archivo de tabla",
+  "help.featureAccess.databaseSegments": "Automáticamente al guardar, en cuanto los datos superan el umbral",
+  "help.featureAccess.databaseSearchScope": "Rige en cada búsqueda sobre un área abierta (predeterminado Ctrl+F)",
+  "help.featureAccess.databaseRecordLink": "Escrito en el texto, forma `[[Tabla#^r-00042]]`",
+  "help.featureAccess.databaseArea": "Configuración → Área actual → Base de datos",
+  "help.featureAccess.databaseOverview": "Ver → Resumen de la base de datos; menú contextual del panel del área; paleta de comandos",
+  "help.featureAccess.databaseExtension": "Configuración → Extensiones → Base de datos"
 }

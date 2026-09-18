@@ -138,13 +138,34 @@ export function applyFieldHint(hintEl, def, code) {
     return;
   }
   hintEl.hidden = false;
-  hintEl.title =
-    code === 'typeMismatch'
-      ? t('properties.profileHint.typeMismatch').replace(
-          '{type}',
-          t('properties.type.' + def.type) || def.type,
-        )
-      : t('properties.profileHint.outsideValues');
+  hintEl.title = hinweisText(def, code);
+}
+
+// 4T-001507 (Epic 3E-000250, E5.5): Die beiden neuen Hinweise der Längen-Angabe
+// und der Nachkommastellen kommen hinzu. Eigene Funktion, weil die
+// Kette aus bedingten Ausdrücken mit dem vierten Fall unlesbar würde; die
+// Zuordnung Code zu Text steht damit an einer Stelle.
+//
+// Beide Texte nennen die überschrittene Grenze, weil ein Hinweis ohne die Zahl
+// den Anwender zum Nachschlagen in der Profil-Datei zwänge.
+function hinweisText(def, code) {
+  if (code === 'typeMismatch') {
+    return t('properties.profileHint.typeMismatch').replace(
+      '{type}',
+      t('properties.type.' + def.type) || def.type,
+    );
+  }
+  const optionen = def.options || {};
+  if (code === 'tooLong') {
+    return t('properties.profileHint.tooLong').replace('{max}', String(optionen.maxLength));
+  }
+  if (code === 'tooManyDecimals') {
+    return t('properties.profileHint.tooManyDecimals').replace(
+      '{decimals}',
+      String(optionen.decimals),
+    );
+  }
+  return t('properties.profileHint.outsideValues');
 }
 
 export function extractFieldValue(fieldEl, type, def = null) {

@@ -54,6 +54,9 @@ const {
  * @param {(rootPath: string) => Promise<object|null>} deps.resolveAreaStartPage Start-Seite aufloesen.
  * @param {(rootPath: string, relative: string|null) => Promise<object>} deps.writeAreaStartPage Festlegung schreiben.
  * @param {(rootPath: string, absolutePath: string) => string|null} deps.startPageRelative Pfad in die Speicherform bringen.
+ * @param {(rootPath: string) => Promise<object|undefined>} deps.readAreaDatabaseConfig Datenbank-Sektion lesen.
+ * @param {(rootPath: string, config: object) => Promise<object>} deps.writeAreaDatabaseConfig Datenbank-Sektion schreiben.
+ * @param {(roh: object) => object} deps.normalisiereDatenbankKonfig Wirksamer Stand der Datenbank-Sektion.
  */
 function registerAreasIpc(handle, deps) {
   const {
@@ -81,6 +84,10 @@ function registerAreasIpc(handle, deps) {
     // seit 4T-001455 auch schreiben.
     readAreaLinks,
     writeAreaLinks,
+    // 4T-001758 (Epic 3E-000253): Anzeige-Einstellung der Datenbank im Bereich.
+    readAreaDatabaseConfig,
+    writeAreaDatabaseConfig,
+    normalisiereDatenbankKonfig,
   } = deps;
 
   // 4T-000645 (Epic 3E-000127): Die Beispiel-Sammlung bringt ihren Fenster- und
@@ -389,6 +396,33 @@ function registerAreasIpc(handle, deps) {
     }
     try {
       return await writeAreaStartPage(area.rootPath, relative);
+    } catch (err) {
+      return { ok: false, error: err && err.message ? err.message : String(err) };
+    }
+  });
+
+  // --- 4T-001758 (Epic 3E-000253): Datenbank-Anzeige des Bereichs ------------------
+
+  // Stand der Anzeige-Einstellung melden. { hasArea: false } ohne Bereich;
+  // sonst { hasArea: true, overviewOnOpen }. Die Bereichs-ART steht bewusst
+  // nicht hier, sondern kommt aus dem Katalog-Kanal: Sie haengt am Steckbrief
+  // im Bestand und nicht an dieser Sektion (Entscheidung des Product Owners
+  // vom 2026-09-15).
+  handle('area:getDatabaseConfig', async (event) => {
+    const area = areaOfWindow(senderWindow(event));
+    if (!area) return { hasArea: false };
+    const roh = await readAreaDatabaseConfig(area.rootPath);
+    return { hasArea: true, ...normalisiereDatenbankKonfig(roh) };
+  });
+
+  // Anzeige-Einstellung setzen. Muster area:setStartPage: Die Bereichsdatei
+  // entsteht erst beim ersten tatsaechlichen Setzen, und eine defekte
+  // Bereichsdatei wird nie ueberschrieben.
+  handle('area:setDatabaseConfig', async (event, config) => {
+    const area = areaOfWindow(senderWindow(event));
+    if (!area) return { ok: false, error: 'no area' };
+    try {
+      return await writeAreaDatabaseConfig(area.rootPath, config);
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };
     }

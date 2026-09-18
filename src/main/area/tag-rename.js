@@ -28,6 +28,9 @@ const {
   MAX_TREFFER_JE_GRUPPE,
 } = require('../../shared/search-scope.js');
 const { bereichsTexte } = require('./area-search.js');
+// 4T-001671: Die Texte des Suchraums koennen bereinigt sein; jeder Offset wird
+// mit der mitgelieferten Karte in die Datei zurueckgerechnet.
+const { mitDateiOffset } = require('./area-search-datensaetze.js');
 
 /**
  * Die Fundstellen einer Umbenennung, in der Form der Trefferliste.
@@ -57,6 +60,7 @@ async function ermittleUmbenennung(wurzel, auftrag = {}) {
 
   const treffer = [];
   const gruppen = [];
+  const karten = new Map();
   let abgeschnitten = false;
   let kinder = 0;
 
@@ -66,6 +70,11 @@ async function ermittleUmbenennung(wurzel, auftrag = {}) {
       abgeschnitten = true;
       break;
     }
+    // 4T-001671: Traegt der Eintrag eine Ruecknahme-Karte, wurde sein Text ohne
+    // den Datensatz-Block einer Tabelle durchsucht. Die Offsets bleiben bis zum
+    // Bau der Treffer im SUCHTEXT, denn Zeile, Spalte und Vorschau entstehen
+    // dort; erst die fertige Trefferliste wird in Datei-Offsets umgerechnet.
+    if (eintrag.karte) karten.set(eintrag.gruppe, eintrag.karte);
     const fund = ermittleFundstellen(eintrag.text, alt, neu);
     // Frontmatter zuerst: Seine Stellen liegen im Text vor dem Fließtext, und
     // die Trefferliste zeigt eine Datei von oben nach unten.
@@ -101,7 +110,13 @@ async function ermittleUmbenennung(wurzel, auftrag = {}) {
     treffer.push(...gebaut);
   }
 
-  return { treffer, gruppen, abgeschnitten, vorratModus: modus, kinder };
+  return {
+    treffer: mitDateiOffset(treffer, karten),
+    gruppen,
+    abgeschnitten,
+    vorratModus: modus,
+    kinder,
+  };
 }
 
 module.exports = { ermittleUmbenennung };

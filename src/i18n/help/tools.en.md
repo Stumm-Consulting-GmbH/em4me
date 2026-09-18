@@ -87,7 +87,7 @@ Beyond the single file, matches appear in the sidebar panel **Search results**, 
 
 The **open file comes first** in the list, and with its unsaved state: whatever is in the editor right now is found, even before it is saved. Its matches are highlighted in the text as usual, the list comes in addition. For all other files the saved state on disk applies.
 
-The search covers the Markdown files of the area. Other files and the application's companion files stay out.
+The search covers the Markdown files of the area. Other files and the application's companion files stay out. A **table file of the [database](database.md)** goes in without the contents of its record block: its explanatory text stays searchable, its records are not found this way. Anyone who opens the file and searches inside it finds them unchanged.
 
 With **no tab open** the area still counts: search and replace reach its files without a document having to be opened first. Two things fall away because they do not exist without an open file — the list is ordered purely alphabetically instead of putting one file first, and nothing is highlighted in any text.
 

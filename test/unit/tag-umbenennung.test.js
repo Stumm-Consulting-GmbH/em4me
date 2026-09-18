@@ -383,3 +383,107 @@ describe('Tag-Umbenennung: offene Reiter (AK6)', () => {
     expect(gefunden.treffer[0].sprung.kennung).toBe(ziel);
   });
 });
+
+// 4T-001671 (Epic 3E-000252): Die Naht zum Suchraum-Schnitt der Datenbank.
+//
+// **Warum diese Faelle hier stehen und nicht bei den Datensaetzen.** Gegenstand
+// ist nicht die Bereinigung, sondern die SCHREIB-Strecke auf bereinigtem Text:
+// Die Umbenennung holt ihre Texte ueber `bereichsTexte` aus demselben Vorrat wie
+// die Suche, bildet ihre Offsets selbst und schreibt damit. Genau an dieser
+// Naht ist der Fehler entstanden, den 4T-001671 behebt, und dort gehoert seine
+// Bewachung hin.
+//
+// **Die Rot-Probe steckt im Fixture.** Das zweite Schlagwort steht HINTER dem
+// Datensatz-Block: Ohne Ruecknahme-Karte laege sein Offset um die Laenge der
+// entfernten Datensatz-Zeilen zu frueh, und die Ersetzung fiele mitten in den
+// Datenblock. Ein Fixture mit dem Schlagwort NUR vor dem Block waere auch ohne
+// die Behebung gruen und bewachte nichts.
+describe('Tag-Umbenennung: Tabellen-Datei mit Datensatz-Block (4T-001671)', () => {
+  const TABELLE = [
+    '---',
+    'db-table:',
+    '  fields:',
+    '    - name: Titel',
+    'tags: kunde',
+    '---',
+    '',
+    '# Kundenliste',
+    '',
+    'Die Liste der #kunde vor dem Block.',
+    '',
+    '```perspective-records',
+    '|- id="r-00001"',
+    '| Anna Meier mit viel Text, damit die Verschiebung gross genug ist',
+    '|- id="r-00002"',
+    '| Bert Huber mit ebenfalls reichlich Text in dieser Datensatz-Zeile',
+    '```',
+    '',
+    'Ein Nachwort zu #kunde hinter dem Block.',
+    '',
+  ].join('\n');
+
+  it('ersetzt beide Fundstellen an der richtigen Stelle und laesst den Datenblock unberuehrt', async () => {
+    const root = makeRoot();
+    const pfad = write(root, 'Kundenliste.md', TABELLE);
+
+    const { gefunden, ergebnis } = await umbenenne(root, 'kunde', 'kundin');
+
+    expect(ergebnis.fehler || []).toEqual([]);
+    const nachher = lies(pfad);
+
+    // Beide Fliesstext-Stellen sind umbenannt, an ihrer eigenen Stelle.
+    expect(nachher).toContain('Die Liste der #kundin vor dem Block.');
+    expect(nachher).toContain('Ein Nachwort zu #kundin hinter dem Block.');
+    expect(nachher).not.toContain('#kunde ');
+    // Der Datensatz-Block ist Zeichen fuer Zeichen derselbe geblieben. Das ist
+    // die eigentliche Zusicherung: Ein zu frueher Offset haette hier
+    // hineingeschrieben.
+    expect(nachher).toContain('| Anna Meier mit viel Text, damit die Verschiebung gross genug ist');
+    expect(nachher).toContain(
+      '| Bert Huber mit ebenfalls reichlich Text in dieser Datensatz-Zeile',
+    );
+    // Und das Frontmatter-Feld, das ohne Offset geschrieben wird.
+    expect(nachher).toContain('tags: kundin');
+
+    // Der Ermittler hat die Stelle hinter dem Block in DATEI-Koordinaten
+    // geliefert; ohne Karte waere sie kleiner als die Stelle im Original.
+    const hinten = gefunden.treffer.find(
+      (t) =>
+        (t.zusatz || {}).art !== 'frontmatter' &&
+        t.sprung.offset > TABELLE.indexOf('```perspective-records'),
+    );
+    expect(hinten).toBeTruthy();
+    // Der Offset zeigt auf den NAMEN, nicht auf die Raute davor (Form der
+    // Fundstellen aus `ermittleFundstellen`).
+    expect(TABELLE.slice(hinten.sprung.offset, hinten.sprung.offset + 5)).toBe('kunde');
+    expect(hinten.sprung.offset).toBe(TABELLE.lastIndexOf('kunde hinter dem Block'));
+  });
+
+  it('meldet eine tatsaechlich fremd geaenderte Tabellen-Datei weiterhin als veraendert', async () => {
+    const root = makeRoot();
+    const pfad = write(root, 'Kundenliste.md', TABELLE);
+
+    const gefunden = await ermittleUmbenennung(root, { alt: 'kunde', neu: 'kundin', aktiv: null });
+    // Zwischen Ermittlung und Schreiben aendert jemand den Datensatz-Block. Der
+    // bereinigte Text bleibt dabei gleich, die Verschiebung nicht — genau
+    // deshalb vergleicht die Strecke auch die Ruecknahme-Karte.
+    fs.writeFileSync(
+      pfad,
+      TABELLE.replace(
+        '| Anna Meier mit viel Text, damit die Verschiebung gross genug ist',
+        '| Anna Meier kurz',
+      ),
+      'utf8',
+    );
+
+    const ersetzeImBereich = streckeFuer(root);
+    const ergebnis = await ersetzeImBereich(root, {
+      ...laufOptionen('kunde', 'kundin'),
+      dateien: alleFundstellen(gefunden),
+    });
+
+    expect(lies(pfad)).toContain('#kunde');
+    const veraendert = (ergebnis.veraendert || []).length + (ergebnis.fehler || []).length;
+    expect(veraendert).toBeGreaterThan(0);
+  });
+});
