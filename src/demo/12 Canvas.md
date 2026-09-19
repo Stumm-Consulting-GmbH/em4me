@@ -100,6 +100,12 @@ Click a row and the element is selected on the surface and moved into the centre
 
 Type into the filter field at the head of the list to narrow it down: `sort` finds one card above, `backlinks` finds the link card by its target. In the canvas view `Ctrl+F` goes straight into that field instead of opening the search bar.
 
+## Passing the surface on
+
+What leaves the file should still say something on the other side. **File → More File Functions → Export → Portable Markdown…** writes a copy in which the block above stands as its Markdown equivalent: a bold head line with the title of the surface and its size, the group as a bold line with the cards inside it below, every card with its text as it stands, the link card with its target as an ordinary wiki link and the image card with its image as an ordinary embed, labelled shapes as bullet points, and all connections as one list at the end. The recipient needs nothing but a Markdown reader.
+
+What does not travel along is the arrangement — the export carries the content and the relations, not a picture of the surface, and no surface can be won back from it. This file itself stays untouched; printing and PDF export are unaffected too and keep showing the block as it is rendered here.
+
 ## How to read the block
 
 Every element starts with a marker in column 0; the lines below it are its content.

@@ -617,11 +617,24 @@ describe('Erweiterung canvas: Registry und Aus-Zustand (4T-001656)', () => {
   });
 
   it('auch der portable Export fällt auf den Code-Block zurück', () => {
-    // Derselbe Weg, dieselbe Weiche: Der portable Konverter nutzt die zweite
-    // Instanz derselben Pipeline.
+    // 4T-001777: Dieser Fall prüfte bis zur Stufe 5 **nichts**. Er verlangte,
+    // dass kein `canvas-block` im Ergebnis steht — erfüllt, solange der
+    // Konverter die Fence gar nicht anfasst, und damit auch dann grün, wenn
+    // die Funktion fehlt. Die **Gegenprobe im Ein-Zustand** steht deshalb
+    // voran: eingeschaltet erscheint die Entsprechung nach E7 und keine Fence,
+    // abgeschaltet die Fence und keine Entsprechung.
+    configureExtensions([]);
+    const an = convertMarkdownPortable(FLAECHE, false, 'de');
+    expect(an).toContain('**Titel · ');
+    expect(an).not.toContain('perspective-canvas');
+    expect(an).not.toContain('!karte k1');
+
     configureExtensions(['canvas']);
-    const portabel = convertMarkdownPortable(FLAECHE);
+    const portabel = convertMarkdownPortable(FLAECHE, false, 'de');
     expect(portabel).not.toContain('canvas-block');
+    expect(portabel).toContain('```perspective-canvas');
+    expect(portabel).toContain('!karte k1 x=0 y=0 b=200 h=100');
+    expect(portabel).not.toContain('**Titel · ');
   });
 
   it('zieht keine andere Erweiterung mit und wird von keiner gezogen', () => {

@@ -794,89 +794,109 @@ function buildMenu(win, state, actions) {
           accelerator: acc('view.modeCanvas'),
           click: send('menu:viewChange', 'canvas'),
         }),
-        // 4T-001654 (Epic 3E-000287): Karte auf der Flaeche anlegen. Steht
-        // beim Modus, weil sie nur dort wirkt: aktiviert allein, wenn das
-        // aktive Dokument eine Flaeche traegt UND die Canvas-Ansicht offen
-        // ist. Ein Eintrag, der in jeder anderen Ansicht ins Leere fuehrte,
-        // waere kein Zugang (dieselbe Begruendung wie beim Modus selbst).
-        // 4T-001656: Mit ausgeschalteter Erweiterung verschwindet er wie der
-        // Modus-Eintrag darueber.
-        unless('canvas.addCard', {
-          label: t('command.canvas.addCard'),
-          enabled: avail('canvas.addCard'),
-          accelerator: acc('canvas.addCard'),
-          click: send('menu:canvasAddCard'),
-        }),
-        // 4T-001701 (Epic 3E-000288): Form anlegen, mit derselben Bedingung
-        // und aus demselben Grund wie die Karte darueber.
-        unless('canvas.addShape', {
-          label: t('command.canvas.addShape'),
-          enabled: avail('canvas.addShape'),
-          accelerator: acc('canvas.addShape'),
-          click: send('menu:canvasAddShape'),
-        }),
-        // 4T-001702 (Epic 3E-000288): Gruppe anlegen, mit derselben Bedingung
-        // und aus demselben Grund wie Karte und Form darueber.
-        unless('canvas.addGroup', {
-          label: t('command.canvas.addGroup'),
-          enabled: avail('canvas.addGroup'),
-          accelerator: acc('canvas.addGroup'),
-          click: send('menu:canvasAddGroup'),
-        }),
-        // 4T-001747 (Epic 3E-000289): Verweis-Karte anlegen, hinter der Gruppe
-        // und mit derselben Bedingung wie Karte, Form und Gruppe darueber.
-        unless('canvas.addLinkCard', {
-          label: t('command.canvas.addLinkCard'),
-          enabled: avail('canvas.addLinkCard'),
-          accelerator: acc('canvas.addLinkCard'),
-          click: send('menu:canvasAddLinkCard'),
-        }),
-        // 4T-001748 (Epic 3E-000289): Bild-Karte anlegen, unmittelbar hinter der
-        // Verweis-Karte und mit derselben Bedingung.
-        unless('canvas.addImageCard', {
-          label: t('command.canvas.addImageCard'),
-          enabled: avail('canvas.addImageCard'),
-          accelerator: acc('canvas.addImageCard'),
-          click: send('menu:canvasAddImageCard'),
-        }),
-        // 4T-001770 (Epic 3E-000290): Verbindung von der gewaehlten Karte aus
-        // anlegen, hinter den fuenf Anlege-Wegen und mit derselben Bedingung.
-        unless('canvas.addConnection', {
-          label: t('command.canvas.addConnection'),
-          enabled: avail('canvas.addConnection'),
-          accelerator: acc('canvas.addConnection'),
-          click: send('menu:canvasAddConnection'),
-        }),
-        // 4T-001701 (Story 4S-000932): die vier Stapel-Befehle des gewaehlten
-        // Elements, gebuendelt in einem Untermenue. Einzeln haetten sie das
-        // Ansichtsmenue um vier kurze Zeilen verlaengert, die nur auf der
-        // Flaeche etwas bedeuten; als Gruppe sind sie eine Zeile mit einem
-        // Namen, der die Gruppe erklaert.
-        submenuOrNull('menu.view.canvasStack', [
-          unless('canvas.stackFront', {
-            label: t('command.canvas.stackFront'),
-            enabled: avail('canvas.stackFront'),
-            accelerator: acc('canvas.stackFront'),
-            click: send('menu:canvasStack', 'ganzNachVorn'),
+        // 4T-001796 (Epic 3E-000315): die sieben Eintraege, die auf der Flaeche
+        // wirken, gebuendelt in EINEM Untermenue «Flaeche bearbeiten»
+        // (Anordnung des Product Owners vom 2026-09-18, Variante V2). Sie
+        // standen bis dahin einzeln untereinander im Ansichtsmenue und
+        // bedeuteten in fuenf von sechs Ansichten nichts. Der Modus-Eintrag
+        // darueber bleibt bei den uebrigen Modi: Die sechs Modi sind eine
+        // geschlossene Auswahl, bei der genau einer gilt, und einer davon in
+        // einem Untermenue machte die Auswahl unvollstaendig.
+        //
+        // Gebaut ueber submenuOrNull wie das Stapel-Untermenue darin: Im
+        // Aus-Zustand der Erweiterung fallen alle zehn Kommandos ueber
+        // unless() weg, compactSubmenu wirft den dann fuehrenden Trenner
+        // mit, und der Eintrag selbst entfaellt — ohne eine Zeile eigener
+        // Logik.
+        submenuOrNull('menu.view.canvasEdit', [
+          // 4T-001654 (Epic 3E-000287): Karte auf der Flaeche anlegen. Steht
+          // bei den Flaechen-Befehlen, weil sie nur dort wirkt: aktiviert
+          // allein, wenn das aktive Dokument eine Flaeche traegt UND die
+          // Canvas-Ansicht offen ist. Ein Eintrag, der in jeder anderen
+          // Ansicht ins Leere fuehrte, waere kein Zugang (dieselbe
+          // Begruendung wie beim Modus selbst).
+          // 4T-001656: Mit ausgeschalteter Erweiterung verschwindet er wie der
+          // Modus-Eintrag darueber.
+          unless('canvas.addCard', {
+            label: t('command.canvas.addCard'),
+            enabled: avail('canvas.addCard'),
+            accelerator: acc('canvas.addCard'),
+            click: send('menu:canvasAddCard'),
           }),
-          unless('canvas.stackForward', {
-            label: t('command.canvas.stackForward'),
-            enabled: avail('canvas.stackForward'),
-            accelerator: acc('canvas.stackForward'),
-            click: send('menu:canvasStack', 'eineStufeVor'),
+          // 4T-001701 (Epic 3E-000288): Form anlegen, mit derselben Bedingung
+          // und aus demselben Grund wie die Karte darueber.
+          unless('canvas.addShape', {
+            label: t('command.canvas.addShape'),
+            enabled: avail('canvas.addShape'),
+            accelerator: acc('canvas.addShape'),
+            click: send('menu:canvasAddShape'),
           }),
-          unless('canvas.stackBackward', {
-            label: t('command.canvas.stackBackward'),
-            enabled: avail('canvas.stackBackward'),
-            accelerator: acc('canvas.stackBackward'),
-            click: send('menu:canvasStack', 'eineStufeZurueck'),
+          // 4T-001702 (Epic 3E-000288): Gruppe anlegen, mit derselben Bedingung
+          // und aus demselben Grund wie Karte und Form darueber.
+          unless('canvas.addGroup', {
+            label: t('command.canvas.addGroup'),
+            enabled: avail('canvas.addGroup'),
+            accelerator: acc('canvas.addGroup'),
+            click: send('menu:canvasAddGroup'),
           }),
-          unless('canvas.stackBack', {
-            label: t('command.canvas.stackBack'),
-            enabled: avail('canvas.stackBack'),
-            accelerator: acc('canvas.stackBack'),
-            click: send('menu:canvasStack', 'ganzNachHinten'),
+          // 4T-001747 (Epic 3E-000289): Verweis-Karte anlegen, hinter der Gruppe
+          // und mit derselben Bedingung wie Karte, Form und Gruppe darueber.
+          unless('canvas.addLinkCard', {
+            label: t('command.canvas.addLinkCard'),
+            enabled: avail('canvas.addLinkCard'),
+            accelerator: acc('canvas.addLinkCard'),
+            click: send('menu:canvasAddLinkCard'),
           }),
+          // 4T-001748 (Epic 3E-000289): Bild-Karte anlegen, unmittelbar hinter der
+          // Verweis-Karte und mit derselben Bedingung.
+          unless('canvas.addImageCard', {
+            label: t('command.canvas.addImageCard'),
+            enabled: avail('canvas.addImageCard'),
+            accelerator: acc('canvas.addImageCard'),
+            click: send('menu:canvasAddImageCard'),
+          }),
+          // 4T-001770 (Epic 3E-000290): Verbindung von der gewaehlten Karte aus
+          // anlegen, hinter den fuenf Anlege-Wegen und mit derselben Bedingung.
+          unless('canvas.addConnection', {
+            label: t('command.canvas.addConnection'),
+            enabled: avail('canvas.addConnection'),
+            accelerator: acc('canvas.addConnection'),
+            click: send('menu:canvasAddConnection'),
+          }),
+          // 4T-001796: Der Trenner setzt die sechs Anlege-Befehle vom
+          // Stapel-Untermenue ab — Befehle oben, die Gruppe darunter.
+          { type: 'separator' },
+          // 4T-001701 (Story 4S-000932): die vier Stapel-Befehle des gewaehlten
+          // Elements, gebuendelt in einem Untermenue. Einzeln haetten sie das
+          // Ansichtsmenue um vier kurze Zeilen verlaengert, die nur auf der
+          // Flaeche etwas bedeuten; als Gruppe sind sie eine Zeile mit einem
+          // Namen, der die Gruppe erklaert.
+          submenuOrNull('menu.view.canvasStack', [
+            unless('canvas.stackFront', {
+              label: t('command.canvas.stackFront'),
+              enabled: avail('canvas.stackFront'),
+              accelerator: acc('canvas.stackFront'),
+              click: send('menu:canvasStack', 'ganzNachVorn'),
+            }),
+            unless('canvas.stackForward', {
+              label: t('command.canvas.stackForward'),
+              enabled: avail('canvas.stackForward'),
+              accelerator: acc('canvas.stackForward'),
+              click: send('menu:canvasStack', 'eineStufeVor'),
+            }),
+            unless('canvas.stackBackward', {
+              label: t('command.canvas.stackBackward'),
+              enabled: avail('canvas.stackBackward'),
+              accelerator: acc('canvas.stackBackward'),
+              click: send('menu:canvasStack', 'eineStufeZurueck'),
+            }),
+            unless('canvas.stackBack', {
+              label: t('command.canvas.stackBack'),
+              enabled: avail('canvas.stackBack'),
+              accelerator: acc('canvas.stackBack'),
+              click: send('menu:canvasStack', 'ganzNachHinten'),
+            }),
+          ]),
         ]),
         {
           // 4T-000019: Edit-Modus auch im Menue erreichbar (im Fokus-Modus ist

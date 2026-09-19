@@ -58,6 +58,11 @@ const EXPECTED_FILES = [
   // Kontextmenue-Taste, Ziel-Wahl der Verbindung und das Filter-Feld samt
   // Strg+F). Er kommt ohne den Bereich des Anwenders aus und ohne neue Datei —
   // die Soll-Liste bleibt unveraendert, und die E2E-Zaehlungen ebenso.
+  // 4T-001778 (Epic 3E-000291): dazu ein Abschnitt zum portablen Export der
+  // Flaeche — was aus Kopf, Gruppe, Karten, Verweis- und Bild-Karte, Formen und
+  // Verbindungen wird, was nicht mitreist und dass Drucken und PDF-Export
+  // unberuehrt bleiben. Wieder ohne neue Datei und ohne neues Verweis-Ziel:
+  // Soll-Liste und E2E-Zaehlungen bleiben unveraendert.
   '12 Canvas.md',
   // 4T-000645 (Epic 3E-000127): astronomischer Themenbereich als vierstufige
   // Unterseiten-Hierarchie (Galaxie, Stern, Planet, Mond) plus drei

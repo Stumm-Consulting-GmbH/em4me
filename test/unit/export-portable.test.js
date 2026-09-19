@@ -220,3 +220,40 @@ describe('Portable-Export: Rückfall je Beschriftung auf Englisch (4T-001595)', 
     expect(out).not.toContain(EN['events.span.label']);
   });
 });
+
+// 4T-001777 (Epic 3E-000291): Die Canvas-Fläche im portablen Export — hier der
+// **Integrations-Fall** über `convertMarkdownPortable`; die Ausgabe-Form selbst
+// prüft `test/unit/canvas-portabel.test.js`.
+//
+// Der Fall ist AK5 und AK6 der Story 4S-000951 und damit die Zusage, die der
+// Export macht: Eine Verweis-Karte und eine Bild-Karte erscheinen in **genau
+// der** Schreibweise, in der derselbe Verweis und dasselbe Bild im übrigen Text
+// desselben Exports erschienen. Deshalb steht beides in einem Dokument — einmal
+// auf der Karte, einmal im Fließtext — und wird gegeneinander gehalten.
+describe('Portable-Export: Verweis- und Bild-Karten der Canvas (4T-001777)', () => {
+  const ZIEL = 'Konzepte/Import.md#Zielbild';
+  const BILD = 'Anlagen/Skizze.png';
+  const DOKUMENT = [
+    `Im Fließtext steht [[${ZIEL}]] und dazu ![[${BILD}]].`,
+    '',
+    '```perspective-canvas',
+    `!karte k1 x=0 y=0 b=200 h=100 doc="${ZIEL}"`,
+    `!karte k2 x=300 y=0 b=200 h=100 bild="${BILD}"`,
+    '```',
+    '',
+  ].join('\n');
+
+  afterEach(() => {
+    configureExtensions([]);
+  });
+
+  it('schreibt beide Konstrukte auf der Karte wie im Fließtext', () => {
+    const out = convertMarkdownPortable(DOKUMENT, false, 'de');
+    // Der Fließtext bleibt unberührt — das ist der Bezugspunkt.
+    expect(out).toContain(`Im Fließtext steht [[${ZIEL}]] und dazu ![[${BILD}]].`);
+    // Und die Karten benutzen dieselbe Schreibweise: je ein zweites Vorkommen.
+    expect(out.split(`[[${ZIEL}]]`)).toHaveLength(3);
+    expect(out.split(`![[${BILD}]]`)).toHaveLength(3);
+    expect(out).not.toContain('perspective-canvas');
+  });
+});

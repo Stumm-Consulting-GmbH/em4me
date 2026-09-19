@@ -97,5 +97,14 @@
   "canvas.liste.filterTitel": "Narrow the list to elements containing this text (Ctrl+F in canvas view)",
   "canvas.liste.einTreffer": "{n} match",
   "canvas.liste.treffer": "{n} matches",
-  "canvas.liste.keinTreffer": "No element of this canvas contains this text"
+  "canvas.liste.keinTreffer": "No element of this canvas contains this text",
+  "canvas.portabel.kopf": "{titel} · {umfang}",
+  "canvas.portabel.leer": "no elements",
+  "canvas.portabel.verbindungen": "Connections",
+  "canvas.portabel.verbindung": "{von} {pfeil} {nach}",
+  "canvas.portabel.verbindungMitText": "{von} {pfeil} {nach}: {text}",
+  "canvas.portabel.form": "{art}: {text}",
+  "canvas.portabel.befund": "Note: faulty entry on this element ({befunde})",
+  "canvas.portabel.befundFlaeche": "Note: faulty entry in this canvas ({befunde})",
+  "canvas.portabel.befundDetail": "{code}, line {zeile}"
 }

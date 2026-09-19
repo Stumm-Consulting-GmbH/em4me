@@ -27,6 +27,11 @@ const { convertPerspectiveDatatableBlockToHtml } = require('./perspective-datata
 const { convertPerspectiveEventsBlockToHtml } = require('./perspective-events.js');
 const { convertPerspectiveRecordsBlockToHtml } = require('./perspective-records-html.js');
 const { RECORD_FENCE } = require('../database/record-block.js');
+// 4T-001803 (Epic 3E-000291): das gemeinsame Urteil «Öffner der obersten Ebene».
+// Es liegt in einem abhängigkeitsfreien Nachbar-Modul, weil außer den vier
+// Konstrukten hier auch die Fläche im Pipeline-Kern und die beiden
+// Journal-Blöcke unter src/shared/ danach fragen.
+const { fenceOeffnerOffsets } = require('./fence-level.js');
 
 // Fence-Erkennung: öffnender Zaun in Spalte 0 bis 3, Infostring bis zum
 // Zeilenende, Rumpf bis zum gleich langen schließenden Zaun. Der Name steht als
@@ -51,11 +56,18 @@ const EVENTS_RE = fenceRegexFuer('perspective-events');
 // vollständig und ohne das Anzeige-Fenster der Anwendung.
 const RECORDS_RE = fenceRegexFuer(RECORD_FENCE);
 
-// Ersetzt alle Fences einer Art. Liefert den neuen Text und ob mindestens eine
-// Fence tatsächlich konvertiert hat.
-function ersetze(text, regex, konverter) {
+// Ersetzt alle Fences einer Art, die auf der obersten Ebene stehen. Liefert den
+// neuen Text und ob mindestens eine Fence tatsächlich konvertiert hat.
+//
+// Die Offsets werden je Durchgang am **übergebenen** Text berechnet, weil jede
+// vorangegangene Ersetzung die folgenden verschiebt. Ein Treffer, der nicht
+// selbst ein Block der obersten Ebene ist, bleibt als Rohtext stehen; das ist
+// derselbe Ausgang wie beim `null` eines Konverters.
+function ersetzeObersteEbene(text, regex, konverter) {
   let getroffen = false;
-  const neu = text.replace(regex, (match, fence, content) => {
+  const offsets = fenceOeffnerOffsets(text);
+  const neu = text.replace(regex, (match, fence, content, offset) => {
+    if (!offsets.has(offset)) return match;
     const html = konverter(content);
     if (html === null) return match;
     getroffen = true;
@@ -78,26 +90,28 @@ function convertPortableFences(text, opts) {
   const stand = { table: false, datatable: false, events: false, records: false };
 
   if (o.tableEnabled) {
-    const r = ersetze(aktuell, TABLE_RE, (content) => convertPerspectiveTableBlockToHtml(content));
+    const r = ersetzeObersteEbene(aktuell, TABLE_RE, (content) =>
+      convertPerspectiveTableBlockToHtml(content),
+    );
     aktuell = r.text;
     stand.table = r.getroffen;
   }
   if (o.datatableEnabled) {
-    const r = ersetze(aktuell, DATATABLE_RE, (content) =>
+    const r = ersetzeObersteEbene(aktuell, DATATABLE_RE, (content) =>
       convertPerspectiveDatatableBlockToHtml(content),
     );
     aktuell = r.text;
     stand.datatable = r.getroffen;
   }
   if (o.eventsEnabled) {
-    const r = ersetze(aktuell, EVENTS_RE, (content) =>
+    const r = ersetzeObersteEbene(aktuell, EVENTS_RE, (content) =>
       convertPerspectiveEventsBlockToHtml(content, { labels: o.labels }),
     );
     aktuell = r.text;
     stand.events = r.getroffen;
   }
   if (o.recordsEnabled) {
-    const r = ersetze(aktuell, RECORDS_RE, (content) =>
+    const r = ersetzeObersteEbene(aktuell, RECORDS_RE, (content) =>
       convertPerspectiveRecordsBlockToHtml(content, { fields: o.fields, labels: o.labels }),
     );
     aktuell = r.text;
@@ -109,4 +123,5 @@ function convertPortableFences(text, opts) {
 
 module.exports = {
   convertPortableFences,
+  ersetzeObersteEbene,
 };

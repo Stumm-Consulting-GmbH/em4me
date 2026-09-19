@@ -81,6 +81,38 @@ function zahlwort(L, n, einzahl, mehrzahl) {
 }
 
 /**
+ * Die Umfang-Angabe einer Fläche als Text (Entscheidung E8, fortgeschrieben am
+ * 2026-09-12).
+ *
+ * **Eigene Funktion seit 4T-001777**, weil die Entsprechung des portablen
+ * Exports dieselbe Zeile braucht: Karten und Verbindungen immer, Formen und
+ * Gruppen nur, wenn es welche gibt. Das ist eine **Regel** und keine
+ * Formatierung — eine zweite Kopie im Export liefe bei der nächsten Element-Art
+ * auseinander, und der Anwender läse in derselben Anwendung zwei verschiedene
+ * Umfangs-Angaben derselben Fläche.
+ *
+ * Der Text ist roh und nicht HTML-geschützt; wer ihn in Markup einsetzt, schützt
+ * ihn selbst (der Block tut es, der Export braucht es nicht).
+ *
+ * @param {(key: string) => string} L Beschriftungs-Leser.
+ * @param {object} umfang Ergebnis aus `canvasUmfang`.
+ * @returns {string}
+ */
+function canvasUmfangText(L, umfang) {
+  const { karten, linien, formen, gruppen } = umfang || {};
+  const teile = [
+    L('canvas.block.umfang')
+      .replace('{karten}', zahlwort(L, karten || 0, 'canvas.block.karte', 'canvas.block.karten'))
+      .replace('{linien}', zahlwort(L, linien || 0, 'canvas.block.linie', 'canvas.block.linien')),
+  ];
+  if (formen > 0) teile.push(zahlwort(L, formen, 'canvas.block.form', 'canvas.block.formen'));
+  if (gruppen > 0) {
+    teile.push(zahlwort(L, gruppen, 'canvas.block.gruppe', 'canvas.block.gruppen'));
+  }
+  return teile.join(L('canvas.block.umfangTrenner'));
+}
+
+/**
  * Baut den Block einer Canvas-Fence.
  *
  * @param {string} rumpf Fence-Rumpf (ohne Zaun-Zeilen).
@@ -106,17 +138,9 @@ function renderCanvasBlock(rumpf, opts = {}) {
   // Ein dauerhaftes «0 Formen» wäre Rauschen in einer Kopfzeile, die knapp
   // bleiben soll, und die allermeisten Flächen tragen keine. Karten und
   // Verbindungen bleiben die beiden festen Zahlen; sie beschreiben die Fläche
-  // auch dann, wenn sie null sind.
-  const teile = [
-    L('canvas.block.umfang')
-      .replace('{karten}', zahlwort(L, karten, 'canvas.block.karte', 'canvas.block.karten'))
-      .replace('{linien}', zahlwort(L, linien, 'canvas.block.linie', 'canvas.block.linien')),
-  ];
-  if (formen > 0) teile.push(zahlwort(L, formen, 'canvas.block.form', 'canvas.block.formen'));
-  if (gruppen > 0) {
-    teile.push(zahlwort(L, gruppen, 'canvas.block.gruppe', 'canvas.block.gruppen'));
-  }
-  const umfang = teile.join(L('canvas.block.umfangTrenner'));
+  // auch dann, wenn sie null sind. Die Regel selbst steht seit 4T-001777 in
+  // `canvasUmfangText`, weil der portable Export dieselbe Zeile schreibt.
+  const umfang = canvasUmfangText(L, { karten, linien, formen, gruppen });
 
   const kopf = [
     '<div class="canvas-block-kopf">',
@@ -192,5 +216,6 @@ module.exports = {
   CANVAS_BLOCK_LABEL_KEYS,
   VORSCHAU_KARTEN,
   VORSCHAU_ZEICHEN,
+  canvasUmfangText,
   renderCanvasBlock,
 };

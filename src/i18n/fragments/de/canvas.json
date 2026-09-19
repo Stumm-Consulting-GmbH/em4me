@@ -97,5 +97,14 @@
   "canvas.liste.filterTitel": "Die Liste auf Elemente mit diesem Text einengen (Strg+F in der Canvas-Ansicht)",
   "canvas.liste.einTreffer": "{n} Treffer",
   "canvas.liste.treffer": "{n} Treffer",
-  "canvas.liste.keinTreffer": "Kein Element dieser Fläche enthält diesen Text"
+  "canvas.liste.keinTreffer": "Kein Element dieser Fläche enthält diesen Text",
+  "canvas.portabel.kopf": "{titel} · {umfang}",
+  "canvas.portabel.leer": "keine Elemente",
+  "canvas.portabel.verbindungen": "Verbindungen",
+  "canvas.portabel.verbindung": "{von} {pfeil} {nach}",
+  "canvas.portabel.verbindungMitText": "{von} {pfeil} {nach}: {text}",
+  "canvas.portabel.form": "{art}: {text}",
+  "canvas.portabel.befund": "Hinweis: fehlerhafte Angabe an diesem Element ({befunde})",
+  "canvas.portabel.befundFlaeche": "Hinweis: fehlerhafte Angabe in dieser Fläche ({befunde})",
+  "canvas.portabel.befundDetail": "{code}, Zeile {zeile}"
 }

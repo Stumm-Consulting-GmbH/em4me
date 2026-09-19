@@ -97,5 +97,14 @@
   "canvas.liste.filterTitel": "Limitar la lista a los elementos que contienen este texto (Ctrl+F en la vista de lienzo)",
   "canvas.liste.einTreffer": "{n} coincidencia",
   "canvas.liste.treffer": "{n} coincidencias",
-  "canvas.liste.keinTreffer": "Ningún elemento de este lienzo contiene este texto"
+  "canvas.liste.keinTreffer": "Ningún elemento de este lienzo contiene este texto",
+  "canvas.portabel.kopf": "{titel} · {umfang}",
+  "canvas.portabel.leer": "sin elementos",
+  "canvas.portabel.verbindungen": "Conexiones",
+  "canvas.portabel.verbindung": "{von} {pfeil} {nach}",
+  "canvas.portabel.verbindungMitText": "{von} {pfeil} {nach}: {text}",
+  "canvas.portabel.form": "{art}: {text}",
+  "canvas.portabel.befund": "Aviso: indicación errónea en este elemento ({befunde})",
+  "canvas.portabel.befundFlaeche": "Aviso: indicación errónea en este lienzo ({befunde})",
+  "canvas.portabel.befundDetail": "{code}, línea {zeile}"
 }

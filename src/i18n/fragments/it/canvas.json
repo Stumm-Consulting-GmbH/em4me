@@ -97,5 +97,14 @@
   "canvas.liste.filterTitel": "Restringere l’elenco agli elementi che contengono questo testo (Ctrl+F nella vista tela)",
   "canvas.liste.einTreffer": "{n} risultato",
   "canvas.liste.treffer": "{n} risultati",
-  "canvas.liste.keinTreffer": "Nessun elemento di questa tela contiene questo testo"
+  "canvas.liste.keinTreffer": "Nessun elemento di questa tela contiene questo testo",
+  "canvas.portabel.kopf": "{titel} · {umfang}",
+  "canvas.portabel.leer": "nessun elemento",
+  "canvas.portabel.verbindungen": "Collegamenti",
+  "canvas.portabel.verbindung": "{von} {pfeil} {nach}",
+  "canvas.portabel.verbindungMitText": "{von} {pfeil} {nach}: {text}",
+  "canvas.portabel.form": "{art}: {text}",
+  "canvas.portabel.befund": "Nota: indicazione errata in questo elemento ({befunde})",
+  "canvas.portabel.befundFlaeche": "Nota: indicazione errata in questa tela ({befunde})",
+  "canvas.portabel.befundDetail": "{code}, riga {zeile}"
 }

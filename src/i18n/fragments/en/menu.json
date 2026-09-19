@@ -113,5 +113,6 @@
   "menu.file.removeLocale": "Remove…",
   "menu.file.updateLocale": "Update…",
   "menu.view.canvas": "Canvas",
+  "menu.view.canvasEdit": "Edit canvas",
   "menu.view.canvasStack": "Canvas stacking order"
 }

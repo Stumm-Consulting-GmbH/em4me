@@ -33,10 +33,11 @@ const { extractFrontmatter } = require('./frontmatter.js');
 // von env.headingNumbering.
 const { parseTableDefinition } = require('../database/table-definition.js');
 const { parseRecordBlock, RECORD_FENCE } = require('../database/record-block.js');
-const { renderRecordsFence, RECORD_LABEL_KEYS } = require('./perspective-records-html.js');
+const { renderRecordsFence } = require('./perspective-records-html.js');
 const { effectiveDisabledSet } = require('../extensions/extensions-core.js');
-// 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
-const { isLocale, FALLBACK_LOCALE } = require('../locales.js');
+// 4T-001777: Die Auflösung der Beschriftungen, die Ausgabe-Wege selbst
+// beisteuern, liegt als eigener Gegenstand in `portable-labels.js`.
+const { portableLabels } = require('./portable-labels.js');
 const {
   sourceLineMapperPlugin,
   headingNumbersPlugin,
@@ -57,26 +58,36 @@ const {
   stripHeadingMarkers,
   // 4T-000546 (Epic 3E-000097): Kalender-Wert-Badges @{Kalendername: Wert}.
   calendarValuesPlugin,
-  CALENDAR_SPAN_LABEL_KEYS,
 } = require('./plugins.js');
 const { renderPerspectiveTable } = require('./perspective-table.js');
 // 4T-000418 (Epic 3E-000079): Perspective Datatable — Grid-HTML für den Fence-Override.
 const { renderPerspectiveDatatableViewer } = require('./perspective-datatable.js');
 // 4T-000512 (Epic 3E-000092): Ereignis-Fence — Tabellen-HTML für den Fence-Override.
-const {
-  localTodayIso,
-  renderPerspectiveEventsViewer,
-  PORTABLE_EVENT_LABEL_KEYS,
-} = require('./perspective-events.js');
+const { localTodayIso, renderPerspectiveEventsViewer } = require('./perspective-events.js');
 // 4T-001668 (Epic 3E-000287): Canvas-Fence — der Block, mit dem die Fläche
 // außerhalb der Canvas-Ansicht erscheint (Entscheidung E8). Das Markup baut
 // das Nachbar-Modul; hier bleibt allein die Weiche.
 const { CANVAS_EXTENSION_ID } = require('../canvas/canvas-core.js');
-const { CANVAS_BLOCK_LABEL_KEYS, renderCanvasBlock } = require('./canvas-block.js');
+const { renderCanvasBlock } = require('./canvas-block.js');
 // 4T-001548 (Epic 3E-000251): Die statische Konvertierung aller Fence-Konstrukte
 // des portablen Exports; hier bleibt allein die Klammer darum (KaTeX-Abschaltung
 // und Marker an der Datei-Spitze).
-const { convertPortableFences } = require('./portable-fences.js');
+const { convertPortableFences, ersetzeObersteEbene } = require('./portable-fences.js');
+// 4T-001777 (Epic 3E-000291): dieselbe Fence im portablen Export — die
+// strukturierte Entsprechung nach E7. Auch hier baut das Nachbar-Modul, und
+// hier bleibt die Weiche.
+//
+// **Warum sie nicht bei den vier Fence-Arten in portable-fences.js liegt**
+// (entschieden beim Rebase auf das Release 1.137.0): Jene laufen NACH dem
+// %%-Kommentar-Strip, diese Ersetzung muss davor laufen. Der Karten-Text ist
+// gewöhnliches Markdown des Dokuments; aus der Fence gehoben, durchläuft er
+// danach dieselben Regeln wie der Text ringsherum, und genau daran hängt die
+// Vertraulichkeits-Zusicherung — liefe sie hinten, bliebe ein privater
+// Kommentar aus einer Karte im Export stehen, weil der code-bewusste Strip den
+// Fence-Inhalt übergeht. Der Schnitt von portable-fences.js trennt nach
+// «wird zu statischem HTML»; die Fläche wird zu Markdown und gehört auch
+// fachlich nicht in jene Menge.
+const { canvasPortabel } = require('../canvas/canvas-portabel.js');
 
 // 4T-000023: highlight.js als Core-Bundle plus kuratierte Sprachliste. Damit
 // landet nur das benoetigte Set im Bundle, nicht das gesamte Default-Bundle
@@ -917,99 +928,6 @@ function renderMarkdown(text, lang, opts) {
   return showBlock ? renderFrontmatterBlockHtml(fm) + bodyHtml : bodyHtml;
 }
 
-// 4T-000512 (Epic 3E-000092): Label-Aufloesung des Ereignis-Portable-Pfads.
-// Dieses Modul laeuft nur in Preload und Node-Tests (nie im Renderer-
-// Bundle) — die Sprachdatei wird deshalb lazy von Platte gelesen (asar-
-// transparent); jeder Fehlschlag faellt weich auf die Key-Namen zurueck.
-const portableLabelCache = new Map();
-// 4T-001595 (Epic 3E-000129): Die gelesenen Kataloge selbst, getrennt von den
-// daraus gewonnenen Beschriftungen — der englische wird jetzt als Rückfall je
-// Schlüssel gebraucht, also auch dann, wenn die Beschriftungen einer anderen
-// Sprache gefragt sind.
-const portableDictCache = new Map();
-
-/** Katalog einer mitgelieferten Sprache von Platte, gemerkt. */
-function mitgelieferterKatalog(code) {
-  if (portableDictCache.has(code)) return portableDictCache.get(code);
-  let dict = {};
-  try {
-    const fs = require('node:fs');
-    const path = require('node:path');
-    dict = JSON.parse(
-      fs.readFileSync(path.join(__dirname, '..', '..', 'i18n', `${code}.json`), 'utf8'),
-    );
-  } catch {
-    // Key-Fallback (Labels bleiben die Key-Namen) — Export funktioniert.
-  }
-  portableDictCache.set(code, dict);
-  return dict;
-}
-
-/**
- * Beschriftungen des Ereignis-Portable-Pfads.
- *
- * 4T-001594 (Epic 3E-000129), zwei Änderungen, beide vom Product Owner am
- * 2026-09-10 entschieden:
- *
- * **Der Rückfall geht auf `FALLBACK_LOCALE` statt auf `'de'`** (Frage 3, AK5).
- * Bis dahin fiel dieser dritte Leser als einziger auf Deutsch zurück, während
- * Anzeige- und Hauptprozess auf Englisch fallen; 4T-000391 hatte die
- * Abweichung bewusst stehen lassen, um mit der Zusammenführung der Liste kein
- * Verhalten zu ändern. Verbreitete Katalog-Bibliotheken (gettext, ICU,
- * i18next) kennen genau EINE konfigurierte Rückfall-Sprache, und die steht in
- * `locales.js`. Betroffen sind allein die Beschriftungen des Ereignis-Exports
- * bei einer Sprache, die kein Leser kennt.
- *
- * **`labelCatalog` versorgt eine eingespielte eigene Sprache.** Dieses Modul
- * liegt in `src/shared` und kennt kein Benutzerprofil; es kann den Katalog
- * einer eigenen Sprache nicht selbst von Platte holen. Der Aufrufer gibt ihn
- * mit, und die beiden Beschriftungs-Gruppen werden daraus aufgelöst — ohne
- * Zwischenspeicher, weil der Katalog zur Laufzeit wechselt und nicht an einem
- * Sprach-Code hängt, der ihn eindeutig benennen würde.
- *
- * 4T-001595 (Epic 3E-000129): **Ein fehlender Schlüssel fällt auf die englische
- * Fassung zurück**, nicht mehr auf den Schlüssel-Namen — dieselbe Kette wie im
- * Anzeige- und im Hauptprozess (eingestellte Sprache → Englisch →
- * Schlüssel-Name), damit die Anwendung nicht je Prozess anders antwortet. Der
- * Zweig der mitgelieferten Fassungen geht sie mit: Dort ist sie bei schlüssel-
- * gleichen Katalogen wirkungslos, und genau das ist die Zusicherung.
- *
- * @param {string} lang Sprach-Code einer mitgelieferten Fassung.
- * @param {Record<string, string>} [labelCatalog] Katalog einer eigenen Sprache.
- * @returns {Record<string, string>} Beschriftungen, nach Schlüssel.
- */
-function portableLabels(lang, labelCatalog) {
-  const englisch = mitgelieferterKatalog(FALLBACK_LOCALE);
-  if (labelCatalog && typeof labelCatalog === 'object') return labelsAus(labelCatalog, englisch);
-  // 4T-000391: Liste aus der einen Quelle.
-  const lc = isLocale(lang) ? lang : FALLBACK_LOCALE;
-  if (portableLabelCache.has(lc)) return portableLabelCache.get(lc);
-  const labels = labelsAus(mitgelieferterKatalog(lc), englisch);
-  portableLabelCache.set(lc, labels);
-  return labels;
-}
-
-/**
- * Die vier Beschriftungs-Gruppen aus einem Katalog herauslösen.
- *
- * 4T-001595: `rueckfall` füllt je Schlüssel auf, was der Katalog nicht kennt.
- * Kennt ihn auch der Rückfall nicht, bleibt die Beschriftung wie bisher aus —
- * der Aufrufer zeigt dann den Schlüssel-Namen.
- */
-function labelsAus(dict, rueckfall) {
-  const labels = {};
-  for (const key of [
-    ...PORTABLE_EVENT_LABEL_KEYS,
-    ...CALENDAR_SPAN_LABEL_KEYS,
-    ...CANVAS_BLOCK_LABEL_KEYS,
-    ...RECORD_LABEL_KEYS,
-  ]) {
-    if (typeof dict[key] === 'string') labels[key] = dict[key];
-    else if (rueckfall && typeof rueckfall[key] === 'string') labels[key] = rueckfall[key];
-  }
-  return labels;
-}
-
 function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', labelCatalog) {
   const source = String(markdownText || '');
   // 4T-000293: pro Erweiterung konvertiert der Export nur bei aktivem
@@ -1027,14 +945,45 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', la
   const fm = extractFrontmatter(source);
   const head = fm.raw != null ? source.slice(0, fm.endOffset) : '';
   const restSource = fm.raw != null ? source.slice(fm.endOffset) : source;
+  // 4T-001777 (Epic 3E-000291): Die Canvas-Fence wird durch ihre strukturierte
+  // Entsprechung ersetzt (Entscheidung E7). An den Schalter der Erweiterung
+  // gebunden wie jede andere Ersetzung: abgeschaltet bleibt die Fence ein
+  // lesbarer Code-Block (E6).
+  //
+  // **Sie steht als ERSTE Ersetzung und vor allen übrigen Schritten**, weil der
+  // Karten-Text gewöhnliches Markdown des Dokuments ist: Aus der Fence gehoben,
+  // durchläuft er danach dieselben Regeln wie der Text ringsherum — der
+  // %%-Kommentar verschwindet, der Zeilenende-Marker fällt weg, die
+  // Inline-Berechnung brennt ihr Ergebnis ein. Genau das ist die Festlegung
+  // «eine Regel für das ganze Dokument statt einer Sonderbehandlung der
+  // Fläche». Liefe sie am Ende, bliebe ein privater Kommentar aus einer Karte
+  // im Export stehen, weil der code-bewusste Kommentar-Strip den Fence-Inhalt
+  // übergeht.
+  //
+  // Die Entsprechung ist **Markdown und kein HTML**; sie braucht weder den
+  // Portable-Marker noch die mdPortable-Ansicht. Ersetzt wird allein ein Zaun der
+  // **obersten Ebene**: Ein Zaun in einem äußeren Zaun ist zitierter Text.
+  //
+  // **Der Zaun-Ausklang ist `[ \t]*` und nicht `\s*` wie bei den drei bestehenden
+  // Ersetzungen**: Jene setzen einen HTML-Block ein, der sich vom folgenden Absatz
+  // von selbst trennt. Hier steht Markdown, und eine mit verschluckte Leerzeile
+  // zöge den nächsten Absatz in die Verbindungs-Liste hinein.
+  const canvasFenceRegex = /^( {0,3}`{3,})perspective-canvas[^\n]*\n([\s\S]*?)\n\1[ \t]*$/gm;
+  const flaeche = activeEffectiveDisabled.has(CANVAS_EXTENSION_ID)
+    ? { text: restSource, getroffen: false }
+    : ersetzeObersteEbene(restSource, canvasFenceRegex, (content) =>
+        canvasPortabel(content, portableLabels(lang, labelCatalog)),
+      );
+  const restMitFlaeche = flaeche.text;
+  const canvasConverted = flaeche.getroffen;
   // 4T-000479 (Epic 3E-000089): %%-Kommentare gehoeren nie in den exportierten
   // Datei-Text (Kommentare sind privat; keine Export-Option). Der Strip
   // laeuft code-bewusst VOR der Fence-Konvertierung; bei deaktivierter
   // Erweiterung bleibt der Text unveraendert.
   const rest = activeEffectiveDisabled.has('comments')
-    ? restSource
-    : stripPercentComments(restSource);
-  const commentsStripped = rest !== restSource;
+    ? restMitFlaeche
+    : stripPercentComments(restMitFlaeche);
+  const commentsStripped = rest !== restMitFlaeche;
   // 4T-000470 (Epic 3E-000087): Zeilenende-Marker {-}/{+} auch aus dem
   // exportierten Text nehmen (Marker in keinem Export sichtbar). PO-
   // Entscheidung 2026-07-12: KEINE Nummern einbrennen — der Portable-Text
@@ -1095,7 +1044,12 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', la
     !fences.records &&
     !inlineCalcConverted
   ) {
-    return commentsStripped || headingMarkersStripped ? head + converted : source;
+    // 4T-001777: Die ersetzte Fläche erzwingt den zusammengesetzten
+    // Rückgabe-Pfad, braucht aber keinen Marker — sie ist Markdown, kein
+    // Roh-HTML. Dieselbe Stellung wie die gestrippten Kommentare darüber.
+    return commentsStripped || headingMarkersStripped || canvasConverted
+      ? head + converted
+      : source;
   }
   const sep = converted.startsWith('\n') ? '\n' : '\n\n';
   return `${head}${PERSPECTIVE_PORTABLE_MARKER}${sep}${converted}`;

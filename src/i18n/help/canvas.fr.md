@@ -4,7 +4,7 @@ Un **canevas** est une surface de travail spatiale au sein d'un document Markdow
 
 La surface est portée par un bloc de code avec la balise de langage `perspective-canvas`. Un document peut en contenir autant que voulu, et tout le reste y demeure du Markdown ordinaire.
 
-La fonction fait partie des [extensions internes](extensions.md) (« Vue canevas »). Désactivée, le bloc reste un bloc de code ordinaire, le mode d'affichage disparaît et les commandes pour la surface, la carte, la carte de lien, la carte d'image, la forme, le groupe et l'ordre de superposition s'en vont. Le document reste parfaitement lisible ; rien n'est perdu.
+La fonction fait partie des [extensions internes](extensions.md) (« Vue canevas »). Désactivée, le bloc reste un bloc de code ordinaire, le mode d'affichage disparaît et les commandes pour la surface, la carte, la carte de lien, la carte d'image, la forme, le groupe et l'ordre de superposition s'en vont — et avec elles l'entrée **Modifier le canevas** du menu **Affichage**, qui ne reste pas là, vide. Le document reste parfaitement lisible ; rien n'est perdu.
 
 ## Distinction avec la vue graphe
 
@@ -50,7 +50,7 @@ L'intitulé est dérivé et non déclaré : la première ligne utile de la premi
 
 - Un **double-clic** sur le fond libre crée une carte à l'endroit du clic et ouvre aussitôt sa saisie de texte.
 - Un **clic droit** sur le fond → « Ajouter une carte au canevas » fait de même à l'endroit du clic.
-- La commande **« Ajouter une carte au canevas »** (palette de commandes, menu Affichage, raccourci attribuable) la place au centre de la portion visible. Hors de la vue canevas, elle signale dans la barre d'état que les cartes ne naissent que là.
+- La commande **« Ajouter une carte au canevas »** (palette de commandes, Affichage → Modifier le canevas, raccourci attribuable) la place au centre de la portion visible. Hors de la vue canevas, elle signale dans la barre d'état que les cartes ne naissent que là.
 
 ### Sélectionner, déplacer, redimensionner
 
@@ -74,7 +74,7 @@ Un texte inchangé n'écrit rien dans le document.
 
 Au lieu de porter son propre texte, une carte montre au choix le contenu d'un **autre document** — en entier, ou à partir d'un titre ou d'un bloc. Le contenu reste là où il se trouve : la carte n'en garde aucune copie et ne se modifie pas à cet endroit. S'il ne tient pas dans la carte, celle-ci défile.
 
-- **Créer** — la commande **« Ajouter une carte de lien au canevas »** (palette de commandes, menu Affichage) la place au centre de la portion visible, le clic droit sur le fond libre à l'endroit du clic. Les deux demandent d'abord la cible : `Entrée` crée la carte, `Échap` abandonne. Sans cible, aucune carte n'est créée.
+- **Créer** — la commande **« Ajouter une carte de lien au canevas »** (palette de commandes, Affichage → Modifier le canevas) la place au centre de la portion visible, le clic droit sur le fond libre à l'endroit du clic. Les deux demandent d'abord la cible : `Entrée` crée la carte, `Échap` abandonne. Sans cible, aucune carte n'est créée.
 - **Définir, changer, supprimer la cible** — une carte sélectionnée porte une **barre** avec le champ « Cible du lien » ; à la saisie, il propose les documents de l'espace. Une carte de texte devient ainsi une carte de lien, et « Supprimer le lien » la ramène à une carte de texte — son propre texte reste en place. Les mêmes actions figurent dans le **menu contextuel** de la carte.
 - **Ouvrir la cible** — un **double-clic sur le contenu affiché** ouvre le document lié à l'endroit lié, tout comme « Ouvrir la cible » dans la barre et le menu contextuel. Cela reste permis en affichage pur, car ouvrir ne modifie rien.
 - **Ligne d'en-tête** — elle porte l'**étiquette** de la carte, c'est-à-dire son propre texte, et sinon la cible avec son ancre. Un double-clic sur la ligne d'en-tête modifie l'étiquette comme le texte de toute autre carte.
@@ -118,7 +118,7 @@ Outre les cartes, la surface porte des **formes géométriques**. Elles ne porte
 ### Créer
 
 - Un **clic droit** sur le fond libre → « Insérer une forme » ouvre un sous-menu avec les six sortes et pose la sorte choisie à l'endroit du clic.
-- La commande **« Ajouter une forme au canevas »** (palette de commandes, menu Affichage, raccourci attribuable) pose un rectangle au milieu de la portion visible.
+- La commande **« Ajouter une forme au canevas »** (palette de commandes, Affichage → Modifier le canevas, raccourci attribuable) pose un rectangle au milieu de la portion visible.
 
 Six sortes sont proposées : **rectangle**, **rectangle arrondi**, **ellipse**, **triangle**, **losange** et **étoile**. Il n'existe pas d'outil pour les traits à main levée.
 
@@ -189,7 +189,7 @@ Pour l'élément sélectionné, il existe quatre commandes :
 | Reculer d'un niveau | derrière l'élément suivant situé derrière lui |
 | Mettre à l'arrière-plan | en dessous de tous les autres éléments |
 
-Deux chemins y mènent : le **menu contextuel** de l'élément et **Affichage → Ordre de superposition du canevas**. Les mêmes commandes figurent dans la palette de commandes (`Ctrl+K` par défaut) ; aucun raccourci n'est préaffecté, et ils peuvent être attribués dans les réglages.
+Deux chemins y mènent : le **menu contextuel** de l'élément et **Affichage → Modifier le canevas → Ordre de superposition du canevas**. Les mêmes commandes figurent dans la palette de commandes (`Ctrl+K` par défaut) ; aucun raccourci n'est préaffecté, et ils peuvent être attribués dans les réglages.
 
 **Les nouveaux éléments ont leur place :** un nouveau groupe naît tout au fond, une nouvelle forme et une nouvelle carte tout devant.
 
@@ -281,6 +281,75 @@ Comme la surface se trouve dans un document Markdown ordinaire, elle se rencontr
 | Canevas | la surface elle-même |
 
 L'aperçu montre six cartes au plus ; en dessous figure le nombre de cartes restantes. Le bloc se **replie**, sa ligne d'en-tête restant en place ; cet état vaut pour la session en cours et n'est pas écrit dans le document. L'impression et l'export PDF suivent la vue rendue, sans imprimer les deux boutons du bloc.
+
+## La surface dans l'export portable
+
+**Fichier → Autres fonctions de fichier → Exporter → Markdown portable…** écrit une version du document qui dit quelque chose même sans cette application. Chaque surface y figure sous sa **correspondance Markdown** : le même contenu et le même réseau de relations, en Markdown ordinaire. Sans elle, le destinataire recevrait un bloc de code rempli de lignes de coordonnées dont il ne pourrait rien faire.
+
+| Sur la surface | Dans l'export |
+| -------------- | ------------- |
+| la surface elle-même | une ligne d'en-tête en gras avec son titre — la première ligne de sa première carte — et son volume, la même indication que dans la ligne d'en-tête du bloc |
+| une carte | son texte, **inchangé** ; les titres qu'il contient restent tels quels, et aucun titre inventé n'apparaît au-dessus de la carte |
+| une carte de lien | son étiquette, en dessous le lien dans la même écriture que dans le reste du texte du document |
+| une carte d'image | son étiquette, en dessous l'image en incorporation |
+| un groupe | une ligne en gras portant son nom ; juste en dessous figurent les éléments qui se trouvent à l'intérieur |
+| une forme avec étiquette | une puce composée de sa sorte et de son étiquette ; une forme sans étiquette est omise |
+| les connexions | **une** liste à la fin de la surface, chaque ligne avec les deux cartes, le signe de leur sens et, le cas échéant, l'étiquette |
+| un attribut erroné | une ligne de remarque auprès de l'élément concerné — ou à la fin de la surface, s'il ne revient à aucun élément |
+
+L'ordre est celui du bloc, donc l'ordre de superposition que montre aussi la liste du canevas. **Rien n'est abrégé :** toutes les cartes figurent en entier, contrairement à l'aperçu plafonné du bloc. Si le document porte plusieurs surfaces, chacune reçoit son propre en-tête et sa propre liste de connexions.
+
+Cette surface
+
+````markdown
+```perspective-canvas
+!gruppe g1 x=-300 y=-160 b=600 h=200 farbe=blau
+Analyse
+
+!karte k1 x=-260 y=-120 b=240 h=120
+Point de départ
+
+!karte k2 x=40 y=-120 b=240 h=120
+Cible
+
+!karte k3 x=-100 y=140 b=240 h=120 doc="Concepts/Import.md#Cible"
+La cible dans le concept
+
+!form f1 x=220 y=140 b=120 h=120 art=stern rand=rot
+Message clé
+
+!linie e1 k1 -> k2 von=rechts nach=links
+donne
+```
+````
+
+se présente ainsi dans l'export portable :
+
+```markdown
+**Point de départ · 3 cartes, 1 connexion, 1 forme, 1 groupe**
+
+**Analyse**
+
+Point de départ
+
+Cible
+
+La cible dans le concept
+
+[[Concepts/Import.md#Cible]]
+
+- Étoile : Message clé
+
+**Connexions**
+
+- Point de départ → Cible : donne
+```
+
+**Ce qui ne voyage pas, c'est l'agencement spatial.** L'export restitue le contenu et le réseau, pas une image : ce qui était côte à côte et ce qui était éloigné n'y figure pas. Les groupes sont la seule chose qui passe de l'agencement, parce qu'ils portent la structure mentale de la surface. Et la correspondance est une **sortie, pas une seconde forme de stockage** — aucune surface ne peut en être reconstituée. L'original reste intact dans le document : l'export lit la surface et n'y écrit pas.
+
+**L'impression et l'export PDF n'en sont pas affectés.** Ils suivent toujours la vue rendue et montrent la surface sous forme de bloc, comme le décrit le chapitre ci-dessus.
+
+**Si la vue canevas est désactivée en tant qu'[extension interne](extensions.md)**, la surface reste aussi dans l'export un bloc de code lisible — la même affirmation que cette page fait déjà pour la vue rendue : le document reste lisible et rien n'est perdu.
 
 ## Les liens dans le réseau de l'espace
 
@@ -470,4 +539,6 @@ se conditionnent
 - **Le glissement libre et le zoom n'existent pas au clavier.** La liste du canevas sélectionne, modifie, supprime et crée ; la position d'un élément ne se change au clavier que par les quatre commandes de l'ordre. Déplacer, redimensionner et bouger la portion restent réservés à la souris.
 - **La liste rend la surface manipulable, non parlante.** Elle énumère ce qui s'y trouve et ne remplace pas ce que montre l'agencement spatial.
 - **La recherche dans l'espace trouve toujours un document porteur d'une surface par son texte**, car la surface y figure en clair ; elle n'est pas pour autant une source d'occurrences à part. Les cartes, formes et groupes pris isolément n'apparaissent donc pas comme occurrences propres — c'est le champ de filtre de la liste du canevas qui les trouve.
+- **L'export portable restitue la surface sous forme de texte, pas d'image.** L'agencement spatial ne voyage pas, et aucune surface ne peut être reconstituée à partir de la correspondance ; passent le contenu, les groupes et le réseau des connexions.
+- **Un élément erroné n'est pas omis en silence dans l'export** : il est écrit avec ce qu'il a de lisible et accompagné d'une ligne de remarque. Une forme sans étiquette est en revanche omise, parce qu'il n'en resterait rien sans la représentation spatiale.
 - Une surface appartient à son document. Les cartes ne peuvent pas être glissées d'une surface à une autre.

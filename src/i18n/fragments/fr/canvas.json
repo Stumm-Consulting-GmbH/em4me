@@ -97,5 +97,14 @@
   "canvas.liste.filterTitel": "Restreindre la liste aux éléments contenant ce texte (Ctrl+F en vue canevas)",
   "canvas.liste.einTreffer": "{n} résultat",
   "canvas.liste.treffer": "{n} résultats",
-  "canvas.liste.keinTreffer": "Aucun élément de ce canevas ne contient ce texte"
+  "canvas.liste.keinTreffer": "Aucun élément de ce canevas ne contient ce texte",
+  "canvas.portabel.kopf": "{titel} · {umfang}",
+  "canvas.portabel.leer": "aucun élément",
+  "canvas.portabel.verbindungen": "Connexions",
+  "canvas.portabel.verbindung": "{von} {pfeil} {nach}",
+  "canvas.portabel.verbindungMitText": "{von} {pfeil} {nach} : {text}",
+  "canvas.portabel.form": "{art} : {text}",
+  "canvas.portabel.befund": "Remarque : indication erronée sur cet élément ({befunde})",
+  "canvas.portabel.befundFlaeche": "Remarque : indication erronée dans ce canevas ({befunde})",
+  "canvas.portabel.befundDetail": "{code}, ligne {zeile}"
 }

@@ -39,6 +39,13 @@
 // Aufgabe erfüllt. Bis dahin läuft er bei jedem Lauf seines Prüf-Ausschnitts
 // mit.
 //
+// **Der Ruhestand ist so nicht eingetreten** (gemessen am 2026-09-18,
+// `4T-001778`): `bezugsstand` nimmt nicht den jüngsten Tag, sondern den
+// jüngsten, der die Datei **trägt** — und die älteren Tags tragen sie weiter.
+// Der Bezugsstand steht seit dem Release 1.133.0 unverrückbar auf `v1.132.0`.
+// Folge: Jede Änderung an einem bestehenden Text braucht seither einen Eintrag
+// in `ABWEICHUNGEN`. Die Auflösung ist ein eigener Vorgang, siehe dort.
+//
 // Aufruf von Hand: `node scripts/i18n-gleichheit.js` — druckt je Sprache die
 // Zahlen und endet bei Abweichungen mit 1. Das ist der Beleg für die Abnahme.
 'use strict';
@@ -63,12 +70,19 @@ function bezugsPfad(code) {
 /**
  * Bewusst geänderte Bestands-Texte seit dem Bezugsstand.
  *
- * Sie ist LEER und bleibt es, solange das Epic Text nur verschiebt: Ein
- * Eintrag hier nimmt einen Schlüssel aus dem Wert-Vergleich heraus und ist
+ * Ein Eintrag hier nimmt einen Schlüssel aus dem Wert-Vergleich heraus und ist
  * damit genau die Stelle, an der ein Nachweis weich wird. Ein späteres
  * Vorhaben, das einen bestehenden Text ändert, hat zwei Wege — hier eintragen
  * mit Grund, oder auf den nächsten Release-Tag warten, mit dem der Bezugsstand
- * ohnehin weiterwandert. Der zweite ist der bessere, weil er nichts hinterlässt.
+ * ohnehin weiterwandert.
+ *
+ * **Der zweite Weg steht seit dem Release 1.133.0 nicht mehr offen** (gemessen
+ * am 2026-09-18, `4T-001778`): `bezugsstand()` nimmt die jüngste erreichbare
+ * Marke, die `src/i18n/de.json` noch **trägt** — und seit jenem Release trägt
+ * sie keine mehr. Der Bezugsstand steht damit dauerhaft auf `v1.132.0`, und der
+ * im Kopf dieser Datei beschriebene Ruhestand tritt von selbst nicht mehr ein.
+ * Bis das aufgelöst ist, bleibt der Eintrag hier der einzige Weg für jede
+ * Änderung an einem bestehenden Text.
  *
  * @type {Array<{sprache: string, schluessel: string, grund: string}>}
  */
@@ -103,6 +117,41 @@ const ABWEICHUNGEN = [
     grund:
       'Zug 3E-000277 (4T-001507, 4T-001511): Katalog-Text der Eigenschafts-Profile um die beiden geteilten Spalten-Optionen erweitert, bevor der Bezugsstand 1.132.0 entstand',
   },
+  // Beim Rebase auf das Release 1.137.0 angefügt: die Einträge des Zuges
+  // 3E-000313 hinter denen des Integrationsstands. Beide Seiten bleiben nötig,
+  // weil der Bezugsstand unverändert auf `v1.132.0` steht.
+  ...['de', 'en', 'fr', 'es', 'it'].flatMap((sprache) => [
+    {
+      sprache,
+      schluessel: 'help.feature.exportPortable',
+      grund:
+        '4T-001778 (Epic 3E-000291): Die Beschreibung zählt Konstrukt für Konstrukt auf, was der portable Export tut; mit der Teilnahme der Canvas-Fläche fehlte ihr ein Glied. Ein Satz ergänzt, der Schluss-Satz verweist seither auf beide Handbuch-Seiten.',
+    },
+    {
+      sprache,
+      schluessel: 'help.feature.canvas',
+      grund:
+        '4T-001778 (Epic 3E-000291): Die Beschreibung nennt, wo die Fläche außerhalb der Canvas-Ansicht erscheint; der portable Export ist der zweite dieser Orte und stand nicht darin. Ein Satz ergänzt.',
+    },
+  ]),
+  // 4T-001797 (Epic 3E-000315): Die fünf Zugangs-Angaben der Flächen-Befehle
+  // nennen den Menü-Weg wörtlich, und genau der hat sich geändert — aus
+  // «Ansicht → <Befehl>» wird «Ansicht → Canvas-Fläche bearbeiten → <Befehl>». Ohne
+  // diese 25 Einträge liefe das Gate rot, obwohl die Änderung gerade dafür
+  // sorgt, dass der Text wieder stimmt.
+  ...['de', 'en', 'fr', 'es', 'it'].flatMap((sprache) =>
+    [
+      ['canvasShapes', 'Form-Anlage'],
+      ['canvasGroups', 'Gruppen-Anlage'],
+      ['canvasStacking', 'Stapel-Reihenfolge'],
+      ['canvasLinkCards', 'Verweis-Karten'],
+      ['canvasImageCards', 'Bild-Karten'],
+    ].map(([kurz, sache]) => ({
+      sprache,
+      schluessel: `help.featureAccess.${kurz}`,
+      grund: `4T-001797 (Epic 3E-000315): Die Zugangs-Angabe der ${sache} nennt den Weg über das Ansichtsmenü; seit der Bündelung führt er über die Zwischenstufe «Canvas-Fläche bearbeiten». Nur diese eine Stelle des Wertes ist eingefügt, der Rest steht unverändert. In der italienischen Fassung der Verweis- und Bild-Karten ist zugleich der erste Schritt von «Vista» auf «Visualizza» berichtigt — so heißt das Menü dort.`,
+    })),
+  ),
 ];
 
 /**

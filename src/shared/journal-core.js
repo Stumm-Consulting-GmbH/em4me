@@ -24,6 +24,9 @@ const { formatDateMs, isoWeekOf } = require('./query/query-format.js');
 // 4T-001276 (Epic 3E-000232, Befund B1): Pfad-Identität über die zentrale Auskunft.
 const { pathCompareKey } = require('./platform.js');
 const { extractFrontmatter, writeFrontmatter } = require('./markdown/frontmatter');
+// 4T-001803 (Epic 3E-000291): das gemeinsame Urteil «Öffner der obersten Ebene»
+// aus dem abhängigkeitsfreien Nachbar-Modul.
+const { fenceOeffnerOffsets } = require('./markdown/fence-level.js');
 // 4T-001413 (Epic 3E-000244): Definitions-Modell aus dem geschnittenen Modul.
 const {
   JOURNAL_GRANULARITIES,
@@ -328,10 +331,17 @@ function findPeriodForPath(journal, relPath, opts) {
 const NAV_FENCE_RE =
   /^ {0,3}(`{3,})perspective-journal-nav[^\n]*\n(?:(?! {0,3}\1[ \t]*$)[^\n]*\n)* {0,3}\1[ \t]*$/gm;
 
+// 4T-001803 (Epic 3E-000291): Ersetzt wird allein ein Zaun der **obersten
+// Ebene**. Steht die Fence innerhalb eines äußeren Code-Zauns, ist sie ein
+// zitiertes Beispiel und bleibt wörtlich; das Urteil darüber fällt für alle
+// Fence-Ersetzungen des Exports an einer Stelle.
 function replaceJournalNavFences(text, replacement) {
   const source = String(text == null ? '' : text);
+  const oberste = fenceOeffnerOffsets(source);
   NAV_FENCE_RE.lastIndex = 0;
-  return source.replace(NAV_FENCE_RE, () => String(replacement == null ? '' : replacement));
+  return source.replace(NAV_FENCE_RE, (treffer, _zaun, offset) =>
+    oberste.has(offset) ? String(replacement == null ? '' : replacement) : treffer,
+  );
 }
 
 // --- 4T-000434: Monats-Gitter der Kalender-Ansicht -----------------------------------

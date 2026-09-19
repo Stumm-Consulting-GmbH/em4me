@@ -4,7 +4,7 @@ A **canvas** is a spatial working surface inside an ordinary Markdown document: 
 
 The surface is carried by a code block with the language tag `perspective-canvas`. A document may contain any number of them, and everything else in it remains ordinary Markdown.
 
-The function belongs to the [internal extensions](extensions.md) (“Canvas view”). Switched off, the block stays an ordinary code block, the view mode disappears, and the commands for surface, card, link card, image card, shape, group and stacking order are gone. The document remains fully readable; nothing is lost.
+The function belongs to the [internal extensions](extensions.md) (“Canvas view”). Switched off, the block stays an ordinary code block, the view mode disappears, and the commands for surface, card, link card, image card, shape, group and stacking order are gone — and with them the **Edit canvas** entry in the **View** menu, which does not stay behind empty. The document remains fully readable; nothing is lost.
 
 ## How this differs from the graph view
 
@@ -50,7 +50,7 @@ The label is derived rather than stated: the first meaningful line of the first 
 
 - A **double-click** on the empty background creates a card at the click position and opens its text entry right away.
 - A **right-click** on the background → “Add card to canvas” does the same at the click position.
-- The command **“Add card to canvas”** (command palette, View menu, assignable shortcut) places it in the middle of the visible section. Outside the canvas view it reports in the status bar that cards can only be added there.
+- The command **“Add card to canvas”** (command palette, View → Edit canvas, assignable shortcut) places it in the middle of the visible section. Outside the canvas view it reports in the status bar that cards can only be added there.
 
 ### Selecting, moving, resizing
 
@@ -74,7 +74,7 @@ Text that has not changed writes nothing to the document.
 
 Instead of carrying its own text, a card can show the content of **another document** — the whole of it, or from a heading or a block onwards. The content stays where it is: the card holds no copy and cannot be changed in this place. If it does not fit into the card, the card scrolls.
 
-- **Creating** — the command **“Add link card to canvas”** (command palette, View menu) places it in the middle of the visible section, a right-click on the empty background at the click position. Both ask for the target first: `Enter` creates the card, `Escape` cancels. Without a target no card is created.
+- **Creating** — the command **“Add link card to canvas”** (command palette, View → Edit canvas) places it in the middle of the visible section, a right-click on the empty background at the click position. Both ask for the target first: `Enter` creates the card, `Escape` cancels. Without a target no card is created.
 - **Setting, changing, removing the target** — a selected card carries a **toolbar** with the field “Link target”; while typing it offers the documents of the area. That turns a text card into a link card, and “Remove link” turns it back into a text card — its own text stays in place. The same actions are in the **context menu** of the card.
 - **Opening the target** — a **double-click on the shown content** opens the linked document at the linked place, and so does “Open target” in toolbar and context menu. That stays allowed in the pure display as well, because opening changes nothing.
 - **Header line** — it names the **label** of the card, that is its own text, and otherwise the target including the anchor. A double-click on the header line edits the label like the text of any other card.
@@ -118,7 +118,7 @@ Besides cards, the surface carries **geometric shapes**. They do not carry conte
 ### Creating
 
 - A **right-click** on the empty background → “Insert shape” opens a submenu with the six kinds and places the chosen one at the click position.
-- The command **“Add shape to canvas”** (command palette, View menu, assignable shortcut) places a rectangle in the middle of the visible section.
+- The command **“Add shape to canvas”** (command palette, View → Edit canvas, assignable shortcut) places a rectangle in the middle of the visible section.
 
 Six kinds are on offer: **rectangle**, **rounded rectangle**, **ellipse**, **triangle**, **diamond** and **star**. There is no tool for freehand strokes.
 
@@ -189,7 +189,7 @@ For the selected element there are four commands:
 | Send backward | behind the next element behind it |
 | Send to back | below all remaining elements |
 
-Two ways lead there: the **context menu** of the element and **View → Canvas stacking order**. The same commands are in the command palette (default `Ctrl+K`); no shortcuts are preassigned, and they can be given in the settings.
+Two ways lead there: the **context menu** of the element and **View → Edit canvas → Canvas stacking order**. The same commands are in the command palette (default `Ctrl+K`); no shortcuts are preassigned, and they can be given in the settings.
 
 **New elements have their place:** a new group appears at the very back, a new shape and a new card at the very front.
 
@@ -281,6 +281,75 @@ Because the surface lies in an ordinary Markdown document, it turns up in every 
 | Canvas | the surface itself |
 
 The preview shows at most six cards; below it stands how many more there are. The block can be **collapsed**, its header line staying in place; that state applies to the running session and is not written into the document. Printing and PDF export follow the rendered view, without printing the two buttons of the block.
+
+## The surface in the portable export
+
+**File → More File Functions → Export → Portable Markdown…** writes a version of the document that says something even without this application. In it, every surface stands as its **Markdown equivalent**: the same content and the same web of relations, in ordinary Markdown. Without it the recipient would get a code block full of coordinate lines and nothing to do with it.
+
+| On the surface | In the export |
+| -------------- | ------------- |
+| the surface itself | a bold head line from its title — the first line of its first card — and its size, the same statement as in the header line of the block |
+| a card | its text, **unchanged**; headings inside it stay as they are, and no invented heading appears above the card |
+| a link card | its label, below it the link in the same notation as in the rest of the document text |
+| an image card | its label, below it the image as an embed |
+| a group | a bold line with its name; directly below it stand the elements that lie inside it |
+| a shape with a label | a bullet point from its kind and its label; a shape without a label is left out |
+| the connections | **one** list at the end of the surface, each line with both cards, the sign of their direction and, where present, the label |
+| a faulty attribute | a note line at the element concerned — or at the end of the surface, if it belongs to no element |
+
+The order is that of the block and thus the stacking order that the canvas list shows as well. **Nothing is shortened:** every card appears in full, unlike in the capped preview of the block. If the document holds several surfaces, each one gets its own head line and its own list of connections.
+
+This surface
+
+````markdown
+```perspective-canvas
+!gruppe g1 x=-300 y=-160 b=600 h=200 farbe=blau
+Analysis
+
+!karte k1 x=-260 y=-120 b=240 h=120
+Starting point
+
+!karte k2 x=40 y=-120 b=240 h=120
+Target picture
+
+!karte k3 x=-100 y=140 b=240 h=120 doc="Concepts/Import.md#Target picture"
+Target picture in the concept
+
+!form f1 x=220 y=140 b=120 h=120 art=stern rand=rot
+Key point
+
+!linie e1 k1 -> k2 von=rechts nach=links
+leads to
+```
+````
+
+reads like this in the portable export:
+
+```markdown
+**Starting point · 3 cards, 1 connection, 1 shape, 1 group**
+
+**Analysis**
+
+Starting point
+
+Target picture
+
+Target picture in the concept
+
+[[Concepts/Import.md#Target picture]]
+
+- Star: Key point
+
+**Connections**
+
+- Starting point → Target picture: leads to
+```
+
+**What does not travel along is the spatial arrangement.** The export renders content and relations, not a picture: what lay side by side and what lay far apart is not in it. The groups are the only thing that carries over from the arrangement, because they hold the mental structure of the surface. And the equivalent is an **output, not a second storage form** — no surface can be won back from it. The original stays untouched in your own document: the export reads the surface and does not write into it.
+
+**Printing and PDF export are not affected by this.** They still follow the rendered view and show the surface as a block, as described in the chapter above.
+
+**If the canvas view is switched off as an [internal extension](extensions.md)**, the surface stays a readable code block in the export too — the same statement this page already makes for the rendered view: the document stays readable, and nothing is lost.
 
 ## Links in the network of the area
 
@@ -470,4 +539,6 @@ depend on each other
 - **Free dragging and zooming do not exist through the keyboard.** The canvas list selects, edits, deletes and creates; the position of an element is changed by the keyboard only through the four commands of the order. Moving, resizing and panning the section stay reserved for the mouse.
 - **The list makes the surface operable, not vivid.** It enumerates what lies there and does not replace what the spatial arrangement shows.
 - **The search in the area still finds a document with a surface through its text**, because the surface stands in plain text inside it; a source of matches of its own it is not. Single cards, shapes and groups therefore do not appear as matches of their own — those are found by the filter field of the canvas list.
+- **The portable export renders the surface as text, not as a picture.** The spatial arrangement does not travel along, and no surface can be won back from the equivalent; what carries over is content, groups and the web of connections.
+- **A faulty element is not silently dropped in the export**, but written out with whatever is readable in it and marked with a note line. A shape without a label is left out, though, because nothing of it would remain without the spatial rendering.
 - A surface belongs to its document. Cards cannot be dragged from one surface to another.

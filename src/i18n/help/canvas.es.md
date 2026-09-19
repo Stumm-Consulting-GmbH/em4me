@@ -4,7 +4,7 @@ Un **lienzo** es una superficie de trabajo espacial dentro de un documento Markd
 
 La superficie la sostiene un bloque de código con la etiqueta de lenguaje `perspective-canvas`. Un documento puede contener tantos como se quiera, y todo lo demás en él sigue siendo Markdown corriente.
 
-La función pertenece a las [extensiones internas](extensions.md) («Vista de lienzo»). Desactivada, el bloque sigue siendo un bloque de código corriente, el modo de vista desaparece y los comandos de superficie, tarjeta, tarjeta de enlace, tarjeta de imagen, forma, grupo y orden de apilamiento se van. El documento permanece legible sin cambios; no se pierde nada.
+La función pertenece a las [extensiones internas](extensions.md) («Vista de lienzo»). Desactivada, el bloque sigue siendo un bloque de código corriente, el modo de vista desaparece y los comandos de superficie, tarjeta, tarjeta de enlace, tarjeta de imagen, forma, grupo y orden de apilamiento se van, y con ellos la entrada **Editar el lienzo** del menú **Ver**, que no se queda ahí vacía. El documento permanece legible sin cambios; no se pierde nada.
 
 ## Diferencia con la vista de grafo
 
@@ -50,7 +50,7 @@ El rótulo se deriva y no se declara: la primera línea útil de la primera tarj
 
 - Un **doble clic** sobre el fondo libre crea una tarjeta en el punto del clic y abre enseguida su entrada de texto.
 - Un **clic derecho** sobre el fondo → «Añadir tarjeta al lienzo» hace lo mismo en el punto del clic.
-- El comando **«Añadir tarjeta al lienzo»** (paleta de comandos, menú Ver, atajo asignable) la coloca en el centro de la porción visible. Fuera de la vista de lienzo avisa en la barra de estado de que las tarjetas solo nacen allí.
+- El comando **«Añadir tarjeta al lienzo»** (paleta de comandos, Ver → Editar el lienzo, atajo asignable) la coloca en el centro de la porción visible. Fuera de la vista de lienzo avisa en la barra de estado de que las tarjetas solo nacen allí.
 
 ### Seleccionar, mover, cambiar el tamaño
 
@@ -74,7 +74,7 @@ Un texto sin cambios no escribe nada en el documento.
 
 En lugar de llevar texto propio, una tarjeta muestra a elección el contenido de **otro documento**: entero, o desde un título o desde un bloque. El contenido permanece donde está: la tarjeta no guarda ninguna copia y no se modifica en este lugar. Si no cabe en la tarjeta, esta se desplaza.
 
-- **Crear** — el comando **«Añadir tarjeta de enlace al lienzo»** (paleta de comandos, menú Ver) la coloca en el centro de la parte visible; el clic derecho sobre el fondo libre, en el punto del clic. Ambos preguntan primero por el destino: `Intro` crea la tarjeta, `Esc` cancela. Sin destino no se crea ninguna tarjeta.
+- **Crear** — el comando **«Añadir tarjeta de enlace al lienzo»** (paleta de comandos, Ver → Editar el lienzo) la coloca en el centro de la parte visible; el clic derecho sobre el fondo libre, en el punto del clic. Ambos preguntan primero por el destino: `Intro` crea la tarjeta, `Esc` cancela. Sin destino no se crea ninguna tarjeta.
 - **Definir, cambiar y quitar el destino** — una tarjeta seleccionada lleva una **barra** con el campo «Destino del enlace»; al escribir ofrece los documentos del área. Así una tarjeta de texto se convierte en tarjeta de enlace, y «Quitar enlace» la devuelve a tarjeta de texto: su texto propio se queda. Las mismas acciones están en el **menú contextual** de la tarjeta.
 - **Abrir el destino** — un **doble clic sobre el contenido mostrado** abre el documento enlazado en el lugar enlazado, igual que «Abrir destino» en la barra y en el menú contextual. Esto sigue permitido en la vista pura, porque abrir no cambia nada.
 - **Línea de encabezado** — indica la **etiqueta** de la tarjeta, es decir, su texto propio, y si no, el destino con su ancla. Un doble clic sobre la línea de encabezado edita la etiqueta como el texto de cualquier otra tarjeta.
@@ -118,7 +118,7 @@ Además de las tarjetas, la superficie admite **formas geométricas**. No llevan
 ### Crear
 
 - Un **clic derecho** en el fondo libre → «Insertar forma» abre un submenú con las seis clases y coloca la elegida en el punto del clic.
-- El comando **«Añadir forma al lienzo»** (paleta de comandos, menú Ver, atajo asignable) coloca un rectángulo en el centro de la porción visible.
+- El comando **«Añadir forma al lienzo»** (paleta de comandos, Ver → Editar el lienzo, atajo asignable) coloca un rectángulo en el centro de la porción visible.
 
 Hay seis clases a elegir: **rectángulo**, **rectángulo redondeado**, **elipse**, **triángulo**, **rombo** y **estrella**. No hay herramienta para trazos a mano alzada.
 
@@ -189,7 +189,7 @@ Para el elemento seleccionado hay cuatro comandos:
 | Enviar atrás | detrás del siguiente elemento que tiene por detrás |
 | Enviar al fondo | por debajo de todos los demás elementos |
 
-Dos caminos llevan allí: el **menú contextual** del elemento y **Ver → Orden de apilamiento del lienzo**. Los mismos comandos están en la paleta de comandos (`Ctrl+K` predeterminado); no hay atajos preasignados y pueden asignarse en los ajustes.
+Dos caminos llevan allí: el **menú contextual** del elemento y **Ver → Editar el lienzo → Orden de apilamiento del lienzo**. Los mismos comandos están en la paleta de comandos (`Ctrl+K` predeterminado); no hay atajos preasignados y pueden asignarse en los ajustes.
 
 **Los elementos nuevos tienen su sitio:** un grupo nuevo nace al fondo del todo, y una forma nueva o una tarjeta nueva, al frente del todo.
 
@@ -281,6 +281,75 @@ Como la superficie se encuentra en un documento Markdown corriente, aparece en t
 | Lienzo | la superficie misma |
 
 La vista previa muestra como máximo seis tarjetas; debajo consta cuántas más hay. El bloque se puede **plegar**, quedándose su línea de encabezado; ese estado vale para la sesión en curso y no se escribe en el documento. La impresión y la exportación a PDF siguen la vista renderizada, sin imprimir los dos botones del bloque.
+
+## La superficie en la exportación portable
+
+**Archivo → Más funciones de archivo → Exportar → Markdown portable…** escribe una versión del documento que dice algo incluso sin esta aplicación. En ella cada superficie figura como su **equivalente en Markdown**: el mismo contenido y la misma red de relaciones, en Markdown corriente. Sin ella el destinatario recibiría un bloque de código lleno de líneas de coordenadas con el que no podría hacer nada.
+
+| En la superficie | En la exportación |
+| ---------------- | ----------------- |
+| la superficie misma | una línea de encabezado en negrita con su título — la primera línea de su primera tarjeta — y su volumen, la misma indicación que en la línea de encabezado del bloque |
+| una tarjeta | su texto, **sin cambios**; los títulos que contiene se mantienen tal cual, y sobre la tarjeta no aparece ningún título inventado |
+| una tarjeta de enlace | su rótulo y, debajo, el enlace en la misma escritura que en el resto del texto del documento |
+| una tarjeta de imagen | su rótulo y, debajo, la imagen como incrustación |
+| un grupo | una línea en negrita con su nombre; justo debajo figuran los elementos que están dentro de él |
+| una forma con rótulo | una viñeta con su clase y su rótulo; una forma sin rótulo se omite |
+| las conexiones | **una** lista al final de la superficie, cada línea con las dos tarjetas, el signo de su dirección y, si lo hay, el rótulo |
+| una indicación errónea | una línea de aviso junto al elemento afectado — o al final de la superficie, si no corresponde a ningún elemento |
+
+El orden es el del bloque y, por tanto, el orden de apilamiento que muestra también la lista del lienzo. **No se acorta nada:** todas las tarjetas aparecen completas, a diferencia de la vista previa limitada del bloque. Si el documento contiene varias superficies, cada una recibe su propio encabezado y su propia lista de conexiones.
+
+Esta superficie
+
+````markdown
+```perspective-canvas
+!gruppe g1 x=-300 y=-160 b=600 h=200 farbe=blau
+Análisis
+
+!karte k1 x=-260 y=-120 b=240 h=120
+Punto de partida
+
+!karte k2 x=40 y=-120 b=240 h=120
+Objetivo
+
+!karte k3 x=-100 y=140 b=240 h=120 doc="Conceptos/Import.md#Objetivo"
+El objetivo en el concepto
+
+!form f1 x=220 y=140 b=120 h=120 art=stern rand=rot
+Idea central
+
+!linie e1 k1 -> k2 von=rechts nach=links
+da como resultado
+```
+````
+
+queda así en la exportación portable:
+
+```markdown
+**Punto de partida · 3 tarjetas, 1 conexión, 1 forma, 1 grupo**
+
+**Análisis**
+
+Punto de partida
+
+Objetivo
+
+El objetivo en el concepto
+
+[[Conceptos/Import.md#Objetivo]]
+
+- Estrella: Idea central
+
+**Conexiones**
+
+- Punto de partida → Objetivo: da como resultado
+```
+
+**Lo que no viaja es la disposición espacial.** La exportación reproduce el contenido y la red, no una imagen: lo que estaba al lado y lo que estaba lejos no consta en ella. Los grupos son lo único que pasa de la disposición, porque llevan la estructura mental de la superficie. Y el equivalente es una **salida, no una segunda forma de almacenamiento**: de él no se puede recuperar ninguna superficie. El original permanece intacto en el propio documento: la exportación lee la superficie y no escribe en ella.
+
+**La impresión y la exportación a PDF no se ven afectadas.** Siguen la vista renderizada y muestran la superficie como bloque, tal como describe el capítulo anterior.
+
+**Si la vista de lienzo está desactivada como [extensión interna](extensions.md)**, la superficie sigue siendo también en la exportación un bloque de código legible — la misma afirmación que esta página ya hace para la vista renderizada: el documento sigue siendo legible y no se pierde nada.
 
 ## Los enlaces en la red del área
 
@@ -470,4 +539,6 @@ se condicionan
 - **El arrastre libre y el zoom no existen por teclado.** La lista del lienzo selecciona, edita, elimina y crea; la posición de un elemento solo se cambia por teclado con los cuatro comandos del orden. Mover, cambiar el tamaño y desplazar la porción quedan reservados al ratón.
 - **La lista hace manejable la superficie, no gráfica.** Enumera lo que allí hay y no sustituye lo que muestra la disposición espacial.
 - **La búsqueda en el área sigue encontrando un documento con superficie por su texto**, porque la superficie está en él en texto plano; una fuente propia de coincidencias no lo es. Las tarjetas, formas y grupos por separado no aparecen, pues, como coincidencias propias: las encuentra el campo de filtro de la lista del lienzo.
+- **La exportación portable reproduce la superficie como texto, no como imagen.** La disposición espacial no viaja, y del equivalente no se puede recuperar ninguna superficie; pasan el contenido, los grupos y la red de conexiones.
+- **Un elemento erróneo no se omite en silencio en la exportación**: se escribe con lo que tiene de legible y lleva una línea de aviso. Una forma sin rótulo sí se omite, porque sin la representación espacial no quedaría nada de ella.
 - Una superficie pertenece a su documento. Las tarjetas no pueden arrastrarse de una superficie a otra.

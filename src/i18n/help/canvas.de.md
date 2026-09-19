@@ -4,7 +4,7 @@ Eine **Canvas** ist eine räumliche Arbeitsfläche in einem gewöhnlichen Markdo
 
 Getragen wird die Fläche von einem Code-Block mit dem Sprach-Tag `perspective-canvas`. Ein Dokument darf beliebig viele davon enthalten, und alles Übrige darin bleibt gewöhnliches Markdown.
 
-Die Funktion gehört zu den [internen Erweiterungen](extensions.md) („Canvas-Ansicht"). Ist sie abgeschaltet, bleibt der Block ein regulärer Code-Block, der Ansichts-Modus entfällt, und die Kommandos für Fläche, Karte, Verweis-Karte, Bild-Karte, Form, Gruppe und Reihenfolge verschwinden. Das Dokument bleibt dabei unverändert lesbar; es geht nichts verloren.
+Die Funktion gehört zu den [internen Erweiterungen](extensions.md) („Canvas-Ansicht"). Ist sie abgeschaltet, bleibt der Block ein regulärer Code-Block, der Ansichts-Modus entfällt, und die Kommandos für Fläche, Karte, Verweis-Karte, Bild-Karte, Form, Gruppe und Reihenfolge verschwinden — mit ihnen der Eintrag **Canvas-Fläche bearbeiten** im Menü **Ansicht**, der ohne sie nicht leer stehen bleibt. Das Dokument bleibt dabei unverändert lesbar; es geht nichts verloren.
 
 ## Abgrenzung zur Graphenansicht
 
@@ -50,7 +50,7 @@ Die Beschriftung wird abgeleitet und nicht angegeben: die erste sinnvolle Zeile 
 
 - **Doppelklick** auf den freien Hintergrund legt eine Karte an der Klick-Stelle an und öffnet sofort ihre Text-Eingabe.
 - **Rechtsklick** auf den Hintergrund → „Karte auf der Fläche anlegen" tut dasselbe an der Klick-Stelle.
-- Das Kommando **„Karte auf der Fläche anlegen"** (Kommando-Palette, Ansicht-Menü, belegbares Kürzel) legt sie in der Mitte des sichtbaren Ausschnitts an. Außerhalb der Canvas-Ansicht meldet es in der Statusleiste, dass Karten nur dort entstehen.
+- Das Kommando **„Karte auf der Fläche anlegen"** (Kommando-Palette, Ansicht → Canvas-Fläche bearbeiten, belegbares Kürzel) legt sie in der Mitte des sichtbaren Ausschnitts an. Außerhalb der Canvas-Ansicht meldet es in der Statusleiste, dass Karten nur dort entstehen.
 
 ### Auswählen, verschieben, Größe ändern
 
@@ -74,7 +74,7 @@ Ein unveränderter Text schreibt nichts in das Dokument.
 
 Statt eigenen Text zu tragen, zeigt eine Karte wahlweise den Inhalt eines **anderen Dokuments** an — ganz, ab einer Überschrift oder ab einem Block. Der Inhalt bleibt dabei, wo er steht: Die Karte hält keine Kopie und lässt sich an dieser Stelle nicht ändern. Passt er nicht in die Karte, wird in ihr gescrollt.
 
-- **Anlegen** — das Kommando **„Verweis-Karte auf der Fläche anlegen"** (Kommando-Palette, Ansicht-Menü) legt sie in der Mitte des sichtbaren Ausschnitts an, der Rechtsklick auf den freien Hintergrund an der Klick-Stelle. Beide fragen zuerst nach dem Ziel: `Enter` legt die Karte an, `Escape` bricht ab. Ohne Ziel entsteht keine Karte.
+- **Anlegen** — das Kommando **„Verweis-Karte auf der Fläche anlegen"** (Kommando-Palette, Ansicht → Canvas-Fläche bearbeiten) legt sie in der Mitte des sichtbaren Ausschnitts an, der Rechtsklick auf den freien Hintergrund an der Klick-Stelle. Beide fragen zuerst nach dem Ziel: `Enter` legt die Karte an, `Escape` bricht ab. Ohne Ziel entsteht keine Karte.
 - **Ziel setzen, wechseln, entfernen** — eine gewählte Karte trägt eine **Leiste** mit dem Feld „Verweis-Ziel"; beim Tippen bietet es die Dokumente des Bereichs an. So wird eine Text-Karte zur Verweis-Karte und über „Verweis entfernen" wieder zur Text-Karte — ihr eigener Text bleibt dabei stehen. Dieselben Handlungen liegen im **Kontextmenü** der Karte.
 - **Ziel öffnen** — ein **Doppelklick auf den angezeigten Inhalt** öffnet das verwiesene Dokument an der verwiesenen Stelle, ebenso „Ziel öffnen" in Leiste und Kontextmenü. Das bleibt auch in der reinen Anzeige erlaubt, weil Öffnen nichts ändert.
 - **Kopfzeile** — sie nennt die **Beschriftung** der Karte, also ihren eigenen Text, und sonst das Ziel samt Anker. Ein Doppelklick auf die Kopfzeile bearbeitet die Beschriftung wie den Text jeder anderen Karte.
@@ -118,7 +118,7 @@ Neben Karten trägt die Fläche **geometrische Formen**. Sie tragen keinen Inhal
 ### Anlegen
 
 - **Rechtsklick** auf den freien Hintergrund → „Form einfügen" öffnet ein Untermenü mit den sechs Arten und setzt die gewählte an der Klick-Stelle ab.
-- Das Kommando **„Form auf der Fläche anlegen"** (Kommando-Palette, Ansicht-Menü, belegbares Kürzel) legt ein Rechteck in der Mitte des sichtbaren Ausschnitts an.
+- Das Kommando **„Form auf der Fläche anlegen"** (Kommando-Palette, Ansicht → Canvas-Fläche bearbeiten, belegbares Kürzel) legt ein Rechteck in der Mitte des sichtbaren Ausschnitts an.
 
 Zur Wahl stehen sechs Arten: **Rechteck**, **abgerundetes Rechteck**, **Oval**, **Dreieck**, **Raute** und **Stern**. Ein Werkzeug für freie Striche gibt es nicht.
 
@@ -189,7 +189,7 @@ Für das gewählte Element gibt es vier Befehle:
 | Eine Stufe zurück | hinter das nächste Element dahinter |
 | Ganz nach hinten | unter alle übrigen Elemente |
 
-Zwei Wege führen hin: das **Kontextmenü** des Elements und **Ansicht → Reihenfolge auf der Fläche**. Dieselben Befehle stehen in der Kommando-Palette (Standard `Strg+K`); Kürzel sind nicht vorbelegt und lassen sich in den Einstellungen vergeben.
+Zwei Wege führen hin: das **Kontextmenü** des Elements und **Ansicht → Canvas-Fläche bearbeiten → Reihenfolge auf der Fläche**. Dieselben Befehle stehen in der Kommando-Palette (Standard `Strg+K`); Kürzel sind nicht vorbelegt und lassen sich in den Einstellungen vergeben.
 
 **Neue Elemente haben ihren Platz:** Eine neue Gruppe entsteht ganz hinten, eine neue Form und eine neue Karte ganz vorn.
 
@@ -281,6 +281,75 @@ Weil die Fläche in einem gewöhnlichen Markdown-Dokument liegt, begegnet sie in
 | Canvas | die Fläche selbst |
 
 Die Vorschau zeigt höchstens sechs Karten; darunter steht, wie viele weitere es gibt. Der Block lässt sich **zuklappen**, seine Kopfzeile bleibt dabei stehen; dieser Zustand gilt für die laufende Sitzung und wird nicht in das Dokument geschrieben. Drucken und PDF-Export folgen der gerenderten Ansicht, ohne die beiden Knöpfe des Blocks mitzudrucken.
+
+## Die Fläche im portablen Export
+
+**Datei → Weitere Datei-Funktionen → Exportieren → Portables Markdown…** schreibt eine Fassung des Dokuments, die auch ohne diese Anwendung etwas hergibt. An der Stelle jeder Fläche steht darin ihre **Markdown-Entsprechung**: derselbe Inhalt und dasselbe Geflecht, in gewöhnlichem Markdown. Ohne sie bekäme der Empfänger einen Code-Block voller Koordinaten-Zeilen, mit dem er nichts anfangen kann.
+
+| Auf der Fläche | Im Export |
+| -------------- | --------- |
+| die Fläche selbst | eine fette Kopf-Zeile aus ihrem Titel — der ersten Zeile ihrer ersten Karte — und ihrem Umfang, dieselbe Angabe wie in der Kopfzeile des Blocks |
+| eine Karte | ihr Text, **unverändert**; Überschriften darin bleiben stehen, und über der Karte entsteht keine erfundene Überschrift |
+| eine Verweis-Karte | ihre Beschriftung, darunter der Verweis in derselben Schreibweise wie im übrigen Text des Dokuments |
+| eine Bild-Karte | ihre Beschriftung, darunter das Bild als Einbettung |
+| eine Gruppe | eine fette Zeile mit ihrem Namen; unmittelbar darunter stehen die Elemente, die in ihr liegen |
+| eine Form mit Beschriftung | ein Aufzählungs-Punkt aus ihrer Art und ihrer Beschriftung; eine Form ohne Beschriftung entfällt |
+| die Verbindungen | **eine** Liste am Ende der Fläche, je Zeile die beiden Karten mit dem Zeichen ihrer Richtung und, sofern vorhanden, der Beschriftung |
+| eine fehlerhafte Angabe | eine Hinweis-Zeile beim betroffenen Element — oder am Ende der Fläche, wenn sie keinem Element zuzuordnen ist |
+
+Die Reihenfolge ist die des Blocks und damit die Stapel-Reihenfolge, die auch die Karten-Liste zeigt. **Gekürzt wird nichts:** Alle Karten erscheinen vollständig, anders als in der gedeckelten Vorschau des Blocks. Trägt das Dokument mehrere Flächen, bekommt jede ihren eigenen Kopf und ihre eigene Verbindungs-Liste.
+
+Diese Fläche
+
+````markdown
+```perspective-canvas
+!gruppe g1 x=-300 y=-160 b=600 h=200 farbe=blau
+Analyse
+
+!karte k1 x=-260 y=-120 b=240 h=120
+Ausgangslage
+
+!karte k2 x=40 y=-120 b=240 h=120
+Zielbild
+
+!karte k3 x=-100 y=140 b=240 h=120 doc="Konzepte/Import.md#Zielbild"
+Zielbild im Konzept
+
+!form f1 x=220 y=140 b=120 h=120 art=stern rand=rot
+Kernaussage
+
+!linie e1 k1 -> k2 von=rechts nach=links
+ergibt
+```
+````
+
+steht im portablen Export so da:
+
+```markdown
+**Ausgangslage · 3 Karten, 1 Verbindung, 1 Form, 1 Gruppe**
+
+**Analyse**
+
+Ausgangslage
+
+Zielbild
+
+Zielbild im Konzept
+
+[[Konzepte/Import.md#Zielbild]]
+
+- Stern: Kernaussage
+
+**Verbindungen**
+
+- Ausgangslage → Zielbild: ergibt
+```
+
+**Was nicht mitreist, ist die räumliche Anordnung.** Der Export gibt Inhalt und Geflecht wieder, kein Bild: Was nebeneinanderlag und was weit auseinander, steht nicht darin. Die Gruppen sind das Einzige, was von der Anordnung hinübergeht, weil sie die gedankliche Gliederung der Fläche tragen. Und die Entsprechung ist eine **Ausgabe, keine zweite Speicherform** — aus ihr lässt sich keine Fläche zurückgewinnen. Das Original bleibt unberührt im eigenen Dokument: Der Export liest die Fläche und schreibt nicht in sie hinein.
+
+**Drucken und PDF-Export sind davon nicht berührt.** Sie folgen weiter der gerenderten Ansicht und zeigen die Fläche als Block, wie im Kapitel darüber beschrieben.
+
+**Ist die Canvas-Ansicht als [interne Erweiterung](extensions.md) abgeschaltet**, bleibt die Fläche auch im Export ein lesbarer Code-Block — dieselbe Aussage, die diese Seite für die gerenderte Ansicht bereits trifft: Das Dokument bleibt lesbar, und es geht nichts verloren.
 
 ## Verweise im Netz des Bereichs
 
@@ -470,4 +539,6 @@ bedingen einander
 - **Freies Ziehen und Zoomen gibt es über die Tastatur nicht.** Die Karten-Liste wählt aus, bearbeitet, löscht und legt an; die Lage eines Elements ändert die Tastatur allein über die vier Befehle der Reihenfolge. Verschieben, Größe ändern und den Ausschnitt bewegen bleiben der Maus vorbehalten.
 - **Die Liste macht die Fläche bedienbar, nicht anschaulich.** Sie zählt auf, was daliegt, und ersetzt dabei nicht, was die räumliche Anordnung zeigt.
 - **Die Suche im Bereich findet ein Dokument mit Fläche weiterhin über seinen Text**, weil die Fläche im Klartext darin steht; ein eigener Treffer-Lieferant ist sie nicht. Einzelne Karten, Formen und Gruppen erscheinen deshalb nicht als eigene Treffer — sie findet das Filter-Feld der Karten-Liste.
+- **Der portable Export gibt die Fläche als Text wieder, nicht als Bild.** Die räumliche Anordnung reist nicht mit, und aus der Entsprechung lässt sich keine Fläche zurückgewinnen; hinüber gehen Inhalt, Gruppen und das Geflecht der Verbindungen.
+- **Ein fehlerhaftes Element wird im Export nicht stillschweigend weggelassen**, sondern mit dem von ihm Lesbaren ausgegeben und mit einer Hinweis-Zeile versehen. Eine Form ohne Beschriftung entfällt dagegen, weil von ihr ohne die räumliche Darstellung nichts bliebe.
 - Eine Fläche gehört zu ihrem Dokument. Karten lassen sich nicht von einer Fläche auf eine andere ziehen.

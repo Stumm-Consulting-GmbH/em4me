@@ -14,6 +14,134 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.138.0.2980] - 2026-09-19 — Canvas Stufe 5: die Fläche im portablen Export, die Flächen-Befehle gebündelt
+
+Zug 3E-000313,
+Stufe 5 des Canvas-Vorhabens, aus zwei Mitglieds-Epics. Mitglied 1:
+3E-000291,
+die fünfte Ausbaustufe der Fläche — der portable Export gibt eine Fläche nicht
+mehr als Block roher Koordinaten-Zeilen aus, sondern als lesbaren,
+strukturierten Markdown-Text, dazu Handbuch, Funktions-Katalog und
+Demo-Beispiel. Mitglied 2:
+3E-000315,
+die Bündelung der Flächen-Befehle des Ansichts-Menüs in einem Untermenü, samt
+Nachzug von Funktions-Katalog und Handbuch. **Das Speicherformat ist in beiden
+Mitgliedern nicht berührt:** Der Export liest die Fläche und schreibt sie
+nicht, und das zweite Mitglied fasst keine Zeile an, die ein Dokument liest
+oder schreibt. Die Abschluss-Anteile der beiden Epics liegen in
+4T-001779
+und
+4T-001798.
+
+### Neu
+
+- **Die Fläche im portablen Export: lesbarer Text statt Koordinaten**
+  (`4T-001777`). Wer ein Dokument mit einer Canvas-Fläche über **Datei → Weitere
+  Datei-Funktionen → Exportieren → Portables Markdown…** ausgibt, bekommt an der
+  Stelle der Fläche keinen Block roher Koordinaten-Zeilen mehr, sondern eine
+  **strukturierte Markdown-Entsprechung**. Jede Fläche beginnt mit einer fetten
+  Kopf-Zeile aus ihrem Titel und ihrem Umfang; darunter stehen die Elemente in
+  genau der Reihenfolge, in der sie auf der Fläche übereinanderliegen. Eine
+  Karte erscheint mit ihrem **unveränderten** Text — Überschriften darin bleiben,
+  wie sie sind, und der Export setzt **keine** eigene Überschrift über eine
+  Karte. Eine **Verweis-Karte** erscheint mit ihrem Verweis, eine **Bild-Karte**
+  mit ihrem Bild, und zwar in genau der Schreibweise, in der derselbe Verweis
+  beziehungsweise dasselbe Bild im übrigen Text derselben Datei erschienen wäre.
+  Eine **Gruppe** wird zur Zwischen-Überschrift, und die Elemente, die in ihr
+  liegen, stehen darunter; eine **Form mit Beschriftung** wird ein
+  Aufzählungs-Punkt mit ihrer Art und ihrer Beschriftung, eine Form ohne
+  Beschriftung entfällt. Am Ende jeder Fläche steht eine **Liste ihrer
+  Verbindungen**, jede genau einmal, mit beiden Karten, der Richtung und ihrer
+  Beschriftung. **Nichts wird gekürzt** — alle Karten erscheinen vollständig, es
+  gibt keine Obergrenze —, und auch ein **defektes** Element geht nicht
+  verloren: Es steht mit dem da, was von ihm lesbar ist, und eine Hinweis-Zeile
+  nennt den Befund. Trägt ein Dokument mehrere Flächen, bekommt jede ihren
+  eigenen Kopf, in Dokument-Reihenfolge. **Das Dokument in der Anwendung bleibt
+  unverändert**, und ist die Canvas-Funktion abgeschaltet, bleibt die Fläche im
+  Export ein lesbarer Code-Block.
+- **Handbuch-Kapitel, Funktions-Katalog und Demo-Beispiel** (`4T-001778`). Die
+  Handbuch-Seite «Canvas-Fläche» hat in allen fünf Sprachen das Kapitel «Die
+  Fläche im portablen Export» bekommen, mit dem Menü-Weg, einer Tafel «Auf der
+  Fläche → Im Export» über alle Element-Arten und einem Beispiel der erzeugten
+  Ausgabe. Die mitgelieferte Demo-Station «12 Canvas» führt an ihrer
+  Beispiel-Fläche vor, was beim Export aus ihr wird.
+
+### Geändert
+
+- **Die Grenzen der Fläche sind im Handbuch neu gefasst** (`4T-001778`). Das
+  Kapitel «Grenzen» der Seite «Canvas-Fläche» nennt jetzt ausdrücklich, was der
+  Export **nicht** mitnimmt: Die **räumliche Anordnung reist nicht mit** — der
+  Export gibt Inhalt und Geflecht wieder, kein Bild —, und aus der Entsprechung
+  lässt sich **keine Fläche zurückgewinnen**; der Weg ist einseitig.
+  **Drucken und PDF-Export bleiben unberührt** und zeigen die Fläche weiter so,
+  wie sie auf dem Bildschirm steht. Dazu steht dort, wie mit fehlerhaften
+  Angaben in einer Fläche umgegangen wird.
+- **Zwei Beschreibungen der Funktions-Übersicht nennen die Fläche**
+  (`4T-001778`). Der Eintrag zum portablen Export zählt Konstrukt für Konstrukt
+  auf, was der Export umwandelt, und ließ die Fläche als Einziges aus; der
+  Eintrag zur Canvas-Fläche nennt die Orte, an denen die Fläche außerhalb der
+  Canvas-Ansicht erscheint, und der Export war der zweite davon. Beide Texte
+  sind in allen fünf Sprachen um einen Satz erweitert.
+- **Die Befehle der Canvas-Fläche stehen im Menü «Ansicht» gebündelt**
+  (`4T-001796`, `4T-001797`). Das Menü **Ansicht** hat mit jeder Ausbaustufe der
+  Fläche eine Zeile mehr bekommen — am Ende sechs Anlege-Befehle und ein
+  Untermenü für die Reihenfolge, zusammen sieben Zeilen, die nur in der
+  Canvas-Ansicht etwas bedeuten und in den übrigen fünf Ansichten gedämpft
+  danebenstanden. Sie stehen jetzt gebündelt unter **einem** Eintrag
+  **«Canvas-Fläche bearbeiten»**, der ein Untermenü mit genau diesen sieben
+  Einträgen öffnet: die sechs Anlege-Befehle in unveränderter Reihenfolge und
+  darunter, durch einen Trenner abgesetzt, das bestehende Untermenü
+  «Reihenfolge auf der Fläche» mit seinen vier Befehlen. **Der Ansichts-Modus
+  «Canvas» bleibt, wo er ist** — bei den übrigen fünf Modi und mit `Strg+6` wie
+  bisher —, weil die Modi eine geschlossene Auswahl sind, bei der genau eine
+  gilt. Ebenso bleibt die **Karten-Liste** unter «Ansicht → Sidebar → Panels».
+  An den umgezogenen Einträgen selbst ändert sich **nichts**: Beschriftung,
+  Tastenkürzel, Wirkung und die Bedingung, unter der ein Eintrag wählbar ist,
+  sind dieselben; Kontextmenü der Fläche und Kommando-Palette sind unberührt.
+  Ist die Canvas-Funktion in den Einstellungen abgeschaltet, **fehlt der
+  Eintrag ganz**, statt ein leeres Untermenü anzubieten.
+- **Funktions-Katalog und Handbuch nennen den neuen Menü-Weg** (`4T-001797`).
+  Die Zugangs-Angaben der Funktions-Übersicht zu Formen, Gruppen, Reihenfolge,
+  Verweis-Karten und Bild-Karten führen den Weg jetzt über die Zwischenstufe,
+  und die Handbuch-Seite «Canvas-Fläche» tut dasselbe an allen Stellen, die
+  einen Menü-Weg nennen; ihr Absatz zum abgeschalteten Zustand sagt zusätzlich,
+  dass der Untermenü-Eintrag dann nicht leer stehen bleibt. Nachgezogen ist das
+  in allen fünf Sprachfassungen. Nebenher berichtigt: In der italienischen
+  Fassung nannten zwei Zugangs-Angaben das Ansichts-Menü unter einem Namen, den
+  es dort nicht trägt.
+
+### Behoben
+
+- **Zitierte Beispiele bleiben im portablen Export wörtlich stehen**
+  (`4T-001803`). Wer in einem Dokument zeigt, wie ein Block im Quelltext
+  aussieht, und ihn dazu in einen äußeren Code-Block setzt, bekam ihn bisher im
+  portablen Export trotzdem umgewandelt: Die Fence-Erkennung suchte zeilenweise
+  nach dem Namen des Konstrukts und kannte den umschließenden Zaun nicht.
+  Betroffen waren **alle** Block-Arten, die der Export umwandelt — Tabellen,
+  Datentabellen, Ereignis-Listen, Datensatz-Blöcke, Journal-Navigation,
+  Journal-Zeitleiste und neu die Canvas-Fläche —, und damit ist es ein
+  Altfehler, den die neue Fläche geerbt hat. Umgewandelt
+  wird jetzt allein ein Block der **obersten Ebene**; alles innerhalb eines
+  äußeren Code-Zauns ist zitierter Text und bleibt unangetastet. Aufgefallen an
+  der mitgelieferten Demo-Station «12 Canvas», die ihren eigenen Quelltext
+  zeigt und im Export an dieser Stelle die Export-Entsprechung stehen hatte.
+
+### i18n
+
+- Alle neuen Texte der fünften Stufe liegen in **allen fünf Sprachfassungen**
+  vor (`4T-001777`, `4T-001778`): neun neue Schlüssel je Sprache für die
+  Beschriftungen, die der Export selbst beisteuert — Umfang-Angabe der
+  Kopf-Zeile, Überschrift der Verbindungs-Liste, die Wörter der Richtungen und
+  die Hinweis-Zeile eines Befunds —, dazu die beiden erweiterten Beschreibungen
+  der Funktions-Übersicht. Die Art einer Form, das Ersatzwort einer Gruppe und
+  das einer Karte ohne Beschriftung kommen aus den **vorhandenen** Schlüsseln
+  der Karten-Liste und der Formen-Leiste; ein zweiter Satz eigener Wörter dafür
+  wäre eine zweite Pflege-Stelle gewesen.
+- Das Untermenü des Ansichts-Menüs trägt **einen** neuen Schlüssel je Sprache
+  (`4T-001796`), die Beschriftung «Canvas-Fläche bearbeiten» und ihre vier
+  Entsprechungen; die fünf Zugangs-Angaben des Funktions-Katalogs sind in allen
+  fünf Sprachfassungen um die Zwischenstufe erweitert (`4T-001797`).
+
 ## [1.137.0.2953] - 2026-09-18 — Stufe 1 der Datenbank: Tabellen, Datensätze und der Bereich als Datenbank
 
 Zug 3E-000277,

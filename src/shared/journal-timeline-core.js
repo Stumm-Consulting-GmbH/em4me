@@ -13,6 +13,10 @@
 // markdown.js und der Renderer laden dasselbe Modul.
 'use strict';
 
+// 4T-001803 (Epic 3E-000291): das gemeinsame Urteil «Öffner der obersten Ebene»
+// aus dem abhängigkeitsfreien Nachbar-Modul.
+const { fenceOeffnerOffsets } = require('./markdown/fence-level.js');
+
 // Die vier Modi des Timeline-Blocks, kanonisch in der Schreibweise des
 // uebernommenen Bestands (Konzept-Entscheid E2). 'calendar' meint das
 // Jahres-Raster aus zwoelf Monatsgittern; weil dieser geerbte Name
@@ -74,10 +78,16 @@ function parseTimelineFence(body) {
 const TIMELINE_FENCE_RE =
   /^ {0,3}(`{3,})perspective-journal-timeline[^\n]*\n((?:(?! {0,3}\1[ \t]*$)[^\n]*\n)*) {0,3}\1[ \t]*$/gm;
 
+// 4T-001803 (Epic 3E-000291): Ersetzt wird allein ein Zaun der **obersten
+// Ebene**. Steht die Fence innerhalb eines äußeren Code-Zauns, ist sie ein
+// zitiertes Beispiel und bleibt wörtlich; das Urteil darüber fällt für alle
+// Fence-Ersetzungen des Exports an einer Stelle.
 function replaceJournalTimelineFences(text, build) {
   const source = String(text == null ? '' : text);
+  const oberste = fenceOeffnerOffsets(source);
   TIMELINE_FENCE_RE.lastIndex = 0;
-  return source.replace(TIMELINE_FENCE_RE, (ganzer, _zaun, body) => {
+  return source.replace(TIMELINE_FENCE_RE, (ganzer, _zaun, body, offset) => {
+    if (!oberste.has(offset)) return ganzer;
     const ersatz = build(String(body == null ? '' : body));
     return ersatz == null ? ganzer : String(ersatz);
   });

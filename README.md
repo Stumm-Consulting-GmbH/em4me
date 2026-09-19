@@ -30,7 +30,11 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   file or just one heading or block — or an image from your area, and such a
   reference counts in your network of links like any other. A list beside the
   surface names everything on it, so the surface can be worked entirely from
-  the keyboard — create, label, connect, delete — and searched within. Unlike
+  the keyboard — create, label, connect, delete — and searched within. Hand the
+  document on as portable Markdown and the surface comes along as readable
+  text: every card with its own wording, groups and labelled shapes in the
+  order they lie in, and a list of the connections; only the placement stays
+  behind. Unlike
   the graph it computes nothing, it keeps what you laid out, and because it
   lives as plain text inside the document, the cards stay readable anywhere.
 - **Tables that calculate and query** — data tables with typed columns

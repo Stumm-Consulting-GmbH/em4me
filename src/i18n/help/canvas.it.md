@@ -4,7 +4,7 @@ Una **tela** è una superficie di lavoro spaziale dentro un normale documento Ma
 
 La superficie è sostenuta da un blocco di codice con il tag di linguaggio `perspective-canvas`. Un documento può contenerne quanti se ne vuole, e tutto il resto al suo interno resta normale Markdown.
 
-La funzione appartiene alle [estensioni interne](extensions.md) («Vista tela»). Disattivata, il blocco resta un normale blocco di codice, la modalità di vista scompare e i comandi per superficie, scheda, scheda di collegamento, scheda immagine, forma, gruppo e ordine di sovrapposizione spariscono. Il documento resta leggibile senza modifiche; non si perde nulla.
+La funzione appartiene alle [estensioni interne](extensions.md) («Vista tela»). Disattivata, il blocco resta un normale blocco di codice, la modalità di vista scompare e i comandi per superficie, scheda, scheda di collegamento, scheda immagine, forma, gruppo e ordine di sovrapposizione spariscono, e con essi la voce **Modifica tela** nel menu **Visualizza**, che non resta lì vuota. Il documento resta leggibile senza modifiche; non si perde nulla.
 
 ## Differenza rispetto alla vista grafo
 
@@ -50,7 +50,7 @@ L'etichetta viene ricavata e non dichiarata: la prima riga utile della prima sch
 
 - Un **doppio clic** sullo sfondo libero crea una scheda nel punto del clic e apre subito la sua immissione di testo.
 - Un **clic destro** sullo sfondo → «Aggiungi scheda alla tela» fa lo stesso nel punto del clic.
-- Il comando **«Aggiungi scheda alla tela»** (palette dei comandi, menu Visualizza, scorciatoia assegnabile) la colloca al centro della porzione visibile. Fuori dalla vista tela segnala nella barra di stato che le schede nascono solo lì.
+- Il comando **«Aggiungi scheda alla tela»** (palette dei comandi, Visualizza → Modifica tela, scorciatoia assegnabile) la colloca al centro della porzione visibile. Fuori dalla vista tela segnala nella barra di stato che le schede nascono solo lì.
 
 ### Selezionare, spostare, ridimensionare
 
@@ -74,7 +74,7 @@ Un testo immutato non scrive nulla nel documento.
 
 Invece di portare testo proprio, una scheda mostra a scelta il contenuto di un **altro documento**: per intero, oppure a partire da un titolo o da un blocco. Il contenuto resta dov'è: la scheda non ne tiene alcuna copia e non si modifica in questo punto. Se non entra nella scheda, nella scheda si scorre.
 
-- **Creare** — il comando **«Aggiungi scheda di collegamento alla tela»** (tavolozza dei comandi, menu Vista) la colloca al centro della porzione visibile, il clic destro sullo sfondo libero nel punto del clic. Entrambi chiedono prima la destinazione: `Invio` crea la scheda, `Esc` annulla. Senza destinazione non nasce alcuna scheda.
+- **Creare** — il comando **«Aggiungi scheda di collegamento alla tela»** (tavolozza dei comandi, Visualizza → Modifica tela) la colloca al centro della porzione visibile, il clic destro sullo sfondo libero nel punto del clic. Entrambi chiedono prima la destinazione: `Invio` crea la scheda, `Esc` annulla. Senza destinazione non nasce alcuna scheda.
 - **Impostare, cambiare, rimuovere la destinazione** — una scheda selezionata porta una **barra** con il campo «Destinazione del collegamento»; durante la digitazione propone i documenti dell'area. Così una scheda di testo diventa una scheda di collegamento, e «Rimuovi collegamento» la riporta a scheda di testo: il suo testo proprio resta. Le stesse azioni stanno nel **menu contestuale** della scheda.
 - **Aprire la destinazione** — un **doppio clic sul contenuto mostrato** apre il documento collegato nel punto collegato, così come «Apri destinazione» nella barra e nel menu contestuale. Questo resta consentito anche nella pura vista, perché aprire non modifica nulla.
 - **Riga di intestazione** — riporta l'**etichetta** della scheda, cioè il suo testo proprio, e altrimenti la destinazione con la sua ancora. Un doppio clic sulla riga di intestazione modifica l'etichetta come il testo di ogni altra scheda.
@@ -118,7 +118,7 @@ Oltre alle schede, la superficie ospita **forme geometriche**. Non portano conte
 ### Creare
 
 - Un **clic destro** sullo sfondo libero → «Inserisci forma» apre un sottomenu con i sei tipi e posa quello scelto nel punto del clic.
-- Il comando **«Aggiungi forma alla tela»** (palette dei comandi, menu Visualizza, scorciatoia assegnabile) posa un rettangolo al centro della porzione visibile.
+- Il comando **«Aggiungi forma alla tela»** (palette dei comandi, Visualizza → Modifica tela, scorciatoia assegnabile) posa un rettangolo al centro della porzione visibile.
 
 I tipi a disposizione sono sei: **rettangolo**, **rettangolo arrotondato**, **ellisse**, **triangolo**, **rombo** e **stella**. Non esiste uno strumento per tratti a mano libera.
 
@@ -189,7 +189,7 @@ Per l'elemento selezionato ci sono quattro comandi:
 | Porta indietro | dietro all'elemento successivo che gli sta dietro |
 | Porta in fondo | sotto tutti gli altri elementi |
 
-Due vie ci portano: il **menu contestuale** dell'elemento e **Visualizza → Ordine di sovrapposizione della tela**. Gli stessi comandi si trovano nella palette dei comandi (`Ctrl+K` come predefinito); nessuna scorciatoia è preassegnata, e si possono assegnare nelle impostazioni.
+Due vie ci portano: il **menu contestuale** dell'elemento e **Visualizza → Modifica tela → Ordine di sovrapposizione della tela**. Gli stessi comandi si trovano nella palette dei comandi (`Ctrl+K` come predefinito); nessuna scorciatoia è preassegnata, e si possono assegnare nelle impostazioni.
 
 **I nuovi elementi hanno il loro posto:** un nuovo gruppo nasce in fondo del tutto, una nuova forma e una nuova scheda in primo piano.
 
@@ -281,6 +281,75 @@ Poiché la superficie si trova in un normale documento Markdown, la si incontra 
 | Tela | la superficie stessa |
 
 L'anteprima mostra al massimo sei schede; sotto è indicato quante altre ce ne sono. Il blocco si può **richiudere**, restando la sua riga di intestazione; questo stato vale per la sessione in corso e non viene scritto nel documento. Stampa ed esportazione PDF seguono la vista renderizzata, senza stampare i due pulsanti del blocco.
+
+## La superficie nell'esportazione portabile
+
+**File → Altre funzioni file → Esporta → Markdown portabile…** scrive una versione del documento che dice qualcosa anche senza questa applicazione. In essa ogni superficie compare come la sua **corrispondenza in Markdown**: lo stesso contenuto e la stessa rete di relazioni, in Markdown ordinario. Senza di essa il destinatario riceverebbe un blocco di codice pieno di righe di coordinate con cui non potrebbe fare nulla.
+
+| Sulla superficie | Nell'esportazione |
+| ---------------- | ----------------- |
+| la superficie stessa | una riga di testa in grassetto con il suo titolo — la prima riga della sua prima scheda — e la sua ampiezza, la stessa indicazione della riga di intestazione del blocco |
+| una scheda | il suo testo, **invariato**; i titoli al suo interno restano come sono, e sopra la scheda non compare alcun titolo inventato |
+| una scheda di collegamento | la sua etichetta e, sotto, il collegamento nella stessa scrittura del resto del testo del documento |
+| una scheda immagine | la sua etichetta e, sotto, l'immagine come incorporazione |
+| un gruppo | una riga in grassetto con il suo nome; subito sotto stanno gli elementi che si trovano al suo interno |
+| una forma con etichetta | un punto elenco composto dal suo tipo e dalla sua etichetta; una forma senza etichetta viene omessa |
+| i collegamenti | **un** elenco alla fine della superficie, ogni riga con le due schede, il segno della loro direzione e, se presente, l'etichetta |
+| un'indicazione errata | una riga di nota presso l'elemento interessato — oppure alla fine della superficie, se non spetta ad alcun elemento |
+
+L'ordine è quello del blocco e quindi l'ordine di sovrapposizione che mostra anche l'elenco della tela. **Nulla viene accorciato:** tutte le schede compaiono per intero, a differenza dell'anteprima limitata del blocco. Se il documento contiene più superfici, ciascuna riceve la propria riga di testa e il proprio elenco dei collegamenti.
+
+Questa superficie
+
+````markdown
+```perspective-canvas
+!gruppe g1 x=-300 y=-160 b=600 h=200 farbe=blau
+Analisi
+
+!karte k1 x=-260 y=-120 b=240 h=120
+Punto di partenza
+
+!karte k2 x=40 y=-120 b=240 h=120
+Obiettivo
+
+!karte k3 x=-100 y=140 b=240 h=120 doc="Concetti/Import.md#Obiettivo"
+L'obiettivo nel concetto
+
+!form f1 x=220 y=140 b=120 h=120 art=stern rand=rot
+Messaggio chiave
+
+!linie e1 k1 -> k2 von=rechts nach=links
+produce
+```
+````
+
+si presenta così nell'esportazione portabile:
+
+```markdown
+**Punto di partenza · 3 schede, 1 collegamento, 1 forma, 1 gruppo**
+
+**Analisi**
+
+Punto di partenza
+
+Obiettivo
+
+L'obiettivo nel concetto
+
+[[Concetti/Import.md#Obiettivo]]
+
+- Stella: Messaggio chiave
+
+**Collegamenti**
+
+- Punto di partenza → Obiettivo: produce
+```
+
+**Ciò che non viaggia è la disposizione spaziale.** L'esportazione restituisce contenuto e rete, non un'immagine: che cosa stava accanto e che cosa lontano non vi compare. I gruppi sono l'unica cosa che passa dalla disposizione, perché portano la struttura concettuale della superficie. E la corrispondenza è un'**uscita, non una seconda forma di memorizzazione**: da essa non si può recuperare alcuna superficie. L'originale resta intatto nel documento stesso: l'esportazione legge la superficie e non vi scrive.
+
+**Stampa ed esportazione PDF non ne sono toccate.** Seguono la vista renderizzata e mostrano la superficie come blocco, come descritto nel capitolo precedente.
+
+**Se la vista tela è disattivata come [estensione interna](extensions.md)**, la superficie resta anche nell'esportazione un blocco di codice leggibile — la stessa affermazione che questa pagina fa già per la vista renderizzata: il documento resta leggibile e non va perso nulla.
 
 ## I collegamenti nella rete dell'area
 
@@ -470,4 +539,6 @@ si condizionano
 - **Il trascinamento libero e lo zoom non esistono da tastiera.** L'elenco della tela seleziona, modifica, elimina e crea; la posizione di un elemento si cambia da tastiera soltanto con i quattro comandi dell'ordine. Spostare, ridimensionare e muovere la porzione restano riservati al mouse.
 - **L'elenco rende la superficie utilizzabile, non evidente.** Enumera ciò che vi si trova e non sostituisce quel che mostra la disposizione spaziale.
 - **La ricerca nell'area continua a trovare un documento con superficie attraverso il suo testo**, perché la superficie vi sta in chiaro; una fonte propria di occorrenze non lo è. Schede, forme e gruppi presi singolarmente non compaiono quindi come occorrenze proprie: li trova il campo di filtro dell'elenco della tela.
+- **L'esportazione portabile restituisce la superficie come testo, non come immagine.** La disposizione spaziale non viaggia e dalla corrispondenza non si può recuperare alcuna superficie; passano il contenuto, i gruppi e la rete dei collegamenti.
+- **Un elemento errato non viene omesso in silenzio nell'esportazione**: viene scritto con ciò che ha di leggibile e accompagnato da una riga di nota. Una forma senza etichetta viene invece omessa, perché senza la rappresentazione spaziale non ne resterebbe nulla.
 - Una superficie appartiene al suo documento. Le schede non si possono trascinare da una superficie a un'altra.
