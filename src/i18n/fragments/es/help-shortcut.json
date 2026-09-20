@@ -165,5 +165,7 @@
   "help.shortcut.importLocale": "Cargar un archivo de idioma traducido como idioma de interfaz propio",
   "help.shortcut.removeLocale": "Eliminar de la aplicación un idioma de interfaz propio",
   "help.shortcut.updateLocale": "Guardar el archivo de idioma propio al estado de la versión en ejecución, con las entradas que faltan en inglés",
-  "help.group.database": "Base de datos"
+  "help.group.database": "Base de datos",
+  "help.shortcut.exportJsonCanvas": "Guardar el lienzo seleccionado en la vista de lienzo como archivo JSON Canvas",
+  "help.shortcut.importJsonCanvas": "Leer uno o varios archivos JSON Canvas; cada uno crea a su lado un documento con el lienzo"
 }

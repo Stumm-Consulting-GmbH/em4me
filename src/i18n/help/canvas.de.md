@@ -351,6 +351,63 @@ Zielbild im Konzept
 
 **Ist die Canvas-Ansicht als [interne Erweiterung](extensions.md) abgeschaltet**, bleibt die Fläche auch im Export ein lesbarer Code-Block — dieselbe Aussage, die diese Seite für die gerenderte Ansicht bereits trifft: Das Dokument bleibt lesbar, und es geht nichts verloren.
 
+## Austausch mit anderen Werkzeugen
+
+Eine Fläche muss nicht in dieser Anwendung bleiben. Sie lässt sich als Datei im offenen Format **JSON Canvas** sichern — Endung `.canvas` —, die auch andere Werkzeuge lesen; umgekehrt lässt sich eine solche Datei hier einlesen. Wer mit jemandem zusammenarbeitet, der ein anderes Werkzeug benutzt, kann seine Fläche damit übergeben, statt sie zu beschreiben.
+
+**Die eigene Ablage bleibt die Markdown-Datei.** Die ausgegebene Datei ist ein Austausch-Erzeugnis und kein zweites Speicherformat: Sie wird nicht fortgeschrieben, wenn sich die Fläche später ändert, und beim Einlesen wird sie gelesen und nicht übernommen.
+
+**Eine Fläche ausgeben** — in vier Schritten:
+
+1. Die Canvas-Ansicht öffnen. Trägt das Dokument mehrere Flächen, den Reiter der gewünschten wählen: Ausgegeben wird die Fläche, die gerade zu sehen ist.
+2. **Datei → Weitere Datei-Funktionen → Exportieren → Canvas-Fläche als JSON Canvas…** wählen.
+3. Im Speichern-Dialog steht der Name des Dokuments mit der Endung `.canvas` im Ordner des Dokuments bereit; Name und Ort lassen sich ändern.
+4. Nach dem Schreiben erscheint die Meldung mit dem, was übertragen wurde und was nicht.
+
+Der Eintrag ist nur wählbar, solange die Canvas-Ansicht eine Fläche zeigt; sonst steht er sichtbar, aber ausgegraut da. Das Dokument selbst bleibt unberührt, und trägt es weitere Flächen, nennt die Meldung deren Zahl.
+
+**Eine Datei einlesen** — in vier Schritten:
+
+1. **Datei → Weitere Datei-Funktionen → Importieren → JSON-Canvas-Datei…** wählen. Dafür braucht es weder eine offene Fläche noch ein offenes Dokument.
+2. Im Öffnen-Dialog eine oder mehrere Dateien mit der Endung `.canvas` wählen; bei geöffnetem Bereich müssen sie darin liegen.
+3. Je gewählter Datei entsteht **neben ihr** ein neues Dokument mit ihrem Namen und der Endung `.md`. Ist dieser Name schon belegt, wird eine Zahl angehängt: Aus `Plan.canvas` wird dann `Plan-2.md`. Jedes neue Dokument wird geöffnet und zeigt die Canvas-Ansicht.
+4. Danach erscheint **eine** Meldung über alle gewählten Dateien, mit einem Abschnitt je Datei.
+
+Die gewählten Dateien bleiben unverändert liegen. **Verweise finden ihre Dateien**, wenn die eingelesene Datei an ihrem Platz im übernommenen Ordner liegt — der übliche Fall, wenn ein ganzer fremder Bestand übernommen wird; ein Ziel, das sich so nicht finden lässt, steht danach mit seinem bloßen Dateinamen auf der Karte und wird in der Meldung genannt.
+
+**Nach jedem Vorgang sagt die Anwendung, was übertragen wurde und was nicht** — je mit Anzahl, und auch dann, wenn alles mitgekommen ist. Die Meldung ist keine Fehlermeldung, sondern der Beleg des Austauschs: Beide Formate decken sich nicht vollständig, und was nicht deckungsgleich ist, soll nicht stillschweigend geschehen.
+
+**Was beim Ausgeben aus der Fläche wird:**
+
+| Auf der Fläche | Was daraus wird |
+| -------------- | --------------- |
+| eine Karte, eine Gruppe, eine Verbindung | dasselbe drüben, mit Lage, Größe, Reihenfolge, Farbe und Beschriftung |
+| eine Form | eine Text-Karte an derselben Stelle in derselben Größe, mit der Beschriftung als Text und der Randfarbe als Farbe der Karte; dass es eine Form war, und ihre Füllung stehen nirgends mehr |
+| die Beschriftung einer Verweis- oder Bild-Karte | ein Rahmen mit Titel um diese Karte |
+| die Farben Blau und Pink | ein Farbwert, weil das andere Format für diese beiden keinen Namen führt |
+| eine Anschluss-Seite, welche die Anwendung selbst wählt | keine Angabe; das andere Werkzeug wählt die Seite selbst |
+| weitere Flächen desselben Dokuments | nichts — die Datei trägt genau eine Fläche; die Meldung nennt die Zahl der übrigen |
+| ein fehlerhaftes oder unbekanntes Element | nichts; es wird gezählt |
+
+**Was beim Einlesen aus der Datei wird:**
+
+| In der Datei | Was daraus wird |
+| ------------ | --------------- |
+| eine Text-Karte, eine Gruppe, eine Verbindung | dasselbe hier, mit Lage, Größe, Reihenfolge, Farbe und Beschriftung |
+| ein einfacher Zeilenumbruch im Text einer Karte | ein fester Zeilenumbruch; die Karte zeigt dieselben Zeilen wie im anderen Werkzeug |
+| eine Karte, die auf ein Dokument oder ein Bild zeigt | eine Verweis- beziehungsweise eine Bild-Karte; ein Ziel auf eine Überschrift oder einen Block bleibt erhalten |
+| eine Karte mit einer Web-Adresse | eine Text-Karte mit der Adresse als anklickbarem Verweis |
+| eine Karte auf eine andere Dateiart | eine Text-Karte mit einem Verweis auf die Datei |
+| die Farbe einer Karte | nichts — eine Karte trägt hier keine Farbe |
+| ein freier Farbwert an Gruppe oder Verbindung | die nächstliegende der acht Farben |
+| eine Verbindung, die an einer Gruppe beginnt oder endet | nichts; Verbindungen laufen hier nur zwischen Karten |
+| ein Pfeil nur am Anfang | eine gewöhnliche gerichtete Verbindung, Anfang und Ende getauscht — ohne Verlust |
+| ein Hintergrundbild einer Gruppe | nichts |
+
+**Der Weg hin und zurück führt nicht zum Ausgangspunkt.** Eine ausgegebene und wieder eingelesene Fläche kommt **nicht identisch** zurück: Aus einer Form ist eine Text-Karte geworden und bleibt es, aus der Beschriftung einer Verweis-Karte ein Rahmen. Das ist der Preis des Austauschs und keine Lücke — versteckte Kennungen, an denen sich das ursprüngliche Element wiedererkennen ließe, gibt es bewusst nicht, weil sie in jedem anderen Werkzeug als Datenmüll sichtbar wären.
+
+**Ist die Canvas-Ansicht als [interne Erweiterung](extensions.md) abgeschaltet**, stehen beide Wege nicht zur Verfügung: Der Eintrag zum Ausgeben und der Eintrag zum Einlesen verschwinden aus dem Menü, und über die Kommando-Palette sind die beiden Befehle ebenso wenig erreichbar.
+
 ## Verweise im Netz des Bereichs
 
 Eine Verweis-Karte ist ein **Verweis wie einer im Fließtext** — nur eben auf einer Fläche. Sie erscheint deshalb überall dort, wo die Anwendung Verweise zeigt:
@@ -541,4 +598,6 @@ bedingen einander
 - **Die Suche im Bereich findet ein Dokument mit Fläche weiterhin über seinen Text**, weil die Fläche im Klartext darin steht; ein eigener Treffer-Lieferant ist sie nicht. Einzelne Karten, Formen und Gruppen erscheinen deshalb nicht als eigene Treffer — sie findet das Filter-Feld der Karten-Liste.
 - **Der portable Export gibt die Fläche als Text wieder, nicht als Bild.** Die räumliche Anordnung reist nicht mit, und aus der Entsprechung lässt sich keine Fläche zurückgewinnen; hinüber gehen Inhalt, Gruppen und das Geflecht der Verbindungen.
 - **Ein fehlerhaftes Element wird im Export nicht stillschweigend weggelassen**, sondern mit dem von ihm Lesbaren ausgegeben und mit einer Hinweis-Zeile versehen. Eine Form ohne Beschriftung entfällt dagegen, weil von ihr ohne die räumliche Darstellung nichts bliebe.
+- **Der Austausch mit dem offenen Format ist kein verlustfreier Rückweg.** Eine ausgegebene und wieder eingelesene Fläche kommt nicht identisch zurück: Eine Form kehrt als Text-Karte wieder, die Beschriftung einer Verweis-Karte als Rahmen.
+- **Eine Datei des fremden Formats wird nicht als Dokument geöffnet, sondern eingelesen.** Sie bleibt dabei unverändert liegen; die Fläche trägt danach das neue Dokument neben ihr, und was dort geändert wird, wandert nicht in die Datei zurück.
 - Eine Fläche gehört zu ihrem Dokument. Karten lassen sich nicht von einer Fläche auf eine andere ziehen.

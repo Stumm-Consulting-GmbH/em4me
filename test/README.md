@@ -1345,8 +1345,34 @@ für die gemessene Menge und nicht darüber hinaus.
 **Die Wiedervorlage ist eine Zahl und kein Gefühl:** Überschreitet ein Prüffall
 im Container **50 Prozent** seiner Zeitgrenze, ist das der Anlass, die Kosten
 anzugehen — also das Unit-Gate aus der Kopie zu fahren, statt die Grenze erneut
-zu heben. Gemessen wird bei der nächsten Plattform-Erhebung; heute liegt der
-höchste Wert bei 22 Prozent.
+zu heben. Gemessen wird bei der nächsten Plattform-Erhebung; bei der Entscheidung
+lag der höchste Wert bei 22 Prozent.
+
+**Die Schwelle ist am 2026-09-20 überschritten, und der entschiedene Weg ist
+gefahren** (`4T-001837`). In der Release-Strecke des Zuges zur sechsten
+Canvas-Stufe wurde das Unit-Gate im Container am selben Stand dreimal rot,
+zuletzt zweimal ausschließlich durch Zeitüberschreitungen in den vier
+Bau-Prüfdateien des Webseiten-Baus (`web-inhalte`, `web-kennzahlen`,
+`web-handbuch`, `web-roadmap`), je Lauf in anderen Fällen und der letzte Lauf
+ohne jede Parallel-Last. Die Höchstwerte lagen bei 31 bis 54 s gegen eine
+Zeitgrenze von 30 s, also zwischen 103 und 181 Prozent; unter Windows war
+dieselbe Suite am selben Stand vollständig grün. Ausgelöst hat das Wachstum die
+maschinenlesbare Dokumentations-Fassung, mit der der Webseiten-Bau seit demselben
+Tag zusätzlich die Markdown-Fassung aller Handbuch-Seiten je Sprache erzeugt.
+
+**Umgesetzt ist genau das, was der Absatz oben vorschreibt, und nichts darüber
+hinaus:** Das Unit-Gate fährt seit dem 2026-09-20 aus der Kopie im
+Container-Dateisystem (Abschnitt «Das Kommando» weiter unten), und die Werte in
+[`zeitlimits.js`](zeitlimits.js) sind unverändert geblieben. Die Zeitgrenzen
+bleiben damit plattform-einheitlich und auf der Haupt-Plattform so scharf, wie
+sie waren.
+
+**Die Wirkung, gemessen am selben Tag und am selben Stand:** Der Lauf brauchte
+2 min 59 s Wanduhr, davon 92 s für die Kopie und 72 s für das Gate, gegen rund
+17 Minuten über die Brücke; grün waren 8509 von 8519 Fällen bei zehn
+übersprungenen und keinem roten. Die vier Bau-Prüfdateien liegen aus der Kopie
+bei 4 bis 6 Prozent ihrer Zeitgrenze statt bei 103 bis 181, und der teuerste
+Fall des gesamten Laufs brauchte 2,1 Sekunden.
 
 **Warum die Kosten und nicht die Grenze:** Eine erneute Anhebung verlöre weiter
 an Schärfe auf der Haupt-Plattform. `pm-dokumente` dürfte auf Windows heute
@@ -1740,9 +1766,11 @@ Gate-Namen (`format:check`, `lint`, `test`, `e2e`, `alle`) werden unverändert a
 
 **Woher der Lauf seine Dateien liest, ist nicht überall dasselbe** (seit dem 2026-08-31, Vorgang zum Rechner-Unterschied weiter unten):
 
-- Das **E2E-Gate** läuft aus einer **Kopie im Container-Dateisystem**. Sie entsteht je Lauf neu, ohne `node_modules`, `releases`, `dist`, `test-results` und `playwright-report`, mit dem Git-Verzeichnis; `node_modules` hängt als dasselbe Volume auch unter dem Pfad der Kopie. Nach dem Lauf wandern `test-berichte/e2e.json` und die Rot-Belege zurück in den Arbeitsbaum, auch nach einem roten Lauf.
-- Das **Unit-Gate** und alle kopflosen Gates bleiben auf dem **Arbeitsbaum**. Ihre Bestands-Wächter lesen ihn samt Git-Verzeichnis, und sie lesen ihn nur einmal; eine Kopie wäre dort kein Gewinn und ein stiller Wechsel des Prüfstands.
-- `--ohne-kopie` stellt den alten Weg her. Er ist der schnellere, wenn **ein einzelner** Fall nachzuprüfen ist, weil die Kopie dann teurer wäre als der Fall selbst, und er ist der Ausweg, falls die Kopie einmal nicht trägt.
+- Das **E2E-Gate** (`e2e`), das **Unit-Gate** (`test`) und das **Sammel-Gate** (`alle`) laufen aus einer **Kopie im Container-Dateisystem**. Sie entsteht je Lauf neu, ohne `node_modules`, `releases`, `dist`, `test-results` und `playwright-report`, mit dem Git-Verzeichnis; `node_modules` hängt als dasselbe Volume auch unter dem Pfad der Kopie. Bevor ein Gate startet, prüft der Lauf die Kopie auf die Bäume, die seine Wächter lesen, also `src`, `test`, `scripts`, `docs`, `web`, `Projektmanagement` und das Git-Verzeichnis, und bricht ab, statt gegen einen halben Baum zu prüfen. Nach dem Lauf wandert der Maschinen-Bericht jedes Gates zurück in den Arbeitsbaum, für `test` und `alle` also `test-berichte/unit.json` und für `e2e` die Datei `test-berichte/e2e.json`, dazu die Rot-Belege, auch nach einem roten Lauf.
+- **Das Unit-Gate ist erst seit dem 2026-09-20 dabei** (`4T-001837`). Bis dahin blieb es auf dem Arbeitsbaum, weil seine Bestands-Wächter ihn samt Git-Verzeichnis nur einmal lesen und eine Kopie dort kein Gewinn gewesen wäre. Diese Rechnung hat das Wachstum des Webseiten-Baus gekippt: Seine vier Bau-Prüfdateien rissen im Container ihre Zeitgrenze, während dieselbe Suite unter Windows grün blieb. Damit war die Schwelle des Absatzes «Die Zeitgrenzen bleiben plattform-einheitlich» erreicht, und dessen Antwort darauf ist genau dieser Weg.
+- **Das Sammel-Gate steht aus einem eigenen Grund dabei.** Es fällt im Container als ein einziger Aufruf und hat deshalb genau einen Arbeitsordner; stünde es nicht in der Menge, liefe das Unit-Gate wieder über die Brücke, sobald jemand die Release-Abnahme mit `alle` fährt statt mit `test`. Format und Lint messen denselben Datei-Bestand, gleich aus welchem Baum sie ihn lesen.
+- **Einzeln gefahren bleiben `format:check` und `lint` auf dem Arbeitsbaum.** Sie lesen wenig und gewönnen nichts, und eine Kopie für sie allein wäre teurer als der Lauf.
+- `--ohne-kopie` stellt den alten Weg her, für alle Gates gleichermaßen. Er ist der schnellere, wenn **ein einzelner** Fall nachzuprüfen ist, weil die Kopie dann teurer wäre als der Fall selbst, und er ist der Ausweg, falls die Kopie einmal nicht trägt.
 
 Wer die Aufteilung ändert, ändert den Prüfstand einer Release-Abnahme; `test/unit/test-linux-docker.test.js` hält sie deshalb fest.
 

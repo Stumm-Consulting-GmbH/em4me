@@ -5,6 +5,16 @@
 // beide Wege teilen Grundlage und Ansichts-Regel, und der Handbuch-Text nennt
 // den Pfad woertlich. Verrutscht der Eintrag, stimmt die Anleitung nicht mehr.
 //
+// 4T-001811 (Epic 3E-000292): E5 ist durch die Entscheidung des Product Owners
+// vom 2026-09-19 fortgeschrieben — im Wortlaut «Dann ist alles an einer
+// Stelle». «Als PDF exportieren…» ist in das Untermenue «Exportieren»
+// gewandert und steht dort an ERSTER Stelle, vor «Portables Markdown…».
+// «Drucken…» bleibt auf seiner Ebene, weil Drucken kein Export ist, und steht
+// dort unmittelbar vor dem Untermenue-Punkt «Exportieren». Damit gilt die
+// Nachbarschaft weiter, nur eine Stufe versetzt: Die Begruendung von E5 traegt
+// unveraendert, denn beide Wege teilen Grundlage und Ansichts-Regel, und der
+// Handbuch-Text nennt den Pfad nach wie vor woertlich.
+//
 // Geprueft wird gegen den QUELLTEXT: menu.js ist Hauptprozess-Code und laedt
 // Electron, ist im Unit-Kontext also nicht importierbar (Muster
 // menu-accelerator.test.js). Im E2E-Lauf ist der Menue-Baum nicht erreichbar,
@@ -19,18 +29,43 @@ import { COMMANDS } from '../../src/shared/commands/commands.js';
 const WURZEL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const menuQuelle = fs.readFileSync(path.join(WURZEL, 'src/main/menu/menu.js'), 'utf8');
 
+const I_DRUCK = menuQuelle.indexOf("label: t('menu.file.print')");
+const I_UNTERMENUE = menuQuelle.indexOf("label: t('menu.file.export')");
+const I_PDF = menuQuelle.indexOf("label: t('menu.file.exportPdf')");
+const I_PORTABEL = menuQuelle.indexOf("label: t('menu.file.exportPortable')");
+
 describe('Druck-Menuepunkt: Ort und Verdrahtung (E5)', () => {
-  it('steht unmittelbar vor dem PDF-Export', () => {
-    const iDruck = menuQuelle.indexOf("label: t('menu.file.print')");
-    const iPdf = menuQuelle.indexOf("label: t('menu.file.exportPdf')");
-    expect(iDruck, 'Menue-Eintrag «Drucken…» fehlt').toBeGreaterThan(-1);
-    expect(iPdf, 'Menue-Eintrag «Als PDF exportieren…» fehlt').toBeGreaterThan(-1);
-    expect(iDruck, 'Drucken muss VOR dem PDF-Export stehen').toBeLessThan(iPdf);
+  it('steht unmittelbar vor dem Untermenü «Exportieren»', () => {
+    expect(I_DRUCK, 'Menue-Eintrag «Drucken…» fehlt').toBeGreaterThan(-1);
+    expect(I_UNTERMENUE, 'Untermenue-Punkt «Exportieren» fehlt').toBeGreaterThan(-1);
+    expect(I_DRUCK, 'Drucken muss VOR dem Untermenü «Exportieren» stehen').toBeLessThan(
+      I_UNTERMENUE,
+    );
     // Zwischen beiden darf kein dritter Menue-Eintrag liegen: sie gehoeren
     // in denselben Block, ohne Trenner und ohne Fremdes dazwischen.
-    const dazwischen = menuQuelle.slice(iDruck, iPdf);
+    const dazwischen = menuQuelle.slice(I_DRUCK, I_UNTERMENUE);
     expect(dazwischen).not.toContain("type: 'separator'");
     expect(dazwischen.match(/label: t\(/g) || []).toHaveLength(1);
+  });
+
+  it('der PDF-Export ist der erste Eintrag des Untermenüs «Exportieren»', () => {
+    expect(I_PDF, 'Menue-Eintrag «Als PDF exportieren…» fehlt').toBeGreaterThan(-1);
+    expect(I_PORTABEL, 'Menue-Eintrag «Portables Markdown…» fehlt').toBeGreaterThan(-1);
+    // Er liegt IM Untermenü (hinter dessen Beschriftung) und nicht mehr auf
+    // der Ebene darüber.
+    expect(I_PDF, 'Der PDF-Export muss im Untermenü «Exportieren» stehen').toBeGreaterThan(
+      I_UNTERMENUE,
+    );
+    expect(I_PDF, 'Der PDF-Export muss VOR dem portablen Markdown stehen').toBeLessThan(I_PORTABEL);
+    // «Erster Eintrag» ist mehr als «vor dem portablen Markdown»: Zwischen der
+    // öffnenden Item-Liste des Untermenüs und dem PDF-Eintrag darf keine
+    // weitere Beschriftung und kein Trenner liegen.
+    const iListe = menuQuelle.indexOf('submenu: compactSubmenu([', I_UNTERMENUE);
+    expect(iListe, 'Item-Liste des Untermenüs «Exportieren» nicht gefunden').toBeGreaterThan(-1);
+    expect(iListe).toBeLessThan(I_PDF);
+    const davor = menuQuelle.slice(iListe, I_PDF);
+    expect(davor).not.toContain("type: 'separator'");
+    expect(davor.match(/label: t\(/g) || []).toHaveLength(0);
   });
 
   it('teilt die Verfügbarkeits-Regel des PDF-Exports', () => {
@@ -42,10 +77,10 @@ describe('Druck-Menuepunkt: Ort und Verdrahtung (E5)', () => {
     // BEIDES — dass der Eintrag delegiert und dass die Bedingung dahinter die
     // gemeinte ist. Nur das erste zu prüfen hieße, die Aussage «teilt die Regel
     // des PDF-Exports» aufzugeben, um die es diesem Fall geht.
-    const abschnitt = menuQuelle.slice(
-      menuQuelle.indexOf("label: t('menu.file.print')"),
-      menuQuelle.indexOf("label: t('menu.file.exportPdf')"),
-    );
+    //
+    // 4T-001811: Der Abschnitt reicht seit der Verlegung vom Druck-Eintrag bis
+    // zum Untermenü-Punkt «Exportieren» — der PDF-Eintrag steht jetzt dahinter.
+    const abschnitt = menuQuelle.slice(I_DRUCK, I_UNTERMENUE);
     expect(abschnitt).toContain("click: send('menu:print')");
     expect(abschnitt).toContain("accelerator: acc('file.print')");
     expect(abschnitt).toContain("enabled: avail('file.print')");

@@ -411,6 +411,14 @@ const INTERNAL_EXTENSIONS = [
       // 4T-001772 (Epic 3E-000290): die Zeile der Karten-Liste, aus demselben
       // Grund — ohne die Flaeche gibt es nichts aufzuzaehlen.
       'help.feature.canvasList',
+      // 4T-001807 (Epic 3E-000292): die beiden Katalog-Zeilen des Austauschs
+      // mit dem offenen Format JSON Canvas, aus demselben Grund wie die beiden
+      // Kommandos weiter unten — ohne die Flaeche hat die Ausgabe keinen
+      // Gegenstand, und das Ergebnis des Einlesens waere nicht darstellbar.
+      // Ohne diese beiden Zeilen blieben sie auf der Funktions-Seite im
+      // Aus-Zustand ungekennzeichnet stehen (der Fall aus 4T-001177).
+      'help.feature.canvasExportJson',
+      'help.feature.canvasImportJson',
     ],
     // 4T-001701 (Epic 3E-000288): Form-Anlage und die vier Stapel-Befehle
     // gehoeren derselben Erweiterung — sie wirken ausschliesslich auf der
@@ -437,6 +445,15 @@ const INTERNAL_EXTENSIONS = [
       // Flaeche gibt es nichts aufzuzaehlen; im Aus-Zustand entfallen deshalb
       // Statusleisten-Knopf, Untermenue-Eintrag und Palette-Eintrag gemeinsam.
       'view.toggleCanvasList',
+      // 4T-001805 (Epic 3E-000292): die Ausgabe der Flaeche im offenen Format
+      // JSON Canvas. Sie haengt an derselben Erweiterung und keiner eigenen
+      // (Architektur-Entscheidung des Epics vom 2026-09-19): Ohne die Flaeche
+      // hat die Ausgabe keinen Gegenstand.
+      'file.exportJsonCanvas',
+      // 4T-001806 (Epic 3E-000292): das Einlesen einer solchen Datei. Es
+      // haengt aus demselben Grund an dieser Erweiterung: Das Ergebnis ist
+      // ohne die Flaeche nicht darstellbar.
+      'file.importJsonCanvas',
     ],
   },
   // Werkzeug-Erweiterungen (4T-000294). 'focus-mode' buendelt Fokus-Modus

@@ -15,7 +15,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderMarkdown, configureExtensions } from '../../../src/shared/markdown/markdown.js';
 import { VORSCHAU_KARTEN, VORSCHAU_ZEICHEN } from '../../../src/shared/markdown/canvas-block.js';
-import { CANVAS_EXTENSION_ID, findCanvasFences } from '../../../src/shared/canvas/canvas-core.js';
+import {
+  CANVAS_EXTENSION_ID,
+  findCanvasFences,
+  parseCanvasFence,
+} from '../../../src/shared/canvas/canvas-core.js';
+import { jsonCanvasNachFlaeche } from '../../../src/shared/canvas/canvas-austausch.js';
 import { isExtensionEnabled } from '../../../src/shared/extensions/extensions-core.js';
 
 const WURZEL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
@@ -282,5 +287,54 @@ describe('Canvas-Block: Lokalisierung', () => {
     const html = renderMarkdown(FENCE(KARTEN(1)), 'de');
     expect(html).toContain('data-canvas-zu="Block zuklappen"');
     expect(html).toContain('data-canvas-auf="Block aufklappen"');
+  });
+});
+
+// 4T-001806 (Epic 3E-000292): Der Render-Nachweis zum Abnahme-Befund des
+// Product Owners vom 2026-09-20.
+//
+// **Warum der Nachweis hier steht.** Die Karten der Canvas-Ansicht setzen
+// ihren Text über ein hineingereichtes `renderMarkdown` — und das ist genau
+// diese Pipeline (`canvas-pane.js` reicht `api.renderMarkdown` hinein). Ein
+// Fall in der Ansicht prüfte eine Attrappe und sagte damit nichts darüber, ob
+// der Umbruch in der fertigen Karte wirklich zu sehen ist.
+//
+// **Was er belegt.** Die Form, die das Einlesen setzt — ein Rückstrich am
+// Zeilenende —, wird vom Renderer der Anwendung zu einem Zeilenumbruch in der
+// Anzeige, obwohl er mit `breaks: false` arbeitet. Ohne sie stünden beide
+// Zeilen in einem fortlaufenden Absatz.
+describe('Karten-Text: der feste Zeilenumbruch des Einlesens ist sichtbar', () => {
+  const RUECKSTRICH = '\\';
+
+  it('ein einfacher Zeilenumbruch allein zeigt keine zweite Zeile', () => {
+    const html = renderMarkdown('Erste Zeile\nZweite Zeile', 'de');
+    expect(html).not.toContain('<br>');
+  });
+
+  it('der Rückstrich am Zeilenende wird zum Umbruch in der Anzeige', () => {
+    const html = renderMarkdown(`Erste Zeile${RUECKSTRICH}\nZweite Zeile`, 'de');
+    expect(html).toContain('<br>');
+    expect(html).not.toContain(RUECKSTRICH);
+  });
+
+  it('der so eingelesene Text einer Karte zeigt beide Zeilen', () => {
+    const { rumpf } = jsonCanvasNachFlaeche({
+      nodes: [
+        {
+          id: 'k1',
+          type: 'text',
+          x: 0,
+          y: 0,
+          width: 200,
+          height: 100,
+          text: 'Erste Zeile\nZweite Zeile',
+        },
+      ],
+    });
+    const inhalt = parseCanvasFence(rumpf).elemente[0].inhalt;
+    const html = renderMarkdown(inhalt, 'de');
+    expect(html).toContain('Erste Zeile<br>');
+    expect(html).toContain('Zweite Zeile');
+    expect(html).not.toContain(RUECKSTRICH);
   });
 });

@@ -106,6 +106,12 @@ What leaves the file should still say something on the other side. **File → Mo
 
 What does not travel along is the arrangement — the export carries the content and the relations, not a picture of the surface, and no surface can be won back from it. This file itself stays untouched; printing and PDF export are unaffected too and keep showing the block as it is rendered here.
 
+## Exchanging with other tools
+
+The surface also leaves the house as a surface. **File → More File Functions → Export → Canvas as JSON Canvas…** writes the block above as a file in the open JSON Canvas format, which other tools read: cards, groups and connections keep their place, their size and their order, while the star becomes a text card and the caption of the link card becomes a titled frame around it. The other way round, **File → More File Functions → Import → JSON Canvas file…** reads such a file back in and creates a new document next to it, carrying a canvas of its own.
+
+Try both on this surface and watch the message at the end: it names what was transferred and what was not, each with a count. Nothing happens silently — and nothing comes back quite the way it went out, which is why this file stays the place where the surface lives.
+
 ## How to read the block
 
 Every element starts with a marker in column 0; the lines below it are its content.

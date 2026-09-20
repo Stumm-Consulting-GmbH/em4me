@@ -461,3 +461,129 @@ export async function exportCurrentTabAsPortable() {
     return false;
   }
 }
+
+// --- Ausgabe der Canvas-Fläche als JSON-Canvas-Datei (4T-001805) ----------------
+//
+// Derselbe Ablauf wie beim portablen Export darüber — Inhalt holen, umwandeln,
+// Ziel vorschlagen, über die Preload-Brücke speichern —, um zwei Schritte
+// erweitert: die Auflösung der Verweis-Ziele zu Pfaden, die das fremde Format
+// verlangt, und die Ergebnis-Meldung mit dem Verlust-Bericht.
+//
+// **Die Übersetzung steht nicht hier**, sondern im prozessneutralen Kern
+// `canvas-austausch.js`; dieses Modul besorgt das, was der Kern bewusst nicht
+// kann — Bereich, Dateisystem und Sprache (Architektur-Entscheidungen des Epics
+// 3E-000292 vom 2026-09-19).
+//
+// Die beiden Canvas-Module kommen über **Laufzeit-Importe**, wie sie der
+// Canvas-Ordner in der Gegenrichtung schon benutzt: Ein statischer Bezug zöge
+// die beiden Ordner in eine Kopplung, die der Ordner-Import-Wächter als Ratsche
+// eingefroren hat.
+
+// Die Ziel-Angaben einer Fläche als Abbildung «geschriebenes Ziel → Pfad», vom
+// Hauptprozess aufgelöst. Ein Ziel, das er nicht findet, fehlt in der Abbildung;
+// der Kern zählt es dann als Posten und schreibt es, wie es auf der Karte steht.
+async function zielAbbildungFuer(flaeche, dokumentPfad, zerlegeZiel) {
+  const ziele = new Map();
+  if (!dokumentPfad) return ziele;
+  const anfragen = [];
+  const anker = new Map();
+  for (const el of flaeche.model.elemente) {
+    if (!el || el.art !== 'karte') continue;
+    const istBild = el.doc == null && el.bild != null;
+    const roh = el.doc != null ? el.doc : el.bild;
+    if (roh == null || String(roh) === '') continue;
+    const geschrieben = String(roh);
+    if (anker.has(geschrieben)) continue;
+    // Das Bild-Ziel trägt keinen Anker; die Zerlegung gilt dem Dokument-Verweis
+    // und liefert für ein Bild denselben Pfad zurück.
+    const zerlegt = istBild ? { pfad: geschrieben, anker: '' } : zerlegeZiel(geschrieben);
+    anker.set(geschrieben, zerlegt.anker || '');
+    anfragen.push({ pfad: zerlegt.pfad, art: istBild ? 'bild' : 'doc', geschrieben });
+  }
+  if (anfragen.length === 0) return ziele;
+  let antwort;
+  try {
+    antwort = await api.resolveCanvasExchangeTargets(
+      dokumentPfad,
+      anfragen.map((a) => ({ pfad: a.pfad, art: a.art })),
+    );
+  } catch {
+    antwort = null;
+  }
+  if (!antwort || !antwort.ok || !Array.isArray(antwort.treffer)) return ziele;
+  const gefunden = new Map(antwort.treffer.map((tr) => [String(tr.pfad), String(tr.datei)]));
+  for (const anfrage of anfragen) {
+    const datei = gefunden.get(anfrage.pfad);
+    if (!datei) continue;
+    const eintrag = { file: datei };
+    const ank = anker.get(anfrage.geschrieben);
+    // Der Anker wandert in das eigene Feld des fremden Formats; ein `#` im
+    // Dateipfad hätte dort keine Aussage.
+    if (ank) eintrag.subpath = `#${ank}`;
+    ziele.set(anfrage.geschrieben, eintrag);
+  }
+  return ziele;
+}
+
+// Der Vorschlag für den Speichern-Dialog: der Name des Dokuments mit der
+// Endung '.canvas', in seinem Ordner. Ohne Pfad entscheidet der Dialog.
+function canvasZielVorschlag(dokumentPfad) {
+  if (!dokumentPfad) return null;
+  const ohneEndung = String(dokumentPfad).replace(/\.[^./\\]+$/, '');
+  return `${ohneEndung}.canvas`;
+}
+
+/**
+ * Gibt die Fläche, deren Reiter in der Canvas-Ansicht gewählt ist, als Datei im
+ * offenen Format JSON Canvas aus (Story 4S-000959).
+ *
+ * @returns {Promise<boolean>} true, wenn eine Datei geschrieben wurde.
+ */
+export async function exportCurrentCanvasAsJsonCanvas() {
+  const [pane, verweis, kern] = await Promise.all([
+    import('../canvas/canvas-pane.js'),
+    import('../canvas/canvas-verweis-anzeige.js'),
+    import('../../../shared/canvas/canvas-austausch.js'),
+  ]);
+  const gewaehlt = pane.aktiveCanvasFlaeche(state.activePaneIndex);
+  // Reißleine hinter der Verfügbarkeits-Bedingung `canvasFlaecheOffen`: Ohne
+  // offene Canvas-Ansicht gibt es keine gewählte Fläche, und ein stiller
+  // Fehlschlag wäre für den Anwender von einem Fehler nicht zu unterscheiden
+  // (Guard-Muster der Flächen-Kommandos).
+  if (!gewaehlt) {
+    showStatusbarHint('canvas.austausch.keineFlaeche', { duration: 2500, error: true });
+    return false;
+  }
+  try {
+    const ziele = await zielAbbildungFuer(
+      gewaehlt.flaeche,
+      gewaehlt.dokumentPfad,
+      verweis.zerlegeZiel,
+    );
+    const { canvas, verluste } = kern.flaecheNachJsonCanvas(gewaehlt.flaeche.model, { ziele });
+    const result = await api.saveFileAs(
+      canvasZielVorschlag(gewaehlt.dokumentPfad),
+      kern.serialisiereJsonCanvas(canvas),
+      'jsonCanvas',
+    );
+    // Abbruch im Speichern-Dialog ist kein Fehler: keine Datei, keine Meldung.
+    if (!result || !result.ok) {
+      if (result && result.error) throw new Error(result.error);
+      return false;
+    }
+    await api.showCanvasExchangeReport({
+      richtung: 'export',
+      zahlen: {
+        karten: canvas.nodes.filter((k) => k.type === 'text' || k.type === 'file').length,
+        gruppen: canvas.nodes.filter((k) => k.type === 'group').length,
+        verbindungen: canvas.edges.length,
+      },
+      uebrigeFlaechen: gewaehlt.uebrige,
+      verluste,
+    });
+    return true;
+  } catch (err) {
+    await api.showSaveError((err && err.message) || String(err));
+    return false;
+  }
+}

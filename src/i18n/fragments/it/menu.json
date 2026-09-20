@@ -115,5 +115,8 @@
   "menu.file.updateLocale": "Aggiornare…",
   "menu.view.canvas": "Tela",
   "menu.view.canvasEdit": "Modifica tela",
-  "menu.view.canvasStack": "Ordine di sovrapposizione della tela"
+  "menu.view.canvasStack": "Ordine di sovrapposizione della tela",
+  "menu.file.exportJsonCanvas": "Tela come JSON Canvas…",
+  "menu.file.import": "Importare",
+  "menu.file.importJsonCanvas": "File JSON Canvas…"
 }

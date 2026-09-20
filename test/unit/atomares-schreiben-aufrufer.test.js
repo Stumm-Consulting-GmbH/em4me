@@ -163,6 +163,14 @@ describe('Schreibwege des Haupt-Prozesses: kein direktes Ersetzen', () => {
   // Begleitdaten zu ersetzen. Ein Weg über `ersetzeDateiOderWirf` wäre hier
   // gerade das Schwächere — er würde ersetzen, wo nichts zu ersetzen ist, und
   // die Kollision stillschweigend gewinnen.
+  //
+  // 4T-001806 (Epic 3E-000292): elf auf zwölf. Die Frage ist ein zweites Mal
+  // gestellt und beantwortet — das Einlesen einer JSON-Canvas-Datei legt ein
+  // Dokument neben der gewählten Datei an und darf dabei **nie** ein
+  // bestehendes überschreiben (Akzeptanzkriterium AK5 des Tasks). Das
+  // exklusive Anlegen ist genau die Zusicherung, die dort gebraucht wird: Es
+  // hält den Abstand auch dann, wenn zwischen der Namens-Suche und dem
+  // Schreiben jemand anders geschrieben hat.
   it('haelt die Zahl der exklusiven Anlagen fest', () => {
     let anlagen = 0;
     for (const datei of jsDateien(MAIN)) {
@@ -174,6 +182,6 @@ describe('Schreibwege des Haupt-Prozesses: kein direktes Ersetzen', () => {
         if (/flag:\s*'wx'/.test(argumentListe(quelltext, start))) anlagen += 1;
       }
     }
-    expect(anlagen).toBe(11);
+    expect(anlagen).toBe(12);
   });
 });

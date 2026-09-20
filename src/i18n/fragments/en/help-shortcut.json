@@ -165,5 +165,7 @@
   "help.shortcut.importLocale": "Load a translated language file as your own interface language",
   "help.shortcut.removeLocale": "Remove one of your own interface languages from the application",
   "help.shortcut.updateLocale": "Save your own language file at the state of the running program version, missing entries in English",
-  "help.group.database": "Database"
+  "help.group.database": "Database",
+  "help.shortcut.exportJsonCanvas": "Save the canvas selected in the canvas view as a JSON Canvas file",
+  "help.shortcut.importJsonCanvas": "Read in one or more JSON Canvas files; each one creates a document with the canvas next to it"
 }

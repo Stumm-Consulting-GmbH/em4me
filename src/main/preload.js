@@ -171,7 +171,11 @@ contextBridge.exposeInMainWorld('api', {
   // 4T-000945 (Story 4S-000786): opts = { expected, force } — Stand-Pruefung vor
   // dem Ueberschreiben; ohne opts unveraendertes Verhalten.
   saveFile: (p, content, opts) => ipcRenderer.invoke('file:save', p, content, opts),
-  saveFileAs: (suggested, content) => ipcRenderer.invoke('file:saveAs', suggested, content),
+  // 4T-001805 (Epic 3E-000292): dateiArt waehlt Filter-Eintrag und
+  // Vorschlags-Endung aus der Tafel des Hauptprozesses; ohne Angabe bleibt es
+  // bei Markdown.
+  saveFileAs: (suggested, content, dateiArt) =>
+    ipcRenderer.invoke('file:saveAs', suggested, content, dateiArt),
   pushRecent: (p) => ipcRenderer.invoke('recent:push', p),
 
   // 4T-001587 (Epic 3E-000160): Ex- und Import der eigenen Einrichtung. Die
@@ -531,6 +535,21 @@ contextBridge.exposeInMainWorld('api', {
   // Antwort: { ok, path, dataUrl } oder { ok: false, error }.
   readEmbedImage: (basePath, embedPath) =>
     ipcRenderer.invoke('embed:readImage', { basePath, embedPath }),
+  // 4T-001805 (Epic 3E-000292): Ziele einer Canvas-Flaeche als Pfade fuer das
+  // offene Format JSON Canvas — derselbe dreistufige Aufloeser und dieselbe
+  // Bereichs-Grenze wie eine Einbettung, aber ohne Datei-Inhalt und ohne
+  // absoluten Pfad. Antwort: { ok, treffer: [{ pfad, datei }] }; ein nicht
+  // aufloesbares Ziel fehlt in der Liste.
+  resolveCanvasExchangeTargets: (basePath, ziele) =>
+    ipcRenderer.invoke('canvas:loeseAustauschZiele', { basePath, ziele }),
+  // 4T-001805: Ergebnis-Meldung des Austauschs. Der Anzeige-Prozess schickt
+  // Zahlen und Posten-Kennungen, die Saetze entstehen im Hauptprozess.
+  showCanvasExchangeReport: (bericht) => ipcRenderer.invoke('canvas:austauschBericht', bericht),
+  // 4T-001806 (Epic 3E-000292): Einlesen einer oder mehrerer JSON-Canvas-Dateien.
+  // Ohne Parameter: Die Auswahl trifft der Anwender im Dialog des
+  // Betriebssystems. Antwort: { ok, ergebnisse: [{ name, pfad?, zahlen?,
+  // verluste?, fehler? }] } oder { ok: false, canceled: true }.
+  importJsonCanvas: () => ipcRenderer.invoke('canvas:importJsonCanvas'),
   // 4T-000056: Tag-System. Liefert Tag-Liste der Wurzel (sortiert nach
   // Haeufigkeit) und optional Datei-Liste fuer einen Filter-Tag.
   requestTags: (filePath, filterTag) =>
@@ -903,6 +922,12 @@ contextBridge.exposeInMainWorld('api', {
   onMenuSaveAs: (cb) => ipcRenderer.on('menu:saveAs', () => cb()),
   // 4T-000041: Menu-Event 'Datei -> Exportieren -> Portables Markdown...'
   onMenuExportPortable: (cb) => ipcRenderer.on('menu:exportPortable', () => cb()),
+  // 4T-001805 (Epic 3E-000292): Menu-Event
+  // 'Datei -> Exportieren -> Canvas-Flaeche als JSON Canvas...'
+  onMenuExportJsonCanvas: (cb) => ipcRenderer.on('menu:exportJsonCanvas', () => cb()),
+  // 4T-001806 (Epic 3E-000292): Menu-Event
+  // 'Datei -> Importieren -> JSON-Canvas-Datei...'
+  onMenuImportJsonCanvas: (cb) => ipcRenderer.on('menu:importJsonCanvas', () => cb()),
   // 4T-000303 (Epic 3E-000054): Menu-Event 'Datei -> Als PDF exportieren...'
   onMenuExportPdf: (cb) => ipcRenderer.on('menu:exportPdf', () => cb()),
   // 4T-001587 (Epic 3E-000160): Menu-Event 'Datei -> Einstellungen -> Exportieren...'

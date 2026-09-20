@@ -33,6 +33,9 @@
 const path = require('node:path');
 const { execSync } = require('node:child_process');
 const { buildNumberEnvValue, bauAngaben } = require('../src/shared/build-version');
+// 4T-001816 (Epic 3E-000317): maschinenlesbare Fassung der Dokumentation, die
+// unverpackt neben dem Programm liegt.
+const { erzeuge: erzeugeSyntaxReferenz } = require('./syntax-referenz.js');
 
 const ROOT = path.join(__dirname, '..');
 
@@ -150,6 +153,16 @@ function main() {
   // sie in doppelten Quotes literal stehen, eine POSIX-Shell (Container-Bau)
   // expandiert sie dort zu Leerstrings — deshalb je Plattform das Quote-Zeichen,
   // das die jeweilige Shell literal haelt.
+  // 4T-001816 (Epic 3E-000317): Die Syntax-Referenz entsteht VOR dem Packen und
+  // wandert als unverpackte Datei mit (src/i18n/** ist in der Bau-Konfiguration
+  // bereits als asarUnpack gefuehrt). Bewusst hier und nicht als zusaetzlicher
+  // Schritt in package.json: Eine Aenderung an package.json machte den Vorgang
+  // zu einem mit Produkt-Code-Anteil und zoege das Zug-Modell nach sich.
+  // Ein Fehlschlag bricht den Bau ab, statt still eine veraltete oder fehlende
+  // Fassung mitzuliefern.
+  console.log('build-app: Syntax-Referenz erzeugen …');
+  erzeugeSyntaxReferenz();
+
   const quote = process.platform === 'win32' ? '"' : "'";
   const args = [...durchgereicht, ...zusatz.map((z) => `${quote}${z}${quote}`)].join(' ');
   execSync(`electron-builder ${args}`, { cwd: ROOT, stdio: 'inherit', env });

@@ -628,6 +628,44 @@ export function canvasListenStand(paneIdx) {
 }
 
 /**
+ * Die Fläche, deren Reiter in der offenen Canvas-Ansicht gewählt ist, samt der
+ * Zahl der übrigen Flächen des Dokuments (4T-001805).
+ *
+ * **Ein schmaler, rein lesender Griff — kein zweiter Weg in die Ansicht.** Die
+ * Ausgabe im offenen Format braucht genau drei Dinge: die gewählte Fläche, den
+ * Pfad des Dokuments und die Zahl der übrigen Flächen für die Meldung. Sie
+ * bekommt sie hier und nicht über einen eigenen Zugriff auf `ansichten`, weil
+ * die Wahl des Reiters für die Sitzungs-Dauer in der Ansicht lebt und sonst
+ * eine zweite Stelle entstünde, die sie ausliest.
+ *
+ * **Ohne offene Canvas-Ansicht gibt es keine gewählte Fläche und deshalb
+ * `null`** — keinen Rückfall auf die erste. Die freigegebene Regel des Product
+ * Owners vom 2026-09-19 lautet «nur in der Canvas-Ansicht wählbar und sonst
+ * ausgegraut»; ein Rückfall gäbe eine Fläche aus, die der Anwender gar nicht
+ * vor sich hat, und der wäre bei mehreren Flächen nicht einmal die, an die er
+ * zuletzt gedacht hat. Die Bedingung `canvasFlaecheOffen` des Kommandos sagt
+ * dasselbe, nur eine Ebene höher; dieser Griff ist die Reißleine dahinter.
+ *
+ * @param {number} paneIdx
+ * @returns {{flaeche: object, dokumentPfad: string|null, uebrige: number}|null}
+ *   `null`, wenn die Canvas-Ansicht keine Fläche zeigt.
+ */
+export function aktiveCanvasFlaeche(paneIdx) {
+  const tab = umgebung ? umgebung.aktivesDokument(paneIdx) : null;
+  if (!tab || typeof tab.content !== 'string' || tab.viewMode !== 'canvas') return null;
+  const ansicht = ansichten[paneIdx];
+  if (!ansicht) return null;
+  const flaechen = canvasZustandAus(tab.content).flaechen;
+  if (flaechen.length === 0) return null;
+  const gezeigt = flaechen[ansicht.getStats().gewaehlt] || flaechen[0];
+  return {
+    flaeche: gezeigt,
+    dokumentPfad: tab.path || null,
+    uebrige: flaechen.length - 1,
+  };
+}
+
+/**
  * Wählt ein Element der gezeigten Fläche und rückt es zentriert in den
  * Ausschnitt (4T-001769). Ohne offene Canvas-Ansicht gibt es nichts zu zeigen.
  *

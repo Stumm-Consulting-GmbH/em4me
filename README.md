@@ -34,7 +34,11 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   document on as portable Markdown and the surface comes along as readable
   text: every card with its own wording, groups and labelled shapes in the
   order they lie in, and a list of the connections; only the placement stays
-  behind. Unlike
+  behind. A surface can also be written out as a file in the open JSON Canvas
+  format and read back in from one, so it can be exchanged with other tools
+  that speak that format; what the other side has no equivalent for gets the
+  closest substitute, a report after every exchange names what came across and
+  what did not, and there is no promise that nothing is lost. Unlike
   the graph it computes nothing, it keeps what you laid out, and because it
   lives as plain text inside the document, the cards stay readable anywhere.
 - **Tables that calculate and query** — data tables with typed columns

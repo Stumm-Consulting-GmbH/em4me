@@ -15,5 +15,6 @@
   "dialog.filterPdf": "PDF",
   "dialog.ok": "OK",
   "dialog.cancel": "Cancel",
-  "dialog.close": "Close"
+  "dialog.close": "Close",
+  "dialog.filterJsonCanvas": "JSON Canvas"
 }

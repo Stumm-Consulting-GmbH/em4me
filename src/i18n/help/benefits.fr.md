@@ -66,6 +66,7 @@ Certaines idées n'ont pas d'ordre. Poser des variantes côte à côte, esquisse
 - **Votre disposition reste la vôtre** : la surface ne calcule aucune position, elle retient ce que vous avez posé.
 - **Du texte clair dans le document** : la surface se trouve dans un bloc de code du fichier Markdown et se lit aussi sans EM4me.
 - **Sans souris également** : une liste à côté de la surface énumère tous les éléments et permet de les créer, de les légender, de les relier et de les supprimer au clavier — et de les chercher.
+- **Ouvert vers l’extérieur** : une surface peut être enregistrée au format ouvert JSON Canvas et relue depuis celui-ci — pour l’échange avec d’autres outils.
 
 En détail : [Surface Canvas](canvas.md).
 
@@ -184,3 +185,12 @@ Au-delà des quatre grandes constructions, le langage apporte plus de cinquante 
 - **Activables une par une** et ouvert à vos propres extensions via une interface documentée.
 
 En détail : [Fonctionnalités](functions.md), [Extensions](extensions.md), [Créer des extensions](extensions-dev.md).
+
+## Collaboration avec un assistant IA
+
+Qui demande à un assistant IA d'écrire des fichiers obtient d'ordinaire du Markdown ordinaire : le modèle ne connaît pas le langage étendu d'EM4me. C'est pourquoi EM4me livre aussi la description de son propre langage Markdown sous une forme qu'un modèle peut lire. Remettez-la à votre assistant et vous obtenez des fichiers avec des requêtes, des tableaux de données, des événements et des surfaces au lieu de simples paragraphes, sans avoir à les reprendre à la main.
+
+- **Une référence de syntaxe dans un seul fichier** : tout le langage, écrit pour un modèle. Elle est livrée avec le programme et se trouve sur le web à une adresse fixe, `em4me.ch/<langue>/manual/em4me-syntax.md`.
+- **Chaque page du manuel également en Markdown**, à sa propre adresse, pour la question portant sur un seul sujet.
+- **Un fichier d'index `llms.txt` par langue** selon le modèle répandu, grâce auquel un assistant trouve les pages lui-même.
+- **Toujours à l'état livré** : tout naît à chaque construction à partir du manuel. Il n'existe pas de seconde source qui pourrait vieillir.

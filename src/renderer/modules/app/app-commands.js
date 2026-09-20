@@ -44,7 +44,10 @@ import {
 import { exportActiveTabAsPdf } from '../views/pdf-export.js';
 // 4T-001479 (Epic 3E-000177): Druck ueber den Systemdialog.
 import { printActiveTab } from '../views/print.js';
+// 4T-001806 (Epic 3E-000292): Einlesen einer JSON-Canvas-Datei.
+import { importJsonCanvasFiles } from '../views/canvas-import.js';
 import {
+  exportCurrentCanvasAsJsonCanvas,
   exportCurrentTabAsPortable,
   saveCurrentTab,
   saveCurrentTabAs,
@@ -359,6 +362,18 @@ export const commandHandlers = {
   // dieselbe Funktion auf; ihr eigener Guard prüft den aktiven Tab.
   'file.exportPortable': () => {
     exportCurrentTabAsPortable();
+  },
+  // 4T-001805 (Epic 3E-000292): Ausgabe der Canvas-Flaeche im offenen Format
+  // JSON Canvas, im Muster des portablen Exports darueber; der Guard der
+  // gewaehlten Flaeche sitzt in der Funktion selbst.
+  'file.exportJsonCanvas': () => {
+    exportCurrentCanvasAsJsonCanvas();
+  },
+  // 4T-001806 (Epic 3E-000292): Einlesen einer JSON-Canvas-Datei. Ohne Guard
+  // hier: Der Weg braucht weder Reiter noch Flaeche, und die Auswahl trifft
+  // der Anwender im Dialog des Hauptprozesses.
+  'file.importJsonCanvas': () => {
+    importJsonCanvasFiles();
   },
   // 4T-001587 (Epic 3E-000160): Ausgabe der eigenen Einrichtung. Anders als
   // die beiden Export-Wege darueber NICHT dokument-gebunden — die Funktion

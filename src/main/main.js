@@ -84,6 +84,8 @@ const { registerExchangeIpc } = require('./ipc/exchange');
 const { registerLocalesIpc } = require('./ipc/locales');
 // 4T-001598 (Epic 3E-000191): My Extended Memory — die eingetragene Gefaess-Liste.
 const { registerMemoryIpc } = require('./ipc/memory');
+// 4T-001806 (Epic 3E-000292): Einlesen einer Datei des offenen Formats JSON Canvas.
+const { registerCanvasImportIpc } = require('./ipc/canvas-import');
 
 // 4T-000375: volle Version aus package.json-Version und Build-Info; fehlende
 // oder defekte Build-Info fällt auf die dreiteilige Version zurück.
@@ -309,6 +311,7 @@ function registerIpc() {
   registerExchangeIpc(registriere, ipcDeps);
   registerLocalesIpc(registriere, ipcDeps);
   registerMemoryIpc(registriere, ipcDeps);
+  registerCanvasImportIpc(registriere, ipcDeps);
 }
 
 // --- App-Lifecycle -----------------------------------------------------------

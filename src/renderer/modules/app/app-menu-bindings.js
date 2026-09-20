@@ -38,7 +38,10 @@ import { handleLinkUpdateApplied } from '../views/link-update.js';
 import { exportActiveTabAsPdf } from '../views/pdf-export.js';
 // 4T-001479 (Epic 3E-000177): Druck ueber den Systemdialog.
 import { printActiveTab } from '../views/print.js';
+// 4T-001806 (Epic 3E-000292): Einlesen einer JSON-Canvas-Datei.
+import { importJsonCanvasFiles } from '../views/canvas-import.js';
 import {
+  exportCurrentCanvasAsJsonCanvas,
   exportCurrentTabAsPortable,
   saveCurrentTab,
   saveCurrentTabAs,
@@ -198,6 +201,14 @@ export function bindMenuEvents() {
   // 4T-000041: Export 'Portables Markdown...'.
   if (typeof api.onMenuExportPortable === 'function') {
     api.onMenuExportPortable(() => exportCurrentTabAsPortable());
+  }
+  // 4T-001805 (Epic 3E-000292): Export 'Canvas-Flaeche als JSON Canvas...'.
+  if (typeof api.onMenuExportJsonCanvas === 'function') {
+    api.onMenuExportJsonCanvas(() => exportCurrentCanvasAsJsonCanvas());
+  }
+  // 4T-001806 (Epic 3E-000292): Import 'JSON-Canvas-Datei...'.
+  if (typeof api.onMenuImportJsonCanvas === 'function') {
+    api.onMenuImportJsonCanvas(() => importJsonCanvasFiles());
   }
   // 4T-001587 (Epic 3E-000160): 'Datei -> Einstellungen -> Exportieren...'.
   if (typeof api.onMenuExportSetup === 'function') {

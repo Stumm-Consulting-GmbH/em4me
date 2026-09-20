@@ -351,6 +351,63 @@ La cible dans le concept
 
 **Si la vue canevas est désactivée en tant qu'[extension interne](extensions.md)**, la surface reste aussi dans l'export un bloc de code lisible — la même affirmation que cette page fait déjà pour la vue rendue : le document reste lisible et rien n'est perdu.
 
+## Échange avec d’autres outils
+
+Une surface n’est pas obligée de rester dans cette application. Elle s’enregistre comme fichier au format ouvert **JSON Canvas** — extension `.canvas` —, que d’autres outils savent lire également ; inversement, un tel fichier se lit ici. Qui travaille avec quelqu’un qui utilise un autre outil peut ainsi transmettre sa surface au lieu de la décrire.
+
+**Le stockage reste le fichier Markdown.** Le fichier écrit est un produit d’échange et non un second format de stockage : il n’est pas mis à jour lorsque la surface change ensuite, et à la lecture il est lu et non repris.
+
+**Écrire une surface** — en quatre étapes :
+
+1. Ouvrir la vue canevas. Si le document porte plusieurs surfaces, choisir l’onglet de celle voulue : ce qui est écrit, c’est la surface actuellement visible.
+2. Choisir **Fichier → Autres fonctions de fichier → Exporter → Canevas au format JSON Canvas…**.
+3. La boîte d’enregistrement propose le nom du document avec l’extension `.canvas` dans le dossier du document ; le nom et l’emplacement se modifient.
+4. Une fois le fichier écrit, un message indique ce qui a été transmis et ce qui ne l’a pas été.
+
+L’entrée n’est sélectionnable que tant que la vue canevas montre une surface ; sinon elle reste visible mais grisée. Le document lui-même n’est pas touché, et s’il porte d’autres surfaces, le message en indique le nombre.
+
+**Lire un fichier** — en quatre étapes :
+
+1. Choisir **Fichier → Autres fonctions de fichier → Importer → Fichier JSON Canvas…**. Cela ne demande ni surface ouverte ni document ouvert.
+2. Dans la boîte d’ouverture, choisir un ou plusieurs fichiers portant l’extension `.canvas` ; avec un espace ouvert, ils doivent s’y trouver.
+3. Pour chaque fichier choisi, un nouveau document naît **à côté de lui**, avec son nom et l’extension `.md`. Si ce nom est déjà pris, un nombre est ajouté : `Plan.canvas` devient alors `Plan-2.md`. Chaque nouveau document est ouvert et montre la vue canevas.
+4. Ensuite, **un seul** message couvre tous les fichiers choisis, avec une section par fichier.
+
+Les fichiers choisis restent en place, inchangés. **Les liens retrouvent leurs fichiers** lorsque le fichier lu se trouve à sa place dans le dossier repris — le cas courant lorsqu’un fonds étranger entier est repris ; une cible introuvable de cette manière figure ensuite sur la carte avec son simple nom de fichier et est nommée dans le message.
+
+**Après chaque opération, l’application dit ce qui a été transmis et ce qui ne l’a pas été** — chaque fois avec un nombre, et aussi lorsque tout est passé. Le message n’est pas un message d’erreur, mais le justificatif de l’échange : les deux formats ne se recouvrent pas complètement, et ce qui ne correspond pas ne doit pas se produire en silence.
+
+**Ce que devient la surface à l’écriture :**
+
+| Sur la surface | Ce que cela devient |
+| -------------- | ------------------- |
+| une carte, un groupe, une connexion | la même chose là-bas, avec position, taille, ordre, couleur et légende |
+| une forme | une carte de texte au même endroit et de la même taille, avec sa légende comme texte et sa couleur de bord comme couleur de la carte ; qu’il s’agissait d’une forme, ainsi que son remplissage, ne figurent plus nulle part |
+| la légende d’une carte de lien ou d’image | un cadre avec titre autour de cette carte |
+| les couleurs bleu et rose | une valeur de couleur, car l’autre format ne porte pas de nom pour ces deux-là |
+| un côté d’attache que l’application choisit elle-même | aucune indication ; l’autre outil choisit le côté |
+| les autres surfaces du même document | rien — le fichier porte exactement une surface ; le message en indique le nombre |
+| un élément erroné ou inconnu | rien ; il est compté |
+
+**Ce que devient le fichier à la lecture :**
+
+| Dans le fichier | Ce que cela devient |
+| --------------- | ------------------- |
+| une carte de texte, un groupe, une connexion | la même chose ici, avec position, taille, ordre, couleur et légende |
+| un simple saut de ligne dans le texte d’une carte | un saut de ligne forcé ; la carte affiche les mêmes lignes que dans l’autre outil |
+| une carte pointant vers un document ou une image | une carte de lien ou une carte d’image ; une cible sur un titre ou un bloc est conservée |
+| une carte portant une adresse web | une carte de texte avec l’adresse comme lien cliquable |
+| une carte pointant vers un autre type de fichier | une carte de texte avec un lien vers ce fichier |
+| la couleur d’une carte | rien — ici, une carte ne porte pas de couleur |
+| une valeur de couleur libre sur un groupe ou une connexion | la plus proche des huit couleurs |
+| une connexion commençant ou finissant sur un groupe | rien ; ici, les connexions ne relient que des cartes |
+| une pointe de flèche au début seulement | une connexion dirigée ordinaire, début et fin échangés — sans perte |
+| une image de fond d’un groupe | rien |
+
+**L’aller-retour ne ramène pas au point de départ.** Une surface écrite puis relue ne revient **pas** identique : une forme est devenue une carte de texte et le reste, la légende d’une carte de lien est devenue un cadre. C’est le prix de l’échange et non une lacune — des marques cachées permettant de reconnaître l’élément d’origine n’existent volontairement pas, car elles apparaîtraient comme des déchets de données dans tout autre outil.
+
+**Si la vue canevas est désactivée comme [extension interne](extensions.md)**, aucune des deux voies n’est disponible : l’entrée d’écriture et l’entrée de lecture disparaissent du menu, et les deux commandes ne sont pas davantage accessibles par la palette de commandes.
+
 ## Les liens dans le réseau de l'espace
 
 Une carte de lien est un **lien comme un lien dans le texte courant** — simplement posé sur une surface. Elle apparaît donc partout où l'application montre des liens :
@@ -541,4 +598,6 @@ se conditionnent
 - **La recherche dans l'espace trouve toujours un document porteur d'une surface par son texte**, car la surface y figure en clair ; elle n'est pas pour autant une source d'occurrences à part. Les cartes, formes et groupes pris isolément n'apparaissent donc pas comme occurrences propres — c'est le champ de filtre de la liste du canevas qui les trouve.
 - **L'export portable restitue la surface sous forme de texte, pas d'image.** L'agencement spatial ne voyage pas, et aucune surface ne peut être reconstituée à partir de la correspondance ; passent le contenu, les groupes et le réseau des connexions.
 - **Un élément erroné n'est pas omis en silence dans l'export** : il est écrit avec ce qu'il a de lisible et accompagné d'une ligne de remarque. Une forme sans étiquette est en revanche omise, parce qu'il n'en resterait rien sans la représentation spatiale.
+- **L’échange avec le format ouvert n’est pas un aller-retour sans perte.** Une surface écrite puis relue ne revient pas identique : une forme revient en carte de texte, la légende d’une carte de lien en cadre.
+- **Un fichier du format étranger n’est pas ouvert comme document, mais lu.** Il reste en place, inchangé ; la surface est ensuite portée par le nouveau document à côté de lui, et ce qui y est modifié ne repart pas dans le fichier.
 - Une surface appartient à son document. Les cartes ne peuvent pas être glissées d'une surface à une autre.

@@ -351,6 +351,63 @@ L'obiettivo nel concetto
 
 **Se la vista tela è disattivata come [estensione interna](extensions.md)**, la superficie resta anche nell'esportazione un blocco di codice leggibile — la stessa affermazione che questa pagina fa già per la vista renderizzata: il documento resta leggibile e non va perso nulla.
 
+## Scambio con altri strumenti
+
+Una superficie non deve restare dentro questa applicazione. Si salva come file nel formato aperto **JSON Canvas** — estensione `.canvas` —, che anche altri strumenti leggono; viceversa, un file così si legge qui. Chi lavora con qualcuno che usa un altro strumento può così consegnare la propria superficie invece di descriverla.
+
+**La memorizzazione resta il file Markdown.** Il file scritto è un prodotto di scambio e non un secondo formato di memorizzazione: non viene aggiornato quando la superficie cambia in seguito, e alla lettura viene letto e non ripreso.
+
+**Scrivere una superficie** — in quattro passi:
+
+1. Aprire la vista tela. Se il documento porta più superfici, scegliere la scheda di quella voluta: viene scritta la superficie che si vede in quel momento.
+2. Scegliere **File → Altre funzioni file → Esporta → Tela come JSON Canvas…**.
+3. La finestra di salvataggio propone il nome del documento con l’estensione `.canvas` nella cartella del documento; nome e posizione si possono cambiare.
+4. Scritto il file, compare il messaggio con ciò che è stato trasferito e ciò che no.
+
+La voce è selezionabile solo finché la vista tela mostra una superficie; altrimenti resta visibile ma in grigio. Il documento stesso resta intatto e, se porta altre superfici, il messaggio ne indica il numero.
+
+**Leggere un file** — in quattro passi:
+
+1. Scegliere **File → Altre funzioni file → Importare → File JSON Canvas…**. Non servono né una superficie aperta né un documento aperto.
+2. Nella finestra di apertura scegliere uno o più file con l’estensione `.canvas`; con un’area aperta devono trovarsi al suo interno.
+3. Per ogni file scelto nasce **accanto ad esso** un nuovo documento con il suo nome e l’estensione `.md`. Se quel nome è già occupato, viene aggiunto un numero: `Plan.canvas` diventa allora `Plan-2.md`. Ogni nuovo documento viene aperto e mostra la vista tela.
+4. Poi **un solo** messaggio copre tutti i file scelti, con una sezione per ciascuno.
+
+I file scelti restano dove sono, invariati. **I collegamenti ritrovano i loro file** quando il file letto si trova al suo posto nella cartella ripresa — il caso consueto quando si riprende un intero fondo estraneo; una destinazione che così non si trova compare poi sulla scheda con il suo semplice nome di file e viene nominata nel messaggio.
+
+**Dopo ogni operazione l’applicazione dice che cosa è stato trasferito e che cosa no** — ciascuno con il proprio numero, e anche quando tutto è passato. Il messaggio non è un messaggio di errore, ma la ricevuta dello scambio: i due formati non si coprono del tutto, e ciò che non coincide non deve accadere in silenzio.
+
+**Che cosa diventa la superficie alla scrittura:**
+
+| Sulla superficie | Che cosa ne diventa |
+| ---------------- | ------------------- |
+| una scheda, un gruppo, un collegamento | lo stesso di là, con posizione, dimensione, ordine, colore e didascalia |
+| una forma | una scheda di testo nello stesso punto e della stessa dimensione, con la sua didascalia come testo e il suo colore di bordo come colore della scheda; che fosse una forma, e il suo riempimento, non figurano più da nessuna parte |
+| la didascalia di una scheda di collegamento o immagine | una cornice con titolo attorno a quella scheda |
+| i colori blu e rosa | un valore di colore, perché l’altro formato non porta un nome per questi due |
+| un lato di attacco che l’applicazione sceglie da sé | nessuna indicazione; l’altro strumento sceglie il lato |
+| le altre superfici dello stesso documento | nulla — il file porta esattamente una superficie; il messaggio ne indica il numero |
+| un elemento errato o sconosciuto | nulla; viene contato |
+
+**Che cosa diventa il file alla lettura:**
+
+| Nel file | Che cosa ne diventa |
+| -------- | ------------------- |
+| una scheda di testo, un gruppo, un collegamento | lo stesso qui, con posizione, dimensione, ordine, colore e didascalia |
+| un semplice a capo nel testo di una scheda | un a capo forzato; la scheda mostra le stesse righe dell’altro strumento |
+| una scheda rivolta a un documento o a un’immagine | una scheda di collegamento o una scheda immagine; una destinazione su un titolo o su un blocco resta |
+| una scheda con un indirizzo web | una scheda di testo con l’indirizzo come collegamento da toccare |
+| una scheda rivolta a un altro tipo di file | una scheda di testo con un collegamento a quel file |
+| il colore di una scheda | nulla — qui una scheda non porta colore |
+| un valore di colore libero su un gruppo o un collegamento | il più vicino degli otto colori |
+| un collegamento che inizia o finisce su un gruppo | nulla; qui i collegamenti corrono solo tra schede |
+| una punta di freccia solo all’inizio | un normale collegamento orientato con inizio e fine scambiati — senza perdita |
+| un’immagine di sfondo di un gruppo | nulla |
+
+**L’andata e il ritorno non riportano al punto di partenza.** Una superficie scritta e riletta **non** torna identica: una forma è diventata una scheda di testo e tale resta, la didascalia di una scheda di collegamento è diventata una cornice. È il prezzo dello scambio e non una lacuna — marcature nascoste con cui riconoscere di nuovo l’elemento originario non esistono di proposito, perché in ogni altro strumento apparirebbero come rifiuti di dati.
+
+**Se la vista tela è spenta come [estensione interna](extensions.md)**, nessuna delle due vie è disponibile: la voce per scrivere e la voce per leggere spariscono dal menu, e nemmeno dalla palette dei comandi si raggiungono i due comandi.
+
 ## I collegamenti nella rete dell'area
 
 Una scheda di collegamento è un **collegamento come uno nel testo corrente**, soltanto posato su una superficie. Compare perciò ovunque l'applicazione mostri collegamenti:
@@ -541,4 +598,6 @@ si condizionano
 - **La ricerca nell'area continua a trovare un documento con superficie attraverso il suo testo**, perché la superficie vi sta in chiaro; una fonte propria di occorrenze non lo è. Schede, forme e gruppi presi singolarmente non compaiono quindi come occorrenze proprie: li trova il campo di filtro dell'elenco della tela.
 - **L'esportazione portabile restituisce la superficie come testo, non come immagine.** La disposizione spaziale non viaggia e dalla corrispondenza non si può recuperare alcuna superficie; passano il contenuto, i gruppi e la rete dei collegamenti.
 - **Un elemento errato non viene omesso in silenzio nell'esportazione**: viene scritto con ciò che ha di leggibile e accompagnato da una riga di nota. Una forma senza etichetta viene invece omessa, perché senza la rappresentazione spaziale non ne resterebbe nulla.
+- **Lo scambio con il formato aperto non è un percorso di andata e ritorno senza perdite.** Una superficie scritta e riletta non torna identica: una forma torna come scheda di testo, la didascalia di una scheda di collegamento come cornice.
+- **Un file del formato estraneo non viene aperto come documento, ma letto.** Resta dov’è, invariato; la superficie la porta poi il nuovo documento accanto ad esso, e ciò che vi viene cambiato non torna nel file.
 - Una superficie appartiene al suo documento. Le schede non si possono trascinare da una superficie a un'altra.

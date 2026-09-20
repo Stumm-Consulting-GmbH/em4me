@@ -351,6 +351,63 @@ Target picture in the concept
 
 **If the canvas view is switched off as an [internal extension](extensions.md)**, the surface stays a readable code block in the export too — the same statement this page already makes for the rendered view: the document stays readable, and nothing is lost.
 
+## Exchanging with other tools
+
+A surface does not have to stay inside this application. It can be saved as a file in the open **JSON Canvas** format — extension `.canvas` — which other tools read as well; conversely, such a file can be read in here. Anyone working with someone who uses a different tool can hand a surface over instead of describing it.
+
+**The storage stays the Markdown file.** The written file is an exchange product and not a second storage format: it is not kept up to date when the surface changes later, and when read in it is read and not adopted.
+
+**Writing a surface out** — in four steps:
+
+1. Open the canvas view. If the document carries several surfaces, pick the tab of the one you want: what is written out is the surface currently on screen.
+2. Choose **File → More File Functions → Export → Canvas as JSON Canvas…**.
+3. The save dialog offers the name of the document with the extension `.canvas` in the folder of the document; name and place can be changed.
+4. Once the file is written, a message appears with what was transferred and what was not.
+
+The entry can only be chosen while the canvas view shows a surface; otherwise it stands there visible but greyed out. The document itself stays untouched, and if it carries further surfaces, the message names how many.
+
+**Reading a file in** — in four steps:
+
+1. Choose **File → More File Functions → Import → JSON Canvas file…**. Neither an open surface nor an open document is needed for this.
+2. In the open dialog pick one or more files with the extension `.canvas`; with an area open they have to lie inside it.
+3. For each chosen file a new document is created **next to it**, with its name and the extension `.md`. If that name is already taken, a number is appended: `Plan.canvas` then becomes `Plan-2.md`. Every new document is opened and shows the canvas view.
+4. Afterwards **one** message covers all chosen files, with a section for each of them.
+
+The chosen files stay where they are, unchanged. **Links find their files** when the file read in lies in its place inside the folder taken over — the usual case when a whole foreign collection is adopted; a target that cannot be found that way afterwards stands on the card with its bare file name and is named in the message.
+
+**After every exchange the application says what was transferred and what was not** — each with a count, and also when everything came along. The message is not an error message but the receipt of the exchange: the two formats do not cover each other completely, and what does not match should not happen silently.
+
+**What becomes of the surface when writing out:**
+
+| On the surface | What becomes of it |
+| -------------- | ------------------ |
+| a card, a group, a connection | the same over there, with position, size, order, colour and caption |
+| a shape | a text card in the same place and the same size, with its caption as text and its outline colour as the colour of the card; that it was a shape, and its fill, are nowhere any more |
+| the caption of a link or image card | a titled frame around that card |
+| the colours blue and pink | a colour value, because the other format carries no name for these two |
+| an attachment side the application picks itself | no entry at all; the other tool picks the side |
+| further surfaces of the same document | nothing — the file carries exactly one surface; the message names how many were left out |
+| a faulty or unknown element | nothing; it is counted |
+
+**What becomes of the file when reading in:**
+
+| In the file | What becomes of it |
+| ----------- | ------------------ |
+| a text card, a group, a connection | the same over here, with position, size, order, colour and caption |
+| a simple line break in the text of a card | a hard line break; the card shows the same lines as in the other tool |
+| a card pointing at a document or an image | a link card or an image card; a target on a heading or a block is kept |
+| a card with a web address | a text card with the address as a link to click |
+| a card pointing at another kind of file | a text card with a link to that file |
+| the colour of a card | nothing — a card carries no colour here |
+| a free colour value on a group or a connection | the nearest of the eight colours |
+| a connection starting or ending at a group | nothing; connections run between cards only here |
+| an arrow head at the start only | an ordinary directed connection with start and end swapped — without loss |
+| a background image of a group | nothing |
+
+**The way out and back does not lead to the starting point.** A surface written out and read in again does **not** come back identical: a shape has become a text card and stays one, the caption of a link card has become a frame. That is the price of the exchange and not a gap — hidden markers by which the original element could be recognised again deliberately do not exist, because they would show up as data rubbish in every other tool.
+
+**If the canvas view is switched off as an [internal extension](extensions.md)**, neither way is available: the entry for writing out and the entry for reading in disappear from the menu, and the two commands cannot be reached through the command palette either.
+
 ## Links in the network of the area
 
 A link card is a **link like one in running text** — only on a surface. It therefore appears everywhere the application shows links:
@@ -541,4 +598,6 @@ depend on each other
 - **The search in the area still finds a document with a surface through its text**, because the surface stands in plain text inside it; a source of matches of its own it is not. Single cards, shapes and groups therefore do not appear as matches of their own — those are found by the filter field of the canvas list.
 - **The portable export renders the surface as text, not as a picture.** The spatial arrangement does not travel along, and no surface can be won back from the equivalent; what carries over is content, groups and the web of connections.
 - **A faulty element is not silently dropped in the export**, but written out with whatever is readable in it and marked with a note line. A shape without a label is left out, though, because nothing of it would remain without the spatial rendering.
+- **The exchange with the open format is not a lossless round trip.** A surface written out and read in again does not come back identical: a shape returns as a text card, the caption of a link card as a frame.
+- **A file of the foreign format is not opened as a document but read in.** It stays where it is, unchanged; the surface is then carried by the new document next to it, and what is changed there does not travel back into the file.
 - A surface belongs to its document. Cards cannot be dragged from one surface to another.

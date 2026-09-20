@@ -951,6 +951,7 @@ function canvasFenceBlock(rumpf) {
 
 module.exports = {
   CANVAS_EXTENSION_ID,
+  ID_RE,
   MARKER_ARTEN,
   STAPEL_ARTEN,
   LAGE_ZAHLEN,

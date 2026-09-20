@@ -63,6 +63,13 @@ const EXPECTED_FILES = [
   // Verbindungen wird, was nicht mitreist und dass Drucken und PDF-Export
   // unberuehrt bleiben. Wieder ohne neue Datei und ohne neues Verweis-Ziel:
   // Soll-Liste und E2E-Zaehlungen bleiben unveraendert.
+  // 4T-001807 (Epic 3E-000292): dazu ein Abschnitt zum Austausch mit dem
+  // offenen Format JSON Canvas — beide Menue-Wege an der Beispiel-Flaeche, was
+  // dabei ersetzt wird und der Bericht am Ende. Bewusst OHNE Beispiel-Datei des
+  // fremden Formats: Die Demo-Area muss ohne den Bereich des Anwenders
+  // funktionieren, und eine Datei mit der Endung .canvas waere in ihr weder
+  // Dokument noch Verweis-Ziel. Soll-Liste und E2E-Zaehlungen bleiben deshalb
+  // auch hier unveraendert.
   '12 Canvas.md',
   // 4T-000645 (Epic 3E-000127): astronomischer Themenbereich als vierstufige
   // Unterseiten-Hierarchie (Galaxie, Stern, Planet, Mond) plus drei

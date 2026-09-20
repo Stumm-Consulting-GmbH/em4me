@@ -115,5 +115,8 @@
   "menu.file.updateLocale": "Update…",
   "menu.view.canvas": "Canvas",
   "menu.view.canvasEdit": "Edit canvas",
-  "menu.view.canvasStack": "Canvas stacking order"
+  "menu.view.canvasStack": "Canvas stacking order",
+  "menu.file.exportJsonCanvas": "Canvas as JSON Canvas…",
+  "menu.file.import": "Import",
+  "menu.file.importJsonCanvas": "JSON Canvas file…"
 }

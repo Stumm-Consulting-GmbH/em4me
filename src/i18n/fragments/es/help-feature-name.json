@@ -219,6 +219,8 @@
   "help.featureName.canvasLinkCards": "Tarjetas de enlace en el lienzo",
   "help.featureName.canvasImageCards": "Tarjetas de imagen en el lienzo",
   "help.featureName.canvasList": "Lista del lienzo",
+  "help.featureName.canvasExportJson": "Exportación del lienzo como JSON Canvas",
+  "help.featureName.canvasImportJson": "Importación de un archivo JSON Canvas",
   "help.featureName.databaseTable": "Definición de tabla",
   "help.featureName.databaseColumnTypes": "Tipos de columna de una tabla",
   "help.featureName.databaseRecordKey": "Identificador de registro y clave funcional",

@@ -134,6 +134,9 @@ const SECHS_FAELLE = [
 // 3E-000289): die Kommandos der Verweis- und der Bild-Karten ebenso. 4T-001770
 // (Epic 3E-000290): das Kommando der Verbindung ohne Maus, aus demselben Grund.
 // 4T-001759 (Epic 3E-000253): die Uebersicht der Datenbank aus demselben Grund.
+// 4T-001805 (Epic 3E-000292): die Ausgabe der Flaeche als JSON-Canvas-Datei
+// aus demselben Grund. 4T-001806 (Epic 3E-000292): das Einlesen einer solchen
+// Datei ebenso.
 const NACH_DER_MESSUNG = new Set([
   'database.openOverview',
   'view.modeCanvas',
@@ -148,6 +151,8 @@ const NACH_DER_MESSUNG = new Set([
   'canvas.stackBackward',
   'canvas.stackBack',
   'insert.canvas',
+  'file.exportJsonCanvas',
+  'file.importJsonCanvas',
 ]);
 
 // 4T-001765 (Epic 3E-000186, E6): Die drei Editor-Schalter, deren REGEL dieser

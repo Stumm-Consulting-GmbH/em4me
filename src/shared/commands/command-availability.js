@@ -120,6 +120,10 @@ function editorContext(ctx) {
 // Palette. Keiner ist erfunden: Sie sind die Namen der heutigen Palette-Mengen
 // (dort bereits benannt), auf die die Erhebung die Menue-Seite abgebildet hat.
 //
+// Gewachsen ist der Katalog seither um die drei Canvas-Bedingungen (zwei mit
+// 4T-001697, die dritte mit 4T-001805); die Zahl oben nennt den Stand der
+// Erhebung, an dem die Namen belegt sind, und wird deshalb nicht fortgezaehlt.
+//
 // `felder` nennt die gelesenen Kontext-Felder. Es ist Dokumentation UND
 // Pruefgegenstand: Der Waechter stellt jede Bedingung gegen einen Kontext, in
 // dem nur diese Felder gesetzt sind, und faellt auf, wenn eine Regel still ein
@@ -191,6 +195,31 @@ const AVAILABILITY_CATALOG = [
     name: 'canvasKarte',
     felder: ['systemTab', 'canvasTab', 'viewMode'],
     pruefe: (c) => !c.systemTab && !!c.canvasTab && c.viewMode === 'canvas',
+  },
+  // 4T-001805 (Epic 3E-000292): Die dritte Canvas-Bedingung. Sie gilt fuer
+  // Befehle, die eine OFFENE Flaeche brauchen und unter einem Menue-Punkt mit
+  // eigener Freigabe-Regel haengen — heute die Ausgabe im offenen Format JSON
+  // Canvas im Untermenue «Exportieren».
+  //
+  // **Warum `hasTab` ausdruecklich dasteht.** Der Inhalt ist der von
+  // `canvasKarte`, und im laufenden Programm setzt `canvasTab` einen aktiven
+  // Reiter ohnehin voraus (es entsteht aus ihm, ueber
+  // istCanvasModusVerfuegbar). Der Untermenue-Punkt «Exportieren» traegt aber
+  // die eigene Regel `hasTab && !systemTab`, und der Durchlauf-Waechter aus
+  // 4T-001637 prueft jede Kind-Bedingung gegen ALLE Kontext-Belegungen — auch
+  // gegen die im Programm unmoegliche Lage «Flaeche ohne Reiter». Die
+  // ausgeschriebene Voraussetzung ist dort nicht nur die gruene, sondern die
+  // ehrlichere Form: Sie sagt, was der Befehl wirklich braucht, statt es aus
+  // einem anderen Feld zu folgern.
+  //
+  // **Eine eigene Bedingung statt einer Aenderung an den beiden vorhandenen**
+  // (Ausfuehrungs-Entscheidung der Sitzung vom 2026-09-19): `canvasAnsicht` und
+  // `canvasKarte` tragen fremde Befehle, und ihr Vermerk, die Ausdruecke
+  // stammten woertlich aus den enabled-Zeilen von menu.js, soll wahr bleiben.
+  {
+    name: 'canvasFlaecheOffen',
+    felder: ['hasTab', 'systemTab', 'canvasTab', 'viewMode'],
+    pruefe: (c) => !!c.hasTab && !c.systemTab && !!c.canvasTab && c.viewMode === 'canvas',
   },
   {
     name: 'editor',

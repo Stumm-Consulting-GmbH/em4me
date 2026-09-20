@@ -5,7 +5,7 @@
 //
 // Auszug aus main.js, 4T-000999 (Epic 3E-000196). Kanal-Gruppe: dialog:*,
 // events:confirmDelete, calendar:confirmDependents/blockedDelete, pdf:*,
-// shell:openExternal, spellcheck:*.
+// shell:openExternal, spellcheck:*, canvas:austauschBericht.
 //
 // Eigener Zustand: keiner. Electron-Werte kommen ueber das Deps-Objekt, damit
 // das Modul zur Lade-Zeit ohne Electron ladbar bleibt.
@@ -14,6 +14,9 @@
 const path = require('node:path');
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 const { printToPdfOptions, printSystemOptions } = require('../../shared/pdf-options');
+// 4T-001805 (Epic 3E-000292): Die Saetze der Austausch-Meldung, prozessneutral
+// gebildet und von beiden Richtungen geteilt.
+const { austauschBericht } = require('../../shared/canvas/canvas-austausch-bericht.js');
 
 /**
  * Registriert die Dialog- und Systemdienst-Kanaele.
@@ -336,6 +339,29 @@ function registerDialogsIpc(handle, deps) {
         .replace('{count}', String(Array.isArray(names) ? names.length : 0))
         .replace('{names}', Array.isArray(names) ? names.join(', ') : ''),
       buttons: [t('settings.calendar.derivedBlocked.ok')],
+      noLink: true,
+    });
+    return true;
+  });
+
+  // 4T-001805 (Epic 3E-000292): Ergebnis-Meldung des Austauschs mit dem offenen
+  // Format JSON Canvas.
+  //
+  // **Der Anzeige-Prozess schickt Zahlen, keine Saetze.** Die Saetze entstehen
+  // hier aus denselben Schluesseln, aus denen jeder andere Dialog dieser Datei
+  // seine Texte zieht; ein fertiger Text aus dem Renderer waere ein zweiter
+  // Uebersetzungs-Weg neben tForWindow. Gebildet werden sie im prozessneutralen
+  // Modul canvas-austausch-bericht.js, damit beide Richtungen des Austauschs
+  // denselben Bericht liefern und er ohne Electron pruefbar bleibt.
+  handle('canvas:austauschBericht', async (event, params) => {
+    const owner = senderWindow(event);
+    const bericht = austauschBericht(params, (k) => tForWindow(owner, k));
+    await dialog.showMessageBox(owner || undefined, {
+      type: 'info',
+      title: bericht.titel,
+      message: bericht.kopf,
+      detail: bericht.zeilen.join('\n'),
+      buttons: [bericht.ok],
       noLink: true,
     });
     return true;

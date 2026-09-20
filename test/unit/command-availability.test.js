@@ -131,7 +131,7 @@ describe('Kontext-Vertrag (4T-001635)', () => {
 });
 
 describe('Bedingungs-Katalog (4T-001635)', () => {
-  it('traegt die achtzehn benannten Bedingungen des Katalogs', () => {
+  it('traegt die neunzehn benannten Bedingungen des Katalogs', () => {
     expect(AVAILABILITY_NAMES).toEqual([
       'immer',
       'anyTab',
@@ -152,6 +152,11 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
       // trug; der Katalog ist damit gewachsen, seine Regeln sind es nicht.
       'canvasAnsicht',
       'canvasKarte',
+      // 4T-001805 (Epic 3E-000292): die dritte Canvas-Bedingung. Sie traegt
+      // die Ausgabe im offenen Format JSON Canvas und nennt `hasTab`
+      // ausdruecklich, weil ihr Menue-Eintrag unter einem Untermenue-Punkt mit
+      // eigener Freigabe-Regel haengt.
+      'canvasFlaecheOffen',
       'editor',
       'tabelle',
       'editorUndKalender',
@@ -242,6 +247,30 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
     expect(isAvailable('workspaceMit', kontext({}))).toBe(false);
     expect(isAvailable('workspaceOhne', kontext({}))).toBe(true);
     expect(isAvailable('workspaceOhne', kontext({ hasWorkspace: true }))).toBe(false);
+
+    // 4T-001805 (Epic 3E-000292): die dritte Canvas-Bedingung, an jeder ihrer
+    // vier Voraussetzungen einzeln gemessen. Sie traegt die Ausgabe im offenen
+    // Format JSON Canvas: waehlbar in der OFFENEN Canvas-Ansicht, sonst
+    // ausgegraut (Freigabe des Product Owners vom 2026-09-19 zu F2).
+    const flaecheOffen = { hasTab: true, canvasTab: true, viewMode: 'canvas' };
+    expect(isAvailable('canvasFlaecheOffen', kontext(flaecheOffen))).toBe(true);
+    // Dokument mit Flaeche, aber in einer anderen Ansicht: gesperrt.
+    expect(
+      isAvailable('canvasFlaecheOffen', kontext({ ...flaecheOffen, viewMode: 'rendered' })),
+    ).toBe(false);
+    // Kein Reiter: gesperrt — und zwar ausgeschrieben, weil der
+    // Untermenue-Punkt «Exportieren» dieselbe Voraussetzung traegt.
+    expect(isAvailable('canvasFlaecheOffen', kontext({ ...flaecheOffen, hasTab: false }))).toBe(
+      false,
+    );
+    // Einstellungs-Reiter: gesperrt.
+    expect(isAvailable('canvasFlaecheOffen', kontext({ ...flaecheOffen, systemTab: true }))).toBe(
+      false,
+    );
+    // Dokument ohne Flaeche: gesperrt.
+    expect(isAvailable('canvasFlaecheOffen', kontext({ ...flaecheOffen, canvasTab: false }))).toBe(
+      false,
+    );
 
     const imEditor = { hasTab: true, editMode: true, viewMode: 'source' };
     expect(isAvailable('editor', kontext(imEditor))).toBe(true);
@@ -514,6 +543,19 @@ const MENUE_BASISLINIE = new Map([
   ['view.toggleLineNumbers', 'sourceToggle'],
   ['view.toggleWordWrap', 'sourceToggle'],
   ['view.toggleTypewriterScroll', 'immer'],
+  // 4T-001805 (Epic 3E-000292): Die Ausgabe der Flaeche im offenen Format JSON
+  // Canvas. Sie stand am 2026-09-09 nicht im gemessenen Menue, weil sie erst
+  // hier entsteht; ihre Basislinie ist deshalb die Bedingung, mit der sie in
+  // das Untermenue «Exportieren» eingehaengt wird: die offene Canvas-Ansicht
+  // (Freigabe des Product Owners vom 2026-09-19 zu F2, im Wortlaut «nur in der
+  // Canvas-Ansicht waehlbar und sonst ausgegraut»).
+  ['file.exportJsonCanvas', 'canvasFlaecheOffen'],
+  // 4T-001806 (Epic 3E-000292): Das Einlesen einer solchen Datei. Es stand am
+  // 2026-09-09 ebenso wenig im gemessenen Menue; seine Basislinie ist die
+  // Bedingung, mit der es in das neue Untermenue «Importieren» eingehaengt
+  // wird — `immer`, weil es weder Reiter noch offene Flaeche braucht. Der
+  // Untermenue-Punkt darueber traegt bewusst keine eigene Regel.
+  ['file.importJsonCanvas', 'immer'],
 ]);
 
 // --- Punkt 3: kein Nebenweg im Menue (4T-001637) ----------------------------

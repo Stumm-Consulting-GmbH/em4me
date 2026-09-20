@@ -14,6 +14,146 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.140.0.3081] - 2026-09-20 — Canvas Stufe 6: Austausch mit anderen Werkzeugen
+
+Zug 3E-000316,
+Stufe 6 und letzte des Canvas-Vorhabens. Mitglied 1 und einziges:
+3E-000292,
+die sechste Ausbaustufe der Fläche — eine Canvas-Fläche lässt sich als Datei im
+offenen Format JSON Canvas ausgeben und eine solche Datei als Fläche einlesen,
+dazu Handbuch, Funktions-Katalog und Demo-Beispiel. Das Speicherformat ist
+**nicht** berührt: Der Austausch übersetzt in beide Richtungen, ohne das eigene
+Format zu erweitern. Eine Zusage der Verlustfreiheit gibt es ausdrücklich
+nicht; nach jedem Vorgang sagt ein Bericht, was übertragen wurde und was nicht.
+Der Abschluss-Anteil des Epics liegt in
+4T-001808.
+
+**Mit diesem Release wird zusätzlich wirksam, was seit dem vorigen Release in
+den Integrationsstand gekommen ist, ohne selbst ein Release zu haben:** die
+maschinenlesbare Dokumentations-Fassung (Abschnitt «Dokumentation») und die
+erneuerten Bildschirmfotos der Produkt-Webseite (Abschnitt «Intern»). Beide
+gehören nicht zum Zug, erreichen den Anwender aber mit dieser Auslieferung und
+stehen deshalb hier.
+
+### Neu
+
+- **Canvas-Fläche als JSON-Canvas-Datei ausgeben** (`4T-001804`, `4T-001805`).
+  Wer eine Canvas-Fläche vor sich hat, gibt sie über **Datei → Weitere
+  Datei-Funktionen → Exportieren → Canvas-Fläche als JSON Canvas…** als Datei im
+  offenen Format aus; der Speichern-Dialog schlägt den Namen des Dokuments mit
+  der Endung `.canvas` im Ordner des Dokuments vor. Ausgegeben wird die Fläche,
+  deren Reiter gerade gewählt ist; der Eintrag ist nur bei offener
+  Canvas-Ansicht wählbar. Lage, Größe und Reihenfolge der Elemente gehen
+  unverändert über, ebenso Gruppen, Beschriftungen und die Verbindungen mit
+  Richtung und Beschriftung. **Was das andere Format nicht kennt, bekommt den
+  bestmöglichen Ersatz:** Eine geometrische Form wird zur Text-Karte an
+  derselben Stelle, die Beschriftung einer Verweis- oder Bild-Karte wird ein
+  Rahmen mit Titel um die Karte, und die beiden Farben ohne Entsprechung reisen
+  als Farbwert mit. **Nach jedem Vorgang sagt ein Bericht**, was übertragen
+  wurde und was nicht — jeder Posten mit seiner Anzahl. Die eigene Datei bleibt
+  dabei unverändert, und eine ausgegebene Datei wird nicht fortgeschrieben.
+- **JSON-Canvas-Datei als Canvas einlesen** (`4T-001804`, `4T-001806`). Über
+  **Datei → Weitere Datei-Funktionen → Importieren → JSON-Canvas-Datei…**
+  lassen sich eine oder mehrere solcher Dateien einlesen. Je Datei entsteht ein
+  **neues Dokument neben der Quelle**, mit deren Namen und der Endung `.md`;
+  ist der Name belegt, hängt die Anwendung einen Bindestrich und eine Zahl an.
+  Das neue Dokument wird geöffnet und zeigt die Canvas-Ansicht, **die
+  eingelesene Datei bleibt unverändert liegen**. Karten, Gruppen,
+  Verbindungen, Lage, Größe und Reihenfolge kommen mit; eine Karte mit einer
+  Web-Adresse und eine Karte auf einen anderen Dateityp werden Text-Karten mit
+  dem jeweiligen Verweis, ein freier Farbwert wird die nächstliegende der acht
+  Farben, und ein Pfeil nur am Anfang wird ohne Verlust zur gerichteten
+  Verbindung. **Ein einfacher Zeilenumbruch im Text einer Karte wird zum festen
+  Zeilenumbruch**, damit die Karte dieselben Zeilen zeigt wie im anderen
+  Werkzeug; innerhalb eines Code-Zauns und an den Grenzen eigener Block-Formen
+  bleibt der Text unangetastet. Verweise auf Dokumente und Bilder werden
+  umgerechnet und finden ihre Dateien, solange die eingelesene Datei an ihrem
+  Platz im übernommenen Ordner liegt. Auch hier sagt **ein gemeinsamer Bericht**
+  nach dem Vorgang, was übertragen wurde und was nicht; eine unbrauchbare Datei
+  erzeugt kein Dokument, sondern eine verständliche Meldung.
+- **Handbuch-Kapitel, Funktions-Katalog und Demo-Beispiel** (`4T-001807`). Die
+  Handbuch-Seite «Canvas-Fläche» hat in allen fünf Sprachen das Kapitel
+  «Austausch mit anderen Werkzeugen» bekommen, mit beiden Menü-Wegen, zwei
+  Tafeln über beide Richtungen und dem ausdrücklichen Hinweis, dass der Weg hin
+  und zurück nicht zum Ausgangspunkt führt. Die Funktions-Übersicht führt zwei
+  neue Einträge, je einen für die Ausgabe und für das Einlesen, und die
+  mitgelieferte Demo-Station «12 Canvas» zeigt beide Wege an ihrer
+  Beispiel-Fläche.
+
+### Geändert
+
+- **«Als PDF exportieren…» liegt jetzt im Untermenü «Exportieren»**
+  (`4T-001811`). Der Eintrag ist von der Ebene «Weitere Datei-Funktionen» in das
+  Untermenü «Exportieren» gewandert und steht dort an erster Stelle, vor
+  «Portables Markdown…» und «Canvas-Fläche als JSON Canvas…». Damit stehen alle
+  Ausgabe-Wege an einer Stelle. **An der Funktion ändert sich nichts:** dieselbe
+  Beschriftung, derselbe Befehl, dieselbe Verfügbarkeit und unverändert das
+  Tastenkürzel `Strg+Umschalt+P`, das weiterhin überall wirkt. «Drucken…»
+  bleibt, wo es war — Drucken ist kein Export. Handbuch und Funktions-Übersicht
+  nennen den neuen Weg in allen fünf Sprachen.
+- **Das Kapitel «Grenzen» der Handbuch-Seite zur Fläche ist gewachsen**
+  (`4T-001807`). Es nennt jetzt ausdrücklich, dass der Austausch **kein
+  verlustfreier Rückweg** ist, und dass eine Datei des anderen Formats nicht als
+  Dokument geöffnet, sondern eingelesen wird und unverändert liegen bleibt.
+
+### i18n
+
+- Alle neuen Texte der sechsten Stufe liegen in **allen fünf Sprachfassungen**
+  vor (`4T-001805`, `4T-001806`, `4T-001807`, `4T-001811`): die Texte des
+  Berichts und seiner Posten, die Meldungen und Dialog-Titel beider Wege, die
+  sechs Fehler-Texte des Einlesens, die beiden Menü-Einträge samt dem neuen
+  Untermenü «Importieren», der Name des Dateityps, die Beschreibungen beider
+  Befehle und die beiden neuen Einträge der Funktions-Übersicht mit Name,
+  Beschreibung und Zugang. Die Menüweg-Texte des PDF-Exports sind in allen fünf
+  Sprachen um die eingeschobene Stufe «Exportieren» ergänzt.
+
+### Dokumentation
+
+- **Maschinenlesbare Dokumentation** (`3E-000317` mit `4T-001814`, `4T-001815`,
+  `4T-001816`, `4T-001817`, `4T-001818`). Die Beschreibung der
+  EM4me-Markdown-Sprache steht zusätzlich in einer Fassung für Sprachmodelle
+  bereit: als Syntax-Referenz neben der Programmdatei und unter
+  `em4me.ch/<sprache>/manual/em4me-syntax.md`, dazu jede Handbuch-Seite als
+  Markdown unter ihrer eigenen Adresse und eine Index-Datei `llms.txt` je
+  Sprache nach dem verbreiteten Muster. Alles entsteht beim Bau aus dem
+  vorhandenen Handbuch; eine zweite Pflege-Quelle gibt es nicht. Die öffentliche
+  Roadmap hat dafür den Eintrag «Zusammenarbeit mit KI-Assistenten» auf der
+  Stufe «geplant» bekommen. Die Nutzen-Seite in Handbuch und Webseite führt
+  dafür in allen fünf Sprachen den neuen Abschnitt «Zusammenarbeit mit einem
+  KI-Assistenten» (Entscheidung des Product Owners vom 2026-09-20, eingearbeitet
+  in der Release-Strecke unter `4T-001809`). Das Vorhaben gehört **nicht** zu diesem Zug; es berührt keinen Anwendungs-Code
+  und wird mit dieser Auslieferung wirksam.
+
+### Intern
+
+- **Die Syntax-Referenz auf der Webseite trägt das Veröffentlichungs-Datum der
+  Version statt der Bau-Minute** (`4T-001836`); der Webseiten-Bau ist damit
+  wieder byte-gleich wiederholbar. Bisher stempelte er die Datei je Sprache mit
+  dem eigenen Bau-Zeitpunkt auf die Minute genau, sodass zwei Läufe über
+  denselben Bestand verschiedene Ergebnisse lieferten, sobald eine
+  Minutengrenze dazwischen lag; der Wächter über die Wiederholbarkeit wurde
+  dadurch im Voll-Lauf auf beiden Plattformen rot und war zuvor nur zufällig
+  grün. Sichtbar ist die Änderung allein in der Kopf-Zeile der veröffentlichten
+  Referenz, die in allen fünf Sprachen «Veröffentlicht am» heißt statt
+  «Bau-Zeitpunkt». Die Fassung neben dem Programm behält ihren echten
+  Bau-Zeitpunkt. Kein Anwendungs-Code berührt.
+- **Die automatisierte Prüfung unter Linux läuft aus einer Kopie im Container
+  statt über das eingehängte Windows-Laufwerk** (`4T-001837`). Jeder
+  Datei-Zugriff kostet über diese Brücke ein Vielfaches, und mit der
+  maschinenlesbaren Dokumentations-Fassung ist der Webseiten-Bau so gewachsen,
+  dass vier Prüfdateien dort ihre Zeitgrenze rissen, während dieselbe Prüfung
+  unter Windows vollständig grün blieb. Die Test-Konventionen hatten für genau
+  diesen Fall vorab entschieden, die Kosten zu senken statt die Grenze
+  anzuheben; das ist jetzt umgesetzt. Der Lauf dauert damit knapp drei Minuten
+  statt rund siebzehn, die betroffenen Prüfdateien liegen bei vier bis sechs
+  Prozent ihrer Zeitgrenze statt darüber, und geprüft wird derselbe Bestand.
+  Keine Zeitgrenze geändert, kein Anwendungs-Code berührt.
+- **Die Bildschirmfotos der Produkt-Webseite stehen auf dem Stand des vorigen
+  Releases** (`4T-001754`). Sie sind mit dessen Nachzügler erneuert worden,
+  nachdem das erzeugende Werkzeug behoben war; der Befund, dass dieses Werkzeug
+  und die Prüfsuite sich eine Datei-Zeile teilen, ist als eigener Vorgang
+  `4T-001829` verortet. Kein Anwendungs-Code berührt, kein Anwender-Text nötig.
+
 ## [1.139.0.3050] - 2026-09-19 — Acht Vorhaben der Bedienung: Statusleiste, Editor, Reiter, Bereichs-Panel, Fenster und Arbeitsbereiche
 
 Zug 3E-000311,

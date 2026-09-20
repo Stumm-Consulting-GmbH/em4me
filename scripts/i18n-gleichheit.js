@@ -190,6 +190,17 @@ const GEAENDERTE_TEXTE = [
     grund:
       'Der Katalog-Text von My Extended Memory nannte beim Arbeitsbereich nur, dass dort keine Kennzahlen stehen; seit 4T-001739 (Epic 3E-000308) fuehrt er neben der Zahl seiner Fenster die Zahl der darin geoeffneten Markdown-Dokumente. Der Text ist um einen Satz dazu ergaenzt (4T-001740), aus demselben Grund wie bei den Arbeitsbereichen: eine zweite Angabe an einer bestehenden Anzeige ist keine eigene Funktion.',
   },
+  // 4T-001811 (Epic 3E-000292): Die Zugangs-Angabe des PDF-Exports nennt den
+  // Menü-Weg wörtlich, und genau der hat sich geändert — der Eintrag ist in das
+  // Untermenü «Exportieren» verlegt, damit alle Ausgabe-Wege an einer Stelle
+  // stehen. Ohne diese fünf Einträge liefe das Gate rot, obwohl die Änderung
+  // gerade dafür sorgt, dass der Text wieder stimmt.
+  ...['de', 'en', 'fr', 'es', 'it'].map((sprache) => ({
+    sprache,
+    schluessel: 'help.featureAccess.exportPdf',
+    grund:
+      '4T-001811 (Epic 3E-000292): Der Menü-Eintrag «Als PDF exportieren…» ist auf Anordnung des Product Owners vom 2026-09-19 in das Untermenü «Exportieren» gewandert. Nur die eingeschobene Stufe «Exportieren» ist in den Wert eingefügt, Beschriftung und Kürzel-Angabe stehen unverändert.',
+  })),
 ];
 
 const ABWEICHUNGEN = GEAENDERTE_TEXTE.flatMap(({ schluessel, grund }) =>

@@ -219,6 +219,8 @@
   "help.featureName.canvasLinkCards": "Link cards on the canvas",
   "help.featureName.canvasImageCards": "Image cards on the canvas",
   "help.featureName.canvasList": "Canvas list",
+  "help.featureName.canvasExportJson": "Canvas export as JSON Canvas",
+  "help.featureName.canvasImportJson": "JSON Canvas file import",
   "help.featureName.databaseTable": "Table definition",
   "help.featureName.databaseColumnTypes": "Column types of a table",
   "help.featureName.databaseRecordKey": "Record identifier and business key",

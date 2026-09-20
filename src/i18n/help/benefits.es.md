@@ -66,6 +66,7 @@ Algunas ideas no tienen orden. Colocar alternativas una junto a otra, esbozar un
 - **Su disposición sigue siendo suya**: la superficie no calcula posiciones, recuerda lo que usted ha colocado.
 - **Texto claro en el documento**: la superficie está en un bloque de código del archivo Markdown y se lee también sin EM4me.
 - **También sin ratón**: una lista junto a la superficie enumera todos los elementos y permite crearlos, rotularlos, conectarlos y borrarlos con el teclado, y también buscarlos.
+- **Abierto hacia fuera**: una superficie puede guardarse en el formato abierto JSON Canvas y volver a leerse desde él — para el intercambio con otras herramientas.
 
 En detalle: [Superficie Canvas](canvas.md).
 
@@ -184,3 +185,12 @@ Más allá de las cuatro construcciones grandes, el lenguaje aporta más de cinc
 - **Activables una a una** y abierto a extensiones propias mediante una interfaz documentada.
 
 En detalle: [Funciones](functions.md), [Extensiones](extensions.md), [Crear extensiones](extensions-dev.md).
+
+## Colaboración con un asistente de IA
+
+Quien pide a un asistente de IA que escriba archivos obtiene por lo general Markdown corriente: el modelo no conoce el lenguaje ampliado de EM4me. Por eso EM4me entrega además la descripción de su propio lenguaje Markdown en una forma que un modelo puede leer. Si se la entrega a su asistente, obtiene archivos con consultas, tablas de datos, eventos y superficies en lugar de simples párrafos, y no tiene que repasarlos a mano.
+
+- **Una referencia de sintaxis en un solo archivo**: todo el lenguaje, escrito para un modelo. Se entrega con el programa y está en la red bajo una dirección fija, `em4me.ch/<idioma>/manual/em4me-syntax.md`.
+- **Cada página del manual además como Markdown**, en su propia dirección, para la pregunta sobre un solo tema.
+- **Un archivo índice `llms.txt` por idioma** según el patrón extendido, con el que un asistente encuentra las páginas por sí mismo.
+- **Siempre en el estado entregado**: todo se genera de nuevo en cada compilación a partir del manual. No hay una segunda fuente que pudiera quedar anticuada.

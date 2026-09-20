@@ -411,22 +411,15 @@ function buildMenu(win, state, actions) {
           { type: 'separator' },
           {
             // 4T-001479 (Epic 3E-000177): Druck ueber den Systemdialog, direkt
-            // vor dem PDF-Export (Entscheidung E5 des Epics). Dieselbe
-            // enabled-Regel: Handbuch-Tabs sind druckbar, nur der
-            // Einstellungs-Tab (systemTab) ist ausgenommen.
+            // vor dem Untermenue «Exportieren» (Entscheidung E5 des Epics, mit
+            // 4T-001811 auf den neuen Ort des PDF-Exports fortgeschrieben:
+            // Drucken ist kein Export und bleibt auf dieser Ebene). Dieselbe
+            // enabled-Regel wie der PDF-Export: Handbuch-Tabs sind druckbar,
+            // nur der Einstellungs-Tab (systemTab) ist ausgenommen.
             label: t('menu.file.print'),
             accelerator: acc('file.print'),
             enabled: avail('file.print'),
             click: send('menu:print'),
-          },
-          {
-            // 4T-000303 (Epic 3E-000054): PDF-Export des gerenderten Inhalts.
-            // Handbuch-Tabs sind exportierbar (gerenderter Inhalt vorhanden),
-            // nur der Einstellungs-Tab (systemTab) ist ausgenommen.
-            label: t('menu.file.exportPdf'),
-            accelerator: acc('file.exportPdf'),
-            enabled: avail('file.exportPdf'),
-            click: send('menu:exportPdf'),
           },
           {
             // 4T-000041 (Epic 3E-000008): Export-Submenu fuer den HTML-Konverter.
@@ -435,7 +428,27 @@ function buildMenu(win, state, actions) {
             // einen Save-As-Dialog (Vorbelegung '<basename>-portable.md').
             label: t('menu.file.export'),
             enabled: !!(state && state.hasActiveTab) && !systemTab,
-            submenu: [
+            // 4T-001805 (Epic 3E-000292): compactSubmenu, weil der zweite
+            // Eintrag an der Erweiterung der Flaeche haengt und mit ihr
+            // verschwindet — ein null in der Liste kaeme sonst bis zu Electron.
+            submenu: compactSubmenu([
+              {
+                // 4T-000303 (Epic 3E-000054): PDF-Export des gerenderten Inhalts.
+                // Handbuch-Tabs sind exportierbar (gerenderter Inhalt vorhanden),
+                // nur der Einstellungs-Tab (systemTab) ist ausgenommen.
+                //
+                // 4T-001811 (Epic 3E-000292, Entscheidung des Product Owners
+                // vom 2026-09-19, im Wortlaut «Dann ist alles an einer
+                // Stelle»): Der Eintrag stand bis dahin eine Ebene hoeher,
+                // unmittelbar nach «Drucken…». Er ist unveraendert hierher
+                // verlegt — Beschriftung, Kuerzel, Kommando und
+                // Verfuegbarkeits-Regel sind dieselben — und steht ZUERST,
+                // vor den uebrigen Ausgabe-Wegen.
+                label: t('menu.file.exportPdf'),
+                accelerator: acc('file.exportPdf'),
+                enabled: avail('file.exportPdf'),
+                click: send('menu:exportPdf'),
+              },
               {
                 // 4T-000890 (Befund L-05): seit der Registrierung als Kommando
                 // 'file.exportPortable' mit Accelerator-Anzeige; der Klick
@@ -445,8 +458,35 @@ function buildMenu(win, state, actions) {
                 enabled: avail('file.exportPortable'),
                 click: send('menu:exportPortable'),
               },
-            ],
+              // 4T-001805 (Epic 3E-000292, Entscheidung F2 des Product Owners
+              // vom 2026-09-19): die Ausgabe der Flaeche im offenen Format
+              // JSON Canvas, NACH dem portablen Markdown.
+              unless('file.exportJsonCanvas', {
+                label: t('menu.file.exportJsonCanvas'),
+                accelerator: acc('file.exportJsonCanvas'),
+                enabled: avail('file.exportJsonCanvas'),
+                click: send('menu:exportJsonCanvas'),
+              }),
+            ]),
           },
+          // 4T-001806 (Epic 3E-000292, Entscheidung F2 des Product Owners vom
+          // 2026-09-19): das neue Untermenue «Importieren», unmittelbar NACH
+          // «Exportieren» und mit einem einzigen Eintrag.
+          //
+          // Gebaut ueber submenuOrNull und nicht als festes Objekt: Der
+          // Menuepunkt traegt KEINE eigene Freigabe-Regel — Einlesen braucht
+          // weder Reiter noch offene Flaeche —, aber er haengt an seinem
+          // einzigen Kind. Ist die Erweiterung der Flaeche aus, filtert
+          // unless() das Kind heraus, und der Menuepunkt entfaellt mit ihm,
+          // statt leer stehen zu bleiben.
+          submenuOrNull('menu.file.import', [
+            unless('file.importJsonCanvas', {
+              label: t('menu.file.importJsonCanvas'),
+              accelerator: acc('file.importJsonCanvas'),
+              enabled: avail('file.importJsonCanvas'),
+              click: send('menu:importJsonCanvas'),
+            }),
+          ]),
         ]),
         { type: 'separator' },
         // 4T-000887: Kontext-Block — Bereich, Buch/Buecherregal und

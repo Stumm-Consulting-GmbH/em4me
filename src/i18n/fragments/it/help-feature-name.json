@@ -219,6 +219,8 @@
   "help.featureName.canvasLinkCards": "Schede di collegamento sulla tela",
   "help.featureName.canvasImageCards": "Schede immagine sulla tela",
   "help.featureName.canvasList": "Elenco della tela",
+  "help.featureName.canvasExportJson": "Esportazione della tela come JSON Canvas",
+  "help.featureName.canvasImportJson": "Importazione di un file JSON Canvas",
   "help.featureName.databaseTable": "Definizione di tabella",
   "help.featureName.databaseColumnTypes": "Tipi di colonna di una tabella",
   "help.featureName.databaseRecordKey": "Identificatore di record e chiave funzionale",

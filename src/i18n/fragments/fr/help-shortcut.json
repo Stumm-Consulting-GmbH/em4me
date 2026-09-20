@@ -165,5 +165,7 @@
   "help.shortcut.importLocale": "Charger un fichier de langue traduit comme votre propre langue d’interface",
   "help.shortcut.removeLocale": "Supprimer de l’application une de vos propres langues d’interface",
   "help.shortcut.updateLocale": "Enregistrer votre propre fichier de langue à l’état de la version en cours d’exécution, les entrées manquantes en anglais",
-  "help.group.database": "Base de données"
+  "help.group.database": "Base de données",
+  "help.shortcut.exportJsonCanvas": "Enregistrer le canevas sélectionné dans la vue canevas en fichier JSON Canvas",
+  "help.shortcut.importJsonCanvas": "Lire un ou plusieurs fichiers JSON Canvas ; chacun crée à côté un document avec le canevas"
 }

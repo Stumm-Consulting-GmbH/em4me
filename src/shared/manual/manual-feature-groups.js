@@ -394,6 +394,15 @@ const HELP_FEATURE_GROUPS = [
       // Reihenfolge folgt wie bei den Zeilen darueber den Stufen und nicht
       // dem Alphabet.
       'help.feature.canvasList',
+      // 4T-001807 (Epic 3E-000292): die beiden Zeilen der sechsten Canvas-Stufe,
+      // hinter der Karten-Liste der Stufe 4. Sie stehen NEBENeinander und in
+      // dieser Reihenfolge, weil der Anwender ihnen so begegnet — erst gibt er
+      // eine Flaeche aus, dann liest er eine fremde ein. Zwei Zeilen und nicht
+      // eine, weil jede ein eigener Befehl mit eigenem Menue-Eintrag ist und
+      // jeder Katalog-Schluessel zu genau einer Story gehoert (4S-000959 und
+      // 4S-000960).
+      'help.feature.canvasExportJson',
+      'help.feature.canvasImportJson',
       'help.feature.sourceToggles',
       // 4T-000290 (Epic 3E-000051): dynamische Sidebar (Seite, Reihenfolge,
       // Reiter-Gruppen) — Ansicht-Eigenschaft, die Panels selbst bleiben

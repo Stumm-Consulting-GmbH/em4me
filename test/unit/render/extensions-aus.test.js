@@ -512,6 +512,12 @@ describe('Erweiterung canvas: Registry und Aus-Zustand (4T-001656)', () => {
       'insert.canvas',
       // 4T-001769 (Epic 3E-000290): der Panel-Zugang der Karten-Liste.
       'view.toggleCanvasList',
+      // 4T-001805 (Epic 3E-000292): die Ausgabe der Flaeche im offenen Format
+      // JSON Canvas. Ohne die Flaeche hat sie keinen Gegenstand.
+      'file.exportJsonCanvas',
+      // 4T-001806 (Epic 3E-000292): das Einlesen einer solchen Datei, aus
+      // demselben Grund an derselben Erweiterung.
+      'file.importJsonCanvas',
     ]);
     const registrierte = new Set(COMMANDS.map((c) => c.id));
     for (const id of manifest.commands) {
@@ -540,6 +546,12 @@ describe('Erweiterung canvas: Registry und Aus-Zustand (4T-001656)', () => {
       'insert.canvas',
       // 4T-001769 (Epic 3E-000290): der Panel-Zugang der Karten-Liste.
       'view.toggleCanvasList',
+      // 4T-001805 (Epic 3E-000292): die Ausgabe der Flaeche im offenen Format
+      // JSON Canvas. Ohne die Flaeche hat sie keinen Gegenstand.
+      'file.exportJsonCanvas',
+      // 4T-001806 (Epic 3E-000292): das Einlesen einer solchen Datei, aus
+      // demselben Grund an derselben Erweiterung.
+      'file.importJsonCanvas',
     ]) {
       expect(aus.has(id), `${id} muss im Aus-Zustand gefiltert sein`).toBe(true);
     }
@@ -576,6 +588,12 @@ describe('Erweiterung canvas: Registry und Aus-Zustand (4T-001656)', () => {
       'insert.canvas',
       // 4T-001769 (Epic 3E-000290): der Panel-Zugang der Karten-Liste.
       'view.toggleCanvasList',
+      // 4T-001805 (Epic 3E-000292): die Ausgabe der Flaeche im offenen Format
+      // JSON Canvas. Ohne die Flaeche hat sie keinen Gegenstand.
+      'file.exportJsonCanvas',
+      // 4T-001806 (Epic 3E-000292): das Einlesen einer solchen Datei, aus
+      // demselben Grund an derselben Erweiterung.
+      'file.importJsonCanvas',
     ]) {
       expect(an.has(id)).toBe(false);
     }

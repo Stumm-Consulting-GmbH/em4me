@@ -165,5 +165,7 @@
   "help.shortcut.importLocale": "Eine übersetzte Sprachdatei als eigene Oberflächen-Sprache einspielen",
   "help.shortcut.removeLocale": "Eine eigene Oberflächen-Sprache aus der Anwendung entfernen",
   "help.shortcut.updateLocale": "Die eigene Sprachdatei auf dem Stand der laufenden Programmfassung speichern, fehlende Einträge auf Englisch",
-  "help.group.database": "Datenbank"
+  "help.group.database": "Datenbank",
+  "help.shortcut.exportJsonCanvas": "Die in der Canvas-Ansicht gewählte Fläche als JSON-Canvas-Datei sichern",
+  "help.shortcut.importJsonCanvas": "Eine oder mehrere JSON-Canvas-Dateien einlesen; je Datei entsteht daneben ein Dokument mit der Fläche"
 }

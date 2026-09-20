@@ -115,5 +115,8 @@
   "menu.file.updateLocale": "Aktualisieren…",
   "menu.view.canvas": "Canvas",
   "menu.view.canvasEdit": "Canvas-Fläche bearbeiten",
-  "menu.view.canvasStack": "Reihenfolge auf der Fläche"
+  "menu.view.canvasStack": "Reihenfolge auf der Fläche",
+  "menu.file.exportJsonCanvas": "Canvas-Fläche als JSON Canvas…",
+  "menu.file.import": "Importieren",
+  "menu.file.importJsonCanvas": "JSON-Canvas-Datei…"
 }

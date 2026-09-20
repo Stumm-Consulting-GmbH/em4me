@@ -351,6 +351,63 @@ El objetivo en el concepto
 
 **Si la vista de lienzo está desactivada como [extensión interna](extensions.md)**, la superficie sigue siendo también en la exportación un bloque de código legible — la misma afirmación que esta página ya hace para la vista renderizada: el documento sigue siendo legible y no se pierde nada.
 
+## Intercambio con otras herramientas
+
+Una superficie no tiene que quedarse dentro de esta aplicación. Se guarda como archivo en el formato abierto **JSON Canvas** — extensión `.canvas` —, que otras herramientas también leen; a la inversa, un archivo así se lee aquí. Quien trabaja con alguien que usa otra herramienta puede así entregar su superficie en lugar de describirla.
+
+**El almacenamiento sigue siendo el archivo Markdown.** El archivo escrito es un producto de intercambio y no un segundo formato de almacenamiento: no se actualiza cuando la superficie cambia después, y al leerlo se lee y no se adopta.
+
+**Escribir una superficie** — en cuatro pasos:
+
+1. Abrir la vista de lienzo. Si el documento lleva varias superficies, elegir la pestaña de la deseada: se escribe la superficie que está a la vista.
+2. Elegir **Archivo → Más funciones de archivo → Exportar → Lienzo como JSON Canvas…**.
+3. El diálogo de guardado ofrece el nombre del documento con la extensión `.canvas` en la carpeta del documento; el nombre y el lugar se pueden cambiar.
+4. Escrito el archivo, aparece el mensaje con lo que se transfirió y lo que no.
+
+La entrada solo se puede elegir mientras la vista de lienzo muestra una superficie; en otro caso está visible pero atenuada. El documento mismo queda intacto, y si lleva más superficies, el mensaje indica cuántas.
+
+**Leer un archivo** — en cuatro pasos:
+
+1. Elegir **Archivo → Más funciones de archivo → Importar → Archivo JSON Canvas…**. Para ello no hace falta ni una superficie abierta ni un documento abierto.
+2. En el diálogo de apertura elegir uno o varios archivos con la extensión `.canvas`; con un área abierta tienen que estar dentro de ella.
+3. Por cada archivo elegido nace **a su lado** un documento nuevo con su nombre y la extensión `.md`. Si ese nombre ya está ocupado, se añade un número: `Plan.canvas` pasa entonces a ser `Plan-2.md`. Cada documento nuevo se abre y muestra la vista de lienzo.
+4. Después, **un solo** mensaje abarca todos los archivos elegidos, con un apartado por archivo.
+
+Los archivos elegidos quedan donde están, sin cambios. **Los enlaces encuentran sus archivos** cuando el archivo leído está en su sitio dentro de la carpeta adoptada — el caso habitual cuando se adopta un fondo ajeno entero; un destino que así no se encuentra queda después en la tarjeta con su mero nombre de archivo y se nombra en el mensaje.
+
+**Tras cada operación la aplicación dice qué se transfirió y qué no** — cada cosa con su número, y también cuando todo pasó. El mensaje no es un mensaje de error, sino el comprobante del intercambio: los dos formatos no se cubren del todo, y lo que no coincide no debe ocurrir en silencio.
+
+**En qué se convierte la superficie al escribir:**
+
+| En la superficie | En qué se convierte |
+| ---------------- | ------------------- |
+| una tarjeta, un grupo, una conexión | lo mismo allí, con posición, tamaño, orden, color y rótulo |
+| una forma | una tarjeta de texto en el mismo sitio y del mismo tamaño, con su rótulo como texto y su color de borde como color de la tarjeta; que fuera una forma, y su relleno, ya no constan en ninguna parte |
+| el rótulo de una tarjeta de enlace o de imagen | un marco con título alrededor de esa tarjeta |
+| los colores azul y rosa | un valor de color, porque el otro formato no lleva nombre para esos dos |
+| un lado de conexión que la aplicación elige por sí misma | ninguna indicación; la otra herramienta elige el lado |
+| las demás superficies del mismo documento | nada — el archivo lleva exactamente una superficie; el mensaje indica cuántas quedaron fuera |
+| un elemento erróneo o desconocido | nada; se cuenta |
+
+**En qué se convierte el archivo al leer:**
+
+| En el archivo | En qué se convierte |
+| ------------- | ------------------- |
+| una tarjeta de texto, un grupo, una conexión | lo mismo aquí, con posición, tamaño, orden, color y rótulo |
+| un salto de línea simple en el texto de una tarjeta | un salto de línea forzado; la tarjeta muestra las mismas líneas que en la otra herramienta |
+| una tarjeta que apunta a un documento o a una imagen | una tarjeta de enlace o una tarjeta de imagen; un destino en un encabezado o en un bloque se conserva |
+| una tarjeta con una dirección web | una tarjeta de texto con la dirección como enlace para pulsar |
+| una tarjeta que apunta a otro tipo de archivo | una tarjeta de texto con un enlace a ese archivo |
+| el color de una tarjeta | nada — aquí una tarjeta no lleva color |
+| un valor de color libre en un grupo o en una conexión | el más cercano de los ocho colores |
+| una conexión que empieza o acaba en un grupo | nada; aquí las conexiones solo van entre tarjetas |
+| una punta de flecha solo al principio | una conexión dirigida corriente con principio y final intercambiados — sin pérdida |
+| una imagen de fondo de un grupo | nada |
+
+**La ida y la vuelta no llevan al punto de partida.** Una superficie escrita y vuelta a leer **no** regresa idéntica: una forma se ha convertido en tarjeta de texto y lo sigue siendo, el rótulo de una tarjeta de enlace en un marco. Ese es el precio del intercambio y no una laguna — marcas ocultas con las que reconocer de nuevo el elemento original no existen a propósito, porque en cualquier otra herramienta se verían como basura de datos.
+
+**Si la vista de lienzo está apagada como [extensión interna](extensions.md)**, ninguno de los dos caminos está disponible: la entrada para escribir y la entrada para leer desaparecen del menú, y los dos comandos tampoco se alcanzan por la paleta de comandos.
+
 ## Los enlaces en la red del área
 
 Una tarjeta de enlace es un **enlace como uno del texto corrido**, solo que sobre una superficie. Por eso aparece en todos los lugares donde la aplicación muestra enlaces:
@@ -541,4 +598,6 @@ se condicionan
 - **La búsqueda en el área sigue encontrando un documento con superficie por su texto**, porque la superficie está en él en texto plano; una fuente propia de coincidencias no lo es. Las tarjetas, formas y grupos por separado no aparecen, pues, como coincidencias propias: las encuentra el campo de filtro de la lista del lienzo.
 - **La exportación portable reproduce la superficie como texto, no como imagen.** La disposición espacial no viaja, y del equivalente no se puede recuperar ninguna superficie; pasan el contenido, los grupos y la red de conexiones.
 - **Un elemento erróneo no se omite en silencio en la exportación**: se escribe con lo que tiene de legible y lleva una línea de aviso. Una forma sin rótulo sí se omite, porque sin la representación espacial no quedaría nada de ella.
+- **El intercambio con el formato abierto no es una ida y vuelta sin pérdida.** Una superficie escrita y vuelta a leer no regresa idéntica: una forma vuelve como tarjeta de texto, el rótulo de una tarjeta de enlace como marco.
+- **Un archivo del formato ajeno no se abre como documento, sino que se lee.** Queda donde está, sin cambios; la superficie la lleva después el documento nuevo a su lado, y lo que allí se cambia no vuelve al archivo.
 - Una superficie pertenece a su documento. Las tarjetas no pueden arrastrarse de una superficie a otra.

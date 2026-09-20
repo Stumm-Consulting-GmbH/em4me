@@ -165,5 +165,7 @@
   "help.shortcut.importLocale": "Caricare un file di lingua tradotto come lingua dell’interfaccia propria",
   "help.shortcut.removeLocale": "Rimuovere dall’applicazione una lingua dell’interfaccia propria",
   "help.shortcut.updateLocale": "Salvare il proprio file di lingua allo stato della versione in esecuzione, con le voci mancanti in inglese",
-  "help.group.database": "Banca dati"
+  "help.group.database": "Banca dati",
+  "help.shortcut.exportJsonCanvas": "Salvare la tela selezionata nella vista tela come file JSON Canvas",
+  "help.shortcut.importJsonCanvas": "Leggere uno o più file JSON Canvas; ciascuno crea accanto un documento con la tela"
 }

@@ -560,6 +560,40 @@ const COMMANDS = [
     editorScoped: false,
     availability: 'contentTab',
   },
+  // 4T-001805 (Epic 3E-000292): Ausgabe der Canvas-Flaeche im offenen Format
+  // JSON Canvas, im selben Untermenue wie der portable Export und nach dessen
+  // Muster gebaut: ohne Vorgabe-Kuerzel, Beschriftung aus dem Menue-Schluessel
+  // (keine zweite Uebersetzung desselben Textes). Gebunden an die Erweiterung
+  // der Flaeche; waehlbar in der OFFENEN Canvas-Ansicht und sonst ausgegraut
+  // (Freigabe des Product Owners vom 2026-09-19 zu F2, im Wortlaut: «Der
+  // Eintrag ist nur in der Canvas-Ansicht waehlbar und sonst ausgegraut»).
+  {
+    id: 'file.exportJsonCanvas',
+    defaultBindings: [],
+    labelKey: 'menu.file.exportJsonCanvas',
+    descKey: 'help.shortcut.exportJsonCanvas',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+    availability: 'canvasFlaecheOffen',
+  },
+  // 4T-001806 (Epic 3E-000292): Einlesen einer Datei des offenen Formats JSON
+  // Canvas. Wie die Gegenrichtung ohne Vorgabe-Kuerzel und mit der
+  // Beschriftung aus dem Menue-Schluessel — aber mit der Bedingung `immer`
+  // statt einer Canvas-Bedingung: Das Einlesen braucht weder einen Reiter noch
+  // eine offene Flaeche, es ERZEUGT erst eine (Freigabe des Product Owners vom
+  // 2026-09-19 zu F2). Gesperrt wird es allein ueber die Erweiterung der
+  // Flaeche, an der es haengt; ihr Aus-Zustand nimmt den Menuepunkt mit.
+  {
+    id: 'file.importJsonCanvas',
+    defaultBindings: [],
+    labelKey: 'menu.file.importJsonCanvas',
+    descKey: 'help.shortcut.importJsonCanvas',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+    availability: 'immer',
+  },
   // 4T-001587 (Epic 3E-000160): Ausgabe der eigenen Einrichtung. Wie der
   // portable Export ohne Default-Kuerzel — der Menue-Weg genuegt, ein Kuerzel
   // ist ueber die Einstellungen belegbar. Anders als jener ist der Weg NICHT

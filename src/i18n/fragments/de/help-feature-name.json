@@ -219,6 +219,8 @@
   "help.featureName.canvasLinkCards": "Verweis-Karten auf der Canvas",
   "help.featureName.canvasImageCards": "Bild-Karten auf der Canvas",
   "help.featureName.canvasList": "Karten-Liste der Canvas",
+  "help.featureName.canvasExportJson": "Ausgabe der Canvas als JSON Canvas",
+  "help.featureName.canvasImportJson": "Einlesen einer JSON-Canvas-Datei",
   "help.featureName.databaseTable": "Tabellen-Definition",
   "help.featureName.databaseColumnTypes": "Spalten-Typen einer Tabelle",
   "help.featureName.databaseRecordKey": "Datensatz-Kennung und fachlicher Schlüssel",

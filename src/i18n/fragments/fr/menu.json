@@ -115,5 +115,8 @@
   "menu.file.updateLocale": "Mettre à jour…",
   "menu.view.canvas": "Canevas",
   "menu.view.canvasEdit": "Modifier le canevas",
-  "menu.view.canvasStack": "Ordre de superposition du canevas"
+  "menu.view.canvasStack": "Ordre de superposition du canevas",
+  "menu.file.exportJsonCanvas": "Canevas au format JSON Canvas…",
+  "menu.file.import": "Importer",
+  "menu.file.importJsonCanvas": "Fichier JSON Canvas…"
 }

@@ -235,6 +235,54 @@ function registerEmbedsIpc(handle, deps) {
       return { ok: false, error: msg };
     }
   });
+
+  // 4T-001805 (Epic 3E-000292): Ziele einer Canvas-Flaeche als Pfade, wie sie
+  // das offene Format JSON Canvas verlangt.
+  //
+  // **Warum hier und nicht in einem eigenen Kanal-Modul.** Der dreistufige
+  // Aufloeser dieser Gruppe ist genau das, was gebraucht wird; er ist eine
+  // Schliessung in registerEmbedsIpc und nirgends exportiert. Ein zweiter
+  // Aufloeser daneben waere die zweite Stelle, an der ueber dieselbe Frage
+  // verschieden entschieden wird — der Fall, den 4T-001486 gerade beseitigt
+  // hat.
+  //
+  // **Der Kanal gibt keinen absoluten Pfad heraus und liest keine Datei.** Er
+  // antwortet mit dem Pfad RELATIV zur Bereichs-Wurzel; liegt das Dokument in
+  // keinem Bereich, gilt der Ordner des Dokuments als Bezug. Beides ist genau
+  // die Grenze, die `containmentWurzel` ohnehin zieht — die Antwort kann damit
+  // nie ueber die Containment-Grenze hinauszeigen.
+  //
+  // Ein Ziel, das sich nicht aufloesen laesst, bekommt KEINEN Eintrag. Der
+  // Uebersetzungs-Kern zaehlt es dann als Posten und schreibt das Ziel so, wie
+  // es auf der Karte steht (Entscheidung F1 vom 2026-09-19).
+  handle('canvas:loeseAustauschZiele', async (event, params) => {
+    const basePath = params && params.basePath;
+    const roh = params && Array.isArray(params.ziele) ? params.ziele : [];
+    if (typeof basePath !== 'string' || basePath === '') {
+      return { ok: false, error: 'missing params' };
+    }
+    const areaRoot = areaRootForEvent(event);
+    const wurzel = containmentWurzel(path.dirname(path.resolve(basePath)), areaRoot);
+    const treffer = [];
+    for (const eintrag of roh) {
+      const pfad = eintrag && typeof eintrag.pfad === 'string' ? eintrag.pfad : '';
+      if (pfad === '') continue;
+      // Die Art bestimmt allein die Endungs-Regel des Auflösers. 'other' fuer
+      // das Bild aus demselben Grund wie beim Oeffnen einer Bild-Karte
+      // (4T-001748): Die Endung hat der Kern der Flaeche bereits geprueft, und
+      // der Satz 'image' des Auflösers fuehrt kein 'ico'.
+      const kind = eintrag && eintrag.art === 'bild' ? 'other' : 'md';
+      const ziel = await loeseEmbedZiel(event, basePath, pfad, kind);
+      if (!ziel.ok || !ziel.abs) continue;
+      const rel = path.relative(wurzel, ziel.abs);
+      // Ein Ergebnis ausserhalb der Grenze gibt es nach dem Containment des
+      // Auflösers nicht; die Pruefung bleibt trotzdem stehen, weil ein Pfad,
+      // der mit '..' beginnt, in der fremden Datei nichts zu suchen haette.
+      if (rel === '' || rel.startsWith('..')) continue;
+      treffer.push({ pfad, datei: rel.split('\\').join('/') });
+    }
+    return { ok: true, treffer };
+  });
 }
 
 module.exports = { registerEmbedsIpc };

@@ -66,6 +66,7 @@ Manche Gedanken haben keine Reihenfolge. Wer Alternativen nebeneinanderlegt, ein
 - **Ihre Anordnung bleibt Ihre**: Die Fläche rechnet keine Positionen aus, sie merkt sich, was Sie gelegt haben.
 - **Klartext im Dokument**: Die Fläche liegt in einem Code-Block der Markdown-Datei und ist auch ohne EM4me lesbar.
 - **Auch ohne Maus**: Eine Liste neben der Fläche führt alle Elemente auf, lässt sie mit der Tastatur anlegen, beschriften, verbinden und löschen — und durchsuchen.
+- **Offen nach außen**: Eine Fläche lässt sich im offenen Format JSON Canvas sichern und aus ihm einlesen — für den Austausch mit anderen Werkzeugen.
 
 Ausführlich: [Canvas-Fläche](canvas.md).
 
@@ -184,3 +185,12 @@ Ausführlich: [Skript-Blöcke](scripts.md).
 - **Einzeln schaltbar** und offen für eigene Erweiterungen über eine dokumentierte Schnittstelle.
 
 Ausführlich: [Funktionen](functions.md), [Erweiterungen](extensions.md), [Eigene Erweiterungen](extensions-dev.md).
+
+## Zusammenarbeit mit einem KI-Assistenten
+
+Wer einen KI-Assistenten bittet, Dateien zu schreiben, bekommt üblicherweise gewöhnliches Markdown: Das Modell kennt den erweiterten Sprachumfang von EM4me nicht. Deshalb liefert EM4me die Beschreibung seiner eigenen Markdown-Sprache zusätzlich in einer Fassung aus, die ein Modell lesen kann. Wer sie seinem Assistenten mitgibt, bekommt Dateien mit Abfragen, Datentabellen, Ereignissen und Flächen statt bloßer Absätze, und muss sie nicht von Hand nacharbeiten.
+
+- **Eine Syntax-Referenz in einer einzigen Datei**: der gesamte Sprachumfang, für ein Modell geschrieben. Sie wird mit dem Programm ausgeliefert und steht im Netz unter einer festen Adresse, `em4me.ch/<sprache>/manual/em4me-syntax.md`.
+- **Jede Handbuch-Seite zusätzlich als Markdown** unter ihrer eigenen Adresse, für die Frage zu einem einzelnen Thema.
+- **Eine Index-Datei `llms.txt` je Sprache** nach dem verbreiteten Muster, über die ein Assistent die Seiten selbst findet.
+- **Immer auf dem ausgelieferten Stand**: Alles entsteht bei jedem Bau neu aus dem Handbuch. Eine zweite Quelle, die veralten könnte, gibt es nicht.

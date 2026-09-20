@@ -31,6 +31,37 @@ const { assembleParts } = require('../../shared/document-assembly');
 // Require-Cache).
 const markSelfWriting = selbstSchreib.merke;
 
+// 4T-001805 (Epic 3E-000292): Die Datei-Arten des Speichern-Dialogs.
+//
+// Bis hierher war 'file:saveAs' auf Markdown festgelegt — Filter-Liste und
+// Vorschlags-Endung standen im Handler. Die Ausgabe einer Canvas-Flaeche
+// braucht eine andere Endung und einen eigenen Filter-Eintrag; ein ZWEITER
+// Speicher-Weg daneben haette Bereichs-Grenze, Ueberschreib-Weg und
+// Fehler-Antwort ein zweites Mal gebaut. Parametrisiert wird deshalb der
+// vorhandene Kanal, und zwar ueber eine abgezaehlte Tafel: Der Anzeige-Prozess
+// nennt eine Kennung, nicht eine Dialog-Beschreibung.
+//
+// 'historie' und 'zuletzt' gehoeren zur Art und nicht zum Aufrufer: Ein
+// Austausch-Erzeugnis ist kein Dokument der Anwendung (Architektur-Entscheidung
+// des Epics), bekommt deshalb keine Begleitdatei der Historie und steht nicht
+// in «Zuletzt geoeffnet».
+const DATEI_ARTEN = Object.freeze({
+  markdown: Object.freeze({
+    endung: 'md',
+    endungen: Object.freeze(['md', 'markdown', 'mdown', 'mkd']),
+    filterKey: 'dialog.filterMarkdown',
+    historie: true,
+    zuletzt: true,
+  }),
+  jsonCanvas: Object.freeze({
+    endung: 'canvas',
+    endungen: Object.freeze(['canvas']),
+    filterKey: 'dialog.filterJsonCanvas',
+    historie: false,
+    zuletzt: false,
+  }),
+});
+
 /**
  * Registriert die Datei-Kanaele.
  *
@@ -439,18 +470,29 @@ function registerFilesIpc(handle, deps) {
 
   // Speichern unter: OS-Dialog, dann schreiben. Returnt den gewaehlten Pfad
   // oder null, wenn der Nutzer abgebrochen hat.
-  handle('file:saveAs', async (event, suggestedPath, content) => {
+  //
+  // 4T-001805 (Epic 3E-000292): Der dritte Parameter waehlt die DATEI-ART aus
+  // der Tafel darueber. Er ist eine Kennung und keine Dialog-Beschreibung: Ein
+  // Anzeige-Prozess, der Filter-Listen selbst zusammenstellte, koennte den
+  // Speichern-Dialog beliebig umdeuten; so bleibt die Menge der moeglichen
+  // Dialoge im Hauptprozess abgezaehlt. Ohne den Parameter verhaelt sich der
+  // Kanal unveraendert.
+  handle('file:saveAs', async (event, suggestedPath, content, dateiArt) => {
     const owner = senderWindow(event);
+    const art = DATEI_ARTEN[dateiArt] || DATEI_ARTEN.markdown;
     // 4T-000323 (Epic 3E-000058): in Bereichs-Apps liegt die Vorbelegung im
     // Bereich; ein Ziel ausserhalb wird gemeldet und der Dialog erneut
     // geoeffnet (harte Grenze auch beim Speichern).
     const area = areaOfWindow(owner);
-    // Wenn der Tab keinen Pfad hat, lokalisierten "Unbenannt"-Stamm plus .md
-    // als Default vorschlagen (z.B. "Unbenannt.md" auf Deutsch).
-    let defaultPath = suggestedPath || `${tForWindow(owner, 'save.untitled')}.md`;
+    // Wenn der Tab keinen Pfad hat, lokalisierten "Unbenannt"-Stamm plus der
+    // Endung der Art als Default vorschlagen (z.B. "Unbenannt.md" auf Deutsch).
+    let defaultPath = suggestedPath || `${tForWindow(owner, 'save.untitled')}.${art.endung}`;
     if (area) {
       if (!suggestedPath) {
-        defaultPath = path.join(area.rootPath, `${tForWindow(owner, 'save.untitled')}.md`);
+        defaultPath = path.join(
+          area.rootPath,
+          `${tForWindow(owner, 'save.untitled')}.${art.endung}`,
+        );
       } else if (!isInsideArea(area.rootPath, suggestedPath)) {
         defaultPath = path.join(area.rootPath, path.basename(suggestedPath));
       }
@@ -462,8 +504,8 @@ function registerFilesIpc(handle, deps) {
         // M-09 (4T-000185): Filter-Namen lokalisiert.
         filters: [
           {
-            name: tForWindow(owner, 'dialog.filterMarkdown'),
-            extensions: ['md', 'markdown', 'mdown', 'mkd'],
+            name: tForWindow(owner, art.filterKey),
+            extensions: art.endungen,
           },
           { name: tForWindow(owner, 'dialog.filterAll'), extensions: ['*'] },
         ],
@@ -486,13 +528,18 @@ function registerFilesIpc(handle, deps) {
       try {
         const normalized = String(content || '').replace(/\r\n/g, '\n');
         // 4T-000331 (Epic 3E-000060): Protokoll-Basis vor dem Ueberschreiben.
-        const recordHistory = (await resolveHistoryFor(owner, absolute, normalized)).effective;
+        // 4T-001805: Ein Austausch-Erzeugnis bekommt beides nicht — die
+        // Begleitdatei der Historie waere ein zweites Erzeugnis neben einer
+        // Datei, die die Anwendung nie wieder liest, und der Eintrag in
+        // «Zuletzt geoeffnet» fuehrte auf eine Datei, die kein Dokument ist.
+        const recordHistory =
+          art.historie && (await resolveHistoryFor(owner, absolute, normalized)).effective;
         const previousText = recordHistory ? await readPreviousTextFor(absolute) : null;
         await ersetzeDateiOderWirf(absolute, normalized, { markSelfWriting });
         if (recordHistory) {
           await recordMddOnSave(owner, absolute, previousText, normalized);
         }
-        pushRecent(absolute);
+        if (art.zuletzt) pushRecent(absolute);
         return { ok: true, path: absolute };
       } catch (err) {
         return { ok: false, error: err && err.message ? err.message : String(err) };

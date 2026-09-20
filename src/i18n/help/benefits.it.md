@@ -66,6 +66,7 @@ Certi pensieri non hanno un ordine. Affiancare alternative, abbozzare un flusso 
 - **La sua disposizione resta la sua**: la superficie non calcola posizioni, ricorda ciò che lei ha disposto.
 - **Testo in chiaro nel documento**: la superficie sta in un blocco di codice del file Markdown ed è leggibile anche senza EM4me.
 - **Anche senza mouse**: un elenco accanto alla superficie enumera tutti gli elementi e permette di crearli, etichettarli, collegarli ed eliminarli da tastiera — e di cercarli.
+- **Aperto verso l’esterno**: una superficie può essere salvata nel formato aperto JSON Canvas e riletta da esso — per lo scambio con altri strumenti.
 
 In dettaglio: [Superficie Canvas](canvas.md).
 
@@ -184,3 +185,12 @@ Oltre ai quattro grandi costrutti, il linguaggio porta più di cinquanta estensi
 - **Attivabili una per una** e aperto a estensioni proprie tramite un'interfaccia documentata.
 
 In dettaglio: [Funzionalità](functions.md), [Estensioni](extensions.md), [Creare estensioni](extensions-dev.md).
+
+## Collaborazione con un assistente di IA
+
+Chi chiede a un assistente di IA di scrivere file ottiene di solito Markdown ordinario: il modello non conosce il linguaggio esteso di EM4me. Per questo EM4me fornisce la descrizione del proprio linguaggio Markdown anche in una forma che un modello può leggere. Se lei la consegna al suo assistente, ottiene file con query, tabelle di dati, eventi e superfici invece di semplici paragrafi, e non deve rilavorarli a mano.
+
+- **Un riferimento di sintassi in un unico file**: l'intero linguaggio, scritto per un modello. Viene fornito insieme al programma e si trova in rete a un indirizzo fisso, `em4me.ch/<lingua>/manual/em4me-syntax.md`.
+- **Ogni pagina del manuale anche come Markdown**, al proprio indirizzo, per la domanda su un singolo argomento.
+- **Un file indice `llms.txt` per lingua** secondo lo schema diffuso, con cui un assistente trova da sé le pagine.
+- **Sempre allo stato consegnato**: tutto nasce a ogni compilazione dal manuale. Non esiste una seconda fonte che potrebbe invecchiare.

@@ -66,6 +66,7 @@ Some thoughts have no sequence. Laying alternatives side by side, sketching a wo
 - **Your arrangement stays yours**: the surface works out no positions, it remembers what you laid down.
 - **Plain text inside the document**: the surface sits in a code block of the Markdown file and is readable without EM4me too.
 - **Without a mouse as well**: a list beside the surface names every element and lets you create, label, connect and delete them from the keyboard — and search them.
+- **Open to the outside**: a surface can be saved in the open JSON Canvas format and read back in from it — for exchange with other tools.
 
 In detail: [Canvas surface](canvas.md).
 
@@ -184,3 +185,12 @@ Beyond the four large constructs, the language brings more than fifty extensions
 - **Individually switchable** and open to your own extensions through a documented interface.
 
 In detail: [Features](functions.md), [Extensions](extensions.md), [Creating extensions](extensions-dev.md).
+
+## Working together with an AI assistant
+
+Ask an AI assistant to write files and you usually get ordinary Markdown: the model does not know the extended language of EM4me. That is why EM4me also ships the description of its own Markdown language in a form a model can read. Hand it to your assistant and you get files with queries, data tables, events and surfaces instead of mere paragraphs, with no need to rework them by hand.
+
+- **A syntax reference in a single file**: the whole language, written for a model. It ships with the program and is on the web at a fixed address, `em4me.ch/<language>/manual/em4me-syntax.md`.
+- **Every manual page as Markdown as well**, at its own address, for a question about a single topic.
+- **An index file `llms.txt` per language** following the widely used pattern, through which an assistant finds the pages itself.
+- **Always at the state that was shipped**: all of it is produced afresh at every build from the manual. There is no second source that could go stale.
