@@ -597,9 +597,11 @@ test.describe('JR-06: Navigations-Block — Periode, Eltern-Sprung, Hinweis (F-1
       const zweite = await launchApp({ userData });
       try {
         await expect(zweite.page.locator(SEL.tabs0)).toHaveCount(1);
-        // Der Reiter-Titel traegt die Endung, die Titelzeile nicht.
+        // 4T-001724 (Epic 3E-000304): Reiter-Titel und Titelzeile tragen seit
+        // der Kuerzung dieselbe Form — beide ohne Markdown-Endung. Zuvor hielt
+        // diese Zeile ausdruecklich den Unterschied fest.
         await expect(zweite.page.locator(SEL.activeTab0).locator('.tab-title')).toHaveText(
-          path.basename(vortagRel),
+          vortagName,
         );
       } finally {
         await closeApp(zweite.app, null);

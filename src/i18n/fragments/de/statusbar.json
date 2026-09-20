@@ -31,5 +31,16 @@
   "statusbar.scrollSync.on": "Scroll-Synchronisation: an (klicken zum Ausschalten)",
   "statusbar.scrollSync.off": "Scroll-Synchronisation: aus (klicken zum Einschalten)",
   "statusbar.persistFailed": "Einstellung konnte nicht gespeichert werden",
-  "statusbar.viewToggleYamlError": "Frontmatter fehlerhaft, Ansicht-Schalter nicht schreibbar"
+  "statusbar.viewToggleYamlError": "Frontmatter fehlerhaft, Ansicht-Schalter nicht schreibbar",
+  "statusbar.collapse.left": "Weitere Elemente der Statusleiste (links)",
+  "statusbar.collapse.right": "Weitere Elemente der Statusleiste (rechts)",
+  "settings.statusbar.title": "Statusleiste",
+  "settings.statusbar.collapseMode": "Zusammenklappen",
+  "settings.statusbar.collapseMode.auto": "Automatisch bei knappem Platz",
+  "settings.statusbar.collapseMode.always": "Immer zusammengeklappt",
+  "settings.statusbar.collapseMode.hint": "Mit «Automatisch bei knappem Platz» wandern die Schaltflächen der Statusleiste erst dann in die beiden Menüs an ihren Rändern, wenn der Platz nicht mehr reicht. Mit «Immer zusammengeklappt» bleiben sie unabhängig von der Fensterbreite in diesen Menüs. Der Bereich für kurzzeitige Rückmeldungen bleibt in beiden Fällen sichtbar. Änderungen wirken mit Anwenden oder OK.",
+  "settings.statusbar.unavailableMode": "Nicht aktivierbare Schaltflächen",
+  "settings.statusbar.unavailableMode.blass": "Blass anzeigen",
+  "settings.statusbar.unavailableMode.ausgeblendet": "Ausblenden",
+  "settings.statusbar.unavailableMode.hint": "Manche Schaltflächen der Statusleiste können im Augenblick nichts tun — etwa die Ansichts-Schalter, während die Einstellungs-Seite vorn liegt, oder der Stift zum Bearbeiten, wenn kein Dokument offen ist. Mit «Blass anzeigen» bleiben sie an ihrem Platz und sind erkennbar stillgelegt. Mit «Ausblenden» verschwinden sie, solange sie nichts tun können, und kehren danach an ihren Platz zurück; die Leiste zeigt dann nur, was gerade geht. Eine Schaltfläche, die in der Liste der Standard-Schaltflächen abgewählt ist, bleibt in beiden Fällen weg. Das Ansichtsmenü bleibt unverändert. Änderungen wirken mit Anwenden oder OK."
 }

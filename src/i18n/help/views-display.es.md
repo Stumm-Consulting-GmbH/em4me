@@ -23,6 +23,8 @@ El modo en vivo renderiza el Markdown directamente en el editor: negrita y cursi
 
 **Las tablas están exentas de esta regla.** Permanecen compuestas aunque el cursor esté dentro: el clic acierta la celda, el tabulador y las flechas llevan de celda en celda, y lo que se escribe llega al lugar correcto de la fuente. Quien necesite la sintaxis en bruto de una tabla —la fila separadora con sus dos puntos de alineación, por ejemplo— cambia a la vista de código o a la vista dividida.
 
+**Los enlaces en el texto corrido están marcados de forma permanente.** Llevan su subrayado en todo momento, sin que el ratón tenga que estar encima: tanto los enlaces wiki como los de Markdown, tanto hacia un documento como hacia una dirección externa. La vista renderizada sigue subrayando un enlace solo al pasar el ratón; en la vista en la que se escribe, en cambio, debe verse sin esfuerzo que detrás de un texto hay un enlace. En la línea del cursor aparece la sintaxis en bruto como de costumbre.
+
 ### Mapa mental
 
 El mapa mental muestra los títulos y las listas del documento como un árbol, y el texto corrido como nota en el nodo. Pertenece a la extensión del mismo nombre y desaparece con ella; estructura, manejo, las cinco posiciones de la raíz y el valor por documento se describen en la página [Vista de mapa mental](mindmap.md).
@@ -78,6 +80,16 @@ La fuente y el tamaño se eligen por separado para la superficie de edición y p
 ## Estado de la ventana
 
 La posición, el tamaño y el estado maximizado de una ventana se recuerdan al salir y se restauran en el siguiente arranque. Para ello no hay nada que ajustar. Lo que además devuelve una sesión completa con sus pestañas se describe en la página [Aplicaciones, ventanas y áreas](apps-windows.md).
+
+## Barra de estado
+
+La barra de estado en el borde inferior de la ventana es el punto de manejo que permanece visible en todas las vistas. Si su ancho no basta para todos los elementos, se pliega: en su borde izquierdo y en su borde derecho aparece un menú que recoge los elementos que ya no caben. Una entrada del menú muestra su rótulo y su estado y actúa igual que el botón de la barra; cuando la ventana vuelve a ensancharse, los elementos regresan y un menú que quedaría vacío desaparece. La zona de los mensajes breves sigue visible con cualquier ancho, y los conmutadores del centro se pliegan en último lugar.
+
+Cuándo se pliega lo determina el ajuste «Plegado» (Archivo → Configuración… → Barra de estado). «Automáticamente cuando falta espacio» es la opción predeterminada y guarda solo lo que ya no cabe; «Siempre plegada» mantiene los botones en los dos menús con independencia del ancho de la ventana y deja la barra permanentemente sobria. La misma sección lleva también los botones de comando propios de la barra y la lista de los botones predeterminados ocultos, véase [Colocación de comandos](command-placement.md).
+
+Cómo trata la barra los botones que en este momento no pueden hacer nada lo determina el ajuste «Botones no utilizables» (Archivo → Configuración… → Barra de estado). Afectados están los selectores de vista y los tres conmutadores de editor del centro, así como Editar, la sincronización del desplazamiento y el historial del documento de la derecha: por ejemplo mientras una página del sistema como los ajustes está delante, o mientras no haya ningún documento abierto. «Mostrar atenuados» es la opción predeterminada: el botón permanece en su sitio, se ve claramente desactivado y no reacciona. «Ocultar» lo retira de la barra mientras no pueda hacer nada, y también de los dos menús de los bordes de la barra plegada; en cuanto vuelve a poder actuar, regresa a su sitio. Los conmutadores de paneles de la izquierda, los botones de comando propios, la selección de idioma y el conmutador claro/oscuro no conocen este estado y nunca se ven afectados por la elección; el menú Ver permanece igualmente sin cambios y sigue mostrando atenuadas las entradas no disponibles.
+
+Un botón puede faltar en la barra, por tanto, por tres razones distintas, y solo la tercera depende de este ajuste: está desmarcado en la lista de botones predeterminados ocultos y queda ausente de forma permanente — esa lista actúa antes de la elección, véase [Colocación de comandos](command-placement.md); pertenece a una extensión desactivada, y entonces la función no existe, véase [Extensiones](extensions.md); o no puede hacer nada en este momento y la elección está en «Ocultar», y entonces vuelve por sí solo.
 
 ## Estadística de palabras
 

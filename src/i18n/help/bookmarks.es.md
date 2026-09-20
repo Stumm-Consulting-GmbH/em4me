@@ -6,7 +6,7 @@ Los marcadores mantienen a mano los archivos de uso frecuente, sin importar qué
 
 El panel de marcadores se activa como cualquier panel lateral: mediante la estrella de la barra de estado, el menú Ver → Barra lateral → Paneles → Favoritos (predeterminado `Ctrl+Mayús+L`) o un atajo que asignes tú mismo. El interruptor actúa sobre la columna activa; lado, orden y grupos de pestañas siguen las reglas de la [barra lateral](sidebar.md). La estrella de la barra de estado indica además si el archivo activo ya está marcado.
 
-Un clic en una entrada abre el archivo. Si un archivo marcado falta en la ubicación esperada, la entrada lo señala en lugar de no llevar a ninguna parte. Incluso en el estado vacío de la aplicación, sin documento abierto, la lista sigue siendo utilizable, de modo que los archivos marcados pueden abrirse directamente.
+Un clic en una entrada abre el archivo. Si un archivo marcado falta en la ubicación esperada, la entrada lo señala en lugar de no llevar a ninguna parte. Incluso en el estado vacío de la aplicación, sin documento abierto, la lista sigue siendo utilizable, de modo que los archivos marcados pueden abrirse directamente. Una entrada lleva el nombre del archivo sin su extensión Markdown, y la información sobre herramientas indica la ruta completa; en cambio, un nombre elegido por usted permanece exactamente como lo introdujo.
 
 ## Dos secciones: general y ligada al área
 

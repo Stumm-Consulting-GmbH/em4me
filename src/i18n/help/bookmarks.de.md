@@ -6,7 +6,7 @@ Lesezeichen halten häufig gebrauchte Dateien griffbereit, unabhängig davon, we
 
 Das Panel „Lesezeichen" wird wie jedes Sidebar-Panel geschaltet: über den Stern in der Statusbar, das Menü Ansicht → Sidebar → Panels → Lesezeichen (Standard `Strg+Umschalt+L`) oder ein selbst vergebenes Kürzel. Der Schalter wirkt auf die aktive Spalte; Seite, Reihenfolge und Reiter-Gruppen folgen den Regeln der [Sidebar](sidebar.md). Der Stern in der Statusbar zeigt zusätzlich an, ob die aktive Datei bereits gemerkt ist.
 
-Ein Klick auf einen Eintrag öffnet die Datei. Fehlt eine gemerkte Datei am erwarteten Ort, weist der Eintrag darauf hin, statt still ins Leere zu führen. Auch im leeren App-Zustand ohne offenes Dokument bleibt die Liste bedienbar, sodass gemerkte Dateien direkt geöffnet werden können.
+Ein Klick auf einen Eintrag öffnet die Datei. Fehlt eine gemerkte Datei am erwarteten Ort, weist der Eintrag darauf hin, statt still ins Leere zu führen. Auch im leeren App-Zustand ohne offenes Dokument bleibt die Liste bedienbar, sodass gemerkte Dateien direkt geöffnet werden können. Die Beschriftung eines Eintrags ist der Dateiname ohne die Markdown-Endung, und der Kurzhinweis nennt den vollständigen Pfad; ein selbst gewählter Name bleibt dagegen genau so stehen, wie er eingegeben wurde.
 
 ## Zwei Abschnitte: allgemein und bereichsgebunden
 

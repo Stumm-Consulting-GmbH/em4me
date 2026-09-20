@@ -34,7 +34,9 @@ Each row carries a timestamp and a short selection: for an area the number of Ma
 
 **The figures are not kept up to date continuously.** They are collected when the container is added and afterwards only when you ask for it: “Collect again” reads the container anew and sets a new timestamp. That is why the timestamp stands in every row — it says which point in time the figures refer to. Anyone who has worked in an area for a week first sees the figures from the week before last here; one click brings them up to today.
 
-A **workspace** has no key figures and no collection button: it is not a folder but an arrangement. What it arranges stands in its row and in the detail view.
+A **workspace** has no key figures and no collection button: it is not a folder but an arrangement. What it arranges stands in its row and in the detail view: the containers it is bound to, the number of its windows and the number of **open documents** in them.
+
+**What is counted are open documents, not files in a folder.** The figure says how many Markdown documents the workspace has open in its windows; counting is per window. Untitled tabs, manual and system pages and other kinds of file are not counted. Both figures come from the stored entry of the workspace and are therefore there for a closed one just as for an open one; a zero is a counted zero like any other.
 
 ### A container that cannot be reached right now
 
@@ -55,7 +57,7 @@ A directory is **not** built specially for this page. That would cost a full pas
 | Area | Markdown files, other files, folders, storage used, tags, tasks, files without an incoming link |
 | Book | chapters, Markdown files, storage used, the bookshelf it belongs to |
 | Bookshelf | books, of those not found, Markdown files, storage used |
-| Workspace | area, book, bookshelf, windows, last used |
+| Workspace | area, book, bookshelf, windows, open documents, last used |
 
 **Two kinds of emptiness, two signs.** “not available” means: nobody has collected this figure — the tags of an area that is not open, for instance. The dash means: this container has no such thing at all — the book of a workspace that carries none, for instance. **A zero never stands for either**; it is always a counted zero, and an area without subfolders shows it rightly.
 

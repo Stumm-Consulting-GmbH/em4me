@@ -4,7 +4,7 @@ Die App organisiert die Arbeit in drei Ebenen: **Applikationen** (eigenständige
 
 ## Applikationen
 
-Das Programm kann mehrfach gestartet werden: Jeder weitere Start der Programmdatei legt eine neue Applikation an, einen eigenständigen Arbeitskontext mit eigenen Fenstern und eigener Fenster-Nummerierung. Dasselbe leistet „Datei → Neue Applikation".
+Das Programm kann mehrfach gestartet werden: Jeder weitere Start der Programmdatei legt eine neue Applikation an, einen eigenständigen Arbeitskontext mit eigenen Fenstern und eigener Fenster-Nummerierung. Dasselbe leistet „Datei → Neue Applikation". Ein weiteres **Fenster** derselben Applikation entsteht dagegen über „Datei → Neues Fenster"; der Abschnitt „Fenster" grenzt beides ab.
 
 Alle Applikationen laufen in einem gemeinsamen Programm-Prozess und teilen sich die Einstellungen. Die Sitzungs-Wiederherstellung (Hilfe → Sitzung wiederherstellen) stellt beim nächsten Start alle Applikationen samt Fenstern und Tabs wieder her.
 
@@ -19,6 +19,12 @@ Abschalten unter „Einstellungen → Verhalten" mit „Ungespeicherte neue Doku
 ## Fenster
 
 Innerhalb einer Applikation lassen sich beliebig viele Fenster öffnen: Über das Tab-Kontextmenü („Verschieben in" / „Kopieren in" → „Neues Fenster") wandert ein Tab in ein neues Fenster derselben Applikation. Bei mehreren offenen Fenstern listet das Untermenü alle anderen Fenster als Ziel; sobald mehrere Applikationen laufen, tragen die Ziel-Einträge den Applikations-Zusatz.
+
+**„Datei → Neues Fenster" öffnet ein leeres zweites Fenster** derselben Applikation — ohne dass dafür erst ein Dokument offen sein muss. Es erbt alles, was zur Applikation gehört: ihre Bindung an einen Ordner, ihren Arbeitsbereich und ihre Sitzung. Sein Titel trägt den Fenster-Zusatz nach der Systematik unten, Reiter lassen sich zwischen ihm und den übrigen Fenstern der Applikation bewegen, und es kehrt mit der Sitzungs-Wiederherstellung zurück wie jedes andere Fenster.
+
+**Der Unterschied zur „Neuen Applikation" ist der Zusammenhang.** Ein neues Fenster bleibt im laufenden Zusammenhang und teilt dessen Bindung, Arbeitsbereich und Sitzung; eine neue Applikation beginnt einen eigenen — mit eigener Bindung, eigener Fenster-Nummerierung und eigenem Titel. Wer nur eine zweite Fläche für dieselbe Arbeit sucht, nimmt „Neues Fenster"; deshalb steht der Eintrag im Datei-Menü **vor** „Neue Applikation".
+
+Dieselbe Funktion steht als Kommando in der Kommando-Palette bereit und lässt sich unter Einstellungen → Tastenkürzel mit einem Kürzel belegen; eine Vorbelegung gibt es nicht.
 
 ## Position neuer Tabs
 
@@ -51,13 +57,22 @@ Mehrere Reiter lassen sich zugleich auswählen und dann in einem Schritt bewegen
 - **Kontextmenü:** Die Gruppen-Einträge wirken auf die Auswahl, sobald der angeklickte Reiter zu ihr gehört. Einträge, die genau eine Datei meinen — Umbenennen, Lesezeichen, Verschieben oder Kopieren in ein Fenster —, bleiben beim angeklickten Reiter, ebenso der Mittelklick zum Schließen.
 - **Ende der Auswahl:** ein Klick ohne Zusatztaste, der Wechsel der Spalte oder das Schließen der Sitzung. Die Auswahl gehört zur einzelnen Reiterleiste und wird nicht gespeichert.
 
+## Beschriftung der Reiter
+
+Ein Reiter trägt den Dateinamen **ohne die Markdown-Endung**: Aus `Konzept.md` wird die Beschriftung `Konzept`. Markdown ist das Standard-Format der Anwendung, und die Endung an jedem Reiter zu wiederholen kostet genau dort Platz, wo er knapp ist — die Reiterleiste kürzt bei vielen offenen Dokumenten als Erstes die Beschriftungen. Gekürzt werden alle als Markdown geführten Endungen, nicht nur `.md`.
+
+- **Eine andere Dateiart behält ihre Endung.** Wer eine Datei mit fremder Endung geöffnet hat, sieht das am Reiter.
+- **Gekürzt wird allein die Anzeige.** Datei, Pfad, Speichern und Umbenennen arbeiten unverändert mit dem vollständigen Namen, und der Kurzhinweis am Reiter nennt weiterhin den ganzen Pfad — bei zwei gleichnamigen Dateien aus verschiedenen Ordnern ist er die Unterscheidung.
+- **Dieselbe Beschriftung an drei Orten.** Reiter, Mitglieder-Liste einer zugeklappten Gruppe und Fenstertitel schöpfen aus derselben Quelle und heißen deshalb immer gleich; dieselbe Form trägt auch die Titelzeile über dem Dokument.
+- **Die Panels der Seitenleiste tragen dieselbe Form.** In der Dateiliste des Bereichs, in den Rückverweisen, in den Lesezeichen, in den Erinnerungen und in der Datei-Liste eines Tags steht eine Markdown-Datei ohne ihre Endung, und überall nennt der Kurzhinweis den vollständigen Pfad.
+
 ## Form der Reiter
 
 Reiter und Gruppen-Köpfe stehen wahlweise eckig oder mit abgerundeten oberen Ecken (Datei → Einstellungen… → Darstellung). Abgerundet ersetzt ein schmaler Abstand die senkrechte Trennlinie zwischen den Reitern; die Kennzeichnung des aktiven Reiters, die Farbstreifen der Gruppen und die Markierung der aktiven Spalte bleiben unverändert. Die Einstellung gilt für die ganze Anwendung und wirkt sofort in allen offenen Fenstern.
 
 ## Titel-Systematik
 
-Der Fenstertitel zeigt in Klammern, wohin ein Fenster gehört, und zwar nur so viel wie nötig:
+Vor der Klammer steht der Name des aktiven Dokuments, ohne Markdown-Endung wie am Reiter. Der Fenstertitel zeigt in Klammern, wohin ein Fenster gehört, und zwar nur so viel wie nötig:
 
 | Situation | Titel-Zusatz |
 |---|---|
@@ -96,13 +111,17 @@ In einer Bereichs-Applikation umfasst der Suchraum für Backlinks, Tags, Autocom
 
 ### Bereichs-Panel
 
-Das Panel „Bereich" zeigt den Bereich als Ordnerstruktur in der Sidebar (links oder rechts andockbar wie jedes Panel; Schalter ist das Ordner-Icon in der Statusbar oder Ansicht → Sidebar → Panels → Bereich): oben der Ordnerbaum, darunter die Markdown-Dateien des ausgewählten Ordners; andere Datei-Typen erscheinen nicht. Ein Klick auf eine Datei öffnet sie als Tab, alle Einträge zeigen den vollen Pfad als Tooltip, und externe Änderungen (Datei angelegt, gelöscht, umbenannt) erscheinen automatisch. Der Knopf „+" am Kopf der Dateiliste legt eine neue Markdown-Datei im ausgewählten Ordner an und öffnet sie. In einer frisch geöffneten, noch leeren Bereichs-Applikation ist das Panel automatisch sichtbar.
+Das Panel „Bereich" zeigt den Bereich als Ordnerstruktur in der Sidebar (links oder rechts andockbar wie jedes Panel; Schalter ist das Ordner-Icon in der Statusbar oder Ansicht → Sidebar → Panels → Bereich): oben der Ordnerbaum, darunter die Markdown-Dateien des ausgewählten Ordners; andere Datei-Typen erscheinen nicht. Eine Datei-Zeile trägt ihren Namen ohne Markdown-Endung, dieselbe Form wie am Reiter: aus `Konzept.md` wird `Konzept`; unterschieden werden zwei Dateien, deren Namen sich nur in der Markdown-Endung unterscheiden, über den Kurzhinweis. Ein Klick auf eine Datei öffnet sie als Tab, alle Einträge zeigen den vollen Pfad als Tooltip, und externe Änderungen (Datei angelegt, gelöscht, umbenannt) erscheinen automatisch. Der Knopf „+" am Kopf der Dateiliste legt eine neue Markdown-Datei im ausgewählten Ordner an und öffnet sie. In einer frisch geöffneten, noch leeren Bereichs-Applikation ist das Panel automatisch sichtbar.
 
 ### Datei-Verwaltung im Bereichs-Panel
 
 Der Rechtsklick verwaltet den Bestand, ohne dass Sie die Anwendung verlassen müssen. An einer **Ordner-Zeile** stehen zwei Einträge: **Neuer Unterordner…** und **Neue Markdown-Datei…**. Beide fragen den Namen an Ort und Stelle ab — der Ordner-Name in einer Zeile unter dem angeklickten Ordner, der Dateiname am Kopf der Dateiliste — und legen im **angeklickten** Ordner an, auch wenn gerade ein anderer ausgewählt ist. Einem Dateinamen ohne Endung wird die Markdown-Endung ergänzt; die neue Datei wird geöffnet und durchläuft dabei die Ordner-Regel für Vorlagen wie jede andere Anlage. Ein bereits vergebener, ein für das Dateisystem unzulässiger und ein leerer Name werden gemeldet, bevor etwas angelegt wird; Escape bricht ab und hinterlässt nichts.
 
-An einer **Datei-Zeile** stehen **Umbenennen…** und **Löschen…** am Ende des Menüs, abgesetzt von den Einträgen darüber.
+An einer **Datei-Zeile** stehen **Kopieren**, **Umbenennen…** und **Löschen…** am Ende des Menüs, abgesetzt von den Einträgen darüber. Sie sind nach zunehmendem Eingriff geordnet: Kopieren lässt die Vorlage unberührt, Umbenennen ändert ihren Namen, Löschen nimmt sie weg.
+
+**Kopieren** legt sofort eine Kopie im selben Ordner an — ohne Rückfrage und ohne Namens-Dialog; deshalb trägt der Eintrag auch keine drei Punkte. Der Name ist der der Vorlage, ergänzt um einen Bindestrich und eine laufende Nummer **vor** der Endung: aus `Konzept.md` wird `Konzept-1.md`, beim nächsten Mal `Konzept-2.md`. Genommen wird jeweils die nächste **freie** Nummer, damit keine vorhandene Datei überschrieben wird; ist die Vorlage schon nummeriert, wird angehängt statt hochgezählt — aus `Konzept-1.md` wird `Konzept-1-1.md` und nicht `Konzept-2.md`. Wer die Kopie anders nennen will, benennt sie mit dem Eintrag darunter um.
+
+**Die Block-Eigenschaften der Vorlage und ihre Dokument-Notiz reisen mit, ihre Änderungs-Historie nicht.** Die Kopie ist damit inhaltlich vollständig und beginnt geschichtlich neu: Sie erzählt keinen Werdegang, den sie nicht hat. Sie erscheint unmittelbar in der Dateiliste an ihrer Sortier-Position und wird **nicht** geöffnet — Sie schlagen sie auf, wenn Sie sie brauchen. Kopiert wird stets in den Ordner der Vorlage und damit innerhalb des Bereichs. Ein **geteiltes Dokument** wird nicht kopiert; eine Meldung sagt es, weil eine Kopie seiner Kopf-Datei dieselben Folgeteile beanspruchen würde wie das Original. Schlägt das Kopieren fehl, erscheint eine Meldung, und es bleibt keine halbe Kopie zurück.
 
 **Umbenennen** ist derselbe Weg wie über das Menü, mit derselben Nachführung der internen Verweise und derselben Vorschau der betroffenen Stellen. Der Unterschied liegt allein darin, worauf er wirkt: hier auf jede Datei des Bereichs, auch auf eine nicht geöffnete, statt nur auf die gerade offene. Ist die Datei geöffnet und geändert, wird sie vorher gesichert; ihr Reiter zeigt anschließend den neuen Namen.
 
@@ -112,7 +131,7 @@ Ist die Datei geöffnet, wird ihr Reiter geschlossen; ungesicherte Änderungen l
 
 **Verweise auf eine gelöschte Datei werden nicht angepasst.** Anders als beim Umbenennen gibt es kein Ersatz-Ziel; die Verweise bleiben stehen und werden zu gebrochenen Verweisen. Das ist so gewollt und keine Fehlfunktion: Der gebrochene Verweis zeigt, dass dort einmal etwas stand, und lässt sich gezielt auflösen.
 
-Umbenennen und Löschen von **Ordnern** sowie das Verschieben von Dateien gehören noch nicht zum Umfang; dafür bleibt der Datei-Manager des Betriebssystems.
+Umbenennen, Löschen und Kopieren von **Ordnern** sowie das Verschieben von Dateien gehören noch nicht zum Umfang; dafür bleibt der Datei-Manager des Betriebssystems.
 
 ### Bereichs-Statistik
 
@@ -144,6 +163,8 @@ Die Festlegung gehört zum Bereich und wandert mit seinem Ordner. Wird die Datei
 
 Ein **Arbeitsbereich** ist eine benannte, dauerhaft gespeicherte Applikation: Er umfasst alle ihre Fenster mit Panes, Tabs samt Ansichts-Einstellungen, Tab-Gruppen, einer eventuellen Bereichs-Bindung und den ungespeicherten Entwürfen. Ein geöffneter Arbeitsbereich hält seinen Stand **automatisch** aktuell, ohne manuellen Speicher-Schritt; beim erneuten Öffnen geht die Arbeit exakt am letzten Stand weiter. Zugang: das Untermenü „Datei → Arbeitsbereiche" mit der Liste aller Arbeitsbereiche (der Farbpunkt zeigt zugleich den Zustand: gefüllt = geöffnet, Ring = geschlossen) und den vier Aktionen darunter; dieselben Aktionen stehen als Kommandos in der Kommando-Palette bereit.
 
+**Die Liste nennt den gebundenen Ordner.** Ist ein Arbeitsbereich an einen Ordner gebunden, steht sein Eintrag einzeilig als „Name — Ordnername". Genannt wird allein der Name des Ordners, nicht der ganze Pfad: Eine Menü-Beschriftung ist einzeilig, und ein vollständiger Pfad sprengte jede brauchbare Menü-Breite — ihn zeigt die Verwaltung. Ein Arbeitsbereich **ohne** Bindung trägt allein seinen Namen, ohne Trenner und ohne Platzhalter. Sehr lange Angaben werden je Bestandteil gekürzt, damit ein langer Name dem Ordnernamen nicht den Platz nimmt. Gezeigt wird die Bindung nur; setzen oder lösen lässt sie sich weder hier noch in der Verwaltung.
+
 **Bereich und Arbeitsbereich sind zwei verschiedene Dinge:** Ein *Bereich* bindet eine Applikation an einen **Ordner** und begrenzt ihren Arbeitsraum (siehe oben). Ein *Arbeitsbereich* ist eine benannte, wieder öffenbare **Fenster-Sammlung**, also ein gespeicherter Arbeitszustand. Beides lässt sich kombinieren: Ein Arbeitsbereich, dessen Applikation einen Bereich gebunden hat, nimmt diese Bindung in seine Ablage mit auf.
 
 **Titelleisten-Farbe:** Fenster eines geöffneten Arbeitsbereichs tragen dessen Farbkennung in der Fenster-Titelleiste — im hellen Theme als kräftige, im dunklen Theme als pastellige Paletten-Variante, jeweils mit passender Titel-Textfarbe. Die Färbung folgt dem Lebenszyklus: Sie erscheint beim Öffnen, wechselt sofort mit der Farbe in der Verwaltung, verschwindet beim Schließen oder Löschen und entfällt mit dem Ausschalten der Erweiterung „Arbeitsbereiche". Sie setzt Windows 11 voraus und entfällt damit unter Linux; ohne diese Unterstützung bleibt die Standard-Titelleiste, die App ist davon nicht beeinträchtigt. Der Arbeitsbereich selbst, sein Farbpunkt in Menü und Verwaltung und der Fenstertitel bleiben auf jeder Plattform unverändert.
@@ -158,7 +179,11 @@ Ein **Arbeitsbereich** ist eine benannte, dauerhaft gespeicherte Applikation: Er
 
 ### Verwaltung
 
-„Arbeitsbereiche verwalten…" öffnet einen Dialog mit allen Arbeitsbereichen: Farbpunkt, Name, Zustand (geöffnet oder geschlossen) und Zeitpunkt des letzten Öffnens. Pro Eintrag stehen die Aktionen **Öffnen**, **Umbenennen und Farbe…** sowie **Löschen** bereit.
+„Arbeitsbereiche verwalten…" öffnet einen Dialog mit allen Arbeitsbereichen: Farbpunkt, Name, Zustand (geöffnet oder geschlossen) und Zeitpunkt des letzten Öffnens; ist ein Arbeitsbereich an einen Ordner gebunden, nennt seine Zeile zusätzlich dessen **vollständigen Pfad**. Pro Eintrag stehen die Aktionen **Öffnen**, **Umbenennen und Farbe…** sowie **Löschen** bereit. Buch und Bücherregal eines Arbeitsbereichs nennt der Dialog nicht; sie stehen mit allen übrigen Angaben auf der Seite [My Extended Memory](my-extended-memory.md).
+
+**Hier wird auch die Reihenfolge gesetzt.** Jede Zeile trägt zwei Pfeil-Schaltflächen, „Nach oben schieben" und „Nach unten schieben"; jeder Klick bewegt den Eintrag um eine Position. Die neue Reihenfolge gilt **sofort** und ebenso im Untermenü „Datei → Arbeitsbereiche", sie wird unmittelbar gespeichert und überdauert den Schluss des Dialogs wie den Neustart der Anwendung — einen Bestätigungs-Schritt gibt es nicht. Am ersten Eintrag ist „nach oben" abgeblendet, am letzten „nach unten"; die Schaltflächen bleiben dabei stehen, damit der zweite Klick an derselben Bildschirm-Stelle noch dasselbe bedeutet. Beide Wege sind mit der Tastatur erreichbar, und der Fokus bleibt nach der Bewegung am verschobenen Eintrag — so schiebt sich ein Arbeitsbereich mit mehreren Anschlägen durch die Liste. Ziehen mit der Maus ist nicht vorgesehen.
+
+Ein neu angelegter Arbeitsbereich hängt sich **hinten** an. Eine Sortierung nach Namen, Zustand oder letztem Öffnen gibt es nicht: Es gibt genau eine Reihenfolge, und das ist die, die Sie gesetzt haben.
 
 ### Sitzungs-Wiederherstellung und Grenzfälle
 

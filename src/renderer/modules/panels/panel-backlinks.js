@@ -22,6 +22,9 @@ import { openOrJumpToPath } from '../bookmarks/bookmarks.js';
 // Tag-Datei-Liste), damit gleichnamige Dateien aus verschiedenen Ordnern des
 // Bereichs eindeutig unterscheidbar sind.
 import { relativeDirFromRoot } from '../path-format.js';
+// 4T-001775 (Epic 3E-000304): Beschriftung ohne Markdown-Endung aus der
+// gemeinsamen Quelle (keine zweite Endungs-Liste).
+import { fileLabelFromBasename } from '../../../shared/subpages.js';
 import { ensurePanelTabActive, registerSidebarPanel } from '../sidebar-layout.js';
 import { reportMenuStateNow } from '../tabs/tabs.js';
 import { isAllEmpty, persistSetting } from '../views/views.js';
@@ -148,7 +151,11 @@ export function renderBacklinks(paneIdx) {
     // Basename (kein Ordner-Zusatz). Voller Pfad bleibt im Tooltip.
     const nameEl = document.createElement('div');
     nameEl.className = 'backlinks-group-name';
-    nameEl.textContent = api.basename(group.quelldatei);
+    // 4T-001775 (Epic 3E-000304): ohne Markdown-Endung, wie in jeder anderen
+    // Anzeige eines Datei-Namens; die Endung sagt hier nichts, denn ein
+    // Rueckverweis kommt immer aus einem Markdown-Dokument. Der Kurzhinweis am
+    // Kopf fuehrt weiter den vollen Pfad (Zeile darunter).
+    nameEl.textContent = fileLabelFromBasename(api.basename(group.quelldatei));
     header.appendChild(nameEl);
     const relDir = relativeDirFromRoot(wurzel, group.quelldatei);
     if (relDir) {

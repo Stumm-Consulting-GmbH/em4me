@@ -65,7 +65,9 @@ function normalizeMenuState(base, stored) {
     // 4T-000538 (Epic 3E-000098): Arbeitsbereichs-Zuordnung der App dieses
     // Fensters (aktiviert "Arbeitsbereich schliessen", dimmt "Als
     // Arbeitsbereich speichern") plus die Liste fuer das Untermenue
-    // ([{ id, name, color, open }], main-seitig aus Ablage und Registry).
+    // ([{ id, name, color, open, areaPath }], main-seitig aus Ablage und
+    // Registry; `areaPath` seit 4T-001737 fuer die Bereichs-Zuordnung in der
+    // Beschriftung).
     hasWorkspace: !!s.hasWorkspace,
     workspaces: Array.isArray(s.workspaces) ? s.workspaces : [],
     // 4T-000843 (Epic 3E-000147): aktives Buch der App dieses Fensters

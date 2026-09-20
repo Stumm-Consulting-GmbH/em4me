@@ -97,6 +97,14 @@ Una riga vuota inizia un nuovo elenco. Se nasce dalla tua modifica, l'elenco suc
 
 Il tasto Invio prosegue un elenco e aggiunge un punto elenco, un numero consecutivo o una casella vuota. Su un sottoelemento vuoto riduce il rientro di un livello; al livello superiore termina l'elenco.
 
+### Il cursore al cambio di riga
+
+Quando il cursore si trova a fine riga e `Freccia destra` lo porta alla riga successiva, si posiziona nel punto di scrittura, purché la riga di destinazione sia una riga di elenco: dopo il rientro e il marcatore e, in una riga di attività, dopo la casella di stato. Chi scrive per punti risparmia così da due a sei battute a ogni cambio di riga.
+
+Il marcatore resta raggiungibile: dal punto di scrittura `Freccia sinistra` prosegue carattere per carattere verso sinistra, prima nel marcatore, poi nel rientro e infine alla fine della riga precedente. Anche `Maiusc+Freccia destra` seleziona carattere per carattere come prima. Se la riga di destinazione non porta un marcatore — per esempio una riga di continuazione di un elemento dell'elenco — il cursore resta all'inizio della riga come prima.
+
+Il comportamento vale nelle viste Sorgente, Divisa e Live. L'impostazione «Il cursore salta dopo il marcatore di elenco» (File → Impostazioni… → Comportamento) lo disattiva; di serie è attiva e, quando è disattivata, il cursore si muove come in un normale editor di testo.
+
 ## Tabelle
 
 Tabelle pipe con riga di intestazione e riga separatrice; i due punti nella riga separatrice controllano l'allineamento. Per celle-blocco multilinea c'è [Perspective Table](perspective-table.md), per il comfort di digitazione l'editor di tabelle (vedi [Strumenti](tools.md)). Per ristrutturare tabelle esistenti (spostare, inserire ed eliminare righe e colonne, allineamento, trasposizione), utilizzare il sottomenu **Tabella** nel [Menu contestuale dell'editor](context-menu.md).

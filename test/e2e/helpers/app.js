@@ -189,6 +189,60 @@ function beobachteKonsole(app) {
   });
 }
 
+// 4T-001579 (Epic 3E-000283): Prüf-Breite des Fensters.
+//
+// **Warum das hier steht und nicht in den betroffenen Prüffällen.** Die
+// Statusleiste klappt seit diesem Vorgang bei knappem Platz in zwei
+// Pull-up-Menüs zusammen, statt über den rechten Fensterrand hinauszulaufen.
+// Gemessen am 2026-09-14 braucht sie mit geöffnetem Dokument rund **1280 px**;
+// die Anwendung öffnet ihr Fenster aber mit **1200 px**. Vier Elemente
+// (Rückverweise, ausgehende Verweise, Theme-Schalter, Sprach-Wahl) sind damit
+// im Auslieferungs-Fenster eingeklappt und nicht mehr unmittelbar anklickbar.
+// Das ist **kein** Fehler der Faltung: Vor ihr lagen genau diese Elemente
+// außerhalb des sichtbaren Bereichs — der Mangel, den das Epic behebt.
+//
+// Für die Prüf-Umgebung heißt das: Ein Prüffall, der eine Schaltfläche der
+// Leiste anklickt, prüfte ohne diese Breite die Faltung statt seiner eigenen
+// Sache. Betroffen sind rund zehn Prüfdateien über fünf Elemente hinweg, und
+// die Menge wächst mit jeder weiteren Schaltfläche. Deshalb setzt die eine
+// Stelle, die alle Prüffälle durchlaufen, eine Breite mit Luft; wer eine
+// schmale Lage **prüfen** will, setzt die Fenster-Grenzen weiterhin selbst
+// (Muster FT-05, KP-04 und die SF-Fälle der Faltung).
+//
+// Die Höhe bleibt bewusst auf dem Auslieferungs-Wert 800, damit sich an den
+// höhen-abhängigen Zusicherungen (Spalten-Überlauf der Seitenleiste) nichts
+// verschiebt. Ist der Bildschirm schmaler als 1600, klemmt das Fenster-System
+// die Breite — dann gilt dieselbe Lage wie vor dieser Ergänzung.
+//
+// **Gesetzt wird die Inhalts-Größe, nicht das Fenster-Rechteck** (Muster
+// scripts/web-bildschirmfotos.js). Das ist nicht Geschmack, sondern gemessen:
+// Eine erste Fassung setzte `setBounds({x: 0, y: 0, width, height})` und
+// VERSCHOB damit das Fenster. Danach war `MEM-06` in vier von sechs Läufen der
+// Datei rot, mit «electronApplication.evaluate: Execution context was
+// destroyed» im zweiten Palette-Aufruf — also ohne verletzte Erwartung. Ohne
+// Größen-Setzung war dieselbe Datei 3 von 3 grün, mit `setContentSize`
+// ebenfalls 3 von 3 (gemessen am 2026-09-14). Der Auslöser war das Verschieben,
+// nicht die Breite; `setContentSize` rührt die Position nicht an und gibt der
+// Leiste ihre Breite genauer, weil der Fenster-Rahmen nicht mitzählt.
+const PRUEF_BREITE = 1600;
+const PRUEF_HOEHE = 800;
+
+async function setzePruefBreite(app) {
+  try {
+    await app.evaluate(
+      ({ BrowserWindow }, masse) => {
+        const win = BrowserWindow.getAllWindows()[0];
+        if (win && !win.isDestroyed()) win.setContentSize(masse.breite, masse.hoehe);
+      },
+      { breite: PRUEF_BREITE, hoehe: PRUEF_HOEHE },
+    );
+  } catch {
+    // Kein Fenster (oder schon geschlossen): Der Prüffall scheitert dann an
+    // seiner eigenen Zusicherung und nicht hier — wie beim Bereitschafts-
+    // Marker oben.
+  }
+}
+
 /**
  * Startet die App mit frischem Temp-Profil.
  * @param {object} [opts]
@@ -235,6 +289,7 @@ async function launchApp(opts = {}) {
   // 4T-000372 (Epic 3E-000069): zusaetzlich das Ende der asynchronen init()
   // abwarten — Begruendung am Helfer waitForRendererInit.
   await waitForRendererInit(page);
+  await setzePruefBreite(app);
   return { app, page, userData };
 }
 

@@ -362,6 +362,36 @@ test.describe('VL-08: Ordner-Regel — Dialog-Abbruch legt die Datei leer an, mi
 
 const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system .settings-page';
 
+// 4T-001578 (Epic 3E-000282): Vorbedingung, bevor ein Fall einen ZWEITEN Reiter
+// öffnet — der Reiter des Datei-Arguments muss da und aktiv sein.
+//
+// **Warum `markdownBody0` dafür nicht genügt.** `launchApp` wartet das
+// Datei-Argument nicht ab; sein Bereitschafts-Marker hängt an der Statusbar
+// (Helfer `waitForRendererInit`), nicht an der geöffneten Datei. Gemessen am
+// 2026-09-14: Unmittelbar nach `launchApp` meldet `markdownBody0` bereits
+// «sichtbar», während die Reiterleiste noch **leer** ist; der Reiter der Datei
+// entsteht erst rund 100 ms später. Wer in diesem Fenster `Strg+,` drückt,
+// bekommt die Einstellungs-Seite als **ersten** Reiter, und die nachlaufende
+// Datei-Öffnung hängt ihren Reiter daneben und aktiviert ihn — die
+// Einstellungs-Seite ist dann im Hintergrund, ihre Navigations-Einträge sind
+// vorhanden, aber nicht sichtbar, und der Klick auf einen Bereich läuft in sein
+// Limit. Genau so ist `VL-09` im E2E-Voll-Lauf vom 2026-09-14 rot geworden
+// (Reiter-Folge im Fehlerbild: «Einstellungen», dann aktiv «Start.md»).
+//
+// Die Zusicherung wird dadurch **strenger** und nicht schwächer: Gewartet wird
+// auf den tatsächlichen Ziel-Zustand des Starts statt auf ein Nebenprodukt, das
+// ihn nicht belegt. Dieselbe Fehlerklasse wie `SV-03` (4T-001583) und
+// `EX-04` (4T-001699) — «wartet auf Vorhandensein statt auf Sichtbarkeit»;
+// die allgemeine Schwäche von `launchApp` ist dort als Befund verortet.
+// 4T-001724 (Epic 3E-000304): Der Reiter beschriftet sich ohne Markdown-Endung.
+// Der Aufrufer nennt weiterhin den Dateinamen — er beschreibt das Argument, mit
+// dem die Anwendung gestartet wurde —, die Erwartung kuerzt hier.
+async function warteAufDateiArgument(page, dateiname) {
+  await expect(page.locator(SEL.activeTab0)).toContainText(
+    dateiname.replace(/\.(md|markdown|mdown|mkd)$/i, ''),
+  );
+}
+
 // Einstellungs-Seite öffnen und den Vorlagen-Bereich aktivieren (Poll wie
 // hotkeys.spec.js; der Konfigurations-Stand lädt asynchron nach).
 async function openTemplatesSettings(page) {
@@ -398,7 +428,7 @@ test.describe('VL-09: Einstellungen — globaler Ordner und Regel wirken sofort 
     );
     const { app, page } = await launchApp({ args: [ws.startDoc], userData });
     try {
-      await expect(page.locator(SEL.markdownBody0)).toBeVisible();
+      await warteAufDateiArgument(page, 'Start.md');
       await openTemplatesSettings(page);
       await page.locator('#settings-templates-global-folder').fill(ws.templatesDir);
       await page.locator('#settings-templates-global-rule-add').click();

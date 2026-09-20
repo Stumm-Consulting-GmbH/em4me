@@ -16,6 +16,7 @@
   "help.shortcut.openHelp": "Open the manual",
   "help.shortcut.openTour": "Start the product tour",
   "help.shortcut.newTab": "Open new Untitled tab",
+  "help.shortcut.newWindow": "Open a new, empty window of the same application",
   "help.shortcut.newApp": "Start a new application (separate window group)",
   "help.shortcut.openArea": "Open a folder area as the application's working space",
   "help.shortcut.closeArea": "Close the area (closes all windows of the area application)",

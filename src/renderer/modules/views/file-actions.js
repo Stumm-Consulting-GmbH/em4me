@@ -114,7 +114,13 @@ export async function renameFileForTab(paneIdx, tabIdx) {
 // am alten Namen haengen bleiben. Ueber ALLE Panes, weil dieselbe Datei in
 // beiden Spalten offen sein kann; ein Abbruch der Speichern-Abfrage bricht den
 // ganzen Vorgang ab.
-async function sichereOffeneReiter(absPath) {
+//
+// 4T-001731 (Epic 3E-000306): seither exportiert. Der Kopier-Weg
+// (views/file-copy.js) braucht denselben Schritt in derselben Absicht — der
+// Hauptprozess liest die DATEI, und ein ungesicherter Puffer waere in der
+// Kopie verloren. Exportiert statt dort nachgebaut, damit es eine Quelle
+// bleibt; der Name nennt die Handlung und nicht ihren ersten Anlass.
+export async function sichereOffeneReiter(absPath) {
   for (let p = 0; p < state.panes.length; p++) {
     const tabs = state.panes[p].tabs;
     for (let i = 0; i < tabs.length; i++) {

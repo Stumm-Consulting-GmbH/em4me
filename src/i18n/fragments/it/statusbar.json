@@ -31,5 +31,16 @@
   "statusbar.scrollSync.on": "Sincronizzazione scorrimento: attiva (clic per disattivare)",
   "statusbar.scrollSync.off": "Sincronizzazione scorrimento: disattivata (clic per attivare)",
   "statusbar.persistFailed": "Impossibile salvare l'impostazione",
-  "statusbar.viewToggleYamlError": "Frontmatter non valido, impossibile scrivere l'impostazione della vista"
+  "statusbar.viewToggleYamlError": "Frontmatter non valido, impossibile scrivere l'impostazione della vista",
+  "statusbar.collapse.left": "Altri elementi della barra di stato (a sinistra)",
+  "statusbar.collapse.right": "Altri elementi della barra di stato (a destra)",
+  "settings.statusbar.title": "Barra di stato",
+  "settings.statusbar.collapseMode": "Compattazione",
+  "settings.statusbar.collapseMode.auto": "Automaticamente quando lo spazio è scarso",
+  "settings.statusbar.collapseMode.always": "Sempre compattata",
+  "settings.statusbar.collapseMode.hint": "Con «Automaticamente quando lo spazio è scarso» i pulsanti della barra di stato passano nei due menu ai suoi bordi solo quando lo spazio non è più sufficiente. Con «Sempre compattata» restano in quei menu indipendentemente dalla larghezza della finestra. L'area dei messaggi brevi rimane visibile in entrambi i casi. Le modifiche hanno effetto con Applica o OK.",
+  "settings.statusbar.unavailableMode": "Pulsanti non utilizzabili",
+  "settings.statusbar.unavailableMode.blass": "Mostra in grigio",
+  "settings.statusbar.unavailableMode.ausgeblendet": "Nascondi",
+  "settings.statusbar.unavailableMode.hint": "Alcuni pulsanti della barra di stato non possono fare nulla al momento: per esempio i selettori di vista mentre la pagina delle impostazioni è in primo piano, oppure la matita per la modifica quando non è aperto alcun documento. Con «Mostra in grigio» restano al loro posto e sono visibilmente disattivati. Con «Nascondi» scompaiono finché non possono fare nulla e poi tornano al loro posto; la barra mostra allora solo ciò che funziona. Un pulsante deselezionato nell’elenco dei pulsanti predefiniti resta assente in entrambi i casi. Il menu Vista rimane invariato. Le modifiche hanno effetto con Applica o OK."
 }

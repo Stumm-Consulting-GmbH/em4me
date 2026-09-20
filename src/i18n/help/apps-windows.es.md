@@ -4,7 +4,7 @@ La app organiza el trabajo en tres niveles: **aplicaciones** (contextos de traba
 
 ## Aplicaciones
 
-El programa se puede iniciar varias veces: cada inicio adicional del archivo del programa crea una nueva aplicación, un contexto de trabajo independiente con sus propias ventanas y su propia numeración. «Archivo → Nueva aplicación» hace lo mismo.
+El programa se puede iniciar varias veces: cada inicio adicional del archivo del programa crea una nueva aplicación, un contexto de trabajo independiente con sus propias ventanas y su propia numeración. «Archivo → Nueva aplicación» hace lo mismo. Otra **ventana** de la misma aplicación, en cambio, surge de «Archivo → Nueva ventana»; la sección «Ventanas» distingue ambas cosas.
 
 Todas las aplicaciones se ejecutan en un mismo proceso y comparten la configuración. La restauración de sesión (Ayuda → Restaurar sesión) reabre en el siguiente inicio todas las aplicaciones con sus ventanas y pestañas.
 
@@ -19,6 +19,12 @@ Desactivación en «Ajustes → Comportamiento» con «Conservar los documentos 
 ## Ventanas
 
 Dentro de una aplicación se pueden abrir tantas ventanas como se desee: mediante el menú contextual de la pestaña («Mover a» / «Copiar a» → «Ventana nueva»), una pestaña pasa a una ventana nueva de la misma aplicación. Con varias ventanas abiertas, el submenú lista todas las demás ventanas como destino; en cuanto hay varias aplicaciones en ejecución, las entradas de destino llevan el contexto de aplicación.
+
+**«Archivo → Nueva ventana» abre una segunda ventana vacía** de la misma aplicación, sin que haga falta tener antes un documento abierto. Hereda todo lo que pertenece a la aplicación: su vinculación a una carpeta, su espacio de trabajo y su sesión. Su título lleva el sufijo de ventana según la sistemática de más abajo, las pestañas se pueden mover entre ella y las demás ventanas de la aplicación, y vuelve con la restauración de sesión como cualquier otra ventana.
+
+**La diferencia con «Nueva aplicación» es el contexto.** Una ventana nueva permanece en el contexto en curso y comparte su vinculación, su espacio de trabajo y su sesión; una aplicación nueva empieza uno propio, con su propia vinculación, su propia numeración de ventanas y su propio título. Quien solo busca una segunda superficie para el mismo trabajo toma «Nueva ventana»; por eso la entrada figura **antes** de «Nueva aplicación» en el menú Archivo.
+
+La misma función está disponible como comando en la paleta de comandos y puede recibir un atajo en Configuración → Atajos de teclado; no hay asignación predeterminada.
 
 ## Posición de las pestañas nuevas
 
@@ -51,13 +57,22 @@ Se pueden seleccionar varias pestañas a la vez y moverlas después en un solo p
 - **Menú contextual:** las entradas de grupo actúan sobre la selección en cuanto la pestaña pulsada forma parte de ella. Las entradas que se refieren exactamente a un archivo —renombrar, marcador, mover o copiar a una ventana— siguen ligadas a la pestaña pulsada, igual que el clic central para cerrar.
 - **Fin de la selección:** un clic sin tecla modificadora, el cambio de columna o el cierre de la sesión. La selección pertenece a una sola barra de pestañas y no se guarda.
 
+## Etiqueta de las pestañas
+
+Una pestaña lleva el nombre del archivo **sin su extensión Markdown**: `Concepto.md` se convierte en `Concepto`. Markdown es el formato estándar de la aplicación, y repetir su extensión en cada pestaña cuesta espacio justo donde es escaso: con muchos documentos abiertos, la barra de pestañas acorta primero las etiquetas. Se recortan todas las extensiones tratadas como Markdown, no solo `.md`.
+
+- **Los demás tipos de archivo conservan su extensión.** Si ha abierto un archivo con otra extensión, la pestaña lo muestra.
+- **Solo se acorta la presentación.** El archivo, su ruta, guardar y renombrar siguen trabajando con el nombre completo, y la información emergente de la pestaña sigue mostrando la ruta entera: con dos archivos del mismo nombre en carpetas distintas, es lo que los diferencia.
+- **La misma etiqueta en tres lugares.** La pestaña, la lista de miembros de un grupo plegado y el título de la ventana beben de la misma fuente y por eso siempre coinciden; la línea de título sobre el documento usa la misma forma.
+- **Los paneles de la barra lateral siguen la misma forma.** En la lista de archivos del área, en los retroenlaces, en los marcadores, en los recordatorios y en la lista de archivos de una etiqueta, un archivo Markdown aparece sin su extensión, y en todas partes la información sobre herramientas indica la ruta completa.
+
 ## Forma de las pestañas
 
 Las pestañas y las cabeceras de grupo tienen esquinas superiores rectas o redondeadas, a elección (Archivo → Configuración… → Apariencia). En modo redondeado, un espacio estrecho sustituye a la línea separadora vertical entre pestañas; la marca de la pestaña activa, las franjas de color de los grupos y la marca de la columna activa no cambian. El ajuste se aplica a toda la aplicación y surte efecto de inmediato en todas las ventanas abiertas.
 
 ## Sistemática de títulos
 
-El título de la ventana muestra entre paréntesis a dónde pertenece una ventana, solo lo necesario:
+Delante del paréntesis está el nombre del documento activo, sin su extensión Markdown igual que en la pestaña. El título de la ventana muestra entre paréntesis a dónde pertenece una ventana, solo lo necesario:
 
 | Situación | Sufijo del título |
 |---|---|
@@ -96,13 +111,17 @@ En una aplicación de área, el espacio de búsqueda de los retroenlaces, las et
 
 ### Panel del área
 
-El panel «Área» muestra el área como estructura de carpetas en la barra lateral (acoplable a la izquierda o a la derecha como cualquier panel; el conmutador es el icono de carpeta de la barra de estado o Ver → Barra lateral → Paneles → Área): el árbol de carpetas arriba y debajo los archivos Markdown de la carpeta seleccionada; otros tipos de archivo no aparecen. Un clic en un archivo lo abre como pestaña, todas las entradas muestran la ruta completa como información sobre herramientas, y los cambios externos (archivo creado, borrado, renombrado) aparecen automáticamente. El botón «+» en la cabecera de la lista crea un nuevo archivo Markdown en la carpeta seleccionada y lo abre. En una aplicación de área recién abierta y todavía vacía, el panel es visible automáticamente.
+El panel «Área» muestra el área como estructura de carpetas en la barra lateral (acoplable a la izquierda o a la derecha como cualquier panel; el conmutador es el icono de carpeta de la barra de estado o Ver → Barra lateral → Paneles → Área): el árbol de carpetas arriba y debajo los archivos Markdown de la carpeta seleccionada; otros tipos de archivo no aparecen. Una fila de archivo lleva su nombre sin la extensión Markdown, la misma forma que en la pestaña: `Concepto.md` se convierte en `Concepto`; dos archivos cuyos nombres solo difieren en la extensión Markdown se distinguen por la información sobre herramientas. Un clic en un archivo lo abre como pestaña, todas las entradas muestran la ruta completa como información sobre herramientas, y los cambios externos (archivo creado, borrado, renombrado) aparecen automáticamente. El botón «+» en la cabecera de la lista crea un nuevo archivo Markdown en la carpeta seleccionada y lo abre. En una aplicación de área recién abierta y todavía vacía, el panel es visible automáticamente.
 
 ### Gestión de archivos en el panel del área
 
 El clic derecho gestiona el conjunto de archivos sin salir de la aplicación. Una **fila de carpeta** ofrece dos entradas: **Nueva subcarpeta…** y **Nuevo archivo Markdown…**. Ambas piden el nombre in situ —el nombre de la carpeta en una fila bajo la carpeta sobre la que se ha hecho clic, el del archivo en la cabecera de la lista de archivos— y crean el elemento en la carpeta **sobre la que se ha hecho clic**, aunque en ese momento esté seleccionada otra. A un nombre de archivo sin extensión se le añade la extensión Markdown; el archivo nuevo se abre y pasa por la regla de carpeta de las plantillas como cualquier otra creación. Un nombre ya usado, un nombre que el sistema de archivos no permite y un nombre vacío se comunican antes de crear nada; Escape cancela y no deja nada.
 
-Una **fila de archivo** ofrece **Cambiar el nombre…** y **Eliminar…** al final del menú, separados de las entradas superiores.
+Una **fila de archivo** ofrece **Copiar**, **Cambiar el nombre…** y **Eliminar…** al final del menú, separados de las entradas superiores. Están ordenados por intervención creciente: copiar deja intacta la plantilla, cambiar el nombre modifica su nombre, eliminar la quita.
+
+**Copiar** crea de inmediato una copia en la misma carpeta, sin consulta y sin diálogo de nombre; por eso la entrada no lleva puntos suspensivos. El nombre es el de la plantilla, ampliado con un guion y un número corriente **delante** de la extensión: `Konzept.md` pasa a `Konzept-1.md` y la vez siguiente a `Konzept-2.md`. Se toma siempre el siguiente número **libre** para que no se sobrescriba ningún archivo existente; si la plantilla ya lleva número, este se añade en lugar de incrementarse: `Konzept-1.md` pasa a `Konzept-1-1.md` y no a `Konzept-2.md`. Para darle otro nombre a la copia, cámbieselo con la entrada situada debajo.
+
+**Las propiedades de bloque de la plantilla y su nota de documento viajan con ella, su historial de cambios no.** Así la copia está completa en contenido y comienza nueva en historia: no cuenta una trayectoria que no es la suya. Aparece de inmediato en la lista de archivos en su posición de orden y **no** se abre; usted la abre cuando la necesita. La copia va siempre a la carpeta de la plantilla y permanece por tanto dentro del área. Un **documento dividido** no se copia; un mensaje lo indica, porque una copia de su archivo de cabecera reclamaría las mismas partes siguientes que el original. Si la copia falla, aparece un mensaje y no queda ninguna copia a medias.
 
 **Cambiar el nombre** es el mismo camino que a través del menú, con la misma adaptación de los enlaces internos y la misma vista previa de los lugares afectados. La única diferencia está en aquello sobre lo que actúa: aquí cualquier archivo del área, también uno que no esté abierto, y no solo el abierto. Si el archivo está abierto y modificado, se guarda primero; su pestaña muestra después el nombre nuevo.
 
@@ -112,7 +131,7 @@ Si el archivo está abierto, su pestaña se cierra; los cambios sin guardar pasa
 
 **Los enlaces que apuntan a un archivo eliminado no se adaptan.** A diferencia del cambio de nombre, no hay destino de reemplazo; los enlaces permanecen y se convierten en enlaces rotos. Es intencionado y no un fallo: un enlace roto muestra que allí había algo y puede resolverse de forma consciente.
 
-Cambiar el nombre y eliminar **carpetas**, así como mover archivos, no forman parte todavía del alcance; para eso sigue estando el gestor de archivos del sistema operativo.
+Cambiar el nombre, eliminar y copiar **carpetas**, así como mover archivos, no forman parte todavía del alcance; para eso sigue estando el gestor de archivos del sistema operativo.
 
 ### Estadísticas del área
 
@@ -144,6 +163,8 @@ La designación pertenece al área y viaja con su carpeta. Si el archivo se reno
 
 Un **espacio de trabajo** es una aplicación con nombre, guardada de forma permanente: comprende todas sus ventanas con paneles, pestañas con sus ajustes de vista, grupos de pestañas, una posible vinculación de área y los borradores sin guardar. Un espacio de trabajo abierto mantiene su estado al día **automáticamente**, sin paso manual de guardado; al reabrirlo, el trabajo continúa exactamente en el último estado. Acceso: el submenú «Archivo → Espacios de trabajo» con la lista de todos los espacios de trabajo (el punto de color muestra también el estado: relleno = abierto, anillo = cerrado) y las cuatro acciones debajo; las mismas acciones están disponibles como comandos en la paleta de comandos.
 
+**La lista nombra la carpeta vinculada.** Si un espacio de trabajo está vinculado a una carpeta, su entrada se lee en una sola línea: «Nombre — nombre de la carpeta». Se indica solo el nombre de la carpeta, no la ruta entera: una etiqueta de menú ocupa una línea, y una ruta completa reventaría cualquier anchura de menú utilizable; la muestra la gestión. Un espacio de trabajo **sin** vinculación lleva solo su nombre, sin separador y sin marca de relleno. Las partes muy largas se recortan parte por parte, para que un nombre largo no quite el sitio al nombre de la carpeta. La vinculación solo se muestra; no se puede establecer ni deshacer, ni aquí ni en la gestión.
+
 **Área y espacio de trabajo son dos cosas distintas:** un *área* vincula una aplicación a una **carpeta** y delimita su espacio de trabajo (véase arriba). Un *espacio de trabajo* es una **colección de ventanas** con nombre y reabrible, es decir, un estado de trabajo guardado. Ambos se pueden combinar: un espacio de trabajo cuya aplicación tiene un área vinculada lleva esa vinculación consigo en su registro.
 
 **Color de la barra de título:** las ventanas de un espacio de trabajo abierto llevan su color en la barra de título de la ventana —una variante intensa en el tema claro, una variante pastel de la paleta en el tema oscuro, cada una con un color de texto de título acorde—. La coloración sigue el ciclo de vida: aparece al abrir, cambia de inmediato con el color en la gestión, desaparece al cerrar o eliminar, y se suprime al desactivar la extensión «Espacios de trabajo». Requiere Windows 11 y por tanto no se aplica en Linux; sin esta compatibilidad permanece la barra de título estándar y la aplicación no se ve afectada. El propio espacio de trabajo, su punto de color en el menú y en la gestión, y el título de la ventana permanecen inalterados en cada plataforma.
@@ -158,7 +179,11 @@ Un **espacio de trabajo** es una aplicación con nombre, guardada de forma perma
 
 ### Gestión
 
-«Gestionar los espacios de trabajo…» abre un diálogo con todos los espacios de trabajo: punto de color, nombre, estado (abierto o cerrado) y momento de la última apertura. Cada entrada ofrece las acciones **Abrir**, **Renombrar y color…** y **Eliminar**.
+«Gestionar los espacios de trabajo…» abre un diálogo con todos los espacios de trabajo: punto de color, nombre, estado (abierto o cerrado) y momento de la última apertura; si un espacio de trabajo está vinculado a una carpeta, su fila indica además la **ruta completa** de esta. Cada entrada ofrece las acciones **Abrir**, **Renombrar y color…** y **Eliminar**. El diálogo no nombra el libro ni la estantería de un espacio de trabajo; figuran, con todas las demás indicaciones, en la página [My Extended Memory](my-extended-memory.md).
+
+**Aquí se fija también el orden.** Cada fila lleva dos botones de flecha, «Mover arriba» y «Mover abajo»; cada clic mueve la entrada una posición. El nuevo orden rige **de inmediato** e igualmente en el submenú «Archivo → Espacios de trabajo», se guarda al instante y sobrevive al cierre del diálogo igual que al reinicio de la aplicación: no hay paso de confirmación. En la primera entrada «arriba» está atenuado, en la última «abajo»; los botones se quedan en su sitio, para que un segundo clic en el mismo punto de la pantalla siga significando lo mismo. Ambos caminos se alcanzan con el teclado, y tras el movimiento el foco permanece en la entrada desplazada, de modo que un espacio de trabajo recorre la lista en varias pulsaciones. Arrastrar con el ratón no está previsto.
+
+Un espacio de trabajo recién creado se añade al **final**. No hay ordenación por nombre, estado o última apertura: hay exactamente un orden, y es el que usted ha fijado.
 
 ### Restauración de sesión y casos límite
 

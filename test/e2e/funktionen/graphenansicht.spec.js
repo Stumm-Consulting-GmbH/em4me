@@ -69,11 +69,21 @@ const GRAPH_PAGE = '.pane-group[data-pane="0"] .graph-page';
 // Datei über die Dateiliste des Bereichs-Panels öffnen (der Bereich wird an
 // das leere Startfenster gebunden — mit offener Datei erzeugte area:openPath
 // ein neues Fenster; Muster journale.spec.js).
+// 4T-001724 (Epic 3E-000304): Der Reiter traegt den Namen ohne Markdown-Endung.
+// 4T-001775 (dieselbe Epic, Entscheidung des Product Owners vom 2026-09-17):
+// seither auch die Dateiliste des Bereichs. Der Aufrufer nennt weiterhin den
+// Dateinamen; gekuerzt wird hier, fuer Liste und Reiter gleichlautend. Die
+// Zeile wird EXAKT gesucht, weil eine Teilstring-Suche nach der Kuerzung auch
+// einen laengeren Namen mit gleichem Anfang traefe.
+const ohneEndung = (name) => name.replace(/\.(md|markdown|mdown|mkd)$/i, '');
+
 async function openAreaFile(page, name) {
-  const row = page.locator('.pane-group[data-pane="0"] .area-file-row', { hasText: name });
+  const row = page.locator('.pane-group[data-pane="0"] .area-file-row', {
+    hasText: new RegExp(`^${ohneEndung(name)}$`),
+  });
   await expect(row).toBeVisible();
   await row.click();
-  await expect(page.locator(`${SEL.tabs0}.active .tab-title`)).toHaveText(name);
+  await expect(page.locator(`${SEL.tabs0}.active .tab-title`)).toHaveText(ohneEndung(name));
 }
 
 // Graph öffnen und auf den fertig geladenen Stand warten. Der Menü-Kanal
@@ -123,7 +133,7 @@ test.describe('GA-01: Bereichs-Graph öffnet als read-only Tab mit Klick-Navigat
       await betaNode.dispatchEvent('mousedown', { button: 0, clientX: 10, clientY: 10 });
       await betaNode.dispatchEvent('mouseup', { button: 0, clientX: 10, clientY: 10 });
       await expect(page.locator(SEL.tabs0)).toHaveCount(3);
-      await expect(page.locator(`${SEL.tabs0}.active .tab-title`)).toHaveText('Beta.md');
+      await expect(page.locator(`${SEL.tabs0}.active .tab-title`)).toHaveText('Beta');
     } finally {
       await closeApp(app, userData);
       cleanupDir(areaRoot);
@@ -156,7 +166,7 @@ test.describe('GA-02/GA-03: Richtungs-Filter und Tab-Wiederverwendung (S-076)', 
       await expect(page.locator(`${GRAPH_PAGE} .graph-node`)).toHaveCount(4);
 
       // GA-03: erneutes Öffnen aktiviert den bestehenden Tab (kein Duplikat).
-      await page.locator(`${SEL.tabs0}`, { hasText: 'Alpha.md' }).click();
+      await page.locator(`${SEL.tabs0}`, { hasText: 'Alpha' }).click();
       await sendMenuChannel(app, 'menu:openAreaGraph');
       await expect(page.locator(SEL.tabs0)).toHaveCount(2);
       await expect(page.locator(`${SEL.tabs0}.active .tab-title`)).toContainText('Graph:');
@@ -241,7 +251,7 @@ test.describe('GA-06: Datei-Graph-Panel — folgt der Datei, Tiefe und Richtung 
       const alphaNode = page.locator(`${PANEL} .graph-node`, { hasText: 'Alpha' });
       await alphaNode.dispatchEvent('mousedown', { button: 0, clientX: 10, clientY: 10 });
       await alphaNode.dispatchEvent('mouseup', { button: 0, clientX: 10, clientY: 10 });
-      await expect(page.locator(`${SEL.tabs0}.active .tab-title`)).toHaveText('Alpha.md');
+      await expect(page.locator(`${SEL.tabs0}.active .tab-title`)).toHaveText('Alpha');
     } finally {
       await closeApp(app, userData);
       cleanupDir(areaRoot);
@@ -356,7 +366,7 @@ test.describe('GA-08: Baum als zweite Darstellungs-Form (S-076)', () => {
       const tabCount = await page.locator(SEL.tabs0).count();
       await zeilen.nth(1).click();
       await expect(page.locator(SEL.tabs0)).toHaveCount(tabCount + 1);
-      await expect(page.locator(`${SEL.tabs0}.active .tab-title`)).toHaveText('Beta.md');
+      await expect(page.locator(`${SEL.tabs0}.active .tab-title`)).toHaveText('Beta');
 
       // Zurueck ins Netz: die Netz-Steuerung ist wieder da, der Baum weg.
       await sendMenuChannel(app, 'menu:openAreaGraph');
@@ -473,7 +483,7 @@ test.describe('GA-11: Wurzel ueber das Kontextmenue des Bereichs-Panels (S-076)'
       await expect(page.locator(GRAPH_PAGE)).toHaveCount(0);
 
       const zeile = page.locator('.pane-group[data-pane="0"] .area-file-row', {
-        hasText: 'Quelle.md',
+        hasText: /^Quelle$/,
       });
       await expect(zeile).toBeVisible();
       await zeile.click({ button: 'right' });

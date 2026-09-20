@@ -16,6 +16,8 @@ import {
   isRelativeTarget,
   expandRelativeTarget,
   segmentValidationError,
+  stripMarkdownExtension,
+  fileLabelFromBasename,
   displayTitleFromBasename,
   splitDisplayTitle,
 } from '../../src/shared/subpages.js';
@@ -47,6 +49,91 @@ describe('subpages.js — Uebersetzung und Segmente', () => {
     expect(parentChain(`A${SEP}B${SEP}C`)).toEqual(['A', `A${SEP}B`]);
     expect(parentChain('Top')).toEqual([]);
     expect(childPrefix('A')).toBe(`A${SEP}`);
+  });
+});
+
+// 4T-001724 (Epic 3E-000304): Die reine Endungs-Erkennung, aus der die
+// Reiter-Beschriftung schoepft. Sie tut genau einen Schritt — die
+// Markdown-Endung abschneiden — und ruehrt das Unterseiten-Trennzeichen nicht
+// an; der Rueckfall bei leerem Ergebnis gehoert dem Aufrufer.
+describe('subpages.js — stripMarkdownExtension', () => {
+  it('entfernt jede Markdown-Endung unabhängig von der Schreibweise', () => {
+    expect(stripMarkdownExtension('Konzept.md')).toBe('Konzept');
+    expect(stripMarkdownExtension('Konzept.MD')).toBe('Konzept');
+    expect(stripMarkdownExtension('Konzept.Md')).toBe('Konzept');
+    expect(stripMarkdownExtension('Konzept.markdown')).toBe('Konzept');
+    expect(stripMarkdownExtension('Konzept.MARKDOWN')).toBe('Konzept');
+    expect(stripMarkdownExtension('Konzept.mdown')).toBe('Konzept');
+    expect(stripMarkdownExtension('Konzept.mkd')).toBe('Konzept');
+  });
+
+  it('lässt eine fremde Endung stehen', () => {
+    expect(stripMarkdownExtension('Liste.txt')).toBe('Liste.txt');
+    expect(stripMarkdownExtension('Bild.png')).toBe('Bild.png');
+    // Nur die ECHTE Endung faellt, nicht ein gleichlautender Namensteil.
+    expect(stripMarkdownExtension('archiv.md.bak')).toBe('archiv.md.bak');
+    expect(stripMarkdownExtension('Projekt 2.1 Plan.md')).toBe('Projekt 2.1 Plan');
+    expect(stripMarkdownExtension('Notiz.mdx')).toBe('Notiz.mdx');
+  });
+
+  it('liefert bei einem Namen aus reiner Endung die leere Zeichenkette', () => {
+    // Der Rueckfall auf den vollen Namen liegt beim Aufrufer: Die Titelzeile
+    // will ihn nicht, die Reiter-Beschriftung schon.
+    expect(stripMarkdownExtension('.md')).toBe('');
+    expect(stripMarkdownExtension('.markdown')).toBe('');
+  });
+
+  it('rührt das Unterseiten-Trennzeichen nicht an', () => {
+    expect(stripMarkdownExtension(`Eltern${SEP}Kind.md`)).toBe(`Eltern${SEP}Kind`);
+  });
+
+  it('bleibt bei leeren Eingaben leer', () => {
+    expect(stripMarkdownExtension('')).toBe('');
+    expect(stripMarkdownExtension(null)).toBe('');
+    expect(stripMarkdownExtension(undefined)).toBe('');
+  });
+});
+
+// 4T-001775 (Epic 3E-000304): Die Beschriftung eines Datei-Eintrags — dieselbe
+// Kürzung wie oben, aber MIT dem Rückfall auf den vollen Namen. Aus ihr lesen
+// die Reiter-Beschriftung und die Dateiliste des Bereichs-Panels; geprüft wird
+// deshalb die gemeinsame Quelle und nicht zweimal dasselbe an zwei Anzeigen.
+describe('subpages.js — fileLabelFromBasename', () => {
+  it('kürzt jede Markdown-Endung, unabhängig von der Schreibweise', () => {
+    expect(fileLabelFromBasename('Konzept.md')).toBe('Konzept');
+    expect(fileLabelFromBasename('Konzept.MD')).toBe('Konzept');
+    expect(fileLabelFromBasename('Notiz.markdown')).toBe('Notiz');
+    expect(fileLabelFromBasename('Notiz.mdown')).toBe('Notiz');
+    expect(fileLabelFromBasename('Notiz.mkd')).toBe('Notiz');
+  });
+
+  it('lässt eine fremde Endung stehen (E4)', () => {
+    expect(fileLabelFromBasename('Liste.txt')).toBe('Liste.txt');
+    expect(fileLabelFromBasename('Notiz.mdx')).toBe('Notiz.mdx');
+    expect(fileLabelFromBasename('archiv.md.bak')).toBe('archiv.md.bak');
+  });
+
+  it('fällt bei einem Namen aus reiner Endung auf den vollen Namen zurück', () => {
+    // Genau dieser Rückfall unterscheidet die Funktion von
+    // stripMarkdownExtension: Ein Eintrag ohne Beschriftung wäre unbedienbar.
+    expect(fileLabelFromBasename('.md')).toBe('.md');
+    expect(fileLabelFromBasename('.markdown')).toBe('.markdown');
+  });
+
+  it('gibt zwei gleichstämmigen Dateien dieselbe Beschriftung (E8)', () => {
+    // Variante A der Entscheidung vom 2026-09-17: unterschieden wird über den
+    // Kurzhinweis mit dem vollen Namen, nicht über die Beschriftung.
+    expect(fileLabelFromBasename('Notiz.md')).toBe(fileLabelFromBasename('Notiz.markdown'));
+  });
+
+  it('rührt das Unterseiten-Trennzeichen nicht an', () => {
+    expect(fileLabelFromBasename(`Eltern${SEP}Kind.md`)).toBe(`Eltern${SEP}Kind`);
+  });
+
+  it('bleibt bei leeren Eingaben leer', () => {
+    expect(fileLabelFromBasename('')).toBe('');
+    expect(fileLabelFromBasename(null)).toBe('');
+    expect(fileLabelFromBasename(undefined)).toBe('');
   });
 });
 

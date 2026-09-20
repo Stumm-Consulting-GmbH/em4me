@@ -24,6 +24,14 @@ const { workspaceDotIcon } = require('./menu-icons');
 // (Dateien, Bereiche, Buecher, Regale) — eigene Fachlichkeit neben dem
 // Menue-Baum, Muster menu-icons.js.
 const { createRecentListBuilder } = require('./menu-recent');
+// 4T-001737 (Epic 3E-000308): Aufbau des Arbeitsbereiche-Untermenues samt der
+// Label-Bildung aus Name und Bereichs-Zuordnung — aus demselben Grund
+// ausgeloest wie die beiden Nachbarn darueber (Begruendung im Modul-Kopf).
+const { createWorkspacesSubmenuBuilder } = require('./menu-workspaces');
+// 4T-001738 (Epic 3E-000308): Der Fenster-Block des Datei-Menues («Neues
+// Fenster» vor «Neue Applikation») liegt in menu-fenster.js, weil seine
+// Reihenfolge eine Entscheidung ist und dort gegenstaendlich pruefbar bleibt.
+const { windowMenuItems } = require('./menu-fenster');
 // 4T-000568 (Epic 3E-000104): Panel-Zugangs-Modell — Label-Key, Toggle-Kommando
 // (Accelerator) und Fallback-Reihenfolge des Panel-Untermenues.
 const { PANEL_ACCESS, panelAccessById } = require('../../shared/panel-access');
@@ -238,56 +246,20 @@ function buildMenu(win, state, actions) {
   const buildRecentList = createRecentListBuilder(t, actions);
 
   // 4T-000538 (Epic 3E-000098): Untermenue "Arbeitsbereiche" — Liste aller
-  // Arbeitsbereiche (Farbpunkt-Icon traegt die Offen-Markierung; Klick
-  // oeffnet bzw. fokussiert ueber die Main-Action), darunter die vier
-  // Lebenszyklus-Aktionen. 4T-001637: Die Dimmung von "Als Arbeitsbereich
-  // speichern" und die Freigabe von "Arbeitsbereich schliessen" haengen
-  // seither an den Bedingungen workspaceOhne und workspaceMit des Modells;
-  // die lokale Kopie des Zustands ist damit entfallen (er steht im Kontext).
-  const workspaces = Array.isArray(state && state.workspaces) ? state.workspaces : [];
-  const buildWorkspacesSubmenu = () => {
-    const items = [];
-    if (workspaces.length === 0) {
-      items.push({ label: t('menu.file.workspacesEmpty'), enabled: false });
-    } else {
-      for (const w of workspaces) {
-        const icon = workspaceDotIcon(w.color, !!w.open);
-        items.push({
-          label: String(w.name).replace(/&/g, '&&'),
-          ...(icon ? { icon } : {}),
-          click: () => {
-            if (actions && actions.openWorkspace) actions.openWorkspace(w.id);
-          },
-        });
-      }
-    }
-    items.push({ type: 'separator' });
-    items.push({
-      label: t('menu.file.workspaceSaveAs'),
-      accelerator: acc('workspace.saveAs'),
-      enabled: avail('workspace.saveAs'),
-      click: send('menu:workspaceSaveAs'),
-    });
-    items.push({
-      label: t('menu.file.workspaceCreate'),
-      accelerator: acc('workspace.create'),
-      enabled: avail('workspace.create'),
-      click: send('menu:workspaceCreate'),
-    });
-    items.push({
-      label: t('menu.file.workspaceClose'),
-      accelerator: acc('workspace.close'),
-      enabled: avail('workspace.close'),
-      click: send('menu:workspaceClose'),
-    });
-    items.push({
-      label: t('menu.file.workspaceManage'),
-      accelerator: acc('workspace.manage'),
-      enabled: avail('workspace.manage'),
-      click: send('menu:workspaceManage'),
-    });
-    return items;
-  };
+  // Arbeitsbereiche, darunter die vier Lebenszyklus-Aktionen. 4T-001737: Der
+  // Aufbau liegt seither in menu-workspaces.js, weil die Label-Bildung aus
+  // Name und Bereichs-Zuordnung eigene Fach-Logik mit Randfaellen ist; die
+  // Farbpunkt-Bitmap wird hereingereicht, damit jenes Modul electron-frei
+  // bleibt.
+  const buildWorkspacesSubmenu = createWorkspacesSubmenuBuilder({
+    t,
+    acc,
+    avail,
+    send,
+    actions,
+    workspaces: Array.isArray(state && state.workspaces) ? state.workspaces : [],
+    dotIcon: workspaceDotIcon,
+  });
 
   // 4T-000887 (Epic 3E-000168): Neuordnung des Datei-Menues nach dem vom Product
   // Owner beschlossenen Mockup. Die oberste Ebene traegt nur noch die vier
@@ -625,15 +597,9 @@ function buildMenu(win, state, actions) {
           submenu: buildWorkspacesSubmenu(),
         }),
         { type: 'separator' },
-        {
-          // 4T-000319 (Epic 3E-000057): neue logische Applikation (eigener
-          // Fenster-Verbund mit eigener Nummerierung; entspricht dem
-          // EXE-Zweitstart ohne Datei-Argument).
-          label: t('menu.file.newApp'),
-          accelerator: acc('app.newApplication'),
-          enabled: avail('app.newApplication'),
-          click: send('menu:newApplication'),
-        },
+        // 4T-001738 (Epic 3E-000308): «Neues Fenster» und «Neue Applikation»
+        // als Paar aus menu-fenster.js, in dieser Reihenfolge (E4).
+        ...windowMenuItems({ t, acc, avail, send }),
         {
           // 4T-000018: Settings-Dialog (Schriftart, -groesse). Renderer-Hook.
           label: t('menu.file.settings'),

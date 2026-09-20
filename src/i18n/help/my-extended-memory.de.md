@@ -34,7 +34,9 @@ Je Zeile stehen ein Stand-Zeitstempel und eine kurze Auswahl: beim Bereich die Z
 
 **Die Zahlen werden nicht laufend nachgeführt.** Erhoben werden sie beim Eintragen des Gefäßes und danach nur, wenn Sie es verlangen: „Neu erheben" liest das Gefäß erneut und setzt den Stand neu. Deshalb steht der Stand an jeder Zeile — er sagt, auf welchen Zeitpunkt sich die Zahlen beziehen. Wer eine Woche in einem Bereich gearbeitet hat, sieht hier zunächst die Zahlen von vorletzter Woche; ein Klick bringt sie auf den heutigen Stand.
 
-Der **Arbeitsbereich** hat keine Kennzahlen und keinen Erhebungs-Knopf: Er ist kein Ordner, sondern eine Zusammenstellung. Was er zusammenstellt, steht in seiner Zeile und in der Detail-Sicht.
+Der **Arbeitsbereich** hat keine Kennzahlen und keinen Erhebungs-Knopf: Er ist kein Ordner, sondern eine Zusammenstellung. Was er zusammenstellt, steht in seiner Zeile und in der Detail-Sicht: die Gefäße, an die er gebunden ist, die Zahl seiner Fenster und die Zahl der darin **geöffneten Dokumente**.
+
+**Gezählt werden geöffnete Dokumente, nicht Dateien in einem Ordner.** Die Zahl sagt, wie viele Markdown-Dokumente der Arbeitsbereich in seinen Fenstern aufgeschlagen hat; gezählt wird je Fenster. Unbenannte Reiter, Handbuch- und System-Seiten und andere Dateiarten zählen nicht mit. Beide Zahlen stammen aus der Ablage des Arbeitsbereichs und stehen deshalb für einen geschlossenen genauso da wie für einen geöffneten; eine Null ist dabei eine gezählte Null wie jede andere.
 
 ### Ein Gefäß, das gerade nicht erreichbar ist
 
@@ -55,7 +57,7 @@ Ein Verzeichnis wird für diese Seite **nicht** eigens aufgebaut. Das kostete be
 | Bereich | Markdown-Dateien, andere Dateien, Ordner, belegter Speicher, Tags, Aufgaben, Dateien ohne eingehenden Verweis |
 | Buch | Kapitel, Markdown-Dateien, belegter Speicher, zugehöriges Bücherregal |
 | Bücherregal | Bücher, davon nicht auffindbar, Markdown-Dateien, belegter Speicher |
-| Arbeitsbereich | Bereich, Buch, Bücherregal, Fenster, zuletzt genutzt |
+| Arbeitsbereich | Bereich, Buch, Bücherregal, Fenster, geöffnete Dokumente, zuletzt genutzt |
 
 **Zwei Arten von Leere, zwei Zeichen.** „nicht verfügbar" heißt: Diese Zahl hat niemand erhoben — etwa die Tags eines nicht geöffneten Bereichs. Der Gedankenstrich heißt: Diesen Gegenstand gibt es hier gar nicht — etwa das Buch eines Arbeitsbereichs, der keines führt. **Eine Null steht nie für beides**; sie ist immer eine gezählte Null, und ein Bereich ohne Unterordner zeigt sie zu Recht.
 

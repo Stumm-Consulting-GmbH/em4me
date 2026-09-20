@@ -255,6 +255,16 @@ function ladeAppearanceInDraft() {
     pageState.draft.pasteUrlAsLinkSnapshot = value !== false;
     if (pageState.activeSectionId === 'behavior') renderActiveSection();
   });
+  // 4T-001576 (Epic 3E-000282): Cursor-Sprung-Schalter (Bereich Verhalten,
+  // Vorgabe an). Muster der Zeile darüber, einschließlich des
+  // Generations-Wächters — ein Nachladen darf einen inzwischen neu gebauten
+  // Entwurf nicht mehr anfassen.
+  api.getSetting('input.cursorSprung').then((value) => {
+    if (generation !== pageState.generation || !pageState.draft) return;
+    pageState.draft.cursorSprung = value !== false;
+    pageState.draft.cursorSprungSnapshot = value !== false;
+    if (pageState.activeSectionId === 'behavior') renderActiveSection();
+  });
   // 4T-000581/4T-000582 (Epic 3E-000107): Schalter und Wörterbuch-Liste der
   // Rechtschreibprüfung.
   api.getSetting(SPELLCHECK_KEY).then((value) => {

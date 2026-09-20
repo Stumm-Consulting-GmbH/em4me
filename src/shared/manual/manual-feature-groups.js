@@ -140,6 +140,12 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.listOutline',
       'help.feature.listNumbering',
       'help.feature.listExit',
+      // 4T-001577 (Epic 3E-000282): Cursor-Sprung hinter den Listen-Marker —
+      // das Ende der Listen-Familie. Er steht hinter dem Fortsetzen und
+      // Beenden, weil er dieselbe Bewegung im Schreibfluss betrifft (Taste
+      // setzt die Schreibmarke an die Schreibposition) und keine
+      // Struktur-Operation wie Einruecken und Verschieben ist.
+      'help.feature.listenCursor',
       // 4T-000074 (Epic 3E-000013): Tabellen-Editor-Komfort (Tab/Shift+Tab/Enter).
       'help.feature.tableEditor',
       // 4T-001346 (Epic 3E-000239): Tabellen-Bearbeitung in der Live-Ansicht,
@@ -417,6 +423,18 @@ const HELP_FEATURE_GROUPS = [
       // hinter der Panel-Zugangs-Reihenfolge (gleiche Statusbar-Familie).
       'help.feature.statusbarCommandButtons',
       'help.feature.statusbarHideList',
+      // 4T-001582 (Epic 3E-000283): Zusammenklappen der Statusleiste am Ende
+      // der Statusbar-Familie. Es betrifft die Leiste als Ganzes, waehrend die
+      // beiden Zeilen davor ihren Inhalt bestimmen; alle drei liegen im selben
+      // Einstellungs-Abschnitt "Statusleiste".
+      'help.feature.statusleisteFalten',
+      // 4T-001766 (Epic 3E-000186): Darstellung nicht aktivierbarer
+      // Schaltflaechen am Ende der Statusbar-Familie, hinter dem
+      // Zusammenklappen. Beide betreffen die Leiste als Ganzes; das
+      // Zusammenklappen antwortet auf ihre Breite, diese Zeile auf den Zustand
+      // des Dokuments. Alle vier liegen im Einstellungs-Abschnitt
+      // "Statusleiste".
+      'help.feature.nichtAktivierbareSchalter',
       'help.feature.foldGutter',
       // 4T-000573 (Epic 3E-000105): dokument-gebundene Editor-Ansicht-Schalter
       // direkt hinter dem Gliederungs-Folding (gleiche Schalter-Familie).
@@ -476,6 +494,11 @@ const HELP_FEATURE_GROUPS = [
       // Tab-Eintraegen (dieselbe Leiste, reine Darstellungs-Option).
       'help.feature.roundedTabs',
       'help.feature.multiWindow',
+      // 4T-001740 (Epic 3E-000308): «Neues Fenster» zwischen den beiden
+      // Nachbarn — es erzeugt ein Fenster wie der Reiter-Weg darueber, aber
+      // ein leeres, und steht VOR der neuen Applikation, weil das die
+      // Reihenfolge im Datei-Menue ist (Entscheidung E4 des Epics).
+      'help.feature.newWindow',
       // 4T-000321 (Epic 3E-000057): logische Applikationen (Mehrfachstart).
       'help.feature.multiApp',
       // 4T-000326 (Epic 3E-000058): Bereiche und Zuletzt-geoeffnete-Bereiche.
@@ -495,6 +518,11 @@ const HELP_FEATURE_GROUPS = [
       // in zwei Eintraege folgt dem Schnitt der beiden Stories.
       'help.feature.areaFileCreate',
       'help.feature.areaFileRenameDelete',
+      // 4T-001732 (Epic 3E-000306): Kopieren im Bereichs-Panel, unmittelbar
+      // hinter den beiden Nachbarn derselben Menue-Gruppe. Es ist die vierte
+      // Handhabung desselben Bestands und steht deshalb bei ihnen und nicht
+      // bei den Datei-Kommandos der Anwendung.
+      'help.feature.areaFileCopy',
       // 4T-000437 (Epic 3E-000081): Kalender-Panel der Journale, direkt hinter
       // dem Bereichs-Panel (beide bereichsgebundene Einstiegs-Panels).
       'help.feature.journalCalendar',

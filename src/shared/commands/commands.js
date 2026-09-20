@@ -81,6 +81,25 @@ const COMMANDS = [
     editorScoped: false,
     availability: 'immer',
   },
+  // 4T-001738 (Epic 3E-000308, E4 bis E6): "Neues Fenster" — ein weiteres
+  // Fenster DERSELBEN Applikation, ueber den bestehenden Kanal window:openNew.
+  // Es steht VOR dem Eintrag der neuen Applikation, weil das kleinere Werkzeug
+  // zuerst kommt (E4). Bewusst ohne Default-Binding (E6), wie sein Nachbar.
+  // Die Bedingung ist 'immer', und das ist keine Nachlaessigkeit: Ein Menue
+  // existiert nur in einem Fenster, und jedes Fenster gehoert einer
+  // Applikation (window-manager.js weist beim Erzeugen eine zu). Die
+  // Voraussetzung "eine Applikation, die ein Fenster aufnehmen kann" ist damit
+  // Bauart und kein Zustand, den eine eigene Bedingung messen koennte.
+  {
+    id: 'window.newWindow',
+    defaultBindings: [],
+    labelKey: 'menu.file.newWindow',
+    descKey: 'help.shortcut.newWindow',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+    availability: 'immer',
+  },
   // 4T-000319 (Epic 3E-000057): neue logische Applikation. Bewusst ohne
   // Default-Binding — der Menue-Weg genuegt, ein Kuerzel ist ueber die
   // Einstellungen belegbar.

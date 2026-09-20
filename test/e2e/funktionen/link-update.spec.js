@@ -62,7 +62,10 @@ test.describe('LU-01: Link-Update auf Disk (Wiki, Embed, Markdown)', () => {
       await page.locator('#btn-name-input-ok').click();
       await expect(page.locator('#name-input-modal')).toBeHidden();
       await continuePreviewAndReport(page);
-      await expect(page.locator(SEL.activeTab0)).toContainText('C.md');
+      // 4T-001724 (Epic 3E-000304): Der Reiter beschriftet sich ohne
+      // Markdown-Endung; geprueft wird die Beschriftung genau, weil ein
+      // blosses «enthaelt C» auch auf 'C.md' zutraefe.
+      await expect(page.locator(`${SEL.activeTab0} .tab-title`)).toHaveText('C');
       // A auf Disk: alle drei Link-Formen zeigen jetzt auf C.
       await expect.poll(() => fs.readFileSync(aFile, 'utf8'), { timeout: 5000 }).toContain('[[C]]');
       const a = fs.readFileSync(aFile, 'utf8');

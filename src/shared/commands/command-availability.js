@@ -143,7 +143,23 @@ const AVAILABILITY_CATALOG = [
     pruefe: (c) => !!c.hasTab && !c.manualTab && !c.systemTab,
   },
   { name: 'viewMode', felder: ['systemTab'], pruefe: (c) => !c.systemTab },
-  { name: 'sourceToggle', felder: ['viewMode'], pruefe: (c) => sourceVisible(c) },
+  // 4T-001765 (Epic 3E-000186, E6): Die Bedingung der drei Editor-Schalter
+  // (Umbruch, Zeilennummern, Gliederung) traegt seit diesem Vorgang die
+  // STRENGERE Regel, die die Statusleiste bis dahin zusaetzlich zum Modell
+  // selbst mitbrachte: ein geoeffnetes Dokument, das keine System-Seite ist
+  // (`hasTab` und `!systemTab`, tabs.js `!sourceVisible || !tab` mit
+  // `sourceVisible = !systemTab && …`). Sie wandert hierher und nicht
+  // umgekehrt, weil sie das richtigere Verhalten ist: Ein Schalter fuer den
+  // Umbruch des Quelltexts hat ohne Quelltext nichts zu schalten. Fuer die
+  // LEISTE aendert sich dadurch nichts (AK2/AK4 von 4T-001765); im MENUE
+  // stehen die drei Eintraege jetzt auch auf einer System-Seite blass da,
+  // deren gespeicherter Ansichts-Modus zufaellig ein Quelltext-Modus ist —
+  // genau die Gleichstellung beider Bedienorte, die E6 bezweckt.
+  {
+    name: 'sourceToggle',
+    felder: ['hasTab', 'systemTab', 'viewMode'],
+    pruefe: (c) => !!c.hasTab && !c.systemTab && sourceVisible(c),
+  },
   { name: 'area', felder: ['hasArea'], pruefe: (c) => !!c.hasArea },
   {
     name: 'areaOhneBuchUndRegal',

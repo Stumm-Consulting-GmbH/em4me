@@ -31,5 +31,16 @@
   "statusbar.scrollSync.on": "Scroll sync: on (click to turn off)",
   "statusbar.scrollSync.off": "Scroll sync: off (click to turn on)",
   "statusbar.persistFailed": "Setting could not be saved",
-  "statusbar.viewToggleYamlError": "Frontmatter is invalid, view switch cannot be written"
+  "statusbar.viewToggleYamlError": "Frontmatter is invalid, view switch cannot be written",
+  "statusbar.collapse.left": "More status bar items (left)",
+  "statusbar.collapse.right": "More status bar items (right)",
+  "settings.statusbar.title": "Status bar",
+  "settings.statusbar.collapseMode": "Collapsing",
+  "settings.statusbar.collapseMode.auto": "Automatically when space is tight",
+  "settings.statusbar.collapseMode.always": "Always collapsed",
+  "settings.statusbar.collapseMode.hint": "With «Automatically when space is tight», the status bar buttons move into the two menus at its edges only once the space is no longer sufficient. With «Always collapsed» they stay in those menus regardless of the window width. The area for short messages remains visible in both cases. Changes take effect on Apply or OK.",
+  "settings.statusbar.unavailableMode": "Buttons that cannot be used",
+  "settings.statusbar.unavailableMode.blass": "Show dimmed",
+  "settings.statusbar.unavailableMode.ausgeblendet": "Hide",
+  "settings.statusbar.unavailableMode.hint": "Some status bar buttons can do nothing at the moment — the view switches while the settings page is in front, for instance, or the pencil for editing when no document is open. With «Show dimmed» they stay in place and are visibly deactivated. With «Hide» they disappear for as long as they can do nothing and return to their place afterwards; the bar then only shows what currently works. A button deselected in the list of default buttons stays away in both cases. The View menu remains unchanged. Changes take effect on Apply or OK."
 }

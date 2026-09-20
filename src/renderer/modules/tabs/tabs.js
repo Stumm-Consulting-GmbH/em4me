@@ -15,6 +15,12 @@ import { isMindmapModeAvailable } from '../mindmap/mindmap-modus.js';
 // 4T-001653 (Epic 3E-000287): Verfuegbarkeit des Canvas-Modus fuer Schaltflaeche
 // und Menue-Meldung. Aus demselben winzigen Modul und aus demselben Grund.
 import { istCanvasErweiterungAn, istCanvasModusVerfuegbar } from '../canvas/canvas-modus.js';
+// 4T-001765 (Epic 3E-000186, E6): Die Statusleiste beantwortet die Frage «ist
+// dieser Schalter gerade aktivierbar?» nicht mehr selbst. Der Kontext kommt
+// aus der einen Renderer-Stelle, die ihn baut (command-palette.js), die
+// Antwort und die Darstellung aus statusbar-availability.js.
+import { rendererAvailabilityContext } from '../command-palette.js';
+import { ANSICHTS_KOMMANDOS, setzeLeistenSchalter } from '../statusbar-availability.js';
 import {
   DEFAULT_VIEW_MODE,
   DEFAULT_ZOOM,
@@ -302,7 +308,15 @@ export function syncToolbarToActiveTab() {
   // 4T-000277: System-Seiten (Einstellungen) kennen keine View-Modi — die
   // vier View-Buttons sind fuer sie deaktiviert (sichtbar deaktiviert
   // statt still wirkungslos, Entwicklungsrichtlinien §3).
+  //
+  // 4T-001765 (Epic 3E-000186, E6): Die Bedingung selbst steht seither NICHT
+  // mehr hier, sondern im Verfuegbarkeits-Modell — dieselbe Quelle, aus der
+  // Menue und Kommando-Palette ihre Antwort nehmen. Diese Stelle liefert nur
+  // noch den Kontext und nimmt die Antwort entgegen; `setzeLeistenSchalter`
+  // setzt `disabled` wie bisher und bei Wert «ausblenden» zusaetzlich die
+  // Klasse, die den Schalter aus der Leiste nimmt.
   const systemTab = !!(tab && tab.systemPage);
+  const verfuegbarkeit = rendererAvailabilityContext();
   // 4T-001055 (Epic 3E-000151): Die Mindmap-Schaltflaeche folgt dem Schalt-Zustand
   // ihrer Erweiterung, genau wie der Menue-Eintrag; ein toter Schalter waere
   // schlimmer als keiner. Die Pruefung sitzt hier und braucht keinen eigenen
@@ -320,24 +334,21 @@ export function syncToolbarToActiveTab() {
   // (Muster Mindmap): Dort gibt es die Funktion tatsaechlich nicht.
   //
   // 4T-001656: Beide Antworten kommen aus derselben Quelle, aber getrennt —
-  // `istCanvasErweiterungAn` entscheidet ueber `hidden`, `canvasVerfuegbar`
-  // ueber `disabled`. Getrennt, weil der Schalter im Aus-Zustand ganz weg
-  // ist und ein `disabled` an einem unsichtbaren Element nichts sagte;
-  // istCanvasModusVerfuegbar liefert im Aus-Zustand ohnehin false.
+  // `istCanvasErweiterungAn` entscheidet ueber `hidden`, die Bedingung
+  // 'canvasAnsicht' des Modells ueber `disabled`. Getrennt, weil der Schalter
+  // im Aus-Zustand ganz weg ist und ein `disabled` an einem unsichtbaren
+  // Element nichts sagte; die Bedingung liefert im Aus-Zustand ohnehin false.
   const canvasErweiterungAn = istCanvasErweiterungAn();
-  const canvasVerfuegbar = istCanvasModusVerfuegbar(tab);
   document.querySelectorAll('.view-btn').forEach((b) => {
     if (b.dataset.view === 'mindmap') b.hidden = !mindmapVerfuegbar;
     if (b.dataset.view === 'canvas') b.hidden = !canvasErweiterungAn;
     b.classList.toggle('active', !systemTab && b.dataset.view === viewMode);
-    b.disabled = systemTab || (b.dataset.view === 'canvas' && !canvasVerfuegbar);
+    const aktivierbar = setzeLeistenSchalter(b, ANSICHTS_KOMMANDOS[b.dataset.view], verfuegbarkeit);
     if (b.dataset.view === 'canvas') {
-      b.title = canvasVerfuegbar ? t('menu.view.canvas') : t('canvas.keineFence');
+      b.title = aktivierbar ? t('menu.view.canvas') : t('canvas.keineFence');
     }
   });
 
-  const sourceVisible =
-    !systemTab && (viewMode === 'source' || viewMode === 'split' || viewMode === 'live');
   const wrapBtn = $('#btn-wrap');
   const numbersBtn = $('#btn-numbers');
   const foldGutterBtn = $('#btn-fold-gutter');
@@ -345,10 +356,10 @@ export function syncToolbarToActiveTab() {
   numbersBtn.classList.toggle('active', numbers);
   if (foldGutterBtn) {
     foldGutterBtn.classList.toggle('active', foldGutter);
-    foldGutterBtn.disabled = !sourceVisible || !tab;
+    setzeLeistenSchalter(foldGutterBtn, 'view.toggleFoldGutter', verfuegbarkeit);
   }
-  wrapBtn.disabled = !sourceVisible || !tab;
-  numbersBtn.disabled = !sourceVisible || !tab;
+  setzeLeistenSchalter(wrapBtn, 'view.toggleWordWrap', verfuegbarkeit);
+  setzeLeistenSchalter(numbersBtn, 'view.toggleLineNumbers', verfuegbarkeit);
   if (btnEdit) {
     btnEdit.classList.toggle('active', !!(tab && tab.editMode));
     // 4T-000213: Handbuch-Tabs sind dauerhaft read-only — Stift deaktiviert,
@@ -356,7 +367,7 @@ export function syncToolbarToActiveTab() {
     // 4T-000277: System-Seiten ebenso (Tooltip bleibt der Standard-Text;
     // das Formular der Seite ist selbst der Bearbeitungs-Ort).
     const manualTab = !!(tab && tab.manualPage);
-    btnEdit.disabled = !tab || manualTab || systemTab;
+    setzeLeistenSchalter(btnEdit, 'view.toggleEdit', verfuegbarkeit);
     const titleKey = manualTab ? 'manual.editDisabled' : 'statusbar.edit';
     btnEdit.setAttribute('data-i18n-title', titleKey);
     btnEdit.title = t(titleKey);

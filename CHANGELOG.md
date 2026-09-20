@@ -14,6 +14,322 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.139.0.3050] - 2026-09-19 — Acht Vorhaben der Bedienung: Statusleiste, Editor, Reiter, Bereichs-Panel, Fenster und Arbeitsbereiche
+
+Zug 3E-000311,
+der erste von drei Zügen des Arbeitspakets «Einstellungen und
+Funktionsumfangs-Steuerung» und der erste Zug mit **acht** Mitgliedern. Die acht
+Vorhaben haben fachlich wenig miteinander zu tun: Sie stammen aus zwei
+Anforderungen und zehn Backlog-Ideen des Product Owners und nicht aus einem
+gemeinsamen Konzept. Gemeinsam ist ihnen allein, dass jedes eine kleine Lücke
+der Bedienung schließt. Das **Speicherformat ist nicht berührt**, und keine
+Zusicherung nach außen ändert sich.
+
+Mitglied 1:
+3E-000283,
+die Statusleiste klappt bei knappem Platz in zwei Rand-Menüs zusammen und
+bekommt einen eigenen Einstellungs-Abschnitt (Abschluss-Anteil in
+4T-001583).
+Mitglied 2:
+3E-000282,
+die Schreibmarke springt beim Zeilenwechsel hinter den Listen-Marker
+(4T-001578).
+Mitglied 3:
+3E-000186,
+nicht aktivierbare Schaltflächen der Leiste sind wahlweise blass oder
+ausgeblendet
+(4T-001767).
+Mitglied 4:
+3E-000302,
+Verweise sind in der Live-Ansicht dauerhaft unterstrichen
+(4T-001721).
+Mitglied 5:
+3E-000304,
+Reiter und Seitenleisten-Panels zeigen Markdown-Dateien ohne Endung
+(4T-001726).
+Mitglied 6:
+3E-000306,
+eine Datei des Bereichs-Panels lässt sich kopieren
+(4T-001733).
+Mitglied 7:
+3E-000303,
+Auswahl und Zeilennummern wandern beim Aufklappen der Metadaten-Zeile mit
+(4T-001723).
+Mitglied 8:
+3E-000308,
+vier Lücken bei Fenstern und Arbeitsbereichen
+(4T-001741).
+
+### Neu
+
+- **Die Statusleiste klappt bei knappem Platz zusammen** (`4T-001579`,
+  `4T-001580`, `4T-001581`, `4T-001582`). Was nicht mehr in die Leiste passt,
+  wandert in zwei **Pull-up-Menüs** an ihrem linken und ihrem rechten Rand,
+  statt über den Fensterrand hinauszulaufen; gemessen wird der tatsächliche
+  Platzbedarf der Elemente und nicht eine Fensterbreite. Ein Menü öffnet sich
+  **oberhalb** seines Knopfes, mit der Unterkante über dessen Oberkante und am
+  rechten Knopf rechtsbündig. Die neue Einstellung **«Zusammenklappen»** trägt
+  die Werte «Automatisch bei knappem Platz» (Vorgabe) und «Immer
+  zusammengeklappt» und wirkt ohne Neustart in allen offenen Fenstern. Kurze
+  Rückmeldungen bleiben in jeder Fensterbreite in der Leiste und wandern nie in
+  ein Menü. Das frühere eigene Mehr-Menü des Kommando-Segments ist entfallen:
+  Überzählige Kommando-Schaltflächen wandern mit den übrigen Elementen in die
+  Rand-Menüs.
+- **Eigener Einstellungs-Abschnitt «Statusleiste»** (`4T-001581`). Er steht in
+  der Gruppe «Allgemein» hinter «Sidebar» und bündelt, was die Leiste betrifft:
+  die Falt-Einstellung, die eigenen Kommando-Schaltflächen der Leiste und die
+  Ausblend-Liste der Standard-Schaltflächen.
+- **Wahl der Darstellung nicht aktivierbarer Schaltflächen** (`4T-001765`,
+  `4T-001766`). Die Einstellung «Nicht aktivierbare Schaltflächen» im Abschnitt
+  «Statusleiste» trägt die Werte «Blass anzeigen» (Vorgabe, heutiges Verhalten)
+  und «Ausblenden» und wirkt ohne Neustart in allen offenen Fenstern. Bei
+  «Ausblenden» verschwinden die gerade nicht aktivierbaren Schalter der
+  mittleren und der rechten Zone aus der Leiste, erscheinen auch nicht in den
+  Pull-up-Menüs der zusammengeklappten Leiste und kehren an ihren Platz zurück,
+  sobald sie wieder aktivierbar sind. Die Liste der **dauerhaft** ausgeblendeten
+  Standard-Schaltflächen bleibt davon unberührt und hat Vorrang, und das
+  Ansichtsmenü führt weiterhin alle Einträge.
+- **Die Schreibmarke springt hinter den Listen-Marker** (`4T-001575`,
+  `4T-001576`, `4T-001577`). Steht die Schreibmarke am Zeilenende und führt die
+  Pfeil-rechts-Taste in eine **Listenzeile**, landet sie dort hinter Einrückung
+  und Listen-Marker, bei einer Aufgaben-Zeile hinter dem Status-Kästchen; von
+  dort führt Pfeil links zeichenweise zurück, der Marker bleibt also
+  erreichbar. Wirksam in Quellcode-, geteilter und Live-Ansicht. Die Einstellung
+  «Schreibmarke springt hinter den Listen-Marker» im Bereich «Verhalten» ist
+  **ab Werk eingeschaltet** und wirkt ohne Neustart in allen offenen Fenstern.
+- **Kopieren einer Datei im Bereichs-Panel** (`4T-001731`, `4T-001732`). Das
+  Kontextmenü einer Datei-Zeile trägt den Eintrag **Kopieren**, an erster
+  Stelle der Datei-Verwaltungs-Gruppe (nach zunehmendem Eingriff geordnet:
+  Kopieren, Umbenennen, Löschen). Die Kopie entsteht **ohne Rückfrage und ohne
+  Namens-Dialog** im Ordner der Vorlage; ihr Name trägt einen Bindestrich und
+  die erste **freie** Nummer vor der Endung, und bei einer schon nummerierten
+  Vorlage wird angehängt statt hochgezählt. Die **Block-Eigenschaften** und die
+  **Dokument-Notiz** der Vorlage reisen mit, die **Änderungs-Historie** nicht —
+  das tragende Kriterium lautet: Inhalt reist mit, Werdegang bleibt. Die Kopie
+  erscheint unmittelbar in der Dateiliste und wird **nicht** geöffnet.
+  Abgewiesen werden ein Ordner, eine Datei außerhalb des Bereichs und ein
+  geteiltes Dokument; scheitert das Kopieren, bleibt keine halbe Kopie zurück.
+  Technisch ein neuer IPC-Kanal mit eigenem Modul, dessen Namensfindung,
+  Bereichs-Grenze und Begleitdaten im Haupt-Prozess liegen.
+- **Menüpunkt und Kommando «Neues Fenster»** (`4T-001738`). Das Datei-Menü
+  trägt den Eintrag **Neues Fenster** unmittelbar **vor** «Neue Applikation». Er
+  öffnet ein **leeres** zweites Fenster derselben laufenden Applikation — im
+  Start-Zustand **ohne Reiter**, so wie jedes frisch gestartete Fenster ohne
+  Dokument —, das deren Ordner-Bindung, Arbeitsbereich und Sitzung erbt, den
+  Fenster-Zusatz im Titel trägt und Reiter aus den übrigen Fenstern der
+  Applikation aufnimmt. Die Funktion steht zusätzlich als Kommando in der
+  Kommando-Palette bereit, **ohne** Vorgabe-Tastenkürzel und in den
+  Einstellungen belegbar. Verwendet wird der **bestehende** Fenster-Kanal; ein
+  zweiter Weg daneben entsteht nicht.
+- **Die Reihenfolge der Arbeitsbereiche ist im Verwaltungs-Dialog änderbar**
+  (`4T-001753`). Jede Zeile trägt zwei Pfeil-Schaltflächen, «Nach oben
+  schieben» und «Nach unten schieben»; jeder Klick bewegt den Eintrag um
+  **eine Position**. Die neue Reihenfolge gilt sofort, auch im Untermenü
+  Datei/Arbeitsbereiche, wird unmittelbar gespeichert und überdauert den
+  Neustart; einen Bestätigungs-Schritt gibt es nicht. Am ersten Eintrag ist
+  «nach oben» abgeblendet, am letzten «nach unten»; beide Wege sind mit der
+  Tastatur erreichbar, und der Fokus bleibt nach der Bewegung am verschobenen
+  Eintrag. Der neue Kanal überträgt **eine Bewegung und keine übergebene
+  Folge**, damit «kein Arbeitsbereich geht verloren» Bauart ist und keine
+  Prüfung; ein zweites Sortier-Feld entsteht nicht, die Reihenfolge der Ablage
+  ist die angezeigte.
+- **Zahl der geöffneten Dokumente je Arbeitsbereich in My Extended Memory**
+  (`4T-001739`). Liste und Detail-Sicht nennen neben der Fenster-Zahl die Zahl
+  der in diesen Fenstern geöffneten **Markdown-Dokumente**; in der Liste stehen
+  beide Angaben **in einer Reihe**. Gerechnet wird aus der
+  Arbeitsbereichs-Ablage und nicht aus laufenden Fenstern; ein geöffneter und
+  ein geschlossener Arbeitsbereich mit demselben Stand liefern deshalb
+  denselben Wert. Was als Markdown gilt, entscheidet die **eine**
+  Endungs-Erkennung der Verdrahtung; unbenannte Reiter, System- und
+  Handbuch-Seiten und fremde Dateiarten zählen nicht, und derselbe Pfad in zwei
+  Fenstern zählt zweimal. Im Kennzahlen-Beschleuniger entsteht **kein**
+  Eintrag.
+
+### Geändert
+
+- **Der Einstellungs-Abschnitt «Kommando-Platzierung» heißt «Kontextmenü und
+  Makros»** (`4T-001581`) und führt nur noch diese beiden Blöcke; die
+  Statusbar-Schaltflächen und die Ausblend-Liste sind in den neuen Abschnitt
+  «Statusleiste» umgezogen. Der Name der **Erweiterung** bleibt
+  «Kommando-Platzierung», weil sie weiterhin alle vier Funktionen bündelt;
+  Bereichs-Kennung, Entwurfs-Feld und Store-Objekt sind unverändert.
+- **Die Statusleiste liest die Freigabe ihrer Schalter aus dem gemeinsamen
+  Verfügbarkeits-Modell** (`4T-001765`), aus dem auch Menü und
+  Kommando-Palette ihre Freigabe nehmen, statt sie an drei eigenen Stellen
+  selbst zu beantworten. Rein intern, aber nennenswert, weil es Produkt-Code
+  ist. **Die Bedingung der drei Editor-Schalter** (Umbruch, Zeilennummern,
+  Gliederung) ist im Katalog des Modells **strenger** geworden: Sie verlangt
+  zusätzlich ein geöffnetes Dokument, das keine System-Seite ist. In der Leiste
+  war sie das schon; im Ansichtsmenü stehen die drei Einträge damit auch auf
+  einer System-Seite blass, deren gespeicherter Ansichts-Modus zufällig ein
+  Quelltext-Modus ist. Menü und Leiste antworten an dieser Stelle jetzt gleich.
+- **Verweise sind in der Live-Ansicht dauerhaft als Verweise zu erkennen**
+  (`4T-001719`). Im Fließtext der Live-Ansicht tragen Verweise auf andere
+  Dokumente und Adress-Verweise nach außen ihre **Unterstreichung dauerhaft** —
+  ohne Mausberührung und ohne Schreibmarke in der Zeile, in der Wiki-Form wie
+  in der Markdown-Form. Das **Überfahren** mit der Maus setzt kein eigenes
+  Merkmal mehr, weil die Unterstreichung ohnehin steht; der Zeiger bleibt als
+  Rückmeldung der Klickbarkeit. Die Zeile mit der Schreibmarke, die gesetzte
+  Darstellung, die Druck-Ausgabe und die Ausgabe-Formate bleiben
+  **unverändert**. Träger der Kennzeichnung ist die Linie und nicht die Farbe,
+  sie folgt der Textfarbe und damit jedem Farbschema.
+- **Reiter, Reiter-Gruppenmenü und Fenstertitel zeigen Markdown-Dateien ohne
+  Endung** (`4T-001724`). Die Beschriftung eines geöffneten Dokuments ist der
+  Dateiname **ohne die Markdown-Endung**; gekürzt werden alle als Markdown
+  geführten Endungen, nicht allein `.md`. Eine **fremde** Dateiart behält ihre
+  Endung, ein Name, der nur aus einer Endung besteht, fällt auf den vollen
+  Basisnamen zurück, und der **Kurzhinweis** am Reiter nennt weiter den
+  vollständigen Pfad. Gekürzt ist allein die Anzeige: Datei, Pfad, Speichern,
+  Umbenennen und der Änderungs-Punkt am Reiter arbeiten unverändert. Technisch
+  liegt die Erkennung in **einer** Stelle des geteilten Namens-Moduls, aus der
+  auch die Titelzeile schöpft.
+- **Die Panels der Seitenleiste zeigen Markdown-Dateien ebenfalls ohne Endung**
+  (`4T-001775`, Entscheidungen des Product Owners vom 2026-09-17, die die Regel
+  auf alle relevanten Seitenleisten ausdehnen). Betroffen sind die Dateiliste
+  eines Bereichs, das Inhaltsverzeichnis eines Buches, die Lesezeichen, die
+  Rückverweise, die Erinnerungen samt ihrem Melde-Dialog und die Datei-Liste
+  eines Tags. Dieselbe Form wie am Reiter, dieselben Ausnahmen: Eine fremde
+  Dateiart behält ihre Endung, und der **Kurzhinweis** nennt den vollen Pfad —
+  er unterscheidet zwei Dateien, deren Namen sich nur in der Markdown-Endung
+  unterscheiden; im Erinnerungs-Panel und -Dialog ist er dafür neu
+  hinzugekommen. Ordner-Namen bleiben unberührt. Bei den **Lesezeichen** wird
+  nur der von der Anwendung gebildete Name gekürzt: Ein selbst gewählter bleibt
+  unverändert. **Berichte, Vorschauen und Auswahl-Listen** nennen weiter den
+  vollständigen Dateinamen. Die Kapitel-Beschriftung des Buch-Panels kürzt
+  seither alle Markdown-Endungen statt nur `.md`.
+- **Das Arbeitsbereiche-Untermenü und der Verwaltungs-Dialog nennen den
+  gebundenen Ordner** (`4T-001737`). Der Listen-Eintrag des Untermenüs trägt
+  einzeilig «Name — Ordnername», genannt wird allein der letzte Bestandteil des
+  Pfades; gekappt wird bei 40 Zeichen **je Bestandteil**, damit ein langer Name
+  dem Ordnernamen nicht den Platz nimmt. Ein Arbeitsbereich ohne Bindung trägt
+  allein seinen Namen, ohne Trenner und ohne Platzhalter. Der
+  Verwaltungs-Dialog zeigt dieselbe Bindung mit dem **vollständigen Pfad**;
+  Buch und Bücherregal bleiben dort draußen, weil My Extended Memory alle drei
+  ohnehin führt. Gezeigt wird die Zuordnung nur — geändert wird sie an keinem
+  der beiden Orte.
+- **Die drei Schalter des Eingabe-Verhaltens werden beim Start gebündelt
+  gelesen** (`4T-001576`) — Tabulator-Einzug, Einfügen als Link und
+  Cursor-Sprung in **einer** IPC-Runde statt je Schalter in einer eigenen Zeile
+  der Start-Sequenz. Rein intern, aber nennenswert, weil es Produkt-Code ist und
+  die Bilanz der Start-Sequenz bei plus/minus null Code-Zeilen hält.
+- **Der Neuaufbau der Bereichs-Panels verwirft die Listen-Zwischenspeicher**
+  (`4T-001731`). Damit erscheint eine Änderung am Verzeichnis-Inhalt sofort und
+  nicht erst, wenn der gedrosselte Verzeichnis-Wächter nachkommt. Für den
+  zweiten Nutzer dieses Wegs, die Festlegung der Start-Seite, ändert sich nichts
+  außer einem erneuten Verzeichnis-Lesen.
+
+### Behoben
+
+- **Elemente der Statusleiste liefen bei schmalem Fenster über den rechten Rand
+  hinaus** (`4T-001579`) und waren dort nicht mehr erreichbar. Derselbe Vorgang
+  hat den einen Befund der Abnahme behoben: Das Pull-up-Menü überlappte seinen
+  Knopf, statt über ihm zu liegen.
+- **Die Schaltfläche der Dokument-Historie konnte sich nach einem
+  Dokument-Wechsel selbst wieder aktivieren** (`4T-001765`). Eine verspätete
+  Antwort für das vorige Dokument setzte sie auf «bedienbar» zurück, obwohl
+  inzwischen eine System-Seite vorn lag. Der Fehler lag seit langem im Bestand
+  und war nie aufgefallen; gefunden hat ihn ein Prüffall dieses Vorhabens.
+- **Beim Auf- und Zuklappen der Metadaten-Zeile blieben Auswahl, Schreibmarke
+  und Zeilennummern stehen** (`4T-001722`). In der Live-Ansicht wandern sie
+  jetzt mit dem Text mit; bisher blieben sie an ihrer alten Stelle, sodass eine
+  Markierung optisch auf einem anderen Text lag. Während der Aufklapp-Bewegung
+  hinkt die Markierung ein bis zwei Bilder nach und liegt erst im Stillstand
+  exakt.
+- **In My Extended Memory standen die Zahl der geöffneten Dokumente und die
+  Fenster-Zahl untereinander statt in einer Reihe** (`4T-001739`, Befund der
+  ersten Abnahme-Runde).
+
+### i18n
+
+- **Neue und geänderte Texte liegen in allen fünf Sprachfassungen vor**
+  (`4T-001577`, `4T-001582`, `4T-001720`, `4T-001725`, `4T-001732`,
+  `4T-001740`, `4T-001766`, `4T-001775`): die Falt-Einstellung mit ihren beiden
+  Werten und die beiden Rand-Menüs der Leiste, der Titel des neuen
+  Einstellungs-Abschnitts «Statusleiste» und der neue Titel «Kontextmenü und
+  Makros», die Auswahl «Nicht aktivierbare Schaltflächen» mit «Blass anzeigen»
+  und «Ausblenden», die Einstellung des Cursor-Sprungs, der Kopier-Eintrag des
+  Bereichs-Panels mit Erfolgs-Hinweis, allgemeinem Fehlschlag und dem
+  abgewiesenen geteilten Dokument, die Menü-Beschriftung und der
+  Tastenkürzel-Text des neuen Fensters, die beiden Verschiebe-Schaltflächen und
+  die Bereichs-Zeile des Verwaltungs-Dialogs, die beiden Angaben der
+  Dokument-Zahl für Liste und Detail-Sicht sowie je drei Katalog-Schlüssel der
+  **fünf** neuen Funktions-Einträge.
+- **Geänderte Bestands-Werte**, je in allen fünf Sprachen: die vier
+  Zugangs-Wege des Funktions-Katalogs, sein Katalog-Text und der
+  Einstellungs-Hinweis zu den Statusbar-Schaltflächen (`4T-001582`), der
+  Katalog-Text der Live-Vorschau (`4T-001720`), die Katalog-Texte der Reiter
+  (`4T-001725`) und des Bereichs-Panels (`4T-001775`) sowie die Katalog-Texte
+  der Arbeitsbereiche und von My Extended Memory (`4T-001740`). Jeder ist mit
+  Begründung in der Ausnahme-Liste des Gleichheits-Nachweises eingetragen; der
+  Nachweis läuft in allen fünf Sprachen ohne Abweichung.
+- **Ein neuer oberster Namensraum** in der Zuordnungs-Tafel der
+  Sprach-Fragmente (`4T-001576`), weil sonst das allgemeine Präfix der
+  Einstellungen gegriffen und die beiden Schlüssel im falschen Fragment gelandet
+  wären. Mehrzahl-Formen entstehen nicht: Die neue Dokument-Zahl folgt der Form
+  der Nachbar-Angabe, samt dem französischen Abstand vor dem Doppelpunkt.
+
+### Dokumentation
+
+- **Handbuch und Funktions-Katalog sind je Vorhaben mitgewachsen**, in allen
+  fünf Sprachfassungen und ohne eine neue Seite: der Abschnitt «Statusleiste»
+  der Seite «Ansichten und Darstellung» samt der Abgrenzung der **drei** Gründe
+  für ein Fehlen einer Schaltfläche (`4T-001582`, `4T-001766`), die Seite
+  «Kommando-Platzierung» mit beiden Orten, dem blockweisen Aus-Zustand und dem
+  Querverweis gegen die Verwechslung von dauerhaftem Abwählen und neuer Wahl
+  (`4T-001582`, `4T-001766`), der Abschnitt «Schreibmarke beim Zeilenwechsel»
+  im Listen-Kapitel der Seite «Markdown-Basis» (`4T-001577`), der Abschnitt
+  «Live-Modus» mit den Links als zweiter benannter Ausnahme neben den Tabellen
+  und ein Absatz über die ansichts-abhängige Darstellung eines Links
+  (`4T-001720`), der Abschnitt «Beschriftung der Reiter» der Seite
+  «Applikationen, Fenster und Bereiche» samt der richtiggestellten Aussage über
+  die Dateiliste (`4T-001725`, `4T-001775`), die beiden Absätze zum Kopieren im
+  Abschnitt «Datei-Verwaltung im Bereichs-Panel» (`4T-001732`) und die
+  Beschreibung des neuen Menüpunkts samt Abgrenzung gegen «Neue Applikation»,
+  der Ordner-Angabe des Untermenüs, der gesetzten Reihenfolge und der
+  Dokument-Zahl (`4T-001740`). **Fünf** neue Einträge des Funktions-Katalogs:
+  Zusammenklappen der Statusleiste, Darstellung nicht aktivierbarer
+  Schaltflächen, Cursor-Sprung in Listen, Datei im Bereichs-Panel kopieren und
+  Neues Fenster.
+- **Die Nutzen-Darstellung ist unverändert.** Der Nutzen-Prüfschritt hat für
+  alle acht Vorhaben «nichts zu ergänzen» ergeben: Jedes verfeinert eine
+  Arbeits-Form, die die Nutzen-Seite bereits darstellt, und keines eröffnet eine
+  neue.
+- **Dauerhafte Dokumente sind je Vorhaben fortgeschrieben** (`4T-001583`,
+  `4T-001723`, `4T-001733`, `4T-001741` und die Umsetzungs-Tasks): die
+  Architektur an Code-Struktur, Designentscheidungen und Stand-Vermerk, die
+  Erkenntnis-Sammlung um drei Einträge mit Reichweite über ihren Vorgang hinaus,
+  die Entwicklungsrichtlinien um eine Prüffrage zu Block-Widgets mit
+  veränderlicher Höhe und das Test-README um eine Stabilitätsregel zur
+  Prüf-Breite.
+- **Der Ort der Gruppen-Registry des Funktions-Katalogs steht richtig in den
+  Entwicklungsrichtlinien** (`4T-001754`). Kapitel 13 nannte an zwei Stellen die
+  Erzeugungs-Datei als Ort der Gruppen-Tabelle; die Tabelle liegt seit ihrem
+  Auszug in einer eigenen Datei daneben. Wer dem Kapitel folgte, suchte an der
+  falschen Stelle.
+
+### Intern
+
+- **Die Prüf-Breite der E2E-Läufe steht zentral im Start-Helfer** (`4T-001579`)
+  und wird als **Inhalts-Größe** gesetzt statt als Fenster-Rechteck: 1600 px
+  Inhaltsbreite bei unveränderter Höhe, einmal im Helfer statt in rund zehn
+  Prüfdateien einzeln. Gemessen, nicht geschätzt — mit Verschiebung des Fensters
+  fielen 4 von 6 Läufen einer ganzen Prüfdatei aus, ohne dass eine Erwartung
+  verletzt war. Die Regel steht seither im Test-README.
+- **Der Commit-Wächter der Zeilen-Budgets misst nur noch Dateien unter den
+  Wurzeln des vollen Wächters** (`4T-001581`); ein Entwurfs-Artefakt trägt kein
+  Code-Budget.
+- **Zwei Quelltext-Wächter lesen den ganzen Menü-Ordner statt einer Datei**
+  (`4T-001737`). Der Wächter über die angezeigten Tastenkürzel und der über die
+  Verfügbarkeits-Basislinie lasen allein die Menü-Fabrik; nach dem Auszug der
+  Untermenü-Module fielen deren Einträge aus ihrem Blickfeld. Beide lesen jetzt
+  alle Module des Menü-Ordners; damit ist jeder weitere Auszug gedeckt, ohne
+  eine Datei-Liste zu pflegen.
+- **Die Wortlaut-Pflege zum neuen Fenster ist nachgezogen** (`4T-001741`). Der
+  frühere Text «ein Fenster mit einem einzelnen unbenannten Reiter» stand an
+  fünf Stellen, die er nach der Entscheidung des Product Owners vom 2026-09-19
+  nicht mehr traf — darunter ein Kommentar des Menü-Moduls. Geändert ist allein
+  der Wortlaut; am Verhalten ist keine Zeile angefasst.
+
 ## [1.138.0.2980] - 2026-09-19 — Canvas Stufe 5: die Fläche im portablen Export, die Flächen-Befehle gebündelt
 
 Zug 3E-000313,

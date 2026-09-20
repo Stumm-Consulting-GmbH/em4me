@@ -669,6 +669,17 @@ body.printing.printing-source .pane-group.active-pane .pdf-source-print {
 .memory-row-stat {
   font-variant-numeric: tabular-nums;
 }
+/* 4T-001739: Die zwei Zahlen eines Arbeitsbereichs (geoeffnete Dokumente,
+   Fenster) stehen in einer Reihe wie die Kurz-Kennzahlen der Ordner-Gefaesse;
+   eigene Klasse, weil sie keine Kennzahlen des Beschleunigers sind. */
+.memory-row-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+.memory-row-count {
+  font-variant-numeric: tabular-nums;
+}
 .memory-row-partial {
   font-style: italic;
 }

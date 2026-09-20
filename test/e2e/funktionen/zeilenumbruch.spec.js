@@ -135,14 +135,38 @@ test.describe('ZU-01: Hängender Einzug umgebrochener Zeilen', () => {
         const r = sortiert[1][1];
         return { x: r.left + 1, y: r.top + r.height / 2 };
       });
+      const leseMarke = () =>
+        page.evaluate(() => {
+          const el = document.querySelector('.cm-editor .cm-cursor-primary');
+          if (!el) return null;
+          const r = el.getBoundingClientRect();
+          return { left: r.left, top: r.top, height: r.height };
+        });
       await page.mouse.click(zweiteReihe.x, zweiteReihe.y);
-      const marke = await page.evaluate(() => {
-        const el = document.querySelector('.cm-editor .cm-cursor-primary');
-        if (!el) return null;
-        const r = el.getBoundingClientRect();
-        return { left: r.left, top: r.top, height: r.height };
-      });
-      expect(marke).not.toBeNull();
+      // Die Marke folgt dem Klick erst im Mess-Zyklus des Editors, nicht im
+      // Klick selbst. Gemessen am 2026-09-14 (Bild-für-Bild-Abtastung nach dem
+      // Klick): Im ERSTEN Bild zeichnet CodeMirror die Marke noch an der
+      // Auswahl vor dem Klick — Text-Anfang, left 57,81 / top 91 —, erst im
+      // zweiten steht sie an der geklickten Stelle (left 73,20 / top 196). Ein
+      // unmittelbares Auslesen trifft unter Last das erste Bild und misst dann
+      // 16,98 px Abstand statt 1,59; genau so riss der Fall im E2E-Voll-Lauf
+      // vom 2026-09-14, während er isoliert grün blieb. Gewartet wird deshalb
+      // auf die Reihe, in die geklickt wurde. Der Fall verliert dadurch nichts:
+      // Setzt der Editor die Marke dauerhaft falsch, bleibt die Reihe aus und
+      // das Warten läuft ab — steht sie in der Reihe, misst die Zusicherung
+      // darunter unverändert die waagerechte Lage.
+      let marke = null;
+      await expect
+        .poll(async () => {
+          marke = await leseMarke();
+          return !!(
+            marke &&
+            marke.height > 0 &&
+            marke.top < zweiteReihe.y &&
+            zweiteReihe.y < marke.top + marke.height
+          );
+        })
+        .toBe(true);
       // Die Schreibmarke steht dort, wo geklickt wurde: waagerecht am Anfang
       // der Fortsetzung, senkrecht in ihrer Reihe.
       expect(Math.abs(marke.left - zweiteReihe.x)).toBeLessThan(8);

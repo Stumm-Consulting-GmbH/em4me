@@ -58,6 +58,11 @@ test.describe('R5-02: Defektes YAML — kein Feld hinzufügen, kein Frontmatter-
   });
 });
 
+// 4T-001724: Klick-Position fuer Reiter mit einbuchstabigem Namen. Die Mitte
+// eines so schmalen Reiters liegt auf dem Schliessen-Knopf; der linke Rand
+// gehoert immer zur Reiter-Flaeche.
+const AM_LINKEN_RAND = { position: { x: 6, y: 10 } };
+
 test.describe('R5-03: Pending Property-Save überlebt den Tab-Wechsel', () => {
   test('Wert tippen, sofort Tab wechseln, zurück — Wert ist übernommen', async () => {
     const workDir = makeWorkDir('scg-md-r503-');
@@ -72,8 +77,11 @@ test.describe('R5-03: Pending Property-Save überlebt den Tab-Wechsel', () => {
       await page.locator('#btn-properties').click();
       await expect(page.locator(PROPS.panel)).toBeVisible();
 
-      // Zu Datei A wechseln und den titel-Wert aendern.
-      await page.locator(SEL.tabs0).filter({ hasText: 'a' }).first().click();
+      // Zu Datei A wechseln und den titel-Wert aendern. Geklickt wird der
+      // linke Rand des Reiters, nicht seine Mitte (4T-001724): Seit die Markdown-
+      // Endung entfaellt, heisst der Reiter nur noch «a», und die Mitte eines so
+      // schmalen Reiters liegt auf dem Schliessen-Knopf.
+      await page.locator(SEL.tabs0).filter({ hasText: 'a' }).first().click(AM_LINKEN_RAND);
       const input = page.locator(PROPS.valueInput).first();
       await expect(input).toHaveValue('Alt');
       await input.fill('Neu');
@@ -81,11 +89,11 @@ test.describe('R5-03: Pending Property-Save überlebt den Tab-Wechsel', () => {
       // Sofort (innerhalb des 500-ms-Debounce) zu B wechseln: der Flush
       // muss die Eingabe in den A-Tab schreiben, bevor die Felder-DOM
       // durch die B-Properties ersetzt wird.
-      await page.locator(SEL.tabs0).filter({ hasText: 'b' }).click();
+      await page.locator(SEL.tabs0).filter({ hasText: 'b' }).click(AM_LINKEN_RAND);
       await expect(page.locator(SEL.activeTab0).locator('.tab-title')).toHaveText(/b/);
 
       // Zurueck zu A: der Wert ist uebernommen (Feld zeigt den neuen Stand).
-      await page.locator(SEL.tabs0).filter({ hasText: 'a' }).first().click();
+      await page.locator(SEL.tabs0).filter({ hasText: 'a' }).first().click(AM_LINKEN_RAND);
       await expect(page.locator(PROPS.valueInput).first()).toHaveValue('Neu');
 
       // Und der Tab traegt den Wert im Inhalt (dirty, da Auto-Save aus).

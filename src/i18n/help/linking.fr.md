@@ -2,6 +2,8 @@
 
 Liens wiki, ancres, incorporations et tags relient les fichiers Markdown en réseau. Les exemples de cette page montrent la syntaxe ; leurs cibles n'existent pas dans le manuel, dans vos propres fichiers les liens ouvrent le fichier cible dans un onglet.
 
+**L'aspect d'un lien dépend de la vue.** En mode direct, il est souligné en permanence, afin que l'on voie pendant la rédaction, sans survol de la souris, qu'un texte porte un lien ; la vue rendue ne le souligne qu'au survol. Les détails figurent sur la page [Vues et affichage](views-display.md).
+
 ## Liens wiki
 
 `[[Cible]]` lie un fichier par son nom, sans chemin ni extension ; la recherche couvre le dossier du fichier et jusqu'à deux niveaux de sous-dossiers. L'extension `.md` peut être omise ou écrite.
@@ -154,7 +156,7 @@ La validation d'une suggestion de fichier ou d'alias écrit aussi les crochets f
 
 ## Barres latérales du réseau
 
-Trois sections de barre latérale montrent le réseau du fichier actif : **Rétroliens** (liens entrants, y compris « via alias »), **Liens sortants** (toutes les références sortantes dans l'ordre du document) et **Tags** (tous les tags de la portée de recherche avec leur fréquence). Les accès figurent dans le [tableau des fonctionnalités](functions.md).
+Trois sections de barre latérale montrent le réseau du fichier actif : **Rétroliens** (liens entrants, y compris « via alias »), **Liens sortants** (toutes les références sortantes dans l'ordre du document) et **Tags** (tous les tags de la portée de recherche avec leur fréquence). Les accès figurent dans le [tableau des fonctionnalités](functions.md). Les rétroliens et les tags nomment leurs fichiers sans l'extension Markdown et indiquent le chemin complet en info-bulle ; les liens sortants affichent la référence telle qu'elle est écrite dans le document.
 
 ## Insérer une adresse dans une sélection
 

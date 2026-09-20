@@ -17,6 +17,9 @@ import {
   mermaidHash,
 } from '../render-mermaid.js';
 import { liveBlockCacheGet, liveBlockCacheSet } from './live-shared.js';
+// 4T-001722 (Epic 3E-000303): Höhen-Meldung an den Editor für Widgets, die
+// ihre Höhe nach dem Einhängen selbst ändern.
+import { beobachteWidgetHoehe, loeseWidgetHoehenBeobachtung } from './live-widget-hoehe.js';
 
 // 4T-000089 (Epic 3E-000014): Mermaid-Block-Widget. Unterscheidet sich von
 // MarkdownBlockWidget durch:
@@ -221,6 +224,11 @@ export class FrontmatterBlockWidget extends WidgetType {
         entferneLeerraumKnoten(container);
         applyFrontmatterLine(container);
         applyTranslations(container);
+        // 4T-001722 (Epic 3E-000303): Dieser Zweig — und nur dieser — trägt die
+        // aufklappbare Zeile, deren Höhe sich nach dem Einhängen per CSS ändert
+        // (:hover und .is-pinned auf dem YAML-Kasten). Der Rückfall darunter ist
+        // reiner Text mit fester Höhe und braucht keine Meldung.
+        beobachteWidgetHoehe(container);
         container.addEventListener('mousedown', (e) => {
           // Kopfzeile behaelt die Pin-Interaktion; alles andere (das
           // aufgeklappte YAML) demaskiert zum editierbaren Quelltext.
@@ -245,6 +253,14 @@ export class FrontmatterBlockWidget extends WidgetType {
     // Fallback (Pipeline-Schalter aus oder Render-Fehler): Quelltext.
     container.textContent = this.source;
     return container;
+  }
+  // 4T-001722 (Epic 3E-000303): Der Höhen-Beobachter hängt am DOM, nicht am
+  // Widget (Begründung im Kopf von live-widget-hoehe.js). CodeMirror ruft
+  // `destroy(dom)` genau dann, wenn das Tile samt seinem DOM fällt und nicht
+  // wiederverwendet wird — das ist der Moment, in dem der Beobachter zu trennen
+  // ist, und der einzige.
+  destroy(dom) {
+    loeseWidgetHoehenBeobachtung(dom);
   }
   ignoreEvent() {
     return true;

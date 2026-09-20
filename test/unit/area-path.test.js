@@ -13,6 +13,7 @@ import {
   sortedAreaListing,
   sanitizeNewFileName,
   sanitizeNewFolderName,
+  kopierNameKandidat,
 } from '../../src/main/area/area-path.js';
 import { createRequire } from 'node:module';
 
@@ -286,5 +287,57 @@ describe('areaFromRootPath (4T-000322)', () => {
     });
     expect(areaFromRootPath('')).toBeNull();
     expect(areaFromRootPath(null)).toBeNull();
+  });
+});
+
+// 4T-001731 (Epic 3E-000306, E1): Der Namens-Kandidat einer Datei-Kopie. Die
+// tragende Aussage ist die zweite: Angehaengt wird an den GANZEN Stamm, eine
+// schon vorhandene Endziffer wird nicht hochgezaehlt. Waere es umgekehrt,
+// gehoerte die Kopie von 'Konzept-1.md' scheinbar zu 'Konzept.md'.
+describe('kopierNameKandidat (4T-001731)', () => {
+  it('setzt Bindestrich und Nummer VOR die Endung', () => {
+    expect(kopierNameKandidat('Konzept.md', 1)).toBe('Konzept-1.md');
+    expect(kopierNameKandidat('Konzept.md', 7)).toBe('Konzept-7.md');
+    expect(kopierNameKandidat('Konzept.md', 42)).toBe('Konzept-42.md');
+    expect(kopierNameKandidat('Notiz.markdown', 1)).toBe('Notiz-1.markdown');
+  });
+
+  it('haengt an eine bereits nummerierte Vorlage an, statt hochzuzaehlen', () => {
+    expect(kopierNameKandidat('Konzept-1.md', 1)).toBe('Konzept-1-1.md');
+    expect(kopierNameKandidat('Konzept-1-1.md', 2)).toBe('Konzept-1-1-2.md');
+    expect(kopierNameKandidat('Bericht-2026.md', 1)).toBe('Bericht-2026-1.md');
+  });
+
+  it('laesst das Unterseiten-Trennzeichen stehen (die Kopie bleibt Unterseite)', () => {
+    expect(kopierNameKandidat('Prozess∕Schritt.md', 1)).toBe('Prozess∕Schritt-1.md');
+  });
+
+  it('behandelt einen Namen ohne Endung und einen mit mehreren Punkten', () => {
+    expect(kopierNameKandidat('LIESMICH', 1)).toBe('LIESMICH-1');
+    // path.parse nimmt die LETZTE Endung; alles davor ist Stamm.
+    expect(kopierNameKandidat('archiv.2026.md', 1)).toBe('archiv.2026-1.md');
+  });
+
+  it('weist unbrauchbare Vorlagen und Nummern ab', () => {
+    expect(kopierNameKandidat('', 1)).toBeNull();
+    expect(kopierNameKandidat('   ', 1)).toBeNull();
+    expect(kopierNameKandidat(null, 1)).toBeNull();
+    expect(kopierNameKandidat(undefined, 1)).toBeNull();
+    // Ein Pfad statt eines Dateinamens: Der Kandidat wuerde sonst den Ordner
+    // mitschleppen und die Grenz-Pruefung des Aufrufers taeuschen.
+    expect(kopierNameKandidat('Ordner/Konzept.md', 1)).toBeNull();
+    expect(kopierNameKandidat('.md', 1)).toBeNull();
+    expect(kopierNameKandidat('Konzept.md', 0)).toBeNull();
+    expect(kopierNameKandidat('Konzept.md', -1)).toBeNull();
+    expect(kopierNameKandidat('Konzept.md', 1.5)).toBeNull();
+    expect(kopierNameKandidat('Konzept.md', '1')).toBeNull();
+  });
+
+  it('weist einen Kandidaten ab, der als Dateiname unbrauchbar waere', () => {
+    // Derselbe Massstab wie der Umbenennen-Dialog (basenameValidationError):
+    // Die Vorlage traegt ein verbotenes Zeichen, also traegt es der Kandidat
+    // auch — und dann entsteht keine Kopie, statt eines krummen Namens.
+    expect(kopierNameKandidat('Fra?ge.md', 1)).toBeNull();
+    expect(kopierNameKandidat('A|B.md', 1)).toBeNull();
   });
 });

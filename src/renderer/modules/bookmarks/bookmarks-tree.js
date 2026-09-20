@@ -14,6 +14,9 @@ import { persistSetting } from '../views/views.js';
 // 4T-000611/4T-000612 (Epic 3E-000115): prozess-neutrale Pfad-Helfer der Bereichs-
 // Lesezeichen (esbuild bundelt das CJS-Modul transparent).
 import { toAbsolute, toRootRelative } from '../../../shared/bookmark-tree.js';
+// 4T-001775 (Epic 3E-000304): die gemeinsame Beschriftungs-Funktion; siehe die
+// drei Namens-Helfer am Ende dieses Moduls.
+import { fileLabelFromBasename } from '../../../shared/subpages.js';
 
 // === 4T-000075 (Epic 3E-000013): Bookmarks-Basis ================================
 // Persistente Lesezeichen mit Tree-Datenmodell (Folder + File-Knoten).
@@ -365,4 +368,48 @@ export function readBookmarkFileExistence(filePath) {
 
 export function clearBookmarkExistsCache() {
   bookmarkExistsCache.clear();
+}
+
+// === 4T-001775 (Epic 3E-000304): Beschriftung einer Lesezeichen-Zeile =========
+//
+// Die Zeile zeigt NICHT den Dateinamen, sondern den gespeicherten
+// `displayName`. Er entsteht beim Anlegen aus dem Basisnamen der Datei und ist
+// danach ueber das Inline-Umbenennen frei aenderbar. Gekuerzt wird deshalb nur
+// der AUTOMATISCHE Name; ein vom Anwender gewaehlter bleibt Zeichen fuer
+// Zeichen stehen (Entscheidung der steuernden Sitzung vom 2026-09-17,
+// Variante 1, im Rahmen der PO-Ansage «alle relevanten Sidebars»).
+//
+// Erkannt wird «automatisch» am Vergleich `displayName === basename(filePath)` —
+// dasselbe Kriterium, mit dem `updateBookmarkPathsForRename` in bookmarks.js
+// schon heute entscheidet, ob ein Anzeigename einer Datei-Umbenennung folgt.
+// Eine zweite Regel daneben waere eine zweite Wahrheit ueber denselben Namen.
+//
+// Gespeichert wird nichts umgeschrieben: Der Datenbestand bleibt, wie er ist.
+
+// Der automatische Name eines Datei-Knotens: der Basisname seines Ziels. Bei
+// Bereichs-Lesezeichen ist das Ziel wurzel-relativ, der Basisname derselbe.
+export function bookmarkAutoName(node) {
+  const pfad = node && typeof node.filePath === 'string' ? node.filePath : '';
+  return pfad ? api.basename(pfad) : '';
+}
+
+// Beschriftung eines Datei-Knotens: der gewaehlte Name unveraendert, sonst der
+// automatische ohne Markdown-Endung.
+export function bookmarkLabel(node) {
+  const auto = bookmarkAutoName(node);
+  const gesetzt = node && typeof node.displayName === 'string' ? node.displayName : '';
+  if (gesetzt !== '' && gesetzt !== auto) return gesetzt;
+  return fileLabelFromBasename(auto);
+}
+
+// Rueckabbildung beim Bestaetigen des Inline-Umbenennens: Steht im Feld
+// unveraendert die gekuerzte Form des automatischen Namens, bleibt der
+// gespeicherte Name der automatische. Ohne diesen Schritt machte ein
+// blosses Enter — oder der Verlust des Fokus, der ebenso committet — aus dem
+// automatischen Namen still einen gewaehlten, und die naechste Umbenennung der
+// Datei zoege ihn nicht mehr nach.
+export function bookmarkNameAusEingabe(node, eingabe) {
+  const auto = bookmarkAutoName(node);
+  if (auto !== '' && eingabe === fileLabelFromBasename(auto)) return auto;
+  return eingabe;
 }

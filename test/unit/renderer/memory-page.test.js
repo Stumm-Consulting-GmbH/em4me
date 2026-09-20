@@ -229,7 +229,13 @@ describe('Aufbau der Seite (AK4, AK5, AK6)', () => {
       ok: true,
       entries: [
         eintrag('workspace', 'Projekt', {
-          workspace: { area: 'C:\\Ablage\\Wissen', book: null, shelf: null, windows: 2 },
+          workspace: {
+            area: 'C:\\Ablage\\Wissen',
+            book: null,
+            shelf: null,
+            windows: 2,
+            documents: 5,
+          },
         }),
         eintrag('area', 'Wissen'),
         eintrag('book', 'Ithaka'),
@@ -250,9 +256,19 @@ describe('Aufbau der Seite (AK4, AK5, AK6)', () => {
     // Je Zeile der leere Andockpunkt der Detail-Sicht (4T-001601).
     expect(container.querySelectorAll('.memory-row-detail')).toHaveLength(4);
     // Der Arbeitsbereich zeigt die getragenen Gefäße statt eines Pfades.
+    // 4T-001739 (Epic 3E-000308): der Bereich als eigene Zeile, darunter die
+    // zwei Zahlen in EINER Reihe — zuerst die geöffneten Markdown-Dokumente,
+    // dann die Fenster (AK1, Befund der Abnahme vom 2026-09-19).
     const wsZeile = container.querySelector('.memory-row');
     expect(wsZeile.querySelector('.memory-row-path')).toBe(null);
-    expect(wsZeile.querySelectorAll('.memory-row-part')).toHaveLength(2);
+    const teile = [...wsZeile.querySelectorAll('.memory-row-part')].map((n) => n.textContent);
+    expect(teile).toEqual(['memory.workspace.area']);
+    expect(wsZeile.querySelectorAll('.memory-row-counts')).toHaveLength(1);
+    const zahlenReihe = [...wsZeile.querySelectorAll('.memory-row-counts > .memory-row-count')];
+    expect(zahlenReihe.map((n) => n.textContent)).toEqual([
+      'memory.workspace.documents',
+      'memory.workspace.windows',
+    ]);
     // Ohne Kennzahlen steht der Vermerk statt eines Standes; der
     // Arbeitsbereich bekommt nie welche (4T-001600).
     expect(container.querySelector('.memory-row-stand').textContent).toBe('memory.stats.none');
@@ -614,6 +630,8 @@ describe('Detail-Sicht je Gefäß-Art (AK1 bis AK4, AK7, AK8)', () => {
             book: null,
             shelf: null,
             windows: 2,
+            // 4T-001739 (Epic 3E-000308): die zweite Zahl des Vertrags.
+            documents: 5,
             lastOpenedAt: '2026-09-10T07:30:00Z',
           },
         }),
@@ -626,6 +644,9 @@ describe('Detail-Sicht je Gefäß-Art (AK1 bis AK4, AK7, AK8)', () => {
       'memory.detail.book',
       'memory.detail.shelf',
       'memory.detail.windows',
+      // 4T-001739: unmittelbar hinter der Fenster-Zahl, weil die beiden
+      // zusammengehören.
+      'memory.detail.documents',
       'memory.detail.lastOpened',
     ]);
     const werteNachName = Object.fromEntries(paare);
@@ -635,7 +656,40 @@ describe('Detail-Sicht je Gefäß-Art (AK1 bis AK4, AK7, AK8)', () => {
     expect(werteNachName['memory.detail.book']).toBe('—');
     expect(werteNachName['memory.detail.shelf']).toBe('—');
     expect(werteNachName['memory.detail.windows']).toBe('2');
+    // 4T-001739 (AK7): Die Detail-Sicht nennt DIESELBE Zahl wie die Liste; sie
+    // rechnet nichts eigen nach, sondern liest dasselbe Feld.
+    expect(werteNachName['memory.detail.documents']).toBe('5');
     expect(werteNachName['memory.detail.lastOpened']).not.toBe('—');
+  });
+
+  // 4T-001739 (Epic 3E-000308, AK6): Die Null und die fehlende Angabe sind
+  // zwei verschiedene Auskünfte, und die Detail-Sicht unterscheidet sie schon
+  // für alle übrigen Kennzahlen. Der Fall hält fest, dass die neue Zahl
+  // derselben Regel folgt: null heisst «nicht erhoben», 0 heisst «keine».
+  it('unterscheidet bei der Dokument-Zahl die Null von der fehlenden Angabe', async () => {
+    viewAntwort = {
+      ok: true,
+      entries: [
+        eintrag('workspace', 'Leer', {
+          workspace: { area: null, book: null, shelf: null, windows: 1, documents: 0 },
+        }),
+      ],
+    };
+    const container = await mountPage();
+    expect(Object.fromEntries(detailPaare(container))['memory.detail.documents']).toBe('0');
+
+    viewAntwort = {
+      ok: true,
+      entries: [
+        eintrag('workspace', 'Alt', {
+          workspace: { area: null, book: null, shelf: null, windows: 1 },
+        }),
+      ],
+    };
+    const zweiter = await mountPage();
+    expect(Object.fromEntries(detailPaare(zweiter))['memory.detail.documents']).toBe(
+      'memory.notAvailable',
+    );
   });
 
   it('klappt die Detail-Sicht auf und wieder zu, je Zeile einzeln', async () => {

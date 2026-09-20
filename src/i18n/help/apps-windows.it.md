@@ -4,7 +4,7 @@ L'app organizza il lavoro su tre livelli: **applicazioni** (contesti di lavoro i
 
 ## Applicazioni
 
-Il programma può essere avviato più volte: ogni avvio aggiuntivo del file di programma crea una nuova applicazione, un contesto di lavoro indipendente con finestre e numerazione proprie. «File → Nuova applicazione» fa lo stesso.
+Il programma può essere avviato più volte: ogni avvio aggiuntivo del file di programma crea una nuova applicazione, un contesto di lavoro indipendente con finestre e numerazione proprie. «File → Nuova applicazione» fa lo stesso. Un'ulteriore **finestra** della stessa applicazione nasce invece da «File → Nuova finestra»; la sezione «Finestre» distingue le due cose.
 
 Tutte le applicazioni girano in un unico processo e condividono le impostazioni. Il ripristino della sessione (Aiuto → Ripristina sessione) riapre al prossimo avvio tutte le applicazioni con le loro finestre e schede.
 
@@ -19,6 +19,12 @@ Disattivazione in «Impostazioni → Comportamento» con «Conserva i nuovi docu
 ## Finestre
 
 All'interno di un'applicazione si possono aprire quante finestre si vuole: tramite il menu contestuale della scheda («Sposta in» / «Copia in» → «Nuova finestra») una scheda passa in una nuova finestra della stessa applicazione. Con più finestre aperte, il sottomenu elenca tutte le altre finestre come destinazione; non appena sono in esecuzione più applicazioni, le voci di destinazione riportano il contesto dell'applicazione.
+
+**«File → Nuova finestra» apre una seconda finestra vuota** della stessa applicazione, senza che debba prima essere aperto un documento. Eredita tutto ciò che appartiene all'applicazione: il collegamento a una cartella, lo spazio di lavoro e la sessione. Il suo titolo riporta il suffisso di finestra secondo la sistematica più sotto, le schede si spostano tra essa e le altre finestre dell'applicazione, e torna con il ripristino della sessione come ogni altra finestra.
+
+**La differenza rispetto a «Nuova applicazione» è il contesto.** Una nuova finestra resta nel contesto in corso e ne condivide collegamento, spazio di lavoro e sessione; una nuova applicazione ne inizia uno proprio, con collegamento, numerazione delle finestre e titolo propri. Chi cerca soltanto una seconda superficie per lo stesso lavoro prende «Nuova finestra»; per questo la voce sta **prima** di «Nuova applicazione» nel menu File.
+
+La stessa funzione è disponibile come comando nella palette dei comandi e può ricevere una scorciatoia in Impostazioni → Scorciatoie da tastiera; non esiste alcuna assegnazione predefinita.
 
 ## Posizione delle nuove schede
 
@@ -51,13 +57,22 @@ I gruppi appartengono alla loro barra delle schede (una per lato nella vista div
 - **Menu contestuale:** le voci di gruppo agiscono sulla selezione non appena la scheda su cui si è fatto clic ne fa parte. Le voci che indicano esattamente un file — rinomina, segnalibro, sposta o copia in una finestra — restano legate alla scheda su cui si è fatto clic, così come il clic centrale per chiudere.
 - **Fine della selezione:** un clic senza tasto modificatore, il cambio di colonna o la chiusura della sessione. La selezione appartiene a una singola barra delle schede e non viene salvata.
 
+## Etichetta delle schede
+
+Una scheda porta il nome del file **senza estensione Markdown**: da `Concetto.md` nasce l’etichetta `Concetto`. Markdown è il formato standard dell’applicazione, e ripeterne l’estensione su ogni scheda costa spazio proprio dove è scarso: con molti documenti aperti la barra delle schede accorcia per prime le etichette. Vengono rimosse tutte le estensioni trattate come Markdown, non solo `.md`.
+
+- **Gli altri tipi di file mantengono la propria estensione.** Chi ha aperto un file di altro tipo lo vede sulla scheda.
+- **Si accorcia solo la visualizzazione.** File, percorso, salvataggio e ridenominazione continuano a lavorare con il nome completo, e il suggerimento sulla scheda mostra ancora il percorso intero: con due file dello stesso nome in cartelle diverse è ciò che li distingue.
+- **La stessa etichetta in tre punti.** Scheda, elenco dei membri di un gruppo chiuso e titolo della finestra attingono alla stessa fonte e quindi coincidono sempre; la riga del titolo sopra il documento usa la medesima forma.
+- **I pannelli della barra laterale seguono la stessa forma.** Nell’elenco dei file dell’area, nei backlink, nei segnalibri, nei promemoria e nell’elenco dei file di un tag un file Markdown compare senza la sua estensione, e in ogni caso il suggerimento indica il percorso completo.
+
 ## Forma delle schede
 
 Le schede e le intestazioni dei gruppi hanno angoli superiori squadrati oppure arrotondati, a scelta (File → Impostazioni… → Aspetto). Con gli angoli arrotondati uno stretto spazio sostituisce la linea di separazione verticale tra le schede; il contrassegno della scheda attiva, le fasce colorate dei gruppi e la marcatura della colonna attiva restano invariati. L'impostazione vale per l'intera applicazione e ha effetto immediato in tutte le finestre aperte.
 
 ## Sistematica dei titoli
 
-Il titolo della finestra mostra tra parentesi a quale contesto appartiene una finestra, solo quanto necessario:
+Davanti alla parentesi sta il nome del documento attivo, senza estensione Markdown come sulla scheda. Il titolo della finestra mostra tra parentesi a quale contesto appartiene una finestra, solo quanto necessario:
 
 | Situazione | Suffisso del titolo |
 |---|---|
@@ -96,13 +111,17 @@ In un'applicazione di area, lo spazio di ricerca per backlink, tag, completament
 
 ### Pannello dell'area
 
-Il pannello «Area» mostra l'area come struttura di cartelle nella barra laterale (agganciabile a sinistra o a destra come ogni pannello; l'interruttore è l'icona della cartella nella barra di stato o Visualizza → Barra laterale → Pannelli → Area): l'albero delle cartelle in alto e sotto i file Markdown della cartella selezionata; gli altri tipi di file non compaiono. Un clic su un file lo apre come scheda, tutte le voci mostrano il percorso completo come suggerimento e le modifiche esterne (file creato, eliminato, rinominato) compaiono automaticamente. Il pulsante «+» in testa all'elenco crea un nuovo file Markdown nella cartella selezionata e lo apre. In un'applicazione di area appena aperta e ancora vuota il pannello è visibile automaticamente.
+Il pannello «Area» mostra l'area come struttura di cartelle nella barra laterale (agganciabile a sinistra o a destra come ogni pannello; l'interruttore è l'icona della cartella nella barra di stato o Visualizza → Barra laterale → Pannelli → Area): l'albero delle cartelle in alto e sotto i file Markdown della cartella selezionata; gli altri tipi di file non compaiono. Una riga di file porta il suo nome senza l'estensione Markdown, la stessa forma della scheda: `Concetto.md` diventa `Concetto`; due file i cui nomi differiscono solo per l'estensione Markdown si distinguono dal suggerimento. Un clic su un file lo apre come scheda, tutte le voci mostrano il percorso completo come suggerimento e le modifiche esterne (file creato, eliminato, rinominato) compaiono automaticamente. Il pulsante «+» in testa all'elenco crea un nuovo file Markdown nella cartella selezionata e lo apre. In un'applicazione di area appena aperta e ancora vuota il pannello è visibile automaticamente.
 
 ### Gestione dei file nel pannello dell'area
 
 Il clic destro gestisce l'insieme dei file senza uscire dall'applicazione. Una **riga di cartella** offre due voci: **Nuova sottocartella…** e **Nuovo file Markdown…**. Entrambe chiedono il nome sul posto — il nome della cartella in una riga sotto la cartella su cui si è fatto clic, quello del file in cima all'elenco dei file — e creano l'elemento nella cartella **su cui si è fatto clic**, anche se al momento ne è selezionata un'altra. A un nome di file senza estensione viene aggiunta l'estensione Markdown; il nuovo file viene aperto e passa attraverso la regola di cartella dei modelli come ogni altra creazione. Un nome già assegnato, un nome non consentito dal file system e un nome vuoto vengono segnalati prima che venga creato qualcosa; Esc annulla e non lascia nulla.
 
-Una **riga di file** offre **Rinomina…** ed **Elimina…** in fondo al menu, separate dalle voci soprastanti.
+Una **riga di file** offre **Copia**, **Rinomina…** ed **Elimina…** in fondo al menu, separate dalle voci soprastanti. Sono ordinate per intervento crescente: copiare lascia intatto il modello, rinominare ne cambia il nome, eliminare lo porta via.
+
+**Copia** crea subito una copia nella stessa cartella, senza richiesta di conferma e senza finestra per il nome; per questo la voce non porta i puntini di sospensione. Il nome è quello del modello, integrato da un trattino e da un numero progressivo **prima** dell'estensione: `Konzept.md` diventa `Konzept-1.md`, la volta successiva `Konzept-2.md`. Viene preso ogni volta il primo numero **libero**, così che nessun file esistente venga sovrascritto; se il modello porta già un numero, il nuovo viene aggiunto invece di essere incrementato: `Konzept-1.md` diventa `Konzept-1-1.md` e non `Konzept-2.md`. Per dare alla copia un altro nome, rinominatela con la voce sottostante.
+
+**Le proprietà di blocco del modello e la sua nota di documento viaggiano con esso, la sua cronologia delle modifiche no.** La copia è così completa nel contenuto e inizia nuova nella storia: non racconta un percorso che non è il suo. Compare subito nell'elenco dei file nella sua posizione di ordinamento e **non** viene aperta: la aprite quando vi serve. La copia finisce sempre nella cartella del modello e resta quindi all'interno dell'area. Un **documento suddiviso** non viene copiato; un messaggio lo segnala, perché una copia del suo file di testa rivendicherebbe le stesse parti successive dell'originale. Se la copia fallisce compare un messaggio e non resta alcuna copia a metà.
 
 **Rinomina** segue lo stesso percorso del menu, con lo stesso adeguamento dei collegamenti interni e la stessa anteprima dei punti interessati. L'unica differenza sta in ciò su cui agisce: qui qualsiasi file dell'area, anche uno non aperto, e non soltanto quello aperto. Se il file è aperto e modificato, viene prima salvato; la sua scheda mostra poi il nuovo nome.
 
@@ -112,7 +131,7 @@ Se il file è aperto, la sua scheda viene chiusa; le modifiche non salvate passa
 
 **I collegamenti a un file eliminato non vengono adeguati.** A differenza della rinomina non esiste una destinazione sostitutiva; i collegamenti restano e diventano collegamenti interrotti. È voluto e non un malfunzionamento: un collegamento interrotto mostra che lì c'era qualcosa e può essere risolto consapevolmente.
 
-Rinominare ed eliminare **cartelle** e spostare file non rientrano ancora nell'ambito; per questo resta il gestore file del sistema operativo.
+Rinominare, eliminare e copiare **cartelle** e spostare file non rientrano ancora nell'ambito; per questo resta il gestore file del sistema operativo.
 
 ### Statistiche dell'area
 
@@ -144,6 +163,8 @@ La designazione appartiene all'area e viaggia con la sua cartella. Se il file vi
 
 Uno **spazio di lavoro** è un'applicazione con nome, salvata stabilmente: comprende tutte le sue finestre con i riquadri, le schede con le relative impostazioni di visualizzazione, i gruppi di schede, un eventuale collegamento a un'area e le bozze non salvate. Uno spazio di lavoro aperto mantiene il proprio stato aggiornato **automaticamente**, senza alcun passaggio manuale di salvataggio; alla riapertura il lavoro riprende esattamente dall'ultimo stato. Accesso: il sottomenu «File → Spazi di lavoro» con l'elenco di tutti gli spazi di lavoro (il punto colorato indica anche lo stato: pieno = aperto, anello = chiuso) e le quattro azioni sottostanti; le stesse azioni sono disponibili come comandi nella palette dei comandi.
 
+**L'elenco nomina la cartella collegata.** Se uno spazio di lavoro è collegato a una cartella, la sua voce si legge su una sola riga: «Nome — nome della cartella». Viene indicato solo il nome della cartella, non l'intero percorso: un'etichetta di menu sta su una riga e un percorso completo farebbe saltare qualsiasi larghezza di menu utilizzabile — lo mostra la gestione. Uno spazio di lavoro **senza** collegamento porta solo il suo nome, senza separatore e senza segnaposto. Le parti molto lunghe vengono accorciate parte per parte, così che un nome lungo non tolga spazio al nome della cartella. Il collegamento viene soltanto mostrato; non si può né stabilire né sciogliere, né qui né nella gestione.
+
 **Area e spazio di lavoro sono due cose diverse:** un'*area* collega un'applicazione a una **cartella** e ne delimita lo spazio di lavoro (vedi sopra). Uno *spazio di lavoro* è una **raccolta di finestre** con nome e riapribile, cioè uno stato di lavoro salvato. Le due cose si combinano: uno spazio di lavoro la cui applicazione ha collegato un'area porta quel collegamento con sé nella registrazione.
 
 **Colore della barra del titolo:** le finestre di uno spazio di lavoro aperto portano il suo colore nella barra del titolo — una variante intensa nel tema chiaro, una variante pastello della palette nel tema scuro, ciascuna con un colore del testo del titolo adeguato. La colorazione segue il ciclo di vita: compare all'apertura, cambia subito con il colore nella gestione, scompare alla chiusura o all'eliminazione e viene meno alla disattivazione dell'estensione «Spazi di lavoro». Richiede Windows 11 e quindi non si applica su Linux; senza questo supporto resta la barra del titolo standard e l'app non ne è compromessa. Lo spazio di lavoro stesso, il suo punto colorato nel menu e nella gestione e il titolo della finestra restano invariati su ogni piattaforma.
@@ -158,7 +179,11 @@ Uno **spazio di lavoro** è un'applicazione con nome, salvata stabilmente: compr
 
 ### Gestione
 
-«Gestisci gli spazi di lavoro…» apre una finestra di dialogo con tutti gli spazi di lavoro: punto colorato, nome, stato (aperto o chiuso) e momento dell'ultima apertura. Ogni voce offre le azioni **Apri**, **Rinomina e colore…** ed **Elimina**.
+«Gestisci gli spazi di lavoro…» apre una finestra di dialogo con tutti gli spazi di lavoro: punto colorato, nome, stato (aperto o chiuso) e momento dell'ultima apertura; se uno spazio di lavoro è collegato a una cartella, la sua riga indica inoltre il **percorso completo** di questa. Ogni voce offre le azioni **Apri**, **Rinomina e colore…** ed **Elimina**. La finestra di dialogo non nomina il libro né la libreria di uno spazio di lavoro; stanno, con tutte le altre indicazioni, nella pagina [My Extended Memory](my-extended-memory.md).
+
+**Qui si stabilisce anche l'ordine.** Ogni riga porta due pulsanti a freccia, «Sposta in alto» e «Sposta in basso»; ogni clic muove la voce di una posizione. Il nuovo ordine vale **subito** e altrettanto nel sottomenu «File → Spazi di lavoro», viene salvato immediatamente e sopravvive alla chiusura della finestra di dialogo come al riavvio dell'applicazione: non esiste un passaggio di conferma. Alla prima voce «in alto» è attenuato, all'ultima «in basso»; i pulsanti restano al loro posto, così che un secondo clic nello stesso punto dello schermo significhi ancora la stessa cosa. Entrambe le vie si raggiungono con la tastiera e, dopo lo spostamento, il focus resta sulla voce spostata — così uno spazio di lavoro percorre l'elenco in più battute. Il trascinamento con il mouse non è previsto.
+
+Uno spazio di lavoro appena creato si aggiunge alla **fine**. Non esiste un ordinamento per nome, stato o ultima apertura: esiste esattamente un ordine, ed è quello che avete stabilito.
 
 ### Ripristino della sessione e casi limite
 

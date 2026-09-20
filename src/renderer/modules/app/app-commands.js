@@ -203,6 +203,12 @@ export const commandHandlers = {
   'file.newTab': () => {
     newUntitledTab();
   },
+  // 4T-001738 (Epic 3E-000308): weiteres Fenster DERSELBEN Applikation, leer.
+  // Derselbe Aufruf wie der Menue-Eintrag; der Kanal bestimmt die Applikation
+  // aus dem Absender-Fenster (E5, E6).
+  'window.newWindow': () => {
+    void api.openNewWindow([]);
+  },
   // 4T-000319 (Epic 3E-000057): neue logische Applikation (Main erzeugt App
   // samt leerem Fenster); ohne Default-Binding, per Settings belegbar.
   'app.newApplication': () => {

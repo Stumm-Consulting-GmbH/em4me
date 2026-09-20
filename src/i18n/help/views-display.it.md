@@ -23,6 +23,8 @@ La modalità live renderizza il Markdown direttamente nell'editor: grassetto e c
 
 **Le tabelle fanno eccezione a questa regola.** Restano impaginate anche mentre il cursore si trova al loro interno: il clic colpisce la cella, il tabulatore e i tasti freccia portano di cella in cella, e ciò che si digita arriva al punto giusto del sorgente. Chi ha bisogno della sintassi grezza di una tabella — la riga separatrice con i due punti di allineamento, per esempio — passa alla vista sorgente o a quella divisa.
 
+**I collegamenti nel testo corrente sono contrassegnati in modo permanente.** Portano la loro sottolineatura in ogni momento, senza che il mouse debba trovarsi sopra: sia i wiki link sia i collegamenti Markdown, sia verso un documento sia verso un indirizzo esterno. La vista renderizzata sottolinea un collegamento ancora solo al passaggio del mouse; nella vista in cui si scrive, invece, deve essere visibile senza sforzo che dietro un testo c’è un collegamento. Sulla riga del cursore la sintassi grezza appare come di consueto.
+
 ### Mappa mentale
 
 La mappa mentale mostra i titoli e gli elenchi del documento come albero e il testo corrente come nota sul nodo. Appartiene all'estensione omonima e scompare con essa; struttura, uso, le cinque posizioni della radice e il valore per documento sono descritti nella pagina [Vista mappa mentale](mindmap.md).
@@ -78,6 +80,16 @@ Carattere e dimensione si scelgono separatamente per la superficie di modifica e
 ## Stato della finestra
 
 Posizione, dimensione e stato ingrandito di una finestra vengono memorizzati alla chiusura e ripristinati al successivo avvio. Non c'è nulla da impostare. Che cosa riporti inoltre un'intera sessione con le sue schede è descritto nella pagina [Applicazioni, finestre e aree](apps-windows.md).
+
+## Barra di stato
+
+La barra di stato sul bordo inferiore della finestra è il punto di comando che resta visibile in ogni vista. Se la sua larghezza non basta per tutti gli elementi, si compatta: al suo bordo sinistro e al suo bordo destro appare un menu che accoglie gli elementi che non trovano più posto. Una voce del menu mostra etichetta e stato e agisce esattamente come il pulsante nella barra; quando la finestra torna a essere più larga, gli elementi rientrano e un menu che resterebbe vuoto scompare. L'area dei messaggi brevi resta visibile a ogni larghezza e gli interruttori centrali si compattano per ultimi.
+
+Quando la barra si compatta lo stabilisce l'impostazione «Compattazione» (File → Impostazioni… → Barra di stato). «Automaticamente quando lo spazio è scarso» è il valore predefinito e ripone solo ciò che non trova più posto; «Sempre compattata» mantiene i pulsanti nei due menu indipendentemente dalla larghezza della finestra e lascia la barra permanentemente sobria. La stessa sezione porta anche i pulsanti di comando propri della barra e l'elenco dei pulsanti predefiniti nascosti, vedi [Posizionamento dei comandi](command-placement.md).
+
+Come la barra tratta i pulsanti che al momento non possono fare nulla lo stabilisce l'impostazione «Pulsanti non utilizzabili» (File → Impostazioni… → Barra di stato). Sono interessati i selettori di vista e i tre interruttori dell'editor al centro, oltre a Modifica, alla sincronizzazione dello scorrimento e alla cronologia del documento a destra: per esempio mentre è in primo piano una pagina di sistema come le impostazioni, oppure finché non è aperto alcun documento. «Mostra in grigio» è il valore predefinito: il pulsante resta al suo posto, è visibilmente disattivato e non reagisce. «Nascondi» lo toglie dalla barra finché non può fare nulla, e anche dai due menu ai bordi della barra compattata; appena può agire di nuovo, torna al suo posto. Gli interruttori dei pannelli a sinistra, i pulsanti di comando propri, la scelta della lingua e il commutatore chiaro/scuro non conoscono questo stato e non sono mai interessati dalla scelta; anche il menu Visualizza rimane invariato e continua a mostrare in grigio le voci non disponibili.
+
+Un pulsante può quindi mancare nella barra per tre motivi diversi, e solo il terzo dipende da questa impostazione: è deselezionato nell'elenco dei pulsanti predefiniti nascosti e resta assente in modo permanente — quell'elenco agisce prima della scelta, vedi [Posizionamento dei comandi](command-placement.md); appartiene a un'estensione disattivata, e allora la funzione non esiste, vedi [Estensioni](extensions.md); oppure al momento non può fare nulla e la scelta è su «Nascondi», e allora torna da sé.
 
 ## Statistiche delle parole
 

@@ -23,6 +23,8 @@ Le mode direct rend le Markdown directement dans l'éditeur : gras et italique, 
 
 **Les tableaux font exception à cette règle.** Ils restent mis en forme même lorsque le curseur s’y trouve : le clic atteint la cellule, la tabulation et les flèches mènent de cellule en cellule, et ce que vous saisissez arrive au bon endroit de la source. Si vous avez besoin de la syntaxe brute d’un tableau — la ligne de séparation avec ses deux-points d’alignement, par exemple —, passez à la vue code source ou à la vue partagée.
 
+**Les liens dans le texte courant sont signalés en permanence.** Ils portent leur soulignement en tout temps, sans que la souris doive se trouver dessus — liens wiki comme liens Markdown, vers un document comme vers une adresse extérieure. La vue rendue ne souligne un lien qu’au survol de la souris ; dans la vue où l’on écrit, en revanche, il doit être visible sans effort qu’un texte porte un lien. Sur la ligne du curseur, la syntaxe brute apparaît comme d’habitude.
+
 ### Carte mentale
 
 La carte mentale montre les titres et les listes du document sous forme d'arbre, et le texte courant comme note sur le nœud. Elle appartient à l'extension du même nom et disparaît avec elle ; structure, manipulation, les cinq positions de la racine et la valeur par document sont décrites sur la page [Vue carte mentale](mindmap.md).
@@ -78,6 +80,16 @@ La police et la taille se choisissent séparément pour la surface d'édition et
 ## État de la fenêtre
 
 La position, la taille et l'état agrandi d'une fenêtre sont mémorisés à la fermeture et restaurés au démarrage suivant. Rien n'est à régler pour cela. Ce qui ramène en plus une session entière avec ses onglets est décrit sur la page [Applications, fenêtres et zones](apps-windows.md).
+
+## Barre d'état
+
+La barre d'état au bord inférieur de la fenêtre est le point de commande qui reste visible dans toutes les vues. Si sa largeur ne suffit pas pour tous les éléments, elle se replie : un menu apparaît à son bord gauche et à son bord droit et recueille les éléments qui ne tiennent plus. Une entrée du menu montre son libellé et son état et agit exactement comme le bouton dans la barre ; quand la fenêtre s'élargit de nouveau, les éléments reviennent, et un menu qui deviendrait vide disparaît. La zone des messages brefs reste visible quelle que soit la largeur, et les commutateurs du milieu se replient en dernier.
+
+Le moment du repliement se règle avec « Repliement » (Fichier → Paramètres… → Barre d'état). « Automatiquement quand la place manque » est la valeur par défaut et ne range que ce qui ne tient plus ; « Toujours replié » garde les boutons dans les deux menus quelle que soit la largeur de la fenêtre et laisse la barre durablement sobre. La même section porte aussi les boutons de commande personnalisés de la barre et la liste des boutons par défaut masqués, voir [Placement des commandes](command-placement.md).
+
+La façon dont la barre traite les boutons qui ne peuvent rien faire sur le moment se règle avec « Boutons non utilisables » (Fichier → Paramètres… → Barre d'état). Sont concernés les sélecteurs d'affichage et les trois commutateurs d'éditeur du milieu ainsi qu'Éditer, la synchronisation du défilement et l'historique du document à droite — par exemple tant qu'une page système comme les réglages est au premier plan, ou aussi longtemps qu'aucun document n'est ouvert. « Afficher en grisé » est la valeur par défaut : le bouton reste à sa place, est visiblement désactivé et ne réagit pas. « Masquer » le retire de la barre aussi longtemps qu'il ne peut rien faire, et aussi des deux menus de bord de la barre repliée ; dès qu'il peut agir de nouveau, il revient à sa place. Les commutateurs de panneaux à gauche, les boutons de commande personnalisés, le choix de la langue et le commutateur clair/sombre ne connaissent pas cet état et ne sont jamais concernés par ce choix ; le menu Affichage reste lui aussi inchangé et continue d'afficher en grisé les entrées non disponibles.
+
+Un bouton peut donc manquer dans la barre pour trois raisons différentes, et seule la troisième dépend de ce réglage : il est décoché dans la liste des boutons par défaut masqués et reste absent durablement — cette liste agit avant le choix, voir [Placement des commandes](command-placement.md) ; il appartient à une extension désactivée, et la fonction n'existe alors pas, voir [Extensions](extensions.md) ; ou bien il ne peut rien faire sur le moment et le choix est réglé sur « Masquer », auquel cas il revient de lui-même.
 
 ## Statistiques de mots
 

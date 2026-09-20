@@ -47,6 +47,7 @@ Un panel de la barra lateral lista todos los recordatorios del área, agrupados 
 
 - Cada entrada ofrece las acciones directas **Hecho** y **Más tarde**.
 - Un clic en una entrada abre el archivo de origen en la línea correspondiente.
+- El nombre del archivo de origen aparece aquí y en el diálogo de aviso sin la extensión Markdown; la información sobre herramientas indica la ruta completa.
 - El grupo **Atrasados** incluye también los recordatorios silenciados y ofrece allí **Activar de nuevo**.
 
 ## Configuración y extensión

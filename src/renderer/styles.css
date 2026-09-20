@@ -339,6 +339,31 @@ body {
 .statusbar .sb-user-hidden {
   display: none !important;
 }
+/* 4T-001579 (Epic 3E-000283): eingeklappter Zustand eines Statusleisten-
+   Elements. Bewusst eine eigene Klasse neben .sb-user-hidden, weil beide
+   Zustaende unabhaengig voneinander gelten: Ein vom Anwender ausgeblendetes
+   Element wandert nicht ins Pull-up-Menue, ein eingeklapptes schon. Das
+   hidden-Attribut taugt hier nicht, weil Erweiterungs-Gates sowie
+   Wort-Statistik und Zoom-Anzeige es selbst verwalten; eine zweite Partei
+   an demselben Attribut hiesse, dass beide Seiten den Zustand der jeweils
+   anderen loeschen. !important aus demselben Grund wie oben — die rechten
+   Knoepfe tragen eigene display-Regeln. */
+.statusbar .sb-collapsed {
+  display: none !important;
+}
+/* 4T-001765 (Epic 3E-000186): dritte, unabhaengige Sichtbarkeits-Achse — ein
+   Schalter, der im aktuellen Zustand nicht aktivierbar ist, bei gewaehltem
+   Wert «ausblenden» der Einstellung statusbar.unavailableMode. Die Klasse
+   traegt den ZUSAMMENGESETZTEN Zustand (nicht aktivierbar UND ausblenden),
+   damit der Kandidaten-Filter der Faltung eine reine Klassen-Pruefung bleibt.
+   Eigene Klasse und nicht das hidden-Attribut aus demselben Grund wie oben:
+   Erweiterungs-Gates sowie Wort-Statistik und Zoom-Anzeige verwalten jenes
+   selbst. !important ebenso — die rechten Knoepfe tragen eigene
+   display-Regeln. Die Ausblend-Liste des Anwenders hat Vorrang und wirkt
+   unabhaengig davon; beide Klassen zusammen bleiben ausgeblendet. */
+.statusbar .sb-unavailable-hidden {
+  display: none !important;
+}
 
 /* 4T-000520: Icon-Raster des Anlage-Dialogs (Buttons erben die
    btn-toggle/btn-icon-Optik; Auswahl ueber die .active-Klasse). */

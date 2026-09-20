@@ -97,16 +97,26 @@
   /* K-09 (4T-000186): Tags sind im Live-Modus jetzt klickbar (Tag-Filter). */
   cursor: pointer;
 }
-/* 4T-000082: Markdown- und Wiki-Links im Live-Modus. Akzentfarbe, Unterstreichung
-   beim Hover als Klick-Indikator (analog zu Browser-Links). Cursor zeigt
-   Pointer, damit klar wird, dass der Span klickbar ist. */
+/* 4T-000082: Markdown- und Wiki-Links im Live-Modus. Akzentfarbe, Cursor zeigt
+   Pointer, damit klar wird, dass der Span klickbar ist.
+   4T-001719 (Epic 3E-000302, E1): Die Unterstreichung steht dauerhaft statt
+   erst beim Ueberfahren mit der Maus. In der Live-Ansicht wird geschrieben, und
+   der Quelltext eines Verweises ist dort gerade nicht zu sehen; die
+   Erkennbarkeit geht hier der Ruhe des Schriftbilds vor. Traeger ist bewusst
+   die Unterstreichung und nicht die Farbe, damit die Kennzeichnung in hellen
+   wie dunklen Schemata steht. Die gesetzte Darstellung bleibt unberuehrt: Ihre
+   Regel ist .markdown-body a in render-basis.css und eine eigene Regel, kein
+   gemeinsamer Selektor — sie ist Lese-Ansicht und unterstreicht weiterhin erst
+   beim Ueberfahren. Ebenso unberuehrt bleibt die Cursor-Zeile (E2): Dort
+   entsteht gar keine Verweis-Dekoration, die Live-Paesse klammern die aktive
+   Zeile aus.
+   Kein eigener :hover-Zustand mehr: Die Unterstreichung war dort das einzige
+   Merkmal und steht jetzt ohnehin; ein Ersatz-Merkmal an ihrer Stelle waere
+   Unruhe ohne Gewinn (entschieden zugunsten des ruhigeren Bildes). */
 .cm-editor .cm-live-link,
 .cm-editor .cm-live-wikilink {
   color: var(--accent);
   cursor: pointer;
-}
-.cm-editor .cm-live-link:hover,
-.cm-editor .cm-live-wikilink:hover {
   text-decoration: underline;
 }
 /* 4T-000082: Footnote-Verweise im Live-Modus als hochgestelltes id-Zeichen.

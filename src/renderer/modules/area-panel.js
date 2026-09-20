@@ -4,7 +4,9 @@
 // Reiter-Gruppen-faehig); ohne aktiven Bereich zeigt der Body einen
 // Empty-State. Verzeichnis-Daten liefert der Main-Prozess (area:listDir,
 // lazy pro aufgeklapptem Ordner); alle Eintraege tragen den vollen Pfad
-// als Tooltip (PO-Entscheidung).
+// als Tooltip (PO-Entscheidung). Die BESCHRIFTUNG einer Datei-Zeile steht seit
+// 4T-001775 ohne Markdown-Endung (Epic 3E-000304); der Tooltip fuehrt weiter
+// den vollen Pfad und ist damit die Auskunft ueber den echten Dateinamen.
 'use strict';
 
 import { t } from '../i18n.js';
@@ -34,6 +36,10 @@ import { erstelleAnlageWege } from './area-panel-anlage.js';
 // hart verdrahtete Backslash liess unter Linux Pfade wie `/bereich\ordner`
 // entstehen, deren Listing still leer blieb.
 import { isFilesystemCaseInsensitive, pathSeparator } from '../../shared/platform.js';
+// 4T-001775 (Epic 3E-000304): Beschriftung einer Datei-Zeile ohne Markdown-
+// Endung — dieselbe Quelle wie die Reiter-Beschriftung (keine zweite
+// Endungs-Liste, Epic-Entscheidung E3).
+import { fileLabelFromBasename } from '../../shared/subpages.js';
 
 // Listing-Cache pro Ordner-Pfad ({ dirs, files }). Wird beim Bereichs-
 // Wechsel und bei Watcher-Ereignissen (4T-000328) verworfen.
@@ -182,7 +188,18 @@ async function buildFilesFragment(paneIdx, dirPath) {
     const full = joinPath(dirPath, name);
     const row = document.createElement('div');
     row.className = 'area-file-row';
-    row.textContent = name;
+    // 4T-001775 (Epic 3E-000304, Entscheidung des Product Owners vom
+    // 2026-09-17, die E5 revidiert): Die Beschriftung steht OHNE Markdown-
+    // Endung — dieselbe Form wie am Reiter, in der Titelzeile und im
+    // Brotkrumen-Pfad. Gekuerzt ist allein die ANZEIGE: Klick, Umbenennen,
+    // Loeschen und Kurzhinweis arbeiten unveraendert mit `full`, und der
+    // Kurzhinweis ist damit der Ort, an dem zwei gleichstaemmige Dateien
+    // ('Notiz.md' und 'Notiz.markdown') unterscheidbar bleiben (E8).
+    //
+    // Fremde Dateiarten behalten ihre Endung (E4). Im Listing des Bereichs
+    // erscheinen sie heute nicht — area:listDir filtert auf Markdown —, der
+    // Rueckfall der gemeinsamen Funktion gilt hier aber unverdreht weiter.
+    row.textContent = fileLabelFromBasename(name);
     row.title = full;
     markiereStartSeite(row, full); // 4T-001365 (Epic 3E-000171)
     row.addEventListener('click', () => {
@@ -201,7 +218,18 @@ async function buildFilesFragment(paneIdx, dirPath) {
 // 4T-001365 (Epic 3E-000171): Neuaufbau aller sichtbaren Bereichs-Panels; als
 // Rueckruf an die Kontextmenues gereicht, damit dort kein Rueckgriff auf dieses
 // Modul noetig ist (kein Zyklus).
+//
+// 4T-001731 (Epic 3E-000306): Der Rueckruf verwirft seither ZUERST die
+// Listings. Er ist der Nachzug nach einer Aenderung durch das Kontextmenue, und
+// seit dem Kopieren gehoert dazu eine Aenderung am Verzeichnis-Inhalt selbst:
+// Ohne die Verwerfung baute der Neuaufbau aus dem Zwischenspeicher und zeigte
+// die Kopie erst, wenn der gedrosselte Verzeichnis-Waechter nachkommt — also
+// nicht unmittelbar (AK9). Dieselbe Reihenfolge fahren die Anlage-Wege
+// (area-panel-anlage.js: verwerfen, dann rendern). Fuer den zweiten Nutzer des
+// Rueckrufs, die Start-Seiten-Festlegung, kostet das ein erneutes Listing je
+// sichtbarer Pane und aendert sonst nichts.
 function refreshSichtbareAreaPanels() {
+  invalidateAreaListings();
   for (let i = 0; i < state.panes.length; i++) {
     if (getAreaPanelVisible(i)) void renderAreaPanel(i);
   }

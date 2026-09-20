@@ -97,6 +97,14 @@ Una línea vacía comienza una lista nueva. Si surge de tu edición, la lista si
 
 La tecla Intro continúa una lista y añade una viñeta, un número consecutivo o una casilla vacía. En un subelemento vacío reduce la sangría un nivel; en el nivel superior termina la lista.
 
+### El cursor al cambiar de línea
+
+Cuando el cursor está al final de una línea y `Flecha derecha` lo lleva a la siguiente, se sitúa en la posición de escritura, siempre que la línea de destino sea una línea de lista: detrás de la sangría y el marcador y, en una línea de tarea, detrás de la casilla de estado. Quien escribe esquemas se ahorra así de dos a seis pulsaciones en cada cambio de línea.
+
+El marcador sigue siendo accesible: desde la posición de escritura, `Flecha izquierda` continúa carácter por carácter hacia la izquierda, primero al marcador, después a la sangría y finalmente al final de la línea anterior. `Mayús+Flecha derecha` también selecciona carácter por carácter como hasta ahora. Si la línea de destino no lleva marcador —por ejemplo una línea de continuación de un elemento de lista—, el cursor permanece al principio de la línea como hasta ahora.
+
+El comportamiento se aplica en las vistas Código, Dividida y Live. El ajuste «El cursor salta detrás del marcador de lista» (Archivo → Configuración… → Comportamiento) lo desactiva; de fábrica está activado, y desactivado el cursor se mueve como en un editor de texto habitual.
+
 ## Tablas
 
 Tablas pipe con fila de encabezado y fila separadora; los dos puntos en la fila separadora controlan la alineación. Para celdas-bloque multilínea existe [Perspective Table](perspective-table.md); para mayor comodidad al teclear, el editor de tablas (ver [Herramientas](tools.md)). Para reestructurar tablas existentes (mover, insertar y eliminar filas y columnas, alineación, transposición), utilice el submenú **Tabla** en el [Menú contextual del editor](context-menu.md).

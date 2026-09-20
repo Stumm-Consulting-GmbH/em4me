@@ -42,6 +42,17 @@ const LISTEN_AUSSTIEG = path.resolve(
   'funktionen',
   'listen-ausstieg.md',
 );
+// 4T-001575 (Epic 3E-000282): Liste mit Aufzählung, Einrückung, Nummer, zwei
+// Aufgaben-Zeilen (einfacher und erweiterter Status) und einer
+// Fortsetzungszeile ohne Marker — Vorlage für den Cursor-Sprung.
+const CURSOR_SPRUNG = path.resolve(
+  __dirname,
+  '..',
+  '..',
+  'fixtures',
+  'funktionen',
+  'cursor-sprung.md',
+);
 // 4T-000572 (Epic 3E-000105): Fixture mit dokument-gebundenen Editor-Ansicht-
 // Schaltern im Frontmatter (alle drei entgegen den Defaults).
 const EDITOR_VIEW_FIXTURE = path.resolve(
@@ -69,6 +80,17 @@ async function waitForTab(page) {
 
 async function enterEditSource(app, page) {
   await sendMenuChannel(app, 'menu:viewChange', 'source');
+  await expect(page.locator(SEL.editorContent0)).toBeVisible();
+  await page.locator(SEL.btnEdit).click();
+  await expect(page.locator('.pane-group[data-pane="0"] .pane-source-editor')).not.toHaveClass(
+    /read-only/,
+  );
+}
+
+// 4T-001575 (Epic 3E-000282): dasselbe im Live-Modus (Muster
+// block-anker-live.spec.js).
+async function enterEditLive(app, page) {
+  await sendMenuChannel(app, 'menu:viewChange', 'live');
   await expect(page.locator(SEL.editorContent0)).toBeVisible();
   await page.locator(SEL.btnEdit).click();
   await expect(page.locator('.pane-group[data-pane="0"] .pane-source-editor')).not.toHaveClass(
@@ -754,6 +776,103 @@ test.describe('FB-17: Enter auf leerem Punkt beendet die Liste', () => {
       await expect
         .poll(async () => (await editor.locator('.cm-line').allTextContents()).slice(2, 7))
         .toEqual(['1. Alpha', '   1. Bravo', '   2. Charlie', '', '1. Delta']);
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+// 4T-001575 (Epic 3E-000282): Cursor-Sprung hinter den Listen-Marker. Gemessen
+// wird am laufenden Programm, was der Unit-Fall nicht erreicht: die Wirkung
+// der Tastendrücke selbst. Der Nachweis läuft über das getippte Zeichen statt
+// über eine ausgelesene Marken-Position — die Stelle, an der ein Zeichen
+// landet, ist genau die Zusicherung der Anforderung.
+test.describe('FB-18: Pfeil rechts setzt die Marke hinter den Listen-Marker', () => {
+  // Zeile mit dem Wort `wort`; nach dem Tippen enthält sie es weiterhin.
+  const zeileMit = (editor, wort) => editor.locator('.cm-line', { hasText: wort }).first();
+
+  // Marke an das Ende der Zeile mit `quelle`, ein Druck auf Pfeil rechts, dann
+  // die weiteren Tasten; zuletzt ein `Z` als Sonde.
+  async function sondeSetzen(page, editor, quelle, weitereTasten = []) {
+    await zeileMit(editor, quelle).click();
+    await page.keyboard.press('End');
+    await page.keyboard.press('ArrowRight');
+    for (const taste of weitereTasten) await page.keyboard.press(taste);
+    await page.keyboard.type('Z');
+  }
+
+  test('Aufzählung, Einrückung, Nummer und Aufgaben-Kästchen (AK1, AK2, AK4)', async () => {
+    const { app, page, userData } = await launchApp({ args: [CURSOR_SPRUNG] });
+    try {
+      await waitForTab(page);
+      await enterEditSource(app, page);
+      const editor = page.locator(SEL.editorContent0);
+      // AK1: Aufzählung, eingerückte Aufzählung, nummerierte Liste.
+      await sondeSetzen(page, editor, 'Alpha');
+      await expect.poll(() => zeileMit(editor, 'Beta').textContent()).toBe('- ZBeta');
+      await sondeSetzen(page, editor, 'Beta');
+      await expect.poll(() => zeileMit(editor, 'Gamma').textContent()).toBe('  - ZGamma');
+      await sondeSetzen(page, editor, 'Gamma');
+      await expect.poll(() => zeileMit(editor, 'Delta').textContent()).toBe('1. ZDelta');
+      // AK2: hinter dem Kästchen, auch bei erweitertem Status-Zeichen.
+      await sondeSetzen(page, editor, 'Delta');
+      await expect.poll(() => zeileMit(editor, 'Aufgabe').textContent()).toBe('- [ ] ZAufgabe');
+      await sondeSetzen(page, editor, 'Aufgabe');
+      await expect.poll(() => zeileMit(editor, 'Erweitert').textContent()).toBe('- [/] ZErweitert');
+      // AK4: Fortsetzungszeile ohne Marker — die Marke bleibt am Zeilenanfang.
+      await sondeSetzen(page, editor, 'Erweitert');
+      await expect.poll(() => zeileMit(editor, 'Fortsetzung').textContent()).toBe('ZFortsetzung');
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+
+  test('Pfeil links führt zeichenweise zurück, Umschalt markiert wie bisher (AK3, AK7)', async () => {
+    const { app, page, userData } = await launchApp({ args: [CURSOR_SPRUNG] });
+    try {
+      await waitForTab(page);
+      await enterEditSource(app, page);
+      const editor = page.locator(SEL.editorContent0);
+      // AK3, erster Schritt: ein Druck nach links landet IM Marker.
+      await sondeSetzen(page, editor, 'Alpha', ['ArrowLeft']);
+      await expect.poll(() => zeileMit(editor, 'Beta').textContent()).toBe('-Z Beta');
+      await page.keyboard.press('Control+z');
+      await expect.poll(() => zeileMit(editor, 'Beta').textContent()).toBe('- Beta');
+      // AK3, dritter Schritt: über Marker und Zeilenanfang hinaus an das Ende
+      // der vorigen Zeile.
+      await sondeSetzen(page, editor, 'Alpha', ['ArrowLeft', 'ArrowLeft', 'ArrowLeft']);
+      await expect.poll(() => zeileMit(editor, 'Alpha').textContent()).toBe('- AlphaZ');
+      await expect.poll(() => zeileMit(editor, 'Beta').textContent()).toBe('- Beta');
+      // AK7: Umschalt+Pfeil rechts erweitert zeichenweise über den
+      // Zeilenumbruch und den Marker; das getippte Zeichen ersetzt beide.
+      await zeileMit(editor, 'Alpha').click();
+      await page.keyboard.press('End');
+      await page.keyboard.press('Shift+ArrowRight');
+      await page.keyboard.press('Shift+ArrowRight');
+      await page.keyboard.type('Z');
+      await expect.poll(() => zeileMit(editor, 'Beta').textContent()).toBe('- AlphaZZ Beta');
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+
+  test('im Live-Modus springt die Marke an dieselbe Stelle (AK6)', async () => {
+    // Befund aus 4T-001575: Die Live-Ansicht ersetzt den Listen-Marker nicht
+    // (nur eine Zeilen-Dekoration), und das Aufgaben-Kästchen trägt eine
+    // Mark-Dekoration, die auf der Zeile mit der Marke ohnehin entfällt. Die
+    // Spalten-Rechnung des Dokuments gilt dort deshalb unverändert.
+    const { app, page, userData } = await launchApp({ args: [CURSOR_SPRUNG] });
+    try {
+      await waitForTab(page);
+      await enterEditLive(app, page);
+      const editor = page.locator(SEL.editorContent0);
+      // Gegenprobe, dass die Live-Dekorationen tatsächlich hängen: die
+      // Zeilen-Klassen der Listen-Pässe gibt es in der Quellcode-Ansicht nicht.
+      await expect(editor.locator('.cm-line.cm-live-list-bullet').first()).toBeVisible();
+      await sondeSetzen(page, editor, 'Alpha');
+      await expect.poll(() => zeileMit(editor, 'Beta').textContent()).toBe('- ZBeta');
+      await sondeSetzen(page, editor, 'Delta');
+      await expect.poll(() => zeileMit(editor, 'Aufgabe').textContent()).toBe('- [ ] ZAufgabe');
     } finally {
       await closeApp(app, userData, { force: true });
     }

@@ -52,6 +52,7 @@ import { listRenumberFilter } from './editor-list-tools.js';
 // Funktionskoerpern.
 import {
   buildEditorCommandKeymap,
+  cursorSprungKeymap,
   listExitKeymap,
   listIndentKeymap,
   readOnlyGuardKeymap,
@@ -439,6 +440,13 @@ export function createEditorState(opts = {}) {
       // foldKeymap). Vor defaultKeymap registriert, damit ein User-Binding
       // auf eine dort belegte Kombination (z.B. Strg+[) Vorrang hat.
       editorCompartments.commandKeymap.of(buildEditorCommandKeymap()),
+      // 4T-001575 (Epic 3E-000282): Pfeil rechts am Zeilenende setzt den Cursor
+      // an die Schreibposition der Folgezeile. VOR dem defaultKeymap
+      // registriert, damit die Belegung vor cursorCharRight greift; NACH der
+      // Registry-Keymap, damit ein Nutzer-Binding Vorrang behaelt. Die
+      // Belegung haengt am Editor als Ganzes und gilt damit in Quellcode-,
+      // geteilter und Live-Ansicht (E2 des Epics).
+      cursorSprungKeymap,
       keymap.of([...defaultKeymap, ...historyKeymap]),
       // 4T-000020: Markdown-Linter-Light. lintField haelt die Decorations,
       // lintUpdateListener triggert mit Debounce einen neuen Lauf,

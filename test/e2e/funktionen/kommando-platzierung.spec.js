@@ -11,6 +11,12 @@
 // 4T-000522: KP-08 Makro als platzierter Button (Ausführung und
 // Abbruch-Hinweis), KP-09 Makro-Editor-Flow (Anlage, Schritte, Testlauf,
 // Palette-Findbarkeit nach Anwenden).
+// 4T-001581 (Epic 3E-000283, E4a): KP-02 und KP-03 bedienen ihre Editoren seit
+// dem 2026-09-14 im Bereich „Statusleiste" (openStatusbarSection) statt im
+// Bereich der Kommando-Platzierung; die Zusicherungen sind unverändert. Dass
+// der Abschnitt „Statusleiste" die drei Blöcke führt und die vorbelegten Werte
+// nach dem Umzug unverändert wirken, prüft
+// funktionen/statusleisten-einstellungen.spec.js (SE-Fälle mit Kürzel SB-).
 // Store-Vorbelegung über seedProfile (Muster einstellungen-seite.spec.js).
 'use strict';
 
@@ -60,6 +66,16 @@ async function openCommandPlacementSection(page) {
     .click();
 }
 
+// 4T-001581 (Epic 3E-000283, E4a): Die Liste der eigenen Statusbar-Buttons und
+// die Hide-Liste stehen seit dem Umzug im Bereich „Statusleiste" der Gruppe
+// „Allgemein" und nicht mehr im Bereich der Kommando-Platzierung. Die
+// Bedienung selbst ist unverändert — nur der Weg dorthin ist ein anderer, und
+// deshalb wird hier der Bereich getauscht und nicht der Prüffall.
+async function openStatusbarSection(page) {
+  await openSettingsPageViaKeyboard(page);
+  await page.locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="statusbar"]`).click();
+}
+
 test.describe('KP-01: platzierter Button führt sein Kommando aus', () => {
   test('Seed-Button erscheint mit Tooltip und toggelt den Edit-Modus', async () => {
     const userData = seedProfile({
@@ -90,7 +106,7 @@ test.describe('KP-02: Anlage über den Einstellungs-Dialog', () => {
   test('Drei-Schritt-Flow legt einen Statusbar-Button an', async () => {
     const { app, page, userData } = await launchApp();
     try {
-      await openCommandPlacementSection(page);
+      await openStatusbarSection(page);
       await page.locator('#btn-command-placement-add-statusbar').click();
       const modal = page.locator('#command-placement-modal');
       await expect(modal).toBeVisible();
@@ -141,7 +157,7 @@ test.describe('KP-03: Hide-Liste über die Render-Logik', () => {
       // Nicht gelistete Elemente bleiben sichtbar.
       await expect(page.locator('#btn-edit')).toBeVisible();
       // Zurücksetzen über den Einstellungs-Bereich.
-      await openCommandPlacementSection(page);
+      await openStatusbarSection(page);
       await page.locator('#btn-command-placement-hide-reset').click();
       await page.locator('#btn-settings-apply').click();
       await expect(page.locator('#btn-outline')).toBeVisible();
@@ -153,7 +169,13 @@ test.describe('KP-03: Hide-Liste über die Render-Logik', () => {
 });
 
 test.describe('KP-04: Überlauf-Mehr-Menü am schmalen Fenster', () => {
-  test('überzählige Buttons wandern ins Mehr-Menü und bleiben ausführbar', async () => {
+  // 4T-001579 (Epic 3E-000283): Der eigene Mehr-Button dieses Segments ist
+  // entfallen. Die Kommando-Buttons stehen am Ende der linken Statusleisten-
+  // Zone und wandern deshalb als erste in deren linkes Pull-up-Menü; der Fall
+  // prüft unverändert, dass sie erreichbar und ausführbar bleiben, nur am
+  // neuen Bedienort. Die Faltung selbst prüft
+  // funktionen/statusleisten-faltung.spec.js.
+  test('überzählige Buttons wandern ins linke Pull-up-Menü und bleiben ausführbar', async () => {
     const entries = [];
     for (let i = 0; i < 14; i++) {
       entries.push({ commandId: 'view.toggleEdit', icon: 'star', label: `Button ${i + 1}` });
@@ -168,22 +190,23 @@ test.describe('KP-04: Überlauf-Mehr-Menü am schmalen Fenster', () => {
         const win = BrowserWindow.getAllWindows()[0];
         win.setBounds({ x: 20, y: 20, width: 860, height: 600 });
       });
-      const moreBtn = page.locator('#btn-command-overflow');
+      const moreBtn = page.locator('#btn-statusbar-collapse-left');
       await expect(moreBtn).toBeVisible();
-      // Mindestens ein Segment-Button ist eingelagert (hidden), der Rest
-      // bleibt sichtbar.
-      const hiddenCount = await page.locator(`${SEGMENT_BUTTON}[hidden]`).count();
-      expect(hiddenCount).toBeGreaterThan(0);
+      // Mindestens ein Segment-Button ist eingeklappt, der Rest bleibt
+      // sichtbar. Gewartet wird auf den Zustand, den die Messung herstellt.
+      await expect
+        .poll(() => page.locator(`${SEGMENT_BUTTON}.sb-collapsed`).count())
+        .toBeGreaterThan(0);
       // Menü öffnet und führt den eingelagerten Eintrag aus.
       await moreBtn.click();
       const menuItem = page.locator(
-        '#context-menu [data-menu-id="command-overflow-view.toggleEdit"]',
+        '#context-menu > [data-menu-id="statusbar-overflow-view.toggleEdit"]',
       );
       await expect(menuItem.first()).toBeVisible();
       await menuItem.first().click();
       await expect(page.locator(SEL.btnEdit)).toHaveClass(/active/);
     } finally {
-      await closeApp(app, userData);
+      await closeApp(app, userData, { force: true });
     }
   });
 });

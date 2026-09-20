@@ -384,7 +384,11 @@ test.describe('EB-07: Portabler Export und Live-Modus (4T-001486)', () => {
       // den Datei-Inhalt. Zwischen beidem liegt der Sanitizer.
       const section = page.locator('.pane-group[data-pane="0"] .sidebar-area');
       await section.locator('.area-dir-row', { hasText: 'quelle' }).first().click();
-      await section.locator('.area-file-row', { hasText: 'export.md' }).first().click();
+      // 4T-001775 (Epic 3E-000304): Beschriftung ohne Markdown-Endung.
+      await section
+        .locator('.area-file-row', { hasText: /^export$/ })
+        .first()
+        .click();
       await expect(page.locator(`${SEL.markdownBody0} img`)).toHaveCount(1, { timeout: 20000 });
       const geladen = await page
         .locator(`${SEL.markdownBody0} img`)

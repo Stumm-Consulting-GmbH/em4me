@@ -175,7 +175,13 @@ test.describe('BS-05: Klick auf eine auffällige Datei öffnet sie (S-118)', () 
 
       await page.locator(`${STATS_PAGE} .area-stats-file`).first().click();
       await expect(page.locator(SEL.tabs0)).toHaveCount(tabCount + 1);
-      await expect(page.locator(`${SEL.tabs0}.active .tab-title`)).toContainText('.md');
+      // 4T-001724 (Epic 3E-000304): Der Reiter traegt den Namen ohne
+      // Markdown-Endung. Geprueft wird deshalb der gekuerzte Name einer der
+      // drei Bestands-Dateien statt der Endung selbst — strenger als vorher,
+      // weil jetzt ein konkreter Name dastehen muss.
+      await expect(page.locator(`${SEL.tabs0}.active .tab-title`)).toHaveText(
+        /^(Start|Ziel|Solo)$/,
+      );
     } finally {
       await closeApp(app, userData);
       cleanupDir(areaRoot);
@@ -211,8 +217,9 @@ test.describe('BS-06: Erweiterung aus entfernt den Kontextmenü-Zugang (S-118)',
     void app;
     try {
       await bindArea(page, areaRoot);
+      // 4T-001775 (Epic 3E-000304): Die Beschriftung steht ohne Markdown-Endung.
       const row = page.locator('.pane-group[data-pane="0"] .area-file-row', {
-        hasText: 'Start.md',
+        hasText: /^Start$/,
       });
       await expect(row).toBeVisible();
 

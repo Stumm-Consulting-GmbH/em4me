@@ -1,12 +1,12 @@
 # Posizionamento dei comandi
 
-Ogni azione dell'applicazione è un comando del registro centrale. Il posizionamento dei comandi li trasforma in accessi propri permanenti: pulsanti di comando nella barra di stato, un elenco di occultamento per i pulsanti predefiniti, voci proprie nel menu contestuale dell'editor e macro come sequenze di comandi. Tutto si gestisce in una sezione comune: «File → Impostazioni… → Posizionamento dei comandi». Le quattro funzioni appartengono all'estensione disattivabile «Posizionamento dei comandi» (categoria Strumenti).
+Ogni azione dell'applicazione è un comando del registro centrale. Il posizionamento dei comandi li trasforma in accessi propri permanenti: pulsanti di comando nella barra di stato, un elenco di occultamento per i pulsanti predefiniti, voci proprie nel menu contestuale dell'editor e macro come sequenze di comandi. La gestione avviene in due punti: i due elenchi della barra di stato in «File → Impostazioni… → Barra di stato», le voci del menu contestuale e le macro in «File → Impostazioni… → Menu contestuale e macro». Le quattro funzioni appartengono all'estensione disattivabile «Posizionamento dei comandi» (categoria Strumenti).
 
 ## Pulsanti della barra di stato
 
-I pulsanti di comando propri appaiono come segmento a sé nella barra di stato, a destra dei pulsanti di vista. La creazione avviene in tre passaggi: scegliere un comando tramite ricerca con filtro, impostare un'icona dal set interno curato e assegnare facoltativamente un nome visualizzato. Il suggerimento del pulsante mostra il nome visualizzato seguito dal comando originale tra parentesi; senza nome visualizzato mostra il comando stesso. Nell'elenco della sezione delle impostazioni i pulsanti si possono riordinare (su/giù), modificare e rimuovere.
+I pulsanti di comando propri appaiono come segmento a sé nella barra di stato, a destra dei pulsanti di vista. La creazione avviene in tre passaggi: scegliere un comando tramite ricerca con filtro, impostare un'icona dal set interno curato e assegnare facoltativamente un nome visualizzato. Il suggerimento del pulsante mostra il nome visualizzato seguito dal comando originale tra parentesi; senza nome visualizzato mostra il comando stesso. Nell'elenco della sezione «Barra di stato» i pulsanti si possono riordinare (su/giù), modificare e rimuovere.
 
-Se lo spazio nella barra di stato non basta — per esempio con finestre strette —, i pulsanti in eccesso passano, a partire da destra, in un menu aggiuntivo: un pulsante a puntini alla fine del segmento apre le voci riposte come menu, dal quale restano eseguibili.
+Se lo spazio nella barra di stato non basta — per esempio con finestre strette —, i pulsanti passano insieme agli altri elementi della barra nei suoi menu ai bordi e restano eseguibili lì; vedi [Viste e visualizzazione](views-display.md).
 
 I pulsanti il cui comando appartiene a un'estensione disattivata non appaiono (la configurazione viene conservata e torna con l'estensione).
 
@@ -14,11 +14,11 @@ I pulsanti il cui comando appartiene a un'estensione disattivata non appaiono (l
 
 Ogni elemento predefinito della barra di stato può essere nascosto singolarmente: gli interruttori dei pannelli, i tre interruttori dell'editor (piegatura, numeri di riga, a capo automatico), i quattro pulsanti di vista e gli elementi del lato destro (statistiche parole, indicatore dello zoom, modifica, sincronizzazione scorrimento, cronologia del documento, tema, lingua). Solo la riga informativa resta sempre visibile — è l'unico canale per i messaggi brevi come lo stato di salvataggio.
 
-Nascondere rimuove solo l'accesso, la funzione resta: tutto ciò che è nascosto rimane raggiungibile tramite il menu, la palette dei comandi e le scorciatoie da tastiera. Il pulsante «Mostra tutto» ripristina la barra di stato predefinita.
+Nascondere rimuove solo l'accesso, la funzione resta: tutto ciò che è nascosto rimane raggiungibile tramite il menu, la palette dei comandi e le scorciatoie da tastiera. Il pulsante «Mostra tutto» ripristina la barra di stato predefinita. Qui il nascondere è permanente e indipendente dal fatto che un pulsante sia utilizzabile al momento; come la barra tratta i pulsanti che al momento non possono fare nulla è descritto in [Viste e visualizzazione](views-display.md).
 
 ## Menu contestuale dell'editor
 
-Le voci di comando proprie appaiono come sezione aggiuntiva alla fine del menu contestuale dell'editor, sia in modalità sorgente sia in modalità live. Si gestiscono in un secondo elenco della sezione delle impostazioni — stesso flusso di creazione e stesso modello di voce dei pulsanti della barra di stato, ma con un ordine proprio. Ogni voce mostra la propria icona e il proprio nome visualizzato.
+Le voci di comando proprie appaiono come sezione aggiuntiva alla fine del menu contestuale dell'editor, sia in modalità sorgente sia in modalità live. Si gestiscono nell'elenco della sezione «Menu contestuale e macro» — stesso flusso di creazione e stesso modello di voce dei pulsanti della barra di stato, ma con un ordine proprio. Ogni voce mostra la propria icona e il proprio nome visualizzato.
 
 Le voci il cui comando non è eseguibile nel contesto attuale (per esempio un comando d'area senza un'area aperta) appaiono disattivate invece di sparire — in coerenza con il resto del menu. Senza voci configurate la sezione viene omessa del tutto. La sezione appartiene all'editor principale; il menu contestuale del campo nota resta invariato.
 
@@ -38,4 +38,4 @@ La [palette dei comandi](tools.md) e il posizionamento dei comandi lavorano sull
 
 ## Stato disattivato
 
-Se l'estensione «Posizionamento dei comandi» viene disattivata, la barra di stato mostra di nuovo lo stato predefinito: nessun pulsante proprio, nessun occultamento, nessuna sezione del menu contestuale; i comandi macro vengono deregistrati e la sezione delle impostazioni è nascosta. L'intera configurazione resta salvata e vale invariata dopo la riattivazione.
+Se l'estensione «Posizionamento dei comandi» viene disattivata, la barra di stato mostra di nuovo lo stato predefinito: nessun pulsante proprio, nessun occultamento, nessuna sezione del menu contestuale; i comandi macro vengono deregistrati. Nelle impostazioni scompare la sezione «Menu contestuale e macro» e nella sezione «Barra di stato» scompaiono i due elenchi; l'impostazione per la compattazione della barra resta lì, perché non appartiene all'estensione. L'intera configurazione resta salvata e vale invariata dopo la riattivazione.

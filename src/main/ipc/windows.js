@@ -137,6 +137,15 @@ function registerWindowsIpc(handle, deps) {
   // Metadaten-Liste ohne App-Snapshot. 'open' ist der LAUFZEIT-Zustand aus
   // der Registry (fuer die Offen-Markierung der UI); der persistierte
   // open-Merker der Ablage steuert dagegen die Sitzungs-Wiederherstellung.
+  //
+  // 4T-001737 (Epic 3E-000308, E3): Dazu `areaPath`, der Wurzel-Pfad der
+  // Bereichs-Bindung oder null. Menue und Verwaltungs-Dialog lesen denselben
+  // Bestand; die Angabe nur fuer das Menue mitzunehmen hiesse, sie fuer den
+  // Dialog ein zweites Mal einzubauen. Der Dialog hat Platz fuer den
+  // VOLLSTAENDIGEN Pfad und zeigt ihn, waehrend die Menue-Beschriftung auf den
+  // Ordnernamen kuerzt (E2). Die Reihenfolge der Liste ist die der Ablage und
+  // damit die vom Anwender gesetzte (4T-001753, E12) — hier wird nicht
+  // sortiert.
   handle('workspace:list', () => {
     return workspacesState.map((w) => ({
       id: w.id,
@@ -144,6 +153,7 @@ function registerWindowsIpc(handle, deps) {
       color: w.color,
       open: appRegistry.findAppByWorkspaceId(w.id) != null,
       lastOpenedAt: w.lastOpenedAt,
+      areaPath: w.app && w.app.area ? w.app.area.rootPath : null,
     }));
   });
 
@@ -260,6 +270,45 @@ function registerWindowsIpc(handle, deps) {
     // sofort umfaerben (einziger workspace-Handler ohne Fenster-Refresh).
     updateAllCaptionColors();
     return { ok: true };
+  });
+
+  // 4T-001753 (Epic 3E-000308, E12): Reihenfolge der Arbeitsbereiche. Geaendert
+  // wird die Position IM ARRAY der Ablage; eine zweite Ordnungs-Angabe je
+  // Arbeitsbereich entsteht nicht, weil sie mit der ersten auseinanderlaufen
+  // koennte. Untermenue und Verwaltungs-Dialog lesen denselben Stand und zeigen
+  // ihn damit zwangsläufig identisch.
+  //
+  // **Der Kanal nimmt EINE Bewegung entgegen, nicht die ganze Folge** — die
+  // Wahl, die E12 dem Umsetzungs-Task ueberlassen hat. Damit ist die
+  // Zusicherung «es geht kein Arbeitsbereich verloren» eine Frage der Bauart
+  // und nicht einer Pruefung: Eine Verschiebung um eine Position kann per
+  // Konstruktion keinen Eintrag verlieren, verdoppeln oder unterschlagen,
+  // waehrend eine uebergebene Folge genau das koennte und dafuer eine
+  // Vollstaendigkeits-Pruefung braeuchte, die bei einem veralteten
+  // Dialog-Stand wieder eine Ermessens-Frage aufwirft (abweisen oder
+  // hinten anhaengen?). Der Zuschnitt passt zugleich zur Bedienung: zwei
+  // Schaltflaechen je Eintrag, kein Ziehen (E12).
+  //
+  // Form wie bei den Nachbarn workspace:rename und workspace:setColor
+  // ({ id, ... } -> { ok }), und derselbe Dreischritt: Stand aendern,
+  // persistAllWindows(), workspacesChanged(). Kein updateAllCaptionColors()
+  // und kein broadcastDisplayInfo(), weil sich weder Farbe noch Name aendert.
+  handle('workspace:reorder', (event, params) => {
+    const idx = workspacesState.findIndex((w) => w.id === params?.id);
+    if (idx < 0) return { ok: false, error: 'unknown workspace' };
+    const richtung = params?.direction;
+    if (richtung !== 'up' && richtung !== 'down') return { ok: false, error: 'invalid direction' };
+    const ziel = richtung === 'up' ? idx - 1 : idx + 1;
+    // Am Rand bleibt der Stand unberuehrt: kein Schreiben, kein Broadcast.
+    // Das ist kein Fehler, sondern die Randlage — der Dialog blendet die
+    // sinnlose Richtung ohnehin ab, und ein Aufruf ueber die Bruecke soll
+    // deswegen nicht scheitern.
+    if (ziel < 0 || ziel >= workspacesState.length) return { ok: true, moved: false };
+    const [eintrag] = workspacesState.splice(idx, 1);
+    workspacesState.splice(ziel, 0, eintrag);
+    persistAllWindows();
+    workspacesChanged();
+    return { ok: true, moved: true };
   });
 
   // Loeschen entfernt nur die Ablage, nie Dateien; ein offener

@@ -62,6 +62,8 @@ const { registerHistoryIpc } = require('./ipc/history');
 const { registerDialogsIpc } = require('./ipc/dialogs');
 const { registerRenameIpc } = require('./ipc/rename');
 const { registerAreasIpc } = require('./ipc/areas');
+// 4T-001731 (Epic 3E-000306): Kopieren einer Datei im Bereich.
+const { registerAreaCopyIpc } = require('./ipc/area-copy');
 const { registerAttachmentsIpc } = require('./ipc/attachments');
 const { registerBooksIpc } = require('./ipc/books');
 const { registerShelvesIpc } = require('./ipc/shelves');
@@ -291,6 +293,7 @@ function registerIpc() {
   registerDialogsIpc(registriere, ipcDeps);
   registerRenameIpc(registriere, ipcDeps);
   registerAreasIpc(registriere, ipcDeps);
+  registerAreaCopyIpc(registriere, ipcDeps);
   registerAttachmentsIpc(registriere, ipcDeps);
   registerBooksIpc(registriere, ipcDeps);
   registerShelvesIpc(registriere, ipcDeps);

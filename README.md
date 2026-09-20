@@ -58,7 +58,8 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   folder and it becomes a closed workspace: file dialogs, recent files and
   search stay inside it. An area can designate one of its files as a start
   page, so it opens where you want to begin, and its folder tree creates,
-  renames and deletes files without leaving the application — deletion goes
+  copies, renames and deletes files without leaving the application — a copy
+  is made in place with a running number in its name, and deletion goes
   to your system's recycle bin, never straight to nowhere. Where two areas
   belong together, you name the link yourself: give the other area a short
   handle and a link like `[[@handle:File]]` reaches across, templates

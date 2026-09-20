@@ -2,6 +2,8 @@
 
 Los enlaces wiki, las anclas, las incrustaciones y las etiquetas conectan los archivos Markdown en una red. Los ejemplos de esta página muestran la sintaxis; sus destinos no existen en el manual, en tus propios archivos los enlaces abren el archivo de destino como pestaña.
 
+**El aspecto de un enlace depende de la vista.** En el modo en vivo está subrayado de forma permanente, para que al escribir se vea sin pasar el ratón que detrás de un texto hay un enlace; la vista renderizada lo subraya solo al pasar el ratón. Los detalles están en la página [Vistas y presentación](views-display.md).
+
 ## Enlaces wiki
 
 `[[Destino]]` enlaza un archivo por su nombre, sin ruta y sin extensión; la búsqueda cubre la carpeta del archivo y hasta dos niveles de subcarpetas. La extensión `.md` puede omitirse o escribirse.
@@ -154,7 +156,7 @@ Al aceptar una sugerencia de archivo o de alias se escriben también los corchet
 
 ## Barras laterales de la red
 
-Tres secciones de la barra lateral muestran la red del archivo activo: **Retroenlaces** (enlaces entrantes, incluido «vía alias»), **Enlaces salientes** (todas las referencias salientes en orden de documento) y **Etiquetas** (todas las etiquetas del ámbito de búsqueda con su frecuencia). Los accesos figuran en la [tabla de funciones](functions.md).
+Tres secciones de la barra lateral muestran la red del archivo activo: **Retroenlaces** (enlaces entrantes, incluido «vía alias»), **Enlaces salientes** (todas las referencias salientes en orden de documento) y **Etiquetas** (todas las etiquetas del ámbito de búsqueda con su frecuencia). Los accesos figuran en la [tabla de funciones](functions.md). Los retroenlaces y las etiquetas nombran sus archivos sin la extensión Markdown e indican la ruta completa en la información sobre herramientas; los enlaces salientes muestran la referencia tal como está escrita en el documento.
 
 ## Insertar una dirección en una selección
 

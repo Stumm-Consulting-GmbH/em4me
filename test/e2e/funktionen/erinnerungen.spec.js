@@ -15,7 +15,9 @@
 // ER-04: Escape mutet → Panel zeigt den Eintrag mit Klasse `muted` in der
 //        Überfällig-Gruppe → 🔔 löst den Dialog erneut aus.
 // ER-05: Panel-Gruppen Überfällig (2020) und Später (2099); Klick auf den
-//        Haupt-Button öffnet die Quelldatei.
+//        Haupt-Button öffnet die Quelldatei. Seit 4T-001775 (Epic 3E-000304)
+//        zusätzlich: Der Datei-Name des Eintrags steht ohne Markdown-Endung,
+//        und sein Kurzhinweis trägt den vollen Pfad.
 // ER-06: Kommando Strg+Alt+R auf einer Checkbox-Zeile im Quelltext-Edit-Modus
 //        → Picker → bestätigen → Zeile trägt den ⏰-Marker.
 // ER-07: Aus-Zustand (extensions.disabled ['reminders']) → trotz überfälligem
@@ -87,6 +89,14 @@ function removeDir(dir) {
 
 // Bereich an die (leere) App binden; der Erinnerungs-Prüfer überwacht danach
 // den Bereichs-Index und liefert die fälligen Anker an dieses Fenster.
+// 4T-001775: Der Kurzhinweis des Datei-Links im Dialog ist zweizeilig (Pfad,
+// dann der bisherige Hinweis-Text). Verglichen wird deshalb der Anfang, und der
+// Pfad wird dafür maskiert — ein Windows-Pfad trägt Zeichen, die in einem
+// regulären Ausdruck eigene Bedeutung haben.
+function escapeRe(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 async function bindArea(page, dir) {
   await page.evaluate((p) => window.api.openAreaPath(p), dir);
   await expect.poll(() => page.title()).toContain(`(Bereich ${path.basename(dir)})`);
@@ -121,6 +131,16 @@ test.describe('ER-01: Erinnerungen — Nachhol-Dialog beim Öffnen eines Bereich
       await expect(page.locator(MODAL_LIST)).toContainText('Rueckruf Kunde');
       await expect(page.locator(MODAL_LIST)).toContainText('Bericht abgeben');
       await expect(page.locator(MODAL_LIST)).not.toContainText('Jahresabschluss');
+
+      // 4T-001775 (Epic 3E-000304): Der Datei-Link steht ohne Markdown-Endung,
+      // sein Kurzhinweis nennt den vollen Pfad. Derselbe Anker soll im Dialog
+      // und im Panel nicht zwei Schreibweisen tragen.
+      const link = page.locator(`${MODAL_LIST} .reminders-item-file`).first();
+      await expect(link).toHaveText('overdue');
+      await expect(link).toHaveAttribute(
+        'title',
+        new RegExp(`^${escapeRe(path.join(dir, 'overdue.md'))}`),
+      );
     } finally {
       await closeApp(app, userData, { force: true });
       removeDir(dir);
@@ -290,12 +310,26 @@ test.describe('ER-05: Erinnerungen — Panel-Gruppen Überfällig/Später und Qu
       await expect(laterHeader).toBeVisible({ timeout: 15000 });
 
       // Haupt-Button des Zukunfts-Eintrags öffnet future.md als Tab.
+      // 4T-001724 (Epic 3E-000304): Der Reiter beschriftet sich ohne die
+      // Markdown-Endung; erwartet wird deshalb 'future'.
       const futureEntry = section
         .locator('.reminders-entry', { hasText: 'Jahresabschluss' })
         .first();
+
+      // 4T-001775 (Epic 3E-000304): Die Meta-Zeile nennt den Datei-Namen ohne
+      // Markdown-Endung; der Kurzhinweis des Eintrags trägt den vollen Pfad —
+      // vor dieser Änderung trug der Eintrag gar keinen.
+      const meta = futureEntry.locator('.reminders-item-meta');
+      await expect(meta).toContainText('future ·');
+      await expect(meta).not.toContainText('future.md');
+      await expect(futureEntry.locator('.reminders-entry-main')).toHaveAttribute(
+        'title',
+        path.join(dir, 'future.md'),
+      );
+
       await futureEntry.locator('.reminders-entry-main').click();
       await expect(
-        page.locator('.pane-group[data-pane="0"] .tabbar .tab-title', { hasText: 'future.md' }),
+        page.locator('.pane-group[data-pane="0"] .tabbar .tab-title', { hasText: 'future' }),
       ).toBeVisible({ timeout: 15000 });
     } finally {
       await closeApp(app, userData, { force: true });

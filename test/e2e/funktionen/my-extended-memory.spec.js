@@ -384,3 +384,107 @@ test.describe('MEM-08: Detail-Sicht eines Bereichs samt Sprung zur Statistik (S-
     }
   });
 });
+
+// 4T-001739 (Epic 3E-000308): Die Zahl der geoeffneten Markdown-Dokumente je
+// Arbeitsbereich, an der laufenden Anwendung.
+//
+// **Warum der Arbeitsbereich vorbelegt in der Ablage steht.** Gezaehlt wird der
+// abgelegte Stand (E8), und der entsteht sonst erst dadurch, dass ein
+// Arbeitsbereich mit mehreren Fenstern und Reitern wirklich benutzt und
+// gesichert wurde — eine lange Kette mit verzoegertem Schreiben, die ueber die
+// Zahl selbst nichts aussagt. Die Vorbelegung setzt genau die Lage, ueber die
+// der Fall etwas behauptet: zwei Fenster, darin zwei Markdown-Dokumente und
+// eine fremde Datei. Sie ist dabei kein Kunstgriff, sondern das Format, das
+// `buildPanesSnapshot` schreibt und `normalizeSavedWorkspaces` beim Start
+// wieder einliest.
+//
+// Der Arbeitsbereich ist GESCHLOSSEN (`open: false`) und oeffnet beim Start
+// deshalb keine Fenster; damit ist der Fall zugleich der Nachweis, dass ein
+// nicht geoeffneter Arbeitsbereich seine Zahl aus der Ablage bekommt (AK8).
+const ARBEITSBEREICH_VORBELEGT = {
+  language: 'de',
+  workspaces: [
+    {
+      id: 'ws-dok',
+      name: 'Projekt Alpha',
+      color: 'green',
+      open: false,
+      lastOpenedAt: '2026-09-18T07:30:00Z',
+      app: {
+        area: null,
+        windows: [
+          {
+            bounds: null,
+            maximized: false,
+            panes: [
+              {
+                paths: ['C:\\Ablage\\eins.md', 'C:\\Ablage\\liste.txt'],
+                activeIndex: 0,
+                tabSettings: [{ viewMode: 'rendered' }, { viewMode: 'rendered' }],
+              },
+            ],
+          },
+          {
+            bounds: null,
+            maximized: false,
+            panes: [
+              {
+                paths: ['C:\\Ablage\\zwei.markdown'],
+                activeIndex: 0,
+                tabSettings: [{ viewMode: 'rendered' }],
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+};
+
+test.describe('MEM-09: Zahl der geoeffneten Markdown-Dokumente je Arbeitsbereich (S-150)', () => {
+  test('Liste und Detail-Sicht nennen dieselbe Zahl, fremde Dateiarten zaehlen nicht', async () => {
+    const { app, page, userData } = await launchApp({ settings: ARBEITSBEREICH_VORBELEGT });
+    try {
+      await openPageAndWait(app, page);
+
+      // Der vorbelegte Arbeitsbereich wird eingetragen; die Meldung
+      // memory:changed zieht die offene Seite nach.
+      const eingetragen = await page.evaluate(() => window.api.memory.addWorkspace('ws-dok'));
+      expect(eingetragen.ok).toBe(true);
+      await expect(page.locator(`${PAGE} .memory-row`)).toHaveCount(1);
+      await expect(page.locator(`${PAGE} .memory-section-title`)).toHaveText('Arbeitsbereiche');
+      await expect(page.locator(`${PAGE} .memory-row-title`)).toHaveText('Projekt Alpha');
+
+      // AK1: Neben der Fenster-Zahl steht die Zahl der geoeffneten
+      // Markdown-Dokumente. AK2/AK3: Es sind ZWEI und nicht drei — die
+      // Textdatei ist kein Markdown-Dokument.
+      // Befund der Abnahme vom 2026-09-19: beide Zahlen in EINER Reihe, zuerst
+      // die Dokumente, dann die Fenster — gemessen an der Bildschirm-Lage.
+      const zahlen = page.locator(`${PAGE} .memory-row-counts .memory-row-count`);
+      await expect(zahlen).toHaveText(['Geöffnete Dokumente: 2', 'Fenster: 2']);
+      const lageDok = await zahlen.nth(0).boundingBox();
+      const lageFen = await zahlen.nth(1).boundingBox();
+      expect(Math.abs(lageDok.y - lageFen.y)).toBeLessThan(2);
+      expect(lageFen.x).toBeGreaterThan(lageDok.x);
+
+      // AK7: Die Detail-Sicht nennt dieselbe Zahl, unmittelbar hinter der
+      // Fenster-Zahl.
+      await page.locator(`${PAGE} .memory-action-details`).click();
+      const zeilen = page.locator(`${PAGE} .memory-detail-row`);
+      await expect(zeilen).toHaveCount(6);
+      await expect(zeilen.nth(3).locator('.memory-detail-name')).toHaveText('Fenster');
+      await expect(zeilen.nth(3).locator('.memory-detail-value')).toHaveText('2');
+      await expect(zeilen.nth(4).locator('.memory-detail-name')).toHaveText('Geöffnete Dokumente');
+      await expect(zeilen.nth(4).locator('.memory-detail-value')).toHaveText('2');
+
+      // AK9/AK10: Der Arbeitsbereich bekommt keine Kennzahlen des
+      // Beschleunigers — die Zeile nennt deshalb keinen Stand, und einen Knopf
+      // «Neu erheben» gibt es dort nicht.
+      await expect(page.locator(`${PAGE} .memory-row-stand`)).toHaveText('noch keine Kennzahlen');
+      await expect(page.locator(`${PAGE} .memory-row-stats`)).toHaveCount(0);
+      await expect(page.locator(`${PAGE} .memory-action-refresh`)).toHaveCount(0);
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+});

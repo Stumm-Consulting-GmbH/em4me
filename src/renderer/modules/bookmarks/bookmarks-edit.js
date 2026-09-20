@@ -22,6 +22,7 @@ import { openBookmarkConfirmRemoveDialog, openBookmarkMoveDialog } from './bookm
 import { renderBookmarks } from './bookmarks-render.js';
 import {
   SECTION_GENERAL,
+  bookmarkNameAusEingabe,
   bookmarkSection,
   cloneSectionTree,
   countFolderContents,
@@ -252,7 +253,12 @@ export async function commitInlineEdit(id, newName) {
   if (loc) {
     const node = loc.container[loc.index];
     if (node.type === 'folder') node.name = trimmed;
-    else node.displayName = trimmed;
+    // 4T-001775 (Epic 3E-000304): Das Feld zeigt bei einem automatischen Namen
+    // die gekuerzte Form. Wer nichts aendert und bestaetigt — per Enter oder
+    // durch den Verlust des Fokus, der ebenso committet —, soll den
+    // gespeicherten Namen NICHT stillschweigend in einen gewaehlten verwandeln:
+    // Die Rueckabbildung gibt dann den automatischen Namen zurueck.
+    else node.displayName = bookmarkNameAusEingabe(node, trimmed);
   }
   sec.setTree(tree);
   state.bookmarks.editingId = null;

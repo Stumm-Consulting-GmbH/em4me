@@ -37,6 +37,10 @@ import {
   runListMove,
   runListSelectSubtree,
 } from './editor-list-tools.js';
+// 4T-001575 (Epic 3E-000282): reine Spalten-Rechnung des Cursor-Sprungs. Das
+// Modul importiert bewusst nichts aus dem Renderer zurueck (Begruendung in
+// seinem Kopf-Kommentar).
+import { schreibSpalte } from './editor-cursor-sprung.js';
 // 4T-000590 (Epic 3E-000109): Laufzeit-Backend der table.*-Kommandos (Nutzung
 // nur in Funktionskörpern, Laufzeit-Zyklus unkritisch).
 import { runTableCommand } from './editor-table-tools.js';
@@ -295,6 +299,76 @@ export const readOnlyGuardKeymap = Prec.highest(
 export const listExitKeymap = Prec.highest(
   keymap.of([{ key: 'Enter', run: (view) => runListExit(view) }]),
 );
+
+// === 4T-001575 (Epic 3E-000282): Cursor-Sprung hinter den Listen-Marker =========
+// Pfeil rechts am Zeilenende setzt die Marke an die Schreibposition der
+// Folgezeile statt an ihren Anfang, sofern diese eine Listenzeile ist.
+//
+// E1 des Epics: bewusst eine eigene Tastenbehandlung statt atomarer Bereiche
+// (`EditorView.atomicRanges`). Atomare Bereiche wirken in BEIDE Richtungen und
+// machten den Marker damit von links unerreichbar; genau das hat der Product
+// Owner ausgeschlossen. Die Abweichung vom Standard-Mechanismus ist damit
+// begruendet und nicht stillschweigend gewaehlt.
+//
+// Die Rueckwaerts-Bewegung ist nicht angefasst, und die Auswahl-Erweiterung
+// ebenso nicht: Eine Bindung mit `key` allein deckt die Umschalt-Variante
+// nicht ab, dafuer braeuchte es das Feld `shift` (Muster tabIndentKeymap).
+
+/**
+ * Ist der Cursor-Sprung eingeschaltet?
+ *
+ * 4T-001576 (Epic 3E-000282): Liest den Laufzeit-Zustand der Einstellung im
+ * Bereich Verhalten, nach dem Muster von `tabIndentKeymap` gleich darueber
+ * (`state.tabIndents !== false`, Vorgabe an) — bewusst ohne Compartment, damit
+ * der Schalter ohne Rekonfiguration aller offenen Flaechen wirkt. Nur ein
+ * ausdrueckliches false schaltet ab; ein unbekannter Wert (frisches Profil,
+ * Bestands-Profil ohne den Schluessel) bleibt «an» (E5 des Epics).
+ *
+ * @returns {boolean} true, solange das Verhalten gilt.
+ */
+export function istCursorSprungAktiv() {
+  return state.cursorSprung !== false;
+}
+
+/**
+ * Pfeil rechts am Zeilenende: Marke an die Schreibposition der Folgezeile.
+ *
+ * Greift nur ohne Auswahl, nur am Zeilenende, nur wenn eine Folgezeile
+ * existiert und diese eine Listenzeile ausserhalb eines Code-Blocks ist.
+ * Liefert sonst false, und CodeMirror reicht den Tastendruck an den
+ * defaultKeymap weiter (`cursorCharRight`) — dort bleibt das Verhalten exakt
+ * das bisherige.
+ *
+ * @param {import('@codemirror/view').EditorView} view Ziel-View.
+ * @returns {boolean} true, wenn der Tastendruck verbraucht wurde.
+ */
+export function cursorSprungRechts(view) {
+  if (!view || !istCursorSprungAktiv()) return false;
+  const editorState = view.state;
+  if (editorState.selection.ranges.length !== 1) return false;
+  const range = editorState.selection.main;
+  if (!range.empty) return false;
+  const line = editorState.doc.lineAt(range.head);
+  if (range.head !== line.to) return false;
+  if (line.number >= editorState.doc.lines) return false;
+  const next = editorState.doc.line(line.number + 1);
+  // Im Code-Block ist ein Marker roher Text; dieselbe Grenze ziehen alle
+  // Listen-Handler des Editors.
+  if (lineInsideCodeBlock(editorState, next)) return false;
+  const spalte = schreibSpalte(next.text);
+  // Spalte 0 gibt es bei einer Listenzeile nicht; der Guard haelt den Sprung
+  // trotzdem davon ab, wirkungslos zu dispatchen.
+  if (!spalte) return false;
+  view.dispatch({ selection: { anchor: next.from + spalte }, scrollIntoView: true });
+  return true;
+}
+
+// Ohne erhoehte Praezedenz: Die Belegung steht in der Extension-Liste VOR
+// keymap.of(defaultKeymap) und greift damit vor cursorCharRight, laesst aber
+// ein Nutzer-Binding aus der Kommando-Registry vor sich.
+export const cursorSprungKeymap = keymap.of([
+  { key: 'ArrowRight', run: (view) => cursorSprungRechts(view) },
+]);
 
 // === 4T-000074 (Epic 3E-000013): Tabellen-Editor-Komfort =========================
 // Tab/Umschalt+Tab springen zwischen Zellen einer klassischen Pipe-Tabelle.

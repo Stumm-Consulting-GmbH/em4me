@@ -96,6 +96,9 @@ function detailZeilenArbeitsbereich(entry) {
     ['memory.detail.book', ws.book || OHNE],
     ['memory.detail.shelf', ws.shelf || OHNE],
     ['memory.detail.windows', kennzahl(ws.windows, zahl)],
+    // 4T-001739 (Epic 3E-000308): dieselbe Zahl wie in der Liste, aus demselben
+    // Feld des Vertrags — die Detail-Sicht rechnet nichts eigen nach (AK7).
+    ['memory.detail.documents', kennzahl(ws.documents, zahl)],
     ['memory.detail.lastOpened', ws.lastOpenedAt ? zeitpunkt(ws.lastOpenedAt) : OHNE],
   ];
 }

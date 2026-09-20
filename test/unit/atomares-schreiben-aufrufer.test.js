@@ -14,7 +14,7 @@
 //   Wer eine Datei EXKLUSIV ANLEGT (`flag: 'wx'`), darf `fs.writeFile` nehmen:
 //   Dort ist das Anlegen selbst schon die Zusicherung, denn die Datei entsteht
 //   ganz oder gar nicht, und es gibt keinen alten Inhalt, der verloren gehen
-//   könnte. Genau zehn Stellen im Bestand arbeiten so.
+//   könnte. Genau elf Stellen im Bestand arbeiten so (zehn bis 4T-001731).
 //
 // Muster: save-guard-aufrufer.test.js, einschließlich der Argument-Zerlegung
 // über einen Klammer-Zähler statt über einen regulären Ausdruck — ein Aufruf
@@ -145,9 +145,24 @@ describe('Schreibwege des Haupt-Prozesses: kein direktes Ersetzen', () => {
     expect(ersetzendeAufrufe(prosa)).toEqual([]);
   });
 
-  // Der Bestand nach der Umstellung: genau die zehn exklusiven Anlagen bleiben.
+  // Der Bestand nach der Umstellung: genau die exklusiven Anlagen bleiben.
   // Wächst diese Zahl, ist das kein Fehler, sondern eine Frage — deshalb steht
   // sie hier und nicht als Obergrenze im Wächter oben.
+  //
+  // **Die Frage ist am 2026-09-18 mit 4T-001731 (Epic 3E-000306) einmal
+  // gestellt und beantwortet worden: 10 auf 11.** Hinzugekommen ist die
+  // Begleitdatei der Datei-Kopie im Bereichs-Panel
+  // (`src/main/ipc/area-copy.js`, `kopiereBegleitdatei`). Sie erfüllt die
+  // Bedingung des zugelassenen Wegs in ihrem Kern: Am Ziel-Pfad liegt nichts —
+  // die Datei-Kopie selbst ist unmittelbar davor mit `COPYFILE_EXCL`
+  // entstanden, wäre der Name belegt gewesen, hätte sie die nächste Nummer
+  // genommen —, es gibt also keinen alten Inhalt, der verloren gehen könnte.
+  // Das `wx` ist hier nicht die bequemere Schreibweise, sondern die zweite
+  // Absicherung genau dieser Aussage: Fände es doch eine Datei vor, wäre die
+  // Annahme falsch, und dann soll der Vorgang scheitern statt fremde
+  // Begleitdaten zu ersetzen. Ein Weg über `ersetzeDateiOderWirf` wäre hier
+  // gerade das Schwächere — er würde ersetzen, wo nichts zu ersetzen ist, und
+  // die Kollision stillschweigend gewinnen.
   it('haelt die Zahl der exklusiven Anlagen fest', () => {
     let anlagen = 0;
     for (const datei of jsDateien(MAIN)) {
@@ -159,6 +174,6 @@ describe('Schreibwege des Haupt-Prozesses: kein direktes Ersetzen', () => {
         if (/flag:\s*'wx'/.test(argumentListe(quelltext, start))) anlagen += 1;
       }
     }
-    expect(anlagen).toBe(10);
+    expect(anlagen).toBe(11);
   });
 });

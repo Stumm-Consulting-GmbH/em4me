@@ -288,9 +288,17 @@ describe('Reine Helfer (4T-000844)', () => {
     expect(readingTarget([], null, 1)).toBeNull();
   });
 
+  // 4T-001775 (Epic 3E-000304): Seit der Umstellung auf die gemeinsame
+  // Beschriftungs-Funktion fallen ALLE als Markdown gefuehrten Endungen, nicht
+  // allein `.md`; vorher behielt ein Kapitel `Hafen.markdown` seine Endung,
+  // waehrend der Reiter derselben Datei sie schon nicht mehr trug. Eine fremde
+  // Endung bleibt stehen.
   it('chapterLabel zeigt den Dateinamen ohne Ordner und Endung', () => {
     expect(chapterLabel('Teil 1/Der Hafen.md')).toBe('Der Hafen');
     expect(chapterLabel('Anhang.MD')).toBe('Anhang');
+    expect(chapterLabel('Teil 1/Der Hafen.markdown')).toBe('Der Hafen');
+    expect(chapterLabel('Anhang.mkd')).toBe('Anhang');
+    expect(chapterLabel('Notiz.mdx')).toBe('Notiz.mdx');
     expect(chapterLabel('')).toBe('');
   });
 });

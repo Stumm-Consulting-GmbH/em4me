@@ -20,7 +20,9 @@ import {
 } from '../../../shared/format-toolbar.js';
 import { COMMAND_ICONS, DEFAULT_COMMAND_ICON } from '../../../shared/commands/command-icons.js';
 import { COMMANDS } from '../../../shared/commands/commands.js';
-import { showPlacementEntryDialog } from './command-placement-settings.js';
+// 4T-001581: Der Anlage-Dialog liegt seit dem Umzug der Statusleisten-Blöcke im
+// gemeinsamen Baustein-Modul und nicht mehr im Abschnitts-Modul.
+import { showPlacementEntryDialog } from './command-placement-editors.js';
 
 function jsonEqual(a, b) {
   return JSON.stringify(a) === JSON.stringify(b);

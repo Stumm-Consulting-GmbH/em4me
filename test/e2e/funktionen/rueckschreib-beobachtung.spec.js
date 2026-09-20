@@ -97,23 +97,47 @@ function dialogCalls(app) {
 }
 
 // Datei in das JUENGSTE Fenster reichen (Weg der Datei-Assoziation).
-// Gepollt, weil der Zuhoerer sich erst am Ende der asynchronen Renderer-init()
-// registriert und `ipcRenderer.on` nichts puffert (E2E-Praxis, test/README.md).
+//
+// EINMAL gesendet, und zwar erst nach dem Init-Ende des Fensters. Bis zum
+// Epic-Abschluss-Test von 3E-000186 stand hier ein gepolltes Senden mit der
+// Begruendung, der Zuhoerer registriere sich erst am Ende der asynchronen
+// Renderer-init() und `ipcRenderer.on` puffere nicht. Diese Begruendung traegt
+// fuer diesen Kanal NICHT: `api.onOpenExternal` wird synchron beim Modul-Laden
+// registriert und sammelt vor dem Init-Ende in `pendingExternalFiles`
+// (`app/app-broadcasts.js`) — ein Send an ein noch ladendes Fenster verfaellt
+// hier also gerade nicht.
+//
+// Und das Wiederholen war aktiv schaedlich, weil `file:openExternal` NICHT
+// idempotent ist: `openInPane` (`tabs/tabs.js`) prueft `findTabAcrossPanes`
+// VOR dem `await api.readFile`, sodass zwei ueberlappende Sendungen beide am
+// Bereits-offen-Zweig vorbeikommen und je einen Reiter derselben Datei
+// anlegen. Getippt wird dann in den aktiven ZWEITEN Reiter, waehrend
+// `reloadFile` per `findIndex` nur den ERSTEN, sauberen Reiter je Pane
+// behandelt: stiller Reload statt Konflikt-Dialog, bei unveraenderter
+// dirty-Marke. Genau dieses Bild hat RB-03 am 2026-09-15 gezeigt (Datei auf
+// der Platte geschrieben, dirty-Reiter vorhanden, Dialog-Zaehler 0).
+//
+// Gemessen und belegt: Zwei Sendungen im selben Tick NACH dem Init-Ende
+// erzeugen reproduzierbar zwei Reiter und keinen Dialog (3 von 3 Laeufen);
+// dieselben zwei Sendungen VOR dem Init-Ende erzeugen einen Reiter und den
+// Dialog, weil der Sammel-Puffer sie sequentiell abarbeitet. Das Warten auf
+// `data-renderer-ready` beseitigt die Ueberlappung an der Wurzel, statt sie
+// mit einer Frist zu ueberdecken: Das Attribut steht erst nach `initDone`
+// (`app-init.js`), der Send geht danach direkt und genau einmal in
+// `openInPane`.
 async function oeffneImJuengstenFenster(app, page2, datei) {
-  await expect
-    .poll(
-      async () => {
-        await app.evaluate(({ BrowserWindow }, f) => {
-          const wins = BrowserWindow.getAllWindows();
-          wins.sort((a, b) => a.webContents.id - b.webContents.id);
-          const win = wins[wins.length - 1];
-          if (win && !win.isDestroyed()) win.webContents.send('file:openExternal', [f]);
-        }, datei);
-        return page2.locator(SEL.tabs0).count();
-      },
-      { timeout: 20000 },
-    )
-    .toBeGreaterThan(0);
+  await page2.waitForFunction(() => document.body.dataset.rendererReady === '1', undefined, {
+    timeout: 20000,
+  });
+  await app.evaluate(({ BrowserWindow }, f) => {
+    const wins = BrowserWindow.getAllWindows();
+    wins.sort((a, b) => a.webContents.id - b.webContents.id);
+    const win = wins[wins.length - 1];
+    if (win && !win.isDestroyed()) win.webContents.send('file:openExternal', [f]);
+  }, datei);
+  // Genau ein Reiter — die Zahl ist die Zusicherung, nicht bloss ein Anker:
+  // ein zweiter waere der Doppel-Oeffnungs-Fall von oben.
+  await expect(page2.locator(SEL.tabs0)).toHaveCount(1, { timeout: 20000 });
 }
 
 // Zweites Fenster derselben Applikation, mit der Aufgaben-Datei als Reiter.

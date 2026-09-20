@@ -48,6 +48,44 @@ async function istErreichbar(p) {
   }
 }
 
+// 4T-001739 (Epic 3E-000308, E7/E8): Die Zahl der in den Fenstern eines
+// Arbeitsbereichs geoeffneten Markdown-Dokumente, gerechnet aus der
+// Arbeitsbereichs-Ablage — derselbe Weg wie die Fenster-Zahl, und ausdruecklich
+// KEIN Eintrag im Kennzahlen-Beschleuniger.
+//
+// Grundlage sind die Pane-Schnappschuesse der abgelegten Fenster
+// (`app.windows[].panes[].paths[]`). Sie fuehren von Bauart her nur Reiter MIT
+// Pfad: `buildPanesSnapshot` im Anzeige-Prozess filtert pfadlose Reiter heraus,
+// und unbenannte Reiter, System-Seiten und Handbuch-Seiten sind pfadlos. Die
+// beiden Rand-Faelle «unbenannt» und «System-Seite» sind damit nicht durch eine
+// eigene Bedingung erledigt, sondern durch die Ablage selbst; die Pruefdatei
+// haelt beides fest, damit die Zusage nicht an einer fremden Bauart haengt,
+// ohne dass es jemand weiss.
+//
+// Was Markdown ist, entscheidet `isMarkdownPath` der Verdrahtung — dieselbe
+// Erkennung, die auch Start-Argumente, Bereichs-Scans und die Verweis-
+// Nachfuehrung benutzen. Eine zweite Endungs-Liste entsteht nicht (AK3).
+//
+// Gezaehlt werden GEOEFFNETE Reiter: Derselbe Pfad in zwei Fenstern zaehlt
+// zweimal, weil er zweimal offen ist. Die Zahl sagt, wie viel der
+// Arbeitsbereich traegt — das Gegenstueck zur Fenster-Zahl —, und nicht, wie
+// viele verschiedene Dateien er beruehrt; eine Entdopplung ueber Fenster
+// hinweg waere eine zweite Regel, die die Anzeige nicht erklaeren kann.
+function markdownReiterZahl(app, istMarkdownPfad) {
+  if (!app || !Array.isArray(app.windows)) return 0;
+  let zahl = 0;
+  for (const fenster of app.windows) {
+    const panes = fenster && Array.isArray(fenster.panes) ? fenster.panes : [];
+    for (const pane of panes) {
+      const pfade = pane && Array.isArray(pane.paths) ? pane.paths : [];
+      for (const pfad of pfade) {
+        if (typeof pfad === 'string' && pfad !== '' && istMarkdownPfad(pfad)) zahl += 1;
+      }
+    }
+  }
+  return zahl;
+}
+
 // Zuordnung Buch-Ordner -> eingetragenes Regal, aufgebaut aus den Buch-Listen
 // der EINGETRAGENEN Regale. Ein nicht erreichbares oder defektes Regal wird
 // uebersprungen (dann fehlt die Zuordnung, statt dass der Abruf scheitert).
@@ -76,9 +114,18 @@ async function regalZuordnung(entries) {
  * @param {(channel: string, ...args: any[]) => void} deps.broadcast Meldung an alle Fenster.
  * @param {object} deps.backlinks Index-Modul (Leser der Bereichs-Kennzahlen).
  * @param {(rootPath: string) => Promise<object|null>} deps.resolveAreaStartPage Start-Seite eines Bereichs.
+ * @param {(p: string) => boolean} deps.isMarkdownPath Markdown-Erkennung am Pfad (4T-001739).
  */
 function registerMemoryIpc(handle, deps) {
-  const { dialog, senderWindow, getStore, broadcast, backlinks, resolveAreaStartPage } = deps;
+  const {
+    dialog,
+    senderWindow,
+    getStore,
+    broadcast,
+    backlinks,
+    resolveAreaStartPage,
+    isMarkdownPath,
+  } = deps;
 
   const leseEintraege = () => normalizeMemoryEntries(getStore()?.get(STORE_KEY));
   const leseArbeitsbereiche = () => normalizeSavedWorkspaces(getStore()?.get('workspaces'));
@@ -150,6 +197,9 @@ function registerMemoryIpc(handle, deps) {
                 book: ws.app.book ? ws.app.book.dir : null,
                 shelf: ws.app.shelf ? ws.app.shelf.dir : null,
                 windows: ws.app.windows.length,
+                // 4T-001739: die zweite Zahl neben der Fenster-Zahl, aus
+                // derselben Quelle und in derselben Lesart (E7, E8).
+                documents: markdownReiterZahl(ws.app, isMarkdownPath),
                 lastOpenedAt: ws.lastOpenedAt,
               },
         shelfOf: eintrag.kind === 'book' ? zuordnung.get(eintrag.key) || null : null,

@@ -33,6 +33,8 @@
   "settings.pasteUrlAsLink.hint": "Quando è selezionato del testo e gli appunti contengono un singolo URL, Ctrl+V crea un link Markdown dalla selezione e dall'indirizzo invece di sostituire la selezione. Ctrl+Maiusc+V incolla sempre senza modifiche. Se l'opzione è disattivata, si applica l'incollaggio normale ovunque.",
   "settings.tabIndents.label": "Il tabulatore applica il rientro",
   "settings.tabIndents.hint": "Fuori da elenchi e tabelle, il tasto di tabulazione inserisce un rientro e Maiusc+Tab lo rimuove. Se l'opzione è disattivata, il focus di immissione passa al comando successivo. In elenchi e tabelle il tasto mantiene la propria funzione in entrambi i casi.",
+  "settings.cursorSprung.label": "Il cursore salta dopo il marcatore di elenco",
+  "settings.cursorSprung.hint": "Quando il tasto freccia destra porta dalla fine di una riga a una riga di elenco, il cursore si posiziona nel punto di scrittura, dopo il rientro, il marcatore e la casella dell'attività, invece che all'inizio della riga. Da lì la freccia sinistra torna carattere per carattere nel marcatore. Se l'opzione è disattivata, il tasto si comporta come in un normale editor di testo.",
   "settings.spellcheck.title": "Correzione ortografica",
   "settings.spellcheck.enabled": "Correzione ortografica attiva",
   "settings.spellcheck.hint": "Il controllo usa il correttore del sistema operativo e la lingua lì configurata; la lingua dell'interfaccia non ha alcun ruolo. Per questo un testo in un'altra lingua viene segnalato per intero. La lingua di controllo si cambia nelle impostazioni di lingua del sistema operativo.",

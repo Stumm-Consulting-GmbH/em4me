@@ -34,7 +34,9 @@ Cada fila lleva una marca de tiempo y una breve selección: en un área el núme
 
 **Las cifras no se mantienen al día de forma continua.** Se recopilan al añadir el contenedor y después solo cuando usted lo pide: «Volver a recopilar» lee el contenedor de nuevo y fija una nueva marca de tiempo. Por eso la marca figura en cada fila: dice a qué momento se refieren las cifras. Quien haya trabajado una semana en un área ve aquí primero las cifras de la semana anterior; un clic las pone al día de hoy.
 
-Un **espacio de trabajo** no tiene cifras clave ni botón de recopilación: no es una carpeta, sino una composición. Lo que compone figura en su fila y en la vista de detalle.
+Un **espacio de trabajo** no tiene cifras clave ni botón de recopilación: no es una carpeta, sino una composición. Lo que compone figura en su fila y en la vista de detalle: los contenedores a los que está vinculado, el número de sus ventanas y el número de **documentos abiertos** en ellas.
+
+**Se cuentan documentos abiertos, no archivos de una carpeta.** La cifra dice cuántos documentos Markdown tiene abiertos el espacio de trabajo en sus ventanas; se cuenta por ventana. Las pestañas sin título, las páginas del manual y del sistema y los demás tipos de archivo no cuentan. Ambas cifras proceden del registro del espacio de trabajo y por eso figuran igual para uno cerrado que para uno abierto; un cero es ahí un cero contado como cualquier otro.
 
 ### Un contenedor que ahora no está accesible
 
@@ -55,7 +57,7 @@ Para esta página **no** se construye un índice a propósito. Eso costaría un 
 | Área | archivos Markdown, otros archivos, carpetas, almacenamiento ocupado, etiquetas, tareas, archivos sin enlace entrante |
 | Libro | capítulos, archivos Markdown, almacenamiento ocupado, estantería a la que pertenece |
 | Estantería | libros, de ellos no encontrados, archivos Markdown, almacenamiento ocupado |
-| Espacio de trabajo | área, libro, estantería, ventanas, último uso |
+| Espacio de trabajo | área, libro, estantería, ventanas, documentos abiertos, último uso |
 
 **Dos clases de vacío, dos signos.** «no disponible» significa: nadie ha recopilado esa cifra — las etiquetas de un área no abierta, por ejemplo. La raya significa: aquí esa cosa no existe en absoluto — el libro de un espacio de trabajo que no lleva ninguno, por ejemplo. **Un cero nunca sustituye a ninguno de los dos**; siempre es un cero contado, y un área sin subcarpetas lo muestra con razón.
 

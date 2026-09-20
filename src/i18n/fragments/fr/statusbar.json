@@ -31,5 +31,16 @@
   "statusbar.scrollSync.on": "Synchronisation du défilement : activée (cliquer pour désactiver)",
   "statusbar.scrollSync.off": "Synchronisation du défilement : désactivée (cliquer pour activer)",
   "statusbar.persistFailed": "Le paramètre n'a pas pu être enregistré",
-  "statusbar.viewToggleYamlError": "Frontmatter invalide, le réglage d'affichage ne peut pas être écrit"
+  "statusbar.viewToggleYamlError": "Frontmatter invalide, le réglage d'affichage ne peut pas être écrit",
+  "statusbar.collapse.left": "Autres éléments de la barre d'état (à gauche)",
+  "statusbar.collapse.right": "Autres éléments de la barre d'état (à droite)",
+  "settings.statusbar.title": "Barre d'état",
+  "settings.statusbar.collapseMode": "Repliement",
+  "settings.statusbar.collapseMode.auto": "Automatiquement quand la place manque",
+  "settings.statusbar.collapseMode.always": "Toujours replié",
+  "settings.statusbar.collapseMode.hint": "Avec «Automatiquement quand la place manque», les boutons de la barre d'état ne passent dans les deux menus situés à ses extrémités que lorsque la place ne suffit plus. Avec «Toujours replié», ils restent dans ces menus quelle que soit la largeur de la fenêtre. La zone des messages brefs reste visible dans les deux cas. Les modifications prennent effet avec Appliquer ou OK.",
+  "settings.statusbar.unavailableMode": "Boutons non utilisables",
+  "settings.statusbar.unavailableMode.blass": "Afficher en grisé",
+  "settings.statusbar.unavailableMode.ausgeblendet": "Masquer",
+  "settings.statusbar.unavailableMode.hint": "Certains boutons de la barre d'état ne peuvent rien faire sur le moment — par exemple les sélecteurs d'affichage tant que la page des réglages est au premier plan, ou le crayon d'édition lorsqu'aucun document n'est ouvert. Avec «Afficher en grisé», ils restent à leur place et sont visiblement désactivés. Avec «Masquer», ils disparaissent aussi longtemps qu'ils ne peuvent rien faire, puis reviennent à leur place ; la barre n'affiche alors que ce qui fonctionne. Un bouton décoché dans la liste des boutons par défaut reste absent dans les deux cas. Le menu Affichage reste inchangé. Les modifications prennent effet avec Appliquer ou OK."
 }

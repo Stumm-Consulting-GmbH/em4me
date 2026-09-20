@@ -14,6 +14,7 @@ import { removeBookmark } from './bookmarks-actions.js';
 import { BOOKMARK_ICON_FOLDER_CLOSED, cssEscape, renderBookmarks } from './bookmarks-render.js';
 import {
   SECTION_GENERAL,
+  bookmarkLabel,
   bookmarkSection,
   cloneSectionTree,
   collectSubtreeIds,
@@ -86,7 +87,9 @@ export function openBookmarkMoveDialog(sourceId, section) {
   // Source-Anzeige.
   const sourceEl = document.getElementById('bookmark-move-source');
   if (sourceEl) {
-    const label = node.type === 'folder' ? node.name || '' : node.displayName || '';
+    // 4T-001775 (Epic 3E-000304): dieselbe Beschriftung wie im Panel — sonst
+    // hiesse dasselbe Lesezeichen im Baum und im Verschieben-Dialog anders.
+    const label = node.type === 'folder' ? node.name || '' : bookmarkLabel(node);
     sourceEl.textContent = t('bookmarks.moveTo.sourceLabel').replace('{name}', label);
   }
   renderBookmarkMoveTree();

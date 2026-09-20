@@ -167,7 +167,10 @@ test.describe('TZ-04: Umbenennen über die Titelzeile', () => {
       await page.keyboard.press('Enter');
       // Kein Modal (Vorschau/Bericht entfallen im Titelzeilen-Fluss);
       // Tab-Titel und Titelzeile zeigen den neuen Namen.
-      await expect(page.locator(SEL.activeTab0)).toContainText('C.md');
+      // 4T-001724 (Epic 3E-000304): Seit der Kuerzung der Markdown-Endung
+      // stehen Reiter und Titelzeile in derselben Form; genau geprueft, weil
+      // ein blosses «enthaelt C» auch auf 'C.md' zutraefe.
+      await expect(page.locator(`${SEL.activeTab0} .tab-title`)).toHaveText('C');
       await expect(page.locator(SEL.titleLineRenderedText0)).toHaveText('C');
       // Disk: Datei, .mdd-Begleitdatei und Unterseiten-Kaskade.
       // 4T-000874: Die Unterseite folgt der Haupt-Datei erst im zweiten Schritt
@@ -209,7 +212,8 @@ test.describe('TZ-05: Kollisions-Hinweis', () => {
       // Alt-Name bleibt erhalten, keine Datei-Änderung.
       await expect(page.locator(SEL.titleLineRenderedText0)).toHaveText('B');
       expect(fs.existsSync(bFile)).toBe(true);
-      await expect(page.locator(SEL.activeTab0)).toContainText('B.md');
+      // 4T-001724 (Epic 3E-000304): Reiter-Beschriftung ohne Markdown-Endung.
+      await expect(page.locator(`${SEL.activeTab0} .tab-title`)).toHaveText('B');
     } finally {
       await closeApp(app, userData, { force: true });
       cleanupDir(dir);

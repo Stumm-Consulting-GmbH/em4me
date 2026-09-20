@@ -2,6 +2,8 @@
 
 Wiki-Links, Anker, Embeds und Tags verbinden Markdown-Dateien zu einem Netz. Die Beispiele dieser Seite zeigen die Syntax; ihre Ziele existieren im Handbuch nicht, in eigenen Dateien öffnen die Links die Ziel-Datei als Tab.
 
+**Wie ein Link aussieht, hängt von der Ansicht ab.** In der Live-Ansicht ist er dauerhaft unterstrichen, damit beim Schreiben ohne Überfahren mit der Maus zu sehen ist, dass hinter einem Text ein Link steht; die gerenderte Ansicht unterstreicht ihn erst beim Überfahren. Einzelheiten stehen auf der Seite [Ansichten und Darstellung](views-display.md).
+
 ## Wiki-Links
 
 `[[Ziel]]` verlinkt eine Datei über ihren Namen, ohne Pfad und ohne Endung; gesucht wird im Ordner der Datei und bis zu zwei Unterordner-Ebenen tief. Die `.md`-Endung darf entfallen oder mitgeschrieben werden.
@@ -154,7 +156,7 @@ Die Übernahme eines Datei- oder Zweitnamen-Vorschlags schreibt die schließende
 
 ## Sidebars zum Netz
 
-Drei Sidebar-Sektionen zeigen das Netz der aktiven Datei: **Backlinks** (eingehende Links, inklusive „via Alias"), **Outgoing-Links** (alle ausgehenden Verweise in Dokument-Reihenfolge) und **Tags** (alle Tags des Suchraums mit Häufigkeit). Zugänge stehen in der [Funktions-Tabelle](functions.md).
+Drei Sidebar-Sektionen zeigen das Netz der aktiven Datei: **Backlinks** (eingehende Links, inklusive „via Alias"), **Outgoing-Links** (alle ausgehenden Verweise in Dokument-Reihenfolge) und **Tags** (alle Tags des Suchraums mit Häufigkeit). Zugänge stehen in der [Funktions-Tabelle](functions.md). Backlinks und Tags nennen ihre Dateien ohne die Markdown-Endung und führen den vollständigen Pfad im Kurzhinweis; die Outgoing-Links zeigen die Verweis-Angabe so, wie sie im Dokument steht.
 
 ## Adresse in eine Auswahl einfügen
 

@@ -253,6 +253,26 @@
   color: var(--fg-muted);
   font-size: 12px;
 }
+/* 4T-001753 (Epic 3E-000308): Die beiden Verschiebe-Knoepfe der Reihenfolge.
+   Schmal, weil ihr Inhalt ein einzelnes Pfeil-Zeichen ist (die Beschriftung
+   tragen title und aria-label). Der abgeblendete Zustand am Rand der Liste
+   braucht hier NICHTS: Die Knoepfe tragen die Klasse .btn, und deren
+   Regel .btn:disabled in styles.css setzt Deckkraft und Zeiger bereits. */
+.workspace-row .btn.workspace-move {
+  padding-left: 8px;
+  padding-right: 8px;
+  line-height: 1;
+}
+/* 4T-001737 (Epic 3E-000308): Zeile der Bereichs-Zuordnung mit dem vollen
+   Pfad. Sie darf die Zeile nicht breiter machen als der Name — deshalb
+   dieselbe Ellipsen-Behandlung; der ganze Pfad steht im title-Attribut. */
+.workspace-row-path {
+  color: var(--fg-muted);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 /* Drop-Indikator und Gruppen-Unterstreichung kombiniert (die spaetere
    tab-grouped-Regel wuerde den Indikator sonst verdraengen). */

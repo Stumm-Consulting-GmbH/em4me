@@ -7,6 +7,9 @@
 'use strict';
 
 import { pathCompareKey } from '../../../shared/platform.js';
+// 4T-001775 (Epic 3E-000304): Beschriftung ohne Markdown-Endung aus der
+// gemeinsamen Quelle; siehe Kommentar an `chapterLabel`.
+import { fileLabelFromBasename } from '../../../shared/subpages.js';
 
 // Eigener Datentyp des Zuges (Muster BOOKMARK_DND_MIME): Datei-Drops aus dem
 // Explorer und Reiter-Züge tragen ihn nicht und werden so nie als
@@ -64,12 +67,20 @@ export function readingTarget(readingOrder, currentChapter, direction) {
 
 // Beschriftung eines Eintrags: Dateiname ohne Ordner und ohne Endung. Den
 // vollen buch-relativen Pfad trägt der Tooltip der Zeile.
+//
+// 4T-001775 (Epic 3E-000304, Entscheidung des Product Owners vom 2026-09-17):
+// Gekürzt wird über die gemeinsame Funktion statt über eine eigene Regel. Die
+// hiesige Fassung kannte allein `.md`; ein Kapitel `Hafen.markdown` behielt
+// seine Endung, während der Reiter derselben Datei sie längst nicht mehr trägt.
+// Die Endungs-Liste steht damit auch für dieses Panel an der einen Stelle
+// (Epic-Entscheidung E3), und der Rückfall auf den vollen Namen bleibt, wie er
+// war — er liegt jetzt in der gemeinsamen Funktion.
 export function chapterLabel(relPath) {
   const name = String(relPath || '')
     .replace(/\\/g, '/')
     .split('/')
     .pop();
-  return name.replace(/\.md$/i, '') || name;
+  return fileLabelFromBasename(name);
 }
 
 // --- Struktur-Pflege: reine Ziel-Berechnung (4T-000845) -------------------------

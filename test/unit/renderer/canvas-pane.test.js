@@ -589,7 +589,21 @@ describe('Canvas-Modus: nur bei vorhandener Fläche auswählbar (4T-001653)', ()
     // Die Schalter-Gruppe steht mittig in der Statusleiste und wechselte sonst
     // bei jedem Reiter-Wechsel ihre Breite. 4T-001656: Ausgeblendet wird nach
     // dem Erweiterungs-Schalter und nach nichts sonst.
-    expect(tabs).toMatch(/b\.dataset\.view === 'canvas' && !canvasVerfuegbar/);
+    //
+    // 4T-001765 (Epic 3E-000186, E6): Das Urteil formuliert die Leiste nicht
+    // mehr selbst — sie reicht jeden Ansichts-Schalter samt seinem Kommando an
+    // die gemeinsame Funktion, und für die Arbeitsfläche ist das
+    // `view.modeCanvas` mit der Katalog-Bedingung `canvasAnsicht` (weiter
+    // unten gegen den Katalog geprüft). Die Aussage dieses Falls wird dadurch
+    // stärker, nicht schwächer: Schaltfläche und Menü-Eintrag werten jetzt
+    // wörtlich dieselbe Bedingung aus.
+    expect(tabs).toMatch(/setzeLeistenSchalter\(\s*b,\s*ANSICHTS_KOMMANDOS\[b\.dataset\.view\]/);
+    expect(lies('src/renderer/modules/statusbar-availability.js')).toContain(
+      "canvas: 'view.modeCanvas'",
+    );
+    // Deaktiviert, nicht ausgeblendet: Das `hidden`-Attribut hängt weiter
+    // allein am Erweiterungs-Schalter, und die Verfügbarkeit rührt es nicht an.
+    expect(tabs).toMatch(/b\.hidden = !canvasErweiterungAn/);
     expect(tabs).not.toMatch(/b\.hidden = !canvasVerfuegbar/);
     expect(tabs).toContain('canvasTab: istCanvasModusVerfuegbar(tab)');
     expect(lies('src/main/menu/menu-state.js')).toContain('canvasTab: !!b.canvasTab');

@@ -31,5 +31,16 @@
   "statusbar.scrollSync.on": "Sincronización de desplazamiento: activada (clic para desactivar)",
   "statusbar.scrollSync.off": "Sincronización de desplazamiento: desactivada (clic para activar)",
   "statusbar.persistFailed": "No se pudo guardar el ajuste",
-  "statusbar.viewToggleYamlError": "Frontmatter no válido, no se puede escribir el ajuste de vista"
+  "statusbar.viewToggleYamlError": "Frontmatter no válido, no se puede escribir el ajuste de vista",
+  "statusbar.collapse.left": "Más elementos de la barra de estado (izquierda)",
+  "statusbar.collapse.right": "Más elementos de la barra de estado (derecha)",
+  "settings.statusbar.title": "Barra de estado",
+  "settings.statusbar.collapseMode": "Plegado",
+  "settings.statusbar.collapseMode.auto": "Automáticamente cuando falta espacio",
+  "settings.statusbar.collapseMode.always": "Siempre plegada",
+  "settings.statusbar.collapseMode.hint": "Con «Automáticamente cuando falta espacio», los botones de la barra de estado pasan a los dos menús de sus extremos solo cuando el espacio ya no basta. Con «Siempre plegada» permanecen en esos menús con independencia del ancho de la ventana. La zona de los mensajes breves sigue visible en ambos casos. Los cambios surten efecto con Aplicar u OK.",
+  "settings.statusbar.unavailableMode": "Botones no utilizables",
+  "settings.statusbar.unavailableMode.blass": "Mostrar atenuados",
+  "settings.statusbar.unavailableMode.ausgeblendet": "Ocultar",
+  "settings.statusbar.unavailableMode.hint": "Algunos botones de la barra de estado no pueden hacer nada en este momento: por ejemplo los selectores de vista mientras la página de ajustes está delante, o el lápiz de edición cuando no hay ningún documento abierto. Con «Mostrar atenuados» permanecen en su sitio y se ven claramente desactivados. Con «Ocultar» desaparecen mientras no puedan hacer nada y después vuelven a su sitio; la barra muestra entonces solo lo que funciona. Un botón desmarcado en la lista de botones predeterminados sigue ausente en ambos casos. El menú Ver permanece sin cambios. Los cambios surten efecto con Aplicar u OK."
 }

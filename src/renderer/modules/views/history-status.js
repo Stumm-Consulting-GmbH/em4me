@@ -15,6 +15,8 @@
 import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { activeTab, contextMenu, getPaneEls, state } from '../app/app-state.js';
+import { rendererAvailabilityContext } from '../command-palette.js';
+import { setzeLeistenSchalter } from '../statusbar-availability.js';
 import {
   appendContextMenuItem,
   hideContextMenu,
@@ -42,14 +44,27 @@ export async function updateHistoryStatus() {
   const btn = historyButton();
   if (!btn) return;
   const tab = activeTab();
-  // System- und Handbuch-Seiten sind keine Dokumente.
-  if (!tab || tab.systemPage || tab.manualPage) {
-    btn.disabled = true;
+  // System- und Handbuch-Seiten sind keine Dokumente. 4T-001765 (Epic
+  // 3E-000186, E6): Die Bedingung dafür steht seither nicht mehr hier, sondern
+  // im Verfügbarkeits-Modell — über das Kommando `history.open` und dessen
+  // Bedingung `fileTab`, die wörtlich dieselbe Regel trägt. Die gemeinsame
+  // Funktion setzt `disabled` und, bei Wert «ausblenden», die Klasse, die den
+  // Schalter aus der Leiste nimmt.
+  const kontext = rendererAvailabilityContext();
+  // Der Abfrage-Zähler wird VOR der Verfügbarkeits-Prüfung erhöht, und das ist
+  // eine Behebung: Bis hierher zählte nur der Weg mit Abfrage, und der
+  // Ausstieg ohne Dokument blieb stumm. Eine langsame Antwort für das vorige
+  // Dokument setzte danach `disabled = false` zurück, obwohl inzwischen eine
+  // System-Seite vorn lag — der Schalter stand dort bedienbar da (4T-001765,
+  // Befund der eigenen Prüffälle; im Bestand seit 4T-000332 latent, weil
+  // niemand auf der Einstellungs-Seite nach der Historie sah). Mit dem
+  // Zähler-Schritt an dieser Stelle verwirft die alte Antwort sich selbst.
+  const seq = ++requestSeq;
+  if (!setzeLeistenSchalter(btn, 'history.open', kontext)) {
     btn.classList.remove('active', 'paused');
     btn.title = t('statusbar.history.inactive').replace('{source}', t('history.source.app'));
     return;
   }
-  const seq = ++requestSeq;
   let info;
   try {
     info = await api.getHistoryState(tab.path || null, tab.content || '');
@@ -57,7 +72,10 @@ export async function updateHistoryStatus() {
     return;
   }
   if (seq !== requestSeq) return; // veraltete Antwort
-  btn.disabled = false;
+  // Zustand und Darstellung noch einmal über die gemeinsame Funktion setzen:
+  // Die Abfrage lief asynchron, und der Aufruf ist mit demselben Kontext ein
+  // No-op mit demselben Ergebnis wie oben (statt eines eigenen `disabled`).
+  setzeLeistenSchalter(btn, 'history.open', kontext);
   const sourceLabel = t(`history.source.${info.source}`);
   let stateKey;
   if (info.effective && !info.suspended) {

@@ -4,7 +4,7 @@ The app organizes your work on three levels: **applications** (independent worki
 
 ## Applications
 
-The program can be started multiple times: each additional start of the program file creates a new application — an independent working context with its own windows and its own window numbering. "File → New application" does the same.
+The program can be started multiple times: each additional start of the program file creates a new application — an independent working context with its own windows and its own window numbering. "File → New application" does the same. Another **window** of the same application, by contrast, comes from "File → New window"; the "Windows" section sets the two apart.
 
 All applications run in one shared program process and share the settings. Session restore (Help → Restore Session) reopens all applications with their windows and tabs on the next launch.
 
@@ -19,6 +19,12 @@ Turn it off under "Settings → Behavior" with "Keep unsaved new documents on qu
 ## Windows
 
 Within an application you can open any number of windows: via the tab context menu ("Move to" / "Copy to" → "New window") a tab moves into a new window of the same application. With several windows open, the submenu lists all other windows as targets; as soon as several applications are running, the target entries carry the application context.
+
+**"File → New window" opens an empty second window** of the same application — without a document having to be open first. It inherits everything that belongs to the application: its binding to a folder, its workspace and its session. Its title carries the window suffix according to the scheme below, tabs can be moved between it and the other windows of the application, and it returns with session restore like any other window.
+
+**The difference from "New application" is the context.** A new window stays in the running context and shares its binding, workspace and session; a new application starts one of its own — with its own binding, its own window numbering and its own title. If all you want is a second surface for the same work, take "New window"; that is why the entry stands **before** "New application" in the File menu.
+
+The same function is available as a command in the command palette and can be given a shortcut under Settings → Keyboard shortcuts; there is no default binding.
 
 ## Position of new tabs
 
@@ -51,13 +57,22 @@ Several tabs can be selected at once and then moved in a single step.
 - **Context menu:** the group entries act on the selection as soon as the clicked tab belongs to it. Entries that mean exactly one file — rename, bookmark, move or copy to a window — stay with the clicked tab, as does middle-click to close.
 - **End of the selection:** a click without a modifier key, switching the column, or closing the session. The selection belongs to a single tab bar and is not saved.
 
+## Tab labels
+
+A tab is labelled with the file name **without its Markdown extension**: `Concept.md` becomes `Concept`. Markdown is the default format of the application, and repeating its extension on every tab costs space exactly where space is scarce — with many open documents, the tab strip shortens the labels first. All extensions treated as Markdown are dropped, not only `.md`.
+
+- **Other file types keep their extension.** If you have opened a file with a different extension, the tab shows it.
+- **Only the display is shortened.** The file, its path, saving and renaming all keep working with the complete name, and the tooltip on the tab still shows the full path — for two files of the same name from different folders, it is what tells them apart.
+- **The same label in three places.** The tab, the member list of a collapsed group and the window title all draw on the same source and therefore always read alike; the title line above the document uses the same form.
+- **The sidebar panels use the same form.** In the area file list, in the backlinks, in the bookmarks, in the reminders and in the file list of a tag, a Markdown file stands without its extension, and everywhere the tooltip gives the complete path.
+
 ## Tab shape
 
 Tabs and group headers have either square or rounded top corners (File → Settings… → Appearance). When rounded, a narrow gap replaces the vertical separator between tabs; the active-tab marker, the group color bars and the active-column indicator stay unchanged. The setting applies to the whole application and takes effect immediately in all open windows.
 
 ## Title system
 
-The window title shows in parentheses where a window belongs — only as much as necessary:
+Before the parentheses stands the name of the active document, without its Markdown extension just as on the tab. The window title shows in parentheses where a window belongs — only as much as necessary:
 
 | Situation | Title suffix |
 |---|---|
@@ -96,13 +111,17 @@ In an area application the search scope for backlinks, tags, autocomplete and th
 
 ### Area panel
 
-The "Area" panel shows the area as a folder structure in the sidebar (dockable left or right like any panel; the switch is the folder icon in the status bar or View → Sidebar → Panels → Area): the folder tree on top, below it the Markdown files of the selected folder; other file types do not appear. Clicking a file opens it as a tab, all entries show the full path as a tooltip, and external changes (file created, deleted, renamed) appear automatically. The "+" button at the head of the file list creates a new Markdown file in the selected folder and opens it. In a freshly opened, still empty area application the panel is visible automatically.
+The "Area" panel shows the area as a folder structure in the sidebar (dockable left or right like any panel; the switch is the folder icon in the status bar or View → Sidebar → Panels → Area): the folder tree on top, below it the Markdown files of the selected folder; other file types do not appear. A file row carries its name without the Markdown extension, the same form as on the tab: `Concept.md` becomes `Concept`; two files whose names differ only in their Markdown extension are told apart by the tooltip. Clicking a file opens it as a tab, all entries show the full path as a tooltip, and external changes (file created, deleted, renamed) appear automatically. The "+" button at the head of the file list creates a new Markdown file in the selected folder and opens it. In a freshly opened, still empty area application the panel is visible automatically.
 
 ### File management in the area panel
 
 The context menu manages the file tree without leaving the application. A **folder row** offers two entries: **New subfolder…** and **New Markdown file…**. Both ask for the name in place — the folder name in a row below the folder you clicked, the file name at the top of the file list — and create the item in the folder **you clicked**, even if a different one is currently selected. A file name without an extension gets the Markdown extension added; the new file is opened and passes through the folder rule for templates like any other creation. A name already taken, a name the file system does not allow and an empty name are reported before anything is created; Escape cancels and leaves nothing behind.
 
-A **file row** offers **Rename…** and **Delete…** at the end of the menu, set apart from the entries above.
+A **file row** offers **Copy**, **Rename…** and **Delete…** at the end of the menu, set apart from the entries above. They are ordered by increasing intervention: copying leaves the template untouched, renaming changes its name, deleting takes it away.
+
+**Copy** immediately creates a copy in the same folder — without a confirmation and without a name dialog, which is why the entry carries no ellipsis. The name is that of the template plus a hyphen and a running number **before** the extension: `Konzept.md` becomes `Konzept-1.md`, the next time `Konzept-2.md`. The next **free** number is used each time so that no existing file is overwritten; if the template is already numbered, the number is appended rather than counted up — `Konzept-1.md` becomes `Konzept-1-1.md` and not `Konzept-2.md`. To give the copy another name, rename it with the entry below.
+
+**The block properties of the template and its document note travel along, its change history does not.** The copy is therefore complete in content and starts new in history: it tells no story it does not have. It appears in the file list at its sort position right away and is **not** opened — you open it when you need it. Copying always goes into the folder of the template and therefore stays inside the area. A **split document** is not copied; a message says so, because a copy of its head file would claim the same continuation parts as the original. If copying fails, a message appears and no half copy is left behind.
 
 **Renaming** is the same path as through the menu, with the same update of internal links and the same preview of the affected places. The only difference is what it applies to: here any file of the area, including one that is not open, instead of only the open one. If the file is open and has unsaved changes, it is saved first; its tab then shows the new name.
 
@@ -112,7 +131,7 @@ If the file is open, its tab is closed; unsaved changes go through the usual sav
 
 **Links pointing to a deleted file are not adjusted.** Unlike renaming, there is no replacement target; the links remain and become broken links. This is intended and not a malfunction: a broken link shows that something used to be there and can be resolved deliberately.
 
-Renaming and deleting **folders** as well as moving files are not part of the scope yet; the file manager of the operating system remains the place for that.
+Renaming, deleting and copying **folders** as well as moving files are not part of the scope yet; the file manager of the operating system remains the place for that.
 
 ### Area statistics
 
@@ -144,6 +163,8 @@ The designation belongs to the area and travels with its folder. If the file is 
 
 A **workspace** is a named, permanently stored application: it comprises all of its windows with panes, tabs including their view settings, tab groups, an optional area binding and the unsaved drafts. An open workspace keeps its state up to date **automatically**, without any manual save step; when you reopen it, work continues exactly where it left off. Access: the submenu "File → Workspaces" with the list of all workspaces (the color dot also shows the state: filled = open, ring = closed) and the four actions below it; the same actions are available as commands in the command palette.
 
+**The list names the bound folder.** If a workspace is bound to a folder, its entry reads, on a single line, "Name — folder name". Only the name of the folder is given, not the whole path: a menu label is a single line, and a full path would burst any usable menu width — the management dialog shows it. A workspace **without** a binding carries only its name, without a separator and without a placeholder. Very long parts are shortened part by part, so that a long name does not take the space of the folder name. The binding is only shown; it can be neither set nor released, here or in the management dialog.
+
 **Area and workspace are two different things:** an *area* binds an application to a **folder** and limits its working space (see above). A *workspace* is a named, reopenable **window collection** — a stored working state. Both can be combined: a workspace whose application has an area bound carries that binding along in its stored entry.
 
 **Title bar color:** windows of an open workspace carry its color in the window title bar — a vivid variant in the light theme, a pastel palette variant in the dark theme, each with a matching title text color. The coloring follows the lifecycle: it appears on opening, changes immediately with the color in the management dialog, disappears on closing or deleting, and is dropped when the "Workspaces" extension is turned off. It requires Windows 11 and therefore does not apply under Linux; without this support the standard title bar remains, and the app is unaffected. The workspace itself, its color dot in the menu and the management dialog, and the window title are unchanged on every platform.
@@ -158,7 +179,11 @@ A **workspace** is a named, permanently stored application: it comprises all of 
 
 ### Management
 
-"Manage workspaces…" opens a dialog with all workspaces: color dot, name, state (open or closed) and the time of the last opening. Each entry offers the actions **Open**, **Rename and color…** and **Delete**.
+"Manage workspaces…" opens a dialog with all workspaces: color dot, name, state (open or closed) and the time of the last opening; if a workspace is bound to a folder, its row additionally names that folder's **full path**. Each entry offers the actions **Open**, **Rename and color…** and **Delete**. The dialog does not name the book and the bookshelf of a workspace; they stand, with all the remaining information, on the [My Extended Memory](my-extended-memory.md) page.
+
+**The order is set here as well.** Every row carries two arrow buttons, "Move up" and "Move down"; each click moves the entry one position. The new order applies **immediately** and likewise in the submenu "File → Workspaces", it is stored right away and outlasts closing the dialog as well as restarting the application — there is no confirmation step. At the first entry "move up" is dimmed, at the last one "move down"; the buttons stay in place, so that a second click still means the same thing at the same spot on the screen. Both ways can be reached with the keyboard, and after the move the focus stays with the moved entry — so a workspace travels through the list in several strokes. Dragging with the mouse is not provided.
+
+A newly created workspace is appended at the **end**. There is no sorting by name, state or last opening: there is exactly one order, and it is the one you have set.
 
 ### Session restore and edge cases
 

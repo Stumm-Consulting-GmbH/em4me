@@ -97,6 +97,14 @@ Une ligne vide commence une nouvelle liste. Si elle naît de votre modification,
 
 La touche Entrée poursuit une liste et ajoute une puce, un numéro consécutif ou une case à cocher vide. Sur un sous-élément vide, elle désindente d'un niveau ; au niveau supérieur, elle termine la liste.
 
+### Le curseur au changement de ligne
+
+Lorsque le curseur se trouve en fin de ligne et que `Flèche droite` le fait passer à la ligne suivante, il se place à la position d'écriture, à condition que la ligne cible soit une ligne de liste : après l'indentation et le marqueur, et après la case d'état sur une ligne de tâche. Qui écrit en plan économise ainsi de deux à six frappes à chaque changement de ligne.
+
+Le marqueur reste accessible : depuis la position d'écriture, `Flèche gauche` continue caractère par caractère vers la gauche, d'abord dans le marqueur, puis dans l'indentation et enfin à la fin de la ligne précédente. `Maj+Flèche droite` sélectionne également caractère par caractère comme auparavant. Si la ligne cible ne porte pas de marqueur — une ligne de continuation d'un élément de liste, par exemple —, le curseur reste au début de la ligne comme auparavant.
+
+Le comportement s'applique dans les vues Source, Scindée et Live. Le paramètre « Le curseur saute après le marqueur de liste » (Fichier → Paramètres… → Comportement) le désactive ; il est actif d'origine, et lorsqu'il est désactivé, le curseur se déplace comme dans un éditeur de texte habituel.
+
 ## Tableaux
 
 Tableaux pipe avec ligne d'en-tête et ligne de séparation ; les deux-points dans la ligne de séparation contrôlent l'alignement. Pour des cellules-bloc multilignes, voir [Perspective Table](perspective-table.md) ; pour le confort de saisie, l'éditeur de tableaux (voir [Outils](tools.md)). Pour remanier des tableaux existants (déplacer, insérer et supprimer des lignes et des colonnes, alignement, transposition), utilisez le sous-menu **Tableau** dans le [Menu contextuel de l'éditeur](context-menu.md).

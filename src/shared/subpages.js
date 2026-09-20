@@ -111,8 +111,40 @@ function segmentValidationError(segment) {
 // logische Slash-Form uebersetzen. Die Endungs-Liste entspricht dem
 // Umbenennen-Fluss (views.js) und den akzeptierten Markdown-Endungen.
 const MD_EXTENSION_RE = /\.(md|markdown|mdown|mkd)$/i;
+
+// 4T-001724 (Epic 3E-000304): Die reine Endungs-Erkennung als eigene benannte
+// Funktion. Anlass ist die Reiter-Beschriftung: Sie braucht genau diesen
+// Schritt und NICHT die Uebersetzung des Unterseiten-Trennzeichens, die
+// displayTitleFromBasename zusaetzlich leistet. Eine zweite Endungs-Liste
+// daneben schliesst die Epic-Entscheidung E3 aus; deshalb wird der Schritt
+// hier herausgehoben, statt ihn zu wiederholen.
+//
+// Ein Name, der nur aus einer Endung besteht ('.md'), liefert die leere
+// Zeichenkette. Der Rueckfall auf den vollen Namen bleibt Sache des Aufrufers:
+// Die Titelzeile will ihn nicht (sie zeigt dort den Platzhalter), die
+// Reiter-Beschriftung will ihn (ein Reiter ohne Beschriftung waere unbedienbar).
+function stripMarkdownExtension(basenameWithExt) {
+  return String(basenameWithExt || '').replace(MD_EXTENSION_RE, '');
+}
+
+// 4T-001775 (Epic 3E-000304): Die Beschriftung eines DATEI-EINTRAGS — dieselbe
+// Kuerzung, aber mit dem Rueckfall auf den vollen Namen. Genau diese Form
+// brauchen zwei Anzeigen: die Reiter-Beschriftung (tabDisplayName) und die
+// Dateiliste des Bereichs-Panels. Der Rueckfall steht deshalb hier und nicht
+// zweimal bei den Aufrufern: Ein Eintrag ohne Beschriftung waere an beiden
+// Orten unbedienbar, und ein Name, der nur aus einer Endung besteht ('.md'),
+// erzeugte genau den. Die Titelzeile ruft weiterhin displayTitleFromBasename,
+// weil sie den leeren Fall mit ihrem Platzhalter beantwortet.
+//
+// Das Unterseiten-Trennzeichen bleibt unberuehrt; gekuerzt wird allein die
+// Endung (Epic-Entscheidung E3 — eine Endungs-Liste, nicht zwei).
+function fileLabelFromBasename(basenameWithExt) {
+  const basis = String(basenameWithExt || '');
+  return stripMarkdownExtension(basis) || basis;
+}
+
 function displayTitleFromBasename(basenameWithExt) {
-  return toLogicalName(String(basenameWithExt || '').replace(MD_EXTENSION_RE, ''));
+  return toLogicalName(stripMarkdownExtension(basenameWithExt));
 }
 
 // 4T-000646 (Epic 3E-000128): Anzeige-Zerlegung eines Datei-Basenames (mit oder
@@ -123,7 +155,7 @@ function displayTitleFromBasename(basenameWithExt) {
 // Titelzeile und den Umbenennen-Dialog, damit beide Bedienorte dieselbe
 // Grenze zwischen unveraenderlichem und aenderbarem Namensteil ziehen.
 function splitDisplayTitle(basenameWithExt) {
-  const base = String(basenameWithExt || '').replace(MD_EXTENSION_RE, '');
+  const base = stripMarkdownExtension(basenameWithExt);
   const parent = parentBasename(base);
   if (parent === null) return { prefix: '', segment: toLogicalName(base) };
   return { prefix: toLogicalName(parent) + '/', segment: lastSegment(base) };
@@ -157,6 +189,8 @@ module.exports = {
   expandRelativeTarget,
   segmentValidationError,
   basenameValidationError,
+  stripMarkdownExtension,
+  fileLabelFromBasename,
   displayTitleFromBasename,
   splitDisplayTitle,
 };

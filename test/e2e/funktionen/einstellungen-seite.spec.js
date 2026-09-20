@@ -58,6 +58,46 @@ async function openSettingsPageViaKeyboard(page) {
     .toBeGreaterThan(0);
 }
 
+// Derselbe Zugang, aber die Warte-Bedingung ist die **sichtbare**
+// Einstellungs-Seite statt der Zahl der Reiter.
+//
+// Der Helfer darüber misst einen Vorboten: «es gibt mindestens einen Reiter».
+// Für einen Fall, der ohne geöffnetes Dokument startet, fällt der Vorbote mit
+// dem Zustand zusammen, denn der erste Reiter ist dort die Einstellungs-Seite
+// selbst. Startet der Fall dagegen mit einem bereits geöffneten Dokument, ist
+// die Bedingung schon vor dem ersten Tastendruck erfüllt: Der Poll kehrt nach
+// genau einem Druck zurück, und geht dieser eine Druck an den noch nicht
+// registrierten Kommando-Dispatcher verloren, öffnet die Seite nie. Der
+// nachfolgende Sichtbarkeits-Anspruch läuft dann in sein Zeitlimit, während
+// das Seiten-DOM als verborgene System-Ansicht die ganze Zeit vorhanden ist —
+// das Fehlerbild «resolved to <div class="settings-page">, unexpected value
+// hidden».
+//
+// Betroffen ist deshalb genau ES-16: Er ist der einzige Fall dieser Datei, der
+// den Zugang **unmittelbar** nach einem Start mit Dokument ruft. Die übrigen
+// Fälle mit Dokument (ES-09, ES-10, ES-11, ES-14, ES-15) warten zuerst auf
+// dessen Reiter und arbeiten dann am Fenster. Gemessen am 2026-09-19: isoliert
+// 2 von 5 Läufen rot auf Windows, dazu je einmal rot im Windows- und im
+// Linux-Voll-Lauf der Release-Abnahme. Die Regel dahinter steht in
+// test/README.md, Stabilitätsregel 12: Gewartet wird auf den erwarteten
+// Zustand, nie auf dessen Vorboten.
+//
+// Dieser Helfer deckt die eine Hälfte des Falls, den verlorenen Tastendruck.
+// Die andere Hälfte deckt er NICHT und kann es nicht: Öffnet die Seite, bevor
+// das Dokument seinen Reiter hat, verdrängt dieser sie unmittelbar danach
+// wieder. Dagegen hilft nur die Reihenfolge — erst das Dokument, dann die
+// Seite —, und die steht deshalb im Fall selbst.
+//
+// Mehrfach-Druck ist wie oben durch die Einfach-Instanz pro Fenster gedeckt.
+async function openSettingsPageVisibleViaKeyboard(page) {
+  await expect
+    .poll(async () => {
+      await page.keyboard.press('Control+,');
+      return page.locator(SETTINGS_PAGE).isVisible();
+    })
+    .toBe(true);
+}
+
 test.describe('ES-01: Einstellungs-Seite öffnet als Tab', () => {
   test('Strg+, öffnet die Seite als Tab ohne Dirty-Marker', async () => {
     const { app, page, userData } = await launchApp();
@@ -146,7 +186,10 @@ test.describe('ES-05: Bereichsnavigation und Button-Leiste', () => {
       // gleichnamigen Erweiterung hinzu; sie ist im frischen Profil aktiv.
       // Der Fall war seit 4T-001048 rot und fiel erst am Abnahme-Gate auf, weil
       // die E2E-Suite ausserhalb der Commit- und Integrations-Gates liegt.
-      await expect(nav).toHaveCount(21);
+      // 4T-001580 (Epic 3E-000283): „Statusleiste" kommt als Kern-Bereich der
+      // Gruppe „Allgemein" hinzu (E4 des Epics, zwischen „Sidebar" und
+      // „Panel-Reihenfolge"); damit 22 statt 21 Eintraege.
+      await expect(nav).toHaveCount(22);
       // 4T-000889 (Epic 3E-000168): Die Einträge verteilen sich seither auf vier
       // mögliche Blöcke. Ohne gebundenen Bereich und ohne installierte
       // externe Erweiterung erscheinen zwei davon: „Allgemein" mit den
@@ -741,6 +784,59 @@ test.describe('ES-15: Hervorhebung der aktiven Zeile (Darstellung)', () => {
       await expect.poll(async () => opaque(await activeLineBg(page))).toBe(false);
     } finally {
       await closeApp(second.app, userData, { force: true });
+    }
+  });
+});
+
+// 4T-001576 (Epic 3E-000282): Schalter des Cursor-Sprungs im Bereich Verhalten
+// — AK1 (Zeile mit Beschriftung und Kurz-Erläuterung) und AK2 (Vorgabewert im
+// unberührten Auslieferungs-Zustand). Die Wirkung der Taste selbst prüft FB-18
+// in bearbeitung-und-ansicht.spec.js; das Verhalten in zwei offenen Fenstern
+// (AK4) und über den Neustart (AK5) bleibt der Handgriff an der gebauten
+// Programmdatei. Der Fall prüft das Bedienelement der Naht
+// `istCursorSprungAktiv()`, die Unit gegen den Zustand prüft.
+test.describe('ES-16: Schalter des Cursor-Sprungs (Verhalten)', () => {
+  test('Zeile mit Beschriftung und Erläuterung, Vorgabe eingeschaltet', async () => {
+    const { app, page, userData } = await launchApp({ args: [FRONTMATTER_FIXTURE] });
+    try {
+      // Erst den Reiter des über die Kommandozeile übergebenen Dokuments
+      // abwarten (Muster ES-09 bis ES-11, ES-14 und ES-15, die alle mit einem
+      // Dokument starten). Der Reiter entsteht asynchron; wer die
+      // Einstellungs-Seite davor öffnet, bekommt sie gleich darauf vom
+      // nachrückenden Dokument-Reiter verdrängt. Belegt am 2026-09-19 am
+      // Bildschirmfoto eines roten Laufs: Der Reiter «Einstellungen» steht an
+      // erster Stelle, aktiv und im Vordergrund ist «frontmatter».
+      await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+      await openSettingsPageVisibleViaKeyboard(page);
+      await expect(page.locator(SETTINGS_PAGE)).toBeVisible();
+      await page
+        .locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="behavior"]`)
+        .click();
+      const box = page.locator('#settings-cursor-sprung');
+      await expect(box).toBeVisible();
+      // AK2: Vorgabe «an» im frischen Profil (der Store trägt den Schlüssel
+      // nicht, der Schalter steht trotzdem auf ein).
+      await expect(box).toBeChecked();
+      // AK1: Beschriftung an der Zeile und Kurz-Erläuterung darunter, beide
+      // aus den Sprachdateien (die Prüf-App läuft auf Deutsch).
+      const row = page.locator(`${SETTINGS_PAGE} .settings-row:has(#settings-cursor-sprung)`);
+      await expect(row.locator('label')).toHaveText(
+        'Schreibmarke springt hinter den Listen-Marker',
+      );
+      const hint = row.locator('xpath=following-sibling::p[1]');
+      await expect(hint).toHaveClass(/settings-row-hint/);
+      await expect(hint).toContainText('Pfeil-rechts-Taste');
+      // Abschalten und übernehmen: der Schalter bleibt aus, der Tab schließt.
+      await box.uncheck();
+      await page.locator('#btn-settings-ok').click();
+      await expect(page.locator(SETTINGS_PAGE)).toBeHidden();
+      await openSettingsPageVisibleViaKeyboard(page);
+      await page
+        .locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="behavior"]`)
+        .click();
+      await expect(page.locator('#settings-cursor-sprung')).not.toBeChecked();
+    } finally {
+      await closeApp(app, userData);
     }
   });
 });

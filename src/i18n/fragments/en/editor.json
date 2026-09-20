@@ -33,6 +33,8 @@
   "settings.pasteUrlAsLink.hint": "When text is selected and the clipboard holds a single URL, Ctrl+V creates a Markdown link from the selection and address instead of replacing the selection. Ctrl+Shift+V always pastes unchanged. When the option is off, normal pasting applies everywhere.",
   "settings.tabIndents.label": "Tab key indents",
   "settings.tabIndents.hint": "Outside lists and tables, the Tab key inserts an indent and Shift+Tab removes it. When the option is off, the input focus moves to the next control instead. Inside lists and tables the key keeps its own meaning in both cases.",
+  "settings.cursorSprung.label": "Cursor jumps past the list marker",
+  "settings.cursorSprung.hint": "When the Right Arrow key moves from the end of a line into a list line, the cursor lands at the writing position behind indentation, marker and task checkbox instead of at the start of the line. From there the Left Arrow key moves back into the marker character by character. When the option is off, the key behaves as in a common text editor.",
   "settings.spellcheck.title": "Spell checking",
   "settings.spellcheck.enabled": "Spell checking active",
   "settings.spellcheck.hint": "Checking uses the spell checker of the operating system and the language configured there; the interface language plays no part. A text in another language is therefore marked throughout. The checking language is changed in the language settings of the operating system.",

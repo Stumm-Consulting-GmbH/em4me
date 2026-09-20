@@ -78,6 +78,18 @@ const MODAL = '#command-palette-modal';
 const FILTER = '#command-palette-filter';
 const PALETTE_ITEM = '.command-palette-item';
 
+// 4T-001775 (Epic 3E-000304): Die Dateiliste beschriftet ohne Markdown-Endung.
+// Gesucht wird EXAKT: Der Demo-Bestand traegt Unterseiten, und 'Milky Way' ist
+// nach der Kuerzung Teilstring von 'Milky Way∕Sun' — eine Teilstring-Suche
+// waere hier mehrdeutig. Sonderzeichen der regulaeren Ausdruecke werden
+// maskiert, weil die Namen aus dem Bestand kommen und nicht aus dem Test.
+function areaZeileExakt(section, dateiname) {
+  const muster = dateiname
+    .replace(/\.(md|markdown|mdown|mkd)$/i, '')
+    .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return section.locator('.area-file-row', { hasText: new RegExp(`^${muster}$`) });
+}
+
 function mkTempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-demo-e2e-'));
 }
@@ -191,7 +203,7 @@ test.describe('DA-03: Demo-Seiten sind linter-sauber (F-132)', () => {
 
       for (let i = 0; i < MD_PAGES.length; i++) {
         const name = MD_PAGES[i];
-        await section.locator('.area-file-row', { hasText: name }).first().click();
+        await areaZeileExakt(section, name).first().click();
         await expect(page.locator(SEL.tabs0)).toHaveCount(i + 1);
 
         // Quellcode-Ansicht: Lint-Lauf abwarten (300-ms-Debounce plus IPC),
@@ -223,7 +235,7 @@ test.describe('DA-04: Abfrage liefert Treffer aus der Demo-Area (F-132)', () => 
 
       const section = page.locator(AREA_SECTION);
       await expect(section).toBeVisible();
-      await section.locator('.area-file-row', { hasText: '08 Queries.md' }).first().click();
+      await areaZeileExakt(section, '08 Queries.md').first().click();
       // 4T-001366 (Epic 3E-000171): ZWEI Reiter, nicht einer — die Demo-Area traegt
       // seither eine Start-Seite (00 Welcome.md), die sich beim Oeffnen des
       // Bereichs von selbst zeigt; der Klick legt den zweiten daneben. Die

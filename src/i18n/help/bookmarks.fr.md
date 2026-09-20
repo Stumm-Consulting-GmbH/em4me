@@ -6,7 +6,7 @@ Les signets gardent à portée de main les fichiers souvent utilisés, quel que 
 
 Le panneau des signets se bascule comme tout panneau latéral : via l'étoile de la barre d'état, le menu Affichage → Barre latérale → Panneaux → Favoris (défaut `Ctrl+Maj+L`) ou un raccourci que vous attribuez vous-même. La bascule agit sur la colonne active ; côté, ordre et groupes d'onglets suivent les règles de la [barre latérale](sidebar.md). L'étoile de la barre d'état indique en outre si le fichier actif est déjà en signet.
 
-Un clic sur une entrée ouvre le fichier. Si un fichier en signet manque à l'emplacement attendu, l'entrée le signale au lieu de ne mener nulle part. Même à l'état vide de l'application, sans document ouvert, la liste reste utilisable, de sorte que les fichiers en signet peuvent être ouverts directement.
+Un clic sur une entrée ouvre le fichier. Si un fichier en signet manque à l'emplacement attendu, l'entrée le signale au lieu de ne mener nulle part. Même à l'état vide de l'application, sans document ouvert, la liste reste utilisable, de sorte que les fichiers en signet peuvent être ouverts directement. Une entrée porte le nom du fichier sans son extension Markdown, et l'info-bulle indique le chemin complet ; en revanche, un nom que vous avez choisi vous-même reste exactement tel que vous l'avez saisi.
 
 ## Deux sections : générale et liée à la zone
 

@@ -45,6 +45,7 @@ import { hideContextMenu, showContextMenuItems } from './dialogs/context-menu-ut
 // 4T-001341 (Epic 3E-000238): Die Modus-Liste kommt aus der einen Quelle.
 import { EDIT_VIEW_MODES } from './views/view-modes.js';
 import { paneEditors, updateWindowTitle } from './editor/editor.js';
+import { ladeEingabeSchalter } from './editor/editor-eingabe-schalter.js';
 // 4T-000581 (Epic 3E-000107): Store-Schluessel und Normalisierung des Schalters.
 import { SPELLCHECK_KEY, normalizeSpellcheckSetting } from '../../shared/spellcheck.js';
 import { loadOutlineSettings } from './panels/panel-outline.js';
@@ -90,6 +91,11 @@ import './settings/sidebar-settings.js';
 // 4T-000624 (Epic 3E-000119): benannte Sidebar-Varianten (Store-Laden beim
 // Start, Broadcast-Empfang, Kommando-Dialoge).
 import { initSidebarVariantsFromStore, refreshAreaVariants } from './sidebar-variants.js';
+// 4T-001580 (Epic 3E-000283): Einstellungs-Bereich „Statusleiste". Die
+// Position in der Navigations-Gruppe „Allgemein" entsteht aus dieser
+// Import-Reihenfolge — hinter „Sidebar", vor „Panel-Reihenfolge" (vorläufig;
+// der endgültige Platz hängt an der Entscheidung zu 4T-001581).
+import './settings/statusbar-settings.js';
 import './settings/panel-order-settings.js';
 // 4T-000327 (Epic 3E-000059): Bereichs-Panel (registriert sich beim Import an
 // der Sidebar-Registry).
@@ -148,6 +154,9 @@ import { initCommandPalette } from './command-palette.js';
 // und Hide-Liste; Bereich der Einstellungs-Seite registriert sich per
 // Import-Seiteneffekt (Muster panel-order-settings.js).
 import { initCommandPlacementFromStore, initCommandPlacementUi } from './command-placement.js';
+// 4T-001579 (Epic 3E-000283): Überlauf-Messung und Pull-up-Menüs der
+// Statusleiste.
+import { initStatusbarOverflow } from './statusbar-overflow.js';
 // 4T-000607 (Epic 3E-000114): Format-Toolbar — Store-Stand, Verdrahtung und
 // Neuaufbau beim Erweiterungs-Schalten.
 import { initFormatToolbarFromStore, initFormatToolbarUi } from './editor/format-toolbar.js';
@@ -393,14 +402,12 @@ async function init() {
   // Fenster-Aufbau).
   state.restoreSession = await api.getSetting('restoreSession');
   state.autoSave = !!(await api.getSetting('autoSave'));
-  // 4T-000603 (Epic 3E-000113): Schalter „URL beim Einfügen in eine Auswahl als
-  // Link" (Default an); der Editor-Paste-Handler liest state.pasteUrlAsLink
-  // synchron.
-  state.pasteUrlAsLink = (await api.getSetting('input.pasteUrlAsLink')) !== false;
-  // 4T-000656 (Epic 3E-000112): Tabulator rueckt ausserhalb von Listen und
-  // Tabellen ein (Default an); die Editor-Belegung liest state.tabIndents
-  // synchron, damit der Schalter ohne Rekonfiguration wirkt.
-  state.tabIndents = (await api.getSetting('input.tabIndents')) !== false;
+  // 4T-001576 (Epic 3E-000282): Die drei input.*-Schalter des Eingabe-Verhaltens
+  // im Editor (Tabulator aus 4T-000656, Cursor-Sprung aus diesem Vorgang, URL
+  // beim Einfügen aus 4T-000603) laden gebündelt im Editor-Modul; die Handler
+  // lesen sie synchron aus dem Zustand, damit sie ohne Rekonfiguration wirken.
+  // Begründung des Umzugs aus init() steht im Kopf jener Datei.
+  await ladeEingabeSchalter();
   // 4T-000581 (Epic 3E-000107): Schalter der Rechtschreibpruefung (Default aus).
   // Muss vor dem ersten createEditorState stehen, damit das
   // spellcheck-Compartment gleich mit dem richtigen Wert entsteht.
@@ -805,6 +812,16 @@ async function init() {
   // 4T-001759 (Epic 3E-000253): Anlauf der Datenbank-Übersicht für das frisch
   // gestartete Fenster; die Begründung steht an der Funktion.
   void zeigeUebersichtBeimBinden();
+  // 4T-001579 (Epic 3E-000283): Überlauf-Messung der Statusleiste verdrahten.
+  // Der Aufruf steht bewusst hier, nach applyAllLayouts() und dem
+  // Bereitschafts-Signal: Erst dann trägt die Leiste ihren tatsächlichen
+  // Bestand (Panel-Reihenfolge, Erweiterungs-Gates, Ausblend-Liste,
+  // Kommando-Buttons, Ansichts-Schalter des aktiven Reiters), und nur eine
+  // Messung am fertigen Bestand ist eine Aussage.
+  // 4T-001580: Der Aufruf ist seither asynchron — er lädt zuerst den
+  // persistierten Falt-Modus, damit die erste Messung ihn bereits sieht und
+  // die Leiste nicht sichtbar von ausgeklappt nach eingeklappt springt.
+  await initStatusbarOverflow();
   // 4T-000644 (Epic 3E-000127): Erststart-Anlauf der geführten Produkt-Tour. Der
   // Aufruf liegt bewusst NACH dem Bereitschafts-Signal, weil die Tour die
   // fertig gebundenen Bedienelemente hervorhebt und ihre Anker erst dann

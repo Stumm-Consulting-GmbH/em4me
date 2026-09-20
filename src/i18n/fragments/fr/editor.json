@@ -33,6 +33,8 @@
   "settings.pasteUrlAsLink.hint": "Lorsqu'un texte est sélectionné et que le presse-papiers contient une seule URL, Ctrl+V crée un lien Markdown à partir de la sélection et de l'adresse au lieu de remplacer la sélection. Ctrl+Maj+V colle toujours sans modification. Si l'option est désactivée, le collage normal s'applique partout.",
   "settings.tabIndents.label": "La touche de tabulation indente",
   "settings.tabIndents.hint": "Hors des listes et des tableaux, la touche de tabulation insère une indentation et Maj+Tab la supprime. Si l'option est désactivée, le focus de saisie passe à l'élément suivant. Dans les listes et les tableaux, la touche conserve sa propre fonction dans les deux cas.",
+  "settings.cursorSprung.label": "Le curseur saute après le marqueur de liste",
+  "settings.cursorSprung.hint": "Lorsque la flèche droite fait passer de la fin d'une ligne à une ligne de liste, le curseur se place à la position d'écriture, après l'indentation, le marqueur et la case de tâche, au lieu du début de la ligne. De là, la flèche gauche revient caractère par caractère dans le marqueur. Si l'option est désactivée, la touche se comporte comme dans un éditeur de texte habituel.",
   "settings.spellcheck.title": "Correcteur orthographique",
   "settings.spellcheck.enabled": "Correcteur orthographique actif",
   "settings.spellcheck.hint": "La vérification utilise le correcteur du système d'exploitation et la langue qui y est configurée ; la langue de l'interface n'entre pas en jeu. Un texte rédigé dans une autre langue est donc signalé d'un bout à l'autre. La langue de vérification se change dans les paramètres de langue du système d'exploitation.",

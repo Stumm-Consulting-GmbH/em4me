@@ -19,6 +19,9 @@
 // BP-08 (4T-001351): Löschen über das Kontextmenü — Rückfrage mit Namen,
 //        Abbruch, Zustimmung samt Reiter-Schluss, und der Abbruch der
 //        Speichern-Abfrage, der auch das Löschen unterbindet.
+// BP-09 (4T-001731): Kopieren über das Kontextmenü — Eintrag, Namensfindung,
+//        Sortier-Position, Inhalts-Gleichheit, kein geöffneter Reiter, und die
+//        Begleitdaten der Kopie (Block-Eigenschaften ja, Historie nein).
 // BP-04 (4T-000347): In einer Bereichs-App findet das Backlinks-Panel Verweise
 //        aus dem gesamten Bereichs-Baum (auch aus anderen Ordnern jenseits der
 //        bisherigen Tiefen-Grenze); die Quelldatei zeigt den Ordner relativ
@@ -33,6 +36,16 @@ const { launchApp, closeApp } = require('../helpers/app');
 // 4T-001351: Editor- und Reiter-Selektoren für den geänderten Reiter in BP-08.
 const { SEL } = require('../helpers/selectors');
 const { fuelleBis } = require('../helpers/eingabe');
+
+// 4T-001775 (Epic 3E-000304): Die Dateiliste beschriftet ihre Zeilen ohne
+// Markdown-Endung. Gesucht wird deshalb EXAKT und nicht als Teilstring: 'Ziel'
+// steckt auch in 'Zielort', und die Prüfung «der alte Eintrag ist
+// verschwunden» hätte nach dem Umbenennen am neuen Eintrag angeschlagen. Die
+// hier verwendeten Beschriftungen sind einfache Wörter ohne Sonderzeichen der
+// regulären Ausdrücke.
+function dateiZeile(section, beschriftung) {
+  return section.locator('.area-file-row', { hasText: new RegExp(`^${beschriftung}$`) });
+}
 
 function makeAreaTree() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-bp-'));
@@ -70,16 +83,18 @@ test.describe('BP-01: Bereichs-Panel (4T-000327)', () => {
       expect(await dirRows.nth(0).getAttribute('title')).toBe(dir);
       await expect(dirRows.nth(1)).toContainText('Unterordner');
 
+      // 4T-001775 (Epic 3E-000304): Die Beschriftung steht OHNE Markdown-
+      // Endung; der Kurzhinweis fuehrt weiter den vollen Pfad MIT Endung.
       const fileRows = section.locator('.area-file-row');
       await expect(fileRows).toHaveCount(2);
-      await expect(fileRows.nth(0)).toHaveText('alpha.md');
-      await expect(fileRows.nth(1)).toHaveText('beta.md');
+      await expect(fileRows.nth(0)).toHaveText('alpha');
+      await expect(fileRows.nth(1)).toHaveText('beta');
       expect(await fileRows.nth(0).getAttribute('title')).toBe(path.join(dir, 'alpha.md'));
 
       // Ordner-Klick wechselt die Dateiliste auf den Unterordner.
       await dirRows.nth(1).click();
       await expect(section.locator('.area-file-row')).toHaveCount(1);
-      await expect(section.locator('.area-file-row').first()).toHaveText('gamma.md');
+      await expect(section.locator('.area-file-row').first()).toHaveText('gamma');
       await expect(section.locator('.area-files-title')).toHaveText('Unterordner');
 
       // Datei-Klick öffnet den Tab.
@@ -117,7 +132,7 @@ test.describe('BP-02/BP-03: Watcher-Aktualisierung und neue Datei (4T-000328)', 
       // BP-02: extern angelegte Datei erscheint ohne manuelles Zutun.
       fs.writeFileSync(path.join(dir, 'delta.md'), '# Delta\n', 'utf8');
       await expect(section.locator('.area-file-row')).toHaveCount(3);
-      await expect(section.locator('.area-file-row').nth(2)).toHaveText('delta.md');
+      await expect(section.locator('.area-file-row').nth(2)).toHaveText('delta');
 
       // BP-03: neue Datei über den Kopf-Button anlegen (Endung wird ergänzt).
       await section.locator('.area-new-file-btn').click();
@@ -291,7 +306,7 @@ test.describe('BP-07: Umbenennen über das Kontextmenü (4T-001350)', () => {
       // Keine Datei ist geöffnet: der Umbenennen-Weg bekommt allein den Pfad.
       await expect(page.locator('.pane-group[data-pane="0"] .tabbar .tab')).toHaveCount(0);
 
-      await section.locator('.area-file-row', { hasText: 'Ziel.md' }).click({ button: 'right' });
+      await dateiZeile(section, 'Ziel').click({ button: 'right' });
       await page.locator('#context-menu [data-menu-id="area-file-rename"]').click();
       await expect(page.locator('#name-input-modal')).toBeVisible();
       await expect(page.locator('#name-input-field')).toHaveValue('Ziel');
@@ -313,8 +328,8 @@ test.describe('BP-07: Umbenennen über das Kontextmenü (4T-001350)', () => {
         .toContain('[[Zielort]]');
 
       // AK6: Das Panel zeigt den neuen Stand ohne Auffrischen von Hand.
-      await expect(section.locator('.area-file-row', { hasText: 'Zielort.md' })).toHaveCount(1);
-      await expect(section.locator('.area-file-row', { hasText: 'Ziel.md' })).toHaveCount(0);
+      await expect(dateiZeile(section, 'Zielort')).toHaveCount(1);
+      await expect(dateiZeile(section, 'Ziel')).toHaveCount(0);
 
       // AK8: Der Bestands-Index zieht nach — die Suche findet den angepassten
       // Verweis unter dem NEUEN Namen. Der Aufruf geht direkt an den
@@ -332,10 +347,10 @@ test.describe('BP-07: Umbenennen über das Kontextmenü (4T-001350)', () => {
         .toBeGreaterThan(0);
 
       // AK4: Ist die Datei geöffnet, zeigt ihr Reiter danach den neuen Namen.
-      await section.locator('.area-file-row', { hasText: 'Quelle.md' }).click();
+      await dateiZeile(section, 'Quelle').click();
       const tabTitel = page.locator('.pane-group[data-pane="0"] .tabbar .tab .tab-title');
       await expect(tabTitel).toHaveText(/Quelle/);
-      await section.locator('.area-file-row', { hasText: 'Quelle.md' }).click({ button: 'right' });
+      await dateiZeile(section, 'Quelle').click({ button: 'right' });
       await page.locator('#context-menu [data-menu-id="area-file-rename"]').click();
       await page.locator('#name-input-cb-updateLinks').uncheck();
       await page.locator('#name-input-field').fill('Ursprung');
@@ -391,7 +406,7 @@ test.describe('BP-08: Löschen über das Kontextmenü (4T-001351)', () => {
       // AK1/AK2: Der Eintrag ist da, die Rückfrage nennt den Dateinamen; die
       // Antwort „Abbrechen“ lässt Datei und Panel unberührt (Antwort 1).
       await stubLoeschDialoge(app, 1);
-      await section.locator('.area-file-row', { hasText: 'alpha.md' }).click({ button: 'right' });
+      await dateiZeile(section, 'alpha').click({ button: 'right' });
       await page.locator('#context-menu [data-menu-id="area-file-delete"]').click();
       await expect.poll(() => app.evaluate(() => globalThis.__trashCalls || 0)).toBe(1);
       expect(await app.evaluate(() => globalThis.__trashMessage)).toContain('alpha.md');
@@ -400,10 +415,10 @@ test.describe('BP-08: Löschen über das Kontextmenü (4T-001351)', () => {
 
       // AK5/AK7: Zustimmung (Antwort 0). Die Datei ist geöffnet — ihr Reiter
       // schließt sich, und das Panel zeigt den neuen Stand ohne Zutun.
-      await section.locator('.area-file-row', { hasText: 'alpha.md' }).click();
+      await dateiZeile(section, 'alpha').click();
       await expect(page.locator('.pane-group[data-pane="0"] .tabbar .tab')).toHaveCount(1);
       await stubLoeschDialoge(app, 0);
-      await section.locator('.area-file-row', { hasText: 'alpha.md' }).click({ button: 'right' });
+      await dateiZeile(section, 'alpha').click({ button: 'right' });
       await page.locator('#context-menu [data-menu-id="area-file-delete"]').click();
       await expect(page.locator('.pane-group[data-pane="0"] .tabbar .tab')).toHaveCount(0);
       await expect(section.locator('.area-file-row')).toHaveCount(2);
@@ -447,7 +462,7 @@ test.describe('BP-08: Löschen über das Kontextmenü (4T-001351)', () => {
       await expect(section).toBeVisible();
 
       // Datei öffnen und ändern, damit die Speichern-Abfrage greift.
-      await section.locator('.area-file-row', { hasText: 'alpha.md' }).click();
+      await dateiZeile(section, 'alpha').click();
       await expect(page.locator('.pane-group[data-pane="0"] .tabbar .tab')).toHaveCount(1);
       await page.locator(SEL.viewBtn('source')).click();
       await page.locator(SEL.btnEdit).click();
@@ -471,7 +486,7 @@ test.describe('BP-08: Löschen über das Kontextmenü (4T-001351)', () => {
           return { response: 2 }; // Speichern-Abfrage: Abbrechen
         };
       });
-      await section.locator('.area-file-row', { hasText: 'alpha.md' }).click({ button: 'right' });
+      await dateiZeile(section, 'alpha').click({ button: 'right' });
       await page.locator('#context-menu [data-menu-id="area-file-delete"]').click();
       await expect.poll(() => app.evaluate(() => globalThis.__trashCalls || 0)).toBe(1);
       await expect(page.locator('.pane-group[data-pane="0"] .tabbar .tab')).toHaveCount(1);
@@ -507,7 +522,7 @@ test.describe('BP-04: Bereichsweiter Link-Index (4T-000347)', () => {
 
       // In den Ordner "ziele" wechseln und Ziel.md oeffnen.
       await section.locator('.area-dir-row', { hasText: 'ziele' }).click();
-      await section.locator('.area-file-row', { hasText: 'Ziel.md' }).click();
+      await dateiZeile(section, 'Ziel').click();
       await expect(page.locator('.pane-group[data-pane="0"] .tabbar .tab')).toHaveCount(1);
 
       // Backlinks-Panel einblenden. Der bereichsweite Index findet die Quelle
@@ -517,11 +532,172 @@ test.describe('BP-04: Bereichsweiter Link-Index (4T-000347)', () => {
       await expect(bl).toBeVisible();
 
       const group = bl.locator('.backlinks-group').first();
-      await expect(group.locator('.backlinks-group-name')).toHaveText('Quelle.md', {
+      // 4T-001775 (Epic 3E-000304): Der Gruppen-Name steht ohne Markdown-Endung;
+      // der Kurzhinweis des Kopfes trägt weiter den vollen Pfad.
+      await expect(group.locator('.backlinks-group-name')).toHaveText('Quelle', {
         timeout: 15000,
       });
       // Zweizeilig: Ordner relativ zur Bereichs-Wurzel (nicht absolut).
       await expect(group.locator('.backlinks-group-dir')).toHaveText('quellen');
+      await expect(group.locator('.backlinks-group-header')).toHaveAttribute(
+        'title',
+        path.join(dir, 'quellen', 'Quelle.md'),
+      );
+    } finally {
+      await closeApp(app, userData);
+      removeDir(dir);
+    }
+  });
+});
+
+// BP-09 (4T-001731, Epic 3E-000306): Kopieren über das Kontextmenü einer
+// Datei-Zeile. Geprüft wird der Bedienweg als Ganzes — Eintrag vorhanden,
+// Kopie da, richtig benannt, an ihrer Sortier-Position, inhaltsgleich und
+// NICHT geöffnet.
+//
+// Der Weg braucht keinen Dialog und keinen Stub: Die Kopie entsteht ohne
+// Rückfrage (Entscheidung E5 des Epics), und die Namensfindung läuft im
+// Hauptprozess gegen das echte Dateisystem. Damit ist dies der Prüffall, der
+// die Kette vom Klick bis zur Datei tatsächlich durchmisst; die Randfälle der
+// Namensfindung liegen auf der Unit-Ebene (test/unit/area-kopieren.test.js).
+test.describe('BP-09: Kopieren über das Kontextmenü (4T-001731)', () => {
+  test('Eintrag, Name-1, nächste Nummer, nummerierte Vorlage, Sortier-Position, kein Reiter', async () => {
+    const { app, page, userData } = await launchApp();
+    const dir = makeAreaTree();
+    // 'alpha-10.md' liegt von Anfang an da: Erst damit belegt die Zeilen-
+    // Reihenfolge die NUMERISCHE Sortierung (alpha-2 vor alpha-10 und nicht
+    // dahinter, wie es eine reine Zeichen-Sortierung ergäbe).
+    //
+    // **Zur erwarteten Reihenfolge**, damit sie niemand für einen Tippfehler
+    // hält: Die Vorlage steht HINTER ihren Kopien. `sortedAreaListing`
+    // (src/main/area/area-path.js) sortiert die Dateinamen MIT Endung, und der
+    // Kollator wertet den Bindestrich schwächer als den Punkt — 'alpha-1.md'
+    // liegt damit vor 'alpha.md'. Das ist Bestands-Verhalten des Panels und
+    // nicht Gegenstand dieses Tasks; der Prüffall hält es fest, statt es
+    // wegzurunden, und der Befund ist im Lösungs-Kapitel von 4T-001731
+    // verortet. Die Zusage des Epics ist davon unberührt und hier belegt:
+    // alpha-2 steht vor alpha-10.
+    fs.writeFileSync(path.join(dir, 'alpha-10.md'), '# Alpha zehn\n', 'utf8');
+    try {
+      await page.evaluate((p) => window.api.openAreaPath(p), dir);
+      const section = page.locator('.pane-group[data-pane="0"] .sidebar-area');
+      await expect(section).toBeVisible();
+      const zeilen = section.locator('.area-file-row');
+      await expect(zeilen).toHaveText(['alpha-10', 'alpha', 'beta']);
+
+      // AK1: Der Eintrag steht in der Datei-Verwaltungs-Gruppe, VOR dem
+      // Umbenennen — die Gruppe ist nach zunehmendem Eingriff geordnet.
+      await dateiZeile(section, 'alpha').click({ button: 'right' });
+      const menu = page.locator('#context-menu');
+      await expect(menu.locator('[data-menu-id="area-file-copy"]')).toBeVisible();
+      const verwaltung = menu.locator(
+        '[data-menu-id="area-file-copy"], [data-menu-id="area-file-rename"], [data-menu-id="area-file-delete"]',
+      );
+      await expect(verwaltung).toHaveCount(3);
+      await expect(verwaltung.nth(0)).toHaveAttribute('data-menu-id', 'area-file-copy');
+
+      // AK2/AK3/AK9: ein Klick, keine Rückfrage — die Kopie heißt 'alpha-1'
+      // und steht unmittelbar an ihrer Sortier-Position. Die Beschriftung
+      // führt keine Endung (4T-001775).
+      await menu.locator('[data-menu-id="area-file-copy"]').click();
+      await expect(zeilen).toHaveText(['alpha-1', 'alpha-10', 'alpha', 'beta']);
+      // Der Kurzhinweis nennt den vergebenen Namen MIT Endung.
+      await expect(page.locator('#statusbar-hint')).toContainText('alpha-1.md');
+
+      // AK2 (zweite Hälfte): Die Kopie wird nicht geöffnet. Es war vor dem
+      // Kopieren kein Reiter offen, und es ist danach keiner offen.
+      await expect(page.locator('.pane-group[data-pane="0"] .tabbar .tab')).toHaveCount(0);
+
+      // AK6: Inhalt und Endung stimmen mit der Vorlage überein.
+      expect(fs.readFileSync(path.join(dir, 'alpha-1.md'), 'utf8')).toBe('# Alpha\n');
+
+      // AK4: Die zweite Kopie derselben Vorlage nimmt die nächste freie
+      // Nummer; die erste bleibt unangetastet. Zugleich der Beleg der
+      // numerischen Sortierung: alpha-2 steht VOR alpha-10.
+      await dateiZeile(section, 'alpha').click({ button: 'right' });
+      await menu.locator('[data-menu-id="area-file-copy"]').click();
+      await expect(zeilen).toHaveText(['alpha-1', 'alpha-2', 'alpha-10', 'alpha', 'beta']);
+      expect(fs.readFileSync(path.join(dir, 'alpha-1.md'), 'utf8')).toBe('# Alpha\n');
+
+      // AK5: Aus einer bereits nummerierten Vorlage wird angehängt, nicht
+      // hochgezählt — 'alpha-1-1' und ausdrücklich nicht 'alpha-3'.
+      await dateiZeile(section, 'alpha-1').click({ button: 'right' });
+      await menu.locator('[data-menu-id="area-file-copy"]').click();
+      await expect(zeilen).toHaveText([
+        'alpha-1-1',
+        'alpha-1',
+        'alpha-2',
+        'alpha-10',
+        'alpha',
+        'beta',
+      ]);
+      expect(fs.existsSync(path.join(dir, 'alpha-3.md'))).toBe(false);
+
+      // AK12: Umbenennen und Löschen liegen unverändert daneben und greifen
+      // weiter — hier an der Kopie, damit auch sie ein gewöhnliches Dokument
+      // ist und kein Sonderfall.
+      await dateiZeile(section, 'alpha-1-1').click({ button: 'right' });
+      await menu.locator('[data-menu-id="area-file-rename"]').click();
+      await page.locator('#name-input-cb-updateLinks').uncheck();
+      await page.locator('#name-input-field').fill('Umbenannt');
+      await page.locator('#btn-name-input-ok').click();
+      await expect(page.locator('#name-input-modal')).toBeHidden();
+      await expect(zeilen).toHaveText([
+        'alpha-1',
+        'alpha-2',
+        'alpha-10',
+        'alpha',
+        'beta',
+        'Umbenannt',
+      ]);
+    } finally {
+      await closeApp(app, userData);
+      removeDir(dir);
+    }
+  });
+
+  test('Die Block-Eigenschaften reisen mit, die Historie nicht', async () => {
+    const { app, page, userData } = await launchApp();
+    const dir = makeAreaTree();
+    // Begleitdatei der Vorlage mit BEIDEM: Block-Eigenschaften und einem
+    // Historien-Anker. Nur so unterscheidet der Prüffall E2 von E3 — läge nur
+    // eines darin, wäre er auch bei der falschen Bauart grün.
+    fs.writeFileSync(
+      path.join(dir, 'alpha.mdd'),
+      JSON.stringify(
+        {
+          schemaVersion: 1,
+          history: {
+            anchors: [{ ts: '2026-01-01T00:00:00Z', baseSeq: 0, text: '# Alpha\n', hash: 'x' }],
+            packets: [],
+          },
+          blockData: { abc123: { values: { Status: 'offen' }, updated: '2026-01-01T00:00:00Z' } },
+        },
+        null,
+        2,
+      ) + '\n',
+      'utf8',
+    );
+    try {
+      await page.evaluate((p) => window.api.openAreaPath(p), dir);
+      const section = page.locator('.pane-group[data-pane="0"] .sidebar-area');
+      await expect(section).toBeVisible();
+      await expect(section.locator('.area-file-row')).toHaveText(['alpha', 'beta']);
+
+      await dateiZeile(section, 'alpha').click({ button: 'right' });
+      await page.locator('#context-menu [data-menu-id="area-file-copy"]').click();
+      await expect(section.locator('.area-file-row')).toHaveText(['alpha-1', 'alpha', 'beta']);
+
+      // AK7: Die Begleitdatei der Kopie trägt die Block-Eigenschaften und eine
+      // LEERE Historie.
+      const kopie = JSON.parse(fs.readFileSync(path.join(dir, 'alpha-1.mdd'), 'utf8'));
+      expect(kopie.blockData).toEqual({
+        abc123: { values: { Status: 'offen' }, updated: '2026-01-01T00:00:00Z' },
+      });
+      expect(kopie.history).toEqual({ anchors: [], packets: [] });
+      // Die Begleitdatei der Vorlage behält ihren Anker.
+      const vorlage = JSON.parse(fs.readFileSync(path.join(dir, 'alpha.mdd'), 'utf8'));
+      expect(vorlage.history.anchors).toHaveLength(1);
     } finally {
       await closeApp(app, userData);
       removeDir(dir);

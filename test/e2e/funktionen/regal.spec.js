@@ -95,7 +95,9 @@ function shelfState(page) {
 // das strikte Buch-Routing aus (Muster buch.spec.js, gepollt gegen ein noch
 // ladendes Fenster).
 async function openExternally(app, page, filePath) {
-  const name = path.basename(filePath);
+  // 4T-001724 (Epic 3E-000304): Der Reiter traegt den Namen ohne
+  // Markdown-Endung; verglichen wird deshalb die gekuerzte Form.
+  const name = path.basename(filePath).replace(/\.(md|markdown|mdown|mkd)$/i, '');
   await expect
     .poll(async () => {
       await app.evaluate(({ BrowserWindow }, file) => {
@@ -310,8 +312,10 @@ test.describe('RG-06: Buch öffnet aus der Ansicht als eigene Applikation (4T-00
       await expect.poll(() => app.windows().length).toBe(fensterVorher + 1);
       const page2 = app.windows().find((p) => p !== page);
       await expect
+        // 4T-001724 (Epic 3E-000304): Reiter ohne Markdown-Endung; der
+        // Buch-Zustand unten fuehrt den Dateinamen weiterhin voll.
         .poll(() => page2.locator(`${SEL.tabs0} .tab-title`).allTextContents())
-        .toContain('Reise nach Ithaka.md');
+        .toContain('Reise nach Ithaka');
       await expect
         .poll(async () => {
           const state = await page2.evaluate(() => window.api.books.getState());
@@ -385,8 +389,9 @@ test.describe('RG-08: Striktes Routing der Regal-Applikation (4T-000873)', () =>
       const buchSeite = app.windows().find((p) => p !== page);
       await expect.poll(() => buchSeite.title()).toContain('(Buch Reise nach Ithaka)');
       await expect
+        // 4T-001724 (Epic 3E-000304): Reiter ohne Markdown-Endung.
         .poll(() => buchSeite.locator(`${SEL.tabs0} .tab-title`).allTextContents())
-        .toContain('Kapitel 1.md');
+        .toContain('Kapitel 1');
       await expect
         .poll(async () => {
           const state = await buchSeite.evaluate(() => window.api.books.getState());
@@ -396,14 +401,14 @@ test.describe('RG-08: Striktes Routing der Regal-Applikation (4T-000873)', () =>
       // Im Regal-Fenster ist das Kapitel nicht (mehr) offen.
       await expect
         .poll(() => page.locator(`${SEL.tabs0} .tab-title`).allTextContents())
-        .not.toContain('Kapitel 1.md');
+        .not.toContain('Kapitel 1');
 
       // Gegenprobe: Die Regal-Datei selbst gehört zur Regal-Ebene und bleibt
       // im Regal-Fenster; kein weiteres Fenster entsteht.
       await sendeAnFenster(app, 'Bücherregal Bibliothek', path.join(shelfDir, 'Bibliothek.md'));
       await expect
         .poll(() => page.locator(`${SEL.tabs0} .tab-title`).allTextContents())
-        .toContain('Bibliothek.md');
+        .toContain('Bibliothek');
       expect(app.windows().length).toBe(fensterVorher + 1);
     } finally {
       await closeApp(app, userData, { force: true });

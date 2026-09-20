@@ -352,6 +352,14 @@ contextBridge.exposeInMainWorld('api', {
   // 4T-000855 (Epic 3E-000164): Multi-Window-Broadcast des Hoehen-Modells.
   onSidebarHeightModeChanged: (cb) =>
     ipcRenderer.on('sidebarHeightMode:changed', (_e, value) => cb(value)),
+  // 4T-001580 (Epic 3E-000283): Multi-Window-Broadcast des Falt-Modus der
+  // Statusleiste.
+  onStatusbarCollapseModeChanged: (cb) =>
+    ipcRenderer.on('statusbarCollapseMode:changed', (_e, value) => cb(value)),
+  // 4T-001765 (Epic 3E-000186): Multi-Window-Broadcast der Darstellung nicht
+  // aktivierbarer Schalter.
+  onStatusbarUnavailableModeChanged: (cb) =>
+    ipcRenderer.on('statusbarUnavailableMode:changed', (_e, value) => cb(value)),
 
   onTimerDue: (cb) => ipcRenderer.on('timer:due', (_e, payload) => cb(payload)),
   onClockTimersChanged: (cb) => ipcRenderer.on('clockTimers:changed', (_e, list) => cb(list)),
@@ -419,6 +427,9 @@ contextBridge.exposeInMainWorld('api', {
   // scripts.run (Skript-Bloecke ausfuehren).
   onPerspectiveScriptsChanged: (cb) =>
     ipcRenderer.on('perspectiveScripts:changed', (_e, enabled) => cb(enabled)),
+  // 4T-001576 (Epic 3E-000282): Multi-Window-Broadcast bei Aenderung von
+  // input.cursorSprung (Cursor-Sprung hinter den Listen-Marker).
+  onCursorSprungChanged: (cb) => ipcRenderer.on('cursorSprung:changed', (_e, value) => cb(value)),
   // 4T-000292 (Epic 3E-000052): Erweiterungs-Schalt-Zustand der Preload-
   // Pipeline setzen — baut beide markdown-it-Instanzen mit dem aktiven
   // Plugin-Satz neu auf (Muster configureTaskStates; Aufruf beim App-Start
@@ -652,6 +663,9 @@ contextBridge.exposeInMainWorld('api', {
   // 4T-001351 (Epic 3E-000170): Rueckfrage und Verschieben in den Papierkorb.
   areaConfirmTrashFile: (fileName) => ipcRenderer.invoke('area:confirmTrashFile', fileName),
   areaTrashFile: (filePath) => ipcRenderer.invoke('area:trashFile', filePath),
+  // 4T-001731 (Epic 3E-000306): Datei im Bereich kopieren (Name-1, dann die
+  // naechste freie Nummer). Namensfindung und Grenze liegen im Hauptprozess.
+  areaCopyFile: (filePath) => ipcRenderer.invoke('area:copyFile', filePath),
   onAreaChanged: (cb) => ipcRenderer.on('area:changed', () => cb()),
   reportPanes: (panes) => ipcRenderer.invoke('window:reportPanes', panes),
   // 4T-000368 (Epic 3E-000068): Unbenannt-Tabs mit Inhalt beim Schliessen als
@@ -674,6 +688,8 @@ contextBridge.exposeInMainWorld('api', {
   workspaceRename: (params) => ipcRenderer.invoke('workspace:rename', params),
   workspaceSetColor: (params) => ipcRenderer.invoke('workspace:setColor', params),
   workspaceDelete: (id) => ipcRenderer.invoke('workspace:delete', id),
+  // 4T-001753 (Epic 3E-000308): eine Bewegung um eine Position, { id, direction }.
+  workspaceReorder: (params) => ipcRenderer.invoke('workspace:reorder', params),
   workspaceConfirmDelete: (name) => ipcRenderer.invoke('workspace:confirmDelete', name),
   onWorkspacesChanged: (cb) => ipcRenderer.on('workspaces:changed', () => cb()),
 
@@ -727,6 +743,11 @@ contextBridge.exposeInMainWorld('api', {
   onMenuNew: (cb) => ipcRenderer.on('menu:new', () => cb()),
   // 4T-000319 (Epic 3E-000057): Menue-Eintrag 'Datei -> Neue Applikation'.
   onMenuNewApplication: (cb) => ipcRenderer.on('menu:newApplication', () => cb()),
+  // 4T-001738 (Epic 3E-000308): Menue-Eintrag 'Datei -> Neues Fenster'. Der Weg
+  // laeuft ueber den Anzeige-Prozess und nicht direkt im Main, weil
+  // window:openNew das Fenster des ABSENDERS braucht, um die Applikation zu
+  // bestimmen (E5); der Renderer ruft danach openNewWindow ohne Panes.
+  onMenuNewWindow: (cb) => ipcRenderer.on('menu:newWindow', () => cb()),
   // 4T-000322 (Epic 3E-000058): Menue-Eintraege 'Bereich oeffnen...'/'Bereich schliessen'.
   onMenuOpenArea: (cb) => ipcRenderer.on('menu:openArea', () => cb()),
   onMenuCloseArea: (cb) => ipcRenderer.on('menu:closeArea', () => cb()),

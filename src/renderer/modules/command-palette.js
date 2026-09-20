@@ -86,7 +86,12 @@ export function initCommandPalette({ executeCommand }) {
 //
 // sourceVisible ist als eigenes Feld entfallen: Die Bedingung sourceToggle
 // leitet es aus viewMode ab, und zwar mit demselben Ausdruck, der hier stand.
-function currentPaletteContext() {
+// 4T-001765 (Epic 3E-000186): exportiert, weil die Statusleiste seither
+// denselben Kontext braucht wie Palette und Menue — sie ist mit E6 zum
+// dritten Verbraucher des Modells geworden. Der Bau bleibt an dieser EINEN
+// Stelle des Renderers (benannte Grenze des Modells); die drei Aufrufer der
+// Leiste reichen das Ergebnis an statusbar-availability.js weiter.
+export function rendererAvailabilityContext() {
   const tab = activeTab();
   return availabilityContext({
     hasTab: !!tab,
@@ -129,7 +134,7 @@ export function isCommandAvailable(cmd, ctx) {
 export function buildPaletteEntries() {
   const disabled = disabledCommandIdSet(getDisabledExtensionIds());
   const effective = mergeBindings(state.hotkeyOverrides);
-  const ctx = currentPaletteContext();
+  const ctx = rendererAvailabilityContext();
   const entries = [];
   for (const categoryKey of COMMAND_CATEGORIES) {
     for (const cmd of COMMANDS) {
@@ -185,7 +190,7 @@ export function isCommandIdAvailable(commandId) {
   const cmd = COMMANDS.find((c) => c.id === commandId);
   if (!cmd) return false;
   if (cmd.editorScoped && !EDITOR_COMMAND_FUNCTIONS[cmd.id]) return false;
-  return isCommandAvailable(cmd, currentPaletteContext());
+  return isCommandAvailable(cmd, rendererAvailabilityContext());
 }
 
 export function executeCommandById(commandId) {
@@ -193,7 +198,7 @@ export function executeCommandById(commandId) {
   if (!cmd) return false;
   const disabled = disabledCommandIdSet(getDisabledExtensionIds());
   if (disabled.has(cmd.id)) return false;
-  if (!isCommandAvailable(cmd, currentPaletteContext())) return false;
+  if (!isCommandAvailable(cmd, rendererAvailabilityContext())) return false;
   if (cmd.editorScoped) {
     const run = EDITOR_COMMAND_FUNCTIONS[cmd.id];
     const view = paneEditors[state.activePaneIndex];

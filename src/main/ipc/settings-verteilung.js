@@ -64,6 +64,9 @@ const VERTEIL_SCHLUESSEL = [
   'clock.stopwatch',
   'sidebar.iconHeadings',
   'sidebar.heightMode',
+  'statusbar.collapseMode',
+  'statusbar.unavailableMode',
+  'input.cursorSprung',
   'hotkeys',
   'colorSchemes',
 ];
@@ -306,6 +309,38 @@ function createSettingsVerteilung(deps) {
         if (!w.isDestroyed() && w.webContents !== senderContents) {
           w.webContents.send('sidebarHeightMode:changed', value);
         }
+      }
+    }
+    // 4T-001580 (Epic 3E-000283): Falt-Modus der Statusleiste («automatisch»
+    // oder «immer zusammengeklappt») — an alle Fenster ausser dem Ausloeser
+    // (Muster sidebar.heightMode oben; das ausloesende Fenster hat seine
+    // Leiste beim Anwenden bereits neu gefaltet).
+    if (key === 'statusbar.collapseMode') {
+      for (const w of BrowserWindow.getAllWindows()) {
+        if (!w.isDestroyed() && w.webContents !== senderContents) {
+          w.webContents.send('statusbarCollapseMode:changed', value);
+        }
+      }
+    }
+    // 4T-001765 (Epic 3E-000186): Darstellung nicht aktivierbarer Schalter
+    // («blass anzeigen» oder «ausblenden», E3 des Epics) — an alle Fenster
+    // ausser dem Ausloeser, Muster statusbar.collapseMode darueber; das
+    // ausloesende Fenster hat seine Leiste beim Anwenden bereits nachgezogen.
+    if (key === 'statusbar.unavailableMode') {
+      for (const w of BrowserWindow.getAllWindows()) {
+        if (!w.isDestroyed() && w.webContents !== senderContents) {
+          w.webContents.send('statusbarUnavailableMode:changed', value);
+        }
+      }
+    }
+    // 4T-001576 (Epic 3E-000282): Cursor-Sprung hinter den Listen-Marker an
+    // alle Fenster broadcasten (auch an den Sender — der Empfangspfad setzt
+    // nur den Laufzeit-Zustand, ein unveraenderter Wert ist dort ein No-op;
+    // Muster 'scripts.run' weiter oben). Die Tastenbelegung liest den Wert bei
+    // jedem Tastendruck, es gibt also nichts zu rekonfigurieren.
+    if (key === 'input.cursorSprung') {
+      for (const w of BrowserWindow.getAllWindows()) {
+        if (!w.isDestroyed()) w.webContents.send('cursorSprung:changed', value);
       }
     }
     // 4T-000208: Hotkey-Overrides an alle Fenster broadcasten (auch an den

@@ -14,6 +14,15 @@
 // (`acc(meta.commandId)` im Panel-Untermenue) wird nicht handgepflegt
 // ausgenommen, sondern aus dem Panel-Zugangs-Modell abgeleitet — sonst waere
 // die Ausnahme selbst wieder ein Register, das veralten kann.
+//
+// 4T-001737 (Epic 3E-000308): Gelesen wird seither der GANZE Menue-Baum unter
+// src/main/menu/ und nicht mehr allein menu.js. Anlass ist der Auszug des
+// Arbeitsbereiche-Untermenues nach menu-workspaces.js: Die vier
+// Lebenszyklus-Eintraege wanderten mit ihren acc-Aufrufen aus menu.js heraus,
+// und der Waechter meldete sie als kuerzel-los, obwohl sich an ihnen nichts
+// geaendert hatte. Die Ordner-Lesung ist die dauerhafte Antwort darauf — jeder
+// weitere Auszug aus der Menue-Fabrik bleibt damit gedeckt, ohne dass hier eine
+// Datei-Liste nachzupflegen waere.
 import { describe, it, expect } from 'vitest';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -22,7 +31,13 @@ import { COMMANDS } from '../../src/shared/commands/commands.js';
 import { DEFAULT_PANEL_TOGGLE_ORDER, PANEL_ACCESS } from '../../src/shared/panel-access.js';
 
 const WURZEL = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
-const menuQuelle = fs.readFileSync(path.join(WURZEL, 'src/main/menu/menu.js'), 'utf8');
+const MENU_ORDNER = path.join(WURZEL, 'src/main/menu');
+const menuQuelle = fs
+  .readdirSync(MENU_ORDNER)
+  .filter((name) => name.endsWith('.js'))
+  .sort()
+  .map((name) => fs.readFileSync(path.join(MENU_ORDNER, name), 'utf8'))
+  .join('\n');
 
 const literaleAccZiele = [
   ...new Set([...menuQuelle.matchAll(/acc\('([\w.]+)'\)/g)].map((m) => m[1])),

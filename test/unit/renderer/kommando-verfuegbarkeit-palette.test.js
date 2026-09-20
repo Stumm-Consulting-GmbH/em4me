@@ -150,6 +150,29 @@ const NACH_DER_MESSUNG = new Set([
   'insert.canvas',
 ]);
 
+// 4T-001765 (Epic 3E-000186, E6): Die drei Editor-Schalter, deren REGEL dieser
+// Vorgang absichtlich verschaerft hat — 'sourceToggle' verlangt seither
+// zusaetzlich ein geoeffnetes Dokument, das keine System-Seite ist. Damit
+// weichen sie von der eingefrorenen alten Logik ab, und zwar mit Grund:
+//
+//   - Es ist die strengere Regel, die die STATUSLEISTE bis dahin zusaetzlich
+//     zum Modell selbst mitbrachte. Sie ist nicht erfunden, sondern umgezogen,
+//     und sie macht Menue, Palette und Leiste an dieser Stelle gleich.
+//   - Sie ist nachweislich enger und nicht anders: Der Fall unten prueft ueber
+//     alle Kontext-Belegungen, dass die alte Logik in jeder Abweichung
+//     freigab, wo die neue sperrt — nie umgekehrt.
+//
+// Sie gehoeren deshalb NICHT in die Menge der «sechs und sonst nichts», aber
+// auch nicht stillschweigend in NACH_DER_MESSUNG: Diese Kommandos gab es zur
+// Messung, ihr alter Wert ist gemessen, und die Abweichung ist eine
+// ENTSCHEIDUNG statt einer Altersfrage. Zwei Mengen statt einer, damit der
+// Unterschied sichtbar bleibt.
+const STRENGERE_EDITOR_REGEL = [
+  'view.toggleFoldGutter',
+  'view.toggleLineNumbers',
+  'view.toggleWordWrap',
+];
+
 const BOOL_FIELDS = AVAILABILITY_CONTEXT_FIELDS.filter((f) => f !== 'viewMode');
 const VIEW_MODES = [null, 'source', 'split', 'live', 'rendered', 'mindmap', 'canvas'];
 
@@ -294,7 +317,9 @@ describe('Vollbestands-Vergleich gegen die alte Logik (4T-001636)', () => {
   // Belegungen des Kontext-Vertrags — nicht an einer Stichprobe, die die
   // interessante Lage gerade auslassen koennte.
   const kontexte = alleKontexte();
-  const gemessenerBestand = COMMANDS.filter((c) => !NACH_DER_MESSUNG.has(c.id));
+  const gemessenerBestand = COMMANDS.filter(
+    (c) => !NACH_DER_MESSUNG.has(c.id) && !STRENGERE_EDITOR_REGEL.includes(c.id),
+  );
 
   it('genau die sechs gemessenen Kommandos entscheiden anders als vorher', () => {
     const abweichend = new Set();
@@ -326,6 +351,31 @@ describe('Vollbestands-Vergleich gegen die alte Logik (4T-001636)', () => {
       for (const ctx of unterschiede) {
         expect(altIsCommandAvailable(cmd, ctx), `${fall.id}: alte Logik war strenger`).toBe(true);
         expect(isCommandAvailable(cmd, ctx)).toBe(false);
+      }
+    }
+  });
+
+  // 4T-001765 (Epic 3E-000186, E6): die dritte, entschiedene Abweichung — und
+  // sie wird gemessen statt bloss ausgenommen. Ohne diesen Fall waere die
+  // Ausnahme oben ein Loch: Jede weitere Verschiebung an diesen drei
+  // Kommandos fiele niemandem auf.
+  it('die drei Editor-Schalter weichen genau um die strengere Regel ab', () => {
+    for (const id of STRENGERE_EDITOR_REGEL) {
+      const cmd = COMMANDS.find((c) => c.id === id);
+      expect(cmd, `${id} fehlt in der Registry`).toBeTruthy();
+      expect(cmd.availability, `${id} traegt nicht die Editor-Bedingung`).toBe('sourceToggle');
+      const unterschiede = kontexte.filter(
+        (ctx) => isCommandAvailable(cmd, ctx) !== altIsCommandAvailable(cmd, ctx),
+      );
+      // Die Abweichung gibt es wirklich, und sie geht nur in eine Richtung:
+      // Die alte Logik gab frei, die neue sperrt.
+      expect(unterschiede.length, `${id} weicht in keiner Lage ab`).toBeGreaterThan(0);
+      for (const ctx of unterschiede) {
+        expect(altIsCommandAvailable(cmd, ctx), `${id}: neue Regel ist nicht strenger`).toBe(true);
+        expect(isCommandAvailable(cmd, ctx)).toBe(false);
+        // Und jede Abweichung hat genau einen der zwei benannten Gruende:
+        // kein geoeffnetes Dokument oder eine System-Seite.
+        expect(!ctx.hasTab || ctx.systemTab, `${id}: unerwartete Abweichungs-Lage`).toBe(true);
       }
     }
   });

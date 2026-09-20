@@ -47,6 +47,7 @@ Ein Sidebar-Panel listet alle Erinnerungen des Bereichs, gruppiert nach **Überf
 
 - Pro Eintrag gibt es die Direkt-Aktionen **Erledigt** und **Später**.
 - Ein Klick auf einen Eintrag öffnet die Quelldatei an der zugehörigen Zeile.
+- Der Name der Quelldatei steht hier und im Melde-Dialog ohne die Markdown-Endung; der Kurzhinweis nennt den vollständigen Pfad.
 - Die Gruppe **Überfällig** führt auch stummgeschaltete Erinnerungen und bietet dort **Erneut auslösen** an.
 
 ## Einstellungen und Erweiterung

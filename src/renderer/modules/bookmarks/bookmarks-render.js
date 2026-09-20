@@ -31,6 +31,7 @@ import { appendBookmarkInlineEditInput, showBookmarkContextMenu } from './bookma
 import {
   SECTION_AREA,
   SECTION_GENERAL,
+  bookmarkLabel,
   bookmarkSection,
   collectFileNodes,
   noteBookmarkFileExistence,
@@ -257,12 +258,16 @@ export function renderBookmarkNode(node, depth, section) {
 
     if (isEditing) {
       // 4T-000078: Inline-Edit fuer Bookmark-DisplayName.
-      const initial = node.displayName || (node.filePath ? api.basename(node.filePath) : '');
-      appendBookmarkInlineEditInput(row, node.id, initial);
+      // 4T-001775 (Epic 3E-000304): Das Feld zeigt DIESELBE Form wie die Zeile
+      // darueber — bei einem automatischen Namen also die gekuerzte. Dass ein
+      // unveraendertes Bestaetigen den gespeicherten Namen nicht antastet,
+      // besorgt die Rueckabbildung in bookmarks-edit.js.
+      appendBookmarkInlineEditInput(row, node.id, bookmarkLabel(node));
     } else {
       const label = document.createElement('span');
       label.className = 'bookmark-label';
-      label.textContent = node.displayName || (node.filePath ? api.basename(node.filePath) : '');
+      // 4T-001775: gewaehlter Name unveraendert, automatischer ohne Endung.
+      label.textContent = bookmarkLabel(node);
       // 4T-000612: Tooltip zeigt den aufgeloesten absoluten Pfad (Bereichs-Ziele
       // eingeschlossen); ohne Bereich der Rohpfad.
       label.title = resolveBookmarkPath(sec, node) || node.filePath || '';

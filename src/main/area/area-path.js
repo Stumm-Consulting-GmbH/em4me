@@ -15,6 +15,10 @@
 
 const path = require('node:path');
 const { pathCompareKey } = require('../../shared/platform.js');
+// 4T-001731 (Epic 3E-000306): Namens-Pruefung des Kopier-Kandidaten. Dieselbe
+// Quelle wie der Umbenennen-Dialog, damit Kopie und Umbenennung denselben
+// Massstab an einen Dateinamen legen.
+const { basenameValidationError } = require('../../shared/subpages.js');
 
 // Normalisiert einen Pfad fuer Vergleiche: absolut aufgeloest, ohne
 // Trailing-Separatoren, Schreibung nach Dateisystem-Eigenschaft (s. Kopf).
@@ -129,6 +133,36 @@ function sanitizeNewFolderName(name) {
   return trimmed;
 }
 
+// 4T-001731 (Epic 3E-000306): Namens-Kandidat einer Datei-Kopie —
+// "Name.md" + 1 => "Name-1.md". Die Nummer tritt VOR die Endung, weil die
+// Endung die Dateiart traegt und eine Kopie dieselbe Art hat.
+//
+// Die Bildung ist bewusst reines Anhaengen an den GANZEN Stamm und kein
+// Hochzaehlen einer schon vorhandenen Endziffer (Entscheidung E1 des Epics,
+// offener Punkt "Namensfindung bei bereits nummerierten Vorlagen"): Aus
+// "Konzept-1.md" wird "Konzept-1-1.md" und nicht "Konzept-2.md". Andernfalls
+// entstuende der falsche Eindruck, die Kopie gehoere zu "Konzept.md" — sie
+// gehoert aber zu "Konzept-1.md".
+//
+// Das Unterseiten-Trennzeichen bleibt unberuehrt: Aus "Prozess∕Konzept.md"
+// wird "Prozess∕Konzept-1.md", die Kopie bleibt also Unterseite derselben
+// Elternseite. Genau deshalb prueft der Kandidat gegen
+// basenameValidationError (Basename-Ebene, Trennzeichen erlaubt) und nicht
+// gegen die Segment-Regeln.
+//
+// Liefert den Dateinamen des Kandidaten oder null, wenn Vorlage oder Kandidat
+// als Dateiname nicht brauchbar sind (der Aufrufer meldet das als
+// 'invalid name', wie die Anlage-Wege).
+function kopierNameKandidat(fileName, nummer) {
+  if (typeof fileName !== 'string' || fileName.trim() === '') return null;
+  if (!Number.isInteger(nummer) || nummer < 1) return null;
+  const parsed = path.parse(fileName);
+  if (parsed.dir !== '' || parsed.name === '') return null;
+  const stamm = `${parsed.name}-${nummer}`;
+  if (basenameValidationError(stamm)) return null;
+  return `${stamm}${parsed.ext}`;
+}
+
 module.exports = {
   normalizeForCompare,
   isSamePath,
@@ -140,4 +174,5 @@ module.exports = {
   sortedAreaListing,
   sanitizeNewFileName,
   sanitizeNewFolderName,
+  kopierNameKandidat,
 };

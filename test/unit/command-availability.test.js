@@ -40,7 +40,21 @@ import { COMMANDS } from '../../src/shared/commands/commands.js';
 
 const HIER = path.dirname(fileURLToPath(import.meta.url));
 const WURZEL = path.resolve(HIER, '..', '..');
-const MENUE_QUELLE = fs.readFileSync(path.join(WURZEL, 'src', 'main', 'menu', 'menu.js'), 'utf8');
+// 4T-001737 (Epic 3E-000308): Der Menue-Baum ist auf mehrere Dateien verteilt,
+// seit das Arbeitsbereiche-Untermenue nach menu-workspaces.js ausgezogen ist.
+// Gelesen wird deshalb der GANZE Ordner src/main/menu/ statt allein menu.js —
+// sonst faenden die Basislinien-Waechter die vier Lebenszyklus-Eintraege nicht
+// mehr und meldeten eine Luecke, die es nicht gibt. Die Ordner-Lesung deckt
+// jeden weiteren Auszug aus der Menue-Fabrik mit, ohne dass hier eine
+// Datei-Liste nachzupflegen waere. Die zeilenweise Auswertung bleibt gueltig,
+// weil ein Menue-Eintrag nie ueber eine Datei-Grenze reicht.
+const MENUE_ORDNER = path.join(WURZEL, 'src', 'main', 'menu');
+const MENUE_QUELLE = fs
+  .readdirSync(MENUE_ORDNER)
+  .filter((name) => name.endsWith('.js'))
+  .sort()
+  .map((name) => fs.readFileSync(path.join(MENUE_ORDNER, name), 'utf8'))
+  .join('\n');
 const PALETTE_QUELLE = fs.readFileSync(
   path.join(WURZEL, 'src', 'renderer', 'modules', 'command-palette.js'),
   'utf8',
@@ -192,11 +206,15 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
     expect(isAvailable('viewMode', kontext({}))).toBe(true);
     expect(isAvailable('viewMode', kontext({ systemTab: true }))).toBe(false);
 
+    // 4T-001765 (Epic 3E-000186, E6): sourceToggle verlangt seither
+    // zusaetzlich ein geoeffnetes Dokument, das keine System-Seite ist — die
+    // strengere Regel, die die Statusleiste bis dahin selbst mitbrachte. Der
+    // eigene Pruefblock dazu steht weiter unten.
     for (const modus of ['source', 'split', 'live']) {
-      expect(isAvailable('sourceToggle', kontext({ viewMode: modus }))).toBe(true);
+      expect(isAvailable('sourceToggle', kontext({ viewMode: modus, hasTab: true }))).toBe(true);
     }
     for (const modus of ['rendered', 'mindmap']) {
-      expect(isAvailable('sourceToggle', kontext({ viewMode: modus }))).toBe(false);
+      expect(isAvailable('sourceToggle', kontext({ viewMode: modus, hasTab: true }))).toBe(false);
     }
 
     expect(isAvailable('area', kontext({ hasArea: true }))).toBe(true);
@@ -243,6 +261,50 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
     expect(
       isAvailable('editorUndKalender', kontext({ ...mitKalender, hasCalendarConfig: false })),
     ).toBe(false);
+  });
+
+  // 4T-001765 (Epic 3E-000186, E6): die strengere Editor-Regel im Katalog.
+  //
+  // **Warum hier ein eigener Prüfblock steht.** Die Menü-Basislinie weiter
+  // unten hält je Kommando den NAMEN seiner Bedingung, und der Name
+  // 'sourceToggle' hat sich nicht geändert — ihr Schweigen ist deshalb kein
+  // Nachweis, dass die Regel unverändert ist. Geändert hat sich ihr AUSDRUCK,
+  // und zwar absichtlich: Die drei Editor-Schalter verlangen jetzt auch im
+  // Modell ein geöffnetes Dokument, das keine System-Seite ist. Dieser Block
+  // schreibt die neue Regel fest, damit die Absicht belegt ist und nicht in
+  // der Lücke zwischen Name und Ausdruck verschwindet.
+  it('sourceToggle verlangt Quelltext UND ein geoeffnetes Dokument ohne System-Seite', () => {
+    const bedingung = availabilityCondition('sourceToggle');
+    expect(bedingung.felder).toEqual(['hasTab', 'systemTab', 'viewMode']);
+
+    // Freigebend: die drei Quelltext-Modi an einem geöffneten Dokument.
+    for (const modus of ['source', 'split', 'live']) {
+      expect(isAvailable('sourceToggle', kontext({ viewMode: modus, hasTab: true }))).toBe(true);
+      // Handbuch-Seiten bleiben ausdrücklich freigegeben: Ihr Quelltext ist
+      // lesbar, und Umbruch, Zeilennummern und Gliederung wirken dort.
+      expect(
+        isAvailable('sourceToggle', kontext({ viewMode: modus, hasTab: true, manualTab: true })),
+      ).toBe(true);
+    }
+
+    // Sperrend, und das ist der Zuwachs dieses Vorgangs: ohne Dokument und auf
+    // einer System-Seite, deren gespeicherter Modus zufällig ein
+    // Quelltext-Modus ist.
+    for (const modus of ['source', 'split', 'live']) {
+      expect(isAvailable('sourceToggle', kontext({ viewMode: modus }))).toBe(false);
+      expect(
+        isAvailable('sourceToggle', kontext({ viewMode: modus, hasTab: true, systemTab: true })),
+      ).toBe(false);
+    }
+
+    // Und sie ist wirklich strenger und nicht anders: Was die alte Regel
+    // (allein sourceVisible) sperrte, sperrt die neue auch.
+    const altSourceVisible = (c) => ['source', 'split', 'live'].includes(c.viewMode);
+    for (const ctx of KONTEXTE) {
+      if (isAvailable('sourceToggle', ctx)) {
+        expect(altSourceVisible(ctx), 'neue Regel gibt frei, wo die alte sperrte').toBe(true);
+      }
+    }
   });
 
   it('isAvailabilityName und availabilityCondition antworten ueber den Katalog', () => {
@@ -333,8 +395,25 @@ describe('Durchlauf-Waechter ueber die Registry (4T-001635)', () => {
 // dieser Kommandos heute dieselbe Bedingung traegt. Die sechs Abweichungen aus
 // 4T-000918 lagen auf der Palette-Seite; die Menue-Seite hat sich bei keinem
 // einzigen Kommando bewegt.
+//
+// **Was diese Basislinie NICHT misst, und wo es gemessen wird** (4T-001765,
+// Epic 3E-000186): Sie haelt je Kommando den NAMEN seiner Bedingung, nicht
+// deren Ausdruck. Aendert ein Vorgang die Regel HINTER einem Namen, schweigt
+// sie — und genau das tut E6 von 3E-000186 mit 'sourceToggle', das seither
+// zusaetzlich ein geoeffnetes Dokument ohne System-Seite verlangt. Die drei
+// Editor-Eintraege des Menues stehen damit auf einer System-Seite mit
+// gespeichertem Quelltext-Modus blass statt freigegeben da; das ist die
+// beabsichtigte Gleichstellung mit der Statusleiste und keine Regression. Den
+// Ausdruck selbst haelt der Pruefblock «sourceToggle verlangt Quelltext UND
+// ein geoeffnetes Dokument ohne System-Seite» weiter oben fest.
 const MENUE_BASISLINIE = new Map([
   ['file.newTab', 'immer'],
+  // 4T-001738 (Epic 3E-000308): «Neues Fenster» stand am 2026-09-09 nicht im
+  // gemessenen Menue, weil es erst hier entsteht; seine Basislinie ist deshalb
+  // die Bedingung, mit der es eingehaengt wird. Sie ist 'immer' wie bei seinem
+  // Nachbarn, und aus einem Grund, der in der Bauart liegt: Ein Menue existiert
+  // nur in einem Fenster, und jedes Fenster gehoert einer Applikation.
+  ['window.newWindow', 'immer'],
   ['app.newApplication', 'immer'],
   ['file.open', 'immer'],
   ['file.quickOpen', 'areaOrTab'],

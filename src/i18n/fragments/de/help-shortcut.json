@@ -16,6 +16,7 @@
   "help.shortcut.openHelp": "Handbuch öffnen",
   "help.shortcut.openTour": "Produkt-Tour starten",
   "help.shortcut.newTab": "Neuen Unbenannt-Tab öffnen",
+  "help.shortcut.newWindow": "Neues, leeres Fenster derselben Applikation öffnen",
   "help.shortcut.newApp": "Neue Applikation (eigener Fenster-Verbund) starten",
   "help.shortcut.openArea": "Ordner-Bereich als Arbeitsraum der Applikation öffnen",
   "help.shortcut.closeArea": "Bereich schließen (schließt alle Fenster der Bereichs-Applikation)",

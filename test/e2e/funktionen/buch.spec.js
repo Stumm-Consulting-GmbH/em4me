@@ -216,7 +216,9 @@ async function nudgeMenuRebuild(app) {
 // Buch-Erkennung aus. Gepollt gesendet, weil frühe Sends an ein noch ladendes
 // Fenster verfallen (Electron-IPC puffert nicht).
 async function openExternally(app, page, filePath) {
-  const name = path.basename(filePath);
+  // 4T-001724 (Epic 3E-000304): Der Reiter traegt den Namen ohne
+  // Markdown-Endung; verglichen wird deshalb die gekuerzte Form.
+  const name = path.basename(filePath).replace(/\.(md|markdown|mdown|mkd)$/i, '');
   await expect
     .poll(async () => {
       await app.evaluate(({ BrowserWindow }, file) => {

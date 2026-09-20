@@ -34,7 +34,9 @@ Ogni riga porta un riferimento temporale e una breve selezione: per un'area il n
 
 **I dati non vengono aggiornati di continuo.** Sono rilevati nel momento in cui il contenitore viene aggiunto e poi solo su vostra richiesta: «Rileva di nuovo» legge il contenitore un'altra volta e fissa un nuovo riferimento temporale. Per questo il riferimento compare su ogni riga: dice a quale momento si riferiscono i dati. Chi ha lavorato una settimana in un'area vede qui dapprima i dati della settimana precedente; un clic li porta a oggi.
 
-Uno **spazio di lavoro** non ha dati chiave né pulsante di rilevamento: non è una cartella, ma una composizione. Ciò che compone sta nella sua riga e nella vista di dettaglio.
+Uno **spazio di lavoro** non ha dati chiave né pulsante di rilevamento: non è una cartella, ma una composizione. Ciò che compone sta nella sua riga e nella vista di dettaglio: i contenitori a cui è collegato, il numero delle sue finestre e il numero dei **documenti aperti** in esse.
+
+**Si contano i documenti aperti, non i file di una cartella.** Il dato dice quanti documenti Markdown lo spazio di lavoro tiene aperti nelle sue finestre; il conteggio avviene per finestra. Le schede senza titolo, le pagine del manuale e di sistema e gli altri tipi di file non contano. Entrambi i dati provengono dalla registrazione dello spazio di lavoro e stanno quindi lì per uno chiuso come per uno aperto; uno zero è in questo caso uno zero contato come ogni altro.
 
 ### Un contenitore che al momento non è raggiungibile
 
@@ -55,7 +57,7 @@ Per questa pagina **non** viene costruito un indice apposta. Costerebbe una scan
 | Area | file Markdown, altri file, cartelle, spazio occupato, etichette, attività, file senza collegamenti in entrata |
 | Libro | capitoli, file Markdown, spazio occupato, libreria di appartenenza |
 | Libreria | libri, di cui non trovati, file Markdown, spazio occupato |
-| Spazio di lavoro | area, libro, libreria, finestre, ultimo utilizzo |
+| Spazio di lavoro | area, libro, libreria, finestre, documenti aperti, ultimo utilizzo |
 
 **Due tipi di vuoto, due segni.** «non disponibile» significa: nessuno ha rilevato quel dato — le etichette di un'area non aperta, per esempio. La lineetta significa: qui quella cosa non esiste affatto — il libro di uno spazio di lavoro che non ne porta alcuno, per esempio. **Uno zero non sostituisce mai né l'uno né l'altro**: è sempre uno zero contato, e un'area senza sottocartelle lo mostra a ragione.
 

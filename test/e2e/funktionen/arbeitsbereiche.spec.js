@@ -18,9 +18,18 @@
 //        die Ablage bleibt; Einschalten bringt beides zurueck.
 // WS-06: Regressionstest 4T-000633 — der aus dem Verwaltungs-Dialog
 //        geoeffnete Namens-und-Farb-Dialog liegt OBEN und ist bedienbar.
+// WS-07: 4T-001737 — beide Bedienorte nennen die Bereichs-Zuordnung: das
+//        Untermenue einzeilig "Name — Ordnername", der Verwaltungs-Dialog mit
+//        dem vollstaendigen Pfad; ein Arbeitsbereich ohne Bindung traegt an
+//        beiden Orten allein seinen Namen.
+// WS-08: 4T-001753 — die Reihenfolge ist im Verwaltungs-Dialog aenderbar:
+//        Verschieben wirkt in Dialog UND Untermenue, die Raender sind
+//        abgeblendet, die Bedienung laeuft auch ueber die Tastatur, und die
+//        gewaehlte Reihenfolge ueberdauert den Neustart (Muster SM-09).
 'use strict';
 
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
@@ -30,6 +39,48 @@ const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md
 
 function windowCount(app) {
   return app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
+}
+
+// 4T-001737: Ordner fuer eine Bereichs-Bindung (Muster makeAreaDir in
+// bereiche.spec.js). Der Arbeitsbereich erbt die Bindung seiner Applikation.
+function makeAreaDir(name) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), `em4me-ws-bereich-${name}-`));
+  fs.writeFileSync(path.join(dir, 'notiz.md'), '# Notiz\n\nInhalt.\n', 'utf8');
+  return dir;
+}
+
+function removeDir(dir) {
+  try {
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+  } catch {
+    // Temp-Verzeichnis bleibt liegen; unkritisch.
+  }
+}
+
+// 4T-001737: Verwaltungs-Dialog ueber den Menue-Kanal oeffnen. Gepollt, weil
+// Sends vor dem fertigen init() verfallen (Muster WS-06 und addDraftTabTo).
+//
+// 4T-001753: Gesendet wird an das Fenster GENAU DIESER Seite, geholt ueber
+// `app.browserWindow(page)`, und nicht an `getAllWindows()[0]`. Der Index-Weg
+// traegt nur, solange es ein Fenster gibt: WS-08 legt drei Arbeitsbereiche an,
+// jeder mit eigenem Fenster, und der Send lief dann an ein fremdes Fenster —
+// der Dialog erschien in der gepruefeten Seite nie, und die Ursache sah aus wie
+// eine kaputte Oberflaeche.
+async function openManager(app, page) {
+  const manager = page.locator('#workspace-manager-modal');
+  const fenster = await app.browserWindow(page);
+  await expect
+    .poll(
+      async () => {
+        if (!(await manager.isVisible())) {
+          await fenster.evaluate((w) => w.webContents.send('menu:workspaceManage'));
+        }
+        return manager.isVisible();
+      },
+      { intervals: [500, 500, 1000, 1000] },
+    )
+    .toBe(true);
+  return manager;
 }
 
 function draftFileCount(userData) {
@@ -322,22 +373,10 @@ test.describe('WS-06: Umbenennen-Dialog liegt ueber dem Verwaltungs-Dialog (4T-0
       await page.evaluate(() => window.api.workspaceSaveAs({ name: 'Alpha', color: 'blue' }));
       await expect.poll(() => page.title()).toContain('(Arbeitsbereich Alpha)');
 
-      // Verwaltungs-Dialog ueber den Menue-Kanal oeffnen — gepollt, weil
-      // Sends vor dem fertigen init() verfallen (Muster addDraftTabTo).
-      const manager = page.locator('#workspace-manager-modal');
-      await expect
-        .poll(
-          async () => {
-            if (!(await manager.isVisible())) {
-              await app.evaluate(({ BrowserWindow }) => {
-                BrowserWindow.getAllWindows()[0].webContents.send('menu:workspaceManage');
-              });
-            }
-            return manager.isVisible();
-          },
-          { intervals: [500, 500, 1000, 1000] },
-        )
-        .toBe(true);
+      // Verwaltungs-Dialog ueber den Menue-Kanal oeffnen (4T-001737: derselbe
+      // gepollte Weg liegt seither als openManager oben, weil WS-07 ihn
+      // ebenfalls braucht).
+      const manager = await openManager(app, page);
       await expect(manager.locator('.workspace-row-name')).toHaveText('Alpha');
 
       // Zweiter Knopf der Zeile = "Umbenennen und Farbe...".
@@ -362,6 +401,197 @@ test.describe('WS-06: Umbenennen-Dialog liegt ueber dem Verwaltungs-Dialog (4T-0
       await expect(manager).toBeHidden();
     } finally {
       await closeApp(app, userData);
+    }
+  });
+});
+
+// 4T-001737 (Epic 3E-000308): Beide Bedienorte nennen die Bereichs-Zuordnung,
+// und zwar in unterschiedlicher Tiefe — das Untermenue mit dem Ordnernamen
+// (E2: eine Menue-Beschriftung ist einzeilig), der Verwaltungs-Dialog mit dem
+// vollstaendigen Pfad (E3: dort ist Platz dafuer). Der Fall prueft beides an
+// EINEM Lauf, weil beide Orte denselben Bestand lesen und ein Irrtum an der
+// gemeinsamen Ursache sonst nur halb sichtbar wuerde.
+test.describe('WS-07: Bereichs-Zuordnung im Untermenue und im Verwaltungs-Dialog (4T-001737)', () => {
+  test('gebundener Arbeitsbereich zeigt Ordnernamen im Menue und vollen Pfad im Dialog', async () => {
+    const { app, page, userData } = await launchApp();
+    const dir = makeAreaDir('ws07');
+    try {
+      await armMenuCapture(app);
+
+      // Bereich in der leeren App oeffnen: sie wird gebunden, kein neues
+      // Fenster (Muster BE-01). Der Arbeitsbereich erbt die Bindung.
+      const gebunden = await page.evaluate((p) => window.api.openAreaPath(p), dir);
+      expect(gebunden.boundExisting).toBe(true);
+      const saved = await page.evaluate(() =>
+        window.api.workspaceSaveAs({ name: 'Projekt Alpha', color: 'green' }),
+      );
+      expect(saved.ok).toBe(true);
+
+      // AK5: Der Kanal liefert die Zuordnung mit; sie ist der VOLLE Pfad.
+      const list = await page.evaluate(() => window.api.workspacesList());
+      expect(list).toHaveLength(1);
+      expect(list[0].areaPath).toBeTruthy();
+      expect(path.basename(list[0].areaPath)).toBe(path.basename(dir));
+
+      // AK1, AK2: Das Untermenue beschriftet einzeilig "Name — Ordnername".
+      const erwartet = `Projekt Alpha — ${path.basename(dir)}`;
+      await expect.poll(() => capturedMenuLabels(app)).toContain(erwartet);
+      // Der volle Pfad steht NICHT im Menue (E2).
+      await expect.poll(() => capturedMenuLabels(app)).not.toContain(list[0].areaPath);
+
+      // AK6: Der Verwaltungs-Dialog zeigt den vollstaendigen Pfad.
+      const manager = await openManager(app, page);
+      const pfadZeile = manager.locator('.workspace-row-path');
+      await expect(pfadZeile).toHaveCount(1);
+      await expect(pfadZeile).toContainText(list[0].areaPath);
+      await expect(pfadZeile).toHaveAttribute('title', list[0].areaPath);
+      // AK7: Farbpunkt, Name und die drei Zeilen-Aktionen bleiben unberuehrt.
+      // 4T-001753: Die beiden Verschiebe-Knoepfe tragen dieselbe Klasse .btn
+      // und sind hier ausdruecklich ausgenommen — geprueft wird, dass die DREI
+      // Bestands-Aktionen drei geblieben sind, nicht die Knopf-Zahl der Zeile.
+      await expect(manager.locator('.workspace-row-name')).toHaveText('Projekt Alpha');
+      await expect(manager.locator('.workspace-dot.open')).toHaveCount(1);
+      await expect(manager.locator('.workspace-row .btn:not(.workspace-move)')).toHaveCount(3);
+
+      // AK3: Ein zweiter Arbeitsbereich OHNE Bindung traegt an beiden Orten
+      // allein seinen Namen — kein Trenner, kein Platzhalter, keine Pfad-Zeile.
+      const win2Promise = app.waitForEvent('window');
+      const created = await page.evaluate(() =>
+        window.api.workspaceCreate({ name: 'Ohne Bindung', color: 'blue' }),
+      );
+      expect(created.ok).toBe(true);
+      const page2 = await win2Promise;
+      await page2.waitForLoadState('domcontentloaded');
+
+      await expect.poll(() => capturedMenuLabels(app)).toContain('Ohne Bindung');
+      await expect.poll(() => capturedMenuLabels(app)).not.toContain('Ohne Bindung — ');
+      await expect.poll(() => manager.locator('.workspace-row').count()).toBe(2);
+      await expect(manager.locator('.workspace-row-path')).toHaveCount(1);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      removeDir(dir);
+    }
+  });
+});
+
+// 4T-001753 (Epic 3E-000308, E12): Die Reihenfolge der Ablage IST die
+// Reihenfolge, und sie ist im Verwaltungs-Dialog aenderbar. Ein Lauf traegt
+// vier Zusicherungen, weil sie an einem Bestand mit drei Arbeitsbereichen
+// zusammenhaengen: die Wirkung im Dialog, der Gleichlauf mit dem Untermenue,
+// die Rand-Abblendung samt Tastatur-Bedienung und die Dauerhaftigkeit ueber
+// den Neustart.
+test.describe('WS-08: Reihenfolge der Arbeitsbereiche im Verwaltungs-Dialog (4T-001753)', () => {
+  test('Verschieben wirkt in Dialog und Menue, ist tastaturbedienbar und ueberdauert den Neustart', async () => {
+    const first = await launchApp();
+    const userData = first.userData;
+    try {
+      await armMenuCapture(first.app);
+
+      // Drei Arbeitsbereiche: einer aus der laufenden App, zwei leere. Die
+      // Ablage-Reihenfolge ist die Anlage-Reihenfolge (push), also A, B, C.
+      await first.page.evaluate(() => window.api.workspaceSaveAs({ name: 'WSA', color: 'green' }));
+      for (const name of ['WSB', 'WSC']) {
+        const winPromise = first.app.waitForEvent('window');
+        await first.page.evaluate(
+          (n) => window.api.workspaceCreate({ name: n, color: 'blue' }),
+          name,
+        );
+        const seite = await winPromise;
+        await seite.waitForLoadState('domcontentloaded');
+      }
+      const namen = () =>
+        first.page.evaluate(async () => (await window.api.workspacesList()).map((w) => w.name));
+      await expect.poll(namen).toEqual(['WSA', 'WSB', 'WSC']);
+
+      const manager = await openManager(first.app, first.page);
+      const zeilenNamen = () => manager.locator('.workspace-row-name').allTextContents();
+      await expect.poll(zeilenNamen).toEqual(['WSA', 'WSB', 'WSC']);
+
+      // AK1, AK3: Je Zeile zwei Verschiebe-Knoepfe; am ersten Eintrag ist
+      // "nach oben" abgeblendet, am letzten "nach unten" — abgeblendet und
+      // NICHT weggelassen, sonst rutschten die Knoepfe der Zeile.
+      await expect(manager.locator('[data-workspace-move]')).toHaveCount(6);
+      const auf = (i) =>
+        manager.locator('.workspace-row').nth(i).locator('[data-workspace-move="up"]');
+      const ab = (i) =>
+        manager.locator('.workspace-row').nth(i).locator('[data-workspace-move="down"]');
+      await expect(auf(0)).toBeDisabled();
+      await expect(ab(0)).toBeEnabled();
+      await expect(auf(2)).toBeEnabled();
+      await expect(ab(2)).toBeDisabled();
+
+      const menuNamen = async () =>
+        (await capturedMenuLabels(first.app)).filter((l) => l.startsWith('WS'));
+      // Wohin der Fokus nach dem Neuaufbau der Liste gewandert ist.
+      const fokus = () =>
+        first.page.evaluate(() => {
+          const el = document.activeElement;
+          const zeile = el && el.closest ? el.closest('.workspace-row') : null;
+          return {
+            richtung: el ? el.dataset.workspaceMove || null : null,
+            name: zeile ? zeile.querySelector('.workspace-row-name').textContent : null,
+          };
+        });
+
+      // AK1, AK4, AK5: Der letzte Eintrag wandert einen Platz nach oben — ohne
+      // Bestaetigungs-Schritt, und Kanal wie Untermenue folgen unmittelbar.
+      await auf(2).click();
+      await expect.poll(zeilenNamen).toEqual(['WSA', 'WSC', 'WSB']);
+      await expect.poll(namen).toEqual(['WSA', 'WSC', 'WSB']);
+      await expect.poll(menuNamen).toEqual(['WSA', 'WSC', 'WSB']);
+
+      // AK2: Bedienung ueber die Tastatur, und zwar MEHRFACH hintereinander.
+      // Der Fokus steht nach der Verschiebung auf demselben Knopf des
+      // mitgewanderten Eintrags; die Leertaste schiebt ihn weiter, ohne dass
+      // man sich erneut hin-tabben muss.
+      await expect.poll(fokus).toEqual({ richtung: 'up', name: 'WSC' });
+      await first.page.keyboard.press('Space');
+      await expect.poll(zeilenNamen).toEqual(['WSC', 'WSA', 'WSB']);
+      await expect.poll(namen).toEqual(['WSC', 'WSA', 'WSB']);
+
+      // WSC steht jetzt oben; sein "nach oben" ist abgeblendet, deshalb
+      // uebernimmt die Gegenrichtung derselben Zeile den Fokus — der Anwender
+      // bleibt an seinem Eintrag statt am Anfang des Dialogs.
+      await expect.poll(fokus).toEqual({ richtung: 'down', name: 'WSC' });
+      // Und die Eingabetaste loest ebenso aus (Knopf-Semantik); damit ist der
+      // Ersatz-Knopf nicht nur fokussiert, sondern bedienbar.
+      await first.page.keyboard.press('Enter');
+      await expect.poll(zeilenNamen).toEqual(['WSA', 'WSC', 'WSB']);
+      await expect.poll(namen).toEqual(['WSA', 'WSC', 'WSB']);
+      await expect.poll(menuNamen).toEqual(['WSA', 'WSC', 'WSB']);
+
+      // AK4: SOFORT gespeichert, noch vor dem Beenden. Gemessen an der
+      // Ablage-Datei und nicht am Neustart: Der Beenden-Weg persistiert
+      // ohnehin, ein Neustart-Vergleich allein wuerde also auch dann gruen,
+      // wenn die Verschiebung erst beim Beenden geschrieben wuerde (an einer
+      // Mutationsprobe belegt).
+      await expect
+        .poll(() =>
+          JSON.parse(fs.readFileSync(path.join(userData, 'config.json'), 'utf8')).workspaces.map(
+            (w) => w.name,
+          ),
+        )
+        .toEqual(['WSA', 'WSC', 'WSB']);
+
+      // AK6: Die Reihenfolge ueberdauert den Neustart mit demselben Profil
+      // (Muster SM-09).
+      await first.app.evaluate(({ app }) => app.quit());
+      await first.app.waitForEvent('close');
+
+      const second = await launchApp({ userData });
+      try {
+        await expect
+          .poll(() =>
+            second.page.evaluate(async () =>
+              (await window.api.workspacesList()).map((w) => w.name),
+            ),
+          )
+          .toEqual(['WSA', 'WSC', 'WSB']);
+      } finally {
+        await closeApp(second.app, null, { force: true });
+      }
+    } finally {
+      await closeApp(first.app, userData, { force: true });
     }
   });
 });

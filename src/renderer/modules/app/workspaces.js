@@ -121,6 +121,15 @@ export function closeWorkspace() {
 let managerOpen = false;
 let changeListenerAttached = false;
 
+// 4T-001753 (Epic 3E-000308): Der Fokus, der nach dem naechsten Neuaufbau der
+// Liste wiederhergestellt werden soll — { id, direction }. Ohne diesen Merker
+// waere die Reihenfolge mit der Tastatur nur EINEN Schritt weit bedienbar: Die
+// Liste baut sich nach jeder Verschiebung vollstaendig neu auf
+// (workspaces:changed), der gedrueckte Knopf verschwindet mitsamt seinem
+// Fokus, und der Fokus fiele auf den Dialog zurueck. Wer einen Arbeitsbereich
+// um drei Plaetze schieben will, muesste sich dreimal neu hin-tabben.
+let fokusNachAufbau = null;
+
 function formatLastOpened(iso) {
   if (!iso) return '';
   const d = new Date(iso);
@@ -128,19 +137,70 @@ function formatLastOpened(iso) {
   return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 }
 
+// 4T-001753: Eine der beiden Verschiebe-Schaltflaechen einer Zeile.
+//
+// **Am Rand abgeblendet statt weggelassen** (AK3). Ein fehlender Knopf liesse
+// die uebrigen nachruecken: «nach unten» stuende in der ersten Zeile genau
+// dort, wo es in allen anderen «nach oben» steht, und ein Klick nach dem
+// Neuaufbau der Liste traefe die falsche Richtung. Ein abgeblendeter Knopf
+// haelt die Zeilen deckungsgleich, bleibt fuer Hilfsmittel angekuendigt und
+// sagt zugleich, dass es diese Richtung hier gibt, nur eben nicht jetzt.
+//
+// Sichtbar ist ein Pfeil-Zeichen; die Beschriftung tragen `title` und
+// `aria-label` aus den Sprachdateien (Muster der Zeilen-Knoepfe in
+// clock-alarms-panel.js). Zwei Wort-Knoepfe neben Oeffnen, Umbenennen und
+// Loeschen haetten die Zeile ueber die Dialog-Breite getrieben.
+function verschiebeKnopf(w, richtung, aus) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn workspace-move';
+  btn.dataset.workspaceMove = richtung;
+  btn.textContent = richtung === 'up' ? '▲' : '▼';
+  const label = richtung === 'up' ? t('workspace.manager.moveUp') : t('workspace.manager.moveDown');
+  btn.title = label;
+  btn.setAttribute('aria-label', label);
+  btn.disabled = aus;
+  btn.addEventListener('click', async () => {
+    fokusNachAufbau = { id: w.id, direction: richtung };
+    await api.workspaceReorder({ id: w.id, direction: richtung });
+  });
+  return btn;
+}
+
+// 4T-001753: Fokus nach dem Neuaufbau auf denselben Knopf zurueckholen. Ist er
+// am neuen Ort abgeblendet (der Eintrag steht jetzt am Rand), uebernimmt die
+// Gegenrichtung derselben Zeile — der Anwender bleibt damit an seinem Eintrag
+// und nicht am Anfang des Dialogs.
+function stelleFokusHer(listEl) {
+  const ziel = fokusNachAufbau;
+  fokusNachAufbau = null;
+  if (!ziel) return;
+  const zeile = listEl.querySelector(`.workspace-row[data-workspace-id="${CSS.escape(ziel.id)}"]`);
+  if (!zeile) return;
+  const gewuenscht = zeile.querySelector(`[data-workspace-move="${ziel.direction}"]`);
+  const ersatz = zeile.querySelector(
+    `[data-workspace-move="${ziel.direction === 'up' ? 'down' : 'up'}"]`,
+  );
+  const knopf = gewuenscht && !gewuenscht.disabled ? gewuenscht : ersatz;
+  if (knopf && !knopf.disabled) knopf.focus();
+}
+
 async function renderManagerList(listEl) {
   const list = (await api.workspacesList()) || [];
   listEl.innerHTML = '';
   if (list.length === 0) {
+    fokusNachAufbau = null;
     const empty = document.createElement('div');
     empty.className = 'workspace-manager-empty';
     empty.textContent = t('workspace.manager.empty');
     listEl.appendChild(empty);
     return;
   }
-  for (const w of list) {
+  for (const [index, w] of list.entries()) {
     const row = document.createElement('div');
     row.className = 'workspace-row';
+    // 4T-001753: Adresse der Zeile fuer die Fokus-Wiederherstellung.
+    row.dataset.workspaceId = w.id;
 
     const dot = document.createElement('span');
     dot.className = 'workspace-dot' + (w.open ? ' open' : '');
@@ -164,6 +224,22 @@ async function renderManagerList(listEl) {
       ? `${stateText} · ${t('workspace.manager.lastOpened').replace('{date}', lastText)}`
       : stateText;
     nameWrap.appendChild(metaEl);
+
+    // 4T-001737 (Epic 3E-000308, E3): Bereichs-Zuordnung als eigene Zeile mit
+    // dem VOLLSTAENDIGEN Pfad — hier ist Platz dafuer, waehrend die
+    // Menue-Beschriftung auf den Ordnernamen kuerzt (E2). Ein Arbeitsbereich
+    // ohne Bindung bekommt die Zeile gar nicht (kein Platzhalter, AK3), und
+    // geaendert wird die Zuordnung an dieser Stelle nicht: Sie wird gezeigt
+    // (AK8). Buch- und Regal-Bindung bleiben draussen (Begruendung im
+    // Loesungs-Kapitel des Tasks); wer alle drei braucht, findet sie in My
+    // Extended Memory.
+    if (w.areaPath) {
+      const areaEl = document.createElement('div');
+      areaEl.className = 'workspace-row-path';
+      areaEl.textContent = t('workspace.manager.area').replace('{path}', w.areaPath);
+      areaEl.title = w.areaPath;
+      nameWrap.appendChild(areaEl);
+    }
     row.appendChild(nameWrap);
 
     const btnOpen = document.createElement('button');
@@ -201,15 +277,28 @@ async function renderManagerList(listEl) {
     });
     row.appendChild(btnDelete);
 
+    // 4T-001753: Die beiden Verschiebe-Knoepfe stehen am ENDE der Zeile, hinter
+    // den drei bestehenden Aktionen. Zwei Gruende: Sie gehoeren als Paar
+    // zusammen und lesen sich am Rand der Zeile als eine Bedienung, und der
+    // Bestands-Prueffall WS-06 adressiert «Umbenennen und Farbe» als zweiten
+    // Knopf der Zeile — eine Einfuegung davor haette ihn stillschweigend auf
+    // eine andere Schaltflaeche gerichtet.
+    row.appendChild(verschiebeKnopf(w, 'up', index === 0));
+    row.appendChild(verschiebeKnopf(w, 'down', index === list.length - 1));
+
     listEl.appendChild(row);
   }
+  stelleFokusHer(listEl);
 }
 
 // "Arbeitsbereiche verwalten...": Liste mit Farbpunkt (gefuellt = offen,
-// Ring = geschlossen), Offen-Status und zuletzt-geoeffnet-Angabe; Aktionen
-// Oeffnen, Umbenennen und Farbe (ein kombinierter Dialog, Muster
-// Tab-Gruppen), Loeschen (native Bestaetigung im Main). Aktualisiert sich
-// bei jedem workspaces:changed-Broadcast, solange er offen ist.
+// Ring = geschlossen), Offen-Status, zuletzt-geoeffnet-Angabe und seit
+// 4T-001737 der Bereichs-Zuordnung mit vollem Pfad; Aktionen Oeffnen,
+// Umbenennen und Farbe (ein kombinierter Dialog, Muster Tab-Gruppen),
+// Loeschen (native Bestaetigung im Main) und seit 4T-001753 die beiden
+// Verschiebe-Knoepfe der Reihenfolge. Aktualisiert sich bei jedem
+// workspaces:changed-Broadcast, solange er offen ist — und genau darueber
+// wirkt auch jede Verschiebung, ohne einen eigenen Nachzug-Weg.
 export async function showWorkspaceManager() {
   const modal = $('#workspace-manager-modal');
   const listEl = $('#workspace-manager-list');

@@ -97,6 +97,14 @@ A blank line begins a new list. If it arises from your edit, the list below star
 
 The Enter key continues a list and adds a bullet, a consecutive number or an empty checkbox. On an empty sub-item it outdents by one level; on the top level it ends the list.
 
+### The cursor when changing lines
+
+When the cursor sits at the end of a line and `Arrow Right` moves it into the next one, it lands at the writing position there, provided the target line is a list line: behind indentation and marker, and behind the status checkbox on a task line. Anyone writing an outline thus saves two to six keystrokes on every line change.
+
+The marker stays reachable: from the writing position `Arrow Left` moves on to the left character by character, first into the marker, then into the indentation and finally to the end of the previous line. `Shift+Arrow Right` also selects character by character as before. If the target line carries no marker — a continuation line of a list item, for example — the cursor stays at the start of the line as before.
+
+The behavior applies in Source, Split and Live view. The setting "Cursor jumps past the list marker" (File → Settings… → Behavior) turns it off; it is on out of the box, and when it is off the cursor moves as in a common text editor.
+
 ## Tables
 
 Pipe tables with a header row and a separator row; colons in the separator row control alignment. For multi-line block cells there is [Perspective Table](perspective-table.md), for typing comfort the table editor (see [Tools](tools.md)). To restructure existing tables (moving, inserting and deleting rows and columns, alignment, transposing), use the **Table** submenu in the [Editor context menu](context-menu.md).

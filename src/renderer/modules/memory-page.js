@@ -279,13 +279,30 @@ function metaBlock(entry) {
     if (!pfad) continue;
     meta.appendChild(el('span', 'memory-row-part', t(key).replace('{path}', pfad)));
   }
-  meta.appendChild(
+  // 4T-001739 (Epic 3E-000308), Befund der Abnahme vom 2026-09-19: Die beiden
+  // Zahlen des Arbeitsbereichs stehen NEBENEINANDER in einer Reihe, zuerst die
+  // geöffneten Dokumente, dann die Fenster — so, wie Bereich, Buch und
+  // Bücherregal ihre Kurz-Kennzahlen in einer Reihe führen. Eine eigene Klasse
+  // und nicht «memory-row-stats»: Jene Reihe trägt die Kennzahlen des
+  // Beschleunigers, und die bekommt ein Arbeitsbereich nie (4T-001600). Die
+  // Null steht da wie jede andere Zahl (AK6): Sie ist eine Auskunft und keine
+  // fehlende Angabe.
+  const zahlen = el('div', 'memory-row-counts');
+  zahlen.appendChild(
     el(
       'span',
-      'memory-row-part',
+      'memory-row-count',
+      t('memory.workspace.documents').replace('{count}', String(ws.documents || 0)),
+    ),
+  );
+  zahlen.appendChild(
+    el(
+      'span',
+      'memory-row-count',
       t('memory.workspace.windows').replace('{count}', String(ws.windows || 0)),
     ),
   );
+  meta.appendChild(zahlen);
   return meta;
 }
 

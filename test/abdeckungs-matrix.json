@@ -20,8 +20,12 @@
       "key": "help.feature.tabs",
       "id": "F-002",
       "testart": "e2e",
-      "tests": ["test/e2e/smoke/smoke.spec.js", "test/e2e/funktionen/navigation-und-datei.spec.js"],
-      "hinweis": "SM-05, FD-01, FH-01."
+      "tests": [
+        "test/e2e/smoke/smoke.spec.js",
+        "test/e2e/funktionen/navigation-und-datei.spec.js",
+        "test/e2e/funktionen/reiter-beschriftung.spec.js"
+      ],
+      "hinweis": "SM-05, FD-01, FH-01; RT-01 bis RT-05 für die Beschriftung ohne Markdown-Endung."
     },
     {
       "key": "help.feature.viewModes",
@@ -34,8 +38,12 @@
       "key": "help.feature.livePreview",
       "id": "F-004",
       "testart": "e2e",
-      "tests": ["test/e2e/smoke/smoke.spec.js", "test/e2e/regression/4t-0186.spec.js"],
-      "hinweis": "SM-03 plus Live-Verhalten MK-01/MK-03."
+      "tests": [
+        "test/e2e/smoke/smoke.spec.js",
+        "test/e2e/regression/4t-0186.spec.js",
+        "test/e2e/funktionen/link-kennzeichnung.spec.js"
+      ],
+      "hinweis": "SM-03 plus Live-Verhalten MK-01/MK-03; die dauerhafte Link-Unterstreichung der Live-Ansicht in LK-01 (Dokument- und Wiki-Verweis), LK-02 (Adress-Verweis) und LK-03 (gesetzte Darstellung unveraendert)."
     },
     {
       "key": "help.feature.sourceToggles",
@@ -71,7 +79,7 @@
       "testart": "unit",
       "tests": ["test/unit/backlinks.test.js", "test/unit/canvas-verweis-kanten.test.js"],
       "sichtbarkeit": ["test/e2e/funktionen/sidebar-layout.spec.js"],
-      "hinweis": "Index-Logik vollstaendig unit-getestet; Panel-Refresh-Mechanik indirekt ueber NF-01 (gleicher invalidated-Pfad), Panel-Optik in der Gesamtabnahme. 4T-001749 (Epic 3E-000289): dazu die dritte Herkunft eines Rueckverweises — der Verweis einer Canvas-Karte erscheint am Ziel mit Zeile, Anker und Ausschnitt, trifft ueber Namens-, Pfad- und Alias-Form dieselbe Datei wie ein Wiki-Link, und die beiden Rot-Proben halten fest, dass der eigene Text einer Karte und die Angabe bild keinen Rueckverweis erzeugen."
+      "hinweis": "Index-Logik vollstaendig unit-getestet; Panel-Refresh-Mechanik indirekt ueber NF-01 (gleicher invalidated-Pfad), Panel-Optik in der Gesamtabnahme. 4T-001775 (Epic 3E-000304): Der Gruppen-Name steht ohne Markdown-Endung, der Kurzhinweis des Kopfes traegt den vollen Pfad — BP-04 in test/e2e/funktionen/bereichs-panel.spec.js und BIC-01 in test/e2e/funktionen/bereichs-index-cache.spec.js. 4T-001749 (Epic 3E-000289): dazu die dritte Herkunft eines Rueckverweises — der Verweis einer Canvas-Karte erscheint am Ziel mit Zeile, Anker und Ausschnitt, trifft ueber Namens-, Pfad- und Alias-Form dieselbe Datei wie ein Wiki-Link, und die beiden Rot-Proben halten fest, dass der eigene Text einer Karte und die Angabe bild keinen Rueckverweis erzeugen."
     },
     {
       "key": "help.feature.anchorLinks",
@@ -471,7 +479,7 @@
         "test/unit/task-markers.test.js",
         "test/unit/reminders-kern.test.js"
       ],
-      "hinweis": "4T-000525/4T-000528 (Epic 3E-000095): ⏰-Melde-Marker — ER-01 (Nachhol-Dialog listet die faelligen Anker) und ER-06 (Kommando Strg+Alt+R setzt den Marker) plus Unit-Tests fuer setReminder/Round-Trip/Recurrence-Mitwandern und den Erinnerungs-Kern (Faelligkeit mit/ohne Default-Uhrzeit)."
+      "hinweis": "4T-000525/4T-000528 (Epic 3E-000095): ⏰-Melde-Marker — ER-01 (Nachhol-Dialog listet die faelligen Anker) und ER-06 (Kommando Strg+Alt+R setzt den Marker) plus Unit-Tests fuer setReminder/Round-Trip/Recurrence-Mitwandern und den Erinnerungs-Kern (Faelligkeit mit/ohne Default-Uhrzeit). 4T-001775 (Epic 3E-000304): ER-01 und ER-05 pruefen zusaetzlich, dass Panel und Melde-Dialog den Datei-Namen ohne Markdown-Endung nennen und den vollen Pfad im Kurzhinweis fuehren — vor dieser Aenderung trugen beide gar keinen."
     },
     {
       "key": "help.feature.reminderNotifications",
@@ -563,9 +571,10 @@
       "tests": [
         "test/e2e/regression/4t-0186.spec.js",
         "test/e2e/regression/4t-0187.spec.js",
-        "test/e2e/funktionen/navigation-und-datei.spec.js"
+        "test/e2e/funktionen/navigation-und-datei.spec.js",
+        "test/e2e/funktionen/reiter-beschriftung.spec.js"
       ],
-      "hinweis": "MK-03 (Live-Klick), NF-01 (Sidebar ohne Backlinks-Panel), FN-04 (Filter)."
+      "hinweis": "MK-03 (Live-Klick), NF-01 (Sidebar ohne Backlinks-Panel), FN-04 (Filter). 4T-001775 (Epic 3E-000304): RT-09 in test/e2e/funktionen/reiter-beschriftung.spec.js — die Datei-Liste eines Tags beschriftet ohne Markdown-Endung und nennt den vollen Pfad im Kurzhinweis."
     },
     {
       "key": "help.feature.tagRename",
@@ -710,9 +719,11 @@
       "testart": "e2e",
       "tests": [
         "test/e2e/funktionen/navigation-und-datei.spec.js",
-        "test/unit/renderer/struktur-und-state.test.js"
+        "test/e2e/funktionen/bereichs-lesezeichen.spec.js",
+        "test/unit/renderer/struktur-und-state.test.js",
+        "test/unit/renderer/lesezeichen-beschriftung.test.js"
       ],
-      "hinweis": "FN-03 (anlegen, Stern, Sidebar) plus Tree-Helfer-Units; DnD/Ordner-Operationen in der Gesamtabnahme (Maus-Geometrie)."
+      "hinweis": "FN-03 (anlegen, Stern, Sidebar) plus Tree-Helfer-Units; DnD/Ordner-Operationen in der Gesamtabnahme (Maus-Geometrie). 4T-001775 (Epic 3E-000304): BL-07 — die Zeile beschriftet den automatisch gebildeten Namen ohne Markdown-Endung, ein selbst gewaehlter Name bleibt stehen, und ein unveraendert bestaetigtes Inline-Umbenennen laesst den gespeicherten Namen automatisch; gelesen wird dafuer der gespeicherte Baum und nicht die Anzeige, weil beide Faelle gleich aussehen. Die Namens-Logik selbst in test/unit/renderer/lesezeichen-beschriftung.test.js."
     },
     {
       "key": "help.feature.areaBookmarks",
@@ -1282,6 +1293,13 @@
       "hinweis": "LA-02 (4T-000319): Kommando-Pfad app.newApplication (identisch mit Menue-Eintrag und EXE-Zweitstart ohne Argument); der echte EXE-Zweitstart ist manueller Test."
     },
     {
+      "key": "help.shortcut.newWindow",
+      "id": "S-152",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/logische-apps.spec.js", "test/unit/neues-fenster.test.js"],
+      "hinweis": "LA-04 (4T-001738): Der Menue-Eintrag «Neues Fenster» oeffnet ein zweites, leeres Fenster DERSELBEN Applikation — gemessen wird der Start-Zustand ohne Reiter, wie ihn ein frisch gestartetes Fenster zeigt (4T-001740: der frueher hier genannte «einzelne unbenannte Reiter» stand im Widerspruch zur Messung; entschieden 2026-09-19 vom Product Owner, es bleibt beim gemessenen Verhalten, und der Wortlaut in Story und Kriterium ist nachgezogen); das erste Fenster bleibt unveraendert, eine Bereichs-Bindung und die Arbeitsbereichs-Zugehoerigkeit reisen mit, und ein Reiter laesst sich zwischen beiden bewegen. Die Reihenfolge der beiden Menue-Eintraege, die Registrierung des Kommandos ohne Vorgabe-Kuerzel und die Verdrahtung von Menue-Kanal, Bruecke und Dispatcher liegen im Unit-Fall."
+    },
+    {
       "key": "help.shortcut.openArea",
       "id": "S-038",
       "testart": "e2e",
@@ -1331,9 +1349,10 @@
         "test/e2e/funktionen/frontmatter-anzeige.spec.js",
         "test/e2e/funktionen/einstellungen-seite.spec.js",
         "test/unit/render/frontmatter-anzeige.test.js",
-        "test/e2e/funktionen/abstaende.spec.js"
+        "test/e2e/funktionen/abstaende.spec.js",
+        "test/unit/renderer/live-widget-hoehe.test.js"
       ],
-      "hinweis": "FM-01/FM-02 (4T-000282/4T-000283): Zeile, Pin, Live-Widget, Demaskierung, Paritaet; ES-09 (4T-000284): Schalter und Persistenz; Unit-Tests decken Markup, Escaping und Zeilen-Offset; FM-03 (4T-000312): dauerhaft ausgeklappte Darstellung (Schalter, Live-Widget, Print-Zustand, Persistenz). 4T-001310: Abstands-Regression (AB-01/AB-02)."
+      "hinweis": "FM-01/FM-02 (4T-000282/4T-000283): Zeile, Pin, Live-Widget, Demaskierung, Paritaet; ES-09 (4T-000284): Schalter und Persistenz; Unit-Tests decken Markup, Escaping und Zeilen-Offset; FM-03 (4T-000312): dauerhaft ausgeklappte Darstellung (Schalter, Live-Widget, Print-Zustand, Persistenz). 4T-001310: Abstands-Regression (AB-01/AB-02). FM-04 (4T-001722): Auswahl, Schreibmarke und Zeilennummern wandern beim Auf- und Zuklappen mit — fuenf Faelle mit frischer Instanz je Fall, dazu die Gegenprobe des Dauer-Schalters und eine Zeitreihe ueber den Uebergang; der Unit-Fall live-widget-hoehe deckt nur die Buchfuehrung des Groessen-Beobachters, weil die Wirkung einen Layout-Motor braucht."
     },
     {
       "key": "help.feature.sidebarLayout",
@@ -1439,6 +1458,13 @@
       "hinweis": "LA-01 bis LA-03 (3E-000057): App-Anlage ueber den Kommando-Pfad, Titel-Systematik, Nummern-Nachruecken, Sitzungs-Wiederherstellung ueber Apps; Unit-Tests decken Registry-Nummerierung, Sitzungs-Schema und Titel-Suffix-Aufbau. Der echte EXE-Zweitstart ist manueller Test."
     },
     {
+      "key": "help.feature.newWindow",
+      "id": "F-311",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/logische-apps.spec.js", "test/unit/neues-fenster.test.js"],
+      "hinweis": "LA-04 bis LA-06 (4T-001738, 3E-000308): der Menueweg Datei -> Neues Fenster oeffnet ein zweites Fenster DERSELBEN Applikation, das erste behaelt seinen Inhalt, das neue traegt keinen App-Teil im Titel; eine Ordner-Bindung und die Arbeitsbereichs-Zugehoerigkeit reisen mit (Titel und Arbeitsbereichs-Liste gemessen), und ein Reiter laesst sich zwischen beiden Fenstern bewegen. Unit: Registrierung des Kommandos ohne Vorgabe-Kuerzel samt Pflichtfeld der Verfuegbarkeit, die Reihenfolge der beiden Datei-Menue-Eintraege, der echte Fenster-Kanal mit der Applikation des Absenders und die Verdrahtung von Menue-Kanal, Bruecke und Dispatcher. Was das neue Fenster im Inneren zeigt, ist der Start-Zustand eines Fensters ohne Dokumente; der Wortlaut dazu liegt beim Product Owner (4T-001738, Punkt 4)."
+    },
+    {
       "key": "help.feature.area",
       "id": "F-075",
       "testart": "e2e",
@@ -1468,8 +1494,24 @@
       "key": "help.feature.areaPanel",
       "id": "F-077",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/bereichs-panel.spec.js", "test/unit/area-path.test.js"],
-      "hinweis": "BP-01 bis BP-03 (3E-000059): Auto-Anzeige, Baum und Dateiliste (nur Markdown), Oeffnen per Klick, Pfad-Tooltips, Statusbar-Toggle, Watcher-Aktualisierung, Neue-Datei-Anlage mit Kollisions-Meldung; Unit-Tests decken Listing-Sortierung und Namens-Validierung."
+      "tests": [
+        "test/e2e/funktionen/bereichs-panel.spec.js",
+        "test/e2e/funktionen/reiter-beschriftung.spec.js",
+        "test/unit/area-path.test.js",
+        "test/unit/renderer/area-panel-render.test.js"
+      ],
+      "hinweis": "BP-01 bis BP-03 (3E-000059): Auto-Anzeige, Baum und Dateiliste (nur Markdown), Oeffnen per Klick, Pfad-Tooltips, Statusbar-Toggle, Watcher-Aktualisierung, Neue-Datei-Anlage mit Kollisions-Meldung; Unit-Tests decken Listing-Sortierung und Namens-Validierung. RT-06 bis RT-08 (4T-001775, 3E-000304): Beschriftung der Dateiliste ohne Markdown-Endung, Kurzhinweis mit vollem Pfad, Klick-Ziel und zwei gleichstaemmige Dateien; die Randfaelle der Beschriftung am Aufbau der Liste in area-panel-render.test.js."
+    },
+    {
+      "key": "help.feature.areaFileCopy",
+      "id": "F-310",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/bereichs-panel.spec.js",
+        "test/unit/area-kopieren.test.js",
+        "test/unit/area-path.test.js"
+      ],
+      "hinweis": "BP-09 (4T-001731, 3E-000306): der Bedienweg als Ganzes — Eintrag an erster Stelle der Verwaltungs-Gruppe, Kopie ohne Dialog, Name-1 und die naechste freie Nummer, angehaengter statt hochgezaehlter Name bei nummerierter Vorlage, Sortier-Position, Inhalts-Gleichheit, kein geoeffneter Reiter, und die Begleitdaten der Kopie (Block-Eigenschaften ja, Historie nein). Unit: der echte Kanal area:copyFile mit Wettlauf-Rueckfall bei EEXIST, Bereichs-Grenze samt Ausbruch ueber Trenner-Zeichen, abgewiesenem Ordner und abgewiesenem geteilten Dokument, Aufraeumen der halben Kopie bei gescheiterter Begleitdatei; dazu die reine Namens-Bildung kopierNameKandidat in area-path.test.js."
     },
     {
       "key": "help.feature.areaFileCreate",
@@ -1838,6 +1880,16 @@
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
       "hinweis": "4T-000600: FB-17 prueft alle drei Enter-Schritte (Fortsetzung, Ausruecken, Ausstieg). Die Fortsetzung selbst stammt aus der Editor-Bibliothek und ist dort nicht eigens getestet."
+    },
+    {
+      "key": "help.feature.listenCursor",
+      "id": "F-307",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/bearbeitung-und-ansicht.spec.js",
+        "test/unit/renderer/cursor-sprung.test.js"
+      ],
+      "hinweis": "4T-001575/4T-001576 (Epic 3E-000282): Cursor-Sprung hinter den Listen-Marker — FB-18 prüft die Tasten-Wirkung in der gebauten Oberfläche (erster Fall Aufzählung, Einrückung, Nummer und Aufgaben-Kästchen samt der Zeile ohne Marker; zweiter Fall die drei Bewegungen nach links und die unveränderte Auswahl-Erweiterung; dritter Fall dieselbe Stelle im Live-Modus, belegt über die Zeilen-Klasse der Live-Dekoration). Die reine Spalten-Rechnung, die Entscheidungen des Handlers, beide Zustände des Schalters und der Lade-Weg der Eingabe-Schalter liegen in cursor-sprung.test.js; die Einstellungs-Zeile selbst prüft ES-16 in test/e2e/funktionen/einstellungen-seite.spec.js."
     },
     {
       "key": "help.shortcut.listSelectSubtree",
@@ -2657,15 +2709,41 @@
       "key": "help.feature.statusbarCommandButtons",
       "id": "F-135",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/kommando-platzierung.spec.js"],
-      "hinweis": "4T-000520/4T-000523 (Epic 3E-000094): eigenes Statusbar-Segment mit Kommando-Buttons — KP-01 (Seed-Button fuehrt Kommando aus, Tooltip), KP-02 (Drei-Schritt-Anlage), KP-04 (Ueberlauf-Mehr-Menue), KP-05 (Aus-Zustand)."
+      "tests": [
+        "test/e2e/funktionen/kommando-platzierung.spec.js",
+        "test/e2e/funktionen/statusleisten-einstellungen.spec.js"
+      ],
+      "hinweis": "4T-000520/4T-000523 (Epic 3E-000094): eigenes Statusbar-Segment mit Kommando-Buttons — KP-01 (Seed-Button fuehrt Kommando aus, Tooltip), KP-02 (Drei-Schritt-Anlage), KP-04 (Ueberlauf-Mehr-Menue), KP-05 (Aus-Zustand). 4T-001581 (Epic 3E-000283): Der Einstellungs-Block ist in den Abschnitt „Statusleiste\" umgezogen — SB-01 (Abschnitt fuehrt den Block), SB-02 (vorbelegte Werte gelten weiter), SB-04 (Block verschwindet mit der Erweiterung, Falt-Einstellung bleibt)."
     },
     {
       "key": "help.feature.statusbarHideList",
       "id": "F-136",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/kommando-platzierung.spec.js"],
-      "hinweis": "4T-000520/4T-000523 (Epic 3E-000094): Hide-Liste der Standard-Statusbar-Elemente ueber die Render-Logik — KP-03 (Ausblenden, DOM bleibt, Zuruecksetzen), KP-05 (Aus-Zustand laesst Hide-Liste inaktiv)."
+      "tests": [
+        "test/e2e/funktionen/kommando-platzierung.spec.js",
+        "test/e2e/funktionen/statusleisten-einstellungen.spec.js"
+      ],
+      "hinweis": "4T-000520/4T-000523 (Epic 3E-000094): Hide-Liste der Standard-Statusbar-Elemente ueber die Render-Logik — KP-03 (Ausblenden, DOM bleibt, Zuruecksetzen), KP-05 (Aus-Zustand laesst Hide-Liste inaktiv). 4T-001581 (Epic 3E-000283): Die Liste ist in den Abschnitt „Statusleiste\" umgezogen — SB-01 (Abschnitt fuehrt den Block), SB-02 (vorbelegte Ausblendung gilt weiter und wird dort gepflegt), SB-03 (Einstellungs-Suche und Sprungmarke auf die Zeile), SB-04 (Block verschwindet mit der Erweiterung)."
+    },
+    {
+      "key": "help.feature.statusleisteFalten",
+      "id": "F-309",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/statusleisten-faltung.spec.js",
+        "test/e2e/funktionen/statusleisten-einstellungen.spec.js"
+      ],
+      "hinweis": "4T-001579/4T-001580 (Epic 3E-000283): Zusammenklappen der Statusleiste in zwei Rand-Menues — SF-01 bis SF-10 (unveraenderte Leiste bei voller Breite, kein Ueberlauf am Rand, Zonen-Zuordnung, Abbau in umgekehrter Anzeige-Reihenfolge, Meldungs-Bereich und Wort-Statistik, Wirkung und Zustand aus dem Menue heraus, Rueckkehr beim Verbreitern, Schwing-Freiheit, ausgeblendete Standard-Schaltflaeche, anker-gebundenes Popup), SF-11 bis SF-13 (Falt-Einstellung im Abschnitt „Statusleiste\", dauerhaft zusammengeklappte Leiste, Meldungs-Bereich in diesem Zustand). 4T-001581: SB-01 (Aufbau und Ort des Abschnitts), SB-04 (die Falt-Einstellung bleibt stehen, wenn die Erweiterung „Kommando-Platzierung\" aus ist)."
+    },
+    {
+      "key": "help.feature.nichtAktivierbareSchalter",
+      "id": "F-308",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/statusleisten-schalter-darstellung.spec.js",
+        "test/unit/renderer/statusleisten-schalter-darstellung.test.js"
+      ],
+      "hinweis": "4T-001765 (Epic 3E-000186): Darstellung nicht aktivierbarer Schaltflaechen der Statusleiste — SD-01 (die Auswahl im Abschnitt «Statusleiste»: genau zwei Werte, Vorgabe «blass anzeigen», Wirkung ohne Neustart), SD-02 (Wert «blass anzeigen»: je Zone vorhanden, stillgelegt und ohne Wirkung auf Klick), SD-03 (Wert «ausblenden»: je Zone verschwunden und zurueck am eigenen Platz, sobald es wieder geht), SD-04 (Zusammenspiel mit der Faltung: kein ausgeblendeter Schalter im Pull-up-Menue, Gegenprobe im aktivierbaren Zustand), SD-05 (Vorrang der Ausblend-Liste in beiden Werten, erweiterungs-bedingtes Verschwinden unberuehrt), SD-06 (das Ansichtsmenue bleibt in beiden Werten blass, statt Eintraege zu entfernen). Ziel-Liste gegen die drei abgeloesten Stellen, die gemeinsame Antwort aus dem Verfuegbarkeits-Modell ueber alle Zustaende, Werte-Bereich samt Vorgabe und Setter sowie die Darstellung am einzelnen Element liegen in test/unit/renderer/statusleisten-schalter-darstellung.test.js."
     },
     {
       "key": "help.feature.contextMenuCommands",

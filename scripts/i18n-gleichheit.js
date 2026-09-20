@@ -86,36 +86,64 @@ function bezugsPfad(code) {
  *
  * @type {Array<{sprache: string, schluessel: string, grund: string}>}
  */
-const ABWEICHUNGEN = [
+// 4T-001582 (Epic 3E-000283): Die erste Befüllung dieser Liste. Sechs
+// Bestands-Texte sagen seit diesem Epic etwas Falsches — vier nennen einen
+// Einstellungs-Abschnitt, der seinen Inhalt abgegeben hat, zwei ein Menü, das
+// es nicht mehr gibt. Der zweite Weg aus dem Kommentar oben (auf den nächsten
+// Release-Tag warten) trägt hier nicht: Es ist das eigene Release dieses Zuges,
+// das die Texte falsch machen würde. Die Änderung betrifft je Schlüssel alle
+// fünf Sprachen zugleich, weil ein Text nie in einer Sprache allein gepflegt
+// wird; die Liste ist deshalb über die Sprach-Achse erzeugt und über die
+// Schlüssel-Achse ausgeschrieben. Mit dem Release des Zuges geht der Nachweis
+// in den Ruhestand, und die Liste entfällt mit ihm.
+const GEAENDERTE_TEXTE = [
   {
-    sprache: 'de',
-    schluessel: 'help.feature.propertyProfiles',
+    schluessel: 'help.featureAccess.statusbarCommandButtons',
     grund:
-      'Zug 3E-000277 (4T-001507, 4T-001511): Katalog-Text der Eigenschafts-Profile um die beiden geteilten Spalten-Optionen erweitert, bevor der Bezugsstand 1.132.0 entstand',
+      'Die eigenen Kommando-Schaltflächen der Statusleiste liegen im Einstellungs-Abschnitt «Statusleiste» statt unter «Kommando-Platzierung» (4T-001581, Entscheidung E4a des Epics).',
   },
   {
-    sprache: 'en',
-    schluessel: 'help.feature.propertyProfiles',
+    schluessel: 'help.featureAccess.statusbarHideList',
     grund:
-      'Zug 3E-000277 (4T-001507, 4T-001511): Katalog-Text der Eigenschafts-Profile um die beiden geteilten Spalten-Optionen erweitert, bevor der Bezugsstand 1.132.0 entstand',
+      'Die Ausblend-Liste der Standard-Schaltflächen liegt im Einstellungs-Abschnitt «Statusleiste» statt unter «Kommando-Platzierung» (4T-001581, E4a).',
   },
   {
-    sprache: 'fr',
-    schluessel: 'help.feature.propertyProfiles',
+    schluessel: 'help.featureAccess.macros',
     grund:
-      'Zug 3E-000277 (4T-001507, 4T-001511): Katalog-Text der Eigenschafts-Profile um die beiden geteilten Spalten-Optionen erweitert, bevor der Bezugsstand 1.132.0 entstand',
+      'Der Rest-Abschnitt der Erweiterung heißt «Kontextmenü und Makros»; der Name «Kommando-Platzierung» bezeichnet nur noch die Erweiterung selbst (4T-001581, E4a).',
   },
   {
-    sprache: 'es',
-    schluessel: 'help.feature.propertyProfiles',
-    grund:
-      'Zug 3E-000277 (4T-001507, 4T-001511): Katalog-Text der Eigenschafts-Profile um die beiden geteilten Spalten-Optionen erweitert, bevor der Bezugsstand 1.132.0 entstand',
+    schluessel: 'help.featureAccess.contextMenuCommands',
+    grund: 'Derselbe Abschnitts-Name wie bei den Makros (4T-001581, E4a).',
   },
   {
-    sprache: 'it',
+    schluessel: 'help.feature.statusbarCommandButtons',
+    grund:
+      'Das eigene Mehr-Menü des Kommando-Segments ist mit 4T-001579 entfallen; überzählige Schaltflächen wandern jetzt mit den übrigen Elementen der Leiste in deren beide Rand-Menüs.',
+  },
+  {
+    schluessel: 'settings.commandPlacement.statusbarHint',
+    grund: 'Dieselbe Aussage über das entfallene Mehr-Menü wie im Katalog-Text (4T-001579).',
+  },
+  {
+    schluessel: 'help.feature.livePreview',
+    grund:
+      'Der Text sagte, Links erschienen in der Live-Ansicht wie in der Render-Pane; seit 4T-001719 (Epic 3E-000302, E1) sind sie dort dauerhaft unterstrichen statt erst beim Überfahren mit der Maus. Der Satz ist um diese Ausnahme ergänzt (4T-001720); der Bezugsstand liegt vor dem Release dieses Zuges, das den Text falsch machen würde.',
+  },
+  {
+    schluessel: 'help.feature.tabs',
+    grund:
+      'Der Katalog-Text der Reiter und Spalten sagte nichts über die Beschriftung eines Reiters; seit 4T-001724 (Epic 3E-000304, E1 bis E4) trägt sie den Dateinamen ohne Markdown-Endung. Der Text ist um einen Satz dazu ergänzt (4T-001725) statt um einen eigenen Katalog-Eintrag, weil die Beschriftung Grundverhalten der Reiterleiste ist und in denselben Eintrag gehört; der Bezugsstand liegt vor dem Release dieses Zuges, das den Text unvollständig machen würde.',
+  },
+  {
+    schluessel: 'help.feature.areaPanel',
+    grund:
+      'Der Katalog-Text des Bereichs-Panels sagte nichts über die Beschriftung einer Datei-Zeile; seit 4T-001775 (Epic 3E-000304) steht dort der Name ohne Markdown-Endung, nachdem der Product Owner am 2026-09-17 die Entscheidung E5 revidiert hat. Der Text ist um einen Satz dazu ergänzt, in denselben Eintrag wie bei den Reitern und aus demselben Grund; der Bezugsstand liegt vor dem Release dieses Zuges, das den Text unvollständig machen würde.',
+  },
+  {
     schluessel: 'help.feature.propertyProfiles',
     grund:
-      'Zug 3E-000277 (4T-001507, 4T-001511): Katalog-Text der Eigenschafts-Profile um die beiden geteilten Spalten-Optionen erweitert, bevor der Bezugsstand 1.132.0 entstand',
+      'Zug 3E-000277 (4T-001507, 4T-001511): Katalog-Text der Eigenschafts-Profile um die beiden geteilten Spalten-Optionen erweitert, bevor der Bezugsstand entstand (Eintrag des Integrationsstands, beim Nachzug des Zuges 3E-000311 am 2026-09-18 in die erzeugte Liste uebernommen).',
   },
   // Beim Rebase auf das Release 1.137.0 angefügt: die Einträge des Zuges
   // 3E-000313 hinter denen des Integrationsstands. Beide Seiten bleiben nötig,
@@ -152,7 +180,21 @@ const ABWEICHUNGEN = [
       grund: `4T-001797 (Epic 3E-000315): Die Zugangs-Angabe der ${sache} nennt den Weg über das Ansichtsmenü; seit der Bündelung führt er über die Zwischenstufe «Canvas-Fläche bearbeiten». Nur diese eine Stelle des Wertes ist eingefügt, der Rest steht unverändert. In der italienischen Fassung der Verweis- und Bild-Karten ist zugleich der erste Schritt von «Vista» auf «Visualizza» berichtigt — so heißt das Menü dort.`,
     })),
   ),
+  {
+    schluessel: 'help.feature.workspaces',
+    grund:
+      'Der Katalog-Text der Arbeitsbereiche sagte nichts darueber, dass Untermenue und Verwaltung die Ordner-Bindung nennen und dass die Reihenfolge der Arbeitsbereiche in der Verwaltung gesetzt wird; beides ist mit 4T-001737 und 4T-001753 (Epic 3E-000308) hinzugekommen. Der Text ist um einen Satz dazu ergaenzt (4T-001740) statt um einen eigenen Katalog-Eintrag, weil beides Eigenschaften der bestehenden Verwaltung sind und keine eigene Funktion; der Bezugsstand liegt vor dem Release dieses Zuges, das den Text unvollstaendig machen wuerde.',
+  },
+  {
+    schluessel: 'help.feature.myExtendedMemory',
+    grund:
+      'Der Katalog-Text von My Extended Memory nannte beim Arbeitsbereich nur, dass dort keine Kennzahlen stehen; seit 4T-001739 (Epic 3E-000308) fuehrt er neben der Zahl seiner Fenster die Zahl der darin geoeffneten Markdown-Dokumente. Der Text ist um einen Satz dazu ergaenzt (4T-001740), aus demselben Grund wie bei den Arbeitsbereichen: eine zweite Angabe an einer bestehenden Anzeige ist keine eigene Funktion.',
+  },
 ];
+
+const ABWEICHUNGEN = GEAENDERTE_TEXTE.flatMap(({ schluessel, grund }) =>
+  LOCALE_CODES.map((sprache) => ({ sprache, schluessel, grund })),
+);
 
 /**
  * Vergleicht einen Bezugs-Katalog gegen den heutigen Ist-Katalog einer Sprache.

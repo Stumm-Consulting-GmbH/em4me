@@ -6,7 +6,7 @@ Bookmarks keep frequently used files within reach, no matter which folder is cur
 
 The “Bookmarks” panel is toggled like any sidebar panel: via the status-bar star, the View → Sidebar → Panels → Bookmarks menu (default `Ctrl+Shift+L`) or a shortcut you assign yourself. The toggle acts on the active column; side, order and tab groups follow the rules of the [sidebar](sidebar.md). The status-bar star also shows whether the active file is already bookmarked.
 
-A click on an entry opens the file. If a bookmarked file is missing from its expected location, the entry says so instead of leading nowhere. Even in the empty app state with no open document, the list stays usable, so bookmarked files can be opened directly.
+A click on an entry opens the file. If a bookmarked file is missing from its expected location, the entry says so instead of leading nowhere. Even in the empty app state with no open document, the list stays usable, so bookmarked files can be opened directly. An entry is labelled with the file name without its Markdown extension, and the tooltip gives the full path; a name you chose yourself, by contrast, stays exactly as you entered it.
 
 ## Two sections: general and area-bound
 

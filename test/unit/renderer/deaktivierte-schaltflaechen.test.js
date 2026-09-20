@@ -19,6 +19,7 @@
 // drücken lässt und dabei aussieht wie ein drückbarer, ist schlimmer als ein
 // fehlender: Der Nutzer klickt und hält die Anwendung für kaputt.
 import { describe, it, expect } from 'vitest';
+import { COMMANDS } from '../../../src/shared/commands/commands.js';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -27,6 +28,12 @@ const dir = path.dirname(fileURLToPath(import.meta.url));
 const wurzel = path.join(dir, '../../..');
 const css = readFileSync(path.join(wurzel, 'src/renderer/styles.css'), 'utf8');
 const tabs = readFileSync(path.join(wurzel, 'src/renderer/modules/tabs/tabs.js'), 'utf8');
+// 4T-001765 (Epic 3E-000186): die gemeinsame Funktion, die den Zustand seither
+// setzt — die Gegenprobe unten liest beide Seiten der Naht.
+const verfuegbarkeit = readFileSync(
+  path.join(wurzel, 'src/renderer/modules/statusbar-availability.js'),
+  'utf8',
+);
 
 // Die Schaltflächen-Arten der Statusleiste, die im Code deaktiviert werden.
 const ARTEN = ['.btn', '.btn-toggle', '.view-btn'];
@@ -75,7 +82,21 @@ describe('Deaktivierte Schaltflächen sind sichtbar deaktiviert (4T-001653)', ()
     // Gegenprobe: Ohne sie schützte die Regel oben einen Zustand, den es
     // nicht gibt. Zwei Fälle sind belegt — System-Seiten (4T-000277) und das
     // Dokument ohne Canvas-Fläche (4T-001653).
-    expect(tabs).toMatch(/b\.disabled = systemTab/);
-    expect(tabs).toMatch(/dataset\.view === 'canvas' && !canvasVerfuegbar/);
+    //
+    // 4T-001765 (Epic 3E-000186, E6): Die Bedingung steht seither nicht mehr
+    // in tabs.js, sondern im Verfügbarkeits-Modell; tabs.js reicht jeden
+    // Ansichts-Schalter samt seinem Kommando an die gemeinsame Funktion, und
+    // die setzt `disabled`. Die Gegenprobe ist deshalb zweiteilig — der
+    // Aufruf in der Leiste und das `disabled` in der gemeinsamen Funktion —,
+    // und sie prüft dieselbe Sache wie vorher: Dass es den Zustand gibt, den
+    // die Regeln oben sichtbar machen.
+    expect(tabs).toMatch(/setzeLeistenSchalter\(\s*b,\s*ANSICHTS_KOMMANDOS\[b\.dataset\.view\]/);
+    expect(verfuegbarkeit).toMatch(/el\.disabled = !aktivierbar;/);
+    // Und die beiden belegten Fälle bleiben belegt, jetzt an ihrer neuen
+    // Stelle: Die sechs Ansichts-Schalter tragen die Bedingungen 'viewMode'
+    // (kein System-Reiter) und, für die Arbeitsfläche, 'canvasAnsicht'
+    // (zusätzlich eine Fläche im Dokument).
+    expect(COMMANDS.find((c) => c.id === 'view.modeSource').availability).toBe('viewMode');
+    expect(COMMANDS.find((c) => c.id === 'view.modeCanvas').availability).toBe('canvasAnsicht');
   });
 });

@@ -2,7 +2,8 @@
 //
 // Standard-Ansichtsmodus und die Schalter des Arbeitens am Dokument
 // (Link-Update beim Umbenennen, Entwurfs-Zwischenspeicher, Link beim
-// Einfügen, Tabulator-Verhalten, Skript-Blöcke, Lesezeichen-Reihenfolge).
+// Einfügen, Tabulator-Verhalten, Cursor-Sprung in Listen, Skript-Blöcke,
+// Lesezeichen-Reihenfolge).
 // Die Dokument-Historie liegt im Nachbar-Modul settings-history.js.
 'use strict';
 
@@ -63,6 +64,7 @@ export function dirtyBehaviorSection(draft) {
     dirtyKeepDraftsSetting(draft) ||
     dirtyPasteLinkSetting(draft) ||
     dirtyTabIndentSetting(draft) ||
+    dirtyCursorSprungSetting(draft) ||
     (draft.scriptsRun === true) !== isPerspectiveScriptsEnabled()
   );
 }
@@ -123,6 +125,7 @@ export function renderBehaviorSection(container, draft) {
   renderKeepDraftsSetting(container, draft);
   renderPasteLinkSetting(container, draft);
   renderTabIndentSetting(container, draft);
+  renderCursorSprungSetting(container, draft);
   renderBookmarksAreaFirstSetting(container);
   renderScriptBlocksSetting(container, draft);
 }
@@ -182,6 +185,43 @@ function dirtyTabIndentSetting(draft) {
   return draft.tabIndents !== draft.tabIndentsSnapshot;
 }
 
+// 4T-001576 (Epic 3E-000282): Schalter „Schreibmarke springt hinter den
+// Listen-Marker" (Store-Key input.cursorSprung, Vorgabe an nach E5 des Epics).
+// Weg exakt wie beim Tabulator-Schalter darüber: Entwurfs-Feld mit Snapshot,
+// Persistieren nur bei Änderung, Nachziehen des Laufzeit-Zustands. Dazu — wie
+// beim Skript-Block-Schalter weiter unten — die Verteilung an die übrigen
+// Fenster, damit die Wahl ohne Neustart überall gilt (Zweig input.cursorSprung
+// in src/main/ipc/settings-verteilung.js).
+function renderCursorSprungSetting(container, draft) {
+  const input = document.createElement('input');
+  input.id = 'settings-cursor-sprung';
+  input.type = 'checkbox';
+  input.checked = draft.cursorSprung !== false;
+  input.addEventListener('change', () => {
+    draft.cursorSprung = input.checked;
+  });
+  container.appendChild(buildSettingsRow('settings.cursorSprung.label', input));
+
+  const hint = document.createElement('p');
+  hint.className = 'settings-row-hint';
+  hint.textContent = t('settings.cursorSprung.hint');
+  container.appendChild(hint);
+}
+
+async function applyCursorSprungSetting(draft) {
+  if (typeof draft.cursorSprung !== 'boolean') return;
+  if (draft.cursorSprung !== draft.cursorSprungSnapshot) {
+    await persistSetting('input.cursorSprung', draft.cursorSprung);
+    state.cursorSprung = draft.cursorSprung;
+    draft.cursorSprungSnapshot = draft.cursorSprung;
+  }
+}
+
+function dirtyCursorSprungSetting(draft) {
+  if (typeof draft.cursorSprung !== 'boolean') return false;
+  return draft.cursorSprung !== draft.cursorSprungSnapshot;
+}
+
 // --- 4T-000414 (Epic 3E-000078): Skript-Blöcke ausführen (Default aus) -----------
 // Sicherheits-Schalter des Vertrauensmodells: Skripte stammen aus Dokumenten;
 // der Warntext steht dauerhaft unter der Zeile (kein versteckter Tooltip).
@@ -230,6 +270,7 @@ export async function applyBehaviorSection(draft) {
   await applyKeepDraftsSetting(draft);
   await applyPasteLinkSetting(draft);
   await applyTabIndentSetting(draft);
+  await applyCursorSprungSetting(draft);
   await applyScriptBlocksSetting(draft);
 }
 

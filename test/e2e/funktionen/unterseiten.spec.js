@@ -166,7 +166,9 @@ test.describe('US-04: Datei umbenennen (Grundfunktion)', () => {
       await page.locator('#btn-name-input-ok').click();
       await expect(modal).toBeHidden();
       // Tab folgt dem neuen Namen, Datei liegt unter dem neuen Pfad.
-      await expect(page.locator(SEL.activeTab0)).toContainText('Solo Neu.md');
+      // 4T-001724 (Epic 3E-000304): Der Reiter beschriftet sich ohne
+      // Markdown-Endung; das Unterseiten-Trennzeichen bleibt.
+      await expect(page.locator(SEL.activeTab0)).toContainText('Solo Neu');
       await expect(page.locator(SEL.tabs0)).toHaveCount(1);
       expect(fs.existsSync(path.join(dir, 'Solo Neu.md'))).toBe(true);
       expect(fs.existsSync(file)).toBe(false);
@@ -212,7 +214,9 @@ test.describe('US-05: Umbenennen-Kaskade fuer Unterseiten-Baeume', () => {
       await page.locator('#name-input-field').fill('Prozess-Z');
       await page.locator('#btn-name-input-ok').click();
       await expect(page.locator('#name-input-modal')).toBeHidden();
-      await expect(page.locator(SEL.activeTab0)).toContainText('Prozess-Z.md');
+      // 4T-001724 (Epic 3E-000304): Der Reiter beschriftet sich ohne
+      // Markdown-Endung; das Unterseiten-Trennzeichen bleibt.
+      await expect(page.locator(SEL.activeTab0)).toContainText('Prozess-Z');
       // 4T-000874: Der Reiter-Titel steht bereits, wenn die ERSTE Datei der
       // Kaskade umbenannt ist (der Main meldet jede Umbenennung einzeln per
       // 'file:renamed'); die Nachfahren folgen danach. Auf die Dateien wird
@@ -249,7 +253,9 @@ test.describe('US-05: Umbenennen-Kaskade fuer Unterseiten-Baeume', () => {
       await page.locator('#name-input-field').fill('Konzept');
       await page.locator('#btn-name-input-ok').click();
       await expect(page.locator('#name-input-modal')).toBeHidden();
-      await expect(page.locator(SEL.activeTab0)).toContainText(`Prozess-Z${SEP}Konzept.md`);
+      // 4T-001724 (Epic 3E-000304): Der Reiter beschriftet sich ohne
+      // Markdown-Endung; das Unterseiten-Trennzeichen bleibt.
+      await expect(page.locator(SEL.activeTab0)).toContainText(`Prozess-Z${SEP}Konzept`);
       expect(fs.existsSync(path.join(dir, `Prozess-Z${SEP}Konzept.md`))).toBe(true);
       expect(fs.existsSync(path.join(dir, `Prozess-Z${SEP}Entwurf.md`))).toBe(false);
     } finally {
@@ -275,7 +281,9 @@ test.describe('US-06: Breadcrumb und Unterseiten-Sektion', () => {
       await expect(crumb.locator('.subpage-crumb.is-missing')).toHaveText('Umsetzung');
       // Klick auf die Wurzel-Ebene oeffnet Prozess-A.md.
       await crumb.locator('a.subpage-crumb', { hasText: 'Prozess-A' }).click();
-      await expect(page.locator(SEL.activeTab0)).toContainText('Prozess-A.md');
+      // 4T-001724 (Epic 3E-000304): Der Reiter beschriftet sich ohne
+      // Markdown-Endung; das Unterseiten-Trennzeichen bleibt.
+      await expect(page.locator(SEL.activeTab0)).toContainText('Prozess-A');
       // Normale Seiten zeigen keinen Breadcrumb? Prozess-A ist Top-Level.
       await expect(crumb).toBeHidden();
 
@@ -292,7 +300,9 @@ test.describe('US-06: Breadcrumb und Unterseiten-Sektion', () => {
       await expect(entries.first()).toHaveText('Entwurf');
       // Klick oeffnet die Unterseite.
       await entries.first().click();
-      await expect(page.locator(SEL.activeTab0)).toContainText(`Prozess-A${SEP}Entwurf.md`);
+      // 4T-001724 (Epic 3E-000304): Der Reiter beschriftet sich ohne
+      // Markdown-Endung; das Unterseiten-Trennzeichen bleibt.
+      await expect(page.locator(SEL.activeTab0)).toContainText(`Prozess-A${SEP}Entwurf`);
     } finally {
       await closeApp(app, userData, { force: true });
       cleanupDir(dir);

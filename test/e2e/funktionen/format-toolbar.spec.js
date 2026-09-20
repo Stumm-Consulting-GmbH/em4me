@@ -159,16 +159,23 @@ test.describe('FT-05: Überlauf bei schmaler Pane', () => {
     const { app, page, userData } = await launchApp({ args: [BASIS] });
     try {
       await waitForTab(page);
-      // Schmales Fenster plus Geteilt-Ansicht: die Editor-Spalte ist zu
-      // schmal für die Standard-Belegung.
-      await app.evaluate(({ BrowserWindow }) => {
-        const win = BrowserWindow.getAllWindows()[0];
-        win.setBounds({ width: 640, height: 600 });
-      });
+      // Geteilte Ansicht und Bearbeiten-Modus zuerst, das schmale Fenster
+      // danach.
+      //
+      // 4T-001579 (Epic 3E-000283): Die Reihenfolge ist nicht beliebig. Bei
+      // 640 px klappt die Statusleiste zusammen, und der Bearbeiten-Schalter
+      // liegt dann im rechten Pull-up-Menü statt in der Leiste — ein Klick
+      // auf `#btn-edit` prüfte dort die Faltung statt der Format-Leiste.
+      // Gegenstand dieses Falls ist die schmale Editor-SPALTE; sie entsteht
+      // durch das Verschmälern genauso, wenn der Modus vorher steht.
       await sendMenuChannel(app, 'menu:viewChange', 'split');
       await expect(page.locator(SEL.editorContent0)).toBeVisible();
       await page.locator(SEL.btnEdit).click();
       await expect(page.locator(TOOLBAR)).toBeVisible();
+      await app.evaluate(({ BrowserWindow }) => {
+        const win = BrowserWindow.getAllWindows()[0];
+        win.setBounds({ width: 640, height: 600 });
+      });
       const more = page.locator('#btn-format-toolbar-more-0');
       await expect(more).toBeVisible();
       // Mindestens ein Eintrag ist eingelagert (hidden).

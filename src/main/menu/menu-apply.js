@@ -138,6 +138,12 @@ function createMenuApply(deps) {
         name: w.name,
         color: w.color,
         open: appRegistry.findAppByWorkspaceId(w.id) != null,
+        // 4T-001737 (Epic 3E-000308): Bereichs-Bindung des Arbeitsbereichs.
+        // Sie stand hier immer schon am Quell-Objekt und wurde nur nie
+        // mitgenommen — das Untermenue konnte deshalb allein den Namen
+        // beschriften. Der Pfad reist ungekuerzt mit; auf den Ordnernamen
+        // kuerzt erst die Label-Bildung in menu-workspaces.js (E2).
+        areaPath: w.app && w.app.area ? w.app.area.rootPath : null,
       })),
       restoreSession: !!(store && store.get('restoreSession')),
       autoSave: !!(store && store.get('autoSave')),

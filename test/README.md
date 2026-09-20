@@ -784,6 +784,36 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     Sekunden, gegen die Alternative, eine Toleranz auf Verdacht zu weiten und
     damit die Aussagekraft des Falls dauerhaft zu senken.
 
+28. **Die Prüf-Breite steht zentral im Start-Helfer, und sie wird als
+    Inhalts-Größe gesetzt** (4T-001579, Epic 3E-000283). `launchApp` in
+    `test/e2e/helpers/app.js` setzt einmal zentral eine Prüf-Breite von
+    **1600 px** Inhaltsbreite bei unveränderter Höhe von **800**. Grund: Ein
+    Prüffall, der eine Schaltfläche der Statusleiste anklickt, prüfte in einer
+    schmalen Lage deren **Zusammenklappen** statt seiner eigenen Sache — die
+    Leiste faltet ihre Elemente seit diesem Epic in zwei Pull-up-Menüs, sobald
+    der Platz nicht reicht. Betroffen waren rund zehn Prüfdateien über fünf
+    Elemente hinweg, und die Menge wächst mit jeder weiteren Schaltfläche;
+    einzeln nachgezogen wäre sie bei der nächsten erneut fällig. **Wer eine
+    schmale Lage _prüfen_ will, setzt die Fenster-Grenzen im Prüffall selbst**
+    (so `FT-05`, `KP-04` und die `SF`-Fälle).
+
+    **Gesetzt wird die Inhalts-Größe (`win.setContentSize`), nie das
+    Fenster-Rechteck mit Position (`win.setBounds` mit `x`/`y`).** Das
+    Rechteck **verschiebt** das Fenster, und die Verschiebung hat am
+    2026-09-14 in einer Messreihe über eine ganze Prüfdatei **4 von 6 Läufen**
+    zum Fehlschlag gebracht — «Execution context was destroyed» im
+    Haupt-Prozess-Aufruf, also ohne verletzte Erwartung; **ohne** Verschiebung
+    waren es **3 von 3 grün** (ebenso 3 von 3 grün ohne jede Größen-Setzung).
+    Die Inhalts-Größe rührt die Position nicht an und trifft die gemessene
+    Breite zudem genauer, weil der Fenster-Rahmen nicht mitzählt. Die Regel
+    bindet **jeden** künftigen Helfer, der ein Fenster für einen Lauf
+    einrichtet. Ist der Bildschirm schmaler als 1600, klemmt das
+    Fenster-System die Breite; dort gilt dieselbe Lage wie vor der Ergänzung.
+
+    Die Messreihe und die Begründung der Breite stehen im Lösungs-Kapitel von
+    4T-001579, Abschnitt zur Prüf-Breite und beim roten Fall `MEM-06`; der
+    Kommentar im Helfer trägt sie in Kurzform.
+
 ## E2E-Praxis
 
 Wiederkehrende Stolperstellen der Playwright-Suite. Jede hat mindestens

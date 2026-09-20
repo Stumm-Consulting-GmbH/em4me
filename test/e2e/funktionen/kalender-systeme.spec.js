@@ -150,8 +150,16 @@ async function sendMenuChannel(app, channel, ...args) {
 
 // Test-Dokument aus dem Bereichs-Panel öffnen: openAreaPath setzt die Tabs
 // des Fensters zurück, deshalb wird die Datei NACH dem Binden geöffnet.
+// 4T-001775 (Epic 3E-000304): Die Dateiliste beschriftet ohne Markdown-Endung.
+// Der Aufrufer nennt weiterhin den Dateinamen; gesucht wird die Beschriftung,
+// und zwar exakt (ein Teilstring traefe auch einen laengeren Namen).
+const ohneEndung = (name) => name.replace(/\.(md|markdown|mdown|mkd)$/i, '');
+
 async function openDocFromAreaPanel(page, name) {
-  await page.locator('.area-file-row', { hasText: name }).first().click();
+  await page
+    .locator('.area-file-row', { hasText: new RegExp(`^${ohneEndung(name)}$`) })
+    .first()
+    .click();
   await expect(page.locator(SEL.tabs0).first()).toBeVisible();
 }
 

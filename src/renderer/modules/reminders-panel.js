@@ -24,6 +24,9 @@ import { ensurePanelTabActive, registerSidebarPanel } from './sidebar-layout.js'
 import { isAllEmpty, persistSetting, updateEmptyState } from './views/views.js';
 import { isExtensionActive } from './extensions/extension-lifecycle.js';
 import { groupForPanel } from '../../shared/reminders.js';
+// 4T-001775 (Epic 3E-000304): Beschriftung ohne Markdown-Endung aus der
+// gemeinsamen Quelle (keine zweite Endungs-Liste).
+import { fileLabelFromBasename } from '../../shared/subpages.js';
 import { openReminderSource, showSnoozeMenu } from './reminders.js';
 import { toggleTaskFromQuery } from './task-query-actions.js';
 
@@ -52,10 +55,16 @@ function buildEntry(paneIdx, item) {
   const meta = document.createElement('span');
   meta.className = 'reminders-item-meta';
   const mutedSuffix = item.muted ? ` · ${t('reminders.panel.muted')}` : '';
-  meta.textContent = `${api.basename(item.path)} · ${item.date}${
+  // 4T-001775 (Epic 3E-000304): Der Datei-Name steht ohne Markdown-Endung.
+  meta.textContent = `${fileLabelFromBasename(api.basename(item.path))} · ${item.date}${
     item.time ? ` ${item.time}` : ''
   }${mutedSuffix}`;
   main.appendChild(meta);
+  // 4T-001775: Dieser Eintrag trug bisher GAR KEINEN Kurzhinweis. Mit der
+  // Kuerzung waere die Auskunft ueber den echten Dateinamen sonst ersatzlos
+  // entfallen; der Kurzhinweis fuehrt deshalb den vollen Pfad (Muster der
+  // Dateiliste des Bereichs-Panels).
+  main.title = item.path;
   main.addEventListener('click', () => void openReminderSource(item));
   row.appendChild(main);
 

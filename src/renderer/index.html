@@ -1141,6 +1141,40 @@
 
     <footer class="statusbar">
       <div class="statusbar-left">
+        <!-- 4T-001579 (Epic 3E-000283): Pull-up-Menü der linken Zone. Es
+             erscheint nur, wenn bei knappem Platz mindestens ein Element
+             der linken Zone eingeklappt ist (statusbar-overflow.js); am
+             linken Rand der Leiste, damit es dort steht, wo seine Elemente
+             standen. Symbol und Optik sind die des abgelösten
+             Kommando-Überlauf-Knopfs, dessen Aufgabe die neue Mechanik
+             übernimmt. -->
+        <button
+          id="btn-statusbar-collapse-left"
+          class="btn-toggle btn-icon statusbar-collapse-toggle"
+          data-i18n-title="statusbar.collapse.left"
+          data-i18n-aria-label="statusbar.collapse.left"
+          title=""
+          aria-label="More status bar items (left)"
+          aria-haspopup="menu"
+          aria-expanded="false"
+          hidden
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="5" cy="12" r="1" />
+            <circle cx="12" cy="12" r="1" />
+            <circle cx="19" cy="12" r="1" />
+          </svg>
+        </button>
         <!-- 4T-000031: Statusbar-Buttons als Icons. Acht Lucide-SVGs
              (ISC-lizenziert), inline eingebettet ohne Library-Dependency.
              Texte werden zu Tooltips (data-i18n-title) und Screen-Reader-
@@ -1602,35 +1636,13 @@
              zur Laufzeit aus der Konfiguration gerendert
              (command-placement.js); bewusst als eigener Container neben
              .source-toggles, damit die Reihenfolge-Logik der Panel-Toggles
-             unberührt bleibt. Der Mehr-Button fängt Überlauf bei schmalen
-             Fenstern ab (Menü mit den eingelagerten Buttons). -->
-        <div class="command-buttons" id="command-buttons" role="group" aria-label="Commands">
-          <button
-            id="btn-command-overflow"
-            class="btn-toggle btn-icon command-overflow-button"
-            data-i18n-title="commandPlacement.overflowTitle"
-            data-i18n-aria-label="commandPlacement.overflowTitle"
-            title=""
-            aria-label="More commands"
-            hidden
-          >
-            <svg
-              viewBox="0 0 24 24"
-              width="14"
-              height="14"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-            >
-              <circle cx="5" cy="12" r="1" />
-              <circle cx="12" cy="12" r="1" />
-              <circle cx="19" cy="12" r="1" />
-            </svg>
-          </button>
-        </div>
+             unberührt bleibt.
+             4T-001579 (Epic 3E-000283): Der eigene Mehr-Button dieses
+             Segments ist entfallen. Seine Elemente sind die letzten der
+             linken Zone und wandern deshalb als erste in das linke
+             Pull-up-Menü der Leiste; zwei Überlauf-Mechaniken an derselben
+             Messgröße hätten sich gegenseitig verrechnet. -->
+        <div class="command-buttons" id="command-buttons" role="group" aria-label="Commands"></div>
       </div>
       <!-- 4T-000576 (Epic 3E-000106): mittlere Statusbar-Zone. Die drei
            Editor-Ansicht-Schalter und die vier Ansichts-Schalter stehen hier
@@ -1989,6 +2001,38 @@
              einzige Quelle hat; fuenf feste Eintraege waren die fuenfte
              Kopie. Befuellung: fuelleSprachAuswahl in app-init.js. -->
         <select id="lang-select" data-i18n-title="settings.language" title=""></select>
+        <!-- 4T-001579 (Epic 3E-000283): Pull-up-Menü der rechten Zone. Es
+             nimmt die Elemente der rechten Zone auf und, wenn auch die
+             nicht mehr reichen, zuletzt die der mittleren (E3 des Epics);
+             deshalb steht es als letztes Element der Leiste, rechts von
+             allem, was es aufnehmen kann. -->
+        <button
+          id="btn-statusbar-collapse-right"
+          class="btn-toggle btn-icon statusbar-collapse-toggle"
+          data-i18n-title="statusbar.collapse.right"
+          data-i18n-aria-label="statusbar.collapse.right"
+          title=""
+          aria-label="More status bar items (right)"
+          aria-haspopup="menu"
+          aria-expanded="false"
+          hidden
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="14"
+            height="14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="5" cy="12" r="1" />
+            <circle cx="12" cy="12" r="1" />
+            <circle cx="19" cy="12" r="1" />
+          </svg>
+        </button>
       </div>
     </footer>
 

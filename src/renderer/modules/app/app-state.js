@@ -9,6 +9,10 @@ import { api, $ } from './api.js';
 // 4T-000213 (Epic 3E-000042): Seiten-Registry fuer die Tab-Titel der
 // Handbuch-Tabs (lokalisierter Seiten-Titel statt Unbenannt-Zaehler).
 import { manualPageById } from '../../../shared/manual/manual-pages.js';
+// 4T-001724 (Epic 3E-000304): Endungs-Erkennung der Reiter-Beschriftung. Sie
+// kommt aus dem geteilten Unterseiten-Modul, damit es im Programm genau eine
+// Liste der Markdown-Endungen fuer Anzeige-Namen gibt (Entscheidung E3).
+import { fileLabelFromBasename } from '../../../shared/subpages.js';
 // 4T-000277 (Epic 3E-000049): Registry der System-Seiten (Einstellungen) fuer
 // die Tab-Titel. Modul-Zyklus app-state <-> system-pages ist unkritisch:
 // Zugriff erfolgt erst zur Laufzeit in tabDisplayName (Muster 4T-000179).
@@ -145,6 +149,11 @@ export const state = {
   // true rueckt ein, false laesst den Fokus weiterwandern (Store-Key
   // input.tabIndents).
   tabIndents: true,
+  // 4T-001576 (Epic 3E-000282): Cursor-Sprung hinter den Listen-Marker — true
+  // setzt die Schreibmarke beim Wechsel in eine Listenzeile an die
+  // Schreibposition, false laesst das Standard-Verhalten des Editors gelten
+  // (Store-Key input.cursorSprung, Vorgabe an nach E5 des Epics).
+  cursorSprung: true,
   // 4T-000604 (Epic 3E-000113): Automatik für die Frontmatter-Felder created und
   // updated beim Speichern (created = Dateisystem-Erstellungszeit, updated =
   // Speicherzeitpunkt). Beim App-Start aus dem Store geladen; der Speicher-Hook
@@ -942,9 +951,24 @@ export function toggleTypewriterScroll() {
 // Anzeigename eines Tabs: Dateiname bei Tabs mit Pfad, lokalisierter
 // Seiten-Titel bei Handbuch-Tabs (4T-000213) und System-Seiten (4T-000277),
 // sonst lokalisierter Unbenannt-Stamm plus Index (z.B. "Unbenannt 1").
+//
+// 4T-001724 (Epic 3E-000304): Der Dateiname steht OHNE Markdown-Endung, weil
+// Markdown das Standard-Format ist und die Wiederholung gerade dort Platz
+// kostet, wo er knapp ist (Entscheidungen E1 bis E3). Alle drei betroffenen
+// Anzeigen — Reiterleiste, Reiter-Gruppenmenue und Fenstertitel — lesen hier
+// und bleiben damit von selbst gleichlautend. Eine fremde Endung bleibt stehen
+// (E4); ein Name, der nur aus einer Endung besteht, faellt auf den vollen
+// Basisnamen zurueck, denn ein Reiter ohne Beschriftung waere unbedienbar. Das
+// Unterseiten-Trennzeichen bleibt unberuehrt — gekuerzt wird allein die Endung.
+//
+// 4T-001775: Kuerzung und Rueckfall liegen seither als fileLabelFromBasename in
+// src/shared/subpages.js, weil die Dateiliste des Bereichs-Panels dieselbe Form
+// fuehrt. Das Verhalten dieser Funktion aendert sich dadurch nicht.
 export function tabDisplayName(tab) {
   if (!tab) return '';
-  if (tab.path) return api.basename(tab.path);
+  if (tab.path) {
+    return fileLabelFromBasename(api.basename(tab.path));
+  }
   if (tab.manualPage) {
     const page = manualPageById(tab.manualPage);
     if (page) return t(page.titleKey);

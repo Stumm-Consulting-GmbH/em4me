@@ -23,6 +23,8 @@ Der Live-Modus rendert das Markdown unmittelbar im Editor: Fett und kursiv, Link
 
 **Tabellen sind von dieser Regel ausgenommen.** Sie bleiben gesetzt stehen, auch wenn die Schreibmarke in ihnen steht: Ein Klick trifft die Zelle, Tabulator und Pfeiltasten führen von Zelle zu Zelle, und Getipptes landet an der richtigen Stelle des Quelltextes. Wer die Roh-Syntax einer Tabelle braucht — die Trennerzeile mit ihren Ausrichtungs-Doppelpunkten etwa —, wechselt dafür in die Quellcode- oder die geteilte Ansicht.
 
+**Links im Fließtext sind dauerhaft gekennzeichnet.** Sie tragen ihre Unterstreichung ständig, ohne dass die Maus darüber stehen muss — Wiki-Links wie Markdown-Links, auf ein Dokument wie auf eine Adresse nach außen. Die gerenderte Ansicht unterstreicht einen Link weiterhin erst beim Überfahren mit der Maus; in der Ansicht, in der geschrieben wird, soll dagegen ohne Zutun zu sehen sein, dass hinter einem Text ein Link steht. In der Zeile mit der Schreibmarke steht die rohe Auszeichnung wie gewohnt.
+
 ### Mindmap
 
 Die Mindmap zeigt Überschriften und Listen des Dokuments als Baum, den Fließtext als Notiz am Knoten. Sie gehört zur gleichnamigen Erweiterung und entfällt mit ihr; Aufbau, Bedienung, die fünf Lagen der Wurzel und die Vorgabe je Dokument beschreibt die Seite [Mindmap-Ansicht](mindmap.md).
@@ -78,6 +80,16 @@ Schriftart und Schriftgröße lassen sich getrennt für die Bearbeiten-Fläche u
 ## Fenster-Zustand
 
 Position, Größe und Maximiert-Zustand eines Fensters werden beim Beenden gemerkt und beim nächsten Start wiederhergestellt. Dafür ist nichts einzustellen. Was darüber hinaus eine ganze Sitzung mit ihren Reitern zurückholt, beschreibt die Seite [Applikationen, Fenster und Bereiche](apps-windows.md).
+
+## Statusleiste
+
+Die Statusleiste am unteren Fensterrand ist der Bedien-Ort, der in jeder Ansicht sichtbar bleibt. Reicht ihre Breite nicht für alle Elemente, klappt sie zusammen: An ihrem linken und an ihrem rechten Rand erscheint je ein Menü, das die nicht mehr sichtbaren Elemente aufnimmt. Ein Eintrag im Menü zeigt Beschriftung und Zustand und wirkt genau wie die Schaltfläche in der Leiste; wird das Fenster wieder breiter, kehren die Elemente zurück, und ein leer werdendes Menü verschwindet. Der Bereich für kurze Meldungen bleibt in jeder Breite sichtbar, und die Schalter der Mitte klappen als letzte zusammen.
+
+Wann zusammengeklappt wird, bestimmt die Einstellung „Zusammenklappen" (Datei → Einstellungen… → Statusleiste). „Automatisch bei knappem Platz" ist die Vorgabe und klappt nur ein, was nicht mehr passt; „Immer zusammengeklappt" hält die Schaltflächen unabhängig von der Fensterbreite in den beiden Menüs und lässt die Leiste dauerhaft schlank. Derselbe Bereich trägt auch die eigenen Kommando-Schaltflächen der Leiste und die Liste der ausgeblendeten Standard-Schaltflächen, siehe [Kommando-Platzierung](command-placement.md).
+
+Wie die Leiste mit Schaltflächen umgeht, die im Augenblick nichts tun können, bestimmt die Einstellung „Nicht aktivierbare Schaltflächen" (Datei → Einstellungen… → Statusleiste). Betroffen sind die Ansichts-Schalter und die drei Editor-Schalter der Mitte sowie Bearbeiten, Scroll-Synchronisation und Dokument-Historie auf der rechten Seite — etwa während eine System-Seite wie die Einstellungen vorn liegt oder solange kein Dokument offen ist. „Blass anzeigen" ist die Vorgabe: Die Schaltfläche bleibt an ihrem Platz, ist erkennbar stillgelegt und reagiert nicht. „Ausblenden" nimmt sie so lange aus der Leiste, wie sie nichts tun kann, und ebenso aus den beiden Rand-Menüs der zusammengeklappten Leiste; sobald sie wieder etwas tun kann, kehrt sie an ihren Platz zurück. Die Panel-Schalter links, die eigenen Kommando-Schaltflächen, die Sprach-Auswahl und der Hell/Dunkel-Umschalter kennen diesen Zustand nicht und sind von der Wahl nie betroffen; das Ansichtsmenü bleibt ebenfalls unverändert und zeigt nicht verfügbare Einträge weiter blass an.
+
+Eine Schaltfläche kann damit aus drei verschiedenen Gründen in der Leiste fehlen, und nur der dritte hängt an dieser Einstellung: Sie ist in der Liste der ausgeblendeten Standard-Schaltflächen abgewählt und bleibt dauerhaft weg — diese Liste wirkt vor der Wahl, siehe [Kommando-Platzierung](command-placement.md); sie gehört zu einer abgeschalteten Erweiterung, dann gibt es die Funktion nicht, siehe [Erweiterungen](extensions.md); oder sie kann im Augenblick nichts tun und die Wahl steht auf „Ausblenden", dann kommt sie von selbst zurück.
 
 ## Wort-Statistik
 

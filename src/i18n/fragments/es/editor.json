@@ -33,6 +33,8 @@
   "settings.pasteUrlAsLink.hint": "Cuando hay texto seleccionado y el portapapeles contiene una sola URL, Ctrl+V crea un enlace Markdown a partir de la selección y la dirección en lugar de reemplazar la selección. Ctrl+Mayús+V pega siempre sin cambios. Si la opción está desactivada, se aplica el pegado normal en todas partes.",
   "settings.tabIndents.label": "El tabulador aplica sangría",
   "settings.tabIndents.hint": "Fuera de listas y tablas, la tecla de tabulación inserta una sangría y Mayús+Tab la elimina. Si la opción está desactivada, el foco de entrada pasa al siguiente control. En listas y tablas la tecla conserva su propia función en ambos casos.",
+  "settings.cursorSprung.label": "El cursor salta detrás del marcador de lista",
+  "settings.cursorSprung.hint": "Cuando la tecla de flecha derecha lleva del final de una línea a una línea de lista, el cursor se sitúa en la posición de escritura, detrás de la sangría, el marcador y la casilla de tarea, en lugar de al principio de la línea. Desde ahí, la flecha izquierda retrocede carácter por carácter hasta el marcador. Si la opción está desactivada, la tecla se comporta como en un editor de texto habitual.",
   "settings.spellcheck.title": "Corrección ortográfica",
   "settings.spellcheck.enabled": "Corrección ortográfica activa",
   "settings.spellcheck.hint": "La comprobación usa el corrector del sistema operativo y el idioma configurado en él; el idioma de la interfaz no interviene. Por eso un texto en otro idioma queda marcado por completo. El idioma de comprobación se cambia en la configuración de idioma del sistema operativo.",

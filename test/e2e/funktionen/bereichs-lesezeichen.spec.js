@@ -49,7 +49,9 @@ async function bindArea(page, dir) {
 }
 
 async function areaFileRow(page) {
-  const row = page.locator(`${PANE} .area-file-row`, { hasText: 'notiz.md' });
+  // 4T-001775 (Epic 3E-000304): Die Beschriftung steht ohne Markdown-Endung;
+  // exakt gesucht, damit kein gleich beginnender Name mitgefasst wird.
+  const row = page.locator(`${PANE} .area-file-row`, { hasText: /^notiz$/ });
   await expect(row).toBeVisible();
   return row;
 }
@@ -272,6 +274,73 @@ test.describe('BL-06: Allgemeine Lesezeichen synchronisieren zwischen Fenstern',
       await expect(page2.locator(`${PANE} .bookmarks-group-general`)).toContainText('basis');
     } finally {
       await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+// BL-07 (4T-001775, Epic 3E-000304): Die Beschriftung einer Lesezeichen-Zeile.
+//
+// Hier steht der Fall, den nur die laufende Anwendung zeigen kann: dass die
+// Kuerzung den GESPEICHERTEN Namen nicht antastet. Die reine Namens-Logik
+// pruefen die Unit-Faelle in test/unit/renderer/lesezeichen-beschriftung.test.js.
+//
+// Der Nachweis laeuft ueber den Bereichs-Abschnitt, weil sein Baum ueber
+// `window.api.bookmarksGetConfig()` lesbar ist — die Anzeige allein koennte
+// nicht zeigen, ob aus dem automatischen Namen still ein gewaehlter geworden
+// ist, denn beide sehen gleich aus.
+const BOOKMARK_MENU = `#context-menu .context-menu-item`;
+
+async function areaBookmarkNamen(page) {
+  const res = await page.evaluate(() => window.api.bookmarksGetConfig());
+  const liste = res && res.ok && Array.isArray(res.config) ? res.config : [];
+  return liste.filter((n) => n && n.type === 'file').map((n) => n.displayName);
+}
+
+test.describe('BL-07: Beschriftung ohne Markdown-Endung (4T-001775)', () => {
+  test('der automatische Name steht gekuerzt, das Bestaetigen laesst ihn automatisch, ein gewaehlter bleibt stehen', async () => {
+    const { app, page, userData } = await launchApp();
+    const dir = makeAreaDir('bl07');
+    try {
+      await bindArea(page, dir);
+      const row = await areaFileRow(page);
+      await row.click({ button: 'right' });
+      await page.locator('#context-menu [data-menu-id="area-file-bookmark"]').click();
+
+      // Die Zeile zeigt den Namen ohne Endung, der gespeicherte Name traegt sie.
+      const label = page.locator(`${PANE} .bookmarks-area-tree .bookmark-label`);
+      await expect(label).toHaveText('notiz');
+      expect(await areaBookmarkNamen(page)).toEqual(['notiz.md']);
+
+      // Inline-Umbenennen: Das Feld zeigt DIESELBE Form wie die Zeile.
+      await label.click({ button: 'right' });
+      const umbenennen = page.locator(BOOKMARK_MENU, { hasText: /^Umbenennen$/ });
+      await expect(umbenennen).toBeVisible();
+      await umbenennen.click();
+      const input = page.locator(`${PANE} .bookmark-inline-edit-input`);
+      await expect(input).toHaveValue('notiz');
+
+      // Unveraendert bestaetigen: Zeile gleich, und der GESPEICHERTE Name ist
+      // weiter der automatische — sonst folgte er einer Datei-Umbenennung nicht
+      // mehr, ohne dass der Anwender etwas davon saehe.
+      await input.press('Enter');
+      await expect(page.locator(`${PANE} .bookmark-inline-edit-input`)).toHaveCount(0);
+      await expect(label).toHaveText('notiz');
+      expect(await areaBookmarkNamen(page)).toEqual(['notiz.md']);
+
+      // Ein gewaehlter Name wird nicht beschnitten — auch nicht, wenn er wie
+      // eine Endung endet.
+      await label.click({ button: 'right' });
+      await page.locator(BOOKMARK_MENU, { hasText: /^Umbenennen$/ }).click();
+      const input2 = page.locator(`${PANE} .bookmark-inline-edit-input`);
+      await input2.fill('Entwurf.md');
+      await input2.press('Enter');
+      await expect(page.locator(`${PANE} .bookmarks-area-tree .bookmark-label`)).toHaveText(
+        'Entwurf.md',
+      );
+      expect(await areaBookmarkNamen(page)).toEqual(['Entwurf.md']);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      removeDir(dir);
     }
   });
 });

@@ -38,6 +38,8 @@ import { appendStartPageItem, startSeiteVerfuegbar } from './area-start-page.js'
 import { renameFileAtPath } from './views/file-actions.js';
 // 4T-001351 (Epic 3E-000170): Loeschen in den Papierkorb des Betriebssystems.
 import { trashFileAtPath } from './views/file-trash.js';
+// 4T-001731 (Epic 3E-000306): Kopieren im selben Ordner, ohne Dialog.
+import { copyFileAtPath } from './views/file-copy.js';
 
 // Trenner-Element; seit 4T-001365 an drei Stellen gebraucht.
 function appendSeparator(menu) {
@@ -182,6 +184,15 @@ export function showAreaFileContextMenu(ev, absPath, aufRefresh) {
   }
   if (areaPanelItemsAvailable()) gruppen.push(() => appendAreaPanelItems(menu));
   gruppen.push(() => {
+    // 4T-001731 (Epic 3E-000306): "Kopieren" steht VOR "Umbenennen" und damit
+    // an der Spitze der Datei-Verwaltung. Die Gruppe ist nach zunehmendem
+    // Eingriff geordnet: Kopieren laesst die Vorlage unberuehrt, Umbenennen
+    // aendert ihren Namen, Loeschen nimmt sie weg. Das setzt zugleich den
+    // haeufigsten Griff nach oben und den unwiderruflichen ans Ende, weg von
+    // der Stelle, an der die Maus beim Oeffnen des Menues steht.
+    appendItem(menu, 'area-file-copy', t('areaPanel.menuCopy'), () =>
+      copyFileAtPath(absPath, aufRefresh),
+    );
     appendItem(menu, 'area-file-rename', t('areaPanel.menuRename'), () =>
       renameFileAtPath(absPath),
     );

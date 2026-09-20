@@ -20,6 +20,8 @@ import {
   setPanelHeightMode,
   setPanelToggleOrder,
 } from '../sidebar-layout.js';
+import { setStatusbarCollapseMode } from '../statusbar-overflow.js';
+import { setStatusbarUnavailableMode } from '../statusbar-availability.js';
 import { refreshAreaVariants, setGlobalVariantsFromBroadcast } from '../sidebar-variants.js';
 import { reloadGeneralBookmarksTree } from '../bookmarks/bookmarks.js';
 import { invalidatePaneRenderCache, renderAllPanes } from '../views/pane-render.js';
@@ -103,6 +105,22 @@ export function registerSettingsBroadcasts(deps) {
     });
   }
 
+  // 4T-001576 (Epic 3E-000282): Broadcast des Cursor-Sprungs hinter den
+  // Listen-Marker (auch das ausloesende Fenster empfaengt ihn — es hat seinen
+  // Zustand beim Anwenden bereits gesetzt, der Wert ist derselbe).
+  //
+  // Bewusst OHNE initDone-Wache, Muster des Rechtschreib-Schalters in
+  // app-broadcasts.js: Der Empfang setzt allein den Laufzeit-Zustand, den die
+  // Tastenbelegung erst beim Tastendruck liest — es gibt nichts zu
+  // rekonfigurieren und nichts neu zu rendern. Eine Wache liesse dagegen einen
+  // Wechsel, der WAEHREND des Starts eintrifft, bis zum naechsten Programmstart
+  // liegen, weil init() den Wert nur einmal liest.
+  if (typeof api.onCursorSprungChanged === 'function') {
+    api.onCursorSprungChanged((value) => {
+      state.cursorSprung = value !== false;
+    });
+  }
+
   // 4T-000312 (Epic 3E-000055): Broadcast der ausgeklappten Darstellung (auch
   // das ausloesende Fenster empfaengt ihn — Root-Klassen-Toggle, idempotent,
   // rein CSS-getragen ohne Re-Render).
@@ -138,6 +156,26 @@ export function registerSettingsBroadcasts(deps) {
     api.onSidebarHeightModeChanged((value) => {
       if (!initDone()) return;
       void setPanelHeightMode(value, { persist: false });
+    });
+  }
+
+  // 4T-001580 (Epic 3E-000283): Broadcast des Falt-Modus der Statusleiste.
+  // Wie oben persistiert der Empfangspfad nicht; der Setter faltet die Leiste
+  // des Fensters sofort neu, ein unveraenderter Modus ist ein No-op.
+  if (typeof api.onStatusbarCollapseModeChanged === 'function') {
+    api.onStatusbarCollapseModeChanged((value) => {
+      if (!initDone()) return;
+      void setStatusbarCollapseMode(value, { persist: false });
+    });
+  }
+
+  // 4T-001765 (Epic 3E-000186): Broadcast der Darstellung nicht aktivierbarer
+  // Schalter, Muster der Zeile darueber; der Setter zieht die Leiste des
+  // Fensters sofort nach, ein unveraenderter Modus ist ein No-op.
+  if (typeof api.onStatusbarUnavailableModeChanged === 'function') {
+    api.onStatusbarUnavailableModeChanged((value) => {
+      if (!initDone()) return;
+      void setStatusbarUnavailableMode(value, { persist: false });
     });
   }
 

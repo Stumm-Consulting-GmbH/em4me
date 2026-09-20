@@ -4,7 +4,7 @@ L'app organise le travail sur trois niveaux : les **applications** (contextes de
 
 ## Applications
 
-Le programme peut être démarré plusieurs fois : chaque démarrage supplémentaire du fichier programme crée une nouvelle application — un contexte de travail indépendant avec ses propres fenêtres et sa propre numérotation. « Fichier → Nouvelle application » fait de même.
+Le programme peut être démarré plusieurs fois : chaque démarrage supplémentaire du fichier programme crée une nouvelle application — un contexte de travail indépendant avec ses propres fenêtres et sa propre numérotation. « Fichier → Nouvelle application » fait de même. Une **fenêtre** supplémentaire de la même application vient en revanche de « Fichier → Nouvelle fenêtre » ; la section « Fenêtres » distingue les deux.
 
 Toutes les applications s'exécutent dans un même processus et partagent les réglages. La restauration de session (Aide → Restaurer la session) rouvre au prochain lancement toutes les applications avec leurs fenêtres et onglets.
 
@@ -19,6 +19,12 @@ Désactivation sous « Paramètres → Comportement » avec « Conserver les nou
 ## Fenêtres
 
 Au sein d'une application, on peut ouvrir autant de fenêtres que souhaité : via le menu contextuel de l'onglet (« Déplacer vers » / « Copier vers » → « Nouvelle fenêtre »), un onglet passe dans une nouvelle fenêtre de la même application. Avec plusieurs fenêtres ouvertes, le sous-menu liste toutes les autres fenêtres comme destinations ; dès que plusieurs applications sont en cours, les entrées cibles portent le contexte d'application.
+
+**« Fichier → Nouvelle fenêtre » ouvre une deuxième fenêtre vide** de la même application — sans qu'un document doive d'abord être ouvert. Elle hérite de tout ce qui appartient à l'application : sa liaison à un dossier, son espace de travail et sa session. Son titre porte le suffixe de fenêtre selon la systématique ci-dessous, les onglets se déplacent entre elle et les autres fenêtres de l'application, et elle revient avec la restauration de session comme toute autre fenêtre.
+
+**La différence avec « Nouvelle application » est le contexte.** Une nouvelle fenêtre reste dans le contexte en cours et partage sa liaison, son espace de travail et sa session ; une nouvelle application en commence un propre — avec sa liaison, sa numérotation de fenêtres et son titre à elle. Qui cherche seulement une deuxième surface pour le même travail prend « Nouvelle fenêtre » ; c'est pourquoi l'entrée figure **avant** « Nouvelle application » dans le menu Fichier.
+
+La même fonction est disponible comme commande dans la palette de commandes et peut recevoir un raccourci sous Paramètres → Raccourcis clavier ; il n'y a pas d'affectation par défaut.
 
 ## Position des nouveaux onglets
 
@@ -51,13 +57,22 @@ Plusieurs onglets peuvent être sélectionnés à la fois, puis déplacés en un
 - **Menu contextuel :** les entrées de groupe agissent sur la sélection dès que l'onglet cliqué en fait partie. Les entrées qui désignent exactement un fichier — renommer, signet, déplacer ou copier vers une fenêtre — restent liées à l'onglet cliqué, tout comme le clic milieu pour fermer.
 - **Fin de la sélection :** un clic sans touche de modification, le changement de colonne ou la fermeture de la session. La sélection appartient à une seule barre d'onglets et n'est pas enregistrée.
 
+## Étiquette des onglets
+
+Un onglet porte le nom du fichier **sans son extension Markdown** : `Concept.md` devient `Concept`. Markdown est le format standard de l'application, et répéter son extension sur chaque onglet coûte de la place là où elle est rare — avec de nombreux documents ouverts, la barre d'onglets raccourcit d'abord les étiquettes. Toutes les extensions considérées comme Markdown sont retirées, pas seulement `.md`.
+
+- **Les autres types de fichiers conservent leur extension.** Si vous avez ouvert un fichier d'un autre type, l'onglet le montre.
+- **Seul l'affichage est raccourci.** Le fichier, son chemin, l'enregistrement et le renommage travaillent toujours avec le nom complet, et l'infobulle de l'onglet indique encore le chemin entier — pour deux fichiers de même nom venant de dossiers différents, c'est elle qui les distingue.
+- **La même étiquette en trois endroits.** L'onglet, la liste des membres d'un groupe replié et le titre de la fenêtre puisent à la même source et se lisent donc toujours de la même façon ; la ligne de titre au-dessus du document emploie la même forme.
+- **Les panneaux de la barre latérale adoptent la même forme.** Dans la liste de fichiers de la zone, dans les rétroliens, dans les signets, dans les rappels et dans la liste de fichiers d'un tag, un fichier Markdown apparaît sans son extension, et partout l'info-bulle indique le chemin complet.
+
 ## Forme des onglets
 
 Les onglets et les en-têtes de groupes ont au choix des coins supérieurs droits ou arrondis (Fichier → Paramètres… → Apparence). En mode arrondi, un espace étroit remplace le séparateur vertical entre les onglets ; le repère de l'onglet actif, les bandes de couleur des groupes et le marquage de la colonne active restent inchangés. Le réglage vaut pour toute l'application et prend effet immédiatement dans toutes les fenêtres ouvertes.
 
 ## Systématique des titres
 
-Le titre de la fenêtre indique entre parenthèses où appartient une fenêtre — seulement ce qui est nécessaire :
+Devant la parenthèse figure le nom du document actif, sans son extension Markdown comme sur l'onglet. Le titre de la fenêtre indique entre parenthèses où appartient une fenêtre — seulement ce qui est nécessaire :
 
 | Situation | Suffixe du titre |
 |---|---|
@@ -96,13 +111,17 @@ Dans une application de zone, l'espace de recherche des rétroliens, des tags, d
 
 ### Panneau de zone
 
-Le panneau « Zone » affiche la zone comme structure de dossiers dans la barre latérale (ancrable à gauche ou à droite comme tout panneau ; le commutateur est l'icône de dossier dans la barre d'état ou Affichage → Barre latérale → Panneaux → Zone) : l'arborescence en haut, en dessous les fichiers Markdown du dossier sélectionné ; les autres types de fichiers n'apparaissent pas. Un clic sur un fichier l'ouvre comme onglet, toutes les entrées affichent le chemin complet en info-bulle, et les modifications externes (fichier créé, supprimé, renommé) apparaissent automatiquement. Le bouton « + » en tête de la liste crée un nouveau fichier Markdown dans le dossier sélectionné et l'ouvre. Dans une application de zone fraîchement ouverte et encore vide, le panneau est visible automatiquement.
+Le panneau « Zone » affiche la zone comme structure de dossiers dans la barre latérale (ancrable à gauche ou à droite comme tout panneau ; le commutateur est l'icône de dossier dans la barre d'état ou Affichage → Barre latérale → Panneaux → Zone) : l'arborescence en haut, en dessous les fichiers Markdown du dossier sélectionné ; les autres types de fichiers n'apparaissent pas. Une ligne de fichier porte son nom sans l'extension Markdown, la même forme que sur l'onglet : `Concept.md` devient `Concept` ; deux fichiers dont les noms ne diffèrent que par l'extension Markdown se distinguent par l'info-bulle. Un clic sur un fichier l'ouvre comme onglet, toutes les entrées affichent le chemin complet en info-bulle, et les modifications externes (fichier créé, supprimé, renommé) apparaissent automatiquement. Le bouton « + » en tête de la liste crée un nouveau fichier Markdown dans le dossier sélectionné et l'ouvre. Dans une application de zone fraîchement ouverte et encore vide, le panneau est visible automatiquement.
 
 ### Gestion des fichiers dans le panneau de zone
 
 Le clic droit gère l'arborescence sans quitter l'application. Une **ligne de dossier** propose deux entrées : **Nouveau sous-dossier…** et **Nouveau fichier Markdown…**. Toutes deux demandent le nom sur place — le nom du dossier dans une ligne sous le dossier cliqué, le nom du fichier en tête de la liste des fichiers — et créent l'élément dans le dossier **sur lequel vous avez cliqué**, même si un autre est actuellement sélectionné. Un nom de fichier sans extension reçoit l'extension Markdown ; le nouveau fichier est ouvert et passe par la règle de dossier des modèles comme toute autre création. Un nom déjà pris, un nom que le système de fichiers n'autorise pas et un nom vide sont signalés avant que quoi que ce soit ne soit créé ; Échap annule et ne laisse rien.
 
-Une **ligne de fichier** propose **Renommer…** et **Supprimer…** à la fin du menu, séparés des entrées au-dessus.
+Une **ligne de fichier** propose **Copier**, **Renommer…** et **Supprimer…** à la fin du menu, séparés des entrées au-dessus. Ils sont classés par intervention croissante : copier laisse le modèle intact, renommer change son nom, supprimer l'enlève.
+
+**Copier** crée aussitôt une copie dans le même dossier — sans demande de confirmation et sans boîte de dialogue de nom ; c'est pourquoi l'entrée ne porte pas de points de suspension. Le nom est celui du modèle, complété par un tiret et un numéro courant **avant** l'extension : `Konzept.md` devient `Konzept-1.md`, la fois suivante `Konzept-2.md`. C'est toujours le prochain numéro **libre** qui est pris, afin qu'aucun fichier existant ne soit écrasé ; si le modèle porte déjà un numéro, le nouveau est ajouté au lieu d'être incrémenté — `Konzept-1.md` devient `Konzept-1-1.md` et non `Konzept-2.md`. Pour donner un autre nom à la copie, renommez-la avec l'entrée située en dessous.
+
+**Les propriétés de bloc du modèle et sa note de document voyagent avec lui, son historique des modifications non.** La copie est ainsi complète quant au contenu et neuve quant à l'histoire : elle ne raconte pas un parcours qui n'est pas le sien. Elle apparaît immédiatement dans la liste des fichiers à sa position de tri et n'est **pas** ouverte — vous l'ouvrez quand vous en avez besoin. La copie va toujours dans le dossier du modèle et reste donc à l'intérieur de la zone. Un **document scindé** n'est pas copié ; un message le signale, car une copie de son fichier de tête revendiquerait les mêmes parties suivantes que l'original. Si la copie échoue, un message apparaît et aucune copie à moitié faite ne subsiste.
 
 **Renommer** emprunte le même chemin que par le menu, avec la même adaptation des liens internes et le même aperçu des endroits concernés. La seule différence tient à ce sur quoi il s'applique : ici tout fichier de la zone, y compris un fichier non ouvert, et non le seul fichier ouvert. Si le fichier est ouvert et modifié, il est enregistré au préalable ; son onglet affiche ensuite le nouveau nom.
 
@@ -112,7 +131,7 @@ Si le fichier est ouvert, son onglet est fermé ; les modifications non enregist
 
 **Les liens vers un fichier supprimé ne sont pas adaptés.** Contrairement au renommage, il n'existe pas de cible de remplacement ; les liens subsistent et deviennent des liens rompus. C'est voulu et non un dysfonctionnement : un lien rompu montre qu'il y avait là quelque chose et peut être résolu en connaissance de cause.
 
-Renommer et supprimer des **dossiers** ainsi que déplacer des fichiers ne font pas encore partie du périmètre ; le gestionnaire de fichiers du système d'exploitation reste l'endroit pour cela.
+Renommer, supprimer et copier des **dossiers** ainsi que déplacer des fichiers ne font pas encore partie du périmètre ; le gestionnaire de fichiers du système d'exploitation reste l'endroit pour cela.
 
 ### Statistiques de la zone
 
@@ -144,6 +163,8 @@ La désignation appartient à la zone et voyage avec son dossier. Si le fichier 
 
 Un **espace de travail** est une application nommée et enregistrée durablement : il comprend toutes ses fenêtres avec les volets, les onglets et leurs réglages d'affichage, les groupes d'onglets, une éventuelle liaison de zone et les brouillons non enregistrés. Un espace de travail ouvert maintient son état à jour **automatiquement**, sans étape d'enregistrement manuelle ; à la réouverture, le travail reprend exactement au dernier état. Accès : le sous-menu « Fichier → Espaces de travail » avec la liste de tous les espaces de travail (le point de couleur indique aussi l'état : plein = ouvert, anneau = fermé) et les quatre actions en dessous ; les mêmes actions sont disponibles comme commandes dans la palette de commandes.
 
+**La liste nomme le dossier lié.** Si un espace de travail est lié à un dossier, son entrée se lit sur une seule ligne : « Nom — nom du dossier ». Seul le nom du dossier est indiqué, pas le chemin entier : une étiquette de menu tient sur une ligne, et un chemin complet ferait éclater toute largeur de menu utilisable — c'est la gestion qui le montre. Un espace de travail **sans** liaison ne porte que son nom, sans séparateur et sans marque de remplacement. Les parties très longues sont raccourcies partie par partie, afin qu'un nom long ne prenne pas la place du nom de dossier. La liaison est seulement affichée ; elle ne peut être ni établie ni levée, ni ici ni dans la gestion.
+
 **Zone et espace de travail sont deux choses différentes :** une *zone* lie une application à un **dossier** et délimite son espace de travail (voir plus haut). Un *espace de travail* est une **collection de fenêtres** nommée et réouvrable, autrement dit un état de travail enregistré. Les deux se combinent : un espace de travail dont l'application a lié une zone emporte cette liaison dans son enregistrement.
 
 **Couleur de la barre de titre :** les fenêtres d'un espace de travail ouvert portent sa couleur dans la barre de titre — une variante vive dans le thème clair, une variante pastel de la palette dans le thème sombre, chacune avec une couleur de texte de titre assortie. La coloration suit le cycle de vie : elle apparaît à l'ouverture, change aussitôt avec la couleur dans la gestion, disparaît à la fermeture ou à la suppression, et cesse à la désactivation de l'extension « Espaces de travail ». Elle nécessite Windows 11 et ne s'applique donc pas sous Linux ; sans cette prise en charge, la barre de titre standard demeure et l'application n'en est pas affectée. L'espace de travail lui-même, sa pastille de couleur dans le menu et la gestion, ainsi que le titre de la fenêtre restent inchangés sur chaque plateforme.
@@ -158,7 +179,11 @@ Un **espace de travail** est une application nommée et enregistrée durablement
 
 ### Gestion
 
-« Gérer les espaces de travail… » ouvre un dialogue avec tous les espaces de travail : point de couleur, nom, état (ouvert ou fermé) et moment de la dernière ouverture. Chaque entrée propose les actions **Ouvrir**, **Renommer et couleur…** et **Supprimer**.
+« Gérer les espaces de travail… » ouvre un dialogue avec tous les espaces de travail : point de couleur, nom, état (ouvert ou fermé) et moment de la dernière ouverture ; si un espace de travail est lié à un dossier, sa ligne indique en outre le **chemin complet** de celui-ci. Chaque entrée propose les actions **Ouvrir**, **Renommer et couleur…** et **Supprimer**. Le dialogue ne nomme pas le livre ni la bibliothèque d'un espace de travail ; ils figurent, avec toutes les autres indications, sur la page [My Extended Memory](my-extended-memory.md).
+
+**C'est ici aussi que l'ordre se règle.** Chaque ligne porte deux boutons fléchés, « Déplacer vers le haut » et « Déplacer vers le bas » ; chaque clic déplace l'entrée d'une position. Le nouvel ordre s'applique **aussitôt**, et de même dans le sous-menu « Fichier → Espaces de travail » ; il est enregistré immédiatement et survit à la fermeture du dialogue comme au redémarrage de l'application — il n'y a pas d'étape de confirmation. À la première entrée, « vers le haut » est estompé, à la dernière « vers le bas » ; les boutons restent en place, afin qu'un deuxième clic au même endroit de l'écran signifie encore la même chose. Les deux chemins sont accessibles au clavier, et après le déplacement le focus reste sur l'entrée déplacée — un espace de travail traverse ainsi la liste en plusieurs frappes. Le glisser-déposer à la souris n'est pas prévu.
+
+Un espace de travail nouvellement créé s'ajoute à la **fin**. Il n'existe pas de tri par nom, par état ou par dernière ouverture : il y a exactement un ordre, et c'est celui que vous avez défini.
 
 ### Restauration de session et cas limites
 

@@ -97,6 +97,14 @@ Eine Leerzeile beginnt eine neue Liste. Entsteht sie durch deine Bearbeitung, z�
 
 Die Eingabetaste setzt eine Liste fort und ergänzt Aufzählungszeichen, fortlaufende Nummer oder leeres Kontrollkästchen. Auf einem leeren Unterpunkt rückt sie eine Ebene aus, auf der obersten Ebene beendet sie die Liste.
 
+### Schreibmarke beim Zeilenwechsel
+
+Steht die Schreibmarke am Ende einer Zeile und führt `Pfeil rechts` in die nächste, dann landet sie dort an der Schreibposition, sofern die Zielzeile eine Listenzeile ist: hinter Einrückung und Marker, bei einer Aufgaben-Zeile hinter dem Status-Kästchen. Wer gliedernd schreibt, spart damit bei jedem Zeilenwechsel zwei bis sechs Tastendrücke.
+
+Der Marker bleibt erreichbar: `Pfeil links` führt von der Schreibposition zeichenweise weiter nach links, erst in den Marker, dann in die Einrückung und schließlich an das Ende der vorigen Zeile. Auch `Umschalt+Pfeil rechts` markiert unverändert zeichenweise. Trägt die Zielzeile keinen Marker — etwa eine Fortsetzungszeile eines Listenpunkts —, steht die Schreibmarke wie bisher am Zeilenanfang.
+
+Das Verhalten gilt in der Quellcode-, der geteilten und der Live-Ansicht. Die Einstellung „Schreibmarke springt hinter den Listen-Marker" (Datei → Einstellungen… → Verhalten) schaltet es ab; ab Werk ist sie eingeschaltet, und ausgeschaltet bewegt sich die Schreibmarke wie in einem üblichen Texteditor.
+
 ## Tabellen
 
 Pipe-Tabellen mit Kopfzeile und Trennerzeile; Doppelpunkte in der Trennerzeile steuern die Ausrichtung. Für mehrzeilige Block-Zellen gibt es [Perspective Table](perspective-table.md), für Komfort beim Tippen den Tabellen-Editor (siehe [Werkzeuge](tools.md)). Zum Umbauen bestehender Tabellen (Zeilen und Spalten verschieben, einfügen und löschen, Ausrichtung, Transponieren) dient das Untermenü **Tabelle** im [Editor-Kontextmenü](context-menu.md).

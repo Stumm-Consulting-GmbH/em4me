@@ -47,6 +47,7 @@ A sidebar panel lists all reminders of the area, grouped into **Overdue**, **Tod
 
 - Each entry offers the direct actions **Done** and **Later**.
 - A click on an entry opens the source file at the corresponding line.
+- The name of the source file appears here and in the notification dialog without the Markdown extension; the tooltip gives the full path.
 - The **Overdue** group also carries muted reminders and offers **Trigger again** there.
 
 ## Settings and extension

@@ -5,7 +5,9 @@
 import { t } from '../../i18n.js';
 
 import { activeTab, getPaneEls, state } from '../app/app-state.js';
+import { rendererAvailabilityContext } from '../command-palette.js';
 import { paneEditors } from '../editor/editor.js';
+import { setzeLeistenSchalter } from '../statusbar-availability.js';
 import { reportMenuStateNow } from '../tabs/tabs.js';
 
 import { persistState } from './views.js';
@@ -162,7 +164,11 @@ export function updateScrollSyncButton() {
   const tab = activeTab();
   const enabled = !!(tab && tab.scrollSyncEnabled);
   btn.classList.toggle('active', enabled);
-  btn.disabled = !tab;
+  // 4T-001765 (Epic 3E-000186, E6): Die eigene Bedingung `!tab` ist entfallen;
+  // die Antwort kommt aus dem Verfuegbarkeits-Modell ueber das Kommando des
+  // Schalters (Bedingung 'anyTab' — woertlich dieselbe Regel). Die gemeinsame
+  // Funktion setzt zugleich die Darstellung nach der Einstellung.
+  setzeLeistenSchalter(btn, 'view.toggleScrollSync', rendererAvailabilityContext());
   const titleKey = enabled ? 'statusbar.scrollSync.on' : 'statusbar.scrollSync.off';
   btn.setAttribute('data-i18n-title', titleKey);
   btn.title = t(titleKey);

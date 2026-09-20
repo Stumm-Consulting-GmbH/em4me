@@ -47,6 +47,7 @@ Un panneau de la barre latérale liste tous les rappels de la zone, regroupés e
 
 - Chaque entrée offre les actions directes **Terminé** et **Plus tard**.
 - Un clic sur une entrée ouvre le fichier source à la ligne correspondante.
+- Le nom du fichier source apparaît ici et dans la boîte de dialogue de notification sans l'extension Markdown ; l'info-bulle indique le chemin complet.
 - Le groupe **En retard** comporte aussi les rappels en sourdine et y propose **Déclencher à nouveau**.
 
 ## Paramètres et extension

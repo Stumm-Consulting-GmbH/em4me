@@ -16,6 +16,7 @@
   "help.shortcut.openHelp": "Ouvrir le manuel",
   "help.shortcut.openTour": "Démarrer la visite guidée",
   "help.shortcut.newTab": "Ouvrir un nouvel onglet Sans titre",
+  "help.shortcut.newWindow": "Ouvrir une nouvelle fenêtre vide de la même application",
   "help.shortcut.newApp": "Démarrer une nouvelle application (groupe de fenêtres distinct)",
   "help.shortcut.openArea": "Ouvrir une zone (dossier) comme espace de travail de l'application",
   "help.shortcut.closeArea": "Fermer la zone (ferme toutes les fenêtres de l'application de zone)",

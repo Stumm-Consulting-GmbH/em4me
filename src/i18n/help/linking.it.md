@@ -2,6 +2,8 @@
 
 Wiki link, ancore, incorporamenti e tag collegano i file Markdown in una rete. Gli esempi di questa pagina mostrano la sintassi; le loro destinazioni non esistono nel manuale, nei tuoi file i collegamenti aprono il file di destinazione come scheda.
 
+**L'aspetto di un collegamento dipende dalla vista.** Nella modalità live è sottolineato in modo permanente, così che durante la scrittura si veda senza passare il mouse che dietro un testo c'è un collegamento; la vista renderizzata lo sottolinea solo al passaggio del mouse. I dettagli sono nella pagina [Viste e visualizzazione](views-display.md).
+
 ## Wiki link
 
 `[[Destinazione]]` collega un file tramite il nome, senza percorso e senza estensione; la ricerca copre la cartella del file e fino a due livelli di sottocartelle. L'estensione `.md` può essere omessa o scritta.
@@ -154,7 +156,7 @@ Accettando un suggerimento di file o di secondo nome vengono scritte anche le pa
 
 ## Barre laterali della rete
 
-Tre sezioni della barra laterale mostrano la rete del file attivo: **Backlink** (collegamenti in entrata, incluso «via alias»), **Collegamenti in uscita** (tutti i riferimenti in uscita nell'ordine del documento) e **Tag** (tutti i tag dell'ambito di ricerca con la frequenza). Gli accessi sono elencati nella [tabella delle funzionalità](functions.md).
+Tre sezioni della barra laterale mostrano la rete del file attivo: **Backlink** (collegamenti in entrata, incluso «via alias»), **Collegamenti in uscita** (tutti i riferimenti in uscita nell'ordine del documento) e **Tag** (tutti i tag dell'ambito di ricerca con la frequenza). Gli accessi sono elencati nella [tabella delle funzionalità](functions.md). I backlink e i tag nominano i loro file senza l'estensione Markdown e riportano il percorso completo nel suggerimento; i collegamenti in uscita mostrano il riferimento così come è scritto nel documento.
 
 ## Inserire un indirizzo in una selezione
 

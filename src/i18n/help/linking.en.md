@@ -2,6 +2,8 @@
 
 Wiki links, anchors, embeds and tags connect Markdown files into a network. The examples on this page show the syntax; their targets do not exist in the manual, in your own files the links open the target file as a tab.
 
+**How a link looks depends on the view.** In live view it is underlined permanently, so that while writing you can see without hovering that a piece of text holds a link; the rendered view underlines it only on hover. Details are on the page [Views and display](views-display.md).
+
 ## Wiki links
 
 `[[Target]]` links a file by its name, without path and without extension; the search covers the file's folder and up to two sub-folder levels. The `.md` extension may be omitted or written out.
@@ -154,7 +156,7 @@ Accepting a file or alias suggestion also writes the closing brackets and places
 
 ## Sidebars for the network
 
-Three sidebar sections show the network of the active file: **Backlinks** (incoming links, including "via alias"), **Outgoing links** (all outgoing references in document order) and **Tags** (all tags of the search scope with counts). Access paths are listed in the [features table](functions.md).
+Three sidebar sections show the network of the active file: **Backlinks** (incoming links, including "via alias"), **Outgoing links** (all outgoing references in document order) and **Tags** (all tags of the search scope with counts). Access paths are listed in the [features table](functions.md). Backlinks and Tags name their files without the Markdown extension and carry the full path in the tooltip; Outgoing links show the reference exactly as it is written in the document.
 
 ## Inserting an address into a selection
 

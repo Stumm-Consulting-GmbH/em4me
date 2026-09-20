@@ -6,7 +6,7 @@ I segnalibri tengono a portata di mano i file usati di frequente, indipendenteme
 
 Il pannello dei segnalibri si commuta come ogni pannello laterale: tramite la stella della barra di stato, il menu Visualizza → Barra laterale → Pannelli → Segnalibri (predefinito `Ctrl+Maiusc+L`) o una scorciatoia assegnata da te. La commutazione agisce sulla colonna attiva; lato, ordine e gruppi di schede seguono le regole della [barra laterale](sidebar.md). La stella della barra di stato indica inoltre se il file attivo è già tra i segnalibri.
 
-Un clic su una voce apre il file. Se un file con segnalibro manca nella posizione attesa, la voce lo segnala invece di non portare da nessuna parte. Anche nello stato vuoto dell'applicazione, senza documento aperto, l'elenco resta utilizzabile, così i file con segnalibro possono essere aperti direttamente.
+Un clic su una voce apre il file. Se un file con segnalibro manca nella posizione attesa, la voce lo segnala invece di non portare da nessuna parte. Anche nello stato vuoto dell'applicazione, senza documento aperto, l'elenco resta utilizzabile, così i file con segnalibro possono essere aperti direttamente. Una voce porta il nome del file senza la sua estensione Markdown e il suggerimento indica il percorso completo; un nome scelto da voi, invece, resta esattamente come lo avete inserito.
 
 ## Due sezioni: generale e legata all'area
 

@@ -47,6 +47,7 @@ Un pannello della barra laterale elenca tutti i promemoria dell'area, raggruppat
 
 - Ogni voce offre le azioni dirette **Completato** e **Più tardi**.
 - Un clic su una voce apre il file di origine alla riga corrispondente.
+- Il nome del file di origine compare qui e nella finestra di notifica senza l'estensione Markdown; il suggerimento indica il percorso completo.
 - Il gruppo **In ritardo** comprende anche i promemoria silenziati e vi propone **Attiva di nuovo**.
 
 ## Impostazioni ed estensione

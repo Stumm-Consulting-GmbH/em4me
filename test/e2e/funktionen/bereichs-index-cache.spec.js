@@ -50,8 +50,9 @@ test.describe('BIC-01: Bereichs-Index-Cache (4T-000348)', () => {
       await expect(section).toBeVisible();
       const fileTexts = await section.locator('.area-file-row').allTextContents();
       expect(fileTexts.some((t) => t.includes('Area_Cache'))).toBe(false);
-      expect(fileTexts).toContain('Ziel.md');
-      expect(fileTexts).toContain('Quelle.md');
+      // 4T-001775 (Epic 3E-000304): Die Liste beschriftet ohne Markdown-Endung.
+      expect(fileTexts).toContain('Ziel');
+      expect(fileTexts).toContain('Quelle');
     } finally {
       await closeApp(session.app, session.userData);
     }
@@ -66,11 +67,12 @@ test.describe('BIC-01: Bereichs-Index-Cache (4T-000348)', () => {
       await expect.poll(() => session.page.title()).toContain('(Bereich');
       const section = session.page.locator('.pane-group[data-pane="0"] .sidebar-area');
       await expect(section).toBeVisible();
-      await section.locator('.area-file-row', { hasText: 'Ziel.md' }).click();
+      await section.locator('.area-file-row', { hasText: /^Ziel$/ }).click();
       await session.page.locator('#btn-backlinks').click();
       const bl = session.page.locator('.pane-group[data-pane="0"] .sidebar-backlinks');
       // Funktions-Paritaet: derselbe Backlink wie beim Kaltstart.
-      await expect(bl.locator('.backlinks-group-name')).toHaveText('Quelle.md', { timeout: 15000 });
+      // 4T-001775 (Epic 3E-000304): Gruppen-Name ohne Markdown-Endung.
+      await expect(bl.locator('.backlinks-group-name')).toHaveText('Quelle', { timeout: 15000 });
     } finally {
       await closeApp(session.app, session.userData);
       removeDir(dir);

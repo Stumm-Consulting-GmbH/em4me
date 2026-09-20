@@ -35,13 +35,26 @@ async function waitForTab(page) {
 // Öffnet die Einstellungs-Seite über Strg+, mit Poll (Muster
 // openSettingsPageViaKeyboard in einstellungen-seite.spec.js) und wechselt
 // in den Bereich „Sidebar".
+//
+// Gewartet wird auf die SICHTBARKEIT der Seite, nicht auf das Vorhandensein
+// ihrer Navigations-Einträge. Der Unterschied ist belegt: Der
+// Einstellungs-Reiter kann nach dem Öffnen wieder in den Hintergrund geraten,
+// weil der Start seine Datei-Argumente erst nach dem Bereitschafts-Signal
+// öffnet und dabei deren Reiter aktiviert (app-init.js: pendingExternalFiles →
+// openInPane → activateTab bei bereits offener Datei). Ein Poll auf die Zahl
+// der Einträge ist dann erfüllt, während der nächste Klick 30 s ins Leere
+// läuft — der Fehlschlag des E2E-Voll-Laufs vom 2026-09-14, Fehlerbild wie in
+// 4T-001699. Strg+Komma öffnet oder aktiviert die Seite und schließt sie nie
+// (openSettingsPage → openSystemPage), das Wiederholen ist deshalb gefahrlos.
 async function openSidebarSettings(page) {
+  const seite = page.locator(SETTINGS_PAGE);
   await expect
     .poll(async () => {
+      if (await seite.isVisible()) return true;
       await page.keyboard.press('Control+,');
-      return page.locator(`${SETTINGS_PAGE} .settings-nav-entry`).count();
+      return seite.isVisible();
     })
-    .toBeGreaterThan(0);
+    .toBe(true);
   await page.locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="sidebar"]`).click();
   await expect(page.locator(`${SETTINGS_PAGE} .sidebar-settings`)).toBeVisible();
 }
@@ -245,7 +258,13 @@ test.describe('SV-03: Normalisierung und Neustart', () => {
       await closeApp(first.app, null);
     }
     // --- Zweiter Start: Varianten-Liste überlebt den Neustart. ---------------
-    const second = await launchApp({ args: [BASIS], userData });
+    // Ohne Datei-Argument: Der Neustart bringt das Dokument über die
+    // wiederhergestellte Sitzung zurück (restoreSession steht ab Werk an), und
+    // genau das ist der geprüfte Vorgang. Ein erneut mitgegebener Pfad hätte
+    // keine andere Wirkung, als denselben Reiter nach dem Ende der Init noch
+    // einmal zu aktivieren — und damit den Einstellungs-Reiter wieder in den
+    // Hintergrund zu drücken (Begründung an openSidebarSettings).
+    const second = await launchApp({ userData });
     try {
       await waitForTab(second.page);
       await openSidebarSettings(second.page);

@@ -19,7 +19,7 @@ import {
 } from '../../../shared/manual/manual-generated.js';
 // 4T-000337 (Epic 3E-000061): Unterseiten — '[[/' schlaegt die Unterseiten der
 // aktiven Datei vor (logische Namen in Slash-Schreibweise).
-import { toLogicalName } from '../../../shared/subpages.js';
+import { fileLabelFromBasename, toLogicalName } from '../../../shared/subpages.js';
 // 4T-000294 (Epic 3E-000052): Autocomplete ist eine schaltbare Erweiterung; die
 // Trigger prüfen zusätzlich den Zustand von wiki-links bzw. tags.
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
@@ -728,7 +728,9 @@ export function renderTagsFilesView(paneIdx, els, filterTag, files, wurzel) {
       item.className = 'tags-files-item';
       const name = document.createElement('span');
       name.className = 'tags-files-item-name';
-      name.textContent = api.basename(filePath);
+      // 4T-001775 (Epic 3E-000304): ohne Markdown-Endung; der Kurzhinweis der
+      // Zeile fuehrt weiter den vollen Pfad (unten).
+      name.textContent = fileLabelFromBasename(api.basename(filePath));
       item.appendChild(name);
       // 4T-000347 (Epic 3E-000062): Ordner relativ zur Index-Wurzel statt absolut,
       // damit gleichnamige Dateien im Bereich eindeutig sind; Datei direkt in

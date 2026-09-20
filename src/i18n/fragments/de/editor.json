@@ -33,6 +33,8 @@
   "settings.pasteUrlAsLink.hint": "Ist Text markiert und die Zwischenablage enthält eine einzelne URL, erzeugt Strg+V einen Markdown-Link aus Auswahl und Adresse, statt die Auswahl zu ersetzen. Strg+Umschalt+V fügt immer unverändert ein. Ist die Option aus, greift überall das normale Einfügen.",
   "settings.tabIndents.label": "Tabulator rückt ein",
   "settings.tabIndents.hint": "Außerhalb von Listen und Tabellen fügt die Tabulatortaste eine Einrückung ein, Umschalt+Tabulator entfernt sie. Ist die Option aus, wandert der Eingabefokus stattdessen zum nächsten Bedienelement. In Listen und Tabellen behält die Taste in beiden Fällen ihre eigene Bedeutung.",
+  "settings.cursorSprung.label": "Schreibmarke springt hinter den Listen-Marker",
+  "settings.cursorSprung.hint": "Wer mit der Pfeil-rechts-Taste vom Zeilenende in eine Listenzeile wechselt, landet dort an der Schreibposition hinter Einrückung, Marker und Aufgaben-Kästchen statt am Zeilenanfang. Von dort führt die Pfeil-links-Taste zeichenweise zurück in den Marker. Ist die Option aus, verhält sich die Taste wie in einem üblichen Texteditor.",
   "settings.spellcheck.title": "Rechtschreibprüfung",
   "settings.spellcheck.enabled": "Rechtschreibprüfung aktiv",
   "settings.spellcheck.hint": "Geprüft wird mit dem Prüfer des Betriebssystems und gegen dessen eingestellte Sprache; die Sprache der Oberfläche spielt dabei keine Rolle. Ein Text in einer anderen Sprache wird deshalb durchgehend markiert. Gewechselt wird die Prüfsprache in den Spracheinstellungen des Betriebssystems.",

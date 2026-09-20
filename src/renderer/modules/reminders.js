@@ -35,6 +35,9 @@ import { scrollToLineAfterOpen } from './views/anchor-navigation.js';
 import { showStatusbarHint } from './views/views.js';
 import { toggleTaskFromQuery, writeTaskHitLine } from './task-query-actions.js';
 import { parseTaskLine, serializeTaskLine, setReminder } from '../../shared/tasks/task-markers.js';
+// 4T-001775 (Epic 3E-000304): Beschriftung ohne Markdown-Endung aus der
+// gemeinsamen Quelle (keine zweite Endungs-Liste).
+import { fileLabelFromBasename } from '../../shared/subpages.js';
 import { showDateTimePicker } from './calendar/date-picker.js';
 import { appendContextMenuItem, placeContextMenuAt } from './dialogs/context-menu-utils.js';
 import {
@@ -243,8 +246,13 @@ function renderList() {
     const fileLink = document.createElement('a');
     fileLink.href = '#';
     fileLink.className = 'reminders-item-file';
-    fileLink.textContent = api.basename(item.path);
-    fileLink.title = t('reminders.dialog.openFile');
+    // 4T-001775 (Epic 3E-000304): Der Datei-Name steht ohne Markdown-Endung —
+    // derselbe Eintrag soll im Dialog und im Panel nicht zwei Schreibweisen
+    // tragen. Der Kurzhinweis nennt seither den vollen Pfad und behaelt den
+    // bisherigen Hinweis-Text in der zweiten Zeile (Muster der
+    // Start-Seiten-Zeile im Bereichs-Panel).
+    fileLink.textContent = fileLabelFromBasename(api.basename(item.path));
+    fileLink.title = `${item.path}\n${t('reminders.dialog.openFile')}`;
     fileLink.addEventListener('click', (e) => {
       e.preventDefault();
       void openReminderSource(item);

@@ -9,6 +9,7 @@
   "menu.file.rename": "Renommer…",
   "menu.file.detachSubpage": "Détacher de la page parente…",
   "menu.file.rejoinParts": "Réunir les parties…",
+  "menu.file.newWindow": "Nouvelle fenêtre",
   "menu.file.newApp": "Nouvelle application",
   "menu.file.open": "Ouvrir un fichier…",
   "menu.file.quickOpen": "Ouvrir un fichier par son nom…",

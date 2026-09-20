@@ -102,6 +102,13 @@ export function bindMenuEvents() {
   api.onMenuNew(() => newUntitledTab());
   // 4T-000319 (Epic 3E-000057): 'Datei -> Neue Applikation'.
   api.onMenuNewApplication(() => api.newApplication());
+  // 4T-001738 (Epic 3E-000308): 'Datei -> Neues Fenster' — dieselbe Handlung
+  // wie das Kommando window.newWindow: der bestehende Kanal ohne Panes und
+  // ohne Reiter-Nutzlast, damit das neue Fenster mit einem einzelnen
+  // unbenannten Reiter startet (E5, E6).
+  if (typeof api.onMenuNewWindow === 'function') {
+    api.onMenuNewWindow(() => api.openNewWindow([]));
+  }
   // 4T-000322 (Epic 3E-000058): 'Datei -> Bereich oeffnen.../Bereich schliessen'.
   api.onMenuOpenArea(() => api.openArea());
   // 4T-000632 (Epic 3E-000102): Demo-Area erstellen (Dialog und Ablauf im Main).

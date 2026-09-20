@@ -72,6 +72,12 @@ const KERN_ZEILEN = [
   'help.feature.tabIndent',
   'help.feature.listNumbering',
   'help.feature.listExit',
+  // 4T-001577 (Epic 3E-000282): Der Cursor-Sprung in Listen ist Kern und keine
+  // schaltbare Erweiterung (Entscheidung E4 des Epics): Die Registry fuehrt
+  // Markdown-Konstrukte und abgrenzbare Funktions-Pakete, eine
+  // Verhaltens-Option der Cursor-Bewegung ist keine solche Einheit. Sie liegt
+  // als Schalter im Einstellungs-Bereich Verhalten.
+  'help.feature.listenCursor',
   'help.feature.tableEditor',
   // 4T-001347 (Epic 3E-000239): Die Tabellen-Bearbeitung im Live-Modus ist Kern
   // und keine schaltbare Erweiterung (Entscheidung des Product Owners vom
@@ -150,6 +156,19 @@ const KERN_ZEILEN = [
   'help.feature.panelHeightMode',
   'help.feature.panelToggleOrder',
   'help.feature.sidebarVariants',
+  // 4T-001582 (Epic 3E-000283): Zusammenklappen der Statusleiste. Kern und
+  // nicht schaltbar (Entscheidung E7 des Epics): Es ist kein abgrenzbares
+  // Funktions-Paket, sondern die Antwort der Leiste auf ihre eigene Breite —
+  // ein Aus-Zustand waere die behobene Fehlstellung. Die Wahlfreiheit traegt
+  // die Einstellung «Zusammenklappen», nicht ein Erweiterungs-Schalter.
+  'help.feature.statusleisteFalten',
+  // 4T-001766 (Epic 3E-000186): Darstellung nicht aktivierbarer
+  // Schaltflaechen. Kern und nicht schaltbar (Entscheidung E7 des Epics): Das
+  // Vorhaben bringt eine Einstellung und kein abgrenzbares Funktions-Paket —
+  // ein Aus-Zustand waere genau der Vorgabewert «blass anzeigen», also ein
+  // zweiter Schalter fuer dieselbe Entscheidung. Die Wahlfreiheit traegt die
+  // Einstellung «Nicht aktivierbare Schaltflaechen».
+  'help.feature.nichtAktivierbareSchalter',
   'help.feature.foldGutter',
   'help.feature.editorViewSettings',
   'help.feature.activeLine',
@@ -168,6 +187,11 @@ const KERN_ZEILEN = [
   'help.feature.tabSelection',
   'help.feature.roundedTabs',
   'help.feature.multiWindow',
+  // 4T-001740 (Epic 3E-000308, Entscheidung E9): «Neues Fenster» ist Kern wie
+  // seine beiden Nachbarn. Ein Schalter, der gerade diesen einen Weg zu einem
+  // zweiten Fenster abschaltet, waere gegenueber dem Reiter-Weg und der neuen
+  // Applikation ohne Begruendung.
+  'help.feature.newWindow',
   'help.feature.multiApp',
   'help.feature.area',
   'help.feature.recentAreas',
@@ -181,6 +205,11 @@ const KERN_ZEILEN = [
   // Die Begründung steht im Lösungs-Kapitel von 4T-001352.
   'help.feature.areaFileCreate',
   'help.feature.areaFileRenameDelete',
+  // 4T-001732 (Epic 3E-000306, Entscheidung E8): Kopieren im Bereichs-Panel ist
+  // Kern wie seine drei Nachbarn derselben Menue-Gruppe. Ein Schalter, der
+  // gerade diese eine Handhabung abschaltet, waere gegenueber den anderen drei
+  // ohne Begruendung.
+  'help.feature.areaFileCopy',
   'help.feature.journalCalendar',
   'help.feature.outline',
   'help.feature.aliases',
