@@ -221,6 +221,8 @@
   "help.featureName.canvasList": "Karten-Liste der Canvas",
   "help.featureName.canvasExportJson": "Ausgabe der Canvas als JSON Canvas",
   "help.featureName.canvasImportJson": "Einlesen einer JSON-Canvas-Datei",
+  "help.featureName.kanban": "Tafel-Ansicht (Kanban)",
+  "help.featureName.kanbanCardDetails": "Angaben auf der Karte (Kanban)",
   "help.featureName.databaseTable": "Tabellen-Definition",
   "help.featureName.databaseColumnTypes": "Spalten-Typen einer Tabelle",
   "help.featureName.databaseRecordKey": "Datensatz-Kennung und fachlicher Schlüssel",

@@ -7,7 +7,7 @@
 
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
-const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 const {
   BUILTIN_SCHEMES,
   DEFAULT_LIGHT_ID,
@@ -29,12 +29,7 @@ async function defaultAccent(page) {
 const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system .settings-page';
 
 async function openSettingsPageViaKeyboard(page) {
-  await expect
-    .poll(async () => {
-      await page.keyboard.press('Control+,');
-      return page.locator(SEL.tabs0).count();
-    })
-    .toBeGreaterThan(0);
+  await oeffneEinstellungsSeite(page);
 }
 
 async function openColorSchemesSection(page) {

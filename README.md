@@ -41,6 +41,18 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   what did not, and there is no promise that nothing is lost. Unlike
   the graph it computes nothing, it keeps what you laid out, and because it
   lives as plain text inside the document, the cards stay readable anywhere.
+- **Your tasks as a board** — a task document can be shown as a Kanban board:
+  its lists stand side by side as columns, and every task line is a card in
+  them. Cards and columns are created, edited and dragged with the mouse, a
+  column can mark the cards dragged into it as done, and every action is a
+  single undo step. Cards show their details as badges — due date and time,
+  read relative to today if you wish — with tags gathered at their foot; a
+  column can carry a limit that is highlighted rather than enforced, a card can
+  go to an archive at the end of the document, and a filter finds the card you
+  are looking for. No new kind of file and no second home for your tasks: the
+  board is another view of an ordinary Markdown document, the order of the
+  cards is the order of the lines, and boards kept with another widely used
+  tool open here without conversion.
 - **Tables that calculate and query** — data tables with typed columns
   calculate live; queries embed file lists that keep themselves current,
   filtered by properties, tags or tasks. All of it stays plain text inside

@@ -140,5 +140,12 @@
   "command.canvas.addGroup": "Ajouter un groupe au canevas",
   "command.canvas.addLinkCard": "Ajouter une carte de lien au canevas",
   "command.canvas.addImageCard": "Ajouter une carte d’image au canevas",
-  "command.canvas.addConnection": "Ajouter une connexion au canevas…"
+  "command.canvas.addConnection": "Ajouter une connexion au canevas…",
+  "command.kanban.addCard": "Ajouter une carte au tableau",
+  "command.kanban.archiveCard": "Archiver la carte du tableau",
+  "command.kanban.addColumn": "Ajouter une colonne au tableau",
+  "command.kanban.newBoard": "Nouveau tableau Kanban",
+  "command.kanban.convertToBoard": "Convertir le document vide en tableau Kanban",
+  "command.kanban.toggleTagsFooter": "Activer ou désactiver les tags en pied de carte",
+  "command.kanban.toggleRelativeDates": "Activer ou désactiver les dates relatives"
 }

@@ -35,6 +35,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 const DE = require('../../../src/i18n/de.json');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
@@ -115,12 +116,7 @@ async function warteAufReiter(page) {
 // statusleisten-faltung.spec.js — gepollt, weil der Kommando-Dispatcher erst
 // am Ende der asynchronen init() registriert ist).
 async function oeffneEinstellungen(page) {
-  await expect
-    .poll(async () => {
-      await page.keyboard.press('Control+,');
-      return page.locator(EINSTELLUNGEN_SEITE).count();
-    })
-    .toBeGreaterThan(0);
+  await oeffneEinstellungsSeite(page);
 }
 
 // Wählt im Abschnitt „Statusleiste" den Wert und wendet mit OK an.

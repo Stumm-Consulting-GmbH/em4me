@@ -34,6 +34,7 @@
     <link rel="stylesheet" href="styles/mindmap.css" />
     <link rel="stylesheet" href="styles/canvas.css" />
     <link rel="stylesheet" href="styles/canvas-liste.css" />
+    <link rel="stylesheet" href="styles/kanban.css" />
     <link rel="stylesheet" href="styles/suche-und-buch.css" />
     <!-- 4T-000644 (Epic 3E-000127): Overlay- und Popover-Stilblatt von driver.js
          für die geführte Produkt-Tour. Kopiert von scripts/build-tour-assets.js
@@ -591,6 +592,10 @@
                Sichtbar nur bei .content.view-canvas; die Komponente
                montiert canvas-pane.js zur Laufzeit. -->
           <section class="pane pane-canvas"></section>
+          <!-- 4T-001847 (Epic 3E-000110): Container der Tafel-Ansicht.
+               Sichtbar nur bei .content.view-kanban; die Zeichnung haengt
+               4T-001848 hier ein (dasselbe Muster). -->
+          <section class="pane pane-kanban"></section>
           <div
             class="splitter sidebar-splitter sidebar-splitter-right"
             aria-hidden="true"
@@ -1129,6 +1134,10 @@
                Sichtbar nur bei .content.view-canvas; die Komponente
                montiert canvas-pane.js zur Laufzeit. -->
           <section class="pane pane-canvas"></section>
+          <!-- 4T-001847 (Epic 3E-000110): Container der Tafel-Ansicht.
+               Sichtbar nur bei .content.view-kanban; die Zeichnung haengt
+               4T-001848 hier ein (dasselbe Muster). -->
+          <section class="pane pane-kanban"></section>
           <div
             class="splitter sidebar-splitter sidebar-splitter-right"
             aria-hidden="true"
@@ -1896,6 +1905,37 @@
               <rect x="2.5" y="3.5" width="8" height="6" rx="1.5" />
               <rect x="13.5" y="14.5" width="8" height="6" rx="1.5" />
               <path d="M10.5 6.5h4a2 2 0 0 1 2 2v6" />
+            </svg>
+          </button>
+          <!-- 4T-001847 (Epic 3E-000110): Tafel-Modus als siebte Schaltflaeche,
+               hinter der Canvas. Sie steht wie jene neben dem Render-Spektrum
+               der ersten fuenf und nicht in seiner Reihe: Die Tafel ist eine
+               eigene Arbeitsform desselben Dokuments. Das Symbol zeigt drei
+               Spalten unterschiedlicher Fuellhoehe. Die Schaltflaeche folgt dem
+               Schalt-Zustand der Erweiterung (tabs.js, syncToolbarToActiveTab);
+               ohne Tafel im Dokument bleibt sie sichtbar deaktiviert. -->
+          <button
+            data-view="kanban"
+            class="view-btn btn-icon"
+            data-i18n-title="menu.view.kanban"
+            data-i18n-aria-label="menu.view.kanban"
+            title=""
+            aria-label="Kanban"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="2.5" y="3.5" width="5" height="17" rx="1.5" />
+              <rect x="9.5" y="3.5" width="5" height="11" rx="1.5" />
+              <rect x="16.5" y="3.5" width="5" height="7" rx="1.5" />
             </svg>
           </button>
         </div>

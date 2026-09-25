@@ -10,6 +10,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 const ZWEITE = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'zweite.md');
@@ -36,12 +37,7 @@ async function waitForTab(page) {
 const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system .settings-page';
 
 async function openSettingsPage(page) {
-  await expect
-    .poll(async () => {
-      await page.keyboard.press('Control+,');
-      return page.locator(SETTINGS_PAGE).count();
-    })
-    .toBeGreaterThan(0);
+  await oeffneEinstellungsSeite(page);
 }
 
 test.describe('SL-01: Default-Layout und Breiten-Migration (outline.width)', () => {

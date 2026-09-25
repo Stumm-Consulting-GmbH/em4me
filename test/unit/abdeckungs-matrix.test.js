@@ -50,6 +50,13 @@ describe('Abdeckungs-Matrix (Meta-Test, 4T-000195)', () => {
     const ids = new Set();
     for (const e of matrix.eintraege) {
       expect(TESTARTEN, `${e.key}: unbekannte Testart '${e.testart}'`).toContain(e.testart);
+      // 4T-001674: Dieses Muster ist die einzige Stelle, an der die Bereiche
+      // der Matrix festgelegt sind. Die Reservierung der Kennungen
+      // (`node scripts/nummern-reservierung.js --matrix F 1`) leitet ihre
+      // erlaubten Präfixe aus dem Bestand der Matrix ab und führt bewusst
+      // keine zweite Liste, die hinter diesem Muster zurückbleiben könnte.
+      // Wer hier einen Bereich ergänzt, legt dessen ersten Eintrag von Hand
+      // an; ab dem zweiten zieht das Werkzeug ihn wie F und S.
       expect(e.id).toMatch(/^[FS]-\d{3}$/);
       expect(ids.has(e.id), `doppelte Matrix-ID ${e.id}`).toBe(false);
       ids.add(e.id);

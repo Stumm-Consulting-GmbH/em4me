@@ -36,7 +36,7 @@ La commande exige un document modifiable ; à défaut, la barre d'état le dit a
 
 Le canevas est le sixième mode d'affichage, à côté de Source, Scindée, Rendu, Live et Carte mentale : **Affichage → Canevas**, le bouton de la barre d'état ou `Ctrl+6` par défaut. Comme pour les autres modes, le choix vaut par document ouvert et non pour toute l'application.
 
-**C'est le seul des six modes qui dépende du document.** Il n'est sélectionnable que si le document contient une surface Canvas — une vue canevas sans surface ne montrerait qu'un message. Sans surface, le bouton et l'entrée de menu restent **visibles et atténués** ; la raison figure dans l'infobulle du bouton. Le chemin par le raccourci et la palette de commandes ne mène alors nulle part et ne vous éjecte pas non plus de votre vue actuelle. Dès qu'une surface apparaît dans le texte ou en disparaît, l'accès suit. Un document qui était ouvert en vue canevas à la fermeture et dont la surface a entre-temps disparu s'ouvre en vue de lecture.
+**Il dépend du document, comme la vue tableau.** Il n'est sélectionnable que si le document contient une surface Canvas — une vue canevas sans surface ne montrerait qu'un message. Sans surface, le bouton et l'entrée de menu restent **visibles et atténués** ; la raison figure dans l'infobulle du bouton. Le chemin par le raccourci et la palette de commandes ne mène alors nulle part et ne vous éjecte pas non plus de votre vue actuelle. Dès qu'une surface apparaît dans le texte ou en disparaît, l'accès suit. Un document qui était ouvert en vue canevas à la fermeture et dont la surface a entre-temps disparu s'ouvre en vue de lecture.
 
 ## Plusieurs surfaces dans un document
 

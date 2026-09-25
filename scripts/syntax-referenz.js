@@ -53,26 +53,26 @@ const KOPF = {
     titel: 'EM4me — Syntax-Referenz',
     einleitung: [
       'Diese Datei beschreibt die Markdown-Sprache der Anwendung EM4me: alle',
-      'Schreibweisen, die in einer EM4me-Datei stehen duerfen, einschliesslich der',
-      'Erweiterungen ueber gewoehnliches Markdown hinaus.',
+      'Schreibweisen, die in einer EM4me-Datei stehen dürfen, einschließlich der',
+      'Erweiterungen über gewöhnliches Markdown hinaus.',
       '',
-      'Sie ist fuer ein Sprachmodell geschrieben, das Dateien fuer diese Anwendung',
-      'erzeugen soll. Wer eine Datei fuer EM4me schreibt, nutzt die hier gezeigten',
-      'Konstrukte, statt sich auf gewoehnliches Markdown zu beschraenken.',
+      'Sie ist für ein Sprachmodell geschrieben, das Dateien für diese Anwendung',
+      'erzeugen soll. Wer eine Datei für EM4me schreibt, nutzt die hier gezeigten',
+      'Konstrukte, statt sich auf gewöhnliches Markdown zu beschränken.',
     ],
     hinweisUeberschrift: 'Zur Benutzung',
     hinweis: [
       'Jeder Abschnitt zeigt die Schreibweise als Code-Block, meist gefolgt von',
-      'ihrer Wirkung. Die Code-Bloecke sind woertlich zu nehmen.',
-      'Dateien sind gewoehnliche Markdown-Dateien mit der Endung .md.',
-      'Bedienung, Menuewege und Tastenkuerzel sind hier bewusst weggelassen; sie',
-      'stehen im vollstaendigen Handbuch.',
+      'ihrer Wirkung. Die Code-Blöcke sind wörtlich zu nehmen.',
+      'Dateien sind gewöhnliche Markdown-Dateien mit der Endung .md.',
+      'Bedienung, Menüwege und Tastenkürzel sind hier bewusst weggelassen; sie',
+      'stehen im vollständigen Handbuch.',
     ],
     erzeugt: 'Erzeugt aus dem Handbuch-Bestand — nicht von Hand pflegen.',
     version: 'Programm-Version',
     stand: 'Bau-Zeitpunkt',
-    standVeroeffentlicht: 'Veroeffentlicht am',
-    handbuch: 'Vollstaendiges Handbuch',
+    standVeroeffentlicht: 'Veröffentlicht am',
+    handbuch: 'Vollständiges Handbuch',
     seiteAus: 'Handbuch-Seite',
   },
   en: {
@@ -102,56 +102,56 @@ const KOPF = {
     seiteAus: 'Manual page',
   },
   fr: {
-    titel: 'EM4me — Reference de syntaxe',
+    titel: 'EM4me — Référence de syntaxe',
     einleitung: [
-      "Ce fichier decrit le langage Markdown de l'application EM4me : toutes les",
-      'constructions autorisees dans un fichier EM4me, y compris les extensions',
-      'qui depassent le Markdown ordinaire.',
+      "Ce fichier décrit le langage Markdown de l'application EM4me : toutes les",
+      'constructions autorisées dans un fichier EM4me, y compris les extensions',
+      'qui dépassent le Markdown ordinaire.',
       '',
-      'Il est ecrit pour un modele de langage charge de produire des fichiers pour',
-      'cette application. Pour ecrire un fichier EM4me, utilisez les constructions',
-      'presentees ici plutot que de vous limiter au Markdown ordinaire.',
+      'Il est écrit pour un modèle de langage chargé de produire des fichiers pour',
+      'cette application. Pour écrire un fichier EM4me, utilisez les constructions',
+      'présentées ici plutôt que de vous limiter au Markdown ordinaire.',
     ],
-    hinweisUeberschrift: 'Mode d emploi',
+    hinweisUeberschrift: "Mode d'emploi",
     hinweis: [
       'Chaque section montre la syntaxe sous forme de bloc de code, suivi le plus',
-      'souvent de son effet. Les blocs de code sont a prendre au pied de la lettre.',
+      'souvent de son effet. Les blocs de code sont à prendre au pied de la lettre.',
       'Les fichiers sont des fichiers Markdown ordinaires avec extension .md.',
       "L'utilisation, les chemins de menu et les raccourcis clavier sont",
       'volontairement omis ; ils figurent dans le manuel complet.',
     ],
-    erzeugt: 'Genere a partir du manuel — ne pas modifier a la main.',
+    erzeugt: 'Généré à partir du manuel — ne pas modifier à la main.',
     version: "Version de l'application",
     stand: 'Date de construction',
-    standVeroeffentlicht: 'Publie le',
+    standVeroeffentlicht: 'Publié le',
     handbuch: 'Manuel complet',
     seiteAus: 'Page du manuel',
   },
   es: {
     titel: 'EM4me — Referencia de sintaxis',
     einleitung: [
-      'Este archivo describe el lenguaje Markdown de la aplicacion EM4me: todas las',
+      'Este archivo describe el lenguaje Markdown de la aplicación EM4me: todas las',
       'construcciones que pueden aparecer en un archivo de EM4me, incluidas las',
-      'extensiones mas alla del Markdown corriente.',
+      'extensiones más allá del Markdown corriente.',
       '',
-      'Esta escrito para un modelo de lenguaje al que se le pide generar archivos',
-      'para esta aplicacion. Al escribir un archivo para EM4me, emplee las',
-      'construcciones aqui mostradas en lugar de limitarse al Markdown corriente.',
+      'Está escrito para un modelo de lenguaje al que se le pide generar archivos',
+      'para esta aplicación. Al escribir un archivo para EM4me, emplee las',
+      'construcciones aquí mostradas en lugar de limitarse al Markdown corriente.',
     ],
-    hinweisUeberschrift: 'Como usarlo',
+    hinweisUeberschrift: 'Cómo usarlo',
     hinweis: [
-      'Cada seccion muestra la sintaxis como bloque de codigo, seguido casi siempre',
-      'de su efecto. Los bloques de codigo deben tomarse al pie de la letra.',
-      'Los archivos son archivos Markdown corrientes con la extension .md.',
-      'El manejo, las rutas de menu y los atajos de teclado se omiten a proposito;',
-      'estan en el manual completo.',
+      'Cada sección muestra la sintaxis como bloque de código, seguido casi siempre',
+      'de su efecto. Los bloques de código deben tomarse al pie de la letra.',
+      'Los archivos son archivos Markdown corrientes con la extensión .md.',
+      'El manejo, las rutas de menú y los atajos de teclado se omiten a propósito;',
+      'están en el manual completo.',
     ],
     erzeugt: 'Generado a partir del manual — no editar a mano.',
-    version: 'Version de la aplicacion',
-    stand: 'Momento de compilacion',
+    version: 'Versión de la aplicación',
+    stand: 'Momento de compilación',
     standVeroeffentlicht: 'Publicado el',
     handbuch: 'Manual completo',
-    seiteAus: 'Pagina del manual',
+    seiteAus: 'Página del manual',
   },
   it: {
     titel: 'EM4me — Riferimento di sintassi',
@@ -160,7 +160,7 @@ const KOPF = {
       'costrutti ammessi in un file EM4me, comprese le estensioni che vanno oltre',
       'il Markdown ordinario.',
       '',
-      'E scritto per un modello linguistico a cui viene chiesto di produrre file per',
+      'È scritto per un modello linguistico a cui viene chiesto di produrre file per',
       'questa applicazione. Per scrivere un file EM4me, usare i costrutti qui',
       'mostrati invece di limitarsi al Markdown ordinario.',
     ],
@@ -245,6 +245,44 @@ function zerlegeInAbschnitte(text) {
 
 function hatCodeBlock(zeilen) {
   return zeilen.some((z) => /^(```|~~~)/.test(z));
+}
+
+// 4T-001854: Mehrere Leerzeilen am Stueck zu einer verdichten — aber NIE
+// innerhalb eines Code-Zauns.
+//
+// Es ist dieselbe Absicherung wie bei der Verweis-Aufloesung eine Ebene tiefer
+// und aus demselben Grund: Ein Code-Block IST die Schreibweise, die die Referenz
+// lehren soll; wer ihn beim Aufraeumen umschreibt, bringt dem lesenden Modell
+// genau die falsche Form bei. Aufgefallen an der Handbuch-Seite zur Kanban-
+// Tafel, deren Beispiel zwei Leerzeilen vor jeder Spalten-Ueberschrift traegt —
+// und zwar, weil das Format des Vorbild-Werkzeugs sie dort verlangt. Der
+// blanke Ausdruck /\n{3,}/ machte daraus eine, und der
+// Vollstaendigkeits-Prueffall meldete den Code-Block als fehlend.
+//
+// Ausserhalb der Zaeune bleibt es beim alten Verhalten: Die Verdichtung raeumt
+// die Luecken auf, die das Weglassen ganzer Abschnitte hinterlaesst.
+function verdichteLeerzeilen(text) {
+  const zeilen = String(text == null ? '' : text).split('\n');
+  const aus = [];
+  let imZaun = false;
+  let zaun = null;
+  for (const zeile of zeilen) {
+    const treffer = zeile.match(/^(```+|~~~+)/);
+    if (treffer) {
+      if (!imZaun) {
+        imZaun = true;
+        zaun = treffer[1][0];
+      } else if (treffer[1][0] === zaun) {
+        imZaun = false;
+        zaun = null;
+      }
+      aus.push(zeile);
+      continue;
+    }
+    if (!imZaun && zeile === '' && aus.length > 0 && aus[aus.length - 1] === '') continue;
+    aus.push(zeile);
+  }
+  return aus.join('\n');
 }
 
 // Stufe 2 der Auswahl: Ein Abschnitt bleibt, wenn er selbst einen Code-Block
@@ -435,7 +473,7 @@ function erzeugeFuerSprache(sprache, version, stand, quelle = HELP_QUELLE, optio
       }
       if (!behalten[i]) continue;
       ausgabe.push(`${'#'.repeat(Math.min(a.ebene + 1, 6))} ${a.titel}`);
-      ausgabe.push(a.zeilen.join('\n').replace(/\n{3,}/g, '\n\n'));
+      ausgabe.push(verdichteLeerzeilen(a.zeilen.join('\n')));
       statistik.abschnitte += 1;
       uebernommen += 1;
     }
@@ -457,9 +495,7 @@ function erzeugeFuerSprache(sprache, version, stand, quelle = HELP_QUELLE, optio
     throw new Error(`syntax-referenz: keine einzige Seite fuer '${sprache}' uebernommen`);
   }
 
-  const text = loeseVerweiseAuf(teile.join('\n\n'), sprache)
-    .replace(/\n{3,}/g, '\n\n')
-    .trimEnd();
+  const text = verdichteLeerzeilen(loeseVerweiseAuf(teile.join('\n\n'), sprache)).trimEnd();
   return { text: `${text}\n`, statistik };
 }
 
@@ -515,7 +551,12 @@ module.exports = {
   zerlegeInAbschnitte,
   markiereBehalten,
   hatCodeBlock,
+  // 4T-001854: für den gezielten Prüffall über die Leerzeilen-Verdichtung.
+  verdichteLeerzeilen,
   themenSeiten,
+  // 4T-001839: für den Schreibweisen-Wächter über die von Hand geschriebene
+  // Tafel (test/unit/syntax-referenz.test.js).
+  KOPF,
   AUFNAHME,
   SPRACHEN,
   ZIEL_STANDARD,

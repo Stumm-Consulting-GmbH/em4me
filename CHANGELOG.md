@@ -14,6 +14,369 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.141.0.3210] - 2026-09-24 — Kanban-Tafel Stufen 1 und 2, Suche in der Mindmap-Ansicht
+
+Zug 3E-000325, der
+Zug zum Thema Kanban. Mitglied 1 von drei:
+3E-000110, die erste
+Ausbaustufe der Tafel — ein gewöhnliches Markdown-Dokument mit dem
+Kopf-Kennzeichen `kanban-plugin` erscheint als Tafel mit Spalten und Karten, die
+sich anlegen, bearbeiten, löschen, abhaken und mit der Maus verschieben lassen,
+dazu Handbuch, Funktions-Katalog und ein Demo-Beispiel. Die Karten stehen im
+Dokument selbst: Eine Karte **ist** eine Aufgaben-Zeile, ihre Reihenfolge ist die
+Zeilen-Reihenfolge, und es entsteht weder eine neue Datei-Art noch ein zweites
+Aufgaben-Modell. Tafeln eines verbreiteten fremden Werkzeugs werden ohne Umbau
+gelesen und weitergeführt; Einstellungs-Block und Archiv-Abschnitt bleiben
+byte-genau erhalten. Der Abschluss-Anteil des Epics liegt in
+4T-001855.
+Mitglied 2 von drei:
+3E-000318,
+die zweite Ausbaustufe — die Karte zeigt ihre Angaben als Abzeichen, allen voran
+Termin und Uhrzeit, Tags stehen wahlweise am Kartenfuß, eine Spalte trägt eine
+Obergrenze, eine Karte lässt sich mit Zeitstempel in das Archiv am Dateiende
+legen, und `Strg+F` filtert die Karten der Tafel. Auch hier entsteht kein zweites
+Modell: Der Termin steht in der Aufgaben-Schreibweise der Anwendung in der
+Karten-Zeile, die Obergrenze als Zahl in Klammern im Spalten-Titel, und das
+Archiv ist der Abschnitt, den das fremde Werkzeug selbst schreibt — in ihn
+schreibt die Tafel mit dieser Stufe erstmals. Der Abschluss-Anteil des Epics
+liegt in
+4T-001910.
+Mitglied 3 von drei:
+3E-000324,
+eine Fehlerbehebung an der Mindmap-Ansicht — `Strg+F` zählte dort die Treffer
+der ausgeblendeten Lese-Ansicht, und in der Karte war nichts zu sehen. Die
+Suchleiste kennt jetzt die Mindmap als eigenen Suchraum: Sie zählt und markiert
+die Knoten der Karte und springt sie an, in beiden Lagen des Dokuments,
+außerhalb wie innerhalb eines geöffneten Bereichs. Der Abschluss-Anteil des Epics
+liegt in
+4T-001895.
+
+### Neu
+
+- **Ein Aufgaben-Dokument als Tafel ansehen** (`4T-001846`, `4T-001847`,
+  `4T-001848`). Trägt der Dokument-Kopf den Schlüssel `kanban-plugin`, steht
+  unter **Ansicht → Tafel** (`Strg+7`) ein siebter Ansichts-Modus desselben
+  Dokuments bereit, erreichbar zusätzlich über die Statusleiste samt ihrem
+  Überlauf-Menü und über die Kommando-Palette. Die Tafel zeigt die Spalten
+  nebeneinander, jede mit Titel, Karten-Zähler und — wo eingestellt — ihrem
+  Erledigt-Kennzeichen; die Karten stehen in ihrer Spalte in der Reihenfolge der
+  Zeilen im Dokument. **Der Karten-Inhalt läuft durch dieselbe Render-Kette wie
+  die Lese-Ansicht**, sodass Verweise, Tags und Bilder auf der Karte so
+  erscheinen wie im Text; eingerückte Folgezeilen stehen unter dem Karten-Text.
+  Hell und Dunkel folgen den Farben des Bestands, viele Spalten lassen sich
+  waagerecht rollen und eine lange Spalte senkrecht. Bei einem Dokument ohne
+  Tafel bleibt der Zugang sichtbar, aber deaktiviert; die Fläche **erbt die
+  Änderbarkeit ihres Dokuments** und zeigt im Nur-Lese-Zustand keine Bedien-Griffe.
+- **Karten anlegen, bearbeiten, löschen und abhaken** (`4T-001849`). Die
+  Schaltfläche «Karte hinzufügen» am Fuß einer Spalte legt eine Karte an, die
+  sofort beschriftbar ist; leer übernommen entsteht keine. Ein Doppelklick,
+  `Enter` oder `F2` öffnet den Karten-Text zum Bearbeiten, `Enter` übernimmt,
+  `Escape` verwirft, `Entf` löscht, und der Klick auf das Kästchen oder die
+  `Leertaste` wechselt den Status. **Der Statuswechsel geht denselben Weg wie in
+  der Lese-Ansicht**, samt Automatik-Daten und Wiederholung — was auf der Tafel
+  abgehakt ist, ist überall abgehakt. Jede Handlung ist eine Transaktion und
+  damit ein einziges `Strg+Z`; `Strg+Z` und `Strg+Y` wirken auch auf der Tafel
+  selbst. Über das Ansichtsmenü und die Kommando-Palette steht zusätzlich der
+  Befehl «Karte auf der Tafel anlegen» bereit.
+- **Karten und Spalten mit der Maus verschieben, und die Spalte, die abhakt**
+  (`4T-001850`). Eine Karte wird an ihrem Körper gezogen, eine Spalte an ihrem
+  Kopf; eine Marke zeigt während des Zuges die Ziel-Position, und am Rand rollt
+  die Fläche weiter. `Escape` oder das Ablegen außerhalb jeder Spalte lässt das
+  Dokument unverändert. **Trägt die Ziel-Spalte die Einstellung «hakt
+  hineingezogene Karten ab», wird die hineingezogene Karte abgehakt**, und beim
+  Herausziehen in eine gewöhnliche Spalte wird das zurückgenommen; zwischen zwei
+  gewöhnlichen Spalten bleibt der Status unberührt. Verschieben und Abhaken
+  zusammen sind **ein** Rückgängig-Schritt.
+- **Die Folge-Instanz einer wiederholenden Aufgabe landet in der Quell-Spalte**
+  (`4T-001896`). Wird eine Karte mit Wiederholung in eine abhakende Spalte
+  gezogen, steht die vom Statuswechsel erzeugte nächste Instanz danach in der
+  Spalte, aus der die Karte kam, und dort an deren alter Stelle; die
+  abgeschlossene Karte bleibt an ihrem Ablage-Ort. Eine offene Aufgabe in der
+  Erledigt-Spalte entsteht damit nicht mehr. Der ganze Zug bleibt ein
+  Rückgängig-Schritt, und die Lese-Ansicht ist unverändert.
+- **Spalten anlegen, umbenennen, löschen und ihre Abhak-Einstellung setzen**
+  (`4T-001851`). Die Schaltfläche «Spalte hinzufügen» am Ende des
+  Spalten-Streifens legt eine Spalte an — auch an einer Tafel, die noch keine
+  hat; ein Doppelklick auf den Spalten-Titel benennt sie um. Das Kontextmenü des
+  Spalten-Kopfes trägt «Spalte umbenennen», «Spalte löschen» und den Eintrag mit
+  Häkchen, der die Einstellung «hakt hineingezogene Karten ab» zeigt und
+  umschaltet. **Eine leere Spalte verschwindet ohne Rückfrage, eine gefüllte
+  fragt vorher**, nennt Titel und Kartenzahl und ist mit «Abbrechen» vorbelegt.
+  Der Befehl «Spalte auf der Tafel anlegen» steht in Ansichtsmenü und
+  Kommando-Palette.
+- **Eine Tafel anlegen und ein leeres Dokument umwandeln** (`4T-001852`). Im
+  Ansichtsmenü gibt es dafür das neue Untermenü **«Kanban-Tafel»** mit «Neue
+  Kanban-Tafel» und «Leeres Dokument in Kanban-Tafel umwandeln», beide auch in
+  der Kommando-Palette. Beide Wege erzeugen denselben Startinhalt: drei Spalten
+  in der Sprache der Oberfläche, die letzte mit gesetztem Erledigt-Kennzeichen.
+  Umgewandelt wird nur ein Dokument ohne Inhalt außer Leerraum; das Umwandeln
+  ist ein einziger Rückgängig-Schritt.
+- **Schaltbare Erweiterung «Kanban»** (`4T-001847`). Die Tafel lässt sich unter
+  **Einstellungen → Erweiterungen** abschalten; dann entfallen Ansichts-Modus,
+  Statusleisten-Schaltfläche, Menü-Einträge und Befehle, und das Dokument öffnet
+  als gewöhnliches Markdown, ohne dass etwas verloren geht. Sie hängt von der
+  Erweiterung «Aufgaben» ab, weil eine Karte eine Aufgaben-Zeile ist.
+- **Handbuch-Seite, Funktions-Katalog und Demo-Beispiel** (`4T-001854`). Das
+  Handbuch hat in allen fünf Sprachen die neue Seite «Kanban-Tafel» bekommen,
+  mit den Bedien-Tafeln für Karten und Spalten, der Abgrenzung zur
+  Aufgaben-Abfrage, dem beschriebenen Speicherformat samt Beispiel und einem
+  Kapitel zur Verträglichkeit mit anderen Werkzeugen samt ihren Grenzen. Die
+  Funktions-Übersicht führt die Tafel mit ihrem gebauten Umfang und ihren
+  Zugängen, und die mitgelieferte Demo-Tour zeigt unter «13 Kanban» eine echte
+  Beispiel-Tafel mit drei Spalten, Folgezeilen und einer wiederholenden Aufgabe.
+- **Termin und Uhrzeit auf der Karte** (`4T-001903`). Unter dem Karten-Text
+  steht eine Reihe von Abzeichen mit den Angaben der Aufgabe — Termin samt
+  Uhrzeit, Geplant- und Start-Datum, Priorität, Wiederholung und die übrigen
+  Marker —, dieselben Abzeichen wie in der Lese-Ansicht, mit derselben
+  Kennzeichnung für Überfälliges und Ungültiges. Das Kontextmenü der Karte trägt
+  «Termin setzen…» und, sobald ein Termin da ist, «Termin entfernen»; ein Klick
+  auf das Termin-Abzeichen führt ebenfalls in den Datums-Kalender. Geschrieben
+  wird der Termin als Termin-Marker `📅 YYYY-MM-DD`, wahlweise mit ` HH:mm`, in
+  die Karten-Zeile; er erscheint damit auch in Aufgaben-Abfragen, Kalender und
+  Erinnerungen, und jedes Setzen und Entfernen ist ein Rückgängig-Schritt. Das
+  Häkchen **Ansicht → Kanban-Tafel → Termine relativ anzeigen** liest Termin,
+  Geplant- und Start-Datum vom heutigen Tag aus («heute», «morgen», «in 3
+  Tagen»), mit dem genauen Datum im Hinweistext; es ist ab Werk aus, gilt global
+  für alle Tafeln und ändert am Dokument nichts. Das zugehörige Kommando steht
+  auch in der Kommando-Palette.
+- **Termine des fremden Werkzeugs werden angezeigt und beim ersten Bearbeiten
+  umgeschrieben** (`4T-001902`, `4T-001903`). Ein Termin in der Schreibweise
+  `@{…}` samt Uhrzeit `@@{…}` erscheint als Termin-Abzeichen mit gestricheltem
+  Rand statt als Rohtext. Wird die Karte zum ersten Mal schreibend bearbeitet —
+  Text geändert, Termin gesetzt oder entfernt —, schreibt dieselbe Transaktion
+  ihn in den Termin-Marker der Anwendung um. **Der benannte Preis:** Im fremden
+  Werkzeug erscheint dieser Termin danach nur noch als Text. Öffnen,
+  Statuswechsel, Verschieben und Archivieren schreiben nichts um; ein unlesbarer
+  Termin bleibt als Text stehen und erscheint zusätzlich als ungültiges
+  Abzeichen. Gelesen wird allein die Vorgabe-Schreibweise des fremden Werkzeugs.
+- **Tags am Kartenfuß** (`4T-001904`). Das Häkchen **Ansicht → Kanban-Tafel →
+  Tags am Kartenfuß** nimmt die Tags aus dem angezeigten Karten-Text, auch die
+  aus eingerückten Folgezeilen, und stellt sie als eigene Reihe an den Fuß der
+  Karte, jedes einmal. Ein Klick auf ein Tag filtert die Tag-Sidebar wie in der
+  Lese-Ansicht. Das Häkchen ist ab Werk aus, gilt global und ändert am Dokument
+  nichts; auch hierzu steht ein Kommando in der Kommando-Palette.
+- **Obergrenze je Spalte** (`4T-001902`, `4T-001905`). Eine Zahl in Klammern am
+  Ende des Spalten-Titels, etwa `## In Arbeit (3)`, ist die Obergrenze der
+  Spalte — dieselbe Schreibweise wie im fremden Werkzeug; die Tafel zeigt sie im
+  Zähler als `2/3` statt im Titel. Gesetzt, geändert und entfernt wird sie über
+  «Obergrenze setzen…» und «Obergrenze entfernen» im Kontextmenü des
+  Spalten-Kopfes, mit der Eingabe an der Stelle des Zählers; eine leere Eingabe
+  oder `0` entfernt sie. **Die Obergrenze sperrt nicht:** Trägt die Spalte mehr
+  Karten, wird ihr Zähler hervorgehoben, und Karten lassen sich trotzdem
+  hineinziehen und anlegen. Umbenennen erhält die Obergrenze in ihrer
+  vorgefundenen Schreibweise.
+- **Karte archivieren** (`4T-001902`, `4T-001906`). «Karte archivieren» im
+  Kontextmenü der Karte und der Befehl «Karte auf der Tafel archivieren» — im
+  Untermenü **Ansicht → Kanban-Tafel** bei den Befehlen auf der Tafel, dazu in
+  der Kommando-Palette — nehmen die Karte samt Folgezeilen aus ihrer Spalte und
+  schreiben sie mit einem Zeitstempel `YYYY-MM-DD HH:mm` vor dem Text ans Ende
+  des Archiv-Abschnitts am Dateiende. Fehlt der Abschnitt, entsteht er hinter
+  der letzten Spalte in der Form des fremden Werkzeugs; ein vorhandener wird mit
+  Überschrift und Bestand weitergeführt. Das Archiv behält die jüngsten **100**
+  Karten, auch ein fremdes, größeres wird beim ersten Archivieren darauf
+  gekürzt. Ein Zurückholen auf der Tafel gibt es nicht; das Archivieren ist ein
+  Rückgängig-Schritt.
+- **Karten suchen und filtern** (`4T-001907`). In der Tafel-Ansicht öffnet
+  `Strg+F` ein Filter-Feld über den Spalten statt der Suche im Text. Beim
+  Tippen verschwinden die Karten, deren Text samt Folgezeilen, Tags und Terminen
+  den Suchbegriff nicht enthält; die Spalten bleiben stehen, ihr Zähler zeigt
+  Treffer und Gesamtzahl, und ohne Treffer sagt ein Hinweis «Keine Karte passt
+  zum Filter.». Die Treffer-Regel ist die des Filter-Felds der Karten-Liste
+  einer Canvas-Fläche. `Escape` beendet den Filter; das Dokument bleibt
+  unverändert, der Filter wirkt deshalb auch in einem nicht änderbaren Dokument.
+- **Handbuch, Funktions-Katalog und Demo-Beispiel der zweiten Stufe**
+  (`4T-001909`). Die Handbuch-Seite «Kanban-Tafel» hat in allen fünf Sprachen
+  fünf neue Abschnitte — Angaben auf der Karte samt dem Preis des Umschreibens,
+  Tags am Kartenfuß, Obergrenze je Spalte, Archiv, Karten suchen und filtern —,
+  und Speicherformat, Verträglichkeit und Grenzen sind auf den Stand der Stufe
+  gebracht. Die Funktions-Übersicht führt die Angaben auf der Karte als eigene
+  Zeile neben der Tafel. Die Demo-Tafel «13 Kanban» zeigt zusätzlich Termine als
+  Abzeichen, ein Tag, eine Spalte über ihrer Obergrenze und einen
+  Archiv-Abschnitt.
+
+### Geändert
+
+- **Das Ansichtsmenü bündelt alle Tafel-Befehle im Untermenü «Kanban-Tafel»**
+  (`4T-001854`, Entscheidung des Product Owners vom 2026-09-22). «Karte auf der
+  Tafel anlegen» und «Spalte auf der Tafel anlegen» standen bis dahin einzeln
+  im Ansichtsmenü; sie stehen jetzt als zweite Gruppe hinter einem Trenner in
+  demselben Untermenü, hinter den beiden Wegen zu einer Tafel. Der Modus-Eintrag
+  «Tafel» bleibt bei den übrigen Ansichts-Modi, und mit abgeschalteter
+  Erweiterung verschwindet das Untermenü samt Trenner vollständig.
+- **Die Handbuch-Seite «Ansichten und Darstellung» nennt sieben Ansichten**
+  (`4T-001854`), in Überschrift, Einleitung und Tabelle, mit der Tafel samt
+  ihrem Tastenkürzel und einem eigenen Abschnitt; die Überblicksseite verweist
+  auf die neue Seite. Die Handbuch-Seite zur Canvas-Fläche ist berichtigt: Sie
+  ist nicht mehr der einzige dokument-abhängige Ansichts-Modus.
+- **Die Überblicksseite des Handbuchs und die Seite «Ansichten und Darstellung»
+  nennen die Themen der zweiten Stufe** (`4T-001909`): Termine und Tags auf der
+  Karte, Obergrenze, Archiv und Filter, in allen fünf Sprachfassungen.
+- **Handbuch und Demo-Tour nennen die Suche in der Mindmap-Ansicht**
+  (`4T-001894`). Die Überblicksseite des Handbuchs und die Seiten «Ansichten und
+  Darstellung» und «Werkzeuge» verweisen in allen fünf Sprachfassungen auf den
+  neuen Abschnitt «Suchen in der Karte» der Seite «Mindmap-Ansicht»; die Seite
+  «Werkzeuge» sagt dazu, dass die Suche in dieser Ansicht auch in einem
+  geöffneten Bereich die Karte durchsucht. Die Demo-Seite «04 Links and
+  Structure» lädt dazu ein, die Suche in der Karte auszuprobieren.
+
+### Dokumentation
+
+- **Die Tafel steht als neue Arbeits-Form in der Nutzen-Darstellung**
+  (`4T-001854`, Entscheidung des Product Owners vom 2026-09-22). Beide
+  Ausspielungen — die Nutzen-Seite des Handbuchs und die Nutzen-Seite der
+  Produkt-Webseite — bekommen in allen fünf Sprachfassungen einen eigenen
+  Abschnitt mit einem Absatz dazu, wofür eine Tafel gut ist. Im selben Zug ist
+  dort die Zahl der Ansichten von sechs auf sieben berichtigt und die Tafel in
+  die Aufzählung aufgenommen.
+
+### Behoben
+
+- **Der Erledigt-Zustand einer Spalte war unsichtbar** (`4T-001851`). Er war am
+  Spalten-Element hinterlegt, aber nirgends zu sehen; der Spalten-Kopf zeigt ihn
+  jetzt als Zeichen neben dem Karten-Zähler, mit Beschriftung für
+  Vorlese-Programme.
+- **Das Anlegen und Verschieben einer Spalte schrieb am Dateiende einen
+  Zeilenumbruch der falschen Art** (`4T-001851`, in zwei Schritten behoben). Bei
+  einer Tafel, deren letzte Spalte bis ans Dateiende reicht — also jeder ohne
+  Archiv-Abschnitt und Einstellungs-Block —, entstand in einer Datei mit
+  Windows-Zeilenenden ein einzelner fremder Umbruch, und das Dokument endete
+  danach ohne Schluss-Umbruch. Derselbe Fall trat ein zweites Mal an einer
+  Tafel auf, die nur aus ihrem Kopf besteht. Beide Zweige laufen jetzt über
+  dieselbe Einfüge-Regel; Zeilenenden-Form und Schluss-Umbruch der Quelle
+  bleiben erhalten.
+- **Eine neu angelegte Tafel hatte eine andere Leerzeilen-Form als eine später
+  angelegte Spalte** (`4T-001852`, gemessen in `4T-001853`). Hinter einer Spalte
+  ohne Erledigt-Kennzeichen fehlte eine Leerzeile; maßgeblich ist die Form, die
+  auch die echten Tafeln des fremden Werkzeugs tragen. Beide Wege schreiben jetzt
+  dieselbe Form.
+- **Die maschinenlesbare Syntax-Referenz schrieb Code-Blöcke um** (`4T-001854`).
+  Sie verdichtete mehrere Leerzeilen am Stück zu einer, auch **innerhalb** eines
+  Code-Zauns; das Speicherformat-Beispiel der neuen Handbuch-Seite stand dadurch
+  mit falscher Leerzeilen-Form in der Referenz. Beide Umform-Stellen des
+  Werkzeugs lassen den Inhalt eines Code-Zauns jetzt unangetastet.
+- **Eine Uhrzeit in der Schreibweise des fremden Tafel-Werkzeugs wurde als
+  Kalender-Wert gelesen** (`4T-001902`). In `@@{14:00}` fand der Leser der
+  Kalender-Werte das innere `@{14:00}` und hielt es für den Wert «00» eines
+  Kalenders namens «14». Ein Auslöser, dem ein weiteres `@` vorangeht, ist seither
+  kein Kalender-Wert mehr.
+- **Die Suche in der Mindmap-Ansicht zeigt ihre Treffer in der Karte**
+  (`4T-001888` Nachprüfung am gebauten Programm, `4T-001893` Behebung,
+  `4T-001894` Funktions-Katalog und Handbuch). Bisher durchsuchte `Strg+F` in
+  dieser Ansicht die dort ausgeblendete Lese-Ansicht: Die Suchleiste meldete «Suche
+  in der Vorschau» und einen Zähler, dessen Fundstellen man in der Karte nicht sah
+  und die zum Teil — im Fließtext — gar nicht als Knoten vorkommen; in einem
+  geöffneten Bereich kam die Trefferliste des Bereichs hinzu, die Karte blieb auch
+  dort unmarkiert. **Jetzt ist die Mindmap ein eigener Suchraum der Suchleiste**
+  mit der Beschriftung «Suche in der Mindmap», in **beiden** Lagen des Dokuments,
+  also auch innerhalb eines geöffneten Bereichs (Entscheidung des Product Owners
+  vom 2026-09-23 für Markieren und Hinspringen statt eines Filters). Gezählt wird
+  jeder Knoten, dessen Titel oder Notiz den Suchbegriff enthält, einmal; jeder
+  Treffer-Knoten ist hervorgehoben, der aktuelle stärker, und die Karte rückt ihn
+  in die Mitte, ohne den Zoom zu ändern. `Enter`, `F3` und `Umschalt+F3` schalten
+  im Kreis weiter, ein Treffer in einem eingeklappten Ast klappt ihn beim
+  Anspringen auf, und ein Treffer in der Notiz färbt das Notiz-Symbol des
+  Knotens und nennt «Treffer in der Notiz» im Hinweis. `Escape` beendet die Suche
+  und nimmt alle Hervorhebungen weg; Zoom, Verschiebung und das Aufgeklappte
+  bleiben. Groß/Klein-Schalter und regulärer Ausdruck der Leiste gelten auch hier,
+  Ersetzen bleibt gesperrt, und das Dokument wird nie verändert. **Die Suche über
+  den ganzen Bereich** samt Trefferliste bleibt unverändert und ist aus den
+  übrigen Ansichten des Dokuments erreichbar, etwa aus der Lese-Ansicht. Die
+  Handbuch-Seite «Mindmap-Ansicht» beschreibt die Suche in allen fünf Sprachen in
+  einem eigenen Abschnitt «Suchen in der Karte», und die Funktions-Übersicht
+  nennt sie in Beschreibung und Zugang der Mindmap-Ansicht.
+- **Die Syntax-Referenz und die Index-Datei für Sprachmodelle schreiben in
+  ihren Kopf-Texten Umlaute und Akzente** (`4T-001839`, umgesetzt in der
+  Pflege-Welle `4T-001841`). Der von Hand geschriebene Kopf der
+  Syntax-Referenz, die neben der Programmdatei liegt und auf der
+  Produkt-Webseite unter fester Adresse abrufbar ist, stand in Deutsch,
+  Französisch, Spanisch und Italienisch in Ersatzschreibung — etwa
+  «Veroeffentlicht am» statt «Veröffentlicht am» —, ebenso Kurzbeschreibung,
+  Hinweis und Titel der Index-Datei `llms.txt` je Sprache. Beide tragen jetzt
+  die Zeichen ihrer Sprache, wie der aus dem Handbuch erzeugte Teil darunter
+  schon bisher. Wirksam mit dieser Version, weil beide Erzeugnisse beim Bau
+  entstehen.
+
+### i18n
+
+- Alle neuen Texte der ersten Stufe liegen in **allen fünf Sprachfassungen** vor
+  (`4T-001847`, `4T-001848`, `4T-001849`, `4T-001850`, `4T-001851`, `4T-001852`,
+  `4T-001854`): die Beschriftungen der Tafel samt ihren Meldungen und
+  Kontextmenüs, die fünf Befehle mit Namen und Beschreibung, der Menü-Eintrag
+  des Ansichts-Modus und das neue Untermenü «Kanban-Tafel», die drei Titel der
+  Start-Tafel und der Wortlaut des Erledigt-Kennzeichens — letzterer am
+  Quelltext des fremden Werkzeugs belegt, damit dieses eine hier eingerichtete
+  Spalte wieder als Erledigt-Spalte liest — sowie Name, Beschreibung und Zugang
+  der Tafel in der Funktions-Übersicht und der Titel der neuen Handbuch-Seite.
+- Alle neuen Texte der zweiten Stufe liegen ebenfalls in **allen fünf
+  Sprachfassungen** vor (`4T-001903`, `4T-001904`, `4T-001905`, `4T-001906`,
+  `4T-001907`, `4T-001909`): die drei neuen Befehle, die beiden Häkchen im
+  Untermenü «Kanban-Tafel», die Kontextmenü-Einträge zu Termin, Archiv und
+  Obergrenze, die Hinweistexte zu fremden und unlesbaren Terminen und zur
+  überschrittenen Obergrenze, Platzhalter und Hinweise des Filter-Felds, die
+  Überschrift eines neu angelegten Archivs — je Sprache das Wort, das das fremde
+  Werkzeug in derselben Sprache selbst schreibt — sowie Name, Beschreibung und
+  Zugang der neuen Zeile der Funktions-Übersicht.
+- Die neuen Texte der Suche in der Mindmap-Ansicht liegen in **allen fünf
+  Sprachfassungen** vor (`4T-001893`, `4T-001894`): die Beschriftung des
+  Suchraums «Suche in der Mindmap» und der Hinweis «Treffer in der Notiz» am
+  Knoten, dazu die ergänzte Beschreibung und der ergänzte Zugang der
+  Mindmap-Ansicht in der Funktions-Übersicht.
+
+### Intern
+
+- **Ablauf-Abdeckung der Tafel und Prüfung an echten fremden Tafeln**
+  (`4T-001853`). Sieben Ablauf-Fälle an der laufenden Anwendung decken alle
+  Bedien-Wege der Stufe ab und werten je Fall das gespeicherte Dokument aus.
+  Zwei vom Product Owner bereitgestellte echte Tafeln belegen die
+  Format-Annahme: Der Rundlauf ist byte-gleich, und nach einer Bearbeitung
+  bleibt alles Unberührte byte-gleich, einschließlich Archiv-Abschnitt und
+  Einstellungs-Block. Kein Anwender-Text nötig.
+- **Ablauf-Abdeckung der zweiten Stufe und Prüfung an echten fremden Tafeln**
+  (`4T-001908`). Sieben weitere Ablauf-Fälle an der laufenden Anwendung decken
+  Termin samt Umschreiben eines fremden Termins, beide Anzeige-Häkchen,
+  Obergrenze, Archivieren und Filter ab und werten je Fall die gespeicherte Datei
+  aus. An den beiden echten Tafeln und an einer konstruierten Beispiel-Tafel ist
+  gemessen, dass alles Unberührte byte-gleich bleibt, auch an den drei Stellen,
+  an denen die Tafel mit dieser Stufe erstmals schreibt: Archiv-Abschnitt,
+  Spalten-Titel und fremder Termin. Kein Anwender-Text nötig.
+- **Der Suchraum der Mindmap als eigenes Modul, mit Prüffällen in beiden Lagen**
+  (`4T-001888`, `4T-001893`). Die Treffer-Ermittlung, der aktuelle Treffer und
+  das Weiterschalten liegen in einem neuen, abhängigkeitsfreien Modul der
+  Mindmap-Ansicht, das die Einbettung der Karte über einen Zugang hereinreicht
+  statt es zu importieren; die Suchleiste selbst trägt nur die Weichen-Zeilen, und
+  die Ansicht hat Hervorhebung, Aufklappen der Vorfahren und Zentrieren eines
+  Knotens ohne Zoom-Änderung dazubekommen. Eine neue Unit-Prüfdatei mit 19
+  Fällen, 9 neue Fälle an der Ansicht und 4 am Suchraum — darunter alle übrigen
+  Ansichts-Modi ohne und mit Bereich, unverändert — sowie drei Ablauf-Fälle an
+  der laufenden Anwendung für ein Dokument außerhalb, eines innerhalb eines
+  Bereichs und einen Treffer im eingeklappten Ast halten den bestätigten Fall
+  fest. Voraus ging die Nachprüfung des Befunds an einem gebauten Programm in
+  beiden Lagen. Kein Anwender-Text nötig.
+- **Pflege-Welle an Werkzeugen, Prüfungen und Regelwerk** (`4T-001841` mit
+  `4T-001541`, `4T-001542`, `4T-001630`, `4T-001650`, `4T-001687`,
+  `4T-001694`, `4T-001695`, `4T-001696`, `4T-001706`, `4T-001707`,
+  `4T-001757`, `4T-001764`, `4T-001776`, `4T-001781`, `4T-001783`,
+  `4T-001784`, `4T-001802`). Die Welle liegt seit dem vorigen Release auf dem
+  Integrationsstand und fährt mit dieser Version aus, weil zwei ihrer Vorgänge
+  Dateien des Webseiten-Baus berühren: den Kopf der Index-Datei für
+  Sprachmodelle (`4T-001839`, unter «Behoben») und die Wartungs-Kommentare der
+  Webseiten-Vorlagen, die jetzt echte Umlaute schreiben (`4T-001784`) — sie
+  stehen allein im Quelltext der Vorlagen und sind auf der gezeigten Seite
+  nicht zu sehen. Die übrigen Vorgänge betreffen Prüf- und Release-Werkzeuge,
+  Test-Infrastruktur und Regelwerk. Kein Anwendungs-Code berührt, kein
+  Anwender-Text nötig.
+- **Zwei Bildschirmfotos der Produkt-Webseite stehen auf dem Stand des vorigen
+  Releases** (`4T-001809`). Sie sind mit dessen Nachzügler erneuert worden, in
+  dem auch der Vorgang `4T-001839` angelegt wurde. Kein Anwendungs-Code
+  berührt, kein Anwender-Text nötig.
+- **Code-Zaun-Regel der Tafel aus der gemeinsamen Heimat** (`4T-001889`,
+  Nachzug des Zuges auf den Integrationsstand). Der Format-Kern und die
+  Tag-Fußreihe der Tafel lesen die Erkennung von Code-Zäunen aus dem gemeinsamen
+  Markdown-Baustein statt aus eigenen Ausdrücken; der Baustein trägt dafür zwei
+  neue Hilfsfunktionen, byte-gleich mit dem Stand eines parallel laufenden
+  Zuges, damit die Zusammenführung in beiden Reihenfolgen ohne Konflikt bleibt.
+  Kein Anwender-Text nötig.
+
 ## [1.140.0.3081] - 2026-09-20 — Canvas Stufe 6: Austausch mit anderen Werkzeugen
 
 Zug 3E-000316,

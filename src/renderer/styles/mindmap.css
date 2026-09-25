@@ -173,3 +173,36 @@
   color: var(--fg-muted);
   font-style: italic;
 }
+
+/* 4T-001893 (Epic 3E-000324): Treffer der Suchleiste in der Karte. Dieselben
+   Farben wie die Treffer der Lese-Ansicht (gelb, der aktuelle orange), damit
+   ein Treffer in jeder Ansicht gleich aussieht; als Variablen an der Ansicht,
+   damit ein Farbschema sie überschreiben kann. Der Rahmen liegt hinter der
+   Beschriftung, der aktuelle Treffer trägt zusätzlich einen kräftigen Umriss.
+   Nicht zu verwechseln mit .mindmap-notiz-treffer, der durchsichtigen
+   Klickfläche des Notiz-Symbols. */
+.mindmap-view {
+  --mindmap-treffer: rgba(255, 235, 59, 0.45);
+  --mindmap-treffer-aktuell: rgba(255, 152, 0, 0.6);
+  --mindmap-treffer-umriss: #ff9800;
+}
+[data-theme='dark'] .mindmap-view {
+  --mindmap-treffer: rgba(255, 235, 59, 0.25);
+  --mindmap-treffer-aktuell: rgba(255, 152, 0, 0.45);
+  --mindmap-treffer-umriss: #ffb74d;
+}
+.mindmap-treffer-rahmen {
+  fill: var(--mindmap-treffer);
+  stroke: none;
+  pointer-events: none;
+}
+.mindmap-treffer-aktuell .mindmap-treffer-rahmen {
+  fill: var(--mindmap-treffer-aktuell);
+  stroke: var(--mindmap-treffer-umriss);
+  stroke-width: 2;
+}
+/* Liegt der Treffer in der Notiz, zeigt das Notiz-Symbol es an. */
+.mindmap-treffer-notiz .mindmap-notiz-blatt {
+  fill: var(--mindmap-treffer);
+  stroke: var(--mindmap-treffer-umriss);
+}

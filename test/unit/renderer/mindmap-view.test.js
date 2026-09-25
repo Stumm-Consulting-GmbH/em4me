@@ -437,3 +437,126 @@ describe('Mindmap-Renderer: Ränder und Aufräumen (4T-001046)', () => {
     expect(view.getStats().sichtbareKnoten).toBe(0);
   });
 });
+
+// 4T-001893 (Epic 3E-000324): Was die Zeichnung für die Suche können muss —
+// Knoten-Liste für die Suche, Hervorhebung samt aktuellem Treffer und Hinweis
+// bei Treffer in der Notiz, Aufklappen der Vorfahren und Zentrieren ohne
+// Zoom-Änderung. Was ein Treffer ist, prüft mindmap-suche.test.js.
+describe('Mindmap-Renderer: Treffer der Suche (4T-001893)', () => {
+  const gruppe = (c, key) =>
+    [...knotenGruppen(c)].find((g) => g.getAttribute('data-mindmap-schluessel') === key) || null;
+  const schluesselVon = (view, titel) =>
+    view.knotenFuerSuche().find((k) => k.titel === titel).schluessel;
+  const lage = (c) => {
+    const m = /translate\((-?[\d.]+) (-?[\d.]+)\) scale\((-?[\d.]+)\)/.exec(
+      c.querySelector('.mindmap-viewport').getAttribute('transform') || '',
+    );
+    return m ? { tx: Number(m[1]), ty: Number(m[2]), scale: Number(m[3]) } : null;
+  };
+
+  it('knotenFuerSuche liefert alle Knoten in Zeichen-Reihenfolge mit Titel und Notiz-Text', () => {
+    const { view } = baueAnsicht();
+    const liste = view.knotenFuerSuche();
+    expect(liste.map((k) => k.titel)).toEqual([
+      'Wurzel',
+      'Ast eins',
+      'Blatt A',
+      'Blatt B',
+      'Ast zwei',
+      'Blatt C',
+    ]);
+    expect(liste[0].notizen).toEqual(['Ein Absatz als Notiz.']);
+    expect(new Set(liste.map((k) => k.schluessel)).size).toBe(6);
+  });
+
+  it('knotenFuerSuche enthält auch die Knoten eingeklappter Teilbäume', () => {
+    const { container, view } = baueAnsicht(QUELLE, { setTree: { anfangsTiefe: 1 } });
+    expect(knotenGruppen(container).length).toBeLessThan(6);
+    expect(view.knotenFuerSuche()).toHaveLength(6);
+  });
+
+  it('setzeTreffer hebt die Treffer-Knoten hervor, den aktuellen stärker', () => {
+    const { container, view } = baueAnsicht();
+    const a = schluesselVon(view, 'Blatt A');
+    const c = schluesselVon(view, 'Blatt C');
+    view.setzeTreffer([a, c], c, []);
+    expect(container.querySelectorAll('.mindmap-treffer')).toHaveLength(2);
+    expect(container.querySelectorAll('.mindmap-treffer-aktuell')).toHaveLength(1);
+    expect(gruppe(container, c).classList.contains('mindmap-treffer-aktuell')).toBe(true);
+    // Der Rahmen liegt hinter der Beschriftung, also als erstes Kind.
+    expect(gruppe(container, a).firstElementChild.getAttribute('class')).toBe(
+      'mindmap-treffer-rahmen',
+    );
+    expect(view.getStats().treffer).toBe(2);
+  });
+
+  it('ein Treffer in der Notiz trägt Kennzeichen und übersetzten Hinweis', () => {
+    const { container, view } = baueAnsicht();
+    const w = schluesselVon(view, 'Wurzel');
+    view.setzeTreffer([w], w, [w]);
+    const g = gruppe(container, w);
+    expect(g.classList.contains('mindmap-treffer-notiz')).toBe(true);
+    const hinweis = g.querySelector('title.mindmap-treffer-hinweis');
+    expect(hinweis.textContent).toBe(de['search.mindmapNoteHit']);
+    expect(hinweis.textContent).not.toContain('search.');
+  });
+
+  it('die Hervorhebung überlebt eine Neu-Zeichnung durch Klappen', () => {
+    const { container, view } = baueAnsicht();
+    const c = schluesselVon(view, 'Blatt C');
+    view.setzeTreffer([c], c, []);
+    const anfasser = () => container.querySelectorAll('.mindmap-anfasser')[1];
+    anfasser().dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    anfasser().dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    expect(gruppe(container, c).classList.contains('mindmap-treffer-aktuell')).toBe(true);
+  });
+
+  it('loescheTreffer nimmt alle Hervorhebungen weg und lässt Zoom und Lage stehen', () => {
+    const { container, view } = baueAnsicht();
+    const w = schluesselVon(view, 'Wurzel');
+    view.setzeTreffer([w], w, [w]);
+    view.zentriereKnoten(w);
+    const vorher = lage(container);
+    view.loescheTreffer();
+    expect(container.querySelectorAll('.mindmap-treffer')).toHaveLength(0);
+    expect(container.querySelectorAll('.mindmap-treffer-rahmen')).toHaveLength(0);
+    expect(container.querySelectorAll('.mindmap-treffer-hinweis')).toHaveLength(0);
+    expect(lage(container)).toEqual(vorher);
+    expect(view.getStats().treffer).toBe(0);
+  });
+
+  it('klappeAufBis öffnet die eingeklappten Vorfahren und zeichnet den Knoten', () => {
+    const { container, view } = baueAnsicht(QUELLE, { setTree: { anfangsTiefe: 1 } });
+    const a = schluesselVon(view, 'Blatt A');
+    expect(gruppe(container, a)).toBeNull();
+    expect(view.klappeAufBis(a)).toBe(true);
+    expect(gruppe(container, a)).not.toBeNull();
+    // Ein zweiter Aufruf hat nichts mehr zu öffnen.
+    expect(view.klappeAufBis(a)).toBe(false);
+    expect(view.klappeAufBis('gibt:es nicht')).toBe(false);
+  });
+
+  it('zentriereKnoten rückt den Knoten in die Mitte, ohne den Zoom zu ändern', () => {
+    const { container, view } = baueAnsicht();
+    const svg = container.querySelector('.mindmap-svg');
+    svg.dispatchEvent(new window.WheelEvent('wheel', { deltaY: -200, clientX: 10, clientY: 10 }));
+    const vorher = lage(container);
+    const c = schluesselVon(view, 'Blatt C');
+    expect(view.zentriereKnoten(c)).toBe(true);
+    const nachher = lage(container);
+    expect(nachher.scale).toBe(vorher.scale);
+    // Mitte des Knotens: jsdom liefert keine Fläche, es gilt der Ersatz 800 x 600.
+    const g = gruppe(container, c);
+    const [, x, y] = /translate\((-?[\d.]+) (-?[\d.]+)\)/.exec(g.getAttribute('transform'));
+    const breite = Number(g.querySelector('.mindmap-unterstrich').getAttribute('x2'));
+    expect(nachher.tx + (Number(x) + breite / 2) * nachher.scale).toBeCloseTo(400, 5);
+    expect(nachher.ty + Number(y) * nachher.scale).toBeCloseTo(300, 5);
+  });
+
+  it('zentriereKnoten lässt einen nicht gezeichneten Knoten unberührt', () => {
+    const { container, view } = baueAnsicht(QUELLE, { setTree: { anfangsTiefe: 1 } });
+    const vorher = container.querySelector('.mindmap-viewport').getAttribute('transform');
+    expect(view.zentriereKnoten(schluesselVon(view, 'Blatt A'))).toBe(false);
+    expect(container.querySelector('.mindmap-viewport').getAttribute('transform')).toBe(vorher);
+  });
+});

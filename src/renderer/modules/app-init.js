@@ -31,6 +31,10 @@ import {
 // app-state.js dort zoege den Canvas-Ordner in den grossen Datei-Zyklus des
 // Renderers (Muster initMacros, Begruendung im Kopf von canvas-pane.js).
 import { initCanvasPane, waehleCanvasFlaecheAbZeile } from './canvas/canvas-pane.js';
+// 4T-001847 (Epic 3E-000110): Zugang der Tafel-Ansicht zum Fenster-Zustand.
+import { initKanbanPane } from './kanban/kanban-pane.js';
+// 4T-001852 (Epic 3E-000110): die beiden Wege zu einer Tafel.
+import { initTafelAnlegen } from './kanban/kanban-anlegen.js';
 // 4T-001668 (Epic 3E-000287): Bedienung des Canvas-Blocks außerhalb der
 // Canvas-Ansicht (Entscheidung E8).
 import { initCanvasBlock } from './canvas/canvas-block-zustand.js';
@@ -52,7 +56,7 @@ import { loadOutlineSettings } from './panels/panel-outline.js';
 import { loadOutgoingSettings } from './panels/panel-outgoing.js';
 import { loadBacklinksSettings } from './panels/panel-backlinks.js';
 import { loadSubpagesSettings } from './panels/panel-subpages.js';
-import { initTaskStates } from './task-states.js';
+import { initTaskStates, performStatusToggle, statusToggleAufText } from './task-states.js';
 // 4T-000498 (Epic 3E-000090): Erweiterung "Aufgaben" — Konfiguration laden,
 // Pipeline-Labels lokalisieren, Semantik-Hook registrieren.
 import { initTasks } from './tasks.js';
@@ -123,7 +127,7 @@ import {
   syncToolbarToActiveTab,
 } from './tabs/tabs.js';
 import { applyAllLayouts, markFileMissing, reloadFile } from './views/pane-render.js';
-import { openDraftsAsUntitled } from './views/untitled-tabs.js';
+import { newUntitledTab, openDraftsAsUntitled } from './views/untitled-tabs.js';
 import { persistSetting, showStatusbarHint } from './views/views.js';
 // 4T-000332 (Epic 3E-000060): Statusbar-Element der Dokument-Historie.
 import { initHistoryStatus, updateHistoryStatus } from './views/history-status.js';
@@ -309,6 +313,44 @@ export function startRenderer() {
       // Konsolen-Log oben bleibt die primaere Diagnose.
     }
   });
+}
+
+// 4T-001654 (Epic 3E-000287), seit 4T-001849 (Epic 3E-000110) von beiden
+// Flaechen-Ansichten genutzt: Ersetzt einen Zeilen-Bereich im Editor der Spalte
+// als EINE Transaktion und damit als EINEN Rueckgaengig-Schritt. Die
+// `userEvent`-Anmerkung haelt sie in der Historie getrennt (Muster writeBody in
+// perspective-datatable-editor.js).
+//
+// **Eine Fassung statt zweier.** Canvas-Flaeche und Kanban-Tafel schreiben
+// beide ueber Zeilen-Nummern in dasselbe Dokument; zwei Kopien dieses Rumpfes
+// waeren zwei Orte, an denen die Rand-Faelle (leerer Bereich, Bereich hinter
+// dem Dokument-Ende) auseinanderlaufen koennen.
+//
+// Zeilen-Nummern sind 1-basiert; `bisZeile < vonZeile` heisst «nichts zu
+// ersetzen, nur einfuegen».
+function ersetzeZeilenBereich(paneIdx, { vonZeile, bisZeile, text }) {
+  const view = paneEditors[paneIdx];
+  if (!view || view.state.readOnly) return false;
+  const doc = view.state.doc;
+  const von = Math.max(1, Math.min(Number(vonZeile) || 1, doc.lines + 1));
+  const bis = Number(bisZeile) || 0;
+  let changes;
+  if (bis < von) {
+    // Kein Bereich zu ersetzen: Der Text wird als neue Zeile eingefuegt.
+    if (von > doc.lines) changes = { from: doc.length, to: doc.length, insert: `\n${text}` };
+    else {
+      const stelle = doc.line(von).from;
+      changes = { from: stelle, to: stelle, insert: `${text}\n` };
+    }
+  } else {
+    changes = {
+      from: doc.line(von).from,
+      to: doc.line(Math.min(bis, doc.lines)).to,
+      insert: text,
+    };
+  }
+  view.dispatch({ changes, userEvent: 'input' });
+  return true;
 }
 
 async function init() {
@@ -658,31 +700,7 @@ async function init() {
     // die `userEvent`-Anmerkung haelt sie in der Historie getrennt (Muster
     // writeBody in perspective-datatable-editor.js). Gemessen am 2026-09-10:
     // Der Weg traegt auch bei dem per CSS versteckten Editor der Canvas-Ansicht.
-    schreibeDokument: (paneIdx, { vonZeile, bisZeile, text }) => {
-      const view = paneEditors[paneIdx];
-      if (!view || view.state.readOnly) return false;
-      const doc = view.state.doc;
-      const von = Math.max(1, Math.min(Number(vonZeile) || 1, doc.lines + 1));
-      const bis = Number(bisZeile) || 0;
-      let changes;
-      if (bis < von) {
-        // Kein Bereich zu ersetzen: Die Fence hat noch keine Rumpf-Zeile, der
-        // Text wird als neue Zeile eingefuegt.
-        if (von > doc.lines) changes = { from: doc.length, to: doc.length, insert: `\n${text}` };
-        else {
-          const stelle = doc.line(von).from;
-          changes = { from: stelle, to: stelle, insert: `${text}\n` };
-        }
-      } else {
-        changes = {
-          from: doc.line(von).from,
-          to: doc.line(Math.min(bis, doc.lines)).to,
-          insert: text,
-        };
-      }
-      view.dispatch({ changes, userEvent: 'input' });
-      return true;
-    },
+    schreibeDokument: (paneIdx, daten) => ersetzeZeilenBereich(paneIdx, daten),
     // 4T-001654: Rückgängig und Wiederholen der Canvas-Ansicht. Sie laufen
     // über DIESELBE Historie wie im Editor — die Bedien-Handlungen der Fläche
     // schreiben als gewöhnliche Transaktionen hinein. Der Weg über das
@@ -696,6 +714,101 @@ async function init() {
     zeigeKontextmenue: (paneIdx, { x, y, eintraege }) => showContextMenuItems(eintraege, x, y),
     schliesseKontextmenue: () => hideContextMenu(),
     kontextmenueOffen: () => !contextMenu.hidden,
+  });
+  // 4T-001847 (Epic 3E-000110): Zugang der Tafel-Ansicht zum Fenster-Zustand,
+  // nach demselben Muster und aus demselben Grund wie bei der Canvas darüber.
+  // Der Satz ist bewusst schmal: Dieser Vorgang liefert den Modus, die
+  // Zeichnung kommt mit 4T-001848 und ergänzt ihn dort, wo sie sie braucht.
+  initKanbanPane({
+    getPaneEls,
+    aktivesDokument: (paneIdx) => {
+      const pane = state.panes[paneIdx];
+      return pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+    },
+    // 4T-001847: Wird ein Dokument während des Schreibens zu einer Tafel oder
+    // hört auf, eine zu sein, müssen Schaltfläche und Menü-Eintrag nachziehen.
+    // Der Rückruf hängt am 200-ms-Takt der Tafel und feuert nur beim echten
+    // Wechsel, damit der Menü-Report nicht bei jedem Tastendruck über die
+    // Brücke geht.
+    beiVerfuegbarkeitsWechsel: () => {
+      syncToolbarToActiveTab();
+      reportMenuStateNow();
+    },
+    // 4T-001848 (Epic 3E-000110): Die Fläche erbt die Änderbarkeit ihres
+    // Dokuments (Entscheidung des Bestands vom 2026-09-09). Dieselbe Antwort
+    // und dieselbe Herkunft wie bei der Canvas darüber: Reiter im
+    // Änderungs-Modus UND EditorView nicht schreibgeschützt.
+    istAenderbar: (paneIdx) => {
+      const pane = state.panes[paneIdx];
+      const tab = pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+      const view = paneEditors[paneIdx];
+      return !!tab && !!tab.editMode && !!view && !view.state.readOnly;
+    },
+    // 4T-001849 (Epic 3E-000110): Schreibweg der Karten-Bedienung. Dieselbe
+    // Herkunft und dieselbe Begruendung wie bei der Canvas darueber: Der
+    // Kanban-Ordner darf `editor.js` nicht importieren (Zyklus editor ->
+    // kanban-pane -> editor), deshalb kommt der Zugriff auf die EditorView von
+    // hier. Eine Bedien-Handlung = eine Transaktion = ein Rueckgaengig-Schritt;
+    // die `userEvent`-Anmerkung haelt sie in der Historie getrennt.
+    schreibeDokument: (paneIdx, daten) => ersetzeZeilenBereich(paneIdx, daten),
+    // 4T-001849: Der Statuswechsel auf der Karte laeuft ueber DIESELBE
+    // Status-Kette wie der Klick auf das Kaestchen in der Lese-Ansicht
+    // (performStatusToggle: Ketten-Toggle, Automatik-Daten, Wiederholung, ein
+    // Undo-Schritt). Eine zweite Status-Logik entsteht nicht (Story 4S-000973).
+    statusUmschalten: (paneIdx, zeilenNummer) => {
+      const view = paneEditors[paneIdx];
+      if (!view || view.state.readOnly) return false;
+      return !!performStatusToggle(view, zeilenNummer);
+    },
+    // 4T-001850 (Epic 3E-000110): Derselbe Statuswechsel als Text-Rechnung.
+    // Beim Verschieben in eine Spalte, die abhakt, muessen Verschieben und
+    // Abhaken EINE Transaktion sein; der Weg darueber schriebe selbst und
+    // ergaebe zwei Rueckgaengig-Schritte. Es ist dieselbe Kette — die Funktion
+    // ruft `performStatusToggle` ueber eine Ein-Zeilen-Attrappe — und keine
+    // zweite Status-Logik (Story 4S-000976).
+    statusAufText: (text, zeilenNummer) => statusToggleAufText(text, zeilenNummer),
+    // Nachtrag zu 4T-001849 vom 2026-09-21: Rueckgaengig und Wiederholen der
+    // Tafel-Ansicht, wortgleich zur Canvas darueber und aus demselben Grund.
+    // Der Tafel-Modus blendet `.pane-source` aus (kanban.css neben
+    // canvas.css); das Tastenkuerzel-Verzeichnis des Editors haengt an dessen
+    // Inhalts-Element und ist damit unerreichbar. Dieselbe Historie: Jede
+    // Bedien-Handlung der Tafel schreibt als gewoehnliche Transaktion hinein.
+    rueckgaengig: (paneIdx) => rueckgaengigInSpalte(paneEditors[paneIdx]),
+    wiederholen: (paneIdx) => wiederholenInSpalte(paneEditors[paneIdx]),
+    // 4T-001849: Das Kontextmenue der Karte im gemeinsamen Menue des Fensters.
+    // Damit gelten die Schliess-Wege des Bestands (Klick ausserhalb,
+    // Escape-Kaskade in app-input-bindings.js) ohne eigenes Zutun.
+    zeigeKontextmenue: (paneIdx, { x, y, eintraege }) => showContextMenuItems(eintraege, x, y),
+    schliesseKontextmenue: () => hideContextMenu(),
+    // 4T-001851 (Epic 3E-000110): Die Rueckfrage vor dem Loeschen einer nicht
+    // leeren Spalte laeuft ueber den Rueckfrage-Dialog des Bestands im
+    // Hauptprozess (Muster events:confirmDelete); ein eigener Dialog der Tafel
+    // entsteht nicht. Fehlt die Bruecke, wird nicht geloescht: Ohne Rueckfrage
+    // verschwaenden Karten ungefragt.
+    bestaetigeSpaltenLoeschung: (_paneIdx, angaben) =>
+      typeof api.kanbanConfirmDeleteColumn === 'function'
+        ? api.kanbanConfirmDeleteColumn(angaben)
+        : Promise.resolve(false),
+  });
+  // 4T-001852 (Epic 3E-000110): Zugang der beiden Anlege-Wege. Er ist schmal,
+  // weil beide Wege ansetzen, wo es noch keine gezeichnete Tafel gibt: das
+  // neue Dokument über den Weg von «Datei → Neu», das Umwandeln über denselben
+  // Editor-Schreibweg, den die Bedienung der Tafel als `schreibeDokument`
+  // bekommt — eine Transaktion, ein Rückgängig-Schritt.
+  initTafelAnlegen({
+    aktivesDokument: (paneIdx) => {
+      const pane = state.panes[paneIdx];
+      return pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+    },
+    neuesDokument: (optionen) => newUntitledTab(optionen),
+    istAenderbar: (paneIdx) => {
+      const pane = state.panes[paneIdx];
+      const tab = pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+      const view = paneEditors[paneIdx];
+      return !!tab && !!tab.editMode && !!view && !view.state.readOnly;
+    },
+    schreibeDokument: (paneIdx, daten) => ersetzeZeilenBereich(paneIdx, daten),
+    hinweis: (schluessel) => showStatusbarHint(schluessel, { error: true, duration: 2500 }),
   });
   // 4T-001668 (Epic 3E-000287): Zugang und Klapp-Zustand des Canvas-Blocks
   // außerhalb der Canvas-Ansicht (Entscheidung E8). Denselben Grund wie oben

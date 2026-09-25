@@ -36,7 +36,7 @@ Il comando richiede un documento modificabile; se manca, la barra di stato lo di
 
 La tela è la sesta modalità di vista, accanto a Sorgente, Divisa, Renderizzata, Live e Mappa mentale: **Visualizza → Tela**, il pulsante nella barra di stato oppure `Ctrl+6` predefinito. Come per le altre modalità, la scelta vale per documento aperto e non per l'intera applicazione.
 
-**È l'unica delle sei modalità che dipende dal documento.** È selezionabile solo se il documento contiene una superficie Canvas: una vista tela senza superficie non mostrerebbe altro che un avviso. Senza superficie, pulsante e voce di menu restano **visibili e attenuati**; il motivo compare nel suggerimento del pulsante. La strada della scorciatoia e della palette dei comandi non porta allora da nessuna parte e nemmeno butta fuori dalla vista attuale. Non appena una superficie compare nel testo o ne sparisce, l'accesso si adegua. Un documento che era aperto nella vista tela alla chiusura e la cui superficie nel frattempo manca si apre nella vista di lettura.
+**Dipende dal documento, come la vista bacheca.** È selezionabile solo se il documento contiene una superficie Canvas: una vista tela senza superficie non mostrerebbe altro che un avviso. Senza superficie, pulsante e voce di menu restano **visibili e attenuati**; il motivo compare nel suggerimento del pulsante. La strada della scorciatoia e della palette dei comandi non porta allora da nessuna parte e nemmeno butta fuori dalla vista attuale. Non appena una superficie compare nel testo o ne sparisce, l'accesso si adegua. Un documento che era aperto nella vista tela alla chiusura e la cui superficie nel frattempo manca si apre nella vista di lettura.
 
 ## Più superfici in un documento
 

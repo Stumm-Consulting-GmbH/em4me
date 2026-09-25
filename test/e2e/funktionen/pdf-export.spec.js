@@ -18,6 +18,7 @@ const zlib = require('node:zlib');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'pdf-export.md');
 
@@ -306,12 +307,7 @@ test.describe('PD-06: Export-Einstellungen (Bereich Export, Querformat)', () => 
       });
 
       // Einstellungs-Seite oeffnen (Poll: Dispatcher erst nach init aktiv).
-      await expect
-        .poll(async () => {
-          await page.keyboard.press('Control+,');
-          return page.locator('.settings-page').count();
-        })
-        .toBeGreaterThan(0);
+      await oeffneEinstellungsSeite(page);
       await page.locator('.settings-nav-entry[data-section-id="export"]').click();
 
       // Defaults: A4, Hochformat, normale Raender.

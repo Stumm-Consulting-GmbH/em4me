@@ -43,6 +43,9 @@ import { resolveViewModeForTab } from '../mindmap/mindmap-modus.js';
 // braucht denselben Rueckfall. Ebenfalls aus dem winzigen Modus-Modul und
 // nicht aus canvas-pane.js, aus dem Grund im Kopf jenes Moduls.
 import { resolveCanvasViewMode } from '../canvas/canvas-modus.js';
+// 4T-001847 (Epic 3E-000110): Der Tafel-Modus ist ebenso dokument-abhaengig und
+// an eine Erweiterung gebunden; derselbe Zuschnitt, dasselbe winzige Modul.
+import { resolveTafelViewMode } from '../kanban/kanban-modus.js';
 import { editorCompartments, paneEditors, typewriterScrollExtension } from '../editor/editor.js';
 import { reportMenuStateNow } from '../tabs/tabs.js';
 // 3E-000105: Frontmatter-Parser fuer die dokument-gebundenen Editor-Ansicht-
@@ -500,8 +503,16 @@ export function createTab(path, content, settings = {}) {
     // 4T-001656: Ebenso, wenn die Erweiterung `canvas` abgeschaltet ist. Ohne
     // den Rueckfall oeffnete das Dokument in einer Ansicht, die es nicht gibt
     // (Story 4S-000919, AK2).
-    viewMode: resolveCanvasViewMode(
-      resolveViewModeForTab(settings.viewMode || state.defaultViewMode || DEFAULT_VIEW_MODE),
+    // 4T-001847: Und der Tafel-Modus auf die Lese-Ansicht, wenn das Dokument
+    // keine Tafel (mehr) ist oder die Erweiterung `kanban` abgeschaltet wurde
+    // (Story 4S-000978, AK2). Die drei Rueckfaelle sind hintereinander
+    // geschaltet und stoeren einander nicht: Jeder reicht jeden fremden Modus
+    // unveraendert durch.
+    viewMode: resolveTafelViewMode(
+      resolveCanvasViewMode(
+        resolveViewModeForTab(settings.viewMode || state.defaultViewMode || DEFAULT_VIEW_MODE),
+        content,
+      ),
       content,
     ),
     wrapLines: view.wrapLines,
@@ -652,6 +663,9 @@ function buildPaneEls(paneIdx) {
     // 4T-001653 (Epic 3E-000287): Container der Canvas-Ansicht, sichtbar nur
     // bei .content.view-canvas (dasselbe Muster).
     canvasEl: root.querySelector('.pane-canvas'),
+    // 4T-001847 (Epic 3E-000110): Container der Tafel-Ansicht, sichtbar nur
+    // bei .content.view-kanban (dasselbe Muster).
+    kanbanEl: root.querySelector('.pane-kanban'),
     innerSplitter: root.querySelector('.splitter.inner-splitter'),
     // 4T-000288 (Epic 3E-000051): je Pane ein linker und ein rechter Sidebar-
     // Container mit eigenem Splitter. Die Sektions-Referenzen darunter sind

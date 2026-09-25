@@ -403,6 +403,20 @@ const HELP_FEATURE_GROUPS = [
       // 4S-000960).
       'help.feature.canvasExportJson',
       'help.feature.canvasImportJson',
+      // 4T-001847 (Epic 3E-000110): Die Kanban-Tafel als siebter Ansichts-Modus,
+      // hinter der Canvas und ihren Stufen. Sie steht wie jene neben den
+      // abgeleiteten Sichten und nicht in ihrer Reihe: Die Tafel ist eine
+      // eigene Arbeits-Form desselben Dokuments. Die Zeile entsteht mit dem
+      // Modus und nicht erst im Hilfe- und Handbuch-Task 4T-001854, weil der
+      // Erweiterungs-Eintrag auf sie zeigt; jener Vorgang fuehrt sie weiter,
+      // statt sie ein zweites Mal anzulegen.
+      'help.feature.kanban',
+      // 4T-001909 (Epic 3E-000318): die zweite Zeile der Tafel, direkt hinter
+      // ihr — die Angaben auf der Karte samt Obergrenze, Archiv und Filter der
+      // Stufe 2. Eine eigene Zeile statt einer immer längeren ersten, weil der
+      // Anwender Termin, Obergrenze oder Archiv sonst nur über die Beschreibung
+      // der Tafel fände; der Schlüssel gehört zur Story 4S-000979.
+      'help.feature.kanbanCardDetails',
       'help.feature.sourceToggles',
       // 4T-000290 (Epic 3E-000051): dynamische Sidebar (Seite, Reihenfolge,
       // Reiter-Gruppen) — Ansicht-Eigenschaft, die Panels selbst bleiben

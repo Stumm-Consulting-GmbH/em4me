@@ -42,6 +42,18 @@ Il testo dei nodi resta orizzontale in ogni posizione: a ruotare è la disposizi
 
 Lo stato di compressione vale per la sessione in corso e non viene scritto né nel documento né in un file di accompagnamento: un semplice stato di visualizzazione non deve appesantire un formato che resta leggibile senza l'applicazione.
 
+## Cercare nella mappa
+
+Nella vista mappa mentale la ricerca (`Ctrl+F` come impostazione predefinita) percorre la mappa stessa e non il testo che le sta dietro; a sinistra nella barra di ricerca compare allora «Ricerca nella mappa mentale». Trova ciò che la mappa porta: il titolo di un nodo e il testo della sua nota. Ogni nodo conta una volta, anche se titolo e nota corrispondono entrambi, e gli interruttori per le espressioni regolari e per maiuscole/minuscole valgono come in tutta la ricerca.
+
+- **Risultato** — ogni nodo trovato è evidenziato a colori, quello corrente in modo più marcato e con un contorno, e la mappa lo porta al centro senza cambiare lo zoom. Il contatore della barra di ricerca indica il risultato corrente e il totale, per esempio `2 / 5`; se nessun nodo corrisponde, mostra «Nessun risultato».
+- **Corrispondenza nella nota** — se la corrispondenza si trova nella nota, il simbolo del foglio del nodo è colorato, e puntando il nodo compare l'indicazione «Corrispondenza nella nota». Un clic sul simbolo mostra la nota come di consueto.
+- **Passare al successivo** — `Invio` o `F3` salta al risultato successivo, `Maiusc+Invio` o `Maiusc+F3` al precedente; dopo l'ultimo si riprende dal primo.
+- **Rami compressi** — se un risultato si trova in un sottoalbero compresso, il ramo si riapre quando lo si raggiunge e resta aperto anche dopo la fine della ricerca.
+- **Terminare** — `Esc` o la chiusura della barra di ricerca toglie l'evidenziazione, come anche il passaggio a un'altra vista; zoom e posizione della mappa restano come sono.
+
+La ricerca non modifica il documento, e la sostituzione è bloccata in questa vista. **In un'area aperta** vale lo stesso: nella vista mappa mentale `Ctrl+F` percorre la mappa e non l'area. La ricerca in tutti i file dell'area, con il suo elenco di risultati, resta disponibile nelle altre viste del documento, per esempio nella vista di lettura; vedi [Strumenti](tools.md).
+
 ## Impostare la presentazione
 
 La sezione Mappa mentale delle impostazioni è il **valore predefinito per tutti i documenti**:

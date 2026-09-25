@@ -44,6 +44,8 @@ const VERTEIL_SCHLUESSEL = [
   CLOCK_TIMERS_KEY,
   'restoreSession',
   'autoSave',
+  'kanban.tagsAmFuss',
+  'kanban.terminRelativ',
   'language',
   'taskStates',
   'bookmarksTree',
@@ -105,6 +107,20 @@ function createSettingsVerteilung(deps) {
     // Menue-relevante Settings spiegeln sich in den Haekchen wider. Bei einem
     // Wechsel in einem Fenster muessen alle Fenster-Menues angepasst werden.
     if (key === 'restoreSession' || key === 'autoSave') applyMenuToAllWindows();
+    // 4T-001904 (Epic 3E-000318): Anzeige-Schalter der Kanban-Tafel (Liste in
+    // src/shared/kanban-anzeige.js). Das Häkchen spiegelt sich wie beim
+    // automatischen Speichern in allen Menüs; dazu geht der Wert an alle
+    // Fenster, auch an den Sender, damit jede offene Tafel nachzieht — der
+    // Empfangspfad übergeht einen unveränderten Wert. Ein weiterer Schalter
+    // kommt hier als weitere Bedingung derselben Zeile hinzu (4T-001903:
+    // «Termine relativ anzeigen»).
+    if (key === 'kanban.tagsAmFuss' || key === 'kanban.terminRelativ') {
+      const meldung = { schluessel: key, wert: value };
+      for (const w of BrowserWindow.getAllWindows()) {
+        if (!w.isDestroyed()) w.webContents.send('kanbanAnzeige:changed', meldung);
+      }
+      applyMenuToAllWindows();
+    }
     // M-08 (4T-000185): Sprachwechsel an alle anderen offenen Fenster
     // verteilen — vorher wirkte er nur im ausloesenden Fenster, die
     // uebrigen blieben bis zum Neustart in der alten Sprache. Das

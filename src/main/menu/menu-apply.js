@@ -22,6 +22,7 @@ const path = require('node:path');
 const { buildMenu, tForLocale } = require('./menu');
 // 4T-000277: Menue-State-Normalisierung (electron-frei, unit-testbar).
 const { normalizeMenuState } = require('./menu-state');
+const { kanbanAnzeigeAusSpeicher } = require('../../shared/kanban-anzeige');
 const { isInsideArea } = require('../area/area-path');
 // 4T-000207 (Epic 3E-000015): Kommando-Registry — Merge der Registry-Defaults
 // mit den User-Overrides aus dem Store-Key 'hotkeys' fuer die Menue-
@@ -147,6 +148,9 @@ function createMenuApply(deps) {
       })),
       restoreSession: !!(store && store.get('restoreSession')),
       autoSave: !!(store && store.get('autoSave')),
+      // 4T-001904 (Epic 3E-000318): Häkchen der Anzeige-Schalter der Tafel,
+      // aus der gespeicherten Einstellung wie «Automatisch speichern».
+      kanbanAnzeige: kanbanAnzeigeAusSpeicher((k) => (store ? store.get(k) : undefined)),
       recentFiles,
       // 4T-000325: zuletzt geoeffnete Bereiche (unabhaengig vom Bereichs-Filter
       // der Datei-Liste — der Wechsel in einen anderen Bereich ist erlaubt

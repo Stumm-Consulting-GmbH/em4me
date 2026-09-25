@@ -9,6 +9,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'frontmatter.md');
 
@@ -146,12 +147,7 @@ test.describe('FM-03: Frontmatter dauerhaft ausgeklappt', () => {
       await expect(yaml).not.toBeVisible();
 
       // Einstellungs-Seite: Schalter im Bereich Darstellung aktivieren.
-      await expect
-        .poll(async () => {
-          await page.keyboard.press('Control+,');
-          return page.locator('.settings-page').count();
-        })
-        .toBeGreaterThan(0);
+      await oeffneEinstellungsSeite(page);
       await page.locator('#settings-frontmatter-expanded').check();
       await page.locator('#btn-settings-ok').click();
       await expect(page.locator(SEL.tabs0)).toHaveCount(1);
@@ -189,12 +185,7 @@ test.describe('FM-03: Frontmatter dauerhaft ausgeklappt', () => {
       expect(printMaxHeight).toBe('none');
 
       // Schalter wieder aus: YAML klappt zu, Hover-/Pin-Verhalten zurueck.
-      await expect
-        .poll(async () => {
-          await page.keyboard.press('Control+,');
-          return page.locator('.settings-page').count();
-        })
-        .toBeGreaterThan(0);
+      await oeffneEinstellungsSeite(page);
       await page.locator('#settings-frontmatter-expanded').uncheck();
       await page.locator('#btn-settings-ok').click();
       await expect(page.locator('html')).not.toHaveClass(/frontmatter-expanded/);

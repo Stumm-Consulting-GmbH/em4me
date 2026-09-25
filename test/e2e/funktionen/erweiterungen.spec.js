@@ -10,18 +10,14 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'erweiterungen.md');
 
 const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system .settings-page';
 
 async function openSettingsPageViaKeyboard(page) {
-  await expect
-    .poll(async () => {
-      await page.keyboard.press('Control+,');
-      return page.locator(`${SETTINGS_PAGE}`).count();
-    })
-    .toBeGreaterThan(0);
+  await oeffneEinstellungsSeite(page);
 }
 
 async function openExtensionsSection(page) {

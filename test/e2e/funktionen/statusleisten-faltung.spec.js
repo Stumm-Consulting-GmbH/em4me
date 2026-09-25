@@ -38,6 +38,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
@@ -699,12 +700,7 @@ test.describe('SF-10: anker-gebundenes Popup eines eingeklappten Elements', () =
 // (Muster openSettingsPageViaKeyboard in einstellungen-seite.spec.js);
 // Mehrfach-Druck ist durch die Einfach-Instanz der Seite gedeckt.
 async function oeffneEinstellungen(page) {
-  await expect
-    .poll(async () => {
-      await page.keyboard.press('Control+,');
-      return page.locator(EINSTELLUNGEN_SEITE).count();
-    })
-    .toBeGreaterThan(0);
+  await oeffneEinstellungsSeite(page);
 }
 
 // Wartet auf die zur Ruhe gekommene Leiste ohne Breiten-Wechsel: drei

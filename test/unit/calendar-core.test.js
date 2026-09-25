@@ -16,6 +16,7 @@ import {
   parseCanonical,
   convertInBlock,
   findCalendarByName,
+  findCalendarValues,
   spanUnits,
   spanTiers,
 } from '../../src/shared/calendar/calendar-core.js';
@@ -708,6 +709,22 @@ describe('findCalendarByName — Bezugsname der Wert-Syntax', () => {
     expect(findCalendarByName(WORLD, 'drittel').calendar.id).toBe('drittel');
     expect(findCalendarByName(WORLD, 'Nixda')).toBeNull();
     expect(findCalendarByName(null, 'Takt')).toBeNull();
+  });
+});
+
+// 4T-001902: Die Uhrzeit einer Kanban-Karte des Vorbild-Werkzeugs, `@@{14:00}`,
+// trägt im Inneren ein `@{14:00}` mit Doppelpunkt. Ohne Sperre gegen ein
+// vorangehendes `@` las der Scanner es als Wert «00» eines Kalenders «14».
+describe('findCalendarValues — Abgrenzung zur Uhrzeit einer Kanban-Karte', () => {
+  it('liest in @@{…} keinen Kalender-Wert', () => {
+    expect(findCalendarValues('Angebot @{2026-10-01} @@{14:00}')).toEqual([]);
+  });
+
+  it('liest einen Kalender-Wert neben einer Karten-Uhrzeit unverändert', () => {
+    const text = 'Termin @{Termine: 2026-10-01} @@{14:00}';
+    expect(findCalendarValues(text)).toEqual([
+      { from: 7, to: 29, raw: '@{Termine: 2026-10-01}', name: 'Termine', value: '2026-10-01' },
+    ]);
   });
 });
 

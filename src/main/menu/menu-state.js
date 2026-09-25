@@ -11,6 +11,8 @@
 // renderer-seitig inert).
 'use strict';
 
+const { normalisiereKanbanAnzeige } = require('../../shared/kanban-anzeige');
+
 // 4T-000626 (Epic 3E-000119): Varianten-Listen des Untermenüs
 // „Sidebar-Anordnungen" — je Gruppe nur Einträge mit nicht-leerer
 // String-ID und nicht-leerem Namen.
@@ -57,8 +59,21 @@ function normalizeMenuState(base, stored) {
     // deaktivierter Eintrag beim naechsten Report aufgeht, ein aktivierter
     // aber ins Leere fuehrte.
     canvasTab: !!b.canvasTab,
+    // 4T-001847 (Epic 3E-000110): Ist das aktive Dokument eine Tafel? Nur dann
+    // ist der Tafel-Ansichts-Modus auswaehlbar. Vor dem ersten Report eines
+    // frischen Fensters false — derselbe sichere Fall wie eine Zeile darueber.
+    tafelTab: !!b.tafelTab,
+    // 4T-001852 (Epic 3E-000110): Ist das aktive Dokument leer? Nur dann lässt
+    // es sich in eine Tafel umwandeln. Vor dem ersten Report eines frischen
+    // Fensters false — derselbe sichere Fall wie die beiden Zeilen darüber: Ein
+    // deaktivierter Eintrag geht beim nächsten Report auf, ein fälschlich
+    // aktivierter führte ins Leere.
+    leeresDokument: !!b.leeresDokument,
     restoreSession: !!s.restoreSession,
     autoSave: !!s.autoSave,
+    // 4T-001904 (Epic 3E-000318): Anzeige-Schalter der Kanban-Tafel, je
+    // Schalter ein Wahrheitswert; fehlt der Speicher-Wert, gilt die Vorgabe.
+    kanbanAnzeige: normalisiereKanbanAnzeige(s.kanbanAnzeige),
     // 4T-000322 (Epic 3E-000058): Bereichs-Bindung der App dieses Fensters
     // (main-seitig aus der App-Registry, aktiviert "Bereich schliessen").
     hasArea: !!s.hasArea,

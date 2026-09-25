@@ -62,8 +62,9 @@ Bienvenue dans le manuel d'EM4me. Cette page d'aperçu est le point d'entrée ; 
 ## Interface, outils et extensions
 
 - [Vues et affichage](views-display.md) — vues par onglet et apparence de l'application : les cinq modes dont le mode direct, l'affichage de l'éditeur, thème et mode focus, zoom, largeur du contenu et polices, barre d'état, paramètres, langue et barre de menus.
-- [Vue carte mentale](mindmap.md) — les titres et les listes d'un document sous forme de carte : position de la racine dans cinq directions, repli, zoom, notes sur le nœud, saut vers la source, valeur par document.
+- [Vue carte mentale](mindmap.md) — les titres et les listes d'un document sous forme de carte : position de la racine dans cinq directions, repli, zoom, notes sur le nœud, saut vers la source, recherche dans la carte, valeur par document.
 - [Surface Canvas](canvas.md) — des cartes et des connexions disposées librement sur une surface dans le document : créer une surface, la vue canevas, les onglets de plusieurs surfaces, manipuler cartes et connexions, le bloc hors de la vue, le format de stockage.
+- [Tableau Kanban](kanban.md) — les tâches d'un document en tableau : créer et convertir un tableau, manipuler colonnes et cartes, déplacer à la souris, la colonne qui marque comme terminé, échéances et tags sur la carte, la limite par colonne, l'archive, le filtre des cartes, le format d'enregistrement, la distinction d'avec la requête de tâches.
 - [Barre latérale](sidebar.md) — organiser les panneaux : côté, ordre, groupes d'onglets, largeurs.
 - [Jeux de couleurs](color-schemes.md) — couleurs via des emplacements nommés : affectation par mode, jeux personnels comme copies, aperçu en direct, limites.
 - [Outils](tools.md) — linter Markdown, recherche avec regex, rechercher et remplacer, éditeur de tableaux.

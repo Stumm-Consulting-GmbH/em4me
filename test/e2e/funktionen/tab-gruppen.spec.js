@@ -15,6 +15,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 const FIX = (name) =>
   path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', `tab-gruppen-${name}.md`);
@@ -322,12 +323,7 @@ test.describe('TG-08: Aus-Zustand der Erweiterung tab-groups', () => {
       await expect(page.locator(SEL.groupHeads0)).toHaveCount(1);
 
       // Erweiterung abschalten (Einstellungs-Seite, Bereich Erweiterungen).
-      await expect
-        .poll(async () => {
-          await page.keyboard.press('Control+,');
-          return page.locator('.pane-group[data-pane="0"] .pane-system .settings-page').count();
-        })
-        .toBeGreaterThan(0);
+      await oeffneEinstellungsSeite(page);
       await page
         .locator('.settings-page .settings-nav-entry[data-section-id="extensions"]')
         .click();
@@ -344,12 +340,7 @@ test.describe('TG-08: Aus-Zustand der Erweiterung tab-groups', () => {
       await page.keyboard.press('Escape');
 
       // Wieder einschalten: die Gruppe kehrt unveraendert zurueck.
-      await expect
-        .poll(async () => {
-          await page.keyboard.press('Control+,');
-          return page.locator('.pane-group[data-pane="0"] .pane-system .settings-page').count();
-        })
-        .toBeGreaterThan(0);
+      await oeffneEinstellungsSeite(page);
       await page
         .locator('.settings-page .settings-nav-entry[data-section-id="extensions"]')
         .click();
@@ -550,12 +541,7 @@ test.describe('TG-15: Positions-Regel gilt bei abgeschalteter Erweiterung (4T-00
     });
     try {
       await waitForTabs(page, 3);
-      await expect
-        .poll(async () => {
-          await page.keyboard.press('Control+,');
-          return page.locator('.pane-group[data-pane="0"] .pane-system .settings-page').count();
-        })
-        .toBeGreaterThan(0);
+      await oeffneEinstellungsSeite(page);
       await page
         .locator('.settings-page .settings-nav-entry[data-section-id="extensions"]')
         .click();

@@ -65,11 +65,22 @@ describe('Paritäts-Wächter Panel-Zugänge (4T-000567)', () => {
   // 4T-000759 (Epic 3E-000142): 14 -> 15 durch das Suchergebnis-Panel.
   // 4T-000844 (Epic 3E-000147): 15 -> 16 durch das Inhaltsverzeichnis des Buches.
   // 4T-001769 (Epic 3E-000290): 16 -> 17 durch die Karten-Liste der Canvas-Fläche.
-  it('Modell und Renderer-Registry führen dieselbe 17er-ID-Menge', () => {
+  //
+  // 4T-001541: Hier endet die Kette. Die Zusage dieses Falls ist die
+  // DECKUNGSGLEICHHEIT zweier Verzeichnisse, nicht ihre Größe — und genau die
+  // trägt der Mengen-Vergleich darunter. Die Zahl davor war eine eingefrorene
+  // Momentaufnahme: Sie wurde bei jedem neuen Panel rot, obwohl beide
+  // Verzeichnisse einträchtig gewachsen waren, und musste viermal nachgezogen
+  // werden. Was sie zusätzlich hielt — dass kein Panel doppelt steht —, prüft
+  // der Vergleich der Mengen-Größe mit der Listen-Länge.
+  it('Modell und Renderer-Registry führen dieselbe ID-Menge, jede ID genau einmal', () => {
     const modelIds = PANEL_ACCESS.map((p) => p.id);
-    expect(modelIds.length).toBe(17);
     expect(new Set(modelIds).size).toBe(modelIds.length);
+    expect(new Set(DEFAULT_PANEL_ORDER).size).toBe(DEFAULT_PANEL_ORDER.length);
     expect([...modelIds].sort()).toEqual([...DEFAULT_PANEL_ORDER].sort());
+    // Gegenprobe, dass überhaupt etwas verglichen wird: Zwei leere Listen
+    // wären deckungsgleich und der Fall bliebe grün.
+    expect(modelIds.length).toBeGreaterThan(10);
   });
 
   it('jedes Panel führt beide Zugänge: Statusbar-Button und Registry-Kommando', () => {

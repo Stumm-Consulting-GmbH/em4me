@@ -17,6 +17,15 @@ import {
   legeCanvasBildKarteAn,
   verschiebeCanvasElement,
 } from '../canvas/canvas-pane.js';
+// 4T-001849 (Epic 3E-000110): Karte auf der Kanban-Tafel anlegen.
+import {
+  archiviereKanbanKarte,
+  legeKanbanKarteAn,
+  legeKanbanSpalteAn,
+} from '../kanban/kanban-pane.js';
+// 4T-001852 (Epic 3E-000110): die beiden Wege zu einer Tafel.
+import { legeNeueTafelAn, wandleInTafelUm } from '../kanban/kanban-anlegen.js';
+import { schalteKanbanAnzeige } from '../kanban/kanban-anzeige-schalter.js';
 import { starteCanvasVerbindung } from '../panels/panel-canvas-liste.js';
 import { toggleOutlinePanel } from '../panels/panel-outline.js';
 import { toggleOutgoingPanel } from '../panels/panel-outgoing.js';
@@ -165,6 +174,32 @@ export function bindMenuEvents() {
   // 4T-001654 (Epic 3E-000287): 'Ansicht -> Karte auf der Flaeche anlegen'.
   if (typeof api.onMenuCanvasAddCard === 'function') {
     api.onMenuCanvasAddCard(() => legeCanvasKarteAn(state.activePaneIndex));
+  }
+  // 4T-001849 (Epic 3E-000110): 'Ansicht -> Karte auf der Tafel anlegen'.
+  if (typeof api.onMenuKanbanAddCard === 'function') {
+    api.onMenuKanbanAddCard(() => legeKanbanKarteAn(state.activePaneIndex));
+  }
+  // 4T-001906 (Epic 3E-000318): 'Ansicht -> Kanban-Tafel -> Karte archivieren'.
+  if (typeof api.onMenuKanbanArchiveCard === 'function') {
+    api.onMenuKanbanArchiveCard(() => archiviereKanbanKarte(state.activePaneIndex));
+  }
+  // 4T-001851 (Epic 3E-000110): 'Ansicht -> Spalte auf der Tafel anlegen'.
+  if (typeof api.onMenuKanbanAddColumn === 'function') {
+    api.onMenuKanbanAddColumn(() => legeKanbanSpalteAn(state.activePaneIndex));
+  }
+  // 4T-001852 (Epic 3E-000110): die beiden Eintraege des Untermenues
+  // 'Ansicht -> Kanban-Tafel'.
+  if (typeof api.onMenuKanbanNewBoard === 'function') {
+    api.onMenuKanbanNewBoard(() => legeNeueTafelAn());
+  }
+  if (typeof api.onMenuKanbanConvertToBoard === 'function') {
+    api.onMenuKanbanConvertToBoard(() => wandleInTafelUm(state.activePaneIndex));
+  }
+  // 4T-001904 (Epic 3E-000318): die Häkchen der Anzeige-Schalter im Untermenü
+  // 'Ansicht -> Kanban-Tafel'. Ein Kanal für alle Schalter; das Menü nennt das
+  // Kommando, derselbe Weg wie aus der Kommando-Palette.
+  if (typeof api.onMenuKanbanSchalter === 'function') {
+    api.onMenuKanbanSchalter((kommando) => schalteKanbanAnzeige(kommando));
   }
   // 4T-001701 (Epic 3E-000288): 'Form auf der Flaeche anlegen' und die vier
   // Stapel-Befehle des gewaehlten Elements.

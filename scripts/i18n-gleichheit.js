@@ -28,23 +28,31 @@
 // **Warum fail closed.** Ist `git` nicht aufrufbar oder der Baum kein
 // Repositorium, wirft `bezugsstand` statt einen leeren Bezug zu liefern. Ein
 // Nachweis, der still grün bleibt, weil er nichts lesen konnte, ist die
-// Fehlerklasse `L11` in Reinform: eingerichtet, aber nicht scharf. Der Fall
-// «kein Tag trägt die Datei» ist davon zu unterscheiden und ausdrücklich
-// vorgesehen (siehe `bezugsstand`).
+// Fehlerklasse `L11` in Reinform: eingerichtet, aber nicht scharf. Die beiden
+// Fälle ohne Bezugsstand sind davon zu unterscheiden, und sie sind
+// voneinander zu unterscheiden (siehe `bezugsstand`).
 //
-// **Der Ruhestand ist eingebaut.** Der Bezugsstand wandert mit jedem Release
-// weiter. Sobald der erste Tag nach der Umstellung gesetzt ist, trägt kein von
-// ihm erreichbarer Tag mehr eine versionierte `src/i18n/de.json` — spätestens
-// dann liefert `bezugsstand` `{ tag: null }`, und der Nachweis hat seine
-// Aufgabe erfüllt. Bis dahin läuft er bei jedem Lauf seines Prüf-Ausschnitts
-// mit.
+// **Der Bezugsstand ist die jüngste Release-Marke — und nur sie**
+// (4T-001764 und 4T-001707, 2026-09-21). Trägt sie `src/i18n/de.json` nicht
+// mehr versioniert, geht der Nachweis über die Zeit in den Ruhestand und sagt
+// das; er weicht **nicht** auf eine ältere Marke aus, die die Datei noch
+// trägt. Genau dieses Ausweichen war der Fehler der ersten Fassung: Ein Tag
+// wird nie gelöscht, `v1.132.0` bleibt von jedem künftigen Stand aus
+// erreichbar, und der Bezugsstand stand deshalb ab dem Release 1.133.0
+// unverrückbar dort fest. Der eingebaute Ruhestand konnte so **nie**
+// eintreten, und der Nachweis maß mit wachsendem Abstand etwas anderes als
+// seine Zusage: nicht mehr «der Umbau in Fragmente hat nichts verändert»,
+// sondern «seit 1.132.0 ist nichts verlorengegangen» — eine Aussage, deren
+// Wert mit jedem Release sinkt. Ein Nachweis, dessen Zusage an einen Umbau
+// gebunden ist, endet mit dem Umbau, statt seinen Gegenstand still zu
+// verlieren.
 //
-// **Der Ruhestand ist so nicht eingetreten** (gemessen am 2026-09-18,
-// `4T-001778`): `bezugsstand` nimmt nicht den jüngsten Tag, sondern den
-// jüngsten, der die Datei **trägt** — und die älteren Tags tragen sie weiter.
-// Der Bezugsstand steht seit dem Release 1.133.0 unverrückbar auf `v1.132.0`.
-// Folge: Jede Änderung an einem bestehenden Text braucht seither einen Eintrag
-// in `ABWEICHUNGEN`. Die Auflösung ist ein eigener Vorgang, siehe dort.
+// **Was der Ruhestand nicht berührt.** Die Schlüsselgleichheit der fünf
+// Sprachen untereinander (`vergleicheSprachen`) ist eine eigene Zusage ohne
+// Bezugsstand; sie läuft weiter, im Hand-Lauf wie im Prüffall. Ebenso der
+// Nachweis, dass das Erzeugnis die Zusammensetzung seiner Fragmente ist
+// (`test/unit/i18n-gleichheit.test.js`) und der Bau-Schritt selbst
+// (`test/unit/build-i18n.test.js`).
 //
 // Aufruf von Hand: `node scripts/i18n-gleichheit.js` — druckt je Sprache die
 // Zahlen und endet bei Abweichungen mit 1. Das ist der Beleg für die Abnahme.
@@ -68,140 +76,33 @@ function bezugsPfad(code) {
 }
 
 /**
- * Bewusst geänderte Bestands-Texte seit dem Bezugsstand.
+ * Bewusst geänderte Bestands-Texte seit dem Bezugsstand — je Eintrag ein
+ * Schlüssel, der in allen fünf Sprachen aus dem Wert-Vergleich fällt.
  *
  * Ein Eintrag hier nimmt einen Schlüssel aus dem Wert-Vergleich heraus und ist
  * damit genau die Stelle, an der ein Nachweis weich wird. Ein späteres
  * Vorhaben, das einen bestehenden Text ändert, hat zwei Wege — hier eintragen
  * mit Grund, oder auf den nächsten Release-Tag warten, mit dem der Bezugsstand
- * ohnehin weiterwandert.
+ * weiterwandert. Der zweite ist der bessere, weil er nichts hinterlässt; seit
+ * `bezugsstand()` an der jüngsten Marke hält, steht er wieder offen.
  *
- * **Der zweite Weg steht seit dem Release 1.133.0 nicht mehr offen** (gemessen
- * am 2026-09-18, `4T-001778`): `bezugsstand()` nimmt die jüngste erreichbare
- * Marke, die `src/i18n/de.json` noch **trägt** — und seit jenem Release trägt
- * sie keine mehr. Der Bezugsstand steht damit dauerhaft auf `v1.132.0`, und der
- * im Kopf dieser Datei beschriebene Ruhestand tritt von selbst nicht mehr ein.
- * Bis das aufgelöst ist, bleibt der Eintrag hier der einzige Weg für jede
- * Änderung an einem bestehenden Text.
+ * **Die Liste gehört ihrem Bezugsstand und überlebt ihn nicht.** Jeder Eintrag
+ * sagt «dieser Wert weicht von GENAU DIESER Marke bewusst ab». Wandert der
+ * Bezugsstand, ist die Aussage für die neue Marke ungeprüft — ein stehen
+ * gebliebener Eintrag nähme den Schlüssel dann aus einem Vergleich heraus, den
+ * nie jemand geführt hat. Wer den Bezugsstand wandern lässt, leert deshalb im
+ * selben Zug die Liste.
  *
- * @type {Array<{sprache: string, schluessel: string, grund: string}>}
+ * **Leer seit dem 2026-09-21** (4T-001764, 4T-001707): Der Nachweis über die
+ * Zeit ist im Ruhestand, weil die jüngste Release-Marke die versionierten
+ * Sprachdateien nicht mehr trägt. Damit hat kein Eintrag mehr einen
+ * Gegenstand; die zwanzig Schlüssel des Stands `v1.132.0` sind entfallen, ihre
+ * Gründe stehen in den Vorgängen, die sie eingetragen haben. Die Liste ist
+ * wieder das, was sie sein sollte: die Ausnahme, nicht der Regelweg.
+ *
+ * @type {Array<{schluessel: string, grund: string}>}
  */
-// 4T-001582 (Epic 3E-000283): Die erste Befüllung dieser Liste. Sechs
-// Bestands-Texte sagen seit diesem Epic etwas Falsches — vier nennen einen
-// Einstellungs-Abschnitt, der seinen Inhalt abgegeben hat, zwei ein Menü, das
-// es nicht mehr gibt. Der zweite Weg aus dem Kommentar oben (auf den nächsten
-// Release-Tag warten) trägt hier nicht: Es ist das eigene Release dieses Zuges,
-// das die Texte falsch machen würde. Die Änderung betrifft je Schlüssel alle
-// fünf Sprachen zugleich, weil ein Text nie in einer Sprache allein gepflegt
-// wird; die Liste ist deshalb über die Sprach-Achse erzeugt und über die
-// Schlüssel-Achse ausgeschrieben. Mit dem Release des Zuges geht der Nachweis
-// in den Ruhestand, und die Liste entfällt mit ihm.
-const GEAENDERTE_TEXTE = [
-  {
-    schluessel: 'help.featureAccess.statusbarCommandButtons',
-    grund:
-      'Die eigenen Kommando-Schaltflächen der Statusleiste liegen im Einstellungs-Abschnitt «Statusleiste» statt unter «Kommando-Platzierung» (4T-001581, Entscheidung E4a des Epics).',
-  },
-  {
-    schluessel: 'help.featureAccess.statusbarHideList',
-    grund:
-      'Die Ausblend-Liste der Standard-Schaltflächen liegt im Einstellungs-Abschnitt «Statusleiste» statt unter «Kommando-Platzierung» (4T-001581, E4a).',
-  },
-  {
-    schluessel: 'help.featureAccess.macros',
-    grund:
-      'Der Rest-Abschnitt der Erweiterung heißt «Kontextmenü und Makros»; der Name «Kommando-Platzierung» bezeichnet nur noch die Erweiterung selbst (4T-001581, E4a).',
-  },
-  {
-    schluessel: 'help.featureAccess.contextMenuCommands',
-    grund: 'Derselbe Abschnitts-Name wie bei den Makros (4T-001581, E4a).',
-  },
-  {
-    schluessel: 'help.feature.statusbarCommandButtons',
-    grund:
-      'Das eigene Mehr-Menü des Kommando-Segments ist mit 4T-001579 entfallen; überzählige Schaltflächen wandern jetzt mit den übrigen Elementen der Leiste in deren beide Rand-Menüs.',
-  },
-  {
-    schluessel: 'settings.commandPlacement.statusbarHint',
-    grund: 'Dieselbe Aussage über das entfallene Mehr-Menü wie im Katalog-Text (4T-001579).',
-  },
-  {
-    schluessel: 'help.feature.livePreview',
-    grund:
-      'Der Text sagte, Links erschienen in der Live-Ansicht wie in der Render-Pane; seit 4T-001719 (Epic 3E-000302, E1) sind sie dort dauerhaft unterstrichen statt erst beim Überfahren mit der Maus. Der Satz ist um diese Ausnahme ergänzt (4T-001720); der Bezugsstand liegt vor dem Release dieses Zuges, das den Text falsch machen würde.',
-  },
-  {
-    schluessel: 'help.feature.tabs',
-    grund:
-      'Der Katalog-Text der Reiter und Spalten sagte nichts über die Beschriftung eines Reiters; seit 4T-001724 (Epic 3E-000304, E1 bis E4) trägt sie den Dateinamen ohne Markdown-Endung. Der Text ist um einen Satz dazu ergänzt (4T-001725) statt um einen eigenen Katalog-Eintrag, weil die Beschriftung Grundverhalten der Reiterleiste ist und in denselben Eintrag gehört; der Bezugsstand liegt vor dem Release dieses Zuges, das den Text unvollständig machen würde.',
-  },
-  {
-    schluessel: 'help.feature.areaPanel',
-    grund:
-      'Der Katalog-Text des Bereichs-Panels sagte nichts über die Beschriftung einer Datei-Zeile; seit 4T-001775 (Epic 3E-000304) steht dort der Name ohne Markdown-Endung, nachdem der Product Owner am 2026-09-17 die Entscheidung E5 revidiert hat. Der Text ist um einen Satz dazu ergänzt, in denselben Eintrag wie bei den Reitern und aus demselben Grund; der Bezugsstand liegt vor dem Release dieses Zuges, das den Text unvollständig machen würde.',
-  },
-  {
-    schluessel: 'help.feature.propertyProfiles',
-    grund:
-      'Zug 3E-000277 (4T-001507, 4T-001511): Katalog-Text der Eigenschafts-Profile um die beiden geteilten Spalten-Optionen erweitert, bevor der Bezugsstand entstand (Eintrag des Integrationsstands, beim Nachzug des Zuges 3E-000311 am 2026-09-18 in die erzeugte Liste uebernommen).',
-  },
-  // Beim Rebase auf das Release 1.137.0 angefügt: die Einträge des Zuges
-  // 3E-000313 hinter denen des Integrationsstands. Beide Seiten bleiben nötig,
-  // weil der Bezugsstand unverändert auf `v1.132.0` steht.
-  ...['de', 'en', 'fr', 'es', 'it'].flatMap((sprache) => [
-    {
-      sprache,
-      schluessel: 'help.feature.exportPortable',
-      grund:
-        '4T-001778 (Epic 3E-000291): Die Beschreibung zählt Konstrukt für Konstrukt auf, was der portable Export tut; mit der Teilnahme der Canvas-Fläche fehlte ihr ein Glied. Ein Satz ergänzt, der Schluss-Satz verweist seither auf beide Handbuch-Seiten.',
-    },
-    {
-      sprache,
-      schluessel: 'help.feature.canvas',
-      grund:
-        '4T-001778 (Epic 3E-000291): Die Beschreibung nennt, wo die Fläche außerhalb der Canvas-Ansicht erscheint; der portable Export ist der zweite dieser Orte und stand nicht darin. Ein Satz ergänzt.',
-    },
-  ]),
-  // 4T-001797 (Epic 3E-000315): Die fünf Zugangs-Angaben der Flächen-Befehle
-  // nennen den Menü-Weg wörtlich, und genau der hat sich geändert — aus
-  // «Ansicht → <Befehl>» wird «Ansicht → Canvas-Fläche bearbeiten → <Befehl>». Ohne
-  // diese 25 Einträge liefe das Gate rot, obwohl die Änderung gerade dafür
-  // sorgt, dass der Text wieder stimmt.
-  ...['de', 'en', 'fr', 'es', 'it'].flatMap((sprache) =>
-    [
-      ['canvasShapes', 'Form-Anlage'],
-      ['canvasGroups', 'Gruppen-Anlage'],
-      ['canvasStacking', 'Stapel-Reihenfolge'],
-      ['canvasLinkCards', 'Verweis-Karten'],
-      ['canvasImageCards', 'Bild-Karten'],
-    ].map(([kurz, sache]) => ({
-      sprache,
-      schluessel: `help.featureAccess.${kurz}`,
-      grund: `4T-001797 (Epic 3E-000315): Die Zugangs-Angabe der ${sache} nennt den Weg über das Ansichtsmenü; seit der Bündelung führt er über die Zwischenstufe «Canvas-Fläche bearbeiten». Nur diese eine Stelle des Wertes ist eingefügt, der Rest steht unverändert. In der italienischen Fassung der Verweis- und Bild-Karten ist zugleich der erste Schritt von «Vista» auf «Visualizza» berichtigt — so heißt das Menü dort.`,
-    })),
-  ),
-  {
-    schluessel: 'help.feature.workspaces',
-    grund:
-      'Der Katalog-Text der Arbeitsbereiche sagte nichts darueber, dass Untermenue und Verwaltung die Ordner-Bindung nennen und dass die Reihenfolge der Arbeitsbereiche in der Verwaltung gesetzt wird; beides ist mit 4T-001737 und 4T-001753 (Epic 3E-000308) hinzugekommen. Der Text ist um einen Satz dazu ergaenzt (4T-001740) statt um einen eigenen Katalog-Eintrag, weil beides Eigenschaften der bestehenden Verwaltung sind und keine eigene Funktion; der Bezugsstand liegt vor dem Release dieses Zuges, das den Text unvollstaendig machen wuerde.',
-  },
-  {
-    schluessel: 'help.feature.myExtendedMemory',
-    grund:
-      'Der Katalog-Text von My Extended Memory nannte beim Arbeitsbereich nur, dass dort keine Kennzahlen stehen; seit 4T-001739 (Epic 3E-000308) fuehrt er neben der Zahl seiner Fenster die Zahl der darin geoeffneten Markdown-Dokumente. Der Text ist um einen Satz dazu ergaenzt (4T-001740), aus demselben Grund wie bei den Arbeitsbereichen: eine zweite Angabe an einer bestehenden Anzeige ist keine eigene Funktion.',
-  },
-  // 4T-001811 (Epic 3E-000292): Die Zugangs-Angabe des PDF-Exports nennt den
-  // Menü-Weg wörtlich, und genau der hat sich geändert — der Eintrag ist in das
-  // Untermenü «Exportieren» verlegt, damit alle Ausgabe-Wege an einer Stelle
-  // stehen. Ohne diese fünf Einträge liefe das Gate rot, obwohl die Änderung
-  // gerade dafür sorgt, dass der Text wieder stimmt.
-  ...['de', 'en', 'fr', 'es', 'it'].map((sprache) => ({
-    sprache,
-    schluessel: 'help.featureAccess.exportPdf',
-    grund:
-      '4T-001811 (Epic 3E-000292): Der Menü-Eintrag «Als PDF exportieren…» ist auf Anordnung des Product Owners vom 2026-09-19 in das Untermenü «Exportieren» gewandert. Nur die eingeschobene Stufe «Exportieren» ist in den Wert eingefügt, Beschriftung und Kürzel-Angabe stehen unverändert.',
-  })),
-];
+const GEAENDERTE_TEXTE = [];
 
 const ABWEICHUNGEN = GEAENDERTE_TEXTE.flatMap(({ schluessel, grund }) =>
   LOCALE_CODES.map((sprache) => ({ sprache, schluessel, grund })),
@@ -285,17 +186,31 @@ function vergleicheSprachen(dicts) {
 }
 
 /**
- * Der Bezugsstand: der jüngste Release-Tag, der vom aktuellen Stand erreichbar
- * ist UND die versionierte `src/i18n/de.json` noch trägt.
+ * Der Bezugsstand: die jüngste vom aktuellen Stand erreichbare Release-Marke —
+ * und nur sie. Trägt sie die versionierte `src/i18n/de.json` nicht mehr, ist
+ * der Nachweis über die Zeit im Ruhestand.
  *
- * Beide Bedingungen sind nötig. «Erreichbar» schließt Tags fremder Züge aus,
- * die den eigenen Stand nie gesehen haben; «trägt die Datei» ist der Schalter,
- * der den Nachweis nach der Umstellung in den Ruhestand schickt, statt ihn an
- * einem Tag scheitern zu lassen, der die Datei nicht mehr kennt.
+ * «Erreichbar» schließt Marken fremder Züge aus, die den eigenen Stand nie
+ * gesehen haben. «Die jüngste» ist die Bedingung, die 4T-001764 und 4T-001707
+ * am 2026-09-21 wirksam gemacht haben: Die erste Fassung suchte rückwärts über
+ * ALLE erreichbaren Marken die jüngste, welche die Datei noch trägt — und weil
+ * eine Marke nie gelöscht wird, blieb sie dauerhaft bei `v1.132.0` hängen. Der
+ * Ruhestand konnte so nie eintreten (Begründung im Modulkopf).
+ *
+ * **Drei Ausgänge, und sie sind auseinanderzuhalten.** `ruhestand: null` ist
+ * der laufende Nachweis. `'ohne-sprachdatei'` ist der vorgesehene Ruhestand:
+ * Die jüngste Marke steht fest, sie trägt die Datei nicht mehr. `'ohne-marke'`
+ * ist etwas anderes und schwächer — es ist überhaupt keine Release-Marke
+ * erreichbar, der Bezugsstand ist also nicht bestimmbar statt überholt. Wer
+ * beides in ein `{ tag: null }` wirft, verwechselt «fertig» mit «ich konnte
+ * nicht nachsehen» und landet bei der Fehlerklasse `L11`.
  *
  * @param {{wurzel?: string}} [optionen] Arbeitsbaum, in dem `git` läuft.
- * @returns {{tag: string|null, dicts: Object<string,Object<string,string>>|null}}
- *          Tag und Kataloge, oder zweimal `null`, wenn kein Tag die Datei trägt.
+ * @returns {{tag: string|null, marke: string|null, ruhestand: string|null,
+ *            dicts: Object<string,Object<string,string>>|null}}
+ *          `marke` ist die jüngste erreichbare Release-Marke, auch im
+ *          Ruhestand; `tag` und `dicts` tragen den Bezugsstand und sind im
+ *          Ruhestand `null`.
  * @throws {Error} Wenn `git` nicht aufrufbar ist oder der Ordner kein
  *         Repositorium ist — fail closed, siehe Modulkopf.
  */
@@ -314,29 +229,30 @@ function bezugsstand({ wurzel = REPO_WURZEL } = {}) {
     .map((zeile) => zeile.trim())
     .filter((zeile) => RELEASE_TAG_MUSTER.test(zeile));
 
-  for (const tag of tags) {
-    // `git cat-file -e` endet mit 0 bei «vorhanden» und sonst mit einem
-    // Fehler-Status; execFileSync würde den zweiten Fall als Wurf melden und
-    // damit den Ruhestands-Fall mit dem fail-closed-Fall verwechseln.
-    const vorhanden = spawnSync('git', ['cat-file', '-e', `${tag}:${bezugsPfad('de')}`], {
-      cwd: wurzel,
-      stdio: 'ignore',
-    });
-    if (vorhanden.status !== 0) continue;
+  const marke = tags.length > 0 ? tags[0] : null;
+  if (marke === null) return { tag: null, marke: null, ruhestand: 'ohne-marke', dicts: null };
 
-    const dicts = {};
-    for (const code of LOCALE_CODES) {
-      const text = execFileSync('git', ['show', `${tag}:${bezugsPfad(code)}`], {
-        cwd: wurzel,
-        encoding: 'utf8',
-        maxBuffer: 32 * 1024 * 1024,
-      });
-      dicts[code] = JSON.parse(text);
-    }
-    return { tag, dicts };
+  // `git cat-file -e` endet mit 0 bei «vorhanden» und sonst mit einem
+  // Fehler-Status; execFileSync würde den zweiten Fall als Wurf melden und
+  // damit den Ruhestands-Fall mit dem fail-closed-Fall verwechseln.
+  const vorhanden = spawnSync('git', ['cat-file', '-e', `${marke}:${bezugsPfad('de')}`], {
+    cwd: wurzel,
+    stdio: 'ignore',
+  });
+  if (vorhanden.status !== 0) {
+    return { tag: null, marke, ruhestand: 'ohne-sprachdatei', dicts: null };
   }
 
-  return { tag: null, dicts: null };
+  const dicts = {};
+  for (const code of LOCALE_CODES) {
+    const text = execFileSync('git', ['show', `${marke}:${bezugsPfad(code)}`], {
+      cwd: wurzel,
+      encoding: 'utf8',
+      maxBuffer: 32 * 1024 * 1024,
+    });
+    dicts[code] = JSON.parse(text);
+  }
+  return { tag: marke, marke, ruhestand: null, dicts };
 }
 
 /**
@@ -369,32 +285,49 @@ if (require.main === module) {
   const zeilen = [];
   let befunde = 0;
 
-  const { tag, dicts } = bezugsstand();
-  if (tag == null) {
+  const { tag, marke, ruhestand, dicts } = bezugsstand();
+  if (ruhestand === 'ohne-marke') {
+    // Kein Ruhestand, sondern ein nicht bestimmbarer Bezugsstand: Das meldet
+    // der Hand-Lauf als Befund, statt es wie einen erfüllten Auftrag aussehen
+    // zu lassen.
     zeilen.push(
-      'i18n-gleichheit: kein erreichbarer Release-Tag trägt src/i18n/de.json noch versioniert.',
-      'Der Gleichheits-Nachweis ist damit im Ruhestand (Epic 3E-000278, 4T-001608).',
+      'i18n-gleichheit: keine erreichbare Release-Marke — der Bezugsstand ist nicht bestimmbar.',
     );
+    befunde += 1;
   } else {
     const ist = istStand();
-    zeilen.push(`i18n-gleichheit: Bezugsstand ${tag}`);
-    for (const code of LOCALE_CODES) {
-      const { abweichungen, hinzugekommen } = vergleicheKataloge(dicts[code], ist[code], {
-        sprache: code,
-      });
-      befunde += abweichungen.length;
+
+    if (ruhestand !== null) {
       zeilen.push(
-        `  ${code}: Bezug ${Object.keys(dicts[code]).length}, ` +
-          `Ist ${Object.keys(ist[code]).length}, ` +
-          `hinzugekommen ${hinzugekommen.length}, Abweichungen ${abweichungen.length}`,
+        `i18n-gleichheit: im Ruhestand — die jüngste Release-Marke ${marke} trägt ` +
+          'src/i18n/de.json nicht mehr versioniert.',
+        'Der Nachweis über die Zeit hat seine Aufgabe erfüllt (Epic 3E-000278, 4T-001608);',
+        'die Schlüsselgleichheit der fünf Sprachen untereinander läuft weiter.',
       );
-      for (const a of abweichungen) {
+    } else {
+      zeilen.push(`i18n-gleichheit: Bezugsstand ${tag}`);
+      for (const code of LOCALE_CODES) {
+        const { abweichungen, hinzugekommen } = vergleicheKataloge(dicts[code], ist[code], {
+          sprache: code,
+        });
+        befunde += abweichungen.length;
         zeilen.push(
-          `    ${a.art === 'fehlt' ? 'fehlt' : 'Wert geändert'}: ${a.sprache} / ${a.schluessel}`,
+          `  ${code}: Bezug ${Object.keys(dicts[code]).length}, ` +
+            `Ist ${Object.keys(ist[code]).length}, ` +
+            `hinzugekommen ${hinzugekommen.length}, Abweichungen ${abweichungen.length}`,
         );
+        for (const a of abweichungen) {
+          zeilen.push(
+            `    ${a.art === 'fehlt' ? 'fehlt' : 'Wert geändert'}: ${a.sprache} / ${a.schluessel}`,
+          );
+        }
       }
     }
 
+    // Die Schlüsselgleichheit über die Sprachen hängt an keinem Bezugsstand
+    // und läuft deshalb auch im Ruhestand — dort ist sie die einzige Aussage,
+    // die der Hand-Lauf noch trifft, und ein Lauf, der gar nichts mehr prüfte,
+    // wäre eine stille Zusage (L11).
     const quer = vergleicheSprachen(ist);
     befunde += quer.length;
     zeilen.push(`  Sprachen untereinander: ${quer.length} Abweichung(en)`);

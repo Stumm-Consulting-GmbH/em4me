@@ -140,5 +140,12 @@
   "command.canvas.addGroup": "Añadir grupo al lienzo",
   "command.canvas.addLinkCard": "Añadir tarjeta de enlace al lienzo",
   "command.canvas.addImageCard": "Añadir tarjeta de imagen al lienzo",
-  "command.canvas.addConnection": "Añadir conexión al lienzo…"
+  "command.canvas.addConnection": "Añadir conexión al lienzo…",
+  "command.kanban.addCard": "Añadir tarjeta al tablero",
+  "command.kanban.archiveCard": "Archivar tarjeta del tablero",
+  "command.kanban.addColumn": "Añadir columna al tablero",
+  "command.kanban.newBoard": "Nuevo tablero Kanban",
+  "command.kanban.convertToBoard": "Convertir el documento vacío en tablero Kanban",
+  "command.kanban.toggleTagsFooter": "Activar o desactivar las etiquetas al pie de la tarjeta",
+  "command.kanban.toggleRelativeDates": "Activar o desactivar las fechas relativas"
 }

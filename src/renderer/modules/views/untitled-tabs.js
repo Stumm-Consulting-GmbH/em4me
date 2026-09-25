@@ -15,13 +15,28 @@ import { persistState } from './views.js';
 // Edit-Modus aktiv, View "Geteilt", damit der Nutzer sofort tippen und die
 // Vorschau live sehen kann. Nicht persistiert ueber App-Neustart, weil Tabs
 // ohne Pfad in buildPanesSnapshot herausgefiltert werden.
-export function newUntitledTab() {
+//
+// 4T-001852 (Epic 3E-000110): Optional mit Inhalt und eigenem Ansichts-Modus
+// ("Neue Kanban-Tafel" legt ein Dokument an, das bereits eine Tafel ist). Ein
+// zweiter Anlege-Weg daneben haette dieselben fuenf Schritte ein zweites Mal
+// gefuehrt; die beiden Angaben sind der ganze Unterschied.
+//
+// **Ein Reiter MIT Inhalt gilt als ungespeicherter Entwurf** (originalContent
+// leer, dirty) — derselbe Griff wie in openDraftsAsUntitled darunter und aus
+// demselben Grund: Der Inhalt steht nirgends auf der Platte, und ohne das
+// Dirty-Kennzeichen schloesse der Reiter ohne Rueckfrage.
+export function newUntitledTab(optionen = {}) {
   const targetPane = state.activePaneIndex;
-  const tab = createTab(null, '', {
-    viewMode: 'split',
+  const inhalt = typeof optionen.inhalt === 'string' ? optionen.inhalt : '';
+  const tab = createTab(null, inhalt, {
+    viewMode: optionen.viewMode || 'split',
     untitledIndex: state.untitledCounter++,
   });
   tab.editMode = true;
+  if (inhalt !== '') {
+    tab.originalContent = '';
+    tab.dirty = true;
+  }
   state.panes[targetPane].tabs.push(tab);
   activatePane(targetPane);
   activateTab(targetPane, state.panes[targetPane].tabs.length - 1);

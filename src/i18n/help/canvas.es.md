@@ -36,7 +36,7 @@ El comando exige un documento editable; si falta, la barra de estado lo dice en 
 
 El lienzo es el sexto modo de vista, junto a Código, Dividida, Renderizada, Live y Mapa mental: **Ver → Lienzo**, el botón de la barra de estado o `Ctrl+6` predeterminado. Como en los demás modos, la elección vale por documento abierto y no para toda la aplicación.
 
-**Es el único de los seis modos que depende del documento.** Solo puede elegirse si el documento contiene una superficie Canvas: una vista de lienzo sin superficie no mostraría más que un aviso. Sin superficie, el botón y la entrada de menú siguen **visibles y atenuados**; el motivo figura en la ayuda emergente del botón. El camino por el atajo y la paleta de comandos no lleva entonces a ninguna parte y tampoco expulsa de la vista actual. En cuanto aparece una superficie en el texto o desaparece de él, el acceso se ajusta. Un documento que estaba abierto en la vista de lienzo al cerrar la aplicación y cuya superficie ha desaparecido entretanto se abre en la vista de lectura.
+**Depende del documento, igual que la vista de tablero.** Solo puede elegirse si el documento contiene una superficie Canvas: una vista de lienzo sin superficie no mostraría más que un aviso. Sin superficie, el botón y la entrada de menú siguen **visibles y atenuados**; el motivo figura en la ayuda emergente del botón. El camino por el atajo y la paleta de comandos no lleva entonces a ninguna parte y tampoco expulsa de la vista actual. En cuanto aparece una superficie en el texto o desaparece de él, el acceso se ajusta. Un documento que estaba abierto en la vista de lienzo al cerrar la aplicación y cuya superficie ha desaparecido entretanto se abre en la vista de lectura.
 
 ## Varias superficies en un documento
 

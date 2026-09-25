@@ -83,12 +83,14 @@ export const STATUSBAR_COLLAPSE_ALWAYS = 'always';
 export const STATUSBAR_COLLAPSE_MODES = [STATUSBAR_COLLAPSE_AUTO, STATUSBAR_COLLAPSE_ALWAYS];
 export const STATUSBAR_COLLAPSE_MODE_KEY = 'statusbar.collapseMode';
 
-// Ansichts-Schalter ohne Eintrag in der Ausblend-Liste: Mindmap und Canvas
-// kamen später hinzu. Ihre Kurznamen kommen aus dem Ansichtsmenü, damit keine
-// zweite Beschriftungs-Liste entsteht.
+// Ansichts-Schalter ohne Eintrag in der Ausblend-Liste: Mindmap, Canvas und
+// Tafel kamen später hinzu. Ihre Kurznamen kommen aus dem Ansichtsmenü, damit
+// keine zweite Beschriftungs-Liste entsteht.
 const ZUSATZ_ANSICHTEN = [
   ['mindmap', 'menu.view.mindmap'],
   ['canvas', 'menu.view.canvas'],
+  // 4T-001847 (Epic 3E-000110): der siebte Modus, aus demselben Grund hier.
+  ['kanban', 'menu.view.kanban'],
 ];
 
 // Je Seite die aktuell eingeklappten Elemente in Leisten-Reihenfolge;

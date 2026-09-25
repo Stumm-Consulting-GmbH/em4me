@@ -42,6 +42,18 @@ The node text stays horizontal in every position; the arrangement is rotated, no
 
 The collapse state applies to the running session and is written neither into the document nor into a companion file: pure display state should not burden a format that stays readable without the application.
 
+## Searching the map
+
+In the mind map view the search (default `Ctrl+F`) looks through the map itself rather than the text behind it; the left of the search bar then reads “Search in the mind map”. It finds what the map carries: the title of a node and the text of its note. Each node counts once, even when title and note both match, and the toggles for regular expressions and case sensitivity apply as everywhere in the search.
+
+- **Result** — every matching node is shaded in colour, the current one more strongly and outlined, and the map moves it to the centre without changing the zoom. The counter in the search bar names the current match and the total, such as `2 / 5`; if no node matches, it reads “No matches”.
+- **Match in the note** — if the match lies in the note, the node's sheet symbol is coloured, and pointing at the node shows the hint “Match in the note”. Clicking the symbol shows the note as usual.
+- **Moving on** — `Enter` or `F3` jumps to the next match, `Shift+Enter` or `Shift+F3` to the previous one; after the last it continues with the first.
+- **Collapsed branches** — if a match lies in a collapsed subtree, the branch unfolds when the match is reached and stays open after the search ends.
+- **Ending** — `Escape` or closing the search bar removes the highlighting, and so does switching to another view; zoom and position of the map stay as they are.
+
+The search does not change the document, and replacing is locked in this view. **In an open area** the same applies: `Ctrl+F` in the mind map view searches the map, not the area. The search across all files of the area with its list of matches remains available in the other views of the document, such as the reading view; see [Tools](tools.md).
+
 ## Setting the appearance
 
 The Mind map section of the settings is the **default for all documents**:

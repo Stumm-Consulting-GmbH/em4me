@@ -4,15 +4,16 @@ Esta página no responde **cómo** se hace algo, sino **para qué sirve**. Tiene
 
 ## Un documento, tal como lo necesitas ahora
 
-Leer, escribir y revisar son actividades distintas y requieren presentaciones distintas del mismo texto. En lugar de imponer un compromiso, la aplicación mantiene seis vistas listas y una tecla basta para cambiar entre ellas: la página terminada para leer, el código fuente para el trabajo preciso, ambos en paralelo para comparar, el modo en vivo para escribir con fluidez, el mapa mental para ver la estructura y el lienzo para tarjetas sobre una superficie. El cambio no cuesta nada y nunca modifica el archivo.
+Leer, escribir y revisar son actividades distintas y requieren presentaciones distintas del mismo texto. En lugar de imponer un compromiso, la aplicación mantiene siete vistas listas y una tecla basta para cambiar entre ellas: la página terminada para leer, el código fuente para el trabajo preciso, ambos en paralelo para comparar, el modo en vivo para escribir con fluidez, el mapa mental para ver la estructura, el lienzo para tarjetas sobre una superficie y el tablero para tareas en columnas. El cambio no cuesta nada y nunca modifica el archivo.
 
 - **Renderizada** para leer, **código fuente** para el trabajo preciso con la sintaxis.
 - **Dividida** muestra fuente y resultado uno junto al otro, para construcciones delicadas.
 - **En vivo** da formato mientras escribes y muestra los caracteres Markdown solo en la línea actual.
 - **Mapa mental** convierte la estructura de títulos en un árbol.
 - **Lienzo** muestra una superficie con tarjetas y conexiones que se encuentra en el propio documento.
+- **Tablero** coloca las tareas del documento una junto a otra, como tarjetas en columnas.
 
-En detalle: [Vistas y presentación](views-display.md), [Vista de mapa mental](mindmap.md), [Superficie Canvas](canvas.md).
+En detalle: [Vistas y presentación](views-display.md), [Vista de mapa mental](mindmap.md), [Superficie Canvas](canvas.md), [Tablero Kanban](kanban.md).
 
 ## Muchos documentos uno junto a otro
 
@@ -69,6 +70,12 @@ Algunas ideas no tienen orden. Colocar alternativas una junto a otra, esbozar un
 - **Abierto hacia fuera**: una superficie puede guardarse en el formato abierto JSON Canvas y volver a leerse desde él — para el intercambio con otras herramientas.
 
 En detalle: [Superficie Canvas](canvas.md).
+
+## Tareas que se empujan hacia adelante
+
+Quien lleva muchas tareas a la vez no quiere leer lo que falta por hacer, sino ver en qué punto está cada cosa. Un tablero Kanban ordena las tareas de un documento en columnas — por hacer, en curso, hecho, o como llames a los pasos de tu flujo de trabajo — y sus tarjetas se empujan con el ratón de una columna a la siguiente; una columna puede configurarse para marcar enseguida como hecha cada tarea que se arrastre a ella. Todo ello sigue siendo texto corriente en el documento: las columnas son sus títulos, las tarjetas sus líneas de tarea, y lo que está marcado en el tablero lo está igualmente en cualquier otra vista. Un tablero escrito con la herramienta de tableros más extendida para notas Markdown se abre aquí, se edita aquí y se sigue usando allí.
+
+En detalle: [Tablero Kanban](kanban.md).
 
 ## De archivos nace un libro
 

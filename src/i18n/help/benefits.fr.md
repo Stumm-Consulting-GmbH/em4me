@@ -4,15 +4,16 @@ Cette page ne répond pas à la question **comment** faire, mais à la question 
 
 ## Un document, tel que vous en avez besoin
 
-Lire, écrire et vérifier sont des activités différentes, et elles demandent des présentations différentes du même texte. Plutôt que d'imposer un compromis, l'application tient six vues à disposition, entre lesquelles une touche suffit à basculer : la page finie pour la lecture, le texte source pour le travail précis, les deux côte à côte pour la comparaison, le mode direct pour écrire sans rupture, la carte mentale pour voir la structure et le canevas pour des cartes sur une surface. Le changement ne coûte rien et ne modifie jamais le fichier.
+Lire, écrire et vérifier sont des activités différentes, et elles demandent des présentations différentes du même texte. Plutôt que d'imposer un compromis, l'application tient sept vues à disposition, entre lesquelles une touche suffit à basculer : la page finie pour la lecture, le texte source pour le travail précis, les deux côte à côte pour la comparaison, le mode direct pour écrire sans rupture, la carte mentale pour voir la structure, le canevas pour des cartes sur une surface et le tableau pour des tâches en colonnes. Le changement ne coûte rien et ne modifie jamais le fichier.
 
 - **Rendu** pour lire, **code source** pour le travail précis sur la syntaxe.
 - **Partagée** montre source et résultat côte à côte, pour les constructions délicates.
 - **Direct** met en forme pendant la frappe et n'affiche les caractères Markdown que dans la ligne courante.
 - **Carte mentale** transforme la structure des titres en arborescence.
 - **Canevas** montre une surface avec des cartes et des connexions qui se trouve dans le document lui-même.
+- **Tableau** place les tâches du document côte à côte, sous forme de cartes en colonnes.
 
-En détail : [Vues et affichage](views-display.md), [Vue carte mentale](mindmap.md), [Surface Canvas](canvas.md).
+En détail : [Vues et affichage](views-display.md), [Vue carte mentale](mindmap.md), [Surface Canvas](canvas.md), [Tableau Kanban](kanban.md).
 
 ## Plusieurs documents côte à côte
 
@@ -69,6 +70,12 @@ Certaines idées n'ont pas d'ordre. Poser des variantes côte à côte, esquisse
 - **Ouvert vers l’extérieur** : une surface peut être enregistrée au format ouvert JSON Canvas et relue depuis celui-ci — pour l’échange avec d’autres outils.
 
 En détail : [Surface Canvas](canvas.md).
+
+## Des tâches que l'on fait avancer
+
+Qui mène de front de nombreuses tâches ne veut pas lire ce qui reste à faire, mais voir où chaque chose en est. Un tableau Kanban range les tâches d'un document en colonnes — à faire, en cours, terminé, ou tout autre nom donné aux étapes de votre déroulement — et ses cartes se poussent à la souris d'une colonne à la suivante ; une colonne peut être réglée pour cocher aussitôt toute tâche qu'on y fait glisser. Tout cela reste du texte ordinaire dans le document : les colonnes en sont les titres, les cartes en sont les lignes de tâche, et ce qui est coché sur le tableau l'est tout autant dans chacune des autres vues. Un tableau écrit avec l'outil de tableaux répandu pour les notes Markdown s'ouvre ici, s'y modifie et se réutilise ensuite là-bas.
+
+En détail : [Tableau Kanban](kanban.md).
 
 ## Des fichiers deviennent un livre
 

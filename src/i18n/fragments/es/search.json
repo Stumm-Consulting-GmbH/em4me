@@ -12,6 +12,8 @@
   "search.scopeManual": "Búsqueda en el manual",
   "search.scopeSettings": "Búsqueda en los ajustes",
   "search.scopeArea": "Búsqueda en el área",
+  "search.scopeMindmap": "Búsqueda en el mapa mental",
+  "search.mindmapNoteHit": "Coincidencia en la nota",
   "search.scopeTitle": "Ámbito de búsqueda",
   "search.helpTitle": "Mostrar ayuda de regex",
   "search.regexHelpTitle": "Expresión regular — referencia rápida",

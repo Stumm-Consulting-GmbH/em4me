@@ -232,6 +232,78 @@ export function performStatusToggle(view, lineNumber) {
   return toggle;
 }
 
+// --- Derselbe Wechsel auf einem Text (4T-001850) -------------------------------------
+//
+// Die Tafel-Ansicht muss ein Verschieben und das Abhaken beim Hineinziehen in
+// EINER Transaktion schreiben (Story 4S-000976): zwei Aenderungen, ein
+// Rueckgaengig-Schritt. Der Weg darueber schreibt aber selbst, und zwei
+// dispatch-Aufrufe waeren zwei Schritte. Gebraucht wird deshalb derselbe
+// Wechsel als Text-zu-Text-Rechnung, die der Aufrufer mit seiner eigenen
+// Aenderung zusammenlegt.
+//
+// **Es ist dieselbe Kette und keine zweite Logik**: Gerufen wird
+// `performStatusToggle` selbst, ueber eine Attrappe aus genau EINER Zeile. Sie
+// erfuellt den schmalen Vertrag, den jener Weg an die EditorView stellt
+// (`state.doc.lines`, `doc.line`, `doc.sliceString`, `dispatch({changes})`);
+// Ketten-Toggle, Augmenter der Erweiterung «Aufgaben», Automatik-Daten und die
+// Wiederholung laufen damit unveraendert.
+//
+// **Eine Zeile genuegt**, weil der Weg nur die eine Zeile liest und nur in ihr
+// und unmittelbar um sie herum schreibt. Das ist zugleich die Antwort auf die
+// Zeilenenden-Frage: Ein `\r` wird vor dem Lauf abgenommen und danach an jede
+// erzeugte Zeile wieder angehaengt — die Wiederholungs-Instanz erbt damit das
+// Zeilenende ihrer Quelle, wie es auch der Format-Kern der Tafel tut.
+function einZeilenAttrappe(zeile) {
+  const zustand = { text: zeile };
+  return {
+    state: {
+      get doc() {
+        return {
+          lines: 1,
+          length: zustand.text.length,
+          line: () => ({ from: 0, to: zustand.text.length, number: 1 }),
+          sliceString: (von, bis) => zustand.text.slice(von, bis),
+        };
+      },
+    },
+    dispatch: ({ changes }) => {
+      const liste = Array.isArray(changes) ? changes : [changes];
+      // Von hinten nach vorn, damit die Offsets der vorderen gueltig bleiben.
+      for (const c of [...liste].sort((a, b) => b.from - a.from)) {
+        zustand.text =
+          zustand.text.slice(0, c.from) +
+          c.insert +
+          zustand.text.slice(c.to == null ? c.from : c.to);
+      }
+    },
+    text: () => zustand.text,
+  };
+}
+
+/**
+ * Schaltet den Status einer Zeile eines Textes — derselbe Weg wie im Editor.
+ *
+ * @param {string} text Ganzer Dokument-Text.
+ * @param {number} lineNumber Zeilen-Nummer, 1-basiert wie im Editor.
+ * @returns {{text: string, toggle: object}|null} `null`, wenn die Zeile kein
+ *   schaltbarer Task ist oder es sie nicht gibt — dann bleibt der Text, wie er
+ *   war, statt dass eine Vermutung entsteht.
+ */
+export function statusToggleAufText(text, lineNumber) {
+  const quelle = String(text == null ? '' : text);
+  if (!Number.isFinite(lineNumber)) return null;
+  const zeilen = quelle.split('\n');
+  if (lineNumber < 1 || lineNumber > zeilen.length) return null;
+  const roh = zeilen[lineNumber - 1];
+  const cr = roh.endsWith('\r') ? '\r' : '';
+  const attrappe = einZeilenAttrappe(cr ? roh.slice(0, -1) : roh);
+  const toggle = performStatusToggle(attrappe, 1);
+  if (!toggle) return null;
+  const neu = attrappe.text().split('\n');
+  zeilen.splice(lineNumber - 1, 1, ...neu.map((z) => z + cr));
+  return { text: zeilen.join('\n'), toggle };
+}
+
 // Basis-Zustaende der Darstellung: alles ausserhalb rendert als Status-Box.
 export function isBasicTaskChar(ch) {
   return ch === ' ' || ch === 'x' || ch === 'X';

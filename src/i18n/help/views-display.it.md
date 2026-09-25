@@ -2,9 +2,9 @@
 
 L'aspetto di un documento si decide su due livelli. La **vista** appartiene alla singola scheda: stabilisce se il documento viene mostrato renderizzato, come sorgente, diviso o live. L'**aspetto** vale per l'intera applicazione: tema, zoom, larghezza del contenuto e caratteri. Questa pagina unisce i due livelli e indica il posto di ogni impostazione.
 
-## Le sei viste
+## Le sette viste
 
-Ogni scheda si trova in esattamente una delle sei viste. La modalità scelta vale per scheda e non globalmente: un documento può restare aperto renderizzato mentre accanto un secondo viene modificato come sorgente.
+Ogni scheda si trova in esattamente una delle sette viste. La modalità scelta vale per scheda e non globalmente: un documento può restare aperto renderizzato mentre accanto un secondo viene modificato come sorgente.
 
 | Vista             | Che cosa mostra                                    | Scorciatoia predefinita |
 | ----------------- | -------------------------------------------------- | ----------------------- |
@@ -14,8 +14,9 @@ Ogni scheda si trova in esattamente una delle sei viste. La modalità scelta val
 | **Live**          | la sorgente, formattata dove si scrive             | `Ctrl+4`                |
 | **Mappa mentale** | la struttura del documento come mappa invece che come testo | `Ctrl+5`   |
 | **Tela**          | una superficie con schede e collegamenti dal documento | `Ctrl+6`                |
+| **Bacheca**       | le attività del documento come bacheca Kanban      | `Ctrl+7`                |
 
-Il cambio avviene con i pulsanti della barra di stato o dalla parte alta del menu Visualizza; la mappa mentale sta nel menu e sulla sua scorciatoia, non nella barra di stato, e il pulsante della tela resta attenuato finché il documento non contiene una superficie Canvas. Quale vista riceve una scheda appena aperta si imposta nella sezione «Comportamento» delle impostazioni.
+Il cambio avviene con i pulsanti della barra di stato o dalla parte alta del menu Visualizza; la mappa mentale sta nel menu e sulla sua scorciatoia, non nella barra di stato, il pulsante della tela resta attenuato finché il documento non contiene una superficie Canvas, e quello della bacheca altrettanto finché il documento non è una bacheca Kanban. Quale vista riceve una scheda appena aperta si imposta nella sezione «Comportamento» delle impostazioni.
 
 ### Modalità live
 
@@ -27,11 +28,15 @@ La modalità live renderizza il Markdown direttamente nell'editor: grassetto e c
 
 ### Mappa mentale
 
-La mappa mentale mostra i titoli e gli elenchi del documento come albero e il testo corrente come nota sul nodo. Appartiene all'estensione omonima e scompare con essa; struttura, uso, le cinque posizioni della radice e il valore per documento sono descritti nella pagina [Vista mappa mentale](mindmap.md).
+La mappa mentale mostra i titoli e gli elenchi del documento come albero e il testo corrente come nota sul nodo. Appartiene all'estensione omonima e scompare con essa; struttura, uso, la ricerca nella mappa, le cinque posizioni della radice e il valore per documento sono descritti nella pagina [Vista mappa mentale](mindmap.md).
 
 ### Tela
 
-La tela mostra una superficie con schede e collegamenti che si trova nel documento stesso. Appartiene all’estensione omonima e scompare con essa; è inoltre l’unica delle sei viste a dipendere dal documento ed è selezionabile solo se questo contiene una superficie Canvas. Struttura, uso, più superfici e il formato di memorizzazione sono descritti nella pagina [Superficie Canvas](canvas.md).
+La tela mostra una superficie con schede e collegamenti che si trova nel documento stesso. Appartiene all’estensione omonima e scompare con essa; dipende inoltre dal documento ed è selezionabile solo se questo contiene una superficie Canvas. Struttura, uso, più superfici e il formato di memorizzazione sono descritti nella pagina [Superficie Canvas](canvas.md).
+
+### Bacheca
+
+La bacheca mostra le attività del documento come bacheca Kanban: gli elenchi con nome del documento come colonne, le righe di attività al loro interno come schede. Appartiene all'estensione «Kanban» e scompare con essa; come la tela dipende dal documento ed è selezionabile solo se questo porta il contrassegno di intestazione di una bacheca. Creare e convertire, usare schede e colonne, spostare con il mouse, scadenze, tag, limite, archivio e filtro nonché il formato di memorizzazione sono descritti nella pagina [Bacheca Kanban](kanban.md).
 
 ### Modifica
 

@@ -75,6 +75,8 @@ export const ANSICHTS_KOMMANDOS = {
   rendered: 'view.modeRendered',
   mindmap: 'view.modeMindmap',
   canvas: 'view.modeCanvas',
+  // 4T-001847 (Epic 3E-000110): der siebte Modus, die Tafel.
+  kanban: 'view.modeKanban',
 };
 
 /**

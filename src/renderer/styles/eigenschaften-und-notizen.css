@@ -504,8 +504,12 @@
 }
 
 /* === Tag-System (4T-000056, Epic 3E-000011) ================================= */
-/* Inline-Tag-Pillen im Render-Pane (per #tag-Markup erzeugt). */
-.markdown-body .tag-link {
+/* Inline-Tag-Pillen im Render-Pane (per #tag-Markup erzeugt).
+   4T-001904 (Epic 3E-000318): dazu die Fußreihe der Kanban-Karte. Sie steht
+   außerhalb von .markdown-body und bekommt dieselbe Regel über den eigenen
+   Selektor statt einer zweiten Farb-Definition. */
+.markdown-body .tag-link,
+.kanban-karte-tags .tag-link {
   display: inline-block;
   padding: 1px 6px;
   background: rgba(33, 150, 243, 0.12);
@@ -515,14 +519,17 @@
   text-decoration: none;
   white-space: nowrap;
 }
-.markdown-body .tag-link:hover {
+.markdown-body .tag-link:hover,
+.kanban-karte-tags .tag-link:hover {
   background: rgba(33, 150, 243, 0.2);
   text-decoration: none;
 }
-[data-theme='dark'] .markdown-body .tag-link {
+[data-theme='dark'] .markdown-body .tag-link,
+[data-theme='dark'] .kanban-karte-tags .tag-link {
   background: rgba(100, 181, 246, 0.16);
 }
-[data-theme='dark'] .markdown-body .tag-link:hover {
+[data-theme='dark'] .markdown-body .tag-link:hover,
+[data-theme='dark'] .kanban-karte-tags .tag-link:hover {
   background: rgba(100, 181, 246, 0.28);
 }
 

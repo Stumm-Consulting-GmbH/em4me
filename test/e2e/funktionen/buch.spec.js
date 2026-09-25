@@ -48,6 +48,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { warteAufJson, warteAufText } = require('../helpers/dateien');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 // 4T-001638 (Epic 3E-000295): Menü-Zustand eines Fensters für BU-11.
 const { menuZustand, menuEintrag } = require('../helpers/menu-zustand');
 const {
@@ -145,12 +146,7 @@ async function runCommandViaPalette(page, label) {
 }
 
 async function openSettingsSection(page, sectionId) {
-  await expect
-    .poll(async () => {
-      await page.keyboard.press('Control+,');
-      return page.locator(SETTINGS_PAGE).count();
-    })
-    .toBeGreaterThan(0);
+  await oeffneEinstellungsSeite(page);
   await page
     .locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="${sectionId}"]`)
     .click();

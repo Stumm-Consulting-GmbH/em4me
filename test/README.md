@@ -64,6 +64,37 @@ an Subagenten die Sichtbarkeit ausdrücklich vorgeben. Bei einer Meldung
 „wird nicht angezeigt" zuerst automatisiert klären, ob das Produkt oder
 das Material die Ursache ist.
 
+**Was die Sitzung herstellen kann, stellt sie her, statt es zu beschreiben.**
+Verlangt eine Prüfung einen Ausgangszustand, den der Product Owner sonst
+selbst aufbauen müsste — eingerichtete Ordner, angelegte Objekte, eine
+bestimmte Einstellung —, legt die Sitzung ihn unter `Tests/` an, und die
+Anleitung nennt nur noch den Weg dorthin. Hergestelltes Material entsteht über
+die echten Module der Anwendung und wird nicht von Hand geschrieben, sonst
+prüft die Anleitung eine Form, die der reale Bestand nicht hat. Verbraucht ein
+Durchgang den Zustand, gehört ein Rücksetz-Schritt dazu. Die Grenze ist das
+Können: Was die Sitzung nicht herstellen kann — ein zweiter Rechner, ein
+fremdes Konto —, wird beschrieben.
+
+Die Regel gilt seit dem 2026-09-22 (Entscheidung des Product Owners vom
+2026-09-21) und ergänzt das Material um den **Ausgangszustand**: Bis dahin
+kannte dieser Abschnitt nur Beispiel-Dateien, an denen geprüft wird, nicht
+aber eingerichtete Ordner, angelegte Objekte oder eine Einstellung, von der
+die Prüfung ausgeht. Anlass war eine Anleitung, die verlangte, in «Bereich A»
+ein Kalender-System aufzubauen und es in «Bereich B» einzulesen, ohne zu
+sagen, was die beiden Bereiche sind und wo sie liegen; der Product Owner
+konnte nicht beginnen, und erst zwei über die echten Module erzeugte
+Bereichs-Ordner samt Rücksetz-Skript machten die Prüfung möglich. Die beiden
+Auflagen tragen je ihren Grund: **Über die echten Module**, weil von Hand
+geschriebenes Material mit der Anleitung eine Form teilt, die der reale
+Bestand nicht hat — beide sind dann einig und falsch (Fehlerklasse `L10`,
+Untertyp `U2`). **Rücksetz-Schritt**, weil ein Ausgangszustand, den der erste
+Durchgang verbraucht, jede Wiederholung der Prüfung zu einer anderen Prüfung
+macht. Die Gegenlese-Frage der Prüf-Anleitung (Leitdatei, Abschnitt
+«Test-Phase») fragt genau danach; ein Wächter ist bewusst nicht vorgesehen,
+weil «kann die Sitzung den Zustand herstellen» keine Datei-Eigenschaft ist,
+und ein Wächter über die bloße Anwesenheit eines Ordners je Task erzeugte den
+leeren Ordner dort, wo nichts herzustellen ist.
+
 ### Einen neuen Stand neben der eigenen Arbeit prüfen
 
 **Der Weg ist die zweite Ausprägung.** Sie ist dieselbe Anwendung mit einer
@@ -169,9 +200,10 @@ Fehlerbehebung verortet.
 ## Linux-Prüfumgebung im Container
 
 Die Prüfung der Linux-Artefakte braucht eine echte Desktop-Sitzung; sie entsteht als
-Docker-Container-Paar und ist Wegwerf-Material. **Aufbau, Zugang, Prüf-Material und
-Abriss stehen in den Konzept-Dokumenten des Projekts, nicht hier** — die Umgebung ist
-Infrastruktur der Plattform-Auslieferung und kein Prüf-Detail dieser Suite.
+Docker-Container-Paar und ist Wegwerf-Material. **Aufbau und Zugang, die Zusammensetzung des
+Prüf-Materials und der Abriss stehen in den Konzept-Dokumenten des Projekts, nicht hier** — die Umgebung ist
+Infrastruktur der Plattform-Auslieferung und kein Prüf-Detail dieser Suite. Hier steht allein
+der Aufruf, der das Material herstellt und prüft (unten).
 
 Was sie für die Prüfung bedeutet: Sie deckt Starter-Eintrag, Datei-Zuordnung, Dialoge und
 Fensterverhalten ab. Zwei Dinge sind in ihr mangels dbus und Desktop-Portal **nicht
@@ -180,6 +212,32 @@ ob die Anwendung die Hell/Dunkel-Vorgabe des Systems übernimmt, und ob eine Eri
 zusätzlich als System-Benachrichtigung erscheint. Ebenso wenig deckt sie das Verhalten
 anderer Arbeitsumgebungen ab; ein Nachweis gilt für die Konstellation, in der er geführt
 wurde.
+
+**Ihr Prüf-Material erzeugt ein Werkzeug, und vor jeder Linux-Abnahme wird es geprüft**
+(seit dem 2026-09-23). Die Umgebung läuft auch ohne ihr Material und sieht dann vollständig
+aus; deshalb gehört die Vollständigkeits-Meldung vor die Abnahme, nicht das Vertrauen in einen
+laufenden Container:
+
+```bash
+node scripts/linux-pruefmaterial.js            # erzeugen, danach prüfen
+node scripts/linux-pruefmaterial.js --pruefen  # nur prüfen, Rückgabewert 1 bei Lücke
+```
+
+Standard-Ziel ist der Container `em4me-nachweis` mit dem Heimatverzeichnis `/home/kasm-user`;
+`--ziel <Container>:<Pfad>` oder `--ziel <Ordner>` wählt ein anderes. Der Container muss laufen
+(`docker start em4me-nachweis`), sonst endet das Werkzeug mit Rückgabewert 2. Ein Prüf-Durchgang
+verbraucht den Prüfpunkt zu Bestands-Daten; `--pruefen` meldet das Profil danach als
+«verbraucht», und ein erneuter Aufruf ohne Schalter setzt es zurück. Ein Ordner auf einem
+Windows-Rechner kann die Schreibweisen-Kollisionen nicht tragen und wird mit dieser Lücke
+gemeldet. Die Prüfdatei `test/unit/linux-pruefmaterial.test.js` hält beide Richtungen fest.
+
+**Verhältnis zum Prüfstand-Abbild** (Abschnitt «Das Kommando»): Beide sind Container, aber
+getrennte Dinge. Das Prüfstand-Abbild trägt die **automatisierten** Anzeige-Gates, wird bei
+jedem Lauf neu gestartet und braucht dieses Material nicht; die Prüfumgebung hier dient der
+**manuellen** Abnahme in einer Desktop-Sitzung, überdauert zwischen zwei Releases und trägt
+das Material. Das Werkzeug berührt das Prüfstand-Abbild nicht.
+
+**Sperr-Zustand im Container** (`4T-001692`). Der Container hängt den gemeinsamen Ablage-Ort nicht ein. Läuft das Gate `e2e` mit, liest `scripts/test-linux-docker.js` die Release-Sperre deshalb vor dem Start am Wirt, auf demselben Weg wie die Merge-Queue, und reicht sie als `EM4ME_RELEASE_SPERRE` mit einem der Werte `belegt`, `frei` oder `unbekannt` in den Container; das Protokoll nennt den Wert auf beiden Seiten. `gate-lauf.js` nimmt die Variable vor der Sperrdatei. Ohne Variable und ohne erreichbaren Ablage-Ort meldet die E2E-Warnung «Sperr-Zustand nicht messbar» statt «ausserhalb einer belegten Release-Sperre». Für einen Nachweis lässt sich der Zustand mit `--sperr-zustand <wert>` erzwingen; die Zeile «Sperr-Zustand erzwungen» macht das im Protokoll sichtbar. Die echte Release-Sperre wird für Nachweise nie belegt.
 
 ## Namenskonventionen
 
@@ -354,6 +412,12 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     deshalb nicht nur die Zeit, sondern auch das Ereignis:** Gewartet wird auf
     den erwarteten Zustand, nie auf dessen Vorboten. «Die Liste zeigt etwas» ist
     ein Vorbote, «die Liste zeigt das Erwartete» ist der Zustand.
+    **Für die häufigste Form seit dem 2026-09-23 maschinell gedeckt** (`4T-001699`,
+    neun rote Läufe von EX-04): Ein Poll-Rückruf, der eine Taste drückt und auf
+    «mehr als null» einer Zählung wartet, wird von
+    `test/unit/e2e-vorboten-poll.test.js` gemeldet; die Einstellungs-Seite
+    öffnet die Suite seither ausschließlich über `oeffneEinstellungsSeite` aus
+    `test/e2e/helpers/eingabe.js`, der auf ihre Sichtbarkeit wartet.
 
     **Und der Zustand ist die Bedienbarkeit, nicht das Vorhandensein**
     (4T-001555, gemeinsam mit dem Fall oben geschärft; Register-Klasse `L11`).
@@ -814,6 +878,62 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     4T-001579, Abschnitt zur Prüf-Breite und beim roten Fall `MEM-06`; der
     Kommentar im Helfer trägt sie in Kurzform.
 
+29. **Die Größe einer planmäßig wachsenden Quelle wird gerechnet, nicht als
+    Zahl geführt.** Zählt ein Prüffall, wie viele Einträge eine Registry, eine
+    Klassen-Karte, ein Verzeichnis-Bestand oder eine erzeugte Liste trägt, dann
+    kommt der Erwartungswert **aus dieser Quelle** und steht nicht als Literal
+    daneben. Eine solche Zahl ist keine Aussage über das Verhalten, sondern
+    eine eingefrorene Momentaufnahme: Sie wird rot, sobald die Quelle
+    planmäßig wächst, also gerade dann, wenn alles richtig läuft. Belegt ist
+    das Muster mehrfach — dieselbe Zusage war am 2026-09-06 an **zwei
+    Teststufen** zugleich eingefroren, und der E2E-Fall der Demo-Area trug die
+    Trefferzahl einer Abfrage als Zahl, während ihre Quelle der Bestand der
+    Demo-Seiten war (Klasse `L10` des Fehlerklassen-Registers). **Die Grenze
+    verläuft an der Zusage:** Wo die Zahl selbst das Versprechen ist — genau
+    fünf Sprachfassungen, genau vier Artefakte je Release, die acht Farben der
+    Palette —, bleibt sie stehen und ist richtig. Wo sie bloß mitzählt, was
+    jemand anders führt, gehört sie abgeleitet. **Zwei Handgriffe dazu:** Eine
+    abgeleitete Erwartung darf nicht tautologisch werden — liest sie dieselbe
+    Quelle auf beiden Seiten, ohne dass noch etwas geprüft würde, ist von der
+    Zusage nichts übrig; dann wird stattdessen die **Eigenschaft** geprüft, um
+    die es ging (Deckungsgleichheit zweier Verzeichnisse, ein eigener Satz je
+    Posten, eine Zeile je Gruppe). Und jede Ableitung bekommt eine
+    **Untergrenze als Gegenprobe**, damit eine leer gelaufene Quelle nicht auf
+    beiden Seiten gleich leer ausfällt und den Fall grün lässt. Die Regel
+    ergänzt Regel 8: Was nach ihr abgeleitet ist, steht dort nicht mehr auf der
+    Nachzieh-Liste; die ID-Listen und Kommentare bleiben es. Ein maschineller
+    Wächter ist bewusst nicht vorgesehen — ob eine verglichene Menge aus einer
+    Registry stammt, hat im Quelltext kein sicheres Merkmal, und eine Regel
+    gegen Zahl-Literale in Prüffällen träfe überwiegend die berechtigten
+    Festschreibungen. **Dieselbe Regel gilt für den Gleichheits-Nachweis über
+    einen Umbau:** Er vergleicht Obermenge und Werte, nie Mengen-Gleichheit,
+    sein Bezugsstand ist eine Untergrenze, und er wandert mit dem Bestand
+    weiter, oder er endet mit dem Umbau, den er belegt — ein Nachweis, der
+    einen Stand einfriert, während der Bestand planmäßig weiterwächst, wird rot,
+    sobald der nächste Vorgang regulär etwas hinzufügt.
+
+30. **Kopien der Zaun-Regel werden weniger, nicht mehr** (seit dem
+    2026-09-23, `4T-001913`, Fehlerklasse `L5`). Die Regel, wann eine Zeile
+    einen Code-Zaun öffnet oder schließt, wohnt in
+    `src/shared/markdown/fence-level.js`. `test/unit/zaun-kopien.test.js`
+    zerlegt jede Quelldatei unter `src/` (ohne `*.bundle.js` und ohne die
+    Heimat) mit `espree` und zählt als eigene Zaun-Erkennung einen regulären
+    Ausdruck mit Zaun-Zeichen (drei Backticks oder Tilden wörtlich, als
+    Quantor oder als Zeichenklasse), eine Zeichenkette mit der
+    Quantor-Schreibweise für `new RegExp` und jeden Bezug auf den geteilten
+    Ausdruck `FENCE_RE`; Kommentare, der Schreibweg (ein wörtliches Tripel in
+    einer Zeichenkette) und die nackte Lauf-Länge ohne Anker zählen nicht. Der
+    Bestand vom 2026-09-23, 28 Dateien, steht mit Grund je Eintrag in
+    `scripts/zaun-kopien-ausnahmen.json`. Rot wird der Wächter in beide
+    Richtungen: bei einer Datei außerhalb der Liste mit eigener Erkennung —
+    von der Heimat lesen statt kopieren, oder die Ausnahme mit Begründung
+    eintragen — und bei einem Eintrag, dessen Datei keine Erkennung mehr
+    trägt; der wird gestrichen, damit die Liste nur schrumpft. Anlass ist die
+    Klasse `L5` des Fehlerklassen-Registers: Ihre Maßnahmen hatten bis dahin je
+    ein Paar behoben und dessen Verhalten geprüft, nie die Abwesenheit
+    weiterer Kopien, und die Zaun-Regel war mit 28 Kopien die breiteste
+    Familie. Die Bestands-Lesung steht im Modulkopf.
+
 ## E2E-Praxis
 
 Wiederkehrende Stolperstellen der Playwright-Suite. Jede hat mindestens
@@ -1232,11 +1352,25 @@ Prosa-Prüfschritt (Register-Klasse L7, als solcher benannt): Welche Tore ein
 Zwang berührt, ist Beurteilung; maschinell ist allein die Zuordnungs-Messung.
 
 **Lokal, pro Commit.** Der versionierte Hook unter `.githooks/pre-commit`
-führt nacheinander `npm run format:check` (Prettier), `npm run lint`
-(ESLint), den PM-Linter und seit dem 2026-09-03 die gedrosselte
-Zuordnungs-Messung der gestagten Prüfdateien (`scripts/zuordnung-pruefen.js`,
-Abschnitt «Änderungsklassen und Prüf-Ausschnitt») aus und verweigert den
-Commit, sobald ein Schritt rot ist. Einmalige Aktivierung pro Klon:
+führt nacheinander die sperrenden Schritte aus und verweigert den Commit,
+sobald einer rot ist: zuerst das Mandats-Gate (`node scripts/mandat.js
+--gate`, Zweig-Bindung und Commit-Inhalt gegen das Sitzungs-Mandat,
+fail-closed), dann `npm run format:check` (Prettier), `npm run lint`
+(ESLint) und den PM-Linter. Dahinter laufen drei Schritte, die nur bei
+Befund sperren und allein die gestagten Dateien ihrer Art lesen (ohne
+solche Datei kosten sie nichts; «nicht messbar» blockiert bewusst nicht):
+seit dem 2026-09-03 die gedrosselte Zuordnungs-Messung der gestagten
+Unit-Prüfdateien (`scripts/zuordnung-pruefen.js`, Abschnitt
+«Änderungsklassen und Prüf-Ausschnitt»), seit dem 2026-09-21 die
+Form-Prüfung der gestagten Ablauf-Prüfdateien (unten) und seit dem
+2026-09-08 die Budget-Prüfung der gestagten Dateien mit Zeilen-Budget
+(`node scripts/budget-gestagt.js`, aus dem Index; sie bringt den Befund des
+Datei-Größen-Wächters an die Stelle, an der er entsteht, statt in den
+Queue-Lauf unter gehaltener Release-Sperre). Die vollständige Beschreibung
+nach Wirkung trägt die Anforderung «Schnelle Gates vor jedem Commit»; für
+den Wortlaut ist die Hook-Datei maßgeblich. Gemessen am 2026-09-22: rund
+25 Sekunden je Commit, rund 29 mit einer neu zu messenden gestagten
+Unit-Prüfdatei. Einmalige Aktivierung pro Klon:
 
 ```bash
 git config core.hooksPath .githooks
@@ -1245,8 +1379,9 @@ git config core.hooksPath .githooks
 Format-Check und Lint messen den **gesamten Arbeitsbaum**: unfertige,
 noch nicht gestagte Arbeit eines Folge-Tasks blockiert damit auch den
 Commit eines fertigen Tasks. Der PM-Linter misst dagegen den
-**Git-Index** (`PM_LINT_SOURCE=index`), also den Commit-Stand; jeder
-einzelne Commit muss deshalb für sich regelkonform sein.
+**Git-Index** (`PM_LINT_SOURCE=index node scripts/lint-pm-dokumente.js`),
+also den Commit-Stand; jeder einzelne Commit muss deshalb für sich
+regelkonform sein.
 
 **Zwei nicht blockierende Hinweise laufen davor** (PO-Staffelung vom
 2026-08-20, erweitert am 2026-08-26): die Rückstands-Warnung
@@ -1258,7 +1393,29 @@ darf er nicht sperren, denn er kann über Zeilen sprechen, die gar nicht in
 den Commit wandern. Verbindlich bleibt das Gate der Merge-Queue, das den
 Wächter seit demselben Vorgang auch im Prüf-Ausschnitt der budgetierten
 Änderungsklassen fährt. Kosten des Hinweises: rund 165 ms gegenüber knapp
-16 s für den ganzen Hook.
+16 s für den ganzen Hook zur Zeit seiner Einführung (2026-08-26); am
+2026-09-22 lag der ganze Hook bei rund 25 s.
+
+**Zwei Schritte gelten den gestagten Ablauf-Prüfdateien** (seit dem
+2026-09-21, Abschnitt «Änderungsklassen und Prüf-Ausschnitt»). Der erste,
+`node scripts/lint-e2e-browser-rumpf.js --gestagt`, ist **sperrend**: Er
+liest die gestagten Dateien unter `test/e2e/**` aus dem Index und weist
+einen Bezeichner ab, der im Rumpf eines Browser-Rückrufs steht und in
+derselben Datei außerhalb davon deklariert ist. Gemessen am 2026-09-21:
+154 Dateien und 633 Rückrufe in 0,36 s, ohne gestagte Ablauf-Datei kostet
+der Schritt nichts. Der zweite, `node scripts/e2e-laufstand.js --gestagt`,
+**warnt nur** und endet immer mit 0: Er nimmt den jüngsten
+Playwright-Bericht (`test-berichte/e2e.json`) in eine kumulative Spur im
+Git-Verzeichnis auf und meldet jede gestagte Prüfdatei, deren Inhalt so
+nie gelaufen oder zuletzt rot gelaufen ist. Er sperrt bewusst nicht, weil
+er nicht wissen kann, ob ein Lauf sinnvoll unterblieben ist — eine
+Änderung im Kommentar braucht keinen. Verbindlich bleibt die Regel `Ä8`.
+Beide Schritte hängen im Hook: die Lauf-Spur bei den nicht blockierenden
+Hinweisen oben, die Form-Prüfung hinter der Zuordnungs-Messung. Die
+Form-Prüfung ist zusätzlich über den Bestands-Wächter
+`test/unit/e2e-browser-rumpf.test.js` am Integrationstor scharf — er fährt
+sie über den gesamten Ablauf-Bestand, während der Hook-Schritt nur die
+gestagten Dateien liest.
 
 **Zentral, pro Integration.** Das Testsuite-Gate der Merge-Queue läuft am
 Integrationsstand, zusammen mit Format-Check und Lint; erst bei Grün
@@ -1442,11 +1599,11 @@ steuern: Ein mechanischer Vorgang kann Ä7 auslösen (Umbenennung in einem
 | **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md`, `web/roadmap-zuordnung.json` | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`, `dashboard-sicht`) plus `quellcode-export` und `doku-pfade`; kein Format, kein Lint | keine |
 | **Ä2 Auslieferungs-Texte** | `CHANGELOG.md`, `docs/öffentlich/**`, `web/inhalte/versionen/**` | Ä1 plus `web-inhalte` | keine |
 | **Ä3 Sprachdateien und Katalog** | `src/i18n/**`, `test/abdeckungs-matrix.json` | Katalog-Gruppe: `i18n`, `abdeckungs-matrix`, `manual-pages`, `manual-generated`, `hilfetext-stil`, `rueckverweis-webseite`, `bildmarke`, `panel-access`, `command-placement`, `commands`, `menu-accelerator`, `register-paare`, `color-schemes`, `web-handbuch`, `web-handbuch-funktionen`, `web-mermaid`, dazu die drei Renderer-Wächter `frontmatter-query-view`, `graph-view`, `perspective-script-view`, dazu `doku-pfade`; Format wegen JSON | Smoke plus `regression/4t-0185.spec.js`; bei `src/i18n/help/**` zusätzlich `funktionen/handbuch.spec.js` |
-| **Ä4 Renderer-Modul** | `src/renderer/**` ohne `index.html` | Import-Graph-Ausschnitt des geänderten Moduls plus `test/unit/renderer/**`, `spellcheck`, `save-guard-aufrufer`, `panel-access`, `script-sandbox-runtime`, `color-schemes`, `doku-pfade`, `datei-groessen`, `plattform-erosion`; Format und Lint | Smoke plus die Funktions-Specs des berührten Bereichs |
+| **Ä4 Renderer-Modul** | `src/renderer/**` ohne `index.html` | Import-Graph-Ausschnitt des geänderten Moduls plus `test/unit/renderer/**`, `spellcheck`, `save-guard-aufrufer`, `panel-access`, `script-sandbox-runtime`, `color-schemes`, `doku-pfade`, `datei-groessen`, `plattform-erosion`; Format und Lint | Smoke plus die Funktions-Specs des berührten Bereichs; dazu die Regressions-Specs, die die Karte nennt (Canvas-Karten, Statusleisten-Knopf der Karten-Liste, Datei-Zeile des Bildschirmfoto-Werkzeugs) |
 | **Ä5 Main, Preload und Bau** | `src/main/**`, `scripts/build-*.js`, `package.json` (Feld `build`), `build/**` | Import-Graph-Ausschnitt plus `archive-build`, `build-version`, `auffang-ebene-main`, `spellcheck`, `bildmarke`, `release-hinweise`, `doku-pfade`, `datei-groessen`, `plattform-erosion`; Format und Lint | Smoke plus EXE-Smoke-Test |
-| **Ä6 Werkzeuge und Webseite** | `scripts/**` außer `build-*`, `web/**` außer `roadmap-zuordnung.json` und `inhalte/versionen/**` | Werkzeug- und Web-Wächter der berührten Familie plus `quellcode-export` (Positivliste), `doku-pfade` und `datei-groessen`; Format und Lint | keine |
+| **Ä6 Werkzeuge und Webseite** | `scripts/**` außer `build-*`, `web/**` außer `roadmap-zuordnung.json` und `inhalte/versionen/**` | Werkzeug- und Web-Wächter der berührten Familie plus `quellcode-export` (Positivliste), `doku-pfade` und `datei-groessen`; Format und Lint | keine; bei `scripts/web-bildschirmfotos.js` die Regressions-Spec `regression/4t-001829-bildschirmfoto-datei-zeile.spec.js` |
 | **Ä7 Geteilte Kern-Module** | `src/shared/**`, `src/renderer/index.html`, `src/demo/**` | **Voll-Suite unverändert** | Smoke plus alle Specs der berührten Funktionsbereiche |
-| **Ä8 Geänderte Prüffälle** | `test/unit/**/*.test.js`, `test/e2e/**/*.spec.js` | der geänderte Prüffall selbst plus `datei-groessen`, `aenderungsklassen` und `quellcode-export-listen`; Format und Lint | keine über die geänderte Spec hinaus |
+| **Ä8 Geänderte Prüffälle** | `test/unit/**/*.test.js`, `test/e2e/**/*.spec.js` | der geänderte Prüffall selbst plus `datei-groessen`, `aenderungsklassen`, `quellcode-export-listen` und `e2e-browser-rumpf`; Format und Lint | keine über die geänderte Spec hinaus |
 
 **Warum die Auslassungen tragen.** Für Ä1 folgt es aus den
 Ignore-Dateien: `.prettierignore` schließt `*.md` und
@@ -1506,6 +1663,24 @@ Nachbar-Änderung die Wächter mit). Ein **Rückfall** auf die vollen Gates
 wäre das falsche Mittel gewesen, weil er die häufige Lage „Code-Änderung
 samt Regressionstest" mitträfe und der Abstufung vom 2026-08-14 ihren
 Gewinn nähme.
+
+**Bei einer geänderten Ablauf-Prüfdatei ist der Lauf des Falls der
+Nachweis; wo er ausbleibt, tragen ihn die Form-Prüfung der
+Browser-Rückrufe und die Lauf-Spur** (seit dem 2026-09-21).
+`scripts/lint-e2e-browser-rumpf.js` weist jeden Bezeichner ab, der im
+Rumpf eines `evaluate`-Rückrufs steht und in derselben Datei außerhalb
+davon deklariert ist — dort läuft er in einem anderen Prozess und endet im
+`ReferenceError`; genau so lag am 2026-09-09 eine Spec zwei Tage unbemerkt
+rot. `scripts/e2e-laufstand.js` hält den gestagten Inhalt gegen die
+Prüfdateien, die der jüngste Playwright-Bericht als gelaufen ausweist.
+Der Grund für die Aufteilung ist der Preis: Ein Ablauf-Fall kostet
+Playwright und Electron, und 10,2 Prozent aller Commits berühren eine
+Spec, einer davon 107. Die Form-Prüfung ist deshalb sperrend gebaut, die
+Lauf-Spur warnt nur — sie weiß nicht, ob ein Lauf sinnvoll unterblieben
+ist. Die Form-Prüfung hängt über `test/unit/e2e-browser-rumpf.test.js`
+bereits am Integrationstor: Der Prüffall fährt sie über den gesamten
+Ablauf-Bestand und steht im Ausschnitt dieser Klasse, damit eine geänderte
+Spec ihn mitzieht.
 
 **Drei Buchführungs-Wächter laufen in jedem Ausschnitt** (seit dem
 2026-09-03). `aenderungsklassen`, `abdeckungs-matrix` und `datei-groessen`
@@ -1762,7 +1937,7 @@ Die Festlegung spricht bewusst von **freigegebenen Plattformen** und nicht von W
 node scripts/test-linux-docker.js e2e
 ```
 
-Gate-Namen (`format:check`, `lint`, `test`, `e2e`, `alle`) werden unverändert an `scripts/gate-lauf.js` im Container durchgereicht; es fällt dort dasselbe Kommando wie auf der Haupt-Plattform. `--nur <muster>` fährt einen einzelnen Fall und ist der Diagnose-Weg, wenn ein roter Fall nach der Leiter unten isoliert nachzuprüfen ist. Voraussetzung ist Docker; ein Kaltstart von Docker Desktop braucht mehrere Minuten, bevor der Dienst antwortet.
+Gate-Namen (`format:check`, `lint`, `test`, `e2e`, `alle`) werden unverändert an `scripts/gate-lauf.js` im Container durchgereicht; es fällt dort dasselbe Kommando wie auf der Haupt-Plattform. `--nur <muster>` fährt einen einzelnen Fall und ist der Diagnose-Weg, wenn ein roter Fall nach der Leiter unten isoliert nachzuprüfen ist. **Der Schalter gilt allein für das Gate `e2e`**, wo das Muster an den E2E-Lauf weitergereicht wird; zusammen mit einem anderen Gate — auch wenn `e2e` daneben steht — endet der Aufruf vor dem ersten Docker-Aufruf mit einer Meldung, statt das volle Gate zu fahren. Für das Unit-Gate gibt es diesen Weg damit nicht. Voraussetzung ist Docker; ein Kaltstart von Docker Desktop braucht mehrere Minuten, bevor der Dienst antwortet.
 
 **Woher der Lauf seine Dateien liest, ist nicht überall dasselbe** (seit dem 2026-08-31, Vorgang zum Rechner-Unterschied weiter unten):
 
@@ -1773,6 +1948,13 @@ Gate-Namen (`format:check`, `lint`, `test`, `e2e`, `alle`) werden unverändert a
 - `--ohne-kopie` stellt den alten Weg her, für alle Gates gleichermaßen. Er ist der schnellere, wenn **ein einzelner** Fall nachzuprüfen ist, weil die Kopie dann teurer wäre als der Fall selbst, und er ist der Ausweg, falls die Kopie einmal nicht trägt.
 
 Wer die Aufteilung ändert, ändert den Prüfstand einer Release-Abnahme; `test/unit/test-linux-docker.test.js` hält sie deshalb fest.
+
+**Das E2E-Gate läuft in einem eigenen Prüfstand-Abbild** (seit dem 2026-09-23, `4T-001693`). Das Referenz-Abbild `electronuserland/builder:22` ist eine Bau-Umgebung und kann die Anwendung nicht starten; bis dahin beschaffte deshalb jeder Lauf des E2E-Gates die Anzeige-Bibliotheken neu über `playwright install-deps`, 337 Pakete mit rund 219 MB Download, und bei langsamer Paketquelle hing ein Lauf am 2026-09-11 über 44 Minuten darin fest. Jetzt stehen Bibliotheken, `xvfb` und der Prüf-Nutzer in einem abgeleiteten Abbild aus `scripts/pruefstand.Dockerfile`:
+
+- **Das Werkzeug baut es selbst**, sobald es fehlt, und meldet das in einer Zeile mit Dauer; gemessen am 2026-09-23 auf SC-027 mit 90 s bei schneller Paketquelle. Schlägt der Bau fehl, bricht der Lauf ab, einen Rückfall auf die Beschaffung je Lauf gibt es nicht. Die kopflosen Gates bleiben im Referenz-Abbild und brauchen das Prüfstand-Abbild nicht.
+- **Das Tag heißt `em4me-pruefstand:<hash>`**, gebildet aus dem Inhalt des Dockerfiles, der Playwright-Version aus `package-lock.json` und der ID des Referenz-Abbilds. Ein Playwright-Sprung, eine Änderung am Rezept oder ein neu gezogenes Referenz-Abbild ergibt damit ein neues Tag und beim nächsten Lauf einen neuen Bau, ohne dass jemand daran denken muss; ein bestehendes Tag wird nie überschrieben.
+- **Größenordnung** (2026-09-23, SC-027, ein einzelner Fall mit `e2e --nur`): mit `--ohne-install --ohne-kopie` 13 s Wanduhr bei 3 s Rüstzeit bis zum ersten Gate; ohne Schalter 20 s Wanduhr bei 16 s Rüstzeit, davon 13 s für die Kopie. Jeder Lauf nennt seine Rüstzeit in der Zeile «Ruestzeit bis zum ersten Gate».
+- **Alte Tags räumt das Werkzeug bewusst nicht auf**, weil die Arbeitsbereiche eines Rechners auf Zweigen mit verschiedenen Playwright-Ständen arbeiten können und ein Bau in einem Bereich das Abbild eines anderen nicht entfernen darf. Ein Tag belegt rund 650 MB über dem Referenz-Abbild. Von Hand: `docker image ls em4me-pruefstand` zeigt die vorhandenen Tags samt Alter (die Playwright-Version steht im Label `em4me.playwright`, sichtbar über `docker image inspect <tag>`), und `docker image rm em4me-pruefstand:<hash>` entfernt ein nicht mehr benötigtes; ein Tag, das gerade ein Container benutzt, lehnt Docker dabei ab.
 
 ### Gemessene Größenordnungen (2026-08-28, SC-027 Slot B)
 
@@ -2085,6 +2267,30 @@ ein neues Bedienelement bringt seinen E2E-Fall mit, ein weiterer
 einführt, hält dieselbe Regel über den Kopf-Kommentar seiner Prüfgruppe
 ein: Struktur-Prüfungen nennen den Fall, der die Wirkung nachweist.
 
+**Die Kennung wird gezogen, nicht gewählt** (seit dem 2026-09-21): Die `id`
+eines neuen Matrix-Eintrags kommt aus der atomaren Reservierung am gemeinsamen
+Ablage-Ort, nicht aus einem Blick in die eigene Datei:
+
+```bash
+node scripts/nummern-reservierung.js --matrix F 2 --vorhaben "<Vorhaben>"
+```
+
+`F` für einen Eintrag des Funktions-Katalogs, `S` für ein Tastenkürzel; die
+Anzahl ist der zusammenhängende Block. Das Werkzeug zählt über den
+Integrationsstand, den eigenen Zweig **und** die offenen Reservierungen aller
+Arbeitsbereiche; die Reservierung verfällt selbsttätig, sobald die Kennungen
+unter demselben Katalog-Schlüssel in der Matrix von `main` stehen. Ohne
+`--matrix` bleiben `F` und `S` abgewiesen — dort wären es die zurückgebauten
+Präfixe der Anforderungsachse. **Grund:** «nächste freie Nummer» heißt ohne
+gemeinsamen Ablage-Ort «frei im eigenen Zweig»; viermal haben zwei Zweige
+deshalb dieselbe Kennung vergeben, zuletzt `F-301` und `F-302` am 2026-09-15.
+Der Meta-Test findet die Doppelung zuverlässig, aber erst nach dem
+Zusammenführen — die Reparatur fällt dann in die Release-Strecke. **Wer den
+Aufruf vergisst**, merkt es weiterhin erst dort; das bleibt so, weil eine
+Kennung ohne Reservierungs-Spur nicht prüfbar ist, sobald die Reservierung
+verfallen ist. Eine offene Reservierung mit fremd vergebener Kennung meldet
+dagegen schon das Lagebild beim Sitzungs-Start.
+
 **Regressionstest-Pflicht pro Bugfix:** Jeder behobene Fehler erhält einen Regressionstest auf der passenden Ebene (Unit, Snapshot oder E2E), nach Möglichkeit zuerst als fehlschlagender Test, dann der Fix; die Befund- bzw. Task-ID steht als Kommentar am Test. **Szenario-Treue bei gemeldeten Befunden** (Retrospektive vom 2026-08-05): Der Regressionstest eines vom Product Owner oder aus dem Feld gemeldeten Befunds stellt den **gemeldeten Ablauf** nach (Fenster-, Sitzungs- und Daten-Lage der Meldung), nicht das Minimal-Szenario der diagnostizierten Ursache; die Diagnose bestimmt den Fix, die Meldung bestimmt den Test. Gegenüber dem Product Owner heißt ein gemeldeter Befund erst «behoben», wenn sein Ablauf nachgestellt grün ist; davor lautet die Rückmeldung «Fix umgesetzt, Nachweis im nachgestellten Szenario». Anlass: Ein Restore-Fix bestand das Minimal-Szenario (eine App, kleines Profil) und fiel am realen Mehr-Fenster-Profil durch.
 
 **E2E-Fall pro neuem Bedien-Weg über eine Prozess-Brücke** (seit dem 2026-09-14, Anlass `4T-001747`, Fehlerklasse `L10`/`U3`): Ein Bedien-Weg, der auf dem Weg zur Wirkung eine **Prozess-Brücke**, eine **Fokus-Führung** oder eine **zurückgestellte Neu-Übergabe** passiert, bekommt seinen E2E-Fall an der gestarteten Anwendung, **bevor** der Product Owner zum Testen aufgefordert wird — nicht erst, nachdem er einen Befund gemeldet hat. Grund: In jsdom ist jede dieser drei Nahtstellen durch einen gestellten Nachbarn ersetzt, und ein Prüffall, der den Nachbarn selbst stellt, prüft seine eigene Annahme mit. Das ist keine neue Stufe, sondern die Anwendung des Eintritts-Kriteriums aus Stufe 1 der Teststrategie («eine gezielte E2E-Spec dort, wo das Kriterium ausschließlich end-zu-end beobachtbar ist») auf einen benannten Fall-Typ. Belegt: Drei Abnahme-Befunde an der Verweis-Karte der Canvas-Stufe 3 lagen an genau diesen drei Nahtstellen, alle jsdom-Fälle waren grün, und der nachgereichte E2E-Fall ist ohne die Behebung in drei von vier Fällen rot. **Kein Wächter** — welcher Weg eine Brücke passiert, ist eine Aussage über den Bau und nicht über eine Datei-Menge; die Regel hängt am Prüf-Block des Tasks, in dem der Bedien-Weg entsteht.
@@ -2118,8 +2324,9 @@ Hilfe-Task vorgemerkt war.
    Entwicklungsrichtlinien,
    Kapitel 13).
 2. Tests schreiben (E2E in `test/e2e/funktionen/`, Unit/Snapshot nach
-   Lage) und in der Matrix eintragen: `key`, fortlaufende `id`
-   (`F-…`/`S-…`), `testart` (`e2e`/`unit`/`snapshot`), `tests`
+   Lage) und in der Matrix eintragen: `key`, `id` aus der Reservierung
+   (`node scripts/nummern-reservierung.js --matrix F 1 --vorhaben "…"`,
+   Regel oben), `testart` (`e2e`/`unit`/`snapshot`), `tests`
    (Pfade relativ zum Repo-Root), optional `hinweis`.
 3. Nur wenn ein Kürzel ein reiner Menü-Accelerator ist (Playwright
    erreicht das native Menü nicht): `testart: "ipc"` mit dem getesteten

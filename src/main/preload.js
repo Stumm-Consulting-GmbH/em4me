@@ -239,6 +239,9 @@ contextBridge.exposeInMainWorld('api', {
   confirmCloseDirty: (opts) => ipcRenderer.invoke('dialog:confirmCloseDirty', opts),
   // 4T-000512 (Epic 3E-000092): Lösch-Bestätigung eines Ereignis-Eintrags.
   eventsConfirmDelete: (entryText) => ipcRenderer.invoke('events:confirmDelete', entryText),
+  // 4T-001851 (Epic 3E-000110): Rueckfrage vor dem Loeschen einer nicht leeren
+  // Spalte der Kanban-Tafel.
+  kanbanConfirmDeleteColumn: (a) => ipcRenderer.invoke('kanban:confirmDeleteColumn', a),
   // 4T-000515 (Epic 3E-000092): Ereignis-Aggregation (Index-Abfrage) und
   // Frontmatter-Rueckschreiben in nicht geoeffnete Quell-Dateien.
   eventsQuery: (query) => ipcRenderer.invoke('events:query', query),
@@ -902,6 +905,21 @@ contextBridge.exposeInMainWorld('api', {
   onMenuViewChange: (cb) => ipcRenderer.on('menu:viewChange', (_e, mode) => cb(mode)),
   // 4T-001654 (Epic 3E-000287): 'Ansicht -> Karte auf der Flaeche anlegen'.
   onMenuCanvasAddCard: (cb) => ipcRenderer.on('menu:canvasAddCard', () => cb()),
+  // 4T-001849 (Epic 3E-000110): 'Ansicht -> Karte auf der Tafel anlegen'.
+  onMenuKanbanAddCard: (cb) => ipcRenderer.on('menu:kanbanAddCard', () => cb()),
+  // 4T-001906 (Epic 3E-000318): 'Ansicht -> Kanban-Tafel -> Karte archivieren'.
+  onMenuKanbanArchiveCard: (cb) => ipcRenderer.on('menu:kanbanArchiveCard', () => cb()),
+  // 4T-001851 (Epic 3E-000110): 'Ansicht -> Spalte auf der Tafel anlegen'.
+  onMenuKanbanAddColumn: (cb) => ipcRenderer.on('menu:kanbanAddColumn', () => cb()),
+  // 4T-001852 (Epic 3E-000110): die beiden Wege zu einer Tafel im Untermenue
+  // 'Ansicht -> Kanban-Tafel'.
+  onMenuKanbanNewBoard: (cb) => ipcRenderer.on('menu:kanbanNewBoard', () => cb()),
+  onMenuKanbanConvertToBoard: (cb) => ipcRenderer.on('menu:kanbanConvertToBoard', () => cb()),
+  // 4T-001904 (Epic 3E-000318): die Häkchen der Anzeige-Schalter im selben
+  // Untermenü (ein Kanal für alle, Nutzlast = Kommando) und die Meldung eines
+  // umgeschalteten Werts an alle Fenster (Nutzlast = { schluessel, wert }).
+  onMenuKanbanSchalter: (cb) => ipcRenderer.on('menu:kanbanSchalter', (_e, id) => cb(id)),
+  onKanbanAnzeigeChanged: (cb) => ipcRenderer.on('kanbanAnzeige:changed', (_e, m) => cb(m)),
   // 4T-001701 (Epic 3E-000288): 'Ansicht -> Form auf der Flaeche anlegen'.
   onMenuCanvasAddShape: (cb) => ipcRenderer.on('menu:canvasAddShape', () => cb()),
   // 4T-001702 (Epic 3E-000288): 'Ansicht -> Gruppe auf der Flaeche anlegen'.

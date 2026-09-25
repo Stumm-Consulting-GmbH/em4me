@@ -90,6 +90,18 @@ import {
   legeCanvasBildKarteAn,
   verschiebeCanvasElement,
 } from '../canvas/canvas-pane.js';
+// 4T-001849 (Epic 3E-000110): Karte auf der Kanban-Tafel anlegen.
+import {
+  archiviereKanbanKarte,
+  legeKanbanKarteAn,
+  legeKanbanSpalteAn,
+} from '../kanban/kanban-pane.js';
+// 4T-001852 (Epic 3E-000110): die beiden Wege zu einer Tafel.
+import { legeNeueTafelAn, wandleInTafelUm } from '../kanban/kanban-anlegen.js';
+// 4T-001904 (Epic 3E-000318): die Anzeige-Schalter der Tafel.
+import { schalteKanbanAnzeige } from '../kanban/kanban-anzeige-schalter.js';
+// 4T-001907 (Epic 3E-000318): Strg+F in der Tafel-Ansicht führt in ihr Filter-Feld.
+import { oeffneTafelSuche } from '../kanban/kanban-suche.js';
 import { openDatePickerAtSelection } from '../calendar/date-picker.js';
 import { openCalendarPickerAtSelection } from '../calendar/calendar-picker.js';
 import * as journale from '../calendar/journals.js';
@@ -440,12 +452,49 @@ export const commandHandlers = {
   'view.modeCanvas': () => {
     setViewMode('canvas');
   },
+  // 4T-001847 (Epic 3E-000110): Siebter Ansichts-Modus, die Kanban-Tafel. Bei
+  // ausgeschalteter Erweiterung filtert der Dispatcher das Kommando bereits
+  // heraus; bei einem Dokument ohne Tafel faengt setViewMode den Rest ab.
+  'view.modeKanban': () => {
+    setViewMode('kanban');
+  },
   // 4T-001654 (Epic 3E-000287): Karte in der Mitte des sichtbaren Ausschnitts
   // der aktiven Flaeche anlegen; ausserhalb der Canvas-Ansicht ein Hinweis
   // (Guard-Muster edit.insertEvents).
   'canvas.addCard': () => {
     return legeCanvasKarteAn(state.activePaneIndex);
   },
+  // 4T-001849 (Epic 3E-000110): Karte in der Spalte der gewaehlten Karte der
+  // aktiven Tafel anlegen; ohne gewaehlte Karte in der ersten Spalte.
+  // Ausserhalb der Tafel-Ansicht ein Hinweis, nach demselben Guard-Muster.
+  'kanban.addCard': () => {
+    return legeKanbanKarteAn(state.activePaneIndex);
+  },
+  // 4T-001906 (Epic 3E-000318): die gewählte Karte der aktiven Tafel
+  // archivieren; ohne Wahl ohne Wirkung, außerhalb der Tafel-Ansicht ein
+  // Hinweis, nach demselben Guard-Muster.
+  'kanban.archiveCard': () => archiviereKanbanKarte(state.activePaneIndex),
+  // 4T-001851 (Epic 3E-000110): Spalte am Ende der aktiven Tafel anlegen,
+  // danach sofort benennbar. Ausserhalb der Tafel-Ansicht ein Hinweis, nach
+  // demselben Guard-Muster wie beim Karten-Kommando darueber.
+  'kanban.addColumn': () => {
+    return legeKanbanSpalteAn(state.activePaneIndex);
+  },
+  // 4T-001852 (Epic 3E-000110): ein neues Dokument, das bereits eine Tafel ist,
+  // geoeffnet in der Tafel-Ansicht.
+  'kanban.newBoard': () => {
+    return legeNeueTafelAn();
+  },
+  // 4T-001852: das leere Dokument der aktiven Spalte in eine Tafel umwandeln;
+  // bei Inhalt oder nicht aenderbarem Dokument ein Hinweis, nach demselben
+  // Guard-Muster wie die beiden Tafel-Befehle darueber.
+  'kanban.convertToBoard': () => {
+    return wandleInTafelUm(state.activePaneIndex);
+  },
+  // 4T-001904 (Epic 3E-000318): Schalter «Tags am Kartenfuß», global für alle
+  // offenen Tafeln; derselbe Weg wie das Häkchen im Menü.
+  'kanban.toggleTagsFooter': () => schalteKanbanAnzeige('kanban.toggleTagsFooter'),
+  'kanban.toggleRelativeDates': () => schalteKanbanAnzeige('kanban.toggleRelativeDates'),
   // 4T-001701 (Epic 3E-000288): Form in der Mitte des sichtbaren Ausschnitts
   // anlegen, Art Rechteck. Die sechs Arten an der Klick-Stelle bietet das
   // Kontextmenue der Flaeche.
@@ -621,7 +670,10 @@ export const commandHandlers = {
     // Leiste sucht verlaesslich ins Leere. Die Weiche steht hier und nicht in
     // der Suche: Die Leiste selbst bleibt unveraendert, und in jeder anderen
     // Ansicht laeuft dieselbe Zeile wie zuvor.
-    if (!oeffneCanvasSuche(state.activePaneIndex)) openSearchBar();
+    // 4T-001907 (Epic 3E-000318): In der Tafel-Ansicht ebenso, in das
+    // Filter-Feld im Kopf der Tafel (Entscheidung im Epic vom 2026-09-21).
+    const idx = state.activePaneIndex;
+    if (!oeffneCanvasSuche(idx) && !oeffneTafelSuche(idx)) openSearchBar();
   },
   'search.openReplace': () => {
     // Ersetzen ist nur im Edit-Modus aktiv (Source ist editierbar); der

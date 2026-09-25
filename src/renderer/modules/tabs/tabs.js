@@ -15,11 +15,17 @@ import { isMindmapModeAvailable } from '../mindmap/mindmap-modus.js';
 // 4T-001653 (Epic 3E-000287): Verfuegbarkeit des Canvas-Modus fuer Schaltflaeche
 // und Menue-Meldung. Aus demselben winzigen Modul und aus demselben Grund.
 import { istCanvasErweiterungAn, istCanvasModusVerfuegbar } from '../canvas/canvas-modus.js';
+// 4T-001847 (Epic 3E-000110): Verfuegbarkeit des Tafel-Modus fuer Schaltflaeche
+// und Menue-Meldung, aus derselben einen Quelle wie bei der Canvas.
+import { istKanbanErweiterungAn, istTafelModusVerfuegbar } from '../kanban/kanban-modus.js';
 // 4T-001765 (Epic 3E-000186, E6): Die Statusleiste beantwortet die Frage «ist
 // dieser Schalter gerade aktivierbar?» nicht mehr selbst. Der Kontext kommt
 // aus der einen Renderer-Stelle, die ihn baut (command-palette.js), die
 // Antwort und die Darstellung aus statusbar-availability.js.
 import { rendererAvailabilityContext } from '../command-palette.js';
+// 4T-001852 (Epic 3E-000110): Herleitung des Vertrags-Feldes `leeresDokument`
+// fuer die Menue-Meldung, aus derselben einen Quelle wie in der Palette.
+import { dokumentIstLeer } from '../../../shared/commands/command-availability.js';
 import { ANSICHTS_KOMMANDOS, setzeLeistenSchalter } from '../statusbar-availability.js';
 import {
   DEFAULT_VIEW_MODE,
@@ -339,13 +345,23 @@ export function syncToolbarToActiveTab() {
   // im Aus-Zustand ganz weg ist und ein `disabled` an einem unsichtbaren
   // Element nichts sagte; die Bedingung liefert im Aus-Zustand ohnehin false.
   const canvasErweiterungAn = istCanvasErweiterungAn();
+  // 4T-001847 (Epic 3E-000110): Die Tafel-Schaltflaeche folgt demselben
+  // Zuschnitt, Zeichen fuer Zeichen — der Erweiterungs-Schalter entscheidet
+  // ueber `hidden` (die Funktion gibt es dann nicht), die Bedingung
+  // 'tafelAnsicht' des Modells ueber `disabled` (es gibt sie, dieses Dokument
+  // traegt sie nur nicht). Der Grund der Deaktivierung steht im Titel.
+  const kanbanErweiterungAn = istKanbanErweiterungAn();
   document.querySelectorAll('.view-btn').forEach((b) => {
     if (b.dataset.view === 'mindmap') b.hidden = !mindmapVerfuegbar;
     if (b.dataset.view === 'canvas') b.hidden = !canvasErweiterungAn;
+    if (b.dataset.view === 'kanban') b.hidden = !kanbanErweiterungAn;
     b.classList.toggle('active', !systemTab && b.dataset.view === viewMode);
     const aktivierbar = setzeLeistenSchalter(b, ANSICHTS_KOMMANDOS[b.dataset.view], verfuegbarkeit);
     if (b.dataset.view === 'canvas') {
       b.title = aktivierbar ? t('menu.view.canvas') : t('canvas.keineFence');
+    }
+    if (b.dataset.view === 'kanban') {
+      b.title = aktivierbar ? t('menu.view.kanban') : t('kanban.keineTafel');
     }
   });
 
@@ -474,6 +490,15 @@ export function reportMenuStateNow() {
     // Canvas-Flaeche? Der Menue-Eintrag der Canvas-Ansicht haengt daran
     // (Anordnung des Product Owners vom 2026-09-09).
     canvasTab: istCanvasModusVerfuegbar(tab),
+    // 4T-001847 (Epic 3E-000110): Ist das aktive Dokument eine Tafel? Der
+    // Menue-Eintrag der Tafel-Ansicht haengt daran, wie der Canvas-Eintrag an
+    // der Zeile darueber.
+    tafelTab: istTafelModusVerfuegbar(tab),
+    // 4T-001852 (Epic 3E-000110): Ist das aktive Dokument leer? Der Eintrag
+    // «Leeres Dokument in Kanban-Tafel umwandeln» haengt daran. Gemessen ueber
+    // dieselbe Funktion, die auch die Kommando-Palette fragt, damit die Grenze
+    // zwischen «leer» und «hat Inhalt» an beiden Bedienorten dieselbe ist.
+    leeresDokument: !!tab && dokumentIstLeer(tab.content),
     // 4T-000568 (Epic 3E-000104): geordnete Panel-Liste fuer das Panel-
     // Untermenue (ersetzt die frueheren elf xxxVisible-Einzel-Flags; damit
     // fuehren erstmals auch Notizen/Block-Eigenschaften/Datei-Graph/

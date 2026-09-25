@@ -33,6 +33,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'datums-picker.md');
 
@@ -261,12 +262,7 @@ test.describe('DP-06: Aus-Zustand der Erweiterung date-picker (F-114)', () => {
       // Broadcast), dann die Seite unveraendert schliessen (Abbrechen loest
       // kein erneutes Anwenden und keinen Panes-Re-Mount aus).
       await page.evaluate(() => window.api.setSetting('extensions.disabled', ['date-picker']));
-      await expect
-        .poll(async () => {
-          await page.keyboard.press('Control+,');
-          return page.locator(SETTINGS_PAGE).count();
-        })
-        .toBeGreaterThan(0);
+      await oeffneEinstellungsSeite(page);
       await page
         .locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="extensions"]`)
         .click();
@@ -423,12 +419,7 @@ test.describe('DP-09: Ausschluesse der Datums-Dekoration (F-114)', () => {
       // Erweiterung ueber den Settings-Store abschalten (Muster DP-06) und den
       // angewendeten Aus-Zustand ueber die Einstellungs-Seite bestaetigen.
       await page.evaluate(() => window.api.setSetting('extensions.disabled', ['date-picker']));
-      await expect
-        .poll(async () => {
-          await page.keyboard.press('Control+,');
-          return page.locator(SETTINGS_PAGE).count();
-        })
-        .toBeGreaterThan(0);
+      await oeffneEinstellungsSeite(page);
       await page
         .locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="extensions"]`)
         .click();

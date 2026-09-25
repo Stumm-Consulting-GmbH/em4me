@@ -4,15 +4,16 @@ Questa pagina non risponde a **come** si fa qualcosa, ma a **a che cosa serve**.
 
 ## Un documento, come serve in questo momento
 
-Leggere, scrivere e verificare sono attività diverse e richiedono presentazioni diverse dello stesso testo. Invece di imporre un compromesso, l'applicazione tiene pronte sei viste, e basta un tasto per passare dall'una all'altra: la pagina finita per leggere, il testo sorgente per il lavoro preciso, entrambi affiancati per confrontare, la modalità dal vivo per scrivere in scioltezza, la mappa mentale per vedere la struttura e la tela per schede su una superficie. Il passaggio non costa nulla e non modifica mai il file.
+Leggere, scrivere e verificare sono attività diverse e richiedono presentazioni diverse dello stesso testo. Invece di imporre un compromesso, l'applicazione tiene pronte sette viste, e basta un tasto per passare dall'una all'altra: la pagina finita per leggere, il testo sorgente per il lavoro preciso, entrambi affiancati per confrontare, la modalità dal vivo per scrivere in scioltezza, la mappa mentale per vedere la struttura, la tela per schede su una superficie e la bacheca per le attività in colonne. Il passaggio non costa nulla e non modifica mai il file.
 
 - **Renderizzata** per leggere, **codice sorgente** per il lavoro preciso sulla sintassi.
 - **Divisa** mostra sorgente e risultato affiancati, per i costrutti insidiosi.
 - **Dal vivo** formatta mentre si digita e mostra i caratteri Markdown solo nella riga corrente.
 - **Mappa mentale** trasforma la struttura dei titoli in un albero.
 - **Tela** mostra una superficie con schede e collegamenti che si trova nel documento stesso.
+- **Bacheca** dispone le attività del documento una accanto all'altra, come schede in colonne.
 
-In dettaglio: [Viste e visualizzazione](views-display.md), [Vista mappa mentale](mindmap.md), [Superficie Canvas](canvas.md).
+In dettaglio: [Viste e visualizzazione](views-display.md), [Vista mappa mentale](mindmap.md), [Superficie Canvas](canvas.md), [Bacheca Kanban](kanban.md).
 
 ## Molti documenti affiancati
 
@@ -69,6 +70,12 @@ Certi pensieri non hanno un ordine. Affiancare alternative, abbozzare un flusso 
 - **Aperto verso l’esterno**: una superficie può essere salvata nel formato aperto JSON Canvas e riletta da esso — per lo scambio con altri strumenti.
 
 In dettaglio: [Superficie Canvas](canvas.md).
+
+## Attività che si spingono avanti
+
+Chi porta avanti molte attività insieme non vuole leggere che cosa resta da fare, ma vedere a che punto è ciascuna cosa. Una bacheca Kanban dispone le attività di un documento in colonne — da fare, in corso, fatto, o come altro si chiamino i passi del proprio flusso di lavoro — e le sue schede si spingono con il mouse da una colonna alla successiva; una colonna si può impostare in modo che spunti subito ogni attività trascinata al suo interno. Tutto questo resta testo ordinario nel documento: le colonne sono i suoi titoli, le schede le sue righe di attività, e ciò che è spuntato sulla bacheca lo è altrettanto in ogni altra vista. Una bacheca scritta con il diffuso strumento di bacheche per le note Markdown si apre qui, si modifica qui e si continua a usare là.
+
+In dettaglio: [Bacheca Kanban](kanban.md).
 
 ## Dai file nasce un libro
 

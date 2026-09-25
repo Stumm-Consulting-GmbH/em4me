@@ -12,6 +12,56 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
+const { internalExtensions } = require('../../../src/shared/extensions/extensions.js');
+const { PANEL_ACCESS } = require('../../../src/shared/panel-access.js');
+
+// 4T-001857 (Epic 3E-000161): Die Zählwerte dieser Datei stehen nicht mehr als
+// feste Zahl im Prüfcode, sondern kommen aus derselben Quelle, aus der die
+// Anwendung sie bildet — soweit eine solche Quelle aus der Prüfdatei ladbar
+// ist. Ladbar sind allein die Daten-Module unter src/shared; die Renderer-
+// Module (Einstellungs-Registry, Standard-Anordnung der Seitenleiste) sind
+// ES-Module, die beim Laden window.api auswerten, und damit hier nicht
+// erreichbar.
+
+// Die bereichsgebundenen Abschnitte der Einstellungs-Navigation in
+// Registry-Reihenfolge, wie sie ein gewöhnlicher (kein Datenbank-)Bereich
+// zeigt. ES-13 prüft den Bereichs-Block genau gegen diese Liste; ES-05 zieht
+// sie von den Erweiterungs-Abschnitten ab. Bewusst eine Liste und keine
+// Ableitung: Die Eigenschaft «bereichsgebunden» steht nur im Renderer, und die
+// Reihenfolge, die ES-13 zusichert, ist ohne ladbare Quelle nur so prüfbar.
+// Ein neuer bereichsgebundener Abschnitt macht ES-13 deshalb rot; das ist
+// gewollt (Entscheidung zu 4T-001857).
+const BEREICHS_ABSCHNITTE = [
+  'historyArea',
+  'attachmentsArea',
+  'templatesArea',
+  'areaLinks',
+  'journals',
+  'calendarSystems',
+  'propertyProfiles',
+  'sidebarVariants',
+];
+// Ebenfalls bereichsgebunden, aber nur in einem Datenbank-Bereich sichtbar
+// (eigene Sichtbarkeits-Bedingung); in den Bereichen dieser Datei fehlt er.
+const BEREICHS_ABSCHNITT_DATENBANK = 'database';
+const ALLE_BEREICHS_ABSCHNITTE = new Set([...BEREICHS_ABSCHNITTE, BEREICHS_ABSCHNITT_DATENBANK]);
+
+// Abschnitte, die eine interne Erweiterung beansprucht. Dieselbe Liste, nach
+// der die Anwendung den Block «Erweiterungen (intern)» bildet
+// (settings-mount.js, internalExtensionSectionIdSet).
+const ERWEITERUNGS_ABSCHNITTE = new Set(
+  internalExtensions().flatMap((m) => m.settingsSections || []),
+);
+
+// Kennungen der Einträge unter einem Locator, in Anzeige-Reihenfolge.
+function abschnittsKennungen(locator) {
+  return locator.evaluateAll((els) => els.map((el) => el.dataset.sectionId));
+}
+
+function sortiert(liste) {
+  return [...liste].sort();
+}
 
 const FRONTMATTER_FIXTURE = path.resolve(
   __dirname,
@@ -50,14 +100,15 @@ const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system .settings-page';
 // des asynchronen init() registriert ist (Muster pollSearchOpensVia in
 // hotkeys.spec.js); Mehrfach-Druck ist durch die Einfach-Instanz gedeckt.
 async function openSettingsPageViaKeyboard(page) {
-  await expect
-    .poll(async () => {
-      await page.keyboard.press('Control+,');
-      return page.locator(SEL.tabs0).count();
-    })
-    .toBeGreaterThan(0);
+  await oeffneEinstellungsSeite(page);
 }
 
+// 4T-001699 (Epic 3E-000156): Beide Zugänge dieser Datei laufen seither über
+// den geteilten Helfer oeffneEinstellungsSeite (test/e2e/helpers/eingabe.js),
+// der auf die SICHTBARE Seite wartet; die Unterscheidung darunter ist damit
+// Geschichte und bleibt als Begründung stehen, warum die Zahl der Reiter als
+// Warte-Bedingung nicht trägt.
+//
 // Derselbe Zugang, aber die Warte-Bedingung ist die **sichtbare**
 // Einstellungs-Seite statt der Zahl der Reiter.
 //
@@ -90,12 +141,7 @@ async function openSettingsPageViaKeyboard(page) {
 //
 // Mehrfach-Druck ist wie oben durch die Einfach-Instanz pro Fenster gedeckt.
 async function openSettingsPageVisibleViaKeyboard(page) {
-  await expect
-    .poll(async () => {
-      await page.keyboard.press('Control+,');
-      return page.locator(SETTINGS_PAGE).isVisible();
-    })
-    .toBe(true);
+  await oeffneEinstellungsSeite(page);
 }
 
 test.describe('ES-01: Einstellungs-Seite öffnet als Tab', () => {
@@ -161,46 +207,51 @@ test.describe('ES-05: Bereichsnavigation und Button-Leiste', () => {
       await openSettingsPageViaKeyboard(page);
       await expect(page.locator(SETTINGS_PAGE)).toBeVisible();
       const nav = page.locator(`${SETTINGS_PAGE} .settings-nav-entry`);
-      // 4T-000555 (Epic 3E-000100): gruppierte Navigation. Ohne gebundenen
-      // Bereich erscheinen die dreizehn
-      // app-weiten festen Bereiche (Darstellung, Farbschemas, Verhalten,
-      // Zeitstempel, Export, Vorlagen, Task-Status, Aufgaben, Erinnerungen,
-      // Überschriften-Nummerierung, Tastenkürzel, Erweiterungen,
-      // Erweiterungen extern) plus den dynamisch registrierten Bereichen
-      // „Sidebar", „Panel-Reihenfolge" (4T-000569, Epic 3E-000104),
-      // „Kommando-Platzierung" (4T-000520, Epic 3E-000094), „Format-Toolbar"
-      // (4T-000608, Epic 3E-000114) und „Uhr" (4T-000372, Epic 3E-000069); die
-      // bereichsgebundenen Sektionen (historyArea, templatesArea,
-      // journals, calendarSystems, propertyProfiles) fehlen vollständig
-      // (ES-13 prüft den Fall mit Bereich). „Zeitstempel" (4T-000604, Epic
-      // 3E-000113) haengt an der Erweiterung frontmatter-timestamps, die
-      // im frischen Profil aktiv ist. „Anlagen" (4T-000791, Epic 3E-000125) ist
-      // Kern und immer sichtbar; seine Bereichs-Uebersteuerung
-      // (attachmentsArea) fehlt hier wie die uebrigen bereichsgebundenen.
-      // „Rechtschreibung" (4T-000581, Epic 3E-000107) kommt als eigener Bereich
-      // der Erweiterung spellcheck hinzu; sie ist im frischen Profil aktiv,
-      // weil der Default die leere Deaktivierungs-Liste ist. Ausgeschaltet
-      // startet allein der Funktions-Schalter innerhalb des Bereichs, der
-      // Bereich selbst ist sichtbar.
-      // 4T-001048 (Epic 3E-000151): „Mindmap" kommt als eigener Bereich der
-      // gleichnamigen Erweiterung hinzu; sie ist im frischen Profil aktiv.
-      // Der Fall war seit 4T-001048 rot und fiel erst am Abnahme-Gate auf, weil
-      // die E2E-Suite ausserhalb der Commit- und Integrations-Gates liegt.
-      // 4T-001580 (Epic 3E-000283): „Statusleiste" kommt als Kern-Bereich der
-      // Gruppe „Allgemein" hinzu (E4 des Epics, zwischen „Sidebar" und
-      // „Panel-Reihenfolge"); damit 22 statt 21 Eintraege.
-      await expect(nav).toHaveCount(22);
-      // 4T-000889 (Epic 3E-000168): Die Einträge verteilen sich seither auf vier
-      // mögliche Blöcke. Ohne gebundenen Bereich und ohne installierte
-      // externe Erweiterung erscheinen zwei davon: „Allgemein" mit den
-      // Kern-Bereichen (die beiden Verwaltungs-Bereiche „Erweiterungen" und
-      // „Erweiterungen (extern)" am Ende) und „Erweiterungen (intern)" mit
-      // den Bereichen der erweiterungs-gebundenen Funktionen. Die Gesamtzahl
-      // der Einträge bleibt unverändert, nur ihr Anzeige-Ort ändert sich.
+      // 4T-000555 (Epic 3E-000100), 4T-000889 (Epic 3E-000168): gruppierte
+      // Navigation in bis zu vier Blöcken. Ohne gebundenen Bereich und ohne
+      // installierte externe Erweiterung erscheinen zwei davon: «Allgemein»
+      // mit den Kern-Bereichen (die Verwaltungs-Bereiche «Erweiterungen» und
+      // «Erweiterungen (extern)» am Ende) und «Erweiterungen (intern)» mit den
+      // Bereichen der erweiterungs-gebundenen Funktionen. Die
+      // bereichsgebundenen Abschnitte fehlen vollständig; den Fall mit Bereich
+      // prüft ES-13.
+      //
+      // 4T-001857 (Epic 3E-000161): Zugesichert wird, dass ohne Bereich jeder
+      // nicht bereichsgebundene Abschnitt da ist und im richtigen Block steht.
+      // Bis dahin stand hier die Gesamtzahl 22 als feste Zahl; sie wurde bei
+      // jedem planmäßig neuen Bereich rot (zuletzt «Mindmap», 4T-001048, und
+      // «Statusleiste», 4T-001580) und übersah einen Verlust, der gleichzeitig
+      // mit einem Zuwachs kam.
       const groups = page.locator(`${SETTINGS_PAGE} .settings-nav-group`);
       await expect(groups).toHaveCount(2);
       await expect(groups.nth(0)).toHaveAttribute('data-nav-group', 'general');
       await expect(groups.nth(1)).toHaveAttribute('data-nav-group', 'extensionsInternal');
+      // Block «Erweiterungen (intern)»: genau die Abschnitte, die eine interne
+      // Erweiterung beansprucht, ohne die bereichsgebundenen. Im frischen
+      // Profil sind alle internen Erweiterungen aktiv (die Vorgabe ist die
+      // leere Deaktivierungs-Liste). Die Anzeige sortiert nach dem
+      // lokalisierten Titel, verglichen wird deshalb als Menge.
+      const erwartetIntern = [...ERWEITERUNGS_ABSCHNITTE].filter(
+        (id) => !ALLE_BEREICHS_ABSCHNITTE.has(id),
+      );
+      await expect
+        .poll(async () =>
+          sortiert(await abschnittsKennungen(groups.nth(1).locator('.settings-nav-entry'))),
+        )
+        .toEqual(sortiert(erwartetIntern));
+      // Block «Allgemein»: Für die Kern-Abschnitte gibt es keine aus der
+      // Prüfdatei ladbare Quelle — sie stehen allein in den Renderer-Modulen
+      // (settings-page.js und die Module der dynamisch angemeldeten Bereiche).
+      // Abgeleitet wird deshalb nur die Zuordnung: kein Eintrag gehört einer
+      // Erweiterung oder einem Bereich. Die Vollständigkeit trägt eine
+      // Untergrenze, der Stand vom 2026-09-23 mit elf Kern-Abschnitten: Ein
+      // neuer Kern-Bereich bleibt grün, ein verlorener wird rot.
+      const allgemein = await abschnittsKennungen(groups.nth(0).locator('.settings-nav-entry'));
+      for (const id of allgemein) {
+        expect(ERWEITERUNGS_ABSCHNITTE.has(id), `${id} gehört zu einer Erweiterung`).toBe(false);
+        expect(ALLE_BEREICHS_ABSCHNITTE.has(id), `${id} ist bereichsgebunden`).toBe(false);
+      }
+      expect(allgemein.length).toBeGreaterThanOrEqual(11);
       await expect(
         page.locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="journals"]`),
       ).toHaveCount(0);
@@ -354,6 +405,40 @@ test.describe('ES-09: Frontmatter-Anzeige-Schalter (Darstellung)', () => {
 // die Einstellungs-Seite (Entwurf-/OK-Semantik, Verschieben, Seitenwechsel,
 // Gruppieren, Zurücksetzen). Wirkt auf dieselben Modell-Operationen wie das
 // Drag-and-Drop (sidebar-layout.spec.js deckt den DnD-Weg ab).
+
+// 4T-001857: Panels der Seitenleiste von Spalte 0 je Seite, in Anzeige-
+// Reihenfolge. Die Seitenleiste hängt jedes Panel gemäß Layout in seinen
+// Seiten-Container, auch wenn es verborgen ist (Muster SL-01); die Kennung
+// steckt in der Klasse sidebar-<Kennung> der Sektion. Eine Sektion ohne
+// bekannte Kennung erscheint als «?» und lässt den Vergleich rot werden,
+// statt still wegzufallen.
+async function seitenleistenPanels(page, kennungen) {
+  return page.evaluate((ids) => {
+    const lies = (sel) => {
+      const container = document.querySelector(sel);
+      if (!container) return [];
+      return Array.from(container.querySelectorAll('.sidebar-section')).map((el) => {
+        const klasse = Array.from(el.classList).find(
+          (k) => k.startsWith('sidebar-') && ids.includes(k.slice('sidebar-'.length)),
+        );
+        return klasse ? klasse.slice('sidebar-'.length) : '?';
+      });
+    };
+    return {
+      left: lies('.pane-group[data-pane="0"] .pane-sidebar-left'),
+      right: lies('.pane-group[data-pane="0"] .pane-sidebar-right'),
+    };
+  }, kennungen);
+}
+
+// 4T-001857: Panel-Kennungen der Zeilen einer Seiten-Liste im Bereich
+// «Sidebar», in Anzeige-Reihenfolge (Gruppen-Zeilen eingeschlossen).
+function panelZeilen(liste) {
+  return liste
+    .locator('.sidebar-settings-row')
+    .evaluateAll((els) => els.map((el) => el.dataset.panelId));
+}
+
 test.describe('ES-10: Bereich Sidebar (Layout-Konfiguration)', () => {
   test('Seitenwechsel wirkt erst bei OK und persistiert; Zurücksetzen stellt den Default her', async () => {
     const { app, page, userData } = await launchApp({ args: [FRONTMATTER_FIXTURE] });
@@ -364,25 +449,40 @@ test.describe('ES-10: Bereich Sidebar (Layout-Konfiguration)', () => {
       const leftContainer = page.locator('.pane-group[data-pane="0"] .pane-sidebar-left');
       await expect(leftContainer.locator('.sidebar-outline')).toBeVisible();
 
+      // 4T-001857 (Epic 3E-000161): Zugesichert wird, dass die Einstellungs-Seite
+      // die Anordnung zeigt, die die Seitenleiste wirklich hat — je Seite, in
+      // derselben Reihenfolge —, und dass dabei kein Panel fehlt. Bis dahin
+      // standen hier 11 und 6 als feste Zahlen, eine dritte und schwächere
+      // Kopie der Standard-Anordnung; die Anordnung selbst sichern der
+      // Unit-Test zu defaultSidebarLayout (test/unit/renderer/sidebar-layout.test.js)
+      // und SL-01 (sidebar-layout.spec.js), beide bewusst als feste Liste.
+      // Gesamtmenge ist PANEL_ACCESS, das Zugangs-Modell aller eingebauten
+      // Panels; seine Übereinstimmung mit der Panel-Registrierung der Anwendung
+      // bewacht test/unit/panel-access.test.js. Ein neues Panel bleibt hier
+      // damit grün, ein verlorenes wird rot.
+      const allePanels = PANEL_ACCESS.map((p) => p.id);
+      await expect
+        .poll(async () => {
+          const leiste = await seitenleistenPanels(page, allePanels);
+          return sortiert([...leiste.left, ...leiste.right]);
+        })
+        .toEqual(sortiert(allePanels));
+      const leiste = await seitenleistenPanels(page, allePanels);
+
       await openSettingsPageViaKeyboard(page);
       // 4T-000555: gezielt per Sektions-ID statt .last() (gruppierte Navigation).
       await page.locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="sidebar"]`).click();
       const section = page.locator(`${SETTINGS_PAGE} .sidebar-settings`);
       await expect(section).toBeVisible();
-      // 4T-000563 (Epic 3E-000102): der neue Standard verteilt die Panels auf beide
-      // Seiten — links bookmarks, area, outline, subpages, filegraph, calendar,
-      // reminders und (4T-000372, Epic 3E-000069) clock, rechts notes, properties,
-      // tags, blockprops, outgoing, backlinks; die rechte Seite ist belegt, der
-      // Leer-Hinweis entfällt.
-      // 4T-000759 (Epic 3E-000142): links kommt das Suchergebnis-Panel hinzu (9).
-      // 4T-000844 (Epic 3E-000147): links kommt das Inhaltsverzeichnis des Buches
-      // hinzu (10), als dritter Reiter der Ort-Gruppe.
-      // 4T-001774 (Epic 3E-000290): links kommt die Karten-Liste der Canvas
-      // hinzu (11), als fünfter Reiter der Finde-Gruppe.
       const leftList = section.locator('.sidebar-settings-list[data-side="left"]');
       const rightList = section.locator('.sidebar-settings-list[data-side="right"]');
-      await expect(leftList.locator('.sidebar-settings-row')).toHaveCount(11);
-      await expect(rightList.locator('.sidebar-settings-row')).toHaveCount(6);
+      await expect.poll(() => panelZeilen(leftList)).toEqual(leiste.left);
+      await expect.poll(() => panelZeilen(rightList)).toEqual(leiste.right);
+      expect(
+        sortiert([...(await panelZeilen(leftList)), ...(await panelZeilen(rightList))]),
+      ).toEqual(sortiert(allePanels));
+      // 4T-000563 (Epic 3E-000102): Der Standard verteilt die Panels auf beide
+      // Seiten; die rechte ist belegt, der Leer-Hinweis entfällt.
       await expect(rightList.locator('.sidebar-settings-empty')).toHaveCount(0);
 
       // Outline auf die rechte Seite verschieben — Entwurf, wirkt noch nicht.
@@ -617,25 +717,23 @@ test.describe('ES-13: Bereichs-Gruppe der Navigation bei gebundenem Bereich', ()
       await expect(groups.nth(0).locator('.settings-nav-group-title')).toBeVisible();
       await expect(groups.nth(1).locator('.settings-nav-group-title')).toBeVisible();
       await expect(groups.nth(2).locator('.settings-nav-group-title')).toBeVisible();
-      // Bereichs-Gruppe: die acht bereichsgebundenen Sektionen in
-      // Registry-Reihenfolge (sieben feste plus die dynamisch registrierten
+      // Bereichs-Gruppe: die bereichsgebundenen Sektionen in Registry-
+      // Reihenfolge (die festen plus die dynamisch registrierten
       // Sidebar-Varianten aus 4T-000625, Epic 3E-000119). „attachmentsArea"
       // kam mit 4T-000791 (Epic 3E-000125) hinzu, „areaLinks" mit 4T-001455
       // (Epic 3E-000190) hinter „templatesArea".
+      // 4T-001857 (Epic 3E-000161): ein Listen-Vergleich gegen
+      // BEREICHS_ABSCHNITTE statt der festen Zahl 8 plus Einzel-Prüfung je
+      // Position; die Zahl wiederholte nur die Länge der Liste. Dazu
+      // ausdrücklich, was die Zahl bis dahin nur nebenbei mitprüfte: Der
+      // Abschnitt «Datenbank» fehlt in einem gewöhnlichen Bereich.
       const areaEntries = groups.nth(1).locator('.settings-nav-entry');
-      await expect(areaEntries).toHaveCount(8);
-      for (const [idx, id] of [
-        'historyArea',
-        'attachmentsArea',
-        'templatesArea',
-        'areaLinks',
-        'journals',
-        'calendarSystems',
-        'propertyProfiles',
-        'sidebarVariants',
-      ].entries()) {
-        await expect(areaEntries.nth(idx)).toHaveAttribute('data-section-id', id);
-      }
+      await expect.poll(() => abschnittsKennungen(areaEntries)).toEqual(BEREICHS_ABSCHNITTE);
+      await expect(
+        page.locator(
+          `${SETTINGS_PAGE} .settings-nav-entry[data-section-id="${BEREICHS_ABSCHNITT_DATENBANK}"]`,
+        ),
+      ).toHaveCount(0);
       // Abgespaltener Historie-Bereichs-Default ist erreichbar und bedienbar.
       await areaEntries.nth(0).click();
       await expect(page.locator('#settings-history-area-default')).toBeVisible();

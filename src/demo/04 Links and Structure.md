@@ -64,6 +64,6 @@ Renaming a subpage changes only its own name segment — in the dialog as well a
 
 ## The mindmap
 
-While the graph maps files against each other, the **mindmap** maps the inside of one file. Press `Ctrl+5` on this very page (or **View → Mind map**): every heading and list item becomes a node, and the paragraphs turn into notes you can open on the node. The circle at the end of a branch folds it away, a click on a node text jumps back to the line it came from, and **Settings → Mind map** decides where the root sits — left, centre, right, top or bottom.
+While the graph maps files against each other, the **mindmap** maps the inside of one file. Press `Ctrl+5` on this very page (or **View → Mind map**): every heading and list item becomes a node, and the paragraphs turn into notes you can open on the node. The circle at the end of a branch folds it away, a click on a node text jumps back to the line it came from, and **Settings → Mind map** decides where the root sits — left, centre, right, top or bottom. While the map is shown, `Ctrl+F` searches the map itself: type `link`, and every node whose title or note contains it is highlighted, the current one is brought to the centre, and `F3` moves on to the next.
 
 Metadata comes next: [[05 Properties and Profiles]].

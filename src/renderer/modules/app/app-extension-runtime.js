@@ -30,6 +30,10 @@ import { attachExtensionRuntime, isExtensionActive } from '../extensions/extensi
 // prozessneutralen Kern — dieselbe Quelle, aus der Registry, Render-Weiche und
 // Rueckfall sie holen.
 import { CANVAS_EXTENSION_ID } from '../../../shared/canvas/canvas-core.js';
+// 4T-001847 (Epic 3E-000110): Kennung der Kanban-Erweiterung. Sie steht im
+// Modus-Modul und nicht im Format-Kern, weil kein Preload-Teil nach ihr fragt
+// (Begruendung im Kopf von kanban-modus.js).
+import { KANBAN_EXTENSION_ID } from '../kanban/kanban-modus.js';
 
 // 4T-000294: Statusbar-Buttons erweiterungs-gebundener Panels folgen dem
 // Schalt-Zustand (keine toten UI-Elemente). Die Wort-Statistik verwaltet
@@ -214,6 +218,30 @@ export function registerExtensionRuntimeHooks() {
       for (const pane of state.panes) {
         for (const tab of pane.tabs || []) {
           if (tab.viewMode === 'canvas') tab.viewMode = 'rendered';
+        }
+      }
+    },
+  });
+  // 4T-001847 (Epic 3E-000110): Aus-Zustand der Tafel-Ansicht, wörtlich aus
+  // demselben Grund wie darüber. Der Rückfall in kanban-modus.js greift beim
+  // ÖFFNEN eines Dokuments; wird die Erweiterung abgeschaltet, während eine
+  // Tafel offen ist, bliebe das geöffnete Dokument ohne diesen Hook in einer
+  // Ansicht stehen, die es nicht mehr gibt — mit ausgeblendetem Schalter und
+  // ohne Menü-Eintrag also unverlassbar. Alle offenen Dokumente im Tafel-Modus
+  // fallen deshalb auf die Lese-Ansicht, in der die Tafel als gewöhnliches
+  // Markdown erscheint (Story 4S-000978, AK2). Geschrieben wird dabei nichts:
+  // Der Modus ist eine Eigenschaft des geöffneten Dokuments, nicht der Datei
+  // (AK8).
+  //
+  // Kein activate-Gegenstück, aus demselben Grund wie bei der Canvas: Den
+  // vorherigen Modus über den Aus-Zustand hinweg zu merken, kostete mehr, als
+  // der eine Klick des Anwenders wert ist; die Tafel selbst steht unverändert
+  // im Dokument (AK5).
+  attachExtensionRuntime(KANBAN_EXTENSION_ID, {
+    deactivate: () => {
+      for (const pane of state.panes) {
+        for (const tab of pane.tabs || []) {
+          if (tab.viewMode === 'kanban') tab.viewMode = 'rendered';
         }
       }
     },

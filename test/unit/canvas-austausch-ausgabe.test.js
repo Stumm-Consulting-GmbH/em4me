@@ -298,15 +298,22 @@ describe('Ergebnis-Meldung aus den gezaehlten Posten (AK10)', () => {
     ).toEqual([]);
   });
 
-  it('jeder der dreizehn Posten hat seinen eigenen Satz', () => {
+  // 4T-001541: Die Zusage ist «jeder Posten hat seinen eigenen Satz», nicht
+  // «es gibt dreizehn Posten». Die Zahl stand dreimal im Fall und war die
+  // Größe des Verzeichnisses VERLUST_POSTEN, das mit jedem neuen Konstrukt
+  // planmäßig wächst; sie wäre beim nächsten Zuwachs rot geworden, ohne dass
+  // etwas kaputt gewesen wäre. Gerechnet wird jetzt aus dem Verzeichnis selbst.
+  it('jeder Posten hat seinen eigenen Satz', () => {
     const schluessel = Object.keys(VERLUST_POSTEN);
-    expect(schluessel).toHaveLength(13);
+    // Gegenprobe, dass das Verzeichnis überhaupt Posten führt: Ein leeres
+    // ergäbe drei Nullen und der Fall bliebe grün.
+    expect(schluessel.length).toBeGreaterThan(5);
     const zeilen = verlustZeilen(
       schluessel.map((s) => ({ schluessel: s, anzahl: 1 })),
       tId,
     );
-    expect(zeilen).toHaveLength(13);
-    expect(new Set(zeilen).size).toBe(13);
+    expect(zeilen).toHaveLength(schluessel.length);
+    expect(new Set(zeilen).size).toBe(schluessel.length);
   });
 
   it('nennt die Zahl der uebrigen Flaechen, wenn es welche gibt (AK5)', () => {

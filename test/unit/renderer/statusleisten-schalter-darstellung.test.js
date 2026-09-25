@@ -74,6 +74,11 @@ const BASISLINIE = new Map([
   ['view:rendered', 'viewMode'],
   ['view:mindmap', 'viewMode'],
   ['view:canvas', 'canvasAnsicht'],
+  // 4T-001847 (Epic 3E-000110): Der siebte Modus, die Kanban-Tafel. Er stand
+  // vor dem Umbau in keiner der drei abgeloesten Stellen, weil es ihn damals
+  // nicht gab; seine Basislinie ist deshalb die Bedingung, mit der er
+  // eingehaengt wird — dokument-abhaengig wie die Arbeitsflaeche.
+  ['view:kanban', 'tafelAnsicht'],
   ['btn-edit', 'fileTab'],
   ['btn-scroll-sync', 'anyTab'],
   ['btn-history', 'fileTab'],
@@ -137,7 +142,7 @@ describe('Ziel-Liste der Leisten-Schalter (4T-001765, AK1)', () => {
     const kennungen = STATUSBAR_AVAILABILITY_TARGETS.map(kennung);
     expect(kennungen).toEqual([...BASISLINIE.keys()]);
     expect(new Set(kennungen).size).toBe(kennungen.length);
-    expect(kennungen).toHaveLength(12);
+    expect(kennungen).toHaveLength(13);
   });
 
   it('nennt keinen Panel-Schalter — die kennen den Zustand nicht (E5)', () => {

@@ -1,0 +1,523 @@
+/* 4T-001847 (Epic 3E-000110): Tafel-Ansicht — die Sichtbarkeit ihres
+   Containers.
+   4T-001848 (Epic 3E-000110): dazu Maße und Farben der Spalten und Karten.
+   Farben ausschließlich über Theme-Variablen (hell/dunkel), wie im Stilblatt
+   der Canvas-Fläche; kein eigener Farbwert steht hier. Die Zeichnung
+   (kanban-tafel.js) vergibt nur Klassen. */
+
+/* Der Tafel-Modus ersetzt Editor und Render-Pane vollständig, genau wie
+   Mindmap, Canvas und die System-Pane. Sichtbar wird der Container erst über
+   die Modus-Klasse am .content-Element. */
+.pane-kanban {
+  display: none;
+}
+.content.view-kanban .pane-source,
+.content.view-kanban .pane-rendered,
+.content.view-kanban .inner-splitter {
+  display: none;
+}
+.content.view-kanban .pane-kanban {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Die Tafel selbst füllt den Container und klemmt ihn ab; gerollt wird
+   ausschließlich innerhalb (AK7). */
+.kanban-tafel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-ui);
+}
+
+/* AK7: Mehr Spalten, als nebeneinander passen, werden waagerecht gerollt —
+   die Spalten behalten ihre Breite, statt sich zu quetschen. */
+.kanban-spalten {
+  display: flex;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+  gap: 12px;
+  padding: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.kanban-spalte {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 280px;
+  max-height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-alt);
+}
+
+.kanban-spalte-kopf {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.kanban-spalte-titel {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Der Karten-Zähler ist eine Zahl neben dem Titel und soll ihm nicht den Rang
+   ablaufen: gedämpfte Schrift auf getönter Fläche. */
+.kanban-spalte-zaehler {
+  flex-shrink: 0;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: var(--bg-muted);
+  color: var(--fg-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* AK7: Eine lange Spalte rollt senkrecht, ohne die Tafel wachsen zu lassen. */
+.kanban-spalte-karten {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+  padding: 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.kanban-karte {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  box-sizing: border-box;
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  box-shadow: var(--shadow);
+}
+
+/* Die gewählte Karte trägt einen Ring in der Akzentfarbe statt einer eigenen
+   Füllung: Die Auswahl soll den Karten-Text nicht schlechter lesbar machen
+   (Muster der Canvas-Karte). */
+.kanban-karte-gewaehlt,
+.kanban-karte:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+  outline: none;
+}
+
+/* AK4: Der Erledigt-Zustand ist auf der Karte erkennbar — am gefüllten
+   Kästchen und am gedämpften Text. Das Zeichen im Kästchen ist das des
+   Dokuments; die Zeichnung setzt es als Text. */
+.kanban-karte-kasten {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  box-sizing: border-box;
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  background: var(--bg-alt);
+  font-size: 10px;
+  line-height: 1;
+}
+.kanban-karte-erledigt .kanban-karte-kasten {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-fg);
+}
+.kanban-karte-erledigt .kanban-karte-inhalt {
+  color: var(--fg-muted);
+}
+
+/* Die Karte wächst mit ihrem Inhalt — anders als auf der Canvas-Fläche, wo die
+   Größe der Karte gesetzt ist. Die Spalte rollt dafür. */
+.kanban-karte-inhalt {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+/* Der erste und der letzte Block sitzen bündig am Rand der Karte; die
+   Abstände der Lese-Ansicht wirken auf der kleinen Fläche sonst als Loch. */
+.kanban-karte-inhalt > :first-child {
+  margin-top: 0;
+}
+.kanban-karte-inhalt > :last-child {
+  margin-bottom: 0;
+}
+/* Ein Bild auf der Karte bleibt in ihrer Breite. */
+.kanban-karte-inhalt img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* 4T-001904 (Epic 3E-000318): Tags am Kartenfuß. Die Karte ist eine Zeile aus
+   Kästchen und Inhalt; die Fußreihe bricht als eigene Zeile darunter um und
+   rückt um Kästchen-Breite und Abstand ein, damit sie unter dem Text beginnt
+   und nicht unter dem Kästchen. Viele Tags brechen innerhalb der Karte um,
+   statt aus ihr herauszulaufen (AK6). Aussehen und Hell-Dunkel-Schema der
+   einzelnen Tags kommen aus der Regel der Lese-Ansicht
+   (eigenschaften-und-notizen.css); hier steht kein eigener Farbwert. */
+.kanban-karte {
+  flex-wrap: wrap;
+}
+.kanban-karte-tags {
+  display: flex;
+  flex: 0 0 100%;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+  box-sizing: border-box;
+  /* Der Abstand nach oben ist der Zeilen-Abstand der Karte (gap: 6px); die
+     Einrückung ist Kästchen-Breite plus derselbe Abstand. */
+  padding-left: 20px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.kanban-karte-tags .tag-link {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Während der Bearbeitung zeigt die Eingabe den rohen Text samt Tags; die Reihe
+   darunter wäre dann eine zweite, veraltete Anzeige derselben Angabe. */
+.kanban-karte-bearbeitet .kanban-karte-tags {
+  display: none;
+}
+
+/* 4T-001903 (Epic 3E-000318): Termin und Angaben auf der Karte. Die
+   Abzeichen-Reihe steht wie die Fußreihe als eigene Zeile unter dem Text,
+   eingerückt um Kästchen-Breite und Abstand, und bricht innerhalb der Karte
+   um. Aussehen, Überfällig- und Ungültig-Kennzeichen der einzelnen Abzeichen
+   kommen aus der Regel der Lese-Ansicht (markdown-erweiterungen.css); hier
+   stehen nur Reihe, Abstand und die Kennzeichnung der fremden Schreibweise,
+   ohne eigenen Farbwert. */
+.kanban-karte-marker {
+  display: flex;
+  flex: 0 0 100%;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-width: 0;
+  box-sizing: border-box;
+  padding-left: 20px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+/* Der Abstand zwischen den Abzeichen ist der der Reihe; der Außenabstand der
+   Lese-Ansicht, gedacht für ein Abzeichen hinter Text, fiele sonst doppelt an. */
+.kanban-karte-marker .task-marker {
+  margin-left: 0;
+}
+/* Ein Termin in der Schreibweise des Vorbild-Werkzeugs: gestrichelter Rand
+   statt einer eigenen Farbe, damit Überfällig und Ungültig lesbar bleiben. */
+.kanban-karte-marker .kanban-marker-fremd {
+  border-style: dashed;
+}
+.kanban-karte-marker [data-kanban-termin] {
+  cursor: pointer;
+}
+
+/* AK9: Die beiden leeren Zustände — Tafel ohne Spalten und Spalte ohne
+   Karten. Eine Fläche ohne Erklärung sieht aus wie ein Fehler. */
+.kanban-leer-hinweis {
+  margin: 0;
+  padding: 10px 4px;
+  color: var(--fg-muted);
+  font-size: 12px;
+  text-align: center;
+}
+.kanban-keine-spalten,
+.kanban-keine-tafel {
+  padding: 24px 16px;
+  font-size: 13px;
+}
+
+/* Ein Befund des Format-Kerns führt nie zu einer leeren Fläche: Er steht als
+   benannter Hinweis über der Tafel, und was lesbar war, steht darunter. */
+.kanban-befunde {
+  flex-shrink: 0;
+  margin: 12px 12px 0;
+  padding: 8px 12px;
+  border: 1px solid var(--linter-warn);
+  border-radius: 6px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  font-size: 12px;
+}
+.kanban-befunde-titel {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+.kanban-befunde ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.kanban-befund-zeile {
+  margin-right: 6px;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 4T-001849 (Epic 3E-000110): Bedien-Elemente der Karten. Farben wie oben
+   ausschliesslich ueber Theme-Variablen; die Bedienung vergibt nur Klassen. */
+
+/* Der Weg zur neuen Karte steht am Fuss der Spalte — dort, wo sie entsteht.
+   Zurueckhaltend gezeichnet, damit er die Karten nicht ueberstrahlt; im nicht
+   aenderbaren Dokument wird er gar nicht erst gezeichnet. */
+.kanban-spalte-neu {
+  flex-shrink: 0;
+  margin: 0 8px 8px;
+  padding: 6px 8px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg-muted);
+  font-family: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.kanban-spalte-neu:hover {
+  border-color: var(--accent);
+  color: var(--fg);
+}
+.kanban-spalte-neu:focus-visible {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Das Kaestchen ist in der aenderbaren Tafel der Schalter des Status — in der
+   nur lesenden bleibt es eine reine Anzeige, und der Zeiger sagt das auch. */
+.kanban-tafel[data-aenderbar='true'] .kanban-karte-kasten {
+  cursor: pointer;
+}
+
+/* Die Eingabe steht an der Stelle des Karten-Inhalts und ist einzeilig: Ein
+   Umbruch erzeugte im Dokument eine zweite Aufgaben-Zeile. */
+.kanban-karte-eingabe {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.45;
+  outline: none;
+}
+.kanban-karte-bearbeitet {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+/* 4T-001850: Verschieben per Maus. Die Griffe sagen, wo angefasst wird — die
+   Karte an sich selbst, die Spalte an ihrem Kopf. Farben ausschliesslich ueber
+   Theme-Variablen, wie im ganzen Blatt. */
+.kanban-tafel:not(.kanban-nur-ansicht) .kanban-karte,
+.kanban-tafel:not(.kanban-nur-ansicht) .kanban-spalte-kopf {
+  cursor: grab;
+}
+/* Waehrend des Zuges gehoert die Maus dem Zug: Ohne die Sperre markierte jede
+   Bewegung zugleich Text, und der Zeiger widerspraeche der Handlung. */
+.kanban-zieht,
+.kanban-zieht * {
+  cursor: grabbing;
+  user-select: none;
+}
+/* Das Gezogene bleibt an seinem Platz und tritt zurueck; die Einfuege-Marke
+   traegt die Aussage, wo es landet. */
+.kanban-zieht-quelle {
+  opacity: 0.45;
+}
+
+/* AK4: Die Einfuege-Marke. Sie liegt im Bezugssystem des Sichtfensters, weil
+   die Bedienung in genau diesen Koordinaten rechnet, und ist reine Anzeige. */
+.kanban-einfuege-marke {
+  position: fixed;
+  z-index: 40;
+  border-radius: 2px;
+  background: var(--accent);
+  pointer-events: none;
+}
+
+/* 4T-001851 (Epic 3E-000110): Bedien-Elemente der Spalten. Farben wie im ganzen
+   Blatt ausschliesslich ueber Theme-Variablen; die Bedienung vergibt nur
+   Klassen. */
+
+/* Der Weg zur neuen Spalte steht am Ende des Streifens — dort, wo sie entsteht.
+   Zurueckhaltend gezeichnet wie die Schaltflaeche der neuen Karte, aber so breit
+   wie eine schmale Spalte, damit sie als Platz und nicht als Knopf am Rand
+   gelesen wird. Im nicht aenderbaren Dokument wird sie gar nicht gezeichnet. */
+.kanban-spalte-hinzufuegen {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  min-width: 160px;
+  padding: 8px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--fg-muted);
+  font-family: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.kanban-spalte-hinzufuegen:hover {
+  border-color: var(--accent);
+  color: var(--fg);
+}
+.kanban-spalte-hinzufuegen:focus-visible {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Der Entwurf einer neuen Spalte steht an der Stelle, an der sie entstehen
+   wird — vor der Schaltflaeche und in ihrer Breite. Es gibt ihn nur, solange
+   die Eingabe offen ist. */
+.kanban-spalte-entwurf {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  min-width: 160px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--bg-alt);
+}
+
+/* Die Titel-Eingabe steht an der Stelle des Spalten-Titels und traegt dessen
+   Schriftbild: Der Wechsel zwischen Ansehen und Schreiben soll den Titel nicht
+   springen lassen. */
+.kanban-spalte-eingabe {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.3;
+  outline: none;
+}
+
+/* Story 4S-000976: Eine Spalte, die hineingezogene Karten abhakt, sagt das an
+   ihrem Kopf. Gedaempft wie der Karten-Zaehler daneben — die Aussage gehoert
+   zur Spalte und soll ihrem Titel nicht den Rang ablaufen. */
+.kanban-spalte-erledigt {
+  flex-shrink: 0;
+  color: var(--fg-muted);
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* 4T-001905 (Story 4S-000981): Die Obergrenze einer Spalte. Ueberschreitet die
+   Spalte sie, wird der Zaehler hervorgehoben — fett und in der Warnfarbe des
+   Themes, die helles und dunkles Schema je eigen setzen. Ein Hinweis, keine
+   Sperre: Anlegen und Hineinziehen bleiben moeglich. Eine Spalte ohne
+   Obergrenze traegt die Klasse nie. */
+.kanban-spalte-ueberschritten .kanban-spalte-zaehler {
+  box-shadow: inset 0 0 0 1px var(--linter-warn);
+  color: var(--linter-warn);
+  font-weight: 700;
+}
+
+/* Die Eingabe der Obergrenze steht an der Stelle des Zaehlers und ist so
+   schmal wie er: Eine Zahl braucht keinen Titel-Platz. */
+.kanban-spalte-eingabe.kanban-spalte-limit-eingabe {
+  flex: 0 0 auto;
+  width: 5em;
+  padding: 1px 6px;
+  border: 1px solid var(--accent);
+  border-radius: 10px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 4T-001907 (Story 4S-000983): Das Filter-Feld im Kopf der Tafel. Es steht im
+   Container über der Tafel und überlebt jede Zeichnung (Einhänge-Stelle der
+   Zeichnung); der Container stapelt deshalb senkrecht, und die Tafel nimmt den
+   Rest der Höhe. Das Feld folgt dem Filter-Feld der Canvas-Karten-Liste
+   (canvas-liste.css) — dasselbe Muster für dieselbe Sache. */
+.content.view-kanban .pane-kanban {
+  flex-direction: column;
+}
+.pane-kanban > .kanban-tafel {
+  flex: 1 1 0;
+  min-height: 0;
+}
+.kanban-filter-leiste {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 10px 12px 0;
+  background: var(--bg);
+  font-family: var(--font-ui);
+}
+.kanban-filter-leiste[hidden],
+.kanban-filter-leer[hidden] {
+  display: none;
+}
+.kanban-filter {
+  width: 320px;
+  max-width: 100%;
+  padding: 3px 6px;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 12px;
+}
+.kanban-filter:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+/* Null Treffer: Die Spalten bleiben stehen, der Hinweis sagt, warum sie leer
+   sind (AK6). */
+.kanban-filter-leer {
+  margin: 0;
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+/* Ausgeblendet, nicht entfernt: Das Element bleibt mit seiner Zeilen-Nummer im
+   Baum, und das Dokument ist unberührt (AK7). */
+.kanban-karte.kanban-karte-verborgen {
+  display: none;
+}

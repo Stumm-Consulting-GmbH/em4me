@@ -29,6 +29,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'frontmatter.md');
 
@@ -51,12 +52,7 @@ function seedProfil(settings) {
 
 async function oeffneEinstellungen(page) {
   await expect(page.locator(SEL.tabs0).first()).toBeVisible();
-  await expect
-    .poll(async () => {
-      await page.keyboard.press('Control+,');
-      return page.locator(SETTINGS_PAGE).count();
-    })
-    .toBeGreaterThan(0);
+  await oeffneEinstellungsSeite(page);
   await expect(page.locator(`${SETTINGS_PAGE} .settings-section-heading`)).toBeVisible();
 }
 

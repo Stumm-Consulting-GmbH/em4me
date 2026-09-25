@@ -16,6 +16,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 // 1x1-PNG, ausreichend als Datei-Inhalt; die Sicht-Pruefung leistet das
 // manuelle Test-Material, hier zaehlt allein die Ablage.
@@ -359,12 +360,7 @@ test.describe('AN-10: die Wurzel begrenzt auch das Oeffnen', () => {
 const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system .settings-page';
 
 async function oeffneEinstellungen(page) {
-  await expect
-    .poll(async () => {
-      await page.keyboard.press('Control+,');
-      return page.locator(`${SETTINGS_PAGE} .settings-nav-entry`).count();
-    })
-    .toBeGreaterThan(0);
+  await oeffneEinstellungsSeite(page);
 }
 
 test.describe('AN-11: Einstellung steuert den Ablage-Ort', () => {

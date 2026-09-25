@@ -456,6 +456,53 @@ const INTERNAL_EXTENSIONS = [
       'file.importJsonCanvas',
     ],
   },
+  // 4T-001847 (Epic 3E-000110): Kanban-Tafel als siebter Ansichts-Modus.
+  // Erweiterungs-Pruefschritt des Epics, entschieden am 2026-09-21: schaltbar,
+  // weil die Tafel eine klar abgrenzbare Zusatz-Ansicht ist, von der kein
+  // Kern-Teil abhaengt — Leitlinie "im Zweifel schaltbar". Direkt hinter der
+  // Canvas, weil alle drei Ansichts-Modi derselben Familie sind.
+  //
+  // Die Abhaengigkeit von 'tasks' folgt der Sache: Eine Karte IST eine
+  // Aufgaben-Zeile, eine Tafel ohne Aufgaben waere eine Tafel ohne Karten
+  // (Story 4S-000978). Ist jene abgeschaltet, ist die Tafel mit-abgeschaltet.
+  //
+  // Im Aus-Zustand entfaellt der Ansichts-Modus (Statusleisten-Schalter,
+  // Menue-Eintrag, Umschaltung), das Kommando verschwindet aus Menue, Palette
+  // und Dispatcher, und ein im Tafel-Modus gespeichertes Dokument oeffnet in
+  // der Lese-Ansicht als gewoehnliches Markdown. Geschrieben wird im
+  // Aus-Zustand nie: Das Abschalten ist verlustfrei, Spalten und Karten stehen
+  // unveraendert im Dokument. Kategorie 'render', wie Mindmap und Canvas.
+  {
+    id: 'kanban',
+    category: 'render',
+    nameKey: 'help.featureName.kanban',
+    descKey: 'help.feature.kanban',
+    // 4T-001909: die zweite Katalog-Zeile der Tafel (Angaben auf der Karte,
+    // Obergrenze, Archiv, Filter) gehört ebenso zur Erweiterung und trägt im
+    // Aus-Zustand dieselbe Kennzeichnung auf der Funktions-Seite.
+    featureKeys: ['help.feature.kanbanCardDetails'],
+    dependencies: ['tasks'],
+    // 4T-001849: Die Karten-Anlage haengt an derselben Erweiterung. Ohne die
+    // Tafel hat sie keinen Gegenstand; im Aus-Zustand verschwindet sie mit ihr
+    // aus Menue, Palette und Dispatcher.
+    // 4T-001852: Die beiden Wege zu einer Tafel haengen ebenso an ihr. Im
+    // Aus-Zustand verschwindet mit ihnen das ganze Untermenue «Kanban-Tafel»,
+    // weil es ueber submenuOrNull aus genau diesen beiden Eintraegen entsteht.
+    commands: [
+      'view.modeKanban',
+      'kanban.addCard',
+      // 4T-001906: Das Archivieren einer Karte hat ohne Tafel keinen Gegenstand.
+      'kanban.archiveCard',
+      'kanban.addColumn',
+      'kanban.newBoard',
+      'kanban.convertToBoard',
+      // 4T-001904: Der Schalter «Tags am Kartenfuß» hat ohne Tafel keinen
+      // Gegenstand und verschwindet mit ihr.
+      'kanban.toggleTagsFooter',
+      // 4T-001903: ebenso der Schalter «Termine relativ anzeigen».
+      'kanban.toggleRelativeDates',
+    ],
+  },
   // Werkzeug-Erweiterungen (4T-000294). 'focus-mode' buendelt Fokus-Modus
   // und Typewriter-Scroll (eine Schreib-Umgebung, zwei Facetten).
   {

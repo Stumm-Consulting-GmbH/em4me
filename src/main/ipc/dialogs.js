@@ -253,6 +253,36 @@ function registerDialogsIpc(handle, deps) {
     return result.response === 0;
   });
 
+  // 4T-001851 (Epic 3E-000110): Rueckfrage vor dem Loeschen einer NICHT LEEREN
+  // Spalte der Kanban-Tafel (Muster events:confirmDelete). Sie ist die eine
+  // begruendete Abweichung vom «Rueckgaengig statt Rueckfrage»-Muster der
+  // Karten-Bedienung: Mit der Spalte verschwinden auch ihre Karten, also mehr,
+  // als die Handlung anzeigt. Eine LEERE Spalte wird ohne Rueckfrage geloescht
+  // und kommt hier gar nicht an.
+  //
+  // Genannt werden Titel UND Kartenzahl: Ohne beides beantwortet der Dialog
+  // nicht die eine Frage, auf die es ankommt — ob die richtige Spalte getroffen
+  // ist und wie viel daran haengt. Vorbelegt und mit Escape belegt ist das
+  // Abbrechen; die Zustimmung ist ein bewusster Klick.
+  handle('kanban:confirmDeleteColumn', async (event, angaben) => {
+    const owner = senderWindow(event);
+    const t = (k) => tForWindow(owner, k);
+    const anzahl = angaben && Number.isFinite(angaben.anzahl) ? angaben.anzahl : 0;
+    const result = await dialog.showMessageBox(owner || undefined, {
+      type: 'warning',
+      title: t('kanban.spalteLoeschenTitel'),
+      message: t('kanban.spalteLoeschenFrage')
+        .replace('{titel}', String((angaben && angaben.titel) || ''))
+        .replace('{anzahl}', String(anzahl)),
+      detail: t('kanban.spalteLoeschenDetail'),
+      buttons: [t('kanban.spalteLoeschenOk'), t('kanban.spalteLoeschenAbbrechen')],
+      defaultId: 1,
+      cancelId: 1,
+      noLink: true,
+    });
+    return result.response === 0;
+  });
+
   handle('events:confirmDelete', async (event, entryText) => {
     const owner = senderWindow(event);
     const t = (k) => tForWindow(owner, k);

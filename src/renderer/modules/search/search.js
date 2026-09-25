@@ -30,6 +30,15 @@ import {
 // der Trefferliste. Der Import geht nur in diese Richtung — search-panel.js
 // kennt die Suchleiste nicht, sonst entstuende ein Modul-Zyklus.
 import { setzeErsetzenModus } from './search-panel.js';
+// 4T-001893 (Epic 3E-000324): Suchraum der Mindmap-Ansicht. Das Modul ist ein
+// Blatt ohne Rückweg hierher; die Karte der Spalte reicht mindmap-pane.js ein.
+import {
+  beendeMindmapSuche,
+  mindmapSuchStand,
+  naechsterMindmapTreffer,
+  sucheInMindmap,
+  vorigerMindmapTreffer,
+} from '../mindmap/mindmap-suche.js';
 
 // === Suche ==================================================================
 // Globale Suchleiste am unteren Fensterrand, gilt fuer den aktiven Pane.
@@ -167,6 +176,14 @@ export function determineSearchScope() {
   // Markdown-Syntax in genau dieser Seite; das kann der Handbuch-Raum
   // nicht bedienen, und diese Absicht wiegt schwerer.
   if (tab.manualPage && tab.viewMode === 'rendered') return 'manual';
+  // 4T-001893 (Epic 3E-000324): In der Mindmap-Ansicht gehört Strg+F der
+  // Karte, und zwar in BEIDEN Lagen, also auch vor der Bereichs-Regel darunter
+  // (Entscheidung des Product Owners vom 2026-09-23, Weg A). Präzedenz sind
+  // räumliche Arbeitsfläche und Tafel-Ansicht, deren Weiche in
+  // app-commands.js ebenfalls unabhängig vom Bereich greift. Die Bereichs-Suche bleibt über die
+  // Lese-Ansicht und ihr Panel unverändert erreichbar. Vorher fiel der Modus
+  // auf 'rendered' und zählte Treffer der ausgeblendeten Lese-Ansicht.
+  if (tab.viewMode === 'mindmap') return 'mindmap';
   // 4T-000616 (Epic 3E-000116): Eine Datei in einem geoeffneten Bereich durchsucht
   // den GANZEN Bereich (PO-Entscheidung 2026-07-29). Damit setzt sich die
   // Regel fort, nach der der Raum der Behaelter ist, in dem der Anwender
@@ -259,6 +276,9 @@ export function buildRegex(query, useRegex, caseSensitive) {
 }
 
 export function clearSearchHighlights() {
+  // 4T-001893: Hervorhebungen der Mindmap gehören dazu; jeder Suchlauf beginnt
+  // hier, und die Mindmap-Suche merkt sich ihren aktuellen Treffer dabei selbst.
+  beendeMindmapSuche();
   // Render-Pane: alte <mark>-Elemente entfernen und Textknoten zusammenfuehren.
   const marks = document.querySelectorAll('.mdv-match');
   const parents = new Set();
@@ -416,8 +436,11 @@ export function updateSearchCounter() {
   const els = getSearchEls();
   // 4T-000760: Im Raum-Scope zaehlt der Bestand des Suchlaufs ueber alle
   // Seiten bzw. Bereiche, nicht die (leere) Treffer-Liste der Pane.
-  const total = isRaumScope(search.scope) ? raumTrefferAnzahl() : search.matches.length;
-  const current = isRaumScope(search.scope) ? raumIndex() : search.currentIndex;
+  // 4T-001893: In der Mindmap zählen die Treffer-Knoten der Karte.
+  const karte = search.scope === 'mindmap' ? mindmapSuchStand() : null;
+  const raum = isRaumScope(search.scope);
+  const total = karte ? karte.anzahl : raum ? raumTrefferAnzahl() : search.matches.length;
+  const current = karte ? karte.aktuell : raum ? raumIndex() : search.currentIndex;
   if (!search.query) {
     els.count.textContent = '';
     els.count.classList.remove('empty');
@@ -440,6 +463,8 @@ const SCOPE_LABEL_KEYS = {
   settings: 'search.scopeSettings',
   // 4T-000616 (Epic 3E-000116)
   area: 'search.scopeArea',
+  // 4T-001893 (Epic 3E-000324)
+  mindmap: 'search.scopeMindmap',
 };
 
 export function updateSearchScopeLabel() {
@@ -501,6 +526,17 @@ export function performSearch(opts = {}) {
     return;
   }
   setInvalidRegex(false);
+
+  // 4T-001893: Die Karte ist ein eigener Suchraum. Eine neue Eingabe springt
+  // den ersten Treffer an, eine Neu-Ermittlung (keepCurrent) bewegt nichts.
+  if (search.scope === 'mindmap') {
+    sucheInMindmap(state.activePaneIndex, regex, {
+      behalteIndex: keepCurrent,
+      beiAenderung: updateSearchCounter,
+    });
+    updateSearchCounter();
+    return;
+  }
 
   // 4T-000760: Raum-Suche. Der Lieferant arbeitet asynchron (Handbuch-Seiten
   // kommen per IPC), deshalb laeuft der Zaehler dem Tastendruck hinterher;
@@ -611,6 +647,12 @@ export function scheduleSearchRefresh() {
 }
 
 export function nextMatch() {
+  // 4T-001893: In der Mindmap wandert F3 von Knoten zu Knoten, im Kreis.
+  if (search.scope === 'mindmap') {
+    naechsterMindmapTreffer();
+    updateSearchCounter();
+    return;
+  }
   // 4T-000760: Im Raum-Scope laeuft F3 ueber die Seiten- bzw. Bereichsgrenze
   // hinweg; der Sprung selbst haengt am Sprung-Handler des Panels.
   if (isRaumScope(search.scope)) {
@@ -625,6 +667,11 @@ export function nextMatch() {
 }
 
 export function prevMatch() {
+  if (search.scope === 'mindmap') {
+    vorigerMindmapTreffer();
+    updateSearchCounter();
+    return;
+  }
   if (isRaumScope(search.scope)) {
     const treffer = vorherigerRaumTreffer();
     if (treffer) springeZuRaumTreffer(treffer);

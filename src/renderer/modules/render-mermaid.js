@@ -38,6 +38,9 @@ import {
 // 4T-001653 (Epic 3E-000287): Der Karten-Inhalt der Canvas ist ebenfalls ein
 // erzeugter Teilbaum und bekommt denselben Schritt-Satz hereingereicht.
 import { registriereCanvasTeilbaumSchritte } from './canvas/canvas-pane.js';
+// 4T-001848 (Epic 3E-000110): Der Karten-Inhalt der Kanban-Tafel ist aus
+// demselben Grund ein erzeugter Teilbaum und bekommt denselben Schritt-Satz.
+import { registriereKanbanTeilbaumSchritte } from './kanban/kanban-pane.js';
 // 4T-001668 (Epic 3E-000287): Zugang und Klapp-Zustand des Canvas-Blocks
 // (Entscheidung E8). Das Modul importiert selbst kein Renderer-Modul und
 // bildet deshalb keinen Ordner-Zyklus.
@@ -1284,3 +1287,5 @@ registriereTeilbaumSchritte(applyTeilbaumSchritte);
 // Grund: Ein Import dieses Moduls dort zoege den Canvas-Ordner in den grossen
 // Datei-Zyklus des Renderers, den der Ordner-Import-Waechter eingefroren hat.
 registriereCanvasTeilbaumSchritte(applyTeilbaumSchritte);
+// 4T-001848: Und dieselbe Richtung fuer die Tafel, aus demselben Grund.
+registriereKanbanTeilbaumSchritte(applyTeilbaumSchritte);

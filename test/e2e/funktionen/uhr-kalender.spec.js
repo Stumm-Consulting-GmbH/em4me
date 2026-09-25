@@ -17,6 +17,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp, schliesseTour } = require('../helpers/app');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 const CLOCK_BTN = '#btn-clock';
 const SECTION = '.pane-group .sidebar-clock';
@@ -147,12 +148,7 @@ test.describe('UK-04: Kalenderwochen-Spalte', () => {
       const mitSpalte = await page.locator(WEEK_CELLS).count();
       expect(mitSpalte).toBeGreaterThan(1);
 
-      await expect
-        .poll(async () => {
-          await page.keyboard.press('Control+,');
-          return page.locator(SETTINGS_PAGE).count();
-        })
-        .toBeGreaterThan(0);
+      await oeffneEinstellungsSeite(page);
       await page.locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="clock"]`).click();
       await page.locator('#settings-clock-calendar-week').click();
       await page.locator('#btn-settings-apply').click();

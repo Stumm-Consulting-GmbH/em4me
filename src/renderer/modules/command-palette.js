@@ -27,7 +27,11 @@ import { bindingToDisplayString } from '../../shared/commands/command-bindings.j
 // 4T-001636 (Epic 3E-000295): Verfuegbarkeits-Modell — der Katalog der
 // benannten Bedingungen und der Kontext-Vertrag, den beide Prozess-Seiten
 // befuellen. Die Palette entscheidet seither nicht mehr selbst.
-import { availabilityContext, isAvailable } from '../../shared/commands/command-availability.js';
+import {
+  availabilityContext,
+  dokumentIstLeer,
+  isAvailable,
+} from '../../shared/commands/command-availability.js';
 import { disabledCommandIdSet } from '../../shared/extensions/extensions-core.js';
 import { filterCommandEntries } from '../../shared/commands/command-palette-filter.js';
 import { t } from '../i18n.js';
@@ -46,6 +50,9 @@ import { hasTableContext } from './editor/editor-table-tools.js';
 // baut (tabs.js) — eine Quelle fuer beide Prozess-Seiten, wie es die benannte
 // Grenze des Modells verlangt.
 import { istCanvasModusVerfuegbar } from './canvas/canvas-modus.js';
+// 4T-001847 (Epic 3E-000110): Verfuegbarkeits-Regel des Tafel-Kommandos, aus
+// derselben einen Quelle wie der gemeldete Menue-Zustand sein tafelTab nimmt.
+import { istTafelModusVerfuegbar } from './kanban/kanban-modus.js';
 
 function $(sel) {
   return document.querySelector(sel);
@@ -118,6 +125,15 @@ export function rendererAvailabilityContext() {
     // liefert die Funktion ohnehin false, und die Kommando-Filterung des
     // Schalters nimmt die Eintraege dann ganz heraus.
     canvasTab: istCanvasModusVerfuegbar(tab),
+    // 4T-001847 (Epic 3E-000110): Ist das aktive Dokument eine Tafel? Elftes
+    // Feld des gemeinsamen Vertrags; im Aus-Zustand der Erweiterung liefert die
+    // Funktion ohnehin false, und die Kommando-Filterung des Schalters nimmt
+    // den Eintrag dann ganz heraus.
+    tafelTab: istTafelModusVerfuegbar(tab),
+    // 4T-001852 (Epic 3E-000110): Ist das aktive Dokument leer? Zwoelftes Feld
+    // des gemeinsamen Vertrags; es traegt das Umwandeln in eine Tafel. Dieselbe
+    // Funktion, aus der auch der gemeldete Menue-Zustand sein Feld baut.
+    leeresDokument: !!tab && dokumentIstLeer(tab.content),
   });
 }
 

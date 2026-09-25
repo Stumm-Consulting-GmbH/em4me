@@ -28,12 +28,52 @@
 // (Muster `findCanvasFences`, `findPerspectiveEventsFences`).
 const ZAUN_RE = /^( {0,3})(`{3,}|~{3,})(.*)$/;
 
+// 4T-001833 (Epic 3E-000254): **Die Regel als zwei Bausteine für jeden Leser.**
+// Bis dahin stand sie allein in der Zeilen-Logik von `fenceOeffnerOffsets`,
+// und der Datensatz-Block der Datenbank führte eine zweite Fassung. Seither
+// liegen Öffnung und Schluss hier als eigene Funktionen; `fenceOeffnerOffsets`
+// und alle Leser des Datensatz-Blocks (über `database/record-block.js`) nehmen
+// sie von hier, damit die Regel nur einmal steht.
+//
+// Die Öffnung einer Zaun-Zeile: das Zeichen, die Länge der Sequenz und das
+// erste Wort des Infostrings (dieselbe Lesart, mit der markdown-it die Sprache
+// einer Fence bestimmt; leer, wenn hinter der Sequenz nur Leerraum steht).
+// `null`, wenn die Zeile keine Zaun-Zeile ist, auch beim Backtick-Zaun mit
+// Backtick im Infostring. Ein `\r` am Zeilenende fällt vor der Prüfung weg,
+// damit eine Datei mit Windows-Zeilenenden dieselben Zäune zeigt.
+function zaunOeffnung(zeile) {
+  const m = ZAUN_RE.exec(String(zeile == null ? '' : zeile).replace(/\r$/, ''));
+  if (!m) return null;
+  const zeichen = m[2][0];
+  const info = m[3].trim();
+  if (zeichen === '`' && info.includes('`')) return null;
+  return { zeichen, laenge: m[2].length, sprache: info.split(/\s+/)[0] };
+}
+
+// Schließt diese Zeile den Block, den `oeffnung` geöffnet hat? Dasselbe
+// Zeichen, MINDESTENS so lang wie die öffnende Sequenz, und hinter der Sequenz
+// nichts als Leerraum. Eine kürzere Zeile oder eine mit Infostring ist Inhalt
+// des Blocks; ohne `oeffnung` schließt nichts.
+function schliesstZaun(zeile, oeffnung) {
+  if (!oeffnung) return false;
+  const eigene = zaunOeffnung(zeile);
+  return (
+    eigene !== null &&
+    eigene.zeichen === oeffnung.zeichen &&
+    eigene.laenge >= oeffnung.laenge &&
+    eigene.sprache === ''
+  );
+}
+
 // Die Start-Offsets der Öffner-Zeilen aller Code-Blöcke der obersten Ebene, als
 // Menge. Gemessen wird am Zeilen-Anfang einschließlich der Einrückung, weil
 // genau dort der Treffer-Offset einer Fence-Regex liegt.
 //
-// Ein `\r` am Zeilenende fällt vor der Prüfung weg, damit ein Dokument mit
-// Windows-Zeilenenden dieselben Öffner findet.
+// Ein `\r` am Zeilenende fällt vor der Prüfung weg (in `zaunOeffnung`), damit
+// ein Dokument mit Windows-Zeilenenden dieselben Öffner findet.
+//
+// 4T-001833 (Epic 3E-000254): über die beiden Bausteine oben statt über eine
+// eigene Zeilen-Logik; das Verhalten ist unverändert.
 function fenceOeffnerOffsets(text) {
   const src = String(text == null ? '' : text);
   const offsets = new Set();
@@ -42,17 +82,12 @@ function fenceOeffnerOffsets(text) {
   for (;;) {
     const nl = src.indexOf('\n', pos);
     const ende = nl === -1 ? src.length : nl;
-    const m = ZAUN_RE.exec(src.slice(pos, ende).replace(/\r$/, ''));
-    if (m) {
-      const zeichen = m[2][0];
-      const laenge = m[2].length;
-      const info = m[3].trim();
-      if (offen) {
-        if (zeichen === offen.zeichen && laenge >= offen.laenge && info === '') offen = null;
-      } else if (!(zeichen === '`' && info.includes('`'))) {
-        offen = { zeichen, laenge };
-        offsets.add(pos);
-      }
+    const zeile = src.slice(pos, ende);
+    if (offen) {
+      if (schliesstZaun(zeile, offen)) offen = null;
+    } else {
+      offen = zaunOeffnung(zeile);
+      if (offen) offsets.add(pos);
     }
     if (nl === -1) break;
     pos = nl + 1;
@@ -62,4 +97,7 @@ function fenceOeffnerOffsets(text) {
 
 module.exports = {
   fenceOeffnerOffsets,
+  // 4T-001833 (Epic 3E-000254): die Zaun-Regel für jeden zeilenweisen Leser.
+  zaunOeffnung,
+  schliesstZaun,
 };

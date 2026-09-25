@@ -2,9 +2,9 @@
 
 L'apparence d'un document se décide à deux niveaux. La **vue** appartient à l'onglet : elle détermine si le document est montré rendu, en source, scindé ou en direct. L'**apparence** vaut pour toute l'application : thème, zoom, largeur du contenu et polices. Cette page réunit les deux niveaux et nomme l'emplacement de chaque réglage.
 
-## Les six vues
+## Les sept vues
 
-Chaque onglet se trouve dans exactement une des six vues. Le mode choisi vaut par onglet et non globalement : un document peut rester ouvert en rendu pendant qu'un deuxième est édité en source à côté.
+Chaque onglet se trouve dans exactement une des sept vues. Le mode choisi vaut par onglet et non globalement : un document peut rester ouvert en rendu pendant qu'un deuxième est édité en source à côté.
 
 | Vue         | Ce qu'elle montre                                     | Raccourci par défaut |
 | ----------- | ----------------------------------------------------- | -------------------- |
@@ -14,8 +14,9 @@ Chaque onglet se trouve dans exactement une des six vues. Le mode choisi vaut pa
 | **Direct**  | la source, mise en forme là où l'on écrit             | `Ctrl+4`             |
 | **Carte mentale** | la structure du document sous forme de carte    | `Ctrl+5`             |
 | **Canevas** | une surface avec cartes et connexions issue du document | `Ctrl+6`             |
+| **Tableau** | les tâches du document en tableau Kanban              | `Ctrl+7`             |
 
-Le changement se fait par les boutons de la barre d'état ou par le haut du menu Affichage ; la carte mentale se trouve dans le menu et sur son raccourci, pas dans la barre d'état, et le bouton du canevas reste atténué tant que le document ne porte pas de surface Canvas. La vue qu'obtient un onglet nouvellement ouvert se règle dans la section « Comportement » des paramètres.
+Le changement se fait par les boutons de la barre d'état ou par le haut du menu Affichage ; la carte mentale se trouve dans le menu et sur son raccourci, pas dans la barre d'état, le bouton du canevas reste atténué tant que le document ne porte pas de surface Canvas, et le bouton du tableau de même tant que le document n'est pas un tableau Kanban. La vue qu'obtient un onglet nouvellement ouvert se règle dans la section « Comportement » des paramètres.
 
 ### Mode direct
 
@@ -27,11 +28,15 @@ Le mode direct rend le Markdown directement dans l'éditeur : gras et italique, 
 
 ### Carte mentale
 
-La carte mentale montre les titres et les listes du document sous forme d'arbre, et le texte courant comme note sur le nœud. Elle appartient à l'extension du même nom et disparaît avec elle ; structure, manipulation, les cinq positions de la racine et la valeur par document sont décrites sur la page [Vue carte mentale](mindmap.md).
+La carte mentale montre les titres et les listes du document sous forme d'arbre, et le texte courant comme note sur le nœud. Elle appartient à l'extension du même nom et disparaît avec elle ; structure, manipulation, la recherche dans la carte, les cinq positions de la racine et la valeur par document sont décrites sur la page [Vue carte mentale](mindmap.md).
 
 ### Canevas
 
-Le canevas montre une surface avec des cartes et des connexions qui se trouve dans le document lui-même. Il appartient à l’extension du même nom et disparaît avec elle ; il est de plus la seule des six vues à dépendre du document et n’est sélectionnable que si celui-ci porte une surface Canvas. Structure, manipulation, plusieurs surfaces et le format de stockage sont décrits sur la page [Surface Canvas](canvas.md).
+Le canevas montre une surface avec des cartes et des connexions qui se trouve dans le document lui-même. Il appartient à l’extension du même nom et disparaît avec elle ; il dépend de plus du document et n’est sélectionnable que si celui-ci porte une surface Canvas. Structure, manipulation, plusieurs surfaces et le format de stockage sont décrits sur la page [Surface Canvas](canvas.md).
+
+### Tableau
+
+Le tableau montre les tâches du document sous forme de tableau Kanban : les listes nommées du document comme colonnes, les lignes de tâche qu'elles contiennent comme cartes. Il appartient à l'extension « Kanban » et disparaît avec elle ; comme le canevas, il dépend du document et n'est sélectionnable que si celui-ci porte la marque d'en-tête d'un tableau. Créer et convertir, manipuler cartes et colonnes, déplacer à la souris, échéances, tags, limite, archive et filtre ainsi que le format d'enregistrement sont décrits sur la page [Tableau Kanban](kanban.md).
 
 ### Modifier
 

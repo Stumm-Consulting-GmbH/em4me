@@ -221,6 +221,8 @@
   "help.featureName.canvasList": "Liste du canevas",
   "help.featureName.canvasExportJson": "Export du canevas en JSON Canvas",
   "help.featureName.canvasImportJson": "Import d’un fichier JSON Canvas",
+  "help.featureName.kanban": "Vue tableau (Kanban)",
+  "help.featureName.kanbanCardDetails": "Indications sur la carte (Kanban)",
   "help.featureName.databaseTable": "Définition de table",
   "help.featureName.databaseColumnTypes": "Types de colonne d'une table",
   "help.featureName.databaseRecordKey": "Identifiant d'enregistrement et clé fonctionnelle",

@@ -12,6 +12,8 @@
   "search.scopeManual": "Suche im Handbuch",
   "search.scopeSettings": "Suche in den Einstellungen",
   "search.scopeArea": "Suche im Bereich",
+  "search.scopeMindmap": "Suche in der Mindmap",
+  "search.mindmapNoteHit": "Treffer in der Notiz",
   "search.scopeTitle": "Suchbereich",
   "search.helpTitle": "Regex-Hilfe anzeigen",
   "search.regexHelpTitle": "Regulärer Ausdruck — Kurzreferenz",

@@ -63,13 +63,32 @@ const SHARED_CONTEXT_FIELDS = [
   // ermitteln es aus derselben Quelle (istCanvasModusVerfuegbar in tabs.js),
   // der Main ueber den normalisierten Menue-Zustand, der Renderer direkt.
   'canvasTab',
+  // 4T-001847 (Epic 3E-000110): Ist das aktive Dokument eine Tafel UND die
+  // Erweiterung «Kanban» eingeschaltet? Das elfte gemeinsame Feld und das
+  // zweite, das eine Eigenschaft des INHALTS meldet; beide Seiten ermitteln es
+  // aus derselben Quelle (istTafelModusVerfuegbar), der Main ueber den
+  // normalisierten Menue-Zustand, der Renderer direkt.
+  'tafelTab',
+  // 4T-001852 (Epic 3E-000110): Ist das aktive Dokument leer, also ohne Inhalt
+  // ausser Leerraum? Das zwoelfte gemeinsame Feld und das dritte, das eine
+  // Eigenschaft des INHALTS meldet. Beide Seiten ermitteln es aus derselben
+  // Quelle — `dokumentIstLeer` weiter unten in dieser Datei —, der Main ueber
+  // den normalisierten Menue-Zustand, der Renderer direkt.
+  //
+  // **Es ist bewusst kein Kanban-Feld**, obwohl heute nur ein Kanban-Befehl es
+  // liest: «Das Dokument ist leer» ist eine Eigenschaft des Dokuments und
+  // keine der Tafel. Ein Feld namens `tafelUmwandelbar` haette dieselbe Frage
+  // unter einem Namen versteckt, der beim naechsten Verbraucher nicht mehr
+  // passt.
+  'leeresDokument',
 ];
 const RENDERER_CONTEXT_FIELDS = ['inTable', 'hasCalendarConfig'];
 const AVAILABILITY_CONTEXT_FIELDS = [...SHARED_CONTEXT_FIELDS, ...RENDERER_CONTEXT_FIELDS];
 
 // viewMode ist das einzige nicht-boolsche Feld: 'source' | 'split' | 'live' |
-// 'rendered' | 'mindmap' | 'canvas' | null. Alles Uebrige ist boolsch.
-// ('canvas' seit 4T-001653, im Katalog gebraucht von 4T-001697.)
+// 'rendered' | 'mindmap' | 'canvas' | 'kanban' | null. Alles Uebrige ist
+// boolsch. ('canvas' seit 4T-001653, im Katalog gebraucht von 4T-001697;
+// 'kanban' seit 4T-001847.)
 const VIEW_MODE_FIELD = 'viewMode';
 
 // Defensive Normalisierung nach dem Muster normalizeCommandPlacement: ein
@@ -90,6 +109,26 @@ function availabilityContext(raw) {
     }
   }
   return ctx;
+}
+
+// --- Herleitung einzelner Vertrags-Felder ------------------------------------
+
+/**
+ * Ist dieser Dokument-Text leer, also ohne Inhalt ausser Leerraum?
+ *
+ * 4T-001852: Die eine Herleitung des Vertrags-Feldes `leeresDokument`. Sie
+ * steht hier und nicht bei ihren beiden Aufrufern, weil die GRENZE zwischen
+ * «leer» und «hat Inhalt» ueber die Freigabe eines Kommandos entscheidet: Ein
+ * Dokument aus einem einzigen Zeilenumbruch muss auf beiden Prozess-Seiten
+ * dieselbe Antwort bekommen, sonst zeigt das Menue etwas anderes als die
+ * Kommando-Palette. Ein fehlender oder nicht textlicher Inhalt gilt als leer —
+ * ein Reiter ohne Text hat keinen, den eine Umwandlung ueberschreiben koennte.
+ *
+ * @param {string} inhalt Dokument-Text.
+ * @returns {boolean}
+ */
+function dokumentIstLeer(inhalt) {
+  return typeof inhalt !== 'string' || inhalt.trim() === '';
 }
 
 // --- Abgeleitete Teil-Bedingungen --------------------------------------------
@@ -221,6 +260,52 @@ const AVAILABILITY_CATALOG = [
     felder: ['hasTab', 'systemTab', 'canvasTab', 'viewMode'],
     pruefe: (c) => !!c.hasTab && !c.systemTab && !!c.canvasTab && c.viewMode === 'canvas',
   },
+  // 4T-001847 (Epic 3E-000110): Die Bedingung des Tafel-Ansichts-Modus, im
+  // Zuschnitt von `canvasAnsicht` und aus demselben Grund: Der Modus ist
+  // dokument-abhaengig, und ohne Tafel im Dokument gibt es nichts zu zeigen.
+  // Eine eigene Bedingung statt einer Wiederverwendung von `canvasAnsicht`,
+  // weil beide verschiedene Dokument-Eigenschaften meinen — ein Dokument kann
+  // eine Flaeche tragen, ohne eine Tafel zu sein, und umgekehrt.
+  {
+    name: 'tafelAnsicht',
+    felder: ['systemTab', 'tafelTab'],
+    pruefe: (c) => !c.systemTab && !!c.tafelTab,
+  },
+  // 4T-001849 (Epic 3E-000110): Die Bedingung der Tafel-Befehle, im Zuschnitt
+  // von `canvasKarte` und aus demselben Grund: Die Karte entsteht in der
+  // gezeigten Tafel, und die gibt es nur in dieser Ansicht.
+  //
+  // Dass eine Karte GEWAEHLT und das Dokument AENDERBAR ist, steht bewusst
+  // nicht im Katalog — dieselbe Begruendung wie bei den Flaechen-Befehlen:
+  // Beides sind Zustaende der Ansicht, die der Kontext des Modells nicht kennt
+  // und die bei jedem Klick ueber die Prozess-Bruecke gemeldet werden muessten.
+  // Beide Faelle faengt der Guard der Einbettung mit einem gesagten Fehlschlag
+  // ab.
+  {
+    name: 'tafelKarte',
+    felder: ['systemTab', 'tafelTab', 'viewMode'],
+    pruefe: (c) => !c.systemTab && !!c.tafelTab && c.viewMode === 'kanban',
+  },
+  // 4T-001852 (Epic 3E-000110): Die Bedingung des Umwandelns. Sie verlangt ein
+  // geoeffnetes Dokument, das geschrieben werden darf (weder Handbuch- noch
+  // System-Seite), das leer ist und das noch keine Tafel ist.
+  //
+  // **Warum `tafelTab` ausdruecklich dasteht**, obwohl ein Tafel-Dokument
+  // schon wegen seines Kopf-Kennzeichens nie leer sein kann: dieselbe
+  // Ueberlegung wie bei `canvasFlaecheOffen`. Die Zusage der Story lautet, dass
+  // das Umwandeln an einer Tafel sichtbar deaktiviert ist; sie ausgeschrieben
+  // hinzuschreiben sagt, was der Befehl wirklich braucht, statt es aus einem
+  // anderen Feld zu folgern.
+  //
+  // **Dass das Dokument im Aenderungs-Modus steht, gehoert bewusst nicht in
+  // den Katalog** — dieselbe Begruendung wie bei den Tafel-Befehlen darueber:
+  // Das ist ein Zustand der Ansicht, den der Kontext des Modells nicht fuehrt;
+  // der Guard des Kommandos faengt ihn mit einem gesagten Fehlschlag ab.
+  {
+    name: 'leeresDokumentOhneTafel',
+    felder: ['hasTab', 'manualTab', 'systemTab', 'tafelTab', 'leeresDokument'],
+    pruefe: (c) => !!c.hasTab && !c.manualTab && !c.systemTab && !c.tafelTab && !!c.leeresDokument,
+  },
   {
     name: 'editor',
     felder: ['hasTab', 'manualTab', 'systemTab', 'editMode', 'viewMode'],
@@ -290,6 +375,7 @@ module.exports = {
   RENDERER_CONTEXT_FIELDS,
   availabilityContext,
   availabilityCondition,
+  dokumentIstLeer,
   isAvailabilityName,
   isAvailable,
 };

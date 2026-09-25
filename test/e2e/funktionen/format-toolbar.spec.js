@@ -12,6 +12,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
@@ -260,12 +261,7 @@ test.describe('FT-08: Belegung konfigurieren', () => {
       const firstButton = page.locator(`${TOOLBAR} .format-toolbar-button`).first();
       await expect(firstButton).toHaveAttribute('data-command-id', 'format.bold');
       // Einstellungs-Seite öffnen (Poll-Muster) und zum Bereich wechseln.
-      await expect
-        .poll(async () => {
-          await page.keyboard.press('Control+,');
-          return page.locator(SETTINGS_PAGE).count();
-        })
-        .toBeGreaterThan(0);
+      await oeffneEinstellungsSeite(page);
       await page
         .locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="formatToolbar"]`)
         .click();

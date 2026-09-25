@@ -16,7 +16,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
-const { pressUntilVisible } = require('../helpers/eingabe');
+const { pressUntilVisible, oeffneEinstellungsSeite } = require('../helpers/eingabe');
 const { PANEL_ACCESS, DEFAULT_PANEL_TOGGLE_ORDER } = require('../../../src/shared/panel-access.js');
 // 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
 const { LOCALE_CODES } = require('../../../src/shared/locales.js');
@@ -285,12 +285,7 @@ test.describe('PZ-04: deaktivierte Erweiterungs-Panels verschwinden an beiden Or
 const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system .settings-page';
 
 async function openPanelOrderSection(page) {
-  await expect
-    .poll(async () => {
-      await page.keyboard.press('Control+,');
-      return page.locator(SETTINGS_PAGE).count();
-    })
-    .toBeGreaterThan(0);
+  await oeffneEinstellungsSeite(page);
   await page.locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="panelOrder"]`).click();
   await expect(page.locator(`${SETTINGS_PAGE} .panel-order-settings`)).toBeVisible();
 }

@@ -79,7 +79,7 @@ La portée suit l’onglet dans lequel la recherche est ouverte ; les portées s
 | Paramètres | **toutes** les sections des paramètres, même jamais visitées |
 | Aucun onglet ouvert, zone liée | dans **tous** les fichiers Markdown de la zone |
 
-La portée en vigueur s’affiche à gauche dans la barre de recherche.
+La portée en vigueur s’affiche à gauche dans la barre de recherche. Dans la vue carte mentale, la recherche parcourt la carte elle-même, y compris dans une zone ouverte ; voir [Vue carte mentale](mindmap.md).
 
 Au-delà du fichier isolé, les occurrences apparaissent dans le panneau **Résultats de recherche**, groupées par fichier, page ou section, avec un décompte par groupe. Un clic ouvre la cible et met l’endroit en évidence ; `F3` franchit la limite du groupe.
 

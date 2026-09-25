@@ -2,9 +2,9 @@
 
 Wie ein Dokument erscheint, entscheiden zwei Ebenen. Die **Ansicht** gehört zum einzelnen Reiter: Sie legt fest, ob das Dokument gerendert, als Quelltext, geteilt oder live gezeigt wird. Das **Erscheinungsbild** gilt für die ganze Anwendung: Theme, Zoom, Inhalts-Breite und Schriften. Diese Seite führt beide Ebenen zusammen und nennt zu jeder Einstellung ihren Ort.
 
-## Die sechs Ansichten
+## Die sieben Ansichten
 
-Jedes geöffnete Dokument steht in genau einer von sechs Ansichten. Der gewählte Modus gilt je geöffnetem Dokument, nicht global: Ein Dokument darf gerendert offen sein, während daneben ein zweites im Quelltext bearbeitet wird.
+Jedes geöffnete Dokument steht in genau einer von sieben Ansichten. Der gewählte Modus gilt je geöffnetem Dokument, nicht global: Ein Dokument darf gerendert offen sein, während daneben ein zweites im Quelltext bearbeitet wird.
 
 | Ansicht       | Was sie zeigt                                          | Standard-Kürzel |
 | ------------- | ------------------------------------------------------ | --------------- |
@@ -14,8 +14,9 @@ Jedes geöffnete Dokument steht in genau einer von sechs Ansichten. Der gewählt
 | **Live**      | den Quelltext, formatiert direkt in der Bearbeitung    | `Strg+4`        |
 | **Mindmap**   | die Struktur des Dokuments als Karte statt als Text    | `Strg+5`        |
 | **Canvas**    | eine Fläche mit Karten und Verbindungen aus dem Dokument | `Strg+6`        |
+| **Tafel**     | die Aufgaben des Dokuments als Kanban-Tafel              | `Strg+7`        |
 
-Umgeschaltet wird über die Schaltflächen in der Statusleiste oder über den Kopf des Ansicht-Menüs; die Mindmap steht im Menü und auf ihrem Kürzel, nicht in der Statusleiste, und die Canvas-Schaltfläche bleibt gedämpft, solange das Dokument keine Canvas-Fläche trägt. Welche Ansicht ein neu geöffneter Reiter bekommt, stellt der Bereich „Verhalten" der Einstellungen ein.
+Umgeschaltet wird über die Schaltflächen in der Statusleiste oder über den Kopf des Ansicht-Menüs; die Mindmap steht im Menü und auf ihrem Kürzel, nicht in der Statusleiste, die Canvas-Schaltfläche bleibt gedämpft, solange das Dokument keine Canvas-Fläche trägt, und die Tafel-Schaltfläche ebenso, solange das Dokument keine Kanban-Tafel ist. Welche Ansicht ein neu geöffneter Reiter bekommt, stellt der Bereich „Verhalten" der Einstellungen ein.
 
 ### Live-Modus
 
@@ -27,11 +28,15 @@ Der Live-Modus rendert das Markdown unmittelbar im Editor: Fett und kursiv, Link
 
 ### Mindmap
 
-Die Mindmap zeigt Überschriften und Listen des Dokuments als Baum, den Fließtext als Notiz am Knoten. Sie gehört zur gleichnamigen Erweiterung und entfällt mit ihr; Aufbau, Bedienung, die fünf Lagen der Wurzel und die Vorgabe je Dokument beschreibt die Seite [Mindmap-Ansicht](mindmap.md).
+Die Mindmap zeigt Überschriften und Listen des Dokuments als Baum, den Fließtext als Notiz am Knoten. Sie gehört zur gleichnamigen Erweiterung und entfällt mit ihr; Aufbau, Bedienung, die Suche in der Karte, die fünf Lagen der Wurzel und die Vorgabe je Dokument beschreibt die Seite [Mindmap-Ansicht](mindmap.md).
 
 ### Canvas
 
-Die Canvas zeigt eine Fläche mit Karten und Verbindungen, die im Dokument selbst liegt. Sie gehört zur gleichnamigen Erweiterung und entfällt mit ihr; als einzige der sechs Ansichten ist sie zudem dokument-abhängig und nur wählbar, wenn das Dokument eine Canvas-Fläche enthält. Aufbau, Bedienung, mehrere Flächen und das Speicherformat beschreibt die Seite [Canvas-Fläche](canvas.md).
+Die Canvas zeigt eine Fläche mit Karten und Verbindungen, die im Dokument selbst liegt. Sie gehört zur gleichnamigen Erweiterung und entfällt mit ihr; sie ist zudem dokument-abhängig und nur wählbar, wenn das Dokument eine Canvas-Fläche enthält. Aufbau, Bedienung, mehrere Flächen und das Speicherformat beschreibt die Seite [Canvas-Fläche](canvas.md).
+
+### Tafel
+
+Die Tafel zeigt die Aufgaben des Dokuments als Kanban-Tafel: die benannten Listen des Dokuments als Spalten, die Aufgaben-Zeilen darin als Karten. Sie gehört zur Erweiterung „Kanban" und entfällt mit ihr; wie die Canvas ist sie dokument-abhängig und nur wählbar, wenn das Dokument das Kopf-Kennzeichen einer Tafel trägt. Anlegen und Umwandeln, die Bedienung von Karten und Spalten, das Verschieben mit der Maus, Termine, Tags, Obergrenze, Archiv und Filter sowie das Speicherformat beschreibt die Seite [Kanban-Tafel](kanban.md).
 
 ### Bearbeiten
 

@@ -56,6 +56,12 @@ import { resolveViewModeForTab } from '../mindmap/mindmap-modus.js';
 // der Mindmap aus der Pane-Ebene.
 import { fitCanvas, fokussiereCanvas, renderCanvas } from '../canvas/canvas-pane.js';
 import { istCanvasModusVerfuegbar } from '../canvas/canvas-modus.js';
+// 4T-001847 (Epic 3E-000110): Die Tafel folgt demselben Zuschnitt — die
+// Verfuegbarkeits-Regel aus dem zyklusfreien Modus-Modul, das Zeichnen aus der
+// Pane-Ebene.
+import { istTafelModusVerfuegbar } from '../kanban/kanban-modus.js';
+import { renderKanban } from '../kanban/kanban-pane.js';
+import { beendeTafelSuche } from '../kanban/kanban-suche.js';
 import { renderPaneContent } from './pane-render.js';
 import { stampTabTimestamps } from './save-export.js';
 import { renderTabbar } from './tabbar.js';
@@ -92,7 +98,15 @@ export function setViewMode(mode) {
   // eine Ansicht gewaehlt, die es hier nicht gibt — ihn dafuer aus seiner
   // aktuellen zu werfen, waere die schlechtere Antwort.
   if (mode === 'canvas' && !istCanvasModusVerfuegbar(tab)) return;
+  // 4T-001847 (Epic 3E-000110): Dieselbe Reissleine fuer die Tafel. Sie traegt
+  // beide Bedingungen — Erweiterung an und Dokument ist eine Tafel —, weil
+  // istTafelModusVerfuegbar beide prueft. Stiller Verzicht statt Rueckfall,
+  // woertlich aus demselben Grund wie eine Zeile darueber.
+  if (mode === 'kanban' && !istTafelModusVerfuegbar(tab)) return;
   tab.viewMode = mode;
+  // 4T-001907: Der Wechsel der Ansicht beendet den Filter der Tafel; wer
+  // zurückkommt, sieht wieder alle Karten.
+  if (mode !== 'kanban') beendeTafelSuche(state.activePaneIndex);
   // Edit-Modus ist nur in Source/Split/Live sinnvoll. Beim Wechsel auf
   // "Gerendert" wird der Edit-Modus automatisch ausgeschaltet, damit der
   // Statusbar-Toggle konsistent zum sichtbaren View ist. Bei Source,
@@ -136,6 +150,11 @@ export function setViewMode(mode) {
     // Tastendruck die Fläche — weder `Entf` noch `Strg+Z` (Befund des
     // Product Owners vom 2026-09-10).
     fokussiereCanvas(state.activePaneIndex);
+  } else if (mode === 'kanban') {
+    // 4T-001847 (Epic 3E-000110): Wie Mindmap und Canvas baut die Tafel auf
+    // tab.content auf und nicht auf dem Editor; ein Editor-Abgleich waere hier
+    // ohne Wirkung. Die Zeichnung selbst haengt in 4T-001848 an dieser Stelle.
+    renderKanban(state.activePaneIndex);
   } else {
     syncEditorForPane(state.activePaneIndex);
   }
@@ -408,6 +427,9 @@ export function toggleEditMode() {
   // Stand von vorher stehen. Nach syncEditorForPane, weil dieses erst dort das
   // readOnly-Compartment setzt, das die Flaeche mit abfragt.
   if (tab.viewMode === 'canvas') renderCanvas(state.activePaneIndex);
+  // 4T-001848 (Epic 3E-000110): Dasselbe gilt fuer die Tafel — sie erbt die
+  // Aenderbarkeit ihres Dokuments, und der Moduswechsel aendert den Text nicht.
+  if (tab.viewMode === 'kanban') renderKanban(state.activePaneIndex);
   if (tab.editMode) {
     // In der Canvas-Ansicht ist der Editor per CSS versteckt; ein `focus()`
     // auf ihn naehme der Flaeche den Tastatur-Fokus, ohne ihn selbst zu

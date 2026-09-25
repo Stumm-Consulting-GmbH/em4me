@@ -87,6 +87,36 @@ async function pressNachfassend(page, key, bedingung, opts = {}) {
   await expect.poll(async () => bedingung(), { timeout: 5000 }).toBe(true);
 }
 
+// 4T-001699 (Epic 3E-000156): Die Einstellungs-Seite über Strg+, öffnen und auf
+// ihre SICHTBARKEIT warten — die eine Stelle für einen Zugang, den bis dahin
+// sechzehn Prüfdateien je in einer eigenen Poll-Schleife nachbauten, jede mit
+// derselben Warte-Bedingung: der ANZAHL der Einstellungs-Seiten (oder Reiter)
+// im DOM statt ihrer Sichtbarkeit. Vorhanden ist die Seite auch als Reiter im
+// Hintergrund; der nächste Schritt klickt dann 30 Sekunden lang gegen «element
+// is not visible» — EX-04 in erweiterungen-extern.spec.js, neun Beobachtungen
+// zwischen dem 2026-08-14 und dem 2026-09-19 (test/flake-quarantäne.json), und
+// ES-16 in einstellungen-seite.spec.js. Stabilitätsregel 12 in test/README.md:
+// Gewartet wird auf den erwarteten Zustand, nie auf dessen Vorboten.
+//
+// Der Druck ist idempotent, deshalb trägt pressUntilVisible: openSystemPage in
+// src/renderer/modules/app/system-pages.js aktiviert eine bestehende
+// Einstellungs-Seite, statt eine zweite zu öffnen oder die erste zu schließen
+// (Einfach-Instanz je Fenster). Ein Druck, der verloren geht (Dispatcher noch
+// nicht registriert), oder eine Seite, die ein nachrückender Dokument-Reiter
+// verdrängt hat, wird damit nachgeholt, bis die Seite vorn liegt.
+//
+// Was der Helfer NICHT deckt: eine Verdrängung ZWISCHEN Sichtbarkeit und dem
+// nächsten Klick. Dagegen steht am belegten Fall EX-04 `bedieneBis` mit
+// erneutem Druck vor dem Klick (erweiterungen-extern.spec.js); die übrigen
+// Aufrufer haben diesen Fall nicht gezeigt und bleiben beim eingebauten Warten
+// des Klicks (Entscheidung des Product Owners vom 2026-09-08 zu 4T-001555:
+// bedieneBis nur, wo das eingebaute Warten belegt gerissen ist).
+const EINSTELLUNGS_SEITE = '.pane-group[data-pane="0"] .pane-system .settings-page';
+
+async function oeffneEinstellungsSeite(page) {
+  await pressUntilVisible(page, 'Control+,', page.locator(EINSTELLUNGS_SEITE));
+}
+
 /**
  * 4T-001555: Bedienen, bis die Wirkung eintritt — für Elemente, die zwar
  * **aufgelöst**, aber im Moment des Zugriffs noch nicht **bedienbar** sind.
@@ -149,6 +179,8 @@ module.exports = {
   pressUntil,
   pressUntilVisible,
   pressNachfassend,
+  oeffneEinstellungsSeite,
+  EINSTELLUNGS_SEITE,
   bedieneBis,
   fuelleBis,
   NACHFASS_FRIST_MS,

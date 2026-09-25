@@ -79,7 +79,7 @@ Der Suchbereich folgt dem Reiter, in dem die Suche geöffnet wird; die Bereiche 
 | Einstellungen | in **allen** Einstellungs-Bereichen, auch den nie besuchten |
 | Kein Reiter offen, Bereich gebunden | in **allen** Markdown-Dateien des Bereichs |
 
-Welcher Bereich gilt, steht links in der Suchleiste.
+Welcher Bereich gilt, steht links in der Suchleiste. In der Mindmap-Ansicht durchsucht die Suche die Karte selbst, auch in einem geöffneten Bereich; siehe [Mindmap-Ansicht](mindmap.md).
 
 Außerhalb der einzelnen Datei erscheinen die Treffer im Sidebar-Panel **Suchergebnisse**, gruppiert nach Datei, Seite beziehungsweise Einstellungs-Bereich und mit der Trefferzahl je Gruppe. Ein Klick öffnet das Ziel und hebt die Fundstelle hervor; `F3` läuft über die Gruppen-Grenze hinweg weiter.
 

@@ -14,6 +14,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
@@ -103,12 +104,7 @@ test.describe('AM-04: die Einstellung überdauert den Neustart', () => {
       await waitForTab(erst.page);
       // Der Kommando-Dispatcher ist erst am Ende des asynchronen init()
       // registriert (Muster openSettingsPageViaKeyboard).
-      await expect
-        .poll(async () => {
-          await erst.page.keyboard.press('Control+,');
-          return erst.page.locator('.settings-nav-entry[data-section-id="behavior"]').count();
-        })
-        .toBeGreaterThan(0);
+      await oeffneEinstellungsSeite(erst.page);
       await erst.page.locator('.settings-nav-entry[data-section-id="behavior"]').click();
       const select = erst.page.locator('#settings-edit-view-mode');
       await expect(select).toBeVisible({ timeout: 15000 });

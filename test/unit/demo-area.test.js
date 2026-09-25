@@ -71,6 +71,27 @@ const EXPECTED_FILES = [
   // Dokument noch Verweis-Ziel. Soll-Liste und E2E-Zaehlungen bleiben deshalb
   // auch hier unveraendert.
   '12 Canvas.md',
+  // 4T-001854 (Epic 3E-000110): die Kanban-Station der Fuehrung — ein echtes
+  // Tafel-Dokument mit dem Kopf-Kennzeichen `kanban-plugin`, drei Spalten,
+  // Karten mit eingerueckten Folgezeilen, einer wiederholenden Aufgabe und
+  // einer Erledigt-Spalte mit ihrem fett gesetzten Kennzeichen. Sie traegt wie
+  // die uebrigen Fuehrungs-Seiten das Schlagwort #demo und erscheint damit in
+  // der ersten Abfrage von „08 Queries.md"; deren Zeilen-Erwartung in der
+  // E2E-Spec rechnet aus dem Bestand und waechst von selbst mit.
+  //
+  // Sie traegt als einzige Demo-Seite bewusst KEINE Titel-Ueberschrift: Der
+  // Format-Kern liest jede Ueberschrift als Spalte, eine Titel-Zeile waere also
+  // eine leere erste Spalte auf der Tafel. Der einfuehrende Text steht deshalb
+  // vor der ersten Ueberschrift, wo er zu keiner Spalte gehoert.
+  //
+  // 4T-001909 (Epic 3E-000318): um die Angaben der Stufe 2 ergänzt — eine
+  // Karte mit Termin und Uhrzeit in der Aufgaben-Schreibweise, eine Karte mit
+  // Tag (#planning, das Schlagwort der Seite, damit die Tag-Menge der
+  // Demo-Area gleich bleibt), eine Spalte mit Obergrenze (2) und drei Karten,
+  // damit die Hervorhebung zu sehen ist, und ein Archiv-Abschnitt hinter der
+  // Trennlinie mit einer archivierten Karte samt Zeitstempel. Die Datei-Liste
+  // bleibt unverändert.
+  '13 Kanban.md',
   // 4T-000645 (Epic 3E-000127): astronomischer Themenbereich als vierstufige
   // Unterseiten-Hierarchie (Galaxie, Stern, Planet, Mond) plus drei
   // ergaenzende Themenseiten. Traeger der Hierarchie ist der Dateiname mit

@@ -19,6 +19,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 const CLOCK_BTN = '#btn-clock';
 const SECTION = '.pane-group .sidebar-clock';
@@ -51,12 +52,7 @@ async function openClock(page) {
 // Einstellungs-Seite über das Kommando öffnen und den Uhr-Bereich wählen
 // (Muster openColorSchemesSection in farbschemas.spec.js).
 async function openClockSettings(page) {
-  await expect
-    .poll(async () => {
-      await page.keyboard.press('Control+,');
-      return page.locator(SETTINGS_PAGE).count();
-    })
-    .toBeGreaterThan(0);
+  await oeffneEinstellungsSeite(page);
   await page.locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="clock"]`).click();
   await expect(page.locator('#settings-clock-size')).toBeVisible();
 }

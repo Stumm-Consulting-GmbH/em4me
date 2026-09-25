@@ -8,6 +8,10 @@ import { describe, it, expect } from 'vitest';
 import './api-stub.js';
 
 const taskStates = await import('../../../src/renderer/modules/task-states.js');
+// Für den Fall am Dateiende (4T-001896, AK7): die echte Kette samt Augmenter
+// der Erweiterung «Aufgaben» und ihrem Wiederholungs-Bauer.
+const tasks = await import('../../../src/renderer/modules/tasks.js');
+const { buildRecurrenceInstance } = await import('../../../src/shared/tasks/task-recurrence.js');
 
 describe('resolveStoredTaskStates: Typ/Folge-Symbol-Migration (4T-000497)', () => {
   it('ergaenzt fehlende Felder verhaltensneutral (builtin aus Default, alle next x)', () => {
@@ -90,5 +94,54 @@ describe('computeStatusToggle folgt der Kette (4T-000497)', () => {
 
   it('liefert null fuer Nicht-Task-Zeilen', () => {
     expect(taskStates.computeStatusToggle('nur Text ohne Checkbox')).toBeNull();
+  });
+});
+
+// --- Die Lese-Ansicht bleibt unveraendert (4T-001896, AK7) ------------------------
+
+// Die Tafel legt die Folge-Instanz einer Wiederholung seit 4T-001896 in die
+// Quell-Spalte, aus der die Karte gezogen wurde. Das ist ausdruecklich eine
+// Aenderung **allein** am Weg ueber die Tafel: Wer im Text auf das Kaestchen
+// klickt, bekommt die Instanz weiterhin unmittelbar neben der abgeschlossenen
+// Zeile, nach der Einstellung «Instanz oberhalb / unterhalb». Dort gibt es
+// keine Spalten, und der Widerspruch, den jene Aenderung aufloest, entsteht gar
+// nicht erst.
+describe('Wiederholung im Text: die Instanz bleibt neben der Zeile (4T-001896, AK7)', () => {
+  function mitKette(wert, lauf) {
+    // Die vorangehenden Faelle stellen die Status-Kette um; hier zaehlt die
+    // echte, ausgelieferte Kette samt Augmenter der Erweiterung «Aufgaben».
+    taskStates.applyTaskStates(taskStates.resolveStoredTaskStates(null));
+    taskStates.setStatusToggleAugmenter(tasks.taskToggleAugmenter);
+    tasks.setRecurrenceInstanceBuilder((model) =>
+      buildRecurrenceInstance(model, { completionDate: tasks.todayIsoDate(), autoCreated: false }),
+    );
+    tasks.applyTasksConfig({ recurrenceInsert: wert });
+    try {
+      lauf();
+    } finally {
+      taskStates.setStatusToggleAugmenter(null);
+      tasks.applyTasksConfig(null);
+    }
+  }
+
+  const TEXT = ['Kopf', '- [ ] Waesche 🔁 every day 📅 2026-01-01', '- [ ] Andere', ''].join('\n');
+
+  it('AK7: oberhalb stellt sie unmittelbar ueber die abgeschlossene Zeile', () => {
+    mitKette('above', () => {
+      const zeilen = taskStates.statusToggleAufText(TEXT, 2).text.split('\n');
+      expect(zeilen[0]).toBe('Kopf');
+      expect(zeilen[1]).toMatch(/^- \[ \] Waesche .*📅 2026-01-02/);
+      expect(zeilen[2]).toMatch(/^- \[x\] Waesche .*📅 2026-01-01/);
+      expect(zeilen[3]).toBe('- [ ] Andere');
+    });
+  });
+
+  it('AK7: unterhalb stellt sie unmittelbar unter die abgeschlossene Zeile', () => {
+    mitKette('below', () => {
+      const zeilen = taskStates.statusToggleAufText(TEXT, 2).text.split('\n');
+      expect(zeilen[1]).toMatch(/^- \[x\] Waesche .*📅 2026-01-01/);
+      expect(zeilen[2]).toMatch(/^- \[ \] Waesche .*📅 2026-01-02/);
+      expect(zeilen[3]).toBe('- [ ] Andere');
+    });
   });
 });

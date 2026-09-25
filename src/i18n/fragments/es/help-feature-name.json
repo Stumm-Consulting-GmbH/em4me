@@ -221,6 +221,8 @@
   "help.featureName.canvasList": "Lista del lienzo",
   "help.featureName.canvasExportJson": "Exportación del lienzo como JSON Canvas",
   "help.featureName.canvasImportJson": "Importación de un archivo JSON Canvas",
+  "help.featureName.kanban": "Vista de tablero (Kanban)",
+  "help.featureName.kanbanCardDetails": "Datos en la tarjeta (Kanban)",
   "help.featureName.databaseTable": "Definición de tabla",
   "help.featureName.databaseColumnTypes": "Tipos de columna de una tabla",
   "help.featureName.databaseRecordKey": "Identificador de registro y clave funcional",

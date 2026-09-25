@@ -42,6 +42,18 @@ Der Knotentext bleibt in jeder Lage waagerecht lesbar; gedreht wird die Anordnun
 
 Der Klapp-Zustand gilt für die laufende Sitzung und wird weder in das Dokument noch in eine Begleitdatei geschrieben: Reiner Anzeige-Zustand soll ein Format nicht belasten, das ohne die Anwendung lesbar bleibt.
 
+## Suchen in der Karte
+
+In der Mindmap-Ansicht durchsucht die Suche (Standard `Strg+F`) die Karte selbst und nicht den Text dahinter; links in der Suchleiste steht dann «Suche in der Mindmap». Gefunden wird, was die Karte trägt: der Titel eines Knotens und der Text seiner Notiz. Jeder Knoten zählt einmal, auch wenn Titel und Notiz beide passen, und die Schalter für reguläre Ausdrücke und Groß-/Kleinschreibung gelten wie überall in der Suche.
+
+- **Ergebnis** — jeder Treffer-Knoten ist farbig hinterlegt, der aktuelle kräftiger und umrandet, und die Karte rückt ihn in die Mitte, ohne den Zoom zu ändern. Der Zähler der Suchleiste nennt den aktuellen Treffer und die Zahl aller, etwa `2 / 5`; passt kein Knoten, steht dort «Keine Treffer».
+- **Treffer in der Notiz** — liegt die Fundstelle in der Notiz, ist das Zettel-Symbol des Knotens farbig, und beim Zeigen auf den Knoten erscheint der Hinweis «Treffer in der Notiz». Ein Klick auf das Symbol zeigt die Notiz wie gewohnt.
+- **Weiterschalten** — `Enter` oder `F3` springt zum nächsten Treffer, `Umschalt+Enter` oder `Umschalt+F3` zum vorigen; nach dem letzten geht es beim ersten weiter.
+- **Eingeklappte Äste** — liegt ein Treffer in einem eingeklappten Teilbaum, klappt der Ast beim Anspringen auf und bleibt auch nach dem Ende der Suche offen.
+- **Beenden** — `Escape` oder das Schließen der Suchleiste nimmt die Hervorhebung weg, ebenso der Wechsel in eine andere Ansicht; Zoom und Lage der Karte bleiben, wie sie sind.
+
+Die Suche verändert das Dokument nicht, und Ersetzen ist in dieser Ansicht gesperrt. **In einem geöffneten Bereich** gilt dasselbe: `Strg+F` durchsucht in der Mindmap-Ansicht die Karte und nicht den Bereich. Die Suche über alle Dateien des Bereichs mit ihrer Trefferliste bleibt in den übrigen Ansichten des Dokuments erreichbar, etwa in der Lese-Ansicht; siehe [Werkzeuge](tools.md).
+
 ## Darstellung einstellen
 
 Der Bereich Mindmap der Einstellungen ist die **Vorgabe für alle Dokumente**:

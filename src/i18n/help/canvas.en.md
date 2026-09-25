@@ -36,7 +36,7 @@ The command needs an editable document; without one the status bar says so inste
 
 The canvas is the sixth view mode, next to Source, Split, Rendered, Live and Mind map: **View → Canvas**, the button in the status bar or default `Ctrl+6`. As with the other modes, the choice applies per open document, not to the whole application.
 
-**It is the only one of the six modes that depends on the document.** It can be chosen only if the document contains a canvas surface — a canvas view without a surface would show nothing but a notice. Without a surface, button and menu entry stay **visible and dimmed**; the reason is given in the button’s tooltip. The way in through keyboard shortcut and command palette then does nothing and does not throw you out of your current view either. As soon as a surface appears in the text or disappears from it, the access follows. A document that was open in the canvas view when the app was closed and whose surface has meanwhile gone opens in the reading view.
+**It depends on the document, as the board view does.** It can be chosen only if the document contains a canvas surface — a canvas view without a surface would show nothing but a notice. Without a surface, button and menu entry stay **visible and dimmed**; the reason is given in the button’s tooltip. The way in through keyboard shortcut and command palette then does nothing and does not throw you out of your current view either. As soon as a surface appears in the text or disappears from it, the access follows. A document that was open in the canvas view when the app was closed and whose surface has meanwhile gone opens in the reading view.
 
 ## Several surfaces in one document
 

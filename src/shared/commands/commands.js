@@ -909,6 +909,23 @@ const COMMANDS = [
     availability: 'canvasAnsicht',
   },
   {
+    // 4T-001847 (Epic 3E-000110): Siebter Ansichts-Modus, die Kanban-Tafel.
+    // Setzt die Folge 1-2-3-4-5-6 mit CmdOrCtrl+7 fort — dem naechsten freien
+    // Platz der Reihe; ein schema-fremdes Kuerzel waere die schlechtere
+    // Antwort, solange die Reihe traegt. Der Erweiterungs-Schalter 'kanban'
+    // nimmt den Eintrag im Aus-Zustand aus Menue, Palette und Dispatcher.
+    id: 'view.modeKanban',
+    defaultBindings: ['CmdOrCtrl+7'],
+    labelKey: 'menu.view.kanban',
+    descKey: 'help.feature.kanban',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    // Dokument-abhaengig wie die Canvas und aus demselben Grund: Ohne Tafel im
+    // Dokument gibt es nichts zu zeigen.
+    availability: 'tafelAnsicht',
+  },
+  {
     // 4T-001654 (Epic 3E-000287): Karte auf der Canvas-Flaeche anlegen. Der
     // gewoehnliche Weg ist der Doppelklick auf die leere Flaeche; das Kommando
     // macht die Funktion auffindbar (Menue, Palette) und belegbar. Ohne
@@ -1081,6 +1098,156 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
     availability: 'canvasKarte',
+  },
+  {
+    // 4T-001849 (Epic 3E-000110): Karte auf der Kanban-Tafel anlegen. Der
+    // gewoehnliche Weg ist die Schaltflaeche am Fuss der Spalte; das Kommando
+    // macht die Funktion auffindbar (Menue, Palette) und belegbar.
+    //
+    // **Ohne Vorgabe-Kuerzel**, wie canvas.addCard und aus derselben
+    // Ueberlegung: Die Handlung braucht den Ort, an dem sie stattfinden soll,
+    // und den liefert auf der Tafel die gewaehlte Karte oder der Zeiger. Die
+    // Reihe der Ansichts-Kuerzel ist mit Strg+7 ausgeschoepft, und ein
+    // schema-fremdes Kuerzel waere die schlechtere Antwort als gar keines.
+    //
+    // Beschreibung wie beim Ansichts-Modus aus dem Katalog-Eintrag der Tafel:
+    // eine zweite Katalog-Zeile fuer dieselbe Funktion waere doppelt
+    // gepflegter Text.
+    id: 'kanban.addCard',
+    defaultBindings: [],
+    labelKey: 'command.kanban.addCard',
+    descKey: 'help.feature.kanban',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    // Wie der Modus, zusaetzlich nur in der offenen Tafel.
+    availability: 'tafelKarte',
+  },
+  {
+    // 4T-001906 (Epic 3E-000318): Die gewählte Karte der Tafel archivieren —
+    // sie wandert samt Folgezeilen mit Zeitstempel in den Archiv-Abschnitt am
+    // Ende desselben Dokuments. Der gewöhnliche Weg ist das Kontextmenü der
+    // Karte; das Kommando macht die Funktion auffindbar (Menü, Palette) und
+    // belegbar. Ohne gewählte Karte bleibt es ohne Wirkung: Eine eigene
+    // Bedingung «Karte gewählt» gibt es nicht, weil die Auswahl ein Zustand der
+    // Fläche im Anzeige-Prozess ist und der Menü-Zustand sie nicht kennt.
+    //
+    // **Ohne Vorgabe-Kürzel**, wie die übrigen Tafel-Befehle: Die Reihe der
+    // Ansichts-Kürzel ist mit Strg+7 ausgeschöpft, und ein schema-fremdes
+    // Kürzel wäre die schlechtere Antwort als gar keines.
+    id: 'kanban.archiveCard',
+    defaultBindings: [],
+    labelKey: 'command.kanban.archiveCard',
+    descKey: 'help.feature.kanbanCardDetails',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'tafelKarte',
+  },
+  {
+    // 4T-001851 (Epic 3E-000110): Spalte auf der Kanban-Tafel anlegen. Der
+    // gewoehnliche Weg ist die Schaltflaeche am Ende des Spalten-Streifens; das
+    // Kommando macht die Funktion auffindbar (Menue, Palette) und belegbar.
+    //
+    // **Ohne Vorgabe-Kuerzel**, wie kanban.addCard darueber und aus derselben
+    // Ueberlegung: Die Reihe der Ansichts-Kuerzel ist mit Strg+7 ausgeschoepft,
+    // und ein schema-fremdes Kuerzel waere die schlechtere Antwort als gar
+    // keines.
+    //
+    // Beschreibung wie beim Ansichts-Modus aus dem Katalog-Eintrag der Tafel:
+    // eine zweite Katalog-Zeile fuer dieselbe Funktion waere doppelt
+    // gepflegter Text.
+    id: 'kanban.addColumn',
+    defaultBindings: [],
+    labelKey: 'command.kanban.addColumn',
+    descKey: 'help.feature.kanban',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    // Dieselbe Bedingung wie das Karten-Kommando: Dokument ist eine Tafel UND
+    // die Tafel-Ansicht ist offen. Eine zweite, gleichlautende Bedingung nur
+    // wegen des Namens waere doppelte Pflege (Muster canvasKarte, das zehn
+    // Flaechen-Befehle traegt).
+    availability: 'tafelKarte',
+  },
+  {
+    // 4T-001852 (Epic 3E-000110): Eine neue Kanban-Tafel. Sie legt ein
+    // Dokument an, das bereits eine Tafel ist, und oeffnet es in der
+    // Tafel-Ansicht — ohne den Anwender das Kopf-Kennzeichen des Formats von
+    // Hand schreiben zu lassen.
+    //
+    // **Ohne Vorgabe-Kuerzel**, wie die beiden Tafel-Befehle darueber: Die
+    // Reihe der Ansichts-Kuerzel ist mit Strg+7 ausgeschoepft, und ein
+    // schema-fremdes Kuerzel waere die schlechtere Antwort als gar keines.
+    //
+    // **Verfuegbar, sobald sich ein neues Dokument anlegen laesst** — dieselbe
+    // Bedingung wie file.newTab, weil der Befehl genau das tut und der Inhalt
+    // erst danach entsteht. Insbesondere braucht er KEINE offene Tafel: Er ist
+    // der Weg zur ersten.
+    id: 'kanban.newBoard',
+    defaultBindings: [],
+    labelKey: 'command.kanban.newBoard',
+    descKey: 'help.feature.kanban',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'immer',
+  },
+  {
+    // 4T-001852 (Epic 3E-000110): Ein leeres Dokument in eine Tafel umwandeln —
+    // der zweite Weg zur ersten Tafel, fuer den Anwender, der schon ein leeres
+    // Dokument vor sich hat. Ergebnis und Startinhalt sind dieselben wie beim
+    // Kommando darueber; beide rufen dieselbe Funktion des Format-Kerns.
+    //
+    // **Nur am leeren Dokument**, und sichtbar deaktiviert sonst: Der Kopf
+    // gehoerte vor die erste Zeile, und was vorhandene Zeilen danach bedeuten
+    // sollten, wuesste niemand. Ein Dokument, das bereits eine Tafel ist, ist
+    // nie leer und faellt damit unter dieselbe Bedingung.
+    id: 'kanban.convertToBoard',
+    defaultBindings: [],
+    labelKey: 'command.kanban.convertToBoard',
+    descKey: 'help.feature.kanban',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'leeresDokumentOhneTafel',
+  },
+  {
+    // 4T-001904 (Epic 3E-000318): Schalter «Tags am Kartenfuß». Die Tags einer
+    // Karte verlassen den angezeigten Text und stehen als Reihe am Kartenfuß;
+    // das Dokument bleibt unverändert. Häkchen im Untermenü «Kanban-Tafel»,
+    // Wert global über den Einstellungs-Weg (Liste der Anzeige-Schalter in
+    // src/shared/kanban-anzeige.js).
+    //
+    // **Ohne Vorgabe-Kürzel**, wie die übrigen Tafel-Befehle: Die Reihe der
+    // Ansichts-Kürzel ist mit Strg+7 ausgeschöpft.
+    //
+    // Beschreibung aus der Katalog-Zeile «Angaben auf der Karte (Kanban)»,
+    // die der Hilfe-Task der Stufe angelegt hat (4T-001909).
+    id: 'kanban.toggleTagsFooter',
+    defaultBindings: [],
+    labelKey: 'command.kanban.toggleTagsFooter',
+    descKey: 'help.feature.kanbanCardDetails',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    // Wie die Karten-Anlage: offene Tafel in der Tafel-Ansicht. Außerhalb hätte
+    // das Häkchen keine sichtbare Wirkung.
+    availability: 'tafelKarte',
+  },
+  {
+    // 4T-001903 (Epic 3E-000318): Schalter «Termine relativ anzeigen». Die
+    // Termin-Abzeichen der Karten lesen sich als «heute», «morgen», «in 3
+    // Tagen»; das Dokument bleibt unverändert. Zweiter Anzeige-Schalter nach
+    // dem Muster von kanban.toggleTagsFooter, ohne Vorgabe-Kürzel.
+    id: 'kanban.toggleRelativeDates',
+    defaultBindings: [],
+    labelKey: 'command.kanban.toggleRelativeDates',
+    descKey: 'help.feature.kanbanCardDetails',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'tafelKarte',
   },
   {
     id: 'zoom.in',

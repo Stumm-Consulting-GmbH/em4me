@@ -73,3 +73,45 @@ describe('Rangfolge mit offenem Reiter bleibt unberuehrt (AK4)', () => {
     expect(determineSearchScope()).toBe('source');
   });
 });
+
+// 4T-001893 (Epic 3E-000324): Die Mindmap-Ansicht ist ein eigener Suchraum, in
+// beiden Lagen des Dokuments (Entscheidung des Product Owners vom 2026-09-23,
+// Weg A). Vorher fiel der Modus auf 'rendered' und zählte Treffer der dort
+// ausgeblendeten Lese-Ansicht — der bestätigte Befund.
+describe('Suchraum der Mindmap-Ansicht (4T-001893)', () => {
+  it('eine lose Datei in der Mindmap-Ansicht sucht in der Karte', () => {
+    setzeReiter(dokument({ path: 'C:/woanders/b.md', viewMode: 'mindmap' }));
+    expect(determineSearchScope()).toBe('mindmap');
+  });
+
+  it('eine Datei im geöffneten Bereich sucht in der Mindmap-Ansicht ebenfalls in der Karte', () => {
+    state.areaPath = BEREICH;
+    setzeReiter(dokument({ viewMode: 'mindmap' }));
+    expect(determineSearchScope()).toBe('mindmap');
+  });
+
+  it('die Einstellungs-Seite bleibt vor der Mindmap-Regel', () => {
+    setzeReiter(dokument({ systemPage: 'settings', viewMode: 'mindmap' }));
+    expect(determineSearchScope()).toBe('settings');
+  });
+
+  it('AK6: die übrigen Ansichts-Modi behalten ihren Suchraum, ohne und mit Bereich', () => {
+    const lose = { path: 'C:/woanders/b.md' };
+    const erwartet = {
+      source: 'source',
+      split: 'source',
+      live: 'source',
+      rendered: 'rendered',
+      canvas: 'rendered',
+      kanban: 'rendered',
+    };
+    for (const [modus, raum] of Object.entries(erwartet)) {
+      state.areaPath = null;
+      setzeReiter(dokument({ ...lose, viewMode: modus }));
+      expect(determineSearchScope(), modus).toBe(raum);
+      state.areaPath = BEREICH;
+      setzeReiter(dokument({ viewMode: modus }));
+      expect(determineSearchScope(), `${modus} im Bereich`).toBe('area');
+    }
+  });
+});

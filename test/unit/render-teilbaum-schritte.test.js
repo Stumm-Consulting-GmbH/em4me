@@ -55,6 +55,11 @@ const TEILBAUM = [
   // Import von render-mermaid.js den Canvas-Ordner in den eingefrorenen
   // Datei-Zyklus des Renderers zöge.
   'modules/canvas/canvas-pane.js',
+  // 4T-001848 (Epic 3E-000110): Der Karten-Inhalt der Kanban-Tafel — fuenfte
+  // Fundstelle der Klasse und aus demselben Grund wie die Canvas-Karte: Die
+  // Karte ist eine Ansicht auf eine Zeile des offenen Dokuments. Den
+  // Schritt-Satz bekommt die Einbettung ebenso hereingereicht.
+  'modules/kanban/kanban-pane.js',
 ];
 
 // Klasse 3: Widget-Extraktion im Editor. Rendert ein EINZELNES Konstrukt in

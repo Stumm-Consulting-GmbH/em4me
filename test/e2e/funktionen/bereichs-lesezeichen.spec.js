@@ -16,7 +16,7 @@ const { PANEL_ACCESS, DEFAULT_PANEL_TOGGLE_ORDER } = require('../../../src/share
 // 4T-000777 (Epic 3E-000156): Strg+D ging im Voll-Lauf sporadisch ins Leere (BL-03).
 // Der Druck wird wiederholt, bis seine Wirkung sichtbar ist; er ist dafuer
 // idempotent — eine bereits gemerkte Datei meldet nur, dass es sie schon gibt.
-const { pressUntilVisible } = require('../helpers/eingabe');
+const { pressUntilVisible, oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 const FIXTURES = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke');
 const BASIS = path.join(FIXTURES, 'basis.md');
@@ -165,12 +165,7 @@ test.describe('BL-04: Reihenfolge-Schalter', () => {
       // Default: Bereichs-Abschnitt oben.
       await expect.poll(() => areaSectionFirst(page)).toBe(true);
       // Einstellungen oeffnen (Strg+,), Verhalten-Bereich, Schalter aus.
-      await expect
-        .poll(async () => {
-          await page.keyboard.press('Control+,');
-          return page.locator('.settings-page').count();
-        })
-        .toBeGreaterThan(0);
+      await oeffneEinstellungsSeite(page);
       await page.locator('.settings-nav-entry[data-section-id="behavior"]').click();
       const toggle = page.locator('#settings-bookmarks-area-first');
       await expect(toggle).toBeVisible();

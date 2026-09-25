@@ -13,6 +13,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
@@ -83,12 +84,7 @@ test.describe('TZ-02: System-Tabs ohne Titelzeile', () => {
     try {
       // Einstellungs-Seite als System-Tab öffnen (Poll: Dispatcher steht
       // erst nach init(), Muster einstellungen-seite.spec.js).
-      await expect
-        .poll(async () => {
-          await page.keyboard.press('Control+,');
-          return page.locator(SEL.tabs0).count();
-        })
-        .toBeGreaterThan(0);
+      await oeffneEinstellungsSeite(page);
       await expect(page.locator(SEL.content0)).toHaveClass(/view-system/);
       await expect(visibleTitleLines(page)).toHaveCount(0);
       // Handbuch-Seite (pfadloser read-only Tab, Muster handbuch.spec.js).

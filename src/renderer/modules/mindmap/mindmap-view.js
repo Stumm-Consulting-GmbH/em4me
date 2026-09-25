@@ -18,6 +18,13 @@
 // Begleitdatei geschrieben. Über eine Neu-Übergabe des Baums (Live-
 // Aktualisierung) hinweg bleibt er erhalten, weil er an einem Schlüssel aus
 // Quellzeile und Titel hängt und nicht an der Knoten-Identität.
+//
+// 4T-001893 (Epic 3E-000324): Die Ansicht trägt die Treffer der Suchleiste —
+// Hervorhebung, aktueller Treffer, Aufklappen der Vorfahren und das Zentrieren
+// eines Knotens. Was ein Treffer ist und welcher der aktuelle, entscheidet
+// mindmap-suche.js; hier liegt nur, was die Zeichnung dafür können muss. Die
+// Treffer hängen am selben Schlüssel wie der Klapp-Zustand und überleben
+// deshalb jede Neu-Zeichnung.
 'use strict';
 
 import { layoutMindmap } from '../../../shared/mindmap-core.js';
@@ -69,6 +76,12 @@ export function createMindmapView(container, options = {}) {
   let scale = 1;
   let tx = 0;
   let ty = 0;
+  // 4T-001893: Treffer der Suche als Schlüssel-Mengen; die gezeichneten Knoten
+  // je Schlüssel, damit eine neue Treffer-Lage ohne Neu-Zeichnung anliegt.
+  let treffer = new Set();
+  let trefferNotiz = new Set();
+  let trefferAktuell = null;
+  const gruppen = new Map();
 
   // DOM-Grundgerüst: Wrapper mit SVG, Hinweis-Zeile und Notiz-Popover.
   const wurzelEl = document.createElement('div');
@@ -176,6 +189,7 @@ export function createMindmapView(container, options = {}) {
     const g = document.createElementNS(SVG_NS, 'g');
     g.setAttribute('class', 'mindmap-knoten-gruppe');
     g.setAttribute('data-mindmap-farbe', String(farbe));
+    g.setAttribute('data-mindmap-schluessel', schluessel(knoten));
     g.setAttribute('transform', `translate(${knoten.x} ${knoten.y})`);
 
     const titel = document.createElementNS(SVG_NS, 'text');
@@ -235,7 +249,102 @@ export function createMindmapView(container, options = {}) {
       g.appendChild(zeichneNotizSymbol(knoten));
     }
 
+    gruppen.set(schluessel(knoten), { g, knoten });
+    markiere(g, knoten);
     return g;
+  }
+
+  // --- Treffer der Suche (4T-001893) -------------------------------------------
+
+  function kindMitKlasse(g, klasse) {
+    for (const kind of g.children) {
+      if ((kind.getAttribute('class') || '').split(' ').includes(klasse)) return kind;
+    }
+    return null;
+  }
+
+  // Hervorhebung eines Knotens nach der aktuellen Treffer-Lage. Der Rahmen liegt
+  // als erstes Kind **hinter** der Beschriftung und verdeckt sie nicht; der
+  // Hinweis «Treffer in der Notiz» erscheint als Kurzinfo über dem Knoten, weil
+  // die Fundstelle dann nicht allein im sichtbaren Titel steht.
+  function markiere(g, knoten) {
+    const key = schluessel(knoten);
+    const istTreffer = treffer.has(key);
+    const inNotiz = istTreffer && trefferNotiz.has(key);
+    g.classList.toggle('mindmap-treffer', istTreffer);
+    g.classList.toggle('mindmap-treffer-aktuell', istTreffer && key === trefferAktuell);
+    g.classList.toggle('mindmap-treffer-notiz', inNotiz);
+    const rahmen = kindMitKlasse(g, 'mindmap-treffer-rahmen');
+    if (istTreffer && !rahmen) {
+      const neu = document.createElementNS(SVG_NS, 'rect');
+      neu.setAttribute('class', 'mindmap-treffer-rahmen');
+      neu.setAttribute('x', '-4');
+      neu.setAttribute('y', String(-(knoten.hoehe || ZEILEN_HOEHE) / 2));
+      neu.setAttribute('width', String((knoten.breite || 0) + 8));
+      neu.setAttribute('height', String(knoten.hoehe || ZEILEN_HOEHE));
+      neu.setAttribute('rx', '4');
+      g.insertBefore(neu, g.firstChild);
+    } else if (!istTreffer && rahmen) {
+      rahmen.remove();
+    }
+    const hinweisEl = kindMitKlasse(g, 'mindmap-treffer-hinweis');
+    if (inNotiz && !hinweisEl) {
+      const neu = document.createElementNS(SVG_NS, 'title');
+      neu.setAttribute('class', 'mindmap-treffer-hinweis');
+      neu.textContent = t('search.mindmapNoteHit');
+      g.appendChild(neu);
+    } else if (!inNotiz && hinweisEl) {
+      hinweisEl.remove();
+    }
+  }
+
+  function setzeTreffer(liste, aktuell, notizListe) {
+    treffer = new Set(liste || []);
+    trefferNotiz = new Set(notizListe || []);
+    trefferAktuell = aktuell == null ? null : aktuell;
+    for (const { g, knoten } of gruppen.values()) markiere(g, knoten);
+  }
+
+  // Der Weg von der Wurzel zum Knoten mit dem Schlüssel, oder null.
+  function pfadZu(key) {
+    const pfad = [];
+    const lauf = (k) => {
+      pfad.push(k);
+      if (schluessel(k) === key) return true;
+      for (const kind of k.kinder || []) if (lauf(kind)) return true;
+      pfad.pop();
+      return false;
+    };
+    return baum && lauf(baum) ? pfad : null;
+  }
+
+  // Öffnet alle eingeklappten Vorfahren des Knotens; der Knoten selbst bleibt,
+  // wie er ist. Gezeichnet wird nur, wenn sich etwas geöffnet hat.
+  function klappeAufBis(key) {
+    const pfad = pfadZu(key);
+    if (!pfad) return false;
+    let geaendert = false;
+    for (const k of pfad.slice(0, -1)) {
+      if (eingeklappt.delete(schluessel(k))) geaendert = true;
+    }
+    if (geaendert) render();
+    return geaendert;
+  }
+
+  // Rückt einen gezeichneten Knoten in die Mitte des Sichtfensters. **Zentriert
+  // und nicht eingepasst** wie `zentriereAuf` der räumlichen Arbeitsfläche: Die
+  // Vergrößerung bleibt, damit das Weiterschalten den Maßstab nicht ändert.
+  function zentriereKnoten(key) {
+    const eintrag = gruppen.get(key);
+    if (!eintrag || eintrag.knoten.x == null) return false;
+    const { knoten } = eintrag;
+    const rect = svg.getBoundingClientRect();
+    const breite = rect && rect.width ? rect.width : 800;
+    const hoehe = rect && rect.height ? rect.height : 600;
+    tx = breite / 2 - (knoten.x + (knoten.breite || 0) / 2) * scale;
+    ty = hoehe / 2 - knoten.y * scale;
+    anwendenTransform();
+    return true;
   }
 
   // Das Symbol selbst zeichnet mindmap-formen.js; hier kommt nur der Klick
@@ -303,6 +412,7 @@ export function createMindmapView(container, options = {}) {
     verbergeNotizen();
     kantenEbene.innerHTML = '';
     knotenEbene.innerHTML = '';
+    gruppen.clear();
     if (!baum) {
       hinweis.hidden = false;
       hinweis.textContent = t('mindmap.empty');
@@ -457,8 +567,28 @@ export function createMindmapView(container, options = {}) {
     },
     fit,
     getStats() {
-      return { sichtbareKnoten, gekappt, eingeklappt: eingeklappt.size };
+      return { sichtbareKnoten, gekappt, eingeklappt: eingeklappt.size, treffer: treffer.size };
     },
+    /**
+     * 4T-001893: Alle Knoten des Baums in Zeichen-Reihenfolge, auch die in
+     * eingeklappten Teilbäumen, mit Schlüssel, Titel und den Texten der Notizen.
+     * Knoten jenseits der Obergrenze des Kerns sind gar nicht im Baum.
+     */
+    knotenFuerSuche() {
+      return alleKnoten(baum).map((k) => ({
+        schluessel: schluessel(k),
+        titel: k.titel || '',
+        notizen: (k.notizen || []).map((n) => (n && n.text) || ''),
+      }));
+    },
+    /** 4T-001893: Treffer-Lage setzen (Schlüssel, aktueller, Treffer in der Notiz). */
+    setzeTreffer,
+    /** 4T-001893: Alle Hervorhebungen entfernen; Zoom und Lage bleiben. */
+    loescheTreffer() {
+      setzeTreffer([], null, []);
+    },
+    klappeAufBis,
+    zentriereKnoten,
     destroy() {
       window.removeEventListener('mousemove', beiBewegung);
       window.removeEventListener('mouseup', beiLoslassen);

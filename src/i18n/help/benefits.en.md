@@ -4,15 +4,16 @@ This page does not answer **how** something works, but **what it is good for**. 
 
 ## One document, the way you need it right now
 
-Reading, writing and checking are different activities, and they need different presentations of the same text. Instead of forcing a compromise, the app keeps six views ready, and one keystroke switches between them: the finished page for reading, the source text for precise work, both side by side for comparing, live mode for fluent writing, the mind map for a look at the outline, and the canvas for cards on a surface. Switching costs nothing and never changes the file.
+Reading, writing and checking are different activities, and they need different presentations of the same text. Instead of forcing a compromise, the app keeps seven views ready, and one keystroke switches between them: the finished page for reading, the source text for precise work, both side by side for comparing, live mode for fluent writing, the mind map for a look at the outline, the canvas for cards on a surface, and the board for tasks in columns. Switching costs nothing and never changes the file.
 
 - **Rendered** for reading, **source** for precise work on the syntax.
 - **Split** shows source and result side by side, for constructs with pitfalls.
 - **Live** formats as you type and shows the Markdown characters only in the current line.
 - **Mind map** turns the heading outline into a tree.
 - **Canvas** shows a surface with cards and connections that lives inside the document itself.
+- **Board** puts the tasks of the document side by side, as cards in columns.
 
-In detail: [Views and display](views-display.md), [Mind map view](mindmap.md), [Canvas surface](canvas.md).
+In detail: [Views and display](views-display.md), [Mind map view](mindmap.md), [Canvas surface](canvas.md), [Kanban board](kanban.md).
 
 ## Many documents side by side
 
@@ -69,6 +70,12 @@ Some thoughts have no sequence. Laying alternatives side by side, sketching a wo
 - **Open to the outside**: a surface can be saved in the open JSON Canvas format and read back in from it — for exchange with other tools.
 
 In detail: [Canvas surface](canvas.md).
+
+## Tasks you can push along
+
+Anyone juggling many tasks at once does not want to read what needs doing, but to see where it stands. A Kanban board arranges the tasks of a document in columns — to do, in progress, done, or whatever else you call the steps of your workflow — and its cards can be pushed from one column to the next with the mouse; a column can be set to tick off every task dragged into it. All of it stays ordinary text in the document: the columns are its headings, the cards are its task lines, and what is ticked off on the board is ticked off in every other view as well. A board written with the widely used board tool for Markdown notes opens here, can be edited here, and can be used there afterwards.
+
+In detail: [Kanban board](kanban.md).
 
 ## Files become a book
 

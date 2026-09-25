@@ -36,7 +36,7 @@ Das Kommando setzt ein änderbares Dokument voraus; fehlt es, sagt die Statuslei
 
 Die Canvas ist der sechste Ansichts-Modus, neben Quellcode, Geteilt, Gerendert, Live und Mindmap: **Ansicht → Canvas**, die Schaltfläche in der Statusleiste oder Standard `Strg+6`. Wie bei den übrigen Modi gilt die Wahl je geöffnetem Dokument, nicht für die ganze Anwendung.
 
-**Als einziger der sechs Modi ist er dokument-abhängig.** Wählbar ist er nur, wenn das Dokument eine Canvas-Fläche enthält — eine Canvas-Ansicht ohne Fläche zeigte nichts als einen Hinweis. Fehlt die Fläche, bleiben Schaltfläche und Menü-Eintrag **sichtbar und gedämpft** stehen; der Grund steht im Titel der Schaltfläche. Der Weg über Tastenkürzel und Kommando-Palette führt dann nicht hinein und wirft auch nicht aus der aktuellen Ansicht. Entsteht eine Fläche im Text oder fällt sie weg, zieht der Zugang nach. Ein Dokument, das beim Beenden in der Canvas-Ansicht offen war und dessen Fläche inzwischen fehlt, öffnet in der Lese-Ansicht.
+**Er ist dokument-abhängig, wie die Tafel-Ansicht.** Wählbar ist er nur, wenn das Dokument eine Canvas-Fläche enthält — eine Canvas-Ansicht ohne Fläche zeigte nichts als einen Hinweis. Fehlt die Fläche, bleiben Schaltfläche und Menü-Eintrag **sichtbar und gedämpft** stehen; der Grund steht im Titel der Schaltfläche. Der Weg über Tastenkürzel und Kommando-Palette führt dann nicht hinein und wirft auch nicht aus der aktuellen Ansicht. Entsteht eine Fläche im Text oder fällt sie weg, zieht der Zugang nach. Ein Dokument, das beim Beenden in der Canvas-Ansicht offen war und dessen Fläche inzwischen fehlt, öffnet in der Lese-Ansicht.
 
 ## Mehrere Flächen in einem Dokument
 

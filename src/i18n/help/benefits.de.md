@@ -4,15 +4,16 @@ Diese Seite beantwortet nicht, **wie** etwas geht, sondern **wozu** es gut ist. 
 
 ## Ein Dokument, so wie Sie es gerade brauchen
 
-Lesen, schreiben und prüfen sind verschiedene Tätigkeiten, und sie brauchen verschiedene Darstellungen desselben Textes. Statt einen Kompromiss zu erzwingen, hält die Anwendung sechs Ansichten bereit, zwischen denen ein Tastendruck wechselt: die fertige Seite zum Lesen, den Quelltext zum genauen Arbeiten, beides nebeneinander zum Vergleichen, den Live-Modus zum flüssigen Schreiben, die Mindmap für den Blick auf die Gliederung und die Canvas für Karten auf einer Fläche. Der Wechsel kostet nichts und verändert die Datei nicht.
+Lesen, schreiben und prüfen sind verschiedene Tätigkeiten, und sie brauchen verschiedene Darstellungen desselben Textes. Statt einen Kompromiss zu erzwingen, hält die Anwendung sieben Ansichten bereit, zwischen denen ein Tastendruck wechselt: die fertige Seite zum Lesen, den Quelltext zum genauen Arbeiten, beides nebeneinander zum Vergleichen, den Live-Modus zum flüssigen Schreiben, die Mindmap für den Blick auf die Gliederung, die Canvas für Karten auf einer Fläche und die Tafel für Aufgaben in Spalten. Der Wechsel kostet nichts und verändert die Datei nicht.
 
 - **Gerendert** zum Lesen, **Quellcode** für die genaue Arbeit an der Syntax.
 - **Geteilt** zeigt Quelltext und Ergebnis nebeneinander, für Konstrukte mit Tücken.
 - **Live** formatiert beim Tippen und zeigt die Markdown-Zeichen nur in der aktuellen Zeile.
 - **Mindmap** macht aus der Überschriften-Gliederung eine Baumkarte.
 - **Canvas** zeigt eine Fläche mit Karten und Verbindungen, die im Dokument selbst liegt.
+- **Tafel** stellt die Aufgaben des Dokuments als Karten in Spalten nebeneinander.
 
-Ausführlich: [Ansichten und Darstellung](views-display.md), [Mindmap](mindmap.md), [Canvas-Fläche](canvas.md).
+Ausführlich: [Ansichten und Darstellung](views-display.md), [Mindmap](mindmap.md), [Canvas-Fläche](canvas.md), [Kanban-Tafel](kanban.md).
 
 ## Viele Dokumente nebeneinander
 
@@ -69,6 +70,12 @@ Manche Gedanken haben keine Reihenfolge. Wer Alternativen nebeneinanderlegt, ein
 - **Offen nach außen**: Eine Fläche lässt sich im offenen Format JSON Canvas sichern und aus ihm einlesen — für den Austausch mit anderen Werkzeugen.
 
 Ausführlich: [Canvas-Fläche](canvas.md).
+
+## Aufgaben, die sich schieben lassen
+
+Wer an vielen Aufgaben zugleich arbeitet, will nicht lesen, was zu tun ist, sondern sehen, wo es steht. Eine Kanban-Tafel ordnet die Aufgaben eines Dokuments in Spalten — zu erledigen, in Arbeit, erledigt oder wie Sie die Schritte Ihres Ablaufs sonst nennen —, und ihre Karten lassen sich mit der Maus von einer Spalte in die nächste schieben; eine Spalte lässt sich dabei so einstellen, dass sie jede hineingezogene Aufgabe gleich abhakt. Alles davon bleibt gewöhnlicher Text im Dokument: Die Spalten sind seine Überschriften, die Karten seine Aufgaben-Zeilen, und was auf der Tafel abgehakt ist, ist in jeder anderen Ansicht ebenso abgehakt. Eine Tafel, die mit dem verbreiteten Tafel-Werkzeug für Markdown-Notizen entstanden ist, lässt sich hier öffnen, bearbeiten und dort weiterverwenden.
+
+Ausführlich: [Kanban-Tafel](kanban.md).
 
 ## Aus Dateien wird ein Buch
 

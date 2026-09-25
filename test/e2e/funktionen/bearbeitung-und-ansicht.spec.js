@@ -479,6 +479,13 @@ test.describe('FA-06: Zentrierte Editor- und Ansicht-Schalter', () => {
         'rendered',
         'mindmap',
         'canvas',
+        // 4T-001847 (Epic 3E-000110): Zehn, weil die Tafel-Ansicht dazugekommen
+        // ist. Genau dafuer ist die Liste da: Sie hat die Aenderung gemeldet,
+        // statt sie durchzulassen. Zugleich ist dieser Fall der
+        // Sichtbarkeits-Nachweis der Tafel-Schaltflaeche in der
+        // Abdeckungs-Matrix — er misst das gerenderte Layout an der gebauten
+        // Programmdatei und nicht den Quelltext.
+        'kanban',
       ]);
       // Fenster-Mitte, nicht Rest-Platz-Mitte (Toleranz für Rundung).
       expect(geo.offset).toBeLessThanOrEqual(1);

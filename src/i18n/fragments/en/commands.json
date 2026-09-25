@@ -140,5 +140,12 @@
   "command.canvas.addGroup": "Add group to canvas",
   "command.canvas.addLinkCard": "Add link card to canvas",
   "command.canvas.addImageCard": "Add image card to canvas",
-  "command.canvas.addConnection": "Add connection to canvas…"
+  "command.canvas.addConnection": "Add connection to canvas…",
+  "command.kanban.addCard": "Add card to board",
+  "command.kanban.archiveCard": "Archive card on board",
+  "command.kanban.addColumn": "Add column to board",
+  "command.kanban.newBoard": "New Kanban board",
+  "command.kanban.convertToBoard": "Turn empty document into Kanban board",
+  "command.kanban.toggleTagsFooter": "Turn tags in card footer on or off",
+  "command.kanban.toggleRelativeDates": "Turn relative dates on or off"
 }

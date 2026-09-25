@@ -878,7 +878,11 @@ function convertBetween(from, tuple, to) {
 // Quelle für Markdown-Pipeline, Editor-Dekoration und Portable-Export
 // (keine Regex-Kopien; Code-Kontexte schliessen die Konsumenten aus).
 
-const CALENDAR_VALUE_SCAN_RE = /@\{[^{}\n]*\}/g;
+// 4T-001902: Der Auslöser darf nicht von einem weiteren `@` eingeleitet sein.
+// `@@{14:00}` ist die Uhrzeit einer Kanban-Karte des Vorbild-Werkzeugs; ohne
+// die Sperre läse der Scanner das innere `@{14:00}` als Wert «00» eines
+// Kalenders namens «14».
+const CALENDAR_VALUE_SCAN_RE = /(?<!@)@\{[^{}\n]*\}/g;
 
 // Zerlegt ein rohes Vorkommen (inklusive `@{`/`}`) in Name und Wert;
 // null, wenn die Form nicht passt (leerer Name oder Wert).

@@ -153,6 +153,31 @@ const NACH_DER_MESSUNG = new Set([
   'insert.canvas',
   'file.exportJsonCanvas',
   'file.importJsonCanvas',
+  // 4T-001847 (Epic 3E-000110): der Tafel-Ansichts-Modus. Wie die Canvas-Zeilen
+  // darueber entsteht er lange nach der Erhebung; es gibt zu ihm keinen alten
+  // Wert, gegen den sich vergleichen liesse.
+  'view.modeKanban',
+  // 4T-001849 (Epic 3E-000110): die Karten-Anlage der Tafel, aus demselben
+  // Grund wie der Modus darueber.
+  'kanban.addCard',
+  // 4T-001851 (Epic 3E-000110): die Spalten-Anlage der Tafel, aus demselben
+  // Grund wie die Karten-Anlage darueber.
+  'kanban.addColumn',
+  // 4T-001852 (Epic 3E-000110): die beiden Wege zu einer Tafel, aus demselben
+  // Grund. Das Umwandeln traegt zudem die erste Bedingung, die das neue
+  // Vertrags-Feld leeresDokument liest — die eingefrorene alte Logik kennt
+  // weder das Kommando noch das Feld.
+  'kanban.newBoard',
+  'kanban.convertToBoard',
+  // 4T-001904 (Epic 3E-000318): der Schalter «Tags am Kartenfuß», aus demselben
+  // Grund — es gibt ihn erst seit der zweiten Ausbaustufe der Tafel.
+  'kanban.toggleTagsFooter',
+  // 4T-001903 (Epic 3E-000318): der Schalter «Termine relativ anzeigen», aus
+  // demselben Grund.
+  'kanban.toggleRelativeDates',
+  // 4T-001906 (Epic 3E-000318): das Archivieren der gewählten Karte, aus
+  // demselben Grund.
+  'kanban.archiveCard',
 ]);
 
 // 4T-001765 (Epic 3E-000186, E6): Die drei Editor-Schalter, deren REGEL dieser
@@ -179,7 +204,8 @@ const STRENGERE_EDITOR_REGEL = [
 ];
 
 const BOOL_FIELDS = AVAILABILITY_CONTEXT_FIELDS.filter((f) => f !== 'viewMode');
-const VIEW_MODES = [null, 'source', 'split', 'live', 'rendered', 'mindmap', 'canvas'];
+// 4T-001847 (Epic 3E-000110): 'kanban' als siebter Modus.
+const VIEW_MODES = [null, 'source', 'split', 'live', 'rendered', 'mindmap', 'canvas', 'kanban'];
 
 function alleKontexte() {
   const out = [];
@@ -341,22 +367,32 @@ describe('Vollbestands-Vergleich gegen die alte Logik (4T-001636)', () => {
 
   // Ohne diesen Satz wäre der obige auch dann grün, wenn die Umstellung gar
   // nichts bewirkt hätte und die sechs Fälle zufällig nie auseinanderfielen.
+  // 4T-001937: Der Schleifen-Rumpf ruft kein expect() mehr auf, sondern zählt.
+  // Jedes Ja/Nein-Feld des Kontext-Vertrags verdoppelt die Zahl der Kontexte;
+  // mit der Tafel (zwei Felder, ein Modus) wuchs sie von 14 336 auf 65 536, und
+  // rund 426 000 expect()-Aufrufe je Lauf rissen auf Windows die 5-Sekunden-
+  // Grenze. Behauptet wird deshalb einmal je Kommando, mit derselben Aussage:
+  // Es gibt Unterschiede, und in jedem gab die alte Logik frei, wo die neue
+  // sperrt. Ein Kontext, der das verletzt, wird mit seinem Inhalt genannt.
   it('und sie entscheiden wirklich anders, nicht nur potenziell', () => {
     for (const fall of SECHS_FAELLE) {
       const cmd = COMMANDS.find((c) => c.id === fall.id);
-      const unterschiede = kontexte.filter(
-        (ctx) => isCommandAvailable(cmd, ctx) !== altIsCommandAvailable(cmd, ctx),
-      );
+      let unterschiede = 0;
+      const verletzungen = [];
+      for (const ctx of kontexte) {
+        const alt = altIsCommandAvailable(cmd, ctx);
+        const neu = isCommandAvailable(cmd, ctx);
+        if (alt === neu) continue;
+        unterschiede += 1;
+        // Und der Unterschied geht in die erwartete Richtung: Die alte Palette
+        // war zu großzügig, nie zu streng.
+        if (!alt || neu) verletzungen.push(ctx);
+      }
       expect(
-        unterschiede.length,
+        unterschiede,
         `${fall.id} entscheidet in keiner Lage anders als vorher`,
       ).toBeGreaterThan(0);
-      // Und der Unterschied geht in die erwartete Richtung: Die alte Palette
-      // war zu großzügig, nie zu streng.
-      for (const ctx of unterschiede) {
-        expect(altIsCommandAvailable(cmd, ctx), `${fall.id}: alte Logik war strenger`).toBe(true);
-        expect(isCommandAvailable(cmd, ctx)).toBe(false);
-      }
+      expect(verletzungen, `${fall.id}: alte Logik war strenger`).toEqual([]);
     }
   });
 
@@ -369,19 +405,27 @@ describe('Vollbestands-Vergleich gegen die alte Logik (4T-001636)', () => {
       const cmd = COMMANDS.find((c) => c.id === id);
       expect(cmd, `${id} fehlt in der Registry`).toBeTruthy();
       expect(cmd.availability, `${id} traegt nicht die Editor-Bedingung`).toBe('sourceToggle');
-      const unterschiede = kontexte.filter(
-        (ctx) => isCommandAvailable(cmd, ctx) !== altIsCommandAvailable(cmd, ctx),
-      );
-      // Die Abweichung gibt es wirklich, und sie geht nur in eine Richtung:
-      // Die alte Logik gab frei, die neue sperrt.
-      expect(unterschiede.length, `${id} weicht in keiner Lage ab`).toBeGreaterThan(0);
-      for (const ctx of unterschiede) {
-        expect(altIsCommandAvailable(cmd, ctx), `${id}: neue Regel ist nicht strenger`).toBe(true);
-        expect(isCommandAvailable(cmd, ctx)).toBe(false);
+      // 4T-001937: gezählt statt je Kontext behauptet, aus demselben Grund wie
+      // im Fall darüber; die drei Aussagen bleiben dieselben.
+      let unterschiede = 0;
+      const richtungsVerletzungen = [];
+      const lageVerletzungen = [];
+      for (const ctx of kontexte) {
+        const alt = altIsCommandAvailable(cmd, ctx);
+        const neu = isCommandAvailable(cmd, ctx);
+        if (alt === neu) continue;
+        unterschiede += 1;
+        // Die Abweichung geht nur in eine Richtung: Die alte Logik gab frei,
+        // die neue sperrt.
+        if (!alt || neu) richtungsVerletzungen.push(ctx);
         // Und jede Abweichung hat genau einen der zwei benannten Gruende:
         // kein geoeffnetes Dokument oder eine System-Seite.
-        expect(!ctx.hasTab || ctx.systemTab, `${id}: unerwartete Abweichungs-Lage`).toBe(true);
+        if (ctx.hasTab && !ctx.systemTab) lageVerletzungen.push(ctx);
       }
+      // Die Abweichung gibt es wirklich.
+      expect(unterschiede, `${id} weicht in keiner Lage ab`).toBeGreaterThan(0);
+      expect(richtungsVerletzungen, `${id}: neue Regel ist nicht strenger`).toEqual([]);
+      expect(lageVerletzungen, `${id}: unerwartete Abweichungs-Lage`).toEqual([]);
     }
   });
 });

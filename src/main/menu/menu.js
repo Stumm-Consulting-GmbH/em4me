@@ -105,6 +105,13 @@ function buildMenu(win, state, actions) {
   // System-Seite. Das Verschwinden ist seit 4T-001656 dem Erweiterungs-
   // Schalter vorbehalten und laeuft ueber unless('view.modeCanvas', …).
   const canvasTab = !!(state && state.canvasTab);
+  // 4T-001847 (Epic 3E-000110): Der Tafel-Modus ist ebenso dokument-abhaengig —
+  // der Eintrag bleibt sichtbar und wird deaktiviert; das Verschwinden ist dem
+  // Erweiterungs-Schalter vorbehalten und laeuft ueber
+  // unless('view.modeKanban', …).
+  const tafelTab = !!(state && state.tafelTab);
+  // 4T-001904: Anzeige-Schalter der Tafel, { Einstellungs-Schlüssel: Wert }.
+  const kanbanAnzeige = (state && state.kanbanAnzeige) || {};
 
   // 4T-000207: effektive Accelerators pro Kommando-ID. Leerer String =
   // Kommando bewusst ohne Binding -> Menue-Eintrag ohne Accelerator
@@ -140,6 +147,12 @@ function buildMenu(win, state, actions) {
     // 4T-001697 (Epic 3E-000287): das zehnte Feld, aus demselben gemeldeten
     // Zustand wie die uebrigen; es traegt die beiden Canvas-Bedingungen.
     canvasTab,
+    // 4T-001847 (Epic 3E-000110): das elfte Feld, aus demselben gemeldeten
+    // Zustand; es traegt die Bedingung 'tafelAnsicht'.
+    tafelTab,
+    // 4T-001852 (Epic 3E-000110): das zwoelfte Feld, aus demselben gemeldeten
+    // Zustand; es traegt die Bedingung 'leeresDokumentOhneTafel'.
+    leeresDokument: !!(state && state.leeresDokument),
   });
   // Freigabe eines Menue-Eintrags. Das Argument ist immer die Kommando-Kennung
   // desselben Eintrags; der Waechter prueft, dass sie mit der in acc() gleich
@@ -800,6 +813,108 @@ function buildMenu(win, state, actions) {
           accelerator: acc('view.modeCanvas'),
           click: send('menu:viewChange', 'canvas'),
         }),
+        // 4T-001847 (Epic 3E-000110): Siebter Modus, die Kanban-Tafel. Bei
+        // ausgeschalteter Erweiterung faellt der Eintrag ueber unless() weg
+        // (Muster Mindmap und Canvas) — es gibt die Ansicht dann nicht. Ohne
+        // Tafel im Dokument bleibt er dagegen sichtbar und ist deaktiviert:
+        // Die Funktion gibt es, dieses Dokument traegt sie nur nicht.
+        unless('view.modeKanban', {
+          label: t('menu.view.kanban'),
+          type: 'radio',
+          checked: viewMode === 'kanban',
+          enabled: avail('view.modeKanban'),
+          accelerator: acc('view.modeKanban'),
+          click: send('menu:viewChange', 'kanban'),
+        }),
+        // 4T-001852 (Epic 3E-000110): die Wege zu einer Tafel und die Befehle
+        // auf ihr, gebuendelt in EINEM Untermenue, das den Namen der
+        // Dokument-Art traegt (Festlegung des Product Owners zum Untermenue
+        // einer Dokument-Art, Erkenntnisse und Entscheidungen). Es haengt an
+        // der Erweiterung und verschwindet mit ihr vollstaendig: Fallen alle
+        // vier Eintraege ueber unless() weg, liefert submenuOrNull null, der
+        // innere Trenner faellt mit compactSubmenu weg, und compactSubmenu der
+        // Ebene darueber wirft den dann fuehrenden Trenner mit — ohne eine
+        // Zeile eigener Logik, wie beim Vorbild «Canvas-Flaeche bearbeiten»
+        // darunter.
+        //
+        // Der Modus-Eintrag «Tafel» bleibt oben bei den Modi: Die sieben Modi
+        // sind eine geschlossene Auswahl, bei der genau einer gilt, und einer
+        // davon in einem Untermenue machte die Auswahl unvollstaendig.
+        //
+        // 4T-001854: Die beiden Anlege-Befehle standen bis zum 2026-09-22
+        // einzeln VOR dem Untermenue, weil ihr Ort beim Product Owner lag.
+        // Er hat am 2026-09-22 Variante 1 entschieden: Sie ziehen als zweite
+        // Gruppe hinter einem Trenner hier hinein — erst die beiden Wege zu
+        // einer Tafel, dann die Befehle, die auf einer bestehenden Tafel
+        // wirken.
+        submenuOrNull('menu.view.kanbanBoard', [
+          unless('kanban.newBoard', {
+            label: t('command.kanban.newBoard'),
+            enabled: avail('kanban.newBoard'),
+            accelerator: acc('kanban.newBoard'),
+            click: send('menu:kanbanNewBoard'),
+          }),
+          unless('kanban.convertToBoard', {
+            label: t('command.kanban.convertToBoard'),
+            enabled: avail('kanban.convertToBoard'),
+            accelerator: acc('kanban.convertToBoard'),
+            click: send('menu:kanbanConvertToBoard'),
+          }),
+          // 4T-001854: Der Trenner setzt die beiden Wege zu einer Tafel von den
+          // Befehlen ab, die auf einer bestehenden Tafel wirken.
+          { type: 'separator' },
+          // 4T-001849 (Epic 3E-000110): Karte auf der Tafel anlegen. Der
+          // gewoehnliche Weg ist die Schaltflaeche am Fuss der Spalte; der
+          // Eintrag macht die Funktion auffindbar. Aktiviert allein, wenn das
+          // aktive Dokument eine Tafel traegt UND die Tafel-Ansicht offen ist.
+          // Mit ausgeschalteter Erweiterung faellt er wie der Modus-Eintrag
+          // ueber unless() weg.
+          unless('kanban.addCard', {
+            label: t('command.kanban.addCard'),
+            enabled: avail('kanban.addCard'),
+            accelerator: acc('kanban.addCard'),
+            click: send('menu:kanbanAddCard'),
+          }),
+          // 4T-001906 (Epic 3E-000318): Karte archivieren, in der Gruppe der
+          // Karten-Befehle direkt hinter der Karten-Anlage und mit derselben
+          // Bedingung. Wirkt auf die gewählte Karte; ohne Wahl ohne Wirkung.
+          unless('kanban.archiveCard', {
+            label: t('command.kanban.archiveCard'),
+            enabled: avail('kanban.archiveCard'),
+            accelerator: acc('kanban.archiveCard'),
+            click: send('menu:kanbanArchiveCard'),
+          }),
+          // 4T-001851 (Epic 3E-000110): Spalte auf der Tafel anlegen,
+          // unmittelbar hinter dem Karten-Eintrag und mit derselben Bedingung.
+          unless('kanban.addColumn', {
+            label: t('command.kanban.addColumn'),
+            enabled: avail('kanban.addColumn'),
+            accelerator: acc('kanban.addColumn'),
+            click: send('menu:kanbanAddColumn'),
+          }),
+          // 4T-001904 (Epic 3E-000318): die Anzeige-Schalter als dritte Gruppe,
+          // Häkchen nach dem Vorbild «Automatisch speichern»: Zustand aus der
+          // gespeicherten Einstellung, nach dem Umschalten baut die
+          // Einstellungs-Verteilung die Menüs neu. Ein Kanal für alle Schalter.
+          { type: 'separator' },
+          unless('kanban.toggleTagsFooter', {
+            label: t('menu.view.kanbanTagsFooter'),
+            type: 'checkbox',
+            checked: kanbanAnzeige['kanban.tagsAmFuss'] === true,
+            enabled: avail('kanban.toggleTagsFooter'),
+            accelerator: acc('kanban.toggleTagsFooter'),
+            click: send('menu:kanbanSchalter', 'kanban.toggleTagsFooter'),
+          }),
+          // 4T-001903: «Termine relativ anzeigen», derselbe Kanal.
+          unless('kanban.toggleRelativeDates', {
+            label: t('menu.view.kanbanRelativeDates'),
+            type: 'checkbox',
+            checked: kanbanAnzeige['kanban.terminRelativ'] === true,
+            enabled: avail('kanban.toggleRelativeDates'),
+            accelerator: acc('kanban.toggleRelativeDates'),
+            click: send('menu:kanbanSchalter', 'kanban.toggleRelativeDates'),
+          }),
+        ]),
         // 4T-001796 (Epic 3E-000315): die sieben Eintraege, die auf der Flaeche
         // wirken, gebuendelt in EINEM Untermenue «Flaeche bearbeiten»
         // (Anordnung des Product Owners vom 2026-09-18, Variante V2). Sie

@@ -164,13 +164,21 @@ describe('Ein Weg ins Panel (4T-001641)', () => {
   });
 
   // Die Menge vor dem Muster: Eine Erlaubnis-Liste, die niemand gegen den
-  // Bestand hält, ist eine Hintertür. Beide Gruppen decken genau die 17
+  // Bestand hält, ist eine Hintertür. Beide Gruppen decken genau die
   // registrierten Panels ab — je Panel ein Toggle-Weg und eine Lade-Funktion.
   // 4T-001769 (Epic 3E-000290): 16 -> 17 durch die Karten-Liste der Fläche.
-  it('beide Gruppen decken genau die 17 registrierten Panels ab', () => {
-    expect(DEFAULT_PANEL_ORDER).toHaveLength(17);
+  //
+  // 4T-001541: Die Zahl 17 stand hier neben zwei Mengen-Vergleichen, die
+  // dieselbe Aussage vollständig tragen. Sie sagte nichts über das Verhalten,
+  // sondern hielt den Stand des Tages fest und wurde mit jedem neuen Panel
+  // rot. Geblieben ist die Eigenschaft, um die es ging: Beide Erlaubnis-Listen
+  // decken die Registry ab — keine mehr, keine weniger.
+  it('beide Gruppen decken genau die registrierten Panels ab', () => {
     expect([...TOGGLE_WEGE.values()].sort()).toEqual([...DEFAULT_PANEL_ORDER].sort());
     expect([...LADE_FUNKTIONEN.values()].sort()).toEqual([...DEFAULT_PANEL_ORDER].sort());
+    // Gegenprobe, dass die Listen überhaupt etwas enthalten: Drei leere Listen
+    // wären deckungsgleich und der Fall bliebe grün.
+    expect(DEFAULT_PANEL_ORDER.length).toBeGreaterThan(10);
   });
 
   // Jede erlaubte Funktion existiert auch wirklich; eine Karteileiche in der

@@ -354,9 +354,13 @@ describe('Strg+F-Weiche der Canvas-Ansicht (AK7, AK8, AK11, AK13)', () => {
   it('der Dispatcher öffnet die Suchleiste genau dann, wenn die Fläche nicht übernimmt', () => {
     // Quelltext-Wächter nach dem Muster von `kommando-dispatcher.test.js`: Die
     // eine Zeile im Handler `search.open` ist die ganze Weiche, und sie darf
-    // nicht zu zwei Wegen auseinanderfallen.
+    // nicht zu zwei Wegen auseinanderfallen. Seit 4T-001907 fragt sie nach der
+    // Fläche auch die Kanban-Tafel; die Suchleiste bleibt der Weg, wenn keine
+    // von beiden übernimmt.
     const quelle = readFileSync('src/renderer/modules/app/app-commands.js', 'utf8');
-    expect(quelle).toContain('if (!oeffneCanvasSuche(state.activePaneIndex)) openSearchBar();');
+    expect(quelle).toContain(
+      'if (!oeffneCanvasSuche(idx) && !oeffneTafelSuche(idx)) openSearchBar();',
+    );
     // AK8: Der Ersetzen-Weg und die übrigen Such-Kommandos sind nicht berührt.
     expect(quelle).toContain('openSearchBar({ replaceMode: true })');
   });

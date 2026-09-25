@@ -42,6 +42,18 @@ El texto de los nodos permanece horizontal en todas las posiciones; lo que gira 
 
 El estado de plegado vale para la sesión en curso y no se escribe ni en el documento ni en un archivo acompañante: un mero estado de visualización no debe cargar un formato que sigue siendo legible sin la aplicación.
 
+## Buscar en el mapa
+
+En la vista de mapa mental, la búsqueda (`Ctrl+F` por defecto) recorre el propio mapa y no el texto que hay detrás; a la izquierda de la barra de búsqueda aparece entonces «Búsqueda en el mapa mental». Encuentra lo que lleva el mapa: el título de un nodo y el texto de su nota. Cada nodo cuenta una vez, aunque coincidan el título y la nota, y los conmutadores de expresiones regulares y de mayúsculas/minúsculas valen como en toda la búsqueda.
+
+- **Resultado** — cada nodo encontrado aparece resaltado en color, el actual con más fuerza y con contorno, y el mapa lo lleva al centro sin cambiar el zoom. El contador de la barra de búsqueda indica el resultado actual y el total, por ejemplo `2 / 5`; si ningún nodo coincide, muestra «Sin resultados».
+- **Coincidencia en la nota** — si la coincidencia está en la nota, el símbolo de hoja del nodo aparece en color, y al señalar el nodo se muestra la indicación «Coincidencia en la nota». Un clic en el símbolo muestra la nota como siempre.
+- **Avanzar** — `Intro` o `F3` salta al resultado siguiente, `Mayús+Intro` o `Mayús+F3` al anterior; tras el último se continúa con el primero.
+- **Ramas plegadas** — si un resultado está en un subárbol plegado, la rama se despliega al llegar a él y sigue abierta después de terminar la búsqueda.
+- **Terminar** — `Esc` o el cierre de la barra de búsqueda quita el resaltado, igual que el cambio a otra vista; el zoom y la posición del mapa se quedan como están.
+
+La búsqueda no modifica el documento, y reemplazar está bloqueado en esta vista. **En un área abierta** vale lo mismo: en la vista de mapa mental, `Ctrl+F` recorre el mapa y no el área. La búsqueda en todos los archivos del área, con su lista de resultados, sigue disponible en las demás vistas del documento, por ejemplo en la vista de lectura; véase [Herramientas](tools.md).
+
 ## Ajustar la presentación
 
 La sección Mapa mental de la configuración es el **valor por defecto para todos los documentos**:

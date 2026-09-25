@@ -42,6 +42,18 @@ Le texte des nœuds reste horizontal dans toutes les positions : c'est la dispos
 
 L'état de repli vaut pour la session en cours et n'est écrit ni dans le document ni dans un fichier compagnon : un simple état d'affichage ne doit pas alourdir un format qui reste lisible sans l'application.
 
+## Rechercher dans la carte
+
+Dans la vue carte mentale, la recherche (`Ctrl+F` par défaut) parcourt la carte elle-même et non le texte qui la sous-tend ; la barre de recherche indique alors à gauche « Recherche dans la carte mentale ». Elle trouve ce que porte la carte : le titre d'un nœud et le texte de sa note. Chaque nœud compte une fois, même si le titre et la note correspondent tous deux, et les bascules des expressions régulières et de la casse valent comme partout dans la recherche.
+
+- **Résultat** — chaque nœud trouvé est surligné en couleur, le nœud courant plus nettement et entouré, et la carte le place au centre sans changer le zoom. Le compteur de la barre de recherche indique le résultat courant et le total, par exemple `2 / 5` ; si aucun nœud ne correspond, il affiche « Aucun résultat ».
+- **Résultat dans la note** — si l'occurrence se trouve dans la note, le symbole de feuillet du nœud est coloré, et le survol du nœud affiche l'indication « Résultat dans la note ». Un clic sur le symbole affiche la note comme d'habitude.
+- **Passer au suivant** — `Entrée` ou `F3` saute au résultat suivant, `Maj+Entrée` ou `Maj+F3` au précédent ; après le dernier, on reprend au premier.
+- **Branches repliées** — si un résultat se trouve dans une sous-arborescence repliée, la branche se déplie quand on l'atteint et reste ouverte après la fin de la recherche.
+- **Terminer** — `Échap` ou la fermeture de la barre de recherche retire la mise en évidence, de même que le passage à une autre vue ; le zoom et la position de la carte restent tels quels.
+
+La recherche ne modifie pas le document, et le remplacement est bloqué dans cette vue. **Dans une zone ouverte**, il en va de même : dans la vue carte mentale, `Ctrl+F` parcourt la carte et non la zone. La recherche dans tous les fichiers de la zone, avec sa liste de résultats, reste accessible depuis les autres vues du document, par exemple la vue de lecture ; voir [Outils](tools.md).
+
 ## Régler l'affichage
 
 La section Carte mentale des paramètres est la **valeur par défaut pour tous les documents** :

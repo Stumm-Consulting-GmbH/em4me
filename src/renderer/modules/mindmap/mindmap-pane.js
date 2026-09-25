@@ -20,6 +20,9 @@ import { extractFrontmatter } from '../../../shared/markdown/frontmatter.js';
 import { resolveMindmapOptionen } from '../../../shared/mindmap-optionen.js';
 import { getMindmapVoreinstellung } from './mindmap-einstellungen.js';
 import { createMindmapView } from './mindmap-view.js';
+// 4T-001893 (Epic 3E-000324): Die Suche der Karte bekommt ihren Zugang von hier
+// hereingereicht; sie selbst importiert nichts aus dem Renderer-Zustand.
+import { aktualisiereMindmapSuche, initMindmapSuche } from './mindmap-suche.js';
 // 4T-001656 (Epic 3E-000287): Schalt-Zustand der Canvas-Erweiterung. Aus
 // canvas-modus.js, weil die Kennung dort an genau einer Stelle steht; das
 // Modul importiert nur den prozessneutralen Kern und den Lebenszyklus und
@@ -32,6 +35,14 @@ export const MINDMAP_RENDER_DEBOUNCE_MS = 200;
 
 const ansichten = []; // paneIdx -> Controller
 const timer = []; // paneIdx -> Zeitgeber
+// 4T-001893: das Dokument, für das die Karte der Spalte zuletzt gezeichnet hat.
+// Die Suche erkennt daran einen Dokument-Wechsel.
+const gezeichnet = []; // paneIdx -> Reiter
+
+initMindmapSuche({
+  lage: (paneIdx) =>
+    ansichten[paneIdx] ? { ansicht: ansichten[paneIdx], tab: gezeichnet[paneIdx] || null } : null,
+});
 
 // Springt zur Quellzeile und macht sie sichtbar.
 //
@@ -132,6 +143,9 @@ export function renderMindmap(paneIdx) {
     darstellung: optionen,
     anfangsTiefe: optionen.anfangsTiefe >= 0 ? optionen.anfangsTiefe : null,
   });
+  // 4T-001893: Eine laufende Suche folgt dem neuen Baum, ohne die Karte zu bewegen.
+  gezeichnet[paneIdx] = tab;
+  aktualisiereMindmapSuche(paneIdx);
 }
 
 /** Verzögerte Aktualisierung nach einer Dokument-Änderung. */
@@ -162,6 +176,7 @@ export function destroyMindmap(paneIdx) {
   if (ansicht) {
     ansicht.destroy();
     ansichten[paneIdx] = null;
+    gezeichnet[paneIdx] = null;
   }
 }
 

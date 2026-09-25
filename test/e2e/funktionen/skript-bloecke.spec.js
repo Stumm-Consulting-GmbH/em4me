@@ -13,6 +13,7 @@ const os = require('node:os');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 // Fence-Bodies als Array gefügt, damit die ```-Zäune nicht mit dem
 // JS-Template-Literal kollidieren.
@@ -279,12 +280,7 @@ test.describe('SK-08: Skript-Einstellung — Umschalten wirkt sofort', () => {
 
       // Einstellungs-Seite öffnen (Poll-Muster: Dispatcher registriert erst
       // am Ende des asynchronen init), Bereich Verhalten, Schalter an, OK.
-      await expect
-        .poll(async () => {
-          await page.keyboard.press('Control+,');
-          return page.locator('.settings-page').count();
-        })
-        .toBeGreaterThan(0);
+      await oeffneEinstellungsSeite(page);
       await page.locator('.settings-nav-entry[data-section-id="behavior"]').click();
       await page.locator('#settings-run-script-blocks').check();
       await page.locator('#btn-settings-ok').click();
@@ -296,12 +292,7 @@ test.describe('SK-08: Skript-Einstellung — Umschalten wirkt sofort', () => {
       await expect.poll(() => page.evaluate(() => window.api.getSetting('scripts.run'))).toBe(true);
 
       // Rückweg: deaktivieren, Quelltext-Darstellung mit Banner kehrt zurück.
-      await expect
-        .poll(async () => {
-          await page.keyboard.press('Control+,');
-          return page.locator('.settings-page').count();
-        })
-        .toBeGreaterThan(0);
+      await oeffneEinstellungsSeite(page);
       await page.locator('.settings-nav-entry[data-section-id="behavior"]').click();
       await page.locator('#settings-run-script-blocks').uncheck();
       await page.locator('#btn-settings-ok').click();

@@ -14,6 +14,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { oeffneEinstellungsSeite, bedieneBis } = require('../helpers/eingabe');
 const { menuZustand, menuEintrag } = require('../helpers/menu-zustand');
 
 const EXT_FIXTURES = path.resolve(__dirname, '..', '..', 'fixtures', 'extensions');
@@ -188,17 +189,35 @@ test.describe('EX-03: Fehler-Isolation und Kompatibilitätsprüfung', () => {
 // sofortiger Wirkung.
 const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system .settings-page';
 
+// 4T-001699 (Epic 3E-000156): EX-04 war neunmal rot (2026-08-14 bis 2026-09-19,
+// test/flake-quarantäne.json), jedes Mal mit demselben Bild: Der Navigations-
+// Eintrag ist im DOM aufgelöst, aber unsichtbar, weil die Einstellungs-Seite als
+// Reiter hinter dem Dokument liegt; der Klick lief 30 Sekunden gegen «element is
+// not visible». Bis dahin pollte dieser Helfer auf die ANZAHL der Einstellungs-
+// Seiten und drückte dafür je Durchgang erneut Strg+, — gewartet wurde auf das
+// Vorhandensein, gebraucht wird die Sichtbarkeit (Stabilitätsregel 12).
+//
+// Zwei Hälften. Erstens öffnet der geteilte Helfer die Seite und wartet, bis sie
+// SICHTBAR ist. Zweitens wird der Eintrag geklickt, bis die Liste da ist: Liegt
+// die Seite beim Versuch wieder hinten — der Reiter des über die Kommandozeile
+// übergebenen Dokuments rückt nach und verdrängt sie, belegt am 2026-09-19 am
+// Bildschirmfoto von ES-16 —, holt ein erneuter Druck sie nach vorn, bevor
+// geklickt wird. bedieneBis steht hier, weil das eingebaute Warten des Klicks
+// an genau dieser Stelle belegt gerissen ist (Bedingung aus 4T-001555).
 async function openExternalSection(page) {
-  await expect
-    .poll(async () => {
-      await page.keyboard.press('Control+,');
-      return page.locator(SETTINGS_PAGE).count();
-    })
-    .toBeGreaterThan(0);
-  await page
-    .locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="extensionsExternal"]`)
-    .click();
-  await expect(page.locator('#settings-extensions-external-list')).toBeVisible();
+  const eintrag = page.locator(
+    `${SETTINGS_PAGE} .settings-nav-entry[data-section-id="extensionsExternal"]`,
+  );
+  const liste = page.locator('#settings-extensions-external-list');
+  await oeffneEinstellungsSeite(page);
+  await bedieneBis(eintrag, () => liste.isVisible(), {
+    zugriffsFristMs: 2000,
+    zugriff: async (l) => {
+      if (!(await l.isVisible())) await page.keyboard.press('Control+,');
+      await l.click({ timeout: 2000 });
+    },
+  });
+  await expect(liste).toBeVisible();
 }
 
 test.describe('EX-04: Verwaltungs-Bereich listet und deaktiviert sofort', () => {

@@ -103,6 +103,14 @@ const MANUAL_PAGES = [
   // Abgrenzung gegen Mindmap und Graphenansicht ausdruecklich fuehrt
   // (Struktur-Pruefschritt 4T-001657).
   { id: 'canvas', titleKey: 'manual.page.canvas.title', source: 'bundled' },
+  // 4T-001854 (Epic 3E-000110): Kanban-Tafel (siebter Ansichts-Modus, Erkennung
+  // am Kopf-Kennzeichen, Tafel anlegen und umwandeln, Karten und Spalten,
+  // Verschieben mit der Maus, Speicherformat, Vertraeglichkeit mit anderen
+  // Werkzeugen). Direkt hinter der Canvas, weil beide Ansichts-Modi desselben
+  // Dokuments und die beiden einzigen dokument-abhaengigen Modi sind; die Seite
+  // grenzt die Tafel ausserdem ausdruecklich gegen die Aufgaben-Abfrage ab
+  // (Struktur-Pruefschritt 4T-001854).
+  { id: 'kanban', titleKey: 'manual.page.kanban.title', source: 'bundled' },
   // 4T-000290 (Epic 3E-000051): Sidebar-Seite (Panels, Anordnung, Reiter-Gruppen).
   { id: 'sidebar', titleKey: 'manual.page.sidebar.title', source: 'bundled' },
   // 4T-000613 (Epic 3E-000115): Lesezeichen (allgemeine und bereichsgebundene mit

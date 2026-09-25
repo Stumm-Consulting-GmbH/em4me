@@ -79,7 +79,7 @@ The search scope follows the tab the search is opened in; the scopes exclude one
 | Settings | **all** settings sections, including those never visited |
 | No tab open, area bound | **every** Markdown file of the area |
 
-The scope in effect is shown at the left of the search bar.
+The scope in effect is shown at the left of the search bar. In the mind map view the search looks through the map itself, also in an open area; see [Mind map view](mindmap.md).
 
 Beyond the single file, matches appear in the sidebar panel **Search results**, grouped by file, page or settings section and with a count per group. A click opens the target and highlights the location; `F3` continues across the group boundary.
 

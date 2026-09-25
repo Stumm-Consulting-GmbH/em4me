@@ -133,6 +133,7 @@
     { "name": "attachments", "praefixe": ["attachments", "settings.attachments"] },
     { "name": "graph", "praefixe": ["graph", "mindmap", "settings.mindmap"] },
     { "name": "canvas", "praefixe": ["canvas"] },
+    { "name": "kanban", "praefixe": ["kanban"] },
     { "name": "stats", "praefixe": ["stats", "wordCount"] },
     { "name": "memory", "praefixe": ["memory"] },
     { "name": "color-schemes", "praefixe": ["colorScheme", "settings.colorSchemes"] },

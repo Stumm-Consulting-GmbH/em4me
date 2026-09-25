@@ -61,14 +61,18 @@ const PALETTE_QUELLE = fs.readFileSync(
 );
 
 const BOOL_FIELDS = AVAILABILITY_CONTEXT_FIELDS.filter((f) => f !== 'viewMode');
-// Die sechs realen Ansichts-Modi plus null (kein Reiter). 'mindmap' ist seit
-// 4T-001047 dabei, 'canvas' seit 4T-001697 (Modus aus 4T-001653); sourceToggle
-// laesst beide bewusst draussen, weil dort kein Quelltext sichtbar ist.
-const VIEW_MODES = [null, 'source', 'split', 'live', 'rendered', 'mindmap', 'canvas'];
+// Die sieben realen Ansichts-Modi plus null (kein Reiter). 'mindmap' ist seit
+// 4T-001047 dabei, 'canvas' seit 4T-001697 (Modus aus 4T-001653), 'kanban' seit
+// 4T-001847; sourceToggle laesst alle drei bewusst draussen, weil dort kein
+// Quelltext sichtbar ist.
+const VIEW_MODES = [null, 'source', 'split', 'live', 'rendered', 'mindmap', 'canvas', 'kanban'];
 
-// Alle Kontexte ueber den Vertrag: 2^10 boolsche Belegungen mal sechs
-// Ansichts-Modi. Das ist die Grundgesamtheit der Feld-Pruefung unten — sie
-// soll nicht an einer geschickt gewaehlten Stichprobe haengen.
+// Alle Kontexte ueber den Vertrag: jede boolsche Belegung der Felder mal jeden
+// Ansichts-Modus samt «kein Reiter». Das ist die Grundgesamtheit der
+// Feld-Pruefung unten — sie soll nicht an einer geschickt gewaehlten
+// Stichprobe haengen. Die Zahl steht bewusst nicht mehr im Text: Sie waechst
+// exponentiell mit jedem neuen Feld des Vertrags und war zuletzt zweimal
+// veraltet (4T-001847).
 function alleKontexte() {
   const out = [];
   for (let maske = 0; maske < 1 << BOOL_FIELDS.length; maske += 1) {
@@ -90,7 +94,7 @@ function kontext(teil) {
 }
 
 describe('Kontext-Vertrag (4T-001635)', () => {
-  it('nennt die zehn gemeinsamen und die zwei renderer-eigenen Felder', () => {
+  it('nennt die zwoelf gemeinsamen und die zwei renderer-eigenen Felder', () => {
     expect(SHARED_CONTEXT_FIELDS).toEqual([
       'hasTab',
       'manualTab',
@@ -104,10 +108,27 @@ describe('Kontext-Vertrag (4T-001635)', () => {
       // 4T-001697 (Epic 3E-000287): das zehnte Feld, und das einzige, das eine
       // Eigenschaft des INHALTS meldet statt eine des Zustands.
       'canvasTab',
+      // 4T-001847 (Epic 3E-000110): das elfte Feld, das zweite mit einer
+      // Eigenschaft des INHALTS — ist das aktive Dokument eine Tafel?
+      'tafelTab',
+      // 4T-001852 (Epic 3E-000110): das zwölfte Feld, das dritte mit einer
+      // Eigenschaft des INHALTS — ist das aktive Dokument leer? Es entscheidet
+      // über das Umwandeln in eine Tafel und wird auf beiden Prozess-Seiten
+      // aus derselben Funktion hergeleitet (dokumentIstLeer).
+      'leeresDokument',
     ]);
     expect(RENDERER_CONTEXT_FIELDS).toEqual(['inTable', 'hasCalendarConfig']);
-    expect(AVAILABILITY_CONTEXT_FIELDS).toHaveLength(12);
-    expect(new Set(AVAILABILITY_CONTEXT_FIELDS).size).toBe(12);
+    // 4T-001541: Die Gesamt-Liste wird nicht mehr gegen die Zahl 12 gehalten,
+    // sondern gegen ihre beiden Bestandteile. Die Zahl war die Summe der
+    // Listen darüber und musste mit jedem neuen Feld ein zweites Mal
+    // nachgezogen werden; die Aussage dagegen ist, dass die Gesamt-Liste genau
+    // aus den beiden Teil-Listen besteht — nichts fehlt, nichts kommt hinzu,
+    // kein Feld steht doppelt.
+    expect(AVAILABILITY_CONTEXT_FIELDS).toEqual([
+      ...SHARED_CONTEXT_FIELDS,
+      ...RENDERER_CONTEXT_FIELDS,
+    ]);
+    expect(new Set(AVAILABILITY_CONTEXT_FIELDS).size).toBe(AVAILABILITY_CONTEXT_FIELDS.length);
   });
 
   it('availabilityContext normalisiert defensiv auf den Vertrag', () => {
@@ -131,7 +152,7 @@ describe('Kontext-Vertrag (4T-001635)', () => {
 });
 
 describe('Bedingungs-Katalog (4T-001635)', () => {
-  it('traegt die neunzehn benannten Bedingungen des Katalogs', () => {
+  it('traegt die zweiundzwanzig benannten Bedingungen des Katalogs', () => {
     expect(AVAILABILITY_NAMES).toEqual([
       'immer',
       'anyTab',
@@ -157,6 +178,19 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
       // ausdruecklich, weil ihr Menue-Eintrag unter einem Untermenue-Punkt mit
       // eigener Freigabe-Regel haengt.
       'canvasFlaecheOffen',
+      // 4T-001847 (Epic 3E-000110): die Bedingung des Tafel-Ansichts-Modus, im
+      // Zuschnitt von canvasAnsicht und aus demselben Grund — der Modus ist
+      // dokument-abhaengig.
+      'tafelAnsicht',
+      // 4T-001849 (Epic 3E-000110): die Bedingung der Tafel-Befehle, im
+      // Zuschnitt von canvasKarte — die Karte entsteht in der gezeigten Tafel,
+      // und die gibt es nur in dieser Ansicht.
+      'tafelKarte',
+      // 4T-001852 (Epic 3E-000110): die Bedingung des Umwandelns — leeres
+      // Dokument, das geschrieben werden darf und noch keine Tafel ist. Sie
+      // nennt `tafelTab` ausdrücklich, obwohl ein Tafel-Dokument nie leer sein
+      // kann; dieselbe Überlegung wie bei canvasFlaecheOffen.
+      'leeresDokumentOhneTafel',
       'editor',
       'tabelle',
       'editorUndKalender',
@@ -180,19 +214,59 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
   // Zustands-Felder eine Prozess-Seite fuer diese Bedingung ueberhaupt
   // befuellen muss. Wer still ein weiteres Feld liest, bricht sie — und der
   // Bruch faellt erst beim Verbraucher auf, dem das Feld fehlt.
+  // 4T-001847 (Epic 3E-000110): Der Vergleich sammelt seit diesem Vorgang
+  // Befunde und behauptet **einmal**, statt je Paar aus Bedingung und Kontext
+  // eine Behauptung aufzustellen. Grund: Die Grundgesamtheit waechst
+  // exponentiell mit jedem neuen boolschen Feld des Vertrags — mit `tafelTab`
+  // von 14 336 auf 32 768 Kontexte —, und 655 000 Behauptungen rissen das
+  // Vitest-Vorgabe-Limit von 5 s unter der Last des Voll-Laufs. Die AUSSAGE
+  // ist unveraendert: Es wird dieselbe Grundgesamtheit durchlaufen und
+  // dasselbe verglichen; allein die Buchfuehrung ist billiger geworden, und
+  // der Befund nennt jetzt zusaetzlich die Bedingung namentlich. Ein
+  // angehobenes Zeitlimit waere der schlechtere Weg gewesen: Es haette den
+  // naechsten neuen Feld-Zuwachs erneut gerissen (test/zeitlimits.js, «Eine
+  // Grenze, die ein zweites Mal steigt, verdeckt einen Befund»).
   it('keine Bedingung liest ein Feld, das sie nicht nennt', () => {
+    const befunde = [];
     for (const bedingung of AVAILABILITY_CATALOG) {
       const gesehen = new Map();
       for (const ctx of KONTEXTE) {
         const schluessel = bedingung.felder.map((f) => String(ctx[f])).join('|');
         const wert = bedingung.pruefe(ctx);
         if (!gesehen.has(schluessel)) gesehen.set(schluessel, wert);
-        expect(
-          gesehen.get(schluessel),
-          `Bedingung ${bedingung.name} haengt an einem Feld ausserhalb von [${bedingung.felder.join(', ')}]`,
-        ).toBe(wert);
+        else if (gesehen.get(schluessel) !== wert) {
+          befunde.push(
+            `Bedingung ${bedingung.name} haengt an einem Feld ausserhalb von [${bedingung.felder.join(', ')}]`,
+          );
+          break;
+        }
       }
     }
+    expect([...new Set(befunde)]).toEqual([]);
+  });
+
+  // Gegenprobe der Erkennung: Eine Bedingung, die ein nicht genanntes Feld
+  // liest, muss der Durchlauf oben wirklich finden — sonst waere sein Schweigen
+  // wertlos (L11). Gemessen an derselben Grundgesamtheit, aber an einer
+  // eigens gebauten, absichtlich falschen Bedingung.
+  it('findet eine Bedingung, die ein nicht genanntes Feld liest (Gegenprobe)', () => {
+    const luegner = {
+      name: 'luegner',
+      felder: ['hasTab'],
+      pruefe: (c) => !!c.hasTab && !c.editMode,
+    };
+    const gesehen = new Map();
+    let ertappt = false;
+    for (const ctx of KONTEXTE) {
+      const schluessel = luegner.felder.map((f) => String(ctx[f])).join('|');
+      const wert = luegner.pruefe(ctx);
+      if (!gesehen.has(schluessel)) gesehen.set(schluessel, wert);
+      else if (gesehen.get(schluessel) !== wert) {
+        ertappt = true;
+        break;
+      }
+    }
+    expect(ertappt).toBe(true);
   });
 
   it('wertet jede Bedingung an ihrer freigebenden und ihrer sperrenden Lage aus', () => {
@@ -506,6 +580,35 @@ const MENUE_BASISLINIE = new Map([
   // derselbe Ausdruck plus offener Canvas-Ansicht. Die Aussage der Basislinie
   // bleibt damit dieselbe: unveraendertes Menue-Verhalten.
   ['view.modeCanvas', 'canvasAnsicht'],
+  // 4T-001847 (Epic 3E-000110): Der Tafel-Eintrag. Dieselbe Begruendung wie
+  // eine Zeile darueber — er entsteht auf dem Zug-Zweig der Kanban-Tafel und
+  // stand am 2026-09-09 in keinem gemessenen Menue; seine Basislinie ist die
+  // Bedingung, mit der er eingehaengt wird.
+  ['view.modeKanban', 'tafelAnsicht'],
+  // 4T-001849 (Epic 3E-000110): Die Karten-Anlage der Tafel. Dieselbe
+  // Begruendung wie beim Modus darueber — sie entsteht auf dem Zug-Zweig der
+  // Kanban-Tafel, und ihre Basislinie ist die Bedingung, mit der sie in das
+  // Menue eingehaengt wird: offene Tafel in der Tafel-Ansicht.
+  ['kanban.addCard', 'tafelKarte'],
+  // 4T-001906 (Epic 3E-000318): das Archivieren der gewählten Karte, mit
+  // derselben Begründung und derselben Bedingung wie die Karten-Anlage.
+  ['kanban.archiveCard', 'tafelKarte'],
+  ['kanban.addColumn', 'tafelKarte'],
+  // 4T-001852 (Epic 3E-000110): die beiden Eintraege des Untermenues
+  // «Kanban-Tafel». Dieselbe Begruendung wie bei ihren Nachbarn — sie
+  // entstehen auf dem Zug-Zweig der Kanban-Tafel, und ihre Basislinie ist die
+  // Bedingung, mit der sie eingehaengt werden: das neue Dokument ohne
+  // Voraussetzung (wie file.newTab), das Umwandeln am leeren Dokument, das
+  // noch keine Tafel ist.
+  ['kanban.newBoard', 'immer'],
+  ['kanban.convertToBoard', 'leeresDokumentOhneTafel'],
+  // 4T-001904 (Epic 3E-000318): der Schalter «Tags am Kartenfuß» im selben
+  // Untermenü. Dieselbe Begründung wie bei seinen Nachbarn; seine Basislinie
+  // ist die Bedingung der Karten-Anlage: offene Tafel in der Tafel-Ansicht.
+  ['kanban.toggleTagsFooter', 'tafelKarte'],
+  // 4T-001903 (Epic 3E-000318): der Schalter «Termine relativ anzeigen»,
+  // dieselbe Basislinie wie sein Nachbar.
+  ['kanban.toggleRelativeDates', 'tafelKarte'],
   ['canvas.addCard', 'canvasKarte'],
   // 4T-001701 (Epic 3E-000288): Form-Anlage und die vier Stapel-Befehle.
   // Dieselbe Begruendung wie eine Zeile darueber — sie entstehen auf dem
