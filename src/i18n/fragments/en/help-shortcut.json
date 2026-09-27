@@ -92,6 +92,8 @@
   "help.shortcut.areaGraph": "Open the area graph as its own tab",
   "help.shortcut.areaStats": "Open the area statistics as its own tab",
   "help.shortcut.databaseOverview": "Open the database overview as its own tab",
+  "help.shortcut.databaseNewRecord": "Create a new record in the table of the active tab and open it in the form",
+  "help.shortcut.databaseCheckConsistency": "Check all tables of the database for inconsistencies in the stored records and show the result in the overview",
   "help.shortcut.myExtendedMemory": "Open My Extended Memory as its own tab",
   "help.shortcut.commandPalette": "Open the command palette",
   "help.shortcut.toggleReminders": "Show or hide the reminders panel",

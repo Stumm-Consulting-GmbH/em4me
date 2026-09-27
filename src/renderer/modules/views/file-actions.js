@@ -38,6 +38,8 @@ import { showNameInputDialog } from '../dialogs/dialogs.js';
 import { openCreatedFileWithRule } from '../templates.js';
 
 import { runLinkUpdatePreview, showLinkUpdateReport } from './link-update.js';
+// 4T-001789 (Epic 3E-000255): gemeinsame Meldung der Begleit-Fehlschlaege.
+import { begleitFehlerMeldung } from './rename-companion.js';
 import { invalidatePaneRenderCache } from './pane-render.js';
 import { saveTab } from './save-export.js';
 import { updateSubpageBreadcrumb } from './subpage-breadcrumb.js';
@@ -268,6 +270,15 @@ async function applyRename(tab, newBase, updateLinks, showPreview) {
     result = null;
   }
   if (!result || !result.ok) {
+    // 4T-001789 (Epic 3E-000255): Scheitert das Mitziehen der Änderungsbelege,
+    // nennt die Meldung den Grund. Der Zweig steht VOR dem Teilfehler-Zweig,
+    // weil auch dieser Fall eine unvollständige Kaskade ist und sonst als
+    // «0 von 1 Dateien umbenannt» erschiene.
+    const begleit = begleitFehlerMeldung(result && result.code, result || {});
+    if (begleit) {
+      showStatusbarHint(null, { text: begleit.text, duration: begleit.dauerMs, error: true });
+      return;
+    }
     if (result && result.code === 'partial') {
       // 4T-000340: Teilfehler-Bericht — wie viele Dateien umbenannt wurden.
       showStatusbarHint(null, {

@@ -104,18 +104,32 @@ describe('Datenbank-Anzeige: Ablage in der Bereichsdatei (AK6)', () => {
 });
 
 describe('Datenbank-Anzeige: wirksamer Stand', () => {
+  // 4T-001787 (Epic 3E-000255): Der wirksame Stand traegt seit dem Sperr-Ordner
+  // zwei Angaben. Der Name des Sperr-Ordners steht in jedem dieser Faelle auf
+  // seiner Vorgabe; die eigenen Faelle dazu prueft db-sperr-ordnername.test.js.
   it('behandelt fehlende, leere und unbrauchbare Werte als «aus»', () => {
     const cfg = makeConfig();
-    expect(cfg.normalisiereDatenbankKonfig(undefined)).toEqual({ overviewOnOpen: false });
-    expect(cfg.normalisiereDatenbankKonfig({})).toEqual({ overviewOnOpen: false });
-    expect(cfg.normalisiereDatenbankKonfig([])).toEqual({ overviewOnOpen: false });
+    expect(cfg.normalisiereDatenbankKonfig(undefined)).toEqual({
+      overviewOnOpen: false,
+      lockFolderName: '.area-locks',
+    });
+    expect(cfg.normalisiereDatenbankKonfig({})).toEqual({
+      overviewOnOpen: false,
+      lockFolderName: '.area-locks',
+    });
+    expect(cfg.normalisiereDatenbankKonfig([])).toEqual({
+      overviewOnOpen: false,
+      lockFolderName: '.area-locks',
+    });
     // Nur der echte Wahrheitswert schaltet ein; eine von Hand geschriebene
     // Zeichenkette «true» tut es nicht.
     expect(cfg.normalisiereDatenbankKonfig({ overviewOnOpen: 'true' })).toEqual({
       overviewOnOpen: false,
+      lockFolderName: '.area-locks',
     });
     expect(cfg.normalisiereDatenbankKonfig({ overviewOnOpen: true })).toEqual({
       overviewOnOpen: true,
+      lockFolderName: '.area-locks',
     });
   });
 });

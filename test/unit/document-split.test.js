@@ -476,6 +476,77 @@ describe('document-split.js — Schnittpunkte an der Datensatz-Grenze (AK1)', ()
   });
 });
 
+// --- 4T-001833 (Epic 3E-000254, B4): der Zaun endet nach der Standard-Regel ---------
+
+// Eine Tabellen-Datei, wie sie vor 4T-001833 der Schreibweg selbst erzeugte:
+// vier Backticks als Zaun, weil ein Wert eine Zeile mit drei Backticks trägt.
+function gewachseneTabelle(vorBlock = []) {
+  return [
+    '---',
+    'db-table:',
+    '  fields:',
+    '    - name: n',
+    '---',
+    '',
+    ...vorBlock,
+    '````perspective-records',
+    '|- id="r-00001"',
+    '| Erste Zelle',
+    '```',
+    'code',
+    '```',
+    '|- id="r-00002"',
+    '| Zweite Zelle',
+    '|- id="r-00003"',
+    '| Dritte Zelle',
+    '````',
+    '',
+  ].join('\n');
+}
+
+describe('document-split.js — Zaun-Länge an beiden Schnittpunkt-Arten (4T-001833)', () => {
+  // 4T-001833: Die innere kürzere Zaun-Zeile beendet den Datensatz-Block nicht.
+  it('findet die Datensatz-Grenzen hinter einer inneren kürzeren Zaun-Zeile', () => {
+    const text = gewachseneTabelle();
+    const punkte = findSplitPoints(text).map((p) => text.slice(p.offset).split('\n')[0]);
+    expect(punkte).toEqual(['|- id="r-00002"', '|- id="r-00003"']);
+  });
+
+  // 4T-001833: Ein fremder Block mit längerem Zaun wird nach der Regel übersprungen.
+  it('überspringt einen fremden Block mit längerem Zaun samt innerer kürzerer Zeile', () => {
+    const text = gewachseneTabelle([
+      '~~~~text',
+      '~~~',
+      '|- id="r-09999" steht im fremden Block',
+      '~~~~',
+      '',
+    ]);
+    const punkte = findSplitPoints(text).map((p) => text.slice(p.offset).split('\n')[0]);
+    expect(punkte).toEqual(['|- id="r-00002"', '|- id="r-00003"']);
+  });
+
+  // 4T-001833: Eine Zaun-Zeile mit Sprach-Angabe schließt nicht, auch wenn lang genug.
+  it('lässt eine Zaun-Zeile mit Sprach-Angabe im Wert den Block nicht schließen', () => {
+    const text = gewachseneTabelle().replace('```\ncode\n```', '````js\ncode');
+    const punkte = findSplitPoints(text);
+    expect(punkte).toHaveLength(2);
+  });
+
+  // 4T-001833: der allgemeine Schnitt-Scanner, derselbe Fehler «Zeichen statt Länge».
+  it('schneidet nicht an einer Überschrift hinter einer inneren kürzeren Zaun-Zeile', () => {
+    const text = ['Vorspann', '````md', '```', '# Beispiel im Code', '````', '# Echt'].join('\n');
+    const punkte = findSplitPoints(text).map((p) => text.slice(p.offset).split('\n')[0]);
+    expect(punkte).toEqual(['# Echt']);
+  });
+
+  // 4T-001833: Tilden und Backticks schließen einander nicht.
+  it('lässt einen Backtick-Block nicht von einer Tilden-Zeile schließen', () => {
+    const text = ['Vorspann', '```', '~~~', '# Im Code', '```', '# Echt'].join('\n');
+    const punkte = findSplitPoints(text).map((p) => text.slice(p.offset).split('\n')[0]);
+    expect(punkte).toEqual(['# Echt']);
+  });
+});
+
 describe('document-split.js — die allgemeine Teilung bleibt unberührt (AK2)', () => {
   it('schneidet ohne Tabellen-Marke weiter an Überschriften, auch bei Datensatz-Zeilen', () => {
     // Dieselbe Fence, aber keine Definition im Frontmatter: Das ist keine

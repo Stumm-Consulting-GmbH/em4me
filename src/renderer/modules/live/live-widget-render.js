@@ -46,6 +46,9 @@ import { bindLiveTableCellClicks } from './live-table-klick.js';
 // Live-Widget (Entscheidung E8). Das Modul importiert selbst kein
 // Renderer-Modul und bildet deshalb keinen Ordner-Zyklus.
 import { applyCanvasBlocks } from '../canvas/canvas-block-zustand.js';
+// 4T-001792 (Epic 3E-000255): Zugang von der Datensatz-Zeile zu den
+// Änderungsbelegen; das Modul bekommt seine Umgebung von app-init.js.
+import { applyRecordRowAccess } from '../database/datensatz-zeilen-zugang.js';
 import { liveBlockCacheGet, liveBlockCacheSet } from './live-shared.js';
 import { bindFrontmatterQueryClicks } from './live-interaction.js';
 
@@ -408,6 +411,15 @@ export class MarkdownBlockWidget extends WidgetType {
       // er hält den Schreibpunkt fest, damit der Block beim Klick nicht zum
       // Klartext aufklappt (AK5).
       applyCanvasBlocks(container);
+      // 4T-001792 (Epic 3E-000255): Zugang von der Datensatz-Zeile zu den
+      // Änderungsbelegen (No-op bei anderen Block-Widgets). Er bindet seinen
+      // eigenen Klick-Pfad, weil ignoreEvent() dieses Widgets die zentralen
+      // CM-Handler fernhält, und hält beim Maus-Klick den Schreibpunkt fest,
+      // damit der Block nicht zum Quelltext aufklappt. Der Lauf bei JEDEM
+      // Einhängen ist hier doppelt nötig: Der Cache-Klon verliert die Zuhörer,
+      // und er bringt das Markup mit lauter tabindex="-1" zurück, also ohne den
+      // einen Tabulator-Stopp der Tabelle (Bauplan Z5).
+      applyRecordRowAccess(container);
     } catch (err) {
       console.warn('MarkdownBlockWidget Nachverarbeitung fehlgeschlagen:', err);
     }

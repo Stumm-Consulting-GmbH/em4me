@@ -65,8 +65,11 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   table that grows large is spread over several files at the record boundary,
   never inside a record. Because the description travels with the data, a
   table stays complete when you rename it, move it or hand it on, and it stays
-  readable in any editor. Records are still written as text in this stage:
-  there is no input form and no check of your values on saving yet.
+  readable in any editor. Records are kept in a form generated from the table
+  definition: every save takes effect completely or not at all, reserves the
+  record while you edit it, leaves a change record next to the table and is
+  checked against the table's key, its references to other tables and its
+  validation rules. A consistency check finds what was changed by hand.
 - **Journals from day to year** — daily, weekly, monthly, quarterly and
   yearly entries from your own folder and naming scheme, with built-in
   navigation through the periods.

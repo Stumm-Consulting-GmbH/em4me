@@ -44,6 +44,7 @@ Cuando una subpágina está activa, una **ruta de navegación** sobre el documen
 - Los documentos abiertos se actualizan; un documento con **cambios sin guardar** recibe la actualización en el editor como un paso de deshacer propio, mientras que en el disco solo se actualiza el último estado guardado.
 - Con el [historial del documento](history.md) activado, cada actualización es rastreable como revisión y se puede deshacer; sin historial no hay vuelta atrás.
 - En una aplicación de área, la actualización abarca toda el área; sin área, el espacio de búsqueda conocido, y el linter sigue siendo la red para el resto.
+- Si el archivo lleva **justificantes de cambio**, como una tabla de base de datos, estos lo acompañan, y el cambio de nombre también puede fracasar por su causa. Lo que rige entonces está descrito con la gestión de archivos en el panel del área, en [Aplicaciones, ventanas y áreas](apps-windows.md).
 
 ## Desvincular
 

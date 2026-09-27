@@ -66,7 +66,10 @@
 
 const path = require('node:path');
 const { pathCompareKey } = require('../../shared/platform.js');
-const { parseTableDefinition } = require('../../shared/database/table-definition.js');
+const {
+  parseTableDefinition,
+  parseFormDefinition,
+} = require('../../shared/database/table-definition.js');
 const { parseSteckbrief } = require('../../shared/database/database-steckbrief.js');
 const { baueHinweis } = require('../../shared/database/table-hinweise.js');
 const { leseFrontmatterKopf } = require('./frontmatter-kopf.js');
@@ -119,16 +122,20 @@ async function leseDatei({ absPath, fsp, cache, bufferTextFor }) {
 function markierteDateien(sicht) {
   const tabellen = [];
   const steckbriefe = [];
+  // 4T-001943 (Bauplan B2): die dritte Marke, die Masken-Dateien.
+  const masken = [];
   for (const [absPath, marken] of sicht.dbKindsPerFile || new Map()) {
     if (!Array.isArray(marken)) continue;
     if (marken.includes('table')) tabellen.push(absPath);
     if (marken.includes('database')) steckbriefe.push(absPath);
+    if (marken.includes('form')) masken.push(absPath);
   }
   // Stabile Reihenfolge, damit zwei Aufrufe dieselbe Liste liefern und der
   // «erste gewinnt»-Fall unten nicht von der Laufzeit abhängt.
   tabellen.sort();
   steckbriefe.sort();
-  return { tabellen, steckbriefe };
+  masken.sort();
+  return { tabellen, steckbriefe, masken };
 }
 
 // 4T-001758 (Epic 3E-000253, E-A): Ist die Wurzel dieser Sicht ein
@@ -161,6 +168,84 @@ function yamlHinweis(gelesen) {
   return gelesen.parseError ? [baueHinweis('yaml', -1, null)] : [];
 }
 
+// --- Masken-Dateien (4T-001943, Bauplan B2) ------------------------------------------
+//
+// **Die Maske nennt ihre Tabelle, nicht umgekehrt** (Entscheidung des Product
+// Owners vom 2026-09-25): Der Behälter `db-form` trägt den Namen der Tabelle.
+// Zugeordnet wird über denselben Doppel-Vergleich wie `findeKopfDatei` in den
+// Regel-Hilfen und `tabellenDefinition` unten, Pfad oder Name ohne Endung, in der
+// sortierten Reihenfolge der Tabellen-Pfade; bei zwei Tabellen desselben Namens
+// gewinnt damit dieselbe wie dort. Der Vergleich steht hier noch einmal und
+// wird nicht aus den Regel-Hilfen geholt, weil jene diesen Katalog laden und
+// ein Import in die Gegenrichtung einen Kreis schlösse.
+//
+// **Es gilt die erste Masken-Datei nach Pfad**, dieselbe Sortierung wie bei den
+// Tabellen. Jede weitere derselben Tabelle bleibt ein gewöhnliches Dokument und
+// trägt den Hinweis `formMehrereDateien`, damit der Anwender sieht, warum seine
+// Änderung dort nicht wirkt; eine Maske zu einer Tabelle, die es nicht gibt,
+// trägt `formTabelleUnbekannt`. Gemeldet wird, nie stillschweigend ausgelassen
+// (E22 in der weichen Ausprägung, wie bei den Tabellen).
+
+function kopfZuAngabe(tabellenPfade, angabe) {
+  const klein = angabe.toLowerCase();
+  return (
+    tabellenPfade.find(
+      (p) =>
+        pathCompareKey(p) === pathCompareKey(angabe) || tabellenName(p).toLowerCase() === klein,
+    ) || null
+  );
+}
+
+/**
+ * Die Masken-Dateien der Sicht, ihrer Tabelle zugeordnet.
+ *
+ * @param {object} p Parameter wie `katalogUeberblick`, ohne `status`.
+ * @returns {Promise<{masken: Array<{path: string, table: string|null, hints: Array<object>}>,
+ *   geltend: Map<string, string>}>} `geltend` führt je `pathCompareKey` einer
+ *   Kopf-Datei den Pfad ihrer geltenden Masken-Datei.
+ */
+async function maskenZuordnung({ sicht, fsp, cache, bufferTextFor = null }) {
+  const { tabellen, masken: pfade } = markierteDateien(sicht);
+  const masken = [];
+  const geltend = new Map();
+  for (const absPath of pfade) {
+    const gelesen = await leseDatei({ absPath, fsp, cache, bufferTextFor });
+    const form = parseFormDefinition(gelesen.data);
+    const hints = [...yamlHinweis(gelesen), ...form.hints];
+    const eintrag = { path: absPath, table: form.table, hints };
+    masken.push(eintrag);
+    if (!form.istMaske) continue;
+    const kopf = kopfZuAngabe(tabellen, form.table);
+    if (kopf === null) {
+      hints.push(baueHinweis('formTabelleUnbekannt', -1, form.table));
+      continue;
+    }
+    const schluessel = pathCompareKey(kopf);
+    if (geltend.has(schluessel)) {
+      hints.push(baueHinweis('formMehrereDateien', -1, tabellenName(kopf)));
+      continue;
+    }
+    geltend.set(schluessel, absPath);
+  }
+  return { masken, geltend };
+}
+
+/**
+ * Die geltende Masken-Datei einer Tabelle, oder null.
+ *
+ * @param {object} p Parameter.
+ * @param {object} p.sicht Index-Sicht der Wurzel.
+ * @param {object} p.fsp Dateizugriff (stat, readFile, optional open).
+ * @param {Map} [p.cache] Zwischenspeicher aus createDatabaseCatalogCache.
+ * @param {string} p.tabellenPfad Absoluter Pfad der Kopf-Datei.
+ * @returns {Promise<string|null>} Absoluter Pfad der Masken-Datei.
+ */
+async function geltendeMaske({ sicht, fsp, cache = createDatabaseCatalogCache(), tabellenPfad }) {
+  if (!sicht || typeof tabellenPfad !== 'string' || tabellenPfad === '') return null;
+  const { geltend } = await maskenZuordnung({ sicht, fsp, cache });
+  return geltend.get(pathCompareKey(tabellenPfad)) || null;
+}
+
 /**
  * Überblick über eine Datenbank: Steckbrief, Tabellen-Namen, Fehlerlagen.
  *
@@ -170,7 +255,8 @@ function yamlHinweis(gelesen) {
  * @param {object} p.fsp Dateizugriff (stat, readFile, optional open).
  * @param {Map} p.cache Zwischenspeicher aus createDatabaseCatalogCache.
  * @param {Function} [p.bufferTextFor] Puffer-Auskunft des geschriebenen Stands.
- * @returns {Promise<object>} { status, istDatenbankBereich, steckbrief, tabellen, hints }
+ * @returns {Promise<object>} { status, istDatenbankBereich, steckbrief, tabellen, masken, hints };
+ *   seit 4T-001943 trägt jede Tabelle `maske` (Pfad der geltenden Masken-Datei oder null).
  */
 async function katalogUeberblick({ sicht, status, fsp, cache, bufferTextFor = null }) {
   const hints = [];
@@ -210,11 +296,23 @@ async function katalogUeberblick({ sicht, status, fsp, cache, bufferTextFor = nu
       hints.push(baueHinweis('duplicateDatabase', -1, tabellenName(weiterer)));
   }
 
+  // 4T-001943 (Bauplan B2): Die Masken-Dateien mit ihren Hinweisen, und je
+  // Tabelle der Pfad ihrer geltenden Maske, damit die Übersicht ihn zeigen kann.
+  const { masken, geltend } = await maskenZuordnung({ sicht, fsp, cache, bufferTextFor });
+  for (const eintrag of tabellen) eintrag.maske = geltend.get(pathCompareKey(eintrag.path)) || null;
+
   // 4T-001758: Die Bereichs-Art reist mit dem Überblick, statt einen eigenen
   // Kanal zu bekommen — sie ist aus demselben Bestand abgeleitet, und wer sie
   // braucht, braucht in aller Regel auch die Auskunft daneben. Abgeleitet wird
   // sie über dieselbe Funktion, die jeder andere Verbraucher fragt.
-  return { status, istDatenbankBereich: istDatenbankBereich(sicht), steckbrief, tabellen, hints };
+  return {
+    status,
+    istDatenbankBereich: istDatenbankBereich(sicht),
+    steckbrief,
+    tabellen,
+    masken,
+    hints,
+  };
 }
 
 /**
@@ -258,8 +356,11 @@ async function tabellenDefinition({ sicht, status, tabelle, fsp, cache, bufferTe
 
 module.exports = {
   createDatabaseCatalogCache,
+  geltendeMaske,
   istDatenbankBereich,
   katalogUeberblick,
+  // 4T-001945 (Bauplan B1): die Masken-Dateien einer Sicht für den Verwendungsnachweis.
+  markierteDateien,
   tabellenDefinition,
   tabellenName,
 };

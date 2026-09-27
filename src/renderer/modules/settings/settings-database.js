@@ -26,8 +26,22 @@ import { api } from '../app/api.js';
 import { datenbankAuskunft } from '../database/datenbank-bereich.js';
 import { showStatusbarHint } from '../views/views.js';
 import { buildSettingsRow } from './settings-shared.js';
+// 4T-001795: Neu zeichnen, nachdem ein Anwenden am Sperr-Ordner gescheitert
+// ist; die Meldung gehört an die Zeile des Feldes (Muster
+// settings-attachments.js).
+import { renderActiveSection } from './settings-mount.js';
 import { loeseBeschriftung } from '../../../shared/database/beschriftung.js';
 import { wirksameRueckfallSprache } from '../../../shared/database/database-steckbrief.js';
+// 4T-001795 (Epic 3E-000255, E9): Vorgabe-Name und Gültigkeits-Regel des
+// Sperr-Ordners. **Dieselbe** Regel wie im Haupt-Prozess und keine zweite: Ein
+// Name, den die Oberfläche annimmt, der Haupt-Prozess aber verwirft, hieße, die
+// Sperre liegt in einem Ordner, den niemand mehr sucht.
+import {
+  DEFAULT_LOCK_FOLDER_NAME,
+  LOCK_FOLDER_NAME_CODES,
+  MAX_LOCK_FOLDER_NAME_LENGTH,
+  pruefeSperrOrdnerName,
+} from '../../../shared/database/lock-folder-name.js';
 
 /**
  * Liest den Stand des Einstellungs-Bereichs für den Entwurf.
@@ -47,6 +61,13 @@ export async function readDatabaseFromConfig() {
     konfig = null;
   }
   const overviewOnOpen = !!(konfig && konfig.overviewOnOpen);
+  // 4T-001795: Der Kanal liefert den **wirksamen** Namen; ohne eigene Angabe
+  // ist das der Vorgabe-Name. Ein leeres Feld stünde für nichts, denn einen
+  // Bereich ohne Sperr-Ordner gibt es nicht.
+  const lockFolderName =
+    konfig && typeof konfig.lockFolderName === 'string' && konfig.lockFolderName !== ''
+      ? konfig.lockFolderName
+      : DEFAULT_LOCK_FOLDER_NAME;
   return {
     draft: {
       hasArea: !!(konfig && konfig.hasArea),
@@ -59,8 +80,9 @@ export async function readDatabaseFromConfig() {
         auskunft.hints.length +
         auskunft.tabellen.reduce((summe, tab) => summe + (tab.hints ? tab.hints.length : 0), 0),
       overviewOnOpen,
+      lockFolderName,
     },
-    snapshot: { overviewOnOpen },
+    snapshot: { overviewOnOpen, lockFolderName },
   };
 }
 
@@ -87,18 +109,26 @@ export function sichtbarDatabaseSection(draft) {
 export function dirtyDatabaseSection(draft) {
   const values = draft.database;
   if (!sichtbarDatabaseSection(draft)) return false;
-  return values.overviewOnOpen !== !!(draft.databaseSnapshot || {}).overviewOnOpen;
+  const stand = draft.databaseSnapshot || {};
+  if (values.overviewOnOpen !== !!stand.overviewOnOpen) return true;
+  // Ein leeres Feld ist eine Änderung und keine Rückkehr zur Vorgabe: Der leere
+  // Name ist nach der Gültigkeits-Regel unzulässig, und wer ihn abschickt, soll
+  // die Meldung dazu sehen statt still auf dem Vorgabe-Namen zu landen.
+  return values.lockFolderName !== (stand.lockFolderName || DEFAULT_LOCK_FOLDER_NAME);
 }
 
 /**
- * Schreibt die Anzeige-Einstellung in die Bereichsdatei.
+ * Schreibt Anzeige-Einstellung und Namen des Sperr-Ordners in die Bereichsdatei.
  *
  * @param {object} draft Entwurf der Einstellungs-Seite.
  * @returns {Promise<void>}
  */
 export async function applyDatabaseSection(draft) {
   if (!dirtyDatabaseSection(draft)) return;
-  const raus = { overviewOnOpen: draft.database.overviewOnOpen === true };
+  const raus = {
+    overviewOnOpen: draft.database.overviewOnOpen === true,
+    lockFolderName: draft.database.lockFolderName,
+  };
   let ergebnis;
   try {
     ergebnis = await api.setAreaDatabaseConfig(raus);
@@ -108,10 +138,51 @@ export async function applyDatabaseSection(draft) {
   if (!ergebnis || !ergebnis.ok) {
     // Eine defekte Bereichsdatei wird nie überschrieben; sichtbarer Hinweis
     // statt stiller Wirkungslosigkeit (Muster applyAreaLinksSection).
-    showStatusbarHint(null, { text: t('settings.database.writeFailed'), error: true });
+    //
+    // 4T-001795: Trägt der Fehlschlag einen Code, ist er einer des
+    // Sperr-Ordners und bekommt seinen eigenen Text. Die Meldung erscheint
+    // zusätzlich an der Zeile des Feldes, weil die Statusleiste vergeht und der
+    // Anwender dort nachsehen muss, wo er die Eingabe gemacht hat.
+    const text = ergebnis && ergebnis.code ? sperrOrdnerMeldung(ergebnis) : null;
+    draft.database.lockFolderMeldung = text;
+    showStatusbarHint(null, { text: text || t('settings.database.writeFailed'), error: true });
+    if (text) renderActiveSection();
     return;
   }
+  draft.database.lockFolderMeldung = null;
   draft.databaseSnapshot = { ...raus };
+}
+
+// 4T-001795: Die Gründe, für die dieser Bedienort einen eigenen Text führt.
+// Acht kommen aus der geteilten Gültigkeits-Regel, vier entstehen erst im
+// Vorgang der Umbenennung (src/main/database/lock-folder-rename.js). Die Liste
+// steht ausdrücklich und nicht als Vermutung über den Katalog: Ein Grund, den
+// niemand hier eingetragen hat, bekommt den Ersatz-Text mit seinem Code, statt
+// dem Anwender einen rohen Schlüssel zu zeigen.
+const SPERR_ORDNER_GRUENDE = Object.freeze([
+  ...Object.values(LOCK_FOLDER_NAME_CODES),
+  'lockFolderTaken',
+  'lockFolderBusy',
+  'lockFolderRenameFailed',
+  'lockFolderRollbackFailed',
+]);
+
+// 4T-001795: Je Grund ein eigener Text. Die Codes sind sprachneutral und
+// entstehen im Haupt-Prozess; übersetzt wird hier, am Bedienort.
+function sperrOrdnerMeldung(ergebnis) {
+  const code = ergebnis.code;
+  if (code === 'lockFolderBusy' && (!ergebnis.benutzer || !ergebnis.rechner)) {
+    return t('settings.database.lockFolderError.lockFolderBusyUnknown');
+  }
+  if (!SPERR_ORDNER_GRUENDE.includes(code)) {
+    return t('settings.database.lockFolderError.unknown').replace('{code}', String(code));
+  }
+  return t(`settings.database.lockFolderError.${code}`)
+    .replace('{max}', String(MAX_LOCK_FOLDER_NAME_LENGTH))
+    .replace('{user}', String(ergebnis.benutzer || ''))
+    .replace('{machine}', String(ergebnis.rechner || ''))
+    .replace('{old}', String(ergebnis.alt || ''))
+    .replace('{new}', String(ergebnis.neu || ''));
 }
 
 // Name und Beschreibung aus dem Steckbrief, in der Sprache des Anwenders.
@@ -191,4 +262,58 @@ export function renderDatabaseSection(container, draft) {
     values.overviewOnOpen = schalter.checked;
   });
   container.appendChild(buildSettingsRow('settings.database.overviewOnOpen', schalter));
+
+  baueSperrOrdnerZeile(container, values);
+}
+
+/**
+ * Das Eingabefeld für den Namen des Sperr-Ordners (4T-001795, AK1, AK12).
+ *
+ * **Ein gewöhnliches beschriftetes Textfeld**, kein eigenes Bedienelement: Die
+ * Beschriftung zeigt über `for` auf das Feld, die Meldungs-Zeile hängt über
+ * `aria-describedby` daran, und der Fehlerzustand steht in `aria-invalid`. Damit
+ * ist das Feld mit der Tabulator-Taste erreichbar und mit der Tastatur
+ * bedienbar, und wer es vorgelesen bekommt, hört Beschriftung, Erklärung und
+ * Meldung in einem Zug.
+ */
+function baueSperrOrdnerZeile(container, values) {
+  const feld = document.createElement('input');
+  feld.type = 'text';
+  feld.id = 'settings-database-lock-folder';
+  feld.className = 'settings-input';
+  feld.value = typeof values.lockFolderName === 'string' ? values.lockFolderName : '';
+  container.appendChild(buildSettingsRow('settings.database.lockFolder', feld));
+
+  const erklaerung = document.createElement('p');
+  erklaerung.className = 'settings-row-hint';
+  erklaerung.id = 'settings-database-lock-folder-hint';
+  erklaerung.textContent = t('settings.database.lockFolderHint');
+  container.appendChild(erklaerung);
+
+  const meldung = document.createElement('p');
+  meldung.className = 'settings-row-hint settings-database-lock-folder-error';
+  meldung.id = 'settings-database-lock-folder-message';
+  container.appendChild(meldung);
+  feld.setAttribute('aria-describedby', `${erklaerung.id} ${meldung.id}`);
+
+  // Die Prüfung läuft schon bei der Eingabe über dieselbe geteilte Funktion wie
+  // im Haupt-Prozess; verbindlich bleibt die dortige, weil allein sie das
+  // Dateisystem und die lebenden Sperren sieht.
+  const zeige = () => {
+    const geprueft = pruefeSperrOrdnerName(values.lockFolderName);
+    const text = geprueft.ok
+      ? values.lockFolderMeldung || ''
+      : sperrOrdnerMeldung({ code: geprueft.code });
+    meldung.textContent = text;
+    meldung.hidden = text === '';
+    feld.setAttribute('aria-invalid', geprueft.ok ? 'false' : 'true');
+  };
+  feld.addEventListener('input', () => {
+    values.lockFolderName = feld.value;
+    // Eine Meldung aus einem früheren Anwenden gehört zum alten Namen und
+    // verfällt mit der ersten Tastatur-Eingabe.
+    values.lockFolderMeldung = null;
+    zeige();
+  });
+  zeige();
 }

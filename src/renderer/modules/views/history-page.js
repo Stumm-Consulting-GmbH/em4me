@@ -13,8 +13,12 @@
 // Modul-Zyklen zu tabs/views sind Laufzeit-Zugriffe (Muster 4T-000179).
 'use strict';
 
-import { intlLocale, t } from '../../i18n.js';
+import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
+// 4T-001792 (Epic 3E-000255, Bauplan S9): Die lokale Zeitpunkt-Anzeige liegt
+// seit der Beleg-Ansicht in einem gemeinsamen Modul, weil zwei Seiten sie
+// brauchen. Das Verhalten ist unverändert; verschoben hat sich allein der Ort.
+import { localTimestamp } from '../time-format.js';
 import { getPaneEls, state } from '../app/app-state.js';
 import { diffLines, buildDiffRows } from '../../../shared/line-diff.js';
 import { syncEditorForPane, updateWindowTitle } from '../editor/editor.js';
@@ -84,26 +88,6 @@ async function loadAndRender() {
 }
 
 // --- Rendering ----------------------------------------------------------------
-
-// Lokale Zeitstempel-Anzeige (gespeichert bleibt UTC). PO-Befund der
-// Test-Iteration 0.40.0: feste Stellenzahl statt Locale-Default — Tag,
-// Monat, Stunde, Minute und Sekunde immer zweistellig, Jahr vierstellig;
-// Reihenfolge und Trennzeichen weiterhin gemaess UI-Sprache.
-function localTimestamp(iso) {
-  try {
-    // 4T-001594: BCP-47-Form statt Kennung — `custom:<code>` wirft hier.
-    return new Date(iso).toLocaleString(intlLocale() || undefined, {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    });
-  } catch {
-    return iso;
-  }
-}
 
 function baseName(p) {
   const s = String(p || '');

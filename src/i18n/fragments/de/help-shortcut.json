@@ -92,6 +92,8 @@
   "help.shortcut.areaGraph": "Bereichs-Graph als eigenen Tab öffnen",
   "help.shortcut.areaStats": "Bereichs-Statistik als eigenen Tab öffnen",
   "help.shortcut.databaseOverview": "Übersicht der Datenbank als eigenen Tab öffnen",
+  "help.shortcut.databaseNewRecord": "Neuen Datensatz in der Tabelle des aktiven Reiters anlegen und in der Maske öffnen",
+  "help.shortcut.databaseCheckConsistency": "Alle Tabellen der Datenbank auf Widersprüche im Bestand prüfen und das Ergebnis in der Übersicht zeigen",
   "help.shortcut.myExtendedMemory": "My Extended Memory als eigenen Tab öffnen",
   "help.shortcut.commandPalette": "Kommando-Palette öffnen",
   "help.shortcut.toggleReminders": "Erinnerungs-Panel ein-/ausblenden",

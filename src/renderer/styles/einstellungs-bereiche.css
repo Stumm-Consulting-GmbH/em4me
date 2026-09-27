@@ -136,6 +136,13 @@
   font-size: 12.5px;
   color: var(--fg-muted);
 }
+/* 4T-001795 (Epic 3E-000255): Meldung am Feld für den Namen des Sperr-Ordners.
+   Sie steht als Hinweis-Zeile unter dem Feld und trägt zusätzlich die
+   Fehler-Farbe, damit eine Abweisung sich von der Erklärung darüber abhebt
+   (Muster .settings-calsys-invalid). */
+.settings-database-lock-folder-error {
+  color: var(--error, #c0392b);
+}
 /* 4T-000582 (Epic 3E-000107): Einstellungs-Bereich Rechtschreibprüfung — Liste
    der eigenen Wörterbuch-Einträge (Wort links, Entfernen-Button rechts). */
 .settings-spellcheck-words {

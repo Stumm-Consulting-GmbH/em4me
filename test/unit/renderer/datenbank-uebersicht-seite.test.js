@@ -123,6 +123,33 @@ describe('Übersichts-Seite der Datenbank: Steckbrief und Tabellen (4T-001759)',
     expect(felder).toEqual(['4', '2']);
   });
 
+  // 4T-001943 (Epic 3E-000257, B2): die geltende Masken-Datei je Tabelle und
+  // die Befunde an Masken-Dateien, benannt nach der Datei.
+  it('nennt je Tabelle ihre Masken-Datei und meldet Befunde an Masken (4T-001943)', async () => {
+    antwort = auskunft({
+      tabellen: [
+        { name: 'Personen', felder: 4, hints: [], maske: '/db/Personen Form.md' },
+        { name: 'Firmen', felder: 2, hints: [], maske: null },
+      ],
+      masken: [
+        { path: '/db/Personen Form.md', table: 'Personen', hints: [] },
+        {
+          path: '/db/Kunden Form.md',
+          table: 'Kunden',
+          hints: [{ code: 'formTabelleUnbekannt', index: -1, name: 'Kunden' }],
+        },
+      ],
+    });
+    const container = await baue();
+    const masken = [...container.querySelectorAll('.db-overview-table-form')].map(
+      (e) => e.textContent,
+    );
+    expect(masken).toEqual(['Personen Form.md', '']);
+    const punkt = container.querySelector('.db-overview-issue');
+    expect(punkt.querySelector('.db-overview-issue-source').textContent).toBe('Kunden Form.md');
+    expect(punkt.querySelector('.db-overview-issue-text').textContent).toContain('«Kunden»');
+  });
+
   it('sagt es, wenn die Datenbank noch keine Tabelle führt (AK2)', async () => {
     antwort = auskunft({ tabellen: [] });
     const container = await baue();
@@ -247,5 +274,131 @@ describe('Übersetzung der Hinweis-Codes (AK7)', () => {
     const record = Object.keys(HINWEIS_META).filter((code) => code.startsWith('record'));
     expect(record.length).toBeGreaterThan(0);
     for (const code of record) expect(de[`database.hint.${code}`]).toBeTruthy();
+  });
+});
+
+// 4T-001944 (Epic 3E-000257, Bauplan B4; AK4): Der Abschnitt der
+// Konsistenz-Prüfung — Aktion, Zähler, Liste und Satz, «keine Befunde» und die
+// Grenze der Liste. Der Kanal ist ein Stub; seine Fälle stehen in
+// `db-konsistenz-kanal.test.js`.
+const { KONSISTENZ_BEFUNDE } = await import('../../../src/main/database/konsistenz-pruefung.js');
+const { MAX_BEFUNDE } =
+  await import('../../../src/renderer/modules/database/konsistenz-abschnitt.js');
+
+describe('Übersichts-Seite der Datenbank: Konsistenz-Prüfung (4T-001944)', () => {
+  let pruefung = null;
+  const anfragen = [];
+  window.api.databaseKonsistenz = async (params) => {
+    anfragen.push(params);
+    return pruefung;
+  };
+
+  function befund(angaben) {
+    return {
+      code: KONSISTENZ_BEFUNDE.verweisZielFehlt,
+      tabelle: 'Bestellung',
+      pfad: '/db/Bestellung.md',
+      datei: '/db/Bestellung.md',
+      zeile: 12,
+      id: 'r-00001',
+      anzeige: null,
+      feld: 'kunde',
+      felder: null,
+      wert: 'r-00009',
+      zieltabelle: 'Kunden',
+      grund: null,
+      kennungen: null,
+      regel: null,
+      meldung: null,
+      anzahl: null,
+      ...angaben,
+    };
+  }
+
+  async function pruefeUeber(container, selektor) {
+    container.querySelector(selektor).click();
+    for (let i = 0; i < 5; i++) await Promise.resolve();
+  }
+
+  it('zeigt die Aktion im Kopf und je Tabelle und das Ergebnis mit Zählern und Sätzen', async () => {
+    antwort = auskunft({
+      tabellen: [{ name: 'Kunden', path: '/db/Kunden.md', felder: 2, hints: [] }],
+    });
+    pruefung = {
+      status: 'ready',
+      dauerMs: 7,
+      tabellen: [{ name: 'Kunden', pfad: '/db/Kunden.md', datensaetze: 2, befunde: 2 }],
+      befunde: [
+        befund({
+          code: KONSISTENZ_BEFUNDE.schluesselDoppelt,
+          tabelle: 'Kunden',
+          pfad: '/db/Kunden.md',
+          anzeige: 'Anna',
+          feld: null,
+          felder: ['kuerzel'],
+          wert: 'ANN',
+          zieltabelle: null,
+          kennungen: ['r-00001', 'r-00002'],
+        }),
+        befund({ id: null, pfad: null }),
+      ],
+    };
+    anfragen.length = 0;
+    const container = await baue();
+    expect(container.querySelectorAll('.db-overview-check')).toHaveLength(1);
+    expect(container.querySelectorAll('.db-overview-check-table')).toHaveLength(1);
+    expect(container.querySelector('.db-consistency')).toBeNull();
+
+    await pruefeUeber(container, '.db-overview-check-table');
+    expect(anfragen).toEqual([{ tabelle: '/db/Kunden.md' }]);
+    await pruefeUeber(container, '.db-overview-check');
+    expect(anfragen[1]).toEqual({ tabelle: null });
+
+    const abschnitt = container.querySelector('.db-consistency');
+    expect(abschnitt.querySelector('.db-consistency-summary').textContent).toBe(
+      'Geprüft in 7 ms: 1 Tabellen mit 2 Datensätzen, 2 Befunde.',
+    );
+    expect(abschnitt.querySelector('.db-consistency-count').textContent).toBe('2');
+    const zeilen = [...abschnitt.querySelectorAll('.db-consistency-finding')];
+    expect(zeilen).toHaveLength(2);
+    // Mit Kennung und Pfad ein Knopf in die Maske, «Anzeige-Form (Kennung)».
+    expect(zeilen[0].querySelector('.db-consistency-open').textContent).toBe('Anna (r-00001)');
+    expect(zeilen[0].querySelector('.db-consistency-text').textContent).toBe(
+      'Der Schlüssel «ANN» in «kuerzel» ist mehrfach vergeben, an die Datensätze r-00001 und r-00002.',
+    );
+    // Ohne Pfad kein Knopf.
+    expect(zeilen[1].querySelector('.db-consistency-open')).toBeNull();
+    expect(zeilen[1].querySelector('.db-consistency-text').textContent).toBe(
+      'Der Wert «r-00009» im Feld «kunde» verweist auf keinen vorhandenen Datensatz der Tabelle «Kunden».',
+    );
+  });
+
+  it('sagt «Keine Befunde» und kürzt eine lange Liste mit Hinweis', async () => {
+    pruefung = { status: 'ready', dauerMs: 1, tabellen: [], befunde: [] };
+    const container = await baue();
+    await pruefeUeber(container, '.db-overview-check');
+    expect(container.querySelector('.db-consistency-none').textContent).toBe('Keine Befunde.');
+
+    pruefung = {
+      status: 'ready',
+      dauerMs: 1,
+      tabellen: [],
+      befunde: Array.from({ length: MAX_BEFUNDE + 3 }, () => befund({})),
+    };
+    await pruefeUeber(container, '.db-overview-check');
+    expect(container.querySelectorAll('.db-consistency-finding')).toHaveLength(MAX_BEFUNDE);
+    expect(container.querySelector('.db-consistency-limit').textContent).toBe(
+      `Gezeigt werden die ersten ${MAX_BEFUNDE} von ${MAX_BEFUNDE + 3} Befunden.`,
+    );
+  });
+
+  it('führt jeden Code des Befund-Katalogs in allen fünf Sprachfassungen', () => {
+    const SPRACHEN = { de, en: enDict, fr: frDict, es: esDict, it: itDict };
+    const codes = [...Object.values(KONSISTENZ_BEFUNDE), 'konsistenzVerweisTabelleFehlt'];
+    const fehlend = [];
+    for (const [sprache, dict] of Object.entries(SPRACHEN))
+      for (const code of codes)
+        if (!dict[`database.konsistenz.${code}`]) fehlend.push(`${sprache}: ${code}`);
+    expect(fehlend).toEqual([]);
   });
 });

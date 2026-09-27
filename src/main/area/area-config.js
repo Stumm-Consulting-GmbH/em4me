@@ -36,6 +36,16 @@ const {
 } = require('../../shared/calendar/calendar-config');
 // 4T-001457 (Epic 3E-000190): Aus-Zustand der Erweiterung area-links.
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
+// 4T-001787 (Epic 3E-000255, E9): Vorgabe und Gültigkeits-Regel des
+// Sperr-Ordner-Namens. Die Regel liegt prozess-neutral daneben, weil die
+// Eingabe-Prüfung der Einstellung dieselbe braucht.
+// 4T-001795 (Epic 3E-000255, E9): dazu der Vorgabe-Name und die Regel selbst,
+// weil der Schreibweg den gesetzten Namen gegen sie halten muss.
+const {
+  DEFAULT_LOCK_FOLDER_NAME,
+  pruefeSperrOrdnerName,
+  wirksamerSperrOrdnerName,
+} = require('../../shared/database/lock-folder-name');
 
 /**
  * Baut die Leser und Aufloeser der Bereichs-Konfiguration.
@@ -400,25 +410,40 @@ function createAreaConfig(deps) {
     return parsed.container.settings.database;
   }
 
-  // 4T-001758: Wirksamer Stand der Datenbank-Sektion, immer ein Objekt. Eine
-  // fehlende Sektion, eine fehlende oder defekte Bereichsdatei und ein
-  // unbrauchbarer Wert sind fuer den Aufrufer derselbe Fall: nichts gesetzt.
-  // Der Schalter ist aus, solange ihn niemand eingeschaltet hat — eine
-  // Uebersicht, die sich ungefragt vor das Dokument des Anwenders schiebt,
-  // waere die falsche Vorgabe.
-  function normalisiereDatenbankKonfig(roh) {
-    const gesetzt = roh && typeof roh === 'object' && !Array.isArray(roh) ? roh : {};
-    return { overviewOnOpen: gesetzt.overviewOnOpen === true };
-  }
-
   // 4T-001758: Datenbank-Sektion schreiben. Muster writeAreaStartPage: Die
   // Bereichsdatei entsteht erst beim ersten tatsaechlichen Setzen, eine defekte
   // wird nie ueberschrieben, unbekannte Sektionen ueberleben (der ganze
   // Container wird gelesen und zurueckgeschrieben), und der Vorgabewert
   // entfernt die Sektion, statt sie als leeres Feld stehen zu lassen.
-  async function writeAreaDatabaseConfig(rootPath, config) {
+  //
+  // 4T-001787 (Epic 3E-000255, E9): **Der eingestellte Name des Sperr-Ordners
+  // überlebt das Zurückschreiben der übrigen Angaben.** Die Sektion wird hier
+  // aus ihren Feldern neu gebildet, und die heutige Oberfläche schickt allein
+  // den Anzeige-Schalter; ohne diese Bewahrung setzte jedes Umschalten der
+  // Anzeige den Ordnernamen zurück, und die laufenden Sperren lägen danach in
+  // einem Ordner, den niemand mehr sucht. Der wirksame Name wird dabei **nicht**
+  // geschrieben: Die Vorgabe bleibt abwesend, statt sich als Angabe in die
+  // Bereichsdatei zu setzen.
+  //
+  // 4T-001795 (Epic 3E-000255, Bauplan N4): **Gesetzt** wird der Name allein
+  // über den ausdruecklichen dritten Parameter und niemals ueber ein Feld im
+  // Konfigurations-Objekt. Der Grund ist die Umbenennung: Der Ordner und die
+  // Angabe gehoeren zusammen, und ein Aufrufer, der den Namen beilaeufig im
+  // Konfigurations-Objekt mitschickte, setzte die Angabe an der Umbenennung
+  // vorbei — die laufenden Sperren laegen danach im alten Ordner, den niemand
+  // mehr sucht. Wer den Namen setzen will, nimmt deshalb den Vorgang in
+  // database/lock-folder-rename.js, und der reicht ihn hier herein.
+  //
+  // **Der Vorgabe-Name entfernt die Angabe** (AK4), statt sie als Feld stehen
+  // zu lassen: Sie besagt dann nichts, was die Normalisierung nicht ohnehin
+  // ergaebe, und eine Bereichsdatei ohne Inhalt entsteht gar nicht erst. Ein
+  // unzulaessiger Name wirkt genauso, weil das Zuruecklesen ihn ebenfalls auf
+  // die Vorgabe fuehrt; gehalten wird die Regel aber schon eine Stufe frueher,
+  // im Vorgang der Umbenennung.
+  //
+  // @param {object} [optionen] `{ sperrOrdnerName }` setzt den Ordnernamen.
+  async function writeAreaDatabaseConfig(rootPath, config, optionen) {
     const normalisiert = normalisiereDatenbankKonfig(config);
-    const leer = normalisiert.overviewOnOpen === false;
     const mddaPath = path.join(rootPath, mddStore.MDDA_FILENAME);
     let container = mddStore.emptySettingsContainer();
     let raw = null;
@@ -432,8 +457,18 @@ function createAreaConfig(deps) {
       if (!parsed.ok) return { ok: false, error: `mdda defekt: ${parsed.error}` };
       container = parsed.container;
     }
+    const bestehend = container.settings.database;
+    const bewahrterOrdner =
+      bestehend && typeof bestehend === 'object' && typeof bestehend.lockFolderName === 'string'
+        ? bestehend.lockFolderName
+        : null;
+    const sektion = {};
+    if (normalisiert.overviewOnOpen === true) sektion.overviewOnOpen = true;
+    const ordner = gesetzterSperrOrdner(optionen, bewahrterOrdner);
+    if (ordner !== null) sektion.lockFolderName = ordner;
+    const leer = Object.keys(sektion).length === 0;
     if (leer) delete container.settings.database;
-    else container.settings.database = normalisiert;
+    else container.settings.database = sektion;
     if (raw === null && leer) return { ok: true }; // nichts anzulegen
     const serialized = mddStore.serializeContainer(container);
     await ersetzeDateiOderWirf(mddaPath, serialized, { markSelfWriting });
@@ -594,4 +629,55 @@ function createAreaConfig(deps) {
   };
 }
 
-module.exports = { createAreaConfig };
+// 4T-001758 (Epic 3E-000253): Wirksamer Stand der Datenbank-Sektion, immer ein
+// Objekt. Eine fehlende Sektion, eine fehlende oder defekte Bereichsdatei und
+// ein unbrauchbarer Wert sind fuer den Aufrufer derselbe Fall: nichts gesetzt.
+// Der Schalter ist aus, solange ihn niemand eingeschaltet hat — eine
+// Uebersicht, die sich ungefragt vor das Dokument des Anwenders schiebt,
+// waere die falsche Vorgabe.
+//
+// 4T-001787 (Epic 3E-000255, E9): Hier kommt der Name des Sperr-Ordners hinzu,
+// und zwar als **wirksamer** Name. Das ist die Stelle, an der jeder Leser
+// denselben Ordner bekommt; ohne sie baute sich jeder seine eigene
+// Rückfall-Regel, und zwei Leser desselben Bereichs zeigten auf zwei Ordner.
+// Eine fehlende, leere oder nach der Regel unzulässige Angabe ergibt deshalb
+// die Vorgabe und niemals einen Fehler.
+//
+// **Die Funktion steht auf Modul-Ebene und UNTERHALB der Fabrik.** Auf
+// Modul-Ebene, weil sie rein ist und keine Fabrik-Abhängigkeit braucht: Der
+// Sperr-Speicher und der Bereichs-Watcher erreichen sie so ohne Umweg über eine
+// gebaute Fabrik. Unterhalb, weil der Vertrags-Wächter der IPC-Deps den
+// Rückgabe-Block der Fabrik am ersten `return {` auf zwei Leerzeichen
+// Einrückung sucht; eine Funktion darüber schöbe ihm ihren eigenen unter
+// (belegt am 2026-09-19: fünf falsche D1-Befunde). Die Fabrik reicht sie
+// unverändert weiter, damit ihre bisherigen Aufrufer unberührt bleiben.
+function normalisiereDatenbankKonfig(roh) {
+  const gesetzt = roh && typeof roh === 'object' && !Array.isArray(roh) ? roh : {};
+  return {
+    overviewOnOpen: gesetzt.overviewOnOpen === true,
+    lockFolderName: wirksamerSperrOrdnerName(gesetzt.lockFolderName),
+  };
+}
+
+// 4T-001795 (Epic 3E-000255, Bauplan N4): Welcher Ordnername in die Sektion
+// geschrieben wird — der ausdruecklich gesetzte, sonst der bewahrte. `null`
+// heisst «keine Angabe», und das ist der Zustand, den der Vorgabe-Name
+// herstellt.
+//
+// **Die Funktion steht wie ihre Nachbarin UNTERHALB der Fabrik**, aus demselben
+// Grund: Der Vertrags-Waechter der IPC-Deps sucht den Rueckgabe-Block der
+// Fabrik am ersten `return {` auf zwei Leerzeichen Einrueckung, und eine
+// Funktion darueber schoebe ihm ihren eigenen unter.
+function gesetzterSperrOrdner(optionen, bewahrt) {
+  const gesetzt = optionen && typeof optionen === 'object' ? optionen : null;
+  if (!gesetzt || !('sperrOrdnerName' in gesetzt)) return bewahrt;
+  const geprueft = pruefeSperrOrdnerName(gesetzt.sperrOrdnerName);
+  if (!geprueft.ok || geprueft.name === DEFAULT_LOCK_FOLDER_NAME) return null;
+  return geprueft.name;
+}
+
+// 4T-001787 (Epic 3E-000255, E9): normalisiereDatenbankKonfig steht zusaetzlich
+// als Modul-Export bereit. Der Sperr-Speicher und der Bereichs-Watcher brauchen
+// den wirksamen Ordnernamen, und beide sollen ihn aus DIESER einen Regel
+// bekommen statt aus einer nachgebauten.
+module.exports = { createAreaConfig, normalisiereDatenbankKonfig };

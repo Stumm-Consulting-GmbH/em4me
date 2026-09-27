@@ -44,6 +44,7 @@ Quand une sous-page est active, un **fil d'Ariane** au-dessus du document (vues 
 - Les documents ouverts suivent ; un document avec des **modifications non enregistrées** reçoit la mise à jour dans l'éditeur comme une étape d'annulation propre, tandis que sur le disque seul le dernier état enregistré est mis à jour.
 - Avec l'[historique du document](history.md) activé, chaque mise à jour est traçable comme révision et peut être annulée ; sans historique, aucun retour en arrière.
 - Dans une application de zone, la mise à jour couvre toute la zone ; sans zone, l'espace de recherche connu, et le linter reste le filet pour le reste.
+- Si le fichier porte des **justificatifs de modification**, comme une table de base de données, ceux-ci suivent, et le renommage peut aussi échouer à cause d'eux. Ce qui vaut alors est décrit avec la gestion des fichiers dans le panneau de zone, sous [Applications, fenêtres et zones](apps-windows.md).
 
 ## Détacher
 

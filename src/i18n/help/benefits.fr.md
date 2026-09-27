@@ -103,13 +103,14 @@ En détail : [Division des grands documents](document-parts.md).
 
 Un dossier de fichiers Markdown peut être en même temps une base de données, et vous n'avez pas à le déclarer : dès qu'un document décrit la base de données, la zone en contient une, et une vue d'ensemble propre répond en un seul endroit à la question de ce qui s'y trouve, à savoir le nom et la description, les tables avec le nombre de leurs champs et les anomalies en clair. Les tables elles-mêmes sont des fichiers ordinaires : la définition figure dans l'en-tête, les enregistrements se trouvent dans le corps en dessous, et une table est ainsi complète dans un seul fichier. Le véritable gain est ailleurs. Depuis n'importe quel texte de la zone, vous renvoyez à une seule ligne d'une table, comme vous renvoyez ailleurs à un fichier ; la note sur une réunion pointe alors vers l'enregistrement de la personne dont elle parle.
 
-- **La zone devient une base de données** dès qu'un document en décrit une, et reçoit sa propre vue d'ensemble, en lecture seule.
+- **La zone devient une base de données** dès qu'un document en décrit une, et reçoit sa propre vue d'ensemble, à partir de laquelle vous créez des enregistrements et contrôlez les données.
 - **La table réside dans son fichier** : les champs dans l'en-tête, les enregistrements dans le corps. Le renommage et le déplacement n'y changent rien, y compris hors de l'application.
 - **Huit types de colonne**, avec des étiquettes qui peuvent exister en plusieurs langues.
 - **Le lien vers un enregistrement isolé** s'écrit comme une ancre et se comporte comme tout autre lien : le linter Markdown indique s'il vaut, et un clic ouvre le fichier de table.
 - **Les grands ensembles restent une seule table** : à partir d'environ 0,7 Mo, l'application répartit les enregistrements sur plusieurs fichiers voisins au moment de la sauvegarde, sans qu'aucun lien en soit affecté.
+- **Tenir les enregistrements dans le formulaire** : créer, modifier et supprimer dans un formulaire issu de la définition, avec verrou, justificatif de modification et les règles de la table ; contrôle de cohérence et vue des utilisations pour le diagnostic.
 
-Ce que cette première étape n'apporte pas encore : les enregistrements se saisissent toujours dans le texte du fichier, il n'y a pas de formulaire de saisie, pas de contrôle des valeurs à l'écriture et pas de requête portant sur les enregistrements.
+Ce que la base de données n'apporte pas encore : les requêtes et les évaluations portant sur les enregistrements.
 
 En détail : [Base de données](database.md).
 

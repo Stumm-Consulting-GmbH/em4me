@@ -13,7 +13,7 @@
 // wenn die Uhr der Gegenstelle abweicht oder ihre Aufloesung grob ist.
 'use strict';
 
-const fs = require('node:fs/promises');
+const { liesFrisch } = require('./frisch-lesen.js');
 
 // Datei-Stand mit unterscheidbarem Fehler: {ok:true,text} | {ok:false,code,error}.
 // Die Unterscheidung traegt die Entscheidung des Aufrufers — eine fehlende
@@ -24,7 +24,9 @@ const fs = require('node:fs/promises');
 // unten beide Seiten in derselben Form sieht.
 async function readDiskState(absolute) {
   try {
-    const raw = await fs.readFile(absolute, 'utf8');
+    // 4T-001964: frisch gelesen, sonst sieht die Pruefung auf einer Netz-Freigabe
+    // den Stand vor dem Ersetzen durch einen anderen Rechner (frisch-lesen.js).
+    const raw = await liesFrisch(absolute, 'utf8');
     return { ok: true, text: normalizeForCompare(raw) };
   } catch (err) {
     return {

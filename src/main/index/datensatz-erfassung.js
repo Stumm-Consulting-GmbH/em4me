@@ -57,6 +57,7 @@ const { extractFrontmatter } = require('../../shared/markdown/frontmatter.js');
 const { parseTableDefinition } = require('../../shared/database/table-definition.js');
 const { anzeigeSpalte } = require('../../shared/database/record-identity.js');
 const { parseRecordBlock } = require('../../shared/database/record-block.js');
+const { zellTexte } = require('../../shared/database/record-write.js');
 const {
   ROLLE_FOLGE,
   kommtUeberhauptInFrage,
@@ -127,10 +128,16 @@ function spalteVon(name, fields) {
 // Text einer Zelle nach Position. Eine fehlende Zelle ist der leere Wert ihres
 // Feldes und kein Fehler (E3.7) — dieselbe weiche Linie, die
 // `zellenNachFeldern` fährt.
-function zellText(cells, index) {
-  if (index < 0 || index >= cells.length) return '';
-  const cell = cells[index];
-  return String((cell && cell.text) || '');
+//
+// 4T-001927 (Epic 3E-000256): Die Texte kommen aus `zellTexte` in
+// `record-write.js`, der einen Auslegung des Schreibwegs. Die Leerzeile, die zwei
+// Datensätze trennt, hängt beim Auslegen am Text der LETZTEN Zelle des vorderen
+// und gehört nicht zu ihrem Wert. Ohne diese Auslegung trug ein Schlüssel in der
+// letzten Spalte im Index einen Zeilenumbruch, und der Zugriff über den echten
+// Wert fand ihn nicht.
+function zellText(texte, index) {
+  if (index < 0 || index >= texte.length) return '';
+  return texte[index];
 }
 
 /**
@@ -312,11 +319,11 @@ function erfasseDatensaetze(text, segmentDefinition) {
 
   const records = [];
   for (const record of gelesen.records) {
-    const cells = Array.isArray(record.cells) ? record.cells : [];
+    const texte = zellTexte(record);
     records.push({
       id: record.id || null,
-      key: schluesselSpalten ? schluesselSpalten.map((i) => zellText(cells, i)) : null,
-      display: anzeigeSpaltenIndex >= 0 ? zellText(cells, anzeigeSpaltenIndex) : null,
+      key: schluesselSpalten ? schluesselSpalten.map((i) => zellText(texte, i)) : null,
+      display: anzeigeSpaltenIndex >= 0 ? zellText(texte, anzeigeSpaltenIndex) : null,
       zeile: block.vonZeile + (record.zeile || 0),
     });
   }

@@ -92,6 +92,8 @@
   "help.shortcut.areaGraph": "Abrir el grafo del área en su propia pestaña",
   "help.shortcut.areaStats": "Abrir las estadísticas del área en su propia pestaña",
   "help.shortcut.databaseOverview": "Abrir el resumen de la base de datos en su propia pestaña",
+  "help.shortcut.databaseNewRecord": "Crear un nuevo registro en la tabla de la pestaña activa y abrirlo en el formulario",
+  "help.shortcut.databaseCheckConsistency": "Comprobar todas las tablas de la base de datos en busca de incoherencias en los datos y mostrar el resultado en la vista general",
   "help.shortcut.myExtendedMemory": "Abrir My Extended Memory en su propia pestaña",
   "help.shortcut.commandPalette": "Abrir la paleta de comandos",
   "help.shortcut.toggleReminders": "Mostrar u ocultar el panel de recordatorios",

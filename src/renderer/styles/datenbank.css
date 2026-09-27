@@ -95,6 +95,106 @@
   font-family: var(--font-mono, monospace);
 }
 
+/* 4T-001792 (Epic 3E-000255, E10.14): Die Aktions-Spalte am Zeilen-Anfang mit
+ * der Schaltfläche zu den Änderungsbelegen — Variante 1 der Entscheidung des
+ * Product Owners vom 2026-09-18.
+ *
+ * Schmal und im Ruhezustand leer: Die Spalte hält ihren Platz, damit die
+ * Tabelle beim Überfahren einer Zeile nicht springt. */
+.markdown-body .prc-table .prc-action-head,
+.markdown-body .prc-table .prc-action {
+  width: 2em;
+  padding: 0.25em 0.2em;
+  text-align: center;
+  vertical-align: middle;
+}
+.markdown-body .prc-table .prc-action {
+  border-bottom: 1px solid var(--border);
+}
+
+/* **Unsichtbar über `opacity` und nicht über `visibility` oder `display`**,
+ * und das ist keine Geschmacksfrage: Ein Element mit `visibility: hidden` ist
+ * nicht fokussierbar und fällt aus der Tabulator-Folge, womit der
+ * Tastatur-Weg aus Bauplan Z5 gar nicht bestehen könnte; `display: none`
+ * nimmt der Spalte zusätzlich ihre Breite und lässt die Tabelle springen.
+ * Muster ist die Kopier-Schaltfläche am Code-Block, die aus demselben Grund
+ * mit `opacity` arbeitet. */
+.markdown-body .prc-open-btn,
+.markdown-body .prc-history-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: var(--fg-muted);
+  padding: 1px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.12s ease-out,
+    color 0.12s;
+  /* Der Fokus-Ring liegt INNEN. Der Container `.perspective-records` rollt
+   * waagrecht (`overflow-x: auto`), und ein nach außen gesetzter Ring würde
+   * am ersten Spaltenrand abgeschnitten — der Tastatur-Fokus wäre dann
+   * unsichtbar, gerade in der Spalte, die ganz vorn steht. */
+  outline-offset: -2px;
+}
+.markdown-body .prc-table tr:hover .prc-open-btn,
+.markdown-body .prc-open-btn:focus-visible,
+.markdown-body .prc-table tr:hover .prc-history-btn,
+.markdown-body .prc-history-btn:focus-visible {
+  opacity: 1;
+}
+/* Helles und dunkles Erscheinungsbild ohne zweite Regel: `--fg-muted` und
+ * `--accent` sind je Erscheinungsbild eigens gesetzt (styles.css), und eine
+ * `[data-theme='dark']`-Kopie mit denselben Namen wäre eine Regel, die nie
+ * etwas anderes bewirkt. Eigene Farben stehen darüber nur dort, wo eine Lage
+ * ihre Farbe selbst mitbringt, wie bei der Befund-Zelle. */
+.markdown-body .prc-open-btn:hover,
+.markdown-body .prc-history-btn:hover {
+  color: var(--accent);
+}
+/* 4T-001939 (Epic 3E-000257, Bauplan B7): Zwei Griffe teilen sich die Spalte;
+ * sie wird dafür breiter, damit keiner in die nächste Zeile bricht. */
+.markdown-body .prc-table .prc-action-head,
+.markdown-body .prc-table .prc-action {
+  width: 3.4em;
+  white-space: nowrap;
+}
+
+/* 4T-001939 (Bauplan B7): Der Fuß des Blocks mit «Neuer Datensatz». Sichtbar
+ * und nicht nur beim Überfahren: Eine leere Tabelle hat keine Zeile, über die
+ * der Anwender fahren könnte, und der Knopf ist dort der einzige Weg. */
+.markdown-body .prc-foot {
+  margin: 0.35em 0 0;
+}
+.markdown-body .prc-new-btn {
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 10px;
+  font: inherit;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+.markdown-body .prc-new-btn:hover {
+  background: var(--hover);
+}
+
+/* **Wo der Zugang schweigt** (Bauplan Z4): Ein Datensatz-Block, der nicht das
+ * Dokument des aktiven Reiters zeigt — in einer Einbettung, in einer
+ * Verweis-Karte der Canvas, in der Notiz-Vorschau, auf einer System-Seite —
+ * bekommt die Klasse vom Anzeige-Prozess, und die Spalte verschwindet ganz.
+ * `display: none` ist hier richtig, weil dort auch kein Platz zu halten ist:
+ * Die Spalte kommt nie zum Vorschein. */
+.markdown-body .prc-passiv .prc-action,
+.markdown-body .prc-passiv .prc-action-head,
+.markdown-body .prc-passiv .prc-foot {
+  display: none;
+}
+
 /* 4T-001759 (Epic 3E-000253): Die Übersichts-Seite der Datenbank.
  *
  * Die Maße folgen der Seite der Bereichs-Statistik, weil beide dieselbe
@@ -120,7 +220,9 @@
   margin: 0;
   font-size: 16px;
 }
-.db-overview-refresh {
+/* 4T-001944: die Aktion «Konsistenz prüfen» im Kopf wie «Aktualisieren». */
+.db-overview-refresh,
+.db-overview-check {
   background: var(--bg-alt);
   color: var(--fg);
   border: 1px solid var(--border);
@@ -129,10 +231,14 @@
   cursor: pointer;
   font: inherit;
 }
-.db-overview-refresh:hover:not(:disabled) {
+.db-overview-refresh:hover:not(:disabled),
+.db-overview-check:hover:not(:disabled),
+.db-overview-check-table:hover:not(:disabled) {
   background: var(--hover);
 }
-.db-overview-refresh:disabled {
+.db-overview-refresh:disabled,
+.db-overview-check:disabled,
+.db-overview-check-table:disabled {
   opacity: 0.6;
   cursor: default;
 }
@@ -185,6 +291,43 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/* 4T-001939 (Bauplan B8): die Aktion «Neuer Datensatz» je Tabelle. */
+.db-overview-table-action {
+  text-align: right;
+  white-space: nowrap;
+}
+.db-overview-new-record,
+.db-overview-check-table {
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 8px;
+  cursor: pointer;
+  font: inherit;
+}
+/* 4T-001944: die Prüfung je Tabelle neben der Neuanlage. */
+.db-overview-check-table {
+  margin-left: 6px;
+}
+/* 4T-001944: der Datensatz eines Befunds als Sprung in die Maske. */
+.db-consistency-open {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+.db-consistency-count {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.db-overview-new-record:hover {
+  background: var(--hover);
+}
 .db-overview-issues {
   margin: 4px 0;
   padding-left: 1.4em;
@@ -199,4 +342,447 @@
   color: var(--fg-muted);
   font-family: var(--font-mono, monospace);
   margin-right: 6px;
+}
+
+/* 4T-001792 (Epic 3E-000255, E10.14): Die lesende Beleg-Ansicht am Datensatz.
+ *
+ * Maße und Bausteine folgen der Übersichts-Seite darüber, weil beide dieselbe
+ * Gattung sind. Eigene Klassen mit eigenem Präfix statt geliehener
+ * `db-overview-*`: Zwei Seiten, die sich Klassen teilen, sind bei der nächsten
+ * Änderung an einer von beiden ein Fehler, den niemand sucht.
+ *
+ * **Hell und dunkel kommen aus den Farb-Variablen** und nicht aus zwei
+ * Regel-Sätzen: `--bg-alt`, `--fg-muted`, `--border` und `--hover` tragen das
+ * Farbschema der Anwendung, und eine hier fest geschriebene Farbe wäre genau
+ * die Stelle, die im dunklen Schema unlesbar wird.
+ *
+ * **Im Druck erscheint die Seite nicht**; das regelt `body.printing
+ * .pane-system` in export-historie-und-statistik.css für alle System-Seiten.
+ * Hier steht dazu bewusst nichts. */
+
+.db-changelog-page {
+  padding: 16px 20px;
+  max-width: 920px;
+  font-size: 13px;
+}
+.db-changelog-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.db-changelog-heading {
+  margin: 0;
+  font-size: 16px;
+}
+.db-changelog-refresh {
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+.db-changelog-refresh:hover:not(:disabled) {
+  background: var(--hover);
+}
+.db-changelog-refresh:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.db-changelog-note,
+.db-changelog-empty {
+  color: var(--fg-muted);
+  margin: 8px 0;
+}
+.db-changelog-window {
+  color: var(--fg-muted);
+  margin: 0 0 10px;
+  font-variant-numeric: tabular-nums;
+}
+.db-changelog-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.db-changelog-entry {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin: 0 0 8px;
+}
+.db-changelog-entry-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: baseline;
+}
+.db-changelog-time {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.db-changelog-kind {
+  font-weight: 600;
+}
+.db-changelog-user,
+.db-changelog-machine {
+  color: var(--fg-muted);
+}
+/* Der beschädigte Beleg ist keine Störung der Seite, sondern eine Auskunft über
+ * die Datei. Er bleibt deshalb eine gewöhnliche Zeile und wird nur am linken
+ * Rand als solcher gekennzeichnet. */
+.db-changelog-damaged {
+  border-left: 3px solid var(--fg-muted);
+}
+.db-changelog-issue,
+.db-changelog-external,
+.db-changelog-merged-note {
+  color: var(--fg-muted);
+  margin: 4px 0 0;
+}
+.db-changelog-merged {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 4px 0 0;
+  color: var(--fg-muted);
+}
+.db-changelog-merged-count {
+  font-variant-numeric: tabular-nums;
+}
+.db-changelog-fields {
+  margin-top: 6px;
+}
+/* Alter und neuer Wert stehen NEBENEINANDER, damit der Unterschied ohne
+ * Blickwechsel zu lesen ist; der Feld-Name davor sagt, worum es geht. Bei
+ * schmalem Fenster bricht die Zeile um, statt die Werte zu quetschen. */
+.db-changelog-field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 4px 0;
+  border-top: 1px solid var(--border);
+}
+.db-changelog-field-name {
+  min-width: 140px;
+  color: var(--fg-muted);
+  font-family: var(--font-mono, monospace);
+}
+.db-changelog-value {
+  flex: 1 1 220px;
+  min-width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.db-changelog-value-label {
+  color: var(--fg-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+/* Der Wert des Anwenders, unverfälscht: Zeilenumbrüche bleiben erhalten, und
+ * ein sehr langer Wert bricht um, statt die Zeile zu sprengen. */
+.db-changelog-value-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono, monospace);
+}
+/* Fehlender und leerer Wert sehen verschieden aus, weil sie Verschiedenes
+ * sagen: Der fehlende Wert existiert nicht, der leere ist gesetzt und ohne
+ * Inhalt. */
+.db-changelog-value-missing {
+  color: var(--fg-muted);
+  font-style: italic;
+}
+.db-changelog-value-empty {
+  color: var(--fg-muted);
+  border: 1px dashed var(--border);
+  border-radius: 3px;
+  padding: 0 4px;
+  align-self: flex-start;
+}
+/* Die Unterbrechung der Spur ist der einzige hervorgehobene Eintrag der Liste:
+ * Sie sagt, dass die Geschichte an dieser Stelle nicht zusammenpasst. Die
+ * beiden Gründe unterscheiden sich in der Linie, nicht nur im Text, weil Farbe
+ * und Text allein zu wenig Träger wären. */
+.db-changelog-break {
+  margin: 0 0 8px;
+  padding: 4px 10px;
+  border-left: 3px solid var(--fg);
+  background: var(--bg-alt);
+}
+.db-changelog-break-value {
+  border-left-style: solid;
+}
+.db-changelog-break-damaged {
+  border-left-style: double;
+  border-left-width: 5px;
+}
+
+/* 4T-001939 (Epic 3E-000257, Bauplan B1): Die Einzel-Maske eines Datensatzes.
+ *
+ * Maße und Bausteine folgen der Beleg-Ansicht, weil beide dieselbe Gattung
+ * sind; eigene Klassen mit eigenem Präfix aus demselben Grund wie dort. Hell
+ * und dunkel kommen aus den Farb-Variablen der Anwendung. */
+.db-form-page {
+  padding: 16px 20px;
+  max-width: 920px;
+  font-size: 13px;
+}
+.db-form-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.db-form-heading {
+  margin: 0;
+  font-size: 16px;
+}
+.db-form-record {
+  color: var(--fg-muted);
+  margin-top: 2px;
+}
+/* 4T-001943: Quelle der Maske im Kopf — der Name der Masken-Datei oder der
+ * Handgriff zum Herausschreiben der erzeugten Maske. */
+.db-form-source {
+  color: var(--fg-muted);
+  margin-top: 2px;
+  font-size: 12px;
+}
+.db-form-write-file {
+  margin-top: 6px;
+}
+.db-form-actions,
+.db-form-confirm-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.db-form-btn {
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 10px;
+  cursor: pointer;
+  font: inherit;
+}
+.db-form-btn:hover:not(:disabled) {
+  background: var(--hover);
+}
+.db-form-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.db-form-note,
+.db-form-not-editable {
+  color: var(--fg-muted);
+  margin: 8px 0;
+}
+.db-form-confirm {
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin: 0 0 12px;
+  background: var(--bg-alt);
+}
+.db-form-confirm-text {
+  margin: 0 0 8px;
+}
+.db-form-hints {
+  margin: 0 0 10px;
+  color: var(--fg-muted);
+}
+.db-form-hints-list {
+  margin: 4px 0;
+  padding-left: 1.4em;
+}
+/* Der Körper stapelt Markdown-Blöcke und Felder; die Blöcke tragen
+ * `markdown-body`, damit der Masken-Körper wie ein Dokument aussieht. */
+.db-form-body .db-form-md > :first-child {
+  margin-top: 0.4em;
+}
+.db-form-body .db-form-md > :last-child {
+  margin-bottom: 0.2em;
+}
+.db-form-field {
+  position: relative;
+  margin: 0 0 8px;
+  padding-left: 12px;
+  border-left: 2px solid transparent;
+}
+.db-form-required-mark {
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--accent);
+  font-weight: 600;
+}
+.db-form-value {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  min-height: 1.4em;
+}
+.db-form-input {
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 6px;
+  box-sizing: border-box;
+}
+.db-form-input:not([type='checkbox']) {
+  width: 100%;
+  max-width: 520px;
+}
+textarea.db-form-input {
+  resize: vertical;
+  min-height: 4.2em;
+}
+/* Eine beim Lesen markierte oder fehlende Zelle: Rand und Meldung, der
+ * Rohtext bleibt sichtbar (Bauplan B5). Farben der Befund-Zelle darüber. */
+.db-form-marked {
+  border-left-color: #b71c1c;
+}
+.db-form-message {
+  color: #b71c1c;
+  font-size: 12px;
+}
+[data-theme='dark'] .db-form-marked {
+  border-left-color: #ff8a80;
+}
+[data-theme='dark'] .db-form-message {
+  color: #ff8a80;
+}
+/* 4T-001940: Befunde eines abgewiesenen Auftrags ohne Feld, im Kopf der Maske. */
+.db-form-errors {
+  margin: 0 0 12px;
+  padding: 6px 10px 6px 26px;
+  border-left: 3px solid #b71c1c;
+  color: #b71c1c;
+}
+[data-theme='dark'] .db-form-errors {
+  border-left-color: #ff8a80;
+  color: #ff8a80;
+}
+.db-form-stale-title {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+/* 4T-001941: Konflikt-Block der Sperre, im Muster der Wahl bei Fremd-Änderung. */
+.db-form-lock-title {
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+.db-form-lock-expired,
+.db-form-lock-reason {
+  margin: 4px 0 0;
+}
+.db-form-lock-reason {
+  font-style: italic;
+}
+/* 4T-001942: Wertehilfe der Verweis-Felder. Die Liste hängt unter der Eingabe
+ * im Feld-Element (das `position: relative` trägt); jeder Eintrag zeigt
+ * Anzeige-Form und Kennung. */
+.db-form-suggest {
+  position: absolute;
+  z-index: 20;
+  left: 12px;
+  width: calc(100% - 12px);
+  max-width: 520px;
+  max-height: 260px;
+  overflow-y: auto;
+  margin: 2px 0 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  box-sizing: border-box;
+}
+.db-form-suggest-item {
+  display: flex;
+  gap: 8px;
+  padding: 3px 6px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.db-form-suggest-item:hover,
+.db-form-suggest-item.is-active {
+  background: var(--bg-alt);
+}
+.db-form-suggest-display {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.db-form-suggest-id,
+.db-form-suggest-more,
+.db-form-suggest-empty,
+.db-form-ref-hint {
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+.db-form-suggest-more,
+.db-form-suggest-empty {
+  padding: 3px 6px;
+  font-style: italic;
+}
+/* Ein Verweis, der keinen Datensatz eindeutig trifft: Rohtext, gekennzeichnet. */
+.db-form-unresolved {
+  text-decoration: underline wavy #b71c1c;
+  text-underline-offset: 3px;
+}
+[data-theme='dark'] .db-form-unresolved {
+  text-decoration-color: #ff8a80;
+}
+/* 4T-001945 (Bauplan B3): Verwendungsnachweis — die Aktion je Tabelle in der
+ * Übersicht und die Liste der verweisenden Datensätze unter dem Kopf der Maske. */
+.db-overview-usage {
+  margin-left: 6px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 8px;
+  cursor: pointer;
+  font: inherit;
+}
+.db-overview-usage:hover {
+  background: var(--hover);
+}
+.db-usage-subtitle {
+  margin: 8px 0 2px;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+.db-form-usage {
+  margin: 8px 0;
+}
+.db-form-usage-title {
+  color: var(--fg-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+.db-form-usage-open {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
 }

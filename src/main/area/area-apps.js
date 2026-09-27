@@ -22,6 +22,10 @@ const { dialog, nativeTheme } = require('electron');
 const chokidar = require('chokidar');
 const backlinks = require('../backlinks');
 const { isSamePath, areaFromRootPath, updatedRecentAreas } = require('./area-path');
+// 4T-001787 (Epic 3E-000255, E9): Ausschluss des Sperr-Ordners aus der
+// Beobachtung und der Nachzug seines Namens.
+const { baueIgnorierRegel, beziehSperrOrdnerNeu } = require('./area-watch-ignore');
+const { DEFAULT_LOCK_FOLDER_NAME } = require('../../shared/database/lock-folder-name');
 // 4T-001453 (Epic 3E-000190): Befund-Einordnung der Verknuepfungen.
 const { pruefeVerknuepfungen } = require('./area-link-resolve');
 // 4T-000630 (Epic 3E-000102): Titelleisten-Faerbung nach Arbeitsbereichs-Farbe
@@ -58,6 +62,10 @@ function utcNowSeconds() {
  * @param {Function} deps.restoreBookForApp Aktives Buch wiederherstellen.
  * @param {Function} deps.restoreShelfForApp Aktives Regal wiederherstellen.
  * @param {(rootPath: string) => Promise<object|null>} deps.resolveAreaStartPage Start-Seite des Bereichs.
+ * @param {(rootPath: string) => Promise<object|undefined>} deps.readAreaDatabaseConfig Datenbank-Sektion lesen.
+ * @param {(roh: object) => object} deps.normalisiereDatenbankKonfig Wirksamer Stand der Datenbank-Sektion.
+ * @param {{raeumeAuf: (rootPath: string) => Promise<object>}} deps.wiederanlauf Wiederanlauf
+ *   liegengebliebener Datenbank-Aufträge (4T-001824).
  * @returns {object} Bereichs-API samt der Zustands-Behaelter dieses Moduls.
  */
 function createAreaApps(deps) {
@@ -85,6 +93,13 @@ function createAreaApps(deps) {
     resolveAreaStartPage,
     // 4T-001453 (Epic 3E-000190): Verknuepfungen des Bereichs lesen.
     readAreaLinks,
+    // 4T-001787 (Epic 3E-000255, E9): Bereichs-Konfiguration der Datenbank —
+    // aus ihr kommt der wirksame Name des Sperr-Ordners.
+    readAreaDatabaseConfig,
+    normalisiereDatenbankKonfig,
+    // 4T-001824 (Epic 3E-000254): der Wiederanlauf liegengebliebener
+    // Datenbank-Aufträge; das Öffnen eines Bereichs ist sein zweiter Auslöser.
+    wiederanlauf,
   } = deps;
 
   const workspacesState = [];
@@ -336,6 +351,12 @@ function createAreaApps(deps) {
       store.set('recentAreas', updatedRecentAreas(store.get('recentAreas'), area.rootPath));
       applyMenuToAllWindows();
     }
+    // 4T-001824 (Epic 3E-000254, AK1): Ein liegengebliebener Auftrag wird beim
+    // Öffnen erneut zu Ende geschrieben. Nicht abgewartet: Das Öffnen verzögert
+    // sich dadurch nicht, und ein Fehlschlag ist folgenlos, weil der nächste
+    // Auftrag an die Schreib-Schnittstelle es erneut versucht. Das Tor der
+    // Erweiterung prüft der Wiederanlauf selbst.
+    void wiederanlauf.raeumeAuf(area.rootPath).catch(() => {});
     const running = appRegistry.findAppByArea((a) => isSamePath(a.rootPath, area.rootPath));
     if (running != null) {
       focusFirstAppWindow(running);
@@ -374,6 +395,21 @@ function createAreaApps(deps) {
   // gemeldet; der Renderer liest die Listings idempotent neu (kein Echo-
   // Schutz noetig). Lebenszyklus: Start mit der Bereichs-Bindung, Stopp mit
   // dem Verschwinden der App (Muster des Datei-Watchers in file-watching.js).
+
+  // 4T-001787 (Epic 3E-000255, E9): Der wirksame Name des Sperr-Ordners eines
+  // Bereichs. Er kommt aus der einen Normalisierung der Datenbank-Sektion und
+  // nicht aus einer nachgebauten Rueckfall-Regel.
+  async function leseWirksamenSperrOrdner(rootPath) {
+    return normalisiereDatenbankKonfig(await readAreaDatabaseConfig(rootPath)).lockFolderName;
+  }
+
+  // 4T-001787: Namen neu beziehen — gerufen vom Schreib-Kanal der
+  // Datenbank-Konfiguration nach jedem gelungenen Schreiben. Ohne rootPath gilt
+  // der Nachzug fuer alle laufenden Bereichs-Watcher.
+  async function sperrOrdnerNeuBeziehen(rootPath) {
+    await beziehSperrOrdnerNeu(areaWatchers.values(), leseWirksamenSperrOrdner, rootPath);
+  }
+
   function startAreaWatcher(appId) {
     if (areaWatchers.has(appId)) return;
     const area = appRegistry.getArea(appId);
@@ -384,15 +420,27 @@ function createAreaApps(deps) {
     // Der Owner haelt den Index ueber die Lebensdauer der Bereichs-App;
     // stopAreaWatcher gibt ihn beim Bereichs-Schliessen frei.
     backlinks.ensureAreaIndex(area.rootPath, `area:${appId}`);
+    // 4T-001787 (Epic 3E-000255, E9): Der Eintrag traegt den wirksamen Namen des
+    // Sperr-Ordners und entsteht deshalb VOR dem Watcher — die Ignorier-Regel
+    // liest ihn bei jedem Ereignis aus ihm. Beim Start gilt der Vorgabe-Name,
+    // gleich darauf der aus der Bereichs-Konfiguration nachgezogene.
+    const entry = {
+      watcher: null,
+      timer: null,
+      rootPath: area.rootPath,
+      sperrOrdner: DEFAULT_LOCK_FOLDER_NAME,
+    };
     const watcher = chokidar.watch(area.rootPath, {
       ignoreInitial: true,
       // 4T-000348 (Epic 3E-000062): Markdown-Data-Dateien (.mdd/.mdda/.mddb) sind
       // Bereichs-Infrastruktur (Historie, Einstellungen, Index-Cache), keine
       // Nutzer-Struktur; ihr Anlegen/Schreiben soll kein Panel-Refresh ausloesen.
       // Sie erscheinen ohnehin nicht in der Datei-Liste (kein Markdown-Name).
-      ignored: (p) => isMddPath(p),
+      // 4T-001787: dazu der Sperr-Ordner der Bereichs-Wurzel und alles darunter.
+      ignored: baueIgnorierRegel(entry, isMddPath),
     });
-    const entry = { watcher, timer: null, rootPath: area.rootPath };
+    entry.watcher = watcher;
+    void beziehSperrOrdnerNeu([entry], leseWirksamenSperrOrdner);
     const notify = () => {
       if (entry.timer) clearTimeout(entry.timer);
       entry.timer = setTimeout(() => {
@@ -445,6 +493,9 @@ function createAreaApps(deps) {
     openAreaPath,
     startAreaWatcher,
     stopAreaWatcher,
+    // 4T-001787 (Epic 3E-000255, E9): Nachzug des Sperr-Ordner-Namens fuer den
+    // Schreib-Kanal der Datenbank-Konfiguration.
+    sperrOrdnerNeuBeziehen,
   };
 }
 

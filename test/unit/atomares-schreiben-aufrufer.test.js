@@ -171,6 +171,30 @@ describe('Schreibwege des Haupt-Prozesses: kein direktes Ersetzen', () => {
   // exklusive Anlegen ist genau die Zusicherung, die dort gebraucht wird: Es
   // hält den Abstand auch dann, wenn zwischen der Namens-Suche und dem
   // Schreiben jemand anders geschrieben hat.
+  //
+  // 4T-001787 (Epic 3E-000255): Die elfte ist der Sperr-Speicher der Datenbank
+  // (`src/main/database/lock-store.js`). Die Frage ist beantwortet: Das exklusive
+  // Anlegen ist dort kein Schreibweg, der auch ersetzend sein könnte, sondern der
+  // Zweck selbst, denn das Anlegen der Sperr-Datei IST die Prüfung, ob die Sperre
+  // frei war.
+  //
+  // Rebase des Zuges 3E-000314 auf das Release 1.139.0 am 2026-09-20: Beide
+  // Seiten hatten unabhängig voneinander 10 auf 11 gezählt; vereinigt sind es
+  // 12. Kein neuer Grund, sondern die Summe beider beantworteter Fragen.
+  //
+  // 4T-001823 (Epic 3E-000254): Die Klammer des Absichts-Protokolls
+  // (`src/main/database/intent-log.js`) legt ihr Protokoll exklusiv an, weil zwei
+  // Prozesse nie dasselbe Protokoll schreiben dürfen, auch nicht bei einem
+  // Fehler der Vorgangs-Kennung, die den Namen bildet. Die Zahl wächst dadurch
+  // NICHT: Die Klammer ruft die eine exklusive Schreib-Stelle des
+  // Sperr-Speichers, `schreibeExklusiv` in `lock-store.js`, und schreibt kein
+  // zweites `wx`. Gezählt werden Schreib-Stellen, nicht ihre Benutzer.
+  //
+  // 4T-001824 (Epic 3E-000254): Die Aufräum-Sperre eines liegengebliebenen
+  // Protokolls ist eine Sperre der fünften Art und entsteht über die
+  // Sperr-Verwaltung, also über dieselbe exklusive Stelle des Sperr-Speichers.
+  // Der Wiederanlauf (`src/main/database/intent-recovery.js`) schreibt kein
+  // eigenes `wx`; die Zahl bleibt zwölf.
   it('haelt die Zahl der exklusiven Anlagen fest', () => {
     let anlagen = 0;
     for (const datei of jsDateien(MAIN)) {
@@ -182,6 +206,16 @@ describe('Schreibwege des Haupt-Prozesses: kein direktes Ersetzen', () => {
         if (/flag:\s*'wx'/.test(argumentListe(quelltext, start))) anlagen += 1;
       }
     }
-    expect(anlagen).toBe(12);
+    // Rebase des Zuges 3E-000314 auf das Release 1.140.0 am 2026-09-24: Das
+    // Release zählte 11 auf 12 (JSON-Canvas), der Zug 11 auf 12 (Sperr-Speicher);
+    // vereinigt sind es 13. Kein neuer Grund, sondern die Summe beider Fragen.
+    //
+    // 4T-001943 (Epic 3E-000257): 13 auf 14. Die Frage ist beantwortet: Das
+    // Herausschreiben der erzeugten Maske (`src/main/database/masken-datei.js`)
+    // legt eine neue Datei neben der Tabelle an und darf **nie** eine
+    // vorhandene ersetzen, weil sie eine gestaltete Maske sein kann. Das
+    // exklusive Anlegen ist dort die Prüfung selbst, ohne Lücke zwischen einem
+    // Vorab-Blick und dem Schreiben.
+    expect(anlagen).toBe(14);
   });
 });

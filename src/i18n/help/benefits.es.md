@@ -103,13 +103,14 @@ En detalle: [División de documentos grandes](document-parts.md).
 
 Una carpeta de archivos Markdown puede ser al mismo tiempo una base de datos, y no hace falta que la declares: en cuanto un documento describe la base de datos, el área contiene una, y un resumen propio responde en un solo lugar a qué hay en ella, es decir el nombre y la descripción, las tablas con el número de sus campos y las incidencias en claro. Las tablas mismas son archivos corrientes: la definición está en el encabezado, los registros están en el cuerpo debajo, y así una tabla queda completa en un único archivo. La verdadera ganancia está al lado. Desde cualquier texto del área enlazas a una sola fila de una tabla, igual que enlazas a un archivo en otro sitio; la nota sobre una reunión apunta entonces al registro de la persona de la que habla.
 
-- **El área se convierte en base de datos** en cuanto un documento la describe, y recibe su propio resumen como vista de solo lectura.
+- **El área se convierte en base de datos** en cuanto un documento la describe, y recibe su propio resumen, desde el que crea registros y comprueba los datos.
 - **La tabla reside en su archivo**: los campos en el encabezado, los registros en el cuerpo. Renombrar y mover no cambian nada de eso, tampoco fuera de la aplicación.
 - **Ocho tipos de columna**, con etiquetas que pueden existir en varios idiomas.
 - **El enlace a un registro concreto** se escribe como un ancla y se comporta como cualquier otro enlace: el linter de Markdown indica si vale, y un clic abre el archivo de tabla.
 - **Los grandes conjuntos siguen siendo una sola tabla**: a partir de unos 0,7 MB, la aplicación reparte los registros al guardar entre varios archivos contiguos, sin que ningún enlace se vea afectado.
+- **Cuidar los registros en el formulario**: crear, modificar y eliminar en un formulario generado a partir de la definición, con bloqueo, justificante de cambio y las reglas de la tabla; comprobación de coherencia y vista de usos para el diagnóstico.
 
-Lo que esta primera etapa todavía no trae: los registros se siguen introduciendo en el texto del archivo, no hay formulario de entrada, ni comprobación de los valores al escribir, ni consulta sobre los registros.
+Lo que la base de datos todavía no trae: consultas y evaluaciones sobre los registros.
 
 En detalle: [Base de datos](database.md).
 

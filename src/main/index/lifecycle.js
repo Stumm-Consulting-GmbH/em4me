@@ -103,7 +103,7 @@ function ensureIndex(rootPath, ownerKey, isArea) {
     // Dateien mit Marke). Die Auskunft «welche Dateien sind Tabellen bzw. der
     // Steckbrief», aus der der Katalog seinen Bestand bildet; die Definition
     // selbst steht in der Datei und nicht hier.
-    //   dbKindsPerFile: Map<absPath, Array<'table'|'database'>>
+    //   dbKindsPerFile: Map<absPath, Array<'table'|'database'|'form'>>
     dbKindsPerFile: new Map(),
     // 4T-001610 (Epic 3E-000252): Datensätze pro Datei einer Datenbank-Tabelle
     // (nur Dateien mit Datensätzen). Je Datensatz die interne Kennung, die Werte

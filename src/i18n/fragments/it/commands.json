@@ -130,6 +130,8 @@
   "command.edit.insertEvents": "Inserisci blocco eventi",
   "command.view.openFieldForm": "Aprire il modulo dei campi del documento",
   "command.edit.insertProfileQuery": "Inserisci query di profilo",
+  "command.database.newRecord": "Nuovo record nella tabella attiva",
+  "command.database.checkConsistency": "Verifica la coerenza del database",
   "command.canvas.addCard": "Aggiungi scheda alla tela",
   "command.insert.canvas": "Tela",
   "command.canvas.addShape": "Aggiungi forma alla tela",

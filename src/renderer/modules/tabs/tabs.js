@@ -50,6 +50,9 @@ import {
 // wie an der Statusbar (isExtensionActive kommt weiter unten mit den
 // Tab-Gruppen-Imports).
 import { PANEL_ACCESS } from '../../../shared/panel-access.js';
+// 4T-001789 (Epic 3E-000255): Die Endungen der Markdown-Data-Familie kommen aus
+// dem gemeinsamen Modul; die eigene Liste dieser Stelle ist damit entfallen.
+import { isMarkdownDataPath } from '../../../shared/markdown-data-family.js';
 import { getPanelToggleOrder } from '../sidebar-layout.js';
 import { clearIndexOverlayFor, updateWindowTitle } from '../editor/editor.js';
 // 4T-000990 (Epic 3E-000196): panels.js ist in den Feature-Ordner panels/ geteilt;
@@ -187,12 +190,15 @@ export async function openInPane(targetPaneIdx, paths, optionen = {}) {
       showStatusbarHint('statusbar.outsideAreaFile', { duration: 3000, error: true });
       continue;
     }
-    // 4T-000331 (Epic 3E-000060): Markdown-Data-Begleitdateien (.mdd/.mdda/.mddb)
-    // sind keine Dokumente — lokalisierter Hinweis statt generischem
-    // Lesefehler. Die autoritative zweite Linie sitzt main-seitig in file:read.
+    // 4T-000331 (Epic 3E-000060): Dateien der Markdown-Data-Familie sind keine
+    // Dokumente — lokalisierter Hinweis statt generischem Lesefehler. Die
+    // autoritative zweite Linie sitzt main-seitig in file:read.
     // 4T-000352 (Epic 3E-000064): explizite Endungs-Liste statt mddb?-Muster,
     // damit die neue .mdda-Endung sicher mitgefasst wird.
-    if (/\.(mdd|mdda|mddb)$/i.test(p)) {
+    // 4T-001789 (Epic 3E-000255): Die Liste stand hier als eigener regulaerer
+    // Ausdruck und war die vierte Kopie derselben Aussage; sie kommt jetzt aus
+    // dem gemeinsamen Modul und umfasst damit auch die Beleg-Datei.
+    if (isMarkdownDataPath(p)) {
       showStatusbarHint('statusbar.mddFile', { duration: 3000, error: true });
       continue;
     }

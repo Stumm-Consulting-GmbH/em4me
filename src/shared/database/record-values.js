@@ -54,11 +54,19 @@ const TEXT_TYPES = ['string', 'multiline', 'link', 'record'];
 
 // Fehler-Codes je Typ. Sie tragen den Namen ihres Typs, damit eine Meldung
 // sagen kann, WAS erwartet war, statt nur, dass etwas nicht passte.
+//
+// 4T-001931 (Epic 3E-000256, E22.2): Dazu die beiden Codes der Lese-Seite der
+// Prüfregeln. `check` trägt eine Zelle, deren Wert eine Feld-Regel verletzt,
+// `required` eine leere Zelle eines Pflicht-Feldes. Vergeben werden sie im
+// Datensatz-Block (`legeWerteAus`), nicht hier: Die Auslegung eines Textes nach
+// seinem Typ kennt weder Regel noch Pflicht-Angabe.
 const CELL_ERRORS = {
   number: 'invalidNumber',
   date: 'invalidDate',
   time: 'invalidTime',
   boolean: 'invalidBoolean',
+  check: 'check',
+  required: 'required',
 };
 
 // Kalendarisch gültiges Datum, nicht nur die richtige Form. `2026-02-31` trifft

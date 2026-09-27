@@ -738,6 +738,32 @@ const COMMANDS = [
     availability: 'area',
   },
   {
+    // 4T-001939 (Epic 3E-000257): Neuer Datensatz in der Tabelle des aktiven
+    // Reiters, ohne Menue-Eintrag und ohne Default-Binding (Palette, Kuerzel
+    // belegbar); ist der aktive Reiter keine Tabelle, meldet die Statuszeile es.
+    id: 'database.newRecord',
+    defaultBindings: [],
+    labelKey: 'command.database.newRecord',
+    descKey: 'help.shortcut.databaseNewRecord',
+    categoryKey: 'help.group.editing',
+    menu: false,
+    editorScoped: false,
+    availability: 'area',
+  },
+  {
+    // 4T-001944 (Epic 3E-000257): Konsistenz-Pruefung aller Tabellen des
+    // Bereichs, Ergebnis in der Uebersicht; ohne Menue-Eintrag und ohne
+    // Default-Binding (Palette, Kuerzel belegbar), wie die Neuanlage.
+    id: 'database.checkConsistency',
+    defaultBindings: [],
+    labelKey: 'command.database.checkConsistency',
+    descKey: 'help.shortcut.databaseCheckConsistency',
+    categoryKey: 'help.group.view',
+    menu: false,
+    editorScoped: false,
+    availability: 'area',
+  },
+  {
     // 4T-001599 (Epic 3E-000191): My Extended Memory als System-Seite; ohne
     // Default-Binding (Menue-Weg, Kuerzel belegbar). Anders als die beiden
     // Nachbarn braucht die Seite KEINEN geoeffneten Bereich — sie zeigt die

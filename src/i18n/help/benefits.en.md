@@ -103,13 +103,14 @@ In detail: [Splitting large documents](document-parts.md).
 
 A folder of Markdown files can be a database at the same time, and you do not declare it one: as soon as a document describes the database, the area holds a database, and an overview of its own answers in one place what lies in it, that is name and description, the tables each with the number of their fields, and the issues in plain words. The tables themselves are ordinary files: the definition sits in the file's header, the records sit in the body below, and with that a table is complete in a single file. The real gain lies beside it. From any text of the area you refer to a single row of a table, just as you refer to a file elsewhere; the note about a meeting then points at the record of the person it talks about.
 
-- **The area becomes a database** as soon as a document describes one, and gets an overview of its own as a read-only view.
+- **The area becomes a database** as soon as a document describes one, and gets an overview of its own, from which you create records and check the data set.
 - **The table sits in its file**: fields in the header, records in the body. Renaming and moving change nothing about that, outside the application as well.
 - **Eight column types**, with labels that may be present in several languages.
 - **The reference to a single record** is written like an anchor and behaves like every other reference: the Markdown linter shows whether it holds, and a click opens the table file.
 - **Large data sets stay one table**: from roughly 0.7 MB on, the application spreads the records across several sibling files when saving, without a single reference being touched.
+- **Keeping records in the form**: create, change and delete in a form generated from the definition, with lock, change record and the rules of the table; consistency check and usage report for diagnosis.
 
-What this first stage does not bring yet: records are still entered in the text of the file, there is no input form, no check of the values while writing and no query across the records.
+What the database does not bring yet: queries and evaluations across the records.
 
 In detail: [Database](database.md).
 

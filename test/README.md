@@ -1931,6 +1931,8 @@ Festgelegt am 2026-08-28 durch den Product Owner (Vorgang 4T-001251), auf der Gr
 
 Die Festlegung spricht bewusst von **freigegebenen Plattformen** und nicht von Windows und Linux: Eine Plattform tritt mit ihrer **ersten Auslieferung** ein und mit ihrer **Zurückstellung** aus, beides durch Entscheidung des Product Owners im Zielbild. Damit trägt der Abschnitt eine dritte Plattform, ohne umgeschrieben zu werden, und schrumpft von selbst, solange macOS zurückgestellt ist.
 
+**Benannte Grenze unter Linux (seit dem 2026-09-23, Vorgang zum Absichts-Protokoll `4T-001823`):** Der Schreibweg der Datenbank-Aufträge schreibt jede Datei vor dem Wirksamwerden durch, das Verzeichnis dagegen nicht, weil Windows das Durchschreiben eines geöffneten Verzeichnisses verweigert. Unter Linux bleibt ein neuer Verzeichnis-Eintrag damit ohne ausdrückliches Durchschreiben; ein Stromausfall genau im Augenblick des Speicherns kann einen Vorgang liegen lassen, den der Wiederanlauf beim nächsten Speichern oder Öffnen des Bereichs zu Ende schreibt. Das Handbuch nennt die Einschränkung im Kapitel «Speichern durch die Anwendung» der Datenbank-Seite. Ein Prüffall dafür fehlt bewusst: Ein Stromausfall lässt sich im Container nicht nachstellen, und der Wiederanlauf selbst ist plattformneutral geprüft.
+
 ### Das Kommando
 
 ```bash

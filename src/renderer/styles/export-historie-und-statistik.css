@@ -101,6 +101,13 @@ body.printing .perspective-sort-icon,
    Block selbst erscheint im Druck (AK10, E8: Druck und PDF folgen der
    Lese-Ansicht) — nur seine beiden Knoepfe haben dort nichts verloren. */
 body.printing .canvas-block-aktionen,
+/* 4T-001792 (Epic 3E-000255, Bauplan Z6): Aktions-Spalte und Schaltfläche des
+   Datensatz-Blocks. Die Tabelle selbst erscheint im Druck; ein Griff, der eine
+   Ansicht der Anwendung öffnet, hat auf Papier nichts verloren, und die leere
+   Spalte davor wäre ein unerklärlicher Rand. Der Kopf steht mit, sonst
+   verschöbe sich die Kopfzeile gegen die Datenzeilen. */
+body.printing .prc-action,
+body.printing .prc-action-head,
 body.printing .block-meta-indicator {
   display: none !important;
 }

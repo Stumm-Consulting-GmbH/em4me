@@ -47,9 +47,11 @@
 // nichts zu suchen: F5 sagt, was die Anwendung führt, überschreibt sie nie mit
 // Eigenem im Text des Anwenders, und F6 macht aus dem Schreib-Takt eigenes
 // Gewicht. Der Steckbrief trägt damit zwei Naturen, und nur die beschreibende
-// ist hier verortet. Der Ort des Zählers wird in der Stufe entschieden, die ihn
-// baut (Stufe 2); hier wird er allein benannt, damit die Lücke nicht als
-// Versehen erscheint. Festgehalten mit der Entscheidung vom 2026-09-06.
+// ist hier verortet. Festgehalten mit der Entscheidung vom 2026-09-06.
+// **Entschieden mit Stufe 2** (Product Owner, 2026-09-20; Herleitung bestätigt
+// am 2026-09-23): Der Zähler liegt in der eigenen, von der Anwendung geführten
+// Bereichs-Datei `Area_Database.mdda` (`src/main/database/vorgangs-kennung.js`),
+// nicht im Steckbrief; E10.5 des Konzepts ist entsprechend berichtigt.
 //
 // --- Eindeutigkeit ------------------------------------------------------------------
 //

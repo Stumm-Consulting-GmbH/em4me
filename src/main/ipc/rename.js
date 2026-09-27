@@ -16,6 +16,9 @@ const fs = require('node:fs/promises');
 // Umbenennen mit, und ihre Zuordnungs-Zeile wird nachgezogen.
 const { scanOwnParts, rewritePartBase } = require('../documents/document-parts-io');
 const { isPartBasename, baseBasenameOf } = require('../../shared/document-parts');
+// 4T-001789 (Epic 3E-000255): Die Fehlschlag-Kennungen des Mitziehens werden
+// durchgereicht statt mit 'partial' ueberschrieben.
+const { BEGLEIT_CODES } = require('../documents/companion-files');
 const selbstSchreib = require('../documents/self-write');
 
 // 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
@@ -170,13 +173,21 @@ function registerRenameIpc(handle, deps) {
         // Teilfehler: Kaskade stoppt; bereits umbenannte Dateien sind per
         // Broadcast konsistent nachgezogen, der Renderer meldet den Stand.
         await sendBookStateForDirs(bookDirs);
+        // 4T-001789 (Epic 3E-000255): Scheitert das Mitziehen einer
+        // Begleit-Datei, traegt der Fehlschlag seinen eigenen Grund. Die
+        // bisherige Pauschal-Kennung 'partial' fuehrte zur Meldung «0 von 1
+        // Dateien umbenannt» und verschwieg genau den Grund, der den Anwender
+        // handeln laesst.
+        const begleit = BEGLEIT_CODES.includes(res.code);
         return {
           ok: false,
           error: res.error,
-          code: 'partial',
+          code: begleit ? res.code : 'partial',
           renamedCount,
           totalCount: pairs.length,
           failedPath: pair.from,
+          ...(res.companionPath ? { companionPath: res.companionPath } : {}),
+          ...(res.from ? { from: res.from, to: res.to } : {}),
         };
       }
       if (res.bookDir) bookDirs.push(res.bookDir);

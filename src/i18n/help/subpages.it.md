@@ -44,6 +44,7 @@ Quando una sottopagina è attiva, un **breadcrumb** sopra il documento (viste le
 - I documenti aperti seguono; un documento con **modifiche non salvate** riceve l'aggiornamento nell'editor come un proprio passo di annullamento, mentre sul disco viene aggiornato solo l'ultimo stato salvato.
 - Con la [cronologia del documento](history.md) attiva, ogni aggiornamento è tracciabile come revisione e può essere annullato; senza cronologia non c'è ripristino.
 - In un'applicazione di area, l'aggiornamento copre l'intera area; senza area, lo spazio di ricerca noto, e il linter resta la rete per il resto.
+- Se il file porta **giustificativi di modifica**, come una tabella di banca dati, queste lo seguono, e la rinomina può anche fallire per causa loro. Quel che vale allora è descritto insieme alla gestione dei file nel pannello dell'area, sotto [Applicazioni, finestre e aree](apps-windows.md).
 
 ## Scollegare
 

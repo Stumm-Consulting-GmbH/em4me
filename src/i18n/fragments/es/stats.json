@@ -35,6 +35,7 @@
   "stats.companions.ofFiles": "{count} de {total}",
   "stats.companions.mdd": "Archivos complementarios (.mdd)",
   "stats.companions.mdda": "Archivos del área (.mdda)",
+  "stats.companions.mddl": "Justificantes de cambio (.mddl)",
   "stats.content.tasks": "Tareas",
   "stats.content.tasksOpen": "de ellas abiertas",
   "stats.content.tasksDone": "de ellas completadas",

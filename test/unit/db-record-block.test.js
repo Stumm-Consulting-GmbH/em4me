@@ -15,12 +15,16 @@ import {
   schreibeAngaben,
   maskiereZeile,
   demaskiereZeile,
+  zaunOeffnung,
+  schliesstZaun,
   parseRecordBlock,
   zellenNachFeldern,
   serializeRecordBlock,
   fenceLaengeFuer,
   baueRecordFence,
 } from '../../src/shared/database/record-block.js';
+import { CELL_ERRORS } from '../../src/shared/database/record-values.js';
+import { parseTableDefinition } from '../../src/shared/database/table-definition.js';
 
 // Drei Felder in fester Reihenfolge; die Reihenfolge IST der Vertrag (E3.3).
 const FELDER = [{ name: 'name' }, { name: 'ort' }, { name: 'menge' }];
@@ -234,6 +238,54 @@ describe('Datensatz-Block: Zuordnung gegen die Definition (E3.3, E3.7)', () => {
   });
 });
 
+// 4T-001931 (Epic 3E-000256, E22.2): Beim Lesen wirken Pflicht-Angabe und
+// Feld-Regeln weich — eine markierte Zelle, kein Hinweis am Block, kein
+// verworfener Datensatz, kein geschriebenes Zeichen.
+describe('Datensatz-Block: Prüfregeln beim Lesen (4T-001931, AK5)', () => {
+  const DEFINITION = parseTableDefinition({
+    'db-table': {
+      fields: [
+        { name: 'name', required: true },
+        { name: 'ort', check: { rule: '/^[A-ZÄÖÜ]/u', message: 'Großbuchstabe' } },
+        { name: 'menge', type: 'number', check: 'value >= 0' },
+      ],
+      checks: ['menge < 10'],
+    },
+  });
+
+  it('markiert die Zellen und behält jeden Datensatz sichtbar', () => {
+    const rumpf = '|- id="r-00001"\n|\n| basel\n| 3\n\n|- id="r-00002"\n| Bert\n| Bern\n| -1';
+    const { records, hints } = parseRecordBlock(rumpf, DEFINITION.fields);
+    expect(records).toHaveLength(2);
+    expect(records[0].cells.map((c) => c.error)).toEqual([
+      CELL_ERRORS.required,
+      CELL_ERRORS.check,
+      null,
+    ]);
+    expect(records[1].cells.map((c) => [c.text, c.value, c.error])).toEqual([
+      ['Bert', 'Bert', null],
+      ['Bern', 'Bern', null],
+      ['-1', null, CELL_ERRORS.check],
+    ]);
+    // Die Markierung ist ein Zell-Befund und kein Hinweis am Block.
+    expect(hints).toEqual([]);
+    expect(rundlauf(rumpf, DEFINITION.fields)).toBe(rumpf);
+  });
+
+  it('wendet Datensatz-Regeln beim Lesen nicht an', () => {
+    // `menge < 10` ist verletzt; ohne Zell-Ort gibt es keine Markierung.
+    const { records } = parseRecordBlock('|-\n| Anna\n| Basel\n| 12', DEFINITION.fields);
+    expect(records[0].cells.map((c) => c.error)).toEqual([null, null, null]);
+    expect(records[0].cells[2].value).toBe(12);
+  });
+
+  it('lässt fehlende Zellen unmarkiert; sie meldet der Zuordnungs-Hinweis', () => {
+    const { records, hints } = parseRecordBlock('|-\n| Anna', DEFINITION.fields);
+    expect(records[0].cells).toHaveLength(1);
+    expect(hints.map((h) => h.code)).toEqual(['recordCellsMissing']);
+  });
+});
+
 describe('Datensatz-Block: Serialisierer und Rundlauf (E3.6)', () => {
   it('schreibt einen gelesenen Block zeichengleich zurück', () => {
     const rumpf = ['|- r-00042', '| Anna', '| Beispielweg 3', '4051 Basel', '| 3'].join('\n');
@@ -280,16 +332,195 @@ describe('Datensatz-Block: Fence-Länge (E3.6)', () => {
     expect(fenceLaengeFuer('|-\n| ein `Wort` in Code')).toBe(3);
   });
 
+  // 4T-001833 (Epic 3E-000254): Gezählt werden allein echte Zaun-Zeilen aus
+  // Backticks. Vier führende Leerzeichen machen aus der Zeile Inhalt, zwei
+  // nicht; eine Tilden-Zeile schließt einen Backtick-Zaun nie.
+  it('zählt nur echte Backtick-Zaun-Zeilen, keine Tilden und keine vier Leerzeichen', () => {
+    expect(fenceLaengeFuer('|-\n| a\n    ```')).toBe(3);
+    expect(fenceLaengeFuer('|-\n| a\n    ````')).toBe(3);
+    expect(fenceLaengeFuer('|-\n| a\n  ```')).toBe(4);
+    expect(fenceLaengeFuer('|-\n| a\n   ````')).toBe(5);
+    expect(fenceLaengeFuer('|-\n| a\n~~~')).toBe(3);
+    expect(fenceLaengeFuer('|-\n| a\n~~~~~')).toBe(3);
+    expect(fenceLaengeFuer('|-\n| a\n\\```')).toBe(3);
+  });
+
   it('baut den vollständigen Block mit passendem Zaun', () => {
+    // 4T-001833 (Epic 3E-000254): umgestellt. Bis dahin wuchs der Zaun auf vier
+    // Backticks, weil die Folgezeile ```` ``` ```` unmaskiert im Rumpf stand.
+    // Seither maskiert der Serialisierer sie, und der Zaun bleibt bei drei.
     const records = [{ attrs: 'r-00042', vorspann: [], cells: [{ text: '```\ncode\n```' }] }];
     const block = baueRecordFence(records, []);
-    expect(block.startsWith('````' + RECORD_FENCE + '\n')).toBe(true);
-    expect(block.endsWith('\n````')).toBe(true);
+    expect(block.startsWith('```' + RECORD_FENCE + '\n')).toBe(true);
+    expect(block.startsWith('````')).toBe(false);
+    expect(block.endsWith('\n```')).toBe(true);
+    expect(block).toContain('\ncode\n\\```\n');
   });
 
   it('heißt perspective-records', () => {
     // E3.1, mit E18.3 bestätigt. Nicht `perspective-dbtable`, weil es sich von
     // `perspective-datatable` um einen einzigen Buchstaben unterschiede.
     expect(RECORD_FENCE).toBe('perspective-records');
+  });
+});
+
+// --- 4T-001833 (Epic 3E-000254): Maskierung zaun-artiger Zeilen und Zaun-Regel ---
+
+// Die Zeilen, an denen der Rundlauf der Maskierung eindeutig bleiben muss: jede
+// Zaun-Art, eingerückt bis zu drei Zeichen, mit Sprach-Angabe, bereits maskiert,
+// und die Nachbarn, die NICHT maskiert werden.
+const RUNDLAUF_ZEILEN = [
+  '```',
+  '````',
+  '```js',
+  '~~~',
+  '~~~~',
+  '  ```js',
+  '   ~~~',
+  '\t```',
+  '\\```x',
+  '\\\\```x',
+  '\\  ```',
+  '|x',
+  '\\|x',
+  '\\\\|x',
+  '!x',
+  '\\frac{1}{2}',
+  '    ```',
+  '``',
+  '~~',
+  'ein ``` mitten drin',
+  '',
+];
+
+describe('Datensatz-Block: Maskierung zaun-artiger Zeilen (4T-001833, B1, B2)', () => {
+  // 4T-001833 (Epic 3E-000254): Nachweis 6, der Rundlauf über alle Zeilen.
+  it('demaskiert jede maskierte Zeile genau zurück', () => {
+    for (const zeile of RUNDLAUF_ZEILEN)
+      expect(demaskiereZeile(maskiereZeile(zeile)), JSON.stringify(zeile)).toBe(zeile);
+  });
+
+  // 4T-001833: Maskiert wird genau, was ein Leser als Zaun liest.
+  it('maskiert Backticks und Tilden, auch bis zu drei Zeichen eingerückt', () => {
+    expect(maskiereZeile('```')).toBe('\\```');
+    expect(maskiereZeile('```js')).toBe('\\```js');
+    expect(maskiereZeile('~~~~')).toBe('\\~~~~');
+    expect(maskiereZeile('  ```js')).toBe('\\  ```js');
+    expect(maskiereZeile('   ~~~')).toBe('\\   ~~~');
+  });
+
+  // 4T-001833: vier Leerzeichen sind nach der Notation kein Zaun mehr.
+  it('lässt eine vier Zeichen eingerückte Zeile und kurze Sequenzen unberührt', () => {
+    expect(maskiereZeile('    ```')).toBe('    ```');
+    expect(maskiereZeile('``')).toBe('``');
+    expect(maskiereZeile('~~')).toBe('~~');
+    expect(maskiereZeile('ein ``` mitten drin')).toBe('ein ``` mitten drin');
+    // 4T-001833 (zweite Nachschärfung): dieselbe Menge wie `fence-level.js`.
+    // Ein Tabulator davor ist nach CommonMark eingerückter Code, und ein
+    // Backtick-Zaun mit Backtick im Infostring ist keiner.
+    expect(maskiereZeile('\t```')).toBe('\t```');
+    expect(maskiereZeile('```a`b')).toBe('```a`b');
+    expect(demaskiereZeile('\\```a`b')).toBe('\\```a`b');
+  });
+
+  // 4T-001833: Die bestehende Ketten-Regel gilt auch für Zaun-Zeilen.
+  it('stellt einer bereits maskierten Zaun-Zeile einen weiteren Rückstrich voran', () => {
+    expect(maskiereZeile('\\```x')).toBe('\\\\```x');
+    expect(demaskiereZeile('\\\\```x')).toBe('\\```x');
+  });
+
+  // 4T-001833: benannt, nicht verhindert (Notausgang-Regel der Notation).
+  it('liest eine Hand-Zeile mit Rückstrich vor drei Backticks als maskiert', () => {
+    const { records, hints } = parseRecordBlock('|-\n| Anna\n\\```x\n| Basel\n| 3', FELDER);
+    expect(records[0].cells[0].text).toBe('Anna\n```x');
+    expect(hints).toEqual([]);
+  });
+
+  // 4T-001833: Serialisierer schreibt maskiert, Parser liest demaskiert.
+  it('schreibt eine zaun-artige Folgezeile maskiert und liest sie demaskiert zurück', () => {
+    const wert = 'Anfang\n```\n~~~js\n  ```\n    ```';
+    const rumpf = serializeRecordBlock([{ id: 'r-00001', cells: [{ text: wert }] }], []);
+    expect(rumpf.split('\n')).toEqual([
+      '|- id="r-00001"',
+      '| Anfang',
+      '\\```',
+      '\\~~~js',
+      '\\  ```',
+      '    ```',
+    ]);
+    const { records, hints } = parseRecordBlock(rumpf, [{ name: 'text' }]);
+    expect(records[0].cells[0].text).toBe(wert);
+    expect(hints.filter((h) => h.code === 'recordFenceLine')).toEqual([]);
+  });
+
+  // 4T-001833: Auch Vorspann-Zeilen reisen maskiert.
+  it('maskiert zaun-artige Vorspann-Zeilen ebenso', () => {
+    const rumpf = serializeRecordBlock([{ id: 'r-00001', vorspann: ['```'], cells: [] }], ['~~~']);
+    expect(rumpf).toBe('\\~~~\n|- id="r-00001"\n\\```');
+    expect(rundlauf(rumpf, FELDER)).toBe(rumpf);
+  });
+});
+
+describe('Datensatz-Block: Befund zur unmaskierten Zaun-Zeile (4T-001833, B5)', () => {
+  // 4T-001833: weich, die Zeile bleibt Inhalt und steht am richtigen Datensatz.
+  it('meldet die Zeile am Datensatz, zu dem sie gehört, und behält sie', () => {
+    const rumpf = '|-\n| Anna\n| Basel\n| 3\n|-\n| Bert\n```\n| Bern\n| 5';
+    const { records, hints } = parseRecordBlock(rumpf, FELDER);
+    expect(records).toHaveLength(2);
+    expect(records[1].cells[0].text).toBe('Bert\n```');
+    expect(hints).toEqual([
+      { code: 'recordFenceLine', index: -1, name: null, key: null, expected: null, record: 1 },
+    ]);
+  });
+
+  // 4T-001833: ohne Datensatz trägt der Befund keine Position.
+  it('meldet eine Zaun-Zeile vor jedem Datensatz ohne Position', () => {
+    const { hints } = parseRecordBlock('~~~\n|-\n| Anna\n| Basel\n| 3', FELDER);
+    expect(hints.map((h) => [h.code, h.record])).toEqual([
+      ['recordStrayContent', null],
+      ['recordFenceLine', null],
+    ]);
+  });
+
+  // 4T-001833: je Zeile ein Befund, maskierte Zeilen nie.
+  it('meldet jede unmaskierte Zeile einzeln und keine maskierte', () => {
+    const rumpf = '|-\n| a\n```js\n\\```\n  ~~~\n| b\n| c';
+    const { hints } = parseRecordBlock(rumpf, FELDER);
+    expect(hints.map((h) => [h.code, h.record])).toEqual([
+      ['recordFenceLine', 0],
+      ['recordFenceLine', 0],
+    ]);
+  });
+});
+
+describe('Datensatz-Block: die Zaun-Regel der Leser (4T-001833, B4)', () => {
+  // 4T-001833: Öffnung mit Zeichen, Länge und Sprache.
+  it('liest Zeichen, Länge und Sprache einer Zaun-Zeile', () => {
+    expect(zaunOeffnung('````perspective-records')).toEqual({
+      zeichen: '`',
+      laenge: 4,
+      sprache: 'perspective-records',
+    });
+    expect(zaunOeffnung('  ~~~ js weiteres')).toEqual({ zeichen: '~', laenge: 3, sprache: 'js' });
+    expect(zaunOeffnung('```')).toEqual({ zeichen: '`', laenge: 3, sprache: '' });
+    expect(zaunOeffnung('    ```')).toBeNull();
+    expect(zaunOeffnung('\\```')).toBeNull();
+    expect(zaunOeffnung('| ```')).toBeNull();
+  });
+
+  // 4T-001833: CommonMark-Regel, AK1.
+  it('schließt nur mit demselben Zeichen, mindestens gleich lang und ohne Sprache', () => {
+    const vier = zaunOeffnung('````perspective-records');
+    expect(schliesstZaun('````', vier)).toBe(true);
+    expect(schliesstZaun('`````', vier)).toBe(true);
+    expect(schliesstZaun('````  ', vier)).toBe(true);
+    expect(schliesstZaun('````\r', vier)).toBe(true);
+    expect(schliesstZaun('   ````', vier)).toBe(true);
+    expect(schliesstZaun('```', vier)).toBe(false);
+    expect(schliesstZaun('~~~~', vier)).toBe(false);
+    expect(schliesstZaun('````js', vier)).toBe(false);
+    expect(schliesstZaun('    ````', vier)).toBe(false);
+    expect(schliesstZaun('Text', vier)).toBe(false);
+    expect(schliesstZaun('````', null)).toBe(false);
   });
 });

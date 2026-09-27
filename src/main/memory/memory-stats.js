@@ -157,7 +157,11 @@ function bytesGesamt(scan) {
     scan.pdf.bytes +
     scan.sonstige.bytes +
     scan.mdd.bytes +
-    scan.mdda.bytes
+    scan.mdda.bytes +
+    // 4T-001789 (Epic 3E-000255): Aenderungsbelege. Ohne diese Zeile fielen sie
+    // aus der Gesamt-Summe heraus, sobald sie einen eigenen Zaehler bekamen —
+    // vorher zaehlten sie als «Sonstige» mit.
+    scan.mddl.bytes
   );
 }
 

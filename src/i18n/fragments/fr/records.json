@@ -2,5 +2,8 @@
   "records.window": "Extrait : {shown} enregistrements sur {total}",
   "records.empty": "Aucun enregistrement",
   "records.noDefinition": "Aucune définition de table dans l’en-tête de ce fichier",
-  "records.hints": "Remarques sur le bloc d’enregistrements :"
+  "records.hints": "Remarques sur le bloc d’enregistrements :",
+  "records.historyButton": "Afficher les justificatifs de modification",
+  "records.openButton": "Ouvrir l’enregistrement",
+  "records.newButton": "Nouvel enregistrement"
 }

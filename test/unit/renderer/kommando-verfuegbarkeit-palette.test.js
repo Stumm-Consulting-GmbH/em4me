@@ -136,9 +136,13 @@ const SECHS_FAELLE = [
 // 4T-001759 (Epic 3E-000253): die Uebersicht der Datenbank aus demselben Grund.
 // 4T-001805 (Epic 3E-000292): die Ausgabe der Flaeche als JSON-Canvas-Datei
 // aus demselben Grund. 4T-001806 (Epic 3E-000292): das Einlesen einer solchen
-// Datei ebenso.
+// Datei ebenso. 4T-001939 (Epic 3E-000257): die Neuanlage aus der Einzel-Maske
+// der Datenbank ebenso. 4T-001944 (Epic 3E-000257): die Konsistenz-Pruefung der
+// Datenbank ebenso.
 const NACH_DER_MESSUNG = new Set([
   'database.openOverview',
+  'database.newRecord',
+  'database.checkConsistency',
   'view.modeCanvas',
   'canvas.addCard',
   'canvas.addShape',

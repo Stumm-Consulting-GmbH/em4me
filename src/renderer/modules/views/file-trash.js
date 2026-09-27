@@ -11,6 +11,8 @@
 // Eigener Zustand: keiner.
 'use strict';
 
+import { t } from '../../i18n.js';
+
 import { api } from '../app/api.js';
 import { state, withDialog } from '../app/app-state.js';
 import { closeTab } from '../tabs/tabs.js';
@@ -51,7 +53,12 @@ import { showStatusbarHint } from './views.js';
  */
 export async function trashFileAtPath(absPath, anzeigeName) {
   if (typeof absPath !== 'string' || !absPath) return;
-  const bestaetigt = await withDialog(() => api.areaConfirmTrashFile(anzeigeName || absPath));
+  // 4T-001800 (Epic 3E-000255): Der Pfad geht mit in die Rückfrage. Ob
+  // Änderungsbelege daneben liegen, stellt der Haupt-Prozess an ihm selbst
+  // fest; hier wird dafür nichts erhoben und nichts vorab gefragt.
+  const bestaetigt = await withDialog(() =>
+    api.areaConfirmTrashFile(anzeigeName || absPath, absPath),
+  );
   if (!bestaetigt) return;
   if (!(await schliesseOffeneReiter(absPath))) return;
   let ergebnis;
@@ -64,7 +71,35 @@ export async function trashFileAtPath(absPath, anzeigeName) {
     showStatusbarHint('areaPanel.deleteFailed', { duration: 5000, error: true });
     return;
   }
+  // 4T-001800: Die Datei ist weg, ihre Änderungsbelege nicht. Das ist kein
+  // Fehlschlag des Löschens und deshalb kein Grund zu schweigen: Der Anwender
+  // erfährt statt der Erfolgs-Meldung, unter welchem Namen die Belege noch im
+  // Ordner liegen, im Fehler-Stil und länger sichtbar, weil er den Namen
+  // lesen muss.
+  const liegenGeblieben = Array.isArray(ergebnis.companionLeft) ? ergebnis.companionLeft : [];
+  if (liegenGeblieben.length > 0) {
+    showStatusbarHint('areaPanel.deleteCompanionLeft', {
+      duration: 8000,
+      error: true,
+      // Alle Namen, nicht der erste: Heute gibt es genau eine Pflicht-Art, und
+      // eine zweite soll nicht stillschweigend aus der Meldung fallen.
+      text: t('areaPanel.deleteCompanionLeft').replace(
+        '{name}',
+        liegenGeblieben.map(dateiName).join(', '),
+      ),
+    });
+    return;
+  }
   showStatusbarHint('areaPanel.deleteDone', { duration: 3000 });
+}
+
+// Der Name ohne Ordner. Die Meldung nennt bewusst nicht den ganzen Pfad: Sie
+// steht in der Statusleiste, und der Ordner ist derselbe wie der der eben
+// gelöschten Datei (Vorbild `baseName` in history-page.js).
+function dateiName(pfad) {
+  const wert = String(pfad || '');
+  const schnitt = Math.max(wert.lastIndexOf('/'), wert.lastIndexOf('\\'));
+  return schnitt >= 0 ? wert.slice(schnitt + 1) : wert;
 }
 
 // Schliesst jeden Reiter dieser Datei in jeder Pane, einen nach dem anderen und

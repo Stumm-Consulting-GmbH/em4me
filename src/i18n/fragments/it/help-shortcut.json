@@ -92,6 +92,8 @@
   "help.shortcut.areaGraph": "Apri il grafo dell'area in una scheda dedicata",
   "help.shortcut.areaStats": "Apri le statistiche dell'area in una scheda dedicata",
   "help.shortcut.databaseOverview": "Apri la panoramica della banca dati in una scheda dedicata",
+  "help.shortcut.databaseNewRecord": "Creare un nuovo record nella tabella della scheda attiva e aprirlo nella maschera",
+  "help.shortcut.databaseCheckConsistency": "Verificare tutte le tabelle del database alla ricerca di incoerenze nei dati e mostrare il risultato nella panoramica",
   "help.shortcut.myExtendedMemory": "Apri My Extended Memory in una scheda dedicata",
   "help.shortcut.commandPalette": "Apri la palette dei comandi",
   "help.shortcut.toggleReminders": "Mostra o nascondi il pannello dei promemoria",

@@ -56,6 +56,34 @@ const MAX_RECORD_ROWS = 2000;
 // zeichen-sparsam, die Anzeige soll gelesen werden.
 const BOOLEAN_MARK = '✓';
 
+// 4T-001792 (Epic 3E-000255, E10.14): Das Symbol der Zeilen-Schaltfläche, die
+// zu den Änderungsbelegen eines Datensatzes führt (Bauplan Z1, Variante 1 der
+// Entscheidung des Product Owners vom 2026-09-18).
+//
+// **Inline und nicht als Datei**, wie die Symbole der Kopier-Schaltfläche am
+// Code-Block: Ein Verweis auf eine Bild-Datei überlebt den portablen Export und
+// die Vorschau-Kontexte nicht zuverlässig, und ein Symbol im Markup färbt sich
+// über `currentColor` von selbst mit dem Erscheinungsbild um.
+//
+// `aria-hidden`, weil die Schaltfläche ihre Beschriftung als `aria-label` trägt;
+// ein zusätzlich vorgelesenes Symbol wäre eine doppelte Ansage.
+const RECORD_HISTORY_ICON =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" ' +
+  'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
+  'stroke-linejoin="round" aria-hidden="true">' +
+  '<path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>';
+
+// 4T-001939 (Epic 3E-000257, Bauplan B7): Das Symbol der zweiten
+// Zeilen-Schaltfläche, die den Datensatz in der Einzel-Maske öffnet. Inline aus
+// demselben Grund wie das Beleg-Symbol darüber; ein Formular-Blatt mit Zeilen,
+// damit es sich vom Uhr-Symbol der Belege unterscheidet.
+const RECORD_OPEN_ICON =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" ' +
+  'fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" ' +
+  'stroke-linejoin="round" aria-hidden="true">' +
+  '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8"/><path d="M8 12h8"/>' +
+  '<path d="M8 16h5"/></svg>';
+
 // Zahl mit den Nachkommastellen ihrer Spalte, wenn sie welche erklärt hat
 // (E5.5). Ohne Angabe bleibt der geschriebene Wert stehen — ein Datenspeicher
 // rundet nicht von sich aus, und `decimals` ist ausdrücklich ein
@@ -93,6 +121,48 @@ function spaltenKopf(feld) {
   return escapeHtml(label || (feld && feld.name) || '');
 }
 
+// 4T-001792 (Epic 3E-000255, E10.14, Bauplan Z1): Die führende Zelle einer
+// Datenzeile mit der Schaltfläche zu den Änderungsbelegen.
+//
+// **Eine Zeile ohne Kennung bekommt die leere Zelle ohne Schaltfläche**, weil es
+// zu ihr keine Belege geben kann: Die Belege hängen an der internen Kennung, und
+// ein Knopf, der nichts öffnen kann, wäre ein Versprechen ohne Deckung.
+//
+// **Das Markup entsteht hier und nicht im Anzeige-Prozess**, damit Lese-Ansicht
+// und Änderungs-Modus dasselbe zeigen; der Anzeige-Prozess bindet allein die
+// Bedienung (`datensatz-zeilen-zugang.js`). `tabindex="-1"` steht an **jeder**
+// Schaltfläche, weil eine lange Tabelle sonst tausende Tabulator-Stopps
+// bekäme; genau eine je Tabelle hebt das Modul auf `0` (Bauplan Z5).
+//
+// 4T-001939 (Epic 3E-000257, Bauplan B7): Vor der Beleg-Schaltfläche steht die
+// zweite, «Datensatz öffnen», nach demselben Muster und mit derselben Regel für
+// die Zeile ohne Kennung: Eine Maske braucht die Kennung ebenso wie die Belege.
+function aktionsZelle(record, L) {
+  if (!record || !record.id) return '<td class="prc-action"></td>';
+  const oeffnen = escapeHtml(L('records.openButton'));
+  const text = escapeHtml(L('records.historyButton'));
+  return (
+    '<td class="prc-action">' +
+    `<button type="button" class="prc-open-btn" tabindex="-1" ` +
+    `title="${oeffnen}" aria-label="${oeffnen}">${RECORD_OPEN_ICON}</button>` +
+    `<button type="button" class="prc-history-btn" tabindex="-1" ` +
+    `title="${text}" aria-label="${text}">${RECORD_HISTORY_ICON}</button></td>`
+  );
+}
+
+// 4T-001939 (Epic 3E-000257, Bauplan B7): Der Fuß unter der Tabelle mit der
+// Schaltfläche «Neuer Datensatz». Er steht bei JEDER Tabelle mit Definition,
+// auch bei der leeren: Gerade sie hat keine Zeile, von der aus sich ein erster
+// Datensatz anlegen ließe. Die Schaltfläche bleibt in der Tabulator-Folge, weil
+// es je Block genau eine gibt; die Bedienung bindet der Anzeige-Prozess, und in
+// einer passiven Hülle blendet das Stilblatt den Fuß aus.
+function fussHtml(L) {
+  const text = escapeHtml(L('records.newButton'));
+  return (
+    '<div class="prc-foot">' + `<button type="button" class="prc-new-btn">${text}</button></div>`
+  );
+}
+
 // Baut die Tabelle eines Datensatz-Blocks.
 //
 // `model` ist das Ergebnis von `parseRecordBlock`, `fields` die normalisierten
@@ -121,6 +191,11 @@ function buildRecordsHtml(model, fields, opts) {
   const grenze = typeof o.max === 'number' && o.max > 0 ? o.max : MAX_RECORD_ROWS;
   const sichtbar = records.slice(0, grenze);
   const out = ['<table class="prc-table">', '<thead><tr>'];
+  // 4T-001792 (Bauplan Z1): Die Kopf-Zelle der Aktions-Spalte bleibt ohne Text
+  // und ohne Ansage. `aria-hidden` nach dem Vorbild der Lösch-Spalte der
+  // Datentabelle (`pdt-row-del`): Eine Spalte, die allein einen Griff trägt,
+  // hat keine Überschrift, und ein erfundenes Wort dafür wäre Lärm.
+  out.push('<th class="prc-head prc-action-head" aria-hidden="true"></th>');
   for (const feld of felder) {
     out.push(
       `<th class="prc-head prc-type-${escapeHtml(feld.type || 'string')}">` +
@@ -130,8 +205,10 @@ function buildRecordsHtml(model, fields, opts) {
   out.push('</tr></thead>');
 
   if (records.length === 0) {
+    // Die Aktions-Spalte zählt mit: Ohne das eine Plus stünde der Hinweis
+    // schmaler als die Tabelle und die letzte Spalte fiele aus dem Rahmen.
     out.push(
-      `<tbody><tr><td class="prc-empty" colspan="${felder.length}">` +
+      `<tbody><tr><td class="prc-empty" colspan="${felder.length + 1}">` +
         `${escapeHtml(L('records.empty'))}</td></tr></tbody>`,
     );
   } else {
@@ -139,6 +216,7 @@ function buildRecordsHtml(model, fields, opts) {
     for (const record of sichtbar) {
       const kennung = record.id ? ` data-rec-id="${escapeHtml(record.id)}"` : '';
       out.push(`<tr class="prc-row"${kennung}>`);
+      out.push(aktionsZelle(record, L));
       felder.forEach((feld, i) => {
         const zelle = record.cells[i];
         const klassen = ['prc-cell', `prc-type-${feld.type || 'string'}`];
@@ -165,6 +243,7 @@ function buildRecordsHtml(model, fields, opts) {
         `data-rec-total="${records.length}">${escapeHtml(text)}</div>`,
     );
   }
+  out.push(fussHtml(L));
   out.push(hinweisHtml(hints, L));
   return out.join('');
 }
@@ -227,6 +306,14 @@ function renderRecordsFence(model, fields, opts) {
 // Dokument hat kein Stylesheet, deshalb trägt jede Zelle ihre Ausrichtung als
 // Inline-Angabe — dasselbe Muster, mit dem Datentabelle und Ereignisse ihre
 // statischen Tabellen bauen.
+//
+// **Der dritte Unterschied ist die Aktions-Spalte, und zwar ihr Fehlen**
+// (4T-001792, Bauplan Z1). Die Schaltfläche zu den Änderungsbelegen führt in
+// eine Ansicht dieser Anwendung; beim Empfänger einer exportierten Datei wäre
+// sie ein toter Knopf, und die Beleg-Datei daneben hat er ohnehin nicht. Der
+// Export baut seine Kopfzeile und seine Zeilen deshalb unverändert allein aus
+// den Feldern; ein Prüffall hält fest, dass weder `prc-action` noch ein
+// `button` darin vorkommt.
 
 // Ausrichtung nach dem Typ der Spalte.
 function ausrichtung(feld) {
@@ -341,6 +428,14 @@ const RECORD_LABEL_KEYS = [
   'records.empty',
   'records.noDefinition',
   'records.hints',
+  // 4T-001792 (Bauplan Z1): Hinweistext und zugängliche Beschriftung der
+  // Zeilen-Schaltfläche. Ohne diesen Eintrag reichte die Label-Auflösung der
+  // Pipeline den Schlüssel-Namen durch, und an der Schaltfläche stünde
+  // «records.historyButton».
+  'records.historyButton',
+  // 4T-001939 (Bauplan B7): die zweite Zeilen-Schaltfläche und der Fuß.
+  'records.openButton',
+  'records.newButton',
   'database.hint.unknown',
   'database.hint.location',
   'database.hint.recordStrayContent',
@@ -349,11 +444,19 @@ const RECORD_LABEL_KEYS = [
   'database.hint.recordCellsExtra',
   'database.hint.recordNoDefinition',
   'database.hint.recordIdInvalid',
+  // 4T-001833 (Epic 3E-000254): der Befund zur unmaskierten Zaun-Zeile. Er
+  // steht bewusst NICHT in `VERLUST_CODES`: Die Zeile bleibt Inhalt ihres
+  // Wertes und erscheint in der Zelle, der Export verliert nichts. Steht sie
+  // außerhalb jeder Zelle, meldet der Parser ohnehin `recordStrayContent`.
+  'database.hint.recordFenceLine',
+  'database.hint.recordFenceLine.ohneOrt',
 ];
 
 module.exports = {
   MAX_RECORD_ROWS,
   BOOLEAN_MARK,
+  RECORD_HISTORY_ICON,
+  RECORD_OPEN_ICON,
   RECORD_LABEL_KEYS,
   buildRecordsHtml,
   renderRecordsFence,

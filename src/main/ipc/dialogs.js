@@ -17,6 +17,11 @@ const { printToPdfOptions, printSystemOptions } = require('../../shared/pdf-opti
 // 4T-001805 (Epic 3E-000292): Die Saetze der Austausch-Meldung, prozessneutral
 // gebildet und von beiden Richtungen geteilt.
 const { austauschBericht } = require('../../shared/canvas/canvas-austausch-bericht.js');
+// 4T-001800 (Epic 3E-000255): Die Lösch-Rückfrage stellt selbst fest, ob eine
+// Pflicht-Begleit-Datei daneben liegt. Bereichs-Grenze und Arten-Liste kommen
+// dafür von denselben Stellen wie im Lösch-Kanal.
+const { isInsideArea } = require('../area/area-path');
+const { pflichtBegleitPfade } = require('../documents/companion-files');
 
 /**
  * Registriert die Dialog- und Systemdienst-Kanaele.
@@ -30,9 +35,23 @@ const { austauschBericht } = require('../../shared/canvas/canvas-austausch-beric
  * @param {(event: object) => object|null} deps.senderWindow Fenster des Absenders.
  * @param {(win: object, key: string) => string} deps.tForWindow Uebersetzung im Fenster-Kontext.
  * @param {() => object|null} deps.getStore Einstellungs-Speicher (steht bei der Registrierung fest).
+ * @param {(win: object) => object|null} deps.areaOfWindow Bereichs-Bindung eines Fensters.
+ * @param {(p: string) => boolean} deps.isMarkdownPath Markdown-Erkennung am Pfad.
  */
 function registerDialogsIpc(handle, deps) {
-  const { app, dialog, shell, session, senderWindow, tForWindow, getStore } = deps;
+  const {
+    app,
+    dialog,
+    shell,
+    session,
+    senderWindow,
+    tForWindow,
+    getStore,
+    // 4T-001800 (Epic 3E-000255): Bereichs-Bindung und Markdown-Erkennung für
+    // die Lösch-Rückfrage, beide aus derselben Verdrahtung wie in areas.js.
+    areaOfWindow,
+    isMarkdownPath,
+  } = deps;
   // 4T-000999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
   // Der Bezeichner bleibt `store`, damit die Handler-Rumpfe unveraendert sind.
   const store = getStore();
@@ -313,9 +332,30 @@ function registerDialogsIpc(handle, deps) {
   //
   // Vorbelegt und mit Escape belegt ist das Abbrechen; die Zustimmung ist ein
   // bewusster Klick.
-  handle('area:confirmTrashFile', async (event, fileName) => {
+  //
+  // 4T-001800 (Epic 3E-000255): Liegt eine Pflicht-Begleit-Datei daneben, sagt
+  // der Erläuterungstext in einem zusätzlichen Satz, dass die Änderungsbelege
+  // mitgehen. Wer zustimmt, soll wissen, was alles verschwindet.
+  //
+  // Der Pfad ist die zweite, OPTIONALE Angabe, und der Haupt-Prozess stellt
+  // selbst fest, was daneben liegt. Eine eigene Auskunft davor wäre ein
+  // zweiter Kanal für eine Frage, die dieser Dialog selbst beantworten kann.
+  // Ohne Pfad, außerhalb des Bereichs, ohne Markdown-Endung und ohne
+  // Begleit-Datei bleibt die Rückfrage Wort für Wort die bisherige.
+  async function hatPflichtBegleitDatei(owner, filePath) {
+    if (typeof filePath !== 'string' || !filePath) return false;
+    if (!isMarkdownPath(filePath)) return false;
+    const area = areaOfWindow(owner);
+    if (!area || !isInsideArea(area.rootPath, filePath)) return false;
+    return (await pflichtBegleitPfade(path.resolve(filePath))).length > 0;
+  }
+
+  handle('area:confirmTrashFile', async (event, fileName, filePath) => {
     const owner = senderWindow(event);
     const t = (k) => tForWindow(owner, k);
+    const detail = (await hatPflichtBegleitDatei(owner, filePath))
+      ? `${t('areaPanel.deleteConfirmDetail')} ${t('areaPanel.deleteConfirmCompanion')}`
+      : t('areaPanel.deleteConfirmDetail');
     const result = await dialog.showMessageBox(owner || undefined, {
       type: 'warning',
       title: t('areaPanel.deleteConfirmTitle'),
@@ -323,7 +363,7 @@ function registerDialogsIpc(handle, deps) {
         '{name}',
         typeof fileName === 'string' ? fileName : '',
       ),
-      detail: t('areaPanel.deleteConfirmDetail'),
+      detail,
       buttons: [t('areaPanel.deleteConfirmOk'), t('areaPanel.deleteConfirmCancel')],
       defaultId: 1,
       cancelId: 1,

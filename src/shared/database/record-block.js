@@ -58,8 +58,18 @@
 
 const { baueHinweis } = require('./table-hinweise.js');
 const { kennungFuer, nummerAus } = require('./record-identity.js');
-const { zellWert } = require('./record-values.js');
+const { zellWert, CELL_ERRORS } = require('./record-values.js');
+// 4T-001931 (Epic 3E-000256): der eine Auswerter der Prüfregeln, prozess-neutral.
+const { baueRegelKontext, pruefeFeldRegeln } = require('./record-check-eval.js');
 const { DB_DEFAULT_COLUMN_TYPE } = require('./table-columns.js');
+// 4T-001833 (Epic 3E-000254): Was als Zaun-Zeile gilt und wann sie einen Block
+// schließt, steht EINMAL im Haus, im abhängigkeitsfreien `fence-level.js`
+// (CommonMark: bis zu drei Leerzeichen, drei oder mehr Backticks oder Tilden,
+// kein Backtick im Infostring eines Backtick-Zauns). Maskierung, Parser-Befund
+// und Fence-Länge dieses Moduls nehmen die Regel von dort, damit die
+// Maskierung genau die Zeilen trifft, die jeder Leser als Zaun liest. Eine
+// eigene Fassung hier ließe eine Lücke zwischen Schreiber und Lesern.
+const { zaunOeffnung, schliesstZaun } = require('../markdown/fence-level.js');
 
 // Name der Fence (E3.1, mit E18.3 bestätigt). Nicht `perspective-dbtable`, weil
 // es sich von `perspective-datatable` um einen einzigen Buchstaben an nicht
@@ -160,24 +170,56 @@ function schreibeAngaben(record) {
 //
 // Mehrere Rückstriche zählen als Kette: Entfernt wird genau EINER, damit auch
 // eine Zeile schreibbar bleibt, die selbst mit `\|` beginnen soll.
-const MASKE_RE = new RegExp(`^(\\\\+)([${MASKIERBAR.map((c) => `\\${c}`).join('')}])`);
+//
+// 4T-001833 (Epic 3E-000254, Entscheidung des Product Owners vom 2026-09-20):
+// Maskiert wird seither auch eine ZAUN-ARTIGE Zeile, also jede, die
+// `zaunOeffnung` als Zaun erkennt. Vorher schützte allein ein mit dem Inhalt wachsender Zaun (E3.6 alt)
+// solche Zeilen, und das trug nicht: Vier Leser beendeten den Block an der
+// ersten Zaun-Zeile mit demselben Zeichen, und in einer geteilten Tabelle
+// liegen öffnender und schließender Zaun in verschiedenen Dateien. Mit der
+// Maskierung enthält ein von der Anwendung geschriebener Block nie eine Zeile,
+// die ihn beenden könnte. Die Zaun-Erkennung kommt aus `fence-level.js` und
+// wird mit den Marker-Zeichen in `MASKIERBAR` bewusst nicht vermischt.
+//
+// **Eine Hand-Datei mit `\```` am Zeilenanfang** wird damit als maskiert
+// gelesen und liefert drei Backticks; das ist die Notausgang-Regel der
+// Notation, auf Zaun-Zeilen ausgedehnt, und beabsichtigt.
+const STRICHE_RE = /^\\+/;
+
+// Beginnt der Rest hinter der Rückstrich-Kette mit etwas, das maskiert sein
+// kann: einem Marker-Zeichen oder einer Zaun-Sequenz?
+function istMaskierbar(rest) {
+  return MASKIERBAR.some((c) => rest.startsWith(c)) || zaunOeffnung(rest) !== null;
+}
 
 function istMaskiert(zeile) {
-  return MASKE_RE.test(zeile);
+  const striche = zeile.match(STRICHE_RE);
+  return striche !== null && istMaskierbar(zeile.slice(striche[0].length));
 }
 
-// `\|foo` -> `|foo`, `\\|foo` -> `\|foo`, `\frac` -> `\frac`.
+// `\|foo` -> `|foo`, `\\|foo` -> `\|foo`, `\frac` -> `\frac`, `\```x` -> ```` ```x ````.
+// Genau ein Rückstrich fällt, und er steht immer in Spalte 0.
 function demaskiereZeile(zeile) {
-  return zeile.replace(MASKE_RE, (_, striche, zeichen) => striche.slice(1) + zeichen);
+  return istMaskiert(zeile) ? zeile.slice(1) : zeile;
 }
 
-// Die Umkehrung: Eine Inhalts-Zeile, die am Zeilenanfang wie ein Marker aussähe,
-// bekommt einen Rückstrich davor. Alles andere bleibt unberührt.
+// Die Umkehrung: Eine Inhalts-Zeile, die am Zeilenanfang wie ein Marker oder
+// wie ein Zaun aussähe, bekommt einen Rückstrich davor. Alles andere bleibt
+// unberührt.
 function maskiereZeile(zeile) {
   const s = String(zeile == null ? '' : zeile);
   if (istMaskiert(s)) return '\\' + s;
-  return MASKIERBAR.some((c) => s.startsWith(c)) ? '\\' + s : s;
+  return istMaskierbar(s) ? '\\' + s : s;
 }
+
+// --- Zaun-Regeln (4T-001833) ---------------------------------------------------------
+
+// **Die Regel, wann eine Zaun-Zeile einen Block öffnet und schließt**
+// (4T-001833, Bauplan B4), steht in `fence-level.js` und wird hier nur
+// weitergereicht (Export unten). Die Leser des Datensatz-Blocks nehmen sie von
+// hier, weil das Segment-Modul das Teil-Modul `document-split-punkte.js` lädt
+// und dieses umgekehrt die Regel braucht; beide laden dieses Modul ohnehin,
+// und so bleibt ihr Import an einer Stelle.
 
 // --- Parser ---------------------------------------------------------------------------
 
@@ -223,6 +265,9 @@ function parseRecordBlock(content, fields) {
   // Zuordnung. Eine gemischte Reihenfolge wäre für einen Leser schwerer zu
   // deuten als eine feste.
   const idBefunde = [];
+  // 4T-001833 (Epic 3E-000254, B5): Positionen der unmaskierten Zaun-Zeilen,
+  // die als Inhalt gelesen werden (null ohne Datensatz).
+  const zaunBefunde = [];
 
   let record = null;
   let cell = null;
@@ -257,6 +302,13 @@ function parseRecordBlock(content, fields) {
         cell = { text: ersteZellenZeile(zeile) };
         continue;
       }
+      // 4T-001833 (Epic 3E-000254): Eine unmaskierte Zaun-Zeile bleibt Inhalt
+      // und wird gemeldet. Der Parser sieht sie in zwei Lagen: in der
+      // Kopf-Datei als kürzere Zeile, die den Block nach der Standard-Regel
+      // nicht schließt, und im Folge-Segment als jede Zaun-Zeile außer der
+      // letzten. Beides sind Hand-Schreibungen, die der nächste Schreibvorgang
+      // maskiert; verworfen wird nichts.
+      if (zaunOeffnung(zeile) !== null) zaunBefunde.push(record ? records.length : null);
     }
 
     const inhalt = demaskiereZeile(zeile);
@@ -276,6 +328,9 @@ function parseRecordBlock(content, fields) {
       hints.push(baueDatensatzHinweis('recordStrayContent', position));
   });
   for (const befund of idBefunde) hints.push(baueDatensatzHinweis(befund.code, befund.position));
+  // 4T-001833: Die Zaun-Zeilen folgen den Kennungen und stehen vor der
+  // Zuordnung; die feste Reihenfolge der Befund-Arten bleibt damit erhalten.
+  for (const position of zaunBefunde) hints.push(baueDatensatzHinweis('recordFenceLine', position));
 
   pruefeZuordnung(records, fields, hints);
   legeWerteAus(records, fields);
@@ -326,8 +381,19 @@ function pruefeZuordnung(records, fields, hints) {
 // Feld und damit zu keinem Typ; ihr Text bleibt unangetastet erhalten (E3.7).
 // Dasselbe gilt für jede Zelle eines Blocks ohne Definition: Ohne Feld-Typ gibt
 // es nichts auszulegen, und ein geratener Typ wäre schlechter als kein Wert.
+//
+// 4T-001931 (Epic 3E-000256, E22.2): **Beim Lesen wirken Pflicht-Angabe und
+// Feld-Regeln weich.** Eine leere Zelle eines Pflicht-Feldes und ein Wert, der
+// eine Feld-Regel verletzt, bekommen einen Befund und den Wert `null`, genau
+// wie ein Typ-Fehler: Sie fließen nicht in eine Summe, und die Anzeige markiert
+// sie über denselben Weg. Der Text bleibt unverändert, geschrieben wird nie.
+// Datensatz-Regeln wirken beim Lesen nicht, weil sie keinen Zell-Ort für eine
+// Markierung haben.
 function legeWerteAus(records, fields) {
   const felder = Array.isArray(fields) ? fields : [];
+  // Kosten nur bei Bedarf: Ohne eine Feld-Regel entsteht kein Kontext, und die
+  // regelfreie Tabelle bleibt auf dem bisherigen Weg.
+  const mitRegeln = felder.some((feld) => Array.isArray(feld.checks) && feld.checks.length > 0);
   for (const record of records) {
     record.cells.forEach((cell, i) => {
       if (i >= felder.length) {
@@ -339,7 +405,55 @@ function legeWerteAus(records, fields) {
       cell.value = value;
       cell.error = error;
     });
+    markierePflicht(record, felder);
+    if (mitRegeln) markiereRegeln(record, felder);
   }
+}
+
+// 4T-001931: Der Trennabstand hinter einem Datensatz steht im Text seiner
+// letzten Zelle und gehört nicht zu ihrem Wert. Dieselbe Regel wie
+// `ohneTrennabstand` in `record-write.js`; sie ist dort nicht exportiert, und
+// `record-write.js` lädt dieses Modul, ein Import in Gegenrichtung wäre ein
+// Kreis.
+function ohneTrennabstand(text) {
+  return text.replace(/\n+$/, '');
+}
+
+// 4T-001931: Die Zell-Texte eines Datensatzes, wie sie zum Wert gehören — die
+// Auslegung von `zellTexte` in `record-write.js`, aus demselben Grund hier
+// nachgebildet.
+function wertTexte(record) {
+  const texte = record.cells.map((cell) => String(cell.text == null ? '' : cell.text));
+  if (texte.length > 0) texte[texte.length - 1] = ohneTrennabstand(texte[texte.length - 1]);
+  return texte;
+}
+
+// 4T-001931: Eine leere Zelle eines Pflicht-Feldes. «Leer» heißt dasselbe wie
+// beim Schreiben (`istNichtGesetzt` in `record-auftrag-pruefung.js`): leerer
+// getrimmter Text, und nie beim Wahrheitswert, dessen leere Zelle der
+// geschriebene Wert «nein» ist. Eine fehlende Zelle ist kein Teil von `cells`
+// und wird hier nicht markiert; sie meldet der Zuordnungs-Hinweis.
+function markierePflicht(record, felder) {
+  record.cells.forEach((cell, i) => {
+    if (i >= felder.length || felder[i].required !== true) return;
+    if (felder[i].type === 'boolean' || String(cell.text).trim() !== '') return;
+    cell.error = CELL_ERRORS.required;
+    cell.value = null;
+  });
+}
+
+// 4T-001931: Die Feld-Regeln einer Zelle, über den Auswerter, den auch die
+// Schreib-Schnittstelle benutzt. Geprüft wird nur ein Wert ohne Befund; einen
+// Typ-Fehler und eine fehlende Pflicht-Angabe meldet die Zelle bereits.
+function markiereRegeln(record, felder) {
+  const texte = wertTexte(record);
+  const kontext = baueRegelKontext(felder, texte);
+  record.cells.forEach((cell, i) => {
+    if (i >= felder.length || cell.error !== null || cell.value === null) return;
+    if (pruefeFeldRegeln(felder[i], texte[i], kontext).length === 0) return;
+    cell.error = CELL_ERRORS.check;
+    cell.value = null;
+  });
 }
 
 // Die Hinweis-Gestalt des Definitions-Katalogs, um die Position des Datensatzes
@@ -402,19 +516,27 @@ function serializeRecordBlock(records, vorspann) {
 // --- Fence-Länge -----------------------------------------------------------------------
 
 const MINDEST_FENCE = 3;
-const INNERE_FENCE_RE = /^[ \t]*(`+)/;
 
 // Die Fence-Länge ermittelt der Schreibweg (E3.6): die längste
-// Backtick-Sequenz über alle Zellen plus eins, mindestens drei. Eine
-// Hand-Änderung mit längerer innerer Fence repariert der nächste Schreibvorgang.
+// Backtick-Sequenz über alle Zellen plus eins, mindestens drei.
 //
-// Gezählt werden nur Sequenzen am Zeilenanfang, weil allein sie einen Code-Zaun
-// schließen können; Backticks mitten in einer Zeile sind Inline-Code.
+// 4T-001833 (Epic 3E-000254): **Die Länge wächst nicht mehr mit dem Inhalt.**
+// Der Serialisierer maskiert jede zaun-artige Zeile, und eine maskierte Zeile
+// beginnt mit einem Rückstrich; über serialisiertem Text liefert die Funktion
+// deshalb das Minimum. Sie bleibt als Sicherung für unmaskiert vorgefundenen
+// Text bestehen (etwa den Rumpf einer Hand-Datei).
+//
+// 4T-001833: **Gezählt werden allein echte Zaun-Zeilen aus Backticks**, also
+// Zeilen, die `zaunOeffnung` erkennt, mit dem Backtick als Zeichen. Eine
+// Zeile mit vier oder mehr führenden Leerzeichen ist keine Zaun-Zeile und kann
+// den Block nicht schließen; eine Tilden-Zeile schließt einen Backtick-Zaun
+// nie; Backticks mitten in einer Zeile sind Inline-Code. Bis dahin zählte ein
+// eigener Ausdruck jede Einrückung mit und ließ den Zaun ohne Not wachsen.
 function fenceLaengeFuer(rumpf) {
   let laengste = 0;
   for (const zeile of String(rumpf == null ? '' : rumpf).split('\n')) {
-    const treffer = zeile.match(INNERE_FENCE_RE);
-    if (treffer && treffer[1].length > laengste) laengste = treffer[1].length;
+    const zaun = zaunOeffnung(zeile);
+    if (zaun && zaun.zeichen === '`' && zaun.laenge > laengste) laengste = zaun.laenge;
   }
   return Math.max(MINDEST_FENCE, laengste + 1);
 }
@@ -431,11 +553,20 @@ module.exports = {
   RECORD_MARKER,
   CELL_MARKER,
   ID_ATTR,
+  // 4T-001790 (Epic 3E-000255): Die Attribut-Grammatik des Hauses gibt es einmal.
+  // Das Beleg-Format deutet damit den Rest hinter der Kennung und führt keinen
+  // zweiten Ausdruck. Der Ausdruck trägt das Merkmal `g`; wer ihn benutzt, setzt
+  // `lastIndex` vor der Schleife zurück, wie `leseAngaben` es tut.
+  ATTR_RE,
   MASKIERBAR,
   leseAngaben,
   schreibeAngaben,
   maskiereZeile,
   demaskiereZeile,
+  // 4T-001833 (Epic 3E-000254, B4): die eine Zaun-Regel aller Leser, aus
+  // `fence-level.js` weitergereicht.
+  zaunOeffnung,
+  schliesstZaun,
   parseRecordBlock,
   zellenNachFeldern,
   serializeRecordBlock,

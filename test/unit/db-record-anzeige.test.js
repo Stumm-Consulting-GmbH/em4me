@@ -92,6 +92,167 @@ describe('Datensatz-Anzeige: Tabellen-Aufbau (4T-001547)', () => {
   });
 });
 
+// --- Die Aktions-Spalte am Zeilen-Anfang (4T-001792) ----------------------------------
+
+describe('Datensatz-Anzeige: der Zugang zu den Änderungsbelegen (4T-001792)', () => {
+  // Die Beschriftung kommt wie jeder andere Text dieses Bauers über die
+  // Label-Auflösung; ohne sie stünde der Schlüssel-Name am Knopf.
+  const TEXTE = { 'records.historyButton': 'Änderungsbelege anzeigen' };
+
+  it('stellt der Kopfzeile eine Zelle ohne Text und ohne Ansage voran', () => {
+    const html = baue('|- id="r-00001"\n| Anna\n| 1\n| x', FELDER, { labels: TEXTE });
+    // Eine Spalte, die allein einen Griff trägt, hat keine Überschrift; eine
+    // erfundene wäre für den Vorleser Lärm (Muster der Lösch-Spalte der
+    // Datentabelle).
+    expect(html).toContain('<th class="prc-head prc-action-head" aria-hidden="true"></th>');
+    // Und sie steht VORN, nicht irgendwo: Variante 1 der Entscheidung vom
+    // 2026-09-18 liegt am Zeilen-Anfang, weil sie bei breiten Tabellen sonst
+    // aus dem sichtbaren Bereich fiele.
+    expect(html.indexOf('prc-action-head')).toBeLessThan(html.indexOf('prc-type-string'));
+  });
+
+  it('stellt jeder Datenzeile mit Kennung die Schaltfläche voran', () => {
+    const html = baue('|- id="r-00001"\n| Anna\n| 1\n| x', FELDER, { labels: TEXTE });
+    expect(html).toContain('<td class="prc-action"><button type="button"');
+    expect(html).toContain('class="prc-history-btn"');
+    // Hinweistext für die Maus, `aria-label` für den Vorleser, beide aus
+    // demselben Schlüssel.
+    expect(html).toContain('title="Änderungsbelege anzeigen"');
+    expect(html).toContain('aria-label="Änderungsbelege anzeigen"');
+    // Die Schaltfläche steht in der Zeile VOR der ersten Datenzelle.
+    const zeile = html.slice(html.indexOf('<tr class="prc-row"'));
+    expect(zeile.indexOf('prc-action')).toBeLessThan(zeile.indexOf('prc-cell'));
+  });
+
+  it('hält jede Schaltfläche aus der Tabulator-Folge heraus', () => {
+    // Eine Tabelle trägt bis zu 2000 Zeilen; 2000 Tabulator-Stopps wären keine
+    // Erreichbarkeit. Genau eine hebt der Anzeige-Prozess auf 0 (Bauplan Z5).
+    const zeilen = [];
+    for (let i = 1; i <= 3; i++) zeilen.push(`|- id="r-0000${i}"`, `| Nr ${i}`, '| 1', '|');
+    const html = baue(zeilen.join('\n'), FELDER, { labels: TEXTE });
+    expect((html.match(/class="prc-history-btn" tabindex="-1"/g) || []).length).toBe(3);
+    expect(html).not.toContain('tabindex="0"');
+  });
+
+  it('trägt das Symbol als Inline-SVG, das der Vorleser überspringt', () => {
+    const html = baue('|- id="r-00001"\n| Anna\n| 1\n| x', FELDER, { labels: TEXTE });
+    expect(html).toContain('<svg');
+    expect(html).toContain('stroke="currentColor"');
+    // Die Schaltfläche sagt sich über ihr aria-label an; ein zusätzlich
+    // vorgelesenes Symbol wäre eine doppelte Ansage.
+    const svg = html.slice(html.indexOf('<svg'), html.indexOf('</svg>'));
+    expect(svg).toContain('aria-hidden="true"');
+  });
+
+  it('gibt einer Zeile OHNE Kennung die leere Zelle ohne Schaltfläche', () => {
+    // Die Belege hängen an der internen Kennung; zu einer Zeile ohne sie kann
+    // es keine geben, und ein Knopf wäre ein Versprechen ohne Deckung.
+    const html = baue('|-\n| Anna\n| 1\n| x', FELDER, { labels: TEXTE });
+    expect(html).toContain('<td class="prc-action"></td>');
+    expect(html).not.toContain('prc-history-btn');
+  });
+
+  it('zählt die Aktions-Spalte in der Breite der leeren Tabelle mit', () => {
+    // Ohne das eine Plus stünde der Hinweis schmaler als die Tabelle und die
+    // letzte Spalte fiele aus dem Rahmen.
+    const html = baue('', FELDER, { labels: TEXTE });
+    expect(html).toContain(`colspan="${FELDER.length + 1}"`);
+  });
+
+  it('reicht die Beschriftung über die Pipeline in der Sprache des Laufs durch', () => {
+    // Der tragende Teil: Ohne den Eintrag in RECORD_LABEL_KEYS stünde hier der
+    // Schlüssel-Name, und zwar in allen fünf Sprachen gleich falsch.
+    const doc = tabellenDokument(['|- id="r-00001"', '| Anna', '| 1', '| x']);
+    expect(renderMarkdown(doc, 'de')).toContain('aria-label="Änderungsbelege anzeigen"');
+    const en = renderMarkdown(doc, 'en');
+    expect(en).toContain('aria-label="Show change records"');
+    expect(en).not.toContain('records.historyButton');
+  });
+});
+
+// 4T-001939 (Epic 3E-000257, Bauplan B7, AK1, AK5, AK6): Die zweite
+// Zeilen-Schaltfläche zur Einzel-Maske und der Fuß mit «Neuer Datensatz».
+describe('Datensatz-Anzeige: der Zugang zur Einzel-Maske (4T-001939)', () => {
+  const TEXTE = {
+    'records.historyButton': 'Änderungsbelege anzeigen',
+    'records.openButton': 'Datensatz öffnen',
+    'records.newButton': 'Neuer Datensatz',
+  };
+
+  it('stellt der Beleg-Schaltfläche die Schaltfläche «Datensatz öffnen» voran', () => {
+    const html = baue('|- id="r-00001"\n| Anna\n| 1\n| x', FELDER, { labels: TEXTE });
+    const zelle = html.slice(html.indexOf('<td class="prc-action">'));
+    expect(zelle).toContain('class="prc-open-btn" tabindex="-1"');
+    expect(zelle).toContain('aria-label="Datensatz öffnen"');
+    expect(zelle).toContain('title="Datensatz öffnen"');
+    // Beide Griffe in EINER Zelle, der neue vorn.
+    expect(zelle.indexOf('prc-open-btn')).toBeLessThan(zelle.indexOf('prc-history-btn'));
+    expect(zelle.indexOf('prc-history-btn')).toBeLessThan(zelle.indexOf('</td>'));
+  });
+
+  it('gibt einer Zeile ohne Kennung auch keine Schaltfläche zur Maske', () => {
+    const html = baue('|-\n| Anna\n| 1\n| x', FELDER, { labels: TEXTE });
+    expect(html).toContain('<td class="prc-action"></td>');
+    expect(html).not.toContain('prc-open-btn');
+  });
+
+  it('setzt unter die Tabelle den Fuß mit «Neuer Datensatz»', () => {
+    const html = baue('|- id="r-00001"\n| Anna\n| 1\n| x', FELDER, { labels: TEXTE });
+    expect(html).toContain(
+      '<div class="prc-foot"><button type="button" class="prc-new-btn">Neuer Datensatz</button></div>',
+    );
+    expect(html.indexOf('</table>')).toBeLessThan(html.indexOf('prc-foot'));
+    // Der Fuß ist ein einzelner Griff und steht in der Tabulator-Folge.
+    expect(html).not.toMatch(/prc-new-btn"[^>]*tabindex/);
+  });
+
+  it('setzt den Fuß auch unter die leere Tabelle, die sonst keinen Weg hätte', () => {
+    const html = baue('', FELDER, { labels: TEXTE });
+    expect(html).toContain('class="prc-new-btn"');
+  });
+
+  it('setzt keinen Fuß, wo die Definition fehlt', () => {
+    const html = baue('|-\n| Anna', [], { labels: TEXTE });
+    expect(html).not.toContain('prc-foot');
+    expect(html).not.toContain('prc-new-btn');
+  });
+
+  it('reicht beide Beschriftungen über die Pipeline in der Sprache des Laufs durch', () => {
+    const doc = tabellenDokument(['|- id="r-00001"', '| Anna', '| 1', '| x']);
+    const de = renderMarkdown(doc, 'de');
+    expect(de).toContain('aria-label="Datensatz öffnen"');
+    expect(de).toContain('>Neuer Datensatz</button>');
+    const en = renderMarkdown(doc, 'en');
+    expect(en).toContain('aria-label="Open record"');
+    expect(en).toContain('>New record</button>');
+    expect(en).not.toContain('records.openButton');
+    expect(en).not.toContain('records.newButton');
+  });
+
+  it('entfällt im Aus-Zustand der Erweiterung samt Fuß (AK6)', () => {
+    configureExtensions(['database']);
+    const html = renderMarkdown(
+      tabellenDokument(['|- id="r-00001"', '| Anna', '| 1', '| x']),
+      'de',
+    );
+    expect(html).not.toContain('prc-open-btn');
+    expect(html).not.toContain('prc-new-btn');
+  });
+
+  it('bleibt aus dem portablen Export heraus, Schaltfläche wie Fuß', () => {
+    const out = convertMarkdownPortable(
+      tabellenDokument(['|- id="r-00001"', '| Anna', '| 1', '| x']),
+      true,
+      'de',
+    );
+    // Nicht-Vakuitäts-Probe: Der Export hat die Tabelle wirklich gebaut.
+    expect(out).toContain('<td>Anna</td>');
+    expect(out).not.toContain('prc-open-btn');
+    expect(out).not.toContain('prc-foot');
+    expect(out).not.toContain('prc-new-btn');
+  });
+});
+
 describe('Datensatz-Anzeige: Fenster statt Kappung (E3.7)', () => {
   function vieleDatensaetze(anzahl) {
     const zeilen = [];
@@ -179,6 +340,35 @@ describe('Datensatz-Anzeige in der Render-Pipeline (4T-001547)', () => {
   it('meldet einen Datensatz-Block in einer Datei ohne Definition', () => {
     const doc = ['```perspective-records', '|-', '| Anna', '```', ''].join('\n');
     expect(renderMarkdown(doc, 'de')).toContain('prc-note-nodef');
+  });
+
+  // 4T-001931 (Epic 3E-000256, E22.2, AK5): Die Regel steht im Frontmatter, die
+  // Markierung entsteht beim Lesen, und sichtbar wird sie erst in der Anzeige.
+  // Gemessen wird deshalb über die volle Pipeline.
+  it('markiert eine Zelle mit verletzter Feld-Regel und zeigt den Datensatz weiter', () => {
+    const felder = [
+      ['    - name: name', '      required: true'],
+      ['    - name: plz', "      check: '/^\\d{4}$/'"],
+    ];
+    const html = renderMarkdown(
+      tabellenDokument(
+        ['|- id="r-00001"', '| Anna', '| 40a', '', '|- id="r-00002"', '|', '| 4051'],
+        felder,
+      ),
+      'de',
+    );
+    // Die Anzeige gibt den Zell-Text einer markierten Zelle unverändert aus,
+    // samt dem Trennabstand der letzten Zelle; gemessen wird daher bis zum Tag.
+    expect(html).toContain('data-rec-id="r-00001"');
+    expect(html).toMatch(
+      /<td class="prc-cell prc-type-string prc-error" data-rec-err="check">40a\s*<\/td>/,
+    );
+    // Die leere Pflicht-Zelle trägt denselben Weg mit ihrem eigenen Code.
+    expect(html).toContain('data-rec-id="r-00002"');
+    expect(html).toContain(
+      '<td class="prc-cell prc-type-string prc-error" data-rec-err="required"></td>',
+    );
+    expect(html).toMatch(/<td class="prc-cell prc-type-string">4051\s*<\/td>/);
   });
 
   it('hängt am Schalter der Datenbank-Erweiterung', () => {
@@ -414,5 +604,101 @@ describe('Portabler Export: wo er zurückweicht (4T-001548)', () => {
     expect(extensionById('database')).not.toBeNull();
     configureExtensions(['database']);
     bleibtRoh(exportiere(['|-', '| Anna', '| 1', '| x']));
+  });
+
+  it('bleibt ohne Aktions-Spalte und ohne Schaltfläche (4T-001792)', () => {
+    // Die Schaltfläche führt in eine Ansicht DIESER Anwendung. Beim Empfänger
+    // einer exportierten Datei wäre sie ein toter Knopf, und die Beleg-Datei
+    // daneben hat er ohnehin nicht; die leere Spalte davor wäre ein
+    // unerklärlicher Rand.
+    const out = exportiere(['|- id="r-00001"', '| Anna', '| 12.5', '| x']);
+    expect(out).toContain('<td>Anna</td>');
+    expect(out).not.toContain('prc-action');
+    expect(out).not.toContain('prc-history-btn');
+    expect(out).not.toContain('<button');
+    // Gegenprobe an der Breite: Kopfzeile und Datenzeile tragen genau so viele
+    // Zellen, wie die Definition Felder hat.
+    const kopf = out.slice(out.indexOf('<thead>'), out.indexOf('</thead>'));
+    expect((kopf.match(/<th\b/g) || []).length).toBe(TYP_FELDER.length);
+  });
+
+  it('zählt in der leeren Tabelle nur die Felder (4T-001792)', () => {
+    // Der Anzeige-Pfad zählt seit 4T-001792 eine Spalte mehr; hier darf er es
+    // ausdrücklich nicht, sonst stünde beim Empfänger eine Spalte zu viel.
+    const out = exportiere(['']);
+    expect(out).toContain(`colspan="${TYP_FELDER.length}"`);
+  });
+});
+
+// --- 4T-001833 (Epic 3E-000254, B6): Anzeige und Export lösen die Maskierung auf ---
+
+// Ein Wert mit maskierten Zaun-Zeilen, gefolgt von einem weiteren Datensatz: So
+// schreibt die Anwendung seit 4T-001833 einen Wert, der Code enthält.
+const MASKIERT = [
+  '|- id="r-00001"',
+  '| Anna',
+  '\\```',
+  'code',
+  '\\~~~',
+  '| 1',
+  '| x',
+  '|- id="r-00002"',
+  '| Bert',
+  '| 2',
+  '|',
+];
+
+describe('Datensatz-Block: maskierte Zaun-Zeilen in Anzeige und Export (4T-001833, B6)', () => {
+  // 4T-001833: Die Lese-Ansicht zeigt den Wert demaskiert, der Block endet nicht vorzeitig.
+  it('zeigt den Wert demaskiert und alle Datensätze dahinter', () => {
+    const html = renderMarkdown(tabellenDokument(MASKIERT), 'de');
+    expect(html).toContain('data-rec-id="r-00001"');
+    expect(html).toContain('data-rec-id="r-00002"');
+    expect(html).toContain('>Anna\n```\ncode\n~~~</td>');
+    // Sichtbar ist allein die Tabelle; das Daten-Attribut am Container trägt
+    // den Rohtext der Datei und damit die Maskierung, und das ist dort richtig.
+    const tabelle = html.slice(html.indexOf('<table'));
+    expect(tabelle).not.toContain('\\```');
+    expect(tabelle).not.toContain('\\~~~');
+    expect(hinweisZeilen(html)).toEqual([]);
+  });
+
+  // 4T-001833: Der portable Export ebenso.
+  it('exportiert den Wert demaskiert und alle Datensätze dahinter', () => {
+    const out = exportiere(MASKIERT);
+    expect(out).toContain('<td>Anna<br>```<br>code<br>~~~</td>');
+    expect(out).toContain('<td>Bert</td>');
+    expect(out).not.toContain('\\```');
+  });
+
+  // 4T-001833: Die Hand-Datei mit längerem Zaun und unmaskierter innerer Zeile.
+  it('meldet eine unmaskierte Zaun-Zeile als Satz am Datensatz, ohne etwas zu verlieren', () => {
+    // Dasselbe Dokument wie `tabellenDokument`, aber mit vier Backticks als Zaun.
+    const doc = [
+      '---',
+      'db-table:',
+      '  fields:',
+      '    - name: name',
+      '    - name: menge',
+      '    - name: erledigt',
+      '---',
+      '',
+      '````perspective-records',
+      '|- id="r-00001"',
+      '| Anna',
+      '```',
+      '| 1',
+      '| x',
+      '````',
+      '',
+    ].join('\n');
+    const html = renderMarkdown(doc, 'de');
+    expect(html).toContain('>Anna\n```</td>');
+    expect(hinweisZeilen(html)).toEqual([
+      {
+        code: 'recordFenceLine',
+        text: 'Datensatz 1: eine Zeile beginnt wie ein Code-Zaun (drei Backticks oder Tilden); sie bleibt Inhalt und wird beim nächsten Schreibvorgang mit einem Rückstrich maskiert.',
+      },
+    ]);
   });
 });

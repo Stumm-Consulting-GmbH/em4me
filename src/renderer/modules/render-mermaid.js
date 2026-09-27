@@ -45,6 +45,9 @@ import { registriereKanbanTeilbaumSchritte } from './kanban/kanban-pane.js';
 // (Entscheidung E8). Das Modul importiert selbst kein Renderer-Modul und
 // bildet deshalb keinen Ordner-Zyklus.
 import { applyCanvasBlocks } from './canvas/canvas-block-zustand.js';
+// 4T-001792 (Epic 3E-000255): Zugang von der Datensatz-Zeile zu den
+// Änderungsbelegen; das Modul bekommt seine Umgebung von app-init.js.
+import { applyRecordRowAccess } from './database/datensatz-zeilen-zugang.js';
 // 4T-001747 (Epic 3E-000289): Auffrischung der Verweis-Karten einer Flaeche.
 // Dieselbe Richtung wie die beiden Importe darueber (modules -> modules/canvas);
 // der Canvas-Ordner importiert nichts zurueck.
@@ -1237,6 +1240,14 @@ function wendeSchritteAn(container, basePath, lage) {
   // Ansicht ist: Der Zugang wechselt den Modus, der Klapp-Griff blendet die
   // Vorschau aus; keiner von beiden schreibt in das Dokument.
   applyCanvasBlocks(container);
+  // 4T-001792 (Epic 3E-000255): Der Zugang von der Datensatz-Zeile zu den
+  // Änderungsbelegen. Er steht **außerhalb** der Bearbeitbarkeits-Klammer, aus
+  // demselben Grund wie der Canvas-Block darüber: Der Zugang öffnet eine nur
+  // lesende Ansicht und schreibt in kein Dokument. Zugleich ist er der eine
+  // Schritt, der einen Block **still stellt**, wo er nicht das Dokument des
+  // aktiven Reiters zeigt; er muss deshalb auch im erzeugten Teilbaum laufen
+  // und darf dort nicht ausgelassen werden (Bauplan Z4).
+  applyRecordRowAccess(container);
   // Einbettungen bleiben beim Aufrufer, wo er den Tiefenzaehler fuehrt: Der
   // Teilbaum einer Einbettung zaehlt eine Ebene hoeher (Grenze aus AK6 der
   // Story 4S-000207).

@@ -60,6 +60,14 @@ const TEILBAUM = [
   // Karte ist eine Ansicht auf eine Zeile des offenen Dokuments. Den
   // Schritt-Satz bekommt die Einbettung ebenso hereingereicht.
   'modules/kanban/kanban-pane.js',
+  // 4T-001939 (Epic 3E-000257): Die Markdown-Segmente der Einzel-Maske der
+  // Datenbank — aus der Tabellen-Definition erzeugt oder aus der Masken-Datei
+  // gelesen, per innerHTML in die Masken-Seite gesetzt. Sechste Fundstelle der
+  // Klasse, gefunden von diesem Wächter im Gate-Lauf nach dem Rebase-Lauf 4
+  // des Zuges 3E-000314 (2026-09-25): Die Seite rief zunächst die volle
+  // Pipeline samt Bearbeitbarkeit, obwohl die Blöcke nicht das offene Dokument
+  // sind; seither der Teilbaum-Schritt-Satz.
+  'modules/database/masken-seite.js',
 ];
 
 // Klasse 3: Widget-Extraktion im Editor. Rendert ein EINZELNES Konstrukt in
@@ -198,6 +206,26 @@ describe('Der Schritt-Satz selbst (Entscheidung des Product Owners vom 2026-09-0
     }
     // Und sie hängen nicht am Bearbeitbarkeits-Schalter.
     expect(koerper).toMatch(/if \(dynamischeBloecke\) applyFrontmatterQueriesIfPresent/);
+  });
+
+  it('der Zeilen-Zugang des Datensatz-Blocks steht in der gemeinsamen Folge (4T-001792)', () => {
+    // Er gehört nicht nur deshalb hierher, weil er eine Bedienung ist, sondern
+    // weil er der eine Schritt ist, der einen Block **still stellt**: Wo ein
+    // Datensatz-Block nicht das Dokument des aktiven Reiters zeigt — in der
+    // Einbettung, in einer Verweis-Karte der Canvas —, blendet er die
+    // Aktions-Spalte aus. Liefe er im erzeugten Teilbaum nicht, stünde dort
+    // eine Schaltfläche, welche die Belege einer FREMDEN Datei öffnete
+    // (Bauplan Z4). Er hängt deshalb ausdrücklich nicht am
+    // Bearbeitbarkeits-Schalter.
+    const s = quelle();
+    const ab = s.slice(s.indexOf('function wendeSchritteAn('));
+    const koerper = ab.slice(0, ab.indexOf('\n}\n'));
+    expect(koerper).toContain('applyRecordRowAccess(container)');
+    expect(koerper).not.toMatch(/if \([^)]*\) applyRecordRowAccess/);
+    // Und im Block-Widget des Live-Modus ebenso, weil ignoreEvent() dort die
+    // zentralen CodeMirror-Handler fernhält; ein Schritt-Satz kommt dort nach
+    // der Performance-Leitplanke nicht in Frage, dieser einzelne Schritt schon.
+    expect(lies('modules/live/live-widget-render.js')).toContain('applyRecordRowAccess(container)');
   });
 
   it('der Teilbaum-Satz macht keine Einbettungen (Tiefen-Grenze, AK7)', () => {

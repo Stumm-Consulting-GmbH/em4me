@@ -54,7 +54,24 @@ const DATATABLE_RE = fenceRegexFuer('perspective-datatable');
 const EVENTS_RE = fenceRegexFuer('perspective-events');
 // 4T-001548 (Epic 3E-000251, E29.2): der Datensatz-Block der Datenbank,
 // vollständig und ohne das Anzeige-Fenster der Anwendung.
-const RECORDS_RE = fenceRegexFuer(RECORD_FENCE);
+//
+// 4T-001833 (Epic 3E-000254): **Der Datensatz-Block schließt nach der
+// Standard-Regel** und nicht nur an einer Zeile, die dem öffnenden Zaun
+// gleicht. Öffnend sind Backticks ODER Tilden (Gruppe 2 hält das Zeichen);
+// schließend ist die erste Zeile mit bis zu drei Leerzeichen Einrückung, der
+// öffnenden Sequenz, beliebig vielen weiteren Zeichen derselben Art und danach
+// nur Leerraum. Eine kürzere innere Zeile oder eine mit Sprach-Angabe beendet
+// den Block damit nicht. Der Rumpf steht in Gruppe 3. Der Schluss `\s*$` ist
+// bewusst der bisherige: Er nimmt wie zuvor eine folgende Leerzeile mit in den
+// Treffer, und die Ausgabe um den Block bleibt zeichengleich (Snapshot des
+// portablen Exports). Die drei übrigen Arten
+// bleiben bei ihrer bisherigen Erkennung; sie sind nicht Gegenstand des
+// Vorgangs.
+const RECORDS_RE = new RegExp(
+  '^ {0,3}((`|~)\\2{2,})' + RECORD_FENCE + '[^\\n]*\\n([\\s\\S]*?)\\n {0,3}\\1\\2*\\s*$',
+  'gm',
+);
+const RECORDS_INHALT_GRUPPE = 3;
 
 // Ersetzt alle Fences einer Art, die auf der obersten Ebene stehen. Liefert den
 // neuen Text und ob mindestens eine Fence tatsächlich konvertiert hat.
@@ -63,10 +80,18 @@ const RECORDS_RE = fenceRegexFuer(RECORD_FENCE);
 // vorangegangene Ersetzung die folgenden verschiebt. Ein Treffer, der nicht
 // selbst ein Block der obersten Ebene ist, bleibt als Rohtext stehen; das ist
 // derselbe Ausgang wie beim `null` eines Konverters.
-function ersetzeObersteEbene(text, regex, konverter) {
+//
+// 4T-001833 (Epic 3E-000254): `inhaltGruppe` nennt die Gruppe des Rumpfes; ohne
+// Angabe ist es wie bisher die zweite. Der Datensatz-Block braucht eine
+// zusätzliche Gruppe für das Zaun-Zeichen. Ausdrücke mit benannten Gruppen
+// sind hier nicht vorgesehen, weil der Offset als vorletztes Argument gelesen
+// wird.
+function ersetzeObersteEbene(text, regex, konverter, inhaltGruppe = 2) {
   let getroffen = false;
   const offsets = fenceOeffnerOffsets(text);
-  const neu = text.replace(regex, (match, fence, content, offset) => {
+  const neu = text.replace(regex, (match, ...args) => {
+    const offset = args[args.length - 2];
+    const content = args[inhaltGruppe - 1];
     if (!offsets.has(offset)) return match;
     const html = konverter(content);
     if (html === null) return match;
@@ -111,8 +136,12 @@ function convertPortableFences(text, opts) {
     stand.events = r.getroffen;
   }
   if (o.recordsEnabled) {
-    const r = ersetzeObersteEbene(aktuell, RECORDS_RE, (content) =>
-      convertPerspectiveRecordsBlockToHtml(content, { fields: o.fields, labels: o.labels }),
+    const r = ersetzeObersteEbene(
+      aktuell,
+      RECORDS_RE,
+      (content) =>
+        convertPerspectiveRecordsBlockToHtml(content, { fields: o.fields, labels: o.labels }),
+      RECORDS_INHALT_GRUPPE,
     );
     aktuell = r.text;
     stand.records = r.getroffen;

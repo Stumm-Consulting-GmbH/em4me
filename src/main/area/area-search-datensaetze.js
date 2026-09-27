@@ -49,25 +49,26 @@
 'use strict';
 
 const { extractFrontmatter } = require('../../shared/markdown/frontmatter.js');
-const { FENCE_RE } = require('../../shared/markdown/link-scan.js');
-const { RECORD_FENCE } = require('../../shared/database/record-block.js');
+// 4T-001833 (Epic 3E-000254, B4): Die Zaun-Regel kommt aus dem Format-Modul.
+// Bis dahin stand hier ein eigener Vergleich, der nur das Zeichen und nicht die
+// Länge prüfte.
+const {
+  RECORD_FENCE,
+  zaunOeffnung,
+  schliesstZaun,
+} = require('../../shared/database/record-block.js');
 // Die EINE Quelle der Auskunft «welche Rolle spielt diese Datei» (4T-001610).
 // Bis dahin stand die Erkennung des Folge-Segments hier; mit der Erfassung des
 // Datensatz-Bestands braucht sie ein zweiter Verbraucher, und zwei Erkennungen
 // koennten voneinander abweichen. Sie stuetzt sich ihrerseits auf die eine
 // Quelle von «ist das eine Tabellen-Datei» (4T-001550).
+// 4T-001833: Dazu die Grenze des Folge-Segments, aus demselben Grund.
 const {
   ROLLE_KOPF,
   kommtUeberhauptInFrage,
   rolleVon,
+  folgeRumpf,
 } = require('../../shared/database/record-segment.js');
-
-// Das erste Wort des Infostrings hinter einem Zaun; dieselbe Lesart, mit der
-// markdown-it die Fence-Sprache bestimmt und mit der `document-split-punkte.js`
-// den Datenblock findet.
-function zaunSprache(zeile, zaun) {
-  return zeile.slice(zaun[0].length).trim().split(/\s+/)[0];
-}
 
 // Zeilen-Index, in dem der Rumpf beginnt.
 function rumpfZeile(text, endOffset) {
@@ -125,24 +126,25 @@ function neuesVerschiebungsBuch() {
 //
 // Eine oeffnende Fence ohne schliessende ist der Normalfall der Kopf-Datei einer
 // geteilten Tabelle; dort wird bis zum Ende geleert.
+//
+// 4T-001833 (Epic 3E-000254, B4): Ein Block endet nach der Standard-Regel
+// (`schliesstZaun`). Eine innere, kürzere Zaun-Zeile im Datensatz-Block ist
+// Inhalt eines Wertes und wird deshalb mit geleert; bis dahin beendete sie den
+// Block, und jeder Datensatz dahinter blieb im Suchraum.
 function leereKopfDatei(zeilen) {
   const buch = neuesVerschiebungsBuch();
-  let imZaun = false;
-  let zaunZeichen = null;
+  let offen = null;
   let imDatenblock = false;
   for (const zeile of zeilen) {
-    const zaun = zeile.match(FENCE_RE);
-    if (zaun) {
-      const zeichen = zaun[1].charAt(0);
-      if (!imZaun) {
-        imZaun = true;
-        zaunZeichen = zeichen;
-        imDatenblock = zaunSprache(zeile, zaun) === RECORD_FENCE;
-      } else if (zeichen === zaunZeichen) {
-        imZaun = false;
-        zaunZeichen = null;
-        imDatenblock = false;
-      }
+    if (offen === null) {
+      offen = zaunOeffnung(zeile);
+      imDatenblock = offen !== null && offen.sprache === RECORD_FENCE;
+      buch.behalte(zeile);
+      continue;
+    }
+    if (schliesstZaun(zeile, offen)) {
+      offen = null;
+      imDatenblock = false;
       buch.behalte(zeile);
       continue;
     }
@@ -158,23 +160,20 @@ function leereKopfDatei(zeilen) {
 // Leert den Rumpf eines Folge-Segments. Er ist bis auf eine abschliessende
 // Zaun-Zeile durchgehend Datensatz-Inhalt: Das mittlere Segment traegt gar keinen
 // Zaun, das letzte den schliessenden.
+//
+// 4T-001833 (Epic 3E-000254, B5): Die Grenze nimmt `folgeRumpf` aus dem
+// Segment-Modul, also dieselbe, nach der die Datensätze gelesen werden:
+// Schließend ist allein die letzte nicht-leere Zeile, wenn sie ein Zaun ohne
+// Sprach-Angabe ist. Bis dahin endete das Leeren an der ersten Zaun-Zeile, und
+// eine von Hand unmaskiert geschriebene Zaun-Zeile ließ alle Datensätze
+// dahinter im Suchraum.
 function leereFolgeSegment(zeilen, abZeile) {
   const buch = neuesVerschiebungsBuch();
-  let fertig = false;
-  for (let i = 0; i < zeilen.length; i++) {
-    const zeile = zeilen[i];
-    if (i < abZeile || fertig) {
-      buch.behalte(zeile);
-      continue;
-    }
-    if (FENCE_RE.test(zeile)) {
-      fertig = true;
-      buch.behalte(zeile);
-      continue;
-    }
-    if (zeile === '') buch.behalte(zeile);
+  const grenzen = folgeRumpf(zeilen, abZeile);
+  zeilen.forEach((zeile, i) => {
+    if (i < grenzen.von || i >= grenzen.bis || zeile === '') buch.behalte(zeile);
     else buch.leere(zeile);
-  }
+  });
   return buch.ergebnis();
 }
 

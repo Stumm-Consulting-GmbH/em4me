@@ -92,6 +92,8 @@
   "help.shortcut.areaGraph": "Ouvrir le graphe de l'espace dans son propre onglet",
   "help.shortcut.areaStats": "Ouvrir les statistiques de la zone dans son propre onglet",
   "help.shortcut.databaseOverview": "Ouvrir la vue d’ensemble de la base de données dans son propre onglet",
+  "help.shortcut.databaseNewRecord": "Créer un nouvel enregistrement dans la table de l’onglet actif et l’ouvrir dans le formulaire",
+  "help.shortcut.databaseCheckConsistency": "Contrôler toutes les tables de la base de données pour détecter les incohérences des données et afficher le résultat dans la vue d’ensemble",
   "help.shortcut.myExtendedMemory": "Ouvrir My Extended Memory dans son propre onglet",
   "help.shortcut.commandPalette": "Ouvrir la palette de commandes",
   "help.shortcut.toggleReminders": "Afficher ou masquer le panneau des rappels",

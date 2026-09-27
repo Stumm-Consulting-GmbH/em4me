@@ -296,6 +296,38 @@ describe('Defekte Datensatz-Fence (4T-001610, AK7)', () => {
     expect(() => erfasseDatensaetze(text, null)).not.toThrow();
   });
 
+  // 4T-001833 (Epic 3E-000254, AK2): Eine innere, kürzere Zaun-Zeile in einem
+  // Wert beendet den Block nicht; der Index erfasst alle Datensätze dahinter.
+  it('erfasst alle Datensätze hinter einer inneren kürzeren Zaun-Zeile', () => {
+    const datensaetze = [
+      '|- id="r-00001"',
+      '| K-1',
+      '| Anna',
+      '```',
+      'code',
+      '```',
+      '| Basel',
+      '|- id="r-00002"',
+      '| K-2',
+      '| Bert',
+      '| Bern',
+    ];
+    const text = kopfDatei({ datensaetze }).replace(
+      '\n```perspective-records\n',
+      '\n````perspective-records\n',
+    );
+    const gewachsen = text.replace('\n```\n\nEin Nachwort.', '\n````\n\nEin Nachwort.');
+    expect(gewachsen).not.toBe(text);
+    const erfasst = erfasseDatensaetze(gewachsen, definitionAusText(gewachsen));
+    expect(erfasst.records.map((r) => r.id)).toEqual(['r-00001', 'r-00002']);
+    expect(erfasst.records[1]).toEqual({
+      id: 'r-00002',
+      key: ['K-2'],
+      display: 'Bert',
+      zeile: zeileVon(gewachsen, '|- id="r-00002"'),
+    });
+  });
+
   it('der Rumpf-Schnitt hält bei mehreren Fences bei der ersten', () => {
     const text = kopfDatei();
     const block = datensatzRumpf(text);

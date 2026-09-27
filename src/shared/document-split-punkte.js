@@ -13,14 +13,23 @@
 'use strict';
 
 const { extractFrontmatter } = require('./markdown/frontmatter.js');
-const { FENCE_RE } = require('./markdown/link-scan.js');
 // 4T-001549 (Epic 3E-000251, E26.5): Die zweite Schnittpunkt-Art braucht zwei
 // Auskünfte der Datenbank — ob diese Datei eine Tabelle IST und wie ihr
 // Datensatz-Block aussieht. Die erste kommt aus dem Blatt-Modul `behaelter.js`,
 // das genau dafür ohne eigene Importe gebaut ist (der Link-Index nutzt es
 // ebenso); die zweite sind zwei Konstanten des Ablage-Formats.
+//
+// 4T-001833 (Epic 3E-000254, B4): Dazu kommt die Zaun-Regel des Formats. Beide
+// Schnittpunkt-Suchen dieses Moduls schlossen einen Code-Block an der ersten
+// Zaun-Zeile mit demselben Zeichen, ohne die Länge zu vergleichen; sie nehmen
+// die Regel jetzt von dort, wo auch alle anderen Leser sie nehmen.
 const { datenbankMarken } = require('./database/behaelter.js');
-const { RECORD_FENCE, RECORD_MARKER } = require('./database/record-block.js');
+const {
+  RECORD_FENCE,
+  RECORD_MARKER,
+  zaunOeffnung,
+  schliesstZaun,
+} = require('./database/record-block.js');
 
 // Schwellen in Byte (O1/O2, Entscheidung des Product Owners vom 2026-08-29;
 // die Auslegung von «MB» als 2^20 am 2026-08-31 bestätigt). Gemessen wird die
@@ -105,44 +114,36 @@ function ueberSchwelle(text, schwelle) {
  * Dokuments und bis 4T-001549 der einzige.
  *
  * Ausgeschlossen sind der Frontmatter (er gehört unteilbar zur Kopf-Datei),
- * alles innerhalb eines Code-Zauns (Maske über FENCE_RE aus link-scan.js, also
- * dieselbe Quelle wie Backlinks-Index, Block-Anker und Rewrite-Kern) und der
+ * alles innerhalb eines Code-Zauns (seit 4T-001833 erkannt über die Zaun-Regel
+ * aus `markdown/fence-level.js`, weitergereicht über das Format-Modul) und der
  * Beginn des Rumpfes selbst — ein Schnitt dort ergäbe einen ersten Teil, der
  * nur aus Frontmatter besteht.
+ *
+ * 4T-001833 (Epic 3E-000254, B4): Ein Code-Block endet nach der Standard-Regel
+ * (`schliesstZaun`), nicht an der ersten Zaun-Zeile mit demselben Zeichen.
+ * Sonst läge eine Überschrift hinter einer inneren, kürzeren Zaun-Zeile außen
+ * und würde zum Schnittpunkt mitten im Code-Block.
  */
 function ueberschriftsPunkte(s, bodyStart) {
   const zeilen = s.split('\n');
   const punkte = [];
   let offset = 0;
   let byteOffset = 0;
-  let imZaun = false;
-  let zaunZeichen = null;
+  let offen = null;
   for (let i = 0; i < zeilen.length; i++) {
     const zeile = zeilen[i];
-    const zaun = zeile.match(FENCE_RE);
-    if (zaun) {
-      const ch = zaun[1].charAt(0);
-      if (!imZaun) {
-        imZaun = true;
-        zaunZeichen = ch;
-      } else if (ch === zaunZeichen) {
-        imZaun = false;
-        zaunZeichen = null;
+    if (offen !== null) {
+      if (schliesstZaun(zeile, offen)) offen = null;
+    } else {
+      offen = zaunOeffnung(zeile);
+      if (offen === null && offset > bodyStart && SCHNITT_RE.test(zeile)) {
+        punkte.push({ offset, byteOffset });
       }
-    } else if (!imZaun && offset > bodyStart && SCHNITT_RE.test(zeile)) {
-      punkte.push({ offset, byteOffset });
     }
     offset += zeile.length + 1; // +1 für das LF
     byteOffset += byteLength(zeile) + 1;
   }
   return punkte;
-}
-
-// Das erste Wort des Infostrings hinter einem Zaun. Es entscheidet, ob der
-// Zaun der Datensatz-Block ist; dieselbe Lesart, mit der markdown-it die
-// Fence-Sprache bestimmt.
-function zaunSprache(zeile, zaun) {
-  return zeile.slice(zaun[0].length).trim().split(/\s+/)[0];
 }
 
 /**
@@ -167,30 +168,28 @@ function zaunSprache(zeile, zaun) {
  * eigenen Prüfung bedürfte: Die Maskierung des Formats beginnt mit einem
  * Rückstrich, eine Zeile mit dem Datensatz-Marker in Spalte 0 beginnt mit dem
  * Marker selbst. Beides schließt einander aus.
+ *
+ * 4T-001833 (Epic 3E-000254, B4): Der Block endet nach der Standard-Regel
+ * (`schliesstZaun`). Bis dahin endete er an der ersten Zaun-Zeile mit
+ * demselben Zeichen, und hinter einer inneren kürzeren Zeile in einem Wert
+ * fand die Suche keinen einzigen Schnittpunkt mehr.
  */
 function datensatzPunkte(s) {
   const zeilen = s.split('\n');
   const punkte = [];
   let offset = 0;
   let byteOffset = 0;
-  let imZaun = false;
-  let zaunZeichen = null;
+  let offen = null;
   let imDatenblock = false;
   let ersterGesehen = false;
   for (let i = 0; i < zeilen.length; i++) {
     const zeile = zeilen[i];
-    const zaun = zeile.match(FENCE_RE);
-    if (zaun) {
-      const ch = zaun[1].charAt(0);
-      if (!imZaun) {
-        imZaun = true;
-        zaunZeichen = ch;
-        imDatenblock = zaunSprache(zeile, zaun) === RECORD_FENCE;
-      } else if (ch === zaunZeichen) {
-        imZaun = false;
-        zaunZeichen = null;
-        imDatenblock = false;
-      }
+    if (offen === null) {
+      offen = zaunOeffnung(zeile);
+      imDatenblock = offen !== null && offen.sprache === RECORD_FENCE;
+    } else if (schliesstZaun(zeile, offen)) {
+      offen = null;
+      imDatenblock = false;
     } else if (imDatenblock && zeile.startsWith(RECORD_MARKER)) {
       if (ersterGesehen) punkte.push({ offset, byteOffset });
       else ersterGesehen = true;

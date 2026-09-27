@@ -130,6 +130,8 @@
   "command.edit.insertEvents": "Insérer un bloc d'événements",
   "command.view.openFieldForm": "Ouvrir le formulaire des champs du document",
   "command.edit.insertProfileQuery": "Insérer une requête de profil",
+  "command.database.newRecord": "Nouvel enregistrement dans la table active",
+  "command.database.checkConsistency": "Contrôler la cohérence de la base de données",
   "command.canvas.addCard": "Ajouter une carte au canevas",
   "command.insert.canvas": "Canevas",
   "command.canvas.addShape": "Ajouter une forme au canevas",

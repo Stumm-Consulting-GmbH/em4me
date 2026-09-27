@@ -41,6 +41,13 @@ const DB_TABLE_KEY = 'db-table';
 // ausschließt.
 const DB_DATABASE_KEY = 'db-database';
 
+// 4T-001938 (Epic 3E-000257, B1; E7.3): Diese Datei IST eine Einzel-Maske. Der
+// Behälter trägt die eine Angabe `table`, den Namen der Tabelle, deren
+// Datensätze sie zeigt; ihr Körper ist Markdown mit Feld-Platzhaltern
+// (`form-body.js`). Die Maske ist ein Dokument wie jedes andere (E7.5), und
+// die Marke sagt dem Index nur, dass es sie gibt.
+const DB_FORM_KEY = 'db-form';
+
 // Welche Behälter erklärt dieses Frontmatter-Objekt?
 //
 // **Nur die Marke, nie der Inhalt.** Der Index führt, DASS eine Datei sich als
@@ -55,12 +62,15 @@ const DB_DATABASE_KEY = 'db-database';
 // Perspective-Familie ausschließt.
 //
 // Eine Liste und kein Wahrheitswert, weil eine Datei beides erklären darf; ein
-// Array kostet im Cache nichts und bleibt erweiterbar.
+// Array kostet im Cache nichts und bleibt erweiterbar. Seit 4T-001938 trägt sie
+// als dritte Marke `form`; die Verbraucher fragen je Marke mit `includes` und
+// sehen die dritte deshalb nicht, solange sie nicht nach ihr fragen.
 function datenbankMarken(fm) {
   if (!fm || typeof fm !== 'object' || Array.isArray(fm)) return [];
   const marken = [];
   if (fm[DB_TABLE_KEY] !== undefined) marken.push('table');
   if (fm[DB_DATABASE_KEY] !== undefined) marken.push('database');
+  if (fm[DB_FORM_KEY] !== undefined) marken.push('form');
   return marken;
 }
 
@@ -110,9 +120,23 @@ function parseSegmentFelder(wert) {
     .filter((n) => n.length > 0);
 }
 
+// 4T-001791 (Epic 3E-000255, E10.11): Das Wort, mit dem die Definition eine
+// Wachstums-Grenze der Änderungsbelege abschaltet. Es steht in diesem Blatt, weil
+// es Notation des Frontmatters ist wie die Schlüssel darüber, und weil zwei
+// Module es brauchen, die einander nicht laden sollen: die Definitions-Seite, die
+// es liest, und die Verdichtung, die danach handelt. Stünde es bei der
+// Verdichtung, zöge die Definitions-Seite für ein einziges Wort die ganze
+// Beleg-Maschinerie nach.
+//
+// «Unbegrenzt» ist keine Bequemlichkeit: Eine Datenbank mit lückenlosem Nachweis
+// verlöre ihren Zweck, wenn die Anwendung still verdichtete.
+const UNBEGRENZT = 'unlimited';
+
 module.exports = {
+  UNBEGRENZT,
   DB_TABLE_KEY,
   DB_DATABASE_KEY,
+  DB_FORM_KEY,
   DB_SEGMENT_FIELDS_KEY,
   SEGMENT_FIELDS_SEP,
   datenbankMarken,

@@ -19,6 +19,7 @@ import {
   serializeRecordBlock,
 } from '../../src/shared/database/record-block.js';
 import { DB_COLUMN_TYPES } from '../../src/shared/database/table-columns.js';
+import { parseTableDefinition } from '../../src/shared/database/table-definition.js';
 
 // Eine Tabelle, die jeden der acht Typen genau einmal führt.
 const ALLE_TYPEN = DB_COLUMN_TYPES.map((type) => ({ name: type, type }));
@@ -153,5 +154,85 @@ describe('Zell-Wert im Datensatz-Block (4T-001559)', () => {
   it('legt ohne Definition nichts aus, statt einen Typ zu raten', () => {
     const { records } = parseRecordBlock('|-\n| 12.50', []);
     expect(records[0].cells[0]).toEqual({ text: '12.50', value: null, error: null });
+  });
+});
+
+// --- 4T-001931: Pflicht-Angabe und Feld-Regeln beim Lesen, weich (E22.2, AK5) -------------
+
+describe('Zell-Wert beim Lesen: Pflicht-Angabe und Feld-Regeln (4T-001931, AK5)', () => {
+  // Die Felder entstehen über das echte Lesen der Definition, damit die Regeln
+  // in der Gestalt ankommen, in der der Datensatz-Block sie bekommt.
+  function felder(eintraege) {
+    const gelesen = parseTableDefinition({ 'db-table': { fields: eintraege } });
+    expect(gelesen.hints).toEqual([]);
+    return gelesen.fields;
+  }
+
+  const MIT_REGELN = felder([
+    { name: 'Name', required: true },
+    { name: 'Plz', check: '/^\\d{4}$/' },
+    { name: 'Menge', type: 'number', check: 'value > 0' },
+    { name: 'Bezahlt', type: 'boolean', required: true },
+  ]);
+
+  it('kennt die beiden Codes der Lese-Seite', () => {
+    expect(CELL_ERRORS.check).toBe('check');
+    expect(CELL_ERRORS.required).toBe('required');
+  });
+
+  it('markiert eine verletzte Feld-Regel mit Wert null und behält den Text', () => {
+    const rumpf = '|- id="r-00001"\n| Anna\n| 40a\n| -2\n|';
+    const { records } = parseRecordBlock(rumpf, MIT_REGELN);
+    expect(records[0].cells.slice(1, 3)).toEqual([
+      { text: '40a', value: null, error: CELL_ERRORS.check },
+      { text: '-2', value: null, error: CELL_ERRORS.check },
+    ]);
+    // Weich heißt: nichts wird geschrieben, der Rundlauf bleibt zeichengleich.
+    const { records: r2, vorspann } = parseRecordBlock(rumpf, MIT_REGELN);
+    expect(serializeRecordBlock(r2, vorspann)).toBe(rumpf);
+  });
+
+  it('markiert eine leere Pflicht-Zelle mit Wert null, den leeren Wahrheitswert nicht', () => {
+    // Die leere Zelle eines Wahrheitswerts ist der geschriebene Wert «nein»
+    // und kein fehlender (Entscheidung des Product Owners vom 2026-09-20).
+    const { records } = parseRecordBlock('|- id="r-00001"\n|  \n| 4051\n| 3\n|', MIT_REGELN);
+    const zellen = zellenNachFeldern(records[0], MIT_REGELN);
+    expect(zellen[0]).toMatchObject({ text: ' ', value: null, error: CELL_ERRORS.required });
+    expect(zellen[3]).toMatchObject({ text: '', value: false, error: null });
+  });
+
+  it('lässt gültige Werte mit ihrem Wert stehen, auch in der letzten Zelle vor dem Trennabstand', () => {
+    const felderLetzte = felder([{ name: 'Name' }, { name: 'Plz', check: '/^\\d{4}$/' }]);
+    const rumpf = '|- id="r-00001"\n| Anna\n| 4051\n\n|- id="r-00002"\n| Bert\n| 3000';
+    const { records } = parseRecordBlock(rumpf, felderLetzte);
+    // Der Trennabstand hängt am Text der letzten Zelle, gehört aber nicht zum
+    // Wert, den die Regel prüft.
+    expect(records[0].cells[1]).toMatchObject({ text: '4051\n', error: null });
+    expect(records[1].cells[1]).toMatchObject({ text: '3000', value: '3000', error: null });
+  });
+
+  it('lässt einen Typ-Fehler vor der Feld-Regel stehen', () => {
+    const { records } = parseRecordBlock('|-\n| Anna\n| 4051\n| zwölf\n|', MIT_REGELN);
+    expect(records[0].cells[2]).toEqual({
+      text: 'zwölf',
+      value: null,
+      error: CELL_ERRORS.number,
+    });
+  });
+
+  it('lässt eine regelfreie Tabelle unverändert', () => {
+    const OHNE_REGELN = felder([
+      { name: 'Name' },
+      { name: 'Plz' },
+      { name: 'Menge', type: 'number' },
+      { name: 'Bezahlt', type: 'boolean' },
+    ]);
+    const { records } = parseRecordBlock('|-\n|\n| 40a\n| -2\n|', OHNE_REGELN);
+    expect(records[0].cells).toEqual([
+      { text: '', value: '', error: null },
+      { text: '40a', value: '40a', error: null },
+      { text: '-2', value: -2, error: null },
+      { text: '', value: false, error: null },
+    ]);
   });
 });

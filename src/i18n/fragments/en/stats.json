@@ -35,6 +35,7 @@
   "stats.companions.ofFiles": "{count} of {total}",
   "stats.companions.mdd": "Companion files (.mdd)",
   "stats.companions.mdda": "Area files (.mdda)",
+  "stats.companions.mddl": "Change records (.mddl)",
   "stats.content.tasks": "Tasks",
   "stats.content.tasksOpen": "of which open",
   "stats.content.tasksDone": "of which done",

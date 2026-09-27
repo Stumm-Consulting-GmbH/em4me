@@ -26,6 +26,9 @@ const { ersetzeDateiOderWirf } = require('./atomic-write');
 // 4T-001276 (Epic 3E-000232, Befund B1): Der Schlüssel der Historisierungs-Datei
 // entscheidet über Datei-Identität und fragt deshalb die zentrale Auskunft.
 const { pathCompareKey } = require('../../shared/platform.js');
+// 4T-001789 (Epic 3E-000255): Die Endungen der Markdown-Data-Familie liegen an
+// einer Stelle; diese Erkennung ist ihr aeltester Verbraucher.
+const { MDD_EXT, isMarkdownDataPath } = require('../../shared/markdown-data-family.js');
 const mddStore = require('./mdd-store');
 const saveGuard = require('./save-guard');
 const selbstSchreib = require('./self-write');
@@ -53,16 +56,18 @@ function createMddHistory(deps) {
   const mddOpenPackets = new Map();
   const mddSuspendedPaths = new Set();
 
+  // 4T-001789 (Epic 3E-000255): Die Endungen der Familie stehen in
+  // shared/markdown-data-family.js. Name und Signatur bleiben, damit die
+  // Verdrahtung und ihre acht Aufrufer unberuehrt bleiben; was sich aendert,
+  // ist allein die Herkunft der Liste.
   function isMddPath(p) {
-    if (!p) return false;
-    const ext = path.extname(p).toLowerCase();
-    return ext === '.mdd' || ext === '.mdda' || ext === '.mddb';
+    return isMarkdownDataPath(p);
   }
 
   // Begleitdatei zum Dokument: gleicher Basisname, Endung .mdd (PO-Konzept).
   function mddPathFor(mdPath) {
     const parsed = path.parse(mdPath);
-    return path.join(parsed.dir, `${parsed.name}.mdd`);
+    return path.join(parsed.dir, `${parsed.name}${MDD_EXT}`);
   }
 
   function mddKeyOf(p) {

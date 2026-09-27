@@ -409,6 +409,11 @@ function zeichneAbschnitte(root, daten) {
       t('stats.companions.mdda'),
       `${zahl(daten.begleit.mdda.anzahl)} / ${bytes(daten.begleit.mdda.bytes)}`,
     ],
+    // 4T-001789 (Epic 3E-000255): Änderungsbelege der Datenbank-Anwendungen.
+    [
+      t('stats.companions.mddl'),
+      `${zahl(daten.begleit.mddl.anzahl)} / ${bytes(daten.begleit.mddl.bytes)}`,
+    ],
   ]);
 
   const inhalte = abschnitt(root, 'stats.section.content');

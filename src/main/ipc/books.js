@@ -12,6 +12,9 @@
 const path = require('node:path');
 const books = require('../books/books');
 const { isInsideArea } = require('../area/area-path');
+// 4T-001789 (Epic 3E-000255): Die Fehlschlag-Kennungen des Mitziehens erreichen
+// den Anwender auch auf diesem Bedienweg.
+const { BEGLEIT_CODES } = require('../documents/companion-files');
 
 /**
  * Registriert die Buch-Kanaele.
@@ -156,7 +159,21 @@ function registerBooksIpc(handle, deps) {
     const plan = await books.planChapterFileMove(bookDir, relPath, targetDir);
     if (!plan.ok) return { ok: false, error: plan.error };
     const moved = await renameSingleFile(plan.sourcePath, plan.targetPath);
-    if (!moved.ok) return { ok: false, error: 'failed', detail: moved.error };
+    if (!moved.ok) {
+      // 4T-001789 (Epic 3E-000255): Der Code des Mitziehens wird als `error`
+      // durchgereicht, damit das Buch-Panel denselben Text zeigt wie der
+      // Umbenennen-Dialog; alles Uebrige bleibt beim allgemeinen 'failed'.
+      if (BEGLEIT_CODES.includes(moved.code)) {
+        return {
+          ok: false,
+          error: moved.code,
+          detail: moved.error,
+          ...(moved.companionPath ? { companionPath: moved.companionPath } : {}),
+          ...(moved.from ? { from: moved.from, to: moved.to } : {}),
+        };
+      }
+      return { ok: false, error: 'failed', detail: moved.error };
+    }
     // Eingehende Links nachführen (Best-Effort wie beim Umbenennen: ein
     // Fehler hier lässt die vollzogene Bewegung nicht scheitern).
     const pairs = [{ from: plan.sourcePath, to: plan.targetPath }];

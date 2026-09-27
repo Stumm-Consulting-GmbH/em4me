@@ -75,7 +75,9 @@ const {
 // die ganze Profil-Maschinerie laden soll; die Begründung der Benennung steht
 // dort. Hier bleibt der Weiterreicher, damit sich für die Verbraucher dieses
 // Moduls nichts ändert.
-const { DB_TABLE_KEY } = require('./behaelter.js');
+// 4T-001791 (E10.11): Von dort kommt auch das Wort, mit dem die Definition eine
+// Wachstums-Grenze der Änderungsbelege abschaltet.
+const { DB_TABLE_KEY, DB_FORM_KEY, UNBEGRENZT } = require('./behaelter.js');
 
 // Schlüssel der Feld-Definitionen INNERHALB des Behälters. Der Behälter ist
 // bewusst eine Zuordnung und keine bloße Liste: Auf seiner oberen Ebene stehen
@@ -111,6 +113,17 @@ const {
 // gehört, sondern jedem übersetzbaren Objekt (Begründung dort). Die beiden
 // kleinen Normalisierer reisen mit ihr, weil sie ihre Bausteine sind.
 const { istEinfachesObjekt, alsText, normalisiereBeschriftung } = require('./beschriftung.js');
+// 4T-001930 (Epic 3E-000256, E22): Die Prüfregeln liegen im Blatt-Modul
+// `table-checks.js` nach der Naht-Logik von `table-columns.js`: Dort steht, was
+// EINE Regel ist, hier das Lesen einer ganzen Definition.
+const {
+  DB_CHECK_KEY,
+  DB_CHECKS_KEY,
+  DB_EDITABLE_KEY,
+  leseFeldRegeln,
+  leseDatensatzRegeln,
+  leseBearbeitbarkeit,
+} = require('./table-checks.js');
 
 // --- Das interne Profil ------------------------------------------------------------
 
@@ -308,6 +321,13 @@ function parseDefinitionsListe(rohListe, hinweise) {
       }
     }
 
+    // 4T-001930 (E22): Die Feld-Regeln. Sie erscheinen am Feld nur, wenn
+    // mindestens eine gültige dasteht; eine unbrauchbare entfällt einzeln, das
+    // Feld bleibt.
+    const feldRegeln = leseFeldRegeln(eintrag[DB_CHECK_KEY]);
+    for (const hinweis of feldRegeln.hints) melde(hinweis.code, name, hinweis.expected);
+    if (feldRegeln.checks.length > 0) definition.checks = feldRegeln.checks;
+
     gesehen.add(name.toLowerCase());
     fields.push(definition);
   });
@@ -327,9 +347,13 @@ function istTabellenDokument(data) {
 // Liest den Definitions-Behälter aus dem Frontmatter-Objekt eines Dokuments.
 //
 // Liefert { istTabelle, fields, hints } plus — nur wenn die Datei sie trägt —
-// { lastId, key, display }: `fields` sind die gültigen, normalisierten
-// Definitionen { name, type } samt ihren optionalen Angaben, `hints` die
-// gesammelten Hinweise in der Gestalt oben. Fehler-Codes:
+// { lastId, key, display, changeLog, checks, editable }: `fields` sind die gültigen,
+// normalisierten Definitionen { name, type } samt ihren optionalen Angaben (seit
+// 4T-001930 auch `checks`, die gültigen Feld-Regeln), `hints` die gesammelten
+// Hinweise in der Gestalt oben. Eine Regel hat die Gestalt { art: 'regex' |
+// 'expr' | 'name', quelle, regex?, ast?, name?, message } (`table-checks.js`);
+// `checks` am Ergebnis sind die gültigen Datensatz-Regeln, `editable` die gültige
+// Bearbeitbarkeits-Bedingung als eine solche Regel (4T-001932). Fehler-Codes:
 //   container            Behälter ist kein einfaches Objekt (keine Definitionen)
 //   fieldsNotList        `fields` im Behälter ist keine Liste
 //   entry                Definitions-Eintrag ist kein Objekt
@@ -353,6 +377,24 @@ function istTabellenDokument(data) {
 //   keyUnknown           ein Schlüssel-Teil nennt kein vorhandenes Feld (entfällt ganz)
 //   display              Anzeige-Form ist kein Feld-Name (entfällt)
 //   displayUnknown       Anzeige-Form nennt kein vorhandenes Feld (entfällt)
+//   changeLog            changeLog ist kein Objekt (die Übersteuerung entfällt)
+//   changeLogMaxBytes    Größen-Grenze der Beleg-Datei unbrauchbar (entfällt, Vorgabe gilt)
+//   changeLogMaxPerRecord Beleg-Zahl je Datensatz unbrauchbar (entfällt, Vorgabe gilt)
+//   check                Feld-Regel weder Text noch Objekt mit rule (entfällt einzeln)
+//   checkRegex           Feld-Regel: regulärer Ausdruck nicht übersetzbar (entfällt einzeln)
+//   checkExpr            Feld-Regel: Ausdruck ungültig (entfällt einzeln)
+//   checkFieldRef        Feld-Regel nennt einen anderen Bezug als value (entfällt einzeln)
+//   checkUnknownRule     Feld-Regel nennt einen unbekannten Regel-Namen (entfällt einzeln)
+//   checkMessage         Meldung einer Feld-Regel nicht auslegbar (entfällt, Regel bleibt)
+//   checksNotList        checks am Behälter ist keine Liste (alle Datensatz-Regeln entfallen)
+//   checksEntry          Datensatz-Regel weder Text noch Objekt mit rule (entfällt einzeln)
+//   checksExpr           Datensatz-Regel: Ausdruck ungültig (entfällt einzeln)
+//   checkUnknownField    Datensatz-Regel nennt ein unbekanntes Feld (entfällt einzeln)
+//   checksMessage        Meldung einer Datensatz-Regel nicht auslegbar (entfällt, Regel bleibt)
+//   editable             Bedingung weder Text noch Objekt mit rule (entfällt, Tabelle bearbeitbar)
+//   editableExpr         Bedingung: Ausdruck ungültig (entfällt, Tabelle bearbeitbar)
+//   editableUnknownField Bedingung nennt ein unbekanntes Feld (entfällt, Tabelle bearbeitbar)
+//   editableMessage      Meldung der Bedingung nicht auslegbar (entfällt, Bedingung bleibt)
 //
 // Angaben, die dieses Modul (noch) nicht beschreibt, bleiben unangetastet und
 // hinweisfrei — dieselbe Zusage, die das Feld-Format der Eigenschafts-Profile
@@ -381,7 +423,68 @@ function parseTableDefinition(data) {
 
   const ergebnis = { istTabelle: true, fields, hints };
   leseIdentitaet(behaelter, fields, ergebnis, hints);
+  leseBelegGrenzen(behaelter, ergebnis, hints);
+  leseRegeln(behaelter, fields, ergebnis, hints);
   return ergebnis;
+}
+
+// 4T-001930 (E22): Die Datensatz-Regeln stehen auf der oberen Ebene des
+// Behälters, weil sie mehrere Felder zusammen prüfen und damit die Tabelle als
+// Ganzes betreffen. Sie erscheinen am Ergebnis nur, wenn mindestens eine gültige
+// dasteht, nach derselben Regel wie Identität und Beleg-Grenzen. Gelesen wird
+// gegen die GÜLTIGEN Felder: Ein Feld, das mit einem Fehler entfallen ist, kann
+// keine Regel tragen.
+function leseRegeln(behaelter, fields, ergebnis, hints) {
+  const regeln = leseDatensatzRegeln(behaelter[DB_CHECKS_KEY], fields);
+  for (const hinweis of regeln.hints)
+    hints.push(baueHinweis(hinweis.code, -1, hinweis.name, hinweis.expected));
+  if (regeln.checks.length > 0) ergebnis.checks = regeln.checks;
+  // 4T-001932 (E22.7): Die Bearbeitbarkeits-Bedingung erscheint nur, wenn sie
+  // brauchbar ist; eine unbrauchbare entfällt, und die Tabelle bleibt bearbeitbar.
+  const bedingung = leseBearbeitbarkeit(behaelter[DB_EDITABLE_KEY], fields);
+  for (const hinweis of bedingung.hints)
+    hints.push(baueHinweis(hinweis.code, -1, hinweis.name, hinweis.expected));
+  if (bedingung.editable !== null) ergebnis.editable = bedingung.editable;
+}
+
+// 4T-001791 (E10.11): Die Übersteuerung der Wachstums-Grenze der
+// Änderungsbelege. Die Angaben betreffen die Tabelle als Ganzes und stehen
+// deshalb auf der oberen Ebene des Behälters, neben `lastId`, `key` und
+// `display`; sie erscheinen am Ergebnis nur, wenn die Datei sie trägt, nach
+// derselben Regel wie die Identität.
+//
+// **Eine unbrauchbare Angabe entfällt, und es gilt die Vorgabe** und nicht
+// «unbegrenzt»: Ein Tippfehler darf die Grenze nicht stillschweigend aufheben,
+// er darf aber auch nicht strenger wirken, als der Anwender es wollte.
+const DB_CHANGELOG_KEY = 'changeLog';
+const DB_CHANGELOG_GRENZEN = Object.freeze({
+  maxBytes: 'changeLogMaxBytes',
+  maxPerRecord: 'changeLogMaxPerRecord',
+});
+
+// Zulässig ist je eine ganze Zahl größer null oder das Wort «unbegrenzt».
+function normalisiereBelegGrenze(roh) {
+  if (typeof roh === 'string' && roh.trim() === UNBEGRENZT) return UNBEGRENZT;
+  if (typeof roh === 'number' && Number.isSafeInteger(roh) && roh > 0) return roh;
+  return null;
+}
+
+function leseBelegGrenzen(behaelter, ergebnis, hints) {
+  const roh = behaelter[DB_CHANGELOG_KEY];
+  if (roh === undefined || roh === null) return;
+  if (!istEinfachesObjekt(roh)) {
+    hints.push(baueHinweis('changeLog', -1, null));
+    return;
+  }
+  const grenzen = {};
+  for (const [schluessel, code] of Object.entries(DB_CHANGELOG_GRENZEN)) {
+    const wert = roh[schluessel];
+    if (wert === undefined || wert === null) continue;
+    const gelesen = normalisiereBelegGrenze(wert);
+    if (gelesen === null) hints.push(baueHinweis(code, -1, null));
+    else grenzen[schluessel] = gelesen;
+  }
+  if (Object.keys(grenzen).length > 0) ergebnis.changeLog = grenzen;
 }
 
 // 4T-001508 (E5.1 bis E5.3): Die Angaben zur Identität stehen auf der oberen
@@ -422,9 +525,43 @@ function erwartung(code, fields) {
   return code.endsWith('Unknown') ? fields.map((feld) => feld.name) : undefined;
 }
 
+// --- Der Behälter der Masken-Datei (4T-001938) ------------------------------------------
+
+/**
+ * Liest den Behälter einer Masken-Datei (4T-001938, Epic 3E-000257, B1; E7.3).
+ *
+ * Der Behälter `db-form` trägt allein die Angabe `table`, den Namen der
+ * Tabelle, deren Datensätze die Maske zeigt. **Ohne brauchbare Angabe ist die
+ * Datei keine Maske**, anders als die Tabelle, die mit einem defekten Behälter
+ * eine Tabelle bleibt (`parseTableDefinition`): Eine Tabelle trägt Datensätze,
+ * die nicht still verschwinden dürfen; eine Maske ohne Tabelle hat dagegen
+ * nichts, was sie zeigen könnte, und bleibt ein gewöhnliches Dokument mit einem
+ * Hinweis. Gelesen wird die Datei im Vorgang zur Masken-Datei; hier entsteht
+ * allein die Form des Behälters.
+ *
+ * @param {object} data Das Frontmatter-Objekt.
+ * @returns {{istMaske: boolean, table: string|null, hints: Array<object>}}
+ *   `hints` trägt `formTable`, wenn der Behälter dasteht, aber keinen
+ *   brauchbaren Tabellen-Namen nennt.
+ */
+function parseFormDefinition(data) {
+  const hints = [];
+  if (!istEinfachesObjekt(data) || data[DB_FORM_KEY] === undefined)
+    return { istMaske: false, table: null, hints };
+  const behaelter = data[DB_FORM_KEY];
+  const table = istEinfachesObjekt(behaelter) ? alsText(behaelter.table) : null;
+  if (table === null) {
+    hints.push(baueHinweis('formTable', -1, null));
+    return { istMaske: false, table: null, hints };
+  }
+  return { istMaske: true, table, hints };
+}
+
 module.exports = {
   DB_TABLE_KEY,
+  DB_FORM_KEY,
   DB_FIELDS_KEY,
+  DB_CHANGELOG_KEY,
   DB_COLUMN_TYPES,
   DB_DEFAULT_COLUMN_TYPE,
   DB_FIELD_PROFILE_NAME,
@@ -433,4 +570,5 @@ module.exports = {
   dbFieldProfile,
   istTabellenDokument,
   parseTableDefinition,
+  parseFormDefinition,
 };

@@ -44,6 +44,7 @@ Ist eine Unterseite aktiv, zeigt ein **Breadcrumb** über dem Dokument (Lese-, G
 - Offene Dokumente ziehen nach; ein Dokument mit **ungespeicherten Änderungen** erhält die Anpassung im Editor als eigenen Rückgängig-Schritt, während auf der Festplatte nur der zuletzt gespeicherte Stand angepasst wird.
 - Bei aktivierter [Dokument-Historie](history.md) ist jede Anpassung als Revision nachvollziehbar und lässt sich zurücknehmen; ohne Historie gibt es kein Zurückdrehen.
 - In einer Bereichs-Applikation deckt die Anpassung den gesamten Bereich ab, ohne Bereich den bekannten Suchraum; für den Rest bleibt der Linter das Netz.
+- Trägt die Datei **Änderungsbelege**, wie eine Datenbank-Tabelle, ziehen diese mit, und das Umbenennen kann daran auch scheitern. Was dann gilt, steht bei der Datei-Verwaltung im Bereichs-Panel unter [Applikationen, Fenster und Bereiche](apps-windows.md).
 
 ## Lösen
 

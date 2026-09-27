@@ -20,8 +20,10 @@
 'use strict';
 
 const { extractFrontmatter } = require('../markdown/frontmatter.js');
-const { FENCE_RE } = require('../markdown/link-scan.js');
-const { RECORD_FENCE, RECORD_MARKER } = require('./record-block.js');
+// 4T-001833 (Epic 3E-000254, B4): Die Zaun-Regel kommt aus dem Format-Modul,
+// nicht aus einer eigenen Kopie. Bis dahin stand hier ein eigener Vergleich,
+// der nur das Zeichen und nicht die Länge prüfte.
+const { RECORD_FENCE, RECORD_MARKER, zaunOeffnung, schliesstZaun } = require('./record-block.js');
 const { PART_FRONTMATTER_KEY } = require('../document-parts.js');
 // Die EINE Quelle der Auskunft «ist das eine Tabellen-Datei» (4T-001550).
 const { istTabellenDatei } = require('../document-split-punkte.js');
@@ -29,13 +31,6 @@ const { istTabellenDatei } = require('../document-split-punkte.js');
 // Die beiden Rollen, die eine Datei im Ablage-Format einnehmen kann.
 const ROLLE_KOPF = 'kopf';
 const ROLLE_FOLGE = 'folge';
-
-// Das erste Wort des Infostrings hinter einem Zaun; dieselbe Lesart, mit der
-// markdown-it die Fence-Sprache bestimmt und mit der `document-split-punkte.js`
-// den Datenblock findet.
-function zaunSprache(zeile, zaun) {
-  return zeile.slice(zaun[0].length).trim().split(/\s+/)[0];
-}
 
 /**
  * Billige Vorprüfung, bevor Frontmatter ausgelegt wird.
@@ -110,23 +105,26 @@ function rumpfZeile(text, endOffset) {
 // Datensatz-Block vor; eine zweite Fence wäre eine von Hand erzeugte
 // Doppelung, und sie stillschweigend mitzulesen hieße, zwei Blöcke zu einem zu
 // verschmelzen und dabei jede Kennung doppelt zu führen.
+//
+// 4T-001833 (Epic 3E-000254, B4): **Geschlossen wird nach der Standard-Regel**,
+// also nur von einer Zaun-Zeile aus demselben Zeichen, mindestens so lang wie
+// die öffnende und ohne Sprach-Angabe (`schliesstZaun`). Bis dahin endete der
+// Block an der ersten Zaun-Zeile mit demselben Zeichen, und in einer Datei mit
+// gewachsenem Zaun verschwanden alle Datensätze hinter einer inneren kürzeren
+// Zeile. Dieselbe Regel gilt für fremde Code-Blöcke vor dem Datensatz-Block.
 function kopfRumpf(zeilen) {
-  let imZaun = false;
-  let zaunZeichen = null;
+  let offen = null;
   let von = -1;
   for (let i = 0; i < zeilen.length; i++) {
-    const zaun = zeilen[i].match(FENCE_RE);
-    if (!zaun) continue;
-    const zeichen = zaun[1].charAt(0);
-    if (!imZaun) {
-      imZaun = true;
-      zaunZeichen = zeichen;
-      if (zaunSprache(zeilen[i], zaun) === RECORD_FENCE) von = i + 1;
+    if (offen === null) {
+      const oeffnung = zaunOeffnung(zeilen[i]);
+      if (!oeffnung) continue;
+      offen = oeffnung;
+      if (oeffnung.sprache === RECORD_FENCE) von = i + 1;
       continue;
     }
-    if (zeichen !== zaunZeichen) continue;
-    imZaun = false;
-    zaunZeichen = null;
+    if (!schliesstZaun(zeilen[i], offen)) continue;
+    offen = null;
     if (von >= 0) return { von, bis: i };
   }
   return von >= 0 ? { von, bis: zeilen.length } : null;
@@ -135,10 +133,20 @@ function kopfRumpf(zeilen) {
 // Der Rumpf eines Folge-Segments: alles hinter dem Frontmatter bis zu einer
 // schließenden Zaun-Zeile. Das mittlere Segment trägt gar keinen Zaun, das
 // letzte den schließenden der Kopf-Datei.
+//
+// 4T-001833 (Epic 3E-000254, B5): **Schließend ist allein die letzte nicht-leere
+// Zeile der Datei**, wenn sie eine Zaun-Zeile ohne Sprach-Angabe ist. Ein
+// Folge-Segment kennt die Länge seines öffnenden Zauns nicht, denn der steht in
+// der Kopf-Datei, und die Zuordnungs-Zeile sagt nicht, ob das Segment das
+// letzte ist. Nach der Bauart des Teilens kann der schließende Zaun aber nur am
+// Datei-Ende stehen. Jede andere Zaun-Zeile ist Inhalt; der Parser meldet sie.
+// Nicht gewählt: die Zaun-Länge aus der Kopf-Datei hereinreichen, weil der
+// Leser dann die Kopf-Datei kennen müsste.
 function folgeRumpf(zeilen, abZeile) {
-  for (let i = abZeile; i < zeilen.length; i++) {
-    if (FENCE_RE.test(zeilen[i])) return { von: abZeile, bis: i };
-  }
+  let letzte = zeilen.length - 1;
+  while (letzte >= abZeile && zeilen[letzte].trim() === '') letzte--;
+  const schluss = letzte >= abZeile ? zaunOeffnung(zeilen[letzte]) : null;
+  if (schluss && schluss.sprache === '') return { von: abZeile, bis: letzte };
   return { von: abZeile, bis: zeilen.length };
 }
 
@@ -178,4 +186,7 @@ module.exports = {
   istFolgeSegment,
   rolleVon,
   datensatzRumpf,
+  // 4T-001833 (Epic 3E-000254, B5): Die Grenze des Folge-Segments braucht auch
+  // die Bereichs-Suche; sie nimmt sie von hier statt einer eigenen Kopie.
+  folgeRumpf,
 };

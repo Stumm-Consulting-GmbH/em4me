@@ -44,6 +44,7 @@ When a subpage is active, a **breadcrumb** above the document (reading, split an
 - Open documents follow along; a document with **unsaved changes** receives the update in the editor as its own undo step, while on disk only the last saved state is updated.
 - With the [document history](history.md) enabled, every update is traceable as a revision and can be undone; without history there is no rollback.
 - In an area application the update covers the whole area; without an area the known search scope, and the linter remains the safety net for the rest.
+- If the file carries **change records**, as a database table does, these move along, and the renaming can also fail because of them. What applies then is described with the file management in the area panel under [Applications, windows and areas](apps-windows.md).
 
 ## Detaching
 

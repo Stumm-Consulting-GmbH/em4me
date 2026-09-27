@@ -59,6 +59,8 @@ import {
 } from '../../../shared/subpages.js';
 import { activatePane } from '../tabs/tabs.js';
 import { saveTab, saveTabAs } from './save-export.js';
+// 4T-001789 (Epic 3E-000255): gemeinsame Meldung der Begleit-Fehlschläge.
+import { begleitFehlerMeldung } from './rename-companion.js';
 
 const TITLE_LINE_EXTENSION_ID = 'title-line';
 
@@ -142,7 +144,13 @@ export function updateAllTitleLines() {
 
 // --- Hinweis-Fläche (4T-000586) ----------------------------------------------------
 
-function showTitleLineHint(el, text, isError) {
+// Voreingestellte Anzeigedauer der Hinweis-Fläche.
+const HINWEIS_DAUER_MS = 5000;
+
+// 4T-001789 (Epic 3E-000255): `dauerMs` kam hinzu, weil eine Meldung zwei
+// Dateinamen tragen kann, die der Anwender abschreiben muss; fünf Sekunden
+// reichen dafür nicht. Ohne Angabe bleibt es bei der Voreinstellung.
+function showTitleLineHint(el, text, isError, dauerMs = HINWEIS_DAUER_MS) {
   const hint = el.querySelector('.title-line-hint');
   if (!hint) return;
   hint.textContent = text;
@@ -152,7 +160,7 @@ function showTitleLineHint(el, text, isError) {
   if (prev) clearTimeout(prev);
   hintTimers.set(
     el,
-    setTimeout(() => (hint.hidden = true), 5000),
+    setTimeout(() => (hint.hidden = true), dauerMs),
   );
 }
 
@@ -339,6 +347,15 @@ async function commitEdit() {
   }
   if (!result || !result.ok) {
     let text;
+    // 4T-001789 (Epic 3E-000255): Der Begleit-Zweig steht vor dem
+    // Teilfehler-Zweig; sonst erschiene der Fehlschlag des Mitziehens als
+    // blosse Stückzahl und verschwiege seinen Grund.
+    const begleit = begleitFehlerMeldung(result && result.code, result || {});
+    if (begleit) {
+      showTitleLineHint(s.el, begleit.text, true, begleit.dauerMs);
+      finishEdit(s, s.original);
+      return;
+    }
     if (result && result.code === 'partial') {
       text = t('rename.partial')
         .replace('{done}', String(result.renamedCount || 0))

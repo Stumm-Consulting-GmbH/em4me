@@ -1,0 +1,21 @@
+
+|- id="r-00005" kind="update" at="2026-09-01T09:15:00Z" tx="1" n="1"
+| onLoan
+|
+| x
+| demo
+| demo-pc
+
+|- id="r-00001" kind="update" at="2026-09-08T14:30:00Z" tx="2" n="1"
+| onLoan
+| x
+|
+| demo
+| demo-pc
+
+|- id="r-00016" kind="update" at="2026-09-15T11:05:00Z" tx="3" n="1"
+| author
+| Douglas Hofstadter
+| Douglas R. Hofstadter
+| demo
+| demo-pc

@@ -130,6 +130,8 @@
   "command.edit.insertEvents": "Ereignis-Block einfügen",
   "command.view.openFieldForm": "Feld-Formular des Dokuments öffnen",
   "command.edit.insertProfileQuery": "Profil-Abfrage einfügen",
+  "command.database.newRecord": "Neuer Datensatz in der aktiven Tabelle",
+  "command.database.checkConsistency": "Konsistenz der Datenbank prüfen",
   "command.canvas.addCard": "Karte auf der Fläche anlegen",
   "command.insert.canvas": "Canvas-Fläche",
   "command.canvas.addShape": "Form auf der Fläche anlegen",

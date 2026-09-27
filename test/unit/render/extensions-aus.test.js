@@ -703,7 +703,7 @@ describe('Erweiterung database: Registry und Aus-Zustand (4T-001760)', () => {
     expect(internalExtensions().some((m) => m.id === 'database')).toBe(true);
   });
 
-  it('AK3: nennt die zehn Katalog-Zeilen der Gruppe «Datenbank»', () => {
+  it('AK3: nennt die einundzwanzig Katalog-Zeilen der Gruppe «Datenbank»', () => {
     const manifest = extensionById('database');
     // 4T-001761 (Epic 3E-000253): Acht statt der ursprünglichen neun. Die Zeile
     // zum Suchraum-Schnitt ist in die Kern-Liste zurückgezogen, weil der
@@ -716,6 +716,23 @@ describe('Erweiterung database: Registry und Aus-Zustand (4T-001760)', () => {
     // Aus-Zustand entfallen, und gehören deshalb an die Erweiterung. Die dritte
     // neue Zeile, help.feature.databaseExtension, bleibt draußen: Sie
     // beschreibt den Schalter selbst und steht in der Kern-Liste.
+    //
+    // 4T-001793 (Epic 3E-000255): Zwölf statt zehn. Die Änderungsbelege je
+    // Tabelle und ihre lesende Ansicht am Datensatz sind mit dem Hilfe- und
+    // Handbuch-Task des Epics entstanden; im Aus-Zustand entsteht weder der
+    // Datensatz-Block noch seine Schaltfläche, und die Ansicht trägt ihr
+    // eigenes Tor der Erweiterung.
+    //
+    // 4T-001933 (Epic 3E-000256): Sechzehn statt zwölf. Schlüssel-Eindeutigkeit,
+    // Beziehungen mit Lösch-Schutz, Prüfregeln und bedingte Bearbeitbarkeit
+    // wirken an der Schreib-Schnittstelle der Datenbank, die im Aus-Zustand
+    // verweigert; ohne die vier Zeilen blieben sie auf der Funktions-Seite im
+    // Aus-Zustand ungekennzeichnet, obwohl es sie dann nicht gibt.
+    //
+    // 4T-001946 (Epic 3E-000257): Einundzwanzig statt sechzehn. Maske, Sperre bei
+    // der Bearbeitung, Masken-Datei, Konsistenz-Prüfung und Verwendungsnachweis
+    // haben ihre Zugänge an Datensatz-Block, Übersicht und Kommando-Palette, die
+    // im Aus-Zustand entfallen; die Kanäle der Maske verweigern dann.
     expect(manifest.featureKeys).toEqual([
       'help.feature.databaseTable',
       'help.feature.databaseColumnTypes',
@@ -727,6 +744,17 @@ describe('Erweiterung database: Registry und Aus-Zustand (4T-001760)', () => {
       'help.feature.databaseRecordLink',
       'help.feature.databaseArea',
       'help.feature.databaseOverview',
+      'help.feature.databaseChangeLog',
+      'help.feature.databaseChangeLogView',
+      'help.feature.databaseKeyUnique',
+      'help.feature.databaseRelations',
+      'help.feature.databaseChecks',
+      'help.feature.databaseEditable',
+      'help.feature.databaseForm',
+      'help.feature.databaseLock',
+      'help.feature.databaseFormFile',
+      'help.feature.databaseConsistency',
+      'help.feature.databaseUsage',
     ]);
     expect(manifest.featureKeys).not.toContain('help.feature.databaseSearchScope');
     expect(manifest.featureKeys).not.toContain('help.feature.databaseExtension');
@@ -740,9 +768,33 @@ describe('Erweiterung database: Registry und Aus-Zustand (4T-001760)', () => {
 
   it('AK4: führt das Kommando der Übersicht, und es ist registriert', () => {
     const manifest = extensionById('database');
-    expect(manifest.commands).toEqual(['database.openOverview']);
+    // 4T-001939 (Epic 3E-000257, AK6): dazu das Kommando der Neuanlage aus der
+    // Einzel-Maske; im Aus-Zustand entfällt es mit der Maske.
+    // 4T-001944 (Epic 3E-000257, AK7): dazu das Kommando der Konsistenz-Prüfung.
+    expect(manifest.commands).toEqual([
+      'database.openOverview',
+      'database.newRecord',
+      'database.checkConsistency',
+    ]);
     const registrierte = new Set(COMMANDS.map((c) => c.id));
     expect(registrierte.has('database.openOverview')).toBe(true);
+    expect(registrierte.has('database.newRecord')).toBe(true);
+    expect(registrierte.has('database.checkConsistency')).toBe(true);
+  });
+
+  it('4T-001944 AK7: das Kommando der Konsistenz-Prüfung hat keinen Menü-Eintrag und entfällt im Aus-Zustand', () => {
+    const eintrag = COMMANDS.find((c) => c.id === 'database.checkConsistency');
+    expect(eintrag.menu).toBe(false);
+    expect(eintrag.defaultBindings).toEqual([]);
+    expect(disabledCommandIdSet(['database']).has('database.checkConsistency')).toBe(true);
+    expect(disabledCommandIdSet([]).has('database.checkConsistency')).toBe(false);
+  });
+
+  it('4T-001939 AK6: das Kommando der Neuanlage hat keinen Menü-Eintrag und entfällt im Aus-Zustand', () => {
+    const eintrag = COMMANDS.find((c) => c.id === 'database.newRecord');
+    expect(eintrag.menu).toBe(false);
+    expect(disabledCommandIdSet(['database']).has('database.newRecord')).toBe(true);
+    expect(disabledCommandIdSet([]).has('database.newRecord')).toBe(false);
   });
 
   it('AK4: der Aus-Zustand filtert genau dieses Kommando, der An-Zustand keines', () => {

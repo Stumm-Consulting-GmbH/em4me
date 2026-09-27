@@ -20,7 +20,7 @@ import {
   lesezaehlerZuruecksetzen,
 } from '../../src/main/database/frontmatter-kopf.js';
 import { parseContent } from '../../src/main/index/parse.js';
-import { DB_TABLE_KEY } from '../../src/shared/database/table-definition.js';
+import { DB_TABLE_KEY, DB_FORM_KEY } from '../../src/shared/database/table-definition.js';
 import { DB_DATABASE_KEY } from '../../src/shared/database/database-steckbrief.js';
 
 // --- Nachgestellter Dateizugriff ----------------------------------------------------
@@ -330,6 +330,75 @@ describe('Katalog: Aktualität ohne Neustart (AK5)', () => {
     const u = await katalogUeberblick({ sicht: sichtMit({}), status: 'indexing', fsp, cache });
     expect(u.status).toBe('indexing');
     expect(u.tabellen).toEqual([]);
+  });
+});
+
+// 4T-001943 (Epic 3E-000257, Bauplan B2; AK2): Die Masken-Dateien. Die Maske
+// nennt ihre Tabelle beim Namen; es gilt die erste nach Pfad.
+describe('Katalog: Masken-Dateien (4T-001943, B2)', () => {
+  function maske(tabelle) {
+    return `---\ntitle: Maske\n${DB_FORM_KEY}:\n  table: ${tabelle}\n---\n\n{{field:nachname}}\n`;
+  }
+  const MASKE_A = '/db/Personen Form.md';
+  const MASKE_B = '/db/Zweite Personen Form.md';
+  const MASKE_FREMD = '/db/Kunden Form.md';
+  const MASKE_LEER = '/db/Leer Form.md';
+
+  function ueberblick(zusatz) {
+    const { fsp } = fakeFs({ ...DATEIEN, ...zusatz.dateien });
+    const sicht = sichtMit({
+      [PERSONEN]: ['table'],
+      [FIRMEN]: ['table'],
+      [STECKBRIEF]: ['database'],
+      ...zusatz.marken,
+    });
+    return katalogUeberblick({ sicht, status: 'ready', fsp, cache });
+  }
+
+  it('erkennt die Marke form und ordnet die Maske ihrer Tabelle zu', async () => {
+    const u = await ueberblick({
+      dateien: { [MASKE_A]: maske('personen') },
+      marken: { [MASKE_A]: ['form'] },
+    });
+    expect(u.masken).toEqual([{ path: MASKE_A, table: 'personen', hints: [] }]);
+    expect(u.tabellen.find((t) => t.name === 'Personen').maske).toBe(MASKE_A);
+    expect(u.tabellen.find((t) => t.name === 'Firmen').maske).toBeNull();
+    expect(u.hints).toEqual([]);
+  });
+
+  it('lässt die erste Maske nach Pfad gelten und meldet die weitere', async () => {
+    const u = await ueberblick({
+      dateien: { [MASKE_B]: maske('Personen'), [MASKE_A]: maske('Personen') },
+      marken: { [MASKE_B]: ['form'], [MASKE_A]: ['form'] },
+    });
+    expect(u.tabellen.find((t) => t.name === 'Personen').maske).toBe(MASKE_A);
+    const zweite = u.masken.find((m) => m.path === MASKE_B);
+    expect(zweite.hints.map((h) => [h.code, h.name])).toEqual([['formMehrereDateien', 'Personen']]);
+    expect(u.masken.find((m) => m.path === MASKE_A).hints).toEqual([]);
+  });
+
+  it('meldet eine Maske zu einer unbekannten Tabelle und eine ohne Tabelle', async () => {
+    const u = await ueberblick({
+      dateien: {
+        [MASKE_FREMD]: maske('Kunden'),
+        [MASKE_LEER]: `---\n${DB_FORM_KEY}: {}\n---\n`,
+      },
+      marken: { [MASKE_FREMD]: ['form'], [MASKE_LEER]: ['form'] },
+    });
+    const fremd = u.masken.find((m) => m.path === MASKE_FREMD);
+    expect(fremd.hints.map((h) => [h.code, h.name, h.key])).toEqual([
+      ['formTabelleUnbekannt', 'Kunden', 'table'],
+    ]);
+    const leer = u.masken.find((m) => m.path === MASKE_LEER);
+    expect(leer.table).toBeNull();
+    expect(leer.hints.map((h) => h.code)).toEqual(['formTable']);
+    expect(u.tabellen.every((t) => t.maske === null)).toBe(true);
+  });
+
+  it('liefert ohne Masken-Datei eine leere Liste', async () => {
+    const { fsp } = fakeFs(DATEIEN);
+    const u = await katalogUeberblick({ sicht: SICHT, status: 'ready', fsp, cache });
+    expect(u.masken).toEqual([]);
   });
 });
 

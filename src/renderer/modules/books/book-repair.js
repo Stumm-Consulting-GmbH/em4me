@@ -10,6 +10,9 @@ import { t } from '../../i18n.js';
 
 import { getPaneEls } from '../app/app-state.js';
 import { showStatusbarHint } from '../views/views.js';
+// 4T-001789 (Epic 3E-000255): dieselbe Meldung wie im Umbenennen-Dialog und in
+// der Titel-Zeile; das Verschieben im Buch läuft über dieselbe Strecke.
+import { begleitFehlerMeldung } from '../views/rename-companion.js';
 
 import { pathKey } from './book-helpers.js';
 import { activeBook, activeChapter, booksApi } from './book-state.js';
@@ -46,6 +49,14 @@ export async function moveChapterFile(relPath) {
   if (result && result.canceled) return false;
   const error = result ? result.error : undefined;
   if (MOVE_ERRORS_SILENT.has(error)) return false;
+  // 4T-001789 (Epic 3E-000255): Der Hauptprozess reicht die Kennung des
+  // gescheiterten Mitziehens als `error` durch; sie trägt ihren eigenen Text
+  // samt Dateinamen und fällt deshalb nicht auf den allgemeinen Hinweis.
+  const begleit = begleitFehlerMeldung(error, result || {});
+  if (begleit) {
+    showStatusbarHint(null, { text: begleit.text, duration: begleit.dauerMs, error: true });
+    return false;
+  }
   showStatusbarHint(MOVE_ERROR_KEYS[error] || 'bookPanel.moveFailed', {
     duration: 3000,
     error: true,

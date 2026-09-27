@@ -16,6 +16,18 @@ import {
   isEmptyDirListing,
   createDemoAreaAt,
 } from '../../src/main/area/demo-area.js';
+// 4T-001826 (Epic 3E-000254): die Leser, über die die Anwendung Beleg-Datei,
+// Tabelle und Zähler-Datei selbst liest, und die Prüfer, an denen Dateiliste
+// und Bereichs-Watcher die Markdown-Data-Familie übergehen.
+import { leseBelegDatei } from '../../src/main/database/change-log.js';
+import { leseTabellenBestand } from '../../src/main/database/record-auftrag-bestand.js';
+import { werteDes, zellText } from '../../src/main/database/record-auftrag-plan.js';
+import { leseVorgangsDatei } from '../../src/main/database/vorgangs-kennung.js';
+import { belegeZuDatensatz, pruefeVerkettung } from '../../src/shared/database/change-record.js';
+import { isMarkdownDataPath } from '../../src/shared/markdown-data-family.js';
+import { DEFAULT_LOCK_FOLDER_NAME } from '../../src/shared/database/lock-folder-name.js';
+import { baueIgnorierRegel } from '../../src/main/area/area-watch-ignore.js';
+import { collectMarkdownFiles } from '../../src/main/index/scan.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEMO_DIR = path.resolve(HERE, '..', '..', 'src', 'demo');
@@ -29,6 +41,13 @@ const EXPECTED_FILES = [
   // die Funktion vorfuehrt statt sie nur zu beschreiben: Wer die Demo-Area
   // oeffnet, landet auf ihrer Willkommens-Seite.
   'Area_Settings.mdda',
+  // 4T-001826 (Epic 3E-000254): die Zähler-Datei der Vorgangs-Kennung des
+  // Demo-Bereichs. Sie reist mit, weil sonst der erste eigene Schreibvorgang des
+  // Anwenders eine Vorgangs-Kennung zöge, die in den mitgelieferten Belegen
+  // schon vorkommt; ihr Stand passt zur höchsten Vorgangs-Kennung von
+  // „Library.mddl". Von Hand wird an ihr nichts geschrieben: Sie entsteht allein
+  // durch den Lauf von scripts/demo-belege-erzeugen.js.
+  'Area_Database.mdda',
   '00 Welcome.md',
   '01 Markdown Basics.md',
   '02 Extended Syntax.md',
@@ -103,6 +122,14 @@ const EXPECTED_FILES = [
   // bewusst neben der Tour und nicht als Kapitel in ihr: Eine Tabellen-Datei
   // ist technische Ablage, die man ansieht, aber nicht durcharbeitet.
   'Library.md',
+  // 4T-001826 (Epic 3E-000254): die Beleg-Datei der Demo-Tabelle mit drei
+  // Belegen der Art «Geändert». Erst mit ihr zeigt die Beleg-Ansicht im
+  // Demo-Bereich etwas, ohne dass der Anwender zuvor selbst Datensätze ändern
+  // muss. Von Hand wird an ihr nichts geschrieben: Sie entsteht allein durch die
+  // Schreib-Schnittstelle der Anwendung, gerufen von
+  // scripts/demo-belege-erzeugen.js, das dabei auch die drei geänderten Zellen
+  // von „Library.md" schreibt.
+  'Library.mddl',
   // 4T-001762 (Epic 3E-000253, Demo-Area-Prüfschritt): das Steckbrief-Dokument
   // der Demo-Datenbank, angelegt auf die Entscheidung des Product Owners vom
   // 2026-09-17, mit der die dort vorgelegte Ergänzungs-Frage beantwortet ist. Es
@@ -112,6 +139,16 @@ const EXPECTED_FILES = [
   // überhaupt sichtbar. Der Name folgt dem von `Library.md`: ohne
   // Nummern-Präfix, weil beide neben der Tour stehen und nicht in ihr.
   'Library Database.md',
+  // 4T-001946 (Epic 3E-000257, Demo-Area-Prüfschritt): die zweite Demo-Tabelle,
+  // angelegt auf die Entscheidung des Product Owners vom 2026-09-24. Erst eine
+  // Verweis-Spalte macht Wertehilfe, Anzeige-Form im Verweis-Feld,
+  // Verwendungsnachweis und Lösch-Schutz im Demo-Bereich vorführbar; «Loans»
+  // verweist mit der Spalte `book` auf «Library» und trägt dazu eine
+  // Datensatz-Regel und eine Bearbeitbarkeits-Bedingung. Wie «Library.md» mit
+  // den Schlagwörtern demo und data, damit die Tag-Menge der Demo-Area gleich
+  // bleibt; ohne Beleg-Datei, weil scripts/demo-belege-erzeugen.js allein
+  // «Library.md» bedient.
+  'Loans.md',
   'Light Speed.md',
   'Milky Way.md',
   'Milky Way∕Proxima Centauri.md',
@@ -247,5 +284,133 @@ describe('createDemoAreaAt gegen echte Temp-Ordner (4T-000632)', () => {
     const dest = path.join(mkTemp(), 'gibt-es-nicht');
     const result = await createDemoAreaAt(dest, src);
     expect(result).toEqual({ ok: false, error: 'not-found' });
+  });
+});
+
+// 4T-001826 (Epic 3E-000254): Die mitgelieferten Änderungsbelege des
+// Demo-Bereichs. Die Soll-Werte stehen hier bewusst ein zweites Mal und nicht
+// aus scripts/demo-belege-erzeugen.js übernommen: Der Fall prüft die
+// ausgelieferten Dateien gegen die Entscheidung der Sitzung vom 2026-09-23, nicht
+// gegen das Skript, das sie erzeugt hat.
+const DEMO_BELEGE = [
+  {
+    id: 'r-00005',
+    vorgang: '1',
+    zeitpunkt: '2026-09-01T09:15:00Z',
+    feld: { name: 'onLoan', alt: '', neu: 'x' },
+  },
+  {
+    id: 'r-00001',
+    vorgang: '2',
+    zeitpunkt: '2026-09-08T14:30:00Z',
+    feld: { name: 'onLoan', alt: 'x', neu: '' },
+  },
+  {
+    id: 'r-00016',
+    vorgang: '3',
+    zeitpunkt: '2026-09-15T11:05:00Z',
+    feld: { name: 'author', alt: 'Douglas Hofstadter', neu: 'Douglas R. Hofstadter' },
+  },
+];
+
+describe('Demo-Area: Kopier-Weg nimmt Beleg- und Zähler-Datei mit (4T-001826)', () => {
+  const temps = [];
+
+  afterEach(async () => {
+    while (temps.length) {
+      const dir = temps.pop();
+      await fsp
+        .rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
+        .catch(() => {});
+    }
+  });
+
+  // Nachgewiesen am echten Kopier-Weg und am echten Demo-Bestand, nicht aus dem
+  // Quelltext geschlossen: Die Beleg-Datei gehört zur Markdown-Data-Familie, und
+  // diese Familie wird an anderen Stellen der Anwendung ausgeschlossen.
+  it('createDemoAreaAt legt Library.mddl und Area_Database.mdda byte-gleich ins Ziel', async () => {
+    const dest = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-demo-belege-'));
+    temps.push(dest);
+    const result = await createDemoAreaAt(dest);
+    expect(result).toEqual({ ok: true });
+    for (const name of ['Library.mddl', 'Area_Database.mdda', 'Library.md']) {
+      const kopiert = fs.readFileSync(path.join(dest, name));
+      expect(Buffer.compare(kopiert, fs.readFileSync(path.join(DEMO_DIR, name))), name).toBe(0);
+    }
+  });
+});
+
+describe('Demo-Area: die ausgelieferten Änderungsbelege (4T-001826)', () => {
+  const tabelle = path.join(DEMO_DIR, 'Library.md');
+
+  it('Library.mddl trägt drei intakte Belege der Art update mit fester Herkunft und festen Zeitpunkten', async () => {
+    const gelesen = await leseBelegDatei(tabelle);
+    expect(gelesen.ok).toBe(true);
+    expect(gelesen.befunde).toEqual([]);
+    expect(gelesen.belege).toHaveLength(DEMO_BELEGE.length);
+    DEMO_BELEGE.forEach((soll, i) => {
+      const beleg = gelesen.belege[i];
+      expect(beleg.beschaedigt, soll.id).toBe(false);
+      expect(beleg.art).toBe('update');
+      expect(beleg.id).toBe(soll.id);
+      expect(String(beleg.vorgang)).toBe(soll.vorgang);
+      expect(beleg.zeitpunkt).toBe(soll.zeitpunkt);
+      expect(beleg.benutzer).toBe('demo');
+      expect(beleg.rechner).toBe('demo-pc');
+      expect(beleg.felder).toEqual([soll.feld]);
+    });
+  });
+
+  it('je Datensatz lückenlos verkettet, und der letzte Beleg schließt an die Zelle von Library.md an', async () => {
+    const gelesen = await leseBelegDatei(tabelle);
+    const bestand = await leseTabellenBestand(fsp, tabelle, 'Library.md');
+    expect(bestand.ok).toBe(true);
+    expect(bestand.dateien).toHaveLength(1);
+    for (const soll of DEMO_BELEGE) {
+      const belege = belegeZuDatensatz(gelesen.belege, soll.id);
+      expect(belege, soll.id).toHaveLength(1);
+      expect(pruefeVerkettung(belege)).toEqual({ lueckenlos: true, luecken: [] });
+      const record = bestand.dateien[0].records.get(soll.id);
+      const treffer = bestand.karte.get(soll.feld.name.toLowerCase());
+      expect(zellText(werteDes(record), treffer.index), soll.id).toBe(belege.at(-1).felder[0].neu);
+    }
+  });
+
+  it('Area_Database.mdda trägt lastTx 3, passend zur höchsten Vorgangs-Kennung; lastId bleibt 24', async () => {
+    const zaehler = await leseVorgangsDatei(DEMO_DIR);
+    expect(zaehler.ok).toBe(true);
+    expect(zaehler.vorhanden).toBe(true);
+    expect(zaehler.letzter).toBe(3);
+    const gelesen = await leseBelegDatei(tabelle);
+    expect(Math.max(...gelesen.belege.map((b) => Number(b.vorgang)))).toBe(zaehler.letzter);
+    const bestand = await leseTabellenBestand(fsp, tabelle, 'Library.md');
+    expect(bestand.lastId).toBe(24);
+  });
+});
+
+describe('Demo-Area: Dateiliste und Watcher übergehen Beleg- und Zähler-Datei (4T-001826)', () => {
+  const namen = ['Library.mddl', 'Area_Database.mdda'];
+
+  it('beide gehören zur Markdown-Data-Familie, die Dateiliste und Direkt-Öffnen ausschließen', () => {
+    for (const name of namen)
+      expect(isMarkdownDataPath(path.join(DEMO_DIR, name)), name).toBe(true);
+    // Gegenprobe: Die Tabelle selbst ist ein Dokument.
+    expect(isMarkdownDataPath(path.join(DEMO_DIR, 'Library.md'))).toBe(false);
+  });
+
+  it('die Ignorier-Regel des Bereichs-Watchers übergeht beide', () => {
+    const regel = baueIgnorierRegel(
+      { rootPath: DEMO_DIR, sperrOrdner: DEFAULT_LOCK_FOLDER_NAME },
+      isMarkdownDataPath,
+    );
+    for (const name of namen) expect(regel(path.join(DEMO_DIR, name)), name).toBe(true);
+    expect(regel(path.join(DEMO_DIR, 'Library.md'))).toBe(false);
+  });
+
+  it('der Verzeichnis-Scan des Index führt beide nicht als Dokument', async () => {
+    const scan = await collectMarkdownFiles(DEMO_DIR, true);
+    const dokumente = scan.files.map((f) => path.basename(f));
+    for (const name of namen) expect(dokumente, name).not.toContain(name);
+    expect(dokumente).toContain('Library.md');
   });
 });

@@ -917,6 +917,10 @@ const INTERNAL_EXTENSIONS = [
   // help.feature.databaseExtension, steht bewusst NICHT hier, sondern in der
   // Kern-Liste von test/unit/funktions-seite-kern.js: Sie beschreibt den
   // Schalter selbst und gilt in beiden Stellungen.
+  // 4T-001793 (Epic 3E-000255): Zwölf statt zehn — die Änderungsbelege je
+  // Tabelle und ihre Ansicht am Datensatz. Beide gehören hierher, weil im
+  // Aus-Zustand weder ein Datensatz-Block noch seine Schaltfläche entsteht
+  // und die Beleg-Ansicht ihr eigenes Tor der Erweiterung trägt.
   // Im Aus-Zustand (eigener Schalter oder transitiv über die Profile) bleibt
   // der Datensatz-Block ein gewöhnlicher Code-Block in Lese-Ansicht und
   // portablem Export, das Kommando der Übersicht ist gefiltert und der
@@ -939,12 +943,32 @@ const INTERNAL_EXTENSIONS = [
       'help.feature.databaseRecordLink',
       'help.feature.databaseArea',
       'help.feature.databaseOverview',
+      'help.feature.databaseChangeLog',
+      'help.feature.databaseChangeLogView',
+      // 4T-001933 (Epic 3E-000256): Sechzehn statt zwölf mit der Eindeutigkeit des
+      // Schlüssels, Beziehungen, Prüfregeln und Bearbeitbarkeit. Im Aus-Zustand
+      // schreibt die Anwendung nicht und stellt keinen Datensatz-Block als
+      // Tabelle dar; keine der vier Zusagen wirkt dann.
+      'help.feature.databaseKeyUnique',
+      'help.feature.databaseRelations',
+      'help.feature.databaseChecks',
+      'help.feature.databaseEditable',
+      // 4T-001946 (Epic 3E-000257): Einundzwanzig statt sechzehn mit Maske, Sperre,
+      // Masken-Datei, Konsistenz-Prüfung und Verwendungsnachweis; im Aus-Zustand
+      // entfallen ihre Zugänge, und die Kanäle der Maske verweigern.
+      'help.feature.databaseForm',
+      'help.feature.databaseLock',
+      'help.feature.databaseFormFile',
+      'help.feature.databaseConsistency',
+      'help.feature.databaseUsage',
     ],
     dependencies: ['property-profiles'],
     // 4T-001759 (Epic 3E-000253): die Übersichts-Seite des Datenbank-Bereichs;
     // mit dem Kommando entfallen im Aus-Zustand Ansichtsmenü, Kontextmenü des
     // Bereichs-Panels, Kommando-Palette und die erzeugte Tastenkürzel-Seite.
-    commands: ['database.openOverview'],
+    // 4T-001939 (Epic 3E-000257): das Kommando der Neuanlage aus der Maske.
+    // 4T-001944: das Kommando der Konsistenz-Prüfung.
+    commands: ['database.openOverview', 'database.newRecord', 'database.checkConsistency'],
     // 4T-001758 (Epic 3E-000253): der Einstellungs-Bereich «Datenbank» der
     // Gruppe „Aktueller Bereich"; seine abgelegten Werte bleiben beim
     // Abschalten erhalten.

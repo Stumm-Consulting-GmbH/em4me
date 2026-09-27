@@ -1,0 +1,7 @@
+{
+  "schemaVersion": 1,
+  "shelf": {
+    "file": "Bookshelf.md"
+  },
+  "books": ["Demo Book", "Field Notes"]
+}

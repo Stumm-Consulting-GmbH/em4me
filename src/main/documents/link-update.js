@@ -15,6 +15,9 @@
 const path = require('node:path');
 const fs = require('node:fs/promises');
 const { ersetzeDateiOderWirf } = require('./atomic-write');
+// 4T-001789 (Epic 3E-000255): Das Mitziehen der Begleit-Dateien ist eine
+// Mechanik ueber eine Liste und liegt deshalb in einem eigenen Modul.
+const { pruefeBegleitZiele, bewegeMitBegleitDateien } = require('./companion-files');
 const { computeLinkRewrites } = require('../../shared/link-rewrite');
 const { isInsideArea } = require('../area/area-path');
 const selbstSchreib = require('./self-write');
@@ -33,7 +36,6 @@ const markSelfWriting = selbstSchreib.merke;
  * @param {Function} deps.readPreviousTextFor Datei-Stand vor dem Ueberschreiben.
  * @param {Function} deps.recordMddOnSave Protokollierung einer Speicherung.
  * @param {Function} deps.moveWatchEntry Beobachtung ueber eine Bewegung mitfuehren.
- * @param {(p: string) => string} deps.mddPathFor Pfad der Begleitdatei.
  * @param {(p: string) => string} deps.mddKeyOf Schluessel eines Dokuments.
  * @param {Map} deps.mddOpenPackets Offene Historien-Pakete je Dokument.
  * @param {Set} deps.mddSuspendedPaths Ausgesetzte Protokollierung je Dokument.
@@ -52,7 +54,6 @@ function createLinkUpdate(deps) {
     readPreviousTextFor,
     recordMddOnSave,
     moveWatchEntry,
-    mddPathFor,
     mddKeyOf,
     mddOpenPackets,
     mddSuspendedPaths,
@@ -185,41 +186,62 @@ function createLinkUpdate(deps) {
 
   /**
    * Eine Datei physisch umbenennen bzw. verschieben und die main-seitigen
-   * Konsumenten nachziehen: Beobachtung, .mdd-Begleitdatei, offene
+   * Konsumenten nachziehen: Beobachtung, Begleit-Dateien, offene
    * Historien-Pakete samt Suspend-Markierung, Zuletzt-Liste und der Eintrag
    * im Kapitel-Baum eines Buches. Der Broadcast 'file:renamed' erreicht alle
    * Fenster. 4T-000999: aus dem IPC-Block herausgeloest; die Semantik ist
    * unveraendert.
    *
+   * 4T-001789 (Epic 3E-000255): Die Bewegung selbst liegt jetzt in
+   * companion-files.js und umfasst die Hauptdatei samt ihren Begleit-Dateien.
+   * Alles Weitere dieser Funktion laeuft unveraendert und nur nach gelungener
+   * Bewegung.
+   *
    * @param {string} absolute Bisheriger Pfad.
    * @param {string} newPath Neuer Pfad.
-   * @returns {Promise<object>} { ok: true, bookDir } bzw. { ok: false, error }.
+   * @param {object} [opts]
+   * @param {number[]} [opts.abstaende] Auslegung des Wiederhol-Fensters der
+   *   Bewegung, wie bei `ersetzeDatei`. Fuer Pruefaelle, damit der
+   *   Ausschoepfungs-Fall keine echte Zeit verwartet.
+   * @returns {Promise<object>} { ok: true, bookDir } bzw. { ok: false, error }
+   *   mit `code` 'companion', 'companion-exists' oder 'companion-rollback',
+   *   wo eine Begleit-Datei den Fehlschlag verursacht hat.
    */
-  async function renameSingleFile(absolute, newPath) {
+  async function renameSingleFile(absolute, newPath, opts = {}) {
+    // 4T-001789: Vorab-Prüfung VOR jeder Bewegung. Läge am Zielnamen bereits
+    // eine Beleg-Datei, überschriebe das Mitziehen sie kommentarlos; geprüft
+    // wird deshalb, bevor auch nur die Beobachtung angefasst wird.
+    const vorab = await pruefeBegleitZiele(absolute, newPath);
+    if (!vorab.ok) return vorab;
     // 4T-000998: Die Beobachtung reist ueber moveWatchEntry mit; die Semantik
     // ist unveraendert (Watcher der alten Datei VOR dem Rename schliessen,
     // damit kein unlink-Event ('file:removed') die Tabs als fehlend markiert;
     // die Owner danach auf den neuen Pfad ummelden, bei einem Fehler zurueck
     // auf den alten). Bis dahin griff dieser Block selbst in die watchers-Map.
+    // 4T-001789: Die Rücknahme einer halb vollzogenen Bewegung läuft IM Rückruf
+    // und damit vor dieser Ummeldung: Ein zurückgenommener Zustand behält so
+    // seine Beobachtung auf dem alten Pfad.
+    //
+    // Der eine Sonderfall ist die endgültig gescheiterte Rücknahme. Die
+    // Rücknahme läuft rückwärts und bricht am ersten Fehlschlag ab; die
+    // Hauptdatei ist ihr letzter Schritt und liegt dann in jedem Fall unter
+    // dem NEUEN Pfad. Bliebe die Anwendung beim alten, hielte sie eine Datei
+    // für geöffnet, die es dort nicht mehr gibt, und das nächste Speichern
+    // legte unter dem alten Namen eine zweite an. Beobachtung, Historien-Pakete,
+    // Zuletzt-Liste und Rundruf folgen deshalb der Wirklichkeit, und der
+    // Fehlschlag wird danach trotzdem gemeldet.
+    let ruecknahmeGescheitert = null;
     const bewegt = await moveWatchEntry(absolute, newPath, async () => {
-      try {
-        await fs.rename(absolute, newPath);
-      } catch (err) {
-        const msg = err && err.message ? String(err.message) : String(err);
-        return { ok: false, error: msg };
+      const ergebnis = await bewegeMitBegleitDateien(absolute, newPath, {
+        abstaende: opts.abstaende,
+      });
+      if (!ergebnis.ok && ergebnis.code === 'companion-rollback') {
+        ruecknahmeGescheitert = ergebnis;
+        return { ok: true };
       }
-      return { ok: true };
+      return ergebnis;
     });
     if (!bewegt.ok) return bewegt;
-    // .mdd-Begleitdatei mitziehen (3E-000060); Fehler sind nicht fatal —
-    // der Hash-Abgleich der Historie faengt eine verwaiste .mdd ab.
-    try {
-      const oldMdd = mddPathFor(absolute);
-      await fs.access(oldMdd);
-      await fs.rename(oldMdd, mddPathFor(newPath));
-    } catch {
-      /* keine .mdd oder nicht verschiebbar */
-    }
     // Offene Historien-Pakete und Suspend-Markierung auf den neuen Pfad.
     const oldKey = mddKeyOf(absolute);
     const newKey = mddKeyOf(newPath);
@@ -280,6 +302,9 @@ function createLinkUpdate(deps) {
         err && err.message ? err.message : err,
       );
     }
+    // 4T-001789: Die Datei liegt am neuen Pfad und ist nachgezogen; gemeldet
+    // wird trotzdem der Fehlschlag, denn ihre Beleg-Datei liegt noch am alten.
+    if (ruecknahmeGescheitert) return { ...ruecknahmeGescheitert, bookDir };
     return { ok: true, bookDir };
   }
 

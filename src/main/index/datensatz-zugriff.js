@@ -43,6 +43,7 @@ const path = require('node:path');
 const { indexes, indexStand, resolveRootInfo } = require('./store.js');
 const { entryWithOverlay, overlaysUnder, overlayStand } = require('./overlay.js');
 const { kopfDateiFuer } = require('./datensatz-erfassung.js');
+const { schluesselKey } = require('../../shared/database/record-schluessel.js');
 
 // Obergrenze des Zwischenspeichers. Er wächst mit der Zahl gleichzeitig
 // benutzter **Wurzeln** und nicht mit der Bestandsgröße; ein Fenster arbeitet
@@ -90,30 +91,6 @@ function zwischenspeicherLeeren() {
 function tabellenNameVon(absPath) {
   const kopf = kopfDateiFuer(absPath) || absPath;
   return path.basename(kopf).replace(/\.md$/i, '');
-}
-
-/**
- * Vergleichs-Schlüssel aus den Werten eines fachlichen Schlüssels.
- *
- * **Verglichen wird zeichengenau** (Festlegung dieses Tasks; das Konzept lässt
- * die Frage offen). Ein fachlicher Schlüssel ist ein **Datenwert**, kein Name:
- * Wo das Haus unabhängig von Gross- und Kleinschreibung vergleicht, tut es das
- * bei Datei-Namen, Schlagworten und Feld-Namen, weil dort das Dateisystem oder
- * die Bequemlichkeit es verlangt. `Müller` und `MÜLLER` als denselben Datensatz
- * zu führen wäre dagegen eine fachliche Aussage, die niemand getroffen hat, und
- * sie ließe sich später nicht ohne Bruch zurücknehmen. Aus demselben Grund wird
- * **nicht getrimmt**: Das Ablage-Format hält einen Wert mit führenden
- * Leerzeichen ausdrücklich für zulässig und beschneidet ihn nie.
- *
- * Der Trenner ist derselbe wie bei der Definitions-Signatur und aus demselben
- * Grund: Ohne ihn fielen die Schlüssel `['ab', 'c']` und `['a', 'bc']`
- * zusammen.
- */
-const TEIL_TRENNER = '\u0000';
-
-function schluesselKey(werte) {
-  if (!Array.isArray(werte) || werte.length === 0) return null;
-  return werte.map((w) => String(w == null ? '' : w)).join(TEIL_TRENNER);
 }
 
 // Baut die beiden umgekehrten Zuordnungen aus der Vorwärts-Zuordnung.

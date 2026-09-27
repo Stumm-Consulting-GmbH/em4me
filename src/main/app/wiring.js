@@ -33,6 +33,23 @@ const { createWindowManager } = require('../window-manager');
 const { createWindowPersistence } = require('../window-persistence');
 const { createAreaApps } = require('../area/area-apps');
 const { createAreaConfig } = require('../area/area-config');
+// 4T-001795 (Epic 3E-000255, E9): Sperr-Verwaltung der Datensatz-Sperren.
+const { erzeugeSperrVerwaltung } = require('../database/lock-lifecycle');
+// 4T-001821 (Epic 3E-000254, E12.6, E15.2): Schreib-Schnittstelle der Datenbank.
+const { erzeugeSchreibSchnittstelle } = require('../database/record-auftrag');
+// 4T-001823 (Epic 3E-000254, E11.3): die Klammer des Absichts-Protokolls.
+const { erzeugeAbsichtsProtokoll } = require('../database/intent-log');
+// 4T-001824 (Epic 3E-000254, E11.3): der Wiederanlauf liegengebliebener Aufträge.
+const { erzeugeWiederanlauf } = require('../database/intent-recovery');
+// 4T-001926 (Epic 3E-000256, E12.6): die Prüf-Naht des Regel-Werks.
+const { erzeugePruefNaht } = require('../database/record-regeln');
+// 4T-001928 (Epic 3E-000256, E5.4): die Verweis-Regel, erstes Modul des Regel-Werks.
+const { verweisRegel } = require('../database/record-regel-verweis');
+const { schluesselRegel } = require('../database/record-regel-schluessel');
+const { loeschschutzRegel } = require('../database/record-regel-loeschschutz');
+const { pruefregelnRegel } = require('../database/record-regel-pruefregeln');
+const { bearbeitbarRegel } = require('../database/record-regel-bearbeitbar');
+const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 const { createBookApps } = require('../books/book-apps');
 const { createShelfApps } = require('../books/shelf-apps');
 const { createMenuApply } = require('../menu/menu-apply');
@@ -91,6 +108,84 @@ function createMainWiring(deps) {
   });
   const { readAreaHistoryDefault } = areaConfig;
 
+  // 4T-001795 (Epic 3E-000255, Bauplan N1): **Eine** Sperr-Verwaltung je
+  // Prozess. Ihr Eigen-Register — welche Sperren DIESER Prozess haelt — traegt
+  // die drei Zusagen des Lebenszyklus nur, solange es genau eines gibt: Eine
+  // zweite Instanz hielte ein eigenes, leeres Register und beurteilte damit die
+  // eigenen Sperren der ersten als fremde. Deshalb entsteht sie hier, an der
+  // Verdrahtungs-Stelle, und nicht dort, wo sie gebraucht wird; die
+  // Schreib-Schnittstelle bekommt spaeter dieselbe Instanz.
+  //
+  // Der Leser der Bereichs-Konfiguration ist ihre Pflicht-Naht: Aus ihm loest
+  // der Sperr-Speicher bei JEDEM Zugriff den wirksamen Ordnernamen frisch auf,
+  // ohne Zwischenspeicher.
+  const sperrVerwaltung = erzeugeSperrVerwaltung({
+    leseKonfig: (rootPath) => areaConfig.readAreaDatabaseConfig(rootPath),
+  });
+
+  // 4T-001821 (Epic 3E-000254): Die Schreib-Schnittstelle der Datenbank entsteht
+  // genau EINMAL und bekommt DIESELBE Sperr-Verwaltung; das ist die Zusage aus
+  // dem Kommentar darueber, hier eingeloest. Sie ist der erste produktive
+  // Aufrufer von Sperre, Aenderungsbeleg, Verdichtung und Vorgangs-Zaehler und
+  // traegt deshalb deren Tor (E15.2).
+  //
+  // Das Tor wird als FUNKTION gereicht und nicht als Wert: Der Anwender darf die
+  // Erweiterung im laufenden Programm ausschalten, und ein beim Start
+  // eingefrorener Zustand schriebe danach weiter.
+  //
+  // In diesem Vorgang ruft sie niemand; Kanal und Bruecke entstehen in einem
+  // eigenen Vorgang.
+  //
+  // 4T-001823 (Epic 3E-000254): Die Klammer des Absichts-Protokolls entsteht
+  // ebenfalls genau einmal, mit DERSELBEN Sperr-Verwaltung und demselben Leser
+  // der Bereichs-Konfiguration; durch sie schreibt die Schnittstelle jeden
+  // Auftrag. Ein zweiter Sperr-Speicher entsteht damit nicht.
+  const absichtsProtokoll = erzeugeAbsichtsProtokoll({
+    sperrVerwaltung,
+    leseKonfig: (rootPath) => areaConfig.readAreaDatabaseConfig(rootPath),
+  });
+  // 4T-001824 (Epic 3E-000254): Das Tor der Erweiterung als EINE Funktion, weil
+  // es zwei Verbraucher hat: die Schnittstelle und den Wiederanlauf, der beim
+  // Öffnen eines Bereichs ohne Schnittstelle davor gerufen wird.
+  const datenbankAktiv = () => {
+    const store = getStore();
+    return isExtensionEnabled('database', store ? store.get('extensions.disabled') : []);
+  };
+  // 4T-001824 (Epic 3E-000254): Der Wiederanlauf entsteht genau einmal, mit
+  // DERSELBEN Sperr-Verwaltung und demselben Leser der Bereichs-Konfiguration wie
+  // die Klammer. Er hat zwei Aufrufer und keinen dritten: die Schnittstelle vor
+  // jedem Auftrag und das Öffnen eines Bereichs (`areaApps` weiter unten).
+  const wiederanlauf = erzeugeWiederanlauf({
+    sperrVerwaltung,
+    leseKonfig: (rootPath) => areaConfig.readAreaDatabaseConfig(rootPath),
+    erweiterungAktiv: datenbankAktiv,
+    // 4T-001824 (Nachschärfung, Befund 2): Welche Vorgänge die Klammer dieses
+    // Prozesses gerade fährt; die Sperren eines anderen eigenen Protokolls sind
+    // die Hinterlassenschaft eines gescheiterten Laufs.
+    laeuft: (vorgang) => absichtsProtokoll.laeuft(vorgang),
+  });
+  // 4T-001926 (Epic 3E-000256, E12.6): Die Prüf-Naht des Regel-Werks entsteht
+  // genau EINMAL und wird der Schnittstelle hereingereicht; durch sie läuft
+  // jeder Auftrag nach Typ- und Pflicht-Prüfung. Die Tabellen-Sicht ist
+  // dieselbe, aus der der Datenbank-Kanal den Katalog bildet (die Index-Sicht
+  // nach Bereichs-Wurzel), damit Regeln und Katalog dieselben Tabellen sehen.
+  // Die Regel-Module laufen in der Reihenfolge der Liste; ein Modul sieht die
+  // Ersetzungen der vor ihm laufenden.
+  const pruefNaht = erzeugePruefNaht({
+    // 4T-001928: Die Verweis-Regel läuft als Erste, weil sie Schlüssel-Werte durch
+    // Kennungen ersetzt und die folgenden Regeln (Schlüssel, Lösch-Schutz) auf
+    // dem ersetzten Wert arbeiten sollen.
+    regeln: [verweisRegel, schluesselRegel, loeschschutzRegel, pruefregelnRegel, bearbeitbarRegel],
+    tabellenSicht: (bereichsWurzel) => backlinks.datenbankSicht(null, bereichsWurzel),
+  });
+  const schreibSchnittstelle = erzeugeSchreibSchnittstelle({
+    sperrVerwaltung,
+    absichtsProtokoll,
+    wiederanlauf,
+    erweiterungAktiv: datenbankAktiv,
+    pruefNaht,
+  });
+
   const mddHistory = createMddHistory({
     getStore,
     areaOfWindow: (win) => areaOfWindow(win),
@@ -127,7 +222,9 @@ function createMainWiring(deps) {
     // kommen als Wrapper, weil diese Fabrik frueher laeuft als sie.
     moveWatchEntry: (oldPath, newPath, performMove) =>
       moveWatchEntry(oldPath, newPath, performMove),
-    mddPathFor,
+    // 4T-001789 (Epic 3E-000255): mddPathFor faellt hier weg. Die Pfade der
+    // Begleit-Dateien bildet seither companion-files.js aus der Liste der
+    // Begleit-Datei-Arten; ein Bezug allein auf die .mdd passte nicht mehr.
     mddKeyOf,
     mddOpenPackets,
     mddSuspendedPaths,
@@ -332,6 +429,12 @@ function createMainWiring(deps) {
     // 4T-001453 (Epic 3E-000190): Verknuepfungen des Bereichs fuer die Pruefung
     // beim Oeffnen.
     readAreaLinks: (rootPath) => areaConfig.readAreaLinks(rootPath),
+    // 4T-001787 (Epic 3E-000255, E9): Bereichs-Konfiguration der Datenbank; aus
+    // ihr bezieht der Bereichs-Watcher den wirksamen Namen des Sperr-Ordners.
+    readAreaDatabaseConfig: (rootPath) => areaConfig.readAreaDatabaseConfig(rootPath),
+    normalisiereDatenbankKonfig: (roh) => areaConfig.normalisiereDatenbankKonfig(roh),
+    // 4T-001824 (Epic 3E-000254): der zweite Auslöser des Wiederanlaufs.
+    wiederanlauf,
   });
   const {
     workspacesState,
@@ -444,6 +547,11 @@ function createMainWiring(deps) {
   });
 
   return {
+    sperrVerwaltung,
+    schreibSchnittstelle,
+    // 4T-001938 (Epic 3E-000257): Das Tor als dritter Verbraucher für den
+    // lesenden Datensatz-Kanal; EINE Funktion, damit kein Kanal es nachbaut.
+    datenbankAktiv,
     ...areaConfig,
     ...mddHistory,
     ...blockData,

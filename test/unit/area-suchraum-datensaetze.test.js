@@ -197,6 +197,85 @@ describe('Datensatz-Bereinigung: was fällt weg und was bleibt', () => {
   });
 });
 
+// --- 4T-001833 (Epic 3E-000254): der Zaun endet nach der Standard-Regel ----------
+
+// Eine Tabellen-Datei mit gewachsenem Zaun, wie sie vor 4T-001833 der Schreibweg
+// selbst erzeugte, und einem fremden Code-Block davor, dessen Zaun ebenfalls
+// länger ist als eine Zeile darin.
+const GEWACHSEN = [
+  '---',
+  'db-table:',
+  '  fields:',
+  '    - name: Titel',
+  '---',
+  '',
+  '~~~~text',
+  '~~~',
+  'Merkwort im fremden Code-Block.',
+  '~~~~',
+  '',
+  '````perspective-records',
+  '|- id="r-00001"',
+  '| Merkwort im ersten Datensatz',
+  '```',
+  'Merkwort im Code des Wertes',
+  '```',
+  '|- id="r-00002"',
+  '| Merkwort hinter der inneren Zaun-Zeile',
+  '````',
+  '',
+  'Merkwort im Nachwort unten.',
+  '',
+].join('\n');
+
+describe('Datensatz-Bereinigung: Zaun-Länge (4T-001833, B4, B5)', () => {
+  // 4T-001833: Die innere kürzere Zaun-Zeile beendet das Leeren nicht (AK2).
+  it('leert alle Datensätze hinter einer inneren kürzeren Zaun-Zeile', () => {
+    const b = bereinigeSuchtext(GEWACHSEN);
+    expect(b).toBeTruthy();
+    const zeilen = b.text.split('\n');
+    expect(zeilen.length).toBe(GEWACHSEN.split('\n').length);
+    expect(b.text).not.toContain('im ersten Datensatz');
+    expect(b.text).not.toContain('im Code des Wertes');
+    expect(b.text).not.toContain('hinter der inneren Zaun-Zeile');
+    // Die Zaun-Zeilen des Blocks bleiben, die innere Zeile ist Inhalt.
+    expect(zeilen.filter((z) => z === '````').length).toBe(1);
+    expect(zeilen).not.toContain('```');
+  });
+
+  // 4T-001833: Der fremde Block wird nach der Regel übersprungen (AK3).
+  it('lässt Prosa und fremden Code-Block stehen', () => {
+    const b = bereinigeSuchtext(GEWACHSEN);
+    expect(b.text).toContain('Merkwort im fremden Code-Block.');
+    expect(b.text).toContain('Merkwort im Nachwort unten.');
+  });
+
+  // 4T-001833 (B5): Im Folge-Segment schließt nur die letzte nicht-leere Zeile.
+  it('leert im Folge-Segment auch hinter einer unmaskierten Zaun-Zeile', () => {
+    const segment = [
+      '---',
+      'doc-part: 2/Kundenliste',
+      'db-fields: Titel',
+      '---',
+      '|- id="r-00003"',
+      '| Merkwort im Folge-Segment',
+      '```',
+      '|- id="r-00004"',
+      '| Merkwort hinter der Zaun-Zeile',
+      '```',
+      '',
+      '',
+    ].join('\n');
+    const b = bereinigeSuchtext(segment);
+    expect(b.text).not.toContain('Merkwort');
+    const zeilen = b.text.split('\n');
+    expect(zeilen.length).toBe(segment.split('\n').length);
+    // Allein der schließende Zaun am Ende bleibt stehen.
+    expect(zeilen.filter((z) => z === '```').length).toBe(1);
+    expect(zeilen[9]).toBe('```');
+  });
+});
+
 describe('Bereichs-Suche: der Datensatz-Block ist draußen, das Dokument nicht', () => {
   it('findet die Prosa des Tabellen-Dokuments weiterhin (AK1)', async () => {
     const root = makeRoot();

@@ -33,7 +33,14 @@ let zuletztBereit = null;
 // gebundenen Bereich» beziehungsweise «Index noch nicht bereit»; der Status
 // daneben sagt, welcher der beiden Fälle vorliegt.
 function leereAuskunft(status = 'unavailable') {
-  return { status, istDatenbankBereich: false, steckbrief: null, tabellen: [], hints: [] };
+  return {
+    status,
+    istDatenbankBereich: false,
+    steckbrief: null,
+    tabellen: [],
+    masken: [],
+    hints: [],
+  };
 }
 
 /**
@@ -71,6 +78,8 @@ export async function datenbankAuskunft() {
       istDatenbankBereich: antwort.istDatenbankBereich === true,
       steckbrief: antwort.steckbrief || null,
       tabellen: Array.isArray(antwort.tabellen) ? antwort.tabellen : [],
+      // 4T-001943: die Masken-Dateien mit ihren Hinweisen.
+      masken: Array.isArray(antwort.masken) ? antwort.masken : [],
       hints: Array.isArray(antwort.hints) ? antwort.hints : [],
     };
     if (stand.status === 'ready') {

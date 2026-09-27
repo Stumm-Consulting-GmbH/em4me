@@ -683,7 +683,11 @@ contextBridge.exposeInMainWorld('api', {
   // 4T-001349 (Epic 3E-000170): neuen Unterordner im Bereichs-Ordner anlegen.
   areaCreateFolder: (dirPath, name) => ipcRenderer.invoke('area:createFolder', { dirPath, name }),
   // 4T-001351 (Epic 3E-000170): Rueckfrage und Verschieben in den Papierkorb.
-  areaConfirmTrashFile: (fileName) => ipcRenderer.invoke('area:confirmTrashFile', fileName),
+  // 4T-001800 (Epic 3E-000255): Der Pfad kommt als zweite, optionale Angabe
+  // mit; der Haupt-Prozess prüft daran selbst, ob Änderungsbelege daneben
+  // liegen, und ergänzt die Rückfrage entsprechend.
+  areaConfirmTrashFile: (fileName, filePath) =>
+    ipcRenderer.invoke('area:confirmTrashFile', fileName, filePath),
   areaTrashFile: (filePath) => ipcRenderer.invoke('area:trashFile', filePath),
   // 4T-001731 (Epic 3E-000306): Datei im Bereich kopieren (Name-1, dann die
   // naechste freie Nummer). Namensfindung und Grenze liegen im Hauptprozess.

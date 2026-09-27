@@ -35,6 +35,7 @@
   "stats.companions.ofFiles": "{count} su {total}",
   "stats.companions.mdd": "File di accompagnamento (.mdd)",
   "stats.companions.mdda": "File dell'area (.mdda)",
+  "stats.companions.mddl": "Giustificativi di modifica (.mddl)",
   "stats.content.tasks": "Attività",
   "stats.content.tasksOpen": "di cui aperte",
   "stats.content.tasksDone": "di cui completate",

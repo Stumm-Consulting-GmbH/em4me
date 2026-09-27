@@ -328,7 +328,12 @@ const HELP_FEATURE_GROUPS = [
     features: [
       'help.feature.databaseTable',
       'help.feature.databaseColumnTypes',
+      // 4T-001933 (Epic 3E-000256): die Beziehungen hinter den Spalten-Typen,
+      // weil die Verweis-Spalte einer von ihnen ist; die Eindeutigkeit hinter
+      // der Zeile des fachlichen Schlüssels, den sie beim Speichern sichert.
+      'help.feature.databaseRelations',
       'help.feature.databaseRecordKey',
+      'help.feature.databaseKeyUnique',
       'help.feature.databaseInfo',
       // 4T-001551 (Epic 3E-000251): die Daten hinter der Definition, in der
       // Reihenfolge, in der der Anwender ihnen begegnet — erst wie sie in der
@@ -337,7 +342,17 @@ const HELP_FEATURE_GROUPS = [
       // beim ersten: Sie ist fuer den Anwender eine Zusage darueber, was NICHT
       // passiert, und die findet er nur, wenn sie eine eigene Zeile hat.
       'help.feature.databaseRecords',
+      // 4T-001933 (Epic 3E-000256): Prüfregeln und Bearbeitbarkeit hinter den
+      // Datensätzen, deren Werte und Änderungen sie betreffen.
+      'help.feature.databaseChecks',
+      'help.feature.databaseEditable',
       'help.feature.databaseRecordsView',
+      // 4T-001946 (Epic 3E-000257): die Maske und ihre Sperre hinter der Anzeige,
+      // von der aus der Anwender die Maske öffnet; die Masken-Datei dahinter,
+      // weil sie die Maske voraussetzt, die sie gestaltet.
+      'help.feature.databaseForm',
+      'help.feature.databaseLock',
+      'help.feature.databaseFormFile',
       'help.feature.databaseSegments',
       // 4T-001613 (Epic 3E-000252): am Ende der Gruppe, weil beide Zeilen die
       // Tabelle von aussen betreffen — wie man ihre Daten findet und wie man
@@ -347,6 +362,12 @@ const HELP_FEATURE_GROUPS = [
       // den er selbst schreibt.
       'help.feature.databaseSearchScope',
       'help.feature.databaseRecordLink',
+      // 4T-001793 (Epic 3E-000255): die beiden Zeilen der Änderungsbelege hinter
+      // den Zeilen der Datensätze und vor denen des Bereichs — erst die Belege
+      // selbst, die neben der Tabellen-Datei entstehen, dann die Ansicht, über
+      // die der Anwender sie am einzelnen Datensatz liest.
+      'help.feature.databaseChangeLog',
+      'help.feature.databaseChangeLogView',
       // 4T-001762 (Epic 3E-000253): die drei Zeilen des Bereichs am Ende der
       // Gruppe, in der Reihenfolge, in der der Anwender ihnen begegnet — erst
       // der Bereich, der eine Datenbank führt, dann die Übersicht, die er in
@@ -355,6 +376,10 @@ const HELP_FEATURE_GROUPS = [
       // Die Tabelle ist ein Dokument, der Bereich ist die Datenbank.
       'help.feature.databaseArea',
       'help.feature.databaseOverview',
+      // 4T-001946 (Epic 3E-000257): Konsistenz-Prüfung und Verwendungsnachweis
+      // hinter der Übersicht, deren Aktionen sie sind.
+      'help.feature.databaseConsistency',
+      'help.feature.databaseUsage',
       'help.feature.databaseExtension',
     ],
   },

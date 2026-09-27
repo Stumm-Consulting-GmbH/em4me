@@ -35,6 +35,7 @@
   "stats.companions.ofFiles": "{count} sur {total}",
   "stats.companions.mdd": "Fichiers d'accompagnement (.mdd)",
   "stats.companions.mdda": "Fichiers de la zone (.mdda)",
+  "stats.companions.mddl": "Justificatifs de modification (.mddl)",
   "stats.content.tasks": "Tâches",
   "stats.content.tasksOpen": "dont ouvertes",
   "stats.content.tasksDone": "dont terminées",

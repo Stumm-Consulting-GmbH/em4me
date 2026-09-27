@@ -41,6 +41,20 @@ import { datenbankAuskunft, verwirfDatenbankAuskunft } from './datenbank-bereich
 import { loeseBeschriftung } from '../../../shared/database/beschriftung.js';
 import { hinweisSatz } from '../../../shared/database/table-hinweise.js';
 import { wirksameRueckfallSprache } from '../../../shared/database/database-steckbrief.js';
+// 4T-001939 (Epic 3E-000257, Bauplan B8): Die Neuanlage je Tabelle öffnet die
+// Einzel-Maske mit der gezogenen Kennung.
+import { neuerDatensatz } from './masken-seite.js';
+import { dateiName } from './masken-datei.js';
+// 4T-001944 (Epic 3E-000257, Bauplan B4): Der Abschnitt der Konsistenz-Prüfung
+// mit eigenem Zustand; die Seite reicht ihm allein ihr Neu-Zeichnen.
+import {
+  konsistenzKnopf,
+  starteKonsistenzPruefung,
+  verwirfKonsistenz,
+  zeichneKonsistenz,
+} from './konsistenz-abschnitt.js';
+// 4T-001945 (Bauplan B3): Der Abschnitt «Verwendet von» mit eigenem Zustand.
+import { verwendungKnopf, verwirfVerwendung, zeichneVerwendung } from './verwendung-abschnitt.js';
 
 export const DATENBANK_UEBERSICHT_PAGE_ID = 'database-overview';
 
@@ -77,6 +91,18 @@ export function oeffneDatenbankUebersicht() {
   }
   openSystemPage(DATENBANK_UEBERSICHT_PAGE_ID);
   void holeUndZeichne();
+}
+
+/**
+ * Prüft die Konsistenz aller Tabellen und zeigt das Ergebnis in der Übersicht
+ * (Kommando `database.checkConsistency`, 4T-001944). Öffnet die Seite über
+ * dieselbe Tür wie jeder Zugang; bleibt sie zu (Aus-Zustand, kein Bereich),
+ * wird nichts geprüft.
+ */
+export function pruefeKonsistenzAllerTabellen() {
+  oeffneDatenbankUebersicht();
+  if (!datenbankUebersichtOffen()) return;
+  void starteKonsistenzPruefung(null, zeichne);
 }
 
 /**
@@ -254,6 +280,12 @@ function fehlerZeilen(daten) {
     for (const hinweis of tabelle.hints || [])
       zeilen.push({ quelle: tabelle.name, text: hinweisText(hinweis) });
   }
+  // 4T-001943 (Bauplan B2): Befunde an Masken-Dateien, benannt nach der Datei,
+  // weil eine Maske ohne geltende Zuordnung keine Tabellen-Zeile hat.
+  for (const maske of daten.masken || []) {
+    for (const hinweis of maske.hints || [])
+      zeilen.push({ quelle: dateiName(maske.path), text: hinweisText(hinweis) });
+  }
   return zeilen;
 }
 
@@ -272,6 +304,16 @@ function zeichne() {
   knopf.disabled = seite.laden;
   knopf.addEventListener('click', () => void holeUndZeichne({ frisch: true }));
   kopf.appendChild(knopf);
+  // 4T-001944 (Bauplan B4): die Prüfung aller Tabellen, nur in einer Datenbank.
+  if (seite.daten && seite.daten.istDatenbankBereich)
+    kopf.appendChild(
+      konsistenzKnopf({
+        tabelle: null,
+        textKey: 'database.konsistenz.action',
+        className: 'db-overview-check',
+        zeichneNeu: zeichne,
+      }),
+    );
   wurzel.appendChild(kopf);
 
   if (seite.laden) wurzel.appendChild(el('p', 'db-overview-note', t('database.overview.loading')));
@@ -312,9 +354,18 @@ function zeichneAbschnitte(wurzel, daten) {
 
   const tabellen = abschnitt(wurzel, 'database.overview.section.tables');
   zeichneTabellen(tabellen, daten.tabellen || []);
+  // 4T-001945 (Bauplan B3): die Verwendung einer Tabelle unter der Tabellen-Liste.
+  zeichneVerwendung(wurzel);
 
   const fehler = abschnitt(wurzel, 'database.overview.section.issues');
   zeichneFehler(fehler, fehlerZeilen(daten));
+
+  // 4T-001944 (Bauplan B4): das Ergebnis der Prüfung unter den Fehlerlagen; die
+  // Meldungs-Texte der Prüfregeln in der Sprache des Anwenders.
+  zeichneKonsistenz(wurzel, {
+    sprache: intlLocale(),
+    rueckfallSprache: wirksameRueckfallSprache(daten.steckbrief),
+  });
 }
 
 function zeichneTabellen(block, liste) {
@@ -327,6 +378,14 @@ function zeichneTabellen(block, liste) {
   const kopfZeile = document.createElement('tr');
   kopfZeile.appendChild(el('th', null, t('database.overview.col.table')));
   kopfZeile.appendChild(el('th', null, t('database.overview.col.fields')));
+  // 4T-001943 (Bauplan B2): die geltende Masken-Datei der Tabelle, leer bei der
+  // erzeugten Maske.
+  kopfZeile.appendChild(el('th', null, t('database.overview.col.form')));
+  // 4T-001939 (Bauplan B8): Die Spalte der Aktion bleibt ohne Überschrift, wie
+  // die Aktions-Spalte des Datensatz-Blocks; ein erfundenes Wort wäre Lärm.
+  const aktionKopf = el('th', 'db-overview-table-action-head');
+  aktionKopf.setAttribute('aria-hidden', 'true');
+  kopfZeile.appendChild(aktionKopf);
   kopf.appendChild(kopfZeile);
   tabelle.appendChild(kopf);
   const koerper = document.createElement('tbody');
@@ -334,10 +393,37 @@ function zeichneTabellen(block, liste) {
     const zeile = document.createElement('tr');
     zeile.appendChild(el('td', 'db-overview-table-name', eintrag.name));
     zeile.appendChild(el('td', 'db-overview-table-fields', String(eintrag.felder || 0)));
+    const maske = typeof eintrag.maske === 'string' ? dateiName(eintrag.maske) : '';
+    zeile.appendChild(el('td', 'db-overview-table-form', maske));
+    zeile.appendChild(neuZelle(eintrag));
     koerper.appendChild(zeile);
   }
   tabelle.appendChild(koerper);
   block.appendChild(tabelle);
+}
+
+// 4T-001939 (Epic 3E-000257, Bauplan B8): Die Aktion «Neuer Datensatz» je
+// Tabelle. Eine Tabelle ohne Pfad bekommt die leere Zelle; sie wäre ein Knopf,
+// der nichts eröffnen kann.
+function neuZelle(eintrag) {
+  const zelle = el('td', 'db-overview-table-action');
+  if (!eintrag || typeof eintrag.path !== 'string' || eintrag.path === '') return zelle;
+  const knopf = el('button', 'db-overview-new-record', t('records.newButton'));
+  knopf.type = 'button';
+  knopf.addEventListener('click', () => void neuerDatensatz(eintrag.path));
+  zelle.appendChild(knopf);
+  // 4T-001944 (Bauplan B4): die Prüfung dieser einen Tabelle.
+  zelle.appendChild(
+    konsistenzKnopf({
+      tabelle: eintrag.path,
+      textKey: 'database.konsistenz.actionTable',
+      className: 'db-overview-check-table',
+      zeichneNeu: zeichne,
+    }),
+  );
+  // 4T-001945 (Bauplan B3): die Verwendung dieser Tabelle, auf Anforderung gelesen.
+  zelle.appendChild(verwendungKnopf({ eintrag, zeichneNeu: zeichne }));
+  return zelle;
 }
 
 function zeichneFehler(block, zeilen) {
@@ -372,6 +458,8 @@ registerSystemPage({
   onOpen() {
     // Frischer Seiten-Zustand je Neu-Öffnen (Muster der Einstellungs-Seite).
     seite.daten = null;
+    verwirfKonsistenz();
+    verwirfVerwendung();
   },
   mount(container) {
     seite.container = container;

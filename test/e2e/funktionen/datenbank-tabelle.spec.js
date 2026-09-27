@@ -42,10 +42,17 @@ test.describe('DB-01: Datensatz-Block rendert mit den Spalten aus dem Frontmatte
       await expect(block).toBeVisible();
 
       // Der Kopf kommt aus dem Frontmatter: `label` gewinnt, sonst der Name.
+      // 4T-001792: Fünf Kopf-Zellen statt vier — die erste ist die leere
+      // Kopf-Zelle der Aktions-Spalte des Zeilen-Zugangs, deren eigener
+      // Nachweis in `funktionen/beleg-ansicht.spec.js` steht. Gezählt wird sie
+      // hier mit, weil sie die Klasse `prc-head` trägt; die Feld-Köpfe stehen
+      // seither ab Position 1.
       const koepfe = block.locator('th.prc-head');
-      await expect(koepfe).toHaveCount(4);
-      await expect(koepfe.nth(0)).toHaveText('Name');
-      await expect(koepfe.nth(1)).toHaveText('menge');
+      await expect(koepfe).toHaveCount(5);
+      await expect(koepfe.nth(0)).toHaveClass(/prc-action-head/);
+      await expect(koepfe.nth(0)).toHaveText('');
+      await expect(koepfe.nth(1)).toHaveText('Name');
+      await expect(koepfe.nth(2)).toHaveText('menge');
 
       // Vier Datensätze, jeder mit seiner Kennung an der Zeile.
       await expect(block.locator('tr.prc-row')).toHaveCount(4);
@@ -98,9 +105,10 @@ test.describe('DB-02: Änderungs-Modus zeigt dieselbe Tabelle', () => {
 
       // Derselbe Kopf wie in der Lese-Ansicht — der Nachweis, dass der
       // Vorspann beim isoliert gerenderten Block ankommt.
+      // 4T-001792: fünf Kopf-Zellen, Begründung im Fall darüber.
       const koepfe = block.locator('th.prc-head');
-      await expect(koepfe).toHaveCount(4);
-      await expect(koepfe.nth(0)).toHaveText('Name');
+      await expect(koepfe).toHaveCount(5);
+      await expect(koepfe.nth(1)).toHaveText('Name');
       await expect(block.locator('tr.prc-row')).toHaveCount(4);
       await expect(block.locator('tr.prc-row').first().locator('td.prc-type-number')).toHaveText(
         '12.50',

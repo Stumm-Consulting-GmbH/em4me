@@ -257,3 +257,67 @@ describe('Portable-Export: Verweis- und Bild-Karten der Canvas (4T-001777)', () 
     expect(out).not.toContain('perspective-canvas');
   });
 });
+
+// 4T-001833 (Epic 3E-000254): Der Datensatz-Block schließt im Export nach der
+// Standard-Regel — dasselbe Zeichen wie der öffnende Zaun, mindestens so lang,
+// dahinter nur Leerraum. Bis dahin erkannte der Export allein einen
+// Backtick-Zaun, der mit genau derselben Zeile schloss, mit der er öffnete.
+describe('Portable-Export: Zaun des Datensatz-Blocks (4T-001833)', () => {
+  // Ein Tabellen-Dokument mit frei wählbaren Zaun-Zeilen und zwei Datensätzen.
+  function tabelle(oeffnend, schliessend, innen = []) {
+    return [
+      '---',
+      'db-table:',
+      '  fields:',
+      '    - name: name',
+      '    - name: ort',
+      '---',
+      '',
+      oeffnend + 'perspective-records',
+      '|- id="r-00001"',
+      '| Anna',
+      '| Basel',
+      ...innen,
+      '|- id="r-00002"',
+      '| Bert',
+      '| Bern',
+      schliessend,
+      '',
+      'Prosa danach.',
+      '',
+    ].join('\n');
+  }
+
+  afterEach(() => {
+    configureExtensions([]);
+  });
+
+  // 4T-001833: Tilden sind ein gültiger Zaun.
+  it('exportiert einen Block mit Tilden-Zaun als Tabelle', () => {
+    const out = convertMarkdownPortable(tabelle('~~~', '~~~'), true, 'de');
+    expect(out).toContain('<td>Anna</td>');
+    expect(out).toContain('<td>Bern</td>');
+    expect(out).not.toContain('perspective-records');
+  });
+
+  // 4T-001833: Ein längerer schließender Zaun schließt.
+  it('exportiert einen Block mit längerem schließenden als öffnenden Zaun als Tabelle', () => {
+    const out = convertMarkdownPortable(tabelle('```', '`````  '), true, 'de');
+    expect(out).toContain('<td>Anna</td>');
+    expect(out).toContain('<td>Bern</td>');
+    expect(out).not.toContain('perspective-records');
+    expect(out).toContain('Prosa danach.');
+  });
+
+  // 4T-001833: Eine kürzere innere Zaun-Zeile beendet den Block nicht.
+  it('lässt den Block nicht an einer kürzeren inneren Zaun-Zeile enden', () => {
+    const out = convertMarkdownPortable(
+      tabelle('````', '````', ['```', 'code', '```']),
+      true,
+      'de',
+    );
+    expect(out).toContain('<td>Basel<br>```<br>code<br>```</td>');
+    expect(out).toContain('<td>Bert</td>');
+    expect(out).not.toContain('perspective-records');
+  });
+});

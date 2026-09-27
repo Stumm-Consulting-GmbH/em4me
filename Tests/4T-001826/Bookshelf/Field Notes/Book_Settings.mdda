@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "book": {
+    "file": "Field Notes.md"
+  },
+  "chapters": [
+    {
+      "path": "01 Observations.md",
+      "children": []
+    }
+  ]
+}

@@ -16,20 +16,32 @@ const { createDemoAreaAt } = require('../area/demo-area.js');
 const { loadDemoWorkspaces } = require('../area/demo-workspace.js');
 const {
   isInsideArea,
+  // 4T-001787 (Epic 3E-000255): Der Sperr-Ordner bleibt allein auf der obersten
+  // Ebene des Bereichs aus der Liste; erkannt wird sie ueber die Pfad-Gleichheit.
+  isSamePath,
   sortedAreaListing,
   sanitizeNewFileName,
   // 4T-001349 (Epic 3E-000170): Namens-Pruefung der Ordner-Anlage.
   sanitizeNewFolderName,
 } = require('../area/area-path');
+// 4T-001787: Schreibungs-Regel des Dateisystems fuer den Namens-Vergleich.
+const { pathCompareKey } = require('../../shared/platform');
 // 4T-001293 (Epic 3E-000224): Teil-Dateien bleiben aus der Ordner-Liste heraus.
 const { isPartBasename } = require('../../shared/document-parts');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
+// 4T-001800 (Epic 3E-000255): Welche Datei neben einer Datei mitgeht, sagt die
+// Liste der Begleit-Datei-Arten, nicht dieser Kanal.
+const { pflichtBegleitPfade } = require('../documents/companion-files');
 // 4T-001452 (Epic 3E-000190): Aufloesung eines Verknuepfungs-Links ueber die
 // Bereichs-Grenze.
 const {
   loeseVerknuepfungsLink,
   beurteileVerknuepfungsLinks,
 } = require('../area/area-link-resolve');
+// 4T-001795 (Epic 3E-000255, E9): Der Umbenennungs-Vorgang des Sperr-Ordners.
+// Er liegt als eigener Vorgang, weil Ordner und Bereichsdatei zusammen gelten
+// oder zusammen ausbleiben; dieser Kanal ruft ihn nur auf.
+const { setzeSperrOrdnerName } = require('../database/lock-folder-rename');
 
 /**
  * Registriert die Bereichs- und Demo-Area-Kanaele.
@@ -57,6 +69,10 @@ const {
  * @param {(rootPath: string) => Promise<object|undefined>} deps.readAreaDatabaseConfig Datenbank-Sektion lesen.
  * @param {(rootPath: string, config: object) => Promise<object>} deps.writeAreaDatabaseConfig Datenbank-Sektion schreiben.
  * @param {(roh: object) => object} deps.normalisiereDatenbankKonfig Wirksamer Stand der Datenbank-Sektion.
+ * @param {(rootPath: string) => Promise<void>} deps.sperrOrdnerNeuBeziehen Bereichs-Watcher
+ *   den Namen des Sperr-Ordners neu beziehen lassen.
+ * @param {object} deps.sperrVerwaltung Sperr-Verwaltung des Prozesses; hier gebraucht fuer
+ *   die Frage, ob im Sperr-Ordner gerade jemand arbeitet.
  */
 function registerAreasIpc(handle, deps) {
   const {
@@ -88,7 +104,42 @@ function registerAreasIpc(handle, deps) {
     readAreaDatabaseConfig,
     writeAreaDatabaseConfig,
     normalisiereDatenbankKonfig,
+    // 4T-001787 (Epic 3E-000255, E9): Nachzug des Sperr-Ordner-Namens am
+    // Bereichs-Watcher.
+    sperrOrdnerNeuBeziehen,
+    // 4T-001795 (Epic 3E-000255, E9): die eine Sperr-Verwaltung des Prozesses.
+    sperrVerwaltung,
   } = deps;
+
+  // 4T-001787: Der wirksame Name des Sperr-Ordners, bei jedem Aufruf frisch
+  // gelesen und nie zwischengespeichert. Eine defekte oder unlesbare
+  // Bereichsdatei wirkt wie «nicht gesetzt» und fuehrt damit auf den
+  // Vorgabe-Namen — dieselbe Fehler-Regel wie bei den uebrigen Sektionen.
+  async function wirksamerSperrOrdner(rootPath) {
+    let roh;
+    try {
+      roh = await readAreaDatabaseConfig(rootPath);
+    } catch {
+      roh = undefined;
+    }
+    return normalisiereDatenbankKonfig(roh).lockFolderName;
+  }
+
+  // 4T-001795 (Bauplan N5): Der Ordnername aus dem Konfigurations-Objekt, wenn
+  // er vom wirksamen abweicht. `null` heisst «nichts zu tun» und ist der
+  // Normalfall: Die Oberflaeche schickt den Namen bei jedem Anwenden mit, auch
+  // wenn der Anwender ihn nicht angefasst hat.
+  async function sperrOrdnerNachziehen(rootPath, config) {
+    const gewuenscht = config && typeof config === 'object' ? config.lockFolderName : undefined;
+    if (typeof gewuenscht !== 'string') return null;
+    if (gewuenscht === (await wirksamerSperrOrdner(rootPath))) return null;
+    return setzeSperrOrdnerName(rootPath, gewuenscht, {
+      verwaltung: sperrVerwaltung,
+      leseKonfig: readAreaDatabaseConfig,
+      schreibeKonfig: writeAreaDatabaseConfig,
+      normalisiere: normalisiereDatenbankKonfig,
+    });
+  }
 
   // 4T-000645 (Epic 3E-000127): Die Beispiel-Sammlung bringt ihren Fenster- und
   // Gruppen-Zustand als Vorlage mit; hier wird sie nach dem Kopieren zu
@@ -264,7 +315,18 @@ function registerAreasIpc(handle, deps) {
       const dateien = listing.files.filter(
         (name) => !isPartBasename(name.replace(/\.[^./]+$/, '')),
       );
-      return { ok: true, dirs: listing.dirs, files: dateien };
+      // 4T-001787 (Epic 3E-000255, E9): Der Sperr-Ordner der Anwendung bleibt
+      // aus der Liste — und zwar **allein auf der obersten Ebene** des
+      // Bereichs. Ein gleichnamiger Ordner tiefer im Baum ist ein Ordner des
+      // Anwenders und bleibt sichtbar. Gelesen wird der wirksame Name bei
+      // jedem Aufruf frisch; nur wo er etwas bewirken kann, also in der
+      // Wurzel, kostet das ueberhaupt einen Zugriff.
+      let ordner = listing.dirs;
+      if (isSamePath(area.rootPath, dirPath)) {
+        const schluessel = pathCompareKey(await wirksamerSperrOrdner(area.rootPath));
+        ordner = ordner.filter((name) => pathCompareKey(name) !== schluessel);
+      }
+      return { ok: true, dirs: ordner, files: dateien };
     } catch (err) {
       console.warn('Bereichs-Listing fehlgeschlagen:', dirPath, err && err.message);
       return { ok: true, dirs: [], files: [] };
@@ -343,6 +405,23 @@ function registerAreasIpc(handle, deps) {
   // Kanal, weil zwischen Zustimmung und Loeschung noch die offenen Reiter
   // geschlossen werden muessen; eine Rueckfrage in diesem Handler laege dafuer
   // zu spaet.
+  //
+  // 4T-001800 (Epic 3E-000255, Entscheidung des Product Owners vom 2026-09-19):
+  // Die Pflicht-Begleit-Dateien gehen mit, heute allein die Änderungsbelege
+  // einer Tabellen-Datei. Ohne das setzte eine später gleichnamig angelegte
+  // Tabelle die Spur der gelöschten fort, und deren Belege wären dann den
+  // fremden Datensätzen zugeschrieben. Eine falsch zugeschriebene Spur ist
+  // schlimmer als eine gelöschte.
+  //
+  // **Die Reihenfolge ist die Entscheidung:** zuerst die Tabellen-Datei, dann
+  // ihre Beleg-Datei. Scheitert das Erste, ist nichts geschehen, und der
+  // zweite Versuch entfällt. Scheitert das Zweite, liegt die Beleg-Datei noch
+  // da, also genau im Zustand von vorher, und der Anwender erfährt es über
+  // `companionLeft`. Umgekehrt bliebe bei einem Fehlschlag eine Tabelle ohne
+  // ihre Spur zurück.
+  //
+  // Die Prüfungen oben gelten unverändert allein der Markdown-Datei; die
+  // Begleit-Datei liegt per Bauart daneben und damit im selben Bereich.
   handle('area:trashFile', async (event, filePath) => {
     const area = areaOfWindow(senderWindow(event));
     if (!area) return { ok: false, error: 'no area' };
@@ -350,12 +429,33 @@ function registerAreasIpc(handle, deps) {
       return { ok: false, error: 'outside-area' };
     }
     if (!isMarkdownPath(filePath)) return { ok: false, error: 'not a document' };
+    const absolut = path.resolve(filePath);
     try {
-      await shell.trashItem(path.resolve(filePath));
-      return { ok: true, path: filePath };
+      await shell.trashItem(absolut);
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };
     }
+    const liegenGeblieben = [];
+    for (const begleit of await pflichtBegleitPfade(absolut)) {
+      try {
+        await shell.trashItem(begleit);
+      } catch (err) {
+        // Abgefederte Degradation und kein Fehlschlag des Ganzen: Die Datei
+        // ist weg, die Begleit-Datei nicht. Gemeldet wird beides, hier ins
+        // Protokoll und über den Rückgabewert an die Oberfläche.
+        console.warn(
+          '[area:trashFile] Begleit-Datei nicht mitgenommen:',
+          begleit,
+          '—',
+          err && err.message ? err.message : err,
+        );
+        liegenGeblieben.push(begleit);
+      }
+    }
+    if (liegenGeblieben.length > 0) {
+      return { ok: true, path: filePath, companionLeft: liegenGeblieben };
+    }
+    return { ok: true, path: filePath };
   });
 
   // "Bereich schliessen": alle Fenster der Bereichs-App des Absenders.
@@ -418,11 +518,28 @@ function registerAreasIpc(handle, deps) {
   // Anzeige-Einstellung setzen. Muster area:setStartPage: Die Bereichsdatei
   // entsteht erst beim ersten tatsaechlichen Setzen, und eine defekte
   // Bereichsdatei wird nie ueberschrieben.
+  //
+  // 4T-001795 (Epic 3E-000255, Bauplan N5): **Ein neuer Kanal entsteht nicht.**
+  // Traegt das Objekt einen Ordnernamen und weicht er vom wirksamen ab, laeuft
+  // zuerst der Umbenennungs-Vorgang und danach der bisherige Schreibweg der
+  // uebrigen Angaben. Scheitert der Vorgang, wird nichts geschrieben: Der
+  // Anwender hat eine Aenderung angestossen, die als Ganzes gilt oder gar
+  // nicht, und ein geschriebener Anzeige-Schalter neben einer abgewiesenen
+  // Umbenennung waere ein halbes Ergebnis ohne Meldung.
   handle('area:setDatabaseConfig', async (event, config) => {
     const area = areaOfWindow(senderWindow(event));
     if (!area) return { ok: false, error: 'no area' };
     try {
-      return await writeAreaDatabaseConfig(area.rootPath, config);
+      const umbenannt = await sperrOrdnerNachziehen(area.rootPath, config);
+      if (umbenannt !== null && !umbenannt.ok) return umbenannt;
+      const ergebnis = await writeAreaDatabaseConfig(area.rootPath, config);
+      // 4T-001787 (Epic 3E-000255, E9): Der Bereichs-Watcher kann je
+      // Dateisystem-Ereignis keine Datei lesen und haelt den Namen des
+      // Sperr-Ordners deshalb an seinem Eintrag. Nach jedem gelungenen
+      // Schreiben bezieht er ihn neu; ohne das beobachtete er einen Ordner
+      // weiter, den es nicht mehr gibt, und meldete jede Sperre im neuen.
+      if (ergebnis && ergebnis.ok === true) await sperrOrdnerNeuBeziehen(area.rootPath);
+      return ergebnis;
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };
     }

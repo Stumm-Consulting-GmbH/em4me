@@ -100,11 +100,70 @@ const HINWEIS_META = {
   recordCellsMissing: { key: null, expected: null }, // expected: die Zahl der Felder
   recordCellsExtra: { key: null, expected: null }, // expected: die Zahl der Felder
   recordNoDefinition: { key: null, expected: null }, // Datensätze ohne Definition
+  // 4T-001833 (Epic 3E-000254): Eine unmaskierte Zeile, die wie ein Code-Zaun
+  // beginnt und als Inhalt gelesen wird. Ebenso weich: Die Zeile bleibt Inhalt,
+  // der nächste Schreibvorgang maskiert sie.
+  recordFenceLine: { key: null, expected: null },
   // 4T-001546 (E3.5, E5.1): Die Angabe der Kennung am Datensatz-Marker. Sie
   // trägt ausnahmsweise einen Schlüssel, obwohl der Befund im Körper der Datei
   // liegt: `id` ist der Name der Angabe, und eine Meldung ohne ihn führte den
   // Autor nur an die Zeile, nicht an die Stelle.
   recordIdInvalid: { key: 'id', expected: 'record-id' },
+  // 4T-001791 (E10.11): Die Übersteuerung der Wachstums-Grenze der
+  // Änderungsbelege. Die drei Codes hängen am Behälter der Tabelle und nicht an
+  // einem Definitions-Eintrag, weil die Angaben die Tabelle als Ganzes
+  // betreffen; ihr `index` ist deshalb immer -1. Jede Angabe trägt ihren
+  // eigenen Code, damit die Meldung den Autor an die Zeile führt, die er
+  // ändern muss, und nicht an den Behälter darüber.
+  changeLog: { key: 'changeLog', expected: 'object' },
+  changeLogMaxBytes: { key: 'maxBytes', expected: 'positive-integer-or-unlimited' },
+  changeLogMaxPerRecord: { key: 'maxPerRecord', expected: 'positive-integer-or-unlimited' },
+  // 4T-001930 (Epic 3E-000256, E22): Die Prüfregeln. Die Feld-Regeln hängen an
+  // ihrem Definitions-Eintrag und tragen dessen Stelle; die Datensatz-Regeln
+  // hängen am Behälter, ihr `index` ist deshalb immer -1, und ihr `name` ist der
+  // Text der Regel, weil sie an keinem Feld hängen, das sie benennen könnte.
+  // **Zwei Reichweiten teilen sich keinen Code**, dieselbe Regel wie bei `name`
+  // und `databaseName`: Ein Satz, der die Stelle in der Definitions-Liste nennt,
+  // taugt für eine Regel am Behälter nicht, und einer ohne Stelle führte den
+  // Autor bei einer Feld-Regel nicht zum Feld.
+  check: { key: 'check', expected: 'rule-text-or-object' },
+  checkRegex: { key: 'check', expected: 'regex' },
+  checkExpr: { key: 'check', expected: 'expression' },
+  checkFieldRef: { key: 'check', expected: 'value' }, // der einzige zulässige Bezug
+  checkUnknownRule: { key: 'check', expected: null }, // expected: der Katalog der Regel-Namen
+  checkMessage: { key: 'message', expected: 'text-or-locale-map' },
+  checksNotList: { key: 'checks', expected: 'list' },
+  checksEntry: { key: 'checks', expected: 'rule-text-or-object' },
+  checksExpr: { key: 'checks', expected: 'expression' },
+  checkUnknownField: { key: 'checks', expected: null }, // expected: die vorhandenen Feld-Namen
+  checksMessage: { key: 'message', expected: 'text-or-locale-map' },
+  // 4T-001932 (Epic 3E-000256, E22.7): Die Bearbeitbarkeits-Bedingung. Sie hängt
+  // am Behälter wie eine Datensatz-Regel, ihr `index` ist deshalb immer -1 und
+  // ihr `name` der Text der Bedingung. Eigene Codes statt der `checks*`-Codes,
+  // weil die Sätze eine andere Folge nennen: Eine unbrauchbare Bedingung
+  // entfällt, und die Tabelle bleibt bearbeitbar. Alle vier tragen den
+  // Schlüssel der Angabe, auch die Meldung, damit der Autor die eine Stelle
+  // findet, an der die Bedingung steht.
+  editable: { key: 'editable', expected: 'rule-text-or-object' },
+  editableExpr: { key: 'editable', expected: 'expression' },
+  editableUnknownField: { key: 'editable', expected: null }, // expected: die vorhandenen Feld-Namen
+  editableMessage: { key: 'message', expected: 'text-or-locale-map' },
+  // 4T-001938 (Epic 3E-000257, B5): Die Einzel-Maske. `formTable` hängt am
+  // Behälter der Masken-Datei und trägt den Schlüssel seiner einen Angabe. Die
+  // beiden Befunde am Körper hängen an keinem Frontmatter-Schlüssel, weil ihr
+  // Gegenstand der Körper ist, wie bei den Befunden am Datensatz-Block; ihr
+  // Ortsbezug ist die Zeile im Körper, die `form-body.js` als Feld `zeile` an
+  // den Hinweis hängt.
+  formTable: { key: 'table', expected: 'text' },
+  formPlatzhalterUnbekannt: { key: null, expected: null }, // name: der Inhalt der Klammern
+  formFeldUnbekannt: { key: null, expected: null }, // name: der geschriebene Feld-Name
+  // 4T-001943 (Epic 3E-000257, B2): Befunde des Katalogs an Masken-Dateien. Sie
+  // entstehen erst im Blick über alle Dateien, wie `duplicateTable`. Die
+  // unbekannte Tabelle trägt den Schlüssel der Angabe, die sie nennt; die
+  // weitere Masken-Datei derselben Tabelle hängt an keinem Schlüssel, weil an
+  // ihr nichts falsch ist, sondern eine andere Datei vor ihr gilt.
+  formTabelleUnbekannt: { key: 'table', expected: null }, // name: die genannte Tabelle
+  formMehrereDateien: { key: null, expected: null }, // name: die Tabelle der Maske
 };
 
 // Baut einen Hinweis in der einheitlichen Gestalt.
@@ -174,6 +233,7 @@ function satzVorlage(code, hinweis, hatPosition, uebersetze) {
   const text = uebersetze(basis);
   if (text === basis) return null;
   if (!hatPosition && text.includes('{position}')) return null;
+  if (typeof hinweis.zeile !== 'number' && text.includes('{zeile}')) return null;
   return text;
 }
 
@@ -181,7 +241,8 @@ function satzVorlage(code, hinweis, hatPosition, uebersetze) {
  * Lokalisierter Satz zu einem Hinweis.
  *
  * Die Meldung je Code ist ein ganzer Satz; `{ort}` steht für die Stelle in der
- * Definitions-Liste, `{position}` für die des Datensatzes im Block, `{name}`
+ * Definitions-Liste, `{position}` für die des Datensatzes im Block, `{zeile}`
+ * für die Zeile im Körper einer Maske (4T-001938), `{name}`
  * für den benannten Gegenstand und `{expected}` für die Erwartung aus dem
  * Katalog. Ein Code ohne eigenen Satz fällt auf einen Rückfall-Satz mit seiner
  * Kennung zurück, statt einen leeren Punkt zu erzeugen; kennt auch der Aufrufer
@@ -203,6 +264,8 @@ function hinweisSatz(hinweis, uebersetze) {
   }
   if (text.includes('{ort}')) text = text.replace('{ort}', ortText(h, uebersetze));
   if (hatPosition) text = text.replace('{position}', String(h.record + 1));
+  // 4T-001938: Ein Befund am Masken-Körper nennt seine Zeile, gezählt ab 1.
+  if (typeof h.zeile === 'number') text = text.replace('{zeile}', String(h.zeile));
   text = text.replace('{name}', h.name || '—');
   if (text.includes('{expected}')) text = text.replace('{expected}', erwartungText(h.expected));
   return text;

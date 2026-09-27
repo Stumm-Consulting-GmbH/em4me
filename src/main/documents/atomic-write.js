@@ -67,6 +67,21 @@ const SCHATTEN_MARKE = 'em4me-neu';
 // schreiben, und zwei Anwendungen auf einer geteilten Ablage.
 const SCHATTEN_MUSTER = /^\..+\.em4me-neu-\d+-\d+$/;
 
+// 4T-001823 (Epic 3E-000254): Die Schattenkopien eines Datenbank-Auftrags sind
+// vorbereitete Fassungen, die ein Absichts-Protokoll referenziert. Nach einem
+// Absturz hinter der Marke stellt der Wiederanlauf sie fertig; ein Aufräumen,
+// das sie nach fünf Minuten entfernte, nähme ihm genau das, was er braucht.
+// Sie tragen deshalb eine eigene Marke:
+//
+// `.<Zielname>.em4me-absicht-<PID>-<Zähler>`
+//
+// `SCHATTEN_MUSTER` erkennt diese Form NICHT, und damit fasst
+// `raeumeSchattenkopien` sie nie an. Der führende Punkt hält sie wie jede
+// Schattenkopie aus Index und abgeleiteten Sichten. Die Namensform steht allein
+// in diesem Modul.
+const ABSICHT_MARKE = 'em4me-absicht';
+const ABSICHT_MUSTER = /^\..+\.em4me-absicht-\d+-\d+$/;
+
 let zaehler = 0;
 
 // 4T-001436: Schattenkopien, die GERADE geschrieben werden. Das Aufraeumen
@@ -74,11 +89,13 @@ let zaehler = 0;
 // Schreibvorgang — auch einen zweiten im selben Verzeichnis.
 const laufende = new Set();
 
-function schattenPfad(zielPfad) {
+// 4T-001823: Die Marke ist wählbar, das Verzeichnis nicht; es ist immer das
+// der Zieldatei.
+function schattenPfad(zielPfad, marke = SCHATTEN_MARKE) {
   zaehler += 1;
   const verzeichnis = path.dirname(zielPfad);
   const name = path.basename(zielPfad);
-  return path.join(verzeichnis, `.${name}.${SCHATTEN_MARKE}-${process.pid}-${zaehler}`);
+  return path.join(verzeichnis, `.${name}.${marke}-${process.pid}-${zaehler}`);
 }
 
 /**
@@ -93,6 +110,20 @@ function schattenPfad(zielPfad) {
  */
 function istSchattenkopie(name) {
   return typeof name === 'string' && SCHATTEN_MUSTER.test(name);
+}
+
+/**
+ * Ist dieser Datei-Name die Schattenkopie eines Datenbank-Auftrags?
+ *
+ * 4T-001823 (Epic 3E-000254): für die Klammer des Absichts-Protokolls und
+ * ihren Wiederanlauf. Ebenso streng wie `istSchattenkopie`: Der Name muss dem
+ * vollständigen Muster entsprechen.
+ *
+ * @param {string} name Datei-Name ohne Pfad.
+ * @returns {boolean}
+ */
+function istAbsichtsSchattenkopie(name) {
+  return typeof name === 'string' && ABSICHT_MUSTER.test(name);
 }
 
 // 4T-001436: Ab wann gilt eine Schattenkopie als zurueckgeblieben?
@@ -199,6 +230,212 @@ function fehlerAntwort(err) {
 }
 
 /**
+ * Schreibt eine Datei auf den Datenträger durch.
+ *
+ * 4T-001823 (Epic 3E-000254, Bauplan B1): Die Fähigkeit steht hier und nur
+ * hier, damit sie genau einmal im Haus steht. Durchgeschrieben werden allein
+ * die Daten (`datasync`); die Metadaten-Form `sync` bringt für eine Marke
+ * nichts hinzu, und unter Windows behandelt das Betriebssystem beide gleich.
+ * Das **Verzeichnis** wird bewusst nicht durchgeschrieben: Unter Windows
+ * scheitert das an einem geöffneten Verzeichnis mit `EPERM`, und Windows ist
+ * die Haupt-Plattform. Für Linux ist das eine benannte Lücke.
+ *
+ * @param {string} pfad Absoluter Pfad einer bestehenden Datei.
+ * @returns {Promise<void>} Wirft den Fehler des Dateisystems unverändert.
+ */
+async function durchschreibeDatei(pfad) {
+  const handle = await fs.open(pfad, 'r+');
+  try {
+    await handle.datasync();
+  } finally {
+    await handle.close();
+  }
+}
+
+/**
+ * Prüft den vorgefundenen Stand einer Zieldatei gegen den zuletzt gelesenen.
+ *
+ * 4T-001823 (Epic 3E-000254): herausgelöst aus `ersetzeDatei`, damit die
+ * Klammer des Absichts-Protokolls, die Schreiben und Umbenennen trennt,
+ * dieselbe Prüfung benutzt und keine zweite Auslegung von «fehlende Datei ist
+ * kein Konflikt» entsteht.
+ *
+ * @param {string} zielPfad Absoluter Pfad der Zieldatei.
+ * @param {string} [erwartet] Zuletzt gelesener Stand; fehlt er, wird nicht geprüft.
+ * @returns {Promise<{ok: true}|{ok: false, reason: 'conflict'}|{ok: false, code?: string, error: string}>}
+ */
+async function pruefeVorgefundenenStand(zielPfad, erwartet) {
+  if (typeof erwartet !== 'string') return { ok: true };
+  const stand = await saveGuard.readDiskState(zielPfad);
+  // Eine fehlende Datei ist eine Neuanlage und kein Konflikt; jeder andere
+  // Lesefehler heißt, dass der Stand nicht geprüft werden kann, und dann wird
+  // nicht blind geschrieben.
+  if (!stand.ok && stand.code !== 'ENOENT') return fehlerAntwort(stand);
+  const vorher = stand.ok ? stand.text : null;
+  if (saveGuard.istKonflikt(vorher, erwartet)) return { ok: false, reason: 'conflict' };
+  return { ok: true };
+}
+
+/**
+ * Schreibt die Schattenkopie einer Zieldatei, ohne die Zieldatei zu berühren.
+ *
+ * 4T-001823 (Epic 3E-000254, Bauplan B2): der schritt-getrennte Zugang des
+ * gemeinsamen Schreibwegs. Die Klammer des Absichts-Protokolls schreibt ALLE
+ * Schattenkopien eines Auftrags, bevor die erste Zieldatei umbenannt wird; sie
+ * bekommt den Namen deshalb von hier, damit die Namensform und damit das
+ * Aufräumen über `istSchattenkopie` nur einmal im Haus stehen. `ersetzeDatei`
+ * benutzt denselben Zugang.
+ *
+ * Die Schattenkopie bleibt im Aufräum-Schutz registriert, bis der Aufrufer sie
+ * mit `loeseSchattenkopie` löst; das Aufräumen fasst sie bis dahin nicht an.
+ * Scheitert das Schreiben, ist die Registrierung bereits gelöst. Scheitert erst
+ * das Durchschreiben, nennt das Ergebnis den Pfad der vollständig
+ * geschriebenen Schattenkopie, damit der Aufrufer sie entfernen kann.
+ *
+ * @param {string} zielPfad Absoluter Pfad der Zieldatei.
+ * @param {string|Buffer} inhalt Neuer Inhalt.
+ * @param {object} [opts]
+ * @param {(pfad: string) => Promise<void>} [opts.durchschreiben] Schreibt die
+ *   Schattenkopie auf den Datenträger durch; fehlt die Naht, wird nicht
+ *   durchgeschrieben.
+ * @param {'absicht'} [opts.marke] 4T-001823: `'absicht'` bildet den Namen mit
+ *   `ABSICHT_MARKE`, den das Aufräumen nie anfasst; ohne Angabe entsteht die
+ *   gewöhnliche Schattenkopie.
+ * @returns {Promise<{ok: true, schatten: string}
+ *   |{ok: false, code?: string, error: string, schatten?: string}>}
+ */
+async function schreibeSchattenkopie(zielPfad, inhalt, opts = {}) {
+  const istText = typeof inhalt === 'string';
+  const durchschreiben = opts.durchschreiben;
+  if (durchschreiben !== undefined && typeof durchschreiben !== 'function') {
+    throw new TypeError('schreibeSchattenkopie: durchschreiben ist kein Rückruf');
+  }
+  if (opts.marke !== undefined && opts.marke !== 'absicht') {
+    throw new TypeError('schreibeSchattenkopie: unbekannte Marke');
+  }
+  const schatten = schattenPfad(
+    zielPfad,
+    opts.marke === 'absicht' ? ABSICHT_MARKE : SCHATTEN_MARKE,
+  );
+  laufende.add(schatten);
+  try {
+    await fs.writeFile(schatten, inhalt, istText ? { encoding: 'utf8' } : undefined);
+  } catch (err) {
+    laufende.delete(schatten);
+    return fehlerAntwort(err);
+  }
+  if (durchschreiben) {
+    try {
+      await durchschreiben(schatten);
+    } catch (err) {
+      laufende.delete(schatten);
+      return { ...fehlerAntwort(err), schatten };
+    }
+  }
+  return { ok: true, schatten };
+}
+
+/**
+ * Löst eine Schattenkopie aus dem Aufräum-Schutz.
+ *
+ * 4T-001823 (Epic 3E-000254, Bauplan B2): das Gegenstück zu
+ * `schreibeSchattenkopie`, gerufen nach dem gelungenen Umbenennen oder nach dem
+ * Entfernen einer nicht mehr gebrauchten Schattenkopie.
+ *
+ * @param {string} schatten Pfad der Schattenkopie.
+ * @returns {void}
+ */
+function loeseSchattenkopie(schatten) {
+  laufende.delete(schatten);
+}
+
+// 4T-001964: Öffnet eine Datei mit Schreibrecht und schließt den Griff sofort,
+// ohne zu schreiben. Das entzieht dem Client eines anderen Rechners seine
+// Lease; Begründung bei `benenneUmMitWiederholung`.
+async function oeffneUndSchliesse(pfad) {
+  const griff = await fs.open(pfad, 'r+');
+  await griff.close();
+}
+
+/**
+ * Benennt eine Datei um und wiederholt, wo ein fremder Zugriff die Ursache ist.
+ *
+ * 4T-001789 (Epic 3E-000255): Die Schleife stand bis hierher im Rumpf von
+ * `ersetzeDatei` und war damit an das Ersetzen einer Datei gebunden. Sie gilt
+ * aber fuer jedes Umbenennen: Die gemessene Fehlschlag-Rate von bis zu 39
+ * Prozent auf einer Netz-Freigabe (Kopf-Kommentar, Grundlage 2) haengt am
+ * Vorgang und nicht daran, was vorher geschrieben wurde. Das Mitziehen der
+ * Begleit-Dateien beim Umbenennen und seine Ruecknahme fahren deshalb dieselbe
+ * Schleife; eine zweite waere eine zweite Auslegung desselben Fensters.
+ *
+ * Wirft den LETZTEN Fehler unveraendert, samt `code`. Der Aufrufer entscheidet,
+ * ob das ein Fehlschlag seines Vorgangs ist — hier ist es nur das Ende der
+ * Wiederholungen.
+ *
+ * 4T-001964 (Epic 3E-000254, Befund vom 2026-09-27, Diagnose-Lauf d4 auf der
+ * Netz-Freigabe): Vor dem ersten Umbenennen wird die Zieldatei einmal mit
+ * Schreibrecht geöffnet und sofort wieder geschlossen. Der Client eines
+ * anderen Rechners, der die Datei zuvor selbst gelesen hat, hält seinen Griff
+ * samt Lease zurück und bedient das nächste Öffnen daraus; er sah nach dem
+ * Ersetzen in sieben von acht Durchgängen den ALTEN Stand, auch beim Lesen mit
+ * Schreibrecht. Das Umbenennen allein entzieht ihm die Lease nicht, das Öffnen
+ * der Zieldatei durch den Schreiber dagegen schon: Danach sah der andere
+ * Rechner in 24 von 24 Durchgängen den frischen Stand, auch beim gewöhnlichen
+ * Lesen, für rund 5 ms. Der Griff wird VOR dem Umbenennen geschlossen; bleibt
+ * er offen, scheitert das Umbenennen mit EPERM. Das Öffnen steht hier und
+ * nicht bei den Aufrufern, damit jeder Schreibweg der Anwendung gedeckt ist,
+ * Dokumente wie Datenbestand. Jeder Fehler des Öffnens wird geschluckt: Eine
+ * fehlende Zieldatei ist eine Neuanlage, eine gesperrte oder
+ * schreibgeschützte scheitert wie bisher erst am Umbenennen. Ein Verzeichnis
+ * als Ziel wird bewusst nicht vorab ausgesondert: Unter Windows öffnet `r+`
+ * ein Verzeichnis ohne Fehler, das Schließen folgt sofort, und ein
+ * zusätzliches Nachsehen kostete auf der Freigabe bei jedem Umbenennen einen
+ * weiteren Rundlauf. Das Sperr-Ordner-Umbenennen, der einzige Aufrufer mit
+ * einem Verzeichnis, benennt ohnehin nur auf einen freien Pfad um.
+ *
+ * @param {string} von Bisheriger Pfad.
+ * @param {string} nach Neuer Pfad.
+ * @param {object} [opts]
+ * @param {number[]} [opts.abstaende] Auslegung des Wiederhol-Fensters in
+ *   Millisekunden, wie bei `ersetzeDatei`.
+ * @param {((pfad: string) => Promise<void>)|false} [opts.oeffneZiel]
+ *   4T-001964: Öffnet und schließt die Zieldatei vor dem Umbenennen; Vorgabe
+ *   ist `oeffneUndSchliesse`. `false` schaltet den Schritt ab, für Prüffälle,
+ *   die allein die Wiederhol-Schleife messen.
+ * @returns {Promise<{versuche: number}>} Zahl der gefahrenen Versuche.
+ */
+async function benenneUmMitWiederholung(von, nach, opts = {}) {
+  const abstaende = opts.abstaende === undefined ? WIEDERHOL_ABSTAENDE_MS : opts.abstaende;
+  if (!Array.isArray(abstaende)) {
+    throw new TypeError('benenneUmMitWiederholung: abstaende ist keine Liste von Wartezeiten');
+  }
+  const oeffneZiel = opts.oeffneZiel === undefined ? oeffneUndSchliesse : opts.oeffneZiel;
+  if (oeffneZiel !== false && typeof oeffneZiel !== 'function') {
+    throw new TypeError('benenneUmMitWiederholung: oeffneZiel ist weder Rückruf noch false');
+  }
+  // 4T-001964: genau einmal je Aufruf, nicht je Wiederhol-Versuch.
+  if (oeffneZiel) {
+    try {
+      await oeffneZiel(nach);
+    } catch (err) {
+      // Fehlende, gesperrte oder schreibgeschützte Zieldatei: Das Umbenennen
+      // läuft unverändert und urteilt selbst.
+      void err;
+    }
+  }
+  for (let versuch = 0; ; versuch += 1) {
+    try {
+      await fs.rename(von, nach);
+      return { versuche: versuch + 1 };
+    } catch (err) {
+      const code = err && err.code;
+      if (!WIEDERHOLBAR.has(code) || versuch >= abstaende.length) throw err;
+      await new Promise((r) => setTimeout(r, abstaende[versuch]));
+    }
+  }
+}
+
+/**
  * Ersetzt eine Datei ganz oder gar nicht.
  *
  * Geschrieben wird in eine Schattenkopie im selben Verzeichnis; erst das
@@ -247,29 +484,20 @@ async function ersetzeDatei(zielPfad, inhalt, opts = {}) {
     throw new TypeError('ersetzeDatei: markSelfWriting ist kein Rueckruf');
   }
 
-  if (typeof opts.expected === 'string') {
-    const stand = await saveGuard.readDiskState(zielPfad);
-    // Eine fehlende Datei ist eine Neuanlage und kein Konflikt; jeder andere
-    // Lesefehler heisst, dass der Stand nicht geprueft werden kann, und dann
-    // wird nicht blind geschrieben.
-    if (!stand.ok && stand.code !== 'ENOENT') return fehlerAntwort(stand);
-    const vorher = stand.ok ? stand.text : null;
-    if (saveGuard.istKonflikt(vorher, opts.expected)) return { ok: false, reason: 'conflict' };
-  }
+  // 4T-001823: Die Stand-Prüfung und das Schreiben der Schattenkopie laufen
+  // über dieselben Zugänge wie in der Klammer des Absichts-Protokolls; das
+  // Verhalten dieses Weges ist unverändert.
+  const stand = await pruefeVorgefundenenStand(zielPfad, opts.expected);
+  if (!stand.ok) return stand;
 
   const abstaende = opts.abstaende === undefined ? WIEDERHOL_ABSTAENDE_MS : opts.abstaende;
   if (!Array.isArray(abstaende)) {
     throw new TypeError('ersetzeDatei: abstaende ist keine Liste von Wartezeiten');
   }
 
-  const schatten = schattenPfad(zielPfad);
-  laufende.add(schatten);
-  try {
-    await fs.writeFile(schatten, inhalt, istText ? { encoding: 'utf8' } : undefined);
-  } catch (err) {
-    laufende.delete(schatten);
-    return fehlerAntwort(err);
-  }
+  const geschrieben = await schreibeSchattenkopie(zielPfad, inhalt);
+  if (!geschrieben.ok) return geschrieben;
+  const schatten = geschrieben.schatten;
 
   // Vor dem Umbenennen registrieren: Der Beobachter kann unmittelbar danach
   // feuern. Bleibt der Eintrag nach einem endgueltigen Fehlschlag stehen,
@@ -279,40 +507,36 @@ async function ersetzeDatei(zielPfad, inhalt, opts = {}) {
   if (markSelfWriting) markSelfWriting(zielPfad, inhalt);
 
   try {
-    for (let versuch = 0; ; versuch += 1) {
+    let versuche;
+    try {
+      // 4T-001789: Die Wiederhol-Schleife liegt jetzt in
+      // benenneUmMitWiederholung; das Verhalten dieses Weges ist unveraendert.
+      ({ versuche } = await benenneUmMitWiederholung(schatten, zielPfad, { abstaende }));
+    } catch (err) {
+      // Die Schattenkopie hat nichts bewirkt und wird entfernt, damit das
+      // Aufraeumen nur findet, was ein Absturz hinterlassen hat.
       try {
-        await fs.rename(schatten, zielPfad);
-      } catch (err) {
-        const code = err && err.code;
-        if (!WIEDERHOLBAR.has(code) || versuch >= abstaende.length) {
-          // Die Schattenkopie hat nichts bewirkt und wird entfernt, damit das
-          // Aufraeumen nur findet, was ein Absturz hinterlassen hat.
-          try {
-            await fs.unlink(schatten);
-          } catch (aufraeumFehler) {
-            // Bleibt sie liegen, ist das kein Grund, den Schreibfehler zu
-            // verdecken: Sie wird am Namensmuster wiedergefunden.
-            void aufraeumFehler;
-          }
-          return fehlerAntwort(err);
-        }
-        await new Promise((r) => setTimeout(r, abstaende[versuch]));
-        continue;
-      }
-      // 4T-001436: Gelegenheit zum Aufraeumen, wenn die Anwendung in diesem
-      // Verzeichnis ohnehin gerade arbeitet. Gedrosselt, damit nicht jeder
-      // Schreibvorgang ein zusaetzliches Verzeichnis-Lesen kostet. Bewusst
-      // AUSSERHALB des try um das Umbenennen: Ein Fehler beim Aufraeumen darf
-      // niemals als fehlgeschlagenes Speichern erscheinen — das Speichern ist
-      // an dieser Stelle bereits gelungen.
-      laufende.delete(schatten);
-      try {
-        await raeumeSchattenkopien(path.dirname(zielPfad));
+        await fs.unlink(schatten);
       } catch (aufraeumFehler) {
+        // Bleibt sie liegen, ist das kein Grund, den Schreibfehler zu
+        // verdecken: Sie wird am Namensmuster wiedergefunden.
         void aufraeumFehler;
       }
-      return { ok: true, versuche: versuch + 1 };
+      return fehlerAntwort(err);
     }
+    // 4T-001436: Gelegenheit zum Aufraeumen, wenn die Anwendung in diesem
+    // Verzeichnis ohnehin gerade arbeitet. Gedrosselt, damit nicht jeder
+    // Schreibvorgang ein zusaetzliches Verzeichnis-Lesen kostet. Bewusst
+    // AUSSERHALB des try um das Umbenennen: Ein Fehler beim Aufraeumen darf
+    // niemals als fehlgeschlagenes Speichern erscheinen — das Speichern ist
+    // an dieser Stelle bereits gelungen.
+    laufende.delete(schatten);
+    try {
+      await raeumeSchattenkopien(path.dirname(zielPfad));
+    } catch (aufraeumFehler) {
+      void aufraeumFehler;
+    }
+    return { ok: true, versuche };
   } finally {
     laufende.delete(schatten);
   }
@@ -361,9 +585,20 @@ module.exports = {
   WIEDERHOLBAR,
   SCHATTEN_MARKE,
   SCHATTEN_MUSTER,
+  // 4T-001823: die Marke der Schattenkopien eines Datenbank-Auftrags.
+  ABSICHT_MARKE,
+  ABSICHT_MUSTER,
+  istAbsichtsSchattenkopie,
   RESTE_MINDESTALTER_MS,
   RESTE_DROSSEL_MS,
   istSchattenkopie,
+  benenneUmMitWiederholung,
+  // 4T-001823 (Epic 3E-000254, B1, B2): der schritt-getrennte Zugang für die
+  // Klammer des Absichts-Protokolls.
+  durchschreibeDatei,
+  pruefeVorgefundenenStand,
+  schreibeSchattenkopie,
+  loeseSchattenkopie,
   ersetzeDatei,
   ersetzeDateiOderWirf,
   raeumeSchattenkopien,

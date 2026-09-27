@@ -320,3 +320,41 @@ describe('Ableitung statt zweiter Pflege (4T-001611, AK9)', () => {
     expect(bauZaehler()).toBe(2);
   });
 });
+
+// --- 4T-001927: Schlüssel in der letzten Spalte -------------------------------
+
+describe('Schlüssel in der letzten Spalte (4T-001927, Nebenbefund am Index)', () => {
+  // Die Leerzeile zwischen zwei Datensätzen ist der Trennabstand des Formats.
+  // Beim Auslegen hängt sie am Text der LETZTEN Zelle des vorderen Datensatzes;
+  // zum Wert gehört sie nicht (`zellTexte` in `record-write.js`). Steht der
+  // Schlüssel in dieser Spalte, darf er im Index nicht mit dem Umbruch geführt
+  // werden, sonst findet ihn der echte Wert nicht.
+  it('findet den Datensatz mit dem Wert ohne den Trennabstand', async () => {
+    const root = makeRoot();
+    const datei = write(
+      root,
+      'Kunden.md',
+      tabelle(
+        [
+          '|- id="r-00001"',
+          '| K-1',
+          '| Anna',
+          '| Basel',
+          '',
+          '|- id="r-00002"',
+          '| K-2',
+          '| Bert',
+          '| Bern',
+        ],
+        { key: 'Ort' },
+      ),
+    );
+    await indexFor(datei);
+    const ergebnis = datensatzNachSchluessel(datei, null, 'Kunden', 'Basel');
+    expect(ergebnis.status).toBe('ready');
+    expect(ergebnis.uneindeutig).toBe(false);
+    expect(ergebnis.treffer && ergebnis.treffer.id).toBe('r-00001');
+    // Der hintere Datensatz ohne folgende Leerzeile war nie betroffen.
+    expect(datensatzNachSchluessel(datei, null, 'Kunden', 'Bern').treffer.id).toBe('r-00002');
+  });
+});

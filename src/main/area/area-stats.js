@@ -62,10 +62,15 @@ const { MD_EXT_RE } = require('../../shared/markdown/link-scan.js');
 const BILD_EXTS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.bmp', '.avif']);
 
 // Begleitdateien der Anwendung: .mdd gehoert zu genau einem Dokument,
-// .mdda ist eine Bereichs-Datei (Einstellungen, Index-Cache). Beide zaehlen
-// NICHT als Nicht-Markdown-Dateien, sondern nur im eigenen Abschnitt.
-const MDD_EXT = '.mdd';
-const MDDA_EXT = '.mdda';
+// .mdda ist eine Bereichs-Datei (Einstellungen, Index-Cache), .mddl traegt die
+// Aenderungsbelege einer Tabellen-Datei. Alle drei zaehlen NICHT als
+// Nicht-Markdown-Dateien, sondern nur im eigenen Abschnitt.
+//
+// 4T-001789 (Epic 3E-000255): Die Endungen kommen aus dem gemeinsamen Modul
+// der Markdown-Data-Familie statt aus eigenen Konstanten dieser Datei. Ohne
+// den Bezug zaehlte eine Beleg-Datei hier unter «Sonstige» der
+// Nicht-Markdown-Dateien, obwohl sie eine Begleit-Datei der Anwendung ist.
+const { MDD_EXT, MDDA_EXT, MDDL_EXT } = require('../../shared/markdown-data-family.js');
 
 // Verzeichnis-Eintraege zwischen zwei Yields (Muster BUILD_BATCH_SIZE des
 // Index-Aufbaus).
@@ -102,6 +107,8 @@ async function scanArea(root, { mitMarkdown = false } = {}) {
     sonstige: leererZaehler(),
     mdd: leererZaehler(),
     mdda: leererZaehler(),
+    // 4T-001789: Aenderungsbelege der Datenbank-Anwendungen.
+    mddl: leererZaehler(),
     // Kleingeschriebene absolute Pfade aller .mdd-Dateien, fuer den Abgleich
     // „wie viele Markdown-Dateien haben eine Begleitdatei".
     mddPfade: new Set(),
@@ -144,6 +151,8 @@ async function scanArea(root, { mitMarkdown = false } = {}) {
         ergebnis.mddPfade.add(full.toLowerCase());
       } else if (ext === MDDA_EXT) {
         zaehle(ergebnis.mdda, bytes);
+      } else if (ext === MDDL_EXT) {
+        zaehle(ergebnis.mddl, bytes);
       } else if (BILD_EXTS.has(ext)) {
         zaehle(ergebnis.bilder, bytes);
       } else if (ext === '.pdf') {
@@ -199,7 +208,11 @@ async function collectAreaStats(areaRoot, env, deps = {}) {
 
   const nichtMarkdownAnzahl = scan.bilder.anzahl + scan.pdf.anzahl + scan.sonstige.anzahl;
   const nichtMarkdownBytes = scan.bilder.bytes + scan.pdf.bytes + scan.sonstige.bytes;
-  const begleitBytes = scan.mdd.bytes + scan.mdda.bytes;
+  // 4T-001789: Die Beleg-Dateien zaehlen zu den Begleit-Bytes. Der Abgleich
+  // «Dokumente mit Begleitdatei» darunter bleibt dagegen allein an .mdd
+  // gebunden: Eine Beleg-Datei gehoert zu einer Tabellen-Datei und darf dort
+  // weder mitzaehlen noch als verwaiste Dokument-Begleitdatei erscheinen.
+  const begleitBytes = scan.mdd.bytes + scan.mdda.bytes + scan.mddl.bytes;
   const mitMdd = index.dateiPfade.filter((p) =>
     scan.mddPfade.has(mddPfadZu(p).toLowerCase()),
   ).length;
@@ -229,6 +242,7 @@ async function collectAreaStats(areaRoot, env, deps = {}) {
     begleit: {
       mdd: scan.mdd,
       mdda: scan.mdda,
+      mddl: scan.mddl,
       mitMdd,
       vonMarkdown: index.markdown.anzahl,
     },

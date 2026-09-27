@@ -799,6 +799,74 @@
       "status": "befoerdert",
       "vorgang": "4T-001948",
       "vermerk": "Befördert am 2026-09-24 bei der Sichtung als Schritt 6 der Release-Strecke des Zuges 3E-000325: Die Bedingung des Erst-Eintrags, ein erneutes Ausbleiben desselben Falls, ist erfüllt. Die dort ebenfalls verlangte Öffnungszeit des zweiten Fensters ist nicht gemessen; sie ist der erste Schritt des neuen Vorgangs 4T-001948 im Pflege-Epic 3E-000156. Nach der Sichtungs-Regel der Release-Strecke ist ein verorteter offener Fall eine Arbeitsliste und kein Signal, er blockiert die Abnahme nicht."
+    },
+    {
+      "spec": "test/unit/mandat-fruehwarnung.test.js",
+      "fall": "MF-AK3: erlaubt Schreiben im Bereich und außerhalb des Repositoriums (AK3)",
+      "datum": "2026-09-19",
+      "fehlerbild": "Fünfte Beobachtung dieses Falls. Einzel-Fehlschlag im Unit-Teil des Gates «alle» auf dem Epic-Zweig epic/3E-000255-Sperren-und-Belege im Arbeitsbereich SC-026/C (1 von 8263 Fällen rot, Beleg test-berichte/rot/2026-09-19T08-12-44Z-epic-3E-000255-Sperren-und-Belege-test.log): Der Fall lief in sein Zeitlimit von 5000 ms. Isoliert unmittelbar danach grün, 55 Fälle der Prüfdatei in 654 ms.",
+      "vermutung": "Rechnerlast wie bei den vier Beobachtungen davor; der Product Owner arbeitete zur selben Zeit am selben Rechner. Bezug zum Änderungs-Umfang geprüft und ausgeschlossen: Geändert waren der Lösch-Weg des Bereichs-Panels und seine Rückfrage (4T-001800), keine Datei der Mandats-Frühwarnung.",
+      "status": "befoerdert",
+      "vorgang": "4T-001698",
+      "vermerk": "Tritt dem bestehenden Vorgang 4T-001698 bei (Status Offen, fremder Arbeitsbereich); kein neuer Vorgang. Der Lauf wurde nach gesichertem Beleg und grüner Isolation wiederholt."
+    },
+    {
+      "spec": "test/unit/command-availability.test.js",
+      "fall": "Bedingungs-Katalog (4T-001635) › keine Bedingung liest ein Feld, das sie nicht nennt",
+      "datum": "2026-09-19",
+      "fehlerbild": "Erster Eintrag dieses Falls. Einzel-Fehlschlag im Gate «test» (vollständige Unit- und Snapshot-Suite) als Epic-Abschluss-Test des Epics 3E-000255 auf dem Epic-Zweig epic/3E-000255-Sperren-und-Belege im Arbeitsbereich SC-026/C, unmittelbar nach dem Rebase auf das Release 1.138.0 (1 von 8634 Fällen rot, Beleg test-berichte/rot/2026-09-19T16-10-10Z-epic-3E-000255-Sperren-und-Belege-test.log): Der Fall lief in das voreingestellte Zeitlimit von 5000 ms. Isoliert zweimal grün; der zweite Lauf hat die Dauer des einzelnen Falls gemessen, 4393 ms ohne Suiten-Last.",
+      "vermutung": "Rechnerlast als Auslöser, aber auf einem Fall, der sein Limit schon ohne Last zu 88 Prozent ausschöpft: Zur selben Zeit liefen drei fremde Anwendungs-Instanzen (Warnung des Gate-Wegs) und zwei lesende Agenten der Sitzung. Der Fall wertet jede Bedingung des Katalogs an jeder Kombination der Kontext-Felder aus und prüft jede Auswertung einzeln; sein Aufwand wächst mit jedem weiteren Kontext-Feld um einen Faktor und mit jeder Bedingung linear. Bezug zum Änderungs-Umfang geprüft und ausgeschlossen: Weder das Epic noch der Rebase berühren die Prüfdatei oder den Bedingungs-Katalog.",
+      "status": "beobachtet",
+      "vermerk": "Bei der Sichtung je Release zu beachten: Der Abstand zum Zeitlimit ist gemessen und klein, eine zweite Beobachtung oder ein weiteres Kontext-Feld macht aus der Beobachtung einen Testfehler (Zeitlimit des Falls benennen oder die Kombinatorik ohne Einzel-Erwartung je Auswertung zählen)."
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-index-cache.spec.js",
+      "fall": "BIC-01: Bereichs-Index-Cache (4T-000348) — Cache entsteht proaktiv beim Oeffnen, nicht im Panel, Warmstart-Paritaet",
+      "datum": "2026-09-27",
+      "fehlerbild": "VIERTE Beobachtung dieses Falls; die Vorgänger stehen unter dem 2026-09-11, dem 2026-09-14 (Beförderung nach 4T-001755) und dem 2026-09-19. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000314 «Stufe 2 der Datenbank» am 2026-09-27, Schritt 6: 914 von 919 grün, 5 rot in 71,5 min (14:47 bis 15:58 UTC), parallel zum Linux-E2E-Voll-Lauf derselben Strecke (14:49 bis 15:27 UTC, 918 von 919 grün). Fingerabdruck unverändert: expect(locator).toHaveText auf .backlinks-group-name erwartete «Quelle» und fand das Element im Warmstart-Teil in 15000 ms nicht (bereichs-index-cache.spec.js:75); Beginn 14:59:57Z, Fall-Laufzeit 37,4 s. Isoliert 3 von 3 grün. Beleg: test-berichte/rot/2026-09-27T15-58-48Z-zug-3E-000314-Stufe-2-Datenbank-e2e.log samt -e2e.json und -e2e-artefakte.",
+      "vermutung": "Unverändert die des Vorgangs 4T-001755: der Klick auf einen Statusleisten-Schalter unmittelbar nach dem Warmstart, bevor die Bindungen stehen, unter belegter Last durch den parallelen Linux-Lauf. Die Beobachtung fügt dem Bild nichts hinzu außer einer vierten Bestätigung.",
+      "status": "befoerdert",
+      "vorgang": "4T-001755",
+      "vermerk": "Vierte Beobachtung, tritt dem bestehenden Vorgang 4T-001755 bei; kein neuer Vorgang. Nach der Sichtungs-Regel der Release-Strecke ist ein verorteter offener Fall eine Arbeitsliste und kein Signal, er blockiert die Abnahme nicht."
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-statistik.spec.js",
+      "fall": "BS-06",
+      "datum": "2026-09-27",
+      "fehlerbild": "ZEHNTE BEOBACHTUNG; die neunte steht unter dem 2026-09-17. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000314 «Stufe 2 der Datenbank» am 2026-09-27, Schritt 6: 914 von 919 grün, 5 rot in 71,5 min (14:47 bis 15:58 UTC), parallel zum Linux-E2E-Voll-Lauf derselben Strecke (14:49 bis 15:27 UTC, 918 von 919 grün). Abbruch-Stelle dieselbe wie bei allen Vorgängern, «Timeout 10000ms exceeded while waiting on the predicate», Fall «das Bereichs-Panel zeigt beide Einträge, im Aus-Zustand nur den Graph» (bereichs-statistik.spec.js:214, Zusicherung in Zeile 256): Der Eintrag area-panel-stats verschwindet im Aus-Zustand nicht binnen 10 s. Beginn 15:03:04Z, Fall-Laufzeit 16,6 s. Isoliert 3 von 3 grün. Beleg: test-berichte/rot/2026-09-27T15-58-48Z-zug-3E-000314-Stufe-2-Datenbank-e2e.log samt -e2e.json und -e2e-artefakte.",
+      "vermutung": "Unverändert lastbedingt und an derselben Stelle wie die neun Beobachtungen davor; die Last ist durch den parallelen Linux-Lauf belegt. Die Beobachtung fügt dem Bild nichts hinzu außer einer weiteren Bestätigung.",
+      "status": "befoerdert",
+      "vorgang": "4T-001100",
+      "vermerk": "Zehnte Beobachtung, die dem bestehenden Vorgang 4T-001100 beitritt; kein neuer Vorgang. Die Bedingung für Weiteres liegt im Vorgang, nämlich seine Wiederaufnahme-Bedingung eines roten Laufs mit gesichertem Trace im bearbeitenden Arbeitsbereich."
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-statistik.spec.js",
+      "fall": "BS-07: Stand-Ausweis bei ungespeicherten Änderungen (S-118) — nennt den gespeicherten Stand und zählt die offenen Dokumente",
+      "datum": "2026-09-27",
+      "fehlerbild": "FÜNFTE Beobachtung dieses Falls; die Vorgänger stehen unter dem 2026-09-06, dem 2026-09-08, dem 2026-09-11 (Beförderung nach 4T-001689) und dem 2026-09-24. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000314 «Stufe 2 der Datenbank» am 2026-09-27, Schritt 6: 914 von 919 grün, 5 rot in 71,5 min (14:47 bis 15:58 UTC), parallel zum Linux-E2E-Voll-Lauf derselben Strecke (14:49 bis 15:27 UTC, 918 von 919 grün). Fingerabdruck wie zuletzt: toBeVisible auf das Stand-Element lief 15 s ins Leere (openStatsAndWait, bereichs-statistik.spec.js:87, aufgerufen aus Zeile 284); das Element war vorhanden und trug den richtigen Zeitstempel, blieb aber hidden. Beginn 15:03:22Z, Fall-Laufzeit 20,1 s. Isoliert 3 von 3 grün. Beleg: test-berichte/rot/2026-09-27T15-58-48Z-zug-3E-000314-Stufe-2-Datenbank-e2e.log samt -e2e.json und -e2e-artefakte.",
+      "vermutung": "Unverändert die des Vorgangs 4T-001689: ein Reiter-Rennen in openStatsAndWait, der Statistik-Reiter gerät in den Hintergrund, und die Wartebedingung prüft die Sichtbarkeit statt des aktiven Reiters.",
+      "status": "befoerdert",
+      "vorgang": "4T-001689",
+      "vermerk": "Fünfte Beobachtung, tritt dem bestehenden Vorgang 4T-001689 bei; kein neuer Vorgang. Nach der Sichtungs-Regel der Release-Strecke ist ein verorteter offener Fall eine Arbeitsliste und kein Signal, er blockiert die Abnahme nicht."
+    },
+    {
+      "spec": "test/e2e/funktionen/sprach-einspielen.spec.js",
+      "fall": "SE-08: eingespielte Sprache entfernen (F-286) — nimmt die Datei weg und stellt die Anwendung auf Englisch",
+      "datum": "2026-09-27",
+      "fehlerbild": "VIERTE Beobachtung dieses Falls; die Vorgänger stehen unter dem 2026-09-19, dem 2026-09-20 und dem 2026-09-24. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000314 «Stufe 2 der Datenbank» am 2026-09-27, Schritt 6: 914 von 919 grün, 5 rot in 71,5 min (14:47 bis 15:58 UTC), parallel zum Linux-E2E-Voll-Lauf derselben Strecke (14:49 bis 15:27 UTC, 918 von 919 grün). Fingerabdruck unverändert: «electronApplication.evaluate: Execution context was destroyed, most likely because of a navigation» im Helfer loeseEntfernenAus (sprach-einspielen.spec.js:124, aufgerufen aus Zeile 443); Beginn 15:41:31Z, Fall-Laufzeit 3,2 s. Isoliert 3 von 4 grün: Der erste Einzel-Lauf war rot mit identischem Fingerabdruck, die drei folgenden grün. Beleg: test-berichte/rot/2026-09-27T15-58-48Z-zug-3E-000314-Stufe-2-Datenbank-e2e.log samt -e2e.json und -e2e-artefakte.",
+      "vermutung": "Unverändert die des Vorgangs 4T-001813: Ursache ungeklärt, ein Zusammentreffen mit dem Neuaufbau der Oberfläche nach dem Sprach-Wechsel ist Kandidat und ungemessen. Dasselbe Fehlerbild trat im selben Lauf in RG-03 auf (Eintrag unter demselben Datum).",
+      "status": "befoerdert",
+      "vorgang": "4T-001813",
+      "vermerk": "Vierte Beobachtung, tritt dem bestehenden Vorgang 4T-001813 bei; kein neuer Vorgang. Für 4T-001813 festgehalten: Am Stand des Zuges 3E-000314 ist der Fall isoliert 3 von 4 grün. Nach der Sichtungs-Regel der Release-Strecke ist ein verorteter offener Fall eine Arbeitsliste und kein Signal, er blockiert die Abnahme nicht."
+    },
+    {
+      "spec": "test/e2e/funktionen/regal.spec.js",
+      "fall": "RG-03: Erkennung der Regal-Datei (4T-000867) › Regal-Datei macht das Regal aktiv, eine gewöhnliche Datei nicht",
+      "datum": "2026-09-27",
+      "fehlerbild": "ERSTE Beobachtung dieses Falls. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000314 «Stufe 2 der Datenbank» am 2026-09-27, Schritt 6: 914 von 919 grün, 5 rot in 71,5 min (14:47 bis 15:58 UTC), parallel zum Linux-E2E-Voll-Lauf derselben Strecke (14:49 bis 15:27 UTC, 918 von 919 grün). Der Test verliert den Zugriff auf den Hauptprozess: «electronApplication.evaluate: Execution context was destroyed, most likely because of a navigation» im Helfer openExternally (regal.spec.js:101 bis 103) beim zweiten externen Öffnen, dem der Regal-Datei (Prüfdatei Zeile 230); Beginn 15:36:01Z, Abbruch nach 4,2 s. Keine inhaltliche Erwartung wurde verletzt. Isoliert 3 von 3 grün, die ganze Prüfdatei 11 von 11. Beleg: test-berichte/rot/2026-09-27T15-58-48Z-zug-3E-000314-Stufe-2-Datenbank-e2e.log samt -e2e.json und -e2e-artefakte.",
+      "vermutung": "Dasselbe Fehlerbild wie SE-08, PZ-06 und MEM-06; die Meldung ist ein Sammel-Text von Playwright und taugt allein nicht als Diagnose (siehe Eintrag MEM-06 vom 2026-09-14). Kein Datei-Fehler und kein Bezug zum Zug: Der Zug ändert zwar die Speicher-Logik in atomic-write.js, das Fehlerbild ist aber kein Dateifehler, sondern ein Verlust des Ausführungs-Kontexts im Hauptprozess.",
+      "status": "beobachtet",
+      "vermerk": "Erstbeobachtung dieses Falls, deshalb nicht befördert. Hinweis auf die Ursachen-Messung des Fehlerbilds im Vorgang 4T-001813 (SE-08); klärt sie die Ursache, ist RG-03 dort mit zu prüfen. Bedingung für eine Beförderung: ein erneutes Auftreten von RG-03."
     }
   ]
 }

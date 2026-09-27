@@ -35,6 +35,7 @@
   "stats.companions.ofFiles": "{count} von {total}",
   "stats.companions.mdd": "Begleitdateien (.mdd)",
   "stats.companions.mdda": "Bereichs-Dateien (.mdda)",
+  "stats.companions.mddl": "Änderungsbelege (.mddl)",
   "stats.content.tasks": "Aufgaben",
   "stats.content.tasksOpen": "davon offen",
   "stats.content.tasksDone": "davon erledigt",

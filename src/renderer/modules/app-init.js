@@ -151,6 +151,20 @@ import { initMemoryPage } from './memory-page.js';
 // Bereichs — hier fuer das frisch gestartete Fenster, dessen Fenster-Meldung
 // waehrend der Wiederherstellung eintrifft (Begruendung an der Funktion).
 import { zeigeUebersichtBeimBinden } from './database/datenbank-uebersicht-seite.js';
+// 4T-001792 (Epic 3E-000255): Die lesende Beleg-Ansicht am Datensatz
+// registriert sich beim Laden ihres Moduls. Der Zugang an der Datensatz-Zeile
+// importiert sie bewusst NICHT, sondern bekommt ihren Einstieg als Umgebung
+// hereingereicht (Begründung im Kopf von `datensatz-zeilen-zugang.js`); dieses
+// Modul ist deshalb die einzige Stelle, die beide zusammenführt, und ohne diese
+// Zeile käme die Seite selbst nicht ins Bündel.
+import { oeffneBelegAnsicht } from './database/beleg-ansicht-seite.js';
+// 4T-001939 (Epic 3E-000257): Die Einzel-Maske registriert sich ebenso beim
+// Laden ihres Moduls; ihre beiden Einstiege reicht dieses Modul an den
+// Zeilen-Zugang weiter, aus demselben Grund wie den der Beleg-Ansicht.
+import { oeffneMaske, neuerDatensatz } from './database/masken-seite.js';
+// 4T-001792 (Epic 3E-000255, Bauplan Z2): Die Bedienung der Zeilen-Schaltfläche
+// des Datensatz-Blocks, gebunden für Lese-Ansicht und Änderungs-Modus.
+import { initRecordRowAccess } from './database/datensatz-zeilen-zugang.js';
 // 4T-000480 (Epic 3E-000089): Kommando-Palette; initCommandPalette injiziert den
 // Ausfuehrungs-Pfad ueber die commandHandlers-Map (Zyklus-Vermeidung).
 import { initCommandPalette } from './command-palette.js';
@@ -830,6 +844,21 @@ async function init() {
       if (typeof handler === 'function') handler();
       waehleCanvasFlaecheAbZeile(state.activePaneIndex, startZeile);
     },
+  });
+  // 4T-001792 (Epic 3E-000255, Bauplan Z2 und Z3): Der Zugang von der
+  // Datensatz-Zeile zu den Änderungsbelegen. Dieselbe Injektions-Bauweise und
+  // derselbe Grund wie darüber: Ein Import des Fenster-Zustands oder der
+  // Beleg-Seite in jenem Modul zöge beide in den eingefrorenen Datei-Zyklus des
+  // Anzeige-Prozesses, was der Ordner-Import-Wächter als Befund meldet.
+  initRecordRowAccess({
+    aktivesDokument: (paneIdx) => {
+      const pane = state.panes[paneIdx];
+      return pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+    },
+    oeffneBelege: (tabellenPfad, kennung) => oeffneBelegAnsicht(tabellenPfad, kennung),
+    // 4T-001939 (Bauplan B7): die Maske an der Zeile und die Neuanlage im Fuß.
+    oeffneMaske: (tabellenPfad, kennung) => oeffneMaske(tabellenPfad, kennung),
+    neuerDatensatz: (tabellenPfad) => void neuerDatensatz(tabellenPfad),
   });
   initMacros({
     registerHandler: (commandId, fn) => {

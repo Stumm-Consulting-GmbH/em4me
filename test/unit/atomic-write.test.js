@@ -9,11 +9,19 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 import {
+  benenneUmMitWiederholung,
   ersetzeDatei,
   ersetzeDateiOderWirf,
   istSchattenkopie,
+  istAbsichtsSchattenkopie,
+  schreibeSchattenkopie,
+  loeseSchattenkopie,
+  ABSICHT_MARKE,
+  ABSICHT_MUSTER,
   raeumeSchattenkopien,
   _drosselLeeren,
   WIEDERHOL_ABSTAENDE_MS,
@@ -151,6 +159,48 @@ describe('atomic-write: ersetzen ueber Schattenkopie und Umbenennen', () => {
     await ersetzeDatei(ziel, NEU);
 
     expect(await eintraege()).toEqual(['dokument.md']);
+  });
+});
+
+// 4T-001823 (Epic 3E-000254): der schritt-getrennte Zugang mit der Marke der
+// Absichts-Schattenkopien.
+describe('atomic-write: Schattenkopie eines Datenbank-Auftrags (4T-001823)', () => {
+  it('bildet den Namen mit der Absichts-Marke im Verzeichnis der Zieldatei', async () => {
+    const geschrieben = await schreibeSchattenkopie(ziel, NEU, { marke: 'absicht' });
+    try {
+      expect(geschrieben.ok).toBe(true);
+      const name = path.basename(geschrieben.schatten);
+      expect(path.dirname(geschrieben.schatten)).toBe(verzeichnis);
+      expect(name).toMatch(new RegExp(`^\\.dokument\\.md\\.${ABSICHT_MARKE}-${process.pid}-\\d+$`));
+      expect(ABSICHT_MARKE).toBe('em4me-absicht');
+      expect(ABSICHT_MUSTER.test(name)).toBe(true);
+      expect(istAbsichtsSchattenkopie(name)).toBe(true);
+      // Keine gewöhnliche Schattenkopie: Das Aufräumen erkennt sie nicht.
+      expect(istSchattenkopie(name)).toBe(false);
+      expect(await fs.readFile(geschrieben.schatten, 'utf8')).toBe(NEU);
+      expect(await fs.readFile(ziel, 'utf8')).toBe(ALT);
+    } finally {
+      loeseSchattenkopie(geschrieben.schatten);
+    }
+  });
+
+  it('bildet ohne Marke weiterhin die gewoehnliche Schattenkopie', async () => {
+    const geschrieben = await schreibeSchattenkopie(ziel, NEU);
+    loeseSchattenkopie(geschrieben.schatten);
+    expect(istSchattenkopie(path.basename(geschrieben.schatten))).toBe(true);
+    expect(istAbsichtsSchattenkopie(path.basename(geschrieben.schatten))).toBe(false);
+  });
+
+  it('erkennt Absichts-Schattenkopien streng am vollstaendigen Muster', () => {
+    expect(istAbsichtsSchattenkopie('.dokument.md.em4me-absicht-1234-7')).toBe(true);
+    expect(istAbsichtsSchattenkopie('.dokument.md.em4me-neu-1234-7')).toBe(false);
+    expect(istAbsichtsSchattenkopie('em4me-absicht-1234-7')).toBe(false);
+    expect(istAbsichtsSchattenkopie('.dokument.md.em4me-absicht-abc-7')).toBe(false);
+    expect(istAbsichtsSchattenkopie(undefined)).toBe(false);
+  });
+
+  it('weist eine unbekannte Marke laut ab', async () => {
+    await expect(schreibeSchattenkopie(ziel, NEU, { marke: 'fremd' })).rejects.toThrow(TypeError);
   });
 });
 
@@ -411,6 +461,20 @@ describe('atomic-write: zurueckgebliebene Schattenkopien aufraeumen', () => {
     expect(await fs.readFile(ziel, 'utf8')).toBe(NEU);
   });
 
+  // 4T-001823 (Epic 3E-000254): Die Schattenkopien eines Datenbank-Auftrags
+  // referenziert ein Absichts-Protokoll; ein Wiederanlauf braucht sie auch nach
+  // Stunden noch. Das Aufräumen darf sie deshalb nie anfassen, eine gewöhnliche
+  // daneben dagegen weiterhin.
+  it('laesst eine alte Absichts-Schattenkopie stehen und raeumt die gewoehnliche daneben weg (4T-001823)', async () => {
+    const absicht = await altenRestAnlegen('.dokument.md.em4me-absicht-99999-6');
+    const gewoehnlich = await altenRestAnlegen('.dokument.md.em4me-neu-99999-7');
+
+    const ergebnis = await raeumeSchattenkopien(verzeichnis, { ohneDrossel: true });
+
+    expect(ergebnis.entfernt).toEqual([gewoehnlich]);
+    expect(await eintraege()).toEqual([path.basename(absicht), 'dokument.md'].sort());
+  });
+
   it('sieht wegen der Drossel nicht bei jedem Schreibvorgang nach', async () => {
     const readdir = vi.spyOn(fs, 'readdir');
 
@@ -459,5 +523,125 @@ describe('atomic-write: werfende Fassung fuer die Umstellung', () => {
     const markSelfWriting = vi.fn();
     await ersetzeDateiOderWirf(ziel, NEU, { markSelfWriting });
     expect(markSelfWriting).toHaveBeenCalledWith(ziel, NEU);
+  });
+});
+
+// 4T-001964 (Epic 3E-000254, Diagnose-Lauf d4 vom 2026-09-27): Vor dem
+// Umbenennen öffnet der Schreiber die Zieldatei einmal mit Schreibrecht und
+// schließt sie sofort. Das entzieht dem Client eines anderen Rechners die
+// Lease, aus der er sonst nach dem Ersetzen den alten Stand liefert; das
+// Umbenennen allein tut das nicht. Geprüft wird der Schritt selbst, seine
+// Stellung vor dem Umbenennen und dass er das Umbenennen nie verhindert.
+describe('atomic-write: Öffnen der Zieldatei vor dem Umbenennen (4T-001964)', () => {
+  const KURZ = [1, 1, 1];
+
+  async function schatten() {
+    const geschrieben = await schreibeSchattenkopie(ziel, NEU);
+    loeseSchattenkopie(geschrieben.schatten);
+    return geschrieben.schatten;
+  }
+
+  it('öffnet eine vorhandene Zieldatei genau einmal und vor dem Umbenennen', async () => {
+    const von = await schatten();
+    const aufrufe = [];
+    const echtesRename = fs.rename.bind(fs);
+    const fehler = new Error('kurz gehalten');
+    fehler.code = 'EPERM';
+    let renameAufrufe = 0;
+    vi.spyOn(fs, 'rename').mockImplementation(async (a, b) => {
+      renameAufrufe += 1;
+      aufrufe.push('rename');
+      if (renameAufrufe === 1) throw fehler;
+      return echtesRename(a, b);
+    });
+    const oeffneZiel = vi.fn(async (pfad) => {
+      // Zum Zeitpunkt des Öffnens steht am Ziel noch der alte Inhalt.
+      aufrufe.push(`oeffnen:${await fs.readFile(pfad, 'utf8')}`);
+    });
+
+    const ergebnis = await benenneUmMitWiederholung(von, ziel, { abstaende: KURZ, oeffneZiel });
+
+    expect(oeffneZiel).toHaveBeenCalledTimes(1);
+    expect(oeffneZiel).toHaveBeenCalledWith(ziel);
+    // Einmal je Aufruf, nicht je Wiederhol-Versuch.
+    expect(aufrufe).toEqual([`oeffnen:${ALT}`, 'rename', 'rename']);
+    expect(ergebnis.versuche).toBe(2);
+    expect(await fs.readFile(ziel, 'utf8')).toBe(NEU);
+  });
+
+  it('benennt bei fehlender Zieldatei unverändert um', async () => {
+    await fs.unlink(ziel);
+    const von = await schatten();
+
+    const ergebnis = await benenneUmMitWiederholung(von, ziel, { abstaende: KURZ });
+
+    expect(ergebnis.versuche).toBe(1);
+    expect(await fs.readFile(ziel, 'utf8')).toBe(NEU);
+    expect(await eintraege()).toEqual(['dokument.md']);
+  });
+
+  it('benennt unverändert um, wenn das Öffnen scheitert', async () => {
+    const von = await schatten();
+    const fehler = new Error('gesperrt');
+    fehler.code = 'EBUSY';
+    const oeffneZiel = vi.fn().mockRejectedValue(fehler);
+
+    const ergebnis = await benenneUmMitWiederholung(von, ziel, { abstaende: KURZ, oeffneZiel });
+
+    expect(oeffneZiel).toHaveBeenCalledTimes(1);
+    expect(ergebnis.versuche).toBe(1);
+    expect(await fs.readFile(ziel, 'utf8')).toBe(NEU);
+  });
+
+  it('ruft mit oeffneZiel: false nichts auf', async () => {
+    const von = await schatten();
+    const oeffnen = vi.spyOn(fs, 'open');
+
+    await benenneUmMitWiederholung(von, ziel, { abstaende: KURZ, oeffneZiel: false });
+
+    expect(oeffnen).not.toHaveBeenCalled();
+    expect(await fs.readFile(ziel, 'utf8')).toBe(NEU);
+  });
+
+  it('bricht laut, wenn oeffneZiel weder Rückruf noch false ist', async () => {
+    const von = await schatten();
+    await expect(benenneUmMitWiederholung(von, ziel, { oeffneZiel: 'ja' })).rejects.toThrow(
+      TypeError,
+    );
+  });
+
+  // Ohne Wiederhol-Fenster: Bliebe der Griff beim Umbenennen offen, scheiterte
+  // es unter Windows mit EPERM (Lauf d4, W4), und der Fall würde rot.
+  it('öffnet und schließt vorgabemäßig echt, ohne das Umbenennen zu behindern', async () => {
+    const von = await schatten();
+    const oeffnen = vi.spyOn(fs, 'open');
+    const rename = vi.spyOn(fs, 'rename');
+
+    const ergebnis = await benenneUmMitWiederholung(von, ziel, { abstaende: [] });
+
+    expect(ergebnis.versuche).toBe(1);
+    expect(oeffnen).toHaveBeenCalledTimes(1);
+    expect(oeffnen).toHaveBeenCalledWith(ziel, 'r+');
+    expect(oeffnen.mock.invocationCallOrder[0]).toBeLessThan(rename.mock.invocationCallOrder[0]);
+    expect(await fs.readFile(ziel, 'utf8')).toBe(NEU);
+    expect(await eintraege()).toEqual(['dokument.md']);
+  });
+
+  // Quelltext-Wächter: Umbenannt wird in diesem Modul nur im Baustein, sonst
+  // entstünde ein Schreibweg, der die Lease des anderen Rechners nicht entzieht.
+  it('ruft fs.rename nur innerhalb von benenneUmMitWiederholung', () => {
+    const quelle = readFileSync(
+      fileURLToPath(new URL('../../src/main/documents/atomic-write.js', import.meta.url)),
+      'utf8',
+    )
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\/\/.*$/gm, '');
+    const anfang = quelle.indexOf('async function benenneUmMitWiederholung(');
+    expect(anfang).toBeGreaterThan(-1);
+    const ende = quelle.indexOf('\n}\n', anfang);
+    const baustein = quelle.slice(anfang, ende);
+    const muster = /\bfs\.rename\s*\(/g;
+    expect((baustein.match(muster) || []).length).toBe(1);
+    expect((quelle.match(muster) || []).length).toBe(1);
   });
 });

@@ -2724,7 +2724,7 @@
       "id": "F-132",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/demo-area.spec.js"],
-      "hinweis": "4T-000632 (Epic 3E-000102): mitgelieferte Demo-Area (englisch) — Erstellen in leeren Ordner inkl. Anlagen, Ablehnung nicht-leerer Ziele, Linter-Sauberkeit der Demo-Dateien; Manifest-Waechter test/unit/demo-area.test.js."
+      "hinweis": "4T-000632 (Epic 3E-000102): mitgelieferte Demo-Area (englisch) — Erstellen in leeren Ordner inkl. Anlagen, Ablehnung nicht-leerer Ziele, Linter-Sauberkeit der Demo-Dateien; Manifest-Waechter test/unit/demo-area.test.js. 4T-001826 (Epic 3E-000254): dazu die von der Anwendung selbst geschriebene Beleg-Datei Library.mddl und die Zaehler-Datei Area_Database.mdda neben der Demo-Tabelle — erzeugt ueber scripts/demo-belege-erzeugen.js allein durch die Schreib-Schnittstelle, wiederholbar byte-gleich (Waechter test/unit/demo-belege-erzeugen.test.js); Verkettung, Herkunft und Zaehler-Stand im Manifest-Waechter test/unit/demo-area.test.js, der Kopier-Weg nimmt beide Dateien mit."
     },
     {
       "key": "help.shortcut.createDemoArea",
@@ -3481,6 +3481,20 @@
       "hinweis": "4T-001759 (Epic 3E-000253): Kommando ohne Default-Kuerzel hinter dem Menue-Eintrag 'Uebersicht der Datenbank' (Menue-, Kontextmenue- und Paletten-Weg, belegbar). DB-UEB-01 zeigt den Eintrag im gebauten Ansichtsmenue und im Kontextmenue des Bereichs-Panels, oeffnet die Seite ueber den Kontextmenue-Weg und prueft Steckbrief, Tabellen samt Feld-Zahl und die Fehlerlagen im Klartext; der zweite Fall zeigt das Ausbleiben des Zugangs in einem Bereich ohne Datenbank, der dritte das Oeffnen beim Binden eines Bereichs mit gesetzter Anzeige-Option. Die Katalog-Zeile der Funktion (help.feature.*) entsteht mit ihrem Matrix-Eintrag im Hilfe- und Handbuch-Task 4T-001762 und nennt denselben Prueffall."
     },
     {
+      "key": "help.shortcut.databaseNewRecord",
+      "id": "S-155",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/datenbank-maske.spec.js"],
+      "hinweis": "4T-001939 (Epic 3E-000257): Kommando ohne Default-Kuerzel, ohne Menue-Eintrag (Paletten-Weg, belegbar): eroeffnet in der Tabelle des aktiven Reiters eine Neuanlage und oeffnet die Einzel-Maske mit der gezogenen Kennung. DB-MAS-01 zeigt die Neuanlage aus der Uebersicht mit der gezogenen Kennung und dem nachgezogenen Hochwasserstand; der Paletten-Weg selbst laeuft ueber denselben Einstieg (neuerDatensatzFuerAktivenReiter), gedeckt durch den Paletten-Waechter der Kommando-Verfuegbarkeit. Die Katalog-Zeile der Funktion (help.feature.*) entsteht mit ihrem Matrix-Eintrag im Hilfe- und Handbuch-Task 4T-001946."
+    },
+    {
+      "key": "help.shortcut.databaseCheckConsistency",
+      "id": "S-156",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/datenbank-konsistenz.spec.js"],
+      "hinweis": "4T-001944 (Epic 3E-000257): Kommando ohne Default-Kuerzel, ohne Menue-Eintrag (Paletten-Weg, belegbar): prueft alle Tabellen der Datenbank auf Widersprueche im Bestand und zeigt das Ergebnis in der Uebersicht. DB-KON-01 zeigt die Aktion in der Uebersicht, die Befund-Liste mit Dublette und Verweis ins Leere, den Sprung in die Maske und das Ausbleiben der Befunde nach der Berichtigung; der Paletten-Weg laeuft ueber denselben Einstieg (pruefeKonsistenzAllerTabellen), gedeckt durch den Paletten-Waechter der Kommando-Verfuegbarkeit. Die Katalog-Zeile der Funktion (help.feature.*) entsteht mit ihrem Matrix-Eintrag im Hilfe- und Handbuch-Task 4T-001946."
+    },
+    {
       "key": "help.feature.databaseArea",
       "id": "F-303",
       "testart": "e2e",
@@ -3495,16 +3509,129 @@
       "hinweis": "4T-001759 (Epic 3E-000253): die Übersichts-Seite der Datenbank-Objekte mit Steckbrief, Tabellen samt Feld-Zahl und den Fehlerlagen im Klartext, dazu ihre drei Zugänge. DB-UEB-01 zeigt den Eintrag im gebauten Ansichtsmenü und im Kontextmenü des Bereichs-Panels, öffnet die Seite über den Kontextmenü-Weg und prüft ihren Inhalt; der zweite Fall zeigt das Ausbleiben des Zugangs in einem Bereich ohne Datenbank, der dritte das Öffnen beim Binden eines Bereichs mit gesetzter Anzeige-Option. Testart e2e, weil Ansichtsmenü und Kontextmenü der Haupt-Prozess je Fenster baut und kein jsdom-Fall sie sieht. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001762 entstanden und nennt denselben Prüffall wie die Kürzel-Zeile help.shortcut.databaseOverview."
     },
     {
+      "key": "help.feature.databaseChangeLog",
+      "id": "F-318",
+      "testart": "unit",
+      "tests": [
+        "test/unit/db-change-record.test.js",
+        "test/unit/db-change-log.test.js",
+        "test/unit/db-change-compaction.test.js",
+        "test/unit/db-change-verdichtung.test.js",
+        "test/unit/begleit-dateien-mitziehen.test.js",
+        "test/unit/area-loeschen.test.js",
+        "test/unit/db-sperren-belege-story-raender.test.js"
+      ],
+      "sichtbarkeit": "entfällt: kein eigenes Bedien-Element; die Beleg-Datei entsteht neben der Tabellen-Datei, und der sichtbare Teil der Belege ist die Ansicht am Datensatz mit ihrer eigenen Katalog-Zeile help.feature.databaseChangeLogView und deren rendernden Prüffall",
+      "hinweis": "4T-001789 bis 4T-001791 und 4T-001800 (Epic 3E-000255): die Änderungsbelege je Tabelle — Format und Verkettung der Belege, der rein anfügende Schreibweg, die Verdichtung an der Doppelschwelle mit ihren beiden je Tabelle übersteuerbaren Grenzen, das Mitziehen der Beleg-Datei beim Umbenennen und Verschieben samt Rücknahme und der Gang in den Papierkorb beim Löschen der Tabellen-Datei. Testart unit, weil jede dieser Zusagen am Format, am Schreibweg oder an einer Datei-Bewegung über einem Temp-Bereich hängt und keine gestartete Anwendung braucht. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001793 entstanden und nennt die bereits vorliegenden Prüffälle der vier Umsetzungs-Vorgänge, statt neue zu verlangen. 4T-001794 (Epic-Abschluss): db-sperren-belege-story-raender schließt die Nachweis-Lücken an den Rändern der Stories, darunter die chronologische Segmentierbarkeit der Beleg-Datei (4S-000954 AK10). Geschnitten wird an einer Beleg-Grenze, beide Teile sind für sich gültig, und die Kette jedes Datensatzes bleibt über beide hinweg lückenlos. Die Sperr-Kriterien derselben Datei (4S-000952, 4S-000953) tragen keine eigene Katalog-Zeile und erscheinen deshalb wie die übrigen db-sperr-Prüfdateien in keinem Matrix-Eintrag."
+    },
+    {
+      "key": "help.feature.databaseChangeLogView",
+      "id": "F-319",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/beleg-ansicht.spec.js"],
+      "hinweis": "4T-001792 (Epic 3E-000255): die lesende Beleg-Ansicht am Datensatz mit Zeitpunkt, Art, Benutzer, Rechner und dem Wert vor und nach der Änderung je Feld, dazu die Kennzeichnung zusammengefasster Spannen und der Änderungen von außen, die beiden Unterbrechungs-Zeilen und das Fenster bei sehr vielen Belegen. Die fünf Fälle öffnen die Seite über die Schaltfläche am Anfang der Datensatz-Zeile in der Lese-Ansicht, in der Live-Ansicht ohne Aufklappen des Blocks und über die Tastatur. Testart e2e, weil der Zugang ein neu eingeführtes, dauerhaft sichtbares Bedienelement in der gerenderten Tabelle ist und die Seite als eigener Reiter der gebauten Oberfläche öffnet; damit ist zugleich die E2E-Pflicht für neue Bedienelemente eingelöst. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001793 entstanden und nennt den bereits vorliegenden Prüffall."
+    },
+    {
+      "key": "help.feature.databaseKeyUnique",
+      "id": "F-320",
+      "testart": "unit",
+      "tests": ["test/unit/db-regel-schluessel.test.js"],
+      "sichtbarkeit": "entfällt: kein Bedienelement; die Eindeutigkeit wirkt an der Schreib-Schnittstelle, die in dieser Stufe keinen Bedienweg hat, und ihre Angabe key steht im Frontmatter",
+      "hinweis": "4T-001927 (Epic 3E-000256, E5.3, E22.3, E22.5): die Eindeutigkeit des fachlichen Schlüssels beim Speichern durch die Anwendung, also der Abweis eines vorhandenen Schlüssels mit Kennung und Anzeige-Form, zwei gleiche Schlüssel in einem Auftrag, die Alt-Dublette im Bestand als eigene Lage, der leere Teil ohne Prüfung, die Unterscheidung von Groß- und Kleinschreibung, die Folge-Segmente, Löschen und Neuanlegen sowie der Tausch im selben Auftrag und der eine Vergleichs-Schlüssel für Index und Regel. Testart unit, weil kein neues Bedienelement entsteht: Die Regel wirkt an der Schreib-Schnittstelle, die in dieser Stufe keinen Bedienweg hat, und jeder Fall läuft über die echte Schnittstelle und die echte Prüf-Naht gegen einen Temp-Bereich. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001933 entstanden und nennt den bereits vorliegenden Prüffall."
+    },
+    {
+      "key": "help.feature.databaseRelations",
+      "id": "F-321",
+      "testart": "unit",
+      "tests": [
+        "test/unit/db-regel-verweis.test.js",
+        "test/unit/db-regel-loeschschutz.test.js",
+        "test/unit/db-record-verweis.test.js"
+      ],
+      "sichtbarkeit": "entfällt: kein Bedienelement; Auflösung, Ziel-Prüfung und Lösch-Schutz wirken an der Schreib-Schnittstelle, die in dieser Stufe keinen Bedienweg hat, und die Anzeige zeigt eine Verweis-Zelle weiterhin als Text",
+      "hinweis": "4T-001928 und 4T-001929 (Epic 3E-000256, E5.4, E22.3): die Beziehungen zwischen Tabellen, also die Auslegung der Verweis-Zelle als Kennung, auch in Kurzform, oder als Schlüssel-Wert, die Ziel-Prüfung mit fehlendem, mehrdeutigem und mehrteiligem Ziel samt unbekannter Ziel-Tabelle, das Schreiben der aufgefüllten Kennung, der Lösch-Schutz ohne Kaskade mit dem Löschen von Kopf und Positionen in einem Auftrag, der nicht schützende Prosa-Verweis und die Abweisung ohne bereite Tabellen-Sicht. Testart unit, weil kein neues Bedienelement entsteht: Die Regeln wirken an der Schreib-Schnittstelle, die in dieser Stufe keinen Bedienweg hat, und jeder Fall läuft über die echte Schnittstelle und die echte Prüf-Naht gegen einen Temp-Bereich; die Auslegung der Zelle prüft ihr Blatt für sich. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001933 entstanden und nennt die bereits vorliegenden Prüffälle."
+    },
+    {
+      "key": "help.feature.databaseChecks",
+      "id": "F-322",
+      "testart": "unit",
+      "tests": [
+        "test/unit/db-table-checks.test.js",
+        "test/unit/db-regel-pruefregeln.test.js",
+        "test/unit/db-record-check-eval.test.js"
+      ],
+      "sichtbarkeit": "entfällt: kein neues Bedienelement; die harte Wirkung liegt an der Schreib-Schnittstelle ohne Bedienweg, und die weiche Wirkung beim Lesen nutzt die bestehende Fehler-Kennzeichnung der Datensatz-Tabelle, deren Markup db-record-anzeige.test.js über die volle Render-Pipeline misst",
+      "hinweis": "4T-001930 und 4T-001931 (Epic 3E-000256, E22): die Prüfregeln der Tabellen-Definition, also das Lesen von check am Feld als regulärer Ausdruck, Regel-Name oder Ausdruck über value und von checks am Behälter samt Meldungstext und elf Hinweis-Lagen, die Auswertung mit typisierten Werten, nicht gesetztem Wert und nicht auswertbarer Regel, und die harte Anwendung beim Speichern auf den resultierenden Datensatz mit allen Verletzungen. Testart unit, weil kein neues Bedienelement entsteht: Die harte Wirkung liegt an der Schreib-Schnittstelle, die in dieser Stufe keinen Bedienweg hat, und die weiche Kennzeichnung beim Lesen läuft über den bestehenden Fehler-Weg der Zelle. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001933 entstanden und nennt die bereits vorliegenden Prüffälle."
+    },
+    {
+      "key": "help.feature.databaseEditable",
+      "id": "F-323",
+      "testart": "unit",
+      "tests": ["test/unit/db-regel-bearbeitbar.test.js", "test/unit/db-table-checks.test.js"],
+      "sichtbarkeit": "entfällt: kein Bedienelement; die Bearbeitbarkeit wirkt an der Schreib-Schnittstelle, die in dieser Stufe keinen Bedienweg hat, und ihre Angabe editable steht im Frontmatter",
+      "hinweis": "4T-001932 (Epic 3E-000256, E22.7): die bedingte Bearbeitbarkeit, also das Lesen der Angabe editable als Text oder Objekt mit Meldung samt ihren Hinweis-Lagen und die Anwendung beim Ändern und Löschen am vorgefundenen Stand, mit freiem Anlegen, der unbrauchbaren Angabe ohne Sperre und der nicht auswertbaren Bedingung als Sperre. Testart unit, weil kein neues Bedienelement entsteht: Die Regel wirkt an der Schreib-Schnittstelle, die in dieser Stufe keinen Bedienweg hat, und jeder Fall läuft über die echte Schnittstelle und die echte Prüf-Naht gegen einen Temp-Bereich. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001933 entstanden und nennt die Prüffälle des Umsetzungs-Vorgangs."
+    },
+    {
+      "key": "help.feature.databaseForm",
+      "id": "F-325",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/datenbank-maske.spec.js"],
+      "sichtbarkeit": "sichtbar als eigener Reiter, sobald ein Datensatz über die Schaltfläche seiner Zeile, über «Neuer Datensatz» oder über die Kommando-Palette geöffnet ist",
+      "hinweis": "4T-001939 bis 4T-001942 (Epic 3E-000257): die Einzel-Maske eines Datensatzes mit ihren Zugängen, den Eingaben je Typ, dem Speichern über die Schreib-Schnittstelle mit Meldungen am Feld und im Kopf, der Wahl bei einer Fremd-Änderung, dem Löschen mit Rückfrage und der Wertehilfe der Verweis-Felder. DB-MAS-01 zeigt das Öffnen aus der Zeile, die Felder in Reihenfolge, Bearbeiten und Verwerfen und die Neuanlage aus der Übersicht mit gezogener Kennung; DB-MAS-02 Anlegen, Ändern, Abweisung am Feld und Löschen mit Rückfrage; DB-MAS-03 «Neu laden» und «Trotzdem speichern» bei einer Fremd-Änderung samt der harten Regel; DB-MAS-05 Anzeige-Form und Kennung, Eingrenzen, Auswahl und das Ersetzen eines Schlüssel-Werts durch die Kennung. Testart e2e, weil die Maske ein neu eingeführtes, dauerhaft sichtbares Bedienelement ist und die Kette von der Tabellen-Datei über die Kanäle bis in das DOM der System-Seite erst in der laufenden Anwendung besteht. Speichern und Wertehilfe teilen sich diese Zeile, weil der Anwender die drei als eine Funktion erlebt. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001946 entstanden und nennt die bereits vorliegenden Prüffälle."
+    },
+    {
+      "key": "help.feature.databaseLock",
+      "id": "F-326",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-maske.spec.js",
+        "test/unit/db-masken-sperre.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in der Einzel-Maske als Konflikt-Block, sobald «Bearbeiten» oder «Löschen» auf eine bestehende Sperre trifft",
+      "hinweis": "4T-001941 (Epic 3E-000257): die Sperre der Bearbeitung in der Maske. DB-MAS-04 zeigt am echten Sperr-Ordner des Bereichs, dass das Öffnen nicht sperrt, «Bearbeiten» die Sperre mit Benutzer, Rechner und Zeitpunkt nimmt und «Verwerfen» sowie das Schließen des Reiters sie freigeben, dazu den Konflikt-Block einer fremden Sperre mit allein «Nur lesen», nach der Frist «Sperre brechen» mit dem Übergang ins Bearbeiten und den Wortlaut «Halter unbekannt» bei leerer Sperr-Datei. db-masken-sperre.test.js trägt die übrigen Übergänge (Beginn des Löschens, gelungenes und abgewiesenes Speichern, Neu laden, Umbinden), die Neuanlage ohne Sperre, das eigene Fenster und den abgewiesenen Bruch. Testart e2e, weil der Konflikt-Block ein neu eingeführtes Bedienelement ist und die Sperre erst am gebundenen Bereich der laufenden Anwendung entsteht. Die Freigabe beim Ende des Fensters ist allein am Unit-Fall belegt. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001946 entstanden."
+    },
+    {
+      "key": "help.feature.databaseFormFile",
+      "id": "F-327",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/datenbank-maske.spec.js", "test/unit/db-masken-datei.test.js"],
+      "sichtbarkeit": "sichtbar im Kopf der Einzel-Maske als Handgriff «Maske als Datei speichern» und nach dem Herausschreiben als Quellen-Angabe",
+      "hinweis": "4T-001943 (Epic 3E-000257): die Maske als Datei. DB-MAS-06 schreibt die erzeugte Maske über den Handgriff im Kopf als Datei neben die Tabelle, mit Titel, Behälter db-form und Feld-Platzhaltern, zeigt, dass ein zweiter Klick nichts überschreibt, dass die Maske beim nächsten Öffnen eine von außen ergänzte Überschrift zwischen den Feldern und die Quelle im Kopf zeigt und nach dem Löschen der Datei wieder die erzeugte Fassung. Testart e2e statt der im Skelett erwogenen unit, weil DB-MAS-06 den Bedienweg zeigt; db-masken-datei.test.js trägt das Unberührt-Bleiben eines nicht genannten Feldes beim Speichern, die Neuanlage mit den genannten Feldern und die Hinweise zu unbekannter Tabelle und mehreren Masken-Dateien. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001946 entstanden."
+    },
+    {
+      "key": "help.feature.databaseConsistency",
+      "id": "F-328",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-konsistenz.spec.js",
+        "test/unit/db-konsistenz-pruefung.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in der Übersicht der Datenbank als Aktion im Kopf und je Tabellen-Zeile und als Abschnitt «Konsistenz-Prüfung» mit der Befund-Liste",
+      "hinweis": "4T-001944 (Epic 3E-000257): die Konsistenz-Prüfung über den Bestand. DB-KON-01 zeigt die Aktion im Kopf und je Tabellen-Zeile der Übersicht, Zusammenfassung, Zähler je Tabelle und die Befund-Liste mit Schlüssel-Dublette und Verweis ins Leere, den Sprung in die Maske, die Schreibfreiheit und das Ausbleiben der Befunde nach der Berichtigung; db-konsistenz-pruefung.test.js trägt die fünfzehn Befund-Arten, die Robustheit bei unlesbarer Definition und die Messung auf Zuruf. Testart e2e, weil die Kette von der Aktion der Übersicht über den Kanal bis in die Befund-Liste und von dort in die Maske erst in der laufenden Anwendung mit Bereich und Index besteht. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001946 entstanden und nennt denselben Prüffall wie die Kürzel-Zeile help.shortcut.databaseCheckConsistency."
+    },
+    {
+      "key": "help.feature.databaseUsage",
+      "id": "F-329",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-konsistenz.spec.js",
+        "test/unit/db-verwendungsnachweis.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in der Übersicht der Datenbank als Aktion «Verwendung» je Tabellen-Zeile und im Kopf der Einzel-Maske als Aktion «Verwendet von»",
+      "hinweis": "4T-001945 (Epic 3E-000257): der Verwendungsnachweis. DB-KON-02 zeigt die Aktion «Verwendung» je Tabellen-Zeile der Übersicht mit verweisender Tabelle und Spalte und die Lage ohne Verwender, die Aktion «Verwendet von» im Kopf der Maske mit dem verweisenden Datensatz und den Sprung in dessen Maske, alles ohne Schreibzugriff; db-verwendungsnachweis.test.js trägt die Masken-Dateien, den nicht zählenden Prosa-Verweis, Folge-Segment, Schlüssel-Wert und Selbstbezug sowie den Gleichlauf mit dem Lösch-Schutz. Testart e2e, weil beide Aktionen neu eingeführte Bedienelemente sind und die Auskunft erst mit Bereich und Index der laufenden Anwendung entsteht. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001946 entstanden."
+    },
+    {
       "key": "help.feature.databaseExtension",
       "id": "F-305",
       "testart": "unit",
       "tests": [
         "test/unit/render/extensions-aus.test.js",
         "test/unit/datensatz-aus-zustand.test.js",
+        "test/unit/db-sperren-belege-aus-zustand.test.js",
         "test/unit/renderer/settings-extensions.test.js"
       ],
       "sichtbarkeit": ["test/e2e/funktionen/erweiterungen.spec.js"],
-      "hinweis": "4T-001760 und 4T-001761 (Epic 3E-000253): der Schalter «Datenbank» unter Einstellungen → Erweiterungen in der Kategorie Werkzeuge, seine Abhängigkeit von den Eigenschafts-Profilen und der vollständige Aus-Zustand. extensions-aus.test.js hält Registrierung, Kategorie, Abhängigkeit, die zehn zugeordneten Katalog-Zeilen, das gefilterte Kommando der Übersicht und den entfallenden Einstellungs-Abschnitt; extensions-aus.test.js zeigt zudem den Datensatz-Block als gewöhnlichen Code-Block in Lese-Ansicht, Änderungs-Modus und portablem Export; datensatz-aus-zustand.test.js den ruhenden Datensatz-Bestand des Index, den nicht mehr gebrochenen Datensatz-Verweis und die unveränderten Dateien über Ab- und Wiedereinschalten; settings-extensions.test.js die Zeile in der gerenderten Erweiterungs-Liste. Testart unit, weil jede dieser Zusagen an einem Prädikat, an der Render-Kette oder am Index über einem Temp-Bereich hängt und keine gestartete Anwendung braucht. Sichtbarkeit über EW-01 bis EW-04, die den Einstellungs-Bereich «Erweiterungen» mit seiner aus der Registry gebauten Liste in der realen Anordnung rendern; die Zeile «Datenbank» entsteht dort aus demselben Eintrag. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001762 entstanden; sie beschreibt den Schalter selbst und steht deshalb in der Kern-Liste test/unit/funktions-seite-kern.js statt am Feld featureKeys der Erweiterung."
+      "hinweis": "4T-001760 und 4T-001761 (Epic 3E-000253): der Schalter «Datenbank» unter Einstellungen → Erweiterungen in der Kategorie Werkzeuge, seine Abhängigkeit von den Eigenschafts-Profilen und der vollständige Aus-Zustand. extensions-aus.test.js hält Registrierung, Kategorie, Abhängigkeit, die einundzwanzig zugeordneten Katalog-Zeilen, das gefilterte Kommando der Übersicht und den entfallenden Einstellungs-Abschnitt; extensions-aus.test.js zeigt zudem den Datensatz-Block als gewöhnlichen Code-Block in Lese-Ansicht, Änderungs-Modus und portablem Export; datensatz-aus-zustand.test.js den ruhenden Datensatz-Bestand des Index, den nicht mehr gebrochenen Datensatz-Verweis und die unveränderten Dateien über Ab- und Wiedereinschalten; settings-extensions.test.js die Zeile in der gerenderten Erweiterungs-Liste. 4T-001794 (Epic 3E-000255) ergänzt db-sperren-belege-aus-zustand.test.js um den Anteil der Sperren und Änderungsbelege: den mit dem Schalter entfallenden Zugang von der Datensatz-Zeile zu den Belegen, die beiden Stellen, die im Aus-Zustand bewusst WEITER greifen (Familien-Erkennung der Beleg-Datei und Ausschluss des Sperr-Ordners, beide ohne Bezug auf die Registry), und den Wächter über die schreibenden Wege von Sperre und Beleg, die nach Entscheidung E15.2 keinen eigenen Schalter tragen und heute keinen Aufrufer im Produkt-Code haben; der erste hinzukommende Aufrufer bringt seinen eigenen Aus-Zustands-Nachweis mit, statt dass die Begründung stillschweigend weitergilt. Testart unit, weil jede dieser Zusagen an einem Prädikat, an der Render-Kette oder am Index über einem Temp-Bereich hängt und keine gestartete Anwendung braucht. Sichtbarkeit über EW-01 bis EW-04, die den Einstellungs-Bereich «Erweiterungen» mit seiner aus der Registry gebauten Liste in der realen Anordnung rendern; die Zeile «Datenbank» entsteht dort aus demselben Eintrag. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001762 entstanden; sie beschreibt den Schalter selbst und steht deshalb in der Kern-Liste test/unit/funktions-seite-kern.js statt am Feld featureKeys der Erweiterung."
     }
   ]
 }

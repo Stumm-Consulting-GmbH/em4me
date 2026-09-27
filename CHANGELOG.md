@@ -14,6 +14,543 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.142.1.3340] - 2026-09-27 — Prüfskript der Demo-Belege unter einem Pfad mit Umlaut
+
+Patch-Release zum Zug 3E-000314,
+Hotfix im Epic 3E-000254.
+**Reine Fehlerbehebung, deshalb die dritte Stelle:** Der Quellcode-Export von
+`1.142.0` brach an der Prüf-Suite des Veröffentlichungs-Repositoriums ab, weil ein
+mit dem Release veröffentlichtes Prüfskript unter einem Pfad mit Umlaut abstürzt;
+die Programmdateien von `1.142.0` sind davon nicht berührt und bleiben
+inhaltlich dieselben.
+
+### Behoben
+
+- **Das Prüfskript der Demo-Belege stürzte unter einem Pfad mit Umlaut ab**
+  (`4T-001966`). `scripts/demo-belege-erzeugen.js` kopierte den Demo-Bereich mit
+  dem rekursiven Kopier-Aufruf von Node, der unter Windows den Zielpfad
+  verstümmelt und den Prozess beendet, sobald der Pfad einen Umlaut trägt; der
+  Fehler ist im Export-Werkzeug seit `4T-001338` bekannt und dort umgangen. Das
+  Skript kopiert jetzt Ordner und Dateien einzeln, ein Prüffall fährt die Kopie
+  unter einem Pfad mit Umlaut, und ein Wächter hält den rekursiven Kopier-Aufruf
+  aus den veröffentlichten Skripten heraus. Anlass war der Abbruch des
+  Quellcode-Exports von `1.142.0`, dessen Programmdateien bereits am
+  Bezugs-Ort lagen.
+
+## [1.142.0.3338] - 2026-09-27 — Stufe 2 der Datenbank: Datensätze pflegen in der Maske, mit Sperre, Änderungsbeleg und Prüfregeln
+
+Zug 3E-000314,
+die zweite Ausbaustufe der Datenbank-Funktionalität aus vier Mitglieds-Epics.
+Mitglied 1:
+3E-000255,
+die Sperre je Datensatz und je Definition in einem eigenen Speicher außerhalb der
+Daten samt Auflösung verwaister Sperren, dazu der Änderungsbeleg je Tabelle mit
+seinen fünf Anlässen, seiner Wachstums-Grenze durch Verdichten und seiner
+lesenden Ansicht am Datensatz (Abschluss-Anteil in
+4T-001794).
+Mitglied 2:
+3E-000254,
+die Schreib-Schnittstelle der Datenbank mit Anlegen, Ändern und Löschen von
+Datensätzen, der Prüfung vor dem Schreiben, der Erkennung einer Fremd-Änderung,
+der Vorgangs-Kennung je Datenbank und der Transaktion über mehrere Dateien mit
+Absichts-Protokoll und Wiederanlauf, dazu der Zugang für die spätere
+Bedien-Oberfläche und die selbst geschriebene Beleg-Spur im Demo-Bereich
+(Abschluss-Anteil in
+4T-001828).
+Mitglied 3:
+3E-000256,
+das Regel-Werk der Schreib-Schnittstelle mit der Eindeutigkeit des fachlichen
+Schlüssels, den Beziehungen zwischen Tabellen samt Ziel-Prüfung und Lösch-Schutz,
+den Prüfregeln je Feld und je Datensatz, die beim Speichern hart und beim Lesen
+weich wirken, und der bedingten Bearbeitbarkeit über den gespeicherten Zustand
+(Abschluss-Anteil in
+4T-001934).
+Mitglied 4:
+3E-000257,
+die aus der Tabellen-Definition erzeugte Einzel-Maske als Bedienweg der Stufe
+mit Anlegen, Ändern und Löschen über die Schreib-Schnittstelle, der Sperre
+während der Bearbeitung und der Maske als Datei, dazu die Konsistenz-Prüfung
+über den Bestand und der Verwendungsnachweis je Tabelle und je Datensatz
+(Abschluss-Anteil in
+4T-001947).
+
+**Was diese Stufe bewusst noch nicht bringt:** Abfragen und Auswertungen über
+die Datensätze, Listen-Masken mit Kopf und Positionen, bedingte Bereiche in einer
+Maske und Berechtigungen gehören in spätere Stufen. Datensätze, die von Hand im
+Text der Datei entstehen, prüft beim Schreiben niemand; sie findet die
+Konsistenz-Prüfung.
+
+### Neu
+
+- **Die Änderungsbelege einer Tabelle stehen in einer eigenen Datei neben ihr**
+  (`4T-001789`, `4T-001790`). Zur Tabellen-Datei `Kunden.md` gehört die Datei
+  `Kunden.mddl` im selben Ordner. Sie trägt je Änderung einen **Beleg** mit
+  Zeitpunkt, Benutzer, Rechner, Art und den berührten Feldern samt **altem und
+  neuem Wert**; über die Werte ist die Spur verkettet, eine Versions-Nummer
+  entfällt. Fünf Arten sind vorgesehen: Anlegen, Ändern und Löschen eines
+  Datensatzes, die Änderung der Tabellen-Struktur und die festgestellte
+  Fremd-Änderung, Letztere ohne Urheber. Die Datei benutzt dieselbe Notation wie
+  die Datensätze selbst, eine zweite entsteht nicht, und sie wird **nur
+  angehängt**: Der Nachweis zeigt den vorhandenen Anteil nach einem weiteren
+  Beleg byte-gleich. Die Endung gehört jetzt zur Markdown-Data-Familie, deren
+  Endungen an genau **einer** Stelle stehen; damit erscheint eine Beleg-Datei in
+  keiner Dateiliste, lässt sich nicht als Dokument öffnen, weckt den
+  Bereichs-Watcher nicht und liefert dem Index keine Block-Daten.
+- **Eine Beleg-Datei wächst begrenzt, weil verdichtet und nie gelöscht wird**
+  (`4T-001791`). Überschreitet sie ihre Größen-Schwelle, werden die ältesten
+  Belege genau der Datensätze zusammengefasst, deren Beleg-Zahl über ihrer
+  eigenen Schwelle liegt. Der verdichtete Beleg trägt den Zustand am Anfang und
+  am Ende der Spanne, die Zahl der ersetzten Änderungen, den Beginn der Spanne
+  und die Arten, die in ihr lagen; er schließt an beide Nachbarn lückenlos an.
+  Die Vorgabe liegt bei **0,7 MB je Datei** und **200 Belegen je Datensatz**,
+  beides je Tabelle übersteuerbar unter der Angabe `changeLog` mit `maxBytes` und
+  `maxPerRecord`, und `unlimited` schaltet eine Grenze ab. Eine unbrauchbare
+  Angabe wird als Fehlerlage gemeldet, worauf die Vorgabe gilt. Über einen Beleg
+  der Art «von außen geändert» und über einen beschädigten Beleg wird **nie**
+  hinweg zusammengefasst; beide bleiben unverändert stehen. Ausgelöst wird allein
+  beim Schreiben, es läuft kein Takt im Hintergrund, und der Vorgang ist der
+  einzige, der eine Beleg-Datei umschreibt.
+- **Die lesende Beleg-Ansicht am Datensatz** (`4T-001792`). Jede Datensatz-Zeile
+  der Anzeige-Tabelle trägt an ihrem Anfang eine kleine Schaltfläche
+  «Änderungsbelege anzeigen», sichtbar beim Überfahren und beim Erreichen über die
+  Tastatur, wirksam in der **Lese-Ansicht und in der Live-Ansicht**. Sie öffnet
+  die Seite «Änderungsbelege» mit den Belegen dieses Datensatzes, den jüngsten
+  zuerst, je Beleg mit Zeitpunkt in der eigenen Zeitzone, Art, Benutzer, Rechner
+  und je Feld «Vorher» und «Nachher»; ein fehlender Wert steht als «nicht
+  vorhanden», ein leerer als «leer». Zusammengefasste und von außen geänderte
+  Belege sind eigens gekennzeichnet, eine abgerissene Spur wird an der Stelle
+  gemeldet, an der sie auffällt, und ein Klick in einer anderen Zeile bindet
+  dieselbe Seite um, statt eine zweite zu öffnen. Die Seite **liest nur**: Es gibt
+  keinen Weg, einen Beleg zu ändern, zu löschen oder anzulegen. Ein Datensatz ohne
+  Belege zeigt eine leere Lage statt eines Fehlers, eine beschädigte Beleg-Datei
+  eine Meldung statt eines Ausfalls, und bei sehr vielen Belegen erscheint ein
+  Ausschnitt mit der Angabe, wovon er einer ist. **Aktiv ist der Zugang nach
+  einer Positiv-Liste**, also im gerenderten Haupt-Container und im Haupt-Editor
+  der Spalte, nicht in einer Wiki-Einbettung, auf einer Verweis-Karte der
+  Canvas-Fläche und nicht in der Notiz-Vorschau; dort bleibt die Aktions-Spalte
+  ausgeblendet, weil der Block dort mit dem Frontmatter **seiner** Datei
+  erscheint. Der portable Export ist unverändert.
+- **Der Sperr-Speicher liegt außerhalb der Daten** (`4T-001787`). Die Sperren
+  liegen als je eine Datei in einem eigenen Ordner in der Wurzel des
+  Datenbank-Bereichs, in der Vorgabe `.area-locks`. Der Ort ist Frage für Frage
+  aus dem Entscheidungs-Baum der Ablage-Regel abgeleitet; die Regel selbst ist im
+  selben Vorgang fortgeschrieben, um die Trennschärfe an ihrer zweiten Frage und
+  um einen Eintrag der Ort-Tafel für einen eigenen Ordner mit flüchtigen
+  Betriebs-Dateien. Der Dateiname kodiert den Gegenstand umkehrbar, vorher nach
+  NFC normalisiert und kleingeschrieben, weil zwei Rechner sonst zwei Sperren für
+  dieselbe Datei bekämen. **Angelegt wird exklusiv in einem Aufruf samt Inhalt,
+  und das Anlegen ist die Prüfung**; «schon vorhanden» heißt «belegt» samt Halter,
+  und ein leerer oder unlesbarer Inhalt heißt «belegt, Halter unbekannt» und nie
+  «frei». Weder die Tabellen-Datei noch die Bereichsdatei wird durch einen
+  Sperr-Vorgang geschrieben.
+- **Sperre nehmen, freigeben und eine verwaiste auflösen** (`4T-001788`). Im
+  Konflikt wird gemeldet und verweigert, nie stillschweigend überschrieben; die
+  Auskunft nennt Halter, Rechner und Anlage-Zeitpunkt. Eine **eigene** Sperre
+  eines nicht mehr laufenden Programms desselben Rechners wird ohne Rückfrage
+  übernommen, eine **fremde** wird nie von selbst entfernt, sondern nach Ablauf
+  einer groben Frist von vier Stunden zum Bruch angeboten. Es gibt keinen
+  Erneuerungs-Takt und kein selbsttätiges Aufräumen. Mehrere Sperren eines
+  Auftrags werden in fester Ordnung genommen, mit Rücknahme bei einem Fehlschlag.
+  Gemessen wurde an der realen Konstellation über zwei Rechner gegen dieselbe
+  Netz-Freigabe; dabei ist ein **Bruch-Anspruch** hinzugekommen, ohne den in 61
+  von 200 Runden mehrere Brecher zugleich gehalten hätten.
+- **Der Name des Sperr-Ordners ist einstellbar** (`4T-001795`). Unter **Datei →
+  Einstellungen… → Aktueller Bereich → Datenbank** steht das Feld «Name des
+  Sperr-Ordners». Die Angabe gilt **für den Bereich** und nicht je Benutzer, weil
+  zwei Rechner sonst in verschiedene Ordner schrieben und keiner die Sperre des
+  anderen sähe. Ein Name muss mit einem **Punkt** beginnen, weil die Anwendung
+  genau daran erkennt, dass ein Ordner nicht in Index, Suche, Statistik und
+  Verweis-Auflösung gehört; unzulässig sind außerdem Pfad-Trenner, unter Windows
+  verbotene Zeichen, reservierte Gerätenamen und ein Name, unter dem in der
+  Bereichs-Wurzel schon etwas anderes liegt. Eine Änderung **benennt den
+  vorhandenen Ordner um**, statt einen zweiten anzulegen, und gelingt nur, solange
+  niemand einen Datensatz in Bearbeitung hat; scheitert das Schreiben der
+  Bereichsdatei, wird die Umbenennung zurückgenommen.
+- **Datensätze lassen sich über eine Schreib-Schnittstelle der Anwendung anlegen,
+  ändern und löschen** (`4T-001819`, `4T-001821`). Ein Auftrag nennt je Datensatz
+  Tabelle, Operation und die Werte seiner Felder; die Schnittstelle prüft vor dem
+  Schreiben Form, Feld-Namen, Typ und Pflicht-Angabe gegen die Definition und weist
+  mit **allen** Befunden ab statt nur mit dem ersten, nimmt die Sperren des Auftrags
+  in fester Ordnung, liest die Dateien frisch, schreibt die Datensatz-Zeilen über
+  eine reine Funktion, die alles Unberührte zeichengleich lässt, und hängt je
+  geändertem Datensatz einen Beleg an. Das Ergebnis ist sprachneutral und nennt je
+  Anweisung die Lage aus einem geschlossenen Katalog samt ihren Angaben. Eine
+  Änderung, die kein Feld verändert, schreibt nichts und erzeugt keinen Beleg.
+  Bedient wird sie über die erzeugte Maske des vierten Mitglieds.
+- **Jeder Speichervorgang trägt eine Vorgangs-Kennung je Datenbank** (`4T-001820`).
+  Sie ist ein Zähler in der kleinen Datei `Area_Database.mdda` in der Wurzel des
+  Bereichs, die die Anwendung selbst führt, die in keiner Dateiliste erscheint und
+  mit dem Bereichs-Ordner mitreist; fehlt sie, gewinnt die Anwendung den Stand aus
+  den Beleg-Dateien zurück. Alle Belege eines Vorgangs tragen dieselbe Kennung, auch
+  über mehrere Tabellen. Gezogen wird unter einer eigenen Sperre über den
+  gemeinsamen atomaren Schreibweg; gemessen kostet eine Ziehung auf der lokalen
+  Platte rund 5 ms und auf einer Netz-Freigabe rund 100 ms.
+- **Eine von Hand geänderte Datensatz-Zeile wird beim Schreiben erkannt**
+  (`4T-001822`). Eine Anweisung zum Ändern oder Löschen trägt den zuletzt gelesenen
+  Stand je Feld; weicht der vorgefundene Stand ab, wird der Auftrag abgewiesen und
+  nichts geschrieben, mit vorgefundenem und erwartetem Wert je Feld. Wer die eigene
+  Fassung dennoch schreiben will, erzwingt es je Anweisung; dann hält zuerst ein
+  Beleg der Art «Von außen geändert» ohne Urheber den Unterschied fest, danach folgt
+  der gewöhnliche Beleg, und die Kette bleibt lückenlos. Ein von Hand gelöschter
+  Datensatz wird beim erzwungenen Ändern unter seiner Kennung wieder angelegt. Das
+  Ergebnis liefert je Anweisung den Stand nach dem Auftrag als nächste Erwartung.
+- **Ein Auftrag wirkt ganz oder gar nicht, auch über mehrere Tabellen und Dateien**
+  (`4T-001823`). Die Schnittstelle schreibt ausschließlich über ein
+  Absichts-Protokoll: alle Sperren nehmen, alle neuen Fassungen als Schattenkopien
+  neben ihre Zieldateien schreiben und durchschreiben, das Protokoll im Sperr-Ordner
+  exklusiv anlegen und durchschreiben (die Marke), dann umbenennen und Belege
+  anfügen, zuletzt Protokoll löschen und Sperren freigeben. Ein Absturz vor der
+  Marke hat nichts gewirkt, danach wird vorwärts fertiggestellt; ein Zurückrollen
+  gibt es nicht. Zugesichert sind «ganz oder gar nicht» und Dauerhaftigkeit, nicht
+  die Abschottung gleichzeitiger Leser. Gemessen kostet ein Auftrag samt
+  Durchschreiben auf der lokalen Platte rund 50 bis 110 ms und auf einer
+  Netz-Freigabe rund 250 bis 530 ms; das Speichern gewöhnlicher Dokumente ist
+  unverändert.
+- **Ein liegengebliebener Auftrag wird zu Ende geschrieben** (`4T-001824`). Bleibt
+  nach einem Absturz ein Protokoll im Sperr-Ordner liegen, nehmen die betroffenen
+  Tabellen keine neuen Aufträge an und melden das; beim nächsten Auftrag in diesem
+  Bereich und beim Öffnen des Bereichs schreibt die Anwendung den Vorgang unter
+  einer Aufräum-Sperre zu Ende, erkennt einen bereits angefügten Beleg an
+  Vorgangs- und Datensatz-Kennung und fügt ihn nicht ein zweites Mal an. Es läuft
+  kein Takt im Hintergrund. Nachgewiesen mit einer Fehler-Einspritzung an jedem
+  Schritt und mit einem echten Prozess-Abbruch nach der Marke: Danach stehen
+  Datenänderung und Beleg gemeinsam da oder bleiben gemeinsam aus.
+- **Eine Tabelle, die über die Schreib-Schnittstelle wächst, wird beim Schreiben
+  geteilt** (`4T-001924`). Hebt ein Auftrag das letzte Segment einer Tabelle über
+  die Größen-Schwelle, legt die Schnittstelle im selben Auftrag ein neues
+  Folge-Segment hinten an, mit demselben Teiler, derselben Schwelle und
+  denselben Regeln wie der Speichern-Kanal des Editors (Schnitt an der
+  Datensatz-Grenze, nur das letzte Segment, kein Umverteilen, Feld-Namen als
+  Lese-Hilfe); alle Dateien der Teilung stehen im Absichts-Protokoll, und zwei
+  gleichzeitige Aufträge legen dasselbe Segment nie doppelt an. Damit hält die
+  Zusage der Stufe 1, dass große Bestände beim Speichern verteilt werden, auch
+  auf dem Weg, den die kommenden Masken benutzen.
+- **Der Zugang der Oberfläche zur Schreib-Schnittstelle** (`4T-001825`). Zwei
+  Kanäle, einer je Einstieg (Auftrag ausführen, Neuanlage eröffnen), prüfen wie der
+  Kanal der Beleg-Ansicht selbst und vor jedem Dateizugriff Form, gebundenen
+  Bereich, Lage jeder genannten Tabelle innerhalb des Bereichs und Markdown-Endung
+  und reichen das sprachneutrale Ergebnis unverändert an die Oberfläche durch; die
+  Brücke trägt zwei reine Kanal-Bindungen. Ein Aufrufer in der Oberfläche entsteht
+  erst mit der erzeugten Maske.
+- **Der Demo-Bereich bringt Änderungsbelege mit, die die Anwendung selbst
+  geschrieben hat** (`4T-001826`). Neben der Tabelle «Library» liegt die Beleg-Datei
+  mit drei Vorgängen an drei Büchern, dazu die Zähler-Datei der Vorgangs-Kennung;
+  beide entstehen über ein wiederholbares Skript allein durch die
+  Schreib-Schnittstelle, mit fester Herkunft und festen Zeitpunkten, und ein
+  Wächter hält sie byte-gleich. Damit zeigt die Beleg-Ansicht im frisch erstellten
+  Demo-Bereich ohne Vorarbeit echte Belege.
+
+- **Die Schreib-Schnittstelle prüft nach Typ und Pflicht ein Regel-Werk**
+  (`4T-001926`). Fünf Regel-Module laufen in fester Reihenfolge unter den
+  gehaltenen Sperren am frisch gelesenen Bestand; jedes meldet seine Befunde
+  aus einem geschlossenen Katalog von dreizehn Lagen mit Anwender-Text in fünf
+  Sprachen, alle Befunde eines Auftrags werden gesammelt gemeldet, und ein
+  Auftrag mit einem Befund schreibt nichts. Ein Modul, das scheitert, weist ab,
+  statt durchzulassen.
+- **Ein Verweis auf einen Datensatz wird beim Speichern aufgelöst und geprüft**
+  (`4T-001928`). In der Zelle einer Spalte vom Typ `record` darf die Kennung
+  des Ziels stehen, auch in Kurzform, oder der Wert seines einteiligen
+  fachlichen Schlüssels. Die Anwendung prüft, dass es die Ziel-Tabelle im
+  Bereich gibt und der Inhalt genau einen Datensatz trifft, der nach der
+  Änderung besteht, und schreibt immer die aufgefüllte Kennung. Ist der
+  Bereich noch nicht eingelesen, wird die Änderung abgewiesen und nicht
+  ungeprüft gespeichert.
+- **Ein fachlicher Schlüssel bleibt eindeutig** (`4T-001927`). Anlegen und
+  Ändern mit einem in der Tabelle vorhandenen Schlüssel werden abgewiesen, über
+  alle Dateien einer geteilten Tabelle und über den ganzen Auftrag hinweg;
+  Löschen und Neuanlegen im selben Auftrag gelingt. Die Meldung nennt den
+  vorhandenen Datensatz mit Kennung und Anzeige-Form; liegt der Schlüssel im
+  Bestand bereits mehrfach vor, sagt sie das, damit zuerst der Bestand
+  bereinigt wird. Index und Regel bilden den Vergleichs-Schlüssel über eine
+  Funktion.
+- **Ein Datensatz, auf den noch verwiesen wird, lässt sich nicht löschen**
+  (`4T-001929`). Geprüft werden alle Tabellen des Bereichs mit einer
+  Verweis-Spalte auf seine Tabelle, die eigene eingeschlossen, über die Kennung
+  und über den einteiligen Schlüssel-Wert; was derselbe Auftrag löscht oder
+  umhängt, zählt nicht, ein Kopf mit allen Positionen ist in einem Auftrag
+  löschbar. Es wird nichts kaskadiert gelöscht und keine Zelle geleert; ein
+  Verweis im Fließtext schützt nicht. Ein Lösch-Auftrag gegen fünftausend
+  abhängige Datensätze braucht rund dreißig Millisekunden.
+- **Prüfregeln stehen in der Tabellen-Definition** (`4T-001930`). Am Feld die
+  Angabe `check`, am Behälter die Liste `checks`, je als Text oder als
+  Objekt mit eigenem Meldungstext; der Text ist ein regulärer Ausdruck
+  zwischen Schrägstrichen oder eine Bedingung der Abfrage-Sprache mit `value`
+  für den eigenen Wert, ein einzelnes Wort ist ein Regel-Name. Eine
+  unbrauchbare Regel entfällt einzeln mit einem Hinweis in der Übersicht der
+  Datenbank-Objekte; elf neue Hinweis-Lagen in fünf Sprachen.
+- **Prüfregeln wirken beim Speichern hart und beim Lesen weich** (`4T-001931`).
+  Beim Speichern durch die Anwendung wird der Datensatz geprüft, wie er nach
+  der Änderung dastünde, mit allen Feldern, und bei einer Verletzung
+  abgewiesen; die Meldung nennt Feld, Wert, Regel und Meldungstext. Beim Lesen
+  wird eine Zelle, die eine Feld-Regel verletzt, und eine leere Pflicht-Zelle
+  gekennzeichnet wie ein Wert, der nicht zu seinem Typ passt; ihr Text bleibt
+  stehen, der Datensatz bleibt sichtbar, und an der Datei ändert sich nichts.
+  Ein Wahrheitswert gilt leer als «nein», und die Abfrage-Sprache kennt die
+  Wörter `true`, `false` und `null` nicht; das Handbuch nennt die Falle.
+- **Bedingte Bearbeitbarkeit** (`4T-001932`). Die Angabe `editable` auf der
+  oberen Ebene des Behälters legt fest, unter welcher Bedingung ein Datensatz
+  noch geändert oder gelöscht werden darf; gemessen wird am gespeicherten
+  Stand vor der Änderung, das Anlegen bleibt frei, und eine unbrauchbare
+  Angabe entfällt mit Hinweis, ohne die Tabelle zu sperren.
+- **Vier neue Katalog-Zeilen und drei neue Handbuch-Abschnitte** (`4T-001933`).
+  Der Funktions-Katalog nennt die Eindeutigkeit des Schlüssels, die
+  Beziehungen zwischen Tabellen, die Prüfregeln und die bedingte
+  Bearbeitbarkeit in fünf Sprachen; die Handbuch-Seite «Datenbank» trägt die
+  Abschnitte «Beziehungen zwischen Tabellen», «Prüfregeln» und «Bedingte
+  Bearbeitbarkeit» sowie die Liste der Gründe, aus denen die Anwendung eine
+  Änderung abweist. Die Demo-Tabelle `Library.md` trägt an der Seitenzahl die
+  Regel `value > 0`.
+- **Die erzeugte Einzel-Maske eines Datensatzes** (`4T-001938`, `4T-001939`).
+  Aus der Tabellen-Definition entsteht ohne Zutun ein Masken-Körper: die
+  Überschrift der Tabelle und je Feld seine Beschriftung mit einem
+  Feld-Platzhalter `{{field:<Name>}}`. Die Maske öffnet als eigene System-Seite
+  in einem Reiter, über die Schaltfläche «Datensatz öffnen» am Anfang jeder
+  Datensatz-Zeile in Lese- und Live-Ansicht, und zeigt die Felder nach ihrem
+  Typ: Text ein- und mehrzeilig, Zahl mit Nachkommastellen, Datum, Uhrzeit,
+  Wahrheitswert, Link und Verweis. Sie beginnt lesend; «Bearbeiten» wechselt
+  in die Eingabe, «Verwerfen» zurück. Ein Datensatz, der nach der Bedingung
+  seiner Tabelle nicht bearbeitbar ist, zeigt den Grund und bleibt lesend. Neue
+  Datensätze entstehen über «Neuer Datensatz» in der Übersicht der Datenbank und
+  im Fuß des Datensatz-Blocks sowie über das Kommando «Neuen Datensatz anlegen»
+  der Kommando-Palette, jeweils mit der gezogenen Kennung. Der Datensatz-Kanal
+  liefert der Maske alles aus einer frischen Lesung der Datei, samt der
+  Erwartung, gegen die beim Speichern die Fremd-Änderung erkannt wird.
+- **Speichern, Ändern und Löschen aus der Maske** (`4T-001940`). «Speichern»
+  bildet den Auftrag an die Schreib-Schnittstelle: beim Anlegen mit allen nicht
+  leeren Feldern, beim Ändern nur mit den geänderten Feldern und der Erwartung
+  des gelesenen Stands, beim Löschen nach einer Rückfrage. Jede Abweisung der
+  Schnittstelle erscheint als Satz in der Sprache der Oberfläche **am
+  betroffenen Feld**, eine Abweisung ohne Feld am Kopf der Maske; die 37
+  Lage-Texte der Schreib-Schnittstelle sind dafür ohne das Präfix
+  «Anweisung N:» neu gefasst, Listen von Feldern und Tabellen stehen in
+  Anführung, und die Meldung einer Prüfregel wird in der Sprache des Anwenders
+  aufgelöst. Eine **Fremd-Änderung** zwischen Lesen und Speichern zeigt die
+  Wahl «Neu laden» oder «Trotzdem speichern»; die harten Regeln bleiben auch
+  beim Erzwingen. Nach dem Löschen schließt der Reiter.
+- **Die Sperre in der Maske** (`4T-001941`). «Bearbeiten» nimmt die Sperre des
+  Datensatzes, «Verwerfen» und das Speichern geben sie frei; das Löschen nimmt
+  sie für die Dauer der Rückfrage. Ist der Datensatz gesperrt, zeigt die Maske
+  den Halter mit Benutzer, Rechner und Zeitpunkt und bietet «Nur lesen»; nach
+  der Frist der Sperr-Verwaltung dazu «Sperre brechen». Eine Sperr-Datei ohne
+  lesbaren Inhalt erscheint als **«Halter unbekannt»** mit der Frist, eine
+  Sperre aus einem anderen Fenster derselben Anwendung als solche. Lässt sich
+  die Sperre nicht nehmen, wird nicht bearbeitet.
+- **Die Wertehilfe der Verweis-Felder** (`4T-001942`). Ein Feld vom Typ
+  Verweis zeigt beim Tippen die Datensätze seiner Ziel-Tabelle mit Anzeige-Form
+  und Kennung, eingegrenzt über Anzeige, Schlüssel-Wert und Kennung, mit
+  Pfeiltasten und Eingabetaste bedienbar; die Auswahl trägt die Kennung ein.
+  Ein von Hand geschriebener einteiliger Schlüssel-Wert und die Kurzform der
+  Kennung werden beim Speichern angenommen und durch die Kennung ersetzt; lesend
+  zeigt das Feld «Anzeige-Form (Kennung)» und kennzeichnet einen Verweis, der
+  sich nicht auflösen lässt. Die Liste kommt über einen eigenen Kanal frisch aus
+  den Dateien, gemessen mit 25 ms bei zweitausend Datensätzen.
+- **Die Maske als Datei** (`4T-001943`). Der Handgriff «Maske als Datei
+  speichern» im Kopf der Maske schreibt den erzeugten Körper als
+  `<Tabelle> Form.md` neben die Tabelle, mit dem Behälter `db-form` im
+  Frontmatter, der die Tabelle beim Namen nennt; eine vorhandene Datei wird nie
+  überschrieben. Der Katalog erkennt Masken-Dateien, ordnet sie ihrer Tabelle
+  zu, meldet eine unbekannte Tabelle und eine zweite Datei derselben Tabelle in
+  der Übersicht, und die Übersicht zeigt je Tabelle den Namen ihrer geltenden
+  Maske. Liegt eine Masken-Datei vor, zeigt die Maske deren Körper: Markdown
+  zwischen den Feldern, die Felder an ihren Platzhaltern; ein Feld, das die
+  Datei nicht nennt, bleibt beim Speichern unberührt, ein unbekannter
+  Platzhalter oder ein unbekanntes Feld bleibt Text und steht als Hinweis im
+  Kopf. Gelesen wird in dieser Stufe allein der Feld-Platzhalter.
+- **Die Konsistenz-Prüfung über den Bestand** (`4T-001944`). Die Aktion
+  «Konsistenz prüfen» in der Übersicht der Datenbank, für alle Tabellen oder
+  eine, liest den Bestand frisch und meldet, was das Regel-Werk beim Schreiben
+  nicht sehen kann: Alt-Dubletten des fachlichen Schlüssels und der Kennung,
+  Verweise auf unbekannte Tabellen, ins Leere, mehrdeutig oder auf einen
+  mehrteiligen Schlüssel, verletzte Feld- und Datensatz-Regeln, leere und
+  fehlende Pflicht-Zellen, Typ-Fehler, eine abweichende Zellen-Zahl, unbekannte
+  Felder und Platzhalter einer Masken-Datei und eine Masken-Datei ohne Tabelle;
+  eine unlesbare Definition ist ein Befund ihrer Tabelle und bricht den Lauf
+  nicht ab. Das Ergebnis erscheint als Abschnitt der Übersicht mit Dauer, Zähler
+  je Tabelle und der Befund-Liste bis 500 Zeilen; ein Befund führt per Klick in
+  die Maske. Die Prüfung schreibt nichts; berichtigt wird in der Maske. Dazu das
+  Kommando «Konsistenz der Datenbank prüfen». Gemessen: 23 ms bei zweitausend
+  Datensätzen und zweitausend Verweisen.
+- **Der Verwendungsnachweis** (`4T-001945`). Die Aktion «Verwendung» an einer
+  Tabelle der Übersicht nennt die Tabellen, die mit einer Verweis-Spalte auf
+  sie zeigen, und die Masken-Dateien, die sie darstellen; «Verwendet von» im
+  Kopf der Maske nennt die Datensätze, die auf den gezeigten Datensatz
+  verweisen, mit Tabelle, Feld und «Anzeige-Form (Kennung)», und ein Klick
+  öffnet deren Maske. Beide Auskünfte benutzen dieselbe Suche wie der
+  Lösch-Schutz und werden nur auf Anforderung gelesen; ein Prosa-Verweis zählt
+  nicht.
+- **Fünf neue Katalog-Zeilen und die Handbuch-Abschnitte zur Maske**
+  (`4T-001946`). Einzel-Maske, Sperre bei der Bearbeitung, Maske als Datei,
+  Konsistenz-Prüfung und Verwendungsnachweis in der Gruppe «Datenbank» des
+  Funktions-Katalogs in fünf Sprachen; die Handbuch-Seite «Datenbank» mit dem
+  Abschnitt «Datensätze in der Maske bearbeiten», dem Bedienweg der Sperren
+  und den Abschnitten «Konsistenz-Prüfung» und «Verwendungsnachweis». Der
+  Demo-Bereich bekommt die zweite Tabelle «Loans», die mit einer Verweis-Spalte
+  auf «Library» zeigt.
+
+
+### Geändert
+
+- **Umbenennen und Verschieben einer Tabellen-Datei nimmt ihre Änderungsbelege
+  mit, und ein Fehlschlag bleibt nicht mehr still** (`4T-001789`). Das Mitziehen
+  ist jetzt eine Mechanik über eine Liste von Begleit-Datei-Arten und keine je
+  Datei-Art programmierte Einzelstelle, mit der gemessenen Wiederhol-Schleife des
+  gemeinsamen Schreibwegs. **Das ist eine nach außen sichtbare
+  Verhaltensänderung:** Lässt sich eine vorhandene Beleg-Datei nicht mitziehen,
+  oder liegt am Zielnamen bereits eine, scheitert das Umbenennen **als Ganzes**;
+  die bereits umbenannte Tabellen-Datei wird zurückbenannt, und der Fehlschlag
+  wird gemeldet. Scheitert auch die Rücknahme endgültig, nennt die Meldung beide
+  Namen, und die Anwendung folgt der Wirklichkeit am neuen Pfad. Die drei
+  Fehlschlag-Lagen erreichen den Anwender auf allen drei Bedienwegen, also im
+  Umbenennen-Dialog, an der Titel-Zeile und beim Verschieben im Buch. Die
+  Begleitdatei der Dokument-Historie verhält sich unverändert, abgesehen von
+  derselben Wiederhol-Schleife und einem Protokoll-Eintrag bei Fehlschlag.
+- **Beim Löschen einer Tabellen-Datei gehen ihre Änderungsbelege mit in den
+  Papierkorb** (`4T-001800`). Die Rückfrage vor dem Löschen sagt es in einem
+  zusätzlichen Satz, und zwar nur dann, wenn tatsächlich Belege daneben liegen;
+  sonst lautet sie Wort für Wort wie bisher. Zuerst geht die Tabellen-Datei, dann
+  ihre Beleg-Datei: Scheitert das Erste, ist nichts geschehen, scheitert das
+  Zweite, wird die liegen gebliebene Datei mit ihrem Namen gemeldet. Ein Weg des
+  endgültigen Löschens entsteht dabei nicht, und die Begleitdatei der
+  Dokument-Historie bleibt wie bisher liegen.
+- **Die Bereichs-Statistik führt eine eigene Zeile für Änderungsbelege**
+  (`4T-001789`). Sie zählt Beleg-Dateien getrennt und meldet sie nicht mehr als
+  verwaiste Dokument-Begleitdatei; der Abgleich «Dokumente mit Begleitdatei»
+  bleibt an die Historien-Endung gebunden. Nachgezogen ist zugleich die
+  Byte-Summe des Bereichs, die ihre Datei-Gruppen einzeln aufsummiert und eine
+  neue Gruppe sonst still übergangen hätte.
+- **Ordner-Liste und Bereichs-Watcher lassen den Sperr-Ordner aus**
+  (`4T-001787`). Beide kannten bisher keine Ordner-Regel; ohne diese Ergänzung
+  hätte **jedes** Nehmen und jedes Freigeben einer Sperre das Bereichs-Panel
+  geweckt. Ausgeschlossen wird der Ordner des **wirksamen** Namens und nicht ein
+  fester, in der Ordner-Liste allein auf der obersten Ebene des Bereichs, weil ein
+  gleichnamiger Ordner tiefer im Baum einer des Anwenders ist. Andere
+  Punkt-Ordner der Bereichs-Wurzel bleiben beobachtet und sichtbar wie bisher.
+- **Die Lage-Texte der Schreib-Schnittstelle nennen keine Position mehr**
+  (`4T-001940`). Alle 37 Texte `database.auftrag.*` beginnen mit dem Satz und
+  nicht mehr mit «Anweisung N:», weil der Anwender in der Maske genau einen
+  Datensatz vor sich hat; bei mehreren Anweisungen setzt die Auflösung die
+  Position davor. Die Schlüssel-Dublette nennt beide Positionen, die
+  Nicht-Bearbeitbarkeit die Anzeige-Form des Datensatzes.
+- **Die Übersicht der Datenbank trägt neue Spalten und Aktionen**
+  (`4T-001939`, `4T-001943`, `4T-001944`, `4T-001945`). Je Tabelle die Spalte
+  «Maske» mit dem Namen der geltenden Masken-Datei und die Aktionen «Neuer
+  Datensatz», «Prüfen» und «Verwendung»; im Kopf «Konsistenz prüfen» für alle
+  Tabellen. Die Ergebnisse der Prüfung und des Nachweises stehen als Abschnitte
+  unter den Fehlerlagen und verschwinden mit der Seite.
+- **Der Datensatz-Block bekommt einen Fuß mit «Neuer Datensatz»** und je Zeile
+  neben der Schaltfläche der Belege die Schaltfläche «Datensatz öffnen»
+  (`4T-001939`), in Lese- und Live-Ansicht, mit der Tastatur erreichbar.
+
+
+### Behoben
+
+- **Nach dem Speichern durch einen anderen Rechner las ein Rechner auf dem
+  Netzlaufwerk noch den alten Stand einer Datei** (`4T-001964`). Gefunden im
+  Zwei-Rechner-Lauf der Release-Strecke: Nachdem ein Rechner einen
+  liegengebliebenen Auftrag fertiggeschrieben hatte, las der nächste Auftrag auf
+  dem anderen Rechner die Tabelle im Stand davor und überschrieb sechs von fünfzig
+  Datensätzen still. Ursache ist der Zwischenspeicher des Netzwerk-Clients: Er
+  hält den zuletzt benutzten Griff auf eine Datei samt Lease zurück und
+  beantwortet das nächste Öffnen daraus, und ein Ersetzen der Datei durch
+  Umbenennen auf einem anderen Rechner entzieht diese Lease nicht; belegt an
+  einem Experiment mit zwei Rechnern über dreizehn Varianten, in dem der alte
+  Stand länger als fünfzehn Sekunden hielt. **Drei Maßnahmen:** Der gemeinsame
+  Umbenenn-Baustein des atomaren Schreibwegs öffnet eine vorhandene Zieldatei vor
+  dem Ersetzen einmal mit Schreibrecht und schließt sie sofort, was dem anderen
+  Rechner die Lease entzieht und für alle Schreibwege der Anwendung gilt,
+  Dokumente eingeschlossen; der Vorgangs-Zähler klärt eine scheinbar fehlende
+  Zähler-Datei durch ein exklusives Anlegen, das der Client bei der Gegenstelle
+  erfragen muss, statt den Stand aus den Belegen wiederzugewinnen, weil der
+  Client auch «nicht gefunden» einige Sekunden merkt und so eine Vorgangs-Kennung
+  doppelt vergab; und alle Leser des Datenbank-Speicherwegs samt der
+  Stand-Prüfung vor dem Überschreiben öffnen die Datei mit Schreibrecht, als
+  Rückfall für Schreiber außerhalb der Anwendung. Nachgewiesen im Zwei-Rechner-Lauf
+  des Wiederanlaufs mit Rollen-Trennung, der zuvor sechzehn von siebzehn
+  Datensätzen verlor.
+- **Ein fachlicher Schlüssel in der letzten Spalte war über den Index nicht
+  auffindbar** (`4T-001927`). Der Bereichs-Index las die Zell-Texte eines
+  Datensatzes über einen eigenen Helfer und führte die Leerzeile zwischen zwei
+  Datensätzen im Schlüssel und in der Anzeige-Form mit; die Suche nach dem
+  Schlüssel-Wert lief deshalb ins Leere. Der Index liest jetzt über denselben
+  Weg wie die Schreib-Schnittstelle.
+- **Eine Zelle, die wie ein Code-Zaun aussieht, begrenzt den Datensatz-Block nicht
+  mehr falsch** (`4T-001833`). Der Leser des Blocks erkannte einen gewachsenen
+  schließenden Zaun nicht an seiner Länge und hätte mit dem neuen Schreibweg aus
+  dem Lese-Fehler einen Daten-Schaden gemacht. Die Zaun-Regel hat jetzt eine
+  Heimat, die Leser des Blocks, der Folge-Segmente, der Teilung und der Suche folgen
+  der Standard-Regel des Markdown-Zauns, und eine zaun-artige Zeile in einer Zelle
+  wird beim Schreiben maskiert statt den Zaun wachsen zu lassen. Zwei Folgen sind
+  als eigene Vorgänge verortet: der Code-Block-Verfolger der übrigen Anwendung,
+  der auf dieselbe Standard-Regel zu stellen ist (`4T-001912`), und die Prüfung,
+  ob die Fehlerklasse des Befunds nach ihrer Maßnahme wiederkehrt (`4T-001913`).
+
+### i18n
+
+- Alle neuen Texte dieses Zuges liegen in **allen fünf Sprachfassungen** vor.
+  Die Beleg-Ansicht bringt 39 neue Schlüssel je Sprache im Fragment der
+  Datenbank, darunter je Befund-Code einen Satz (`4T-001792`); die Einstellung des
+  Sperr-Ordner-Namens bringt Beschriftung, Erklärungs-Text und je
+  Abweisungs-Grund eine Meldung (`4T-001795`); das Umbenennen bringt drei
+  Schlüssel für seine Fehlschlag-Lagen und einen für die neue Statistik-Zeile
+  (`4T-001789`), das Löschen zwei (`4T-001800`) und die Verdichtung drei
+  Hinweis-Texte für eine unbrauchbare Grenz-Angabe (`4T-001791`).
+- **Funktions-Katalog und Handbuch** (`4T-001793`). Die Gruppe «Datenbank» des
+  Funktions-Katalogs wächst von zehn auf zwölf Zeilen, um die Änderungsbelege je
+  Tabelle und ihre Ansicht am Datensatz; die Zeile zum Bereich als Datenbank nennt
+  zusätzlich den Ordner, in dem die Anwendung ihre Sperren ablegt. Die
+  Handbuch-Seite «Datenbank» hat die beiden neuen Abschnitte «Änderungsbelege»
+  und «Sperren» bekommen, mit der Ansicht, der Verdichtung samt ihrem Preis, der
+  ehrlich benannten Grenze der Hand-Änderung, dem Sperr-Ordner und seiner
+  Einstellung; die Seite «Applikationen, Fenster und Bereiche» ist um Umbenennen,
+  Löschen und die neue Statistik-Zeile ergänzt. Nebenher vereinheitlicht: In
+  Französisch, Spanisch und Italienisch trugen die Texte aus dem Vorgang zur
+  Beleg-Datei eine andere Bezeichnung für die Änderungsbelege als Ansicht,
+  Rückfrage und Katalog; maßgeblich ist jetzt überall die Wortwahl der Ansicht.
+- Die Schreib-Schnittstelle bringt je Lage ihres Katalogs einen Anwender-Text in
+  **allen fünf Sprachfassungen**, 25 Schlüssel je Sprache im Fragment der Datenbank
+  (`4T-001825`), darunter ein Text für einen Code ohne Schlüssel. Der Wortlaut des
+  Sperr-Konflikts mit einem anderen Bearbeiter bleibt der erzeugten Maske
+  vorbehalten.
+- **Handbuch** (`4T-001827`). Die Seite «Datenbank» hat das neue Kapitel «Speichern
+  durch die Anwendung» bekommen: die Prüfung vor dem Schreiben, «ganz oder gar
+  nicht», das Durchschreiben mit der gemessenen Dauer und seiner Linux-Grenze, der
+  Zwischenstand für gleichzeitige Leser und der liegengebliebene Vorgang, in allen
+  fünf Sprachfassungen mit gleicher Zeilen-Struktur; dazu das Protokoll im
+  Sperr-Ordner, die Datei `Area_Database.mdda` beim Bereich als Datenbank, der
+  Aus-Zustand ohne Schreiben und die gemeinsame Vorgangs-Kennung bei den
+  Änderungsbelegen. Berichtigt ist die Aussage zur Änderung von Hand (abgewiesen
+  statt still belegt, Beleg beim Erzwingen); die Überblicksseite nennt jetzt
+  Speichern, Änderungsbelege und Sperren. Kein neuer Katalog-Eintrag, weil keine
+  Bedien-Funktion entsteht.
+- 158 neue Schlüssel in fünf Sprachen (gegenständlich ausgezählt gegen den Zug-Stand vor dem Epic): `database.form.*` (Maske, Felder,
+  Aktionen, Meldungen, Masken-Datei), `database.sperre.*` (Konflikt-Block und
+  Bruch-Gründe), `database.konsistenz.*` (Bedien-Texte und fünfzehn
+  Befund-Sätze), `database.usage.*`, `database.hint.form*`, die Kommandos
+  `command.database.newRecord` und `command.database.checkConsistency` mit
+  ihren Katalog-Beschreibungen, dazu die fünf Katalog-Zeilen der Gruppe
+  «Datenbank» (`4T-001939` bis `4T-001946`); 37 Texte `database.auftrag.*`
+  neu gefasst (`4T-001940`).
+
+- **Nutzen-Darstellung fortgeschrieben** (`4T-001785`, Nutzen-Prüfschritt des
+  Zuges, Entscheidung des Product Owners). Die Nutzen-Seite des Handbuchs und die
+  Nutzen-Seite der Webseite nennen in allen fünf Sprachfassungen das Pflegen von
+  Datensätzen in der Maske als neuen Punkt; die Übersicht der Datenbank heißt
+  nicht mehr reine Lese-Ansicht, und der Schlusssatz nennt als noch fehlend allein
+  Abfragen und Auswertungen.
+
+### Intern
+
+- **Roadmap und Bildschirmfotos der Produkt-Webseite aus dem vorigen Release**
+  (`4T-001889`, `3E-000325`). Mit dessen Nachzügler ist die Kachel «Kanban» auf
+  «ausgeliefert» gewechselt, die dritte Ausbaustufe der Tafel nach dem Muster
+  einer Folge-Stufe umgetragen, und die Bildschirmfotos der Webseite stehen auf
+  dem Stand von `1.141.0`. Kein Anwendungs-Code berührt, kein Anwender-Text
+  nötig.
+- **Neuer Roadmap-Eintrag «Kanban-Karten mit Notizen verbinden»** (`3E-000328`,
+  `4T-001953`, `4T-001954`, `4T-001961`, `4T-001962`). Mit der Anlage des Zuges
+  zur dritten Ausbaustufe der Tafel kündigt die Roadmap der Produkt-Webseite sie
+  als geplant an. Kein Anwendungs-Code berührt, kein Anwender-Text nötig.
+
 ## [1.141.0.3210] - 2026-09-24 — Kanban-Tafel Stufen 1 und 2, Suche in der Mindmap-Ansicht
 
 Zug 3E-000325, der
