@@ -32,6 +32,7 @@ describe('normalizeManifest (4T-000368)', () => {
       id: 'a',
       area: 'C:\\Notizen',
       workspaceId: null,
+      appKey: null,
       order: 2,
       tabSettings: { viewMode: 'split' },
       savedAt: '2026-07-08T10:00:00Z',
@@ -42,6 +43,7 @@ describe('normalizeManifest (4T-000368)', () => {
       id: 'b',
       area: null,
       workspaceId: null,
+      appKey: null,
       order: 1,
       tabSettings: {},
       savedAt: '',
@@ -194,5 +196,93 @@ describe('assignDraftsToApps (4T-000368)', () => {
     // (erste bereichslose unbenannte App), kein stilles Einwandern.
     expect(byApp[0]).toEqual([]);
     expect(leftover.map((d) => d.id)).toEqual(['a']);
+  });
+});
+
+// 4T-001742 (Epic 3E-000309): Entwurfs-Zuordnung bei zwei Applikationen auf
+// demselben Ordner. Das Paar aus Arbeitsbereich und gewöhnlicher Applikation
+// wird getrennt bedient, weil der Arbeitsbereich über seine Kennung trifft.
+describe('4T-001742: zwei Applikationen desselben Ordners', () => {
+  const draft = (id, area, workspaceId = null) => ({
+    id,
+    area,
+    workspaceId,
+    content: '',
+    tabSettings: {},
+    order: 0,
+  });
+  const target = (rootPath, workspaceId = null) => ({ rootPath, workspaceId });
+
+  it('Arbeitsbereich und gewöhnliche Applikation bekommen je ihre Entwürfe', () => {
+    const { byApp, leftover, unassigned } = assignDraftsToApps(
+      [draft('ws', 'C:\\Notizen', 'ws-1'), draft('frei', 'C:\\Notizen')],
+      [target('C:\\Notizen'), target('C:\\Notizen', 'ws-1')],
+      samePath,
+    );
+    expect(byApp[0].map((d) => d.id)).toEqual(['frei']);
+    expect(byApp[1].map((d) => d.id)).toEqual(['ws']);
+    expect(leftover).toEqual([]);
+    expect(unassigned).toEqual([]);
+  });
+});
+
+// 4T-001743 (Epic 3E-000309, T3): Zwei gewöhnliche Applikationen auf demselben
+// Ordner bekommen je ihre eigenen Entwürfe zurück, weil Entwurf und
+// Sitzungs-Eintrag die Kennung der App tragen. Ohne Kennung (Bestand) bleibt es
+// bei der ersten bereichsgleichen App.
+describe('4T-001743: Entwürfe folgen der Kennung ihrer App', () => {
+  const draft = (id, area, appKey = null) => ({
+    id,
+    area,
+    workspaceId: null,
+    appKey,
+    content: '',
+    tabSettings: {},
+    order: 0,
+  });
+  const target = (rootPath, appKey = null, workspaceId = null) => ({
+    rootPath,
+    workspaceId,
+    appKey,
+  });
+
+  it('übernimmt appKey als nicht-leeren String, sonst null', () => {
+    const result = normalizeManifest([
+      { id: 'a', appKey: 'app-1' },
+      { id: 'b', appKey: '' },
+      { id: 'c', appKey: 7 },
+    ]);
+    expect(result.map((e) => e.appKey)).toEqual(['app-1', null, null]);
+  });
+
+  it('verteilt die Entwürfe zweier Apps desselben Ordners nach ihrer Kennung', () => {
+    const { byApp, leftover } = assignDraftsToApps(
+      [draft('eins', 'C:\\Notizen', 'app-1'), draft('zwei', 'C:\\Notizen', 'app-2')],
+      [target('C:\\Notizen', 'app-1'), target('C:\\Notizen', 'app-2')],
+      samePath,
+    );
+    expect(byApp[0].map((d) => d.id)).toEqual(['eins']);
+    expect(byApp[1].map((d) => d.id)).toEqual(['zwei']);
+    expect(leftover).toEqual([]);
+  });
+
+  it('fällt ohne passende Kennung auf die erste bereichsgleiche App zurück', () => {
+    const { byApp } = assignDraftsToApps(
+      [draft('alt', 'C:\\Notizen'), draft('fremd', 'C:\\Notizen', 'app-weg')],
+      [target('C:\\Notizen', 'app-1'), target('C:\\Notizen', 'app-2')],
+      samePath,
+    );
+    expect(byApp[0].map((d) => d.id)).toEqual(['alt', 'fremd']);
+    expect(byApp[1]).toEqual([]);
+  });
+
+  it('eine Kennung zieht keinen Entwurf in einen fremden Ordner', () => {
+    const { byApp, leftover } = assignDraftsToApps(
+      [draft('x', 'C:\\Archiv', 'app-1')],
+      [target('C:\\Notizen', 'app-1')],
+      samePath,
+    );
+    expect(byApp[0]).toEqual([]);
+    expect(leftover.map((d) => d.id)).toEqual(['x']);
   });
 });

@@ -59,7 +59,7 @@ Le scadenze figurano come marcatori simbolo con una data `AAAA-MM-GG` a fine rig
 - [ ] Preparazione ⏳ 2099-03-24 🛫 2099-03-17
 - [ ] Molto in ritardo 📅 2020-01-01
 
-Si impostano manualmente **scadenza** (`📅`), **pianificata** (`⏳`) e **inizio** (`🛫`). Si creano automaticamente **creata** (`➕`), **completata** (`✅`) e **annullata** (`❌`) — vedi date automatiche. Le scadenze superate sono evidenziate in rosso; i valori non validi nel calendario (un 30 febbraio, ad esempio) vengono conservati e contrassegnati come non validi.
+Si impostano manualmente **scadenza** (`📅`), **pianificata** (`⏳`) e **inizio** (`🛫`). Si creano automaticamente **creata** (`➕`), **completata** (`✅`) e **annullata** (`❌`) — vedi date automatiche; la data di completamento si può poi modificare o rimuovere nella finestra di modifica. Le scadenze superate sono evidenziate in rosso; i valori non validi nel calendario (un 30 febbraio, ad esempio) vengono conservati e contrassegnati come non validi.
 
 Dopo la data è ammessa facoltativamente un'**ora** `HH:mm`:
 
@@ -115,7 +115,7 @@ Comportamento in dettaglio: la base di calcolo è la scadenza, in mancanza la pi
 
 Al cambio di stato l'applicazione scrive marcatori di data nella riga — ciascuno dei tre automatismi può essere disattivato singolarmente nella sezione di impostazioni **Attività**:
 
-- **Completata** (`✅`): al passaggio a uno stato di tipo Completata; il ritorno indietro rimuove di nuovo la data.
+- **Completata** (`✅`): al passaggio a uno stato di tipo Completata; il ritorno indietro rimuove di nuovo la data. La data odierna è una proposta: nella finestra di modifica si può scegliere un altro giorno o rimuovere la data, e l'automatismo non la sovrascrive fino al successivo cambio di stato.
 - **Annullata** (`❌`): analogamente per il tipo Annullata.
 - **Creata** (`➕`): quando si trasforma una riga in attività tramite il comando «Lista di attività» (disattivato per impostazione predefinita).
 
@@ -143,7 +143,7 @@ Gli ID si compongono di lettere, cifre, `_` e `-`. Gli ID generati automaticamen
 
 ## Finestra di modifica
 
-Il comando **Modifica attività…** (predefinito `Ctrl+Alt+A`, anche nel menu contestuale dell'editor sotto Inserisci e come pulsante matita sui risultati della query) apre un modulo per tutti i marcatori: descrizione, stato (dal set di stati configurato), priorità, regola di ricorrenza con indicazione in caso di forma incomprensibile, le tre scadenze manuali tramite il calendario delle date, oltre a ID, predecessori e successori con una ricerca di attività sull'ambito di ricerca. Su una riga di attività la finestra modifica; su una riga vuota crea una nuova attività. Il passaggio a uno stato di tipo Completato imposta la data di completamento secondo l'automatismo; una voce di successore scrive il riferimento al predecessore sulla riga di destinazione (l'attività stessa riceve automaticamente un ID se necessario). Ogni applicazione è un singolo passo di annullamento.
+Il comando **Modifica attività…** (predefinito `Ctrl+Alt+A`, anche nel menu contestuale dell'editor sotto Inserisci e come pulsante matita sui risultati della query) apre un modulo per tutti i marcatori: descrizione, stato (dal set di stati configurato), priorità, regola di ricorrenza con indicazione in caso di forma incomprensibile, le tre scadenze manuali tramite il calendario delle date, oltre a ID, predecessori e successori con una ricerca di attività sull'ambito di ricerca. Su una riga di attività la finestra modifica; su una riga vuota crea una nuova attività. Se l'attività ha uno stato di tipo Completata, la finestra mostra una riga **Completato** con la data di completamento, **Scegli…** tramite il calendario delle date e **Rimuovi**; con qualsiasi altro stato manca. Quando lo stato passa a Completata nella finestra, la riga compare subito con la data odierna come proposta dell'automatismo — un altro giorno, anche futuro, o la sua rimozione resta all'applicazione. Con l'automatismo disattivato la riga è vuota e si può comunque scegliere. Le date di creazione e di annullamento sono solo visualizzate; una voce di successore scrive il riferimento al predecessore sulla riga di destinazione (l'attività stessa riceve automaticamente un ID se necessario). Ogni applicazione è un singolo passo di annullamento.
 
 ## Completamento automatico
 

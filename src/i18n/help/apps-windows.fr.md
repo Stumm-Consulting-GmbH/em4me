@@ -87,13 +87,19 @@ Les numéros se resserrent à la fermeture : si l'application 1 se ferme, l'appl
 
 ## Zones
 
-Une **zone** lie une application à un dossier : tout ce qui se trouve dans ce dossier, sous-dossiers compris, constitue l'espace de travail, rien d'autre. « Fichier → Zone → Ouvrir une zone… » choisit le dossier ; « Fichier → Zone → Fermer la zone » termine le travail dans la zone et ferme toutes les fenêtres de l'application de zone (avec les demandes d'enregistrement habituelles). Le lien est fixe : une zone ne peut pas être changée, seulement fermée.
+Une **zone** lie une application à un dossier : tout ce qui se trouve dans ce dossier, sous-dossiers compris, constitue l'espace de travail, rien d'autre. « Fichier → Zone → Ouvrir une zone… » choisit le dossier ; « Fichier → Zone → Fermer la zone » termine le travail dans la zone et ferme toutes les fenêtres de **cette** application de zone (avec les demandes d'enregistrement habituelles) ; si le même dossier est ouvert en plus dans une deuxième application, celle-ci reste ouverte avec ses documents. Le lien est fixe : une zone ne peut pas être changée, seulement fermée.
 
-Trois règles s'appliquent à l'ouverture :
+Deux règles s'appliquent à l'ouverture d'une zone qui n'est pas encore ouverte :
 
 - Si l'application est vide (aucun fichier ouvert), elle adopte la zone.
 - Si l'application a déjà un fichier ouvert, une nouvelle application est créée pour la zone.
-- Si la zone est déjà en cours, le focus passe à une fenêtre de l'application de zone existante ; la même zone ne s'exécute jamais deux fois.
+
+**Si la zone est déjà ouverte**, tout dépend de la présence d'un espace de travail (voir plus bas) sur l'application en cours :
+
+- **Sans espace de travail**, le focus passe sans question à une fenêtre de l'application de zone existante. Cela vaut aussi lorsque le même dossier est ouvert en même temps dans un espace de travail : le focus va alors à l'application sans espace de travail.
+- **Avec un espace de travail**, l'application pose la question, à condition que la fonction « Espaces de travail » soit activée ; si elle est désactivée, le focus passe comme sans espace de travail. « Passer à la fenêtre ouverte » met au premier plan la dernière fenêtre active de l'espace de travail. « Ouvrir en plus » ouvre la zone une deuxième fois, dans une nouvelle application avec sa propre fenêtre et ses propres onglets ; elle n'appartient pas à l'espace de travail. « Annuler » laisse tout en l'état.
+
+La question apparaît sur chaque chemin qui ouvre une zone, par exemple via « Ouvrir une zone… » ou « Zones récentes ». Deux applications sur le même dossier travaillent indépendamment l'une de l'autre, et les limites strictes de la zone s'appliquent dans les deux. On les distingue au titre de la fenêtre : l'une nomme l'espace de travail, l'autre non. Lorsque la restauration de session est activée, toutes deux reviennent au démarrage suivant comme deux applications, et chacune retrouve ses propres brouillons non enregistrés.
 
 **Demo-Area :** « Fichier → Zone → Créer la Demo-Area… » copie une collection d'exemples fournie en anglais — des pages Markdown accompagnées de pièces jointes image et PDF qui montrent les fonctions les plus importantes — dans un dossier vide et l'ouvre directement comme zone : un bac à sable pour expérimenter sans risque. Les dossiers cibles non vides sont refusés, et les fichiers existants ne sont jamais écrasés. La fonction peut être désactivée en tant qu'extension « Demo-Area » ; les dossiers de démo déjà créés sont des zones ordinaires et restent intacts.
 
@@ -157,7 +163,7 @@ Cette page concerne toujours **une** zone, celle qui est ouverte. Une vue succin
 
 Une zone peut désigner l'un de ses fichiers comme **page d'accueil** : il s'ouvre de lui-même à l'ouverture de la zone, comme un livre s'ouvre à sa première page. Vous la définissez et la retirez depuis le menu contextuel d'un fichier dans le panneau de zone ; le fichier désigné y est reconnaissable à un symbole en tête et à une police semi-grasse.
 
-**La restauration de session est prioritaire** : si une application de zone revient au démarrage avec les documents que vous aviez ouverts, la page d'accueil reste fermée — vous reprenez là où vous vous étiez arrêté. Elle s'ouvre lorsqu'il n'y a rien à restaurer : à l'ouverture d'une zone en cours d'exécution, et au démarrage pour une application de zone sans documents enregistrés. La bascule vers une zone déjà ouverte ne la rouvre pas et laisse la page d'accueil intacte.
+**La restauration de session est prioritaire** : si une application de zone revient au démarrage avec les documents que vous aviez ouverts, la page d'accueil reste fermée — vous reprenez là où vous vous étiez arrêté. Elle s'ouvre lorsqu'il n'y a rien à restaurer : à l'ouverture d'une zone en cours d'exécution, et au démarrage pour une application de zone sans documents enregistrés. La bascule vers une zone déjà ouverte, y compris le passage via la question, ne la rouvre pas et laisse la page d'accueil intacte ; « Ouvrir en plus » l'ouvre en revanche comme à la première ouverture, page d'accueil comprise.
 
 La désignation appartient à la zone et voyage avec son dossier. Si le fichier est renommé ou déplacé dans l'application, la désignation suit ; s'il quitte la zone, elle est abandonnée. Si elle ne pointe nulle part, la zone s'ouvre normalement et l'application le signale — une zone sans page d'accueil se comporte comme auparavant.
 

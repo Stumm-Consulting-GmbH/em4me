@@ -173,3 +173,17 @@ describe('Arbeitsbereichs-Zuordnung (4T-000537)', () => {
     expect(reg.findAppByWorkspaceId('ws-1')).toBeNull();
   });
 });
+
+// 4T-001743 (Epic 3E-000309, T3): sitzungs-übergreifende Kennung je App.
+describe('4T-001743: Kennung der App', () => {
+  it('übernimmt eine mitgegebene Kennung und vergibt sonst je App eine eigene', () => {
+    const reg = createAppRegistry();
+    const a = reg.createApp({ rootPath: 'C:\\Notizen', name: 'Notizen' }, 'app-aus-sitzung');
+    const b = reg.createApp({ rootPath: 'C:\\Notizen', name: 'Notizen' });
+    const c = reg.createApp({ rootPath: 'C:\\Notizen', name: 'Notizen' });
+    expect(reg.getAppKey(a)).toBe('app-aus-sitzung');
+    expect(typeof reg.getAppKey(b)).toBe('string');
+    expect(reg.getAppKey(b)).not.toBe(reg.getAppKey(c));
+    expect(reg.getAppKey(999)).toBeNull();
+  });
+});

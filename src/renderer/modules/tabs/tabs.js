@@ -65,6 +65,9 @@ import { updateBookmarksToggleButton } from '../bookmarks/bookmarks.js';
 // (debounct; Hooks in activateTab/closeTab, Muster Outgoing-Links).
 import { scheduleFileGraphRender } from '../file-graph-panel.js';
 import { flushPendingPropertiesSave } from '../properties/properties-save.js';
+// 4T-001712 (Epic 3E-000300): offene Zell-Eingabe der Live-Tabelle vor Wechsel
+// und Schliessen uebernehmen, solange der Editor noch in ihren Reiter schreibt.
+import { uebernimmOffeneZellEingabe } from '../live/live-table-zelle.js';
 import {
   updatePropertiesToggleButton,
   updateTagsToggleButton,
@@ -544,6 +547,9 @@ export function reportMenuStateNow() {
 export function activateTab(paneIdx, tabIdx, opts = {}) {
   const pane = state.panes[paneIdx];
   if (!pane || tabIdx < 0 || tabIdx >= pane.tabs.length) return;
+  // 4T-001712: bleibt eine Zell-Eingabe wegen eines Konflikts offen, bleibt
+  // auch das Dokument, sonst ginge sie mit ihm.
+  if (pane.activeIndex !== tabIdx && !uebernimmOffeneZellEingabe()) return;
   pane.activeIndex = tabIdx;
   if (!opts.keepSelection) setSelection(pane, tabIdx);
   // 4T-000767 (Epic 3E-000158): Eine Aktivierung von aussen (Datei-Oeffnen,
@@ -593,6 +599,7 @@ export async function bestaetigeAufgabeDesInhalts(paneIdx, tabIdx, opts = {}) {
   const tab = pane && pane.tabs[tabIdx];
   if (!tab) return false;
   flushPendingPropertiesSave(paneIdx);
+  if (!uebernimmOffeneZellEingabe()) return false;
   if (!tab.dirty || opts.skipDirtyCheck) return true;
   activatePane(paneIdx);
   activateTab(paneIdx, tabIdx);

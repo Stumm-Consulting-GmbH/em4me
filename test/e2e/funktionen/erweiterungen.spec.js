@@ -144,32 +144,90 @@ test.describe('EW-03: Abschalten nimmt Panel, Button und Kommando sauber mit', (
   });
 });
 
-// 4T-000517 (Epic 3E-000092): events haengt an property-profiles — die Zeile
-// der Ereignis-Erweiterung zeigt bei deaktivierter Voraussetzung den
-// generischen Abhaengigkeits-Hinweis mit gesperrtem Schalter und kehrt
-// mit der Voraussetzung zurueck (Draft-Ebene, ohne Anwenden).
-test.describe('EW-04: Abhängigkeits-Hinweis events → property-profiles (4T-000517)', () => {
-  test('property-profiles aus sperrt events mit Hinweis; Zustand kehrt zurück', async () => {
+// 4T-001877 (Epic 3E-000187, Story 4S-000991): Abhaengigkeits-Schutz. Bis dahin
+// pruefte EW-04 die umgekehrte Wirkung — Voraussetzung abschalten, Abhaengige
+// wird gesperrt. Genau das ist abgeloest: Die Voraussetzung laesst sich nicht
+// mehr abschalten, solange eine Abhaengige laeuft. Der Fall prueft deshalb die
+// Sperre, die Einblendung mit den Anzeige-Namen der Abhaengigen (hier zwei in
+// einem Satz) und die Freigabe nach dem Abwaehlen der letzten Abhaengigen.
+test.describe('EW-04: Abhängigkeits-Schutz property-profiles ← events/database (4T-001877)', () => {
+  test('gesperrter Schalter, Einblendung mit beiden Namen, Freigabe nach dem Abwählen', async () => {
     const { app, page, userData } = await launchApp();
     try {
+      await openExtensionsSection(page);
+      const baseRow = page.locator(
+        '.settings-extension-row[data-extension-id="property-profiles"]',
+      );
+      const baseToggle = page.locator('#settings-extension-property-profiles');
+      const requiredHint = baseRow.locator('.settings-extension-required-hint');
+
+      // Ohne jeden Versuch erkennbar: gesperrter Schalter und ein Hinweis,
+      // der beide Abhängigen mit ihrem Anzeige-Namen nennt.
+      await expect(baseToggle).toBeChecked();
+      await expect(baseToggle).toBeDisabled();
+      await expect(requiredHint).toBeVisible();
+      await expect(requiredHint).toContainText('Ereignisse');
+      await expect(requiredHint).toContainText('Datenbank');
+
+      // Der Versuch blendet denselben Sachverhalt in der Statusleiste ein und
+      // lässt den Schalter unberührt; ein zweiter Versuch blendet erneut ein.
+      const statusHint = page.locator('#statusbar-hint');
+      await baseRow.click();
+      await expect(statusHint).toHaveClass(/visible/);
+      await expect(statusHint).toContainText('Ereignisse');
+      await expect(statusHint).toContainText('Datenbank');
+      await expect(baseToggle).toBeChecked();
+      // Die Einblendung verschwindet von selbst (Vorgabe drei Sekunden); erst
+      // danach belegt der zweite Versuch, dass er erneut einblendet.
+      await expect(statusHint).not.toHaveClass(/visible/, { timeout: 15000 });
+      await baseRow.click();
+      await expect(statusHint).toHaveClass(/visible/);
+      await expect(baseToggle).toBeChecked();
+
+      // Erst die letzte abgewählte Abhängige gibt die Grundlage frei.
+      await page.locator('#settings-extension-events').uncheck();
+      await expect(baseToggle).toBeDisabled();
+      await page.locator('#settings-extension-database').uncheck();
+      await expect(baseToggle).toBeEnabled();
+      await baseToggle.uncheck();
+      await expect(baseToggle).not.toBeChecked();
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+});
+
+// 4T-001877 (Epic 3E-000187): der mitgebrachte Schalter-Stand. Er kann aus der
+// Zeit vor der Umstellung oder aus einer eingespielten Einrichtung stammen:
+// Grundlage abgeschaltet, Abhaengige als eingeschaltet gespeichert. Er wirkt
+// unverändert weiter, nichts wird selbsttaetig umgeschaltet, und die Grundlage
+// laesst sich jederzeit wieder einschalten.
+test.describe('EW-05: mitgebrachter Stand mit abgeschalteter Grundlage (4T-001877)', () => {
+  test('Abhängige wirkt als abgeschaltet und wird als solche ausgewiesen', async () => {
+    const { app, page, userData } = await launchApp();
+    try {
+      await page.evaluate(() =>
+        window.api.setSetting('extensions.disabled', ['property-profiles']),
+      );
       await openExtensionsSection(page);
       const eventsToggle = page.locator('#settings-extension-events');
       const eventsHint = page.locator(
         '.settings-extension-row[data-extension-id="events"] .settings-extension-dependency-hint',
       );
-      await expect(eventsToggle).toBeChecked();
-      await expect(eventsHint).toHaveCount(0);
-
-      await page.locator('#settings-extension-property-profiles').uncheck();
       await expect(eventsToggle).not.toBeChecked();
       await expect(eventsToggle).toBeDisabled();
       await expect(eventsHint).toBeVisible();
 
-      // Voraussetzung wieder an: der eigene Schalt-Zustand kehrt zurück.
-      await page.locator('#settings-extension-property-profiles').check();
+      // Die Grundlage ist NICHT gesperrt — sie lässt sich wieder einschalten,
+      // und damit kehren beide zurück.
+      const baseToggle = page.locator('#settings-extension-property-profiles');
+      await expect(baseToggle).not.toBeChecked();
+      await expect(baseToggle).toBeEnabled();
+      await baseToggle.check();
       await expect(eventsToggle).toBeChecked();
-      await expect(eventsToggle).toBeEnabled();
       await expect(eventsHint).toHaveCount(0);
+      // Und mit beiden zurück greift die Sperre wieder.
+      await expect(baseToggle).toBeDisabled();
     } finally {
       await closeApp(app, userData);
     }

@@ -44,6 +44,8 @@
   "settings.journals.loading": "Konfiguration wird geladen…",
   "settings.journals.noArea": "Journale gibt es nur in einem Bereich. Zuerst einen Bereich öffnen.",
   "settings.journals.intro": "Regale und Journale des Bereichs '{name}'. Änderungen wirken sofort nach Anwenden.",
+  "settings.journals.introBook": "Regale und Journale des Buches '{name}'. Änderungen wirken sofort nach Anwenden.",
+  "settings.journals.introShelf": "Regale und Journale des Bücherregals '{name}'. Änderungen wirken sofort nach Anwenden.",
   "settings.journals.shelvesGroup": "Regale",
   "settings.journals.shelfPlaceholder": "Regal-Name",
   "settings.journals.shelfAdd": "Regal hinzufügen",

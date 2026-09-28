@@ -29,6 +29,10 @@
 //        Kapitel-Datei landet in der Buch-Applikation, die Regal-Datei
 //        bleibt im Regal-Fenster.
 //
+// RG-11 (4T-001885): Einstellungs-Block «Aktuelles Bücherregal» — Block-Name,
+//        die eigenen Angaben des Regals und die Darstellung als Kacheln oder
+//        Zeilen, gemessen an Regal-Datei und Regal-Ansicht.
+//
 // Seit 4T-000873 ist ein geöffnetes Regal eine eigene logische Applikation mit
 // dem Regal-Ordner als Bereich; die Fälle starten deshalb ohne Start-Datei,
 // damit die freie Start-Applikation zur Regal-Applikation wird.
@@ -44,7 +48,9 @@ const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 const { SEL } = require('../helpers/selectors');
+const { warteAufText } = require('../helpers/dateien');
 const { menuZustand, menuEintrag } = require('../helpers/menu-zustand');
 const { SHELF_SETTINGS_FILENAME } = require('../../../src/shared/books/shelf-core.js');
 const {
@@ -55,6 +61,26 @@ const {
 
 const PANE = '.pane-group[data-pane="0"]';
 const VIEW = `${PANE} .pane-system .shelf-view-page`;
+// 4T-001885 (Epic 3E-000189): Die Einstellungs-Seite im Regal-Fenster.
+const SETTINGS_PAGE = `${PANE} .pane-system .settings-page`;
+
+// Einstellungs-Seite über das Kommando Strg+, öffnen und einen Abschnitt
+// aktivieren (Muster buch.spec.js): mit Poll, weil launchApp nach
+// domcontentloaded zurückkehrt, der Kommando-Dispatcher aber erst am Ende des
+// asynchronen init() registriert ist.
+async function openSettingsSection(page, sectionId) {
+  // 4T-001699: auf die Sichtbarkeit warten, nicht auf das Vorhandensein.
+  await oeffneEinstellungsSeite(page);
+  await page
+    .locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="${sectionId}"]`)
+    .click();
+}
+
+// OK klicken und den Abschluss abwarten (Muster confirmSettings in buch.spec.js).
+async function confirmSettings(page) {
+  await page.locator('#btn-settings-ok').click();
+  await expect(page.locator(SETTINGS_PAGE)).toBeHidden();
+}
 
 function makeTempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-regal-'));
@@ -631,6 +657,68 @@ test.describe('RG-10: Erneutes Öffnen nach dem Schließen (4T-001031)', () => {
       await expect.poll(() => regalSeite.title()).toContain('(Bücherregal Bibliothek)');
       await expect(regalSeite.locator(VIEW)).toBeVisible();
       expect(app.windows().length).toBe(2);
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+// --- RG-11 --------------------------------------------------------------------
+
+test.describe('RG-11: Einstellungs-Block «Aktuelles Bücherregal» (4T-001885, Story 4S-000994)', () => {
+  test('Block-Name, eigene Angaben und die Darstellung als Kacheln oder Zeilen', async () => {
+    // Am gestarteten Programm, weil die Angaben zwei Prozess-Grenzen passieren:
+    // Der Block-Name hängt an der Applikations-Bindung des Hauptprozesses, und
+    // Lesen wie Schreiben gehen über die Preload-Brücke an die Regal-Datei
+    // (Regel «E2E-Fall pro neuem Bedien-Weg über eine Prozess-Brücke»).
+    const { app, page, userData } = await launchApp();
+    const parent = makeTempDir();
+    const shelfDir = makeShelfOnDisk(parent, 'Bibliothek', ['Reise nach Ithaka']);
+    makeBookOnDisk(shelfDir, 'Reise nach Ithaka');
+    const regalDatei = path.join(shelfDir, 'Bibliothek.md');
+    try {
+      await page.evaluate((dir) => window.api.shelves.openPath(dir), shelfDir);
+      await expect(page.locator(`${VIEW} .shelf-view-grid`)).toBeVisible();
+
+      // AK1: Der bereichsgebundene Block trägt den Namen des Regals.
+      await openSettingsSection(page, 'bookInfo');
+      const gruppe = page.locator(`${SETTINGS_PAGE} [data-nav-group="area"]`);
+      await expect(gruppe.locator('.settings-nav-group-title')).toHaveText('Aktuelles Bücherregal');
+
+      // AK3: «Eigene Angaben» steht an erster Stelle des Blocks.
+      await expect(gruppe.locator('.settings-nav-entry').first()).toHaveAttribute(
+        'data-section-id',
+        'bookInfo',
+      );
+
+      // AK5: dieselben vier Angaben wie beim Buch und zusätzlich die
+      // Darstellung, die auf der Kachel-Vorgabe steht.
+      await expect(page.locator('#settings-book-info-title')).toHaveValue('');
+      await expect(page.locator('#settings-book-info-author')).toHaveValue('');
+      await expect(page.locator('#settings-book-info-description')).toHaveValue('');
+      await expect(page.locator('#settings-book-info-cover')).toHaveValue('');
+      await expect(page.locator('#settings-book-info-view-mode')).toHaveValue('tiles');
+
+      // AK6: Der Titel landet im Frontmatter der Regal-Datei, AK20: die
+      // Darstellung wirkt in der Regal-Ansicht.
+      await page.locator('#settings-book-info-title').fill('Meine Bibliothek');
+      await page.locator('#settings-book-info-view-mode').selectOption('rows');
+      await confirmSettings(page);
+      expect(await warteAufText(regalDatei, 'title: Meine Bibliothek')).toContain('# Bibliothek');
+      await expect(page.locator(`${VIEW} .shelf-view-rows`)).toBeVisible();
+
+      // AK20, zweiter Teil: Die Umstellung ist gemerkt — die Seite schließen
+      // und erneut öffnen zeigt weiterhin Zeilen.
+      await page.locator(SEL.activeTab0).locator('.tab-close').click();
+      await expect(page.locator(VIEW)).toBeHidden();
+      await page.evaluate((dir) => window.api.shelves.openPath(dir), shelfDir);
+      await expect(page.locator(`${VIEW} .shelf-view-rows`)).toBeVisible();
+
+      // AK18: Der Abschnitt liest dieselbe Stelle erneut — der Regal-Titel steht
+      // da, und die Darstellung ebenfalls.
+      await openSettingsSection(page, 'bookInfo');
+      await expect(page.locator('#settings-book-info-title')).toHaveValue('Meine Bibliothek');
+      await expect(page.locator('#settings-book-info-view-mode')).toHaveValue('rows');
     } finally {
       await closeApp(app, userData, { force: true });
     }

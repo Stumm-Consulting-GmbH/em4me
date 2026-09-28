@@ -82,7 +82,7 @@ Con anclas de bloque se incrusta el bloque envolvente completo (elemento de list
 Si un archivo Markdown lleva el mismo nombre que un adjunto, gana el archivo Markdown; escrito con su extensión (`![[imagen.png]]`) el caso es inequívoco. Las imágenes Markdown corrientes `![](ruta.png)` no se ven afectadas: su escritura significa una ruta, no un nombre.
 ## Vínculos entre áreas
 
-Dos áreas pueden vincularse para que una referencia cruce el límite del área. Se configura en **Configuración → Área actual → Vínculos entre áreas**: allí se indican la carpeta de la otra área y un **prefijo** con el que se designará esa área.
+Dos áreas pueden vincularse para que una referencia cruce el límite del área. Se configura en **Configuración → Área actual → Vínculos entre áreas** (con un libro abierto el bloque se llama **Libro actual**, con una estantería abierta **Estantería actual**): allí se indican la carpeta de la otra área y un **prefijo** con el que se designará esa área.
 
 El prefijo vale **solo en esta área y solo en este sentido**. Cómo se refiere la otra área a esta se define allí y puede ser distinto. Se permiten letras, dígitos, guion y guion bajo; las mayúsculas y minúsculas no importan.
 
@@ -146,13 +146,15 @@ Al escribir en modo edición se abre un menú de sugerencias:
 - `[[Archivo#` anclas de encabezado, `[[Archivo#^` IDs de bloque,
 - `#` en el texto etiquetas conocidas.
 
-Las flechas navegan, Intro o Tab selecciona, Esc cierra.
+Las flechas navegan, Intro selecciona, Esc cierra.
 
 Mientras no se escriba nada tras `[[`, los archivos del área modificados más recientemente aparecen arriba, el más reciente primero. En cuanto se filtra, vuelve a mandar la calidad de coincidencia; la fecha de modificación solo decide entonces entre sugerencias del mismo rango.
 
 Tras `#`, las etiquetas más usadas en el área aparecen arriba, la más frecuente primero; también aquí manda la calidad de coincidencia en cuanto se escribe algo, y entonces la frecuencia decide entre iguales. El número tras cada sugerencia la indica.
 
 Al aceptar una sugerencia de archivo o de alias se escriben también los corchetes de cierre y el cursor queda detrás. Si ya están, no aparece un segundo par.
+
+En una celda de tabla del modo en vivo aparece la misma lista junto a la celda, con las mismas entradas y el mismo manejo; detalles en [Vistas y presentación](views-display.md). Allí no sugiere marcadores de tarea, porque una fila de tabla no es una línea de tarea; lo mismo vale en la vista de código.
 
 ## Barras laterales de la red
 

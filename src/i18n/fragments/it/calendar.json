@@ -19,6 +19,8 @@
   "settings.calendar.loading": "Caricamento della configurazione…",
   "settings.calendar.noArea": "I sistemi di calendario esistono solo all'interno di un'area. Aprire prima un'area.",
   "settings.calendar.intro": "Blocchi di cronologia dell'area '{name}'. I calendari dello stesso blocco possono essere messi in corrispondenza; i blocchi sono indipendenti.",
+  "settings.calendar.introBook": "Blocchi di cronologia del libro '{name}'. I calendari dello stesso blocco possono essere messi in corrispondenza; i blocchi sono indipendenti.",
+  "settings.calendar.introShelf": "Blocchi di cronologia della libreria '{name}'. I calendari dello stesso blocco possono essere messi in corrispondenza; i blocchi sono indipendenti.",
   "settings.calendar.blocksGroup": "Blocchi",
   "settings.calendar.blockPlaceholder": "Nome del blocco",
   "settings.calendar.blockAdd": "Aggiungi blocco",

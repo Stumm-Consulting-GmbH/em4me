@@ -61,6 +61,13 @@ export function klickOffsetInZelle(event, zelle, quellText) {
   return Math.max(0, Math.min(treffer.startOffset, quellText.length));
 }
 
+// 4T-001861: Liegt die Stelle in einer nicht leeren Auswahl? Dieselbe Regel wie
+// im allgemeinen Kontextmenue-Weg (editor-context-menu.js), dort ueber die
+// Koordinaten-Aufloesung, hier ueber die zellgenaue Stelle.
+export function liegtInAuswahl(ranges, stelle) {
+  return ranges.some((r) => !r.empty && stelle >= r.from && stelle <= r.to);
+}
+
 // Bindet den Klick-Pfad an den Container eines Pipe-Tabellen-Widgets. `source`
 // ist der Roh-Quelltext des Tabellen-Blocks, mit dem das Widget gebaut wurde.
 // Laeuft bei jedem Einhaengen des Widgets — auch beim Cache-Klon, weil
@@ -71,10 +78,22 @@ export function bindLiveTableCellClicks(container, source) {
   // Tabelle liegt, ohne den Quelltext ein zweites Mal im DOM zu halten — er
   // steht ohnehin im Dokument und wird von dort gelesen.
   container.dataset.tabellenLaenge = String(String(source).length);
+  // 4T-001861 (Epic 3E-000300): Die Tabelle setzt die Schreibmarke beim
+  // Rechtsklick selbst, zellgenau. Der allgemeine Kontextmenue-Weg des Editors
+  // (editor-context-menu.js) liest diese Kennzeichnung und setzt dann keine
+  // eigene Stelle — seine Koordinaten-Aufloesung liefert im ersetzenden Widget
+  // immer den Tabellen-Anfang (gemessen am 2026-09-24, `4T-001710`, R01).
+  container.dataset.kontextStelle = 'eigen';
   // **mousedown statt click**, wie beim uebrigen Klick-Pfad des Live-Modus:
   // Ein click-Handler kaeme nach der Auswahl-Behandlung des Browsers.
+  //
+  // 4T-001861: Die rechte Maustaste nimmt denselben Weg wie die linke — die
+  // Schreibmarke landet in der angeklickten Zelle, bevor das
+  // Kontextmenue-Ereignis kommt (Reihenfolge gemessen: Taste gedrueckt,
+  // losgelassen, dann das Kontextmenue). Stand die Schreibmarke schon dort,
+  // oeffnet der Auswahl-Beobachter keine zweite Bearbeitung.
   container.addEventListener('mousedown', (event) => {
-    if (event.button !== 0) return;
+    if (event.button !== 0 && event.button !== 2) return;
     const ziel = event.target;
     if (!(ziel instanceof Element)) return;
     // 4T-001345: Ein Klick INS offene Eingabefeld setzt nur die Schreibmarke
@@ -110,6 +129,9 @@ export function bindLiveTableCellClicks(container, source) {
     const basis = view.posAtDOM(container);
     const anker = basis + stelle.offset + feinOffset;
     event.preventDefault();
+    // 4T-001861: Ein Rechtsklick in eine bestehende Auswahl laesst sie stehen,
+    // wie der allgemeine Kontextmenue-Weg ausserhalb von Tabellen.
+    if (event.button === 2 && liegtInAuswahl(view.state.selection.ranges, anker)) return;
     view.dispatch({
       selection: { anchor: Math.max(0, Math.min(anker, view.state.doc.length)) },
       scrollIntoView: true,

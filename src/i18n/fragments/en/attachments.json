@@ -11,6 +11,9 @@
   "attachments.open.outsideRoot": "Not opened: the target lies outside the permitted folder.",
   "attachments.open.notFound": "Not opened: the file was not found.",
   "attachments.open.failed": "The attachment could not be opened.",
+  "attachments.imageView.label": "Enlarged view",
+  "attachments.imageView.openExternal": "Open in default program",
+  "attachments.imageView.close": "Close",
   "settings.attachments.title": "Attachments",
   "settings.attachments.loading": "Loading settings …",
   "settings.attachments.form": "Storage location",
@@ -22,5 +25,7 @@
   "settings.attachments.folder": "Folder name",
   "settings.attachments.folderHint": "Applies to «Fixed subfolder» and «Central folder of the area». A single name without path segments.",
   "settings.attachments.areaGroup": "Area «{name}»",
+  "settings.attachments.bookGroup": "Book «{name}»",
+  "settings.attachments.shelfGroup": "Bookshelf «{name}»",
   "settings.attachments.invalidFolder": "The folder name must not contain path segments and must not be empty."
 }

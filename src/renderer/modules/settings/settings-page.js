@@ -144,6 +144,14 @@ import {
   renderDatabaseSection,
   sichtbarDatabaseSection,
 } from './settings-database.js';
+// 4T-001885 (Epic 3E-000189): Die eigenen Angaben des geoeffneten Buches bzw.
+// Buecherregals.
+import {
+  applyBookInfoSection,
+  dirtyBookInfoSection,
+  renderBookInfoSection,
+  sichtbarBookInfoSection,
+} from './settings-buch-angaben.js';
 
 export const SETTINGS_PAGE_ID = 'settings';
 
@@ -246,6 +254,23 @@ const FIXED_SECTIONS = [
     render: renderSpellcheckSection,
     apply: applySpellcheckSection,
     dirty: dirtySpellcheckSection,
+  },
+  // 4T-001885 (Epic 3E-000189): Die eigenen Angaben des geöffneten Buches bzw.
+  // Bücherregals — Titel, Autor, Beschreibung, Titelbild und beim Regal die
+  // Darstellung. Sektion der Gruppe „Aktueller Bereich" mit zusätzlicher
+  // Sichtbarkeits-Bedingung: Sie erscheint nur, wenn das Fenster an ein Buch
+  // oder ein Regal gebunden ist (Muster `database`). **An erster Stelle des
+  // Blocks** (PO-Entscheidung vom 2026-09-21) — wer die Einstellungen eines
+  // Buches sucht, findet dessen eigene Angaben oben, und die acht
+  // bereichsgebundenen Abschnitte folgen unverändert darunter.
+  {
+    id: 'bookInfo',
+    titleKey: 'settings.bookInfo.title',
+    group: 'area',
+    sichtbar: sichtbarBookInfoSection,
+    render: renderBookInfoSection,
+    dirty: dirtyBookInfoSection,
+    apply: applyBookInfoSection,
   },
   // 4T-000555 (Epic 3E-000100): Bereichs-Default der Dokument-Historie als
   // eigene Sektion der Gruppe „Aktueller Bereich" (PO-Entscheidung E3:

@@ -7,7 +7,7 @@
 
 import { syntaxTree } from '@codemirror/language';
 
-import { CALLOUT_TYPES } from '../../../shared/callouts.js';
+import { calloutTypeKey, containerKind } from '../../../shared/callouts.js';
 import { getDocText } from '../app/api.js';
 
 // 4T-000476 (Epic 3E-000088): CommonMark-Destination in spitzen Klammern
@@ -256,7 +256,12 @@ export function positionInsideTable(state, pos) {
 // Spaces wie im Plugin.
 const containerScanCache = new WeakMap();
 
-const CONTAINER_LIVE_HEADER_RE = /^ {0,3}(:{3,})\s*([a-z][a-z0-9-]*)([ \t]+(.*?))?[ \t]*$/;
+// 4T-001914 (Epic 3E-000320): Name in jeder Schreibweise (Container-Stelle 4),
+// eingeordnet über containerKind wie im Render-Weg (Container-Stelle 5). Die Info trägt
+// die Art (`kind`), den Schlüssel als `type` — den der Typ-Tafel bei einer
+// Hinweis-Box, sonst die kleingeschriebene Form — und den Namen, wie er
+// geschrieben ist, als `name` für den Titel der neutralen Box.
+const CONTAINER_LIVE_HEADER_RE = /^ {0,3}(:{3,})\s*([A-Za-z][A-Za-z0-9-]*)([ \t]+(.*?))?[ \t]*$/;
 
 export function computeContainerScan(doc) {
   const cached = containerScanCache.get(doc);
@@ -280,10 +285,13 @@ export function computeContainerScan(doc) {
       }
     }
     const endIdx = closeIdx >= 0 ? closeIdx : docLines.length - 1;
+    const art = containerKind(m[2], m[4] || '');
     containerInfos.push({
-      type: m[2],
+      type: art.kind === 'callout' ? art.type : art.key || 'columns',
+      kind: art.kind,
+      name: m[2],
       overrideTitle: (m[4] || '').trim(),
-      isCallout: !!CALLOUT_TYPES[m[2]],
+      isCallout: art.kind === 'callout',
       headerLineNo: i + 1,
       endLineNo: endIdx + 1,
       hasClose: closeIdx >= 0,
@@ -318,10 +326,15 @@ export function computeCalloutScan(doc) {
   // Bewusst NICHT nachgebaut: Lazy-Continuation (Body-Zeilen ohne `>`) —
   // zeilenbasiert nicht zuverlaessig erkennbar, Fehlertoleranz waere
   // schlechter als die heutige Einschraenkung (dokumentierte Rest-Differenz).
-  const CALLOUT_LIVE_HEADER_RE = /^ {0,3}>[ \t]*\[!([a-z]+)\]([+-]?)[ \t]*(.*?)[ \t]*$/;
+  // 4T-001864 (Epic 3E-000320): Typ-Name in jeder Schreibweise (Stelle 3),
+  // nachgeschlagen über calloutTypeKey (Stelle 4). Die Info trägt den
+  // Tafel-Schlüssel, weil Zeilen-Klasse, Symbol und Standard-Titel an ihm
+  // hängen; der Text der Zeile bleibt, wie er geschrieben ist.
+  const CALLOUT_LIVE_HEADER_RE = /^ {0,3}>[ \t]*\[!([A-Za-z]+)\]([+-]?)[ \t]*(.*?)[ \t]*$/;
   for (let i = 0; i < docLines.length; i++) {
     const headerMatch = docLines[i].match(CALLOUT_LIVE_HEADER_RE);
-    if (!headerMatch || !CALLOUT_TYPES[headerMatch[1]]) continue;
+    const type = headerMatch ? calloutTypeKey(headerMatch[1]) : null;
+    if (!type) continue;
     const headerLineNo = i + 1;
     calloutLines.add(headerLineNo);
     let lastLineNo = headerLineNo;
@@ -332,7 +345,7 @@ export function computeCalloutScan(doc) {
       } else break;
     }
     calloutInfos.push({
-      type: headerMatch[1],
+      type,
       foldChar: headerMatch[2] || '',
       overrideTitle: (headerMatch[3] || '').trim(),
       headerLineNo,

@@ -13,6 +13,11 @@ const systemPages = await import('../../../src/renderer/modules/app/system-pages
 // 4T-000555 (Epic 3E-000100): state.areaPath steuert die Sichtbarkeit der
 // Navigations-Gruppe „Aktueller Bereich".
 const { state } = await import('../../../src/renderer/modules/app/app-state.js');
+// 4T-001885 (Epic 3E-000189): Bezug des bereichsgebundenen Blocks und die
+// lokalisierten Block-Titel.
+const { kontextSchluessel } =
+  await import('../../../src/renderer/modules/settings/settings-kontext.js');
+const { t } = await import('../../../src/renderer/i18n.js');
 
 // Seiten-Lebenszyklus wie beim echten Öffnen: onOpen baut den frischen
 // Entwurf (4T-000279), mount montiert das DOM.
@@ -47,13 +52,16 @@ describe('Bereichs-Registry (settings-page.js, 4T-000278)', () => {
     // „templatesArea" — die Verknüpfung trägt das Opt-in für die Vorlagen-Kette.
     // 4T-001758 (Epic 3E-000253): Bereich „Datenbank" hinter „areaLinks" — beide
     // beschreiben den Bereich als Ganzes.
+    // 4T-001885 (Epic 3E-000189): Bereich „Eigene Angaben" VOR „historyArea" —
+    // er steht an erster Stelle des bereichsgebundenen Blocks.
     const ids = settingsPage.settingsSections().map((s) => s.id);
-    expect(ids.slice(0, 21)).toEqual([
+    expect(ids.slice(0, 22)).toEqual([
       'appearance',
       'colorSchemes',
       'behavior',
       'frontmatterTimestamps',
       'spellcheck',
+      'bookInfo',
       'historyArea',
       'attachments',
       'attachmentsArea',
@@ -588,5 +596,252 @@ describe('Validierungs-Blockade von Anwenden/OK (4T-000278)', () => {
     expect(await settingsPage.applySettingsPage()).toBe(true);
     expect(applied).toBe(1);
     expect(entry.classList.contains('has-error')).toBe(false);
+  });
+});
+
+// 4T-001885 (Epic 3E-000189, Story 4S-000994): Der bereichsgebundene Block
+// benennt den geöffneten Gegenstand, und an seiner ersten Stelle steht der
+// Abschnitt mit dessen eigenen Angaben.
+//
+// Maßgeblich ist die Bindung des FENSTERS: state.bookName und state.shelfName
+// kommen aus der Applikations-Bindung des Hauptprozesses und wechseln nicht mit
+// dem Reiter im Vordergrund. Die Fälle stellen sie deshalb direkt.
+describe('Buch- und Regal-Bezug des Bereichs-Blocks (4T-001885, Epic 3E-000189)', () => {
+  function mitBindung({ buch = null, regal = null } = {}, fn) {
+    document.body.innerHTML = '';
+    state.areaPath = 'C:/tmp/Reise';
+    state.bookName = buch;
+    state.shelfName = regal;
+    try {
+      return fn();
+    } finally {
+      state.areaPath = null;
+      state.bookName = null;
+      state.shelfName = null;
+    }
+  }
+
+  function gruppenTitel(container, gruppe) {
+    const block = container.querySelector(`[data-nav-group="${gruppe}"]`);
+    return block ? block.querySelector('.settings-nav-group-title').textContent : null;
+  }
+
+  function bereichsIds(container) {
+    return [...container.querySelectorAll('[data-nav-group="area"] .settings-nav-entry')].map(
+      (b) => b.dataset.sectionId,
+    );
+  }
+
+  it('AK1: der Block heißt je nach Bindung Buch, Bücherregal oder Bereich', () => {
+    mitBindung({ buch: 'Reise' }, () => {
+      expect(gruppenTitel(mountPage(), 'area')).toBe(t('settings.navGroup.book'));
+    });
+    mitBindung({ regal: 'Bibliothek' }, () => {
+      expect(gruppenTitel(mountPage(), 'area')).toBe(t('settings.navGroup.shelf'));
+    });
+    mitBindung({}, () => {
+      expect(gruppenTitel(mountPage(), 'area')).toBe(t('settings.navGroup.area'));
+    });
+  });
+
+  it('AK10: die Block-Liste bleibt vierteilig — kein zweiter Block neben dem Bereichs-Block', () => {
+    mitBindung({ buch: 'Reise' }, () => {
+      const gruppen = [...mountPage().querySelectorAll('.settings-nav-group')].map(
+        (g) => g.dataset.navGroup,
+      );
+      expect(gruppen).toEqual(['general', 'area', 'extensionsInternal']);
+    });
+  });
+
+  it('AK3 und AK9: der Abschnitt steht bei Buch und Regal vorn, im Bereich fehlt er', () => {
+    mitBindung({ buch: 'Reise' }, () => {
+      expect(bereichsIds(mountPage())[0]).toBe('bookInfo');
+    });
+    mitBindung({ regal: 'Bibliothek' }, () => {
+      expect(bereichsIds(mountPage())[0]).toBe('bookInfo');
+    });
+    mitBindung({}, () => {
+      expect(bereichsIds(mountPage())).not.toContain('bookInfo');
+    });
+  });
+
+  it('AK8: die bereichsgebundenen Abschnitte bleiben unverändert darunter stehen', () => {
+    // Ohne Buch stehen die festen Bereichs-Abschnitte (die Sidebar-Varianten
+    // registrieren sich erst zur Laufzeit der Anwendung, die Datenbank-Sektion
+    // nur in einem Datenbank-Bereich). Mit Buch ist die Liste dieselbe — vorne
+    // kommt genau ein Abschnitt dazu, und keiner verschwindet.
+    const ohne = mitBindung({}, () => bereichsIds(mountPage()));
+    const mit = mitBindung({ buch: 'Reise' }, () => bereichsIds(mountPage()));
+    expect(ohne.length).toBeGreaterThan(0);
+    expect(mit).toEqual(['bookInfo', ...ohne]);
+  });
+
+  it('AK2 und AK14: die Beschriftungs-Schlüssel folgen dem Bezug, der Name bleibt außen vor', () => {
+    const schluessel = {
+      area: 'settings.templates.areaGroup',
+      book: 'settings.templates.bookGroup',
+      shelf: 'settings.templates.shelfGroup',
+    };
+    mitBindung({ buch: 'Reise' }, () => {
+      expect(kontextSchluessel(schluessel)).toBe('settings.templates.bookGroup');
+    });
+    mitBindung({ regal: 'Bibliothek' }, () => {
+      expect(kontextSchluessel(schluessel)).toBe('settings.templates.shelfGroup');
+    });
+    mitBindung({}, () => {
+      expect(kontextSchluessel(schluessel)).toBe('settings.templates.areaGroup');
+    });
+  });
+
+  it('AK11: fällt die Bindung weg, fällt der offene Abschnitt auf „Darstellung" zurück', () => {
+    document.body.innerHTML = '';
+    state.areaPath = 'C:/tmp/Reise';
+    state.bookName = 'Reise';
+    try {
+      const container = mountPage();
+      container.querySelector('.settings-nav-entry[data-section-id="bookInfo"]').click();
+      expect(settingsPage.settingsPageStateForTests().activeSectionId).toBe('bookInfo');
+      // Derselbe Weg wie im Betrieb: Der Bindungs-Wechsel meldet sich über den
+      // Bereichs-Wechsel der offenen Seite.
+      state.areaPath = null;
+      state.bookName = null;
+      settingsPage.refreshSettingsPageForAreaChange();
+      expect(settingsPage.settingsPageStateForTests().activeSectionId).toBe('appearance');
+      expect(container.querySelector('[data-nav-group="area"]')).toBeNull();
+    } finally {
+      state.areaPath = null;
+      state.bookName = null;
+    }
+  });
+});
+
+// 4T-001885: Lesen, Ändern und Schreiben der eigenen Angaben. Gemessen wird die
+// Strecke vom Formular bis an die Brücke; dass die Brücke an derselben Stelle
+// liest und schreibt, misst test/unit/books-angaben.test.js am echten Ordner.
+describe('Eigene Angaben lesen und schreiben (4T-001885, Epic 3E-000189)', () => {
+  const ANGABEN = {
+    ok: true,
+    title: 'Reise nach Ithaka',
+    author: 'K. P. Kavafis',
+    description: 'Eine Heimkehr\nin Etappen.',
+    cover: 'titel.png',
+    coverGefunden: true,
+  };
+
+  // Gewartet wird auf den Zustand, nie auf eine Frist: Der Entwurf meldet
+  // selbst, wann die nachgereichten Werte da sind.
+  async function warteAufAngaben() {
+    for (let i = 0; i < 100; i += 1) {
+      const draft = settingsPage.settingsPageStateForTests().draft;
+      if (draft && draft.bookInfo && draft.bookInfo.geladen) return;
+      await Promise.resolve();
+    }
+    throw new Error('Die eigenen Angaben sind nicht im Entwurf angekommen.');
+  }
+
+  async function mountMitBuch(angaben = ANGABEN) {
+    document.body.innerHTML = '';
+    state.areaPath = 'C:/tmp/Reise';
+    state.bookName = 'Reise';
+    const alt = window.api.books;
+    const geschrieben = [];
+    window.api.books = {
+      getInfo: async () => angaben,
+      setInfo: async (werte) => {
+        geschrieben.push(werte);
+        return { ok: true };
+      },
+    };
+    const container = mountPage();
+    await warteAufAngaben();
+    container.querySelector('.settings-nav-entry[data-section-id="bookInfo"]').click();
+    return {
+      container,
+      geschrieben,
+      aufraeumen() {
+        window.api.books = alt;
+        state.areaPath = null;
+        state.bookName = null;
+      },
+    };
+  }
+
+  it('AK4 und AK19: die vier Angaben stehen in den Feldern, mehrzeilig und mit Sonderzeichen', async () => {
+    const lauf = await mountMitBuch();
+    try {
+      expect(lauf.container.querySelector('#settings-book-info-title').value).toBe(
+        'Reise nach Ithaka',
+      );
+      expect(lauf.container.querySelector('#settings-book-info-author').value).toBe(
+        'K. P. Kavafis',
+      );
+      const beschreibung = lauf.container.querySelector('#settings-book-info-description');
+      expect(beschreibung.tagName).toBe('TEXTAREA');
+      expect(beschreibung.value).toBe('Eine Heimkehr\nin Etappen.');
+      expect(lauf.container.querySelector('#settings-book-info-cover').value).toBe('titel.png');
+      // Beim Buch gibt es keine Darstellungs-Wahl; die hat nur das Regal (AK5).
+      expect(lauf.container.querySelector('#settings-book-info-view-mode')).toBeNull();
+    } finally {
+      lauf.aufraeumen();
+    }
+  });
+
+  it('AK6: eine Änderung geht an dieselbe Stelle, aus der gelesen wurde', async () => {
+    const lauf = await mountMitBuch();
+    try {
+      const titel = lauf.container.querySelector('#settings-book-info-title');
+      titel.value = 'Ithaka';
+      titel.dispatchEvent(new Event('input', { bubbles: true }));
+      expect(settingsPage.isSettingsPageDirty()).toBe(true);
+      expect(await settingsPage.applySettingsPage()).toBe(true);
+      expect(lauf.geschrieben).toEqual([
+        {
+          title: 'Ithaka',
+          author: 'K. P. Kavafis',
+          description: 'Eine Heimkehr\nin Etappen.',
+          cover: 'titel.png',
+        },
+      ]);
+      expect(settingsPage.isSettingsPageDirty()).toBe(false);
+    } finally {
+      lauf.aufraeumen();
+    }
+  });
+
+  it('AK16: fehlende Angaben sind leere Felder, ein ins Leere zeigendes Bild nur ein Hinweis', async () => {
+    const lauf = await mountMitBuch({
+      ok: true,
+      title: '',
+      author: '',
+      description: '',
+      cover: 'fehlt.png',
+      coverGefunden: false,
+    });
+    try {
+      expect(lauf.container.querySelector('#settings-book-info-title').value).toBe('');
+      expect(lauf.container.querySelector('#settings-book-info-author').value).toBe('');
+      expect(lauf.container.querySelector('#settings-book-info-cover-missing')).not.toBeNull();
+      // Kein Fehler: Der Abschnitt trägt keine Fehler-Markierung.
+      expect(
+        lauf.container
+          .querySelector('.settings-nav-entry[data-section-id="bookInfo"]')
+          .classList.contains('has-error'),
+      ).toBe(false);
+    } finally {
+      lauf.aufraeumen();
+    }
+  });
+
+  it('eine unlesbare Datei meldet sich als Hinweis statt als leeres Formular', async () => {
+    const lauf = await mountMitBuch({ ok: false, error: 'invalid' });
+    try {
+      expect(lauf.container.querySelector('#settings-book-info-title')).toBeNull();
+      expect(lauf.container.querySelector('.settings-section-body').textContent).toBe(
+        t('settings.bookInfo.unavailable'),
+      );
+      expect(settingsPage.isSettingsPageDirty()).toBe(false);
+    } finally {
+      lauf.aufraeumen();
+    }
   });
 });

@@ -9,7 +9,7 @@ La funzionalità è commutabile come estensione «Modelli» (Impostazioni → Es
 La cartella dei modelli si configura nelle impostazioni (Impostazioni → Modelli):
 
 - **Globalmente** vale la cartella dell'app per tutte le finestre.
-- **Per area** si può impostare una configurazione dedicata («Usa la configurazione dell'area» nella voce «Modelli» del gruppo di navigazione «Area corrente», visibile solo quando un'area è aperta); viene salvata nel file dell'area e **sostituisce completamente quella globale** (cartella e regole, nessuna risoluzione mista). Le cartelle sono relative alla radice dell'area; i percorsi assoluti restano ammessi.
+- **Per area** si può impostare una configurazione dedicata («Usa la configurazione dell'area» nella voce «Modelli» del gruppo di navigazione «Area corrente», visibile solo quando un'area è aperta; con un libro aperto il gruppo si chiama **Libro corrente**, con una libreria aperta **Libreria corrente**); viene salvata nel file dell'area e **sostituisce completamente quella globale** (cartella e regole, nessuna risoluzione mista). Le cartelle sono relative alla radice dell'area; i percorsi assoluti restano ammessi.
 
 Ogni file Markdown nella cartella (sottocartelle comprese) è un modello. Le sottocartelle appaiono come gruppi nel popup di selezione. Le modifiche alla configurazione hanno effetto immediato, senza riavvio.
 

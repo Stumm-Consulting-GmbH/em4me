@@ -56,6 +56,9 @@ import { renderTabbar } from './tabbar.js';
 // und die Frontmatter-Transformation; beide Richtungen sind reine
 // Funktionsaufrufe zur Laufzeit.
 import { buildEditorViewFrontmatterUpdate, persistState, showStatusbarHint } from './views.js';
+// 4T-001712 (Epic 3E-000300): Eine offene Zell-Eingabe der Live-Tabelle gehoert
+// in die gespeicherte Datei; Strg+S verlaesst das Eingabefeld nicht.
+import { uebernimmOffeneZellEingabe } from '../live/live-table-zelle.js';
 
 // --- Speichern --------------------------------------------------------------
 // Speichert einen bestimmten Tab. Wenn kein Pfad vorhanden, leitet in
@@ -129,6 +132,7 @@ export async function saveTab(paneIdx, tabIdx) {
   if (!pane) return false;
   const tab = pane.tabs[tabIdx];
   if (!tab) return false;
+  uebernimmOffeneZellEingabe({ bleibOffen: true });
   // 4T-000213: Handbuch-Tabs sind read-only — Speichern wirkt nicht (und
   // darf nicht in den Save-As-Dialog der pfadlosen Tabs durchfallen).
   // 4T-000277: System-Seiten (Einstellungen) ebenso.
@@ -263,6 +267,7 @@ export async function saveTabAs(paneIdx, tabIdx, opts) {
   if (!pane) return false;
   const tab = pane.tabs[tabIdx];
   if (!tab) return false;
+  uebernimmOffeneZellEingabe({ bleibOffen: true });
   // 4T-000213: Handbuch-Tabs sind read-only — kein Speichern unter.
   // 4T-000277: System-Seiten (Einstellungen) ebenso.
   if (tab.manualPage || tab.systemPage) return false;

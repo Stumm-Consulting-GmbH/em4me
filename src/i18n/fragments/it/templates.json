@@ -38,6 +38,8 @@
   "settings.templates.ruleAdd": "Aggiungi regola",
   "settings.templates.ruleRemove": "Rimuovi",
   "settings.templates.areaGroup": "Per l'area '{name}'",
+  "settings.templates.bookGroup": "Per il libro '{name}'",
+  "settings.templates.shelfGroup": "Per la libreria '{name}'",
   "settings.templates.areaEnabled": "Usa la configurazione dell'area",
   "settings.templates.areaHint": "I valori dell'area sostituiscono completamente quelli globali. Le cartelle sono relative alla radice dell'area (percorsi assoluti ammessi); il salvataggio avviene nel file dell'area.",
   "settings.templates.error.ruleTemplate": "Ogni regola di cartella richiede un modello.",

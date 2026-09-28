@@ -15,7 +15,7 @@ import { anlagenAusDataTransfer, legeAnlagenAb } from '../attachments.js';
 import { detectPasteUrl, insertExternalLink } from '../../../shared/markdown-format.js';
 import { positionInsideCode } from '../live/live-shared.js';
 // 4T-000790 (Epic 3E-000125): Bild-Anlage per Doppelklick oeffnen.
-import { oeffneBildAusQuelle } from '../views/link-navigation.js';
+import { oeffneBildDesElements } from '../views/link-navigation.js';
 // 4T-001002: Laufzeit-Zyklus mit dem Kern — paneEditors wird ausschliesslich in
 // Funktionskoerpern gelesen.
 import { paneEditors } from './editor.js';
@@ -71,8 +71,10 @@ export async function fuegeAnlagenEin(view, anlagen, pos) {
 // Standardanwendung. Im Editor gilt bewusst der DOPPELklick und nicht der
 // einfache (PO-Festlegung 2026-07-29): Der einfache Klick setzt hier die
 // Schreibmarke, und wer neben einem Bild weiterschreiben will, darf dabei
-// keine fremde Anwendung starten. In der Render-Ansicht, wo es keine
-// Schreibmarke gibt, genuegt der einfache Klick (views.js).
+// keine fremde Anwendung starten. In der gerenderten Ansicht öffnet der
+// einfache Klick seit 4T-001870 die Vergrößerung des Bildes, und der Weg ins
+// Standardprogramm liegt dort auf deren Schaltfläche (link-navigation.js);
+// dieser Doppelklick bleibt davon unberührt.
 //
 // Praktisch betrifft das den Live-Modus, weil nur dort Bilder als Widget
 // erscheinen; im reinen Quelltext steht ihre Markdown-Zeile.
@@ -107,6 +109,11 @@ export const imageOpenHandler = EditorView.domEventHandlers({
     void fuegeAnlagenEin(view, anlagen, pos ?? view.state.doc.length);
     return true;
   },
+  // 4T-001925: Die Bild-Elemente der Live-Ansicht lassen den Doppelklick seither
+  // zu diesem Behandler durch (`bildDoppelklickDurchlassen` in live-shared.js);
+  // vorher erreichte er ihn nie. Quelle und Bezugs-Datei kommen aus dem
+  // Element, damit ein Bild in einer eingebetteten Notiz gegen deren Ordner
+  // aufgelöst wird.
   dblclick(event, view) {
     const ziel = event.target;
     if (!(ziel instanceof HTMLImageElement)) return false;
@@ -115,7 +122,7 @@ export const imageOpenHandler = EditorView.domEventHandlers({
     const paneIdx = paneEditors.indexOf(view);
     if (paneIdx < 0) return false;
     event.preventDefault();
-    void oeffneBildAusQuelle(paneIdx, quelle);
+    void oeffneBildDesElements(paneIdx, ziel);
     return true;
   },
 });

@@ -53,7 +53,11 @@ privaten Arbeitsablagen gehören nicht hinein (Wächter-Befund der Auslieferung
   `Tests/test-4t-0054/`, `Tests/test-4t-0055/`, `Tests/test-4t-0056/`.
 - Pro Code-Task entsteht die Datei oder der Unterordner **vor** der
   Test-Aufforderung an den Product Owner. Inhalt: Markdown-Beispiele, die
-  die Akzeptanz-Smoke-Tests aus dem Plan abdecken.
+  die Akzeptanz-Smoke-Tests aus dem Plan abdecken. Die Prüf-Anleitung
+  verlangt vom Product Owner nie, sein Material selbst anzulegen; sie nennt
+  den Ordner, den er öffnet. Der Lauf `node scripts/offene-pruefungen.js
+  <Gefäß-Kennung>` weist je Task mit offener manueller Prüf-Zeile auf
+  fehlendes Material hin.
 
 **Material für Sicht-Prüfungen muss deutlich sichtbar sein.**
 Test-Material ist Teil der Prüf-Schnittstelle. Ein technisch korrektes,

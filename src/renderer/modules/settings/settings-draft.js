@@ -48,6 +48,9 @@ import { readTemplatesFromConfig } from './settings-templates.js';
 import { readAreaLinksFromConfig } from './settings-area-links.js';
 // 4T-001758 (Epic 3E-000253): Datenbank-Auskunft und Anzeige-Option des Bereichs.
 import { readDatabaseFromConfig } from './settings-database.js';
+// 4T-001885 (Epic 3E-000189): Die eigenen Angaben des Buches bzw. Regals.
+import { readBookInfoFromConfig } from './settings-buch-angaben.js';
+import { einstellungsKontext } from './settings-kontext.js';
 
 // 4T-000179/R5-08: Merge fuer den Appearance-Broadcast eines anderen
 // Fensters — der offene Entwurfs-Snapshot zieht mit, sonst revertiert
@@ -146,6 +149,14 @@ export function buildDraft() {
     // der Bereichsdatei). null = noch nicht geladen (Muster journals).
     calendar: null,
     calendarSnapshot: null,
+    // 4T-001885 (Epic 3E-000189): Die eigenen Angaben des geöffneten Buches
+    // bzw. Regals. Anders als die übrigen bereichsgebundenen Entwürfe steht der
+    // KONTEXT sofort fest — er kommt aus der Bindung des Fensters und nicht aus
+    // dem Hauptprozess. Das ist die Bedingung dafür, dass der Abschnitt schon
+    // beim Aufbau der Navigation an seinem Platz steht und nicht erst
+    // nachträglich erscheint; die Werte kommen wie überall nachgereicht.
+    bookInfo: { kontext: einstellungsKontext(), geladen: false, vorhanden: false },
+    bookInfoSnapshot: null,
   };
 }
 
@@ -222,6 +233,16 @@ function ladeAppearanceInDraft() {
     const els = settingsPageEls();
     if (els && els.nav && els.nav.isConnected) buildSettingsNavEntries(els.nav);
     if (pageState.activeSectionId === 'database') renderActiveSection();
+  });
+  // 4T-001885 (Epic 3E-000189): Die eigenen Angaben des Buches bzw. Regals. Der
+  // Kontext steht schon im frischen Entwurf, deshalb genügt hier das Nachreichen
+  // der Werte und ein Neu-Zeichnen des Abschnitts — ein Navigations-Neubau ist
+  // nicht nötig (anders als bei der Datenbank-Auskunft darüber).
+  readBookInfoFromConfig().then((values) => {
+    if (generation !== pageState.generation || !pageState.draft) return;
+    pageState.draft.bookInfo = values.draft;
+    pageState.draft.bookInfoSnapshot = values.snapshot;
+    if (pageState.activeSectionId === 'bookInfo') renderActiveSection();
   });
   // 4T-000450 (Epic 3E-000083): Profil-Konfiguration des Bereichs.
   readProfilesFromConfig().then((values) => {
@@ -333,6 +354,12 @@ export function handleSettingsPageClose() {
 // rendern (enthält den Rückfall für entfallene Bereichs-Sektionen).
 export function refreshSettingsPageForAreaChange() {
   if (!pageState.draft) return;
+  // 4T-001885 (Epic 3E-000189): Der Kontext haengt an der Bindung des Fensters
+  // und steht sofort fest — er wird VOR dem Navigations-Neubau am Ende gesetzt,
+  // damit Block-Titel und Sichtbarkeit des Abschnitts nicht einen Zug lang den
+  // alten Gegenstand zeigen. Die Werte kommen unten nachgereicht.
+  pageState.draft.bookInfo = { kontext: einstellungsKontext(), geladen: false, vorhanden: false };
+  pageState.draft.bookInfoSnapshot = null;
   const generation = pageState.generation;
   const rerenderIfActive = (ids) => {
     if (ids.includes(pageState.activeSectionId)) renderActiveSection();
@@ -390,6 +417,20 @@ export function refreshSettingsPageForAreaChange() {
     const nav = settingsPageEls();
     if (nav && nav.nav && nav.nav.isConnected) buildSettingsNavEntries(nav.nav);
     rerenderIfActive(['database']);
+  });
+  // 4T-001885 (Epic 3E-000189): Die eigenen Angaben gehoeren zum alten
+  // Gegenstand und werden vollstaendig neu geholt — mit ihnen wechselt auch der
+  // Kontext, also Block-Titel und Sichtbarkeit des Abschnitts. Der
+  // Navigations-Neubau am Ende dieser Funktion traegt beides; ein offener
+  // Abschnitt ohne neuen Kontext faellt ueber die Rueckfall-Regel auf
+  // «Darstellung» zurueck.
+  readBookInfoFromConfig().then((values) => {
+    if (generation !== pageState.generation || !pageState.draft) return;
+    pageState.draft.bookInfo = values.draft;
+    pageState.draft.bookInfoSnapshot = values.snapshot;
+    const els = settingsPageEls();
+    if (els && els.nav && els.nav.isConnected) buildSettingsNavEntries(els.nav);
+    rerenderIfActive(['bookInfo']);
   });
   const els = settingsPageEls();
   if (els && els.nav && els.nav.isConnected) {

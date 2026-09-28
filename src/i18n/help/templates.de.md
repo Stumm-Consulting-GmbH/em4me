@@ -9,7 +9,7 @@ Die Funktionalität ist als Erweiterung «Vorlagen» schaltbar (Einstellungen �
 Der Vorlagen-Ordner wird in den Einstellungen konfiguriert (Einstellungen → Vorlagen):
 
 - **Global** gilt der App-weite Ordner als Grundlage für alle Fenster.
-- **Pro Bereich** kann eine eigene Konfiguration gesetzt werden («Bereichs-Konfiguration verwenden» im Eintrag «Vorlagen» der Navigations-Gruppe «Aktueller Bereich», nur bei geöffnetem Bereich sichtbar); sie wird in der Bereichsdatei des Bereichs gespeichert und **übersteuert die globale vollständig** (Ordner und Regeln, keine Misch-Auflösung). Ordner-Angaben sind dabei relativ zur Bereichs-Wurzel, absolute Pfade bleiben erlaubt.
+- **Pro Bereich** kann eine eigene Konfiguration gesetzt werden («Bereichs-Konfiguration verwenden» im Eintrag «Vorlagen» der Navigations-Gruppe «Aktueller Bereich», nur bei geöffnetem Bereich sichtbar; bei geöffnetem Buch heißt die Gruppe **Aktuelles Buch**, bei geöffnetem Bücherregal **Aktuelles Bücherregal**); sie wird in der Bereichsdatei des Bereichs gespeichert und **übersteuert die globale vollständig** (Ordner und Regeln, keine Misch-Auflösung). Ordner-Angaben sind dabei relativ zur Bereichs-Wurzel, absolute Pfade bleiben erlaubt.
 
 Jede Markdown-Datei im Ordner (inklusive Unterordnern) ist eine Vorlage. Unterordner erscheinen im Auswahl-Popup als Gruppen. Änderungen an der Konfiguration wirken sofort, ohne Neustart.
 

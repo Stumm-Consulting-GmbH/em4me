@@ -6,7 +6,7 @@ _extended memory for me_
 
 Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; cada sección se abre en su propia pestaña y se comporta como cualquier otra: muévela, colócala en la segunda columna o mantenla abierta junto a tu propio trabajo.
 
-**¿Primera vez aquí?** La visita guiada recorre diez estaciones en el programa en marcha: muestra qué distingue a esta aplicación y señala cada vez el elemento de interfaz en cuestión. Se inicia por sí sola en el primer arranque; después, «Ayuda → Visita guiada» la vuelve a lanzar, y puede interrumpirse en cualquier momento. El manual responde a las preguntas concretas que vienen después.
+**¿Primera vez aquí?** La visita guiada recorre once estaciones en el programa en marcha: muestra qué distingue a esta aplicación y señala cada vez el elemento de interfaz en cuestión. Se inicia por sí sola en el primer arranque; después, «Ayuda → Visita guiada» la vuelve a lanzar, y puede interrumpirse en cualquier momento. El manual responde a las preguntas concretas que vienen después.
 
 ## Referencia
 
@@ -21,7 +21,7 @@ Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; c
 - [Barra de formato](toolbar.md) — dar formato con botón: visibilidad en modo edición, indicación de estado, menú de encabezado, cuadrícula de tabla, asignación personalizada.
 - [Construcciones de bloque](blocks.md) — callouts, contenedores personalizados, listas de definición, bloques de líneas, notas al pie.
 - [Construcciones en línea](inline.md) — resaltado, subíndice/superíndice, subrayado, spoiler, Critic Markup, spans y abreviaturas.
-- [Imágenes](images.md) — sintaxis de imágenes, tamaños, figuras implícitas.
+- [Imágenes](images.md) — sintaxis de imágenes, tamaños, figuras implícitas, ampliar una imagen.
 - [Adjuntos](attachments.md) — pegar y arrastrar archivos: ubicación y configuración, nombres, apertura en el programa predeterminado.
 - [Matemáticas y diagramas](math-diagrams.md) — fórmulas KaTeX, diagramas Mermaid, bloques de código con resaltado de sintaxis.
 - [Emoji](emoji.md) — funcionamiento de los códigos y selección curada.
@@ -30,7 +30,7 @@ Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; c
 ## Tareas, citas y tiempo
 
 - [Listas de tareas](tasks.md) — listas de tareas con estados estándar y ampliados.
-- [Recordatorios](reminders.md) — momentos de aviso en tareas con ⏰: diálogo de notificación y de recuperación, lista de recordatorios; el aviso solo funciona con la aplicación en ejecución.
+- [Recordatorios](reminders.md) — momentos de aviso en tareas con ⏰: diálogo de notificación y de recuperación en todas las ventanas con su origen, lista de recordatorios; el aviso solo funciona con la aplicación en ejecución.
 - [Eventos](events.md) — citas, cumpleaños y aniversarios en el documento: bloque de eventos con diferencias de tiempo escalonadas, hitos, filtros y cuatro vistas, agregación mediante frontmatter, vínculos.
 - [Sistemas de calendario](custom-calendars.md) — cronologías libremente definibles por área: bloques con calendarios paralelos, niveles con cinco tipos de relación, épocas, conversión, sintaxis de valores en el documento y selector.
 
@@ -53,7 +53,7 @@ Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; c
 - [Marcadores](bookmarks.md) — guardar archivos en dos secciones: marcadores generales y del área con rutas relativas, creación, conversión, orden.
 - [Plantillas](templates.md) — aplicar plantillas Markdown: carpeta de plantillas con anulación por área, marcadores con diálogos, destino del cursor, reglas de carpeta.
 - [Diarios](journals.md) — documentos periódicos por área: estanterías y granularidades, esquemas de carpeta y nombre, panel de calendario, bloque de navegación, propiedades de fecha automáticas.
-- [Libros](books.md) — varios archivos como un libro con orden de lectura declarado: carpeta del libro con archivo complementario, índice con mantenimiento de la estructura, lectura más allá de los límites de capítulo, mover con actualización, reparar capítulos faltantes.
+- [Libros](books.md) — varios archivos como un libro con orden de lectura declarado: carpeta del libro con archivo complementario, índice con mantenimiento de la estructura, lectura más allá de los límites de capítulo, mover con actualización, reparar capítulos faltantes, configuración del libro y de la estantería con sus datos propios.
 - [Aplicaciones, ventanas y áreas](apps-windows.md) — inicio múltiple, gestión de ventanas y sistemática de títulos.
 - [My Extended Memory](my-extended-memory.md) — una vista común de los espacios de trabajo, áreas, libros y estanterías añadidos por usted: añadir desde una propuesta o un diálogo de carpeta, cifras clave con su estado, vista de detalle por tipo de contenedor, acceso a exportar e importar la configuración propia.
 - [Historial del documento](history.md) — registrar cambios: archivo acompañante Markdown-Data, interruptores en tres niveles, comparar y restaurar revisiones.
@@ -69,7 +69,7 @@ Bienvenido al manual de EM4me. Esta página de resumen es el punto de entrada; c
 - [Esquemas de color](color-schemes.md) — colores mediante ranuras con nombre: asignación por modo, esquemas propios como copia, vista previa en vivo, límites.
 - [Herramientas](tools.md) — linter Markdown, búsqueda con regex, buscar y reemplazar, editor de tablas.
 - [Colocación de comandos](command-placement.md) — comandos como accesos propios permanentes: botones de la barra de estado, lista de ocultación, entradas de menú contextual, macros.
-- [Extensiones](extensions.md) — activar o desactivar funciones individualmente: categorías, dependencias, efecto del estado desactivado.
+- [Extensiones](extensions.md) — activar o desactivar funciones individualmente: categorías, modos de trabajo incluidos los propios, dependencias, efecto del estado desactivado.
 - [Exportar e importar la configuración](setup-exchange.md) — llevarse la instalación propia: elección de los tipos de datos hasta bloques de calendario individuales, estructura del archivo de intercambio, vista previa antes de aplicar, fusión con los valores existentes, compatibilidad de versiones.
 - [Idioma de interfaz propio](custom-locale.md) — traducir uno mismo la interfaz: descargar la plantilla, traducirla en el propio editor, cargarla y comprobarla, elegirla, recurso al inglés, actualización y eliminación, depósito en el perfil del usuario.
 - [Crear extensiones](extensions-dev.md) — desarrollar extensiones externas propias: manifiesto, API de extensiones, ejemplo de referencia, avisos de seguridad.

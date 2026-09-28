@@ -148,6 +148,24 @@ Ein geöffnetes Regal erscheint als eigene Seite im Reiter-System. Zwei Darstell
 
 Unter dem Bestand steht der Abschnitt **Nicht zugeordnet** mit den Buch-Ordnern des Regal-Ordners, die dem Regal noch nicht zugeordnet sind; **Aufnehmen** ordnet sie zu, **Lösen** entfernt eine Zuordnung wieder, ohne den Buch-Ordner anzutasten. Ein zugeordnetes Buch, dessen Ordner fehlt, bleibt sichtbar und ist als fehlend markiert.
 
+## Die Einstellungen von Buch und Regal
+
+Ein geöffnetes Buch und ein geöffnetes Bücherregal sagen auch in den Einstellungen (Datei → Einstellungen…), worauf sie sich beziehen: Der bereichsgebundene Block der Navigation heißt dann nicht „Aktueller Bereich“, sondern **Aktuelles Buch** beziehungsweise **Aktuelles Bücherregal**, und die Überschriften seiner Abschnitte sprechen ebenso von Buch oder Regal statt von Bereich. Maßgeblich ist die Bindung des Fensters und nicht die Datei, die gerade im Vordergrund liegt: In einem Buch-Fenster bleibt es bei „Aktuelles Buch“, gleich welches Kapitel offen ist, und zwei Fenster mit verschiedenen Bindungen zeigen jedes seine eigene Beschriftung.
+
+### Eigene Angaben
+
+An erster Stelle des Blocks steht der Abschnitt **Eigene Angaben**. Er führt die Angaben, die Buch und Regal ohnehin tragen:
+
+- **Titel**, **Autor** und **Beschreibung** — drei Frontmatter-Felder der Buch- beziehungsweise Regal-Datei.
+- **Titelbild** — der Bild-Verweis `cover`, angegeben als Pfad relativ zum Buch- oder Regal-Ordner. Ein leeres Feld heißt: kein Titelbild. Liegt unter dem Pfad keine Datei, sagt der Abschnitt das und die Regal-Ansicht nimmt die Platzhalter-Kachel; ein Fehler ist es nicht.
+- **Darstellung** — nur beim Regal: Kacheln oder Zeilen, dieselbe Wahl wie der Umschalter der Regal-Ansicht. Sie gilt je Regal und nur an diesem Rechner.
+
+Wie überall auf der Einstellungs-Seite wirken Änderungen erst mit Anwenden oder OK.
+
+Es ist **derselbe Ort wie bisher**: Die vier Angaben stehen im [Frontmatter](frontmatter.md) der Buch- oder Regal-Datei, und der Abschnitt bearbeitet sie genau dort. Wer sie in der Datei selbst ändert, sieht die Änderung hier, und umgekehrt; ein zweiter Ablage-Ort entsteht nicht.
+
+In einem gewöhnlichen Bereich erscheint der Abschnitt nicht, denn dort gibt es diese Angaben nicht. Die übrigen Abschnitte des Blocks — Dokument-Historie, Anlagen, Vorlagen, Bereichs-Verknüpfungen, Datenbank, Journale, Kalender-Systeme, Eigenschafts-Profile und Varianten — bleiben unverändert und wirken im Buch- und im Regal-Ordner wie in jedem anderen Bereich.
+
 ## Ein- und ausschalten
 
 Bücher und Bücherregale sind gemeinsam eine schaltbare Erweiterung (Einstellungen → [Erweiterungen](extensions.md), Gruppe Werkzeuge) und ab Werk eingeschaltet. Im Aus-Zustand verschwinden die Menüpunkte, die Kommandos, das Panel und die Regal-Ansicht; Buch- und Regal-Dateien öffnen dann wie jede andere Markdown-Datei. Buch-Datei, Regal-Datei, Begleitdateien und Kapitel bleiben unangetastet, das Wieder-Einschalten bringt den Stand unverändert zurück.

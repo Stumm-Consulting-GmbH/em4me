@@ -38,6 +38,8 @@
   "settings.templates.ruleAdd": "Regel hinzufügen",
   "settings.templates.ruleRemove": "Entfernen",
   "settings.templates.areaGroup": "Für Bereich '{name}'",
+  "settings.templates.bookGroup": "Für Buch '{name}'",
+  "settings.templates.shelfGroup": "Für Bücherregal '{name}'",
   "settings.templates.areaEnabled": "Bereichs-Konfiguration verwenden",
   "settings.templates.areaHint": "Die Bereichs-Werte übersteuern die globalen vollständig. Ordner-Angaben sind relativ zur Bereichs-Wurzel (absolute Pfade erlaubt); gespeichert wird in der Bereichsdatei.",
   "settings.templates.error.ruleTemplate": "Jede Ordner-Regel braucht eine Vorlage.",

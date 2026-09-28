@@ -19,7 +19,7 @@
   "help.shortcut.newWindow": "Open a new, empty window of the same application",
   "help.shortcut.newApp": "Start a new application (separate window group)",
   "help.shortcut.openArea": "Open a folder area as the application's working space",
-  "help.shortcut.closeArea": "Close the area (closes all windows of the area application)",
+  "help.shortcut.closeArea": "Close the area (closes all windows of its own area application)",
   "help.shortcut.createDemoArea": "Copy the bundled Demo-Area into an empty folder and open it as an area",
   "help.shortcut.openBook": "Open a book (folder with book file and companion file)",
   "help.shortcut.newBook": "Create a new book (folder, book file and companion file)",

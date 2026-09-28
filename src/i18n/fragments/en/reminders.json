@@ -5,6 +5,7 @@
   "reminders.dialog.snooze": "Remind me later",
   "reminders.dialog.close": "Close",
   "reminders.dialog.openFile": "Open file",
+  "reminders.dialog.origin": "From: {name}",
   "reminders.notification.count": "{n} reminders due",
   "reminders.snooze.pick": "Pick date…",
   "reminders.snooze.m.one": "1 minute",
@@ -39,5 +40,5 @@
   "settings.reminders.unit.d": "days",
   "settings.reminders.unit.w": "weeks",
   "settings.reminders.systemNotification": "Show system notification",
-  "settings.reminders.systemNotificationHint": "In addition to the dialog when the window is not focused."
+  "settings.reminders.systemNotificationHint": "In addition to the dialog when no window of the app is focused; once per notice."
 }

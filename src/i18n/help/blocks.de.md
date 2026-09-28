@@ -24,6 +24,16 @@ Ein `+` oder `-` hinter dem Typ macht den Callout klappbar: `+` startet geöffne
 > [!note]- Eingeklappt gestartet
 > Erst nach Klick auf den Titel sichtbar.
 
+Die Schreibweise des Typs spielt keine Rolle: `[!note]`, `[!Note]` und `[!NOTE]` erzeugen dieselbe Box mit demselben Icon, derselben Akzentfarbe und demselben Standard-Titel; `+`, `-` und ein eigener Titel wirken genauso. Der Text in der Datei bleibt dabei, wie er geschrieben ist — auch eine aus anderen Markdown-Programmen übernommene Großschreibung wird nicht umgeschrieben. Die Liste der zehn Typen bleibt dieselbe: Namen außerhalb davon, etwa `[!IMPORTANT]`, sind in jeder Schreibweise unbekannte Typen.
+
+```markdown
+> [!WARNING]
+> Groß geschrieben — dieselbe Box wie mit `[!warning]`.
+```
+
+> [!WARNING]
+> Groß geschrieben — dieselbe Box wie mit `[!warning]`.
+
 ## Custom Containers
 
 Container-Blöcke zwischen `::: typ` und `:::`. Die zehn Callout-Typen erscheinen in Callout-Optik, unbekannte Namen als neutrale Box mit dem Namen als Titel.
@@ -36,6 +46,18 @@ Inhalt in Callout-Optik.
 
 ::: warning
 Inhalt in Callout-Optik.
+:::
+
+Die Schreibweise des Namens spielt keine Rolle: `::: warning`, `::: Warning` und `::: WARNING` erzeugen dieselbe Box, `::: Meine-Box` dieselbe neutrale Box wie `::: meine-box`, und `::: COLUMNS 2` setzt den Inhalt ebenso zweispaltig wie `::: columns 2`. Der Text in der Datei bleibt dabei, wie er geschrieben ist; eine neutrale Box zeigt den Namen so als Titel, wie er dasteht. Die Liste der zehn Callout-Typen bleibt dieselbe.
+
+```markdown
+::: WARNING
+Groß geschrieben — dieselbe Box wie mit `::: warning`.
+:::
+```
+
+::: WARNING
+Groß geschrieben — dieselbe Box wie mit `::: warning`.
 :::
 
 ## Mehrspalten-Block

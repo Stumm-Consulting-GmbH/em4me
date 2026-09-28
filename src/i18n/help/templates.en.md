@@ -9,7 +9,7 @@ The functionality can be toggled as the "Templates" extension (Settings → Exte
 The templates folder is configured in the settings (Settings → Templates):
 
 - **Globally**, the app-wide folder is the basis for all windows.
-- **Per area**, a dedicated configuration can be set ("Use area configuration" in the "Templates" entry of the "Current area" navigation group, only visible when an area is open); it is stored in the area file and **overrides the global one completely** (folder and rules, no mixed resolution). Folder entries are relative to the area root; absolute paths remain allowed.
+- **Per area**, a dedicated configuration can be set ("Use area configuration" in the "Templates" entry of the "Current area" navigation group, only visible when an area is open; with a book open the group is called **Current book**, with a bookshelf open **Current bookshelf**); it is stored in the area file and **overrides the global one completely** (folder and rules, no mixed resolution). Folder entries are relative to the area root; absolute paths remain allowed.
 
 Every Markdown file in the folder (including subfolders) is a template. Subfolders appear as groups in the picker popup. Configuration changes take effect immediately, without a restart.
 

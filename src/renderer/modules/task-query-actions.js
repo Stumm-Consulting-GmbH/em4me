@@ -118,27 +118,29 @@ async function writeLineViaMain(hit, newText, insert) {
 // der Klick im Dokument (performStatusToggle: Ketten-Toggle, Automatik-Daten,
 // Wiederholung, ein Undo-Schritt). Sonst: identische Semantik ueber
 // computeStatusToggle plus taskToggleAugmenter, geschrieben ueber den Main.
+// 4T-001727 (Epic 3E-000305): Liefert true, wenn geschrieben wurde; der
+// Erinnerungs-Dialog gibt seinen Anspruch sonst zurueck.
 export async function toggleTaskFromQuery(hit) {
   const open = findOpenTab(hit.path);
   if (open && isActiveTab(open)) {
     const view = paneEditors[open.paneIdx];
-    if (!view) return;
+    if (!view) return false;
     const line = findDocLine(view, hit.line, hit.taskText);
     if (line <= 0) {
       conflictHint();
-      return;
+      return false;
     }
     const wasDirty = !!open.tab.dirty;
-    if (!performStatusToggle(view, line)) return;
+    if (!performStatusToggle(view, line)) return false;
     await persistIfWasClean(open, wasDirty);
-    return;
+    return true;
   }
   if (open && open.tab.dirty) {
     dirtyOpenHint();
-    return;
+    return false;
   }
   const toggle = computeStatusToggle(hit.taskText);
-  if (!toggle) return;
+  if (!toggle) return false;
   // Augmenter zuerst (Automatik-Daten plus Wiederholungs-Instanz); ohne
   // Erweiterung liefert er null — dann nur das Einzel-Zeichen schalten.
   let augmented;
@@ -154,11 +156,11 @@ export async function toggleTaskFromQuery(hit) {
     insert = augmented.insert || null;
   } else {
     const model = parseTaskLine(hit.taskText);
-    if (!model) return;
+    if (!model) return false;
     setStatusChar(model, toggle.toChar);
     newText = serializeTaskLine(model);
   }
-  await writeLineViaMain(hit, newText, insert);
+  return writeLineViaMain(hit, newText, insert);
 }
 
 // --- Termin-Verschieben ---------------------------------------------------------

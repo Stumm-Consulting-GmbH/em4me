@@ -329,6 +329,30 @@ const DATA_KINDS = [
     formen: { 'extensions.disabled': 'array', 'extensionsExternal.enabled': 'array' },
   },
   {
+    // 4T-001882 (Story 4S-000993): die eigenen Arbeitsmodi — benannte
+    // Schalter-Stände, die der Anwender selbst angelegt hat.
+    //
+    // **Eigene Datenart neben dem Schalt-Zustand und nicht in ihm**, obwohl
+    // beide im selben Namensraum wohnen: Die Regel ist eine andere. Der
+    // Schalt-Zustand ist ein Wert und wird ersetzt; ein Modus ist ein benannter
+    // Gegenstand und wird ergänzt. In einer Datenart zusammengefasst, müsste
+    // der Anwender beides gemeinsam wählen — und wer seine Modi mitnehmen will,
+    // bekäme dazu ungefragt den Funktionsumfang des anderen Rechners. Die
+    // Zählung der Nachbar-Zeile bliebe außerdem uneindeutig.
+    id: 'extensionModes',
+    labelKey: 'exchange.kind.extensionModes',
+    paths: ['extensions.modes'],
+    zaehle: (werte) => laenge(werte['extensions.modes']),
+    // Benannte Arbeit, Muster der Sidebar-Varianten: Der vorhandene Modus
+    // bleibt unangetastet, der eingelesene tritt daneben. Der Pfad-Wert IST
+    // die Liste, deshalb der leere Weg `at`.
+    merge: {
+      mode: MERGE_APPEND,
+      lists: [{ path: 'extensions.modes', at: [], idKey: 'id', nameKey: 'name' }],
+    },
+    formen: { 'extensions.modes': 'array' },
+  },
+  {
     id: 'sidebar',
     labelKey: 'exchange.kind.sidebar',
     paths: ['sidebar', 'panelToggle'],

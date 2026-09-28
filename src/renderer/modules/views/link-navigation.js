@@ -44,6 +44,13 @@ import {
 } from './anchor-navigation.js';
 import { renderPaneContent } from './pane-render.js';
 import { showStatusbarHint } from './views.js';
+// 4T-001870 (Epic 3E-000322): vergrößerte Darstellung eines Bildes.
+import {
+  imageFileSource,
+  imageSourceBase,
+  isImageDisplayed,
+  openImageLightbox,
+} from './image-lightbox.js';
 
 // --- Link-Aktivierung (gemeinsam fuer Render-Pane und Live-Modus) ----------
 // 4T-000082 (Epic 3E-000014): Aus handleRenderedClick extrahierte Klick-Logik.
@@ -223,9 +230,15 @@ export async function activateLink(paneIdx, href, isWikilink, baseOverride) {
 }
 
 // 4T-000790 (Epic 3E-000125): Bild-Quelle aus dem Dokument (relativer Pfad) gegen
-// die aktive Datei aufloesen und oeffnen. Gemeinsame Strecke von Render-Klick
-// und Editor-Doppelklick.
-export async function oeffneBildAusQuelle(paneIdx, quelle) {
+// die aktive Datei aufloesen und oeffnen. Gemeinsame Strecke der Schaltfläche
+// «Im Standardprogramm öffnen» der Bild-Vergrößerung (bis 4T-001870 der
+// Render-Klick) und des Editor-Doppelklicks.
+//
+// 4T-001925: `basisPfad` ist die Datei, in der das Bild geschrieben steht, wenn
+// das nicht das offene Dokument ist — ein Bild in einer eingebetteten Notiz
+// eines anderen Ordners wurde bis dahin gegen den falschen Ordner aufgelöst.
+// Die Grenze des Öffnens bleibt die des offenen Dokuments (`oeffneAnlage`).
+export async function oeffneBildAusQuelle(paneIdx, quelle, basisPfad) {
   const pane = state.panes[paneIdx];
   const tab = pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
   if (!tab || !tab.path) return false;
@@ -235,9 +248,18 @@ export async function oeffneBildAusQuelle(paneIdx, quelle) {
   } catch {
     /* literales '%' im Namen: unkodiert weiterverwenden */
   }
-  const absolut = await api.resolveLink(tab.path, dekodiert);
+  const absolut = await api.resolveLink(basisPfad || tab.path, dekodiert);
   if (!absolut) return false;
   return oeffneAnlage(paneIdx, absolut);
+}
+
+// 4T-001925: dasselbe für ein angezeigtes Bild-Element — Quelle und Bezugs-Datei
+// kommen aus dem Element. Ein Bild ohne eigene Datei (Netz, Daten-Quelle)
+// öffnet nichts und liefert false.
+export function oeffneBildDesElements(paneIdx, img) {
+  const quelle = imageFileSource(img);
+  if (!quelle) return Promise.resolve(false);
+  return oeffneBildAusQuelle(paneIdx, quelle, imageSourceBase(img));
 }
 
 // 4T-000790 (Epic 3E-000125): Anlage oeffnen und einen Misserfolg sichtbar machen.
@@ -323,22 +345,30 @@ export async function handleRenderedClick(e, paneIdx) {
     openBlockPropsForAnchor(paneIdx, metaInd.dataset.anchorId);
     return;
   }
-  // 4T-000790 (Epic 3E-000125): Klick auf ein eingebettetes Bild oeffnet es in der
-  // Standardanwendung. Ein Bild ist kein Link und faellt sonst durch den
-  // closest('a')-Zweig unten hindurch, ohne dass etwas geschieht. In der
-  // Render-Ansicht genuegt der einfache Klick, weil es hier keine Schreibmarke
-  // gibt (PO-Festlegung 2026-07-29; im Editor gilt der Doppelklick).
+  // 4T-001870 (Epic 3E-000322): Der einfache Klick auf ein angezeigtes Bild
+  // öffnet die vergrößerte Darstellung (Entscheidung des Product Owners vom
+  // 2026-09-21; sie ändert die Festlegung vom 2026-07-29, nach der dieser Klick
+  // das Standardprogramm öffnete). Der Weg dorthin liegt jetzt auf der
+  // Schaltfläche der Vergrößerung und bleibt derselbe: `oeffneBildAusQuelle`
+  // mit Grenz-Prüfung, Rückfrage und Meldungen. Eine Zusatz-Taste ändert
+  // daran nichts (E13 des Epics).
   //
-  // Der Pfad wird aus dem Quelltext-Attribut geholt, nicht aus `src`: Dort
-  // steht nach der Aufloesung ein data:-URI, aus dem sich kein Pfad mehr
-  // ableiten laesst.
-  if (e.target instanceof HTMLImageElement) {
-    const quelle = e.target.getAttribute('data-src-original') || '';
-    if (quelle && !/^(https?:|data:)/i.test(quelle)) {
-      e.preventDefault();
-      await oeffneBildAusQuelle(paneIdx, quelle);
-      return;
-    }
+  // Der Zweig steht vor dem Verweis-Zweig, damit ein Bild, das selbst als
+  // Verweis gesetzt ist, die Vergrößerung öffnet (Vorrang wie bisher). Ein
+  // Bild, das die Ansicht nicht anzeigt, fällt dagegen hindurch: ohne
+  // Reaktion, innerhalb eines Verweises folgt der Klick dem Verweis (E9).
+  //
+  // Der Pfad kommt aus dem Quelltext-Attribut, nicht aus `src`: Dort steht nach
+  // der Auflösung eine Daten-Adresse, aus der sich kein Pfad mehr ableiten
+  // lässt. Ein Bild ohne dieses Attribut hat keine eigene Datei und bekommt
+  // die Vergrößerung ohne Schaltfläche ins Standardprogramm (E14).
+  if (e.target instanceof HTMLImageElement && isImageDisplayed(e.target)) {
+    e.preventDefault();
+    const img = e.target;
+    openImageLightbox(img, {
+      onOpenExternal: imageFileSource(img) ? () => oeffneBildDesElements(paneIdx, img) : null,
+    });
+    return;
   }
   const a = e.target.closest('a');
   if (!a) return;

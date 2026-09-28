@@ -44,6 +44,13 @@ function shelfField(entry) {
   return dir ? { shelf: { dir } } : {};
 }
 
+// 4T-001743 (Epic 3E-000309): Kennung der App (appKey), nur bei nicht-leerem
+// String. Ein Bestands-Schnappschuss ohne Feld bleibt gueltig; die App bekommt
+// beim Wiederherstellen eine neue Kennung.
+function appKeyField(entry) {
+  return entry && typeof entry.appKey === 'string' && entry.appKey ? { appKey: entry.appKey } : {};
+}
+
 // Einmalige Migration des flachen Bestands-Formats: alle Bestands-Fenster
 // als EINE App ohne Bereich. Liefert null, wenn nichts zu migrieren ist
 // (App-Schema bereits gefuellt oder kein Bestand). Der alte 'windows'-Key
@@ -70,6 +77,7 @@ function normalizeSavedApps(saved) {
         ? entry.area.rootPath
         : null;
     result.push({
+      ...appKeyField(entry),
       area: rootPath ? { rootPath } : null,
       ...bookField(entry),
       ...shelfField(entry),

@@ -480,8 +480,26 @@ function renderEditorContextMenu(view, x, y) {
 // das native Menü unterdrücken sollen, das Electron ohnehin nicht anbietet,
 // unterdrückte aber zugleich das context-menu-Ereignis des Main-Prozesses und
 // damit die einzige Quelle der Korrektur-Vorschläge (gemessen am 2026-08-02).
+//
+// 4T-001861 (Epic 3E-000300): Innerhalb eines Block-Widgets, das seine Stelle
+// beim Rechtsklick selbst setzt (Kennzeichnung `data-kontext-stelle="eigen"`,
+// heute die gerenderte Pipe-Tabelle), setzt dieser Weg keine. Die
+// Koordinaten-Aufloesung des Editors liefert im ersetzenden Widget immer dessen
+// Anfang (gemessen am 2026-09-24 an allen neun Zellen einer Tabelle); gesetzt
+// wurde damit die erste Kopfzelle, und die Bearbeitung sprang dorthin. Die
+// zellgenaue Stelle setzt der Klick-Pfad der Tabelle beim Druecken der Taste,
+// also vor diesem Ereignis. Alle uebrigen Widgets und der Fliesstext behalten
+// ihr Verhalten.
+const STELLE_SELBST = '[data-kontext-stelle="eigen"]';
+
+export function setztStelleSelbst(ziel) {
+  return !!(ziel && typeof ziel.closest === 'function' && ziel.closest(STELLE_SELBST));
+}
+
 export function showEditorContextMenu(event, view) {
-  const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
+  const pos = setztStelleSelbst(event.target)
+    ? null
+    : view.posAtCoords({ x: event.clientX, y: event.clientY });
   if (pos != null) {
     const inSelection = view.state.selection.ranges.some(
       (r) => !r.empty && pos >= r.from && pos <= r.to,

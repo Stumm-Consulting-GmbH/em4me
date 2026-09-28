@@ -160,6 +160,11 @@ export function loeseSprungAus() {
 // Fensters; in den beiden anderen führt der Weg in ein anderes Fenster, und
 // ein Sprung hier zeigte die Zahlen eines fremden Bereichs. Deshalb die
 // Meldung statt der Seite.
+//
+// 4T-001743 (Epic 3E-000309): Ein vierter Ausgang ist der Abbruch der Nachfrage
+// beim erneuten Öffnen eines Bereichs, der mit einem Arbeitsbereich läuft
+// (`{ ok: false, canceled: true }`, derselbe Vertrag wie der abgebrochene
+// Ordner-Dialog von `area:open`). Er bleibt ohne Wirkung und ohne Meldung.
 async function oeffneBereichsStatistik(entry) {
   if (istGleicherPfad(state.areaPath, entry.path)) {
     openAreaStatsPage();
@@ -171,6 +176,10 @@ async function oeffneBereichsStatistik(entry) {
     ergebnis = await api.openAreaPath(entry.path);
   } catch {
     ergebnis = null;
+  }
+  if (ergebnis && ergebnis.canceled) {
+    wartetAufBereich = null;
+    return;
   }
   if (ergebnis && ergebnis.ok && ergebnis.boundExisting) {
     // Die Meldung kann schon vor der Antwort eingetroffen sein; dann hat sie

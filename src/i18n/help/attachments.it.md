@@ -31,7 +31,7 @@ Più file trascinati insieme producono più riferimenti. Incollare o trascinare 
 
 ## Dove viene riposto il file
 
-La posizione si imposta in Impostazioni → Allegati e può inoltre essere definita per area (Impostazioni → Area corrente → Allegati).
+La posizione si imposta in Impostazioni → Allegati e può inoltre essere definita per area (Impostazioni → Area corrente → Allegati). Con un libro aperto quel blocco si chiama **Libro corrente**, con una libreria aperta **Libreria corrente**.
 
 | Posizione | Dove va il file |
 |---|---|
@@ -48,14 +48,16 @@ Un documento mai salvato non offre alcuna posizione per un allegato. In quel cas
 
 ## Aprire un allegato
 
-Un riferimento a un allegato lo apre nel programma che il sistema operativo gli assegna. Per un'immagine incorporata il gesto dipende dalla vista:
+Un riferimento a un allegato lo apre nel programma che il sistema operativo gli assegna. Per un'immagine incorporata la via dipende dalla vista:
 
-| Vista | Gesto |
+| Vista | Via verso il programma |
 |---|---|
-| Lettura e vista renderizzata | clic singolo |
-| Modifica e vista diretta | doppio clic |
+| «Renderizzato», anche la sua metà di «Diviso» | un clic sull'immagine apre l'[ingrandimento](images.md), lì il pulsante «Apri nel programma predefinito» |
+| «Live», in lettura come in modifica | doppio clic sull'immagine |
 
-Nell'editor il clic singolo resta riservato al posizionamento del cursore; scrivere accanto a un'immagine non deve avviare un altro programma.
+Nella vista renderizzata il clic mostra quindi prima l'immagine in grande; chi vuole rielaborarla in un altro programma ci arriva con un clic in più. Nell'editor il clic singolo resta riservato al posizionamento del cursore; scrivere accanto a un'immagine non deve avviare un altro programma.
+
+Un'immagine di una nota incorporata apre il file a cui rimanda la nota stessa, anche se si trova in una cartella diversa da quella del documento aperto.
 
 Vengono aperte solo destinazioni all'interno dell'area oppure, senza area, all'interno della cartella del documento. Per i file che all'apertura possono eseguire codice compare prima una richiesta di conferma con nome e percorso completo.
 

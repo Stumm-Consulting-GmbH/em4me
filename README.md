@@ -115,10 +115,15 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   them without owning the application.
 - **Only the features you want** — extra functions are extensions with a
   switch of their own; what you turn off disappears from menus, commands
-  and rendering.
+  and rendering. Three working modes — Beginner, Advanced and Full — set the
+  switches in one go, and a combination of your own can be saved under a
+  name; a new installation starts with the essentials, an existing setup
+  stays as it is. An extension that another one needs stays on until the
+  one that needs it is switched off.
 - **Your setup travels with you** — colours, shortcuts, buttons, templates,
-  bookmarks and the extension switches can be written into a readable Markdown
-  file and read back in on another machine, in full or in part, with a preview
+  bookmarks, the extension switches and your own working modes can be written
+  into a readable Markdown file and read back in on another machine, in full
+  or in part, with a preview
   that says beforehand what will be added, replaced, renamed or skipped. A
   page of its own lists every workspace, area, book and bookshelf you entered
   there, with figures on what each holds and the moment those figures were

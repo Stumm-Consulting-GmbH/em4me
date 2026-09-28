@@ -31,7 +31,7 @@ Several files dragged at once produce several references. Pasting or dragging co
 
 ## Where the file is stored
 
-The storage location is set under Settings → Attachments and can additionally be set per area (Settings → Current area → Attachments).
+The storage location is set under Settings → Attachments and can additionally be set per area (Settings → Current area → Attachments). With a book open that block is called **Current book**, with a bookshelf open **Current bookshelf**.
 
 | Storage location | Where the file goes |
 |---|---|
@@ -48,14 +48,16 @@ A document that has never been saved offers no place for an attachment. In that 
 
 ## Opening an attachment
 
-A reference to an attachment opens it in the program the operating system assigns to it. For an embedded image the gesture depends on the view:
+A reference to an attachment opens it in the program the operating system assigns to it. For an embedded image the way there depends on the view:
 
-| View | Gesture |
+| View | Way to the program |
 |---|---|
-| Reading and rendered view | single click |
-| Editing and live view | double click |
+| “Rendered”, including its half of “Split” | a click on the image opens the [enlarged view](images.md), there the “Open in default program” button |
+| “Live”, when reading and when editing | double click on the image |
 
-In the editor the single click stays reserved for placing the cursor; writing next to an image should not launch another program.
+In the rendered view the click therefore shows the image large first; whoever wants to keep working on it in another program gets there with one more click. In the editor the single click stays reserved for placing the cursor; writing next to an image should not launch another program.
+
+An image from an embedded note opens the file the note itself refers to, even when it lies in a different folder than the open document.
 
 Only targets inside the area are opened, or, without an area, inside the document's folder. For files that can execute program code when opened, a confirmation appears first, showing the name and the full path.
 

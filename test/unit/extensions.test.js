@@ -6,9 +6,13 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import {
   EXTENSIONS_DISABLED_KEY,
+  EXTENSION_MODE_LEVELS,
   allExtensions,
+  internalExtensions,
   extensionById,
   isExtensionId,
+  registerExternalExtension,
+  unregisterExternalExtension,
   validateExtensionRegistry,
 } from '../../src/shared/extensions/extensions.js';
 // 4T-000993 (Epic 3E-000196): Die Ableitungen aus der Disabled-Liste liegen seit
@@ -16,23 +20,46 @@ import {
 import {
   normalizeDisabledIds,
   effectiveDisabledSet,
+  blockingDependentIds,
+  isExtensionLocked,
+  disabledIdsForModeLevel,
+  modeLevelForDisabledIds,
+  START_MODE_LEVEL,
+  startupDisabledIds,
   isExtensionEnabled,
   disabledCommandIdSet,
+  disabledFeatureKeySet,
+  disabledSettingsSectionIdSet,
 } from '../../src/shared/extensions/extensions-core.js';
 import { renderMarkdown, configureExtensions } from '../../src/shared/markdown/markdown.js';
 
 // Synthetische Registry mit Abhaengigkeits-Kette spitze -> aufbau -> basis.
 const SYNTH = [
-  { id: 'basis', category: 'render', nameKey: 'n.b', descKey: 'd.b', commands: ['b.eins'] },
+  {
+    id: 'basis',
+    category: 'render',
+    modeLevel: 'beginner',
+    nameKey: 'n.b',
+    descKey: 'd.b',
+    commands: ['b.eins'],
+  },
   {
     id: 'aufbau',
     category: 'tools',
+    modeLevel: 'advanced',
     nameKey: 'n.a',
     descKey: 'd.a',
     dependencies: ['basis'],
     commands: ['a.eins', 'a.zwei'],
   },
-  { id: 'spitze', category: 'linking', nameKey: 'n.s', descKey: 'd.s', dependencies: ['aufbau'] },
+  {
+    id: 'spitze',
+    category: 'linking',
+    modeLevel: 'full',
+    nameKey: 'n.s',
+    descKey: 'd.s',
+    dependencies: ['aufbau'],
+  },
 ];
 
 describe('Erweiterungs-Registry: Validierung (4T-000292)', () => {
@@ -286,5 +313,380 @@ describe('Erweiterung reminders: Abhaengigkeit und Aus-Zustand (4T-000528)', () 
     expect(commands.has('task.setReminder')).toBe(true);
     expect(commands.has('view.toggleReminders')).toBe(true);
     expect(commands.has('task.editDialog')).toBe(true);
+  });
+});
+
+// 4T-001877 (Epic 3E-000187, Story 4S-000991): Abhaengigkeits-Schutz — die
+// Gegenrichtung der Ableitung. Solange eine Abhaengige wirksam ist, ist der
+// Schalter ihrer Grundlage gesperrt; die Sperre folgt allein dem Schalter-Stand
+// und wird nirgends gespeichert. Die Faelle hier decken die reine Funktion ab,
+// die Zeilen-Darstellung liegt in renderer/settings-extensions.test.js.
+//
+// Die fuenf HARTEN Paare des Konzepts 4T-001843 sind die Grundgesamtheit der
+// Sperre; die daneben erhobenen Verarmungen (autocomplete zu wiki-links,
+// tasks zu task-states und weitere) bleiben ausdruecklich sperrfrei.
+const HARTE_PAARE = [
+  ['wiki-embeds', 'wiki-links'],
+  ['area-links', 'wiki-links'],
+  ['reminders', 'tasks'],
+  ['events', 'property-profiles'],
+  ['database', 'property-profiles'],
+  // Sechstes Paar seit der Zusammenführung mit dem Release 1.141.0: Die
+  // Kanban-Tafel deklariert «Aufgaben» als harte Grundlage.
+  ['kanban', 'tasks'],
+];
+
+describe('Abhaengigkeits-Schutz: Sperre der Grundlage (4T-001877)', () => {
+  it('AK1/AK8: jedes der fuenf deklarierten Paare sperrt seine Grundlage', () => {
+    for (const [abhaengige, grundlage] of HARTE_PAARE) {
+      expect(extensionById(abhaengige).dependencies).toContain(grundlage);
+      expect(blockingDependentIds(grundlage, [])).toContain(abhaengige);
+      expect(isExtensionLocked(grundlage, [])).toBe(true);
+      // Die Abhaengige selbst bleibt frei abschaltbar.
+      expect(isExtensionLocked(abhaengige, [])).toBe(false);
+    }
+  });
+
+  it('AK3: mehrere Abhaengige derselben Grundlage erscheinen gemeinsam', () => {
+    expect(blockingDependentIds('wiki-links', []).sort()).toEqual(['area-links', 'wiki-embeds']);
+    expect(blockingDependentIds('property-profiles', []).sort()).toEqual(['database', 'events']);
+  });
+
+  it('AK4: die Grundlage wird erst mit der LETZTEN Abhaengigen frei', () => {
+    expect(blockingDependentIds('property-profiles', ['events'])).toEqual(['database']);
+    expect(blockingDependentIds('property-profiles', ['events', 'database'])).toEqual([]);
+    expect(isExtensionLocked('property-profiles', ['events', 'database'])).toBe(false);
+    expect(blockingDependentIds('tasks', ['reminders'])).toEqual(['kanban']);
+    expect(blockingDependentIds('tasks', ['reminders', 'kanban'])).toEqual([]);
+  });
+
+  it('AK5: eine Grundlage ohne Abhaengige ist nie gesperrt', () => {
+    expect(isExtensionLocked('katex', [])).toBe(false);
+    expect(isExtensionLocked('tags', [])).toBe(false);
+    expect(isExtensionLocked('outliner', [])).toBe(false);
+  });
+
+  // AK8 negativ: Verarmungen sind NICHT deklariert und sperren deshalb nichts.
+  // task-states ist der Beleg — tasks laeuft ohne die erweiterte Status-
+  // Semantik weiter (live-pass-tasks.js), und autocomplete steht in keiner
+  // dependencies-Liste, obwohl es wiki-links, tags, tasks und reminders nutzt.
+  it('AK8: keine Verarmung erzeugt eine Sperre', () => {
+    expect(blockingDependentIds('task-states', [])).toEqual([]);
+    expect(blockingDependentIds('wiki-links', [])).not.toContain('autocomplete');
+    expect(blockingDependentIds('tags', [])).toEqual([]);
+    expect(blockingDependentIds('date-picker', [])).toEqual([]);
+    expect(blockingDependentIds('setup-exchange', [])).toEqual([]);
+  });
+
+  // AK6/AK7/AK12: Ein mitgebrachter Stand (Grundlage aus, Abhaengige als AN
+  // gespeichert) bleibt unveraendert wirksam — die Abhaengige wirkt weiter als
+  // abgeschaltet, die roh gespeicherte Liste wird nicht angefasst, und die drei
+  // abgeleiteten Mengen bleiben dazu widerspruchsfrei.
+  it('AK6/AK7/AK12: mitgebrachter Stand wirkt unveraendert und bleibt stimmig', () => {
+    const mitgebracht = ['property-profiles'];
+    expect(normalizeDisabledIds(mitgebracht)).toEqual(['property-profiles']);
+    const effektiv = effectiveDisabledSet(mitgebracht);
+    expect(effektiv.has('events')).toBe(true);
+    expect(effektiv.has('database')).toBe(true);
+    expect(isExtensionEnabled('events', mitgebracht)).toBe(false);
+    // Die Grundlage laesst sich jederzeit wieder einschalten: Sie ist nicht
+    // gesperrt, weil ihre Abhaengigen in diesem Stand nicht wirksam sind.
+    expect(blockingDependentIds('property-profiles', mitgebracht)).toEqual([]);
+    // Die drei abgeleiteten Mengen folgen demselben effektiven Satz.
+    for (const id of ['events', 'database']) {
+      const manifest = extensionById(id);
+      for (const cmd of manifest.commands || []) {
+        expect(disabledCommandIdSet(mitgebracht).has(cmd)).toBe(true);
+      }
+      for (const section of manifest.settingsSections || []) {
+        expect(disabledSettingsSectionIdSet(mitgebracht).has(section)).toBe(true);
+      }
+      for (const key of manifest.featureKeys || []) {
+        expect(disabledFeatureKeySet(mitgebracht).has(key)).toBe(true);
+      }
+    }
+  });
+
+  // AK17: Das Sperr-Bild ist eine Ableitung aus dem uebergebenen Schalter-Stand
+  // und traegt keinen eigenen Zustand — derselbe Stand ergibt dasselbe Bild,
+  // ein anderer Stand ein anderes, ohne Ruecksicht auf die Reihenfolge der
+  // Aufrufe. Damit gilt es nach einem Neustart und in jedem Fenster gleich.
+  it('AK17: das Sperr-Bild folgt allein dem uebergebenen Schalter-Stand', () => {
+    const erst = blockingDependentIds('tasks', []);
+    expect(blockingDependentIds('tasks', ['reminders', 'kanban'])).toEqual([]);
+    expect(blockingDependentIds('tasks', [])).toEqual(erst);
+    expect(erst.slice().sort()).toEqual(['kanban', 'reminders']);
+  });
+
+  // AK18: Eine Kennung, die es nicht mehr gibt, sperrt nichts und stoert die
+  // Ableitung der uebrigen nicht.
+  it('AK18: eine unbekannte Kennung sperrt nichts', () => {
+    expect(blockingDependentIds('gibtsnicht', [])).toEqual([]);
+    expect(isExtensionLocked('gibtsnicht', ['gibtsnicht'])).toBe(false);
+    expect(blockingDependentIds('tasks', ['gibtsnicht']).sort()).toEqual(['kanban', 'reminders']);
+  });
+
+  // AK13: Die Validierung bleibt wirksam; zusaetzlich sperrt eine Abhaengigkeit
+  // auf eine nicht registrierte Kennung nichts, weil die Schleife ueber die
+  // Registry laeuft und dort keinen Gegenpart findet.
+  it('AK13: eine Abhaengigkeit auf eine unbekannte Kennung sperrt nichts', () => {
+    const KAPUTT = [
+      { id: 'x', category: 'render', nameKey: 'n', descKey: 'd', dependencies: ['fehlt'] },
+    ];
+    expect(
+      validateExtensionRegistry(KAPUTT).some((e) => e.includes('unbekannte Abhängigkeit')),
+    ).toBe(true);
+    expect(blockingDependentIds('fehlt', [], KAPUTT)).toEqual([]);
+    expect(blockingDependentIds('x', [], KAPUTT)).toEqual([]);
+  });
+
+  // AK10: Externe Erweiterungen bleiben ausserhalb — ihre Registrierung
+  // uebernimmt kein dependencies-Feld, ein uebergebenes wird verworfen.
+  it('AK10: eine externe Erweiterung erzeugt keine Sperre', () => {
+    try {
+      const manifest = registerExternalExtension({
+        id: 'fremd-schutz',
+        name: 'Fremd',
+        dependencies: ['katex'],
+      });
+      expect(manifest.dependencies).toBeUndefined();
+      expect(blockingDependentIds('katex', [])).toEqual([]);
+      expect(isExtensionLocked('katex', [])).toBe(false);
+      expect(blockingDependentIds('fremd-schutz', [])).toEqual([]);
+    } finally {
+      unregisterExternalExtension('fremd-schutz');
+    }
+  });
+
+  // Mehrstufige Kette an der synthetischen Registry: Die Sperre wirkt je Paar
+  // und braucht dafuer keine eigene Mechanik — sie loest sich Stufe fuer Stufe.
+  it('mehrstufige Kette: die Sperre loest sich von der Spitze her', () => {
+    expect(blockingDependentIds('basis', [], SYNTH)).toEqual(['aufbau']);
+    expect(blockingDependentIds('aufbau', [], SYNTH)).toEqual(['spitze']);
+    expect(blockingDependentIds('spitze', [], SYNTH)).toEqual([]);
+    // Spitze abgeschaltet: aufbau ist frei, basis bleibt gesperrt.
+    expect(blockingDependentIds('aufbau', ['spitze'], SYNTH)).toEqual([]);
+    expect(blockingDependentIds('basis', ['spitze'], SYNTH)).toEqual(['aufbau']);
+    // Danach aufbau abgeschaltet: basis ist frei.
+    expect(blockingDependentIds('basis', ['spitze', 'aufbau'], SYNTH)).toEqual([]);
+  });
+});
+
+// 4T-001880 (Epic 3E-000185, Story 4S-000992): Die Modus-Stufe als Pflicht-Angabe
+// je Registry-Eintrag und ihre Ableitung zum Schalter-Satz eines festen
+// Arbeitsmodus. Der Task aendert das Verhalten der Anwendung NICHT: Das Feld
+// wird gesetzt und geprueft, angewandt wird es erst mit den festen Modi
+// (4T-001881). Die entschiedene Zuordnung aller zweiundsechzig Erweiterungen
+// steht in der Konzept-Runde 4T-001842 und ist dort die Quelle; sie wird hier
+// bewusst NICHT als zweite Liste wiederholt, weil eine zweite Liste genau das
+// waere, was die Pflicht-Angabe am Manifest verhindern soll. Seit der
+// Zusammenfuehrung mit dem Release 1.141.0 kommt die Kanban-Tafel als
+// dreiundsechzigste hinzu, auf «Fortgeschritten» (Sammeltask 4T-001891).
+const STUFEN_ZAHLEN = { beginner: 24, advanced: 27, full: 12 };
+
+describe('Arbeitsmodi: Modus-Stufe der Registry (4T-001880)', () => {
+  it('AK1: jede interne Erweiterung traegt eine gueltige Stufe', () => {
+    const intern = internalExtensions();
+    expect(intern).toHaveLength(63);
+    const gezaehlt = { beginner: 0, advanced: 0, full: 0 };
+    for (const m of intern) {
+      expect(EXTENSION_MODE_LEVELS, `${m.id} ohne gueltige Stufe`).toContain(m.modeLevel);
+      gezaehlt[m.modeLevel] += 1;
+    }
+    // Die Zahlen der entschiedenen Tabelle samt Kanban-Tafel: Einsteiger 24
+    // von 63, Fortgeschritten 51 von 63 (24 + 27), Voll 63 von 63.
+    expect(gezaehlt).toEqual(STUFEN_ZAHLEN);
+  });
+
+  it('AK4: ein Eintrag ohne Stufe wird abgewiesen', () => {
+    const errors = validateExtensionRegistry([
+      { id: 'ohne-stufe', category: 'render', nameKey: 'n', descKey: 'd' },
+    ]);
+    expect(errors.some((e) => e.includes('Modus-Stufe fehlt'))).toBe(true);
+  });
+
+  it('AK5: ein unbekannter Stufen-Wert wird abgewiesen', () => {
+    const errors = validateExtensionRegistry([
+      { id: 'falsche-stufe', category: 'render', modeLevel: 'profi', nameKey: 'n', descKey: 'd' },
+    ]);
+    expect(errors.some((e) => e.includes('unbekannte Modus-Stufe profi'))).toBe(true);
+    // Ein gueltiger Wert bleibt fehlerfrei — der Befund haengt am Wert, nicht
+    // am Vorhandensein des Feldes.
+    expect(
+      validateExtensionRegistry([
+        { id: 'gute-stufe', category: 'render', modeLevel: 'full', nameKey: 'n', descKey: 'd' },
+      ]),
+    ).toEqual([]);
+  });
+
+  it('AK6: die drei Mengen sind ineinander geschachtelt', () => {
+    const voll = disabledIdsForModeLevel('full');
+    const fortgeschritten = disabledIdsForModeLevel('advanced');
+    const einsteiger = disabledIdsForModeLevel('beginner');
+    // Abgeschaltet ist, wessen Stufe hoeher liegt als der Modus.
+    expect(voll).toEqual([]);
+    expect(fortgeschritten).toHaveLength(STUFEN_ZAHLEN.full);
+    expect(einsteiger).toHaveLength(STUFEN_ZAHLEN.full + STUFEN_ZAHLEN.advanced);
+    // Schachtelung: was der groessere Modus abschaltet, schaltet der kleinere
+    // ebenfalls ab. Kein Modus nimmt etwas weg, das ein kleinerer enthaelt.
+    for (const id of voll) expect(fortgeschritten).toContain(id);
+    for (const id of fortgeschritten) expect(einsteiger).toContain(id);
+    // Gegenprobe an drei benannten Kennungen der entschiedenen Tabelle.
+    expect(einsteiger).not.toContain('wiki-links');
+    expect(einsteiger).toContain('katex');
+    expect(fortgeschritten).not.toContain('katex');
+    expect(fortgeschritten).toContain('database');
+  });
+
+  it('AK6: eine unbekannte Stufen-Angabe schaltet nichts ab', () => {
+    expect(disabledIdsForModeLevel('profi')).toEqual([]);
+    expect(disabledIdsForModeLevel(undefined)).toEqual([]);
+  });
+
+  // Die Abhaengigkeits-Vertraeglichkeit je Stufe: In keinem der drei Modi ist
+  // eine Erweiterung eingeschaltet, deren deklarierte Grundlage dort
+  // abgeschaltet waere. Das ist die maschinelle Fassung der Pruefung, die die
+  // Konzept-Runde von Hand gefuehrt hat, und sie haelt auch bei kuenftigen
+  // Zugaengen.
+  it('AK6/AK9: keine Stufe verletzt eine deklarierte Abhaengigkeit', () => {
+    for (const stufe of EXTENSION_MODE_LEVELS) {
+      const aus = new Set(disabledIdsForModeLevel(stufe));
+      for (const m of internalExtensions()) {
+        if (aus.has(m.id)) continue;
+        for (const dep of m.dependencies || []) {
+          expect(aus.has(dep), `${stufe}: ${m.id} an, Grundlage ${dep} aus`).toBe(false);
+        }
+      }
+      // Gegenprobe ueber die Ableitung: Der gesetzte Satz nimmt nichts
+      // zusaetzlich mit, weil keine Grundlage fehlt.
+      expect(effectiveDisabledSet([...aus]).size).toBe(aus.size);
+    }
+  });
+
+  it('AK7: eine externe Erweiterung traegt keine Stufe und bleibt ausserhalb', () => {
+    try {
+      const manifest = registerExternalExtension({
+        id: 'fremd-stufe',
+        name: 'Fremd',
+        modeLevel: 'beginner',
+      });
+      expect(manifest.modeLevel).toBeUndefined();
+      // Kein fester Modus fasst sie an — auch der kleinste nicht.
+      for (const stufe of EXTENSION_MODE_LEVELS) {
+        expect(disabledIdsForModeLevel(stufe)).not.toContain('fremd-stufe');
+      }
+      // Und die Registry bleibt trotz fehlender Stufe gueltig.
+      expect(validateExtensionRegistry(allExtensions())).toEqual([]);
+    } finally {
+      unregisterExternalExtension('fremd-stufe');
+    }
+  });
+
+  it('AK8: die Vorgabe bleibt unveraendert — kein Schalter aendert seinen Zustand', () => {
+    // Persistiert wird nur die Liste der bewusst abgeschalteten Kennungen;
+    // ihre Vorgabe ist leer, und daran aendert die neue Angabe nichts.
+    expect(effectiveDisabledSet([]).size).toBe(0);
+    expect(disabledCommandIdSet([]).size).toBe(0);
+    expect(disabledFeatureKeySet([]).size).toBe(0);
+    expect(disabledSettingsSectionIdSet([]).size).toBe(0);
+    for (const m of internalExtensions()) expect(isExtensionEnabled(m.id, [])).toBe(true);
+  });
+
+  it('AK9: die uebrigen Regeln der Validierung bleiben wirksam', () => {
+    // Eine gueltige Stufe heilt keinen anderen Verstoss.
+    const errors = validateExtensionRegistry([
+      { id: 'a', category: 'quatsch', modeLevel: 'full', nameKey: 'n', descKey: 'd' },
+      { id: 'a', category: 'render', modeLevel: 'full', nameKey: 'n', descKey: 'd' },
+      {
+        id: 'b',
+        category: 'render',
+        modeLevel: 'full',
+        nameKey: 'n',
+        descKey: 'd',
+        dependencies: ['fehlt'],
+      },
+    ]);
+    expect(errors.some((e) => e.includes('unbekannte Kategorie'))).toBe(true);
+    expect(errors.some((e) => e.includes('Doppelte'))).toBe(true);
+    expect(errors.some((e) => e.includes('unbekannte Abhängigkeit'))).toBe(true);
+  });
+
+  it('die Ableitung arbeitet auch auf einer uebergebenen Liste', () => {
+    expect(disabledIdsForModeLevel('beginner', SYNTH)).toEqual(['aufbau', 'spitze']);
+    expect(disabledIdsForModeLevel('advanced', SYNTH)).toEqual(['spitze']);
+    expect(disabledIdsForModeLevel('full', SYNTH)).toEqual([]);
+  });
+});
+
+// 4T-001881 (Epic 3E-000185, Story 4S-000992): Die beiden Ableitungen, die die
+// festen Arbeitsmodi bedienbar machen — welcher Modus entspricht einem
+// Schalter-Stand (Anzeige in den Einstellungen und in der Tour-Karte), und ist
+// beim Start der Einsteiger-Satz zu schreiben (Start-Modus neuer
+// Installationen).
+describe('Feste Arbeitsmodi: Anzeige und Start-Modus (4T-001881)', () => {
+  it('AK18: jeder der drei Saetze wird als sein Modus erkannt', () => {
+    for (const stufe of EXTENSION_MODE_LEVELS) {
+      expect(modeLevelForDisabledIds(disabledIdsForModeLevel(stufe))).toBe(stufe);
+    }
+    // Der Auslieferungszustand (nichts abgeschaltet) ist der volle Modus.
+    expect(modeLevelForDisabledIds([])).toBe('full');
+  });
+
+  it('AK19: ein abweichender Einzel-Schalter fuehrt auf «Angepasst» und zurueck', () => {
+    const einsteiger = disabledIdsForModeLevel('beginner');
+    // Einen Schalter zusaetzlich einschalten: kein fester Modus mehr.
+    const einerAn = einsteiger.filter((id) => id !== einsteiger[0]);
+    expect(modeLevelForDisabledIds(einerAn)).toBeNull();
+    // Einen weiteren abschalten, der im Einsteiger-Modus an ist: ebenfalls
+    // keiner — die Richtung spielt keine Rolle.
+    expect(modeLevelForDisabledIds([...einsteiger, 'wiki-links'])).toBeNull();
+    // Zurueck auf den Satz: der Modus ist wieder da. Die Reihenfolge der
+    // Liste ist dabei gleichgueltig, gemessen wird die Menge.
+    expect(modeLevelForDisabledIds([...einsteiger].reverse())).toBe('beginner');
+  });
+
+  it('AK29: unbekannte und doppelte Kennungen stoeren die Anzeige nicht', () => {
+    const einsteiger = disabledIdsForModeLevel('beginner');
+    expect(modeLevelForDisabledIds([...einsteiger, ...einsteiger])).toBe('beginner');
+    expect(modeLevelForDisabledIds([...einsteiger, 'gibt-es-nicht'])).toBe('beginner');
+    // Auch ein voellig defekter Stand liefert eine Aussage statt eines Fehlers.
+    expect(modeLevelForDisabledIds(null)).toBe('full');
+    expect(modeLevelForDisabledIds('kaputt')).toBe('full');
+  });
+
+  it('die Anzeige arbeitet auch auf einer uebergebenen Liste', () => {
+    expect(modeLevelForDisabledIds(['aufbau', 'spitze'], SYNTH)).toBe('beginner');
+    expect(modeLevelForDisabledIds(['spitze'], SYNTH)).toBe('advanced');
+    expect(modeLevelForDisabledIds([], SYNTH)).toBe('full');
+    expect(modeLevelForDisabledIds(['aufbau'], SYNTH)).toBeNull();
+  });
+
+  it('AK7: ohne gespeicherten Stand und ohne Tour-Merker gilt der Einsteiger-Satz', () => {
+    expect(START_MODE_LEVEL).toBe('beginner');
+    const start = startupDisabledIds({ hasStoredState: false, hasSeenTour: false });
+    expect(start).toEqual(disabledIdsForModeLevel('beginner'));
+    expect(modeLevelForDisabledIds(start)).toBe('beginner');
+  });
+
+  it('AK6: ein vorhandener Schalter-Stand bleibt unberuehrt — auch die leere Liste', () => {
+    // Die leere Liste ist der Stand einer bestehenden Einrichtung mit voller
+    // Funktionalitaet. Gemessen wird das Vorhandensein des Schluessels, nicht
+    // sein Inhalt; deshalb schreibt der Start hier nichts.
+    expect(startupDisabledIds({ hasStoredState: true, hasSeenTour: false })).toBeNull();
+    expect(startupDisabledIds({ hasStoredState: true, hasSeenTour: true })).toBeNull();
+  });
+
+  it('AK6: der gesetzte Tour-Merker allein verhindert die Vorgabe', () => {
+    // Wer die Tour schon gesehen hat, hat die Anwendung schon benutzt — auch
+    // wenn er nie einen Erweiterungs-Schalter angefasst hat. Ein Update
+    // beschneidet ihm den Funktionsumfang nicht.
+    expect(startupDisabledIds({ hasStoredState: false, hasSeenTour: true })).toBeNull();
+  });
+
+  it('die Start-Entscheidung arbeitet auch auf einer uebergebenen Liste', () => {
+    expect(startupDisabledIds({ hasStoredState: false, hasSeenTour: false }, SYNTH)).toEqual([
+      'aufbau',
+      'spitze',
+    ]);
   });
 });

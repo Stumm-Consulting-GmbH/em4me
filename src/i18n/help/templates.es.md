@@ -9,7 +9,7 @@ La funcionalidad se puede conmutar como extensión «Plantillas» (Configuració
 La carpeta de plantillas se configura en los ajustes (Configuración → Plantillas):
 
 - **Globalmente**, la carpeta de la aplicación vale para todas las ventanas.
-- **Por área** se puede definir una configuración propia («Usar configuración del área» en la entrada «Plantillas» del grupo de navegación «Área actual», visible solo cuando hay un área abierta); se guarda en el archivo del área y **anula por completo la global** (carpeta y reglas, sin resolución mixta). Las carpetas son relativas a la raíz del área; las rutas absolutas siguen permitidas.
+- **Por área** se puede definir una configuración propia («Usar configuración del área» en la entrada «Plantillas» del grupo de navegación «Área actual», visible solo cuando hay un área abierta; con un libro abierto el grupo se llama **Libro actual**, con una estantería abierta **Estantería actual**); se guarda en el archivo del área y **anula por completo la global** (carpeta y reglas, sin resolución mixta). Las carpetas son relativas a la raíz del área; las rutas absolutas siguen permitidas.
 
 Cada archivo Markdown de la carpeta (incluidas las subcarpetas) es una plantilla. Las subcarpetas aparecen como grupos en el popup de selección. Los cambios de configuración surten efecto de inmediato, sin reiniciar.
 

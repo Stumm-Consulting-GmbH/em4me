@@ -19,6 +19,8 @@
   "settings.calendar.loading": "Chargement de la configuration…",
   "settings.calendar.noArea": "Les systèmes de calendrier n'existent que dans une zone. Ouvrez d'abord une zone.",
   "settings.calendar.intro": "Blocs de chronologie de la zone '{name}'. Les calendriers d'un même bloc peuvent être mis en correspondance ; les blocs sont indépendants.",
+  "settings.calendar.introBook": "Blocs de chronologie du livre '{name}'. Les calendriers d'un même bloc peuvent être mis en correspondance ; les blocs sont indépendants.",
+  "settings.calendar.introShelf": "Blocs de chronologie de la bibliothèque '{name}'. Les calendriers d'un même bloc peuvent être mis en correspondance ; les blocs sont indépendants.",
   "settings.calendar.blocksGroup": "Blocs",
   "settings.calendar.blockPlaceholder": "Nom du bloc",
   "settings.calendar.blockAdd": "Ajouter un bloc",

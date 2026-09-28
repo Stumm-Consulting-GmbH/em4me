@@ -52,6 +52,24 @@
       "spec": "test/e2e/regression/4t-0971.spec.js",
       "grund": "4T-000971: Die Wirkungs-Meldung der Behandlung (wie viele Entwuerfe gesichert wurden) gehoert zum Vorfalls-Protokoll und wird vom Fall ausdruecklich geprueft. Sie erscheint nur nach einem aufgefangenen Fehler, also nie im stoerungsfreien Lauf.",
       "datum": "2026-08-14"
+    },
+    {
+      "enthaelt": "ERR_FILE_NOT_FOUND",
+      "spec": "test/e2e/funktionen/bild-ansicht.spec.js",
+      "grund": "4T-001870: Das Dokument des Falls verweist absichtlich auf zwei fehlende Bild-Dateien, eine davon innerhalb eines Verweises. Geprüft wird, dass ein nicht angezeigtes Bild keine Vergrößerung öffnet und der Klick im Verweis dem Verweis folgt; die nicht ladbare Ressource ist der Gegenstand des Tests.",
+      "datum": "2026-09-23"
+    },
+    {
+      "enthaelt": "violates the following Content Security Policy directive",
+      "spec": "test/e2e/funktionen/bild-ansicht.spec.js",
+      "grund": "4T-001870: Das Dokument des Falls enthält absichtlich ein Bild aus dem Netz. Die Inhalts-Sicherheits-Regel der Anzeige lädt es nicht, und geprüft wird, dass ein so nicht angezeigtes Bild keine Vergrößerung öffnet (E9 des Epics 3E-000322). Die Ablehnungs-Meldung ist das gewünschte Verhalten.",
+      "datum": "2026-09-23"
+    },
+    {
+      "enthaelt": "violates the following Content Security Policy directive",
+      "spec": "test/e2e/regression/4t-001925-bild-doppelklick-live.spec.js",
+      "grund": "4T-001925: Das Dokument des Falls enthält absichtlich ein Bild aus dem Netz. Die Inhalts-Sicherheits-Regel der Anzeige lädt es nicht, und geprüft wird, dass ein Doppelklick auf ein solches Bild in der Live-Ansicht nichts öffnet (AK3 des Tasks). Die Ablehnungs-Meldung ist das gewünschte Verhalten.",
+      "datum": "2026-09-23"
     }
   ]
 }

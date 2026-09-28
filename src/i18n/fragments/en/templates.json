@@ -38,6 +38,8 @@
   "settings.templates.ruleAdd": "Add rule",
   "settings.templates.ruleRemove": "Remove",
   "settings.templates.areaGroup": "For area '{name}'",
+  "settings.templates.bookGroup": "For book '{name}'",
+  "settings.templates.shelfGroup": "For bookshelf '{name}'",
   "settings.templates.areaEnabled": "Use area configuration",
   "settings.templates.areaHint": "Area values override the global ones completely. Folder entries are relative to the area root (absolute paths allowed); stored in the area file.",
   "settings.templates.error.ruleTemplate": "Every folder rule needs a template.",

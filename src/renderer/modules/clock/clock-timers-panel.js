@@ -10,7 +10,8 @@
 // - Anlege-Dialog mit eigener Segment-Steuerung fuer die Dauer (Stunden,
 //   Minuten, Sekunden). Der vorhandene Uhrzeit-Picker taugt dafuer nicht:
 //   er bildet HH:mm mit Uhrzeit-Semantik ab und kennt keine Sekunden.
-// - Meldung abgelaufener Timer mit „Bestaetigen" und „Erneut starten".
+// - Meldung abgelaufener Timer mit „Bestaetigen" und „Erneut starten"; seit
+//   4T-001728 (Epic 3E-000305) in allen Fenstern, einmal bearbeitet.
 //
 // Eigener Anzeige-Takt, getrennt vom gemeinsamen Uhr-Takt in clock-panel.js:
 // sekuendlich fuer laufende Timer, rund 50 Millisekunden fuer die laufende
@@ -26,6 +27,7 @@ import { api, $ } from '../app/api.js';
 import { t } from '../../i18n.js';
 import { appendContextMenuItem, placeContextMenuAt } from '../dialogs/context-menu-utils.js';
 import { contextMenu } from '../app/app-state.js';
+import { verbindeUhrMeldung } from './clock-due-sync.js';
 import {
   CLOCK_STOPWATCH_KEY,
   CLOCK_TIMERS_KEY,
@@ -568,6 +570,9 @@ export function showTimerDialog(existing) {
 
 const pendingDue = new Map();
 let dueOpen = false;
+// 4T-001728: siehe clock-alarms-panel.js (Schliessen ohne Aktion, Zustellung).
+let schliesseDue = null;
+let meldung = null;
 
 function renderDueList(listEl) {
   listEl.innerHTML = '';
@@ -596,15 +601,23 @@ function showDueDialog() {
   btnConfirm.textContent = t('clock.alarm.due.confirm');
   renderDueList(listEl);
 
-  const finish = async (restart) => {
-    const ids = [...pendingDue.keys()];
-    pendingDue.clear();
+  const schliessen = () => {
     modal.hidden = true;
     dueOpen = false;
+    schliesseDue = null;
     modal.removeEventListener('keydown', onKeydown, true);
     btnRestart.removeEventListener('click', onRestart);
     btnConfirm.removeEventListener('click', onConfirm);
     backdrop.removeEventListener('click', onConfirm);
+  };
+  schliesseDue = schliessen;
+  const finish = async (restart) => {
+    const angezeigt = [...pendingDue.keys()];
+    pendingDue.clear();
+    schliessen();
+    // 4T-001728 (E9): Nur die Timer, deren Anspruch gewaehrt ist; ein anderes
+    // Fenster, das schneller war, hat die uebrigen bereits bearbeitet.
+    const ids = (await api.timerClaim(angezeigt)).granted;
     const now = Date.now();
     await setTimers(
       timers.map((timer) => {
@@ -635,12 +648,15 @@ function showDueDialog() {
 function onTimerDue(payload) {
   const items = payload && Array.isArray(payload.items) ? payload.items : [];
   if (items.length === 0) return;
+  if (meldung) meldung.zugestellt(items);
   for (const item of items) pendingDue.set(item.id, item);
   if (!document.hasFocus() && typeof api.systemNotify === 'function') {
     const first = items[0];
+    // 4T-001728 (E12): einmal je Meldung, nicht je Fenster.
     void api.systemNotify({
       title: t('clock.timer.due.title'),
       body: first.label || formatDuration(first.durationMs),
+      meldung: { art: 'timer', keys: items.map((item) => item.id) },
     });
   }
   if (dueOpen) {
@@ -655,6 +671,17 @@ function onTimerDue(payload) {
 
 export function initClockTimers() {
   if (typeof api.onTimerDue === 'function') api.onTimerDue(onTimerDue);
+  meldung = verbindeUhrMeldung({
+    onHandled: (cb) => api.onTimerHandled(cb),
+    offene: () => api.timerOpen(),
+    keyOf: (item) => item.id,
+    pending: pendingDue,
+    istOffen: () => dueOpen,
+    schliessen: () => schliesseDue && schliesseDue(),
+    neuZeichnen: () => renderDueList($('#timer-due-list')),
+    zeigen: onTimerDue,
+  });
+  void meldung.nachholen();
   if (typeof api.onClockTimersChanged === 'function') {
     api.onClockTimersChanged((list) => {
       void setTimers(list, { persist: false });

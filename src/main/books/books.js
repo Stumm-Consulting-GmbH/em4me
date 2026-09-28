@@ -54,6 +54,10 @@ const { sanitizeNewFileName, isInsideArea, isSamePath } = require('../area/area-
 // Auskunft. NICHT betroffen sind Vergleiche von Datei-ENDUNGEN (isMarkdownName):
 // eine Endung ist konventionell schreibweisen-tolerant, `.MD` ist Markdown.
 const { pathCompareKey } = require('../../shared/platform.js');
+// 4T-001885 (Epic 3E-000189): Die eigenen Angaben des Buches — Titel, Autor,
+// Beschreibung und Titelbild im Frontmatter der Buch-Datei. Der Zugriff liegt
+// gemeinsam mit dem des Regals in angaben.js, weil beide denselben brauchen.
+const { leseAngaben, schreibeAngaben } = require('./angaben.js');
 
 // Endungs-Satz der Markdown-Dateien, identisch zu isMarkdownPath in main.js.
 // Bewusst nachgebildet statt importiert: main.js lädt dieses Modul, die
@@ -664,10 +668,35 @@ async function reassignChapter(bookDir, missingPath, newPath) {
   return { ok: true, relPath: newRel };
 }
 
+// --- 4T-001885 (Epic 3E-000189): Die eigenen Angaben des Buches ----------------
+//
+// Beide Wege gehen über die Begleitdatei, weil allein sie sagt, welche Datei
+// des Ordners die Buch-Datei ist. Ein Ordner ohne Begleitdatei oder mit einer
+// defekten meldet denselben Fehler wie überall sonst in diesem Modul.
+
+async function readBookInfo(bookDir) {
+  const settings = await readBookSettings(bookDir);
+  if (!settings.ok) return { ok: false, error: settings.error };
+  const fileName = readBookFileName(settings.container);
+  if (fileName === null) return { ok: false, error: 'invalid' };
+  return leseAngaben(bookDir, fileName);
+}
+
+async function writeBookInfo(bookDir, werte) {
+  const settings = await readBookSettings(bookDir);
+  if (!settings.ok) return { ok: false, error: settings.error };
+  const fileName = readBookFileName(settings.container);
+  if (fileName === null) return { ok: false, error: 'invalid' };
+  return schreibeAngaben(bookDir, fileName, werte);
+}
+
 module.exports = {
   BOOK_SETTINGS_FILENAME,
   bookSettingsPathFor,
   readBookSettings,
+  // Eigene Angaben des Buches (4T-001885).
+  readBookInfo,
+  writeBookInfo,
   detectBookDirFor,
   collectMarkdownPaths,
   buildBookState,

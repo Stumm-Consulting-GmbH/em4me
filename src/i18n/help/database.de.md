@@ -579,7 +579,7 @@ In einem Bereich ohne Datenbank wird keiner dieser Wege angeboten.
 
 In der Tabellen-Liste nennt die Spalte **«Maske»** die Masken-Datei einer Tabelle und bleibt bei der erzeugten Maske leer. Dazu trägt die Übersicht vier Aktionen: **«Konsistenz prüfen»** im Kopf für alle Tabellen und in der Zeile jeder Tabelle **«Neuer Datensatz»**, **«Prüfen»** und **«Verwendung»**. Was sie tun, beschreiben die Abschnitte «Datensätze in der Maske bearbeiten», «Konsistenz-Prüfung» und «Verwendungsnachweis». Unter den Fehlerlagen stehen auch die Hinweise zu Masken-Dateien, benannt nach der Datei.
 
-**Der Einstellungs-Abschnitt «Datenbank»** steht in der Navigations-Gruppe «Aktueller Bereich» (Datei → Einstellungen… → Aktueller Bereich → Datenbank). Er zeigt dieselbe Auskunft in Kurzform, also Name und Beschreibung der Datenbank, die Zahl ihrer Tabellen und die Zahl der Fehlerlagen, und trägt eine Option: **«Übersicht beim Öffnen des Bereichs zeigen»**. Ist sie gesetzt, öffnet sich die Übersicht von selbst, sobald der Bereich gebunden wird. Die Option liegt in der Bereichsdatei und reist mit dem Bereichs-Ordner. Dazu kommt das Feld **«Name des Sperr-Ordners»**; es ist im Abschnitt «Sperren» beschrieben.
+**Der Einstellungs-Abschnitt «Datenbank»** steht in der Navigations-Gruppe «Aktueller Bereich» (Datei → Einstellungen… → Aktueller Bereich → Datenbank; bei geöffnetem Buch heißt die Gruppe **Aktuelles Buch**, bei geöffnetem Bücherregal **Aktuelles Bücherregal**). Er zeigt dieselbe Auskunft in Kurzform, also Name und Beschreibung der Datenbank, die Zahl ihrer Tabellen und die Zahl der Fehlerlagen, und trägt eine Option: **«Übersicht beim Öffnen des Bereichs zeigen»**. Ist sie gesetzt, öffnet sich die Übersicht von selbst, sobald der Bereich gebunden wird. Die Option liegt in der Bereichsdatei und reist mit dem Bereichs-Ordner. Dazu kommt das Feld **«Name des Sperr-Ordners»**; es ist im Abschnitt «Sperren» beschrieben.
 
 Dazu führt die Anwendung in der Wurzel des Bereichs die kleine Datei `Area_Database.mdda`. Sie trägt den Zählerstand der Vorgangs-Kennungen, erscheint in keiner Dateiliste und reist mit dem Bereichs-Ordner; an ihr ist nichts zu tun. Fehlt sie, gewinnt die Anwendung den Stand aus den Änderungsbelegen zurück.
 
@@ -599,7 +599,7 @@ Für Masken-Dateien gilt dieselbe weiche Linie. Nennt der Behälter `db-form` ke
 
 ## Die Datenbank abschalten
 
-Die gesamte Datenbank ist eine [interne Erweiterung](extensions.md) mit dem Namen «Datenbank» in der Kategorie Werkzeuge und lässt sich mit einem Schalter abschalten. Sie setzt die [Eigenschafts-Profile](property-profiles.md) voraus, weil die Gestalt einer Tabellen-Definition über ein internes Profil beschrieben und geprüft wird; wird die Grundlage abgeschaltet, schaltet das die Datenbank mit ab.
+Die gesamte Datenbank ist eine [interne Erweiterung](extensions.md) mit dem Namen «Datenbank» in der Kategorie Werkzeuge und lässt sich mit einem Schalter abschalten. Sie setzt die [Eigenschafts-Profile](property-profiles.md) voraus, weil die Gestalt einer Tabellen-Definition über ein internes Profil beschrieben und geprüft wird; solange die Datenbank eingeschaltet ist, lässt sich diese Grundlage deshalb nicht abschalten.
 
 Im Aus-Zustand gilt:
 

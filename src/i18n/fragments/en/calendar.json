@@ -19,6 +19,8 @@
   "settings.calendar.loading": "Loading configuration…",
   "settings.calendar.noArea": "Calendar systems only exist within an area. Open an area first.",
   "settings.calendar.intro": "Time-reckoning blocks of the area '{name}'. Calendars within the same block can be mapped to each other; blocks are independent.",
+  "settings.calendar.introBook": "Time-reckoning blocks of the book '{name}'. Calendars within the same block can be mapped to each other; blocks are independent.",
+  "settings.calendar.introShelf": "Time-reckoning blocks of the bookshelf '{name}'. Calendars within the same block can be mapped to each other; blocks are independent.",
   "settings.calendar.blocksGroup": "Blocks",
   "settings.calendar.blockPlaceholder": "Block name",
   "settings.calendar.blockAdd": "Add block",

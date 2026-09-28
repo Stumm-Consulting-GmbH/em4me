@@ -1,5 +1,14 @@
 // 4T-001505 (Zug 3E-000277): Der Buecher-Anteil der Preload-Bruecke.
 //
+// 4T-001885 (Epic 3E-000189): Der Regal-Namensraum ist hierher gewandert. Er
+// gehoert zur selben Fachlichkeit — ein Regal ist die Gruppierung von
+// Buch-Ordnern, und die Regal-Ansicht oeffnet Buecher —, und preload.js stand
+// mit 497 von 500 Code-Zeilen so dicht an seinem Datei-Budget, dass die zwei
+// neuen Kanaele es gerissen haetten. Verschoben wird der Block unveraendert;
+// dass ein Namensraum ganz an EINER Stelle steht, ist dabei Bedingung und nicht
+// Geschmack: Beide Teile kaemen ueber Objekt-Spread zusammen, und der spaetere
+// Eintrag ueberschriebe den frueheren vollstaendig.
+//
 // **Warum ein eigenes Modul.** Die Bruecke hat beim neunten Rebase-Lauf des
 // Zuges ihr Datei-Budget von 500 Code-Zeilen gerissen (501), weil zwei Seiten
 // sie im selben Zeitraum verlaengert haben, jede fuer sich innerhalb des
@@ -90,6 +99,36 @@ function buecherBruecke(ipcRenderer) {
         ipcRenderer.invoke('books:reassignChapter', { missingPath, newPath }),
       reassignChapterDialog: (missingPath) =>
         ipcRenderer.invoke('books:reassignChapterDialog', missingPath),
+      // 4T-001885 (Epic 3E-000189): Die eigenen Angaben des Buches — Titel,
+      // Autor, Beschreibung und Titelbild aus dem Frontmatter der Buch-Datei.
+      // getInfo liefert zusaetzlich `coverGefunden` (null ohne Verweis, sonst
+      // die Auskunft, ob die Bild-Datei da ist); setInfo nimmt die vier Felder
+      // und entfernt ein Feld, dessen Wert leer ist.
+      getInfo: () => ipcRenderer.invoke('books:getInfo'),
+      setInfo: (werte) => ipcRenderer.invoke('books:setInfo', werte),
+    },
+    // 4T-000867 (Epic 3E-000162): Buecherregale — Zustand des aktiven Regals,
+    // beide Oeffnungswege, Neuanlage, Schliessen und die Zuordnung. Die
+    // dialog-freien Pfad-Einstiege (openPath, createAt) spiegeln das
+    // books-Muster und tragen die automatisierte Pruefung.
+    shelves: {
+      getState: () => ipcRenderer.invoke('shelves:getState'),
+      // 4T-000868: Anzeige-Daten der Regal-Ansicht und das Oeffnen der Seite
+      // (der Main meldet es bei jedem Regal-Oeffnen-Weg).
+      getViewData: () => ipcRenderer.invoke('shelves:getViewData'),
+      onOpenPage: (cb) => ipcRenderer.on('shelves:openPage', () => cb()),
+      openDialog: () => ipcRenderer.invoke('shelves:openDialog'),
+      createDialog: () => ipcRenderer.invoke('shelves:createDialog'),
+      close: () => ipcRenderer.invoke('shelves:close'),
+      onStateChanged: (cb) => ipcRenderer.on('shelves:stateChanged', (_e, state) => cb(state)),
+      openPath: (shelfDir) => ipcRenderer.invoke('shelves:openPath', shelfDir),
+      createAt: (parentDir, name) => ipcRenderer.invoke('shelves:createAt', { parentDir, name }),
+      assignBook: (dirName) => ipcRenderer.invoke('shelves:assignBook', dirName),
+      unassignBook: (dirName) => ipcRenderer.invoke('shelves:unassignBook', dirName),
+      // 4T-001885: Die eigenen Angaben des Regals, Muster der Buch-Kanaele;
+      // getInfo liefert zusaetzlich `shelfDir`.
+      getInfo: () => ipcRenderer.invoke('shelves:getInfo'),
+      setInfo: (werte) => ipcRenderer.invoke('shelves:setInfo', werte),
     },
   };
 }

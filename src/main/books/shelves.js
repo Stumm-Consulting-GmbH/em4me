@@ -46,7 +46,14 @@ const {
   readChapterTree,
   flattenChapters,
 } = require('../../shared/books/book-core.js');
-const { extractFrontmatter } = require('../../shared/markdown/frontmatter.js');
+// 4T-001885 (Epic 3E-000189): Frontmatter-Auszug, Bild-Aufloesung und die
+// eigenen Angaben — gemeinsam mit dem Buch, siehe den Kopf von angaben.js.
+const {
+  readFrontmatterExcerpt,
+  resolveImagePath,
+  leseAngaben,
+  schreibeAngaben,
+} = require('./angaben.js');
 
 // Endungs-Satz der Markdown-Dateien, identisch zu isMarkdownPath in main.js
 // (bewusst nachgebildet statt importiert, Begründung in books.js).
@@ -297,46 +304,11 @@ async function unassignBookDir(shelfDir, rawDirName) {
 
 // --- Ansichts-Daten (4T-000868, Story 4S-000761) ----------------------------------
 
-// Frontmatter-Auszug einer Markdown-Datei: { title, author, description,
-// cover } — fehlende oder nicht lesbare Werte als null. Nicht lesbare Datei
-// oder defektes Frontmatter liefert leere Werte statt eines Fehlers
-// (Fehler-Isolation: die Ansicht zeigt dann den Ordner-Namen). Der
-// Bild-Verweis heißt `cover` — die Bestands-Konvention des mitgelieferten
-// Demo-Buches (4T-000850), keine zweite Schlüssel-Wahrheit.
-async function readFrontmatterExcerpt(filePath) {
-  const leer = { title: null, author: null, description: null, cover: null };
-  let raw;
-  try {
-    raw = await fs.readFile(filePath, 'utf8');
-  } catch {
-    return leer;
-  }
-  const data = extractFrontmatter(raw).data;
-  if (data === null || typeof data !== 'object' || Array.isArray(data)) return leer;
-  const text = (wert) => (typeof wert === 'string' && wert.trim() !== '' ? wert.trim() : null);
-  return {
-    title: text(data.title),
-    author: text(data.author),
-    description: text(data.description),
-    cover: text(data.cover),
-  };
-}
-
-// Bild-Verweis eines Buches auflösen: relativ zum Buch-Ordner (absolute
-// Verweise bleiben absolut). null, wenn kein Verweis gesetzt ist oder die
-// Datei nicht existiert — die Ansicht zeigt dann die Platzhalter-Kachel
-// (PO-Entscheidung vom 2026-08-04).
-async function resolveImagePath(baseDir, imageRef) {
-  if (imageRef === null) return null;
-  const absolute = path.isAbsolute(imageRef)
-    ? path.resolve(imageRef)
-    : path.join(path.resolve(baseDir), imageRef);
-  try {
-    return (await fs.stat(absolute)).isFile() ? absolute : null;
-  } catch {
-    return null;
-  }
-}
+// Frontmatter-Auszug und Bild-Aufloesung liegen seit 4T-001885 (Epic 3E-000189)
+// in angaben.js: Der Einstellungs-Abschnitt von Buch und Regal braucht denselben
+// Zugriff, und books.js darf dieses Modul hier nicht laden (Zyklus). Der Auszug
+// bleibt unten exportiert, damit die Gefaess-Liste ihren Titel unveraendert ueber
+// denselben Weg bekommt.
 
 // Ansichts-Eintrag eines Buch-Ordners: Titel (Frontmatter-Titel der
 // Buch-Datei, sonst Ordner-Name), Autor, Beschreibung, aufgelöstes Bild und
@@ -424,11 +396,38 @@ async function buildShelfViewData(shelfDir) {
   };
 }
 
+// --- 4T-001885 (Epic 3E-000189): Die eigenen Angaben des Regals ----------------
+//
+// Strukturgleich zum Buch (books.js, readBookInfo/writeBookInfo): Die
+// Begleitdatei sagt, welche Datei des Ordners die Regal-Datei ist, und deren
+// Frontmatter traegt die Angaben. `shelfDir` kommt mit zurueck, weil der
+// Einstellungs-Abschnitt ihn als Schluessel der Darstellungs-Ablage braucht.
+
+async function readShelfInfo(shelfDir) {
+  const settings = await readShelfSettings(shelfDir);
+  if (!settings.ok) return { ok: false, error: settings.error };
+  const fileName = readShelfFileName(settings.container);
+  if (fileName === null) return { ok: false, error: 'invalid' };
+  const angaben = await leseAngaben(shelfDir, fileName);
+  return { ...angaben, shelfDir: path.resolve(shelfDir) };
+}
+
+async function writeShelfInfo(shelfDir, werte) {
+  const settings = await readShelfSettings(shelfDir);
+  if (!settings.ok) return { ok: false, error: settings.error };
+  const fileName = readShelfFileName(settings.container);
+  if (fileName === null) return { ok: false, error: 'invalid' };
+  return schreibeAngaben(shelfDir, fileName, werte);
+}
+
 module.exports = {
   SHELF_SETTINGS_FILENAME,
   shelfSettingsPathFor,
   sanitizeShelfName,
   readShelfSettings,
+  // Eigene Angaben des Regals (4T-001885).
+  readShelfInfo,
+  writeShelfInfo,
   detectShelfDirFor,
   collectBookDirs,
   bookDirContaining,

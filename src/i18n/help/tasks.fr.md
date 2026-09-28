@@ -59,7 +59,7 @@ Les échéances figurent comme marqueurs symboles avec une date `AAAA-MM-JJ` en 
 - [ ] Préparation ⏳ 2099-03-24 🛫 2099-03-17
 - [ ] Très en retard 📅 2020-01-01
 
-Se définissent manuellement **échéance** (`📅`), **planifié** (`⏳`) et **début** (`🛫`). Se créent automatiquement **créé** (`➕`), **terminé** (`✅`) et **annulé** (`❌`) — voir dates automatiques. Les échéances dépassées sont surlignées en rouge ; les valeurs invalides au calendrier (un 30 février, par exemple) sont conservées et marquées comme invalides.
+Se définissent manuellement **échéance** (`📅`), **planifié** (`⏳`) et **début** (`🛫`). Se créent automatiquement **créé** (`➕`), **terminé** (`✅`) et **annulé** (`❌`) — voir dates automatiques ; la date de fin peut ensuite être modifiée ou retirée dans le dialogue d'édition. Les échéances dépassées sont surlignées en rouge ; les valeurs invalides au calendrier (un 30 février, par exemple) sont conservées et marquées comme invalides.
 
 Après la date, une **heure** `HH:mm` est facultativement admise :
 
@@ -115,7 +115,7 @@ Comportement en détail : la base de calcul est l'échéance, à défaut le plan
 
 Au changement de statut, l'application écrit des marqueurs de date dans la ligne — chacun des trois automatismes peut être désactivé individuellement dans la section de paramètres **Tâches** :
 
-- **Terminé** (`✅`) : au passage à un statut de type Terminé ; le retour en arrière retire de nouveau la date.
+- **Terminé** (`✅`) : au passage à un statut de type Terminé ; le retour en arrière retire de nouveau la date. La date du jour est une valeur proposée : dans le dialogue d'édition, on peut choisir un autre jour ou retirer la date, et l'automatisme ne l'écrase qu'au prochain changement de statut.
 - **Annulé** (`❌`) : de même pour le type Annulé.
 - **Créé** (`➕`) : lors de la transformation d'une ligne en tâche via la commande « Liste de tâches » (désactivé par défaut).
 
@@ -143,7 +143,7 @@ Les ID se composent de lettres, de chiffres, de `_` et de `-`. Les ID générés
 
 ## Dialogue d'édition
 
-La commande **Modifier la tâche…** (défaut `Ctrl+Alt+A`, aussi dans le menu contextuel de l'éditeur sous Insérer et comme bouton crayon sur les résultats de requête) ouvre un formulaire pour tous les marqueurs : description, statut (issu du jeu de statuts configuré), priorité, règle de récurrence avec indication en cas de forme incompréhensible, les trois échéances manuelles via le calendrier de dates, ainsi qu'ID, prédécesseurs et successeurs avec une recherche de tâches sur le périmètre de recherche. Sur une ligne de tâche, le dialogue modifie ; sur une ligne vide, il crée une nouvelle tâche. Le passage à un statut de type Terminé inscrit la date de fin selon l'automatisme ; une entrée de successeur écrit la référence au prédécesseur sur la ligne cible (la tâche elle-même reçoit au besoin automatiquement un ID). Chaque application est une seule étape d'annulation.
+La commande **Modifier la tâche…** (défaut `Ctrl+Alt+A`, aussi dans le menu contextuel de l'éditeur sous Insérer et comme bouton crayon sur les résultats de requête) ouvre un formulaire pour tous les marqueurs : description, statut (issu du jeu de statuts configuré), priorité, règle de récurrence avec indication en cas de forme incompréhensible, les trois échéances manuelles via le calendrier de dates, ainsi qu'ID, prédécesseurs et successeurs avec une recherche de tâches sur le périmètre de recherche. Sur une ligne de tâche, le dialogue modifie ; sur une ligne vide, il crée une nouvelle tâche. Si la tâche porte un statut de type Terminé, le dialogue affiche une ligne **Terminé** avec la date de fin, **Choisir…** via le calendrier de dates et **Retirer** ; pour tout autre statut, elle est absente. Quand le statut passe à Terminé dans le dialogue, la ligne apparaît aussitôt avec la date du jour proposée par l'automatisme — un autre jour, même dans le futur, ou son retrait est conservé à l'application. Si l'automatisme est désactivé, la ligne est vide et reste modifiable. Les dates de création et d'annulation ne sont qu'affichées ; une entrée de successeur écrit la référence au prédécesseur sur la ligne cible (la tâche elle-même reçoit au besoin automatiquement un ID). Chaque application est une seule étape d'annulation.
 
 ## Autocomplétion
 

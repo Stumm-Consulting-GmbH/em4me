@@ -579,7 +579,7 @@ En un área sin base de datos no se ofrece ninguno de estos caminos.
 
 En la lista de tablas, la columna **«Formulario»** nombra el archivo de formulario de una tabla y queda vacía para el formulario generado. Además, el resumen lleva cuatro acciones: **«Comprobar coherencia»** en la cabecera para todas las tablas, y en la fila de cada tabla **«Nuevo registro»**, **«Comprobar»** y **«Uso»**. Lo que hacen lo describen las secciones «Editar registros en el formulario», «Comprobación de coherencia» y «Uso de tablas y registros». Entre las incidencias figuran también los avisos sobre archivos de formulario, nombrados según el archivo.
 
-**La sección de ajustes «Base de datos»** está en el grupo de navegación «Área actual» (Archivo → Configuración… → Área actual → Base de datos). Muestra la misma información en forma breve, es decir, el nombre y la descripción de la base de datos, el número de sus tablas y el número de incidencias, y lleva una opción: **«Mostrar el resumen al abrir el área»**. Si está marcada, el resumen se abre por sí mismo en cuanto el área queda vinculada. La opción reside en el archivo del área y viaja con la carpeta del área. A ello se suma el campo **«Nombre de la carpeta de bloqueos»**; está descrito en la sección «Bloqueos».
+**La sección de ajustes «Base de datos»** está en el grupo de navegación «Área actual» (Archivo → Configuración… → Área actual → Base de datos; con un libro abierto el grupo se llama **Libro actual**, con una estantería abierta **Estantería actual**). Muestra la misma información en forma breve, es decir, el nombre y la descripción de la base de datos, el número de sus tablas y el número de incidencias, y lleva una opción: **«Mostrar el resumen al abrir el área»**. Si está marcada, el resumen se abre por sí mismo en cuanto el área queda vinculada. La opción reside en el archivo del área y viaja con la carpeta del área. A ello se suma el campo **«Nombre de la carpeta de bloqueos»**; está descrito en la sección «Bloqueos».
 
 Además, la aplicación mantiene en la raíz del área el pequeño archivo `Area_Database.mdda`. Guarda el estado del contador de los identificadores de operación, no aparece en ninguna lista de archivos y viaja con la carpeta del área; usted no tiene que hacer nada en él. Si falta, la aplicación recupera ese estado a partir de los justificantes de cambio.
 
@@ -599,7 +599,7 @@ La misma línea flexible vale para los archivos de formulario. Si el contenedor 
 
 ## Desactivar la base de datos
 
-Toda la base de datos es una [extensión interna](extensions.md) llamada «Base de datos», de la categoría Herramientas, y se desactiva con un único interruptor. Requiere los [Perfiles de propiedades](property-profiles.md), porque la forma de una definición de tabla se describe y se comprueba mediante un perfil interno; si se desactiva ese requisito, la base de datos se desactiva con él.
+Toda la base de datos es una [extensión interna](extensions.md) llamada «Base de datos», de la categoría Herramientas, y se desactiva con un único interruptor. Requiere los [Perfiles de propiedades](property-profiles.md), porque la forma de una definición de tabla se describe y se comprueba mediante un perfil interno; mientras la base de datos esté activada, ese requisito no se puede desactivar.
 
 Estando desactivada:
 

@@ -579,7 +579,7 @@ In an area without a database none of these ways is offered.
 
 In the list of tables, the column **«Form»** names the form file of a table and stays empty for the generated form. In addition the overview carries four actions: **«Check consistency»** in the header for all tables, and in the row of every table **«New record»**, **«Check»** and **«Usage»**. What they do is described in the sections «Editing records in the form», «Consistency check» and «Usage of tables and records». The issues also include the hints on form files, named after the file.
 
-**The settings section «Database»** sits in the navigation group «Current area» (File → Settings… → Current area → Database). It shows the same information in short form, that is name and description of the database, the number of its tables and the number of issues, and it carries one option: **«Show the overview when the area is opened»**. If it is set, the overview opens by itself as soon as the area is bound. The option lives in the area file and travels with the area folder. In addition there is the field **«Name of the lock folder»**; it is described in the section «Locks».
+**The settings section «Database»** sits in the navigation group «Current area» (File → Settings… → Current area → Database; with a book open the group is called **Current book**, with a bookshelf open **Current bookshelf**). It shows the same information in short form, that is name and description of the database, the number of its tables and the number of issues, and it carries one option: **«Show the overview when the area is opened»**. If it is set, the overview opens by itself as soon as the area is bound. The option lives in the area file and travels with the area folder. In addition there is the field **«Name of the lock folder»**; it is described in the section «Locks».
 
 In addition, the application keeps the small file `Area_Database.mdda` in the root of the area. It holds the current count of the operation identifiers, appears in no file list and travels with the area folder; there is nothing for you to do with it. If it is missing, the application recovers the count from the change records.
 
@@ -599,7 +599,7 @@ The same lenient line applies to form files. If the container `db-form` names no
 
 ## Switching the database off
 
-The entire database is an [internal extension](extensions.md) named «Database» in the category Tools and can be switched off with a single switch. It requires the [Property Profiles](property-profiles.md), because the shape of a table definition is described and checked through an internal profile; if the basis is switched off, the database goes off with it.
+The entire database is an [internal extension](extensions.md) named «Database» in the category Tools and can be switched off with a single switch. It requires the [Property Profiles](property-profiles.md), because the shape of a table definition is described and checked through an internal profile; as long as the database is switched on, that basis therefore cannot be switched off.
 
 When switched off, the following applies:
 

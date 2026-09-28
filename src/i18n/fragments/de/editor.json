@@ -109,5 +109,6 @@
   "inlineCalc.error.function": "Unbekannte Funktion oder falsche Argument-Anzahl",
   "inlineCalc.error.value": "Ausdruck ist nicht auswertbar",
   "tableEdit.hint.notFound": "Tabelle im Quelltext nicht eindeutig gefunden, Änderung verworfen",
-  "tableEdit.hint.blocked": "Tabelle mit Struktur-Fehlern, Bearbeitung nur im Quelltext"
+  "tableEdit.hint.blocked": "Tabelle mit Struktur-Fehlern, Bearbeitung nur im Quelltext",
+  "tableEdit.hint.keptOpen": "Die Zelle wurde inzwischen von anderer Seite geändert – Eingabetaste übernimmt die Eingabe, Escape verwirft sie"
 }

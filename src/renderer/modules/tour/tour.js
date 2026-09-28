@@ -12,17 +12,32 @@
 // Merker `tourSeen` an — er liest ihn vor dem Start und schreibt ihn beim Ende
 // der Tour. Der Merker hat bewusst KEINEN Vorgabewert im Store: Erst der
 // Zustand «noch nie gesetzt» belegt den Erststart, ein gesetzter Wert (gleich
-// welcher) unterdrückt den automatischen Anlauf dauerhaft.
+// welcher) unterdrückt den automatischen Anlauf dauerhaft. Sein Schlüssel liegt
+// seit 4T-001881 in src/shared/erststart.js, weil der Start-Modus «Einsteiger»
+// neuer Installationen im Main-Prozess dieselbe Frage stellt.
+//
+// 4T-001881 (Epic 3E-000185): Eine Station kann ein Bedienelement in ihrer
+// Karte tragen (Feld `bedienelement` der Stationen-Folge). Gebraucht wird das
+// von der Station der Arbeitsmodi, an der die Wahl sofort wirkt; der Bau des
+// Elements liegt bei ihm selbst (tour-arbeitsmodus.js), hier steht allein die
+// Auswertung des Feldes.
 'use strict';
 
 import { driver } from 'driver.js';
 
+import { TOUR_SEEN_KEY } from '../../../shared/erststart.js';
 import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
+import { baueArbeitsmodusWahl } from './tour-arbeitsmodus.js';
 import { TOUR_STATIONEN } from './tour-stationen.js';
 
-// Store-Schlüssel des Erststart-Merkers (ohne Vorgabewert, siehe Kopf).
-const TOUR_SEEN_KEY = 'tourSeen';
+// 4T-001881 (Epic 3E-000185): Die Bedienelemente, die eine Station in ihrer
+// Karte tragen kann, nach dem Wert ihres Feldes `bedienelement`. Ein Bau
+// liefert ein fertiges Element; die Station bleibt damit eine reine Angabe,
+// und die Karte kennt kein einzelnes Bedienelement mit Namen.
+const BEDIENELEMENTE = {
+  arbeitsmodus: baueArbeitsmodusWahl,
+};
 
 // Die laufende Tour als Paar { instanz, schreibeMerker }, sonst null. driver.js
 // kennt keine globale Instanz-Verwaltung; ohne diesen Griff bliebe eine zweite
@@ -57,6 +72,18 @@ function zielElement(anker) {
 // brauchbares Ziel läuft als Karte ohne `element`, also frei zentriert statt
 // mit Hervorhebung; der Text der Station bleibt damit erhalten, statt die
 // Station stillschweigend zu überspringen.
+//
+// 4T-001881 (Epic 3E-000185): Trägt die Station ein `bedienelement`, kommt es
+// über den Paket-Haken `onPopoverRender` in die Karte — driver.js ruft ihn
+// nach dem Setzen von Titel und Text, und zwar bei JEDEM Aufbau der Karte.
+// Damit zeigt das Element bei jedem Besuch der Station den aktuellen Stand,
+// auch wenn der Anwender vor- und zurückblättert.
+//
+// Angehängt wird ausdrücklich an `popover.description` und nicht an den
+// Rahmen: driver.js unterdrückt Zeiger-Ereignisse innerhalb der Karte, nimmt
+// Titel und Beschreibung davon aber aus (Paket-Vertrag, am Bestand
+// nachgesehen). Ein Bedienelement außerhalb dieser beiden Bereiche bekäme
+// keinen Klick.
 function baueSchritte() {
   return TOUR_STATIONEN.map((station) => {
     const schritt = {
@@ -65,6 +92,12 @@ function baueSchritte() {
         description: t(`tour.${station.id}.text`),
       },
     };
+    const baue = BEDIENELEMENTE[station.bedienelement];
+    if (baue) {
+      schritt.popover.onPopoverRender = (popover) => {
+        popover.description.appendChild(baue());
+      };
+    }
     const el = zielElement(station.anker);
     if (el) schritt.element = el;
     return schritt;

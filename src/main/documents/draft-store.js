@@ -22,10 +22,12 @@ function normalizeManifest(raw) {
     if (typeof e.id !== 'string' || !e.id) continue;
     const area = typeof e.area === 'string' && e.area ? e.area : null;
     const workspaceId = typeof e.workspaceId === 'string' && e.workspaceId ? e.workspaceId : null;
+    // 4T-001743 (Epic 3E-000309): Kennung der schreibenden App oder null.
+    const appKey = typeof e.appKey === 'string' && e.appKey ? e.appKey : null;
     const order = Number.isFinite(e.order) ? e.order : i;
     const tabSettings = e.tabSettings && typeof e.tabSettings === 'object' ? e.tabSettings : {};
     const savedAt = typeof e.savedAt === 'string' ? e.savedAt : '';
-    result.push({ id: e.id, area, workspaceId, order, tabSettings, savedAt });
+    result.push({ id: e.id, area, workspaceId, appKey, order, tabSettings, savedAt });
   }
   return result;
 }
@@ -63,6 +65,10 @@ function findOrphans(manifest, fileIds) {
 //   unassigned — Arbeitsbereichs-Entwuerfe, deren Arbeitsbereich nicht dabei
 //                ist (geschlossen); bleiben im Speicher liegen und kommen
 //                erst mit dem Oeffnen ihres Arbeitsbereichs zurueck.
+// 4T-001743 (Epic 3E-000309): Tragen Entwurf und Ziel-App dieselbe Kennung
+// (appKey), gewinnt diese App vor der ersten bereichsgleichen. So bekommen
+// zwei Apps auf demselben Ordner je ihre eigenen Entwuerfe zurueck; ohne
+// Kennung (Bestand) bleibt es bei der ersten.
 function assignDraftsToApps(drafts, appTargets, isSamePath) {
   const byApp = appTargets.map(() => []);
   const leftover = [];
@@ -75,9 +81,9 @@ function assignDraftsToApps(drafts, appTargets, isSamePath) {
       continue;
     }
     if (d.area) {
-      const idx = appTargets.findIndex(
-        (t) => t && !t.workspaceId && t.rootPath && isSamePath(t.rootPath, d.area),
-      );
+      const passt = (t) => t && !t.workspaceId && t.rootPath && isSamePath(t.rootPath, d.area);
+      const eigene = d.appKey ? appTargets.findIndex((t) => passt(t) && t.appKey === d.appKey) : -1;
+      const idx = eigene >= 0 ? eigene : appTargets.findIndex(passt);
       if (idx >= 0) {
         byApp[idx].push(d);
         continue;

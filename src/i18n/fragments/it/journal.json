@@ -44,6 +44,8 @@
   "settings.journals.loading": "Caricamento della configurazione…",
   "settings.journals.noArea": "I diari esistono solo all'interno di un'area. Aprire prima un'area.",
   "settings.journals.intro": "Scaffali e diari dell'area '{name}'. Le modifiche hanno effetto subito dopo l'applicazione.",
+  "settings.journals.introBook": "Scaffali e diari del libro '{name}'. Le modifiche hanno effetto subito dopo l'applicazione.",
+  "settings.journals.introShelf": "Scaffali e diari della libreria '{name}'. Le modifiche hanno effetto subito dopo l'applicazione.",
   "settings.journals.shelvesGroup": "Scaffali",
   "settings.journals.shelfPlaceholder": "Nome dello scaffale",
   "settings.journals.shelfAdd": "Aggiungi scaffale",

@@ -460,7 +460,10 @@ function registerIndexViewsIpc(handle, deps) {
     const filePath = params && params.filePath;
     const content = params && params.content;
     if (content === null) return backlinks.clearBufferOverlay(filePath);
-    return backlinks.setBufferOverlay(filePath, content);
+    // 4T-001727 (Epic 3E-000305): Der Melder reist mit; eine aus diesem Stand
+    // faellige Erinnerung wird in seinem Fenster bearbeitet (reminders:edit).
+    const besitzer = event && event.sender ? event.sender.id : null;
+    return backlinks.setBufferOverlay(filePath, content, besitzer);
   });
 
   // 4T-000413 (Epic 3E-000078): Daten-Snapshot fuer Skript-Bloecke

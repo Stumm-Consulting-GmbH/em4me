@@ -187,6 +187,91 @@ describe('AK4/AK5 — ergaenzen und ersetzen je Datenart', () => {
   });
 });
 
+// 4T-001882 (Epic 3E-000185, Story 4S-000993): Die eigenen Arbeitsmodi sind
+// eine eigene Datenart NEBEN dem Schalt-Zustand — benannte Arbeit statt eines
+// Werts, und deshalb mit der anderen Regel: ergaenzen statt ersetzen.
+describe('Eigene Arbeitsmodi im Einlesen (4T-001882)', () => {
+  const IST_MODI = {
+    extensions: {
+      disabled: ['mermaid'],
+      modes: [{ id: 'm1', name: 'Schreiben', disabled: ['katex'] }],
+    },
+  };
+
+  it('AK10: der eingelesene Modus kommt hinzu, der vorhandene bleibt unveraendert', async () => {
+    const sections = [
+      {
+        name: 'extensionModes',
+        value: { 'extensions.modes': [{ id: 'm9', name: 'Ordnen', disabled: ['mermaid'] }] },
+      },
+    ];
+    const zeile = eintrag(planFuer(await istStand(IST_MODI), sections), 'extensionModes');
+    expect(zeile.action).toBe('append');
+    expect(zeile.hinzu).toBe(1);
+    const liste = zeile.values['extensions.modes'];
+    expect(liste).toHaveLength(2);
+    expect(liste[0]).toEqual(IST_MODI.extensions.modes[0]);
+    expect(liste[1].name).toBe('Ordnen');
+  });
+
+  it('AK10: ein vergebener Name wird auf einen freien abgebildet und im Plan genannt', async () => {
+    const sections = [
+      {
+        name: 'extensionModes',
+        value: { 'extensions.modes': [{ id: 'm1', name: 'Schreiben', disabled: [] }] },
+      },
+    ];
+    const zeile = eintrag(planFuer(await istStand(IST_MODI), sections), 'extensionModes');
+    const liste = zeile.values['extensions.modes'];
+    expect(liste[0]).toEqual(IST_MODI.extensions.modes[0]);
+    expect(liste[1].name).toBe('Schreiben (2)');
+    // Auch die Kennung kollidiert und bekommt eine freie — still, weil sie dem
+    // Anwender unsichtbar ist; die Umbenennung dagegen steht im Bericht.
+    expect(liste[1].id).not.toBe('m1');
+    expect(zeile.umbenannt).toEqual([{ von: 'Schreiben', nach: 'Schreiben (2)' }]);
+  });
+
+  it('nimmt eine Datei ohne vorhandene Modi unveraendert an', async () => {
+    const sections = [
+      {
+        name: 'extensionModes',
+        value: { 'extensions.modes': [{ id: 'm9', name: 'Ordnen', disabled: [] }] },
+      },
+    ];
+    const zeile = eintrag(planFuer(await istStand({}), sections), 'extensionModes');
+    expect(zeile.values['extensions.modes']).toEqual([{ id: 'm9', name: 'Ordnen', disabled: [] }]);
+  });
+
+  it('verwirft eine Sektion in fremder Gestalt, statt sie in den Speicher zu lassen', async () => {
+    const sections = [{ name: 'extensionModes', value: { 'extensions.modes': { m1: 'Unsinn' } } }];
+    const zeile = eintrag(planFuer(await istStand(IST_MODI), sections), 'extensionModes');
+    expect(zeile.action).toBe('skip');
+    expect(zeile.verworfen).toEqual(['extensions.modes']);
+  });
+
+  it('bleibt vom Schalt-Zustand daneben getrennt: der wird weiterhin ersetzt', async () => {
+    const sections = [
+      { name: 'extensions', value: { 'extensions.disabled': ['callouts'] } },
+      {
+        name: 'extensionModes',
+        value: { 'extensions.modes': [{ id: 'm9', name: 'Ordnen', disabled: [] }] },
+      },
+    ];
+    const plan = planFuer(await istStand(IST_MODI), sections);
+    expect(eintrag(plan, 'extensions').action).toBe('replace');
+    expect(eintrag(plan, 'extensions').values['extensions.disabled']).toEqual(['callouts']);
+    expect(eintrag(plan, 'extensionModes').action).toBe('append');
+    expect(eintrag(plan, 'extensionModes').values['extensions.modes']).toHaveLength(2);
+  });
+
+  it('meldet die Zahl der eigenen Modi in der Auswahl-Liste', async () => {
+    const gesammelt = await istStand(IST_MODI);
+    const zeile = gesammelt.find((k) => k.id === 'extensionModes');
+    expect(zeile.count).toBe(1);
+    expect(dataKindById('extensionModes').paths).toEqual(['extensions.modes']);
+  });
+});
+
 describe('AK6 — Namens-Kollision ueber mehrere Datenarten hinweg', () => {
   it('behaelt den vorhandenen Eintrag und legt den eingelesenen mit Zusatz daneben', async () => {
     const plan = planFuer(await istStand(EINGERICHTET), FREMDE_DATEI);

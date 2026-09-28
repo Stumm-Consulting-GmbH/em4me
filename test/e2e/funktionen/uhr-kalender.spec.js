@@ -164,6 +164,13 @@ test.describe('UK-04: Kalenderwochen-Spalte', () => {
     const userData = seedProfile({
       language: 'de',
       clock: { options: { showCalendarWeek: false } },
+      // 4T-001881 (Epic 3E-000185): Ein von Hand geschriebenes Profil ohne
+      // Tour-Merker ist fuer die Anwendung ein erster Start — und der setzt
+      // seit den Arbeitsmodi den Einsteiger-Satz, in dem die Uhr abgeschaltet
+      // waere. Der leere Schalter-Stand sagt hier ausdruecklich: volle
+      // Funktionalitaet, wie sie dieser Fall braucht. Der Erststart selbst
+      // bleibt unberuehrt, die Tour laeuft weiterhin an (siehe unten).
+      extensions: { disabled: [] },
     });
     const { app, page } = await launchApp({ userData, settings: null });
     try {

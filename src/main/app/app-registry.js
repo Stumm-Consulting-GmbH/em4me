@@ -18,18 +18,31 @@
 //     workspace = { id, name } | null. Arbeitsbereichs-Apps sind benannt und
 //     zaehlen daher — wie Bereichs-Apps — nicht in die "App N"-Nummerierung.
 //   - Die letzte schliessende Fenster-Zuordnung entfernt die App.
+//   - 4T-001743 (Epic 3E-000309): Jede App traegt eine sitzungs-uebergreifende
+//     Kennung (appKey). Sie reist mit dem Sitzungs-Schnappschuss und den
+//     Entwuerfen, damit zwei Apps auf demselben Ordner nach dem Neustart je
+//     ihre eigenen Entwuerfe zurueckbekommen.
 'use strict';
 
+const { randomUUID } = require('node:crypto');
+
 function createAppRegistry() {
-  const apps = new Map(); // appId -> { id, area: null | { rootPath, name }, workspace: null | { id, name } }
+  const apps = new Map(); // appId -> { id, appKey, area: null | { rootPath, name }, workspace: null | { id, name } }
   const windowToApp = new Map(); // windowId -> appId (Insertion-Order = Erzeugungsreihenfolge)
   let nextAppId = 1;
 
-  function createApp(area = null) {
+  // 4T-001743: appKey aus der Sitzung uebernehmen oder neu vergeben.
+  function createApp(area = null, appKey = null) {
     const id = nextAppId;
     nextAppId += 1;
-    apps.set(id, { id, area: area || null, workspace: null });
+    const key = typeof appKey === 'string' && appKey ? appKey : randomUUID();
+    apps.set(id, { id, appKey: key, area: area || null, workspace: null });
     return id;
+  }
+
+  function getAppKey(appId) {
+    const app = apps.get(appId);
+    return app ? app.appKey : null;
   }
 
   function hasApp(appId) {
@@ -153,6 +166,7 @@ function createAppRegistry() {
 
   return {
     createApp,
+    getAppKey,
     hasApp,
     assignWindow,
     appOf,

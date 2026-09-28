@@ -11,6 +11,9 @@
   "attachments.open.outsideRoot": "Non aperto: la destinazione è fuori dalla cartella consentita.",
   "attachments.open.notFound": "Non aperto: file non trovato.",
   "attachments.open.failed": "Impossibile aprire l’allegato.",
+  "attachments.imageView.label": "Visualizzazione ingrandita",
+  "attachments.imageView.openExternal": "Apri nel programma predefinito",
+  "attachments.imageView.close": "Chiudi",
   "settings.attachments.title": "Allegati",
   "settings.attachments.loading": "Caricamento delle impostazioni …",
   "settings.attachments.form": "Posizione",
@@ -22,5 +25,7 @@
   "settings.attachments.folder": "Nome della cartella",
   "settings.attachments.folderHint": "Vale per «Sottocartella fissa» e «Cartella centrale dell'area». Un nome singolo, senza segmenti di percorso.",
   "settings.attachments.areaGroup": "Area «{name}»",
+  "settings.attachments.bookGroup": "Libro «{name}»",
+  "settings.attachments.shelfGroup": "Libreria «{name}»",
   "settings.attachments.invalidFolder": "Il nome della cartella non può contenere segmenti di percorso né essere vuoto."
 }

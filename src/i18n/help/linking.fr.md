@@ -82,7 +82,7 @@ Pour les ancres de bloc, le bloc englobant complet est incorporé (élément de 
 Si un fichier Markdown porte le même nom qu'une pièce jointe, le fichier Markdown l'emporte ; écrit avec son extension (`![[image.png]]`), le cas est sans ambiguïté. Les images Markdown ordinaires `![](chemin.png)` ne sont pas concernées — leur écriture désigne un chemin et non un nom.
 ## Liens entre zones
 
-Deux zones peuvent être liées afin qu'une référence franchisse la frontière de zone. Cela se configure sous **Paramètres → Zone actuelle → Liens entre zones** : on y indique le dossier de l'autre zone et un **préfixe** par lequel cette zone sera désignée.
+Deux zones peuvent être liées afin qu'une référence franchisse la frontière de zone. Cela se configure sous **Paramètres → Zone actuelle → Liens entre zones** (lorsqu'un livre est ouvert, le bloc s'appelle **Livre actuel**, lorsqu'une bibliothèque est ouverte **Bibliothèque actuelle**) : on y indique le dossier de l'autre zone et un **préfixe** par lequel cette zone sera désignée.
 
 Le préfixe ne vaut **que dans cette zone et que dans ce sens**. La façon dont l'autre zone désigne celle-ci se règle là-bas et peut différer. Lettres, chiffres, tiret et tiret bas sont autorisés ; la casse n'a pas d'importance.
 
@@ -146,13 +146,15 @@ Pendant la saisie en mode édition, un menu de suggestions s'ouvre :
 - `[[Fichier#` des ancres de titre, `[[Fichier#^` des identifiants de bloc,
 - `#` dans le texte des tags connus.
 
-Les flèches naviguent, Entrée ou Tab sélectionne, Échap ferme.
+Les flèches naviguent, Entrée sélectionne, Échap ferme.
 
 Tant que rien n'est saisi après `[[`, les fichiers de l'espace modifiés le plus récemment figurent en tête, le plus récent d'abord. Dès que l'on filtre, la qualité de correspondance reprend la tête ; la date de modification ne départage plus que les suggestions de même rang.
 
 Après `#`, les tags les plus souvent attribués dans l’espace figurent en tête, le plus fréquent d’abord ; là aussi la qualité de correspondance prime dès que quelque chose est saisi, et la fréquence tranche alors entre égaux. Le nombre derrière chaque suggestion l’indique.
 
 La validation d'une suggestion de fichier ou d'alias écrit aussi les crochets fermants et place le curseur derrière. S'ils sont déjà présents, aucune seconde paire n'apparaît.
+
+Dans une cellule de tableau en mode direct, la même liste apparaît à la cellule, avec les mêmes entrées et la même manipulation ; détails sous [Vues et affichage](views-display.md). Elle n’y propose pas de marqueurs de tâche, car une ligne de tableau n’est pas une ligne de tâche ; il en va de même dans la vue code source.
 
 ## Barres latérales du réseau
 

@@ -5,6 +5,7 @@
   "reminders.dialog.snooze": "Me le rappeler plus tard",
   "reminders.dialog.close": "Fermer",
   "reminders.dialog.openFile": "Ouvrir le fichier",
+  "reminders.dialog.origin": "Provenance : {name}",
   "reminders.notification.count": "{n} rappels à échéance",
   "reminders.snooze.pick": "Choisir la date…",
   "reminders.snooze.m.one": "1 minute",
@@ -39,5 +40,5 @@
   "settings.reminders.unit.d": "jours",
   "settings.reminders.unit.w": "semaines",
   "settings.reminders.systemNotification": "Afficher la notification système",
-  "settings.reminders.systemNotificationHint": "En plus du dialogue lorsque la fenêtre n'est pas au premier plan."
+  "settings.reminders.systemNotificationHint": "En plus du dialogue lorsqu'aucune fenêtre de l'application n'est au premier plan ; une fois par avis."
 }

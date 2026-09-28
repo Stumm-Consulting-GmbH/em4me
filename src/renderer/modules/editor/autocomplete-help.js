@@ -480,11 +480,21 @@ export function taskMarkerCompletionSource(context) {
   };
 }
 
+// 4T-001713 (Epic 3E-000300): Die Quellen der Vorschlagsliste als eine Liste,
+// die auch die Vorschlagsliste in der Tabellenzelle der Live-Ansicht befragt
+// (`live-table-suggestions.js`). Eine neue Quelle wirkt damit an beiden Stellen,
+// statt an einer vergessen zu werden.
+export const AUTOCOMPLETE_SOURCES = [
+  wikiLinkCompletionSource,
+  tagCompletionSource,
+  taskMarkerCompletionSource,
+];
+
 // 4T-000057: Extension fuer CodeMirror. override=[...] ersetzt die Default-
 // Completion-Quellen. activateOnTyping=true triggert bei jedem Wortzeichen.
 // 4T-000507: dritte Quelle fuer Task-Zeilen-Marker.
 export const autocompleteExtension = autocompletion({
-  override: [wikiLinkCompletionSource, tagCompletionSource, taskMarkerCompletionSource],
+  override: AUTOCOMPLETE_SOURCES,
   activateOnTyping: true,
   defaultKeymap: true,
   closeOnBlur: true,

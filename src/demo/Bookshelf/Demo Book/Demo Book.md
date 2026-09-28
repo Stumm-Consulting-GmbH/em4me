@@ -8,7 +8,7 @@ tags: [book]
 
 # Demo Book
 
-This is the **book file**. It is an ordinary Markdown file holding the front matter of the book: title, author, status and a cover reference live in the frontmatter above, exactly as in any other document.
+This is the **book file**. It is an ordinary Markdown file holding the front matter of the book: title, author, status and a cover reference live in the frontmatter above, exactly as in any other document. With the book open, the same four details also sit in **File → Settings… → Current book → Own details** — the block is named after what the window is bound to, and the section writes back into this very front matter.
 
 What makes this folder a book is the file next to it, `Book_Settings.mdda`. It names this file as the book file and carries the chapter tree. Nothing in the text below points back at it — the recognition runs one way only.
 

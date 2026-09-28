@@ -184,13 +184,13 @@ In detail: [Script blocks](scripts.md).
 
 ## And the rest of the language
 
-Beyond the four large constructs, the language brings more than fifty extensions: callouts and footnotes for the text, formulas and diagrams for the presentation, links, tags and embeds for the connections, tasks, reminders and events for the working day, plus templates and journals. None of it is compulsory: every extension has its own switch, and whatever is turned off disappears from menus, commands and display instead of getting in the way.
+Beyond the four large constructs, the language brings more than fifty extensions: callouts and footnotes for the text, formulas and diagrams for the presentation, links, tags and embeds for the connections, tasks, reminders and events for the working day, plus templates and journals. None of it is compulsory: every extension has its own switch, and whatever is turned off disappears from menus, commands and display instead of getting in the way; a working mode adds a stepped start, from the essentials to the full range.
 
 - **Text extensions** for callouts, footnotes, highlighting and abbreviations.
 - **Presentation** with formulas, diagrams and highlighted code; on a portable export a diagram travels along as a finished image and is visible even where EM4me is not installed.
 - **References within the text** through anchors, embeds and tags.
 - **The working day** with tasks, reminders, events, templates and journals.
-- **Individually switchable** and open to your own extensions through a documented interface.
+- **Individually switchable** or bundled through three working modes, plus compositions of your own, and open to your own extensions through a documented interface.
 
 In detail: [Features](functions.md), [Extensions](extensions.md), [Creating extensions](extensions-dev.md).
 

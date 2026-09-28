@@ -13,6 +13,7 @@ import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import {
   liveCalloutHeaderLineDeco,
   liveCalloutLineDeco,
+  liveContainerHeaderLineDeco,
   liveContainerLineDeco,
   liveMarkerHiddenDeco,
 } from './live-deco.js';
@@ -48,7 +49,9 @@ export function runCalloutPasses(ctx) {
       // (optionalen) Override-Titel.
       const headerText = state.doc.sliceString(headerLine.from, headerLine.to);
       // R1-13 (4T-000186): Muster synchron zur Pre-Pass-Erkennung halten.
-      const markerMatch = headerText.match(/^( {0,3}>[ \t]*\[!([a-z]+)\][+-]?)([ \t]*)/);
+      // 4T-001864 (Epic 3E-000320): deshalb auch hier jede Schreibweise des
+      // Typs (Stelle 5); ohne das bliebe `[!NOTE]` als Roh-Text vor der Box.
+      const markerMatch = headerText.match(/^( {0,3}>[ \t]*\[!([A-Za-z]+)\][+-]?)([ \t]*)/);
       if (!markerMatch) continue;
       const markerEnd = headerLine.from + markerMatch[1].length;
       const markerEndWithWs = markerEnd + markerMatch[3].length;
@@ -95,6 +98,9 @@ export function runCalloutPasses(ctx) {
   // werden in Nicht-Cursor-Zeilen versteckt; bei Containern ohne
   // Override-Titel die komplette Header-Zeile (der Render verwirft
   // einen Titel-Rest bei unbekannten Namen ebenfalls).
+  // 4T-001914 (Epic 3E-000320): Eine neutrale Box zeigt ihren Namen, wie er
+  // geschrieben ist, als Titel (Container-Stelle 7): versteckt werden nur `:::` davor
+  // und ein Text dahinter. Der Mehrspalten-Block bleibt ohne Titel.
   if (isExtensionActive('custom-containers')) {
     const vpFromLine = state.doc.lineAt(from).number;
     const vpToLine = state.doc.lineAt(to).number;
@@ -113,6 +119,7 @@ export function runCalloutPasses(ctx) {
           ),
         );
       }
+      if (info.kind === 'plain') ranges.push(liveContainerHeaderLineDeco.range(headerLine.from));
       if (info.isCallout) {
         ranges.push(liveCalloutHeaderLineDeco.range(headerLine.from));
         ranges.push(
@@ -123,14 +130,27 @@ export function runCalloutPasses(ctx) {
         );
       }
       if (!activeLines.has(info.headerLineNo)) {
+        const headerText = state.doc.sliceString(headerLine.from, headerLine.to);
         if (info.isCallout && info.overrideTitle) {
           // Nur `::: name ` verstecken, Override-Titel bleibt sichtbar.
-          const headerText = state.doc.sliceString(headerLine.from, headerLine.to);
-          const hm = headerText.match(/^ {0,3}:{3,}\s*[a-z][a-z0-9-]*[ \t]*/);
+          // 4T-001914: Name in jeder Schreibweise (Container-Stelle 6).
+          const hm = headerText.match(/^ {0,3}:{3,}\s*[A-Za-z][A-Za-z0-9-]*[ \t]*/);
           if (hm) {
             ranges.push(
               liveMarkerHiddenDeco.range(headerLine.from, headerLine.from + hm[0].length),
             );
+          }
+        } else if (info.kind === 'plain') {
+          // 4T-001914: `:::` samt Leerraum vor dem Namen und jeden Text
+          // dahinter verstecken; der Name bleibt als Titel stehen.
+          const hm = headerText.match(/^( {0,3}:{3,}\s*)([A-Za-z][A-Za-z0-9-]*)/);
+          if (hm) {
+            const nameFrom = headerLine.from + hm[1].length;
+            const nameTo = nameFrom + hm[2].length;
+            ranges.push(liveMarkerHiddenDeco.range(headerLine.from, nameFrom));
+            if (nameTo < headerLine.to) {
+              ranges.push(liveMarkerHiddenDeco.range(nameTo, headerLine.to));
+            }
           }
         } else {
           ranges.push(liveMarkerHiddenDeco.range(headerLine.from, headerLine.to));

@@ -72,7 +72,10 @@
       "name": "area",
       "praefixe": ["area", "areaPanel", "demoArea", "workspace", "settings.areaLinks"]
     },
-    { "name": "books-and-shelves", "praefixe": ["book", "bookPanel", "shelf", "shelfView"] },
+    {
+      "name": "books-and-shelves",
+      "praefixe": ["book", "bookPanel", "shelf", "shelfView", "settings.bookInfo"]
+    },
     { "name": "bookmarks", "praefixe": ["bookmarks", "settings.bookmarksAreaFirst"] },
     {
       "name": "links",

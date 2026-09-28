@@ -301,6 +301,9 @@ export const liveCalloutHeaderLineDeco = Decoration.line({ class: 'cm-live-callo
 // mit unbekanntem Namen (bekannte Callout-Typen nutzen die Callout-
 // Bausteine oben).
 export const liveContainerLineDeco = Decoration.line({ class: 'cm-live-container' });
+// 4T-001914 (Epic 3E-000320): Kopfzeile einer neutralen Box, deren Name als
+// Titel stehen bleibt.
+export const liveContainerHeaderLineDeco = Decoration.line({ class: 'cm-live-container-header' });
 
 // 4T-000201 (Epic 3E-000017): Inhalt-Marks fuer Subscript (`~x~`),
 // Superscript (`^^x^^`) und Insertion (`++x++`); die Marker-Paare

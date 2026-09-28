@@ -31,7 +31,7 @@ Mehrere gleichzeitig gezogene Dateien ergeben mehrere Verweise. Ein Einfügen od
 
 ## Wohin die Datei gelegt wird
 
-Der Ablage-Ort steht in den Einstellungen unter „Anlagen" und lässt sich zusätzlich je Arbeitsbereich abweichend festlegen (Einstellungen → Aktueller Bereich → Anlagen).
+Der Ablage-Ort steht in den Einstellungen unter „Anlagen" und lässt sich zusätzlich je Arbeitsbereich abweichend festlegen (Einstellungen → Aktueller Bereich → Anlagen). Bei geöffnetem Buch heißt der Block dort **Aktuelles Buch**, bei geöffnetem Bücherregal **Aktuelles Bücherregal**.
 
 | Ablage-Ort | Wohin die Datei kommt |
 |---|---|
@@ -48,14 +48,16 @@ Ein Dokument, das noch nie gespeichert wurde, hat keinen Ort, an dem eine Anlage
 
 ## Anlage öffnen
 
-Ein Verweis auf eine Anlage öffnet sie im zuständigen Programm des Betriebssystems. Bei einem eingebetteten Bild hängt die Geste von der Ansicht ab:
+Ein Verweis auf eine Anlage öffnet sie im zuständigen Programm des Betriebssystems. Bei einem eingebetteten Bild hängt der Weg von der Ansicht ab:
 
-| Ansicht | Geste |
+| Ansicht | Weg ins Programm |
 |---|---|
-| Lese- und Render-Ansicht | einfacher Klick |
-| Bearbeiten- und Live-Ansicht | Doppelklick |
+| „Gerendert", auch deren Hälfte in „Geteilt" | Klick auf das Bild öffnet die [Vergrößerung](images.md), dort die Schaltfläche „Im Standardprogramm öffnen" |
+| „Live", beim Lesen wie beim Bearbeiten | Doppelklick auf das Bild |
 
-Im Editor bleibt der einfache Klick dem Setzen der Schreibmarke vorbehalten; wer neben einem Bild weiterschreiben will, soll dabei kein fremdes Programm starten.
+In der gerenderten Ansicht zeigt der Klick das Bild also zuerst groß; wer es in einem anderen Programm weiterbearbeiten will, kommt von dort mit einem Klick hin. Im Editor bleibt der einfache Klick dem Setzen der Schreibmarke vorbehalten; wer neben einem Bild weiterschreiben will, soll dabei kein fremdes Programm starten.
+
+Ein Bild aus einer eingebetteten Notiz öffnet die Datei, auf die die Notiz selbst verweist, auch wenn sie in einem anderen Ordner liegt als das offene Dokument.
 
 Geöffnet werden nur Ziele innerhalb des Arbeitsbereichs beziehungsweise, ohne Arbeitsbereich, innerhalb des Dokument-Ordners. Bei Dateien, die beim Öffnen Programmcode ausführen können, erscheint zuerst eine Rückfrage mit Namen und vollständigem Pfad.
 

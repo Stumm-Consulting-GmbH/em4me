@@ -19,7 +19,7 @@
   "help.shortcut.newWindow": "Aprire una nuova finestra vuota della stessa applicazione",
   "help.shortcut.newApp": "Avviare una nuova applicazione (gruppo di finestre separato)",
   "help.shortcut.openArea": "Aprire un'area (cartella) come spazio di lavoro dell'applicazione",
-  "help.shortcut.closeArea": "Chiudere l'area (chiude tutte le finestre dell'applicazione dell'area)",
+  "help.shortcut.closeArea": "Chiudere l'area (chiude tutte le finestre della propria applicazione dell'area)",
   "help.shortcut.createDemoArea": "Copiare la Demo-Area inclusa in una cartella vuota e aprirla come area",
   "help.shortcut.openBook": "Aprire un libro (cartella con file del libro e file di accompagnamento)",
   "help.shortcut.newBook": "Creare un nuovo libro (cartella, file del libro e file di accompagnamento)",

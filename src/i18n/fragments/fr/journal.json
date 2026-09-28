@@ -44,6 +44,8 @@
   "settings.journals.loading": "Chargement de la configuration…",
   "settings.journals.noArea": "Les journaux n'existent que dans une zone. Ouvrez d'abord une zone.",
   "settings.journals.intro": "Étagères et journaux de la zone '{name}'. Les modifications prennent effet immédiatement après l'application.",
+  "settings.journals.introBook": "Étagères et journaux du livre '{name}'. Les modifications prennent effet immédiatement après l'application.",
+  "settings.journals.introShelf": "Étagères et journaux de la bibliothèque '{name}'. Les modifications prennent effet immédiatement après l'application.",
   "settings.journals.shelvesGroup": "Étagères",
   "settings.journals.shelfPlaceholder": "Nom de l'étagère",
   "settings.journals.shelfAdd": "Ajouter une étagère",

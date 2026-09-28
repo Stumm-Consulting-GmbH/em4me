@@ -109,5 +109,6 @@
   "inlineCalc.error.function": "Unknown function or wrong number of arguments",
   "inlineCalc.error.value": "Expression cannot be evaluated",
   "tableEdit.hint.notFound": "Table not unambiguously found in the source, change discarded",
-  "tableEdit.hint.blocked": "Table has structural errors, editing only in the source"
+  "tableEdit.hint.blocked": "Table has structural errors, editing only in the source",
+  "tableEdit.hint.keptOpen": "The cell was changed elsewhere in the meantime – Enter applies your input, Escape discards it"
 }

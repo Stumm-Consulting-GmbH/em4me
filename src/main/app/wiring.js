@@ -538,10 +538,16 @@ function createMainWiring(deps) {
   // ihre Umgebung kommt von hier. Der Aufbau steht an derselben Stelle des
   // Ablaufs wie zuvor, weil die Fenster-Verwaltung den Erinnerungs-Pruefer
   // spaet gebunden anspricht (onBacklinksInvalidated).
-  const { reminderChecker, alarmChecker, timerChecker } = createCheckers({
+  const {
+    reminderChecker,
+    alarmChecker,
+    timerChecker,
+    reminderDelivery,
+    alarmDelivery,
+    timerDelivery,
+  } = createCheckers({
     appRegistry,
     getStore,
-    windows,
     backlinks,
     broadcast,
   });
@@ -568,6 +574,9 @@ function createMainWiring(deps) {
     reminderChecker,
     alarmChecker,
     timerChecker,
+    reminderDelivery,
+    alarmDelivery,
+    timerDelivery,
     schliessRueckfall,
     anzeigeAusfall,
   };

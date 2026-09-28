@@ -28,6 +28,8 @@ const { baueIgnorierRegel, beziehSperrOrdnerNeu } = require('./area-watch-ignore
 const { DEFAULT_LOCK_FOLDER_NAME } = require('../../shared/database/lock-folder-name');
 // 4T-001453 (Epic 3E-000190): Befund-Einordnung der Verknuepfungen.
 const { pruefeVerknuepfungen } = require('./area-link-resolve');
+// 4T-001743 (Epic 3E-000309): Nachfrage beim Oeffnen eines laufenden Bereichs.
+const { laufendeBereichsApp, frageNachLaufendemBereich } = require('./area-nachfrage');
 // 4T-000630 (Epic 3E-000102): Titelleisten-Faerbung nach Arbeitsbereichs-Farbe
 // (DWM-Fenster-Attribute via koffi; Windows-10-Fallback: stiller No-op).
 const { applyCaptionColor } = require('../app/caption-color.js');
@@ -261,10 +263,17 @@ function createAreaApps(deps) {
   }
 
   // Kern von "Bereich oeffnen" (Dialog-, Pfad- und Zuletzt-Einstieg):
-  // - Bereich laeuft schon -> Sprung in ein Fenster der Bereichs-App (nie doppelt).
+  // - Bereich laeuft schon -> mit Arbeitsbereich Nachfrage (wechseln oder
+  //   zusaetzlich oeffnen), ohne Arbeitsbereich Sprung in ein Fenster der
+  //   Bereichs-App (4T-001743, Epic 3E-000309).
   // - ausloesende App ist bereichslos und ohne geoeffnete Datei -> Bindung.
   // - sonst -> neue Applikation mit Bereich (PO-Regel: unabhaengig davon, wo
   //   die geoeffneten Dateien liegen).
+  // Rueckgabe: { ok: true } mit focusedExisting, boundExisting oder createdNew
+  // (bei «Zusaetzlich oeffnen» dazu openedAdditional); der Abbruch der
+  // Nachfrage liefert { ok: false, canceled: true } wie der abgebrochene
+  // Ordner-Dialog von area:open. Wer das Ergebnis auswertet, behandelt
+  // canceled als Abbruch ohne Meldung (4T-001743).
   // 4T-001364 (Epic 3E-000171): Start-Seite des Bereichs als Pane-Snapshot fuer ein
   // neu entstehendes Fenster. Liefert [] wenn keine Festlegung besteht oder sie
   // ins Leere zeigt; im zweiten Fall wird der Anwender hingewiesen, ohne dass
@@ -345,8 +354,40 @@ function createAreaApps(deps) {
     const store = getStore();
     const area = areaFromRootPath(rootPath);
     if (!area) return { ok: false, error: 'invalid path' };
+    // 4T-001743 (Epic 3E-000309): Laeuft der Bereich schon, fragt die Anwendung
+    // nach, sofern an der laufenden App ein Arbeitsbereich haengt (E1, E10);
+    // ohne Arbeitsbereich bleibt es beim Sprung. Regel und Dialog in
+    // area-nachfrage.js.
+    // Ohne die Erweiterung «Arbeitsbereiche» fehlt der Titel-Zusatz, der beide
+    // Fenster unterscheidbar macht; dann Sprung statt Nachfrage (E10).
+    const arbeitsbereicheAktiv = isExtensionEnabled(
+      'workspaces',
+      store ? store.get('extensions.disabled') : [],
+    );
+    const running = laufendeBereichsApp(
+      appRegistry,
+      area.rootPath,
+      isSamePath,
+      arbeitsbereicheAktiv,
+    );
+    let zusaetzlich = false;
+    if (running && running.nachfragen) {
+      const owner = senderWin && !senderWin.isDestroyed() ? senderWin : null;
+      const ws = appRegistry.getWorkspace(running.appId);
+      const antwort = await frageNachLaufendemBereich({
+        dialog,
+        tForWindow,
+        owner,
+        bereichName: area.name,
+        arbeitsbereichName: ws ? ws.name : '',
+      });
+      // Abbruch: keine Wirkung, auch nicht auf die Zuletzt-Liste (T2).
+      if (antwort === 'abbrechen') return { ok: false, canceled: true };
+      zusaetzlich = antwort === 'zusaetzlich';
+    }
     // 4T-000325: jedes Bereich-Oeffnen pflegt die Zuletzt-Liste (auch der
-    // Sprung in eine laufende Bereichs-App zaehlt als Oeffnen).
+    // Sprung in eine laufende Bereichs-App zaehlt als Oeffnen). 4T-001743: erst
+    // nach der Antwort der Nachfrage (T2).
     if (store) {
       store.set('recentAreas', updatedRecentAreas(store.get('recentAreas'), area.rootPath));
       applyMenuToAllWindows();
@@ -357,11 +398,15 @@ function createAreaApps(deps) {
     // Auftrag an die Schreib-Schnittstelle es erneut versucht. Das Tor der
     // Erweiterung prüft der Wiederanlauf selbst.
     void wiederanlauf.raeumeAuf(area.rootPath).catch(() => {});
-    const running = appRegistry.findAppByArea((a) => isSamePath(a.rootPath, area.rootPath));
-    if (running != null) {
-      focusFirstAppWindow(running);
+    if (running && !zusaetzlich) {
+      // 4T-001743 (Z3): Der Wechsel in einen Arbeitsbereich zielt wie dessen
+      // eigener Oeffnen-Weg auf das zuletzt aktive Fenster; der Sprung ohne
+      // Nachfrage bleibt beim ersten Fenster.
+      if (running.nachfragen) focusLastActiveAppWindow(running.appId);
+      else focusFirstAppWindow(running.appId);
       return { ok: true, focusedExisting: true };
     }
+    if (zusaetzlich) return oeffneInNeuerApp(area, senderWin, { openedAdditional: true });
     const senderAppId =
       senderWin && !senderWin.isDestroyed() ? appRegistry.appOf(senderWin.webContents.id) : null;
     if (senderAppId != null && !appRegistry.getArea(senderAppId) && !appHasOpenFiles(senderAppId)) {
@@ -380,13 +425,20 @@ function createAreaApps(deps) {
       }
       return { ok: true, boundExisting: true };
     }
+    return oeffneInNeuerApp(area, senderWin, {});
+  }
+
+  // Neue Bereichs-Applikation mit eigenem Fenster. 4T-001743: auch der Weg
+  // «Zusaetzlich oeffnen», dessen zweite App eigene Fenster, eine eigene
+  // Reiter-Menge und keinen Arbeitsbereich traegt.
+  async function oeffneInNeuerApp(area, senderWin, kennung) {
     // 4T-001364: Neues Bereichs-Fenster — die Start-Seite reist als Pane-Snapshot
     // mit, damit sie wie ein wiederhergestellter Tab entsteht.
     void pruefeVerknuepfungenBeimOeffnen(area.rootPath, senderWin);
     const initialPanes = await startPagePanes(area.rootPath, senderWin);
     const win = createWindow({ area, initialPanes });
     startAreaWatcher(appRegistry.appOf(win.webContents.id));
-    return { ok: true, createdNew: true };
+    return { ok: true, createdNew: true, ...kennung };
   }
 
   // --- 4T-000328 (Epic 3E-000059): Verzeichnis-Watcher pro Bereichs-App ------------

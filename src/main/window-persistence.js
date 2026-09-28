@@ -118,7 +118,10 @@ function createWindowPersistence(deps) {
     // 4T-000867 (Epic 3E-000162): aktives Regal ebenso mitfuehren (Story 4S-000760,
     // AK5); das Feld entsteht nur bei geoeffnetem Regal.
     const shelfDir = activeShelves().get(appId);
+    // 4T-001743 (Epic 3E-000309): Kennung der App fuer die Entwurfs-Zuordnung.
+    const appKey = appRegistry.getAppKey ? appRegistry.getAppKey(appId) : null;
     return {
+      ...(appKey ? { appKey } : {}),
       area: area && area.rootPath ? { rootPath: area.rootPath } : null,
       ...(bookDir ? { book: { dir: bookDir } } : {}),
       ...(shelfDir ? { shelf: { dir: shelfDir } } : {}),

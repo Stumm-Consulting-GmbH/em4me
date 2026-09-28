@@ -24,6 +24,12 @@ La modalità live renderizza il Markdown direttamente nell'editor: grassetto e c
 
 **Le tabelle fanno eccezione a questa regola.** Restano impaginate anche mentre il cursore si trova al loro interno: il clic colpisce la cella, il tabulatore e i tasti freccia portano di cella in cella, e ciò che si digita arriva al punto giusto del sorgente. Chi ha bisogno della sintassi grezza di una tabella — la riga separatrice con i due punti di allineamento, per esempio — passa alla vista sorgente o a quella divisa.
 
+**Scrivere in una cella.** Il tabulatore nell’ultima cella dell’ultima riga aggiunge una nuova riga con lo stesso numero di colonne e porta il cursore nella sua prima cella, esattamente come nella vista sorgente; Maiusc+Tab non ne aggiunge. Ciò che si digita in una cella viene mantenuto in qualunque modo si lasci la cella: con Invio, Tab o un tasto freccia, con un clic in un’altra cella o in qualsiasi punto fuori dalla tabella, salvando, cambiando documento o vista e chiudendo il documento. Esc scarta l’inserimento nella cella. Finché una cella è aperta, Ctrl+Z annulla ciò che vi si è digitato; l’annullamento nel documento agisce non appena si lascia la cella.
+
+**Clic destro in una cella.** Porta il cursore nella cella cliccata e vi apre il [menu contestuale](context-menu.md); le sue funzioni, per esempio quelle del sottomenu **Tabella**, agiscono in quel punto. Un inserimento in corso viene mantenuto.
+
+**Suggerimenti in una cella.** Dopo `[[` e `#` compare accanto alla cella lo stesso [elenco dei suggerimenti](linking.md) del testo corrente, con le stesse voci nello stesso ordine. Le frecce su e giù scelgono, Invio accetta, Esc chiude solo l’elenco e lascia aperta la cella; finché l’elenco è aperto, le frecce e Invio non portano a un’altra cella. Nella cella non vengono proposti marcatori di attività, perché una riga di tabella non è una riga di attività.
+
 **I collegamenti nel testo corrente sono contrassegnati in modo permanente.** Portano la loro sottolineatura in ogni momento, senza che il mouse debba trovarsi sopra: sia i wiki link sia i collegamenti Markdown, sia verso un documento sia verso un indirizzo esterno. La vista renderizzata sottolinea un collegamento ancora solo al passaggio del mouse; nella vista in cui si scrive, invece, deve essere visibile senza sforzo che dietro un testo c’è un collegamento. Sulla riga del cursore la sintassi grezza appare come di consueto.
 
 ### Mappa mentale
@@ -105,8 +111,8 @@ La barra di stato mostra parole, caratteri e il tempo di lettura stimato del fil
 Le impostazioni si aprono come scheda propria (File → Impostazioni…, predefinito `Ctrl+,`). La loro navigazione si divide in quattro blocchi:
 
 - **Generali** — tutto ciò che vale per l'intera applicazione, per esempio aspetto, comportamento, scorciatoie da tastiera ed esportazione.
-- **Area corrente** — le impostazioni dell'area aperta. Il blocco appare solo finché un'area è aperta.
-- **Estensioni (interne)** — l'attivazione e la disattivazione delle estensioni fornite, con le loro sezioni proprie.
+- **Area corrente** — le impostazioni dell'area aperta. Il blocco appare solo finché un'area è aperta. Con un libro aperto si chiama **Libro corrente**, con una libreria aperta **Libreria corrente**; al primo posto si trova allora la sezione **Dati propri** con titolo, autore, descrizione e immagine di copertina, e per la libreria anche la visualizzazione. Le altre sezioni del blocco restano le stesse in tutti e tre i casi, vedi [Libri](books.md).
+- **Estensioni (interne)** — la modalità di lavoro che le commuta in blocco e l'attivazione e la disattivazione delle estensioni fornite, con le loro sezioni proprie.
 - **Estensioni (esterne)** — la gestione dei pacchetti di estensione installati da sé.
 
 Le modifiche agiscono dapprima come bozza con anteprima dal vivo dell'aspetto. Applica e OK salvano; entrambi sono evidenziati solo in presenza di modifiche non salvate, senza modifiche Applica è attenuato. Annulla o la chiusura della scheda scarta la bozza. I valori salvati valgono subito in tutte le finestre aperte. Di più sui due blocchi di estensioni si trova nella pagina [Estensioni](extensions.md).

@@ -11,6 +11,9 @@
   "attachments.open.outsideRoot": "Non ouvert : la cible se trouve hors du dossier autorisé.",
   "attachments.open.notFound": "Non ouvert : le fichier est introuvable.",
   "attachments.open.failed": "La pièce jointe n'a pas pu être ouverte.",
+  "attachments.imageView.label": "Affichage agrandi",
+  "attachments.imageView.openExternal": "Ouvrir dans le programme par défaut",
+  "attachments.imageView.close": "Fermer",
   "settings.attachments.title": "Pièces jointes",
   "settings.attachments.loading": "Chargement des réglages …",
   "settings.attachments.form": "Emplacement",
@@ -22,5 +25,7 @@
   "settings.attachments.folder": "Nom du dossier",
   "settings.attachments.folderHint": "Vaut pour « Sous-dossier fixe » et « Dossier central de la zone ». Un nom simple, sans segments de chemin.",
   "settings.attachments.areaGroup": "Zone « {name} »",
+  "settings.attachments.bookGroup": "Livre « {name} »",
+  "settings.attachments.shelfGroup": "Bibliothèque « {name} »",
   "settings.attachments.invalidFolder": "Le nom du dossier ne doit pas contenir de segments de chemin ni être vide."
 }

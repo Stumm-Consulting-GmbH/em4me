@@ -73,6 +73,11 @@ const HELP_FEATURE_GROUPS = [
       // Speichern bestehende Dokumente hinausschreiben.
       'help.feature.attachments',
       'help.feature.attachmentOpen',
+      // 4T-001871 (Epic 3E-000322): die vergroesserte Darstellung eines Bildes
+      // unmittelbar hinter dem Oeffnen der Anlagen. Der Klick auf ein Bild fuehrt
+      // erst in die Vergroesserung und von dort ins Standardprogramm; die beiden
+      // Zeilen erklaeren einander nur nebeneinander.
+      'help.feature.imageView',
       // 4T-000042 (Epic 3E-000008): Export 'Portables Markdown...' fuer Perspective-Tabellen.
       'help.feature.exportPortable',
       // 4T-000305 (Epic 3E-000054): PDF-Export direkt neben dem Portable-Export.
@@ -635,6 +640,12 @@ const HELP_FEATURE_GROUPS = [
       // 4T-000296 (Epic 3E-000052): das Erweiterungs-System als app-weite
       // Eigenschaft (Schalten interner Erweiterungen).
       'help.feature.extensions',
+      // 4T-001883 (Epic 3E-000185): die Arbeitsmodi unmittelbar hinter dem
+      // Eintrag zum Schalten der internen Erweiterungen — sie setzen genau
+      // dessen Schalter gebuendelt und haben ohne ihn keinen Gegenstand. Die
+      // eigenen Modi folgen den festen, weil sie auf deren Mechanik aufsetzen.
+      'help.feature.extensionModes',
+      'help.feature.extensionModesOwn',
       // 4T-000301 (Epic 3E-000053): externe Erweiterungen (Installieren,
       // Vertrauens-Ablauf, Erweiterungs-API) direkt neben dem internen
       // Erweiterungs-Eintrag.

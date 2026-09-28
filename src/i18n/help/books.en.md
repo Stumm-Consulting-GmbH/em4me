@@ -148,6 +148,24 @@ An open shelf appears as its own page in the tab system. Two layouts are availab
 
 Below the stock sits the section **Not assigned** with the book folders of the shelf folder that are not yet assigned to the shelf; **Add to shelf** assigns them, **Remove** takes an assignment away without touching the book folder. An assigned book whose folder is missing stays visible and is marked as missing.
 
+## The settings of a book and a shelf
+
+An open book and an open bookshelf also say in the settings (File → Settings…) what they refer to: the area-bound block of the navigation is then not called “Current area” but **Current book** or **Current bookshelf**, and the headings of its sections likewise speak of the book or the shelf instead of the area. What counts is the binding of the window, not the file that happens to be in the foreground: in a book window it stays “Current book” whichever chapter is open, and two windows with different bindings each show their own label.
+
+### Own details
+
+In first place of the block sits the section **Own details**. It carries the details that a book and a shelf hold anyway:
+
+- **Title**, **Author** and **Description** — three front matter fields of the book or shelf file.
+- **Cover image** — the image reference `cover`, given as a path relative to the book or shelf folder. An empty field means: no cover image. If there is no file at that path, the section says so and the shelf view uses the placeholder tile; it is not an error.
+- **Display** — for a shelf only: tiles or rows, the same choice as the switch of the shelf view. It applies per shelf and on this computer only.
+
+As everywhere on the settings page, changes only take effect with Apply or OK.
+
+It is **the same place as before**: the four details live in the [front matter](frontmatter.md) of the book or shelf file, and the section edits them right there. Change them in the file itself and the change shows up here, and the other way round; a second storage place does not arise.
+
+In an ordinary area the section does not appear, because these details do not exist there. The remaining sections of the block — Document history, Attachments, Templates, Area links, Database, Journals, Calendar systems, Property profiles and Variants — stay unchanged and work in a book and shelf folder just as in any other area.
+
 ## Switching on and off
 
 Books and bookshelves together are a switchable extension (Settings → [Extensions](extensions.md), group Tools) and are on out of the box. In the off state the menu entries, the commands, the panel and the shelf view disappear; book and shelf files then open like any other Markdown file. Book file, shelf file, companion files and chapters stay untouched, and switching back on brings the state back unchanged.

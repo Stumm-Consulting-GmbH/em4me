@@ -60,11 +60,16 @@ function overlayStand() {
   return overlayZaehler;
 }
 
-function setBufferOverlay(filePath, content) {
+// 4T-001727 (Epic 3E-000305): Der Eintrag merkt sich, WELCHES Fenster den Stand
+// gemeldet hat (Kennung seines Anzeige-Prozesses, optional). Eine Erinnerung,
+// die aus dem ungespeicherten Stand faellig wird, muss dort bearbeitet werden,
+// wo dieser Stand liegt; auf der Platte steht ihre Zeile so nicht. Es gilt
+// derselbe Grundsatz wie oben: der zuletzt meldende Besitzer.
+function setBufferOverlay(filePath, content, besitzer = null) {
   if (typeof filePath !== 'string' || !filePath) return false;
   if (typeof content !== 'string') return false;
   const parsed = parseContent(filePath, content, definitionFuerSegment(filePath));
-  bufferOverlays.set(filePath, { parsed, text: content });
+  bufferOverlays.set(filePath, { parsed, text: content, besitzer: besitzer ?? null });
   overlayZaehler += 1;
   return true;
 }
@@ -105,6 +110,21 @@ function bufferTextFor(absPath) {
   if (!isFilesystemCaseInsensitive()) return null;
   const gesucht = absPath.toLowerCase();
   for (const [pfad, e] of bufferOverlays) if (pfad.toLowerCase() === gesucht) return e.text;
+  return null;
+}
+
+// 4T-001727: Das Fenster, dessen ungespeicherter Stand fuer diese Datei gilt,
+// oder null, wenn keiner vorliegt oder der Melder unbekannt ist. Schreibweise
+// wie bei bufferTextFor.
+function bufferOwnerFor(absPath) {
+  if (typeof absPath !== 'string' || !absPath) return null;
+  const genau = bufferOverlays.get(absPath);
+  if (genau) return genau.besitzer ?? null;
+  if (!isFilesystemCaseInsensitive()) return null;
+  const gesucht = absPath.toLowerCase();
+  for (const [pfad, e] of bufferOverlays) {
+    if (pfad.toLowerCase() === gesucht) return e.besitzer ?? null;
+  }
   return null;
 }
 
@@ -179,6 +199,7 @@ module.exports = {
   clearAllBufferOverlays,
   overlaysUnder,
   bufferTextFor,
+  bufferOwnerFor,
   entryWithOverlay,
   // 4T-000952: Aenderungs-Stand der Schicht fuer Zwischenspeicher darueber.
   overlayStand,

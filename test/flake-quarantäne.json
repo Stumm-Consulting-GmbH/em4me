@@ -867,6 +867,61 @@
       "vermutung": "Dasselbe Fehlerbild wie SE-08, PZ-06 und MEM-06; die Meldung ist ein Sammel-Text von Playwright und taugt allein nicht als Diagnose (siehe Eintrag MEM-06 vom 2026-09-14). Kein Datei-Fehler und kein Bezug zum Zug: Der Zug ändert zwar die Speicher-Logik in atomic-write.js, das Fehlerbild ist aber kein Dateifehler, sondern ein Verlust des Ausführungs-Kontexts im Hauptprozess.",
       "status": "beobachtet",
       "vermerk": "Erstbeobachtung dieses Falls, deshalb nicht befördert. Hinweis auf die Ursachen-Messung des Fehlerbilds im Vorgang 4T-001813 (SE-08); klärt sie die Ursache, ist RG-03 dort mit zu prüfen. Bedingung für eine Beförderung: ein erneutes Auftreten von RG-03."
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-statistik.spec.js",
+      "fall": "BS-06: Erweiterung aus entfernt den Kontextmenü-Zugang (S-118) — das Bereichs-Panel zeigt beide Einträge, im Aus-Zustand nur den Graph",
+      "datum": "2026-09-28",
+      "fehlerbild": "Erneute Beobachtung dieses Falls, Vorgänger unter früheren Daten. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000326 «Einstellungen, Zug 2» am 2026-09-28, Schritt 6 im Sammeltask 4T-001891: 995 von 1002 grün, 7 rot in 90 min (05:08 bis 06:40 UTC), parallel zum Linux-E2E-Voll-Lauf derselben Strecke (bis 06:00 UTC, 999 von 1002 grün, die drei roten Linux-Fälle sind der deterministische Tabellen-Versatz aus 4T-001812 und kein Flake) und zu zwei Unit-Läufen. Isolierter Nachlauf je ganze Prüfdatei auf ruhiger Maschine am selben Vormittag. Fehler: Zeitüberschreitung von 10 s beim Warten auf die Bedingung. Isoliert grün.",
+      "status": "befoerdert",
+      "vorgang": "4T-001100",
+      "vermerk": "Tritt dem bestehenden Vorgang 4T-001100 bei; kein neuer Vorgang. Nach der Sichtungs-Regel ist ein verorteter offener Fall eine Arbeitsliste und kein Signal."
+    },
+    {
+      "spec": "test/e2e/funktionen/datenbank-bereich.spec.js",
+      "fall": "DB-BER-01: Einstellungs-Bereich «Datenbank» (4T-001758) — die Option landet in der Bereichsdatei und wird zurückgelesen",
+      "datum": "2026-09-28",
+      "fehlerbild": "ERSTE Beobachtung dieses Falls. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000326 «Einstellungen, Zug 2» am 2026-09-28, Schritt 6 im Sammeltask 4T-001891: 995 von 1002 grün, 7 rot in 90 min (05:08 bis 06:40 UTC), parallel zum Linux-E2E-Voll-Lauf derselben Strecke (bis 06:00 UTC, 999 von 1002 grün, die drei roten Linux-Fälle sind der deterministische Tabellen-Versatz aus 4T-001812 und kein Flake) und zu zwei Unit-Läufen. Isolierter Nachlauf je ganze Prüfdatei auf ruhiger Maschine am selben Vormittag. Fehler: Konsolen-Fehler «Cannot read properties of null (reading tasks)» als unbehandelte Promise-Ablehnung in der Übernahme der Einstellungs-Seite. Isoliert grün.",
+      "vermutung": "Kein Testfehler, sondern ein Rennen im Programm: Der Fall schließt die Einstellungs-Seite mit Strg+W, sobald die Datenbank-Option in der Datei steht, während die Seite die folgenden Abschnitte noch übernimmt; der Entwurf wird beim Schließen verworfen, und die Aufgaben-Sektion greift auf null zu. Unter Last dauert die Übernahme länger, und das Fenster öffnet sich. Nicht vom Zug verursacht.",
+      "status": "befoerdert",
+      "vorgang": "4T-001970",
+      "vermerk": "Sofort befördert, obwohl Erstbeobachtung: Die Ursache ist am Code nachvollzogen und ein Programmfehler mit Wirkung für den Anwender (Änderungen späterer Abschnitte gehen still verloren); der Vorgang liegt im Pflege-Gefäß der Anwendung, nicht der Test-Infrastruktur."
+    },
+    {
+      "spec": "test/e2e/funktionen/logische-apps.spec.js",
+      "fall": "LA-06: Neues Fenster in einer gebundenen Applikation (4T-001738) — das neue Fenster erbt die Ordner-Bindung, und der Titel weist sie aus",
+      "datum": "2026-09-28",
+      "fehlerbild": "Erneute Beobachtung dieses Falls (Vorgänger 2026-09-20, 2026-09-24). Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000326 «Einstellungen, Zug 2» am 2026-09-28, Schritt 6 im Sammeltask 4T-001891: 995 von 1002 grün, 7 rot in 90 min (05:08 bis 06:40 UTC), parallel zum Linux-E2E-Voll-Lauf derselben Strecke (bis 06:00 UTC, 999 von 1002 grün, die drei roten Linux-Fälle sind der deterministische Tabellen-Versatz aus 4T-001812 und kein Flake) und zu zwei Unit-Läufen. Isolierter Nachlauf je ganze Prüfdatei auf ruhiger Maschine am selben Vormittag. Fehler: 30 s ohne das zweite Fenster. Im isolierten Nachlauf erneut rot (1 von 1), passend zu den zwei von fünf isolierten Ausfällen in 4T-001948.",
+      "status": "befoerdert",
+      "vorgang": "4T-001948",
+      "vermerk": "Tritt dem bestehenden Vorgang 4T-001948 bei; kein neuer Vorgang."
+    },
+    {
+      "spec": "test/e2e/funktionen/my-extended-memory.spec.js",
+      "fall": "MEM-06: ausgeschaltete Erweiterung nimmt beide Zugaenge (S-150) — Ansichtsmenue und Palette verlieren den Eintrag und bekommen ihn zurueck",
+      "datum": "2026-09-28",
+      "fehlerbild": "ZWEITE Beobachtung dieses Falls (Vorgänger 2026-09-14). Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000326 «Einstellungen, Zug 2» am 2026-09-28, Schritt 6 im Sammeltask 4T-001891: 995 von 1002 grün, 7 rot in 90 min (05:08 bis 06:40 UTC), parallel zum Linux-E2E-Voll-Lauf derselben Strecke (bis 06:00 UTC, 999 von 1002 grün, die drei roten Linux-Fälle sind der deterministische Tabellen-Versatz aus 4T-001812 und kein Flake) und zu zwei Unit-Läufen. Isolierter Nachlauf je ganze Prüfdatei auf ruhiger Maschine am selben Vormittag. Fehler: «Execution context was destroyed», dasselbe Fehlerbild wie SE-08, PZ-06 und RG-03. Isoliert grün.",
+      "status": "befoerdert",
+      "vorgang": "4T-001813",
+      "vermerk": "Die Bedingung des Erst-Eintrags ist erfüllt (erneutes Auftreten von MEM-06). Befördert in den Vorgang, der dieses Fehlerbild misst (4T-001813, geführt an SE-08), statt in einen eigenen: Der Erst-Eintrag verlangt ausdrücklich, dass das BILD einen Vorgang bekommt und nicht der einzelne Fall."
+    },
+    {
+      "spec": "test/e2e/funktionen/sprach-einspielen.spec.js",
+      "fall": "SE-08: eingespielte Sprache entfernen (F-286) — nimmt die Datei weg und stellt die Anwendung auf Englisch",
+      "datum": "2026-09-28",
+      "fehlerbild": "FÜNFTE Beobachtung dieses Falls. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000326 «Einstellungen, Zug 2» am 2026-09-28, Schritt 6 im Sammeltask 4T-001891: 995 von 1002 grün, 7 rot in 90 min (05:08 bis 06:40 UTC), parallel zum Linux-E2E-Voll-Lauf derselben Strecke (bis 06:00 UTC, 999 von 1002 grün, die drei roten Linux-Fälle sind der deterministische Tabellen-Versatz aus 4T-001812 und kein Flake) und zu zwei Unit-Läufen. Isolierter Nachlauf je ganze Prüfdatei auf ruhiger Maschine am selben Vormittag. Fehler: «Execution context was destroyed». Isoliert grün.",
+      "status": "befoerdert",
+      "vorgang": "4T-001813",
+      "vermerk": "Tritt dem bestehenden Vorgang 4T-001813 bei; kein neuer Vorgang."
+    },
+    {
+      "spec": "test/e2e/funktionen/tag-umbenennung.spec.js",
+      "fall": "TU-01: Zugang und Dialog — öffnet den Dialog aus der Tag-Übersicht und nennt den alten Namen",
+      "datum": "2026-09-28",
+      "fehlerbild": "ZWEITE Beobachtung dieses Falls (Vorgänger 2026-09-19; derselbe Fingerabdruck 2026-09-20 in TU-02). Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000326 «Einstellungen, Zug 2» am 2026-09-28, Schritt 6 im Sammeltask 4T-001891: 995 von 1002 grün, 7 rot in 90 min (05:08 bis 06:40 UTC), parallel zum Linux-E2E-Voll-Lauf derselben Strecke (bis 06:00 UTC, 999 von 1002 grün, die drei roten Linux-Fälle sind der deterministische Tabellen-Versatz aus 4T-001812 und kein Flake) und zu zwei Unit-Läufen. Isolierter Nachlauf je ganze Prüfdatei auf ruhiger Maschine am selben Vormittag. Fehler: Der Eintrag «zwiebelkuchen» erscheint binnen 30 s nicht in der Tag-Übersicht. Isoliert grün.",
+      "status": "befoerdert",
+      "vorgang": "4T-001971",
+      "vermerk": "Die Bedingung des Erst-Eintrags ist erfüllt (erneutes Ausbleiben desselben Falls). Neuer Vorgang 4T-001971 im Pflege-Gefäß der Test-Infrastruktur; sein erster Schritt ist die Messung der Index-Laufzeit, die im Voll-Lauf nicht erhoben wurde."
     }
   ]
 }

@@ -31,7 +31,7 @@ Plusieurs fichiers glissés en même temps produisent plusieurs références. Co
 
 ## Où le fichier est rangé
 
-L'emplacement se règle dans Réglages → Pièces jointes et peut en outre être défini par zone (Réglages → Zone actuelle → Pièces jointes).
+L'emplacement se règle dans Réglages → Pièces jointes et peut en outre être défini par zone (Réglages → Zone actuelle → Pièces jointes). Lorsqu'un livre est ouvert, ce bloc s'appelle **Livre actuel**, lorsqu'une bibliothèque est ouverte **Bibliothèque actuelle**.
 
 | Emplacement | Où va le fichier |
 |---|---|
@@ -48,14 +48,16 @@ Un document jamais enregistré n'offre aucun emplacement. Dans ce cas, une indic
 
 ## Ouvrir une pièce jointe
 
-Une référence vers une pièce jointe l'ouvre dans le programme que le système d'exploitation lui associe. Pour une image intégrée, le geste dépend de la vue :
+Une référence vers une pièce jointe l'ouvre dans le programme que le système d'exploitation lui associe. Pour une image intégrée, le chemin dépend de la vue :
 
-| Vue | Geste |
+| Vue | Chemin vers le programme |
 |---|---|
-| Lecture et aperçu rendu | simple clic |
-| Édition et vue directe | double clic |
+| « Rendu », y compris sa moitié de « Partagé » | un clic sur l'image ouvre l'[agrandissement](images.md), puis le bouton « Ouvrir dans le programme par défaut » |
+| « Direct », en lecture comme en édition | double clic sur l'image |
 
-Dans l'éditeur, le simple clic reste réservé au placement du curseur ; écrire à côté d'une image ne doit pas lancer un autre programme.
+Dans la vue rendue, le clic montre donc d'abord l'image en grand ; pour la retravailler dans un autre programme, il suffit d'un clic de plus. Dans l'éditeur, le simple clic reste réservé au placement du curseur ; écrire à côté d'une image ne doit pas lancer un autre programme.
+
+Une image provenant d'une note intégrée ouvre le fichier auquel la note elle-même renvoie, même s'il se trouve dans un autre dossier que le document ouvert.
 
 Seules les cibles situées dans la zone sont ouvertes, ou, sans zone, dans le dossier du document. Pour les fichiers susceptibles d'exécuter du code à l'ouverture, une confirmation apparaît d'abord, avec le nom et le chemin complet.
 

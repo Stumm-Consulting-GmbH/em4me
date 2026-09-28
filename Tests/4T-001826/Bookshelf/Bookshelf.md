@@ -13,6 +13,6 @@ Open the shelf with **File → Open Bookshelf…** and pick this folder — or s
 - **Tiles** show the book covers side by side; a book without a cover gets a placeholder tile carrying its title.
 - **Rows** show cover, name, chapter count, author and description.
 
-Try the switch in the top-right corner of the view; the chosen layout is remembered per shelf. Book folders that are not yet assigned appear in the section *Not assigned*, ready to be added with one click.
+Try the switch in the top-right corner of the view; the chosen layout is remembered per shelf. The same choice, together with the title, author, description and cover image of the shelf, also sits in **File → Settings… → Current bookshelf → Own details** while the shelf is open. Book folders that are not yet assigned appear in the section *Not assigned*, ready to be added with one click.
 
 A shelf works like an area: it opens as its own window, limited to this folder. A click on a book opens that book in a window of its own, while the shelf stays behind as the overview — so chapters of different books never share a window.

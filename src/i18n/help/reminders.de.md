@@ -35,11 +35,15 @@ Ist eine Erinnerung fällig, meldet sie ein Dialog mit der Beschreibung der Aufg
 - **Später erinnern**: verschiebt den Melde-Zeitpunkt. Zur Wahl stehen die konfigurierten Snooze-Optionen (Standard 10 Minuten, 1 Stunde, 4 Stunden, 1 Tag, 1 Woche) sowie eine freie Datums-Wahl. Der neue Zeitpunkt wird direkt in den Marker der Quelldatei geschrieben.
 - **Wegklicken** (Schließen oder Escape): schaltet diese Erinnerung bis zum nächsten App-Start stumm. Die Aufgabe selbst bleibt unverändert.
 
+**In allen Fenstern.** Der Dialog erscheint in jedem geöffneten Fenster der App, auch in Fenstern eines anderen Bereichs, in Fenstern ohne Bereich sowie in Buch- und Bücherregal-Fenstern. Unter jedem Eintrag steht deshalb seine Herkunft, etwa „Herkunft: Projekte": der Bereich, das Buch oder das Bücherregal, aus dem die Erinnerung stammt. Erledigen, Später erinnern und Wegklicken wirken immer auf die Datei dieser Herkunft, gleich in welchem Fenster sie geschehen, und genau einmal: Die Erinnerung verschwindet danach in allen Fenstern, und eine fast gleichzeitige zweite Bearbeitung in einem anderen Fenster bleibt ohne Wirkung und ohne Fehlermeldung. Sind mehrere Erinnerungen fällig, sammelt jedes Fenster sie in einem Dialog. Ein Fenster, das erst später geöffnet wird, zeigt eine noch offene Erinnerung ebenfalls.
+
+**Link zur Quelldatei.** Ein Klick auf den Dateinamen öffnet die Datei an der Zeile der Aufgabe, und zwar im Fenster ihres Bereichs. Zeigt das Fenster, in dem geklickt wurde, einen anderen Bereich oder keinen, kommt das Fenster des Herkunfts-Bereichs nach vorn und öffnet die Datei dort; ist dieser Bereich gerade nicht geöffnet, wird er geöffnet. Die Erinnerung bleibt dabei stehen: Das Öffnen der Datei ist keine Bearbeitung.
+
 ## Nur bei laufender App
 
-Erinnerungen melden sich **ausschließlich, solange die App läuft und der Bereich geöffnet ist**. Es gibt keinen Hintergrund-Dienst und keine Meldung bei geschlossener App. Ist die App zum Melde-Zeitpunkt nicht offen, verfällt trotzdem nichts: Beim nächsten Start sammelt ein **Nachhol-Dialog** alle in der Zwischenzeit fällig gewordenen Erinnerungen und zeigt sie gemeinsam an, mit denselben Aktionen wie im normalen Dialog. Außerhalb eines geöffneten Bereichs findet keine Überwachung statt.
+Erinnerungen melden sich **ausschließlich, solange die App läuft und der Bereich geöffnet ist**. Es gibt keinen Hintergrund-Dienst und keine Meldung bei geschlossener App. Ist die App zum Melde-Zeitpunkt nicht offen, verfällt trotzdem nichts: Beim nächsten Start sammelt ein **Nachhol-Dialog** alle in der Zwischenzeit fällig gewordenen Erinnerungen und zeigt sie gemeinsam an, in jedem geöffneten Fenster, mit denselben Aktionen wie im normalen Dialog. Außerhalb eines geöffneten Bereichs findet keine Überwachung statt.
 
-Bei geöffnetem Bereich prüft die App die Marker aller Bereichs-Dateien laufend (im 30-Sekunden-Takt über den Bereichs-Index). Optional lässt sich eine **System-Benachrichtigung** zuschalten, die zusätzlich zum Dialog erscheint, wenn das Fenster nicht im Vordergrund steht; ein Klick darauf holt die App nach vorn. Angezeigt wird sie vom Betriebssystem: Unter Linux übernimmt das die Arbeitsumgebung, und ohne deren Benachrichtigungs-Dienst bleibt es beim Dialog in der App.
+Bei geöffnetem Bereich prüft die App die Marker aller Bereichs-Dateien laufend (im 30-Sekunden-Takt über den Bereichs-Index). Optional lässt sich eine **System-Benachrichtigung** zuschalten, die zusätzlich zum Dialog erscheint, wenn kein Fenster der App im Vordergrund steht. Sie erscheint je Meldung genau einmal, auch wenn mehrere Fenster offen sind; ein Klick darauf holt die App nach vorn. Angezeigt wird sie vom Betriebssystem: Unter Linux übernimmt das die Arbeitsumgebung, und ohne deren Benachrichtigungs-Dienst bleibt es beim Dialog in der App.
 
 ## Erinnerungs-Liste
 
@@ -56,6 +60,6 @@ Der Einstellungs-Bereich **Erinnerungen** (Datei → Einstellungen…) steuert:
 
 - **Standard-Uhrzeit**: Melde-Uhrzeit für Marker ohne Uhrzeit-Anteil (Standard 09:00).
 - **Snooze-Optionen**: die Liste der Verschiebe-Angebote im Dialog und in der Liste.
-- **System-Benachrichtigung**: schaltet die zusätzliche Meldung bei nicht im Vordergrund stehendem Fenster ein oder aus.
+- **System-Benachrichtigung**: schaltet die zusätzliche Meldung ein oder aus, die erscheint, wenn kein Fenster der App im Vordergrund steht.
 
 Erinnerungen sind eine schaltbare **Erweiterung** mit einer Abhängigkeit zur Erweiterung **Aufgaben**: Ist „Aufgaben" ausgeschaltet, sind auch die Erinnerungen inaktiv. Mehr dazu auf der Seite [Erweiterungen](extensions.md).

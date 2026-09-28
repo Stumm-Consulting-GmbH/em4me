@@ -31,7 +31,7 @@ history: true
 ---
 ```
 
-`history: false` desactiva; una propiedad ausente hereda. Lo más sencillo es el menú del icono de la barra de estado (activar, desactivar, usar el valor heredado). El valor predeterminado del área se ajusta en la entrada de configuración «Historial del documento» del grupo de navegación «Área actual» (visible solo cuando hay un área abierta); el archivo de área solo se crea al establecerlo por primera vez.
+`history: false` desactiva; una propiedad ausente hereda. Lo más sencillo es el menú del icono de la barra de estado (activar, desactivar, usar el valor heredado). El valor predeterminado del área se ajusta en la entrada de configuración «Historial del documento» del grupo de navegación «Área actual» (visible solo cuando hay un área abierta; con un libro abierto el grupo se llama **Libro actual**, con una estantería abierta **Estantería actual**); el archivo de área solo se crea al establecerlo por primera vez.
 
 **Desactivar no borra nada.** El registro solo se pausa; el archivo acompañante se conserva. Al reactivarlo, el hueco se anota como un paquete agrupado y el historial sigue siendo trazable sin rupturas.
 

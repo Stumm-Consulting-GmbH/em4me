@@ -24,6 +24,16 @@ Un `+` ou `-` après le type rend le callout pliable : `+` démarre ouvert, `-` 
 > [!note]- Démarré replié
 > Visible seulement après un clic sur le titre.
 
+La casse du type n'a pas d'importance : `[!note]`, `[!Note]` et `[!NOTE]` produisent le même encadré avec la même icône, la même couleur d'accent et le même titre par défaut ; `+`, `-` et un titre personnalisé fonctionnent de la même façon. Le texte du fichier reste tel qu'il a été écrit — les majuscules reprises d'autres programmes Markdown ne sont pas réécrites. La liste des dix types reste la même : les noms qui n'en font pas partie, comme `[!IMPORTANT]`, sont des types inconnus quelle que soit leur casse.
+
+```markdown
+> [!WARNING]
+> En majuscules — le même encadré qu'avec `[!warning]`.
+```
+
+> [!WARNING]
+> En majuscules — le même encadré qu'avec `[!warning]`.
+
 ## Conteneurs personnalisés
 
 Blocs conteneurs entre `::: type` et `:::`. Les dix types de callout s'affichent en style callout, les noms inconnus en boîte neutre avec le nom comme titre.
@@ -36,6 +46,18 @@ Contenu en style callout.
 
 ::: warning
 Contenu en style callout.
+:::
+
+La casse du nom n'a pas d'importance : `::: warning`, `::: Warning` et `::: WARNING` produisent le même encadré, `::: Ma-Boite` la même boîte neutre que `::: ma-boite`, et `::: COLUMNS 2` répartit le contenu sur deux colonnes comme `::: columns 2`. Le texte du fichier reste tel qu'il a été écrit ; une boîte neutre affiche le nom comme titre, tel qu'il y figure. La liste des dix types de callout reste la même.
+
+```markdown
+::: WARNING
+En majuscules — le même encadré qu'avec `::: warning`.
+:::
+```
+
+::: WARNING
+En majuscules — le même encadré qu'avec `::: warning`.
 :::
 
 ## Bloc multicolonne

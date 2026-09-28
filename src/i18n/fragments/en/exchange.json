@@ -15,6 +15,7 @@
   "exchange.kind.formatToolbar": "Format toolbar",
   "exchange.kind.commandPlacement": "Status bar buttons and macros",
   "exchange.kind.extensions": "Extension on/off state",
+  "exchange.kind.extensionModes": "Custom working modes",
   "exchange.kind.sidebar": "Sidebar arrangement",
   "exchange.kind.templates": "Template folder and rules",
   "exchange.kind.bookmarksTree": "Bookmarks",

@@ -24,6 +24,16 @@ A `+` or `-` after the type makes the callout collapsible: `+` starts open, `-` 
 > [!note]- Started collapsed
 > Visible only after clicking the title.
 
+The spelling of the type does not matter: `[!note]`, `[!Note]` and `[!NOTE]` produce the same box with the same icon, accent colour and default title; `+`, `-` and a custom title work the same way. The text in the file stays exactly as written — capitals carried over from other Markdown programs are not rewritten. The list of ten types stays the same: names outside it, such as `[!IMPORTANT]`, are unknown types in any spelling.
+
+```markdown
+> [!WARNING]
+> Written in capitals — the same box as with `[!warning]`.
+```
+
+> [!WARNING]
+> Written in capitals — the same box as with `[!warning]`.
+
 ## Custom containers
 
 Container blocks between `::: type` and `:::`. The ten callout types render in callout style, unknown names as a neutral box with the name as title.
@@ -36,6 +46,18 @@ Content in callout style.
 
 ::: warning
 Content in callout style.
+:::
+
+The spelling of the name does not matter: `::: warning`, `::: Warning` and `::: WARNING` produce the same box, `::: My-Box` the same neutral box as `::: my-box`, and `::: COLUMNS 2` sets the content in two columns just like `::: columns 2`. The text in the file stays exactly as written; a neutral box shows the name as its title just as it appears there. The list of ten callout types stays the same.
+
+```markdown
+::: WARNING
+Written in capitals — the same box as with `::: warning`.
+:::
+```
+
+::: WARNING
+Written in capitals — the same box as with `::: warning`.
 :::
 
 ## Multi-column block

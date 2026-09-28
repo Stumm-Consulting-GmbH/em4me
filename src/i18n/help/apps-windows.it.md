@@ -87,13 +87,19 @@ I numeri scalano alla chiusura: se si chiude l'applicazione 1, l'applicazione 2 
 
 ## Aree
 
-Un'**area** vincola un'applicazione a una cartella: tutto ciò che si trova in questa cartella, sottocartelle comprese, è lo spazio di lavoro, nient'altro. «File → Area → Apri area…» sceglie la cartella; «File → Area → Chiudi area» termina il lavoro nell'area e chiude tutte le finestre dell'applicazione dell'area (con le consuete richieste di salvataggio). Il vincolo è fisso: un'area non può essere cambiata, solo chiusa.
+Un'**area** vincola un'applicazione a una cartella: tutto ciò che si trova in questa cartella, sottocartelle comprese, è lo spazio di lavoro, nient'altro. «File → Area → Apri area…» sceglie la cartella; «File → Area → Chiudi area» termina il lavoro nell'area e chiude tutte le finestre di **questa** applicazione dell'area (con le consuete richieste di salvataggio); se la stessa cartella è aperta in aggiunta in una seconda applicazione, questa resta aperta con i suoi documenti. Il vincolo è fisso: un'area non può essere cambiata, solo chiusa.
 
-All'apertura valgono tre regole:
+All'apertura di un'area non ancora aperta valgono due regole:
 
 - Se l'applicazione è vuota (nessun file aperto), adotta l'area.
 - Se l'applicazione ha già un file aperto, viene creata una nuova applicazione per l'area.
-- Se l'area è già in esecuzione, il focus passa a una finestra dell'applicazione dell'area; la stessa area non gira mai due volte.
+
+**Se l'area è già aperta**, dipende dal fatto che all'applicazione in esecuzione sia legato uno spazio di lavoro (vedi sotto):
+
+- **Senza spazio di lavoro**, il focus passa senza domande a una finestra dell'applicazione dell'area. Questo vale anche quando la stessa cartella è aperta contemporaneamente in uno spazio di lavoro: il focus va allora all'applicazione senza spazio di lavoro.
+- **Con uno spazio di lavoro**, l'applicazione chiede che cosa fare, purché la funzione «Spazi di lavoro» sia attiva; se è disattivata, il focus passa come senza spazio di lavoro. «Passa alla finestra aperta» porta in primo piano l'ultima finestra attiva dello spazio di lavoro. «Apri in aggiunta» apre l'area una seconda volta, in una nuova applicazione con finestra e schede proprie; non appartiene allo spazio di lavoro. «Annulla» lascia tutto com'era.
+
+La domanda compare su ogni percorso che apre un'area, per esempio da «Apri area…» o «Aree recenti». Due applicazioni sulla stessa cartella lavorano in modo indipendente l'una dall'altra, e i limiti rigidi dell'area valgono in entrambe. Si distinguono dal titolo della finestra: una nomina lo spazio di lavoro, l'altra no. Con il ripristino della sessione attivo, entrambe tornano all'avvio successivo come due applicazioni, e ciascuna ritrova le proprie bozze non salvate.
 
 **Demo-Area:** «File → Area → Crea la Demo-Area…» copia una raccolta di esempi fornita in inglese — pagine Markdown insieme ad allegati immagine e PDF che mostrano le funzioni più importanti — in una cartella vuota e la apre direttamente come area: un ambiente di prova per sperimentare senza rischi. Le cartelle di destinazione non vuote vengono rifiutate, e i file esistenti non vengono mai sovrascritti. La funzione può essere disattivata come estensione «Demo-Area»; le cartelle demo già create sono aree ordinarie e restano intatte.
 
@@ -157,7 +163,7 @@ Questa pagina riguarda sempre **un'**area, quella aperta. Una vista sintetica de
 
 Un'area può designare uno dei suoi file come **pagina iniziale**: si apre da sola all'apertura dell'area, come un libro si apre alla sua prima pagina. La si imposta e la si rimuove dal menu contestuale di un file nel pannello dell'area; lì il file designato si riconosce da un simbolo iniziale e dal carattere semigrassetto.
 
-**Il ripristino della sessione ha la precedenza**: se all'avvio del programma un'applicazione dell'area torna con i documenti che erano aperti, la pagina iniziale resta chiusa: si riprende da dove si era interrotto. Si apre quando non c'è nulla da ripristinare: all'apertura di un'area a programma avviato e all'avvio di un'applicazione dell'area senza documenti salvati. Il passaggio a un'area già in esecuzione non la riapre e lascia intatta la pagina iniziale.
+**Il ripristino della sessione ha la precedenza**: se all'avvio del programma un'applicazione dell'area torna con i documenti che erano aperti, la pagina iniziale resta chiusa: si riprende da dove si era interrotto. Si apre quando non c'è nulla da ripristinare: all'apertura di un'area a programma avviato e all'avvio di un'applicazione dell'area senza documenti salvati. Il passaggio a un'area già in esecuzione, anche tramite la domanda, non la riapre e lascia intatta la pagina iniziale; «Apri in aggiunta», invece, la apre come alla prima apertura, pagina iniziale compresa.
 
 La designazione appartiene all'area e viaggia con la sua cartella. Se il file viene rinominato o spostato all'interno dell'applicazione, la designazione lo segue; se il file esce dall'area, viene abbandonata. Se non punta a nulla, l'area si apre invariata e l'applicazione lo segnala: un'area senza pagina iniziale si comporta come prima.
 

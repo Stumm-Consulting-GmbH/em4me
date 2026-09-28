@@ -12,10 +12,17 @@
 // Wege; eine zweite Datenhaltung fuer die Tabelle entsteht nicht.
 //
 // **Der Abgleich vor jeder Uebernahme** ist derselbe Schutz wie dort: Der Block
-// wird im AKTUELLEN Dokument neu lokalisiert (`posAtDOM`) und sein Text gegen den
-// Stand gehalten, mit dem das Widget gebaut wurde. Bei Abweichung — veraltetes
-// DOM, zwischenzeitliche Aenderung von anderer Stelle — wird die Aenderung
-// verworfen und ein Statusleisten-Hinweis gezeigt, nie falsch geschrieben.
+// wird im AKTUELLEN Dokument an seiner Stelle gelesen und sein Text gegen den
+// Stand beim Oeffnen gehalten; bei Abweichung wird nie falsch geschrieben.
+//
+// **4T-001712 (Epic 3E-000300): Keine Eingabe geht mehr verloren.** Die Stelle
+// des Blocks ist seither ein Dokument-Anker statt des Anzeige-Knotens (Grund in
+// `blockAmAnker`, live-table-zell-kern.js), und die Wege, auf denen das Dokument
+// den Editor verlaesst oder gelesen wird, uebernehmen die offene Eingabe vorher
+// (`uebernimmOffeneZellEingabe`). Kann eine Uebernahme trotzdem nicht erfolgen,
+// weil die Tabelle von anderer Seite geaendert wurde, bleibt die Bearbeitung
+// mit dem Text offen, statt ihn zu verwerfen; Escape bleibt der eine Weg, eine
+// Eingabe absichtlich zu verwerfen.
 //
 // **Geschrieben wird nur die Zelle**, nicht die ganze Tabelle (Entscheidung des
 // Product Owners vom 2026-09-04). Ersetzt wird genau der Inhalts-Bereich der
@@ -25,18 +32,30 @@
 // ganzen Tabelle die dokumentierte Wirkung ist (Epic 3E-000109).
 'use strict';
 
+import { syntaxTree } from '@codemirror/language';
 import { EditorView } from '@codemirror/view';
 
 import { locatePipeCellPosition, parsePipeTable } from '../../../shared/markdown/table-edit.js';
 import {
+  ankerNachAenderung,
+  blockAmAnker,
   blockImDokument,
   blockTextNachUebernahme,
+  legtTabulatorZeileAn,
   maskiereZellText,
   nachbarZelle,
+  neueZeileAmEnde,
   tabellenMasse,
   zellBereich,
   zellePosZuDokumentStelle,
+  zellTextAn,
 } from './live-table-zell-kern.js';
+// 4T-001713 (Epic 3E-000300): die Vorschlagsliste am Eingabefeld der Zelle.
+import {
+  attachCellSuggestions,
+  closeCellSuggestions,
+  handleCellSuggestionKey,
+} from './live-table-suggestions.js';
 
 // Genau eine offene Zell-Bearbeitung app-weit (Muster des Datatable-Editors).
 let offeneBearbeitung = null;
@@ -100,9 +119,9 @@ export function findeZelle(container, pos) {
 // der dynamische Zugriff ist dort der vorgesehene Ausweg). Ein Fehlschlag
 // bleibt folgenlos: Der Hinweis ist Beiwerk, das Verwerfen der Aenderung ist
 // die eigentliche Wirkung und schon geschehen.
-function zeigeHinweis(schluessel) {
+function zeigeHinweis(schluessel, duration = 2500) {
   import('../views/views.js')
-    .then((modul) => modul.showStatusbarHint(schluessel, { error: true, duration: 2500 }))
+    .then((modul) => modul.showStatusbarHint(schluessel, { error: true, duration }))
     .catch(() => {});
 }
 
@@ -110,7 +129,106 @@ function hinweisVerworfen() {
   zeigeHinweis('tableEdit.hint.notFound');
 }
 
+// --- Uebernahme nach einer Aenderung von anderer Seite (4T-001712) ----------
+//
+// Waehrend das Eingabefeld offen ist, kann das Dokument sich von anderer Seite
+// aendern — ein Befehl ueber das Anwendungs-Menue, ein Neuladen der Datei. Der
+// Abgleich gegen den Stand beim Oeffnen schlaegt dann fehl. Frueher war das der
+// Weg, auf dem die Eingabe verworfen wurde; jetzt gilt eine Stufung:
+//
+// 1. Traegt die Zelle an derselben logischen Stelle noch den Text, mit dem die
+//    Bearbeitung begann, betrifft die fremde Aenderung eine andere Stelle. Die
+//    Eingabe wird in den aktuellen Stand geschrieben, die fremde Aenderung
+//    bleibt unberuehrt.
+// 2. Ist die Zelle selbst geaendert, wird nicht geschrieben — sonst ueberschriebe
+//    die Eingabe unbemerkt eine andere. Die Bearbeitung bleibt mit dem Text
+//    offen und sichtbar in der Zelle, der Hinweis nennt die beiden Wege:
+//    Eingabetaste uebernimmt die Eingabe in den jetzigen Stand, Escape verwirft
+//    sie.
+// 3. Steht an der Stelle keine Tabelle mehr, gibt es keine Zelle, in der der
+//    Text zu zeigen oder zu schreiben waere. Das ist der einzige Fall, in dem
+//    eine Eingabe nicht erhalten bleibt, und er meldet sich mit einem Hinweis.
+
+// Der Quelltext der Tabelle, die an der Stelle `von` beginnt — aus dem
+// Syntaxbaum, also unabhaengig davon, ob ihr Widget gerade angezeigt wird.
+function tabellenQuelleAm(state, von) {
+  let quelle = null;
+  syntaxTree(state).iterate({
+    from: von,
+    to: von,
+    enter(node) {
+      if (quelle === null && node.name === 'Table' && node.from === von) {
+        quelle = state.doc.sliceString(node.from, node.to);
+      }
+      return quelle === null;
+    },
+  });
+  return quelle;
+}
+
+// Der Block, in den eine Uebernahme schreibt (Stufe 1), oder `null`.
+function blockFuerUebernahme(bearbeitung) {
+  const { view, blockVon, source, pos, quellText } = bearbeitung;
+  const block = blockAmAnker(view.state.doc, blockVon, source);
+  if (block) return block;
+  const aktuell = tabellenQuelleAm(view.state, blockVon);
+  if (aktuell === null || zellTextAn(aktuell.split('\n'), pos) !== quellText) return null;
+  bearbeitung.source = aktuell;
+  return blockAmAnker(view.state.doc, blockVon, aktuell);
+}
+
+// Stufen 2 und 3. Liefert `'offen'`, wenn die Bearbeitung offen bleibt.
+function halteBearbeitungOffen(bearbeitung) {
+  const aktuell = tabellenQuelleAm(bearbeitung.view.state, bearbeitung.blockVon);
+  const zellText = aktuell === null ? null : zellTextAn(aktuell.split('\n'), bearbeitung.pos);
+  // Hat der Neuaufbau des Widgets das Eingabefeld ausgehaengt, kommt es in die
+  // Zelle an derselben logischen Stelle des neuen Widgets zurueck.
+  if (zellText !== null && !bearbeitung.eingabe.isConnected) {
+    const container = findeContainer(bearbeitung.view, bearbeitung.blockVon);
+    const zelle = container ? findeZelle(container, bearbeitung.pos) : null;
+    if (zelle) {
+      bearbeitung.urspruenglich = zelle.innerHTML;
+      bearbeitung.container = container;
+      bearbeitung.zelle = zelle;
+      zelle.textContent = '';
+      zelle.appendChild(bearbeitung.eingabe);
+      zelle.classList.add('cm-live-tabelle-bearbeitet');
+    }
+  }
+  if (zellText === null || !bearbeitung.eingabe.isConnected) {
+    hinweisVerworfen();
+    return null;
+  }
+  // Der Stand wird auf den jetzigen gesetzt: Die naechste Uebernahme — ein
+  // bewusster zweiter Handgriff nach dem Hinweis — schreibt in die Zelle, die
+  // der Anwender mit seiner Eingabe darin vor sich sieht.
+  bearbeitung.source = aktuell;
+  bearbeitung.quellText = zellText;
+  offeneBearbeitung = bearbeitung;
+  bearbeitung.eingabe.focus();
+  zeigeHinweis('tableEdit.hint.keptOpen', 6000);
+  return 'offen';
+}
+
 // --- Zell-Bearbeitung --------------------------------------------------------
+
+// 4T-001713: Wo die Vorschlagsliste ihren gedachten Quelltext-Stand ansetzt —
+// Editor, Inhalts-Bereich der offenen Zelle im Dokument und das Zell-Element.
+// Gelesen über den Dokument-Anker wie die Übernahme; steht die Tabelle dort
+// nicht mehr unverändert, gibt es keine Vorschläge statt falscher.
+function vorschlagsLage() {
+  const bearbeitung = offeneBearbeitung;
+  if (!bearbeitung) return null;
+  const block = blockAmAnker(bearbeitung.view.state.doc, bearbeitung.blockVon, bearbeitung.source);
+  const modell = block ? parsePipeTable(block.zeilen) : null;
+  if (!modell) return null;
+  const bereich = zellBereich(block, modell, bearbeitung.pos);
+  return {
+    view: bearbeitung.view,
+    range: { from: bereich.from, to: bereich.to },
+    cell: bearbeitung.zelle,
+  };
+}
 
 // Ist eine Bearbeitung offen, und gehoert das Ereignis zu ihrem Eingabefeld?
 // Der Klick-Pfad am Container darf sie dann nicht erneut oeffnen.
@@ -124,7 +242,22 @@ export function oeffneZellBearbeitung({ view, container, source, zelle, pos, off
   if (offeneBearbeitung) {
     if (offeneBearbeitung.zelle === zelle) return;
     uebernehmeBearbeitung();
-    if (!zelle.isConnected) return;
+    // 4T-001712: Blieb die bisherige Bearbeitung offen, weil sie sich nicht
+    // uebernehmen liess, oeffnet sich keine zweite daneben.
+    if (offeneBearbeitung) return;
+    // 4T-001969: Die Uebernahme hat das Widget neu gebaut, der angeklickte
+    // Zell-Knoten ist nicht mehr im Dokument. Die Schreibmarke steht aber in der
+    // gemeinten Zelle, durch die Uebernahme fortgeschrieben; also im naechsten
+    // Frame von ihr aus neu suchen, statt still abzubrechen. Kein Kreislauf: Beim
+    // zweiten Anlauf ist keine Bearbeitung mehr offen. Bis dahin blieb die Zelle
+    // zu, sobald das Oeffnen vor der aufgeschobenen Uebernahme lief — auf dem
+    // Stamm-Rechner stets, auf anderen Rechnern nie (Befund TU-03).
+    if (!zelle.isConnected) {
+      requestAnimationFrame(() =>
+        oeffneZelleFuerDokumentStelle(view, view.state.selection.main.head),
+      );
+      return;
+    }
   }
   const block = blockImDokument(view, container, source);
   if (!block) {
@@ -166,12 +299,33 @@ export function oeffneZellBearbeitung({ view, container, source, zelle, pos, off
   zelle.textContent = '';
   zelle.appendChild(eingabe);
   zelle.classList.add('cm-live-tabelle-bearbeitet');
-  offeneBearbeitung = { view, container, source, zelle, eingabe, urspruenglich, pos, quellText };
+  // 4T-001712: `blockVon` ist der Dokument-Anker des Blocks; das
+  // Beobachter-Stueck unten schreibt ihn durch jede Aenderung fort.
+  const blockVon = block.from;
+  offeneBearbeitung = {
+    view,
+    container,
+    source,
+    zelle,
+    eingabe,
+    urspruenglich,
+    pos,
+    quellText,
+    blockVon,
+  };
   eingabe.addEventListener('keydown', aufTastendruck);
+  attachCellSuggestions(eingabe, vorschlagsLage);
   // Fokus-Verlust uebernimmt — aber erst im naechsten Zyklus und nur, wenn
   // dieselbe Bearbeitung noch offen ist. Ohne den Aufschub kaeme der blur des
   // Fokus-Wechsels beim Oeffnen der Zelle der Bearbeitung zuvor und schloesse
   // sie sofort wieder (Muster onRootBlur des Datatable-Editors).
+  //
+  // 4T-001712: Der Aufschub war die Stelle, an der die Eingabe verloren ging —
+  // zwischen blur und Uebernahme baut der Editor das Widget neu. Seit die
+  // Uebernahme ihren Block ueber den Dokument-Anker findet, uebersteht sie
+  // jeden solchen Neuaufbau; der Aufschub bleibt deshalb, wie er ist. Die Wege,
+  // die das Dokument ohne blur verlassen oder lesen (Speichern, Schliessen,
+  // Dokument- und Ansichts-Wechsel), rufen `uebernimmOffeneZellEingabe`.
   eingabe.addEventListener('blur', () => {
     const meine = offeneBearbeitung;
     setTimeout(() => {
@@ -209,9 +363,25 @@ function richtungDesTastendrucks(event, eingabe) {
   return null;
 }
 
+// 4T-001861: Das gemeinsame Kontextmenue des Fensters, gelesen am Element statt
+// ueber `app-state` — derselbe Grund wie beim Hinweis oben: kein statischer
+// Bezug in die grosse Import-Zyklen-Komponente.
+function kontextmenueOffen() {
+  const menue = document.getElementById('context-menu');
+  return !!(menue && !menue.hidden);
+}
+
 function aufTastendruck(event) {
   if (!offeneBearbeitung) return;
+  // 4T-001713: Bei offener Vorschlagsliste gehören ihr Pfeile, Bild-Tasten,
+  // Eingabetaste und Escape; die Zell-Bedienung sieht sie dann nicht.
+  if (handleCellSuggestionKey(event)) return;
   if (event.key === 'Escape') {
+    // 4T-001861: Steht nach einem Rechtsklick in die Zelle das Kontextmenue
+    // offen, schliesst Escape das Menue und laesst die Eingabe stehen. Der
+    // Tastendruck geht deshalb unberuehrt an die Escape-Kaskade des Fensters
+    // (app-input-bindings.js), statt die Bearbeitung zu verwerfen.
+    if (kontextmenueOffen()) return;
     event.preventDefault();
     event.stopPropagation();
     brichBearbeitungAb();
@@ -228,10 +398,11 @@ function aufTastendruck(event) {
   const richtung = richtungDesTastendrucks(event, offeneBearbeitung.eingabe);
   if (!richtung) return;
   const bearbeitung = offeneBearbeitung;
-  const block = blockImDokument(bearbeitung.view, bearbeitung.container, bearbeitung.source);
+  const block = blockFuerUebernahme(bearbeitung);
   const modell = block ? parsePipeTable(block.zeilen) : null;
   if (!modell) return;
-  const ziel = nachbarZelle(tabellenMasse(modell), bearbeitung.pos, richtung);
+  const masse = tabellenMasse(modell);
+  const ziel = nachbarZelle(masse, bearbeitung.pos, richtung);
   // Am Rand der Tabelle verbraucht der Tabulator den Tastendruck trotzdem — er
   // darf nicht an den Editor durchfallen und dort einruecken. Die Pfeiltasten
   // duerfen am Rand ihre gewohnte Wirkung behalten.
@@ -239,6 +410,11 @@ function aufTastendruck(event) {
     if (event.key === 'Tab') {
       event.preventDefault();
       event.stopPropagation();
+      // 4T-001711: Vorwaerts am Tabellenende legt er eine neue Zeile an und
+      // oeffnet deren erste Zelle; rueckwaerts bleibt er stehen.
+      if (legtTabulatorZeileAn(masse, bearbeitung.pos, event.key, richtung)) {
+        uebernehmeBearbeitung({ neueZeile: true });
+      }
     }
     return;
   }
@@ -252,6 +428,8 @@ function aufTastendruck(event) {
 }
 
 function stelleZelleWiederHer(bearbeitung) {
+  // 4T-001713: Mit der Zell-Eingabe endet auch ihre Vorschlagsliste.
+  closeCellSuggestions();
   const { zelle, urspruenglich } = bearbeitung;
   if (!zelle.isConnected) return;
   zelle.classList.remove('cm-live-tabelle-bearbeitet');
@@ -270,32 +448,54 @@ export function uebernehmeBearbeitung({
   fokusZurueck = false,
   ziel = null,
   zielRand = 'anfang',
+  neueZeile = false,
+  bleibOffen = false,
 } = {}) {
   if (!offeneBearbeitung) return;
   const bearbeitung = offeneBearbeitung;
   offeneBearbeitung = null;
-  const neu = maskiereZellText(String(bearbeitung.eingabe.value || '').trim());
+  const roh = String(bearbeitung.eingabe.value || '');
+  const neu = maskiereZellText(roh.trim());
   const unveraendert = neu === bearbeitung.quellText;
-  if (unveraendert && !ziel) {
+  // 4T-001712: Wer nur liest (Speichern), findet ohne Aenderung nichts zu
+  // schreiben; die Zelle bleibt dann einfach offen.
+  if (unveraendert && bleibOffen) {
+    offeneBearbeitung = bearbeitung;
+    return;
+  }
+  if (unveraendert && !ziel && !neueZeile) {
     stelleZelleWiederHer(bearbeitung);
     return;
   }
-  // Vor der Uebernahme neu lokalisieren und abgleichen: Zwischen dem Oeffnen
-  // der Zelle und jetzt kann das Dokument sich geaendert haben.
-  const block = blockImDokument(bearbeitung.view, bearbeitung.container, bearbeitung.source);
+  // Vor der Uebernahme an der Stelle des Blocks lesen und abgleichen: Zwischen
+  // dem Oeffnen der Zelle und jetzt kann das Dokument sich geaendert haben.
+  // 4T-001712: ueber den Dokument-Anker, nicht ueber den Widget-Knoten, und bei
+  // Abweichung wird die Eingabe nicht verworfen (Stufung oben).
+  const block = blockFuerUebernahme(bearbeitung);
   const modell = block ? parsePipeTable(block.zeilen) : null;
-  if (!block || !modell) {
-    stelleZelleWiederHer(bearbeitung);
-    hinweisVerworfen();
-    return;
-  }
+  if (!block || !modell) return halteBearbeitungOffen(bearbeitung);
   const bereich = zellBereich(block, modell, bearbeitung.pos);
   const transaktion = {};
-  if (!unveraendert) {
+  const aenderungen = [];
+  if (!unveraendert) aenderungen.push({ from: bereich.from, to: bereich.to, insert: neu });
+  if (neueZeile) {
+    // 4T-001711: Die neue Zeile geht in DIESELBE Transaktion wie die
+    // Uebernahme — ein Rueckgaengig-Schritt fuer beides (AK6). Eingefuegt wird
+    // am Ende des Blocks; die Zielstelle rechnet auf dem Block-Text nach der
+    // Uebernahme, weil die Transaktion beide Aenderungen zugleich anwendet.
+    const textDanach = unveraendert
+      ? block.zeilen.join('\n')
+      : blockTextNachUebernahme(block, bereich, neu);
+    const anlage = neueZeileAmEnde(textDanach, modell.columnCount);
+    aenderungen.push({ from: block.to, insert: anlage.einfuegen });
+    transaktion.selection = { anchor: block.from + anlage.zielOffset };
+    transaktion.scrollIntoView = true;
+  }
+  if (aenderungen.length > 0) {
     // userEvent-Annotation wie beim Datatable-Editor: Ohne sie verschmilzt die
     // programmatische Transaktion in der Editor-Historie mit dem vorherigen
     // Ereignis, und ein Undo naehme mehr zurueck als diese eine Uebernahme.
-    transaktion.changes = { from: bereich.from, to: bereich.to, insert: neu };
+    transaktion.changes = aenderungen;
     transaktion.userEvent = 'input';
   }
   if (ziel) {
@@ -313,6 +513,14 @@ export function uebernehmeBearbeitung({
     };
     transaktion.scrollIntoView = true;
   }
+  if (bleibOffen) {
+    // 4T-001712: Speichern beendet die Arbeit an der Stelle nicht, wie im
+    // Fliesstext. Die Schreibmarke steht danach, wo sie im Feld stand —
+    // umgerechnet auf den geschriebenen Text (vorne gekuerzt, Pipes maskiert).
+    const vorMarke = roh.slice(0, bearbeitung.eingabe.selectionStart ?? roh.length);
+    const marke = Math.min(maskiereZellText(vorMarke.trimStart()).length, neu.length);
+    transaktion.selection = { anchor: bereich.from + marke };
+  }
   // Die Zelle bekommt ihr Aussehen zurueck, bevor die Transaktion laeuft. Ohne
   // diesen Schritt bliebe das Eingabefeld stehen, wenn die Transaktion keinen
   // Neubau der Dekorationen ausloest — und seit der Tabellen-Ausnahme in der
@@ -322,7 +530,7 @@ export function uebernehmeBearbeitung({
   stelleZelleWiederHer(bearbeitung);
   bearbeitung.view.dispatch(transaktion);
   if (fokusZurueck && !ziel) bearbeitung.view.focus();
-  if (ziel) {
+  if (ziel || neueZeile || bleibOffen) {
     // Der Auswahl-Beobachter schweigt bei einer Doc-Aenderung — sonst loeste
     // jede Uebernahme sich selbst erneut aus. Ein Sprung, der zugleich schreibt,
     // oeffnet seine Ziel-Zelle deshalb selbst; ohne Schreiben uebernimmt der
@@ -330,6 +538,27 @@ export function uebernehmeBearbeitung({
     const anker = transaktion.selection.anchor;
     requestAnimationFrame(() => oeffneZelleFuerDokumentStelle(bearbeitung.view, anker));
   }
+}
+
+// 4T-001712 (Epic 3E-000300): Uebernimmt eine offene Zell-Eingabe, bevor ein Weg
+// das Dokument aus dem Editor nimmt oder liest. Gemessen am 2026-09-24
+// (`4T-001710`, Ablaeufe M04, M07, M08): Speichern mit Strg+S verlaesst das
+// Feld gar nicht, und Schliessen und Dokument-Wechsel wirken, bevor die
+// aufgeschobene Uebernahme laeuft — die Datei wurde ohne die Eingabe
+// geschrieben, das Dokument galt beim Schliessen als unveraendert.
+//
+// Gerufen wird sie am Anfang von Speichern, Schliessen, Aktivieren eines
+// anderen Dokuments, Wechsel der Ansicht und des Bearbeiten-Modus sowie beim
+// Schliessen des Fensters — also VOR der Umstellung des aktiven Reiters, denn
+// der Editor schreibt jede Aenderung in den gerade aktiven Reiter.
+// `bleibOffen` nutzt das Speichern: Die Zelle ist danach wieder offen.
+//
+// Rueckgabe `false`, wenn die Eingabe nicht uebernommen werden konnte und die
+// Bearbeitung deshalb offen bleibt (Stufe 2 oben). Wer das Dokument aus dem
+// Editor nimmt, bricht dann ab: Sonst ginge mit dem Dokument auch die Eingabe.
+export function uebernimmOffeneZellEingabe({ bleibOffen = false } = {}) {
+  if (!offeneBearbeitung) return true;
+  return uebernehmeBearbeitung({ bleibOffen }) !== 'offen';
 }
 
 // --- Der eine Weg in eine Zelle (4T-001346) ----------------------------------
@@ -391,7 +620,14 @@ export function oeffneZelleFuerDokumentStelle(view, kopf) {
 // Beobachter der Auswahl. Bei einer Doc-Aenderung bleibt er still: Die
 // Uebernahme einer Zelle aendert das Dokument und wuerde sich sonst selbst
 // erneut ausloesen.
+//
+// 4T-001712: Derselbe Beobachter schreibt den Dokument-Anker einer offenen
+// Bearbeitung durch jede Aenderung fort, damit die Uebernahme ihren Block auch
+// dann findet, wenn davor im Dokument etwas eingefuegt oder entfernt wurde.
 export const liveTabellenZellFokus = EditorView.updateListener.of((update) => {
+  if (update.docChanged && offeneBearbeitung && offeneBearbeitung.view === update.view) {
+    offeneBearbeitung.blockVon = ankerNachAenderung(offeneBearbeitung.blockVon, update.changes);
+  }
   if (!update.selectionSet || update.docChanged) return;
   const view = update.view;
   const kopf = view.state.selection.main.head;

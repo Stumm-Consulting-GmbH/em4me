@@ -74,3 +74,21 @@ export function activeLineSet(state) {
   }
   return set;
 }
+
+// 4T-001925 (Epic 3E-000322): Welche Ereignisse ein Element der Live-Ansicht,
+// das Bilder zeigen kann, an den Editor durchlässt. Diese Elemente lassen ihre
+// Ereignisse sonst vom Editor ignorieren, damit Klick und Auswahl darin nicht
+// die Schreibmarke versetzen. Genau davon ist der Doppelklick auf ein Bild
+// ausgenommen: Er gehört dem Behandler `imageOpenHandler` in
+// `editor/editor-paste.js`, der das Bild im Standardprogramm öffnet
+// (4S-000286, AK3 und AK9). Bis zu diesem Vorgang erreichte er ihn nie.
+//
+// Der Editor selbst hat für den Doppelklick keinen eigenen Behandler — die
+// Wort-Auswahl hängt am zweiten Mausdruck, und der bleibt ignoriert. Das
+// Durchlassen gibt das Ereignis deshalb allein an die eigenen Behandler
+// weiter, und ein Doppelklick neben dem Bild bleibt, was er war.
+export function bildDoppelklickDurchlassen(event) {
+  if (!event || event.type !== 'dblclick') return false;
+  const ziel = event.target;
+  return !!ziel && ziel.nodeType === 1 && ziel.tagName === 'IMG';
+}

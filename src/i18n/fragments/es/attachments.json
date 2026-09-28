@@ -11,6 +11,9 @@
   "attachments.open.outsideRoot": "No abierto: el destino está fuera de la carpeta permitida.",
   "attachments.open.notFound": "No abierto: no se encontró el archivo.",
   "attachments.open.failed": "No se pudo abrir el adjunto.",
+  "attachments.imageView.label": "Vista ampliada",
+  "attachments.imageView.openExternal": "Abrir en el programa predeterminado",
+  "attachments.imageView.close": "Cerrar",
   "settings.attachments.title": "Adjuntos",
   "settings.attachments.loading": "Cargando la configuración …",
   "settings.attachments.form": "Ubicación",
@@ -22,5 +25,7 @@
   "settings.attachments.folder": "Nombre de la carpeta",
   "settings.attachments.folderHint": "Se aplica a «Subcarpeta fija» y «Carpeta central del área». Un nombre simple, sin segmentos de ruta.",
   "settings.attachments.areaGroup": "Área «{name}»",
+  "settings.attachments.bookGroup": "Libro «{name}»",
+  "settings.attachments.shelfGroup": "Estantería «{name}»",
   "settings.attachments.invalidFolder": "El nombre de la carpeta no puede contener segmentos de ruta ni estar vacío."
 }

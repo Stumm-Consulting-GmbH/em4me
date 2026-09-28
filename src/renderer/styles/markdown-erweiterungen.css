@@ -117,11 +117,20 @@
   margin: 1em 0;
   background: var(--bg-alt);
 }
+/* 4T-001914 (Epic 3E-000320): Titelzeile der neutralen Box mit dem Namen,
+   wie er geschrieben ist. */
+.markdown-body .custom-container-title {
+  font-weight: 600;
+  margin: 0 0 0.4em 0;
+}
 /* 4T-000200: Live-Modus-Pendant der neutralen Container-Box. */
 .cm-editor .cm-line.cm-live-container {
   background: var(--bg-alt);
   border-left: 2px solid var(--border-strong);
   padding-left: 0.6em;
+}
+.cm-editor .cm-line.cm-live-container-header {
+  font-weight: 600;
 }
 /* 4T-000382 (Epic 3E-000072): Mehrspalten-Block `::: columns <n>`. CSS-
    Mehrspaltigkeit — der Inhalt fliesst automatisch und ausgeglichen ueber

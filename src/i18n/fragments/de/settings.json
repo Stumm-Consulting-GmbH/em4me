@@ -3,6 +3,8 @@
   "settings.title": "Einstellungen",
   "settings.navGroup.general": "Allgemein",
   "settings.navGroup.area": "Aktueller Bereich",
+  "settings.navGroup.book": "Aktuelles Buch",
+  "settings.navGroup.shelf": "Aktuelles Bücherregal",
   "settings.navGroup.extensionsInternal": "Erweiterungen (intern)",
   "settings.navGroup.extensionsExternal": "Erweiterungen (extern)",
   "settings.appearance": "Darstellung",

@@ -180,13 +180,19 @@ Le petit palier est prévu pour les colonnes étroites, le grand pour une colonn
 
 Le mode réveil accueille autant de réveils que voulu. À la création, on choisit l'heure, un nom et le motif de répétition : une fois, tous les jours ou certains jours de la semaine. L'heure passe par une commande à chiffres, une saisie invalide est donc impossible. Chaque réveil s'active séparément sans être supprimé ; un réveil unique se désactive après avoir sonné.
 
-Un réveil échu affiche un avis que l'on confirme ou reporte d'une durée réglable (Réglages → Horloge). Si la fenêtre n'est pas au premier plan, une notification système s'y ajoute ; un clic ramène la fenêtre au premier plan.
+Un réveil échu affiche un avis que l'on confirme ou reporte d'une durée réglable (Réglages → Horloge). Si aucune fenêtre de l'application n'est au premier plan, une notification système s'y ajoute ; un clic ramène l'application au premier plan.
 
 ### Minuteur et chronomètre
 
 Le mode minuteur liste les minuteurs avec temps restant et barre de progression. Trois boutons lancent des durées courantes aussitôt, les durées libres passent par une commande heures, minutes et secondes. Démarrage, pause et remise à zéro agissent par minuteur. Le temps restant se calcule à partir d'horodatages plutôt que par décompte : un minuteur continue donc correctement même si la fenêtre était en arrière-plan ou si l'application a été fermée entre-temps. Un minuteur écoulé affiche un avis et se confirme ou se relance.
 
 Le chronomètre compte à l'endroit, avec centièmes. Outre démarrage, pause et remise à zéro, il enregistre des temps de tour ; le tour le plus récent est en haut.
+
+### Avis dans toutes les fenêtres
+
+Un réveil échu et un minuteur écoulé affichent leur avis dans chaque fenêtre ouverte de l'application, y compris les fenêtres d'une autre zone, les fenêtres sans zone et les fenêtres de livre et de bibliothèque. Tous deux appartiennent à l'application entière et à aucune zone ; leurs avis n'indiquent donc pas de provenance. L'avis se traite dans n'importe quelle fenêtre, et le traitement agit une seule fois : l'avis disparaît ensuite de toutes les fenêtres, et une seconde action presque simultanée dans une autre fenêtre reste sans effet. Si plusieurs réveils ou minuteurs sont échus en même temps, chaque fenêtre les rassemble dans un seul dialogue. Une fenêtre ouverte plus tard affiche elle aussi un avis pas encore traité.
+
+La notification système n'apparaît que si aucune fenêtre de l'application n'est au premier plan, et une seule fois par avis, même avec plusieurs fenêtres ouvertes. C'est le système d'exploitation qui l'affiche ; sans son service de notification, seul l'avis dans l'application demeure.
 
 ### Calendrier mensuel
 

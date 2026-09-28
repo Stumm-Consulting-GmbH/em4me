@@ -9,10 +9,19 @@
 // Fachlichkeit: hier das Rechnen, dort das Bedienen.
 'use strict';
 
-import { locatePipeCell, locatePipeCellPosition } from '../../../shared/markdown/table-edit.js';
+import {
+  buildEmptyTableRow,
+  locatePipeCell,
+  locatePipeCellPosition,
+  parsePipeTable,
+} from '../../../shared/markdown/table-edit.js';
 // Lokalisiert den Tabellen-Block des Containers im aktuellen Dokument und
 // bestaetigt ihn gegen den Stand, mit dem das Widget gebaut wurde. `null`, wenn
 // die Zuordnung nicht zweifelsfrei gelingt — dann wird nichts geschrieben.
+//
+// Nur fuer das OEFFNEN einer Zelle: Dort ist der Container frisch gefunden und
+// haengt im Baum. Waehrend einer offenen Bearbeitung taugt er nicht mehr als
+// Schluessel, siehe `blockAmAnker`.
 export function blockImDokument(view, container, source) {
   let pos;
   try {
@@ -20,16 +29,52 @@ export function blockImDokument(view, container, source) {
   } catch {
     return null;
   }
-  if (typeof pos !== 'number' || pos < 0) return null;
-  const doc = view.state.doc;
-  const from = pos;
-  const to = pos + String(source).length;
+  return blockAmAnker(view.state.doc, pos, source);
+}
+
+// 4T-001712 (Epic 3E-000300): Der Tabellen-Block an seiner Dokument-Stelle,
+// bestaetigt gegen den Stand beim Oeffnen der Zelle.
+//
+// **Warum die Stelle und nicht der Anzeige-Knoten.** Gemessen am 2026-09-24
+// (`4T-001710`, Ablauf M11): Verlaesst die Schreibmarke die Editor-Zeile, die
+// das Tabellen-Widget traegt, zeichnet der Editor diese Zeile neu und legt das
+// Widget-DOM neu an. Der alte Knoten haengt dann aus, `posAtDOM` liefert fuer
+// ihn eine falsche Stelle, und die Uebernahme verwarf die Eingabe. Die
+// Dokument-Stelle ueberlebt jeden solchen Neuaufbau; sie wird beim Oeffnen
+// festgehalten und durch jede Aenderung fortgeschrieben (`ankerNachAenderung`).
+//
+// Der Abgleich Zeichen fuer Zeichen ist zugleich die Bestaetigung der
+// Zuordnung: Steht an der Stelle noch genau der Text, aus dem die Bearbeitung
+// hervorging, ist der Block gefunden; sonst nicht, und es wird nichts
+// geschrieben.
+export function blockAmAnker(doc, von, source) {
+  if (typeof von !== 'number' || von < 0) return null;
+  const text = String(source);
+  const to = von + text.length;
   if (to > doc.length) return null;
-  // Der Abgleich Zeichen fuer Zeichen ist zugleich die Bestaetigung der
-  // Zuordnung: Steht an der DOM-Position noch genau der Text, aus dem das
-  // Widget gebaut wurde, ist der Block gefunden; sonst nicht.
-  if (doc.sliceString(from, to) !== String(source)) return null;
-  return { from, to, zeilen: String(source).split('\n') };
+  if (doc.sliceString(von, to) !== text) return null;
+  return { from: von, to, zeilen: text.split('\n') };
+}
+
+// 4T-001712: Schreibt die Dokument-Stelle eines Blocks durch eine Aenderung
+// fort. Eine Einfuegung genau an der Stelle steht VOR dem Block und schiebt ihn
+// nach hinten (Zuordnung nach rechts). Eine Aenderung im Block verschiebt die
+// Stelle nicht; sie faellt erst beim Abgleich in `blockAmAnker` auf.
+export function ankerNachAenderung(von, aenderungen) {
+  return aenderungen.mapPos(von, 1);
+}
+
+// 4T-001712: Der Quelltext der Zelle an einer logischen Stelle, oder `null`,
+// wenn die Tabelle diese Zelle nicht (mehr) hat. Anders als
+// `locatePipeCellPosition` klemmt diese Funktion nicht: Eine fehlende Zelle ist
+// hier eine Antwort. Gebraucht fuer die Frage, ob eine Eingabe in eine
+// inzwischen von anderer Seite geaenderte Tabelle noch an ihre Zelle darf.
+export function zellTextAn(zeilen, pos) {
+  const modell = parsePipeTable(zeilen);
+  if (!modell || !pos || !(pos.col >= 0 && pos.col < modell.columnCount)) return null;
+  if (pos.rowKind === 'header') return modell.header[pos.col];
+  const zeile = modell.rows[pos.rowIndex];
+  return zeile ? zeile[pos.col] : null;
 }
 
 // Der Dokument-Bereich, den eine Zell-Uebernahme ersetzt: genau der
@@ -55,12 +100,11 @@ export function tabellenMasse(modell) {
 // Tabelle. `vor` und `zurueck` laufen in Lese-Reihenfolge ueber die Zeilen
 // hinweg, `hoch` und `runter` bleiben in ihrer Spalte.
 //
-// **Am Ende der Tabelle ist Schluss** (AK4): Es wird keine Zeile angelegt. Das
-// unterscheidet den Sprung in der gerenderten Ansicht bewusst vom Zellsprung im
-// Quelltext (`handleTableTab`, editor-keymaps.js), der dort eine neue Zeile
-// anhaengt — dessen Verhalten bleibt unveraendert (AK8). Der Unterschied ist
-// keine Unstimmigkeit, sondern folgt der Abgrenzung der Story: Struktur-
-// Operationen bleiben beim Kontextmenue.
+// **Am Ende der Tabelle liefert der Sprung `null`**, auch in Richtung `vor`.
+// Diese Funktion bleibt reine Navigation. Dass der Tabulator dort seit 4T-001711
+// (Epic 3E-000300, Entscheidung E1) eine neue Zeile anlegt wie der Zellsprung im
+// Quelltext (`handleTableTab`, editor-keymaps.js), entscheidet
+// `legtTabulatorZeileAn` unten; die Zeile selbst baut `neueZeileAmEnde`.
 export function nachbarZelle(masse, pos, richtung) {
   const spalten = Math.max(1, masse.spalten);
   const reihen = masse.zeilen + 1; // Kopfzeile plus Datenzeilen
@@ -81,6 +125,33 @@ export function nachbarZelle(masse, pos, richtung) {
   return zielReihe === 0
     ? { rowKind: 'header', rowIndex: 0, col: zielSpalte }
     : { rowKind: 'body', rowIndex: zielReihe - 1, col: zielSpalte };
+}
+
+// 4T-001711 (Epic 3E-000300, E1): Legt dieser Tastendruck eine neue Zeile an?
+// Genau dann, wenn der Tabulator vorwaerts gedrueckt wird und es keine naechste
+// Zelle mehr gibt — also in der letzten Zelle der letzten Zeile, bei einer
+// Tabelle nur mit Kopfzeile in deren letzter Zelle (AK9). Rueckwaerts entsteht
+// nie eine Zeile (AK5), und die Pfeiltaste rechts am Ende der letzten Zelle
+// traegt zwar dieselbe Richtung `vor`, legt aber keine an.
+export function legtTabulatorZeileAn(masse, pos, taste, richtung) {
+  if (taste !== 'Tab' || richtung !== 'vor') return false;
+  return nachbarZelle(masse, pos, richtung) === null;
+}
+
+// 4T-001711: Die neue leere Zeile am Tabellenende. `blockText` ist der Text des
+// Blocks, wie er nach einer etwaigen Zell-Uebernahme dasteht, `spalten` die
+// Spaltenzahl der Tabelle. Geliefert werden der einzufuegende Text — er kommt
+// hinter die letzte Zeile, also an das Ende des Blocks — und die Stelle der
+// ersten Zelle der neuen Zeile relativ zum Block-Anfang. Die Zeile hat dieselbe
+// Form wie beim Zellsprung im Quelltext (`buildEmptyTableRow`), damit beide
+// Ansichten denselben Quelltext erzeugen (AK2, AK8).
+export function neueZeileAmEnde(blockText, spalten) {
+  const einfuegen = '\n' + buildEmptyTableRow(Math.max(1, spalten));
+  const zeilen = (String(blockText) + einfuegen).split('\n');
+  const modell = parsePipeTable(zeilen);
+  const ziel = { rowKind: 'body', rowIndex: modell.rows.length - 1, col: 0 };
+  const stelle = locatePipeCellPosition(zeilen, modell, ziel);
+  return { einfuegen, zielOffset: stelle.offset, ziel };
 }
 
 // Die logische Zell-Position und der Zeichen-Offset darin, zu einer Stelle im

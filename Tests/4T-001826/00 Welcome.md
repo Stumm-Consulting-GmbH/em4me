@@ -36,7 +36,7 @@ Beside the tour, the folder `Bookshelf` holds a small **bookshelf** grouping two
 
 ## How this window is laid out
 
-The folder is open as an **area**: the file list sits on the left, tabs run across the top, and sidebar panels cover backlinks, tags, the outline and more (all under the View menu). Most extras — callouts, tables, tasks, events and the rest — are switchable under **Settings → Extensions** and are all on by default.
+The folder is open as an **area**: the file list sits on the left, tabs run across the top, and sidebar panels cover backlinks, tags, the outline and more (all under the View menu). Most extras — callouts, tables, tasks, events and the rest — are switchable under **Settings → Extensions**. How many of them are on to begin with is decided there by the **working mode**: Beginner, Advanced or Full. A fresh installation starts in Beginner mode, and the guided tour offers the choice on the very first launch; afterwards every single switch can still be set by hand, and the current state can be kept as a working mode of your own.
 
 Because these pages form an area, the search covers all of them at once: press `Ctrl+F` anywhere and try `callout` or `query`. Results appear grouped by file in the sidebar, the page you are on comes first, and `F3` walks on into the next file.
 

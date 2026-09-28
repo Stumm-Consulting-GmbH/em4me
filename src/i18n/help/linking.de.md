@@ -82,7 +82,7 @@ Bei Block-Ankern wird der vollständige umschließende Block eingebettet (Listen
 Trägt eine Markdown-Datei denselben Namen wie eine Anlage, gewinnt die Markdown-Datei; mit Endung geschrieben (`![[bild.png]]`) ist die Sache eindeutig. Gewöhnliche Markdown-Bilder `![](pfad.png)` bleiben davon unberührt — ihre Schreibweise meint einen Pfad und keinen Namen.
 ## Bereichs-Verknüpfungen
 
-Zwei Bereiche lassen sich verknüpfen, damit ein Verweis über die Bereichs-Grenze führt. Eingerichtet wird das unter **Einstellungen → Aktueller Bereich → Bereichs-Verknüpfungen**: Dort stehen der Ordner des anderen Bereichs und ein **Kürzel**, unter dem dieser Bereich künftig angesprochen wird.
+Zwei Bereiche lassen sich verknüpfen, damit ein Verweis über die Bereichs-Grenze führt. Eingerichtet wird das unter **Einstellungen → Aktueller Bereich → Bereichs-Verknüpfungen** (bei geöffnetem Buch heißt der Block **Aktuelles Buch**, bei geöffnetem Bücherregal **Aktuelles Bücherregal**): Dort stehen der Ordner des anderen Bereichs und ein **Kürzel**, unter dem dieser Bereich künftig angesprochen wird.
 
 Das Kürzel gilt **nur in diesem Bereich und nur in dieser Richtung**. Wie der andere Bereich umgekehrt auf diesen verweist, wird dort eingetragen und darf anders lauten. Erlaubt sind Buchstaben, Ziffern, Bindestrich und Unterstrich; Groß- und Kleinschreibung spielt keine Rolle.
 
@@ -146,13 +146,15 @@ Beim Tippen im Edit-Modus öffnet sich ein Vorschlags-Dropdown:
 - `[[Datei#` Heading-Anker, `[[Datei#^` Block-IDs,
 - `#` im Fließtext bekannte Tags.
 
-Pfeil-Tasten navigieren, Enter oder Tab wählt aus, Esc schließt.
+Pfeil-Tasten navigieren, Enter wählt aus, Esc schließt.
 
 Solange nach `[[` nichts getippt ist, stehen die zuletzt geänderten Dateien des Bereichs oben, die jüngste zuerst. Sobald gefiltert wird, führt wieder die Treffer-Güte; die Änderungszeit entscheidet dann nur noch zwischen gleichrangigen Vorschlägen.
 
 Nach `#` stehen die im Bereich häufiger vergebenen Schlagworte oben, das häufigste zuerst; auch hier führt die Treffer-Güte, sobald etwas getippt ist, und die Häufigkeit entscheidet dann zwischen Gleichrangigen. Die Zahl hinter jedem Vorschlag nennt sie.
 
 Die Übernahme eines Datei- oder Zweitnamen-Vorschlags schreibt die schließenden Klammern mit und setzt die Schreibmarke dahinter. Stehen sie schon da, entsteht kein zweites Paar.
+
+In einer Tabellenzelle der Live-Ansicht erscheint dieselbe Liste an der Zelle, mit denselben Einträgen und derselben Bedienung; Einzelheiten unter [Ansichten und Darstellung](views-display.md). Aufgaben-Marker schlägt sie dort nicht vor, weil eine Tabellenzeile keine Aufgabenzeile ist; dasselbe gilt in der Quellcode-Ansicht.
 
 ## Sidebars zum Netz
 

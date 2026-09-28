@@ -6,7 +6,7 @@ _extended memory for me_
 
 Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder Bereich öffnet als eigener Tab und lässt sich wie jeder andere Tab verschieben, in die zweite Spalte legen oder neben der eigenen Arbeit offen halten.
 
-**Zum ersten Mal hier?** Die Produkt-Tour zeigt in zehn Stationen am laufenden Programm, was diese Anwendung ausmacht, und deutet dabei jeweils auf das Bedienelement, um das es geht. Beim ersten Programmstart läuft sie von selbst an, danach startet „Hilfe → Produkt-Tour“ sie erneut; abbrechen lässt sie sich jederzeit. Das Handbuch beantwortet die gezielten Fragen, die danach kommen.
+**Zum ersten Mal hier?** Die Produkt-Tour zeigt in elf Stationen am laufenden Programm, was diese Anwendung ausmacht, und deutet dabei jeweils auf das Bedienelement, um das es geht. Beim ersten Programmstart läuft sie von selbst an, danach startet „Hilfe → Produkt-Tour“ sie erneut; abbrechen lässt sie sich jederzeit. Das Handbuch beantwortet die gezielten Fragen, die danach kommen.
 
 ## Nachschlagen
 
@@ -21,7 +21,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 - [Format-Toolbar](toolbar.md) — Formatieren per Schaltfläche: Sichtbarkeit im Edit-Modus, Zustands-Anzeige, Überschrift-Menü, Tabellen-Raster, eigene Belegung.
 - [Block-Konstrukte](blocks.md) — Callouts, Custom Containers, Definitionslisten, Line Blocks, Fußnoten.
 - [Inline-Konstrukte](inline.md) — Highlight, Tief-/Hochstellen, Unterstreichen, Spoiler, Critic Markup, Spans und Abkürzungen.
-- [Bilder](images.md) — Bild-Syntax, Größenangaben, Implicit Figures.
+- [Bilder](images.md) — Bild-Syntax, Größenangaben, Implicit Figures, Bild vergrößern.
 - [Anlagen](attachments.md) — Dateien einfügen und hineinziehen: Ablage-Ort samt Einstellung, Namensvergabe, Öffnen in der Standardanwendung.
 - [Mathematik und Diagramme](math-diagrams.md) — KaTeX-Formeln, Mermaid-Diagramme, Code-Blöcke mit Syntax-Highlighting.
 - [Emoji](emoji.md) — Shortcode-Funktionsweise und kuratierte Code-Auswahl.
@@ -30,7 +30,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 ## Aufgaben, Termine und Zeit
 
 - [Aufgaben-Listen](tasks.md) — Task-Listen mit Standard- und erweiterten Status.
-- [Erinnerungen](reminders.md) — Melde-Zeitpunkte auf Aufgaben mit ⏰: Benachrichtigungs- und Nachhol-Dialog, Erinnerungs-Liste; die Meldung läuft nur bei laufender App.
+- [Erinnerungen](reminders.md) — Melde-Zeitpunkte auf Aufgaben mit ⏰: Benachrichtigungs- und Nachhol-Dialog in allen Fenstern mit Herkunfts-Angabe, Erinnerungs-Liste; die Meldung läuft nur bei laufender App.
 - [Ereignisse](events.md) — Termine, Geburtstage und Jahrestage im Dokument: Ereignis-Block mit Zeitdifferenz-Staffelung, Meilensteinen, Filtern und vier Ansichten, Aggregation über Frontmatter, Verknüpfungen.
 - [Kalender-Systeme](custom-calendars.md) — frei definierbare Zeitrechnungen je Bereich: Blöcke mit parallelen Kalendern, Ebenen mit fünf Beziehungs-Typen, Epochen, Umrechnung, Wert-Syntax im Dokument und Picker.
 
@@ -53,7 +53,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 - [Lesezeichen](bookmarks.md) — Dateien in zwei Abschnitten merken: allgemeine und bereichsgebundene Lesezeichen mit relativen Pfaden, Anlage, Umwandeln, Reihenfolge.
 - [Vorlagen](templates.md) — Markdown-Vorlagen anwenden: Vorlagen-Ordner mit Bereichs-Übersteuerung, Platzhalter mit Dialogen, Cursor-Ziel, Ordner-Regeln.
 - [Journale](journals.md) — periodische Dokumente je Bereich: Regale und Granularitäten, Ordner- und Namens-Schemata, Kalender-Panel, Navigations-Block, automatische Datums-Eigenschaften.
-- [Bücher](books.md) — mehrere Dateien als Buch mit erklärter Lese-Ordnung: Buch-Ordner mit Begleitdatei, Inhaltsverzeichnis mit Struktur-Pflege, Leseführung über Kapitel-Grenzen, Verschieben mit Nachführung, Reparatur fehlender Kapitel.
+- [Bücher](books.md) — mehrere Dateien als Buch mit erklärter Lese-Ordnung: Buch-Ordner mit Begleitdatei, Inhaltsverzeichnis mit Struktur-Pflege, Leseführung über Kapitel-Grenzen, Verschieben mit Nachführung, Reparatur fehlender Kapitel, Einstellungen von Buch und Regal mit den eigenen Angaben.
 - [Applikationen, Fenster und Bereiche](apps-windows.md) — Mehrfachstart, Fenster-Verwaltung und die Titel-Systematik.
 - [My Extended Memory](my-extended-memory.md) — eine gemeinsame Sicht auf die selbst eingetragenen Arbeitsbereiche, Bereiche, Bücher und Bücherregale: Eintragen aus Vorschlag oder Ordner-Dialog, Kennzahlen mit ihrem Stand, Detail-Sicht je Gefäß-Art, Zugang zum Ausgeben und Einlesen der eigenen Einrichtung.
 - [Dokument-Historie](history.md) — Änderungen protokollieren: Markdown-Data-Begleitdatei, Schalter auf drei Ebenen, Revisionen vergleichen und wiederherstellen.
@@ -69,7 +69,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 - [Farbschemas](color-schemes.md) — Farben über benannte Slots: Modus-Zuordnung, eigene Schemas als Kopie, Live-Vorschau, Grenzen.
 - [Werkzeuge](tools.md) — Markdown-Linter, Suche mit Regex, Suchen und Ersetzen, Tabellen-Editor.
 - [Kommando-Platzierung](command-placement.md) — Kommandos als dauerhafte eigene Zugänge: Statusbar-Buttons, Ausblende-Liste, Kontextmenü-Einträge, Makros.
-- [Erweiterungen](extensions.md) — Funktionen einzeln ein- und ausschalten: Kategorien, Abhängigkeiten, Wirkung des Aus-Zustands.
+- [Erweiterungen](extensions.md) — Funktionen einzeln ein- und ausschalten: Kategorien, Arbeitsmodi samt eigenen Modi, Abhängigkeiten, Wirkung des Aus-Zustands.
 - [Einstellungen exportieren und importieren](setup-exchange.md) — die eigene Einrichtung mitnehmen: Auswahl der Datenarten samt einzelner Kalender-Blöcke, Aufbau der Austausch-Datei, Vorschau vor der Übernahme, Zusammenführung mit vorhandenen Werten, Fassungs-Verträglichkeit.
 - [Eigene Oberflächen-Sprache](custom-locale.md) — die Oberfläche selbst übersetzen: Vorlage herunterladen, im eigenen Editor übersetzen, einspielen und prüfen, auswählen, Rückfall auf Englisch, Aktualisieren und Entfernen, Ablage im Benutzerprofil.
 - [Erweiterungen erstellen](extensions-dev.md) — eigene externe Erweiterungen entwickeln: Manifest, Erweiterungs-API, Referenz-Beispiel, Sicherheits-Hinweise.

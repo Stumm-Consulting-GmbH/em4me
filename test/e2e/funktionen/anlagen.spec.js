@@ -293,7 +293,7 @@ async function fangeOeffnenAb(app) {
 const geoeffnete = (app) => app.evaluate(() => globalThis.__geoeffnet || []);
 
 test.describe('AN-08/AN-09: Anlagen aus dem Dokument heraus oeffnen', () => {
-  test('Klick auf eine verlinkte Anlage und auf ein Bild oeffnet die Standardanwendung', async () => {
+  test('Klick auf eine verlinkte Anlage und die Schaltflaeche der Bild-Vergroesserung oeffnen die Standardanwendung', async () => {
     const workDir = makeWorkDir('an08-');
     fs.mkdirSync(path.join(workDir, 'Doku'));
     fs.writeFileSync(path.join(workDir, 'Doku', 'bericht.pdf'), 'PDF', 'utf8');
@@ -317,10 +317,15 @@ test.describe('AN-08/AN-09: Anlagen aus dem Dokument heraus oeffnen', () => {
         .poll(() => geoeffnete(app), { timeout: 5000 })
         .toEqual([path.join(workDir, 'Doku', 'bericht.pdf')]);
 
-      // AN-09: eingebettetes Bild, einfacher Klick in der Render-Ansicht.
-      // Das Bild traegt nach der Aufloesung einen data:-URI in src; die
-      // Original-Quelle steht in data-src-original.
+      // AN-09: eingebettetes Bild. Der einfache Klick in der Render-Ansicht
+      // oeffnet seit 4T-001870 die Vergroesserung; der Weg ins
+      // Standardprogramm liegt auf deren Schaltflaeche und nimmt dieselbe
+      // Strecke wie bis dahin der Klick. Das Bild traegt nach der Aufloesung
+      // einen data:-URI in src; die Original-Quelle steht in data-src-original.
       await body.locator('img').first().click();
+      await expect(page.locator('#image-lightbox')).toBeVisible();
+      expect(await geoeffnete(app)).toHaveLength(1);
+      await page.locator('#image-lightbox .image-lightbox-open-external').click();
       await expect.poll(async () => (await geoeffnete(app)).length, { timeout: 5000 }).toBe(2);
       expect((await geoeffnete(app))[1]).toBe(path.join(workDir, 'Doku', 'bild.png'));
     } finally {

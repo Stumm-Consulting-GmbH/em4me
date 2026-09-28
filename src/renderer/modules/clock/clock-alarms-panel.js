@@ -9,7 +9,8 @@
 //   ein Freitextfeld gaebe es hier nicht (PO-Vorgabe Eingabe-Komfort).
 // - Meldung faelliger Wecker (#alarm-due-modal) mit Bestaetigen und
 //   Schlummern, dazu die System-Benachrichtigung bei nicht fokussiertem
-//   Fenster.
+//   Fenster. Seit 4T-001728 (Epic 3E-000305) steht die Meldung in allen
+//   Fenstern; bearbeitet ein anderes Fenster sie, schliesst sie hier mit.
 //
 // Der Melde-Weg ist bewusst NICHT der der Erinnerungen: jener haengt an
 // Datei, Zeile und Task-Marker (Erledigt togglet den Task, Spaeter schreibt
@@ -25,6 +26,7 @@ import { t } from '../../i18n.js';
 import { showDateTimePicker } from '../calendar/date-picker.js';
 import { appendContextMenuItem, placeContextMenuAt } from '../dialogs/context-menu-utils.js';
 import { contextMenu } from '../app/app-state.js';
+import { verbindeUhrMeldung } from './clock-due-sync.js';
 import {
   ALARM_REPEATS,
   CLOCK_ALARMS_KEY,
@@ -354,6 +356,10 @@ export function showAlarmDialog(existing, lang = 'de') {
 // alle angezeigten Eintraege.
 const pending = new Map();
 let dueDialogOpen = false;
+// 4T-001728: schliesst den offenen Dialog ohne eigene Aktion (die Meldung ist
+// in einem anderen Fenster bearbeitet), dazu die Verbindung zur Zustellung.
+let schliesseDueDialog = null;
+let meldung = null;
 
 function renderDueList(listEl, lang) {
   listEl.innerHTML = '';
@@ -386,15 +392,22 @@ function showDueDialog(lang) {
   btnConfirm.textContent = t('clock.alarm.due.confirm');
   renderDueList(listEl, lang);
 
-  const finish = async (mode) => {
-    const keys = [...pending.keys()];
-    pending.clear();
+  const schliessen = () => {
     modal.hidden = true;
     dueDialogOpen = false;
+    schliesseDueDialog = null;
     modal.removeEventListener('keydown', onKeydown, true);
     btnSnooze.removeEventListener('click', onSnooze);
     btnConfirm.removeEventListener('click', onConfirm);
     backdrop.removeEventListener('click', onConfirm);
+  };
+  schliesseDueDialog = schliessen;
+  // Jede Aktion geht an den Hauptprozess, der nur den ersten Anspruch je
+  // Meldung wirken laesst (4T-001728, E9).
+  const finish = async (mode) => {
+    const keys = [...pending.keys()];
+    pending.clear();
+    schliessen();
     for (const key of keys) {
       try {
         if (mode === 'snooze') await api.alarmSnooze(key, minutes);
@@ -429,12 +442,16 @@ function showDueDialog(lang) {
 function onAlarmDue(payload, lang) {
   const items = payload && Array.isArray(payload.items) ? payload.items : [];
   if (items.length === 0) return;
+  if (meldung) meldung.zugestellt(items);
   for (const item of items) pending.set(item.key, item);
   if (!document.hasFocus() && typeof api.systemNotify === 'function') {
     const first = items[0];
+    // 4T-001728 (E12): Art und Schluessel lassen den Hauptprozess die
+    // Benachrichtigung je Meldung einmal zeigen, nicht je Fenster.
     void api.systemNotify({
       title: t('clock.alarm.due.title'),
       body: first.label ? `${first.time} — ${first.label}` : first.time,
+      meldung: { art: 'alarm', keys: items.map((item) => item.key) },
     });
   }
   if (dueDialogOpen) {
@@ -452,6 +469,17 @@ export function initClockAlarms(getLang) {
   if (typeof api.onAlarmDue === 'function') {
     api.onAlarmDue((payload) => onAlarmDue(payload, lang()));
   }
+  meldung = verbindeUhrMeldung({
+    onHandled: (cb) => api.onAlarmHandled(cb),
+    offene: () => api.alarmOpen(),
+    keyOf: (item) => item.key,
+    pending,
+    istOffen: () => dueDialogOpen,
+    schliessen: () => schliesseDueDialog && schliesseDueDialog(),
+    neuZeichnen: () => renderDueList($('#alarm-due-list'), lang()),
+    zeigen: (payload) => onAlarmDue(payload, lang()),
+  });
+  void meldung.nachholen();
   if (typeof api.onClockAlarmsChanged === 'function') {
     api.onClockAlarmsChanged((list) => {
       void setAlarms(list, { persist: false });

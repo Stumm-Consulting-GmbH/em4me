@@ -20,6 +20,7 @@ Ces types de données sont au choix :
 | Barre de format | votre propre disposition de la barre de boutons |
 | Boutons de la barre d’état et macros | vos propres accès dans la barre d'état, la section du menu contextuel, la liste des éléments masqués et les macros que vous avez construites |
 | État des extensions | quelles extensions sont activées et lesquelles sont désactivées |
+| Modes de travail personnalisés | les états d'interrupteurs nommés des extensions intégrées que vous avez enregistrés vous-même |
 | Disposition de la barre latérale | choix des panneaux, ordre, groupes d'onglets et largeurs, avec vos propres variantes de disposition |
 | Dossier et règles de modèles | le dossier de modèles et la chaîne ordonnée des règles de dossier |
 | Favoris | l'arborescence des signets généraux, avec dossiers et entrées |
@@ -83,7 +84,7 @@ Rien n'est passé sous silence : chaque écart au cas simple figure dans l'aper�
 
 > Est ajouté ce que vous avez créé comme objet nommé. Est remplacé ce qui est un réglage ou un agencement.
 
-Sont donc ajoutés vos propres jeux de couleurs, les macros, les variantes de disposition de la barre latérale, les favoris et les blocs de calendrier : ils se placent **à côté** de l'existant, et le fonds présent n'est pas touché. Sont remplacés les paramètres, l'attribution des raccourcis clavier, la barre de format, les règles de modèles et l'état des extensions : une valeur ne connaît pas de pluriel, et deux agencements entrelacés en donneraient un troisième que personne n'a mis en place.
+Sont donc ajoutés vos propres jeux de couleurs, les macros, les variantes de disposition de la barre latérale, les modes de travail personnalisés, les favoris et les blocs de calendrier : ils se placent **à côté** de l'existant, et le fonds présent n'est pas touché. Sont remplacés les paramètres, l'attribution des raccourcis clavier, la barre de format, les règles de modèles et l'état des extensions : une valeur ne connaît pas de pluriel, et deux agencements entrelacés en donneraient un troisième que personne n'a mis en place.
 
 **En cas de nom identique, l'entrée existante reste inchangée**, et celle qui est relue vient à côté avec un ajout distinctif : « Modèle » devient « Modèle (2) ». L'aperçu nomme chacune de ces renominations. Les renvois suivent — une macro relue qui reçoit un nouvel identifiant continue d'être trouvée par son bouton.
 

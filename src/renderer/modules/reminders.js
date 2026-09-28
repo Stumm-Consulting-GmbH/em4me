@@ -23,6 +23,15 @@
 // - System-Notification (Einstellung, Standard aus): nach der Tipp-Ruhe
 //   und nur bei nicht fokussiertem Fenster; Anzeige im Main
 //   (reminders:systemNotify), Klick holt das Fenster nach vorn.
+// - 4T-001727 (Epic 3E-000305): Die Meldung steht in ALLEN Fenstern. Jede
+//   Bearbeitung beansprucht sie zuerst im Hauptprozess (reminders:claim); der
+//   erste Anspruch gewinnt und räumt sie über 'reminders:handled' in allen
+//   Fenstern, ein verweigerter räumt sie hier ohne Meldung (E9). Scheitert
+//   das Schreiben, geht der Anspruch zurück und die Erinnerung erscheint
+//   erneut. Ein spät geöffnetes Fenster holt den offenen Stand nach (E10),
+//   und jeder Eintrag nennt seine Herkunft (E3). Stammt die Erinnerung aus dem
+//   ungespeicherten Editor eines anderen Fensters, schreibt dieses Fenster
+//   (reminders:edit, Befund der Abnahme vom 2026-09-24).
 'use strict';
 
 import { api, $ } from './app/api.js';
@@ -39,7 +48,11 @@ import { parseTaskLine, serializeTaskLine, setReminder } from '../../shared/task
 // gemeinsamen Quelle (keine zweite Endungs-Liste).
 import { fileLabelFromBasename } from '../../shared/subpages.js';
 import { showDateTimePicker } from './calendar/date-picker.js';
-import { appendContextMenuItem, placeContextMenuAt } from './dialogs/context-menu-utils.js';
+import {
+  appendContextMenuItem,
+  hideContextMenu,
+  placeContextMenuAt,
+} from './dialogs/context-menu-utils.js';
 import {
   normalizeRemindersConfig,
   snoozedReminderValue,
@@ -62,6 +75,16 @@ const pending = new Map();
 let pendingCatchUp = false;
 let showTimer = null;
 let dialogOpen = false;
+
+// 4T-001727: Schlüssel, die in irgendeinem Fenster bearbeitet sind. Der
+// nachgeholte Stand (reminders:open) kann eine Räum-Meldung überholen; ohne
+// diesen Vermerk käme eine eben geräumte Erinnerung zurück. Eine erneute
+// Zustellung hebt den Vermerk auf.
+const geraeumt = new Set();
+// Erster Eintrag des offenen Aufschub-Menüs samt seiner Erinnerung. Das Menü
+// teilt sich das Element mit allen Kontextmenüs; geschlossen wird es beim
+// Räumen nur, wenn es noch dieses Menü ist.
+let aufschubMenue = null;
 
 // Zuletzt geladene Konfiguration; wird bei jeder Anzeige frisch geholt
 // (kein eigener Broadcast noetig, Einstellungs-Aenderungen wirken damit
@@ -101,6 +124,122 @@ async function writeReminderValue(item, value) {
   );
 }
 
+// --- Anspruch und Rückgabe (4T-001727) ---------------------------------------------
+
+// Anspruch vor jeder Bearbeitung. Verweigert heißt: Ein anderes Fenster war
+// schneller; die Erinnerung verschwindet hier ohne Fehlermeldung (E9). Scheitert
+// die Anfrage selbst, bleibt es beim bisherigen Verhalten eines Fensters.
+async function beanspruche(item) {
+  let antwort;
+  try {
+    antwort = await api.remindersClaim({ root: item.root || null, key: item.key });
+  } catch (err) {
+    console.warn('reminders:claim fehlgeschlagen:', err);
+    return true;
+  }
+  if (antwort && antwort.granted) return true;
+  raeumen([item.key]);
+  return false;
+}
+
+// Das Schreiben ist gescheitert (Konflikt, ungesicherte Datei; der Hinweis
+// steht bereits in der Statusleiste). Die Erinnerung ist damit nicht
+// bearbeitet und wird allen Fenstern erneut zugestellt.
+async function gibZurueck(item) {
+  try {
+    await api.remindersRelease({ root: item.root || null, key: item.key });
+  } catch (err) {
+    console.warn('reminders:release fehlgeschlagen:', err);
+  }
+}
+
+// --- Schreib-Ort (4T-001727, Befund der Abnahme vom 2026-09-24) -------------------
+
+// Der Prüfer liest den ungespeicherten Stand geöffneter Dateien mit. Stammt die
+// Erinnerung aus dem Editor eines ANDEREN Fensters, steht ihre Zeile so noch
+// nicht auf der Platte; dieses Fenster schriebe ins Leere und meldete «Zeile
+// nicht mehr gefunden». Der Hauptprozess kennt das Fenster, dessen Stand gilt,
+// und übergibt ihm den Auftrag (E4: die Aktion wirkt auf die Daten ihrer
+// Herkunft). true heißt: Das andere Fenster schreibt, hier ist nichts mehr zu
+// tun. Scheitert die Anfrage selbst, schreibt dieses Fenster wie bisher.
+async function uebergibAnPufferFenster(item, bearbeitung) {
+  try {
+    const antwort = await api.remindersEdit({ item: auftragsDaten(item), bearbeitung });
+    return !!(antwort && antwort.delegiert);
+  } catch (err) {
+    console.warn('reminders:edit fehlgeschlagen:', err);
+    return false;
+  }
+}
+
+// Was die Schreib-Kette des anderen Fensters braucht, mehr nicht.
+function auftragsDaten(item) {
+  return {
+    key: item.key,
+    root: item.root || null,
+    path: item.path,
+    line: item.line,
+    taskText: item.taskText,
+  };
+}
+
+// Erledigen über die Schreib-Kette DIESES Fensters. true, wenn geschrieben wurde.
+function schreibeErledigt(item) {
+  return toggleTaskFromQuery({ path: item.path, line: item.line, taskText: item.taskText });
+}
+
+// Auftrag aus dem Hauptprozess: Dieses Fenster hält den ungespeicherten Stand
+// der Datei. Der Anspruch ist im klickenden Fenster bereits gewährt; hier wird
+// nur geschrieben, genau so, als wäre hier geklickt worden. Scheitert es (etwa
+// weil der Reiter inaktiv und geändert ist; der Hinweis steht dann in der
+// Statusleiste dieses Fensters), geht der Anspruch zurück, und die Erinnerung
+// erscheint wieder in allen Fenstern.
+async function fuehreAuftragAus(auftrag) {
+  const item = auftrag && auftrag.item;
+  const bearbeitung = auftrag && auftrag.bearbeitung;
+  if (!item || typeof item.path !== 'string' || !bearbeitung) return;
+  let ok = false;
+  if (bearbeitung.art === 'erledigt') ok = await schreibeErledigt(item);
+  else if (bearbeitung.art === 'aufschub' && bearbeitung.wert) {
+    ok = await writeReminderValue(item, bearbeitung.wert);
+  }
+  if (!ok) await gibZurueck(item);
+}
+// Am Modulkopf angemeldet wie Zustellung und Räum-Meldung: Ein Fenster mit
+// geändertem Reiter ist ohnehin fertig initialisiert.
+api.onRemindersEdit?.((auftrag) => {
+  void fuehreAuftragAus(auftrag);
+});
+
+// Erledigen aus Dialog und Erinnerungs-Liste: ein Weg für beide. true, wenn
+// geschrieben wurde oder das Fenster mit dem ungespeicherten Stand den Auftrag
+// übernommen hat.
+export async function erledigeErinnerung(item) {
+  if (!(await beanspruche(item))) return false;
+  if (await uebergibAnPufferFenster(item, { art: 'erledigt' })) return true;
+  const ok = await schreibeErledigt(item);
+  if (!ok) await gibZurueck(item);
+  return ok;
+}
+
+// Verschieben mit Anspruch: gemeinsamer Weg von Snooze-Optionen und Picker.
+// onWritten läuft auch bei verweigertem Anspruch, weil der Aufrufer seinen
+// Eintrag dann ebenso abräumt.
+async function schiebeAuf(item, value, onWritten) {
+  if (!(await beanspruche(item))) {
+    if (onWritten) onWritten();
+    return;
+  }
+  if (
+    (await uebergibAnPufferFenster(item, { art: 'aufschub', wert: value })) ||
+    (await writeReminderValue(item, value))
+  ) {
+    if (onWritten) onWritten();
+    return;
+  }
+  await gibZurueck(item);
+}
+
 // Snooze-Menue am Aufruf-Punkt: konfigurierte Optionen plus freie
 // Picker-Wahl (Workshop-Punkt 4). onWritten laeuft nach erfolgreichem
 // Schreiben (Dialog- und Panel-Aufrufer raeumen damit ihren Eintrag ab).
@@ -110,11 +249,7 @@ export function showSnoozeMenu(item, x, y, onWritten) {
   for (const opt of remindersConfig.snoozeOptions) {
     appendContextMenuItem(contextMenu, {
       label: snoozeOptionLabel(opt),
-      action: async () => {
-        if (await writeReminderValue(item, snoozedReminderValue(nowLocal, opt))) {
-          if (onWritten) onWritten();
-        }
-      },
+      action: () => schiebeAuf(item, snoozedReminderValue(nowLocal, opt), onWritten),
     });
   }
   appendContextMenuItem(contextMenu, {
@@ -129,11 +264,10 @@ export function showSnoozeMenu(item, x, y, onWritten) {
         timeEnabled: true,
       });
       if (!picked || !picked.date) return;
-      if (await writeReminderValue(item, { date: picked.date, time: picked.time || null })) {
-        if (onWritten) onWritten();
-      }
+      await schiebeAuf(item, { date: picked.date, time: picked.time || null }, onWritten);
     },
   });
+  aufschubMenue = { key: item.key, erster: contextMenu.firstElementChild };
   placeContextMenuAt(contextMenu, x, y);
 }
 
@@ -191,11 +325,50 @@ export async function runSetReminderCommand() {
 
 // --- Quell-Datei oeffnen -------------------------------------------------------------
 
-export async function openReminderSource(item) {
+async function oeffneAnZeile(pfad, zeile) {
   const target = state.activePaneIndex;
   activatePane(target);
-  const realPane = await openInPane(target, [item.path]);
-  scrollToLineAfterOpen(realPane, item.line);
+  const realPane = await openInPane(target, [pfad]);
+  scrollToLineAfterOpen(realPane, zeile);
+}
+
+// 4T-001727 (Epic 3E-000305): Eine Erinnerung mit Herkunft (Dialog) öffnet ihre
+// Datei im Fenster ihres Bereichs; der Hauptprozess entscheidet, welches das
+// ist, und holt es nach vorn. Ist es dieses Fenster, öffnet es wie bisher
+// selbst. Ohne Herkunft (Erinnerungs-Liste des eigenen Bereichs) bleibt es beim
+// bisherigen Weg, ebenso als Rückfall, wenn der Bereich nicht zu öffnen ist.
+export async function openReminderSource(item) {
+  if (item.root) {
+    let antwort = null;
+    try {
+      antwort = await api.remindersOpenSource({
+        root: item.root,
+        path: item.path,
+        line: item.line,
+      });
+    } catch (err) {
+      console.warn('reminders:openSource fehlgeschlagen:', err);
+    }
+    if (antwort && antwort.ok && !antwort.hier) return;
+  }
+  await oeffneAnZeile(item.path, item.line);
+}
+
+// Auftrag aus dem Hauptprozess: Dieses Fenster gehört zum Herkunfts-Bereich
+// einer in einem anderen Fenster angeklickten Erinnerung. Wie die Zustellung
+// am Modulkopf angemeldet; ein eben erst geöffnetes Fenster hält den Auftrag,
+// bis seine Initialisierung durch ist (oeffneWartendeQuellen).
+const wartendeQuellen = [];
+let quellenBereit = false;
+api.onRemindersOpenSource?.((ziel) => {
+  if (!ziel || typeof ziel.path !== 'string') return;
+  if (quellenBereit) void oeffneAnZeile(ziel.path, ziel.line);
+  else wartendeQuellen.push(ziel);
+});
+
+export async function oeffneWartendeQuellen() {
+  quellenBereit = true;
+  for (const ziel of wartendeQuellen.splice(0)) await oeffneAnZeile(ziel.path, ziel.line);
 }
 
 // --- Dialog -------------------------------------------------------------------------
@@ -208,7 +381,9 @@ function hideDialog() {
 
 // Wegklicken: verbliebene Eintraege muten (bis Neustart), Dialog zu.
 function dismissDialog() {
-  const keys = [...pending.keys()];
+  // 4T-001727: je Eintrag mit seinem Bereich (E4) — das Fenster kann einen
+  // anderen zeigen oder keinen.
+  const keys = [...pending.values()].map((it) => ({ root: it.root || null, key: it.key }));
   pending.clear();
   hideDialog();
   if (keys.length > 0) {
@@ -222,6 +397,24 @@ function dismissDialog() {
 
 function removeItem(key) {
   pending.delete(key);
+  if (pending.size === 0) hideDialog();
+  else renderList();
+}
+
+// 4T-001727: Räumen nach einer Bearbeitung, gleich in welchem Fenster (E2).
+// Vor der Bindung der Dialog-Elemente genügt es, die Sammlung zu bereinigen.
+function raeumen(keys) {
+  let getroffen = false;
+  for (const key of keys) {
+    if (typeof key !== 'string') continue;
+    geraeumt.add(key);
+    if (pending.delete(key)) getroffen = true;
+    if (aufschubMenue && aufschubMenue.key === key) {
+      if (aufschubMenue.erster && contextMenu.contains(aufschubMenue.erster)) hideContextMenu();
+      aufschubMenue = null;
+    }
+  }
+  if (!getroffen || !dialogBereit || !dialogOpen) return;
   if (pending.size === 0) hideDialog();
   else renderList();
 }
@@ -243,6 +436,15 @@ function renderList() {
     main.appendChild(desc);
     const meta = document.createElement('span');
     meta.className = 'reminders-item-meta';
+    // 4T-001727 (E3): Die Meldung steht auch in Fenstern anderer Bereiche und
+    // nennt deshalb ihre Herkunft.
+    if (item.origin) {
+      const herkunft = document.createElement('span');
+      herkunft.className = 'reminders-item-origin';
+      herkunft.textContent = t('reminders.dialog.origin').replace('{name}', item.origin);
+      meta.appendChild(herkunft);
+      meta.appendChild(document.createTextNode(' · '));
+    }
     const fileLink = document.createElement('a');
     fileLink.href = '#';
     fileLink.className = 'reminders-item-file';
@@ -267,8 +469,7 @@ function renderList() {
     doneBtn.className = 'btn';
     doneBtn.textContent = t('reminders.dialog.done');
     doneBtn.addEventListener('click', async () => {
-      await toggleTaskFromQuery({ path: item.path, line: item.line, taskText: item.taskText });
-      removeItem(item.key);
+      if (await erledigeErinnerung(item)) removeItem(item.key);
     });
     li.appendChild(doneBtn);
 
@@ -308,7 +509,14 @@ async function showDialog() {
         ? items[0].description || items[0].taskText
         : t('reminders.notification.count').replace('{n}', String(items.length));
     try {
-      void api.remindersSystemNotify({ title: t('reminders.dialog.title'), body });
+      // 4T-001727 (E12): Die Schlüssel lassen den Hauptprozess die
+      // Benachrichtigung je Meldung genau einmal zeigen, gleich wie viele
+      // Fenster sie anfordern.
+      void api.remindersSystemNotify({
+        title: t('reminders.dialog.title'),
+        body,
+        keys: items.map((it) => it.key),
+      });
     } catch (err) {
       console.warn('reminders:systemNotify fehlgeschlagen:', err);
     }
@@ -363,13 +571,46 @@ api.onRemindersDue((payload) => {
   if (!isExtensionActive('reminders') || !isExtensionActive('tasks')) return;
   if (!payload || !Array.isArray(payload.items)) return;
   for (const item of payload.items) {
-    if (item && typeof item.key === 'string') pending.set(item.key, item);
+    if (!item || typeof item.key !== 'string') continue;
+    geraeumt.delete(item.key);
+    pending.set(item.key, item);
   }
   if (payload.catchUp) pendingCatchUp = true;
   // Vor der Bindung bleibt es beim Puffern: showDialog() greift auf modal,
   // titleEl, listEl und closeBtn zu, die es dann noch nicht gibt.
   if (dialogBereit) scheduleShow();
 });
+
+// 4T-001727: Räum-Meldung aus dem Hauptprozess, aus demselben Grund wie die
+// Zustellung am Modulkopf angemeldet.
+api.onRemindersHandled((payload) => {
+  if (payload && Array.isArray(payload.keys)) raeumen(payload.keys);
+});
+
+// 4T-001727 (E10): Offenen Stand nachholen — für ein Fenster, das nach dem
+// Fälligwerden geöffnet wurde, und für Meldungen, die während des
+// Fenster-Starts zugestellt wurden, bevor der Zuhörer bestand.
+async function holeOffeneNach() {
+  if (!isExtensionActive('reminders') || !isExtensionActive('tasks')) return;
+  let stand;
+  try {
+    stand = await api.remindersOpen();
+  } catch (err) {
+    console.warn('reminders:open fehlgeschlagen:', err);
+    return;
+  }
+  if (!stand || !Array.isArray(stand.items)) return;
+  let neu = false;
+  for (const item of stand.items) {
+    if (!item || typeof item.key !== 'string') continue;
+    if (geraeumt.has(item.key) || pending.has(item.key)) continue;
+    pending.set(item.key, item);
+    neu = true;
+  }
+  if (!neu) return;
+  if (stand.catchUp) pendingCatchUp = true;
+  scheduleShow();
+}
 
 // --- Init ---------------------------------------------------------------------------
 
@@ -409,6 +650,7 @@ export function initReminders() {
   // nachgezogen; ohne wartende Eintraege ist der Aufruf folgenlos.
   dialogBereit = true;
   scheduleShow();
+  void holeOffeneNach();
 
   void refreshConfig();
 }

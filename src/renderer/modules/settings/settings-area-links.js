@@ -20,6 +20,7 @@ import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { showStatusbarHint } from '../views/views.js';
 import { renderActiveSection } from './settings-mount.js';
+import { kontextSchluessel } from './settings-kontext.js';
 import { buildSettingsRow, jsonEqual } from './settings-shared.js';
 import { isValidAreaPrefix, normalizeAreaPrefix } from '../../../shared/area-link-syntax.js';
 
@@ -215,7 +216,17 @@ export function renderAreaLinksSection(container, draft) {
 
   const titel = document.createElement('h4');
   titel.className = 'settings-export-group-title';
-  titel.textContent = t('settings.areaLinks.group').replace('{name}', values.areaName || '');
+  // 4T-001885 (Epic 3E-000189): Die Beschriftung nennt Buch bzw. Bücherregal
+  // statt Bereich, sobald das Fenster an eines gebunden ist. Der eingesetzte
+  // NAME bleibt derselbe wie bisher — geändert ist die Bezeichnung, nicht der
+  // Name (Story 4S-000994, AK12).
+  titel.textContent = t(
+    kontextSchluessel({
+      area: 'settings.areaLinks.group',
+      book: 'settings.areaLinks.groupBook',
+      shelf: 'settings.areaLinks.groupShelf',
+    }),
+  ).replace('{name}', values.areaName || '');
   container.appendChild(titel);
 
   const hinweis = document.createElement('p');

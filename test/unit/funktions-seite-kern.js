@@ -51,6 +51,10 @@ const KERN_ZEILEN = [
   'help.feature.blockMetadata',
   'help.feature.attachments',
   'help.feature.attachmentOpen',
+  // 4T-001871 (Epic 3E-000322, Entscheidung E6): die vergroesserte Darstellung
+  // eines Bildes ist Kern und haengt an keiner Erweiterung; mit abgeschalteten
+  // Erweiterungen figures und wiki-embeds belegt (VG-05).
+  'help.feature.imageView',
   'help.feature.exportPortable',
   // 4T-001480 (Epic 3E-000177, Entscheidung E6): Drucken ist Kern wie der
   // PDF-Export — eine Ausgabe-Grundfunktion ohne sinnvollen Aus-Zustand.
@@ -225,6 +229,13 @@ const KERN_ZEILEN = [
   'help.feature.menuBar',
   'help.feature.customHotkeys',
   'help.feature.extensions',
+  // 4T-001883 (Epic 3E-000185): Die Arbeitsmodi sind Kern und nicht selbst
+  // schaltbar. Sie SETZEN die Schalter der internen Erweiterungen; eine
+  // Erweiterung, die den Umschalter traegt, koennte sich selbst abschalten und
+  // liesse den Anwender ohne den Weg zurueck. Dieselbe Begruendung traegt
+  // bereits die Nachbar-Zeile ueber das Schalten selbst.
+  'help.feature.extensionModes',
+  'help.feature.extensionModesOwn',
   'help.feature.extensionsExternal',
   'help.feature.extensionsDev',
   'help.feature.manual',

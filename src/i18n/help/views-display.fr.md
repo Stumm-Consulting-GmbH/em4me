@@ -24,6 +24,12 @@ Le mode direct rend le Markdown directement dans l'éditeur : gras et italique, 
 
 **Les tableaux font exception à cette règle.** Ils restent mis en forme même lorsque le curseur s’y trouve : le clic atteint la cellule, la tabulation et les flèches mènent de cellule en cellule, et ce que vous saisissez arrive au bon endroit de la source. Si vous avez besoin de la syntaxe brute d’un tableau — la ligne de séparation avec ses deux-points d’alignement, par exemple —, passez à la vue code source ou à la vue partagée.
 
+**Saisir dans une cellule.** La tabulation dans la dernière cellule de la dernière ligne ajoute une nouvelle ligne avec le même nombre de colonnes et place le curseur dans sa première cellule, exactement comme dans la vue code source ; Maj+Tab n’en ajoute pas. Ce que vous saisissez dans une cellule est repris quelle que soit la façon de quitter la cellule : avec Entrée, Tab ou une flèche, par un clic dans une autre cellule ou n’importe où hors du tableau, à l’enregistrement, au changement de document ou de vue et à la fermeture du document. Échap abandonne la saisie de la cellule. Tant qu’une cellule est ouverte, Ctrl+Z annule ce qui y a été saisi ; l’annulation dans le document agit dès que la cellule est quittée.
+
+**Clic droit dans une cellule.** Il place le curseur dans la cellule cliquée et y ouvre le [menu contextuel](context-menu.md) ; ses fonctions, par exemple celles du sous-menu **Tableau**, agissent à cet endroit. Une saisie en cours est conservée.
+
+**Suggestions dans une cellule.** Après `[[` et `#`, la même [liste de suggestions](linking.md) que dans le texte apparaît à la cellule, avec les mêmes entrées dans le même ordre. Les flèches haut et bas choisissent, Entrée valide, Échap ferme seulement la liste et laisse la cellule ouverte ; tant que la liste est ouverte, les flèches et Entrée ne mènent pas à une autre cellule. Aucun marqueur de tâche n’est proposé dans une cellule, car une ligne de tableau n’est pas une ligne de tâche.
+
 **Les liens dans le texte courant sont signalés en permanence.** Ils portent leur soulignement en tout temps, sans que la souris doive se trouver dessus — liens wiki comme liens Markdown, vers un document comme vers une adresse extérieure. La vue rendue ne souligne un lien qu’au survol de la souris ; dans la vue où l’on écrit, en revanche, il doit être visible sans effort qu’un texte porte un lien. Sur la ligne du curseur, la syntaxe brute apparaît comme d’habitude.
 
 ### Carte mentale
@@ -105,8 +111,8 @@ La barre d'état affiche les mots, les caractères et le temps de lecture estim�
 Les paramètres s'ouvrent dans un onglet propre (Fichier → Paramètres…, défaut `Ctrl+,`). Leur navigation se divise en quatre blocs :
 
 - **Général** — tout ce qui vaut pour l'application entière, par exemple apparence, comportement, raccourcis clavier et export.
-- **Zone actuelle** — les réglages de la zone ouverte. Le bloc n'apparaît que tant qu'une zone est ouverte.
-- **Extensions (internes)** — l'activation et la désactivation des extensions fournies, avec leurs propres sections.
+- **Zone actuelle** — les réglages de la zone ouverte. Le bloc n'apparaît que tant qu'une zone est ouverte. Lorsqu'un livre est ouvert, il s'appelle **Livre actuel**, lorsqu'une bibliothèque est ouverte **Bibliothèque actuelle** ; en première place se trouve alors la section **Informations propres** avec le titre, l'auteur, la description et l'image de couverture, et pour une bibliothèque l'affichage en plus. Les autres sections du bloc restent les mêmes dans les trois cas, voir [Livres](books.md).
+- **Extensions (internes)** — le mode de travail qui les bascule en bloc, ainsi que l'activation et la désactivation des extensions fournies, avec leurs propres sections.
 - **Extensions (externes)** — la gestion des paquets d'extension installés soi-même.
 
 Les modifications agissent d'abord comme brouillon avec aperçu en direct de l'apparence. Appliquer et OK enregistrent ; les deux ne sont mis en évidence qu'en présence de modifications non enregistrées, sans modification Appliquer est estompé. Annuler ou la fermeture de l'onglet rejette le brouillon. Les valeurs enregistrées valent immédiatement dans toutes les fenêtres ouvertes. Davantage sur les deux blocs d'extensions se trouve sur la page [Extensions](extensions.md).

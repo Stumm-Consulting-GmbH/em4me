@@ -35,11 +35,15 @@ Lorsqu'un rappel est dû, un dialogue le signale avec la description de la tâch
 - **Me le rappeler plus tard** : reporte le moment de notification. Sont proposées les options de report configurées (défaut 10 minutes, 1 heure, 4 heures, 1 jour, 1 semaine) et un choix de date libre. Le nouveau moment est écrit directement dans le marqueur du fichier source.
 - **Fermer** (fermeture ou Échap) : met ce rappel en sourdine jusqu'au prochain démarrage de l'application. La tâche elle-même reste inchangée.
 
+**Dans toutes les fenêtres.** Le dialogue apparaît dans chaque fenêtre ouverte de l'application, y compris les fenêtres d'une autre zone, les fenêtres sans zone et les fenêtres de livre et de bibliothèque. Chaque entrée indique donc sa provenance, par exemple « Provenance : Projets » : la zone, le livre ou la bibliothèque d'où vient le rappel. Terminé, Me le rappeler plus tard et Fermer agissent toujours sur le fichier de cette provenance, quelle que soit la fenêtre, et une seule fois : le rappel disparaît ensuite de toutes les fenêtres, et une seconde action presque simultanée dans une autre fenêtre reste sans effet et sans message d'erreur. Si plusieurs rappels sont dus, chaque fenêtre les rassemble dans un seul dialogue. Une fenêtre ouverte plus tard affiche elle aussi un rappel encore ouvert.
+
+**Lien vers le fichier source.** Un clic sur le nom du fichier ouvre le fichier à la ligne de la tâche, dans la fenêtre de sa zone. Si la fenêtre où l'on a cliqué affiche une autre zone ou aucune, la fenêtre de la zone de provenance passe au premier plan et y ouvre le fichier ; si cette zone n'est pas ouverte, elle est ouverte. Le rappel reste affiché : ouvrir le fichier n'est pas un traitement.
+
 ## Uniquement lorsque l'application est ouverte
 
-Les rappels ne se signalent **que tant que l'application est ouverte et la zone active**. Il n'y a pas de service en arrière-plan ni de notification lorsque l'application est fermée. Si l'application n'est pas ouverte au moment de notification, rien n'est perdu pour autant : au démarrage suivant, un **dialogue de rattrapage** rassemble tous les rappels devenus dus entre-temps et les affiche ensemble, avec les mêmes actions que dans le dialogue normal. En dehors d'une zone ouverte, aucune surveillance n'a lieu.
+Les rappels ne se signalent **que tant que l'application est ouverte et la zone active**. Il n'y a pas de service en arrière-plan ni de notification lorsque l'application est fermée. Si l'application n'est pas ouverte au moment de notification, rien n'est perdu pour autant : au démarrage suivant, un **dialogue de rattrapage** rassemble tous les rappels devenus dus entre-temps et les affiche ensemble, dans chaque fenêtre ouverte, avec les mêmes actions que dans le dialogue normal. En dehors d'une zone ouverte, aucune surveillance n'a lieu.
 
-Lorsqu'une zone est ouverte, l'application vérifie en continu les marqueurs de tous les fichiers de la zone (par cycle de 30 secondes sur l'index de zone). Une **notification système** peut être activée en option ; elle apparaît en plus du dialogue lorsque la fenêtre n'est pas au premier plan, et un clic dessus ramène l'application au premier plan. C'est le système d'exploitation qui l'affiche : sous Linux, l'environnement de bureau s'en charge, et sans son service de notification il ne reste que le dialogue dans l'application.
+Lorsqu'une zone est ouverte, l'application vérifie en continu les marqueurs de tous les fichiers de la zone (par cycle de 30 secondes sur l'index de zone). Une **notification système** peut être activée en option ; elle apparaît en plus du dialogue lorsqu'aucune fenêtre de l'application n'est au premier plan. Elle apparaît une seule fois par avis, même avec plusieurs fenêtres ouvertes, et un clic dessus ramène l'application au premier plan. C'est le système d'exploitation qui l'affiche : sous Linux, l'environnement de bureau s'en charge, et sans son service de notification il ne reste que le dialogue dans l'application.
 
 ## Liste des rappels
 
@@ -56,6 +60,6 @@ La section de paramètres **Rappels** (Fichier → Paramètres…) contrôle :
 
 - **Heure par défaut** : heure de notification pour les marqueurs sans partie horaire (défaut 09:00).
 - **Options de report** : la liste des offres de report dans le dialogue et dans la liste.
-- **Notification système** : active ou désactive la notification supplémentaire pour une fenêtre hors du premier plan.
+- **Notification système** : active ou désactive la notification supplémentaire qui apparaît lorsqu'aucune fenêtre de l'application n'est au premier plan.
 
 Les rappels sont une **extension** activable avec une dépendance à l'extension **Tâches** : si « Tâches » est désactivée, les rappels sont inactifs eux aussi. Plus de détails sur la page [Extensions](extensions.md).

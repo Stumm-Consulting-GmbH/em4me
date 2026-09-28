@@ -15,6 +15,7 @@
   "exchange.kind.formatToolbar": "Barra di formattazione",
   "exchange.kind.commandPlacement": "Pulsanti della barra di stato e macro",
   "exchange.kind.extensions": "Stato delle estensioni",
+  "exchange.kind.extensionModes": "Modalità di lavoro personalizzate",
   "exchange.kind.sidebar": "Disposizione della barra laterale",
   "exchange.kind.templates": "Cartella e regole dei modelli",
   "exchange.kind.bookmarksTree": "Segnalibri",

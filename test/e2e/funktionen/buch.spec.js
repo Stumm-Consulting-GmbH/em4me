@@ -31,6 +31,11 @@
 //        beiden frei. Der Fall misst die ÜBEREINSTIMMUNG beider Seiten, nicht
 //        die Regel: Die ist seit Epic 3E-000295 gemeinsam, die Quelle des
 //        Zustands aber nicht (Broadcast-Lücke, Vorfall 4T-000881).
+// BU-12 (4T-001885): Einstellungs-Block «Aktuelles Buch» — der Block trägt den
+//        Namen des Buches, an seiner ersten Stelle stehen die eigenen Angaben,
+//        und sie laufen mit dem Frontmatter der Buch-Datei gleich; die
+//        Abschnitts-Überschrift darunter spricht ebenfalls vom Buch, und ein
+//        Kapitel im Vordergrund ändert daran nichts.
 //
 // Seit 4T-000871 gilt das Applikations-Modell (Buch = Bereich): «Buch öffnen»
 // bindet eine freie Applikation oder öffnet eine neue; die Fälle BU-01 bis
@@ -812,6 +817,90 @@ test.describe('BU-11: Menü und Palette zeigen dieselbe Freigabe (4T-001638)', (
       // --- mit Buch: beide Seiten frei --------------------------------------
       await expect.poll(() => buchSchliessenImMenue(app)).toBe(true);
       expect(await buchSchliessenInPalette(page)).toBe(true);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      removeDir(parent);
+    }
+  });
+});
+
+// --- BU-12 --------------------------------------------------------------------
+
+test.describe('BU-12: Einstellungs-Block «Aktuelles Buch» (4T-001885, Story 4S-000994)', () => {
+  test('Block-Name, erster Abschnitt und Gleichlauf mit dem Frontmatter der Buch-Datei', async () => {
+    // Der Fall läuft am gestarteten Programm, weil die Angaben auf ihrem Weg
+    // zwei Prozess-Grenzen passieren: Der Block-Name hängt an der
+    // Applikations-Bindung des Hauptprozesses, und Lesen wie Schreiben gehen
+    // über die Preload-Brücke an die Datei (Regel «E2E-Fall pro neuem Bedien-Weg
+    // über eine Prozess-Brücke», test/README.md).
+    const { app, page, userData } = await launchApp();
+    const parent = makeTempDir();
+    const bookDir = makeBook(parent, 'Reise');
+    const buchDatei = path.join(bookDir, 'Reise.md');
+    try {
+      await openBook(page, bookDir);
+      await waitForTab(page);
+      await expect.poll(() => page.title()).toContain('(Buch Reise)');
+
+      // AK1: Der bereichsgebundene Block trägt den Namen des Buches.
+      await openSettingsSection(page, 'bookInfo');
+      const gruppe = page.locator(`${SETTINGS_PAGE} [data-nav-group="area"]`);
+      await expect(gruppe.locator('.settings-nav-group-title')).toHaveText('Aktuelles Buch');
+
+      // AK3: «Eigene Angaben» steht an erster Stelle des Blocks.
+      await expect(gruppe.locator('.settings-nav-entry').first()).toHaveAttribute(
+        'data-section-id',
+        'bookInfo',
+      );
+
+      // AK4: Titel, Autor, Beschreibung und Titelbild sind da und leer — das
+      // Test-Buch trägt noch kein Frontmatter.
+      await expect(page.locator('#settings-book-info-title')).toHaveValue('');
+      await expect(page.locator('#settings-book-info-author')).toHaveValue('');
+      await expect(page.locator('#settings-book-info-description')).toHaveValue('');
+      await expect(page.locator('#settings-book-info-cover')).toHaveValue('');
+      // AK5: Die Darstellungs-Wahl hat nur das Regal.
+      await expect(page.locator('#settings-book-info-view-mode')).toHaveCount(0);
+
+      // AK6 und AK18, erste Richtung: Was hier steht, landet im Frontmatter der
+      // Buch-Datei — an genau der Stelle, an der es bisher gepflegt wurde.
+      await page.locator('#settings-book-info-title').fill('Reise nach Ithaka');
+      await page.locator('#settings-book-info-author').fill('K. P. Kavafis');
+      await confirmSettings(page);
+      const inhalt = await warteAufText(buchDatei, 'title: Reise nach Ithaka');
+      expect(inhalt).toContain('author: K. P. Kavafis');
+      // Der Rumpf der Datei bleibt stehen.
+      expect(inhalt).toContain('# Reise');
+
+      // AK18, zweite Richtung: Eine Änderung am bisherigen Pflege-Ort erscheint
+      // im Abschnitt.
+      fs.writeFileSync(buchDatei, '---\ntitle: Von aussen\nauthor: Jemand\n---\n# Reise\n', 'utf8');
+      await openSettingsSection(page, 'bookInfo');
+      await expect(page.locator('#settings-book-info-title')).toHaveValue('Von aussen');
+      await expect(page.locator('#settings-book-info-author')).toHaveValue('Jemand');
+
+      // AK2 und AK14: Auch die Abschnitts-Überschriften darunter sprechen vom
+      // Buch — und setzen unverändert den bisherigen Namen ein, den Namen des
+      // Buch-Ordners.
+      await page
+        .locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="templatesArea"]`)
+        .click();
+      await expect(page.locator(`${SETTINGS_PAGE} .settings-export-group-title`)).toHaveText(
+        "Für Buch 'Reise'",
+      );
+      await confirmSettings(page);
+
+      // AK15: Maßgeblich ist die Bindung des Fensters, nicht das zuletzt
+      // geöffnete Dokument — mit einem Kapitel im Vordergrund bleibt es beim
+      // Buch.
+      await page.evaluate(() => window.api.books.openChapter('Aufbruch.md'));
+      await expect
+        .poll(() => page.locator(`${SEL.tabs0} .tab-title`).allTextContents())
+        .toContain('Aufbruch');
+      await openSettingsSection(page, 'bookInfo');
+      await expect(
+        page.locator(`${SETTINGS_PAGE} [data-nav-group="area"] .settings-nav-group-title`),
+      ).toHaveText('Aktuelles Buch');
     } finally {
       await closeApp(app, userData, { force: true });
       removeDir(parent);

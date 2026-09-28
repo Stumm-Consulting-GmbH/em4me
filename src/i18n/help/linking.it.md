@@ -82,7 +82,7 @@ Con le ancore di blocco viene incorporato l'intero blocco circostante (voce di e
 Se un file Markdown porta lo stesso nome di un allegato, vince il file Markdown; scritto con la sua estensione (`![[immagine.png]]`) il caso è inequivocabile. Le immagini Markdown ordinarie `![](percorso.png)` non sono interessate: la loro scrittura indica un percorso e non un nome.
 ## Collegamenti tra aree
 
-Due aree possono essere collegate affinché un riferimento superi il confine dell’area. Si imposta in **Impostazioni → Area corrente → Collegamenti tra aree**: vi si indicano la cartella dell’altra area e un **prefisso** con cui quell’area verrà richiamata.
+Due aree possono essere collegate affinché un riferimento superi il confine dell’area. Si imposta in **Impostazioni → Area corrente → Collegamenti tra aree** (con un libro aperto il blocco si chiama **Libro corrente**, con una libreria aperta **Libreria corrente**): vi si indicano la cartella dell’altra area e un **prefisso** con cui quell’area verrà richiamata.
 
 Il prefisso vale **solo in quest’area e solo in questa direzione**. Il modo in cui l’altra area richiama questa si imposta lì e può essere diverso. Sono ammessi lettere, cifre, trattino e trattino basso; maiuscole e minuscole non contano.
 
@@ -146,13 +146,15 @@ Durante la digitazione in modalità modifica si apre un menu di suggerimenti:
 - `[[File#` ancore di intestazione, `[[File#^` ID di blocco,
 - `#` nel testo tag conosciuti.
 
-Le frecce navigano, Invio o Tab seleziona, Esc chiude.
+Le frecce navigano, Invio seleziona, Esc chiude.
 
 Finché dopo `[[` non si digita nulla, i file dell'area modificati più di recente stanno in cima, il più recente per primo. Non appena si filtra, torna a guidare la qualità della corrispondenza; la data di modifica decide allora solo fra suggerimenti di pari rango.
 
 Dopo `#`, i tag assegnati più spesso nell’area stanno in cima, il più frequente per primo; anche qui comanda la qualità della corrispondenza non appena si digita qualcosa, e la frequenza decide allora fra pari. Il numero dietro ogni suggerimento la indica.
 
 Accettando un suggerimento di file o di secondo nome vengono scritte anche le parentesi di chiusura e il cursore resta dietro. Se ci sono già, non compare una seconda coppia.
+
+In una cella di tabella della modalità live compare lo stesso elenco accanto alla cella, con le stesse voci e gli stessi comandi; dettagli in [Viste e visualizzazione](views-display.md). Lì non propone marcatori di attività, perché una riga di tabella non è una riga di attività; lo stesso vale nella vista sorgente.
 
 ## Barre laterali della rete
 

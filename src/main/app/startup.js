@@ -282,6 +282,8 @@ function createStartup(deps) {
         // 4T-000843 (Epic 3E-000147): aktives Buch der App mitfuehren.
         targetApps.push({
           area,
+          // 4T-001743 (Epic 3E-000309): Kennung fuer die Entwurfs-Zuordnung.
+          appKey: appEntry.appKey || null,
           windows: appEntry.windows,
           bookDir: appEntry.book?.dir || null,
           shelfDir: appEntry.shelf?.dir || null,
@@ -344,6 +346,7 @@ function createStartup(deps) {
     const appTargets = targetApps.map((t) => ({
       rootPath: t.area ? t.area.rootPath : null,
       workspaceId: t.workspace ? t.workspace.id : null,
+      appKey: t.appKey || null,
     }));
     const { byApp, leftover, unassigned } = assignDraftsToApps(allDrafts, appTargets, isSamePath);
     if (leftover.length > 0) {
@@ -360,7 +363,7 @@ function createStartup(deps) {
     // Entwuerfe als initialDrafts (ueber window:initialState wiederhergestellt).
     for (let ai = 0; ai < targetApps.length; ai++) {
       const t = targetApps[ai];
-      const appId = appRegistry.createApp(t.area || null);
+      const appId = appRegistry.createApp(t.area || null, t.appKey || null);
       // 4T-000537: wiederhergestellte Arbeitsbereiche behalten ihre Zuordnung.
       if (t.workspace) appRegistry.setWorkspace(appId, t.workspace);
       if (t.area) startAreaWatcher(appId);

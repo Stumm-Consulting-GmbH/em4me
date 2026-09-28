@@ -108,8 +108,9 @@ export const frontmatterField = StateField.define({
 // Klasse cm-callout-marker (theme-konforme Akzentfarbe in styles.css). Keine
 // Code-/Frontmatter-Kontext-Pruefung — kosmetische Markierung, im seltenen
 // Code-Kontext durch Syntax-Highlight ohnehin ueberlagert.
+// 4T-001864 (Epic 3E-000320): Typ-Name in jeder Schreibweise (Stelle 6).
 export const calloutMarkerDecoration = Decoration.mark({ class: 'cm-callout-marker' });
-export const EDITOR_CALLOUT_HEADER_RE = /^>\s+(\[!([a-z]+)\][+-]?)/gm;
+export const EDITOR_CALLOUT_HEADER_RE = /^>\s+(\[!([A-Za-z]+)\][+-]?)/gm;
 
 export function buildCalloutMarkerDecorations(doc) {
   // 4T-000293: bei deaktivierter Callout-Erweiterung bleibt der Header roh.

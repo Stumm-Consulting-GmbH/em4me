@@ -49,7 +49,7 @@ import { applyCanvasBlocks } from '../canvas/canvas-block-zustand.js';
 // 4T-001792 (Epic 3E-000255): Zugang von der Datensatz-Zeile zu den
 // Änderungsbelegen; das Modul bekommt seine Umgebung von app-init.js.
 import { applyRecordRowAccess } from '../database/datensatz-zeilen-zugang.js';
-import { liveBlockCacheGet, liveBlockCacheSet } from './live-shared.js';
+import { bildDoppelklickDurchlassen, liveBlockCacheGet, liveBlockCacheSet } from './live-shared.js';
 import { bindFrontmatterQueryClicks } from './live-interaction.js';
 
 // 4T-000084 (Epic 3E-000014): Bilder-Widget. Inline-Replace eines
@@ -115,8 +115,10 @@ export class ImageWidget extends WidgetType {
     span.textContent = md;
     return span;
   }
-  ignoreEvent() {
-    return true;
+  // 4T-001925: Der Doppelklick auf das Bild erreicht den Editor und öffnet es im
+  // Standardprogramm; alle übrigen Ereignisse bleiben ignoriert.
+  ignoreEvent(event) {
+    return !bildDoppelklickDurchlassen(event);
   }
 }
 
@@ -255,8 +257,10 @@ export class WikiEmbedWidget extends WidgetType {
     }
     return container;
   }
-  ignoreEvent() {
-    return true;
+  // 4T-001925: wie beim ImageWidget — eine Bild-Einbettung und ein Bild in einer
+  // eingebetteten Notiz öffnen per Doppelklick im Standardprogramm.
+  ignoreEvent(event) {
+    return !bildDoppelklickDurchlassen(event);
   }
 }
 
@@ -424,7 +428,10 @@ export class MarkdownBlockWidget extends WidgetType {
       console.warn('MarkdownBlockWidget Nachverarbeitung fehlgeschlagen:', err);
     }
   }
-  ignoreEvent() {
-    return true;
+  // 4T-001925: Ein Bild in einer Tabelle oder einem anderen Block öffnet per
+  // Doppelklick im Standardprogramm; alle übrigen Ereignisse bleiben bei den
+  // eigenen Klick-Pfaden des Blocks.
+  ignoreEvent(event) {
+    return !bildDoppelklickDurchlassen(event);
   }
 }

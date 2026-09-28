@@ -8,7 +8,16 @@ const { escapeHtml } = require('../slug.js');
 // 4T-000087 (Epic 3E-000014): CALLOUT_TYPES und calloutIcon 2026-05-24 nach
 // src/shared/callouts.js extrahiert, damit der Renderer-Prozess sie fuer
 // den Live-Modus ebenfalls importieren kann. Single Source of Truth.
-const { CALLOUT_TYPES } = require('../../callouts');
+// 4T-001864 (Epic 3E-000320): calloutTypeKey schlägt den Typ eines
+// Hinweis-Kastens unabhängig von der Schreibweise nach (Stellen 1 und 2).
+// 4T-001914 (Epic 3E-000320): containerKind ordnet einen Container-Block in
+// jeder Schreibweise des Namens ein; parseColumnsCount liegt seither dort.
+const {
+  CALLOUT_TYPES,
+  calloutTypeKey,
+  containerKind,
+  parseColumnsCount,
+} = require('../../callouts');
 const markdownItContainer = require('markdown-it-container');
 
 // 4T-000061 (Epic 3E-000012): Callouts — Obsidian-Style Block-Hinweisboxen.
@@ -115,7 +124,9 @@ const CALLOUT_PORTABLE_TITLES = {
   },
 };
 
-const CALLOUT_HEADER_RE = /^\[!([a-z]+)\]([-+])?\s*(.*)$/;
+// 4T-001864: Typ-Name in jeder Schreibweise; die Gleichwertigkeit stellt
+// calloutTypeKey her, der eigene Titel (Gruppe 3) bleibt, wie er geschrieben ist.
+const CALLOUT_HEADER_RE = /^\[!([A-Za-z]+)\]([-+])?\s*(.*)$/;
 
 function calloutsPlugin(mdInstance, options) {
   const isPortable = !!(options && options.portable);
@@ -151,12 +162,12 @@ function calloutsPlugin(mdInstance, options) {
       const nlIdx = content.indexOf('\n');
       const firstLine = nlIdx >= 0 ? content.slice(0, nlIdx) : content;
       const match = firstLine.match(CALLOUT_HEADER_RE);
-      if (!match || !CALLOUT_TYPES[match[1]]) {
+      const type = match ? calloutTypeKey(match[1]) : null;
+      if (!type) {
         bqDepth++;
         continue;
       }
 
-      const type = match[1];
       const collapsibleMarker = match[2] || '';
       const overrideTitle = (match[3] || '').trim();
       const collapsible = collapsibleMarker !== '';
@@ -278,30 +289,27 @@ function calloutBoxCloseHtml(isDetails) {
 //   ::: warning Eigener Titel
 //   ::: meine-box            — unbekannter Name -> neutrale Box mit
 //                              Klasse custom-container container-<slug>
+//                              und dem Namen als Titel (4T-001914)
 //
 // EINE generische Registrierung mit Wildcard-Validator statt zehn
 // Einzel-Registrierungen; der Name ist das erste Wort des Info-Strings
-// ([a-z][a-z0-9-]*), der Rest optionaler Override-Titel. Keine Klapp-
+// ([A-Za-z][A-Za-z0-9-]*), der Rest optionaler Override-Titel.
+// 4T-001914 (Epic 3E-000320): Der Name gilt in jeder Schreibweise (Container-Stelle 1);
+// eingeordnet wird über containerKind (Container-Stellen 2 und 3), der Slug der Klasse
+// ist die kleingeschriebene Form, der Titel der neutralen Box der Name, wie er
+// geschrieben ist. Ein Text hinter einem unbekannten Namen ersetzt den Titel
+// nicht und bleibt unsichtbar (Auslegung der Zusage im Task). Keine Klapp-
 // Mechanik (Pandoc kennt sie nicht); Verschachtelung ueber laengere
 // Marker (`::::` aussen) gemaess markdown-it-container-Standard.
 // Die Callout-/Plain-Zuordnung haengt am Open-Token; fuer das Close-
 // Token vergibt ein Core-Ruler die Art per Stack (das Close-Token selbst
 // traegt keinen Info-String).
 
-const CONTAINER_INFO_RE = /^([a-z][a-z0-9-]*)(?:\s+(.*?))?\s*$/;
+const CONTAINER_INFO_RE = /^([A-Za-z][A-Za-z0-9-]*)(?:\s+(.*?))?\s*$/;
 
 // 4T-000382 (Epic 3E-000072): Spaltenzahl aus dem Info-String-Rest eines
-// `::: columns <n>`-Containers. Gueltig sind strikt die ganzen Zahlen 2 bis 5
-// (PO-Vorgabe); fehlend, nicht-numerisch, 1 oder 6+ liefern null und fallen
-// im Renderer auf die neutrale Container-Box zurueck (kein Fehler).
-function parseColumnsCount(rest) {
-  const m = String(rest == null ? '' : rest)
-    .trim()
-    .match(/^([0-9]+)$/);
-  if (!m) return null;
-  const n = parseInt(m[1], 10);
-  return n >= 2 && n <= 5 ? n : null;
-}
+// `::: columns <n>`-Containers; seit 4T-001914 in src/shared/callouts.js und
+// von hier unverändert weitergereicht (Export dieses Moduls und von plugins.js).
 
 function customContainersPlugin(mdInstance, options) {
   const isPortable = !!(options && options.portable);
@@ -335,10 +343,16 @@ function customContainersPlugin(mdInstance, options) {
           return `<div class="${colsCls}">`;
         }
         const cls = `custom-container container-${escapeHtml(meta.slug || '')}`;
+        // 4T-001914: Titelzeile mit dem Namen, wie er geschrieben ist (Zusage
+        // der Story 4S-000114, AK3 und AK12).
+        const titel = escapeHtml(meta.name || '');
         if (isPortable) {
-          return `<div class="${cls}" style="border:1px solid #ccc;border-radius:6px;padding:0.4em 0.8em;margin:1em 0;">`;
+          return (
+            `<div class="${cls}" style="border:1px solid #ccc;border-radius:6px;padding:0.4em 0.8em;margin:1em 0;">` +
+            `<div class="custom-container-title" style="font-weight:600;margin:0 0 0.4em 0;">${titel}</div>`
+          );
         }
-        return `<div class="${cls}">`;
+        return `<div class="${cls}"><div class="custom-container-title">${titel}</div>`;
       }
       const meta = token.meta || {};
       return meta.kind === 'callout' ? calloutBoxCloseHtml(false) : '</div>';
@@ -352,18 +366,20 @@ function customContainersPlugin(mdInstance, options) {
     for (const tok of state.tokens) {
       if (tok.type === 'container_dynamic_open') {
         const m = (tok.info || '').trim().match(CONTAINER_INFO_RE);
-        const slug = m ? m[1] : '';
+        const name = m ? m[1] : '';
         const rest = m && m[2] ? m[2].trim() : '';
+        // 4T-001914: Einordnung in jeder Schreibweise über die gemeinsame
+        // Funktion; geerbte Namen wie `constructor` sind unbekannt (S3). Der
+        // Mehrspalten-Block (4T-000382) fällt bei ungültiger Spaltenzahl auf die
+        // neutrale Box zurück, die dann ebenfalls den Namen als Titel trägt.
+        const art = containerKind(name, rest);
         let meta;
-        if (CALLOUT_TYPES[slug]) {
-          meta = { kind: 'callout', slug, title: rest };
-        } else if (slug === 'columns') {
-          // 4T-000382 (Epic 3E-000072): gueltige Spaltenzahl (2 bis 5) ergibt den
-          // Mehrspalten-Block; sonst neutrale Container-Box (Rueckfall).
-          const count = parseColumnsCount(rest);
-          meta = count ? { kind: 'columns', slug, count } : { kind: 'plain', slug, title: rest };
+        if (art.kind === 'callout') {
+          meta = { kind: 'callout', slug: art.type, title: rest };
+        } else if (art.kind === 'columns') {
+          meta = { kind: 'columns', count: art.count };
         } else {
-          meta = { kind: 'plain', slug, title: rest };
+          meta = { kind: 'plain', slug: art.key, name };
         }
         tok.meta = meta;
         stack.push(meta.kind);

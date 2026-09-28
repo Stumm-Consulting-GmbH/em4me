@@ -26,6 +26,10 @@ import { fileURLToPath } from 'node:url';
 import { TOUR_STATIONEN } from '../../src/renderer/modules/tour/tour-stationen.js';
 // 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
 import { LOCALE_CODES } from '../../src/shared/locales.js';
+// 4T-001881 (Epic 3E-000185): Zugangs-Tafel der Panels und die Modus-Stufe der
+// Erweiterungen — beides für die Modus-Festigkeit der Anker.
+import { PANEL_ACCESS } from '../../src/shared/panel-access.js';
+import { extensionById } from '../../src/shared/extensions/extensions.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
@@ -56,9 +60,12 @@ function fehlendeSprachen(key) {
 }
 
 describe('Tour-Stationen: Folge und Identität (4T-000644)', () => {
-  it('führt genau zehn Stationen mit eindeutigen IDs', () => {
+  it('führt genau elf Stationen mit eindeutigen IDs', () => {
+    // 4T-001881 (Epic 3E-000185): elf statt zehn — die Station der Arbeitsmodi
+    // ist hinzugekommen. Die feste Zahl ist Absicht: Sie zwingt jede Änderung
+    // der Folge dazu, Anker und Sprachdateien mitzunehmen.
     expect(Array.isArray(TOUR_STATIONEN)).toBe(true);
-    expect(TOUR_STATIONEN.length).toBe(10);
+    expect(TOUR_STATIONEN.length).toBe(11);
     const ids = TOUR_STATIONEN.map((s) => s.id);
     expect(new Set(ids).size, `doppelte Stations-ID: ${ids.join(', ')}`).toBe(ids.length);
     for (const station of TOUR_STATIONEN) {
@@ -73,7 +80,47 @@ describe('Tour-Stationen: Folge und Identität (4T-000644)', () => {
       ).toBe(true);
       if (typeof station.anker === 'string')
         expect(station.anker.length, `Station ${station.id}: leerer Anker`).toBeGreaterThan(0);
+      // 4T-001881: `bedienelement` ist optional; steht es da, ist es der Name
+      // eines Bedienelements und keine Wahrheitswert-Krücke.
+      if ('bedienelement' in station)
+        expect(
+          typeof station.bedienelement === 'string' && station.bedienelement.length > 0,
+          `Station ${station.id}: bedienelement muss ein nicht leerer String sein`,
+        ).toBe(true);
     }
+  });
+
+  // 4T-001881 (Epic 3E-000185): Die Station der Arbeitsmodi steht an zweiter
+  // Stelle, also VOR allen verankerten Stationen. Der Anwender wählt dort den
+  // Funktionsumfang, und ein kleiner Modus schaltet Erweiterungen ab — samt
+  // ihrer Panels und Statusleisten-Schaltflächen. Träfe das ein Anker einer
+  // späteren Station, verlöre sie still ihre Hervorhebung.
+  //
+  // Geprüft wird deshalb die Voraussetzung, unter der die Stelle unbedenklich
+  // ist: Kein Anker hängt an einer Erweiterung oberhalb der Einsteiger-Stufe.
+  // Die Verbindung läuft über die Schaltflächen-Kennung der Zugangs-Tafel
+  // (src/shared/panel-access.js); das Markup verbindet beides in einem Tag.
+  it('kein Anker hängt an einer Erweiterung oberhalb der Einsteiger-Stufe', () => {
+    const erweiterungJeButton = new Map(
+      PANEL_ACCESS.filter((p) => p.extensionId).map((p) => [p.buttonId, p.extensionId]),
+    );
+    const befunde = [];
+    for (const tag of INDEX_HTML.matchAll(/<[a-zA-Z]+[^>]*data-tour="[^"]+"[^>]*>/g)) {
+      const anker = tag[0].match(/data-tour="([^"]+)"/)[1];
+      const id = tag[0].match(/\bid="([^"]+)"/);
+      if (!id) continue;
+      const extensionId = erweiterungJeButton.get(id[1]);
+      if (!extensionId) continue;
+      const manifest = extensionById(extensionId);
+      if (manifest && manifest.modeLevel !== 'beginner')
+        befunde.push(`${anker} -> ${extensionId} (Stufe ${manifest.modeLevel})`);
+    }
+    expect(
+      befunde,
+      'Anker an Erweiterungen oberhalb der Einsteiger-Stufe: ' +
+        `${befunde.join(', ')}. Entweder bekommt die Station einen Anker ohne ` +
+        'Modus-Bindung, oder die Station der Arbeitsmodi rückt hinter sie.',
+    ).toEqual([]);
   });
 });
 

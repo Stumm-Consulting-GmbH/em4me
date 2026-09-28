@@ -5,6 +5,7 @@
   "reminders.dialog.snooze": "Recordar más tarde",
   "reminders.dialog.close": "Cerrar",
   "reminders.dialog.openFile": "Abrir archivo",
+  "reminders.dialog.origin": "Origen: {name}",
   "reminders.notification.count": "{n} recordatorios pendientes",
   "reminders.snooze.pick": "Elegir fecha…",
   "reminders.snooze.m.one": "1 minuto",
@@ -39,5 +40,5 @@
   "settings.reminders.unit.d": "días",
   "settings.reminders.unit.w": "semanas",
   "settings.reminders.systemNotification": "Mostrar notificación del sistema",
-  "settings.reminders.systemNotificationHint": "Además del diálogo cuando la ventana no está en primer plano."
+  "settings.reminders.systemNotificationHint": "Además del diálogo cuando ninguna ventana de la aplicación está en primer plano; una vez por aviso."
 }

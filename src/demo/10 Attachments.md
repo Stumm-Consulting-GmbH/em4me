@@ -24,6 +24,12 @@ finds the same file.
 
 ![[attachments/demo-image.png]]
 
+In the rendered view, click the image to see it enlarged over the whole window.
+Escape, the Close button or a click on the dark area closes it again, and the
+Open in default program button hands the file to the program your system
+assigns to it. In the live view, a double click opens the image in that program
+directly.
+
 ## Standard image link
 
 The classic Markdown form works too, with a relative path and alt text:
@@ -43,7 +49,8 @@ Try it below this line:
 
 Where the file lands is up to you (Settings → Attachments). By default each
 document gets its own folder named after it. Clicking a reference opens the
-attachment in the program your system assigns to it.
+attachment in the program your system assigns to it; an image shows its
+enlarged view first.
 
 ## Embed a PDF
 

@@ -3,9 +3,15 @@
 // Erweiterungen und Vertrauens-Verwaltung der externen.
 'use strict';
 
-import { effectiveDisabledSet } from '../../../shared/extensions/extensions-core.js';
+import {
+  blockingDependentIds,
+  disabledIdsForModeLevel,
+  effectiveDisabledSet,
+  modeLevelForDisabledIds,
+} from '../../../shared/extensions/extensions-core.js';
 import {
   EXTENSION_CATEGORIES,
+  EXTENSION_MODE_LEVELS,
   allExtensions,
   extensionById,
 } from '../../../shared/extensions/extensions.js';
@@ -22,6 +28,10 @@ import {
   applyExtensionsState,
   getDisabledExtensionIds,
 } from '../extensions/extension-lifecycle.js';
+// 4T-001882 (Epic 3E-000185): die eigenen Arbeitsmodi neben den drei festen.
+import { frischeEigeneArbeitsmodi } from '../extensions/extension-modes.js';
+import { showStatusbarHint } from '../views/views.js';
+import { aktiverEigenerArbeitsmodus, renderEigeneArbeitsmodi } from './settings-extension-modes.js';
 import { jsonEqual } from './settings-shared.js';
 
 // Spiegelt applyExtensionsSection (sortierte id-Listen gegen den
@@ -37,8 +47,132 @@ export function dirtyExtensionsSection(draft) {
 // Abhaengig mit-deaktivierte Erweiterungen zeigen einen Hinweis und einen
 // gesperrten Schalter (ihr eigener Schalt-Zustand bleibt erhalten und
 // kehrt mit der Abhaengigkeit zurueck). Wirkung erst bei Anwenden/OK.
+//
+// 4T-001877 (Epic 3E-000187): dazu der Abhaengigkeits-Schutz in der
+// Gegenrichtung — solange eine Abhaengige wirksam ist, ist der Schalter ihrer
+// Grundlage gesperrt. Die Zeile sagt das ohne Versuch (eigene Hinweis-Zeile
+// mit den Namen der Abhaengigen), und der Versuch blendet denselben Sachverhalt
+// als Statusleisten-Hinweis ein. Die Regel selbst liegt als reine Funktion im
+// geteilten Kern (blockingDependentIds), damit der spaetere Profil-Wechsel der
+// Arbeitsmodi dieselbe faehrt.
+//
+// 4T-001881 (Epic 3E-000185): darueber die Wahl der drei festen Arbeitsmodi —
+// Einsteiger, Fortgeschritten, Voll. Sie setzt den Schalter-Satz ihres Modus
+// gebuendelt in denselben Entwurf und zeigt an, welcher Modus dem Stand
+// entspricht; entspricht er keinem, steht dort «Angepasst». Die Mengen kommen
+// aus der Modus-Stufe der Registry (disabledIdsForModeLevel), eine eigene
+// Liste je Modus gibt es nicht.
+//
+// 4T-001882 (Epic 3E-000185): darunter die EIGENEN Modi — beliebig viele
+// benannte Schalter-Staende mit ihren fuenf Handgriffen. Sie liegen in einem
+// eigenen Modul (settings-extension-modes.js); hier steht allein ihr Aufruf
+// und die Anzeige-Zeile, die seither auch einen eigenen Modus erkennt.
 
-function renderExtensionsEditor(listEl, draft) {
+// Anzeige-Namen einer Kennungs-Liste in der Sprache der Oberflaeche; eine
+// nicht aufloesbare Kennung erscheint als Kennung (Muster der bestehenden
+// Hinweis-Zeile). Mehrere Namen stehen in einer Aufzaehlung und damit
+// gemeinsam in einem Satz.
+function extensionNames(ids) {
+  return ids
+    .map((id) => {
+      const manifest = extensionById(id);
+      return manifest ? t(manifest.nameKey) : id;
+    })
+    .join(', ');
+}
+
+// 4T-001881 (Epic 3E-000185): Die drei festen Arbeitsmodi über der
+// Schalter-Liste.
+//
+// Ein Klick setzt den Schalter-Satz seines Modus in den ENTWURF — wie jeder
+// einzelne Schalter dieses Bereichs, und wie dort tritt die Wirkung erst bei
+// «Anwenden» oder «OK» ein. Der Modus ist damit ein Ausgangspunkt und kein
+// Zustand: Danach bleibt jeder Schalter einzeln nachjustierbar.
+//
+// Der angezeigte Modus wird aus dem Entwurf abgeleitet und nirgends gehalten
+// (modeLevelForDisabledIds). Deshalb folgt die Anzeige einer Änderung am
+// Einzel-Schalter sofort in BEIDE Richtungen: weg vom Modus auf «Angepasst»
+// und wieder zurück, sobald der Stand wieder genau dem Satz eines Modus
+// entspricht.
+//
+// Der Abhängigkeits-Schutz braucht hier keinen eigenen Zweig: Die Sätze der
+// drei Modi verletzen keine deklarierte Abhängigkeit — in keinem ist eine
+// Abhängige an, deren Grundlage aus wäre —, und ein Wächter hält das fest
+// (test/unit/extensions.test.js). Ein Modus erzeugt damit keinen Stand, den
+// das Abschalten eines einzelnen Schalters verböte.
+function renderModusWahl(modesEl, listEl, draft) {
+  modesEl.innerHTML = '';
+  const titel = document.createElement('h4');
+  // Eigene Klasse statt der Gruppen-Überschrift der Kategorien: Sie sieht
+  // gleich aus, ist aber keine Kategorie — und der Wächter, der die drei
+  // Kategorien zählt, soll weiter drei zählen.
+  titel.className = 'settings-extensions-mode-title';
+  titel.textContent = t('settings.extensions.mode.title');
+  modesEl.appendChild(titel);
+
+  const intro = document.createElement('p');
+  intro.className = 'settings-extensions-mode-intro';
+  intro.textContent = t('settings.extensions.mode.intro');
+  modesEl.appendChild(intro);
+
+  const aktiv = modeLevelForDisabledIds(draft.extensionsDisabled);
+  const leiste = document.createElement('div');
+  leiste.className = 'settings-extensions-mode-buttons';
+  for (const level of EXTENSION_MODE_LEVELS) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'btn settings-extension-mode';
+    btn.id = `settings-extension-mode-${level}`;
+    btn.dataset.modeLevel = level;
+    const gewaehlt = level === aktiv;
+    btn.setAttribute('aria-pressed', gewaehlt ? 'true' : 'false');
+    btn.classList.toggle('is-active', gewaehlt);
+    const name = document.createElement('span');
+    name.className = 'settings-extension-mode-name';
+    name.textContent = t(`settings.extensions.mode.name.${level}`);
+    const desc = document.createElement('span');
+    desc.className = 'settings-extension-mode-desc';
+    desc.textContent = t(`settings.extensions.mode.desc.${level}`);
+    btn.append(name, desc);
+    btn.addEventListener('click', () => {
+      draft.extensionsDisabled = disabledIdsForModeLevel(level);
+      zeichneExtensionsBereich(modesEl, listEl, draft);
+    });
+    leiste.appendChild(btn);
+  }
+  modesEl.appendChild(leiste);
+
+  // 4T-001882: Die Anzeige erkennt auch einen eigenen Modus. Ein fester Modus
+  // geht vor, falls ein eigener denselben Satz traegt — er ist der Name, den
+  // die Anwendung selbst vergibt, und er steht als Schaltflaeche darueber.
+  const eigener = aktiv ? null : aktiverEigenerArbeitsmodus(draft);
+  const stand = document.createElement('div');
+  stand.className = 'settings-extensions-mode-state';
+  stand.id = 'settings-extensions-mode-state';
+  if (aktiv) {
+    stand.textContent = t('settings.extensions.mode.active').replace(
+      '{name}',
+      t(`settings.extensions.mode.name.${aktiv}`),
+    );
+  } else if (eigener) {
+    stand.textContent = t('settings.extensions.mode.active').replace('{name}', eigener.name);
+  } else {
+    stand.textContent = t('settings.extensions.mode.custom');
+  }
+  modesEl.appendChild(stand);
+
+  // 4T-001882: die eigenen Modi darunter, im selben Abschnitt.
+  renderEigeneArbeitsmodi(modesEl, draft, () => zeichneExtensionsBereich(modesEl, listEl, draft));
+}
+
+// Beide Teile des Bereichs gemeinsam neu zeichnen. Sie hängen aneinander: Ein
+// Einzel-Schalter ändert die Modus-Anzeige, ein Modus die ganze Schalter-Liste.
+function zeichneExtensionsBereich(modesEl, listEl, draft) {
+  renderModusWahl(modesEl, listEl, draft);
+  renderExtensionsEditor(listEl, modesEl, draft);
+}
+
+function renderExtensionsEditor(listEl, modesEl, draft) {
   listEl.innerHTML = '';
   const effective = effectiveDisabledSet(draft.extensionsDisabled);
   for (const category of EXTENSION_CATEGORIES) {
@@ -55,21 +189,28 @@ function renderExtensionsEditor(listEl, draft) {
 
       const directlyDisabled = draft.extensionsDisabled.includes(manifest.id);
       const byDependency = effective.has(manifest.id) && !directlyDisabled;
+      // 4T-001877: Gemessen wird gegen den ENTWURF, nicht gegen den
+      // wirksamen Stand — wer die Abhaengige in derselben Sitzung abwaehlt,
+      // bekommt die Grundlage sofort frei, ohne vorher anzuwenden.
+      const blockers = blockingDependentIds(manifest.id, draft.extensionsDisabled);
+      const locked = blockers.length > 0;
+      if (locked) row.dataset.locked = '1';
 
       const toggle = document.createElement('input');
       toggle.type = 'checkbox';
       toggle.className = 'settings-extension-toggle';
       toggle.id = `settings-extension-${manifest.id}`;
       toggle.checked = !effective.has(manifest.id);
-      toggle.disabled = byDependency;
+      toggle.disabled = byDependency || locked;
       toggle.addEventListener('change', () => {
         if (toggle.checked) {
           draft.extensionsDisabled = draft.extensionsDisabled.filter((id) => id !== manifest.id);
         } else if (!draft.extensionsDisabled.includes(manifest.id)) {
           draft.extensionsDisabled.push(manifest.id);
         }
-        // Abhaengigkeits-Hinweise der uebrigen Zeilen nachziehen.
-        renderExtensionsEditor(listEl, draft);
+        // Abhaengigkeits-Hinweise der uebrigen Zeilen und die Modus-Anzeige
+        // darueber nachziehen (4T-001881).
+        zeichneExtensionsBereich(modesEl, listEl, draft);
       });
 
       const text = document.createElement('div');
@@ -86,18 +227,39 @@ function renderExtensionsEditor(listEl, draft) {
       if (byDependency) {
         const hint = document.createElement('div');
         hint.className = 'settings-extension-dependency-hint';
-        const names = (manifest.dependencies || [])
-          .filter((dep) => effective.has(dep))
-          .map((dep) => {
-            const depManifest = extensionById(dep);
-            return depManifest ? t(depManifest.nameKey) : dep;
-          })
-          .join(', ');
+        const names = extensionNames(
+          (manifest.dependencies || []).filter((dep) => effective.has(dep)),
+        );
         hint.textContent = t('settings.extensions.dependencyHint').replace('{name}', names);
+        text.appendChild(hint);
+      }
+      if (locked) {
+        const hint = document.createElement('div');
+        hint.className = 'settings-extension-dependency-hint settings-extension-required-hint';
+        hint.textContent = t('settings.extensions.requiredHint').replace(
+          '{names}',
+          extensionNames(blockers),
+        );
         text.appendChild(hint);
       }
 
       row.append(toggle, text);
+      // 4T-001877: Der Versuch am gesperrten Schalter. Ein deaktiviertes
+      // Formular-Element bekommt im Chromium kein Klick-Ereignis und gibt
+      // auch keines nach oben weiter; das Stilblatt nimmt ihm deshalb die
+      // Zeiger-Ereignisse, damit der Klick die Zeile erreicht. Der Hinweis
+      // verschwindet von selbst und ruehrt den Schalter nicht an — ein
+      // wiederholter Versuch blendet schlicht erneut ein.
+      if (locked) {
+        row.addEventListener('click', () => {
+          showStatusbarHint(null, {
+            duration: 3000,
+            text: t('settings.extensions.requiredNotice')
+              .replace('{name}', t(manifest.nameKey))
+              .replace('{names}', extensionNames(blockers)),
+          });
+        });
+      }
       listEl.appendChild(row);
     }
   }
@@ -108,11 +270,24 @@ export function renderExtensionsSection(container, draft) {
   intro.className = 'settings-extensions-intro';
   intro.textContent = t('settings.extensions.intro');
   container.appendChild(intro);
+  // 4T-001881: Die Modus-Wahl steht ueber der Schalter-Liste — sie setzt den
+  // ganzen Satz, die Liste justiert ihn nach.
+  const modes = document.createElement('div');
+  modes.id = 'settings-extensions-modes';
+  modes.className = 'settings-extensions-modes';
+  container.appendChild(modes);
   const list = document.createElement('div');
   list.id = 'settings-extensions-list';
   list.className = 'settings-extensions-list';
   container.appendChild(list);
-  renderExtensionsEditor(list, draft);
+  zeichneExtensionsBereich(modes, list, draft);
+  // 4T-001882: Die Liste der eigenen Modi kommt bei jedem Oeffnen frisch aus
+  // dem Speicher — so sieht dieses Fenster, was ein anderes angelegt hat, ohne
+  // dass es dafuer einen zweiten Verteil-Weg braeuchte. Neu gezeichnet wird
+  // nur bei einer echten Aenderung und nur, solange der Bereich noch haengt.
+  void frischeEigeneArbeitsmodi().then((geaendert) => {
+    if (geaendert && modes.isConnected) zeichneExtensionsBereich(modes, list, draft);
+  });
 }
 
 export async function applyExtensionsSection(draft) {

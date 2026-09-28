@@ -31,7 +31,7 @@ history: true
 ---
 ```
 
-`history: false` schaltet ab, eine fehlende Eigenschaft erbt. Am einfachsten setzt das Klick-Menü des Statusbar-Symbols die Eigenschaft (aktivieren, deaktivieren, Erbwert verwenden). Der Bereichs-Default wird im Einstellungs-Eintrag „Dokument-Historie" der Navigations-Gruppe „Aktueller Bereich" gesetzt (nur bei geöffnetem Bereich sichtbar); die Bereichsdatei entsteht erst beim ersten Setzen.
+`history: false` schaltet ab, eine fehlende Eigenschaft erbt. Am einfachsten setzt das Klick-Menü des Statusbar-Symbols die Eigenschaft (aktivieren, deaktivieren, Erbwert verwenden). Der Bereichs-Default wird im Einstellungs-Eintrag „Dokument-Historie" der Navigations-Gruppe „Aktueller Bereich" gesetzt (nur bei geöffnetem Bereich sichtbar; bei geöffnetem Buch heißt die Gruppe **Aktuelles Buch**, bei geöffnetem Bücherregal **Aktuelles Bücherregal**); die Bereichsdatei entsteht erst beim ersten Setzen.
 
 **Abschalten löscht nichts.** Die Protokollierung pausiert nur; die Begleitdatei bleibt erhalten. Beim Wiedereinschalten wird die Lücke als ein zusammengefasstes Paket nachgetragen, die Historie bleibt lückenlos nachvollziehbar.
 

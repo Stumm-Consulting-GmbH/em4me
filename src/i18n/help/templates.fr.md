@@ -9,7 +9,7 @@ La fonctionnalité est commutable comme extension « Modèles » (Paramètres �
 Le dossier de modèles se configure dans les paramètres (Paramètres → Modèles) :
 
 - **Globalement**, le dossier de l'application vaut pour toutes les fenêtres.
-- **Par zone**, une configuration dédiée peut être définie (« Utiliser la configuration de zone » dans l'entrée « Modèles » du groupe de navigation « Zone actuelle », visible uniquement lorsqu'une zone est ouverte) ; elle est enregistrée dans le fichier de zone et **remplace complètement la configuration globale** (dossier et règles, pas de résolution mixte). Les dossiers sont relatifs à la racine de la zone ; les chemins absolus restent autorisés.
+- **Par zone**, une configuration dédiée peut être définie (« Utiliser la configuration de zone » dans l'entrée « Modèles » du groupe de navigation « Zone actuelle », visible uniquement lorsqu'une zone est ouverte ; lorsqu'un livre est ouvert, le groupe s'appelle **Livre actuel**, lorsqu'une bibliothèque est ouverte **Bibliothèque actuelle**) ; elle est enregistrée dans le fichier de zone et **remplace complètement la configuration globale** (dossier et règles, pas de résolution mixte). Les dossiers sont relatifs à la racine de la zone ; les chemins absolus restent autorisés.
 
 Chaque fichier Markdown du dossier (sous-dossiers compris) est un modèle. Les sous-dossiers apparaissent comme groupes dans le popup de sélection. Les changements de configuration prennent effet immédiatement, sans redémarrage.
 

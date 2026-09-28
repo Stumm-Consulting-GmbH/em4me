@@ -19,6 +19,8 @@
   "settings.calendar.loading": "Konfiguration wird geladen…",
   "settings.calendar.noArea": "Kalender-Systeme gibt es nur in einem Bereich. Zuerst einen Bereich öffnen.",
   "settings.calendar.intro": "Zeitrechnungs-Blöcke des Bereichs '{name}'. Kalender desselben Blocks sind einander zuordenbar; Blöcke sind unabhängig.",
+  "settings.calendar.introBook": "Zeitrechnungs-Blöcke des Buches '{name}'. Kalender desselben Blocks sind einander zuordenbar; Blöcke sind unabhängig.",
+  "settings.calendar.introShelf": "Zeitrechnungs-Blöcke des Bücherregals '{name}'. Kalender desselben Blocks sind einander zuordenbar; Blöcke sind unabhängig.",
   "settings.calendar.blocksGroup": "Blöcke",
   "settings.calendar.blockPlaceholder": "Block-Name",
   "settings.calendar.blockAdd": "Block hinzufügen",

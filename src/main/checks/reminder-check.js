@@ -3,7 +3,8 @@
 // Fester 30-Sekunden-Takt auf dem bereichsweiten Index (Workshop-Punkt 7):
 // pro Tick und Bereichs-App werden die faelligen, noch nicht gemeldeten
 // und nicht gemuteten Erinnerungs-Anker ermittelt und als 'reminders:due'
-// an das Ziel-Fenster der Bereichs-App geliefert. Der Timer laeuft bewusst
+// geliefert, seit 4T-001727 (Epic 3E-000305) an alle Fenster über das
+// Zustell-Register in due-delivery.js. Der Timer laeuft bewusst
 // im Main: Renderer-Timer werden bei minimiertem Fenster gedrosselt,
 // genau dann zaehlen Benachrichtigungen. Die Tipp-Ruhe (10 Sekunden,
 // Punkt 7) liegt dagegen im Renderer — nur dort ist Tipp-Aktivitaet
@@ -22,7 +23,7 @@
 //   areas()          -> Array { root } der offenen Bereichs-Apps
 //   taskLines(root)  -> Roh-Task-Zeilen des Index oder null (nicht bereit)
 //   buildEnv()       -> { enabled, globalFilter, statusTypeOf, defaultTime }
-//   send(root, channel, payload) -> Zustellung an das Ziel-Fenster
+//   send(root, channel, payload) -> Zustellung (seit 4T-001727 an alle Fenster)
 //   now()            -> Date (Bezugszeitpunkt)
 'use strict';
 

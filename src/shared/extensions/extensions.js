@@ -58,6 +58,20 @@ const EXTENSIONS_DISABLED_KEY = 'extensions.disabled';
 // „Erweiterungen (extern)" (4T-000300).
 const EXTENSION_CATEGORIES = ['render', 'linking', 'tools'];
 
+// 4T-001880 (Epic 3E-000185): Die drei Modus-Stufen der Arbeitsmodi, von der
+// kleinsten zur größten geordnet. Die Stufe einer Erweiterung sagt, ab welchem
+// Modus sie eingeschaltet ist; die drei Modi sind damit ineinander
+// geschachtelt und keine drei beliebigen Mengen:
+//   'beginner'  Einsteiger — an in allen drei Modi.
+//   'advanced'  Fortgeschritten — an in Fortgeschritten und Voll.
+//   'full'      Voll — nur im vollen Modus an.
+// Die Reihenfolge ist Teil des Vertrags: Sie ist die Rangfolge, aus der die
+// Ableitung in extensions-core.js (disabledIdsForModeLevel) die Menge der
+// abzuschaltenden Kennungen je Modus gewinnt. Die Zuordnung der
+// zweiundsechzig internen Erweiterungen ist die vom Product Owner am
+// 2026-09-21 entschiedene Tabelle der Konzept-Runde 4T-001842.
+const EXTENSION_MODE_LEVELS = ['beginner', 'advanced', 'full'];
+
 // 4T-000299 (Epic 3E-000053): Kategorie- und Herkunfts-Kennzeichnung externer
 // Erweiterungen. Sie registrieren sich zur Laufzeit an derselben Registry
 // und demselben Lebenszyklus wie die internen (Epic-Architekturentscheidung);
@@ -71,10 +85,46 @@ const EXTERNAL_CATEGORY = 'external';
 //   id            stabile Kennung (kebab-case; Persistenz-Schlüssel in
 //                 extensions.disabled).
 //   category      'render' | 'linking' | 'tools' (EXTENSION_CATEGORIES).
+//   modeLevel     PFLICHT bei internen Erweiterungen: die Modus-Stufe der
+//                 Arbeitsmodi, 'beginner' | 'advanced' | 'full'
+//                 (EXTENSION_MODE_LEVELS). Sie sagt, ab welchem der drei
+//                 festen Modi diese Erweiterung eingeschaltet ist —
+//                 'beginner' in allen dreien, 'advanced' ab
+//                 «Fortgeschritten», 'full' nur im vollen Modus. Die Stufe
+//                 steht hier und nicht in einer zweiten Liste daneben, weil
+//                 eine zweite Liste auseinanderliefe, sobald eine Erweiterung
+//                 dazukommt; genau das ist der Normalfall. Ein Eintrag ohne
+//                 Stufe oder mit unbekanntem Wert ist ein Fehler und kein
+//                 stillschweigendes «Voll»: validateExtensionRegistry weist
+//                 ihn ab, und die Selbst-Validierung unten wirft beim Laden
+//                 des Moduls. EXTERNE Erweiterungen tragen die Stufe NICHT
+//                 (registerExternalExtension übernimmt sie nicht); sie liegen
+//                 auf einer eigenen Schalter-Achse, und ein fester Modus
+//                 fasst sie nicht an. Abgeleitet wird daraus in
+//                 extensions-core.js die Menge der je Modus abzuschaltenden
+//                 Kennungen (disabledIdsForModeLevel); eine eigene Liste je
+//                 Modus entsteht nicht (4T-001880, Epic 3E-000185).
 //   nameKey       i18n-Key des Anzeige-Namens (extension.<id>.name).
 //   descKey       i18n-Key der Kurzbeschreibung (extension.<id>.description).
-//   dependencies  optionale Liste von Erweiterungs-IDs; ist eine davon
-//                 deaktiviert, ist diese Erweiterung effektiv mit-deaktiviert.
+//   dependencies  optionale Liste von Erweiterungs-IDs, die diese Erweiterung
+//                 als Grundlage braucht. Deklariert wird ausschließlich die
+//                 HARTE Abhängigkeit, bei der die Abhängige ohne ihre
+//                 Grundlage bricht — nicht die bloße Verarmung, bei der eine
+//                 Erweiterung weiterläuft und nur ein Teil ihrer Wirkung
+//                 entfällt; dafür ist die Laufzeit-Prüfung am Ort das Mittel
+//                 (Entscheidung E3 des Epics 3E-000187).
+//                 Zwei Wirkungen, beide in extensions-core.js:
+//                   1. Solange eine Abhängige wirksam ist, ist der Schalter
+//                      ihrer Grundlage gesperrt (4T-001877,
+//                      blockingDependentIds); ein Stand, in dem eine
+//                      Grundlage abgeschaltet und eine Abhängige
+//                      eingeschaltet ist, entsteht dadurch nicht mehr neu.
+//                   2. Ein bereits vorhandener Stand dieser Art bleibt
+//                      unverändert wirksam: Ist eine Grundlage deaktiviert,
+//                      ist diese Erweiterung effektiv mit-deaktiviert
+//                      (effectiveDisabledSet). Nichts wird dabei selbsttätig
+//                      umgeschaltet, und die Grundlage lässt sich jederzeit
+//                      wieder einschalten.
 //   commands      optionale Liste von Kommando-IDs (src/shared/commands/commands.js),
 //                 die bei deaktivierter Erweiterung aus Dispatcher, Menü,
 //                 Editor-Keymap und Handbuch-Generatoren gefiltert werden.
@@ -115,42 +165,49 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'callouts',
     category: 'render',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.callouts',
     descKey: 'help.feature.callouts',
   },
   {
     id: 'custom-containers',
     category: 'render',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.customContainers',
     descKey: 'help.feature.customContainers',
   },
   {
     id: 'highlight',
     category: 'render',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.highlight',
     descKey: 'help.feature.highlight',
   },
   {
     id: 'footnotes',
     category: 'render',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.footnotes',
     descKey: 'help.feature.footnotes',
   },
   {
     id: 'emoji',
     category: 'render',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.emoji',
     descKey: 'help.feature.emoji',
   },
   {
     id: 'abbreviations',
     category: 'render',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.abbreviations',
     descKey: 'help.feature.abbreviations',
   },
   {
     id: 'figures',
     category: 'render',
+    modeLevel: 'beginner',
     nameKey: 'extension.figures.name',
     descKey: 'extension.figures.description',
     featureKeys: ['help.feature.imageSize', 'help.feature.implicitFigures'],
@@ -158,18 +215,21 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'definition-lists',
     category: 'render',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.definitionLists',
     descKey: 'help.feature.definitionLists',
   },
   {
     id: 'line-blocks',
     category: 'render',
+    modeLevel: 'full',
     nameKey: 'help.featureName.lineBlocks',
     descKey: 'help.feature.lineBlocks',
   },
   {
     id: 'typography',
     category: 'render',
+    modeLevel: 'beginner',
     nameKey: 'extension.typography.name',
     descKey: 'extension.typography.description',
     featureKeys: ['help.feature.subSup', 'help.feature.insertion'],
@@ -177,6 +237,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'attributes',
     category: 'render',
+    modeLevel: 'full',
     nameKey: 'extension.attributes.name',
     descKey: 'extension.attributes.description',
     featureKeys: ['help.feature.headingAttributes'],
@@ -184,12 +245,14 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'spoiler',
     category: 'render',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.spoiler',
     descKey: 'help.feature.spoiler',
   },
   {
     id: 'critic-markup',
     category: 'render',
+    modeLevel: 'full',
     nameKey: 'help.featureName.criticMarkup',
     descKey: 'help.feature.criticMarkup',
   },
@@ -199,6 +262,7 @@ const INTERNAL_EXTENSIONS = [
     // Zustand: %% bleibt Literal (kein Strippen, keine Editor-Einfaerbung).
     id: 'comments',
     category: 'render',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.comments',
     descKey: 'help.feature.comments',
   },
@@ -211,6 +275,7 @@ const INTERNAL_EXTENSIONS = [
     // "headingNumbering" (4T-000471) blendet sich mit aus.
     id: 'heading-numbering',
     category: 'render',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.headingNumbering',
     descKey: 'help.feature.headingNumbering',
     settingsSections: ['headingNumbering'],
@@ -218,6 +283,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'task-states',
     category: 'render',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.taskStates',
     descKey: 'help.feature.taskStates',
     // 4T-000295: der bestehende Einstellungs-Bereich Task-Status ist der
@@ -227,6 +293,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'perspective-table',
     category: 'render',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.perspectiveTable',
     descKey: 'help.feature.perspectiveTable',
     // 4T-001309 (Epic 3E-000235): Das Einfuege-Geruest gehoert zum Konstrukt. Ist
@@ -240,6 +307,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'perspective-datatable',
     category: 'render',
+    modeLevel: 'full',
     nameKey: 'help.featureName.datatable',
     descKey: 'help.feature.datatable',
   },
@@ -251,24 +319,28 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'inline-calc',
     category: 'render',
+    modeLevel: 'full',
     nameKey: 'help.featureName.inlineCalc',
     descKey: 'help.feature.inlineCalc',
   },
   {
     id: 'katex',
     category: 'render',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.katex',
     descKey: 'help.feature.katex',
   },
   {
     id: 'mermaid',
     category: 'render',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.mermaid',
     descKey: 'help.feature.mermaid',
   },
   {
     id: 'code-highlight',
     category: 'render',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.codeHighlight',
     descKey: 'help.feature.codeHighlight',
   },
@@ -283,6 +355,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'wiki-links',
     category: 'linking',
+    modeLevel: 'beginner',
     nameKey: 'extension.wiki-links.name',
     descKey: 'extension.wiki-links.description',
     featureKeys: [
@@ -303,6 +376,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'wiki-embeds',
     category: 'linking',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.wikiEmbeds',
     descKey: 'help.feature.wikiEmbeds',
     dependencies: ['wiki-links'],
@@ -314,6 +388,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'area-links',
     category: 'linking',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.areaLinks',
     descKey: 'help.feature.areaLinks',
     dependencies: ['wiki-links'],
@@ -329,6 +404,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'tags',
     category: 'linking',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.tags',
     descKey: 'help.feature.tags',
     featureKeys: ['help.feature.tagRename'],
@@ -337,6 +413,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'autocomplete',
     category: 'linking',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.autocomplete',
     descKey: 'help.feature.autocomplete',
   },
@@ -352,6 +429,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'graph-view',
     category: 'linking',
+    modeLevel: 'advanced',
     nameKey: 'extension.graph-view.name',
     descKey: 'extension.graph-view.description',
     featureKeys: ['help.feature.areaGraph', 'help.feature.fileGraph'],
@@ -367,6 +445,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'mindmap',
     category: 'render',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.mindmap',
     descKey: 'help.feature.mindmap',
     commands: ['view.modeMindmap'],
@@ -390,6 +469,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'canvas',
     category: 'render',
+    modeLevel: 'full',
     nameKey: 'help.featureName.canvas',
     descKey: 'help.feature.canvas',
     // 4T-001703 (Epic 3E-000288): die drei weiteren Katalog-Zeilen der Flaeche.
@@ -475,6 +555,11 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'kanban',
     category: 'render',
+    // Modus-Stufe nachgetragen bei der Zusammenführung des Zuges 3E-000326
+    // mit dem Release 1.141.0 (Sammeltask 4T-001891): Planungs-Werkzeug wie
+    // Journale und Ereignisse, deshalb «Fortgeschritten»; verträglich mit der
+    // Grundlage 'tasks' (Einsteiger).
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.kanban',
     descKey: 'help.feature.kanban',
     // 4T-001909: die zweite Katalog-Zeile der Tafel (Angaben auf der Karte,
@@ -508,6 +593,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'linter',
     category: 'tools',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.linter',
     descKey: 'help.feature.linter',
   },
@@ -523,6 +609,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'spellcheck',
     category: 'tools',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.spellcheck',
     descKey: 'help.feature.spellcheck',
     settingsSections: ['spellcheck'],
@@ -536,6 +623,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'area-stats',
     category: 'tools',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.areaStats',
     descKey: 'help.feature.areaStats',
     commands: ['stats.openArea'],
@@ -549,6 +637,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'setup-exchange',
     category: 'tools',
+    modeLevel: 'full',
     nameKey: 'help.featureName.setupExchange',
     descKey: 'help.feature.setupExchange',
     commands: ['file.exportSetup', 'file.importSetup'],
@@ -567,6 +656,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'my-extended-memory',
     category: 'tools',
+    modeLevel: 'full',
     nameKey: 'help.featureName.myExtendedMemory',
     descKey: 'help.feature.myExtendedMemory',
     commands: ['memory.openPage'],
@@ -585,6 +675,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'custom-locale',
     category: 'tools',
+    modeLevel: 'full',
     nameKey: 'help.featureName.customLocale',
     descKey: 'help.feature.customLocale',
     // 4T-001594: Das Entfernen tritt hinzu — auch es löst der Anwender aus
@@ -603,6 +694,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'bookmarks',
     category: 'tools',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.bookmarks',
     descKey: 'help.feature.bookmarks',
     commands: ['file.bookmarkAdd', 'view.toggleBookmarks'],
@@ -631,6 +723,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'books',
     category: 'tools',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.books',
     descKey: 'help.feature.books',
     commands: [
@@ -652,6 +745,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'focus-mode',
     category: 'tools',
+    modeLevel: 'beginner',
     nameKey: 'extension.focus-mode.name',
     descKey: 'extension.focus-mode.description',
     featureKeys: ['help.feature.focusMode', 'help.feature.typewriterScroll'],
@@ -668,6 +762,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'sidebar-collapse',
     category: 'tools',
+    modeLevel: 'beginner',
     nameKey: 'extension.sidebar-collapse.name',
     descKey: 'extension.sidebar-collapse.description',
     featureKeys: ['help.feature.sidebarCollapse'],
@@ -683,6 +778,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'outliner',
     category: 'tools',
+    modeLevel: 'advanced',
     nameKey: 'extension.outliner.name',
     descKey: 'extension.outliner.description',
     featureKeys: ['help.feature.listOutline'],
@@ -696,6 +792,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'templates',
     category: 'tools',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.templates',
     descKey: 'help.feature.templates',
     commands: ['file.newFromTemplate', 'edit.insertTemplate'],
@@ -715,6 +812,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'journals',
     category: 'tools',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.journals',
     descKey: 'help.feature.journals',
     commands: ['journal.openToday', 'journal.openForDate', 'journal.nachtragen'],
@@ -732,6 +830,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'frontmatter-timestamps',
     category: 'tools',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.frontmatterTimestamps',
     descKey: 'help.feature.frontmatterTimestamps',
     settingsSections: ['frontmatterTimestamps'],
@@ -748,6 +847,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'custom-calendars',
     category: 'tools',
+    modeLevel: 'full',
     nameKey: 'extension.custom-calendars.name',
     descKey: 'extension.custom-calendars.description',
     featureKeys: ['help.feature.customCalendars', 'help.feature.derivedCalendars'],
@@ -769,6 +869,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'property-profiles',
     category: 'tools',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.propertyProfiles',
     descKey: 'help.feature.propertyProfiles',
     settingsSections: ['propertyProfiles'],
@@ -806,6 +907,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'property-value-suggestions',
     category: 'tools',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.propertyValueSuggestions',
     descKey: 'help.feature.propertyValueSuggestions',
   },
@@ -818,6 +920,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'tab-groups',
     category: 'tools',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.tabGroups',
     descKey: 'help.feature.tabGroups',
   },
@@ -835,6 +938,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'tasks',
     category: 'tools',
+    modeLevel: 'beginner',
     nameKey: 'extension.tasks.name',
     descKey: 'extension.tasks.description',
     featureKeys: [
@@ -859,6 +963,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'reminders',
     category: 'tools',
+    modeLevel: 'advanced',
     nameKey: 'extension.reminders.name',
     descKey: 'extension.reminders.description',
     featureKeys: [
@@ -884,6 +989,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'events',
     category: 'tools',
+    modeLevel: 'advanced',
     nameKey: 'extension.events.name',
     descKey: 'extension.events.description',
     featureKeys: [
@@ -930,6 +1036,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'database',
     category: 'tools',
+    modeLevel: 'full',
     nameKey: 'extension.database.name',
     descKey: 'extension.database.description',
     featureKeys: [
@@ -984,6 +1091,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'workspaces',
     category: 'tools',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.workspaces',
     descKey: 'help.feature.workspaces',
     commands: ['workspace.saveAs', 'workspace.create', 'workspace.close', 'workspace.manage'],
@@ -996,6 +1104,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'demo-area',
     category: 'tools',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.demoArea',
     descKey: 'help.feature.demoArea',
     commands: ['area.createDemo'],
@@ -1009,6 +1118,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'date-picker',
     category: 'tools',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.datePicker',
     descKey: 'help.feature.datePicker',
     commands: ['edit.insertDateTime', 'edit.insertDate', 'edit.insertTime'],
@@ -1016,6 +1126,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'word-count',
     category: 'tools',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.wordCount',
     descKey: 'help.feature.wordCount',
   },
@@ -1028,6 +1139,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'clock',
     category: 'tools',
+    modeLevel: 'advanced',
     nameKey: 'help.featureName.clock',
     descKey: 'help.feature.clock',
     commands: ['view.toggleClock'],
@@ -1036,6 +1148,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'code-copy',
     category: 'tools',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.codeCopyButton',
     descKey: 'help.feature.codeCopyButton',
   },
@@ -1053,6 +1166,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'command-placement',
     category: 'tools',
+    modeLevel: 'full',
     nameKey: 'extension.command-placement.name',
     descKey: 'extension.command-placement.description',
     featureKeys: [
@@ -1072,6 +1186,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'toolbar',
     category: 'tools',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.formatToolbar',
     descKey: 'help.feature.formatToolbar',
     settingsSections: ['formatToolbar'],
@@ -1086,6 +1201,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'title-line',
     category: 'tools',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.titleLine',
     descKey: 'help.feature.titleLine',
   },
@@ -1098,6 +1214,7 @@ const INTERNAL_EXTENSIONS = [
   {
     id: 'table-tools',
     category: 'tools',
+    modeLevel: 'beginner',
     nameKey: 'help.featureName.tableTools',
     descKey: 'help.feature.tableTools',
     commands: [
@@ -1154,6 +1271,14 @@ function validateExtensionRegistry(list) {
       }
       if (typeof m.nameKey !== 'string' || typeof m.descKey !== 'string') {
         errors.push(`${id}: nameKey/descKey fehlen`);
+      }
+      // 4T-001880: Die Modus-Stufe ist Pflicht. Zwei getrennte Meldungen,
+      // weil die beiden Fälle verschiedene Ursachen haben: eine vergessene
+      // Angabe bei einer neuen Erweiterung und ein Tippfehler im Wert.
+      if (m.modeLevel === undefined) {
+        errors.push(`${id}: Modus-Stufe fehlt (modeLevel)`);
+      } else if (!EXTENSION_MODE_LEVELS.includes(m.modeLevel)) {
+        errors.push(`${id}: unbekannte Modus-Stufe ${String(m.modeLevel)}`);
       }
     }
     if (m.dependencies !== undefined && !Array.isArray(m.dependencies)) {
@@ -1215,7 +1340,10 @@ function validateExtensionRegistry(list) {
 const externalExtensions = [];
 
 // Registriert ein externes Manifest ({ id, name, description? }; Kategorie
-// und Herkunft setzt die Funktion selbst). Wirft bei ungültigem Eintrag
+// und Herkunft setzt die Funktion selbst). Eine übergebene Modus-Stufe wird
+// wie das Abhängigkeits-Feld bewusst NICHT übernommen: Externe Erweiterungen
+// liegen auf einer eigenen Schalter-Achse, und die festen Arbeitsmodi fassen
+// sie nicht an (4T-001880). Wirft bei ungültigem Eintrag
 // oder ID-Kollision — der Aufrufer (Host) behandelt das als Lade-Fehler
 // der einzelnen Erweiterung, nicht als App-Fehler. Re-Registrierung
 // derselben ID ersetzt den Eintrag (idempotent, z.B. nach erneutem Scan).
@@ -1269,6 +1397,7 @@ function isExtensionId(id, list = allExtensions()) {
 module.exports = {
   EXTENSIONS_DISABLED_KEY,
   EXTENSION_CATEGORIES,
+  EXTENSION_MODE_LEVELS,
   EXTERNAL_CATEGORY,
   allExtensions,
   internalExtensions,

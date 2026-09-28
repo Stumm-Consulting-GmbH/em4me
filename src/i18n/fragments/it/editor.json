@@ -109,5 +109,6 @@
   "inlineCalc.error.function": "Funzione sconosciuta o numero errato di argomenti",
   "inlineCalc.error.value": "L'espressione non può essere valutata",
   "tableEdit.hint.notFound": "Tabella non trovata in modo univoco nel sorgente, modifica annullata",
-  "tableEdit.hint.blocked": "Tabella con errori di struttura, modifica solo nel sorgente"
+  "tableEdit.hint.blocked": "Tabella con errori di struttura, modifica solo nel sorgente",
+  "tableEdit.hint.keptOpen": "Nel frattempo la cella è stata modificata altrove – Invio applica il testo inserito, Esc lo annulla"
 }

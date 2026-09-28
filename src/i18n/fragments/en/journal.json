@@ -44,6 +44,8 @@
   "settings.journals.loading": "Loading configuration…",
   "settings.journals.noArea": "Journals only exist within an area. Open an area first.",
   "settings.journals.intro": "Shelves and journals of the area '{name}'. Changes take effect immediately after applying.",
+  "settings.journals.introBook": "Shelves and journals of the book '{name}'. Changes take effect immediately after applying.",
+  "settings.journals.introShelf": "Shelves and journals of the bookshelf '{name}'. Changes take effect immediately after applying.",
   "settings.journals.shelvesGroup": "Shelves",
   "settings.journals.shelfPlaceholder": "Shelf name",
   "settings.journals.shelfAdd": "Add shelf",

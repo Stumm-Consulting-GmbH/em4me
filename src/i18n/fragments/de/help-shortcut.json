@@ -19,7 +19,7 @@
   "help.shortcut.newWindow": "Neues, leeres Fenster derselben Applikation öffnen",
   "help.shortcut.newApp": "Neue Applikation (eigener Fenster-Verbund) starten",
   "help.shortcut.openArea": "Ordner-Bereich als Arbeitsraum der Applikation öffnen",
-  "help.shortcut.closeArea": "Bereich schließen (schließt alle Fenster der Bereichs-Applikation)",
+  "help.shortcut.closeArea": "Bereich schließen (schließt alle Fenster der eigenen Bereichs-Applikation)",
   "help.shortcut.createDemoArea": "Mitgelieferte Demo-Area in einen leeren Ordner kopieren und als Bereich öffnen",
   "help.shortcut.openBook": "Buch öffnen (Ordner mit Buch-Datei und Begleitdatei)",
   "help.shortcut.newBook": "Neues Buch anlegen (Ordner, Buch-Datei und Begleitdatei)",

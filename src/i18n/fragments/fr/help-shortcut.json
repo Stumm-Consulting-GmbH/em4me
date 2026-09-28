@@ -19,7 +19,7 @@
   "help.shortcut.newWindow": "Ouvrir une nouvelle fenêtre vide de la même application",
   "help.shortcut.newApp": "Démarrer une nouvelle application (groupe de fenêtres distinct)",
   "help.shortcut.openArea": "Ouvrir une zone (dossier) comme espace de travail de l'application",
-  "help.shortcut.closeArea": "Fermer la zone (ferme toutes les fenêtres de l'application de zone)",
+  "help.shortcut.closeArea": "Fermer la zone (ferme toutes les fenêtres de sa propre application de zone)",
   "help.shortcut.createDemoArea": "Copier la Demo-Area fournie dans un dossier vide et l'ouvrir comme zone",
   "help.shortcut.openBook": "Ouvrir un livre (dossier avec fichier de livre et fichier compagnon)",
   "help.shortcut.newBook": "Créer un nouveau livre (dossier, fichier de livre et fichier compagnon)",

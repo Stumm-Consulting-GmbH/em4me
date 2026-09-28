@@ -2,7 +2,7 @@
 
 Event management keeps **appointments, birthdays, anniversaries and project dates** right in the document: as an embedded event block with its own data rows or as an aggregation over frontmatter properties from the files of the area. Each entry shows the **time difference to today** in four tiers, plus milestones, yearly recurrence, filters, five additional views and links between events.
 
-The feature belongs to the [internal extensions](extensions.md) ("Events") and requires the [Property Profiles](property-profiles.md) — if that extension is disabled, event management switches off as well. Disabled, the block remains a regular code block.
+The feature belongs to the [internal extensions](extensions.md) ("Events") and requires the [Property Profiles](property-profiles.md) — as long as event management is enabled, that extension cannot be disabled. Disabled, the block remains a regular code block.
 
 ## Block structure
 

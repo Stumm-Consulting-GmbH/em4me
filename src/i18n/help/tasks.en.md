@@ -59,7 +59,7 @@ Dates appear as symbol markers with a `YYYY-MM-DD` date at the line end and show
 - [ ] Preparation ⏳ 2099-03-24 🛫 2099-03-17
 - [ ] Long overdue 📅 2020-01-01
 
-Set manually are **due** (`📅`), **scheduled** (`⏳`) and **start** (`🛫`). Created automatically are **created** (`➕`), **done** (`✅`) and **cancelled** (`❌`) — see automatic dates. Overdue due dates are highlighted in red; calendrically invalid values (a 30 February, say) are kept and marked as invalid.
+Set manually are **due** (`📅`), **scheduled** (`⏳`) and **start** (`🛫`). Created automatically are **created** (`➕`), **done** (`✅`) and **cancelled** (`❌`) — see automatic dates; the done date can then be changed or removed in the edit dialog. Overdue due dates are highlighted in red; calendrically invalid values (a 30 February, say) are kept and marked as invalid.
 
 After the date an optional **time** `HH:mm` is allowed:
 
@@ -115,7 +115,7 @@ Behaviour in detail: the calculation base is the due date, failing that schedule
 
 On a state change the app writes date markers into the line — each of the three automatics can be turned off individually in the settings section **Tasks**:
 
-- **Done** (`✅`): on a switch to a state of type Done; the switch back removes the date again.
+- **Done** (`✅`): on a switch to a state of type Done; the switch back removes the date again. Today is a default: in the edit dialog you can pick another day or remove the date, and the automatic does not overwrite that until the next status change.
 - **Cancelled** (`❌`): likewise for the type Cancelled.
 - **Created** (`➕`): when turning a line into a task via the "Task list" command (off by default).
 
@@ -143,7 +143,7 @@ IDs consist of letters, digits, `_` and `-`. Automatically generated IDs (dialog
 
 ## Edit dialog
 
-The command **Edit task…** (default `Ctrl+Alt+A`, also in the editor context menu under Insert and as a pencil button on query matches) opens a form for all markers: description, status (from the configured status set), priority, recurrence rule with a hint on an unparseable form, the three manual dates via the date calendar, plus ID, predecessors and successors with a task search over the search scope. On a task line the dialog edits, on an empty line it creates a new task. Switching to a status of type Done sets the done date per the automatic; a successor entry writes the predecessor reference onto the target line (the task itself automatically gets an ID if needed). Each application is a single undo step.
+The command **Edit task…** (default `Ctrl+Alt+A`, also in the editor context menu under Insert and as a pencil button on query matches) opens a form for all markers: description, status (from the configured status set), priority, recurrence rule with a hint on an unparseable form, the three manual dates via the date calendar, plus ID, predecessors and successors with a task search over the search scope. On a task line the dialog edits, on an empty line it creates a new task. If the task has a status of type Done, the dialog shows a **Done** row with the done date, **Pick…** via the date calendar and **Remove**; for any other status it is absent. When the status in the dialog switches to Done, the row appears at once with today as the default of the automatic — another day, including one in the future, or its removal is kept when you apply. With the automatic turned off, the row is empty and can still be picked. The dialog only displays the created and cancelled dates; a successor entry writes the predecessor reference onto the target line (the task itself automatically gets an ID if needed). Each application is a single undo step.
 
 ## Autocompletion
 

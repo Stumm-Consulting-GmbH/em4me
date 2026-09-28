@@ -1,6 +1,7 @@
 // Settings-Store: Konstruktion mit den Vorgabewerten, die beiden Migrationen
-// (Rebranding-Nutzerdaten, altes Single-Window-Schema) und die Einmal-
-// Entscheidung des Start-Farbschemas.
+// (Rebranding-Nutzerdaten, altes Single-Window-Schema) und die beiden Einmal-
+// Entscheidungen beim Start — Farbschema (4T-000751) und Arbeitsmodus neuer
+// Installationen (4T-001881).
 //
 // Auszug aus main.js, 4T-000998 (Epic 3E-000196). Electron-frei: die beiden
 // Verzeichnisse kommen als Argumente herein, damit der Lade-Pfad ohne
@@ -18,6 +19,9 @@ const {
 } = require('./user-data-migration.js');
 const { migrateWindowsToApps, normalizeSavedWorkspaces } = require('./session-schema');
 const { COLOR_SCHEMES_KEY, startupSchemeState } = require('../../shared/color-schemes.js');
+const { TOUR_SEEN_KEY } = require('../../shared/erststart.js');
+const { EXTENSIONS_DISABLED_KEY } = require('../../shared/extensions/extensions.js');
+const { startupDisabledIds } = require('../../shared/extensions/extensions-core.js');
 
 // Nutzerdaten-Migration beim Rebranding (4T-000643): Logik prozess-neutral in
 // user-data-migration.js, damit die Unit-Tests denselben Pfad pruefen. Hier nur
@@ -57,6 +61,29 @@ function applyStartupSchemeState(store) {
     hasUsageTraces: hasStoreUsageTraces(store),
   });
   if (next) store.set(COLOR_SCHEMES_KEY, next);
+}
+
+// 4T-001881 (Epic 3E-000185): Start-Modus «Einsteiger» fuer neue
+// Installationen (Entscheidung E11 des Product Owners vom 2026-09-22). Steht
+// weder ein Schalter-Stand noch der Erststart-Merker der gefuehrten Tour im
+// Store, wird der Schalter-Satz des Einsteiger-Modus hier EINMALIG
+// geschrieben; jede bestehende Einrichtung bleibt unberuehrt, ihr
+// Funktionsumfang aendert sich durch ein Update nicht.
+//
+// Die Entscheidung selbst liegt als reine Funktion im geteilten Kern
+// (startupDisabledIds), hier steht allein die Bindung an den Store — Muster
+// applyStartupSchemeState darueber, das dieselbe Bauform fuer das
+// Start-Farbschema traegt.
+//
+// Laeuft NACH den beiden Migrationen: Ein Bestand mit Alt-Schluesseln traegt
+// seine Spuren dann bereits im aktuellen Format.
+function applyStartupModeState(store) {
+  if (!store) return;
+  const next = startupDisabledIds({
+    hasStoredState: store.get(EXTENSIONS_DISABLED_KEY) != null,
+    hasSeenTour: store.get(TOUR_SEEN_KEY) != null,
+  });
+  if (next) store.set(EXTENSIONS_DISABLED_KEY, next);
 }
 
 // Spuren frueherer Nutzung im Store: geoeffnete Dateien, Bereiche, Sitzungen
@@ -177,6 +204,9 @@ async function loadStore(dirs) {
   // 4T-000537: Arbeitsbereichs-Ablage normalisiert in den In-Memory-Stand laden.
   const workspaces = normalizeSavedWorkspaces(store.get('workspaces'));
   applyStartupSchemeState(store);
+  // 4T-001881: Start-Modus neuer Installationen, vor dem ersten Renderer-Start
+  // — der Renderer liest den Schalter-Stand beim Aufbau seiner Pipeline.
+  applyStartupModeState(store);
   return { store, workspaces };
 }
 

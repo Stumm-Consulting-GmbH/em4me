@@ -38,6 +38,8 @@
   "settings.templates.ruleAdd": "Añadir regla",
   "settings.templates.ruleRemove": "Eliminar",
   "settings.templates.areaGroup": "Para el área '{name}'",
+  "settings.templates.bookGroup": "Para el libro '{name}'",
+  "settings.templates.shelfGroup": "Para la estantería '{name}'",
   "settings.templates.areaEnabled": "Usar configuración del área",
   "settings.templates.areaHint": "Los valores del área anulan por completo los globales. Las carpetas son relativas a la raíz del área (se permiten rutas absolutas); se guarda en el archivo del área.",
   "settings.templates.error.ruleTemplate": "Cada regla de carpeta necesita una plantilla.",

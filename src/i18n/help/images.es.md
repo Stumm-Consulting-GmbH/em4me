@@ -1,6 +1,6 @@
 # Imágenes
 
-Las imágenes se cargan desde rutas relativas al archivo Markdown o desde URL `http(s)`. El manual no incluye imágenes de demostración; los ejemplos muestran por ello la sintaxis como bloque de código con el resultado descrito — en tus propios archivos se renderizan directamente.
+Las imágenes se cargan desde archivos locales cuya ruta se indica en relación con el archivo Markdown, o desde datos incrustados en el texto. Las imágenes con una dirección de la red (`http(s)`) no se muestran de forma deliberada, porque por seguridad la aplicación no carga contenido de la red; en su lugar, coloca esa imagen como archivo junto al documento. El manual no incluye imágenes de demostración; los ejemplos muestran por ello la sintaxis como bloque de código con el resultado descrito — en tus propios archivos se renderizan directamente.
 
 ## Sintaxis de imagen
 
@@ -41,3 +41,16 @@ Resultado: la imagen aparece con la leyenda «Cifras trimestrales comparadas» c
 ## Incrustar imágenes con incrustación wiki
 
 Alternativamente, `![[imagen.png]]` incrusta una imagen mediante la sintaxis wiki, incluido el modificador de tamaño `![[imagen.png|300]]` — detalles en la página [Enlaces](linking.md).
+
+## Ampliar una imagen
+
+Un clic en una imagen en la vista «Renderizado» — igualmente en su mitad de la vista «Dividido» — la muestra ampliada sobre toda la ventana. El fondo se oscurece y la imagen aparece tan grande como lo permiten la ventana y su propia resolución: completa, sin deformar y nunca por encima de su propio tamaño. Por eso una imagen pequeña se queda en su tamaño, en el centro. Una indicación de tamaño en el documento (`=300x`) no limita la ampliación. Esto vale para toda imagen mostrada, también en tablas, callouts e incrustaciones, y también para una imagen que es en sí un enlace.
+
+Debajo de la imagen figura su leyenda — el texto alternativo o, si falta, el nombre del archivo — y debajo dos botones:
+
+- **Abrir en el programa predeterminado** abre el archivo de imagen en el programa que le asigna el sistema operativo, con los mismos límites que cualquier [adjunto](attachments.md). La ampliación sigue abierta. Una imagen escrita en el texto como datos, sin archivo propio, no muestra este botón.
+- **Cerrar** cierra la ampliación.
+
+Hay tres formas de cerrarla, todas con el mismo efecto: el botón «Cerrar», la tecla `Esc` o un clic en la zona oscurecida junto a la imagen. Con el teclado, `Tab` pasa de un botón a otro sin salir de la ampliación.
+
+Una imagen que la vista no muestra — por ejemplo porque falta su archivo — no abre ninguna ampliación. En la vista «En vivo», un clic no abre ninguna ampliación; allí un doble clic abre la imagen en el programa predeterminado.

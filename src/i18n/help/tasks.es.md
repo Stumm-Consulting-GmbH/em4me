@@ -59,7 +59,7 @@ Los vencimientos figuran como marcadores de símbolo con una fecha `AAAA-MM-DD` 
 - [ ] Preparación ⏳ 2099-03-24 🛫 2099-03-17
 - [ ] Muy vencida 📅 2020-01-01
 
-Se fijan manualmente **vencimiento** (`📅`), **planificado** (`⏳`) e **inicio** (`🛫`). Se crean automáticamente **creado** (`➕`), **hecho** (`✅`) y **cancelado** (`❌`) — véase fechas automáticas. Los vencimientos pasados se resaltan en rojo; los valores no válidos en el calendario (un 30 de febrero, por ejemplo) se conservan y se marcan como no válidos.
+Se fijan manualmente **vencimiento** (`📅`), **planificado** (`⏳`) e **inicio** (`🛫`). Se crean automáticamente **creado** (`➕`), **hecho** (`✅`) y **cancelado** (`❌`) — véase fechas automáticas; la fecha de finalización se puede cambiar o quitar después en el diálogo de edición. Los vencimientos pasados se resaltan en rojo; los valores no válidos en el calendario (un 30 de febrero, por ejemplo) se conservan y se marcan como no válidos.
 
 Tras la fecha se admite opcionalmente una **hora** `HH:mm`:
 
@@ -115,7 +115,7 @@ Comportamiento en detalle: la base de cálculo es el vencimiento, en su defecto 
 
 Al cambiar de estado, la aplicación escribe marcadores de fecha en la línea — cada uno de los tres automatismos se puede desactivar por separado en la sección de configuración **Tareas**:
 
-- **Hecho** (`✅`): al cambiar a un estado de tipo Hecha; el cambio de vuelta retira de nuevo la fecha.
+- **Hecho** (`✅`): al cambiar a un estado de tipo Hecha; el cambio de vuelta retira de nuevo la fecha. El día de hoy es una propuesta: en el diálogo de edición se puede elegir otro día o quitar la fecha, y el automatismo no lo sobrescribe hasta el siguiente cambio de estado.
 - **Cancelado** (`❌`): igual para el tipo Cancelada.
 - **Creado** (`➕`): al convertir una línea en tarea mediante el comando «Lista de tareas» (desactivado por defecto).
 
@@ -143,7 +143,7 @@ Los ID se componen de letras, cifras, `_` y `-`. Los ID generados automáticamen
 
 ## Diálogo de edición
 
-El comando **Editar tarea…** (predeterminado `Ctrl+Alt+A`, también en el menú contextual del editor en Insertar y como botón de lápiz en los resultados de consulta) abre un formulario para todos los marcadores: descripción, estado (del conjunto de estados configurado), prioridad, regla de recurrencia con indicación si la forma es incomprensible, los tres vencimientos manuales mediante el calendario de fechas, así como ID, predecesoras y sucesoras con una búsqueda de tareas sobre el ámbito de búsqueda. En una línea de tarea el diálogo edita; en una línea vacía crea una nueva tarea. El cambio a un estado de tipo Hecho fija la fecha de finalización según el automatismo; una entrada de sucesora escribe la referencia al predecesor en la línea de destino (la propia tarea recibe automáticamente un ID si hace falta). Cada aplicación es un único paso de deshacer.
+El comando **Editar tarea…** (predeterminado `Ctrl+Alt+A`, también en el menú contextual del editor en Insertar y como botón de lápiz en los resultados de consulta) abre un formulario para todos los marcadores: descripción, estado (del conjunto de estados configurado), prioridad, regla de recurrencia con indicación si la forma es incomprensible, los tres vencimientos manuales mediante el calendario de fechas, así como ID, predecesoras y sucesoras con una búsqueda de tareas sobre el ámbito de búsqueda. En una línea de tarea el diálogo edita; en una línea vacía crea una nueva tarea. Si la tarea tiene un estado de tipo Hecho, el diálogo muestra una fila **Completado** con la fecha de finalización, **Elegir…** mediante el calendario de fechas y **Quitar**; con cualquier otro estado no aparece. Cuando el estado cambia a Hecho en el diálogo, la fila aparece al instante con el día de hoy como propuesta del automatismo — otro día, también uno futuro, o su eliminación se conserva al aplicar. Con el automatismo desactivado, la fila está vacía y se puede elegir igualmente. Las fechas de creación y de cancelación solo se muestran; una entrada de sucesora escribe la referencia al predecesor en la línea de destino (la propia tarea recibe automáticamente un ID si hace falta). Cada aplicación es un único paso de deshacer.
 
 ## Autocompletación
 

@@ -58,6 +58,9 @@ import { rebuildHotkeyDispatchMap } from './app-commands.js';
 import { applyLanguageChange, aktualisiereSprachAuswahl } from './app-language.js';
 import { FALLBACK_LOCALE } from '../../../shared/locales.js';
 import { applyExtensionButtonVisibility, applyPanelButtonOrder } from './app-extension-runtime.js';
+// 4T-001712 (Epic 3E-000300): Eine offene Zell-Eingabe zaehlt beim Schliessen
+// des Fensters als ungespeicherte Aenderung wie jede andere.
+import { uebernimmOffeneZellEingabe } from '../live/live-table-zelle.js';
 
 // 4T-001001: Flag und Warteschlangen gehoeren app-init.js; eine Zuweisung an ein
 // importiertes Binding waere in ESM ein TypeError, deshalb kommen Lesezugriff
@@ -241,6 +244,12 @@ export function registerAppBroadcasts(deps) {
   // Beenden hing. Vor Abschluss von init() gibt es keine dirtigen Tabs, der
   // Handler ist dann ein direktes confirmClose.
   api.onWindowRequestClose(async () => {
+    // 4T-001712: Laesst sich eine offene Zell-Eingabe wegen eines Konflikts
+    // nicht uebernehmen, bleibt das Fenster offen, statt sie mitzunehmen.
+    if (!uebernimmOffeneZellEingabe()) {
+      api.cancelWindowClose();
+      return;
+    }
     await withDialog(async () => {
       // 4T-000368 (Epic 3E-000068): Bei aktiver Einstellung Unbenannt-Tabs mit Inhalt
       // ohne Dialog als Entwurf sichern; Dialoge nur noch fuer dirty bestehende

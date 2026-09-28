@@ -66,7 +66,7 @@ import { initTaskDialog } from './task-dialog.js';
 // 4T-000526 (Epic 3E-000095): Erinnerungs-Dialog (Zustellung fälliger Anker,
 // Tipp-Ruhe, Snooze/Erledigt, optionale System-Notification); 4T-000528:
 // Kommando „Erinnerung setzen" (Picker auf der Checkbox-Zeile).
-import { initReminders } from './reminders.js';
+import { initReminders, oeffneWartendeQuellen } from './reminders.js';
 // 4T-000287/4T-000288 (Epic 3E-000051): Sidebar-Layout-Modell — der Persist-Helfer
 // mit Statusbar-Feedback wird zur Laufzeit angehängt (das Modul selbst
 // importiert bewusst keine App-Module, siehe Kopf-Kommentar dort); das
@@ -976,6 +976,9 @@ async function init() {
     const files = pendingExternalFiles.splice(0);
     await openInPane(state.activePaneIndex, files);
   }
+  // 4T-001727 (Epic 3E-000305): Datei-Link einer Erinnerung aus einem anderen
+  // Fenster, der dieses Fenster eben erst geöffnet hat (Muster der Datei-Argumente).
+  await oeffneWartendeQuellen();
   // 4T-000012: ggf. gepufferte Tab-Appends aus anderen Fenstern abarbeiten.
   if (pendingAppendPayloads.length > 0) {
     const payloads = pendingAppendPayloads.splice(0);

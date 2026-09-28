@@ -11,9 +11,11 @@ import { describe, it, expect, afterEach } from 'vitest';
 import './api-stub.js';
 
 import {
+  liegtInAuswahl,
   zellPosition,
   klickOffsetInZelle,
 } from '../../../src/renderer/modules/live/live-table-klick.js';
+import { setztStelleSelbst } from '../../../src/renderer/modules/editor/editor-context-menu.js';
 
 // markdown-it erzeugt fuer eine Pipe-Tabelle genau diese Form.
 const TABELLE = `
@@ -114,5 +116,39 @@ describe('klickOffsetInZelle', () => {
       startOffset: 99,
     });
     expect(klickOffsetInZelle(ereignis, zelle, 'a1')).toBe(2);
+  });
+});
+
+// 4T-001861 (Epic 3E-000300): Der Rechtsklick in die Tabelle. Die Tabelle setzt
+// die Schreibmarke selbst zellgenau; der allgemeine Kontextmenue-Weg erkennt das
+// an der Kennzeichnung des Widgets und setzt dann keine eigene Stelle.
+describe('Rechtsklick in die Tabelle (4T-001861)', () => {
+  const auswahl = [{ empty: false, from: 10, to: 20 }];
+
+  it('laesst eine Stelle innerhalb einer bestehenden Auswahl in ihr (AK6)', () => {
+    expect(liegtInAuswahl(auswahl, 10)).toBe(true);
+    expect(liegtInAuswahl(auswahl, 15)).toBe(true);
+    expect(liegtInAuswahl(auswahl, 20)).toBe(true);
+  });
+
+  it('setzt die Stelle ausserhalb der Auswahl und bei leerer Auswahl neu', () => {
+    expect(liegtInAuswahl(auswahl, 21)).toBe(false);
+    expect(liegtInAuswahl([{ empty: true, from: 15, to: 15 }], 15)).toBe(false);
+  });
+
+  it('erkennt ein Ziel im gekennzeichneten Tabellen-Widget, auch im Eingabefeld (AK1)', () => {
+    const container = document.createElement('div');
+    container.dataset.kontextStelle = 'eigen';
+    container.innerHTML = '<table><tbody><tr><td><input></td><td>b</td></tr></tbody></table>';
+    expect(setztStelleSelbst(container.querySelector('input'))).toBe(true);
+    expect(setztStelleSelbst(container.querySelectorAll('td')[1])).toBe(true);
+  });
+
+  it('laesst Fliesstext und andere Widgets beim allgemeinen Weg (AK7)', () => {
+    const anderes = document.createElement('div');
+    anderes.className = 'cm-live-block';
+    anderes.innerHTML = '<pre>code</pre>';
+    expect(setztStelleSelbst(anderes.querySelector('pre'))).toBe(false);
+    expect(setztStelleSelbst(null)).toBe(false);
   });
 });

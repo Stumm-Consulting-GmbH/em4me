@@ -27,8 +27,7 @@ import { groupForPanel } from '../../shared/reminders.js';
 // 4T-001775 (Epic 3E-000304): Beschriftung ohne Markdown-Endung aus der
 // gemeinsamen Quelle (keine zweite Endungs-Liste).
 import { fileLabelFromBasename } from '../../shared/subpages.js';
-import { openReminderSource, showSnoozeMenu } from './reminders.js';
-import { toggleTaskFromQuery } from './task-query-actions.js';
+import { erledigeErinnerung, openReminderSource, showSnoozeMenu } from './reminders.js';
 
 // Gruppen in Anzeige-Reihenfolge mit ihren Titel-Keys.
 const GROUPS = [
@@ -91,7 +90,10 @@ function buildEntry(paneIdx, item) {
   doneBtn.textContent = '✓';
   doneBtn.title = t('reminders.dialog.done');
   doneBtn.addEventListener('click', async () => {
-    await toggleTaskFromQuery({ path: item.path, line: item.line, taskText: item.taskText });
+    // 4T-001727 (Epic 3E-000305): derselbe Weg wie im Dialog — steht die
+    // Erinnerung gerade als Meldung in den Fenstern, räumt ihre Bearbeitung
+    // sie dort mit, und eine zweite Bearbeitung läuft ins Leere.
+    await erledigeErinnerung(item);
     renderRemindersPanel(paneIdx);
   });
   actions.appendChild(doneBtn);

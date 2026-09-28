@@ -4,10 +4,14 @@
 // Regel (mit Validierungs-Hinweis) und den drei manuellen Terminen; die
 // Datums-Eingabe laeuft AUSSCHLIESSLICH ueber den Picker aus 3E-000091
 // (PO-Entscheidung: strukturierte Werte ueber einstellbare Steuerungen,
-// kein Freitext). Automatik-Daten (erstellt/erledigt/abgebrochen) werden
-// nur angezeigt; der Status-Wechsel auf einen DONE-/CANCELLED-Typ setzt
-// bzw. entfernt das jeweilige Datum gemaess der Automatik-Schalter
-// (dieselbe Semantik wie der Ketten-Toggle). Eine Wiederholungs-Instanz
+// kein Freitext). Erstellt- und Abgebrochen-Datum werden nur angezeigt; der
+// Status-Wechsel auf einen DONE-/CANCELLED-Typ setzt bzw. entfernt das
+// jeweilige Datum gemaess der Automatik-Schalter (dieselbe Semantik wie der
+// Ketten-Toggle). Seit 4T-001867 (Epic 3E-000321) traegt das Erledigt-Datum
+// bei einem Status vom Typ DONE eine eigene, waehlbare Zeile: Die Automatik
+// liefert beim Wechsel im offenen Dialog sofort die Vorgabe, eine Wahl oder
+// ein Entfernen danach gilt bis zum naechsten Status-Wechsel. Die
+// Termin-Zeilen selbst baut task-dialog-dates.js. Eine Wiederholungs-Instanz
 // entsteht im Dialog bewusst NICHT (die Instanz-Erzeugung bleibt beim
 // Toggle-Abschluss).
 //
@@ -27,7 +31,7 @@ import { activeNotesEditorView } from './panels/notes-panel.js';
 import { taskStatesResolved } from './task-states.js';
 import { tasksConfig, todayIsoDate } from './tasks.js';
 import { isExtensionActive } from './extensions/extension-lifecycle.js';
-import { showDateTimePicker } from './calendar/date-picker.js';
+import { buildDateRow, doneDatePreset, autoDatesText, dateValueText } from './task-dialog-dates.js';
 import { showStatusbarHint } from './views/views.js';
 import { setTaskQueryEditHandler, writeTaskHitLine } from './task-query-actions.js';
 import {
@@ -43,17 +47,10 @@ import { setRecurrence, parseRecurrenceRule } from '../../shared/tasks/task-recu
 import { setTaskId, setDependsOn, generateTaskId } from '../../shared/tasks/task-dependencies.js';
 import { taskStatusType } from '../../shared/markdown/plugins.js';
 
-// Die drei manuellen Termin-Felder des Formulars (Automatik-Daten sind
-// reine Anzeige).
+// Die drei manuellen Termin-Felder des Formulars (die Automatik-Daten
+// fuehrt task-dialog-dates.js; das Erledigt-Datum bekommt bei Status vom
+// Typ DONE zusaetzlich eine eigene Zeile).
 const MANUAL_DATE_FIELDS = ['due', 'scheduled', 'start'];
-const AUTO_DATE_FIELDS = ['created', 'done', 'cancelled'];
-
-// Anzeige-Text eines Termin-Werts ('—' fuer leer; ungueltige Werte
-// erscheinen roh, damit der Nutzer sie im Dialog erkennt und korrigiert).
-function dateValueText(value) {
-  if (!value) return '—';
-  return value.time ? `${value.date} ${value.time}` : value.date;
-}
 
 // Status-Auswahl: Basis-Zustaende plus aktivierte erweiterte Status aus
 // der aufgeloesten task-states-Konfiguration. Traegt die Zeile ein nicht
@@ -192,113 +189,80 @@ export function showTaskDialog(model, mode, opts) {
     updateRecurrenceHint();
     recInput.addEventListener('input', updateRecurrenceHint);
 
-    // Termin-Zeilen: Wert-Anzeige plus Picker- und Entfernen-Knopf.
-    const dateValueEls = {};
+    // Termin-Zeilen: Wert-Anzeige plus Picker- und Entfernen-Knopf
+    // (Zeilen-Bau in task-dialog-dates.js). shownStatusChar ist der im
+    // Auswahlkasten gewaehlte Status, fuer den Zeilen und Anzeige gelten.
+    let shownStatusChar = draft.statusChar;
+    const originalDone = draft.done;
     const renderDates = () => {
       datesEl.innerHTML = '';
       for (const field of MANUAL_DATE_FIELDS) {
-        const row = document.createElement('div');
-        row.className = 'task-dialog-date-row';
-        const label = document.createElement('span');
-        label.className = 'task-dialog-date-label';
-        label.textContent = t(`taskMarker.${field}`);
-        row.appendChild(label);
-        const value = document.createElement('span');
-        value.className = 'task-dialog-date-value';
-        value.textContent = dateValueText(draft[field]);
-        dateValueEls[field] = value;
-        row.appendChild(value);
-        const pick = document.createElement('button');
-        pick.type = 'button';
-        pick.className = 'btn task-dialog-date-btn';
-        pick.textContent = t('taskDialog.pickDate');
-        pick.addEventListener('click', async () => {
-          const current = draft[field];
-          const rect = pick.getBoundingClientRect();
-          const picked = await showDateTimePicker({
-            x: rect.left,
-            y: rect.bottom + 4,
-            date: current && !current.invalid ? current.date : undefined,
-            time: current && current.time ? current.time : undefined,
-            dateEnabled: true,
-            timeEnabled: !!(current && current.time),
-          });
-          if (!picked || !picked.date) return;
-          setDateField(draft, field, { date: picked.date, time: picked.time || null });
-          value.textContent = dateValueText(draft[field]);
-          clearBtn.hidden = !draft[field];
-        });
-        row.appendChild(pick);
-        const clearBtn = document.createElement('button');
-        clearBtn.type = 'button';
-        clearBtn.className = 'btn task-dialog-date-btn';
-        clearBtn.textContent = t('taskDialog.clearDate');
-        clearBtn.hidden = !draft[field];
-        clearBtn.addEventListener('click', () => {
-          setDateField(draft, field, null);
-          value.textContent = dateValueText(null);
-          clearBtn.hidden = true;
-        });
-        row.appendChild(clearBtn);
-        datesEl.appendChild(row);
+        datesEl.appendChild(
+          buildDateRow({
+            labelText: t(`taskMarker.${field}`),
+            field,
+            getValue: () => draft[field],
+            setValue: (v) => setDateField(draft, field, v),
+          }),
+        );
       }
       // 4T-000528 (Epic 3E-000095): Erinnerungs-Zeile — Melde-Zeitpunkt mit
       // Datum plus Uhrzeit ueber den Picker (nur bei aktiver Erweiterung;
-      // Muster der Termin-Zeilen, geschrieben ueber setReminder).
+      // geschrieben ueber setReminder).
       if (isExtensionActive('reminders')) {
-        const row = document.createElement('div');
-        row.className = 'task-dialog-date-row';
-        const label = document.createElement('span');
-        label.className = 'task-dialog-date-label';
-        label.textContent = t('taskMarker.reminder');
-        row.appendChild(label);
-        const value = document.createElement('span');
-        value.className = 'task-dialog-date-value';
-        value.textContent = dateValueText(draft.reminder);
-        row.appendChild(value);
-        const pick = document.createElement('button');
-        pick.type = 'button';
-        pick.className = 'btn task-dialog-date-btn';
-        pick.textContent = t('taskDialog.pickDate');
-        pick.addEventListener('click', async () => {
-          const current = draft.reminder;
-          const rect = pick.getBoundingClientRect();
-          const picked = await showDateTimePicker({
-            x: rect.left,
-            y: rect.bottom + 4,
-            date: current && !current.invalid ? current.date : undefined,
-            time: current && current.time ? current.time : undefined,
-            dateEnabled: true,
-            timeEnabled: true,
-          });
-          if (!picked || !picked.date) return;
-          setReminder(draft, { date: picked.date, time: picked.time || null });
-          value.textContent = dateValueText(draft.reminder);
-          clearBtn.hidden = !draft.reminder;
-        });
-        row.appendChild(pick);
-        const clearBtn = document.createElement('button');
-        clearBtn.type = 'button';
-        clearBtn.className = 'btn task-dialog-date-btn';
-        clearBtn.textContent = t('taskDialog.clearDate');
-        clearBtn.hidden = !draft.reminder;
-        clearBtn.addEventListener('click', () => {
-          setReminder(draft, null);
-          value.textContent = dateValueText(null);
-          clearBtn.hidden = true;
-        });
-        row.appendChild(clearBtn);
-        datesEl.appendChild(row);
+        datesEl.appendChild(
+          buildDateRow({
+            labelText: t('taskMarker.reminder'),
+            field: 'reminder',
+            getValue: () => draft.reminder,
+            setValue: (v) => setReminder(draft, v),
+            alwaysTime: true,
+          }),
+        );
+      }
+      // 4T-001867 (Epic 3E-000321): Erledigt-Zeile nur bei Status vom Typ
+      // DONE (Muster der bedingten Erinnerungs-Zeile).
+      if (taskStatusType(shownStatusChar) === 'DONE') {
+        datesEl.appendChild(
+          buildDateRow({
+            labelText: t('taskMarker.done'),
+            field: 'done',
+            getValue: () => draft.done,
+            setValue: (v) => setDateField(draft, 'done', v),
+          }),
+        );
       }
     };
     renderDates();
 
-    // Automatik-Daten als Anzeige-Zeile (nur vorhandene Felder).
-    const autoParts = AUTO_DATE_FIELDS.filter((f) => draft[f]).map(
-      (f) => `${t(`taskMarker.${f}`)}: ${dateValueText(draft[f])}`,
-    );
-    autoEl.hidden = autoParts.length === 0;
-    autoEl.textContent = autoParts.join(' · ');
+    // Automatik-Daten als Anzeige-Zeile (nur vorhandene Felder; das
+    // Erledigt-Datum nur, solange es keine eigene Zeile hat).
+    const renderAutoDates = () => {
+      const text = autoDatesText(draft, shownStatusChar);
+      autoEl.hidden = text === '';
+      autoEl.textContent = text;
+    };
+    renderAutoDates();
+
+    // 4T-001867: Status-Wechsel im offenen Dialog — die Erledigt-Zeile
+    // erscheint bzw. verschwindet sofort und traegt die Vorgabe der
+    // Automatik, gemessen am Status der Aufgaben-Zeile. Beim OK laeuft
+    // derselbe Abgleich, falls der Auswahlkasten ohne change-Ereignis
+    // gesetzt wurde; eine Wahl oder ein Entfernen danach bleibt damit stehen.
+    const syncStatus = () => {
+      const newChar = statusSelect.value;
+      if (newChar === shownStatusChar) return;
+      shownStatusChar = newChar;
+      const preset = doneDatePreset(originalStatusChar, newChar, tasksConfig.autoDone);
+      if (preset === 'today') setDateField(draft, 'done', { date: todayIsoDate() });
+      else if (preset === 'clear') setDateField(draft, 'done', null);
+      else if (dateValueText(draft.done) !== dateValueText(originalDone)) {
+        setDateField(draft, 'done', originalDone);
+      }
+      renderDates();
+      renderAutoDates();
+    };
+    statusSelect.addEventListener('change', syncStatus);
 
     // 4T-000508: Abhaengigkeiten — ID-Zeile plus Vorgaenger/Nachfolger mit
     // Task-Suche ueber den Bereich (lazy beim ersten Fokus geladen).
@@ -411,6 +375,7 @@ export function showTaskDialog(model, mode, opts) {
       btnCancel.removeEventListener('click', onCancel);
       backdrop.removeEventListener('click', onCancel);
       recInput.removeEventListener('input', updateRecurrenceHint);
+      statusSelect.removeEventListener('change', syncStatus);
       resolve(value);
     };
     const onOk = () => {
@@ -419,10 +384,12 @@ export function showTaskDialog(model, mode, opts) {
       draft.description = descInput.value.replace(/\s*\n\s*/g, ' ').trim();
       setPriority(draft, prioSelect.value);
       setRecurrence(draft, recInput.value);
+      // Erledigt-Datum: steht nach syncStatus bereits im Entwurf (4T-001867).
+      syncStatus();
       const newChar = statusSelect.value;
       if (newChar !== originalStatusChar) {
         setStatusChar(draft, newChar);
-        applyStatusDateAutomatics(draft, originalStatusChar, newChar);
+        applyCancelledAutomatic(draft, originalStatusChar, newChar);
       }
       // 4T-000508: Nachfolger-Bezuege brauchen die eigene ID — ohne ID wird
       // beim OK automatisch eine eindeutige erzeugt (Bereichs-IDs geprueft).
@@ -533,24 +500,18 @@ function buildDependencyRow({
   return row;
 }
 
-// Erledigt-/Abgebrochen-Automatik beim Status-Wechsel im Dialog — dieselbe
-// Semantik wie der Ketten-Toggle (tasks.js), nur ohne Wiederholungs-Instanz.
-function applyStatusDateAutomatics(draft, fromChar, toChar) {
+// Abgebrochen-Automatik beim Status-Wechsel im Dialog — dieselbe Semantik
+// wie der Ketten-Toggle (tasks.js), nur ohne Wiederholungs-Instanz. Die
+// Erledigt-Automatik laeuft seit 4T-001867 schon beim Wechsel im offenen
+// Dialog (doneDatePreset in task-dialog-dates.js).
+function applyCancelledAutomatic(draft, fromChar, toChar) {
+  if (!tasksConfig.autoCancelled) return;
   const fromType = taskStatusType(fromChar);
   const toType = taskStatusType(toChar);
-  const today = todayIsoDate();
-  if (tasksConfig.autoDone) {
-    if (toType === 'DONE' && fromType !== 'DONE') setDateField(draft, 'done', { date: today });
-    else if (fromType === 'DONE' && toType !== 'DONE' && draft.done) {
-      setDateField(draft, 'done', null);
-    }
-  }
-  if (tasksConfig.autoCancelled) {
-    if (toType === 'CANCELLED' && fromType !== 'CANCELLED') {
-      setDateField(draft, 'cancelled', { date: today });
-    } else if (fromType === 'CANCELLED' && toType !== 'CANCELLED' && draft.cancelled) {
-      setDateField(draft, 'cancelled', null);
-    }
+  if (toType === 'CANCELLED' && fromType !== 'CANCELLED') {
+    setDateField(draft, 'cancelled', { date: todayIsoDate() });
+  } else if (fromType === 'CANCELLED' && toType !== 'CANCELLED' && draft.cancelled) {
+    setDateField(draft, 'cancelled', null);
   }
 }
 

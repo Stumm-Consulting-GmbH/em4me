@@ -14,6 +14,599 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.143.0.3418] - 2026-09-28 — Neun Vorhaben: Arbeitsmodi und Erweiterungs-Schutz, Buch-Einstellungen, Hinweis-Kästen, Bild-Vergrößerung, Meldungen in allen Fenstern, Tabellen-Zellen, Erledigt-Datum und zweites Öffnen eines Bereichs
+
+Zug
+3E-000326,
+der zweite Zug des Arbeitspakets «Einstellungen und Funktionsumfangs-Steuerung».
+Er bündelt neun Vorhaben, die fachlich wenig miteinander zu tun haben; eine
+gemeinsame Klammer tragen allein die ersten beiden, weil der Abhängigkeits-Schutz
+die Grundlage des gebündelten Umschaltens der Arbeitsmodi ist. Die Mitglieder in
+der Reihenfolge ihrer Umsetzung, je mit dem Task, der ihren Abschluss-Anteil
+trägt:
+
+1. 3E-000187
+   — eine interne Erweiterung, auf der eine andere wirksame aufbaut, lässt sich
+   nicht mehr abschalten; Abschluss-Anteil in
+   4T-001879.
+2. 3E-000185 — drei feste
+   und beliebig viele eigene Arbeitsmodi schalten den Funktionsumfang gebündelt;
+   Abschluss-Anteil in
+   4T-001884.
+3. 3E-000189
+   — Buch und Bücherregal bekommen in den Einstellungen einen eigenen, benannten
+   Ort; Abschluss-Anteil in
+   4T-001887.
+4. 3E-000320
+   — Hinweis-Kästen und Container-Blöcke in jeder Schreibweise ihres Typs;
+   Abschluss-Anteil in
+   4T-001866.
+5. 3E-000322
+   — ein Bild der gerenderten Ansicht lässt sich vergrößert ansehen;
+   Abschluss-Anteil in
+   4T-001872.
+6. 3E-000305
+   — Erinnerungen, Wecker und Timer melden sich in allen Fenstern;
+   Abschluss-Anteil in
+   4T-001730.
+7. 3E-000300
+   — die zweite Stufe der Tabellen-Bearbeitung in der Live-Ansicht;
+   Abschluss-Anteil in
+   4T-001715.
+8. 3E-000321
+   — das Erledigt-Datum ist im Aufgaben-Dialog wählbar und entfernbar;
+   Abschluss-Anteil in
+   4T-001869.
+9. 3E-000309
+   — ein Bereich, der mit einem Arbeitsbereich läuft, lässt sich zusätzlich
+   öffnen, und die Zusicherung «ein Bereich läuft höchstens einmal» entfällt;
+   Abschluss-Anteil in
+   4T-001745.
+
+Die Nachzügler des Zuges und die Doku-Schritte dieses Blocks trägt der
+Abschluss-Sammeltask
+4T-001891.
+
+### Neu
+
+- **Arbeitsmodi für den sichtbaren Funktionsumfang** (`4T-001881`). Drei feste
+  Modi — Einsteiger, Fortgeschritten und Voll — setzen die Schalter der internen
+  Erweiterungen gebündelt; gewählt werden sie unter **Einstellungen →
+  Allgemein → Erweiterungen** im Abschnitt «Arbeitsmodus» über der
+  Schalter-Liste. Die drei Sätze sind ineinander geschachtelt, die Wahl wirkt
+  mit «Anwenden» oder «OK» sofort in allen offenen Fenstern und ohne Neuladen,
+  und danach bleibt jeder einzelne Schalter nachjustierbar; entspricht der
+  Stand keinem der drei Modi, weist die Anzeige ihn als angepasst aus und folgt
+  einer nachträglichen Änderung in beide Richtungen. Eine **neue** Einrichtung
+  startet im Modus «Einsteiger», und die geführte Produkt-Tour bietet die Wahl
+  beim ersten Start als eigene, zweite Station mit vorgewähltem «Einsteiger»
+  an; eine Wahl in der Karte wirkt sofort, ohne dass die Tour endet. Eine
+  **bestehende** Einrichtung — erkennbar an einem gespeicherten Schalter-Stand
+  oder an der bereits gezeigten Tour — bleibt unberührt, ihr Funktionsumfang
+  ändert sich durch die Aktualisierung nicht. Der Abhängigkeits-Schutz gilt
+  beim gebündelten Wechsel unverändert, und die zweiten Aktiv-Schalter der
+  Gliederungs-Nummerierung und der Rechtschreibprüfung bleiben Sache des
+  Anwenders.
+- **Eigene Arbeitsmodi** (`4T-001882`). Der aktuelle Schalter-Stand lässt sich
+  unter einem eigenen Namen als weiterer Modus festhalten; ihre Zahl ist nicht
+  begrenzt. Fünf Handgriffe stehen bereit — speichern, anwenden, umbenennen,
+  überschreiben und löschen —, die drei festen Modi bleiben daneben
+  unveränderlich. Ein gespeicherter Modus hält fest, welche Erweiterungen
+  **abgeschaltet** sind: Eine entfallene Kennung wird beim Anwenden übergangen,
+  eine später hinzugekommene Erweiterung bleibt eingeschaltet. Ein Name, der
+  schon vergeben ist, führt zur Rückfrage mit «Überschreiben»; ein leerer Name
+  wird abgewiesen. Eigene Modi gelten in allen Bereichen und reisen als eigene
+  Datenart mit dem Ausgeben und Einlesen der eigenen Einrichtung, wo sie
+  **ergänzt** statt ersetzt werden.
+- **Abhängigkeits-Schutz der Erweiterungs-Schalter** (`4T-001877`). Eine interne
+  Erweiterung, auf der eine andere **wirksame** Erweiterung aufbaut, lässt sich
+  nicht mehr abschalten: Ihr Schalter ist gesperrt, ihre Zeile nennt die
+  Erweiterungen, die sie brauchen, und der Versuch blendet denselben Sachverhalt
+  für drei Sekunden über den bestehenden Statusleisten-Hinweis ein. Die Sperre
+  ist auch **ohne** Versuch an der Zeile erkennbar, gilt für Maus und Tastatur
+  und wirkt ebenso bei einem gebündelten Wechsel mehrerer Schalter. Gesperrt
+  wird ausschließlich bei einer deklarierten harten Abhängigkeit — Wiki-Einbettungen
+  und Bereichs-Verknüpfungen brauchen die Wiki-Links, Erinnerungen und die
+  Kanban-Tafel brauchen die Aufgaben, Ereignisse und Datenbank brauchen die
+  Eigenschafts-Profile. Maßstab ist der **wirksame** Satz und nicht die
+  gespeicherte Liste; eine Abhängige, die selbst nicht wirkt, sperrt nicht.
+- **Eigene Angaben von Buch und Bücherregal in den Einstellungen**
+  (`4T-001885`). Der bereichsgebundene Block der Einstellungs-Seite führt bei
+  einem geöffneten Buch und bei einem geöffneten Bücherregal an **erster**
+  Stelle den Abschnitt «Eigene Angaben» mit Titel, Autor, Beschreibung und
+  Titelbild, beim Regal zusätzlich mit der Darstellung als Kacheln oder Zeilen.
+  Der Abschnitt hat **keine eigene Ablage**: Die vier Angaben stehen weiterhin
+  im Frontmatter der Buch- beziehungsweise Regal-Datei und bleiben mit dem
+  Eigenschaften-Editor im Gleichlauf, die Darstellung bleibt im globalen
+  Speicher und gilt wie bisher je Regal und nur an diesem Rechner. Geschrieben
+  wird round-trip-fähig — fremde Frontmatter-Felder, ihre Reihenfolge und der
+  Rumpf der Datei bleiben unangetastet, ein leerer Wert entfernt sein Feld, und
+  ein defektes Frontmatter wird nie überschrieben. Ein fehlendes Titelbild
+  meldet der Abschnitt als Hinweis, statt die Anzeige zu ändern. In einem
+  gewöhnlichen Bereich erscheint der Abschnitt nicht.
+- **Bild vergrößert darstellen** (`4T-001870`). Ein einfacher Klick auf ein
+  angezeigtes Bild in der Ansicht «Gerendert», ebenso in deren Hälfte der
+  Ansicht «Geteilt», legt es groß über das ganze Anwendungsfenster, auf
+  abgedunkeltem Hintergrund. Es erscheint so groß, wie Fenster und eigene
+  Auflösung es zulassen: vollständig, unverzerrt und nie über die eigene Größe
+  hinaus; ein kleines Bild steht in eigener Größe mittig, und die Größen-Angabe
+  der Bild-Syntax begrenzt die Vergrößerung nicht. Das gilt für Bilder im Text,
+  in Tabellen, in Hinweis-Kästen, in Abbildungen mit Unterschrift, für
+  Verweis-Einbettungen und für ein Bild, das selbst ein Verweis ist. Darunter
+  stehen der Alternativtext oder, wo er fehlt, der Dateiname und die
+  Schaltflächen «Im Standardprogramm öffnen» und «Schließen». Drei gleichwertige
+  Schließ-Wege: Schaltfläche, Escape, Klick auf die abgedunkelte Fläche; der
+  Tabulator wechselt zwischen den Schaltflächen und bleibt in der Fläche, und
+  nach dem Schließen steht die Ansicht unverändert mit dem Fokus an alter
+  Stelle. Ein Bild, das die Ansicht nicht anzeigt — fehlende oder nicht lesbare
+  Datei, Ziel außerhalb der Grenze, Bild aus dem Netz —, öffnet keine
+  Vergrößerung, auch keine leere. Die Live-Ansicht und die Canvas-Karte öffnen
+  keine Vergrößerung. Kern, kein eigener Schalter.
+- **Die Vorschlagsliste erscheint auch in der Tabellenzelle** (`4T-001713`).
+  Nach `[[` und `#` und mit Strg+Leertaste erscheint am Eingabefeld einer Zelle
+  der Live-Ansicht dieselbe Liste wie im Fließtext, mit denselben Einträgen —
+  Verweis-Ziele samt Ankern und Unterseiten sowie Schlagworte —, unter der
+  Zelle, bei zu wenig Platz darüber, nie von der Tabelle abgeschnitten. Pfeil
+  hoch und runter wählen, die Eingabetaste übernimmt in die Zelle, Escape
+  schließt nur die Liste; solange sie offen ist, führen Pfeiltasten und
+  Eingabetaste nicht in eine andere Zelle. Tabulator, Pfeil links und rechts,
+  Pos1 und Ende schließen die Liste und wirken danach wie sonst in der Zelle.
+  Ein übernommener Vorschlag mit Pipe-Zeichen zerschneidet die Tabelle nicht.
+  Aufgaben-Marker werden in der Zelle nicht vorgeschlagen, weil eine
+  Tabellenzeile keine Aufgabenzeile ist — dieselbe Regel wie in der
+  Quellcode-Ansicht. Bei abgeschalteter Erweiterung «Autocomplete» erscheint
+  wie bisher keine Liste. Die Reihenfolge von Anker- und Unterseiten-Vorschlägen
+  kann nach getipptem Text bei gleichwertigen Einträgen von der im Fließtext
+  abweichen.
+- **Einen Bereich, der mit einem Arbeitsbereich läuft, zusätzlich öffnen**
+  (`4T-001743`). Wer einen Bereich öffnet, der bereits in einer Applikation mit
+  Arbeitsbereich läuft, bekommt den Dialog «Bereich läuft bereits» mit drei
+  Schaltflächen: «Zum laufenden Fenster wechseln» (Vorgabe) holt das zuletzt
+  aktive Fenster des Arbeitsbereichs nach vorn; «Zusätzlich öffnen» öffnet den
+  Bereich ein zweites Mal in einer neuen Applikation mit eigenem Fenster und
+  eigenen Reitern, ohne Arbeitsbereich und samt Start-Seite des Bereichs;
+  «Abbrechen» (auch Escape) lässt alles unverändert, einschließlich der Liste
+  «Zuletzt geöffnete Bereiche», und meldet keinen Fehler, auch nicht von der
+  Seite My Extended Memory aus. Die Nachfrage erscheint auf jedem Weg, der
+  einen Bereich öffnet: «Bereich öffnen…», «Zuletzt geöffnete Bereiche» und
+  «Bereichs-Statistik öffnen» auf der Seite My Extended Memory. **Ohne
+  Arbeitsbereich** bleibt es beim Sprung in das laufende Fenster, ohne
+  Nachfrage; läuft derselbe Ordner zugleich mit und ohne Arbeitsbereich, geht
+  der Sprung in die Applikation ohne. Zwei Applikationen desselben Ordners
+  arbeiten unabhängig voneinander, die harten Bereichsgrenzen gelten in beiden,
+  und der Fenstertitel unterscheidet sie, weil einer den Arbeitsbereich nennt.
+  **Ist die Erweiterung «Arbeitsbereiche» ausgeschaltet** — im Arbeitsmodus
+  «Einsteiger» ist sie es von vornherein —, fragt die Anwendung nicht nach und
+  wechselt in das laufende Fenster, weil die beiden Fenster dann am Titel nicht
+  mehr zu unterscheiden wären.
+
+### Geändert
+
+- **Das stille Mit-Abschalten entfällt** (`4T-001877`). Bisher deaktivierte das
+  Abschalten einer Grundlage die darauf aufbauenden Erweiterungen transitiv mit;
+  sie standen weiter auf «ein» und wirkten doch nicht. Dieser **Vorgang**
+  entfällt ersatzlos, weil ein solcher Stand künftig gar nicht mehr entstehen
+  kann. Die **Ableitung** bleibt: Ein mitgebrachter Stand, in dem eine Grundlage
+  abgeschaltet und eine Abhängige als eingeschaltet gespeichert ist, wird
+  weiterhin wahrheitsgemäß als unwirksam ausgewiesen, nichts wird selbsttätig
+  umgeschaltet, und die Grundlage lässt sich jederzeit wieder einschalten.
+  Externe Erweiterungen bleiben außerhalb.
+- **Die Erweiterungs-Registry trägt je Eintrag eine Modus-Stufe** (`4T-001880`).
+  Jede interne Erweiterung nennt, ab welchem Arbeitsmodus sie eingeschaltet ist;
+  aus dieser Angabe werden die Schalter-Sätze der drei festen Modi abgeleitet,
+  eine eigene Liste je Modus gibt es nicht. Ein Eintrag ohne oder mit
+  unbekannter Stufe wird abgewiesen. Für sich ohne nutzer-sichtbare Wirkung —
+  angewandt wird die Stufe mit den Modi selbst.
+- **Die Kanban-Tafel steht auf der Stufe «Fortgeschritten»** (`4T-001891`,
+  Nachzügler nach dem Aufsetzen des Zuges auf das Release 1.141.0). Die mit
+  jenem Release ausgelieferte Erweiterung kam ohne die Modus-Stufe, die dieser
+  Zug zur Pflicht macht; sie trägt jetzt «Fortgeschritten», wie Journale und
+  Ereignisse als Planungs-Werkzeuge. Im Modus «Einsteiger» ist die Tafel damit
+  aus, ihre Grundlage «Aufgaben» steht auf «Einsteiger» und ist in jedem Modus
+  an, in dem die Tafel an ist. Mit dem Eintrag greift der Abhängigkeits-Schutz
+  auch für die Tafel: «Aufgaben» lässt sich erst abschalten, wenn neben den
+  Erinnerungen auch die Kanban-Tafel aus ist.
+- **Der bereichsgebundene Einstellungs-Block heißt nach dem geöffneten
+  Gegenstand** (`4T-001885`). Er trägt bei einem geöffneten Buch «Aktuelles
+  Buch», bei einem geöffneten Bücherregal «Aktuelles Bücherregal» und sonst
+  unverändert «Aktueller Bereich»; fünf Abschnitts-Überschriften darunter
+  sprechen entsprechend von Buch beziehungsweise Bücherregal statt von Bereich.
+  Maßgeblich ist die Bindung des **Fensters**, nicht das gerade sichtbare
+  Dokument. Die Zahl der Navigations-Blöcke bleibt **vier**, die acht
+  bereichsgebundenen Abschnitte bleiben erhalten und wirksam, und bei
+  abgeschalteter Erweiterung «Bücher» verhält sich die Seite wie zuvor.
+- **Hinweis-Kästen in jeder Schreibweise des Typs** (`4T-001864`). `> [!NOTE]`,
+  `> [!Note]`, `> [!note]` und jede andere Mischung erzeugen dieselbe Box mit
+  demselben Symbol, derselben Akzentfarbe und demselben Standard-Titel — in der
+  gesetzten Ansicht, in der Live-Ansicht, in der Marker-Hervorhebung des
+  Quelltext-Modus, in der portablen Anzeige und in der PDF-Ausgabe.
+  Klapp-Zeichen `+` und `-` und ein eigener Titel wirken wie bei der Kleinform;
+  der eigene Titel erscheint so, wie er geschrieben ist. **Der geschriebene
+  Text bleibt unverändert** — weder Laden noch Speichern noch Bearbeiten
+  schreibt die Schreibweise um, und der portable Export lässt sie stehen. Die
+  Liste der zehn Typen bleibt dieselbe: Namen außerhalb davon, etwa
+  `[!IMPORTANT]`, sind in jeder Schreibweise unbekannt. Unverändert bleibt das
+  Einfügen eines Hinweis-Kastens (es schreibt weiter `> [!note]`). Bei
+  abgeschalteter Erweiterung «Callouts» bleibt die Zeile in jeder Schreibweise
+  gewöhnlicher Zitat-Text.
+- **Container-Blöcke in jeder Schreibweise des Namens** (`4T-001914`, Zusatz
+  nach der Entscheidung des Product Owners vom 2026-09-23). `::: WARNING`,
+  `::: Warning` und `::: warning` erzeugen dieselbe Box mit Symbol,
+  Akzentfarbe und Standard-Titel, für alle zehn Typen; ein eigener Titel
+  dahinter erscheint so, wie er geschrieben ist. `::: COLUMNS 2` und
+  `::: Columns 2` setzen den Inhalt zweispaltig wie `::: columns 2`, eine
+  ungültige Spaltenzahl fällt wie bisher auf die neutrale Box zurück.
+  `::: Meine-Box` ergibt dieselbe neutrale Box wie `::: meine-box`. Bisher
+  öffnete ein Name mit Großbuchstaben gar keinen Container, die Zeilen
+  erschienen als Fließtext. Das gilt in gesetzter Ansicht, Live-Ansicht,
+  portabler Ausgabe und PDF-Ausgabe, auch verschachtelt; **der geschriebene
+  Text bleibt unverändert**. Bei abgeschalteter Erweiterung «Custom
+  Containers» bleibt der Block in jeder Schreibweise gewöhnlicher Text. Der
+  Markdown-Linter prüft Container-Namen weiterhin nicht.
+- **Der Weg ins Standardprogramm für ein Bild der gerenderten Ansicht liegt auf
+  einer Schaltfläche** (`4T-001870`, geänderter Bedien-Weg nach der
+  Entscheidung des Product Owners vom 2026-09-21). Bisher öffnete der einfache
+  Klick auf ein Bild das Standardprogramm; jetzt öffnet er die Vergrößerung,
+  und deren Schaltfläche «Im Standardprogramm öffnen» nimmt denselben Weg wie
+  bisher, samt Grenz-Prüfung, Rückfrage und Meldungen. Die Vergrößerung bleibt
+  dabei offen, auch wenn das Öffnen misslingt; die Meldung erscheint dann über
+  der Abdunkelung. Ein Bild aus einer Daten-Quelle ohne eigene Datei zeigt die
+  Schaltfläche nicht. Ein Klick mit gedrückter Zusatz-Taste führt nicht mehr
+  ins Standardprogramm, eine Tasten-Abkürzung dafür gibt es nicht. Alle übrigen
+  Anlagen öffnen in der gerenderten Ansicht unverändert per einfachem Klick,
+  und in Editor und Live-Ansicht bleibt es beim Doppelklick.
+- **Erinnerungen erscheinen in allen Fenstern** (`4T-001727`). Eine fällige
+  Erinnerung — ebenso der Nachhol-Dialog «Verpasste Erinnerungen» nach dem
+  Start — steht in jedem geöffneten Fenster der Anwendung, auch in Fenstern
+  eines anderen Bereichs, in Fenstern ohne Bereich und in Buch- und
+  Bücherregal-Fenstern. Unter jedem Eintrag steht seine Herkunft. «Erledigt»,
+  «Später erinnern» und Wegklicken wirken auf die Datei der Herkunft, gleich
+  aus welchem Fenster, und genau einmal: Die Erinnerung verschwindet danach in
+  allen Fenstern, auch aus der Erinnerungs-Liste und samt eines zu ihr
+  geöffneten Aufschub-Menüs; eine fast gleichzeitige zweite Bearbeitung in
+  einem anderen Fenster bleibt ohne Wirkung und ohne Fehlermeldung. Das gilt
+  auch für eine Erinnerung, die in einem anderen Fenster gerade gesetzt und
+  dort noch nicht gespeichert ist: «Erledigt» und «Später erinnern» wirken dann
+  in jenem Fenster auf den ungespeicherten Stand, so als wäre dort geklickt
+  worden (Befund der Abnahme vom 2026-09-24). Ein erst nach dem Fälligwerden
+  geöffnetes Fenster zeigt die noch offene Erinnerung, eine bereits bearbeitete
+  nicht. Das Schließen eines Fensters ändert die Anzeige der übrigen nicht.
+  Mehrere fällige Erinnerungen sammelt jedes Fenster wie bisher in einem
+  Dialog. Die System-Benachrichtigung erscheint je Meldung genau einmal und nur,
+  wenn kein Fenster der Anwendung im Vordergrund steht. «Erneut auslösen» in
+  der Erinnerungs-Liste stellt die Meldung allen Fenstern neu zu. Bei
+  abgeschalteter Erweiterung «Erinnerungen» erscheint wie bisher nichts.
+  Abgelöst ist die bisherige Zustellung an genau ein Fenster.
+- **Der Datei-Link einer Erinnerung öffnet im Fenster ihres Bereichs**
+  (`4T-001727`). Bisher meldete ein Klick auf den Dateinamen im Dialog eines
+  Fensters, das einen anderen Bereich zeigt, «Datei außerhalb des Bereichs,
+  nicht geöffnet». Jetzt öffnet die Datei an der Zeile der Aufgabe im Fenster
+  ihres Herkunfts-Bereichs: im eigenen Fenster, wenn es dazugehört; sonst kommt
+  das zuletzt aktive Fenster des Bereichs nach vorn und öffnet sie dort; läuft
+  der Bereich nicht, wird er geöffnet (Buch und Bücherregal über ihren eigenen
+  Weg). Die Bereichsgrenze des klickenden Fensters bleibt unberührt, und die
+  Erinnerung bleibt stehen, weil das Öffnen der Datei keine Bearbeitung ist.
+- **Wecker und Timer erscheinen in allen Fenstern** (`4T-001728`). Die
+  Wecker-Meldung und die Meldung des abgelaufenen Timers stehen in jedem
+  geöffneten Fenster, ohne Herkunfts-Angabe, weil beide der ganzen Anwendung
+  gehören. «Schlummern», «Bestätigen» und Erneut-Starten wirken genau einmal
+  und räumen die Meldung in allen Fenstern; schlummert ein Fenster und
+  bestätigt ein anderes fast zugleich, gilt das erste. Ein später geöffnetes
+  Fenster zeigt die noch offene Meldung. Die System-Benachrichtigung erscheint
+  je Meldung genau einmal und nur ohne Fenster im Vordergrund. Bei
+  abgeschalteter Erweiterung «Uhr» erscheint wie bisher nichts.
+- **Der Tabulator in der letzten Tabellenzelle legt eine neue Zeile an**
+  (`4T-001711`). In der Live-Ansicht legt der Tabulator in der letzten Zelle der
+  letzten Zeile einer Pipe-Tabelle eine leere Zeile mit der Spaltenzahl der
+  Tabelle an und öffnet deren erste Zelle, wie der Tabulator am Ende der
+  Tabelle in der Quellcode-Ansicht; beide Ansichten erzeugen denselben
+  Quelltext. Der Inhalt der verlassenen Zelle wird dabei übernommen;
+  Zeilen-Anlage und Übernahme sind ein Rückgängig-Schritt. Besteht die Tabelle
+  allein aus der Kopfzeile, legt der Tabulator in deren letzter Zelle die erste
+  Datenzeile an — hier weicht die Quellcode-Ansicht ab, die in die Trennzeile
+  springt. Umschalt+Tabulator legt keine Zeile an; in allen übrigen Zellen, in
+  Listen und außerhalb von Listen wirkt der Tabulator unverändert. Abgelöst ist
+  die Festlegung der ersten Stufe, nach der der Tabulator am Tabellenende keine
+  Zeile anlegt.
+- **Das Erledigt-Datum ist im Aufgaben-Dialog wählbar und entfernbar**
+  (`4T-001867`). Trägt der im Dialog «Aufgabe bearbeiten» gewählte Status den
+  Typ «erledigt», zeigt der Dialog eine eigene Zeile «Erledigt» mit dem Datum,
+  «Wählen…» über den vorhandenen Datums-Kalender und «Entfernen», aufgebaut wie
+  die Zeilen der drei manuellen Termine; bei jedem anderen Status fehlt die
+  Zeile, und ein Status-Wechsel im offenen Dialog blendet sie sofort ein oder
+  aus. Die Automatik bleibt und liefert die Vorgabe: Der Wechsel auf
+  «erledigt» belegt die Zeile sofort mit dem heutigen Tag, der Rückweg entfernt
+  das Datum wie bisher; ein danach gewählter Tag — auch einer in der Zukunft —
+  oder das Entfernen bleibt bei der Übernahme stehen, bis der Status erneut
+  wechselt. Ist die Automatik abgeschaltet, ist die Zeile ohne gespeichertes
+  Datum leer und trotzdem wählbar. Erstellt- und Abgebrochen-Datum bleiben
+  reine Anzeige. Die Übernahme bleibt ein einzelner Rückgängig-Schritt; der
+  Ketten-Umschalter außerhalb des Dialogs, der Einstellungs-Schalter der
+  Automatik und die Wiederholung verhalten sich unverändert.
+- **Zurückgenommene Zusicherung: «Ein Bereich läuft höchstens einmal»**
+  (`4T-001743`, `4T-001744`). Seit dem Bereichs-Konzept sagten Anforderung und
+  Handbuch zu, dass derselbe Bereich nie doppelt läuft und das erneute Öffnen
+  immer in das laufende Fenster springt. Die Zusicherung entfällt;
+  ausgeliefertes Verhalten ändert sich allein dort, wo an der laufenden
+  Applikation ein Arbeitsbereich hängt (Punkt unter «Neu»).
+- **Reichweite von «Bereich schließen» zugesagt: nur die eigene Applikation**
+  (`4T-001744`). «Datei → Bereich → Bereich schließen» schließt alle Fenster der
+  Applikation, in der der Befehl gewählt wird; eine zweite Applikation auf
+  demselben Ordner bleibt mit ihren Dokumenten stehen. Am Code nachgesehen: Der
+  Befehl wirkte schon vorher nur auf die Applikation des auslösenden Fensters;
+  geändert sind Zusage und Beschreibung, weil erst die zweite Applikation die
+  Reichweite sichtbar macht.
+- **Ungespeicherte Entwürfe kehren nach dem Neustart zu ihrer Applikation
+  zurück** (`4T-001743`). Laufen zwei Applikationen ohne Arbeitsbereich auf
+  demselben Ordner, bekommt nach dem Neustart jede ihre eigenen Entwürfe zurück;
+  bis dahin landeten alle Entwürfe dieses Ordners in der ersten. Beide
+  Applikationen kehren als zwei zurück und verschmelzen nicht.
+
+### Behoben
+
+- **Der Doppelklick auf ein Bild der Live-Ansicht öffnet es im
+  Standardprogramm** (`4T-001925`). Zugesichert war das seit der Einführung des
+  Wegs am 2026-07-29, gewirkt hat es nie: Das Bild-Element der Live-Ansicht ließ
+  den Editor jedes Ereignis verwerfen, der Doppelklick kam nie an, und es
+  erschien weder Programm noch Meldung. Jetzt öffnet er das Bild im Lese- wie im
+  Bearbeiten-Zustand, für ein Bild im Text, eine Bild-Einbettung, ein Bild in
+  einer Tabelle und ein Bild in einer eingebetteten Notiz; Dokument und
+  Schreibmarke bleiben unverändert, der einfache Klick bleibt ohne Wirkung.
+- **Ein Bild in einer eingebetteten Notiz öffnet die richtige Datei**
+  (`4T-001925`). Liegt die eingebettete Notiz in einem anderen Ordner, wurde der
+  Bild-Pfad gegen das offene Dokument statt gegen die Notiz aufgelöst: Geöffnet
+  wurde nichts oder, bei einer gleichnamigen Datei neben dem Dokument, die
+  falsche. Jetzt lösen Schaltfläche der Vergrößerung und Doppelklick der
+  Live-Ansicht gegen die Notiz auf; die Grenze des Öffnens bleibt die des
+  offenen Dokuments.
+- **Der Markdown-Linter meldet einen unbekannten Typ eines Hinweis-Kastens auch
+  in Groß- oder Mischschreibung** (`4T-001864`). Bisher blieb eine Zeile wie
+  `> [!IMPORTANT]` ohne jede Reaktion, obwohl die Anforderung eine Meldung für
+  unbekannte Typen zusagt. Jetzt wird sie markiert, und der Hinweis nennt den
+  Typ so, wie er geschrieben ist. Ein bekannter Typ wird in keiner Schreibweise
+  gemeldet.
+- **Typ-Namen wie `[!constructor]` erzeugen keine fehlerhafte Box mehr**
+  (`4T-001864`). Die Nachschlage-Stelle hielt Namen, die jedes
+  JavaScript-Objekt erbt, für bekannte Typen; `> [!constructor]` wurde dadurch
+  zu einer Box ohne Symbol und ohne gültigen Titel. Jetzt ist ein solcher Name
+  ein unbekannter Typ wie jeder andere: gewöhnliches Zitat und Linter-Meldung.
+- **Die neutrale Box eines Container-Blocks zeigt ihren Namen als Titel**
+  (`4T-001914`). Die Anforderung der Custom Containers und die Handbuch-Seite
+  «Block-Konstrukte» sagen eine neutrale Box mit dem Namen als Titel zu; die
+  Anwendung zeigte keinen Titel. Jetzt steht der Name, so wie er geschrieben
+  ist, als fette erste Zeile in gesetzter Ansicht, portabler Ausgabe und
+  Live-Ansicht; die PDF-Ausgabe druckt die gesetzte Ansicht. Ein Text hinter
+  einem unbekannten Namen bleibt wie bisher unsichtbar, und der
+  Mehrspalten-Block mit gültiger Spaltenzahl bleibt ohne Titel. Im selben Zug
+  erzeugt `::: constructor` und jeder andere Name, den jedes
+  JavaScript-Objekt erbt, keine fehlerhafte Box mit dem Text «undefined» mehr,
+  sondern die neutrale Box mit dem Namen als Titel. Die Auslegung, dass der
+  Name so erscheint, wie er geschrieben ist, hat die Sitzung des Zusatz-Tasks
+  getroffen; der Product Owner ist darüber informiert.
+- **Eine Erinnerung kommt wieder, wenn «Erledigt» nicht gespeichert werden
+  konnte** (`4T-001727`). Ließ sich die Aufgabe beim «Erledigt» im Dialog nicht
+  schreiben — die Zeile war inzwischen geändert, oder die Datei stand mit
+  ungespeicherten Änderungen in einem Reiter —, verschwand die Erinnerung
+  trotzdem aus dem Dialog und kam bis zum nächsten Programmstart nicht wieder.
+  Jetzt wird sie in diesem Fall allen Fenstern erneut zugestellt; den Grund
+  nennt wie bisher die Statusleiste.
+- **Der Hinweis zur System-Benachrichtigung in den Einstellungen ist
+  berichtigt** (`4T-001729`). Unter dem Schalter «System-Benachrichtigung
+  anzeigen» der Einstellungs-Seite «Erinnerungen» stand, die Benachrichtigung
+  erscheine, wenn das Fenster nicht im Vordergrund stehe; jetzt steht dort,
+  dass sie erscheint, wenn kein Fenster der Anwendung im Vordergrund steht, und
+  je Meldung einmal. Die italienische Fassung sprach zuvor von der Anwendung
+  statt vom Fenster und ist ebenso angeglichen.
+- **Eingegebener Text geht beim Verlassen einer Tabellenzelle nicht mehr
+  verloren** (`4T-001712`). In der Live-Ansicht verschwand der in eine Zelle
+  getippte Text, wenn die Zelle mit einem Klick in den Fließtext oder außerhalb
+  der Tabelle, einem Klick in eine andere Tabelle oder einem Wechsel der
+  Ansicht oder des geöffneten Dokuments verlassen wurde; Speichern schrieb die
+  Datei ohne die Eingabe, und das Schließen über das Schließ-Kreuz verlor sie
+  ohne Nachfrage (gemessen in `4T-001710`, acht Ausfall-Wege). Jetzt wird die
+  Eingabe auf jedem Weg übernommen, auch bei Speichern, Speichern unter,
+  Schließen des Dokuments oder des Fensters und Wechsel von Reiter, Ansicht
+  oder Bearbeiten-Modus; nach dem Speichern bleibt die Zelle offen. Hat sich die
+  Zelle während der Eingabe von anderer Seite geändert, bleibt das Eingabefeld
+  mit dem Text stehen, und ein neuer Hinweis in der Statusleiste sagt, dass die
+  Eingabetaste übernimmt und Escape verwirft; war nur eine andere Zelle
+  geändert, wird die Eingabe in den neuen Stand geschrieben. Escape verwirft
+  wie bisher. **Grenze:** Ist die Tabelle während der Eingabe ganz aus dem
+  Dokument verschwunden, meldet die Statusleiste, dass die Änderung verworfen
+  ist, und der Text ist verloren (vom Product Owner am 2026-09-25 angenommen).
+  Beim Klick in eine andere Zelle derselben Tabelle ist die angeklickte Zelle
+  danach offen, auf jedem Rechner (`4T-001969`, Befund der Release-Strecke:
+  Übernahme und Öffnen liefen gegeneinander, und auf manchen Rechnern blieb die
+  Zelle zu, bis ein zweiter Klick sie öffnete).
+- **Der Rechtsklick in eine Tabellenzelle springt nicht mehr in die erste
+  Kopfzelle** (`4T-001861`). In der Live-Ansicht setzte ein Rechtsklick in eine
+  Zelle die Schreibmarke in die erste Zelle der Kopfzeile und öffnete diese zur
+  Bearbeitung; die Einträge des Kontextmenüs, etwa Tabelle → Zeile einfügen,
+  wirkten dadurch an der falschen Stelle. Jetzt setzt der Rechtsklick die
+  Schreibmarke in die angeklickte Zelle an die angeklickte Stelle, das Menü
+  öffnet sich am Zeiger und wirkt dort. Stand die Schreibmarke schon in der
+  Zelle, bleibt eine laufende Eingabe erhalten; eine bestehende Auswahl bleibt
+  stehen. Escape schließt ein offenes Kontextmenü, ohne die Zell-Eingabe zu
+  verwerfen. Der Rechtsklick im Fließtext und in allen übrigen Widgets ist
+  unverändert.
+- **Die Hilfe nennt die richtige Taste für die Übernahme eines Vorschlags**
+  (`4T-001714`). Katalog-Eintrag «Autocomplete», Handbuch-Seite «Vernetzung»,
+  Abschnitt «Autocomplete», und README sagten in allen Sprachfassungen, bei
+  offener Vorschlagsliste übernehme «Enter oder Tab» einen Vorschlag. Der
+  Tabulator hat das nie getan; er rückt die Zeile ein. Richtiggestellt auf
+  «Enter wählt aus».
+
+### Dokumentation
+
+- **Handbuch und Funktions-Katalog zum Abhängigkeits-Schutz** (`4T-001878`).
+  Das Kapitel «Abhängigkeiten» der Erweiterungs-Seite ist neu geschrieben und
+  nennt die harten Paare, die gesperrte Zeile samt ihrem Hinweis-Text im
+  Wortlaut der Oberfläche, den Weg daran vorbei, die Unterscheidung zwischen
+  harter Abhängigkeit und bloßer Verarmung und den mitgebrachten Stand; die
+  Seiten zur Datenbank und zu den Ereignissen tragen die umgekehrte Aussage.
+  Der Funktions-Katalog beschreibt die Sperre beim Eintrag zur
+  Erweiterungs-Verwaltung, und der Eintrag zur Datenbank sagt nicht mehr, sie
+  werde mit den Eigenschafts-Profilen abgeschaltet. Ein eigener Katalog-Eintrag
+  ist bewusst nicht entstanden.
+- **Handbuch und Funktions-Katalog zu den Arbeitsmodi** (`4T-001883`). Die
+  Seite «Erweiterungen» bekommt das Kapitel «Arbeitsmodi» mit den drei Modi,
+  der Schachtelung, dem Wirkungs-Zeitpunkt, der Nachjustierbarkeit und dem
+  unveränderten Abhängigkeits-Schutz, dazu die Unterkapitel «Der erste Start»
+  und «Eigene Modi»; die Seite zum Ausgeben und Einlesen der Einrichtung nennt
+  die neue Datenart, die Überblicksseite und die Seite «Ansichten und
+  Darstellung» ziehen nach. Der Funktions-Katalog bekommt zwei neue Zeilen,
+  «Arbeitsmodi» und «Eigene Arbeitsmodi»; die Zeile zur Produkt-Tour nennt jetzt
+  elf statt zehn Stationen. Die englischsprachige Demo-Area beschreibt beim
+  Willkommens-Text den Arbeitsmodus statt «alle Erweiterungen sind
+  voreingestellt an». Die mitgelieferten Demo-Seiten bleiben ansonsten
+  unverändert, auch wo sie im Modus «Einsteiger» Roh-Syntax zeigen
+  (Entscheidung des Product Owners vom 2026-09-22).
+- **Handbuch und Funktions-Katalog zum Einstellungs-Ort von Buch und Regal**
+  (`4T-001886`). Die Seite «Bücher» bekommt das Kapitel «Die Einstellungen von
+  Buch und Regal» samt dem Unterkapitel «Eigene Angaben»; die Seite «Ansichten
+  und Darstellung» nennt in ihrer Block-Liste alle drei Beschriftungen und den
+  neuen ersten Abschnitt, und sechs weitere Seiten, die den Block bisher mit
+  festem Namen nannten, tragen den Zusatz daneben. Im Funktions-Katalog wachsen
+  die Zeilen zu Einstellungen, Buch, Bücherregal und Regal-Ansicht um den neuen
+  Bedien-Weg. Zwei Dateien der mitgelieferten Demo-Area nennen den zweiten
+  Pflege-Ort ebenfalls.
+- **Handbuch und Funktions-Katalog nennen die Schreibweise von Hinweis-Kästen
+  und Container-Blöcken** (`4T-001865`, `4T-001914`). Die Seite
+  «Block-Konstrukte» bekommt in den Kapiteln «Callouts» und «Custom
+  Containers» je einen Absatz, dass die Schreibweise keine Rolle spielt und der
+  Text unverändert bleibt, samt großgeschriebenem Beispiel, das darunter als
+  fertige Box erscheint; die beiden Katalog-Einträge tragen denselben Satz.
+- **Handbuch, Funktions-Katalog und Beispiel-Sammlung zur Bild-Vergrößerung**
+  (`4T-001871`). Neuer Katalog-Eintrag «Bild vergrößert darstellen» in der
+  Gruppe «Datei», unmittelbar hinter «Anlage öffnen»; die Seite «Bilder» bekommt
+  als letztes Kapitel «Bild vergrößern»; die Seite «Anlagen» nennt im Kapitel
+  «Anlage öffnen» den Weg ins Programm je Ansicht und dass ein Bild aus einer
+  eingebetteten Notiz die Datei öffnet, auf die die Notiz selbst verweist; die
+  Kurzbeschreibung der Seite «Bilder» auf der Überblicksseite nennt die
+  Vergrößerung; Beschreibung und Zugang des Katalog-Eintrags «Anlage öffnen»
+  sind richtiggestellt. Die mitgelieferte Beispiel-Sammlung erklärt unter ihrem
+  Demo-Bild die Vergrößerung.
+- **Die Handbuch-Seite «Bilder» sagt nicht mehr, Bilder ließen sich aus dem
+  Netz laden** (`4T-001872`, Entscheidung des Product Owners vom 2026-09-23).
+  Ihr erster Absatz versprach in allen fünf Sprachen Bilder von
+  Internet-Adressen; die Anwendung lädt aus Sicherheitsgründen bewusst keine
+  Inhalte aus dem Netz nach und hat das nie getan. Berichtigt ist die
+  Beschreibung, nicht die Anwendung: Bilder kommen aus lokalen Dateien oder aus
+  im Text eingebetteten Daten, und ein Bild mit einer Adresse aus dem Netz wird
+  stattdessen als Datei neben das Dokument gelegt.
+- **Handbuch, Funktions-Katalog und Beispiel-Sammlung zu Meldungen in allen
+  Fenstern** (`4T-001729`). Die Katalog-Einträge zu Erinnerungs-Benachrichtigungen,
+  Wecker und Timer beschreiben die Meldung in allen Fenstern und die einmalige
+  System-Benachrichtigung; beim Timer war sie bis dahin gar nicht genannt. Die
+  Handbuch-Seite «Erinnerungen» bekommt im Kapitel «Benachrichtigungs-Dialog»
+  die Absätze zu allen Fenstern und zum Link zur Quelldatei, die Seite
+  «Werkzeuge» das Unterkapitel «Meldung in allen Fenstern» samt berichtigter
+  Bedingung der System-Benachrichtigung des Weckers, und die Überblicksseite
+  nennt die Anzeige in allen Fenstern mit Herkunfts-Angabe. Die mitgelieferte
+  Beispiel-Sammlung erwähnt die Meldung in allen Fenstern im Kapitel
+  «Reminders».
+- **Handbuch, Funktions-Katalog, Beispiel-Sammlung und README zur zweiten Stufe
+  der Tabellen-Bearbeitung** (`4T-001714`). Die Katalog-Einträge zur
+  Tabellen-Bearbeitung im Live-Modus, zu den Tabellen-Werkzeugen und zu
+  Autocomplete beschreiben Zeilen-Anlage, Übernahme auf jedem Weg, Rechtsklick
+  und die Liste in der Zelle. Die Seite «Ansichten und Darstellung» bekommt im
+  Abschnitt «Live-Modus» drei Absätze dazu, die Seite «Vernetzung» einen Absatz
+  zur Liste in der Tabellenzelle und die Seite «Editor-Kontextmenü» einen Satz
+  zum Rechtsklick in eine Zelle; die Beispiel-Sammlung nennt alles im Kapitel
+  «Tables».
+- **Handbuch und Funktions-Katalog zum wählbaren Erledigt-Datum** (`4T-001868`).
+  Der Katalog-Eintrag zum Aufgaben-Dialog nennt das Erledigt-Datum bei einem
+  Status vom Typ Erledigt, mit dem heutigen Tag als Vorschlag der Automatik; die
+  Seite «Aufgaben-Listen» beschreibt es in den Abschnitten zum
+  Bearbeitungs-Dialog, zu den Automatik-Daten und zu den Terminen.
+- **Handbuch, Funktions-Katalog und README zum zusätzlichen Öffnen eines
+  Bereichs** (`4T-001744`). Die Seite «Applikationen, Fenster und Bereiche»
+  bekommt im Abschnitt «Bereiche» die Reichweite von «Bereich schließen», die
+  Regeln für einen laufenden Bereich ohne und mit Arbeitsbereich samt den drei
+  Schaltflächen und der Bedingung der eingeschalteten Erweiterung
+  «Arbeitsbereiche», dazu Öffnungs-Wege, Unabhängigkeit, Fenstertitel und
+  Neustart; im Abschnitt «Start-Seite eines Bereichs» einen Satz zu
+  «Zusätzlich öffnen». Katalog-Eintrag «Bereiche», Beschreibung von «Bereich
+  schließen» und der Abschnitt «Bereiche» des README sind fortgeschrieben.
+- **Die Nutzen-Darstellung nennt die Arbeitsmodi** (`4T-001891`, Entscheidung
+  des Product Owners vom 2026-09-27). Die Nutzen-Seite des Handbuchs und die
+  Nutzen-Seite der Produkt-Webseite nennen im Abschnitt «Und der Rest der
+  Sprache», in allen fünf Sprachfassungen, den Arbeitsmodus als gestuften
+  Einstieg und im Punkt zur Schaltbarkeit das gebündelte Schalten über drei
+  Arbeitsmodi samt eigener Zusammenstellungen. Ergänzt, nicht neu geschrieben;
+  die übrigen acht Vorhaben des Zuges verfeinern bereits dargestellte
+  Arbeits-Formen und bleiben draußen.
+
+### i18n
+
+- Alle neuen und geänderten Texte liegen in **allen fünf Sprachfassungen** vor:
+  die Hinweise der gesperrten Erweiterungs-Zeile (`4T-001877`), die Modus-Wahl,
+  die eigenen Modi, die Tour-Station und die neue Datenart der Einrichtung
+  (`4T-001881`, `4T-001882`), die Block-Titel «Aktuelles Buch» und «Aktuelles
+  Bücherregal», der Abschnitt «Eigene Angaben» und die Buch- und
+  Regal-Fassungen der fünf Abschnitts-Überschriften (`4T-001885`), die
+  Beschriftungen der Bild-Vergrößerung (`4T-001870`), die Herkunfts-Angabe der
+  Erinnerungen (`4T-001727`), der Statusleisten-Hinweis der offen gehaltenen
+  Zell-Eingabe (`4T-001712`) und der Dialog «Bereich läuft bereits» mit seinen
+  drei Schaltflächen (`4T-001743`).
+- Geänderte Texte des Funktions-Katalogs und der Handbuch-Seiten in allen fünf
+  Sprachfassungen aus den Hilfe- und Handbuch-Vorgängen `4T-001878`,
+  `4T-001883`, `4T-001886`, `4T-001865`, `4T-001914`, `4T-001871`,
+  `4T-001872`, `4T-001729`, `4T-001714`, `4T-001868` und `4T-001744`, dazu die
+  Nutzen-Seite des Handbuchs (`4T-001891`).
+
+### Intern
+
+- **Modus-Stufe und Abhängigkeits-Schutz in der Registry** (`4T-001877`,
+  `4T-001880`): die Sperr-Regel als reine Funktion im Kern der Registry, das
+  Pflicht-Feld `modeLevel` mit geordneter Wertemenge und abweisender
+  Validierung; Architektur, Entwicklungsrichtlinien und Leitdatei fortgeschrieben.
+- **Neue Module**: die Modus-Wahl und die eigenen Modi der Einstellungs-Seite
+  (`4T-001881`, `4T-001882`), die Buch- und Regal-Angaben samt Kontext-Auskunft
+  der Einstellungs-Seite (`4T-001885`), die Vergrößerungs-Fläche
+  (`4T-001870`), das Zustell-Register fälliger Meldungen im Hauptprozess und
+  die gemeinsame Fenster-Seite von Wecker und Timer (`4T-001727`,
+  `4T-001728`), Vorschlagsliste und Zell-Kern der Tabellenzelle (`4T-001711`,
+  `4T-001712`, `4T-001713`), der Zeilen-Baustein der Termin-Zeilen im
+  Aufgaben-Dialog (`4T-001867`) und die Nachfrage beim Öffnen eines laufenden
+  Bereichs samt Kennung je Applikation in Sitzung und Entwurfs-Ablage
+  (`4T-001743`). Die gemeinsame Nachschlage-Funktion für Hinweis-Kästen und
+  Container-Blöcke liegt in einem geteilten Modul (`4T-001864`, `4T-001914`),
+  die Ereignis-Regel für den Doppelklick auf ein Bild in der Live-Ansicht im
+  gemeinsamen Baustein der Live-Ansicht (`4T-001925`).
+- **Absicherung**: neue und erweiterte Unit-Prüfdateien und
+  Ablauf-Spezifikationen zu allen neun Vorhaben, darunter die
+  Regressions-Spezifikation zum Doppelklick auf ein Bild der Live-Ansicht (vor
+  der Behebung rot) und der Messfall der Folgen-Analyse zum mehrfachen Öffnen
+  eines Bereichs (`4T-001742`); Abdeckungs-Matrix und Klassen-Karte
+  fortgeschrieben.
+- **Nachzüge nach dem Aufsetzen auf das Release 1.141.0** (`4T-001891`): Modul-Karte
+  der Architektur aus beiden Seiten zusammengeführt; die Kennung der
+  Abdeckungs-Matrix für die festen Arbeitsmodi heißt `F-324`, weil `F-314` auf
+  beiden Seiten vergeben war; die Prüfungen, die die Registry abzählen, auf
+  63 Erweiterungen und das sechste harte Paar nachgezogen; zwei
+  Ablauf-Prüfdateien warten auf die Einstellungs-Seite über den geteilten
+  Helfer statt über eine Poll-Schleife. **Sieben Dateien-Größen-Grenzen
+  angehoben**, weil beide Seiten dieselben Dateien erweitert haben
+  (`src/main/menu/menu.js`, `src/main/preload.js`, `src/renderer/index.html`,
+  `src/renderer/modules/app/app-commands.js`,
+  `src/renderer/modules/search/search.js`, `src/shared/commands/commands.js`,
+  `src/shared/extensions/extensions.js`); der Abbau als Schnitt ist eine eigene
+  Aufgabe.
+- **Nachzüge nach dem Aufsetzen auf das Release 1.142.1** (`4T-001891`):
+  Modul-Karte und Stand-Vermerk der Architektur erneut aus beiden Seiten
+  zusammengeführt, die Zahlen gegenständlich ausgezählt; der Katalog-Eintrag
+  und die Handbuch-Seite der Datenbank nennen den Abhängigkeits-Schutz der
+  Eigenschafts-Profile und den Einstellungs-Ort im Buch und im Bücherregal
+  neben den Ergänzungen der Stufe 2; zwei weitere Dateien-Größen-Grenzen
+  angehoben (`src/renderer/modules/app-init.js`,
+  `src/shared/extensions/extensions.js`), aus demselben Grund wie oben.
+- **Webseiten-Stand aus dem Abschluss des vorigen Releases** (`4T-001785`,
+  `3E-000314`): Die Bildschirmfotos der Produkt-Webseite sind mit der
+  Auslieferung von 1.142.1 erneuert worden. Sie liegen seitdem auf dem
+  Integrationsstand und fahren mit dieser Version aus. Kein Anwendungs-Code
+  berührt, kein Anwender-Text nötig.
+
 ## [1.142.1.3340] - 2026-09-27 — Prüfskript der Demo-Belege unter einem Pfad mit Umlaut
 
 Patch-Release zum Zug 3E-000314,

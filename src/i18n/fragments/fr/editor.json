@@ -109,5 +109,6 @@
   "inlineCalc.error.function": "Fonction inconnue ou nombre d'arguments incorrect",
   "inlineCalc.error.value": "L'expression ne peut pas être évaluée",
   "tableEdit.hint.notFound": "Tableau introuvable sans ambiguïté dans la source, modification abandonnée",
-  "tableEdit.hint.blocked": "Tableau comportant des erreurs de structure, modification uniquement dans la source"
+  "tableEdit.hint.blocked": "Tableau comportant des erreurs de structure, modification uniquement dans la source",
+  "tableEdit.hint.keptOpen": "La cellule a été modifiée ailleurs entre-temps – Entrée applique votre saisie, Échap l’abandonne"
 }

@@ -180,13 +180,19 @@ El nivel pequeño está pensado para columnas estrechas, el grande para una colu
 
 El modo alarma admite tantas alarmas como se quiera. Al crear una se eligen la hora, un nombre y el patrón de repetición: una vez, a diario o en días concretos de la semana. La hora pasa por un control de dígitos, de modo que una entrada inválida no es posible. Cada alarma se activa por separado sin borrarla; una alarma única se desactiva tras sonar.
 
-Una alarma vencida muestra un aviso que se puede confirmar o posponer una duración configurable (Ajustes → Reloj). Si la ventana no está en primer plano se añade una notificación del sistema; al pulsarla la ventana pasa al frente.
+Una alarma vencida muestra un aviso que se puede confirmar o posponer una duración configurable (Ajustes → Reloj). Si ninguna ventana de la aplicación está en primer plano se añade una notificación del sistema; al pulsarla la aplicación pasa al frente.
 
 ### Temporizador y cronómetro
 
 El modo temporizador lista los temporizadores con tiempo restante y barra de progreso. Tres botones inician duraciones habituales de inmediato, las duraciones propias pasan por un control de horas, minutos y segundos. Iniciar, pausar y reiniciar actúan por temporizador. El tiempo restante se calcula a partir de marcas de tiempo en lugar de descontarse: un temporizador sigue por tanto correctamente aunque la ventana estuviera en segundo plano o la aplicación se cerrara entretanto. Un temporizador finalizado muestra un aviso y se puede confirmar o iniciar de nuevo.
 
 El cronómetro cuenta hacia delante, con centésimas. Además de iniciar, pausar y reiniciar registra tiempos de vuelta; la vuelta más reciente está arriba.
+
+### Avisos en todas las ventanas
+
+Una alarma vencida y un temporizador finalizado muestran su aviso en cada ventana abierta de la aplicación, también en ventanas de otra área, en ventanas sin área y en ventanas de libro y de estantería. Ambos pertenecen a toda la aplicación y a ninguna área, por lo que sus avisos no indican origen. El aviso se atiende en cualquier ventana, y la acción surte efecto una sola vez: el aviso desaparece después de todas las ventanas, y una segunda acción casi simultánea en otra ventana queda sin efecto. Si vencen a la vez varias alarmas o temporizadores, cada ventana los reúne en un solo diálogo. Una ventana abierta más tarde muestra también un aviso aún no atendido.
+
+La notificación del sistema solo aparece cuando ninguna ventana de la aplicación está en primer plano, y una sola vez por aviso, aunque haya varias ventanas abiertas. La muestra el sistema operativo; sin su servicio de notificaciones solo queda el aviso dentro de la aplicación.
 
 ### Calendario mensual
 

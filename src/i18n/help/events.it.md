@@ -2,7 +2,7 @@
 
 La gestione degli eventi tiene **appuntamenti, compleanni, anniversari e date di progetto** direttamente nel documento: come blocco eventi incorporato con proprie righe di dati o come aggregazione tramite le proprietà del frontmatter dai file dell'area. Ogni voce mostra la **differenza di tempo rispetto a oggi** in quattro scaglioni, oltre a traguardi, ricorrenza annuale, filtri, cinque viste aggiuntive e collegamenti tra eventi.
 
-La funzione fa parte delle [estensioni interne](extensions.md) («Eventi») e richiede i [Profili di proprietà](property-profiles.md): se tale estensione viene disattivata, anche la gestione degli eventi si disattiva. Disattivato, il blocco resta un normale blocco di codice.
+La funzione fa parte delle [estensioni interne](extensions.md) («Eventi») e richiede i [Profili di proprietà](property-profiles.md): finché la gestione degli eventi è attiva, tale estensione non può essere disattivata. Disattivato, il blocco resta un normale blocco di codice.
 
 ## Struttura del blocco
 

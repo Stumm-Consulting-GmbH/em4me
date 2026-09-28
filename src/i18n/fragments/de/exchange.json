@@ -15,6 +15,7 @@
   "exchange.kind.formatToolbar": "Format-Toolbar",
   "exchange.kind.commandPlacement": "Statusleisten-Schaltflächen und Makros",
   "exchange.kind.extensions": "Schalt-Zustand der Erweiterungen",
+  "exchange.kind.extensionModes": "Eigene Arbeitsmodi",
   "exchange.kind.sidebar": "Anordnung der Sidebar",
   "exchange.kind.templates": "Vorlagen-Ordner und -Regeln",
   "exchange.kind.bookmarksTree": "Lesezeichen",

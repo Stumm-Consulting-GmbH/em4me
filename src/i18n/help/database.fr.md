@@ -579,7 +579,7 @@ Dans une zone sans base de données, aucun de ces chemins n'est proposé.
 
 Dans la liste des tables, la colonne **« Formulaire »** nomme le fichier de formulaire d'une table et reste vide pour le formulaire généré. La vue d'ensemble porte en outre quatre actions : **« Contrôler la cohérence »** dans l'en-tête pour toutes les tables, et dans la ligne de chaque table **« Nouvel enregistrement »**, **« Contrôler »** et **« Utilisation »**. Ce qu'elles font est décrit dans les sections « Modifier les enregistrements dans le formulaire », « Contrôle de cohérence » et « Utilisation des tables et des enregistrements ». Parmi les anomalies figurent aussi les remarques sur les fichiers de formulaire, nommées d'après le fichier.
 
-**La section de paramètres « Base de données »** se trouve dans le groupe de navigation « Zone actuelle » (Fichier → Paramètres… → Zone actuelle → Base de données). Elle montre la même information sous forme brève, à savoir le nom et la description de la base de données, le nombre de ses tables et le nombre d'anomalies, et porte une option : **« Afficher la vue d'ensemble à l'ouverture de la zone »**. Si elle est cochée, la vue d'ensemble s'ouvre d'elle-même dès que la zone est liée. L'option réside dans le fichier de la zone et voyage avec le dossier de la zone. Vient s'y ajouter le champ **« Nom du dossier de verrous »** ; il est décrit dans la section « Verrous ».
+**La section de paramètres « Base de données »** se trouve dans le groupe de navigation « Zone actuelle » (Fichier → Paramètres… → Zone actuelle → Base de données ; lorsqu'un livre est ouvert, le groupe s'appelle **Livre actuel**, lorsqu'une bibliothèque est ouverte **Bibliothèque actuelle**). Elle montre la même information sous forme brève, à savoir le nom et la description de la base de données, le nombre de ses tables et le nombre d'anomalies, et porte une option : **« Afficher la vue d'ensemble à l'ouverture de la zone »**. Si elle est cochée, la vue d'ensemble s'ouvre d'elle-même dès que la zone est liée. L'option réside dans le fichier de la zone et voyage avec le dossier de la zone. Vient s'y ajouter le champ **« Nom du dossier de verrous »** ; il est décrit dans la section « Verrous ».
 
 En outre, l'application tient à la racine de la zone le petit fichier `Area_Database.mdda`. Il contient l'état du compteur des identifiants d'opération, n'apparaît dans aucune liste de fichiers et voyage avec le dossier de la zone ; vous n'avez rien à y faire. S'il manque, l'application rétablit l'état du compteur à partir des justificatifs de modification.
 
@@ -599,7 +599,7 @@ La même souplesse vaut pour les fichiers de formulaire. Si le conteneur `db-for
 
 ## Désactiver la base de données
 
-L'ensemble de la base de données est une [extension interne](extensions.md) nommée « Base de données », dans la catégorie Outils, et se désactive d'un seul interrupteur. Elle nécessite les [Profils de propriétés](property-profiles.md), car la forme d'une définition de table est décrite et vérifiée au moyen d'un profil interne ; si ce prérequis est désactivé, la base de données l'est avec lui.
+L'ensemble de la base de données est une [extension interne](extensions.md) nommée « Base de données », dans la catégorie Outils, et se désactive d'un seul interrupteur. Elle nécessite les [Profils de propriétés](property-profiles.md), car la forme d'une définition de table est décrite et vérifiée au moyen d'un profil interne ; tant que la base de données est activée, ce prérequis ne peut donc pas être désactivé.
 
 À l'état désactivé :
 

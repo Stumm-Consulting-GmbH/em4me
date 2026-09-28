@@ -6,7 +6,7 @@ _extended memory for me_
 
 Welcome to the EM4me manual. This overview page is the entry point; each section opens as its own tab and behaves like any other tab — move it, place it in the second column, or keep it open next to your own work.
 
-**First time here?** The product tour covers ten stations in the running program, showing what sets this application apart and pointing at the control in question each time. It starts by itself on the first program launch; afterwards "Help → Product Tour" starts it again, and it can be cancelled at any time. The manual answers the specific questions that follow.
+**First time here?** The product tour covers eleven stations in the running program, showing what sets this application apart and pointing at the control in question each time. It starts by itself on the first program launch; afterwards "Help → Product Tour" starts it again, and it can be cancelled at any time. The manual answers the specific questions that follow.
 
 ## Reference
 
@@ -21,7 +21,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 - [Format toolbar](toolbar.md) — formatting by button: visibility in edit mode, state display, heading menu, table grid, custom assignment.
 - [Block constructs](blocks.md) — callouts, custom containers, definition lists, line blocks, footnotes.
 - [Inline constructs](inline.md) — highlight, sub-/superscript, underline, spoiler, Critic Markup, spans and abbreviations.
-- [Images](images.md) — image syntax, size hints, implicit figures.
+- [Images](images.md) — image syntax, size hints, implicit figures, enlarging an image.
 - [Attachments](attachments.md) — pasting and dragging files in: storage location and setting, naming, opening in the default program.
 - [Math and diagrams](math-diagrams.md) — KaTeX formulas, Mermaid diagrams, code blocks with syntax highlighting.
 - [Emoji](emoji.md) — how shortcodes work, plus a curated code selection.
@@ -30,7 +30,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 ## Tasks, appointments and time
 
 - [Task lists](tasks.md) — task lists with standard and extended states.
-- [Reminders](reminders.md) — notification times on tasks with ⏰: notification and catch-up dialog, reminder list; the announcement runs only while the app is running.
+- [Reminders](reminders.md) — notification times on tasks with ⏰: notification and catch-up dialog in every window with its origin, reminder list; the announcement runs only while the app is running.
 - [Events](events.md) — appointments, birthdays and anniversaries in the document: event block with tiered time differences, milestones, filters and four views, aggregation via frontmatter, links.
 - [Calendar systems](custom-calendars.md) — freely definable time reckonings per area: blocks with parallel calendars, levels with five relation types, epochs, conversion, value syntax in the document and picker.
 
@@ -53,7 +53,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 - [Bookmarks](bookmarks.md) — keeping files in two sections: general and area-bound bookmarks with relative paths, adding, converting, order.
 - [Templates](templates.md) — applying Markdown templates: templates folder with area override, placeholders with dialogs, cursor target, folder rules.
 - [Journals](journals.md) — periodic documents per area: shelves and granularities, folder and name patterns, calendar panel, navigation block, automatic date properties.
-- [Books](books.md) — several files as a book with a declared reading order: book folder with companion file, table of contents with structure maintenance, reading across chapter boundaries, moving with follow-up, repairing missing chapters.
+- [Books](books.md) — several files as a book with a declared reading order: book folder with companion file, table of contents with structure maintenance, reading across chapter boundaries, moving with follow-up, repairing missing chapters, settings of a book and a shelf with their own details.
 - [Applications, windows and areas](apps-windows.md) — multiple starts, window management and the title system.
 - [My Extended Memory](my-extended-memory.md) — one shared view of the workspaces, areas, books and bookshelves you added yourself: adding from a suggestion or a folder dialog, key figures with their timestamp, a detail view per container kind, access to exporting and importing your own setup.
 - [Document history](history.md) — recording changes: Markdown data companion file, switches on three levels, comparing and restoring revisions.
@@ -69,7 +69,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 - [Color schemes](color-schemes.md) — colors via named slots: mode assignment, own schemes as copies, live preview, limits.
 - [Tools](tools.md) — Markdown linter, search with regex, search and replace, table editor.
 - [Command placement](command-placement.md) — commands as permanent custom access points: status bar buttons, hide list, context menu entries, macros.
-- [Extensions](extensions.md) — enable or disable features individually: categories, dependencies, effect of the disabled state.
+- [Extensions](extensions.md) — enable or disable features individually: categories, working modes including custom ones, dependencies, effect of the disabled state.
 - [Exporting and importing settings](setup-exchange.md) — take your own setup with you: choice of data kinds down to individual calendar blocks, structure of the exchange file, preview before applying, merging with existing values, version compatibility.
 - [Your own interface language](custom-locale.md) — translate the interface yourself: download the template, translate it in your own editor, load and check it, select it, fallback to English, updating and removing, storage in your user profile.
 - [Creating extensions](extensions-dev.md) — develop your own external extensions: manifest, extension API, reference example, security notes.

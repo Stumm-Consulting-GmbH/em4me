@@ -10,7 +10,7 @@
 import { StateEffect, StateField } from '@codemirror/state';
 import { Decoration, EditorView, hoverTooltip } from '@codemirror/view';
 import { ensureSyntaxTree, syntaxTree } from '@codemirror/language';
-import { CALLOUT_TYPES } from '../../../shared/callouts.js';
+import { calloutTypeKey } from '../../../shared/callouts.js';
 // 4T-001277 (Epic 3E-000232, Befund B3): Erkennung der relativen Wiki-Formen aus
 // der einen Quelle der Unterseiten-Semantik, statt den Schraegstrich hier ein
 // zweites Mal zu deuten.
@@ -83,11 +83,22 @@ export const lintField = StateField.define({
   provide: (f) => EditorView.decorations.from(f),
 });
 
-// 4T-000061 (Epic 3E-000012): Callout-Typ-Whitelist. W-10 (4T-000310): aus der
-// gemeinsamen Registry CALLOUT_TYPES (src/shared/callouts.js) abgeleitet
-// statt hartkodierte Kopie — Single Source of Truth.
-export const CALLOUT_TYPE_WHITELIST = new Set(Object.keys(CALLOUT_TYPES));
-export const LINT_CALLOUT_HEADER_RE = /^>\s+\[!([a-z]+)\]/gm;
+// Regel 6 (4T-000061): unbekannter Callout-Typ, gemessen an der gemeinsamen
+// Registry (W-10, 4T-000310). 4T-001864 (Epic 3E-000320): jede Schreibweise
+// (Stelle 7), nachgeschlagen über calloutTypeKey; der markierte Bereich ist der
+// Typ, wie er geschrieben ist, und den nennt der Hinweis. Ohne die Erweiterung
+// ist die Zeile gewöhnlicher Zitat-Text und nichts zu melden (4T-000294).
+export const LINT_CALLOUT_HEADER_RE = /^>\s+\[!([A-Za-z]+)\]/gm;
+export function unknownCalloutTypeRanges(text) {
+  if (!isExtensionActive('callouts')) return [];
+  const found = [];
+  for (const m of text.matchAll(LINT_CALLOUT_HEADER_RE)) {
+    if (calloutTypeKey(m[1])) continue;
+    const from = m.index + m[0].indexOf(m[1]);
+    found.push({ from, to: from + m[1].length, type: m[1] });
+  }
+  return found;
+}
 
 export const LINT_RULES = {
   bareUrl: { className: 'cm-linter-mark cm-linter-bare-url' },
@@ -378,23 +389,13 @@ export async function runLint(view) {
   // ihr eigenes Urteil faellt in editor-lint-area.js.
   await pruefeVerknuepfungsLinks(wikiMatches, pushRange);
 
-  // Regel 6 (4T-000061): unbekannter Callout-Typ. Header-Regex matcht den Typ-
-  // Slug aus `> [!type]`; wenn der Typ nicht in der Whitelist steht, wird der
-  // Slug-Bereich markiert. Wird in Code- und Frontmatter-Kontext unterdrueckt.
-  // 4T-000294: nur bei aktiver Callout-Erweiterung — ohne sie ist der
-  // Header regulaerer Blockquote-Text, ein Typ-Marker waere falsch.
-  LINT_CALLOUT_HEADER_RE.lastIndex = 0;
-  if (isExtensionActive('callouts'))
-    for (const m of text.matchAll(LINT_CALLOUT_HEADER_RE)) {
-      const type = m[1];
-      if (CALLOUT_TYPE_WHITELIST.has(type)) continue;
-      // Markierter Bereich: nur der Typ-Slug innerhalb der eckigen Klammern.
-      const slugFrom = m.index + m[0].indexOf(type);
-      const slugTo = slugFrom + type.length;
-      if (lintIsInCodeContext(stateAtStart, slugFrom)) continue;
-      if (lintIsInFrontmatter(stateAtStart, slugFrom, fmRange)) continue;
-      pushRange(slugFrom, slugTo, 'unknownCalloutType');
-    }
+  // Regel 6: unbekannter Callout-Typ (unknownCalloutTypeRanges oben), in Code-
+  // und Frontmatter-Kontext unterdrückt.
+  for (const r of unknownCalloutTypeRanges(text)) {
+    if (lintIsInCodeContext(stateAtStart, r.from)) continue;
+    if (lintIsInFrontmatter(stateAtStart, r.from, fmRange)) continue;
+    pushRange(r.from, r.to, 'unknownCalloutType');
+  }
 
   // Regel 8 (4T-000533, Epic 3E-000089): unpaariger %%-Kommentar-Marker. Ein
   // oeffnendes %% ohne Schliessung blendet den gesamten Dokument-Rest aus

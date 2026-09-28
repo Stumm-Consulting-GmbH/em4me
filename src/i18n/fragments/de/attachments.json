@@ -11,6 +11,9 @@
   "attachments.open.outsideRoot": "Nicht geöffnet: Das Ziel liegt außerhalb des erlaubten Ordners.",
   "attachments.open.notFound": "Nicht geöffnet: Die Datei wurde nicht gefunden.",
   "attachments.open.failed": "Die Anlage konnte nicht geöffnet werden.",
+  "attachments.imageView.label": "Vergrößerte Darstellung",
+  "attachments.imageView.openExternal": "Im Standardprogramm öffnen",
+  "attachments.imageView.close": "Schließen",
   "settings.attachments.title": "Anlagen",
   "settings.attachments.loading": "Einstellungen werden geladen …",
   "settings.attachments.form": "Ablage-Ort",
@@ -22,5 +25,7 @@
   "settings.attachments.folder": "Ordnername",
   "settings.attachments.folderHint": "Gilt für „Fester Unterordner\" und „Zentraler Ordner des Bereichs\". Ein einzelner Name ohne Pfad-Angaben.",
   "settings.attachments.areaGroup": "Bereich «{name}»",
+  "settings.attachments.bookGroup": "Buch «{name}»",
+  "settings.attachments.shelfGroup": "Bücherregal «{name}»",
   "settings.attachments.invalidFolder": "Der Ordnername darf keine Pfad-Angaben enthalten und nicht leer sein."
 }

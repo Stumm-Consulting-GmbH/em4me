@@ -8,8 +8,9 @@
 // Frontmatter, PO-Entscheidung vom 2026-08-04). Ein Klick öffnet das Buch
 // über den dialog-freien Buch-Weg; der Abschnitt «nicht zugeordnet» trägt
 // die Aufnahme-Aktion, zugeordnete Zeilen die Lösen-Aktion (Story 4S-000760,
-// AK4). Der Umschalter-Zustand wird je Regal persistiert (Store-Schlüssel
-// SHELF_VIEW_MODES_KEY, nur Abweichungen vom Kachel-Default).
+// AK4). Der Umschalter-Zustand wird je Regal persistiert; die Ablage liegt seit
+// 4T-001885 in shelf-darstellung.js, weil der Einstellungs-Abschnitt «Eigene
+// Angaben» denselben Wert setzt.
 //
 // Alle Anzeige-Daten liefert der Main frisch von der Platte
 // (shelves.getViewData); die Seite hält keinen eigenen Datei-Zustand. Ein
@@ -26,12 +27,17 @@ import {
 // file:///-URL aus einem Windows-Pfad (R2-07): dieselbe Maskierung wie bei
 // den übrigen lokalen Einbettungen, keine zweite Fassung.
 import { fileUrlFor } from '../render-mermaid.js';
+// 4T-001885 (Epic 3E-000189): Der Zugriff auf die abgelegte Darstellung liegt
+// seit dem Einstellungs-Abschnitt «Eigene Angaben» in einem eigenen Modul, das
+// sich beide Bedienorte teilen; die Ablage selbst ist unverändert.
+import {
+  DARSTELLUNG_EVENT,
+  darstellungsSchluessel,
+  leseDarstellung,
+  schreibeDarstellung,
+} from './shelf-darstellung.js';
 
 export const SHELF_VIEW_PAGE_ID = 'shelf-view';
-
-// Store-Schlüssel des Umschalter-Zustands: { [regal-ordner in Kleinschrift]:
-// 'rows' }. Nur die Abweichung vom Default 'tiles' wird abgelegt.
-const SHELF_VIEW_MODES_KEY = 'shelfViewModes';
 
 const pageState = {
   container: null,
@@ -42,34 +48,7 @@ const pageState = {
 };
 
 function modeKeyFor(view) {
-  return view && view.shelfDir ? String(view.shelfDir).toLowerCase() : null;
-}
-
-async function ladeModus(view) {
-  const key = modeKeyFor(view);
-  if (!key) return 'tiles';
-  let map;
-  try {
-    map = await api.getSetting(SHELF_VIEW_MODES_KEY);
-  } catch {
-    map = null;
-  }
-  return map && typeof map === 'object' && map[key] === 'rows' ? 'rows' : 'tiles';
-}
-
-async function persistiereModus(view, mode) {
-  const key = modeKeyFor(view);
-  if (!key) return;
-  let map;
-  try {
-    map = await api.getSetting(SHELF_VIEW_MODES_KEY);
-  } catch {
-    map = null;
-  }
-  const next = map && typeof map === 'object' && !Array.isArray(map) ? { ...map } : {};
-  if (mode === 'rows') next[key] = 'rows';
-  else delete next[key];
-  void api.setSetting(SHELF_VIEW_MODES_KEY, next);
+  return view && view.shelfDir ? darstellungsSchluessel(view.shelfDir) : null;
 }
 
 // Öffnet die Regal-Ansicht (alle Regal-Öffnungswege des Main melden
@@ -97,7 +76,7 @@ async function ladeUndZeichne() {
     pageState.fehler = ergebnis && ergebnis.error === 'no-shelf' ? 'no-shelf' : 'error';
   } else {
     pageState.view = ergebnis.view;
-    pageState.mode = await ladeModus(ergebnis.view);
+    pageState.mode = await leseDarstellung(ergebnis.view.shelfDir);
   }
   zeichne();
 }
@@ -237,7 +216,7 @@ function umschalter() {
     knopf.addEventListener('click', () => {
       if (pageState.mode === mode) return;
       pageState.mode = mode;
-      void persistiereModus(pageState.view, mode);
+      void schreibeDarstellung(pageState.view ? pageState.view.shelfDir : null, mode);
       zeichne();
     });
     gruppe.appendChild(knopf);
@@ -320,6 +299,21 @@ export function initShelfViewPage() {
     onClose() {
       pageState.container = null;
     },
+  });
+  // 4T-001885 (Epic 3E-000189): Der zweite Bedienort der Darstellung ist der
+  // Einstellungs-Abschnitt «Eigene Angaben». Stellt er um, zieht eine offene
+  // Regal-Ansicht sofort nach — ohne die Meldung bliebe sie bis zum nächsten
+  // Laden auf ihrem alten Stand. Die eigene Umstellung meldet sich mit, trifft
+  // hier aber auf den bereits gesetzten Wert und tut nichts.
+  document.addEventListener(DARSTELLUNG_EVENT, (ev) => {
+    const detail = (ev && ev.detail) || {};
+    if (!pageState.view || modeKeyFor(pageState.view) !== darstellungsSchluessel(detail.shelfDir)) {
+      return;
+    }
+    const modus = detail.modus === 'rows' ? 'rows' : 'tiles';
+    if (pageState.mode === modus) return;
+    pageState.mode = modus;
+    zeichne();
   });
   // Zuordnungs-Änderungen und Regal-Wechsel: nachladen, solange die Seite
   // offen ist (der Main sendet den Zustand an alle Fenster der App).

@@ -29,8 +29,9 @@ import {
   wikiLinkAutocompleteSuggestions,
   bildAutocompleteSuggestions,
   anchorAutocompleteSuggestions,
+  ensureAreaIndex,
 } from '../../src/main/backlinks.js';
-import { BESTAND_ZEITLIMIT } from '../zeitlimits.js';
+import { BESTAND_ZEITLIMIT, SCHWER_ZEITLIMIT } from '../zeitlimits.js';
 
 // --- Setup/Teardown ---------------------------------------------------------
 
@@ -866,4 +867,71 @@ describe('backlinks.js — Bild-Vorschlaege der Canvas-Karte (4T-001748)', () =>
     // wie bei der Wiki-Sicht.
     expect(bildAutocompleteSuggestions(null, null).status).toBe('unavailable');
   });
+});
+
+// 4T-001742 (Epic 3E-000309): Zwei Bereichs-Applikationen auf demselben Ordner
+// halten dieselbe Wurzel mit zwei Schlüsseln der Form «area:<App>». Der Index
+// ist je Wurzel geführt, der Zwischenspeicher hängt an ihm; beides muss den
+// Abbau der einen Applikation überstehen und erst mit der letzten enden.
+describe('4T-001742: zwei Bereichs-Halter derselben Wurzel', () => {
+  async function bereit(datei, wurzel) {
+    let lage = tagsFor(datei, undefined, wurzel);
+    for (let i = 0; i < 500 && lage.status === 'indexing'; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      lage = tagsFor(datei, undefined, wurzel);
+    }
+    return lage.status;
+  }
+  function nachlaufAbwarten(wurzel, halter) {
+    vi.useFakeTimers();
+    releaseRoot(wurzel, halter);
+    vi.advanceTimersByTime(61_000);
+    vi.useRealTimers();
+  }
+
+  it('ein Eintrag trägt beide Halter; der Abbau der einen lässt den Index stehen', async () => {
+    const root = path.resolve(makeRoot());
+    const datei = write(root, 'a.md', '# A\n#mehrfach\n');
+    openRoots.add(root);
+    ensureAreaIndex(root, 'area:1');
+    ensureAreaIndex(root, 'area:2');
+    expect(await bereit(datei, root)).toBe('ready');
+
+    nachlaufAbwarten(root, 'area:1');
+    expect(tagsFor(datei, undefined, root).status).toBe('ready');
+
+    nachlaufAbwarten(root, 'area:2');
+    expect(tagsFor(datei, undefined, root).status).toBe('unavailable');
+  });
+
+  it(
+    'schreibt Area_Cache.mdda erst beim Abbau des letzten Halters',
+    async () => {
+      const root = path.resolve(makeRoot());
+      const datei = write(root, 'a.md', '# A\n#mehrfach\n');
+      const cache = path.join(root, 'Area_Cache.mdda');
+      openRoots.add(root);
+      ensureAreaIndex(root, 'area:1');
+      ensureAreaIndex(root, 'area:2');
+      expect(await bereit(datei, root)).toBe('ready');
+      // Der erste Schreibvorgang folgt dem Aufbau entprellt; er ist der Ausgang.
+      for (let i = 0; i < 100 && !fs.existsSync(cache); i++) {
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+      const ausgang = fs.statSync(cache).mtimeMs;
+
+      nachlaufAbwarten(root, 'area:1');
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      expect(fs.statSync(cache).mtimeMs).toBe(ausgang);
+
+      nachlaufAbwarten(root, 'area:2');
+      let nachher = ausgang;
+      for (let i = 0; i < 100 && nachher === ausgang; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+        nachher = fs.statSync(cache).mtimeMs;
+      }
+      expect(nachher).toBeGreaterThan(ausgang);
+    },
+    SCHWER_ZEITLIMIT,
+  );
 });

@@ -24,6 +24,12 @@ Live mode renders the Markdown directly in the editor: bold and italic, links, t
 
 **Tables are exempt from this rule.** They stay laid out even while the cursor sits in them: a click hits the cell, Tab and the arrow keys move from cell to cell, and what you type lands at the right place in the source. If you need a table’s raw syntax — the separator row with its alignment colons, say — switch to the source or the split view.
 
+**Typing in a cell.** Tab in the last cell of the last row adds a new row with the same number of columns and puts the cursor in its first cell, just as in the source view; Shift+Tab adds none. What you type in a cell is kept whichever way you leave the cell: with Enter, Tab or an arrow key, with a click into another cell or anywhere outside the table, when saving, when switching document or view, and when closing the document. Esc discards the cell’s input. While a cell is open, Ctrl+Z undoes what you typed in it; undo in the document applies once the cell is left.
+
+**Right-click in a cell.** It places the cursor in the clicked cell and opens the [context menu](context-menu.md) there; its functions, such as those of the **Table** submenu, act at that spot. Input in progress is kept.
+
+**Suggestions in a cell.** After `[[` and `#`, the same [suggestion list](linking.md) as in body text appears at the cell, with the same entries in the same order. The up and down arrows choose, Enter accepts, Esc closes only the list and leaves the cell open; while the list is open, the arrow keys and Enter do not move to another cell. Task markers are not suggested in a cell, because a table row is not a task line.
+
 **Links in running text are marked permanently.** They carry their underline at all times, without the mouse having to sit on them — wiki links as well as Markdown links, to a document as well as to an address outside. The rendered view still underlines a link only on mouse hover; in the view you write in, by contrast, it should be visible without any effort that a piece of text holds a link. On the line with the caret the raw markup stands as usual.
 
 ### Mind map
@@ -105,8 +111,8 @@ The status bar shows words, characters and the estimated reading time of the act
 The settings open as their own tab (File → Settings…, default `Ctrl+,`). Their navigation is divided into four blocks:
 
 - **General** — everything that applies to the whole application, such as appearance, behaviour, keyboard shortcuts and export.
-- **Current area** — the settings of the open area. The block only appears while an area is open.
-- **Extensions (internal)** — switching the bundled extensions on and off, including their own sections.
+- **Current area** — the settings of the open area. The block only appears while an area is open. With a book open it is called **Current book**, with a bookshelf open **Current bookshelf**; in first place it then carries the section **Own details** with title, author, description and cover image, and for a shelf the display as well. The remaining sections of the block stay the same in all three cases, see [Books](books.md).
+- **Extensions (internal)** — the working mode that switches them as a set, and switching the bundled extensions on and off, including their own sections.
 - **Extensions (external)** — the management of extension packages you installed yourself.
 
 Changes first act as a draft with live preview of the appearance. Apply and OK save them; both are highlighted only when there are unsaved changes, and without changes Apply is dimmed. Cancel or closing the tab discards the draft. Saved values apply immediately in all open windows. More on the two extension blocks is on the page [Extensions](extensions.md).

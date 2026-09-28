@@ -24,6 +24,16 @@ Un `+` o `-` dopo il tipo rende il callout richiudibile: `+` parte aperto, `-` c
 > [!note]- Parte compresso
 > Visibile solo dopo un clic sul titolo.
 
+Maiuscole e minuscole nel tipo non contano: `[!note]`, `[!Note]` e `[!NOTE]` producono lo stesso riquadro con la stessa icona, lo stesso colore d'accento e lo stesso titolo predefinito; `+`, `-` e un titolo personalizzato funzionano allo stesso modo. Il testo nel file resta come è stato scritto: le maiuscole riprese da altri programmi Markdown non vengono riscritte. L'elenco dei dieci tipi resta lo stesso: i nomi che non ne fanno parte, come `[!IMPORTANT]`, sono tipi sconosciuti in qualsiasi grafia.
+
+```markdown
+> [!WARNING]
+> In maiuscolo — lo stesso riquadro di `[!warning]`.
+```
+
+> [!WARNING]
+> In maiuscolo — lo stesso riquadro di `[!warning]`.
+
 ## Contenitori personalizzati
 
 Blocchi contenitore tra `::: tipo` e `:::`. I dieci tipi di callout appaiono in stile callout, i nomi sconosciuti come riquadro neutro con il nome come titolo.
@@ -36,6 +46,18 @@ Contenuto in stile callout.
 
 ::: warning
 Contenuto in stile callout.
+:::
+
+Maiuscole e minuscole nel nome non contano: `::: warning`, `::: Warning` e `::: WARNING` producono lo stesso riquadro, `::: Mio-Riquadro` lo stesso riquadro neutro di `::: mio-riquadro`, e `::: COLUMNS 2` distribuisce il contenuto su due colonne come `::: columns 2`. Il testo nel file resta come è stato scritto; un riquadro neutro mostra il nome come titolo così come compare. L'elenco dei dieci tipi di callout resta lo stesso.
+
+```markdown
+::: WARNING
+In maiuscolo: lo stesso riquadro di `::: warning`.
+:::
+```
+
+::: WARNING
+In maiuscolo: lo stesso riquadro di `::: warning`.
 :::
 
 ## Blocco multicolonna

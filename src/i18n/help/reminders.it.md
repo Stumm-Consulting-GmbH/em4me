@@ -35,11 +35,15 @@ Quando un promemoria è dovuto, un dialogo lo segnala con la descrizione dell'at
 - **Ricordamelo più tardi**: rinvia il momento di avviso. Sono proposte le opzioni di rinvio configurate (predefinito 10 minuti, 1 ora, 4 ore, 1 giorno, 1 settimana) e una scelta di data libera. Il nuovo momento viene scritto direttamente nel marcatore del file di origine.
 - **Chiudere** (chiusura o Esc): silenzia questo promemoria fino al successivo avvio dell'applicazione. L'attività stessa resta invariata.
 
+**In tutte le finestre.** Il dialogo compare in ogni finestra aperta dell'applicazione, anche nelle finestre di un'altra area, nelle finestre senza area e nelle finestre di libro e di libreria. Per questo ogni voce indica la sua provenienza, per esempio «Provenienza: Progetti»: l'area, il libro o la libreria da cui viene il promemoria. Completato, Ricordamelo più tardi e Chiudere agiscono sempre sul file di quella provenienza, da qualunque finestra vengano, e una sola volta: il promemoria scompare poi da tutte le finestre, e una seconda azione quasi contemporanea in un'altra finestra resta senza effetto e senza messaggio di errore. Se scadono più promemoria, ogni finestra li raccoglie in un unico dialogo. Una finestra aperta più tardi mostra anch'essa un promemoria ancora aperto.
+
+**Collegamento al file di origine.** Un clic sul nome del file apre il file alla riga dell'attività, nella finestra della sua area. Se la finestra in cui si è fatto clic mostra un'altra area o nessuna, la finestra dell'area di provenienza passa in primo piano e vi apre il file; se quell'area non è aperta, viene aperta. Il promemoria resta al suo posto: aprire il file non conta come gestirlo.
+
 ## Solo con l'applicazione in esecuzione
 
-I promemoria si segnalano **solo finché l'applicazione è in esecuzione e l'area è aperta**. Non esiste un servizio in background né un avviso con l'applicazione chiusa. Se l'applicazione non è aperta al momento di avviso, non va comunque perso nulla: al successivo avvio un **dialogo di recupero** raccoglie tutti i promemoria diventati dovuti nel frattempo e li mostra insieme, con le stesse azioni del dialogo normale. Fuori da un'area aperta non avviene alcuna sorveglianza.
+I promemoria si segnalano **solo finché l'applicazione è in esecuzione e l'area è aperta**. Non esiste un servizio in background né un avviso con l'applicazione chiusa. Se l'applicazione non è aperta al momento di avviso, non va comunque perso nulla: al successivo avvio un **dialogo di recupero** raccoglie tutti i promemoria diventati dovuti nel frattempo e li mostra insieme, in ogni finestra aperta, con le stesse azioni del dialogo normale. Fuori da un'area aperta non avviene alcuna sorveglianza.
 
-Con un'area aperta, l'applicazione controlla di continuo i marcatori di tutti i file dell'area (con ciclo di 30 secondi sull'indice dell'area). In opzione si può attivare una **notifica di sistema** che compare in aggiunta al dialogo quando la finestra non è in primo piano; un clic su di essa porta l'applicazione in primo piano. A mostrarla è il sistema operativo: su Linux se ne occupa l'ambiente desktop, e senza il suo servizio di notifiche resta solo il dialogo dentro l'applicazione.
+Con un'area aperta, l'applicazione controlla di continuo i marcatori di tutti i file dell'area (con ciclo di 30 secondi sull'indice dell'area). In opzione si può attivare una **notifica di sistema** che compare in aggiunta al dialogo quando nessuna finestra dell'applicazione è in primo piano. Compare una sola volta per avviso, anche con più finestre aperte; un clic su di essa porta l'applicazione in primo piano. A mostrarla è il sistema operativo: su Linux se ne occupa l'ambiente desktop, e senza il suo servizio di notifiche resta solo il dialogo dentro l'applicazione.
 
 ## Elenco promemoria
 
@@ -56,6 +60,6 @@ La sezione di impostazioni **Promemoria** (File → Impostazioni…) controlla:
 
 - **Ora predefinita**: ora di avviso per i marcatori senza parte oraria (predefinito 09:00).
 - **Opzioni di rinvio**: l'elenco delle offerte di rinvio nel dialogo e nell'elenco.
-- **Notifica di sistema**: attiva o disattiva la notifica aggiuntiva per una finestra non in primo piano.
+- **Notifica di sistema**: attiva o disattiva la notifica aggiuntiva che compare quando nessuna finestra dell'applicazione è in primo piano.
 
 I promemoria sono un'**estensione** attivabile con una dipendenza dall'estensione **Attività**: se «Attività» è disattivata, anche i promemoria sono inattivi. Maggiori dettagli nella pagina [Estensioni](extensions.md).

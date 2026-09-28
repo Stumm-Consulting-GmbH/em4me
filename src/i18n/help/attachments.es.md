@@ -31,7 +31,7 @@ Varios archivos arrastrados a la vez producen varias referencias. Pegar o arrast
 
 ## Dónde se guarda el archivo
 
-La ubicación se define en Configuración → Adjuntos y además puede fijarse por área (Configuración → Área actual → Adjuntos).
+La ubicación se define en Configuración → Adjuntos y además puede fijarse por área (Configuración → Área actual → Adjuntos). Con un libro abierto ese bloque se llama **Libro actual**, con una estantería abierta **Estantería actual**.
 
 | Ubicación | Dónde va el archivo |
 |---|---|
@@ -48,14 +48,16 @@ Un documento que nunca se ha guardado no ofrece ningún lugar para un adjunto. E
 
 ## Abrir un adjunto
 
-Una referencia a un adjunto lo abre en el programa que le asigna el sistema operativo. En una imagen incrustada, el gesto depende de la vista:
+Una referencia a un adjunto lo abre en el programa que le asigna el sistema operativo. En una imagen incrustada, el camino depende de la vista:
 
-| Vista | Gesto |
+| Vista | Camino al programa |
 |---|---|
-| Lectura y vista renderizada | clic simple |
-| Edición y vista directa | doble clic |
+| «Renderizado», también su mitad de «Dividido» | un clic en la imagen abre la [ampliación](images.md) y, allí, el botón «Abrir en el programa predeterminado» |
+| «En vivo», al leer y al editar | doble clic en la imagen |
 
-En el editor, el clic simple queda reservado para situar el cursor; escribir junto a una imagen no debe iniciar otro programa.
+En la vista renderizada, el clic muestra primero la imagen en grande; quien quiera seguir trabajándola en otro programa llega allí con un clic más. En el editor, el clic simple queda reservado para situar el cursor; escribir junto a una imagen no debe iniciar otro programa.
+
+Una imagen de una nota incrustada abre el archivo al que remite la propia nota, aunque esté en otra carpeta que el documento abierto.
 
 Solo se abren destinos dentro del área o, sin área, dentro de la carpeta del documento. En archivos que pueden ejecutar código al abrirse aparece primero una confirmación con el nombre y la ruta completa.
 

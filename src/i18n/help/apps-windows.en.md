@@ -87,13 +87,19 @@ Numbers close ranks when something is closed: if application 1 closes, applicati
 
 ## Areas
 
-An **area** binds an application to a folder: everything in this folder including its subfolders is the working space, nothing else. "File → Area → Open Area…" picks the folder; "File → Area → Close Area" ends the work in the area and closes all windows of the area application (with the usual save prompts). The binding is fixed: an area cannot be switched, only closed.
+An **area** binds an application to a folder: everything in this folder including its subfolders is the working space, nothing else. "File → Area → Open Area…" picks the folder; "File → Area → Close Area" ends the work in the area and closes all windows of **this** area application (with the usual save prompts); if the same folder is also running in a second application, that one stays open with its documents. The binding is fixed: an area cannot be switched, only closed.
 
-Three rules apply when opening:
+Two rules apply when opening an area that is not running yet:
 
 - If the application is empty (no open file), it adopts the area.
 - If the application already has an open file, a new application is created for the area.
-- If the area is already running, focus jumps to a window of the running area application; the same area never runs twice.
+
+**If the area is already running**, it depends on whether a workspace (see below) is attached to the running application:
+
+- **Without a workspace**, focus jumps to a window of the running area application without asking. This also applies if the same folder is running in a workspace at the same time: focus then goes to the application without a workspace.
+- **With a workspace**, the app asks what to do, provided the “Workspaces” feature is switched on; if it is off, focus moves as without a workspace. “Switch to the open window” brings the most recently active window of the workspace to the front. “Open additionally” opens the area a second time, in a new application with its own window and its own tabs; it does not belong to the workspace. “Cancel” leaves everything as it was.
+
+The question appears on every path that opens an area, for example via “Open Area…” or “Recent Areas”. Two applications on the same folder work independently of each other, and the hard boundaries of the area apply in both. You can tell them apart by the window title: one names the workspace, the other does not. With session restore switched on, both come back as two applications at the next start, and each gets its own unsaved drafts back.
 
 **Demo-Area:** "File → Area → Create Demo-Area…" copies a bundled English-language example collection — Markdown pages together with image and PDF attachments that demonstrate the most important functions — into an empty folder and opens it directly as an area: a sandbox for risk-free experimentation. Non-empty target folders are rejected, and existing files are never overwritten. The feature can be turned off as the "Demo-Area" extension; demo folders that have already been created are ordinary areas and remain unaffected.
 
@@ -157,7 +163,7 @@ This page always applies to **one** area, the open one. A brief view of key figu
 
 An area can designate one of its files as a **start page**: it opens by itself when the area is opened, the way a book falls open at its first page. You set and remove it from the context menu of a file in the area panel; the designated file is marked there with a leading symbol and bold type.
 
-**Session restore takes precedence**: if an area application comes back at program start with the documents you had open, the start page stays closed — you continue where you left off. It opens where there is nothing to restore: when you open an area while the program is running, and at program start for an area application without saved documents. Jumping to an area that is already running does not reopen it and leaves the start page untouched.
+**Session restore takes precedence**: if an area application comes back at program start with the documents you had open, the start page stays closed — you continue where you left off. It opens where there is nothing to restore: when you open an area while the program is running, and at program start for an area application without saved documents. Jumping to an area that is already running, including switching via the question, does not reopen it and leaves the start page untouched; “Open additionally”, by contrast, opens it as on the first opening, start page included.
 
 The designation belongs to the area and travels with its folder. If the file is renamed or moved inside the application, the designation follows; if the file leaves the area, the designation is dropped. If it points nowhere, the area opens unchanged and the application says so — an area without a start page behaves as before.
 

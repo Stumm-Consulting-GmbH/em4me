@@ -78,4 +78,100 @@ const CALLOUT_TYPES = {
   },
 };
 
-module.exports = { CALLOUT_TYPES, calloutIcon };
+// 4T-001864 (Epic 3E-000320): Der Typ eines Hinweis-Kastens wird unabhängig von
+// Groß- und Kleinschreibung erkannt; `[!NOTE]`, `[!Note]` und `[!note]` sind
+// gleichwertig. Die Tafel oben behält ihre kleingeschriebenen Schlüssel als
+// einzige Quelle, und jede Erkennungs-Stelle schlägt über diese eine Funktion
+// nach, statt selbst zu normalisieren — so kann keine Stelle eine Schreibweise
+// als bekannt führen, die eine andere verwirft. Der geschriebene Text bleibt
+// unberührt: Normalisiert wird allein der Schlüssel zum Nachschlagen.
+//
+// Die Eigentums-Prüfung statt eines blanken Objekt-Zugriffs hält geerbte Namen
+// wie `constructor` oder `toString` draußen, die sonst als bekannter Typ
+// gälten.
+
+/**
+ * Liefert zum geschriebenen Typ-Namen eines Hinweis-Kastens den Schlüssel der
+ * Typ-Tafel, unabhängig von Groß- und Kleinschreibung.
+ *
+ * @param {string} name Typ-Name, wie er zwischen `[!` und `]` steht.
+ * @returns {string|null} Kleingeschriebener Schlüssel aus `CALLOUT_TYPES`,
+ *   oder `null` für einen unbekannten Typ.
+ */
+function calloutTypeKey(name) {
+  if (typeof name !== 'string' || name === '') return null;
+  const key = name.toLowerCase();
+  return Object.prototype.hasOwnProperty.call(CALLOUT_TYPES, key) ? key : null;
+}
+
+// 4T-001914 (Epic 3E-000320): dieselbe Regel für die Container-Blöcke
+// `::: name`. Der Name gilt in jeder Schreibweise; verglichen und als Klasse
+// verwendet wird die kleingeschriebene Form, gezeigt wird der Name, wie er
+// geschrieben ist. Die Einordnung eines Containers — Hinweis-Box, Mehrspalten-
+// Block oder neutrale Box — steht deshalb hier an EINER Stelle und nicht je
+// Erkennungs-Weg: Render-Weg und Live-Ansicht fragen dieselbe Funktion, damit
+// keiner eine Schreibweise anders einordnet als der andere. Die Spaltenzahl
+// (4T-000382) ist dafür aus dem Render-Plugin hierher gezogen; die Live-Ansicht
+// braucht sie, um den Mehrspalten-Block ohne Titel von der neutralen Box mit
+// Titel zu unterscheiden.
+
+/**
+ * Schlüssel eines beliebigen Container-Namens: die kleingeschriebene Form.
+ * Sie dient allein dem Vergleich und der Klasse der neutralen Box; der
+ * geschriebene Name bleibt unberührt.
+ *
+ * @param {string} name Name, wie er hinter `:::` steht.
+ * @returns {string} Kleingeschriebener Schlüssel, leer bei fehlendem Namen.
+ */
+function containerNameKey(name) {
+  return typeof name === 'string' ? name.toLowerCase() : '';
+}
+
+/**
+ * Spaltenzahl eines Mehrspalten-Blocks aus dem Rest der Kopfzeile. Gültig sind
+ * strikt die ganzen Zahlen 2 bis 5 (PO-Vorgabe, 4T-000382); fehlend,
+ * nicht-numerisch, 1 oder 6 und mehr liefern `null` und fallen auf die
+ * neutrale Box zurück (kein Fehler).
+ *
+ * @param {string|null|undefined} rest Text hinter dem Namen.
+ * @returns {number|null}
+ */
+function parseColumnsCount(rest) {
+  const m = String(rest == null ? '' : rest)
+    .trim()
+    .match(/^([0-9]+)$/);
+  if (!m) return null;
+  const n = parseInt(m[1], 10);
+  return n >= 2 && n <= 5 ? n : null;
+}
+
+/**
+ * Ordnet einen Container-Block nach seinem Namen ein, unabhängig von Groß- und
+ * Kleinschreibung.
+ *
+ * @param {string} name Name, wie er hinter `:::` steht.
+ * @param {string} [rest] Text hinter dem Namen (eigener Titel, Spaltenzahl).
+ * @returns {{kind: 'callout', type: string} | {kind: 'columns', count: number}
+ *   | {kind: 'plain', key: string}} Hinweis-Box mit dem Schlüssel der
+ *   Typ-Tafel, Mehrspalten-Block mit gültiger Spaltenzahl oder neutrale Box mit
+ *   dem kleingeschriebenen Schlüssel des Namens.
+ */
+function containerKind(name, rest) {
+  const type = calloutTypeKey(name);
+  if (type) return { kind: 'callout', type };
+  const key = containerNameKey(name);
+  if (key === 'columns') {
+    const count = parseColumnsCount(rest);
+    if (count) return { kind: 'columns', count };
+  }
+  return { kind: 'plain', key };
+}
+
+module.exports = {
+  CALLOUT_TYPES,
+  calloutIcon,
+  calloutTypeKey,
+  containerNameKey,
+  containerKind,
+  parseColumnsCount,
+};

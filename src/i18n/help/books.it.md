@@ -148,6 +148,24 @@ Una libreria aperta compare come pagina propria nel sistema di schede. Due prese
 
 Sotto il patrimonio sta la sezione **Non assegnati** con le cartelle di libro della cartella della libreria non ancora assegnate; **Aggiungi** le assegna, **Rimuovi** toglie un'assegnazione senza toccare la cartella del libro. Un libro assegnato la cui cartella manca resta visibile ed è contrassegnato come mancante.
 
+## Le impostazioni di un libro e di una libreria
+
+Un libro aperto e una libreria aperta dicono anche nelle impostazioni (File → Impostazioni…) a che cosa si riferiscono: il blocco di navigazione legato all'area non si chiama allora «Area corrente», bensì **Libro corrente** oppure **Libreria corrente**, e i titoli delle sue sezioni parlano allo stesso modo del libro o della libreria invece che dell'area. Ciò che conta è il legame della finestra e non il file che si trova in primo piano: in una finestra di libro resta «Libro corrente», qualunque capitolo sia aperto, e due finestre con legami diversi mostrano ciascuna la propria dicitura.
+
+### Dati propri
+
+Al primo posto del blocco si trova la sezione **Dati propri**. Porta i dati che il libro e la libreria contengono comunque:
+
+- **Titolo**, **Autore** e **Descrizione** — tre campi del front matter del file del libro o della libreria.
+- **Immagine di copertina** — il riferimento immagine `cover`, indicato come percorso relativo alla cartella del libro o della libreria. Un campo vuoto significa: nessuna immagine di copertina. Se in quel percorso non c'è alcun file, la sezione lo segnala e la vista della libreria usa il riquadro segnaposto; non è un errore.
+- **Visualizzazione** — solo per la libreria: riquadri o righe, la stessa scelta del commutatore della vista della libreria. Vale per libreria e solo su questo computer.
+
+Come ovunque nella pagina delle impostazioni, le modifiche hanno effetto solo con Applica o OK.
+
+È **lo stesso posto di prima**: i quattro dati si trovano nel [front matter](frontmatter.md) del file del libro o della libreria, e la sezione li modifica proprio lì. Chi li cambia nel file stesso vede la modifica qui, e viceversa; non nasce un secondo luogo di archiviazione.
+
+In un'area ordinaria la sezione non compare, perché lì questi dati non esistono. Le altre sezioni del blocco — Cronologia del documento, Allegati, Modelli, Collegamenti tra aree, Banca dati, Diari, Sistemi di calendario, Profili di proprietà e Varianti — restano invariate e agiscono nella cartella del libro e della libreria come in ogni altra area.
+
 ## Attivare e disattivare
 
 I libri e le librerie formano insieme un'estensione commutabile (Impostazioni → [Estensioni](extensions.md), gruppo Strumenti), attiva di fabbrica. Nello stato disattivato scompaiono le voci di menu, i comandi, il pannello e la vista della libreria; i file di libro e di libreria si aprono allora come qualunque altro file Markdown. File del libro, file della libreria, file di accompagnamento e capitoli restano intatti, e riattivando l'estensione lo stato torna invariato.

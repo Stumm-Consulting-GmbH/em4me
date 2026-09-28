@@ -24,6 +24,12 @@ El modo en vivo renderiza el Markdown directamente en el editor: negrita y cursi
 
 **Las tablas están exentas de esta regla.** Permanecen compuestas aunque el cursor esté dentro: el clic acierta la celda, el tabulador y las flechas llevan de celda en celda, y lo que se escribe llega al lugar correcto de la fuente. Quien necesite la sintaxis en bruto de una tabla —la fila separadora con sus dos puntos de alineación, por ejemplo— cambia a la vista de código o a la vista dividida.
 
+**Escribir en una celda.** El tabulador en la última celda de la última fila añade una fila nueva con el mismo número de columnas y coloca el cursor en su primera celda, igual que en la vista de código; Mayús+Tab no añade ninguna. Lo que se escribe en una celda se conserva sea cual sea la forma de salir de ella: con Intro, Tab o una flecha, con un clic en otra celda o en cualquier lugar fuera de la tabla, al guardar, al cambiar de documento o de vista y al cerrar el documento. Esc descarta lo escrito en la celda. Mientras una celda está abierta, Ctrl+Z deshace lo escrito en ella; el deshacer del documento actúa en cuanto se sale de la celda.
+
+**Clic derecho en una celda.** Coloca el cursor en la celda pulsada y abre allí el [menú contextual](context-menu.md); sus funciones, como las del submenú **Tabla**, actúan en ese lugar. Lo que se esté escribiendo se conserva.
+
+**Sugerencias en una celda.** Tras `[[` y `#` aparece junto a la celda la misma [lista de sugerencias](linking.md) que en el texto, con las mismas entradas en el mismo orden. Las flechas arriba y abajo eligen, Intro acepta, Esc cierra solo la lista y deja la celda abierta; mientras la lista está abierta, las flechas e Intro no llevan a otra celda. En una celda no se sugieren marcadores de tarea, porque una fila de tabla no es una línea de tarea.
+
 **Los enlaces en el texto corrido están marcados de forma permanente.** Llevan su subrayado en todo momento, sin que el ratón tenga que estar encima: tanto los enlaces wiki como los de Markdown, tanto hacia un documento como hacia una dirección externa. La vista renderizada sigue subrayando un enlace solo al pasar el ratón; en la vista en la que se escribe, en cambio, debe verse sin esfuerzo que detrás de un texto hay un enlace. En la línea del cursor aparece la sintaxis en bruto como de costumbre.
 
 ### Mapa mental
@@ -105,8 +111,8 @@ La barra de estado muestra palabras, caracteres y el tiempo de lectura estimado 
 La configuración se abre como pestaña propia (Archivo → Configuración…, predeterminado `Ctrl+,`). Su navegación se divide en cuatro bloques:
 
 - **General** — todo lo que vale para la aplicación entera, por ejemplo apariencia, comportamiento, atajos de teclado y exportación.
-- **Área actual** — los ajustes del área abierta. El bloque solo aparece mientras haya un área abierta.
-- **Extensiones (internas)** — activar y desactivar las extensiones incluidas, con sus propias secciones.
+- **Área actual** — los ajustes del área abierta. El bloque solo aparece mientras haya un área abierta. Con un libro abierto se llama **Libro actual**, con una estantería abierta **Estantería actual**; en primer lugar está entonces la sección **Datos propios** con el título, el autor, la descripción y la imagen de portada, y en la estantería además la presentación. Las demás secciones del bloque son las mismas en los tres casos, véase [Libros](books.md).
+- **Extensiones (internas)** — el modo de trabajo que las cambia en bloque, y activar y desactivar las extensiones incluidas, con sus propias secciones.
 - **Extensiones (externas)** — la gestión de paquetes de extensión instalados por uno mismo.
 
 Los cambios actúan primero como borrador con vista previa en vivo de la apariencia. Aplicar y OK guardan; ambos solo se resaltan cuando hay cambios sin guardar, sin cambios Aplicar queda atenuado. Cancelar o cerrar la pestaña descarta el borrador. Los valores guardados valen de inmediato en todas las ventanas abiertas. Más sobre los dos bloques de extensiones está en la página [Extensiones](extensions.md).

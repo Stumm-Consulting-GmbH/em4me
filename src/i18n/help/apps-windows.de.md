@@ -87,13 +87,19 @@ Die Nummern rücken beim Schließen lückenlos nach: Schließt Applikation 1, wi
 
 ## Bereiche
 
-Ein **Bereich** bindet eine Applikation an einen Ordner: Alles in diesem Ordner inklusive Unterordner ist der Arbeitsraum, sonst nichts. „Datei → Bereich → Bereich öffnen…" wählt den Ordner; „Datei → Bereich → Bereich schließen" beendet die Arbeit im Bereich und schließt alle Fenster der Bereichs-Applikation (mit den üblichen Speichern-Nachfragen). Die Bindung ist fest: Ein Bereich kann nicht gewechselt, nur geschlossen werden.
+Ein **Bereich** bindet eine Applikation an einen Ordner: Alles in diesem Ordner inklusive Unterordner ist der Arbeitsraum, sonst nichts. „Datei → Bereich → Bereich öffnen…" wählt den Ordner; „Datei → Bereich → Bereich schließen" beendet die Arbeit im Bereich und schließt alle Fenster **dieser** Bereichs-Applikation (mit den üblichen Speichern-Nachfragen); läuft derselbe Ordner zusätzlich in einer zweiten Applikation, bleibt diese mit ihren Dokumenten stehen. Die Bindung ist fest: Ein Bereich kann nicht gewechselt, nur geschlossen werden.
 
-Beim Öffnen gelten drei Regeln:
+Beim Öffnen eines Bereichs, der noch nicht läuft, gelten zwei Regeln:
 
 - Ist die Applikation leer (keine geöffnete Datei), übernimmt sie den Bereich.
 - Hat die Applikation bereits eine geöffnete Datei, entsteht eine neue Applikation für den Bereich.
-- Läuft der Bereich bereits, wechselt der Fokus in ein Fenster der laufenden Bereichs-Applikation; derselbe Bereich läuft nie doppelt.
+
+**Läuft der Bereich bereits**, kommt es darauf an, ob an der laufenden Applikation ein Arbeitsbereich (siehe unten) hängt:
+
+- **Ohne Arbeitsbereich** wechselt der Fokus ohne Nachfrage in ein Fenster der laufenden Bereichs-Applikation. Das gilt auch, wenn derselbe Ordner zugleich in einem Arbeitsbereich läuft: Der Fokus geht dann in die Applikation ohne Arbeitsbereich.
+- **Mit Arbeitsbereich** fragt die Anwendung nach, wenn die Funktion „Arbeitsbereiche“ eingeschaltet ist; ist sie ausgeschaltet, wechselt der Fokus wie ohne Arbeitsbereich. „Zum laufenden Fenster wechseln“ holt das zuletzt aktive Fenster des Arbeitsbereichs nach vorn. „Zusätzlich öffnen“ öffnet den Bereich ein zweites Mal, in einer neuen Applikation mit eigenem Fenster und eigenen Tabs; sie gehört nicht zum Arbeitsbereich. „Abbrechen“ lässt alles, wie es war.
+
+Die Nachfrage erscheint auf jedem Weg, der einen Bereich öffnet, etwa über „Bereich öffnen…“ oder „Zuletzt geöffnete Bereiche“. Zwei Applikationen auf demselben Ordner arbeiten unabhängig voneinander, die harten Grenzen des Bereichs gelten in beiden. Unterscheiden lassen sie sich am Fenstertitel: Die eine nennt den Arbeitsbereich, die andere nicht. Bei aktiver Sitzungs-Wiederherstellung kehren beide beim nächsten Start als zwei Applikationen zurück, und jede bekommt ihre eigenen ungespeicherten Entwürfe wieder.
 
 **Demo-Area:** „Datei → Bereich → Demo-Area erstellen…" kopiert eine mitgelieferte englischsprachige Beispiel-Sammlung — Markdown-Seiten samt Bild- und PDF-Anlagen, die die wichtigsten Funktionen zeigen — in einen leeren Ordner und öffnet ihn direkt als Bereich: eine Sandbox zum gefahrlosen Ausprobieren. Nicht-leere Zielordner werden abgelehnt, vorhandene Dateien werden niemals überschrieben. Die Funktion ist als Erweiterung „Demo-Area" abschaltbar; bereits erstellte Demo-Ordner sind gewöhnliche Bereiche und bleiben davon unberührt.
 
@@ -157,7 +163,7 @@ Diese Seite gilt immer **einem** Bereich, dem geöffneten. Eine knappe Kennzahle
 
 Ein Bereich kann eine seiner Dateien als **Start-Seite** führen: Sie öffnet sich beim Öffnen des Bereichs von selbst, so wie ein Buch seine erste Seite aufschlägt. Festgelegt und wieder entfernt wird sie über das Kontextmenü einer Datei im Bereichs-Panel; die festgelegte Datei ist dort an einem vorangestellten Zeichen und halbfetter Schrift erkennbar.
 
-Die **Sitzungs-Wiederherstellung hat Vorrang**: Kommt beim Programmstart eine Bereichs-Applikation mit ihren zuvor geöffneten Dokumenten zurück, bleibt die Start-Seite zu — Sie arbeiten dort weiter, wo Sie aufgehört haben. Sie öffnet sich, wo es nichts wiederherzustellen gibt: beim Öffnen eines Bereichs im laufenden Betrieb und beim Programmstart einer Bereichs-Applikation ohne gespeicherte Dokumente. Der Sprung in einen bereits laufenden Bereich öffnet ihn nicht neu und lässt die Start-Seite unangetastet.
+Die **Sitzungs-Wiederherstellung hat Vorrang**: Kommt beim Programmstart eine Bereichs-Applikation mit ihren zuvor geöffneten Dokumenten zurück, bleibt die Start-Seite zu — Sie arbeiten dort weiter, wo Sie aufgehört haben. Sie öffnet sich, wo es nichts wiederherzustellen gibt: beim Öffnen eines Bereichs im laufenden Betrieb und beim Programmstart einer Bereichs-Applikation ohne gespeicherte Dokumente. Der Sprung in einen bereits laufenden Bereich, auch der Wechsel über die Nachfrage, öffnet ihn nicht neu und lässt die Start-Seite unangetastet; „Zusätzlich öffnen“ öffnet ihn dagegen wie beim ersten Mal, samt Start-Seite.
 
 Die Festlegung gehört zum Bereich und wandert mit seinem Ordner. Wird die Datei innerhalb der Anwendung umbenannt oder verschoben, zieht die Festlegung mit; verlässt die Datei den Bereich, entfällt sie. Zeigt die Festlegung ins Leere, öffnet der Bereich unverändert und die Anwendung weist darauf hin — ein Bereich ohne Start-Seite verhält sich wie zuvor.
 

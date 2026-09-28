@@ -148,6 +148,24 @@ Una estantería abierta aparece como página propia en el sistema de pestañas. 
 
 Bajo el fondo está la sección **Sin asignar** con las carpetas de libro de la carpeta de la estantería que aún no están asignadas; **Añadir** las asigna, **Quitar** retira una asignación sin tocar la carpeta del libro. Un libro asignado cuya carpeta falta sigue visible y queda marcado como faltante.
 
+## La configuración de un libro y de una estantería
+
+Un libro abierto y una estantería abierta dicen también en la configuración (Archivo → Configuración…) a qué se refieren: el bloque de navegación ligado al área ya no se llama entonces «Área actual», sino **Libro actual** o **Estantería actual**, y los títulos de sus secciones hablan igualmente del libro o de la estantería en lugar del área. Lo que cuenta es la vinculación de la ventana y no el archivo que esté en primer plano: en una ventana de libro sigue siendo «Libro actual», sea cual sea el capítulo abierto, y dos ventanas con vinculaciones distintas muestran cada una su propia etiqueta.
+
+### Datos propios
+
+En primer lugar del bloque está la sección **Datos propios**. Lleva los datos que el libro y la estantería tienen de todos modos:
+
+- **Título**, **Autor** y **Descripción** — tres campos del front matter del archivo del libro o de la estantería.
+- **Imagen de portada** — la referencia de imagen `cover`, indicada como ruta relativa a la carpeta del libro o de la estantería. Un campo vacío significa: sin imagen de portada. Si en esa ruta no hay ningún archivo, la sección lo indica y la vista de la estantería toma el mosaico de relleno; no es un error.
+- **Presentación** — solo en la estantería: mosaicos o filas, la misma elección que el conmutador de la vista de la estantería. Vale por estantería y solo en este equipo.
+
+Como en toda la página de configuración, los cambios solo surten efecto con Aplicar u OK.
+
+Es **el mismo lugar que antes**: los cuatro datos están en el [front matter](frontmatter.md) del archivo del libro o de la estantería, y la sección los edita exactamente allí. Quien los cambie en el propio archivo verá el cambio aquí, y al revés; no surge un segundo lugar de almacenamiento.
+
+En un área corriente la sección no aparece, porque allí estos datos no existen. Las demás secciones del bloque — Historial del documento, Adjuntos, Plantillas, Vínculos entre áreas, Base de datos, Diarios, Sistemas de calendario, Perfiles de propiedades y Variantes — permanecen sin cambios y actúan en la carpeta del libro y de la estantería como en cualquier otra área.
+
 ## Activar y desactivar
 
 Los libros y las estanterías forman juntos una extensión conmutable (Configuración → [Extensiones](extensions.md), grupo Herramientas), activada de fábrica. En estado desactivado desaparecen las entradas de menú, los comandos, el panel y la vista de estantería; los archivos de libro y de estantería se abren entonces como cualquier otro archivo Markdown. El archivo del libro, el archivo de estantería, los archivos complementarios y los capítulos quedan intactos, y al volver a activar la extensión el estado regresa sin cambios.

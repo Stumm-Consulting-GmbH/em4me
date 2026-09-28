@@ -82,7 +82,7 @@ For block anchors the full surrounding block is embedded (list item with sub-lis
 If a Markdown file carries the same name as an attachment, the Markdown file wins; written with its extension (`![[image.png]]`) the case is unambiguous. Plain Markdown images `![](path.png)` are unaffected — their spelling means a path, not a name.
 ## Area links
 
-Two areas can be linked so that a reference leads across the area boundary. This is set up under **Settings → Current area → Area links**: it holds the folder of the other area and a **prefix** under which that area is addressed from now on.
+Two areas can be linked so that a reference leads across the area boundary. This is set up under **Settings → Current area → Area links** (with a book open the block is called **Current book**, with a bookshelf open **Current bookshelf**): it holds the folder of the other area and a **prefix** under which that area is addressed from now on.
 
 The prefix applies **only in this area and only in this direction**. How the other area refers back to this one is set there and may differ. Letters, digits, hyphen and underscore are allowed; upper and lower case make no difference.
 
@@ -146,13 +146,15 @@ While typing in edit mode a suggestion dropdown opens:
 - `[[File#` heading anchors, `[[File#^` block IDs,
 - `#` in body text known tags.
 
-Arrow keys navigate, Enter or Tab selects, Esc closes.
+Arrow keys navigate, Enter selects, Esc closes.
 
 As long as nothing is typed after `[[`, the most recently changed files of the area appear at the top, the newest first. Once you filter, match quality leads again; the change time then only decides between suggestions of equal rank.
 
 After `#`, the tags used more often in the area appear at the top, the most frequent first; here too match quality leads as soon as something is typed, and frequency then decides between equals. The number behind each suggestion states it.
 
 Accepting a file or alias suggestion also writes the closing brackets and places the cursor behind them. If they are already there, no second pair appears.
+
+In a table cell in live view, the same list appears at the cell, with the same entries and the same controls; details under [Views and display](views-display.md). It offers no task markers there, because a table row is not a task line; the same applies in the source view.
 
 ## Sidebars for the network
 

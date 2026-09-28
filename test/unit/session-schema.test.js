@@ -171,3 +171,49 @@ describe('sitzungHatPanes — Vorrang der Sitzung vor der Start-Seite', () => {
     expect(sitzungHatPanes([{ panes: 'kaputt' }, null])).toBe(false);
   });
 });
+
+// 4T-001742 (Epic 3E-000309): Zwei Applikationen auf demselben Ordner werden
+// als zwei Einträge abgelegt; die Normalisierung führt gleiche Wurzeln nicht
+// zusammen, und die Wiederherstellung erzeugt je Eintrag eine Applikation.
+describe('4T-001742: zwei Applikationen desselben Ordners in der Ablage', () => {
+  it('normalizeSavedApps behält beide Einträge mit gleicher Wurzel', () => {
+    const result = normalizeSavedApps([
+      { area: { rootPath: 'C:\\Notizen' }, windows: [WIN] },
+      { area: { rootPath: 'C:\\Notizen' }, windows: [WIN, WIN] },
+    ]);
+    expect(result).toHaveLength(2);
+    expect(result.map((a) => a.area.rootPath)).toEqual(['C:\\Notizen', 'C:\\Notizen']);
+    expect(result.map((a) => a.windows.length)).toEqual([1, 2]);
+  });
+
+  it('ein Arbeitsbereich und eine gewöhnliche Applikation auf demselben Ordner bleiben getrennt', () => {
+    const apps = normalizeSavedApps([{ area: { rootPath: 'C:\\Notizen' }, windows: [WIN] }]);
+    const ws = normalizeSavedWorkspaces([
+      {
+        id: 'ws-1',
+        name: 'Alpha',
+        color: 'green',
+        open: true,
+        app: { area: { rootPath: 'C:\\Notizen' }, windows: [WIN] },
+      },
+    ]);
+    expect(apps).toHaveLength(1);
+    expect(ws).toHaveLength(1);
+    expect(ws[0].app.area).toEqual(apps[0].area);
+  });
+});
+
+// 4T-001743 (Epic 3E-000309, T3): Die Kennung der App reist mit der Sitzung;
+// ein Bestands-Eintrag ohne Kennung bleibt gültig.
+describe('4T-001743: Kennung der App in der Sitzungs-Ablage', () => {
+  it('behält appKey als nicht-leeren String und lässt das Feld sonst weg', () => {
+    const result = normalizeSavedApps([
+      { appKey: 'app-1', area: { rootPath: 'C:\\Notizen' }, windows: [WIN] },
+      { appKey: '', area: { rootPath: 'C:\\Notizen' }, windows: [WIN] },
+      { area: null, windows: [WIN] },
+    ]);
+    expect(result[0].appKey).toBe('app-1');
+    expect('appKey' in result[1]).toBe(false);
+    expect('appKey' in result[2]).toBe(false);
+  });
+});

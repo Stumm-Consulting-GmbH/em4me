@@ -31,7 +31,7 @@ history: true
 ---
 ```
 
-`history: false` disattiva; una proprietà assente eredita. Il modo più semplice è il menu del clic sull'icona nella barra di stato (attivare, disattivare, usare il valore ereditato). Il valore predefinito dell'area si imposta nella voce di impostazioni «Cronologia del documento» del gruppo di navigazione «Area corrente» (visibile solo quando un'area è aperta); il file di area nasce solo alla prima impostazione.
+`history: false` disattiva; una proprietà assente eredita. Il modo più semplice è il menu del clic sull'icona nella barra di stato (attivare, disattivare, usare il valore ereditato). Il valore predefinito dell'area si imposta nella voce di impostazioni «Cronologia del documento» del gruppo di navigazione «Area corrente» (visibile solo quando un'area è aperta; con un libro aperto il gruppo si chiama **Libro corrente**, con una libreria aperta **Libreria corrente**); il file di area nasce solo alla prima impostazione.
 
 **Disattivare non cancella nulla.** La registrazione va solo in pausa; il file di accompagnamento resta. Alla riattivazione la lacuna viene annotata come un pacchetto raggruppato e la cronologia resta tracciabile senza interruzioni.
 

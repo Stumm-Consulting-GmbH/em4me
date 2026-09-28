@@ -727,6 +727,16 @@ test.describe('ES-13: Bereichs-Gruppe der Navigation bei gebundenem Bereich', ()
       // Position; die Zahl wiederholte nur die Länge der Liste. Dazu
       // ausdrücklich, was die Zahl bis dahin nur nebenbei mitprüfte: Der
       // Abschnitt «Datenbank» fehlt in einem gewöhnlichen Bereich.
+      // 4T-001885 (Epic 3E-000189, Story 4S-000994, AK1 und AK19): In einem
+      // GEWÖHNLICHEN Bereich bleibt alles, wie es war — der Block heißt
+      // «Aktueller Bereich», und den Abschnitt «Eigene Angaben» gibt es hier
+      // nicht. Die Liste darunter bleibt die der Bereichs-Abschnitte.
+      await expect(groups.nth(1).locator('.settings-nav-group-title')).toHaveText(
+        'Aktueller Bereich',
+      );
+      await expect(
+        groups.nth(1).locator('.settings-nav-entry[data-section-id="bookInfo"]'),
+      ).toHaveCount(0);
       const areaEntries = groups.nth(1).locator('.settings-nav-entry');
       await expect.poll(() => abschnittsKennungen(areaEntries)).toEqual(BEREICHS_ABSCHNITTE);
       await expect(

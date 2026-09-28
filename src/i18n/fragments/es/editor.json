@@ -109,5 +109,6 @@
   "inlineCalc.error.function": "Función desconocida o número incorrecto de argumentos",
   "inlineCalc.error.value": "La expresión no se puede evaluar",
   "tableEdit.hint.notFound": "Tabla no encontrada de forma inequívoca en el código fuente, cambio descartado",
-  "tableEdit.hint.blocked": "Tabla con errores de estructura, edición solo en el código fuente"
+  "tableEdit.hint.blocked": "Tabla con errores de estructura, edición solo en el código fuente",
+  "tableEdit.hint.keptOpen": "La celda se ha modificado desde otro lugar mientras tanto: Intro aplica su entrada, Escape la descarta"
 }

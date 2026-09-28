@@ -56,6 +56,25 @@ function registerShelvesIpc(handle, deps) {
     return shelves.buildShelfViewData(shelfDir);
   });
 
+  // 4T-001885 (Epic 3E-000189): Die eigenen Angaben des Regals — Titel, Autor,
+  // Beschreibung und Titelbild aus dem Frontmatter der Regal-Datei. Muster und
+  // Begruendung wie bei den gleichnamigen Buch-Kanaelen; `shelfDir` kommt mit,
+  // weil der Einstellungs-Abschnitt ihn als Schluessel der Darstellungs-Ablage
+  // braucht.
+  handle('shelves:getInfo', (event) => {
+    const appId = appIdOfWindow(senderWindow(event));
+    const shelfDir = appId != null ? activeShelves.get(appId) : null;
+    if (!shelfDir) return { ok: false, error: 'no-shelf' };
+    return shelves.readShelfInfo(shelfDir);
+  });
+
+  handle('shelves:setInfo', (event, werte) => {
+    const appId = appIdOfWindow(senderWindow(event));
+    const shelfDir = appId != null ? activeShelves.get(appId) : null;
+    if (!shelfDir) return { ok: false, error: 'no-shelf' };
+    return shelves.writeShelfInfo(shelfDir, werte);
+  });
+
   // "Buecherregal oeffnen…" mit Ordner-Dialog.
   handle('shelves:openDialog', (event) => openShelfDialog(senderWindow(event)));
 

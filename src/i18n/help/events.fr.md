@@ -2,7 +2,7 @@
 
 La gestion des événements conserve **les rendez-vous, anniversaires, dates anniversaires et dates de projet** directement dans le document : sous forme de bloc d'événements intégré avec ses propres lignes de données ou d'agrégation via les propriétés du frontmatter à partir des fichiers de la zone. Chaque entrée affiche l'**écart de temps par rapport à aujourd'hui** en quatre échelons, ainsi que des jalons, la récurrence annuelle, des filtres, cinq vues supplémentaires et des liens entre événements.
 
-La fonction fait partie des [extensions internes](extensions.md) (« Événements ») et requiert les [Profils de propriétés](property-profiles.md) — si cette extension est désactivée, la gestion des événements se désactive également. Désactivé, le bloc reste un bloc de code ordinaire.
+La fonction fait partie des [extensions internes](extensions.md) (« Événements ») et requiert les [Profils de propriétés](property-profiles.md) — tant que la gestion des événements est activée, cette extension ne peut pas être désactivée. Désactivé, le bloc reste un bloc de code ordinaire.
 
 ## Structure du bloc
 

@@ -350,7 +350,10 @@ function registerWindowsIpc(handle, deps) {
     // 4T-000539 (Epic 3E-000098): Arbeitsbereichs-Zuordnung der Sender-App —
     // Entwuerfe eines Arbeitsbereichs-Fensters gehoeren zu dessen Zustand.
     const ws = appId != null ? appRegistry.getWorkspace(appId) : null;
-    return enqueueDraftWrite(() => appendDrafts(drafts, areaRootPath, ws ? ws.id : null));
+    // 4T-001743 (Epic 3E-000309): Kennung der Sender-App, damit die Entwuerfe
+    // bei zwei Apps auf demselben Ordner zu ihrer eigenen zurueckkehren.
+    const appKey = appId != null ? appRegistry.getAppKey(appId) : null;
+    return enqueueDraftWrite(() => appendDrafts(drafts, areaRootPath, ws ? ws.id : null, appKey));
   });
 
   handle('app:locale', () => app.getLocale());

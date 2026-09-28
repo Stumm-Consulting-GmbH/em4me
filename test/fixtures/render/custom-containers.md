@@ -19,5 +19,9 @@ Innerer Container.
 ::::
 
 ::: GROSS
-Großbuchstaben sind kein gültiger Name, der Block bleibt Roh-Text.
+Großbuchstaben im unbekannten Namen: neutrale Box mit dem Namen als Titel, wie geschrieben.
+:::
+
+::: WARNING
+Groß geschriebener Typ: dieselbe Box wie ::: warning.
 :::

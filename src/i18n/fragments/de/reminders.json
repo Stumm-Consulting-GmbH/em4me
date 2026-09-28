@@ -5,6 +5,7 @@
   "reminders.dialog.snooze": "Später erinnern",
   "reminders.dialog.close": "Schließen",
   "reminders.dialog.openFile": "Datei öffnen",
+  "reminders.dialog.origin": "Herkunft: {name}",
   "reminders.notification.count": "{n} Erinnerungen fällig",
   "reminders.snooze.pick": "Datum wählen…",
   "reminders.snooze.m.one": "1 Minute",
@@ -39,5 +40,5 @@
   "settings.reminders.unit.d": "Tage",
   "settings.reminders.unit.w": "Wochen",
   "settings.reminders.systemNotification": "System-Benachrichtigung anzeigen",
-  "settings.reminders.systemNotificationHint": "Zusätzlich zum Dialog, wenn das Fenster nicht im Vordergrund steht."
+  "settings.reminders.systemNotificationHint": "Zusätzlich zum Dialog, wenn kein Fenster der App im Vordergrund steht; je Meldung einmal."
 }

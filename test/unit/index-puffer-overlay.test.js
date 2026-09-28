@@ -19,6 +19,7 @@ import { createRequire } from 'node:module';
 import {
   anchorAutocompleteSuggestions,
   backlinksFor,
+  bufferOwnerFor,
   bufferTextFor,
   existingWikiTargets,
   graphFor,
@@ -294,6 +295,38 @@ describe('Puffer-Overlay: Reichweite der Freischaltung', () => {
     } finally {
       setPlatformForTests(undefined);
     }
+  });
+
+  // 4T-001727 (Epic 3E-000305, Befund der Abnahme vom 2026-09-24): Die Schicht
+  // weiß, WELCHES Fenster den geltenden Stand gemeldet hat. Eine aus ihm fällige
+  // Erinnerung wird dort bearbeitet; auf der Platte steht ihre Zeile so nicht.
+  it('merkt sich den Melder des geltenden Stands: der letzte gewinnt, Rücknahme löscht ihn', async () => {
+    const root = makeRoot();
+    const start = write(root, 'Start.md', '# Start\n');
+    const quelle = write(root, 'Quelle.md', '- [ ] Newsletter\n');
+    await indexFor(start);
+    expect(bufferOwnerFor(quelle)).toBe(null);
+
+    setBufferOverlay(quelle, '- [ ] Newsletter ⏰ 2020-01-01 08:00\n', 7);
+    expect(bufferOwnerFor(quelle)).toBe(7);
+    setBufferOverlay(quelle, '- [ ] Newsletter ⏰ 2020-01-01 09:00\n', 9);
+    expect(bufferOwnerFor(quelle)).toBe(9);
+    // Ohne Melder-Angabe (bisherige Aufrufer) ist der Besitzer unbekannt.
+    setBufferOverlay(quelle, '- [ ] Newsletter\n');
+    expect(bufferOwnerFor(quelle)).toBe(null);
+
+    setBufferOverlay(quelle, '- [ ] Newsletter ⏰ 2020-01-01 08:00\n', 7);
+    try {
+      setPlatformForTests('win32');
+      expect(bufferOwnerFor(path.join(root, 'quelle.md'))).toBe(7);
+      setPlatformForTests('linux');
+      expect(bufferOwnerFor(path.join(root, 'quelle.md'))).toBe(null);
+    } finally {
+      setPlatformForTests(undefined);
+    }
+    clearBufferOverlay(quelle);
+    expect(bufferOwnerFor(quelle)).toBe(null);
+    expect(bufferOwnerFor('')).toBe(null);
   });
 
   // 4T-000952 (Befund E-04): Die Rückverweise lesen den geschriebenen Stand.

@@ -705,15 +705,20 @@ describe('Wiederanlauf: das unvollständige Protokoll (4T-001824, B6)', () => {
 // --- AK1, AK2: die beiden Auslöser, kein dritter, kein Takt -------------------------------
 
 describe('Wiederanlauf: Auslöser und Takt (4T-001824, AK1, AK2)', () => {
-  function bereichsApps(wiederanlauf) {
+  // Der Bereich läuft bereits in einer Applikation ohne Arbeitsbereich; das
+  // Öffnen springt dorthin. Seit dem Zug 3E-000326 (4T-001743) sucht das Öffnen
+  // die laufende Applikation über appIds, getArea und getWorkspace.
+  function bereichsApps(wiederanlauf, wurzel) {
     const fenster = { isDestroyed: () => false, webContents: { id: 1 } };
     const leer = () => {};
     return createAreaApps({
       appRegistry: {
         findAppByArea: () => 'app-1',
+        appIds: () => ['app-1'],
+        getArea: () => ({ rootPath: wurzel }),
+        getWorkspace: () => null,
         windowsOf: () => [1],
         appOf: () => 'app-1',
-        getArea: () => null,
       },
       getStore: () => null,
       windows: new Map([[1, fenster]]),
@@ -735,9 +740,12 @@ describe('Wiederanlauf: Auslöser und Takt (4T-001824, AK1, AK2)', () => {
     const liegt = await liegendesProtokoll(wurzel);
     const echt = prozess().wiederanlauf;
     const gestartet = [];
-    const apps = bereichsApps({
-      raeumeAuf: (w) => gestartet[gestartet.push(echt.raeumeAuf(w)) - 1],
-    });
+    const apps = bereichsApps(
+      {
+        raeumeAuf: (w) => gestartet[gestartet.push(echt.raeumeAuf(w)) - 1],
+      },
+      wurzel,
+    );
 
     expect(await apps.openAreaPath(wurzel, null)).toEqual({ ok: true, focusedExisting: true });
     expect(gestartet).toHaveLength(1);
@@ -747,8 +755,11 @@ describe('Wiederanlauf: Auslöser und Takt (4T-001824, AK1, AK2)', () => {
 
   it('AK1 öffnet auch, wenn der Wiederanlauf nie endet oder scheitert', async () => {
     const wurzel = bereich();
-    const nie = bereichsApps({ raeumeAuf: () => new Promise(() => {}) });
-    const scheitert = bereichsApps({ raeumeAuf: async () => Promise.reject(stoerung('EIO')) });
+    const nie = bereichsApps({ raeumeAuf: () => new Promise(() => {}) }, wurzel);
+    const scheitert = bereichsApps(
+      { raeumeAuf: async () => Promise.reject(stoerung('EIO')) },
+      wurzel,
+    );
 
     expect((await nie.openAreaPath(wurzel, null)).ok).toBe(true);
     expect((await scheitert.openAreaPath(wurzel, null)).ok).toBe(true);

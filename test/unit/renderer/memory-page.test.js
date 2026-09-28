@@ -744,6 +744,27 @@ describe('Weg zur ausführlichen Bereichs-Statistik (AK6)', () => {
     await Promise.resolve();
     expect(gebunden).toEqual(['C:\\Ablage\\Wissen']);
   });
+
+  // 4T-001743 (Epic 3E-000309): Beantwortet der Anwender die Nachfrage beim
+  // erneuten Öffnen eines laufenden Bereichs mit «Abbrechen», bleibt der Weg
+  // ohne Wirkung und ohne Meldung — bis dahin erschien hier «Der Bereich
+  // konnte nicht geöffnet werden.».
+  it('bleibt nach dem Abbruch der Nachfrage still', async () => {
+    openAreaAntwort = { ok: false, canceled: true };
+    const container = await oeffneDetail();
+    const hinweis = document.getElementById('statusbar-hint');
+    hinweis.textContent = '';
+    hinweis.classList.remove('visible', 'error');
+    const statistikVorher = systemPages.findSystemTabAcrossPanes('area-stats');
+    container.querySelector('.memory-action-area-stats').click();
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(gebunden).toEqual(['C:\\Ablage\\Wissen']);
+    expect(hinweis.textContent).toBe('');
+    expect(hinweis.classList.contains('visible')).toBe(false);
+    expect(systemPages.findSystemTabAcrossPanes('area-stats')).toEqual(statistikVorher);
+  });
 });
 
 // 4T-001602: Der Zugang zum Ex- und Import. Gemessen wird ausschließlich der

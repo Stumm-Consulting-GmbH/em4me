@@ -13,7 +13,9 @@ Three flavours, from simplest to most capable. Back to [[00 Welcome]].
 
 Standard Markdown; the colons in the separator row set alignment. In live view the table
 below stays laid out while you work in it: click a cell and type, then move on with Tab or
-the arrow keys. For the raw syntax — the separator row, for instance — switch to the source
+the arrow keys. Tab in the last cell adds a new row, what you type is kept however you leave
+the cell, and typing `[[` or `#` in a cell brings up the same suggestion list as in body text.
+For the raw syntax — the separator row, for instance — switch to the source
 or the split view.
 
 ```markdown

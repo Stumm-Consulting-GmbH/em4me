@@ -225,10 +225,10 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert columns.md stabil 1`]
 <div class="md-column-break"></div>
 <p data-source-line="9">Zweite Spalte: hier durch den Umbruch-Marker begonnen.</p>
 </div><div class="md-columns md-columns-5"><p data-source-line="13">Fünf Spalten sind das Maximum.</p>
-</div><div class="custom-container container-columns"><p data-source-line="17">Eine Spalte ist ungültig und fällt auf die neutrale Box zurück.</p>
-</div><div class="custom-container container-columns"><p data-source-line="21">Sechs Spalten sind ungültig (Rückfall).</p>
-</div><div class="custom-container container-columns"><p data-source-line="25">Fehlende Zahl fällt zurück.</p>
-</div><div class="custom-container container-columns"><p data-source-line="29">Nicht-numerische Angabe fällt zurück.</p>
+</div><div class="custom-container container-columns"><div class="custom-container-title">columns</div><p data-source-line="17">Eine Spalte ist ungültig und fällt auf die neutrale Box zurück.</p>
+</div><div class="custom-container container-columns"><div class="custom-container-title">columns</div><p data-source-line="21">Sechs Spalten sind ungültig (Rückfall).</p>
+</div><div class="custom-container container-columns"><div class="custom-container-title">columns</div><p data-source-line="25">Fehlende Zahl fällt zurück.</p>
+</div><div class="custom-container container-columns"><div class="custom-container-title">columns</div><p data-source-line="29">Nicht-numerische Angabe fällt zurück.</p>
 </div><p data-source-line="32">Ein Umbruch-Marker außerhalb eines Spalten-Blocks:</p>
 <div class="md-column-break"></div>
 <p data-source-line="36">ist wirkungslos, erzeugt aber ein neutrales Marker-Element.</p>
@@ -297,20 +297,19 @@ zeile zwei</ins>}</p>
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert custom-containers.md stabil 1`] = `
 "<div class="callout callout-warning"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg></span><span class="callout-title" data-i18n="callout.warning.title"></span></div><div class="callout-body"><p data-source-line="2">Inhalt mit <strong>Markdown</strong> im bekannten Typ.</p>
 </div></div><div class="callout callout-tip"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="9" x2="15" y1="18" y2="18"/><line x1="10" x2="14" y1="22" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg></span><span class="callout-title">Eigener Titel</span></div><div class="callout-body"><p data-source-line="6">Container mit Override-Titel.</p>
-</div></div><div class="custom-container container-meine-box"><p data-source-line="10">Unbekannter Name ergibt eine neutrale Box.</p>
+</div></div><div class="custom-container container-meine-box"><div class="custom-container-title">meine-box</div><p data-source-line="10">Unbekannter Name ergibt eine neutrale Box.</p>
 </div><div class="callout callout-note"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span><span class="callout-title" data-i18n="callout.note.title"></span></div><div class="callout-body"><p data-source-line="14">Äußerer Container (vier Doppelpunkte).</p>
 <div class="callout callout-tip"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="9" x2="15" y1="18" y2="18"/><line x1="10" x2="14" y1="22" y2="22"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/></svg></span><span class="callout-title" data-i18n="callout.tip.title"></span></div><div class="callout-body"><p data-source-line="17">Innerer Container.</p>
-</div></div></div></div><p data-source-line="21">::: GROSS
-Großbuchstaben sind kein gültiger Name, der Block bleibt Roh-Text.
-:::</p>
-"
+</div></div></div></div><div class="custom-container container-gross"><div class="custom-container-title">GROSS</div><p data-source-line="22">Großbuchstaben im unbekannten Namen: neutrale Box mit dem Namen als Titel, wie geschrieben.</p>
+</div><div class="callout callout-warning"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg></span><span class="callout-title" data-i18n="callout.warning.title"></span></div><div class="callout-body"><p data-source-line="26">Groß geschriebener Typ: dieselbe Box wie ::: warning.</p>
+</div></div>"
 `;
 
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert custom-containers-portable.md stabil 1`] = `
 "&lt;!-- perspective-portable --&gt;
 <div class="callout callout-warning" style="border-left:4px solid #fd7e14;background:rgba(253,126,20,0.12);border-radius:6px;margin:1em 0;"><div class="callout-header" style="display:flex;align-items:center;gap:0.5em;padding:0.4em 0.8em;font-weight:600;color:#fd7e14;"><span class="callout-icon" style="display:inline-flex;align-items:center;color:#fd7e14;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg></span><span class="callout-title">Warnung</span></div><div class="callout-body" style="padding:0.4em 0.8em 0.6em 0.8em;"><p>Portable-Container im bekannten Typ (Inline-Styles, env.lang-Titel).</p>
 </div></div><div class="callout callout-danger" style="border-left:4px solid #b02a37;background:rgba(176,42,55,0.12);border-radius:6px;margin:1em 0;"><div class="callout-header" style="display:flex;align-items:center;gap:0.5em;padding:0.4em 0.8em;font-weight:600;color:#b02a37;"><span class="callout-icon" style="display:inline-flex;align-items:center;color:#b02a37;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span class="callout-title">Eigene Überschrift</span></div><div class="callout-body" style="padding:0.4em 0.8em 0.6em 0.8em;"><p>Mit Override-Titel.</p>
-</div></div><div class="custom-container container-neutrale-box" style="border:1px solid #ccc;border-radius:6px;padding:0.4em 0.8em;margin:1em 0;"><p>Unbekannter Name als neutrale Box mit Inline-Style.</p>
+</div></div><div class="custom-container container-neutrale-box" style="border:1px solid #ccc;border-radius:6px;padding:0.4em 0.8em;margin:1em 0;"><div class="custom-container-title" style="font-weight:600;margin:0 0 0.4em 0;">neutrale-box</div><p>Unbekannter Name als neutrale Box mit Inline-Style.</p>
 </div>"
 `;
 

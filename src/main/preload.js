@@ -334,11 +334,24 @@ contextBridge.exposeInMainWorld('api', {
   remindersMute: (keys) => ipcRenderer.invoke('reminders:mute', keys),
   remindersRetrigger: (keys) => ipcRenderer.invoke('reminders:retrigger', keys),
   remindersSystemNotify: (payload) => ipcRenderer.invoke('reminders:systemNotify', payload),
+  // 4T-001727 (Epic 3E-000305): Meldung in allen Fenstern — Raeumen nach einer
+  // Bearbeitung in einem anderen Fenster, Anspruch vor der Bearbeitung,
+  // Rueckgabe nach gescheitertem Schreiben und Nachholen des offenen Stands.
+  onRemindersHandled: (cb) => ipcRenderer.on('reminders:handled', (_e, payload) => cb(payload)),
+  remindersClaim: (entry) => ipcRenderer.invoke('reminders:claim', entry),
+  remindersRelease: (entry) => ipcRenderer.invoke('reminders:release', entry),
+  remindersOpen: () => ipcRenderer.invoke('reminders:open'),
+  // Datei-Link: oeffnet im Fenster des Herkunfts-Bereichs (Anfrage und Auftrag).
+  remindersOpenSource: (ziel) => ipcRenderer.invoke('reminders:openSource', ziel),
+  onRemindersOpenSource: (cb) => ipcRenderer.on('reminders:openSource', (_e, ziel) => cb(ziel)),
+  // Bearbeitung im Fenster, dessen ungespeicherter Stand gilt (Anfrage und Auftrag).
+  remindersEdit: (auftrag) => ipcRenderer.invoke('reminders:edit', auftrag),
+  onRemindersEdit: (cb) => ipcRenderer.on('reminders:edit', (_e, auftrag) => cb(auftrag)),
   // 4T-000528 (Epic 3E-000095): Multi-Window-Broadcast bei remindersConfig-Aenderung.
   onRemindersConfigChanged: (cb) => ipcRenderer.on('remindersConfig:changed', (_e, cfg) => cb(cfg)),
 
   // 4T-000637 (Epic 3E-000069): Wecker — Zustellung faelliger Wecker vom
-  // Main-Pruefer (an genau ein Fenster), Bestaetigen und Schlummern gegen
+  // Main-Pruefer (seit 4T-001728 an alle Fenster), Bestaetigen und Schlummern gegen
   // dessen Session-Zustand, Multi-Window-Broadcast der Wecker-Liste. Die
   // System-Benachrichtigung laeuft ueber den neutralen Kanal notify:system
   // (dieselbe Anzeige-Logik wie bei den Erinnerungen).
@@ -346,10 +359,13 @@ contextBridge.exposeInMainWorld('api', {
   onClockAlarmsChanged: (cb) => ipcRenderer.on('clockAlarms:changed', (_e, list) => cb(list)),
   alarmSnooze: (key, minutes) => ipcRenderer.invoke('alarm:snooze', { key, minutes }),
   alarmConfirm: (key) => ipcRenderer.invoke('alarm:confirm', { key }),
+  // 4T-001728 (Epic 3E-000305): Raeumen und Nachholen der Wecker-Meldung.
+  onAlarmHandled: (cb) => ipcRenderer.on('alarm:handled', (_e, payload) => cb(payload)),
+  alarmOpen: () => ipcRenderer.invoke('alarm:open'),
   systemNotify: (payload) => ipcRenderer.invoke('notify:system', payload),
 
   // 4T-000638 (Epic 3E-000069): Timer und Stoppuhr — Zustellung abgelaufener
-  // Timer vom Main-Pruefer (an genau ein Fenster) und die Multi-Window-
+  // Timer vom Main-Pruefer (seit 4T-001728 an alle Fenster) und die Multi-Window-
   // Broadcasts beider Listen. Start, Pause und Zuruecksetzen laufen ueber
   // den normalen Einstellungs-Weg (setSetting), weil der Zustand im Store
   // liegt; ein eigener Kanal waere doppelte Verdrahtung.
@@ -369,6 +385,10 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.on('statusbarUnavailableMode:changed', (_e, value) => cb(value)),
 
   onTimerDue: (cb) => ipcRenderer.on('timer:due', (_e, payload) => cb(payload)),
+  // 4T-001728: Raeumen, Anspruch und Nachholen der Timer-Meldung.
+  onTimerHandled: (cb) => ipcRenderer.on('timer:handled', (_e, payload) => cb(payload)),
+  timerClaim: (ids) => ipcRenderer.invoke('timer:claim', ids),
+  timerOpen: () => ipcRenderer.invoke('timer:open'),
   onClockTimersChanged: (cb) => ipcRenderer.on('clockTimers:changed', (_e, list) => cb(list)),
   onClockStopwatchChanged: (cb) => ipcRenderer.on('clockStopwatch:changed', (_e, sw) => cb(sw)),
 
@@ -638,27 +658,9 @@ contextBridge.exposeInMainWorld('api', {
   getAreaLinkConfig: () => ipcRenderer.invoke('areaLink:getConfig'),
   setAreaLinkConfig: (l) => ipcRenderer.invoke('areaLink:setConfig', l),
   // 4T-001505 (Zug 3E-000277): Der Buecher-Anteil der Bruecke liegt in einem
-  // eigenen Modul; die Begruendung des Schnitts steht dort.
+  // eigenen Modul; die Begruendung des Schnitts steht dort. Seit 4T-001885
+  // (Epic 3E-000189) traegt dasselbe Modul auch den Regal-Namensraum.
   ...buecherBruecke(ipcRenderer),
-  // 4T-000867 (Epic 3E-000162): Buecherregale — Zustand des aktiven Regals,
-  // beide Oeffnungswege, Neuanlage, Schliessen und die Zuordnung. Die
-  // dialog-freien Pfad-Einstiege (openPath, createAt) spiegeln das
-  // books-Muster und tragen die automatisierte Pruefung.
-  shelves: {
-    getState: () => ipcRenderer.invoke('shelves:getState'),
-    // 4T-000868: Anzeige-Daten der Regal-Ansicht und das Oeffnen der Seite
-    // (der Main meldet es bei jedem Regal-Oeffnen-Weg).
-    getViewData: () => ipcRenderer.invoke('shelves:getViewData'),
-    onOpenPage: (cb) => ipcRenderer.on('shelves:openPage', () => cb()),
-    openDialog: () => ipcRenderer.invoke('shelves:openDialog'),
-    createDialog: () => ipcRenderer.invoke('shelves:createDialog'),
-    close: () => ipcRenderer.invoke('shelves:close'),
-    onStateChanged: (cb) => ipcRenderer.on('shelves:stateChanged', (_e, state) => cb(state)),
-    openPath: (shelfDir) => ipcRenderer.invoke('shelves:openPath', shelfDir),
-    createAt: (parentDir, name) => ipcRenderer.invoke('shelves:createAt', { parentDir, name }),
-    assignBook: (dirName) => ipcRenderer.invoke('shelves:assignBook', dirName),
-    unassignBook: (dirName) => ipcRenderer.invoke('shelves:unassignBook', dirName),
-  },
   // 4T-001598 (Epic 3E-000191): My Extended Memory — die von Hand gepflegte
   // Gefaess-Liste. getViewData liefert je Eintrag Art, Pfad, Name, Stand,
   // Erreichbarkeit und (ab 4T-001600) die Kennzahlen; addPath ist der

@@ -2,7 +2,7 @@
 
 Die Ereignis-Verwaltung hält **Termine, Geburtstage, Jahrestage und Projekt-Daten** direkt im Dokument: als eingebetteter Ereignis-Block mit eigenen Datenzeilen oder als Aggregation über Frontmatter-Eigenschaften aus den Dateien des Bereichs. Jeder Eintrag zeigt die **Zeitdifferenz zum heutigen Tag** in vier Staffelungen, dazu Meilensteine, Jahres-Wiederkehr, Filter, fünf Zusatz-Ansichten und Verknüpfungen zwischen Ereignissen.
 
-Die Funktion gehört zu den [internen Erweiterungen](extensions.md) („Ereignisse") und setzt die [Eigenschafts-Profile](property-profiles.md) voraus — wird deren Erweiterung deaktiviert, schaltet sich die Ereignis-Verwaltung mit ab. Deaktiviert bleibt der Block ein regulärer Code-Block.
+Die Funktion gehört zu den [internen Erweiterungen](extensions.md) („Ereignisse") und setzt die [Eigenschafts-Profile](property-profiles.md) voraus — solange die Ereignis-Verwaltung eingeschaltet ist, lässt sich deren Erweiterung nicht abschalten. Deaktiviert bleibt der Block ein regulärer Code-Block.
 
 ## Aufbau des Blocks
 

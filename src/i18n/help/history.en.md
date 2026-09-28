@@ -31,7 +31,7 @@ history: true
 ---
 ```
 
-`history: false` switches off; a missing property inherits. The easiest way to set the property is the click menu of the statusbar icon (enable, disable, use inherited value). The area default is set in the "Document history" settings entry of the "Current area" navigation group (only visible when an area is open); the area file is only created when the default is first set.
+`history: false` switches off; a missing property inherits. The easiest way to set the property is the click menu of the statusbar icon (enable, disable, use inherited value). The area default is set in the "Document history" settings entry of the "Current area" navigation group (only visible when an area is open; with a book open the group is called **Current book**, with a bookshelf open **Current bookshelf**); the area file is only created when the default is first set.
 
 **Switching off deletes nothing.** Recording merely pauses; the companion file is kept. When switched back on, the gap is recorded as one combined packet, so the history remains traceable without breaks.
 

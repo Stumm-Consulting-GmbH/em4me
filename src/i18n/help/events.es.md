@@ -2,7 +2,7 @@
 
 La gestión de eventos mantiene **las citas, los cumpleaños, los aniversarios y las fechas de proyecto** directamente en el documento: como bloque de eventos integrado con sus propias filas de datos o como agregación mediante las propiedades del frontmatter a partir de los archivos del área. Cada entrada muestra la **diferencia de tiempo respecto a hoy** en cuatro escalones, además de hitos, recurrencia anual, filtros, cinco vistas adicionales y vínculos entre eventos.
 
-La función pertenece a las [extensiones internas](extensions.md) («Eventos») y requiere los [Perfiles de propiedades](property-profiles.md): si esa extensión se desactiva, la gestión de eventos también se desactiva. Desactivado, el bloque sigue siendo un bloque de código normal.
+La función pertenece a las [extensiones internas](extensions.md) («Eventos») y requiere los [Perfiles de propiedades](property-profiles.md): mientras la gestión de eventos esté activada, esa extensión no se puede desactivar. Desactivado, el bloque sigue siendo un bloque de código normal.
 
 ## Estructura del bloque
 

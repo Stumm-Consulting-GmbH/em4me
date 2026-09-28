@@ -3,6 +3,8 @@
   "settings.title": "Configuración",
   "settings.navGroup.general": "General",
   "settings.navGroup.area": "Área actual",
+  "settings.navGroup.book": "Libro actual",
+  "settings.navGroup.shelf": "Estantería actual",
   "settings.navGroup.extensionsInternal": "Extensiones (internas)",
   "settings.navGroup.extensionsExternal": "Extensiones (externas)",
   "settings.appearance": "Apariencia",

@@ -20,6 +20,7 @@ These data kinds are available:
 | Format toolbar | your own layout of the button bar |
 | Status bar buttons and macros | your own access points in the status bar, the context menu section, the hide list and the macros you built yourself |
 | Extension on/off state | which extensions are switched on and which are switched off |
+| Custom working modes | the named switch states of the built-in extensions that you saved yourself |
 | Sidebar arrangement | panel choice, order, tab groups and widths together with your own layout variants |
 | Template folder and rules | the template folder and the ordered chain of folder rules |
 | Bookmarks | the tree of the general bookmarks with folders and entries |
@@ -83,7 +84,7 @@ Nothing is passed over silently: every deviation from the straightforward case s
 
 > What you created as a named object is added. What is a setting or an arrangement is replaced.
 
-Added are therefore your own color schemes, the macros, the layout variants of the sidebar, the bookmarks and the calendar blocks: they step **alongside** what is there, and the existing stock is not touched in the process. Replaced are the settings, the keyboard shortcut assignment, the format toolbar, the template rules and the on/off state of the extensions: a value knows no plural, and two interleaved arrangements would yield a third that nobody set up.
+Added are therefore your own color schemes, the macros, the layout variants of the sidebar, the custom working modes, the bookmarks and the calendar blocks: they step **alongside** what is there, and the existing stock is not touched in the process. Replaced are the settings, the keyboard shortcut assignment, the format toolbar, the template rules and the on/off state of the extensions: a value knows no plural, and two interleaved arrangements would yield a third that nobody set up.
 
 **With an identical name the existing entry stays unchanged**, and the one read in comes alongside it with a distinguishing addition: "Sample" becomes "Sample (2)". The preview names every such renaming by name. References follow along — a macro read in that receives a new identifier is still found by its button.
 

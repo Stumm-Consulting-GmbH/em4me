@@ -341,3 +341,19 @@ describe('kopierNameKandidat (4T-001731)', () => {
     expect(kopierNameKandidat('A|B.md', 1)).toBeNull();
   });
 });
+
+// 4T-001742 (Epic 3E-000309): Ein zusätzliches Öffnen desselben Ordners ist für
+// die Zuletzt-Liste ein Öffnen wie jedes andere: Der Eintrag rückt nach vorn,
+// ein zweiter entsteht nicht, auch nicht bei anderer Schreibweise.
+describe('4T-001742: Zuletzt-Liste beim zusätzlichen Öffnen', () => {
+  it('erzeugt keinen zweiten Eintrag für denselben Ordner', () => {
+    const vorher = [P('C:\\Notizen'), P('C:\\Archiv')];
+    expect(updatedRecentAreas(vorher, P('C:\\Notizen'))).toEqual(vorher);
+    const zweimal = updatedRecentAreas(
+      updatedRecentAreas(vorher, P('C:\\Archiv')),
+      P('c:/notizen/'),
+    );
+    expect(zweimal).toHaveLength(2);
+    expect(zweimal[0]).toBe(P('c:\\notizen'));
+  });
+});

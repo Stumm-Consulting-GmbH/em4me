@@ -43,6 +43,50 @@ window.api = {
   onRemindersDue: (handler) => {
     window.__remindersDueHandler = handler;
   },
+  // 4T-001727 (Epic 3E-000305): Räum-Meldung aus dem Hauptprozess, ebenfalls am
+  // Modulkopf angemeldet; dazu die Anspruchs-Wege und das Nachholen des
+  // offenen Stands. Ein Test stellt die Antworten über die window-Felder.
+  onRemindersHandled: (handler) => {
+    window.__remindersHandledHandler = handler;
+  },
+  remindersClaim: async (entry) =>
+    window.__remindersClaim ? window.__remindersClaim(entry) : { granted: true },
+  remindersRelease: async () => ({ released: false }),
+  remindersMute: async () => {},
+  remindersSystemNotify: async () => false,
+  remindersOpen: async () => window.__remindersOffen || { catchUp: false, items: [] },
+  // Datei-Link: Anfrage an den Hauptprozess und Auftrag an das Ziel-Fenster.
+  remindersOpenSource: async (ziel) =>
+    window.__remindersOpenSource ? window.__remindersOpenSource(ziel) : { ok: true, hier: true },
+  onRemindersOpenSource: (handler) => {
+    window.__remindersOpenSourceHandler = handler;
+  },
+  // Bearbeitung im Fenster mit dem ungespeicherten Stand: Anfrage und Auftrag.
+  remindersEdit: async (auftrag) =>
+    window.__remindersEdit ? window.__remindersEdit(auftrag) : { delegiert: false },
+  onRemindersEdit: (handler) => {
+    window.__remindersEditHandler = handler;
+  },
+  // 4T-001728 (Epic 3E-000305): Wecker und Timer melden sich in allen Fenstern;
+  // die Init der Uhr meldet sich an der Räum-Meldung an und holt den offenen
+  // Stand nach (clock-due-sync.js).
+  onAlarmHandled: noop,
+  alarmOpen: async () => ({ catchUp: false, items: [] }),
+  onTimerHandled: noop,
+  timerOpen: async () => ({ catchUp: false, items: [] }),
+  timerClaim: async (ids) => ({ granted: Array.isArray(ids) ? ids : [] }),
+  // 4T-001885 (Epic 3E-000189): Der Einstellungs-Abschnitt «Eigene Angaben»
+  // fragt die Angaben des gebundenen Buches bzw. Regals ab. Ohne gebundenes
+  // Buch fragt er gar nicht erst; die Eintraege stehen fuer die Faelle da, die
+  // eine Bindung stellen.
+  books: {
+    getInfo: async () => ({ ok: false, error: 'no-book' }),
+    setInfo: async () => ({ ok: true }),
+  },
+  shelves: {
+    getInfo: async () => ({ ok: false, error: 'no-shelf' }),
+    setInfo: async () => ({ ok: true }),
+  },
   // Die Eintrags-Liste des Erinnerungs-Dialogs zeigt den Dateinamen ueber die
   // Pfad-Bruecke des Preloads; ohne sie bricht das Rendern der Liste ab.
   basename: (p) =>

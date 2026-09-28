@@ -1,6 +1,6 @@
 {
   "_hinweis": "4T-000831: Zahl der Pruefaelle beider Suiten, ermittelt aus der Auflistung der Test-Werkzeuge (ohne Ausfuehrung). Erzeugt von scripts/test-kennzahlen.js; gelesen vom Zahlenband der Produkt-Webseite. Nicht von Hand pflegen.",
-  "unit": 10869,
-  "e2e": 919,
-  "summe": 11788
+  "unit": 11200,
+  "e2e": 1004,
+  "summe": 12204
 }

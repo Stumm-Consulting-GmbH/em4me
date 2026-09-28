@@ -331,6 +331,66 @@ test.describe('TQ-07: Task-Dialog per Kuerzel — neue Task auf leerer Zeile anl
   });
 });
 
+// 4T-001867 (Epic 3E-000321): TQ-10 — das Erledigt-Datum ist im Dialog bei
+// Status «erledigt» waehlbar. Die Zeile traegt das gespeicherte Datum, der
+// Waehlen-Knopf oeffnet den echten Datums-Kalender, der sich mit der Tastatur
+// bedienen laesst wie beim Faelligkeits-Termin (Pfeil links = Vortag, Enter =
+// uebernehmen); die Uebernahme schreibt die Zeile, EIN Rueckgaengig stellt sie
+// wieder her. Der Wechsel auf «offen» blendet die Zeile sofort aus.
+const DONE = '✅'; // Haken (Erledigt-Datum)
+
+test.describe('TQ-10: Task-Dialog — Erledigt-Datum waehlen', () => {
+  test('Zeile bei erledigt, Wahl per Tastatur im Kalender, Uebernahme und ein Rueckgaengig', async () => {
+    const dir = makeTaskDialogFixture(['# Aufgaben', '', `- [x] Gamma ${DONE} 2099-01-10`, '']);
+    const datei = path.join(dir, 'Aufgaben.md');
+    const { app, page, userData } = await launchApp({ args: [datei] });
+    const doneRow = page.locator('#task-dialog-dates .task-dialog-date-row[data-field="done"]');
+    try {
+      await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+      await enterEditSource(app, page);
+      await page.locator(`${SEL.editorContent0} .cm-line`, { hasText: 'Gamma' }).click();
+      await openDialogByKey(page);
+
+      // Die Zeile traegt das gespeicherte Datum.
+      await expect(doneRow).toBeVisible();
+      await expect(doneRow.locator('.task-dialog-date-value')).toHaveText('2099-01-10');
+
+      // Waehlen oeffnet den Kalender auf dem gespeicherten Tag; Pfeil links
+      // waehlt den Vortag, Enter uebernimmt.
+      await doneRow.locator('button').first().click();
+      const popup = page.locator('#date-picker-popup');
+      await expect(popup).toBeVisible();
+      await expect(popup.locator('button.date-picker-day[data-iso="2099-01-10"]')).toBeFocused();
+      await page.keyboard.press('ArrowLeft');
+      await page.keyboard.press('Enter');
+      await expect(popup).toBeHidden();
+      await expect(page.locator(TASK_DIALOG)).toBeVisible();
+      await expect(doneRow.locator('.task-dialog-date-value')).toHaveText('2099-01-09');
+
+      await page.locator('#btn-task-dialog-ok').click();
+      await expect(page.locator(TASK_DIALOG)).toBeHidden();
+      const editor = page.locator(SEL.editorContent0);
+      await expect(editor).toContainText(`- [x] Gamma ${DONE} 2099-01-09`);
+
+      // Ein einziger Rueckgaengig-Schritt stellt die Zeile wieder her.
+      await page.keyboard.press('Control+z');
+      await expect(editor).toContainText(`- [x] Gamma ${DONE} 2099-01-10`);
+      await expect(editor).not.toContainText('2099-01-09');
+
+      // Im offenen Dialog blendet der Wechsel auf «offen» die Zeile sofort aus.
+      await openDialogByKey(page);
+      await expect(doneRow).toBeVisible();
+      await page.locator('#task-dialog-status').selectOption(' ');
+      await expect(doneRow).toHaveCount(0);
+      await page.locator('#btn-task-dialog-cancel').click();
+      await expect(page.locator(TASK_DIALOG)).toBeHidden();
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+});
+
 // 4T-000507 (Epic 3E-000096): TQ-08 prueft die dritte Autocomplete-Quelle auf
 // Task-Zeilen (taskMarkerCompletionSource). Im Quelltext-Editor wird hinter
 // der Beschreibung ' prio' getippt; das Autocomplete-Popup erscheint und der

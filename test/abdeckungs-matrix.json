@@ -186,8 +186,25 @@
       "key": "help.feature.attachmentOpen",
       "id": "F-248",
       "testart": "e2e",
-      "tests": ["test/unit/attachment-path.test.js", "test/e2e/funktionen/anlagen.spec.js"],
-      "hinweis": "Sperrliste der ausfuehrbaren Endungen unit-getestet; Klick auf verlinkte Anlage und auf ein eingebettetes Bild sowie die Wurzel-Grenze ueber E2E, wobei der Betriebssystem-Aufruf abgefangen statt real ausgefuehrt wird. Die Rueckfrage vor ausfuehrbaren Dateien ist ein OS-Dialog (Gesamtabnahme)."
+      "tests": [
+        "test/unit/attachment-path.test.js",
+        "test/unit/renderer/bild-ansicht.test.js",
+        "test/e2e/funktionen/anlagen.spec.js",
+        "test/e2e/funktionen/bild-ansicht.spec.js",
+        "test/e2e/regression/4t-001925-bild-doppelklick-live.spec.js"
+      ],
+      "hinweis": "Sperrliste der ausführbaren Endungen unit-getestet; Klick auf verlinkte Anlage sowie die Wurzel-Grenze über E2E, wobei der Betriebssystem-Aufruf abgefangen statt real ausgeführt wird. Ein Bild der gerenderten Ansicht öffnet seit 4T-001870 die Vergrößerung, der Weg ins Standardprogramm liegt auf deren Schaltfläche (AN-09, VG-01 bis VG-05; Logik der Fläche in bild-ansicht.test.js). Der Doppelklick auf ein Bild der Live-Ansicht und die Auflösung eines Bildes in einer eingebetteten Notiz gegen deren Ordner seit 4T-001925 (DK-01 bis DK-05). Die Rückfrage vor ausführbaren Dateien ist ein OS-Dialog (Gesamtabnahme)."
+    },
+    {
+      "key": "help.feature.imageView",
+      "id": "F-317",
+      "testart": "e2e",
+      "tests": [
+        "test/unit/renderer/bild-ansicht.test.js",
+        "test/e2e/funktionen/bild-ansicht.spec.js",
+        "test/e2e/funktionen/anlagen.spec.js"
+      ],
+      "hinweis": "Vergrößerte Darstellung eines Bildes der gerenderten Ansicht: Öffnen, Größen-Regel, Abdunkelung und die drei Schließ-Wege (VG-01), Beschriftung und Orte des Bildes (VG-02), Schaltfläche ins Standardprogramm und Tastatur (VG-03, AN-09), geteilte und Live-Ansicht (VG-04), abgeschaltete Erweiterungen (VG-05); Logik der Fläche in bild-ansicht.test.js. Der Betriebssystem-Aufruf wird abgefangen statt real ausgeführt."
     },
     {
       "key": "help.feature.exportPortable",
@@ -264,8 +281,11 @@
       "key": "help.feature.settings",
       "id": "F-027",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/einstellungen-seite.spec.js"],
-      "hinweis": "ES-01 bis ES-08 (Einstellungs-Seite: Tab, Einfach-Instanz, Guards, gruppierte Navigation ohne Bereich, Live-Vorschau, Anwenden/Abbrechen, Tab-Schliessen), ES-12 (Speicher-Status von Anwenden/OK, 4T-000554), ES-13 (Navigations-Gruppe Aktueller Bereich mit gebundenem Bereich, 4T-000555). Multi-Window-Snapshot-Merge (R5-08) bleibt manueller Pruefpfad."
+      "tests": [
+        "test/e2e/funktionen/einstellungen-seite.spec.js",
+        "test/unit/renderer/settings-page.test.js"
+      ],
+      "hinweis": "ES-01 bis ES-08 (Einstellungs-Seite: Tab, Einfach-Instanz, Guards, gruppierte Navigation ohne Bereich, Live-Vorschau, Anwenden/Abbrechen, Tab-Schliessen), ES-12 (Speicher-Status von Anwenden/OK, 4T-000554), ES-13 (Navigations-Gruppe Aktueller Bereich mit gebundenem Bereich, 4T-000555). Multi-Window-Snapshot-Merge (R5-08) bleibt manueller Pruefpfad. 4T-001885 (Epic 3E-000189): ES-13 belegt zusaetzlich, dass ein gewoehnlicher Bereich unveraendert bleibt (Block «Aktueller Bereich», acht Eintraege, kein Abschnitt der eigenen Angaben); die Unit-Faelle der Seite pruefen Block-Benennung nach geoeffnetem Buch bzw. Regal, die Stellung des neuen ersten Abschnitts und den Rueckfall beim Wegfall der Bindung."
     },
     {
       "key": "help.feature.focusMode",
@@ -488,9 +508,12 @@
       "tests": [
         "test/e2e/funktionen/erinnerungen.spec.js",
         "test/unit/reminders-kern.test.js",
-        "test/unit/reminder-check.test.js"
+        "test/unit/reminder-check.test.js",
+        "test/e2e/funktionen/erinnerungen-alle-fenster.spec.js",
+        "test/unit/meldungen-alle-fenster.test.js",
+        "test/unit/renderer/reminders-alle-fenster.test.js"
       ],
-      "hinweis": "4T-000526 (Epic 3E-000095): Benachrichtigungen mit Snooze/Muting/Nachholen — ER-02 (Erledigt schreibt [x]), ER-03 (Snooze aus dem Dialog schreibt neuen ⏰-Wert) und ER-04 (Muten plus Wiederauslosung) plus Unit-Tests fuer Snooze-Rechnung und den Pruefer-Zustand (catchUp/reported/muted)."
+      "hinweis": "4T-000526 (Epic 3E-000095): Benachrichtigungen mit Snooze/Muting/Nachholen — ER-02 (Erledigt schreibt [x]), ER-03 (Snooze aus dem Dialog schreibt neuen ⏰-Wert) und ER-04 (Muten plus Wiederauslosung) plus Unit-Tests fuer Snooze-Rechnung und den Pruefer-Zustand (catchUp/reported/muted). 4T-001727 (Epic 3E-000305): Meldung in allen Fenstern — EF-01 bis EF-10 (Anzeige samt Herkunft im Fenster ohne Bereich, in fremden, spaet geoeffneten, Buch- und Regal-Fenstern; Erledigen, Verschieben und Wegklicken raeumen alle Fenster und wirken im Herkunfts-Bereich; zwei fast gleichzeitige Bearbeitungen wirken einmal; geschlossenes Herkunfts-Fenster; mehrere Bereiche; Aus-Zustand) plus Unit-Tests fuer Zustell-Register, Kanaele und die Fenster-Seite."
     },
     {
       "key": "help.feature.reminderList",
@@ -532,9 +555,12 @@
       "tests": [
         "test/e2e/funktionen/bearbeitung-und-ansicht.spec.js",
         "test/e2e/funktionen/verweis-vorschlaege.spec.js",
-        "test/e2e/funktionen/schlagwort-vorschlaege.spec.js"
+        "test/e2e/funktionen/schlagwort-vorschlaege.spec.js",
+        "test/e2e/funktionen/tabellen-zell-vorschlaege.spec.js",
+        "test/unit/renderer/live-tabellen-vorschlaege.test.js",
+        "test/unit/vorschlagsliste-tasten.test.js"
       ],
-      "hinweis": "FB-05 (Liste oeffnet); VV-01 bis VV-03 (Reihenfolge und Auswahl an der angezeigten Liste, 4T-001339); SV-01 und SV-02 (Reihenfolge der Schlagworte nach Haeufigkeit, 4T-001357); Tag-Heading-Ausnahme R5-12 implementiert in 4T-000187."
+      "hinweis": "FB-05 (Liste oeffnet); VV-01 bis VV-03 (Reihenfolge und Auswahl an der angezeigten Liste, 4T-001339); SV-01 und SV-02 (Reihenfolge der Schlagworte nach Haeufigkeit, 4T-001357); Tag-Heading-Ausnahme R5-12 implementiert in 4T-000187; Vorschlagsliste in der Tabellenzelle der Live-Ansicht in TV-01 bis TV-08 (4T-001713); Tasten der Liste gegen die Belegung der Bibliothek (4T-001714)."
     },
     {
       "key": "help.feature.wikiLinkAnchors",
@@ -587,9 +613,14 @@
       "key": "help.feature.callouts",
       "id": "F-044",
       "testart": "snapshot",
-      "tests": ["test/unit/render/snapshots.test.js"],
+      "tests": [
+        "test/unit/render/snapshots.test.js",
+        "test/unit/render/callouts-schreibweise.test.js",
+        "test/unit/renderer/callouts-schreibweise-live.test.js",
+        "test/e2e/funktionen/hinweis-kästen.spec.js"
+      ],
       "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
-      "hinweis": "callouts-Fixture (zehn Typen, Randfaelle nach R1-13)."
+      "hinweis": "callouts-Fixture (zehn Typen, Randfaelle nach R1-13). 4T-001864 (Epic 3E-000320): Erkennung des Typs in jeder Schreibweise — je Erkennungs-Stelle ein eigener Fall: Render-Weg samt portabler Anzeige und Aus-Zustand der Erweiterung (callouts-schreibweise.test.js), Vor-Durchlauf, Marker-Bereich und Symbol-Widget der Live-Ansicht, Marker-Hervorhebung und Linter-Pruefung (callouts-schreibweise-live.test.js), dazu der Ablauf-Fall mit vier Schreibweisen in Live- und gesetzter Ansicht sowie Umschreiben, Speichern und erneutem Oeffnen (hinweis-kästen.spec.js, HK-01 und HK-02)."
     },
     {
       "key": "help.feature.highlight",
@@ -640,11 +671,14 @@
       "testart": "e2e",
       "tests": [
         "test/e2e/funktionen/tabellen-klick.spec.js",
+        "test/e2e/funktionen/tabellen-rechtsklick.spec.js",
+        "test/e2e/funktionen/tabellen-zell-uebernahme.spec.js",
+        "test/e2e/funktionen/tabellen-zell-vorschlaege.spec.js",
         "test/e2e/funktionen/tabellen-zelle.spec.js",
         "test/e2e/funktionen/tabellen-zellsprung.spec.js",
         "test/unit/renderer/live-tabellen-zelle.test.js"
       ],
-      "hinweis": "Klick, Zell-Eingabe und Zellsprung (Epic 3E-000239)."
+      "hinweis": "Klick, Zell-Eingabe und Zellsprung (Epic 3E-000239); Zeilen-Anlage per Tabulator am Tabellenende in TS-04 und TS-10 bis TS-12 (4T-001711); Übernahme der Zell-Eingabe auf jedem Weg aus dem Feld in TU-01 bis TU-14 (4T-001712); Rechtsklick in die Zelle in TR-01 bis TR-08 (4T-001861); Vorschlagsliste in der Zelle mit Tasten-Vorrang in TV-01 bis TV-08 (4T-001713)."
     },
     {
       "key": "help.feature.wordCount",
@@ -679,9 +713,12 @@
       "tests": [
         "test/unit/clock-alarms.test.js",
         "test/unit/alarm-check.test.js",
-        "test/e2e/funktionen/wecker.spec.js"
+        "test/e2e/funktionen/wecker.spec.js",
+        "test/e2e/funktionen/uhr-meldungen-alle-fenster.spec.js",
+        "test/unit/meldungen-alle-fenster.test.js",
+        "test/unit/renderer/clock-due-sync.test.js"
       ],
-      "hinweis": "4T-000637 (Epic 3E-000069): Modell und Faelligkeits-Rechnung als reine Unit-Tests, der Main-Pruefer mit injizierten Abhaengigkeiten ebenfalls; WE-01 bis WE-05 decken Anlegen, Wochentags-Muster, Persistenz, das reale Auslösen samt Dialog und den Aus-Zustand der Erweiterung ab."
+      "hinweis": "4T-000637 (Epic 3E-000069): Modell und Faelligkeits-Rechnung als reine Unit-Tests, der Main-Pruefer mit injizierten Abhaengigkeiten ebenfalls; WE-01 bis WE-05 decken Anlegen, Wochentags-Muster, Persistenz, das reale Auslösen samt Dialog und den Aus-Zustand der Erweiterung ab. 4T-001728 (Epic 3E-000305): Meldung in allen Fenstern — UF-03 (Wecker in zwei Fenstern, Schlummern raeumt das andere) plus Unit-Tests fuer Zustellung, einmalige Wirkung von Schlummern und Bestaetigen, Nachholen und einmalige Benachrichtigung."
     },
     {
       "key": "help.feature.clockTimers",
@@ -690,9 +727,12 @@
       "tests": [
         "test/unit/clock-timers.test.js",
         "test/unit/timer-check.test.js",
-        "test/e2e/funktionen/timer-stoppuhr.spec.js"
+        "test/e2e/funktionen/timer-stoppuhr.spec.js",
+        "test/e2e/funktionen/uhr-meldungen-alle-fenster.spec.js",
+        "test/unit/meldungen-alle-fenster.test.js",
+        "test/unit/renderer/clock-due-sync.test.js"
       ],
-      "hinweis": "4T-000638 (Epic 3E-000069): Restzeit-Rechnung aus Zeitstempeln (inkl. Hintergrund-Sprung) und Zustands-Uebergaenge als Unit-Tests, der Weckruf-Pruefer ohne Polling ebenfalls; TS-01 bis TS-06 decken Schnellwahl, Zeilen-Aktionen, eigene Dauer, Ablauf, Stoppuhr mit Runden und den Neustart mit laufendem Timer ab."
+      "hinweis": "4T-000638 (Epic 3E-000069): Restzeit-Rechnung aus Zeitstempeln (inkl. Hintergrund-Sprung) und Zustands-Uebergaenge als Unit-Tests, der Weckruf-Pruefer ohne Polling ebenfalls; TS-01 bis TS-06 decken Schnellwahl, Zeilen-Aktionen, eigene Dauer, Ablauf, Stoppuhr mit Runden und den Neustart mit laufendem Timer ab. 4T-001728 (Epic 3E-000305): Meldung in allen Fenstern — UF-01 (Escape raeumt alle Fenster), UF-02 (geschlossenes und spaet geoeffnetes Fenster, Erneut starten), UF-04 (Aus-Zustand), UF-05 (zwei Timer, je Fenster ein Dialog) plus Unit-Tests fuer den Anspruch bei fast gleichzeitiger Bearbeitung und das Nachholen."
     },
     {
       "key": "help.feature.clockCalendar",
@@ -787,9 +827,14 @@
       "key": "help.feature.customContainers",
       "id": "F-059",
       "testart": "snapshot",
-      "tests": ["test/unit/render/snapshots.test.js"],
+      "tests": [
+        "test/unit/render/snapshots.test.js",
+        "test/unit/render/callouts-schreibweise.test.js",
+        "test/unit/renderer/callouts-schreibweise-live.test.js",
+        "test/e2e/funktionen/hinweis-kästen.spec.js"
+      ],
       "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
-      "hinweis": "Fixtures custom-containers.md und custom-containers-portable.md (4T-000200)."
+      "hinweis": "Fixtures custom-containers.md und custom-containers-portable.md (4T-000200). 4T-001914 (Epic 3E-000320): Name in jeder Schreibweise und Titel der neutralen Box — je Erkennungs-Stelle ein eigener Fall: Namens-Muster, Einordnung ueber containerKind, Mehrspalten-Vergleich, Titel in gesetzter und portabler Ausgabe sowie Aus-Zustand (callouts-schreibweise.test.js), Vor-Durchlauf, Marker vor eigenem Titel und Kopfzeile der neutralen Box in der Live-Ansicht (callouts-schreibweise-live.test.js), dazu die Ablauf-Faelle HK-03 und HK-04 (hinweis-kästen.spec.js)."
     },
     {
       "key": "help.feature.subSup",
@@ -945,7 +990,7 @@
       "id": "F-117",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/aufgaben-abfrage.spec.js"],
-      "hinweis": "4T-000509 (Epic 3E-000096): Dialog bearbeitet und legt an — TQ-06, TQ-07; Formular-zu-Zeile unit (task-dialog.test.js)."
+      "hinweis": "4T-000509 (Epic 3E-000096): Dialog bearbeitet und legt an — TQ-06, TQ-07; Formular-zu-Zeile unit (task-dialog.test.js). 4T-001867 (Epic 3E-000321): waehlbares Erledigt-Datum — TQ-10 (Zeile bei erledigt, Wahl per Tastatur im Datums-Kalender, Uebernahme, ein Rueckgaengig, Ausblenden beim Wechsel auf offen); Vorbelegung, Entfernen, Automatik in beiden Richtungen und abgeschaltete Automatik unit (task-dialog.test.js)."
     },
     {
       "key": "help.feature.taskAutocomplete",
@@ -1399,12 +1444,41 @@
       "testart": "e2e",
       "tests": [
         "test/e2e/funktionen/erweiterungen.spec.js",
+        "test/e2e/funktionen/arbeitsmodi.spec.js",
+        "test/unit/eigene-arbeitsmodi.test.js",
         "test/unit/extensions.test.js",
         "test/unit/render/extensions-aus.test.js",
         "test/unit/renderer/extension-lifecycle.test.js",
+        "test/unit/renderer/settings-extensions.test.js",
+        "test/unit/renderer/tour-arbeitsmodus.test.js"
+      ],
+      "hinweis": "EW-01 bis EW-03 (4T-000295): Schalten mit Sofort-Wirkung und Persistenz, erweiterungs-eigener Bereich, UI-Konsistenz; Unit-Tests decken Registry, Lebenszyklus, Aus-Zustaende der Pipeline und den Einstellungs-Bereich (3E-000052). 4T-001877 (Epic 3E-000187, Story 4S-000991): dazu der Abhaengigkeits-Schutz in seiner umgekehrten Wirkungs-Richtung — gesperrt wird die Grundlage, solange eine Abhaengige wirksam ist. EW-04 traegt das seit dieser Stufe und hat damit seinen Gegenstand gewechselt (bis dahin: Voraussetzung abschalten sperrt die Abhaengige, 4T-000517); geprueft sind der gesperrte Schalter ohne Versuch, die Hinweis-Zeile und die Einblendung mit beiden Anzeige-Namen in einem Satz, das selbsttaetige Verschwinden der Einblendung samt wiederholtem Versuch ohne Wirkung auf den Schalter und die Freigabe erst nach der letzten abgewaehlten Abhaengigen. EW-05 prueft den mitgebrachten Schalter-Stand (Grundlage abgeschaltet, Abhaengige als eingeschaltet gespeichert): Er bleibt unveraendert wirksam, wird in der Zeile der Abhaengigen als solcher ausgewiesen, und die Grundlage laesst sich jederzeit wieder einschalten. Unit-seitig haelt extensions.test.js die reine Sperr-Regel (fuenf harte Paare, Freigabe mit der letzten Abhaengigen, keine Sperre aus einer Verarmung, unbekannte Kennung, externe Erweiterung, mehrstufige Kette und die Widerspruchsfreiheit der drei abgeleiteten Mengen) und settings-extensions.test.js die Zeilen-Darstellung samt Einblendung und gebuendeltem Wechsel. 4T-001881 (Epic 3E-000185, Story 4S-000992): dazu die drei festen Arbeitsmodi, die denselben Schalter-Satz gebuendelt setzen. AM-01 bis AM-05 decken die Wahl im Einstellungs-Bereich samt Wirkung auf die Statusleisten-Schaltflaeche und Neustart, den Durchgriff auf ein zweites offenes Fenster ohne Neuladen, die Modus-Station der gefuehrten Tour mit vorgewaehltem Einsteiger und ihrer sofortigen Wirkung, den Zustand Angepasst nach einem Einzel-Schalter und zurueck sowie die unberuehrte Bestands-Einrichtung ab; unit-seitig haelt extensions.test.js die beiden Ableitungen (welcher Modus zu einem Schalter-Stand gehoert, und wann der Start-Modus greift), settings-extensions.test.js die Bedienung im Entwurf und tour-arbeitsmodus.test.js das Bedienelement der Tour-Karte. 4T-001882 (Epic 3E-000185, Story 4S-000993): dazu die EIGENEN Arbeitsmodi neben den drei festen — beliebig viele benannte Schalter-Staende mit fuenf Handgriffen im selben Abschnitt. AM-06 bis AM-08 decken das Speichern unter einem Namen samt Wirkung und Neustart, die Rueckfrage bei bereits vergebenem Namen, den abgewiesenen leeren Namen, Umbenennen und Loeschen ohne Wirkung auf den Schalter-Stand sowie den Durchgriff eines eigenen Modus auf ein zweites offenes Fenster ab; unit-seitig haelt eigene-arbeitsmodi.test.js das Datenmodell (Saeuberung der Ablage, Schalter-Stand beim Anwenden, Abgleich gegen die aktuelle Registry, entfallene und hinzugekommene Kennung, mitgebrachte unzulaessige Zusammenstellung) und settings-extensions.test.js die Bedienung im Entwurf samt der Unveraenderlichkeit der drei festen Modi. Die Zusammenfuehrung der eigenen Modi beim Einspielen einer Einrichtung steht als eigene Datenart bei help.feature.setupExchange."
+    },
+    {
+      "key": "help.feature.extensionModes",
+      "id": "F-324",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/arbeitsmodi.spec.js",
+        "test/unit/extensions.test.js",
+        "test/unit/renderer/settings-extensions.test.js",
+        "test/unit/renderer/tour-arbeitsmodus.test.js",
+        "test/unit/renderer/tour-erststart.test.js",
+        "test/unit/tour-stationen.test.js"
+      ],
+      "hinweis": "4T-001883 (Epic 3E-000185, Story 4S-000992): der Katalog-Eintrag der drei festen Arbeitsmodi, in der Gruppe «Allgemein» unmittelbar hinter dem Eintrag zum Schalten der internen Erweiterungen. Geprüft wird die beschriebene Funktion selbst; die Prüffälle sind dieselben, die der Nachbar-Eintrag help.feature.extensions für den gebündelten Wechsel führt, weil es derselbe Gegenstand ist: AM-01 bis AM-05 decken die Wahl im Einstellungs-Bereich samt Wirkung und Neustart, den Durchgriff auf ein zweites offenes Fenster ohne Neuladen, die Modus-Station der geführten Tour mit vorgewähltem Einsteiger, den Zustand «Angepasst» und zurück sowie die unberührte Bestands-Einrichtung ab. Unit-seitig hält extensions.test.js die beiden Ableitungen (welcher Modus zu einem Schalter-Stand gehört, wann der Start-Modus greift), settings-extensions.test.js die Bedienung im Entwurf, tour-arbeitsmodus.test.js das Bedienelement der Tour-Karte und tour-stationen.test.js die Station in allen fünf Sprachfassungen."
+    },
+    {
+      "key": "help.feature.extensionModesOwn",
+      "id": "F-315",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/arbeitsmodi.spec.js",
+        "test/unit/eigene-arbeitsmodi.test.js",
+        "test/unit/exchange-import.test.js",
         "test/unit/renderer/settings-extensions.test.js"
       ],
-      "hinweis": "EW-01 bis EW-03 (4T-000295): Schalten mit Sofort-Wirkung und Persistenz, erweiterungs-eigener Bereich, UI-Konsistenz; Unit-Tests decken Registry, Lebenszyklus, Aus-Zustaende der Pipeline und den Einstellungs-Bereich (3E-000052)."
+      "hinweis": "4T-001883 (Epic 3E-000185, Story 4S-000993): der Katalog-Eintrag der eigenen Arbeitsmodi, direkt hinter dem der festen, deren Mechanik sie nutzen. AM-06 bis AM-08 decken das Speichern unter einem Namen samt Wirkung und Neustart, die Rückfrage bei bereits vergebenem Namen, den abgewiesenen leeren Namen, Umbenennen und Löschen ohne Wirkung auf den Schalter-Stand sowie den Durchgriff eines eigenen Modus auf ein zweites offenes Fenster ab. Unit-seitig hält eigene-arbeitsmodi.test.js das Datenmodell samt Abgleich gegen die aktuelle Registry, settings-extensions.test.js die Bedienung im Entwurf und die Unveränderlichkeit der drei festen Modi, exchange-import.test.js die Reise mit der eigenen Einrichtung (ergänzen statt ersetzen, Namens-Zusammenstoss)."
     },
     {
       "key": "help.feature.extensionsExternal",
@@ -2097,9 +2171,12 @@
       "tests": [
         "test/e2e/funktionen/mehrspalten.spec.js",
         "test/unit/render/snapshots.test.js",
-        "test/unit/markdown-pipeline.test.js"
+        "test/unit/markdown-pipeline.test.js",
+        "test/unit/render/callouts-schreibweise.test.js",
+        "test/unit/renderer/callouts-schreibweise-live.test.js",
+        "test/e2e/funktionen/hinweis-kästen.spec.js"
       ],
-      "hinweis": "4T-000382/4T-000384 (Epic 3E-000072): Mehrspalten-Container; MC-01 bis MC-03 (Spaltenzahl-Klassen, Rueckfall ungueltiger Zahlen, Reading-Paritaet) plus Snapshot-Fixtures columns.md/columns-portable.md und Unit-Parsing-Matrix."
+      "hinweis": "4T-000382/4T-000384 (Epic 3E-000072): Mehrspalten-Container; MC-01 bis MC-03 (Spaltenzahl-Klassen, Rueckfall ungueltiger Zahlen, Reading-Paritaet) plus Snapshot-Fixtures columns.md/columns-portable.md und Unit-Parsing-Matrix. 4T-001914 (Epic 3E-000320): Name in jeder Schreibweise (COLUMNS 2 zweispaltig, COLUMNS 7 als neutrale Box mit Titel) im Render-Weg, im Vor-Durchlauf und in den Dekorationen der Live-Ansicht (callouts-schreibweise*.test.js) sowie im Ablauf-Fall HK-03."
     },
     {
       "key": "help.feature.roundedTabs",
@@ -2141,9 +2218,10 @@
         "test/unit/books-main.test.js",
         "test/unit/renderer/book-panel.test.js",
         "test/unit/render/extensions-aus.test.js",
-        "test/unit/panel-access.test.js"
+        "test/unit/panel-access.test.js",
+        "test/unit/books-angaben.test.js"
       ],
-      "hinweis": "4T-000842 bis 4T-000849 (Epic 3E-000147, Stories 4S-000751 bis 4S-000758): Buch als Lese-Ordnung ueber gewoehnlichen Markdown-Dateien — Kern-Modul (Begleitdatei, Kapitel-Baum, Lese-Ordnung), Main-Wege (Erkennung, Anlage, Verschieben mit Nachfuehrung) und Panel-Wege (Inhaltsverzeichnis, Struktur-Pflege, Lesefuehrung, Reparatur) sind unit-getestet; die Schaltbarkeit prueft der Aus-Zustands-Waechter (Kommando-Filterung, Panel-Gate), die Paritaet der Panel-Zugaenge der Paritaets-Waechter; die Bedien-Wege an der Oberflaeche pruefen die E2E-Buch-Spec und die Test-Iteration an der EXE."
+      "hinweis": "4T-000842 bis 4T-000849 (Epic 3E-000147, Stories 4S-000751 bis 4S-000758): Buch als Lese-Ordnung ueber gewoehnlichen Markdown-Dateien — Kern-Modul (Begleitdatei, Kapitel-Baum, Lese-Ordnung), Main-Wege (Erkennung, Anlage, Verschieben mit Nachfuehrung) und Panel-Wege (Inhaltsverzeichnis, Struktur-Pflege, Lesefuehrung, Reparatur) sind unit-getestet; die Schaltbarkeit prueft der Aus-Zustands-Waechter (Kommando-Filterung, Panel-Gate), die Paritaet der Panel-Zugaenge der Paritaets-Waechter; die Bedien-Wege an der Oberflaeche pruefen die E2E-Buch-Spec und die Test-Iteration an der EXE. 4T-001885 (Epic 3E-000189, Story 4S-000994): Die eigenen Angaben des Buches — Titel, Autor, Beschreibung und Titelbild — sind ueber den Einstellungs-Block erreichbar; die Datei-Ebene prueft books-angaben.test.js am echten Ordner (Lesen, Schreiben, Sonderzeichen und mehrzeilige Beschreibung, defektes Frontmatter), den Bedien-Weg BU-12 der Buch-Spec."
     },
     {
       "key": "help.feature.bookToc",
@@ -3117,9 +3195,10 @@
       "tests": [
         "test/e2e/funktionen/regal.spec.js",
         "test/unit/shelves-main.test.js",
-        "test/unit/shelf-core.test.js"
+        "test/unit/shelf-core.test.js",
+        "test/unit/books-angaben.test.js"
       ],
-      "hinweis": "4T-000866/4T-000867 (Epic 3E-000162): Regal-Modell (Begleitdatei, Erkennung ohne Rueckverweis, Zuordnung) unit-getestet am Temp-Ordner; beide Oeffnungswege, Neuanlage, Zuordnen/Loesen und Sitzungs-Wiederherstellung als RG-01 bis RG-04. Die nativen Dialoge sind manueller Test."
+      "hinweis": "4T-000866/4T-000867 (Epic 3E-000162): Regal-Modell (Begleitdatei, Erkennung ohne Rueckverweis, Zuordnung) unit-getestet am Temp-Ordner; beide Oeffnungswege, Neuanlage, Zuordnen/Loesen und Sitzungs-Wiederherstellung als RG-01 bis RG-04. Die nativen Dialoge sind manueller Test. 4T-001885 (Epic 3E-000189): Die eigenen Angaben des Regals samt der Darstellung als Kacheln oder Zeilen sind ueber den Einstellungs-Block erreichbar; RG-11 misst Block-Name, Abschnitt, Regal-Datei und Regal-Ansicht, die Datei-Ebene books-angaben.test.js."
     },
     {
       "key": "help.feature.shelfView",
@@ -3276,7 +3355,7 @@
         "test/unit/tour-stationen.test.js",
         "test/unit/renderer/tour-erststart.test.js"
       ],
-      "hinweis": "4T-001090 (Epic 3E-000127): der Katalog-Eintrag der geführten Produkt-Tour, in der Gruppe «Allgemein» direkt hinter dem Handbuch-Eintrag. Geprüft wird die beschriebene Funktion selbst: PT-01 bis PT-05 decken Erststart-Anlauf, Abbruch, Start von Hand und den Durchlauf ab, der Stations-Wächter die Kopplung an die Oberfläche und alle fünf Sprachfassungen der Tour-Schlüssel, die Unit-Fälle die Merker-Mechanik. Der Zugang über das Menü ist derselbe Gegenstand wie bei S-136, deshalb teilen sich beide Einträge die Testdateien."
+      "hinweis": "4T-001090 (Epic 3E-000127): der Katalog-Eintrag der geführten Produkt-Tour, in der Gruppe «Allgemein» direkt hinter dem Handbuch-Eintrag. Geprüft wird die beschriebene Funktion selbst: PT-01 bis PT-05 decken Erststart-Anlauf, Abbruch, Start von Hand und den Durchlauf ab, der Stations-Wächter die Kopplung an die Oberfläche und alle fünf Sprachfassungen der Tour-Schlüssel, die Unit-Fälle die Merker-Mechanik. Der Zugang über das Menü ist derselbe Gegenstand wie bei S-136, deshalb teilen sich beide Einträge die Testdateien. 4T-001881 (Epic 3E-000185): Die Folge ist auf elf Stationen gewachsen — die zweite traegt die Wahl des Arbeitsmodus als Bedienelement in ihrer Karte; geprueft ist sie in AM-03 von test/e2e/funktionen/arbeitsmodi.spec.js, die Verdrahtung des Feldes bedienelement in tour-erststart.test.js und das Element selbst in tour-arbeitsmodus.test.js."
     },
     {
       "key": "help.shortcut.openTour",
@@ -3287,7 +3366,7 @@
         "test/unit/renderer/tour-erststart.test.js",
         "test/unit/tour-stationen.test.js"
       ],
-      "hinweis": "4T-000644 (Epic 3E-000127): geführte Produkt-Tour, Kommando ohne Default-Kürzel hinter dem Menü-Eintrag «Hilfe → Produkt-Tour». PT-01 bis PT-05 decken Erststart-Anlauf, Abbruch samt Neustart, Start von Hand über den Menü-Kanal, die Stellung im Hilfe-Menü und den Durchlauf bis «Fertig» ab; die Merker-Mechanik dahinter ist am Modul unit-getestet, die Kopplung der Stations-Anker an index.html und an alle fünf Sprachfassungen hält ein eigener Wächter."
+      "hinweis": "4T-000644 (Epic 3E-000127): geführte Produkt-Tour, Kommando ohne Default-Kürzel hinter dem Menü-Eintrag «Hilfe → Produkt-Tour». PT-01 bis PT-05 decken Erststart-Anlauf, Abbruch samt Neustart, Start von Hand über den Menü-Kanal, die Stellung im Hilfe-Menü und den Durchlauf bis «Fertig» ab; die Merker-Mechanik dahinter ist am Modul unit-getestet, die Kopplung der Stations-Anker an index.html und an alle fünf Sprachfassungen hält ein eigener Wächter. 4T-001881 (Epic 3E-000185): Die Folge ist auf elf Stationen gewachsen — die zweite traegt die Wahl des Arbeitsmodus als Bedienelement in ihrer Karte; geprueft ist sie in AM-03 von test/e2e/funktionen/arbeitsmodi.spec.js, die Verdrahtung des Feldes bedienelement in tour-erststart.test.js und das Element selbst in tour-arbeitsmodus.test.js."
     },
     {
       "key": "help.shortcut.exportSetup",
@@ -3357,7 +3436,7 @@
         "test/unit/exchange-geheimnisse.test.js",
         "test/unit/exchange-kalender-weitergabe.test.js"
       ],
-      "hinweis": "4T-001586/4T-001587/4T-001588 (Epic 3E-000160): Austausch-Format, Ausgabe und Einlesen der eigenen Einstellungen. Format-Rundlauf, Kopfdaten, unbekannte Abschnitte und die benannten Fehler sind unit-geprueft; auf der Ausgabe-Seite Umfang der Auswahl, die gemeldeten Zahlen, die Unversehrtheit der Quellen und die Fail-closed-Zusicherung; auf der Einlese-Seite die Zusammenfuehrung je Datenart, die Namens-Kollision ueber mehrere Datenarten hinweg, die Fassungs-Vertraeglichkeit und die Zusicherung, dass kein zweiter Schreibweg entsteht. 4T-001589 traegt den Geheimnis-Ausschluss als eigenen Waechter: der Ablage-Raum extensionData.<id> wird an der fertigen Datei per Text-Suche gemessen, gegen eine Registry, die ihn ausdruecklich zu exportieren versucht. 4T-001590 misst die Weitergabe eines einzelnen Kalender-Systems ueber den ganzen Weg: Auswahl auf Eintrags-Ebene, Datei, Einlesen in einen zweiten Bereich, Namens-Kollision und die Abweisung einer unvollstaendigen Definition.",
+      "hinweis": "4T-001586/4T-001587/4T-001588 (Epic 3E-000160): Austausch-Format, Ausgabe und Einlesen der eigenen Einstellungen. Format-Rundlauf, Kopfdaten, unbekannte Abschnitte und die benannten Fehler sind unit-geprueft; auf der Ausgabe-Seite Umfang der Auswahl, die gemeldeten Zahlen, die Unversehrtheit der Quellen und die Fail-closed-Zusicherung; auf der Einlese-Seite die Zusammenfuehrung je Datenart, die Namens-Kollision ueber mehrere Datenarten hinweg, die Fassungs-Vertraeglichkeit und die Zusicherung, dass kein zweiter Schreibweg entsteht. 4T-001589 traegt den Geheimnis-Ausschluss als eigenen Waechter: der Ablage-Raum extensionData.<id> wird an der fertigen Datei per Text-Suche gemessen, gegen eine Registry, die ihn ausdruecklich zu exportieren versucht. 4T-001590 misst die Weitergabe eines einzelnen Kalender-Systems ueber den ganzen Weg: Auswahl auf Eintrags-Ebene, Datei, Einlesen in einen zweiten Bereich, Namens-Kollision und die Abweisung einer unvollstaendigen Definition. 4T-001882 (Epic 3E-000185): seit den eigenen Arbeitsmodi eine elfte Datenart — extensionModes mit dem Pfad extensions.modes, ergaenzend zusammengefuehrt wie die uebrigen benannten Listen und bewusst getrennt vom ersetzenden Schalt-Zustand daneben; geprueft in exchange-import.test.js (hinzufuegen statt ersetzen, Namens-Zusammenstoss auf Name (2) samt Meldung im Plan, fremde Gestalt verworfen, Zaehlung der Auswahl-Zeile).",
       "sichtbarkeit": [
         "test/e2e/funktionen/einrichtungs-ausgabe.spec.js",
         "test/e2e/funktionen/einrichtungs-einlesen.spec.js"

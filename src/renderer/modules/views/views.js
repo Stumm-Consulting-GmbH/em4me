@@ -66,6 +66,9 @@ import { renderPaneContent } from './pane-render.js';
 import { stampTabTimestamps } from './save-export.js';
 import { renderTabbar } from './tabbar.js';
 import { applyContentViewClass, isViewMode, zielAnsichtDesAenderungsmodus } from './view-modes.js';
+// 4T-001712 (Epic 3E-000300): Der Ansichts-Wechsel entfernt das Tabellen-Widget
+// samt offenem Eingabefeld; die Eingabe wird vorher uebernommen.
+import { uebernimmOffeneZellEingabe } from '../live/live-table-zelle.js';
 
 // 4T-000179: Diese beiden Laufzeit-Flags werden ausschliesslich hier
 // geschrieben und bleiben deshalb modul-privat; ueber die Modul-Grenze fuehrt
@@ -103,6 +106,8 @@ export function setViewMode(mode) {
   // istTafelModusVerfuegbar beide prueft. Stiller Verzicht statt Rueckfall,
   // woertlich aus demselben Grund wie eine Zeile darueber.
   if (mode === 'kanban' && !istTafelModusVerfuegbar(tab)) return;
+
+  if (tab.viewMode !== mode && !uebernimmOffeneZellEingabe()) return;
   tab.viewMode = mode;
   // 4T-001907: Der Wechsel der Ansicht beendet den Filter der Tafel; wer
   // zurückkommt, sieht wieder alle Karten.
@@ -407,6 +412,7 @@ export function toggleEditMode() {
   // wirkungslos (Statusbar-Stift ist zusaetzlich deaktiviert, Strg+E und
   // Menue-Pfad laufen ebenfalls hier durch). 4T-000277: System-Seiten ebenso.
   if (tab.manualPage || tab.systemPage) return;
+  if (!uebernimmOffeneZellEingabe()) return;
   if (tab.viewMode === 'rendered') {
     const ziel = zielAnsichtDesAenderungsmodus(state.editViewMode);
     tab.viewMode = ziel;

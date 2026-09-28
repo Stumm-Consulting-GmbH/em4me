@@ -3,7 +3,8 @@
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
    Inhalt: Leer-Zustand, Ablage-Overlay, Ueber-Dialog, Suchleiste, Regex-Hilfe,
-   Treffer-Hervorhebung, Linter-Light, Fokus-Modus, Einstellungs-Modal. */
+   Treffer-Hervorhebung, Linter-Light, Fokus-Modus, Einstellungs-Modal,
+   vergrößerte Bild-Darstellung. */
 
 /* === Empty-State ========================================================== */
 .empty-state {
@@ -694,4 +695,81 @@ body.focus-mode .title-line {
 }
 .setup-import-warning {
   color: var(--linter-warn, var(--fg));
+}
+
+/* === Vergrößerte Bild-Darstellung (4T-001870) ============================= */
+/* Überlagerung über das ganze Anwendungsfenster nach dem Muster der
+   Lesezeichen-Dialoge (gleiche Ebene 3000). Die Größen-Regel liegt allein hier:
+   Das Bild behält seine eigene Größe (width/height auto) und wird nur durch
+   max-width/max-height auf die Bühne begrenzt — verkleinert mit unverändertem
+   Seitenverhältnis, nie über die eigene Auflösung hinaus vergrößert, und es
+   folgt einer Fenster-Änderung ohne Zuhörer. Die Größen-Angabe der
+   Bild-Syntax wirkt nicht, weil die Fläche ein eigenes Bild-Element zeigt. */
+.image-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+}
+.image-lightbox[hidden] {
+  display: none;
+}
+.image-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+}
+/* Die Inhalts-Ebene lässt Klicks durch; allein Bild, Beschriftung und
+   Schaltflächen nehmen sie an. Jeder Klick daneben trifft die Abdunkelung und
+   schließt. */
+.image-lightbox-content {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  pointer-events: none;
+}
+.image-lightbox-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.image-lightbox-image {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  pointer-events: auto;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+.image-lightbox-caption {
+  max-width: 100%;
+  color: #f2f2f2;
+  font-size: 0.95em;
+  text-align: center;
+  overflow-wrap: anywhere;
+  pointer-events: auto;
+}
+.image-lightbox-caption[hidden] {
+  display: none;
+}
+.image-lightbox-buttons {
+  display: flex;
+  gap: 10px;
+  pointer-events: auto;
+}
+.image-lightbox-buttons .btn[hidden] {
+  display: none;
+}
+/* E16 des Epics: Die Meldung eines misslingenden Öffnens erscheint wie bisher
+   über der Statusleiste und muss dabei über der Abdunkelung stehen. */
+.image-lightbox-open .statusbar-hint {
+  z-index: 3001;
 }

@@ -579,7 +579,7 @@ In un'area senza banca dati nessuna di queste vie viene offerta.
 
 Nell'elenco delle tabelle la colonna **«Maschera»** indica il file di maschera di una tabella e resta vuota per la maschera generata. La panoramica porta inoltre quattro azioni: **«Verifica coerenza»** nell'intestazione per tutte le tabelle e, nella riga di ogni tabella, **«Nuovo record»**, **«Verifica»** e **«Utilizzo»**. Ciò che fanno lo descrivono le sezioni «Modificare i record nella maschera», «Verifica di coerenza» e «Utilizzo di tabelle e record». Tra le anomalie compaiono anche gli avvisi sui file di maschera, indicati con il nome del file.
 
-**La sezione delle impostazioni «Banca dati»** si trova nel gruppo di navigazione «Area corrente» (File → Impostazioni… → Area corrente → Banca dati). Mostra la stessa informazione in forma breve, cioè nome e descrizione della banca dati, il numero delle sue tabelle e il numero delle anomalie, e porta un'opzione: **«Mostrare il riepilogo all'apertura dell'area»**. Se è attiva, la panoramica si apre da sé non appena l'area viene collegata. L'opzione risiede nel file dell'area e viaggia con la cartella dell'area. Vi si aggiunge il campo **«Nome della cartella dei blocchi»**; è descritto nella sezione «Blocchi».
+**La sezione delle impostazioni «Banca dati»** si trova nel gruppo di navigazione «Area corrente» (File → Impostazioni… → Area corrente → Banca dati; con un libro aperto il gruppo si chiama **Libro corrente**, con una libreria aperta **Libreria corrente**). Mostra la stessa informazione in forma breve, cioè nome e descrizione della banca dati, il numero delle sue tabelle e il numero delle anomalie, e porta un'opzione: **«Mostrare il riepilogo all'apertura dell'area»**. Se è attiva, la panoramica si apre da sé non appena l'area viene collegata. L'opzione risiede nel file dell'area e viaggia con la cartella dell'area. Vi si aggiunge il campo **«Nome della cartella dei blocchi»**; è descritto nella sezione «Blocchi».
 
 Inoltre l'applicazione tiene nella radice dell'area il piccolo file `Area_Database.mdda`. Contiene lo stato del contatore dei identificatori di operazione, non compare in alcun elenco di file e viaggia con la cartella dell'area; su di esso non va fatto nulla. Se manca, l'applicazione ricava di nuovo lo stato dai giustificativi di modifica.
 
@@ -599,7 +599,7 @@ La stessa linea tollerante vale per i file di maschera. Se il contenitore `db-fo
 
 ## Disattivare la banca dati
 
-L'intera banca dati è un'[estensione interna](extensions.md) denominata «Banca dati», della categoria Strumenti, e si disattiva con un unico interruttore. Richiede i [Profili di proprietà](property-profiles.md), perché la forma di una definizione di tabella viene descritta e verificata tramite un profilo interno; se si disattiva questo prerequisito, la banca dati si disattiva con esso.
+L'intera banca dati è un'[estensione interna](extensions.md) denominata «Banca dati», della categoria Strumenti, e si disattiva con un unico interruttore. Richiede i [Profili di proprietà](property-profiles.md), perché la forma di una definizione di tabella viene descritta e verificata tramite un profilo interno; finché la banca dati è attiva, questo prerequisito non può quindi essere disattivato.
 
 Da disattivata vale quanto segue:
 

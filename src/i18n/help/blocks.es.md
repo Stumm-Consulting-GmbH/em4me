@@ -24,6 +24,16 @@ Un `+` o `-` tras el tipo hace el callout plegable: `+` empieza abierto, `-` ple
 > [!note]- Empieza plegado
 > Visible solo tras hacer clic en el título.
 
+Da igual si el tipo se escribe en mayúsculas o minúsculas: `[!note]`, `[!Note]` y `[!NOTE]` producen el mismo cuadro con el mismo icono, el mismo color de acento y el mismo título por defecto; `+`, `-` y un título propio funcionan igual. El texto del archivo se queda tal como se escribió: las mayúsculas procedentes de otros programas Markdown no se reescriben. La lista de los diez tipos no cambia: los nombres que no figuran en ella, como `[!IMPORTANT]`, son tipos desconocidos en cualquier forma de escritura.
+
+```markdown
+> [!WARNING]
+> En mayúsculas — el mismo cuadro que con `[!warning]`.
+```
+
+> [!WARNING]
+> En mayúsculas — el mismo cuadro que con `[!warning]`.
+
 ## Contenedores personalizados
 
 Bloques contenedores entre `::: tipo` y `:::`. Los diez tipos de callout se muestran en estilo callout, los nombres desconocidos como caja neutra con el nombre como título.
@@ -36,6 +46,18 @@ Contenido en estilo callout.
 
 ::: warning
 Contenido en estilo callout.
+:::
+
+Da igual si el nombre se escribe en mayúsculas o minúsculas: `::: warning`, `::: Warning` y `::: WARNING` producen el mismo cuadro, `::: Mi-Caja` la misma caja neutra que `::: mi-caja`, y `::: COLUMNS 2` reparte el contenido en dos columnas igual que `::: columns 2`. El texto del archivo se queda tal como se escribió; una caja neutra muestra el nombre como título tal como aparece. La lista de los diez tipos de callout no cambia.
+
+```markdown
+::: WARNING
+En mayúsculas: el mismo cuadro que con `::: warning`.
+:::
+```
+
+::: WARNING
+En mayúsculas: el mismo cuadro que con `::: warning`.
 :::
 
 ## Bloque multicolumna

@@ -39,7 +39,7 @@ Markers at the end of the line add a due date (📅), a scheduled date (⏳) and
 
 ## Reminders
 
-A separate marker, ⏰, fires a notification at a chosen time — distinct from the deadline. Reminders run only while the app is open; a catch-up dialog gathers any missed ones at the next start.
+A separate marker, ⏰, fires a notification at a chosen time — distinct from the deadline. Reminders run only while the app is open; a catch-up dialog gathers any missed ones at the next start. The notification appears in every open window, names the area it comes from, and disappears everywhere once it is handled in one of them.
 
 ```markdown
 - [ ] Call the supplier back ⏰ 2099-04-14 09:30

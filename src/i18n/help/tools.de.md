@@ -180,13 +180,19 @@ Die kleine Stufe ist auf schmale Sidebar-Spalten ausgelegt, die große auf eine 
 
 Der Wecker-Modus hält beliebig viele Wecker. Beim Anlegen werden Uhrzeit, eine Bezeichnung und das Wiederhol-Muster gewählt: einmalig, täglich oder an bestimmten Wochentagen. Die Uhrzeit kommt über eine Ziffern-Auswahl, eine ungültige Eingabe ist damit nicht möglich. Jeder Wecker lässt sich einzeln scharf schalten, ohne ihn zu löschen; ein einmaliger Wecker schaltet sich nach dem Auslösen selbst ab.
 
-Ein fälliger Wecker meldet sich mit einem Hinweis, der bestätigt oder um eine einstellbare Dauer geschlummert werden kann (Einstellungen → Uhr). Ist das Fenster nicht im Vordergrund, kommt zusätzlich eine System-Benachrichtigung; ein Klick darauf holt das Fenster nach vorn.
+Ein fälliger Wecker meldet sich mit einem Hinweis, der bestätigt oder um eine einstellbare Dauer geschlummert werden kann (Einstellungen → Uhr). Steht kein Fenster der App im Vordergrund, kommt zusätzlich eine System-Benachrichtigung; ein Klick darauf holt die App nach vorn.
 
 ### Timer und Stoppuhr
 
 Der Timer-Modus zeigt die angelegten Timer mit Restzeit und Fortschrittsbalken. Drei Knöpfe starten geläufige Dauern sofort, eigene Dauern kommen über eine Steuerung für Stunden, Minuten und Sekunden. Start, Pause und Zurücksetzen wirken je Timer. Die Restzeit wird aus Zeitstempeln gerechnet, nicht heruntergezählt: Ein Timer läuft deshalb auch dann richtig weiter, wenn das Fenster im Hintergrund war oder die App zwischenzeitlich beendet wurde. Ein abgelaufener Timer meldet sich und lässt sich bestätigen oder erneut starten.
 
 Die Stoppuhr misst vorwärts, mit Hundertsteln. Neben Start, Pause und Zurücksetzen nimmt sie Rundenzeiten auf; die jüngste Runde steht oben.
+
+### Meldung in allen Fenstern
+
+Ein fälliger Wecker und ein abgelaufener Timer melden sich in jedem geöffneten Fenster der App, auch in Fenstern eines anderen Bereichs, in Fenstern ohne Bereich sowie in Buch- und Bücherregal-Fenstern. Beide gehören zur ganzen App und keinem Bereich; eine Herkunfts-Angabe tragen ihre Meldungen deshalb nicht. Bearbeitet wird die Meldung in einem beliebigen Fenster, und die Bearbeitung wirkt genau einmal: Die Meldung verschwindet danach in allen Fenstern, und eine fast gleichzeitige zweite Bearbeitung in einem anderen Fenster bleibt ohne Wirkung. Sind mehrere Wecker oder Timer zugleich fällig, sammelt jedes Fenster sie in einem Dialog. Ein Fenster, das erst später geöffnet wird, zeigt eine noch nicht bearbeitete Meldung ebenfalls.
+
+Die System-Benachrichtigung erscheint nur, wenn kein Fenster der App im Vordergrund steht, und je Meldung genau einmal, auch wenn mehrere Fenster offen sind. Angezeigt wird sie vom Betriebssystem; ohne dessen Benachrichtigungs-Dienst bleibt es bei der Meldung in der App.
 
 ### Monatskalender
 

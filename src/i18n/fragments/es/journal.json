@@ -44,6 +44,8 @@
   "settings.journals.loading": "Cargando la configuración…",
   "settings.journals.noArea": "Los diarios solo existen dentro de un área. Abra primero un área.",
   "settings.journals.intro": "Estanterías y diarios del área '{name}'. Los cambios surten efecto inmediatamente después de aplicar.",
+  "settings.journals.introBook": "Estanterías y diarios del libro '{name}'. Los cambios surten efecto inmediatamente después de aplicar.",
+  "settings.journals.introShelf": "Estanterías y diarios de la estantería '{name}'. Los cambios surten efecto inmediatamente después de aplicar.",
   "settings.journals.shelvesGroup": "Estanterías",
   "settings.journals.shelfPlaceholder": "Nombre de la estantería",
   "settings.journals.shelfAdd": "Añadir estantería",

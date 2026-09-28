@@ -184,13 +184,13 @@ Ausführlich: [Skript-Blöcke](scripts.md).
 
 ## Und der Rest der Sprache
 
-Über die vier großen Konstrukte hinaus bringt der Sprachumfang mehr als fünfzig Erweiterungen: Hinweisblöcke und Fußnoten für den Text, Formeln und Diagramme für die Darstellung, Verweise, Schlagwörter und Einbettungen für den Zusammenhang, Aufgaben, Erinnerungen und Termine für die Arbeit am Tag, dazu Vorlagen und Journale. Nichts davon ist Pflicht: Jede Erweiterung hat ihren eigenen Schalter, und was ausgeschaltet ist, verschwindet aus Menüs, Befehlen und Darstellung, statt im Weg zu stehen.
+Über die vier großen Konstrukte hinaus bringt der Sprachumfang mehr als fünfzig Erweiterungen: Hinweisblöcke und Fußnoten für den Text, Formeln und Diagramme für die Darstellung, Verweise, Schlagwörter und Einbettungen für den Zusammenhang, Aufgaben, Erinnerungen und Termine für die Arbeit am Tag, dazu Vorlagen und Journale. Nichts davon ist Pflicht: Jede Erweiterung hat ihren eigenen Schalter, und was ausgeschaltet ist, verschwindet aus Menüs, Befehlen und Darstellung, statt im Weg zu stehen; ein Arbeitsmodus gibt dazu einen gestuften Einstieg, vom Wesentlichen bis zum vollen Umfang.
 
 - **Text-Erweiterungen** für Hinweisblöcke, Fußnoten, Hervorhebungen und Abkürzungen.
 - **Darstellung** mit Formeln, Diagrammen und hervorgehobenem Code; beim portablen Export reist ein Diagramm als fertiges Bild mit und ist auch dort zu sehen, wo EM4me nicht installiert ist.
 - **Bezug im Text** über Anker, Einbettungen und Schlagwörter.
 - **Arbeit am Tag** mit Aufgaben, Erinnerungen, Terminen, Vorlagen und Journalen.
-- **Einzeln schaltbar** und offen für eigene Erweiterungen über eine dokumentierte Schnittstelle.
+- **Einzeln schaltbar** oder gebündelt über drei Arbeitsmodi, dazu eigene Zusammenstellungen, und offen für eigene Erweiterungen über eine dokumentierte Schnittstelle.
 
 Ausführlich: [Funktionen](functions.md), [Erweiterungen](extensions.md), [Eigene Erweiterungen](extensions-dev.md).
 

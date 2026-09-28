@@ -65,6 +65,33 @@ function registerBooksIpc(handle, deps) {
   // Zustand des aktiven Buches (Inhaltsverzeichnis-Panel, Lesefuehrung).
   handle('books:getState', (event) => bookPayloadFor(appIdOfWindow(senderWindow(event))));
 
+  // --- 4T-001885 (Epic 3E-000189): Die eigenen Angaben des Buches ---------------
+  //
+  // Titel, Autor, Beschreibung und Titelbild aus dem Frontmatter der Buch-Datei
+  // — dieselbe Stelle, aus der die Regal-Ansicht sie liest, und dieselbe, in die
+  // der Eigenschaften-Editor schreibt. Der Einstellungs-Abschnitt bearbeitet sie,
+  // er verlegt sie nicht (Story 4S-000994, AK6).
+  //
+  // Beide Kanaele beziehen sich wie alle uebrigen auf das aktive Buch der
+  // APPLIKATION des aufrufenden Fensters. Damit haengt der Abschnitt an der
+  // Bindung des Fensters und nicht am sichtbaren Dokument (AK13).
+  handle('books:getInfo', (event) => {
+    const appId = appIdOfWindow(senderWindow(event));
+    const bookDir = appId != null ? activeBooks.get(appId) : null;
+    if (!bookDir) return { ok: false, error: 'no-book' };
+    return books.readBookInfo(bookDir);
+  });
+
+  // Rein schreibend auf die Buch-Datei; kein Zustands-Broadcast noetig, weil
+  // der Kapitel-Baum unberuehrt bleibt. Ein offener Reiter der Buch-Datei zieht
+  // ueber den Datei-Watcher nach wie bei jeder Aenderung von aussen.
+  handle('books:setInfo', (event, werte) => {
+    const appId = appIdOfWindow(senderWindow(event));
+    const bookDir = appId != null ? activeBooks.get(appId) : null;
+    if (!bookDir) return { ok: false, error: 'no-book' };
+    return books.writeBookInfo(bookDir, werte);
+  });
+
   // "Buch oeffnen…" mit Ordner-Dialog (identische Strecke wie der
   // Menue-Eintrag; der Menue-Klick ruft dieselbe Funktion).
   handle('books:openDialog', (event) => openBookDialog(senderWindow(event)));

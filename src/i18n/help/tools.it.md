@@ -180,13 +180,19 @@ Il livello piccolo è pensato per colonne strette, quello grande per una colonna
 
 La modalità sveglia accoglie un numero qualsiasi di sveglie. Alla creazione si scelgono l'ora, un nome e lo schema di ripetizione: una volta, ogni giorno o in giorni scelti della settimana. L'ora passa da un controllo a cifre, quindi un inserimento non valido è impossibile. Ogni sveglia si attiva singolarmente senza eliminarla; una sveglia singola si disattiva dopo aver suonato.
 
-Una sveglia scaduta mostra un avviso che si può confermare o posticipare di una durata configurabile (Impostazioni → Orologio). Se la finestra non è in primo piano si aggiunge una notifica di sistema; un clic porta la finestra in primo piano.
+Una sveglia scaduta mostra un avviso che si può confermare o posticipare di una durata configurabile (Impostazioni → Orologio). Se nessuna finestra dell'applicazione è in primo piano si aggiunge una notifica di sistema; un clic porta l'applicazione in primo piano.
 
 ### Timer e cronometro
 
 La modalità timer elenca i timer con tempo restante e barra di avanzamento. Tre pulsanti avviano subito durate consuete, le durate proprie passano da un controllo per ore, minuti e secondi. Avvio, pausa e azzeramento agiscono per timer. Il tempo restante si calcola da marche temporali anziché con un conto alla rovescia: un timer prosegue quindi correttamente anche se la finestra era in secondo piano o l'applicazione è stata chiusa nel frattempo. Un timer scaduto mostra un avviso e si può confermare o riavviare.
 
 Il cronometro conta in avanti, con centesimi. Oltre ad avvio, pausa e azzeramento registra i tempi sul giro; il giro più recente è in alto.
+
+### Avvisi in tutte le finestre
+
+Una sveglia scaduta e un timer scaduto mostrano il loro avviso in ogni finestra aperta dell'applicazione, anche nelle finestre di un'altra area, nelle finestre senza area e nelle finestre di libro e di libreria. Entrambi appartengono all'intera applicazione e a nessuna area, quindi i loro avvisi non indicano una provenienza. L'avviso si gestisce in una finestra qualsiasi, e la gestione ha effetto una sola volta: l'avviso scompare poi da tutte le finestre, e una seconda azione quasi contemporanea in un'altra finestra resta senza effetto. Se scadono insieme più sveglie o timer, ogni finestra li raccoglie in un unico dialogo. Una finestra aperta più tardi mostra anch'essa un avviso non ancora gestito.
+
+La notifica di sistema compare solo quando nessuna finestra dell'applicazione è in primo piano, e una sola volta per avviso, anche con più finestre aperte. A mostrarla è il sistema operativo; senza il suo servizio di notifiche resta solo l'avviso dentro l'applicazione.
 
 ### Calendario mensile
 

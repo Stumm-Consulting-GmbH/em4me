@@ -18,6 +18,7 @@ import {
   calendarToDraft,
 } from './settings-calendar-model.js';
 import { renderActiveSection } from './settings-mount.js';
+import { kontextSchluessel } from './settings-kontext.js';
 
 // Übersicht: Block-Zeilen (Name, Kalender-Zähler, Öffnen, Entfernen) plus
 // „Block hinzufügen" (Muster Journal-Regale).
@@ -249,7 +250,17 @@ export function renderCalendarSection(container, draft) {
   }
   const intro = document.createElement('p');
   intro.className = 'settings-row-hint';
-  intro.textContent = t('settings.calendar.intro').replace('{name}', values.areaName);
+  // 4T-001885 (Epic 3E-000189): Die Beschriftung nennt Buch bzw. Bücherregal
+  // statt Bereich, sobald das Fenster an eines gebunden ist. Der eingesetzte
+  // NAME bleibt derselbe wie bisher — geändert ist die Bezeichnung, nicht der
+  // Name (Story 4S-000994, AK12).
+  intro.textContent = t(
+    kontextSchluessel({
+      area: 'settings.calendar.intro',
+      book: 'settings.calendar.introBook',
+      shelf: 'settings.calendar.introShelf',
+    }),
+  ).replace('{name}', values.areaName);
   container.appendChild(intro);
   if (values.openBlock === null || values.openBlock === undefined) {
     renderCalendarBlocksOverview(container, values);

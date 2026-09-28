@@ -5,6 +5,7 @@
 import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { renderActiveSection } from './settings-mount.js';
+import { kontextSchluessel } from './settings-kontext.js';
 import { buildSettingsRow } from './settings-shared.js';
 
 // --- Bereich Vorlagen (4T-000428, Epic 3E-000080) ----------------------------------
@@ -118,7 +119,17 @@ export function renderAttachmentsAreaSection(container, draft) {
   if (!values.hasArea) return;
   const heading = document.createElement('h4');
   heading.className = 'settings-export-group-title';
-  heading.textContent = t('settings.attachments.areaGroup').replace('{name}', values.areaName);
+  // 4T-001885 (Epic 3E-000189): Die Beschriftung nennt Buch bzw. Bücherregal
+  // statt Bereich, sobald das Fenster an eines gebunden ist. Der eingesetzte
+  // NAME bleibt derselbe wie bisher — geändert ist die Bezeichnung, nicht der
+  // Name (Story 4S-000994, AK12).
+  heading.textContent = t(
+    kontextSchluessel({
+      area: 'settings.attachments.areaGroup',
+      book: 'settings.attachments.bookGroup',
+      shelf: 'settings.attachments.shelfGroup',
+    }),
+  ).replace('{name}', values.areaName);
   container.appendChild(heading);
   buildAttachmentRows(container, values.area, true);
 }

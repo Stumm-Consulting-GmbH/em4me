@@ -8,6 +8,7 @@ import { api } from '../app/api.js';
 import { state } from '../app/app-state.js';
 import { persistSetting, showStatusbarHint } from '../views/views.js';
 import { refreshSettingsButtons, renderActiveSection } from './settings-mount.js';
+import { kontextSchluessel } from './settings-kontext.js';
 import { buildSettingsRow, jsonEqual } from './settings-shared.js';
 
 // Spiegelt den globalen Teil von applyTemplatesSection (normalisierte
@@ -222,7 +223,17 @@ export function renderTemplatesAreaSection(container, draft) {
   if (!values.hasArea) return;
   const areaHeading = document.createElement('h4');
   areaHeading.className = 'settings-export-group-title';
-  areaHeading.textContent = t('settings.templates.areaGroup').replace('{name}', values.areaName);
+  // 4T-001885 (Epic 3E-000189): Die Beschriftung nennt Buch bzw. Bücherregal
+  // statt Bereich, sobald das Fenster an eines gebunden ist. Der eingesetzte
+  // NAME bleibt derselbe wie bisher — geändert ist die Bezeichnung, nicht der
+  // Name (Story 4S-000994, AK12).
+  areaHeading.textContent = t(
+    kontextSchluessel({
+      area: 'settings.templates.areaGroup',
+      book: 'settings.templates.bookGroup',
+      shelf: 'settings.templates.shelfGroup',
+    }),
+  ).replace('{name}', values.areaName);
   container.appendChild(areaHeading);
   const enabledInput = document.createElement('input');
   enabledInput.id = 'settings-templates-area-enabled';

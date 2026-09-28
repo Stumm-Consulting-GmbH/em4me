@@ -5,6 +5,7 @@
   "reminders.dialog.snooze": "Ricordamelo più tardi",
   "reminders.dialog.close": "Chiudi",
   "reminders.dialog.openFile": "Apri file",
+  "reminders.dialog.origin": "Provenienza: {name}",
   "reminders.notification.count": "{n} promemoria in scadenza",
   "reminders.snooze.pick": "Scegli data…",
   "reminders.snooze.m.one": "1 minuto",
@@ -39,5 +40,5 @@
   "settings.reminders.unit.d": "giorni",
   "settings.reminders.unit.w": "settimane",
   "settings.reminders.systemNotification": "Mostra notifica di sistema",
-  "settings.reminders.systemNotificationHint": "Oltre alla finestra di dialogo quando l'applicazione non è in primo piano."
+  "settings.reminders.systemNotificationHint": "Oltre alla finestra di dialogo quando nessuna finestra dell'applicazione è in primo piano; una volta per avviso."
 }

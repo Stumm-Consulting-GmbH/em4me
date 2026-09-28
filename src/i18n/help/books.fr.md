@@ -148,6 +148,24 @@ Une bibliothèque ouverte apparaît comme page à part dans le système d'onglet
 
 Sous le fonds se trouve la section **Non classés** avec les dossiers de livre du dossier de bibliothèque qui ne sont pas encore classés ; **Ajouter** les classe, **Retirer** enlève un classement sans toucher au dossier du livre. Un livre classé dont le dossier manque reste visible et est marqué comme manquant.
 
+## Les paramètres d'un livre et d'une bibliothèque
+
+Un livre ouvert et une bibliothèque ouverte disent aussi dans les paramètres (Fichier → Paramètres…) à quoi ils se rapportent : le bloc de navigation lié à la zone ne s'appelle alors pas « Zone actuelle », mais **Livre actuel** ou **Bibliothèque actuelle**, et les titres de ses sections parlent de même du livre ou de la bibliothèque au lieu de la zone. Ce qui compte, c'est le rattachement de la fenêtre et non le fichier qui se trouve au premier plan : dans une fenêtre de livre, cela reste « Livre actuel » quel que soit le chapitre ouvert, et deux fenêtres aux rattachements différents affichent chacune son propre libellé.
+
+### Informations propres
+
+En première place du bloc se trouve la section **Informations propres**. Elle porte les informations que le livre et la bibliothèque contiennent de toute façon :
+
+- **Titre**, **Auteur** et **Description** — trois champs du front matter du fichier du livre ou de la bibliothèque.
+- **Image de couverture** — la référence d'image `cover`, indiquée comme chemin relatif au dossier du livre ou de la bibliothèque. Un champ vide signifie : pas d'image de couverture. Si aucun fichier ne se trouve à ce chemin, la section le signale et la vue de la bibliothèque prend la vignette de substitution ; ce n'est pas une erreur.
+- **Affichage** — pour la bibliothèque seulement : vignettes ou lignes, le même choix que le commutateur de la vue de la bibliothèque. Il vaut par bibliothèque et uniquement sur cet ordinateur.
+
+Comme partout sur la page des paramètres, les modifications ne prennent effet qu'avec Appliquer ou OK.
+
+C'est **le même endroit qu'auparavant** : les quatre informations figurent dans le [front matter](frontmatter.md) du fichier du livre ou de la bibliothèque, et la section les modifie précisément là. Qui les change dans le fichier lui-même voit la modification ici, et inversement ; un deuxième lieu de stockage n'apparaît pas.
+
+Dans une zone ordinaire, la section n'apparaît pas, car ces informations n'y existent pas. Les autres sections du bloc — Historique du document, Pièces jointes, Modèles, Liens entre zones, Base de données, Journaux, Systèmes de calendrier, Profils de propriétés et Variantes — restent inchangées et agissent dans le dossier du livre et de la bibliothèque comme dans toute autre zone.
+
 ## Activer et désactiver
 
 Les livres et les bibliothèques forment ensemble une extension commutable (Paramètres → [Extensions](extensions.md), groupe Outils), active d'origine. À l'état désactivé, les entrées de menu, les commandes, le panneau et la vue de la bibliothèque disparaissent ; les fichiers de livre et de bibliothèque s'ouvrent alors comme tout autre fichier Markdown. Fichier du livre, fichier de bibliothèque, fichiers compagnons et chapitres restent intacts, et la réactivation rétablit l'état sans changement.

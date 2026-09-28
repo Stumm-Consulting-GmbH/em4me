@@ -87,13 +87,19 @@ Los números se reordenan al cerrar: si se cierra la aplicación 1, la aplicaci�
 
 ## Áreas
 
-Un **área** vincula una aplicación a una carpeta: todo lo que hay en esa carpeta, subcarpetas incluidas, es el espacio de trabajo, nada más. «Archivo → Área → Abrir área…» elige la carpeta; «Archivo → Área → Cerrar área» termina el trabajo en el área y cierra todas las ventanas de la aplicación del área (con las preguntas de guardado habituales). El vínculo es fijo: un área no se puede cambiar, solo cerrar.
+Un **área** vincula una aplicación a una carpeta: todo lo que hay en esa carpeta, subcarpetas incluidas, es el espacio de trabajo, nada más. «Archivo → Área → Abrir área…» elige la carpeta; «Archivo → Área → Cerrar área» termina el trabajo en el área y cierra todas las ventanas de **esta** aplicación del área (con las preguntas de guardado habituales); si la misma carpeta está abierta además en una segunda aplicación, esta permanece abierta con sus documentos. El vínculo es fijo: un área no se puede cambiar, solo cerrar.
 
-Al abrir se aplican tres reglas:
+Al abrir un área que todavía no está abierta se aplican dos reglas:
 
 - Si la aplicación está vacía (sin archivo abierto), adopta el área.
 - Si la aplicación ya tiene un archivo abierto, se crea una nueva aplicación para el área.
-- Si el área ya está en ejecución, el foco salta a una ventana de la aplicación del área; la misma área nunca se ejecuta dos veces.
+
+**Si el área ya está abierta**, depende de si la aplicación en ejecución tiene un espacio de trabajo (véase más abajo):
+
+- **Sin espacio de trabajo**, el foco salta sin preguntar a una ventana de la aplicación del área. Esto vale también cuando la misma carpeta está abierta a la vez en un espacio de trabajo: el foco va entonces a la aplicación sin espacio de trabajo.
+- **Con espacio de trabajo**, la aplicación pregunta qué hacer, siempre que la función «Espacios de trabajo» esté activada; si está desactivada, el foco salta como sin espacio de trabajo. «Cambiar a la ventana abierta» trae al frente la última ventana activa del espacio de trabajo. «Abrir además» abre el área por segunda vez, en una aplicación nueva con ventana y pestañas propias; no pertenece al espacio de trabajo. «Cancelar» lo deja todo como estaba.
+
+La pregunta aparece en cada camino que abre un área, por ejemplo desde «Abrir área…» o «Áreas recientes». Dos aplicaciones sobre la misma carpeta trabajan de forma independiente, y los límites estrictos del área rigen en ambas. Se distinguen por el título de la ventana: una nombra el espacio de trabajo y la otra no. Con la restauración de sesión activada, ambas vuelven en el siguiente inicio como dos aplicaciones, y cada una recupera sus propios borradores sin guardar.
 
 **Demo-Area:** «Archivo → Área → Crear la Demo-Area…» copia una colección de ejemplos incluida en inglés —páginas Markdown junto con adjuntos de imagen y PDF que muestran las funciones más importantes— en una carpeta vacía y la abre directamente como área: un entorno de pruebas para experimentar sin riesgo. Las carpetas de destino no vacías se rechazan, y los archivos existentes nunca se sobrescriben. La función puede desactivarse como extensión «Demo-Area»; las carpetas de demostración ya creadas son áreas ordinarias y permanecen intactas.
 
@@ -157,7 +163,7 @@ Esta página se refiere siempre a **un** área, la abierta. Una vista escueta de
 
 Un área puede designar uno de sus archivos como **página de inicio**: se abre por sí sola al abrir el área, como un libro se abre por su primera página. Se define y se quita desde el menú contextual de un archivo en el panel de área; allí el archivo designado se reconoce por un símbolo delante y una letra seminegrita.
 
-**La restauración de sesión tiene prioridad**: si al iniciar el programa una aplicación de área vuelve con los documentos que tenía abiertos, la página de inicio permanece cerrada: usted sigue donde lo dejó. Se abre cuando no hay nada que restaurar: al abrir un área con el programa en marcha y al iniciar una aplicación de área sin documentos guardados. Saltar a un área que ya está en ejecución no la vuelve a abrir y deja intacta la página de inicio.
+**La restauración de sesión tiene prioridad**: si al iniciar el programa una aplicación de área vuelve con los documentos que tenía abiertos, la página de inicio permanece cerrada: usted sigue donde lo dejó. Se abre cuando no hay nada que restaurar: al abrir un área con el programa en marcha y al iniciar una aplicación de área sin documentos guardados. Saltar a un área que ya está en ejecución, también el cambio a través de la pregunta, no la vuelve a abrir y deja intacta la página de inicio; «Abrir además», en cambio, la abre como la primera vez, con página de inicio incluida.
 
 La designación pertenece al área y viaja con su carpeta. Si el archivo se renombra o se mueve dentro de la aplicación, la designación lo sigue; si el archivo sale del área, se descarta. Si no apunta a nada, el área se abre sin cambios y la aplicación lo indica: un área sin página de inicio se comporta como antes.
 

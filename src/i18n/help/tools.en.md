@@ -180,13 +180,19 @@ The small step is meant for narrow sidebar columns, the large one for a column d
 
 The alarm mode holds any number of alarms. Creating one asks for the time, a name and the repeat pattern: once, daily or on selected weekdays. The time comes from a digit control, so an invalid entry is not possible. Each alarm can be armed separately without deleting it; a one-off alarm disarms itself after firing.
 
-A due alarm shows a notice that can be confirmed or snoozed by a configurable duration (Settings → Clock). If the window is not in front, a system notification is added; clicking it brings the window forward.
+A due alarm shows a notice that can be confirmed or snoozed by a configurable duration (Settings → Clock). If no window of the app is in front, a system notification is added; clicking it brings the app forward.
 
 ### Timer and stopwatch
 
 The timer mode lists the timers with remaining time and a progress bar. Three buttons start common durations right away, custom durations come from a control for hours, minutes and seconds. Start, pause and reset act per timer. The remaining time is computed from timestamps rather than counted down: a timer therefore keeps running correctly even if the window was in the background or the app was closed in between. An elapsed timer shows a notice and can be confirmed or started again.
 
 The stopwatch counts up, with hundredths. Besides start, pause and reset it records lap times; the most recent lap is on top.
+
+### Notices in every window
+
+A due alarm and an elapsed timer show their notice in every open window of the app, including windows of another area, windows without an area, and book and bookshelf windows. Both belong to the whole app and to no area, so their notices carry no origin. The notice is handled in any one window, and handling takes effect exactly once: the notice then disappears from all windows, and a second action on it in another window a moment later has no effect. If several alarms or timers are due at the same time, each window gathers them in one dialog. A window opened later also shows a notice that has not been handled yet.
+
+The system notification appears only when no window of the app is in the foreground, and exactly once per notice, even with several windows open. It is shown by the operating system; without its notification service only the notice inside the app remains.
 
 ### Month calendar
 

@@ -88,6 +88,8 @@ function createDraftCache(deps) {
           area: e.area,
           // 4T-000539 (Epic 3E-000098): Arbeitsbereichs-Zuordnung des Entwurfs.
           workspaceId: e.workspaceId,
+          // 4T-001743 (Epic 3E-000309): Kennung der schreibenden App.
+          appKey: e.appKey,
           content,
           tabSettings: e.tabSettings,
           order: e.order,
@@ -106,7 +108,8 @@ function createDraftCache(deps) {
   // beim Multi-Fenster-Quit jedes Fenster einzeln schreibt.
   // 4T-000539 (Epic 3E-000098): `workspaceId` ist die Arbeitsbereichs-Zuordnung
   // der sendenden App (ebenfalls autoritativ aus der Registry) oder null.
-  async function appendDrafts(entries, areaRootPath, workspaceId) {
+  // 4T-001743 (Epic 3E-000309): `appKey` ist die Kennung der sendenden App.
+  async function appendDrafts(entries, areaRootPath, workspaceId, appKey) {
     const list = Array.isArray(entries)
       ? entries.filter((e) => e && typeof e.content === 'string' && e.content.trim() !== '')
       : [];
@@ -124,6 +127,7 @@ function createDraftCache(deps) {
         id,
         area: areaRootPath || null,
         workspaceId: workspaceId || null,
+        appKey: appKey || null,
         order: base + (Number.isFinite(entry.order) ? entry.order : i),
         tabSettings:
           entry.tabSettings && typeof entry.tabSettings === 'object' ? entry.tabSettings : {},

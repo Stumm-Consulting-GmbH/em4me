@@ -58,6 +58,17 @@ async function spring(page, taste) {
   await expect(eingabe(page)).toBeVisible();
 }
 
+// 4T-001711: Zahl der Datenzeilen der ersten Tabelle und Zeilen des Editors.
+async function datenZeilenZahl(page) {
+  return await ersteTabelle(page).evaluate((t) => t.querySelectorAll('tbody tr').length);
+}
+
+async function editorZeilen(page) {
+  return await page
+    .locator(SEL.editorContent0)
+    .evaluate((el) => Array.from(el.querySelectorAll('.cm-line')).map((z) => z.textContent));
+}
+
 test.describe('TS-01: Tabulator in derselben Zeile', () => {
   test('springt in die naechste Zelle (AK1, AK9)', async () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
@@ -105,21 +116,29 @@ test.describe('TS-03: Umschalt und Tabulator', () => {
   });
 });
 
+// 4T-001711 (Epic 3E-000300, E1): Bis dahin hielt dieser Fall fest, dass der
+// Tabulator in der letzten Zelle KEINE Zeile anlegt (Entscheidung vom
+// 2026-09-04). Der Product Owner hat sie am 2026-09-12 zurueckgenommen; der Fall
+// prueft seither das Gegenteil und ist der Regressionstest der Umstellung.
 test.describe('TS-04: Ende der Tabelle', () => {
-  test('legt in der letzten Zelle keine neue Zeile an (AK4)', async () => {
+  test('legt in der letzten Zelle eine neue Zeile an und oeffnet deren erste Zelle (4T-001711 AK1, AK2)', async () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
     try {
       await liveBearbeiten(app, page);
       await expect(ersteTabelle(page)).toBeVisible();
-      const zeilenVorher = await ersteTabelle(page).evaluate(
-        (t) => t.querySelectorAll('tbody tr').length,
-      );
+      expect(await datenZeilenZahl(page)).toBe(2);
       await oeffneZelle(page, 8); // c2, letzte Zelle der Tabelle
       await spring(page, 'Tab');
-      await expect.poll(() => markierteZelle(page)).toBe(8);
-      expect(await ersteTabelle(page).evaluate((t) => t.querySelectorAll('tbody tr').length)).toBe(
-        zeilenVorher,
-      );
+      await expect.poll(() => datenZeilenZahl(page)).toBe(3);
+      // Erste Zelle der neuen Zeile: Kopf 3 + zwei Datenzeilen je 3 = Index 9.
+      await expect.poll(() => markierteZelle(page)).toBe(9);
+      // Der Quelltext traegt die Zeile mit der Spaltenzahl der Tabelle.
+      await page.keyboard.press('Escape');
+      await sendMenuChannel(app, 'menu:viewChange', 'source');
+      const zeilen = await editorZeilen(page);
+      const i = zeilen.indexOf('| a2 |  | c2 |');
+      expect(i).toBeGreaterThan(0);
+      expect(zeilen[i + 1]).toBe('| | | |');
     } finally {
       await closeApp(app, userData, { force: true });
     }
@@ -234,6 +253,87 @@ test.describe('TS-09: Sprung uebernimmt die Eingabe', () => {
           ),
         )
         .toBe('gesprungen');
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+// 4T-001711 (Epic 3E-000300): Zeilen-Anlage am Tabellenende, die Faelle neben
+// TS-04. Die Tabelle nur mit Kopfzeile steht in einer eigenen Fixture, weil die
+// gemeinsame Fixture von drei Spec-Dateien mit festen Zell-Indizes gelesen wird.
+const FIXTURE_NUR_KOPF = path.resolve(
+  __dirname,
+  '..',
+  '..',
+  'fixtures',
+  'funktionen',
+  'tabellen-zeilen-anlage.md',
+);
+
+test.describe('TS-10: Zeilen-Anlage uebernimmt die Eingabe, ein Schritt fuer Rueckgaengig', () => {
+  test('der Text der letzten Zelle ist uebernommen, Strg+Z nimmt beides zurueck (4T-001711 AK3, AK6)', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    try {
+      await liveBearbeiten(app, page);
+      await expect(ersteTabelle(page)).toBeVisible();
+      await oeffneZelle(page, 8); // c2
+      await page.keyboard.press('Control+a');
+      await page.keyboard.type('Ende');
+      await spring(page, 'Tab');
+      await expect.poll(() => datenZeilenZahl(page)).toBe(3);
+      await expect.poll(() => markierteZelle(page)).toBe(9);
+      const letzteZelle = () =>
+        ersteTabelle(page).evaluate(
+          (t) => t.querySelectorAll('tbody tr')[1].querySelectorAll('td')[2].textContent,
+        );
+      expect(await letzteZelle()).toBe('Ende');
+      // Die neue, leere Zelle verlassen, ohne etwas zu schreiben; danach ein
+      // einziges Rueckgaengig.
+      await page.keyboard.press('Escape');
+      await expect(eingabe(page)).toHaveCount(0);
+      await page.keyboard.press('Control+z');
+      await expect.poll(() => datenZeilenZahl(page)).toBe(2);
+      expect(await letzteZelle()).toBe('c2');
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+test.describe('TS-11: Umschalt und Tabulator in der ersten Kopfzelle', () => {
+  test('bleibt stehen und legt keine Zeile an (4T-001711 AK5)', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    try {
+      await liveBearbeiten(app, page);
+      await expect(ersteTabelle(page)).toBeVisible();
+      await oeffneZelle(page, 0); // Kopfzelle A
+      await spring(page, 'Shift+Tab');
+      await expect.poll(() => markierteZelle(page)).toBe(0);
+      expect(await datenZeilenZahl(page)).toBe(2);
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+test.describe('TS-12: Tabelle nur mit Kopfzeile', () => {
+  test('der Tabulator in der letzten Kopfzelle legt die erste Datenzeile an (4T-001711 AK9)', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE_NUR_KOPF] });
+    try {
+      await liveBearbeiten(app, page);
+      await expect(ersteTabelle(page)).toBeVisible();
+      expect(await datenZeilenZahl(page)).toBe(0);
+      await oeffneZelle(page, 2); // Kopfzelle Notiz
+      await spring(page, 'Tab');
+      await expect.poll(() => datenZeilenZahl(page)).toBe(1);
+      await expect.poll(() => markierteZelle(page)).toBe(3);
+      await page.keyboard.press('Escape');
+      await sendMenuChannel(app, 'menu:viewChange', 'source');
+      const zeilen = await editorZeilen(page);
+      const i = zeilen.indexOf('| --- | --- | --- |');
+      expect(i).toBeGreaterThan(0);
+      expect(zeilen[i + 1]).toBe('| | | |');
     } finally {
       await closeApp(app, userData, { force: true });
     }

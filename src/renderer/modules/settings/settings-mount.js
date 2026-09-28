@@ -21,6 +21,8 @@ import {
   settingsSections,
 } from './settings-page.js';
 import { cancelHotkeyCapture } from './settings-hotkeys.js';
+// 4T-001885 (Epic 3E-000189): Worauf sich der bereichsgebundene Block bezieht.
+import { kontextSchluessel } from './settings-kontext.js';
 import { pageState } from './settings-shared.js';
 
 // --- Seiten-DOM ----------------------------------------------------------------
@@ -56,6 +58,22 @@ const NAV_GROUP_DEFS = [
   { id: 'extensionsInternal', titleKey: 'settings.navGroup.extensionsInternal' },
   { id: 'extensionsExternal', titleKey: 'settings.navGroup.extensionsExternal' },
 ];
+
+// 4T-001885 (Epic 3E-000189): Der bereichsgebundene Block trägt den Namen des
+// geöffneten Gegenstands — bei einem Buch «Aktuelles Buch», bei einem
+// Bücherregal «Aktuelles Bücherregal», sonst unverändert «Aktueller Bereich»
+// (PO-Entscheidung vom 2026-09-21). Die Block-Liste bleibt dabei VIERTEILIG:
+// Ein Buch ist technisch ein Bereich und trägt genau EINE Bindung; ein zweiter
+// Block beträfe denselben Ordner und erfände eine Trennung, die es nicht gibt.
+const AREA_GROUP_TITLE_KEYS = {
+  area: 'settings.navGroup.area',
+  book: 'settings.navGroup.book',
+  shelf: 'settings.navGroup.shelf',
+};
+
+function navGroupTitleKey(def) {
+  return def.id === 'area' ? kontextSchluessel(AREA_GROUP_TITLE_KEYS) : def.titleKey;
+}
 
 // Verwaltungs-Sektionen der Erweiterungen: sie bleiben im Block
 // „Allgemein" (sie konfigurieren keine Erweiterung, sondern verwalten den
@@ -166,7 +184,7 @@ export function buildSettingsNavEntries(nav) {
     wrap.dataset.navGroup = def.id;
     const title = document.createElement('div');
     title.className = 'settings-nav-group-title';
-    title.textContent = t(def.titleKey);
+    title.textContent = t(navGroupTitleKey(def));
     wrap.appendChild(title);
     for (const section of sections) {
       const btn = document.createElement('button');

@@ -38,6 +38,8 @@
   "settings.templates.ruleAdd": "Ajouter une règle",
   "settings.templates.ruleRemove": "Supprimer",
   "settings.templates.areaGroup": "Pour la zone '{name}'",
+  "settings.templates.bookGroup": "Pour le livre '{name}'",
+  "settings.templates.shelfGroup": "Pour la bibliothèque '{name}'",
   "settings.templates.areaEnabled": "Utiliser la configuration de zone",
   "settings.templates.areaHint": "Les valeurs de zone remplacent complètement les valeurs globales. Les dossiers sont relatifs à la racine de la zone (chemins absolus autorisés) ; enregistrés dans le fichier de zone.",
   "settings.templates.error.ruleTemplate": "Chaque règle de dossier a besoin d'un modèle.",

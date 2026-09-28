@@ -24,6 +24,12 @@ Der Live-Modus rendert das Markdown unmittelbar im Editor: Fett und kursiv, Link
 
 **Tabellen sind von dieser Regel ausgenommen.** Sie bleiben gesetzt stehen, auch wenn die Schreibmarke in ihnen steht: Ein Klick trifft die Zelle, Tabulator und Pfeiltasten führen von Zelle zu Zelle, und Getipptes landet an der richtigen Stelle des Quelltextes. Wer die Roh-Syntax einer Tabelle braucht — die Trennerzeile mit ihren Ausrichtungs-Doppelpunkten etwa —, wechselt dafür in die Quellcode- oder die geteilte Ansicht.
 
+**In der Zelle schreiben.** Der Tabulator in der letzten Zelle der letzten Zeile legt eine neue Zeile mit derselben Spaltenzahl an und setzt die Schreibmarke in deren erste Zelle, genau wie in der Quellcode-Ansicht; Umschalt+Tabulator legt keine an. Was in einer Zelle getippt ist, wird übernommen, auf welchem Weg die Zelle auch verlassen wird: mit Eingabetaste, Tabulator oder Pfeiltaste, mit einem Klick in eine andere Zelle oder irgendwo außerhalb der Tabelle, beim Speichern, beim Wechsel des Dokuments oder der Ansicht und beim Schließen des Dokuments. Escape verwirft die Eingabe der Zelle. Solange eine Zelle geöffnet ist, nimmt Strg+Z das darin Getippte zurück; das Rückgängig im Dokument wirkt, sobald die Zelle verlassen ist.
+
+**Rechtsklick in eine Zelle.** Er setzt die Schreibmarke in die angeklickte Zelle und öffnet dort das [Kontextmenü](context-menu.md); dessen Funktionen, etwa die des Untermenüs **Tabelle**, wirken an dieser Stelle. Eine laufende Eingabe bleibt dabei erhalten.
+
+**Vorschläge in der Zelle.** Nach `[[` und `#` erscheint an der Zelle dieselbe [Vorschlagsliste](linking.md) wie im Fließtext, mit denselben Einträgen in derselben Reihenfolge. Pfeil hoch und runter wählen, die Eingabetaste übernimmt, Escape schließt nur die Liste und lässt die Zelle offen; solange die Liste offen ist, führen Pfeiltasten und Eingabetaste nicht in eine andere Zelle. Aufgaben-Marker werden in der Zelle nicht vorgeschlagen, weil eine Tabellenzeile keine Aufgabenzeile ist.
+
 **Links im Fließtext sind dauerhaft gekennzeichnet.** Sie tragen ihre Unterstreichung ständig, ohne dass die Maus darüber stehen muss — Wiki-Links wie Markdown-Links, auf ein Dokument wie auf eine Adresse nach außen. Die gerenderte Ansicht unterstreicht einen Link weiterhin erst beim Überfahren mit der Maus; in der Ansicht, in der geschrieben wird, soll dagegen ohne Zutun zu sehen sein, dass hinter einem Text ein Link steht. In der Zeile mit der Schreibmarke steht die rohe Auszeichnung wie gewohnt.
 
 ### Mindmap
@@ -105,8 +111,8 @@ Die Statusleiste zeigt Wörter, Zeichen und die geschätzte Lesezeit der aktiven
 Die Einstellungen öffnen als eigener Reiter (Datei → Einstellungen…, Standard `Strg+,`). Ihre Navigation gliedert sich in vier Blöcke:
 
 - **Allgemein** — alles, was für die ganze Anwendung gilt, etwa Darstellung, Verhalten, Tastenkürzel und Export.
-- **Aktueller Bereich** — die Einstellungen des geöffneten Bereichs. Der Block erscheint nur, solange ein Bereich offen ist.
-- **Erweiterungen (intern)** — das Ein- und Ausschalten der mitgelieferten Erweiterungen samt ihren eigenen Bereichen.
+- **Aktueller Bereich** — die Einstellungen des geöffneten Bereichs. Der Block erscheint nur, solange ein Bereich offen ist. Bei einem geöffneten Buch heißt er **Aktuelles Buch**, bei einem geöffneten Bücherregal **Aktuelles Bücherregal**; dann steht an seiner ersten Stelle der Abschnitt **Eigene Angaben** mit Titel, Autor, Beschreibung und Titelbild, beim Regal zusätzlich mit der Darstellung. Die übrigen Abschnitte des Blocks bleiben in allen drei Fällen dieselben, siehe [Bücher](books.md).
+- **Erweiterungen (intern)** — der Arbeitsmodus, der sie gebündelt umschaltet, und das Ein- und Ausschalten der mitgelieferten Erweiterungen samt ihren eigenen Bereichen.
 - **Erweiterungen (extern)** — die Verwaltung selbst installierter Erweiterungs-Pakete.
 
 Änderungen wirken zunächst als Entwurf mit Live-Vorschau der Darstellung. Anwenden und OK speichern; beide sind nur bei ungesicherten Änderungen hervorgehoben, ohne Änderungen ist Anwenden abgeblendet. Abbrechen oder das Schließen des Reiters verwirft den Entwurf. Gespeicherte Werte gelten sofort in allen offenen Fenstern. Mehr zu den beiden Erweiterungs-Blöcken steht auf der Seite [Erweiterungen](extensions.md).

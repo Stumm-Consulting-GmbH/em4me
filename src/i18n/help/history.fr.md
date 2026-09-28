@@ -31,7 +31,7 @@ history: true
 ---
 ```
 
-`history: false` désactive ; une propriété absente hérite. Le plus simple est le menu du clic sur l'icône de la barre d'état (activer, désactiver, utiliser la valeur héritée). Le défaut de zone se règle dans l'entrée de paramètres « Historique du document » du groupe de navigation « Zone actuelle » (visible uniquement lorsqu'une zone est ouverte) ; le fichier de zone n'est créé qu'au premier réglage.
+`history: false` désactive ; une propriété absente hérite. Le plus simple est le menu du clic sur l'icône de la barre d'état (activer, désactiver, utiliser la valeur héritée). Le défaut de zone se règle dans l'entrée de paramètres « Historique du document » du groupe de navigation « Zone actuelle » (visible uniquement lorsqu'une zone est ouverte ; lorsqu'un livre est ouvert, le groupe s'appelle **Livre actuel**, lorsqu'une bibliothèque est ouverte **Bibliothèque actuelle**) ; le fichier de zone n'est créé qu'au premier réglage.
 
 **Désactiver ne supprime rien.** L'enregistrement est seulement mis en pause ; le fichier compagnon est conservé. À la réactivation, l'écart est consigné comme un paquet regroupé, l'historique reste traçable sans rupture.
 

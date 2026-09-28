@@ -59,7 +59,7 @@ Termine stehen als Symbol-Marker mit Datum `JJJJ-MM-TT` am Zeilenende und ersche
 - [ ] Vorbereitung ⏳ 2099-03-24 🛫 2099-03-17
 - [ ] Längst fällig 📅 2020-01-01
 
-Manuell gesetzt werden **fällig** (`📅`), **geplant** (`⏳`) und **Start** (`🛫`). Automatisch entstehen **erstellt** (`➕`), **erledigt** (`✅`) und **abgebrochen** (`❌`) — siehe Automatik-Daten. Überfällige Fälligkeits-Termine sind rot hervorgehoben; kalendarisch ungültige Werte (etwa ein 30. Februar) bleiben erhalten und sind als ungültig markiert.
+Manuell gesetzt werden **fällig** (`📅`), **geplant** (`⏳`) und **Start** (`🛫`). Automatisch entstehen **erstellt** (`➕`), **erledigt** (`✅`) und **abgebrochen** (`❌`) — siehe Automatik-Daten; das Erledigt-Datum lässt sich danach im Bearbeitungs-Dialog ändern oder entfernen. Überfällige Fälligkeits-Termine sind rot hervorgehoben; kalendarisch ungültige Werte (etwa ein 30. Februar) bleiben erhalten und sind als ungültig markiert.
 
 Hinter dem Datum ist optional eine **Uhrzeit** `HH:mm` erlaubt:
 
@@ -115,7 +115,7 @@ Verhalten im Detail: Rechen-Basis ist der Fälligkeits-Termin, ersatzweise gepla
 
 Beim Statuswechsel schreibt die App Datums-Marker in die Zeile — jeder der drei Automatiken lässt sich im Einstellungs-Bereich **Aufgaben** einzeln abschalten:
 
-- **Erledigt** (`✅`): beim Wechsel auf einen Status vom Typ Erledigt; der Wechsel zurück entfernt das Datum wieder.
+- **Erledigt** (`✅`): beim Wechsel auf einen Status vom Typ Erledigt; der Wechsel zurück entfernt das Datum wieder. Der heutige Tag ist eine Vorgabe: Im Bearbeitungs-Dialog lässt sich ein anderer Tag wählen oder das Datum entfernen, und die Automatik überschreibt das erst beim nächsten Status-Wechsel.
 - **Abgebrochen** (`❌`): analog beim Typ Abgebrochen.
 - **Erstellt** (`➕`): beim Umwandeln einer Zeile in eine Aufgabe über das Kommando „Aufgabenliste" (standardmäßig aus).
 
@@ -143,7 +143,7 @@ IDs bestehen aus Buchstaben, Ziffern, `_` und `-`. Automatisch erzeugte IDs (Dia
 
 ## Bearbeitungs-Dialog
 
-Das Kommando **Aufgabe bearbeiten…** (Standard `Strg+Alt+A`, auch im Editor-Kontextmenü unter Einfügen und als Stift-Knopf an Abfrage-Treffern) öffnet ein Formular für alle Marker: Beschreibung, Status (aus dem konfigurierten Status-Set), Priorität, Wiederholungs-Regel mit Hinweis bei unverständlicher Form, die drei manuellen Termine über den Datums-Kalender sowie ID, Vorgänger und Nachfolger mit Aufgaben-Suche über den Suchraum. Auf einer Task-Zeile bearbeitet der Dialog, auf einer leeren Zeile legt er eine neue Aufgabe an. Der Wechsel auf einen Status vom Typ Erledigt setzt das Erledigt-Datum gemäß Automatik; ein Nachfolger-Eintrag schreibt den Vorgänger-Bezug auf die Ziel-Zeile (die eigene Aufgabe erhält bei Bedarf automatisch eine ID). Jede Anwendung ist ein einzelner Rückgängig-Schritt.
+Das Kommando **Aufgabe bearbeiten…** (Standard `Strg+Alt+A`, auch im Editor-Kontextmenü unter Einfügen und als Stift-Knopf an Abfrage-Treffern) öffnet ein Formular für alle Marker: Beschreibung, Status (aus dem konfigurierten Status-Set), Priorität, Wiederholungs-Regel mit Hinweis bei unverständlicher Form, die drei manuellen Termine über den Datums-Kalender sowie ID, Vorgänger und Nachfolger mit Aufgaben-Suche über den Suchraum. Auf einer Task-Zeile bearbeitet der Dialog, auf einer leeren Zeile legt er eine neue Aufgabe an. Trägt die Aufgabe einen Status vom Typ Erledigt, zeigt der Dialog eine Zeile **Erledigt** mit dem Erledigt-Datum, **Wählen…** über den Datums-Kalender und **Entfernen**; bei jedem anderen Status fehlt sie. Wechselt der Status im Dialog auf Erledigt, erscheint die Zeile sofort mit dem heutigen Tag als Vorgabe der Automatik — ein anderer Tag, auch einer in der Zukunft, oder das Entfernen bleibt bei der Übernahme stehen. Ist die Automatik abgeschaltet, ist die Zeile leer und trotzdem wählbar. Erstellt- und Abgebrochen-Datum zeigt der Dialog nur an; ein Nachfolger-Eintrag schreibt den Vorgänger-Bezug auf die Ziel-Zeile (die eigene Aufgabe erhält bei Bedarf automatisch eine ID). Jede Anwendung ist ein einzelner Rückgängig-Schritt.
 
 ## Auto-Vervollständigung
 

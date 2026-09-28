@@ -128,6 +128,27 @@ describe('maybeStartTourOnFirstRun: Anlauf-Entscheidung (4T-000644)', () => {
   });
 });
 
+// 4T-001881 (Epic 3E-000185): Die Station der Arbeitsmodi trägt ein
+// Bedienelement in ihrer Karte. Geprüft wird hier allein die Verdrahtung —
+// dass das Feld `bedienelement` der Stationen-Folge beim Aufbau der Karte
+// ausgewertet wird und das Element in der Beschreibung landet. Der Ort ist
+// Teil der Aussage: Nur in Titel und Beschreibung lässt driver.js
+// Zeiger-Ereignisse durch. Das Element selbst und seine Wirkung prüft
+// tour-arbeitsmodus.test.js.
+describe('Station mit Bedienelement (4T-001881)', () => {
+  it('die zweite Station trägt die Wahl des Arbeitsmodus in ihrer Karte', async () => {
+    merkerWert = undefined;
+    await maybeStartTourOnFirstRun();
+    // Erste Station: Willkommen, noch ohne Bedienelement.
+    expect(document.querySelector(`${POPOVER} .tour-modes`)).toBeNull();
+    document.querySelector('.driver-popover-next-btn').click();
+    await beendeUebergang();
+    const wahl = document.querySelector(`${POPOVER} .driver-popover-description .tour-modes`);
+    expect(wahl, 'Karte der zweiten Station ohne Modus-Wahl').toBeTruthy();
+    expect(wahl.querySelectorAll('.tour-mode').length).toBe(3);
+  });
+});
+
 describe('Merker-Schreiben am Ende der Tour (4T-000644)', () => {
   it('Sofort-Abbruch einer automatisch gestarteten Tour setzt tourSeen', async () => {
     // Regressionsfall zum Befund vom 2026-08-19: Der Abbruch fällt mitten in
