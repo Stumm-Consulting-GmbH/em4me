@@ -447,6 +447,13 @@ const HELP_FEATURE_GROUPS = [
       // Anwender Termin, Obergrenze oder Archiv sonst nur über die Beschreibung
       // der Tafel fände; der Schlüssel gehört zur Story 4S-000979.
       'help.feature.kanbanCardDetails',
+      // 4T-001960 (Epic 3E-000319): die beiden Zeilen der Stufe 3, direkt
+      // dahinter — die Einstellungen der Tafel (Vorgaben und je Tafel) und die
+      // Verbindung von Karte und Notiz (Notiz aus Karte, Angaben der verlinkten
+      // Notiz, Verweise und Datum). Geschnitten nach der gemeinsamen Zusage wie
+      // in Stufe 2, nicht je Stufe; Stories 4S-000987 und 4S-000984.
+      'help.feature.kanbanBoardSettings',
+      'help.feature.kanbanNotes',
       'help.feature.sourceToggles',
       // 4T-000290 (Epic 3E-000051): dynamische Sidebar (Seite, Reihenfolge,
       // Reiter-Gruppen) — Ansicht-Eigenschaft, die Panels selbst bleiben

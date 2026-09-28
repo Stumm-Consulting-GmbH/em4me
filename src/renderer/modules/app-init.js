@@ -181,6 +181,8 @@ import { initFormatToolbarFromStore, initFormatToolbarUi } from './editor/format
 import './settings/command-placement-settings.js';
 import './settings/format-toolbar-settings.js';
 import './settings/mindmap-settings.js';
+// 4T-001955 (Epic 3E-000319): Abschnitt «Kanban-Tafel» der Einstellungen.
+import './settings/kanban-settings.js';
 // 4T-000522 (Epic 3E-000094): Makros — initMacros injiziert Handler-Map und
 // Dispatch-Rebuild (Zyklus-Vermeidung, Muster initCommandPalette).
 import { initMacros } from './macros.js';
@@ -748,6 +750,9 @@ async function init() {
       syncToolbarToActiveTab();
       reportMenuStateNow();
     },
+    // 4T-001955 (Epic 3E-000319): Die Wurzel des geöffneten Bereichs, gegen die
+    // der Zielordner einer Tafel relativ gespeichert wird; ohne Bereich null.
+    bereichsWurzel: () => state.areaPath || null,
     // 4T-001848 (Epic 3E-000110): Die Fläche erbt die Änderbarkeit ihres
     // Dokuments (Entscheidung des Bestands vom 2026-09-09). Dieselbe Antwort
     // und dieselbe Herkunft wie bei der Canvas darüber: Reiter im

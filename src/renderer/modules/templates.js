@@ -221,30 +221,51 @@ export function showTemplateSelectDialog(question, options) {
 
 // Vorlagen-Liste holen und Auswahl-Popup zeigen. null = Abbruch oder kein
 // nutzbarer Zustand (unkonfiguriert/leer/nicht lesbar, mit Statusbar-Hinweis).
-async function pickTemplateEntry() {
+// 4T-001955 (Epic 3E-000319): exportiert — der Dialog «Einstellungen dieser
+// Tafel…» wählt die Vorlage einer Tafel über dieselbe Auswahl.
+export async function pickTemplateEntry() {
+  const liste = await ladeVorlagenListe();
+  if (!liste.ok) {
+    zeigeListenHinweis(liste.grund);
+    return null;
+  }
+  return showTemplatePickerDialog(liste.templates);
+}
+
+// 4T-001956 (Epic 3E-000319): Die Vorlagen-Liste samt ihrer Einordnung, aus
+// `pickTemplateEntry` herausgelöst, damit «Notiz aus Karte erzeugen…» dieselbe
+// Liste und dieselben Hinweise nutzt, die Lagen aber selbst beantwortet (dort
+// heißt «keine Vorlagen» eine leere Notiz und kein Abbruch). Rückgabe:
+// `{ ok: true, templates }` oder `{ ok: false, grund }` mit `grund` aus
+// `readFailed`, `noFolder`, `missing`, `empty`.
+export async function ladeVorlagenListe() {
   let listResult;
   try {
     listResult = await api.templatesList();
   } catch {
     listResult = null;
   }
-  if (!listResult || !listResult.ok) {
-    showStatusbarHint('templates.readFailed', { duration: 3000, error: true });
-    return null;
-  }
-  if (!listResult.folder) {
-    showStatusbarHint('templates.noFolder', { duration: 3500, error: true });
-    return null;
-  }
-  if (listResult.missing) {
-    showStatusbarHint('templates.folderMissing', { duration: 3500, error: true });
-    return null;
-  }
+  if (!listResult || !listResult.ok) return { ok: false, grund: 'readFailed' };
+  if (!listResult.folder) return { ok: false, grund: 'noFolder' };
+  if (listResult.missing) return { ok: false, grund: 'missing' };
   if (!Array.isArray(listResult.templates) || listResult.templates.length === 0) {
-    showStatusbarHint('templates.picker.empty', { duration: 3500, error: true });
-    return null;
+    return { ok: false, grund: 'empty' };
   }
-  return showTemplatePickerDialog(listResult.templates);
+  return { ok: true, templates: listResult.templates };
+}
+
+// Die Hinweise der vier Lagen, wörtlich die bisherigen von `pickTemplateEntry`.
+const LISTEN_HINWEIS = {
+  readFailed: ['templates.readFailed', 3000],
+  noFolder: ['templates.noFolder', 3500],
+  missing: ['templates.folderMissing', 3500],
+  empty: ['templates.picker.empty', 3500],
+};
+
+// 4T-001956: Zeigt den Hinweis einer Lage aus `ladeVorlagenListe`.
+export function zeigeListenHinweis(grund) {
+  const [key, duration] = LISTEN_HINWEIS[grund] || LISTEN_HINWEIS.readFailed;
+  showStatusbarHint(key, { duration, error: true });
 }
 
 // Engine-Fehler lokalisiert in der Statusbar zeigen ({ code, name, offset }).
@@ -293,7 +314,8 @@ export async function collectAnswers(inputs) {
 // {{folder}}-Wert der Zieldatei: im Bereich der wurzel-relative Ordner-Pfad
 // mit '/'-Trennern ('' für die Wurzel, konsistent zum file.folder-Feld der
 // Abfrage-Sprache), außerhalb eines Bereichs der absolute Ordner-Pfad.
-function folderDisplayFor(dirPath) {
+// 4T-001956: exportiert für «Notiz aus Karte erzeugen…».
+export function folderDisplayFor(dirPath) {
   if (state.areaPath) {
     const rel = api.relative(state.areaPath, dirPath);
     return rel ? rel.replace(/\\/g, '/') : '';
@@ -305,7 +327,8 @@ function folderDisplayFor(dirPath) {
 // { text, cursorOffsets } bei Erfolg, { cancelled: true } bei Dialog-Abbruch
 // (die Aufrufer entscheiden über den Hinweis; 4T-000427 nutzt das für den
 // Leer-Anlage-Hinweis der Ordner-Regel), null bei Fehler (Hinweis gezeigt).
-async function resolveFilledTemplate(relPath, contextBase, sourceKey) {
+// 4T-001956: exportiert — «Notiz aus Karte erzeugen…» füllt über denselben Weg.
+export async function resolveFilledTemplate(relPath, contextBase, sourceKey) {
   let read;
   try {
     read = await api.templatesRead(relPath, sourceKey);
@@ -385,7 +408,33 @@ export async function newFileFromTemplate() {
   }
   const entry = await pickTemplateEntry();
   if (!entry) return;
-  const name = await showNameInputDialog({
+  const name = await frageNeuenDateinamen();
+  if (!name) return;
+  const filled = await resolveFilledTemplate(
+    entry.relPath,
+    { title: name, folder: folderDisplayFor(dirPath) },
+    entry.sourceKey,
+  );
+  if (!filled || filled.cancelled) return;
+  const result = await legeNeueDateiAn(dirPath, name, filled.text);
+  if (!result.ok) {
+    zeigeAnlageHinweis(result.error);
+    return;
+  }
+  await oeffneNeueDatei(result.path, filled.cursorOffsets);
+}
+
+// --- 4T-001956: Bausteine des Anlage-Wegs --------------------------------------
+//
+// Aus `newFileFromTemplate` herausgelöst, damit «Notiz aus Karte erzeugen…»
+// dieselbe Namens-Abfrage, dieselbe Anlage ohne Überschreiben und dasselbe
+// Öffnen nutzt, statt sie ein zweites Mal zu schreiben. Das Verhalten von
+// «Neue Datei aus Vorlage…» bleibt dabei unverändert.
+
+// Namens-Abfrage des Anlage-Wegs (Unterseiten-Schreibweise erlaubt).
+// `initialValue` belegt das Feld vor; ohne ihn bleibt es leer wie bisher.
+export function frageNeuenDateinamen(initialValue) {
+  const optionen = {
     title: t('templates.newFile.title'),
     description: t('templates.newFile.description'),
     placeholder: t('templates.newFile.placeholder'),
@@ -394,29 +443,36 @@ export async function newFileFromTemplate() {
       const err = logicalNameValidationError(value);
       return err ? `templates.newFile.error.${err}` : null;
     },
-  });
-  if (!name) return;
-  const filled = await resolveFilledTemplate(
-    entry.relPath,
-    { title: name, folder: folderDisplayFor(dirPath) },
-    entry.sourceKey,
-  );
-  if (!filled || filled.cancelled) return;
+  };
+  if (typeof initialValue === 'string') optionen.initialValue = initialValue;
+  return showNameInputDialog(optionen);
+}
+
+// Legt die Datei an, ohne zu überschreiben. Rückgabe `{ ok: true, path }` oder
+// `{ ok: false, error }` mit `error` `exists` bzw. `failed`.
+export async function legeNeueDateiAn(dirPath, name, text) {
   let result;
   try {
-    result = await api.templatesCreateFile(dirPath, toFileBasename(name), filled.text);
+    result = await api.templatesCreateFile(dirPath, toFileBasename(name), text);
   } catch {
     result = null;
   }
-  if (!result || !result.ok) {
-    const key =
-      result && result.error === 'exists' ? 'templates.newFile.exists' : 'templates.newFile.failed';
-    showStatusbarHint(key, { duration: 3500, error: true });
-    return;
-  }
-  await openInPane(state.activePaneIndex, [result.path]);
-  if (filled.cursorOffsets.length > 0) {
-    jumpToOffsetInActiveTab(filled.cursorOffsets[0]);
+  if (result && result.ok) return { ok: true, path: result.path };
+  return { ok: false, error: result && result.error === 'exists' ? 'exists' : 'failed' };
+}
+
+// Hinweis einer gescheiterten Anlage, wörtlich der bisherige.
+export function zeigeAnlageHinweis(error) {
+  const key = error === 'exists' ? 'templates.newFile.exists' : 'templates.newFile.failed';
+  showStatusbarHint(key, { duration: 3500, error: true });
+}
+
+// Öffnet die neue Datei in der aktiven Spalte und springt auf das erste
+// {{cursor}}-Ziel.
+export async function oeffneNeueDatei(filePath, cursorOffsets) {
+  await openInPane(state.activePaneIndex, [filePath]);
+  if (Array.isArray(cursorOffsets) && cursorOffsets.length > 0) {
+    jumpToOffsetInActiveTab(cursorOffsets[0]);
   }
 }
 
@@ -450,19 +506,11 @@ export function jumpToOffsetInActiveTab(offset) {
 // meldet den lokalisierten Hinweis; Engine-/Lese-Fehler ebenso (eigener
 // Hinweis aus resolveFilledTemplate). Liefert das Cursor-Ziel oder null.
 async function applyFolderRuleToCreatedFile(filePath) {
-  // Erweiterungs-Gate: mit deaktivierter templates-Erweiterung entfällt
-  // auch der Anlage-Trigger (Architekturentscheidung 6 des Epics).
-  if (disabledCommandIdSet(getDisabledExtensionIds()).has('file.newFromTemplate')) return null;
-  let rule;
-  try {
-    rule = await api.templatesRuleFor(filePath);
-  } catch {
-    rule = null;
-  }
-  if (!rule || !rule.ok || !rule.template) return null;
+  const rule = await ordnerRegelVorlage(filePath);
+  if (!rule) return null;
   const title = toLogicalName(api.basename(filePath).replace(/\.(md|markdown|mdown|mkd)$/i, ''));
   const filled = await resolveFilledTemplate(
-    rule.template,
+    rule.relPath,
     { title, folder: folderDisplayFor(api.dirname(filePath)) },
     rule.sourceKey,
   );
@@ -487,6 +535,29 @@ async function applyFolderRuleToCreatedFile(filePath) {
     return null;
   }
   return filled.cursorOffsets.length > 0 ? filled.cursorOffsets[0] : null;
+}
+
+// Erweiterungs-Gate: mit deaktivierter templates-Erweiterung entfällt
+// auch der Anlage-Trigger (Architekturentscheidung 6 des Epics).
+// 4T-001956: als eigene Auskunft herausgelöst — «Notiz aus Karte erzeugen…»
+// bietet mit ausgeschalteter Erweiterung weder Ordner-Regel noch Auswahl an.
+export function vorlagenErweiterungAus() {
+  return disabledCommandIdSet(getDisabledExtensionIds()).has('file.newFromTemplate');
+}
+
+// Die Vorlage, die die Ordner-Regel für eine (künftige) Datei vorsieht:
+// `{ relPath, sourceKey }` oder null. 4T-001956: herausgelöst, damit die Notiz
+// aus einer Karte dieselbe Regel befragt wie jede neue Datei im Ordner.
+export async function ordnerRegelVorlage(filePath) {
+  if (vorlagenErweiterungAus()) return null;
+  let rule;
+  try {
+    rule = await api.templatesRuleFor(filePath);
+  } catch {
+    rule = null;
+  }
+  if (!rule || !rule.ok || !rule.template) return null;
+  return { relPath: rule.template, sourceKey: rule.sourceKey };
 }
 
 // Öffnet eine über die App neu angelegte Datei mit Ordner-Regel-Trigger:

@@ -8,6 +8,12 @@
 // eine Ratsche — er liegt fachlich richtig: Die Einbettung BENUTZT den
 // Bereichs-Index (dritte Stufe), sie ist keine Sicht auf ihn.
 //
+// Seit 4T-001957 (Epic 3E-000319) dazu `kanban:notizAngaben`: die Angaben aus
+// dem Kopf der verlinkten Notizen einer Kanban-Tafel. Er steht hier und nicht in
+// einem eigenen Kanal-Modul aus demselben Grund wie `canvas:loeseAustauschZiele`:
+// Er braucht genau den Auflöser dieser Gruppe, und ein zweiter daneben
+// entschiede dieselbe Frage ein zweites Mal.
+//
 // Eigener Zustand: keiner; Index, Unterseiten-Logik und Inhalts-Leser kommen
 // als Deps.
 'use strict';
@@ -17,6 +23,16 @@ const fs = require('node:fs/promises');
 const { resolveContainedEmbedPath, containmentWurzel } = require('../documents/embed-path');
 // 4T-001485 (Epic 3E-000199): dieselbe Grenz-Semantik wie das Containment.
 const { isInsideArea } = require('../area/area-path.js');
+// 4T-001957 (Epic 3E-000319): Kopf-Leser mit Puffer-Vorrang und die Auswahl
+// der Angaben einer verlinkten Notiz.
+const { leseFrontmatterKopf } = require('../database/frontmatter-kopf.js');
+const { angabenAusKopf } = require('../../shared/kanban/kanban-angaben.js');
+
+// 4T-001957: Obergrenzen der gebündelten Anfrage einer Tafel. Der Anzeige-Prozess
+// schickt je Ziel genau einen Eintrag; die Grenzen fangen allein einen
+// fehlgeformten Aufruf ab, keine echte Tafel reicht an sie heran.
+const MAX_ANGABEN_ZIELE = 2000;
+const MAX_ANGABEN_SCHLUESSEL = 50;
 
 // 4T-001486 (Epic 3E-000199): Groessen-Limit und MIME-Zuordnung der
 // Bild-Einbettung. Beide stammen aus dem bisherigen synchronen Weg im Preload
@@ -282,6 +298,111 @@ function registerEmbedsIpc(handle, deps) {
       treffer.push({ pfad, datei: rel.split('\\').join('/') });
     }
     return { ok: true, treffer };
+  });
+
+  // 4T-001957 (Epic 3E-000319): Ein Bild-Wert einer verlinkten Notiz als
+  // Daten-Adresse. Aufgelöst relativ zur NOTIZ (Vorbild `resolveImagePath` der
+  // Regal-Ansicht), aber über denselben Auflöser wie `embed:readImage` und
+  // damit mit Grenze, Bild-Endungen und Größen-Limit; ein Pfad aus fremdem
+  // Dokument-Inhalt folgt keinem `../`-Ausbruch und keinem absoluten Pfad
+  // hinaus. Ein fehlendes oder unlesbares Bild liefert null — die Karte zeigt
+  // dann nichts statt eines Platzhalters.
+  async function bildAlsDaten(event, notizPfad, bildPfad, cache) {
+    const ziel = await loeseEmbedZiel(event, notizPfad, bildPfad, 'image');
+    if (!ziel.ok) return null;
+    if (cache.has(ziel.abs)) return cache.get(ziel.abs);
+    let url = null;
+    try {
+      const stat = await fs.stat(ziel.abs);
+      if (stat.isFile() && stat.size <= MAX_EMBED_IMAGE_BYTES) {
+        const daten = await fs.readFile(ziel.abs);
+        const ext = path.extname(ziel.abs).slice(1).toLowerCase();
+        url = `data:${mimeForImageExt(ext)};base64,${daten.toString('base64')}`;
+      }
+    } catch {
+      // Zwischen Auflösen und Lesen verschwunden oder gesperrt: kein Bild,
+      // wie bei einem Verweis, der nie aufzulösen war.
+      url = null;
+    }
+    cache.set(ziel.abs, url);
+    return url;
+  }
+
+  // 4T-001957: Das volle Lesen eines Kopfs, der über den Ausschnitt hinausreicht,
+  // bleibt unter derselben Grenze wie eine Markdown-Einbettung.
+  const begrenztesFs = {
+    stat: (p) => fs.stat(p),
+    open: (p, modus) => fs.open(p, modus),
+    readFile: async (p, kodierung) => {
+      if ((await fs.stat(p)).size > MAX_EMBED_BYTES) throw new Error('file too large');
+      return fs.readFile(p, kodierung);
+    },
+  };
+
+  async function angabenEinesZiels(event, basePath, ziel, schluessel, bilder) {
+    if (typeof ziel !== 'string' || ziel.trim() === '') return null;
+    // Wie das Render-Plugin: ohne Endung ist `.md` gemeint; der Eltern-Verweis
+    // `..` bleibt, wie er ist, der Auflöser expandiert ihn.
+    const mitEndung =
+      /\.[a-z0-9]{1,8}$/i.test(ziel) || /^\.\.\/?$/.test(ziel) ? ziel : `${ziel}.md`;
+    const notiz = await loeseEmbedZiel(event, basePath, mitEndung, 'md');
+    if (!notiz.ok) return null;
+    const kopf = await leseFrontmatterKopf({
+      absPath: notiz.abs,
+      fsp: begrenztesFs,
+      bufferTextFor: backlinks.bufferTextFor,
+    });
+    if (kopf.quelle === null) return null;
+    const werte = [];
+    for (const angabe of angabenAusKopf(kopf.data, schluessel)) {
+      if (angabe.bild === null) {
+        werte.push({ schluessel: angabe.schluessel, text: angabe.text });
+        continue;
+      }
+      const bild = await bildAlsDaten(event, notiz.abs, angabe.bild, bilder);
+      if (bild) werte.push({ schluessel: angabe.schluessel, bild, text: angabe.text });
+    }
+    return { werte };
+  }
+
+  // 4T-001957 (Epic 3E-000319, Story 4S-000985): Angaben aus dem Kopf der
+  // verlinkten Notizen einer Kanban-Tafel, **eine** Anfrage je Zeichnen.
+  //
+  // **Nur lesend.** Gelesen wird der Kopf der Ziel-Datei, nicht ihr Körper
+  // (Ausschnitt am Datei-Anfang, Muster des Datenbank-Katalogs), und nie
+  // geschrieben. Ist die Notiz offen und ungespeichert geändert, gilt ihr
+  // geschriebener Stand (Puffer-Overlay), wie bei einer Einbettung.
+  //
+  // **Ziel-Auflösung** über den dreistufigen Auflöser dieser Gruppe — dokument-
+  // relativ zur Tafel, Unterseiten-Schreibweise, Namens-Suche im Bereichs-Index —
+  // mit der Grenze der Einbettung: die Bereichs-Wurzel, ohne Bereich der Ordner
+  // der Tafel. Direkt aus der Datei, also auch außerhalb eines Bereichs.
+  //
+  // Antwort: `{ ok: true, ergebnisse }`, je Ziel in der Reihenfolge der Anfrage
+  // `null` (kein auflösbares Ziel, keine Fehlermeldung) oder `{ werte }` mit je
+  // Schlüssel `{ schluessel, text }` oder `{ schluessel, text, bild }`.
+  handle('kanban:notizAngaben', async (event, params) => {
+    const basePath = params && params.basePath;
+    const ziele = params && Array.isArray(params.ziele) ? params.ziele : null;
+    const roh = params && Array.isArray(params.schluessel) ? params.schluessel : null;
+    if (typeof basePath !== 'string' || basePath === '' || !ziele || !roh) {
+      return { ok: false, error: 'missing params' };
+    }
+    const schluessel = roh
+      .filter((name) => typeof name === 'string' && name !== '')
+      .slice(0, MAX_ANGABEN_SCHLUESSEL);
+    const bilder = new Map();
+    const ergebnisse = [];
+    for (const ziel of ziele.slice(0, MAX_ANGABEN_ZIELE)) {
+      try {
+        ergebnisse.push(await angabenEinesZiels(event, basePath, ziel, schluessel, bilder));
+      } catch {
+        // Isolation des Einzelfalls: Ein Ziel, das scheitert, leert nicht die
+        // Angaben der übrigen Karten.
+        ergebnisse.push(null);
+      }
+    }
+    return { ok: true, ergebnisse };
   });
 }
 

@@ -145,9 +145,11 @@
   "command.canvas.addConnection": "Añadir conexión al lienzo…",
   "command.kanban.addCard": "Añadir tarjeta al tablero",
   "command.kanban.archiveCard": "Archivar tarjeta del tablero",
+  "command.kanban.noteFromCard": "Crear nota a partir de la tarjeta…",
   "command.kanban.addColumn": "Añadir columna al tablero",
   "command.kanban.newBoard": "Nuevo tablero Kanban",
   "command.kanban.convertToBoard": "Convertir el documento vacío en tablero Kanban",
   "command.kanban.toggleTagsFooter": "Activar o desactivar las etiquetas al pie de la tarjeta",
-  "command.kanban.toggleRelativeDates": "Activar o desactivar las fechas relativas"
+  "command.kanban.toggleRelativeDates": "Activar o desactivar las fechas relativas",
+  "command.kanban.boardSettings": "Configuración de este tablero…"
 }

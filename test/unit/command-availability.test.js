@@ -609,6 +609,9 @@ const MENUE_BASISLINIE = new Map([
   // 4T-001903 (Epic 3E-000318): der Schalter «Termine relativ anzeigen»,
   // dieselbe Basislinie wie sein Nachbar.
   ['kanban.toggleRelativeDates', 'tafelKarte'],
+  // 4T-001955 (Epic 3E-000319): der Dialog «Einstellungen dieser Tafel…»,
+  // dieselbe Basislinie wie die übrigen schreibenden Tafel-Befehle.
+  ['kanban.boardSettings', 'tafelKarte'],
   ['canvas.addCard', 'canvasKarte'],
   // 4T-001701 (Epic 3E-000288): Form-Anlage und die vier Stapel-Befehle.
   // Dieselbe Begruendung wie eine Zeile darueber — sie entstehen auf dem

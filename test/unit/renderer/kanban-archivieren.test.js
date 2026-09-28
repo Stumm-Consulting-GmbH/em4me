@@ -178,11 +178,13 @@ describe('Karte archivieren über Kontextmenü und Kommando (4T-001906, AK1 bis 
     const ids = eintraege.map((e) => e.dataId);
     expect(ids).toEqual([
       'kanban-card-edit',
+      // 4T-001956: «Notiz aus Karte erzeugen…» vor den Termin-Einträgen.
+      'kanban-card-note',
       'kanban-card-set-date',
       'kanban-card-archive',
       'kanban-card-delete',
     ]);
-    expect(eintraege[2].label).toBe('kanban.karteArchivieren');
+    expect(eintraege[3].label).toBe('kanban.karteArchivieren');
   });
 
   it('AK1 bis AK3: über das Kontextmenü — Karte weg, im neuen Archiv mit Zeitstempel und Folgezeile', () => {
@@ -450,8 +452,10 @@ describe('Kommando «Karte auf der Tafel archivieren» über alle Zugänge (4T-0
     // Bestand, sonst zöge der Ordner in den eingefrorenen Datei-Zyklus.
     const quelle = lies('src/renderer/modules/kanban/kanban-archivieren.js');
     const bezuege = [...quelle.matchAll(/from '([^']+)'/g)].map((m) => m[1]);
+    // 4T-001955: dazu die prozessneutrale Auflösungs-Kette der Tafel.
     expect(bezuege).toEqual([
       '../../../shared/kanban/kanban-archiv.js',
+      '../../../shared/kanban/kanban-wirksam.js',
       '../../../shared/commands/command-bindings.js',
     ]);
   });

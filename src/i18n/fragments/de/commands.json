@@ -145,9 +145,11 @@
   "command.canvas.addConnection": "Verbindung auf der Fläche anlegen…",
   "command.kanban.addCard": "Karte auf der Tafel anlegen",
   "command.kanban.archiveCard": "Karte auf der Tafel archivieren",
+  "command.kanban.noteFromCard": "Notiz aus Karte erzeugen…",
   "command.kanban.addColumn": "Spalte auf der Tafel anlegen",
   "command.kanban.newBoard": "Neue Kanban-Tafel",
   "command.kanban.convertToBoard": "Leeres Dokument in Kanban-Tafel umwandeln",
   "command.kanban.toggleTagsFooter": "Tags am Kartenfuß ein-/ausschalten",
-  "command.kanban.toggleRelativeDates": "Termine relativ anzeigen ein-/ausschalten"
+  "command.kanban.toggleRelativeDates": "Termine relativ anzeigen ein-/ausschalten",
+  "command.kanban.boardSettings": "Einstellungen dieser Tafel…"
 }

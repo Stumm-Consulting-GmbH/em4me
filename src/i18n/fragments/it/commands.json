@@ -145,9 +145,11 @@
   "command.canvas.addConnection": "Aggiungi collegamento alla tela…",
   "command.kanban.addCard": "Aggiungi scheda alla bacheca",
   "command.kanban.archiveCard": "Archivia scheda della bacheca",
+  "command.kanban.noteFromCard": "Crea nota dalla scheda…",
   "command.kanban.addColumn": "Aggiungi colonna alla bacheca",
   "command.kanban.newBoard": "Nuova bacheca Kanban",
   "command.kanban.convertToBoard": "Converti il documento vuoto in bacheca Kanban",
   "command.kanban.toggleTagsFooter": "Attiva/disattiva i tag in fondo alla scheda",
-  "command.kanban.toggleRelativeDates": "Attiva/disattiva le date relative"
+  "command.kanban.toggleRelativeDates": "Attiva/disattiva le date relative",
+  "command.kanban.boardSettings": "Impostazioni di questa bacheca…"
 }

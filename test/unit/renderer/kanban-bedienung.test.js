@@ -21,11 +21,22 @@ import { fileURLToPath } from 'node:url';
 import { renderMarkdown } from '../../../src/shared/markdown/markdown.js';
 import { KARTE_KLASSE } from '../../../src/renderer/modules/kanban/kanban-tafel.js';
 import { zeilenAenderung } from '../../../src/renderer/modules/kanban/kanban-bedienung.js';
+import {
+  DATUM_VERWEIS_KLASSE,
+  markiereDatumsVerweise,
+} from '../../../src/renderer/modules/kanban/kanban-verweise.js';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const wurzel = path.join(dir, '../../..');
 const lies = (rel) => readFileSync(path.join(wurzel, rel), 'utf8');
 const de = JSON.parse(lies('src/i18n/de.json'));
+
+// 4T-001958: Der Weg eines Verweises der Lese-Ansicht. Er wird nachgestellt,
+// weil das Modul am ganzen Fenster-Zustand hängt; gemessen wird, dass die Tafel
+// **diesen** Weg mit denselben Angaben ruft wie die Lese-Ansicht (Muster
+// kanban-tags.test.js).
+const { activateLink } = vi.hoisted(() => ({ activateLink: vi.fn(async () => {}) }));
+vi.mock('../../../src/renderer/modules/views/link-navigation.js', () => ({ activateLink }));
 
 // Die Prozess-Brücke der Render-Kette, gestellt wie im Programm (Muster
 // kanban-tafel.test.js): Sie muss VOR dem Laden der Einbettung stehen.
@@ -661,6 +672,143 @@ describe('Nicht aenderbares Dokument (AK9)', () => {
   });
 });
 
+// --- Verweise im Karten-Text (4T-001958) ---------------------------------------------
+
+describe('Verweise im Karten-Text öffnen ihr Ziel (4T-001958, Story 4S-001012)', () => {
+  const VERWEISE = [
+    KOPF,
+    '## Offen',
+    '',
+    '- [ ] Siehe [[Projekt Alpha]] heute',
+    '\tMehr in [[Notizen/Beta|die Beta-Notiz]]',
+    '- [ ] Fehlt [[Gibt es nicht]] #arbeit',
+    '- [ ] Extern [Seite](https://beispiel.de) und [lokal](Ordner/Datei.md)',
+    '',
+  ].join('\n');
+
+  // Das Ziel, das die Lese-Ansicht für denselben Verweis übergibt: dieselbe
+  // Render-Kette, dasselbe Attribut. Verglichen wird mit ihm statt mit einer
+  // abgeschriebenen Zeichenkette.
+  function leseZiel(markdown) {
+    const div = document.createElement('div');
+    div.innerHTML = renderMarkdown(markdown, 'de');
+    const a = div.querySelector('a[href]');
+    return { href: a.getAttribute('href'), wiki: a.classList.contains('wikilink') };
+  }
+
+  function greife(el, art) {
+    el.dispatchEvent(new window.MouseEvent(art, { bubbles: true, cancelable: true, button: 0 }));
+  }
+
+  function verweis(container, karte, text) {
+    return [...karten(container)[karte].querySelectorAll('.kanban-karte-inhalt a')].find(
+      (a) => a.textContent === text,
+    );
+  }
+
+  beforeEach(() => activateLink.mockClear());
+
+  it('AK1: der Wiki-Verweis öffnet sein Ziel über den Weg der Lese-Ansicht', async () => {
+    const { container } = baueSpalte(VERWEISE);
+    const a = verweis(container, 0, 'Projekt Alpha');
+    greife(a, 'click');
+    const ziel = leseZiel('[[Projekt Alpha]]');
+    expect(ziel.wiki).toBe(true);
+    await vi.waitFor(() => expect(activateLink).toHaveBeenCalledTimes(1));
+    expect(activateLink).toHaveBeenCalledWith(0, ziel.href, true);
+  });
+
+  it('AK2: ein Verweis mit Anzeige-Text in einer Folgezeile öffnet sein Ziel ebenso', async () => {
+    const { container } = baueSpalte(VERWEISE);
+    greife(verweis(container, 0, 'die Beta-Notiz'), 'click');
+    await vi.waitFor(() => expect(activateLink).toHaveBeenCalledTimes(1));
+    expect(activateLink).toHaveBeenCalledWith(0, leseZiel('[[Notizen/Beta|x]]').href, true);
+  });
+
+  it('AK3: ein fehlendes Ziel geht denselben Weg — er entscheidet wie in der Lese-Ansicht', async () => {
+    const { container } = baueSpalte(VERWEISE);
+    greife(verweis(container, 1, 'Gibt es nicht'), 'click');
+    await vi.waitFor(() => expect(activateLink).toHaveBeenCalledTimes(1));
+    expect(activateLink).toHaveBeenCalledWith(0, leseZiel('[[Gibt es nicht]]').href, true);
+  });
+
+  it('gewöhnliche Verweise und externe Adressen nehmen den Weg der Lese-Ansicht', async () => {
+    const { container } = baueSpalte(VERWEISE);
+    // Nacheinander: Der Weg wird zur Laufzeit geladen, und jeder Klick wartet
+    // auf seinen eigenen Aufruf.
+    greife(verweis(container, 2, 'Seite'), 'click');
+    await vi.waitFor(() => expect(activateLink).toHaveBeenCalledTimes(1));
+    greife(verweis(container, 2, 'lokal'), 'click');
+    await vi.waitFor(() => expect(activateLink).toHaveBeenCalledTimes(2));
+    expect(activateLink).toHaveBeenNthCalledWith(1, 0, 'https://beispiel.de', false);
+    expect(activateLink).toHaveBeenNthCalledWith(2, 0, 'Ordner/Datei.md', false);
+  });
+
+  it('AK4: der Griff zum Verweis wählt die Karte nicht und öffnet keine Eingabe', async () => {
+    const { container, tab } = baueSpalte(VERWEISE);
+    greife(karten(container)[2], 'mousedown');
+    expect(karten(container)[2].getAttribute('aria-selected')).toBe('true');
+    const a = verweis(container, 0, 'Projekt Alpha');
+    greife(a, 'mousedown');
+    a.dispatchEvent(new window.FocusEvent('focusin', { bubbles: true }));
+    greife(a, 'click');
+    // Der Doppelklick auf den Verweis: Der erste Klick hat das Ziel geöffnet,
+    // eine Eingabe stünde sonst über ihm.
+    greife(a, 'dblclick');
+    expect(karten(container)[0].getAttribute('aria-selected')).toBe('false');
+    expect(karten(container)[2].getAttribute('aria-selected')).toBe('true');
+    expect(eingabe(container)).toBeNull();
+    expect(tab.content).toBe(VERWEISE);
+    await vi.waitFor(() => expect(activateLink).toHaveBeenCalled());
+  });
+
+  it('AK4: der Doppelklick neben dem Verweis öffnet weiter die Bearbeitung', () => {
+    const { container } = baueSpalte(VERWEISE);
+    const absatz = karten(container)[0].querySelector('.kanban-karte-inhalt p');
+    greife(absatz, 'dblclick');
+    expect(eingabe(container).value).toBe('Siehe [[Projekt Alpha]] heute');
+    expect(activateLink).not.toHaveBeenCalled();
+  });
+
+  it('eine offene Eingabe wird übernommen, bevor der Verweis sein Ziel öffnet', async () => {
+    const { container, tab, protokoll } = baueSpalte(VERWEISE);
+    greife(karten(container)[2], 'dblclick');
+    eingabe(container).value = 'Extern geändert';
+    greife(verweis(container, 0, 'Projekt Alpha'), 'click');
+    expect(protokoll.schreibvorgaenge).toHaveLength(1);
+    expect(tab.content).toContain('- [ ] Extern geändert');
+    await vi.waitFor(() => expect(activateLink).toHaveBeenCalledTimes(1));
+  });
+
+  it('AK5: im nicht änderbaren Dokument öffnet der Verweis sein Ziel', async () => {
+    const { container, tab } = baueSpalte(VERWEISE, { aenderbar: false });
+    greife(verweis(container, 0, 'Projekt Alpha'), 'click');
+    await vi.waitFor(() => expect(activateLink).toHaveBeenCalledTimes(1));
+    expect(tab.content).toBe(VERWEISE);
+  });
+
+  it('der Tag-Klick bleibt unverändert: Tag-Panel über denselben Weg, ohne Wiki-Angabe', async () => {
+    const { container } = baueSpalte(VERWEISE);
+    greife(karten(container)[1].querySelector('a.tag-link'), 'click');
+    await vi.waitFor(() => expect(activateLink).toHaveBeenCalledTimes(1));
+    expect(activateLink).toHaveBeenCalledWith(0, '#tag:arbeit', false);
+  });
+
+  it('die Kennzeichnung des Datums als Verweis lässt sich zurücknehmen, der Text kehrt zurück', () => {
+    const { container } = baueSpalte(TAFEL);
+    const datum = container.querySelector('[data-kanban-datum]');
+    const vorher = datum.title;
+    markiereDatumsVerweise(container, true, 'Hinweis');
+    expect(datum.classList.contains(DATUM_VERWEIS_KLASSE)).toBe(true);
+    expect(datum.title).toBe(vorher ? `${vorher}\nHinweis` : 'Hinweis');
+    markiereDatumsVerweise(container, true, 'Hinweis');
+    expect(datum.title).toBe(vorher ? `${vorher}\nHinweis` : 'Hinweis');
+    markiereDatumsVerweise(container, false);
+    expect(datum.classList.contains(DATUM_VERWEIS_KLASSE)).toBe(false);
+    expect(datum.title).toBe(vorher);
+  });
+});
+
 // --- Kontextmenü -----------------------------------------------------------------------
 
 describe('Kontextmenue der Karte', () => {
@@ -677,6 +825,8 @@ describe('Kontextmenue der Karte', () => {
     // 4T-001906: dahinter «Karte archivieren» (kanban-archivieren.test.js).
     expect(eintraege.map((e) => e.dataId)).toEqual([
       'kanban-card-edit',
+      // 4T-001956: «Notiz aus Karte erzeugen…» vor den Termin-Einträgen.
+      'kanban-card-note',
       'kanban-card-set-date',
       'kanban-card-remove-date',
       'kanban-card-archive',
@@ -684,6 +834,7 @@ describe('Kontextmenue der Karte', () => {
     ]);
     expect(eintraege.map((e) => e.label)).toEqual([
       'kanban.karteBearbeiten',
+      'kanban.notizAusKarte',
       'kanban.terminSetzen',
       'kanban.terminEntfernen',
       'kanban.karteArchivieren',

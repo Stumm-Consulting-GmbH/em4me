@@ -49,10 +49,15 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   read relative to today if you wish — with tags gathered at their foot; a
   column can carry a limit that is highlighted rather than enforced, a card can
   go to an archive at the end of the document, and a filter finds the card you
-  are looking for. No new kind of file and no second home for your tasks: the
+  are looking for. A card can also lead to a note of its own: in a single
+  step the card text becomes a new document the card then links to, selected
+  details from that note's header appear on the card, a link on a card opens
+  its target, and the date can take you to that day's journal entry. How a
+  board behaves is set once for all boards and, where needed, for a single
+  board. No new kind of file and no second home for your tasks: the
   board is another view of an ordinary Markdown document, the order of the
   cards is the order of the lines, and boards kept with another widely used
-  tool open here without conversion.
+  tool open here without conversion, their settings included.
 - **Tables that calculate and query** — data tables with typed columns
   calculate live; queries embed file lists that keep themselves current,
   filtered by properties, tags or tasks. All of it stays plain text inside

@@ -14,6 +14,182 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.144.0.3456] - 2026-09-28 — Kanban-Tafel Stufe 3: Karten mit Notizen verbinden
+
+Zug 3E-000328
+mit einem einzigen Mitglied, auf ausdrückliche Anweisung des Product Owners vom
+2026-09-25 unter der Regelgröße:
+3E-000319,
+die dritte und letzte Ausbaustufe der Kanban-Tafel. Die Karte wird zum Zugang zu
+den Dokumenten des Bestands: Aus einer Karte entsteht mit einem Handgriff eine
+Notiz, auf die die Karte danach verweist; ausgewählte Angaben aus dem
+Dokument-Kopf der verlinkten Notiz erscheinen samt Bild auf der Karte; ein
+Verweis auf der Karte öffnet sein Ziel, und das Termin-Abzeichen führt auf
+Wunsch zum Journal-Eintrag des Tages. Dazu wird das Verhalten einer Tafel
+einstellbar, als Vorgabe für alle Tafeln und je Tafel. Die Einstellungen je
+Tafel stehen im Einstellungs-Block am Dateiende, in dem das fremde Werkzeug
+dieselben Angaben selbst führt, und tragen dessen Schlüssel; geschrieben wird
+allein der geänderte Eintrag, alles Übrige bleibt byte-genau erhalten. Der
+Abschluss-Anteil des Epics liegt in
+4T-001961.
+
+### Neu
+
+- **Einstellungen der Tafel, als Vorgabe und je Tafel** (`4T-001954`,
+  `4T-001955`). Unter **Datei → Einstellungen… → Kanban-Tafel** im Block
+  «Erweiterungen (intern)» stehen fünf Vorgaben für alle Tafeln: «Tags am
+  Kartenfuß» und «Termine relativ anzeigen» — dieselben wie die beiden Häkchen
+  im Untermenü **Ansicht → Kanban-Tafel** —, «Archiv mit Zeitstempel» (ab Werk
+  an), «Archiv-Obergrenze in Karten» (ab Werk 100, `0` heißt unbegrenzt) und
+  «Datum führt zum Journal-Eintrag des Tages» (ab Werk aus). Der neue Dialog
+  **«Einstellungen dieser Tafel…»** — im Untermenü Ansicht → Kanban-Tafel, im
+  Kontextmenü eines Spalten-Kopfs und in der Kommando-Palette — übersteuert jede
+  davon für die eine Tafel und bietet dazu Zielordner und Vorlage neuer Notizen
+  und die Angaben der verlinkten Notiz. Jede Einstellung kennt «wie Vorgabe» mit
+  dem geltenden Wert in Klammern; so ist erkennbar, ob ein Wert für diese Tafel
+  gesetzt ist, und «wie Vorgabe» setzt ihn zurück. Ein Übernehmen ist ein
+  Rückgängig-Schritt. Geschrieben wird in den Einstellungs-Block
+  `%% kanban:settings` am Dateiende, mit den Schlüsseln, die das fremde Werkzeug
+  selbst liest und schreibt, und allein der geänderte Eintrag; fehlt der Block,
+  entsteht er. Die Menü-Häkchen und der Abschnitt der Einstellungs-Seite setzen
+  nur die Vorgabe und schreiben nie in eine Tafel. Das Archivieren folgt
+  Zeitstempel und Obergrenze aus diesen Einstellungen; eine Tafel ohne eigene
+  Einstellung verhält sich wie bisher. Der Zielordner wird relativ zur Wurzel des
+  Bereichs gespeichert, ohne Bereich relativ zum Ordner der Tafel.
+- **Notiz aus einer Karte erzeugen** (`4T-001956`). «Notiz aus Karte erzeugen…»
+  im Kontextmenü einer Karte und in der Kommando-Palette macht aus dem
+  Kartentext ein neues Dokument. Sein Name ist der Kartentext ohne Termin,
+  Priorität und Tags; Schrägstriche und unter Windows unzulässige Zeichen werden
+  zu `_`, und es entsteht keine Unterseite. Zielordner ist der eingestellte der
+  Tafel, sonst der Ordner der Tafel; die Vorlage ist die eingestellte, sonst die
+  der Ordner-Regel des Zielordners, sonst die Auswahl mit «Keine Vorlage (leere
+  Notiz)», und ihre Platzhalter werden gefüllt wie bei «Neue Datei aus
+  Vorlage…». Gibt es den Namen schon, wird nie überschrieben: Die Anwendung
+  fragt, ob ein anderer Name gewählt oder auf das vorhandene Dokument verwiesen
+  werden soll. Danach trägt die Karte an Stelle ihres Textes den Verweis
+  `[[Name]]`, ihre Marker bleiben, und die Notiz öffnet sich als eigenes
+  Dokument, während die Tafel offen bleibt. Ein Termin in der Schreibweise des
+  fremden Werkzeugs wird dabei umgeschrieben wie beim Bearbeiten der Karte. Ein
+  Rückgängig-Schritt stellt den Kartentext wieder her; die angelegte Datei
+  bleibt.
+- **Angaben und Bild der verlinkten Notiz auf der Karte** (`4T-001957`). Ist in
+  «Einstellungen dieser Tafel…» unter «Angaben der verlinkten Notiz» eine
+  Feldwahl gesetzt, zeigt eine Karte unter ihrem Text die gewählten Felder aus
+  dem Dokument-Kopf ihrer ersten verlinkten Notiz als Zeilen «Name: Wert»,
+  wahlweise mit eigenem Anzeige-Namen oder ohne Namen; ein Wert, der auf ein Bild
+  zeigt, erscheint als Bild. Lange Werte sind auf zwei Zeilen gekürzt, der volle
+  Wert steht im Hinweistext. Ohne Feldwahl, ohne Verweis und bei fehlendem Ziel
+  zeigt die Karte nur ihren Text, ohne Fehlermeldung. Die Notiz wird nur gelesen,
+  und die Anzeige ist beim nächsten Zeichnen der Tafel aktuell, auch nach dem
+  Zurückkehren aus der geänderten Notiz. **Maßgeblich ist der erste Verweis der
+  Karte**, im fremden Werkzeug der letzte; ein Verweis auf einen Abschnitt
+  derselben Datei und ein eingebettetes Bild zählen nicht.
+- **Verweise auf der Karte öffnen ihr Ziel, und das Datum führt zum
+  Journal-Eintrag** (`4T-001958`). Ein Klick auf einen Verweis im Kartentext
+  öffnet sein Ziel wie in der Lese-Ansicht, auch mit abweichendem Anzeige-Text,
+  bei fehlendem Ziel wie dort und auch in einem Dokument, das sich gerade nicht
+  ändern lässt; die Karte wird dabei nicht gewählt. Ist «Datum führt zum
+  Journal-Eintrag des Tages» für die Tafel wirksam und hat der geöffnete Bereich
+  ein Journal mit der Granularität «Tag», ist das Termin-Abzeichen unterstrichen,
+  und ein Klick öffnet den Journal-Eintrag dieses Tages — bei Bedarf angelegt wie
+  mit «Heutiger Journal-Eintrag», bei mehreren Tages-Journalen mit Auswahl. Den
+  Termin ändert dann «Termin setzen…» im Kontextmenü der Karte. Ohne Einstellung,
+  Bereich oder Tages-Journal öffnet der Klick wie bisher den Datums-Kalender, ohne
+  Hinweis.
+- **Handbuch, Funktions-Übersicht und Demo-Beispiel der dritten Stufe**
+  (`4T-001960`). Die Handbuch-Seite «Kanban-Tafel» hat in allen fünf
+  Sprachfassungen vier neue Kapitel: «Einstellungen der Tafel», «Notiz aus einer
+  Karte», «Angaben der verlinkten Notiz» und «Verweise und Datum auf der Karte».
+  Die Funktions-Übersicht führt zwei neue Zeilen, «Einstellungen der Tafel
+  (Kanban)» und «Karten und Notizen (Kanban)», beide an der Erweiterung
+  «Kanban». Die Beispiel-Tafel «13 Kanban» der Demo-Tour trägt eine Karte mit
+  Verweis auf die Seite «07 Events and Journals» und zeigt deren Angaben «Topic»
+  und «Chapter».
+
+### Geändert
+
+- **Ein Doppelklick auf einen Verweis einer Karte öffnet keine Bearbeitung
+  mehr** (`4T-001958`). Der erste Klick hat das Ziel schon geöffnet. Bearbeitet
+  wird eine solche Karte über einen Doppelklick neben dem Verweis, `Enter`, `F2`
+  oder das Kontextmenü.
+- **Die Handbuch-Seite «Kanban-Tafel» ist in ihren bestehenden Kapiteln
+  nachgezogen** (`4T-001960`): «Grenzen» verneint Einstellungen je Tafel und
+  Notizen aus Karten nicht mehr und nennt die tatsächlichen Grenzen der Stufe;
+  «Verträglichkeit mit anderen Werkzeugen» beschreibt die Einstellungen im
+  Einstellungs-Block samt Tabelle der Schlüssel und die Abweichung beim
+  maßgeblichen Verweis; «Archiv», «Rückgängig», «Nur ansehen» und die
+  Karten-Tabelle nennen das Verhalten der Stufe. Die Überblicksseite und die
+  Seite «Ansichten und Darstellung» nennen die neuen Themen, und die Zeilen
+  «Tafel-Ansicht (Kanban)» und «Angaben auf der Karte (Kanban)» der
+  Funktions-Übersicht verweisen auf die neuen Zeilen beziehungsweise nennen das
+  Archiv als einstellbar.
+
+### Dokumentation
+
+- **Die Nutzen-Darstellung nennt die Verbindung von Karte und Notiz**
+  (`4T-001960`, Entscheidung des Product Owners vom 2026-09-27), in allen fünf
+  Sprachfassungen und in beiden Ausspielungen. Der Abschnitt «Aufgaben, die sich
+  schieben lassen» der Nutzen-Seite des Handbuchs und der gleichlautende Block
+  der Nutzen-Seite der Produkt-Webseite führen einen Satz dazu: Hinter einer
+  Karte kann eine Notiz stehen, die Karte zeigt ausgewählte Angaben aus ihr und
+  führt mit einem Klick hinein, und so wird die Tafel zum Überblick über ein
+  ganzes Vorhaben. Einstellungen je Tafel und der Weg vom Datum zum
+  Journal-Eintrag bleiben als Verfeinerungen draußen.
+- **Die öffentliche Roadmap führt die dritte Stufe als eigenen Eintrag**
+  (`3E-000328`, mit der Anlage des Zuges samt Konzept-Vorgang `4T-001953` und
+  Sammeltask `4T-001962`; Entscheidung des Product Owners vom 2026-09-25,
+  Frage A2): «Kanban-Karten mit Notizen verbinden» steht in allen fünf
+  Sprachfassungen der Produkt-Webseite unter «geplant». Die Umstufung nach
+  «ausgeliefert» folgt mit dem Release.
+
+### i18n
+
+- Alle neuen Texte der dritten Stufe liegen in **allen fünf Sprachfassungen**
+  vor (`4T-001955`, `4T-001956`, `4T-001958`, `4T-001960`): der Dialog
+  «Einstellungen dieser Tafel…» und der Abschnitt «Kanban-Tafel» der
+  Einstellungs-Seite, die beiden neuen Befehle, Fragen und Hinweise beim
+  Erzeugen einer Notiz, der Hinweistext des Datums als Verweis sowie Name,
+  Beschreibung und Zugang der beiden neuen Zeilen der Funktions-Übersicht. Die
+  Einstellung zum Datum trägt in jeder Sprache den Journal-Begriff des Menüs
+  «Heutiger Journal-Eintrag». Die Angaben der verlinkten Notiz (`4T-001957`)
+  brauchen keinen neuen Text.
+
+### Intern
+
+- **Format-Kern der dritten Stufe** (`4T-001954`). Der Einstellungs-Block wird
+  in acht hiesige Einstellungen gelesen und je Schlüssel geschrieben; alle
+  übrigen Zeichen des Blocks und der Tafel bleiben gleich, einschließlich der
+  Zeilenenden-Form. Dass «Tags am Kartenfuß» dem Schlüssel `move-tags` des
+  fremden Werkzeugs entspricht, ist an dessen Quelltext belegt; ein eigener
+  Schlüssel war für keine Einstellung nötig. Dazu der erste Verweis einer Karte
+  als Baustein. Kein Anwender-Text nötig.
+- **Ablauf-Abdeckung der dritten Stufe und Prüfung an echten fremden Tafeln**
+  (`4T-001959`). Zehn Ablauf-Fälle an der laufenden Anwendung decken Dialog,
+  Vorgaben, Archiv aus den Einstellungen, Notiz aus Karte samt
+  Namensgleichheit, Angaben der verlinkten Notiz, Verweis- und Datums-Klick
+  innerhalb und außerhalb eines Bereichs und den Aus-Zustand der Erweiterung ab
+  und werten je schreibendem Fall die gespeicherte Datei aus. An zwei echten
+  Tafeln ist der Rundlauf byte-gleich; eine Einstellung setzen und zurücksetzen
+  und eine Notiz erzeugen ändert an einer Kopie genau die betroffenen Zeilen.
+  Kein Anwender-Text nötig.
+- **Bausteine der Datei-Anlage aus Vorlagen herausgelöst** (`4T-001956`). Die
+  Notiz aus einer Karte nutzt dieselben Bausteine wie «Neue Datei aus
+  Vorlage…», das unverändert bleibt; die Umwandlung von Text in einen
+  Dateinamen liegt als wiederverwendbarer Baustein im geteilten Kern. Kein
+  Anwender-Text nötig.
+- **Wächter des portablen Exports** (`4T-001960`): Ein Code-Block innerhalb
+  eines privaten Kommentars muss im Export nicht mehr erscheinen, sondern darf
+  es gerade nicht; Anlass war der Einstellungs-Block der Demo-Tafel. Kein
+  Anwender-Text nötig.
+- **Die Nachzügler des vorigen Releases** (`4T-001891`, Sammeltask des Zuges
+  `3E-000326`, und `4T-001974`). Nach der Auslieferung von 1.143.0 hat dessen
+  Abschluss die Bildschirmfotos der Produkt-Webseite erneuert und den Vorgang
+  `4T-001973` zur Prüfung des Anwender-Texts unter dem Arbeitsnamen angelegt;
+  `4T-001974` hat die Arbeitsmodi im Funktionsblock der Startseite in allen fünf
+  Sprachen nachgetragen. Beide Commits liegen seither auf dem Integrationsstand
+  und stehen hier, weil sie Dateien der Webseite berühren; sie gehören nicht zu
+  diesem Zug. Kein Anwendungs-Code berührt, kein Anwender-Text nötig.
+
 ## [1.143.0.3418] - 2026-09-28 — Neun Vorhaben: Arbeitsmodi und Erweiterungs-Schutz, Buch-Einstellungen, Hinweis-Kästen, Bild-Vergrößerung, Meldungen in allen Fenstern, Tabellen-Zellen, Erledigt-Datum und zweites Öffnen eines Bereichs
 
 Zug

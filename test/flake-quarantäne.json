@@ -922,6 +922,60 @@
       "status": "befoerdert",
       "vorgang": "4T-001971",
       "vermerk": "Die Bedingung des Erst-Eintrags ist erfüllt (erneutes Ausbleiben desselben Falls). Neuer Vorgang 4T-001971 im Pflege-Gefäß der Test-Infrastruktur; sein erster Schritt ist die Messung der Index-Laufzeit, die im Voll-Lauf nicht erhoben wurde."
+    },
+    {
+      "spec": "test/e2e/funktionen/bereich-mehrfach.spec.js",
+      "fall": "BM-01: Nachfrage und zweite Applikation auf demselben Ordner (4T-001743) — Abbrechen, Wechseln, Zusätzlich öffnen, drei Wege, Grenzen und Schließen",
+      "datum": "2026-09-28",
+      "fehlerbild": "ERSTE Beobachtung dieses Falls. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000328 «Kanban-Tafel Stufe 3» am 2026-09-28, Schritt 6 im Sammeltask 4T-001962: 1009 von 1014 grün, 5 rot in 100 min (12:19 bis 13:59 UTC); ab 13:40 UTC lief auf demselben Rechner eine fremde Unit-Suite mit, ab 13:58 UTC der Linux-Lauf derselben Strecke. Beleg: test-berichte/rot/2026-09-28T13-59-19Z-zug-3E-000328-Kanban-Stufe-3-e2e.log samt -e2e.json und -e2e-artefakte. Einzel-Nachlauf mit Muster-Argument unter derselben Last gegen 14:05 UTC, danach Gegenprobe am Integrationsstand fa8ce5a03 ohne den Zug. Fehler: Der Helfer dateiInFenster (bereich-mehrfach.spec.js:155 bis 165) erwartet genau einen Reiter und findet zwei. Isoliert grün (1 von 1).",
+      "vermutung": "Rennen im Prüf-Helfer: Die Abfrage schickt das Öffnen erneut, solange noch kein Reiter zu sehen ist; unter Last ist das erste Öffnen noch unterwegs, und die Datei öffnet zweimal. Kein Bezug zur Kanban-Tafel.",
+      "status": "beobachtet",
+      "vermerk": "Erstbeobachtung, deshalb nicht befördert. Bedingung für eine Beförderung: ein erneutes Auftreten von BM-01."
+    },
+    {
+      "spec": "test/e2e/funktionen/logische-apps.spec.js",
+      "fall": "LA-04: Menüpunkt «Neues Fenster» (4T-001738) — steht vor «Neue Applikation» und öffnet ein leeres zweites Fenster derselben App",
+      "datum": "2026-09-28",
+      "fehlerbild": "ERSTE Beobachtung dieses Falls. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000328 «Kanban-Tafel Stufe 3» am 2026-09-28, Schritt 6 im Sammeltask 4T-001962: 1009 von 1014 grün, 5 rot in 100 min (12:19 bis 13:59 UTC); ab 13:40 UTC lief auf demselben Rechner eine fremde Unit-Suite mit, ab 13:58 UTC der Linux-Lauf derselben Strecke. Beleg: test-berichte/rot/2026-09-28T13-59-19Z-zug-3E-000328-Kanban-Stufe-3-e2e.log samt -e2e.json und -e2e-artefakte. Einzel-Nachlauf mit Muster-Argument unter derselben Last gegen 14:05 UTC, danach Gegenprobe am Integrationsstand fa8ce5a03 ohne den Zug. Fehler: Die erfasste Menü-Beschriftung ist leer, «Neues Fenster» fehlt (Received array: []). Einzeln erneut rot (1 von 1); am Integrationsstand ohne den Zug unter derselben Last 2 von 3 grün, der rote Lauf mit demselben Fehlerbild.",
+      "vermutung": "Kein Bezug zum Zug, belegt durch die Gegenprobe. Dieselbe Prüfdatei und dieselbe Funktion wie LA-06 (Vorgang 4T-001948); vermutlich dieselbe Last-Empfindlichkeit beim zweiten Fenster.",
+      "status": "beobachtet",
+      "vermerk": "Erstbeobachtung, deshalb nicht befördert. Hinweis an 4T-001948: LA-04 bei der Ursachen-Eingrenzung von LA-06 mit prüfen. Bedingung für eine Beförderung: ein erneutes Auftreten von LA-04."
+    },
+    {
+      "spec": "test/e2e/funktionen/logische-apps.spec.js",
+      "fall": "LA-06: Neues Fenster in einer gebundenen Applikation (4T-001738) — das neue Fenster erbt die Ordner-Bindung, und der Titel weist sie aus",
+      "datum": "2026-09-28",
+      "fehlerbild": "Erneute Beobachtung dieses Falls (Vorgänger 2026-09-20, 2026-09-24, 2026-09-28 vormittags). Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000328 «Kanban-Tafel Stufe 3» am 2026-09-28, Schritt 6 im Sammeltask 4T-001962: 1009 von 1014 grün, 5 rot in 100 min (12:19 bis 13:59 UTC); ab 13:40 UTC lief auf demselben Rechner eine fremde Unit-Suite mit, ab 13:58 UTC der Linux-Lauf derselben Strecke. Beleg: test-berichte/rot/2026-09-28T13-59-19Z-zug-3E-000328-Kanban-Stufe-3-e2e.log samt -e2e.json und -e2e-artefakte. Einzel-Nachlauf mit Muster-Argument unter derselben Last gegen 14:05 UTC, danach Gegenprobe am Integrationsstand fa8ce5a03 ohne den Zug. Fehler: 30 s ohne das zweite Fenster. Einzeln erneut rot (1 von 1), am Integrationsstand ohne den Zug ebenso (1 von 1).",
+      "status": "befoerdert",
+      "vorgang": "4T-001948",
+      "vermerk": "Tritt dem bestehenden Vorgang 4T-001948 bei; kein neuer Vorgang."
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-statistik.spec.js",
+      "fall": "BS-06: Erweiterung aus entfernt den Kontextmenü-Zugang (S-118) — das Bereichs-Panel zeigt beide Einträge, im Aus-Zustand nur den Graph",
+      "datum": "2026-09-28",
+      "fehlerbild": "Erneute Beobachtung dieses Falls, Vorgänger unter früheren Daten. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000328 «Kanban-Tafel Stufe 3» am 2026-09-28, Schritt 6 im Sammeltask 4T-001962: 1009 von 1014 grün, 5 rot in 100 min (12:19 bis 13:59 UTC); ab 13:40 UTC lief auf demselben Rechner eine fremde Unit-Suite mit, ab 13:58 UTC der Linux-Lauf derselben Strecke. Beleg: test-berichte/rot/2026-09-28T13-59-19Z-zug-3E-000328-Kanban-Stufe-3-e2e.log samt -e2e.json und -e2e-artefakte. Einzel-Nachlauf mit Muster-Argument unter derselben Last gegen 14:05 UTC, danach Gegenprobe am Integrationsstand fa8ce5a03 ohne den Zug. Fehler: Der Eintrag area-panel-graph des Kontextmenüs erscheint binnen 10 s nicht (bereichs-statistik.spec.js:256). Einzeln erneut rot (1 von 1); am Integrationsstand ohne den Zug 1 von 3 grün, mit demselben Fehlerbild.",
+      "status": "befoerdert",
+      "vorgang": "4T-001100",
+      "vermerk": "Tritt dem bestehenden Vorgang 4T-001100 bei; kein neuer Vorgang. Neu gegenüber den Vorgängern: unter Last auch einzeln rot."
+    },
+    {
+      "spec": "test/e2e/funktionen/sprach-einspielen.spec.js",
+      "fall": "SE-08: eingespielte Sprache entfernen (F-286) — nimmt die Datei weg und stellt die Anwendung auf Englisch",
+      "datum": "2026-09-28",
+      "fehlerbild": "SECHSTE Beobachtung dieses Falls; die fünfte steht unter dem 2026-09-28 vormittags. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000328 «Kanban-Tafel Stufe 3» am 2026-09-28, Schritt 6 im Sammeltask 4T-001962: 1009 von 1014 grün, 5 rot in 100 min (12:19 bis 13:59 UTC); ab 13:40 UTC lief auf demselben Rechner eine fremde Unit-Suite mit, ab 13:58 UTC der Linux-Lauf derselben Strecke. Beleg: test-berichte/rot/2026-09-28T13-59-19Z-zug-3E-000328-Kanban-Stufe-3-e2e.log samt -e2e.json und -e2e-artefakte. Einzel-Nachlauf mit Muster-Argument unter derselben Last gegen 14:05 UTC, danach Gegenprobe am Integrationsstand fa8ce5a03 ohne den Zug. Fehler: «Execution context was destroyed» im Helfer loeseEntfernenAus (sprach-einspielen.spec.js:124). Einzeln erneut rot (1 von 1), am Integrationsstand ohne den Zug ebenso (1 von 1).",
+      "status": "befoerdert",
+      "vorgang": "4T-001813",
+      "vermerk": "Tritt dem bestehenden Vorgang 4T-001813 bei; kein neuer Vorgang. Neu gegenüber den Vorgängern: unter Last auch einzeln rot."
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-statistik.spec.js",
+      "fall": "BS-07: Stand-Ausweis bei ungespeicherten Änderungen (S-118) — nennt den gespeicherten Stand und zählt die offenen Dokumente",
+      "datum": "2026-09-28",
+      "fehlerbild": "SECHSTE Beobachtung dieses Falls; die Vorgänger stehen unter dem 2026-09-06, dem 2026-09-08, dem 2026-09-11 (Beförderung nach 4T-001689), dem 2026-09-24 und dem 2026-09-27. Aufgetreten im LINUX-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000328 «Kanban-Tafel Stufe 3» am 2026-09-28, Schritt 6 im Sammeltask 4T-001962: 1010 von 1014 grün, 4 rot in 42,2 min (bis 14:47 UTC), parallel zum Ende des Windows-E2E-Voll-Laufs und zu dessen Einzel-Nachläufen; die drei übrigen roten Linux-Fälle TR-05, TR-06 und TZ-02 sind der deterministische Tabellen-Versatz aus 4T-001812 und kein Flake. Fehler: Der Stand-Ausweis .area-stats-stand der Statistik-Seite bleibt 15 s verborgen (bereichs-statistik.spec.js:87). Nicht einzeln nachgefahren, weil der Fall befördert ist. Beleg: test-berichte/rot/2026-09-28T14-47-03Z-zug-3E-000328-Kanban-Stufe-3-e2e.log samt -e2e.json und -e2e-artefakte.",
+      "status": "befoerdert",
+      "vorgang": "4T-001689",
+      "vermerk": "Tritt dem bestehenden Vorgang 4T-001689 bei; kein neuer Vorgang."
     }
   ]
 }

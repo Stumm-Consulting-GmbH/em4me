@@ -19,8 +19,9 @@
 
 import { api } from '../app/api.js';
 import {
-  KANBAN_ANZEIGE_SCHALTER,
+  KANBAN_VORGABEN,
   kanbanAnzeigeSchalter,
+  kanbanVorgabeWert,
   normalisiereKanbanAnzeige,
 } from '../../../shared/kanban-anzeige.js';
 
@@ -63,7 +64,8 @@ export function setzeKanbanAnzeigeBeiWechsel(fn) {
 export function uebernimmKanbanAnzeige(schluessel, wert) {
   const schalter = kanbanAnzeigeSchalter(schluessel);
   if (!schalter || schalter.schluessel !== schluessel) return false;
-  const neu = typeof wert === 'boolean' ? wert : schalter.vorgabe;
+  // 4T-001955: nach der Art der Vorgabe — die Archiv-Obergrenze ist eine Zahl.
+  const neu = kanbanVorgabeWert(schalter, wert);
   if (werte[schluessel] === neu) return false;
   werte = { ...werte, [schluessel]: neu };
   melde();
@@ -107,7 +109,8 @@ export async function ladeKanbanAnzeige() {
     });
   }
   if (!api || typeof api.getSetting !== 'function') return;
-  for (const s of KANBAN_ANZEIGE_SCHALTER) {
+  // 4T-001955: alle fünf globalen Vorgaben, nicht nur die beiden Häkchen.
+  for (const s of KANBAN_VORGABEN) {
     let wert;
     try {
       wert = await api.getSetting(s.schluessel);
@@ -116,4 +119,23 @@ export async function ladeKanbanAnzeige() {
     }
     uebernimmKanbanAnzeige(s.schluessel, wert);
   }
+}
+
+/**
+ * Setzt eine globale Vorgabe der Tafel — der Weg des Abschnitts «Kanban-Tafel»
+ * der Einstellungs-Seite (4T-001955). Derselbe Speicher wie beim Menü-Häkchen:
+ * Die Tafeln zeichnen sofort, danach wird gespeichert, und die Verteilung im
+ * Hauptprozess zieht die Menüs und die übrigen Fenster nach.
+ *
+ * @param {string} schluessel Einstellungs-Schlüssel, z. B. `kanban.archivObergrenze`.
+ * @param {*} wert
+ * @returns {Promise<boolean>} `false` bei unbekanntem Schlüssel.
+ */
+export async function setzeKanbanVorgabe(schluessel, wert) {
+  const vorgabe = kanbanAnzeigeSchalter(schluessel);
+  if (!vorgabe || vorgabe.schluessel !== schluessel) return false;
+  const neu = kanbanVorgabeWert(vorgabe, wert);
+  uebernimmKanbanAnzeige(schluessel, neu);
+  if (api && typeof api.setSetting === 'function') await api.setSetting(schluessel, neu);
+  return true;
 }

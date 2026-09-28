@@ -338,6 +338,40 @@ export async function openTodayJournalEntry() {
   await openJournalEntry(journal, periodOf(Date.now(), 'day'));
 }
 
+// 4T-001958 (Epic 3E-000319): Die Tages-Journale des Bereichs, still
+// abgefragt — ohne Bereich, ohne Journal oder bei einem Lesefehler eine leere
+// Liste und **kein** Hinweis. Die Kanban-Tafel fragt damit bei jedem Zeichnen,
+// ob ihr Datum auf eine Tagesnotiz verweisen kann; ein Hinweis bei jeder
+// Zeichnung wäre ein Fehlalarm. Dieselbe stille Abfrage wie im Kalender-Panel
+// (`openForGranularity`); `journalsConfigOrHint` bleibt für die Kommandos,
+// die ihren Hinweis brauchen, unverändert.
+export async function tagesJournaleStill() {
+  let result;
+  try {
+    result = await api.journalsGetConfig();
+  } catch {
+    result = null;
+  }
+  const config = result && result.ok && result.hasArea ? result.config : null;
+  const journale = config && Array.isArray(config.journals) ? config.journals : [];
+  return journale.filter((j) => j.granularity === 'day');
+}
+
+// 4T-001958: Der Journal-Eintrag eines Kalendertags (`YYYY-MM-DD`), der Weg des
+// Karten-Datums der Kanban-Tafel. Nach dem Vorbild des Tages-Klicks im
+// Kalender-Panel: stille Abfrage, bei mehreren Tages-Journalen die Auswahl,
+// dann der gemeinsame Öffnen-/Anlage-Pfad. Ohne Tages-Journal geschieht still
+// nichts — die Tafel bietet den Klick dann gar nicht erst an.
+export async function oeffneTagesnotiz(datum) {
+  const dateMs = isoDateToMs(String(datum || '').trim());
+  if (dateMs === null) return false;
+  const journale = await tagesJournaleStill();
+  if (journale.length === 0) return false;
+  const journal = await pickJournal(journale, t('journal.pick.title'));
+  if (!journal) return false;
+  return await openJournalEntry(journal, periodOf(dateMs, 'day'));
+}
+
 // „Journal-Eintrag für Datum…": Datums-Dialog (ISO-Form), dann Journal-
 // Auswahl über alle Journale des Bereichs; die Periode ist die des
 // gewählten Datums in der Granularität des Journals.

@@ -21,12 +21,22 @@
 import { intlLocale, t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { leseTafel } from '../../../shared/kanban/kanban-core.js';
+import {
+  einstellungenAusModell,
+  setzeTafelEinstellung,
+} from '../../../shared/kanban/kanban-einstellungen.js';
+import { wirksameEinstellungen } from '../../../shared/kanban/kanban-wirksam.js';
+import { zeigeTafelEinstellungsDialog } from './kanban-einstellungs-dialog.js';
 import { dokumentIstLeer } from '../../../shared/commands/command-availability.js';
-import { istTafelModusVerfuegbar } from './kanban-modus.js';
+import { feldwahlAus } from '../../../shared/kanban/kanban-angaben.js';
+import { ladeAngaben } from './kanban-angaben.js';
+import { istKanbanErweiterungAn, istTafelModusVerfuegbar } from './kanban-modus.js';
 import { createKartenBedienung, zeilenAenderung } from './kanban-bedienung.js';
+import { erzeugeNotizAusKarte, notizMoeglich, standardWerkzeuge } from './kanban-notiz-erzeugen.js';
 import { createSpaltenBedienung } from './kanban-spalten.js';
 import { createZiehBedienung } from './kanban-ziehen.js';
 import { tagVerweisAn } from './kanban-tags.js';
+import { kartenVerweisAn, markiereDatumsVerweise } from './kanban-verweise.js';
 import {
   initTafelSuche,
   inFilterLeiste,
@@ -35,7 +45,6 @@ import {
 } from './kanban-suche.js';
 import { lokalesDatum } from './kanban-marker.js';
 import {
-  kanbanAnzeige,
   kanbanAnzeigeStand,
   ladeKanbanAnzeige,
   setzeKanbanAnzeigeBeiWechsel,
@@ -78,6 +87,9 @@ const bedienungen = [];
 const ziehBedienungen = [];
 // 4T-001851: Die Spalten-Bedienung je Spalte, aus demselben Grund am Container.
 const spaltenBedienungen = [];
+// 4T-001955: Die wirksamen Einstellungen der zuletzt gezeichneten Tafel je
+// Spalte — Tafel vor Vorgabe, aus demselben Stand wie die Zeichnung.
+const wirksamJe = [];
 
 // 4T-001848: Der Schritt-Satz des erzeugten Teilbaums. Ohne ihn bliebe auf der
 // Karte alles inert, was die Render-Kette erst befüllt oder bedienbar macht
@@ -101,6 +113,9 @@ export function registriereKanbanTeilbaumSchritte(fn) {
  * @param {Function} zugang.getPaneEls (paneIdx) => Pane-Elemente.
  * @param {Function} zugang.aktivesDokument (paneIdx) => geöffnetes Dokument oder null.
  * @param {Function} [zugang.beiVerfuegbarkeitsWechsel] (paneIdx, jetzt) => void.
+ * @param {Function} [zugang.bereichsWurzel] () => string|null (4T-001955). Die
+ *   Wurzel des geöffneten Bereichs, gegen die der Zielordner einer Tafel
+ *   relativ gespeichert wird.
  * @param {Function} [zugang.istAenderbar] (paneIdx) => boolean (4T-001848). Sagt,
  *   ob das Dokument der Spalte gerade geschrieben werden darf. Hereingereicht
  *   statt ermittelt, weil die Antwort am Reiter-Zustand und an der EditorView
@@ -142,6 +157,8 @@ export function initKanbanPane(zugang) {
   bedienungen.length = 0;
   ziehBedienungen.length = 0;
   spaltenBedienungen.length = 0;
+  wirksamJe.length = 0;
+  tagesJournalBekannt.length = 0;
   // 4T-001904: Die Anzeige-Schalter der Tafel. Ein Wechsel — aus Menü,
   // Kommando-Palette oder einem anderen Fenster — zeichnet sofort alle offenen
   // Tafeln neu (AK3). Gelesen wird die gespeicherte Einstellung einmal beim
@@ -175,9 +192,47 @@ export function zeichneAlleKanbanNeu() {
 // und nicht eine Kopie seiner Logik. Laufzeit-Import aus demselben Grund wie
 // beim Hinweis darüber und bei der Canvas-Fläche: Ein statischer Bezug auf
 // `views/` zöge diesen Ordner in den eingefrorenen Datei-Zyklus des Renderers.
-function oeffneTagVerweis(paneIdx, href) {
+// 4T-001958: Seither nimmt jeder Verweis der Karte diesen Weg, mit den Angaben,
+// die auch die Lese-Ansicht übergibt (Wiki-Verweis, Basis einer Einbettung).
+function oeffneVerweis(paneIdx, href, { wiki = false, basis = null } = {}) {
   import('../views/link-navigation.js')
-    .then((modul) => modul.activateLink(paneIdx, href, false))
+    .then((modul) =>
+      basis
+        ? modul.activateLink(paneIdx, href, wiki, basis)
+        : modul.activateLink(paneIdx, href, wiki),
+    )
+    .catch(() => {});
+}
+
+// 4T-001958 (Story 4S-000986): Der Journal-Eintrag eines Tages, über den Weg
+// des Journals samt Auswahl bei mehreren Tages-Journalen. Laufzeit-Import aus
+// demselben Grund wie beim Verweis darüber.
+function oeffneTagesnotiz(datum) {
+  import('../calendar/journals.js').then((modul) => modul.oeffneTagesnotiz(datum)).catch(() => {});
+}
+
+// 4T-001958: Gibt es im Bereich ein Tages-Journal? Die letzte Antwort je Spalte
+// wird sofort nach dem Zeichnen angewandt, damit der Verweis-Stil beim Tippen
+// nicht flackert; die frische Antwort kommt danach. Der Zähler verwirft eine
+// Antwort, die von einer jüngeren Anfrage überholt ist.
+const tagesJournalBekannt = [];
+const tagesJournalAnfrage = [];
+let tagesJournalZaehler = 0;
+
+function aktualisiereDatumsVerweise(paneIdx, container, wirksam) {
+  const an = !!(wirksam && wirksam.datumZurTagesnotiz && wirksam.datumZurTagesnotiz.wert === true);
+  const nummer = ++tagesJournalZaehler;
+  tagesJournalAnfrage[paneIdx] = nummer;
+  const hinweis = t('kanban.termin.tagesnotiz');
+  markiereDatumsVerweise(container, an && tagesJournalBekannt[paneIdx] === true, hinweis);
+  if (!an) return;
+  import('../calendar/journals.js')
+    .then((modul) => modul.tagesJournaleStill())
+    .then((journale) => {
+      if (tagesJournalAnfrage[paneIdx] !== nummer) return;
+      tagesJournalBekannt[paneIdx] = Array.isArray(journale) && journale.length > 0;
+      markiereDatumsVerweise(container, tagesJournalBekannt[paneIdx], hinweis);
+    })
     .catch(() => {});
 }
 
@@ -320,6 +375,53 @@ export function archiviereKanbanKarte(paneIdx) {
 }
 
 /**
+ * «Notiz aus Karte erzeugen…» an der gewählten Karte — der Weg des Kommandos
+ * aus der Kommando-Palette (4T-001956). Dieselben Fehl-Lagen wie beim
+ * Archivieren darüber werden gesagt; ohne gewählte Karte geschieht nichts.
+ *
+ * @param {number} paneIdx
+ * @returns {boolean|Promise<boolean>}
+ */
+export function erzeugeKanbanNotiz(paneIdx) {
+  const tab = umgebung ? umgebung.aktivesDokument(paneIdx) : null;
+  const bedienung = bedienungen[paneIdx];
+  if (!tab || tab.viewMode !== 'kanban' || !bedienung) {
+    zeigeHinweis('kanban.nurInAnsicht');
+    return false;
+  }
+  if (!istTafelAenderbar(paneIdx)) {
+    zeigeHinweis('kanban.nurLesbar');
+    return false;
+  }
+  return bedienung.notizAusGewaehlter();
+}
+
+// 4T-001956: Der Ablauf «Notiz aus Karte erzeugen…» für eine Karte der Spalte.
+// Er bekommt Pfad der Tafel, Bereichs-Wurzel und die wirksamen Einstellungen
+// herein und schreibt über denselben Weg wie jede Bedien-Handlung.
+function notizAusKarte(paneIdx, { spalte, karte, modell, ausgangsstand }) {
+  const tab = umgebung ? umgebung.aktivesDokument(paneIdx) : null;
+  return erzeugeNotizAusKarte(
+    {
+      karte: modell,
+      spalte,
+      karteNr: karte,
+      ausgangsstand,
+      quelle: () => {
+        const stand = gezeichnet[paneIdx];
+        return stand && typeof stand.content === 'string' ? stand.content : null;
+      },
+      aenderbar: () => istTafelAenderbar(paneIdx),
+      wendeAn: (operation, angaben) => bedienungen[paneIdx].wendeAn(operation, angaben),
+      tafelPfad: tab && tab.path ? tab.path : null,
+      bereichsWurzel: rufeZugang('bereichsWurzel') || null,
+      einstellungen: wirksamJe[paneIdx] || null,
+    },
+    standardWerkzeuge(zeigeHinweis),
+  );
+}
+
+/**
  * Legt eine Spalte am Ende der Tafel an — der Weg des Kommandos aus Menü und
  * Kommando-Palette (4T-001851).
  *
@@ -343,6 +445,110 @@ export function legeKanbanSpalteAn(paneIdx) {
     return false;
   }
   return bedienung.legeAn() !== false;
+}
+
+// 4T-001955: Der Zielordner einer Tafel wird relativ gespeichert — zur
+// Bereichs-Wurzel, ohne geöffneten Bereich zum Ordner der Tafel —, damit die
+// Einstellung einen Umzug des Bereichs übersteht. Die Wurzel des Bereichs
+// selbst heißt `/`, wie beim Vorbild die Wurzel des Tresors; der Ordner der
+// Tafel ohne Bereich ist die Vorgabe und wird nicht eigens gespeichert. Ein
+// Ordner außerhalb des Bereichs wird abgewiesen, wie beim Anlegen einer Datei
+// aus einer Vorlage (`templates:createFile`, Bereichs-Grenze).
+async function waehleZielordner(paneIdx) {
+  if (!api || typeof api.templatesChooseFolder !== 'function') return null;
+  const antwort = await api.templatesChooseFolder('target');
+  if (!antwort || !antwort.ok || typeof antwort.path !== 'string') return null;
+  const wurzel = rufeZugang('bereichsWurzel');
+  const tab = umgebung ? umgebung.aktivesDokument(paneIdx) : null;
+  const basis = wurzel || (tab && tab.path ? api.dirname(tab.path) : null);
+  if (!basis) return null;
+  const relativ = api.relative(basis, antwort.path).replace(/\\/g, '/');
+  if (/^[A-Za-z]:|^\//.test(relativ) || (wurzel && relativ.split('/')[0] === '..')) {
+    zeigeHinweis('kanban.einstellungen.ordnerAusserhalb');
+    return null;
+  }
+  if (relativ === '') return wurzel ? '/' : null;
+  return relativ;
+}
+
+// 4T-001955: Die Vorlage aus der Vorlagen-Auswahl der Anwendung — derselbe
+// Weg wie bei «Neue Datei aus Vorlage» samt seinen Hinweisen (kein Ordner,
+// leer, nicht lesbar). Laufzeit-Import aus demselben Grund wie beim
+// Tag-Verweis. Gespeichert wird der Pfad in der Vorlagen-Quelle; eine Vorlage
+// einer verknüpften Quelle trägt deren Kürzel in der Schreibweise, mit der
+// auch eine Ordner-Regel ihre Vorlage benennt (`@kuerzel:Pfad`).
+function waehleVorlage() {
+  return import('../templates.js')
+    .then((modul) => modul.pickTemplateEntry())
+    .then((eintrag) => {
+      if (!eintrag || typeof eintrag.relPath !== 'string') return null;
+      const pfad = eintrag.relPath.replace(/\\/g, '/');
+      return eintrag.sourceKey ? `@${eintrag.sourceKey}:${pfad}` : pfad;
+    })
+    .catch(() => null);
+}
+
+/**
+ * Öffnet den Dialog «Einstellungen dieser Tafel…» und schreibt die
+ * geänderten Einstellungen (4T-001955) — der Weg von Menü, Kommando-Palette
+ * und Kontextmenü.
+ *
+ * Dieselben Fehl-Lagen wie bei den übrigen Tafel-Kommandos werden gesagt.
+ * **Geschrieben wird als eine Transaktion** über den Schreibweg der Tafel und
+ * damit als ein Rückgängig-Schritt, und zwar gegen den Stand, auf dem der
+ * Dialog geöffnet wurde: Hat sich das Dokument inzwischen geändert, wird die
+ * Änderung verworfen und gesagt (`kanban.verworfen`), statt fremde Arbeit zu
+ * überschreiben. Ohne Änderung im Dialog wird nichts geschrieben.
+ *
+ * @param {number} paneIdx
+ * @returns {Promise<boolean>} `true`, wenn geschrieben wurde.
+ */
+export async function oeffneKanbanTafelEinstellungen(paneIdx) {
+  const tab = umgebung ? umgebung.aktivesDokument(paneIdx) : null;
+  const stand = gezeichnet[paneIdx];
+  if (!tab || tab.viewMode !== 'kanban' || !stand || typeof stand.content !== 'string') {
+    zeigeHinweis('kanban.nurInAnsicht');
+    return false;
+  }
+  if (!istTafelAenderbar(paneIdx)) {
+    zeigeHinweis('kanban.nurLesbar');
+    return false;
+  }
+  const ausgangsstand = stand.content;
+  const werte = einstellungenAusModell(leseTafel(ausgangsstand)).werte;
+  const aenderungen = await zeigeTafelEinstellungsDialog({
+    t,
+    werte,
+    vorgaben: wirksameEinstellungen({}, kanbanAnzeigeStand()),
+    waehleOrdner: () => waehleZielordner(paneIdx),
+    waehleVorlage,
+  });
+  if (!Array.isArray(aenderungen) || aenderungen.length === 0) return false;
+  const text = wendeTafelEinstellungenAn(ausgangsstand, aenderungen);
+  if (text === null) {
+    zeigeHinweis('kanban.einstellungen.nichtGeschrieben');
+    return false;
+  }
+  return schreibeTafelText(paneIdx, { ausgangsstand, text });
+}
+
+/**
+ * Wendet die Änderungen des Dialogs nacheinander auf den Text an, je
+ * Einstellung über den Format-Kern (`setzeTafelEinstellung`, nur der eine
+ * Schlüssel). Scheitert eine, wird keine geschrieben: `null`.
+ *
+ * @param {string} text
+ * @param {Array<{name: string, wert: *}>} aenderungen
+ * @returns {string|null}
+ */
+export function wendeTafelEinstellungenAn(text, aenderungen) {
+  let stand = text;
+  for (const { name, wert } of aenderungen) {
+    const ergebnis = setzeTafelEinstellung(stand, { name, wert });
+    if (!ergebnis.ok) return null;
+    stand = ergebnis.text;
+  }
+  return stand;
 }
 
 /**
@@ -401,8 +607,14 @@ function verdrahteContainer(container, paneIdx) {
     beiRueckgaengig: () => rufeZugang('rueckgaengig', paneIdx),
     beiWiederholen: () => rufeZugang('wiederholen', paneIdx),
     neuZeichnen: () => renderKanban(paneIdx),
+    // 4T-001955: Zeitstempel und Obergrenze des Archivs aus der Kette.
+    einstellungen: () => wirksamJe[paneIdx] || null,
     zeigeHinweis,
-    oeffneVerweis: (href) => oeffneTagVerweis(paneIdx, href),
+    oeffneVerweis: (href, angaben) => oeffneVerweis(paneIdx, href, angaben),
+    oeffneTagesnotiz,
+    // 4T-001956: «Notiz aus Karte erzeugen…».
+    notizAusKarte: (daten) => notizAusKarte(paneIdx, daten),
+    notizMoeglich,
     waehleTermin,
     zeigeMenue: (daten) => {
       if (umgebung && typeof umgebung.zeigeKontextmenue === 'function') {
@@ -437,6 +649,18 @@ function verdrahteContainer(container, paneIdx) {
       }
     },
     bestaetigeLoeschen: (daten) => rufeZugang('bestaetigeSpaltenLoeschung', paneIdx, daten),
+    // 4T-001955: «Einstellungen dieser Tafel…» im Kontextmenü des
+    // Spalten-Kopfs. Eine Tafel-Fläche mit eigenem Kontextmenü gibt es nicht;
+    // der Spalten-Kopf ist das nächstgelegene, und der Eintrag wirkt dort auf
+    // die ganze Tafel, nicht auf die Spalte.
+    tafelEintraege: () => [
+      { separator: true },
+      {
+        label: t('command.kanban.boardSettings'),
+        dataId: 'kanban-board-settings',
+        action: () => oeffneKanbanTafelEinstellungen(paneIdx),
+      },
+    ],
   });
   // 4T-001850: Das Verschieben per Maus. Es benutzt den Schreibweg der
   // Karten-Bedienung statt eines zweiten und bekommt den Statuswechsel als
@@ -461,7 +685,8 @@ function verdrahteContainer(container, paneIdx) {
     // 4T-001904: Der Griff zu einem Tag ist der Weg ins Tag-Panel und keine
     // Wahl der Karte; die Auswahl bleibt, wo sie war.
     // 4T-001907: ebenso der Griff ins Filter-Feld.
-    if (tagVerweisAn(ziel) || inFilterLeiste(ziel)) return;
+    // 4T-001958: ebenso der Griff zu jedem anderen Verweis der Karte.
+    if (tagVerweisAn(ziel) || kartenVerweisAn(ziel) || inFilterLeiste(ziel)) return;
     const karte =
       ziel && typeof ziel.closest === 'function' ? ziel.closest(`.${KARTE_KLASSE}`) : null;
     waehleKarte(container, karte);
@@ -471,8 +696,8 @@ function verdrahteContainer(container, paneIdx) {
   container.addEventListener('focusin', (ereignis) => {
     const ziel = ereignis.target;
     // 4T-001904: Ein angeklicktes Tag nimmt den Fokus als Verweis an sich; auch
-    // das wählt die Karte nicht.
-    if (tagVerweisAn(ziel)) return;
+    // das wählt die Karte nicht; 4T-001958: ebenso jeder andere Verweis.
+    if (tagVerweisAn(ziel) || kartenVerweisAn(ziel)) return;
     const karte =
       ziel && typeof ziel.closest === 'function' ? ziel.closest(`.${KARTE_KLASSE}`) : null;
     if (karte) waehleKarte(container, karte);
@@ -540,6 +765,12 @@ export function renderKanban(paneIdx) {
     stand.heute === heute &&
     container.firstChild
   ) {
+    // 4T-001957: Die Karten bleiben, die Angaben der verlinkten Notizen werden
+    // trotzdem neu gelesen — die Notiz kann sich geändert haben, ohne dass die
+    // Tafel es hat (Story AK7).
+    aktualisiereAngaben(container, stand.model, stand.wirksam, pfad);
+    // 4T-001958: Ein Tages-Journal kann entstanden oder verschwunden sein.
+    aktualisiereDatumsVerweise(paneIdx, container, stand.wirksam);
     return container;
   }
 
@@ -550,6 +781,10 @@ export function renderKanban(paneIdx) {
   // Fokus auf den Dokument-Rumpf — `Strg+Z` erreichte die Tafel nicht mehr.
   if (bedienung) bedienung.vorRender();
   const model = leseTafel(tab.content == null ? '' : tab.content);
+  // 4T-001955: Tafel vor Vorgabe. Beide Quellen stehen schon im Schlüssel der
+  // Zeichnung (Text und Schalter-Stand); ein eigener Eintrag entfällt.
+  const wirksam = wirksameEinstellungen(einstellungenAusModell(model).werte, schalter);
+  wirksamJe[paneIdx] = wirksam;
   zeichneTafel(container, model, {
     t,
     pfad,
@@ -560,11 +795,12 @@ export function renderKanban(paneIdx) {
       if (teilbaumSchritte) teilbaumSchritte(knoten, basis);
     },
     aenderbar,
-    // 4T-001904: Schalter «Tags am Kartenfuß», global für alle Tafeln.
-    tagsAmFuss: kanbanAnzeige('kanban.tagsAmFuss'),
-    // 4T-001903: Schalter «Termine relativ anzeigen», global für alle Tafeln,
-    // gelesen in der Sprache der Oberfläche.
-    terminRelativ: kanbanAnzeige('kanban.terminRelativ'),
+    // 4T-001904: Schalter «Tags am Kartenfuß»; seit 4T-001955 aus der
+    // Auflösungs-Kette, die globale Einstellung ist die Vorgabe darunter.
+    tagsAmFuss: wirksam.tagsAmFuss.wert === true,
+    // 4T-001903: Schalter «Termine relativ anzeigen», gelesen in der Sprache
+    // der Oberfläche; ebenso aus der Kette (4T-001955).
+    terminRelativ: wirksam.termineRelativ.wert === true,
     locale: intlLocale(),
   });
   stelleZustandHer(container, zustand);
@@ -574,8 +810,40 @@ export function renderKanban(paneIdx) {
   if (bedienung) bedienung.nachRender();
   // 4T-001907: Ein offener Filter gilt auch für die neu gezeichneten Karten (AK9).
   nachTafelZeichnung(paneIdx, { tab, container, model });
-  gezeichnet[paneIdx] = { content: tab.content, pfad, aenderbar, sprache, schalter, heute };
+  gezeichnet[paneIdx] = {
+    content: tab.content,
+    pfad,
+    aenderbar,
+    sprache,
+    schalter,
+    heute,
+    model,
+    wirksam,
+  };
+  // 4T-001957: Die Karten stehen; die Angaben werden nachgetragen.
+  aktualisiereAngaben(container, model, wirksam, pfad);
+  // 4T-001958: Das Datum als Verweis auf die Tagesnotiz, nach der Einstellung.
+  aktualisiereDatumsVerweise(paneIdx, container, wirksam);
   return container;
+}
+
+/**
+ * 4T-001957 (Story 4S-000985): Angaben der verlinkten Notizen nachtragen —
+ * eine gebündelte Anfrage je Zeichnen, nur mit eingeschalteter Erweiterung und
+ * nicht leerer Feldwahl (Entscheidung C2). Die Zeichnung wartet nicht darauf.
+ */
+function aktualisiereAngaben(container, model, wirksam, pfad) {
+  const feldwahl =
+    istKanbanErweiterungAn() && wirksam && wirksam.feldwahl
+      ? feldwahlAus(wirksam.feldwahl.wert)
+      : [];
+  ladeAngaben(container, {
+    model,
+    feldwahl,
+    pfad,
+    lade: (anfrage) => api.kanbanNotizAngaben(anfrage),
+    t,
+  }).catch(() => {});
 }
 
 /**

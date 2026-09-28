@@ -182,6 +182,12 @@ const NACH_DER_MESSUNG = new Set([
   // 4T-001906 (Epic 3E-000318): das Archivieren der gewählten Karte, aus
   // demselben Grund.
   'kanban.archiveCard',
+  // 4T-001955 (Epic 3E-000319): der Dialog «Einstellungen dieser Tafel…», aus
+  // demselben Grund — es gibt ihn erst seit der dritten Ausbaustufe.
+  'kanban.boardSettings',
+  // 4T-001956 (Epic 3E-000319): «Notiz aus Karte erzeugen…», aus demselben
+  // Grund.
+  'kanban.noteFromCard',
 ]);
 
 // 4T-001765 (Epic 3E-000186, E6): Die drei Editor-Schalter, deren REGEL dieser

@@ -564,8 +564,13 @@ const INTERNAL_EXTENSIONS = [
     descKey: 'help.feature.kanban',
     // 4T-001909: die zweite Katalog-Zeile der Tafel (Angaben auf der Karte,
     // Obergrenze, Archiv, Filter) gehört ebenso zur Erweiterung und trägt im
-    // Aus-Zustand dieselbe Kennzeichnung auf der Funktions-Seite.
-    featureKeys: ['help.feature.kanbanCardDetails'],
+    // Aus-Zustand dieselbe Kennzeichnung auf der Funktions-Seite. 4T-001960:
+    // ebenso die beiden Zeilen der Stufe 3 (Einstellungen, Karten und Notizen).
+    featureKeys: [
+      'help.feature.kanbanCardDetails',
+      'help.feature.kanbanBoardSettings',
+      'help.feature.kanbanNotes',
+    ],
     dependencies: ['tasks'],
     // 4T-001849: Die Karten-Anlage haengt an derselben Erweiterung. Ohne die
     // Tafel hat sie keinen Gegenstand; im Aus-Zustand verschwindet sie mit ihr
@@ -578,6 +583,8 @@ const INTERNAL_EXTENSIONS = [
       'kanban.addCard',
       // 4T-001906: Das Archivieren einer Karte hat ohne Tafel keinen Gegenstand.
       'kanban.archiveCard',
+      // 4T-001956: «Notiz aus Karte erzeugen…» ebenso.
+      'kanban.noteFromCard',
       'kanban.addColumn',
       'kanban.newBoard',
       'kanban.convertToBoard',
@@ -586,7 +593,12 @@ const INTERNAL_EXTENSIONS = [
       'kanban.toggleTagsFooter',
       // 4T-001903: ebenso der Schalter «Termine relativ anzeigen».
       'kanban.toggleRelativeDates',
+      // 4T-001955: ebenso der Dialog «Einstellungen dieser Tafel…».
+      'kanban.boardSettings',
     ],
+    // 4T-001955 (Epic 3E-000319): Abschnitt «Kanban-Tafel» der Einstellungen
+    // mit den globalen Vorgaben der Tafel; er verschwindet mit der Erweiterung.
+    settingsSections: ['kanban'],
   },
   // Werkzeug-Erweiterungen (4T-000294). 'focus-mode' buendelt Fokus-Modus
   // und Typewriter-Scroll (eine Schreib-Umgebung, zwei Facetten).

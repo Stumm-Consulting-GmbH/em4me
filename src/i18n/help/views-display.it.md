@@ -42,7 +42,7 @@ La tela mostra una superficie con schede e collegamenti che si trova nel documen
 
 ### Bacheca
 
-La bacheca mostra le attività del documento come bacheca Kanban: gli elenchi con nome del documento come colonne, le righe di attività al loro interno come schede. Appartiene all'estensione «Kanban» e scompare con essa; come la tela dipende dal documento ed è selezionabile solo se questo porta il contrassegno di intestazione di una bacheca. Creare e convertire, usare schede e colonne, spostare con il mouse, scadenze, tag, limite, archivio e filtro nonché il formato di memorizzazione sono descritti nella pagina [Bacheca Kanban](kanban.md).
+La bacheca mostra le attività del documento come bacheca Kanban: gli elenchi con nome del documento come colonne, le righe di attività al loro interno come schede. Appartiene all'estensione «Kanban» e scompare con essa; come la tela dipende dal documento ed è selezionabile solo se questo porta il contrassegno di intestazione di una bacheca. Creare e convertire, usare schede e colonne, spostare con il mouse, scadenze, tag, limite, archivio e filtro, le impostazioni della bacheca, il collegamento tra scheda e nota nonché il formato di memorizzazione sono descritti nella pagina [Bacheca Kanban](kanban.md).
 
 ### Modifica
 

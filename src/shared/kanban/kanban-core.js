@@ -75,6 +75,13 @@ const { findPercentCommentRanges } = require('../markdown/plugins/comments.js');
 // 4T-001913: Die Zaun-Regel wohnt in `fence-level.js`; die Tafel liest sie von
 // dort, statt eine eigene Fassung zu tragen (Wächter `zaun-kopien.test.js`).
 const { zaunOeffnung, schliesstZaun } = require('../markdown/fence-level.js');
+// 4T-001954: Das Wiki-Muster und die Inline-Code-Maskierung aus der gemeinsamen
+// Erkennungs-Quelle der Verweise, damit der erste Verweis einer Karte an
+// denselben Stellen gefunden wird wie im Index.
+const { createWikiLinkRegex, maskInlineCode, splitAreaLink } = require('../markdown/link-scan.js');
+// 4T-001957: Der Satz der Bild-Endungen aus seiner Heimat — eine Einbettung auf
+// ein Bild ist kein Verweis auf eine Notiz.
+const { istBildDatei } = require('../bild-endungen.js');
 
 // Der Kopf-Schlüssel des Vorbilds. Belegt am Quelltext des Vorbild-Werkzeugs
 // (`frontmatterKey` in `src/parsers/common.ts`, gelesen am 2026-09-21).
@@ -506,6 +513,151 @@ function schreibeTafel(model) {
   return zeilen.join('\n');
 }
 
+// --- Erster Verweis einer Karte (Stufe 3) -------------------------------------
+//
+// 4T-001954 (Epic 3E-000319): Maßgeblich für die Angaben der verlinkten Notiz
+// ist der **erste Wiki-Verweis** der Karte (Story 4S-000985, AK4). Gefunden wird
+// er mit dem Wiki-Muster der gemeinsamen Erkennungs-Quelle
+// (`src/shared/markdown/link-scan.js`) auf der Zeile mit maskiertem Inline-Code;
+// zerlegt wird er nach den Regeln des Render-Plugins
+// (`src/shared/markdown/plugins/wiki.js`): Alias hinter dem ersten `|`, ein
+// Rückstrich am Ziel-Ende fällt weg, Anker hinter dem ersten `#`, und ein
+// Verweis mit `[` im Inneren ist keiner. Code-Zäune zählen nicht.
+//
+// **Die Verweis-Form `@[[…]]` des Vorbilds ist kein Verweis auf eine Notiz**,
+// sondern ein Termin in Verweis-Form (`parseMarkdown.ts:69`); sie wird
+// übersprungen. Ein `![[…]]` ist eine Einbettung: Sein Teil hinter dem `|` ist
+// nach dem Render-Plugin eine Größenangabe und kein Alias, er steht deshalb in
+// `zusatz`.
+
+function zerlegeVerweis(inneres, einbettung, roh) {
+  const strich = inneres.indexOf('|');
+  const zielRoh = (strich >= 0 ? inneres.slice(0, strich) : inneres).replace(/\\$/, '').trim();
+  const hinten = strich >= 0 ? inneres.slice(strich + 1).trim() : null;
+  if (!zielRoh) return null;
+  const raute = zielRoh.indexOf('#');
+  const ziel = raute >= 0 ? zielRoh.slice(0, raute) : zielRoh;
+  const anker = raute >= 0 ? zielRoh.slice(raute + 1).trim() || null : null;
+  if (einbettung && !ziel) return null;
+  return {
+    ziel,
+    anker,
+    alias: einbettung ? null : hinten || null,
+    zusatz: einbettung ? hinten || null : null,
+    einbettung,
+    // Das Kürzel einer Bereichs-Verknüpfung `[[@kuerzel:Ziel]]`, sonst null.
+    // `ziel` bleibt dabei unverändert samt Kürzel, damit jeder Aufrufer den
+    // Verweis so auflöst, wie ihn die Lese-Ansicht auflöst.
+    bereich: splitAreaLink(ziel).prefix,
+    roh,
+  };
+}
+
+/**
+ * Der erste Wiki-Verweis in einem Text, auch über mehrere Zeilen.
+ *
+ * @param {string} text Kartentext (eine oder mehrere Zeilen).
+ * @returns {null|{ziel: string, anker: string|null, alias: string|null,
+ *   zusatz: string|null, einbettung: boolean, bereich: string|null,
+ *   roh: string, zeile: number}} `zeile` zählt ab 0 im übergebenen Text;
+ *   ein reiner Anker `[[#Abschnitt]]` hat das leere Ziel.
+ */
+function ersterVerweis(text) {
+  for (const verweis of verweiseDesTexts(text)) return verweis;
+  return null;
+}
+
+// Alle Wiki-Verweise eines Textes in Lese-Reihenfolge, nach den Regeln oben.
+// 4T-001957: aus `ersterVerweis` herausgelöst, damit «erster Verweis» und
+// «erster Verweis mit Ziel» denselben Durchlauf nehmen und nicht zwei Fassungen
+// derselben Erkennung entstehen; das Verhalten von `ersterVerweis` ist
+// unverändert (seine Prüffälle aus 4T-001954 stehen unangetastet).
+function* verweiseDesTexts(text) {
+  let inZaun = null;
+  const zeilen = trenneZeilen(text);
+  for (let nr = 0; nr < zeilen.length; nr++) {
+    const zeile = ohneCr(zeilen[nr]);
+    if (inZaun) {
+      if (schliesstZaun(zeile, inZaun)) inZaun = null;
+      continue;
+    }
+    inZaun = zaunOeffnung(zeile);
+    if (inZaun) continue;
+    const maskiert = maskInlineCode(zeile);
+    for (const treffer of maskiert.matchAll(createWikiLinkRegex())) {
+      const davor = treffer.index > 0 ? maskiert[treffer.index - 1] : '';
+      if (davor === '@') continue;
+      const inneres = zeile.slice(treffer.index + 2, treffer.index + treffer[0].length - 2);
+      if (inneres.includes('[')) continue;
+      const einbettung = davor === '!';
+      const roh = zeile.slice(
+        treffer.index - (einbettung ? 1 : 0),
+        treffer.index + treffer[0].length,
+      );
+      const verweis = zerlegeVerweis(inneres, einbettung, roh);
+      if (verweis) yield { ...verweis, zeile: nr };
+    }
+  }
+}
+
+/**
+ * Der erste Wiki-Verweis eines Textes, der auf eine **Notiz** zeigen kann.
+ *
+ * 4T-001957 (Story 4S-000985): Maßgeblich für die Angaben der verlinkten Notiz
+ * ist der erste Verweis **mit Ziel**. Übersprungen werden ein reiner Anker
+ * `[[#Abschnitt]]` — er zeigt auf die Tafel selbst — und eine Einbettung auf
+ * eine Bilddatei `![[bild.png]]`, die ein Bild zeigt und keine Notiz meint.
+ * Eine Einbettung auf ein Dokument zählt. Gezählt wird dann der nächste Verweis.
+ *
+ * **Abweichung vom Vorbild-Werkzeug:** Es nimmt den **letzten** Verweis der
+ * Karte (jeder weitere überschreibt den vorigen); hier gilt der erste, wie die
+ * Story es festlegt (Entscheidung des Product Owners vom 2026-09-25).
+ *
+ * @param {string} text Kartentext (eine oder mehrere Zeilen).
+ * @returns {null|object} wie `ersterVerweis`.
+ */
+function ersterVerweisMitZiel(text) {
+  for (const verweis of verweiseDesTexts(text)) {
+    if (!verweis.ziel) continue;
+    if (verweis.einbettung && istBildDatei(verweis.ziel)) continue;
+    return verweis;
+  }
+  return null;
+}
+
+/**
+ * Der erste Wiki-Verweis einer Karte: gesucht in ihrer Zeile und danach in
+ * ihren eingerückten Folgezeilen, also in allem, was die Karte zeigt.
+ *
+ * @param {object} model Modell aus `leseTafel`.
+ * @param {object} karte Karte aus `model.spalten[..].karten`.
+ * @returns {null|object} wie `ersterVerweis`; `zeile` ist die Zeile im
+ *   Dokument (ab 0).
+ */
+function ersterVerweisDerKarte(model, karte) {
+  return verweisDerKarte(model, karte, ersterVerweis);
+}
+
+/**
+ * Der erste Wiki-Verweis einer Karte mit Ziel (siehe `ersterVerweisMitZiel`),
+ * gesucht in ihrer Zeile und ihren Folgezeilen.
+ *
+ * @param {object} model Modell aus `leseTafel`.
+ * @param {object} karte Karte aus `model.spalten[..].karten`.
+ * @returns {null|object} wie `ersterVerweisDerKarte`.
+ */
+function ersterVerweisMitZielDerKarte(model, karte) {
+  return verweisDerKarte(model, karte, ersterVerweisMitZiel);
+}
+
+function verweisDerKarte(model, karte, suche) {
+  if (!model || !Array.isArray(model.zeilen) || !karte) return null;
+  const von = karte.zeile;
+  const bis = Number.isInteger(karte.letzteZeile) ? karte.letzteZeile : von;
+  const verweis = suche(model.zeilen.slice(von, bis + 1).join('\n'));
+  return verweis ? { ...verweis, zeile: von + verweis.zeile } : null;
+}
+
 /**
  * Umfang einer Tafel in Spalten, Karten und Befunden — die Zahlen, die eine
  * Anzeige braucht, ohne sie selbst abzuzählen.
@@ -540,6 +692,12 @@ module.exports = {
   leseTafel,
   schreibeTafel,
   tafelUmfang,
+  // 4T-001954: der erste Verweis einer Karte.
+  ersterVerweis,
+  ersterVerweisDerKarte,
+  // 4T-001957: der erste Verweis mit Ziel, maßgeblich für die Angaben der Notiz.
+  ersterVerweisMitZiel,
+  ersterVerweisMitZielDerKarte,
   // Bausteine für die Schwester-Module des Ordners; bewusst exportiert statt
   // dort ein zweites Mal geschrieben (Muster task-markers.js).
   trenneZeilen,

@@ -26,13 +26,51 @@ const STUFE2 = readFileSync(path.join(dir, '../../fixtures/kanban/tafel-stufe-2.
 const { showDateTimePicker } = vi.hoisted(() => ({ showDateTimePicker: vi.fn() }));
 vi.mock('../../../src/renderer/modules/calendar/date-picker.js', () => ({ showDateTimePicker }));
 
+// 4T-001958: Der Journal-Weg läuft **echt** (`calendar/journals.js`: stille
+// Abfrage, Auswahl, Öffnen-/Anlage-Pfad samt Perioden-Kern). Nachgestellt sind
+// allein die Nachbarn, die am ganzen Fenster hängen: das Öffnen im Reiter, die
+// Auswahl-Liste, die Statusleiste und der Fenster-Zustand. Gemessen wird damit,
+// welche Datei geöffnet wird, nicht bloß, dass ein Rückruf fiel.
+const { openInPane, showTemplateSelectDialog, showStatusbarHint } = vi.hoisted(() => ({
+  openInPane: vi.fn(async () => 0),
+  showTemplateSelectDialog: vi.fn(),
+  showStatusbarHint: vi.fn(),
+}));
+vi.mock('../../../src/renderer/modules/tabs/tabs.js', () => ({ openInPane }));
+vi.mock('../../../src/renderer/modules/tabs/tab-ersetzen.js', () => ({
+  reiterFuerPfad: () => null,
+  ersetzeTabDurchDatei: vi.fn(),
+}));
+vi.mock('../../../src/renderer/modules/templates.js', () => ({
+  collectAnswers: vi.fn(),
+  jumpToOffsetInActiveTab: vi.fn(),
+  showTemplateError: vi.fn(),
+  showTemplateSelectDialog,
+}));
+vi.mock('../../../src/renderer/modules/views/views.js', () => ({ showStatusbarHint }));
+vi.mock('../../../src/renderer/modules/dialogs/dialogs.js', () => ({
+  showNameInputDialog: vi.fn(),
+}));
+vi.mock('../../../src/renderer/modules/app/app-state.js', () => ({
+  state: { activePaneIndex: 0 },
+}));
+
 window.api = {
   renderMarkdown: (text, _pfad, optionen) => renderMarkdown(text, 'de', optionen),
   configureTaskMarkers: () => {},
   configureTaskStates: () => {},
+  // 4T-001958: die Journal-Brücke, je Prüffall belegt.
+  journalsGetConfig: vi.fn(),
+  journalsStatEntry: vi.fn(async (relPath) => ({
+    ok: true,
+    exists: true,
+    path: `C:/Bereich/${relPath}`,
+  })),
 };
 const { initKanbanPane, renderKanban } =
   await import('../../../src/renderer/modules/kanban/kanban-pane.js');
+const { uebernimmKanbanAnzeige } =
+  await import('../../../src/renderer/modules/kanban/kanban-anzeige-schalter.js');
 
 const KOPF = '---\nkanban-plugin: board\n---\n';
 const TAFEL = [
@@ -114,6 +152,12 @@ function rueckgaengig(container) {
 beforeEach(() => {
   document.body.innerHTML = '';
   showDateTimePicker.mockReset();
+  openInPane.mockClear();
+  showTemplateSelectDialog.mockReset();
+  showStatusbarHint.mockClear();
+  window.api.journalsGetConfig.mockReset();
+  window.api.journalsStatEntry.mockClear();
+  uebernimmKanbanAnzeige('kanban.datumTagesnotiz', false);
 });
 
 // --- Kontextmenü ------------------------------------------------------------------
@@ -126,12 +170,16 @@ describe('Kontextmenü der Karte (4T-001903, AK2/AK9)', () => {
     // «Karte löschen».
     expect(ids(0)).toEqual([
       'kanban-card-edit',
+      // 4T-001956: «Notiz aus Karte erzeugen…» vor den Termin-Einträgen.
+      'kanban-card-note',
       'kanban-card-set-date',
       'kanban-card-archive',
       'kanban-card-delete',
     ]);
     expect(ids(1)).toEqual([
       'kanban-card-edit',
+      // 4T-001956: «Notiz aus Karte erzeugen…» vor den Termin-Einträgen.
+      'kanban-card-note',
       'kanban-card-set-date',
       'kanban-card-remove-date',
       'kanban-card-archive',
@@ -343,5 +391,194 @@ describe('Nicht änderbares Dokument (4T-001903, AK9)', () => {
     klick(karten(container)[2].querySelector('.kanban-marker-fremd'));
     expect(showDateTimePicker).not.toHaveBeenCalled();
     expect(tab.content).toBe(TAFEL);
+  });
+});
+
+// --- Datum als Verweis auf die Tagesnotiz (4T-001958) --------------------------------
+
+describe('Das Datum öffnet die Tagesnotiz (4T-001958, Story 4S-000986)', () => {
+  // Zwei Tages-Journale und ein Wochen-Journal; das zweite Tages-Journal legt
+  // seine Einträge anders ab, damit die Auswahl an der Datei messbar ist.
+  const journal = (id, granularity, ordner) => ({
+    id,
+    name: id,
+    shelf: null,
+    granularity,
+    folderPattern: `${ordner}/{{date::yyyy}}`,
+    namePattern: granularity === 'day' ? '{{date::yyyy-MM-dd}}' : '{{date::kkkk}}-KW{{date::ww}}',
+    template: null,
+    startDate: null,
+    endDate: null,
+  });
+  const TAG = journal('Tagebuch', 'day', 'Journal');
+  const ARBEIT = journal('Arbeit', 'day', 'Arbeit');
+  const WOCHE = journal('Woche', 'week', 'Wochen');
+  const konfig = (journals, hasArea = true) => ({ ok: true, hasArea, config: { journals } });
+  const EIN = '\n%% kanban:settings\n```\n{"link-date-to-daily-note":true}\n```\n%%\n';
+  const AUS = '\n%% kanban:settings\n```\n{"link-date-to-daily-note":false}\n```\n%%\n';
+  const abzeichen = (c, nr) => karten(c)[nr].querySelector('[data-kanban-datum]');
+  const verweise = (c) => c.querySelectorAll('.kanban-datum-verweis');
+  const tick = () => new Promise((r) => setTimeout(r, 0));
+
+  it('AK3: an und ein Tages-Journal — Verweis-Stil, Hinweistext, der Klick öffnet den Tag', async () => {
+    window.api.journalsGetConfig.mockResolvedValue(konfig([TAG, WOCHE]));
+    const { tab, container } = baueSpalte(TAFEL + EIN);
+    await vi.waitFor(() => expect(verweise(container)).toHaveLength(2));
+    const due = abzeichen(container, 1);
+    expect(due.classList.contains('kanban-datum-verweis')).toBe(true);
+    expect(due.title.endsWith('kanban.termin.tagesnotiz')).toBe(true);
+    klick(due);
+    await vi.waitFor(() => expect(openInPane).toHaveBeenCalledTimes(1));
+    expect(window.api.journalsStatEntry).toHaveBeenCalledWith('Journal/2026/2026-10-01.md');
+    expect(openInPane).toHaveBeenCalledWith(0, ['C:/Bereich/Journal/2026/2026-10-01.md'], {
+      inheritGroup: false,
+    });
+    // AK5, AK7: kein Wähler, keine Eingabe, kein Hinweis, das Dokument bleibt.
+    expect(showDateTimePicker).not.toHaveBeenCalled();
+    expect(showTemplateSelectDialog).not.toHaveBeenCalled();
+    expect(container.querySelector('.kanban-karte-eingabe')).toBeNull();
+    expect(showStatusbarHint).not.toHaveBeenCalled();
+    expect(tab.content).toBe(TAFEL + EIN);
+  });
+
+  it('der lesbare Vorbild-Termin ist ebenso ein Datum; die Uhrzeit spielt keine Rolle', async () => {
+    window.api.journalsGetConfig.mockResolvedValue(konfig([TAG]));
+    const { container } = baueSpalte(TAFEL + EIN);
+    await vi.waitFor(() => expect(verweise(container)).toHaveLength(2));
+    klick(abzeichen(container, 2));
+    await vi.waitFor(() => expect(openInPane).toHaveBeenCalledTimes(1));
+    expect(openInPane.mock.calls[0][1]).toEqual(['C:/Bereich/Journal/2026/2026-10-02.md']);
+  });
+
+  it('AK7: eine Karte ohne Datum und ein unlesbarer Termin bieten den Klick nicht an', async () => {
+    window.api.journalsGetConfig.mockResolvedValue(konfig([TAG]));
+    const { container } = baueSpalte(TAFEL + EIN);
+    await vi.waitFor(() => expect(verweise(container)).toHaveLength(2));
+    expect(karten(container)[0].querySelector('.kanban-datum-verweis')).toBeNull();
+    expect(karten(container)[3].querySelector('[data-kanban-datum]')).toBeNull();
+  });
+
+  it('AK3: bei mehreren Tages-Journalen die vorhandene Auswahl', async () => {
+    window.api.journalsGetConfig.mockResolvedValue(konfig([TAG, WOCHE, ARBEIT]));
+    showTemplateSelectDialog.mockResolvedValue('Arbeit');
+    const { container } = baueSpalte(TAFEL + EIN);
+    await vi.waitFor(() => expect(verweise(container)).toHaveLength(2));
+    klick(abzeichen(container, 1));
+    await vi.waitFor(() => expect(openInPane).toHaveBeenCalledTimes(1));
+    expect(showTemplateSelectDialog).toHaveBeenCalledWith('journal.pick.title', [
+      'Tagebuch',
+      'Arbeit',
+    ]);
+    expect(openInPane.mock.calls[0][1]).toEqual(['C:/Bereich/Arbeit/2026/2026-10-01.md']);
+  });
+
+  it('AK4: ist die Einstellung an, bleibt «Termin setzen…» im Kontextmenü', async () => {
+    window.api.journalsGetConfig.mockResolvedValue(konfig([TAG]));
+    const { container, protokoll } = baueSpalte(TAFEL + EIN);
+    await vi.waitFor(() => expect(verweise(container)).toHaveLength(2));
+    const ids = menue(container, protokoll, 1).map((e) => e.dataId);
+    expect(ids).toContain('kanban-card-set-date');
+  });
+
+  it('AK5: ist die Einstellung aus, öffnet der Klick den Wähler, das Journal wird nicht gefragt', async () => {
+    showDateTimePicker.mockResolvedValue(null);
+    window.api.journalsGetConfig.mockResolvedValue(konfig([TAG]));
+    const { container } = baueSpalte(TAFEL + AUS);
+    await tick();
+    expect(verweise(container)).toHaveLength(0);
+    klick(abzeichen(container, 1));
+    await vi.waitFor(() => expect(showDateTimePicker).toHaveBeenCalledTimes(1));
+    expect(window.api.journalsGetConfig).not.toHaveBeenCalled();
+    expect(openInPane).not.toHaveBeenCalled();
+  });
+
+  it('AK6: ohne Bereich kein Verweis-Stil, kein Hinweis, der Klick öffnet den Wähler', async () => {
+    showDateTimePicker.mockResolvedValue(null);
+    window.api.journalsGetConfig.mockResolvedValue(konfig([], false));
+    const { container } = baueSpalte(TAFEL + EIN);
+    await vi.waitFor(() => expect(window.api.journalsGetConfig).toHaveBeenCalled());
+    await tick();
+    expect(verweise(container)).toHaveLength(0);
+    klick(abzeichen(container, 1));
+    await vi.waitFor(() => expect(showDateTimePicker).toHaveBeenCalledTimes(1));
+    expect(showStatusbarHint).not.toHaveBeenCalled();
+    expect(openInPane).not.toHaveBeenCalled();
+  });
+
+  it('AK6: ohne Tages-Journal (nur ein Wochen-Journal) ebenso, auch bei einem Lesefehler', async () => {
+    showDateTimePicker.mockResolvedValue(null);
+    window.api.journalsGetConfig.mockResolvedValueOnce(konfig([WOCHE]));
+    const { container } = baueSpalte(TAFEL + EIN);
+    await vi.waitFor(() => expect(window.api.journalsGetConfig).toHaveBeenCalled());
+    await tick();
+    expect(verweise(container)).toHaveLength(0);
+    window.api.journalsGetConfig.mockRejectedValueOnce(new Error('kaputt'));
+    renderKanban(0);
+    await tick();
+    expect(verweise(container)).toHaveLength(0);
+    klick(abzeichen(container, 1));
+    await vi.waitFor(() => expect(showDateTimePicker).toHaveBeenCalledTimes(1));
+    expect(showStatusbarHint).not.toHaveBeenCalled();
+  });
+
+  it('AK7: im nicht änderbaren Dokument öffnet der Klick die Tagesnotiz, ohne Wähler', async () => {
+    window.api.journalsGetConfig.mockResolvedValue(konfig([TAG]));
+    const { tab, container } = baueSpalte(TAFEL + EIN, { aenderbar: false });
+    await vi.waitFor(() => expect(verweise(container)).toHaveLength(2));
+    expect(container.querySelector('[data-kanban-termin]')).toBeNull();
+    klick(abzeichen(container, 1));
+    await vi.waitFor(() => expect(openInPane).toHaveBeenCalledTimes(1));
+    expect(showDateTimePicker).not.toHaveBeenCalled();
+    expect(tab.content).toBe(TAFEL + EIN);
+  });
+
+  it('der Doppelklick auf das verweisende Abzeichen öffnet keine Bearbeitung', async () => {
+    window.api.journalsGetConfig.mockResolvedValue(konfig([TAG]));
+    const { container } = baueSpalte(TAFEL + EIN);
+    await vi.waitFor(() => expect(verweise(container)).toHaveLength(2));
+    klick(abzeichen(container, 1), 'dblclick');
+    expect(container.querySelector('.kanban-karte-eingabe')).toBeNull();
+  });
+
+  it('Nachzug: die globale Vorgabe und die Einstellung der Tafel wirken ohne Neu-Öffnen', async () => {
+    showDateTimePicker.mockResolvedValue(null);
+    window.api.journalsGetConfig.mockResolvedValue(konfig([TAG]));
+    const { tab, container } = baueSpalte(TAFEL);
+    await tick();
+    expect(verweise(container)).toHaveLength(0);
+    // Die globale Vorgabe an: derselbe Weg wie Einstellungs-Seite und Menü.
+    uebernimmKanbanAnzeige('kanban.datumTagesnotiz', true);
+    await vi.waitFor(() => expect(verweise(container)).toHaveLength(2));
+    const titel = abzeichen(container, 1).title.replace(/\nkanban\.termin\.tagesnotiz$/, '');
+    // Die Tafel übersteuert mit «aus»: Stil und Hinweistext fallen weg, der
+    // Klick öffnet wieder den Wähler. Das Neu-Zeichnen ist das, was der Editor
+    // nach dem Rückschreiben des Dialogs anstößt.
+    tab.content = TAFEL + AUS;
+    renderKanban(0);
+    expect(verweise(container)).toHaveLength(0);
+    expect(abzeichen(container, 1).title).toBe(titel);
+    klick(abzeichen(container, 1));
+    await vi.waitFor(() => expect(showDateTimePicker).toHaveBeenCalledTimes(1));
+    // Zurück auf die Vorgabe: wieder ein Verweis.
+    tab.content = TAFEL;
+    renderKanban(0);
+    await vi.waitFor(() => expect(verweise(container)).toHaveLength(2));
+    // Und die Vorgabe aus: der Stil geht ohne Neu-Öffnen.
+    uebernimmKanbanAnzeige('kanban.datumTagesnotiz', false);
+    expect(verweise(container)).toHaveLength(0);
+  });
+
+  it('die stille Abfrage lässt den Hinweis-Weg der Journal-Kommandos unberührt', () => {
+    const quelle = readFileSync(
+      path.join(dir, '../../../src/renderer/modules/calendar/journals.js'),
+      'utf8',
+    );
+    const still = quelle.slice(
+      quelle.indexOf('export async function tagesJournaleStill'),
+      quelle.indexOf('export async function oeffneTagesnotiz'),
+    );
+    expect(still).not.toContain('showStatusbarHint');
+    expect(quelle).toContain("showStatusbarHint('journal.noArea'");
+    expect(quelle).toContain("showStatusbarHint('journal.noJournals'");
   });
 });

@@ -18,7 +18,7 @@ Ce qui compte est la **présence** de la clé, non sa valeur : `board`, `list` o
 
 ## L'extension « Kanban »
 
-La fonction fait partie des [extensions internes](extensions.md) (« Vue tableau (Kanban) »). Désactivée, le mode de vue disparaît, les commandes pour la carte, la colonne et le tableau disparaissent, et avec elles le sous-menu **Tableau Kanban** du menu **Affichage**, qui ne reste pas vide. Le document reste lisible tel quel ; rien n'est jamais écrit à l'état désactivé, et colonnes et cartes restent dans le texte.
+La fonction fait partie des [extensions internes](extensions.md) (« Vue tableau (Kanban) »). Désactivée, le mode de vue disparaît, les commandes pour la carte, la colonne et le tableau disparaissent, et avec elles le sous-menu **Tableau Kanban** du menu **Affichage**, qui ne reste pas vide, ainsi que la section **Tableau Kanban** des paramètres. Le document reste lisible tel quel ; rien n'est jamais écrit à l'état désactivé, et colonnes et cartes restent dans le texte.
 
 Le tableau suppose l'extension **Tâches**, car une carte **est** une ligne de tâche. Si celle-ci est désactivée, le tableau l'est aussi.
 
@@ -64,8 +64,10 @@ Un tableau sans colonnes et une colonne sans cartes le disent à leur place au l
 | Valider | clic hors de la carte | `Entrée` | — | — |
 | Abandonner | — | `Échap` | — | — |
 | Changer l'état | clic sur la case | `Espace` | — | — |
-| Définir ou changer l'échéance | clic sur le badge d'échéance | — | **Définir la date…** | — |
+| Définir ou changer l'échéance | clic sur le badge d'échéance, sauf si la date mène à l'entrée de journal | — | **Définir la date…** | — |
 | Retirer l'échéance | — | — | **Retirer la date** | — |
+| Créer une note à partir de la carte | — | — | **Créer une note à partir de la carte…** | **Créer une note à partir de la carte…** |
+| Ouvrir la cible d'un lien | clic sur le lien dans le texte de la carte | — | — | — |
 | Archiver | — | — | **Archiver la carte** | **Archiver la carte du tableau** |
 | Supprimer | — | `Suppr` | **Supprimer la carte** | — |
 
@@ -124,7 +126,7 @@ Déplacer et marquer forment ensemble **une** action, donc une seule étape d'an
 
 Sous le texte de la carte figure une rangée de **badges** avec les indications de la tâche : l'échéance avec son heure, les dates planifiée et de début, la priorité, la récurrence et les autres marqueurs de tâche. Ce sont les mêmes badges qu'en vue de lecture, avec le même signalement des indications en retard et invalides. Une carte sans indications ne porte pas une telle rangée.
 
-**Définir et retirer l'échéance.** Le menu contextuel d'une carte propose **Définir la date…** et, dès que la carte porte une échéance, **Retirer la date** ; un clic sur le badge d'échéance mène également à la définir. Le choix se fait dans le sélecteur de date des tâches, avec une heure au choix et prérempli avec l'échéance existante. L'échéance s'écrit dans la ligne de la carte selon l'écriture des tâches de l'application :
+**Définir et retirer l'échéance.** Le menu contextuel d'une carte propose **Définir la date…** et, dès que la carte porte une échéance, **Retirer la date** ; un clic sur le badge d'échéance mène également à la définir, sauf si la date mène à l'entrée de journal du jour (voir « Liens et date sur la carte »). Le choix se fait dans le sélecteur de date des tâches, avec une heure au choix et prérempli avec l'échéance existante. L'échéance s'écrit dans la ligne de la carte selon l'écriture des tâches de l'application :
 
 ```markdown
 - [ ] Envoyer le devis 📅 2026-10-02 14:00
@@ -132,7 +134,7 @@ Sous le texte de la carte figure une rangée de **badges** avec les indications 
 
 Elle apparaît donc aussi en vue de lecture et dans les requêtes de tâches. Chaque définition et chaque retrait est une étape d'annulation ; si le document change pendant que le sélecteur de date est ouvert, le choix est abandonné et la barre d'état le dit.
 
-**Affichage relatif.** Avec le commutateur **Affichage → Tableau Kanban → Afficher les dates en relatif**, les dates d'échéance, planifiée et de début se lisent à partir d'aujourd'hui : « aujourd'hui », « demain », « dans 3 jours », « il y a 2 jours », dans la langue de l'interface et avec l'heure ajoutée. La date exacte figure alors dans l'infobulle du badge. Les dates de création, de fin et d'annulation restent absolues, car elles consignent le moment où quelque chose s'est produit. Le commutateur est désactivé par défaut, vaut pour tous les tableaux de toutes les fenêtres et ne change rien au document.
+**Affichage relatif.** Avec le commutateur **Affichage → Tableau Kanban → Afficher les dates en relatif**, les dates d'échéance, planifiée et de début se lisent à partir d'aujourd'hui : « aujourd'hui », « demain », « dans 3 jours », « il y a 2 jours », dans la langue de l'interface et avec l'heure ajoutée. La date exacte figure alors dans l'infobulle du badge. Les dates de création, de fin et d'annulation restent absolues, car elles consignent le moment où quelque chose s'est produit. Le commutateur est désactivé en sortie d'usine, fixe la valeur par défaut pour tous les tableaux de toutes les fenêtres et ne change rien au document ; un tableau peut le remplacer pour lui seul (voir « Paramètres du tableau »).
 
 **Échéances dans l'écriture de l'autre outil.** L'outil de tableaux dont provient le format écrit une échéance sous la forme `@{…}` et une heure sous la forme `@@{…}` dans la ligne de la carte. Le tableau lit les deux et les montre comme badge d'échéance à bordure en pointillés ; son infobulle en indique l'origine. **À la première modification de la carte, une telle échéance est réécrite dans l'écriture des tâches** — à la validation d'un texte de carte modifié comme à la définition et au retrait de l'échéance. La première ligne devient la seconde :
 
@@ -145,7 +147,7 @@ Elle apparaît donc aussi en vue de lecture et dans les requêtes de tâches. Ch
 
 ## Tags en pied de carte
 
-Sur la carte, les tags figurent d'abord là où ils sont écrits : dans le texte de la carte, rendus comme en vue de lecture. Avec le commutateur **Affichage → Tableau Kanban → Tags en pied de carte**, ils quittent le texte affiché et figurent rassemblés sur une rangée propre au pied de la carte — y compris les tags des lignes de suite indentées, chacun une fois et dans l'ordre de son apparition. Le commutateur est désactivé par défaut, vaut pour tous les tableaux de toutes les fenêtres et ne change rien au document : les tags restent dans la ligne où ils se trouvent.
+Sur la carte, les tags figurent d'abord là où ils sont écrits : dans le texte de la carte, rendus comme en vue de lecture. Avec le commutateur **Affichage → Tableau Kanban → Tags en pied de carte**, ils quittent le texte affiché et figurent rassemblés sur une rangée propre au pied de la carte — y compris les tags des lignes de suite indentées, chacun une fois et dans l'ordre de son apparition. Le commutateur est désactivé en sortie d'usine, fixe la valeur par défaut pour tous les tableaux de toutes les fenêtres et ne change rien au document : les tags restent dans la ligne où ils se trouvent. Un tableau peut le remplacer pour lui seul.
 
 Un clic sur un tag de la carte — en pied comme dans le texte — filtre la barre latérale des tags sur lui, comme en vue de lecture ; la sélection et la modification de la carte n'en sont pas affectées. Pendant qu'une carte est modifiée, sa rangée de tags est masquée, car la saisie montre le texte brut avec ses tags. Les deux commutateurs d'affichage ne sont sélectionnables que dans la vue tableau ouverte.
 
@@ -159,7 +161,7 @@ Elle se définit et se modifie par **Définir la limite…** dans le menu contex
 
 ## Archive
 
-**Archiver la carte** dans le menu contextuel d'une carte, ou la commande **Archiver la carte du tableau** pour la carte sélectionnée, retire la carte avec ses lignes de suite indentées de sa colonne et l'écrit à la fin de la **section d'archive** du même document. Un horodatage fait de la date et de l'heure se place devant son texte ; son état et ses autres indications restent tels quels :
+**Archiver la carte** dans le menu contextuel d'une carte, ou la commande **Archiver la carte du tableau** pour la carte sélectionnée, retire la carte avec ses lignes de suite indentées de sa colonne et l'écrit à la fin de la **section d'archive** du même document. Un horodatage fait de la date et de l'heure se place devant son texte tant que le paramètre **Archiver avec horodatage** s'applique, comme en sortie d'usine ; son état et ses autres indications restent tels quels :
 
 ```markdown
 ***
@@ -171,7 +173,7 @@ Elle se définit et se modifie par **Définir la limite…** dans le menu contex
 
 Si la section manque, elle naît derrière la dernière colonne, avec le titre que l'autre outil écrit lui aussi dans la langue de l'interface ; une section existante est poursuivie avec son titre et son contenu.
 
-**L'archive conserve les 100 cartes les plus récentes.** Si une carte s'ajoute alors qu'elle est pleine, la plus ancienne en sort ; une archive laissée par un autre outil avec davantage de cartes est ramenée aux 100 plus récentes au premier archivage.
+**En sortie d'usine, l'archive conserve les 100 cartes les plus récentes.** Si une carte s'ajoute alors qu'elle est pleine, la plus ancienne en sort ; une archive laissée par un autre outil avec davantage de cartes est ramenée aux plus récentes au premier archivage. Ce nombre est réglable, et `0` signifie illimité (voir « Paramètres du tableau »).
 
 **Une carte archivée ne se récupère pas sur le tableau**, car l'archive n'y apparaît pas. L'archivage est toutefois exactement une étape d'annulation, et dans le document la carte figure toujours en clair. Ensuite la sélection passe, comme lors de la suppression, à la carte suivante de la colonne ; sans carte sélectionnée, la commande reste sans effet.
 
@@ -185,15 +187,96 @@ Sont parcourus le texte de la carte et ses lignes de suite indentées, y compris
 
 `Échap` dans le champ met fin au filtre et montre de nouveau toutes les cartes ; de même le passage à une autre vue ou à un autre document. Si le tableau se redessine entre-temps, le texte cherché et le focus de saisie sont conservés.
 
+## Paramètres du tableau
+
+Le comportement du tableau se règle à deux niveaux : comme **valeur par défaut** pour tous les tableaux et **par tableau** avec une valeur propre. Une valeur propre l'emporte sur la valeur par défaut ; un tableau sans valeurs propres suit en tout les valeurs par défaut.
+
+**Les valeurs par défaut** se trouvent sous **Fichier → Paramètres… → Tableau Kanban**, dans le bloc **Extensions (internes)** :
+
+| Paramètre | Sortie d'usine |
+| --------- | -------------- |
+| **Étiquettes en pied de carte** | désactivé |
+| **Afficher les échéances en relatif** | désactivé |
+| **Archiver avec horodatage** | activé |
+| **Limite de l’archive en cartes (0 = illimité)** | 100 |
+| **La date mène à l’entrée de journal du jour** | désactivé |
+
+Les deux coches du menu **Affichage → Tableau Kanban**, **Tags en pied de carte** et **Afficher les dates en relatif**, montrent et définissent les mêmes valeurs par défaut que les deux premières lignes. Une valeur par défaut n'écrit jamais dans un document.
+
+**Par tableau**, **Paramètres de ce tableau…** ouvre un dialogue — dans le menu **Affichage → Tableau Kanban**, dans le menu contextuel d'une tête de colonne et dans la palette de commandes. La surface libre du tableau n'a pas de menu contextuel propre ; l'entrée figure donc sur la tête de colonne.
+
+| Paramètre | Choix dans le dialogue | « par défaut » signifie |
+| --------- | ---------------------- | ----------------------- |
+| les quatre commutateurs du tableau ci-dessus | **par défaut (activé)** ou **par défaut (désactivé)**, **activé**, **désactivé** | la valeur de la page des paramètres, indiquée entre parenthèses |
+| **Limite de l’archive (cartes)** | **par défaut (…)** ou **valeur propre** avec un nombre | la limite de la page des paramètres |
+| **Dossier des nouvelles notes** | **par défaut (dossier du tableau)** ou **valeur propre** via **Choisir un dossier…** | le dossier dans lequel se trouve le tableau |
+| **Modèle des nouvelles notes** | **par défaut (choix à la création)** ou **valeur propre** via **Choisir un modèle…** | règle de dossier ou choix à la création |
+| **Informations de la note liée** | **par défaut (aucune information)** ou **valeur propre** avec une ligne par information | les cartes ne montrent aucune information |
+
+Le choix lui-même montre d'où vient une valeur : **par défaut** suit la page des paramètres et s'adapte lorsque celle-ci change ; tout le reste ne vaut que pour ce tableau. Pour rétablir, on choisit de nouveau **par défaut**. Une limite propre de `0` ou moins signifie illimité.
+
+Pour les informations de la note liée, chaque ligne porte la **Clé dans l’en-tête du document**, un **Nom affiché (facultatif)** et la case **Masquer le nom** ; **Supprimer** retire la ligne, **Ajouter une information** en ajoute une. Une ligne sans clé disparaît à la validation.
+
+Le dossier cible se choisit dans le dialogue de dossier de l'application. Il doit se trouver dans la zone ouverte — sinon un message indique « Le dossier se trouve en dehors de l’espace. » — et il est enregistré relativement à sa racine, la racine elle-même sous la forme `/` ; sans zone ouverte, relativement au dossier du tableau. Le modèle vient de la sélection des modèles de l'application et est enregistré avec son chemin dans sa source de modèles.
+
+**Appliquer** n'écrit que les paramètres modifiés dans le bloc de réglages en fin de document du tableau, en **une** étape d'annulation ; si le bloc manque, il est créé à cette occasion. **Annuler**, `Échap` et un clic à côté du dialogue ne changent rien. L'effet est immédiatement visible, sans rouvrir le document. Le dialogue suppose la vue tableau ouverte et un document modifiable ; si le document a changé pendant qu'il était ouvert, la validation est abandonnée et la barre d'état le dit. Si le bloc ne peut pas être lu, le tableau n'écrit rien et indique : « Le bloc de paramètres à la fin du tableau est illisible — les paramètres n’ont pas été écrits. »
+
+## Note à partir d'une carte
+
+**Créer une note à partir de la carte…** fait d'une carte une note à part entière, dans le menu contextuel de la carte ou, pour la carte sélectionnée, par la palette de commandes. Le texte de la carte sans ses marqueurs — tags, marqueurs de tâche et une échéance dans l'écriture de l'autre outil — devient le nom de la note, et sur la carte le lien vers elle prend la place du texte. Les marqueurs restent en place dans leur ordre, les lignes de suite indentées également ; la première ligne devient la seconde :
+
+```markdown
+- [ ] Rédiger le devis #client 📅 2026-10-02
+- [ ] [[Rédiger le devis]] #client 📅 2026-10-02
+```
+
+Un lien dans le texte de la carte entre dans le nom avec son texte affiché. Les barres obliques et les caractères qu'un nom de fichier ne peut pas porter deviennent `_` ; aucune sous-page n'est créée. S'il ne reste rien d'exploitable du texte, l'application demande le nom. Une carte dont le texte sans marqueurs est vide ne propose pas l'entrée.
+
+**Où va la note :** dans le dossier cible des paramètres du tableau, sinon dans le dossier du tableau. Si le dossier défini n'existe pas, un message le dit, et le dialogue de dossier permet d'en choisir un autre ; un dossier manquant n'est jamais créé.
+
+**Si le nom existe déjà**, rien n'est jamais écrasé. L'application demande « Un document « Nom » existe déjà. Comment voulez-vous continuer ? » et propose **Choisir un autre nom…** — la demande de nom, préremplie avec le nom — et **Créer un lien vers le document existant** : aucun fichier n'est alors créé, la carte reçoit le lien vers le document existant, et celui-ci n'est pas ouvert. `Échap` interrompt.
+
+**Quel modèle s'applique**, dans cet ordre :
+
+1. le modèle des paramètres du tableau ; s'il est introuvable, un message le dit, et la sélection suit ;
+2. sinon la [règle de dossier](templates.md) du dossier cible ;
+3. sinon la sélection des modèles avec **Aucun modèle (note vide)** en première position.
+
+Si aucun modèle n'est configuré ou si l'extension « Modèles » est désactivée, une note vide naît sans sélection. Un modèle choisi est rempli comme avec **Nouveau fichier à partir d'un modèle…**, avec le nom de la note comme titre.
+
+**Ensuite**, l'application crée le fichier, remplace le texte de la carte et ouvre la nouvelle note comme document distinct ; le tableau reste ouvert à côté. Une échéance dans l'écriture de l'autre outil est alors réécrite comme lors de la modification de la carte. Si la création échoue, la carte reste inchangée. Si le tableau a changé pendant que les dialogues étaient ouverts, la carte reste également inchangée, mais la note est créée et ouverte, et un message dit l'un et l'autre.
+
+**L'annulation** rétablit le texte de la carte en une seule étape ; la note créée subsiste comme fichier.
+
+## Informations de la note liée
+
+Si une carte porte un lien vers une note, elle peut montrer des informations de son **en-tête de document** — par exemple l'état, les responsables ou une image de titre. Lesquelles, c'est le paramètre **Informations de la note liée** du tableau qui en décide ; en sortie d'usine, une carte n'en montre aucune.
+
+**Quel lien compte :** le premier lien wiki avec une cible, dans la ligne de la carte ou ses lignes de suite. Un simple lien de section comme `[[#Section]]` et l'incorporation d'une image ne comptent pas ; l'incorporation d'un document compte.
+
+**Comment les informations apparaissent :** comme lignes « Nom : valeur » sous le texte de la carte, avant les badges et les tags. Le nom est le nom affiché du paramètre, sinon la clé ; avec **Masquer le nom**, seule la valeur figure. N'apparaissent que les clés ayant une valeur, dans l'ordre du paramètre. Une liste est jointe par des virgules. Une information est limitée à deux lignes ; la valeur complète figure dans l'infobulle.
+
+**Images :** si une valeur est dans son ensemble un chemin avec une extension d'image ou un lien comme `[[image.png]]` ou `![[image.png|200]]`, l'image apparaît à sa place, sur la largeur de la carte et avec une hauteur limitée. Elle est cherchée relativement à la note liée, à l'intérieur de la zone ouverte, et sans zone dans le dossier de la note et en dessous. Si l'image manque, l'information disparaît ; une adresse web ne devient jamais une image.
+
+Les informations sont seulement lues, jamais écrites, et les cartes apparaissent aussitôt — les informations suivent dès qu'elles sont lues. Elles sont **à jour** au prochain redessin du tableau : après un changement de vue, une modification du tableau ou le retour à son document. Si la note est modifiée pendant que le tableau reste visible à côté, le nouvel état n'apparaît qu'au prochain redessin.
+
+## Liens et date sur la carte
+
+**Un lien dans le texte de la carte ouvre sa cible**, comme un clic en vue de lecture : un lien wiki avec ou sans texte affiché, un lien vers une cible encore manquante, un lien Markdown ordinaire et une adresse web se comportent comme là-bas. Le clic ne sélectionne pas la carte et agit aussi dans un document non modifiable ; une saisie ouverte est d'abord validée. Un double-clic sur un lien n'ouvre pas de modification — on modifie par un double-clic à côté du lien, avec `Entrée`, `F2` ou par le menu contextuel.
+
+**La date mène à l'entrée de journal du jour** lorsque le paramètre **La date mène à l’entrée de journal du jour** s'applique au tableau (désactivé en sortie d'usine) et que la zone ouverte possède au moins un [journal](journals.md) de granularité « jour ». Le badge d'échéance est alors souligné, le pointeur devient une main, et l'infobulle indique « Ouvrir l’entrée de journal de ce jour ». Un clic ouvre l'entrée de ce jour et la crée si elle n'existe pas encore — comme **Entrée de journal du jour** pour celle d'aujourd'hui ; avec plusieurs journaux de ce type, une sélection demande lequel. L'heure ne joue aucun rôle. Cela vaut aussi pour une échéance dans l'écriture de l'autre outil et dans un document non modifiable, car le tableau ne change rien. L'échéance se modifie alors par **Définir la date…** dans le menu contextuel de la carte.
+
+Sans zone ouverte ou sans journal de granularité « jour », le badge reste ce qu'il était : le clic ouvre le sélecteur de date, et aucun message n'apparaît. Il en va de même si le paramètre est désactivé.
+
 ## Annuler
 
-`Ctrl+Z` reprend la dernière action sur le tableau, `Ctrl+Y` et `Ctrl+Maj+Z` la rétablissent. Chaque action est exactement une étape : une carte créée, un texte modifié, un changement d'état, un déplacement avec son marquage, une colonne supprimée avec toutes ses cartes, une échéance définie ou retirée, une limite modifiée, une carte archivée. Tant que la saisie d'une carte ou d'un titre de colonne est ouverte, `Ctrl+Z` s'applique au texte frappé là.
+`Ctrl+Z` reprend la dernière action sur le tableau, `Ctrl+Y` et `Ctrl+Maj+Z` la rétablissent. Chaque action est exactement une étape : une carte créée, un texte modifié, un changement d'état, un déplacement avec son marquage, une colonne supprimée avec toutes ses cartes, une échéance définie ou retirée, une limite modifiée, une carte archivée, une validation dans le dialogue **Paramètres de ce tableau…**, le remplacement du texte de la carte par le lien vers une note créée — dont le fichier subsiste. Tant que la saisie d'une carte ou d'un titre de colonne est ouverte, `Ctrl+Z` s'applique au texte frappé là.
 
 Si le document change entre-temps ailleurs — parce que le même document est modifié à côté, par exemple —, l'action entamée est abandonnée au lieu d'être écrite à l'aveugle ; la barre d'état le dit, et le tableau se redessine.
 
 ## Consultation seule
 
-Le tableau suit la modifiabilité de son document. Tant que le document est en simple affichage, sans mode d'édition activé, le tableau est **en consultation seule** : pas de boutons, pas de déplacement, pas de saisie, pas de case cliquable, et le menu contextuel reste sans entrées. Le chemin par la palette de commandes et les menus ne contourne pas cela ; l'échec est dit dans la barre d'état et non passé sous silence. Regarder, sélectionner, faire défiler et filtrer les cartes restent permis, car cela ne touche pas au document ; les deux commutateurs d'affichage également. Le badge d'échéance n'est ici qu'un affichage.
+Le tableau suit la modifiabilité de son document. Tant que le document est en simple affichage, sans mode d'édition activé, le tableau est **en consultation seule** : pas de boutons, pas de déplacement, pas de saisie, pas de case cliquable, et le menu contextuel reste sans entrées. Le chemin par la palette de commandes et les menus ne contourne pas cela ; l'échec est dit dans la barre d'état et non passé sous silence. Regarder, sélectionner, faire défiler et filtrer les cartes restent permis, car cela ne touche pas au document ; les deux commutateurs d'affichage également, le clic sur un lien et le clic sur une date qui mène à l'entrée de journal du jour. Sinon, le badge d'échéance n'est ici qu'un affichage. **Paramètres de ce tableau…** et **Créer une note à partir de la carte…** écrivent dans le document et ne sont donc pas disponibles.
 
 Le mode d'édition libère la manipulation — le crayon de la barre d'état, `Ctrl+E` par défaut ; les détails figurent sur la page [Vues et affichage](views-display.md).
 
@@ -271,9 +354,9 @@ kanban-plugin: board
 
 ### Ce qui reste intact
 
-**La section d'archive et le bloc de réglages ne sont pas montrés sur le tableau.** Le bloc de réglages n'est jamais modifié, la section d'archive seulement lors de l'archivage d'une carte ; sinon tous deux restent tels quels dans le fichier, et qui ouvre un tableau et le referme sans modification récupère exactement le même fichier — y compris les fins de ligne, un saut de ligne final absent et toutes les indications que cette application ne connaît pas.
+**La section d'archive et le bloc de réglages ne sont pas montrés sur le tableau.** Le bloc de réglages n'est modifié que par le dialogue **Paramètres de ce tableau…**, la section d'archive seulement lors de l'archivage d'une carte ; sinon tous deux restent tels quels dans le fichier, et qui ouvre un tableau et le referme sans modification récupère exactement le même fichier — y compris les fins de ligne, un saut de ligne final absent et toutes les indications que cette application ne connaît pas.
 
-Une exception pour une bonne raison : si le bloc de réglages contient la liste des colonnes repliées, elle suit lors de la création, de la suppression et du déplacement d'une colonne. Si elle restait en l'état, l'autre outil aurait ensuite replié les mauvaises colonnes. Tout le reste du bloc demeure caractère pour caractère tel qu'il était.
+Une exception pour une bonne raison : si le bloc de réglages contient la liste des colonnes repliées, elle suit lors de la création, de la suppression et du déplacement d'une colonne. Si elle restait en l'état, l'autre outil aurait ensuite replié les mauvaises colonnes. Tout le reste du bloc demeure caractère pour caractère tel qu'il était, jusqu'à ce qu'un paramètre du tableau soit modifié — et même alors, seule son entrée change (voir « Compatibilité avec d'autres outils »).
 
 Seule la plage de lignes qui change réellement est écrite — jamais le document entier. Le curseur et les replis de l'éditeur restent donc en place.
 
@@ -294,7 +377,30 @@ Le format vient d'un outil de tableaux très répandu pour les notes en Markdown
 
 **Ce qui change à la modification :** une échéance dans l'écriture de l'autre outil est réécrite dans l'écriture des tâches de l'application à la première modification de sa carte (voir « Indications sur la carte »). **Dans l'autre outil, elle n'apparaît ensuite plus que comme texte** et non plus comme date de la carte. Toutes les autres indications d'une tâche — marqueurs de date, priorité, récurrence, tags — restent dans leur ligne et continuent d'agir partout ailleurs, en vue de lecture et dans les requêtes de tâches.
 
-**Ce qui se passe autrement ici :** l'archivage pose toujours un horodatage et maintient l'archive à 100 cartes ; l'autre outil ne fait l'un et l'autre que s'il est réglé ainsi. Les indications de son bloc de réglages, comme un autre format de date ou une autre limite d'archive, ne sont pas exploitées par le tableau.
+**Ce qui se passe autrement ici :** en sortie d'usine, l'archivage pose un horodatage et maintient l'archive à 100 cartes ; l'autre outil ne fait l'un et l'autre que s'il est réglé ainsi. Pour les informations de la note liée, c'est ici le **premier** lien d'une carte qui compte, dans l'autre outil le dernier ; une carte portant plusieurs liens montre donc dans les deux outils les informations de notes différentes.
+
+### Les paramètres dans le bloc de réglages
+
+Les paramètres d'un tableau figurent dans le bloc de réglages en fin de fichier, dans l'écriture de l'autre outil ; les deux outils lisent et écrivent les mêmes entrées :
+
+| Paramètre ici | Entrée dans le bloc |
+| ------------- | ------------------- |
+| Étiquettes en pied de carte | `move-tags` |
+| Afficher les échéances en relatif | `show-relative-date` |
+| Archiver avec horodatage | `archive-with-date` |
+| Limite de l’archive | `max-archive-size` (`-1` signifie illimité) |
+| La date mène à l’entrée de journal du jour | `link-date-to-daily-note` |
+| Dossier des nouvelles notes | `new-note-folder` |
+| Modèle des nouvelles notes | `new-note-template` |
+| Informations de la note liée | `metadata-keys` |
+
+Un exemple de la ligne dans le bloc, avec une indication propre de l'autre outil en tête :
+
+```json
+{"kanban-plugin":"board","move-tags":true,"max-archive-size":-1}
+```
+
+**L'écriture se fait entrée par entrée.** Si le dialogue modifie un paramètre, seule son entrée change ; l'ordre, l'écriture et toutes les autres indications du bloc restent caractère pour caractère en place, y compris celles que cette application ne connaît pas, comme un format de date ou des couleurs pour les tags. Une nouvelle entrée vient à la fin de la ligne. Le choix **par défaut** supprime l'entrée ; un bloc qui devient ainsi vide reste sous la forme `{}`. Si le bloc manque, il naît à la première validation en fin de fichier. Une entrée dont la valeur ne correspond pas au paramètre est considérée comme non définie ; la valeur par défaut s'applique. Une limite propre de `0` ou moins est écrite `-1`, la valeur que l'autre outil connaît pour illimité.
 
 ## Limites
 
@@ -303,7 +409,9 @@ Le format vient d'un outil de tableaux très répandu pour les notes en Markdown
 - **Le déplacement se fait à la souris.** Il n'existe pas de geste clavier pour déplacer cartes et colonnes.
 - **Une carte porte une ligne.** Ce qui se modifie est le texte de la ligne de tâche ; ses lignes de suite indentées apparaissent sur la carte mais se modifient dans le document et non sur elle.
 - **Ce qui est lu, c'est l'écriture par défaut de l'autre outil :** une échéance de la forme `@{AAAA-MM-JJ}` et une heure de la forme `@@{HH:mm}`, chaque fois la première occurrence dans la ligne de la carte. Un format réglé autrement, une seconde occurrence et la forme de lien `@[[…]]` restent du texte.
-- **Sur le tableau, aucun chemin ne ramène de l'archive.** Les cartes archivées n'y apparaissent pas et ne se récupèrent que dans le document lui-même ; l'archive conserve un nombre fixe des 100 cartes les plus récentes.
-- **Il n'existe pas de réglages par tableau.** Les deux commutateurs d'affichage valent pour tous les tableaux ; le bloc de réglages est lu et conservé, mais ses indications n'agissent pas sur le tableau.
-- **Une carte n'est pas une note.** Aucune note propre ne naît d'une carte, la carte ne montre ni champs ni images d'une note liée, et une date sur la carte n'ouvre pas de note journalière.
+- **Sur le tableau, aucun chemin ne ramène de l'archive.** Les cartes archivées n'y apparaissent pas et ne se récupèrent que dans le document lui-même ; en sortie d'usine, l'archive conserve les 100 cartes les plus récentes.
+- **Les informations de la note liée sont du texte.** Le Markdown d'une valeur n'est pas rendu ; seule apparaît comme image une valeur qui, dans son ensemble, pointe vers un fichier image, ni une liste d'images ni l'écriture d'image `![](…)`. La recherche et le filtre du tableau n'incluent pas les informations.
+- **Les informations ne suivent pas le lien partout.** Un lien vers une zone liée et une note qui ne se trouverait que par son alias restent sans informations ; s'il existe plusieurs notes du même nom, la première compte. Les informations sont mises à jour au prochain redessin du tableau, non à l'enregistrement de la note.
+- **La date ne mène qu'à un journal de granularité « jour ».** Sans zone ouverte ou sans un tel journal, la date reste un badge ordinaire dont le clic ouvre le sélecteur de date.
+- **Le nom d'une note créée est un nom de fichier.** Les barres obliques deviennent des tirets bas, aucune sous-page n'est créée ; un marqueur de date au milieu du texte, suivi d'autre texte, compte comme texte et figure dans le nom.
 - **Une colonne sans titre n'existe pas.** Les lignes de tâche placées avant le premier titre n'appartiennent à aucune colonne et n'apparaissent donc pas sur le tableau ; dans le document, elles restent en place.

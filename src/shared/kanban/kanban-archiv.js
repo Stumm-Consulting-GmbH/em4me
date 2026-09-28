@@ -21,6 +21,12 @@
 // statt einstellbar mit Vorgabe «unbegrenzt» (Entscheidung des Product Owners
 // vom 2026-09-23; einstellbar erst in der Stufe 3), und die Überschrift kommt
 // vom Aufrufer statt aus der Sprach-Einstellung des Vorbilds.
+//
+// **Seit der Stufe 3** (4T-001955, Epic 3E-000319) sind Zeitstempel und
+// Obergrenze einstellbar, global und je Tafel; der Aufrufer bringt beide aus
+// der Auflösungs-Kette (`kanban-wirksam.js`) mit. Die Vorgaben bleiben die der
+// Stufe 2 — Zeitstempel an, Obergrenze 100 —, eine Tafel ohne eigene
+// Einstellung archiviert also wie vorher.
 'use strict';
 
 const { leseTafel, ohneCr, crVon, istLeer, ARCHIV_TRENNER } = require('./kanban-core.js');
@@ -101,15 +107,23 @@ function legeArchivAn(model, ueberschrift, block) {
 
 // Hält das Archiv bei der Obergrenze. Gezählt wird am frisch gelesenen
 // Zeilen-Puffer, entfernt wird von hinten nach vorn, damit die Zeilen-Nummern
-// der übrigen gültig bleiben.
-function kuerzeArchiv(model) {
+// der übrigen gültig bleiben. `obergrenze` null heißt unbegrenzt (4T-001955).
+function kuerzeArchiv(model, obergrenze) {
+  if (obergrenze == null) return;
   const archiv = leseTafel(model.zeilen.join('\n')).archiv;
   if (!archiv) return;
-  const ueberschuss = archiv.karten.length - ARCHIV_OBERGRENZE;
+  const ueberschuss = archiv.karten.length - obergrenze;
   for (let i = ueberschuss - 1; i >= 0; i--) {
     const karte = archiv.karten[i];
     model.zeilen.splice(karte.zeile, karte.letzteZeile - karte.zeile + 1);
   }
+}
+
+// Die Obergrenze aus den Angaben des Aufrufers: fehlend die Vorgabe, eine ganze
+// Zahl über 0 die Zahl, alles andere unbegrenzt.
+function obergrenzeAus(wert) {
+  if (wert === undefined) return ARCHIV_OBERGRENZE;
+  return Number.isSafeInteger(wert) && wert > 0 ? wert : null;
 }
 
 /**
@@ -120,9 +134,11 @@ function kuerzeArchiv(model) {
  *
  * @param {string} text Dokument-Text.
  * @param {{spalte: number, karte: number, zeitstempel?: string,
- *   ueberschrift?: string}} angaben `zeitstempel` als `YYYY-MM-DD HH:mm`;
- *   fehlt er, kommt die Karte ohne Zeitstempel ins Archiv. `ueberschrift` gilt
- *   nur für ein neu angelegtes Archiv.
+ *   ueberschrift?: string, obergrenze?: number|null}} angaben `zeitstempel`
+ *   als `YYYY-MM-DD HH:mm`; fehlt er, kommt die Karte ohne Zeitstempel ins
+ *   Archiv. `ueberschrift` gilt nur für ein neu angelegtes Archiv.
+ *   `obergrenze` (4T-001955): fehlt sie, gilt `ARCHIV_OBERGRENZE`; `null` oder
+ *   ein Wert von 0 und darunter heißt unbegrenzt.
  * @returns {{ok: boolean, text?: string, befund?: object}}
  */
 function archiviereKarte(text, angaben = {}) {
@@ -151,7 +167,7 @@ function archiviereKarte(text, angaben = {}) {
     if (model.archiv) fuegeEin(model, archivEinfuegeIndex(model, model.archiv), block);
     else legeArchivAn(model, ueberschrift, block);
     model.zeilen.splice(karte.zeile, karte.letzteZeile - karte.zeile + 1);
-    kuerzeArchiv(model);
+    kuerzeArchiv(model, obergrenzeAus(angaben.obergrenze));
     return null;
   });
 }

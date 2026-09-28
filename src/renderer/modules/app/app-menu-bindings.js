@@ -22,6 +22,7 @@ import {
   archiviereKanbanKarte,
   legeKanbanKarteAn,
   legeKanbanSpalteAn,
+  oeffneKanbanTafelEinstellungen,
 } from '../kanban/kanban-pane.js';
 // 4T-001852 (Epic 3E-000110): die beiden Wege zu einer Tafel.
 import { legeNeueTafelAn, wandleInTafelUm } from '../kanban/kanban-anlegen.js';
@@ -182,6 +183,10 @@ export function bindMenuEvents() {
   // 4T-001906 (Epic 3E-000318): 'Ansicht -> Kanban-Tafel -> Karte archivieren'.
   if (typeof api.onMenuKanbanArchiveCard === 'function') {
     api.onMenuKanbanArchiveCard(() => archiviereKanbanKarte(state.activePaneIndex));
+  }
+  // 4T-001955 (Epic 3E-000319): 'Ansicht -> Kanban-Tafel -> Einstellungen dieser Tafel…'.
+  if (typeof api.onMenuKanbanBoardSettings === 'function') {
+    api.onMenuKanbanBoardSettings(() => oeffneKanbanTafelEinstellungen(state.activePaneIndex));
   }
   // 4T-001851 (Epic 3E-000110): 'Ansicht -> Spalte auf der Tafel anlegen'.
   if (typeof api.onMenuKanbanAddColumn === 'function') {

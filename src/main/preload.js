@@ -565,6 +565,10 @@ contextBridge.exposeInMainWorld('api', {
   // aufloesbares Ziel fehlt in der Liste.
   resolveCanvasExchangeTargets: (basePath, ziele) =>
     ipcRenderer.invoke('canvas:loeseAustauschZiele', { basePath, ziele }),
+  // 4T-001957 (Epic 3E-000319): Angaben aus dem Kopf der verlinkten Notizen einer
+  // Kanban-Tafel, gebuendelt je Zeichnen. Parameter { basePath, schluessel, ziele };
+  // Antwort { ok, ergebnisse } mit je Ziel null oder { werte }.
+  kanbanNotizAngaben: (params) => ipcRenderer.invoke('kanban:notizAngaben', params),
   // 4T-001805: Ergebnis-Meldung des Austauschs. Der Anzeige-Prozess schickt
   // Zahlen und Posten-Kennungen, die Saetze entstehen im Hauptprozess.
   showCanvasExchangeReport: (bericht) => ipcRenderer.invoke('canvas:austauschBericht', bericht),
@@ -915,6 +919,8 @@ contextBridge.exposeInMainWorld('api', {
   onMenuKanbanAddCard: (cb) => ipcRenderer.on('menu:kanbanAddCard', () => cb()),
   // 4T-001906 (Epic 3E-000318): 'Ansicht -> Kanban-Tafel -> Karte archivieren'.
   onMenuKanbanArchiveCard: (cb) => ipcRenderer.on('menu:kanbanArchiveCard', () => cb()),
+  // 4T-001955 (Epic 3E-000319): 'Ansicht -> Kanban-Tafel -> Einstellungen dieser Tafel…'.
+  onMenuKanbanBoardSettings: (cb) => ipcRenderer.on('menu:kanbanBoardSettings', () => cb()),
   // 4T-001851 (Epic 3E-000110): 'Ansicht -> Spalte auf der Tafel anlegen'.
   onMenuKanbanAddColumn: (cb) => ipcRenderer.on('menu:kanbanAddColumn', () => cb()),
   // 4T-001852 (Epic 3E-000110): die beiden Wege zu einer Tafel im Untermenue

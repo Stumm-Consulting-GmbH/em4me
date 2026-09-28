@@ -281,9 +281,13 @@ describe('Schalter «Tags am Kartenfuß» an der Tafel (4T-001904, AK3/AK4)', ()
 
   it('die Vorgabe ist aus', () => {
     // 4T-001903: dahinter der zweite Schalter «Termine relativ anzeigen».
+    // 4T-001955: dazu die drei Vorgaben ohne Menü-Häkchen.
     expect(normalisiereKanbanAnzeige(null)).toEqual({
       'kanban.tagsAmFuss': false,
       'kanban.terminRelativ': false,
+      'kanban.archivZeitstempel': true,
+      'kanban.archivObergrenze': 100,
+      'kanban.datumTagesnotiz': false,
     });
     expect(KANBAN_ANZEIGE_SCHALTER.map((s) => [s.kommando, s.schluessel, s.vorgabe])).toEqual([
       ['kanban.toggleTagsFooter', 'kanban.tagsAmFuss', false],
@@ -496,13 +500,20 @@ describe('Häkchen im Menü und Einstellungs-Verteilung (4T-001904, AK3)', () =>
     const speicher = { 'kanban.tagsAmFuss': true };
     const gelesen = kanbanAnzeigeAusSpeicher((k) => speicher[k]);
     // 4T-001903: der zweite Schalter steht mit seiner Vorgabe daneben.
+    // 4T-001955: dazu die drei Vorgaben ohne Menü-Häkchen, je mit ihrer Vorgabe.
+    const uebrige = {
+      'kanban.archivZeitstempel': true,
+      'kanban.archivObergrenze': 100,
+      'kanban.datumTagesnotiz': false,
+    };
     expect(normalizeMenuState(null, { kanbanAnzeige: gelesen }).kanbanAnzeige).toEqual({
       'kanban.tagsAmFuss': true,
       'kanban.terminRelativ': false,
+      ...uebrige,
     });
     expect(
       normalizeMenuState(null, { kanbanAnzeige: { 'kanban.tagsAmFuss': 'true' } }).kanbanAnzeige,
-    ).toEqual({ 'kanban.tagsAmFuss': false, 'kanban.terminRelativ': false });
+    ).toEqual({ 'kanban.tagsAmFuss': false, 'kanban.terminRelativ': false, ...uebrige });
     expect(lies('src/main/menu/menu-apply.js')).toContain(
       'kanbanAnzeige: kanbanAnzeigeAusSpeicher(',
     );

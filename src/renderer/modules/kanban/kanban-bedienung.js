@@ -44,6 +44,7 @@ import { tagVerweisAn } from './kanban-tags.js';
 import { terminAbzeichenAn } from './kanban-marker.js';
 import { aendereKarteUndSchreibeUm, createTerminBedienung } from './kanban-termin.js';
 import { createArchivBedienung } from './kanban-archivieren.js';
+import { datumsVerweisAn, kartenVerweisAn } from './kanban-verweise.js';
 
 // Klassen-Namen der Bedien-Elemente an einer Stelle, wie in der Zeichnung.
 export const NEU_KLASSE = 'kanban-spalte-neu';
@@ -139,11 +140,19 @@ function zahlAn(el, feld) {
  * @param {Function} [ctx.beiWiederholen] () => boolean, ein Schritt vorwärts.
  * @param {Function} [ctx.neuZeichnen] () => void.
  * @param {Function} [ctx.zeigeHinweis] (schluessel) => void.
- * @param {Function} [ctx.oeffneVerweis] (href) => void (4T-001904). Der Weg
- *   eines Tag-Verweises ins Tag-Panel; fehlt er, bleibt der Klick ohne Wirkung.
+ * @param {Function} [ctx.oeffneVerweis] (href, {wiki, basis}) => void
+ *   (4T-001904, seit 4T-001958 für jeden Verweis der Karte). Der Weg der
+ *   Lese-Ansicht; fehlt er, bleibt der Klick ohne Wirkung.
+ * @param {Function} [ctx.oeffneTagesnotiz] (datum) => void (4T-001958). Der
+ *   Weg zum Journal-Eintrag eines Tages, `datum` als `YYYY-MM-DD`.
  * @param {Function} [ctx.waehleTermin] (optionen) => Promise<{date, time}|null>
  *   (4T-001903). Der Kalender-Wähler der Anwendung; fehlt er, bietet die Karte
  *   das Setzen eines Termins nicht an.
+ * @param {Function} [ctx.notizAusKarte] ({spalte, karte, modell, ausgangsstand})
+ *   => Promise<boolean> (4T-001956). «Notiz aus Karte erzeugen…»; fehlt er, bietet
+ *   die Karte die Handlung nicht an.
+ * @param {Function} [ctx.notizMoeglich] (karte) => boolean (4T-001956). Hat die
+ *   Karte einen Text, aus dem eine Notiz entstehen kann?
  * @param {Function} [ctx.zeigeMenue] ({x, y, eintraege}) => void. Fehlt der
  *   Rückruf, gibt es kein Kontextmenü — der Stand der reinen Prüffälle.
  * @param {Function} [ctx.schliesseMenue] () => void.
@@ -246,6 +255,8 @@ export function createKartenBedienung(ctx) {
     t,
     aenderbar,
     nimmHeraus: (el, operation, angaben) => nimmHeraus(el, operation, angaben),
+    // 4T-001955: Zeitstempel und Obergrenze aus der Auflösungs-Kette der Tafel.
+    einstellungen: ctx.einstellungen,
   });
 
   // --- Zugriff auf Karten und Spalten --------------------------------------------
@@ -462,6 +473,34 @@ export function createKartenBedienung(ctx) {
     return ok;
   }
 
+  // --- Notiz aus der Karte (4T-001956) ---------------------------------------------
+
+  // Löst «Notiz aus Karte erzeugen…» aus. Der Ablauf selbst kommt herein; hier
+  // steht nur, an welcher Karte und auf welchem Stand er beginnt.
+  function erzeugeNotiz(karteEl) {
+    if (!aenderbar() || !karteEl || typeof ctx.notizAusKarte !== 'function') return false;
+    const treffer = karteImModell(karteEl);
+    const ausgangsstand = quelle();
+    if (!treffer || ausgangsstand === null) return false;
+    return ctx.notizAusKarte({ ...treffer, ausgangsstand });
+  }
+
+  // Der Eintrag nur, wo der Ablauf verdrahtet ist und die Karte einen Text ohne
+  // Marker trägt; eine Karte aus reinen Markern hat keinen Titel.
+  function notizEintraege(karteEl) {
+    if (typeof ctx.notizAusKarte !== 'function') return [];
+    const treffer = karteImModell(karteEl);
+    if (!treffer) return [];
+    if (typeof ctx.notizMoeglich === 'function' && !ctx.notizMoeglich(treffer.modell)) return [];
+    return [
+      {
+        label: t('kanban.notizAusKarte'),
+        dataId: 'kanban-card-note',
+        action: () => erzeugeNotiz(karteEl),
+      },
+    ];
+  }
+
   // --- Kontextmenü ----------------------------------------------------------------
   //
   // Nach dem Muster der räumlichen Arbeitsfläche: Das Menü entscheidet nichts,
@@ -477,6 +516,8 @@ export function createKartenBedienung(ctx) {
         dataId: 'kanban-card-edit',
         action: () => oeffneBearbeitung(karteEl),
       },
+      // 4T-001956: «Notiz aus Karte erzeugen…», vor den Termin-Einträgen.
+      ...notizEintraege(karteEl),
       // 4T-001903: «Termin setzen…» und, wo es einen gibt, «Termin entfernen».
       ...termin.kartenEintraege(karteEl, ort),
       // 4T-001906: «Karte archivieren», hinter den Termin-Einträgen.
@@ -515,14 +556,38 @@ export function createKartenBedienung(ctx) {
     if (!ziel || typeof ziel.closest !== 'function') return;
     // 4T-001904: Ein Tag der Karte öffnet das Tag-Panel mit gesetztem Filter,
     // wie in der Lese-Ansicht — vor allen anderen Wegen, damit der Klick weder
-    // die Karte wählt noch eine Eingabe öffnet. Allein Tags: Die übrigen
-    // Verweise öffnen ein Dokument und verlassen damit die Tafel, das ist eine
-    // eigene Bedien-Frage und nicht Gegenstand dieser Stufe.
+    // die Karte wählt noch eine Eingabe öffnet.
     const tag = tagVerweisAn(ziel);
     if (tag) {
       ereignis.preventDefault();
       ereignis.stopPropagation();
       if (typeof ctx.oeffneVerweis === 'function') ctx.oeffneVerweis(tag.getAttribute('href'));
+      return;
+    }
+    // 4T-001958 (Story 4S-001012): Jeder andere Verweis im Karten-Text öffnet
+    // sein Ziel auf demselben Weg und mit denselben Angaben wie in der
+    // Lese-Ansicht, auch im nicht änderbaren Dokument. Eine offene Eingabe
+    // wird zuvor übernommen, weil der Klick eine andere Handlung beginnt.
+    const verweis = kartenVerweisAn(ziel);
+    if (verweis) {
+      ereignis.preventDefault();
+      ereignis.stopPropagation();
+      if (bearbeitung) uebernimm();
+      if (typeof ctx.oeffneVerweis === 'function') {
+        ctx.oeffneVerweis(verweis.href, { wiki: verweis.wiki, basis: verweis.basis });
+      }
+      return;
+    }
+    // 4T-001958 (Story 4S-000986): Verweist das Datum auf die Tagesnotiz, öffnet
+    // der Klick sie statt des Wählers — auch im nicht änderbaren Dokument; der
+    // Termin wird dann über das Kontextmenü geändert.
+    const datum = datumsVerweisAn(ziel);
+    if (datum) {
+      ereignis.preventDefault();
+      ereignis.stopPropagation();
+      if (bearbeitung) uebernimm();
+      if (typeof ctx.oeffneTagesnotiz === 'function')
+        ctx.oeffneTagesnotiz(datum.dataset.kanbanDatum);
       return;
     }
     // 4T-001903: Das Termin-Abzeichen öffnet den Kalender-Wähler. Es trägt seine
@@ -567,6 +632,9 @@ export function createKartenBedienung(ctx) {
     // 4T-001904: Ein Doppelklick auf ein Tag bleibt zwei Klicks auf das Tag und
     // öffnet nicht die Bearbeitung der Karte.
     if (tagVerweisAn(ereignis.target)) return;
+    // 4T-001958: ebenso auf jedem anderen Verweis; der erste Klick hat sein
+    // Ziel schon geöffnet, und die Eingabe stünde sonst über ihm.
+    if (kartenVerweisAn(ereignis.target)) return;
     // 4T-001903: ebenso auf dem Termin-Abzeichen; der Wähler ist schon offen.
     if (terminAbzeichenAn(ereignis.target)) return;
     // Auf dem Kästchen bleibt es beim Statuswechsel des einfachen Klicks; die
@@ -679,6 +747,16 @@ export function createKartenBedienung(ctx) {
       if (bearbeitung) uebernimm();
       const karteEl = gewaehlteKarte();
       return karteEl ? archiv.archiviere(karteEl) : false;
+    },
+    /**
+     * «Notiz aus Karte erzeugen…» an der gewählten Karte — der Weg des
+     * Kommandos (4T-001956). Ohne gewählte Karte geschieht nichts; eine offene
+     * Eingabe wird zuvor übernommen.
+     */
+    notizAusGewaehlter() {
+      if (bearbeitung) uebernimm();
+      const karteEl = gewaehlteKarte();
+      return karteEl ? erzeugeNotiz(karteEl) : false;
     },
     /** Nummer der Spalte der gewählten Karte, sonst `null`. */
     gewaehlteSpalte() {

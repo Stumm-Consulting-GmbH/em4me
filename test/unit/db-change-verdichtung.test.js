@@ -443,14 +443,23 @@ describe('Verdichtung unter der echten Sperre der Beleg-Datei (4T-001788, AK12)'
   // Feste Uhr, damit die Frist einer fremden Sperre nicht davon abhängt, an
   // welchem Tag der Lauf stattfindet.
   const JETZT_MS = Date.parse('2026-09-18T13:00:00Z');
+  // 4T-001989: Feste eigene Herkunft, damit kein Fall vom Namen des
+  // ausführenden Rechners abhängt. Ohne sie ermittelt die Verwaltung den eigenen
+  // Rechner über `os.hostname()`; auf einem Rechner namens SC-027 hielte sie die
+  // von Hand geschriebene «fremde» Sperre für einen eigenen Absturz-Rest und
+  // löste sie ab.
+  function neueVerwaltung(uhrMs) {
+    return erzeugeSperrVerwaltung({
+      leseKonfig: async () => undefined,
+      uhr: () => uhrMs,
+      herkunft: HERKUNFT,
+    });
+  }
 
   function verwaltungFuer() {
     const pfad = tabelle();
     const wurzel = path.dirname(pfad);
-    const verwaltung = erzeugeSperrVerwaltung({
-      leseKonfig: async () => undefined,
-      uhr: () => JETZT_MS,
-    });
+    const verwaltung = neueVerwaltung(JETZT_MS);
     const sperrDatei = path.join(
       wurzel,
       DEFAULT_LOCK_FOLDER_NAME,
@@ -528,11 +537,7 @@ describe('Verdichtung unter der echten Sperre der Beleg-Datei (4T-001788, AK12)'
     // es sichtbar machen kann.
     const { pfad, wurzel, sperrDatei } = verwaltungFuer();
     await baueBelege(pfad, 'r-00042', 10);
-    const jetztMs = Date.parse('2026-09-19T08:00:00Z');
-    const verwaltung = erzeugeSperrVerwaltung({
-      leseKonfig: async () => undefined,
-      uhr: () => jetztMs,
-    });
+    const verwaltung = neueVerwaltung(Date.parse('2026-09-19T08:00:00Z'));
     fs.mkdirSync(path.dirname(sperrDatei), { recursive: true });
     fs.writeFileSync(
       sperrDatei,

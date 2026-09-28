@@ -46,6 +46,10 @@ const VERTEIL_SCHLUESSEL = [
   'autoSave',
   'kanban.tagsAmFuss',
   'kanban.terminRelativ',
+  // 4T-001955: die drei Vorgaben der Tafel ohne Menü-Häkchen.
+  'kanban.archivZeitstempel',
+  'kanban.archivObergrenze',
+  'kanban.datumTagesnotiz',
   'language',
   'taskStates',
   'bookmarksTree',
@@ -113,8 +117,17 @@ function createSettingsVerteilung(deps) {
     // Fenster, auch an den Sender, damit jede offene Tafel nachzieht — der
     // Empfangspfad übergeht einen unveränderten Wert. Ein weiterer Schalter
     // kommt hier als weitere Bedingung derselben Zeile hinzu (4T-001903:
-    // «Termine relativ anzeigen»).
-    if (key === 'kanban.tagsAmFuss' || key === 'kanban.terminRelativ') {
+    // «Termine relativ anzeigen»). Seit 4T-001955 steht hier jede der fünf
+    // globalen Vorgaben der Tafel: Auch Archiv und Tagesnotiz-Verweis wirken
+    // in jedem Fenster sofort, ohne Neustart. Die Schlüssel stehen einzeln da,
+    // weil ein Wächter die Zweige gegen VERTEIL_SCHLUESSEL hält.
+    if (
+      key === 'kanban.tagsAmFuss' ||
+      key === 'kanban.terminRelativ' ||
+      key === 'kanban.archivZeitstempel' ||
+      key === 'kanban.archivObergrenze' ||
+      key === 'kanban.datumTagesnotiz'
+    ) {
       const meldung = { schluessel: key, wert: value };
       for (const w of BrowserWindow.getAllWindows()) {
         if (!w.isDestroyed()) w.webContents.send('kanbanAnzeige:changed', meldung);

@@ -89,6 +89,9 @@ function leseLimitEingabe(wert) {
  *   Der Rückfrage-Dialog des Bestands. Fehlt er, wird eine nicht leere Spalte
  *   **nicht** gelöscht: Ohne Rückfrage-Weg gibt es die zugesagte Rückfrage
  *   nicht, und ohne sie verschwänden Karten ungefragt (fail closed).
+ * @param {Function} [ctx.tafelEintraege] () => Array (4T-001955). Einträge, die
+ *   auf die ganze Tafel wirken und hinter den Spalten-Einträgen stehen; die
+ *   Tafel-Fläche hat kein eigenes Kontextmenü.
  * @returns {object} Steuerung für die Einbettung.
  */
 export function createSpaltenBedienung(ctx) {
@@ -382,6 +385,8 @@ export function createSpaltenBedienung(ctx) {
         checked: spalte.erledigt === true,
         action: () => schalteErledigt(spalteNr),
       },
+      // 4T-001955: die Einträge der ganzen Tafel, hinter einem Trenner.
+      ...(typeof ctx.tafelEintraege === 'function' ? ctx.tafelEintraege() : []),
     ];
   }
 

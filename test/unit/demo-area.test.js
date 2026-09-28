@@ -110,6 +110,13 @@ const EXPECTED_FILES = [
   // damit die Hervorhebung zu sehen ist, und ein Archiv-Abschnitt hinter der
   // Trennlinie mit einer archivierten Karte samt Zeitstempel. Die Datei-Liste
   // bleibt unverändert.
+  //
+  // 4T-001960 (Epic 3E-000319): um die Stufe 3 ergänzt — eine Karte mit
+  // Verweis auf die Tour-Seite „07 Events and Journals" (vorhandenes
+  // Verweis-Ziel) und ein Einstellungs-Block am Dateiende mit einer Feldwahl
+  // aus `topic` und `chapter`, damit die Karte Angaben aus dem Kopf der
+  // verlinkten Seite zeigt; dazu ein Absatz, der die Wege nennt. Keine neue
+  // Datei, kein neues Verweis-Ziel: Datei-Liste und E2E-Zählungen bleiben.
   '13 Kanban.md',
   // 4T-000645 (Epic 3E-000127): astronomischer Themenbereich als vierstufige
   // Unterseiten-Hierarchie (Galaxie, Stern, Planet, Mond) plus drei

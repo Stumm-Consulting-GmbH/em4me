@@ -2650,6 +2650,38 @@
       "hinweis": "4T-001902 bis 4T-001907 und 4T-001909 (Epic 3E-000318): die Angaben auf der Karte der Stufe 2 — Termin und Uhrzeit als Abzeichen samt Termin in der Schreibweise des Vorbild-Werkzeugs, seinem Umschreiben beim ersten Bearbeiten und der relativen Lesart (renderer/kanban-marker.test.js, renderer/kanban-termin.test.js), die Tags am Kartenfuß (renderer/kanban-tags.test.js), die Obergrenze je Spalte mit Zähler, Hervorhebung ohne Sperre, Setzen und Entfernen (renderer/kanban-tafel.test.js, renderer/kanban-spalten-bedienung.test.js), das Archiv mit Zeitstempel und Obergrenze 100 im Format-Kern und in der Bedienung (kanban-archiv.test.js, renderer/kanban-archivieren.test.js) und der Filter der Karten im Kern und in der Einbettung (kanban-filter.test.js, renderer/kanban-suche.test.js), dazu die Ablauf-Abdeckung an der gestarteten Anwendung (funktionen/kanban-angaben.spec.js, 4T-001908). Die Katalog-Zeile ist mit 4T-001909 als zweite Zeile der Tafel entstanden; dieselben Prüfdateien stehen weiterhin auch unter F-314, weil sie dort den Bestand der Tafel mittragen. Testart unit, weil der Nachweis-Schwerpunkt an reinen Funktionen und am gezeichneten Baum liegt; die Ablauf-Datei steht zusätzlich im Feld sichtbarkeit, weil sie Abzeichen, Tag-Reihe, Zähler und Filter-Feld in der realen Anordnung sichtbar macht."
     },
     {
+      "key": "help.feature.kanbanBoardSettings",
+      "id": "F-330",
+      "testart": "unit",
+      "tests": [
+        "test/unit/kanban-einstellungen.test.js",
+        "test/unit/kanban-wirksam.test.js",
+        "test/unit/renderer/kanban-settings.test.js",
+        "test/unit/renderer/kanban-einstellungs-dialog.test.js",
+        "test/unit/render/extensions-aus.test.js",
+        "test/e2e/funktionen/kanban-notizen.spec.js"
+      ],
+      "sichtbarkeit": ["test/e2e/funktionen/kanban-notizen.spec.js"],
+      "hinweis": "4T-001954, 4T-001955, 4T-001959 und 4T-001960 (Epic 3E-000319): die Einstellungen der Tafel der Stufe 3 — Lesen der acht Schlüssel des Einstellungs-Blocks und Schreiben je Schlüssel mit Byte-Treue aller übrigen, Anlegen des Blocks und Zurücksetzen (kanban-einstellungen.test.js), die Auflösungs-Kette Tafel vor Vorgabe samt Herkunft und das Archivieren mit Zeitstempel und Obergrenze aus ihr (kanban-wirksam.test.js), der Abschnitt «Kanban-Tafel» der Einstellungs-Seite mit den fünf Vorgaben (renderer/kanban-settings.test.js), der Dialog «Einstellungen dieser Tafel…» mit drei Zuständen je Schalter, eigenem Wert für Obergrenze, Zielordner, Vorlage und Feldwahl, einem Rückgängig-Schritt je Übernahme und seinen Zugängen über Untermenü, Kontextmenü des Spalten-Kopfs und Palette (renderer/kanban-einstellungs-dialog.test.js), die Bindung von Abschnitt und Kommando an die Erweiterung (render/extensions-aus.test.js) und die Ablauf-Fälle KB-15 bis KB-17 und KB-24 an der gestarteten Anwendung (funktionen/kanban-notizen.spec.js). Testart unit, weil der Nachweis-Schwerpunkt an reinen Funktionen und am gezeichneten Dialog liegt; die Ablauf-Datei steht zusätzlich im Feld sichtbarkeit, weil sie Dialog, Einstellungs-Abschnitt und Wirkung auf der Karte in der realen Anordnung sichtbar macht."
+    },
+    {
+      "key": "help.feature.kanbanNotes",
+      "id": "F-331",
+      "testart": "unit",
+      "tests": [
+        "test/unit/kanban-format.test.js",
+        "test/unit/kanban-notiz.test.js",
+        "test/unit/renderer/kanban-notiz-erzeugen.test.js",
+        "test/unit/kanban-angaben.test.js",
+        "test/unit/renderer/kanban-angaben.test.js",
+        "test/unit/renderer/kanban-bedienung.test.js",
+        "test/unit/renderer/kanban-termin.test.js",
+        "test/e2e/funktionen/kanban-notizen.spec.js"
+      ],
+      "sichtbarkeit": ["test/e2e/funktionen/kanban-notizen.spec.js"],
+      "hinweis": "4T-001954 und 4T-001956 bis 4T-001960 (Epic 3E-000319): die Verbindung von Karte und Notiz der Stufe 3 — der erste Verweis einer Karte im Format-Kern (kanban-format.test.js), Notiz aus Karte mit Titel und Markern, Dateiname, Zielordner, Vorlagen-Reihenfolge, Namensgleichheit, Ersetzen des Kartentexts als ein Rückgängig-Schritt und Öffnen der Notiz (kanban-notiz.test.js, renderer/kanban-notiz-erzeugen.test.js), die Angaben der verlinkten Notiz mit Feldwahl, Werten als Text, Bildern relativ zur Notiz und dem Lese-Kanal (kanban-angaben.test.js, renderer/kanban-angaben.test.js), der Klick auf einen Verweis im Kartentext (renderer/kanban-bedienung.test.js) und das Datum, das nach der Einstellung zum Journal-Eintrag des Tages führt (renderer/kanban-termin.test.js), dazu die Ablauf-Fälle KB-18 bis KB-24 an der gestarteten Anwendung (funktionen/kanban-notizen.spec.js). Testart unit, weil der Nachweis-Schwerpunkt an reinen Funktionen und am gezeichneten Baum liegt; die Ablauf-Datei steht zusätzlich im Feld sichtbarkeit, weil sie Kontextmenü-Eintrag, Angaben-Zeilen und den Verweis-Stil des Datums in der realen Anordnung sichtbar macht."
+    },
+    {
       "key": "help.feature.areaGraph",
       "id": "F-107",
       "testart": "e2e",

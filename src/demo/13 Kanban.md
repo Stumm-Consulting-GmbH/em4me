@@ -10,7 +10,9 @@ The last stop is a board. This page is an ordinary Markdown file: every heading 
 
 This page carries no title heading on purpose: a heading would be read as one more column. What makes the file a board is the `kanban-plugin` entry in its frontmatter — switch to source view and look at the very first lines.
 
-The cards carry more than their text. Due dates show as badges below it; right-click a card and choose Set date… to pick another one, and View → Kanban board → Show dates as relative reads them from today. View → Kanban board → Tags in card footer moves the tags to the foot of the card. The column In progress allows two cards and holds three, so its counter lights up — without blocking anything. `Ctrl+F` on the board filters the cards, `Escape` ends the filter. Right-click a card and choose Archive card to move it with a timestamp into the archive section below the line at the end of this file.
+The cards carry more than their text. Due dates show as badges below it; right-click a card and choose Set date… to pick another one, and View → Kanban board → Show dates as relative reads them from today. View → Kanban board → Tags in card footer moves the tags to the foot of the card. The column In progress allows two cards and holds three, so its counter lights up — without blocking anything. `Ctrl+F` on the board filters the cards, `Escape` ends the filter. Right-click a card and choose Archive card to move it with a timestamp into the archive section below the line near the end of this file.
+
+Cards and notes work together. A card that links a note shows details from that note's frontmatter — which ones is a setting of this board: View → Kanban board → Settings for this board… edits it, and the file keeps it in a settings block at its very end. Right-click a card and choose Create note from card… to turn its text into a note of its own; the card then carries the link. A click on a link in a card opens its target.
 
 That is the whole tour — head back to [[00 Welcome]] and start editing. :tada:
 
@@ -26,6 +28,8 @@ That is the whole tour — head back to [[00 Welcome]] and start editing. :tada:
   A due date with a time, written as an ordinary task marker. Click the date badge to change it.
 - [ ] Sort the holiday photos #planning
   A tag in the card text. Switch on Tags in card footer and it moves to the foot of the card.
+- [ ] Revisit [[07 Events and Journals]]
+  This card links a page of the tour. Its topic and chapter come from that page's frontmatter, chosen in the settings of this board.
 
 
 ## In progress (2)
@@ -50,3 +54,10 @@ That is the whole tour — head back to [[00 Welcome]] and start editing. :tada:
 ## Archive
 
 - [x] 2026-09-01 09:15 Sketch the first board
+
+
+%% kanban:settings
+```
+{"kanban-plugin":"board","metadata-keys":[{"metadataKey":"topic","label":"Topic","shouldHideLabel":false,"containsMarkdown":false},{"metadataKey":"chapter","label":"Chapter","shouldHideLabel":false,"containsMarkdown":false}]}
+```
+%%

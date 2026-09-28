@@ -42,7 +42,7 @@ Die Canvas zeigt eine Fläche mit Karten und Verbindungen, die im Dokument selbs
 
 ### Tafel
 
-Die Tafel zeigt die Aufgaben des Dokuments als Kanban-Tafel: die benannten Listen des Dokuments als Spalten, die Aufgaben-Zeilen darin als Karten. Sie gehört zur Erweiterung „Kanban" und entfällt mit ihr; wie die Canvas ist sie dokument-abhängig und nur wählbar, wenn das Dokument das Kopf-Kennzeichen einer Tafel trägt. Anlegen und Umwandeln, die Bedienung von Karten und Spalten, das Verschieben mit der Maus, Termine, Tags, Obergrenze, Archiv und Filter sowie das Speicherformat beschreibt die Seite [Kanban-Tafel](kanban.md).
+Die Tafel zeigt die Aufgaben des Dokuments als Kanban-Tafel: die benannten Listen des Dokuments als Spalten, die Aufgaben-Zeilen darin als Karten. Sie gehört zur Erweiterung „Kanban" und entfällt mit ihr; wie die Canvas ist sie dokument-abhängig und nur wählbar, wenn das Dokument das Kopf-Kennzeichen einer Tafel trägt. Anlegen und Umwandeln, die Bedienung von Karten und Spalten, das Verschieben mit der Maus, Termine, Tags, Obergrenze, Archiv und Filter, die Einstellungen der Tafel, die Verbindung von Karte und Notiz sowie das Speicherformat beschreibt die Seite [Kanban-Tafel](kanban.md).
 
 ### Bearbeiten
 

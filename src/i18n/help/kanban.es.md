@@ -18,7 +18,7 @@ Lo que cuenta es la **presencia** de la clave, no su valor: `board`, `list` u ot
 
 ## La extensión «Kanban»
 
-La función pertenece a las [extensiones internas](extensions.md) («Vista de tablero (Kanban)»). Si está desactivada, desaparece el modo de vista, desaparecen los comandos de tarjeta, columna y tablero, y con ellos el submenú **Tablero Kanban** del menú **Ver**, que no se queda vacío. El documento sigue siendo legible tal cual; en el estado desactivado nunca se escribe, y columnas y tarjetas permanecen en el texto.
+La función pertenece a las [extensiones internas](extensions.md) («Vista de tablero (Kanban)»). Si está desactivada, desaparece el modo de vista, desaparecen los comandos de tarjeta, columna y tablero, y con ellos el submenú **Tablero Kanban** del menú **Ver**, que no se queda vacío, y la sección **Tablero Kanban** de la configuración. El documento sigue siendo legible tal cual; en el estado desactivado nunca se escribe, y columnas y tarjetas permanecen en el texto.
 
 El tablero presupone la extensión **Tareas**, porque una tarjeta **es** una línea de tarea. Si aquella está desactivada, el tablero también lo está.
 
@@ -64,8 +64,10 @@ Un tablero sin columnas y una columna sin tarjetas lo dicen en su lugar, en vez 
 | Aplicar | clic fuera de la tarjeta | `Intro` | — | — |
 | Descartar | — | `Esc` | — | — |
 | Cambiar el estado | clic en la casilla | `Espacio` | — | — |
-| Establecer o cambiar la fecha | clic en la insignia de fecha | — | **Establecer fecha…** | — |
+| Establecer o cambiar la fecha | clic en la insignia de fecha, salvo que la fecha lleve a la entrada de diario | — | **Establecer fecha…** | — |
 | Quitar la fecha | — | — | **Quitar fecha** | — |
+| Crear una nota a partir de la tarjeta | — | — | **Crear nota a partir de la tarjeta…** | **Crear nota a partir de la tarjeta…** |
+| Abrir el destino de un enlace | clic en el enlace del texto de la tarjeta | — | — | — |
 | Archivar | — | — | **Archivar la tarjeta** | **Archivar tarjeta del tablero** |
 | Eliminar | — | `Supr` | **Eliminar la tarjeta** | — |
 
@@ -124,7 +126,7 @@ Mover y marcar son juntos **una** acción y, por tanto, un solo paso de deshacer
 
 Bajo el texto de la tarjeta aparece una fila de **insignias** con los datos de la tarea: la fecha con su hora, las fechas planificada y de inicio, la prioridad, la recurrencia y los demás marcadores de tarea. Son las mismas insignias que en la vista de lectura, con el mismo señalamiento para los datos vencidos y no válidos. Una tarjeta sin datos no lleva esa fila.
 
-**Establecer y quitar la fecha.** El menú contextual de una tarjeta ofrece **Establecer fecha…** y, en cuanto la tarjeta lleva una fecha, **Quitar fecha**; un clic en la insignia de fecha también lleva a establecerla. Se elige en el selector de fecha de las tareas, con hora si se quiere y con la fecha existente ya indicada. La fecha se escribe en la línea de la tarjeta con la notación de tareas de la aplicación:
+**Establecer y quitar la fecha.** El menú contextual de una tarjeta ofrece **Establecer fecha…** y, en cuanto la tarjeta lleva una fecha, **Quitar fecha**; un clic en la insignia de fecha también lleva a establecerla, salvo que la fecha lleve a la entrada de diario del día (véase «Enlaces y fecha en la tarjeta»). Se elige en el selector de fecha de las tareas, con hora si se quiere y con la fecha existente ya indicada. La fecha se escribe en la línea de la tarjeta con la notación de tareas de la aplicación:
 
 ```markdown
 - [ ] Enviar el presupuesto 📅 2026-10-02 14:00
@@ -132,7 +134,7 @@ Bajo el texto de la tarjeta aparece una fila de **insignias** con los datos de l
 
 Así aparece también en la vista de lectura y en las consultas de tareas. Cada vez que se establece o se quita es un paso de deshacer; si el documento cambia mientras el selector de fecha está abierto, la elección se descarta y la barra de estado lo dice.
 
-**Presentación relativa.** Con el interruptor **Ver → Tablero Kanban → Mostrar fechas relativas**, las fechas de vencimiento, planificada y de inicio se leen a partir de hoy: «hoy», «mañana», «dentro de 3 días», «hace 2 días», en el idioma de la interfaz y con la hora añadida. La fecha exacta figura entonces en la información emergente de la insignia. Las fechas de creación, de finalización y de cancelación siguen siendo absolutas, porque registran cuándo ocurrió algo. El interruptor viene desactivado, vale para todos los tableros de todas las ventanas y no cambia nada en el documento.
+**Presentación relativa.** Con el interruptor **Ver → Tablero Kanban → Mostrar fechas relativas**, las fechas de vencimiento, planificada y de inicio se leen a partir de hoy: «hoy», «mañana», «dentro de 3 días», «hace 2 días», en el idioma de la interfaz y con la hora añadida. La fecha exacta figura entonces en la información emergente de la insignia. Las fechas de creación, de finalización y de cancelación siguen siendo absolutas, porque registran cuándo ocurrió algo. El interruptor viene desactivado, establece el valor predeterminado para todos los tableros de todas las ventanas y no cambia nada en el documento; un tablero concreto puede anularlo solo para sí (véase «Ajustes del tablero»).
 
 **Fechas en la notación de la otra herramienta.** La herramienta de tableros de la que procede el formato escribe una fecha como `@{…}` y una hora como `@@{…}` en la línea de la tarjeta. El tablero lee ambas y las muestra como insignia de fecha con borde discontinuo; su información emergente indica el origen. **La primera vez que se edita la tarjeta, esa fecha se reescribe en la notación de tareas**, tanto al aplicar un texto de tarjeta modificado como al establecer o quitar la fecha. La primera línea pasa a ser la segunda:
 
@@ -145,7 +147,7 @@ Así aparece también en la vista de lectura y en las consultas de tareas. Cada 
 
 ## Etiquetas al pie de la tarjeta
 
-En la tarjeta, las etiquetas figuran primero donde están escritas: en el texto de la tarjeta, renderizadas como en la vista de lectura. Con el interruptor **Ver → Tablero Kanban → Etiquetas al pie de la tarjeta** abandonan el texto mostrado y figuran reunidas en una fila propia al pie de la tarjeta, también las etiquetas de las líneas de continuación sangradas, cada una una sola vez y en el orden en que aparece. El interruptor viene desactivado, vale para todos los tableros de todas las ventanas y no cambia nada en el documento: las etiquetas permanecen en la línea en la que están.
+En la tarjeta, las etiquetas figuran primero donde están escritas: en el texto de la tarjeta, renderizadas como en la vista de lectura. Con el interruptor **Ver → Tablero Kanban → Etiquetas al pie de la tarjeta** abandonan el texto mostrado y figuran reunidas en una fila propia al pie de la tarjeta, también las etiquetas de las líneas de continuación sangradas, cada una una sola vez y en el orden en que aparece. El interruptor viene desactivado, establece el valor predeterminado para todos los tableros de todas las ventanas y no cambia nada en el documento: las etiquetas permanecen en la línea en la que están. Un tablero concreto puede anularlo solo para sí.
 
 Un clic en una etiqueta de la tarjeta —al pie o en el texto— filtra la barra lateral de etiquetas por ella, como en la vista de lectura; la selección y la edición de la tarjeta no se ven afectadas. Mientras se edita una tarjeta, su fila de etiquetas se oculta, porque la entrada muestra el texto en bruto con las etiquetas. Los dos interruptores de presentación solo pueden elegirse en la vista de tablero abierta.
 
@@ -159,7 +161,7 @@ Se establece y se cambia con **Establecer el límite…** en el menú contextual
 
 ## Archivo
 
-**Archivar la tarjeta** en el menú contextual de una tarjeta, o el comando **Archivar tarjeta del tablero** para la tarjeta seleccionada, saca la tarjeta con sus líneas de continuación sangradas de su columna y la escribe al final de la **sección de archivo** del mismo documento. Delante de su texto se coloca una marca de tiempo con fecha y hora; su estado y sus demás datos quedan como están:
+**Archivar la tarjeta** en el menú contextual de una tarjeta, o el comando **Archivar tarjeta del tablero** para la tarjeta seleccionada, saca la tarjeta con sus líneas de continuación sangradas de su columna y la escribe al final de la **sección de archivo** del mismo documento. Delante de su texto se coloca una marca de tiempo con fecha y hora, mientras rija el ajuste **Archivar con marca de tiempo**, como ocurre por omisión; su estado y sus demás datos quedan como están:
 
 ```markdown
 ***
@@ -171,7 +173,7 @@ Se establece y se cambia con **Establecer el límite…** en el menú contextual
 
 Si falta la sección, se crea detrás de la última columna, con el encabezado que también escribe la otra herramienta en el idioma de la interfaz; una sección existente se continúa con su encabezado y su contenido.
 
-**El archivo conserva las 100 tarjetas más recientes.** Si se añade una cuando está lleno, sale la más antigua; un archivo que otra herramienta dejó con más tarjetas se reduce a las 100 más recientes la primera vez que se archiva.
+**El archivo conserva por omisión las 100 tarjetas más recientes.** Si se añade una cuando está lleno, sale la más antigua; un archivo que otra herramienta dejó con más tarjetas se reduce a las más recientes la primera vez que se archiva. El número es configurable, y `0` significa ilimitado (véase «Ajustes del tablero»).
 
 **Una tarjeta archivada no se puede recuperar en el tablero**, porque el archivo no aparece allí. Archivar es, sin embargo, exactamente un paso de deshacer, y en el documento la tarjeta sigue estando en texto plano. Después, la selección pasa, como al eliminar, a la siguiente tarjeta de la columna; sin tarjeta seleccionada, el comando no tiene efecto.
 
@@ -185,15 +187,96 @@ Se recorre el texto de la tarjeta y sus líneas de continuación sangradas, incl
 
 `Esc` en el campo termina el filtro y vuelve a mostrar todas las tarjetas; lo mismo ocurre al cambiar a otra vista o a otro documento. Si el tablero se vuelve a dibujar entretanto, el texto buscado y el foco de entrada se conservan.
 
+## Ajustes del tablero
+
+El comportamiento del tablero se puede ajustar en dos niveles: como **valor predeterminado** para todos los tableros y **por tablero** con un valor propio. Un valor propio prevalece sobre el predeterminado; un tablero sin valores propios sigue en todo a los predeterminados.
+
+**Los valores predeterminados** están en **Archivo → Configuración… → Tablero Kanban**, en el grupo de navegación **Extensiones (internas)**:
+
+| Ajuste | por omisión |
+| ------ | ----------- |
+| **Etiquetas al pie de la tarjeta** | desactivado |
+| **Mostrar fechas de forma relativa** | desactivado |
+| **Archivar con marca de tiempo** | activado |
+| **Límite del archivo en tarjetas (0 = ilimitado)** | 100 |
+| **La fecha lleva a la entrada de diario del día** | desactivado |
+
+Las dos marcas de verificación del menú **Ver → Tablero Kanban** muestran y establecen los mismos valores predeterminados que las dos primeras filas. Un valor predeterminado nunca escribe en un documento.
+
+**Por tablero**, **Configuración de este tablero…** abre un diálogo: en el menú **Ver → Tablero Kanban**, en el menú contextual de una cabecera de columna y en la paleta de comandos. La superficie libre del tablero no tiene menú contextual propio; por eso la entrada está en la cabecera de columna.
+
+| Ajuste | Elección en el diálogo | «predeterminado» significa |
+| ------ | ---------------------- | -------------------------- |
+| los cuatro interruptores de la tabla anterior | **predeterminado (activado)** o **predeterminado (desactivado)**, **activado**, **desactivado** | el valor de la página de configuración, indicado entre paréntesis |
+| **Límite del archivo (tarjetas)** | **predeterminado (…)** o **valor propio** con un número | el límite de la página de configuración |
+| **Carpeta de las notas nuevas** | **predeterminado (carpeta del tablero)** o **valor propio** mediante **Elegir carpeta…** | la carpeta en la que está el tablero |
+| **Plantilla de las notas nuevas** | **predeterminado (elección al crear)** o **valor propio** mediante **Elegir plantilla…** | regla de carpeta o elección al crear |
+| **Datos de la nota enlazada** | **predeterminado (ningún dato)** o **valor propio** con una fila por dato | las tarjetas no muestran datos |
+
+La propia elección muestra de dónde procede un valor: **predeterminado** sigue a la página de configuración y cambia con ella; todo lo demás vale solo para este tablero. Se restablece eligiendo de nuevo **predeterminado**. Un límite propio de `0` o menos significa ilimitado.
+
+Para los datos de la nota enlazada, cada fila lleva la **Clave en el encabezado del documento**, un **Nombre mostrado (opcional)** y la casilla **Ocultar nombre**; **Quitar** retira la fila, **Añadir dato** añade una. Una fila sin clave se descarta al aplicar.
+
+La carpeta de destino se elige con el diálogo de carpetas de la aplicación. Debe estar dentro del área abierta —si no, un aviso dice «La carpeta está fuera del área.»— y se guarda relativa a su raíz, la raíz misma como `/`; sin área abierta, relativa a la carpeta del tablero. La plantilla procede de la selección de plantillas de la aplicación y se guarda con su ruta dentro de la carpeta de plantillas.
+
+**Aplicar** escribe solo los ajustes modificados en el bloque de ajustes al final del documento del tablero, como **un** paso de deshacer; si falta el bloque, se crea en ese momento. **Cancelar**, `Esc` y un clic junto al diálogo no cambian nada. El efecto es visible de inmediato, sin volver a abrir el documento. El diálogo presupone la vista de tablero abierta y un documento modificable; si el documento cambió mientras estaba abierto, la aplicación de los cambios se descarta y la barra de estado lo dice. Si el bloque no se puede leer, el tablero no escribe nada y dice: «El bloque de configuración al final del tablero no se puede leer: la configuración no se escribió.»
+
+## Nota a partir de una tarjeta
+
+**Crear nota a partir de la tarjeta…** convierte una tarjeta en una nota propia, en el menú contextual de la tarjeta o, para la tarjeta seleccionada, mediante la paleta de comandos. El texto de la tarjeta sin sus marcadores —etiquetas, marcadores de tarea y una fecha en la notación de la otra herramienta— pasa a ser el nombre de la nota, y en la tarjeta el enlace a ella ocupa el lugar del texto. Los marcadores permanecen en su orden, y las líneas de continuación sangradas también; la primera línea pasa a ser la segunda:
+
+```markdown
+- [ ] Redactar el presupuesto #cliente 📅 2026-10-02
+- [ ] [[Redactar el presupuesto]] #cliente 📅 2026-10-02
+```
+
+Un enlace en el texto de la tarjeta entra en el nombre con su texto visible. Las barras y los caracteres que un nombre de archivo no admite se convierten en `_`; no se crea ninguna subpágina. Si del texto no queda nada aprovechable, la aplicación pregunta por el nombre. Una tarjeta cuyo texto sin marcadores está vacío no ofrece la entrada.
+
+**Adónde va la nota:** a la carpeta de destino de los ajustes del tablero y, si no la hay, a la carpeta del tablero. Si la carpeta configurada no existe, un aviso lo dice y el diálogo de carpetas permite elegir otra; una carpeta que falta nunca se crea.
+
+**Si el nombre ya existe**, nunca se sobrescribe. La aplicación pregunta «Ya existe un documento «Nombre». ¿Cómo desea continuar?» y ofrece **Elegir otro nombre…** —la petición del nombre, con el nombre ya indicado— y **Enlazar con el documento existente**: entonces no se crea ningún archivo, la tarjeta recibe el enlace al documento existente y este no se abre. `Esc` cancela.
+
+**Qué plantilla se aplica**, en este orden:
+
+1. la plantilla de los ajustes del tablero; si no se encuentra, un aviso lo dice y sigue la selección;
+2. si no, la [regla de carpeta](templates.md) de la carpeta de destino;
+3. si no, la selección de plantillas con **Sin plantilla (nota vacía)** en primer lugar.
+
+Si no hay plantillas configuradas o la extensión «Plantillas» está desactivada, se crea sin selección una nota vacía. Una plantilla elegida se rellena como con **Nuevo archivo desde plantilla…**, con el nombre de la nota como título.
+
+**Después**, la aplicación crea el archivo, sustituye el texto de la tarjeta y abre la nota nueva como documento propio; el tablero sigue abierto al lado. Una fecha en la notación de la otra herramienta se reescribe entonces igual que al editar la tarjeta. Si la creación falla, la tarjeta queda sin cambios. Si el tablero cambió mientras los diálogos estaban abiertos, la tarjeta también queda sin cambios, pero la nota se crea y se abre, y un aviso dice ambas cosas.
+
+**Deshacer** restablece el texto de la tarjeta en un paso; la nota creada permanece como archivo.
+
+## Datos de la nota enlazada
+
+Si una tarjeta lleva un enlace a una nota, puede mostrar datos de su **encabezado del documento**, por ejemplo estado, responsables o una imagen de portada. Cuáles, lo determina el ajuste **Datos de la nota enlazada** del tablero; por omisión, una tarjeta no muestra ninguno.
+
+**Qué enlace cuenta:** el primer enlace wiki con destino, en la línea de la tarjeta o en sus líneas de continuación. Un enlace solo a una sección, como `[[#Sección]]`, y la incrustación de una imagen no cuentan; la incrustación de un documento sí cuenta.
+
+**Cómo aparecen los datos:** como líneas «Nombre: valor» bajo el texto de la tarjeta, antes de insignias y etiquetas. El nombre es el nombre mostrado del ajuste y, si no lo hay, la clave; con **Ocultar nombre** solo aparece el valor. Solo aparecen las claves con valor, en el orden del ajuste. Una lista se une con comas. Un dato se limita a dos líneas; el valor completo figura en la información emergente.
+
+**Imágenes:** si un valor es en su totalidad una ruta con extensión de imagen o un enlace como `[[imagen.png]]` o `![[imagen.png|200]]`, en su lugar aparece la imagen a lo ancho de la tarjeta y con altura limitada. Se busca relativa a la nota enlazada, dentro del área abierta; sin área, en la carpeta de la nota y por debajo. Si falta la imagen, el dato se omite; una dirección web nunca se convierte en imagen.
+
+Los datos solo se leen, nunca se escriben, y las tarjetas aparecen de inmediato: los datos siguen en cuanto se han leído. Se **actualizan** en el siguiente redibujado del tablero: tras un cambio de vista, un cambio en el tablero o la vuelta a su documento. Si la nota se modifica mientras el tablero sigue visible al lado, el nuevo estado aparece solo en el siguiente redibujado.
+
+## Enlaces y fecha en la tarjeta
+
+**Un enlace en el texto de la tarjeta abre su destino**, como un clic en la vista de lectura: un enlace wiki con y sin texto visible, un enlace a un destino que aún no existe, un enlace Markdown corriente y una dirección web se comportan como allí. El clic no selecciona la tarjeta y actúa también en un documento no modificable; una entrada abierta se aplica antes. Un doble clic en un enlace no abre la edición: se edita con un doble clic junto al enlace, con `Intro`, `F2` o mediante el menú contextual.
+
+**La fecha lleva a la entrada de diario del día** cuando el ajuste **La fecha lleva a la entrada de diario del día** rige para el tablero (por omisión desactivado) y el área abierta tiene al menos un [diario](journals.md) con la granularidad «día». Entonces la insignia de fecha aparece subrayada, el puntero se convierte en una mano y la información emergente dice «Abrir la entrada de diario de este día». Un clic abre la entrada de ese día y la crea si todavía no existe, como **Entrada de diario de hoy** para la de hoy; si hay varios diarios así, se pregunta cuál. La hora no importa. Esto vale también para una fecha en la notación de la otra herramienta y en un documento no modificable, porque el tablero no cambia nada con ello. La fecha se cambia entonces con **Establecer fecha…** en el menú contextual de la tarjeta.
+
+Sin área abierta o sin diario con la granularidad «día», la insignia sigue siendo lo que era: el clic abre el selector de fecha y no aparece ningún aviso. Lo mismo ocurre si el ajuste está desactivado.
+
 ## Deshacer
 
-`Ctrl+Z` retira la última acción sobre el tablero, `Ctrl+Y` y `Ctrl+Mayús+Z` la restablecen. Cada acción es exactamente un paso: una tarjeta creada, un texto modificado, un cambio de estado, un arrastre junto con el marcado, una columna eliminada con todas sus tarjetas, una fecha establecida o quitada, un límite cambiado, una tarjeta archivada. Mientras esté abierta la entrada de una tarjeta o de un título de columna, `Ctrl+Z` se aplica al texto escrito allí.
+`Ctrl+Z` retira la última acción sobre el tablero, `Ctrl+Y` y `Ctrl+Mayús+Z` la restablecen. Cada acción es exactamente un paso: una tarjeta creada, un texto modificado, un cambio de estado, un arrastre junto con el marcado, una columna eliminada con todas sus tarjetas, una fecha establecida o quitada, un límite cambiado, una tarjeta archivada, una aplicación de cambios en el diálogo **Configuración de este tablero…**, la sustitución del texto de la tarjeta por el enlace a una nota creada, cuyo archivo permanece. Mientras esté abierta la entrada de una tarjeta o de un título de columna, `Ctrl+Z` se aplica al texto escrito allí.
 
 Si el documento cambia entretanto en otro sitio —porque el mismo documento se está editando al lado, por ejemplo—, la acción empezada se descarta en lugar de escribirse a ciegas; la barra de estado lo dice y el tablero se dibuja de nuevo.
 
 ## Solo mirar
 
-El tablero sigue la modificabilidad de su documento. Mientras el documento esté en simple visualización, sin el modo de edición activado, el tablero es **solo de consulta**: sin botones, sin arrastre, sin entrada de texto, sin casilla pulsable, y el menú contextual queda sin entradas. El camino por la paleta de comandos y el menú tampoco lo rodea; el fallo se dice en la barra de estado y no se calla. Mirar, seleccionar, desplazarse y filtrar las tarjetas siguen permitidos, porque no tocan el documento; también los dos interruptores de presentación. La insignia de fecha es aquí solo indicación.
+El tablero sigue la modificabilidad de su documento. Mientras el documento esté en simple visualización, sin el modo de edición activado, el tablero es **solo de consulta**: sin botones, sin arrastre, sin entrada de texto, sin casilla pulsable, y el menú contextual queda sin entradas. El camino por la paleta de comandos y el menú tampoco lo rodea; el fallo se dice en la barra de estado y no se calla. Mirar, seleccionar, desplazarse y filtrar las tarjetas siguen permitidos, porque no tocan el documento; también los dos interruptores de presentación, el clic en un enlace y el clic en una fecha que lleva a la entrada de diario del día. Por lo demás, la insignia de fecha es aquí solo indicación. **Configuración de este tablero…** y **Crear nota a partir de la tarjeta…** escriben en el documento y por eso no están disponibles.
 
 El modo de edición libera el manejo: el lápiz de la barra de estado, `Ctrl+E` por omisión; los detalles los describe la página [Vistas y presentación](views-display.md).
 
@@ -271,9 +354,9 @@ kanban-plugin: board
 
 ### Lo que queda intacto
 
-**La sección de archivo y el bloque de ajustes no se muestran en el tablero.** El bloque de ajustes nunca se modifica, la sección de archivo solo al archivar una tarjeta; por lo demás, ambos permanecen tal cual en el archivo, y quien abre un tablero y lo vuelve a cerrar sin cambios recupera exactamente el mismo archivo, incluidos los fines de línea, un salto final ausente y todas las indicaciones que esta aplicación no conoce.
+**La sección de archivo y el bloque de ajustes no se muestran en el tablero.** El bloque de ajustes solo se modifica mediante el diálogo **Configuración de este tablero…**, la sección de archivo solo al archivar una tarjeta; por lo demás, ambos permanecen tal cual en el archivo, y quien abre un tablero y lo vuelve a cerrar sin cambios recupera exactamente el mismo archivo, incluidos los fines de línea, un salto final ausente y todas las indicaciones que esta aplicación no conoce.
 
-Una excepción con buen motivo: si el bloque de ajustes contiene la lista de qué columnas están plegadas, esa lista se ajusta al crear, eliminar y mover una columna. Si se quedara como estaba, la otra herramienta habría plegado después las columnas equivocadas. Todo lo demás del bloque permanece carácter por carácter como estaba.
+Una excepción con buen motivo: si el bloque de ajustes contiene la lista de qué columnas están plegadas, esa lista se ajusta al crear, eliminar y mover una columna. Si se quedara como estaba, la otra herramienta habría plegado después las columnas equivocadas. Todo lo demás del bloque permanece carácter por carácter como estaba, hasta que se cambia un ajuste del tablero, y aun entonces solo cambia su propia entrada (véase «Compatibilidad con otras herramientas»).
 
 Solo se escribe el rango de líneas que realmente cambia, nunca el documento entero. El cursor y los plegados del editor se mantienen así en su sitio.
 
@@ -294,7 +377,30 @@ El formato procede de una herramienta de tableros muy extendida para notas en Ma
 
 **Lo que cambia al editar:** una fecha en la notación de la otra herramienta se reescribe en la notación de tareas de la aplicación la primera vez que se edita su tarjeta (véase «Datos en la tarjeta»). **En la otra herramienta aparece después solo como texto** y ya no como fecha de la tarjeta. Todos los demás datos de una tarea —marcadores de fecha, prioridad, recurrencia, etiquetas— permanecen en su línea y siguen actuando en todo lo demás, en la vista de lectura y en las consultas de tareas.
 
-**Lo que aquí ocurre de otro modo:** el archivado pone siempre una marca de tiempo y mantiene el archivo en 100 tarjetas; la otra herramienta hace ambas cosas solo si está configurada así. Las indicaciones de su bloque de ajustes, como otro formato de fecha u otro límite de archivo, no las evalúa el tablero.
+**Lo que aquí ocurre de otro modo:** por omisión, el archivado pone una marca de tiempo y mantiene el archivo en 100 tarjetas; la otra herramienta hace ambas cosas solo si está configurada así. Para los datos de la nota enlazada, aquí cuenta el **primer** enlace de una tarjeta y en la otra herramienta el último; por eso una tarjeta con varios enlaces muestra en ambas herramientas los datos de notas distintas.
+
+### Los ajustes en el bloque de ajustes
+
+Los ajustes de un tablero están en el bloque de ajustes al final del archivo, en la notación de la otra herramienta; ambas herramientas leen y escriben las mismas entradas:
+
+| Ajuste aquí | Entrada en el bloque |
+| ----------- | -------------------- |
+| Etiquetas al pie de la tarjeta | `move-tags` |
+| Mostrar fechas de forma relativa | `show-relative-date` |
+| Archivar con marca de tiempo | `archive-with-date` |
+| Límite del archivo | `max-archive-size` (`-1` significa ilimitado) |
+| La fecha lleva a la entrada de diario del día | `link-date-to-daily-note` |
+| Carpeta de las notas nuevas | `new-note-folder` |
+| Plantilla de las notas nuevas | `new-note-template` |
+| Datos de la nota enlazada | `metadata-keys` |
+
+Un ejemplo de la línea del bloque, con una indicación propia de la otra herramienta delante:
+
+```json
+{"kanban-plugin":"board","move-tags":true,"max-archive-size":-1}
+```
+
+**Se escribe por entrada.** Si el diálogo cambia un ajuste, solo cambia su entrada; el orden, la notación y todas las demás indicaciones del bloque permanecen carácter por carácter, también las que esta aplicación no conoce, como un formato de fecha o colores para etiquetas. Una entrada nueva va al final de la línea. **predeterminado** elimina la entrada; un bloque que queda vacío por ello permanece como `{}`. Si falta el bloque, se crea al final del archivo con la primera aplicación de cambios. Una entrada cuyo valor no corresponde al ajuste cuenta como no establecida; rige el valor predeterminado. Un límite propio de `0` o menos se escribe como `-1`, el valor que la otra herramienta conoce como ilimitado.
 
 ## Límites
 
@@ -303,7 +409,9 @@ El formato procede de una herramienta de tableros muy extendida para notas en Ma
 - **Se mueve con el ratón.** No hay un gesto de teclado para mover tarjetas y columnas.
 - **Una tarjeta lleva una línea.** Lo que se edita es el texto de la línea de tarea; sus líneas de continuación sangradas aparecen en la tarjeta, pero se modifican en el documento y no en ella.
 - **Se lee la notación predeterminada de la otra herramienta:** una fecha con la forma `@{AAAA-MM-DD}` y una hora con la forma `@@{HH:mm}`, en cada caso la primera aparición en la línea de la tarjeta. Un formato configurado de otro modo, una segunda aparición y la forma de enlace `@[[…]]` quedan como texto.
-- **En el tablero no hay camino de vuelta desde el archivo.** Las tarjetas archivadas no aparecen allí y solo se recuperan en el propio documento; el archivo conserva un número fijo de las 100 tarjetas más recientes.
-- **No hay ajustes por tablero.** Los dos interruptores de presentación valen para todos los tableros; el bloque de ajustes se lee y se conserva, pero sus indicaciones no actúan en el tablero.
-- **Una tarjeta no es una nota.** De una tarjeta no nace una nota propia, la tarjeta no muestra campos ni imágenes de una nota enlazada, y una fecha en la tarjeta no abre una nota diaria.
+- **En el tablero no hay camino de vuelta desde el archivo.** Las tarjetas archivadas no aparecen allí y solo se recuperan en el propio documento; de forma predeterminada, el archivo conserva las 100 tarjetas más recientes.
+- **Los datos de la nota enlazada son texto.** El Markdown de un valor no se representa; como imagen solo aparece un valor que en su totalidad apunta a un archivo de imagen, no una lista de imágenes ni la notación de imagen `![](…)`. La búsqueda y el filtro del tablero no incluyen los datos.
+- **Los datos no siguen al enlace a todas partes.** Un enlace a un área vinculada y una nota que solo se encontraría por su alias quedan sin datos; si hay varias notas con el mismo nombre, cuenta la primera. Los datos se actualizan en el siguiente redibujado del tablero, no al guardar la nota.
+- **La fecha solo lleva a un diario con la granularidad «día».** Sin área abierta o sin un diario así, la fecha sigue siendo una insignia corriente cuyo clic abre el selector de fecha.
+- **El nombre de una nota creada es un nombre de archivo.** Las barras se convierten en guiones bajos y no se crea ninguna subpágina; un marcador de fecha en medio del texto, tras el cual sigue más texto, cuenta como texto y forma parte del nombre.
 - **Una columna sin encabezado no existe.** Las líneas de tarea que están antes del primer encabezado no pertenecen a ninguna columna y por eso no aparecen en el tablero; en el documento permanecen donde están.

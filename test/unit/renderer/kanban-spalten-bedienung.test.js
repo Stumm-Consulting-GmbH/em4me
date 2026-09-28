@@ -675,17 +675,23 @@ describe('Kontextmenue am Spalten-Kopf', () => {
     // an einer Spalte mit Obergrenze (eigener Prüffall unten).
     const { container, tab, protokoll } = baueSpalte(TAFEL);
     const eintraege = kopfMenue(container, protokoll, 0);
+    // 4T-001955: dahinter, nach einem Trenner, der Eintrag der ganzen Tafel.
     expect(eintraege.map((e) => e.dataId)).toEqual([
       'kanban-column-rename',
       'kanban-column-set-limit',
       'kanban-column-delete',
       'kanban-column-complete',
+      undefined,
+      'kanban-board-settings',
     ]);
+    expect(eintraege[4].separator).toBe(true);
     expect(eintraege.map((e) => e.label)).toEqual([
       'kanban.spalteUmbenennen',
       'kanban.spalteLimitSetzen',
       'kanban.spalteLoeschen',
       'kanban.spalteHaktAb',
+      undefined,
+      'command.kanban.boardSettings',
     ]);
     eintraege[0].action();
     expect(eingabe(container).value).toBe('Offen');
@@ -703,6 +709,8 @@ describe('Kontextmenue am Spalten-Kopf', () => {
     // archivieren».
     expect(eintraege.map((e) => e.dataId)).toEqual([
       'kanban-card-edit',
+      // 4T-001956: «Notiz aus Karte erzeugen…» vor den Termin-Einträgen.
+      'kanban-card-note',
       'kanban-card-set-date',
       'kanban-card-archive',
       'kanban-card-delete',

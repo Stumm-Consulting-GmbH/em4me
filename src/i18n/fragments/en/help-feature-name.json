@@ -226,6 +226,8 @@
   "help.featureName.canvasImportJson": "JSON Canvas file import",
   "help.featureName.kanban": "Board view (Kanban)",
   "help.featureName.kanbanCardDetails": "Details on the card (Kanban)",
+  "help.featureName.kanbanBoardSettings": "Board settings (Kanban)",
+  "help.featureName.kanbanNotes": "Cards and notes (Kanban)",
   "help.featureName.databaseTable": "Table definition",
   "help.featureName.databaseColumnTypes": "Column types of a table",
   "help.featureName.databaseRecordKey": "Record identifier and business key",

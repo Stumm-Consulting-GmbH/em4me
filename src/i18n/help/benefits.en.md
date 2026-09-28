@@ -73,7 +73,7 @@ In detail: [Canvas surface](canvas.md).
 
 ## Tasks you can push along
 
-Anyone juggling many tasks at once does not want to read what needs doing, but to see where it stands. A Kanban board arranges the tasks of a document in columns — to do, in progress, done, or whatever else you call the steps of your workflow — and its cards can be pushed from one column to the next with the mouse; a column can be set to tick off every task dragged into it. All of it stays ordinary text in the document: the columns are its headings, the cards are its task lines, and what is ticked off on the board is ticked off in every other view as well. A board written with the widely used board tool for Markdown notes opens here, can be edited here, and can be used there afterwards.
+Anyone juggling many tasks at once does not want to read what needs doing, but to see where it stands. A Kanban board arranges the tasks of a document in columns — to do, in progress, done, or whatever else you call the steps of your workflow — and its cards can be pushed from one column to the next with the mouse; a column can be set to tick off every task dragged into it. All of it stays ordinary text in the document: the columns are its headings, the cards are its task lines, and what is ticked off on the board is ticked off in every other view as well. A note can stand behind a card: in a single step the card text becomes a note of its own, the card shows selected details from it and leads into it with one click — so the board becomes the overview of an entire project. A board written with the widely used board tool for Markdown notes opens here, can be edited here, and can be used there afterwards.
 
 In detail: [Kanban board](kanban.md).
 

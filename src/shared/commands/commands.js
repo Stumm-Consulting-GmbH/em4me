@@ -1171,6 +1171,24 @@ const COMMANDS = [
     availability: 'tafelKarte',
   },
   {
+    // 4T-001956 (Epic 3E-000319): «Notiz aus Karte erzeugen…» an der gewählten
+    // Karte der Tafel. Der gewöhnliche Weg ist das Kontextmenü der Karte; das
+    // Kommando macht die Funktion in der Kommando-Palette auffindbar und
+    // belegbar. Ohne Menü-Eintrag (menu: false): Der Auftrag nennt Palette und
+    // Kontextmenü, und das Untermenü der Tafel bleibt den Befehlen, die ohne
+    // Karten-Wahl wirken oder sie ausdrücklich brauchen. Bedingung und
+    // Bedingung wie beim Archivieren; ohne Vorgabe-Kürzel aus demselben Grund.
+    // Beschreibung aus der Katalog-Zeile «Karten und Notizen (Kanban)» (4T-001960).
+    id: 'kanban.noteFromCard',
+    defaultBindings: [],
+    labelKey: 'command.kanban.noteFromCard',
+    descKey: 'help.feature.kanbanNotes',
+    categoryKey: 'help.group.view',
+    menu: false,
+    editorScoped: false,
+    availability: 'tafelKarte',
+  },
+  {
     // 4T-001851 (Epic 3E-000110): Spalte auf der Kanban-Tafel anlegen. Der
     // gewoehnliche Weg ist die Schaltflaeche am Ende des Spalten-Streifens; das
     // Kommando macht die Funktion auffindbar (Menue, Palette) und belegbar.
@@ -1270,6 +1288,29 @@ const COMMANDS = [
     defaultBindings: [],
     labelKey: 'command.kanban.toggleRelativeDates',
     descKey: 'help.feature.kanbanCardDetails',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'tafelKarte',
+  },
+  {
+    // 4T-001955 (Epic 3E-000319): Der Dialog «Einstellungen dieser Tafel…» —
+    // je Einstellung der Tafel «wie Vorgabe» oder ein eigener Wert, geschrieben
+    // in den Einstellungs-Block am Ende des Dokuments. Zugänge: Untermenü
+    // «Ansicht → Kanban-Tafel», Kontextmenü des Spalten-Kopfs, Palette.
+    //
+    // **Ohne Vorgabe-Kürzel**, wie die übrigen Tafel-Befehle.
+    //
+    // Dieselbe Bedingung wie die übrigen schreibenden Tafel-Befehle: offene
+    // Tafel in der Tafel-Ansicht; im nicht änderbaren Dokument sagt die
+    // Ausführung es, statt den Dialog zu öffnen.
+    //
+    // Beschreibung aus der Katalog-Zeile «Einstellungen der Tafel (Kanban)»,
+    // die der Hilfe-Task der Stufe angelegt hat (4T-001960).
+    id: 'kanban.boardSettings',
+    defaultBindings: [],
+    labelKey: 'command.kanban.boardSettings',
+    descKey: 'help.feature.kanbanBoardSettings',
     categoryKey: 'help.group.view',
     menu: true,
     editorScoped: false,

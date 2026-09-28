@@ -18,7 +18,7 @@ Erkannt wird das **Vorhandensein** des Schlüssels, nicht sein Wert: `board`, `l
 
 ## Die Erweiterung „Kanban"
 
-Die Funktion gehört zu den [internen Erweiterungen](extensions.md) („Tafel-Ansicht (Kanban)"). Ist sie abgeschaltet, entfällt der Ansichts-Modus, die Kommandos für Karte, Spalte und Tafel verschwinden, und mit ihnen das Untermenü **Kanban-Tafel** im Menü **Ansicht**, das ohne seine Einträge nicht leer stehen bleibt. Das Dokument bleibt dabei unverändert lesbar; geschrieben wird im Aus-Zustand nie, Spalten und Karten stehen weiterhin im Text.
+Die Funktion gehört zu den [internen Erweiterungen](extensions.md) („Tafel-Ansicht (Kanban)"). Ist sie abgeschaltet, entfällt der Ansichts-Modus, die Kommandos für Karte, Spalte und Tafel verschwinden, und mit ihnen das Untermenü **Kanban-Tafel** im Menü **Ansicht**, das ohne seine Einträge nicht leer stehen bleibt, und der Abschnitt **Kanban-Tafel** der Einstellungen. Das Dokument bleibt dabei unverändert lesbar; geschrieben wird im Aus-Zustand nie, Spalten und Karten stehen weiterhin im Text.
 
 Die Tafel setzt die Erweiterung **Aufgaben** voraus, denn eine Karte **ist** eine Aufgaben-Zeile. Ist jene abgeschaltet, ist die Tafel es ebenfalls.
 
@@ -64,8 +64,10 @@ Eine Tafel ohne Spalten und eine Spalte ohne Karten sagen das an ihrer Stelle, s
 | Übernehmen | Klick außerhalb der Karte | `Eingabe` | — | — |
 | Verwerfen | — | `Escape` | — | — |
 | Status wechseln | Klick auf das Kästchen | `Leertaste` | — | — |
-| Termin setzen oder ändern | Klick auf das Termin-Abzeichen | — | **Termin setzen…** | — |
+| Termin setzen oder ändern | Klick auf das Termin-Abzeichen, sofern das Datum nicht zum Journal-Eintrag führt | — | **Termin setzen…** | — |
 | Termin entfernen | — | — | **Termin entfernen** | — |
+| Notiz aus der Karte erzeugen | — | — | **Notiz aus Karte erzeugen…** | **Notiz aus Karte erzeugen…** |
+| Ziel eines Verweises öffnen | Klick auf den Verweis im Karten-Text | — | — | — |
 | Archivieren | — | — | **Karte archivieren** | **Karte auf der Tafel archivieren** |
 | Löschen | — | `Entf` | **Karte löschen** | — |
 
@@ -124,7 +126,7 @@ Verschieben und Abhaken sind zusammen **eine** Handlung und damit ein einziger R
 
 Unter dem Karten-Text steht eine Reihe von **Abzeichen** mit den Angaben der Aufgabe: der Termin samt Uhrzeit, Geplant- und Start-Datum, Priorität, Wiederholung und die übrigen Aufgaben-Marker. Es sind dieselben Abzeichen wie in der Lese-Ansicht, mit derselben Kennzeichnung für überfällige und ungültige Angaben. Eine Karte ohne Angaben trägt keine solche Reihe.
 
-**Termin setzen und entfernen.** Das Kontextmenü einer Karte bietet **Termin setzen…** und, sobald die Karte einen Termin trägt, **Termin entfernen**; ein Klick auf das Termin-Abzeichen führt ebenfalls zum Setzen. Gewählt wird im Datums-Kalender der Aufgaben, wahlweise mit Uhrzeit und vorbelegt mit dem vorhandenen Termin. Geschrieben wird der Termin in der Aufgaben-Schreibweise der Anwendung in die Karten-Zeile:
+**Termin setzen und entfernen.** Das Kontextmenü einer Karte bietet **Termin setzen…** und, sobald die Karte einen Termin trägt, **Termin entfernen**; ein Klick auf das Termin-Abzeichen führt ebenfalls zum Setzen, es sei denn, das Datum führt zum Journal-Eintrag des Tages (siehe «Verweise und Datum auf der Karte»). Gewählt wird im Datums-Kalender der Aufgaben, wahlweise mit Uhrzeit und vorbelegt mit dem vorhandenen Termin. Geschrieben wird der Termin in der Aufgaben-Schreibweise der Anwendung in die Karten-Zeile:
 
 ```markdown
 - [ ] Angebot abschicken 📅 2026-10-02 14:00
@@ -132,7 +134,7 @@ Unter dem Karten-Text steht eine Reihe von **Abzeichen** mit den Angaben der Auf
 
 Er erscheint damit auch in der Lese-Ansicht und in den Aufgaben-Abfragen. Jedes Setzen und Entfernen ist ein Rückgängig-Schritt; ändert sich das Dokument, während der Datums-Kalender offen ist, wird die Wahl verworfen und das in der Statusleiste gesagt.
 
-**Relative Anzeige.** Mit dem Schalter **Ansicht → Kanban-Tafel → Termine relativ anzeigen** lesen sich Termin, Geplant- und Start-Datum vom heutigen Tag aus: «heute», «morgen», «in 3 Tagen», «vor 2 Tagen», in der Sprache der Oberfläche und mit angehängter Uhrzeit. Das genaue Datum steht dann im Hinweistext des Abzeichens. Erstellt-, Erledigt- und Abbruch-Datum bleiben absolut, weil sie festhalten, wann etwas geschah. Der Schalter ist ab Werk aus, gilt für alle Tafeln in allen Fenstern und ändert am Dokument nichts.
+**Relative Anzeige.** Mit dem Schalter **Ansicht → Kanban-Tafel → Termine relativ anzeigen** lesen sich Termin, Geplant- und Start-Datum vom heutigen Tag aus: «heute», «morgen», «in 3 Tagen», «vor 2 Tagen», in der Sprache der Oberfläche und mit angehängter Uhrzeit. Das genaue Datum steht dann im Hinweistext des Abzeichens. Erstellt-, Erledigt- und Abbruch-Datum bleiben absolut, weil sie festhalten, wann etwas geschah. Der Schalter ist ab Werk aus, setzt die Vorgabe für alle Tafeln in allen Fenstern und ändert am Dokument nichts; eine einzelne Tafel kann ihn für sich übersteuern (siehe «Einstellungen der Tafel»).
 
 **Termine in der Schreibweise des anderen Werkzeugs.** Das Tafel-Werkzeug, aus dem das Format stammt, schreibt einen Termin als `@{…}` und eine Uhrzeit als `@@{…}` in die Karten-Zeile. Die Tafel liest beides und zeigt es als Termin-Abzeichen mit gestricheltem Rand; sein Hinweistext nennt die Herkunft. **Beim ersten Bearbeiten der Karte wird ein solcher Termin in die Aufgaben-Schreibweise umgeschrieben** — beim Übernehmen eines geänderten Karten-Texts ebenso wie beim Setzen und Entfernen des Termins. Aus der ersten Zeile wird die zweite:
 
@@ -145,7 +147,7 @@ Er erscheint damit auch in der Lese-Ansicht und in den Aufgaben-Abfragen. Jedes 
 
 ## Tags am Kartenfuß
 
-Tags stehen auf der Karte zunächst dort, wo sie geschrieben sind: im Karten-Text, gerendert wie in der Lese-Ansicht. Mit dem Schalter **Ansicht → Kanban-Tafel → Tags am Kartenfuß** verlassen sie den angezeigten Text und stehen gesammelt in einer eigenen Reihe am Fuß der Karte — auch die Tags aus eingerückten Folgezeilen, jedes einmal und in der Reihenfolge seines Vorkommens. Der Schalter ist ab Werk aus, gilt für alle Tafeln in allen Fenstern und ändert am Dokument nichts: Die Tags bleiben in der Zeile, in der sie stehen.
+Tags stehen auf der Karte zunächst dort, wo sie geschrieben sind: im Karten-Text, gerendert wie in der Lese-Ansicht. Mit dem Schalter **Ansicht → Kanban-Tafel → Tags am Kartenfuß** verlassen sie den angezeigten Text und stehen gesammelt in einer eigenen Reihe am Fuß der Karte — auch die Tags aus eingerückten Folgezeilen, jedes einmal und in der Reihenfolge seines Vorkommens. Der Schalter ist ab Werk aus, setzt die Vorgabe für alle Tafeln in allen Fenstern und ändert am Dokument nichts: Die Tags bleiben in der Zeile, in der sie stehen. Eine einzelne Tafel kann ihn für sich übersteuern.
 
 Ein Klick auf ein Tag der Karte — am Fuß wie im Text — filtert die Tag-Sidebar nach ihm, wie in der Lese-Ansicht; Auswahl und Bearbeitung der Karte bleiben davon unberührt. Während eine Karte bearbeitet wird, ist ihre Tag-Reihe ausgeblendet, weil die Eingabe den rohen Text samt Tags zeigt. Beide Anzeige-Schalter stehen nur in der geöffneten Tafel-Ansicht zur Wahl.
 
@@ -159,7 +161,7 @@ Gesetzt und geändert wird sie über **Obergrenze setzen…** im Kontextmenü de
 
 ## Archiv
 
-**Karte archivieren** im Kontextmenü einer Karte, oder das Kommando **Karte auf der Tafel archivieren** für die gewählte Karte, nimmt die Karte samt ihren eingerückten Folgezeilen aus ihrer Spalte und schreibt sie ans Ende des **Archiv-Abschnitts** desselben Dokuments. Vor ihren Text tritt dabei ein Zeitstempel aus Datum und Uhrzeit; ihr Status und ihre übrigen Angaben bleiben, wie sie sind:
+**Karte archivieren** im Kontextmenü einer Karte, oder das Kommando **Karte auf der Tafel archivieren** für die gewählte Karte, nimmt die Karte samt ihren eingerückten Folgezeilen aus ihrer Spalte und schreibt sie ans Ende des **Archiv-Abschnitts** desselben Dokuments. Vor ihren Text tritt dabei ein Zeitstempel aus Datum und Uhrzeit, solange die Einstellung **Archiv mit Zeitstempel** gilt, wie ab Werk; ihr Status und ihre übrigen Angaben bleiben, wie sie sind:
 
 ```markdown
 ***
@@ -171,7 +173,7 @@ Gesetzt und geändert wird sie über **Obergrenze setzen…** im Kontextmenü de
 
 Fehlt der Abschnitt, entsteht er hinter der letzten Spalte, mit der Überschrift, die auch das andere Werkzeug in der Sprache der Oberfläche schreibt; ein vorhandener Abschnitt wird mit seiner Überschrift und seinem Bestand weitergeführt.
 
-**Das Archiv behält die jüngsten 100 Karten.** Kommt eine hinzu, wenn es voll ist, fällt die älteste heraus; ein Archiv, das ein anderes Werkzeug mit mehr Karten hinterlassen hat, wird beim ersten Archivieren auf die jüngsten 100 gekürzt.
+**Das Archiv behält ab Werk die jüngsten 100 Karten.** Kommt eine hinzu, wenn es voll ist, fällt die älteste heraus; ein Archiv, das ein anderes Werkzeug mit mehr Karten hinterlassen hat, wird beim ersten Archivieren auf die jüngsten gekürzt. Die Zahl ist einstellbar, und `0` heißt unbegrenzt (siehe «Einstellungen der Tafel»).
 
 **Zurückholen lässt sich eine archivierte Karte auf der Tafel nicht**, denn das Archiv erscheint dort nicht. Das Archivieren ist aber genau ein Rückgängig-Schritt, und im Dokument steht die Karte weiterhin im Klartext. Danach wandert die Auswahl wie beim Löschen auf die nächste Karte der Spalte; ohne gewählte Karte bleibt das Kommando ohne Wirkung.
 
@@ -185,15 +187,96 @@ Durchsucht werden der Text der Karte und ihre eingerückten Folgezeilen, einschl
 
 `Escape` im Feld beendet den Filter und zeigt wieder alle Karten; ebenso der Wechsel in eine andere Ansicht oder zu einem anderen Dokument. Zeichnet sich die Tafel zwischendurch neu, bleiben Suchtext und Eingabe-Fokus erhalten.
 
+## Einstellungen der Tafel
+
+Das Verhalten der Tafel lässt sich auf zwei Ebenen einstellen: als **Vorgabe** für alle Tafeln und **je Tafel** mit eigenem Wert. Ein eigener Wert geht der Vorgabe vor; eine Tafel ohne eigene Werte folgt in allem den Vorgaben.
+
+**Die Vorgaben** stehen unter **Datei → Einstellungen… → Kanban-Tafel**, im Block **Erweiterungen (intern)**:
+
+| Einstellung | ab Werk |
+| ----------- | ------- |
+| **Tags am Kartenfuß** | aus |
+| **Termine relativ anzeigen** | aus |
+| **Archiv mit Zeitstempel** | an |
+| **Archiv-Obergrenze in Karten (0 = unbegrenzt)** | 100 |
+| **Datum führt zum Journal-Eintrag des Tages** | aus |
+
+Die beiden Häkchen im Menü **Ansicht → Kanban-Tafel** zeigen und setzen dieselben Vorgaben wie die ersten beiden Zeilen. Eine Vorgabe schreibt nie in ein Dokument.
+
+**Je Tafel** öffnet **Einstellungen dieser Tafel…** einen Dialog — im Menü **Ansicht → Kanban-Tafel**, im Kontextmenü eines Spalten-Kopfes und in der Kommando-Palette. Die freie Fläche der Tafel hat kein eigenes Kontextmenü; der Eintrag steht deshalb am Spalten-Kopf.
+
+| Einstellung | Wahl im Dialog | «wie Vorgabe» heißt |
+| ----------- | -------------- | ------------------- |
+| die vier Schalter der Tabelle oben | **wie Vorgabe (an)** oder **wie Vorgabe (aus)**, **an**, **aus** | der Wert der Einstellungs-Seite, in der Klammer genannt |
+| **Archiv-Obergrenze (Karten)** | **wie Vorgabe (…)** oder **eigener Wert** mit Zahl | die Obergrenze der Einstellungs-Seite |
+| **Zielordner neuer Notizen** | **wie Vorgabe (Ordner der Tafel)** oder **eigener Wert** über **Ordner wählen…** | der Ordner, in dem die Tafel liegt |
+| **Vorlage neuer Notizen** | **wie Vorgabe (Auswahl beim Erzeugen)** oder **eigener Wert** über **Vorlage wählen…** | Ordner-Regel oder Auswahl beim Erzeugen |
+| **Angaben der verlinkten Notiz** | **wie Vorgabe (keine Angaben)** oder **eigener Wert** mit einer Zeile je Angabe | die Karten zeigen keine Angaben |
+
+Die Wahl selbst zeigt, woher ein Wert kommt: **wie Vorgabe** folgt der Einstellungs-Seite und zieht mit, wenn diese sich ändert; alles andere gilt nur für diese Tafel. Zurückgesetzt wird, indem man wieder **wie Vorgabe** wählt. Eine eigene Obergrenze von `0` oder weniger heißt unbegrenzt.
+
+Für die Angaben der verlinkten Notiz trägt jede Zeile den **Schlüssel im Dokument-Kopf**, einen **Anzeige-Namen (optional)** und das Kästchen **Namen verbergen**; **Entfernen** nimmt die Zeile heraus, **Angabe hinzufügen** fügt eine an. Eine Zeile ohne Schlüssel entfällt beim Übernehmen.
+
+Den Zielordner wählt der Ordner-Dialog der Anwendung. Er muss im geöffneten Bereich liegen — sonst sagt ein Hinweis «Der Ordner liegt außerhalb des Bereichs.» — und wird relativ zu dessen Wurzel gespeichert, die Wurzel selbst als `/`; ohne geöffneten Bereich relativ zum Ordner der Tafel. Die Vorlage kommt aus der Vorlagen-Auswahl der Anwendung und wird mit ihrem Pfad in der Vorlagen-Quelle gespeichert.
+
+**Übernehmen** schreibt allein die geänderten Einstellungen in den Einstellungs-Block am Ende des Tafel-Dokuments, als **einen** Rückgängig-Schritt; fehlt der Block, entsteht er dabei. **Abbrechen**, `Escape` und ein Klick neben den Dialog ändern nichts. Die Wirkung ist sofort sichtbar, ohne das Dokument neu zu öffnen. Der Dialog setzt die geöffnete Tafel-Ansicht und ein änderbares Dokument voraus; hat sich das Dokument geändert, während er offen war, wird die Übernahme verworfen und das in der Statusleiste gesagt. Lässt sich der Block nicht lesen, schreibt die Tafel nichts und sagt: «Der Einstellungs-Block am Ende der Tafel ist nicht lesbar — die Einstellungen wurden nicht geschrieben.»
+
+## Notiz aus einer Karte
+
+**Notiz aus Karte erzeugen…** macht aus einer Karte eine eigene Notiz, im Kontextmenü der Karte oder für die gewählte Karte über die Kommando-Palette. Der Karten-Text ohne seine Marker — Tags, Aufgaben-Marker und ein Termin in der Schreibweise des anderen Werkzeugs — wird zum Namen der Notiz, und auf der Karte tritt der Verweis auf sie an die Stelle des Textes. Die Marker bleiben in ihrer Reihenfolge stehen, die eingerückten Folgezeilen ebenso; aus der ersten Zeile wird die zweite:
+
+```markdown
+- [ ] Angebot schreiben #kunde 📅 2026-10-02
+- [ ] [[Angebot schreiben]] #kunde 📅 2026-10-02
+```
+
+Ein Verweis im Karten-Text geht mit seinem Anzeige-Text in den Namen ein. Schrägstriche und die Zeichen, die ein Dateiname nicht tragen darf, werden zu `_`; eine Unterseite entsteht dabei nicht. Bleibt vom Text nichts Brauchbares übrig, fragt die Anwendung nach dem Namen. Eine Karte, deren Text ohne Marker leer ist, bietet den Eintrag nicht an.
+
+**Wohin die Notiz kommt:** in den Zielordner der Tafel-Einstellungen, sonst in den Ordner der Tafel. Gibt es den eingestellten Ordner nicht, sagt ein Hinweis das, und der Ordner-Dialog lässt einen anderen wählen; angelegt wird ein fehlender Ordner nie.
+
+**Wenn es den Namen schon gibt**, wird nie überschrieben. Die Anwendung fragt «Es gibt bereits ein Dokument «Name». Wie soll es weitergehen?» und bietet **Anderen Namen wählen…** — die Namens-Abfrage, mit dem Namen vorbelegt — und **Auf das vorhandene Dokument verweisen**: Dann entsteht keine Datei, die Karte bekommt den Verweis auf das vorhandene Dokument, und es wird nicht geöffnet. `Escape` bricht ab.
+
+**Welche Vorlage gilt**, in dieser Reihenfolge:
+
+1. die Vorlage der Tafel-Einstellungen; ist sie nicht auffindbar, sagt ein Hinweis das, und es folgt die Auswahl;
+2. sonst die [Ordner-Regel](templates.md) des Zielordners;
+3. sonst die Auswahl der Vorlagen mit **Keine Vorlage (leere Notiz)** an erster Stelle.
+
+Sind keine Vorlagen eingerichtet oder ist die Erweiterung «Vorlagen» abgeschaltet, entsteht ohne Auswahl eine leere Notiz. Eine gewählte Vorlage wird ausgefüllt wie bei **Neue Datei aus Vorlage…**, mit dem Namen der Notiz als Titel.
+
+**Danach** legt die Anwendung die Datei an, ersetzt den Karten-Text und öffnet die neue Notiz als eigenes Dokument; die Tafel bleibt daneben geöffnet. Ein Termin in der Schreibweise des anderen Werkzeugs wird dabei umgeschrieben wie beim Bearbeiten der Karte. Scheitert das Anlegen, bleibt die Karte unverändert. Hat sich die Tafel geändert, während die Dialoge offen waren, bleibt die Karte ebenfalls unverändert, die Notiz aber angelegt und geöffnet, und ein Hinweis sagt beides.
+
+**Rückgängig** stellt den Karten-Text in einem Schritt wieder her; die angelegte Notiz bleibt als Datei bestehen.
+
+## Angaben der verlinkten Notiz
+
+Trägt eine Karte einen Verweis auf eine Notiz, kann sie Angaben aus deren **Dokument-Kopf** zeigen — etwa Status, Verantwortliche oder ein Titelbild. Welche, bestimmt die Einstellung **Angaben der verlinkten Notiz** der Tafel; ab Werk zeigt eine Karte keine.
+
+**Welcher Verweis gilt:** der erste Wiki-Verweis mit Ziel, in der Karten-Zeile oder ihren Folgezeilen. Ein reiner Abschnitts-Verweis wie `[[#Abschnitt]]` und die Einbettung eines Bildes zählen nicht; die Einbettung eines Dokuments zählt.
+
+**Wie die Angaben erscheinen:** als Zeilen «Name: Wert» unter dem Karten-Text, vor Abzeichen und Tags. Der Name ist der Anzeige-Name der Einstellung, sonst der Schlüssel; mit **Namen verbergen** steht nur der Wert da. Es erscheinen nur Schlüssel mit Wert, in der Reihenfolge der Einstellung. Eine Liste wird mit Komma verbunden. Eine Angabe ist auf zwei Zeilen begrenzt; der volle Wert steht im Hinweistext.
+
+**Bilder:** Ist ein Wert als Ganzes ein Pfad mit Bild-Endung oder ein Verweis wie `[[bild.png]]` oder `![[bild.png|200]]`, erscheint an seiner Stelle das Bild in Kartenbreite und begrenzter Höhe. Gesucht wird es relativ zur verlinkten Notiz, innerhalb des geöffneten Bereichs, ohne Bereich im Ordner der Notiz und darunter. Fehlt das Bild, entfällt die Angabe; eine Web-Adresse wird nie ein Bild.
+
+Die Angaben werden nur gelesen, nie geschrieben, und die Karten erscheinen sofort — die Angaben folgen, sobald sie gelesen sind. **Aktuell** sind sie beim nächsten Neuzeichnen der Tafel: nach einem Wechsel der Ansicht, einer Änderung der Tafel oder der Rückkehr zu ihrem Dokument. Wird die Notiz geändert, während die Tafel daneben sichtbar bleibt, erscheint der neue Stand erst beim nächsten Neuzeichnen.
+
+## Verweise und Datum auf der Karte
+
+**Ein Verweis im Karten-Text öffnet sein Ziel**, wie ein Klick in der Lese-Ansicht: ein Wiki-Verweis mit und ohne Anzeige-Text, ein Verweis auf ein noch fehlendes Ziel, ein gewöhnlicher Markdown-Verweis und eine Web-Adresse verhalten sich wie dort. Der Klick wählt die Karte nicht und wirkt auch in einem nicht änderbaren Dokument; eine offene Eingabe wird vorher übernommen. Ein Doppelklick auf einen Verweis öffnet keine Bearbeitung — bearbeitet wird mit einem Doppelklick neben den Verweis, mit `Eingabe`, `F2` oder über das Kontextmenü.
+
+**Das Datum führt zum Journal-Eintrag des Tages**, wenn die Einstellung **Datum führt zum Journal-Eintrag des Tages** für die Tafel gilt (ab Werk aus) und der geöffnete Bereich mindestens ein [Journal](journals.md) mit der Granularität «Tag» hat. Dann ist das Termin-Abzeichen unterstrichen, der Zeiger wird zur Hand, und der Hinweistext nennt «Journal-Eintrag des Tages öffnen». Ein Klick öffnet den Eintrag dieses Tages und legt ihn an, wenn es ihn noch nicht gibt — wie **Heutiger Journal-Eintrag** für den heutigen; bei mehreren solchen Journalen wird gefragt, welches. Die Uhrzeit spielt keine Rolle. Das gilt auch für einen Termin in der Schreibweise des anderen Werkzeugs und in einem nicht änderbaren Dokument, denn die Tafel ändert dabei nichts. Den Termin ändert dann **Termin setzen…** im Kontextmenü der Karte.
+
+Ohne geöffneten Bereich oder ohne Journal mit der Granularität «Tag» bleibt das Abzeichen, was es war: Der Klick öffnet den Datums-Kalender, und ein Hinweis erscheint nicht. Ist die Einstellung aus, ebenso.
+
 ## Rückgängig
 
-`Strg+Z` nimmt die letzte Handlung auf der Tafel zurück, `Strg+Y` und `Strg+Umschalt+Z` stellen sie wieder her. Jede Handlung ist genau ein Schritt: eine angelegte Karte, ein geänderter Text, ein Statuswechsel, ein Zug samt dem Abhaken, eine gelöschte Spalte mit allen ihren Karten, ein gesetzter oder entfernter Termin, eine geänderte Obergrenze, eine archivierte Karte. Steht die Eingabe einer Karte oder eines Spalten-Titels offen, gilt `Strg+Z` dort dem getippten Text.
+`Strg+Z` nimmt die letzte Handlung auf der Tafel zurück, `Strg+Y` und `Strg+Umschalt+Z` stellen sie wieder her. Jede Handlung ist genau ein Schritt: eine angelegte Karte, ein geänderter Text, ein Statuswechsel, ein Zug samt dem Abhaken, eine gelöschte Spalte mit allen ihren Karten, ein gesetzter oder entfernter Termin, eine geänderte Obergrenze, eine archivierte Karte, eine Übernahme im Dialog **Einstellungen dieser Tafel…**, das Ersetzen des Karten-Texts durch den Verweis auf eine erzeugte Notiz — deren Datei bleibt dabei bestehen. Steht die Eingabe einer Karte oder eines Spalten-Titels offen, gilt `Strg+Z` dort dem getippten Text.
 
 Ändert sich das Dokument zwischendurch an anderer Stelle — etwa, weil dasselbe Dokument daneben im Editor bearbeitet wird —, wird die angefangene Handlung verworfen statt blind geschrieben; die Statusleiste sagt das, und die Tafel zeichnet sich neu.
 
 ## Nur ansehen
 
-Die Tafel folgt der Änderbarkeit ihres Dokuments. Steht das Dokument in der reinen Anzeige, ohne eingeschalteten Bearbeiten-Modus, ist die Tafel **nur ansehbar**: keine Schaltflächen, kein Ziehen, keine Eingabe, kein klickbares Kästchen, und das Kontextmenü bleibt ohne Einträge. Auch der Weg über Kommando-Palette und Menü führt nicht daran vorbei; der Fehlschlag wird in der Statusleiste gesagt und nicht verschwiegen. Ansehen, Auswählen, Rollen und das Filtern der Karten bleiben erlaubt, weil sie das Dokument nicht anfassen; ebenso die beiden Anzeige-Schalter. Das Termin-Abzeichen ist hier reine Anzeige.
+Die Tafel folgt der Änderbarkeit ihres Dokuments. Steht das Dokument in der reinen Anzeige, ohne eingeschalteten Bearbeiten-Modus, ist die Tafel **nur ansehbar**: keine Schaltflächen, kein Ziehen, keine Eingabe, kein klickbares Kästchen, und das Kontextmenü bleibt ohne Einträge. Auch der Weg über Kommando-Palette und Menü führt nicht daran vorbei; der Fehlschlag wird in der Statusleiste gesagt und nicht verschwiegen. Ansehen, Auswählen, Rollen und das Filtern der Karten bleiben erlaubt, weil sie das Dokument nicht anfassen; ebenso die beiden Anzeige-Schalter, der Klick auf einen Verweis und der Klick auf ein Datum, das zum Journal-Eintrag des Tages führt. Sonst ist das Termin-Abzeichen hier reine Anzeige. **Einstellungen dieser Tafel…** und **Notiz aus Karte erzeugen…** schreiben in das Dokument und stehen deshalb nicht zur Verfügung.
 
 Der Bearbeiten-Modus gibt die Bedienung frei — Stift in der Statusleiste, Standard `Strg+E`; die Einzelheiten beschreibt die Seite [Ansichten und Darstellung](views-display.md).
 
@@ -271,9 +354,9 @@ kanban-plugin: board
 
 ### Was unangetastet bleibt
 
-**Archiv-Abschnitt und Einstellungs-Block werden auf der Tafel nicht gezeigt.** Der Einstellungs-Block wird nie verändert, der Archiv-Abschnitt allein beim Archivieren einer Karte; sonst stehen beide unverändert in der Datei, und wer eine Tafel öffnet und ohne Änderung wieder schließt, bekommt dieselbe Datei zurück — einschließlich der Zeilenenden, eines fehlenden Schluss-Umbruchs und aller Angaben, die diese Anwendung nicht kennt.
+**Archiv-Abschnitt und Einstellungs-Block werden auf der Tafel nicht gezeigt.** Der Einstellungs-Block wird allein über den Dialog **Einstellungen dieser Tafel…** verändert, der Archiv-Abschnitt allein beim Archivieren einer Karte; sonst stehen beide unverändert in der Datei, und wer eine Tafel öffnet und ohne Änderung wieder schließt, bekommt dieselbe Datei zurück — einschließlich der Zeilenenden, eines fehlenden Schluss-Umbruchs und aller Angaben, die diese Anwendung nicht kennt.
 
-Eine Ausnahme mit gutem Grund: Enthält der Einstellungs-Block die Liste, welche Spalten eingeklappt sind, zieht sie beim Anlegen, Löschen und Verschieben einer Spalte mit. Bliebe sie stehen, hätte das andere Werkzeug danach die falschen Spalten eingeklappt. Alles Übrige im Block bleibt zeichengenau, wie es war.
+Eine Ausnahme mit gutem Grund: Enthält der Einstellungs-Block die Liste, welche Spalten eingeklappt sind, zieht sie beim Anlegen, Löschen und Verschieben einer Spalte mit. Bliebe sie stehen, hätte das andere Werkzeug danach die falschen Spalten eingeklappt. Alles Übrige im Block bleibt zeichengenau, wie es war, bis eine Einstellung der Tafel geändert wird — und auch dann ändert sich nur ihr eigener Eintrag (siehe «Verträglichkeit mit anderen Werkzeugen»).
 
 Geschrieben wird immer nur der Zeilen-Bereich, der sich wirklich ändert — nicht das ganze Dokument. Schreibmarke und Faltungen des Editors bleiben dadurch stehen.
 
@@ -294,7 +377,30 @@ Das Format stammt aus einem verbreiteten Tafel-Werkzeug für Markdown-Notizen, u
 
 **Was sich beim Bearbeiten ändert:** Ein Termin in der Schreibweise des anderen Werkzeugs wird beim ersten Bearbeiten seiner Karte in die Aufgaben-Schreibweise der Anwendung umgeschrieben (siehe «Angaben auf der Karte»). **Im anderen Werkzeug erscheint er danach nur noch als Text** und nicht mehr als Termin der Karte. Alle übrigen Angaben einer Aufgabe — Termin-Marker, Priorität, Wiederholung, Tags — bleiben in ihrer Zeile und wirken überall sonst weiter, in der Lese-Ansicht und in den Aufgaben-Abfragen.
 
-**Was hier anders geschieht:** Das Archivieren setzt immer einen Zeitstempel und hält das Archiv bei 100 Karten; das andere Werkzeug tut beides nur, wenn es so eingestellt ist. Angaben seines Einstellungs-Blocks, etwa ein anderes Datums-Format oder eine andere Archiv-Grenze, wertet die Tafel nicht aus.
+**Was hier anders geschieht:** Ab Werk setzt das Archivieren einen Zeitstempel und hält das Archiv bei 100 Karten; das andere Werkzeug tut beides nur, wenn es so eingestellt ist. Für die Angaben der verlinkten Notiz gilt hier der **erste** Verweis einer Karte, im anderen Werkzeug der letzte; eine Karte mit mehreren Verweisen zeigt deshalb in beiden Werkzeugen die Angaben verschiedener Notizen.
+
+### Die Einstellungen im Einstellungs-Block
+
+Die Einstellungen einer Tafel stehen im Einstellungs-Block am Dateiende, in der Schreibweise des anderen Werkzeugs; beide Werkzeuge lesen und schreiben dieselben Einträge:
+
+| Einstellung hier | Eintrag im Block |
+| ---------------- | ---------------- |
+| Tags am Kartenfuß | `move-tags` |
+| Termine relativ anzeigen | `show-relative-date` |
+| Archiv mit Zeitstempel | `archive-with-date` |
+| Archiv-Obergrenze | `max-archive-size` (`-1` heißt unbegrenzt) |
+| Datum führt zum Journal-Eintrag des Tages | `link-date-to-daily-note` |
+| Zielordner neuer Notizen | `new-note-folder` |
+| Vorlage neuer Notizen | `new-note-template` |
+| Angaben der verlinkten Notiz | `metadata-keys` |
+
+Ein Beispiel für die Zeile im Block, mit einer eigenen Angabe des anderen Werkzeugs vorn:
+
+```json
+{"kanban-plugin":"board","move-tags":true,"max-archive-size":-1}
+```
+
+**Geschrieben wird je Eintrag.** Ändert der Dialog eine Einstellung, ändert sich allein ihr Eintrag; Reihenfolge, Schreibweise und alle übrigen Angaben des Blocks bleiben zeichengenau stehen, auch die, die diese Anwendung nicht kennt, etwa ein Datums-Format oder Farben für Tags. Ein neuer Eintrag kommt ans Ende der Zeile. **wie Vorgabe** entfernt den Eintrag; ein Block, der dadurch leer wird, bleibt als `{}` stehen. Fehlt der Block, entsteht er beim ersten Übernehmen am Dateiende. Ein Eintrag, dessen Wert nicht zur Einstellung passt, gilt als nicht gesetzt; es greift die Vorgabe. Eine eigene Obergrenze von `0` oder weniger wird als `-1` geschrieben, den Wert, den das andere Werkzeug für unbegrenzt kennt.
 
 ## Grenzen
 
@@ -303,7 +409,9 @@ Das Format stammt aus einem verbreiteten Tafel-Werkzeug für Markdown-Notizen, u
 - **Verschoben wird mit der Maus.** Eine Tastatur-Geste zum Verschieben von Karten und Spalten gibt es nicht.
 - **Eine Karte trägt eine Zeile.** Bearbeitet wird der Text der Aufgaben-Zeile; ihre eingerückten Folgezeilen erscheinen auf der Karte, werden aber im Dokument geändert und nicht auf ihr.
 - **Gelesen wird die Vorgabe-Schreibweise des anderen Werkzeugs:** ein Termin in der Form `@{JJJJ-MM-TT}` und eine Uhrzeit in der Form `@@{HH:mm}`, je das erste Vorkommen in der Karten-Zeile. Ein anders eingestelltes Format, ein zweites Vorkommen und die Verweis-Form `@[[…]]` bleiben Text.
-- **Aus dem Archiv führt auf der Tafel kein Weg zurück.** Archivierte Karten erscheinen dort nicht und lassen sich nur im Dokument selbst zurückholen; das Archiv hält fest die jüngsten 100 Karten.
-- **Einstellungen je Tafel gibt es nicht.** Die beiden Anzeige-Schalter gelten für alle Tafeln; der Einstellungs-Block wird gelesen und erhalten, seine Angaben wirken auf der Tafel aber nicht.
-- **Eine Karte ist keine Notiz.** Aus einer Karte entsteht keine eigene Notiz, die Karte zeigt keine Felder oder Bilder einer verlinkten Notiz, und ein Datum auf der Karte öffnet keine Tagesnotiz.
+- **Aus dem Archiv führt auf der Tafel kein Weg zurück.** Archivierte Karten erscheinen dort nicht und lassen sich nur im Dokument selbst zurückholen; ab Werk behält das Archiv die jüngsten 100 Karten.
+- **Angaben der verlinkten Notiz sind Text.** Markdown in einem Wert wird nicht dargestellt; als Bild erscheint nur ein Wert, der als Ganzes auf eine Bilddatei zeigt, keine Liste von Bildern und keine Bild-Schreibweise `![](…)`. Suche und Filter der Tafel beziehen die Angaben nicht ein.
+- **Die Angaben folgen dem Verweis nicht überall hin.** Ein Verweis in einen verknüpften Bereich und eine Notiz, die sich nur über ihren Alias finden ließe, bleiben ohne Angaben; gibt es mehrere Notizen gleichen Namens, gilt die erste. Aktuell werden die Angaben beim nächsten Neuzeichnen der Tafel, nicht beim Speichern der Notiz.
+- **Das Datum führt nur zu einem Journal mit der Granularität «Tag».** Ohne geöffneten Bereich oder ohne ein solches Journal bleibt das Datum ein gewöhnliches Abzeichen, dessen Klick den Datums-Kalender öffnet.
+- **Der Name einer erzeugten Notiz ist ein Dateiname.** Schrägstriche werden zu Unterstrichen, eine Unterseite entsteht nicht; ein Termin-Marker mitten im Text, hinter dem noch Text folgt, gilt als Text und steht mit im Namen.
 - **Eine Spalte ohne Überschrift gibt es nicht.** Aufgaben-Zeilen, die vor der ersten Überschrift stehen, gehören zu keiner Spalte und erscheinen deshalb nicht auf der Tafel; im Dokument bleiben sie stehen.

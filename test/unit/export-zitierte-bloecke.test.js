@@ -26,6 +26,7 @@ import {
   convertMarkdownPortable,
   configureExtensions,
 } from '../../src/shared/markdown/markdown.js';
+import { findPercentCommentRanges } from '../../src/shared/markdown/plugins/comments.js';
 import { replaceJournalNavFences } from '../../src/shared/journal-core.js';
 import { replaceJournalTimelineFences } from '../../src/shared/journal-timeline-core.js';
 
@@ -276,13 +277,27 @@ describe('Portabler Export: Demo-Bestand (4T-001803)', () => {
     expect(dateien.length).toBeGreaterThan(10);
   });
 
+  // 4T-001960: Ein Zaun INNERHALB eines privaten Kommentars ist kein Block der
+  // obersten Ebene, sondern Teil des Kommentars, und der Export lässt private
+  // Kommentare samt Inhalt weg. Anlass ist der Einstellungs-Block der
+  // Kanban-Tafel in «13 Kanban.md» (`%% kanban:settings` mit Code-Zaun und
+  // JSON-Zeile). Solche Blöcke werden nicht als «muss stehen bleiben» gezählt,
+  // sondern als Gegenprobe geprüft: Sie erscheinen im Export nicht.
   for (const name of dateien) {
     it(`lässt in «${name}» jeden fremden Code-Block der obersten Ebene wörtlich stehen`, () => {
       const quelle = fs.readFileSync(path.join(DEMO_DIR, name), 'utf8');
-      const bloecke = obersteBloecke(quelle).filter((b) => !b.info.startsWith('perspective-'));
-      if (bloecke.length === 0) return;
+      const kommentare = findPercentCommentRanges(quelle);
+      const imKommentar = (b) => {
+        const at = quelle.indexOf(b.text);
+        return kommentare.some((r) => at >= r.from && at < r.to);
+      };
+      const alle = obersteBloecke(quelle).filter((b) => !b.info.startsWith('perspective-'));
+      const bloecke = alle.filter((b) => !imKommentar(b));
+      const verborgen = alle.filter(imKommentar);
+      if (alle.length === 0) return;
       const out = exportKette(quelle);
       for (const b of bloecke) expect(out).toContain(b.text);
+      for (const b of verborgen) expect(out).not.toContain(b.text);
     });
   }
 });

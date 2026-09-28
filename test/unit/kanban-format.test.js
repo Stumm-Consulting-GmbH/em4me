@@ -23,6 +23,8 @@ import {
   leseTafel,
   schreibeTafel,
   tafelUmfang,
+  ersterVerweis,
+  ersterVerweisDerKarte,
 } from '../../src/shared/kanban/kanban-core.js';
 import { findPercentCommentRanges } from '../../src/shared/markdown/plugins/comments.js';
 import { findCalendarValues } from '../../src/shared/calendar/calendar-core.js';
@@ -40,6 +42,8 @@ const OHNE_KENNZEICHEN = fixture('fremde-kopf-schlüssel.md');
 // 4T-001902: Vorbild-Termine, Limits, Kalender-Wert und fremdes Archiv in der
 // am Quelltext des Vorbilds belegten Grammatik; Inhalte erfunden.
 const STUFE2 = fixture('tafel-stufe-2.md');
+// 4T-001954: Karten mit Verweisen in allen Formen und ein voller Einstellungs-Block.
+const STUFE3 = fixture('tafel-stufe-3.md');
 
 function rundlauf(text) {
   return schreibeTafel(leseTafel(text));
@@ -440,6 +444,108 @@ describe('kanban-core — Rundlauf der Stufe-2-Tafel ist byte-gleich (4T-001902 
   });
 });
 
+describe('kanban-core — erster Verweis einer Karte (4T-001954 AK6)', () => {
+  const leer = { anker: null, alias: null, zusatz: null, einbettung: false, bereich: null };
+
+  it('liefert Ziel, Anker und Alias getrennt', () => {
+    expect(ersterVerweis('[[Projekt]]')).toEqual({
+      ...leer,
+      ziel: 'Projekt',
+      roh: '[[Projekt]]',
+      zeile: 0,
+    });
+    expect(ersterVerweis('Text [[Projekt|Kurz]] mehr')).toEqual({
+      ...leer,
+      ziel: 'Projekt',
+      alias: 'Kurz',
+      roh: '[[Projekt|Kurz]]',
+      zeile: 0,
+    });
+    expect(ersterVerweis('[[Projekt#Stand der Dinge|Stand]]')).toEqual({
+      ...leer,
+      ziel: 'Projekt',
+      anker: 'Stand der Dinge',
+      alias: 'Stand',
+      roh: '[[Projekt#Stand der Dinge|Stand]]',
+      zeile: 0,
+    });
+    expect(ersterVerweis('[[Projekt#^block-1]]').anker).toBe('^block-1');
+  });
+
+  it('erkennt eine Einbettung und führt ihren Teil hinter dem Strich als Zusatz, nicht als Alias', () => {
+    expect(ersterVerweis('Bild ![[titel.png|200]]')).toEqual({
+      ...leer,
+      ziel: 'titel.png',
+      zusatz: '200',
+      einbettung: true,
+      roh: '![[titel.png|200]]',
+      zeile: 0,
+    });
+  });
+
+  it('nimmt den ersten Verweis und überspringt die Verweis-Form @[[…]] des Vorbilds', () => {
+    expect(ersterVerweis('A [[Erster]] B [[Zweiter]]').ziel).toBe('Erster');
+    expect(ersterVerweis('Termin @[[2026-10-04]] vor [[Ziel]]').ziel).toBe('Ziel');
+    expect(ersterVerweis('Nur @[[2026-10-04]]')).toBeNull();
+  });
+
+  it('liefert null ohne Verweis und übersieht Verweise in Inline-Code und Code-Zaun', () => {
+    expect(ersterVerweis('Kein Verweis, nur [Klammern] und [[]]')).toBeNull();
+    expect(ersterVerweis('')).toBeNull();
+    expect(ersterVerweis(null)).toBeNull();
+    expect(ersterVerweis('`[[im Code]]` und dann [[echt]]').ziel).toBe('echt');
+    expect(ersterVerweis('```\n[[im Zaun]]\n```\n[[danach]]')).toMatchObject({
+      ziel: 'danach',
+      zeile: 3,
+    });
+  });
+
+  it('zerlegt nach den Regeln der Lese-Ansicht: Rückstrich vor dem Strich, Klammer im Inneren, reiner Anker', () => {
+    // Der Strich in einer Tabellen-Zelle steht als `\|` — der Rückstrich gehört nicht zum Ziel.
+    expect(ersterVerweis('[[Ziel\\|Alias]]')).toMatchObject({ ziel: 'Ziel', alias: 'Alias' });
+    expect(ersterVerweis('[[a[b]] dann [[gut]]').ziel).toBe('gut');
+    expect(ersterVerweis('[[#Abschnitt]]')).toMatchObject({ ziel: '', anker: 'Abschnitt' });
+    // Eine Einbettung nur aus einem Anker ist in der Lese-Ansicht keine.
+    expect(ersterVerweis('![[#Abschnitt]] [[weiter]]').ziel).toBe('weiter');
+  });
+
+  it('führt das Kürzel einer Bereichs-Verknüpfung mit, ohne das Ziel zu kürzen', () => {
+    expect(ersterVerweis('[[@zt:Datei#Kapitel]]')).toMatchObject({
+      ziel: '@zt:Datei',
+      anker: 'Kapitel',
+      bereich: 'zt',
+    });
+  });
+
+  it('findet den ersten Verweis jeder Karte der Beispiel-Tafel, auch in einer Folgezeile', () => {
+    const model = leseTafel(STUFE3);
+    const ziele = model.spalten.flatMap((s) =>
+      s.karten.map((k) => {
+        const v = ersterVerweisDerKarte(model, k);
+        return v && [v.ziel, v.anker, v.alias, v.einbettung, v.zeile];
+      }),
+    );
+    expect(ziele).toEqual([
+      ['Projekt Alpha', null, null, false, 6],
+      ['Projekt Beta', null, 'Beta', false, 7],
+      ['Projekt Delta', 'Stand', null, false, 8],
+      ['Projekt Epsilon', null, null, false, 10],
+      ['titelbild.png', null, null, true, 11],
+      ['Projekt Zeta', null, null, false, 18],
+    ]);
+    expect(ersterVerweisDerKarte(model, null)).toBeNull();
+  });
+
+  it('liest in einer CRLF-Tafel dieselben Verweise', () => {
+    const model = leseTafel(STUFE3.replace(/\n/g, '\r\n'));
+    const karte = model.spalten[0].karten[3];
+    expect(ersterVerweisDerKarte(model, karte)).toMatchObject({
+      ziel: 'Projekt Epsilon',
+      zeile: 10,
+    });
+  });
+});
+
 describe('kanban-core — Prozess-Neutralität (AK9)', () => {
   it('läuft in reiner Node-Umgebung ohne DOM und ohne Electron', () => {
     expect(typeof window).toBe('undefined');
@@ -455,6 +561,10 @@ describe('kanban-core — Prozess-Neutralität (AK9)', () => {
         '../markdown/plugins/comments.js',
         // 4T-001913: die Zaun-Regel aus ihrer Heimat, abhängigkeitsfrei.
         '../markdown/fence-level.js',
+        // 4T-001954: Wiki-Muster und Code-Maskierung aus der gemeinsamen Quelle.
+        '../markdown/link-scan.js',
+        // 4T-001957: der Satz der Bild-Endungen, prozessneutral.
+        '../bild-endungen.js',
       ],
       'kanban-einstellungen.js': ['./kanban-core.js'],
       'kanban-archiv.js': ['./kanban-core.js', './kanban-operationen.js'],

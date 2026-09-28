@@ -405,6 +405,9 @@ const IM_UNTERMENUE = [
   'kanban.addColumn',
   'kanban.toggleTagsFooter',
   'kanban.toggleRelativeDates',
+  // 4T-001955: als vierte Gruppe hinter einem Trenner der Dialog
+  // «Einstellungen dieser Tafel…».
+  'kanban.boardSettings',
 ];
 // Die Grenze zwischen den beiden Gruppen: Vor diesem Kommando steht der Trenner.
 const ZWEITE_GRUPPE = 'kanban.addCard';
@@ -541,6 +544,9 @@ describe('Kanban: das gebaute Untermenü und sein Aus-Zustand (4T-001852, 4T-001
       '—',
       tForLocale('de', 'menu.view.kanbanTagsFooter'),
       tForLocale('de', 'menu.view.kanbanRelativeDates'),
+      // 4T-001955: die vierte Gruppe.
+      '—',
+      tForLocale('de', 'command.kanban.boardSettings'),
     ]);
     // Der Modus-Eintrag bleibt außerhalb und steht davor.
     const iModus = ansicht.findIndex((i) => i.label === tForLocale('de', 'menu.view.kanban'));
@@ -587,18 +593,22 @@ describe('Kanban: das gebaute Untermenü und sein Aus-Zustand (4T-001852, 4T-001
       '—',
       tForLocale('de', 'menu.view.kanbanTagsFooter'),
       tForLocale('de', 'menu.view.kanbanRelativeDates'),
+      '—',
+      tForLocale('de', 'command.kanban.boardSettings'),
     ]);
   });
 
   it('4T-001854: nur die zweite Gruppe abgeschaltet — der Trenner bleibt nicht am Ende stehen', () => {
     // 4T-001904: Die dritte Gruppe (Anzeige-Schalter) ist mit abgeschaltet;
     // sonst stünde der Trenner zwischen erster und dritter Gruppe.
+    // 4T-001955: ebenso die vierte (Einstellungen der Tafel).
     const ansicht = baueAnsichtsMenue([
       'kanban.addCard',
       'kanban.archiveCard',
       'kanban.addColumn',
       'kanban.toggleTagsFooter',
       'kanban.toggleRelativeDates',
+      'kanban.boardSettings',
     ]);
     const eintrag = ansicht.find((i) => i.label === TAFEL);
     expect(eintrag, 'Eintrag «Kanban-Tafel» fehlt im Ansichtsmenü').toBeTruthy();

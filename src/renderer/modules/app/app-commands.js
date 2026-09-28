@@ -93,8 +93,10 @@ import {
 // 4T-001849 (Epic 3E-000110): Karte auf der Kanban-Tafel anlegen.
 import {
   archiviereKanbanKarte,
+  erzeugeKanbanNotiz,
   legeKanbanKarteAn,
   legeKanbanSpalteAn,
+  oeffneKanbanTafelEinstellungen,
 } from '../kanban/kanban-pane.js';
 // 4T-001852 (Epic 3E-000110): die beiden Wege zu einer Tafel.
 import { legeNeueTafelAn, wandleInTafelUm } from '../kanban/kanban-anlegen.js';
@@ -479,6 +481,12 @@ export const commandHandlers = {
   // archivieren; ohne Wahl ohne Wirkung, außerhalb der Tafel-Ansicht ein
   // Hinweis, nach demselben Guard-Muster.
   'kanban.archiveCard': () => archiviereKanbanKarte(state.activePaneIndex),
+  // 4T-001956 (Epic 3E-000319): «Notiz aus Karte erzeugen…» an der gewählten
+  // Karte der aktiven Tafel, nach demselben Guard-Muster.
+  'kanban.noteFromCard': () => erzeugeKanbanNotiz(state.activePaneIndex),
+  // 4T-001955 (Epic 3E-000319): Dialog «Einstellungen dieser Tafel…» der
+  // aktiven Tafel, nach demselben Guard-Muster.
+  'kanban.boardSettings': () => oeffneKanbanTafelEinstellungen(state.activePaneIndex),
   // 4T-001851 (Epic 3E-000110): Spalte am Ende der aktiven Tafel anlegen,
   // danach sofort benennbar. Ausserhalb der Tafel-Ansicht ein Hinweis, nach
   // demselben Guard-Muster wie beim Karten-Kommando darueber.

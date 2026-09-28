@@ -145,9 +145,11 @@
   "command.canvas.addConnection": "Ajouter une connexion au canevas…",
   "command.kanban.addCard": "Ajouter une carte au tableau",
   "command.kanban.archiveCard": "Archiver la carte du tableau",
+  "command.kanban.noteFromCard": "Créer une note à partir de la carte…",
   "command.kanban.addColumn": "Ajouter une colonne au tableau",
   "command.kanban.newBoard": "Nouveau tableau Kanban",
   "command.kanban.convertToBoard": "Convertir le document vide en tableau Kanban",
   "command.kanban.toggleTagsFooter": "Activer ou désactiver les tags en pied de carte",
-  "command.kanban.toggleRelativeDates": "Activer ou désactiver les dates relatives"
+  "command.kanban.toggleRelativeDates": "Activer ou désactiver les dates relatives",
+  "command.kanban.boardSettings": "Paramètres de ce tableau…"
 }

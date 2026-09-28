@@ -42,7 +42,22 @@ import { leseTafel } from '../../../shared/kanban/kanban-core.js';
  * @returns {{ok: boolean, text?: string, befund?: object}}
  */
 export function aendereKarteUndSchreibeUm(text, angaben = {}) {
-  const ergebnis = aendereKarte(text, angaben);
+  return schreibeVorbildTerminNach(aendereKarte(text, angaben), angaben);
+}
+
+/**
+ * Der zweite Schritt von `aendereKarteUndSchreibeUm`, für jede Text-Operation,
+ * die den Text einer Karte ändert: Ist danach noch ein lesbarer Vorbild-Termin
+ * da, wird er in derselben Rechnung umgeschrieben. 4T-001956: herausgelöst,
+ * damit «Notiz aus Karte erzeugen…» denselben Umschreibe-Weg nimmt wie das
+ * Bearbeiten (Entscheidung der steuernden Sitzung vom 2026-09-27).
+ *
+ * @param {{ok: boolean, text?: string, befund?: object}} ergebnis Ergebnis der
+ *   vorangegangenen Operation.
+ * @param {{spalte: number, karte: number}} angaben
+ * @returns {{ok: boolean, text?: string, befund?: object}}
+ */
+export function schreibeVorbildTerminNach(ergebnis, angaben = {}) {
   if (!ergebnis || ergebnis.ok !== true) return ergebnis;
   const spalte = leseTafel(ergebnis.text).spalten[angaben.spalte];
   const karte = spalte ? spalte.karten[angaben.karte] : null;

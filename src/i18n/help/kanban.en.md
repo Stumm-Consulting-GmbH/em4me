@@ -18,7 +18,7 @@ What counts is the **presence** of the key, not its value: `board`, `list` or an
 
 ## The “Kanban” extension
 
-The feature belongs to the [internal extensions](extensions.md) (“Board view (Kanban)”). When it is switched off, the view mode goes away, the commands for card, column and board disappear, and with them the submenu **Kanban board** in the **View** menu, which does not stay behind empty. The document remains readable exactly as it was; nothing is ever written in the disabled state, and columns and cards stay in the text.
+The feature belongs to the [internal extensions](extensions.md) (“Board view (Kanban)”). When it is switched off, the view mode goes away, the commands for card, column and board disappear, and with them the submenu **Kanban board** in the **View** menu, which does not stay behind empty, and the **Kanban board** section of the settings. The document remains readable exactly as it was; nothing is ever written in the disabled state, and columns and cards stay in the text.
 
 The board requires the **Tasks** extension, because a card **is** a task line. If that one is switched off, the board is too.
 
@@ -64,8 +64,10 @@ A board without columns and a column without cards say so in their place instead
 | Apply | click outside the card | `Enter` | — | — |
 | Discard | — | `Escape` | — | — |
 | Change state | click on the checkbox | `Space` | — | — |
-| Set or change the date | click on the due-date badge | — | **Set date…** | — |
+| Set or change the date | click on the due-date badge, unless the date leads to the journal entry | — | **Set date…** | — |
 | Remove the date | — | — | **Remove date** | — |
+| Create a note from the card | — | — | **Create note from card…** | **Create note from card…** |
+| Open the target of a link | click on the link in the card text | — | — | — |
 | Archive | — | — | **Archive card** | **Archive card on board** |
 | Delete | — | `Del` | **Delete card** | — |
 
@@ -124,7 +126,7 @@ Moving and marking together are **one** action and therefore a single undo step.
 
 Below the card text stands a row of **badges** with the details of the task: the due date with its time, the scheduled and start dates, priority, recurrence and the other task markers. They are the same badges as in the reading view, with the same marking for overdue and invalid details. A card without details carries no such row.
 
-**Setting and removing the date.** The context menu of a card offers **Set date…** and, as soon as the card carries a due date, **Remove date**; a click on the due-date badge also leads to setting it. You choose in the date picker of the tasks, optionally with a time and preset with the existing date. The date is written into the card line in the task notation of the application:
+**Setting and removing the date.** The context menu of a card offers **Set date…** and, as soon as the card carries a due date, **Remove date**; a click on the due-date badge also leads to setting it, unless the date leads to the journal entry for the day (see “Links and date on the card”). You choose in the date picker of the tasks, optionally with a time and preset with the existing date. The date is written into the card line in the task notation of the application:
 
 ```markdown
 - [ ] Send the quote 📅 2026-10-02 14:00
@@ -132,7 +134,7 @@ Below the card text stands a row of **badges** with the details of the task: the
 
 It therefore also appears in the reading view and in the task queries. Every setting and removing is one undo step; if the document changes while the date picker is open, the choice is discarded and the status bar says so.
 
-**Relative display.** With the switch **View → Kanban board → Show dates as relative**, due, scheduled and start dates read from today: “today”, “tomorrow”, “in 3 days”, “2 days ago”, in the language of the interface and with the time appended. The exact date then stands in the tooltip of the badge. Created, done and cancelled dates stay absolute, because they record when something happened. The switch is off by default, applies to all boards in all windows and changes nothing in the document.
+**Relative display.** With the switch **View → Kanban board → Show dates as relative**, due, scheduled and start dates read from today: “today”, “tomorrow”, “in 3 days”, “2 days ago”, in the language of the interface and with the time appended. The exact date then stands in the tooltip of the badge. Created, done and cancelled dates stay absolute, because they record when something happened. The switch is off by default, sets the default for all boards in all windows and changes nothing in the document; a single board can override it for itself (see “Board settings”).
 
 **Dates in the notation of the other tool.** The board tool the format comes from writes a due date as `@{…}` and a time as `@@{…}` into the card line. The board reads both and shows them as a due-date badge with a dashed border; its tooltip names the origin. **The first time the card is edited, such a date is rewritten into the task notation** — when a changed card text is applied as well as when the date is set or removed. The first line becomes the second:
 
@@ -145,7 +147,7 @@ It therefore also appears in the reading view and in the task queries. Every set
 
 ## Tags at the card footer
 
-On the card, tags first stand where they are written: in the card text, rendered as in the reading view. With the switch **View → Kanban board → Tags in card footer** they leave the displayed text and stand gathered in a row of their own at the foot of the card — including the tags from indented follow-up lines, each once and in the order of its occurrence. The switch is off by default, applies to all boards in all windows and changes nothing in the document: the tags stay in the line where they stand.
+On the card, tags first stand where they are written: in the card text, rendered as in the reading view. With the switch **View → Kanban board → Tags in card footer** they leave the displayed text and stand gathered in a row of their own at the foot of the card — including the tags from indented follow-up lines, each once and in the order of its occurrence. The switch is off by default, sets the default for all boards in all windows and changes nothing in the document: the tags stay in the line where they stand. A single board can override it for itself.
 
 A click on a tag of the card — at the footer as in the text — filters the tags sidebar by it, as in the reading view; selection and editing of the card stay unaffected. While a card is being edited its tag row is hidden, because the input shows the raw text including the tags. Both display switches can be chosen only in the open board view.
 
@@ -159,7 +161,7 @@ It is set and changed through **Set limit…** in the context menu of the column
 
 ## Archive
 
-**Archive card** in the context menu of a card, or the command **Archive card on board** for the selected card, takes the card together with its indented follow-up lines out of its column and writes it to the end of the **archive section** of the same document. A timestamp of date and time is placed before its text; its state and its other details stay as they are:
+**Archive card** in the context menu of a card, or the command **Archive card on board** for the selected card, takes the card together with its indented follow-up lines out of its column and writes it to the end of the **archive section** of the same document. A timestamp of date and time is placed before its text as long as the setting **Archive with timestamp** applies, as it does by default; its state and its other details stay as they are:
 
 ```markdown
 ***
@@ -171,7 +173,7 @@ It is set and changed through **Set limit…** in the context menu of the column
 
 If the section is missing, it is created behind the last column, with the heading the other tool also writes in the language of the interface; an existing section is continued with its heading and its contents.
 
-**The archive keeps the latest 100 cards.** If one is added when it is full, the oldest drops out; an archive that another tool left behind with more cards is cut to the latest 100 the first time a card is archived.
+**By default the archive keeps the latest 100 cards.** If one is added when it is full, the oldest drops out; an archive that another tool left behind with more cards is cut to the latest ones the first time a card is archived. The number can be set, and `0` means unlimited (see “Board settings”).
 
 **An archived card cannot be brought back on the board**, because the archive does not appear there. Archiving is, however, exactly one undo step, and in the document the card still stands in plain text. Afterwards the selection moves to the next card in the column, as with deleting; without a selected card the command has no effect.
 
@@ -185,15 +187,96 @@ What is searched is the text of the card and its indented follow-up lines, inclu
 
 `Escape` in the field ends the filter and shows all cards again; so does switching to another view or to another document. If the board draws itself anew in the meantime, search text and input focus are kept.
 
+## Board settings
+
+The behaviour of the board can be set on two levels: as a **default** for all boards and **per board** with a value of its own. A value of its own takes precedence over the default; a board without values of its own follows the defaults in everything.
+
+**The defaults** are found under **File → Settings… → Kanban board**, in the block **Extensions (internal)**:
+
+| Setting | by default |
+| ------- | ---------- |
+| **Tags in card footer** | off |
+| **Show dates as relative** | off |
+| **Archive with timestamp** | on |
+| **Archive limit in cards (0 = unlimited)** | 100 |
+| **Date leads to the journal entry for the day** | off |
+
+The two check marks in the menu **View → Kanban board** show and set the same defaults as the first two rows. A default never writes into a document.
+
+**Per board**, **Settings for this board…** opens a dialog — in the menu **View → Kanban board**, in the context menu of a column head and in the command palette. The free area of the board has no context menu of its own; the entry therefore sits at the column head.
+
+| Setting | Choice in the dialog | “as default” means |
+| ------- | -------------------- | ------------------ |
+| the four switches of the table above | **as default (on)** or **as default (off)**, **on**, **off** | the value of the settings page, named in the brackets |
+| **Archive limit (cards)** | **as default (…)** or **own value** with a number | the limit of the settings page |
+| **Folder for new notes** | **as default (folder of the board)** or **own value** via **Choose folder…** | the folder the board sits in |
+| **Template for new notes** | **as default (choose when creating)** or **own value** via **Choose template…** | folder rule or choice when creating |
+| **Details of the linked note** | **as default (no details)** or **own value** with one row per detail | the cards show no details |
+
+The choice itself shows where a value comes from: **as default** follows the settings page and changes along with it; everything else applies to this board only. To reset, choose **as default** again. A limit of its own of `0` or less means unlimited.
+
+For the details of the linked note, every row carries the **Key in the document header**, a **Display name (optional)** and the checkbox **Hide name**; **Remove** takes the row out, **Add detail** adds one. A row without a key is dropped when you apply.
+
+The folder is chosen in the folder dialog of the application. It has to lie within the open area — otherwise a notice says “The folder is outside the area.” — and is stored relative to the area's root, the root itself as `/`; without an open area, relative to the folder of the board. The template comes from the template selection of the application and is stored with its path in the templates folder.
+
+**Apply** writes only the changed settings into the settings block at the end of the board document, as **one** undo step; if the block is missing, it is created in the process. **Cancel**, `Escape` and a click beside the dialog change nothing. The effect is visible at once, without reopening the document. The dialog requires the open board view and a changeable document; if the document has changed while it was open, applying is discarded and the status bar says so. If the block cannot be read, the board writes nothing and says: “The settings block at the end of the board cannot be read — the settings were not written.”
+
+## Note from a card
+
+**Create note from card…** turns a card into a note of its own, in the context menu of the card or for the selected card through the command palette. The card text without its markers — tags, task markers and a due date in the notation of the other tool — becomes the name of the note, and on the card the link to it takes the place of the text. The markers stay in their order, and so do the indented follow-up lines; the first line becomes the second:
+
+```markdown
+- [ ] Write the quote #customer 📅 2026-10-02
+- [ ] [[Write the quote]] #customer 📅 2026-10-02
+```
+
+A link in the card text goes into the name with its display text. Slashes and the characters a file name cannot carry become `_`; no subpage is created in the process. If nothing usable is left of the text, the application asks for the name. A card whose text is empty without its markers does not offer the entry.
+
+**Where the note goes:** into the folder for new notes from the board settings, otherwise into the folder of the board. If the folder that is set does not exist, a notice says so, and the folder dialog lets you choose another one; a missing folder is never created.
+
+**If the name already exists**, nothing is ever overwritten. The application asks “A document ‘Name’ already exists. How do you want to continue?” and offers **Choose another name…** — the name prompt, preset with the name — and **Link to the existing document**: then no file is created, the card gets the link to the existing document, and it is not opened. `Escape` cancels.
+
+**Which template applies**, in this order:
+
+1. the template from the board settings; if it cannot be found, a notice says so, and the selection follows;
+2. otherwise the [folder rule](templates.md) of the target folder;
+3. otherwise the selection of templates with **No template (empty note)** in first place.
+
+If no templates are set up or the “Templates” extension is switched off, an empty note is created without a selection. A chosen template is filled in as with **New File from Template…**, with the name of the note as its title.
+
+**Afterwards** the application creates the file, replaces the card text and opens the new note as a document of its own; the board stays open next to it. A due date in the notation of the other tool is rewritten in the process, as when the card is edited. If creating fails, the card stays unchanged. If the board has changed while the dialogs were open, the card likewise stays unchanged, but the note is created and opened, and a notice says both.
+
+**Undo** restores the card text in one step; the created note remains as a file.
+
+## Details of the linked note
+
+If a card carries a link to a note, it can show details from that note's **document header** — such as status, owners or a cover image. Which ones is determined by the board setting **Details of the linked note**; by default a card shows none.
+
+**Which link counts:** the first wiki link with a target, in the card line or its follow-up lines. A pure section link such as `[[#Section]]` and the embedding of an image do not count; the embedding of a document does.
+
+**How the details appear:** as lines “Name: value” below the card text, before badges and tags. The name is the display name from the setting, otherwise the key; with **Hide name** only the value stands there. Only keys with a value appear, in the order of the setting. A list is joined with commas. A detail is limited to two lines; the full value stands in the tooltip.
+
+**Images:** if a value as a whole is a path with an image extension or a link such as `[[image.png]]` or `![[image.png|200]]`, the image appears in its place at card width and with limited height. It is looked for relative to the linked note, within the open area; without an area, in the folder of the note and below. If the image is missing, the detail is dropped; a web address never becomes an image.
+
+The details are only read, never written, and the cards appear at once — the details follow as soon as they have been read. They are **up to date** the next time the board is drawn anew: after switching the view, after a change to the board or on returning to its document. If the note is changed while the board stays visible next to it, the new state appears only the next time the board is drawn anew.
+
+## Links and date on the card
+
+**A link in the card text opens its target**, like a click in the reading view: a wiki link with and without display text, a link to a target that does not exist yet, an ordinary Markdown link and a web address behave as they do there. The click does not select the card and also works in a document that cannot be changed; an open input is applied first. A double-click on a link does not start editing — you edit with a double-click beside the link, with `Enter`, `F2` or through the context menu.
+
+**The date leads to the journal entry for the day** when the setting **Date leads to the journal entry for the day** applies to the board (off by default) and the open area has at least one [journal](journals.md) with the granularity “day”. The due-date badge is then underlined, the pointer turns into a hand, and the tooltip reads “Open the journal entry for this day”. A click opens the entry for that day and creates it if it does not exist yet — like **Today's Journal Entry** for today's; with several such journals you are asked which one. The time plays no role. This also holds for a due date in the notation of the other tool and in a document that cannot be changed, because the board changes nothing in the process. The date is then changed through **Set date…** in the context menu of the card.
+
+Without an open area or without a journal with the granularity “day”, the badge stays what it was: the click opens the date picker, and no notice appears. The same holds when the setting is off.
+
 ## Undo
 
-`Ctrl+Z` takes back the last action on the board, `Ctrl+Y` and `Ctrl+Shift+Z` restore it. Every action is exactly one step: a created card, a changed text, a state change, a drag including the marking, a deleted column with all its cards, a set or removed date, a changed limit, an archived card. While the input of a card or a column title is open, `Ctrl+Z` applies to the typed text there.
+`Ctrl+Z` takes back the last action on the board, `Ctrl+Y` and `Ctrl+Shift+Z` restore it. Every action is exactly one step: a created card, a changed text, a state change, a drag including the marking, a deleted column with all its cards, a set or removed date, a changed limit, an archived card, an application in the dialog **Settings for this board…**, the replacement of the card text by the link to a created note — whose file remains in the process. While the input of a card or a column title is open, `Ctrl+Z` applies to the typed text there.
 
 If the document changes elsewhere in the meantime — because the same document is being edited next to it, say — the started action is discarded instead of written blindly; the status bar says so, and the board draws itself anew.
 
 ## View only
 
-The board follows the changeability of its document. While the document is in plain display, without edit mode switched on, the board is **view-only**: no buttons, no dragging, no input, no clickable checkbox, and the context menu stays without entries. The way through command palette and menu does not get around this either; the failure is stated in the status bar and not kept quiet. Looking, selecting, scrolling and filtering the cards remain allowed, because they do not touch the document; so do the two display switches. The due-date badge is display only here.
+The board follows the changeability of its document. While the document is in plain display, without edit mode switched on, the board is **view-only**: no buttons, no dragging, no input, no clickable checkbox, and the context menu stays without entries. The way through command palette and menu does not get around this either; the failure is stated in the status bar and not kept quiet. Looking, selecting, scrolling and filtering the cards remain allowed, because they do not touch the document; so do the two display switches, the click on a link and the click on a date that leads to the journal entry for the day. Otherwise the due-date badge is display only here. **Settings for this board…** and **Create note from card…** write into the document and are therefore not available.
 
 Edit mode releases the handling — the pen in the status bar, default `Ctrl+E`; the details are described on the page [Views and display](views-display.md).
 
@@ -271,9 +354,9 @@ kanban-plugin: board
 
 ### What stays untouched
 
-**The archive section and the settings block are not shown on the board.** The settings block is never changed, the archive section only when a card is archived; otherwise both stay in the file as they are, and whoever opens a board and closes it again without a change gets back the very same file — including the line endings, a missing final line break and every entry this application does not know.
+**The archive section and the settings block are not shown on the board.** The settings block is changed only through the dialog **Settings for this board…**, the archive section only when a card is archived; otherwise both stay in the file as they are, and whoever opens a board and closes it again without a change gets back the very same file — including the line endings, a missing final line break and every entry this application does not know.
 
-One exception with a good reason: if the settings block holds the list of which columns are collapsed, that list follows along when a column is created, deleted or moved. If it stayed as it was, the other tool would afterwards have collapsed the wrong columns. Everything else in the block stays character for character as it was.
+One exception with a good reason: if the settings block holds the list of which columns are collapsed, that list follows along when a column is created, deleted or moved. If it stayed as it was, the other tool would afterwards have collapsed the wrong columns. Everything else in the block stays character for character as it was, until a setting of the board is changed — and even then only its own entry changes (see “Working together with other tools”).
 
 Only the range of lines that really changes is ever written — not the whole document. The cursor and the folds of the editor therefore stay where they are.
 
@@ -294,7 +377,30 @@ The format comes from a widely used board tool for Markdown notes, and compatibi
 
 **What changes when you edit:** a due date in the notation of the other tool is rewritten into the task notation of the application the first time its card is edited (see “Details on the card”). **In the other tool it then appears only as text** and no longer as the date of the card. All other details of a task — date markers, priority, recurrence, tags — stay in their line and keep working everywhere else, in the reading view and in the task queries.
 
-**What happens differently here:** archiving always sets a timestamp and keeps the archive at 100 cards; the other tool does both only when it is set up that way. Entries of its settings block, such as a different date format or a different archive limit, are not evaluated by the board.
+**What happens differently here:** by default archiving sets a timestamp and keeps the archive at 100 cards; the other tool does both only when it is set up that way. For the details of the linked note, the **first** link of a card counts here and the last one in the other tool; a card with several links therefore shows the details of different notes in the two tools.
+
+### The settings in the settings block
+
+The settings of a board stand in the settings block at the end of the file, in the notation of the other tool; both tools read and write the same entries:
+
+| Setting here | Entry in the block |
+| ------------ | ------------------ |
+| Tags in card footer | `move-tags` |
+| Show dates as relative | `show-relative-date` |
+| Archive with timestamp | `archive-with-date` |
+| Archive limit | `max-archive-size` (`-1` means unlimited) |
+| Date leads to the journal entry for the day | `link-date-to-daily-note` |
+| Folder for new notes | `new-note-folder` |
+| Template for new notes | `new-note-template` |
+| Details of the linked note | `metadata-keys` |
+
+An example of the line in the block, with an entry of the other tool's own at the front:
+
+```json
+{"kanban-plugin":"board","move-tags":true,"max-archive-size":-1}
+```
+
+**Writing happens per entry.** If the dialog changes a setting, only its entry changes; order, notation and all other entries of the block stay character for character, including those this application does not know, such as a date format or colours for tags. A new entry goes to the end of the line. **as default** removes the entry; a block that becomes empty as a result stays behind as `{}`. If the block is missing, it is created at the end of the file on the first apply. An entry whose value does not fit the setting counts as not set; the default applies. A limit of its own of `0` or less is written as `-1`, the value the other tool knows for unlimited.
 
 ## Limits
 
@@ -303,7 +409,9 @@ The format comes from a widely used board tool for Markdown notes, and compatibi
 - **Moving is done with the mouse.** There is no keyboard gesture for moving cards and columns.
 - **A card carries one line.** What you edit is the text of the task line; its indented follow-up lines appear on the card but are changed in the document and not on it.
 - **What is read is the default notation of the other tool:** a due date in the form `@{YYYY-MM-DD}` and a time in the form `@@{HH:mm}`, each the first occurrence in the card line. A differently configured format, a second occurrence and the link form `@[[…]]` stay text.
-- **There is no way back from the archive on the board.** Archived cards do not appear there and can only be brought back in the document itself; the archive keeps a fixed number of the latest 100 cards.
-- **There are no settings per board.** The two display switches apply to all boards; the settings block is read and preserved, but its entries have no effect on the board.
-- **A card is not a note.** No note of its own is created from a card, the card shows no fields or images of a linked note, and a date on the card does not open a daily note.
+- **There is no way back from the archive on the board.** Archived cards do not appear there and can only be brought back in the document itself; by default the archive keeps the latest 100 cards.
+- **Details of the linked note are text.** Markdown in a value is not rendered; only a value that as a whole points to an image file appears as an image, not a list of images and not the image notation `![](…)`. Search and filter of the board do not include the details.
+- **The details do not follow the link everywhere.** A link into a linked area and a note that could only be found through its alias stay without details; if there are several notes of the same name, the first one counts. The details become up to date the next time the board is drawn anew, not when the note is saved.
+- **The date leads only to a journal with the granularity “day”.** Without an open area or without such a journal the date stays an ordinary badge whose click opens the date picker.
+- **The name of a created note is a file name.** Slashes become underscores, no subpage is created; a date marker in the middle of the text with more text after it counts as text and becomes part of the name.
 - **A column without a heading does not exist.** Task lines that stand before the first heading belong to no column and therefore do not appear on the board; in the document they stay where they are.

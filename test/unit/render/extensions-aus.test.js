@@ -1054,6 +1054,8 @@ describe('Erweiterung kanban: Registry und Aus-Zustand (4T-001847)', () => {
       'kanban.addCard',
       // 4T-001906: das Archivieren der gewählten Karte.
       'kanban.archiveCard',
+      // 4T-001956: «Notiz aus Karte erzeugen…».
+      'kanban.noteFromCard',
       'kanban.addColumn',
       'kanban.newBoard',
       'kanban.convertToBoard',
@@ -1061,6 +1063,8 @@ describe('Erweiterung kanban: Registry und Aus-Zustand (4T-001847)', () => {
       'kanban.toggleTagsFooter',
       // 4T-001903: der Schalter «Termine relativ anzeigen».
       'kanban.toggleRelativeDates',
+      // 4T-001955: der Dialog «Einstellungen dieser Tafel…».
+      'kanban.boardSettings',
     ]);
     const registrierte = new Set(COMMANDS.map((c) => c.id));
     for (const id of manifest.commands) {
@@ -1074,6 +1078,8 @@ describe('Erweiterung kanban: Registry und Aus-Zustand (4T-001847)', () => {
     expect(aus.has('kanban.addCard')).toBe(true);
     // 4T-001906: mit ihr das Archivieren der gewählten Karte.
     expect(aus.has('kanban.archiveCard')).toBe(true);
+    // 4T-001956: ebenso «Notiz aus Karte erzeugen…».
+    expect(aus.has('kanban.noteFromCard')).toBe(true);
     expect(aus.has('kanban.addColumn')).toBe(true);
     // 4T-001852: mit ihnen die beiden Wege zu einer Tafel — und damit das
     // ganze Untermenü «Kanban-Tafel», das aus genau diesen beiden entsteht.
@@ -1083,6 +1089,9 @@ describe('Erweiterung kanban: Registry und Aus-Zustand (4T-001847)', () => {
     expect(aus.has('kanban.toggleTagsFooter')).toBe(true);
     // 4T-001903: und der Schalter «Termine relativ anzeigen».
     expect(aus.has('kanban.toggleRelativeDates')).toBe(true);
+    // 4T-001955: und der Dialog «Einstellungen dieser Tafel…».
+    expect(aus.has('kanban.boardSettings')).toBe(true);
+    expect(disabledCommandIdSet([]).has('kanban.boardSettings')).toBe(false);
     // Die Nachbarn in denselben Menüs bleiben unberührt.
     for (const id of [
       'view.modeRendered',
@@ -1096,6 +1105,12 @@ describe('Erweiterung kanban: Registry und Aus-Zustand (4T-001847)', () => {
     }
     expect(disabledCommandIdSet([]).has('view.modeKanban')).toBe(false);
     expect(disabledCommandIdSet([]).has('kanban.addCard')).toBe(false);
+  });
+
+  it('4T-001955: der Abschnitt «Kanban-Tafel» der Einstellungen hängt an der Erweiterung', () => {
+    // Der Block «Erweiterungen (intern)» entsteht aus diesem Feld; im
+    // Aus-Zustand blendet die Einstellungs-Seite den Abschnitt darüber aus.
+    expect(extensionById('kanban').settingsSections).toEqual(['kanban']);
   });
 
   it('AK8: mit abgeschalteten Aufgaben entfällt das Kommando ebenso', () => {

@@ -42,7 +42,7 @@ Le canevas montre une surface avec des cartes et des connexions qui se trouve da
 
 ### Tableau
 
-Le tableau montre les tâches du document sous forme de tableau Kanban : les listes nommées du document comme colonnes, les lignes de tâche qu'elles contiennent comme cartes. Il appartient à l'extension « Kanban » et disparaît avec elle ; comme le canevas, il dépend du document et n'est sélectionnable que si celui-ci porte la marque d'en-tête d'un tableau. Créer et convertir, manipuler cartes et colonnes, déplacer à la souris, échéances, tags, limite, archive et filtre ainsi que le format d'enregistrement sont décrits sur la page [Tableau Kanban](kanban.md).
+Le tableau montre les tâches du document sous forme de tableau Kanban : les listes nommées du document comme colonnes, les lignes de tâche qu'elles contiennent comme cartes. Il appartient à l'extension « Kanban » et disparaît avec elle ; comme le canevas, il dépend du document et n'est sélectionnable que si celui-ci porte la marque d'en-tête d'un tableau. Créer et convertir, manipuler cartes et colonnes, déplacer à la souris, échéances, tags, limite, archive et filtre, les paramètres du tableau, le lien entre carte et note ainsi que le format d'enregistrement sont décrits sur la page [Tableau Kanban](kanban.md).
 
 ### Modifier
 

@@ -181,6 +181,9 @@ function vorbildAbzeichen(termin, labels, optionen, t) {
   spec.title = optionen.relativ === true ? `${absolut(seg.value)}\n${hinweis}` : hinweis;
   const el = abzeichen(spec);
   if (optionen.aenderbar !== false) el.dataset.kanbanTermin = 'vorbild';
+  // 4T-001958: Das Datum steht auch im nicht änderbaren Dokument daran — der
+  // Weg zur Tagesnotiz schreibt nichts und bleibt dort erlaubt.
+  el.dataset.kanbanDatum = termin.datum;
   return el;
 }
 
@@ -222,6 +225,11 @@ export function baueMarkerReihe(karte, optionen = {}) {
     const el = abzeichen(spec);
     if (seg.kind === 'date' && seg.field === 'due' && optionen.aenderbar !== false) {
       el.dataset.kanbanTermin = 'due';
+    }
+    // 4T-001958: das Datum des Termins, für den Weg zur Tagesnotiz; ein
+    // ungültiger Termin hat keines.
+    if (seg.kind === 'date' && seg.field === 'due' && !seg.value.invalid) {
+      el.dataset.kanbanDatum = seg.value.date;
     }
     elemente.push(el);
   }

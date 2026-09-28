@@ -42,7 +42,7 @@ El lienzo muestra una superficie con tarjetas y conexiones que se encuentra en e
 
 ### Tablero
 
-El tablero muestra las tareas del documento como tablero Kanban: las listas con nombre del documento como columnas y las líneas de tarea que contienen como tarjetas. Pertenece a la extensión «Kanban» y desaparece con ella; como el lienzo, depende del documento y solo puede elegirse si este lleva la marca de encabezado de un tablero. Crear y convertir, manejar tarjetas y columnas, mover con el ratón, fechas, etiquetas, límite, archivo y filtro, así como el formato de almacenamiento, se describen en la página [Tablero Kanban](kanban.md).
+El tablero muestra las tareas del documento como tablero Kanban: las listas con nombre del documento como columnas y las líneas de tarea que contienen como tarjetas. Pertenece a la extensión «Kanban» y desaparece con ella; como el lienzo, depende del documento y solo puede elegirse si este lleva la marca de encabezado de un tablero. Crear y convertir, manejar tarjetas y columnas, mover con el ratón, fechas, etiquetas, límite, archivo y filtro, la configuración del tablero, la unión entre tarjeta y nota, así como el formato de almacenamiento, se describen en la página [Tablero Kanban](kanban.md).
 
 ### Editar
 

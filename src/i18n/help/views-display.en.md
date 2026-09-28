@@ -42,7 +42,7 @@ The canvas shows a surface with cards and connections that lives inside the docu
 
 ### Board
 
-The board shows the tasks of the document as a Kanban board: the named lists of the document as columns, the task lines within them as cards. It belongs to the “Kanban” extension and goes with it; like the canvas it depends on the document and can be chosen only when the document carries the header marker of a board. Creating and converting, handling cards and columns, moving with the mouse, dates, tags, limit, archive and filter as well as the storage format are described on the page [Kanban board](kanban.md).
+The board shows the tasks of the document as a Kanban board: the named lists of the document as columns, the task lines within them as cards. It belongs to the “Kanban” extension and goes with it; like the canvas it depends on the document and can be chosen only when the document carries the header marker of a board. Creating and converting, handling cards and columns, moving with the mouse, dates, tags, limit, archive and filter, the board settings, the connection between card and note as well as the storage format are described on the page [Kanban board](kanban.md).
 
 ### Editing
 

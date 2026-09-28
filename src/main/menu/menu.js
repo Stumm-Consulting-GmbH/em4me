@@ -914,6 +914,16 @@ function buildMenu(win, state, actions) {
             accelerator: acc('kanban.toggleRelativeDates'),
             click: send('menu:kanbanSchalter', 'kanban.toggleRelativeDates'),
           }),
+          // 4T-001955 (Epic 3E-000319): «Einstellungen dieser Tafel…» hinter
+          // den beiden Häkchen und einem Trenner. Die Häkchen bleiben die
+          // globalen Vorgaben; der Dialog stellt die Tafel ein.
+          { type: 'separator' },
+          unless('kanban.boardSettings', {
+            label: t('command.kanban.boardSettings'),
+            enabled: avail('kanban.boardSettings'),
+            accelerator: acc('kanban.boardSettings'),
+            click: send('menu:kanbanBoardSettings'),
+          }),
         ]),
         // 4T-001796 (Epic 3E-000315): die sieben Eintraege, die auf der Flaeche
         // wirken, gebuendelt in EINEM Untermenue «Flaeche bearbeiten»
