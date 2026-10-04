@@ -115,6 +115,8 @@ Un testo nella forma di un identificatore viene sempre letto come identificatore
 
 Entrambe le verifiche hanno bisogno della visione d'insieme delle tabelle dell'area. Se le tabelle non sono ancora state lette completamente, l'applicazione respinge una modifica che imposta un collegamento o elimina un record, e l'avviso chiede di riprovare tra un momento.
 
+Le relazioni si valutano con una query sui record: un percorso come `autore.nome` legge il campo del record collegato, una condizione sul campo di riferimento trova la direzione opposta, e `ancestors(…)` e `descendants(…)` seguono i collegamenti su un numero qualsiasi di livelli. Quanti record puntano a un record lo conta una query raggruppata come `TABLE RECORDS count() FROM "Prestiti" GROUP BY libro`. La pagina [Query Perspective](frontmatter-query.md) descrive entrambe le cose nelle sezioni «Livello di record» e «Raggruppamento e aggregazione».
+
 ## Etichette in più lingue
 
 L'etichetta si trova alla chiave `label`, come testo semplice oppure come corrispondenza da lingua a testo:
@@ -268,6 +270,8 @@ Ogni record ha una **maschera**: una pagina propria che mostra i suoi campi uno 
 ### Aprire e creare
 
 Un record esistente si apre con il pulsante **«Apri record»** all'inizio della sua riga, prima del pulsante dei giustificativi di modifica, sia nella vista di lettura sia nella modalità Live. Da tastiera vi porta il tasto freccia sinistra a partire dal pulsante dei giustificativi.
+
+Dal risultato di una query sui record, un clic su un record o su un collegamento apre ugualmente la maschera (pagina [Query Perspective](frontmatter-query.md)). Essa mostra lo stato salvato, anche se la query ne mostra uno non salvato.
 
 Tre vie creano un nuovo record:
 
@@ -432,7 +436,7 @@ Quello che fa invece: alla propria scrittura successiva confronta lo stato trova
 
 ## Blocchi
 
-Quando più persone lavorano nella stessa area di banca dati, per esempio su un'unità di rete condivisa, un blocco fa sì che due di esse non modifichino contemporaneamente lo stesso record.
+Un blocco fa sì che un record non venga modificato in due punti contemporaneamente, per esempio in due finestre dell'applicazione. Blocchi e giustificativi di modifica sono concepiti per preparare l'accesso condiviso di più persone; tale accesso arriverà con EM4us, il futuro componente server. EM4me stesso è uno strumento per una persona che lavora da sola e in locale. L'uso di più computer in una stessa area su un'unità di rete non è garantito.
 
 ### Che cosa viene bloccato e quando
 
@@ -509,9 +513,10 @@ La ricerca sull'**area** accoglie un documento di tabella senza i suoi record. I
 
 Il motivo sta nell'area e non nella tabella: lo spazio di ricerca tiene in memoria i testi di tutti i file Markdown e porta per questo un tetto sull'**intera** area. Bastano poche tabelle di qualche megabyte a romperlo, e da quel momento ogni ricerca torna a leggere dal disco, anche quella su un documento ordinario. I record nello spazio di ricerca costerebbero dunque la velocità non a se stessi, ma all'intera area.
 
-**Questo è uno stato intermedio.** Finché i record non hanno un proprio tipo di corrispondenza, non sono reperibili tramite la ricerca sull'area. Due vie portano comunque a loro:
+**Questo è uno stato intermedio.** Finché i record non hanno un proprio tipo di corrispondenza, non sono reperibili tramite la ricerca sull'area. Tre vie portano comunque a loro:
 
 - **Cercare nel documento aperto.** Chi ha davanti il file di tabella e vi cerca dentro (predefinito `Ctrl+F`) cerca nel testo che ha davanti e ritrova i suoi record immutati. Il limite qui sopra riguarda soltanto la ricerca sull'area.
+- **Porre una query sui record.** Un blocco `perspective-query` con `LIST RECORDS` o `TABLE RECORDS` trova i record in base ai loro campi, ad esempio tutti i libri di un autore; la pagina [Query Perspective](frontmatter-query.md) la descrive. Una query che serve spesso si può conservare come file di query (sezione «File di query»).
 - **Rimandare direttamente a un record**, come descritto nella sezione seguente.
 
 ### Collegamento a un singolo record
@@ -528,7 +533,32 @@ La verifica avviene sullo stato **salvato** della tabella, come per ogni altra a
 
 Se un collegamento vale lo mostra il [linter Markdown](tools.md): una destinazione rotta riceve una sottolineatura ondulata nell'editor, cioè nelle viste Sorgente, Divisa e Live. La sola vista di lettura non rappresenta la validità; lì i collegamenti validi e quelli rotti appaiono uguali.
 
-Un clic apre il file della tabella. Al singolo record non porta ancora.
+Un clic apre la tabella e porta in vista la riga del record, anche quando il record si trova in un file successivo. Nella vista di lettura la visualizzazione scorre fino alla sua riga, purché sia tra i 2000 record che mostra; nelle viste Live e Sorgente il cursore si posiziona su quella riga. Nel risultato di una query sui record, invece, un clic su un record apre la sua maschera.
+
+## File di query
+
+Una query che serve spesso riceve un documento proprio: se porta nel frontmatter la marca `db-query` e nel testo esattamente un blocco di query, è un **file di query**. Il resto del testo descrive la query e appare come in ogni documento.
+
+````markdown
+---
+db-query:
+paginemin: 500
+---
+
+# Libri lunghi
+
+Libri con più di `paginemin` pagine, i più lunghi per primi.
+
+```perspective-query
+TABLE RECORDS autore, pagine FROM "Libri" WHERE pagine > this.paginemin SORT pagine DESC
+```
+````
+
+- **La marca non porta indicazioni.** Il file si riconosce dalla sola marca, basta `db-query:` senza valore; la query indica essa stessa la propria tabella in `FROM`. La query può rivolgersi a qualsiasi livello, ai file come ai record.
+- **Aprire e incorporare.** Aperto, il file mostra il suo risultato come ogni documento con un blocco di query. Un altro documento lo incorpora con `![[Libri lunghi]]` e mostra lo stesso risultato, perché `this.` indica allora il file di query e non il documento che lo incorpora. Una query che legge valori del documento che la incorpora quindi non esiste.
+- **Creare.** Non esiste un comando apposito: un file di query si scrive a mano o a partire da un proprio [modello](templates.md).
+- **Senza la marca** un documento con un blocco di query resta una query nel testo corrente e non compare nella panoramica.
+- **Nella panoramica** della banca dati ogni file di query sta nella sezione «Query» (sezione «L'area come banca dati»); l'assenza di blocchi di query o la presenza di più blocchi viene segnalata tra le anomalie (sezione «Indicazioni difettose»).
 
 ## Suddivisione di grandi insiemi di dati
 
@@ -569,7 +599,7 @@ Non appena un documento contenuto in un'area porta la scheda della banca dati, l
 
 Un'area di banca dati riceve due cose che un'area ordinaria non ha.
 
-**La panoramica degli oggetti della banca dati** risponde in un solo punto alla domanda su che cosa si trovi in quest'area: la scheda della banca dati con nome e descrizione, le tabelle ciascuna con il numero dei propri campi e le anomalie emerse nella lettura delle definizioni, in chiaro e non come codice. Si apre in una scheda a sé, e nella panoramica stessa non si modifica nulla; le sue azioni portano alla maschera e alle verifiche. Tre vie vi conducono:
+**La panoramica degli oggetti della banca dati** risponde in un solo punto alla domanda su che cosa si trovi in quest'area: la scheda della banca dati con nome e descrizione, le tabelle ciascuna con il numero dei propri campi, i file di query e le anomalie emerse nella lettura delle definizioni, in chiaro e non come codice. Si apre in una scheda a sé, e nella panoramica stessa non si modifica nulla; le sue azioni portano alla maschera e alle verifiche. Tre vie vi conducono:
 
 - **Visualizza → Panoramica della banca dati**,
 - il **menu contestuale del pannello dell'area**,
@@ -577,7 +607,7 @@ Un'area di banca dati riceve due cose che un'area ordinaria non ha.
 
 In un'area senza banca dati nessuna di queste vie viene offerta.
 
-Nell'elenco delle tabelle la colonna **«Maschera»** indica il file di maschera di una tabella e resta vuota per la maschera generata. La panoramica porta inoltre quattro azioni: **«Verifica coerenza»** nell'intestazione per tutte le tabelle e, nella riga di ogni tabella, **«Nuovo record»**, **«Verifica»** e **«Utilizzo»**. Ciò che fanno lo descrivono le sezioni «Modificare i record nella maschera», «Verifica di coerenza» e «Utilizzo di tabelle e record». Tra le anomalie compaiono anche gli avvisi sui file di maschera, indicati con il nome del file.
+Nell'elenco delle tabelle la colonna **«Maschera»** indica il file di maschera di una tabella e resta vuota per la maschera generata. La panoramica porta inoltre quattro azioni: **«Verifica coerenza»** nell'intestazione per tutte le tabelle e, nella riga di ogni tabella, **«Nuovo record»**, **«Verifica»** e **«Utilizzo»**. Ciò che fanno lo descrivono le sezioni «Modificare i record nella maschera», «Verifica di coerenza» e «Utilizzo di tabelle e record». La sezione **«Query»** indica ogni file di query con il suo nome e la sua posizione, la cartella relativa alla radice dell'area, e **«Apri»** lo apre come ogni documento; se l'area non ne contiene, vi compare una frase esplicativa. Tra le anomalie compaiono anche gli avvisi sui file di maschera e di query, indicati con il nome del file.
 
 **La sezione delle impostazioni «Banca dati»** si trova nel gruppo di navigazione «Area corrente» (File → Impostazioni… → Area corrente → Banca dati; con un libro aperto il gruppo si chiama **Libro corrente**, con una libreria aperta **Libreria corrente**). Mostra la stessa informazione in forma breve, cioè nome e descrizione della banca dati, il numero delle sue tabelle e il numero delle anomalie, e porta un'opzione: **«Mostrare il riepilogo all'apertura dell'area»**. Se è attiva, la panoramica si apre da sé non appena l'area viene collegata. L'opzione risiede nel file dell'area e viaggia con la cartella dell'area. Vi si aggiunge il campo **«Nome della cartella dei blocchi»**; è descritto nella sezione «Blocchi».
 
@@ -597,6 +627,8 @@ La stessa linea morbida vale per le regole di verifica e per la condizione di mo
 
 La stessa linea tollerante vale per i file di maschera. Se il contenitore `db-form` non indica alcuna tabella, o una che nella banca dati non esiste, il file resta un documento ordinario. Se una tabella ha più file di maschera, vale il primo secondo il percorso, e gli altri non vengono usati. Questi tre casi compaiono tra le anomalie della panoramica. Un segnaposto che non è un segnaposto di campo e un nome di campo che la tabella non conosce restano come testo; la maschera li segnala con la loro riga nella propria intestazione, e la verifica di coerenza li elenca come rilievi.
 
+La stessa linea tollerante vale per i file di query. Se un documento con la marca `db-query` non contiene alcun blocco di query o ne contiene più di uno, resta un documento ordinario, e ogni suo blocco viene valutato. La panoramica lo elenca comunque nella sezione «Query» e indica il caso tra le anomalie, con il nome del file.
+
 ## Disattivare la banca dati
 
 L'intera banca dati è un'[estensione interna](extensions.md) denominata «Banca dati», della categoria Strumenti, e si disattiva con un unico interruttore. Richiede i [Profili di proprietà](property-profiles.md), perché la forma di una definizione di tabella viene descritta e verificata tramite un profilo interno; finché la banca dati è attiva, questo prerequisito non può quindi essere disattivato.
@@ -606,6 +638,8 @@ Da disattivata vale quanto segue:
 - Il **blocco di record resta un normale blocco di codice**, nella vista di lettura, nella modalità di modifica e nell'esportazione portabile. Il suo contenuto resta leggibile; ciò che viene disattivato è la rappresentazione come tabella, non il dato.
 - **La panoramica e la sezione delle impostazioni decadono**, insieme agli accessi nel menu Visualizza, nel menu contestuale del pannello dell'area e nella palette dei comandi. Una panoramica già aperta resta finché non la si chiude, come ogni altra pagina di sistema.
 - Con il blocco di record decadono i suoi pulsanti **«Apri record»** e **«Nuovo record»**, con la panoramica le sue azioni **«Verifica coerenza»**, **«Verifica»** e **«Utilizzo»**, e i comandi **«Nuovo record nella tabella attiva»** e **«Verifica la coerenza del database»** spariscono dalla palette dei comandi. Così nemmeno la **maschera** è più raggiungibile, e l'applicazione non fornisce più dati né a essa, né alla verifica di coerenza, né all'utilizzo.
+- Una **query sui record** non legge più alcuna tabella: mostra un elenco vuoto con la nota che l'estensione è disattivata, e nessun messaggio di errore. Lo stesso vale per i percorsi attraverso i campi di riferimento, per le gerarchie e per l'albero.
+- Un **file di query** resta un documento ordinario: il suo blocco di query continua a essere valutato, sui record con l'elenco vuoto e la nota appena descritti, e la sua sezione «Query» scompare con la panoramica.
 - Un **collegamento a un singolo record** non viene più segnalato come rotto. Senza definizioni non c'è nulla con cui confrontarlo, e un avviso senza verifica sarebbe soltanto un'affermazione.
 - La **ricerca sull'area resta invariata**. I record restano esclusi dal testo integrale, perché quel limite appartiene al file di tabella e non all'interruttore; la sezione «Reperibilità» più sopra resta quindi valida.
 - **Non si scrive nulla.** L'applicazione non crea, non modifica e non elimina record, non prende alcun blocco e non produce alcun giustificativo di modifica; finché è disattivata non porta a termine nemmeno un salvataggio rimasto incompiuto.

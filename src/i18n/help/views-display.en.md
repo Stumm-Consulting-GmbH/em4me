@@ -28,7 +28,7 @@ Live mode renders the Markdown directly in the editor: bold and italic, links, t
 
 **Right-click in a cell.** It places the cursor in the clicked cell and opens the [context menu](context-menu.md) there; its functions, such as those of the **Table** submenu, act at that spot. Input in progress is kept.
 
-**Suggestions in a cell.** After `[[` and `#`, the same [suggestion list](linking.md) as in body text appears at the cell, with the same entries in the same order. The up and down arrows choose, Enter accepts, Esc closes only the list and leaves the cell open; while the list is open, the arrow keys and Enter do not move to another cell. Task markers are not suggested in a cell, because a table row is not a task line.
+**Suggestions in a cell.** After `[[` and `#`, the same [suggestion list](linking.md) as in body text appears at the cell, with the same entries in the same order. The up and down arrows choose, Enter accepts, Esc closes only the list and leaves the cell open; while the list is open, the arrow keys and Enter do not move to another cell. Task markers are not suggested in a cell, because a table row is not a task line. The same list appears in a text cell of the [Perspective Datatable](datatable.md), there also in the split view.
 
 **Links in running text are marked permanently.** They carry their underline at all times, without the mouse having to sit on them — wiki links as well as Markdown links, to a document as well as to an address outside. The rendered view still underlines a link only on mouse hover; in the view you write in, by contrast, it should be visible without any effort that a piece of text holds a link. On the line with the caret the raw markup stands as usual.
 

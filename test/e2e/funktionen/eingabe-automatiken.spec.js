@@ -18,6 +18,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
@@ -29,7 +30,8 @@ function seedProfile(settings) {
 }
 
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
@@ -54,7 +56,7 @@ test.describe('EA-01: Link-Einfuegen in die Auswahl', () => {
     try {
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
       await enterEditSource(app, page);
-      await app.evaluate(({ clipboard }) => clipboard.writeText('https://example.org'));
+      await hauptSenden(app, ({ clipboard }) => clipboard.writeText('https://example.org'));
       const editor = page.locator(SEL.editorContent0);
       await editor.click();
       await page.keyboard.press('Control+End');
@@ -76,7 +78,7 @@ test.describe('EA-02: Paste ohne Auswahl bleibt normales Einfuegen', () => {
     try {
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
       await enterEditSource(app, page);
-      await app.evaluate(({ clipboard }) => clipboard.writeText('https://example.org'));
+      await hauptSenden(app, ({ clipboard }) => clipboard.writeText('https://example.org'));
       const editor = page.locator(SEL.editorContent0);
       await editor.click();
       await page.keyboard.press('Control+End');
@@ -99,7 +101,7 @@ test.describe('EA-03: URL mit Klammern wird in Spitze-Klammern eingefuegt', () =
     try {
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
       await enterEditSource(app, page);
-      await app.evaluate(({ clipboard }) =>
+      await hauptSenden(app, ({ clipboard }) =>
         clipboard.writeText('https://en.wikipedia.org/wiki/Foo_(bar)'),
       );
       const editor = page.locator(SEL.editorContent0);
@@ -125,7 +127,7 @@ test.describe('EA-04: Auswahl im Code-Kontext bleibt normales Einfuegen', () => 
     try {
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
       await enterEditSource(app, page);
-      await app.evaluate(({ clipboard }) => clipboard.writeText('https://example.org'));
+      await hauptSenden(app, ({ clipboard }) => clipboard.writeText('https://example.org'));
       const editor = page.locator(SEL.editorContent0);
       await editor.click();
       await page.keyboard.press('Control+End');
@@ -151,7 +153,7 @@ test.describe('EA-05: Schalter aus deaktiviert die Automatik vollstaendig', () =
     try {
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
       await enterEditSource(app, page);
-      await app.evaluate(({ clipboard }) => clipboard.writeText('https://example.org'));
+      await hauptSenden(app, ({ clipboard }) => clipboard.writeText('https://example.org'));
       const editor = page.locator(SEL.editorContent0);
       await editor.click();
       await page.keyboard.press('Control+End');
@@ -175,7 +177,7 @@ test.describe('EA-06: Undo nimmt die Umwandlung in einem Schritt zurueck', () =>
     try {
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
       await enterEditSource(app, page);
-      await app.evaluate(({ clipboard }) => clipboard.writeText('https://example.org'));
+      await hauptSenden(app, ({ clipboard }) => clipboard.writeText('https://example.org'));
       const editor = page.locator(SEL.editorContent0);
       await editor.click();
       await page.keyboard.press('Control+End');
@@ -204,7 +206,7 @@ test.describe('EA-07: Strg+Umschalt+V bleibt reines Einfuegen', () => {
     try {
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
       await enterEditSource(app, page);
-      await app.evaluate(({ clipboard }) => clipboard.writeText('https://example.org'));
+      await hauptSenden(app, ({ clipboard }) => clipboard.writeText('https://example.org'));
       const editor = page.locator(SEL.editorContent0);
       await editor.click();
       await page.keyboard.press('Control+End');

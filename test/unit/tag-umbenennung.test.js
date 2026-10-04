@@ -487,3 +487,37 @@ describe('Tag-Umbenennung: Tabellen-Datei mit Datensatz-Block (4T-001671)', () =
     expect(veraendert).toBeGreaterThan(0);
   });
 });
+
+// 4T-002013 (Epic 3E-000332): Schlagworte in Text-Zellen der Datentabelle
+// laufen über dieselbe Ersetzen-Strecke wie der Fließtext. Die Zusicherung ist
+// zweiseitig: Die Text-Zelle wird umbenannt, und keine andere Stelle der
+// Tabelle wird angefasst, auch nicht ein gleichlautender Wert einer Zahl-Spalte.
+describe('Tag-Umbenennung: Text-Zellen der Datentabelle (4T-002013)', () => {
+  it('benennt die Text-Zelle um und lässt die übrige Tabelle Zeichen für Zeichen stehen', async () => {
+    const root = makeRoot();
+    const vorher = [
+      '# Liste',
+      '',
+      '```perspective-datatable',
+      'columns: Name:text, Betrag:number, Notiz "#projekt":text',
+      '| Anna | #projekt | Stand #projekt/alpha |',
+      '```',
+      '',
+      'Danach #projekt.',
+      '',
+    ].join('\n');
+    const ziel = write(root, 'liste.md', vorher);
+
+    const { gefunden, ergebnis } = await umbenenne(root, 'projekt', 'arbeit');
+
+    // Zwei Stellen: die Notiz-Zelle und der Fließtext danach. Die Zahl-Spalte
+    // und der Anzeigetext im Kopf tragen keine Fundstelle.
+    expect(gefunden.treffer).toHaveLength(2);
+    expect(ergebnis.fehlgeschlagen).toEqual([]);
+    expect(lies(ziel)).toBe(
+      vorher
+        .replace('Stand #projekt/alpha', 'Stand #arbeit/alpha')
+        .replace('Danach #projekt.', 'Danach #arbeit.'),
+    );
+  });
+});

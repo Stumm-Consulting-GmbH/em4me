@@ -33,6 +33,14 @@
 
 const { maskInlineCode } = require('./markdown/link-scan.js');
 const { extractFrontmatter } = require('./markdown/frontmatter.js');
+// 4T-002013 (Epic 3E-000332): Lage der Text-Zellen einer Datentabelle, dieselbe
+// Quelle, aus der auch der Bereichs-Index liest. Schlagworte in Text-Zellen
+// zählen dort, also muss die Umbenennung sie hier ebenso finden.
+const {
+  istDatentabellenFenceInfo,
+  neuerZellZustand,
+  zellScanZeile,
+} = require('./markdown/perspective-datatable-cells.js');
 
 // Ein Wort-Ende, an dem eine Adresse aufhoert: Weissraum oder Zeilenanfang.
 // Alles dazwischen gehoert zum selben "Wort" wie die Raute.
@@ -296,6 +304,9 @@ function ermittleFundstellen(text, alt, neu) {
   let zeilenOffset = bodyOffset;
   let inFence = false;
   let fenceChar = null;
+  // 4T-002013 (Epic 3E-000332): Zeilen-Zustand der offenen Datentabelle, sonst
+  // null.
+  let zellZustand = null;
   for (const zeile of body.split('\n')) {
     const fence = zeile.match(FENCE_RE);
     if (fence) {
@@ -303,18 +314,29 @@ function ermittleFundstellen(text, alt, neu) {
       if (!inFence) {
         inFence = true;
         fenceChar = ch;
+        zellZustand = istDatentabellenFenceInfo(zeile.slice(fence[0].length))
+          ? neuerZellZustand()
+          : null;
       } else if (ch === fenceChar) {
         inFence = false;
         fenceChar = null;
+        zellZustand = null;
       }
       zeilenOffset += zeile.length + 1;
       continue;
     }
-    if (inFence) {
+    // 4T-002013 (Epic 3E-000332): Code-Blöcke bleiben übersprungen, mit einer
+    // benannten Ausnahme: den Text-Zellen einer Datentabelle. Ihr Scan läuft
+    // auf der Zeile, die außerhalb der Text-Zellen längengleich maskiert ist;
+    // die Offsets zeigen damit weiter auf die Stelle in der Datei, und Zahl-,
+    // Datum-, Uhrzeit-, Wahrheitswert- und berechnete Spalten sowie die
+    // Kopfzeilen liefern keine Fundstelle.
+    const zellZeile = inFence && zellZustand ? zellScanZeile(zellZustand, zeile) : null;
+    if (inFence && zellZeile === null) {
       zeilenOffset += zeile.length + 1;
       continue;
     }
-    const maskiert = maskiereFuerTagScan(zeile);
+    const maskiert = maskiereFuerTagScan(zellZeile === null ? zeile : zellZeile);
     TAG_RE.lastIndex = 0;
     let treffer;
     while ((treffer = TAG_RE.exec(maskiert)) !== null) {

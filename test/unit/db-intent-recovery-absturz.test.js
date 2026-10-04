@@ -25,6 +25,11 @@ import { leseBelegDatei } from '../../src/main/database/change-log.js';
 import { istAbsichtsSchattenkopie } from '../../src/main/documents/atomic-write.js';
 import { DEFAULT_LOCK_FOLDER_NAME } from '../../src/shared/database/lock-folder-name.js';
 import { AUFRAEUM_ZEITLIMIT, PROZESS_ZEITLIMIT } from '../zeitlimits.js';
+import { setzeUhrVersatzAus } from '../uhr-versatz.js';
+
+// 4T-002064: Die Fälle verabreden Startzeitpunkte mit Kindprozessen und messen
+// Datei-Zeiten; beide Uhren erreicht die Verschiebung des Wanduhr-Wächters nicht.
+setzeUhrVersatzAus('vergleicht die Uhr mit Kindprozessen und Datei-Zeiten');
 
 // Die Datei startet einen realen Prozess und trägt deshalb das datei-weite
 // Zeitlimit für Prozess-Starts.

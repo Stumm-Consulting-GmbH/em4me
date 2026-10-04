@@ -42,6 +42,16 @@ import {
   kartenBeschriftung,
   scanneKartenVerweise,
 } from '../../../shared/markdown/link-scan.js';
+// 4T-002013 (Epic 3E-000332): Verweise in Text-Zellen einer Datentabelle
+// erscheinen hier wie im Fließtext. Die Lage der Text-Zellen kommt aus derselben
+// Quelle, aus der Bereichs-Index und Umbenennungs-Nachzug lesen; sonst nennte
+// das Ziel die Tabelle unter seinen Rückverweisen und die Tabelle das Ziel hier
+// nicht.
+import {
+  istDatentabellenFenceInfo,
+  neuerZellZustand,
+  zellScanZeile,
+} from '../../../shared/markdown/perspective-datatable-cells.js';
 
 import { applySidebarVisibility } from './panels.js';
 
@@ -75,6 +85,9 @@ export function extractOutgoingLinks(text) {
   let fenceChar = '';
   // 4T-001749 (Epic 3E-000289): Steht die offene Fence unter der Canvas-Marke?
   let inCanvasFence = false;
+  // 4T-002013 (Epic 3E-000332): Zeilen-Zustand der offenen Datentabelle, sonst
+  // null.
+  let zellZustand = null;
   for (let i = 0; i < lines.length; i++) {
     const original = lines[i];
     // Fenced-Code-Wechsel erkennen (am Anfang der Zeile, optional eingerueckt).
@@ -86,11 +99,14 @@ export function extractOutgoingLinks(text) {
         fenceChar = marker;
         // 4T-001749: Die Info-Zeichenfolge sagt, was die Fence ist; sie wurde
         // hier bisher nicht gelesen.
-        inCanvasFence = istCanvasFenceInfo(original.slice(fenceMatch[0].length));
+        const info = original.slice(fenceMatch[0].length);
+        inCanvasFence = istCanvasFenceInfo(info);
+        zellZustand = istDatentabellenFenceInfo(info) ? neuerZellZustand() : null;
       } else if (marker === fenceChar) {
         inFence = false;
         fenceChar = '';
         inCanvasFence = false;
+        zellZustand = null;
       }
       continue;
     }
@@ -125,61 +141,82 @@ export function extractOutgoingLinks(text) {
           }
         }
       }
+      // 4T-002013 (Epic 3E-000332): Die Text-Zellen einer Datentabelle werden
+      // gelesen wie eine Fließtext-Zeile, auf der Zeile, die außerhalb der
+      // Text-Zellen maskiert ist. Alles Übrige der Fence bleibt übersprungen.
+      if (zellZustand) {
+        const zellZeile = zellScanZeile(zellZustand, original);
+        if (zellZeile !== null) scanneZeile(links, original, zellZeile, i);
+      }
       continue;
     }
-    // Inline-Code pro Zeile maskieren, damit `[[foo]]` in `...` nicht matcht.
-    const line = original.replace(/`[^`\n]*`/g, (m) => ' '.repeat(m.length));
-
-    // Wiki-Link / Wiki-Embed
-    //   group 1: optionales '!' fuer Embed
-    //   group 2: Ziel-Datei (vor # und vor |)
-    //   group 3: optionaler Anker (Heading oder ^block-id)
-    //   group 4: optionales Label/Width (nach |)
-    const wikiRe = /(!)?\[\[([^\]|#]+)(?:#([^\]|]*))?(?:\|([^\]]*))?\]\]/g;
-    let m;
-    while ((m = wikiRe.exec(line)) !== null) {
-      const isEmbed = m[1] === '!';
-      const target = m[2].trim();
-      const anchor = m[3] ? m[3].trim() : '';
-      links.push({
-        type: isEmbed ? 'embed' : 'wikiLink',
-        target,
-        anchor,
-        line: i + 1,
-        snippet: snippetAroundIndex(original, m.index),
-      });
-    }
-
-    // Markdown-Link. Image-Syntax `![alt](url)` ausnehmen: wenn das Zeichen
-    // direkt vor '[' ein '!' ist, ueberspringen wir den Treffer.
-    const mdRe = /\[([^\]\n]+)\]\(([^)\n]+)\)/g;
-    while ((m = mdRe.exec(line)) !== null) {
-      if (m.index > 0 && line[m.index - 1] === '!') continue;
-      const label = m[1].trim();
-      const url = m[2].trim();
-      // Externe URLs und Schema-Pseudo-URLs ausnehmen.
-      if (/^(?:https?:|mailto:|tel:|ftp:|file:|#)/i.test(url)) continue;
-      // In-Page-Anker `[Text](#anker)` werden oben durch `^#` schon ausgesperrt.
-      // Anker aus dem Pfad extrahieren.
-      let pureUrl = url;
-      let anchor = '';
-      const hashIdx = url.indexOf('#');
-      if (hashIdx >= 0) {
-        pureUrl = url.substring(0, hashIdx);
-        anchor = url.substring(hashIdx + 1);
-      }
-      if (!pureUrl) continue;
-      links.push({
-        type: 'markdownLink',
-        target: pureUrl,
-        anchor,
-        label,
-        line: i + 1,
-        snippet: snippetAroundIndex(original, m.index),
-      });
-    }
+    scanneZeile(links, original, original, i);
   }
   return links;
+}
+
+// 4T-002013 (Epic 3E-000332): Wiki-, Einbettungs- und Markdown-Verweise einer
+// Zeile, geteilt zwischen Fließtext und Text-Zellen der Datentabelle statt
+// kopiert. `scanZeile` ist die zu durchsuchende Zeile, längengleich zu
+// `original`; der Ausschnitt entsteht aus `original`.
+function scanneZeile(links, original, scanZeile, i) {
+  // Inline-Code pro Zeile maskieren, damit `[[foo]]` in `...` nicht matcht.
+  const line = scanZeile.replace(/`[^`\n]*`/g, (m) => ' '.repeat(m.length));
+
+  // Wiki-Link / Wiki-Embed
+  //   group 1: optionales '!' fuer Embed
+  //   group 2: Ziel-Datei (vor # und vor |)
+  //   group 3: optionaler Anker (Heading oder ^block-id)
+  //   group 4: optionales Label/Width (nach |)
+  //
+  // 4T-002013 (Epic 3E-000332): Die Zeichenklassen schließen den
+  // Zeilenumbruch aus, damit ein Treffer in einer Datentabelle keine
+  // Zellgrenze überspannt (Maskierung der Zell-Grammatik). Das Tabellen-Escape
+  // `[[Ziel\|Alias]]` lässt Ziel oder Anker mit einem Rückstrich enden; er wird
+  // abgeschnitten wie im Bereichs-Index (B-09 aus 4T-000175).
+  const wikiRe = /(!)?\[\[([^\]|#\n]+)(?:#([^\]|\n]*))?(?:\|([^\]\n]*))?\]\]/g;
+  let m;
+  while ((m = wikiRe.exec(line)) !== null) {
+    const isEmbed = m[1] === '!';
+    const target = m[2].trim().replace(/\\$/, '');
+    const anchor = m[3] ? m[3].trim().replace(/\\$/, '') : '';
+    links.push({
+      type: isEmbed ? 'embed' : 'wikiLink',
+      target,
+      anchor,
+      line: i + 1,
+      snippet: snippetAroundIndex(original, m.index),
+    });
+  }
+
+  // Markdown-Link. Image-Syntax `![alt](url)` ausnehmen: wenn das Zeichen
+  // direkt vor '[' ein '!' ist, ueberspringen wir den Treffer.
+  const mdRe = /\[([^\]\n]+)\]\(([^)\n]+)\)/g;
+  while ((m = mdRe.exec(line)) !== null) {
+    if (m.index > 0 && line[m.index - 1] === '!') continue;
+    const label = m[1].trim();
+    const url = m[2].trim();
+    // Externe URLs und Schema-Pseudo-URLs ausnehmen.
+    if (/^(?:https?:|mailto:|tel:|ftp:|file:|#)/i.test(url)) continue;
+    // In-Page-Anker `[Text](#anker)` werden oben durch `^#` schon ausgesperrt.
+    // Anker aus dem Pfad extrahieren.
+    let pureUrl = url;
+    let anchor = '';
+    const hashIdx = url.indexOf('#');
+    if (hashIdx >= 0) {
+      pureUrl = url.substring(0, hashIdx);
+      anchor = url.substring(hashIdx + 1);
+    }
+    if (!pureUrl) continue;
+    links.push({
+      type: 'markdownLink',
+      target: pureUrl,
+      anchor,
+      label,
+      line: i + 1,
+      snippet: snippetAroundIndex(original, m.index),
+    });
+  }
 }
 
 export function snippetAroundIndex(line, idx) {

@@ -15,14 +15,16 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, warteAufDateiArgument } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'tabellen-klick.md');
 const ZWEITE = '# Zweites Dokument\n\nNur Fliesstext.\n';
 
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
@@ -307,9 +309,13 @@ test.describe('TU-09: Schliessen des Dokuments ueber das Schliess-Kreuz (M08)', 
     const { erste, zweite } = kopien();
     const { app, page, userData } = await launchApp({ args: [erste, zweite] });
     try {
+      // 4T-001689: Erst beide Dokumente abwarten (aktiv ist das letzte), dann
+      // auf das erste wechseln — sonst holt das nachlaufende zweite seinen
+      // Eintrag nach vorn (helpers/app.js).
+      await warteAufDateiArgument(page, zweite);
       // Die Nachfrage ist ein Dialog des Hauptprozesses; hier gezaehlt und mit
       // «Abbrechen» beantwortet, damit das Dokument offen bleibt.
-      await app.evaluate(({ dialog }) => {
+      await hauptSenden(app, ({ dialog }) => {
         globalThis.__nachfragen = 0;
         dialog.showMessageBox = async () => {
           globalThis.__nachfragen += 1;
@@ -321,7 +327,7 @@ test.describe('TU-09: Schliessen des Dokuments ueber das Schliess-Kreuz (M08)', 
       await tippeInB1(page);
       await page.locator(SEL.tabs0).nth(0).hover();
       await page.locator(SEL.tabs0).nth(0).locator('.tab-close').click();
-      await expect.poll(() => app.evaluate(() => globalThis.__nachfragen || 0)).toBe(1);
+      await expect.poll(() => hauptLesen(app, () => globalThis.__nachfragen || 0)).toBe(1);
       await expect(page.locator(SEL.tabs0)).toHaveCount(2);
       await erwarteUebernommen(page);
     } finally {

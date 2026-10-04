@@ -382,3 +382,67 @@ describe('link-rewrite — hits und Randfaelle', () => {
     expect(computeLinkRewrites('', { renames: [rename('Alt', 'Neu')] }).changed).toBe(false);
   });
 });
+
+// 4T-002013 (Epic 3E-000332): Text-Zellen der Datentabelle sind die zweite
+// benannte Ausnahme vom Fence-Übersprung. Geprüft wird der Nachzug selbst und,
+// ebenso wichtig, dass er außerhalb der Text-Zellen nichts anfasst: Er schreibt
+// in Dateien des Anwenders.
+describe('link-rewrite — Text-Zellen der Datentabelle (4T-002013)', () => {
+  const r = [rename('Alt', 'Neu')];
+  const tabelle = (...zeilen) =>
+    lines('# Titel', '', '```perspective-datatable', ...zeilen, '```', '');
+
+  it('zieht [[Alt\\|Alias]] in einer Text-Zelle nach, Alias und Escape bleiben', () => {
+    const vorher = tabelle(
+      'columns: Name:text, Betrag:number(2)',
+      '| [[Alt\\|Mein Alias]] | 3.00 |',
+    );
+    const res = rewrite(vorher, r);
+    expect(res.changed).toBe(true);
+    expect(res.newContent).toBe(vorher.replace('[[Alt\\|', '[[Neu\\|'));
+    expect(res.hits).toEqual([
+      { zeile: 5, alt: '[[Alt\\|Mein Alias]]', neu: '[[Neu\\|Mein Alias]]', typ: 'wiki' },
+    ]);
+  });
+
+  it('zieht Anker, mehrere Verweise und einen Markdown-Link nach (F1 b)', () => {
+    const vorher = tabelle(
+      'columns: A:text, B:text',
+      '| [[Alt#Kapitel]] und [[Alt]] | [Text](Alt.md#k) |',
+    );
+    expect(rewrite(vorher, r).newContent).toBe(
+      tabelle('columns: A:text, B:text', '| [[Neu#Kapitel]] und [[Neu]] | [Text](Neu.md#k) |'),
+    );
+  });
+
+  it('die Tabelle bleibt heil: Zahl-Spalte, berechnete Spalte und Kopfzeilen unberührt', () => {
+    const vorher = tabelle(
+      'columns: Name "[[Alt]]":text, Betrag:number, G:number = Betrag * 2, Notiz:text',
+      'aggregate: Betrag:sum',
+      '| [[Alt]] | [[Alt]] | [[Alt]] | [[Alt]] |',
+    );
+    const res = rewrite(vorher, r);
+    // Genau zwei Stellen: die Name-Zelle und die Notiz-Zelle (die dritte Zelle
+    // ist die Notiz, weil die berechnete Spalte keine Datenzelle hat). Die
+    // vierte liegt jenseits der Spalten und bleibt wie der Anzeigetext stehen.
+    expect(res.newContent).toBe(
+      tabelle(
+        'columns: Name "[[Alt]]":text, Betrag:number, G:number = Betrag * 2, Notiz:text',
+        'aggregate: Betrag:sum',
+        '| [[Neu]] | [[Alt]] | [[Neu]] | [[Alt]] |',
+      ),
+    );
+    expect(res.hits).toHaveLength(2);
+  });
+
+  it('lässt Inline-Code in der Zelle wörtlich und überspannt keine Zellgrenze', () => {
+    const vorher = tabelle('columns: A:text, B:text', '| `[[Alt]]` | [[Alt | x]] |');
+    expect(rewrite(vorher, r).changed).toBe(false);
+  });
+
+  it('lässt eine Fence anderer Art und eine Tabelle ohne Treffer unangetastet (Rot-Probe)', () => {
+    const fremd = lines('```perspective-table', 'columns: A:text', '| [[Alt]] |', '```', '');
+    expect(rewrite(fremd, r).changed).toBe(false);
+    expect(rewrite(tabelle('columns: A:text', '| [[Fremd]] |'), r).changed).toBe(false);
+  });
+});

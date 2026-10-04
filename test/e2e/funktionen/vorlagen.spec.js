@@ -12,9 +12,10 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, warteAufDateiArgument } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { bedieneBis } = require('../helpers/eingabe');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 // Profil mit globalem Vorlagen-Ordner, optionalen Ordner-Regeln (4T-000427)
 // und belegten Kürzeln für die beiden Kommandos (electron-store liest
@@ -46,7 +47,8 @@ function cleanupDir(dir) {
 // Menue-Accelerators erreichen CDP-synthetisierte Events nicht, der Test
 // nutzt den identischen IPC-Pfad des Menue-Klicks.
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
@@ -112,6 +114,9 @@ test.describe('VL-01: Neue Datei aus Vorlage — Dialog-Kette und Platzhalter (F
     const { app, page } = await launchApp({ args: [ws.startDoc], userData });
     try {
       await expect(page.locator(SEL.markdownBody0)).toBeVisible();
+      // Vorbedingung vor dem ersten weiteren Eintrag im Dokument-Streifen
+      // (Begründung am Helfer in helpers/app.js, test/README.md Regel 32).
+      await warteAufDateiArgument(page, ws.startDoc);
       // Auswahl-Popup: Vorlage per Klick wählen.
       await openPickerViaHotkey(page, 'Control+Alt+9');
       await page.locator('#template-picker-list button', { hasText: 'Besprechung' }).click();
@@ -160,6 +165,7 @@ test.describe('VL-02: Abbruch in der Dialog-Kette — keine Datei (F-101/S-072)'
     const { app, page } = await launchApp({ args: [ws.startDoc], userData });
     try {
       await expect(page.locator(SEL.markdownBody0)).toBeVisible();
+      await warteAufDateiArgument(page, ws.startDoc);
       await openPickerViaHotkey(page, 'Control+Alt+9');
       await page.locator('#template-picker-list button', { hasText: 'Frage' }).click();
       await expect(page.locator('#name-input-modal')).toBeVisible();
@@ -262,6 +268,7 @@ test.describe('VL-05: Ordner-Regel — Anlage im Regel-Ordner erhält die Vorlag
     const { app, page } = await launchApp({ args: [ws.startDoc], userData });
     try {
       await expect(page.locator(SEL.markdownBody0)).toBeVisible();
+      await warteAufDateiArgument(page, ws.startDoc);
       await createSubpageNamed(app, page, 'Kind');
       // Regel gefüllt: Datei trägt den Vorlagen-Inhalt, Cursor-Sprung
       // aktiviert den Edit-Modus.
@@ -292,6 +299,7 @@ test.describe('VL-06: Ordner-Regel — Anlage außerhalb des Regel-Ordners bleib
     const { app, page } = await launchApp({ args: [ws.startDoc], userData });
     try {
       await expect(page.locator(SEL.markdownBody0)).toBeVisible();
+      await warteAufDateiArgument(page, ws.startDoc);
       await createSubpageNamed(app, page, 'Leer');
       const target = path.join(ws.docsDir, 'Start∕Leer.md');
       await expect(page.locator(SEL.tabs0)).toHaveCount(2);
@@ -314,6 +322,7 @@ test.describe('VL-07: Expliziter Vorlagen-Weg übersteuert die Ordner-Regel (F-1
     const { app, page } = await launchApp({ args: [ws.startDoc], userData });
     try {
       await expect(page.locator(SEL.markdownBody0)).toBeVisible();
+      await warteAufDateiArgument(page, ws.startDoc);
       await openPickerViaHotkey(page, 'Control+Alt+9');
       await page.locator('#template-picker-list button', { hasText: 'Manuell' }).click();
       await expect(page.locator('#name-input-modal')).toBeVisible();
@@ -341,6 +350,7 @@ test.describe('VL-08: Ordner-Regel — Dialog-Abbruch legt die Datei leer an, mi
     const { app, page } = await launchApp({ args: [ws.startDoc], userData });
     try {
       await expect(page.locator(SEL.markdownBody0)).toBeVisible();
+      await warteAufDateiArgument(page, ws.startDoc);
       await createSubpageNamed(app, page, 'Abbruch');
       // Der Regel-prompt erscheint; Abbrechen laesst die Datei leer.
       await expect(page.locator('#name-input-modal')).toBeVisible();
@@ -363,7 +373,9 @@ test.describe('VL-08: Ordner-Regel — Dialog-Abbruch legt die Datei leer an, mi
 const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system .settings-page';
 
 // 4T-001578 (Epic 3E-000282): Vorbedingung, bevor ein Fall einen ZWEITEN Reiter
-// öffnet — der Reiter des Datei-Arguments muss da und aktiv sein.
+// öffnet — der Reiter des Datei-Arguments muss da und aktiv sein. Der Helfer
+// `warteAufDateiArgument` ist hier entstanden und steht seit 4T-001689 geteilt
+// in helpers/app.js; die Messung dieses Falls bleibt hier als Beleg stehen.
 //
 // **Warum `markdownBody0` dafür nicht genügt.** `launchApp` wartet das
 // Datei-Argument nicht ab; sein Bereitschafts-Marker hängt an der Statusbar
@@ -383,14 +395,11 @@ const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system .settings-page';
 // ihn nicht belegt. Dieselbe Fehlerklasse wie `SV-03` (4T-001583) und
 // `EX-04` (4T-001699) — «wartet auf Vorhandensein statt auf Sichtbarkeit»;
 // die allgemeine Schwäche von `launchApp` ist dort als Befund verortet.
-// 4T-001724 (Epic 3E-000304): Der Reiter beschriftet sich ohne Markdown-Endung.
-// Der Aufrufer nennt weiterhin den Dateinamen — er beschreibt das Argument, mit
-// dem die Anwendung gestartet wurde —, die Erwartung kuerzt hier.
-async function warteAufDateiArgument(page, dateiname) {
-  await expect(page.locator(SEL.activeTab0)).toContainText(
-    dateiname.replace(/\.(md|markdown|mdown|mkd)$/i, ''),
-  );
-}
+//
+// 4T-001689: Dieselbe Vorbedingung gilt für jeden Fall dieser Datei, der mit
+// dem Start-Dokument startet und als Erstes einen weiteren Eintrag öffnet —
+// die Auswahl einer Vorlage legt eine Datei neben dem aktiven Dokument an, die
+// Unterseiten-Anlage eine Unterseite des aktiven Dokuments.
 
 // Einstellungs-Seite öffnen und den Vorlagen-Bereich aktivieren (Poll wie
 // hotkeys.spec.js; der Konfigurations-Stand lädt asynchron nach).
@@ -523,6 +532,71 @@ test.describe('VL-10: Einstellungen — Bereichs-Konfiguration übersteuert glob
       await closeApp(app, userData);
       cleanupDir(areaRoot);
       cleanupDir(globalDir);
+    }
+  });
+});
+
+// 4T-002082 (Epic 3E-000259): VL-11 prüft den Vorlagen-Ausschluss der Abfrage am
+// echten Programm, Ende zu Ende über den Abfrage-Kanal. Der globale
+// Vorlagen-Ordner liegt im Ordner des Dokuments und ist damit Teil des
+// Suchraums: Die Aufgabe der Vorlage fehlt in der Aufgaben-Liste, erscheint in
+// einem zweiten Block, der den Vorlagen-Ordner in FROM nennt, und kehrt in den
+// ersten Block zurück, sobald die Erweiterung «Vorlagen» aus ist. Termine im
+// Jahr 2099 (Stabilitätsregel 9).
+test.describe('VL-11: Vorlagen-Ausschluss der Abfrage — Aufgabe einer Vorlage (F-090)', () => {
+  test('fehlt in der Aufgaben-Liste, erscheint mit FROM und bei ausgeschalteter Erweiterung', async () => {
+    const DUE = '\u{1F4C5}';
+    const docsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-templates-query-'));
+    const templatesDir = path.join(docsDir, 'Vorlagen');
+    fs.mkdirSync(templatesDir);
+    fs.writeFileSync(
+      path.join(templatesDir, 'Besprechung.md'),
+      `# Besprechung\n\n- [ ] Vorlagen-Aufgabe ${DUE} 2099-01-02\n`,
+      'utf8',
+    );
+    fs.writeFileSync(
+      path.join(docsDir, 'Aufgaben.md'),
+      `# Aufgaben\n\n- [ ] Echte Aufgabe ${DUE} 2099-01-01\n`,
+      'utf8',
+    );
+    const uebersicht = path.join(docsDir, 'Uebersicht.md');
+    fs.writeFileSync(
+      uebersicht,
+      [
+        '# Uebersicht',
+        '',
+        '```perspective-query',
+        'LIST TASKS',
+        '```',
+        '',
+        '```perspective-query',
+        'LIST TASKS FROM "Vorlagen"',
+        '```',
+        '',
+      ].join('\n'),
+      'utf8',
+    );
+    const userData = makeUserData(templatesDir);
+    const { app, page } = await launchApp({ args: [uebersicht], userData });
+    const listen = page.locator(`${SEL.markdownBody0} .perspective-query-tasks`);
+    const alle = listen.nth(0).locator('.perspective-query-task-desc');
+    const ausVorlagen = listen.nth(1).locator('.perspective-query-task-desc');
+    try {
+      await expect(page.locator(SEL.markdownBody0)).toBeVisible();
+      // Ohne FROM: allein die echte Aufgabe.
+      await expect(alle).toHaveCount(1, { timeout: 15000 });
+      await expect(alle.first()).toHaveText('Echte Aufgabe');
+      // Mit FROM auf den Vorlagen-Ordner: die Aufgabe der Vorlage.
+      await expect(ausVorlagen).toHaveCount(1, { timeout: 15000 });
+      await expect(ausVorlagen.first()).toHaveText('Vorlagen-Aufgabe');
+
+      // Erweiterung «Vorlagen» aus: kein Ausschluss, die erste Liste zeigt beide.
+      await page.evaluate(() => window.api.setSetting('extensions.disabled', ['templates']));
+      await expect.poll(async () => alle.count(), { timeout: 15000 }).toBe(2);
+      await expect(alle).toContainText(['Echte Aufgabe', 'Vorlagen-Aufgabe']);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(docsDir);
     }
   });
 });

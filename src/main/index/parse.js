@@ -10,6 +10,11 @@
 // Fence-Schleife liest dafür die Info-Zeichenfolge; alles Übrige einer Fence
 // bleibt übersprungen. Die Rückgabe-Form ist unverändert — die Treffer gehen in
 // `hits` wie jeder andere Verweis.
+//
+// 4T-002013 (Epic 3E-000332): Die zweite benannte Ausnahme sind die
+// Text-Zellen einer Fence `perspective-datatable`. Ihre Verweise und
+// Schlagworte werden gelesen wie im Fließtext und gehen als gewöhnliche Treffer
+// `wiki`/`md` und als Schlagworte in das Ergebnis.
 
 'use strict';
 
@@ -75,6 +80,14 @@ const { hashText } = require('../documents/mdd-store.js');
 const { erfasseDatensaetze } = require('./datensatz-erfassung.js');
 // 4T-001761 (Epic 3E-000253): Der Schalter, mit dem der Datensatz-Bestand ruht.
 const { datensatzErfassungAktiv } = require('./index-schalter.js');
+// 4T-002013 (Epic 3E-000332): Lage der Text-Zellen einer Datentabelle, die eine
+// Quelle für Index, Umbenennungs-Nachzug, Schlagwort-Umbenennung und die
+// ausgehenden Verweise der offenen Datei.
+const {
+  istDatentabellenFenceInfo,
+  neuerZellZustand,
+  zellScanZeile,
+} = require('../../shared/markdown/perspective-datatable-cells.js');
 
 // B-19 (4T-000181): Einzeldatei-Limit — groessere Dateien werden nicht
 // geparst (Index bleibt funktionsfaehig, Datei traegt keine Links bei).
@@ -267,6 +280,10 @@ function parseContent(filePath, content, segmentDefinition) {
   // Der Uebersprung bleibt, aber die Verweis-Angaben ihrer Karten werden
   // gelesen — siehe die Begruendung an der Schleife.
   let inCanvasFence = false;
+  // 4T-002013 (Epic 3E-000332): Zeilen-Zustand der offenen Datentabelle, sonst
+  // null. Er kennt die Spalten-Typen, um die Text-Zellen jeder Datenzeile zu
+  // finden.
+  let zellZustand = null;
 
   // B-10 (4T-000175): Slug-Deduplizierung wie markdown-it-anchor (x, x-1,
   // x-2 …), damit Linter und Autocomplete dieselben Anker sehen wie der
@@ -282,100 +299,14 @@ function parseContent(filePath, content, segmentDefinition) {
     headings.push(n === 0 ? slug : `${slug}-${n}`);
   };
 
-  for (let i = fmBodyStartLine; i < lines.length; i++) {
-    const line = lines[i];
-    const lineNum = i + 1;
-
-    // Fenced-Code-Tracking.
-    const fenceMatch = line.match(FENCE_RE);
-    if (fenceMatch) {
-      const marker = fenceMatch[1];
-      const ch = marker.charAt(0);
-      if (!inFence) {
-        inFence = true;
-        fenceChar = ch;
-        // 4T-001749 (Epic 3E-000289): Die Info-Zeichenfolge wurde hier bisher
-        // nirgends gelesen. Sie ist die einzige Stelle, an der eine Fence sagt,
-        // was sie ist — und damit die Voraussetzung dafuer, die Canvas-Fence
-        // von jeder anderen zu unterscheiden. Vorbild: src/shared/mindmap-core.js
-        // und src/shared/document-split.js lesen sie fuer dieselbe Fence.
-        inCanvasFence = istCanvasFenceInfo(line.slice(fenceMatch[0].length));
-      } else if (ch === fenceChar) {
-        inFence = false;
-        fenceChar = null;
-        inCanvasFence = false;
-      }
-      continue;
-    }
-    if (inFence) {
-      // 4T-001749 (Epic 3E-000289): Innerhalb einer Fence `perspective-canvas`
-      // traegt die Marker-Zeile einer Karte mit `doc="…"` einen Verweis auf ein
-      // Dokument. Er wird gelesen wie ein Wiki-Link und geht als gewoehnlicher
-      // Treffer nach `hits`; Kanten-Bau, Rueckverweise und Graph tragen ihn
-      // damit ohne Aenderung an ihrer Form.
-      //
-      // **Alles Uebrige der Fence bleibt uebersprungen. Das ist eine benannte
-      // Grenze:** Ein Wiki-Link im eigenen Text einer Karte erzeugt weiterhin
-      // keine Kante — wie bisher und wie in jeder anderen Fence.
-      //
-      // **`bild=` erzeugt keinen Treffer** (Entscheidung F4 des Product Owners
-      // vom 2026-09-12): Bilder haben im Verweis-Graph keinen Knoten, und
-      // `![](…)` im Fliesstext hat ebenfalls keine Kante.
-      //
-      // **Keine Kopplung an den Schalter der Erweiterung.** Der Index ist
-      // zustandsfrei und gilt fuer alle Fenster einer Wurzel; was in der Datei
-      // steht, steht darin, unabhaengig davon, ob eine Sitzung die Canvas
-      // gerade anzeigt. Der Schalter regelt die Anzeige, nicht den Inhalt.
-      if (inCanvasFence) {
-        // Wirksam ist das LETZTE Vorkommen je Name — so entscheidet der
-        // Canvas-Kern, dessen `attrs` beim zweiten Vorkommen ueberschreibt.
-        const angabe = scanneKartenVerweise(line)
-          .filter((a) => a.name === 'doc')
-          .pop();
-        const ziel = angabe ? kartenZiel(filePath, angabe.wert) : null;
-        if (ziel) {
-          out.push({
-            zeile: lineNum,
-            linkTyp: 'canvas',
-            zielBasename: ziel.ziel,
-            zielAbsolut: null,
-            anker: ziel.anker,
-            snippet: shortSnippet(kartenBeschriftung(lines, i) || line),
-          });
-        }
-      }
-      continue;
-    }
-
-    // 4T-000054: Heading-Erkennung (ATX).
-    const headingMatch = line.match(HEADING_RE);
-    if (headingMatch) {
-      pushHeadingSlug(headingMatch[1]);
-    } else if (line.trim() !== '' && i + 1 < lines.length) {
-      // B-10 (4T-000175): Setext-Headings (Text-Zeile mit ===- bzw. ----
-      // Unterstreichung). Heuristik: '-'-Marker nur, wenn die Text-Zeile
-      // nicht selbst Listen-/Quote-/Tabellen-Syntax ist (sonst waere es
-      // ein Thematic Break bzw. eine Tabellen-Trennzeile).
-      const next = lines[i + 1];
-      const isEq = /^\s{0,3}=+\s*$/.test(next);
-      const isDash = /^\s{0,3}-+\s*$/.test(next) && !/^\s*([-*+]\s|\d+[.)]\s|>|\||#)/.test(line);
-      if (isEq || isDash) pushHeadingSlug(line);
-    }
-
-    // 4T-000054: Block-Anker am Zeilenende.
-    const blockMatch = line.match(BLOCK_ANCHOR_RE);
-    if (blockMatch) {
-      blockIds.push(blockMatch[1]);
-    }
-
-    // 4T-000502 (Epic 3E-000096): Task-Zeilen sammeln (Checkbox-Zeilen laut
-    // Marker-Kern; der Global Filter wird bewusst erst im Query-Zweig
-    // angewandt, damit eine Filter-Aenderung keinen Index-Neuaufbau braucht).
-    // Schnelle Kandidaten-Vorpruefung vor dem vollen Zeilen-Parse.
-    if (TASK_CANDIDATE_RE.test(line) && parseTaskLine(line) !== null) {
-      tasks.push({ zeile: lineNum, text: line, heading: currentHeading });
-    }
-
+  // 4T-002013 (Epic 3E-000332): Der Scan-Rumpf für Verweise und Schlagworte
+  // einer Zeile, geteilt zwischen Fließtext und Text-Zellen der Datentabelle
+  // statt kopiert. `line` ist die zu durchsuchende Zeile (im Fließtext die
+  // Zeile selbst, in der Datentabelle die auf ihre Text-Zellen maskierte
+  // Zeile), `snippetZeile` die Roh-Zeile für den Ausschnitt eines Treffers.
+  // Offsets der Maskierungen bleiben längengleich; gelesen wird hier nur die
+  // Zeilennummer.
+  const scanneVerweiseUndSchlagworte = (line, lineNum, snippetZeile) => {
     // 4T-000060 / B-07 (4T-000175): Link- und Tag-Scans laufen auf der inline-code-
     // maskierten Zeile (Offsets bleiben erhalten), damit `[[Beispiel]]` in
     // Inline-Code keinen Backlink erzeugt. Maskierungs-Logik liegt seit 4T-000344
@@ -448,7 +379,7 @@ function parseContent(filePath, content, segmentDefinition) {
         zielBasename: ziel,
         zielAbsolut: null,
         anker,
-        snippet: shortSnippet(line),
+        snippet: shortSnippet(snippetZeile),
       });
     }
     // Markdown-Links
@@ -480,9 +411,125 @@ function parseContent(filePath, content, segmentDefinition) {
         zielBasename: null,
         zielAbsolut: absolute,
         anker,
-        snippet: shortSnippet(line),
+        snippet: shortSnippet(snippetZeile),
       });
     }
+  };
+
+  for (let i = fmBodyStartLine; i < lines.length; i++) {
+    const line = lines[i];
+    const lineNum = i + 1;
+
+    // Fenced-Code-Tracking.
+    const fenceMatch = line.match(FENCE_RE);
+    if (fenceMatch) {
+      const marker = fenceMatch[1];
+      const ch = marker.charAt(0);
+      if (!inFence) {
+        inFence = true;
+        fenceChar = ch;
+        // 4T-001749 (Epic 3E-000289): Die Info-Zeichenfolge wurde hier bisher
+        // nirgends gelesen. Sie ist die einzige Stelle, an der eine Fence sagt,
+        // was sie ist — und damit die Voraussetzung dafuer, die Canvas-Fence
+        // von jeder anderen zu unterscheiden. Vorbild: src/shared/mindmap-core.js
+        // und src/shared/document-split.js lesen sie fuer dieselbe Fence.
+        const info = line.slice(fenceMatch[0].length);
+        inCanvasFence = istCanvasFenceInfo(info);
+        zellZustand = istDatentabellenFenceInfo(info) ? neuerZellZustand() : null;
+      } else if (ch === fenceChar) {
+        inFence = false;
+        fenceChar = null;
+        inCanvasFence = false;
+        zellZustand = null;
+      }
+      continue;
+    }
+    if (inFence) {
+      // 4T-001749 (Epic 3E-000289): Innerhalb einer Fence `perspective-canvas`
+      // traegt die Marker-Zeile einer Karte mit `doc="…"` einen Verweis auf ein
+      // Dokument. Er wird gelesen wie ein Wiki-Link und geht als gewoehnlicher
+      // Treffer nach `hits`; Kanten-Bau, Rueckverweise und Graph tragen ihn
+      // damit ohne Aenderung an ihrer Form.
+      //
+      // **Alles Uebrige der Fence bleibt uebersprungen. Das ist eine benannte
+      // Grenze:** Ein Wiki-Link im eigenen Text einer Karte erzeugt weiterhin
+      // keine Kante — wie bisher und wie in jeder anderen Fence.
+      //
+      // **`bild=` erzeugt keinen Treffer** (Entscheidung F4 des Product Owners
+      // vom 2026-09-12): Bilder haben im Verweis-Graph keinen Knoten, und
+      // `![](…)` im Fliesstext hat ebenfalls keine Kante.
+      //
+      // **Keine Kopplung an den Schalter der Erweiterung.** Der Index ist
+      // zustandsfrei und gilt fuer alle Fenster einer Wurzel; was in der Datei
+      // steht, steht darin, unabhaengig davon, ob eine Sitzung die Canvas
+      // gerade anzeigt. Der Schalter regelt die Anzeige, nicht den Inhalt.
+      if (inCanvasFence) {
+        // Wirksam ist das LETZTE Vorkommen je Name — so entscheidet der
+        // Canvas-Kern, dessen `attrs` beim zweiten Vorkommen ueberschreibt.
+        const angabe = scanneKartenVerweise(line)
+          .filter((a) => a.name === 'doc')
+          .pop();
+        const ziel = angabe ? kartenZiel(filePath, angabe.wert) : null;
+        if (ziel) {
+          out.push({
+            zeile: lineNum,
+            linkTyp: 'canvas',
+            zielBasename: ziel.ziel,
+            zielAbsolut: null,
+            anker: ziel.anker,
+            snippet: shortSnippet(kartenBeschriftung(lines, i) || line),
+          });
+        }
+      }
+      // 4T-002013 (Epic 3E-000332): In einer Datentabelle zählen Verweise und
+      // Schlagworte der Text-Zellen wie im Fließtext (Weg B, Entscheidung F1 b
+      // des Product Owners vom 2026-09-28: Wiki-Verweise, Markdown-Links und
+      // Schlagworte). Die Scan-Zeile trägt nur die Text-Zellen; Kopfzeilen,
+      // Zahl-, Datum-, Uhrzeit-, Wahrheitswert- und berechnete Spalten fallen
+      // heraus, und kein Treffer überspannt eine Zellgrenze. Aus Zellen
+      // entstehen bewusst keine Überschriften, Block-Anker und Aufgaben-Zeilen.
+      //
+      // **Keine Kopplung an den Schalter der Erweiterung**, aus demselben Grund
+      // wie bei der Canvas oben: Der Nachzug beim Umbenennen darf nicht davon
+      // abhängen, ob die Anzeige gerade an ist, sonst bräche der Verweis beim
+      // Wiedereinschalten.
+      if (zellZustand) {
+        const scanZeile = zellScanZeile(zellZustand, line);
+        if (scanZeile !== null) scanneVerweiseUndSchlagworte(scanZeile, lineNum, line);
+      }
+      continue;
+    }
+
+    // 4T-000054: Heading-Erkennung (ATX).
+    const headingMatch = line.match(HEADING_RE);
+    if (headingMatch) {
+      pushHeadingSlug(headingMatch[1]);
+    } else if (line.trim() !== '' && i + 1 < lines.length) {
+      // B-10 (4T-000175): Setext-Headings (Text-Zeile mit ===- bzw. ----
+      // Unterstreichung). Heuristik: '-'-Marker nur, wenn die Text-Zeile
+      // nicht selbst Listen-/Quote-/Tabellen-Syntax ist (sonst waere es
+      // ein Thematic Break bzw. eine Tabellen-Trennzeile).
+      const next = lines[i + 1];
+      const isEq = /^\s{0,3}=+\s*$/.test(next);
+      const isDash = /^\s{0,3}-+\s*$/.test(next) && !/^\s*([-*+]\s|\d+[.)]\s|>|\||#)/.test(line);
+      if (isEq || isDash) pushHeadingSlug(line);
+    }
+
+    // 4T-000054: Block-Anker am Zeilenende.
+    const blockMatch = line.match(BLOCK_ANCHOR_RE);
+    if (blockMatch) {
+      blockIds.push(blockMatch[1]);
+    }
+
+    // 4T-000502 (Epic 3E-000096): Task-Zeilen sammeln (Checkbox-Zeilen laut
+    // Marker-Kern; der Global Filter wird bewusst erst im Query-Zweig
+    // angewandt, damit eine Filter-Aenderung keinen Index-Neuaufbau braucht).
+    // Schnelle Kandidaten-Vorpruefung vor dem vollen Zeilen-Parse.
+    if (TASK_CANDIDATE_RE.test(line) && parseTaskLine(line) !== null) {
+      tasks.push({ zeile: lineNum, text: line, heading: currentHeading });
+    }
+
+    scanneVerweiseUndSchlagworte(line, lineNum, line);
   }
   // 4T-001610: `recordDefSig` steht nur bei einem Folge-Segment und nennt die
   // Definition, gegen die zugeordnet wurde; der Zwischenspeicher vergleicht sie.

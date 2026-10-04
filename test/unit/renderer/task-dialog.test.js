@@ -30,11 +30,19 @@ vi.mock('../../../src/renderer/modules/calendar/date-picker.js', async (importOr
 
 // 4T-000508 (Epic 3E-000096): Die Abhaengigkeits-Suche des Dialogs laeuft ueber
 // api.runFrontmatterQuery('LIST TASKS'). Der Basis-Stub (api-stub.js) kennt
-// die Methode nicht; hier ein Test-Stub, der eine leere Task-Liste liefert
-// (die Bereichs-Suche bleibt damit ohne Kandidaten). NUR im Test, nicht
-// produktiv — api.js bindet dieselbe window.api-Objektreferenz, die Ergaenzung
-// ist deshalb im Modul sichtbar.
-window.api.runFrontmatterQuery = async () => ({ status: 'ready', files: [] });
+// die Methode nicht; hier ein Test-Stub, der standardmaessig eine leere
+// Task-Liste liefert (die Bereichs-Suche bleibt damit ohne Kandidaten). NUR im
+// Test, nicht produktiv — api.js bindet dieselbe window.api-Objektreferenz, die
+// Ergaenzung ist deshalb im Modul sichtbar.
+// 4T-002035 (Epic 3E-000260): Die Antwort ist allein die Ergebnismenge; der
+// Stub liefert sie in dieser Form, ein Fall setzt Aufgaben-Zeilen ein.
+const { makeResultSet, makeRow, makeState, makeTaskInfo, taskOrigin } =
+  await import('../../../src/shared/query/result-set.js');
+const aufgabenAntwort = (rows = []) => ({
+  resultSet: makeResultSet({ scope: 'tasks', type: 'list', rows, state: makeState('ready') }),
+});
+let stubAntwort = aufgabenAntwort();
+window.api.runFrontmatterQuery = async () => stubAntwort;
 
 const { showTaskDialog } = await import('../../../src/renderer/modules/task-dialog.js');
 const { applyTasksConfig, todayIsoDate } = await import('../../../src/renderer/modules/tasks.js');
@@ -226,6 +234,40 @@ describe('showTaskDialog — Abhaengigkeiten (4T-000508)', () => {
     btnOk().click();
     const line = await p;
     expect(line).toMatch(/🆔 [a-z0-9]{6}$/);
+  });
+
+  it('Vorgaenger-Suche liest die Aufgaben-Treffer der Ergebnismenge (4T-002035)', async () => {
+    // Drei Bereichs-Aufgaben: eine mit Kennung, eine ohne (nicht referenzierbar)
+    // und die eigene Zeile (wird ueber Pfad und Zeile ausgefiltert).
+    const zeile = (line, raw) =>
+      makeRow(
+        [],
+        taskOrigin('/raum/Aufgaben.md', 'Aufgaben', line, raw),
+        makeTaskInfo({ urgency: 1.95, blocked: false, duplicateId: false }),
+      );
+    stubAntwort = aufgabenAntwort([
+      zeile(3, '- [ ] Dach decken 🆔 dach01'),
+      zeile(4, '- [ ] Ohne Kennung'),
+      zeile(5, '- [ ] Selbst 🆔 selbst1'),
+    ]);
+    try {
+      const model = parseTaskLine('- [ ] Selbst 🆔 selbst1');
+      const p = showTaskDialog(model, 'edit', {
+        contextPath: '/raum/Aufgaben.md',
+        selfRef: { path: '/raum/Aufgaben.md', line: 5 },
+      });
+      // Erstes Suchfeld ist das der Vorgaenger.
+      const suche = depsEl().querySelector('.task-dialog-dep-search');
+      suche.dispatchEvent(new Event('focus'));
+      await flush();
+      const eintraege = [...depsEl().querySelectorAll('.task-dialog-suggest-entry')];
+      expect(eintraege.map((e) => e.textContent)).toEqual(['Dach decken [dach01]']);
+      eintraege[0].click();
+      btnOk().click();
+      expect(await p).toBe('- [ ] Selbst 🆔 selbst1 ⛔ dach01');
+    } finally {
+      stubAntwort = aufgabenAntwort();
+    }
   });
 
   it('Vorgaenger-Chip entfernen loescht den Marker aus der Rueckgabe-Zeile', async () => {

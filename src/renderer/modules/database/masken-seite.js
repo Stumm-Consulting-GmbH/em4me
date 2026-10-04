@@ -236,7 +236,9 @@ export function maskeOffen() {
 
 // Verdrahtungs-Schnittstelle zum Öffnen ohne direkten Modul-Import (Muster
 // `scg:open-change-log`), für die End-zu-End-Suite. `recordId: null` öffnet
-// den leeren Datensatz einer Neuanlage ohne gezogene Kennung.
+// den leeren Datensatz einer Neuanlage ohne gezogene Kennung. Seit 4T-002040
+// auch der Weg des Klicks auf einen Datensatz im Abfrage-Ergebnis
+// (`query/record-hit-click.js`), der stets eine Kennung mitgibt.
 document.addEventListener('scg:open-form', (ev) => {
   const detail = (ev && ev.detail) || {};
   const kennung = typeof detail.recordId === 'string' ? detail.recordId : null;

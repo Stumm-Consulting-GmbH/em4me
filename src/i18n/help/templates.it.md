@@ -2,7 +2,7 @@
 
 I modelli sono normali file Markdown in una **cartella dei modelli** configurabile. All'applicazione l'app valuta **segnaposto** selezionati: data e ora con offset e formato, titolo e cartella del file di destinazione, dialoghi di input e selezione, gli appunti e una posizione di destinazione del cursore. I modelli creano nuovi file con struttura pronta oppure inseriscono blocchi ricorrenti alla posizione del cursore; le **regole di cartella** riempiono automaticamente i nuovi file.
 
-La funzionalità è commutabile come estensione «Modelli» (Impostazioni → Estensioni); da spenta scompaiono i comandi, la sezione delle impostazioni e le regole di cartella.
+La funzionalità è commutabile come estensione «Modelli» (Impostazioni → Estensioni); da spenta scompaiono i comandi, la sezione delle impostazioni, le regole di cartella e l'esclusione dei modelli dalle query.
 
 ## Cartella dei modelli
 
@@ -12,6 +12,8 @@ La cartella dei modelli si configura nelle impostazioni (Impostazioni → Modell
 - **Per area** si può impostare una configurazione dedicata («Usa la configurazione dell'area» nella voce «Modelli» del gruppo di navigazione «Area corrente», visibile solo quando un'area è aperta; con un libro aperto il gruppo si chiama **Libro corrente**, con una libreria aperta **Libreria corrente**); viene salvata nel file dell'area e **sostituisce completamente quella globale** (cartella e regole, nessuna risoluzione mista). Le cartelle sono relative alla radice dell'area; i percorsi assoluti restano ammessi.
 
 Ogni file Markdown nella cartella (sottocartelle comprese) è un modello. Le sottocartelle appaiono come gruppi nel popup di selezione. Le modifiche alla configurazione hanno effetto immediato, senza riavvio.
+
+**I modelli nelle query.** Ciò che si trova nella cartella dei modelli, sottocartelle comprese, non è un risultato in nessuna [Query Perspective](frontmatter-query.md), a nessuno dei suoi livelli, e non fornisce nemmeno valori ai repertori di valori e ai campi raccolta dei [Profili di proprietà](property-profiles.md). Così il contenuto di un modello, ad esempio un'attività di esempio, non compare in alcuna panoramica. Chi vuole interrogare i modelli indica espressamente la cartella in `FROM`, ad esempio `FROM "Modelli"`. Conta la cartella che determina anche la selezione dei modelli, cioè la configurazione dell'area prima di quella globale; la cartella dei modelli di un'area collegata non conta.
 
 ## Applicare i modelli
 

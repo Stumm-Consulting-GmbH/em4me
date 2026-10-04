@@ -13,8 +13,9 @@
 
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, warteAufDateiArgument } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const FIXTURES = path.resolve(__dirname, '..', '..', 'fixtures', 'perf');
 const GROSS = path.join(FIXTURES, 'grosse-datei.md');
@@ -26,25 +27,19 @@ async function sendMenuChannel(app, channel, ...args) {
   // Sichtbarwerden des Reiters scheitert je nach Anlauf-Stoss des Renderers
   // sporadisch an einem verworfenen CDP-Promise («Promise was collected»,
   // von Playwright als «Execution context was destroyed» gemeldet), ohne
-  // dass eine Produkt-Zusicherung verletzt ist; Last und Ereignisschleife
-  // des Haupt-Prozesses sind dabei unauffaellig. Ein einmaliger zweiter
-  // Versuch nach kurzer Wartezeit traegt (0 von 8 rot statt 8 von 8 auf dem
-  // empfindlichsten Stand).
-  for (let versuch = 0; ; versuch++) {
-    try {
-      await app.evaluate(
-        ({ BrowserWindow }, payload) => {
-          const win = BrowserWindow.getAllWindows()[0];
-          if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
-        },
-        { channel, args },
-      );
-      return;
-    } catch (fehler) {
-      if (versuch >= 1) throw fehler;
-      await new Promise((fertig) => setTimeout(fertig, 400));
-    }
-  }
+  // dass eine Produkt-Zusicherung verletzt ist. Der fruehere Behelf sendete
+  // nach fester Pause ein zweites Mal. 4T-001813 hat gemessen, dass der Rumpf
+  // in diesem Fehlerbild bereits gelaufen ist und nur die Rueckmeldung fehlt;
+  // ein zweites Senden fuehrte den Befehl doppelt aus. Deshalb laeuft der
+  // Befehl ueber hauptSenden, das genau dieses Bild als abgesetzt wertet.
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, payload) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
+    },
+    { channel, args },
+  );
 }
 
 async function waitForTab(page) {
@@ -99,6 +94,9 @@ test.describe('P-02: Render-Skip bei unveraendertem Stand (R4-12)', () => {
     const { app, page, userData } = await launchApp({ args: [ANKER, KLEIN_A] });
     try {
       await waitForTab(page);
+      // 4T-001689: Der erste Eintrag steht, der zweite noch nicht unbedingt;
+      // er holte sich nach dem Klick unten nach vorn (helpers/app.js).
+      await warteAufDateiArgument(page, KLEIN_A);
       const tabs = page.locator(SEL.tabs0);
       await tabs.nth(0).click();
       // Mermaid-SVG abwarten (async Render bzw. Cache-Hit).

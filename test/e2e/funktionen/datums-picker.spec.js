@@ -34,6 +34,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'datums-picker.md');
 
@@ -41,7 +42,8 @@ const POPUP = '#date-picker-popup';
 const DATE_TIME_RE = /\d{4}-\d{2}-\d{2} \d{2}:\d{2}/;
 
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);

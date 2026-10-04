@@ -42,6 +42,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { menuZustand } = require('../helpers/menu-zustand');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const I18N_DIR = path.resolve(__dirname, '..', '..', '..', 'src', 'i18n');
 const texte = (lang) => JSON.parse(fs.readFileSync(path.join(I18N_DIR, `${lang}.json`), 'utf8'));
@@ -89,10 +90,14 @@ function readConfig(userData) {
 // Den Menü-Kanal senden, den der native Klick auslösen würde. Native Menüs sind
 // aus Playwright nicht klickbar (Muster sendMenuChannel in handbuch.spec.js).
 async function sendeMenuKanal(app, kanal) {
-  await app.evaluate(({ BrowserWindow }, k) => {
-    const win = BrowserWindow.getAllWindows()[0];
-    if (win && !win.isDestroyed()) win.webContents.send(k);
-  }, kanal);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, k) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      if (win && !win.isDestroyed()) win.webContents.send(k);
+    },
+    kanal,
+  );
 }
 
 // Ende der Renderer-Init abwarten. Der Erststart-Anlauf der Tour hängt

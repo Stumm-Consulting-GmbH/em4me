@@ -64,6 +64,7 @@ const {
   settingsPathOf,
   declaredTopLevel,
 } = require('../helpers/buch');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
@@ -168,7 +169,7 @@ async function confirmSettings(page) {
 // leer, die App setzt Fenster-Menüs über win.setMenu (Muster armMenuCapture in
 // arbeitsbereiche.spec.js).
 async function armMenuCapture(app) {
-  await app.evaluate(({ BrowserWindow }) => {
+  await hauptSenden(app, ({ BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows()[0];
     if (!win || win.__buchMenuCaptureArmed) return;
     win.__buchMenuCaptureArmed = true;
@@ -189,7 +190,7 @@ async function armMenuCapture(app) {
 }
 
 function capturedMenuLabels(app) {
-  return app.evaluate(() => globalThis.__buchMenuLabels || []);
+  return hauptLesen(app, () => globalThis.__buchMenuLabels || []);
 }
 
 // Menü-Neubau anstoßen und auf den Capture warten: der Interceptor greift erst
@@ -200,7 +201,7 @@ function capturedMenuLabels(app) {
 async function nudgeMenuRebuild(app) {
   await expect
     .poll(async () => {
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win) {
           win.webContents.send('menu:togglePanel', 'notes');
@@ -222,10 +223,14 @@ async function openExternally(app, page, filePath) {
   const name = path.basename(filePath).replace(/\.(md|markdown|mdown|mkd)$/i, '');
   await expect
     .poll(async () => {
-      await app.evaluate(({ BrowserWindow }, file) => {
-        const win = BrowserWindow.getAllWindows()[0];
-        if (win && !win.isDestroyed()) win.webContents.send('file:openExternal', [file]);
-      }, filePath);
+      await hauptSenden(
+        app,
+        ({ BrowserWindow }, file) => {
+          const win = BrowserWindow.getAllWindows()[0];
+          if (win && !win.isDestroyed()) win.webContents.send('file:openExternal', [file]);
+        },
+        filePath,
+      );
       return page.locator(`${SEL.tabs0} .tab-title`).allTextContents();
     })
     .toContain(name);

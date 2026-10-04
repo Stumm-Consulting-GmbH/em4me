@@ -22,6 +22,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { writeExchangeFile } = require('../../../src/shared/exchange-file.js');
 const { EXCHANGE_KIND } = require('../../../src/shared/exchange-data-kinds.js');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const MODAL = '#setup-import-modal';
 const ZEILEN = `${MODAL} .setup-import-rows li`;
@@ -54,16 +55,24 @@ function austauschDatei(sections) {
 
 // Der native Öffnen-Dialog wird gestubbt und liefert immer denselben Pfad.
 async function stubOeffnen(app, dateiPfad) {
-  await app.evaluate(({ dialog }, pfad) => {
-    dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [pfad] });
-  }, dateiPfad);
+  await hauptSenden(
+    app,
+    ({ dialog }, pfad) => {
+      dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [pfad] });
+    },
+    dateiPfad,
+  );
 }
 
 async function sendMenuChannel(app, channel) {
-  await app.evaluate(({ BrowserWindow }, kanal) => {
-    const win = BrowserWindow.getAllWindows()[0];
-    if (win && !win.isDestroyed()) win.webContents.send(kanal, ...[]);
-  }, channel);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, kanal) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      if (win && !win.isDestroyed()) win.webContents.send(kanal, ...[]);
+    },
+    channel,
+  );
 }
 
 // Der Menü-Listener ist erst am Ende des asynchronen init() registriert;

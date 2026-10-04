@@ -10,6 +10,7 @@ const os = require('node:os');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const SEP = '∕'; // U+2215 Division Slash
 
@@ -94,7 +95,7 @@ test.describe('US-03: Kommando Unterseite anlegen (Dialog, Validierung, Kollisio
     const { app, page, userData } = await launchApp({ args: [parent] });
     try {
       await waitForTab(page);
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win && !win.isDestroyed()) win.webContents.send('menu:newSubpage');
       });
@@ -112,7 +113,7 @@ test.describe('US-03: Kommando Unterseite anlegen (Dialog, Validierung, Kollisio
       expect(fs.existsSync(path.join(dir, `Prozess-A${SEP}Umsetzung.md`))).toBe(true);
       // Kollision: existierendes Segment oeffnet die vorhandene Datei.
       await page.locator(SEL.tabs0).first().click();
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win && !win.isDestroyed()) win.webContents.send('menu:newSubpage');
       });
@@ -143,7 +144,7 @@ test.describe('US-04: Datei umbenennen (Grundfunktion)', () => {
       // 4T-000346 (Epic 3E-000062): Grundfunktions-Test ohne Link-Update (der
       // Vorschau-/Bericht-Flow ist in link-update.spec.js abgedeckt).
       await page.evaluate(() => window.api.setSetting('renameUpdateLinks', false));
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win && !win.isDestroyed()) win.webContents.send('menu:renameFile');
       });
@@ -157,7 +158,7 @@ test.describe('US-04: Datei umbenennen (Grundfunktion)', () => {
       await expect(modal).toBeHidden();
       expect(fs.existsSync(file)).toBe(true);
       // Zweiter Anlauf mit freiem Namen.
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win && !win.isDestroyed()) win.webContents.send('menu:renameFile');
       });
@@ -195,7 +196,7 @@ test.describe('US-05: Umbenennen-Kaskade fuer Unterseiten-Baeume', () => {
     const parent = path.join(dir, 'Prozess-A.md');
     const { app, page, userData } = await launchApp({ args: [parent] });
     const openRenameDialog = async () => {
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win && !win.isDestroyed()) win.webContents.send('menu:renameFile');
       });
@@ -289,7 +290,7 @@ test.describe('US-06: Breadcrumb und Unterseiten-Sektion', () => {
 
       // Unterseiten-Sektion einblenden: listet die direkte Unterseite
       // 'Entwurf' (das tiefe 'Umsetzung∕Detail' ist KEIN direktes Kind).
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win && !win.isDestroyed()) win.webContents.send('menu:toggleSubpages');
       });
@@ -346,7 +347,7 @@ test.describe('US-02: Unterseiten-Embeds (Slash-Schreibweise und relativ)', () =
 // eigenen Segment, und der Schraegstrich ist dort abgelehnt.
 test.describe('US-07: Vollname-Schalter im Umbenennen-Dialog', () => {
   const openRenameDialog = async (app, page) => {
-    await app.evaluate(({ BrowserWindow }) => {
+    await hauptSenden(app, ({ BrowserWindow }) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send('menu:renameFile');
     });
@@ -405,7 +406,7 @@ test.describe('US-07: Vollname-Schalter im Umbenennen-Dialog', () => {
 // Zielebene laesst den Bestand unveraendert.
 test.describe('US-08: Unterseite von der uebergeordneten Seite loesen', () => {
   const openDetachDialog = async (app) => {
-    await app.evaluate(({ BrowserWindow }) => {
+    await hauptSenden(app, ({ BrowserWindow }) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send('menu:detachSubpage');
     });

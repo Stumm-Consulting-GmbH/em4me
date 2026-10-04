@@ -52,6 +52,7 @@ const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 const { SEL } = require('../helpers/selectors');
 const { warteAufText } = require('../helpers/dateien');
 const { menuZustand, menuEintrag } = require('../helpers/menu-zustand');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 const { SHELF_SETTINGS_FILENAME } = require('../../../src/shared/books/shelf-core.js');
 const {
   BOOK_SETTINGS_FILENAME,
@@ -119,17 +120,24 @@ function shelfState(page) {
 // Datei über denselben Kanal öffnen wie Explorer-Doppelklick und
 // Zuletzt-Liste; genau dieser Weg löst die Regal-Erkennung und seit 4T-000873
 // das strikte Buch-Routing aus (Muster buch.spec.js, gepollt gegen ein noch
-// ladendes Fenster).
+// ladendes Fenster). 4T-001813: Das Zustellen ist ein reiner Befehl und läuft
+// über hauptSenden (Begründung im Kopf des Helfers); RG-03 verlor hier beim
+// zweiten Öffnen die Rückmeldung. Wiederholt wird es weiterhin sichtbar von der
+// Wiederhol-Klammer, die auf den Reiter wartet.
 async function openExternally(app, page, filePath) {
   // 4T-001724 (Epic 3E-000304): Der Reiter traegt den Namen ohne
   // Markdown-Endung; verglichen wird deshalb die gekuerzte Form.
   const name = path.basename(filePath).replace(/\.(md|markdown|mdown|mkd)$/i, '');
   await expect
     .poll(async () => {
-      await app.evaluate(({ BrowserWindow }, file) => {
-        const win = BrowserWindow.getAllWindows()[0];
-        if (win && !win.isDestroyed()) win.webContents.send('file:openExternal', [file]);
-      }, filePath);
+      await hauptSenden(
+        app,
+        ({ BrowserWindow }, file) => {
+          const win = BrowserWindow.getAllWindows()[0];
+          if (win && !win.isDestroyed()) win.webContents.send('file:openExternal', [file]);
+        },
+        filePath,
+      );
       return page.locator(`${SEL.tabs0} .tab-title`).allTextContents();
     })
     .toContain(name);
@@ -143,19 +151,27 @@ async function openExternally(app, page, filePath) {
 // `getAllWindows()[0]`: Sobald mehrere Fenster offen sind, ist diese
 // Reihenfolge NICHT die Erzeugungsreihenfolge (Electron liefert sie nach
 // Z-Order; im Diagnose-Lauf stand das zuletzt geöffnete Fenster vorn).
+//
+// 4T-002061: Befehl und gebrauchte Rückgabe in zwei Zugriffen mit demselben
+// Rumpf (Vorbild `zuletztEintragKlicken` in bereich-mehrfach.spec.js): Erst
+// wird gelesen, ob das Fenster da ist (Abfrage, wiederholbar), dann wird
+// zugestellt (Befehl, nie doppelt). Gesucht wird in beiden auf demselben Weg.
 async function sendeAnFenster(app, titelTeil, filePath) {
-  const zugestellt = await app.evaluate(
-    ({ BrowserWindow }, { file, teil }) => {
-      const win = BrowserWindow.getAllWindows().find(
-        (w) => !w.isDestroyed() && w.getTitle().includes(teil),
-      );
-      if (!win) return false;
-      win.webContents.send('file:openExternal', [file]);
-      return true;
-    },
-    { file: filePath, teil: titelTeil },
-  );
-  expect(zugestellt, `kein Fenster mit Titel-Teil «${titelTeil}»`).toBe(true);
+  const zustellung = ({ BrowserWindow }, { file, teil, senden }) => {
+    const win = BrowserWindow.getAllWindows().find(
+      (w) => !w.isDestroyed() && w.getTitle().includes(teil),
+    );
+    if (!win) return false;
+    if (senden) win.webContents.send('file:openExternal', [file]);
+    return true;
+  };
+  const vorhanden = await hauptLesen(app, zustellung, {
+    file: filePath,
+    teil: titelTeil,
+    senden: false,
+  });
+  expect(vorhanden, `kein Fenster mit Titel-Teil «${titelTeil}»`).toBe(true);
+  await hauptSenden(app, zustellung, { file: filePath, teil: titelTeil, senden: true });
 }
 
 // --- RG-01 --------------------------------------------------------------------
@@ -514,7 +530,7 @@ test.describe('RG-04: Sitzungs-Wiederherstellung (4T-000867)', () => {
         .toBe('Bibliothek.md');
       // Sauber beenden (before-quit persistiert die Sitzung), dann Neustart
       // mit demselben Profil (Muster SM-09).
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await first.app.waitForEvent('close');
 
       const second = await launchApp({ userData });
@@ -562,7 +578,7 @@ test.describe('RG-04: Sitzungs-Wiederherstellung (4T-000867)', () => {
       const buchSeite = first.app.windows().find((p) => p !== first.page);
       await expect.poll(() => buchSeite.title()).toContain('(Buch Reise nach Ithaka)');
 
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await first.app.waitForEvent('close');
 
       const second = await launchApp({ userData });

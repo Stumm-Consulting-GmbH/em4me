@@ -164,6 +164,15 @@ const HINWEIS_META = {
   // ihr nichts falsch ist, sondern eine andere Datei vor ihr gilt.
   formTabelleUnbekannt: { key: 'table', expected: null }, // name: die genannte Tabelle
   formMehrereDateien: { key: null, expected: null }, // name: die Tabelle der Maske
+  // 4T-002081 (Epic 3E-000259, Festlegungen 13 und 14): Befunde des Katalogs an
+  // Abfrage-Dateien. Ihr Gegenstand ist der Text der Datei, nicht der Behälter
+  // `db-query`, der nichts trägt; sie hängen deshalb an keinem Schlüssel. Die
+  // Datei bleibt in beiden Fällen ein gewöhnliches Dokument. Die Codes heißen
+  // nach der Fence und nicht nach dem Block, weil «Block» die Zeichenfolge
+  // «lock» trägt und der Wächter der Sperr-Texte (`db-sperr-ordnername.test.js`)
+  // jeden Sprach-Schlüssel mit ihr als Text zur Sperre läse.
+  queryOhneFence: { key: null, expected: null },
+  queryMehrereFences: { key: null, expected: null }, // name: die Zahl der Abfrage-Blöcke
 };
 
 // Baut einen Hinweis in der einheitlichen Gestalt.

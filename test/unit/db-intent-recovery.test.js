@@ -47,6 +47,12 @@ import {
   istAbsichtsSchattenkopie,
 } from '../../src/main/documents/atomic-write.js';
 import { DEFAULT_LOCK_FOLDER_NAME } from '../../src/shared/database/lock-folder-name.js';
+import { setzeUhrVersatzAus } from '../uhr-versatz.js';
+
+// 4T-002064: Der Wiederanlauf misst das Alter von Schattenkopien und Protokollen
+// an ihrer Datei-Zeit; die verschobene Uhr des Wanduhr-Wächters erreicht das
+// Dateisystem nicht, und eine eben angelegte Datei sähe dort gealtert aus.
+setzeUhrVersatzAus('vergleicht die Uhr mit Datei-Zeiten (Alter gegen Frist)');
 
 const require = createRequire(import.meta.url);
 const { createAreaApps } = require('../../src/main/area/area-apps.js');

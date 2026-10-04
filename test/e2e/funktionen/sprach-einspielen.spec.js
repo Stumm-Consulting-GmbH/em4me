@@ -35,6 +35,10 @@ const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
+// 4T-001813: Jeder Zugriff dieser Datei auf den Hauptprozess ist ein Befehl
+// (Dialog stellvertreten, Menü-Kanal senden) und läuft über hauptSenden — die
+// Begründung steht im Kopf des Helfers.
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const WURZEL = path.join(__dirname, '..', '..', '..');
 const I18N = path.join(WURZEL, 'src', 'i18n');
@@ -57,21 +61,29 @@ const SCHLICHT = Object.keys(EN).find(
 );
 
 async function stelleOeffnenDialog(app, ziel) {
-  await app.evaluate(({ dialog }, z) => {
-    dialog.showOpenDialog = async () =>
-      z ? { canceled: false, filePaths: [z] } : { canceled: true, filePaths: [] };
-  }, ziel);
+  await hauptSenden(
+    app,
+    ({ dialog }, z) => {
+      dialog.showOpenDialog = async () =>
+        z ? { canceled: false, filePaths: [z] } : { canceled: true, filePaths: [] };
+    },
+    ziel,
+  );
 }
 
 // Stellt die Ersetzen-Rückfrage auf eine feste Antwort (0 = ersetzen, 1 = nein).
 async function stelleRueckfrage(app, antwort) {
-  await app.evaluate(({ dialog }, a) => {
-    dialog.showMessageBox = async () => ({ response: a });
-  }, antwort);
+  await hauptSenden(
+    app,
+    ({ dialog }, a) => {
+      dialog.showMessageBox = async () => ({ response: a });
+    },
+    antwort,
+  );
 }
 
 async function loeseAus(app) {
-  await app.evaluate(({ BrowserWindow }) => {
+  await hauptSenden(app, ({ BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows()[0];
     if (win && !win.isDestroyed()) win.webContents.send('menu:importLocale');
   });
@@ -120,8 +132,11 @@ function vollstaendigeSprachdatei(code, name, ersetzungen = {}) {
 
 // Die Entfernen-Rückfrage des Hauptprozesses ist derselbe showMessageBox wie
 // die Ersetzen-Rückfrage; stelleRueckfrage(app, 0) wählt die erste Schaltfläche.
+// 4T-001813: Genau dieser Aufruf verlor in SE-08 nach dem Sprachwechsel seine
+// Rückmeldung, obwohl die Nachricht gesendet war; wiederholt wird das Senden
+// sichtbar von der Wiederhol-Klammer des Falls, nicht vom Helfer.
 async function loeseEntfernenAus(app) {
-  await app.evaluate(({ BrowserWindow }) => {
+  await hauptSenden(app, ({ BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows()[0];
     if (win && !win.isDestroyed()) win.webContents.send('menu:removeLocale');
   });
@@ -520,14 +535,18 @@ const FEHLENDE_SCHLUESSEL = Object.keys(EN).filter((k) => k !== SICHTBAR);
 
 // Stellt den Speichern-Dialog auf ein festes Ziel (Muster sprach-vorlage.spec.js).
 async function stelleSpeichernDialog(app, ziel) {
-  await app.evaluate(({ dialog }, z) => {
-    dialog.showSaveDialog = async () =>
-      z ? { canceled: false, filePath: z } : { canceled: true, filePath: undefined };
-  }, ziel);
+  await hauptSenden(
+    app,
+    ({ dialog }, z) => {
+      dialog.showSaveDialog = async () =>
+        z ? { canceled: false, filePath: z } : { canceled: true, filePath: undefined };
+    },
+    ziel,
+  );
 }
 
 async function loeseAktualisierenAus(app) {
-  await app.evaluate(({ BrowserWindow }) => {
+  await hauptSenden(app, ({ BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows()[0];
     if (win && !win.isDestroyed()) win.webContents.send('menu:updateLocale');
   });

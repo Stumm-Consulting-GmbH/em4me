@@ -402,3 +402,148 @@ describe('Übersichts-Seite der Datenbank: Konsistenz-Prüfung (4T-001944)', () 
     expect(fehlend).toEqual([]);
   });
 });
+
+// 4T-002081 (Epic 3E-000259, Story 4S-001040 AK3, AK4 und AK6): Der Abschnitt
+// «Abfragen» — Name, Ort und «Öffnen» je Abfrage-Datei, ihre Befunde unter den
+// Fehlerlagen benannt nach der Datei, und der Aus-Zustand, in dem Seite und
+// Abschnitt entfallen. Die Erhebung steht in `db-katalog.test.js`.
+const pfad = await import('node:path');
+const { state } = await import('../../../src/renderer/modules/app/app-state.js');
+const { closeTab } = await import('../../../src/renderer/modules/tabs/tabs.js');
+const lebenszyklus =
+  await import('../../../src/renderer/modules/extensions/extension-lifecycle.js');
+
+describe('Übersichts-Seite der Datenbank: Abfragen (4T-002081)', () => {
+  const WURZEL = '/bereich';
+  const gelesen = [];
+  window.api.relative = (von, nach) => pfad.posix.relative(von, nach);
+  window.api.dirname = (p) => pfad.posix.dirname(p);
+  window.api.reportMenuState = () => {};
+  window.api.reportPanes = () => {};
+  // Das Schließen eines Reiters gleicht die Werkzeugleiste ab (Muster
+  // datenbank-uebersicht-beim-binden.test.js).
+  if (!document.getElementById('btn-wrap'))
+    document.body.insertAdjacentHTML(
+      'beforeend',
+      '<button id="btn-wrap"></button><button id="btn-numbers"></button>',
+    );
+
+  function mitAbfragen(abfragen) {
+    return auskunft({ meta: { wurzel: WURZEL }, abfragen });
+  }
+
+  const EINE = {
+    name: 'Bücher je Autor',
+    path: `${WURZEL}/Abfragen/Bücher je Autor.md`,
+    bloecke: 1,
+    hints: [],
+  };
+  const OBEN = { name: 'Offen', path: `${WURZEL}/Offen.md`, bloecke: 1, hints: [] };
+  const LEER = {
+    name: 'Leer',
+    path: `${WURZEL}/Leer.md`,
+    bloecke: 0,
+    hints: [{ code: 'queryOhneFence', index: -1, name: null, key: null, expected: null }],
+  };
+  const ZWEI = {
+    name: 'Zwei',
+    path: `${WURZEL}/Zwei.md`,
+    bloecke: 2,
+    hints: [{ code: 'queryMehrereFences', index: -1, name: '2', key: null, expected: null }],
+  };
+
+  function abschnittTitel(container) {
+    return [...container.querySelectorAll('.db-overview-section-title')].map((e) => e.textContent);
+  }
+
+  it('nennt jede Abfrage-Datei mit Name und Ort, vor den Fehlerlagen (AK3)', async () => {
+    antwort = mitAbfragen([EINE, OBEN]);
+    const container = await baue();
+    const titel = abschnittTitel(container);
+    expect(titel).toContain('Abfragen');
+    expect(titel.indexOf('Abfragen')).toBeLessThan(titel.indexOf('Fehlerlagen'));
+    const namen = [...container.querySelectorAll('.db-overview-query-name')].map(
+      (e) => e.textContent,
+    );
+    const orte = [...container.querySelectorAll('.db-overview-query-location')].map(
+      (e) => e.textContent,
+    );
+    expect(namen).toEqual(['Bücher je Autor', 'Offen']);
+    // Der Ordner relativ zur Wurzel; eine Datei in der Wurzel trägt deren Namen.
+    expect(orte).toEqual(['Abfragen', 'Wurzel des Bereichs']);
+    const knoepfe = [...container.querySelectorAll('.db-overview-query-open')];
+    expect(knoepfe.map((k) => k.textContent)).toEqual(['Öffnen', 'Öffnen']);
+    expect(container.textContent).toContain('Keine Fehlerlagen.');
+  });
+
+  it('öffnet die Datei über «Öffnen» wie jedes Dokument (AK3)', async () => {
+    gelesen.length = 0;
+    window.api.readFile = async (p) => {
+      gelesen.push(p);
+      return { ok: false, error: 'Prüffall' };
+    };
+    state.areaPath = WURZEL;
+    antwort = mitAbfragen([EINE]);
+    const container = await baue();
+    container.querySelector('.db-overview-query-open').click();
+    for (let i = 0; i < 5; i++) await Promise.resolve();
+    expect(gelesen).toEqual([EINE.path]);
+  });
+
+  it('meldet keinen und mehrere Abfrage-Blöcke im Klartext, benannt nach der Datei (AK4)', async () => {
+    antwort = mitAbfragen([LEER, ZWEI]);
+    const container = await baue();
+    // Beide bleiben in der Liste: Eine Fehlerlage ist kein Ausschluss.
+    const namen = [...container.querySelectorAll('.db-overview-query-name')].map(
+      (e) => e.textContent,
+    );
+    expect(namen).toEqual(['Leer', 'Zwei']);
+    const punkte = [...container.querySelectorAll('.db-overview-issue')].map((p) => [
+      p.querySelector('.db-overview-issue-source').textContent,
+      p.querySelector('.db-overview-issue-text').textContent,
+    ]);
+    expect(punkte).toEqual([
+      [
+        'Leer.md',
+        'Die Abfrage-Datei enthält keinen Abfrage-Block; erwartet wird genau einer. Die Datei bleibt ein gewöhnliches Dokument.',
+      ],
+      [
+        'Zwei.md',
+        'Die Abfrage-Datei enthält 2 Abfrage-Blöcke; erwartet wird genau einer. Die Datei bleibt ein gewöhnliches Dokument, und jeder Block wird ausgewertet.',
+      ],
+    ]);
+  });
+
+  it('sagt es, wenn der Bereich keine Abfrage-Datei führt', async () => {
+    antwort = mitAbfragen([]);
+    const container = await baue();
+    expect(container.textContent).toContain('Dieser Bereich führt keine Abfrage-Datei.');
+    expect(container.querySelectorAll('.db-overview-queries')).toHaveLength(0);
+  });
+
+  it('entfällt samt Abschnitt im Aus-Zustand und kehrt nach dem Wiedereinschalten zurück (AK6, Z2)', async () => {
+    state.areaPath = WURZEL;
+    antwort = mitAbfragen([EINE]);
+    const systemFlaeche = document.querySelector('.pane-group[data-pane="0"] .pane-system');
+    try {
+      await lebenszyklus.applyExtensionsState(['database'], { persist: false });
+      seite.oeffneDatenbankUebersicht();
+      expect(seite.datenbankUebersichtOffen()).toBe(false);
+      expect(systemFlaeche.querySelector('.db-overview-query-name')).toBeNull();
+
+      // Gegenprobe: eingeschaltet steht die Datei wieder im Abschnitt.
+      await lebenszyklus.applyExtensionsState([], { persist: false });
+      seite.oeffneDatenbankUebersicht();
+      for (let i = 0; i < 10; i++) await Promise.resolve();
+      expect(seite.datenbankUebersichtOffen()).toBe(true);
+      await expect
+        .poll(() => systemFlaeche.querySelector('.db-overview-query-name')?.textContent)
+        .toBe('Bücher je Autor');
+    } finally {
+      for (let p = state.panes.length - 1; p >= 0; p--)
+        for (let i = state.panes[p].tabs.length - 1; i >= 0; i--)
+          await closeTab(p, i, { skipDirtyCheck: true });
+      lebenszyklus.resetExtensionStateForTests();
+    }
+  });
+});

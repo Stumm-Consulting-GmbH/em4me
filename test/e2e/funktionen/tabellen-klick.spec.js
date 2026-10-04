@@ -16,12 +16,14 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'tabellen-klick.md');
 const MARKE = 'ZZMARKEZZ';
 
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
@@ -46,7 +48,7 @@ async function liveBearbeiten(app, page) {
 // Editor-Bereich sonst breiter als jede vertretbar grosse Fixture-Tabelle
 // (gemessen am 2026-09-04: 2945 px Bereichs-Breite bei 2945 px Tabelle).
 async function fensterSchmal(app, page) {
-  await app.evaluate(({ BrowserWindow }) => {
+  await hauptSenden(app, ({ BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows()[0];
     if (win && !win.isDestroyed()) win.setSize(900, 700);
   });

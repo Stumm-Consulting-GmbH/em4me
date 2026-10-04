@@ -70,6 +70,24 @@
       "spec": "test/e2e/regression/4t-001925-bild-doppelklick-live.spec.js",
       "grund": "4T-001925: Das Dokument des Falls enthält absichtlich ein Bild aus dem Netz. Die Inhalts-Sicherheits-Regel der Anzeige lädt es nicht, und geprüft wird, dass ein Doppelklick auf ein solches Bild in der Live-Ansicht nichts öffnet (AK3 des Tasks). Die Ablehnungs-Meldung ist das gewünschte Verhalten.",
       "datum": "2026-09-23"
+    },
+    {
+      "enthaelt": "violates the following Content Security Policy directive",
+      "spec": "test/e2e/funktionen/inhalts-regel-netzadressen.spec.js",
+      "grund": "4T-001920: Die Fälle legen absichtlich Bilder und Hintergründe mit Adressen an, die die Inhalts-Regel des Anzeige-Fensters abweisen soll; jeder Fall trägt dazu eine http-Adresse als Anker. Die Ablehnungs-Meldung ist das gewünschte Verhalten und der Gegenstand der Prüfung.",
+      "datum": "2026-10-01"
+    },
+    {
+      "enthaelt": "net::ERR_FAILED",
+      "spec": "test/e2e/funktionen/inhalts-regel-netzadressen.spec.js",
+      "grund": "4T-001920: Die kodierte Form %2F%2F und die Rückstrich-Form im Markdown-Bild werden zu relativen Adressen im Ordner der Anwendung, die es nicht gibt. Geprüft wird gerade, dass sie keine Freigabe erreichen; die nicht ladbare Ressource ist der Gegenstand des Tests.",
+      "datum": "2026-10-01"
+    },
+    {
+      "enthaelt": "net::ERR_FILE_NOT_FOUND",
+      "spec": "test/e2e/funktionen/inhalts-regel-netzadressen.spec.js",
+      "grund": "4T-001920: Die Rückstrich-Formen als Hintergrund werden von der Stil-Auswertung zu lokalen Adressen zerlegt, die es nicht gibt. Geprüft wird gerade, dass sie keine Freigabe erreichen; die nicht ladbare Ressource ist der Gegenstand des Tests.",
+      "datum": "2026-10-01"
     }
   ]
 }

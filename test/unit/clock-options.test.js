@@ -5,7 +5,7 @@
 // Zeiger-Winkel, digitale Zeit in beiden Stunden-Formaten, ISO-Kalender-
 // woche und die vier Datums-Formate. Bewusst ohne jsdom — das Modul haengt
 // weder am DOM noch an Electron.
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   ANALOG_SIZES,
   CLOCK_MODES,
@@ -296,8 +296,18 @@ describe('formatClockDate (4T-000372)', () => {
 // 4T-000752 (Epic 3E-000146): Ansichts-Zustand und Navigation des Monatskalenders.
 // Rein rechnend, deshalb hier und nicht in einer E2E-Spec.
 describe('Monatskalender: Sicht und Navigation (4T-000752)', () => {
+  // 4T-002064: Ein Fall stellt die Uhr; danach gilt wieder die des Laufs.
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('normalisiert eine fehlende oder defekte Sicht auf gueltige Werte', () => {
     const jetzt = new Date(2026, 6, 27);
+    // 4T-002064: Die Uhr steht auf `jetzt`. Das Jahr einer fehlenden Sicht liest
+    // die Normalisierung von der Wanduhr und nicht aus `jetzt`; ohne gestellte
+    // Uhr wurde der erste Vergleich am 2027-01-01 rot (Wanduhr-Wächter).
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(jetzt);
     expect(normalizeMonthView(null, jetzt)).toEqual(currentMonthView(jetzt));
     expect(normalizeMonthView({ year: 'x', monthIndex: 99 }, jetzt)).toEqual({
       year: new Date().getFullYear(),

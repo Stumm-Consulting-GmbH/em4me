@@ -6,6 +6,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'regression', '4t-0186.md');
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
@@ -65,7 +66,8 @@ const EDITOR_VIEW_FIXTURE = path.resolve(
 );
 
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
@@ -444,7 +446,7 @@ test.describe('FA-06: Zentrierte Editor- und Ansicht-Schalter', () => {
       // Zentrier-Grenze jetzt bei rund 1460 Pixeln. Der Product Owner hat am
       // 2026-09-17 entschieden, die verschobene Grenze hinzunehmen und den
       // Prueffall zu verbreitern statt das Layout zu aendern.
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win) win.setSize(1600, 800);
       });

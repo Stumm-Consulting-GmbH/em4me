@@ -64,9 +64,15 @@ aggregate: Total:sum
 | Coffee | 4.00 | 2 |
 | Tea | 3.50 | 1 |
 | Cake | 5.25 | 3 |
+| Biscuits #snack, more in [[04 Links and Structure]] | 1.80 | 4 |
 ```
 
 Click a cell to edit it; the total recalculates as you type.
+
+Links and tags in a text cell work as in body text, as the last row shows: a click
+follows them, and they count among the backlinks and tags. To edit such a cell, click
+beside the link or press Enter or F2. While you edit a text cell, typing `[[` or `#` brings
+up the suggestion list.
 
 A column identifier has to stay short, because aggregates and computed columns
 address it by name. For a heading that reads well, write it in double quotes

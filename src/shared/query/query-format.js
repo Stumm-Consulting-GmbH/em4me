@@ -32,6 +32,13 @@
 //                         Ordnung und Wahrheitswert arbeiten auf ebendieser
 //                         Text-Form. Eine Abfrage verhält sich mit bold()
 //                         darum überall gleich wie ohne.
+//   { kind: 'record', table, id, display, path }  Datensatz-Verweis der
+//                         Datensatz-Ebene (4T-002038); Text-Form und
+//                         Anzeige-Stück seit 4T-002040. Zwei Verweise sind
+//                         gleich, wenn sie denselben Datensatz meinen; den
+//                         Vergleich mit Text regelt die Pfad-Navigation
+//                         (`query-record-fields.js`, Festlegung 8 des Epics
+//                         3E-000258), weil er die Ziel-Tabelle braucht
 //   Array                 Liste von Werten
 
 // 4T-000344 (Epic 3E-000062): dieselbe Namens-Normalisierung wie Wiki-Aufloesung
@@ -69,6 +76,16 @@ function plainValue(v) {
 
 function isLink(v) {
   return !!v && typeof v === 'object' && v.kind === 'link';
+}
+
+// 4T-002040 (Epic 3E-000258): Datensatz-Verweis `{ kind: 'record', table, id,
+// display, path }` aus dem Tabellen-Bestand der Abfrage. Seine Text-Form ist die
+// Anzeige-Form des Ziels, ohne sie die Kennung (Festlegung 12 des Epics).
+function isRecordRef(v) {
+  return !!v && typeof v === 'object' && v.kind === 'record';
+}
+function recordRefText(v) {
+  return (typeof v.display === 'string' && v.display) || v.id || '';
 }
 
 // ISO-artiger Datums-String (JJJJ-MM-TT, optional Uhrzeit mit T oder
@@ -155,6 +172,12 @@ function equalsValue(aRaw, bRaw) {
   if (bList && !aList) return b.some((x) => equalsValue(x, a));
   if (aList && bList) return a.length === b.length && a.every((x, i) => equalsValue(x, b[i]));
   if (a === null || a === undefined || b === null || b === undefined) return false;
+  // 4T-002041 (Epic 3E-000258): Zwei Datensatz-Verweise sind gleich, wenn sie
+  // denselben Datensatz derselben Tabelle meinen; ohne diese Regel fielen beide
+  // auf dieselbe Objekt-Form zurück und wären immer gleich.
+  if (isRecordRef(a) && isRecordRef(b)) {
+    return a.id === b.id && (a.path || a.table) === (b.path || b.table);
+  }
   if (isLink(a) || isLink(b)) {
     const an = isLink(a) ? a.name : a;
     const bn = isLink(b) ? b.name : b;
@@ -370,6 +393,7 @@ function formatValue(v) {
   if (isLink(v)) return v.name || '';
   // 4T-001074: Text-Form ohne Marker — string(bold(x)) ist string(x).
   if (isRich(v)) return richText(v);
+  if (isRecordRef(v)) return recordRefText(v);
   return String(v);
 }
 
@@ -379,12 +403,18 @@ function formatValue(v) {
 // LIST-Zusatzfeld: reiner Text ({ text }) und klickbare Datei-Verweise
 // ({ link: { path, name } }); Listen kommagetrennt. Die View baut daraus
 // Text-Knoten bzw. Links mit dem bestehenden data-fm-path-Klick-Pfad.
+// 4T-002040 (Epic 3E-000258): Ein Datensatz-Verweis mit Ziel wird ein Stück
+// { record: { path, table, id, name } }, dessen Klick die Maske öffnet; ohne
+// Pfad der Ziel-Tabelle bleibt er Text, weil es kein Klick-Ziel gibt.
 function formatValueSegments(v) {
   if (v === null || v === undefined) return [];
   // 4T-001074: Rich-Werte tragen ihre Segmente bereits; sie werden flach kopiert,
   // damit kein Aufrufer die Segmente eines Werts nachträglich verändert.
   if (isRich(v)) return v.segs.map((s) => ({ ...s }));
   if (isLink(v)) return [{ link: { path: v.path, name: v.name } }];
+  if (isRecordRef(v) && typeof v.path === 'string' && v.path && v.id) {
+    return [{ record: { path: v.path, table: v.table, id: v.id, name: recordRefText(v) } }];
+  }
   if (Array.isArray(v)) {
     const segs = [];
     v.forEach((x, i) => {
@@ -464,6 +494,8 @@ module.exports = {
   isDate,
   isDur,
   isLink,
+  // 4T-002041 (Epic 3E-000258): Datensatz-Verweis, für Vergleich und Ordnung.
+  isRecordRef,
   // 4T-001074 (Epic 3E-000211): ausgezeichneter Anzeige-Wert (Segment-Liste).
   isRich,
   plainValue,

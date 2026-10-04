@@ -57,6 +57,8 @@ import {
   filterDatatableRows,
   findPerspectiveDatatableFences,
 } from '../../../shared/markdown/perspective-datatable-view.js';
+// 4T-001987: Vorschlagsliste für Verweise und Schlagworte in Text-Zellen.
+import * as cellSuggestions from './perspective-datatable-suggestions.js';
 
 // --- Bindung -----------------------------------------------------------------
 
@@ -251,12 +253,15 @@ function startCellEdit(ctx, td) {
     fenceOpenLine: fence.openLine,
   };
   input.addEventListener('keydown', onInputKeydown);
+  const isOpen = () => activeEdit?.input === input;
+  cellSuggestions.attach(input, { view: ctx.view, td, colType: col.type, isOpen });
   input.focus();
   if (typeof input.select === 'function' && input.type === 'text') input.select();
 }
 
 function cancelActiveEdit(refocus = true) {
   if (!activeEdit) return;
+  cellSuggestions.close(); // 4T-001987: keine Liste überlebt ihr Feld
   const { td, originalHtml } = activeEdit;
   activeEdit = null;
   if (td.isConnected) {
@@ -273,6 +278,7 @@ function cancelActiveEdit(refocus = true) {
 // ungültig ist und die Zelle im Edit-Modus bleibt.
 function commitActiveEdit(move) {
   if (!activeEdit) return true;
+  cellSuggestions.close();
   const edit = activeEdit;
   const raw = String(edit.input.value || '').trim();
   const { value, error } = parseCellValue(edit.colType, raw);
@@ -675,6 +681,12 @@ function onRootMousedown(e) {
 
 function onRootClick(e) {
   if (!(e.target instanceof Element)) return;
+  // 4T-002014 (Epic 3E-000332, Entscheidung F2 a des Product Owners vom
+  // 2026-09-28): Ein Klick auf einen Verweis oder ein Schlagwort in einer Zelle
+  // folgt ihm; die Bearbeitung öffnet ein Klick daneben. Den Verweis-Weg
+  // tragen in der geteilten Ansicht der Klick-Pfad der Anzeige, in der
+  // Live-Ansicht bindDatentabellenVerweisKlicks (live-interaction.js).
+  if (e.target.closest('td.pdt-cell a[href]')) return;
   const delBtn = e.target.closest('.pdt-del-btn');
   const addBtn = e.target.closest('.pdt-add-btn');
   const sortTh = e.target.closest('th.pdt-col[data-dt-col]');
@@ -722,6 +734,10 @@ function onRootClick(e) {
 function onRootKeydown(e) {
   if (!(e.target instanceof Element)) return;
   if (e.target.classList.contains('pdt-cell-input')) return; // eigener Handler
+  // 4T-002014: Die Eingabetaste auf einem fokussierten Verweis folgt ihm (der
+  // Browser macht daraus einen Klick); F2 öffnet die Zelle auch dort, und
+  // Eingabetaste wie F2 auf der fokussierten Zelle selbst bleiben unberührt.
+  if (e.key === 'Enter' && e.target.closest('a[href]')) return;
   const td = e.target.closest('td.pdt-cell[tabindex]');
   if (!td || td.classList.contains('pdt-computed')) return;
   if (
@@ -743,6 +759,9 @@ function onRootKeydown(e) {
 
 function onInputKeydown(e) {
   if (!activeEdit || e.target !== activeEdit.input) return;
+  // 4T-001987: Eine offene Vorschlagsliste hat Vorrang vor Escape, Eingabetaste
+  // und Tabulator der Zelle; den Tabulator verbraucht sie nicht.
+  if (cellSuggestions.handleKey(e)) return;
   if (e.key === 'Escape') {
     e.preventDefault();
     e.stopPropagation();

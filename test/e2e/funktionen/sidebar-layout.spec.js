@@ -11,6 +11,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 const ZWEITE = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'zweite.md');
@@ -661,7 +662,7 @@ test.describe('SL-11: Höhen-Drag folgt der Maus 1:1, Nachbarn stabil', () => {
       await waitForTab(page);
       // Fenster-Höhe festnageln, damit die Sidebar unabhängig von der
       // Bildschirmgröße kleiner als die Höhen-Summe (900px) bleibt.
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         BrowserWindow.getAllWindows()[0].setBounds({ x: 20, y: 20, width: 1100, height: 700 });
       });
       const bookmarks = page.locator(`${LEFT} .sidebar-bookmarks`);
@@ -823,7 +824,7 @@ test.describe('SL-13: letzter Block ohne Griff läuft auf Automatik', () => {
     try {
       await waitForTab(page);
       // Fenster gross genug, damit unter den beiden Bloecken Platz frei ist.
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         BrowserWindow.getAllWindows()[0].setBounds({ x: 20, y: 20, width: 1100, height: 900 });
       });
       const clock = page.locator(`${LEFT} .sidebar-clock`);

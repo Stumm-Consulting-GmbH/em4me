@@ -32,6 +32,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 // 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
 const { LOCALE_CODES } = require('../../../src/shared/locales.js');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const MENU_LABELS = LOCALE_CODES.map(
   (code) => require(`../../../src/i18n/${code}.json`)['menu.view.databaseOverview'],
@@ -142,7 +143,7 @@ async function bindeBereich(page, wurzel) {
 // Fenster, Menu.getApplicationMenu() bleibt leer (Muster armMenuCapture in
 // arbeitsbereiche.spec.js).
 async function armMenuCapture(app) {
-  await app.evaluate(({ BrowserWindow }) => {
+  await hauptSenden(app, ({ BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows()[0];
     if (!win || win.__menuCaptureArmed) return;
     win.__menuCaptureArmed = true;
@@ -174,7 +175,7 @@ test.describe('DB-UEB-01: Übersichts-Seite der Datenbank (4T-001759)', () => {
       // beim Binden neu gebaut, deshalb reicht die Erfassung von oben.
       await expect
         .poll(async () => {
-          const labels = await app.evaluate(() => globalThis.__menuLabels || []);
+          const labels = await hauptLesen(app, () => globalThis.__menuLabels || []);
           return labels.some((l) => MENU_LABELS.includes(l));
         })
         .toBe(true);

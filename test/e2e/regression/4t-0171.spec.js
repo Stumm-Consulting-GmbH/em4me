@@ -10,6 +10,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const FIXTURES = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke');
 const BASIS = path.join(FIXTURES, 'basis.md');
@@ -102,7 +103,7 @@ test.describe('R5-09: Replace-UI ist außerhalb von Source+Edit deaktiviert', ()
       // Wechsel in den Reading-Modus: Replace wird deaktiviert, Tooltip nennt
       // den Grund. Ueber den Menue-IPC-Pfad, weil die geoeffnete Suchleiste
       // die Statusbar-View-Buttons ueberdeckt (Pointer-Interception).
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         BrowserWindow.getAllWindows()[0].webContents.send('menu:viewChange', 'rendered');
       });
       await expect(page.locator('#btn-search-replace')).toBeDisabled();

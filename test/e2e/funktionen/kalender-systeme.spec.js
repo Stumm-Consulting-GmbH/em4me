@@ -18,6 +18,7 @@ const os = require('node:os');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system .settings-page';
 const PICKER = '#calendar-picker-popup';
@@ -139,7 +140,8 @@ function makeDerivedArea() {
 }
 
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
@@ -406,7 +408,7 @@ test.describe('KS-05: Abgeleitete Zeitrechnung anlegen und schützen', () => {
     try {
       await bindArea(page, areaRoot);
       // Sperr-Meldung stubben (OS-Dialog ist in Playwright nicht bedienbar).
-      await app.evaluate(({ ipcMain }) => {
+      await hauptSenden(app, ({ ipcMain }) => {
         ipcMain.removeHandler('calendar:blockedDelete');
         ipcMain.handle('calendar:blockedDelete', () => true);
       });

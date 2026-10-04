@@ -30,6 +30,7 @@ const {
   openPropertiesPanel,
   cleanupDir,
 } = require('../helpers/profil-bereich');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const ABGELEITET = '.properties-field-abgeleitet';
 
@@ -152,7 +153,7 @@ test.describe('PP-13: Abgeleitete Felder im Block-Panel (F-106)', () => {
     const { app, page, userData } = await launchApp({ userData: userDataDir });
     try {
       await bindAreaAndOpen(app, page, areaRoot, doc);
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         BrowserWindow.getAllWindows()[0].webContents.send('menu:toggleBlockProps');
       });
       const SEC = `${PANE0} .sidebar-blockprops`;

@@ -37,6 +37,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const REMINDER = '⏰'; // Wecker-Marker
 const REMINDER_VALUE_RE = /⏰ \d{4}-\d{2}-\d{2} \d{2}:\d{2}/;
@@ -105,9 +106,13 @@ async function bindArea(page, dir) {
 // Datei über den Main-Kanal in das Bereichs-Fenster öffnen (Muster BE-08).
 // Ein offener Tab ist Voraussetzung für die Panel-Sichtbarkeit (isAllEmpty).
 async function openFileInArea(app, page, filePath) {
-  await app.evaluate(({ BrowserWindow }, p) => {
-    BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
-  }, filePath);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, p) => {
+      BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
+    },
+    filePath,
+  );
   await expect(page.locator(SEL.tabs0).first()).toBeVisible();
 }
 
@@ -341,7 +346,8 @@ test.describe('ER-05: Erinnerungen — Panel-Gruppen Überfällig/Später und Qu
 // --- ER-06: Kommando „Erinnerung setzen" -------------------------------------------
 
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);

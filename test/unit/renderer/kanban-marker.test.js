@@ -8,7 +8,7 @@
 // **Gemessen wird an der echten Render-Kette** (Muster kanban-tags.test.js):
 // Die Zusage «Abzeichen derselben Art wie in der Lese-Ansicht» ist ein
 // Vergleich mit dem, was die Lese-Ansicht aus derselben Zeile macht.
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
@@ -60,6 +60,15 @@ const tick = () => new Promise((r) => setTimeout(r, 0));
 // Ein fester Bezugs-Zeitpunkt: Mittwoch, 23. September 2026, 10 Uhr lokal.
 const JETZT = new Date(2026, 8, 23, 10, 0);
 
+// 4T-002063: Die Überfällig-Bewertung der Abzeichen liest die Wanduhr selbst
+// (`isDueOverdue` ohne Bezugs-Zeit). Fälle mit festem Kalender-Termin stellen
+// die System-Zeit deshalb auf JETZT, sonst kippen sie, sobald der Termin
+// vergeht (Muster kanban-archivieren.test.js).
+function stelleUhr(zeitpunkt = JETZT) {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(zeitpunkt);
+}
+
 function ersteKarte(text) {
   return leseTafel(text).spalten[0].karten[0];
 }
@@ -90,6 +99,9 @@ function abzeichenDerKarte(el) {
 // --- Abzeichen je Segment-Art --------------------------------------------------
 
 describe('Abzeichen-Reihe der Karte (4T-001903, AK1/AK7/AK8)', () => {
+  beforeEach(() => stelleUhr());
+  afterEach(() => vi.useRealTimers());
+
   const ALLES =
     '- [ ] Alles 📅 2026-10-01 14:00 ⏳ 2026-09-30 🛫 2026-09-29 ➕ 2026-09-01 ' +
     '✅ 2026-09-02 ❌ 2026-09-03 ⏫ 🔁 every week ⏰ 2026-09-30 08:00';
@@ -134,6 +146,8 @@ describe('Abzeichen-Reihe der Karte (4T-001903, AK1/AK7/AK8)', () => {
 
 describe('Vorbild-Termin auf der Karte (4T-001903, AK4/AK8)', () => {
   const karten = leseTafel(STUFE2).spalten;
+  beforeEach(() => stelleUhr());
+  afterEach(() => vi.useRealTimers());
 
   it('AK4: lesbar — ein Abzeichen «fremde Schreibweise», der Rohtext verschwindet', () => {
     const karte = karten[0].karten[0];
@@ -149,6 +163,18 @@ describe('Vorbild-Termin auf der Karte (4T-001903, AK4/AK8)', () => {
     expect(el.textContent).toBe('📅 2026-10-01 14:00');
     expect(el.title).toBe(de['kanban.termin.fremd']);
     expect(el.dataset.kanbanTermin).toBe('vorbild');
+  });
+
+  it('AK4/AK7: der Vorbild-Termin wird überfällig, sobald seine Uhrzeit vorbei ist (4T-002063)', () => {
+    // «Angebot prüfen @{2026-10-01} @@{14:00}»: eine Minute davor nicht
+    // hervorgehoben, eine Minute danach hervorgehoben.
+    const karte = karten[0].karten[0];
+    const ueberfaellig = () =>
+      baueMarkerReihe(karte, { t: tStub }).firstChild.classList.contains('task-marker-overdue');
+    stelleUhr(new Date(2026, 9, 1, 13, 59));
+    expect(ueberfaellig()).toBe(false);
+    stelleUhr(new Date(2026, 9, 1, 14, 1));
+    expect(ueberfaellig()).toBe(true);
   });
 
   it('ein Termin-Marker vor dem Vorbild-Termin zählt wieder als Abzeichen', () => {

@@ -11,8 +11,9 @@
 //
 // Grammatik (Klausel-Ebene, Schlüsselwörter case-insensitiv):
 //   query      := [typeClause] clause*
-//   typeClause := 'LIST' ['BLOCKS' | 'TASKS'] [expr]
-//              | 'TABLE' ['BLOCKS' | 'TASKS'] ['WITHOUT' 'ID'] [column ( ',' column )*]
+//   typeClause := 'LIST' [scopeWord] [expr]
+//              | 'TABLE' [scopeWord] ['WITHOUT' 'ID'] [column ( ',' column )*]
+//   scopeWord  := 'BLOCKS' | 'TASKS' | 'RECORDS'           (4T-002039: RECORDS)
 //   column     := expr [ 'AS' string ]
 //   clause     := 'FROM' source | 'WHERE' boolExpr
 //              | 'SORT' sortKey ( ',' sortKey )* | 'LIMIT' number
@@ -21,7 +22,13 @@
 //              | 'HIDE' element ( ',' element )*        (4T-000503; LIST TASKS)
 //              | 'SHOW' element ( ',' element )*        (4T-000503; LIST TASKS)
 //              | 'SHORT'                                (4T-000503; LIST TASKS)
-//   sortKey    := expr [ 'ASC' | 'DESC' ]
+//              | 'HAVING' boolExpr                      (Bedingung über die Gruppe,
+//                                                        nur mit GROUP BY; 4T-002079,
+//                                                        Modul query-having.js)
+//              | 'DISPLAY' form [ 'BY' feld ]           (Darstellungsform, in der
+//                                                        Regel zuletzt; 4T-002043,
+//                                                        Modul query-display.js)
+//   sortKey   := expr [ 'ASC' | 'DESC' ]
 //   source     := srcAnd ( 'OR' srcAnd )*
 //   srcAnd     := srcUnary ( 'AND' srcUnary )*
 //   srcUnary   := '-' srcUnary | '(' source ')' | srcAtom
@@ -32,6 +39,9 @@
 //              | 'outgoing' '(' link ')'  (Dateien, auf die X verlinkt;
 //                                     outgoing([[]]): auf die die Träger-Datei
 //                                     verlinkt, 4T-001070)
+//              | ('ancestors' | 'descendants') '(' link ( ',' feld )+ ')'
+//                                    (transitive Hülle, nur RECORDS; 4T-002042,
+//                                     Modul query-record-sources.js)
 //
 // Grammatik (Ausdrucks-Ebene, Präzedenz NOT > AND > OR, Vergleich > Arithmetik):
 //   expr       := orExpr
@@ -92,6 +102,10 @@ const CLAUSE_KEYWORDS = new Set([
   'HIDE',
   'SHOW',
   'SHORT',
+  // 4T-002043 (Epic 3E-000258): die Angabe der Darstellungsform.
+  'DISPLAY',
+  // 4T-002079 (Epic 3E-000259): die Bedingung über die Gruppe.
+  'HAVING',
 ]);
 
 // 4T-000503 (Epic 3E-000096): kuratierter Element-Katalog der HIDE/SHOW-Klauseln
@@ -116,6 +130,12 @@ const LAYOUT_ELEMENTS = new Set([
   'edit',
   'postpone',
 ]);
+
+// 4T-002039 (Epic 3E-000258): die Ebenen-Wörter nach LIST und TABLE. Die
+// Auswertungs-Ebene ist das klein geschriebene Wort ('blocks', 'tasks',
+// 'records'). Eine Liste statt je eines Zweiges, damit die Wörter an einer
+// Stelle stehen und beide Ausgabe-Typen sie gleich lesen.
+const SCOPE_WORDS = new Set(['BLOCKS', 'TASKS', 'RECORDS']);
 
 // Wort-Lauf: erstes Zeichen Buchstabe/Ziffer/Unterstrich, danach zusätzlich
 // '.' und '-'. Bewusst so gewählt, dass bestehende Feldnamen mit Bindestrich
@@ -390,7 +410,9 @@ function isWord(t, upper) {
 // Liefert { ok: true, ast } oder { ok: false, error: { code, message, pos, … } }.
 // ast ist immer ein Abfrage-Knoten { type: 'list'|'table', scope, fields,
 // withoutId, source, where, sort, limit, layoutColumns }; ein Alt-Body (nackter
-// Ausdruck) wird als LIST WHERE <ausdruck> geliefert. pos ist der 0-basierte
+// Ausdruck) wird als LIST WHERE <ausdruck> geliefert. Nur mit der Angabe DISPLAY
+// trägt er zusätzlich display: { form, by } (4T-002043), nur mit HAVING having
+// (4T-002079); ohne sie fehlen die Felder. pos ist der 0-basierte
 // Zeichen-Offset im Body (-1 bei unerwartetem Ende).
 //
 // 4T-000409 (Epic 3E-000077): scope ist 'files' (Default) oder 'blocks' — das
@@ -404,6 +426,10 @@ function isWord(t, upper) {
 // TASKS nach identischem Muster (Weg A des Konzept-Workshops: Task-Abfragen
 // als Scope der einen Sprache, keine zweite Abfrage-Sprache); dieselbe
 // Kontext-Einschraenkung gilt fuer den nackten Namen 'tasks'.
+// 4T-002039 (Epic 3E-000258): vierter Scope 'records' ueber das Wort RECORDS,
+// wieder nach demselben Muster und mit derselben Einschraenkung fuer den nackten
+// Namen 'records'. Die Ebene bestimmt die Deutung von FROM (E6.1); der Parser
+// liest die Quelle unveraendert, die Deutung liegt in der Auswertung der Ebene.
 function parseQuery(input, opts) {
   const tk = tokenize(input);
   if (!tk.ok) return tk;
@@ -725,6 +751,7 @@ function parseQuery(input, opts) {
       if (!linkTok.value) return { type: 'srcSelf', mode: 'out' };
       return { type: 'srcLink', target: linkTok.value, mode: 'out' };
     }
+    if (isHullWord(t)) return parseHullSource({ peek, next, atEnd, fail });
     return fail('expectedSource', `Ungültige Quelle '${describeToken(t)}' in FROM`, t.pos);
   }
 
@@ -799,6 +826,15 @@ function parseQuery(input, opts) {
     return { ok: true, ast: query };
   }
 
+  // 4T-002039: Das Ebenen-Wort direkt nach LIST bzw. TABLE (kontextuelles Wort,
+  // BLOCKS seit 4T-000409, TASKS seit 4T-000502, RECORDS seit 4T-002039). Ein
+  // Helfer für beide Ausgabe-Typen statt der früheren doppelten Zweige.
+  function parseScopeWord() {
+    const t = peek();
+    if (!t || t.type !== 'field' || !SCOPE_WORDS.has(t.value.toUpperCase())) return;
+    query.scope = next().value.toLowerCase();
+  }
+
   // Klausel-Schleife. Jede Klausel höchstens einmal; LIST/TABLE nur als erste.
   const seen = new Set();
   let clauseCount = 0;
@@ -821,17 +857,13 @@ function parseQuery(input, opts) {
     clauseCount++;
     seen.add(clause === 'LIST' || clause === 'TABLE' ? 'TYPE' : clause);
 
+    // 4T-002043: DISPLAY liest das eigene Modul; die Zweige unten treffen es nicht.
+    if (clause === 'DISPLAY' && !readDisplay(query, { peek, next, atEnd, fail })) break;
+    // 4T-002079: HAVING ebenso; das Modul liest den Ausdruck wie nach WHERE.
+    if (clause === 'HAVING' && !readHaving(query, parseExpr)) break;
     if (clause === 'LIST') {
       query.type = 'list';
-      // 4T-000409 (Epic 3E-000077): Scope-Zusatz BLOCKS (kontextuelles Wort).
-      // 4T-000502 (Epic 3E-000096): Scope-Zusatz TASKS nach demselben Muster.
-      if (!atEnd() && isWord(peek(), 'BLOCKS')) {
-        next();
-        query.scope = 'blocks';
-      } else if (!atEnd() && isWord(peek(), 'TASKS')) {
-        next();
-        query.scope = 'tasks';
-      }
+      parseScopeWord();
       // Optionales Zusatzfeld: nur wenn kein Klausel-Schlüsselwort folgt.
       if (!atEnd() && !clauseKeywordOf(peek())) {
         const expr = parseExpr(false);
@@ -840,15 +872,8 @@ function parseQuery(input, opts) {
       }
     } else if (clause === 'TABLE') {
       query.type = 'table';
-      // 4T-000409 (Epic 3E-000077): Scope-Zusatz BLOCKS vor WITHOUT ID.
-      // 4T-000502 (Epic 3E-000096): Scope-Zusatz TASKS nach demselben Muster.
-      if (!atEnd() && isWord(peek(), 'BLOCKS')) {
-        next();
-        query.scope = 'blocks';
-      } else if (!atEnd() && isWord(peek(), 'TASKS')) {
-        next();
-        query.scope = 'tasks';
-      }
+      // Das Ebenen-Wort steht vor WITHOUT ID.
+      parseScopeWord();
       if (!atEnd() && isWord(peek(), 'WITHOUT')) {
         next();
         if (atEnd() || !isWord(peek(), 'ID')) {
@@ -989,6 +1014,15 @@ function parseQuery(input, opts) {
 // Leitwert-Rahmen). evaluateQuery wird hier für die Alt-Aufrufer re-exportiert
 // (WHERE-Auswertung gegen eine reine Properties-Map, Alt-Semantik unverändert).
 const { evaluateQuery } = require('./perspective-query-eval.js');
+// 4T-002042 (Epic 3E-000258): die Hüllen-Formen ancestors(…) und descendants(…)
+// im eigenen Modul; parseSourceUnary ruft sie mit einer Zeile.
+const { isHullWord, parseHullSource } = require('./query-record-sources.js');
+// 4T-002043 (Epic 3E-000258): die Angabe DISPLAY im eigenen Modul. Es bekommt die
+// Erkennung der Klausel-Wörter hereingereicht, damit die Wörter nur hier stehen.
+const readDisplay = require('./query-display.js').displayReader(clauseKeywordOf);
+// 4T-002079 (Epic 3E-000259): die Bedingung HAVING im eigenen Modul; der Parser
+// reicht ihm seinen Ausdrucks-Leser herein.
+const { readHaving } = require('./query-having.js');
 
 // 4T-000421 (Epic 3E-000079): Ausdrucks-Einstieg für die Spalten-Formeln der
 // Perspective Datatable (ein Wert-Ausdruck, kein Klausel-Parsing).

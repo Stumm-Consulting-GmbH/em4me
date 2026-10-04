@@ -10,6 +10,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 function makeWorkDir(prefix) {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
@@ -134,9 +135,13 @@ test.describe('P-03: Bild-Resolver respektiert seine Wurzel', () => {
       await expect.poll(() => page.title()).toContain('(Bereich bereich)');
       // Datei über den Main-Kanal in das Bereichs-Fenster öffnen (Muster aus
       // bereiche.spec.js; einen Renderer-Kanal dafür gibt es nicht).
-      await app.evaluate(({ BrowserWindow }, p) => {
-        BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
-      }, file);
+      await hauptSenden(
+        app,
+        ({ BrowserWindow }, p) => {
+          BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
+        },
+        file,
+      );
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
 
       const body = page.locator(SEL.markdownBody0);

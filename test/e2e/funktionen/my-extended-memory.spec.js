@@ -31,10 +31,14 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { menuZustand, menuEintrag } = require('../helpers/menu-zustand');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
-// Menü-Klicks simulieren (Muster smoke.spec.js).
+// Menü-Klicks simulieren (Muster smoke.spec.js). 4T-001813: ein reiner Befehl,
+// deshalb über hauptSenden — Begründung im Kopf des Helfers; MEM-06 verlor hier
+// im zweiten Palette-Aufruf die Rückmeldung, obwohl die Palette offen war.
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);

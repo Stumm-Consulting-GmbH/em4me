@@ -15,14 +15,21 @@
 
 import { api } from '../app/api.js';
 import { t, intlLocale } from '../../i18n.js';
-// 4T-000502 (Epic 3E-000096): Task-Treffer des TASKS-Scopes — die View parst die
-// Roh-Zeile des Payloads mit dem Marker-Kern und baut die Task-Optik aus der
-// gemeinsamen Badge-Spec (Paritaet zu Render-Pane/Live-Modus). Bewusst nur
-// shared-Importe (kein Renderer-Modul), damit der jsdom-Unit-Test der reinen
-// Bau-Funktionen ohne Preload-Bruecke laeuft.
-import { parseTaskLine, stripGlobalFilter } from '../../../shared/tasks/task-markers.js';
-import { primaryDateField } from '../../../shared/tasks/task-recurrence.js';
-import { taskMarkerBadgeSpec, getTaskMarkersConfig } from '../../../shared/markdown/plugins.js';
+// 4T-002034 (Epic 3E-000260): Liste und Tabelle entstehen aus der Ergebnismenge
+// im eigenen Darstellungs-Modul; dieses Modul bleibt der Einstieg der
+// Befüllung und verteilt Zustände, Fehler und Leer-Fall. Seit 4T-002035 ebenso
+// die Aufgaben-Liste. Bewusst keine Renderer-Module mit Preload-Bezug, damit
+// der jsdom-Unit-Test der Bau-Funktionen ohne Preload-Brücke läuft.
+import {
+  buildListDom,
+  buildGroupedListDom,
+  buildTableDom,
+  buildGroupedTableDom,
+} from './display-list-table.js';
+import { buildTaskListDom } from './display-tasks.js';
+// 4T-002043 (Epic 3E-000258): Verzeichnis der Darstellungsformen (DISPLAY).
+import { drawDisplayForm } from './display-forms.js';
+import { areaFileCount } from '../../../shared/query/result-display.js';
 
 // Bekannte Syntaxfehler-Codes des Parsers (src/shared/query/perspective-query.js) auf
 // i18n-Keys abgebildet. Die deutschsprachige `message` des Parsers wird bewusst
@@ -68,21 +75,56 @@ const SYNTAX_ERROR_KEYS = {
   // "Aufgaben" (Gate im Main-Query-Pfad, kein Parser-Fehler).
   tasksScopeDisabled: 'query.syntax.tasksScopeDisabled',
   // 4T-000503 (Epic 3E-000096): Gruppierung und Task-Layout (GROUP BY, HIDE/
-  // SHOW/SHORT) — Parser-Codes plus Aktivierungs-Grenze des Main-Pfads.
+  // SHOW/SHORT) — Parser-Codes plus Aktivierungs-Grenze des Main-Pfads. Die
+  // Grenze der Gruppierung (`groupByTasksOnly`) ist mit 4T-002076 entfallen,
+  // ihr Code entsteht nicht mehr; es bleibt die der Layout-Klauseln.
   expectedBy: 'query.syntax.expectedBy',
   expectedElement: 'query.syntax.expectedElement',
   unknownLayoutElement: 'query.syntax.unknownLayoutElement',
-  groupByTasksOnly: 'query.syntax.groupByTasksOnly',
   layoutTasksOnly: 'query.syntax.layoutTasksOnly',
   // 4T-000505 (Epic 3E-000096): fehlerhafte globale Abfrage (Einstellungen) —
   // eigener Code, damit die Anzeige global von lokal unterscheidet.
   globalQueryInvalid: 'query.syntax.globalQueryInvalid',
+  // 4T-002039 (Epic 3E-000258): Abfrage-Fehler der Datensatz-Ebene (Quelle ohne
+  // Tabelle, unzulässige Quellen-Art mit {name}, Hervorhebung).
+  recordsSourceMissing: 'query.syntax.recordsSourceMissing',
+  recordsSourceInvalid: 'query.syntax.recordsSourceInvalid',
+  recordsHighlight: 'query.syntax.recordsHighlight',
+  // 4T-002042: Hüllen-Formen ancestors(…) und descendants(…) (Ziel, Feld, Ebene).
+  hullTarget: 'query.syntax.hullTarget',
+  hullField: 'query.syntax.hullField',
+  recordHullScope: 'query.syntax.recordHullScope',
+  // 4T-002043: unvollständige Angabe DISPLAY (ohne Form, BY ohne Feld).
+  displayForm: 'query.syntax.displayForm',
+  displayBy: 'query.syntax.displayBy',
+  // 4T-002078 (Epic 3E-000259): Aggregat-Stellen der gruppierten Tabelle (Spalte
+  // ohne Gruppen-Bezug, Aggregat im Aggregat, je mit {name}) und count() ohne
+  // Feld an einer Zeilen-Stelle.
+  groupedColumn: 'query.syntax.groupedColumn',
+  aggregateNested: 'query.syntax.aggregateNested',
+  countWithoutField: 'query.syntax.countWithoutField',
+  // 4T-002079: HAVING ohne GROUP BY und ein Feld ohne Gruppen-Bezug in HAVING ({name}).
+  havingWithoutGroupBy: 'query.syntax.havingWithoutGroupBy',
+  havingUngrouped: 'query.syntax.havingUngrouped',
 };
 
-// 4T-000405 (Epic 3E-000076): Hinweis-Codes des Main-Payloads (payload.hint) auf
-// i18n-Keys abgebildet — Linter-artige Hinweise, keine Fehler.
+// 4T-000405 (Epic 3E-000076): Hinweis-Codes des Zustands (seit 4T-002034 aus
+// resultSet.state.hint) auf i18n-Keys abgebildet — Linter-artige Hinweise,
+// keine Fehler.
 const HINT_KEYS = {
   columnsIgnored: 'query.hint.columnsIgnored',
+  // 4T-002039 (Epic 3E-000258, F4 Option A): Datensatz-Ebene bei ausgeschalteter
+  // Datenbank; die Menge ist leer, der Hinweis sagt warum.
+  databaseOff: 'query.hint.databaseOff',
+  // 4T-002041: Ein Verweis passt auf mehrere Datensätze und bleibt leer.
+  recordRefAmbiguous: 'query.hint.recordRefAmbiguous',
+  // 4T-002042: Die Verweise einer Hülle bilden einen Kreis.
+  recordHullCycle: 'query.hint.recordHullCycle',
+  // 4T-002043: Die gewählte Darstellungsform ist unbekannt oder passt nicht; die
+  // Codes nennt der Verteiler (display-forms.js), nicht der Zustand. {name} ist
+  // das Wort nach DISPLAY.
+  displayFormUnknown: 'query.hint.displayFormUnknown',
+  displayFormUnsuitable: 'query.hint.displayFormUnsuitable',
 };
 
 function syntaxErrorText(err, translate) {
@@ -96,15 +138,25 @@ function syntaxErrorText(err, translate) {
     .replace('{name}', String((err && err.name) || ''));
 }
 
-// --- Reine Bau-Funktion ------------------------------------------------------
-// Erzeugt aus der IPC-Antwort (bzw. dem Renderer-internen Lade-Status) das
-// Listen-DOM. Prozess-nah, aber nur von `document` und dem injizierten `tFn`
-// abhängig, damit im jsdom-Unit-Test deterministisch prüfbar (t als Stub).
-// Gibt ein DocumentFragment zurück, das der Aufrufer in den Container hängt.
+// --- Einstieg: Verteiler auf die Darstellung ---------------------------------
+// Erzeugt aus der Antwort des Abfrage-Kanals (bzw. einem Zustand, den die
+// Anzeige selbst setzt) das DOM des Blocks. Prozess-nah, aber nur von
+// `document` und dem injizierten `tFn` abhängig, damit im jsdom-Unit-Test
+// deterministisch prüfbar (t als Stub). Gibt ein DocumentFragment zurück, das
+// der Aufrufer in den Container hängt.
+//
+// 4T-002034 (Epic 3E-000260): Zustand, Abfrage-Fehler, Leer-Fall, Hinweis,
+// Liste und Tabelle lesen allein die Ergebnismenge (`payload.resultSet`); die
+// Liste und die Tabelle baut display-list-table.js. Ohne Menge kommen nur noch
+// die Zustände, die die Anzeige selbst setzt (Laden, pfadloser Reiter,
+// Kanal-Fehler). Seit 4T-002035 baut display-tasks.js die Aufgaben-Liste
+// ebenso allein aus der Menge; die Antwort des Kanals trägt keine anderen
+// Felder mehr.
 export function buildQueryListDom(payload, tFn) {
   const translate = typeof tFn === 'function' ? tFn : t;
   const frag = document.createDocumentFragment();
-  const status = payload && payload.status;
+  const rs = resultSetOf(payload);
+  const status = rs ? rs.state.status : payload && payload.status;
 
   // Status ohne Treffer-Liste: je ein lokalisierter Hinweis.
   if (status === 'loading') return append(frag, statusNode('query.loading', translate));
@@ -112,399 +164,90 @@ export function buildQueryListDom(payload, tFn) {
   if (status === 'indexing') return append(frag, statusNode('query.indexing', translate));
   if (status === 'error') return append(frag, statusNode('query.error', translate));
   if (status === 'oversized') {
-    const meta = (payload && payload.meta) || {};
     const node = statusNode('query.oversized', translate, {
-      '{files}': String(meta.fileCount || 0),
+      '{files}': String(areaFileCount(rs && rs.state)),
     });
     return append(frag, node);
   }
 
-  // ready: zuerst der Query-Syntaxfehler (leere Liste), dann Leer-Fall, dann
-  // Liste bzw. Tabelle (4T-000404).
-  if (payload && payload.queryError) {
+  // ready: zuerst der Abfrage-Fehler (leere Zeilen-Liste), dann Leer-Fall,
+  // Hinweis und Ausgabe (4T-000404).
+  const queryError = rs ? rs.state.queryError : null;
+  if (queryError) {
     const node = statusNode(null, translate);
     node.classList.add('perspective-query-error');
-    node.textContent = syntaxErrorText(payload.queryError, translate);
+    node.textContent = syntaxErrorText(queryError, translate);
     return append(frag, node);
   }
-  const files = payload && Array.isArray(payload.files) ? payload.files : [];
-  // 4T-000503 (Epic 3E-000096): gruppierte Task-Ausgabe (GROUP BY) — die Treffer
-  // liegen dann in payload.groups statt in der flachen files-Liste.
-  const taskGroups =
-    payload && payload.queryScope === 'tasks' && Array.isArray(payload.groups)
-      ? payload.groups
-      : null;
-  if (files.length === 0 && (!taskGroups || taskGroups.length === 0)) {
-    return append(frag, statusNode('query.empty', translate));
+  if (!rs || rs.rows.length === 0) {
+    // 4T-002039 (Epic 3E-000258): Auf der Datensatz-Ebene erklärt ein Hinweis die
+    // leere Menge (Aus-Zustand), deshalb steht er dort vor «keine Treffer». Die
+    // drei bestehenden Ebenen zeigen im Leer-Fall wie bisher keinen Hinweis.
+    if (rs && rs.scope === 'records') appendHint(frag, rs, translate);
+    // 4T-002040: Die Datensatz-Ebene hat einen eigenen Leer-Text; die drei
+    // bestehenden Ebenen behalten «Keine Datei entspricht dieser Abfrage».
+    const emptyKey = rs && rs.scope === 'records' ? 'query.emptyRecords' : 'query.empty';
+    return append(frag, statusNode(emptyKey, translate));
+  }
+
+  // 4T-002043 (Epic 3E-000258): Verteiler auf die gewählte Darstellungsform
+  // (DISPLAY). Ohne Angabe entsteht nichts, und alles darunter bleibt wie
+  // bisher. Eine gezeichnete Form trägt den Hinweis des Zustands über sich; eine
+  // unbekannte oder unpassende fällt auf die Ausgabe ohne Angabe zurück und sagt
+  // das im Hinweis, der hinter denen des Zustands kommt.
+  const display = drawDisplayForm(rs, { translate });
+  if (display.node) {
+    appendHint(frag, rs, translate);
+    return append(frag, display.node);
+  }
+
+  // 4T-000502/4T-000503 (Epic 3E-000096): Aufgaben-Liste (LIST TASKS) mit
+  // Gruppen, Layout und Treffer-Zähler; ein Hinweis entsteht dort nur beim
+  // Rückfall einer gewählten Form (4T-002043).
+  if (rs.scope === 'tasks' && rs.type === 'list') {
+    if (display.hint) appendHint(frag, rs, translate, display);
+    return append(frag, buildTaskListDom(rs, translate));
   }
 
   // 4T-000405 (Epic 3E-000076): Linter-artiger Hinweis oberhalb des Ergebnisses
   // (aktuell: COLUMNS bei TABLE ignoriert). Kein Fehler, Ergebnis folgt darunter.
-  if (payload.hint && HINT_KEYS[payload.hint]) {
-    const hint = document.createElement('div');
-    hint.className = 'perspective-query-hint';
-    hint.textContent = translate(HINT_KEYS[payload.hint]);
-    frag.appendChild(hint);
-  }
+  appendHint(frag, rs, translate, display);
 
-  // 4T-000404 (Epic 3E-000076): TABLE-Ausgabe als eigene Bau-Funktion; die Liste
-  // bleibt der Default (Alt-Payloads ohne queryType rendern unverändert).
-  if (payload.queryType === 'table' && payload.table) {
-    return append(frag, buildQueryTableDom(payload.table, translate));
+  // 4T-000404 (Epic 3E-000076): TABLE-Ausgabe aller drei Ebenen, sonst die Liste.
+  // 4T-002078 (Epic 3E-000259): Trägt die Menge Gruppen, die gruppierte Tabelle
+  // mit einer Zeile je Gruppe.
+  if (rs.type === 'table' && Array.isArray(rs.groups)) {
+    return append(frag, buildGroupedTableDom(rs, translate));
   }
-
-  // 4T-000502 (Epic 3E-000096): Task-Treffer des TASKS-Scopes als eigene Liste
-  // (Status-Box, klickbare Beschreibung mit Zeilen-Sprung, Marker-Badges).
-  // 4T-000503: optional gruppiert (GROUP BY), mit Layout-Optionen (HIDE/SHOW/
-  // SHORT) und Treffer-Zähler (Element 'count', per HIDE abschaltbar).
-  if (payload.queryScope === 'tasks') {
-    const layout = normalizeTaskLayout(payload.taskLayout);
-    if (taskGroups) appendTaskGroups(frag, taskGroups, 0, layout, translate);
-    else frag.appendChild(buildQueryTaskListDom(files, layout));
-    if (layout.visible('count') && typeof payload.totalCount === 'number') {
-      const count = document.createElement('div');
-      count.className = 'perspective-query-task-count';
-      count.textContent =
-        payload.totalCount === 1
-          ? translate('query.tasks.count.one')
-          : translate('query.tasks.count.other').replace('{n}', String(payload.totalCount));
-      frag.appendChild(count);
-    }
-    return frag;
-  }
-
-  const list = document.createElement('ul');
-  list.className = 'perspective-query-list';
-  // 4T-000405 (Epic 3E-000076): Mehrspalten-Layout der Ergebnis-Liste. Reines
-  // Anzeige-Attribut; die column-count-Regeln (2–8) liegen in styles.css.
-  if (
-    typeof payload.layoutColumns === 'number' &&
-    payload.layoutColumns >= 2 &&
-    payload.layoutColumns <= 8
-  ) {
-    list.dataset.fmColumns = String(payload.layoutColumns);
-  }
-  for (const file of files) {
-    const li = document.createElement('li');
-    const a = document.createElement('a');
-    a.className = 'perspective-query-item';
-    a.href = '#';
-    a.textContent = file.name;
-    a.title = file.path;
-    // Absoluter Index-Pfad; der zentrale Klick-Handler öffnet darüber die
-    // exakte Zieldatei (openInPane), ohne erneute Namensauflösung.
-    a.dataset.fmPath = file.path;
-    // 4T-000409 (Epic 3E-000077): Block-Treffer tragen den Anker; der Klick-Pfad
-    // springt nach dem Öffnen zum Block (bestehende Anker-Sprung-Mechanik).
-    if (typeof file.anchor === 'string' && file.anchor) {
-      a.dataset.fmAnchor = '^' + file.anchor;
-    }
-    li.appendChild(a);
-    // 4T-000404: LIST-Zusatzfeld — ausgewerteter Ausdruck als gedämpfter
-    // Anhang hinter dem Datei-Link (Segmente, Links bleiben klickbar).
-    if (Array.isArray(file.extra) && file.extra.length > 0) {
-      const span = document.createElement('span');
-      span.className = 'perspective-query-extra';
-      appendSegments(span, file.extra);
-      li.appendChild(span);
-    }
-    list.appendChild(li);
-  }
-  frag.appendChild(list);
-  return frag;
+  if (rs.type === 'table') return append(frag, buildTableDom(rs, translate));
+  // 4T-002077 (Epic 3E-000259): Trägt die Menge Gruppen, die gruppierte Liste.
+  if (Array.isArray(rs.groups)) return append(frag, buildGroupedListDom(rs, translate));
+  return append(frag, buildListDom(rs));
 }
 
-// 4T-000503 (Epic 3E-000096): normalisiertes Task-Layout der Ausgabe (HIDE/SHOW/
-// SHORT). Sichtbarkeits-Regel: HIDE gewinnt; standardmäßig verborgene
-// Elemente (aktuell 'urgency', wirksam ab 4T-000505) erscheinen nur über SHOW.
-const DEFAULT_HIDDEN_ELEMENTS = new Set(['urgency']);
-
-function normalizeTaskLayout(raw) {
-  const hide = new Set(Array.isArray(raw && raw.hide) ? raw.hide : []);
-  const show = new Set(Array.isArray(raw && raw.show) ? raw.show : []);
-  return {
-    short: !!(raw && raw.short),
-    visible(element) {
-      if (hide.has(element)) return false;
-      if (DEFAULT_HIDDEN_ELEMENTS.has(element)) return show.has(element);
-      return true;
-    },
-  };
+// Die Ergebnismenge einer Antwort, soweit sie die Form trägt, die die
+// Darstellung liest; sonst null. Die Format-Version wird bewusst nicht
+// verglichen: Zuwachs ist additiv, Unbekanntes wird übergangen (E8.5).
+function resultSetOf(payload) {
+  const rs = payload && payload.resultSet;
+  if (!rs || typeof rs !== 'object' || !rs.state || typeof rs.state !== 'object') return null;
+  return Array.isArray(rs.rows) && Array.isArray(rs.columns) ? rs : null;
 }
 
-// 4T-000503: Layout-Element eines Marker-Segments (HIDE/SHOW-Filterung);
-// Toleranz-Marker (kind 'unknown') haben kein Element und bleiben sichtbar.
-function segmentElement(seg) {
-  if (seg.kind === 'date') return seg.field;
-  if (seg.kind === 'priority') return 'priority';
-  if (seg.kind === 'recurrence') return 'recurrence';
-  if (seg.kind === 'id') return 'id';
-  if (seg.kind === 'dependsOn') return 'dependson';
-  return null;
-}
-
-// 4T-000503: Inline-Tags aus der Beschreibung entfernen (HIDE tags) —
-// dieselbe Tag-Form wie der Index-Scan; Rest-Weißraum kollabiert.
-function stripInlineTags(description) {
-  return description
-    .replace(/(^|[\s])#[\p{L}\p{N}_/-]+/gu, '$1')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
-}
-
-// 4T-000502 (Epic 3E-000096): Gruppen-Rendering der Task-Ausgabe (4T-000503):
-// pro Gruppe eine Überschrift (Ebene über data-level, Optik in styles.css)
-// und darunter rekursiv Untergruppen bzw. die Task-Liste. label null steht
-// für Treffer ohne Gruppen-Wert (lokalisierte Beschriftung).
-function appendTaskGroups(parent, groups, level, layout, translate) {
-  for (const group of groups || []) {
-    const wrap = document.createElement('div');
-    wrap.className = 'perspective-query-group';
-    wrap.dataset.level = String(level);
-    const title = document.createElement('div');
-    title.className = 'perspective-query-group-title';
-    // 4T-001074 (Epic 3E-000211): Trägt der Gruppen-Wert Anzeige-Segmente, werden
-    // sie gebaut (nur so überlebt eine Hervorhebung bis in den Titel); ohne
-    // Segmente bleibt es beim reinen Text wie bisher.
-    if (group.label !== null && Array.isArray(group.labelSegs) && group.labelSegs.length > 0) {
-      appendSegments(title, group.labelSegs);
-    } else {
-      title.textContent = group.label === null ? translate('query.group.none') : group.label;
-    }
-    wrap.appendChild(title);
-    if (Array.isArray(group.groups)) {
-      appendTaskGroups(wrap, group.groups, level + 1, layout, translate);
-    } else {
-      wrap.appendChild(buildQueryTaskListDom(group.items || [], layout));
-    }
-    parent.appendChild(wrap);
-  }
-}
-
-// 4T-000502 (Epic 3E-000096): Task-Trefferliste des TASKS-Scopes. Pro Treffer
-// eine Zeile aus Status-Box (Darstellung; interaktiv ab 4T-000504), klickbarer
-// Beschreibung (data-fm-path plus data-fm-line für den Zeilen-Sprung),
-// Marker-Badges aus der gemeinsamen Badge-Spec und gedämpftem Datei-Namen.
-// Globaler-Filter-Text wird gemäß Ausblende-Option der Erweiterung entfernt
-// (getTaskMarkersConfig — dieselbe Quelle wie Render-Pane und Live-Modus).
-// 4T-000503: layout steuert Element-Sichtbarkeit (HIDE/SHOW) und Kurz-Modus
-// (SHORT: Badges nur als Symbol, voller Wert am Tooltip); ohne layout bleibt
-// alles sichtbar. Exportiert für den jsdom-Unit-Test.
-export function buildQueryTaskListDom(files, layout) {
-  const lay = layout && typeof layout.visible === 'function' ? layout : normalizeTaskLayout(null);
-  const cfg = getTaskMarkersConfig();
-  const list = document.createElement('ul');
-  list.className = 'perspective-query-list perspective-query-tasks';
-  for (const file of files) {
-    const li = document.createElement('li');
-    li.className = 'perspective-query-task';
-    const model = typeof file.taskText === 'string' ? parseTaskLine(file.taskText) : null;
-    if (!model) {
-      // Defensiv (Payload über IPC): ohne parsebares Modell bleibt der
-      // Treffer ein einfacher Datei-Link wie in der Datei-Liste.
-      li.appendChild(taskItemLink(file, file.name));
-      list.appendChild(li);
-      continue;
-    }
-    // 4T-000504 (Epic 3E-000096): Treffer-Identitaet fuer die Rueckschreib-
-    // Aktionen (task-query-actions.js liest sie im Klick-Dispatch).
-    li.dataset.taskPath = file.path;
-    if (typeof file.line === 'number') li.dataset.taskLine = String(file.line);
-    li.dataset.taskText = file.taskText;
-    const status = document.createElement('span');
-    status.className = 'perspective-query-task-status';
-    status.dataset.statusChar = model.statusChar;
-    // 4T-000504: klickbare Status-Box (Ketten-Toggle mit Quelldatei-Schreibweg).
-    status.dataset.taskAction = 'toggle';
-    status.title = t('taskQuery.toggle');
-    const isDone = model.statusChar === 'x' || model.statusChar === 'X';
-    status.textContent = isDone ? '✓' : model.statusChar === ' ' ? '' : model.statusChar;
-    if (isDone) li.classList.add('perspective-query-task-done');
-    li.appendChild(status);
-    let description = model.description.trim();
-    if (cfg && cfg.hideGlobalFilter && cfg.globalFilter) {
-      description = stripGlobalFilter(description, cfg.globalFilter).trim();
-    }
-    if (!lay.visible('tags')) description = stripInlineTags(description);
-    li.appendChild(taskItemLink(file, description || file.name));
-    const labels = (cfg && cfg.labels) || {};
-    for (const seg of model.segments) {
-      const element = segmentElement(seg);
-      if (element && !lay.visible(element)) continue;
-      const spec = taskMarkerBadgeSpec(seg, labels);
-      const badge = document.createElement('span');
-      badge.className = spec.cls;
-      if (lay.short) {
-        // Kurz-Modus: nur das Marker-Symbol; der volle Wert wandert in den
-        // Tooltip (Titel plus Wert-Teil des Badge-Texts).
-        const spaceIdx = spec.text.indexOf(' ');
-        const symbol = spaceIdx > 0 ? spec.text.slice(0, spaceIdx) : spec.text;
-        const rest = spaceIdx > 0 ? spec.text.slice(spaceIdx + 1) : '';
-        badge.textContent = symbol;
-        badge.title = spec.title ? (rest ? `${spec.title}: ${rest}` : spec.title) : rest;
-      } else {
-        if (spec.title) badge.title = spec.title;
-        badge.textContent = spec.text;
-      }
-      li.appendChild(badge);
-    }
-    // 4T-000505 (Epic 3E-000096): einblendbarer Dringlichkeits-Score
-    // (SHOW urgency; standardmäßig verborgen, Wert vom Main gerundet).
-    if (lay.visible('urgency') && typeof file.urgency === 'number') {
-      const badge = document.createElement('span');
-      badge.className = 'task-marker task-marker-urgency';
-      badge.title = t('taskQuery.urgency');
-      badge.textContent = `⚡ ${file.urgency.toFixed(2)}`;
-      li.appendChild(badge);
-    }
-    // 4T-000508 (Epic 3E-000096): dezente Kennzeichnungen — blockiert durch
-    // offene Vorgänger bzw. mehrfach vergebene ID (Eindeutigkeits-Prüfung).
-    if (file.blocked === true) {
-      const badge = document.createElement('span');
-      badge.className = 'task-marker task-marker-blocked';
-      badge.title = t('taskQuery.blocked');
-      badge.textContent = '⛔';
-      li.appendChild(badge);
-      li.classList.add('perspective-query-task-blocked');
-    }
-    if (file.duplicateId === true) {
-      const badge = document.createElement('span');
-      badge.className = 'task-marker task-marker-invalid';
-      badge.title = t('taskQuery.duplicateId');
-      badge.textContent = '⚠';
-      li.appendChild(badge);
-    }
-    // 4T-000504 (Epic 3E-000096): Aktions-Knoepfe pro Treffer — Verschieben nur
-    // bei verwertbarem Termin-Feld (Layout-Elemente 'postpone' und 'edit').
-    if (lay.visible('postpone') && primaryDateField(model)) {
-      li.appendChild(taskActionButton('postpone', '⇥', t('taskQuery.postpone')));
-    }
-    if (lay.visible('edit')) {
-      li.appendChild(taskActionButton('edit', '✎', t('taskQuery.edit')));
-    }
-    if (lay.visible('backlink')) {
-      const fileRef = document.createElement('span');
-      fileRef.className = 'perspective-query-task-file';
-      fileRef.textContent = file.name;
-      li.appendChild(fileRef);
-    }
-    if (Array.isArray(file.extra) && file.extra.length > 0) {
-      const span = document.createElement('span');
-      span.className = 'perspective-query-extra';
-      appendSegments(span, file.extra);
-      li.appendChild(span);
-    }
-    list.appendChild(li);
-  }
-  return list;
-}
-
-// 4T-000504 (Epic 3E-000096): Aktions-Knopf eines Task-Treffers (Verschieben,
-// Bearbeiten) — die Klick-Behandlung liegt im zentralen Dispatch
-// (task-query-actions.js), hier nur Darstellung und data-Attribut.
-function taskActionButton(action, glyph, title) {
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'perspective-query-task-btn';
-  btn.dataset.taskAction = action;
-  btn.textContent = glyph;
-  btn.title = title;
-  return btn;
-}
-
-// Klickbarer Treffer-Link eines Task-Eintrags (Zeilen-Sprung über
-// data-fm-line, zentrale Klick-Handler wie die Datei-Liste).
-function taskItemLink(file, text) {
-  const a = document.createElement('a');
-  a.className = 'perspective-query-item perspective-query-task-desc';
-  a.href = '#';
-  a.textContent = text;
-  a.title = file.path;
-  a.dataset.fmPath = file.path;
-  if (typeof file.line === 'number') a.dataset.fmLine = String(file.line);
-  return a;
-}
-
-// 4T-000404 (Epic 3E-000076): Segment-Renderer für Tabellen-Zellen und das
-// LIST-Zusatzfeld. { text } wird Text-Knoten, { link } ein Link über den
-// bestehenden data-fm-path-Klick-Pfad (zentrale Klick-Handler, wie die
-// Datei-Liste selbst). Defensive Prüfung, weil die Segmente über IPC kommen.
-function appendSegments(el, segments) {
-  for (const seg of segments || []) {
-    // 4T-001074 (Epic 3E-000211): Ein ausgezeichnetes Segment kommt in ein
-    // <strong>; alles andere bleibt unverändert. Die Marke sitzt am Segment
-    // und nicht an seiner Art, deshalb gilt sie für Text- und Link-Segmente
-    // gleichermaßen, und der Link bleibt ein klickbarer Link.
-    const ziel = seg && seg.bold ? document.createElement('strong') : el;
-    if (seg && seg.link && typeof seg.link.path === 'string') {
-      const a = document.createElement('a');
-      a.className = 'perspective-query-item';
-      a.href = '#';
-      a.textContent = seg.link.name || seg.link.path;
-      a.title = seg.link.path;
-      a.dataset.fmPath = seg.link.path;
-      ziel.appendChild(a);
-    } else if (seg && typeof seg.text === 'string') {
-      ziel.appendChild(document.createTextNode(seg.text));
-    }
-    if (ziel !== el) el.appendChild(ziel);
-  }
-}
-
-// 4T-000404 (Epic 3E-000076): Tabellen-DOM der TABLE-Ausgabe. Erste Spalte ist der
-// klickbare Datei-Link (entfällt bei WITHOUT ID), danach je Spalten-Ausdruck
-// eine Zelle aus Segmenten; Kopfzeile aus Alias bzw. Ausdrucks-Quelltext (vom
-// Main geliefert). Die Optik erbt von .markdown-body table; die Zusatz-Klasse
-// perspective-query-table trägt nur Abstände. Exportiert für den jsdom-Test.
-export function buildQueryTableDom(table, tFn) {
-  const translate = typeof tFn === 'function' ? tFn : t;
-  const el = document.createElement('table');
-  el.className = 'perspective-query-table';
-  const thead = document.createElement('thead');
-  const headRow = document.createElement('tr');
-  if (!table.withoutId) {
-    const th = document.createElement('th');
-    th.textContent = translate('query.table.fileColumn');
-    headRow.appendChild(th);
-  }
-  for (const header of table.headers || []) {
-    const th = document.createElement('th');
-    th.textContent = header;
-    headRow.appendChild(th);
-  }
-  thead.appendChild(headRow);
-  el.appendChild(thead);
-  const tbody = document.createElement('tbody');
-  for (const row of table.rows || []) {
-    const tr = document.createElement('tr');
-    if (!table.withoutId) {
-      const td = document.createElement('td');
-      const a = document.createElement('a');
-      a.className = 'perspective-query-item';
-      a.href = '#';
-      a.textContent = row.name;
-      a.title = row.path;
-      a.dataset.fmPath = row.path;
-      // 4T-000409 (Epic 3E-000077): Anker der Block-Treffer (wie die Liste).
-      if (typeof row.anchor === 'string' && row.anchor) {
-        a.dataset.fmAnchor = '^' + row.anchor;
-      }
-      // 4T-000502 (Epic 3E-000096): Zeilen-Sprung der Task-Treffer (TABLE TASKS).
-      if (typeof row.line === 'number') {
-        a.dataset.fmLine = String(row.line);
-      }
-      td.appendChild(a);
-      tr.appendChild(td);
-    }
-    for (const cell of row.cells || []) {
-      const td = document.createElement('td');
-      appendSegments(td, cell);
-      tr.appendChild(td);
-    }
-    tbody.appendChild(tr);
-  }
-  el.appendChild(tbody);
-  return el;
+// Der Hinweis des Zustands als eigene Zeile, sofern sein Code bekannt ist.
+// 4T-002043: Ohne ihn der Hinweis des Rückfalls einer Darstellungsform (Ergebnis
+// von drawDisplayForm); es erscheint höchstens einer, und der des Zustands geht vor
+// (Rangfolge in der Architektur, Abschnitt «Ergebnismenge zwischen Auswertung
+// und Anzeige»).
+function appendHint(frag, rs, translate, display) {
+  const stateCode = rs.state.hint && HINT_KEYS[rs.state.hint] ? rs.state.hint : null;
+  const hintCode = stateCode || (display && display.hint);
+  if (!hintCode || !HINT_KEYS[hintCode]) return;
+  const hint = document.createElement('div');
+  hint.className = 'perspective-query-hint';
+  const text = translate(HINT_KEYS[hintCode]);
+  hint.textContent = stateCode ? text : text.replace('{name}', String(display.name || ''));
+  frag.appendChild(hint);
 }
 
 function append(frag, node) {

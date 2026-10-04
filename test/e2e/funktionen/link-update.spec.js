@@ -10,6 +10,7 @@ const os = require('node:os');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const SEP = '∕'; // U+2215 Division Slash
 
@@ -30,7 +31,7 @@ async function waitForTab(page) {
 }
 
 async function openRenameDialog(app, page) {
-  await app.evaluate(({ BrowserWindow }) => {
+  await hauptSenden(app, ({ BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows()[0];
     if (win && !win.isDestroyed()) win.webContents.send('menu:renameFile');
   });
@@ -321,9 +322,13 @@ test.describe('LU-09: Suchraum endet an der Bereichs-Grenze (4T-001458)', () => 
           return !!(r && r.ok !== false);
         })
         .toBe(true);
-      await app.evaluate(({ BrowserWindow }, f) => {
-        BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [f]);
-      }, ziel);
+      await hauptSenden(
+        app,
+        ({ BrowserWindow }, f) => {
+          BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [f]);
+        },
+        ziel,
+      );
       await waitForTab(page);
 
       await openRenameDialog(app, page);

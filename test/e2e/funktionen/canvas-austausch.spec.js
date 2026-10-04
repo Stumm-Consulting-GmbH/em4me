@@ -24,6 +24,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const PANE0 = '.pane-group[data-pane="0"]';
 const CANVAS = `${PANE0} .canvas-view`;
@@ -43,7 +44,8 @@ function raeumeAuf(dir) {
 }
 
 async function sendeMenuKanal(app, kanal, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, nutzlast) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(nutzlast.kanal, ...nutzlast.args);
@@ -56,19 +58,23 @@ async function sendeMenuKanal(app, kanal, ...args) {
 // Öffnen-Dialog liefern denselben festen Pfad; die Meldung wird gezählt,
 // damit die Auslöse-Schleifen wissen, wann ein Weg gelaufen ist.
 async function stubDialoge(app, canvasPfad) {
-  await app.evaluate(({ dialog }, pfad) => {
-    globalThis.__meldungen = [];
-    dialog.showSaveDialog = async () => ({ canceled: false, filePath: pfad });
-    dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [pfad] });
-    dialog.showMessageBox = async (_win, optionen) => {
-      globalThis.__meldungen.push(optionen);
-      return { response: 0 };
-    };
-  }, canvasPfad);
+  await hauptSenden(
+    app,
+    ({ dialog }, pfad) => {
+      globalThis.__meldungen = [];
+      dialog.showSaveDialog = async () => ({ canceled: false, filePath: pfad });
+      dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [pfad] });
+      dialog.showMessageBox = async (_win, optionen) => {
+        globalThis.__meldungen.push(optionen);
+        return { response: 0 };
+      };
+    },
+    canvasPfad,
+  );
 }
 
 function meldungen(app) {
-  return app.evaluate(() => (globalThis.__meldungen || []).map((m) => m.message));
+  return hauptLesen(app, () => (globalThis.__meldungen || []).map((m) => m.message));
 }
 
 // Eine Fläche mit allem, worauf es für den Rundlauf ankommt: eine Gruppe, zwei

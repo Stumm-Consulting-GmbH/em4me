@@ -30,6 +30,11 @@ import { erzeugeSchreibSchnittstelle } from '../../src/main/database/record-auft
 import { erzeugeAbsichtsProtokoll } from '../../src/main/database/intent-log.js';
 import { erzeugeWiederanlauf } from '../../src/main/database/intent-recovery.js';
 import { DEFAULT_LOCK_FOLDER_NAME } from '../../src/shared/database/lock-folder-name.js';
+import { setzeUhrVersatzAus } from '../uhr-versatz.js';
+
+// 4T-002064: Eine Sperr-Datei ohne Inhalt altert über ihre Datei-Zeit; die
+// verschobene Uhr des Wanduhr-Wächters erreicht das Dateisystem nicht.
+setzeUhrVersatzAus('vergleicht die Uhr mit Datei-Zeiten (Alter gegen Frist)');
 
 // --- Aufbau ------------------------------------------------------------------------------
 

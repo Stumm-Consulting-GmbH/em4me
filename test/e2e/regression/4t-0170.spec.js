@@ -14,6 +14,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const FIXTURES = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke');
 const BASIS = path.join(FIXTURES, 'basis.md');
@@ -21,9 +22,13 @@ const ZWEITE = path.join(FIXTURES, 'zweite.md');
 
 // Schickt ein Tab-Payload an das erste Fenster (Pfad von tab:appendToWindow).
 async function appendTab(app, payload) {
-  await app.evaluate(({ BrowserWindow }, p) => {
-    BrowserWindow.getAllWindows()[0].webContents.send('tab:appendFromOtherWindow', p);
-  }, payload);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, p) => {
+      BrowserWindow.getAllWindows()[0].webContents.send('tab:appendFromOtherWindow', p);
+    },
+    payload,
+  );
 }
 
 async function editorText(page) {

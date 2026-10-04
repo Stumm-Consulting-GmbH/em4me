@@ -50,7 +50,7 @@ import { applyCanvasBlocks } from '../canvas/canvas-block-zustand.js';
 // Änderungsbelegen; das Modul bekommt seine Umgebung von app-init.js.
 import { applyRecordRowAccess } from '../database/datensatz-zeilen-zugang.js';
 import { bildDoppelklickDurchlassen, liveBlockCacheGet, liveBlockCacheSet } from './live-shared.js';
-import { bindFrontmatterQueryClicks } from './live-interaction.js';
+import { bindDatentabellenVerweisKlicks, bindFrontmatterQueryClicks } from './live-interaction.js';
 
 // 4T-000084 (Epic 3E-000014): Bilder-Widget. Inline-Replace eines
 // `![alt](url)`-Ranges durch ein `<img>`-Element. Pfad-Aufloesung
@@ -401,6 +401,10 @@ export class MarkdownBlockWidget extends WidgetType {
       applyPerspectiveDatatablesIfPresent(container);
       // 4T-000419: Grid-Editor im Live-Widget (Container ist pro Mount neu).
       bindPerspectiveDatatableEditor(container);
+      // 4T-002014 (Epic 3E-000332): Verweise und Schlagworte in den Zellen der
+      // Datentabelle folgen dem Klick; ignoreEvent() hält den allgemeinen
+      // Klick-Pfad des Live-Modus fern (No-op bei anderen Block-Widgets).
+      bindDatentabellenVerweisKlicks(container);
       // 4T-000420: Ansichts-Zustand nach jedem Widget-Mount wiederanwenden.
       applyPerspectiveDatatableViewStates(container);
       // 4T-000512 (Epic 3E-000092): Ereignis-Fence im Live-Widget lokalisieren

@@ -32,6 +32,9 @@ import {
   ensureAreaIndex,
 } from '../../src/main/backlinks.js';
 import { BESTAND_ZEITLIMIT, SCHWER_ZEITLIMIT } from '../zeitlimits.js';
+// 4T-002035 (Epic 3E-000260): Anzeige-Name eines Abfrage-Treffers aus der
+// Herkunft seiner Zeile in der Ergebnismenge.
+import { displayName } from '../../src/shared/query/result-display.js';
 
 // --- Setup/Teardown ---------------------------------------------------------
 
@@ -735,6 +738,13 @@ describe('backlinks.js — Frontmatter-Abfrage (4T-000354)', () => {
     return first;
   }
 
+  // 4T-002035: Die Antwort ist allein die Ergebnismenge; Zustand und Treffer
+  // kommen aus ihr, der Anzeige-Name aus dem Darstellungs-Kern.
+  const zustand = (res) => res.resultSet.state;
+  const treffer = (res) =>
+    res.resultSet.rows.map((r) => ({ name: displayName(r.origin), path: r.origin.path }));
+  const namen = (res) => treffer(res).map((f) => f.name);
+
   it('wertet Wert-, Listen- und Negations-Abfragen über den Index aus', async () => {
     const a = await buildRoot({
       'Alpha.md': '---\nbereich: Privat\ntags: [rot, rund]\nstatus: offen\n---\n# Alpha\n',
@@ -745,22 +755,22 @@ describe('backlinks.js — Frontmatter-Abfrage (4T-000354)', () => {
 
     // Skalar-Gleichheit: Privat trifft Alpha und Gamma.
     const r1 = frontmatterQueryFor(a, 'bereich = "Privat"');
-    expect(r1.status).toBe('ready');
-    expect(r1.files.map((f) => f.name)).toEqual(['Alpha', 'Gamma']);
+    expect(zustand(r1).status).toBe('ready');
+    expect(namen(r1)).toEqual(['Alpha', 'Gamma']);
     // Rückgabe trägt logischen Namen und Pfad.
-    expect(r1.files.every((f) => f.name && f.path && f.path.endsWith('.md'))).toBe(true);
+    expect(treffer(r1).every((f) => f.name && f.path && f.path.endsWith('.md'))).toBe(true);
 
     // Listen-Feld mit IN: rot (Alpha) und blau (Beta).
     const r2 = frontmatterQueryFor(a, 'tags IN ("rot", "blau")');
-    expect(r2.files.map((f) => f.name)).toEqual(['Alpha', 'Beta']);
+    expect(namen(r2)).toEqual(['Alpha', 'Beta']);
 
     // Boolescher Ausdruck mit Negation: Privat, aber nicht Alias Müller -> nur Alpha.
     const r3 = frontmatterQueryFor(a, 'bereich = "Privat" AND NOT alias = "Müller"');
-    expect(r3.files.map((f) => f.name)).toEqual(['Alpha']);
+    expect(namen(r3)).toEqual(['Alpha']);
 
     // Ungleichheit schließt Dateien ohne das Feld ein: Beta und Delta.
     const r4 = frontmatterQueryFor(a, 'bereich != "Privat"');
-    expect(r4.files.map((f) => f.name)).toEqual(['Beta', 'Delta']);
+    expect(namen(r4)).toEqual(['Beta', 'Delta']);
   });
 
   it('überspringt verschachtelte Objekte und defektes YAML (nicht abfragbar)', async () => {
@@ -770,34 +780,30 @@ describe('backlinks.js — Frontmatter-Abfrage (4T-000354)', () => {
     });
 
     // Verschachteltes Objekt ist kein abfragbarer Skalar.
-    expect(frontmatterQueryFor(a, 'meta = "1"').files).toEqual([]);
+    expect(treffer(frontmatterQueryFor(a, 'meta = "1"'))).toEqual([]);
     // Skalar neben dem Objekt bleibt abfragbar.
-    expect(frontmatterQueryFor(a, 'bereich = "Privat"').files.map((f) => f.name)).toEqual([
-      'Nested',
-    ]);
+    expect(namen(frontmatterQueryFor(a, 'bereich = "Privat"'))).toEqual(['Nested']);
     // Eine nicht passende Wert-Abfrage trifft nichts (auch Broken nicht, dessen
     // defektes YAML keine abfragbaren Properties liefert).
-    expect(frontmatterQueryFor(a, 'bereich = "irgendwas"').files).toEqual([]);
+    expect(treffer(frontmatterQueryFor(a, 'bereich = "irgendwas"'))).toEqual([]);
     // Broken hat kein abfragbares bereich -> die Ungleichheit trifft es.
-    expect(frontmatterQueryFor(a, 'bereich != "Privat"').files.map((f) => f.name)).toContain(
-      'Broken',
-    );
+    expect(namen(frontmatterQueryFor(a, 'bereich != "Privat"'))).toContain('Broken');
   });
 
   it('reicht einen Query-Syntaxfehler als queryError durch, ohne zu werfen', async () => {
     const a = await buildRoot({ 'Alpha.md': '---\nbereich: Privat\n---\n# Alpha\n' });
     const res = frontmatterQueryFor(a, 'bereich =');
-    expect(res.status).toBe('ready');
-    expect(res.files).toEqual([]);
-    expect(res.queryError).toBeTruthy();
-    expect(res.queryError.code).toBe('expectedValue');
+    expect(zustand(res).status).toBe('ready');
+    expect(treffer(res)).toEqual([]);
+    expect(zustand(res).queryError).toBeTruthy();
+    expect(zustand(res).queryError.code).toBe('expectedValue');
   });
 
   it('meldet unavailable ohne aufgebauten Index', () => {
     const root = makeRoot();
     const p = write(root, 'Ohne.md', '# ohne Index\n');
     // Kein indexFor -> kein Eintrag in der Index-Map.
-    expect(frontmatterQueryFor(p, 'a = "1"').status).toBe('unavailable');
+    expect(zustand(frontmatterQueryFor(p, 'a = "1"')).status).toBe('unavailable');
   });
 });
 

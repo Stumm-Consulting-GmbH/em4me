@@ -19,23 +19,28 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'pdf-export.md');
 
 // Save-Dialog im Main-Prozess stubben. Zaehlt Aufrufe in einem globalen
 // Marker, damit Abbruch-Tests wissen, dass der Export-Pfad gelaufen ist.
 async function stubSaveDialog(app, result) {
-  await app.evaluate(({ dialog }, payload) => {
-    globalThis.__pdfDialogCalls = 0;
-    dialog.showSaveDialog = async () => {
-      globalThis.__pdfDialogCalls += 1;
-      return payload;
-    };
-  }, result);
+  await hauptSenden(
+    app,
+    ({ dialog }, payload) => {
+      globalThis.__pdfDialogCalls = 0;
+      dialog.showSaveDialog = async () => {
+        globalThis.__pdfDialogCalls += 1;
+        return payload;
+      };
+    },
+    result,
+  );
 }
 
 function dialogCalls(app) {
-  return app.evaluate(() => globalThis.__pdfDialogCalls || 0);
+  return hauptLesen(app, () => globalThis.__pdfDialogCalls || 0);
 }
 
 // Kommando Strg+Umschalt+P mit Poll ausloesen, bis der Export-Pfad laeuft

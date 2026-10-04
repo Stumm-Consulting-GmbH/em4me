@@ -261,12 +261,20 @@ das Material. Das Werkzeug berührt das Prüfstand-Abbild nicht.
 | Kommando | Zweck |
 |---|---|
 | `npm test` | Vitest-Lauf (Unit/Snapshot). Pflicht-Gate zentral in der Merge-Queue vor jeder Integration nach `main`, im Umfang der Änderungsklasse; lokal vor dem Abliefern eines Branches gute Praxis. |
+| `node scripts/gate-lauf.js ausschnitt [--basis <ref>]` | Prüf-Ausschnitt der Änderungsklasse gegen die Basis des Zweigs (Epic-Zweig gegen seinen Zug-Zweig, sonst gegen `origin/main`), mit derselben Auswahl wie die Merge-Queue; der Werkzeug-Weg für Stufe 2 der Test-Strategie, auch auf Zug- und Epic-Zweigen. Ersetzt das Gate der Queue nicht. |
+| `node scripts/gate-lauf.js test:uhr` | Wanduhr-Wächter: die Unit-Suite mit einer um fünf Jahre verschobenen Uhr, Bericht nach `test-berichte/unit-uhr.json`. Läuft in den vollen Gates von selbst mit (Stabilitätsregel 33). |
 | `npm run test:watch` | Vitest-Watch-Modus; `.only` ist hier erlaubt (`--allowOnly`). |
 | `npm run test:e2e` | Playwright-E2E-Lauf; baut vorher das Renderer-Bundle (`pretest:e2e`). Umfang pro Task nach Änderungsklasse (Abschnitt „Änderungsklassen und Prüf-Ausschnitt"), Voll-Suite im Release-Sammeltask. |
 | `npm run build:renderer` | Baut das Renderer-Bundle. Vorbedingung jedes direkten Playwright-Aufrufs und eigenes Gate für Renderer-Importe (Abschnitt „E2E-Praxis"). |
 | `node scripts/test-kennzahlen.js` | Schreibt die Zahl der Prüffälle beider Suiten nach `test/lauf-kennzahlen.json`, ermittelt aus deren Auflistung ohne Ausführung (rund eine Minute). Läuft als letzter Schritt der Release-Vorbereitung mit; von Hand jederzeit möglich, weil kein Test-Lauf vorausgehen muss. |
 
 **Die Kennzahl hängt an keinem Lauf.** Sie entsteht seit 4T-000831 aus der Auflistung beider Werkzeuge (`vitest list`, `playwright test --list`) und nicht mehr aus den Maschinen-Berichten eines Voll-Laufs. Damit ist gleichgültig, welcher Lauf zuletzt gefahren ist und mit welchem Reporter; die JSON-Berichte unter `test-berichte/` dürfen von jedem Teillauf überschrieben werden. Zuvor galt das Gegenteil, und daraus entstand ein Zielkonflikt mit der Wiederhol-Regel: Der isolierte Nachweis eines Flakes zerstörte den Bericht, aus dem die Kennzahl entstehen sollte. **Davon unberührt ist der Beleg eines roten Laufs** (4T-000934): Er hat einen anderen Zweck als die Kennzahl, nämlich die Diagnose eines Fehlschlags, und liegt deshalb als eigene Kopie unter `test-berichte/rot/` statt die Überschreib-Freiheit des Normalfalls einzuschränken (siehe „Belege roter Gate-Läufe" im Abschnitt „Rote Läufe einordnen").
+
+**Bestätigungs-Messung an einer gebauten Programmdatei** (seit dem 2026-10-02, 4T-002068). Ist ein Befund am Quellstand gemessen und soll an der gebauten Programmdatei bestätigt werden, startet der Start-Helfer `launchApp` statt `electron .` die Programmdatei, deren absoluten Pfad die Umgebungs-Variable `EM4ME_PROGRAMMDATEI` nennt. Gemeint ist bei einem Windows-Bau die `EM4me.exe` im entpackten Bau-Ordner `dist/win-unpacked/`, nicht die Portable-Hülle, die sich erst selbst entpackt. Das eigene Profil je Prüf-Instanz bleibt; das Quellstand-Argument und die Frische-Prüfung des Anzeige-Bündels (Regel 24) entfallen, weil die Programmdatei ihr eigenes gepacktes Bündel trägt. Ohne die Variable ist alles wie zuvor. Der Weg ist **kein Gate** und sein Lauf kein Lauf-Nachweis der Prüfdatei am Quellstand; er wird deshalb nicht in die Lauf-Spur aufgenommen. Aufruf in einer Bash-Shell, mit einer konkreten Prüfdatei:
+
+```bash
+EM4ME_PROGRAMMDATEI="C:\Pfad\zum\Projekt\dist\win-unpacked\EM4me.exe" npm run test:e2e -- test/e2e/funktionen/<prüfdatei>.spec.js
+```
 
 ### Drei Regeln zum Umgang mit Läufen in der Release-Strecke
 
@@ -872,7 +880,13 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     zum Fehlschlag gebracht — «Execution context was destroyed» im
     Haupt-Prozess-Aufruf, also ohne verletzte Erwartung; **ohne** Verschiebung
     waren es **3 von 3 grün** (ebenso 3 von 3 grün ohne jede Größen-Setzung).
-    Die Inhalts-Größe rührt die Position nicht an und trifft die gemessene
+    Die Meldung selbst führt in die Irre: Gemessen am 2026-10-01 an `SE-08`
+    wird bei diesem Fehlerbild kein Kontext zerstört, sondern die Rückmeldung
+    eines bereits ausgeführten Aufrufs geht verloren («Promise was collected»,
+    Regel 31). Dass die Fehlschläge mit Verschiebung dieselbe Ursache hatten,
+    liegt nahe, weil es derselbe Fall (`MEM-06`) und derselbe Fingerabdruck
+    war, ist aber nicht gemessen; ebenso offen ist, warum das Verschieben das
+    Bild häufte. Die Inhalts-Größe rührt die Position nicht an und trifft die gemessene
     Breite zudem genauer, weil der Fenster-Rahmen nicht mitzählt. Die Regel
     bindet **jeden** künftigen Helfer, der ein Fenster für einen Lauf
     einrichtet. Ist der Bildschirm schmaler als 1600, klemmt das
@@ -937,6 +951,178 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     ein Paar behoben und dessen Verhalten geprüft, nie die Abwesenheit
     weiterer Kopien, und die Zaun-Regel war mit 28 Kopien die breiteste
     Familie. Die Bestands-Lesung steht im Modulkopf.
+
+31. **Ein Zugriff auf den Hauptprozess ist entweder Befehl oder Abfrage, und
+    so wird er auch geschrieben** (seit dem 2026-10-01, `4T-001813`). Ein
+    `app.evaluate` meldet gelegentlich «Execution context was destroyed, most
+    likely because of a navigation», ohne dass etwas navigiert hätte. Gemessen
+    an `SE-08` mit mitgeschriebenem Protokoll: Die ursprüngliche Antwort des
+    Hauptprozesses lautet «Promise was collected» auf `Runtime.callFunctionOn`,
+    und erst Playwright schreibt sie auf den Satz von der Navigation um. Der
+    Zugriff fiel in die Verarbeitung einer Menü-Meldung des Fensters, und
+    dazwischen lief eine kleine Speicherbereinigung; rot und grün trennten sich
+    an genau diesem Zeitmuster in 20 von 20 Durchgängen. **Der Rumpf war in
+    allen roten Fällen ausgeführt, verloren ging nur die Rückmeldung.**
+
+    Daraus folgt die Regel: **Ein neuer Zugriff auf den Hauptprozess läuft über
+    die Bausteine in
+    [e2e/helpers/haupt-zugriff.js](e2e/helpers/haupt-zugriff.js), nicht über
+    `app.evaluate` direkt.** Ziel eines Bausteins ist das Anwendungs-Objekt
+    oder ein Fenster-Griff aus `app.browserWindow(page)`, dessen Auswertung
+    dasselbe Fehlerbild trägt (seit `4T-002061`). `hauptSenden` nimmt einen Befehl, dessen Rückgabe
+    nicht gebraucht wird (Nachricht an ein Fenster, Dialog stellvertreten,
+    Abfang-Haken setzen); bei genau diesem Fehlerbild gilt er als abgesetzt und
+    wird **nicht** wiederholt, weil ein zweiter Aufruf den schon gelaufenen
+    Rumpf ein zweites Mal ausführte — wiederholen darf nur, wer ein
+    idempotentes Kommando vor sich hat (Regel 13), und das tut der Prüffall
+    sichtbar in seiner Wiederhol-Klammer, nicht der Baustein. `hauptLesen`
+    nimmt eine Abfrage ohne Nebenwirkung; bei genau diesem Fehlerbild wird sie
+    sofort erneut gestellt, ohne feste Pause (Regel 2), höchstens zehnmal. Ein
+    Rumpf, der einen Befehl absetzt **und** eine Rückgabe liefert, wird in eine
+    Abfrage und einen Befehl geteilt. Jeder andere Fehler geht in beiden Wegen
+    unverändert weiter. Jedes Abfangen schreibt eine Zeile mit dem Präfix
+    `HAUPT-ZUGRIFF` in die Ausgabe des Falls, im grünen Normalfall erscheint
+    nichts; so lässt sich in einer Wiederhol-Reihe zählen, wie oft der Weg
+    gegriffen hat. Der Formprüfer der Browser-Rückrufe
+    (`scripts/lint-e2e-browser-rumpf.js`) erkennt die beiden Bausteine wie
+    `evaluate`, ein umgestellter Rumpf fällt also nicht aus seiner Prüfung.
+
+    **Stand des Bestands:** Umgestellt sind die Fälle mit belegtem Fehlerbild
+    (`SE-08`, `MEM-06`, `PZ-06`, `RG-03`) samt ihren Helfern, der geteilte
+    Helfer `test/e2e/helpers/menu-zustand.js` und die beiden früheren Behelfe,
+    die nach fester Pause auch Befehle ein zweites Mal sendeten. Seit dem
+    2026-10-02 (`4T-002061`) sind auch alle übrigen umgestellt: 245 Stellen in
+    107 Dateien, je am Rumpf als Befehl oder Abfrage eingeordnet, zwei davon
+    nach dem Vorbild `zuletztEintragKlicken` in Abfrage und Befehl geteilt;
+    unter `test/e2e/**` steht außerhalb des Bausteins kein direkter Zugriff
+    mehr. **Dass keine neuen hinzukommen, hält ein Wächter fest** (seit
+    dem 2026-10-02, `4T-002061`): `test/unit/haupt-zugriff-direkt.test.js`
+    meldet unter `test/e2e/**` außerhalb des Bausteins jeden Aufruf
+    `app.evaluate(…)` samt Verwandten wie `first.app.evaluate(…)` und jedes
+    `.evaluate(…)` auf einem Fenster-Griff aus `app.browserWindow(…)`, und die
+    Ausnahmen stünden je Datei mit Zahl und Grund in
+    `scripts/haupt-zugriff-direkt-ausnahmen.json`, einer Ratsche nach dem
+    Muster von Regel 30, die nur schrumpft; die Liste ist leer.
+
+32. **Wer mit einem Dokument startet, wartet auf dessen Eintrag, bevor er
+    einen weiteren öffnet** (seit dem 2026-10-01, `4T-001689`). `launchApp`
+    kehrt zurück, sobald die Oberfläche initialisiert ist, nicht sobald ein
+    übergebenes Datei-Argument offen ist. Der Hauptprozess schickt das
+    Dokument erst nach dem Laden des Fensters, die Oberfläche öffnet es danach
+    und **aktiviert** seinen Eintrag im Dokument-Streifen. Was ein Fall in
+    dieser Lücke selbst öffnet — Einstellungen, Statistik-Seite, eine neue
+    Datei aus einer Vorlage, einen Wechsel auf den ersten von zwei Einträgen —,
+    steht danach im Hintergrund: Seine Elemente sind vorhanden, aber nicht
+    sichtbar, und der Fall läuft in eine Frist, die nichts mit seinem
+    Gegenstand zu tun hat. Gemessen an `VL-09` (2026-09-14) und an `BS-07`
+    (2026-10-01: in einem von acht Durchgängen stand die Statistik-Seite 81 ms
+    vor dem Dokument im Streifen, danach war das Dokument aktiv).
+
+    Daraus folgt die Regel: **Ein Fall, der mit Datei-Argument startet und als
+    Erstes etwas bedient, das einen weiteren Eintrag im Dokument-Streifen
+    öffnet oder aktiviert, ruft vorher `warteAufDateiArgument` aus
+    [e2e/helpers/app.js](e2e/helpers/app.js) auf**, bei mehreren Datei-Argumenten
+    mit dem **letzten**, denn das ist am Ende aktiv. `markdownBody0` taugt dafür
+    nicht, es meldet «sichtbar», während der Streifen noch leer ist; ebenso
+    wenig der erste Eintrag allein, wenn mehrere Dokumente übergeben sind.
+
+    **`launchApp` wartet bewusst nicht selbst.** Ein Teil der Fälle braucht die
+    Lücke: Wer nach dem Start einen Bereich an dasselbe Fenster bindet, muss das
+    tun, solange das Dokument noch nicht als geöffnet gemeldet ist, sonst
+    öffnet der Bereich ein eigenes Fenster. Dazu kommen Starts mit
+    wiederhergestellter Sitzung und Fälle, die ausdrücklich kein Dokument
+    erwarten.
+
+    **Bereich und Dokument im selben Fenster: erst binden, dann öffnen; nie
+    mit Datei-Argument starten und auf den Vorsprung der Bindung setzen.** Ist
+    das Dokument schon als geöffnet gemeldet, wenn `openAreaPath` läuft,
+    übernimmt der Bereich nicht das Startfenster, sondern öffnet ein eigenes
+    (`createdNew` statt `boundExisting`). Unter erzeugter Rechenlast kam das
+    Dokument der Bindung in `BS-07` in 5 von 6 Durchgängen zuvor, in den
+    Prüfdateien der Bereichs-Suche, des Bereichs-Ersetzens und der Erhebung
+    zum ungespeicherten Stand ebenso. Ein solcher Fall startet deshalb
+    **ohne** Datei-Argument, bindet, sichert das Ergebnis der Bindung zu
+    (`boundExisting`) und öffnet das Dokument danach mit
+    `oeffneDokumentImFenster` aus demselben Helfer. Der Helfer schickt dieselbe
+    Nachricht wie der Start (`file:openExternal`), an das benannte Fenster,
+    **genau einmal** nach dessen Bereitschaft — die Nachricht ist nicht
+    idempotent — und wartet auf den aktiven Eintrag des letzten Dokuments.
+    Messung und Reihen stehen im Lösungs-Kapitel von `4T-001689`; dieselbe
+    Bauart war in der Tag-Umbenennung unter Last in 19 von 30 Durchgängen rot
+    und ist dort ebenso umgestellt (`4T-001756`).
+
+33. **Ein Prüffall mit festem Kalender-Termin stellt die Uhr fest oder reicht
+    eine Bezugs-Zeit ein** (seit dem 2026-10-02, `4T-002064`). Regel 9 sagt,
+    **dass** «heute» nicht der Kalendertag des Laufs sein darf; diese Regel
+    sagt, **wie** es durchgesetzt wird, und schließt die Lücke, die Regel 9
+    offen ließ: Am 2026-10-01 um 14:00 Uhr wurde ein Prüffall rot, dessen
+    Prüfkarte einen Termin eine Woche nach seiner Anlage trug. Die Wanduhr las
+    nicht die Prüfdatei, sondern der Anwendungs-Code hinter ihr — die
+    Überfällig-Bewertung ohne Bezugs-Zeit —, und genau das sieht kein
+    Text-Muster (`4T-002063`).
+
+    Ein Fall, dessen Erwartung von «heute» abhängen kann, tut eines von zwei
+    Dingen: Er **reicht die Bezugs-Zeit ein**, wo der geprüfte Weg sie annimmt,
+    oder er **stellt die Uhr** nach dem Vorbild
+    `test/unit/renderer/kanban-marker.test.js` — `vi.useFakeTimers({ toFake:
+    ['Date'] })` und `vi.setSystemTime(…)` vor dem Fall, `vi.useRealTimers()`
+    danach. `toFake: ['Date']` stellt allein das Datum und lässt Zeitgeber und
+    Mikro-Aufgaben in Ruhe. Ein Literal «weit in der Zukunft» (Regel 9) bleibt
+    zulässig, ist aber nur ein Aufschub.
+
+    **Durchgesetzt wird die Regel vom Wanduhr-Wächter.** Die vollen Gates (der
+    erste Integrationslauf eines Kalendertages, jede Release-Integration, jeder
+    Rückfall) fahren nach der Unit-Suite das Gate `test:uhr`: dieselbe Suite
+    ein zweites Mal, mit einer um **fünf Jahre** verschobenen Uhr. Fünf Jahre,
+    weil sie im Mess-Lauf vom 2026-10-02 alles fanden, was ein Tag, ein Monat
+    und ein Jahr fanden, und dazu Fälle mit längerer Lunte, etwa ein festes
+    Journal-Datum, das ein Such-Fenster um «heute» nach gut drei Jahren
+    verliert. Ein Fall, der
+    dort rot ist, wird an einem bestimmbaren Kalendertag auch im normalen Lauf
+    rot und sperrt dann alle Arbeitsbereiche; er sperrt deshalb schon jetzt die
+    vollen Gates. Je Commit und im gewählten Ausschnitt läuft der Wächter
+    nicht.
+
+    **Schalter.** Die Umgebungs-Variable `EM4ME_UHR_VERSATZ` mit einer
+    ISO-Dauer aus Jahren, Monaten, Wochen und Tagen (`P1D`, `P1M`, `P1Y`,
+    `P5Y`, auch negativ wie `-P8D`) verschiebt die Uhr der Unit-Suite für den
+    ganzen Lauf; ohne Variable ist alles wie zuvor, und eine unlesbare Angabe
+    bricht den Lauf ab, statt still unverschoben zu laufen. Die Uhr wird
+    **verschoben, nicht eingefroren**: Dauern bleiben richtig, eine im Fall
+    gestellte Uhr hat Vorrang, und nach `vi.useRealTimers()` gilt wieder die
+    verschobene. Nicht erreicht werden Kindprozesse, Datei-Zeiten, eigene
+    Fenster-Kontexte (eine `JSDOM`-Instanz mit `runScripts` hat ihr eigenes
+    `Date`) und `Intl.DateTimeFormat().format()` ohne Argument. Bauart und
+    Messung: [uhr-versatz.js](uhr-versatz.js).
+
+    **Zwei Uhren in einem Fall.** Wer «jetzt» für die Erwartung nimmt, nimmt es
+    von der Uhr, die auch der Gegenstand liest — bei einer Sicht im eigenen
+    Fenster `fenster.Date.now()`, bei einer formatierten Datei-Zeit die
+    Datei-Zeit selbst. Vergleicht ein Fall die Uhr dagegen mit einer zweiten
+    Uhr, die die Verschiebung nicht erreicht (Alter einer Datei gegen eine
+    Frist, ein Startzeitpunkt für einen Kindprozess), setzt die Prüfdatei die
+    Verschiebung auf ihrer obersten Ebene aus:
+    `setzeUhrVersatzAus('<welche zweite Uhr>')` aus
+    [uhr-versatz.js](uhr-versatz.js). Das ist keine Ausnahme für einen festen
+    Termin; ein solcher Fall stellt die Uhr. Stand am 2026-10-02: drei
+    Prüfdateien der Datensatz-Sperren und des Wiederanlaufs.
+
+    Aufrufe:
+
+    ```bash
+    node scripts/gate-lauf.js test:uhr
+    EM4ME_UHR_VERSATZ=P5Y node scripts/gate-lauf.js test
+    EM4ME_UHR_VERSATZ=P1Y npx vitest run test/unit/<prüfdatei>.test.js
+    ```
+
+    Der erste Aufruf ist der Wächter-Lauf, wie ihn die Gates fahren; er
+    schreibt seinen Bericht nach `test-berichte/unit-uhr.json` und lässt
+    `test-berichte/unit.json` dem unverschobenen Lauf. Der zweite ist ein
+    Mess-Lauf mit beliebiger Verschiebung über den Pflicht-Zugang, der dritte
+    die freie Iteration an einer Prüfdatei. **Wer den Wächter rot sieht,
+    stellt den betroffenen Fall auf gestellte Uhr um** und ändert dabei nicht
+    seinen Gegenstand; verlangt ein Fund eine Änderung am Anwendungs-Code,
+    etwa eine fehlende Bezugs-Zeit, ist das eine eigene Aufgabe.
 
 ## E2E-Praxis
 
@@ -1096,15 +1282,29 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   Tages, diesmal an der Verkettung statt an der Pipe: Die Maßnahme 4T-001116
   deckte den Beleg, nicht den Rückgabewert.
 
-  **Die Regel gilt für zwei Werkzeuge, nicht nur für den Gate-Zugang** (seit
-  dem 2026-08-29, Entscheidung des Product Owners in 4T-001165). Die Grenze
-  verläuft nicht am Gate-Zugang, sondern an der Eigenschaft «der Rückgabewert
-  trägt ein Urteil»; davon gibt es zwei:
+  **Die Regel gilt für alle Pflicht-Zugänge, nicht nur für den Gate-Zugang**
+  (seit dem 2026-08-29, Entscheidung des Product Owners in 4T-001165). Die
+  Grenze verläuft nicht am Gate-Zugang, sondern an drei Eigenschaften: Der
+  Rückgabewert trägt ein Urteil, ein Abbruch hinterlässt einen halben Zustand,
+  oder das Kommando stellt ein Erzeugnis her, das danach geprüft oder
+  weitergegeben wird. Ein verdeckter Fehlschlag lässt im dritten Fall das alte
+  Erzeugnis liegen, und alles danach geschieht an ihm (seit dem 2026-09-30):
 
   | Werkzeug | Sein Rückgabewert sagt |
   |---|---|
   | `node scripts/gate-lauf.js <gate>` | ob das Gate grün war |
   | `node scripts/merge-queue.js <branch>` | ob integriert wurde |
+  | `node scripts/release-vorbereitung.js`, `node scripts/release-auslieferung.js` | ob die Strecke durchlief; eine Pipe bricht sie per SIGPIPE mitten im Zustandswechsel ab |
+  | `node scripts/build-renderer.js`, `build-app.js`, `build-linux-docker.js`, `build-icon.js` | ob das Erzeugnis neu gebaut ist |
+  | `npm run build` und `npm run build:renderer`, `:installer`, `:portable`, `:pruefstand`, `:linux`, `:icon` | ob das Erzeugnis neu gebaut ist |
+  | `node scripts/build-web.js`, `npm run web:build` | ob die Produkt-Webseite neu gebaut ist |
+
+  Ein Bau hat kein eigenes Gate im Gate-Weg; sein freier Weg ist der Allein-Lauf
+  oder die Datei-Umleitung `> bau.log 2>&1`. Ein ad hoc geschriebenes
+  Bündel-Kommando erreicht die Liste nicht; für es gilt die Frische-Prüfung vor
+  der Weitergabe in den
+  Entwicklungsrichtlinien,
+  Abschnitt 11.
 
   Anlass war der vierte Vorfall der Klasse L3 am 2026-08-29, der erste an der
   Queue: Ein Wiederhol-Skript rief `node scripts/merge-queue.js <zweig> | grep
@@ -1116,7 +1316,7 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   ersetzen einander nicht:
 
   1. **Die Frühwarnung weist die Pipe ab.** `scripts/mandat-fruehwarnung.js`
-     stoppt jedes Shell-Kommando, in dem einem der beiden Pflicht-Zugänge eine
+     stoppt jedes Shell-Kommando, in dem einem der Pflicht-Zugänge eine
      Pipe folgt — auch innerhalb einer `if`-Bedingung, weil genau das die Form
      des Vorfalls war. Bewusst eng: Andere Kommandos mit Pipe bleiben
      unberührt, und die **Datei-Umleitung bleibt frei**, weil sie den
@@ -1251,6 +1451,26 @@ Daraus zwei Regeln:
 - **Vor der Probe committen** oder den Stand ausserhalb des Repositoriums
   sichern. `git checkout --` ist kein Rückweg für uncommittete Arbeit, sondern
   ein Werkzeug, das sie verwirft.
+
+**Wo die Rot-Probe eines Wächters ihren Gegenstand herbekommt:** nicht aus einer
+Wegwerf-Datei im Repositorium. Eine solche Datei liegt oft außerhalb des
+Schreibbereichs der Sitzung, und die Mandats-Frühwarnung stoppt sie dann zu
+Recht; innerhalb des Bereichs bleibt sie leicht liegen und reist mit dem
+nächsten Commit. Das Mandat wird für diesen Fall nicht gelockert, weil es drei
+gleichwertige Wege gibt, die ohne sie auskommen:
+
+1. **Eingeschleuster Quelltext** über die exportierte Prüf-Funktion des Wächters:
+   Der verbotene Inhalt geht als Zeichenkette hinein, die Funktion muss ihn
+   melden.
+2. **Eine Datei außerhalb des Repositoriums**, im Scratchpad der Sitzung oder
+   unter `os.tmpdir()`, aufgeräumt im `finally` beziehungsweise im `afterAll`.
+3. **Ein befristeter Eintrag in der Ausnahme-Liste des Wächters**, der den
+   Bestand gezielt verschiebt, und dessen Rücknahme vor dem Commit.
+
+Liest ein Wächter fest die Wurzel des Repositoriums, wird die Probe über seine
+exportierte Prüf-Funktion mit einspeisbarer Wurzel geführt, die auf ein
+Wegwerf-Verzeichnis unter `os.tmpdir()` zeigt. Fehlt diese Naht, ist das ein
+Befund am Wächter, nicht ein Anlass, die Probe ins Repositorium zu legen.
 
 ## Der Aufbau eines Prüffalls ist nicht sein Gegenstand
 
@@ -1503,11 +1723,18 @@ benannter Grenze. Die drei Fälle, die am 2026-09-08 das Integrationstor
 schlossen, trugen keine und kamen in ihr nicht vor. Der Widerlegungs-Satz gilt
 für die gemessene Menge und nicht darüber hinaus.
 
+### Wiedervorlage bei halber Zeitgrenze
+
 **Die Wiedervorlage ist eine Zahl und kein Gefühl:** Überschreitet ein Prüffall
-im Container **50 Prozent** seiner Zeitgrenze, ist das der Anlass, die Kosten
-anzugehen — also das Unit-Gate aus der Kopie zu fahren, statt die Grenze erneut
-zu heben. Gemessen wird bei der nächsten Plattform-Erhebung; bei der Entscheidung
-lag der höchste Wert bei 22 Prozent.
+**50 Prozent** seiner wirksamen Zeitgrenze, ist das der Anlass, seine Kosten
+anzugehen, statt die Grenze erneut zu heben. Die Zahl stammt aus der
+Entscheidung vom 2026-09-08 für den Container; dort hieß «die Kosten angehen»,
+das Unit-Gate aus der Kopie zu fahren, und bei der Entscheidung lag der höchste
+Wert bei 22 Prozent. Seit dem 2026-09-30 gilt sie auf **jeder** Plattform und
+gegen die wirksame Grenze **je Fall** (Absatz «Eine Schwelle, ein Bezug» unten);
+die Wiedervorlage im Container ist darin als Sonderfall enthalten. Bei einem
+einzelnen Fall heißt «die Kosten angehen» in aller Regel, den Fall selbst
+billiger zu machen.
 
 **Die Schwelle ist am 2026-09-20 überschritten, und der entschiedene Weg ist
 gefahren** (`4T-001837`). In der Release-Strecke des Zuges zur sechsten
@@ -1540,14 +1767,51 @@ an Schärfe auf der Haupt-Plattform. `pm-dokumente` dürfte auf Windows heute
 schon das Hundertfache seiner 0,8 s brauchen, bevor etwas auffällt — dieser
 Preis ist mit der Anhebung vom 2026-08-31 bezahlt und soll nicht wachsen.
 
-**Die Schwelle gilt für Fälle mit benannter Grenze, und für die anderen gilt
-nicht etwa eine zweite** (`4T-001632`, Reichweite geklärt am 2026-09-09). Für
-einen Fall ohne benannte Grenze ließe sich zwar gegen die Vitest-Voreinstellung
-von 5000 ms rechnen — das Ergebnis wäre aber für jeden Fall, der im Modulkopf
-liest, bedeutungslos: Sein Prüffall ist schnell, die Marke bliebe bei null
-Prozent, und die Lesung, um die es geht, käme in der Rechnung nicht vor. Diese
-Fälle deckt deshalb die Lese-Ort-Regel unten, nicht eine zweite Schwelle mit
-anderer Bezugsgröße. **Eine Schwelle, ein Bezug.**
+**Eine Schwelle, ein Bezug: die wirksame Grenze je Fall** (seit dem
+2026-09-30). Bezugsgröße ist die Grenze, gegen die Vitest den Rumpf eines Falls
+tatsächlich bemisst: die benannte aus [`zeitlimits.js`](zeitlimits.js),
+datei-weit über `vi.setConfig` oder am Fall selbst gesetzt, und wo keine benannt
+ist, die Voreinstellung von 5000 ms. Bis dahin stand hier, die Schwelle gelte
+allein für Fälle mit benannter Grenze, und gegen die Voreinstellung werde
+bewusst nicht gerechnet, weil ein Fall, der im Modulkopf liest, dabei bei null
+Prozent bliebe. Für diese Fälle trifft das zu, und sie deckt weiterhin die
+Lese-Ort-Regel unten. Die Begründung deckt aber nicht die **Rechenlast im Rumpf**
+eines Falls ohne benannte Grenze: Genau so riss am 2026-09-24 ein
+Vollbestands-Vergleich der Kommando-Palette auf Windows die 5000 ms, nachdem er
+mit jedem neuen Feld des Kontext-Vertrags still gewachsen war, und keine Messung
+hatte ihn vorher gesehen. Mit der wirksamen Grenze je Fall ist der Bezug
+eindeutig; eine zweite Schwelle mit anderer Bezugsgröße entsteht dadurch nicht.
+
+**Gemessen wird bei jedem Lauf, gemeldet und nie blockiert.** Die Setup-Datei
+[`zeitgrenze-je-fall.js`](zeitgrenze-je-fall.js) legt die wirksame Grenze je Fall
+als `meta.zeitgrenze` in den Maschinen-Bericht `test-berichte/unit.json`. Die
+Grenze der Prüfdatei genügt dafür nicht, weil ein Fall seine eigene tragen kann:
+`backlinks` braucht in einem Fall 3,3 s gegen eine eigene Grenze von 60 s, das
+sind 5,5 Prozent; gegen die 5000 ms seiner Datei gerechnet wären es 66.
+`scripts/zeitgrenzen-abstand.js` wertet den Bericht aus und nennt je Fall über
+der Schwelle Prozent, Dauer, wirksame Grenze, Datei und Plattform. Es läuft an
+zwei Stellen von selbst: im Gate-Weg nach einem grünen Unit-Gate
+(`node scripts/gate-lauf.js test`, `alle` oder `bestand`) und im Linux-Lauf am
+Wirt, sobald der Bericht aus dem Container zurück ist, dort auch nach einem
+roten Lauf. Von Hand:
+`node scripts/zeitgrenzen-abstand.js [--bericht <pfad>] [--plattform <name>]`.
+Eine Meldung ändert keinen Rückgabewert; gesichtet wird sie je Zug in Schritt 6
+der Release-Strecke.
+
+**Was die Meldung nicht leistet.** Sie hält keinen Zustand über Läufe hinweg und
+kennt deshalb keine Wiederholung: Ein einzelner Lauf unter Last kann einen Fall
+über die Schwelle heben, den ein ruhiger Lauf darunter sieht. Die Plattform
+steht deshalb in jeder Zeile, und die Streuung beurteilt, wer die Meldung liest.
+Gemessen werden Prüffälle, keine Haken: `beforeAll` und `afterAll` haben eigene
+Grenzen und stehen nicht als Fall im Bericht. Ein Bericht ohne `meta.zeitgrenze`
+wird als «nicht messbar» gemeldet und nie gegen eine angenommene Grenze
+gerechnet.
+
+**Stand am 2026-09-30,** gemessen am vollständigen Windows-Lauf dieses Tages
+(543 Prüfdateien, 11 417 Fälle): kein Fall über 50 Prozent. Die höchsten Werte
+lagen bei 33,6 Prozent mit benannter Grenze (`db-intent-recovery-absturz`,
+30,2 s von 90 s) und bei 22,5 Prozent ohne (`eigenschafts-werte`, 1126 ms von
+5000 ms).
 
 ### Bestands-Lesungen gehören in den Modulkopf
 
@@ -1793,7 +2057,8 @@ eigenem Grund:
 Änderungs-Umfang lässt sich nicht ermitteln; mindestens eine geänderte
 Datei passt auf kein Muster; die Klassen-Karte selbst,
 `scripts/merge-queue.js`, die Gate-Definition `scripts/gate-lauf.js`, die
-Auswahl-Funktion `scripts/gate-auswahl.js`,
+Auswahl-Funktion `scripts/gate-auswahl.js`, die Basis-Ermittlung des
+lokalen Ausschnitts `scripts/gate-ausschnitt.js`,
 eine Test-Konfiguration oder eine Ignore-Datei ist geändert; der Lauf ist
 eine Release-Integration (`--release`). Ergänzend gilt fail-closed: eine
 Ausnahme in der Auswahl, eine unlesbare Karte und ein leeres
@@ -1858,7 +2123,11 @@ Daten-Kopplungen stehen dort nicht drin. Belegt an zwei Proben —
 **null** Testdateien aus, obwohl mehr als ein Dutzend Wächter genau diese
 Dateien lesen. Auch `vitest related src/shared/markdown/markdown.js`
 findet die drei Web-Wächter nicht, die das Modul über `build-web.js`
-laden. Der Nachweis bleibt der Queue-Lauf.
+laden. Der Nachweis bleibt der Queue-Lauf. Für den Integrationstest je
+Vorgang (Stufe 2) fährt `node scripts/gate-lauf.js ausschnitt` denselben
+Ausschnitt lokal, gegen die Basis des Zweigs statt gegen den rebasten
+Integrationsstand; auf Zug- und Epic-Zweigen, die die Queue erst mit dem
+Release erreichen, ist er der einzige Weg zum Ausschnitt.
 
 **Stand der Umsetzung: scharf seit dem 2026-08-14.** Die Karte aus
 Pfad-Mustern liegt als `scripts/aenderungsklassen.json` und ist die
@@ -1917,6 +2186,10 @@ nicht Datei-Zeiten gegen die Uhr, weil ein mtime-Vergleich gegen
 `Date.now()` unter Windows nachweislich brüchig ist (Befund aus 4T-000729).
 Der Vermerk liegt unversioniert im `.git`-Verzeichnis des
 Integrations-Clones; ist er nicht lesbar, gilt der Voll-Lauf als fällig.
+Seit dem 2026-10-02 gehört zu den vollen Gates als letztes der
+Wanduhr-Wächter `test:uhr` (Stabilitätsregel 33): ein zweiter Lauf der
+Unit-Suite mit verschobener Uhr, gemessen rund drei Minuten; der Not-Aus
+erzwingt ihn mit, der gewählte Ausschnitt fährt ihn nicht.
 
 ## Prüf-Umfang je Plattform
 

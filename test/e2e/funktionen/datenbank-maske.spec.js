@@ -49,6 +49,7 @@ const { belegeDesDatensatzes } = require('../../../src/main/database/change-log.
 // selbst statt nachgeschrieben.
 const { sperrDateiName } = require('../../../src/main/database/lock-store.js');
 const { DEFAULT_LOCK_FOLDER_NAME } = require('../../../src/shared/database/lock-folder-name.js');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const PANE = '.pane-group[data-pane="0"]';
 const MASKE = `${PANE} .pane-system .db-form-page`;
@@ -165,9 +166,13 @@ async function bindeBereich(page, wurzel) {
 }
 
 async function oeffneTabelle(app, page, tabelle) {
-  await app.evaluate(({ BrowserWindow }, p) => {
-    BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
-  }, tabelle);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, p) => {
+      BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
+    },
+    tabelle,
+  );
   await expect(page.locator(SEL.tabs0).first()).toBeVisible();
 }
 

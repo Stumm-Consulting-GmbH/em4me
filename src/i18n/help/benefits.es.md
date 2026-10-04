@@ -106,11 +106,10 @@ Una carpeta de archivos Markdown puede ser al mismo tiempo una base de datos, y 
 - **El área se convierte en base de datos** en cuanto un documento la describe, y recibe su propio resumen, desde el que crea registros y comprueba los datos.
 - **La tabla reside en su archivo**: los campos en el encabezado, los registros en el cuerpo. Renombrar y mover no cambian nada de eso, tampoco fuera de la aplicación.
 - **Ocho tipos de columna**, con etiquetas que pueden existir en varios idiomas.
-- **El enlace a un registro concreto** se escribe como un ancla y se comporta como cualquier otro enlace: el linter de Markdown indica si vale, y un clic abre el archivo de tabla.
+- **El enlace a un registro concreto** se escribe como un ancla y se comporta como cualquier otro enlace: el linter de Markdown indica si vale, y un clic lleva a la fila del registro.
 - **Los grandes conjuntos siguen siendo una sola tabla**: a partir de unos 0,7 MB, la aplicación reparte los registros al guardar entre varios archivos contiguos, sin que ningún enlace se vea afectado.
 - **Cuidar los registros en el formulario**: crear, modificar y eliminar en un formulario generado a partir de la definición, con bloqueo, justificante de cambio y las reglas de la tabla; comprobación de coherencia y vista de usos para el diagnóstico.
-
-Lo que la base de datos todavía no trae: consultas y evaluaciones sobre los registros.
+- **Evaluar los registros**: listas y tablas sobre una tabla, con rutas a través de referencias y jerarquías a lo largo de cualquier número de niveles, en forma de árbol si lo deseas, y vistas de conjunto con una fila por grupo, por ejemplo libros y páginas por autor.
 
 En detalle: [Base de datos](database.md).
 
@@ -163,21 +162,21 @@ En detalle: [Perfiles de propiedades](property-profiles.md).
 
 ## Listas que se mantienen al día
 
-Quien lleva muchos archivos mantiene si no las vistas de conjunto a mano, y envejecen el mismo día. Una consulta Perspective describe en cambio **qué** se busca, y el resultado aparece allí mismo en el documento: una lista o tabla en la que se puede hacer clic sobre todo el conjunto, filtrada por propiedades, etiquetas y campos de archivo, hasta los bloques de texto y las tareas. Si cambia el conjunto, cambia la salida, sin que nadie actualice nada.
+Quien lleva muchos archivos mantiene si no las vistas de conjunto a mano, y envejecen el mismo día. Una consulta Perspective describe en cambio **qué** se busca, y el resultado aparece allí mismo en el documento: una lista o tabla en la que se puede hacer clic sobre todo el conjunto, filtrada por propiedades, etiquetas y campos de archivo, hasta los bloques de texto y las tareas. Si lo deseas, la consulta reúne los resultados en grupos, con una fila por grupo que indica el número, la suma o la media. Si cambia el conjunto, cambia la salida, sin que nadie actualice nada.
 
 - **Páginas temáticas** que listan por sí solas sus archivos asociados.
-- **Filtros** por propiedades del frontmatter, etiquetas y campos de archivo.
-- **Nivel de bloque y de tarea**, no solo archivos enteros.
+- **Filtros y grupos** por propiedades del frontmatter, etiquetas y campos de archivo, con el número y las sumas por grupo.
+- **Nivel de bloque, de tarea y de registro**, no solo archivos enteros.
 - **Cada resultado con enlace** que lleva directo a su destino.
 
 En detalle: [Consulta Perspective](frontmatter-query.md).
 
 ## Cuando la consulta no basta: los scripts
 
-Algunos análisis no se pueden formular como condición, por ejemplo un árbol recursivo siguiendo los enlaces o una vista que calcula por el camino. De eso se encargan los bloques de script: un bloque ejecuta un pequeño programa, lee el mismo conjunto que la consulta y produce listas, tablas o texto ya formateado en el documento. Como eso significa más libertad, la función está ligada a un modelo de confianza explícito y a límites de ejecución, y no está simplemente activa de fábrica.
+Algunos análisis no se pueden formular como condición, por ejemplo un árbol siguiendo los enlaces entre documentos o una vista que calcula por el camino; las jerarquías de registros y las sumas por grupo, en cambio, las resuelve la propia consulta. De eso se encargan los bloques de script: un bloque ejecuta un pequeño programa, lee el mismo conjunto que la consulta y produce listas, tablas o texto ya formateado en el documento. Como eso significa más libertad, la función está ligada a un modelo de confianza explícito y a límites de ejecución, y no está simplemente activa de fábrica.
 
 - **Análisis libres** sobre los mismos datos que la consulta.
-- **Estructuras recursivas** y vistas calculadas que no se pueden expresar de forma declarativa.
+- **Estructuras recursivas sobre documentos** y vistas calculadas que no se pueden expresar de forma declarativa.
 - **Modelo de confianza explícito** y límites de ejecución en lugar de ejecución silenciosa.
 
 En detalle: [Bloques de script](scripts.md).

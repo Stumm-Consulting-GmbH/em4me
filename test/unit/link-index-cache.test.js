@@ -19,7 +19,12 @@ import {
   MDDA_CACHE_SCHEMA_VERSION,
   MDD_SCHEMA_VERSION,
 } from '../../src/main/documents/mdd-store.js';
-import { backlinksFor, rootForActiveFile, releaseRoot } from '../../src/main/backlinks.js';
+import {
+  backlinksFor,
+  datenbankSicht,
+  rootForActiveFile,
+  releaseRoot,
+} from '../../src/main/backlinks.js';
 
 // --- Teil 1: Container (rein) -----------------------------------------------
 
@@ -233,5 +238,70 @@ describe('backlinks.js — Warmstart aus Area_Cache (4T-000348)', () => {
     const res = await indexForArea(path.join(root, 'Ziel.md'), root);
     expect(res.status).toBe('ready');
     expect(sourceBasenames(res)).toContain('Quelle.md');
+  });
+});
+
+// 4T-002081 (Epic 3E-000259, Story 4S-001040 AK6): Die Marke der Abfrage-Datei
+// im Warmstart. Version 6 kannte `db-query` nicht und führte für eine solche
+// Datei leere Marken; ein Warmstart aus ihr übernähme diesen Stand für jede
+// unveränderte Datei, und die Abfrage-Datei fehlte in der Übersicht der
+// Datenbank. Die Version ist deshalb angehoben, und ein Cache der Version 6
+// wird verworfen.
+describe('Warmstart: Marke der Abfrage-Datei (4T-002081)', () => {
+  // Die Version, die die Marke `query` nicht kannte. Bewusst als Zahl und nicht
+  // als `MDDA_CACHE_SCHEMA_VERSION - 1`: Sonst bestünde der Fall auch dann,
+  // wenn die Version gar nicht angehoben worden wäre.
+  const VERSION_OHNE_ABFRAGE_MARKE = 6;
+  const ABFRAGE = ['---', 'db-query:', '---', '', '```perspective-query', 'LIST', '```', ''].join(
+    '\n',
+  );
+
+  // Ein Cache, der für die unveränderte Abfrage-Datei leere Marken führt, wie
+  // ihn Version 6 geschrieben hätte.
+  function schreibeCacheOhneMarke(root, version) {
+    const st = fs.statSync(path.join(root, 'Abfrage.md'));
+    const container = emptyCacheContainer();
+    container.schemaVersion = version;
+    container.linkIndex.files['Abfrage.md'] = {
+      mtimeMs: st.mtimeMs,
+      size: st.size,
+      hash: 'testhash',
+      parsed: { hits: [], aliases: [], headings: [], blockIds: [], tags: [], dbKinds: [] },
+    };
+    fs.writeFileSync(
+      path.join(root, MDDA_CACHE_FILENAME),
+      serializeCacheContainer(container),
+      'utf8',
+    );
+  }
+
+  function markenVon(root) {
+    const { status, sicht } = datenbankSicht(null, root);
+    expect(status).toBe('ready');
+    return sicht.dbKindsPerFile.get(path.join(root, 'Abfrage.md')) || [];
+  }
+
+  it('die Version ist über die gestiegen, die die Marke nicht kannte', () => {
+    expect(MDDA_CACHE_SCHEMA_VERSION).toBeGreaterThan(VERSION_OHNE_ABFRAGE_MARKE);
+  });
+
+  it('verwirft einen Cache der Vorgänger-Version und erkennt die unveränderte Abfrage-Datei', async () => {
+    const root = makeRoot();
+    write(root, 'Abfrage.md', ABFRAGE);
+    schreibeCacheOhneMarke(root, VERSION_OHNE_ABFRAGE_MARKE);
+    const res = await indexForArea(path.join(root, 'Abfrage.md'), root);
+    expect(res.status).toBe('ready');
+    expect(markenVon(root)).toEqual(['query']);
+  });
+
+  it('Gegenprobe: ein Cache der laufenden Version wird übernommen, auch mit seinen Marken', async () => {
+    // Belegt, dass der Fall davor am Verwerfen hängt und nicht an einem
+    // Neu-Parsen, das ohnehin stattfände.
+    const root = makeRoot();
+    write(root, 'Abfrage.md', ABFRAGE);
+    schreibeCacheOhneMarke(root, MDDA_CACHE_SCHEMA_VERSION);
+    const res = await indexForArea(path.join(root, 'Abfrage.md'), root);
+    expect(res.status).toBe('ready');
+    expect(markenVon(root)).toEqual([]);
   });
 });

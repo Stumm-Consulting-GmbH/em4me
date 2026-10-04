@@ -27,6 +27,8 @@ import { performStatusToggle, isBasicTaskChar } from '../task-states.js';
 // 4T-000504 (Epic 3E-000096): Rueckschreib-Aktionen der Task-Abfrage-Treffer
 // (Status-Toggle, Verschieben, Bearbeiten) — zentraler Klick-Dispatch.
 import { handleTaskQueryAction } from '../task-query-actions.js';
+// 4T-002040 (Epic 3E-000258): Datensatz-Treffer und -Verweise öffnen die Maske.
+import { openRecordHit, recordHitOf } from '../query/record-hit-click.js';
 import { activatePane, openInPane } from '../tabs/tabs.js';
 // 4T-000213 (Epic 3E-000042): Handbuch-Link-Resolver — Links in Handbuch-Tabs
 // loesen gegen die Seiten-Registry auf statt gegen das Dateisystem.
@@ -320,6 +322,18 @@ export async function handleRenderedClick(e, paneIdx) {
   // Aktions-Elemente innerhalb desselben Listen-Eintrags liegen.
   if (handleTaskQueryAction(e.target, paneIdx)) {
     e.preventDefault();
+    return;
+  }
+  // 4T-002040 (Epic 3E-000258, F1 Option A): Ein Datensatz-Treffer und ein
+  // Datensatz-Verweis in einer Spalte öffnen die Maske des Datensatzes. Sie
+  // tragen kein data-fm-path und sind zugleich <a href="#">; der Zweig steht
+  // deshalb vor der generischen <a>-Behandlung und verbraucht den Klick auch
+  // dann, wenn die Maske nichts öffnet (Aus-Zustand, fehlende Angabe).
+  const recordHit = recordHitOf(e.target);
+  if (recordHit) {
+    e.preventDefault();
+    activatePane(paneIdx);
+    openRecordHit(recordHit);
     return;
   }
   const fmItem = e.target instanceof Element ? e.target.closest('[data-fm-path]') : null;

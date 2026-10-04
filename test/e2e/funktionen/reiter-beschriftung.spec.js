@@ -37,6 +37,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const MENU_ITEM = (id) => `#context-menu [data-menu-id="${id}"]`;
 const MODAL = '#tab-group-modal';
@@ -81,10 +82,14 @@ async function warteAufReiter(page, beschriftung) {
 async function oeffneUeberKanal(app, page, dateipfad, beschriftung) {
   await expect
     .poll(async () => {
-      await app.evaluate(({ BrowserWindow }, datei) => {
-        const win = BrowserWindow.getAllWindows()[0];
-        if (win && !win.isDestroyed()) win.webContents.send('file:openExternal', [datei]);
-      }, dateipfad);
+      await hauptSenden(
+        app,
+        ({ BrowserWindow }, datei) => {
+          const win = BrowserWindow.getAllWindows()[0];
+          if (win && !win.isDestroyed()) win.webContents.send('file:openExternal', [datei]);
+        },
+        dateipfad,
+      );
       return page.locator(`${SEL.tabs0} .tab-title`).allTextContents();
     })
     .toContain(beschriftung);

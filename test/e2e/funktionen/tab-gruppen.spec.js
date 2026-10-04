@@ -16,6 +16,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const FIX = (name) =>
   path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', `tab-gruppen-${name}.md`);
@@ -64,10 +65,14 @@ async function readStrip(page) {
 // "Oeffnen mit"). Landet ueber openInPane OHNE inheritGroup — dient dem
 // Negativ-Fall (4T-000631).
 async function openExternalFile(app, filePath) {
-  await app.evaluate(({ BrowserWindow }, p) => {
-    const win = BrowserWindow.getAllWindows()[0];
-    if (win && !win.isDestroyed()) win.webContents.send('file:openExternal', [p]);
-  }, filePath);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, p) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      if (win && !win.isDestroyed()) win.webContents.send('file:openExternal', [p]);
+    },
+    filePath,
+  );
 }
 
 test.describe('TG-01: Gruppe anlegen ueber das Tab-Kontextmenue', () => {

@@ -47,6 +47,13 @@ const {
   scanneKartenVerweise,
   packeKartenVerweisWert,
 } = require('./markdown/link-scan.js');
+// 4T-002013 (Epic 3E-000332): Lage der Text-Zellen einer Datentabelle, dieselbe
+// Quelle, aus der auch der Bereichs-Index liest.
+const {
+  istDatentabellenFenceInfo,
+  neuerZellZustand,
+  zellScanZeile,
+} = require('./markdown/perspective-datatable-cells.js');
 
 // --- Pfad-Helfer (reine '/'-String-Operationen, kein node:path) -------------
 
@@ -540,6 +547,9 @@ function computeLinkRewrites(content, options) {
   let fenceChar = null;
   // 4T-001749 (Epic 3E-000289): Steht die offene Fence unter der Canvas-Marke?
   let inCanvasFence = false;
+  // 4T-002013 (Epic 3E-000332): Zeilen-Zustand der offenen Datentabelle, sonst
+  // null.
+  let zellZustand = null;
   for (let i = 0; i < lines.length; i++) {
     if (i < fmStart) continue; // Frontmatter ausklammern
     const { text: line, start: lineStart } = lines[i];
@@ -554,22 +564,43 @@ function computeLinkRewrites(content, options) {
         fenceChar = ch;
         // 4T-001749: Die Info-Zeichenfolge entscheidet, ob die Fence eine
         // Flaeche ist; gelesen wird sie mit derselben Regel wie im Index.
-        inCanvasFence = istCanvasFenceInfo(line.slice(fenceMatch[0].length));
+        const info = line.slice(fenceMatch[0].length);
+        inCanvasFence = istCanvasFenceInfo(info);
+        zellZustand = istDatentabellenFenceInfo(info) ? neuerZellZustand() : null;
       } else if (ch === fenceChar) {
         inFence = false;
         fenceChar = null;
         inCanvasFence = false;
+        zellZustand = null;
       }
       continue;
     }
 
     let found;
     if (inFence) {
-      // 4T-001749: Die einzige Stelle, an der die Nachfuehrung in eine Fence
-      // hineingreift — und sie fasst dort genau die Verweis-Angaben einer
-      // Karten-Marker-Zeile an. Alles Uebrige der Fence bleibt unberuehrt.
-      if (!inCanvasFence) continue;
-      found = collectKartenRewrites(line, ctx);
+      // 4T-001749: Die Nachführung greift in eine Fence nur an zwei benannten
+      // Stellen hinein. Die erste sind die Verweis-Angaben einer
+      // Karten-Marker-Zeile; alles Übrige einer Canvas-Fence bleibt unberührt.
+      //
+      // 4T-002013 (Epic 3E-000332): Die zweite sind die Text-Zellen einer
+      // Datentabelle. Dort ziehen Wiki-Verweise und Markdown-Links nach wie im
+      // Fließtext (Entscheidung F1 b des Product Owners vom 2026-09-28);
+      // Alias und das Tabellen-Escape `\|` bleiben dabei stehen, weil nur der
+      // Namens-Kern ersetzt wird. Gematcht wird auf der Zeile, die außerhalb
+      // der Text-Zellen maskiert ist und danach wie im Fließtext ihren
+      // Inline-Code verliert; ersetzt wird im Original an denselben Offsets.
+      // Die übrige Zeile, Kopfzeilen und Zellen anderer Typen bleiben Byte für
+      // Byte stehen.
+      if (inCanvasFence) {
+        found = collectKartenRewrites(line, ctx);
+      } else if (zellZustand) {
+        const zellZeile = zellScanZeile(zellZustand, line);
+        if (zellZeile === null) continue;
+        const masked = maskInlineCode(zellZeile);
+        found = collectWikiRewrites(line, masked, ctx).concat(collectMdRewrites(line, masked, ctx));
+      } else {
+        continue;
+      }
     } else {
       const masked = maskInlineCode(line);
       found = collectWikiRewrites(line, masked, ctx).concat(collectMdRewrites(line, masked, ctx));

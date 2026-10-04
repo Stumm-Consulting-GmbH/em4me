@@ -34,11 +34,12 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
 function windowCount(app) {
-  return app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
+  return hauptLesen(app, ({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
 }
 
 // 4T-001737: Ordner fuer eine Bereichs-Bindung (Muster makeAreaDir in
@@ -73,7 +74,7 @@ async function openManager(app, page) {
     .poll(
       async () => {
         if (!(await manager.isVisible())) {
-          await fenster.evaluate((w) => w.webContents.send('menu:workspaceManage'));
+          await hauptSenden(fenster, (w) => w.webContents.send('menu:workspaceManage'));
         }
         return manager.isVisible();
       },
@@ -98,7 +99,7 @@ function draftFileCount(userData) {
 // (rekursiv inkl. Untermenues) in eine globale Main-Variable. Geprueft wird
 // sprachfrei ueber die Arbeitsbereichs-NAMEN in der Untermenue-Liste.
 async function armMenuCapture(app) {
-  await app.evaluate(({ BrowserWindow }) => {
+  await hauptSenden(app, ({ BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows()[0];
     if (!win || win.__menuCaptureArmed) return;
     win.__menuCaptureArmed = true;
@@ -119,7 +120,7 @@ async function armMenuCapture(app) {
 }
 
 function capturedMenuLabels(app) {
-  return app.evaluate(() => globalThis.__menuLabels || []);
+  return hauptLesen(app, () => globalThis.__menuLabels || []);
 }
 
 // "Arbeitsbereich schliessen" aus einem Arbeitsbereichs-Fenster: das Fenster
@@ -145,7 +146,7 @@ async function addDraftTabTo(app, page, text) {
   await expect
     .poll(
       async () => {
-        await app.evaluate(({ BrowserWindow }) => {
+        await hauptSenden(app, ({ BrowserWindow }) => {
           const wins = BrowserWindow.getAllWindows();
           wins.sort((a, b) => a.webContents.id - b.webContents.id);
           wins[wins.length - 1].webContents.send('menu:new');
@@ -192,7 +193,7 @@ test.describe('WS-01: Speichern als Arbeitsbereich und Neustart-Restore (4T-0005
       await expect.poll(() => capturedMenuLabels(first.app)).toContain('Projekt Alpha');
 
       // Neustart: der offene Arbeitsbereich kommt mit Datei-Tab und Titel zurueck.
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await first.app.waitForEvent('close');
 
       const second = await launchApp({ userData });
@@ -277,7 +278,7 @@ test.describe('WS-03: Unbenannt-Entwurf gehoert zum Arbeitsbereich (4T-000539)',
 
       // Neustart: der geschlossene Arbeitsbereich oeffnet nicht, sein
       // Entwurf erscheint nirgends und bleibt im Speicher liegen.
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await first.app.waitForEvent('close');
 
       const second = await launchApp({ userData });
@@ -575,7 +576,7 @@ test.describe('WS-08: Reihenfolge der Arbeitsbereiche im Verwaltungs-Dialog (4T-
 
       // AK6: Die Reihenfolge ueberdauert den Neustart mit demselben Profil
       // (Muster SM-09).
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await first.app.waitForEvent('close');
 
       const second = await launchApp({ userData });

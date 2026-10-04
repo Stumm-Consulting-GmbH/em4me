@@ -17,6 +17,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 // Bereichs-Baum mit zwei Geschwister-Ordnern. Das einbettende Dokument liegt
 // in 'quelle', sein Ziel in 'anderer' — also NICHT im eigenen Ordner und
@@ -368,10 +369,14 @@ test.describe('EB-07: Portabler Export und Live-Modus (4T-001486)', () => {
         timeout: 20000,
       });
       // Exportieren (Save-Dialog gestellt, Menue-Kanal gesendet).
-      await app.evaluate(({ dialog }, z) => {
-        dialog.showSaveDialog = async () => ({ canceled: false, filePath: z });
-      }, ziel);
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(
+        app,
+        ({ dialog }, z) => {
+          dialog.showSaveDialog = async () => ({ canceled: false, filePath: z });
+        },
+        ziel,
+      );
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win && !win.isDestroyed()) win.webContents.send('menu:exportPortable');
       });
@@ -465,7 +470,8 @@ const MINI_PNG = Buffer.from(
 
 // Beide Embed-Kanäle verzögern und danach ein gültiges Ergebnis liefern.
 async function verzoegereEmbeds(app, wurzel, ms) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     async ({ ipcMain }, daten) => {
       const warte = (n) => new Promise((r) => setTimeout(r, n));
       ipcMain.removeHandler('embed:readImage');
@@ -510,12 +516,16 @@ test.describe('EB-08: Die Ausgabe wartet auf ihre Einbettungen (4T-001487)', () 
     );
     try {
       await verzoegereEmbeds(app, wurzel, 2000);
-      await app.evaluate(({ dialog }, z) => {
-        dialog.showSaveDialog = async () => ({ canceled: false, filePath: z });
-      }, ziel);
+      await hauptSenden(
+        app,
+        ({ dialog }, z) => {
+          dialog.showSaveDialog = async () => ({ canceled: false, filePath: z });
+        },
+        ziel,
+      );
       // SOFORT exportieren, ohne auf die Aufloesung zu warten — genau das tut
       // ein Anwender, der das Kuerzel drueckt.
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win && !win.isDestroyed()) win.webContents.send('menu:exportPdf');
       });
@@ -549,10 +559,14 @@ test.describe('EB-08: Die Ausgabe wartet auf ihre Einbettungen (4T-001487)', () 
     try {
       // 120 Sekunden: weit jenseits der Zeit-Grenze von fuenf Sekunden.
       await verzoegereEmbeds(app, wurzel, 120000);
-      await app.evaluate(({ dialog }, z) => {
-        dialog.showSaveDialog = async () => ({ canceled: false, filePath: z });
-      }, ziel);
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(
+        app,
+        ({ dialog }, z) => {
+          dialog.showSaveDialog = async () => ({ canceled: false, filePath: z });
+        },
+        ziel,
+      );
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win && !win.isDestroyed()) win.webContents.send('menu:exportPdf');
       });

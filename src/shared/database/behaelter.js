@@ -48,6 +48,15 @@ const DB_DATABASE_KEY = 'db-database';
 // die Marke sagt dem Index nur, dass es sie gibt.
 const DB_FORM_KEY = 'db-form';
 
+// 4T-002081 (Epic 3E-000259, F3b; E6.6): Diese Datei IST eine Abfrage-Datei.
+// Der Behälter trägt in dieser Stufe keine Angabe, insbesondere kein `table`,
+// weil die Abfrage ihre Tabelle selbst über `FROM` nennt (F2 Option A: die
+// Abfrage steht im Text, in genau einem Abfrage-Block). Die Angaben der
+// Listen-Maske aus E7.4 kommen mit der Masken-Stufe additiv hinzu. Wie bei der
+// Maske sagt die Marke dem Index nur, dass es die Datei gibt; den Block zählt
+// der Katalog beim Lesen.
+const DB_QUERY_KEY = 'db-query';
+
 // Welche Behälter erklärt dieses Frontmatter-Objekt?
 //
 // **Nur die Marke, nie der Inhalt.** Der Index führt, DASS eine Datei sich als
@@ -64,13 +73,17 @@ const DB_FORM_KEY = 'db-form';
 // Eine Liste und kein Wahrheitswert, weil eine Datei beides erklären darf; ein
 // Array kostet im Cache nichts und bleibt erweiterbar. Seit 4T-001938 trägt sie
 // als dritte Marke `form`; die Verbraucher fragen je Marke mit `includes` und
-// sehen die dritte deshalb nicht, solange sie nicht nach ihr fragen.
+// sehen die dritte deshalb nicht, solange sie nicht nach ihr fragen. Seit
+// 4T-002081 kommt als vierte `query` hinzu, nach demselben Muster. Erkannt wird
+// an der bloßen Anwesenheit des Schlüssels, also auch `db-query:` ohne Wert,
+// weil der Behälter heute nichts trägt.
 function datenbankMarken(fm) {
   if (!fm || typeof fm !== 'object' || Array.isArray(fm)) return [];
   const marken = [];
   if (fm[DB_TABLE_KEY] !== undefined) marken.push('table');
   if (fm[DB_DATABASE_KEY] !== undefined) marken.push('database');
   if (fm[DB_FORM_KEY] !== undefined) marken.push('form');
+  if (fm[DB_QUERY_KEY] !== undefined) marken.push('query');
   return marken;
 }
 
@@ -137,6 +150,7 @@ module.exports = {
   DB_TABLE_KEY,
   DB_DATABASE_KEY,
   DB_FORM_KEY,
+  DB_QUERY_KEY,
   DB_SEGMENT_FIELDS_KEY,
   SEGMENT_FIELDS_SEP,
   datenbankMarken,

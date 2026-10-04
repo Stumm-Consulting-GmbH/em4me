@@ -26,6 +26,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { pressNachfassend, pressUntilVisible } = require('../helpers/eingabe');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const PANE0 = '.pane-group[data-pane="0"]';
 const KARTE = `${PANE0} .pane-mindmap`;
@@ -72,7 +73,8 @@ function schreibe(dir, inhalt, name = 'Garten.md') {
 }
 
 async function sendeMenuKanal(app, kanal, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, nutzlast) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(nutzlast.kanal, ...nutzlast.args);
@@ -189,9 +191,13 @@ test.describe('MM-02: Suche in der Mindmap, Dokument in einem geöffneten Bereic
     const { app, page, userData } = await launchApp();
     try {
       await bindeBereich(page, dir);
-      await app.evaluate(({ BrowserWindow }, p) => {
-        BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
-      }, datei);
+      await hauptSenden(
+        app,
+        ({ BrowserWindow }, p) => {
+          BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
+        },
+        datei,
+      );
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
       await oeffneKarte(app, page);
       await pruefeSuche(page, datei, GARTEN);

@@ -13,8 +13,12 @@ import { syntaxTree } from '@codemirror/language';
 import { getDocText } from '../app/api.js';
 // K-02 (4T-000186): identische Slugs wie der markdown-it-anchor-Render-Pfad.
 import { githubLikeSlug } from '../../../shared/markdown/slug.js';
+// 4T-001986 (Epic 3E-000332): die Datensatz-Zeile als dritte Anker-Herkunft,
+// gelesen mit der Grammatik des Datensatz-Blocks statt einer eigenen Kopie.
+import { findeDatensatzZeile } from '../../../shared/database/record-anchor.js';
 import { getPaneEls, state } from '../app/app-state.js';
 import { paneEditors } from '../editor/editor.js';
+import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 // 4T-000990 (Epic 3E-000196): panels.js ist in den Feature-Ordner panels/ geteilt.
 import { extractHeadingText } from '../panels/panel-outline.js';
 
@@ -54,7 +58,16 @@ export function scrollToAnchorInPane(paneIdx, anchorId) {
       typeof CSS !== 'undefined' && CSS.escape
         ? CSS.escape(anchorId)
         : anchorId.replace(/(["\\])/g, '\\$1');
-    const target = els.renderedHtml.querySelector(`[id="${escaped}"]`);
+    // 4T-001986 (Epic 3E-000332): Der zweite Suchweg ist die Zeile der
+    // Datensatz-Anzeige, die ihre Kennung als `data-rec-id` trägt. Bewusst kein
+    // `id` an der Zeile: Eine zweimal eingebettete Tabelle ergäbe sonst doppelte
+    // Kennungen im Dokument. Der `id`-Weg bleibt vorn, damit Überschrift und
+    // Block-Anker vor der Datensatz-Kennung kommen, wie bei der Gültigkeit. Im
+    // Aus-Zustand der Erweiterung `database` fehlt das Attribut, und es bleibt
+    // beim Öffnen der Datei.
+    const target =
+      els.renderedHtml.querySelector(`[id="${escaped}"]`) ||
+      els.renderedHtml.querySelector(`[data-rec-id="${escaped}"]`);
     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch {
     // Ungueltiger Selector — defensive Aufgabe, kein UI-Effekt.
@@ -145,6 +158,14 @@ export function navigateToAnchorInPane(paneIdx, anchorId) {
     if (!view) return;
     let line = findHeadingLineForSlug(view, anchorId);
     if (!line) line = findBlockAnchorLine(view, anchorId);
+    // 4T-001986 (Epic 3E-000332): dritter Suchweg, die Datensatz-Zeile
+    // `|- id="…"` im Datensatz-Block einer Tabellen-Datei. Gebunden an die
+    // eingeschaltete Erweiterung `database`; sonst spränge die Quellcode-Ansicht
+    // im Aus-Zustand weiterhin in den Zaun, während die Lese-Ansicht nichts
+    // findet. In der Live-Ansicht klappt der Block mit der Schreibmarke auf.
+    if (!line && isExtensionActive('database')) {
+      line = findeDatensatzZeile(getDocText(view.state.doc), anchorId);
+    }
     if (line) scrollEditorToLine(paneIdx, line);
   }
 }

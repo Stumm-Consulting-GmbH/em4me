@@ -24,8 +24,9 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, warteAufRendererBereit } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
@@ -52,7 +53,7 @@ function removeDir(dir) {
 // in arbeitsbereiche.spec.js). Die Liste ist in Menü-Reihenfolge, weshalb sich
 // die Reihenfolge zweier Einträge an ihren Positionen messen lässt.
 async function armMenuCapture(app) {
-  await app.evaluate(({ BrowserWindow }) => {
+  await hauptSenden(app, ({ BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows()[0];
     if (!win || win.__menuCaptureArmed) return;
     win.__menuCaptureArmed = true;
@@ -73,16 +74,20 @@ async function armMenuCapture(app) {
 }
 
 function capturedMenuLabels(app) {
-  return app.evaluate(() => globalThis.__menuLabels || []);
+  return hauptLesen(app, () => globalThis.__menuLabels || []);
 }
 
 // 4T-001738: Der Menü-Eintrag «Neues Fenster» aus dem Fenster GENAU DIESER
 // Seite heraus. Gesendet wird über `app.browserWindow(page)` und nicht über
 // einen Index in getAllWindows(), weil die Applikation danach zwei Fenster hat
 // und der Absender die Applikation des neuen Fensters bestimmt (E5).
+// 4T-001948: Vorher steht das Warten auf die Renderer-Bereitschaft der Seite,
+// weil der Empfänger des Befehls erst in bindUi() entsteht und der Kanal nicht
+// puffert; Begründung und Messung am Helfer warteAufRendererBereit.
 async function neuesFensterAusMenue(app, page) {
+  await warteAufRendererBereit(page);
   const fenster = await app.browserWindow(page);
-  await fenster.evaluate((w) => w.webContents.send('menu:newWindow'));
+  await hauptSenden(fenster, (w) => w.webContents.send('menu:newWindow'));
 }
 
 test.describe('LA-01: Fenstertitel innerhalb einer App (4T-000318)', () => {
@@ -106,13 +111,13 @@ test.describe('LA-01: Fenstertitel innerhalb einer App (4T-000318)', () => {
       // Zweites Fenster schließen (regulärer Close-Pfad mit Renderer-Bestätigung).
       // getAllWindows garantiert keine Reihenfolge — das jüngste Fenster hat
       // die höchste webContents-ID.
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const wins = BrowserWindow.getAllWindows();
         wins.sort((a, b) => a.webContents.id - b.webContents.id);
         wins[wins.length - 1].close();
       });
       await expect
-        .poll(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length))
+        .poll(() => hauptLesen(app, ({ BrowserWindow }) => BrowserWindow.getAllWindows().length))
         .toBe(1);
 
       // Suffix verschwindet beim verbleibenden Fenster.
@@ -140,13 +145,13 @@ test.describe('LA-02: Neue Applikation und App-Nummern-Nachrücken (4T-000319)',
       expect(await page.title()).not.toContain('Fenster');
 
       // App 1 komplett schließen (einziges Fenster, kleinste webContents-ID).
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const wins = BrowserWindow.getAllWindows();
         wins.sort((a, b) => a.webContents.id - b.webContents.id);
         wins[0].close();
       });
       await expect
-        .poll(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length))
+        .poll(() => hauptLesen(app, ({ BrowserWindow }) => BrowserWindow.getAllWindows().length))
         .toBe(1);
 
       // Die verbliebene App rückt zu App 1 nach; solo ohne Suffix.
@@ -169,7 +174,7 @@ test.describe('LA-03: Sitzungs-Wiederherstellung über Apps (4T-000320)', () => 
       await page2.waitForLoadState('domcontentloaded');
       await expect.poll(() => first.page.title()).toContain('(App 1)');
 
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await first.app.waitForEvent('close');
 
       // Neustart mit demselben Profil: beide Apps sind wieder da.
@@ -177,7 +182,7 @@ test.describe('LA-03: Sitzungs-Wiederherstellung über Apps (4T-000320)', () => 
       try {
         await expect
           .poll(() =>
-            second.app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length),
+            hauptLesen(second.app, ({ BrowserWindow }) => BrowserWindow.getAllWindows().length),
           )
           .toBe(2);
         const titles = async () => {
@@ -222,7 +227,7 @@ test.describe('LA-04: Menüpunkt «Neues Fenster» (4T-001738)', () => {
       const page2 = await win2Promise;
       await page2.waitForLoadState('domcontentloaded');
       await expect
-        .poll(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length))
+        .poll(() => hauptLesen(app, ({ BrowserWindow }) => BrowserWindow.getAllWindows().length))
         .toBe(2);
 
       // AK3: Dieselbe Applikation — der Titel trägt den Fenster-Teil und
@@ -254,7 +259,7 @@ test.describe('LA-04: Menüpunkt «Neues Fenster» (4T-001738)', () => {
       // ein Reiter lässt sich hineinbewegen (derselbe Kanal, den das
       // Reiter-Kontextmenü benutzt).
       const zielFenster = await app.browserWindow(page2);
-      const zielId = await zielFenster.evaluate((w) => w.webContents.id);
+      const zielId = await hauptLesen(zielFenster, (w) => w.webContents.id);
       const transfer = await page.evaluate(
         ({ id, p }) => window.api.appendTabToWindow(id, { path: p, content: '', dirty: false }),
         { id: zielId, p: BASIS },
@@ -295,7 +300,7 @@ test.describe('LA-05: Neues Fenster im Arbeitsbereich (4T-001738)', () => {
       // Und gegenständlich: BEIDE Fenster melden denselben Arbeitsbereich. Der
       // Titel ist die Anzeige, dies die Zuordnung, aus der die Ablage entsteht.
       await expect
-        .poll(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length))
+        .poll(() => hauptLesen(app, ({ BrowserWindow }) => BrowserWindow.getAllWindows().length))
         .toBe(2);
       const fenster = await page.evaluate(() => window.api.listWindows());
       expect(fenster).toHaveLength(2);
@@ -334,6 +339,9 @@ test.describe('LA-06: Neues Fenster in einer gebundenen Applikation (4T-001738)'
       await expect.poll(() => bereichsSeite.title()).toContain('(Bereich');
 
       // Zweites Fenster AUS dem Bereichs-Fenster heraus.
+      // Der Titel kann vor der Renderer-Bereitschaft stehen und ist damit nur
+      // ein Vorbote; das Warten auf den Empfänger des Befehls übernimmt
+      // neuesFensterAusMenue (4T-001948).
       const win2Promise = app.waitForEvent('window');
       await neuesFensterAusMenue(app, bereichsSeite);
       const page2 = await win2Promise;

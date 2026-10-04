@@ -8,8 +8,9 @@
 // und welche Fehler sie erzeugt. Der Kern behält Format-Vertrag, Zerlegung des
 // Bodys, Serialisierer, Aggregat-Rechnung und die Render-Einstiege.
 //
-// Blatt der Familie: Dieses Modul lädt kein anderes und wird ausschließlich
-// vom Kern geladen (Import-Graph Kern -> hier).
+// Blatt der Familie: Dieses Modul lädt kein anderes. Geladen wird es vom Kern
+// und seit 4T-002013 von der Zell-Grammatik (perspective-datatable-cells.js),
+// die die Spalten-Typen für Verweis-Index und Umbenennen liest.
 'use strict';
 
 const COLUMN_TYPES = new Set(['text', 'number', 'date', 'time', 'boolean']);

@@ -33,6 +33,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { menuZustand, menuEintrag } = require('../helpers/menu-zustand');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 // Eigene Vorbelegung ersetzt die des Helfers vollstaendig; die Sprach-
 // Festlegung aus 4T-000751 muss deshalb hier mitgegeben werden, sonst startet die
@@ -48,7 +49,8 @@ const P1 = SEL.pane(1);
 // Sendet einen Menue-IPC-Kanal an das erste Fenster (Muster aus smoke.spec.js).
 // Speichern laeuft ueber diesen Weg, weil Strg+S am nativen Menue haengt.
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
@@ -417,7 +419,7 @@ test.describe('ZS-09: aktiver Reiter einer Gruppe gilt je Spalte', () => {
       await expect(erste.page.locator(REITER(P1, 'properties'))).toHaveClass(/active/);
       // Sauber beenden, damit die Sitzung samt Spalten-Teilung persistiert
       // (Muster SM-09; ein erzwungenes Schliessen speichert sie nicht).
-      await erste.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(erste.app, ({ app }) => app.quit());
       await erste.app.waitForEvent('close');
     } catch (err) {
       await closeApp(erste.app, profil, { force: true });

@@ -2,7 +2,7 @@
 
 Les modèles sont des fichiers Markdown ordinaires dans un **dossier de modèles** configurable. Lors de l'application, l'application évalue des **espaces réservés** choisis : date et heure avec décalage et format, titre et dossier du fichier cible, dialogues de saisie et de sélection, presse-papiers et une position cible du curseur. Les modèles créent de nouveaux fichiers avec une structure prête, ou insèrent des blocs récurrents à la position du curseur ; les **règles de dossier** remplissent automatiquement les nouveaux fichiers.
 
-La fonctionnalité est commutable comme extension « Modèles » (Paramètres → Extensions) ; désactivée, les commandes, la section des paramètres et les règles de dossier disparaissent.
+La fonctionnalité est commutable comme extension « Modèles » (Paramètres → Extensions) ; désactivée, les commandes, la section des paramètres, les règles de dossier et l'exclusion des modèles hors des requêtes disparaissent.
 
 ## Dossier de modèles
 
@@ -12,6 +12,8 @@ Le dossier de modèles se configure dans les paramètres (Paramètres → Modèl
 - **Par zone**, une configuration dédiée peut être définie (« Utiliser la configuration de zone » dans l'entrée « Modèles » du groupe de navigation « Zone actuelle », visible uniquement lorsqu'une zone est ouverte ; lorsqu'un livre est ouvert, le groupe s'appelle **Livre actuel**, lorsqu'une bibliothèque est ouverte **Bibliothèque actuelle**) ; elle est enregistrée dans le fichier de zone et **remplace complètement la configuration globale** (dossier et règles, pas de résolution mixte). Les dossiers sont relatifs à la racine de la zone ; les chemins absolus restent autorisés.
 
 Chaque fichier Markdown du dossier (sous-dossiers compris) est un modèle. Les sous-dossiers apparaissent comme groupes dans le popup de sélection. Les changements de configuration prennent effet immédiatement, sans redémarrage.
+
+**Les modèles dans les requêtes.** Ce qui se trouve dans le dossier de modèles, sous-dossiers compris, n'est un résultat dans aucune [Requête Perspective](frontmatter-query.md), à aucun de ses niveaux, et ne fournit pas non plus de valeurs aux réservoirs de valeurs et aux champs collecte des [Profils de propriétés](property-profiles.md). Ainsi le contenu d'un modèle, par exemple une tâche type, n'apparaît dans aucune vue d'ensemble. Pour interroger les modèles, on nomme expressément le dossier dans `FROM`, par exemple `FROM "Modèles"`. Ce qui compte, c'est le dossier qui détermine aussi la sélection des modèles, donc la configuration de la zone avant la configuration globale ; le dossier de modèles d'une zone liée ne compte pas.
 
 ## Appliquer des modèles
 

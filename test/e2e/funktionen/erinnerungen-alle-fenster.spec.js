@@ -59,6 +59,7 @@ const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { makeBook } = require('../helpers/buch');
 const { SHELF_SETTINGS_FILENAME } = require('../../../src/shared/books/shelf-core.js');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 const REMINDER = '⏰';
@@ -116,10 +117,14 @@ async function oeffneFenster(app, von) {
 
 // Fenster über seinen Titel schließen (nie über die Position).
 async function schliesseFenster(app, titelTeil) {
-  await app.evaluate(({ BrowserWindow }, teil) => {
-    const win = BrowserWindow.getAllWindows().find((w) => w.getTitle().includes(teil));
-    if (win) win.close();
-  }, titelTeil);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, teil) => {
+      const win = BrowserWindow.getAllWindows().find((w) => w.getTitle().includes(teil));
+      if (win) win.close();
+    },
+    titelTeil,
+  );
 }
 
 // Start mit Datei-Argument: das erste Fenster hat keinen Bereich.
@@ -531,7 +536,8 @@ async function oeffneDateiIn(app, fenster, titelTeil, datei) {
   await fenster.waitForFunction(() => document.body.dataset.rendererReady === '1', undefined, {
     timeout: 20000,
   });
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, { teil, f }) => {
       const win = BrowserWindow.getAllWindows().find((w) => w.getTitle().includes(teil));
       if (win) win.webContents.send('file:openExternal', [f]);

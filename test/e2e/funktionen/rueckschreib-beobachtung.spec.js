@@ -51,6 +51,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const DUE = '\u{1F4C5}'; // Kalender-Symbol (faelliger Termin)
 const QUERY_FENCE = ['```perspective-query', 'LIST TASKS', '```'].join('\n');
@@ -83,17 +84,21 @@ function cleanupDir(dir) {
 // Konflikt-Dialog im Main stubben: zaehlt die Aufrufe und antwortet fest
 // (0 = 'Vom Datentraeger neu laden', 1 = 'Eigene Version behalten').
 async function stubKonfliktDialog(app, antwort) {
-  await app.evaluate(({ dialog }, response) => {
-    globalThis.__rbDialogCalls = 0;
-    dialog.showMessageBox = async () => {
-      globalThis.__rbDialogCalls += 1;
-      return { response };
-    };
-  }, antwort);
+  await hauptSenden(
+    app,
+    ({ dialog }, response) => {
+      globalThis.__rbDialogCalls = 0;
+      dialog.showMessageBox = async () => {
+        globalThis.__rbDialogCalls += 1;
+        return { response };
+      };
+    },
+    antwort,
+  );
 }
 
 function dialogCalls(app) {
-  return app.evaluate(() => globalThis.__rbDialogCalls || 0);
+  return hauptLesen(app, () => globalThis.__rbDialogCalls || 0);
 }
 
 // Datei in das JUENGSTE Fenster reichen (Weg der Datei-Assoziation).
@@ -129,12 +134,16 @@ async function oeffneImJuengstenFenster(app, page2, datei) {
   await page2.waitForFunction(() => document.body.dataset.rendererReady === '1', undefined, {
     timeout: 20000,
   });
-  await app.evaluate(({ BrowserWindow }, f) => {
-    const wins = BrowserWindow.getAllWindows();
-    wins.sort((a, b) => a.webContents.id - b.webContents.id);
-    const win = wins[wins.length - 1];
-    if (win && !win.isDestroyed()) win.webContents.send('file:openExternal', [f]);
-  }, datei);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, f) => {
+      const wins = BrowserWindow.getAllWindows();
+      wins.sort((a, b) => a.webContents.id - b.webContents.id);
+      const win = wins[wins.length - 1];
+      if (win && !win.isDestroyed()) win.webContents.send('file:openExternal', [f]);
+    },
+    datei,
+  );
   // Genau ein Reiter — die Zahl ist die Zusicherung, nicht bloss ein Anker:
   // ein zweiter waere der Doppel-Oeffnungs-Fall von oben.
   await expect(page2.locator(SEL.tabs0)).toHaveCount(1, { timeout: 20000 });

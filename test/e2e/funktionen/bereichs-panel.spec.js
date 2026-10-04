@@ -36,6 +36,7 @@ const { launchApp, closeApp } = require('../helpers/app');
 // 4T-001351: Editor- und Reiter-Selektoren für den geänderten Reiter in BP-08.
 const { SEL } = require('../helpers/selectors');
 const { fuelleBis } = require('../helpers/eingabe');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 // 4T-001775 (Epic 3E-000304): Die Dateiliste beschriftet ihre Zeilen ohne
 // Markdown-Endung. Gesucht wird deshalb EXAKT und nicht als Teilstring: 'Ziel'
@@ -371,22 +372,26 @@ test.describe('BP-07: Umbenennen über das Kontextmenü (4T-001350)', () => {
 // journal-nachpflege.spec.js). Was der Stub NICHT ersetzt, ist die Abfolge —
 // und genau die ist hier zu prüfen: Rückfrage, dann Reiter, dann Löschen.
 async function stubLoeschDialoge(app, antwort) {
-  await app.evaluate(({ dialog }, response) => {
-    globalThis.__trashCalls = 0;
-    globalThis.__trashMessage = '';
-    globalThis.__trashPaths = [];
-    const echterDialog = dialog.showMessageBox;
-    dialog.showMessageBox = async (win, opts) => {
-      // Nur die Lösch-Rückfrage steuern; die Speichern-Abfrage bleibt echt,
-      // damit ihr Abbruch im Test derselbe Weg ist wie beim Anwender.
-      if (opts && opts.title === 'Datei löschen') {
-        globalThis.__trashCalls += 1;
-        globalThis.__trashMessage = opts.message || '';
-        return { response };
-      }
-      return echterDialog.call(dialog, win, opts);
-    };
-  }, antwort);
+  await hauptSenden(
+    app,
+    ({ dialog }, response) => {
+      globalThis.__trashCalls = 0;
+      globalThis.__trashMessage = '';
+      globalThis.__trashPaths = [];
+      const echterDialog = dialog.showMessageBox;
+      dialog.showMessageBox = async (win, opts) => {
+        // Nur die Lösch-Rückfrage steuern; die Speichern-Abfrage bleibt echt,
+        // damit ihr Abbruch im Test derselbe Weg ist wie beim Anwender.
+        if (opts && opts.title === 'Datei löschen') {
+          globalThis.__trashCalls += 1;
+          globalThis.__trashMessage = opts.message || '';
+          return { response };
+        }
+        return echterDialog.call(dialog, win, opts);
+      };
+    },
+    antwort,
+  );
 }
 
 test.describe('BP-08: Löschen über das Kontextmenü (4T-001351)', () => {
@@ -408,8 +413,8 @@ test.describe('BP-08: Löschen über das Kontextmenü (4T-001351)', () => {
       await stubLoeschDialoge(app, 1);
       await dateiZeile(section, 'alpha').click({ button: 'right' });
       await page.locator('#context-menu [data-menu-id="area-file-delete"]').click();
-      await expect.poll(() => app.evaluate(() => globalThis.__trashCalls || 0)).toBe(1);
-      expect(await app.evaluate(() => globalThis.__trashMessage)).toContain('alpha.md');
+      await expect.poll(() => hauptLesen(app, () => globalThis.__trashCalls || 0)).toBe(1);
+      expect(await hauptLesen(app, () => globalThis.__trashMessage)).toContain('alpha.md');
       expect(fs.existsSync(path.join(dir, 'alpha.md'))).toBe(true);
       await expect(section.locator('.area-file-row')).toHaveCount(3);
 
@@ -476,7 +481,7 @@ test.describe('BP-08: Löschen über das Kontextmenü (4T-001351)', () => {
       // AK6: Lösch-Rückfrage bejahen, danach die Speichern-Abfrage abbrechen
       // (Antwort 2 = Abbrechen im Dialog save.btnCancel). Die Datei bleibt,
       // der Reiter bleibt offen.
-      await app.evaluate(({ dialog }) => {
+      await hauptSenden(app, ({ dialog }) => {
         globalThis.__trashCalls = 0;
         dialog.showMessageBox = async (_win, opts) => {
           if (opts && opts.title === 'Datei löschen') {
@@ -488,7 +493,7 @@ test.describe('BP-08: Löschen über das Kontextmenü (4T-001351)', () => {
       });
       await dateiZeile(section, 'alpha').click({ button: 'right' });
       await page.locator('#context-menu [data-menu-id="area-file-delete"]').click();
-      await expect.poll(() => app.evaluate(() => globalThis.__trashCalls || 0)).toBe(1);
+      await expect.poll(() => hauptLesen(app, () => globalThis.__trashCalls || 0)).toBe(1);
       await expect(page.locator('.pane-group[data-pane="0"] .tabbar .tab')).toHaveCount(1);
       expect(fs.existsSync(path.join(dir, 'alpha.md'))).toBe(true);
       await expect(section.locator('.area-file-row')).toHaveCount(2);

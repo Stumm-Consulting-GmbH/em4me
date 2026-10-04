@@ -29,6 +29,7 @@ const {
   openPropertiesPanel,
   cleanupDir,
 } = require('../helpers/profil-bereich');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const OBJEKT = '.properties-objekt';
 const EINTRAG = '.properties-objekt-eintrag';
@@ -164,7 +165,7 @@ test.describe('PP-15: Gestapelte Objekt-Bedienung im Block-Panel (F-106)', () =>
     const { app, page, userData } = await launchApp({ userData: userDataDir });
     try {
       await bindAreaAndOpen(app, page, areaRoot, doc);
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         BrowserWindow.getAllWindows()[0].webContents.send('menu:toggleBlockProps');
       });
       const SEC = `${PANE0} .sidebar-blockprops`;
@@ -207,9 +208,16 @@ test.describe('PP-15: Gestapelte Objekt-Bedienung im Block-Panel (F-106)', () =>
         (p) => window.api.runFrontmatterQuery(p, 'LIST BLOCKS WHERE adresse', 'de'),
         doc,
       );
-      const namen = (treffer && Array.isArray(treffer.files) ? treffer.files : []).map(
-        (f) => f.name,
-      );
+      // 4T-002035 (Epic 3E-000260): Die Antwort ist allein die Ergebnismenge;
+      // die Treffer sind ihre Zeilen, benannt aus der Herkunft (Datei#^anker).
+      // Die Form wird mitgeprüft, damit die Aussage nicht an einer fehlenden
+      // Menge leer durchläuft.
+      expect(treffer && treffer.resultSet && Array.isArray(treffer.resultSet.rows)).toBe(true);
+      const zeilen =
+        treffer && treffer.resultSet && Array.isArray(treffer.resultSet.rows)
+          ? treffer.resultSet.rows
+          : [];
+      const namen = zeilen.map((r) => `${r.origin.name}#^${r.origin.anchor}`);
       expect(namen).toHaveLength(0);
     } finally {
       await closeApp(app, userData, { force: true });

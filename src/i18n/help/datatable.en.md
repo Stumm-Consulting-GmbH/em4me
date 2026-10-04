@@ -54,6 +54,26 @@ The display text may carry any characters, including spaces, commas, colons and 
 
 `number` supports an optional display format: `Amount:number(2)` shows two decimal places. Display and storage form deliberately stay identically readable (no locale reformatting); empty cells are valid for all types. A value that does not match the column type is marked as an **error cell** — the text is preserved, a tooltip explains the expected format, and the value does not flow into aggregates.
 
+## Links and tags in text cells
+
+In a column of type `text`, links and tags work as in the rest of the document:
+
+````markdown
+```perspective-datatable
+columns: Item:text, Amount:number(2)
+| Rent for [[Apartment]] #fixed | 850 |
+| Train ticket, see [[Trip 2026\|Travel plan]] | 120 |
+| Course fee, [Registration](https://example.org) | 60 |
+```
+````
+
+- **What works**: `[[Target]]`, `[[Target#Anchor]]` and the link with an alias, written `[[Target\|Alias]]` in the cell because every `|` in a cell is written as `\|`; also the Markdown link `[Text](Target)`, including a web address, and `#tag`. An embed `![[Target]]` appears as a link, not as embedded content.
+- **Display and click**: In the reading view, the split view and live mode they appear as a link or a tag. A click on a link opens its target, a click on a tag filters the tags sidebar as in body text.
+- **Link network**: The target lists the document under its **Backlinks**, and the **Outgoing links** and the [Graph view](graph.md) show the connection. When the target is renamed or moved, the link in the cell follows; alias and table stay intact.
+- **Tags count**: A tag from a cell counts in the tags sidebar, in the order of the suggestions and in queries, and [renaming a tag](linking.md) also covers cells.
+- **What stays text**: Bold, italics, formulas and other markup appear as written, because a text cell holds values, not prose. Set in backticks, `[[…]]` also stays literal and is not a link. Number, date, time and boolean columns, computed columns and the header lines of the block form no links; sorting, filtering and aggregates work on the written text.
+- **Disabled**: If the data table is disabled, the block appears as a code block without clickable links; backlinks and updating on rename still remain. If wiki links or tags are disabled, the cell text stays plain text.
+
 ## Aggregates
 
 Available functions per column type:
@@ -78,7 +98,7 @@ aggregate: Total:sum
 | Pad | 3.50 | 4 |
 ```
 
-- The expression language is the same as in the [Perspective Query](frontmatter-query.md): arithmetic, comparisons, `choice(…)`, `default(…)`, text functions, and more.
+- The expression language is the same as in the [Perspective Query](frontmatter-query.md): arithmetic, comparisons, `choice(…)`, `default(…)`, text functions, and more. This includes `count(x)`; in a formula it counts the values of the named field in the one row and is not the aggregate function `count` of the aggregate row, which counts across all rows.
 - Column names in the expression refer to the values of the respective row; other computed columns can be used in any declaration order (evaluation resolves the dependencies). Circular references are reported as structural errors.
 - The result must match the declared column type, otherwise the cell shows an error.
 - Computed values are **never stored in the source** — they are always calculated fresh and therefore have no data cell in the pipe rows. Aggregates over computed columns calculate on the computed values.
@@ -88,6 +108,8 @@ aggregate: Total:sum
 In the **split view** and in **live mode** the grid is directly editable; the reading view and manual pages show it read-only. Every commit writes back into the code block in the source — the document becomes unsaved as usual, and undo/redo work as expected.
 
 - **Edit a cell**: Click the cell (or `Enter`/`F2` when the cell is focused) to open a type-appropriate input field. `Enter` or losing focus commits, `Esc` discards, `Tab`/`Shift+Tab` commits and moves to the next or previous cell.
+- **Links in a cell**: A click on a link or a tag in a text cell follows it and does not open the cell. A click in the free part of the cell, `Enter` or `F2` opens it with the written text. If the link itself has keyboard focus, `Enter` follows it and `F2` opens the cell.
+- **Suggestions**: In a text cell, the same [suggestion list](linking.md) as in body text appears after `[[` and `#`, also in an empty cell; `Ctrl+Space` opens it explicitly. While it is open, the arrow keys choose, `Enter` accepts the suggestion into the field and `Esc` closes only the list; a second `Enter` commits the cell. `Tab` accepts no suggestion; it closes the list, commits the cell and moves on. No list appears in number, date and time cells, and it offers no task markers in a cell.
 - **Type enforcement**: A value that does not match the column type is rejected (hint in the status bar); the cell stays open for correction.
 - **Boolean**: Clicking the cell (or pressing space) toggles the value directly.
 - **Rows**: The button below the table appends a row at the end of the data; the × symbol at the start of a row deletes it.
@@ -109,7 +131,7 @@ Sorting and filtering affect **the view only** — the source stays unchanged, n
 
 ## Export
 
-The portable export and the PDF export output the table as a static table in document order — with all rows, the calculated values of the computed columns, and the aggregate row, without interactivity.
+The portable export and the PDF export output the table as a static table in document order — with all rows, the calculated values of the computed columns, and the aggregate row, without interactivity. Links and tags from text cells appear there like links and tags in the rest of the document.
 
 ## Limits
 

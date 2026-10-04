@@ -15,6 +15,8 @@
 //      Divergenz-Klasse, die den Abnahme-Befund von 1.116.0 verursacht hat.
 'use strict';
 
+const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
@@ -115,6 +117,150 @@ test.describe('DB-02: Änderungs-Modus zeigt dieselbe Tabelle', () => {
       );
     } finally {
       await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+// --- DB-03: Sprung aus einem Datensatz-Verweis (4T-001986) ----------------------
+
+// Eine geteilte Tabelle im Wegwerf-Ordner: 60 Datensätze in der Kopf-Datei,
+// damit das Ziel unter dem ersten Bildschirm liegt, und ein Datensatz im
+// Folge-Teil. Die Kopf-Datei öffnet den Zaun, erst der Folge-Teil schließt ihn
+// (Bauart des Teilens, `record-segment.js`).
+const KUNDEN_ZAHL = 60;
+const FOLGE_KENNUNG = 'r-00061';
+const KOPF_KENNUNG = 'r-00040';
+
+const kennung = (n) => `r-${String(n).padStart(5, '0')}`;
+
+function baueGeteilteTabelle() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-datensatz-sprung-'));
+  const saetze = [];
+  for (let n = 1; n <= KUNDEN_ZAHL; n++) {
+    saetze.push(`|- id="${kennung(n)}"`, `| K-${n}`, `| Kunde ${n}`);
+  }
+  const kunden = path.join(dir, 'Kunden.md');
+  fs.writeFileSync(
+    kunden,
+    [
+      '---',
+      'db-table:',
+      '  fields:',
+      '    - name: Kürzel',
+      '    - name: Titel',
+      'doc-part: v1|1|Kunden',
+      '---',
+      '',
+      '# Kunden',
+      '',
+      '```perspective-records',
+      ...saetze,
+      '',
+    ].join('\n'),
+    'utf8',
+  );
+  fs.writeFileSync(
+    path.join(dir, 'Kunden•part-00002.md'),
+    [
+      '---',
+      'doc-part: v1|2|Kunden',
+      'db-fields: Kürzel, Titel',
+      '---',
+      `|- id="${FOLGE_KENNUNG}"`,
+      '| K-61',
+      '| Kunde 61',
+      '```',
+      '',
+    ].join('\n'),
+    'utf8',
+  );
+  const notiz = path.join(dir, 'Notiz.md');
+  fs.writeFileSync(
+    notiz,
+    `# Notiz\n\nErster: [[Kunden#^${KOPF_KENNUNG}]]\n\nZweiter: [[Kunden#^${FOLGE_KENNUNG}]]\n`,
+    'utf8',
+  );
+  return { dir, kunden, notiz };
+}
+
+function raeumeAuf(dir) {
+  try {
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+  } catch {
+    /* Windows-Handle noch gesperrt: Temp-Rest ist unkritisch */
+  }
+}
+
+const reiter = (page, name) => page.locator(SEL.tabs0, { hasText: name }).first();
+
+// Der Text der Zeile, auf der die Schreibmarke des Editors der Spalte steht
+// (Zugang zum Editor wie `quelltext` in `tabellen-zell-vorschlaege.spec.js`).
+async function schreibmarkenZeile(page) {
+  return await page.evaluate((P) => {
+    const el = document.querySelector(P);
+    if (!el || !el.cmTile) return null;
+    let tile = el.cmTile;
+    while (tile.parent) tile = tile.parent;
+    if (!tile || !tile.view) return null;
+    const st = tile.view.state;
+    return st.doc.lineAt(st.selection.main.head).text;
+  }, SEL.editorContent0);
+}
+
+// Reiter «Notiz» nach vorn und den Verweis auf `ziel` in seiner Lese-Ansicht
+// klicken; danach ist der Reiter «Kunden» wieder vorn.
+async function klickeVerweis(page, ziel) {
+  await reiter(page, 'Notiz').click();
+  // Der Block-Anker steht im Ziel ohne `^` (`wikiAnchorPart` in `wiki.js`).
+  const verweis = page.locator(`${SEL.markdownBody0} a.wikilink[href="Kunden.md#${ziel}"]`);
+  await expect(verweis).toBeVisible();
+  await verweis.click();
+  await expect(page.locator(SEL.activeTab0)).toContainText('Kunden');
+}
+
+test.describe('DB-03: Datensatz-Verweis springt zur Datensatz-Zeile (4T-001986)', () => {
+  test('Lese-, Live- und Quellcode-Ansicht bringen die Zeile in den Blick, auch aus dem Folge-Teil', async () => {
+    const { dir, kunden, notiz } = baueGeteilteTabelle();
+    const { app, page, userData } = await launchApp({ args: [kunden, notiz] });
+    try {
+      await expect(page.locator(SEL.tabs0)).toHaveCount(2);
+
+      // Lese-Ansicht. Das Ziel liegt vor dem Klick außerhalb des Blicks; die
+      // Reihenfolge (erst der hintere, dann der vordere Datensatz) sorgt dafür,
+      // dass auch der zweite Sprung den Blick tatsächlich bewegen muss.
+      await reiter(page, 'Kunden').click();
+      await page.locator(SEL.viewBtn('rendered')).click();
+      const zeile = (id) =>
+        page.locator(`${SEL.markdownBody0} tr.prc-row[data-rec-id="${id}"]`).first();
+      await expect(zeile(KOPF_KENNUNG)).toBeAttached();
+      for (const id of [FOLGE_KENNUNG, KOPF_KENNUNG]) {
+        await expect(zeile(id)).not.toBeInViewport();
+        await klickeVerweis(page, id);
+        await expect(zeile(id)).toBeInViewport();
+      }
+
+      // Live- und Quellcode-Ansicht: Die Schreibmarke steht auf der Zeile, mit
+      // der der Datensatz beginnt, und diese Zeile ist sichtbar. In der
+      // Live-Ansicht zeigt der Block dazu seinen Quelltext.
+      for (const ansicht of ['live', 'source']) {
+        await reiter(page, 'Kunden').click();
+        await page.locator(SEL.viewBtn(ansicht)).click();
+        await expect(page.locator(SEL.editorContent0)).toBeVisible();
+        for (const id of [FOLGE_KENNUNG, KOPF_KENNUNG]) {
+          const marker = `id="${id}"`;
+          expect(await schreibmarkenZeile(page)).not.toContain(marker);
+          await klickeVerweis(page, id);
+          await expect.poll(() => schreibmarkenZeile(page)).toContain(marker);
+          const quellZeile = page
+            .locator(`${SEL.editorContent0} .cm-line`)
+            .filter({ hasText: marker })
+            .first();
+          await expect(quellZeile).toBeInViewport();
+        }
+      }
+    } finally {
+      await closeApp(app, userData, { force: true });
+      raeumeAuf(dir);
     }
   });
 });

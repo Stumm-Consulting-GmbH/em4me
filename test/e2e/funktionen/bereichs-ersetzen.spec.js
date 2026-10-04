@@ -14,7 +14,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, oeffneDokumentImFenster } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 
 const PANE = '.pane-group[data-pane="0"]';
@@ -44,6 +44,12 @@ function removeDir(dir) {
   }
 }
 
+// 4T-001689: Bereich und Dokument im selben Fenster entstehen in fester
+// Reihenfolge — ohne Datei-Argument starten, binden, dann das Dokument mit
+// oeffneDokumentImFenster öffnen. Mit Datei-Argument zu starten und danach zu
+// binden ist ein Rennen: Ist das Dokument schon gemeldet, öffnet der Bereich
+// ein eigenes Fenster, und die Zusicherung unten wird rot (gemessen unter
+// Rechenlast; test/README.md, Regel 32).
 async function bindArea(page, dir) {
   const res = await page.evaluate((p) => window.api.openAreaPath(p), dir);
   expect(res.boundExisting).toBe(true);
@@ -74,9 +80,10 @@ test.describe('BE-01: Zugang zum Ersetzen im Bereich', () => {
   test('oeffnet die Ersetzen-Zeile und zeigt die Auswahl-Ebene', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await ersetzenOeffnen(page, BEGRIFF, ERSATZ);
 
       // AK1: Die Ersetzen-Zeile ist bedienbar, der Sammel-Knopf frei.
@@ -100,9 +107,10 @@ test.describe('BE-02: Lauf ueber den Bereich', () => {
   test('ersetzt in einer nicht geoeffneten Datei und rechnet die Liste neu', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await ersetzenOeffnen(page, BEGRIFF, ERSATZ);
 
       await page.locator('#btn-search-replace-all').click();
@@ -135,9 +143,10 @@ test.describe('BE-02: Lauf ueber den Bereich', () => {
   test('ersetzt nur die ausgewaehlten Fundstellen', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await ersetzenOeffnen(page, BEGRIFF, ERSATZ);
 
       // Die ganze Gruppe 'zweite' abwaehlen; ihr Ankreuzfeld steht als
@@ -173,9 +182,10 @@ test.describe('BE-04: Bereich ohne offenen Reiter', () => {
   test('sucht und oeffnet das Ersetzen, wenn alle Dateien geschlossen sind', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await warteAufReiter(page);
 
       // Alle Reiter schliessen; der Bereich bleibt gebunden.

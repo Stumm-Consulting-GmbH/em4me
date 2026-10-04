@@ -19,12 +19,14 @@ const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, oeffneDokumentImFenster } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 // Menü-Klicks simulieren (Muster smoke.spec.js).
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
@@ -60,13 +62,21 @@ function cleanupDir(dir) {
 }
 
 // Bereich an das Fenster binden (Muster graphenansicht.spec.js).
+//
+// 4T-001689: Zugesichert wird, dass der Bereich DIESES Fenster übernommen hat
+// (Muster 4t-0936-ungespeicherter-stand.spec.js). Ist schon ein Dokument
+// gemeldet, öffnet openAreaPath ein eigenes Fenster und meldet createdNew;
+// bisher fiel das erst als fehlende Statistik-Seite auf (gemessen an BS-07
+// unter Rechenlast).
 async function bindArea(page, areaRoot) {
+  let ergebnis = null;
   await expect
     .poll(async () => {
-      const result = await page.evaluate((p) => window.api.openAreaPath(p), areaRoot);
-      return !!(result && result.ok !== false);
+      ergebnis = await page.evaluate((p) => window.api.openAreaPath(p), areaRoot);
+      return !!(ergebnis && ergebnis.ok !== false);
     })
     .toBe(true);
+  expect(ergebnis.boundExisting, 'Bereich muss an dieses Fenster binden').toBe(true);
 }
 
 const STATS_PAGE = '.pane-group[data-pane="0"] .area-stats-page';
@@ -75,6 +85,14 @@ const STATS_PAGE = '.pane-group[data-pane="0"] .area-stats-page';
 // wiederholt gesendet, weil der Listener erst am Ende des asynchronen
 // init() registriert ist; der Bereichs-Index baut asynchron auf, deshalb
 // wird zusätzlich auf einen Stand-Zeitstempel gewartet.
+//
+// 4T-001689: Vor dem Stand-Zeitstempel wird geprüft, dass der Eintrag der
+// Statistik-Seite der AKTIVE im Dokument-Streifen ist (Muster BS-01). Die
+// Sichtbarkeit eines Elements allein trennt nicht zwischen «noch nicht
+// erhoben» und «Seite steht im Hintergrund»; gemessen ist das zweite (BS-07,
+// ein später geöffnetes Start-Dokument holte seinen Eintrag nach vorn). So
+// meldet sich ein solches Rennen hier mit dem aktiven Eintrag als Befund statt
+// nach 15 s als unsichtbares Element.
 async function openStatsAndWait(app, page) {
   await expect
     .poll(async () => {
@@ -84,6 +102,7 @@ async function openStatsAndWait(app, page) {
       return page.locator(STATS_PAGE).count();
     })
     .toBe(1);
+  await expect(page.locator(`${SEL.tabs0}.active .tab-title`)).toContainText('Bereichs-Statistik:');
   await expect(page.locator(`${STATS_PAGE} .area-stats-stand`)).toBeVisible({ timeout: 15000 });
 }
 
@@ -275,12 +294,18 @@ test.describe('BS-07: Stand-Ausweis bei ungespeicherten Änderungen (S-118)', ()
   test('nennt den gespeicherten Stand und zählt die offenen Dokumente', async () => {
     test.setTimeout(120000);
     const areaRoot = makeArea();
-    const { app, page, userData } = await launchApp({
-      args: [path.join(areaRoot, 'Start.md')],
-    });
+    // 4T-001689: Bereich und Dokument im selben Fenster, in fester Reihenfolge:
+    // ohne Datei-Argument starten, binden, DANN das Dokument öffnen, und erst
+    // wenn sein Eintrag aktiv ist, die Statistik. Beide früheren Rennen sind
+    // gemessen — die Statistik-Seite vor dem nachlaufenden Dokument (Seite im
+    // Hintergrund) und das Dokument vor der Bindung (Bereich im eigenen
+    // Fenster); Begründung an den Helfern in helpers/app.js und in
+    // test/README.md, Regel 32.
+    const { app, page, userData } = await launchApp();
     const hinweis = page.locator(`${STATS_PAGE} .area-stats-state`);
     try {
       await bindArea(page, areaRoot);
+      await oeffneDokumentImFenster(app, page, path.join(areaRoot, 'Start.md'));
       await openStatsAndWait(app, page);
 
       // Anker: Der erste Satz steht immer, der zweite noch nicht — es gibt

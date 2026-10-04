@@ -25,8 +25,12 @@
 
 const { indexStand, resolveRootInfo } = require('./store.js');
 const { frontmatterQueryFor } = require('./query.js');
+// 4T-002034 (Epic 3E-000260): Die Treffer kommen aus der Ergebnismenge der
+// Antwort (Zeilen mit Herkunft), der Anzeige-Name aus dem Darstellungs-Kern.
+const { displayName } = require('../../shared/query/result-display.js');
 
-// wurzel + ' | ' + abfrage -> { stand, values }
+// wurzel + ' | ' + Vorlagen-Ordner + ' | ' + Abdruck der Aufgaben-Umgebung
+// + ' | ' + abfrage -> { stand, values }
 const zwischenspeicher = new Map();
 
 // Obergrenze des Zwischenspeichers. Er wächst mit der Zahl VERSCHIEDENER
@@ -51,15 +55,34 @@ function zwischenspeicherLeeren() {
   auswertungen = 0;
 }
 
-// Werte-Liste aus dem Abfrage-Ergebnis: der Name je Treffer, getrimmt,
-// Doppelte einmal. Ein Datei-Treffer trägt seinen Datei-Namen, ein
-// Block- oder Task-Treffer seine zusammengesetzte Bezeichnung; beide sind
-// als Wert brauchbar, und welche Ebene eine Abfrage anspricht, entscheidet
-// ihr eigener Text.
-function werteAusTreffern(files) {
+// Werte-Liste aus der Ergebnismenge: der Anzeige-Name je Zeile, getrimmt,
+// Doppelte einmal. Ein Datei- oder Aufgaben-Treffer trägt seinen Datei-Namen,
+// ein Block-Treffer seine zusammengesetzte Bezeichnung `Datei#^anker`; beide
+// sind als Wert brauchbar, und welche Ebene eine Abfrage anspricht,
+// entscheidet ihr eigener Text.
+//
+// 4T-002034 (Epic 3E-000260): Gelesen werden die Zeilen, die bisher die flache
+// Treffer-Liste `files` der Antwort trug.
+//
+// 4T-002080 (Epic 3E-000259, Entscheidung F6 Option A des Product Owners vom
+// 2026-10-03): Eine gruppierte Abfrage liefert ihre Treffer wie eine
+// ungruppierte. Die Zeilen einer gruppierten Menge sind vollständig (Konzept
+// E8.4), die Gruppen ordnen allein die Anzeige; gelesen werden deshalb die
+// Zeilen und nie die Gruppen, die Gruppen-Werte werden also nicht zur
+// Werte-Auswahl. Bis dahin lieferte eine gruppierte Abfrage hier den leeren
+// Vorrat, erhalten aus der Zeit, als die flache Treffer-Liste bei Gruppierung
+// leer war.
+//
+// 4T-002040 (Epic 3E-000258, Festlegung 16): Zeilen mit Datensatz-Herkunft
+// liefern keinen Wert. Welcher Wert aus einem Datensatz in eine
+// Dokument-Eigenschaft gehörte, Anzeige-Form oder Kennung, ist eine Frage der
+// Verweise aus Fließtext und hier nicht vorweggenommen.
+function werteAusTreffern(menge) {
+  const zeilen = Array.isArray(menge.rows) ? menge.rows : [];
   const werte = [];
-  for (const treffer of Array.isArray(files) ? files : []) {
-    const name = typeof treffer?.name === 'string' ? treffer.name.trim() : '';
+  for (const zeile of zeilen) {
+    if (zeile && zeile.origin && zeile.origin.kind === 'record') continue;
+    const name = displayName(zeile && zeile.origin).trim();
     if (name === '' || werte.includes(name)) continue;
     werte.push(name);
   }
@@ -78,12 +101,23 @@ function werteAusTreffern(files) {
  *   Im Betrieb greifen die echten; die Prüfung speist sie ein, weil sich eine
  *   zweite Index-Meldung im Unit-Umfeld nicht auslösen lässt und die
  *   Invalidierungs-Regel sonst unbewiesen bliebe.
+ * @param {string|null} [templatesFolder] Wirksamer Vorlagen-Ordner des Fensters
+ *   (4T-002082, Epic 3E-000259): Der Vorrat sieht dieselben Treffer wie die
+ *   Abfrage, also keine Vorlagen. Er gehört in den Schlüssel des
+ *   Zwischenspeichers, weil ein Wechsel des Ordners den Index-Stand nicht
+ *   berührt und sonst den alten Vorrat stehen ließe.
+ * @param {object|null} [taskEnv] Aufgaben-Umgebung der Abfrage aus
+ *   `buildTaskEnv` (task-env.js; 4T-002080, Epic 3E-000259): Ohne sie ist
+ *   eine Aufgaben-Abfrage ein Abfrage-Fehler und der Vorrat leer. Ihr
+ *   Fingerabdruck gehört aus demselben Grund wie der Vorlagen-Ordner in den
+ *   Schlüssel: Eine geänderte Aufgaben-Einstellung berührt den Index-Stand
+ *   nicht.
  * @returns {{status: string, values: string[]}} status 'ready' | 'indexing' |
  *   'unavailable'; `values` ist bei jedem anderen Status leer. Der Aufrufer
  *   macht aus einem leeren Vorrat den Hinweis am Feld — eine Blockade gibt es
  *   nicht (weiche Linie, E12).
  */
-function werteAusAbfrage(activeFile, areaRoot, abfrage, deps) {
+function werteAusAbfrage(activeFile, areaRoot, abfrage, deps, templatesFolder, taskEnv) {
   const standVon = (deps && deps.stand) || indexStand;
   const auswerten = (deps && deps.auswerten) || frontmatterQueryFor;
   const leer = { status: 'unavailable', values: [] };
@@ -91,7 +125,10 @@ function werteAusAbfrage(activeFile, areaRoot, abfrage, deps) {
   const { root } = resolveRootInfo(activeFile, areaRoot);
   if (!root) return leer;
 
-  const schluessel = `${root} | ${abfrage.trim()}`;
+  const ordner = templatesFolder || '';
+  const umgebung = taskEnv || undefined;
+  const abdruck = umgebung && typeof umgebung.fingerprint === 'string' ? umgebung.fingerprint : '';
+  const schluessel = `${root} | ${ordner} | ${abdruck} | ${abfrage.trim()}`;
   const stand = standVon(root);
   const bekannt = zwischenspeicher.get(schluessel);
   if (bekannt && bekannt.stand === stand) return { status: 'ready', values: bekannt.values };
@@ -99,24 +136,24 @@ function werteAusAbfrage(activeFile, areaRoot, abfrage, deps) {
   auswertungen += 1;
   let ergebnis;
   try {
-    ergebnis = auswerten(activeFile, abfrage, areaRoot);
+    ergebnis = auswerten(activeFile, abfrage, areaRoot, umgebung, undefined, ordner || null);
   } catch {
     // Eine nicht auswertbare Abfrage ist ein leerer Vorrat mit Hinweis,
     // niemals ein Wurf: Das Feld bleibt bedienbar.
     return leer;
   }
-  if (!ergebnis || ergebnis.status !== 'ready') {
+  // 4T-002034: Zustand, Abfrage-Fehler und Treffer allein aus der Ergebnismenge.
+  const menge = ergebnis && ergebnis.resultSet;
+  const status = menge && menge.state ? menge.state.status : null;
+  if (status !== 'ready') {
     // 'indexing' wird durchgereicht, damit der Aufrufer «noch nicht bereit»
     // von «keine Treffer» unterscheiden kann; zwischengespeichert wird ein
     // unfertiger Stand nicht.
-    return {
-      status: ergebnis && ergebnis.status === 'indexing' ? 'indexing' : 'unavailable',
-      values: [],
-    };
+    return { status: status === 'indexing' ? 'indexing' : 'unavailable', values: [] };
   }
-  // Ein Syntax- oder Funktions-Fehler der Abfrage kommt als queryError mit
-  // status 'ready' zurück; auch er ergibt den leeren Vorrat mit Hinweis.
-  const values = ergebnis.queryError ? [] : werteAusTreffern(ergebnis.files);
+  // Ein Syntax- oder Funktions-Fehler der Abfrage steht als queryError im
+  // Zustand «bereit»; auch er ergibt den leeren Vorrat mit Hinweis.
+  const values = menge.state.queryError ? [] : werteAusTreffern(menge);
 
   if (zwischenspeicher.size >= MAX_EINTRAEGE) {
     const aeltester = zwischenspeicher.keys().next();

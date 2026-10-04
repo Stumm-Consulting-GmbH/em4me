@@ -20,6 +20,7 @@ const { pressUntilVisible } = require('../helpers/eingabe');
 // 4T-000434: erwartete Wochen-Schlüssel/-Pfade aus demselben Perioden-Kern,
 // den die App nutzt (keine zweite KW-Rechnung im Test).
 const { periodOf, resolveEntryPath } = require('../../../src/shared/journal-core.js');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 // Lokales Datum als yyyy-MM-dd (konsistent zum Perioden-Kern).
 function isoToday() {
@@ -332,7 +333,7 @@ test.describe('JR-06: Navigations-Block — Periode, Eltern-Sprung, Hinweis (F-1
       const nav = page.locator(`${SEL.markdownBody0} .perspective-journal-nav`);
       await expect(nav).toBeVisible();
       // Ausgangslage festhalten: ein Reiter, geteilte Ansicht, Beschriftung.
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win && !win.isDestroyed()) win.webContents.send('menu:viewChange', 'split');
       });
@@ -390,7 +391,7 @@ test.describe('JR-06: Navigations-Block — Periode, Eltern-Sprung, Hinweis (F-1
       // er auftritt: Dort baut ein StateField die Bloecke und liest den Pfad aus
       // dem Editor-Zustand. Die gesetzte Ansicht bekommt ihn direkt vom Aufrufer
       // und war nie betroffen — ein Fall gegen sie wuerde nichts beweisen.
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win && !win.isDestroyed()) win.webContents.send('menu:viewChange', 'live');
       });
@@ -576,7 +577,7 @@ test.describe('JR-06: Navigations-Block — Periode, Eltern-Sprung, Hinweis (F-1
 
       // Geteilte Ansicht: der Navigations-Block ist sichtbar, und die
       // Titelzeile der Quelltext-Seite ist die aktive Instanz (TZ-01).
-      await erste.app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(erste.app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win && !win.isDestroyed()) win.webContents.send('menu:viewChange', 'split');
       });
@@ -592,7 +593,7 @@ test.describe('JR-06: Navigations-Block — Periode, Eltern-Sprung, Hinweis (F-1
       await expect(erste.page.locator(SEL.titleLineSourceText0)).toHaveText(vortagName);
 
       // AK8: sauber beenden (before-quit schreibt die Sitzung), neu starten.
-      await erste.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(erste.app, ({ app }) => app.quit());
       await erste.app.waitForEvent('close');
       const zweite = await launchApp({ userData });
       try {

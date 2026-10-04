@@ -72,7 +72,7 @@ fields:
 
 Una **nota di valori** è una nota ordinaria con un valore per riga; il suo percorso è relativo all'area. Righe vuote e spazi di bordo decadono, un blocco di metadati della nota non fa parte del repertorio. Viene aggiornata come un file di profilo: una modifica ha effetto senza riavvio, anche se proviene dall'esterno. Il repertorio diventa così contenuto ordinario che si può collegare, commentare e condividere.
 
-Una **query** fornisce i valori dall'archivio: i nomi dei suoi risultati. Viene valutata solo quando un campo ha davvero bisogno dei suoi valori, e resta memorizzata fino alla successiva modifica dell'archivio; nulla viene calcolato in anticipo sull'intero fondo. Un documento senza campo query non costa quindi alcuna valutazione.
+Una **query** fornisce i valori dall'archivio: i nomi dei suoi risultati. Viene valutata solo quando un campo ha davvero bisogno dei suoi valori, e resta memorizzata fino alla successiva modifica dell'archivio; nulla viene calcolato in anticipo sull'intero fondo. Un documento senza campo query non costa quindi alcuna valutazione. Una query raggruppata fornisce gli stessi valori che senza raggruppamento; i valori di gruppo non diventano valori del repertorio, e una condizione sul gruppo (`HAVING`) lascia solo i risultati dei gruppi rimasti. Una query sulle attività fornisce i nomi dei documenti che portano le sue attività; valgono il Filtro globale e la query globale delle [Liste di attività](tasks.md). I record non forniscono valori, e ciò che si trova nella cartella dei modelli non conta.
 
 Se una fonte manca, è vuota o non è valutabile, il **campo resta utilizzabile**: il repertorio è vuoto, un'indicazione compare accanto al campo, e valori propri restano possibili come ovunque.
 
@@ -240,13 +240,13 @@ fields:
 ---
 ```
 
-Un’espressione di formula usa lo stesso linguaggio e lo stesso catalogo di funzioni di una colonna di query, compreso il calcolo di date e durate; può riferirsi a qualunque altro campo del documento, anche a un altro campo formula. L’ordine nel file di profilo non conta.
+Un’espressione di formula usa lo stesso linguaggio e lo stesso catalogo di funzioni di una colonna di query, compreso il calcolo di date e durate; può riferirsi a qualunque altro campo del documento, anche a un altro campo formula. L’ordine nel file di profilo non conta. Il catalogo di funzioni comprende anche `count(x)`, il numero dei valori di un campo, ad esempio le voci di un elenco.
 
 **Il valore non sta nel file.** Nasce quando qualcuno lo guarda e poi scompare di nuovo: aprire un documento non lo modifica, e il valore è sempre aggiornato. Per questo, in entrambi gli editor delle proprietà i campi derivati appaiono non modificabili, senza pulsante di eliminazione e con il tipo bloccato; non vengono mai proposti per l’acquisizione.
 
 Se un valore resta vuoto, un’indicazione sul campo dice perché: due campi si rimandano in cerchio, una regola di calcolo nomina un campo che qui non esiste, l’espressione non è valutabile, oppure la regola manca del tutto. Non viene mai bloccato nulla, e gli altri campi continuano a calcolare.
 
-Un campo raccolta interroga l’indice dell’area e viene quindi valutato solo se è visualizzato; il risultato vale finché il contenuto non cambia. Un collegamento conta in tutte le scritture — `[[destinazione]]`, `[[destinazione|etichetta]]` e il nome nudo — e coglie anche un collegamento che passa per un alias di questo documento.
+Un campo raccolta interroga l’indice dell’area e viene quindi valutato solo se è visualizzato; il risultato vale finché il contenuto non cambia. Un collegamento conta in tutte le scritture — `[[destinazione]]`, `[[destinazione|etichetta]]` e il nome nudo — e coglie anche un collegamento che passa per un alias di questo documento. La query sotto `from` può essere raggruppata e restringe allora agli stessi documenti che senza raggruppamento; una query sulle attività restringe ai documenti che portano le sue attività. Ciò che si trova nella cartella dei modelli il campo non lo raccoglie.
 
 **Il rovescio è accettato consapevolmente:** poiché un valore derivato non sta nel file, non sta nemmeno nell’indice e non porta alcuna condizione di query. Dove questo pesa, calcola la query stessa: sa fare lo stesso.
 

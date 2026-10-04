@@ -72,7 +72,7 @@ fields:
 
 A **values note** is an ordinary note with one value per line; its path is relative to the area. Empty lines and surrounding whitespace are dropped, a frontmatter block of the note is not part of the value set. It is refreshed like a profile file: a change takes effect without a restart, even when it comes from outside. That makes the value set ordinary content you can link, comment on and share.
 
-A **query** delivers the values from the collection — the names of its matches. It is evaluated only once a field really needs its values, and remembered until the collection changes next; nothing is computed up front across everything. A document without a query field therefore costs no evaluation.
+A **query** delivers the values from the collection — the names of its matches. It is evaluated only once a field really needs its values, and remembered until the collection changes next; nothing is computed up front across everything. A document without a query field therefore costs no evaluation. A grouped query delivers the same values as without grouping; the group values do not become values of the set, and a condition on the group (`HAVING`) leaves only the matches of the remaining groups. A task query delivers the names of the documents that carry its tasks; the Global filter and the global query of the [Task lists](tasks.md) apply. Records deliver no values, and whatever lies in the templates folder does not count.
 
 If a source is missing, empty or not evaluable, the **field stays usable**: the value set is empty, a note appears at the field, and custom values remain possible as everywhere.
 
@@ -240,13 +240,13 @@ fields:
 ---
 ```
 
-A formula expression uses the same language and function set as a query column, including date and duration arithmetic; it may refer to any other field of the document, including another formula field. The order in the profile file does not matter.
+A formula expression uses the same language and function set as a query column, including date and duration arithmetic; it may refer to any other field of the document, including another formula field. The order in the profile file does not matter. The function set also includes `count(x)`, the number of values of a field, for instance the entries of a list.
 
 **The value is not in the file.** It is produced when someone looks at it and disappears again afterwards — so opening a document does not change it, and the value is always current. In both property editors derived fields therefore appear as not editable, without a delete button and with a locked type; they are also never offered for adoption.
 
 If a value stays empty, a note on the field says why: two fields refer to each other in a circle, a calculation rule names a field that does not exist here, the expression cannot be evaluated, or the rule is missing entirely. Nothing is ever blocked, and the other fields keep calculating.
 
-A collection field queries the area index and is therefore only evaluated when displayed; the result holds until the content changes. A link counts in all notations — `[[target]]`, `[[target|label]]` and the bare name — and a link through an alias of this document matches as well.
+A collection field queries the area index and is therefore only evaluated when displayed; the result holds until the content changes. A link counts in all notations — `[[target]]`, `[[target|label]]` and the bare name — and a link through an alias of this document matches as well. The query under `from` may be grouped and then narrows down to the same documents as without grouping; a task query narrows down to the documents that carry its tasks. Whatever lies in the templates folder is not collected by the field.
 
 **The trade-off is deliberate:** because a derived value is not in the file, it is not in the index either and carries no query condition. Where that matters, let the query calculate instead — it can do the same.
 

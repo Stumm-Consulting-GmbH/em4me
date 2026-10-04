@@ -21,6 +21,7 @@
 
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const CLOCK_BTN = '#btn-clock';
 const SECTION = '.pane-group .sidebar-clock';
@@ -109,7 +110,7 @@ test.describe('WE-02: Schalten, Loeschen und Persistenz', () => {
         'aria-checked',
         'false',
       );
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await first.app.waitForEvent('close');
 
       // Neustart mit demselben Profil: der abgeschaltete Wecker ist noch da.
@@ -194,7 +195,7 @@ test.describe('WE-05: Aus-Zustand der Erweiterung', () => {
         { id: 'a1', time: '07:00', label: 'Aus', enabled: true, repeat: 'daily', days: [] },
       ]);
       await first.page.evaluate(() => window.api.setSetting('extensions.disabled', ['clock']));
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await first.app.waitForEvent('close');
 
       const second = await launchApp({ userData });

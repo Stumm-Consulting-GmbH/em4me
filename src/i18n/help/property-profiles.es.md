@@ -72,7 +72,7 @@ fields:
 
 Una **nota de valores** es una nota corriente con un valor por línea; su ruta es relativa al área. Las líneas vacías y los espacios de borde se descartan, un bloque de metadatos de la nota no forma parte del repertorio. Se actualiza como un archivo de perfil: una modificación surte efecto sin reiniciar, incluso si viene de fuera. Así el repertorio pasa a ser contenido corriente que se puede enlazar, comentar y compartir.
 
-Una **consulta** entrega los valores desde el fondo: los nombres de sus coincidencias. Solo se evalúa cuando un campo necesita realmente sus valores, y se recuerda hasta el siguiente cambio del fondo; no se calcula nada de antemano sobre el conjunto. Un documento sin campo de consulta no cuesta, por tanto, ninguna evaluación.
+Una **consulta** entrega los valores desde el fondo: los nombres de sus coincidencias. Solo se evalúa cuando un campo necesita realmente sus valores, y se recuerda hasta el siguiente cambio del fondo; no se calcula nada de antemano sobre el conjunto. Un documento sin campo de consulta no cuesta, por tanto, ninguna evaluación. Una consulta agrupada entrega los mismos valores que sin agrupación; los valores de grupo no se convierten en valores del repertorio, y una condición sobre el grupo (`HAVING`) deja solo las coincidencias de los grupos restantes. Una consulta de tareas entrega los nombres de los documentos que llevan sus tareas; se aplican el Filtro global y la consulta global de las [Listas de tareas](tasks.md). Los registros no entregan valores, y lo que está en la carpeta de plantillas no cuenta.
 
 Si falta una fuente, está vacía o no es evaluable, el **campo sigue utilizable**: el repertorio está vacío, aparece una indicación en el campo, y los valores propios siguen siendo posibles como en todas partes.
 
@@ -240,13 +240,13 @@ fields:
 ---
 ```
 
-Una expresión de fórmula usa el mismo lenguaje y el mismo catálogo de funciones que una columna de consulta, incluido el cálculo de fechas y duraciones; puede referirse a cualquier otro campo del documento, incluso a otro campo de fórmula. El orden en el archivo de perfil no importa.
+Una expresión de fórmula usa el mismo lenguaje y el mismo catálogo de funciones que una columna de consulta, incluido el cálculo de fechas y duraciones; puede referirse a cualquier otro campo del documento, incluso a otro campo de fórmula. El orden en el archivo de perfil no importa. El catálogo de funciones incluye también `count(x)`, el número de valores de un campo, por ejemplo las entradas de una lista.
 
 **El valor no está en el archivo.** Surge cuando alguien lo mira y luego vuelve a desaparecer: abrir un documento no lo modifica, y el valor siempre está al día. Por eso, en ambos editores de propiedades los campos derivados aparecen como no editables, sin botón de borrado y con el tipo bloqueado; tampoco se ofrecen nunca para su adopción.
 
 Si un valor queda vacío, una indicación en el campo dice por qué: dos campos se remiten en círculo, una regla de cálculo nombra un campo que aquí no existe, la expresión no se puede evaluar, o falta la regla por completo. Nunca se bloquea nada, y los demás campos siguen calculando.
 
-Un campo de recopilación consulta el índice del área y por eso solo se evalúa cuando se muestra; el resultado vale hasta que cambie el contenido. Un enlace cuenta en todas sus escrituras —`[[destino]]`, `[[destino|etiqueta]]` y el nombre desnudo—, y también acierta un enlace que pase por un alias de este documento.
+Un campo de recopilación consulta el índice del área y por eso solo se evalúa cuando se muestra; el resultado vale hasta que cambie el contenido. Un enlace cuenta en todas sus escrituras —`[[destino]]`, `[[destino|etiqueta]]` y el nombre desnudo—, y también acierta un enlace que pase por un alias de este documento. La consulta bajo `from` puede estar agrupada y acota entonces a los mismos documentos que sin agrupación; una consulta de tareas acota a los documentos que llevan sus tareas. Lo que está en la carpeta de plantillas no lo recopila el campo.
 
 **La contrapartida se asume conscientemente:** como un valor derivado no está en el archivo, tampoco está en el índice y no admite condición de consulta. Donde eso moleste, que calcule la consulta: puede hacer lo mismo.
 

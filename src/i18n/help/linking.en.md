@@ -154,7 +154,7 @@ After `#`, the tags used more often in the area appear at the top, the most freq
 
 Accepting a file or alias suggestion also writes the closing brackets and places the cursor behind them. If they are already there, no second pair appears.
 
-In a table cell in live view, the same list appears at the cell, with the same entries and the same controls; details under [Views and display](views-display.md). It offers no task markers there, because a table row is not a task line; the same applies in the source view.
+In a table cell in live view, the same list appears at the cell, with the same entries and the same controls; details under [Views and display](views-display.md). It likewise appears in a text cell of the [Perspective Datatable](datatable.md), there in live mode and in the split view. It offers no task markers there, because a table row is not a task line; the same applies in the source view.
 
 ## Sidebars for the network
 

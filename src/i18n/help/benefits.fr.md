@@ -106,11 +106,10 @@ Un dossier de fichiers Markdown peut être en même temps une base de données, 
 - **La zone devient une base de données** dès qu'un document en décrit une, et reçoit sa propre vue d'ensemble, à partir de laquelle vous créez des enregistrements et contrôlez les données.
 - **La table réside dans son fichier** : les champs dans l'en-tête, les enregistrements dans le corps. Le renommage et le déplacement n'y changent rien, y compris hors de l'application.
 - **Huit types de colonne**, avec des étiquettes qui peuvent exister en plusieurs langues.
-- **Le lien vers un enregistrement isolé** s'écrit comme une ancre et se comporte comme tout autre lien : le linter Markdown indique s'il vaut, et un clic ouvre le fichier de table.
+- **Le lien vers un enregistrement isolé** s'écrit comme une ancre et se comporte comme tout autre lien : le linter Markdown indique s'il vaut, et un clic mène à la ligne de l'enregistrement.
 - **Les grands ensembles restent une seule table** : à partir d'environ 0,7 Mo, l'application répartit les enregistrements sur plusieurs fichiers voisins au moment de la sauvegarde, sans qu'aucun lien en soit affecté.
 - **Tenir les enregistrements dans le formulaire** : créer, modifier et supprimer dans un formulaire issu de la définition, avec verrou, justificatif de modification et les règles de la table ; contrôle de cohérence et vue des utilisations pour le diagnostic.
-
-Ce que la base de données n'apporte pas encore : les requêtes et les évaluations portant sur les enregistrements.
+- **Évaluer les enregistrements** : listes et tableaux sur une table, avec des chemins passant par les références et des hiérarchies sur un nombre quelconque de niveaux, sous forme d'arbre si vous le souhaitez, et des vues d'ensemble avec une ligne par groupe, par exemple livres et pages par auteur.
 
 En détail : [Base de données](database.md).
 
@@ -163,21 +162,21 @@ En détail : [Profils de propriétés](property-profiles.md).
 
 ## Des listes qui se tiennent à jour
 
-Qui gère beaucoup de fichiers entretient sinon des vues d'ensemble à la main, et elles vieillissent le jour même. Une requête Perspective décrit au contraire **ce qui** est cherché, et le résultat apparaît sur place dans le document : une liste ou un tableau cliquable sur l'ensemble, filtré par propriétés, mots-clés et champs de fichier, jusqu'aux blocs de texte et aux tâches. Si l'ensemble change, la sortie change, sans que personne ne mette à jour.
+Qui gère beaucoup de fichiers entretient sinon des vues d'ensemble à la main, et elles vieillissent le jour même. Une requête Perspective décrit au contraire **ce qui** est cherché, et le résultat apparaît sur place dans le document : une liste ou un tableau cliquable sur l'ensemble, filtré par propriétés, mots-clés et champs de fichier, jusqu'aux blocs de texte et aux tâches. Si vous le souhaitez, la requête réunit les résultats en groupes, avec une ligne par groupe indiquant le nombre, la somme ou la moyenne. Si l'ensemble change, la sortie change, sans que personne ne mette à jour.
 
 - **Pages thématiques** qui listent d'elles-mêmes les fichiers associés.
-- **Filtres** sur les propriétés du frontmatter, les mots-clés et les champs de fichier.
-- **Niveau bloc et tâche**, pas seulement des fichiers entiers.
+- **Filtres et groupes** sur les propriétés du frontmatter, les mots-clés et les champs de fichier, avec le nombre et les sommes par groupe.
+- **Niveau bloc, tâche et enregistrement**, pas seulement des fichiers entiers.
 - **Chaque résultat cliquable**, menant directement à sa cible.
 
 En détail : [Requête Perspective](frontmatter-query.md).
 
 ## Quand la requête ne suffit pas : les scripts
 
-Certaines analyses ne se formulent pas comme une condition, par exemple un arbre récursif suivant les liens ou une vue qui calcule en chemin. Les blocs de script s'en chargent : un bloc exécute un petit programme, lit le même ensemble que la requête et produit listes, tableaux ou texte mis en forme dans le document. Parce que cela signifie plus de liberté, la fonction est liée à un modèle de confiance explicite et à des limites d'exécution, et elle n'est pas simplement active d'origine.
+Certaines analyses ne se formulent pas comme une condition, par exemple un arbre suivant les liens entre documents ou une vue qui calcule en chemin ; les hiérarchies d'enregistrements et les sommes par groupe, en revanche, la requête les prend elle-même en charge. Les blocs de script s'en chargent : un bloc exécute un petit programme, lit le même ensemble que la requête et produit listes, tableaux ou texte mis en forme dans le document. Parce que cela signifie plus de liberté, la fonction est liée à un modèle de confiance explicite et à des limites d'exécution, et elle n'est pas simplement active d'origine.
 
 - **Analyses libres** sur les mêmes données que la requête.
-- **Structures récursives** et vues calculées, impossibles à exprimer de façon déclarative.
+- **Structures récursives sur les documents** et vues calculées, impossibles à exprimer de façon déclarative.
 - **Modèle de confiance explicite** et limites d'exécution au lieu d'une exécution silencieuse.
 
 En détail : [Blocs de script](scripts.md).

@@ -39,6 +39,8 @@ function leereAuskunft(status = 'unavailable') {
     steckbrief: null,
     tabellen: [],
     masken: [],
+    abfragen: [],
+    wurzel: null,
     hints: [],
   };
 }
@@ -59,7 +61,8 @@ function leereAuskunft(status = 'unavailable') {
  * gewöhnlichen zu führen. Ein unbereiter Stand und der Fehlerfall werden
  * deshalb durchgereicht und nicht gehalten; der nächste Aufruf fragt neu.
  *
- * @returns {Promise<object>} { status, istDatenbankBereich, steckbrief, tabellen, hints }
+ * @returns {Promise<object>} { status, istDatenbankBereich, steckbrief, tabellen, masken,
+ *   abfragen, wurzel, hints }
  */
 export async function datenbankAuskunft() {
   if (auskunft) return auskunft;
@@ -80,6 +83,10 @@ export async function datenbankAuskunft() {
       tabellen: Array.isArray(antwort.tabellen) ? antwort.tabellen : [],
       // 4T-001943: die Masken-Dateien mit ihren Hinweisen.
       masken: Array.isArray(antwort.masken) ? antwort.masken : [],
+      // 4T-002081: die Abfrage-Dateien mit ihren Hinweisen und die Wurzel des
+      // Index, gegen die die Übersicht ihren Ort angibt.
+      abfragen: Array.isArray(antwort.abfragen) ? antwort.abfragen : [],
+      wurzel: antwort.meta && typeof antwort.meta.wurzel === 'string' ? antwort.meta.wurzel : null,
       hints: Array.isArray(antwort.hints) ? antwort.hints : [],
     };
     if (stand.status === 'ready') {

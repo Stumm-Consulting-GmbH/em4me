@@ -22,6 +22,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 // Der Renderer-Fall startet mit einer geöffneten Datei, weil «Datei -> Neu»
 // erst in einem Fenster mit Reiter-System greift; ohne übergebene Datei startet
@@ -33,7 +34,8 @@ const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md
 const MARKER = 'AUFFANG-PROBE';
 
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
@@ -140,9 +142,13 @@ test.describe('AE-02: Auffang-Ebene des Haupt-Prozesses (4T-000971, Weg M2)', ()
       // Unbehandelte Ausnahme im Haupt-Prozess nachstellen. `process.emit`
       // trifft denselben Haken wie eine echte Ausnahme, ohne den Testlauf von
       // einer bestimmten Fehlerquelle abhängig zu machen.
-      await app.evaluate((_elektron, marker) => {
-        process.emit('uncaughtException', new Error(`${marker} Main`));
-      }, MARKER);
+      await hauptSenden(
+        app,
+        (_elektron, marker) => {
+          process.emit('uncaughtException', new Error(`${marker} Main`));
+        },
+        MARKER,
+      );
 
       // Weg M2: Die Anwendung beendet sich definiert (AK3).
       await geschlossen;

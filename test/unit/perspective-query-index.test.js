@@ -7,6 +7,12 @@
 // Die Task-Blöcke (TASKS-Scope, Gruppierung, Default-Sortierung,
 // Abhängigkeiten, areaTaskLines) liegen seit dem Schnitt in
 // perspective-query-tasks.test.js.
+//
+// 4T-002035 (Epic 3E-000260): Die Antwort des Erzeugers ist seit dem Ende des
+// Übergangs allein die Ergebnismenge (`{ resultSet }`). Die Fälle lesen
+// Zustand, Treffer, Spalten und Werte deshalb aus der Menge; Anzeige-Name,
+// Überschrift und Anzeige-Stücke kommen aus dem Darstellungs-Kern, der sie
+// auch für die Anzeige bildet. Die Prüfaussagen sind unverändert.
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -18,6 +24,11 @@ import {
   rootForActiveFile,
   updateBlockDataForFile,
 } from '../../src/main/backlinks.js';
+// 4T-002033 (Epic 3E-000260): Prüfer des Format-Vertrags als Wächter an der
+// echten Antwort; seit 4T-002035 der Darstellungs-Kern als Leser der Menge.
+import { validateResultSet } from '../../src/shared/query/result-set.js';
+import { stateResponse } from '../../src/main/index/query-result-set.js';
+import { cellSegments, columnHeader, displayName } from '../../src/shared/query/result-display.js';
 
 // --- Setup/Teardown (Muster aus backlinks.test.js) ----------------------------
 
@@ -76,9 +87,15 @@ afterEach(() => {
 let start;
 let alpha;
 
+// Anzeige-Namen der Treffer (Datei-Name, beim Block `Datei#^anker`).
 function names(res) {
-  return res.files.map((f) => f.name);
+  return res.resultSet.rows.map((r) => displayName(r.origin));
 }
+
+// Zustand und Tabellen-Sicht einer Antwort aus der Menge (4T-002035).
+const zustand = (res) => res.resultSet.state;
+const zeilen = (res) => res.resultSet.rows;
+const zellen = (row) => row.values.map(cellSegments);
 
 function mddWith(blockData) {
   return JSON.stringify({ schemaVersion: 1, history: { anchors: [], packets: [] }, blockData });
@@ -177,7 +194,7 @@ describe('perspective-query — Index-Integration (FROM-Quellen)', () => {
     // Worauf verlinkt Alpha? Beta.
     expect(names(frontmatterQueryFor(start, 'FROM outgoing([[Alpha]])'))).toEqual(['Beta']);
     // Unbekanntes Ziel: leere Treffer-Menge, kein Fehler.
-    expect(frontmatterQueryFor(start, 'FROM [[Unbekannt]]').files).toEqual([]);
+    expect(zeilen(frontmatterQueryFor(start, 'FROM [[Unbekannt]]'))).toEqual([]);
   });
 
   // 4T-001070 (Epic 3E-000211): Selbstbezug gegen den echten Index. Träger-Datei
@@ -192,7 +209,7 @@ describe('perspective-query — Index-Integration (FROM-Quellen)', () => {
     // schon der Graph-Aufbau aus).
     expect(names(frontmatterQueryFor(alpha, 'FROM [[]]', area))).not.toContain('Alpha');
     // Träger ohne Links: leere Menge, kein Fehler.
-    expect(frontmatterQueryFor(start, 'FROM [[]]', area).files).toEqual([]);
+    expect(zeilen(frontmatterQueryFor(start, 'FROM [[]]', area))).toEqual([]);
   });
 
   it('Selbstbezug als Wert-Zugriff über den Index', async () => {
@@ -206,11 +223,9 @@ describe('perspective-query — Index-Integration (FROM-Quellen)', () => {
       names(frontmatterQueryFor(beta, 'WHERE contains(file.outlinks, this.file.link)', area)),
     ).toEqual(['Alpha']);
     // Spalten-Ausdruck: derselbe Wert in jeder Zeile.
-    const tabelle = frontmatterQueryFor(alpha, 'TABLE this.file.name', area);
-    expect(tabelle.table.rows.length).toBeGreaterThan(1);
-    expect(tabelle.table.rows.map((r) => r.cells[0])).toEqual(
-      tabelle.table.rows.map(() => [{ text: 'Alpha' }]),
-    );
+    const tabelle = zeilen(frontmatterQueryFor(alpha, 'TABLE this.file.name', area));
+    expect(tabelle.length).toBeGreaterThan(1);
+    expect(tabelle.map((r) => zellen(r)[0])).toEqual(tabelle.map(() => [{ text: 'Alpha' }]));
   });
 
   it('ohne Träger-Datei im Index degradiert der Selbstbezug weich', async () => {
@@ -219,10 +234,10 @@ describe('perspective-query — Index-Integration (FROM-Quellen)', () => {
     const area = path.dirname(start);
     const fehlt = path.join(area, 'Fehlt.md');
     const res = frontmatterQueryFor(fehlt, 'FROM [[]]', area);
-    expect(res.status).toBe('ready');
-    expect(res.queryError).toBeUndefined();
-    expect(res.files).toEqual([]);
-    expect(frontmatterQueryFor(fehlt, 'WHERE prio = this.prio', area).files).toEqual([]);
+    expect(zustand(res).status).toBe('ready');
+    expect(zustand(res).queryError).toBeNull();
+    expect(zeilen(res)).toEqual([]);
+    expect(zeilen(frontmatterQueryFor(fehlt, 'WHERE prio = this.prio', area))).toEqual([]);
   });
 
   it('Link-Felder in WHERE laufen über denselben Graphen', async () => {
@@ -287,55 +302,55 @@ describe('perspective-query — Index-Integration (TABLE und Zusatzfeld, 4T-0004
       start,
       'TABLE prio AS "Priorität", file.folder WHERE prio > 0 SORT prio',
     );
-    expect(res.queryType).toBe('table');
-    expect(res.table.withoutId).toBe(false);
-    expect(res.table.headers).toEqual(['Priorität', 'file.folder']);
-    expect(res.table.rows.map((r) => r.name)).toEqual(['Alpha', 'Beta']);
-    expect(res.table.rows[0].cells).toEqual([[{ text: '3' }], [{ text: 'Projekte' }]]);
-    // files bleibt parallel gefuellt (gemeinsamer Leer-/Kompatibilitäts-Pfad).
-    expect(res.files.map((f) => f.name)).toEqual(['Alpha', 'Beta']);
+    const rs = res.resultSet;
+    expect(rs.type).toBe('table');
+    expect(rs.wishes.withoutId).toBe(false);
+    expect(rs.columns.map(columnHeader)).toEqual(['Priorität', 'file.folder']);
+    expect(names(res)).toEqual(['Alpha', 'Beta']);
+    expect(zellen(rs.rows[0])).toEqual([[{ text: '3' }], [{ text: 'Projekte' }]]);
   });
 
   it('TABLE WITHOUT ID setzt das Flag; file.link-Zelle ist ein Link-Segment', async () => {
     const res = frontmatterQueryFor(start, 'TABLE WITHOUT ID file.link WHERE prio > 5');
-    expect(res.table.withoutId).toBe(true);
-    expect(res.table.rows).toHaveLength(1);
-    const seg = res.table.rows[0].cells[0][0];
+    expect(res.resultSet.wishes.withoutId).toBe(true);
+    expect(zeilen(res)).toHaveLength(1);
+    const seg = zellen(zeilen(res)[0])[0][0];
     expect(seg.link.name).toBe('Beta');
     expect(seg.link.path.toLowerCase().endsWith('beta.md')).toBe(true);
   });
 
   it('LIST mit Zusatzfeld liefert extra-Segmente je Treffer', async () => {
     const res = frontmatterQueryFor(start, 'LIST prio WHERE prio > 0 SORT prio DESC');
-    expect(res.queryType).toBe('list');
-    expect(res.files.map((f) => f.name)).toEqual(['Beta', 'Alpha']);
-    expect(res.files[0].extra).toEqual([{ text: '10' }]);
-    expect(res.files[1].extra).toEqual([{ text: '3' }]);
+    expect(res.resultSet.type).toBe('list');
+    expect(names(res)).toEqual(['Beta', 'Alpha']);
+    expect(zellen(zeilen(res)[0])[0]).toEqual([{ text: '10' }]);
+    expect(zellen(zeilen(res)[1])[0]).toEqual([{ text: '3' }]);
   });
 
   it('COLUMNS: layoutColumns bei LIST, Hinweis bei TABLE (4T-000405)', async () => {
-    const list = frontmatterQueryFor(start, 'LIST COLUMNS 3');
-    expect(list.layoutColumns).toBe(3);
-    expect(list.hint).toBeUndefined();
-    const table = frontmatterQueryFor(start, 'TABLE prio COLUMNS 3');
-    expect(table.layoutColumns).toBeUndefined();
-    expect(table.hint).toBe('columnsIgnored');
-    const plain = frontmatterQueryFor(start, 'LIST');
-    expect(plain.layoutColumns).toBeUndefined();
+    const list = frontmatterQueryFor(start, 'LIST COLUMNS 3').resultSet;
+    expect(list.wishes.layoutColumns).toBe(3);
+    expect(list.state.hint).toBeNull();
+    // Bei TABLE reist der Wunsch mit (E8.3); dass die Tabelle ihn übergeht,
+    // sagt der Hinweis im Zustand, und die Tabellen-Darstellung liest ihn nicht.
+    const table = frontmatterQueryFor(start, 'TABLE prio COLUMNS 3').resultSet;
+    expect(table.state.hint).toBe('columnsIgnored');
+    const plain = frontmatterQueryFor(start, 'LIST').resultSet;
+    expect(plain.wishes.layoutColumns).toBeNull();
   });
 });
 
 describe('perspective-query — Index-Integration (Fehler-Pfad)', () => {
   it('unbekannte Funktion läuft als queryError durch, ohne zu werfen', async () => {
     const res = frontmatterQueryFor(start, 'WHERE foo(1)');
-    expect(res.status).toBe('ready');
-    expect(res.files).toEqual([]);
-    expect(res.queryError).toMatchObject({ code: 'unknownFunction', name: 'foo' });
+    expect(zustand(res).status).toBe('ready');
+    expect(zeilen(res)).toEqual([]);
+    expect(zustand(res).queryError).toMatchObject({ code: 'unknownFunction', name: 'foo' });
   });
 
   it('falsche Stelligkeit läuft als queryError durch', async () => {
     const res = frontmatterQueryFor(start, 'WHERE contains(tags)');
-    expect(res.queryError).toMatchObject({ code: 'functionArity', name: 'contains' });
+    expect(zustand(res).queryError).toMatchObject({ code: 'functionArity', name: 'contains' });
   });
 });
 
@@ -344,12 +359,12 @@ describe('perspective-query — Index-Integration (Fehler-Pfad)', () => {
 describe('perspective-query — Block-Ebene (BLOCKS-Scope)', () => {
   it('LIST BLOCKS liefert aktive Block-Treffer als Datei#^anker (verwaiste nicht)', async () => {
     const res = frontmatterQueryFor(start, 'LIST BLOCKS');
-    expect(res.status).toBe('ready');
-    expect(res.queryType).toBe('list');
+    expect(zustand(res).status).toBe('ready');
+    expect(res.resultSet.type).toBe('list');
     // Betas 'weg'-Eintrag hat keinen Anker im Dokument mehr -> kein Treffer.
     expect(names(res)).toEqual(['Alpha#^a1', 'Alpha#^a2', 'Beta#^b1']);
-    expect(res.files[0].anchor).toBe('a1');
-    expect(res.files[0].path.toLowerCase().endsWith('alpha.md')).toBe(true);
+    expect(zeilen(res)[0].origin.anchor).toBe('a1');
+    expect(zeilen(res)[0].origin.path.toLowerCase().endsWith('alpha.md')).toBe(true);
   });
 
   it('WHERE: Block-Eigenschaften zuerst, Frontmatter der Traeger-Datei als Rueckfall', async () => {
@@ -396,22 +411,25 @@ describe('perspective-query — Block-Ebene (BLOCKS-Scope)', () => {
       start,
       'TABLE BLOCKS status, prio WHERE file.name = "alpha" SORT prio',
     );
-    expect(res.queryType).toBe('table');
-    expect(res.table.headers).toEqual(['status', 'prio']);
-    expect(res.table.rows.map((r) => r.name)).toEqual(['Alpha#^a1', 'Alpha#^a2']);
-    expect(res.table.rows.map((r) => r.anchor)).toEqual(['a1', 'a2']);
-    expect(res.table.rows[0].cells).toEqual([[{ text: 'offen' }], [{ text: '2' }]]);
+    expect(res.resultSet.type).toBe('table');
+    expect(res.resultSet.columns.map(columnHeader)).toEqual(['status', 'prio']);
+    expect(names(res)).toEqual(['Alpha#^a1', 'Alpha#^a2']);
+    expect(zeilen(res).map((r) => r.origin.anchor)).toEqual(['a1', 'a2']);
+    expect(zellen(zeilen(res)[0])).toEqual([[{ text: 'offen' }], [{ text: '2' }]]);
   });
 
   it('LIST BLOCKS mit Zusatzfeld liefert extra-Segmente je Block', async () => {
     const res = frontmatterQueryFor(start, 'LIST BLOCKS status WHERE file.name = "alpha"');
-    expect(res.files.map((f) => f.extra)).toEqual([[{ text: 'offen' }], [{ text: 'erledigt' }]]);
+    expect(zeilen(res).map((r) => zellen(r)[0])).toEqual([
+      [{ text: 'offen' }],
+      [{ text: 'erledigt' }],
+    ]);
   });
 
   it('defekte .mdd setzt nur die Block-Ebene der Datei aus', async () => {
     // Gamma traegt eine defekte .mdd -> keine Gamma-Bloecke, kein Fehler.
     const res = frontmatterQueryFor(start, 'LIST BLOCKS');
-    expect(res.queryError).toBeUndefined();
+    expect(zustand(res).queryError).toBeNull();
     expect(names(res).some((n) => n.startsWith('Gamma'))).toBe(false);
     // Datei-Abfragen bleiben vollstaendig.
     expect(names(frontmatterQueryFor(start, 'LIST'))).toEqual(['Alpha', 'Beta', 'Gamma', 'Start']);
@@ -463,15 +481,15 @@ describe('perspective-query — Referenz-Muster «Letzter Kontakt» (4T-001071)'
       root,
     );
 
-    expect(res.status).toBe('ready');
-    expect(res.queryError).toBeUndefined();
-    expect(res.table.withoutId).toBe(true);
-    expect(res.table.headers).toEqual(['Notiz', 'Letzter Kontakt']);
-    expect(res.table.rows).toHaveLength(1);
-    const [zeile] = res.table.rows;
-    expect(zeile.name).toBe('2026-04-18');
-    expect(zeile.cells[0]).toEqual([{ link: { path: zeile.path, name: '2026-04-18' } }]);
-    expect(zeile.cells[1]).toEqual([{ text: '2026-04-18 — 48 Tage' }]);
+    expect(zustand(res).status).toBe('ready');
+    expect(zustand(res).queryError).toBeNull();
+    expect(res.resultSet.wishes.withoutId).toBe(true);
+    expect(res.resultSet.columns.map(columnHeader)).toEqual(['Notiz', 'Letzter Kontakt']);
+    expect(zeilen(res)).toHaveLength(1);
+    const [zeile] = zeilen(res);
+    expect(displayName(zeile.origin)).toBe('2026-04-18');
+    expect(zellen(zeile)[0]).toEqual([{ link: { path: zeile.origin.path, name: '2026-04-18' } }]);
+    expect(zellen(zeile)[1]).toEqual([{ text: '2026-04-18 — 48 Tage' }]);
   });
 
   it('die undatierte Notiz sortiert ans Ende und verdrängt den Treffer nicht', async () => {
@@ -500,25 +518,30 @@ describe('perspective-query — Referenz-Muster «Letzter Kontakt» (4T-001071)'
 describe('perspective-query — Sprache der Formatierer (4T-001072)', () => {
   it('die Sprache aus der Anfrage erreicht die Formatierer', async () => {
     const spalte = (lang) =>
-      frontmatterQueryFor(
-        start,
-        'TABLE WITHOUT ID currencyformat(prio, "EUR") WHERE prio >= 1 SORT prio',
-        undefined,
-        null,
-        lang,
-      ).table.rows.map((r) => r.cells[0]);
+      zeilen(
+        frontmatterQueryFor(
+          start,
+          'TABLE WITHOUT ID currencyformat(prio, "EUR") WHERE prio >= 1 SORT prio',
+          undefined,
+          null,
+          lang,
+        ),
+      ).map((r) => zellen(r)[0]);
     // Geschütztes Leerzeichen vor dem Zeichen (U+00A0), wie Intl es liefert.
     expect(spalte('de')).toEqual([[{ text: '3,00 €' }], [{ text: '10,00 €' }]]);
     expect(spalte('en')).toEqual([[{ text: '€3.00' }], [{ text: '€10.00' }]]);
   });
 
   it('ohne Sprach-Angabe bleibt es bei der Laufzeit-Locale statt bei null', async () => {
-    const rows = frontmatterQueryFor(
-      start,
-      'TABLE WITHOUT ID dateformat(file.mtime, "yyyy") WHERE prio >= 6',
-    ).table.rows;
+    const rows = zeilen(
+      frontmatterQueryFor(start, 'TABLE WITHOUT ID dateformat(file.mtime, "yyyy") WHERE prio >= 6'),
+    );
     expect(rows).toHaveLength(1);
-    expect(rows[0].cells[0]).toEqual([{ text: String(new Date().getFullYear()) }]);
+    // 4T-002064: Das erwartete Jahr kommt aus der Datei-Zeit der einen Treffer-
+    // Datei, die die Abfrage formatiert, nicht von der Uhr des Laufs; sonst
+    // hinge der Fall am Jahreswechsel zwischen Anlage und Prüfung.
+    const beta = path.join(path.dirname(start), 'Projekte', 'Beta.md');
+    expect(zellen(rows[0])[0]).toEqual([{ text: String(fs.statSync(beta).mtime.getFullYear()) }]);
   });
 });
 
@@ -588,5 +611,201 @@ describe('perspective-query — infolder gegen den echten Link-Graphen (4T-00107
       'GTD Lesen',
       'GTD Sammeln',
     ]);
+  });
+});
+
+// --- 4T-002033 (Epic 3E-000260): Ergebnismenge der Datei- und Block-Ebene ---------
+
+// Jede Antwort trägt die Ergebnismenge im Feld resultSet. Zusagen je Fall: Der
+// Prüfer des Format-Vertrags findet keine Abweichung, und die Menge übersteht
+// die Prozess-Grenze (strukturierter Klon). Seit 4T-002035 zusätzlich: Die
+// Antwort trägt NUR die Menge; die bisher hier geprüfte Ableitung der alten
+// Felder ist mit der alten Form entfallen.
+function pruefeMenge(res) {
+  expect(Object.keys(res)).toEqual(['resultSet']);
+  const { resultSet } = res;
+  expect(validateResultSet(resultSet)).toEqual([]);
+  expect(resultSet.formatVersion).toBe(1);
+  expect(structuredClone(resultSet)).toEqual(resultSet);
+  return resultSet;
+}
+
+describe('perspective-query — Ergebnismenge der Datei-Ebene (4T-002033)', () => {
+  it('LIST: Ebene, Typ, Herkunft je Datei, Zustand und Suchraum', () => {
+    const res = frontmatterQueryFor(start, 'LIST');
+    const rs = pruefeMenge(res);
+    expect(rs.scope).toBe('files');
+    expect(rs.type).toBe('list');
+    expect(rs.columns).toEqual([]);
+    expect(rs.groups).toBeNull();
+    expect(rs.rows.map((r) => r.origin.name)).toEqual(['Alpha', 'Beta', 'Gamma', 'Start']);
+    expect(rs.rows[0]).toEqual({
+      values: [],
+      origin: { kind: 'file', path: alpha, name: 'Alpha' },
+      taskInfo: null,
+    });
+    expect(rs.state).toEqual({
+      status: 'ready',
+      queryError: null,
+      hint: null,
+      area: { root: rootForActiveFile(start), fileCount: 4, byteSize: null },
+    });
+    expect(rs.wishes).toEqual({
+      layoutColumns: null,
+      withoutId: false,
+      hide: [],
+      show: [],
+      short: false,
+    });
+    // Treffer der Anzeige: Anzeige-Name und Klick-Pfad aus der Herkunft.
+    expect({ name: displayName(rs.rows[0].origin), path: rs.rows[0].origin.path }).toEqual({
+      name: 'Alpha',
+      path: alpha,
+    });
+  });
+
+  it('LIST mit Zusatzfeld: eine Spalte mit rohem Wert, Anzeige-Stücke daraus', () => {
+    const res = frontmatterQueryFor(start, 'LIST prio WHERE prio > 0 SORT prio DESC');
+    const rs = pruefeMenge(res);
+    expect(rs.columns).toEqual([
+      { name: 'prio', label: 'prio', alias: null, source: 'prio', valueType: 'string' },
+    ]);
+    expect(rs.rows.map((r) => r.values)).toEqual([['10'], ['3']]);
+    expect(rs.rows.map((r) => cellSegments(r.values[0]))).toEqual([
+      [{ text: '10' }],
+      [{ text: '3' }],
+    ]);
+  });
+
+  it('TABLE: Werte bleiben roh und typisiert, Alias und Quelltext getrennt', () => {
+    const res = frontmatterQueryFor(
+      start,
+      'TABLE prio AS "Priorität", prio * 2, file.mtime, file.link, bold(file.name), file.tags ' +
+        'WHERE prio > 0 SORT prio',
+    );
+    const rs = pruefeMenge(res);
+    expect(rs.type).toBe('table');
+    expect(rs.columns.map((c) => [c.name, c.label, c.alias, c.valueType])).toEqual([
+      ['prio', 'Priorität', 'Priorität', 'string'],
+      ['prio * 2', 'prio * 2', null, 'number'],
+      ['file.mtime', 'file.mtime', null, 'date'],
+      ['file.link', 'file.link', null, 'link'],
+      ['bold(file.name)', 'bold(file.name)', null, 'rich'],
+      ['file.tags', 'file.tags', null, 'list'],
+    ]);
+    const [a, b] = rs.rows;
+    // Zahl bleibt Zahl, Datum bleibt Datum, Verweis bleibt Verweis.
+    expect(a.values[1]).toBe(6);
+    expect(b.values[1]).toBe(20);
+    expect(a.values[2]).toEqual({ kind: 'date', ms: new Date(2020, 0, 1).getTime() });
+    expect(a.values[3]).toEqual({ kind: 'link', path: alpha, name: 'Alpha' });
+    expect(a.values[4]).toEqual({ kind: 'rich', segs: [{ text: 'Alpha', bold: true }] });
+    expect(b.values[5]).toEqual(['projekt']);
+    // Die Darstellung zeigt dieselben Werte als Anzeige-Stücke.
+    expect(columnHeader(rs.columns[0])).toBe('Priorität');
+    expect(cellSegments(a.values[1])).toEqual([{ text: '6' }]);
+    expect(cellSegments(a.values[2])).toEqual([{ text: '2020-01-01' }]);
+  });
+
+  it('WITHOUT ID und COLUMNS sind Wünsche; der Hinweis bleibt im Zustand', () => {
+    const ohneId = pruefeMenge(frontmatterQueryFor(start, 'TABLE WITHOUT ID file.link'));
+    expect(ohneId.wishes.withoutId).toBe(true);
+    const rsTabelle = pruefeMenge(frontmatterQueryFor(start, 'TABLE prio COLUMNS 3'));
+    // Der Wunsch reist auch bei TABLE mit; der Hinweis sagt, dass die Tabelle
+    // ihn übergeht.
+    expect(rsTabelle.wishes.layoutColumns).toBe(3);
+    expect(rsTabelle.state.hint).toBe('columnsIgnored');
+    const liste = pruefeMenge(frontmatterQueryFor(start, 'LIST COLUMNS 3'));
+    expect(liste.state.hint).toBeNull();
+    expect(liste.wishes.layoutColumns).toBe(3);
+  });
+});
+
+describe('perspective-query — Ergebnismenge der Block-Ebene (4T-002033)', () => {
+  it('LIST BLOCKS: Herkunft mit logischem Datei-Namen und Anker', () => {
+    const res = frontmatterQueryFor(start, 'LIST BLOCKS');
+    const rs = pruefeMenge(res);
+    expect(rs.scope).toBe('blocks');
+    expect(rs.rows.map((r) => r.origin)).toEqual([
+      { kind: 'block', path: alpha, name: 'Alpha', anchor: 'a1' },
+      { kind: 'block', path: alpha, name: 'Alpha', anchor: 'a2' },
+      expect.objectContaining({ kind: 'block', name: 'Beta', anchor: 'b1' }),
+    ]);
+    // Den Anzeige-Namen Datei#^anker setzt erst der Darstellungs-Kern zusammen.
+    expect(displayName(rs.rows[0].origin)).toBe('Alpha#^a1');
+  });
+
+  it('TABLE BLOCKS: Block-Werte mit ihrem Typ, updated als Datum', () => {
+    const rs = pruefeMenge(
+      frontmatterQueryFor(start, 'TABLE BLOCKS status, prio, updated WHERE file.name = "alpha"'),
+    );
+    expect(rs.columns.map((c) => c.valueType)).toEqual(['string', 'number', 'date']);
+    expect(rs.rows[0].values).toEqual([
+      'offen',
+      2,
+      { kind: 'date', ms: Date.parse('2026-07-01T10:00:00Z') },
+    ]);
+  });
+});
+
+describe('perspective-query — Zustände der Ergebnismenge (4T-002033)', () => {
+  it('Abfrage-Fehler reist vollständig im Zustand, ohne Ebene und Zeilen', () => {
+    const res = frontmatterQueryFor(start, 'WHERE foo(1)');
+    const rs = pruefeMenge(res);
+    expect(rs.scope).toBeNull();
+    expect(rs.type).toBeNull();
+    expect(rs.rows).toEqual([]);
+    expect(rs.state.status).toBe('ready');
+    expect(rs.state.queryError).toMatchObject({ code: 'unknownFunction', name: 'foo' });
+    expect(rs.state.area).toEqual({
+      root: rootForActiveFile(start),
+      fileCount: null,
+      byteSize: null,
+    });
+    // Syntaxfehler laufen denselben Weg.
+    const syntax = pruefeMenge(frontmatterQueryFor(start, 'LIST ('));
+    expect(syntax.state.queryError.code).toBe('unexpectedEnd');
+  });
+
+  it('nicht verfügbar: Menge ohne Suchraum', () => {
+    const rs = pruefeMenge(frontmatterQueryFor(null, 'LIST'));
+    expect(rs.state).toEqual({ status: 'unavailable', queryError: null, hint: null, area: null });
+  });
+
+  it('Index im Aufbau: Zustand indexing mit Wurzel', () => {
+    const root = makeRoot();
+    const datei = write(root, 'Neu.md', '# Neu\n');
+    // Der erste Anstoß startet den Aufbau asynchron; die Abfrage danach trifft
+    // den Zustand «Index wird aufgebaut».
+    backlinksFor(datei);
+    openRoots.add(rootForActiveFile(datei));
+    const rs = pruefeMenge(frontmatterQueryFor(datei, 'LIST'));
+    expect(rs.state.status).toBe('indexing');
+    expect(rs.state.area).toEqual({
+      root: rootForActiveFile(datei),
+      fileCount: null,
+      byteSize: null,
+    });
+  });
+
+  it('zu groß und Index-Fehler: allein die Menge mit dem Suchraum', () => {
+    const gross = pruefeMenge(
+      stateResponse('oversized', {
+        area: { root: '/bereich', fileCount: 12000, byteSize: 900000000 },
+      }),
+    );
+    expect(gross.state).toEqual({
+      status: 'oversized',
+      queryError: null,
+      hint: null,
+      area: { root: '/bereich', fileCount: 12000, byteSize: 900000000 },
+    });
+    const fehler = pruefeMenge(stateResponse('error', { area: { root: '/bereich' } }));
+    expect(fehler.state).toEqual({
+      status: 'error',
+      queryError: null,
+      hint: null,
+      area: { root: '/bereich', fileCount: null, byteSize: null },
+    });
   });
 });

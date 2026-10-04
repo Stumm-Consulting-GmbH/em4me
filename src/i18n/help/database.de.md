@@ -115,6 +115,8 @@ Ein Text in der Form einer Kennung wird immer als Kennung gelesen. Die Schreibwe
 
 Beide Prüfungen brauchen die Übersicht über die Tabellen des Bereichs. Sind die Tabellen noch nicht vollständig eingelesen, weist die Anwendung eine Änderung ab, die einen Verweis setzt oder einen Datensatz löscht, und bittet in der Meldung, es gleich noch einmal zu versuchen.
 
+Ausgewertet werden Beziehungen mit einer Datensatz-Abfrage: Ein Pfad wie `autor.name` liest das Feld des verwiesenen Datensatzes, eine Bedingung auf dem Verweis-Feld findet die Gegenrichtung, und `ancestors(…)` und `descendants(…)` folgen Verweisen über beliebig viele Stufen. Wie viele Datensätze auf einen Datensatz zeigen, zählt eine gruppierte Abfrage wie `TABLE RECORDS count() FROM "Ausleihen" GROUP BY buch`. Die Seite [Perspective-Abfrage](frontmatter-query.md) beschreibt beides in den Abschnitten «Datensatz-Ebene» und «Gruppierung und Aggregation».
+
 ## Beschriftung in mehreren Sprachen
 
 Die Beschriftung steht am Schlüssel `label`, entweder als einfacher Text oder als Zuordnung von Sprache zu Text:
@@ -268,6 +270,8 @@ Jeder Datensatz hat eine **Maske**: eine eigene Seite, die seine Felder in der R
 ### Öffnen und neu anlegen
 
 Einen bestehenden Datensatz öffnet die Schaltfläche **«Datensatz öffnen»** am Anfang seiner Zeile, vor der Schaltfläche der Änderungsbelege, in der Lese-Ansicht wie in der Live-Ansicht. Mit der Tastatur führt die Pfeiltaste nach links von der Beleg-Schaltfläche zu ihr.
+
+Aus dem Ergebnis einer Datensatz-Abfrage öffnet ein Klick auf einen Datensatz oder auf einen Verweis die Maske ebenso (Seite [Perspective-Abfrage](frontmatter-query.md)). Sie zeigt dabei den gespeicherten Stand, auch wenn die Abfrage einen ungespeicherten anzeigt.
 
 Einen neuen Datensatz legen drei Wege an:
 
@@ -432,7 +436,7 @@ Was sie stattdessen tut: Beim nächsten eigenen Schreibvorgang vergleicht sie de
 
 ## Sperren
 
-Arbeiten mehrere Personen im selben Datenbank-Bereich, etwa auf einem gemeinsamen Netzlaufwerk, sorgt eine Sperre dafür, dass nicht zwei gleichzeitig denselben Datensatz bearbeiten.
+Eine Sperre sorgt dafür, dass ein Datensatz nicht an zwei Stellen zugleich bearbeitet wird, etwa in zwei Fenstern der Anwendung. Sperren und Änderungsbelege sind so angelegt, dass sie den gemeinsamen Zugriff mehrerer Personen vorbereiten; dieser kommt mit EM4us, der künftigen Server-Komponente. EM4me selbst ist ein Werkzeug für eine Person, die allein und lokal arbeitet. Der Betrieb mehrerer Rechner in einem Bereich auf einem Netzlaufwerk ist nicht zugesichert.
 
 ### Was gesperrt wird und wann
 
@@ -509,9 +513,10 @@ Die Suche über den **Bereich** nimmt ein Tabellen-Dokument ohne seine Datensät
 
 Der Grund liegt nicht in der Tabelle, sondern im Bereich: Der Suchraum hält die Texte aller Markdown-Dateien im Speicher und trägt dafür eine Obergrenze über den **ganzen** Bereich. Schon ein paar Tabellen mit einigen Megabyte reißen sie, und von da an liest jede Suche wieder von der Platte, auch die über jedes gewöhnliche Dokument. Die Datensätze im Suchraum kosteten also nicht sich selbst, sondern den ganzen Bereich seine Geschwindigkeit.
 
-**Das ist ein Zwischenstand.** Bis Datensätze eine eigene Treffer-Art bekommen, sind sie über die Bereichs-Suche nicht auffindbar. Zwei Wege führen trotzdem zu ihnen:
+**Das ist ein Zwischenstand.** Bis Datensätze eine eigene Treffer-Art bekommen, sind sie über die Bereichs-Suche nicht auffindbar. Drei Wege führen trotzdem zu ihnen:
 
 - **Im geöffneten Dokument suchen.** Wer die Tabellen-Datei vor sich hat und darin sucht (Standard `Strg+F`), sucht im Text vor sich und findet seine Datensätze unverändert. Die Grenze oben betrifft allein die Suche über den Bereich.
+- **Eine Datensatz-Abfrage stellen.** Ein Block `perspective-query` mit `LIST RECORDS` oder `TABLE RECORDS` findet Datensätze nach ihren Feldern, etwa alle Bücher eines Autors; die Seite [Perspective-Abfrage](frontmatter-query.md) beschreibt sie. Eine Abfrage, die man öfter braucht, lässt sich als Abfrage-Datei ablegen (Abschnitt «Abfrage-Dateien»).
 - **Gezielt auf einen Datensatz verweisen**, wie im nächsten Abschnitt beschrieben.
 
 ### Verweis auf einen einzelnen Datensatz
@@ -528,7 +533,32 @@ Geprüft wird gegen den **gespeicherten** Stand der Tabelle, wie bei jedem ander
 
 Ob ein Verweis gilt, zeigt der [Markdown-Linter](tools.md): Ein gebrochenes Ziel bekommt im Editor, also in der Quellcode-, der geteilten und der Live-Ansicht, eine gewellte Unterstreichung. Die reine Lese-Ansicht stellt Gültigkeit nicht dar; dort sehen gültige und gebrochene Verweise gleich aus.
 
-Ein Klick öffnet die Tabellen-Datei. Auf den einzelnen Datensatz springt er noch nicht.
+Ein Klick öffnet die Tabelle und bringt die Zeile des Datensatzes in den Blick, auch wenn er in einer Folge-Datei steht. In der Lese-Ansicht rollt die Anzeige zu seiner Zeile, sofern er unter den 2000 Datensätzen ist, die sie zeigt; in der Live- und der Quellcode-Ansicht steht die Schreibmarke auf ihr. Im Ergebnis einer Datensatz-Abfrage öffnet ein Klick auf einen Datensatz dagegen dessen Maske.
+
+## Abfrage-Dateien
+
+Eine Abfrage, die man öfter braucht, bekommt ein eigenes Dokument: Trägt es im Frontmatter die Marke `db-query` und im Text genau einen Abfrage-Block, ist es eine **Abfrage-Datei**. Der übrige Text beschreibt die Abfrage und erscheint wie in jedem Dokument.
+
+````markdown
+---
+db-query:
+mindestseiten: 500
+---
+
+# Dicke Bücher
+
+Bücher mit mehr als `mindestseiten` Seiten, die dicksten zuerst.
+
+```perspective-query
+TABLE RECORDS autor, seiten FROM "Bücher" WHERE seiten > this.mindestseiten SORT seiten DESC
+```
+````
+
+- **Die Marke trägt keine Angaben.** Erkannt wird die Datei an der Marke allein, `db-query:` ohne Wert genügt; ihre Tabelle nennt die Abfrage selbst in `FROM`. Die Abfrage darf jede Ebene ansprechen, Dateien ebenso wie Datensätze.
+- **Öffnen und Einbetten.** Geöffnet zeigt die Datei ihr Ergebnis wie jedes Dokument mit einem Abfrage-Block. Ein anderes Dokument bettet sie mit `![[Dicke Bücher]]` ein und zeigt dasselbe Ergebnis, denn `this.` meint dabei die Abfrage-Datei und nicht das einbettende Dokument. Eine Abfrage, die Werte des einbettenden Dokuments liest, gibt es deshalb nicht.
+- **Anlegen.** Ein eigenes Kommando gibt es dafür nicht: Eine Abfrage-Datei entsteht von Hand oder aus einer eigenen [Vorlage](templates.md).
+- **Ohne die Marke** bleibt ein Dokument mit Abfrage-Block eine Abfrage im Fließtext und erscheint nicht in der Übersicht.
+- **In der Übersicht** der Datenbank steht jede Abfrage-Datei im Abschnitt «Abfragen» (Abschnitt «Der Bereich als Datenbank»); keinen oder mehrere Abfrage-Blöcke meldet sie unter den Fehlerlagen (Abschnitt «Fehlerhafte Angaben»).
 
 ## Aufteilung großer Datenbestände
 
@@ -569,7 +599,7 @@ Sobald ein Dokument im Bestand eines Bereichs den Steckbrief trägt, führt die 
 
 Ein Datenbank-Bereich bekommt zwei Dinge, die ein gewöhnlicher Bereich nicht hat.
 
-**Die Übersicht der Datenbank-Objekte** beantwortet an einer Stelle, was in diesem Bereich liegt: den Steckbrief mit Name und Beschreibung, die Tabellen je mit der Zahl ihrer Felder und die Fehlerlagen aus dem Einlesen der Definitionen, im Klartext statt als Code. Sie öffnet als eigener Reiter, und in ihr selbst wird nichts bearbeitet; ihre Aktionen führen in die Maske und in die Prüfungen. Drei Wege führen zu ihr:
+**Die Übersicht der Datenbank-Objekte** beantwortet an einer Stelle, was in diesem Bereich liegt: den Steckbrief mit Name und Beschreibung, die Tabellen je mit der Zahl ihrer Felder, die Abfrage-Dateien und die Fehlerlagen aus dem Einlesen der Definitionen, im Klartext statt als Code. Sie öffnet als eigener Reiter, und in ihr selbst wird nichts bearbeitet; ihre Aktionen führen in die Maske und in die Prüfungen. Drei Wege führen zu ihr:
 
 - **Ansicht → Übersicht der Datenbank**,
 - das **Kontextmenü des Bereichs-Panels**,
@@ -577,7 +607,7 @@ Ein Datenbank-Bereich bekommt zwei Dinge, die ein gewöhnlicher Bereich nicht ha
 
 In einem Bereich ohne Datenbank wird keiner dieser Wege angeboten.
 
-In der Tabellen-Liste nennt die Spalte **«Maske»** die Masken-Datei einer Tabelle und bleibt bei der erzeugten Maske leer. Dazu trägt die Übersicht vier Aktionen: **«Konsistenz prüfen»** im Kopf für alle Tabellen und in der Zeile jeder Tabelle **«Neuer Datensatz»**, **«Prüfen»** und **«Verwendung»**. Was sie tun, beschreiben die Abschnitte «Datensätze in der Maske bearbeiten», «Konsistenz-Prüfung» und «Verwendungsnachweis». Unter den Fehlerlagen stehen auch die Hinweise zu Masken-Dateien, benannt nach der Datei.
+In der Tabellen-Liste nennt die Spalte **«Maske»** die Masken-Datei einer Tabelle und bleibt bei der erzeugten Maske leer. Dazu trägt die Übersicht vier Aktionen: **«Konsistenz prüfen»** im Kopf für alle Tabellen und in der Zeile jeder Tabelle **«Neuer Datensatz»**, **«Prüfen»** und **«Verwendung»**. Was sie tun, beschreiben die Abschnitte «Datensätze in der Maske bearbeiten», «Konsistenz-Prüfung» und «Verwendungsnachweis». Der Abschnitt **«Abfragen»** nennt jede Abfrage-Datei mit ihrem Namen und ihrem Ort, dem Ordner relativ zur Wurzel des Bereichs, und **«Öffnen»** öffnet sie wie jedes Dokument; führt der Bereich keine, steht dort ein erklärender Satz. Unter den Fehlerlagen stehen auch die Hinweise zu Masken- und Abfrage-Dateien, benannt nach der Datei.
 
 **Der Einstellungs-Abschnitt «Datenbank»** steht in der Navigations-Gruppe «Aktueller Bereich» (Datei → Einstellungen… → Aktueller Bereich → Datenbank; bei geöffnetem Buch heißt die Gruppe **Aktuelles Buch**, bei geöffnetem Bücherregal **Aktuelles Bücherregal**). Er zeigt dieselbe Auskunft in Kurzform, also Name und Beschreibung der Datenbank, die Zahl ihrer Tabellen und die Zahl der Fehlerlagen, und trägt eine Option: **«Übersicht beim Öffnen des Bereichs zeigen»**. Ist sie gesetzt, öffnet sich die Übersicht von selbst, sobald der Bereich gebunden wird. Die Option liegt in der Bereichsdatei und reist mit dem Bereichs-Ordner. Dazu kommt das Feld **«Name des Sperr-Ordners»**; es ist im Abschnitt «Sperren» beschrieben.
 
@@ -597,6 +627,8 @@ Für die Prüfregeln und die Bedingung der Bearbeitbarkeit gilt dieselbe weiche 
 
 Für Masken-Dateien gilt dieselbe weiche Linie. Nennt der Behälter `db-form` keine Tabelle oder eine, die es in der Datenbank nicht gibt, bleibt die Datei ein gewöhnliches Dokument. Gibt es für eine Tabelle mehrere Masken-Dateien, gilt die erste nach Pfad, und die übrigen werden nicht verwendet. Diese drei Lagen stehen unter den Fehlerlagen der Übersicht. Ein Platzhalter, der kein Feld-Platzhalter ist, und ein Feld-Name, den die Tabelle nicht kennt, bleiben als Text stehen; sie meldet die Maske mit ihrer Zeile in ihrem Kopf, und die Konsistenz-Prüfung führt sie als Befund.
 
+Für Abfrage-Dateien gilt dieselbe weiche Linie. Trägt ein Dokument mit der Marke `db-query` keinen Abfrage-Block oder mehrere, bleibt es ein gewöhnliches Dokument, und jeder Block darin wird ausgewertet. Die Übersicht führt es trotzdem im Abschnitt «Abfragen» und nennt die Lage unter den Fehlerlagen, benannt nach der Datei.
+
 ## Die Datenbank abschalten
 
 Die gesamte Datenbank ist eine [interne Erweiterung](extensions.md) mit dem Namen «Datenbank» in der Kategorie Werkzeuge und lässt sich mit einem Schalter abschalten. Sie setzt die [Eigenschafts-Profile](property-profiles.md) voraus, weil die Gestalt einer Tabellen-Definition über ein internes Profil beschrieben und geprüft wird; solange die Datenbank eingeschaltet ist, lässt sich diese Grundlage deshalb nicht abschalten.
@@ -606,6 +638,8 @@ Im Aus-Zustand gilt:
 - Der **Datensatz-Block bleibt ein gewöhnlicher Code-Block**, in der Lese-Ansicht, im Änderungs-Modus und im portablen Export. Sein Inhalt bleibt lesbar; abgeschaltet ist die Darstellung als Tabelle, nicht die Angabe.
 - **Übersicht und Einstellungs-Abschnitt entfallen**, samt den Zugängen im Ansichtsmenü, im Kontextmenü des Bereichs-Panels und in der Kommando-Palette. Eine bereits geöffnete Übersicht bleibt stehen, bis Sie sie schließen, wie jede andere System-Seite.
 - Mit dem Datensatz-Block entfallen seine Schaltflächen **«Datensatz öffnen»** und **«Neuer Datensatz»**, mit der Übersicht ihre Aktionen **«Konsistenz prüfen»**, **«Prüfen»** und **«Verwendung»**, und die Kommandos **«Neuer Datensatz in der aktiven Tabelle»** und **«Konsistenz der Datenbank prüfen»** verschwinden aus der Kommando-Palette. Damit ist auch die **Maske** nicht mehr erreichbar, und die Anwendung liefert ihr, der Konsistenz-Prüfung und dem Verwendungsnachweis keine Daten mehr.
+- Eine **Datensatz-Abfrage** liest keine Tabelle mehr: Sie zeigt eine leere Liste mit dem Hinweis, dass die Erweiterung ausgeschaltet ist, und keine Fehlermeldung. Das gilt auch für Pfade über Verweis-Felder, für Hierarchien und für den Baum.
+- Eine **Abfrage-Datei** bleibt ein gewöhnliches Dokument: Ihr Abfrage-Block wird weiter ausgewertet, über Datensätze mit der leeren Liste und dem Hinweis wie eben beschrieben, und mit der Übersicht entfällt ihr Abschnitt «Abfragen».
 - Ein **Verweis auf einen einzelnen Datensatz** wird nicht mehr als gebrochen markiert. Ohne Definitionen gibt es nichts, wogegen er zu prüfen wäre, und eine Warnung ohne Prüfung wäre eine Behauptung.
 - Die **Suche über den Bereich bleibt unverändert**. Datensätze bleiben aus dem Volltext ausgenommen, weil diese Grenze an der Tabellen-Datei hängt und nicht am Schalter; der Abschnitt «Auffindbarkeit» oben gilt also weiter.
 - **Geschrieben wird nicht.** Die Anwendung legt keine Datensätze an, ändert und löscht keine, nimmt keine Sperre und erzeugt keinen Änderungsbeleg; auch einen liegengebliebenen Speichervorgang schreibt sie in diesem Zustand nicht zu Ende.

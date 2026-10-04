@@ -188,6 +188,162 @@ test.describe('FQ-04: Perspective-Abfrage — Mehrspalten-Layout und COLUMNS-Hin
   });
 });
 
+// 4T-002043 (Epic 3E-000258): Wahl der Darstellungsform. Eine unbekannte Form
+// (hier ein Tippfehler) zeigt die Ausgabe ohne Angabe, also die Tabelle, mit
+// einem Hinweis und ohne Fehler, in Lese- und Live-Ansicht. Wird die Angabe im
+// Quelltext entfernt, folgt die Live-Ansicht ohne Speichern (Story AK6).
+const DISPLAY_FENCE = [
+  '```perspective-query',
+  'TABLE prio AS "Prio" WHERE bereich = "Privat" SORT prio DESC',
+  'DISPLAY sparkles',
+  '```',
+].join('\n');
+const DE = require('../../../src/i18n/de.json');
+
+test.describe('FQ-05: Perspective-Abfrage — unbekannte Darstellungsform mit Rückfall und Hinweis', () => {
+  test('Tabelle mit Hinweis in Lese- und Live-Ansicht, ohne die Angabe die gewohnte Tabelle ohne Speichern', async () => {
+    const dir = makeTableFixtureDir();
+    const uebersicht = path.join(dir, 'Uebersicht.md');
+    fs.writeFileSync(
+      uebersicht,
+      `---\nBereich: Index\n---\n# Uebersicht\n\n${DISPLAY_FENCE}\n`,
+      'utf8',
+    );
+    const hinweisText = DE['query.hint.displayFormUnknown'].replace('{name}', 'sparkles');
+    const { app, page, userData } = await launchApp({ args: [uebersicht] });
+    try {
+      await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+
+      // Lese-Ansicht: Hinweis über der Tabelle, darunter die Ausgabe ohne Angabe.
+      const table = page.locator(`${SEL.markdownBody0} table.perspective-query-table`);
+      await expect(table).toBeVisible();
+      await expect(table.locator('tbody a.perspective-query-item')).toHaveText(['Beta', 'Alpha']);
+      await expect(page.locator(`${SEL.markdownBody0} .perspective-query-hint`)).toHaveText(
+        hinweisText,
+      );
+      await expect(page.locator(`${SEL.markdownBody0} .perspective-query-error`)).toHaveCount(0);
+
+      // Live-Ansicht: dasselbe Bild im Block-Widget.
+      await page.locator(SEL.viewBtn('live')).click();
+      const liveTable = page.locator(`${SEL.editorContent0} table.perspective-query-table`);
+      await expect(liveTable.locator('tbody a.perspective-query-item')).toHaveText([
+        'Beta',
+        'Alpha',
+      ]);
+      const liveHint = page.locator(`${SEL.editorContent0} .perspective-query-hint`);
+      await expect(liveHint).toHaveText(hinweisText);
+
+      // Die Angabe im Quelltext entfernen und NICHT speichern.
+      await page.locator(SEL.viewBtn('source')).click();
+      await page.locator(SEL.btnEdit).click();
+      await expect(page.locator(SEL.editorContent0)).toHaveAttribute('contenteditable', 'true');
+      await page
+        .locator(`${SEL.editorContent0} .cm-line`, { hasText: /^DISPLAY sparkles$/ })
+        .click();
+      await page.keyboard.press('End');
+      await page.keyboard.press('Shift+Home');
+      await page.keyboard.press('Backspace');
+      await expect(page.locator(SEL.dirtyTab0).first()).toBeVisible();
+      // Den Cursor aus dem Block nehmen, damit die Live-Ansicht ihn als Widget zeigt.
+      await page.keyboard.press('Control+Home');
+      expect(fs.readFileSync(uebersicht, 'utf8')).toContain('DISPLAY sparkles');
+
+      // Live-Ansicht folgt dem ungespeicherten Stand: Tabelle ohne Hinweis. Das
+      // Widget hängt Hinweis und Tabelle in einem Zug ein; steht die Tabelle, gilt
+      // die Aussage über den Hinweis.
+      await page.locator(SEL.viewBtn('live')).click();
+      await expect(liveTable.locator('tbody a.perspective-query-item')).toHaveText([
+        'Beta',
+        'Alpha',
+      ]);
+      await expect(liveHint).toHaveCount(0);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+});
+
+// 4T-002077 (Epic 3E-000259): gruppierte Liste über Dateien. Je Kapitel eine
+// Überschrift mit den Treffern darunter, die Datei ohne Kapitel in der Gruppe
+// «(ohne Wert)» zuletzt; dasselbe Bild in Lese-, geteilter und Live-Ansicht, und
+// ein Klick auf einen Treffer öffnet die Datei.
+const GROUP_FENCE = [
+  '```perspective-query',
+  'LIST WHERE bereich = "Privat" GROUP BY kapitel',
+  '```',
+].join('\n');
+
+function makeGroupFixtureDir() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-fmgroup-'));
+  fs.writeFileSync(
+    path.join(dir, 'Uebersicht.md'),
+    `---\nBereich: Index\n---\n# Uebersicht\n\n${GROUP_FENCE}\n`,
+    'utf8',
+  );
+  const datei = (name, kapitel) => {
+    const kopf = kapitel === null ? '' : `kapitel: ${kapitel}\n`;
+    const text = `---\nBereich: Privat\n${kopf}---\n# ${name}\n`;
+    fs.writeFileSync(path.join(dir, `${name}.md`), text, 'utf8');
+  };
+  datei('Alpha', 2);
+  datei('Beta', 1);
+  datei('Gamma', null);
+  datei('Delta', 2);
+  return dir;
+}
+
+// Das Bild der gruppierten Liste unter einem Wurzel-Selektor: Überschrift und
+// Treffer je Gruppe der obersten Stufe.
+async function gruppenBild(page, root) {
+  const gruppen = page.locator(`${root} .perspective-query-group[data-level="0"]`);
+  await expect(gruppen).toHaveCount(3);
+  const bild = [];
+  for (const gruppe of await gruppen.all()) {
+    const titel = await gruppe.locator('.perspective-query-group-title').textContent();
+    const treffer = await gruppe.locator('a.perspective-query-item').allTextContents();
+    bild.push(`${titel}: ${treffer.join(', ')}`);
+  }
+  return bild;
+}
+
+test.describe('FQ-06: Perspective-Abfrage — gruppierte Liste über Dateien', () => {
+  test('Überschriften mit Treffern in Lese-, geteilter und Live-Ansicht, Klick öffnet die Datei', async () => {
+    const dir = makeGroupFixtureDir();
+    const uebersicht = path.join(dir, 'Uebersicht.md');
+    const erwartet = ['1: Beta', '2: Alpha, Delta', `${DE['query.group.none']}: Gamma`];
+    const { app, page, userData } = await launchApp({ args: [uebersicht] });
+    try {
+      await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+
+      // Lese-Ansicht.
+      expect(await gruppenBild(page, SEL.markdownBody0)).toEqual(erwartet);
+      await expect(page.locator(`${SEL.markdownBody0} .perspective-query-error`)).toHaveCount(0);
+
+      // Geteilte Ansicht: Quelltext daneben, die Vorschau zeigt dasselbe Bild.
+      await page.locator(SEL.viewBtn('split')).click();
+      await expect(page.locator(SEL.editorContent0)).toBeVisible();
+      expect(await gruppenBild(page, SEL.markdownBody0)).toEqual(erwartet);
+
+      // Live-Ansicht: dasselbe Bild im Block-Widget.
+      await page.locator(SEL.viewBtn('live')).click();
+      expect(await gruppenBild(page, SEL.editorContent0)).toEqual(erwartet);
+
+      // Zurück in die Lese-Ansicht; der Klick auf einen Treffer öffnet die Datei.
+      await page.locator(SEL.viewBtn('rendered')).click();
+      const delta = page.locator(`${SEL.markdownBody0} a.perspective-query-item`, {
+        hasText: 'Delta',
+      });
+      await delta.click();
+      await expect(page.locator(SEL.activeTab0)).toContainText('Delta');
+      await expect(page.locator(SEL.tabs0)).toHaveCount(2);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+});
+
 test.describe('FQ-02: Frontmatter-Abfrage — Parität im Live-Modus', () => {
   test('Live-Modus zeigt dieselbe Trefferliste als Block-Widget', async () => {
     const dir = makeFixtureDir();

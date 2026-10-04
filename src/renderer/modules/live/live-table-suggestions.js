@@ -55,9 +55,14 @@ async function loadSources() {
  * Verbindet ein frisch geöffnetes Zell-Eingabefeld mit der Vorschlagsliste.
  *
  * @param {HTMLInputElement} input das Eingabefeld der Zelle.
- * @param {() => ({view: object, range: {from: number, to: number}, cell: HTMLElement}|null)} locate
+ * @param {() => ({view: object, state?: object, range: {from: number, to: number}, cell: HTMLElement}|null)} locate
  *   liefert Editor, Inhalts-Bereich der Zelle im Dokument und Zell-Element,
  *   oder `null`, wenn die Zelle nicht zweifelsfrei im Dokument steht.
+ *   4T-001987: Das optionale `state` ersetzt den Stand des Editors als
+ *   Grundstand des gedachten Quelltexts; `range` bezieht sich dann auf ihn.
+ *   Die Datentabelle liefert so eine gedachte Zeile, weil ihre Zelle während
+ *   der Bearbeitung keinen stabilen Bereich im Dokument hat. Der Editor bleibt
+ *   `view`, denn über ihn finden die Quellen die geöffnete Datei.
  */
 export function attachCellSuggestions(input, locate) {
   closeCellSuggestions();
@@ -109,7 +114,7 @@ async function refresh(explicit) {
   const mine = ++generation;
   const raw = String(input.value);
   const caret = input.selectionStart ?? raw.length;
-  const stand = imaginedState(lage.view.state, lage.range, raw, caret);
+  const stand = imaginedState(lage.state || lage.view.state, lage.range, raw, caret);
   // Solange die Quellen fragen, ist das Feld «beschäftigt» — für Hilfsmittel
   // der Barrierefreiheit wie für die Ablauf-Prüfung, die sonst nicht wüsste,
   // wann eine ausgebliebene Liste wirklich ausgeblieben ist.
@@ -301,7 +306,7 @@ function accept(index) {
   if (!option || !lage) return;
   const raw = String(input.value);
   const caret = input.selectionStart ?? raw.length;
-  const stand = imaginedState(lage.view.state, lage.range, raw, caret);
+  const stand = imaginedState(lage.state || lage.view.state, lage.range, raw, caret);
   const neu = applySuggestion(stand, raw, option);
   if (!neu) return;
   input.value = neu.value;

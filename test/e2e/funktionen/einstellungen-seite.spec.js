@@ -15,6 +15,7 @@ const { SEL } = require('../helpers/selectors');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 const { internalExtensions } = require('../../../src/shared/extensions/extensions.js');
 const { PANEL_ACCESS } = require('../../../src/shared/panel-access.js');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 // 4T-001857 (Epic 3E-000161): Die Zählwerte dieser Datei stehen nicht mehr als
 // feste Zahl im Prüfcode, sondern kommen aus derselben Quelle, aus der die
@@ -84,7 +85,8 @@ function seedProfile(settings) {
 // Menü-IPC-Kanal direkt senden (Pfad des nativen Menü-Klicks; Muster
 // handbuch.spec.js).
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);

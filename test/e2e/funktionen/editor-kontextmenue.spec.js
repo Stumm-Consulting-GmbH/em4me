@@ -9,11 +9,13 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
@@ -109,11 +111,11 @@ test.describe('EK-04: Klipboard-Roundtrip über das Kontextmenü', () => {
       await probe.click({ button: 'right', position: { x: 4, y: 4 } });
       await page.locator(item('copy')).click();
       await expect
-        .poll(() => app.evaluate(({ clipboard }) => clipboard.readText()))
+        .poll(() => hauptLesen(app, ({ clipboard }) => clipboard.readText()))
         .toBe('KLIPBOARDPROBE');
 
       // Klipboard extern setzen und über das Menü einfügen.
-      await app.evaluate(({ clipboard }) => clipboard.writeText('EINGEFUEGT'));
+      await hauptSenden(app, ({ clipboard }) => clipboard.writeText('EINGEFUEGT'));
       await editor.click({ button: 'right', position: { x: 4, y: 4 } });
       await page.locator(item('paste')).click();
       await expect(editor).toContainText('EINGEFUEGT');

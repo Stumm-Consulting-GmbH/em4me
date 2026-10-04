@@ -17,6 +17,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 // 1x1-PNG, ausreichend als Datei-Inhalt; die Sicht-Pruefung leistet das
 // manuelle Test-Material, hier zaehlt allein die Ablage.
@@ -281,7 +282,7 @@ test.describe('AN-07: ausserhalb der Dokument-Flaechen entsteht keine Anlage', (
 // wuerde der Testlauf echte Programme starten; geprueft werden soll, DASS und
 // WOMIT geoeffnet wird, nicht das Programm selbst.
 async function fangeOeffnenAb(app) {
-  await app.evaluate(({ shell }) => {
+  await hauptSenden(app, ({ shell }) => {
     globalThis.__geoeffnet = [];
     shell.openPath = async (p) => {
       globalThis.__geoeffnet.push(p);
@@ -290,7 +291,7 @@ async function fangeOeffnenAb(app) {
   });
 }
 
-const geoeffnete = (app) => app.evaluate(() => globalThis.__geoeffnet || []);
+const geoeffnete = (app) => hauptLesen(app, () => globalThis.__geoeffnet || []);
 
 test.describe('AN-08/AN-09: Anlagen aus dem Dokument heraus oeffnen', () => {
   test('Klick auf eine verlinkte Anlage und die Schaltflaeche der Bild-Vergroesserung oeffnen die Standardanwendung', async () => {

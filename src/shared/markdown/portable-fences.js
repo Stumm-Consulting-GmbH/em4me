@@ -106,6 +106,8 @@ function ersetzeObersteEbene(text, regex, konverter, inhaltGruppe = 2) {
 // `opts` trägt je Art ihren Erweiterungs-Schalter, dazu die aufgelösten Labels
 // und — allein für den Datensatz-Block — die Feld-Definition seiner Datei: Er
 // ist das einzige Konstrukt, dessen Spalten außerhalb der Fence stehen (E3.2).
+// 4T-002014 (Epic 3E-000332): `opts.zellHtml` ist der Zell-Renderer der
+// Datentabelle für den Export; die Pipeline baut ihn mit ihrem Schalter-Stand.
 //
 // Liefert `{ text, table, datatable, events, records }`; die vier Schalter
 // sagen, welche Art konvertiert hat.
@@ -123,7 +125,7 @@ function convertPortableFences(text, opts) {
   }
   if (o.datatableEnabled) {
     const r = ersetzeObersteEbene(aktuell, DATATABLE_RE, (content) =>
-      convertPerspectiveDatatableBlockToHtml(content),
+      convertPerspectiveDatatableBlockToHtml(content, { zellHtml: o.zellHtml }),
     );
     aktuell = r.text;
     stand.datatable = r.getroffen;

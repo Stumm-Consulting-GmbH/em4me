@@ -72,7 +72,7 @@ fields:
 
 Une **note de valeurs** est une note ordinaire avec une valeur par ligne ; son chemin est relatif à l'espace. Les lignes vides et les espaces de bord sont écartés, un bloc de métadonnées de la note ne fait pas partie du réservoir. Elle est actualisée comme un fichier de profil : une modification prend effet sans redémarrage, même venue de l'extérieur. Le réservoir devient ainsi un contenu ordinaire que l'on peut lier, commenter et transmettre.
 
-Une **requête** fournit les valeurs depuis le fonds — les noms de ses résultats. Elle n'est évaluée que lorsqu'un champ a réellement besoin de ses valeurs, et est mémorisée jusqu'à la prochaine modification du fonds ; rien n'est calculé à l'avance sur l'ensemble. Un document sans champ de requête ne coûte donc aucune évaluation.
+Une **requête** fournit les valeurs depuis le fonds — les noms de ses résultats. Elle n'est évaluée que lorsqu'un champ a réellement besoin de ses valeurs, et est mémorisée jusqu'à la prochaine modification du fonds ; rien n'est calculé à l'avance sur l'ensemble. Un document sans champ de requête ne coûte donc aucune évaluation. Une requête regroupée fournit les mêmes valeurs que sans regroupement ; les valeurs de groupe ne deviennent pas des valeurs du réservoir, et une condition sur le groupe (`HAVING`) ne laisse que les résultats des groupes restants. Une requête de tâches fournit les noms des documents qui portent ses tâches ; le Filtre global et la requête globale des [Listes de tâches](tasks.md) s'appliquent. Les enregistrements ne fournissent aucune valeur, et ce qui se trouve dans le dossier de modèles ne compte pas.
 
 Si une source manque, est vide ou n'est pas évaluable, le **champ reste utilisable** : le réservoir est vide, une indication apparaît au champ, et des valeurs libres restent possibles comme partout.
 
@@ -240,13 +240,13 @@ fields:
 ---
 ```
 
-Une expression de formule utilise le même langage et le même catalogue de fonctions qu’une colonne de requête, y compris le calcul de dates et de durées ; elle peut se référer à tout autre champ du document, y compris à un autre champ formule. L’ordre dans le fichier de profil n’importe pas.
+Une expression de formule utilise le même langage et le même catalogue de fonctions qu’une colonne de requête, y compris le calcul de dates et de durées ; elle peut se référer à tout autre champ du document, y compris à un autre champ formule. L’ordre dans le fichier de profil n’importe pas. Le catalogue de fonctions comprend aussi `count(x)`, le nombre de valeurs d’un champ, par exemple les entrées d’une liste.
 
 **La valeur n’est pas dans le fichier.** Elle naît quand quelqu’un la regarde et disparaît ensuite — ouvrir un document ne le modifie donc pas, et la valeur est toujours à jour. Dans les deux éditeurs de propriétés, les champs dérivés apparaissent donc non modifiables, sans bouton de suppression et avec un type verrouillé ; ils ne sont jamais proposés à la reprise.
 
 Si une valeur reste vide, une indication au champ dit pourquoi : deux champs se renvoient en cercle, une règle de calcul nomme un champ inexistant ici, l’expression n’est pas évaluable, ou la règle manque entièrement. Rien n’est jamais bloqué, et les autres champs continuent de calculer.
 
-Un champ collecte interroge l’index de la zone et n’est donc évalué que s’il est affiché ; le résultat vaut jusqu’à ce que le contenu change. Un lien compte dans toutes les notations — `[[cible]]`, `[[cible|libellé]]` et le nom nu — et un lien passant par un alias de ce document correspond également.
+Un champ collecte interroge l’index de la zone et n’est donc évalué que s’il est affiché ; le résultat vaut jusqu’à ce que le contenu change. Un lien compte dans toutes les notations — `[[cible]]`, `[[cible|libellé]]` et le nom nu — et un lien passant par un alias de ce document correspond également. La requête sous `from` peut être regroupée et restreint alors aux mêmes documents que sans regroupement ; une requête de tâches restreint aux documents qui portent ses tâches. Ce qui se trouve dans le dossier de modèles n’est pas collecté par le champ.
 
 **La contrepartie est assumée :** comme une valeur dérivée n’est pas dans le fichier, elle n’est pas non plus dans l’index et ne porte aucune condition de requête. Là où cela gêne, c’est la requête qui calcule — elle en est capable.
 

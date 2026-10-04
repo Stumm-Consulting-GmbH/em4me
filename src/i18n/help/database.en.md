@@ -115,6 +115,8 @@ A text in the form of an identifier is always read as an identifier. The notatio
 
 Both checks need the overview of the tables of the area. If the tables have not been fully read yet, the application rejects a change that sets a reference or deletes a record, and the message asks you to try again in a moment.
 
+Relationships are evaluated with a record query: a path such as `author.name` reads the field of the referenced record, a condition on the reference field finds the opposite direction, and `ancestors(…)` and `descendants(…)` follow references across any number of levels. How many records point at a record is counted by a grouped query such as `TABLE RECORDS count() FROM "Loans" GROUP BY book`. The [Perspective Query](frontmatter-query.md) page describes both in the sections «Record level» and «Grouping and aggregation».
+
 ## Labels in several languages
 
 The label sits at the key `label`, either as plain text or as a mapping from language to text:
@@ -268,6 +270,8 @@ Every record has a **form**: a page of its own that shows its fields one below t
 ### Opening and creating
 
 An existing record is opened by the button **«Open record»** at the start of its row, in front of the button for the change records, in reading view as well as in Live mode. With the keyboard, the left arrow key leads to it from the change-record button.
+
+From the result of a record query, a click on a record or on a reference opens the form as well (page [Perspective Query](frontmatter-query.md)). It shows the saved state, even if the query displays an unsaved one.
 
 Three ways create a new record:
 
@@ -432,7 +436,7 @@ What it does instead: at its next own write it compares the state it finds with 
 
 ## Locks
 
-When several people work in the same database area, for instance on a shared network drive, a lock makes sure that no two of them edit the same record at the same time.
+A lock makes sure that a record is not edited in two places at the same time, for instance in two windows of the application. Locks and change records are designed to prepare for shared access by several people; that access will come with EM4us, the future server component. EM4me itself is a tool for one person working alone and locally. Using several computers in the same area on a network drive is not supported.
 
 ### What is locked, and when
 
@@ -509,9 +513,10 @@ A search across the **area** takes in a table document without its records. The 
 
 The reason lies with the area and not with the table: the search space keeps the texts of all Markdown files in memory and carries an upper limit across the **whole** area for that. Even a few tables of a few megabytes break it, and from then on every search reads from disk again, including every search across an ordinary document. The records in the search space would therefore cost not themselves but the whole area its speed.
 
-**This is an interim state.** Until records get a match type of their own, they cannot be found through the area search. Two ways still lead to them:
+**This is an interim state.** Until records get a match type of their own, they cannot be found through the area search. Three ways still lead to them:
 
 - **Search inside the open document.** Anyone who has the table file in front of them and searches inside it (default `Ctrl+F`) searches the text in front of them and finds its records unchanged. The limit above concerns the search across the area alone.
+- **Run a record query.** A `perspective-query` block with `LIST RECORDS` or `TABLE RECORDS` finds records by their fields, for instance all books by one author; the [Perspective Query](frontmatter-query.md) page describes it. A query needed more often can be kept as a query file (section «Query files»).
 - **Link to a record directly**, as described in the next section.
 
 ### Reference to a single record
@@ -528,7 +533,32 @@ Checking is done against the **saved** state of the table, as with every other a
 
 Whether a reference holds is shown by the [Markdown linter](tools.md): a broken target gets a wavy underline in the editor, that is in the Source, Split and Live view. The plain reading view does not depict validity; there, valid and broken references look alike.
 
-A click opens the table file. It does not yet jump to the individual record.
+A click opens the table and brings the row of the record into view, even when the record is in a follow-up file. In reading view the display scrolls to its row, provided it is among the 2000 records the view shows; in the Live and Source view the cursor is placed on that row. In the result of a record query, by contrast, a click on a record opens its form.
+
+## Query files
+
+A query needed more often gets a document of its own: if it carries the mark `db-query` in its frontmatter and exactly one query block in its text, it is a **query file**. The rest of the text describes the query and appears as in any document.
+
+````markdown
+---
+db-query:
+minpages: 500
+---
+
+# Long books
+
+Books with more than `minpages` pages, the longest first.
+
+```perspective-query
+TABLE RECORDS author, pages FROM "Books" WHERE pages > this.minpages SORT pages DESC
+```
+````
+
+- **The mark carries no settings.** The file is recognised by the mark alone, `db-query:` without a value is enough; the query names its table itself in `FROM`. The query may address any level, files as well as records.
+- **Opening and embedding.** Opened, the file shows its result like any document with a query block. Another document embeds it with `![[Long books]]` and shows the same result, because `this.` then means the query file and not the embedding document. A query that reads values of the embedding document therefore does not exist.
+- **Creating.** There is no command of its own for it: a query file is written by hand or from a [template](templates.md) of your own.
+- **Without the mark**, a document with a query block stays a query in running text and does not appear in the overview.
+- **In the overview** of the database, every query file stands in the section «Queries» (section «The area as a database»); no query block or several are reported among the issues (section «Faulty settings»).
 
 ## Splitting large data sets
 
@@ -569,7 +599,7 @@ As soon as one document in the stock of an area carries the fact sheet, the appl
 
 A database area gets two things an ordinary area does not have.
 
-**The overview of the database objects** answers in one place what lies in this area: the fact sheet with name and description, the tables each with the number of their fields, and the issues from reading the definitions, in plain words instead of as a code. It opens as a tab of its own, and nothing is edited in the overview itself; its actions lead into the form and into the checks. Three ways lead to it:
+**The overview of the database objects** answers in one place what lies in this area: the fact sheet with name and description, the tables each with the number of their fields, the query files, and the issues from reading the definitions, in plain words instead of as a code. It opens as a tab of its own, and nothing is edited in the overview itself; its actions lead into the form and into the checks. Three ways lead to it:
 
 - **View → Database overview**,
 - the **context menu of the area panel**,
@@ -577,7 +607,7 @@ A database area gets two things an ordinary area does not have.
 
 In an area without a database none of these ways is offered.
 
-In the list of tables, the column **«Form»** names the form file of a table and stays empty for the generated form. In addition the overview carries four actions: **«Check consistency»** in the header for all tables, and in the row of every table **«New record»**, **«Check»** and **«Usage»**. What they do is described in the sections «Editing records in the form», «Consistency check» and «Usage of tables and records». The issues also include the hints on form files, named after the file.
+In the list of tables, the column **«Form»** names the form file of a table and stays empty for the generated form. In addition the overview carries four actions: **«Check consistency»** in the header for all tables, and in the row of every table **«New record»**, **«Check»** and **«Usage»**. What they do is described in the sections «Editing records in the form», «Consistency check» and «Usage of tables and records». The section **«Queries»** names every query file with its name and its location, the folder relative to the root of the area, and **«Open»** opens it like any document; if the area holds none, an explanatory sentence stands there. The issues also include the hints on form and query files, named after the file.
 
 **The settings section «Database»** sits in the navigation group «Current area» (File → Settings… → Current area → Database; with a book open the group is called **Current book**, with a bookshelf open **Current bookshelf**). It shows the same information in short form, that is name and description of the database, the number of its tables and the number of issues, and it carries one option: **«Show the overview when the area is opened»**. If it is set, the overview opens by itself as soon as the area is bound. The option lives in the area file and travels with the area folder. In addition there is the field **«Name of the lock folder»**; it is described in the section «Locks».
 
@@ -597,6 +627,8 @@ The same lenient line applies to the validation rules and to the editability con
 
 The same lenient line applies to form files. If the container `db-form` names no table, or one that does not exist in the database, the file stays an ordinary document. If a table has several form files, the first by path applies, and the others are not used. These three cases stand among the issues of the overview. A placeholder that is not a field placeholder and a field name the table does not know stay as text; the form reports them with their line in its header, and the consistency check lists them as findings.
 
+The same lenient line applies to query files. If a document with the mark `db-query` carries no query block or several, it stays an ordinary document, and every block in it is evaluated. The overview still lists it in the section «Queries» and names the case among the issues, named after the file.
+
 ## Switching the database off
 
 The entire database is an [internal extension](extensions.md) named «Database» in the category Tools and can be switched off with a single switch. It requires the [Property Profiles](property-profiles.md), because the shape of a table definition is described and checked through an internal profile; as long as the database is switched on, that basis therefore cannot be switched off.
@@ -606,6 +638,8 @@ When switched off, the following applies:
 - The **record block stays an ordinary code block**, in the reading view, in edit mode and in the portable export. Its content stays readable; what is switched off is the display as a table, not the data.
 - **Overview and settings section are dropped**, together with the access points in the view menu, in the context menu of the area panel and in the command palette. An overview that is already open stays until you close it, like any other system page.
 - With the record block, its buttons **«Open record»** and **«New record»** are dropped, with the overview its actions **«Check consistency»**, **«Check»** and **«Usage»**, and the commands **«New record in the active table»** and **«Check database consistency»** disappear from the command palette. The **form** can thus no longer be reached either, and the application no longer supplies data to it, to the consistency check or to the usage.
+- A **record query** no longer reads any table: it shows an empty list with the note that the extension is switched off, and no error message. The same applies to paths through reference fields, to hierarchies and to the tree.
+- A **query file** stays an ordinary document: its query block is still evaluated, over records with the empty list and the note just described, and its section «Queries» goes away with the overview.
 - A **reference to a single record** is no longer marked as broken. Without definitions there is nothing to check it against, and a warning without a check would be a mere claim.
 - The **search across the area stays unchanged**. Records stay excluded from the full text, because that boundary belongs to the table file and not to the switch; the section «Findability» above therefore continues to apply.
 - **Nothing is written.** The application creates, changes and deletes no records, takes no lock and produces no change record; nor does it complete a save operation left unfinished while it is switched off.

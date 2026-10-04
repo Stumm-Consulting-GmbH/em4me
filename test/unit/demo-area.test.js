@@ -5,7 +5,7 @@
 // Ordner (Erfolg inklusive Binär-Inhalt, Ablehnung nicht-leerer bzw.
 // fehlender Ziele). Stil-Muster benachbarter Main-Tests
 // (test/unit/caption-color.test.js).
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
 import fsp from 'node:fs/promises';
 import os from 'node:os';
@@ -28,6 +28,20 @@ import { isMarkdownDataPath } from '../../src/shared/markdown-data-family.js';
 import { DEFAULT_LOCK_FOLDER_NAME } from '../../src/shared/database/lock-folder-name.js';
 import { baueIgnorierRegel } from '../../src/main/area/area-watch-ignore.js';
 import { collectMarkdownFiles } from '../../src/main/index/scan.js';
+// 4T-002045 (Epic 3E-000258): der echte Erzeuger der Abfrage samt Index und der
+// Prüfer des Format-Vertrags, für die Datensatz-Abfragen von „08 Queries.md".
+import {
+  backlinksFor,
+  frontmatterQueryFor,
+  releaseRoot,
+  rootForActiveFile,
+} from '../../src/main/backlinks.js';
+import { validateResultSet } from '../../src/shared/query/result-set.js';
+// 4T-002083 (Epic 3E-000259): Marke und Block-Zählung der Abfrage-Datei, über
+// dieselben Leser wie der Katalog der Übersicht.
+import { datenbankMarken } from '../../src/shared/database/behaelter.js';
+import { extractFrontmatter } from '../../src/shared/markdown/frontmatter.js';
+import { zaehleAbfrageBloecke } from '../../src/main/database/table-catalog.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEMO_DIR = path.resolve(HERE, '..', '..', 'src', 'demo');
@@ -156,6 +170,24 @@ const EXPECTED_FILES = [
   // bleibt; ohne Beleg-Datei, weil scripts/demo-belege-erzeugen.js allein
   // «Library.md» bedient.
   'Loans.md',
+  // 4T-002045 (Epic 3E-000258, Demo-Area-Prüfschritt): die dritte Demo-Tabelle,
+  // die Mitarbeitenden der Bibliothek in drei Stufen. Ihr Verweis-Feld `manager`
+  // zeigt auf dieselbe Tabelle; erst ein Selbstbezug macht die Hierarchie-Abfragen
+  // und den Baum im Abschnitt «Records of the library database» von
+  // „08 Queries.md" vorführbar. Wie «Library.md» und «Loans.md» mit den
+  // Schlagwörtern demo und data, damit die Tag-Menge der Demo-Area gleich bleibt;
+  // ohne Beleg-Datei. Dass jede Datensatz-Abfrage der Seite ein Ergebnis liefert,
+  // hält der Block «Datensatz-Abfragen» am Ende dieser Datei fest.
+  'Staff.md',
+  // 4T-002083 (Epic 3E-000259, Demo-Area-Prüfschritt): die Abfrage-Datei der
+  // Demo-Area, die Bücher der Bibliothek über einer Seitenzahl aus ihrem eigenen
+  // Frontmatter. Sie trägt die Marke `db-query` und genau einen Abfrage-Block,
+  // erscheint deshalb im Abschnitt «Abfragen» der Übersicht, und
+  // „08 Queries.md" bettet sie ein. Wie die Tabellen mit den Schlagwörtern demo
+  // und data, damit die Tag-Menge der Demo-Area gleich bleibt. Dass ihr Block
+  // ein Ergebnis liefert und sich auf die Datei selbst bezieht, hält der Fall
+  // «gruppierte Abfragen und Abfrage-Datei …» am Ende dieser Datei fest.
+  'Long Books.md',
   'Light Speed.md',
   'Milky Way.md',
   'Milky Way∕Proxima Centauri.md',
@@ -419,5 +451,216 @@ describe('Demo-Area: Dateiliste und Watcher übergehen Beleg- und Zähler-Datei 
     const dokumente = scan.files.map((f) => path.basename(f));
     for (const name of namen) expect(dokumente, name).not.toContain(name);
     expect(dokumente).toContain('Library.md');
+  });
+});
+
+// 4T-002045 (Epic 3E-000258, Demo-Area-Prüfschritt): Die Datensatz-Abfragen der
+// Seite „08 Queries.md" werden gegen eine Kopie des ausgelieferten Bestands
+// ausgewertet, über denselben Kopier-Weg wie das Erstellen der Demo-Area und den
+// echten Erzeuger der Abfrage. So hält der Fall fest, was die Seite verspricht:
+// Jeder Block mit RECORDS liefert ohne Fehler genau die Datensätze, die sein
+// Begleittext ankündigt. Die übrigen Blöcke der Seite pinnt DA-04 an der
+// gestarteten Anwendung (kein Abfrage-Fehler auf der ganzen Seite).
+describe('Demo-Area: Datensatz-Abfragen von «08 Queries» liefern Ergebnisse (4T-002045)', () => {
+  const temps = [];
+  let wurzel = null;
+
+  afterEach(async () => {
+    if (wurzel) {
+      vi.useFakeTimers();
+      releaseRoot(wurzel);
+      vi.advanceTimersByTime(61_000);
+      vi.useRealTimers();
+      wurzel = null;
+    }
+    while (temps.length) {
+      const dir = temps.pop();
+      await fsp
+        .rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
+        .catch(() => {});
+    }
+  });
+
+  // Die Kopie als Bereich indexieren, wie es die Abfrage-Prüfdateien tun.
+  async function indexiere(datei) {
+    let stand = backlinksFor(datei);
+    wurzel = rootForActiveFile(datei);
+    for (let i = 0; i < 500 && stand.status === 'indexing'; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      stand = backlinksFor(datei);
+    }
+    expect(stand.status).toBe('ready');
+  }
+
+  const namen = (rs) => rs.rows.map((r) => r.origin.display);
+
+  it('jeder Block mit RECORDS liefert ohne Fehler die angekündigten Datensätze', async () => {
+    const dest = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-demo-abfragen-'));
+    temps.push(dest);
+    expect(await createDemoAreaAt(dest)).toEqual({ ok: true });
+    const seite = path.join(dest, '08 Queries.md');
+    await indexiere(seite);
+
+    const text = fs.readFileSync(seite, 'utf8');
+    // 4T-002083: Die gruppierten Blöcke des Abschnitts «Groups and totals»
+    // prüft der Block am Ende dieser Datei; hier bleiben die acht des Abschnitts
+    // «Records of the library database».
+    const bloecke = [...text.matchAll(/```perspective-query\r?\n([\s\S]*?)\r?\n```/g)]
+      .map((m) => m[1])
+      .filter((abfrage) => /\bRECORDS\b/.test(abfrage) && !/\bGROUP BY\b/.test(abfrage));
+    expect(bloecke).toHaveLength(8);
+    const mengen = bloecke.map((abfrage) => {
+      const rs = frontmatterQueryFor(seite, abfrage, undefined, undefined, 'en-US').resultSet;
+      expect(validateResultSet(rs), abfrage).toEqual([]);
+      expect(rs.state.queryError, abfrage).toBeFalsy();
+      expect(rs.rows.length, abfrage).toBeGreaterThan(0);
+      return rs;
+    });
+    const [langeBuecher, ausleihen, einBuch, unterAda, seit2015, nachOben, baum, unbekannt] =
+      mengen;
+
+    // Bücher mit mehr als 500 Seiten, nach Autor; Kopf «Author» und «Pages».
+    expect(namen(langeBuecher)).toEqual([
+      'Gödel, Escher, Bach',
+      'The Glass Bead Game',
+      'The Man Without Qualities',
+      "Foucault's Pendulum",
+      'The Name of the Rose',
+    ]);
+    expect(langeBuecher.columns.map((c) => c.label)).toEqual(['Author', 'Pages']);
+    // Ausleihen mit Titel und Autor des Buches über den Verweis, nach Fälligkeit.
+    expect(ausleihen.rows.map((r) => r.values.slice(0, 2))).toEqual([
+      ['The Name of the Rose', 'Umberto Eco'],
+      ['A Wizard of Earthsea', 'Ursula K. Le Guin'],
+      ['The Cyberiad', 'Stanisław Lem'],
+    ]);
+    // Gegenrichtung über den Schlüssel-Wert des Buches.
+    expect(namen(einBuch)).toEqual(['Tom Okafor']);
+    // Hierarchie ohne die Direktorin, gefiltert und nach oben.
+    expect(namen(unterAda)).toEqual([
+      'Ben Okoro',
+      'Chloe Martin',
+      'Dev Patel',
+      'Elena Rossi',
+      'Finn Larsen',
+      'Grace Liu',
+    ]);
+    expect(namen(seit2015)).toEqual(['Chloe Martin', 'Grace Liu', 'Dev Patel', 'Finn Larsen']);
+    expect(namen(nachOben)).toEqual(['Ada Brennan', 'Chloe Martin']);
+    for (const rs of [unterAda, seit2015, nachOben]) expect(rs.state.hint).toBeNull();
+    // Der Baum: jede Zeile trägt ihren Eltern-Verweis, Ada ist die Wurzel.
+    expect(baum.wishes.display).toEqual({ form: 'tree', by: 'manager' });
+    const eltern = new Map(baum.rows.map((r) => [r.origin.display, r.parent && r.parent.id]));
+    expect(Object.fromEntries(eltern)).toEqual({
+      'Ada Brennan': null,
+      'Ben Okoro': 'r-00001',
+      'Chloe Martin': 'r-00001',
+      'Dev Patel': 'r-00002',
+      'Elena Rossi': 'r-00002',
+      'Finn Larsen': 'r-00003',
+      'Grace Liu': 'r-00003',
+    });
+    // Die unbekannte Form reist als Wunsch mit; den Hinweis setzt die Anzeige.
+    expect(unbekannt.wishes.display).toEqual({ form: 'cards', by: null });
+    expect(unbekannt.rows).toHaveLength(7);
+  });
+
+  // 4T-002083 (Epic 3E-000259, Demo-Area-Prüfschritt): die drei gruppierten
+  // Blöcke des Abschnitts «Groups and totals» und die eingebettete Abfrage-Datei
+  // «Long Books». Je eine Gegenprobe belegt, dass die Bedingung über die Gruppe
+  // wirklich filtert und dass `this.` die Abfrage-Datei meint.
+  it('gruppierte Abfragen und Abfrage-Datei liefern die angekündigten Ergebnisse (4T-002083)', async () => {
+    const dest = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-demo-gruppen-'));
+    temps.push(dest);
+    expect(await createDemoAreaAt(dest)).toEqual({ ok: true });
+    const seite = path.join(dest, '08 Queries.md');
+    await indexiere(seite);
+    const abfrageDatei = path.join(dest, 'Long Books.md');
+
+    const bloeckeVon = (text) =>
+      [...text.matchAll(/```perspective-query\r?\n([\s\S]*?)\r?\n```/g)].map((m) => m[1]);
+    const auswerten = (traeger, abfrage) => {
+      const rs = frontmatterQueryFor(traeger, abfrage, undefined, undefined, 'en-US').resultSet;
+      expect(validateResultSet(rs), abfrage).toEqual([]);
+      expect(rs.state.queryError, abfrage).toBeFalsy();
+      return rs;
+    };
+    const seitenText = fs.readFileSync(seite, 'utf8');
+    const gruppiert = bloeckeVon(seitenText).filter((abfrage) => /\bGROUP BY\b/.test(abfrage));
+    expect(gruppiert).toHaveLength(3);
+    const [jeAutor, jeBuch, jeThema] = gruppiert.map((abfrage) => auswerten(seite, abfrage));
+
+    // Bücher je Autor: nur die mit mehr als einem Buch, die meisten zuerst.
+    expect(jeAutor.groupColumns.map((c) => c.label)).toEqual(['Author']);
+    expect(jeAutor.columns.map((c) => c.label)).toEqual(['Books', 'Pages']);
+    expect(jeAutor.groups.map((g) => [g.value, ...g.values])).toEqual([
+      ['Ursula K. Le Guin', 3, 828],
+      ['Hermann Hesse', 2, 795],
+      ['Italo Calvino', 2, 425],
+      ['Jorge Luis Borges', 2, 416],
+      ['Stanisław Lem', 2, 519],
+      ['Umberto Eco', 2, 1520],
+      ['W. G. Sebald', 2, 594],
+    ]);
+    // Gegenprobe: Ohne HAVING stehen alle sechzehn Autoren da.
+    const ohneBedingung = gruppiert[0].replace(/\r?\nHAVING[^\r\n]*/, '');
+    expect(ohneBedingung).not.toMatch(/HAVING/);
+    expect(auswerten(seite, ohneBedingung).groups).toHaveLength(16);
+
+    // Ausleihen je Buch: das Buch als Datensatz-Verweis mit Klick-Ziel, dazu die
+    // späteste Fälligkeit als Datum über der Gruppe.
+    expect(jeBuch.groupColumns.map((c) => c.label)).toEqual(['Book']);
+    expect(
+      jeBuch.groups.map((g) => [g.value.kind, g.value.table, g.value.id, g.value.display]),
+    ).toEqual([
+      ['record', 'Library', 'r-00005', 'A Wizard of Earthsea'],
+      ['record', 'Library', 'r-00004', 'The Cyberiad'],
+      ['record', 'Library', 'r-00001', 'The Name of the Rose'],
+    ]);
+    expect(jeBuch.groups.map((g) => g.values[0])).toEqual([1, 1, 1]);
+    expect(jeBuch.groups.map((g) => g.values[1].ms)).toEqual([
+      new Date(2026, 8, 29).getTime(),
+      new Date(2026, 9, 13).getTime(),
+      new Date(2026, 8, 15).getTime(),
+    ]);
+
+    // Seiten je Thema: dieselbe Einteilung, die eine ungruppierte Liste ergibt,
+    // ohne die Themen mit nur einer Seite; die Seiten je Gruppe nach Namen.
+    const flach = auswerten(seite, 'LIST topic FROM #demo SORT file.name');
+    const erwartet = new Map();
+    for (const r of flach.rows) {
+      const thema = r.values[0];
+      if (!erwartet.has(thema)) erwartet.set(thema, []);
+      erwartet.get(thema).push(r.origin.name);
+    }
+    const mehrere = [...erwartet].filter(([, namen]) => namen.length > 1);
+    expect(mehrere.length).toBeGreaterThan(1);
+    // Gegenprobe der Bedingung: Es gibt Themen mit nur einer Seite, die entfallen.
+    expect(mehrere.length).toBeLessThan(erwartet.size);
+    expect(
+      jeThema.groups.map((g) => [g.value, g.rows.map((i) => jeThema.rows[i].origin.name)]),
+    ).toEqual(
+      mehrere.sort(([a], [b]) => (a === null) - (b === null) || String(a).localeCompare(String(b))),
+    );
+    expect(jeThema.groups.find((g) => g.value === 'data')).toBeTruthy();
+
+    // Die Abfrage-Datei: Marke und genau ein Abfrage-Block, eingebettet auf der Seite.
+    const dateiText = fs.readFileSync(abfrageDatei, 'utf8');
+    const kopf = extractFrontmatter(dateiText);
+    expect(datenbankMarken(kopf.data)).toEqual(['query']);
+    expect(zaehleAbfrageBloecke(kopf.body)).toBe(1);
+    expect(seitenText).toContain('![[Long Books]]');
+    const [eigeneAbfrage] = bloeckeVon(dateiText);
+    const langeBuecher = auswerten(abfrageDatei, eigeneAbfrage);
+    expect(langeBuecher.rows.map((r) => r.origin.display)).toEqual([
+      'The Man Without Qualities',
+      "Foucault's Pendulum",
+      'Gödel, Escher, Bach',
+      'The Name of the Rose',
+      'The Glass Bead Game',
+    ]);
+    // Gegenprobe: Mit der Seite als Träger fehlt `minpages`, und nichts bleibt;
+    // die Treffer oben kommen also aus dem Frontmatter der Abfrage-Datei.
+    expect(auswerten(seite, eigeneAbfrage).rows).toEqual([]);
   });
 });

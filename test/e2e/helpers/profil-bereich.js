@@ -15,6 +15,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { expect } = require('@playwright/test');
 const { SEL } = require('./selectors');
+const { hauptSenden } = require('./haupt-zugriff');
 
 // Selektoren der Eigenschaften-Sektion, gemeinsam genutzt.
 const PANE0 = '.pane-group[data-pane="0"]';
@@ -156,9 +157,13 @@ async function bindAreaAndOpen(app, page, areaRoot, filePath) {
     })
     .toBe(true);
   await expect.poll(() => page.title()).toContain('(Bereich');
-  await app.evaluate(({ BrowserWindow }, p) => {
-    BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
-  }, filePath);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, p) => {
+      BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
+    },
+    filePath,
+  );
   await expect(page.locator(SEL.tabs0).first()).toBeVisible();
 }
 

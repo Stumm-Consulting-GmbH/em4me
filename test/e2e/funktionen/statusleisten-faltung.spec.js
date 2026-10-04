@@ -39,6 +39,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
@@ -144,11 +145,15 @@ async function warteAufRuhe(page, breitePruefung) {
 
 async function setzeBreite(app, page, breite) {
   const vorher = (await messe(page)).leisteBreite;
-  await app.evaluate(({ BrowserWindow }, b) => {
-    const win = BrowserWindow.getAllWindows()[0];
-    win.unmaximize();
-    win.setBounds({ x: 20, y: 20, width: b, height: 720 });
-  }, breite);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, b) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      win.unmaximize();
+      win.setBounds({ x: 20, y: 20, width: b, height: 720 });
+    },
+    breite,
+  );
   return warteAufRuhe(page, (m) => m.leisteBreite !== vorher);
 }
 
@@ -193,20 +198,40 @@ async function setzeBreite(app, page, breite) {
 // bewegen, solange diese hier nicht kleiner wird.
 const VOLLE_BREITE_MINDESTENS = 1600;
 
+//
+// 4T-002061: Befehl und gebrauchte Rückgabe getrennt (Vorbild
+// `zuletztEintragKlicken` in bereich-mehrfach.spec.js): erst aus der
+// Maximierung holen (Befehl), dann die Zielmaße lesen (Abfrage, wiederholbar),
+// dann setzen (Befehl). Rechnung und Endlage sind dieselben wie zuvor in einem
+// Zugriff.
 async function volleBreite(app, page) {
-  const ziel = await app.evaluate(({ BrowserWindow, screen }, mindestens) => {
-    const win = BrowserWindow.getAllWindows()[0];
-    win.unmaximize();
-    const [breiteIst, hoeheIst] = win.getContentSize();
-    const flaeche = screen.getDisplayMatching(win.getBounds()).workAreaSize;
-    const breite = Math.max(flaeche.width, breiteIst, mindestens);
-    win.setContentSize(breite, Math.max(flaeche.height, hoeheIst));
-    return breite;
-  }, VOLLE_BREITE_MINDESTENS);
+  await hauptSenden(app, ({ BrowserWindow }) => {
+    BrowserWindow.getAllWindows()[0].unmaximize();
+  });
+  const ziel = await hauptLesen(
+    app,
+    ({ BrowserWindow, screen }, mindestens) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      const [breiteIst, hoeheIst] = win.getContentSize();
+      const flaeche = screen.getDisplayMatching(win.getBounds()).workAreaSize;
+      return {
+        breite: Math.max(flaeche.width, breiteIst, mindestens),
+        hoehe: Math.max(flaeche.height, hoeheIst),
+      };
+    },
+    VOLLE_BREITE_MINDESTENS,
+  );
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, masse) => {
+      BrowserWindow.getAllWindows()[0].setContentSize(masse.breite, masse.hoehe);
+    },
+    ziel,
+  );
   // Zwei Pixel Spielraum gegen die Rundung zwischen Fenster-Inhaltsgröße und
   // gemessener Leisten-Breite; die Ruhe-Bedingung von warteAufRuhe bleibt
   // davon unberührt.
-  return warteAufRuhe(page, (m) => m.leisteBreite >= ziel - 2);
+  return warteAufRuhe(page, (m) => m.leisteBreite >= ziel.breite - 2);
 }
 
 // Setzt die Fensterbreite UNTER die Mindestbreite der Anwendung (600 px),
@@ -223,12 +248,16 @@ async function volleBreite(app, page) {
 // können» prüft derselbe Fall oben an einer regulären Breite.
 async function setzeBreiteUnterMindestmass(app, page, breite) {
   const vorher = (await messe(page)).leisteBreite;
-  await app.evaluate(({ BrowserWindow }, b) => {
-    const win = BrowserWindow.getAllWindows()[0];
-    win.unmaximize();
-    win.setMinimumSize(200, 200);
-    win.setBounds({ x: 20, y: 20, width: b, height: 720 });
-  }, breite);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, b) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      win.unmaximize();
+      win.setMinimumSize(200, 200);
+      win.setBounds({ x: 20, y: 20, width: b, height: 720 });
+    },
+    breite,
+  );
   return warteAufRuhe(page, (m) => m.leisteBreite !== vorher);
 }
 

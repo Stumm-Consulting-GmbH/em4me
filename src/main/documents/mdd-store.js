@@ -141,7 +141,22 @@ const MDDA_CACHE_FILENAME = 'Area_Cache.mdda';
 // parsed-Objekt, dazu bei einem Folge-Segment die Signatur der Definition,
 // gegen die zugeordnet wurde. Ein Alt-Cache trägt beides nicht, und ein
 // Warmstart aus ihm meldete für unveränderte Tabellen einen leeren Bestand.
-const MDDA_CACHE_SCHEMA_VERSION = 5;
+// Version 6 (4T-002013, Epic 3E-000332): Verweise und Schlagworte aus
+// Text-Zellen der Datentabelle in `hits` und `tags` des parsed-Objekts. Ein
+// Alt-Cache trägt sie nicht, und der Warmstart übernähme für unveränderte
+// Dateien das Ergebnis ohne sie; Rückverweise und Umbenennungs-Kandidaten aus
+// bestehenden Tabellen fehlten dann bis zur nächsten Änderung der Datei.
+// Version 7 (4T-002081, Epic 3E-000259): die vierte Marke der Datenbank,
+// `query` für die Abfrage-Datei (`db-query`), in `dbKinds` des parsed-Objekts.
+// Ein Alt-Cache führt sie für unveränderte Dateien nicht, und der Warmstart
+// übernähme dessen Marken; eine vorhandene Abfrage-Datei fehlte in der
+// Übersicht der Datenbank bis zur nächsten Änderung der Datei.
+// **Beim Rebase** auf einen Stand, der die Version unabhängig angehoben hat
+// (der Diagramme-Zweig hebt sie für seine Zell-Verweise ebenfalls an), ist der
+// Wert auf den höchsten beider Seiten plus eins zu setzen und hier ein Absatz
+// je Seite zu führen; Git meldet dabei keinen Konflikt, wenn beide Seiten
+// dieselbe Zahl gesetzt haben.
+const MDDA_CACHE_SCHEMA_VERSION = 7;
 
 // Format: { schemaVersion, linkIndex: { files: { <relPath>: { mtimeMs, size,
 // hash, parsed } } } }. `parsed` traegt das Datei-Parse-Ergebnis (hits,

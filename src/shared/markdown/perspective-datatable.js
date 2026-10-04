@@ -14,8 +14,14 @@
 //   perspective-datatable-kopf.js      Zeichen-Ebene der Kopf-Direktiven
 //                                      (Spalten-Definition, Aggregat-Eintrag);
 //                                      Blatt der Familie, seit 4T-001313
+//   perspective-datatable-cells.js     Zell-Zerlegung und Lage der
+//                                      Text-Zellen einer Roh-Zeile; seit
+//                                      4T-002013, geteilt mit Verweis-Index,
+//                                      Umbenennungs-Nachzug und
+//                                      Schlagwort-Umbenennung
 // Der Import-Graph läuft ausschließlich von hier nach unten (Kern -> html
-// -> view -> computed, Kern -> kopf); kein Schwester-Modul lädt den Kern.
+// -> view -> computed, Kern -> kopf, Kern -> cells -> kopf); kein
+// Schwester-Modul lädt den Kern.
 //
 // Format des Fence-Bodys:
 //   columns: Name:text, Datum:date, Start:time, Betrag:number(2),
@@ -81,6 +87,9 @@ const {
 } = require('./perspective-datatable-html.js');
 // 4T-001313 (Epic 3E-000235): Zeichen-Ebene der beiden Kopfzeilen.
 const { parseColumnDef, parseAggregateEntry } = require('./perspective-datatable-kopf.js');
+// 4T-002013 (Epic 3E-000332): Zell-Zerlegung, geteilt mit Verweis-Index,
+// Umbenennungs-Nachzug und Schlagwort-Umbenennung.
+const { splitTopLevel, splitPipeRow } = require('./perspective-datatable-cells.js');
 
 // --- Werte-Parsing pro Typ ----------------------------------------------------
 
@@ -110,68 +119,11 @@ function parseCellValue(type, text) {
 }
 
 // --- Zeilen-Zerlegung ----------------------------------------------------------
-
-// Kommata auf oberster Ebene trennen Listen-Einträge; Klammern und Quotes
-// schützen (berechnete Spalten-Ausdrücke wie `min(Betrag, 10)` bleiben ganz).
-function splitTopLevel(text) {
-  const parts = [];
-  let cur = '';
-  let depth = 0;
-  let quote = null;
-  for (let i = 0; i < text.length; i++) {
-    const ch = text[i];
-    if (quote) {
-      cur += ch;
-      if (ch === quote) quote = null;
-      continue;
-    }
-    if (ch === '"' || ch === "'") {
-      quote = ch;
-      cur += ch;
-      continue;
-    }
-    if (ch === '(' || ch === '[') depth++;
-    else if (ch === ')' || ch === ']') depth = Math.max(0, depth - 1);
-    if (ch === ',' && depth === 0) {
-      parts.push(cur);
-      cur = '';
-      continue;
-    }
-    cur += ch;
-  }
-  parts.push(cur);
-  return parts.map((p) => p.trim()).filter((p) => p !== '');
-}
-
-// Pipe-Zeile -> un-escapte, getrimmte Zell-Rohtexte. Führende und (falls
-// vorhanden) schließende Pipe werden abgestreift; `\|` ist das Pipe-Escape
-// im Zelltext.
-function splitPipeRow(line) {
-  const cells = [];
-  let cur = '';
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '\\' && line[i + 1] === '|') {
-      cur += '|';
-      i++;
-      continue;
-    }
-    if (ch === '|') {
-      cells.push(cur);
-      cur = '';
-      continue;
-    }
-    cur += ch;
-  }
-  cells.push(cur);
-  // Segment vor der führenden Pipe ist leer (Zeile beginnt mit '|');
-  // schließende Pipe erzeugt ein leeres End-Segment — beide sind Rahmen,
-  // keine Zellen. Fehlt die schließende Pipe, zählt das letzte Segment
-  // als Zelle (tolerantes Lesen).
-  cells.shift();
-  if (cells.length > 0 && cells[cells.length - 1].trim() === '') cells.pop();
-  return cells.map((c) => c.trim());
-}
+//
+// 4T-002013 (Epic 3E-000332): `splitTopLevel` und `splitPipeRow` stehen seither
+// in perspective-datatable-cells.js. Verweis-Index, Umbenennungs-Nachzug und
+// Schlagwort-Umbenennung brauchen dieselbe Zell-Zerlegung und dürfen den Kern
+// nicht laden; mit dem Umzug gibt es sie genau einmal.
 
 function escapePipes(text) {
   return String(text == null ? '' : text).replace(/\|/g, '\\|');
@@ -459,24 +411,27 @@ function computeRenderData(model) {
 
 // Innen-HTML des Platzhalter-Containers (der Container selbst mit den
 // data-dt-Attributen entsteht im Fence-Override von markdown.js).
-function renderPerspectiveDatatableViewer(content) {
+// 4T-002014 (Epic 3E-000332): `opts.zellHtml` ist der enge Zell-Renderer der
+// Pipeline für die Text-Zellen; beide Einstiege reichen `opts` unverändert an
+// den HTML-Bauer weiter. Ohne ihn bleibt die Anzeige maskierter Reintext.
+function renderPerspectiveDatatableViewer(content, opts) {
   const model = parsePerspectiveDatatable(content);
   const out = [];
   if (model.errors.length > 0) out.push(buildErrorsHtml(model.errors));
   if (model.columns.length > 0) {
     const { computed, aggs } = computeRenderData(model);
-    out.push(buildDatatableTableHtml(model, computed, aggs));
+    out.push(buildDatatableTableHtml(model, computed, aggs, opts));
   }
   return out.join('');
 }
 
 // Statische Tabelle für den Portable-Export. Bei Struktur-Fehlern null —
 // der Fence bleibt dann unverändert im Export (Muster perspective-table).
-function convertPerspectiveDatatableBlockToHtml(content) {
+function convertPerspectiveDatatableBlockToHtml(content, opts) {
   const model = parsePerspectiveDatatable(content);
   if (model.errors.length > 0 || model.columns.length === 0) return null;
   const { computed, aggs } = computeRenderData(model);
-  return buildPortableDatatableHtml(model, computed, aggs);
+  return buildPortableDatatableHtml(model, computed, aggs, opts);
 }
 
 module.exports = {

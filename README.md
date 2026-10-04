@@ -59,22 +59,30 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   cards is the order of the lines, and boards kept with another widely used
   tool open here without conversion, their settings included.
 - **Tables that calculate and query** — data tables with typed columns
-  calculate live; queries embed file lists that keep themselves current,
-  filtered by properties, tags or tasks. All of it stays plain text inside
-  your file.
+  calculate live, and links and tags in their text cells work as anywhere
+  else; queries embed file lists that keep themselves current, filtered by
+  properties, tags or tasks, grouped with counts and totals per group, and
+  a query you need often can be kept as a document of its own. All of it
+  stays plain text inside your file.
 - **A database made of Markdown files** — a file can state in its own head
   that it is a table: which fields it has, of what type, with labels in
   several languages and a key of your choosing. The records live in the body
   of that same file, one line per record, and are shown as a typed table while
-  you read and while you write. A link can point at a single record, and a
-  table that grows large is spread over several files at the record boundary,
+  you read and while you write. A link can point at a single record and takes
+  you to its row, and a table that grows large is spread over several files at
+  the record boundary,
   never inside a record. Because the description travels with the data, a
   table stays complete when you rename it, move it or hand it on, and it stays
   readable in any editor. Records are kept in a form generated from the table
   definition: every save takes effect completely or not at all, reserves the
   record while you edit it, leaves a change record next to the table and is
   checked against the table's key, its references to other tables and its
-  validation rules. A consistency check finds what was changed by hand.
+  validation rules. A consistency check finds what was changed by hand. The
+  same query language that lists your files also queries the records: it
+  follows references from one record to another, walks hierarchies such as an
+  organisation chart across any number of levels and shows them as a tree,
+  and groups, counts and totals the records, for instance books and pages per
+  author.
 - **Journals from day to year** — daily, weekly, monthly, quarterly and
   yearly entries from your own folder and naming scheme, with built-in
   navigation through the periods.

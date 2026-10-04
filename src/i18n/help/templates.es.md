@@ -2,7 +2,7 @@
 
 Las plantillas son archivos Markdown corrientes en una **carpeta de plantillas** configurable. Al aplicarlas, la aplicación evalúa **marcadores** seleccionados: fecha y hora con desplazamiento y formato, título y carpeta del archivo de destino, diálogos de entrada y selección, el portapapeles y una posición de destino del cursor. Las plantillas crean archivos nuevos con estructura lista o insertan bloques recurrentes en la posición del cursor; las **reglas de carpeta** rellenan los archivos nuevos automáticamente.
 
-La funcionalidad se puede conmutar como extensión «Plantillas» (Configuración → Extensiones); desactivada, desaparecen los comandos, la sección de configuración y las reglas de carpeta.
+La funcionalidad se puede conmutar como extensión «Plantillas» (Configuración → Extensiones); desactivada, desaparecen los comandos, la sección de configuración, las reglas de carpeta y la exclusión de las plantillas de las consultas.
 
 ## Carpeta de plantillas
 
@@ -12,6 +12,8 @@ La carpeta de plantillas se configura en los ajustes (Configuración → Plantil
 - **Por área** se puede definir una configuración propia («Usar configuración del área» en la entrada «Plantillas» del grupo de navegación «Área actual», visible solo cuando hay un área abierta; con un libro abierto el grupo se llama **Libro actual**, con una estantería abierta **Estantería actual**); se guarda en el archivo del área y **anula por completo la global** (carpeta y reglas, sin resolución mixta). Las carpetas son relativas a la raíz del área; las rutas absolutas siguen permitidas.
 
 Cada archivo Markdown de la carpeta (incluidas las subcarpetas) es una plantilla. Las subcarpetas aparecen como grupos en el popup de selección. Los cambios de configuración surten efecto de inmediato, sin reiniciar.
+
+**Las plantillas en las consultas.** Lo que está en la carpeta de plantillas, subcarpetas incluidas, no es un resultado en ninguna [Consulta Perspective](frontmatter-query.md), en ninguno de sus niveles, y tampoco aporta valores a los repertorios de valores ni a los campos de recopilación de los [Perfiles de propiedades](property-profiles.md). Así, el contenido de una plantilla, por ejemplo una tarea de muestra, no aparece en ningún resumen. Quien quiera consultar plantillas nombra la carpeta expresamente en `FROM`, por ejemplo `FROM "Plantillas"`. Cuenta la carpeta que también determina la selección de plantillas, es decir, la configuración del área antes de la global; la carpeta de plantillas de un área vinculada no cuenta.
 
 ## Aplicar plantillas
 

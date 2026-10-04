@@ -15,6 +15,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 test.describe('SR-01: Session-Restore einer geloeschten Datei (W-14, 4T-000308)', () => {
   test('nicht lesbarer Tab bleibt als missing-Tab erhalten statt still verworfen', async () => {
@@ -28,7 +29,7 @@ test.describe('SR-01: Session-Restore einer geloeschten Datei (W-14, 4T-000308)'
     const userData = first.userData;
     try {
       await expect(first.page.locator(SEL.tabs0)).toHaveCount(1);
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await first.app.waitForEvent('close');
 
       // Datei zwischen den Laeufen loeschen — Restore trifft auf einen

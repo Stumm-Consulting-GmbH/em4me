@@ -30,9 +30,10 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, warteAufRendererBereit } = require('../helpers/app');
 const { warteAufText } = require('../helpers/dateien');
 const { bedieneBis, oeffneEinstellungsSeite, EINSTELLUNGS_SEITE } = require('../helpers/eingabe');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 const { SEL } = require('../helpers/selectors');
 
 const PANE0 = '.pane-group[data-pane="0"]';
@@ -80,8 +81,11 @@ function schreibeTafel(dir, name = 'Tafel.md', inhalt = TAFEL_TEXT) {
   return datei;
 }
 
+// Befehl an das Fenster, über `hauptSenden` (Stabilitätsregel 31): Bei
+// verlorener Rückmeldung gilt er als abgesetzt und wird nicht wiederholt.
 async function sendeMenuKanal(app, kanal, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, nutzlast) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(nutzlast.kanal, ...nutzlast.args);
@@ -94,6 +98,12 @@ async function sendeMenuKanal(app, kanal, ...args) {
 // und Electron-IPC puffert nicht: Ein zu früh gesendetes Ereignis verfällt
 // lautlos. Deshalb wird gesendet, bis die Wirkung eintritt (Muster
 // canvas-austausch.spec.js).
+//
+// **Nur für idempotente Befehle** (Stabilitätsregel 13): das Umschalten der
+// Ansicht und das Umwandeln eines leeren Dokuments, das ein zweites Mal nur
+// den Hinweis «nicht leer» zeigt und nichts ändert. «Speichern» und «Neue
+// Tafel» sind es nicht und laufen über `speichere` bzw. ein einmaliges Senden
+// nach der Bereitschaft der Oberfläche.
 async function sendeBis(app, kanal, bedingung, args = []) {
   await expect
     .poll(
@@ -112,19 +122,23 @@ async function sendeBis(app, kanal, bedingung, args = []) {
 // gestellt beziehungsweise nicht gestellt wurde; `__antwort` steuert seine
 // Antwort (0 = Löschen, 1 = Abbrechen).
 async function stubDialoge(app, speicherPfad) {
-  await app.evaluate(({ dialog }, pfad) => {
-    globalThis.__rueckfragen = [];
-    globalThis.__antwort = 1;
-    dialog.showSaveDialog = async () => ({ canceled: false, filePath: pfad });
-    dialog.showMessageBox = async (_win, optionen) => {
-      globalThis.__rueckfragen.push(String(optionen && optionen.message));
-      return { response: globalThis.__antwort };
-    };
-  }, speicherPfad);
+  await hauptSenden(
+    app,
+    ({ dialog }, pfad) => {
+      globalThis.__rueckfragen = [];
+      globalThis.__antwort = 1;
+      dialog.showSaveDialog = async () => ({ canceled: false, filePath: pfad });
+      dialog.showMessageBox = async (_win, optionen) => {
+        globalThis.__rueckfragen.push(String(optionen && optionen.message));
+        return { response: globalThis.__antwort };
+      };
+    },
+    speicherPfad,
+  );
 }
 
 function rueckfragen(app) {
-  return app.evaluate(() => globalThis.__rueckfragen || []);
+  return hauptLesen(app, () => globalThis.__rueckfragen || []);
 }
 
 // Der erste Parameter eines `app.evaluate` ist IMMER das Electron-Modul; die
@@ -132,9 +146,13 @@ function rueckfragen(app) {
 // still das Modul ein — hier hätte das die Zustimmung zur Rückfrage in einen
 // Abbruch verwandelt, und zwar ohne jede Fehlermeldung.
 function setzeAntwort(app, wert) {
-  return app.evaluate((_elektron, w) => {
-    globalThis.__antwort = w;
-  }, wert);
+  return hauptSenden(
+    app,
+    (_elektron, w) => {
+      globalThis.__antwort = w;
+    },
+    wert,
+  );
 }
 
 // Die Tafel-Ansicht öffnen. Der Modus kommt über denselben Kanal wie der
@@ -154,18 +172,33 @@ async function macheAenderbar(page) {
   });
 }
 
-// Speichern und den geschriebenen Stand lesen. Der Beleg ist die Datei, nicht
-// die Oberfläche.
+// Einmal speichern und warten, bis die Datei die Bedingung erfüllt (Vorbild
+// `speichere` in kanban-angaben.spec.js). Der Beleg ist die Datei, nicht die
+// Oberfläche.
+//
+// **Genau einmal gesendet** (4T-001923): Bis zum 2026-10-01 sendete dieser Weg
+// «Speichern» in einer Wiederhol-Klammer, bis die Datei die Erwartung erfüllte.
+// Dauerte ein Speichervorgang länger als rund 100 ms, kam ein zweiter Befehl,
+// während der erste noch schrieb, und die Anwendung stellte die Konflikt-Frage
+// «außerhalb der App geändert» — gemessen in 4 von 4 Schritten bei gestellten
+// 300 ms Speicher-Dauer; so lief KB-03 am 2026-09-23 und 2026-09-24 rot. Der
+// Fehler der Anwendung dahinter bleibt im Vorgang 4T-001923 offen und ist in
+// test/e2e/regression/4t-0945-b12.spec.js (KS-07, KS-08, KS-10) geführt. Ein
+// einzelnes Senden genügt, weil die Menü-Listener zu diesem Zeitpunkt
+// registriert sind: Jeder Fall hat vorher einen Menü-Befehl mit sichtbarer
+// Wirkung abgesetzt, und alle Menü-Listener entstehen gemeinsam.
+async function speichere(app, pfad, bedingung) {
+  await sendeMenuKanal(app, 'menu:save');
+  await expect
+    .poll(() => bedingung(fs.existsSync(pfad) ? fs.readFileSync(pfad, 'utf8') : ''), {
+      timeout: 15000,
+    })
+    .toBe(true);
+  return fs.readFileSync(pfad, 'utf8');
+}
+
 async function speichereUndLies(app, pfad, erwarteterTeil) {
-  await sendeBis(
-    app,
-    'menu:save',
-    async () => {
-      const text = fs.existsSync(pfad) ? fs.readFileSync(pfad, 'utf8') : '';
-      return text.includes(erwarteterTeil);
-    },
-    [],
-  );
+  await speichere(app, pfad, (text) => text.includes(erwarteterTeil));
   return warteAufText(pfad, erwarteterTeil);
 }
 
@@ -201,8 +234,12 @@ test.describe('KB-01: Tafel anlegen, Ansicht verlassen und wieder öffnen (F-314
     try {
       await stubDialoge(app, ziel);
       // Anlegen über das Kommando «Neue Kanban-Tafel»; es braucht kein
-      // geöffnetes Dokument und öffnet die Tafel-Ansicht gleich mit.
-      await sendeBis(app, 'menu:kanbanNewBoard', () => page.locator(TAFEL).isVisible());
+      // geöffnetes Dokument und öffnet die Tafel-Ansicht gleich mit. Es ist
+      // nicht idempotent (jede Sendung legt ein Dokument an) und geht deshalb
+      // genau einmal, nach der Bereitschaft der Oberfläche (4T-001923).
+      await warteAufRendererBereit(page);
+      await sendeMenuKanal(app, 'menu:kanbanNewBoard');
+      await expect(page.locator(TAFEL)).toBeVisible();
 
       await expect(page.locator(SPALTEN)).toHaveCount(3);
       await expect(page.locator(`${SPALTEN} .kanban-spalte-titel`)).toHaveText([
@@ -253,16 +290,14 @@ test.describe('KB-02: leeres Dokument in eine Tafel umwandeln (F-314)', () => {
         page.locator(SEL.paneSourceEditor0).isVisible(),
       );
 
-      await sendeBis(app, 'menu:kanbanConvertToBoard', async () => {
-        const text = fs.existsSync(datei) ? fs.readFileSync(datei, 'utf8') : '';
-        if (text.includes('kanban-plugin')) return true;
-        // Der Schreibvorgang landet zuerst im Puffer; gemessen wird an der
-        // Datei, deshalb wird nach jedem Versuch gespeichert.
-        await sendeMenuKanal(app, 'menu:save');
-        return false;
-      });
+      // Umwandeln ist idempotent (ein zweites Mal zeigt es nur den Hinweis
+      // «nicht leer»), gesendet wird deshalb bis zur Wirkung im Puffer. Das
+      // Speichern danach geht genau einmal (4T-001923).
+      await sendeBis(app, 'menu:kanbanConvertToBoard', async () =>
+        (await page.locator(SEL.paneSourceEditor0).innerText()).includes('kanban-plugin'),
+      );
 
-      const text = await warteAufText(datei, 'kanban-plugin');
+      const text = await speichereUndLies(app, datei, 'kanban-plugin');
       expect(spaltenTitel(text)).toEqual(['Zu erledigen', 'In Arbeit', 'Erledigt']);
       expect(text).toContain('**Fertiggestellt**');
 
@@ -333,11 +368,7 @@ test.describe('KB-03: Karte anlegen, bearbeiten, abhaken und löschen (F-314)', 
       await expect(zweite).toHaveAttribute('aria-selected', 'true');
       await page.keyboard.press('Delete');
       await expect(page.locator(`${SPALTEN}[data-spalte="0"] .kanban-karte`)).toHaveCount(2);
-      await sendeBis(app, 'menu:save', () => {
-        const stand = fs.readFileSync(datei, 'utf8');
-        return !stand.includes('Zweite Karte');
-      });
-      const letzter = fs.readFileSync(datei, 'utf8');
+      const letzter = await speichere(app, datei, (stand) => !stand.includes('Zweite Karte'));
       expect(kartenZeilen(letzter, 'Offen').map((z) => z.replace(/ ✅ .*$/, ''))).toEqual([
         '- [x] Erste Karte',
         '- [ ] Dritte Karte, umbenannt',
@@ -393,7 +424,7 @@ test.describe('KB-04: Spalte anlegen, umbenennen und löschen (F-314)', () => {
       await page.locator(`${KONTEXTMENUE} [data-menu-id="kanban-column-delete"]`).click();
       await expect(page.locator(SPALTEN)).toHaveCount(2);
       expect(await rueckfragen(app)).toEqual([]);
-      await sendeBis(app, 'menu:save', () => !fs.readFileSync(datei, 'utf8').includes('## Zurück'));
+      await speichere(app, datei, (stand) => !stand.includes('## Zurück'));
 
       // --- Löschen einer gefüllten Spalte: Rückfrage, erst abgebrochen -------
       await setzeAntwort(app, 1);
@@ -415,8 +446,7 @@ test.describe('KB-04: Spalte anlegen, umbenennen und löschen (F-314)', () => {
       await page.locator(`${KONTEXTMENUE} [data-menu-id="kanban-column-delete"]`).click();
       await expect.poll(async () => (await rueckfragen(app)).length).toBe(2);
       await expect(page.locator(SPALTEN)).toHaveCount(1);
-      await sendeBis(app, 'menu:save', () => !fs.readFileSync(datei, 'utf8').includes('## Offen'));
-      const letzter = fs.readFileSync(datei, 'utf8');
+      const letzter = await speichere(app, datei, (stand) => !stand.includes('## Offen'));
       expect(spaltenTitel(letzter)).toEqual(['Fertig']);
       expect(letzter).not.toContain('Erste Karte');
       expect(letzter).toContain('**Fertiggestellt**');
@@ -479,7 +509,7 @@ test.describe('KB-05: Erweiterung «Kanban» abschalten und wieder einschalten (
 // ersten Fensters und legt bei jedem Neubau alle Beschriftungen rekursiv ab
 // (Muster arbeitsbereiche.spec.js).
 async function armiereMenueMitschrift(app) {
-  await app.evaluate(({ BrowserWindow }) => {
+  await hauptSenden(app, ({ BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows()[0];
     if (!win || win.__menuCaptureArmed) return;
     win.__menuCaptureArmed = true;
@@ -500,7 +530,7 @@ async function armiereMenueMitschrift(app) {
 }
 
 function menueBeschriftungen(app) {
-  return app.evaluate(() => globalThis.__menuLabels || []);
+  return hauptLesen(app, () => globalThis.__menuLabels || []);
 }
 
 // Die Erweiterung «Kanban» über den Einstellungs-Bereich schalten — der Weg des

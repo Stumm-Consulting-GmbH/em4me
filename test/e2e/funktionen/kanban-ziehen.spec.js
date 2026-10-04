@@ -20,6 +20,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { bedieneBis } = require('../helpers/eingabe');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const PANE0 = '.pane-group[data-pane="0"]';
 const TAFEL = `${PANE0} .pane-kanban .kanban-tafel`;
@@ -61,7 +62,8 @@ function raeumeAuf(dir) {
 }
 
 async function sendeMenuKanal(app, kanal, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, nutzlast) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(nutzlast.kanal, ...nutzlast.args);

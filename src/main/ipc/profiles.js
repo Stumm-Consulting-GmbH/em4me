@@ -27,6 +27,10 @@ const { TAG_RE, isValidTag } = require('../index/parse');
 const { createProfileCatalogCache, loadProfileCatalog } = require('../documents/profile-catalog');
 const selbstSchreib = require('../documents/self-write');
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
+// 4T-002080 (Epic 3E-000259): dieselbe Aufgaben-Umgebung wie der Abfrage-Kanal
+// (src/main/ipc/index-views.js); ohne sie war jede Aufgaben-Abfrage als Quelle
+// von Wertevorrat oder Lookup-Feld ein Abfrage-Fehler und damit leer.
+const { buildTaskEnv } = require('../index/task-env.js');
 
 // 4T-000447: Profil-Katalog des Profil-Ordners mit mtime-validiertem Cache
 // pro Profil-Datei (electron-frei, unit-getestet; fs wird hier gebunden).
@@ -96,6 +100,7 @@ function ordnerVon(areaRoot, filePath) {
  * @param {(channel: string, ...args: any[]) => void} deps.broadcast Meldung an alle Fenster.
  * @param {object} deps.mddStore Container-Kern der Begleitdateien.
  * @param {Function} deps.readAreaProfilesConfig Profil-Sektion der Bereichsdatei lesen.
+ * @param {Function} deps.resolveQueryTemplatesFolder Vorlagen-Ordner, den eine Abfrage ausschließt.
  */
 function registerProfilesIpc(handle, deps) {
   const {
@@ -109,10 +114,22 @@ function registerProfilesIpc(handle, deps) {
     readAreaProfilesConfig,
     // 4T-001156: Index-Sichten für die Ziel-Liste der Verweis-Felder.
     backlinks,
+    // 4T-002082: Wertevorrat und Lookup-Feld schließen dieselben Vorlagen aus.
+    resolveQueryTemplatesFolder,
   } = deps;
   // 4T-000999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
   // Der Bezeichner bleibt `store`, damit die Handler-Rumpfe unveraendert sind.
   const store = getStore();
+
+  // 4T-002080 (Epic 3E-000259): Aufgaben-Umgebung der beiden Abfrage-Quellen,
+  // je Lauf frisch aus dem Speicher wie im Abfrage-Kanal, damit eine geänderte
+  // Einstellung sofort wirkt.
+  const aufgabenUmgebung = () =>
+    buildTaskEnv({
+      disabledExtensions: store ? store.get('extensions.disabled') : [],
+      tasksConfig: store ? store.get('tasksConfig') : null,
+      taskStates: store ? store.get('taskStates') : null,
+    });
 
   // --- 4T-000446 (Epic 3E-000083): Profil-Konfiguration (propertyProfiles-Sektion) --
 
@@ -392,7 +409,16 @@ function registerProfilesIpc(handle, deps) {
     const abs = path.resolve(filePath);
     if (!isInsideArea(area.rootPath, abs)) return leer;
     backlinks.ensureIndexForDemand(abs, `${event.sender.id}:demand`, area.rootPath);
-    const { status, values } = backlinks.werteAusAbfrage(abs, area.rootPath, query);
+    // 4T-002082 (Epic 3E-000259): derselbe Vorlagen-Ordner wie im Abfrage-Kanal.
+    const templatesFolder = await resolveQueryTemplatesFolder(senderWindow(event));
+    const { status, values } = backlinks.werteAusAbfrage(
+      abs,
+      area.rootPath,
+      query,
+      null,
+      templatesFolder,
+      aufgabenUmgebung(),
+    );
     return { ok: true, status, values };
   });
 
@@ -442,7 +468,16 @@ function registerProfilesIpc(handle, deps) {
     const abs = path.resolve(filePath);
     if (!isInsideArea(area.rootPath, abs)) return leer;
     backlinks.ensureIndexForDemand(abs, `${event.sender.id}:demand`, area.rootPath);
-    const { status, values } = backlinks.lookupTreffer(abs, area.rootPath, optionen);
+    // 4T-002082 (Epic 3E-000259): derselbe Vorlagen-Ordner wie im Abfrage-Kanal.
+    const templatesFolder = await resolveQueryTemplatesFolder(senderWindow(event));
+    const { status, values } = backlinks.lookupTreffer(
+      abs,
+      area.rootPath,
+      optionen,
+      null,
+      templatesFolder,
+      aufgabenUmgebung(),
+    );
     return { ok: true, status, values };
   });
 }

@@ -28,6 +28,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 // 1x1-PNG; hier zählt der geöffnete Pfad, nicht das Bild.
 const PNG_BASE64 =
@@ -82,7 +83,7 @@ function removeDir(dir) {
 }
 
 async function fangeOeffnenAb(app) {
-  await app.evaluate(({ shell }) => {
+  await hauptSenden(app, ({ shell }) => {
     globalThis.__geoeffnet = [];
     globalThis.__extern = [];
     shell.openPath = async (p) => {
@@ -94,8 +95,8 @@ async function fangeOeffnenAb(app) {
     };
   });
 }
-const geoeffnete = (app) => app.evaluate(() => globalThis.__geoeffnet || []);
-const externe = (app) => app.evaluate(() => globalThis.__extern || []);
+const geoeffnete = (app) => hauptLesen(app, () => globalThis.__geoeffnet || []);
+const externe = (app) => hauptLesen(app, () => globalThis.__extern || []);
 
 const FLAECHE = '#image-lightbox';
 const LIVE = SEL.paneSource0;

@@ -2,7 +2,7 @@
 
 Vorlagen sind gewöhnliche Markdown-Dateien in einem konfigurierbaren **Vorlagen-Ordner**. Beim Anwenden wertet die App kuratierte **Platzhalter** aus: Datum und Zeit mit Offset und Format, Titel und Ordner der Zieldatei, Eingabe- und Auswahl-Dialoge, die Zwischenablage und eine Cursor-Zielposition. Vorlagen erzeugen neue Dateien mit fertiger Struktur oder fügen wiederkehrende Bausteine an der Cursor-Position ein; **Ordner-Regeln** füllen neue Dateien automatisch.
 
-Die Funktionalität ist als Erweiterung «Vorlagen» schaltbar (Einstellungen → Erweiterungen); im Aus-Zustand entfallen die Kommandos, der Einstellungs-Bereich und die Ordner-Regeln.
+Die Funktionalität ist als Erweiterung «Vorlagen» schaltbar (Einstellungen → Erweiterungen); im Aus-Zustand entfallen die Kommandos, der Einstellungs-Bereich, die Ordner-Regeln und der Ausschluss der Vorlagen aus Abfragen.
 
 ## Vorlagen-Ordner
 
@@ -12,6 +12,8 @@ Der Vorlagen-Ordner wird in den Einstellungen konfiguriert (Einstellungen → Vo
 - **Pro Bereich** kann eine eigene Konfiguration gesetzt werden («Bereichs-Konfiguration verwenden» im Eintrag «Vorlagen» der Navigations-Gruppe «Aktueller Bereich», nur bei geöffnetem Bereich sichtbar; bei geöffnetem Buch heißt die Gruppe **Aktuelles Buch**, bei geöffnetem Bücherregal **Aktuelles Bücherregal**); sie wird in der Bereichsdatei des Bereichs gespeichert und **übersteuert die globale vollständig** (Ordner und Regeln, keine Misch-Auflösung). Ordner-Angaben sind dabei relativ zur Bereichs-Wurzel, absolute Pfade bleiben erlaubt.
 
 Jede Markdown-Datei im Ordner (inklusive Unterordnern) ist eine Vorlage. Unterordner erscheinen im Auswahl-Popup als Gruppen. Änderungen an der Konfiguration wirken sofort, ohne Neustart.
+
+**Vorlagen in Abfragen.** Was im Vorlagen-Ordner liegt, samt Unterordnern, ist in keiner [Perspective-Abfrage](frontmatter-query.md) ein Treffer, auf keiner ihrer Ebenen, und liefert auch keine Werte für Wertevorräte und Sammel-Felder der [Eigenschafts-Profile](property-profiles.md). So erscheint der Inhalt einer Vorlage, etwa eine Muster-Aufgabe, in keiner Übersicht. Wer Vorlagen abfragen will, nennt den Ordner in `FROM` ausdrücklich, etwa `FROM "Vorlagen"`. Maßgeblich ist der Ordner, der auch die Vorlagen-Auswahl bestimmt, also die Bereichs-Konfiguration vor der globalen; der Vorlagen-Ordner eines verknüpften Bereichs zählt nicht.
 
 ## Vorlagen anwenden
 

@@ -588,11 +588,12 @@ function createAreaConfig(deps) {
   // (falls das Fenster einen Bereich hat) uebersteuert die globalen
   // Einstellungs-Werte vollstaendig; Details in src/main/documents/templates.js.
   // 4T-001456: dazu die Kette der verknuepften Quellen.
-  async function resolveTemplatesForWindow(win) {
+  async function resolveTemplatesForWindow(win, mitVerknuepften = true) {
     const store = getStore();
     const area = areaOfWindow(win);
     const areaConfig = area ? await readAreaTemplatesConfig(area.rootPath) : undefined;
-    const linkedSources = area ? await verknuepfteVorlagenQuellen(area.rootPath) : [];
+    const linkedSources =
+      area && mitVerknuepften ? await verknuepfteVorlagenQuellen(area.rootPath) : [];
     return resolveTemplatesConfig({
       areaRootPath: area ? area.rootPath : null,
       areaConfig,
@@ -602,6 +603,25 @@ function createAreaConfig(deps) {
       },
       linkedSources,
     });
+  }
+
+  // 4T-002082 (Epic 3E-000259, Festlegungen 16 bis 19): der Vorlagen-Ordner,
+  // den eine Abfrage ausschließt. Es ist der EIGENE Ordner der Kette (Bereich vor
+  // global, samt Unterordnern); die Ordner verknüpfter Bereiche zählen nicht,
+  // weil sie außerhalb des Suchraums liegen, und werden deshalb gar nicht erst
+  // gelesen. Im Aus-Zustand der Erweiterung «Vorlagen» gibt es keinen Ordner,
+  // weil die Anwendung dann nichts als Vorlage behandelt.
+  //
+  // Gelesen wird je Aufruf frisch, wie bei der Vorlagen-Auswahl: Die
+  // Bereichsdatei ist klein, und ein Zwischenwert müsste den Wechsel des
+  // Ordners, der Erweiterung und der Bereichsdatei von außen erkennen, um nie
+  // veraltet zu antworten.
+  async function resolveQueryTemplatesFolder(win) {
+    const store = getStore();
+    if (!isExtensionEnabled('templates', store ? store.get('extensions.disabled') : [])) {
+      return null;
+    }
+    return (await resolveTemplatesForWindow(win, false)).folder;
   }
 
   return {
@@ -626,6 +646,7 @@ function createAreaConfig(deps) {
     readAreaLinks,
     writeAreaLinks,
     resolveTemplatesForWindow,
+    resolveQueryTemplatesFolder,
   };
 }
 

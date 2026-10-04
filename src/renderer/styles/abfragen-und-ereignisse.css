@@ -49,7 +49,22 @@
   color: var(--fg-muted);
   font-size: 0.85em;
   font-style: italic;
-  margin: 0.3em 0;
+  margin: 0.9em 0 0;
+}
+/* 4T-001983 (Epic 3E-000258), Befund der Abnahme: Der Hinweis gehört zur Ausgabe
+   unter ihm. Er hält deshalb Abstand nach oben und rückt an seine Ausgabe heran;
+   bei gleichem Abstand nach beiden Seiten las er sich als Fußzeile des
+   Abfrage-Blocks darüber. Das Element-Glied hebt die Regel über den
+   Außenabstand der Liste, gleich in welcher Reihenfolge die Stilblätter laden. */
+.markdown-body .perspective-query-hint + :is(ul, ol, table, div, p) {
+  margin-top: 0.2em;
+}
+/* 4T-002044 (Epic 3E-000258): Baum einer Datensatz-Abfrage (DISPLAY tree). Jede
+   tiefere Ebene rückt ein, mit Führungslinie in der Rahmenfarbe des Themas. */
+.markdown-body .perspective-query-tree .perspective-query-subtree {
+  margin: 0.15em 0 0;
+  padding-left: 1.2em;
+  border-left: 1px solid var(--border);
 }
 
 /* 4T-000418 (Epic 3E-000079): Perspective Datatable — Grid-Anzeige mit
@@ -184,6 +199,14 @@
 }
 .content.view-split .pane-rendered .markdown-body .pdt-cell.pdt-type-boolean[tabindex],
 .cm-live-block .pdt-cell.pdt-type-boolean[tabindex] {
+  cursor: pointer;
+}
+/* 4T-002014 (Epic 3E-000332): Ein Verweis oder Schlagwort in einer bearbeitbaren
+   Zelle folgt dem Klick, der Rest der Zelle öffnet die Bearbeitung
+   (Entscheidung F2 a). Der Zeiger zeigt den Unterschied an, statt den
+   Text-Zeiger der Zelle zu erben. */
+.content.view-split .pane-rendered .markdown-body .pdt-cell[tabindex] a[href],
+.cm-live-block .pdt-cell[tabindex] a[href] {
   cursor: pointer;
 }
 /* 4T-001345 (Epic 3E-000239): Die Zell-Eingabe der Pipe-Tabellen in der

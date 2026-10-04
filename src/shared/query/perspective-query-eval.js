@@ -13,10 +13,13 @@
 //                         und Anzeige-Form; Blatt des Ordners
 //   query-functions.js    Funktions-Katalog, AST-Validierung, Link-Bedarf
 //   query-task-fields.js  Feld-Katalog des TASKS-Scopes
+//   query-record-fields.js  Feld-Katalog des RECORDS-Scopes (4T-002039)
 //   query-sources.js      Quellen-Ebene (FROM: Ordner, Tag, Link, Selbstbezug)
 //                         samt der Ordner-Normalisierung; Blatt (4T-001070)
 // Der Import-Graph läuft ausschließlich von hier nach unten; kein
-// Schwester-Modul lädt den Kern.
+// Schwester-Modul lädt den Kern. Ausnahme ist query-aggregate.js (4T-002078),
+// das ÜBER dem Kern steht: Es wertet über einer Gruppe aus und ruft dafür den
+// Kern je Zeile; der Kern kennt es nicht.
 //
 // Das Werte-Modell steht im Kopf von query-format.js.
 //
@@ -47,6 +50,10 @@
 //                          heading, statusType, description, tags, urgency
 //                          (4T-000505, vorberechneter Score) } — pro
 //                        Task-Treffer; fehlt in den anderen Scopes
+//     record,            4T-002039 (Epic 3E-000258): Datensatz-Kontext des
+//                        RECORDS-Scopes { table, id, path, display, values }
+//                        (Feld-Katalog in query-record-fields.js); `file` ist
+//                        dort die Tabellen-Datei
 //   }
 //
 // Semantik-Grundsätze:
@@ -73,21 +80,36 @@ const {
   isRich,
   plainValue,
   concatRich,
+  isRecordRef,
 } = require('./query-format.js');
 const { FUNCTIONS } = require('./query-functions.js');
 const { resolveTaskField } = require('./query-task-fields.js');
+// 4T-002039 (Epic 3E-000258): Feld-Katalog der Datensatz-Ebene; seit 4T-002041
+// mit Pfad-Navigation und dem Vergleich eines Verweises mit Text.
+const { resolveRecordField, recordRefEquals } = require('./query-record-fields.js');
 // 4T-001070 (Epic 3E-000211): Quellen-Ebene (FROM) im eigenen Schwester-Modul.
 const { matchesSource } = require('./query-sources.js');
 
 // --- Werte-Ordnung ------------------------------------------------------------
 
+// 4T-001074 (Epic 3E-000211): Rich-Werte ordnen über ihre Text-Form; SORT über
+// einen ausgezeichneten Ausdruck sortiert wie über den unmarkierten.
+// 4T-002041 (Epic 3E-000258): Ein Datensatz-Verweis ordnet über seine Text-Form,
+// die Anzeige-Form des Ziels, sonst die Kennung; SORT nach einem Verweis-Feld
+// sortiert also, wie die Spalte zu lesen ist. Die Gleichheit rechnet dagegen
+// nicht über diese Form (Festlegung 8 des Epics).
+function refText(v) {
+  return isRecordRef(v) ? formatValue(v) : v;
+}
+function orderForm(v) {
+  return plainValue(refText(v));
+}
+
 // Ordnung zweier Werte: -1/0/1 oder null (nicht vergleichbar). Datum vor Zahl
 // prüfen, damit ISO-Strings gegen Datums-Werte chronologisch laufen.
 function orderValues(aRaw, bRaw) {
-  // 4T-001074 (Epic 3E-000211): Rich-Werte ordnen über ihre Text-Form; SORT über
-  // einen ausgezeichneten Ausdruck sortiert wie über den unmarkierten.
-  const a = plainValue(aRaw);
-  const b = plainValue(bRaw);
+  const a = orderForm(aRaw);
+  const b = orderForm(bRaw);
   if (a === null || a === undefined || b === null || b === undefined) return null;
   if (Array.isArray(a) || Array.isArray(b)) return null;
   if (isDate(a) || isDate(b)) {
@@ -236,6 +258,11 @@ function resolveField(name, ctx) {
       return typeof block.updatedMs === 'number' ? { kind: 'date', ms: block.updatedMs } : null;
     }
   }
+  // 4T-002039 (Epic 3E-000258): Auf der Datensatz-Ebene (ctx.record gesetzt)
+  // antwortet der Datensatz allein, ohne Rückfall auf das Frontmatter der
+  // Tabellen-Datei; `this.` und `file.` sind oben bereits beantwortet. Den
+  // Navigator für Pfade über Verweis-Felder reicht der Erzeuger herein (4T-002041).
+  if (ctx && ctx.record) return resolveRecordField(lower, ctx.record, ctx.recordNav);
   const raw = lookupProp(ctx && ctx.props, lower);
   return raw === undefined ? null : raw;
 }
@@ -284,6 +311,14 @@ function relativeDateMs(word, nowMs) {
   }
 }
 
+// Gleichheit in `=`, `!=`, `IN` und `NOT IN`. 4T-002041 (Epic 3E-000258): Auf
+// der Datensatz-Ebene vergleicht ein Verweis mit Text nach Festlegung 8 über
+// den Navigator des Erzeugers; sonst gilt equalsValue unverändert.
+function equalsIn(a, b, ctx) {
+  const hit = ctx && ctx.recordNav ? recordRefEquals(a, b, ctx.recordNav) : undefined;
+  return hit === undefined ? equalsValue(a, b) : hit;
+}
+
 // Wertet einen Ausdrucks-Knoten zum Wert aus (Werte-Modell oben). Boolesche
 // Knoten liefern JS-Booleans; nicht auswertbare Kombinationen null.
 function evaluateExpression(node, ctx) {
@@ -306,6 +341,11 @@ function evaluateExpression(node, ctx) {
       return { kind: 'dur', ms: node.ms };
     case 'field':
       return resolveField(node.name, ctx);
+    // 4T-002078 (Epic 3E-000259): ein vorab berechneter Wert. Ihn setzt allein
+    // die Auswertung über der Gruppe (query-aggregate.js) an die Stelle eines
+    // Aggregats oder Gruppen-Ausdrucks; der Parser erzeugt ihn nie.
+    case 'const':
+      return node.value;
     case 'call': {
       const def = FUNCTIONS.get(node.name);
       if (!def) return null;
@@ -337,8 +377,8 @@ function evaluateExpression(node, ctx) {
     case 'cmp': {
       const a = evaluateExpression(node.left, ctx);
       const b = evaluateExpression(node.right, ctx);
-      if (node.op === 'eq') return equalsValue(a, b);
-      if (node.op === 'neq') return !equalsValue(a, b);
+      if (node.op === 'eq') return equalsIn(a, b, ctx);
+      if (node.op === 'neq') return !equalsIn(a, b, ctx);
       const ord = orderValues(a, b);
       if (ord === null) return false;
       if (node.op === 'lt') return ord < 0;
@@ -349,7 +389,7 @@ function evaluateExpression(node, ctx) {
     }
     case 'inlist': {
       const left = evaluateExpression(node.left, ctx);
-      const hit = node.values.some((v) => equalsValue(left, evaluateExpression(v, ctx)));
+      const hit = node.values.some((v) => equalsIn(left, evaluateExpression(v, ctx), ctx));
       return node.op === 'in' ? hit : !hit;
     }
     default:
@@ -418,7 +458,11 @@ function matchesQuery(queryAst, ctx) {
 // über localeCompare (case-insensitiv via Lowercase), damit Umlaute und
 // Akzente natürlich einsortieren; nicht Vergleichbares meldet null und lässt
 // die Ausgangs-Reihenfolge (stabile Sortierung) bestehen.
-function orderForSort(a, b) {
+// 4T-002041: Ein Datensatz-Verweis sortiert als Text; ein Rich-Wert bleibt, wie
+// er ist, und geht wie bisher über orderValues.
+function orderForSort(aRaw, bRaw) {
+  const a = refText(aRaw);
+  const b = refText(bRaw);
   if (typeof a === 'string' && typeof b === 'string') {
     const am = parseIsoLocalMs(a);
     const bm = parseIsoLocalMs(b);

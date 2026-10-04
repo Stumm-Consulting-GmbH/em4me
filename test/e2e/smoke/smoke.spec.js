@@ -13,6 +13,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const FIXTURES = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke');
 const BASIS = path.join(FIXTURES, 'basis.md');
@@ -20,7 +21,8 @@ const ZWEITE = path.join(FIXTURES, 'zweite.md');
 
 // Sendet einen Menue-IPC-Kanal an das erste Fenster (Pfad des Menue-Klicks).
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
@@ -250,7 +252,7 @@ test.describe('SM-09: Session-Restore', () => {
       await expect(first.page.locator(SEL.tabs0)).toHaveCount(1);
       // Sauber beenden (before-quit persistiert die Sitzung), dann warten,
       // bis der Prozess wirklich weg ist.
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await first.app.waitForEvent('close');
 
       const second = await launchApp({ userData });

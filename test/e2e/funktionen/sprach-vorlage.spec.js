@@ -20,6 +20,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const I18N = path.join(__dirname, '..', '..', '..', 'src', 'i18n');
 const fassung = (code) => JSON.parse(fs.readFileSync(path.join(I18N, `${code}.json`), 'utf8'));
@@ -35,14 +36,18 @@ function removeDir(dir) {
 
 // Stellt den Speichern-Dialog auf ein festes Ziel oder auf Abbruch.
 async function stelleDialog(app, ziel) {
-  await app.evaluate(({ dialog }, z) => {
-    dialog.showSaveDialog = async () =>
-      z ? { canceled: false, filePath: z } : { canceled: true, filePath: undefined };
-  }, ziel);
+  await hauptSenden(
+    app,
+    ({ dialog }, z) => {
+      dialog.showSaveDialog = async () =>
+        z ? { canceled: false, filePath: z } : { canceled: true, filePath: undefined };
+    },
+    ziel,
+  );
 }
 
 async function sendeMenuKanal(app) {
-  await app.evaluate(({ BrowserWindow }) => {
+  await hauptSenden(app, ({ BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows()[0];
     if (win && !win.isDestroyed()) win.webContents.send('menu:exportLocaleTemplate');
   });
@@ -121,7 +126,7 @@ test.describe('SV-03: abgeschaltete Erweiterung entfernt den Menü-Eintrag (F-28
     // pro Fenster, Menu.getApplicationMenu() bleibt leer (Muster armMenuCapture
     // in arbeitsbereiche.spec.js).
     const armMenuCapture = async (app) => {
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (!win || win.__menuCaptureArmed) return;
         win.__menuCaptureArmed = true;
@@ -140,7 +145,7 @@ test.describe('SV-03: abgeschaltete Erweiterung entfernt den Menü-Eintrag (F-28
         };
       });
     };
-    const labels = (app) => app.evaluate(() => globalThis.__menuLabels || []);
+    const labels = (app) => hauptLesen(app, () => globalThis.__menuLabels || []);
     const de = fassung('de');
 
     const { app, page, userData } = await launchApp({ settings: { language: 'de' } });

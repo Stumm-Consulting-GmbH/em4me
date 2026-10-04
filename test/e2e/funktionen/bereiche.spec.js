@@ -27,6 +27,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const FIXTURES = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke');
 const BASIS = path.join(FIXTURES, 'basis.md');
@@ -46,7 +47,7 @@ function removeDir(dir) {
 }
 
 const windowCount = (app) =>
-  app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
+  hauptLesen(app, ({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
 
 test.describe('BE-01: Bereich in leerer App öffnen (4T-000322)', () => {
   test('bindet die App: Bereichs-Titel, kein neues Fenster', async () => {
@@ -162,7 +163,8 @@ test.describe('BE-08: Außen-Link-Warnung (4T-000324)', () => {
       await page.evaluate((p) => window.api.openAreaPath(p), dir);
       await expect.poll(() => page.title()).toContain('(Bereich');
       // Datei über den Main-Kanal in das Bereichs-Fenster öffnen.
-      await app.evaluate(
+      await hauptSenden(
+        app,
         ({ BrowserWindow }, p) => {
           BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
         },
@@ -233,7 +235,7 @@ test.describe('BE-05: Bereichs-Bindung überlebt den Neustart (4T-000322)', () =
       await first.page.evaluate((p) => window.api.openAreaPath(p), dir);
       await expect.poll(() => first.page.title()).toContain(`(Bereich ${path.basename(dir)})`);
 
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await first.app.waitForEvent('close');
 
       const second = await launchApp({ userData });

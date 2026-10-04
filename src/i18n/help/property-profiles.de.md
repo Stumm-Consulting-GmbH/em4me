@@ -72,7 +72,7 @@ fields:
 
 Eine **Werte-Notiz** ist eine gewöhnliche Notiz mit einem Wert je Zeile; ihr Pfad ist bereichs-relativ. Leerzeilen und Randleerraum entfallen, ein Metadaten-Block der Notiz gehört nicht zum Vorrat. Sie wird wie eine Profil-Datei nachgezogen: Eine Änderung wirkt ohne Neustart, auch wenn sie von außen kommt. Damit ist der Wertevorrat gewöhnlicher Inhalt, den man verlinken, kommentieren und weitergeben kann.
 
-Eine **Abfrage** liefert die Werte aus dem Bestand — die Namen ihrer Treffer. Sie wird erst ausgewertet, wenn ein Feld ihren Vorrat wirklich braucht, und bis zur nächsten Bestands-Änderung gemerkt; vorab über den Gesamtbestand wird nichts gerechnet. Ein Dokument ohne Abfrage-Feld kostet dadurch keine Auswertung.
+Eine **Abfrage** liefert die Werte aus dem Bestand — die Namen ihrer Treffer. Sie wird erst ausgewertet, wenn ein Feld ihren Vorrat wirklich braucht, und bis zur nächsten Bestands-Änderung gemerkt; vorab über den Gesamtbestand wird nichts gerechnet. Ein Dokument ohne Abfrage-Feld kostet dadurch keine Auswertung. Eine gruppierte Abfrage liefert dieselben Werte wie ohne Gruppierung; die Gruppen-Werte werden keine Werte des Vorrats, und eine Bedingung über die Gruppe (`HAVING`) lässt nur die Treffer der verbleibenden Gruppen übrig. Eine Aufgaben-Abfrage liefert die Namen der Dokumente, die ihre Aufgaben tragen; es gelten der Global Filter und die globale Abfrage der [Aufgaben-Listen](tasks.md). Datensätze liefern keine Werte, und was im Vorlagen-Ordner liegt, zählt nicht mit.
 
 Fehlt eine Quelle, ist sie leer oder nicht auswertbar, dann **bleibt das Feld bedienbar**: Der Vorrat ist leer, ein Hinweis steht am Feld, und eigene Werte sind wie überall möglich.
 
@@ -240,13 +240,13 @@ fields:
 ---
 ```
 
-Ein Formel-Ausdruck nutzt dieselbe Sprache und denselben Funktions-Vorrat wie eine Abfrage-Spalte, einschließlich Datums- und Dauer-Rechnung; er darf sich auf jedes andere Feld des Dokuments beziehen, auch auf ein weiteres Formel-Feld. Die Reihenfolge in der Profil-Datei spielt dabei keine Rolle.
+Ein Formel-Ausdruck nutzt dieselbe Sprache und denselben Funktions-Vorrat wie eine Abfrage-Spalte, einschließlich Datums- und Dauer-Rechnung; er darf sich auf jedes andere Feld des Dokuments beziehen, auch auf ein weiteres Formel-Feld. Die Reihenfolge in der Profil-Datei spielt dabei keine Rolle. Zum Funktions-Vorrat gehört auch `count(x)`, die Zahl der Werte eines Feldes, etwa der Einträge einer Liste.
 
 **Der Wert steht nicht in der Datei.** Er entsteht, wenn ihn jemand sieht, und verschwindet danach wieder — das Öffnen eines Dokuments verändert es also nicht, und der Wert ist immer aktuell. In beiden Eigenschafts-Editoren erscheinen abgeleitete Felder deshalb nicht bearbeitbar, ohne Löschen-Knopf und mit gesperrtem Typ; sie werden auch nie zur Übernahme angeboten.
 
 Bleibt ein Wert leer, sagt ein Hinweis am Feld, warum: Zwei Felder verweisen im Kreis aufeinander, eine Rechenvorschrift nennt ein Feld, das es hier nicht gibt, der Ausdruck ist nicht auswertbar, oder die Vorschrift fehlt ganz. Blockiert wird nie etwas, und die übrigen Felder rechnen weiter.
 
-Ein Sammel-Feld fragt den Bereichs-Index und wird deshalb nur ausgewertet, wenn es angezeigt wird; das Ergebnis gilt, bis sich der Bestand ändert. Ein Verweis zählt in allen Schreibweisen — `[[Ziel]]`, `[[Ziel|Beschriftung]]` und der blanke Name —, und auch ein Verweis über einen Alias des eigenen Dokuments trifft.
+Ein Sammel-Feld fragt den Bereichs-Index und wird deshalb nur ausgewertet, wenn es angezeigt wird; das Ergebnis gilt, bis sich der Bestand ändert. Ein Verweis zählt in allen Schreibweisen — `[[Ziel]]`, `[[Ziel|Beschriftung]]` und der blanke Name —, und auch ein Verweis über einen Alias des eigenen Dokuments trifft. Die Abfrage unter `from` darf gruppiert sein und grenzt dann dieselben Dokumente ein wie ohne Gruppierung; eine Aufgaben-Abfrage grenzt auf die Dokumente ein, die ihre Aufgaben tragen. Was im Vorlagen-Ordner liegt, sammelt das Feld nicht.
 
 **Die Kehrseite ist bewusst in Kauf genommen:** Weil ein abgeleiteter Wert nicht in der Datei steht, steht er auch nicht im Index und trägt keine Abfrage-Bedingung. Wo das stört, rechnet die Abfrage selbst — sie kann dasselbe.
 

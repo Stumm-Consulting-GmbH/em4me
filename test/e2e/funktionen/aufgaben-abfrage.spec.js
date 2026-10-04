@@ -13,6 +13,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const DUE = '\u{1F4C5}'; // Kalender-Symbol (faelliger Termin)
 const QUERY_FENCE = ['```perspective-query', 'LIST TASKS', '```'].join('\n');
@@ -235,7 +236,8 @@ test.describe('TQ-05: Aufgaben-Abfrage — Termin verschieben in nicht geoeffnet
 const TASK_DIALOG = '#task-dialog-modal';
 
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);

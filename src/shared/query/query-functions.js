@@ -33,6 +33,9 @@ const {
 // (Katalog -> Quellen-Ebene, die selbst nichts aus dem Ordner lädt) und
 // bleibt damit kreisfrei.
 const { normFolder } = require('./query-sources.js');
+// 4T-002079 (Epic 3E-000259): der Abfrage-Fehler «HAVING ohne GROUP BY». Das
+// Modul lädt nichts; der Bezug bleibt kreisfrei.
+const { havingError } = require('./query-having.js');
 
 // --- Funktions-Katalog ---------------------------------------------------------
 
@@ -72,6 +75,17 @@ function numericList(v) {
   }
   const nums = v.map(coerceNumber).filter((n) => n !== null);
   return nums.length ? nums : null;
+}
+
+// 4T-002078 (Epic 3E-000259, Festlegung 5): Zahl der vorhandenen Werte für
+// `count(x)` an einer Zeilen-Stelle. Eine Liste zählt ihre nicht fehlenden
+// Elemente, ein Einzelwert 1, ein fehlender Wert 0. Über der Gruppe zählt
+// `count(x)` die Zeilen, in denen diese Zahl größer als null ist
+// (query-aggregate.js); beide Bedeutungen hängen damit an derselben Regel.
+function presentCount(v) {
+  if (v === null || v === undefined) return 0;
+  if (Array.isArray(v)) return v.filter((x) => x !== null && x !== undefined).length;
+  return 1;
 }
 
 // 4T-001073 (Epic 3E-000211): Vorbereitung für infolder — Liste -> Link-Werte.
@@ -247,7 +261,29 @@ const FUNCTIONS = new Map([
       },
     },
   ],
+  // 4T-002078 (Epic 3E-000259, F3a): An einer Zeilen-Stelle die Zahl der
+  // vorhandenen Werte; `count()` ohne Argument gibt es nur an einer
+  // Aggregat-Stelle (Prüfung in validateQuery, Bedeutung in query-aggregate.js).
+  ['count', { arity: [0, 1], fn: (args) => (args.length === 0 ? null : presentCount(args[0])) }],
 ]);
+
+// 4T-002078 (Epic 3E-000259, Festlegung 4): die Aggregat-Funktionen. An einer
+// Zeilen-Stelle rechnen sie über den Wert der einen Zeile (Katalog oben), an
+// einer Aggregat-Stelle über alle Zeilen der Gruppe (query-aggregate.js).
+const AGGREGATE_FUNCTIONS = new Set(['count', 'sum', 'average', 'min', 'max']);
+
+// 4T-002078 (Festlegung 3, F5 Option A): Aggregat-Stellen sind allein die
+// Spalten und die Sortierung einer gruppierten Tabelle, dazu seit 4T-002079
+// `HAVING` jeder gruppierten Abfrage (in validateQuery). Jede andere Stelle ist
+// eine Zeilen-Stelle.
+function isGroupedTable(queryAst) {
+  return (
+    !!queryAst &&
+    queryAst.type === 'table' &&
+    Array.isArray(queryAst.groupBy) &&
+    queryAst.groupBy.length > 0
+  );
+}
 
 // --- Validierung (Funktions-Namen und Stelligkeit) -----------------------------
 
@@ -256,25 +292,30 @@ const FUNCTIONS = new Map([
 // Fehler; die View bildet den Code auf i18n ab) — oder null. Damit erscheint
 // eine unbekannte Funktion bzw. falsche Stelligkeit als lokalisierter Fehler
 // am Fence, bevor die Auswertung je Datei läuft.
+//
+// 4T-002078 (Epic 3E-000259): `count()` ohne Argument ist an einer
+// Zeilen-Stelle ein Abfrage-Fehler, weil es dort nichts zu zählen gibt. Die
+// Stelle reicht `aggregate` durch: An einer Aggregat-Stelle bleibt der ganze
+// Ausdruck darunter frei; ein Aggregat im Aggregat meldet query-aggregate.js.
 function validateQuery(queryAst) {
   let err = null;
-  function walkExpr(node) {
+  function walkExpr(node, aggregate = false) {
     if (err || !node || typeof node !== 'object') return;
     switch (node.type) {
       case 'or':
       case 'and':
       case 'cmp':
       case 'arith':
-        walkExpr(node.left);
-        walkExpr(node.right);
+        walkExpr(node.left, aggregate);
+        walkExpr(node.right, aggregate);
         return;
       case 'not':
       case 'neg':
-        walkExpr(node.operand);
+        walkExpr(node.operand, aggregate);
         return;
       case 'inlist':
-        walkExpr(node.left);
-        for (const v of node.values) walkExpr(v);
+        walkExpr(node.left, aggregate);
+        for (const v of node.values) walkExpr(v, aggregate);
         return;
       case 'call': {
         const def = FUNCTIONS.get(node.name);
@@ -296,7 +337,16 @@ function validateQuery(queryAst) {
           };
           return;
         }
-        for (const a of node.args) walkExpr(a);
+        if (node.name === 'count' && node.args.length === 0 && !aggregate) {
+          err = {
+            code: 'countWithoutField',
+            message: 'count() ohne Feld nur an einer Aggregat-Stelle',
+            pos: typeof node.pos === 'number' ? node.pos : -1,
+            name: node.name,
+          };
+          return;
+        }
+        for (const a of node.args) walkExpr(a, aggregate);
         return;
       }
       default:
@@ -304,9 +354,15 @@ function validateQuery(queryAst) {
     }
   }
   if (queryAst && (queryAst.type === 'list' || queryAst.type === 'table')) {
-    for (const f of queryAst.fields || []) walkExpr(f.expr);
+    // 4T-002079 (Epic 3E-000259): HAVING braucht GROUP BY und ist dann in Liste
+    // und Tabelle eine Aggregat-Stelle, damit `count()` dort steht.
+    const missing = havingError(queryAst);
+    if (missing) return missing;
+    walkExpr(queryAst.having, true);
+    const aggregate = isGroupedTable(queryAst);
+    for (const f of queryAst.fields || []) walkExpr(f.expr, aggregate);
     walkExpr(queryAst.where);
-    for (const s of queryAst.sort || []) walkExpr(s.key);
+    for (const s of queryAst.sort || []) walkExpr(s.key, aggregate);
     // 4T-000503 (Epic 3E-000096): Gruppierungs-Ausdruecke mit validieren.
     for (const g of queryAst.groupBy || []) walkExpr(g);
   } else {
@@ -336,7 +392,8 @@ function queryUsesLinks(queryAst) {
       found = true;
       return;
     }
-    for (const key of ['left', 'right', 'operand', 'expr', 'key', 'where', 'source']) {
+    // 4T-002079: `having` wie `where`.
+    for (const key of ['left', 'right', 'operand', 'expr', 'key', 'where', 'having', 'source']) {
       if (node[key]) walk(node[key]);
     }
     if (Array.isArray(node.args)) for (const a of node.args) walk(a);
@@ -352,6 +409,10 @@ function queryUsesLinks(queryAst) {
 
 module.exports = {
   FUNCTIONS,
+  // 4T-002078 (Epic 3E-000259): Aggregat-Funktionen und Aggregat-Stellen.
+  AGGREGATE_FUNCTIONS,
+  isGroupedTable,
+  presentCount,
   validateQuery,
   queryUsesLinks,
 };

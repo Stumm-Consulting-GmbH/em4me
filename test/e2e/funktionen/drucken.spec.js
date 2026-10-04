@@ -15,6 +15,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'pdf-export.md');
 
@@ -22,23 +23,27 @@ const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'p
 // globalen Marker, damit die Ausloese-Schleife weiss, wann der Weg gelaufen
 // ist — dieselbe Mechanik wie der Dialog-Zaehler in pdf-export.spec.js.
 async function stubPrint(app, ausgang) {
-  await app.evaluate(({ BrowserWindow }, payload) => {
-    globalThis.__printCalls = [];
-    for (const win of BrowserWindow.getAllWindows()) {
-      win.webContents.print = (options, callback) => {
-        globalThis.__printCalls.push(options);
-        callback(payload.success, payload.failureReason);
-      };
-    }
-  }, ausgang);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, payload) => {
+      globalThis.__printCalls = [];
+      for (const win of BrowserWindow.getAllWindows()) {
+        win.webContents.print = (options, callback) => {
+          globalThis.__printCalls.push(options);
+          callback(payload.success, payload.failureReason);
+        };
+      }
+    },
+    ausgang,
+  );
 }
 
 function printCalls(app) {
-  return app.evaluate(() => (globalThis.__printCalls || []).length);
+  return hauptLesen(app, () => (globalThis.__printCalls || []).length);
 }
 
 function printOptions(app) {
-  return app.evaluate(() => (globalThis.__printCalls || [])[0] || null);
+  return hauptLesen(app, () => (globalThis.__printCalls || [])[0] || null);
 }
 
 // Kommando Strg+P mit Poll ausloesen, bis der Druck-Weg gelaufen ist (der

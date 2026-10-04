@@ -13,11 +13,13 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
@@ -64,7 +66,7 @@ function draftFileCount(userData) {
 // native Dialog ist per Playwright nicht bedienbar). Muster stubSaveDialog
 // aus pdf-export.spec.js.
 async function stubCancelDialog(app) {
-  await app.evaluate(({ dialog }) => {
+  await hauptSenden(app, ({ dialog }) => {
     globalThis.__closeDialogCalls = 0;
     dialog.showMessageBox = async () => {
       globalThis.__closeDialogCalls += 1;
@@ -74,7 +76,7 @@ async function stubCancelDialog(app) {
 }
 
 function closeDialogCalls(app) {
-  return app.evaluate(() => globalThis.__closeDialogCalls || 0);
+  return hauptLesen(app, () => globalThis.__closeDialogCalls || 0);
 }
 
 test.describe('DR-01: Entwurf ueberlebt Beenden und Neustart (4T-000368)', () => {
@@ -88,7 +90,7 @@ test.describe('DR-01: Entwurf ueberlebt Beenden und Neustart (4T-000368)', () =>
       // Sauber beenden (before-quit): trotz dirty Unbenannt kein Dialog — der
       // Entwurf wandert ohne Nachfrage in den Speicher. Die geoeffnete Datei
       // ist nicht dirty und loest ebenfalls keinen Dialog aus.
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await first.app.waitForEvent('close');
 
       // Nach dem Beenden liegt genau ein Entwurf im Speicher.
@@ -123,7 +125,7 @@ test.describe('DR-02: Mehrere Entwuerfe kehren zurueck (4T-000368)', () => {
       await addDraftTab(first.app, first.page, 'ENTWURF-A');
       await addDraftTab(first.app, first.page, 'ENTWURF-B');
 
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await first.app.waitForEvent('close');
       expect(draftFileCount(userData)).toBe(2);
 
@@ -160,7 +162,7 @@ test.describe('DR-03: Einstellung aus haelt das heutige Verhalten (4T-000369)', 
       // Beenden anstossen: bei ausgeschalteter Einstellung erscheint der
       // Speichern-Dialog fuer den dirty Unbenannt-Tab (Stub bricht per
       // 'Abbrechen' ab, die App bleibt offen und abfragbar).
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await expect.poll(() => closeDialogCalls(first.app)).toBeGreaterThan(0);
       // Es entstand kein Entwurf — heutiges Verhalten bleibt erhalten.
       expect(draftFileCount(userData)).toBe(0);
@@ -192,7 +194,7 @@ test.describe('DR-04: bestehende Datei behaelt den Dialog (4T-000369)', () => {
 
       // Beenden anstossen: fuer die dirty bestehende Datei erscheint der Dialog
       // (Stub bricht per 'Abbrechen' ab, die App bleibt offen und abfragbar).
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await expect.poll(() => closeDialogCalls(first.app)).toBeGreaterThan(0);
       // Der Entwurfs-Speicher bleibt leer (bestehende Dateien werden nicht als
       // Entwurf gesichert).

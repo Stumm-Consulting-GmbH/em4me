@@ -12,7 +12,7 @@
 //
 // Gemockt sind i18n (Schlüssel als Text) und die IPC-Brücke; alles Übrige
 // läuft echt, insbesondere der geteilte Gitter-Baustein.
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const getConfig = vi.fn();
 const entriesExist = vi.fn();
@@ -114,7 +114,21 @@ function zaehlen(el) {
   };
 }
 
+// 4T-002064: Die Uhr steht fest. Den Träger-Eintrag findet die Anwendung nur in
+// einem Such-Fenster um den Kalendertag (beim Wochen-Journal 165 Wochen zurück);
+// an der Wanduhr wäre die feste KW 34/2026 ab Herbst 2029 nicht mehr zu finden
+// gewesen (Wanduhr-Wächter, +5 Jahre). Der gestellte Tag liegt bewusst in einer
+// anderen Woche, einem anderen Monat, Quartal und Jahr als der Träger-Eintrag,
+// damit «gehört zum Träger-Eintrag, nicht zu heute» trennscharf bleibt.
+const HEUTE = new Date(2027, 2, 10, 12, 0, 0);
+
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(HEUTE);
   getConfig.mockReset();
   entriesExist.mockReset();
   openEntry.mockReset();

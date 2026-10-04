@@ -27,6 +27,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'frontmatter.md');
 
@@ -42,7 +43,8 @@ const MENU = '#context-menu';
 
 // Menü-IPC-Kanal direkt senden (Muster editor-kontextmenue.spec.js).
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
@@ -182,7 +184,7 @@ test.describe('KP-04: Überlauf-Mehr-Menü am schmalen Fenster', () => {
     const { app, page } = await launchApp({ args: [FIXTURE], userData });
     try {
       await expect(page.locator(SEL.tabs0)).toHaveCount(1);
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         win.setBounds({ x: 20, y: 20, width: 860, height: 600 });
       });

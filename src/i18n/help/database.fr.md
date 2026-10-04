@@ -115,6 +115,8 @@ Un texte ayant la forme d'un identifiant est toujours lu comme un identifiant. L
 
 Les deux vérifications ont besoin de la vue d'ensemble des tables de la zone. Si les tables ne sont pas encore entièrement lues, l'application refuse une modification qui pose un lien ou supprime un enregistrement, et le message invite à réessayer dans un instant.
 
+Les relations s'exploitent avec une requête d'enregistrements : un chemin comme `auteur.nom` lit le champ de l'enregistrement référencé, une condition sur le champ de référence trouve la direction inverse, et `ancestors(…)` et `descendants(…)` suivent les liens sur un nombre quelconque de niveaux. Combien d'enregistrements renvoient à un enregistrement, une requête regroupée le compte, par exemple `TABLE RECORDS count() FROM "Prêts" GROUP BY livre`. La page [Requête Perspective](frontmatter-query.md) décrit les deux dans les sections « Niveau enregistrement » et « Regroupement et agrégation ».
+
 ## Étiquettes en plusieurs langues
 
 L'étiquette figure à la clé `label`, soit comme simple texte, soit comme correspondance de langue à texte :
@@ -268,6 +270,8 @@ Chaque enregistrement a un **formulaire** : une page propre qui montre ses champ
 ### Ouvrir et créer
 
 Un enregistrement existant s'ouvre par le bouton **« Ouvrir l’enregistrement »** au début de sa ligne, devant le bouton des justificatifs de modification, en mode lecture comme en mode Direct. Au clavier, la flèche gauche y mène depuis le bouton des justificatifs.
+
+Depuis le résultat d'une requête d'enregistrements, un clic sur un enregistrement ou sur un lien ouvre de même le formulaire (page [Requête Perspective](frontmatter-query.md)). Celui-ci montre alors l'état enregistré, même si la requête affiche un état non enregistré.
 
 Trois chemins créent un nouvel enregistrement :
 
@@ -432,7 +436,7 @@ Ce qu'elle fait à la place : lors de sa propre écriture suivante, elle compare
 
 ## Verrous
 
-Lorsque plusieurs personnes travaillent dans la même zone de base de données, par exemple sur un lecteur réseau partagé, un verrou veille à ce que deux d'entre elles ne modifient pas le même enregistrement en même temps.
+Un verrou veille à ce qu'un enregistrement ne soit pas modifié à deux endroits en même temps, par exemple dans deux fenêtres de l'application. Les verrous et les justificatifs de modification sont conçus pour préparer l'accès partagé de plusieurs personnes ; cet accès viendra avec EM4us, le futur composant serveur. EM4me lui-même est un outil pour une personne qui travaille seule et en local. L'utilisation de plusieurs ordinateurs dans une même zone sur un lecteur réseau n'est pas garantie.
 
 ### Ce qui est verrouillé, et quand
 
@@ -509,9 +513,10 @@ Une recherche portant sur la **zone** prend un document de table sans ses enregi
 
 La raison tient à la zone et non à la table : l'espace de recherche conserve en mémoire les textes de tous les fichiers Markdown et porte pour cela un plafond sur la zone **entière**. Quelques tables de quelques mégaoctets suffisent à le faire sauter, et dès lors chaque recherche relit le disque, y compris celle qui porte sur un document ordinaire. Les enregistrements dans l'espace de recherche coûteraient donc sa vitesse non pas à eux-mêmes, mais à la zone entière.
 
-**C'est un état intermédiaire.** Tant que les enregistrements n'ont pas leur propre type d'occurrence, ils restent introuvables par la recherche de zone. Deux chemins y mènent malgré tout :
+**C'est un état intermédiaire.** Tant que les enregistrements n'ont pas leur propre type d'occurrence, ils restent introuvables par la recherche de zone. Trois chemins y mènent malgré tout :
 
 - **Chercher dans le document ouvert.** Qui a le fichier de table devant lui et y cherche (par défaut `Ctrl+F`) cherche dans le texte qu'il a sous les yeux et retrouve ses enregistrements inchangés. La limite ci-dessus ne concerne que la recherche portant sur la zone.
+- **Poser une requête d'enregistrements.** Un bloc `perspective-query` avec `LIST RECORDS` ou `TABLE RECORDS` trouve des enregistrements d'après leurs champs, par exemple tous les livres d'un auteur ; la page [Requête Perspective](frontmatter-query.md) la décrit. Une requête dont on a souvent besoin peut être rangée dans un fichier de requête (section « Fichiers de requête »).
 - **Renvoyer directement à un enregistrement**, comme décrit dans la section suivante.
 
 ### Lien vers un enregistrement isolé
@@ -528,7 +533,32 @@ La vérification porte sur l'état **enregistré** de la table, comme pour toute
 
 Le [linter Markdown](tools.md) montre si un lien vaut : une cible rompue reçoit un soulignement ondulé dans l'éditeur, c'est-à-dire dans les vues Source, Scindée et Direct. La vue lecture seule ne représente pas la validité ; les liens valides et rompus y ont la même apparence.
 
-Un clic ouvre le fichier de table. Il ne mène pas encore à l'enregistrement lui-même.
+Un clic ouvre la table et amène la ligne de l'enregistrement sous vos yeux, même lorsque celui-ci se trouve dans un fichier suivant. En mode lecture, l'affichage défile jusqu'à sa ligne, pourvu qu'il figure parmi les 2000 enregistrements affichés ; dans les vues Direct et Source, le curseur se place sur cette ligne. Dans le résultat d'une requête d'enregistrements, un clic sur un enregistrement ouvre en revanche son formulaire.
+
+## Fichiers de requête
+
+Une requête dont on a souvent besoin reçoit un document à elle : s'il porte dans son frontmatter la marque `db-query` et dans son texte exactement un bloc de requête, c'est un **fichier de requête**. Le reste du texte décrit la requête et apparaît comme dans tout document.
+
+````markdown
+---
+db-query:
+pagesmin: 500
+---
+
+# Gros livres
+
+Livres de plus de `pagesmin` pages, les plus épais d'abord.
+
+```perspective-query
+TABLE RECORDS auteur, pages FROM "Livres" WHERE pages > this.pagesmin SORT pages DESC
+```
+````
+
+- **La marque ne porte aucune indication.** Le fichier est reconnu à la seule marque, `db-query:` sans valeur suffit ; la requête nomme elle-même sa table dans `FROM`. La requête peut s'adresser à n'importe quel niveau, aux fichiers comme aux enregistrements.
+- **Ouvrir et intégrer.** Ouvert, le fichier montre son résultat comme tout document doté d'un bloc de requête. Un autre document l'intègre avec `![[Gros livres]]` et montre le même résultat, car `this.` désigne alors le fichier de requête et non le document qui l'intègre. Une requête qui lit des valeurs du document qui l'intègre n'existe donc pas.
+- **Créer.** Il n'existe pas de commande dédiée : un fichier de requête s'écrit à la main ou à partir d'un [modèle](templates.md) personnel.
+- **Sans la marque**, un document doté d'un bloc de requête reste une requête dans le texte courant et n'apparaît pas dans la vue d'ensemble.
+- **Dans la vue d'ensemble** de la base de données, chaque fichier de requête figure dans la section « Requêtes » (section « La zone en tant que base de données ») ; aucun bloc de requête ou plusieurs sont signalés parmi les anomalies (section « Indications fautives »).
 
 ## Répartition des grands ensembles de données
 
@@ -569,7 +599,7 @@ Dès qu'un document du contenu d'une zone porte la fiche d'identité, l'applicat
 
 Une zone de base de données reçoit deux choses qu'une zone ordinaire n'a pas.
 
-**La vue d'ensemble des objets de la base de données** répond en un seul endroit à la question de ce qui se trouve dans cette zone : la fiche d'identité avec le nom et la description, les tables avec le nombre de leurs champs, et les anomalies relevées à la lecture des définitions, en clair et non sous forme de code. Elle s'ouvre dans un onglet propre, et l'on ne modifie rien dans la vue d'ensemble elle-même ; ses actions mènent au formulaire et aux contrôles. Trois chemins y mènent :
+**La vue d'ensemble des objets de la base de données** répond en un seul endroit à la question de ce qui se trouve dans cette zone : la fiche d'identité avec le nom et la description, les tables avec le nombre de leurs champs, les fichiers de requête et les anomalies relevées à la lecture des définitions, en clair et non sous forme de code. Elle s'ouvre dans un onglet propre, et l'on ne modifie rien dans la vue d'ensemble elle-même ; ses actions mènent au formulaire et aux contrôles. Trois chemins y mènent :
 
 - **Affichage → Vue d’ensemble de la base de données**,
 - le **menu contextuel du panneau de zone**,
@@ -577,7 +607,7 @@ Une zone de base de données reçoit deux choses qu'une zone ordinaire n'a pas.
 
 Dans une zone sans base de données, aucun de ces chemins n'est proposé.
 
-Dans la liste des tables, la colonne **« Formulaire »** nomme le fichier de formulaire d'une table et reste vide pour le formulaire généré. La vue d'ensemble porte en outre quatre actions : **« Contrôler la cohérence »** dans l'en-tête pour toutes les tables, et dans la ligne de chaque table **« Nouvel enregistrement »**, **« Contrôler »** et **« Utilisation »**. Ce qu'elles font est décrit dans les sections « Modifier les enregistrements dans le formulaire », « Contrôle de cohérence » et « Utilisation des tables et des enregistrements ». Parmi les anomalies figurent aussi les remarques sur les fichiers de formulaire, nommées d'après le fichier.
+Dans la liste des tables, la colonne **« Formulaire »** nomme le fichier de formulaire d'une table et reste vide pour le formulaire généré. La vue d'ensemble porte en outre quatre actions : **« Contrôler la cohérence »** dans l'en-tête pour toutes les tables, et dans la ligne de chaque table **« Nouvel enregistrement »**, **« Contrôler »** et **« Utilisation »**. Ce qu'elles font est décrit dans les sections « Modifier les enregistrements dans le formulaire », « Contrôle de cohérence » et « Utilisation des tables et des enregistrements ». La section **« Requêtes »** nomme chaque fichier de requête avec son nom et son emplacement, le dossier relatif à la racine de la zone, et **« Ouvrir »** l'ouvre comme tout document ; si la zone n'en contient aucun, une phrase explicative y figure. Parmi les anomalies figurent aussi les remarques sur les fichiers de formulaire et de requête, nommées d'après le fichier.
 
 **La section de paramètres « Base de données »** se trouve dans le groupe de navigation « Zone actuelle » (Fichier → Paramètres… → Zone actuelle → Base de données ; lorsqu'un livre est ouvert, le groupe s'appelle **Livre actuel**, lorsqu'une bibliothèque est ouverte **Bibliothèque actuelle**). Elle montre la même information sous forme brève, à savoir le nom et la description de la base de données, le nombre de ses tables et le nombre d'anomalies, et porte une option : **« Afficher la vue d'ensemble à l'ouverture de la zone »**. Si elle est cochée, la vue d'ensemble s'ouvre d'elle-même dès que la zone est liée. L'option réside dans le fichier de la zone et voyage avec le dossier de la zone. Vient s'y ajouter le champ **« Nom du dossier de verrous »** ; il est décrit dans la section « Verrous ».
 
@@ -597,6 +627,8 @@ La même souplesse vaut pour les règles de contrôle et pour la condition de mo
 
 La même souplesse vaut pour les fichiers de formulaire. Si le conteneur `db-form` ne nomme aucune table, ou une table qui n'existe pas dans la base de données, le fichier reste un document ordinaire. Si une table a plusieurs fichiers de formulaire, le premier selon le chemin s'applique, et les autres ne sont pas utilisés. Ces trois cas figurent parmi les anomalies de la vue d'ensemble. Un espace réservé qui n'est pas un espace réservé de champ et un nom de champ que la table ne connaît pas restent du texte ; le formulaire les signale avec leur ligne dans son en-tête, et le contrôle de cohérence les liste comme constats.
 
+La même souplesse vaut pour les fichiers de requête. Si un document portant la marque `db-query` ne contient aucun bloc de requête ou en contient plusieurs, il reste un document ordinaire, et chaque bloc qu'il contient est évalué. La vue d'ensemble le cite malgré tout dans la section « Requêtes » et nomme le cas parmi les anomalies, d'après le fichier.
+
 ## Désactiver la base de données
 
 L'ensemble de la base de données est une [extension interne](extensions.md) nommée « Base de données », dans la catégorie Outils, et se désactive d'un seul interrupteur. Elle nécessite les [Profils de propriétés](property-profiles.md), car la forme d'une définition de table est décrite et vérifiée au moyen d'un profil interne ; tant que la base de données est activée, ce prérequis ne peut donc pas être désactivé.
@@ -606,6 +638,8 @@ L'ensemble de la base de données est une [extension interne](extensions.md) nom
 - Le **bloc d'enregistrements reste un bloc de code ordinaire**, en mode lecture, en mode édition et dans l'export portable. Son contenu reste lisible ; ce qui est désactivé, c'est l'affichage sous forme de tableau, non la donnée.
 - **La vue d'ensemble et la section de paramètres disparaissent**, ainsi que les accès dans le menu Affichage, dans le menu contextuel du panneau de zone et dans la palette de commandes. Une vue d'ensemble déjà ouverte reste en place jusqu'à ce que vous la fermiez, comme toute autre page système.
 - Avec le bloc d'enregistrements disparaissent ses boutons **« Ouvrir l’enregistrement »** et **« Nouvel enregistrement »**, avec la vue d'ensemble ses actions **« Contrôler la cohérence »**, **« Contrôler »** et **« Utilisation »**, et les commandes **« Nouvel enregistrement dans la table active »** et **« Contrôler la cohérence de la base de données »** quittent la palette de commandes. Le **formulaire** n'est donc plus accessible non plus, et l'application ne fournit plus de données ni à lui, ni au contrôle de cohérence, ni à l'utilisation.
+- Une **requête d'enregistrements** ne lit plus aucune table : elle affiche une liste vide avec la remarque que l'extension est désactivée, et aucun message d'erreur. Cela vaut aussi pour les chemins passant par des champs de référence, pour les hiérarchies et pour l'arbre.
+- Un **fichier de requête** reste un document ordinaire : son bloc de requête continue d'être évalué, sur les enregistrements avec la liste vide et la remarque décrites ci-dessus, et sa section « Requêtes » disparaît avec la vue d'ensemble.
 - Un **lien vers un enregistrement isolé** n'est plus signalé comme rompu. Sans définitions, il n'y a rien à quoi le confronter, et un avertissement sans vérification ne serait qu'une affirmation.
 - La **recherche portant sur la zone reste inchangée**. Les enregistrements restent exclus du texte intégral, car cette limite tient au fichier de table et non à l'interrupteur ; la section « Trouvabilité » ci-dessus reste donc valable.
 - **Rien n'est écrit.** L'application ne crée, ne modifie ni ne supprime aucun enregistrement, ne prend aucun verrou et ne produit aucun justificatif de modification ; elle ne mène pas non plus à son terme une sauvegarde restée inachevée tant qu'elle est désactivée.

@@ -169,6 +169,49 @@ describe('Outgoing-Links und Snippets (panels/panel-outgoing.js)', () => {
     });
   });
 
+  // 4T-002013 (Epic 3E-000332): Verweise in Text-Zellen einer Datentabelle. Das
+  // Panel scannt den Text selbst; es muss dieselben Stellen finden wie der
+  // Bereichs-Index (datentabelle-zell-scan.test.js), sonst nennte das Ziel die
+  // Tabelle unter seinen Rückverweisen und die Tabelle das Ziel hier nicht.
+  describe('Verweise in Text-Zellen der Datentabelle (4T-002013)', () => {
+    const tabelle = (...zeilen) =>
+      ['# Titel', '', '```perspective-datatable', ...zeilen, '```', ''].join('\n');
+
+    it('AK1: Wiki-Verweis mit Alias, Einbettung und Markdown-Link aus Text-Zellen', () => {
+      const links = panelOutgoing.extractOutgoingLinks(
+        tabelle(
+          'columns: Name:text, Betrag:number, Notiz:text',
+          '| [[Ziel#Kap\\|Alias]] | 3 | ![[Bild.png]] [Text](Doc.md) |',
+        ),
+      );
+      expect(links.map((l) => [l.type, l.target, l.anchor, l.line])).toEqual([
+        ['wikiLink', 'Ziel', 'Kap', 5],
+        ['embed', 'Bild.png', '', 5],
+        ['markdownLink', 'Doc.md', '', 5],
+      ]);
+    });
+
+    it('AK4: Zahl- und berechnete Spalten, Kopfzeilen und Inline-Code bleiben draussen', () => {
+      const links = panelOutgoing.extractOutgoingLinks(
+        tabelle(
+          'columns: Name "[[Kopf]]":text, Betrag:number, G:number = Betrag * 2, Notiz:text',
+          '| `[[Code]]` | [[Zahl]] | [[Notiz]] | [[Zuviel]] |',
+        ),
+      );
+      expect(links.map((l) => l.target)).toEqual(['Notiz']);
+    });
+
+    it('AK4: ein Verweis überspannt keine Zellgrenze; eine fremde Fence bleibt draussen', () => {
+      expect(
+        panelOutgoing.extractOutgoingLinks(tabelle('columns: A:text, B:text', '| [[A | B]] |')),
+      ).toEqual([]);
+      const fremd = ['```perspective-table', 'columns: A:text', '| [[Fremd]] |', '```', ''].join(
+        '\n',
+      );
+      expect(panelOutgoing.extractOutgoingLinks(fremd)).toEqual([]);
+    });
+  });
+
   // R3-12 (4T-000183): Fenster um den Treffer-Index.
   it('snippetAroundIndex zentriert lange Zeilen um den Treffer (R3-12)', () => {
     const prefix = 'x'.repeat(150);

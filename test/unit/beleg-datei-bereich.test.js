@@ -25,6 +25,9 @@ import {
   statsFor,
 } from '../../src/main/backlinks.js';
 import { collectAreaStats } from '../../src/main/area/area-stats.js';
+// 4T-002035 (Epic 3E-000260): Anzeige-Name eines Abfrage-Treffers aus der
+// Herkunft seiner Zeile in der Ergebnismenge.
+import { displayName } from '../../src/shared/query/result-display.js';
 
 const require = createRequire(import.meta.url);
 const { registerAreasIpc } = require('../../src/main/ipc/areas.js');
@@ -218,7 +221,9 @@ describe('Index-Aufbau mit einer Beleg-Datei im Bereich (AK4)', () => {
     const index = await indexFor(start, 'test:beleg-index', root);
     expect(index.status).toBe('ready');
 
-    const treffer = frontmatterQueryFor(start, 'LIST BLOCKS').files.map((f) => f.name);
+    const treffer = frontmatterQueryFor(start, 'LIST BLOCKS').resultSet.rows.map((r) =>
+      displayName(r.origin),
+    );
     expect(treffer).toEqual(['Kunden#^k1']);
   });
 

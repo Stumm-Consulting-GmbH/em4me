@@ -12,6 +12,7 @@ import {
   katalogUeberblick,
   tabellenDefinition,
   tabellenName,
+  zaehleAbfrageBloecke,
 } from '../../src/main/database/table-catalog.js';
 import {
   KOPF_BYTES,
@@ -22,6 +23,8 @@ import {
 import { parseContent } from '../../src/main/index/parse.js';
 import { DB_TABLE_KEY, DB_FORM_KEY } from '../../src/shared/database/table-definition.js';
 import { DB_DATABASE_KEY } from '../../src/shared/database/database-steckbrief.js';
+// 4T-002081: die vierte Marke, die Abfrage-Datei.
+import { DB_QUERY_KEY } from '../../src/shared/database/behaelter.js';
 
 // --- Nachgestellter Dateizugriff ----------------------------------------------------
 
@@ -479,5 +482,137 @@ describe('Index-Marke: welche Dateien der Katalog überhaupt betrachtet', () => 
   it('lässt ein gewöhnliches Dokument ohne Marke', () => {
     expect(parseContent('/db/Notiz.md', '---\ntitle: Notiz\n---\n\nText.\n').dbKinds).toEqual([]);
     expect(parseContent('/db/Ohne.md', 'Nur Text.\n').dbKinds).toEqual([]);
+  });
+});
+
+// 4T-002081 (Epic 3E-000259, Story 4S-001040 AK3 bis AK5): Die Abfrage-Datei.
+// Ein Dokument mit der Marke `db-query` im Frontmatter und genau einem
+// Abfrage-Block im Text; keine oder mehrere Blöcke sind eine Fehlerlage, ein
+// Block ohne Marke bleibt ein gewöhnliches Dokument (F2 Option A, F3b).
+describe('Abfrage-Datei: Marke und Katalog (4T-002081)', () => {
+  const ZAUN = '```';
+  const block = (abfrage) => [`${ZAUN}perspective-query`, abfrage, ZAUN].join('\n');
+  function abfrageDatei(...bloecke) {
+    return [
+      '---',
+      `${DB_QUERY_KEY}:`,
+      '---',
+      '',
+      '# Abfrage',
+      '',
+      'Beschreibung.',
+      '',
+      ...bloecke,
+      '',
+    ].join('\n');
+  }
+  const EINE = '/db/Abfragen/Bücher je Autor.md';
+  const KEINE = '/db/Leer.md';
+  const ZWEI = '/db/Zwei.md';
+  const OHNE_MARKE = '/db/Notiz mit Abfrage.md';
+
+  it('erkennt die Marke db-query, auch ohne Wert, und nur sie (AK4)', () => {
+    expect(DB_QUERY_KEY).toBe('db-query');
+    expect(parseContent(EINE, abfrageDatei(block('LIST'))).dbKinds).toEqual(['query']);
+    expect(parseContent(EINE, '---\ndb-query: {}\n---\n').dbKinds).toEqual(['query']);
+    // Ein Abfrage-Block ohne Marke bleibt ein gewöhnliches Dokument.
+    const ohne = `# Notiz\n\n${block('LIST')}\n`;
+    expect(parseContent(OHNE_MARKE, ohne).dbKinds).toEqual([]);
+    // Neben einer Masken-Marke steht sie als weitere Marke.
+    const beides = '---\ndb-form:\n  table: Kunden\ndb-query:\n---\n';
+    expect(parseContent('/db/Beides.md', beides).dbKinds).toEqual(['form', 'query']);
+  });
+
+  it('zählt die Abfrage-Blöcke der obersten Ebene', () => {
+    expect(zaehleAbfrageBloecke(abfrageDatei(block('LIST')))).toBe(1);
+    expect(zaehleAbfrageBloecke(abfrageDatei())).toBe(0);
+    expect(zaehleAbfrageBloecke(abfrageDatei(block('LIST'), block('TABLE file.name')))).toBe(2);
+    // Tilden-Zaun und Infostring mit weiteren Wörtern zählen wie in der Anzeige.
+    expect(zaehleAbfrageBloecke('~~~perspective-query\nLIST\n~~~\n')).toBe(1);
+    expect(zaehleAbfrageBloecke('```perspective-query zusatz\nLIST\n```\n')).toBe(1);
+    // Ein zitierter Block in einem längeren Zaun ist Text, kein Block.
+    const zitiert = ['````markdown', block('LIST'), '````', '', block('LIST')].join('\n');
+    expect(zaehleAbfrageBloecke(zitiert)).toBe(1);
+    // Andere Code-Blöcke zählen nicht, auch nicht mit ähnlichem Namen.
+    expect(zaehleAbfrageBloecke('```perspective-script\nx\n```\n```js\ny\n```\n')).toBe(0);
+    // Windows-Zeilenenden.
+    expect(zaehleAbfrageBloecke('```perspective-query\r\nLIST\r\n```\r\n')).toBe(1);
+  });
+
+  it('führt jede Abfrage-Datei mit Name und Pfad, gemeldet bei keinem und mehreren Blöcken (AK3, AK4)', async () => {
+    const { fsp } = fakeFs({
+      ...DATEIEN,
+      [EINE]: abfrageDatei(block('LIST RECORDS FROM "Personen"')),
+      [KEINE]: abfrageDatei(),
+      [ZWEI]: abfrageDatei(block('LIST'), block('TABLE file.name')),
+      [OHNE_MARKE]: `# Notiz\n\n${block('LIST')}\n`,
+    });
+    const sicht = sichtMit({
+      [PERSONEN]: ['table'],
+      [STECKBRIEF]: ['database'],
+      [EINE]: ['query'],
+      [KEINE]: ['query'],
+      [ZWEI]: ['query'],
+    });
+    const u = await katalogUeberblick({ sicht, status: 'ready', fsp, cache });
+    // Reihenfolge nach Pfad; die Datei ohne Marke fehlt.
+    expect(u.abfragen.map((a) => [a.name, a.path, a.bloecke])).toEqual([
+      ['Bücher je Autor', EINE, 1],
+      ['Leer', KEINE, 0],
+      ['Zwei', ZWEI, 2],
+    ]);
+    const hinweise = Object.fromEntries(
+      u.abfragen.map((a) => [a.name, a.hints.map((h) => [h.code, h.name, h.key])]),
+    );
+    expect(hinweise).toEqual({
+      'Bücher je Autor': [],
+      Leer: [['queryOhneFence', null, null]],
+      Zwei: [['queryMehrereFences', '2', null]],
+    });
+    // Die Befunde der Abfrage-Dateien berühren weder Steckbrief noch Tabellen.
+    expect(u.hints).toEqual([]);
+    expect(u.tabellen.every((t) => t.hints.length === 0)).toBe(true);
+  });
+
+  it('liefert ohne Abfrage-Datei eine leere Liste', async () => {
+    const { fsp } = fakeFs(DATEIEN);
+    const u = await katalogUeberblick({ sicht: SICHT, status: 'ready', fsp, cache });
+    expect(u.abfragen).toEqual([]);
+  });
+
+  it('liest eine unveränderte Datei kein zweites Mal und sieht eine Änderung ohne Neustart', async () => {
+    const { fsp, zaehler, aendere } = fakeFs({ [EINE]: abfrageDatei(block('LIST')) });
+    const sicht = sichtMit({ [EINE]: ['query'] });
+    await katalogUeberblick({ sicht, status: 'ready', fsp, cache });
+    await katalogUeberblick({ sicht, status: 'ready', fsp, cache });
+    expect(zaehler.readFile).toBe(1);
+    aendere(EINE, abfrageDatei(block('LIST'), block('LIST')));
+    const u = await katalogUeberblick({ sicht, status: 'ready', fsp, cache });
+    expect(u.abfragen[0].hints.map((h) => h.code)).toEqual(['queryMehrereFences']);
+  });
+
+  it('zeigt den ungespeicherten Stand einer offenen Abfrage-Datei (E25)', async () => {
+    const { fsp, zaehler } = fakeFs({ [EINE]: abfrageDatei(block('LIST')) });
+    const sicht = sichtMit({ [EINE]: ['query'] });
+    const u = await katalogUeberblick({
+      sicht,
+      status: 'ready',
+      fsp,
+      cache,
+      bufferTextFor: (p) => (p === EINE ? abfrageDatei() : null),
+    });
+    expect(u.abfragen[0].hints.map((h) => h.code)).toEqual(['queryOhneFence']);
+    expect(zaehler.readFile).toBe(0);
+  });
+
+  it('übergeht eine Abfrage-Datei, die der Index kennt und die es nicht mehr gibt', async () => {
+    const { fsp } = fakeFs({});
+    const u = await katalogUeberblick({
+      sicht: sichtMit({ [EINE]: ['query'] }),
+      status: 'ready',
+      fsp,
+      cache,
+    });
+    expect(u.abfragen).toEqual([]);
   });
 });

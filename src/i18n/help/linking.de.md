@@ -154,7 +154,7 @@ Nach `#` stehen die im Bereich häufiger vergebenen Schlagworte oben, das häufi
 
 Die Übernahme eines Datei- oder Zweitnamen-Vorschlags schreibt die schließenden Klammern mit und setzt die Schreibmarke dahinter. Stehen sie schon da, entsteht kein zweites Paar.
 
-In einer Tabellenzelle der Live-Ansicht erscheint dieselbe Liste an der Zelle, mit denselben Einträgen und derselben Bedienung; Einzelheiten unter [Ansichten und Darstellung](views-display.md). Aufgaben-Marker schlägt sie dort nicht vor, weil eine Tabellenzeile keine Aufgabenzeile ist; dasselbe gilt in der Quellcode-Ansicht.
+In einer Tabellenzelle der Live-Ansicht erscheint dieselbe Liste an der Zelle, mit denselben Einträgen und derselben Bedienung; Einzelheiten unter [Ansichten und Darstellung](views-display.md). Ebenso erscheint sie in einer Text-Zelle der [Perspective Datatable](datatable.md), dort im Live-Modus und in der geteilten Ansicht. Aufgaben-Marker schlägt sie dort nicht vor, weil eine Tabellenzeile keine Aufgabenzeile ist; dasselbe gilt in der Quellcode-Ansicht.
 
 ## Sidebars zum Netz
 

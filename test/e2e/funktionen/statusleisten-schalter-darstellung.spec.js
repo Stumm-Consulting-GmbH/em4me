@@ -37,6 +37,7 @@ const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 const DE = require('../../../src/i18n/de.json');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
@@ -425,46 +426,50 @@ async function armeMenueAufnahme(app) {
   // Erkannt wird das Ansichtsmenü an seinem Inhalt und nicht an seiner
   // Beschriftung: Die trägt das Tastatur-Kürzel-Zeichen («&Ansicht»), und
   // darauf soll der Fall nicht angewiesen sein.
-  await app.evaluate(({ BrowserWindow }, merkmal) => {
-    const win = BrowserWindow.getAllWindows()[0];
-    if (!win || win.__sdMenuArmed) return;
-    win.__sdMenuArmed = true;
-    const orig = win.setMenu.bind(win);
-    win.setMenu = (menu) => {
-      const sammle = (items) => {
-        const out = [];
-        for (const it of items || []) {
-          out.push({ label: it.label || '', enabled: it.enabled !== false });
-          if (it.submenu) out.push(...sammle(it.submenu.items || []));
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, merkmal) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      if (!win || win.__sdMenuArmed) return;
+      win.__sdMenuArmed = true;
+      const orig = win.setMenu.bind(win);
+      win.setMenu = (menu) => {
+        const sammle = (items) => {
+          const out = [];
+          for (const it of items || []) {
+            out.push({ label: it.label || '', enabled: it.enabled !== false });
+            if (it.submenu) out.push(...sammle(it.submenu.items || []));
+          }
+          return out;
+        };
+        for (const top of (menu ? menu.items : []) || []) {
+          const eintraege = sammle(top.submenu ? top.submenu.items : []);
+          if (!eintraege.some((e) => e.label === merkmal)) continue;
+          globalThis.__sdMenu = eintraege;
+          break;
         }
-        return out;
+        return orig(menu);
       };
-      for (const top of (menu ? menu.items : []) || []) {
-        const eintraege = sammle(top.submenu ? top.submenu.items : []);
-        if (!eintraege.some((e) => e.label === merkmal)) continue;
-        globalThis.__sdMenu = eintraege;
-        break;
-      }
-      return orig(menu);
-    };
-  }, DE['menu.view.source']);
+    },
+    DE['menu.view.source'],
+  );
 }
 
 async function menueNeubau(app) {
   await expect
     .poll(async () => {
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win) {
           win.webContents.send('menu:togglePanel', 'notes');
           win.webContents.send('menu:togglePanel', 'notes');
         }
       });
-      const eintraege = await app.evaluate(() => globalThis.__sdMenu || []);
+      const eintraege = await hauptLesen(app, () => globalThis.__sdMenu || []);
       return eintraege.length;
     })
     .toBeGreaterThan(0);
-  return app.evaluate(() => globalThis.__sdMenu || []);
+  return hauptLesen(app, () => globalThis.__sdMenu || []);
 }
 
 test.describe('SD-06: das Ansichtsmenü ist in beiden Werten unverändert', () => {

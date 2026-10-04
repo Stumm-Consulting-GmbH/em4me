@@ -154,7 +154,7 @@ Tras `#`, las etiquetas más usadas en el área aparecen arriba, la más frecuen
 
 Al aceptar una sugerencia de archivo o de alias se escriben también los corchetes de cierre y el cursor queda detrás. Si ya están, no aparece un segundo par.
 
-En una celda de tabla del modo en vivo aparece la misma lista junto a la celda, con las mismas entradas y el mismo manejo; detalles en [Vistas y presentación](views-display.md). Allí no sugiere marcadores de tarea, porque una fila de tabla no es una línea de tarea; lo mismo vale en la vista de código.
+En una celda de tabla del modo en vivo aparece la misma lista junto a la celda, con las mismas entradas y el mismo manejo; detalles en [Vistas y presentación](views-display.md). Del mismo modo aparece en una celda de texto de la [Perspective Datatable](datatable.md), allí en el modo en vivo y en la vista dividida. Allí no sugiere marcadores de tarea, porque una fila de tabla no es una línea de tarea; lo mismo vale en la vista de código.
 
 ## Barras laterales de la red
 

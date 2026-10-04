@@ -12,10 +12,11 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, warteAufDateiArgument } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { oeffneEinstellungsSeite, bedieneBis } = require('../helpers/eingabe');
 const { menuZustand, menuEintrag } = require('../helpers/menu-zustand');
+const { hauptLesen } = require('../helpers/haupt-zugriff');
 
 const EXT_FIXTURES = path.resolve(__dirname, '..', '..', 'fixtures', 'extensions');
 // 4T-000826 (Epic 3E-000103): Das Referenz-Paket ist das real ausgelieferte
@@ -257,6 +258,9 @@ test.describe('EX-04: Verwaltungs-Bereich listet und deaktiviert sofort', () => 
     const userData = prepareUserData({ packages: ['notiz-merker'], storeSeed: MERKER_SEED });
     const { app, page } = await launchApp({ args: [MD_FIXTURE], userData });
     try {
+      // 4T-001689: Der Fall oeffnet unten die Einstellungs-Seite als weiteren
+      // Eintrag; das Start-Dokument muss vorher stehen (helpers/app.js).
+      await warteAufDateiArgument(page, MD_FIXTURE);
       // Das Ansichtsmenue kennt den Eintrag nicht mehr — in keiner Schreibweise.
       // Leerer Titel-Teil: Ein-Fenster-Lage, jeder Titel enthaelt ihn (Muster
       // zweite-spalte.spec.js).
@@ -276,14 +280,14 @@ test.describe('EX-04: Verwaltungs-Bereich listet und deaktiviert sofort', () => 
       );
 
       // Auslösen oeffnet die Werkzeuge genau dieses Fensters.
-      const offenVorher = await app.evaluate(({ BrowserWindow }) =>
+      const offenVorher = await hauptLesen(app, ({ BrowserWindow }) =>
         BrowserWindow.getAllWindows().some((w) => w.webContents.isDevToolsOpened()),
       );
       expect(offenVorher).toBe(false);
       await knopf.click();
       await expect
         .poll(async () =>
-          app.evaluate(({ BrowserWindow }) =>
+          hauptLesen(app, ({ BrowserWindow }) =>
             BrowserWindow.getAllWindows().some((w) => w.webContents.isDevToolsOpened()),
           ),
         )
@@ -292,7 +296,7 @@ test.describe('EX-04: Verwaltungs-Bereich listet und deaktiviert sofort', () => 
       await knopf.click();
       await expect
         .poll(async () =>
-          app.evaluate(({ BrowserWindow }) =>
+          hauptLesen(app, ({ BrowserWindow }) =>
             BrowserWindow.getAllWindows().some((w) => w.webContents.isDevToolsOpened()),
           ),
         )

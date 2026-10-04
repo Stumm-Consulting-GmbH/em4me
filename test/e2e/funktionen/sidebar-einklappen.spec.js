@@ -14,6 +14,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 const ZWEITE = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'zweite.md');
@@ -49,7 +50,8 @@ async function openExtensionsSection(page) {
 // aktive Fenster (Muster bestehender Menü-E2E-Specs; getApplicationMenu() ist
 // leer).
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);

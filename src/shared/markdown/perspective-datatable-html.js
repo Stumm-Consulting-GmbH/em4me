@@ -47,7 +47,16 @@ function buildErrorsHtml(errors) {
 // Einzelne Daten-Zelle. Fehler-Zellen zeigen den Rohtext mit lokalisiertem
 // Tooltip (data-i18n-title); Boolean als read-only Checkbox (nicht die
 // task-list-Klasse, damit enableTaskCheckboxes sie nicht aktiviert).
-function buildCellHtml(col, colIdx, cell, editable) {
+//
+// 4T-002014 (Epic 3E-000332): `zellHtml` ist der enge Zell-Renderer der
+// Pipeline (cell-links-html.js). Er gilt allein für Text-Spalten ohne
+// Zell-Fehler; ohne ihn bleibt es bei der maskierten Anzeige. Er kommt als
+// Argument, weil kein Mitglied der Familie die Pipeline laden darf.
+function textZelle(zellHtml, text) {
+  return zellHtml ? zellHtml(text) : escapeHtml(text);
+}
+
+function buildCellHtml(col, colIdx, cell, editable, zellHtml) {
   const cls = ['pdt-cell', `pdt-type-${col.type}`];
   const attrs = [`data-dt-col="${colIdx}"`];
   // 4T-000419: editierbare Zellen sind fokussierbar (F2/Enter öffnet die
@@ -60,6 +69,8 @@ function buildCellHtml(col, colIdx, cell, editable) {
     inner = escapeHtml(cell.text);
   } else if (col.type === 'boolean') {
     inner = `<input type="checkbox" disabled${cell && cell.value ? ' checked' : ''}>`;
+  } else if (col.type === 'text') {
+    inner = textZelle(zellHtml, formatCellDisplay(col, cell ? cell.value : null));
   } else {
     inner = escapeHtml(formatCellDisplay(col, cell ? cell.value : null));
   }
@@ -89,8 +100,9 @@ function buildComputedCellHtml(col, colIdx, comp) {
 
 // Grid-Tabelle des Viewers. computed (aus computeComputedCells) und aggs
 // (aus computeAggregates über den Wert-Resolver) rechnet der Kern vorab
-// und reicht sie herein.
-function buildDatatableTableHtml(model, computed, aggs) {
+// und reicht sie herein. 4T-002014: opts.zellHtml, siehe buildCellHtml.
+function buildDatatableTableHtml(model, computed, aggs, opts) {
+  const zellHtml = opts && opts.zellHtml;
   const columns = model.columns;
   const dataIdx = dataIndexByColumn(columns);
   const hasAgg = (model.aggregates || []).some((a) => a && a.length > 0);
@@ -147,7 +159,7 @@ function buildDatatableTableHtml(model, computed, aggs) {
           out.push(buildComputedCellHtml(col, i, perCol ? perCol[i] : null));
           return;
         }
-        out.push(buildCellHtml(col, i, row[di], editable));
+        out.push(buildCellHtml(col, i, row[di], editable, zellHtml));
       });
       out.push('</tr>');
     });
@@ -199,8 +211,11 @@ function buildDatatableTableHtml(model, computed, aggs) {
 // Sprachneutral (Aggregat-Beschriftung = Funktions-Schlüsselwort, wie die
 // Fence-Syntax selbst); alle Zeilen werden exportiert (die Render-Ober-
 // Grenze schützt nur die Live-Pipeline). Struktur-Fehler fängt der Kern
-// bereits ab (Muster perspective-table).
-function buildPortableDatatableHtml(model, computed, aggs) {
+// bereits ab (Muster perspective-table). 4T-002014: opts.zellHtml ist der
+// Zell-Renderer des portablen Exports; er gilt wie in der Anzeige allein für
+// Daten-Zellen einer Text-Spalte ohne Zell-Fehler.
+function buildPortableDatatableHtml(model, computed, aggs, opts) {
+  const zellHtml = opts && opts.zellHtml;
   const columns = model.columns;
   const dataIdx = dataIndexByColumn(columns);
   const hasAgg = (model.aggregates || []).some((a) => a && a.length > 0);
@@ -244,13 +259,12 @@ function buildPortableDatatableHtml(model, computed, aggs) {
           // Zellen tragen keinen Rohtext (Gedankenstrich).
           styles.push('background-color: #ffebee; color: #b71c1c;');
           inner = escapeHtml(cell.text != null ? cell.text : '—');
+        } else if (cell && col.type === 'boolean') {
+          inner = cell.value ? 'x' : '';
+        } else if (cell && col.type === 'text' && di != null) {
+          inner = textZelle(zellHtml, formatCellDisplay(col, cell.value));
         } else if (cell) {
-          inner =
-            col.type === 'boolean'
-              ? cell.value
-                ? 'x'
-                : ''
-              : escapeHtml(formatCellDisplay(col, cell.value));
+          inner = escapeHtml(formatCellDisplay(col, cell.value));
         }
         out.push(`<td${styles.length ? ` style="${styles.join(' ')}"` : ''}>${inner}</td>`);
       });

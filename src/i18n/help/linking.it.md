@@ -154,7 +154,7 @@ Dopo `#`, i tag assegnati più spesso nell’area stanno in cima, il più freque
 
 Accettando un suggerimento di file o di secondo nome vengono scritte anche le parentesi di chiusura e il cursore resta dietro. Se ci sono già, non compare una seconda coppia.
 
-In una cella di tabella della modalità live compare lo stesso elenco accanto alla cella, con le stesse voci e gli stessi comandi; dettagli in [Viste e visualizzazione](views-display.md). Lì non propone marcatori di attività, perché una riga di tabella non è una riga di attività; lo stesso vale nella vista sorgente.
+In una cella di tabella della modalità live compare lo stesso elenco accanto alla cella, con le stesse voci e gli stessi comandi; dettagli in [Viste e visualizzazione](views-display.md). Allo stesso modo compare in una cella di testo della [Perspective Datatable](datatable.md), lì in modalità live e nella vista divisa. Lì non propone marcatori di attività, perché una riga di tabella non è una riga di attività; lo stesso vale nella vista sorgente.
 
 ## Barre laterali della rete
 

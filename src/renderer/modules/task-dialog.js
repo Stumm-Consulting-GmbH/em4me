@@ -46,6 +46,7 @@ import {
 import { setRecurrence, parseRecurrenceRule } from '../../shared/tasks/task-recurrence.js';
 import { setTaskId, setDependsOn, generateTaskId } from '../../shared/tasks/task-dependencies.js';
 import { taskStatusType } from '../../shared/markdown/plugins.js';
+import { taskHits } from '../../shared/query/result-display.js';
 
 // Die drei manuellen Termin-Felder des Formulars (die Automatik-Daten
 // fuehrt task-dialog-dates.js; das Erledigt-Datum bekommt bei Status vom
@@ -84,15 +85,13 @@ async function loadAreaTasks(contextPath) {
   } catch {
     return [];
   }
-  if (!payload || payload.status !== 'ready' || !Array.isArray(payload.files)) return [];
-  return payload.files.map((hit) => {
-    const m = typeof hit.taskText === 'string' ? parseTaskLine(hit.taskText) : null;
+  // 4T-002035 (Epic 3E-000260): Treffer aus der Herkunft der Ergebnismenge.
+  return taskHits(payload && payload.resultSet).map((hit) => {
+    const m = parseTaskLine(hit.taskText);
     return {
-      path: hit.path,
-      line: hit.line,
-      taskText: hit.taskText,
+      ...hit,
       id: m && m.id ? m.id : null,
-      description: m ? m.description.trim() : hit.taskText || '',
+      description: m ? m.description.trim() : hit.taskText,
     };
   });
 }

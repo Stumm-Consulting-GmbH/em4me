@@ -5,6 +5,13 @@
 // areaTaskLines (4T-000525). Jeder Block baut seine eigene Root-Fixture; der
 // Infrastruktur-Kopf (makeRoot, write, indexFor, afterEach) ist nach
 // etablierter Konvention je Datei dupliziert.
+//
+// 4T-002035 (Epic 3E-000260): Die Antwort des Erzeugers ist seit dem Ende des
+// Übergangs allein die Ergebnismenge (`{ resultSet }`). Die Fälle lesen Zustand,
+// Treffer, Gruppen und Layout-Wünsche deshalb aus der Menge; Treffer-Form,
+// Anzeige-Name, gerundete Dringlichkeit und Gruppen-Beschriftung kommen aus dem
+// Darstellungs-Kern, der sie auch für Anzeige, Kennungs-Vorschlag und
+// Vorgänger-Suche bildet. Die Prüfaussagen sind unverändert.
 import { describe, it, expect, vi, afterEach, beforeEach } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -21,6 +28,18 @@ import {
 // (Beschreibungen aus dem taskText der Treffer) fuer die TASKS-Scope-Tests.
 import { createTaskStatusTypeResolver } from '../../src/shared/markdown/plugins.js';
 import { parseTaskLine } from '../../src/shared/tasks/task-markers.js';
+// 4T-002033 (Epic 3E-000260): Prüfer des Format-Vertrags und die Referenz der
+// ungerundeten Dringlichkeit; seit 4T-002035 der Darstellungs-Kern als Leser.
+import { validateResultSet } from '../../src/shared/query/result-set.js';
+import {
+  cellSegments,
+  displayName,
+  groupTitle,
+  roundUrgency,
+  taskHits,
+} from '../../src/shared/query/result-display.js';
+import { localIsoDateOf } from '../../src/main/index/query-task-helfer.js';
+import { computeUrgency } from '../../src/shared/tasks/task-recurrence.js';
 
 // --- Setup/Teardown (Muster aus backlinks.test.js) ----------------------------
 
@@ -52,8 +71,15 @@ async function indexFor(activeFile) {
 
 // Datei-Namen der Treffer (Datei-Scope-Gegentest der globalen Abfrage).
 function names(res) {
-  return res.files.map((f) => f.name);
+  return res.resultSet.rows.map((r) => displayName(r.origin));
 }
+
+// Zustand, Zeilen und Aufgaben-Treffer einer Antwort aus der Menge (4T-002035).
+const zustand = (res) => res.resultSet.state;
+const zeilen = (res) => res.resultSet.rows;
+const treffer = (res) => taskHits(res.resultSet);
+// Titel der Gruppen einer Ebene (null für die Gruppe ohne Wert).
+const titel = (gruppen) => gruppen.map((g) => groupTitle(g.value).label);
 
 afterEach(() => {
   vi.useFakeTimers();
@@ -95,7 +121,7 @@ describe('perspective-query — Task-Ebene (TASKS-Scope)', () => {
   // laesst nachlaufende Nicht-Marker wie Inline-Tags in der Beschreibung; die
   // Termin-/Prioritaets-Marker stehen am Zeilenende und werden abgetrennt).
   function taskKeys(res) {
-    return res.files.map((f) => parseTaskLine(f.taskText).description.trim().split(/\s+/)[0]);
+    return treffer(res).map((f) => parseTaskLine(f.taskText).description.trim().split(/\s+/)[0]);
   }
 
   let taskStart;
@@ -140,24 +166,24 @@ describe('perspective-query — Task-Ebene (TASKS-Scope)', () => {
     await indexFor(taskStart);
   });
 
-  it('LIST TASKS: Treffer mit line/taskText, queryScope und Default-Sortierung', () => {
+  it('LIST TASKS: Treffer mit line/taskText, Ebene tasks und Default-Sortierung', () => {
     const res = frontmatterQueryFor(taskStart, 'LIST TASKS', undefined, env());
-    expect(res.status).toBe('ready');
-    expect(res.queryScope).toBe('tasks');
+    expect(zustand(res).status).toBe('ready');
+    expect(res.resultSet.scope).toBe('tasks');
     // 4T-000505: Default-Sortierung Status-Typ -> Dringlichkeit (absteigend) ->
     // Faelligkeit -> Prioritaet -> Pfad -> Zeile. Review (IN_PROGRESS) zuerst;
     // innerhalb TODO Konzept (highest, urgency 11.4), dann die normalen 2099er
     // nach Faelligkeit (Modul 03 < Notiz 04 < Ohne 05); Kickoff (DONE) zuletzt.
     expect(taskKeys(res)).toEqual(['Review', 'Konzept', 'Modul', 'Notiz', 'Ohne', 'Kickoff']);
     // Jeder Treffer traegt Zeilennummer und Roh-Zeile.
-    expect(res.files.every((f) => typeof f.line === 'number' && f.line > 0)).toBe(true);
-    expect(res.files[0].taskText).toContain('Review offen');
-    expect(res.files[0].name).toBe('Aufgaben');
+    expect(treffer(res).every((f) => typeof f.line === 'number' && f.line > 0)).toBe(true);
+    expect(treffer(res)[0].taskText).toContain('Review offen');
+    expect(displayName(zeilen(res)[0].origin)).toBe('Aufgaben');
   });
 
   it('Fenced-Code-Task-Zeilen zaehlen nicht', () => {
     const res = frontmatterQueryFor(taskStart, 'LIST TASKS', undefined, env());
-    expect(res.files.some((f) => f.taskText.includes('Codeblock'))).toBe(false);
+    expect(treffer(res).some((f) => f.taskText.includes('Codeblock'))).toBe(false);
   });
 
   it('WHERE ueber Termin-Feld: due <= date(...)', () => {
@@ -232,12 +258,12 @@ describe('perspective-query — Task-Ebene (TASKS-Scope)', () => {
 
   it('deaktivierte Erweiterung: queryError tasksScopeDisabled, leere Liste', () => {
     const off = frontmatterQueryFor(taskStart, 'LIST TASKS', undefined, env({ enabled: false }));
-    expect(off.status).toBe('ready');
-    expect(off.files).toEqual([]);
-    expect(off.queryError).toMatchObject({ code: 'tasksScopeDisabled' });
+    expect(zustand(off).status).toBe('ready');
+    expect(zeilen(off)).toEqual([]);
+    expect(zustand(off).queryError).toMatchObject({ code: 'tasksScopeDisabled' });
     // Ohne taskEnv (nicht durchgereicht) verhaelt es sich wie deaktiviert.
     const none = frontmatterQueryFor(taskStart, 'LIST TASKS');
-    expect(none.queryError).toMatchObject({ code: 'tasksScopeDisabled' });
+    expect(zustand(none).queryError).toMatchObject({ code: 'tasksScopeDisabled' });
   });
 });
 
@@ -258,9 +284,11 @@ describe('perspective-query — Gruppierung und Task-Layout (TASKS-Scope, 4T-000
     };
   }
 
-  // Erstes Wort der Beschreibung eines Treffers als stabiler Schluessel.
-  function itemKeys(items) {
-    return items.map((h) => parseTaskLine(h.taskText).description.trim().split(/\s+/)[0]);
+  // Erstes Wort der Beschreibung der Zeilen einer Gruppe als stabiler Schluessel.
+  function itemKeys(res, gruppe) {
+    return gruppe.rows.map(
+      (i) => parseTaskLine(zeilen(res)[i].origin.raw).description.trim().split(/\s+/)[0],
+    );
   }
 
   let taskStart;
@@ -292,56 +320,85 @@ describe('perspective-query — Gruppierung und Task-Layout (TASKS-Scope, 4T-000
     await indexFor(taskStart);
   });
 
-  it('GROUP BY bzw. HIDE/SHOW/SHORT ausserhalb LIST TASKS: eigene queryError-Codes, leere Liste', () => {
-    // GROUP BY nur bei LIST TASKS -> groupByTasksOnly (Datei- und Tabellen-Scope).
+  // 4T-002076 (Epic 3E-000259): Die Grenze der Gruppierung ist entfallen. GROUP BY
+  // über Dateien und in einer Aufgaben-Tabelle liefert Gruppen statt des
+  // Abfrage-Fehlers; HIDE/SHOW/SHORT bleiben der Aufgaben-Liste vorbehalten.
+  it('GROUP BY ausserhalb LIST TASKS bildet Gruppen; HIDE/SHOW/SHORT bleiben layoutTasksOnly', () => {
+    // Jede erzeugte gruppierte Menge besteht den Prüfer des Format-Vertrags.
+    const gueltig = (res) => {
+      expect(validateResultSet(res.resultSet)).toEqual([]);
+      return res.resultSet;
+    };
+    // Datei-Liste: `heading` ist kein Datei-Feld, beide Dateien landen in der
+    // Gruppe ohne Wert; die Zeilen-Liste bleibt vollständig.
     const grpFiles = frontmatterQueryFor(taskStart, 'LIST GROUP BY heading', undefined, env());
-    expect(grpFiles.status).toBe('ready');
-    expect(grpFiles.files).toEqual([]);
-    expect(grpFiles.queryError).toMatchObject({ code: 'groupByTasksOnly' });
+    const rsFiles = gueltig(grpFiles);
+    expect(rsFiles.state.queryError).toBeNull();
+    expect(rsFiles.scope).toBe('files');
+    expect(rsFiles.rows).toHaveLength(2);
+    expect(rsFiles.groups).toEqual([{ value: null, rows: [0, 1], groups: null }]);
+    // Aufgaben-Tabelle: dieselben Gruppen wie die Aufgaben-Liste, über denselben
+    // Zeilen in derselben Reihenfolge.
     const grpTable = frontmatterQueryFor(
       taskStart,
       'TABLE TASKS GROUP BY heading',
       undefined,
       env(),
     );
-    expect(grpTable.queryError).toMatchObject({ code: 'groupByTasksOnly' });
+    const rsTable = gueltig(grpTable);
+    expect(rsTable.type).toBe('table');
+    expect(rsTable.state.queryError).toBeNull();
+    const grpList = gueltig(
+      frontmatterQueryFor(taskStart, 'LIST TASKS GROUP BY heading', undefined, env()),
+    );
+    // 4T-002078: Die Tabelle trägt dazu je Gruppe die Werte über der Gruppe.
+    const ohneWerte = (gs) => gs.map(({ value, rows, groups }) => ({ value, rows, groups }));
+    expect(ohneWerte(rsTable.groups)).toEqual(grpList.groups);
+    expect(rsTable.groups.map((g) => g.values)).toEqual([[], [], []]);
+    expect(rsTable.rows.map((r) => r.origin)).toEqual(grpList.rows.map((r) => r.origin));
+    expect(rsTable.groups.map((g) => g.value)).toEqual(['Alpha', 'Beta', null]);
     // HIDE/SHOW/SHORT nur bei LIST TASKS -> layoutTasksOnly.
     const hideFiles = frontmatterQueryFor(taskStart, 'LIST HIDE due', undefined, env());
-    expect(hideFiles.queryError).toMatchObject({ code: 'layoutTasksOnly' });
+    expect(zustand(hideFiles).queryError).toMatchObject({ code: 'layoutTasksOnly' });
     const shortTable = frontmatterQueryFor(taskStart, 'TABLE TASKS SHORT', undefined, env());
-    expect(shortTable.queryError).toMatchObject({ code: 'layoutTasksOnly' });
+    expect(zustand(shortTable).queryError).toMatchObject({ code: 'layoutTasksOnly' });
   });
 
-  it('LIST TASKS ohne Gruppierung: totalCount und taskLayout im Payload', () => {
+  it('LIST TASKS ohne Gruppierung: Treffer-Zahl und Layout-Wünsche in der Menge', () => {
     const res = frontmatterQueryFor(taskStart, 'LIST TASKS', undefined, env());
-    expect(res.status).toBe('ready');
-    // Fuenf Task-Zeilen der Fixture (Wurzel + drei Alpha + eine Beta).
-    expect(res.totalCount).toBe(5);
-    expect(res.files).toHaveLength(5);
-    expect(res.groups).toBeUndefined();
-    expect(res.taskLayout).toEqual({ hide: [], show: [], short: false });
+    expect(zustand(res).status).toBe('ready');
+    // Fuenf Task-Zeilen der Fixture (Wurzel + drei Alpha + eine Beta); die
+    // Treffer-Zahl der Anzeige ist die Zahl der Zeilen.
+    expect(zeilen(res)).toHaveLength(5);
+    expect(treffer(res)).toHaveLength(5);
+    expect(res.resultSet.groups).toBeNull();
+    const layout = ({ hide, show, short }) => ({ hide, show, short });
+    expect(layout(res.resultSet.wishes)).toEqual({ hide: [], show: [], short: false });
     // HIDE/SHORT reichen die geparsten Layout-Optionen durch.
     const lay = frontmatterQueryFor(taskStart, 'LIST TASKS HIDE due SHORT', undefined, env());
-    expect(lay.taskLayout).toEqual({ hide: ['due'], show: [], short: true });
+    expect(layout(lay.resultSet.wishes)).toEqual({ hide: ['due'], show: [], short: true });
   });
 
   it('einstufige Gruppierung nach heading: Gruppen-Reihenfolge, items, null-Gruppe zuletzt', () => {
     const res = frontmatterQueryFor(taskStart, 'LIST TASKS GROUP BY heading', undefined, env());
-    expect(res.status).toBe('ready');
-    // Bei Gruppierung liegen die Treffer in groups, files bleibt leer.
-    expect(res.files).toEqual([]);
+    expect(zustand(res).status).toBe('ready');
+    // Bei Gruppierung liegen die Treffer in den Gruppen: Jede Zeile gehört genau
+    // einer Gruppe an (die Anzeige zeichnet dann keine flache Liste).
+    const gruppen = res.resultSet.groups;
+    expect(gruppen.flatMap((g) => g.rows).sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4]);
     // Werte-Ordnung locale-bewusst (Alpha < Beta), Wert-lose Gruppe (label null)
     // als letzte.
-    expect(res.groups.map((g) => g.label)).toEqual(['Alpha', 'Beta', null]);
+    expect(titel(gruppen)).toEqual(['Alpha', 'Beta', null]);
     // 4T-000505: items-Reihenfolge folgt der Default-Sortierung der Pipeline —
     // A-frueh und A-spaet (beide highest) vor A-normal, bei gleicher
     // Dringlichkeit die fruehere Faelligkeit zuerst (A-frueh 01 < A-spaet 02).
-    expect(itemKeys(res.groups[0].items)).toEqual(['A-frueh', 'A-spaet', 'A-normal']);
-    expect(itemKeys(res.groups[1].items)).toEqual(['B-eins']);
-    expect(itemKeys(res.groups[2].items)).toEqual(['Wurzel']);
+    expect(itemKeys(res, gruppen[0])).toEqual(['A-frueh', 'A-spaet', 'A-normal']);
+    expect(itemKeys(res, gruppen[1])).toEqual(['B-eins']);
+    expect(itemKeys(res, gruppen[2])).toEqual(['Wurzel']);
     // Treffer tragen die Task-Trefferform (name/path/line/taskText).
-    const hit = res.groups[0].items[0];
-    expect(hit.name).toBe('Aufgaben');
+    const zeile = zeilen(res)[gruppen[0].rows[0]];
+    const hit = treffer(res)[gruppen[0].rows[0]];
+    expect(displayName(zeile.origin)).toBe('Aufgaben');
     expect(typeof hit.line).toBe('number');
     expect(hit.taskText).toContain('A-frueh');
   });
@@ -354,7 +411,7 @@ describe('perspective-query — Gruppierung und Task-Layout (TASKS-Scope, 4T-000
       env(),
     );
     // Alpha nach Termin aufsteigend: frueh (01) < spaet (02) < normal (03).
-    expect(itemKeys(res.groups[0].items)).toEqual(['A-frueh', 'A-spaet', 'A-normal']);
+    expect(itemKeys(res, res.resultSet.groups[0])).toEqual(['A-frueh', 'A-spaet', 'A-normal']);
   });
 
   it('zweistufige Gruppierung nach heading, priority', () => {
@@ -365,19 +422,18 @@ describe('perspective-query — Gruppierung und Task-Layout (TASKS-Scope, 4T-000
       env(),
     );
     // Aeussere Ebene wie einstufig: Alpha, Beta, null.
-    expect(res.groups.map((g) => g.label)).toEqual(['Alpha', 'Beta', null]);
-    // Alpha traegt Untergruppen (keine direkten items).
-    const alpha = res.groups[0];
-    expect(alpha.items).toBeUndefined();
+    expect(titel(res.resultSet.groups)).toEqual(['Alpha', 'Beta', null]);
+    // Alpha traegt Untergruppen (die Anzeige zeichnet dort keine direkten Einträge).
+    const alpha = res.resultSet.groups[0];
     expect(Array.isArray(alpha.groups)).toBe(true);
-    const subLabels = alpha.groups.map((g) => g.label);
+    const subLabels = titel(alpha.groups);
     // Zwei Prioritaets-Untergruppen: hoechste (zwei A-Aufgaben) und normal (eine).
     expect(subLabels).toContain('highest');
     expect(subLabels).toContain('normal');
-    const highest = alpha.groups.find((g) => g.label === 'highest');
-    expect(itemKeys(highest.items).sort()).toEqual(['A-frueh', 'A-spaet']);
-    const normal = alpha.groups.find((g) => g.label === 'normal');
-    expect(itemKeys(normal.items)).toEqual(['A-normal']);
+    const highest = alpha.groups.find((g) => groupTitle(g.value).label === 'highest');
+    expect(itemKeys(res, highest).sort()).toEqual(['A-frueh', 'A-spaet']);
+    const normal = alpha.groups.find((g) => groupTitle(g.value).label === 'normal');
+    expect(itemKeys(res, normal)).toEqual(['A-normal']);
   });
 });
 
@@ -403,7 +459,7 @@ describe('perspective-query — Default-Sortierung, urgency, globale Abfrage (4T
   }
 
   function taskKeys(res) {
-    return res.files.map((f) => parseTaskLine(f.taskText).description.trim().split(/\s+/)[0]);
+    return treffer(res).map((f) => parseTaskLine(f.taskText).description.trim().split(/\s+/)[0]);
   }
 
   let taskStart;
@@ -440,7 +496,7 @@ describe('perspective-query — Default-Sortierung, urgency, globale Abfrage (4T
 
   it('Default-Sortierung: Status-Typ (IN_PROGRESS<TODO<DONE), dann Dringlichkeit, dann Faelligkeit', () => {
     const res = frontmatterQueryFor(taskStart, 'LIST TASKS', undefined, env());
-    expect(res.status).toBe('ready');
+    expect(zustand(res).status).toBe('ready');
     // Laufend (IP) zuerst; TODO nach Dringlichkeit absteigend (Wichtig 11.4),
     // dann die gleich-dringlichen 4.35er nach Faelligkeit (Frueh 02 < Spaet 03 <
     // Extern 07), Unwichtig (0.6) am TODO-Ende; Fertig (DONE) ganz zuletzt.
@@ -470,15 +526,16 @@ describe('perspective-query — Default-Sortierung, urgency, globale Abfrage (4T
     expect(keys.at(-1)).toBe('Fertig');
     expect(keys[0]).not.toBe('Laufend');
     // urgency ist ueber die Treffer nicht fallend.
-    const scores = res.files.map((f) => f.urgency);
+    const scores = zeilen(res).map((r) => roundUrgency(r.taskInfo.urgency));
     for (let i = 1; i < scores.length; i++) expect(scores[i]).toBeGreaterThanOrEqual(scores[i - 1]);
   });
 
   it('Treffer tragen urgency als gerundete Zahl', () => {
     const res = frontmatterQueryFor(taskStart, 'LIST TASKS', undefined, env());
-    expect(res.files.every((f) => typeof f.urgency === 'number')).toBe(true);
+    const gerundet = zeilen(res).map((r) => roundUrgency(r.taskInfo.urgency));
+    expect(gerundet.every((u) => typeof u === 'number')).toBe(true);
     const byKey = Object.fromEntries(
-      res.files.map((f) => [parseTaskLine(f.taskText).description.trim(), f.urgency]),
+      zeilen(res).map((r, i) => [parseTaskLine(r.origin.raw).description.trim(), gerundet[i]]),
     );
     expect(byKey.Wichtig).toBeCloseTo(11.4, 2);
     expect(byKey.Unwichtig).toBeCloseTo(0.6, 2);
@@ -521,9 +578,9 @@ describe('perspective-query — Default-Sortierung, urgency, globale Abfrage (4T
         globalQuery: 'LIST TASKS SORT due',
       }),
     );
-    expect(res.status).toBe('ready');
-    expect(res.files).toEqual([]);
-    expect(res.queryError).toMatchObject({ code: 'globalQueryInvalid' });
+    expect(zustand(res).status).toBe('ready');
+    expect(zeilen(res)).toEqual([]);
+    expect(zustand(res).queryError).toMatchObject({ code: 'globalQueryInvalid' });
   });
 
   it('globale Abfrage mit Syntaxfehler -> ebenfalls globalQueryInvalid', () => {
@@ -535,8 +592,8 @@ describe('perspective-query — Default-Sortierung, urgency, globale Abfrage (4T
         globalQuery: 'WHERE (',
       }),
     );
-    expect(res.queryError).toMatchObject({ code: 'globalQueryInvalid' });
-    expect(res.files).toEqual([]);
+    expect(zustand(res).queryError).toMatchObject({ code: 'globalQueryInvalid' });
+    expect(zeilen(res)).toEqual([]);
   });
 
   it('globale Abfrage wirkt NICHT auf den Datei-Scope (LIST): keine Filterung, kein Fehler', () => {
@@ -549,8 +606,8 @@ describe('perspective-query — Default-Sortierung, urgency, globale Abfrage (4T
         globalQuery: 'LIST TASKS SORT due',
       }),
     );
-    expect(res.status).toBe('ready');
-    expect(res.queryError).toBeUndefined();
+    expect(zustand(res).status).toBe('ready');
+    expect(zustand(res).queryError).toBeNull();
     expect(names(res)).toEqual(['Aufgaben', 'Sonstiges', 'Start']);
   });
 });
@@ -574,7 +631,7 @@ describe('perspective-query — Abhaengigkeiten (TASKS-Scope, 4T-000508)', () =>
   }
 
   function taskKeys(res) {
-    return res.files.map((f) => parseTaskLine(f.taskText).description.trim().split(/\s+/)[0]);
+    return treffer(res).map((f) => parseTaskLine(f.taskText).description.trim().split(/\s+/)[0]);
   }
 
   let taskStart;
@@ -604,9 +661,9 @@ describe('perspective-query — Abhaengigkeiten (TASKS-Scope, 4T-000508)', () =>
       undefined,
       env(),
     );
-    expect(res.status).toBe('ready');
+    expect(zustand(res).status).toBe('ready');
     expect(taskKeys(res)).toEqual(['B']);
-    expect(res.files[0].blocked).toBe(true);
+    expect(zeilen(res)[0].taskInfo.blocked).toBe(true);
   });
 
   it('WHERE blocking = "true" trifft die offenen a1-Traeger (A, C)', () => {
@@ -637,7 +694,7 @@ describe('perspective-query — Abhaengigkeiten (TASKS-Scope, 4T-000508)', () =>
       env(),
     );
     expect(taskKeys(res).sort()).toEqual(['A', 'C']);
-    expect(res.files.every((f) => f.duplicateId === true)).toBe(true);
+    expect(zeilen(res).every((r) => r.taskInfo.duplicateId === true)).toBe(true);
   });
 
   it('E ist NICHT blockiert, weil sein Vorgaenger d1 erledigt ist', () => {
@@ -698,5 +755,207 @@ describe('areaTaskLines — Roh-Task-Zeilen des Bereichs (4T-000525)', () => {
   it('liefert null fuer eine unbekannte oder nicht bereite Wurzel', () => {
     expect(areaTaskLines(path.join(os.tmpdir(), 'gibt-es-nicht-4t0525-xyz'))).toBeNull();
     expect(areaTaskLines(null)).toBeNull();
+  });
+});
+
+// --- 4T-002033 (Epic 3E-000260): Ergebnismenge der Aufgaben-Ebene -------------------
+// Eigene Fixture: eine Aufgabe vor jeder Überschrift (Gruppe ohne Wert), zwei
+// unter '## Alpha' (eine mit höchster Priorität), zwei unter '## Beta' mit einer
+// Abhängigkeit (B-wartet hängt am offenen B-traeger). Termine in 2099.
+describe('perspective-query — Ergebnismenge der Aufgaben-Ebene (4T-002033)', () => {
+  const DUE = '\u{1F4C5}'; // Kalender (faellig)
+  const HIGH = '\u{1F53A}'; // rotes Dreieck (Prioritaet hoechste)
+  const ID = '\u{1F194}'; // ID-Zeichen
+  const DEP = '⛔'; // Vorgaenger-Bezug
+
+  function env(over = {}) {
+    return {
+      enabled: over.enabled !== undefined ? over.enabled : true,
+      globalFilter: '',
+      statusTypeOf: createTaskStatusTypeResolver(null),
+    };
+  }
+
+  // Prüfer ohne Abweichung und Übertragbarkeit (strukturierter Klon); seit
+  // 4T-002035 trägt die Antwort NUR die Menge, die bisher hier geprüfte
+  // Ableitung der alten Felder ist mit der alten Form entfallen.
+  function pruefeMenge(res) {
+    expect(Object.keys(res)).toEqual(['resultSet']);
+    const { resultSet } = res;
+    expect(validateResultSet(resultSet)).toEqual([]);
+    expect(resultSet.formatVersion).toBe(1);
+    expect(structuredClone(resultSet)).toEqual(resultSet);
+    return resultSet;
+  }
+
+  const schluessel = (row) => parseTaskLine(row.origin.raw).description.trim().split(/\s+/)[0];
+
+  let taskStart;
+  let aufgaben;
+  beforeEach(async () => {
+    const root = makeRoot();
+    taskStart = write(root, 'Start.md', '# Start\n');
+    aufgaben = write(
+      root,
+      'Aufgaben.md',
+      [
+        `- [ ] Wurzel ${DUE} 2099-06-01`,
+        '',
+        '## Alpha',
+        '',
+        `- [ ] A-frueh ${DUE} 2099-01-01 ${HIGH}`,
+        // Fällig morgen: Die Dringlichkeit hat dann mehr als zwei
+        // Nachkommastellen (1,95 + 12 − 8 · 9,6 / 21), gerundet und ungerundet
+        // unterscheiden sich also sichtbar.
+        `- [ ] A-normal ${DUE} ${localIsoDateOf(Date.now() + 86400000)}`,
+        '',
+        '## Beta',
+        '',
+        `- [ ] B-traeger ${ID} b1`,
+        `- [ ] B-wartet ${DEP} b1`,
+        '',
+      ].join('\n'),
+    );
+    await indexFor(taskStart);
+  });
+
+  it('LIST TASKS: Herkunft mit Zeile und Roh-Zeile, Zusatzangaben ungerundet', () => {
+    const res = frontmatterQueryFor(taskStart, 'LIST TASKS', undefined, env());
+    const rs = pruefeMenge(res);
+    expect(rs.scope).toBe('tasks');
+    expect(rs.type).toBe('list');
+    expect(rs.rows).toHaveLength(5);
+    const wurzel = rs.rows.find((r) => schluessel(r) === 'Wurzel');
+    expect(wurzel.origin).toEqual({
+      kind: 'task',
+      path: aufgaben,
+      name: 'Aufgaben',
+      line: 1,
+      raw: `- [ ] Wurzel ${DUE} 2099-06-01`,
+    });
+    // Die Dringlichkeit ist der ungerundete Wert der Auswertung; gerundet wird
+    // allein in der Darstellung. Die Aufgaben-Treffer der Hintergrund-Nutzer
+    // tragen Pfad, Zeile und Roh-Zeile der Herkunft (4T-002035).
+    const todayIso = localIsoDateOf(Date.now());
+    const hits = taskHits(rs);
+    rs.rows.forEach((r, i) => {
+      const roh = computeUrgency(parseTaskLine(r.origin.raw), { todayIso });
+      expect(r.taskInfo.urgency).toBe(roh);
+      expect(roundUrgency(r.taskInfo.urgency)).toBe(Math.round(roh * 100) / 100);
+      expect(hits[i]).toEqual({ path: r.origin.path, line: r.origin.line, taskText: r.origin.raw });
+    });
+    const normal = rs.rows.find((r) => schluessel(r) === 'A-normal').taskInfo.urgency;
+    expect(normal).not.toBe(Math.round(normal * 100) / 100);
+    const wartet = rs.rows.find((r) => schluessel(r) === 'B-wartet');
+    expect(wartet.taskInfo).toEqual(expect.objectContaining({ blocked: true, duplicateId: false }));
+    expect(rs.wishes).toEqual({
+      layoutColumns: null,
+      withoutId: false,
+      hide: [],
+      show: [],
+      short: false,
+    });
+    // Die Treffer-Zahl der Anzeige ist die Zahl der Zeilen.
+    expect(rs.rows.length).toBe(5);
+  });
+
+  it('GROUP BY: Gruppen tragen Wert und Zeilen-Indizes, die Zeilen bleiben vollständig', () => {
+    const res = frontmatterQueryFor(taskStart, 'LIST TASKS GROUP BY heading', undefined, env());
+    const rs = pruefeMenge(res);
+    // Die Menge behält bei Gruppierung alle Zeilen.
+    expect(rs.rows).toHaveLength(5);
+    expect(rs.groups.map((g) => g.value)).toEqual(['Alpha', 'Beta', null]);
+    expect(rs.groups.every((g) => g.groups === null)).toBe(true);
+    expect(rs.groups.map((g) => g.rows.map((i) => schluessel(rs.rows[i])))).toEqual([
+      ['A-frueh', 'A-normal'],
+      ['B-traeger', 'B-wartet'],
+      ['Wurzel'],
+    ]);
+    // Jede Zeile gehört genau einer Gruppe an.
+    const alle = rs.groups.flatMap((g) => g.rows).sort((a, b) => a - b);
+    expect(alle).toEqual([0, 1, 2, 3, 4]);
+    // Beschriftung und Einträge der Gruppen entstehen in der Darstellung aus
+    // Wert und Zeilen.
+    expect(titel(rs.groups)).toEqual(['Alpha', 'Beta', null]);
+    expect(rs.groups[0].rows.map((i) => taskHits(rs)[i].taskText)).toEqual(
+      rs.groups[0].rows.map((i) => rs.rows[i].origin.raw),
+    );
+  });
+
+  it('zweistufige Gruppierung: Untergruppen teilen die Zeilen ihrer Gruppe', () => {
+    const res = frontmatterQueryFor(
+      taskStart,
+      'LIST TASKS GROUP BY heading, priority',
+      undefined,
+      env(),
+    );
+    const rs = pruefeMenge(res);
+    const alpha = rs.groups[0];
+    expect(alpha.value).toBe('Alpha');
+    expect(alpha.groups.map((g) => g.value).sort()).toEqual(['highest', 'normal']);
+    const unter = alpha.groups.flatMap((g) => g.rows).sort((a, b) => a - b);
+    expect(unter).toEqual([...alpha.rows].sort((a, b) => a - b));
+    expect(Array.isArray(alpha.groups)).toBe(true);
+    expect(titel(alpha.groups).sort()).toEqual(['highest', 'normal']);
+  });
+
+  it('Zusatzfeld und Layout-Wünsche: Datums-Spalte, Wünsche getrennt von den Daten', () => {
+    const res = frontmatterQueryFor(
+      taskStart,
+      'LIST TASKS due GROUP BY heading SHOW urgency HIDE due SHORT',
+      undefined,
+      env(),
+    );
+    const rs = pruefeMenge(res);
+    expect(rs.columns).toEqual([
+      { name: 'due', label: 'due', alias: null, source: 'due', valueType: 'date' },
+    ]);
+    const frueh = rs.rows.find((r) => schluessel(r) === 'A-frueh');
+    expect(frueh.values).toEqual([{ kind: 'date', ms: new Date(2099, 0, 1).getTime() }]);
+    // B-traeger hat keinen Termin: fehlender Wert statt leerer Zeichenkette.
+    expect(rs.rows.find((r) => schluessel(r) === 'B-traeger').values).toEqual([null]);
+    expect(rs.wishes).toEqual({
+      layoutColumns: null,
+      withoutId: false,
+      hide: ['due'],
+      show: ['urgency'],
+      short: true,
+    });
+    // Die Darstellung zeigt den Termin der ersten Zeile der ersten Gruppe.
+    expect(cellSegments(rs.rows[rs.groups[0].rows[0]].values[0])).toEqual([{ text: '2099-01-01' }]);
+  });
+
+  it('TABLE TASKS: Tabellen-Typ mit Aufgaben-Herkunft und Zusatzangaben', () => {
+    const res = frontmatterQueryFor(
+      taskStart,
+      'TABLE TASKS description, urgency',
+      undefined,
+      env(),
+    );
+    const rs = pruefeMenge(res);
+    expect(rs.type).toBe('table');
+    expect(rs.scope).toBe('tasks');
+    expect(rs.columns.map((c) => c.valueType)).toEqual(['string', 'number']);
+    expect(rs.rows.every((r) => r.origin.kind === 'task' && r.taskInfo !== null)).toBe(true);
+    // Die Dringlichkeits-Spalte ist derselbe ungerundete Wert wie die Zusatzangabe.
+    expect(rs.rows.every((r) => r.values[1] === r.taskInfo.urgency)).toBe(true);
+    // Einen Treffer-Zähler zeichnet die Anzeige allein zur Aufgaben-Liste
+    // (LIST TASKS); die Tabelle trägt Typ «table» und keine Gruppen, und die
+    // Momentaufnahme «Aufgaben: Tabelle» des Vergleichs-Prüffalls zeigt keinen.
+    expect(rs.groups).toBeNull();
+  });
+
+  it('Abfrage-Fehler der Aufgaben-Ebene: Zustand mit Fehler, keine Zeilen', () => {
+    const aus = frontmatterQueryFor(taskStart, 'LIST TASKS', undefined, env({ enabled: false }));
+    const rsAus = pruefeMenge(aus);
+    expect(rsAus.state.queryError).toMatchObject({ code: 'tasksScopeDisabled', pos: -1 });
+    expect(rsAus.scope).toBeNull();
+    expect(rsAus.rows).toEqual([]);
+    // 4T-002076: GROUP BY außerhalb der Aufgaben-Liste ist kein Abfrage-Fehler
+    // mehr; die Grenze der Layout-Klauseln bleibt einer.
+    const layout = frontmatterQueryFor(taskStart, 'TABLE TASKS SHORT', undefined, env());
+    expect(pruefeMenge(layout).state.queryError.code).toBe('layoutTasksOnly');
+    const gruppe = frontmatterQueryFor(taskStart, 'LIST GROUP BY heading', undefined, env());
+    expect(pruefeMenge(gruppe).state.queryError).toBeNull();
   });
 });

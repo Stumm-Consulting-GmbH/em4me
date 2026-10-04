@@ -24,7 +24,8 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, oeffneDokumentImFenster } = require('../helpers/app');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 const NACHFRAGE_TITEL = 'Bereich läuft bereits';
@@ -47,12 +48,13 @@ function removeDir(dir) {
 }
 
 const fensterZahl = (app) =>
-  app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
+  hauptLesen(app, ({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
 
 // Dialoge des Haupt-Prozesses abfangen: Die Nachfrage bekommt die gesetzte
 // Antwort, jeder andere Hinweis «OK». Der Ordner-Dialog liefert den Ordner.
 async function dialogeAbfangen(app, ordner) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ dialog }, { ordner: o, titel }) => {
       globalThis.__bmFragen = [];
       globalThis.__bmAntwort = 2;
@@ -74,27 +76,22 @@ async function dialogeAbfangen(app, ordner) {
   );
 }
 const antwortSetzen = (app, r) =>
-  app.evaluate((_e, wert) => {
-    globalThis.__bmAntwort = wert;
-  }, r);
-// Ein Aufruf im Haupt-Prozess kurz nach einem Menü-Send kann an einem
-// verworfenen CDP-Kontext scheitern («Execution context was destroyed», ohne
-// Produkt-Befund; Muster perf/4t-0180.spec.js). Ein weiterer Versuch nach
-// kurzer Pause trägt.
-async function hauptEval(app, fn, arg) {
-  for (let versuch = 0; ; versuch++) {
-    try {
-      return await app.evaluate(fn, arg);
-    } catch (err) {
-      if (versuch >= 3 || !/Execution context was destroyed/.test(String(err))) throw err;
-      await new Promise((r) => setTimeout(r, 300));
-    }
-  }
-}
-const fragen = (app) => hauptEval(app, () => globalThis.__bmFragen || []);
+  hauptSenden(
+    app,
+    (_e, wert) => {
+      globalThis.__bmAntwort = wert;
+    },
+    r,
+  );
+// Ein Aufruf im Haupt-Prozess kurz nach einem Menü-Send kann seine Rückmeldung
+// verlieren («Execution context was destroyed», ohne Produkt-Befund). 4T-001813
+// hat die Ursache gemessen und den früheren Behelf hauptEval (bis zu drei
+// Wiederholungen nach fester Pause, auch für Befehle) durch den geteilten
+// Baustein ersetzt: Abfragen über hauptLesen, Befehle über hauptSenden.
+const fragen = (app) => hauptLesen(app, () => globalThis.__bmFragen || []);
 
 async function titelAlle(app) {
-  return app.evaluate(({ BrowserWindow }) =>
+  return hauptLesen(app, ({ BrowserWindow }) =>
     BrowserWindow.getAllWindows().map((w) => w.getTitle()),
   );
 }
@@ -102,7 +99,7 @@ async function titelAlle(app) {
 // Menü des Fensters mit `teil` im Titel beim nächsten Neubau festhalten und den
 // Zuletzt-Eintrag des Ordners anklicken (natives Menü: Muster menu-zustand.js).
 async function zuletztEintragKlicken(app, teil, ordner) {
-  await hauptEval(
+  await hauptSenden(
     app,
     ({ BrowserWindow }, t) => {
       const win = BrowserWindow.getAllWindows().find((w) => w.getTitle().includes(t));
@@ -118,7 +115,7 @@ async function zuletztEintragKlicken(app, teil, ordner) {
   );
   await expect
     .poll(async () => {
-      await hauptEval(
+      await hauptSenden(
         app,
         ({ BrowserWindow }, t) => {
           const win = BrowserWindow.getAllWindows().find((w) => w.getTitle().includes(t));
@@ -129,41 +126,37 @@ async function zuletztEintragKlicken(app, teil, ordner) {
         },
         teil,
       );
-      return hauptEval(app, () => !!globalThis.__bmMenue);
+      return hauptLesen(app, () => !!globalThis.__bmMenue);
     })
     .toBe(true);
-  const geklickt = await hauptEval(
-    app,
-    (_e, o) => {
-      const suche = (items) => {
-        for (const it of items || []) {
-          if (it.toolTip === o) return it;
-          const tiefer = it.submenu ? suche(it.submenu.items) : null;
-          if (tiefer) return tiefer;
-        }
-        return null;
-      };
-      const eintrag = suche(globalThis.__bmMenue.items);
-      if (!eintrag) return false;
-      eintrag.click();
-      return true;
-    },
-    ordner,
-  );
-  expect(geklickt).toBe(true);
+  // Befehl und gebrauchte Rückgabe in zwei Zugriffen mit demselben Rumpf:
+  // Erst wird gelesen, ob der Eintrag im festgehaltenen Menü steht (Abfrage,
+  // wiederholbar), dann wird er angeklickt (Befehl, nie doppelt). Gesucht wird
+  // in beiden im selben festgehaltenen Menü; geprüft wird damit derselbe Weg
+  // wie zuvor in einem Zugriff.
+  const eintragImMenue = (_e, { o, klicken }) => {
+    const suche = (items) => {
+      for (const it of items || []) {
+        if (it.toolTip === o) return it;
+        const tiefer = it.submenu ? suche(it.submenu.items) : null;
+        if (tiefer) return tiefer;
+      }
+      return null;
+    };
+    const eintrag = suche(globalThis.__bmMenue.items);
+    if (!eintrag) return false;
+    if (klicken) eintrag.click();
+    return true;
+  };
+  expect(await hauptLesen(app, eintragImMenue, { o: ordner, klicken: false })).toBe(true);
+  await hauptSenden(app, eintragImMenue, { o: ordner, klicken: true });
 }
 
-async function dateiInFenster(app, page, datei) {
-  const fenster = await app.browserWindow(page);
-  await expect
-    .poll(async () => {
-      if ((await page.locator(TABS0).count()) === 0) {
-        await fenster.evaluate((w, p) => w.webContents.send('file:openExternal', [p]), datei);
-      }
-      return page.locator(TABS0).count();
-    })
-    .toBe(1);
-}
+// 4T-001689: Der frühere eigene Helfer dateiInFenster ist als
+// oeffneDokumentImFenster nach helpers/app.js gehoben. Er sendet die Nachricht
+// jetzt GENAU EINMAL nach der Bereitschaft des Fensters statt im Poll erneut:
+// file:openExternal ist nicht idempotent, eine zweite, überlappende Sendung
+// legte einen zweiten Eintrag derselben Datei an (rueckschreib-beobachtung.spec.js).
 
 // Vorbereitung: basis.md offen, der Ordner als zweite Applikation, die per
 // «Als Arbeitsbereich speichern» zum Arbeitsbereich «Alpha» wird.
@@ -185,7 +178,7 @@ test.describe('BM-01: Nachfrage und zweite Applikation auf demselben Ordner (4T-
     const { app, page, userData } = await launchApp({ args: [BASIS] });
     try {
       const pageW = await arbeitsbereichAufOrdner(app, page, dir);
-      await dateiInFenster(app, pageW, path.join(dir, 'erste.md'));
+      await oeffneDokumentImFenster(app, pageW, path.join(dir, 'erste.md'));
       await dialogeAbfangen(app, dir);
       await page.evaluate((p) => window.api.setSetting('recentAreas', ['C:\\Anderswo', p]), dir);
 
@@ -211,7 +204,7 @@ test.describe('BM-01: Nachfrage und zweite Applikation auf demselben Ordner (4T-
       // Menü-Weg (Ordner-Dialog) und Zuletzt-Liste zeigen dieselbe Nachfrage
       // (jeweils Abbrechen).
       const basisFenster = await app.browserWindow(page);
-      await basisFenster.evaluate((w) => w.webContents.send('menu:openArea'));
+      await hauptSenden(basisFenster, (w) => w.webContents.send('menu:openArea'));
       await expect.poll(async () => (await fragen(app)).length).toBe(2);
       await zuletztEintragKlicken(app, 'basis', dir);
       await expect.poll(async () => (await fragen(app)).length).toBe(3);
@@ -246,7 +239,7 @@ test.describe('BM-01: Nachfrage und zweite Applikation auf demselben Ordner (4T-
       expect(await fensterZahl(app)).toBe(3);
 
       // Getrennte Reiter-Mengen.
-      await dateiInFenster(app, pageZ, path.join(dir, 'zweite.md'));
+      await oeffneDokumentImFenster(app, pageZ, path.join(dir, 'zweite.md'));
       await expect(pageW.locator(TABS0)).toHaveCount(1);
       await expect(pageW.locator(TABS0)).toContainText('erste');
       await expect(pageZ.locator(TABS0)).toContainText('zweite');
@@ -274,7 +267,8 @@ test.describe('BM-01: Nachfrage und zweite Applikation auf demselben Ordner (4T-
       // Beobachter und Index der ersten Applikation bleiben.
       fs.writeFileSync(path.join(dir, 'dritte.md'), '# Dritte\n', 'utf8');
       await expect.poll(() => pageW.evaluate(() => window.__bmAenderungen)).toBeGreaterThan(0);
-      const index = await app.evaluate(
+      const index = await hauptLesen(
+        app,
         (_e, { wurzel, store }) => {
           const laden = process.getBuiltinModule('node:module').createRequire(store);
           const pfad = process.getBuiltinModule('node:path');
@@ -308,7 +302,7 @@ test.describe('BM-02: zwei Applikationen desselben Ordners nach dem Neustart (4T
       const pageZ = await neu;
       await expect.poll(() => pageZ.title()).toContain(`(Bereich ${name})`);
 
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await first.app.waitForEvent('close');
 
       const second = await launchApp({ userData });

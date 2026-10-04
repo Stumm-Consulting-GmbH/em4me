@@ -27,6 +27,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
+const { hauptLesen } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 const ORDNER = 20;
@@ -57,7 +58,7 @@ function removeDir(dir) {
 }
 
 const beobachter = (app) =>
-  app.evaluate(() => process.getActiveResourcesInfo().filter((r) => r === 'FSEventWrap').length);
+  hauptLesen(app, () => process.getActiveResourcesInfo().filter((r) => r === 'FSEventWrap').length);
 
 // Index-Eintrag der Wurzel aus dem Haupt-Prozess: Zahl der Einträge für den
 // Ordner und die Halter-Schlüssel des einen Eintrags.
@@ -65,7 +66,8 @@ const beobachter = (app) =>
 // Instanz im Modul-Zwischenspeicher des Haupt-Prozesses.
 const STORE = path.resolve(__dirname, '..', '..', '..', 'src', 'main', 'index', 'store.js');
 const indexLage = (app, dir) =>
-  app.evaluate(
+  hauptLesen(
+    app,
     (_e, { wurzel, store }) => {
       const laden = process.getBuiltinModule('node:module').createRequire(store);
       const { indexes } = laden(store);
@@ -151,7 +153,7 @@ test.describe('BM-M1: zwei Applikationen auf demselben Ordner, gemessen (4T-0017
       await expect.poll(() => page2.title()).toContain('Messung');
       await page2.evaluate(() => void window.api.workspaceClose()).catch(() => {});
       await expect
-        .poll(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length))
+        .poll(() => hauptLesen(app, ({ BrowserWindow }) => BrowserWindow.getAllWindows().length))
         .toBe(1);
       const w3 = app.waitForEvent('window');
       expect((await page.evaluate((p) => window.api.openAreaPath(p), dir)).createdNew).toBe(true);
@@ -182,7 +184,7 @@ test.describe('BM-M1: zwei Applikationen auf demselben Ordner, gemessen (4T-0017
 
       // AK8: Titel beider Fenster.
       await expect.poll(() => pageW.title()).toContain('Messung');
-      const titel = await app.evaluate(({ BrowserWindow }) =>
+      const titel = await hauptLesen(app, ({ BrowserWindow }) =>
         BrowserWindow.getAllWindows().map((w) => w.getTitle()),
       );
       marke(`Titel: ${JSON.stringify(titel)}`);
@@ -204,7 +206,7 @@ test.describe('BM-M1: zwei Applikationen auf demselben Ordner, gemessen (4T-0017
       const vorAbbau1 = cache.spur.length;
       await pageW.evaluate(() => void window.api.workspaceClose()).catch(() => {});
       await expect
-        .poll(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length))
+        .poll(() => hauptLesen(app, ({ BrowserWindow }) => BrowserWindow.getAllWindows().length))
         .toBe(2);
       marke('Arbeitsbereichs-App geschlossen');
       await new Promise((r) => setTimeout(r, 5000));
@@ -220,7 +222,7 @@ test.describe('BM-M1: zwei Applikationen auf demselben Ordner, gemessen (4T-0017
       const abbau2 = Date.now();
       await pageP.evaluate(() => void window.api.closeArea()).catch(() => {});
       await expect
-        .poll(() => app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length))
+        .poll(() => hauptLesen(app, ({ BrowserWindow }) => BrowserWindow.getAllWindows().length))
         .toBe(1);
       marke('gewöhnliche Bereichs-App geschlossen');
       await expect

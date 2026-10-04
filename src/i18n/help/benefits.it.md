@@ -106,11 +106,10 @@ Una cartella di file Markdown può essere al tempo stesso una banca dati, e non 
 - **L'area diventa una banca dati** non appena un documento la descrive, e riceve la propria panoramica, da cui create record e verificate i dati.
 - **La tabella risiede nel suo file**: i campi nell'intestazione, i record nel corpo. Rinominare e spostare non cambiano nulla, neppure fuori dall'applicazione.
 - **Otto tipi di colonna**, con etichette che possono esistere in più lingue.
-- **Il collegamento a un singolo record** si scrive come un'ancora e si comporta come ogni altro collegamento: il linter Markdown indica se vale, e un clic apre il file della tabella.
+- **Il collegamento a un singolo record** si scrive come un'ancora e si comporta come ogni altro collegamento: il linter Markdown indica se vale, e un clic porta alla riga del record.
 - **I grandi insiemi restano una sola tabella**: da circa 0,7 MB in poi l'applicazione distribuisce i record al salvataggio su più file affiancati, senza che alcun collegamento ne risenta.
 - **Curare i record nella maschera**: creare, modificare ed eliminare in una maschera generata dalla definizione, con blocco, giustificativo di modifica e le regole della tabella; verifica di coerenza e vista degli utilizzi per la diagnosi.
-
-Ciò che la banca dati non porta ancora: interrogazioni e valutazioni sui record.
+- **Valutare i record**: elenchi e tabelle su una tabella, con percorsi attraverso i riferimenti e gerarchie su un numero qualsiasi di livelli, in forma di albero se lo desideri, e panoramiche con una riga per gruppo, ad esempio libri e pagine per autore.
 
 In dettaglio: [Banca dati](database.md).
 
@@ -163,21 +162,21 @@ In dettaglio: [Profili di proprietà](property-profiles.md).
 
 ## Elenchi che si mantengono aggiornati
 
-Chi gestisce molti file mantiene altrimenti le panoramiche a mano, e invecchiano il giorno stesso. Una query Perspective descrive invece **che cosa** si cerca, e il risultato compare lì nel documento: un elenco o una tabella cliccabile sull'intero insieme, filtrata per proprietà, etichette e campi del file, fino ai singoli blocchi di testo e alle attività. Se l'insieme cambia, cambia l'output, senza che nessuno aggiorni nulla.
+Chi gestisce molti file mantiene altrimenti le panoramiche a mano, e invecchiano il giorno stesso. Una query Perspective descrive invece **che cosa** si cerca, e il risultato compare lì nel documento: un elenco o una tabella cliccabile sull'intero insieme, filtrata per proprietà, etichette e campi del file, fino ai singoli blocchi di testo e alle attività. Se lo desideri, la query riunisce i risultati in gruppi, con una riga per gruppo che ne indica il numero, la somma o la media. Se l'insieme cambia, cambia l'output, senza che nessuno aggiorni nulla.
 
 - **Pagine tematiche** che elencano da sé i file collegati.
-- **Filtri** su proprietà del frontmatter, etichette e campi del file.
-- **Livello di blocco e di attività**, non solo file interi.
+- **Filtri e gruppi** su proprietà del frontmatter, etichette e campi del file, con il numero e le somme per gruppo.
+- **Livello di blocco, di attività e di record**, non solo file interi.
 - **Ogni risultato cliccabile**, che porta dritto alla sua destinazione.
 
 In dettaglio: [Query Perspective](frontmatter-query.md).
 
 ## Quando la query non basta: gli script
 
-Certe analisi non si formulano come condizione, per esempio un albero ricorsivo lungo i collegamenti o una panoramica che calcola strada facendo. Se ne occupano i blocchi di script: un blocco esegue un piccolo programma, legge lo stesso insieme della query e produce elenchi, tabelle o testo già formattato nel documento. Poiché questo significa più libertà, la funzione è legata a un modello di fiducia esplicito e a limiti di esecuzione, e non è semplicemente attiva di fabbrica.
+Certe analisi non si formulano come condizione, per esempio un albero lungo i collegamenti tra documenti o una panoramica che calcola strada facendo; le gerarchie di record e le somme per gruppo, invece, le gestisce la query stessa. Se ne occupano i blocchi di script: un blocco esegue un piccolo programma, legge lo stesso insieme della query e produce elenchi, tabelle o testo già formattato nel documento. Poiché questo significa più libertà, la funzione è legata a un modello di fiducia esplicito e a limiti di esecuzione, e non è semplicemente attiva di fabbrica.
 
 - **Analisi libere** sugli stessi dati della query.
-- **Strutture ricorsive** e panoramiche calcolate, non esprimibili in modo dichiarativo.
+- **Strutture ricorsive sui documenti** e panoramiche calcolate, non esprimibili in modo dichiarativo.
 - **Modello di fiducia esplicito** e limiti di esecuzione invece di un'esecuzione silenziosa.
 
 In dettaglio: [Blocchi di script](scripts.md).

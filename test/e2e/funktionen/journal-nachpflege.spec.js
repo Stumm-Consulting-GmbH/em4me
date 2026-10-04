@@ -15,6 +15,7 @@ const os = require('node:os');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { pressUntilVisible } = require('../helpers/eingabe');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 // Lokales Datum als yyyy-MM-dd (konsistent zum Perioden-Kern).
 function isoToday() {
@@ -147,15 +148,19 @@ Text.
 // haelt die Zahlen fest, mit denen der Dialog aufgerufen wurde — genau die
 // Vorschau, die der Anwender vor seiner Entscheidung sieht.
 async function stubBestaetigung(app, antwort) {
-  await app.evaluate(({ dialog }, response) => {
-    globalThis.__nachtragenCalls = 0;
-    globalThis.__nachtragenMessage = '';
-    dialog.showMessageBox = async (_win, opts) => {
-      globalThis.__nachtragenCalls += 1;
-      globalThis.__nachtragenMessage = (opts && opts.message) || '';
-      return { response };
-    };
-  }, antwort);
+  await hauptSenden(
+    app,
+    ({ dialog }, response) => {
+      globalThis.__nachtragenCalls = 0;
+      globalThis.__nachtragenMessage = '';
+      dialog.showMessageBox = async (_win, opts) => {
+        globalThis.__nachtragenCalls += 1;
+        globalThis.__nachtragenMessage = (opts && opts.message) || '';
+        return { response };
+      };
+    },
+    antwort,
+  );
 }
 
 // Das Kommando ausloesen: Kuerzel druecken, bis die Journal-Auswahl steht (bei
@@ -167,7 +172,7 @@ async function loeseNachtragenAus(page, app) {
   await pressUntilVisible(page, 'Control+Alt+8', selectModal);
   await page.locator('#template-select-list button', { hasText: 'Tag — Tagebuch' }).click();
   await expect
-    .poll(() => app.evaluate(() => globalThis.__nachtragenCalls || 0), { timeout: 15000 })
+    .poll(() => hauptLesen(app, () => globalThis.__nachtragenCalls || 0), { timeout: 15000 })
     .toBeGreaterThan(0);
 }
 
@@ -204,7 +209,7 @@ test.describe('JR-15: Kommando traegt die Eigenschaften eines ganzen Journals na
       await loeseNachtragenAus(page, app);
       expect(fs.readFileSync(luecke, 'utf8')).not.toContain('journal-start-date');
       // Die Vorschau nennt die zwei Journal-Eintraege, nicht die fremde Datei.
-      const meldung = await app.evaluate(() => globalThis.__nachtragenMessage || '');
+      const meldung = await hauptLesen(app, () => globalThis.__nachtragenMessage || '');
       expect(meldung).toContain('2');
       expect(meldung).not.toContain('3');
 

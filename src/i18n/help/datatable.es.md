@@ -54,6 +54,26 @@ El texto de presentación puede llevar cualquier carácter, incluidos espacios, 
 
 `number` admite un formato de visualización opcional: `Importe:number(2)` muestra dos decimales. Visualización y forma de almacenamiento permanecen deliberadamente legibles por igual (sin reformateo regional); las celdas vacías son válidas en todos los tipos. Un valor que no coincide con el tipo de columna se marca como **celda de error**: el texto se conserva, una descripción emergente explica el formato esperado y el valor no entra en los agregados.
 
+## Enlaces y etiquetas en celdas de texto
+
+En una columna de tipo `text`, los enlaces y las etiquetas funcionan como en el resto del documento:
+
+````markdown
+```perspective-datatable
+columns: Partida:text, Importe:number(2)
+| Alquiler de [[Piso]] #fijo | 850 |
+| Billete de tren, ver [[Viaje 2026\|Plan de viaje]] | 120 |
+| Tasa del curso, [Inscripción](https://example.org) | 60 |
+```
+````
+
+- **Qué funciona**: `[[Destino]]`, `[[Destino#Ancla]]` y el enlace con alias, que en la celda se escribe `[[Destino\|Alias]]`, porque todo `|` en una celda se escribe `\|`; además el enlace Markdown `[Texto](Destino)`, también con dirección web, y `#etiqueta`. Una incrustación `![[Destino]]` aparece como enlace, no como contenido incrustado.
+- **Visualización y clic**: en la vista de lectura, la vista dividida y el modo en vivo aparecen como enlace o como etiqueta. Un clic en un enlace abre su destino; un clic en una etiqueta filtra la barra lateral de etiquetas como en el texto.
+- **Red de enlaces**: el destino muestra el documento entre sus **Retroenlaces**, y los **Enlaces salientes** y la [Vista de grafo](graph.md) muestran la conexión. Si el destino se renombra o se mueve, el enlace de la celda lo sigue; el alias y la tabla quedan intactos.
+- **Las etiquetas cuentan**: una etiqueta de una celda cuenta en la barra lateral de etiquetas, en el orden de las sugerencias y en las consultas, y el [cambio de nombre de una etiqueta](linking.md) abarca también las celdas.
+- **Qué sigue siendo texto**: negrita, cursiva, fórmulas y demás marcado aparecen tal como están escritos, porque una celda de texto contiene valores y no prosa. Entre comillas invertidas, también `[[…]]` queda literal y no es un enlace. Las columnas de número, fecha, hora y booleano, las columnas calculadas y las líneas de cabecera del bloque no forman enlaces; ordenar, filtrar y los agregados trabajan sobre el texto escrito.
+- **Desactivada**: si la tabla de datos está desactivada, el bloque aparece como bloque de código sin enlaces clicables; los retroenlaces y la actualización al renombrar se mantienen de todos modos. Si los enlaces wiki o las etiquetas están desactivados, el texto de la celda sigue siendo texto sin formato.
+
 ## Agregados
 
 Funciones disponibles según el tipo de columna:
@@ -78,7 +98,7 @@ aggregate: Total:sum
 | Bloc | 3.50 | 4 |
 ```
 
-- El lenguaje de expresiones es el mismo que en la [Consulta Perspective](frontmatter-query.md): aritmética, comparaciones, `choice(…)`, `default(…)`, funciones de texto y más.
+- El lenguaje de expresiones es el mismo que en la [Consulta Perspective](frontmatter-query.md): aritmética, comparaciones, `choice(…)`, `default(…)`, funciones de texto y más. Incluye `count(x)`; en una fórmula cuenta los valores del campo nombrado en la fila en cuestión y no es la función de agregado `count` de la fila de agregados, que cuenta sobre todas las filas.
 - Los nombres de columna en la expresión se refieren a los valores de la fila correspondiente; también pueden usarse otras columnas calculadas en cualquier orden de declaración (la evaluación resuelve las dependencias). Las referencias circulares se notifican como errores de estructura.
 - El resultado debe coincidir con el tipo de columna declarado; de lo contrario, la celda muestra un error.
 - Los valores calculados **nunca se guardan en el código fuente**: siempre se calculan de nuevo y por eso no tienen celda de datos en las filas de barras. Los agregados sobre columnas calculadas calculan sobre los valores calculados.
@@ -88,6 +108,8 @@ aggregate: Total:sum
 En la **vista dividida** y en el **modo en vivo** la cuadrícula es directamente editable; la vista de lectura y las páginas del manual la muestran en modo de solo lectura. Cada confirmación escribe de vuelta en el bloque de código del código fuente: el documento queda sin guardar como de costumbre y deshacer/rehacer funcionan con normalidad.
 
 - **Editar una celda**: un clic en la celda (o `Intro`/`F2` con la celda enfocada) abre un campo de entrada adecuado al tipo. `Intro` o perder el foco confirma, `Esc` descarta, `Tab`/`Mayús+Tab` confirma y salta a la celda siguiente o anterior.
+- **Enlaces en la celda**: un clic en un enlace o una etiqueta de una celda de texto lo sigue y no abre la celda. Un clic en la parte libre de la celda, `Intro` o `F2` la abren con el texto escrito. Si el propio enlace tiene el foco del teclado, `Intro` lo sigue y `F2` abre la celda.
+- **Sugerencias**: en una celda de texto aparece tras `[[` y `#` la misma [lista de sugerencias](linking.md) que en el texto, también en una celda vacía; `Ctrl+Espacio` la abre de forma explícita. Mientras está abierta, las flechas eligen, `Intro` acepta la sugerencia en el campo y `Esc` cierra solo la lista; un segundo `Intro` confirma la celda. `Tab` no acepta ninguna sugerencia: cierra la lista, confirma la celda y salta a la siguiente. En las celdas de número, fecha y hora no aparece ninguna lista, y en la celda no sugiere marcadores de tarea.
 - **Restricción de tipo**: un valor que no coincide con el tipo de columna se rechaza (aviso en la barra de estado); la celda permanece abierta para corregir.
 - **Boolean**: un clic en la celda (o la barra espaciadora) conmuta el valor directamente.
 - **Filas**: el botón bajo la tabla añade una fila al final de los datos; el símbolo × al inicio de la fila la elimina.
@@ -109,7 +131,7 @@ Ordenar y filtrar actúan **solo sobre la vista**: el código fuente permanece s
 
 ## Exportación
 
-La exportación portable y la exportación a PDF generan la tabla como tabla estática en el orden del documento: con todas las filas, los valores calculados de las columnas calculadas y la fila de agregados, sin interactividad.
+La exportación portable y la exportación a PDF generan la tabla como tabla estática en el orden del documento: con todas las filas, los valores calculados de las columnas calculadas y la fila de agregados, sin interactividad. Los enlaces y las etiquetas de las celdas de texto aparecen allí como los enlaces y las etiquetas del resto del documento.
 
 ## Límites
 

@@ -41,7 +41,7 @@ const { parseContent } = require('./parse.js');
 // zuordnen. Die Ablage haelt sie bereits, weil der Index-Aufbau sie geholt hat;
 // nur ein Segment, das VOR seiner Kopf-Datei geoeffnet wird, kostet einmalig
 // das Lesen eines Datei-Kopfes.
-const { definitionFuerSegment } = require('./datensatz-erfassung.js');
+const { definitionFuerSegment, ohneVerdeckteFolgeteile } = require('./datensatz-erfassung.js');
 
 // 4T-000952 (Epic 3E-000198): Aenderungs-Stand der Overlay-Schicht, nach dem
 // Muster von indexStand in store.js. Eine Zahl, die bei jeder Aenderung der
@@ -183,7 +183,12 @@ function entryWithOverlay(entry, overlays) {
     // 4T-001610 (Epic 3E-000252): Der Datensatz-Bestand folgt dem geschriebenen
     // Stand, aus demselben Grund und mit derselben Zusicherung (E25): Ein
     // gerade angelegter, noch nicht gespeicherter Datensatz ist auffindbar.
-    recordsPerFile: patchOf('recordsPerFile', (p) => (Array.isArray(p.records) ? p.records : [])),
+    // 4T-002046: Der Puffer einer geteilten Tabelle ist das ganze Dokument; ihre
+    // Folge-Dateien der Platte führen daneben keine Datensätze.
+    recordsPerFile: ohneVerdeckteFolgeteile(
+      patchOf('recordsPerFile', (p) => (Array.isArray(p.records) ? p.records : [])),
+      overlays.keys(),
+    ),
     tagsPerFile: patchOf('tagsPerFile', (p) => p.tags || []),
     aliasesPerFile: patchOf('aliasesPerFile', (p) => p.aliases || []),
     anchorsPerFile: patchOf('anchorsPerFile', (p) => ({

@@ -10,6 +10,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptLesen } = require('../helpers/haupt-zugriff');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'frontmatter.md');
 
@@ -42,11 +43,12 @@ test.describe('S-03: Tab-Kontextmenü-Submenü bleibt im Fenster (4T-000315)', (
       // Zweites Fenster: erst damit zeigen die Tab-Kontextmenüs Submenüs.
       await expect
         .poll(async () => {
-          const count = await app.evaluate(
+          const count = await hauptLesen(
+            app,
             ({ BrowserWindow }) => BrowserWindow.getAllWindows().length,
           );
           if (count < 2) await page.evaluate(() => window.api.openNewWindow([]));
-          return app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
+          return hauptLesen(app, ({ BrowserWindow }) => BrowserWindow.getAllWindows().length);
         })
         .toBe(2);
 

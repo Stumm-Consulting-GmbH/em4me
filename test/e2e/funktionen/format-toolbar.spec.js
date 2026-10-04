@@ -13,6 +13,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
@@ -30,7 +31,8 @@ function seedProfile(settings) {
 
 // Menü-IPC-Kanal direkt senden (Muster editor-format.spec.js).
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
@@ -173,7 +175,7 @@ test.describe('FT-05: Überlauf bei schmaler Pane', () => {
       await expect(page.locator(SEL.editorContent0)).toBeVisible();
       await page.locator(SEL.btnEdit).click();
       await expect(page.locator(TOOLBAR)).toBeVisible();
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         win.setBounds({ width: 640, height: 600 });
       });

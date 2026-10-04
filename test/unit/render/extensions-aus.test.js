@@ -703,7 +703,7 @@ describe('Erweiterung database: Registry und Aus-Zustand (4T-001760)', () => {
     expect(internalExtensions().some((m) => m.id === 'database')).toBe(true);
   });
 
-  it('AK3: nennt die einundzwanzig Katalog-Zeilen der Gruppe «Datenbank»', () => {
+  it('AK3: nennt die sechsundzwanzig Katalog-Zeilen der Datenbank', () => {
     const manifest = extensionById('database');
     // 4T-001761 (Epic 3E-000253): Acht statt der ursprünglichen neun. Die Zeile
     // zum Suchraum-Schnitt ist in die Kern-Liste zurückgezogen, weil der
@@ -733,6 +733,17 @@ describe('Erweiterung database: Registry und Aus-Zustand (4T-001760)', () => {
     // der Bearbeitung, Masken-Datei, Konsistenz-Prüfung und Verwendungsnachweis
     // haben ihre Zugänge an Datensatz-Block, Übersicht und Kommando-Palette, die
     // im Aus-Zustand entfallen; die Kanäle der Maske verweigern dann.
+    //
+    // 4T-002045 (Epic 3E-000258): Fünfundzwanzig statt einundzwanzig. Die
+    // Datensatz-Abfrage, die Verknüpfung über Verweis-Felder, die Hierarchie und
+    // der Baum stehen in der Gruppe «Datenbank»; im Aus-Zustand liest die Abfrage
+    // keine Tabelle und zeigt die leere Liste mit Hinweis. Die Wahl der
+    // Darstellungsform steht als Kern-Zeile der Gruppe «Bearbeitung» draußen.
+    //
+    // 4T-002083 (Epic 3E-000259): Sechsundzwanzig statt fünfundzwanzig. Die
+    // Abfrage-Datei hängt an der Datenbank, weil ihre Marke allein für die
+    // Übersicht wirkt, die im Aus-Zustand entfällt. Gruppierung und Aggregation
+    // stehen als Kern-Zeile der Gruppe «Bearbeitung» draußen.
     expect(manifest.featureKeys).toEqual([
       'help.feature.databaseTable',
       'help.feature.databaseColumnTypes',
@@ -755,9 +766,16 @@ describe('Erweiterung database: Registry und Aus-Zustand (4T-001760)', () => {
       'help.feature.databaseFormFile',
       'help.feature.databaseConsistency',
       'help.feature.databaseUsage',
+      'help.feature.queryRecords',
+      'help.feature.queryRecordPaths',
+      'help.feature.queryHierarchy',
+      'help.feature.queryTree',
+      'help.feature.databaseQueryFile',
     ]);
     expect(manifest.featureKeys).not.toContain('help.feature.databaseSearchScope');
     expect(manifest.featureKeys).not.toContain('help.feature.databaseExtension');
+    expect(manifest.featureKeys).not.toContain('help.feature.queryDisplayForm');
+    expect(manifest.featureKeys).not.toContain('help.feature.queryGroupBy');
     // Im Aus-Zustand tragen sie damit die Kennzeichnung der Funktions-Seite,
     // statt zu verschwinden; im An-Zustand keine von ihnen.
     const aus = disabledFeatureKeySet(['database']);

@@ -2,7 +2,7 @@
 
 Templates are ordinary Markdown files in a configurable **templates folder**. When applied, the app evaluates curated **placeholders**: date and time with offset and format, title and folder of the target file, input and selection dialogs, the clipboard, and a cursor target position. Templates create new files with a ready-made structure or insert recurring building blocks at the cursor position; **folder rules** fill new files automatically.
 
-The functionality can be toggled as the "Templates" extension (Settings → Extensions); when off, the commands, the settings section, and the folder rules disappear.
+The functionality can be toggled as the "Templates" extension (Settings → Extensions); when off, the commands, the settings section, the folder rules, and the exclusion of templates from queries disappear.
 
 ## Templates folder
 
@@ -12,6 +12,8 @@ The templates folder is configured in the settings (Settings → Templates):
 - **Per area**, a dedicated configuration can be set ("Use area configuration" in the "Templates" entry of the "Current area" navigation group, only visible when an area is open; with a book open the group is called **Current book**, with a bookshelf open **Current bookshelf**); it is stored in the area file and **overrides the global one completely** (folder and rules, no mixed resolution). Folder entries are relative to the area root; absolute paths remain allowed.
 
 Every Markdown file in the folder (including subfolders) is a template. Subfolders appear as groups in the picker popup. Configuration changes take effect immediately, without a restart.
+
+**Templates in queries.** Whatever lies in the templates folder, subfolders included, is a hit in no [Perspective Query](frontmatter-query.md), at none of its levels, and supplies no values for value sets and collection fields of the [Property Profiles](property-profiles.md) either. So the content of a template, such as a sample task, appears in no overview. To query templates, name the folder explicitly in `FROM`, for instance `FROM "Templates"`. What counts is the folder that also determines the template picker, that is the area configuration before the global one; the templates folder of a linked area does not count.
 
 ## Applying templates
 

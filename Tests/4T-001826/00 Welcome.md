@@ -32,7 +32,7 @@ Read in order, or jump straight to what you need:
 
 Beside the tour, the folder `Bookshelf` holds a small **bookshelf** grouping two books — among them the `Demo Book`, a handful of chapters tied into one declared reading path. Open the shelf with **File → Open Bookshelf…** (or a single book with **File → Open Book…**); [[Bookshelf]] and [[Demo Book]] explain what to try. :books:
 
-[[Library]] is something else again: a **database table**, joined by [[Loans]], a second table whose first column points at a book. Its columns are declared in the frontmatter, its records sit in a block below, and the file is the table — nothing is stored anywhere else. Open it to see how that looks, and switch to source view to see what the file really contains. :card_index_dividers: Next to it, [[Library Database]] carries the **fact sheet** that makes this folder a database area, and points at the overview and the settings that come with it.
+[[Library]] is something else again: a **database table**, joined by [[Loans]], a second table whose first column points at a book, and by [[Staff]], the people who run the library, each pointing at their manager. Its columns are declared in the frontmatter, its records sit in a block below, and the file is the table — nothing is stored anywhere else. Open it to see how that looks, and switch to source view to see what the file really contains. :card_index_dividers: Next to it, [[Library Database]] carries the **fact sheet** that makes this folder a database area, and points at the overview and the settings that come with it.
 
 ## How this window is laid out
 

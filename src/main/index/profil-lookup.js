@@ -39,6 +39,9 @@ const { frontmatterQueryFor } = require('./query.js');
 const { logicalNameFor } = require('./link-graph.js');
 const { createWikiLinkRegex, normalizeNameKey } = require('../../shared/markdown/link-scan.js');
 const { pathCompareKey } = require('../../shared/platform.js');
+// 4T-002034 (Epic 3E-000260): Die Treffer kommen aus der Ergebnismenge der
+// Antwort (Zeilen mit Herkunft), der Anzeige-Name aus dem Darstellungs-Kern.
+const { displayName } = require('../../shared/query/result-display.js');
 
 // Vergleichs-Schlüssel eines absoluten Datei-Pfades. Bewusst als benannte
 // Funktion und nicht inline: So ist die Stelle über die injizierte Plattform
@@ -52,7 +55,8 @@ function pfadSchluessel(absPfad) {
   return pathCompareKey(String(absPfad || ''));
 }
 
-// wurzel + ' | ' + eigene Datei + ' | ' + abfrage + ' | ' + feld
+// wurzel + ' | ' + Vorlagen-Ordner + ' | ' + Abdruck der Aufgaben-Umgebung
+// + ' | ' + eigene Datei + ' | ' + abfrage + ' | ' + feld
 const zwischenspeicher = new Map();
 
 // Obergrenze wie beim Wertevorrat. Er wächst mit der Zahl verschiedener
@@ -107,6 +111,20 @@ function zeigtAufUns(props, feld, eigene) {
   return false;
 }
 
+// 4T-002034 (Epic 3E-000260): die Zeilen, die bisher die flache Treffer-Liste
+// `files` der Antwort trug.
+//
+// 4T-002080 (Epic 3E-000259, Entscheidung F6 Option A des Product Owners vom
+// 2026-10-03): Eine gruppierte Abfrage liefert ihre Treffer wie eine
+// ungruppierte. Die Zeilen einer gruppierten Menge sind vollständig (Konzept
+// E8.4), die Gruppen ordnen allein die Anzeige; gelesen werden deshalb die
+// Zeilen und nie die Gruppen. Die Gruppen-Werte werden damit nicht zu
+// Kandidaten. Bis dahin lieferte eine gruppierte Abfrage hier die leere Menge,
+// erhalten aus der Zeit, als die flache Treffer-Liste bei Gruppierung leer war.
+function trefferZeilen(menge) {
+  return Array.isArray(menge.rows) ? menge.rows : [];
+}
+
 // Die Kennzeichen, unter denen das eigene Dokument angesprochen werden kann:
 // sein logischer Name und seine Aliase. Ohne die Aliase wäre ein Verweis, der
 // den Alias nutzt, ein stiller Falsch-Negativ-Fall.
@@ -134,12 +152,21 @@ function eigeneKennzeichen(entry, absPath) {
  *   das Abfrage-Ergebnis. Im Betrieb greifen die echten; die Prüfung speist sie
  *   ein, weil sich eine zweite Index-Meldung im Unit-Umfeld nicht auslösen lässt
  *   und die Invalidierungs-Regel sonst unbewiesen bliebe.
+ * @param {string|null} [templatesFolder] Wirksamer Vorlagen-Ordner des Fensters
+ *   (4T-002082, Epic 3E-000259): Das Feld sieht dieselben Treffer wie die
+ *   Abfrage, also keine Vorlagen. Teil des Zwischenspeicher-Schlüssels, weil ein
+ *   Wechsel des Ordners den Index-Stand nicht berührt.
+ * @param {object|null} [taskEnv] Aufgaben-Umgebung der Abfrage aus
+ *   `buildTaskEnv` (task-env.js; 4T-002080, Epic 3E-000259): Ohne sie ist
+ *   eine Aufgaben-Abfrage ein Abfrage-Fehler und die Quelle leer. Ihr
+ *   Fingerabdruck gehört in den Zwischenspeicher-Schlüssel, weil eine
+ *   geänderte Aufgaben-Einstellung den Index-Stand nicht berührt.
  * @returns {{status: string, values: string[]}} status 'ready' | 'indexing' |
  *   'unavailable'; `values` ist bei jedem anderen Status leer. Der Aufrufer
  *   macht aus einem leeren Ergebnis den Hinweis am Feld — eine Blockade gibt es
  *   nicht (weiche Linie, E10).
  */
-function lookupTreffer(activeFile, areaRoot, optionen, deps) {
+function lookupTreffer(activeFile, areaRoot, optionen, deps, templatesFolder, taskEnv) {
   const standVon = (deps && deps.stand) || indexStand;
   const auswerten = (deps && deps.auswerten) || frontmatterQueryFor;
   const leer = { status: 'unavailable', values: [] };
@@ -153,7 +180,10 @@ function lookupTreffer(activeFile, areaRoot, optionen, deps) {
   const abs = path.resolve(activeFile);
   const quelle = typeof opt.from === 'string' && opt.from.trim() !== '' ? opt.from.trim() : 'LIST';
 
-  const schluessel = `${root} | ${pfadSchluessel(abs)} | ${quelle} | ${feld}`;
+  const ordner = templatesFolder || '';
+  const umgebung = taskEnv || undefined;
+  const abdruck = umgebung && typeof umgebung.fingerprint === 'string' ? umgebung.fingerprint : '';
+  const schluessel = `${root} | ${ordner} | ${abdruck} | ${pfadSchluessel(abs)} | ${quelle} | ${feld}`;
   const stand = standVon(root);
   const bekannt = zwischenspeicher.get(schluessel);
   if (bekannt && bekannt.stand === stand) return { status: 'ready', values: bekannt.values };
@@ -161,22 +191,22 @@ function lookupTreffer(activeFile, areaRoot, optionen, deps) {
   auswertungen += 1;
   let ergebnis;
   try {
-    ergebnis = auswerten(activeFile, quelle, areaRoot);
+    ergebnis = auswerten(activeFile, quelle, areaRoot, umgebung, undefined, ordner || null);
   } catch {
     // Eine nicht auswertbare Quelle ist ein leeres Ergebnis mit Hinweis,
     // niemals ein Wurf: Das Feld bleibt anzeigbar.
     return leer;
   }
-  if (!ergebnis || ergebnis.status !== 'ready') {
+  // 4T-002034: Zustand, Abfrage-Fehler und Treffer allein aus der Ergebnismenge.
+  const menge = ergebnis && ergebnis.resultSet;
+  const status = menge && menge.state ? menge.state.status : null;
+  if (status !== 'ready') {
     // 'indexing' wird durchgereicht, damit der Aufrufer «noch nicht bereit»
     // von «keine Treffer» unterscheiden kann; ein unfertiger Stand wird nicht
     // zwischengespeichert.
-    return {
-      status: ergebnis && ergebnis.status === 'indexing' ? 'indexing' : 'unavailable',
-      values: [],
-    };
+    return { status: status === 'indexing' ? 'indexing' : 'unavailable', values: [] };
   }
-  if (ergebnis.queryError) return leer;
+  if (menge.state.queryError) return leer;
 
   const entry = indexes.get(root);
   if (!entry) return leer;
@@ -184,14 +214,19 @@ function lookupTreffer(activeFile, areaRoot, optionen, deps) {
   const eigenerPfad = pfadSchluessel(abs);
 
   const values = [];
-  for (const treffer of Array.isArray(ergebnis.files) ? ergebnis.files : []) {
-    const pfad = typeof treffer?.path === 'string' ? treffer.path : '';
+  for (const zeile of trefferZeilen(menge)) {
+    const herkunft = zeile && zeile.origin;
+    // 4T-002040 (Epic 3E-000258, Festlegung 16): Datensatz-Zeilen liefern keinen
+    // Wert. Ihr Pfad ist die Tabellen-Datei, deren Eigenschaften sonst für den
+    // Datensatz gelesen würden.
+    if (herkunft && herkunft.kind === 'record') continue;
+    const pfad = herkunft && typeof herkunft.path === 'string' ? herkunft.path : '';
     if (pfad === '') continue;
     // Das eigene Dokument ist nie sein eigener Treffer, auch wenn es ein
     // Verweis-Feld auf sich selbst trägt.
     if (pfadSchluessel(pfad) === eigenerPfad) continue;
     if (!zeigtAufUns(entry.propertiesPerFile.get(pfad), feld, eigene)) continue;
-    const name = typeof treffer.name === 'string' ? treffer.name.trim() : '';
+    const name = displayName(herkunft).trim();
     if (name === '' || values.includes(name)) continue;
     values.push(name);
   }

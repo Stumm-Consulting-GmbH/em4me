@@ -1080,6 +1080,17 @@ const INTERNAL_EXTENSIONS = [
       'help.feature.databaseFormFile',
       'help.feature.databaseConsistency',
       'help.feature.databaseUsage',
+      // 4T-002045 (Epic 3E-000258): Fünfundzwanzig statt einundzwanzig mit der
+      // Datensatz-Abfrage, der Verknüpfung über Verweis-Felder, der Hierarchie und
+      // dem Baum; im Aus-Zustand liest die Abfrage keine Tabelle und zeigt die
+      // leere Liste mit Hinweis. Die Wahl der Darstellungsform bleibt Kern.
+      'help.feature.queryRecords',
+      'help.feature.queryRecordPaths',
+      'help.feature.queryHierarchy',
+      'help.feature.queryTree',
+      // 4T-002083 (Epic 3E-000259): Sechsundzwanzig mit der Abfrage-Datei; ihre
+      // Marke wirkt nur für die Übersicht. Gruppierung bleibt Kern.
+      'help.feature.databaseQueryFile',
     ],
     dependencies: ['property-profiles'],
     // 4T-001759 (Epic 3E-000253): die Übersichts-Seite des Datenbank-Bereichs;

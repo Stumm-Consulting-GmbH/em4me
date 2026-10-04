@@ -14,6 +14,541 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.145.0.3623] - 2026-10-04 — Stufe 3 der Datenbank: Datensätze abfragen, über Verweise und Hierarchien verfolgen und nach Gruppen auswerten
+
+Zug 3E-000331,
+die dritte Ausbaustufe der Datenbank-Funktionalität aus vier Mitglieds-Epics:
+3E-000332,
+3E-000260,
+3E-000258
+und
+3E-000259.
+Mitglied 1:
+3E-000332,
+drei Nacharbeiten an Ausgeliefertem: der Sprung zur Zeile eines Datensatzes über
+seinen Verweis, Verweise und Schlagworte in Text-Zellen der Datentabelle samt
+der Vorschlagsliste im Zell-Editor, und der zurückgenommene Handbuch-Wortlaut zum
+gemeinsamen Zugriff (Abschluss-Anteil in
+4T-001985).
+Mitglied 2:
+3E-000260,
+das Übergabe-Format zwischen Auswertung und Anzeige der Abfragen: Alle drei
+bestehenden Auswertungs-Ebenen liefern ihr Ergebnis als Ergebnismenge mit
+typisierten Werten, und Anzeige und Hintergrund-Nutzer lesen allein sie
+(Abschluss-Anteil in
+4T-001982).
+Mitglied 3:
+3E-000258,
+die vierte Auswertungs-Ebene der Abfrage-Sprache: Abfragen über die Datensätze
+der Datenbank-Tabellen mit typisierten Werten, Pfaden über Verweis-Felder und
+Hierarchien über beliebig viele Stufen, dazu die Wahl der Darstellungsform mit
+dem Baum als erster wählbarer Form (Abschluss-Anteil in
+4T-001983).
+Mitglied 4:
+3E-000259,
+Gruppierung und Aggregation auf allen vier Auswertungs-Ebenen mit einer
+Bedingung über die Gruppe, die Abfrage-Datei als benannte, wiederverwendbare
+Abfrage und der Ausschluss der Vorlagen aus den Treffern jeder Abfrage
+(Abschluss-Anteil in
+4T-001984).
+
+**Was die Stufe als Ganzes bringt:** Die Datenbank wird auswertbar. Dieselbe
+Abfrage-Sprache, die bisher Dateien, Blöcke und Aufgaben kannte, fragt mit
+`RECORDS` die Datensätze einer Tabelle ab, mit typisierten Werten, mit Pfaden
+über Verweis-Felder und mit Hierarchien über beliebig viele Stufen, die auf
+Wunsch als Baum erscheinen; ein Klick auf einen Treffer öffnet seine Maske. Auf
+allen vier Ebenen fasst `GROUP BY` die Treffer zu Gruppen zusammen, die
+gruppierte Tabelle rechnet je Gruppe Anzahl, Summe, Durchschnitt, kleinsten und
+größten Wert, und `HAVING` lässt nur die Gruppen stehen, auf die es ankommt; eine
+Abfrage lässt sich als Abfrage-Datei ablegen, öffnen, verlinken und einbetten.
+Getragen wird das von einem versionierten Übergabe-Format zwischen Auswertung und
+Anzeige, auf das auch die drei bestehenden Ebenen umgestellt sind, ohne dass sich
+das Bild einer bestehenden Abfrage ändert. Zwei Änderungen betreffen bestehende
+Abfragen: Vorlagen sind kein Treffer mehr, außer die Abfrage nennt den
+Vorlagen-Ordner ausdrücklich, und gruppierte Abfragen und Aufgaben-Abfragen
+liefern als Quelle einer Werte-Auswahl oder eines Lookup-Felds Werte. Hinzu
+kommen drei Nacharbeiten an Ausgeliefertem: der Sprung zur Zeile eines
+Datensatzes, Verweise und Schlagworte samt Vorschlagsliste in Text-Zellen der
+Datentabelle und der zurückgenommene Handbuch-Wortlaut zum gemeinsamen Zugriff.
+Bewusst noch nicht dabei sind frei gestaltete Masken, Listen-Masken,
+Berechtigungen und die Diagramm-Darstellung einer Abfrage; sie folgen später.
+
+### Neu
+
+- **Ein Datensatz-Verweis springt zur Zeile des Datensatzes** (`4T-001986`). Ein
+  Klick auf `[[Tabelle#^r-00042]]` öffnet die Tabelle und bringt die Zeile in
+  den Blick, auch für einen Datensatz in einer Folge-Datei. In der Lese-Ansicht
+  rollt die Anzeige zu der Zeile mit der Kennung als `data-rec-id`, sofern der
+  Datensatz unter den 2000 angezeigten ist; bewusst ohne `id` an der Zeile, weil
+  eine zweimal eingebettete Tabelle sonst doppelte Kennungen ergäbe. In der
+  Live- und der Quellcode-Ansicht steht die Schreibmarke auf der Datensatz-Zeile
+  `|- id="…"`, gefunden über das neue Modul `src/shared/database/record-anchor.js`
+  mit der Grammatik des Datensatz-Blocks und demselben Kennungs-Vergleich wie die
+  Gültigkeit. Überschrift und Block-Anker gleichen Namens behalten den Vorrang;
+  gesucht wird allein im ersten Datensatz-Block einer Tabellen-Datei. Im
+  Aus-Zustand der Erweiterung `database` bleibt es in allen Ansichten beim
+  Öffnen der Datei.
+- **Verweise und Schlagworte in Text-Zellen der Datentabelle sind echte
+  Verweise** (`4T-002013`, `4T-002014`; Entscheidung des Product Owners vom
+  2026-09-28). In einer Spalte vom Typ `text` wirken `[[Ziel]]`,
+  `[[Ziel#Anker]]`, der Verweis mit Alias (in der Zelle `[[Ziel\|Alias]]`), der
+  Markdown-Link `[Text](Ziel)` auch mit Web-Adresse und `#schlagwort`; eine
+  Einbettung erscheint als Verweis. Fett, Kursiv, Formeln und übrige
+  Auszeichnung bleiben Text, in Backticks bleibt auch `[[…]]` wörtlich. Der
+  Bereichs-Index erfasst Zell-Verweise als gewöhnliche Treffer: Das Ziel führt
+  die Tabelle unter seinen Rückverweisen, Graph und ausgehende Verweise zeigen
+  die Verbindung, Umbenennen und Verschieben des Ziels ziehen den Verweis in der
+  Zelle nach, und ein Schlagwort zählt in der Schlagwort-Übersicht, in den
+  Vorschlägen und in Abfragen und wird von der Schlagwort-Umbenennung erfasst.
+  Angezeigt werden sie in Lese-, geteilter und Live-Ansicht und im portablen und
+  im PDF-Export wie im Fließtext; in der Live-Ansicht trägt ein eigener
+  Klick-Pfad am Tabellen-Block den Klick, weil der allgemeine dort nicht
+  ankommt. Zahl-, Datum-, Uhrzeit-, Wahrheitswert- und berechnete Spalten,
+  Kopfzeilen und Zellen ohne Verweis-Zeichen sind unverändert; Sortieren,
+  Filtern und Aggregate arbeiten auf dem geschriebenen Text. Erfassung und
+  Nachzug hängen nicht am Schalter der Datentabelle, damit ein Verweis beim
+  Wiedereinschalten nicht gebrochen ist; die Anzeige folgt den Schaltern der
+  Datentabelle, der Wiki-Links und der Tags.
+- **Die Vorschlagsliste erscheint im Zell-Editor der Datentabelle**
+  (`4T-001987`). In einer Text-Zelle bringen `[[` und `#` dieselbe Liste wie im
+  Fließtext, in der Live- und der geteilten Ansicht, auch in einer leeren Zelle
+  und ausdrücklich über `Strg+Leertaste`; Aufgaben-Marker schlägt sie in der
+  Zelle nicht vor, und in Spalten anderer Typen erscheint sie nicht. Bei offener
+  Liste gehören Pfeiltasten, Eingabetaste und Escape ihr, die Eingabetaste
+  übernimmt den Vorschlag in das Feld, der Tabulator schließt die Liste und wirkt
+  wie bisher. Angeschlossen über das neue Modul
+  `src/renderer/modules/query/perspective-datatable-suggestions.js` mit einer
+  gedachten Tabellenzeile als Grundstand; der Kern der Liste ist unverändert,
+  und die Liste der gewöhnlichen Tabelle verhält sich wie bisher.
+- **Abfragen über Datensätze: die Datensatz-Ebene `RECORDS`** (`4T-002038`,
+  `4T-002039`; Entscheidungen des Product Owners vom 2026-08-26 und
+  2026-09-30). Das Ebenen-Wort steht nach `LIST` beziehungsweise `TABLE` wie
+  `BLOCKS` und `TASKS`, und die Ebene bestimmt die Deutung der Quellen-Angabe:
+  `FROM` nimmt hier Tabellen als Zeichenkette, beim Namen ohne Rücksicht auf die
+  Schreibung oder als Pfad samt Endung, mit `AND`, `OR`, Klammern und `-`. Eine
+  Quelle ohne positiv genannte Tabelle oder Hierarchie, Schlagwort, Wiki-Link, `outgoing(…)` und
+  Selbstbezug sind auf dieser Ebene ein Abfrage-Fehler. Die Feld-Werte kommen
+  frisch aus der Tabellen-Datei samt Folge-Dateien, der ungespeicherte Stand
+  einer offenen Tabelle vor der Platte, und tragen den Typ ihrer Spalte; ein
+  Typ-Fehler ist «fehlend», ein Name, den die Tabelle nicht führt, fällt nicht
+  auf das Frontmatter der Tabellen-Datei zurück. `record.id` und `record.table`
+  nennen Kennung und Tabelle und gehen einem gleichnamigen Feld vor, `file.*`
+  meint die Tabellen-Datei. Spalten zeigen den Alias, sonst die Beschriftung der
+  Tabelle nach der Rückfall-Kette in der Programmsprache, sonst den Quelltext;
+  ohne `SORT` gilt die Ordnung nach Anzeige-Form, dann Kennung. Hervorhebung mit
+  `bold()` in einer Spalte und die Layout-Klauseln sind auf dieser Ebene ein
+  Abfrage-Fehler; die Gruppierung wirkt hier mit dem vierten Mitglied wie auf
+  den übrigen Ebenen (Eintrag «Gruppierung auf allen vier Ebenen»). Gemessen:
+  10,9 ms im Median für das Lesen einer Tabelle mit 2000 Datensätzen, 53,5 ms
+  bei 10 000.
+- **Datensatz-Treffer und Datensatz-Verweise in der Ausgabe** (`4T-002040`;
+  Entscheidung F1 des Product Owners vom 2026-09-30). Ein Treffer heißt nach
+  seiner Anzeige-Form, ohne sie nach seiner Kennung, die erste Tabellen-Spalte
+  heißt «Datensatz», und ein Verweis-Feld zeigt die Anzeige-Form seines Ziels.
+  Ein Klick auf Treffer oder Verweis öffnet in Lese-, geteilter und
+  Live-Ansicht die Maske des Datensatzes statt der Tabellen-Datei; ein Verweis im
+  Fließtext springt weiterhin zur Zeile. Der Leer-Fall lautet auf dieser Ebene
+  «Kein Datensatz entspricht dieser Abfrage». Lookup-Feld und Wertevorrat der
+  Eigenschafts-Profile lassen Datensatz-Zeilen aus.
+- **Pfad-Navigation über Verweis-Felder** (`4T-002041`). Ein Punkt-Name wie
+  `book.title` liest die Felder des Ziel-Datensatzes, über beliebig viele Stufen
+  und Tabellen, in Spalte, Bedingung und Sortierung; ein Feld, das wörtlich so
+  heißt, geht vor. Die Gegenrichtung ist eine Bedingung auf dem Verweis-Feld,
+  die eine Kennung in beiden Schreibweisen oder den Wert des einteiligen
+  Schlüssels zeichengenau vergleicht. Ein leerer, ins Leere zeigender oder
+  mehrdeutiger Verweis ist «fehlend», der mehrdeutige zusätzlich mit einem
+  Hinweis am Block. Ziel-Tabellen werden erst gelesen, wenn ein Pfad sie
+  erreicht.
+- **Hierarchie-Abfragen über die transitive Hülle** (`4T-002042`; Entscheidung
+  E6.3 des Product Owners vom 2026-08-26). Die Quellen-Formen
+  `descendants(ziel, feld, …)` und `ancestors(ziel, feld, …)` liefern alle
+  Datensätze unter beziehungsweise über einem Ziel-Datensatz entlang eines oder
+  mehrerer Verweis-Felder, auch über Tabellen-Grenzen, ohne das Ziel und jeden
+  Datensatz einmal; ein Kreis ist ein Hinweis und kein Fehler. Das Ziel steht in
+  der Schreibweise des Fließtexts, die Menge lässt sich filtern, sortieren und
+  mit einer Tabelle verknüpfen; auf den übrigen Ebenen sind die Formen ein
+  Abfrage-Fehler. Gemessen: höchstens 34,2 ms im Median für 2000 Treffer.
+- **Wahl der Darstellungsform mit `DISPLAY` und der Baum** (`4T-002043`,
+  `4T-002044`; Entscheidungen F2 und F3 des Product Owners vom 2026-09-30).
+  `DISPLAY <Form> [BY <Feld>]` steht als Klausel in der Abfrage; ohne Angabe
+  bleibt jede Ausgabe byte-gleich. Eine unbekannte oder unpassende Form zeigt
+  die Ausgabe ohne Angabe mit einem Hinweis und nie einen Fehler; jeder Hinweis
+  über einer Abfrage-Ausgabe steht jetzt dicht über ihr und mit Abstand zum
+  Block darüber, statt sich als dessen Fußzeile zu lesen (`4T-001983`). Die erste
+  wählbare Form ist `DISPLAY tree BY <Verweis-Feld>`: Die Datensätze erscheinen
+  eingerückt unter dem Datensatz, auf den ihr Feld zeigt, sofern er im Ergebnis
+  ist, sonst als Wurzel; Geschwister folgen der Reihenfolge des Ergebnisses,
+  jeder Datensatz steht genau einmal, auch in einem Kreis, und ein Klick auf
+  einen Knoten öffnet die Maske. Tiefer als 32 Ebenen wird nicht eingerückt.
+- **Gruppierung auf allen vier Ebenen** (`4T-002076`, `4T-002077`;
+  Konzept-Entscheidung E6.4, Entscheidungen des Product Owners vom 2026-10-03).
+  `GROUP BY` bildet Gruppen über Dateien, Blöcken, Aufgaben und Datensätzen, in Liste und
+  Tabelle und über mehrere Stufen. Die gruppierte Liste zeigt je Gruppe eine
+  Überschrift mit ihrem Wert, je Stufe eingerückt und mit «(ohne Wert)» zuletzt,
+  darunter die Treffer wie in der ungruppierten Liste, in Lese-, geteilter und
+  Live-Ansicht, eingebettet und im Druck; die gruppierte Aufgaben-Liste bleibt
+  unverändert, auch in ihrer Sortierung. Ein Listen-Wert bildet eine Gruppe je
+  Kombination und wird nicht nach Elementen aufgeteilt. Ein Datensatz-Verweis
+  als Gruppen-Wert gruppiert nach dem Datensatz, den er meint, und nicht nach
+  seiner Anzeige-Form (`4T-002078`); seine Überschrift ist ein Link in die
+  Maske. `DISPLAY tree` über einer gruppierten Abfrage zeigt die gruppierte
+  Ausgabe mit dem Hinweis des Rückfalls.
+- **Aggregat-Funktionen nach ihrer Stelle und die gruppierte Tabelle**
+  (`4T-002078`; Entscheidungen F1, F3 und F5 des Product Owners vom 2026-10-03).
+  Neu ist `count()` für die Zahl der Treffer einer Gruppe und `count(x)` für die
+  Zahl der Werte. `count`, `sum`, `average`, `min` und `max` rechnen in den
+  Spalten und in `SORT` einer gruppierten Tabelle und in `HAVING` über der
+  Gruppe, Listen elementweise, `min` und `max` auch über Datumswerte; an jeder
+  anderen Stelle bleibt die Bedeutung über dem Wert einer Zeile, sodass keine
+  bestehende Abfrage ihr Ergebnis ändert. Die gruppierte Tabelle zeigt eine Zeile
+  je Gruppe: vorn der Gruppen-Wert an der Stelle der Spalte «Datei»
+  beziehungsweise «Datensatz», die `WITHOUT ID` ebenso ausblendet, dahinter die
+  Werte über der Gruppe; `SORT` und `LIMIT` ordnen und begrenzen die Gruppen.
+  Eine Spalte ohne Gruppen-Bezug, ein Aggregat im Aggregat und `count()` an einer
+  Zeilen-Stelle sind Abfrage-Fehler mit eigener Meldung. Weil der
+  Funktions-Katalog einer ist, gilt `count(x)` auch in berechneten Spalten der
+  Datentabelle, in Rechnungen im Text und in Formel-Feldern. Gemessen: 27,7 ms im
+  Median für eine gruppierte Tabelle mit zwei Aggregaten über 2000 Datensätze,
+  gleichauf mit der ungruppierten.
+- **Bedingung über die Gruppe mit `HAVING`** (`4T-002079`; Konzept-Entscheidung
+  E6.4). `HAVING` nimmt einen Wahrheits-Ausdruck wie `WHERE`, steht nur zusammen
+  mit `GROUP BY` und prüft die innersten Gruppen, in der Tabelle vor `SORT` und
+  `LIMIT` über die Gruppen, in der Liste nach `SORT` und `LIMIT` über die
+  Treffer. Eine Eltern-Gruppe behält allein die Treffer ihrer verbliebenen
+  Untergruppen und entfällt ohne sie. `HAVING` ohne `GROUP BY` und ein Feld ohne
+  Gruppen-Bezug darin sind Abfrage-Fehler mit eigener Meldung. Gemessen:
+  29,4 ms im Median mit `HAVING` über 2000 Datensätze.
+- **Die Abfrage-Datei** (`4T-002081`; Konzept-Entscheidung E6.6, Entscheidungen F2
+  und F3 des Product Owners vom 2026-10-03). Ein Dokument mit der Marke `db-query`
+  im Frontmatter und genau einem Abfrage-Block im Text ist eine Abfrage-Datei;
+  der übrige Text beschreibt die Abfrage. Geöffnet und eingebettet zeigt sie ihr
+  Ergebnis, eingebettet mit sich selbst als Bezug von `this.`. Die Übersicht der
+  Datenbank führt sie im neuen Abschnitt «Abfragen» mit Name, Ort und «Öffnen»,
+  eine Abfrage-Datei ohne oder mit mehreren Abfrage-Blöcken steht unter den
+  Fehlerlagen. Eine Abfrage im Frontmatter, ein Kommando zum Anlegen und eine
+  Abfrage mit Werten des einbettenden Dokuments gibt es nicht. Bei
+  ausgeschalteter Datenbank bleibt sie ein gewöhnliches Dokument mit
+  ausgewertetem Block, und mit der Übersicht entfällt ihr Abschnitt.
+
+### Geändert
+
+- **Ein Klick auf einen Verweis in der bearbeitbaren Datentabelle folgt ihm**
+  (`4T-002014`; Entscheidung des Product Owners vom 2026-09-28). In der
+  geteilten und der Live-Ansicht öffnet ein Klick auf einen Verweis oder ein
+  Schlagwort in einer Text-Zelle nicht mehr die Bearbeitung; ein Klick in den
+  freien Teil der Zelle, die Eingabetaste oder F2 öffnen sie mit dem
+  geschriebenen Text. Hat der Verweis selbst den Tastatur-Fokus, folgt ihm die
+  Eingabetaste, und F2 öffnet die Zelle. Die Zusage «ein Klick öffnet die
+  Zelle» ist damit für Zellen mit Verweis präzisiert.
+- **Bestehende Datentabellen zeigen vorhandene Verweise und Schlagworte als
+  solche** (`4T-002013`, `4T-002014`). Wer in einer Text-Zelle bereits `[[…]]`,
+  `[…](…)` oder `#wort` stehen hat, sieht dort nach dem Update einen Verweis
+  beziehungsweise ein Schlagwort; beides zählt im Index und wird beim Umbenennen
+  des Ziels umgeschrieben. Reine Zahlen und Farbcodes nach `#` bleiben Text; der
+  Ausweg für wörtlich gemeinten Text ist Inline-Code.
+- **Der Bereichs-Index wird beim ersten Start nach dem Update einmal neu
+  aufgebaut** (`4T-002013`, `4T-002081`). Der Zwischenspeicher des Index steht
+  auf Version 7, weil ein älterer die Zell-Verweise und die Marke der
+  Abfrage-Datei nicht trägt und der Warmstart das Ergebnis unveränderter Dateien
+  sonst ohne sie übernähme; die Nacharbeiten hoben ihn auf 6, die Abfrage-Datei
+  auf 7, und für den Anwender bleibt es ein Neuaufbau.
+- **Der Handbuch- und Katalog-Wortlaut zu Sperren nennt die Vorarbeit für
+  EM4us** (`4T-001968`; Klarstellung des Product Owners vom 2026-09-27). Der
+  Abschnitt «Sperren» der Handbuch-Seite «Datenbank» beschreibt die Sperre als
+  Schutz vor gleichzeitiger Bearbeitung an zwei Stellen, etwa in zwei Fenstern,
+  nennt Sperren und Änderungsbelege als Vorbereitung des gemeinsamen Zugriffs,
+  der mit EM4us kommt, und sagt den Betrieb mehrerer Rechner in einem Bereich
+  auf einem Netzlaufwerk ausdrücklich nicht zu; die Katalog-Zeile «Sperre bei
+  der Bearbeitung» ist im selben Sinn gefasst. Die Funktion selbst ist
+  unverändert.
+- **`RECORDS` direkt nach `LIST` oder `TABLE` ist das Ebenen-Wort**
+  (`4T-002039`). Wie schon bei `BLOCKS` und `TASKS` ist ein Zusatzfeld oder
+  eine erste Spalte mit dem nackten Namen `records` an dieser Stelle nicht mehr
+  als Frontmatter-Feld erreichbar; an jeder anderen Stelle der Abfrage bleibt
+  der Name ein gewöhnliches Feld.
+- **Vorlagen erscheinen nicht mehr in Abfragen** (`4T-002082`;
+  Konzept-Entscheidung E6.7, Entscheidung F4 des Product Owners vom 2026-10-03). Eine
+  Änderung an ausgeliefertem Verhalten: Was im Vorlagen-Ordner liegt, samt
+  Unterordnern, ist auf keiner der vier Ebenen mehr ein Treffer, weder die
+  Datei noch ihre Blöcke und Aufgaben noch die Datensätze einer Tabelle darin,
+  und zählt auch als Wert eines Lookup-Felds oder einer Werte-Auswahl nicht mehr.
+  Maßgeblich ist der Vorlagen-Ordner des Bereichs vor dem globalen. Eine
+  Abfrage, die den Vorlagen-Ordner oder einen seiner Unterordner in `FROM`
+  ausdrücklich nennt, zeigt genau dessen Inhalt; ist die Erweiterung «Vorlagen»
+  ausgeschaltet, entfällt der Ausschluss. Folge für die Aufgaben-Listen: Eine
+  Aufgabe in einer Vorlage lässt eine echte Aufgabe nicht mehr als blockiert
+  oder doppelt erscheinen.
+- **`GROUP BY` außerhalb der Aufgaben-Liste ist kein Abfrage-Fehler mehr**
+  (`4T-002076`, `4T-002077`). Bisher meldete jede gruppierte Abfrage über
+  Dateien oder Blöcke und jede gruppierte Tabelle «GROUP BY ist nur für
+  Task-Listen (LIST TASKS) verfügbar»; sie zeigt jetzt ihre Gruppen, und die
+  Meldung ist in allen fünf Sprachen entfallen. Die Layout-Klauseln `HIDE`,
+  `SHOW` und `SHORT` bleiben der Aufgaben-Liste vorbehalten.
+- **Gruppierte Abfragen und Aufgaben-Abfragen liefern als Quelle einer
+  Werte-Auswahl oder eines Lookup-Felds Werte** (`4T-002080`; Entscheidung F6
+  des Product Owners vom 2026-10-03). Eine gruppierte Abfrage liefert dort
+  dieselben Werte wie ohne Gruppierung, die Gruppen-Werte werden keine Werte; eine
+  Aufgaben-Abfrage liefert die Namen der Dokumente, die ihre Aufgaben tragen,
+  unter Global Filter und globaler Abfrage. Bisher blieb das Feld in beiden
+  Fällen leer: außerhalb der Aufgaben-Liste als Abfrage-Fehler, und jede
+  Aufgaben-Abfrage, gruppiert oder nicht, weil die beiden Kanäle die
+  Aufgaben-Umgebung nicht mitgaben.
+
+### Behoben
+
+- **Die ausgehenden Verweise zeigen einen Verweis mit Alias in einer Tabelle
+  richtig** (`4T-002013`). Stand `[[Ziel\|Alias]]` in einer gewöhnlichen
+  Pipe-Tabelle, nannte das Panel der ausgehenden Verweise das Ziel mit dem
+  Rückstrich des Tabellen-Escapes (`Ziel\`); es nennt jetzt `Ziel`, wie der
+  Bereichs-Index.
+- **Die überlagerte Index-Sicht führt die Datensätze einer geöffneten, geteilten
+  Tabelle nicht mehr doppelt** (`4T-002046`). War eine auf mehrere Dateien
+  verteilte Tabelle offen, stand jeder Datensatz ihrer Folge-Dateien zweimal in
+  der Sicht, einmal aus dem Puffer der Kopf-Datei und einmal aus der Platte:
+  Die Schlüssel-Auskunft meldete «uneindeutig», die Kennungs-Auskunft nahm still
+  den zuletzt eingetragenen Fundort. Bisher ohne sichtbare Wirkung, weil beide
+  Auskünfte im Produkt keinen Aufrufer hatten; behoben vor der Hülle, die sie
+  braucht. Der Puffer der Kopf-Datei ist das ganze Dokument, ihre Folge-Dateien
+  führen in der überlagerten Sicht keine Datensätze, und der Fundort ist die
+  Zeile im geöffneten Dokument. Dieselbe Doppelung an Aufgaben, Schlagworten und
+  Eigenschaften eines geöffneten geteilten Dokuments ist als eigener
+  Fehler-Vorgang verortet und nicht Teil dieses Zuges.
+
+### Dokumentation
+
+- **Handbuch, Funktions-Katalog und Demo-Area zu Sprung, Zell-Verweisen und
+  Vorschlagsliste** (`4T-001988`). Die Seite «Datenbank» beschreibt den Sprung
+  im Abschnitt «Verweis auf einen einzelnen Datensatz» statt des bisherigen
+  Satzes, der Klick springe noch nicht. Die Seite «Perspective Datatable» trägt
+  den neuen Abschnitt «Verweise und Schlagworte in Text-Zellen» und im Abschnitt
+  «Bearbeiten im Grid» die Punkte «Verweise in der Zelle» und «Vorschläge»; die
+  Seiten «Vernetzung» und «Ansichten und Darstellung» verweisen je mit einem Satz
+  dorthin. Das Demo-Dokument «03 Tables» hat in seiner ersten Datentabelle eine
+  Zeile mit Schlagwort und Verweis und einen Absatz zur Bedienung. Eine neue
+  Handbuch-Seite und neue Katalog-Einträge sind nicht entstanden.
+- **Handbuch, Funktions-Katalog und Demo-Area zur Datensatz-Ebene**
+  (`4T-002045`, `4T-001983`). Die Seite «Perspective-Abfrage» trägt die neuen
+  Abschnitte «Datensatz-Ebene (`RECORDS`)» mit «Verknüpfung über Verweis-Felder»
+  und «Hierarchien (`ancestors`, `descendants`)» sowie «Darstellungsform
+  (`DISPLAY`)» mit dem Baum und dem Rückfall; Quellen, Klausel-Liste,
+  Selbstbezug, Sortierung, Anzeige und Suchraum sind nachgezogen. Die Seite
+  «Datenbank» verweist bei den Beziehungen auf die Abfrage, nennt die Maske aus
+  dem Abfrage-Ergebnis, die Datensatz-Abfrage als dritten Weg der
+  Auffindbarkeit, das zweite Klick-Ziel eines Datensatzes und die leere Abfrage
+  mit Hinweis im Aus-Zustand; die Überblicksseite ist nachgezogen. Fünf neue
+  Katalog-Zeilen, vier davon an der Erweiterung «Datenbank» (Modus «Voll»), die
+  Darstellungsform als Kern; die Zeile der Erweiterung nennt die leere Abfrage
+  im Aus-Zustand. Die Demo-Area hat die neue Tabelle «Staff» mit Selbstbezug und
+  in «08 Queries» den Abschnitt «Records of the library database» mit acht
+  Abfragen über «Library», «Loans» und «Staff». **Begriff:** Im Englischen,
+  Französischen und Italienischen heißt die Darstellungsform einer Abfrage
+  «presentation form», «forme de présentation» und «forma di presentazione»,
+  damit sie sich wie im Spanischen von der Anzeige-Form eines Datensatzes
+  («display form», «forme d'affichage», «forma di visualizzazione») abhebt.
+- **Nutzen-Darstellung um die Datensatz-Abfragen und die Gruppen fortgeschrieben**
+  (`4T-002084`, `4T-001984`; Entscheidungen des Product Owners vom 2026-10-03).
+  Die Nutzen-Seite im Handbuch und die Nutzen-Seite der Webseite nennen in allen
+  fünf Sprachfassungen das Auswerten der Datensätze mit Pfaden, Hierarchien und
+  Baum im Abschnitt «Daten und Prosa in denselben Dateien» statt des Satzes, das
+  bringe der Ausbau noch nicht, die Datensatz-Ebene bei den Listen, die sich
+  selbst aktuell halten, und die Hierarchien über Datensätze als Leistung der
+  Abfrage im Abschnitt der Skripte; der Verweis auf einen Datensatz führt dort
+  zur Zeile. Mit der Entscheidung zum vierten Mitglied nennen beide Seiten
+  zusätzlich Gruppen mit Anzahl und Summen als Leistung der Abfrage.
+- **Handbuch, Funktions-Katalog und Demo-Area zu Gruppierung, Abfrage-Datei und
+  Vorlagen-Ausschluss** (`4T-002083`). Die Seite «Perspective-Abfrage» trägt den
+  neuen Abschnitt «Gruppierung und Aggregation (`GROUP BY`, `HAVING`)» mit der
+  Regel der Aggregat-Stellen an drei Beispielen und allen Fehlermeldungen, unter
+  «Quellen (`FROM`)» den Absatz «Vorlagen sind kein Treffer.», `count(x)` in der
+  Funktions-Tabelle; die alte Grenze der Gruppierung auf Aufgaben ist entfallen.
+  Die Seite «Datenbank» trägt den neuen Abschnitt «Abfrage-Dateien», den
+  Abschnitt «Abfragen» der Übersicht und die beiden Fehlerlagen; die Seiten
+  «Vorlagen», «Eigenschafts-Profile», «Perspective Datatable» und
+  «Inline-Konstrukte» und die Überblicksseite sind nachgezogen. Zwei neue
+  Katalog-Zeilen, «Gruppierung und Aggregation» als Kern und «Abfrage-Datei» an
+  der Erweiterung «Datenbank» (Modus «Voll»). Die Demo-Area hat in «08 Queries»
+  den Abschnitt «Groups and totals» und die Abfrage-Datei «Long Books», dort
+  eingebettet.
+- **Die öffentliche Roadmap teilt den Eintrag der Datenbank** (`4T-001981`,
+  Sammeltask dieses Zuges; Entscheidung des Product Owners vom 2026-10-03,
+  Option A). Der neue Eintrag «Datenbank-Anwendungen: Abfragen und
+  Auswertungen» beschreibt in allen fünf Sprachfassungen der Produkt-Webseite,
+  was diese Stufe bringt, und trägt ihre drei Epics; mit diesem Release steht er
+  unter «ausgeliefert». Der bisherige Eintrag heißt jetzt «Datenbank-Anwendungen:
+  Listen-Masken und Berechtigungen» und kündigt ohne die Abfragen die folgenden
+  Stufen an; er bleibt «geplant».
+
+### i18n
+
+- Aus den Nacharbeiten keine neuen Schlüssel. Geändert sind in allen fünf
+  Sprachfassungen die Katalog-Texte `help.feature.databaseRecordLink`,
+  `help.feature.autocomplete`, `help.feature.datatable` und
+  `help.feature.datatableGrid` (`4T-001988`) und `help.feature.databaseLock`
+  (`4T-001968`), dazu die Handbuch-Seiten «Datenbank» (`4T-001968`,
+  `4T-001988`), «Perspective Datatable», «Vernetzung» und «Ansichten und
+  Darstellung» (`4T-001988`).
+- Neu zur Datensatz-Ebene, in allen fünf Sprachfassungen: die Abfrage-Texte
+  `query.syntax.recordsSourceMissing`, `query.syntax.recordsSourceInvalid`,
+  `query.syntax.recordsHighlight`, `query.hint.databaseOff` (`4T-002039`),
+  `query.table.recordColumn`, `query.emptyRecords` (`4T-002040`),
+  `query.hint.recordRefAmbiguous` (`4T-002041`), `query.syntax.hullTarget`,
+  `query.syntax.hullField`, `query.syntax.recordHullScope`,
+  `query.hint.recordHullCycle` (`4T-002042`), `query.syntax.displayForm`,
+  `query.syntax.displayBy`, `query.hint.displayFormUnknown` und
+  `query.hint.displayFormUnsuitable` (`4T-002043`), dazu je drei
+  Katalog-Schlüssel für `queryRecords`, `queryRecordPaths`, `queryHierarchy`,
+  `queryDisplayForm` und `queryTree` (`4T-002045`). Geändert sind der
+  Katalog-Text `help.feature.databaseExtension` (`4T-002045`), die Handbuch-Seiten
+  «Perspective-Abfrage», «Datenbank» und «Überblick» (`4T-002045`) und in EN, FR
+  und IT der Begriff der Darstellungsform in Katalog, Abfrage-Texten, Handbuch
+  und Demo (`4T-001983`).
+- Neu zu Gruppierung und Abfrage-Datei, in allen fünf Sprachfassungen: die
+  Abfrage-Texte `query.syntax.groupedColumn`, `query.syntax.aggregateNested`,
+  `query.syntax.countWithoutField` (`4T-002078`), `query.syntax.havingWithoutGroupBy`
+  und `query.syntax.havingUngrouped` (`4T-002079`), die Texte der Übersicht
+  `database.overview.section.queries`, `database.overview.col.query`,
+  `database.overview.col.location`, `database.overview.queryOpen`,
+  `database.overview.queryRoot`, `database.overview.noQueries` und die
+  Fehlerlagen `database.hint.queryOhneFence` und `database.hint.queryMehrereFences`
+  (`4T-002081`), dazu je drei Katalog-Schlüssel für `queryGroupBy` und
+  `databaseQueryFile` (`4T-002083`). Entfallen ist
+  `query.syntax.groupByTasksOnly` (`4T-002077`). Geändert sind die Katalog-Texte
+  `help.feature.querySources`, `help.feature.profileValueSources`,
+  `help.feature.profileDerivedFields` und `help.feature.queryTree`, die
+  Handbuch-Seiten «Perspective-Abfrage», «Datenbank», «Vorlagen»,
+  «Eigenschafts-Profile», «Perspective Datatable» und «Inline-Konstrukte» samt
+  Überblicksseite (`4T-002083`) und die Seite «Nutzen und Arbeitsweise»
+  (`4T-002084`).
+
+### Intern
+
+- **Neue Module** (`4T-001986`, `4T-002013`, `4T-002014`, `4T-001987`):
+  `src/shared/database/record-anchor.js` (Zeilensuche des Sprungs),
+  `src/shared/markdown/perspective-datatable-cells.js` (die eine Zell-Grammatik
+  für Index, ausgehende Verweise, Umbenennungs-Nachzug und
+  Schlagwort-Umbenennung, die seither auch die Zell-Zerlegung des Parsers trägt),
+  `src/shared/markdown/cell-links-html.js` (enger Zell-Renderer für Anzeige und
+  Export) und `src/renderer/modules/query/perspective-datatable-suggestions.js`
+  (Anschluss der Vorschlagsliste). Die Architektur ist in Modul-Karte, im
+  Abschnitt «Verweis- und Bild-Karten» (zweite benannte Ausnahme vom Übersprung
+  der Fence-Inhalte), im Eintrag «Perspective Datatable» und im Abschnitt
+  «Datenbank-Funktionalität» fortgeschrieben.
+- **Die Abfragen liefern ihr Ergebnis als Ergebnismenge** (`4T-002032`,
+  `4T-002033`, `4T-002034`, `4T-002035`; Entscheidungen des Product Owners vom
+  2026-09-28, darunter «das sichtbare Bild bleibt exakt gleich»). Zwischen
+  Auswertung und Anzeige liegt ein versioniertes Übergabe-Format (Version 1,
+  `src/shared/query/result-set.js` mit Aufbau-Funktionen und einem Prüfer, der
+  Abweichungen mit Fundort meldet): Spalten mit technischem Namen,
+  Beschriftung, Alias und Quelltext, eine stets vollständige Zeilen-Liste mit
+  typisierten Werten und der Herkunft jeder Zeile (Datei, Block mit Anker,
+  Aufgabe mit Zeile und Roh-Zeile), Gruppen als Struktur über den Zeilen,
+  die Darstellungs-Wünsche getrennt von den Daten und der Zustand. Die
+  Auswertung baut die Menge in `src/main/index/query-result-set.js` und keine
+  Anzeige mehr; die Anzeige-Regeln (Überschrift, Anzeige-Stücke, Anzeige-Name,
+  gerundete Dringlichkeit, Gruppen-Beschriftung) stehen im prozess-neutralen
+  Darstellungs-Kern `src/shared/query/result-display.js`, Liste und Tabelle in
+  `src/renderer/modules/query/display-list-table.js`, die Aufgaben-Liste in
+  `src/renderer/modules/query/display-tasks.js`. Der Abfrage-Kanal antwortet
+  allein mit `{ resultSet }`; die bisherige Antwort-Form mit ihren drei
+  parallelen Wegen ist nach einem benannten Übergangs-Zustand entfallen.
+  Lookup-Feld und Wertevorrat der Eigenschafts-Profile, der Kennungs-Vorschlag
+  für Aufgaben und die Vorgänger-Suche im Aufgaben-Dialog lesen die Menge und
+  liefern dieselben Werte wie vorher; die Treffer-Aktionen der Aufgaben-Liste
+  sind unverändert, weil die Merkmale am gezeichneten Ergebnis gleich
+  geblieben sind. Nachweis ist ein Vergleichs-Prüffall, der das Bild von 42
+  Abfragen und Zuständen mit dem alten Weg festgehalten hat und den neuen Weg
+  zeichengleich dagegen prüft, dazu 14 Fälle der Aufgaben-Liste; im Aus-Zustand
+  der Erweiterung `database` laufen alle drei Ebenen unverändert. Das Format ist
+  bis zur Add-on-Paketierung intern versioniert und keine zugesagte
+  Schnittstelle. Die Architektur ist um den Abschnitt «Ergebnismenge zwischen
+  Auswertung und Anzeige», einen Glossar-Eintrag und die Modul-Karte
+  fortgeschrieben.
+- **Die vierte Auswertungs-Ebene im Haupt-Prozess und in der Anzeige**
+  (`4T-002038`, `4T-002039`, `4T-002040`, `4T-002041`, `4T-002042`,
+  `4T-002043`, `4T-002044`; Abschluss in `4T-001983`). Neue Module:
+  `src/main/index/record-table-read.js` (Tabellen-Bestand: eine Tabelle mit
+  typisierten Werten frisch aus dem Dokument, wie der Editor es öffnet,
+  synchron, mit einem gedeckelten Zwischenspeicher in zwei Stufen, weil der
+  Index bewusst keine Zellwerte führt), `src/main/index/query-records.js`
+  (Erzeuger der Ebene mit Quelle je Datensatz, Navigator je Lauf und dem
+  Aus-Zustand am Index-Schalter vor jedem Lesen), `src/main/index/record-hull.js`
+  (die einmal je Abfrage gebildete Menge der Hülle durch Breitensuche,
+  rückwärts über eine Umkehr-Zuordnung, Kreis-Erkennung ohne Rekursion),
+  `src/shared/query/query-record-fields.js` (Feld-Katalog der Ebene samt
+  Pfad-Regel), `src/shared/query/query-record-sources.js` (Schreibweise der
+  Hüllen-Formen), `src/shared/query/query-display.js` (Schreibweise der Angabe
+  `DISPLAY`), `src/renderer/modules/query/record-hit-click.js` (Klick in die
+  Maske über das Ereignis der Masken-Seite), `src/renderer/modules/query/display-forms.js`
+  (Verzeichnis der Darstellungsformen mit Verteiler und Rückfall) und
+  `src/renderer/modules/query/display-tree.js` (Baum). Der Parser liest die
+  Ebenen-Wörter über einen Helfer statt zweier doppelter Zweige und steht bei
+  790 von eingefrorenen 825 Code-Zeilen. Die Ergebnismenge bleibt in Version 1
+  und wächst additiv: die Datensatz-Herkunft um Kopf-Pfad und Anzeige-Form, der
+  Datensatz-Verweis um den Pfad seiner Tabelle, die Wünsche um `display`, die
+  Datensatz-Zeile beim Baum um den Eltern-Verweis `parent` (Prüfer-Befund
+  `parentInvalid`). Nachweis über acht neue Unit-Prüfdateien, darunter der
+  Einzel-Nachweis des Aus-Zustands je Zusage der Ebene, und die Ablauf-Prüffälle
+  `DB-ABF-01` bis `DB-ABF-05` und `FQ-05`; der Vergleichs-Prüffall der drei
+  bestehenden Ebenen ist unverändert grün. Die Architektur ist in Modul-Karte,
+  im Abschnitt «Ergebnismenge zwischen Auswertung und Anzeige», im neuen
+  Abschnitt «Datensatz-Ebene der Abfrage-Sprache» und im Glossar
+  fortgeschrieben.
+- **Gruppierung, Aggregation, Abfrage-Datei und Vorlagen-Ausschluss im
+  Haupt-Prozess und in der Anzeige** (`4T-002076`, `4T-002077`, `4T-002078`,
+  `4T-002079`, `4T-002080`, `4T-002081`, `4T-002082`). Neue Module:
+  `src/shared/query/query-aggregate.js` (Regel der Aggregat-Stellen, Werte über
+  der Gruppe, Reihenfolge der gruppierten Tabelle; gerechnet wird über den Kern
+  der Auswertung, damit es keine zweite Rechen-Regel gibt),
+  `src/shared/query/query-having.js` (Schreibweise von `HAVING`; der Parser wächst
+  um drei Zeilen auf 793 von 825), `src/main/index/query-templates.js`
+  (Ausschluss je Kandidat und Regel der ausdrücklichen Nennung) und
+  `src/main/index/task-env.js` (die Aufgaben-Umgebung an einer Stelle für alle
+  Abfrage-Kanäle samt Fingerabdruck für die Zwischenspeicher von Lookup-Feld und
+  Wertevorrat). Die Gruppen-Bildung im Zeilen-Bau gilt für alle Ebenen und beide
+  Ausgabe-Typen; die gruppierte Liste und die Aufgaben-Liste teilen Hülle und
+  Überschrift. Die Ergebnismenge bleibt in Version 1 und wächst additiv um die
+  Werte über der Gruppe `values` und die Gruppen-Spalten `groupColumns`, der
+  Prüfer um die Befunde `groupValuesInvalid` und `groupValuesLengthMismatch`. Der
+  Abfrage-Kanal und die beiden Profil-Kanäle lösen den Vorlagen-Ordner je Lauf
+  asynchron auf und reichen ihn wie die Aufgaben-Umgebung durch, ohne
+  Zwischenwert (0,74 ms je Lauf). Die Abfrage-Datei ist der vierte Behälter
+  `db-query` mit der Index-Marke `query`, der Bereichs-Cache steht auf
+  Schema-Version 7, und der Katalog zählt die Abfrage-Blöcke der obersten Ebene.
+  Nachweis über die neuen Unit-Prüfdateien `perspective-query-aggregate`,
+  `perspective-query-templates` und `renderer/display-grouped-table`, die
+  ergänzten Prüfdateien der Abfrage, der Profile, des Katalogs und der Übersicht,
+  den Einzel-Nachweis des Aus-Zustands je Zusage und die Ablauf-Prüffälle
+  `FQ-06`, `DB-ABF-06`, `DB-ABF-07` und `VL-11`; im Vergleichs-Prüffall der drei
+  bestehenden Ebenen sind zwei Fälle gewollt neu aufgenommen («Dateien: Liste
+  gruppiert» an Stelle des entfallenen Fehler-Falls und «Dateien: Tabelle
+  gruppiert mit Aggregaten»), alle übrigen sind unverändert. Die Architektur ist
+  in Modul-Karte, in den Abschnitten «Abfrage- und Daten-Konstrukte»,
+  «Ergebnismenge zwischen Auswertung und Anzeige», «Datensatz-Ebene der
+  Abfrage-Sprache», «Datenbank-Funktionalität» und «Ablage-Regel für Daten der
+  Anwendung» und im Glossar fortgeschrieben.
+- **Der Nachzügler des vorigen Releases** (`4T-001962`, Sammeltask des Zuges
+  `3E-000328`). Nach der Auslieferung von 1.144.0 hat dessen Abschluss die
+  Bildschirmfotos der Produkt-Webseite erneuert. Der Commit liegt seither auf dem
+  Integrationsstand und steht hier, weil er Dateien der Webseite berührt; er
+  gehört nicht zu diesem Zug. Kein Anwendungs-Code berührt, kein Anwender-Text
+  nötig.
+- **Zwei Webseiten-Vorhaben vom Integrationsstand, ausgeliefert mit diesem
+  Release** (`3E-000342` mit `4T-002110` und `4T-002111`, dazu `4T-002015`). Das
+  Änderungsprotokoll der Produkt-Webseite ist in eine Übersicht und eine eigene
+  Seite je Version gegliedert; die Seite einer älteren Version trägt einen
+  Hinweis und die Download-Verweise ihrer Dateien, und der Download-Abschnitt
+  der Startseite verweist auf die früheren Versionen. Der Ansichten-Block der
+  Startseite nennt in allen fünf Sprachen die sieben Ansichten statt vier. Beide
+  Vorhaben liegen seit dem 2026-10-03 auf dem Integrationsstand und erscheinen
+  mit der Web-Übertragung dieses Releases; sie gehören nicht zu diesem Zug. Kein
+  Anwendungs-Code berührt, kein Anwender-Text nötig, weil sich am Programm nichts
+  ändert.
+- **Ein vorbereitender Bau-Schritt eines anderen Vorhabens ist für diese
+  Version wieder herausgenommen** (`4T-001619`, `4T-002140`). Er war vor dem
+  Release auf den Integrationsstand gekommen, ausgeschaltet und ohne Wirkung auf
+  die Programmdateien; nach Anordnung des Product Owners gehört er nicht in diese
+  Version. Kein Anwendungs-Code berührt, kein Anwender-Text nötig.
+
 ## [1.144.0.3456] - 2026-09-28 — Kanban-Tafel Stufe 3: Karten mit Notizen verbinden
 
 Zug 3E-000328

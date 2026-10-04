@@ -22,7 +22,12 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const {
+  launchApp,
+  closeApp,
+  warteAufDateiArgument,
+  oeffneDokumentImFenster,
+} = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 
 function makeDir(praefix) {
@@ -61,6 +66,9 @@ test.describe('UG: Funktionen auf ungespeichertem Stand (Erhebung 4T-000936)', (
     const { app, page, userData } = await launchApp({ args: [huelle, quelle] });
     try {
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+      // 4T-001689: Ansicht und Bearbeiten wirken auf den aktiven Eintrag; das ist
+      // nach dem Start das letzte Datei-Argument, sobald es da ist (helpers/app.js).
+      await warteAufDateiArgument(page, quelle);
       await page.locator(SEL.viewBtn('split')).click();
       await page.locator(SEL.btnEdit).click();
 
@@ -100,6 +108,9 @@ test.describe('UG: Funktionen auf ungespeichertem Stand (Erhebung 4T-000936)', (
     const { app, page, userData } = await launchApp({ args: [huelle, quelle] });
     try {
       await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+      // 4T-001689: Ansicht und Bearbeiten wirken auf den aktiven Eintrag; das ist
+      // nach dem Start das letzte Datei-Argument, sobald es da ist (helpers/app.js).
+      await warteAufDateiArgument(page, quelle);
       await page.locator(SEL.viewBtn('split')).click();
       await page.locator(SEL.btnEdit).click();
 
@@ -285,6 +296,12 @@ test.describe('UG: Funktionen auf ungespeichertem Stand (Erhebung 4T-000936)', (
   const treffer = (page) =>
     page.locator('.pane-group[data-pane="0"] .sidebar-searchresults .search-results-item');
 
+  // 4T-001689: Bereich und Dokument im selben Fenster entstehen in fester
+  // Reihenfolge — ohne Datei-Argument starten, binden, dann das Dokument mit
+  // oeffneDokumentImFenster öffnen. Mit Datei-Argument zu starten und danach zu
+  // binden ist ein Rennen: Ist das Dokument schon gemeldet, öffnet der Bereich
+  // ein eigenes Fenster, und die Zusicherung unten wird rot (gemessen unter
+  // Rechenlast; test/README.md, Regel 32).
   async function bereichBinden(page, dir) {
     const res = await page.evaluate((p) => window.api.openAreaPath(p), dir);
     expect(res.boundExisting).toBe(true);
@@ -314,11 +331,13 @@ test.describe('UG: Funktionen auf ungespeichertem Stand (Erhebung 4T-000936)', (
   test('E-02 Bereichs-Suche findet frisch Getipptes in einer nicht aktiven Datei', async () => {
     test.setTimeout(120000);
     const dir = bereichMitZweiDateien('scg-md-ug02-');
-    const { app, page, userData } = await launchApp({
-      args: [path.join(dir, 'Start.md'), path.join(dir, 'Zweite.md')],
-    });
+    const { app, page, userData } = await launchApp();
     try {
       await bereichBinden(page, dir);
+      await oeffneDokumentImFenster(app, page, [
+        path.join(dir, 'Start.md'),
+        path.join(dir, 'Zweite.md'),
+      ]);
 
       // Anker: Der Ausgangs-Text ist über die Bereichs-Suche auffindbar.
       await sucheOeffnen(page, BESTANDSWORT);
@@ -371,11 +390,13 @@ test.describe('UG: Funktionen auf ungespeichertem Stand (Erhebung 4T-000936)', (
   test('E-02 Bereichs-Suche findet Gelöschtes nicht mehr', async () => {
     test.setTimeout(120000);
     const dir = bereichMitZweiDateien('scg-md-ug02b-');
-    const { app, page, userData } = await launchApp({
-      args: [path.join(dir, 'Start.md'), path.join(dir, 'Zweite.md')],
-    });
+    const { app, page, userData } = await launchApp();
     try {
       await bereichBinden(page, dir);
+      await oeffneDokumentImFenster(app, page, [
+        path.join(dir, 'Start.md'),
+        path.join(dir, 'Zweite.md'),
+      ]);
 
       // Anker: Der Ausgangs-Text ist auffindbar.
       await sucheOeffnen(page, BESTANDSWORT);

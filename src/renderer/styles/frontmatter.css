@@ -428,7 +428,9 @@
   margin-left: 0.35em;
 }
 /* 4T-000503 (Epic 3E-000096): Gruppen-Überschriften (GROUP BY, verschachtelt über
-   data-level) und Treffer-Zähler der Task-Ausgabe. */
+   data-level) und Treffer-Zähler der Task-Ausgabe. Seit 4T-002077 (Epic
+   3E-000259) gelten die Gruppen-Regeln ebenso für die gruppierte Liste der
+   Datei-, Block- und Datensatz-Ebene, die dieselbe Hülle baut. */
 .markdown-body .perspective-query-group {
   margin: 0.4em 0;
 }

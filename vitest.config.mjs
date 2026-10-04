@@ -23,6 +23,8 @@ export const TEURE_BAU_DATEIEN = [
   'test/unit/web-handbuch.test.js',
   'test/unit/web-inhalte.test.js',
   'test/unit/web-kennzahlen.test.js',
+  // 4T-002110 (Epic 3E-000342): Versions-Seiten des Änderungsprotokolls, ein Bau je Datei.
+  'test/unit/web-protokoll.test.js',
   'test/unit/web-roadmap.test.js',
 ];
 
@@ -60,6 +62,11 @@ export default defineConfig({
     // liefen sie in einem frischen Clone gegen keine Datei und sonst gegen
     // einen alten Stand. Reihenfolge: erst die Zugangs-Pruefung, dann der Bau.
     globalSetup: ['./scripts/gate-zugang.js', './scripts/build-i18n.js'],
+    // 4T-001949 (Epic 3E-000156): Die wirksame Zeitgrenze je Fall geht als
+    // `meta.zeitgrenze` in den Maschinen-Bericht; scripts/zeitgrenzen-abstand.js
+    // meldet daraus die Faelle ueber der halben Grenze, bevor sie reissen. Ein
+    // Haken je Fall mit einer Zuweisung, ohne Datei-Zugriff.
+    setupFiles: ['./test/zeitgrenze-je-fall.js'],
     // 4T-000782 (Epic 3E-000156): Zusaetzlich zum Konsolen-Bericht ein
     // Maschinen-Bericht, aus dem scripts/test-kennzahlen.js die Zahl der
     // tatsaechlich ausgefuehrten Faelle liest. Die statische Quelltext-

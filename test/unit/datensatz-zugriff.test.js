@@ -26,10 +26,15 @@ import {
 
 const require_ = createRequire(import.meta.url);
 const { setBufferOverlay, clearAllBufferOverlays } = require_('../../src/main/index/overlay.js');
-const { vergissAlleDefinitionen } = require_('../../src/main/index/datensatz-erfassung.js');
+const { vergissAlleDefinitionen, ohneVerdeckteFolgeteile } = require_(
+  '../../src/main/index/datensatz-erfassung.js',
+);
+const { isFilesystemCaseInsensitive } = require_('../../src/shared/platform.js');
 const { bauZaehler, zwischenspeicherLeeren, tabellenNameVon } = require_(
   '../../src/main/index/datensatz-zugriff.js',
 );
+const { planeZerlegung } = require_('../../src/shared/document-split.js');
+const { assembleParts } = require_('../../src/shared/document-assembly.js');
 
 // --- Fixtures ---------------------------------------------------------------
 
@@ -356,5 +361,129 @@ describe('Schlüssel in der letzten Spalte (4T-001927, Nebenbefund am Index)', (
     expect(ergebnis.treffer && ergebnis.treffer.id).toBe('r-00001');
     // Der hintere Datensatz ohne folgende Leerzeile war nie betroffen.
     expect(datensatzNachSchluessel(datei, null, 'Kunden', 'Bern').treffer.id).toBe('r-00002');
+  });
+});
+
+// --- 4T-002046: geöffnete geteilte Tabelle ------------------------------------
+
+describe('Geöffnete geteilte Tabelle (4T-002046, Nebenbefund aus 4T-002038)', () => {
+  // Der Editor hält eine auf mehrere Dateien verteilte Tabelle als EIN
+  // zusammengesetztes Dokument unter dem Pfad der Kopf-Datei; eine Folge-Datei
+  // hat nie einen eigenen Puffer. Dieser Puffer trägt damit schon alle
+  // Datensätze. Die überlagerte Sicht darf die Folge-Dateien der Platte nicht
+  // zusätzlich führen, sonst steht jeder Datensatz eines Folgeteils doppelt da.
+  const VIERZIG = [];
+  for (let i = 1; i <= 40; i++) {
+    const nr = String(i).padStart(5, '0');
+    VIERZIG.push(`|- id="r-${nr}"`, `| K-${i}`, `| Titel ${i} ${'x'.repeat(60)}`, '| Basel');
+  }
+  const GESAMT = tabelle(VIERZIG);
+
+  // Zerlegt wird über den Teiler des Speicherns, zusammengesetzt wie beim
+  // Öffnen: genau der Text, den der Editor an die Puffer-Schicht meldet.
+  function schreibeGeteilt(root) {
+    const plan = planeZerlegung({
+      text: GESAMT,
+      base: 'Kunden',
+      schwelle: 1500,
+      segmentFelder: ['Kürzel', 'Titel', 'Ort'],
+    });
+    expect(plan.geteilt).toBe(true);
+    expect(plan.teile.length).toBeGreaterThanOrEqual(3);
+    const dateien = plan.teile.map((teil) => write(root, `${teil.basename}.md`, teil.text));
+    const dokument = assembleParts(
+      plan.teile.map((teil) => ({ index: teil.index, content: teil.text })),
+    ).text;
+    return { kopf: dateien[0], letzteDatei: dateien[dateien.length - 1], dokument };
+  }
+
+  const marker = (i) => `|- id="r-${String(i).padStart(5, '0')}"`;
+
+  it('führt jeden Datensatz genau einmal, mit dem Fundort im geöffneten Dokument', async () => {
+    const root = makeRoot();
+    const { kopf, letzteDatei, dokument } = schreibeGeteilt(root);
+    await indexFor(kopf);
+    // Vor dem Öffnen: der Datensatz des letzten Teils liegt in seiner Folge-Datei.
+    expect(datensatzNachSchluessel(kopf, null, 'Kunden', 'K-40').treffer.datei).toBe(letzteDatei);
+
+    setBufferOverlay(kopf, dokument);
+    const zeilen = dokument.split('\n');
+    for (let i = 1; i <= 40; i++) {
+      const ueberSchluessel = datensatzNachSchluessel(kopf, null, 'Kunden', `K-${i}`);
+      expect(ueberSchluessel.uneindeutig, `K-${i}`).toBe(false);
+      expect(ueberSchluessel.treffers, `K-${i}`).toHaveLength(1);
+      const { treffer } = datensatzNachKennung(
+        kopf,
+        null,
+        'Kunden',
+        `r-${String(i).padStart(5, '0')}`,
+      );
+      // Fundort ist die Kopf-Datei mit der Zeile im zusammengesetzten Text:
+      // das Dokument, das der Editor in diesem Moment zeigt.
+      expect(treffer.datei, `r-${i}`).toBe(kopf);
+      expect(zeilen[treffer.zeile], `r-${i}`).toBe(marker(i));
+      expect(ueberSchluessel.treffer).toEqual(treffer);
+    }
+  });
+
+  it('ein im Puffer gelöschter Datensatz eines Folgeteils ist nicht mehr auffindbar', async () => {
+    const root = makeRoot();
+    const { kopf, dokument } = schreibeGeteilt(root);
+    await indexFor(kopf);
+    const ohne40 = dokument.replace(
+      `${marker(40)}\n| K-40\n| Titel 40 ${'x'.repeat(60)}\n| Basel\n`,
+      '',
+    );
+    expect(ohne40).not.toContain(marker(40));
+    setBufferOverlay(kopf, ohne40);
+    // Die Folge-Datei der Platte trägt ihn noch; der geschriebene Stand gilt.
+    expect(datensatzNachKennung(kopf, null, 'Kunden', 'r-00040').treffer).toBeNull();
+    expect(datensatzNachSchluessel(kopf, null, 'Kunden', 'K-40').treffers).toEqual([]);
+    // Die übrigen bleiben erreichbar.
+    expect(datensatzNachKennung(kopf, null, 'Kunden', 'r-00039').treffer.datei).toBe(kopf);
+  });
+
+  it('nach dem Verwerfen des Puffers gilt wieder die Platte samt Folge-Dateien', async () => {
+    const root = makeRoot();
+    const { kopf, letzteDatei, dokument } = schreibeGeteilt(root);
+    await indexFor(kopf);
+    setBufferOverlay(kopf, dokument);
+    expect(datensatzNachKennung(kopf, null, 'Kunden', 'r-00040').treffer.datei).toBe(kopf);
+    clearAllBufferOverlays();
+    expect(datensatzNachKennung(kopf, null, 'Kunden', 'r-00040').treffer.datei).toBe(letzteDatei);
+    expect(datensatzNachSchluessel(kopf, null, 'Kunden', 'K-40').uneindeutig).toBe(false);
+  });
+
+  it('der Puffer eines anderen Dokuments verdeckt keine Folge-Datei', async () => {
+    const root = makeRoot();
+    const { kopf, letzteDatei } = schreibeGeteilt(root);
+    const notiz = write(root, 'Notiz.md', '# Notiz\n');
+    await indexFor(kopf);
+    setBufferOverlay(notiz, '# Notiz\n\nungespeichert\n');
+    expect(datensatzNachKennung(kopf, null, 'Kunden', 'r-00040').treffer.datei).toBe(letzteDatei);
+  });
+
+  it('erkennt die Kopf-Datei unabhängig von Normalform und, wo das Dateisystem es tut, Schreibung', () => {
+    const dir = path.join('C:', 'bereich');
+    const kopfNfc = path.join(dir, 'Bücher.md');
+    const teil = path.join(dir, 'Bücher•part-00002.md');
+    const fremd = path.join(dir, 'Andere•part-00002.md');
+    const bestand = new Map([
+      [kopfNfc, [{ id: 'r-00001' }]],
+      [teil, [{ id: 'r-00002' }]],
+      [fremd, [{ id: 'r-00003' }]],
+    ]);
+    // Ohne Puffer einer Kopf-Datei bleibt die Sicht dieselbe.
+    expect(ohneVerdeckteFolgeteile(bestand, [teil])).toBe(bestand);
+    const pufferPfade = [path.join(dir, 'Bücher.md'.normalize('NFD'))];
+    if (isFilesystemCaseInsensitive()) pufferPfade[0] = pufferPfade[0].toUpperCase();
+    const sicht = ohneVerdeckteFolgeteile(bestand, pufferPfade);
+    expect(sicht.get(teil)).toEqual([]);
+    expect(sicht.get(fremd)).toEqual([{ id: 'r-00003' }]);
+    expect(sicht.get(kopfNfc)).toEqual([{ id: 'r-00001' }]);
+    expect(sicht.size).toBe(3);
+    expect(sicht.has(teil)).toBe(true);
+    expect([...sicht.keys()]).toEqual([kopfNfc, teil, fremd]);
+    expect(new Map([...sicht]).get(teil)).toEqual([]);
   });
 });

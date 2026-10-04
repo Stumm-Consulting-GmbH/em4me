@@ -14,6 +14,7 @@ const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 // 4T-000391 (Epic 3E-000129): Sprachliste aus der einen Quelle.
 const { LOCALE_CODES } = require('../../../src/shared/locales.js');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 const LEFT = '.pane-group[data-pane="0"] .pane-sidebar-left';
@@ -420,38 +421,43 @@ const SAVE_LABELS = LOCALE_DICTS.map((d) => d['menu.view.sidebarLayoutSave']);
 // Interceptor: fängt jeden Menü-Neubau des ersten Fensters ab und legt die
 // Einträge des Untermenüs „Sidebar-Anordnungen" global ab.
 async function armVariantsMenuCapture(app) {
-  await app.evaluate(({ BrowserWindow }, layoutsLabels) => {
-    const win = BrowserWindow.getAllWindows()[0];
-    if (!win || win.__variantsMenuCaptureArmed) return;
-    win.__variantsMenuCaptureArmed = true;
-    const orig = win.setMenu.bind(win);
-    win.setMenu = (menu) => {
-      const walk = (items) => {
-        for (const it of items || []) {
-          if (!it.submenu) continue;
-          const kids = it.submenu.items || [];
-          if (layoutsLabels.includes(it.label)) {
-            globalThis.__variantsMenu = kids.map((k) => ({
-              label: k.label || '--sep--',
-              type: k.type,
-              enabled: k.enabled !== false,
-            }));
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, layoutsLabels) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      if (!win || win.__variantsMenuCaptureArmed) return;
+      win.__variantsMenuCaptureArmed = true;
+      const orig = win.setMenu.bind(win);
+      win.setMenu = (menu) => {
+        const walk = (items) => {
+          for (const it of items || []) {
+            if (!it.submenu) continue;
+            const kids = it.submenu.items || [];
+            if (layoutsLabels.includes(it.label)) {
+              globalThis.__variantsMenu = kids.map((k) => ({
+                label: k.label || '--sep--',
+                type: k.type,
+                enabled: k.enabled !== false,
+              }));
+            }
+            walk(kids);
           }
-          walk(kids);
-        }
+        };
+        walk(menu ? menu.items : []);
+        return orig(menu);
       };
-      walk(menu ? menu.items : []);
-      return orig(menu);
-    };
-  }, LAYOUTS_LABELS);
+    },
+    LAYOUTS_LABELS,
+  );
 }
 
 function capturedVariantsMenu(app) {
-  return app.evaluate(() => globalThis.__variantsMenu || null);
+  return hauptLesen(app, () => globalThis.__variantsMenu || null);
 }
 
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);

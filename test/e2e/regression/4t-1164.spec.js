@@ -29,6 +29,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const PANE0 = '.pane-group[data-pane="0"]';
 const PANEL = `${PANE0} .sidebar-properties`;
@@ -83,9 +84,13 @@ async function bindAreaAndOpen(app, page, areaRoot, filePath) {
     })
     .toBe(true);
   await expect.poll(() => page.title()).toContain('(Bereich');
-  await app.evaluate(({ BrowserWindow }, p) => {
-    BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
-  }, filePath);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, p) => {
+      BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
+    },
+    filePath,
+  );
   await expect(page.locator(SEL.tabs0).first()).toBeVisible();
 }
 

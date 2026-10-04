@@ -12,7 +12,9 @@ import { EditorView, hoverTooltip } from '@codemirror/view';
 
 import { state } from '../app/app-state.js';
 import { paneEditors } from '../editor/editor.js';
-import { openInPane } from '../tabs/tabs.js';
+import { activatePane, openInPane } from '../tabs/tabs.js';
+// 4T-002040 (Epic 3E-000258): Datensatz-Treffer und -Verweise öffnen die Maske.
+import { openRecordHit, recordHitOf } from '../query/record-hit-click.js';
 // 4T-000409 (Epic 3E-000077): scrollToAnchorAfterOpen/normalizedAnchorId fuer den
 // Anker-Sprung der Block-Treffer der Perspective-Abfrage.
 import {
@@ -93,6 +95,19 @@ export function bindFrontmatterQueryClicks(container) {
       event.preventDefault();
       return;
     }
+    // 4T-002040 (Epic 3E-000258, F1 Option A): Datensatz-Treffer und
+    // Datensatz-Verweis öffnen die Maske, wie in der Lese-Ansicht
+    // (link-navigation.js). Das Verhindern hält den Block geschlossen.
+    const recordHit = recordHitOf(tgt);
+    if (recordHit) {
+      event.preventDefault();
+      const recordEditor = container.closest('.cm-editor');
+      const recordView = recordEditor ? EditorView.findFromDOM(recordEditor) : null;
+      const recordPane = recordView ? paneEditors.indexOf(recordView) : -1;
+      if (recordPane >= 0) activatePane(recordPane);
+      openRecordHit(recordHit);
+      return;
+    }
     const fmItem = tgt.closest('[data-fm-path]');
     if (!fmItem || !fmItem.dataset.fmPath) return;
     const editorEl = container.closest('.cm-editor');
@@ -110,6 +125,44 @@ export function bindFrontmatterQueryClicks(container) {
         else if (Number.isFinite(fmLine)) scrollToLineAfterOpen(realPane, fmLine);
       },
     );
+  });
+}
+
+// 4T-002014 (Epic 3E-000332): Klick-Pfad der Verweise und Schlagworte in den
+// Text-Zellen der Datentabelle INNERHALB des Live-Block-Widgets. Aus demselben
+// Grund wie bei den Abfrage-Treffern oben erreicht der allgemeine Klick-Pfad
+// (livePreviewClickHandler) das Widget nicht; gebunden wird deshalb am
+// Container (Aufruf in MarkdownBlockWidget._enhance).
+//
+// Zwei Zuhörer mit getrennten Aufgaben, nach dem Muster des Zeilen-Zugangs der
+// Datensätze: `mousedown` hält allein die Auswahl des Browsers auf, die sonst
+// die Schreibmarke in die Fence setzte und den Block zum Quelltext aufklappte,
+// bevor der Klick ankommt; `click` folgt dem Verweis über activateLink, wie der
+// allgemeine Klick-Pfad es tut. Auf `click` und nicht auf `mousedown` gefolgt
+// wird, damit die Eingabetaste auf einem fokussierten Verweis denselben Weg
+// nimmt. Den Vorrang vor der Zell-Bearbeitung hält der Zell-Editor selbst
+// (perspective-datatable-editor.js, onRootClick). Grids in einer Einbettung
+// bleiben außen vor; ihre Verweise beziehen sich auf die eingebettete Datei.
+function datentabellenVerweis(target) {
+  if (!(target instanceof Element)) return null;
+  const link = target.closest('.perspective-datatable td.pdt-cell a[href]');
+  return link && !link.closest('.wiki-embed-md-body') ? link : null;
+}
+
+export function bindDatentabellenVerweisKlicks(container) {
+  container.addEventListener('mousedown', (event) => {
+    if (event.button === 0 && datentabellenVerweis(event.target)) event.preventDefault();
+  });
+  container.addEventListener('click', (event) => {
+    if (event.button !== 0) return;
+    const link = datentabellenVerweis(event.target);
+    if (!link) return;
+    const editorEl = container.closest('.cm-editor');
+    const view = editorEl ? EditorView.findFromDOM(editorEl) : null;
+    const paneIdx = view ? paneEditors.indexOf(view) : -1;
+    if (paneIdx < 0) return;
+    event.preventDefault();
+    activateLink(paneIdx, link.getAttribute('href'), link.classList.contains('wikilink'));
   });
 }
 

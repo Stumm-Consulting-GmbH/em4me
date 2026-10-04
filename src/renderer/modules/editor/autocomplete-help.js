@@ -44,6 +44,7 @@ import {
 } from '../../../shared/tasks/task-markers.js';
 import { setRecurrence } from '../../../shared/tasks/task-recurrence.js';
 import { setTaskId, generateTaskId } from '../../../shared/tasks/task-dependencies.js';
+import { taskHits } from '../../../shared/query/result-display.js';
 // 4T-000347 (Epic 3E-000062): bereichsrelative Ordner-Anzeige (gemeinsam mit dem
 // Backlinks-Panel), damit gleichnamige Dateien aus verschiedenen Ordnern des
 // Bereichs eindeutig unterscheidbar sind.
@@ -334,12 +335,11 @@ async function applyTaskIdSuggestion(view, lineNumber, wordFrom, wordTo) {
   const existing = [];
   if (activeFile) {
     try {
+      // 4T-002035: Treffer aus der Herkunft der Ergebnismenge.
       const payload = await api.runFrontmatterQuery(activeFile, 'LIST TASKS');
-      if (payload && payload.status === 'ready' && Array.isArray(payload.files)) {
-        for (const hit of payload.files) {
-          const m = typeof hit.taskText === 'string' ? parseTaskLine(hit.taskText) : null;
-          if (m && m.id) existing.push(m.id);
-        }
+      for (const hit of taskHits(payload && payload.resultSet)) {
+        const m = parseTaskLine(hit.taskText);
+        if (m && m.id) existing.push(m.id);
       }
     } catch {
       /* Best-Effort: ohne Index-Antwort wird gegen die leere Menge geprueft */

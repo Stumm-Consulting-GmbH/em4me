@@ -18,6 +18,7 @@
 
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const CLOCK_BTN = '#btn-clock';
 const SECTION = '.pane-group .sidebar-clock';
@@ -210,7 +211,7 @@ test.describe('TS-06: Neustart', () => {
       await seedRunningTimer(first.page, { id: 't1', durationMs: 30 * 60000, label: 'Lang' });
       await openMode(first.page, 'timer');
       await expect(first.page.locator(ROWS).first()).toHaveClass(/running/);
-      await first.app.evaluate(({ app }) => app.quit());
+      await hauptSenden(first.app, ({ app }) => app.quit());
       await first.app.waitForEvent('close');
 
       const second = await launchApp({ userData });

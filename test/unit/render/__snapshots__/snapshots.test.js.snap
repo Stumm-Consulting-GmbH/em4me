@@ -375,6 +375,21 @@ aggregate: Betrag:sum+avg, Datum:min+max, Erledigt:count
 "
 `;
 
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert datentabelle-verweise.md stabil 1`] = `
+"<h1 id="perspective-datatable-mit-verweisen" data-source-line="1">Perspective Datatable mit Verweisen</h1>
+<p data-source-line="3">Text-Zellen mit Wiki-Verweis, Alias, Anker, Markdown-Link, Schlagwort,
+Einbettung und Inline-Code; daneben eine Zahl-Spalte, eine Fehler-Zelle und
+eine Zelle ohne Verweis:</p>
+<div class="perspective-datatable" data-dt-index="0" data-dt-line-start="7" data-dt-line-end="14" data-source-line="7" data-dt-source="columns: Name:text, Betrag:number(2), Notiz:text
+aggregate: Betrag:sum
+| [[Ziel]] | 12.50 | [[Ziel\\|Alias]] und [[Ziel#Kapitel]] |
+| [Bericht](Bericht.md) | 3 | #projekt #1 C# |
+| ![[Bild.png]] | kaputt | \`[[wörtlich]]\` **fett** $x$ |
+| Anna | 1 | [Web](https://example.org/a#b) |
+"><table class="pdt-grid"><thead><tr><th class="pdt-row-del" aria-hidden="true"></th><th class="pdt-col pdt-type-text" data-dt-col="0" scope="col"><span class="pdt-name">Name</span><span class="pdt-type">text</span></th><th class="pdt-col pdt-type-number" data-dt-col="1" scope="col"><span class="pdt-name">Betrag</span><span class="pdt-type">number</span></th><th class="pdt-col pdt-type-text" data-dt-col="2" scope="col"><span class="pdt-name">Notiz</span><span class="pdt-type">text</span></th></tr></thead><tbody><tr data-dt-row="0"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0"><a href="Ziel.md" class="wikilink">Ziel</a></td><td class="pdt-cell pdt-type-number" data-dt-col="1" tabindex="0">12.50</td><td class="pdt-cell pdt-type-text" data-dt-col="2" tabindex="0"><a href="Ziel.md" class="wikilink">Alias</a> und <a href="Ziel.md#kapitel" class="wikilink">Ziel#Kapitel</a></td></tr><tr data-dt-row="1"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0"><a href="Bericht.md">Bericht</a></td><td class="pdt-cell pdt-type-number" data-dt-col="1" tabindex="0">3.00</td><td class="pdt-cell pdt-type-text" data-dt-col="2" tabindex="0"><a href="#tag:projekt" class="tag-link">#projekt</a> #1 C#</td></tr><tr data-dt-row="2"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0"><a href="Bild.png" class="wikilink">Bild.png</a></td><td class="pdt-cell pdt-type-number pdt-cell-error" data-dt-col="1" tabindex="0" data-i18n-title="datatable.cellError.invalidNumber">kaputt</td><td class="pdt-cell pdt-type-text" data-dt-col="2" tabindex="0"><code>[[wörtlich]]</code> **fett** $x$</td></tr><tr data-dt-row="3"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0">Anna</td><td class="pdt-cell pdt-type-number" data-dt-col="1" tabindex="0">1.00</td><td class="pdt-cell pdt-type-text" data-dt-col="2" tabindex="0"><a href="https://example.org/a#b">Web</a></td></tr></tbody><tfoot><tr class="pdt-agg-row"><td class="pdt-row-del"></td><td class="pdt-cell pdt-type-text" data-dt-col="0"></td><td class="pdt-cell pdt-type-number" data-dt-col="1"><span class="pdt-agg"><span class="pdt-agg-label" data-i18n="datatable.aggregate.sum">sum</span><span class="pdt-agg-value">16.50</span></span></td><td class="pdt-cell pdt-type-text" data-dt-col="2"></td></tr></tfoot></table><div class="pdt-add-row"><button type="button" class="pdt-add-btn"><span aria-hidden="true">+</span> <span data-i18n="datatable.addRow">addRow</span></button></div></div>
+"
+`;
+
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert definition-lists.md stabil 1`] = `
 "<dl data-source-line="1">
 <dt data-source-line="1">Begriff</dt>

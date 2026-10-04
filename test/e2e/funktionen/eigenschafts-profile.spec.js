@@ -28,6 +28,7 @@ const {
   editorContains,
   cleanupDir,
 } = require('../helpers/profil-bereich');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const MENU = '.properties-suggest-menu';
 const MENU_ITEM = `${MENU} .properties-suggest-item`;
@@ -164,7 +165,7 @@ test.describe('PP-05: Block-Panel mit denselben Definitionen (F-106)', () => {
     const { app, page, userData } = await launchApp({ userData: userDataDir });
     try {
       await bindAreaAndOpen(app, page, areaRoot, doc);
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         BrowserWindow.getAllWindows()[0].webContents.send('menu:toggleBlockProps');
       });
       const SEC = `${PANE0} .sidebar-blockprops`;
@@ -232,7 +233,7 @@ test.describe('PP-05: Block-Panel mit denselben Definitionen (F-106)', () => {
     const { app, page, userData } = await launchApp({ userData: userDataDir });
     try {
       await bindAreaAndOpen(app, page, areaRoot, doc);
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         BrowserWindow.getAllWindows()[0].webContents.send('menu:toggleBlockProps');
       });
       const SEC = `${PANE0} .sidebar-blockprops`;
@@ -581,7 +582,7 @@ test.describe('PP-09: Komplett-Übernahme im Block-Panel (F-106)', () => {
     const { app, page, userData } = await launchApp({ userData: userDataDir });
     try {
       await bindAreaAndOpen(app, page, areaRoot, doc);
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         BrowserWindow.getAllWindows()[0].webContents.send('menu:toggleBlockProps');
       });
       const SEC = `${PANE0} .sidebar-blockprops`;

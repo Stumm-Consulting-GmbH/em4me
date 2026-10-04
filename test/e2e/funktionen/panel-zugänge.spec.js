@@ -15,6 +15,10 @@ const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
+// 4T-001813: Zugriffe auf den Hauptprozess über Senden (Befehl) und Lesen
+// (Abfrage); Begründung im Kopf des Helfers. PZ-06 verlor beim Abholen des
+// erfassten Menüs die Rückmeldung.
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 const { SEL } = require('../helpers/selectors');
 const { pressUntilVisible, oeffneEinstellungsSeite } = require('../helpers/eingabe');
 const { PANEL_ACCESS, DEFAULT_PANEL_TOGGLE_ORDER } = require('../../../src/shared/panel-access.js');
@@ -62,46 +66,50 @@ function panelCountWithoutExtensions(disabledIds) {
 // viewLabels sammelt den GANZEN Teilbaum des Ansichtsmenüs, ausgenommen die
 // Kinder des Panel-Untermenüs — dort und nur dort gehören Panel-Einträge hin.
 async function armPanelMenuCapture(app) {
-  await app.evaluate(({ BrowserWindow }, panelsLabels) => {
-    const win = BrowserWindow.getAllWindows()[0];
-    if (!win || win.__panelMenuCaptureArmed) return;
-    win.__panelMenuCaptureArmed = true;
-    const orig = win.setMenu.bind(win);
-    win.setMenu = (menu) => {
-      const found = { submenu: null, viewLabels: null };
-      const sammle = (items) => {
-        const out = [];
-        for (const it of items || []) {
-          out.push(it.label || '--sep--');
-          if (!it.submenu) continue;
-          const kids = it.submenu.items || [];
-          if (panelsLabels.includes(it.label)) {
-            found.submenu = kids.map((k) => ({
-              label: k.label,
-              type: k.type,
-              checked: !!k.checked,
-            }));
-            continue;
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, panelsLabels) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      if (!win || win.__panelMenuCaptureArmed) return;
+      win.__panelMenuCaptureArmed = true;
+      const orig = win.setMenu.bind(win);
+      win.setMenu = (menu) => {
+        const found = { submenu: null, viewLabels: null };
+        const sammle = (items) => {
+          const out = [];
+          for (const it of items || []) {
+            out.push(it.label || '--sep--');
+            if (!it.submenu) continue;
+            const kids = it.submenu.items || [];
+            if (panelsLabels.includes(it.label)) {
+              found.submenu = kids.map((k) => ({
+                label: k.label,
+                type: k.type,
+                checked: !!k.checked,
+              }));
+              continue;
+            }
+            out.push(...sammle(kids));
           }
-          out.push(...sammle(kids));
+          return out;
+        };
+        for (const top of (menu ? menu.items : []) || []) {
+          const labels = sammle(top.submenu ? top.submenu.items : []);
+          if (found.submenu) {
+            found.viewLabels = labels;
+            break;
+          }
         }
-        return out;
+        globalThis.__panelMenu = found;
+        return orig(menu);
       };
-      for (const top of (menu ? menu.items : []) || []) {
-        const labels = sammle(top.submenu ? top.submenu.items : []);
-        if (found.submenu) {
-          found.viewLabels = labels;
-          break;
-        }
-      }
-      globalThis.__panelMenu = found;
-      return orig(menu);
-    };
-  }, PANELS_MENU_LABELS);
+    },
+    PANELS_MENU_LABELS,
+  );
 }
 
 function capturedPanelMenu(app) {
-  return app.evaluate(() => globalThis.__panelMenu || { submenu: null, viewLabels: null });
+  return hauptLesen(app, () => globalThis.__panelMenu || { submenu: null, viewLabels: null });
 }
 
 // Menü-Neubau anstoßen und auf den Capture warten: der zentrale Toggle-
@@ -111,7 +119,7 @@ function capturedPanelMenu(app) {
 async function nudgeMenuRebuild(app) {
   await expect
     .poll(async () => {
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win) {
           win.webContents.send('menu:togglePanel', 'notes');
@@ -194,7 +202,7 @@ test.describe('PZ-03: zentraler Toggle-Kanal menu:togglePanel', () => {
       // Gepollt senden (Muster addDraftTabTo): Einschalten über den Kanal.
       await expect
         .poll(async () => {
-          await app.evaluate(({ BrowserWindow }) => {
+          await hauptSenden(app, ({ BrowserWindow }) => {
             const win = BrowserWindow.getAllWindows()[0];
             if (win) win.webContents.send('menu:togglePanel', 'notes');
           });
@@ -215,7 +223,7 @@ test.describe('PZ-03: zentraler Toggle-Kanal menu:togglePanel', () => {
       // Ausschalten über denselben Kanal.
       await expect
         .poll(async () => {
-          await app.evaluate(({ BrowserWindow }) => {
+          await hauptSenden(app, ({ BrowserWindow }) => {
             const win = BrowserWindow.getAllWindows()[0];
             if (win) win.webContents.send('menu:togglePanel', 'notes');
           });
@@ -383,20 +391,28 @@ test.describe('PZ-06: jedes Panel koppelt sein Menü-Häkchen an den Toggle', ()
       for (const id of DEFAULT_PANEL_TOGGLE_ORDER) {
         const vorher = checkedOf((await capturedPanelMenu(app)).submenu, id);
         expect(vorher, `Panel ${id} fehlt im Untermenü`).not.toBeNull();
-        await app.evaluate(({ BrowserWindow }, panelId) => {
-          const win = BrowserWindow.getAllWindows()[0];
-          if (win) win.webContents.send('menu:togglePanel', panelId);
-        }, id);
+        await hauptSenden(
+          app,
+          ({ BrowserWindow }, panelId) => {
+            const win = BrowserWindow.getAllWindows()[0];
+            if (win) win.webContents.send('menu:togglePanel', panelId);
+          },
+          id,
+        );
         await expect
           .poll(async () => checkedOf((await capturedPanelMenu(app)).submenu, id), {
             message: `Panel ${id}: Häkchen folgt dem Toggle nicht`,
           })
           .toBe(!vorher);
         // zurück in den Ausgangszustand, damit die Fälle unabhängig bleiben
-        await app.evaluate(({ BrowserWindow }, panelId) => {
-          const win = BrowserWindow.getAllWindows()[0];
-          if (win) win.webContents.send('menu:togglePanel', panelId);
-        }, id);
+        await hauptSenden(
+          app,
+          ({ BrowserWindow }, panelId) => {
+            const win = BrowserWindow.getAllWindows()[0];
+            if (win) win.webContents.send('menu:togglePanel', panelId);
+          },
+          id,
+        );
         await expect
           .poll(async () => checkedOf((await capturedPanelMenu(app)).submenu, id))
           .toBe(vorher);
@@ -466,7 +482,7 @@ test.describe('PZ-07: Lesezeichen-Inline-Edit holt seinen Reiter nach vorn', () 
       // Die Konstellation: Die Gliederung kommt über den Toggle-Weg hinzu und
       // zieht den Reiter zu sich. Die Lesezeichen sind ab jetzt sichtbar UND
       // verdeckt.
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win) win.webContents.send('menu:togglePanel', 'outline');
       });

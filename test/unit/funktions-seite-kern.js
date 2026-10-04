@@ -111,6 +111,14 @@ const KERN_ZEILEN = [
   'help.feature.queryContext',
   'help.feature.queryValues',
   'help.feature.queryHighlight',
+  // 4T-002045 (Epic 3E-000258): Kern, weil die Wahl der Darstellungsform zur
+  // Abfrage-Sprache gehört und auf jeder Ebene gilt; die vier Zeilen der
+  // Datensatz-Ebene stehen dagegen am Feld featureKeys der Erweiterung database.
+  'help.feature.queryDisplayForm',
+  // 4T-002083 (Epic 3E-000259): Kern, weil Gruppierung, Aggregate und HAVING
+  // zur Abfrage-Sprache gehören und auf jeder Ebene gelten; die Abfrage-Datei
+  // steht dagegen am Feld featureKeys der Erweiterung database.
+  'help.feature.queryGroupBy',
   'help.feature.datatableGrid',
   'help.feature.datatableView',
   'help.feature.scriptBlocks',

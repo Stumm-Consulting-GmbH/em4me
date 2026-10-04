@@ -28,6 +28,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 const TIMER_DUE = '#timer-due-modal';
@@ -121,7 +122,8 @@ test.describe('UF-02: Timer — geschlossenes und später geöffnetes Fenster', 
       await expect(page.locator(TIMER_DUE)).toBeVisible(ZEIT);
 
       // Das Bereichs-Fenster schließt: Die Meldung im übrigen Fenster bleibt.
-      await app.evaluate(
+      await hauptSenden(
+        app,
         ({ BrowserWindow }, teil) => {
           const win = BrowserWindow.getAllWindows().find((w) => w.getTitle().includes(teil));
           if (win) win.close();

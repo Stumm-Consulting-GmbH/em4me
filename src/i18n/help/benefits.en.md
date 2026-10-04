@@ -106,11 +106,10 @@ A folder of Markdown files can be a database at the same time, and you do not de
 - **The area becomes a database** as soon as a document describes one, and gets an overview of its own, from which you create records and check the data set.
 - **The table sits in its file**: fields in the header, records in the body. Renaming and moving change nothing about that, outside the application as well.
 - **Eight column types**, with labels that may be present in several languages.
-- **The reference to a single record** is written like an anchor and behaves like every other reference: the Markdown linter shows whether it holds, and a click opens the table file.
+- **The reference to a single record** is written like an anchor and behaves like every other reference: the Markdown linter shows whether it holds, and a click leads to the row of the record.
 - **Large data sets stay one table**: from roughly 0.7 MB on, the application spreads the records across several sibling files when saving, without a single reference being touched.
 - **Keeping records in the form**: create, change and delete in a form generated from the definition, with lock, change record and the rules of the table; consistency check and usage report for diagnosis.
-
-What the database does not bring yet: queries and evaluations across the records.
+- **Evaluating records**: lists and tables over a table, with paths through references and hierarchies across any number of levels, as a tree if you wish, and overviews with one row per group, such as books and pages per author.
 
 In detail: [Database](database.md).
 
@@ -163,21 +162,21 @@ In detail: [Property Profiles](property-profiles.md).
 
 ## Lists that keep themselves current
 
-Anyone keeping many files otherwise maintains overviews by hand, and they go stale the day they are written. A Perspective Query instead describes **what** is wanted, and the result appears right there in the document: a clickable list or table across the collection, filtered by properties, tags and file fields, down to individual text blocks and tasks. When the collection changes, the output changes, with nobody updating anything.
+Anyone keeping many files otherwise maintains overviews by hand, and they go stale the day they are written. A Perspective Query instead describes **what** is wanted, and the result appears right there in the document: a clickable list or table across the collection, filtered by properties, tags and file fields, down to individual text blocks and tasks. If you wish, the query gathers the hits into groups, with one row per group and its count, sum or average. When the collection changes, the output changes, with nobody updating anything.
 
 - **Topic pages** that list their related files themselves.
-- **Filters** across frontmatter properties, tags and file fields.
-- **Block and task level**, not just whole files.
+- **Filters and groups** across frontmatter properties, tags and file fields, with counts and sums per group.
+- **Block, task and record level**, not just whole files.
 - **Every hit clickable**, leading straight to its target.
 
 In detail: [Perspective Query](frontmatter-query.md).
 
 ## When a query is not enough: scripts
 
-Some evaluations cannot be phrased as a condition, such as a recursive tree along the links or an overview that calculates as it goes. Script blocks cover that: a block runs a small program, reads the same collection as the query, and outputs lists, tables or finished text into the document. Because that means more freedom, the feature is bound to an explicit trust model and to runtime limits, and it is not simply active out of the box.
+Some evaluations cannot be phrased as a condition, such as a tree along the links between documents or an overview that calculates as it goes; hierarchies across records and sums per group, by contrast, are handled by the query itself. Script blocks cover that: a block runs a small program, reads the same collection as the query, and outputs lists, tables or finished text into the document. Because that means more freedom, the feature is bound to an explicit trust model and to runtime limits, and it is not simply active out of the box.
 
 - **Free evaluations** over the same data as the query.
-- **Recursive structures** and computed overviews that cannot be expressed declaratively.
+- **Recursive structures across documents** and computed overviews that cannot be expressed declaratively.
 - **Explicit trust model** and runtime limits instead of silent execution.
 
 In detail: [Script blocks](scripts.md).

@@ -12,6 +12,7 @@ const os = require('node:os');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'ereignisse.md');
 // 4T-000722: eigene Fixture für die Gantt-Ansicht (zwei verkettete Spannen
@@ -171,7 +172,7 @@ test.describe('EV-04: Duplizieren und Löschen mit Bestätigung', () => {
       await waitForTab(page);
       // Lösch-Bestätigung im Test auf "bestätigt" stubben (OS-Dialog ist
       // in Playwright nicht bedienbar; der Dialog-Inhalt ist Main-seitig).
-      await app.evaluate(({ ipcMain }) => {
+      await hauptSenden(app, ({ ipcMain }) => {
         ipcMain.removeHandler('events:confirmDelete');
         ipcMain.handle('events:confirmDelete', () => true);
       });
@@ -581,9 +582,13 @@ async function bindArea(page, dir) {
 }
 
 async function openFileInArea(app, page, filePath) {
-  await app.evaluate(({ BrowserWindow }, p) => {
-    BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
-  }, filePath);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, p) => {
+      BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
+    },
+    filePath,
+  );
   await expect(page.locator(SEL.tabs0).first()).toBeVisible();
 }
 
@@ -646,7 +651,7 @@ test.describe('EV-12: Verknüpfungen im Fence (Art 1)', () => {
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
     try {
       await waitForTab(page);
-      await app.evaluate(({ ipcMain }) => {
+      await hauptSenden(app, ({ ipcMain }) => {
         ipcMain.removeHandler('events:confirmDelete');
         ipcMain.handle('events:confirmDelete', () => true);
       });

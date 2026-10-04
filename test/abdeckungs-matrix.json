@@ -165,8 +165,8 @@
       "key": "help.feature.save",
       "id": "F-019",
       "testart": "e2e",
-      "tests": ["test/e2e/smoke/smoke.spec.js"],
-      "hinweis": "SM-04 (menu:save-IPC, Platte geprueft); Speichern-unter-Dialog ist OS-UI."
+      "tests": ["test/e2e/smoke/smoke.spec.js", "test/e2e/regression/4t-0945-b12.spec.js"],
+      "hinweis": "SM-04 (menu:save-IPC, Platte geprueft); Speichern-unter-Dialog ist OS-UI. 4T-001923: KS-07, KS-08, KS-10 und KS-11 (zwei Speicher-Befehle, Eingabe waehrend eines laufenden Speicherns, Meldung der Datei-Beobachtung zum eigenen Speichern waehrend des naechsten; gestellte Lagen; bis zur Behebung als erwartet scheiternd markiert) und der Gegenfall KS-09 (Fremd-Aenderung zwischen zwei Speicher-Befehlen fragt weiterhin)."
     },
     {
       "key": "help.feature.autoSave",
@@ -558,9 +558,11 @@
         "test/e2e/funktionen/schlagwort-vorschlaege.spec.js",
         "test/e2e/funktionen/tabellen-zell-vorschlaege.spec.js",
         "test/unit/renderer/live-tabellen-vorschlaege.test.js",
-        "test/unit/vorschlagsliste-tasten.test.js"
+        "test/unit/vorschlagsliste-tasten.test.js",
+        "test/e2e/funktionen/datentabelle.spec.js",
+        "test/unit/renderer/datentabelle-vorschlaege.test.js"
       ],
-      "hinweis": "FB-05 (Liste oeffnet); VV-01 bis VV-03 (Reihenfolge und Auswahl an der angezeigten Liste, 4T-001339); SV-01 und SV-02 (Reihenfolge der Schlagworte nach Haeufigkeit, 4T-001357); Tag-Heading-Ausnahme R5-12 implementiert in 4T-000187; Vorschlagsliste in der Tabellenzelle der Live-Ansicht in TV-01 bis TV-08 (4T-001713); Tasten der Liste gegen die Belegung der Bibliothek (4T-001714)."
+      "hinweis": "FB-05 (Liste oeffnet); VV-01 bis VV-03 (Reihenfolge und Auswahl an der angezeigten Liste, 4T-001339); SV-01 und SV-02 (Reihenfolge der Schlagworte nach Haeufigkeit, 4T-001357); Tag-Heading-Ausnahme R5-12 implementiert in 4T-000187; Vorschlagsliste in der Tabellenzelle der Live-Ansicht in TV-01 bis TV-08 (4T-001713); Tasten der Liste gegen die Belegung der Bibliothek (4T-001714). 4T-001987 (Epic 3E-000332): die Liste in der Text-Zelle der Datentabelle in DT-14 (Live-Ansicht, Übernahme ins Feld und in den Quelltext, keine Liste in der Zahl-Spalte) und DT-15 (geteilte Ansicht, Liste ganz im Fenster, Vorrang von Eingabetaste und Escape, Tabulator); datentabelle-vorschlaege.test.js trägt gedachte Zeile, Quellen, Maskierung und Tasten."
     },
     {
       "key": "help.feature.wikiLinkAnchors",
@@ -2065,10 +2067,12 @@
       "testart": "unit",
       "tests": [
         "test/unit/perspective-query-index.test.js",
-        "test/unit/perspective-query-eval.test.js"
+        "test/unit/perspective-query-eval.test.js",
+        "test/unit/perspective-query-templates.test.js",
+        "test/e2e/funktionen/vorlagen.spec.js"
       ],
       "sichtbarkeit": "entfällt: Abfrage-Sprache ohne eigenes Bedienelement; die Ergebnis-Ausgabe ist als Ganzes in frontmatter-abfrage.spec.js gedeckt",
-      "hinweis": "4T-000402/4T-000406 (Epic 3E-000076): FROM-Quellen (Ordner, Tags hierarchisch, Link-Bezuege ueber den Link-Graphen, Kombination/Negation) unit- und index-integriert getestet."
+      "hinweis": "4T-000402/4T-000406 (Epic 3E-000076): FROM-Quellen (Ordner, Tags hierarchisch, Link-Bezuege ueber den Link-Graphen, Kombination/Negation) unit- und index-integriert getestet. 4T-002082 (Epic 3E-000259) ergänzt den Ausschluss der Vorlagen an der Quellen-Ebene: perspective-query-templates.test.js trägt die vier Ebenen, Unterordner, die Ausnahme über die ausdrückliche Nennung in FROM, die Datensatz-Ebene über Pfad und Namen, Lookup-Feld und Wertevorrat sowie den Aus-Zustand der Erweiterung «Vorlagen»; VL-11 in vorlagen.spec.js zeigt an der gestarteten Anwendung, dass die Aufgabe einer Vorlage aus der Aufgaben-Liste fällt, mit FROM auf den Vorlagen-Ordner erscheint und bei ausgeschalteter Erweiterung zurückkehrt. Nachgetragen im Hilfe- und Handbuch-Task 4T-002083."
     },
     {
       "key": "help.feature.queryTable",
@@ -2125,6 +2129,19 @@
       "hinweis": "4T-001074 (Epic 3E-000211): bold() als Segment-Liste — Verkettung mischt markierte und unmarkierte Anteile, Sternchen im Text bleiben woertlich, Vergleich/Ordnung/Wahrheitswert verhalten sich wie ohne Marke; jsdom-Faelle fuer Tabellen-Zelle, Listen-Zusatzfeld und Gruppen-Titel. PDF-Ausgabe manuell an der EXE (Test-Iteration des Sammeltasks)."
     },
     {
+      "key": "help.feature.queryDisplayForm",
+      "id": "F-338",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/frontmatter-abfrage.spec.js",
+        "test/unit/renderer/display-forms.test.js",
+        "test/unit/perspective-query.test.js",
+        "test/unit/ergebnismenge.test.js"
+      ],
+      "sichtbarkeit": "sichtbar als Hinweis über dem Ergebnis eines Abfrage-Blocks, sobald eine unbekannte oder unpassende Form gewählt ist, und als gezeichnete Form statt Liste oder Tabelle",
+      "hinweis": "4T-002043 (Epic 3E-000258): die Wahl der Darstellungsform mit DISPLAY. FQ-05 zeigt den Rückfall mit Hinweis bei unbekannter Form in Lese- und Live-Ansicht und die Wirkung einer Änderung ohne Speichern; renderer/display-forms.test.js trägt Verzeichnis und Verteiler (ohne Angabe byte-gleich, unbekannte und unpassende Form mit Hinweis in fünf Sprachen auf allen vier Ebenen, scheiternde Form, Leer-Fall ohne Form, Liste und Tabelle als keine wählbaren Formen), perspective-query.test.js das Lesen der Angabe samt Syntax-Fehlern und ergebnismenge.test.js den Wunsch display im Format-Vertrag. Testart e2e, weil der Hinweis ein sichtbares Element der Abfrage-Ausgabe ist und FQ-05 ihn in der laufenden Anwendung zeigt. Kern-Zeile ohne Erweiterung, weil die Angabe zur Abfrage-Sprache gehört. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002045 entstanden und nennt die bereits vorliegenden Prüffälle."
+    },
+    {
       "key": "help.feature.scriptBlocks",
       "id": "F-100",
       "testart": "e2e",
@@ -2143,16 +2160,25 @@
       "tests": [
         "test/e2e/funktionen/datentabelle.spec.js",
         "test/unit/perspective-datatable.test.js",
-        "test/unit/render/snapshots.test.js"
+        "test/unit/render/snapshots.test.js",
+        "test/e2e/funktionen/datentabelle-verweise.spec.js",
+        "test/unit/perspective-datatable-verweise.test.js",
+        "test/unit/zell-verweise-html.test.js",
+        "test/unit/datentabelle-zell-scan.test.js"
       ],
-      "hinweis": "4T-000417/4T-000418/4T-000421 (Epic 3E-000079): Konstrukt der Perspective Datatable; abgedeckt durch DT-01 bis DT-03 (Grid, lokalisierte Aggregate, Live-Paritaet) und DT-11 (berechnete Spalten) plus Parser-/Aggregat-/Formel-Unit-Suite und Snapshot-Fixture datentabelle.md. 4T-001313: Anzeige-Ueberschrift der Spalte und abschaltbare Typangabe (Unit-Faelle im Kern-Test, Rueckschreib-Nachweis im Pruef-Fall DT-13)."
+      "hinweis": "4T-000417/4T-000418/4T-000421 (Epic 3E-000079): Konstrukt der Perspective Datatable; abgedeckt durch DT-01 bis DT-03 (Grid, lokalisierte Aggregate, Live-Paritaet) und DT-11 (berechnete Spalten) plus Parser-/Aggregat-/Formel-Unit-Suite und Snapshot-Fixture datentabelle.md. 4T-001313: Anzeige-Ueberschrift der Spalte und abschaltbare Typangabe (Unit-Faelle im Kern-Test, Rueckschreib-Nachweis im Pruef-Fall DT-13). 4T-002013 und 4T-002014 (Epic 3E-000332): Verweise und Schlagworte in Text-Zellen. DV-01 und DV-02 zeigen Verweis und Schlagwort in Lese-, geteilter und Live-Ansicht anklickbar, DT-16 den Rückverweis und das Nachziehen beim Umbenennen; perspective-datatable-verweise.test.js und zell-verweise-html.test.js tragen Anzeige, Aus-Zustände und portablen Export samt Snapshot-Fixture datentabelle-verweise.md, datentabelle-zell-scan.test.js die Erfassung im Index."
     },
     {
       "key": "help.feature.datatableGrid",
       "id": "F-097",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/datentabelle.spec.js"],
-      "hinweis": "4T-000419 (Epic 3E-000079): Grid-Bearbeitung; abgedeckt durch DT-04 bis DT-08 (Typ-Zwang mit Rueckschreib-Kontrolle, Abweisen ungueltiger Werte, Boolean-Toggle, Zeilen-Aktionen mit zwei Tabellen, Read-only-Reading, Live-Widget-Bearbeitung)."
+      "tests": [
+        "test/e2e/funktionen/datentabelle.spec.js",
+        "test/e2e/funktionen/datentabelle-verweise.spec.js",
+        "test/unit/renderer/datentabelle-verweis-klick.test.js",
+        "test/unit/renderer/datentabelle-vorschlaege.test.js"
+      ],
+      "hinweis": "4T-000419 (Epic 3E-000079): Grid-Bearbeitung; abgedeckt durch DT-04 bis DT-08 (Typ-Zwang mit Rueckschreib-Kontrolle, Abweisen ungueltiger Werte, Boolean-Toggle, Zeilen-Aktionen mit zwei Tabellen, Read-only-Reading, Live-Widget-Bearbeitung). 3E-000332: Klick-Regel bei Verweisen in Text-Zellen in DV-01 (Klick auf den Verweis folgt ihm, Klick in den freien Teil der Zelle öffnet sie) und datentabelle-verweis-klick.test.js (Eingabetaste und F2); Vorschlagsliste im Zell-Editor in DT-14 und DT-15 und datentabelle-vorschlaege.test.js."
     },
     {
       "key": "help.feature.datatableView",
@@ -3579,10 +3605,15 @@
     {
       "key": "help.feature.databaseRecordLink",
       "id": "F-300",
-      "testart": "unit",
-      "tests": ["test/unit/datensatz-verweis.test.js"],
-      "sichtbarkeit": "entfällt: kein eigenes Bedienelement; der Verweis wird von Hand geschrieben, und seine Gültigkeit zeigt der Editor-Linter im Änderungs-Modus an derselben Markierung wie bei jedem anderen Verweis",
-      "hinweis": "4T-001612 (Epic 3E-000252): die dritte Anker-Herkunft in anchorExistsInFile, geordnet nach dem Block-Anker, sodass kein bestehender Verweis umgedeutet wird. Testart unit, weil die Zusagen an der Auflösung hängen: vorhandene und fehlende Kennung, Folge-Segment, Zusammentreffen beider Anker-Arten und die unveränderte Zusicherung, dass eine Kennung in einem Code-Beispiel einer Nicht-Tabelle kein Anker ist. Der Sprung nach dem Klick gehört zu E16.3 und damit zur Masken-Stufe."
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-tabelle.spec.js",
+        "test/unit/datensatz-verweis.test.js",
+        "test/unit/db-datensatz-anker.test.js",
+        "test/unit/renderer/anchor-navigation.test.js"
+      ],
+      "sichtbarkeit": "sichtbar nach dem Klick auf den Verweis: In der Lese-Ansicht steht die Zeile des Datensatzes im Blick, in der Live- und der Quellcode-Ansicht die Schreibmarke auf ihr, auch für einen Datensatz in einer Folge-Datei; die Gültigkeit zeigt der Editor-Linter an derselben Markierung wie bei jedem anderen Verweis",
+      "hinweis": "4T-001612 (Epic 3E-000252): die dritte Anker-Herkunft in anchorExistsInFile, geordnet nach dem Block-Anker, sodass kein bestehender Verweis umgedeutet wird; datensatz-verweis.test.js trägt die Auflösung: vorhandene und fehlende Kennung, Folge-Segment, Zusammentreffen beider Anker-Arten und die unveränderte Zusicherung, dass eine Kennung in einem Code-Beispiel einer Nicht-Tabelle kein Anker ist. 4T-001986 (Epic 3E-000332): der Sprung zur Datensatz-Zeile nach dem Klick. DB-03 zeigt ihn am gebauten Programm in Lese-, Live- und Quellcode-Ansicht für einen Datensatz der Kopf-Datei und einen der Folge-Datei; db-datensatz-anker.test.js trägt die Suche der Zeile im Text (nur im ersten Datensatz-Block einer Tabellen-Datei, keine maskierte Zeile, kein fremder Zaun), renderer/anchor-navigation.test.js den Vorrang von Überschrift und Block-Anker und den Aus-Zustand der Erweiterung ohne Sprung. Testart e2e, weil der Sprung am Blick und an der Schreibmarke im gebauten Programm sichtbar wird."
     },
     {
       "key": "help.shortcut.databaseOverview",
@@ -3732,6 +3763,86 @@
       "hinweis": "4T-001945 (Epic 3E-000257): der Verwendungsnachweis. DB-KON-02 zeigt die Aktion «Verwendung» je Tabellen-Zeile der Übersicht mit verweisender Tabelle und Spalte und die Lage ohne Verwender, die Aktion «Verwendet von» im Kopf der Maske mit dem verweisenden Datensatz und den Sprung in dessen Maske, alles ohne Schreibzugriff; db-verwendungsnachweis.test.js trägt die Masken-Dateien, den nicht zählenden Prosa-Verweis, Folge-Segment, Schlüssel-Wert und Selbstbezug sowie den Gleichlauf mit dem Lösch-Schutz. Testart e2e, weil beide Aktionen neu eingeführte Bedienelemente sind und die Auskunft erst mit Bereich und Index der laufenden Anwendung entsteht. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001946 entstanden."
     },
     {
+      "key": "help.feature.queryRecords",
+      "id": "F-335",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-abfrage.spec.js",
+        "test/unit/perspective-query-records.test.js",
+        "test/unit/datensatz-abfrage-aus-zustand.test.js",
+        "test/unit/renderer/datensatz-treffer-klick.test.js",
+        "test/unit/renderer/frontmatter-query-view.test.js"
+      ],
+      "sichtbarkeit": "sichtbar als Liste oder Tabelle eines Abfrage-Blocks mit RECORDS, die erste Tabellen-Spalte «Datensatz», und als Maske nach dem Klick auf einen Treffer",
+      "hinweis": "4T-002038 bis 4T-002040 (Epic 3E-000258): die Datensatz-Ebene der Abfrage. DB-ABF-01 zeigt Anzeige-Form, Bedingung und Sortierung über Zahlen, die Beschriftung der Spalte, den Kopf «Datensatz», den eigenen Leer-Text und den Klick in die Maske in Lese-, geteilter und Live-Ansicht; DB-ABF-02 den Datensatz-Verweis in einer Spalte mit Klick in die Maske des Ziels und den ungespeicherten Stand der offenen Tabelle. perspective-query-records.test.js trägt Quelle beim Namen und als Pfad samt Verknüpfung und Fehlern, typisierte Werte, record.id und record.table, file.*, Grundordnung, Beschriftung nach der Rückfall-Kette, Hervorhebung, Gruppierung und Layout als Fehler und die geteilte Tabelle; datensatz-abfrage-aus-zustand.test.js die leere Menge mit Hinweis ohne Datei-Zugriff; renderer/datensatz-treffer-klick.test.js den Klick-Weg in die Maske; renderer/frontmatter-query-view.test.js Kopf, Leer-Text und Hinweis in der Anzeige. Testart e2e, weil die Kette vom Tabellen-Dokument über den Index bis zur Maske erst in der laufenden Anwendung besteht. Die Anzeige-Story teilt sich diese Zeile. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002045 entstanden und nennt die bereits vorliegenden Prüffälle."
+    },
+    {
+      "key": "help.feature.queryRecordPaths",
+      "id": "F-336",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-abfrage.spec.js",
+        "test/unit/perspective-query-record-paths.test.js"
+      ],
+      "sichtbarkeit": "sichtbar als Spalten und Treffer einer Datensatz-Abfrage, deren Werte über ein Verweis-Feld aus einer anderen Tabelle kommen",
+      "hinweis": "4T-002041 (Epic 3E-000258): die Pfad-Navigation über Verweis-Felder und die Gegenrichtung über eine Bedingung. DB-ABF-03 zeigt Titel und Autor des Buches je Ausleihe, die Ausleihen eines Buches über Kennung und Schlüssel-Wert und den Titel aus dem ungespeicherten Stand der Ziel-Tabelle; perspective-query-record-paths.test.js trägt Pfade über mehrere Stufen und Tabellen in Spalte, Bedingung und Sortierung, den Vergleich mit Kennung in beiden Schreibweisen und mit dem Schlüssel-Wert, leer, ins Leere und mehrdeutig samt Hinweis, das wörtliche Feld mit Punkt, den Selbstbezug, das einmalige Lesen je Lauf und die unveränderten übrigen Ebenen. Testart e2e, weil die Werte erst über Index und Tabellen-Bestand der laufenden Anwendung zusammenkommen. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002045 entstanden."
+    },
+    {
+      "key": "help.feature.queryHierarchy",
+      "id": "F-337",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-abfrage.spec.js",
+        "test/unit/perspective-query-record-hull.test.js",
+        "test/unit/datensatz-abfrage-aus-zustand.test.js"
+      ],
+      "sichtbarkeit": "sichtbar als Treffer-Liste einer Datensatz-Abfrage mit ancestors(…) oder descendants(…) und als Hinweis über dem Ergebnis bei einem Kreis",
+      "hinweis": "4T-002042 (Epic 3E-000258): die transitive Hülle als die beiden Quellen-Formen ancestors und descendants. DB-ABF-04 zeigt an einer Tabelle mit Selbstbezug die Nachkommen ohne das Ziel, gefiltert, die Vorfahren, den Kreis mit Hinweis, den Klick in die Maske und den ungespeicherten Eltern-Verweis; perspective-query-record-hull.test.js trägt beide Richtungen über mehrere Stufen, Felder und Tabellen, das Ziel in allen Schreibweisen, Filter, Sortierung und Verknüpfung mit einer Tabelle, nicht auflösbare und mehrdeutige Ziele, Kreise, die Fehler auf den übrigen Ebenen und die Parse-Fehler; datensatz-abfrage-aus-zustand.test.js den Aus-Zustand ohne Lesen einer Tabelle. Testart e2e, weil die Menge erst über Index und Tabellen-Bestand der laufenden Anwendung entsteht. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002045 entstanden."
+    },
+    {
+      "key": "help.feature.queryTree",
+      "id": "F-339",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-abfrage.spec.js",
+        "test/unit/renderer/display-tree.test.js",
+        "test/unit/perspective-query-record-hull.test.js"
+      ],
+      "sichtbarkeit": "sichtbar als eingerückter Baum statt der Liste eines Abfrage-Blocks mit DISPLAY tree BY und als Maske nach dem Klick auf einen Knoten",
+      "hinweis": "4T-002044 (Epic 3E-000258): die Baum-Darstellung als erste Form des Verzeichnisses. DB-ABF-05 zeigt den Baum in Lese-, geteilter und Live-Ansicht, die Nachkommen-Menge, den Kreis, den Klick in die Maske und das Umhängen nach einem ungespeicherten Eltern-Verweis; renderer/display-tree.test.js trägt Wurzeln, Einrückung, Reihenfolge, Kreis ohne Verlust und ohne Doppel, das eine Feld nach BY, Knoten gleich dem Listen-Treffer, Klick, Zusatzfeld und Tabelle ohne Spalten, Rückfall mit Hinweis, Leer- und Aus-Zustand und die Grenze der Verschachtelung; perspective-query-record-hull.test.js den Eltern-Verweis je Zeile aus dem Erzeuger. Testart e2e, weil der Baum ein neues sichtbares Element der Abfrage-Ausgabe ist. Teilbaum, Druck und portabler Export stehen als manuelle Prüfung am Bau im Prüf-Block des Umsetzungs-Vorgangs. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002045 entstanden."
+    },
+    {
+      "key": "help.feature.queryGroupBy",
+      "id": "F-342",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/frontmatter-abfrage.spec.js",
+        "test/e2e/funktionen/datenbank-abfrage.spec.js",
+        "test/unit/perspective-query-aggregate.test.js",
+        "test/unit/perspective-query-records.test.js",
+        "test/unit/renderer/display-grouped-table.test.js",
+        "test/unit/renderer/frontmatter-query-view.test.js",
+        "test/unit/renderer/display-tree.test.js",
+        "test/unit/perspective-query.test.js"
+      ],
+      "sichtbarkeit": "sichtbar als Gruppen-Überschriften einer gruppierten Liste und als Tabelle mit einer Zeile je Gruppe und führenden Gruppen-Spalten im Ergebnis eines Abfrage-Blocks",
+      "hinweis": "4T-002076 bis 4T-002079 (Epic 3E-000259): Gruppierung und Aggregation auf allen vier Ebenen. FQ-06 zeigt die gruppierte Liste über Dateien in Lese-, geteilter und Live-Ansicht samt Klick, DB-ABF-06 die gruppierte Tabelle mit Anzahl und Seiten-Summe je Autor, den Fall «nur Autoren mit mehr als einem Buch» mit HAVING und das Buch als Gruppen-Wert mit Klick in die Maske; perspective-query-aggregate.test.js trägt die Positions-Regel, count() und count(x) an beiden Stellen, Datums-min und -max, Rechnen über Aggregaten, die Fehler-Fälle, die Reihenfolge der gruppierten Tabelle und HAVING in Liste und Tabelle; perspective-query-records.test.js die Gruppen auf allen Ebenen und den Datensatz-Verweis als Gruppen-Wert; renderer/display-grouped-table.test.js und renderer/frontmatter-query-view.test.js die Darstellung von Tabelle und Liste; renderer/display-tree.test.js den Rückfall des Baums bei einer gruppierten Menge; perspective-query.test.js das Lesen von HAVING. Testart e2e, weil Gruppen-Überschriften und Gruppen-Zeilen neue sichtbare Elemente der Abfrage-Ausgabe sind. Kern-Zeile ohne Erweiterung, weil die Gruppierung zur Abfrage-Sprache gehört. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002083 entstanden."
+    },
+    {
+      "key": "help.feature.databaseQueryFile",
+      "id": "F-343",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-abfrage-datei.spec.js",
+        "test/unit/db-katalog.test.js",
+        "test/unit/renderer/datenbank-uebersicht-seite.test.js",
+        "test/unit/link-index-cache.test.js",
+        "test/unit/datensatz-abfrage-aus-zustand.test.js"
+      ],
+      "sichtbarkeit": "sichtbar als Abschnitt «Abfragen» der Übersicht der Datenbank mit der Aktion «Öffnen» und als Ergebnis der geöffneten und der eingebetteten Abfrage-Datei",
+      "hinweis": "4T-002081 (Epic 3E-000259): die Abfrage-Datei mit der Marke db-query. DB-ABF-07 in datenbank-abfrage-datei.spec.js zeigt sie in der Übersicht, geöffnet, über «Öffnen» und eingebettet mit this. auf die Abfrage-Datei; db-katalog.test.js trägt Marke, Zählung der Abfrage-Blöcke und die beiden Fehlerlagen; renderer/datenbank-uebersicht-seite.test.js den Abschnitt «Abfragen» samt Fehlerlagen und Aus-Zustand; link-index-cache.test.js den Warmstart über die angehobene Cache-Version; datensatz-abfrage-aus-zustand.test.js die Abfrage-Datei im Aus-Zustand der Datenbank. Testart e2e, weil der Abschnitt der Übersicht ein neues sichtbares Element ist. Die Katalog-Zeile steht am Feld featureKeys der Erweiterung database und ist im Hilfe- und Handbuch-Task 4T-002083 entstanden."
+    },
+    {
       "key": "help.feature.databaseExtension",
       "id": "F-305",
       "testart": "unit",
@@ -3739,10 +3850,11 @@
         "test/unit/render/extensions-aus.test.js",
         "test/unit/datensatz-aus-zustand.test.js",
         "test/unit/db-sperren-belege-aus-zustand.test.js",
-        "test/unit/renderer/settings-extensions.test.js"
+        "test/unit/renderer/settings-extensions.test.js",
+        "test/unit/datensatz-abfrage-aus-zustand.test.js"
       ],
       "sichtbarkeit": ["test/e2e/funktionen/erweiterungen.spec.js"],
-      "hinweis": "4T-001760 und 4T-001761 (Epic 3E-000253): der Schalter «Datenbank» unter Einstellungen → Erweiterungen in der Kategorie Werkzeuge, seine Abhängigkeit von den Eigenschafts-Profilen und der vollständige Aus-Zustand. extensions-aus.test.js hält Registrierung, Kategorie, Abhängigkeit, die einundzwanzig zugeordneten Katalog-Zeilen, das gefilterte Kommando der Übersicht und den entfallenden Einstellungs-Abschnitt; extensions-aus.test.js zeigt zudem den Datensatz-Block als gewöhnlichen Code-Block in Lese-Ansicht, Änderungs-Modus und portablem Export; datensatz-aus-zustand.test.js den ruhenden Datensatz-Bestand des Index, den nicht mehr gebrochenen Datensatz-Verweis und die unveränderten Dateien über Ab- und Wiedereinschalten; settings-extensions.test.js die Zeile in der gerenderten Erweiterungs-Liste. 4T-001794 (Epic 3E-000255) ergänzt db-sperren-belege-aus-zustand.test.js um den Anteil der Sperren und Änderungsbelege: den mit dem Schalter entfallenden Zugang von der Datensatz-Zeile zu den Belegen, die beiden Stellen, die im Aus-Zustand bewusst WEITER greifen (Familien-Erkennung der Beleg-Datei und Ausschluss des Sperr-Ordners, beide ohne Bezug auf die Registry), und den Wächter über die schreibenden Wege von Sperre und Beleg, die nach Entscheidung E15.2 keinen eigenen Schalter tragen und heute keinen Aufrufer im Produkt-Code haben; der erste hinzukommende Aufrufer bringt seinen eigenen Aus-Zustands-Nachweis mit, statt dass die Begründung stillschweigend weitergilt. Testart unit, weil jede dieser Zusagen an einem Prädikat, an der Render-Kette oder am Index über einem Temp-Bereich hängt und keine gestartete Anwendung braucht. Sichtbarkeit über EW-01 bis EW-04, die den Einstellungs-Bereich «Erweiterungen» mit seiner aus der Registry gebauten Liste in der realen Anordnung rendern; die Zeile «Datenbank» entsteht dort aus demselben Eintrag. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001762 entstanden; sie beschreibt den Schalter selbst und steht deshalb in der Kern-Liste test/unit/funktions-seite-kern.js statt am Feld featureKeys der Erweiterung."
+      "hinweis": "4T-001760 und 4T-001761 (Epic 3E-000253): der Schalter «Datenbank» unter Einstellungen → Erweiterungen in der Kategorie Werkzeuge, seine Abhängigkeit von den Eigenschafts-Profilen und der vollständige Aus-Zustand. extensions-aus.test.js hält Registrierung, Kategorie, Abhängigkeit, die sechsundzwanzig zugeordneten Katalog-Zeilen, das gefilterte Kommando der Übersicht und den entfallenden Einstellungs-Abschnitt; extensions-aus.test.js zeigt zudem den Datensatz-Block als gewöhnlichen Code-Block in Lese-Ansicht, Änderungs-Modus und portablem Export; datensatz-aus-zustand.test.js den ruhenden Datensatz-Bestand des Index, den nicht mehr gebrochenen Datensatz-Verweis und die unveränderten Dateien über Ab- und Wiedereinschalten; settings-extensions.test.js die Zeile in der gerenderten Erweiterungs-Liste. 4T-001794 (Epic 3E-000255) ergänzt db-sperren-belege-aus-zustand.test.js um den Anteil der Sperren und Änderungsbelege: den mit dem Schalter entfallenden Zugang von der Datensatz-Zeile zu den Belegen, die beiden Stellen, die im Aus-Zustand bewusst WEITER greifen (Familien-Erkennung der Beleg-Datei und Ausschluss des Sperr-Ordners, beide ohne Bezug auf die Registry), und den Wächter über die schreibenden Wege von Sperre und Beleg, die nach Entscheidung E15.2 keinen eigenen Schalter tragen und heute keinen Aufrufer im Produkt-Code haben; der erste hinzukommende Aufrufer bringt seinen eigenen Aus-Zustands-Nachweis mit, statt dass die Begründung stillschweigend weitergilt. Testart unit, weil jede dieser Zusagen an einem Prädikat, an der Render-Kette oder am Index über einem Temp-Bereich hängt und keine gestartete Anwendung braucht. Sichtbarkeit über EW-01 bis EW-04, die den Einstellungs-Bereich «Erweiterungen» mit seiner aus der Registry gebauten Liste in der realen Anordnung rendern; die Zeile «Datenbank» entsteht dort aus demselben Eintrag. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001762 entstanden; sie beschreibt den Schalter selbst und steht deshalb in der Kern-Liste test/unit/funktions-seite-kern.js statt am Feld featureKeys der Erweiterung. 4T-002045 (Epic 3E-000258) ergänzt datensatz-abfrage-aus-zustand.test.js für die Datensatz-Abfrage, die im Aus-Zustand keine Tabelle liest und die leere Liste mit Hinweis zeigt. 4T-002083 (Epic 3E-000259) ordnet die Katalog-Zeile der Abfrage-Datei der Erweiterung zu."
     }
   ]
 }

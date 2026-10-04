@@ -18,6 +18,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 const PANE = '.pane-group[data-pane="0"]';
 const TABS = `${PANE} .tabbar .tab`;
@@ -61,9 +62,13 @@ async function bindeBereich(page, wurzel) {
 }
 
 async function oeffneDatei(app, datei) {
-  await app.evaluate(({ BrowserWindow }, p) => {
-    BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
-  }, datei);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, p) => {
+      BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
+    },
+    datei,
+  );
 }
 
 // 4T-001455: Einstellungs-Seite oeffnen (Muster VL-10 aus vorlagen.spec.js).
@@ -155,7 +160,7 @@ test.describe('BV-01: Verweis über die Bereichs-Grenze öffnen (4T-001452)', ()
 // 'warning' fuer den verschobenen Ordner, 'info' fuer das getrennte Laufwerk —,
 // weil der Typ von der Sprachfassung unabhaengig ist.
 async function stubMeldungen(app) {
-  await app.evaluate(({ dialog }) => {
+  await hauptSenden(app, ({ dialog }) => {
     globalThis.__bvMeldungen = [];
     dialog.showMessageBox = async (a, b) => {
       const opts = b || a || {};
@@ -182,9 +187,9 @@ test.describe('BV-02: Verknüpfungen beim Öffnen prüfen (4T-001453)', () => {
       await expect.poll(() => page.title()).toContain('(Bereich');
       // AK2: Die Warnung ist ergangen und nennt das betroffene Kürzel.
       await expect
-        .poll(() => app.evaluate(() => (globalThis.__bvMeldungen || []).length))
+        .poll(() => hauptLesen(app, () => (globalThis.__bvMeldungen || []).length))
         .toBeGreaterThan(0);
-      const meldungen = await app.evaluate(() => globalThis.__bvMeldungen);
+      const meldungen = await hauptLesen(app, () => globalThis.__bvMeldungen);
       expect(meldungen[0].type).toBe('warning');
       expect(meldungen[0].detail).toContain('@zt:');
     } finally {
@@ -208,9 +213,9 @@ test.describe('BV-02: Verknüpfungen beim Öffnen prüfen (4T-001453)', () => {
 
       await expect.poll(() => page.title()).toContain('(Bereich');
       await expect
-        .poll(() => app.evaluate(() => (globalThis.__bvMeldungen || []).length))
+        .poll(() => hauptLesen(app, () => (globalThis.__bvMeldungen || []).length))
         .toBeGreaterThan(0);
-      const meldungen = await app.evaluate(() => globalThis.__bvMeldungen);
+      const meldungen = await hauptLesen(app, () => globalThis.__bvMeldungen);
       // AK4: Hinweis statt Warnung — und keine Warnung daneben.
       expect(meldungen.map((m) => m.type)).toEqual(['info']);
 
@@ -228,7 +233,7 @@ test.describe('BV-02: Verknüpfungen beim Öffnen prüfen (4T-001453)', () => {
 // 4T-001454: In die Quelltext-Ansicht wechseln, damit die Linter-Marken im
 // Editor entstehen (Muster enterEditSource aus bearbeitung-und-ansicht.spec.js).
 async function zeigeQuelltext(app, page) {
-  await app.evaluate(({ BrowserWindow }) => {
+  await hauptSenden(app, ({ BrowserWindow }) => {
     BrowserWindow.getAllWindows()[0].webContents.send('menu:viewChange', 'source');
   });
   await expect(page.locator(`${PANE} .cm-content`).first()).toBeVisible();
@@ -519,7 +524,7 @@ test.describe('BV-06: Aus-Zustand der Erweiterung area-links (4T-001457)', () =>
       // AK3: Beim Öffnen wird nicht geprüft — es ergeht keine Meldung.
       await expect.poll(() => page.title()).toContain('(Bereich');
       await page.waitForTimeout(500);
-      expect(await app.evaluate(() => globalThis.__bvMeldungen || [])).toEqual([]);
+      expect(await hauptLesen(app, () => globalThis.__bvMeldungen || [])).toEqual([]);
 
       // Der Kanal antwortet, löst aber nicht auf.
       const aus = await page.evaluate(() => window.api.resolveAreaLink('zt', 'Zielnotiz.md'));

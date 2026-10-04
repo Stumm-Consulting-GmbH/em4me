@@ -55,6 +55,10 @@ import {
 } from './konsistenz-abschnitt.js';
 // 4T-001945 (Bauplan B3): Der Abschnitt «Verwendet von» mit eigenem Zustand.
 import { verwendungKnopf, verwirfVerwendung, zeichneVerwendung } from './verwendung-abschnitt.js';
+// 4T-002081 (Epic 3E-000259): Der Abschnitt «Abfragen» öffnet eine Abfrage-Datei
+// wie jedes Dokument und nennt ihren Ordner relativ zur Wurzel des Bereichs.
+import { openInPane } from '../tabs/tabs.js';
+import { relativeDirFromRoot } from '../path-format.js';
 
 export const DATENBANK_UEBERSICHT_PAGE_ID = 'database-overview';
 
@@ -286,6 +290,11 @@ function fehlerZeilen(daten) {
     for (const hinweis of maske.hints || [])
       zeilen.push({ quelle: dateiName(maske.path), text: hinweisText(hinweis) });
   }
+  // 4T-002081: Befunde an Abfrage-Dateien, ebenso benannt nach der Datei.
+  for (const abfrage of daten.abfragen || []) {
+    for (const hinweis of abfrage.hints || [])
+      zeilen.push({ quelle: dateiName(abfrage.path), text: hinweisText(hinweis) });
+  }
   return zeilen;
 }
 
@@ -357,6 +366,11 @@ function zeichneAbschnitte(wurzel, daten) {
   // 4T-001945 (Bauplan B3): die Verwendung einer Tabelle unter der Tabellen-Liste.
   zeichneVerwendung(wurzel);
 
+  // 4T-002081: die Abfrage-Dateien des Bereichs, vor den Fehlerlagen, unter
+  // denen ihre Befunde stehen.
+  const abfragen = abschnitt(wurzel, 'database.overview.section.queries');
+  zeichneAbfragen(abfragen, daten.abfragen || [], daten.wurzel || state.areaPath);
+
   const fehler = abschnitt(wurzel, 'database.overview.section.issues');
   zeichneFehler(fehler, fehlerZeilen(daten));
 
@@ -424,6 +438,47 @@ function neuZelle(eintrag) {
   // 4T-001945 (Bauplan B3): die Verwendung dieser Tabelle, auf Anforderung gelesen.
   zelle.appendChild(verwendungKnopf({ eintrag, zeichneNeu: zeichne }));
   return zelle;
+}
+
+// 4T-002081 (Epic 3E-000259, Festlegung 14): Die Abfrage-Dateien mit Name,
+// Ort und der Aktion «Öffnen». Der Ort ist der Ordner relativ zur Wurzel des
+// Bereichs, weil zwei Abfrage-Dateien desselben Namens in verschiedenen Ordnern
+// liegen dürfen; eine Datei in der Wurzel trägt deren Bezeichnung statt einer
+// leeren Zelle. Eine Datei mit Befund steht hier ebenso und trägt ihren Befund
+// unter den Fehlerlagen: Sie bleibt ein Dokument, das sich öffnen lässt.
+function zeichneAbfragen(block, liste, wurzelPfad) {
+  if (liste.length === 0) {
+    block.appendChild(el('p', 'db-overview-empty', t('database.overview.noQueries')));
+    return;
+  }
+  const tabelle = el('table', 'db-overview-table db-overview-queries');
+  const kopf = document.createElement('thead');
+  const kopfZeile = document.createElement('tr');
+  kopfZeile.appendChild(el('th', null, t('database.overview.col.query')));
+  kopfZeile.appendChild(el('th', null, t('database.overview.col.location')));
+  const aktionKopf = el('th', 'db-overview-table-action-head');
+  aktionKopf.setAttribute('aria-hidden', 'true');
+  kopfZeile.appendChild(aktionKopf);
+  kopf.appendChild(kopfZeile);
+  tabelle.appendChild(kopf);
+  const koerper = document.createElement('tbody');
+  for (const eintrag of liste) {
+    const zeile = document.createElement('tr');
+    zeile.appendChild(el('td', 'db-overview-query-name', eintrag.name));
+    const ordner = relativeDirFromRoot(wurzelPfad, eintrag.path);
+    const ort = ordner || t('database.overview.queryRoot');
+    zeile.appendChild(el('td', 'db-overview-query-location', ort));
+    const zelle = el('td', 'db-overview-table-action');
+    const knopf = el('button', 'db-overview-query-open', t('database.overview.queryOpen'));
+    knopf.type = 'button';
+    knopf.title = eintrag.path;
+    knopf.addEventListener('click', () => void openInPane(state.activePaneIndex, [eintrag.path]));
+    zelle.appendChild(knopf);
+    zeile.appendChild(zelle);
+    koerper.appendChild(zeile);
+  }
+  tabelle.appendChild(koerper);
+  block.appendChild(tabelle);
 }
 
 function zeichneFehler(block, zeilen) {

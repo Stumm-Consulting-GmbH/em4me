@@ -16,7 +16,7 @@
 // Abfragen, ohne dass irgendwo eine Meldung erschiene. Deshalb steht neben
 // jedem geschuetzten Fall ein Fall, der weiterhin erkannt werden muss.
 import { describe, it, expect } from 'vitest';
-import { istInAdresse } from '../../src/shared/tag-erkennung.js';
+import { ermittleFundstellen, istInAdresse } from '../../src/shared/tag-erkennung.js';
 import parse from '../../src/main/index/parse.js';
 
 const { parseContent } = parse;
@@ -107,5 +107,47 @@ describe('Index-Erkennung mit Adress-Schutz (4T-001529)', () => {
     ]);
     expect(tagsAus('Kein Tag im Link-Ziel: [Text](#anker)')).toEqual([]);
     expect(tagsAus('Kein Tag in Hex-Farbe: #ff0044')).toEqual([]);
+  });
+});
+
+// 4T-002013 (Epic 3E-000332): Schlagworte in Text-Zellen der Datentabelle. Der
+// Index führt sie (datentabelle-zell-scan.test.js); die Fundstellen der
+// Umbenennung müssen dieselben Stellen finden, sonst benennte sie etwas anderes
+// um, als das Panel anzeigt.
+describe('Fundstellen in Text-Zellen der Datentabelle (4T-002013)', () => {
+  const tabelle = (...zeilen) =>
+    ['Vorher #projekt', '', '```perspective-datatable', ...zeilen, '```', ''].join('\n');
+
+  it('findet ein Schlagwort in einer Text-Zelle mit dem Offset auf den Namen', () => {
+    const text = tabelle('columns: Name:text, Betrag:number', '| Stand #projekt/alpha | 3 |');
+    const { fliesstext } = ermittleFundstellen(text, 'projekt', 'arbeit');
+    expect(fliesstext.map((f) => [f.alt, f.neu, f.kind])).toEqual([
+      ['projekt', 'arbeit', false],
+      ['projekt/alpha', 'arbeit/alpha', true],
+    ]);
+    const zelle = fliesstext[1];
+    expect(text.slice(zelle.offset, zelle.offset + zelle.laenge)).toBe('projekt/alpha');
+    expect(zelle.kontext).toBe('| Stand #projekt/alpha | 3 |');
+  });
+
+  it('findet nichts in Zahl-, Datum- und berechneten Spalten und in Kopfzeilen', () => {
+    const text = tabelle(
+      'columns: Name "#projekt":text, Betrag:number, Datum:date, G:number = Betrag * 2',
+      '| x | #projekt | #projekt | #projekt |',
+    );
+    // Allein die Fundstelle im Fließtext davor.
+    expect(ermittleFundstellen(text, 'projekt', 'arbeit').fliesstext).toHaveLength(1);
+  });
+
+  it('findet nichts in Inline-Code einer Zelle und nichts in einer fremden Fence', () => {
+    const mitCode = tabelle('columns: Name:text', '| `#projekt` |');
+    expect(ermittleFundstellen(mitCode, 'projekt', 'arbeit').fliesstext).toHaveLength(1);
+    const fremd = ['```js', 'columns: Name:text', '| #projekt |', '```', ''].join('\n');
+    expect(ermittleFundstellen(fremd, 'projekt', 'arbeit').fliesstext).toEqual([]);
+  });
+
+  it('liest dieselben Stellen wie der Index', () => {
+    const text = tabelle('columns: A:text, B:number, C:text', '| #eins | #zwei | #drei |');
+    expect(tagsAus(text)).toEqual(['drei', 'eins', 'projekt']);
   });
 });

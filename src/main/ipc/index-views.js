@@ -23,6 +23,9 @@ const { isExtensionEnabled } = require('../../shared/extensions/extensions-core'
 // Einstellungs-Speicher nicht liest (Begruendung im Kopf des Moduls).
 const { setzeDatensatzErfassung } = require('../index/index-schalter.js');
 const { createTaskStatusTypeResolver } = require('../../shared/markdown/plugins.js');
+// 4T-002080 (Epic 3E-000259): die Aufgaben-Umgebung einer Abfrage, geteilt mit
+// den Kanaelen von Wertevorrat und Lookup-Feld (src/main/ipc/profiles.js).
+const { buildTaskEnv } = require('../index/task-env.js');
 const { computeLineReplacement } = require('../documents/task-line-edit.js');
 const { createAreaReplace } = require('../area/area-replace.js');
 // 4T-001531 (Epic 3E-000175): Die Fundstellen einer Tag-Umbenennung. Sie
@@ -53,6 +56,7 @@ const { istFeldKonflikt } = require('../documents/save-guard.js');
  * @param {Function} deps.resolveHistoryFor Aufloesung der Historisierungs-Schaltung.
  * @param {Function} deps.readPreviousTextFor Datei-Stand vor dem Ueberschreiben.
  * @param {Function} deps.recordMddOnSave Historien-Paket beim Speichern schreiben.
+ * @param {Function} deps.resolveQueryTemplatesFolder Vorlagen-Ordner, den eine Abfrage ausschließt.
  */
 function registerIndexViewsIpc(handle, deps) {
   const {
@@ -69,6 +73,7 @@ function registerIndexViewsIpc(handle, deps) {
     resolveHistoryFor,
     readPreviousTextFor,
     recordMddOnSave,
+    resolveQueryTemplatesFolder,
   } = deps;
   // 4T-000999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
   // Der Bezeichner bleibt `store`, damit die Handler-Rumpfe unveraendert sind.
@@ -145,30 +150,32 @@ function registerIndexViewsIpc(handle, deps) {
   // 4T-000354 (Epic 3E-000065): Frontmatter-Abfrage (perspective-query). Read-only-
   // View wie tags:request: stoesst den Index bei Bedarf an, wertet die Query im
   // Main gegen die Properties-Maps aus und liefert die Datei-Liste plus Status.
-  handle('frontmatterQuery:run', (event, params) => {
+  handle('frontmatterQuery:run', async (event, params) => {
     const filePath = params && params.filePath;
     const query = params && typeof params.query === 'string' ? params.query : '';
     const areaRoot = areaRootForEvent(event);
     backlinks.ensureIndexForDemand(filePath, `${event.sender.id}:demand`, areaRoot);
     // 4T-000502 (Epic 3E-000096): Task-Umgebung fuer den TASKS-Scope aus dem
-    // Store — Erweiterungs-Gate, Global Filter und Status-Typ-Aufloesung
-    // (pro Lauf frisch gelesen; Settings-Aenderungen wirken damit sofort).
-    const tasksConfig = store ? store.get('tasksConfig') : null;
-    const taskEnv = {
-      enabled: isExtensionEnabled('tasks', store ? store.get('extensions.disabled') : []),
-      globalFilter:
-        tasksConfig && typeof tasksConfig.globalFilter === 'string'
-          ? tasksConfig.globalFilter.trim()
-          : '',
-      // 4T-000505 (Epic 3E-000096): globale Abfrage (implizite FROM-/WHERE-
-      // Vorgabe aus den Einstellungen) fuer alle TASKS-Blöcke.
-      globalQuery:
-        tasksConfig && typeof tasksConfig.globalQuery === 'string'
-          ? tasksConfig.globalQuery.trim()
-          : '',
-      statusTypeOf: createTaskStatusTypeResolver(store ? store.get('taskStates') : null),
-    };
-    return backlinks.frontmatterQueryFor(filePath, query, areaRoot, taskEnv, params && params.lang);
+    // Store — Erweiterungs-Gate, Global Filter, globale Abfrage und
+    // Status-Typ-Aufloesung (pro Lauf frisch gelesen; Settings-Aenderungen
+    // wirken damit sofort). 4T-002080 (Epic 3E-000259): gebaut an einer
+    // Stelle fuer alle Abfrage-Kanaele, auch Wertevorrat und Lookup-Feld.
+    const taskEnv = buildTaskEnv({
+      disabledExtensions: store ? store.get('extensions.disabled') : [],
+      tasksConfig: store ? store.get('tasksConfig') : null,
+      taskStates: store ? store.get('taskStates') : null,
+    });
+    // 4T-002082 (Epic 3E-000259): der Vorlagen-Ordner des Fensters, je Lauf frisch
+    // aufgelöst wie taskEnv; was darin liegt, ist kein Treffer.
+    const templatesFolder = await resolveQueryTemplatesFolder(senderWindow(event));
+    return backlinks.frontmatterQueryFor(
+      filePath,
+      query,
+      areaRoot,
+      taskEnv,
+      params && params.lang,
+      templatesFolder,
+    );
   });
 
   // 4T-000504 (Epic 3E-000096): Rueckschreiben aus der Abfrage-Ansicht in NICHT

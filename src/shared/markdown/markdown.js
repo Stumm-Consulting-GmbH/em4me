@@ -62,6 +62,10 @@ const {
 const { renderPerspectiveTable } = require('./perspective-table.js');
 // 4T-000418 (Epic 3E-000079): Perspective Datatable — Grid-HTML für den Fence-Override.
 const { renderPerspectiveDatatableViewer } = require('./perspective-datatable.js');
+// 4T-002014 (Epic 3E-000332): enger Zell-Renderer der Text-Zellen (Verweise,
+// Schlagworte, Inline-Code). Die Pipeline baut ihn je Schalter-Stand und reicht
+// ihn der Datentabelle als Argument, weil deren Familie die Pipeline nicht lädt.
+const { baueZellRenderer } = require('./cell-links-html.js');
 // 4T-000512 (Epic 3E-000092): Ereignis-Fence — Tabellen-HTML für den Fence-Override.
 const { localTodayIso, renderPerspectiveEventsViewer } = require('./perspective-events.js');
 // 4T-001668 (Epic 3E-000287): Canvas-Fence — der Block, mit dem die Fläche
@@ -543,6 +547,14 @@ function buildPipelines(enabled) {
   // query ein Kern-Konstrukt ohne Erweiterungs-Toggle ist. perspective-table
   // bleibt an seine Erweiterung gebunden; ist sie deaktiviert, fällt der Block
   // auf den Default-Code-Block zurück.
+  //
+  // 4T-002014 (Epic 3E-000332): die Zell-Renderer der Datentabelle, einer für
+  // die Anzeige und einer für den portablen Export, je in der Form des
+  // Fließtexts: die Wiki-Links in der Anzeige mit dem Schalter der
+  // Bereichs-Verknüpfung, im Export ohne ihn (wie oben an beiden Instanzen).
+  const zellSchalter = { wikiLinks: enabled('wiki-links'), tags: enabled('tags') };
+  const zellHtml = baueZellRenderer({ ...zellSchalter, areaLinks: enabled('area-links') });
+  const zellHtmlPortabel = baueZellRenderer({ ...zellSchalter, portable: true });
   {
     const defaultFenceRenderer = md.renderer.rules.fence;
     md.renderer.rules.fence = function (tokens, idx, options, env, self) {
@@ -590,7 +602,7 @@ function buildPipelines(enabled) {
           `<div class="perspective-datatable" data-dt-index="${dtIndex}" ` +
           `data-dt-line-start="${lineStart}" data-dt-line-end="${lineEnd}" ` +
           `data-source-line="${lineStart}" data-dt-source="${escapeHtml(body)}">` +
-          `${renderPerspectiveDatatableViewer(body)}</div>\n`
+          `${renderPerspectiveDatatableViewer(body, { zellHtml })}</div>\n`
         );
       }
       // 4T-000512 (Epic 3E-000092): perspective-events rendert als Container
@@ -698,7 +710,7 @@ function buildPipelines(enabled) {
     };
   }
 
-  return { md, mdPortable };
+  return { md, mdPortable, zellHtmlPortabel };
 }
 
 // --- Instanz-Zustand und Erweiterungs-Konfiguration (4T-000292) ----------------------
@@ -719,6 +731,9 @@ let activeEffectiveDisabled = new Set();
 // externe Plugins sehen die fertig konfigurierte Pipeline.
 let externalMarkdownPlugins = [];
 let activeExternalKey = '';
+// 4T-002014: Zell-Renderer der Datentabelle für den portablen Export, gebaut
+// mit dem Schalter-Stand der Instanzen.
+let zellHtmlPortabel = null;
 
 // Baut beide Instanzen aus dem aktuellen Schalt-Zustand (interner
 // Disabled-Satz plus externe Plugins) neu auf. Fehler-Isolation: wirft ein
@@ -747,6 +762,7 @@ function rebuildPipelines() {
   }
   md = built.md;
   mdPortable = built.mdPortable;
+  zellHtmlPortabel = built.zellHtmlPortabel;
   // Exporte nachfuehren: perspective-table.js greift lazy per
   // require('./markdown.js').md zu und sieht damit die neue Instanz.
   module.exports.md = md;
@@ -1021,6 +1037,7 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', la
     fences = convertPortableFences(restAfterCalc, {
       tableEnabled,
       datatableEnabled: !activeEffectiveDisabled.has('perspective-datatable'),
+      zellHtml: zellHtmlPortabel,
       eventsEnabled: !activeEffectiveDisabled.has('events'),
       recordsEnabled: !activeEffectiveDisabled.has('database'),
       fields: (parseTableDefinition(fm.data) || {}).fields || [],

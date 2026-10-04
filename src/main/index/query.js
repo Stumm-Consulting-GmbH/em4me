@@ -5,6 +5,10 @@
 // Task-Abfrage, Task-Tags, Status-Ordnung, Bezugstag, Gruppen-Bildung) liegen
 // seit dem Datei-Größen-Schnitt in query-task-helfer.js; hier bleibt
 // frontmatterQueryFor als die eine Fachlichkeit der Datei.
+// 4T-002033 (Epic 3E-000260): Der Zeilen-Bau der Antwort (Ergebnismenge samt
+// Gruppen-Bildung) liegt in query-result-set.js; hier bleibt das Auswerten.
+// 4T-002039 (Epic 3E-000258): Die Datensatz-Ebene (RECORDS) wertet
+// query-records.js aus; hier steht nur ihr Aufruf.
 
 'use strict';
 
@@ -22,10 +26,14 @@ const { parseQuery } = require('../../shared/query/perspective-query.js');
 const {
   matchesQuery,
   applyResultPipeline,
-  evaluateExpression,
 } = require('../../shared/query/perspective-query-eval.js');
-const { validateQuery, queryUsesLinks } = require('../../shared/query/query-functions.js');
-const { formatValueSegments, formatExprSource } = require('../../shared/query/query-format.js');
+const {
+  validateQuery,
+  queryUsesLinks,
+  isGroupedTable,
+} = require('../../shared/query/query-functions.js');
+// 4T-002078 (Epic 3E-000259): Prüfung der Aggregat-Stellen einer gruppierten Tabelle.
+const { checkGroupedTable } = require('../../shared/query/query-aggregate.js');
 // 4T-000502 (Epic 3E-000096): Marker-Kern fuer den TASKS-Scope der Abfrage.
 // 4T-000505: Dringlichkeits-Score und Vergleichs-Helfer der Default-Sortierung.
 const {
@@ -46,8 +54,15 @@ const {
   localIsoDateOf,
   parseGlobalTaskQuery,
   taskLineTags,
-  buildTaskGroups,
 } = require('./query-task-helfer.js');
+// 4T-002033 (Epic 3E-000260): Zeilen-Bau der Antwort im eigenen Modul.
+const { stateResponse, resultResponse } = require('./query-result-set.js');
+// 4T-002039 (Epic 3E-000258): Auswertung der Datensatz-Ebene (RECORDS).
+const { recordsQueryFor } = require('./query-records.js');
+// 4T-002042 (Epic 3E-000258): Hüllen-Formen außerhalb der Datensatz-Ebene.
+const { hullScopeError } = require('../../shared/query/query-record-sources.js');
+// 4T-002082 (Epic 3E-000259): Vorlagen-Ausschluss je Kandidat.
+const { createTemplateExclusion } = require('./query-templates.js');
 
 // 4T-000354 (Epic 3E-000065): Perspective-Abfrage. Prueft jede Index-Datei ueber
 // ihren Kontext (Frontmatter-Properties plus implizite file.*-Felder) gegen
@@ -55,8 +70,8 @@ const {
 // passenden Dateien (logischer Name plus Pfad), alphabetisch nach Anzeigename
 // (SORT/LIMIT uebernimmt die Ergebnis-Pipeline in 4T-000403). Read-only-View wie
 // tagsFor: Status wird durchgereicht, kein eigener Scan. Ein Query-Syntax-
-// oder Funktions-Fehler wird als queryError-Info bei status 'ready' mit leerer
-// Liste durchgereicht; die nutzer-sichtbare Anzeige uebernimmt die View.
+// oder Funktions-Fehler wird als queryError im Zustand 'ready' mit leerer
+// Zeilen-Liste durchgereicht; die nutzer-sichtbare Anzeige uebernimmt die View.
 // 4T-000409 (Epic 3E-000077): im BLOCKS-Scope (Scope-Zusatz am Ausgabe-Typ) sind
 // die Treffer Bloecke statt Dateien — pro aktivem blockData-Eintrag ein
 // Kontext, Anzeige-Name 'Datei#^anker', anchor als Sprung-Information.
@@ -70,58 +85,69 @@ const {
 // Formatierer der Sprache folgen (dateformat, numberformat, currencyformat).
 // Sie kommt vom Renderer durch, weil nur er sie kennt (Muster von
 // convertMarkdownPortable); ohne Angabe gilt weiterhin die Laufzeit-Locale.
-function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
-  if (!filePath) return { status: 'unavailable' };
+// 4T-002033 (Epic 3E-000260): Jede Antwort trägt die Ergebnismenge im Feld
+// resultSet (Format-Vertrag src/shared/query/result-set.js); seit 4T-002035
+// ist sie das einzige Feld der Antwort, auch der Zustand steht allein in ihr.
+// 4T-002082 (Epic 3E-000259): templatesFolder ist der wirksame Vorlagen-Ordner
+// des Fensters (absolut, oder nichts im Aus-Zustand der Erweiterung «Vorlagen»
+// und ohne gewählten Ordner). Er kommt wie taskEnv vom Aufrufer, einmal je Lauf
+// aufgelöst; was darin liegt, ist auf keiner Ebene ein Kandidat, außer die
+// Quelle nennt den Ordner ausdrücklich (query-templates.js).
+function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale, templatesFolder) {
+  if (!filePath) return stateResponse('unavailable');
   const { root } = resolveRootInfo(filePath, areaRoot);
-  if (!root) return { status: 'unavailable' };
+  if (!root) return stateResponse('unavailable');
   const entry = indexes.get(root);
-  if (!entry) return { status: 'unavailable' };
+  if (!entry) return stateResponse('unavailable');
   if (entry.status === 'oversized') {
-    return {
-      status: 'oversized',
-      meta: { wurzel: root, fileCount: entry.fileCount, byteSize: entry.byteSize },
-    };
+    return stateResponse('oversized', {
+      area: { root, fileCount: entry.fileCount, byteSize: entry.byteSize },
+    });
   }
-  if (entry.status === 'indexing') return { status: 'indexing', meta: { wurzel: root } };
-  if (entry.status === 'error') return { status: 'error', meta: { wurzel: root } };
+  if (entry.status === 'indexing') return stateResponse('indexing', { area: { root } });
+  if (entry.status === 'error') return stateResponse('error', { area: { root } });
+  // Abfrage-Fehler: Zustand «bereit» mit leerer Zeilen-Liste.
+  const queryFailed = (queryError) => stateResponse('ready', { area: { root }, queryError });
 
   const parsedQuery = parseQuery(query);
-  if (!parsedQuery.ok) {
-    return { status: 'ready', meta: { wurzel: root }, queryError: parsedQuery.error, files: [] };
-  }
+  if (!parsedQuery.ok) return queryFailed(parsedQuery.error);
   // 4T-000402 (Epic 3E-000076): unbekannte Funktionen und falsche Stelligkeit
   // laufen ueber denselben queryError-Pfad wie Syntaxfehler.
   const fnError = validateQuery(parsedQuery.ast);
-  if (fnError) {
-    return { status: 'ready', meta: { wurzel: root }, queryError: fnError, files: [] };
-  }
-  // 4T-000503 (Epic 3E-000096): Aktivierungs-Grenze der Gruppierung und der
-  // Layout-Klauseln — generisch geparst, in dieser Stufe aber nur fuer
-  // LIST TASKS ausgewertet (Epic-Risiko-Punkt: die Klauseln sollen spaeter
-  // auch Datei- und Block-Scope tragen koennen, ohne sie dort zu aktivieren).
+  if (fnError) return queryFailed(fnError);
+  // 4T-002078 (Epic 3E-000259): An einer Aggregat-Stelle steht nur, was
+  // gruppiert oder aggregiert ist; auf allen vier Ebenen und vor jedem Lesen.
+  const groupedError = checkGroupedTable(parsedQuery.ast);
+  if (groupedError) return queryFailed(groupedError);
+  // 4T-002042: ancestors(…) und descendants(…) gibt es nur auf der Datensatz-Ebene.
+  const hullError = hullScopeError(parsedQuery.ast);
+  if (hullError) return queryFailed(hullError);
+  // 4T-000503 (Epic 3E-000096): Aktivierungs-Grenze der Layout-Klauseln,
+  // generisch geparst und nur für LIST TASKS ausgewertet.
+  // 4T-002076 (Epic 3E-000259): Die Grenze der Gruppierung (Abfrage-Fehler
+  // `groupByTasksOnly`) ist entfallen; GROUP BY wirkt auf allen vier Ebenen,
+  // die Gruppen bildet der Zeilen-Bau (query-result-set.js).
   const isTaskList = parsedQuery.ast.scope === 'tasks' && parsedQuery.ast.type === 'list';
-  if (parsedQuery.ast.groupBy.length > 0 && !isTaskList) {
-    return {
-      status: 'ready',
-      meta: { wurzel: root },
-      queryError: { code: 'groupByTasksOnly', message: 'GROUP BY nur bei LIST TASKS', pos: -1 },
-      files: [],
-    };
-  }
   if (
     (parsedQuery.ast.hide.length > 0 || parsedQuery.ast.show.length > 0 || parsedQuery.ast.short) &&
     !isTaskList
   ) {
-    return {
-      status: 'ready',
-      meta: { wurzel: root },
-      queryError: {
-        code: 'layoutTasksOnly',
-        message: 'HIDE/SHOW/SHORT nur bei LIST TASKS',
-        pos: -1,
-      },
-      files: [],
-    };
+    return queryFailed({
+      code: 'layoutTasksOnly',
+      message: 'HIDE/SHOW/SHORT nur bei LIST TASKS',
+      pos: -1,
+    });
+  }
+  // 4T-002039 (Epic 3E-000258): Datensatz-Ebene im eigenen Modul.
+  if (parsedQuery.ast.scope === 'records') {
+    return recordsQueryFor({
+      filePath,
+      ast: parsedQuery.ast,
+      root,
+      entry,
+      locale,
+      templatesFolder,
+    });
   }
   const now = Date.now();
   const resolveLinkTarget = createTargetResolver(entry);
@@ -131,12 +157,11 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
   // "Aufgaben" (Querschnitt C des Konzept-Workshops: im Aus-Zustand
   // entfaellt der Scope; klarer Hinweis statt stiller Leer-Liste).
   if (taskScope && !(taskEnv && taskEnv.enabled)) {
-    return {
-      status: 'ready',
-      meta: { wurzel: root },
-      queryError: { code: 'tasksScopeDisabled', message: 'TASKS-Scope deaktiviert', pos: -1 },
-      files: [],
-    };
+    return queryFailed({
+      code: 'tasksScopeDisabled',
+      message: 'TASKS-Scope deaktiviert',
+      pos: -1,
+    });
   }
   const globalFilter = (taskEnv && taskEnv.globalFilter) || '';
   const statusTypeOf =
@@ -151,12 +176,11 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
   if (taskScope && taskEnv && typeof taskEnv.globalQuery === 'string' && taskEnv.globalQuery) {
     const globalParsed = parseGlobalTaskQuery(taskEnv.globalQuery);
     if (globalParsed.error) {
-      return {
-        status: 'ready',
-        meta: { wurzel: root },
-        queryError: { code: 'globalQueryInvalid', message: 'Globale Abfrage ungültig', pos: -1 },
-        files: [],
-      };
+      return queryFailed({
+        code: 'globalQueryInvalid',
+        message: 'Globale Abfrage ungültig',
+        pos: -1,
+      });
     }
     evalAst = { ...parsedQuery.ast };
     if (globalParsed.where) {
@@ -170,6 +194,10 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
         : globalParsed.source;
     }
   }
+  // 4T-002082: Vorlagen-Ausschluss über die wirksame Quelle samt globaler
+  // Anteile, weil sie es ist, die den Treffer-Raum begrenzt.
+  const templates = createTemplateExclusion({ root, templatesFolder, source: evalAst.source });
+  const excludedAsTemplate = (absPath) => templates !== null && templates.excludes(absPath);
   // Link-Graph nur aufbauen, wenn die (effektive, inklusive globaler
   // Anteile) Abfrage ihn braucht (file.inlinks/file.outlinks oder
   // FROM-Link-Quelle).
@@ -201,6 +229,9 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
   if (taskScope) {
     const candidates = [];
     for (const absPath of sicht.files.keys()) {
+      // 4T-002082: Eine Aufgabe einer Vorlage ist kein Kandidat, auch nicht für
+      // die Blockierungs- und Duplikat-Flags der übrigen.
+      if (excludedAsTemplate(absPath)) continue;
       const taskLines = sicht.tasksPerFile.get(absPath);
       if (!taskLines || taskLines.length === 0) continue;
       for (const tl of taskLines) {
@@ -257,6 +288,8 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
     }
   }
   for (const absPath of taskScope ? [] : sicht.files.keys()) {
+    // 4T-002082: Datei und Block einer Vorlage, vor Quelle und Bedingung.
+    if (excludedAsTemplate(absPath)) continue;
     if (blockScope) {
       // 4T-000409 (Epic 3E-000077): BLOCKS-Scope — pro Block-Daten-Eintrag ein
       // Kontext aus Datei-Kontext plus Block ({ anchor, values, updatedMs },
@@ -316,95 +349,15 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale) {
         (blockScope ? a.block.anchor.localeCompare(b.block.anchor) : 0),
     );
   }
-  const finalRows = applyResultPipeline(rows, evalAst);
-  const ast = parsedQuery.ast;
-  // 4T-000409: Treffer-Identitaet der View. Im Block-Scope ist der Anzeige-Name
-  // 'Datei#^anker' und `anchor` traegt die Sprung-Information fuer den Klick
-  // (bestehende Wiki-Link-Sprung-Mechanik); path bleibt der absolute Index-Pfad.
-  // 4T-000502: im Task-Scope tragen Treffer Zeilennummer (Zeilen-Sprung) und
-  // Roh-Zeile (die View parst sie mit dem Marker-Kern und baut die Task-Optik).
-  const toHit = (ctx) => {
-    if (blockScope) {
-      return {
-        name: `${ctx.file.name}#^${ctx.block.anchor}`,
-        path: ctx.file.absPath,
-        anchor: ctx.block.anchor,
-      };
-    }
-    if (taskScope) {
-      return {
-        name: ctx.file.name,
-        path: ctx.file.absPath,
-        line: ctx.task.line,
-        taskText: ctx.task.raw,
-        // 4T-000505: einblendbarer Score (SHOW urgency), auf zwei
-        // Nachkommastellen gerundet (Anzeige-Form der Referenz-Formel).
-        urgency: Math.round(ctx.task.urgency * 100) / 100,
-        // 4T-000508: dezente Kennzeichnungen der Treffer-Darstellung.
-        blocked: ctx.task.blocked,
-        duplicateId: ctx.task.duplicateId,
-      };
-    }
-    return { name: ctx.file.name, path: ctx.file.absPath };
-  };
-  const result = {
-    status: 'ready',
-    meta: { wurzel: root, fileCount: entry.fileCount },
-    // 4T-000404 (Epic 3E-000076): Ausgabe-Typ fuer die View ('list' | 'table').
-    queryType: ast.type,
-    // 4T-000502 (Epic 3E-000096): Auswertungs-Ebene fuer die View
-    // ('files' | 'blocks' | 'tasks') — steuert die Task-Listen-Optik.
-    queryScope: ast.scope,
-    files: finalRows.map(toHit),
-  };
-  // 4T-000405 (Epic 3E-000076): COLUMNS ist reines Listen-Layout; bei TABLE wird
-  // es ignoriert und als lokalisierter Hinweis am Fence gemeldet (kein Fehler).
-  if (ast.layoutColumns) {
-    if (ast.type === 'list') result.layoutColumns = ast.layoutColumns;
-    else result.hint = 'columnsIgnored';
-  }
-  if (ast.type === 'table') {
-    // Tabellen-Daten: Kopfzeile aus AS-Alias bzw. Ausdrucks-Quelltext, Zellen
-    // als Anzeige-Segmente (Text plus klickbare Link-Verweise). Die files-
-    // Liste bleibt parallel gefuellt (gemeinsamer Leer-/Alt-Pfad der View).
-    result.table = {
-      withoutId: !!ast.withoutId,
-      headers: ast.fields.map((f) => f.alias || formatExprSource(f.expr)),
-      rows: finalRows.map((ctx) => ({
-        ...toHit(ctx),
-        cells: ast.fields.map((f) => formatValueSegments(evaluateExpression(f.expr, ctx))),
-      })),
-    };
-  } else if (ast.fields.length > 0) {
-    // LIST-Zusatzfeld: ausgewerteter Ausdruck als Segmente je Treffer.
-    result.files = finalRows.map((ctx) => ({
-      ...toHit(ctx),
-      extra: formatValueSegments(evaluateExpression(ast.fields[0].expr, ctx)),
-    }));
-  }
-  // 4T-000503 (Epic 3E-000096): Task-Layout und Gruppierung (nur LIST TASKS,
-  // Aktivierungs-Grenze oben). Die Gruppierung laeuft NACH der Ergebnis-
-  // Pipeline: SORT bestimmt die Reihenfolge innerhalb der Gruppen, LIMIT
-  // schneidet vor der Gruppen-Bildung; die Gruppen-Reihenfolge folgt der
-  // Werte-Ordnung der Gruppen-Keys (orderForSort), Treffer ohne Wert bilden
-  // die letzte Gruppe (label null, lokalisiert von der View). Das LIST-
-  // Zusatzfeld geht ueber hitFor in die Gruppen-Eintraege mit ein.
-  if (taskScope && ast.type === 'list') {
-    result.totalCount = finalRows.length;
-    result.taskLayout = { hide: ast.hide, show: ast.show, short: ast.short };
-    if (ast.groupBy.length > 0) {
-      const hitFor = (ctx) => {
-        const hit = toHit(ctx);
-        if (ast.fields.length > 0) {
-          hit.extra = formatValueSegments(evaluateExpression(ast.fields[0].expr, ctx));
-        }
-        return hit;
-      };
-      result.groups = buildTaskGroups(finalRows, ast.groupBy, 0, hitFor);
-      result.files = [];
-    }
-  }
-  return result;
+  // 4T-002078 (Epic 3E-000259): Bei der gruppierten Tabelle laufen SORT und
+  // LIMIT über die Gruppen im Zeilen-Bau, nicht hier über die Zeilen.
+  const finalRows = isGroupedTable(evalAst) ? rows : applyResultPipeline(rows, evalAst);
+  // 4T-002033 (Epic 3E-000260): Ergebnismenge aus dem AST des Blocks (ohne globale Anteile, wie bisher). Die Gruppierung
+  // läuft dort NACH der Ergebnis-Pipeline: SORT bestimmt die Reihenfolge
+  // innerhalb der Gruppen, LIMIT schneidet vor der Gruppen-Bildung. Seit
+  // 4T-002076 gilt das für jede Ebene bei der Liste, seit 4T-002078 nicht mehr
+  // für die Tabelle.
+  return resultResponse(finalRows, parsedQuery.ast, { root, fileCount: entry.fileCount });
 }
 
 module.exports = {

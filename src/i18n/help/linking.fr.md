@@ -154,7 +154,7 @@ Après `#`, les tags les plus souvent attribués dans l’espace figurent en tê
 
 La validation d'une suggestion de fichier ou d'alias écrit aussi les crochets fermants et place le curseur derrière. S'ils sont déjà présents, aucune seconde paire n'apparaît.
 
-Dans une cellule de tableau en mode direct, la même liste apparaît à la cellule, avec les mêmes entrées et la même manipulation ; détails sous [Vues et affichage](views-display.md). Elle n’y propose pas de marqueurs de tâche, car une ligne de tableau n’est pas une ligne de tâche ; il en va de même dans la vue code source.
+Dans une cellule de tableau en mode direct, la même liste apparaît à la cellule, avec les mêmes entrées et la même manipulation ; détails sous [Vues et affichage](views-display.md). Elle apparaît de même dans une cellule texte de la [Perspective Datatable](datatable.md), en mode direct et dans la vue partagée. Elle n’y propose pas de marqueurs de tâche, car une ligne de tableau n’est pas une ligne de tâche ; il en va de même dans la vue code source.
 
 ## Barres latérales du réseau
 

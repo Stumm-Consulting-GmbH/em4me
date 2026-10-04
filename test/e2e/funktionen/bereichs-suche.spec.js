@@ -15,7 +15,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, oeffneDokumentImFenster } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { pressNachfassend } = require('../helpers/eingabe');
 
@@ -55,6 +55,12 @@ function removeDir(dir) {
   }
 }
 
+// 4T-001689: Bereich und Dokument im selben Fenster entstehen in fester
+// Reihenfolge — ohne Datei-Argument starten, binden, dann das Dokument mit
+// oeffneDokumentImFenster öffnen. Mit Datei-Argument zu starten und danach zu
+// binden ist ein Rennen: Ist das Dokument schon gemeldet, öffnet der Bereich
+// ein eigenes Fenster, und die Zusicherung unten wird rot (gemessen unter
+// Rechenlast; test/README.md, Regel 32).
 async function bindArea(page, dir) {
   const res = await page.evaluate((p) => window.api.openAreaPath(p), dir);
   expect(res.boundExisting).toBe(true);
@@ -91,9 +97,10 @@ test.describe('BS-01: Trefferraum ueber alle Bereichs-Dateien', () => {
   test('findet Fundstellen in Dateien, die gar nicht geoeffnet sind', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await sucheOeffnen(page, BEGRIFF);
 
       // Die Suchleiste weist den Bereich als Suchraum aus.
@@ -131,9 +138,10 @@ test.describe('BS-02: offene Datei zuerst, mit ihrem Editor-Stand', () => {
   test('stellt die offene Datei voran und findet Ungespeichertes', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await sucheOeffnen(page, BEGRIFF);
       await warteAufTreffer(page, 3);
       // Die offene Datei steht an erster Stelle der Liste.
@@ -169,9 +177,10 @@ test.describe('BS-03: Markierung im Text ohne Klick', () => {
   test('markiert die Treffer der offenen Datei sofort', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'zweite.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'zweite.md'));
       await sucheOeffnen(page, BEGRIFF);
       // Ohne einen einzigen Klick in die Liste stehen die Marken im Text.
       await expect(page.locator(`${PANE} .markdown-body mark.mdv-match`)).toHaveCount(2);
@@ -187,9 +196,10 @@ test.describe('BS-04: Sprung in eine andere Datei', () => {
   test('oeffnet die Zieldatei und hebt die Fundstelle hervor', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await sucheOeffnen(page, BEGRIFF);
       await warteAufTreffer(page, 3);
 
@@ -218,9 +228,10 @@ test.describe('BS-05: Durchlauf ueber die Datei-Grenze', () => {
   test('F3 laeuft aus der offenen Datei in die naechste weiter', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await sucheOeffnen(page, BEGRIFF);
       await warteAufTreffer(page, 3);
       // start.md steht als offene Datei vorn und traegt genau einen Treffer;
@@ -240,9 +251,10 @@ test.describe('BS-05: Durchlauf ueber die Datei-Grenze', () => {
   test('der Zaehler laeuft ueber alle Treffer des Bereichs, nicht je Datei', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await sucheOeffnen(page, BEGRIFF);
       await warteAufTreffer(page, 3);
 
@@ -275,9 +287,10 @@ test.describe('BS-07: Tastatur-Führung der Trefferliste', () => {
   test('bewegt sich zweimal und springt dann in die Zieldatei', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await sucheOeffnen(page, BEGRIFF);
       await warteAufTreffer(page, 3);
 

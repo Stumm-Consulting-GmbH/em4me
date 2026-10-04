@@ -8,7 +8,9 @@
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { _electron: electron, test } = require('@playwright/test');
+const { _electron: electron, test, expect } = require('@playwright/test');
+const { SEL } = require('./selectors');
+const { hauptSenden, hauptLesen } = require('./haupt-zugriff');
 const { PANEL_ACCESS, DEFAULT_PANEL_TOGGLE_ORDER } = require('../../../src/shared/panel-access.js');
 // 4T-001101: Zustands-Anteil der Profil-Vorbelegung aus der einen Quelle.
 const { schreibeProfilVorbelegung } = require('../../../scripts/profil-vorbelegung.js');
@@ -45,6 +47,7 @@ const APP_ROOT = path.resolve(__dirname, '..', '..', '..');
 // E2E-Suite startet (nachgesehen an `test/e2e/**`, nicht angenommen); ein Fall,
 // der am Tor vorbeikäme, existiert nicht.
 const { fordereFrischesBuendel } = require('../../../scripts/bundle-frische.js');
+const { startParameter, programmdateiAusUmgebung } = require('./start-parameter');
 
 let buendelGeprueft = false;
 function pruefeBuendelEinmal() {
@@ -97,6 +100,122 @@ async function waitForRendererInit(page) {
   } catch {
     // Marker nicht erreicht — bewusst kein harter Fehlschlag, siehe oben.
   }
+}
+
+/**
+ * 4T-001948: Wartet, bis die Renderer-init() GENAU DIESER Seite durch ist.
+ *
+ * Gebraucht von Fällen, die einem weiteren Fenster (nicht dem ersten aus
+ * launchApp) einen Befehl des Hauptprozesses schicken, etwa `menu:newWindow`
+ * über `webContents.send`. Die Empfänger dieser Menü-Kanäle meldet erst
+ * bindUi() an (app-init.js, bindMenuEvents), und ipcRenderer.on puffert nicht:
+ * Ein Befehl, der vorher ankommt, geht ohne Spur verloren. Der Titel eines
+ * Fensters steht dagegen früher und ist deshalb nur ein Vorbote. Gemessen an
+ * LA-06 unter Rechenlast: In 2 von 20 Durchgängen fehlte das Zeichen beim
+ * Senden, und das zweite Fenster kam auch in 120 s nicht.
+ *
+ * Gewartet wird auf `body[data-renderer-ready]`, das die Anwendung nach
+ * bindUi() und initDone setzt (app-init.js). Anders als waitForRendererInit
+ * bewusst HART: Der nächste Schritt braucht genau diesen Zustand, und ein
+ * stilles Weiterlaufen ergäbe wieder das ausbleibende Fenster statt einer
+ * Meldung am Ort der Ursache.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {number} [timeout] Wartezeit in Millisekunden.
+ */
+async function warteAufRendererBereit(page, timeout = 15000) {
+  await page.waitForSelector('body[data-renderer-ready]', { state: 'attached', timeout });
+}
+
+/**
+ * 4T-001578, geteilt seit 4T-001689: Wartet, bis der Eintrag des beim Start
+ * übergebenen Dokuments im Dokument-Streifen der ersten Spalte steht und der
+ * aktive ist.
+ *
+ * **Gemessene Ursache.** `launchApp` wartet ein Datei-Argument nicht ab. Der
+ * Hauptprozess schickt es erst nach dem Laden des Fensters
+ * (src/main/app/startup.js, `did-finish-load`), die Oberfläche öffnet es nach
+ * ihrer Initialisierung und **aktiviert** seinen Eintrag
+ * (app-broadcasts.js, `onOpenExternal`; tabs.js, `openInPane`). Was ein Fall in
+ * dieser Lücke selbst öffnet, gerät danach in den Hintergrund: Seine Elemente
+ * sind vorhanden, aber nicht sichtbar. Gemessen an `VL-09` (Einstellungs-Seite,
+ * 2026-09-14) und `BS-07` (Statistik-Seite, 2026-10-01: in einem von acht
+ * Durchgängen stand die Statistik-Seite 81 ms vor dem Dokument im Streifen,
+ * danach war das Dokument aktiv).
+ *
+ * **Mehrere Datei-Argumente** öffnet die Oberfläche nacheinander, am Ende ist
+ * das **letzte** aktiv; genannt wird deshalb das letzte. Erlaubt ist ein Name
+ * oder ein Pfad; verglichen wird der Name ohne Markdown-Endung, weil der
+ * Eintrag sich ohne sie beschriftet (4T-001724).
+ *
+ * **Warum `launchApp` nicht selbst wartet.** Ein Teil der Fälle braucht genau
+ * die Lücke: Wer nach dem Start einen Bereich an dasselbe Fenster bindet, muss
+ * das tun, bevor das Dokument als geöffnet gemeldet ist, sonst öffnet der
+ * Bereich in einem neuen Fenster (src/main/area/area-apps.js, `appHasOpenFiles`).
+ * Dazu kommen Starts mit wiederhergestellter Sitzung und Fälle, die ausdrücklich
+ * kein Dokument erwarten. Ein pauschales Warten bräche sie; deshalb ruft der
+ * Fall diesen Helfer an der Stelle auf, an der er die Vorbedingung braucht —
+ * vor dem ersten Schritt, der einen weiteren Eintrag öffnet oder aktiviert
+ * (test/README.md, Stabilitätsregel 32). Wer Bereich UND Dokument im selben
+ * Fenster braucht, startet ohne Datei-Argument und nimmt
+ * `oeffneDokumentImFenster` (unten).
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {string} dateiname Name oder Pfad des (letzten) Datei-Arguments.
+ */
+async function warteAufDateiArgument(page, dateiname) {
+  await expect(page.locator(SEL.activeTab0)).toContainText(
+    path.basename(dateiname).replace(/\.(md|markdown|mdown|mkd)$/i, ''),
+  );
+}
+
+/**
+ * 4T-001689: Öffnet Dokumente in GENAU DEM Fenster der Seite, auf demselben
+ * Weg wie ein Datei-Argument beim Start, und wartet auf den aktiven Eintrag
+ * des letzten.
+ *
+ * **Wofür.** Für Fälle, die einen Bereich an das Startfenster binden und
+ * danach ein Dokument darin brauchen. Mit Datei-Argument zu starten und dann zu
+ * binden ist ein Rennen: Ist das Dokument schon als geöffnet gemeldet, bindet
+ * der Bereich nicht mehr an dieses Fenster, sondern öffnet ein eigenes
+ * (src/main/area/area-apps.js, `appHasOpenFiles`; `openAreaPath` meldet dann
+ * `createdNew` statt `boundExisting`). Gemessen unter Rechenlast an `BS-07` der
+ * Bereichs-Statistik in 5 von 6 Durchgängen. Der Fall stellt deshalb den
+ * Zustand in fester Reihenfolge her — ohne Datei-Argument starten, binden,
+ * dann diesen Helfer —, statt das Rennen gewinnen zu müssen.
+ *
+ * **Derselbe Weg wie beim Start.** Der Hauptprozess schickt Start-Dateien als
+ * Nachricht `file:openExternal` mit der Liste der Pfade
+ * (src/main/app/startup.js); die Oberfläche öffnet sie in `onOpenExternal`
+ * (src/renderer/modules/app/app-broadcasts.js) über `openInPane`. Genau diese
+ * Nachricht geht hier an das Fenster der Seite, benannt über
+ * `app.browserWindow(page)` statt über eine Fenster-Position.
+ *
+ * **Genau einmal, nach der Bereitschaft.** Die Nachricht ist nicht idempotent:
+ * Zwei überlappende Sendungen legen zwei Einträge derselben Datei an
+ * (Messung in rueckschreib-beobachtung.spec.js). Gesendet wird deshalb einmal,
+ * nach `warteAufRendererBereit`, über `hauptSenden` (Befehl ohne Rückgabe,
+ * Stabilitätsregel 31). Die Bereichs-Bindung lädt das Fenster nicht neu
+ * (Zweig `boundExisting` in area-apps.js), die Bereitschaft bleibt also stehen.
+ *
+ * @param {import('@playwright/test').ElectronApplication} app
+ * @param {import('@playwright/test').Page} page
+ * @param {string|string[]} pfade Ein Pfad oder mehrere, in Öffnungs-Reihenfolge.
+ */
+async function oeffneDokumentImFenster(app, page, pfade) {
+  const liste = Array.isArray(pfade) ? pfade : [pfade];
+  await warteAufRendererBereit(page);
+  const fenster = await app.browserWindow(page);
+  const fensterId = await hauptLesen(fenster, (w) => w.id);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, a) => {
+      const win = BrowserWindow.fromId(a.fensterId);
+      if (win && !win.isDestroyed()) win.webContents.send('file:openExternal', a.liste);
+    },
+    { fensterId, liste },
+  );
+  await warteAufDateiArgument(page, liste[liste.length - 1]);
 }
 
 // 4T-000751 (Epic 3E-000146): Vorbelegung des frischen Profils. Die Anwendung
@@ -229,7 +348,8 @@ const PRUEF_HOEHE = 800;
 
 async function setzePruefBreite(app) {
   try {
-    await app.evaluate(
+    await hauptSenden(
+      app,
       ({ BrowserWindow }, masse) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (win && !win.isDestroyed()) win.setContentSize(masse.breite, masse.hoehe);
@@ -264,21 +384,24 @@ async function setzePruefBreite(app) {
  */
 async function launchApp(opts = {}) {
   // 4T-001481: Frische-Tor vor jedem Start — Begründung am Helfer oben.
-  pruefeBuendelEinmal();
+  // 4T-002068: Es entfällt allein beim Start einer gebauten Programmdatei,
+  // die ihr eigenes gepacktes Bündel trägt (start-parameter.js).
+  if (!programmdateiAusUmgebung(process.env)) pruefeBuendelEinmal();
   const userData = opts.userData || fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-e2e-'));
   // 4T-000644: Tour-Merker als Unterlage jeder Vorbelegung (Begruendung an
   // DEFAULT_TEST_SETTINGS); eine eigene Angabe des Falls liegt darueber und
   // gewinnt. Die Unterlage legt seit 4T-001101 die eine Quelle bei.
   const vorbelegung = 'settings' in opts ? opts.settings : DEFAULT_TEST_SETTINGS;
   seedSettings(userData, vorbelegung);
-  const app = await electron.launch({
-    args: ['.', ...(opts.args || [])],
-    cwd: APP_ROOT,
-    env: {
-      ...process.env,
-      SCG_TEST_USER_DATA: userData,
-    },
+  // 4T-002068: Quellstand (`electron .`) oder, mit EM4ME_PROGRAMMDATEI, eine
+  // gebaute Programmdatei; das eigene Profil bleibt in beiden Fällen.
+  const { launch } = startParameter({
+    env: process.env,
+    appRoot: APP_ROOT,
+    userData,
+    zusatzArgumente: opts.args || [],
   });
+  const app = await electron.launch(launch);
   beobachteKonsole(app);
   const page = await app.firstWindow();
   // firstWindow() resolved, bevor das Renderer-Bundle geladen ist. Die
@@ -377,11 +500,9 @@ async function closeApp(app, userData, opts = {}) {
   if (app) {
     try {
       if (opts.force) {
-        await app
-          .evaluate(({ app: electronApp }) => {
-            electronApp.exit(0);
-          })
-          .catch(() => {});
+        await hauptSenden(app, ({ app: electronApp }) => {
+          electronApp.exit(0);
+        }).catch(() => {});
       }
       await app.close();
     } catch {
@@ -399,4 +520,12 @@ async function closeApp(app, userData, opts = {}) {
   pruefeKonsolenFunde(app);
 }
 
-module.exports = { launchApp, closeApp, schliesseTour, APP_ROOT };
+module.exports = {
+  launchApp,
+  closeApp,
+  schliesseTour,
+  warteAufRendererBereit,
+  warteAufDateiArgument,
+  oeffneDokumentImFenster,
+  APP_ROOT,
+};

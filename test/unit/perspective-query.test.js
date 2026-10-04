@@ -7,6 +7,8 @@
 // umbenannt (frontmatter-query.js -> perspective-query.js).
 import { describe, it, expect } from 'vitest';
 import { parseQuery, evaluateQuery, tokenize } from '../../src/shared/query/perspective-query.js';
+// 4T-002079: Funktions-Prüfung und Link-Bedarf lesen HAVING mit.
+import { validateQuery, queryUsesLinks } from '../../src/shared/query/query-functions.js';
 
 // Parst und evaluiert; wirft bei Parse-Fehler (die Fehler-Fälle testet der
 // Parser-Block separat).
@@ -393,6 +395,165 @@ describe('perspective-query — GROUP BY und Layout-Klauseln (4T-000503, Epic 3E
       'due, scheduled, start, created, done, cancelled, priority, recurrence, ' +
       'id, dependson, tags, backlink, count, urgency, edit, postpone';
     expect(parseOk(`LIST TASKS HIDE ${all}`).hide).toHaveLength(16);
+  });
+});
+
+// 4T-002043 (Epic 3E-000258): die Angabe der Darstellungsform DISPLAY <Form>
+// [BY <Feld>] im eigenen Modul query-display.js. Ob die Form bekannt ist und
+// passt, entscheidet erst die Anzeige; der Parser liest nur die Schreibweise.
+describe('perspective-query — Angabe DISPLAY (4T-002043)', () => {
+  it('DISPLAY tree BY parent: Form und Feld klein, BY in jeder Schreibung', () => {
+    expect(parseOk('LIST RECORDS FROM "T" DISPLAY tree BY parent').display).toEqual({
+      form: 'tree',
+      by: 'parent',
+    });
+    expect(parseOk('LIST RECORDS FROM "T" display Tree by Parent').display).toEqual({
+      form: 'tree',
+      by: 'parent',
+    });
+    // Ein Feld mit Leerzeichen steht als Zeichenkette, wie bei ancestors(…).
+    expect(parseOk('LIST DISPLAY tree BY " Eltern Feld "').display.by).toBe('eltern feld');
+  });
+
+  it('DISPLAY bar ohne BY: by ist null; eine unbekannte Form ist kein Syntax-Fehler', () => {
+    expect(parseOk('TABLE a DISPLAY bar').display).toEqual({ form: 'bar', by: null });
+    expect(parseOk('TABLE a DISPLAY Tippfehler').display).toEqual({ form: 'tippfehler', by: null });
+    // Auch als einzige Klausel: der Ausgabe-Typ bleibt LIST.
+    const allein = parseOk('DISPLAY bar');
+    expect(allein.type).toBe('list');
+    expect(allein.display.form).toBe('bar');
+  });
+
+  it('Angabe hinter jeder Klausel-Folge, die übrigen Klauseln bleiben unberührt', () => {
+    const folgen = [
+      'LIST',
+      'LIST status',
+      'TABLE WITHOUT ID a AS "A", b',
+      'LIST BLOCKS FROM #projekt WHERE a = "1"',
+      'TABLE TASKS due SORT due DESC LIMIT 5',
+      'LIST TASKS GROUP BY heading HIDE due SHOW urgency SHORT',
+      'LIST WHERE a = "1" COLUMNS 3',
+      'LIST RECORDS FROM descendants([[T#^r-00001]], parent) SORT name',
+    ];
+    for (const folge of folgen) {
+      const ohne = parseOk(folge);
+      const mit = parseOk(`${folge} DISPLAY tree BY parent`);
+      expect(mit.display, folge).toEqual({ form: 'tree', by: 'parent' });
+      const { display, ...rest } = mit;
+      expect(display).toBeTruthy();
+      expect(rest, folge).toEqual(ohne);
+    }
+  });
+
+  it('ohne Angabe fehlt das Feld ganz, auch beim Alt-Body', () => {
+    for (const q of ['LIST', 'TABLE a WHERE b = "1"', 'bereich = "Privat"', 'display = "x"']) {
+      expect(Object.hasOwn(parseOk(q), 'display'), q).toBe(false);
+    }
+  });
+
+  it('unvollständige Angabe ist ein Syntax-Fehler mit eigenem Code', () => {
+    expect(parseQuery('LIST DISPLAY').error.code).toBe('displayForm');
+    expect(parseQuery('LIST DISPLAY "tree"').error.code).toBe('displayForm');
+    expect(parseQuery('LIST DISPLAY 3').error.code).toBe('displayForm');
+    // Ein folgendes Klausel-Wort und BY sind kein Name einer Form.
+    expect(parseQuery('LIST DISPLAY LIMIT 5').error.code).toBe('displayForm');
+    expect(parseQuery('LIST DISPLAY BY parent').error.code).toBe('displayForm');
+    expect(parseQuery('LIST DISPLAY tree BY').error.code).toBe('displayBy');
+    expect(parseQuery('LIST DISPLAY tree BY SORT a').error.code).toBe('displayBy');
+    expect(parseQuery('LIST DISPLAY tree BY ""').error.code).toBe('displayBy');
+    // Doppelt wie jede Klausel; Text danach wie bisher.
+    const doppelt = parseQuery('LIST DISPLAY tree DISPLAY bar').error;
+    expect(doppelt.code).toBe('duplicateClause');
+    expect(doppelt.clause).toBe('DISPLAY');
+    expect(parseQuery('LIST DISPLAY tree BY parent extra').error.code).toBe('unknownClause');
+  });
+});
+
+// 4T-002079 (Epic 3E-000259): die Bedingung über die Gruppe HAVING <Ausdruck> im
+// eigenen Modul query-having.js. Der Parser liest sie an jeder Stelle der
+// Klausel-Folge; dass sie GROUP BY braucht, meldet die Funktions-Prüfung.
+describe('perspective-query — Klausel HAVING (4T-002079)', () => {
+  const HAVING = {
+    type: 'cmp',
+    op: 'gt',
+    left: { type: 'call', name: 'count', args: [], pos: -1 },
+    right: { type: 'num', value: 1 },
+  };
+  // Die Position eines Aufrufs hängt an der Stelle im Text; verglichen wird ohne sie.
+  const ohnePos = (node) => JSON.parse(JSON.stringify(node, (k, v) => (k === 'pos' ? -1 : v)));
+
+  it('HAVING liest einen Wahrheits-Ausdruck wie WHERE, in jeder Schreibung', () => {
+    expect(ohnePos(parseOk('TABLE count() GROUP BY a HAVING count() > 1').having)).toEqual(HAVING);
+    expect(ohnePos(parseOk('LIST GROUP BY a having count() > 1').having)).toEqual(HAVING);
+    const verknuepft = parseOk(
+      'LIST GROUP BY a HAVING count() > 1 AND (a = "x" OR NOT sum(p) < 3)',
+    );
+    expect(verknuepft.having.type).toBe('and');
+    // Ein Funktions-Aufruf ist wie nach WHERE ein boolesches Blatt.
+    expect(parseOk('LIST GROUP BY a HAVING contains(a, "x")').having.type).toBe('call');
+  });
+
+  it('HAVING hinter jeder Klausel-Folge, die übrigen Klauseln bleiben unberührt', () => {
+    const folgen = [
+      'LIST GROUP BY a',
+      'TABLE WITHOUT ID a AS "A", count() GROUP BY a',
+      'LIST BLOCKS FROM #projekt WHERE a = "1" GROUP BY a',
+      'TABLE TASKS count() GROUP BY heading SORT count() DESC LIMIT 5',
+      'LIST TASKS GROUP BY heading HIDE due SHOW urgency SHORT',
+      'LIST WHERE a = "1" GROUP BY a COLUMNS 3',
+      'TABLE RECORDS count() FROM "T" GROUP BY autor DISPLAY bar',
+    ];
+    for (const folge of folgen) {
+      const ohne = parseOk(folge);
+      const mit = parseOk(`${folge} HAVING count() > 1`);
+      const { having, ...rest } = mit;
+      expect(ohnePos(having), folge).toEqual(HAVING);
+      expect(rest, folge).toEqual(ohne);
+    }
+    // Auch vor GROUP BY und mitten in der Folge.
+    const vorn = parseOk('TABLE count() HAVING count() > 1 GROUP BY a SORT a LIMIT 2');
+    expect(ohnePos(vorn.having)).toEqual(HAVING);
+    expect([vorn.groupBy.length, vorn.sort.length, vorn.limit]).toEqual([1, 1, 2]);
+  });
+
+  it('ohne Klausel fehlt das Feld ganz, auch beim Alt-Body und mit having als Feldname', () => {
+    for (const q of ['LIST', 'TABLE a GROUP BY a', 'bereich = "Privat"', 'having = "x"']) {
+      expect(Object.hasOwn(parseOk(q), 'having'), q).toBe(false);
+    }
+    expect(parseOk('having = "x"').where.left).toEqual({ type: 'field', name: 'having' });
+  });
+
+  it('doppelte Klausel und unvollständiger Ausdruck sind Syntax-Fehler', () => {
+    const doppelt = parseQuery('LIST GROUP BY a HAVING count() > 1 HAVING count() > 2').error;
+    expect(doppelt.code).toBe('duplicateClause');
+    expect(doppelt.clause).toBe('HAVING');
+    expect(parseQuery('LIST GROUP BY a HAVING').error.code).toBe('unexpectedEnd');
+    // Ein nacktes Feld braucht einen Vergleich, wie nach WHERE.
+    expect(parseQuery('LIST GROUP BY a HAVING a').error.code).toBe('expectedOperator');
+    expect(parseQuery('LIST GROUP BY a HAVING count() > 1 extra').error.code).toBe('unknownClause');
+  });
+
+  it('HAVING ohne GROUP BY ist ein Abfrage-Fehler der Funktions-Prüfung', () => {
+    for (const q of [
+      'LIST HAVING count() > 1',
+      'TABLE count() HAVING count() > 1',
+      'LIST RECORDS FROM "T" WHERE a = 1 HAVING sum(b) > 2 SORT a',
+    ]) {
+      expect(validateQuery(parseOk(q)), q).toMatchObject({ code: 'havingWithoutGroupBy' });
+    }
+    // Mit GROUP BY ist count() in HAVING erlaubt, auch in der Liste.
+    expect(validateQuery(parseOk('LIST GROUP BY a HAVING count() > 1'))).toBeNull();
+    expect(validateQuery(parseOk('TABLE count() GROUP BY a HAVING count() > 1'))).toBeNull();
+    // Unbekannte Funktion und falsche Stelligkeit gelten in HAVING wie überall.
+    expect(validateQuery(parseOk('LIST GROUP BY a HAVING zaehle() > 1')).code).toBe(
+      'unknownFunction',
+    );
+    expect(validateQuery(parseOk('LIST GROUP BY a HAVING sum() > 1')).code).toBe('functionArity');
+  });
+
+  it('der Link-Bedarf liest HAVING mit', () => {
+    expect(queryUsesLinks(parseOk('LIST GROUP BY a HAVING count(file.inlinks) > 0'))).toBe(true);
+    expect(queryUsesLinks(parseOk('LIST GROUP BY a HAVING count(a) > 0'))).toBe(false);
   });
 });
 

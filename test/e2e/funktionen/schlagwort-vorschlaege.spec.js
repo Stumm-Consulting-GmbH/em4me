@@ -14,6 +14,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const TOOLTIP = '.cm-tooltip-autocomplete';
 const LABEL = '.cm-tooltip-autocomplete .cm-completionLabel';
@@ -38,7 +39,7 @@ function baueBereich() {
 
 async function enterEditSource(app, page) {
   await expect(page.locator(SEL.tabs0).first()).toBeVisible();
-  await app.evaluate(({ BrowserWindow }) => {
+  await hauptSenden(app, ({ BrowserWindow }) => {
     const win = BrowserWindow.getAllWindows()[0];
     if (win && !win.isDestroyed()) win.webContents.send('menu:viewChange', 'source');
   });

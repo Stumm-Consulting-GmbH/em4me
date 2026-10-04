@@ -54,6 +54,26 @@ Le libellé peut porter n'importe quels caractères, y compris espaces, virgules
 
 `number` connaît un format d'affichage facultatif : `Montant:number(2)` affiche deux décimales. Affichage et forme de stockage restent volontairement lisibles à l'identique (pas de reformatage régional) ; les cellules vides sont valides pour tous les types. Une valeur qui ne correspond pas au type de colonne est marquée comme **cellule en erreur** — le texte est conservé, une infobulle explique le format attendu et la valeur n'entre pas dans les agrégats.
 
+## Liens et tags dans les cellules texte
+
+Dans une colonne de type `text`, les liens et les tags agissent comme dans le reste du document :
+
+````markdown
+```perspective-datatable
+columns: Poste:text, Montant:number(2)
+| Loyer pour [[Appartement]] #fixe | 850 |
+| Billet de train, voir [[Voyage 2026\|Plan de voyage]] | 120 |
+| Frais de cours, [Inscription](https://example.org) | 60 |
+```
+````
+
+- **Ce qui agit** : `[[Cible]]`, `[[Cible#Ancre]]` et le lien avec alias, qui s'écrit `[[Cible\|Alias]]` dans la cellule, car tout `|` dans une cellule s'écrit `\|` ; en outre le lien Markdown `[Texte](Cible)`, y compris avec une adresse web, et `#tag`. Une intégration `![[Cible]]` apparaît comme lien, non comme contenu intégré.
+- **Affichage et clic** : dans la vue lecture, la vue partagée et le mode direct, ils apparaissent comme lien ou comme tag. Un clic sur un lien ouvre sa cible, un clic sur un tag filtre la barre latérale des tags comme dans le texte.
+- **Réseau de liens** : la cible mentionne le document parmi ses **Rétroliens**, et les **Liens sortants** ainsi que la [Vue graphe](graph.md) montrent la connexion. Si la cible est renommée ou déplacée, le lien de la cellule suit ; l'alias et la table restent intacts.
+- **Les tags comptent** : un tag issu d'une cellule compte dans la barre latérale des tags, dans l'ordre des suggestions et dans les requêtes, et le [renommage d'un tag](linking.md) couvre aussi les cellules.
+- **Ce qui reste du texte** : gras, italique, formules et autres balisages apparaissent tels qu'ils sont écrits, car une cellule texte porte des valeurs et non de la prose. Placé entre accents graves, `[[…]]` reste lui aussi littéral et n'est pas un lien. Les colonnes nombre, date, heure et booléen, les colonnes calculées et les lignes d'en-tête du bloc ne forment pas de liens ; le tri, le filtre et les agrégats travaillent sur le texte écrit.
+- **Désactivé** : si la table de données est désactivée, le bloc apparaît comme bloc de code sans liens cliquables ; les rétroliens et la mise à jour lors du renommage subsistent néanmoins. Si les liens wiki ou les tags sont désactivés, le texte de la cellule reste du texte simple.
+
 ## Agrégats
 
 Fonctions disponibles selon le type de colonne :
@@ -78,7 +98,7 @@ aggregate: Total:sum
 | Bloc | 3.50 | 4 |
 ```
 
-- Le langage d'expression est le même que dans la [Requête Perspective](frontmatter-query.md) : arithmétique, comparaisons, `choice(…)`, `default(…)`, fonctions de texte et plus.
+- Le langage d'expression est le même que dans la [Requête Perspective](frontmatter-query.md) : arithmétique, comparaisons, `choice(…)`, `default(…)`, fonctions de texte et plus. Il comprend `count(x)` ; dans une formule, il compte les valeurs du champ nommé dans la seule ligne concernée et n'est pas la fonction d'agrégat `count` de la ligne d'agrégats, qui compte sur toutes les lignes.
 - Les noms de colonnes dans l'expression désignent les valeurs de la ligne concernée ; d'autres colonnes calculées sont utilisables dans n'importe quel ordre de déclaration (l'évaluation résout les dépendances). Les références circulaires sont signalées comme erreurs de structure.
 - Le résultat doit correspondre au type de colonne déclaré, sinon la cellule affiche une erreur.
 - Les valeurs calculées ne sont **jamais stockées dans la source** — elles sont toujours recalculées et n'ont donc pas de cellule de données dans les lignes à barres. Les agrégats sur colonnes calculées se calculent sur les valeurs calculées.
@@ -88,6 +108,8 @@ aggregate: Total:sum
 Dans la **vue partagée** et en **mode direct**, la grille est directement modifiable ; la vue lecture et les pages du manuel l'affichent en lecture seule. Chaque validation réécrit le bloc de code dans la source — le document devient non enregistré comme d'habitude, annuler/rétablir fonctionnent normalement.
 
 - **Modifier une cellule** : un clic sur la cellule (ou `Entrée`/`F2` quand elle a le focus) ouvre un champ de saisie adapté au type. `Entrée` ou la perte de focus valide, `Échap` annule, `Tab`/`Maj+Tab` valide et passe à la cellule suivante ou précédente.
+- **Liens dans la cellule** : un clic sur un lien ou un tag dans une cellule texte le suit et n'ouvre pas la cellule. Un clic dans la partie libre de la cellule, `Entrée` ou `F2` l'ouvrent avec le texte écrit. Si le lien lui-même a le focus clavier, `Entrée` le suit et `F2` ouvre la cellule.
+- **Suggestions** : dans une cellule texte, la même [liste de suggestions](linking.md) que dans le texte apparaît après `[[` et `#`, y compris dans une cellule vide ; `Ctrl+Espace` l'ouvre explicitement. Tant qu'elle est ouverte, les flèches choisissent, `Entrée` reprend la suggestion dans le champ et `Échap` ferme seulement la liste ; un second `Entrée` valide la cellule. `Tab` ne reprend aucune suggestion : il ferme la liste, valide la cellule et passe à la suivante. Aucune liste n'apparaît dans les cellules nombre, date et heure, et elle n'y propose pas de marqueurs de tâche.
 - **Contrainte de type** : une valeur non conforme au type de colonne est refusée (indication dans la barre d'état) ; la cellule reste ouverte pour correction.
 - **Boolean** : un clic sur la cellule (ou la barre d'espace) bascule directement la valeur.
 - **Lignes** : le bouton sous la table ajoute une ligne à la fin des données ; le symbole × en début de ligne la supprime.
@@ -109,7 +131,7 @@ Le tri et le filtrage n'agissent **que sur la vue** — la source reste inchang�
 
 ## Export
 
-L'export portable et l'export PDF produisent la table sous forme de table statique dans l'ordre du document — avec toutes les lignes, les valeurs calculées des colonnes calculées et la ligne d'agrégats, sans interactivité.
+L'export portable et l'export PDF produisent la table sous forme de table statique dans l'ordre du document — avec toutes les lignes, les valeurs calculées des colonnes calculées et la ligne d'agrégats, sans interactivité. Les liens et les tags des cellules texte y apparaissent comme les liens et les tags du reste du document.
 
 ## Limites
 

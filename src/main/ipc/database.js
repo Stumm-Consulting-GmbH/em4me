@@ -258,6 +258,8 @@ function registerDatabaseIpc(handle, deps) {
         steckbrief: null,
         tabellen: [],
         masken: [],
+        // 4T-002081: die Abfrage-Dateien, leer wie die übrigen Listen.
+        abfragen: [],
         hints: [],
       };
     const ueberblick = await katalogUeberblick({

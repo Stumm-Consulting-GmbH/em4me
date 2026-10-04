@@ -296,7 +296,9 @@
   text-align: right;
   white-space: nowrap;
 }
+/* 4T-002081: «Öffnen» je Abfrage-Datei in der Gestalt der Neuanlage. */
 .db-overview-new-record,
+.db-overview-query-open,
 .db-overview-check-table {
   background: var(--bg-alt);
   color: var(--fg);
@@ -325,7 +327,8 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
-.db-overview-new-record:hover {
+.db-overview-new-record:hover,
+.db-overview-query-open:hover {
   background: var(--hover);
 }
 .db-overview-issues {

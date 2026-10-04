@@ -95,7 +95,8 @@ export function periodLabel(period) {
 //
 // Abstand null behaelt die bestehenden fuenf Schluessel: Sie sind kuerzer und
 // vertrauter als „diese Woche" aus der Standard-Formulierung.
-// Exportiert fuer den Unit-Prueffall (Muster buildQueryTaskListDom).
+// Exportiert fuer den Unit-Prueffall (Muster buildTaskListDom in
+// query/display-tasks.js).
 export function periodRelationLine(period) {
   const laufend = periodOf(Date.now(), period.granularity);
   const abstand = periodDistance(laufend, period);

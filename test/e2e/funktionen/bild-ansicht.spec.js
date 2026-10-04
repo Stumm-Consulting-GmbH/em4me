@@ -22,6 +22,7 @@ const zlib = require('node:zlib');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 // --- Bild-Material ---------------------------------------------------------
 // Einfarbige PNG-Dateien in gewünschter Größe, ohne Fremd-Paket erzeugt. Die
@@ -138,7 +139,7 @@ function removeDir(dir) {
 
 // Fängt beide Wege nach außen im Hauptprozess ab und sammelt die Aufrufe.
 async function fangeOeffnenAb(app) {
-  await app.evaluate(({ shell }) => {
+  await hauptSenden(app, ({ shell }) => {
     globalThis.__geoeffnet = [];
     globalThis.__extern = [];
     shell.openPath = async (p) => {
@@ -150,8 +151,8 @@ async function fangeOeffnenAb(app) {
     };
   });
 }
-const geoeffnete = (app) => app.evaluate(() => globalThis.__geoeffnet || []);
-const externe = (app) => app.evaluate(() => globalThis.__extern || []);
+const geoeffnete = (app) => hauptLesen(app, () => globalThis.__geoeffnet || []);
+const externe = (app) => hauptLesen(app, () => globalThis.__extern || []);
 
 const FLAECHE = '#image-lightbox';
 const FL_BILD = '#image-lightbox .image-lightbox-image';
@@ -299,7 +300,7 @@ test.describe('VG-01: Öffnen, Größe, Abdunkelung und die drei Schließ-Wege',
       expect(m.breite).toBeLessThan(1600);
       // AK20: Fenster verkleinern — das Bild folgt nach derselben Regel.
       const vorGroesse = m;
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         BrowserWindow.getAllWindows()[0].setSize(820, 620);
       });
       await expect

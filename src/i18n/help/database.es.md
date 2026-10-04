@@ -115,6 +115,8 @@ Un texto con la forma de un identificador se lee siempre como identificador. La 
 
 Ambas comprobaciones necesitan la vista general de las tablas del área. Si las tablas aún no se han leído por completo, la aplicación rechaza un cambio que establece un enlace o elimina un registro, y el aviso pide volver a intentarlo en un momento.
 
+Las relaciones se evalúan con una consulta de registros: una ruta como `autor.nombre` lee el campo del registro referenciado, una condición sobre el campo de referencia encuentra la dirección contraria, y `ancestors(…)` y `descendants(…)` siguen los enlaces a lo largo de cualquier número de niveles. Cuántos registros apuntan a un registro lo cuenta una consulta agrupada como `TABLE RECORDS count() FROM "Préstamos" GROUP BY libro`. La página [Consulta Perspective](frontmatter-query.md) describe ambas cosas en las secciones «Nivel de registro» y «Agrupación y agregación».
+
 ## Etiquetas en varios idiomas
 
 La etiqueta está en la clave `label`, ya sea como texto simple o como correspondencia de idioma a texto:
@@ -268,6 +270,8 @@ Cada registro tiene un **formulario**: una página propia que muestra sus campos
 ### Abrir y crear
 
 Un registro existente se abre con el botón **«Abrir registro»** al comienzo de su fila, delante del botón de los justificantes de cambio, tanto en la vista de lectura como en el modo En vivo. Con el teclado, la flecha izquierda lleva a él desde el botón de los justificantes.
+
+Desde el resultado de una consulta de registros, un clic en un registro o en un enlace abre igualmente el formulario (página [Consulta Perspective](frontmatter-query.md)). Este muestra el estado guardado, aunque la consulta muestre uno sin guardar.
 
 Tres caminos crean un registro nuevo:
 
@@ -432,7 +436,7 @@ Lo que hace en su lugar: en su siguiente escritura propia compara el estado enco
 
 ## Bloqueos
 
-Cuando varias personas trabajan en la misma área de base de datos, por ejemplo en una unidad de red compartida, un bloqueo procura que dos de ellas no editen a la vez el mismo registro.
+Un bloqueo procura que un registro no se edite en dos lugares a la vez, por ejemplo en dos ventanas de la aplicación. Los bloqueos y los justificantes de cambio están concebidos para preparar el acceso compartido de varias personas; ese acceso llegará con EM4us, el futuro componente de servidor. EM4me en sí es una herramienta para una persona que trabaja sola y en local. El uso de varios equipos en una misma área sobre una unidad de red no está garantizado.
 
 ### Qué se bloquea y cuándo
 
@@ -509,9 +513,10 @@ La búsqueda sobre el **área** recoge un documento de tabla sin sus registros. 
 
 El motivo está en el área y no en la tabla: el espacio de búsqueda mantiene en memoria los textos de todos los archivos Markdown y lleva para ello un tope sobre el área **entera**. Unas pocas tablas de algunos megabytes bastan para romperlo, y a partir de ahí cada búsqueda vuelve a leer del disco, también la que recorre un documento corriente. Los registros en el espacio de búsqueda no costarían, pues, su velocidad a sí mismos, sino al área entera.
 
-**Esto es un estado intermedio.** Mientras los registros no tengan un tipo de coincidencia propio, no son localizables mediante la búsqueda del área. Aun así, dos caminos llevan hasta ellos:
+**Esto es un estado intermedio.** Mientras los registros no tengan un tipo de coincidencia propio, no son localizables mediante la búsqueda del área. Aun así, tres caminos llevan hasta ellos:
 
 - **Buscar dentro del documento abierto.** Quien tiene delante el archivo de tabla y busca en él (predeterminado `Ctrl+F`) busca en el texto que tiene delante y encuentra sus registros sin cambio alguno. El límite anterior afecta únicamente a la búsqueda sobre el área.
+- **Plantear una consulta de registros.** Un bloque `perspective-query` con `LIST RECORDS` o `TABLE RECORDS` encuentra registros por sus campos, por ejemplo todos los libros de un autor; la página [Consulta Perspective](frontmatter-query.md) la describe. Una consulta que se necesita a menudo puede guardarse como archivo de consulta (sección «Archivos de consulta»).
 - **Enlazar directamente a un registro**, como se describe en la sección siguiente.
 
 ### Enlace a un registro concreto
@@ -528,7 +533,32 @@ La comprobación se hace contra el estado **guardado** de la tabla, como con cua
 
 Si un enlace vale lo muestra el [linter de Markdown](tools.md): un destino roto recibe un subrayado ondulado en el editor, es decir en las vistas Código, Dividida y En vivo. La vista de lectura pura no representa la validez; allí los enlaces válidos y los rotos se ven igual.
 
-Un clic abre el archivo de tabla. Todavía no lleva al registro concreto.
+Un clic abre la tabla y pone a la vista la fila del registro, también cuando el registro está en un archivo siguiente. En la vista de lectura la visualización se desplaza hasta su fila, siempre que esté entre los 2000 registros que muestra; en las vistas En vivo y Código el cursor queda en esa fila. En el resultado de una consulta de registros, en cambio, un clic en un registro abre su formulario.
+
+## Archivos de consulta
+
+Una consulta que se necesita a menudo recibe un documento propio: si lleva en su frontmatter la marca `db-query` y en su texto exactamente un bloque de consulta, es un **archivo de consulta**. El resto del texto describe la consulta y aparece como en cualquier documento.
+
+````markdown
+---
+db-query:
+paginasmin: 500
+---
+
+# Libros largos
+
+Libros de más de `paginasmin` páginas, los más largos primero.
+
+```perspective-query
+TABLE RECORDS autor, paginas FROM "Libros" WHERE paginas > this.paginasmin SORT paginas DESC
+```
+````
+
+- **La marca no lleva indicaciones.** El archivo se reconoce solo por la marca, basta `db-query:` sin valor; la consulta nombra ella misma su tabla en `FROM`. La consulta puede dirigirse a cualquier nivel, tanto a archivos como a registros.
+- **Abrir e incrustar.** Abierto, el archivo muestra su resultado como cualquier documento con un bloque de consulta. Otro documento lo incrusta con `![[Libros largos]]` y muestra el mismo resultado, porque `this.` se refiere entonces al archivo de consulta y no al documento que lo incrusta. Por eso no existe una consulta que lea valores del documento que la incrusta.
+- **Crear.** No hay un comando propio para ello: un archivo de consulta se escribe a mano o a partir de una [plantilla](templates.md) propia.
+- **Sin la marca**, un documento con un bloque de consulta sigue siendo una consulta en el texto corrido y no aparece en el resumen.
+- **En el resumen** de la base de datos, cada archivo de consulta figura en la sección «Consultas» (sección «El área como base de datos»); la falta de bloque de consulta o la presencia de varios se comunica entre las incidencias (sección «Indicaciones defectuosas»).
 
 ## Reparto de grandes conjuntos de datos
 
@@ -569,7 +599,7 @@ En cuanto un documento del contenido de un área lleva la ficha, la aplicación 
 
 Un área de base de datos recibe dos cosas que un área corriente no tiene.
 
-**El resumen de los objetos de la base de datos** responde en un solo lugar a qué hay en esta área: la ficha con nombre y descripción, las tablas con el número de sus campos y las incidencias detectadas al leer las definiciones, en claro y no como un código. Se abre como pestaña propia, y en el propio resumen no se modifica nada; sus acciones llevan al formulario y a las comprobaciones. Tres caminos llevan hasta él:
+**El resumen de los objetos de la base de datos** responde en un solo lugar a qué hay en esta área: la ficha con nombre y descripción, las tablas con el número de sus campos, los archivos de consulta y las incidencias detectadas al leer las definiciones, en claro y no como un código. Se abre como pestaña propia, y en el propio resumen no se modifica nada; sus acciones llevan al formulario y a las comprobaciones. Tres caminos llevan hasta él:
 
 - **Ver → Resumen de la base de datos**,
 - el **menú contextual del panel del área**,
@@ -577,7 +607,7 @@ Un área de base de datos recibe dos cosas que un área corriente no tiene.
 
 En un área sin base de datos no se ofrece ninguno de estos caminos.
 
-En la lista de tablas, la columna **«Formulario»** nombra el archivo de formulario de una tabla y queda vacía para el formulario generado. Además, el resumen lleva cuatro acciones: **«Comprobar coherencia»** en la cabecera para todas las tablas, y en la fila de cada tabla **«Nuevo registro»**, **«Comprobar»** y **«Uso»**. Lo que hacen lo describen las secciones «Editar registros en el formulario», «Comprobación de coherencia» y «Uso de tablas y registros». Entre las incidencias figuran también los avisos sobre archivos de formulario, nombrados según el archivo.
+En la lista de tablas, la columna **«Formulario»** nombra el archivo de formulario de una tabla y queda vacía para el formulario generado. Además, el resumen lleva cuatro acciones: **«Comprobar coherencia»** en la cabecera para todas las tablas, y en la fila de cada tabla **«Nuevo registro»**, **«Comprobar»** y **«Uso»**. Lo que hacen lo describen las secciones «Editar registros en el formulario», «Comprobación de coherencia» y «Uso de tablas y registros». La sección **«Consultas»** nombra cada archivo de consulta con su nombre y su ubicación, la carpeta relativa a la raíz del área, y **«Abrir»** lo abre como cualquier documento; si el área no tiene ninguno, figura allí una frase explicativa. Entre las incidencias figuran también los avisos sobre archivos de formulario y de consulta, nombrados según el archivo.
 
 **La sección de ajustes «Base de datos»** está en el grupo de navegación «Área actual» (Archivo → Configuración… → Área actual → Base de datos; con un libro abierto el grupo se llama **Libro actual**, con una estantería abierta **Estantería actual**). Muestra la misma información en forma breve, es decir, el nombre y la descripción de la base de datos, el número de sus tablas y el número de incidencias, y lleva una opción: **«Mostrar el resumen al abrir el área»**. Si está marcada, el resumen se abre por sí mismo en cuanto el área queda vinculada. La opción reside en el archivo del área y viaja con la carpeta del área. A ello se suma el campo **«Nombre de la carpeta de bloqueos»**; está descrito en la sección «Bloqueos».
 
@@ -597,6 +627,8 @@ La misma línea indulgente rige para las reglas de comprobación y para la condi
 
 La misma línea flexible vale para los archivos de formulario. Si el contenedor `db-form` no nombra ninguna tabla, o una que no existe en la base de datos, el archivo sigue siendo un documento corriente. Si una tabla tiene varios archivos de formulario, se aplica el primero según la ruta, y los demás no se utilizan. Estos tres casos figuran entre las incidencias del resumen. Un marcador que no es un marcador de campo y un nombre de campo que la tabla no conoce se quedan como texto; el formulario los señala con su línea en su cabecera, y la comprobación de coherencia los enumera como hallazgos.
 
+La misma línea flexible vale para los archivos de consulta. Si un documento con la marca `db-query` no lleva ningún bloque de consulta o lleva varios, sigue siendo un documento corriente, y cada bloque que contiene se evalúa. El resumen lo incluye de todos modos en la sección «Consultas» y nombra el caso entre las incidencias, según el archivo.
+
 ## Desactivar la base de datos
 
 Toda la base de datos es una [extensión interna](extensions.md) llamada «Base de datos», de la categoría Herramientas, y se desactiva con un único interruptor. Requiere los [Perfiles de propiedades](property-profiles.md), porque la forma de una definición de tabla se describe y se comprueba mediante un perfil interno; mientras la base de datos esté activada, ese requisito no se puede desactivar.
@@ -606,6 +638,8 @@ Estando desactivada:
 - El **bloque de registros queda como un bloque de código corriente**, en la vista de lectura, en el modo de edición y en la exportación portátil. Su contenido sigue siendo legible; lo que se desactiva es la representación como tabla, no el dato.
 - **El resumen y la sección de ajustes desaparecen**, junto con los accesos del menú Ver, del menú contextual del panel del área y de la paleta de comandos. Un resumen ya abierto permanece hasta que usted lo cierre, como cualquier otra página del sistema.
 - Con el bloque de registros desaparecen sus botones **«Abrir registro»** y **«Nuevo registro»**, con el resumen sus acciones **«Comprobar coherencia»**, **«Comprobar»** y **«Uso»**, y los comandos **«Nuevo registro en la tabla activa»** y **«Comprobar la coherencia de la base de datos»** desaparecen de la paleta de comandos. Así tampoco se puede llegar ya al **formulario**, y la aplicación deja de suministrar datos a él, a la comprobación de coherencia y al uso.
+- Una **consulta de registros** ya no lee ninguna tabla: muestra una lista vacía con la nota de que la extensión está desactivada, y ningún mensaje de error. Lo mismo vale para las rutas a través de campos de referencia, para las jerarquías y para el árbol.
+- Un **archivo de consulta** sigue siendo un documento corriente: su bloque de consulta se sigue evaluando, sobre registros con la lista vacía y la nota recién descritas, y su sección «Consultas» desaparece con el resumen.
 - Un **enlace a un registro concreto** ya no se marca como roto. Sin definiciones no hay nada con lo que contrastarlo, y un aviso sin comprobación sería solo una afirmación.
 - La **búsqueda sobre el área permanece sin cambios**. Los registros siguen excluidos del texto completo, porque ese límite pertenece al archivo de tabla y no al interruptor; la sección «Localizabilidad» de más arriba sigue siendo válida.
 - **No se escribe nada.** La aplicación no crea, modifica ni elimina registros, no toma ningún bloqueo y no genera ningún justificante de cambio; tampoco termina un guardado que quedó a medias mientras esté desactivada.

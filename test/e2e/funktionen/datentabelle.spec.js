@@ -5,11 +5,19 @@
 // 4T-000419: Grid-Editor (DT-04 …) — typ-validierte Zell-Eingabe, Boolean-
 // Toggle, Zeilen-Aktionen, Rueckschreib-Kontrolle im Quelltext, Undo,
 // zwei Tabellen im Dokument, Read-only-Reading.
+// 4T-002013 (Epic 3E-000332): DT-16, ein Verweis in einer Text-Zelle steht
+// unter den Rückverweisen des Ziels, und das Umbenennen des Ziels ändert die
+// Zelle.
+// 4T-001987 (Epic 3E-000332): DT-14 und DT-15, die Vorschlagsliste im
+// Zell-Editor der Live- und der geteilten Ansicht.
 'use strict';
 
+const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 const { SEL } = require('../helpers/selectors');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'datentabelle.md');
@@ -494,6 +502,342 @@ test.describe('DT-13: Anzeige-Ueberschrift und abschaltbare Typangabe', () => {
       await expect(editor).toContainText('= Betrag * 2');
     } finally {
       await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+// --- 4T-002013 (Epic 3E-000332): Verweise in Text-Zellen im Verweis-Netz -------
+//
+// Geprüft wird die Kette vom Datei-Inhalt bis zur Bedienung an der realen
+// Konstellation: ein Bereich auf der Platte, der Index des Hauptprozesses, das
+// Rückverweis-Panel und das Umbenennen über das Kontextmenü mit Vorschau. Die
+// Einzelregeln (Spalten-Typen, Kopfzeilen, Inline-Code) stehen auf der
+// Unit-Ebene (datentabelle-zell-scan.test.js, link-rewrite.test.js).
+
+// Datei-Zeile des Bereichs-Panels mit exakter Beschriftung (Muster
+// bereichs-panel.spec.js: 'Ziel' steckt auch in 'Zielort').
+function dateiZeile(section, beschriftung) {
+  return section.locator('.area-file-row', { hasText: new RegExp(`^${beschriftung}$`) });
+}
+
+test.describe('DT-16: Rückverweis und Umbenennen aus einer Datentabellen-Zelle (4T-002013)', () => {
+  test('das Ziel nennt die Tabelle unter seinen Rückverweisen, das Umbenennen ändert die Zelle', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-dt16-'));
+    fs.writeFileSync(path.join(dir, 'Ziel.md'), '# Ziel\n', 'utf8');
+    const quelle = [
+      '# Quelle',
+      '',
+      '```perspective-datatable',
+      'columns: Name:text, Betrag:number(2)',
+      '| [[Ziel]] | 12.50 |',
+      '```',
+      '',
+    ].join('\n');
+    fs.writeFileSync(path.join(dir, 'Quelle.md'), quelle, 'utf8');
+    const { app, page, userData } = await launchApp();
+    try {
+      await page.evaluate((p) => window.api.openAreaPath(p), dir);
+      const section = page.locator('.pane-group[data-pane="0"] .sidebar-area');
+      await expect(section).toBeVisible();
+      await expect(section.locator('.area-file-row')).toHaveCount(2);
+
+      // AK1: Das Ziel führt die Tabelle unter seinen Rückverweisen. Vor
+      // 4T-002013 blieb das Panel leer, weil der Index den Inhalt jedes
+      // Code-Blocks übersprang.
+      await dateiZeile(section, 'Ziel').click();
+      await expect(page.locator('.pane-group[data-pane="0"] .tabbar .tab')).toHaveCount(1);
+      await page.locator('#btn-backlinks').click();
+      const bl = page.locator('.pane-group[data-pane="0"] .sidebar-backlinks');
+      await expect(bl).toBeVisible();
+      await expect(
+        bl.locator('.backlinks-group').first().locator('.backlinks-group-name'),
+      ).toHaveText('Quelle', { timeout: 15000 });
+
+      // AK3: Umbenennen über das Kontextmenü. Die Vorschau nennt die Tabelle,
+      // und danach steht der neue Name in der Zelle; die Zahl-Spalte bleibt.
+      await dateiZeile(section, 'Ziel').click({ button: 'right' });
+      await page.locator('#context-menu [data-menu-id="area-file-rename"]').click();
+      await expect(page.locator('#name-input-modal')).toBeVisible();
+      await page.locator('#name-input-field').fill('Zielort');
+      await page.locator('#btn-name-input-ok').click();
+      await expect(page.locator('#link-preview-modal')).toBeVisible();
+      await expect(page.locator('#link-preview-list')).toContainText('Quelle.md');
+      await page.locator('#btn-link-preview-continue').click();
+      await expect(page.locator('#link-report-modal')).toBeVisible();
+      await page.locator('#btn-link-report-ok').click();
+
+      expect(fs.existsSync(path.join(dir, 'Zielort.md'))).toBe(true);
+      await expect
+        .poll(() => fs.readFileSync(path.join(dir, 'Quelle.md'), 'utf8'))
+        .toBe(quelle.replace('| [[Ziel]] |', '| [[Zielort]] |'));
+    } finally {
+      await closeApp(app, userData);
+      try {
+        fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+      } catch {
+        // Temp-Verzeichnis bleibt liegen; unkritisch.
+      }
+    }
+  });
+});
+
+// --- 4T-001987 (Epic 3E-000332): Vorschlagsliste im Zell-Editor ----------------
+//
+// Einträge, Reihenfolge und eingefügter Text sind auf der Unit-Ebene gegen die
+// unveränderten Quellen geprüft (datentabelle-vorschlaege.test.js). Hier steht,
+// was nur die laufende Anwendung zeigt: dass die Liste am Feld einer Text-Zelle
+// in beiden bearbeitbaren Ansichten erscheint, dieselben Einträge zeigt wie die
+// Liste des Editors im Fließtext, ganz zu sehen ist, Vorrang vor der
+// Zell-Bedienung hat, solange sie offen ist, und dass der übernommene Verweis
+// danach in der Zelle anklickbar ist. Aufbau und Aufwärmen des Index nach dem
+// Muster von tabellen-zell-vorschlaege.spec.js.
+
+const VL_LISTE = '.cm-live-tabelle-vorschlaege';
+const VL_LABEL = `${VL_LISTE} .cm-completionLabel`;
+const VL_EDITOR_LISTE = '.cm-tooltip-autocomplete:not(.cm-live-tabelle-vorschlaege)';
+
+const VL_DOKUMENT = [
+  '# Tabelle',
+  '',
+  '```perspective-datatable',
+  'columns: Name:text, Betrag:number(2), Notiz:text',
+  '| Anna | 12.5 | erste |',
+  '| Bert | 3 | |',
+  '```',
+  '',
+  'Fliesstext unter der Tabelle.',
+  '',
+  'Letzte Zeile.',
+  '',
+].join('\n');
+
+// Vier Ziele mit gegenläufiger Alphabet- und Zeit-Folge, die Schlagworte eines
+// häufig, eines selten (Muster TV-01).
+function baueVorschlagsBereich() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-dt-vorschlaege-'));
+  const setzeZeit = (datei, tag) => {
+    const zeit = new Date(Date.UTC(2020, 0, 1 + tag, 12, 0, 0));
+    fs.utimesSync(datei, zeit, zeit);
+  };
+  const tabelle = path.join(dir, 'Tabelle.md');
+  fs.writeFileSync(tabelle, VL_DOKUMENT, 'utf8');
+  setzeZeit(tabelle, 0);
+  ['Alpha', 'Beta', 'Gamma', 'Delta'].forEach((name, i) => {
+    const datei = path.join(dir, `${name}.md`);
+    const selten = name === 'Alpha' ? ' #bau-aaa' : '';
+    fs.writeFileSync(datei, `# ${name}\n\nText #bau-zzz${selten} dazu.\n`, 'utf8');
+    setzeZeit(datei, i + 1);
+  });
+  return { dir, tabelle };
+}
+
+function raeumeVorschlagsBereichAuf(dir) {
+  try {
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+  } catch {
+    /* Windows-Handle noch gesperrt: Temp-Rest ist unkritisch */
+  }
+}
+
+async function liveBearbeiten(app, page) {
+  await waitForTab(page);
+  await hauptSenden(app, ({ BrowserWindow }) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    if (win && !win.isDestroyed()) win.webContents.send('menu:viewChange', 'live');
+  });
+  await expect(page.locator(SEL.editorContent0)).toBeVisible();
+  await page.locator(SEL.btnEdit).click();
+  await expect(page.locator('.pane-group[data-pane="0"] .pane-source-editor')).not.toHaveClass(
+    /read-only/,
+  );
+}
+
+const vlZeile = (page, text) =>
+  page.locator(`${SEL.editorContent0} .cm-line`).filter({ hasText: text }).first();
+
+// Der erste Aufruf stößt den Index-Aufbau an und liefert noch keine Vorschläge
+// (B-18); aufgewärmt wird in der letzten Zeile, danach ist sie wieder leer.
+async function waermeIndexAuf(page) {
+  const liste = page.locator(VL_EDITOR_LISTE);
+  await vlZeile(page, 'Letzte Zeile.').click();
+  await page.keyboard.press('End');
+  for (const [anfang, zeichen] of [
+    ['[[', 'A'],
+    ['#', 'b'],
+  ]) {
+    await page.keyboard.type(`\n${anfang}${zeichen}`);
+    await expect
+      .poll(
+        async () => {
+          if (await liste.first().isVisible()) return true;
+          await page.keyboard.press('Backspace');
+          await page.keyboard.type(zeichen);
+          return liste.first().isVisible();
+        },
+        { timeout: 30000, intervals: [400] },
+      )
+      .toBe(true);
+    await page.keyboard.press('Escape');
+    await page.keyboard.press('Shift+Home');
+    await page.keyboard.press('Backspace');
+    await page.keyboard.press('Backspace');
+    await expect(liste.first()).toBeHidden();
+  }
+}
+
+async function quelltext(page) {
+  return await page.evaluate((P) => {
+    const el = document.querySelector(P);
+    if (!el || !el.cmTile) return null;
+    let tile = el.cmTile;
+    while (tile.parent) tile = tile.parent;
+    return tile && tile.view ? tile.view.state.doc.toString() : null;
+  }, SEL.editorContent0);
+}
+
+// Zelle öffnen und die Schreibmarke ans Ende ihres Textes setzen (das Feld
+// öffnet mit markiertem Inhalt).
+async function oeffneDtZelle(grid, zeile, spalte) {
+  await grid.locator(`tr[data-dt-row="${zeile}"] td[data-dt-col="${spalte}"]`).click();
+  const feld = grid.locator('input.pdt-cell-input');
+  await expect(feld).toBeVisible();
+  await feld.press('End');
+  return feld;
+}
+
+test.describe('DT-14: Vorschlagsliste in der Text-Zelle der Live-Ansicht (4T-001987)', () => {
+  test('nach [[ dieselben Ziele wie im Fliesstext, Uebernahme ins Feld, danach anklickbar (AK1, AK2, AK3)', async () => {
+    const { dir, tabelle } = baueVorschlagsBereich();
+    const { app, page, userData } = await launchApp({ args: [tabelle] });
+    try {
+      await liveBearbeiten(app, page);
+      await waermeIndexAuf(page);
+      const grid = () => page.locator(`${SEL.editorContent0} .perspective-datatable`).first();
+
+      const feld = await oeffneDtZelle(grid(), 0, 0);
+      await page.keyboard.type(' [[');
+      await expect(page.locator(VL_LISTE)).toBeVisible({ timeout: 10000 });
+      const inZelle = await page.locator(VL_LABEL).allTextContents();
+      expect(inZelle.slice(0, 4)).toEqual(['Delta', 'Gamma', 'Beta', 'Alpha']);
+      // Es ist die Liste der Zelle, nicht die des Editors.
+      await expect(page.locator(VL_EDITOR_LISTE)).toHaveCount(0);
+
+      // Pfeil runter wählt in der Liste; die Eingabetaste schreibt ins Feld,
+      // die Zelle bleibt offen.
+      const eintrag = (i) => page.locator(`${VL_LISTE} li`).nth(i);
+      await expect(eintrag(0)).toHaveAttribute('aria-selected', 'true');
+      await page.keyboard.press('ArrowDown');
+      await expect(eintrag(1)).toHaveAttribute('aria-selected', 'true');
+      await page.keyboard.press('Enter');
+      await expect(page.locator(VL_LISTE)).toHaveCount(0);
+      await expect(feld).toHaveValue('Anna [[Gamma]]');
+      await expect(grid().locator('td.pdt-editing')).toHaveCount(1);
+
+      // Die zweite Eingabetaste übernimmt die Zelle in den Quelltext.
+      await page.keyboard.press('Enter');
+      await expect(page.locator(`${SEL.editorContent0} input.pdt-cell-input`)).toHaveCount(0);
+      await expect.poll(() => quelltext(page)).toMatch(/\| Anna \[\[Gamma\]\]\s*\| 12\.5/);
+      // Danach ist der Verweis in der Zelle anklickbar (4T-002014).
+      const verweis = grid().locator('tr[data-dt-row="0"] td[data-dt-col="0"] a.wikilink');
+      await expect(verweis).toHaveText('Gamma', { timeout: 15000 });
+
+      // In der Zahl-Spalte erscheint auf [[ keine Liste (Story AK6).
+      const zahl = await oeffneDtZelle(grid(), 0, 1);
+      await expect(zahl).not.toHaveAttribute('aria-autocomplete', 'list');
+      await page.keyboard.type('[[');
+      await expect(zahl).toHaveValue('12.5[[');
+      await expect(page.locator(VL_LISTE)).toHaveCount(0);
+      await page.keyboard.press('Escape');
+      await expect(zahl).toHaveCount(0);
+
+      // Gegenprobe im Fließtext: dieselbe Liste an derselben Zeichenfolge.
+      await vlZeile(page, 'Fliesstext unter der Tabelle.').click();
+      await page.keyboard.press('End');
+      await page.keyboard.type(' [[');
+      await expect(page.locator(VL_EDITOR_LISTE).first()).toBeVisible({ timeout: 10000 });
+      const imText = await page.locator(`${VL_EDITOR_LISTE} .cm-completionLabel`).allTextContents();
+      expect(inZelle).toEqual(imText);
+
+      // Der Klick auf den übernommenen Verweis öffnet das Ziel.
+      await page.keyboard.press('Escape');
+      await verweis.click();
+      await expect(page.locator(SEL.activeTab0)).toContainText('Gamma');
+    } finally {
+      await closeApp(app, userData, { force: true });
+      raeumeVorschlagsBereichAuf(dir);
+    }
+  });
+});
+
+test.describe('DT-15: Vorschlagsliste in der geteilten Ansicht, Tasten-Vorrang (4T-001987)', () => {
+  test('# in der leeren letzten Zelle ganz sichtbar, Escape und Tabulator wie zugesagt (AK1, AK2, AK3)', async () => {
+    const { dir, tabelle } = baueVorschlagsBereich();
+    const { app, page, userData } = await launchApp({ args: [tabelle] });
+    try {
+      await liveBearbeiten(app, page);
+      await waermeIndexAuf(page);
+      const { grid } = await openSplit(page);
+
+      // Letzte Zeile, letzte Spalte, leere Zelle.
+      const feld = await oeffneDtZelle(grid, 1, 2);
+      await expect(feld).toHaveValue('');
+      // `#bau` statt `#b`, wie in TV-02: Auf `#b` bot die Quelle im ersten Lauf
+      // zusätzlich ein Schlagwort `b` an, vermutlich aus dem Aufwärmen, das
+      // `#b` tippt. Die Folge der beiden Schlagworte ist davon unberührt.
+      await page.keyboard.type('#bau');
+      const liste = page.locator(VL_LISTE);
+      await expect(liste).toBeVisible({ timeout: 10000 });
+      expect(await page.locator(VL_LABEL).allTextContents()).toEqual(['bau-zzz', 'bau-aaa']);
+      // Ganz im Fenster und nicht verdeckt: In der Mitte und an zwei Ecken der
+      // Liste liegt die Liste selbst.
+      await expect(liste).toBeInViewport({ ratio: 1 });
+      const sichtbar = await liste.evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return [
+          [r.left + r.width / 2, r.top + r.height / 2],
+          [r.left + 4, r.top + 4],
+          [r.right - 4, r.bottom - 4],
+        ].every(([x, y]) => el.contains(document.elementFromPoint(x, y)));
+      });
+      expect(sichtbar).toBe(true);
+
+      // Pfeil runter und Eingabetaste schreiben ins Feld, die zweite
+      // Eingabetaste übernimmt die Zelle; das Schlagwort ist danach anklickbar.
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('Enter');
+      await expect(liste).toHaveCount(0);
+      await expect(feld).toHaveValue('#bau-aaa');
+      await page.keyboard.press('Enter');
+      await expect(grid.locator('input.pdt-cell-input')).toHaveCount(0);
+      await expect(page.locator(SEL.editorContent0)).toContainText('#bau-aaa');
+      const schlagwort = grid.locator('tr[data-dt-row="1"] td[data-dt-col="2"] a.tag-link');
+      await expect(schlagwort).toHaveText('#bau-aaa');
+      await expect(schlagwort).toHaveAttribute('href', '#tag:bau-aaa');
+
+      // Escape schließt bei offener Liste nur die Liste; die Zelle bleibt offen.
+      const erste = await oeffneDtZelle(grid, 0, 0);
+      await page.keyboard.type(' #ba');
+      await expect(liste).toBeVisible({ timeout: 10000 });
+      await page.keyboard.press('Escape');
+      await expect(liste).toHaveCount(0);
+      await expect(grid.locator('tr[data-dt-row="0"] td[data-dt-col="0"].pdt-editing')).toHaveCount(
+        1,
+      );
+      await expect(erste).toHaveValue('Anna #ba');
+
+      // Erneut geöffnet: Der Tabulator schließt die Liste, übernimmt die
+      // Zelle und öffnet die nächste.
+      await page.keyboard.type('u');
+      await expect(liste).toBeVisible({ timeout: 10000 });
+      await page.keyboard.press('Tab');
+      await expect(liste).toHaveCount(0);
+      await expect(page.locator(SEL.editorContent0)).toContainText('Anna #bau');
+      await expect(
+        grid.locator('tr[data-dt-row="0"] td[data-dt-col="1"].pdt-editing input.pdt-cell-input'),
+      ).toBeVisible();
+    } finally {
+      await closeApp(app, userData, { force: true });
+      raeumeVorschlagsBereichAuf(dir);
     }
   });
 });

@@ -238,6 +238,15 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.queryContext',
       'help.feature.queryValues',
       'help.feature.queryHighlight',
+      // 4T-002045 (Epic 3E-000258): die Wahl der Darstellungsform hinter dem
+      // übrigen Abfrage-Cluster, weil sie zur Abfrage-Sprache gehört und auf
+      // jeder Ebene gilt; die Zeilen der Datensatz-Ebene stehen in der Gruppe
+      // «Datenbank».
+      'help.feature.queryDisplayForm',
+      // 4T-002083 (Epic 3E-000259): Gruppierung und Aggregation hinter der
+      // Darstellungsform, am Ende des Abfrage-Clusters, weil sie zur
+      // Abfrage-Sprache gehört und auf jeder Ebene gilt.
+      'help.feature.queryGroupBy',
       // 4T-000422 (Epic 3E-000079): Perspective Datatable — Konstrukt, Grid-
       // Bearbeitung und Ansichts-Funktionen direkt hinter dem Abfrage-
       // Cluster (nutzt dessen Ausdrucks-Sprache).
@@ -367,6 +376,18 @@ const HELP_FEATURE_GROUPS = [
       // den er selbst schreibt.
       'help.feature.databaseSearchScope',
       'help.feature.databaseRecordLink',
+      // 4T-002045 (Epic 3E-000258): die vier Zeilen der Datensatz-Abfrage hinter
+      // Suche und Verweis, weil auch sie die Tabelle von außen betreffen: wie
+      // man ihre Datensätze auswertet. Erst die Ebene selbst, dann die
+      // Verknüpfung über Verweis-Felder, die Hierarchie und zuletzt ihr Baum.
+      'help.feature.queryRecords',
+      'help.feature.queryRecordPaths',
+      'help.feature.queryHierarchy',
+      'help.feature.queryTree',
+      // 4T-002083 (Epic 3E-000259): die Abfrage-Datei hinter den Zeilen der
+      // Datensatz-Abfrage, weil sie eine solche Auswertung unter einem Namen
+      // ablegt; die Übersicht, die sie nennt, folgt weiter unten.
+      'help.feature.databaseQueryFile',
       // 4T-001793 (Epic 3E-000255): die beiden Zeilen der Änderungsbelege hinter
       // den Zeilen der Datensätze und vor denen des Bereichs — erst die Belege
       // selbst, die neben der Tabellen-Datei entstehen, dann die Ansicht, über

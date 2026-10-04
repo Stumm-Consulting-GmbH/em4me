@@ -54,6 +54,26 @@ Der Anzeigetext darf beliebige Zeichen tragen, auch Leerzeichen, Komma, Doppelpu
 
 `number` kennt ein optionales Anzeige-Format: `Betrag:number(2)` zeigt zwei Dezimalstellen. Anzeige und Speicherform bleiben bewusst identisch lesbar (keine Locale-Umformatung); leere Zellen sind bei allen Typen gültig. Ein Wert, der nicht zum Spalten-Typ passt, wird als **Fehler-Zelle** markiert — der Text bleibt erhalten, ein Tooltip erklärt das erwartete Format, und der Wert fließt nicht in Aggregate ein.
 
+## Verweise und Schlagworte in Text-Zellen
+
+In einer Spalte vom Typ `text` wirken Verweise und Schlagworte wie im übrigen Dokument:
+
+````markdown
+```perspective-datatable
+columns: Posten:text, Betrag:number(2)
+| Miete für [[Wohnung]] #fix | 850 |
+| Zugticket, siehe [[Reise 2026\|Reiseplan]] | 120 |
+| Kursgebühr, [Anmeldung](https://example.org) | 60 |
+```
+````
+
+- **Was wirkt**: `[[Ziel]]`, `[[Ziel#Anker]]` und der Verweis mit Alias, der in der Zelle `[[Ziel\|Alias]]` lautet, weil jedes `|` in einer Zelle als `\|` steht; dazu der Markdown-Link `[Text](Ziel)`, auch mit Web-Adresse, und `#schlagwort`. Eine Einbettung `![[Ziel]]` erscheint als Verweis, nicht als eingebetteter Inhalt.
+- **Anzeige und Klick**: In der Lese-Ansicht, der geteilten Ansicht und im Live-Modus erscheinen sie als Verweis beziehungsweise Schlagwort. Ein Klick auf einen Verweis öffnet sein Ziel, ein Klick auf ein Schlagwort filtert die Tag-Sidebar wie im Fließtext.
+- **Verweis-Netz**: Das Ziel führt das Dokument unter seinen **Backlinks**, und die **Outgoing-Links** und die [Graphenansicht](graph.md) zeigen die Verbindung. Wird das Ziel umbenannt oder verschoben, zieht der Verweis in der Zelle mit; Alias und Tabelle bleiben dabei unversehrt.
+- **Schlagworte zählen**: Ein Schlagwort aus einer Zelle zählt in der Tag-Sidebar, in der Reihenfolge der Vorschläge und in Abfragen, und die [Umbenennung eines Tags](linking.md) erfasst auch Zellen.
+- **Was Text bleibt**: Fett, Kursiv, Formeln und übrige Auszeichnung erscheinen so, wie sie geschrieben sind, weil eine Text-Zelle Werte trägt und keine Prosa. In Backticks gesetzt bleibt auch `[[…]]` wörtlich stehen und ist kein Verweis. Zahl-, Datum-, Uhrzeit- und Wahrheitswert-Spalten, berechnete Spalten und die Kopfzeilen des Blocks bilden keine Verweise; Sortieren, Filtern und Aggregate arbeiten auf dem geschriebenen Text.
+- **Abgeschaltet**: Ist die Datentabelle abgeschaltet, erscheint der Block als Code-Block ohne anklickbare Verweise; Backlinks und das Nachziehen beim Umbenennen bleiben trotzdem bestehen. Sind Wiki-Links oder Tags abgeschaltet, bleibt der Zell-Text reiner Text.
+
 ## Aggregate
 
 Verfügbare Funktionen je Spalten-Typ:
@@ -78,7 +98,7 @@ aggregate: Gesamt:sum
 | Block | 3.50 | 4 |
 ```
 
-- Die Ausdrucks-Sprache ist dieselbe wie in der [Perspective-Abfrage](frontmatter-query.md): Arithmetik, Vergleiche, `choice(…)`, `default(…)`, Text-Funktionen und mehr.
+- Die Ausdrucks-Sprache ist dieselbe wie in der [Perspective-Abfrage](frontmatter-query.md): Arithmetik, Vergleiche, `choice(…)`, `default(…)`, Text-Funktionen und mehr. Dazu gehört `count(x)`; in einer Formel zählt es die Werte des genannten Feldes in der einen Zeile und ist nicht die Aggregat-Funktion `count` der Aggregat-Zeile, die über alle Zeilen zählt.
 - Spaltennamen im Ausdruck verweisen auf die Werte der jeweiligen Zeile; auch andere berechnete Spalten sind in beliebiger Deklarations-Reihenfolge nutzbar (die Auswertung löst die Abhängigkeiten auf). Kreis-Bezüge werden als Struktur-Fehler gemeldet.
 - Das Ergebnis muss zum deklarierten Spalten-Typ passen, sonst zeigt die Zelle einen Fehler.
 - Berechnete Werte stehen **nie im Quelltext** — sie werden immer frisch gerechnet und haben deshalb keine Datenzelle in den Pipe-Zeilen. Aggregate über berechnete Spalten rechnen auf den berechneten Werten.
@@ -88,6 +108,8 @@ aggregate: Gesamt:sum
 In der **geteilten Ansicht** und im **Live-Modus** ist das Grid direkt bearbeitbar; die Lese-Ansicht und Handbuch-Seiten zeigen es schreibgeschützt. Jede Übernahme schreibt in den Code-Block im Quelltext zurück — das Dokument wird regulär ungespeichert, Rückgängig/Wiederherstellen funktionieren wie gewohnt.
 
 - **Zelle bearbeiten**: Klick auf die Zelle (oder `Enter`/`F2` bei Zell-Fokus) öffnet ein typ-gerechtes Eingabefeld. `Enter` oder Fokus-Verlust übernimmt, `Esc` verwirft, `Tab`/`Umschalt+Tab` übernimmt und springt zur nächsten bzw. vorherigen Zelle.
+- **Verweise in der Zelle**: Ein Klick auf einen Verweis oder ein Schlagwort in einer Text-Zelle folgt ihm und öffnet die Zelle nicht. Ein Klick in den freien Teil der Zelle, `Enter` oder `F2` öffnen sie mit dem geschriebenen Text. Hat der Verweis selbst den Tastatur-Fokus, folgt ihm `Enter`, und `F2` öffnet die Zelle.
+- **Vorschläge**: In einer Text-Zelle erscheint nach `[[` und `#` dieselbe [Vorschlagsliste](linking.md) wie im Fließtext, auch in einer leeren Zelle; `Strg+Leertaste` öffnet sie ausdrücklich. Solange sie offen ist, wählen die Pfeiltasten, `Enter` übernimmt den Vorschlag in das Feld und `Esc` schließt nur die Liste; ein zweites `Enter` übernimmt die Zelle. `Tab` übernimmt keinen Vorschlag, sondern schließt die Liste, übernimmt die Zelle und springt weiter. In Zahl-, Datum- und Uhrzeit-Zellen erscheint keine Liste, und Aufgaben-Marker schlägt sie in der Zelle nicht vor.
 - **Typ-Zwang**: Ein Wert, der nicht zum Spalten-Typ passt, wird abgewiesen (Hinweis in der Statusbar); die Zelle bleibt zur Korrektur geöffnet.
 - **Boolean**: Klick auf die Zelle (oder Leertaste) schaltet den Wert direkt um.
 - **Zeilen**: Der Knopf unter der Tabelle fügt eine Zeile am Daten-Ende an; das ×-Symbol am Zeilenanfang löscht die Zeile.
@@ -109,7 +131,7 @@ Sortieren und Filtern wirken **nur auf die Ansicht** — der Quelltext bleibt un
 
 ## Export
 
-Der Portable-Export und der PDF-Export geben die Tabelle als statische Tabelle in Dokument-Reihenfolge aus — mit allen Zeilen, den gerechneten Werten der berechneten Spalten und der Aggregat-Zeile, ohne Interaktivität.
+Der Portable-Export und der PDF-Export geben die Tabelle als statische Tabelle in Dokument-Reihenfolge aus — mit allen Zeilen, den gerechneten Werten der berechneten Spalten und der Aggregat-Zeile, ohne Interaktivität. Verweise und Schlagworte aus Text-Zellen erscheinen dort wie Verweise und Schlagworte im übrigen Dokument.
 
 ## Grenzen
 

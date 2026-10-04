@@ -20,6 +20,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
+const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 
 // Temp-Bereich wieder abraeumen; ein liegengebliebenes Verzeichnis ist
 // unkritisch (Muster bereiche.spec.js).
@@ -33,10 +34,14 @@ function removeDir(dir) {
 
 // Menü-Klicks simulieren (Muster smoke.spec.js).
 async function sendMenuChannel(app, channel) {
-  await app.evaluate(({ BrowserWindow }, kanal) => {
-    const win = BrowserWindow.getAllWindows()[0];
-    if (win && !win.isDestroyed()) win.webContents.send(kanal, ...[]);
-  }, channel);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, kanal) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      if (win && !win.isDestroyed()) win.webContents.send(kanal, ...[]);
+    },
+    channel,
+  );
 }
 
 // Eine Einrichtung mit bekanntem Umfang: zwei eigene Farbschemas, drei
@@ -157,7 +162,7 @@ test.describe('EX-03: abgeschaltete Erweiterung entfernt den Menü-Eintrag (S-14
     // Menues pro Fenster, Menu.getApplicationMenu() ist leer (Muster
     // armMenuCapture in arbeitsbereiche.spec.js).
     const armMenuCapture = async (app) => {
-      await app.evaluate(({ BrowserWindow }) => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
         const win = BrowserWindow.getAllWindows()[0];
         if (!win || win.__menuCaptureArmed) return;
         win.__menuCaptureArmed = true;
@@ -176,7 +181,7 @@ test.describe('EX-03: abgeschaltete Erweiterung entfernt den Menü-Eintrag (S-14
         };
       });
     };
-    const labels = (app) => app.evaluate(() => globalThis.__menuLabels || []);
+    const labels = (app) => hauptLesen(app, () => globalThis.__menuLabels || []);
 
     const { app, page, userData } = await launchApp({ settings: { language: 'de' } });
     try {

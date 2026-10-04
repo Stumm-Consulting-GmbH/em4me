@@ -24,6 +24,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const ZELL_LISTE = '.cm-live-tabelle-vorschlaege';
 const ZELL_LABEL = `${ZELL_LISTE} .cm-completionLabel`;
@@ -82,7 +83,8 @@ function raeumeAuf(dir) {
 }
 
 async function sendMenuChannel(app, channel, ...args) {
-  await app.evaluate(
+  await hauptSenden(
+    app,
     ({ BrowserWindow }, payload) => {
       const win = BrowserWindow.getAllWindows()[0];
       if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);

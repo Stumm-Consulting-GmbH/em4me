@@ -14,7 +14,7 @@ bereich = "Privat"
 ```
 ````
 
-Die volle Form besteht aus **Klauseln**: zuerst optional der Ausgabe-Typ (`LIST` oder `TABLE`), danach in beliebiger Reihenfolge je höchstens einmal `FROM` (Quellen), `WHERE` (Bedingung), `SORT` (Sortierung), `LIMIT` (Begrenzung) und `COLUMNS` (Spalten-Layout der Liste). Zeilenumbrüche zählen wie Leerzeichen; Schlüsselwörter sind unabhängig von der Groß-/Kleinschreibung.
+Die volle Form besteht aus **Klauseln**: zuerst optional der Ausgabe-Typ (`LIST` oder `TABLE`), danach in beliebiger Reihenfolge je höchstens einmal `FROM` (Quellen), `WHERE` (Bedingung), `GROUP BY` (Gruppierung), `HAVING` (Bedingung über die Gruppe), `SORT` (Sortierung), `LIMIT` (Begrenzung), `COLUMNS` (Spalten-Layout der Liste) und `DISPLAY` (Darstellungsform). Zeilenumbrüche zählen wie Leerzeichen; Schlüsselwörter sind unabhängig von der Groß-/Kleinschreibung.
 
 ````markdown
 ```perspective-query
@@ -91,7 +91,7 @@ Boolesche Task-Felder filtern über den String-Vergleich (`blocked = "true"`), w
 
 **Sortierung:** Ohne `SORT` ordnet die Task-Liste nach Status-Typ (Laufendes zuerst, Erledigtes und Verworfenes ans Ende), dann Dringlichkeit absteigend, Fälligkeit, Priorität und Pfad. `SORT` (etwa `SORT urgency DESC` oder `SORT due`) übersteuert diese Vorgabe.
 
-**Gruppierung (`GROUP BY`):** `GROUP BY ausdruck, …` gliedert die Task-Ausgabe unter Gruppen-Überschriften; jeder weitere Ausdruck erzeugt eine Verschachtelungs-Ebene. Treffer ohne Wert bilden die letzte Gruppe. Die Klausel gilt in dieser Form nur für `LIST TASKS`.
+**Gruppierung (`GROUP BY`):** `GROUP BY ausdruck, …` gliedert die Task-Ausgabe unter Gruppen-Überschriften; jeder weitere Ausdruck erzeugt eine Verschachtelungs-Ebene, und Treffer ohne Wert bilden die letzte Gruppe. Gruppierung, Aggregate und die Bedingung über die Gruppe gelten auf allen Ebenen; sie beschreibt der Abschnitt «Gruppierung und Aggregation».
 
 ````markdown
 ```perspective-query
@@ -109,6 +109,77 @@ LIST TASKS SHOW urgency HIDE backlink, created SHORT
 
 **Globale Abfrage:** Der Einstellungs-Bereich **Aufgaben** kann `FROM`-/`WHERE`-Anteile hinterlegen, die jeder `TASKS`-Abfrage implizit vorangestellt werden (etwa ein Ordner- oder Status-Filter für den ganzen Bereich). Eine fehlerhafte globale Abfrage meldet sich am Fence mit eigenem Hinweis.
 
+## Datensatz-Ebene (`RECORDS`)
+
+Der Scope-Zusatz `RECORDS` direkt hinter `LIST` bzw. `TABLE` wertet die Abfrage über die **Datensätze** von Datenbank-Tabellen aus (Seite [Datenbank](database.md)). Treffer sind einzelne Datensätze: Jeder erscheint mit seiner Anzeige-Form, ohne sie mit seiner internen Kennung, und ein Klick öffnet seine **Maske** statt der Tabellen-Datei.
+
+````markdown
+```perspective-query
+TABLE RECORDS autor, seiten
+FROM "Bücher"
+WHERE seiten > 500
+SORT autor
+```
+````
+
+- **Quelle**: `FROM` nennt die Tabelle als Zeichenkette, beim Namen ihrer Datei ohne Endung und ohne Rücksicht auf die Schreibung (`"Bücher"`) oder als Pfad relativ zur Bereichs-Wurzel samt Endung (`"Archiv/Bücher.md"`), wie die Angabe `table` einer Verweis-Spalte. Mehrere Tabellen verbinden `OR`, `AND`, Klammern und `-` wie gewohnt. Mindestens eine Tabelle oder eine Hierarchie (Abschnitt «Hierarchien» unten) muss ohne Verneinung genannt sein; Schlagwort, Wiki-Link, `outgoing(…)` und der leere Wiki-Link ergeben auf dieser Ebene eine Fehlermeldung. Eine Tabelle, die es nicht gibt, liefert keine Treffer. Eine Tabelle, deren Datei im Vorlagen-Ordner liegt, liefert ebenfalls keine, außer `FROM` nennt sie über ihren Pfad durch diesen Ordner, etwa `"Vorlagen/Bücher.md"`; ihr Name allein genügt dafür nicht (Abschnitt «Quellen»).
+- **Felder und Werte**: Nackte Namen sind die Felder der Tabelle, ohne Rücksicht auf die Schreibung. Jeder Wert hat den Typ seiner Spalte, Bedingung und Sortierung behandeln Zahlen also als Zahlen und Daten chronologisch; ein Wahrheitswert wird mit `feld = "true"` bzw. `feld = "false"` geprüft. Passt ein Zell-Inhalt nicht zu seinem Typ, gilt der Wert als fehlend. Ein Name, den die Tabelle nicht führt, bleibt leer und greift nicht auf das Frontmatter der Tabellen-Datei zurück.
+- **Eigene Angaben**: `record.id` ist die interne Kennung des Datensatzes, `record.table` der Name seiner Tabelle; beide gehen einem Feld vor, das wörtlich so heißt. `file.*` meint die Tabellen-Datei, `this.` die Träger-Datei der Abfrage.
+- **Tabellen**: `TABLE RECORDS …` zeigt den Treffer in der ersten Spalte «Datensatz»; `WITHOUT ID` steht nach `RECORDS`. Spalten-Titel ist der Alias, sonst die Beschriftung des Feldes in der eingestellten Programmsprache nach der Rückfall-Kette der Seite [Datenbank](database.md), sonst der Ausdruck selbst, etwa bei einem Pfad.
+- **Verweis-Werte**: Ein Verweis-Feld zeigt die Anzeige-Form seines Ziels, ohne sie dessen Kennung, und ein Klick öffnet die Maske des Ziels. Ein leerer Verweis und einer ins Leere bleiben eine leere Zelle.
+- **Ordnung**: Ohne `SORT` stehen die Treffer nach ihrer Anzeige-Form ohne Rücksicht auf die Schreibung, bei gleicher Anzeige-Form nach der Kennung und Datensätze ohne Anzeige-Form am Ende.
+- **Zwei Klick-Ziele**: Ein Datensatz im Ergebnis einer Abfrage öffnet die Maske, ein Verweis im Fließtext wie `[[Bücher#^r-00042]]` dagegen die Tabellen-Datei an der Zeile des Datensatzes. Die Maske zeigt den gespeicherten Stand.
+- **Ungespeicherter Stand**: Änderungen an einer geöffneten Tabelle gehen sofort in das Ergebnis ein, ohne Speichern.
+- **Nicht auf dieser Ebene**: `bold()` in einer Spalte oder in einem Ausdruck von `GROUP BY` ergibt eine Fehlermeldung, weil ein Datenbank-Wert keine Auszeichnung trägt; in Bedingung und Sortierung bleibt es erlaubt. `HIDE`, `SHOW` und `SHORT` gelten nur für `LIST TASKS` und melden sich hier wie auf der Datei- und der Block-Ebene.
+- **Leeres Ergebnis und abgeschaltete Datenbank**: Ohne Treffer steht «Kein Datensatz entspricht dieser Abfrage». Ist die Erweiterung «Datenbank» ausgeschaltet, bleibt die Liste leer, darüber steht ein Hinweis, und eine Fehlermeldung erscheint nicht.
+
+### Verknüpfung über Verweis-Felder
+
+Ein **Pfad** über ein Verweis-Feld liest die Felder des Datensatzes, auf den es zeigt: In einer Ausleihe ist `buch.titel` der Titel des verwiesenen Buches, und `buch.verlag.ort` geht eine Stufe weiter in eine dritte Tabelle. Pfade wirken in Spalten, in `WHERE` und in `SORT`:
+
+````markdown
+```perspective-query
+TABLE RECORDS buch.titel AS "Titel", buch.autor AS "Autor", rückgabe
+FROM "Ausleihen"
+WHERE buch.seiten > 300
+SORT buch.titel
+```
+````
+
+- Ein Feld, das wörtlich wie der Pfad heißt, etwa `buch.titel`, geht vor.
+- Ein leerer Verweis, einer ins Leere und einer, dessen Schlüssel-Wert auf mehrere Datensätze passt, ergeben einen leeren Wert; beim mehrdeutigen steht zusätzlich ein Hinweis über dem Ergebnis. Ein Pfad über ein Feld, das kein Verweis ist, bleibt ebenso leer.
+- Endet ein Pfad auf einem Verweis-Feld, zeigt die Zelle wieder einen Verweis, der die Maske öffnet.
+
+Die **Gegenrichtung** braucht keine eigene Schreibweise. Welche Ausleihen auf ein Buch zeigen, sagt eine Bedingung auf dem Verweis-Feld:
+
+````markdown
+```perspective-query
+LIST RECORDS FROM "Ausleihen" WHERE buch = "r-00005"
+```
+````
+
+Verglichen wird so, wie eine Verweis-Zelle gelesen wird: Eine Kennung trifft in beiden Schreibweisen (`r-5` und `r-00005`), jeder andere Text wird mit dem einteiligen fachlichen Schlüssel des Ziels verglichen, Zeichen für Zeichen. Die Anzeige-Form zählt dabei nur, wenn sie zugleich der Schlüssel ist. `!=`, `IN` und `NOT IN` folgen derselben Regel, und `SORT` nach einem Verweis-Feld ordnet nach der Anzeige-Form des Ziels.
+
+### Hierarchien (`ancestors`, `descendants`)
+
+Zwei Quellen sammeln Datensätze über **beliebig viele Stufen** eines Verweis-Feldes, etwa die Mitarbeitenden einer Organisation über das Feld `chef`:
+
+````markdown
+```perspective-query
+LIST RECORDS FROM descendants([[Team#^r-00001]], chef) WHERE seit > 2015
+```
+````
+
+- `descendants(ziel, feld, …)` liefert alle Datensätze, die über die genannten Felder direkt oder über Zwischenstufen auf das Ziel zeigen; `ancestors(ziel, feld, …)` die Gegenrichtung, also die Kette der Datensätze, auf die das Ziel zeigt, bis nach oben.
+- **Ziel** ist ein Datensatz-Verweis in der Schreibweise des Fließtexts. Die Tabelle steht beim Namen oder als Pfad, auch ohne Endung; hinter `#` folgt die Kennung, mit oder ohne `^` und auch in der Kurzform, oder der Wert des einteiligen fachlichen Schlüssels, etwa `[[Team#Clara]]`. Ein Alias hinter `|` zählt nicht.
+- **Felder**: ein oder mehrere Verweis-Felder, durch Komma getrennt, etwa `vater, mutter`; ein Name mit Leerzeichen steht in Anführungszeichen. Die Hierarchie folgt allen genannten Feldern, auch über Tabellen-Grenzen.
+- Das **Ziel selbst gehört nicht** zum Ergebnis, und jeder Datensatz steht darin höchstens einmal. Eine Tiefen-Grenze gibt es nicht. Bilden die Verweise einen Kreis, endet die Suche trotzdem, und über dem Ergebnis steht ein Hinweis statt einer Fehlermeldung.
+- Die Menge wirkt wie jede Quelle: `WHERE`, `SORT`, `LIMIT` und Spalten gelten, `AND "Tabelle"` begrenzt sie auf eine Tabelle, `-` schließt sie aus. Allein genannt ist eine Hierarchie eine vollständige Quelle; nur verneint ergibt sie eine Fehlermeldung, weil sie dann keine Tabelle begrenzt.
+- Ein Ziel, das es nicht gibt, liefert keine Treffer. Passt der Schlüssel-Wert des Ziels auf mehrere Datensätze, bleibt das Ergebnis leer, und über ihm steht der Hinweis auf den mehrdeutigen Verweis.
+- Beide Quellen gibt es nur auf der Datensatz-Ebene; auf den übrigen Ebenen ergeben sie eine Fehlermeldung.
+
+Als eingerückten Baum zeigt eine Hierarchie die Angabe `DISPLAY tree BY feld` (Abschnitt «Darstellungsform»).
+
 ## Quellen (`FROM`)
 
 `FROM` grenzt den Treffer-Raum ein, bevor die Bedingung geprüft wird:
@@ -121,6 +192,12 @@ LIST TASKS SHOW urgency HIDE backlink, created SHORT
 | `outgoing([[Datei]])` | Dateien, auf die `Datei` verlinkt |
 | `[[]]` | Dateien, die auf die Träger-Datei verlinken (Abschnitt «Selbstbezug») |
 | `outgoing([[]])` | Dateien, auf die die Träger-Datei verlinkt |
+| `descendants([[Tabelle#^r-00001]], feld)` | Datensätze, die über `feld` auf den Ziel-Datensatz zeigen, über alle Stufen (nur Datensatz-Ebene, Abschnitt «Hierarchien») |
+| `ancestors([[Tabelle#^r-00001]], feld)` | Datensätze, auf die der Ziel-Datensatz über `feld` zeigt, über alle Stufen (nur Datensatz-Ebene) |
+
+Auf der Datensatz-Ebene nennt eine Zeichenkette statt eines Ordners eine Tabelle (Abschnitt «Datensatz-Ebene»).
+
+**Vorlagen sind kein Treffer.** Was im Vorlagen-Ordner der Seite [Vorlagen](templates.md) liegt, samt Unterordnern, erscheint auf keiner Ebene im Ergebnis: weder die Datei noch ihre Blöcke und Aufgaben noch die Datensätze einer Tabelle darin. Nennt `FROM` den Vorlagen-Ordner oder einen seiner Unterordner ausdrücklich, zeigt die Abfrage genau den Inhalt des genannten Ordners: `FROM "Vorlagen"` alle Vorlagen, `FROM "Projekte" OR "Vorlagen"` die Projekte und die Vorlagen. Keine Nennung sind ein übergeordneter Ordner wie die Bereichs-Wurzel `""`, ein verneinter Ordner wie `-"Vorlagen"`, ein Schlagwort und ein Verweis. Ist die Erweiterung «Vorlagen» ausgeschaltet, entfällt der Ausschluss.
 
 Quellen sind mit `AND`, `OR`, Klammern und dem Negations-Präfix `-` kombinierbar:
 
@@ -169,7 +246,7 @@ LIST WHERE bereich = this.bereich AND file.path != this.file.path
 ```
 ````
 
-- **Gleiche Bedeutung in allen Ebenen**: Auch in `BLOCKS`- und `TASKS`-Abfragen meint `this.` die Träger-Datei des Blocks, nie den einzelnen Block oder die Task-Zeile.
+- **Gleiche Bedeutung in allen Ebenen**: Auch in `BLOCKS`-, `TASKS`- und `RECORDS`-Abfragen meint `this.` die Träger-Datei des Blocks, nie den einzelnen Block, die Task-Zeile oder den Datensatz.
 - **Vorrang**: Die `this.`-Regel greift vor einer gleichnamigen Frontmatter-Eigenschaft, genau wie der Namensraum `file.`.
 - **Ohne Träger-Datei**: Lässt sie sich nicht auflösen, ergibt jeder `this.`-Zugriff einen leeren Wert; ein nacktes `this` ohne Punkt bleibt wie jeder unbekannte Feldname leer.
 
@@ -208,7 +285,8 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `numberformat(x[, n])` | `numberformat(betrag, 2)` | Zahl lokalisiert darstellen: ohne zweites Argument nach Sprach-Vorgabe, sonst mit genau n Nachkommastellen |
 | `currencyformat(x[, w])` | `currencyformat(betrag, "CHF")` | Betrag lokalisiert darstellen: ohne Angabe in Euro, bei unbekanntem Währungs-Code die unformatierte Zahl |
 | `infolder(l, "Ordner")` | `length(infolder(file.inlinks, "Projekte")) = 0` | Teilliste der Link-Werte, deren Ziel im Ordner oder darunter liegt |
-| `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(werte) = 6` | Aggregate über Zahlen-Listen |
+| `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(werte) = 6` | Aggregate über Zahlen-Listen; über einer Gruppe fassen sie die Werte aller ihrer Treffer zusammen (Abschnitt «Gruppierung und Aggregation») |
+| `count(x)` | `count(tags) > 2` | Zahl der vorhandenen Werte: bei einer Liste ihre Elemente, bei einem Einzelwert 1, ohne Wert 0; `count()` ohne Feld zählt die Treffer einer Gruppe |
 | `bold(x)` | `bold(status)` | Wert hervorgehoben darstellen (Abschnitt «Hervorhebung») |
 
 Eine unbekannte Funktion oder eine falsche Argument-Anzahl zeigt einen Fehlerhinweis am Block.
@@ -217,7 +295,7 @@ Eine unbekannte Funktion oder eine falsche Argument-Anzahl zeigt einen Fehlerhin
 
 ## Hervorhebung
 
-`bold(wert)` stellt einen Wert hervorgehoben dar, in Tabellen-Zellen, im Zusatzfeld der Liste und im Gruppen-Titel gleichermaßen. Die Auszeichnung übersteht die Verkettung: `bold` darf auch nur einen **Teil** eines zusammengesetzten Ausdrucks einfassen, der Rest bleibt normal.
+`bold(wert)` stellt einen Wert hervorgehoben dar, in Tabellen-Zellen, im Zusatzfeld der Liste und im Wert einer Gruppe gleichermaßen. Die Auszeichnung übersteht die Verkettung: `bold` darf auch nur einen **Teil** eines zusammengesetzten Ausdrucks einfassen, der Rest bleibt normal.
 
 ````markdown
 ```perspective-query
@@ -245,7 +323,48 @@ LIMIT 1
 
 ## Sortierung und Limit
 
-`SORT feld [ASC|DESC], feld2 …` sortiert das Ergebnis mehrstufig und typ-gerecht (Zahl numerisch, Datum chronologisch, Text alphabetisch nach Sprachregeln); fehlende Werte stehen unabhängig von der Richtung am Ende. Ohne `SORT` bleibt die alphabetische Ordnung. `LIMIT n` begrenzt das Ergebnis nach der Sortierung.
+`SORT feld [ASC|DESC], feld2 …` sortiert das Ergebnis mehrstufig und typ-gerecht (Zahl numerisch, Datum chronologisch, Text alphabetisch nach Sprachregeln); fehlende Werte stehen unabhängig von der Richtung am Ende. Ohne `SORT` bleibt die alphabetische Ordnung; Aufgaben und Datensätze ordnen nach der Vorgabe ihres Abschnitts. `LIMIT n` begrenzt das Ergebnis nach der Sortierung. In einer gruppierten Tabelle ordnen und begrenzen `SORT` und `LIMIT` die Gruppen statt der Treffer (Abschnitt «Gruppierung und Aggregation»).
+
+## Gruppierung und Aggregation (`GROUP BY`, `HAVING`)
+
+`GROUP BY ausdruck, …` fasst die Treffer nach dem Wert eines Ausdrucks zu Gruppen zusammen, auf jeder Ebene: bei Dateien, Blöcken, Aufgaben und Datensätzen. Jeder weitere Ausdruck bildet eine Stufe unter der vorigen. Die Gruppen stehen nach ihrem Wert geordnet, Treffer ohne Wert zuletzt in der Gruppe «(ohne Wert)». Ein Listen-Wert wie `file.tags` bildet eine Gruppe je Kombination, `[rot, blau]` und `[blau, rot]` also zwei; nach einzelnen Listen-Elementen wird nicht aufgeteilt. Ein Verweis-Feld der Datensatz-Ebene gruppiert nach dem Datensatz, auf den es zeigt: Zwei Bücher gleichen Titels ergeben zwei Gruppen, jede zeigt die Anzeige-Form ihres Buches, und ein Klick auf sie öffnet dessen Maske.
+
+- **Liste**: `LIST … GROUP BY …` zeigt je Gruppe eine Überschrift und darunter ihre Treffer, jede Stufe eine Ebene tiefer eingerückt. Ein Treffer erscheint und reagiert auf den Klick wie in der Liste ohne Gruppierung.
+- **Tabelle**: `TABLE … GROUP BY …` zeigt je Gruppe eine Zeile, bei mehreren Stufen je Gruppe der untersten Stufe; einzelne Treffer erscheinen nicht. Vorn steht je Ausdruck von `GROUP BY` eine Spalte mit dem Gruppen-Wert, an der Stelle der Spalte «Datei» bzw. «Datensatz». Ihr Titel ist auf der Datensatz-Ebene die Beschriftung des Feldes, sonst der Ausdruck selbst; `WITHOUT ID` blendet diese Spalten aus. Die übrigen Spalten zeigen Werte über der Gruppe.
+
+````markdown
+```perspective-query
+TABLE RECORDS count() AS "Bücher", sum(seiten) AS "Seiten"
+FROM "Bücher"
+GROUP BY autor
+HAVING count() > 1
+SORT count() DESC, autor
+```
+````
+
+**Zeile oder Gruppe.** Eine Aggregat-Funktion bekommt ihre Bedeutung aus der Stelle, an der sie steht. **Aggregat-Stellen** sind die Spalten und `SORT` einer gruppierten Tabelle sowie `HAVING`; dort rechnet sie über alle Treffer der Gruppe. Überall sonst rechnet sie über den Wert des einzelnen Treffers, also in `WHERE`, in den Ausdrücken von `GROUP BY`, in den Spalten einer Tabelle ohne `GROUP BY`, im Zusatzfeld der Liste und in `SORT` einer gruppierten Liste. Drei Beispiele:
+
+| Abfrage | Bedeutung |
+|---|---|
+| `TABLE sum(werte)` | je Datei die Summe ihrer Liste `werte` (Zeile) |
+| `TABLE sum(werte) GROUP BY status` | je Status die Summe aller Werte aller Dateien mit diesem Status (Gruppe) |
+| `LIST GROUP BY status HAVING count() > 2` | nur die Status mit mehr als zwei Dateien, darunter ihre Dateien (Bedingung über die Gruppe) |
+
+**Über der Gruppe** zählt `count()` die Treffer und `count(x)` die Treffer, bei denen `x` einen Wert hat. `sum`, `average`, `min` und `max` fassen die Werte aller Treffer zusammen, eine Liste mit allen ihren Elementen; `min` und `max` nehmen dort auch Datums-Werte und liefern dann ein Datum. Über Aggregaten darf gerechnet werden, etwa `sum(seiten) / count()`. Das Aggregat über die Liste eines einzelnen Treffers ist an einer Aggregat-Stelle nicht erreichbar. In der Aggregat-Zeile der [Perspective Datatable](datatable.md) heißt der Durchschnitt `avg`, in der Abfrage `average`.
+
+**Erlaubt an einer Aggregat-Stelle** sind ein Ausdruck, der einem Ausdruck von `GROUP BY` gleicht (die Schreibung der Feld-Namen zählt dabei nicht), Literale, Aggregate und jede Rechnung oder Funktion über ihnen, etwa `upper(autor) + ": " + count()`. Eine Fehlermeldung ergeben dagegen:
+
+- ein anderes Feld in einer Spalte oder in `SORT` einer gruppierten Tabelle, auch ein Selbstbezug mit `this.`; die Meldung nennt die Spalte und verweist auf `LIST`, das die einzelnen Treffer zeigt;
+- ein anderes Feld in `HAVING`; die Meldung nennt das Feld und verweist auf `WHERE`, das die einzelnen Treffer filtert;
+- ein Aggregat in einem Aggregat, etwa `sum(count(x))`;
+- `count()` ohne Feld an einer Zeilen-Stelle, etwa in `WHERE` oder in einer Tabelle ohne `GROUP BY`;
+- `HAVING` ohne `GROUP BY`.
+
+**Bedingung über die Gruppe (`HAVING`).** `HAVING` prüft die Gruppen wie `WHERE` die Treffer: Es ist ein Wahrheits-Ausdruck wie nach `WHERE`, steht nur zusammen mit `GROUP BY` an beliebiger Stelle der Klauseln und wirkt in Liste und Tabelle. Bei mehreren Stufen prüft es die Gruppen der untersten Stufe. Eine Gruppe darüber, unter der keine Untergruppe bleibt, entfällt, und die übrigen behalten nur die Treffer ihrer verbliebenen Untergruppen.
+
+**Reihenfolge.** In der gruppierten Tabelle filtert `WHERE` die Treffer, danach entstehen die Gruppen, `HAVING` prüft sie, `SORT` ordnet sie (ohne `SORT` nach ihrem Wert), und `LIMIT` begrenzt die Zahl der Zeilen. Bei mehreren Stufen ordnet `SORT` die Gruppen jeder Stufe untereinander. In der gruppierten Liste ordnen und begrenzen `SORT` und `LIMIT` dagegen die Treffer, bevor die Gruppen entstehen, und `HAVING` wirkt danach; die Gruppen selbst stehen dort nach ihrem Wert geordnet.
+
+**Grenzen.** Eine Tabelle ohne `GROUP BY` rechnet je Treffer; eine Gesamtsumme über alle Treffer ohne Gruppierung gibt es nicht. `HIDE`, `SHOW` und `SHORT` bleiben der Aufgaben-Liste vorbehalten. Der Baum (`DISPLAY tree`) passt zu keiner gruppierten Abfrage. Als Quelle eines Wertevorrats oder Sammel-Feldes liefert eine gruppierte Abfrage dieselben Treffer wie ohne Gruppierung (Seite [Eigenschafts-Profile](property-profiles.md)).
 
 ## Mehrspaltige Listen
 
@@ -257,11 +376,32 @@ LIST FROM #lesezeichen COLUMNS 3
 ```
 ````
 
+## Darstellungsform (`DISPLAY`)
+
+Die Angabe `DISPLAY` mit dem Namen einer Form wählt, in welcher Form das Ergebnis erscheint. Sie ist eine Klausel wie die übrigen und steht üblicherweise am Ende; ohne sie erscheint das Ergebnis als Liste oder Tabelle, je nach Ausgabe-Typ. Liste und Tabelle selbst wählen `LIST` und `TABLE`, nicht `DISPLAY`; `DISPLAY list` und `DISPLAY table` gelten deshalb als unbekannte Formen.
+
+````markdown
+```perspective-query
+LIST RECORDS FROM "Team" DISPLAY tree BY chef
+```
+````
+
+Wählbar ist der **Baum** (`DISPLAY tree BY feld`). Er zeigt die Datensätze einer Datensatz-Abfrage eingerückt entlang des genannten Verweis-Feldes:
+
+- Ein Datensatz hängt unter dem Datensatz, auf den sein Feld zeigt, wenn dieser im Ergebnis steht. Sonst ist er eine **Wurzel** und steht ganz links: ohne Verweis, mit einem Verweis ins Leere oder auf einen Datensatz, den die Bedingung herausfiltert. Bei `descendants(…)` sind deshalb die dem Ziel direkt unterstellten Datensätze die Wurzeln, weil das Ziel selbst nicht zum Ergebnis gehört.
+- Wurzeln und Geschwister stehen in der Reihenfolge des Ergebnisses, die `SORT` bestimmt.
+- Jeder Datensatz erscheint genau einmal, auch wenn die Verweise einen Kreis bilden. Ein Kreis ohne Wurzel folgt hinter den übrigen Wurzeln und beginnt mit seinem ersten Datensatz in der Reihenfolge des Ergebnisses.
+- Es wirkt allein das Feld nach `BY`. Führt eine Tabelle zwei Eltern-Felder wie Vater und Mutter, folgt der Baum dem genannten; welche Datensätze im Ergebnis stehen, bestimmt weiter die Quelle.
+- Ein Knoten zeigt die Anzeige-Form wie ein Listen-Eintrag, bei `LIST` mit dem Zusatzfeld dahinter; bei `TABLE` zeigt der Baum keine Spalten. Ein Klick öffnet die Maske.
+- Tiefer als 32 Ebenen wird nicht weiter eingerückt; tiefere Knoten stehen vollständig auf der 32. Ebene.
+
+**Rückfall**: Ist eine Form unbekannt oder passt sie nicht zur Abfrage, erscheint das Ergebnis ohne sie, also als Liste oder Tabelle, darüber ein Hinweis mit dem Namen der Form und keine Fehlermeldung. Der Baum passt nur auf der Datensatz-Ebene und nur mit einem Feld nach `BY`, das bei mindestens einer Tabelle des Ergebnisses ein Verweis-Feld ist. Zu einer gruppierten Abfrage passt er nie; dann erscheint die gruppierte Ausgabe mit dem Hinweis. Ein leeres Ergebnis zeigt seinen Leer-Hinweis und keine Form. Fehlt nach `DISPLAY` der Name der Form oder nach `BY` das Feld, ist die Abfrage ungültig.
+
 ## Anzeige und Interaktion
 
-- **Klickbare Treffer**: Jeder Treffer erscheint mit seinem logischen Dateinamen; der volle Pfad steht im Tooltip. Ein Klick öffnet die Zieldatei in einem Tab, genau wie ein Wiki-Link — auch in Tabellen-Zellen mit Link-Werten.
+- **Klickbare Treffer**: Jeder Treffer erscheint mit seinem logischen Dateinamen; der volle Pfad steht im Tooltip. Ein Klick öffnet die Zieldatei in einem Tab, genau wie ein Wiki-Link — auch in Tabellen-Zellen mit Link-Werten. Auf der Datensatz-Ebene heißt ein Treffer nach seiner Anzeige-Form, und ein Klick öffnet seine Maske.
 - **Live-Aktualisierung**: Neue, geänderte und gelöschte Dateien schlagen ohne manuelles Neuladen auf sichtbare Ergebnisse durch, sobald der Index sie erfasst hat.
-- **Leeres Ergebnis**: Trifft die Abfrage keine Datei, erscheint ein kurzer Hinweis statt einer leeren Fläche.
+- **Leeres Ergebnis**: Trifft die Abfrage keine Datei und keinen Datensatz, erscheint ein kurzer Hinweis statt einer leeren Fläche.
 - **Ungültige Abfrage**: Ein Syntaxfehler zeigt einen Fehlerhinweis mit der Position statt eines Ergebnisses.
 
 Die drei Ansichten Gerendert, Geteilt und Live zeigen dasselbe Ergebnis. In der reinen Quelltext-Ansicht bleibt der Block als Code sichtbar.
@@ -273,7 +413,7 @@ Der Suchraum ist derselbe wie beim Datei-Index:
 - **Mit aktivem Bereich** umfasst er den gesamten Bereich; Link-Bezüge (`FROM [[…]]`, `file.inlinks`) sind dort vollständig.
 - **Ohne Bereich** umfasst er den Ordner der Datei plus zwei Unterebenen.
 
-Dateien außerhalb des Suchraums erscheinen nicht im Ergebnis. Eine noch nicht gespeicherte Datei hat keinen Suchraum; die Abfrage zeigt dann einen Hinweis, dass sie erst nach dem Speichern verfügbar ist. Ungespeicherte Änderungen an einer geöffneten Datei gehen dagegen sofort in das Ergebnis ein; dafür muss nichts gespeichert werden.
+Dateien außerhalb des Suchraums erscheinen nicht im Ergebnis, ebenso wenig, was im Vorlagen-Ordner liegt, außer die Abfrage nennt ihn (Abschnitt «Quellen»). Eine noch nicht gespeicherte Datei hat keinen Suchraum; die Abfrage zeigt dann einen Hinweis, dass sie erst nach dem Speichern verfügbar ist. Ungespeicherte Änderungen an einer geöffneten Datei, auch an einer Datenbank-Tabelle, gehen dagegen sofort in das Ergebnis ein; dafür muss nichts gespeichert werden.
 
 ## Export
 

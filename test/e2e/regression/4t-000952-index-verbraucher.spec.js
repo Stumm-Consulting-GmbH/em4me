@@ -25,7 +25,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, warteAufDateiArgument } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 
 const BACKLINKS = '.pane-group[data-pane="0"] .backlinks-results';
@@ -146,6 +146,9 @@ test.describe('UV: Index-Verbraucher auf geschriebenem Stand (4T-000952)', () =>
 
     const { app, page, userData } = await launchApp({ args: [ziel, quelle] });
     try {
+      // 4T-001689: Beide Dokumente abwarten, bevor der erste Schritt den aktiven
+      // Eintrag umschaltet; aktiv ist danach das letzte (helpers/app.js).
+      await warteAufDateiArgument(page, quelle);
       await bearbeitenAn(page);
       await page.locator('#btn-backlinks').click();
 
@@ -185,6 +188,7 @@ test.describe('UV: Index-Verbraucher auf geschriebenem Stand (4T-000952)', () =>
 
     const { app, page, userData } = await launchApp({ args: [ziel, quelle] });
     try {
+      await warteAufDateiArgument(page, quelle);
       await bearbeitenAn(page);
       await page.locator('#btn-backlinks').click();
 
@@ -227,6 +231,7 @@ test.describe('UV: Index-Verbraucher auf geschriebenem Stand (4T-000952)', () =>
 
     const { app, page, userData } = await launchApp({ args: [solo, quelle] });
     try {
+      await warteAufDateiArgument(page, quelle);
       await bearbeitenAn(page);
       await page.locator('#btn-filegraph').click();
 
@@ -261,6 +266,7 @@ test.describe('UV: Index-Verbraucher auf geschriebenem Stand (4T-000952)', () =>
 
     const { app, page, userData } = await launchApp({ args: [start, notiz] });
     try {
+      await warteAufDateiArgument(page, notiz);
       await bearbeitenAn(page);
 
       // Anker: Der gespeicherte Abschnitt wird vorgeschlagen. Die Liste führt
@@ -309,6 +315,7 @@ test.describe('UV: Index-Verbraucher auf geschriebenem Stand (4T-000952)', () =>
 
     const { app, page, userData } = await launchApp({ args: [start, notiz] });
     try {
+      await warteAufDateiArgument(page, notiz);
       await bearbeitenAn(page);
 
       // Anker: Das gespeicherte Schlagwort wird vorgeschlagen (mit Nachtriggern

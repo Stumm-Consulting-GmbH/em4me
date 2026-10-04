@@ -44,6 +44,7 @@ const { setPlatformForTests } = require_('../../src/shared/platform.js');
 // Index-Eintrag. Fuer seinen Nachweis wird derselbe Eintrag gelesen, den die
 // Sichten benutzen — ueber dieselbe Modul-Instanz wie oben.
 const { indexes } = require_('../../src/main/index/store.js');
+const { displayName } = require_('../../src/shared/query/result-display.js');
 
 const openRoots = new Set();
 let tmpDirs = [];
@@ -88,8 +89,10 @@ afterEach(() => {
   tmpDirs = [];
 });
 
+// 4T-002035 (Epic 3E-000260): Die Antwort der Abfrage ist allein die
+// Ergebnismenge; die Namen der Treffer kommen aus der Herkunft ihrer Zeilen.
 function namen(res) {
-  return res.files.map((f) => f.name).sort();
+  return res.resultSet.rows.map((r) => displayName(r.origin)).sort();
 }
 
 describe('Puffer-Overlay: Vorrang und Ruecknahme', () => {
@@ -151,14 +154,14 @@ describe('Puffer-Overlay: Reichweite der Freischaltung', () => {
 
     const taskEnv = { enabled: true, globalFilter: '', globalQuery: '', statusTypeOf: () => null };
     const vorher = frontmatterQueryFor(start, 'LIST TASKS', null, taskEnv);
-    expect(vorher.files.length).toBe(1);
+    expect(vorher.resultSet.rows.length).toBe(1);
 
     setBufferOverlay(
       path.join(root, 'Liste.md'),
       '# Liste\n\n- [ ] Erste Aufgabe\n- [ ] Zweite Aufgabe\n',
     );
     const nachher = frontmatterQueryFor(start, 'LIST TASKS', null, taskEnv);
-    expect(nachher.files.length).toBe(2);
+    expect(nachher.resultSet.rows.length).toBe(2);
 
     // Skript-Schnappschuss sieht dieselbe Datei-Menge.
     const daten = scriptDataFor(start, null);

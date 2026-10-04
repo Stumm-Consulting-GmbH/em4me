@@ -52,6 +52,7 @@ const { LOCALE_CODES } = require('../../../src/shared/locales.js');
 // seine Ausgangslage mit derselben Funktion herstellt, die er prüft, prüft sie
 // gegen sich selbst.
 const { schreibeBeleg } = require('../../../src/main/database/change-log.js');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const PANE = '.pane-group[data-pane="0"]';
 const SEITE = `${PANE} .pane-system .db-changelog-page`;
@@ -205,9 +206,13 @@ async function bindeBereich(page, wurzel) {
 // Die Tabellen-Datei als Reiter öffnen, ohne den Zugang zu benutzen, den die
 // Fälle darunter prüfen (Muster `openFileInArea` in `ereignisse.spec.js`).
 async function oeffneTabelle(app, page, tabelle) {
-  await app.evaluate(({ BrowserWindow }, p) => {
-    BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
-  }, tabelle);
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, p) => {
+      BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
+    },
+    tabelle,
+  );
   await expect(page.locator(SEL.tabs0).first()).toBeVisible();
 }
 

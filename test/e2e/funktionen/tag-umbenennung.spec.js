@@ -13,14 +13,16 @@
 // Konstellation; hier zählt der Bedienweg.
 //
 // Der Bereich wird über window.api.openAreaPath gebunden (Muster
-// bereichs-ersetzen.spec.js aus demselben Zug).
+// bereichs-ersetzen.spec.js aus demselben Zug). Seit 4T-001756 in fester
+// Reihenfolge: ohne Datei-Argument starten, binden, dann das Dokument mit
+// oeffneDokumentImFenster öffnen (test/README.md, Stabilitätsregel 32).
 'use strict';
 
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, oeffneDokumentImFenster } = require('../helpers/app');
 const { bedieneBis } = require('../helpers/eingabe');
 
 const PANE = '.pane-group[data-pane="0"]';
@@ -57,6 +59,12 @@ function removeDir(dir) {
   }
 }
 
+// 4T-001756: Die Zusicherung boundExisting sagt, dass der Bereich DIESES
+// Fenster übernommen hat. Mit Datei-Argument gestartet, kam das Dokument der
+// Bindung unter Last zuvor, und der Bereich öffnete ein eigenes Fenster
+// (createdNew): gemessen auf SC-027 in 19 von 30 Durchgängen der Datei unter
+// 14 Rechenprozessen. Deshalb starten alle Fälle ohne Datei-Argument und
+// öffnen das Dokument erst nach der Bindung (Regel 32).
 async function bindArea(page, dir) {
   const res = await page.evaluate((p) => window.api.openAreaPath(p), dir);
   expect(res.boundExisting).toBe(true);
@@ -87,9 +95,10 @@ test.describe('TU-01: Zugang und Dialog', () => {
   test('öffnet den Dialog aus der Tag-Übersicht und nennt den alten Namen', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await umbenennenOeffnen(page);
 
       // AK2: Der Dialog beantwortet die eine Frage, auf die es ankommt — wie
@@ -105,9 +114,10 @@ test.describe('TU-01: Zugang und Dialog', () => {
   test('weist einen Namen zurück, der kein Tag wäre (AK2)', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await umbenennenOeffnen(page);
 
       await page.locator('#name-input-field').fill('mit leerzeichen');
@@ -126,9 +136,10 @@ test.describe('TU-02: Vorschau', () => {
   test('zeigt die Fundstellen und weist die mitwandernden Kinder aus (AK3)', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await umbenennenOeffnen(page);
       await page.locator('#name-input-field').fill(NEU);
       await page.locator('#btn-name-input-ok').click();
@@ -154,9 +165,10 @@ test.describe('TU-02: Vorschau', () => {
   test('lässt den Bestand unverändert, wenn der Anwender abbricht (AK8)', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await umbenennenOeffnen(page);
       await page.locator('#name-input-field').fill(NEU);
       await page.locator('#btn-name-input-ok').click();
@@ -190,9 +202,10 @@ test.describe('TU-04: Vorschau bei belegter Reiter-Gruppe', () => {
   test('holt den Reiter nach vorn, wenn die Gliederung ihn verdeckt', async () => {
     test.setTimeout(120000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       // Ausgangslage des Befunds: Das Panel ist sichtbar, aber die Gliederung
       // derselben Gruppe steht vorn.
       //
@@ -232,9 +245,10 @@ test.describe('TU-03: Lauf', () => {
   test('benennt beide Notationen über alle Dateien um und zieht das Panel nach', async () => {
     test.setTimeout(180000);
     const dir = makeAreaDir();
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await umbenennenOeffnen(page);
       await page.locator('#name-input-field').fill(NEU);
       await page.locator('#btn-name-input-ok').click();

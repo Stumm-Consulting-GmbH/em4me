@@ -73,6 +73,9 @@ const {
 const { parseSteckbrief } = require('../../shared/database/database-steckbrief.js');
 const { baueHinweis } = require('../../shared/database/table-hinweise.js');
 const { leseFrontmatterKopf } = require('./frontmatter-kopf.js');
+// 4T-002081: Text und Zaun-Regel für das Zählen der Abfrage-Blöcke.
+const { extractFrontmatter } = require('../../shared/markdown/frontmatter.js');
+const { zaunOeffnung, schliesstZaun } = require('../../shared/markdown/fence-level.js');
 
 // Eigener Zwischenspeicher pro Aufrufer (main.js hält einen prozessweiten, Tests
 // je einen frischen). Map pathCompareKey(absPath) -> { mtimeMs, size, gelesen }.
@@ -124,18 +127,22 @@ function markierteDateien(sicht) {
   const steckbriefe = [];
   // 4T-001943 (Bauplan B2): die dritte Marke, die Masken-Dateien.
   const masken = [];
+  // 4T-002081 (Epic 3E-000259): die vierte Marke, die Abfrage-Dateien.
+  const abfragen = [];
   for (const [absPath, marken] of sicht.dbKindsPerFile || new Map()) {
     if (!Array.isArray(marken)) continue;
     if (marken.includes('table')) tabellen.push(absPath);
     if (marken.includes('database')) steckbriefe.push(absPath);
     if (marken.includes('form')) masken.push(absPath);
+    if (marken.includes('query')) abfragen.push(absPath);
   }
   // Stabile Reihenfolge, damit zwei Aufrufe dieselbe Liste liefern und der
   // «erste gewinnt»-Fall unten nicht von der Laufzeit abhängt.
   tabellen.sort();
   steckbriefe.sort();
   masken.sort();
-  return { tabellen, steckbriefe, masken };
+  abfragen.sort();
+  return { tabellen, steckbriefe, masken, abfragen };
 }
 
 // 4T-001758 (Epic 3E-000253, E-A): Ist die Wurzel dieser Sicht ein
@@ -246,6 +253,107 @@ async function geltendeMaske({ sicht, fsp, cache = createDatabaseCatalogCache(),
   return geltend.get(pathCompareKey(tabellenPfad)) || null;
 }
 
+// --- Abfrage-Dateien (4T-002081, Epic 3E-000259) --------------------------------------
+//
+// **Die Abfrage steht im Text, in genau einem Abfrage-Block** (Entscheidung des
+// Product Owners vom 2026-10-03, F2 Option A; Festlegung 13). Der Behälter
+// `db-query` trägt nichts, also gibt es im Frontmatter nichts auszulegen; was
+// der Katalog über die Datei wissen muss, ist allein die Zahl ihrer Blöcke. Er
+// liest dafür die ganze Datei und nicht nur ihren Kopf: Eine Abfrage-Datei ist
+// ein Dokument und keine Tabelle mit Datensatz-Körper, und die Blöcke stehen im
+// Text.
+//
+// **Gezählt werden die Code-Blöcke der obersten Ebene mit der Sprache des
+// Abfrage-Blocks**, über dieselbe Zaun-Regel, die der portable Export und der
+// Datensatz-Block benutzen (`fence-level.js`), und mit derselben Lesart der
+// Sprache wie die Render-Pipeline (erstes Wort des Infostrings). Ein Block in
+// einem umschließenden Zaun ist zitierter Text und zählt nicht, so wie er auch
+// nicht ausgewertet wird.
+//
+// **Keine oder mehrere Blöcke sind eine Fehlerlage und kein Ausschluss**
+// (Festlegung 14): Die Datei bleibt in der Liste und trägt ihren Befund, und
+// ihre Blöcke werden in der Ansicht ausgewertet wie in jedem Dokument. Gemeldet
+// wird, nie stillschweigend ausgelassen, wie bei den Masken-Dateien.
+
+// Sprache des Abfrage-Blocks; dieselbe Zeichenfolge, an der `markdown.js` den
+// Block als Abfrage zeichnet.
+const ABFRAGE_SPRACHE = 'perspective-query';
+
+// Die Zahl der Abfrage-Blöcke der obersten Ebene in einem Text.
+function zaehleAbfrageBloecke(text) {
+  let zahl = 0;
+  let offen = null;
+  for (const zeile of String(text == null ? '' : text).split('\n')) {
+    if (offen) {
+      if (schliesstZaun(zeile, offen)) offen = null;
+      continue;
+    }
+    offen = zaunOeffnung(zeile);
+    if (offen && offen.sprache === ABFRAGE_SPRACHE) zahl += 1;
+  }
+  return zahl;
+}
+
+// Liest eine Abfrage-Datei ganz und zählt ihre Blöcke. Zwischenspeicher wie
+// `leseDatei`, aber unter eigenem Schlüssel, weil eine Datei mit zwei Marken
+// sonst den Kopf-Stand der anderen Art überschriebe. Liefert
+// { bloecke, parseError } oder null, wenn die Datei nicht lesbar ist.
+async function leseAbfrageDatei({ absPath, fsp, cache, bufferTextFor }) {
+  const schluessel = `query:${pathCompareKey(absPath)}`;
+  const auswerten = (roh) => {
+    const text = roh.charCodeAt(0) === 0xfeff ? roh.slice(1) : roh;
+    const fm = extractFrontmatter(text);
+    return { bloecke: zaehleAbfrageBloecke(fm.body), parseError: fm.parseError };
+  };
+  const gepuffert = typeof bufferTextFor === 'function' ? bufferTextFor(absPath) : null;
+  if (typeof gepuffert === 'string') {
+    cache.delete(schluessel);
+    return auswerten(gepuffert);
+  }
+  let stat;
+  try {
+    stat = await fsp.stat(absPath);
+  } catch {
+    cache.delete(schluessel);
+    return null;
+  }
+  const eintrag = cache.get(schluessel);
+  if (eintrag && eintrag.mtimeMs === stat.mtimeMs && eintrag.size === stat.size)
+    return eintrag.gelesen;
+  let roh;
+  try {
+    roh = await fsp.readFile(absPath, 'utf8');
+  } catch {
+    return null;
+  }
+  const gelesen = auswerten(String(roh));
+  cache.set(schluessel, { mtimeMs: stat.mtimeMs, size: stat.size, gelesen });
+  return gelesen;
+}
+
+/**
+ * Die Abfrage-Dateien der Sicht mit Name, Pfad, Zahl der Blöcke und Hinweisen.
+ * Eine Datei, die der Index kennt und die es nicht mehr gibt, wird übergangen.
+ *
+ * @param {object} p Parameter wie `katalogUeberblick`, ohne `status`.
+ * @returns {Promise<Array<{name: string, path: string, bloecke: number,
+ *   hints: Array<object>}>>}
+ */
+async function abfrageDateien({ sicht, fsp, cache, bufferTextFor = null }) {
+  const { abfragen: pfade } = markierteDateien(sicht);
+  const abfragen = [];
+  for (const absPath of pfade) {
+    const gelesen = await leseAbfrageDatei({ absPath, fsp, cache, bufferTextFor });
+    if (!gelesen) continue;
+    const hints = gelesen.parseError ? [baueHinweis('yaml', -1, null)] : [];
+    if (gelesen.bloecke === 0) hints.push(baueHinweis('queryOhneFence', -1, null));
+    if (gelesen.bloecke > 1)
+      hints.push(baueHinweis('queryMehrereFences', -1, String(gelesen.bloecke)));
+    abfragen.push({ name: tabellenName(absPath), path: absPath, bloecke: gelesen.bloecke, hints });
+  }
+  return abfragen;
+}
+
 /**
  * Überblick über eine Datenbank: Steckbrief, Tabellen-Namen, Fehlerlagen.
  *
@@ -255,8 +363,9 @@ async function geltendeMaske({ sicht, fsp, cache = createDatabaseCatalogCache(),
  * @param {object} p.fsp Dateizugriff (stat, readFile, optional open).
  * @param {Map} p.cache Zwischenspeicher aus createDatabaseCatalogCache.
  * @param {Function} [p.bufferTextFor] Puffer-Auskunft des geschriebenen Stands.
- * @returns {Promise<object>} { status, istDatenbankBereich, steckbrief, tabellen, masken, hints };
- *   seit 4T-001943 trägt jede Tabelle `maske` (Pfad der geltenden Masken-Datei oder null).
+ * @returns {Promise<object>} { status, istDatenbankBereich, steckbrief, tabellen, masken,
+ *   abfragen, hints }; seit 4T-001943 trägt jede Tabelle `maske` (Pfad der geltenden
+ *   Masken-Datei oder null), seit 4T-002081 kommen die Abfrage-Dateien hinzu.
  */
 async function katalogUeberblick({ sicht, status, fsp, cache, bufferTextFor = null }) {
   const hints = [];
@@ -301,6 +410,9 @@ async function katalogUeberblick({ sicht, status, fsp, cache, bufferTextFor = nu
   const { masken, geltend } = await maskenZuordnung({ sicht, fsp, cache, bufferTextFor });
   for (const eintrag of tabellen) eintrag.maske = geltend.get(pathCompareKey(eintrag.path)) || null;
 
+  // 4T-002081: die Abfrage-Dateien mit ihren Hinweisen für den Abschnitt «Abfragen».
+  const abfragen = await abfrageDateien({ sicht, fsp, cache, bufferTextFor });
+
   // 4T-001758: Die Bereichs-Art reist mit dem Überblick, statt einen eigenen
   // Kanal zu bekommen — sie ist aus demselben Bestand abgeleitet, und wer sie
   // braucht, braucht in aller Regel auch die Auskunft daneben. Abgeleitet wird
@@ -311,6 +423,7 @@ async function katalogUeberblick({ sicht, status, fsp, cache, bufferTextFor = nu
     steckbrief,
     tabellen,
     masken,
+    abfragen,
     hints,
   };
 }
@@ -355,6 +468,9 @@ async function tabellenDefinition({ sicht, status, tabelle, fsp, cache, bufferTe
 }
 
 module.exports = {
+  // 4T-002081: die Abfrage-Dateien einer Sicht und das Zählen ihrer Blöcke.
+  abfrageDateien,
+  zaehleAbfrageBloecke,
   createDatabaseCatalogCache,
   geltendeMaske,
   istDatenbankBereich,
