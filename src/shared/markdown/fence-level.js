@@ -95,9 +95,26 @@ function fenceOeffnerOffsets(text) {
   return offsets;
 }
 
+// 4T-002024 (Epic 3E-000192): **Kann diese Zeile die Zaun- oder
+// Vorspann-Struktur eines Textes ändern?** Ein Vorfilter für Zwischenspeicher,
+// die Block-Bereiche über Änderungen hinweg verschieben statt neu erheben
+// (`charts/chart-lage.js`): Berührt eine Änderung keine solche Zeile, bleibt die
+// Struktur gleich. **Nie als Erkennung eines Zauns** — dafür sind
+// `zaunOeffnung` und `schliesstZaun` da. Bewusst eine Obermenge der Regeln:
+// jede Einrückung (auch Tabulator), drei Backticks oder Tilden ohne Blick auf
+// den Infostring, dazu die Grenzen des Vorspanns `---` und `...` (Regel in
+// `frontmatterBodyStart`, link-scan.js). Ein falsches «ja» kostet nur eine
+// neue Erhebung, ein falsches «nein» ergäbe falsche Bereiche.
+const STRUKTUR_ZEILE_RE = /^\s*(`{3}|~{3}|---|\.\.\.)/;
+
+function koennteStrukturZeileSein(zeile) {
+  return STRUKTUR_ZEILE_RE.test(String(zeile == null ? '' : zeile));
+}
+
 module.exports = {
   fenceOeffnerOffsets,
   // 4T-001833 (Epic 3E-000254): die Zaun-Regel für jeden zeilenweisen Leser.
   zaunOeffnung,
   schliesstZaun,
+  koennteStrukturZeileSein,
 };

@@ -142,6 +142,8 @@
   "help.shortcut.insertFootnote": "Inserisci una nota a piè di pagina",
   "help.shortcut.insertTable": "Inserisci una tabella",
   "help.shortcut.insertPerspectiveTable": "Inserisci una tabella Perspective",
+  "help.shortcut.chartInsert": "Inserire, tramite una finestra di dialogo, un grafico per la tabella dati sotto il cursore o per la tabella dati cliccata (in modalità modifica)",
+  "help.shortcut.chartEdit": "Modificare il grafico selezionato con la stessa finestra di dialogo; è selezionato quando il cursore si trova nel suo blocco o vi si è fatto clic (in modalità modifica)",
   "help.shortcut.insertCallout": "Inserisci un riquadro",
   "help.shortcut.insertHorizontalRule": "Inserisci una linea orizzontale",
   "help.shortcut.insertCodeBlock": "Inserisci un blocco di codice",

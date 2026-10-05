@@ -2,7 +2,8 @@
    in Original-Reihenfolge aus styles.css geschnitten (Datei-Größen-Budget).
    Die Reihenfolge der Link-Tags in index.html bildet die Kaskade ab und darf
    nicht verändert werden.
-   Inhalt: Perspective-Abfragen und Datatable, Ereignis-Fence samt Sortierung und Filter. */
+   Inhalt: Perspective-Abfragen und Datatable samt Diagramm, Ereignis-Fence samt Sortierung und
+   Filter. */
 
 /* 4T-000404 (Epic 3E-000076): Tabellen-Ausgabe der Perspective-Abfrage. Die
    Tabelle erbt die Standard-Tabellen-Optik der gerenderten Ansicht
@@ -324,6 +325,42 @@
   display: none;
 }
 .markdown-body .pdt-filter-count {
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  font-style: italic;
+  margin: 0.2em 0;
+}
+
+/* 4T-002021 (Epic 3E-000192): Diagramm zu einer Datentabelle. Die Grafik füllt
+   die Breite bis höchstens 720 Pixel und behält über ihre viewBox das
+   Seitenverhältnis; ihr Hintergrund ist durchsichtig. */
+.markdown-body .perspective-chart {
+  margin: 0.5em 0;
+}
+.markdown-body .perspective-chart svg {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  height: auto;
+}
+/* 4T-002022 (Epic 3E-000192): Hinweis an der Stelle eines nicht zeichenbaren
+   Diagramms (Anmutung der Fehler-Blöcke im Inhalt, Farben aus den Variablen
+   des Farbschemas) und Zeile der ausgelassenen Werte unter der Grafik. */
+.markdown-body .perspective-chart-hint {
+  max-width: 720px;
+  padding: 6px 12px;
+  background: var(--bg-alt);
+  border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--linter-warn);
+  border-radius: 4px;
+  color: var(--fg-muted);
+  font-size: 0.9em;
+}
+.markdown-body .perspective-chart-hint-title {
+  color: var(--fg);
+  font-weight: bold;
+}
+.markdown-body .perspective-chart-omitted {
   color: var(--fg-muted);
   font-size: 0.85em;
   font-style: italic;
@@ -795,4 +832,71 @@
 }
 .markdown-body .pev-table tr.pev-row-hidden {
   display: none;
+}
+
+/* 4T-002024 (Epic 3E-000192): Dialog «Diagramm einfügen und bearbeiten»
+   (src/renderer/modules/charts/chart-dialog.js). Rahmen, Hintergrund und
+   Knopf-Leiste kommen von den Modal-Klassen des Bestands, die Feld-Zeilen von
+   .settings-row; hier stehen allein die Gruppen, die rollbare Liste der
+   Datenreihen, das Kennzeichen «berechnet» und die Hinweis-Zeilen. Der Dialog
+   ist höchstens so hoch wie das Fenster und rollt dann als Ganzes. */
+.chart-dialog-inhalt {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.chart-dialog-gruppe {
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  margin: 10px 0;
+  padding: 6px 10px 8px;
+}
+.chart-dialog-gruppe legend {
+  padding: 0 4px;
+  font-size: 13px;
+}
+.chart-dialog-wahl {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+}
+.chart-dialog-gruppe > .chart-dialog-wahl {
+  display: inline-flex;
+  margin-right: 16px;
+}
+/* Bei vielen Zeilen rollt die Liste, statt den Dialog zu strecken. */
+.chart-dialog-liste {
+  max-height: 14em;
+  overflow-y: auto;
+}
+.chart-dialog-berechnet {
+  color: var(--fg-muted);
+  font-size: 0.85em;
+  border: 1px solid var(--border);
+  border-radius: 0.7em;
+  padding: 0 0.5em;
+}
+/* Doppelte Klasse: schlägt den Absatz-Abstand von .bookmark-modal-content p. */
+.chart-dialog-inhalt .chart-dialog-hinweis {
+  margin: 6px 0 0;
+  color: var(--fg-muted);
+  font-size: 0.9em;
+}
+.chart-dialog-hinweis[hidden] {
+  display: none;
+}
+.chart-dialog-inhalt select:focus-visible,
+.chart-dialog-inhalt input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.chart-dialog-inhalt input[type='text'] {
+  flex: 1;
+}
+/* 4T-002024 (Epic 3E-000192): Das ausgewählte Diagramm im Live-Modus. Ein
+   Umriss statt eines Rahmens: Er nimmt keinen Platz ein, die Höhe des Widgets
+   bleibt, wie der Editor sie gemessen hat. */
+.perspective-chart.diagramm-gewaehlt {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }

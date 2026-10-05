@@ -54,7 +54,9 @@ import { PANEL_ACCESS } from '../../../shared/panel-access.js';
 // dem gemeinsamen Modul; die eigene Liste dieser Stelle ist damit entfallen.
 import { isMarkdownDataPath } from '../../../shared/markdown-data-family.js';
 import { getPanelToggleOrder } from '../sidebar-layout.js';
-import { clearIndexOverlayFor, updateWindowTitle } from '../editor/editor.js';
+import { clearIndexOverlayFor, paneEditors, updateWindowTitle } from '../editor/editor.js';
+// 4T-002024 (Epic 3E-000192): Lage des aktiven Editors für die Diagramm-Einträge.
+import { lageFuer, merkeGemeldeteLage } from '../charts/chart-lage.js';
 // 4T-000990 (Epic 3E-000196): panels.js ist in den Feature-Ordner panels/ geteilt;
 // die drei Funktionen liegen jetzt in ihren Panel-Modulen.
 import { updateBacklinksToggleButton } from '../panels/panel-backlinks.js';
@@ -482,6 +484,13 @@ export function reportMenuStateNow() {
   // 4T-000572 (Epic 3E-000105): Fallbacks ohne aktiven Tab aus der globalen
   // Voreinstellung statt hartkodierter Literale/Konstanten.
   const viewDefaults = getEditorViewDefaults();
+  // 4T-002024 (Epic 3E-000192): Datentabelle unter der Schreibmarke oder
+  // angeklickt, Diagramm unter der Schreibmarke oder ausgewählt. Dieselbe
+  // Quelle wie die Kommando-Palette; wann neu gemeldet wird, entscheidet
+  // chart-lage.js (nur bei einem Wechsel, entprellt) — gegen das hier
+  // gesendete Paar, das `merkeGemeldeteLage` festhält.
+  const lage = lageFuer(paneEditors[state.activePaneIndex], tab);
+  merkeGemeldeteLage(lage);
   api.reportMenuState({
     locale: state.language,
     viewMode,
@@ -508,6 +517,8 @@ export function reportMenuStateNow() {
     // dieselbe Funktion, die auch die Kommando-Palette fragt, damit die Grenze
     // zwischen «leer» und «hat Inhalt» an beiden Bedienorten dieselbe ist.
     leeresDokument: !!tab && dokumentIstLeer(tab.content),
+    inDatentabelle: lage.inDatentabelle,
+    diagrammGewaehlt: lage.diagrammGewaehlt,
     // 4T-000568 (Epic 3E-000104): geordnete Panel-Liste fuer das Panel-
     // Untermenue (ersetzt die frueheren elf xxxVisible-Einzel-Flags; damit
     // fuehren erstmals auch Notizen/Block-Eigenschaften/Datei-Graph/

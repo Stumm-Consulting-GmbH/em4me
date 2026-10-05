@@ -137,7 +137,7 @@ In dettaglio: [Perspective Table](perspective-table.md).
 
 ## Tabelle che calcolano
 
-Per i numeri invece del testo c'è il secondo tipo di tabella. La Perspective Datatable è una tabella di dati tipizzata: ogni colonna ha un tipo di valore, le celle accettano solo valori conformi, le righe di aggregato calcolano dal vivo e le colonne calcolate valutano un'espressione per riga. Si modifica direttamente nella griglia renderizzata, senza passare dal testo sorgente. Questo regge spese, registrazione dei tempi o inventari senza diventare un file di banca dati, perché tutto resta testo in chiaro nel documento.
+Per i numeri invece del testo c'è il secondo tipo di tabella. La Perspective Datatable è una tabella di dati tipizzata: ogni colonna ha un tipo di valore, le celle accettano solo valori conformi, le righe di aggregato calcolano dal vivo e le colonne calcolate valutano un'espressione per riga. Si modifica direttamente nella griglia renderizzata, senza passare dal testo sorgente. Questo regge spese, registrazione dei tempi o inventari senza diventare un file di banca dati, perché tutto resta testo in chiaro nel documento. Dagli stessi numeri un blocco a sé disegna un grafico a linee, a barre, a torta o ad anello, che indica la tabella soltanto con il suo nome e la segue a ogni modifica.
 
 - **Tipi di valore fissi** per colonna, così i numeri restano numeri e le date restano date.
 - **Aggregati** che calcolano dal vivo e **colonne calcolate** per riga.

@@ -466,11 +466,21 @@ function registerIndexViewsIpc(handle, deps) {
   handle('index:overlay', (event, params) => {
     const filePath = params && params.filePath;
     const content = params && params.content;
-    if (content === null) return backlinks.clearBufferOverlay(filePath);
-    // 4T-001727 (Epic 3E-000305): Der Melder reist mit; eine aus diesem Stand
-    // faellige Erinnerung wird in seinem Fenster bearbeitet (reminders:edit).
-    const besitzer = event && event.sender ? event.sender.id : null;
-    return backlinks.setBufferOverlay(filePath, content, besitzer);
+    let ergebnis;
+    if (content === null) {
+      ergebnis = backlinks.clearBufferOverlay(filePath);
+    } else {
+      // 4T-001727 (Epic 3E-000305): Der Melder reist mit; eine aus diesem Stand
+      // faellige Erinnerung wird in seinem Fenster bearbeitet (reminders:edit).
+      const besitzer = event && event.sender ? event.sender.id : null;
+      ergebnis = backlinks.setBufferOverlay(filePath, content, besitzer);
+    }
+    // 4T-002023 (Epic 3E-000192): Meldung an alle Fenster, auch nach einer
+    // Ruecknahme ohne Eintrag (Begruendung an meldeOverlayAenderung). Sie geht
+    // ab, bevor die Antwort an den Melder zurueckkommt, und der neue Stand
+    // liegt da bereits in der Schicht.
+    backlinks.meldeOverlayAenderung(filePath);
+    return ergebnis;
   });
 
   // 4T-000413 (Epic 3E-000078): Daten-Snapshot fuer Skript-Bloecke

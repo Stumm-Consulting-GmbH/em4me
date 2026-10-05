@@ -189,6 +189,8 @@
   "help.featureName.datatable": "Perspective Datatable",
   "help.featureName.datatableGrid": "Datentabellen-Grid-Bearbeitung",
   "help.featureName.datatableView": "Datentabellen-Sortierung und -Filter",
+  "help.featureName.chart": "Diagramm zu einer Datentabelle",
+  "help.featureName.chartInsertEdit": "Diagramm einfügen und bearbeiten",
   "help.featureName.frontmatterQuery": "Perspective-Abfrage",
   "help.featureName.querySources": "Abfrage-Quellen",
   "help.featureName.queryTable": "Abfrage-Tabelle",

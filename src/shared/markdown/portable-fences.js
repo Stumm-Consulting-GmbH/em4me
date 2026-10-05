@@ -18,6 +18,11 @@
 // setzt dann den Rohtext zurück. Die zurückgemeldeten Schalter sagen, welche
 // Arten tatsächlich konvertiert haben — daran hängt der Portable-Marker.
 //
+// 4T-002072 (Epic 3E-000192), Nachbesserung F5: Ein Konverter bekommt neben
+// dem Rumpf den Offset seines Öffners. Der der Datentabelle fragt damit die
+// Heimat der Block-Kennungen, ob unter der Tabelle schon die Zeile `^Name`
+// ihres Kopf-Namens steht, und schreibt sie dann nicht ein zweites Mal.
+//
 // Prozess-neutral (kein Electron, kein DOM). Der Zugriff auf `markdown.js` aus
 // `perspective-table.js` heraus bleibt lazy und unberührt.
 'use strict';
@@ -32,6 +37,9 @@ const { RECORD_FENCE } = require('../database/record-block.js');
 // Konstrukten hier auch die Fläche im Pipeline-Kern und die beiden
 // Journal-Blöcke unter src/shared/ danach fragen.
 const { fenceOeffnerOffsets } = require('./fence-level.js');
+// 4T-002072 (Epic 3E-000192), Nachbesserung F5: die Heimat der Block-Kennungen,
+// für die Frage, ob unter einer Datentabelle schon die Zeile ihres Namens steht.
+const { extractBlockAnchors } = require('../block-anchors.js');
 
 // Fence-Erkennung: öffnender Zaun in Spalte 0 bis 3, Infostring bis zum
 // Zeilenende, Rumpf bis zum gleich langen schließenden Zaun. Der Name steht als
@@ -86,6 +94,10 @@ const RECORDS_INHALT_GRUPPE = 3;
 // zusätzliche Gruppe für das Zaun-Zeichen. Ausdrücke mit benannten Gruppen
 // sind hier nicht vorgesehen, weil der Offset als vorletztes Argument gelesen
 // wird.
+//
+// 4T-002072, Nachbesserung F5: Der Konverter bekommt als zweites Argument den
+// Offset des Öffners im übergebenen Text, damit er dessen Umgebung befragen
+// kann; die bisherigen Konverter lesen nur den Rumpf und bleiben unverändert.
 function ersetzeObersteEbene(text, regex, konverter, inhaltGruppe = 2) {
   let getroffen = false;
   const offsets = fenceOeffnerOffsets(text);
@@ -93,12 +105,31 @@ function ersetzeObersteEbene(text, regex, konverter, inhaltGruppe = 2) {
     const offset = args[args.length - 2];
     const content = args[inhaltGruppe - 1];
     if (!offsets.has(offset)) return match;
-    const html = konverter(content);
+    const html = konverter(content, offset);
     if (html === null) return match;
     getroffen = true;
     return html;
   });
   return { text: neu, getroffen };
+}
+
+// 4T-002072, Nachbesserung F5: Der Konverter der Datentabelle für den Text
+// `text`. Ob unter einer Tabelle schon die Zeile `^Name` ihres Kopf-Namens
+// steht, sagt die Heimat der Kennungen (`ankerZeile`), einmal je Text erhoben;
+// dann schreibt der Konverter sie nicht ein zweites Mal. Der Text ist der
+// Körper ohne Frontmatter (markdown.js schneidet es vorher ab). `zellHtml` ist
+// der Zell-Renderer der Text-Zellen (4T-002014), unverändert durchgereicht.
+function datentabellenKonverter(text, zellHtml) {
+  let anker = null;
+  return (content, offset) => {
+    if (!anker) anker = extractBlockAnchors(text, { frontmatter: false });
+    const zaunVon = text.slice(0, offset).split('\n').length;
+    const tabelle = anker.datentabellen.find((t) => t.zaunVon === zaunVon);
+    return convertPerspectiveDatatableBlockToHtml(content, {
+      zellHtml,
+      ankerZeileFolgt: !!(tabelle && tabelle.ankerZeile),
+    });
+  };
 }
 
 // Konvertiert die vier Fence-Arten des portablen Exports.
@@ -124,8 +155,10 @@ function convertPortableFences(text, opts) {
     stand.table = r.getroffen;
   }
   if (o.datatableEnabled) {
-    const r = ersetzeObersteEbene(aktuell, DATATABLE_RE, (content) =>
-      convertPerspectiveDatatableBlockToHtml(content, { zellHtml: o.zellHtml }),
+    const r = ersetzeObersteEbene(
+      aktuell,
+      DATATABLE_RE,
+      datentabellenKonverter(aktuell, o.zellHtml),
     );
     aktuell = r.text;
     stand.datatable = r.getroffen;

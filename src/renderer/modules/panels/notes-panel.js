@@ -193,7 +193,8 @@ function renderNotesPreview(paneIdx, text) {
   // Pfad der Notiz-Datei, und die Bearbeitbarkeit bleibt aussen vor: Die
   // Vorschau ist die Ansichts-Haelfte des Panel-Umschalters, bearbeitet wird
   // links im Editor.
-  if (text) applyTeilbaumSchritte(els.notesPreview, path);
+  // 4T-002021: Die Notiz ist das Dokument ihrer Diagramme.
+  if (text) applyTeilbaumSchritte(els.notesPreview, path, { dokumentText: text });
 }
 
 function applyNotesPreviewMode(paneIdx) {

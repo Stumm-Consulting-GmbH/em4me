@@ -253,6 +253,10 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.datatable',
       'help.feature.datatableGrid',
       'help.feature.datatableView',
+      // 4T-002019 (Epic 3E-000192): Diagramm zu einer Datentabelle direkt hinter
+      // der Datentabelle, seiner einzigen Quelle.
+      'help.feature.chart',
+      'help.feature.chartInsertEdit',
       // 4T-000415 (Epic 3E-000078): Skript-Blöcke (perspective-script) direkt
       // hinter dem Abfrage-/Datentabellen-Cluster (nutzen dessen Daten-Modell).
       'help.feature.scriptBlocks',

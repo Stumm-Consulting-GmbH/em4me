@@ -11,6 +11,8 @@ import {
   SLOT_GROUPS,
   COLOR_SLOTS,
   SLOT_IDS,
+  CHART_SLOT_COUNT,
+  CHART_SLOT_IDS,
   BUILTIN_SCHEMES,
   DEFAULT_LIGHT_ID,
   DEFAULT_DARK_ID,
@@ -36,6 +38,10 @@ import {
   setActiveScheme,
   schemeById,
 } from '../../src/shared/color-schemes.js';
+import {
+  LIGHT_CHART_PALETTE,
+  DARK_CHART_PALETTE,
+} from '../../src/shared/charts/chart-call-options.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
@@ -450,5 +456,188 @@ describe('color-schemes: Auslieferungs-Voreinstellung (4T-000751)', () => {
   it('startupSchemeState: vorhandener Stand wird nie überschrieben', () => {
     expect(startupSchemeState({ hasStoredState: true, hasUsageTraces: true })).toBeNull();
     expect(startupSchemeState({ hasStoredState: true, hasUsageTraces: false })).toBeNull();
+  });
+});
+
+// 4T-002030 (Epic 3E-000192): Die zehn Farben der Datenreihen in Diagrammen
+// als Farb-Plätze des Farbschemas (Story 4S-001027). Das Farbschema ist die
+// einzige Quelle der Reihen-Farben in der Anzeige; die geprüften Paletten des
+// Zeichners sind die Basis-Werte.
+describe('color-schemes: Diagramm-Farben (4T-002030)', () => {
+  const css = fs.readFileSync(path.join(ROOT, 'src', 'renderer', 'styles.css'), 'utf8');
+  const cssHell = extractCssBlock(css, ':root {');
+  const cssDunkel = extractCssBlock(css, "[data-theme='dark'] {");
+  const FRAGMENTE = Object.fromEntries(
+    ['de', 'en', 'fr', 'es', 'it'].map((code) => [
+      code,
+      JSON.parse(
+        fs.readFileSync(
+          path.join(ROOT, 'src', 'i18n', 'fragments', code, 'color-schemes.json'),
+          'utf8',
+        ),
+      ),
+    ]),
+  );
+  const PLAETZE = Array.from({ length: 10 }, (_, i) => `chart${i + 1}`);
+
+  function leuchtdichte(hex) {
+    const kanal = (i) => {
+      const v = parseInt(hex.slice(i, i + 2), 16) / 255;
+      return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+    };
+    return 0.2126 * kanal(1) + 0.7152 * kanal(3) + 0.0722 * kanal(5);
+  }
+  function kontrast(a, b) {
+    const [hell, dunkel] = [leuchtdichte(a), leuchtdichte(b)].sort((x, y) => y - x);
+    return (hell + 0.05) / (dunkel + 0.05);
+  }
+  function farbton(hex) {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    const max = Math.max(r, g, b);
+    const d = max - Math.min(r, g, b);
+    if (d === 0) return 0;
+    const h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return (h * 60 + 360) % 360;
+  }
+
+  it('zehn Plätze chart1 bis chart10 in der Gruppe charts am Ende, je eine Variable --chart-N', () => {
+    expect(SLOT_GROUPS[SLOT_GROUPS.length - 1]).toEqual({
+      id: 'charts',
+      nameKey: 'settings.colorSchemes.group.charts',
+    });
+    expect(CHART_SLOT_COUNT).toBe(10);
+    expect(CHART_SLOT_IDS).toEqual(PLAETZE);
+    const plaetze = COLOR_SLOTS.filter((s) => s.group === 'charts');
+    expect(plaetze.map((s) => s.vars)).toEqual(PLAETZE.map((_, i) => [`--chart-${i + 1}`]));
+    expect(plaetze.map((s) => s.nameKey)).toEqual(
+      PLAETZE.map((id) => `settings.colorSchemes.slot.${id}`),
+    );
+    // Gruppe und Plätze stehen am Ende: Die Reihenfolge der übrigen
+    // Farbfelder im Einstellungs-Bereich bleibt, wie sie war.
+    expect(SLOT_IDS.slice(-10)).toEqual(PLAETZE);
+  });
+
+  it('Paletten-Konstante, Grundpalette und Stilblatt sind je Modus gleich', () => {
+    for (const [modus, palette, block] of [
+      ['light', LIGHT_CHART_PALETTE, cssHell],
+      ['dark', DARK_CHART_PALETTE, cssDunkel],
+    ]) {
+      expect(
+        PLAETZE.map((id) => BASE_DEFAULTS[modus][id]),
+        modus,
+      ).toEqual([...palette]);
+      expect(
+        PLAETZE.map((_, i) => block[`chart-${i + 1}`]),
+        `${modus}: Stilblatt`,
+      ).toEqual([...palette]);
+    }
+  });
+
+  it('Gruppen- und Platz-Namen in allen fünf Sprachen, deutsch «Diagramme» und «Datenreihe N»', () => {
+    for (const [code, fragment] of Object.entries(FRAGMENTE)) {
+      expect(typeof fragment['settings.colorSchemes.group.charts'], code).toBe('string');
+      for (let i = 1; i <= 10; i++) {
+        const text = fragment[`settings.colorSchemes.slot.chart${i}`];
+        expect(text, `${code}: chart${i}`).toMatch(new RegExp(`\\s${i}$`));
+      }
+    }
+    expect(FRAGMENTE.de['settings.colorSchemes.group.charts']).toBe('Diagramme');
+    expect(FRAGMENTE.de['settings.colorSchemes.slot.chart1']).toBe('Datenreihe 1');
+    expect(FRAGMENTE.de['settings.colorSchemes.slot.chart10']).toBe('Datenreihe 10');
+  });
+
+  // Linien, Balken und Kreis-Stücke sind grafische Bedeutungsträger und
+  // brauchen 3:1 gegen den Hintergrund ihres Schemas (Story 4S-001027, AK13).
+  it('jede der zehn Farben jedes mitgelieferten Schemas erreicht 3:1 gegen dessen Hintergrund', () => {
+    const befunde = [];
+    for (const scheme of BUILTIN_SCHEMES) {
+      const farben = resolveSchemeColors(scheme);
+      for (const id of PLAETZE) {
+        const k = kontrast(farben[id], farben.bg);
+        if (k < 3)
+          befunde.push(`${scheme.id}.${id} ${farben[id]} auf ${farben.bg}: ${k.toFixed(2)}`);
+      }
+    }
+    expect(befunde).toEqual([]);
+  });
+
+  it('mitgelieferte Schemas tragen die Reihe ihres Modus; eine Abweichung bleibt im Farbton', () => {
+    for (const scheme of BUILTIN_SCHEMES) {
+      const reihe = scheme.base === 'dark' ? DARK_CHART_PALETTE : LIGHT_CHART_PALETTE;
+      const farben = resolveSchemeColors(scheme);
+      PLAETZE.forEach((id, i) => {
+        if (!Object.prototype.hasOwnProperty.call(scheme.colors, id)) {
+          expect(farben[id], `${scheme.id}.${id}`).toBe(reihe[i]);
+          return;
+        }
+        // Eine Abweichung gibt es nur, wo die Vorgabe 3:1 verfehlt, und sie
+        // hält den Farbton der Vorgabe (Rundung auf ganze Hex-Stufen).
+        expect(kontrast(reihe[i], farben.bg), `${scheme.id}.${id}: unnötig`).toBeLessThan(3);
+        const abstand = Math.abs(farbton(farben[id]) - farbton(reihe[i]));
+        expect(Math.min(abstand, 360 - abstand), `${scheme.id}.${id}: Farbton`).toBeLessThan(1);
+      });
+    }
+    // Gemessen am 2026-09-29: allein Sepia braucht Abweichungen, sieben Farben.
+    const mitAbweichung = BUILTIN_SCHEMES.filter((s) =>
+      PLAETZE.some((id) => Object.prototype.hasOwnProperty.call(s.colors, id)),
+    ).map((s) => [s.id, PLAETZE.filter((id) => id in s.colors).length]);
+    expect(mitAbweichung).toEqual([['sepia-light', 7]]);
+  });
+
+  it('eine Kopie trägt die Diagramm-Farben ihrer Vorlage; ein Platz lässt sich setzen und zurücksetzen', () => {
+    let s = addCustomScheme(defaultState(), { id: 'c1', name: 'K', templateId: 'sepia-light' });
+    const vorlage = BUILTIN_SCHEMES.find((b) => b.id === 'sepia-light');
+    for (const id of PLAETZE) {
+      expect(resolveSchemeColors(schemeById(s, 'c1'))[id], id).toBe(
+        resolveSchemeColors(vorlage)[id],
+      );
+    }
+    s = duplicateScheme(s, 'c1', 'c2', 'K Kopie');
+    expect(schemeById(s, 'c2').colors.chart2).toBe(vorlage.colors.chart2);
+    s = setSlotColor(s, 'c2', 'chart1', '#ABCDEF');
+    expect(computeSchemeVars(schemeById(s, 'c2')).set['--chart-1']).toBe('#abcdef');
+    s = resetSlotColor(s, 'c2', 'chart1');
+    expect(computeSchemeVars(schemeById(s, 'c2')).clear).toContain('--chart-1');
+  });
+
+  it('in einem mitgelieferten Schema lassen sich die Diagramm-Farben nicht ändern', () => {
+    const vorher = defaultState();
+    expect(setSlotColor(vorher, 'standard-light', 'chart1', '#000000')).toBe(vorher);
+    expect(setSlotColor(vorher, 'sepia-light', 'chart2', '#000000')).toBe(vorher);
+  });
+
+  it('eine selbst gewählte Farbe wird ungeprüft übernommen, auch fast unsichtbar', () => {
+    let s = addCustomScheme(defaultState(), { id: 'c1', name: 'K', templateId: 'standard-light' });
+    s = setSlotColor(s, 'c1', 'chart3', '#fefefe');
+    expect(resolveSchemeColors(schemeById(s, 'c1')).chart3).toBe('#fefefe');
+    expect(kontrast('#fefefe', BASE_DEFAULTS.light.bg)).toBeLessThan(1.1);
+  });
+
+  it('der gespeicherte Zustand behält die Diagramm-Farben beim Laden (Neustart)', () => {
+    const s = normalizeState({
+      custom: [
+        { id: 'c1', name: 'K', base: 'dark', colors: { chart1: '#123456', chart10: '#654321' } },
+      ],
+      activeLight: 'amber-light',
+      activeDark: 'c1',
+    });
+    expect(s.custom[0].colors).toEqual({ chart1: '#123456', chart10: '#654321' });
+  });
+
+  it('ein eigenes Schema ohne Diagramm-Farben zeigt die Vorgaben seines Basis-Schemas', () => {
+    // Stand eigener Schemas, die vor der Erweiterung angelegt wurden.
+    const alt = normalizeState({
+      custom: [
+        { id: 'h', name: 'H', base: 'light', colors: { accent: '#9c6316' } },
+        { id: 'd', name: 'D', base: 'dark', colors: { accent: '#e0a256' } },
+      ],
+    });
+    const hell = resolveSchemeColors(schemeById(alt, 'h'));
+    const dunkel = resolveSchemeColors(schemeById(alt, 'd'));
+    expect(PLAETZE.map((id) => hell[id])).toEqual([...LIGHT_CHART_PALETTE]);
+    expect(PLAETZE.map((id) => dunkel[id])).toEqual([...DARK_CHART_PALETTE]);
+    expect(computeSchemeVars(schemeById(alt, 'h')).clear).toEqual(
+      expect.arrayContaining(PLAETZE.map((_, i) => `--chart-${i + 1}`)),
+    );
   });
 });

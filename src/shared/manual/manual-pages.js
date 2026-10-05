@@ -177,6 +177,11 @@ const MANUAL_PAGES = [
   // 4T-000422 (Epic 3E-000079): Perspective Datatable (typisierte Datentabelle
   // mit Aggregaten, berechneten Spalten, Grid-Bearbeitung, Ansichts-Filter).
   { id: 'datatable', titleKey: 'manual.page.datatable.title', source: 'bundled' },
+  // 4T-002027 (Epic 3E-000192): Diagramme zu Tabellen — Block perspective-chart
+  // mit Name der Tabelle, Arten, Datenreihen, anderem Dokument, Hinweisen,
+  // Farben, Druck und Export. Steht unmittelbar hinter der Datentabelle, weil
+  // sie die einzige Quelle eines Diagramms ist.
+  { id: 'charts', titleKey: 'manual.page.charts.title', source: 'bundled' },
   // 4T-001511 (Epic 3E-000250): Datenbank — Tabellen-Definition im Frontmatter,
   // Spalten-Typen, Datensatz-Kennung mit fachlichem Schluessel und der
   // Steckbrief der Datenbank. Steht unmittelbar hinter der Datentabelle, weil

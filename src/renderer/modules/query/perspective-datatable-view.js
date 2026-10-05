@@ -8,6 +8,8 @@
 // Beschriftung, Fehler-Zellen-Tooltips) laufen über data-i18n bzw.
 // data-i18n-title und applyTranslations. Modus-agnostisch: derselbe
 // Aufruf läuft in Render-Pane, Reading und im Live-Block-Widget.
+// 4T-002072 (Epic 3E-000192): ERROR_KEYS vervollständigt; ein Wächter in
+// test/unit/perspective-datatable.test.js hält sie mit dem Parser gleich.
 
 import { t } from '../../i18n.js';
 
@@ -31,6 +33,14 @@ const ERROR_KEYS = {
   badExpr: 'datatable.error.badExpr',
   computedBadRef: 'datatable.error.computedBadRef',
   computedCycle: 'datatable.error.computedCycle',
+  // 4T-002072 (Epic 3E-000192): Kennungen, deren Texte es in allen fünf
+  // Sprachen gab, die hier aber fehlten — der Fehlerkasten zeigte den Code.
+  // Ein Wächter in test/unit/perspective-datatable.test.js verlangt seither
+  // für jede Kennung des Parsers einen Eintrag.
+  badColumnLabel: 'datatable.error.badColumnLabel',
+  unknownTypesValue: 'datatable.error.unknownTypesValue',
+  emptyTableName: 'datatable.error.emptyTableName',
+  invalidTableName: 'datatable.error.invalidTableName',
 };
 
 export function applyPerspectiveDatatablesIfPresent(container) {

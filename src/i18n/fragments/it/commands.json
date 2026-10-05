@@ -151,5 +151,7 @@
   "command.kanban.convertToBoard": "Converti il documento vuoto in bacheca Kanban",
   "command.kanban.toggleTagsFooter": "Attiva/disattiva i tag in fondo alla scheda",
   "command.kanban.toggleRelativeDates": "Attiva/disattiva le date relative",
-  "command.kanban.boardSettings": "Impostazioni di questa bacheca…"
+  "command.kanban.boardSettings": "Impostazioni di questa bacheca…",
+  "command.chart.insert": "Inserisci grafico per questa tabella",
+  "command.chart.edit": "Modifica grafico"
 }

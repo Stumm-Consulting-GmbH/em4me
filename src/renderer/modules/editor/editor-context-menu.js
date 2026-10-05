@@ -11,7 +11,7 @@
 'use strict';
 
 import { api } from '../app/api.js';
-import { contextMenu } from '../app/app-state.js';
+import { activeTab, contextMenu } from '../app/app-state.js';
 import { appendContextMenuItem, placeContextMenuAt } from '../dialogs/context-menu-utils.js';
 import { computeClipboardMenuState } from '../../../shared/editor-menu.js';
 // 4T-000378 (Epic 3E-000071): Format-/Link-Kommandos — ein Ausführungs-Pfad mit
@@ -51,6 +51,10 @@ import { paneEditors } from './editor.js';
 // aus dem Tabellen-Backend (Nutzung nur beim Menü-Aufbau, Laufzeit-Zyklus
 // unkritisch wie oben).
 import { getTableMenuState, runTableCommand } from './editor-table-tools.js';
+// 4T-002024 (Epic 3E-000192): Sektion der Diagramm-Kommandos, wenn die
+// Schreibmarke in einer Datentabelle oder einem Diagramm-Block steht.
+import { lageFuer } from '../charts/chart-lage.js';
+import { diagrammEintraege } from '../charts/chart-menu.js';
 
 // --- Klipboard-Aktionen -----------------------------------------------------
 
@@ -447,6 +451,20 @@ export function buildEditorContextMenuItems(view) {
     buildParagraphItems(view),
     buildInsertItems(view),
     buildTableItems(view),
+    // 4T-002024 (Epic 3E-000192): «Diagramm zu dieser Tabelle einfügen» bzw.
+    // «Diagramm bearbeiten», je nach Lage der Schreibmarke. Nur im Editor
+    // einer Spalte und nur bei änderbarem Dokument; im Aus-Zustand der
+    // Erweiterung und dort, wo das Kommando nicht wählbar ist, entfällt die
+    // Sektion samt Trenner.
+    diagrammEintraege({
+      lage: paneEditors.includes(view) && !view.state.readOnly ? lageFuer(view, activeTab()) : null,
+      t,
+      ausfuehren: executeCommandById,
+    }).filter(
+      (e) =>
+        !disabledCommandIdSet(getDisabledExtensionIds()).has(e.commandId) &&
+        isCommandIdAvailable(e.commandId),
+    ),
     buildClipboardItems(view),
     buildCustomItems(view),
   ].filter((section) => section.length > 0);

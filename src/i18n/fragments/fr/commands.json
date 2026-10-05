@@ -151,5 +151,7 @@
   "command.kanban.convertToBoard": "Convertir le document vide en tableau Kanban",
   "command.kanban.toggleTagsFooter": "Activer ou désactiver les tags en pied de carte",
   "command.kanban.toggleRelativeDates": "Activer ou désactiver les dates relatives",
-  "command.kanban.boardSettings": "Paramètres de ce tableau…"
+  "command.kanban.boardSettings": "Paramètres de ce tableau…",
+  "command.chart.insert": "Insérer un graphique pour cette table",
+  "command.chart.edit": "Modifier le graphique"
 }

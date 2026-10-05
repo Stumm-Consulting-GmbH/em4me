@@ -49,7 +49,13 @@ import { applyCanvasBlocks } from '../canvas/canvas-block-zustand.js';
 // 4T-001792 (Epic 3E-000255): Zugang von der Datensatz-Zeile zu den
 // Änderungsbelegen; das Modul bekommt seine Umgebung von app-init.js.
 import { applyRecordRowAccess } from '../database/datensatz-zeilen-zugang.js';
+// 4T-002021 (Epic 3E-000192): Der eine Schritt der Diagramme im Live-Widget
+// (Laufzeit-Aufruf in _enhance; das Modul importiert keins der Live-Module).
+import { applyPerspectiveChartsIfPresent } from '../charts/chart-view.js';
 import { bildDoppelklickDurchlassen, liveBlockCacheGet, liveBlockCacheSet } from './live-shared.js';
+// 4T-002023 (Epic 3E-000192): Höhen-Meldung der Widgets, die nach dem Einhängen
+// asynchron nachladen (Diagramm zu einem anderen Dokument, Einbettung).
+import { beobachteWidgetHoehe, loeseWidgetHoehenBeobachtung } from './live-widget-hoehe.js';
 import { bindDatentabellenVerweisKlicks, bindFrontmatterQueryClicks } from './live-interaction.js';
 
 // 4T-000084 (Epic 3E-000014): Bilder-Widget. Inline-Replace eines
@@ -247,6 +253,11 @@ export class WikiEmbedWidget extends WidgetType {
       // applyWikiEmbedsIfPresent traversiert .wiki-embed-Spans im Container
       // und ersetzt sie durch konkrete Embed-Inhalte.
       if (this.basePath && typeof applyWikiEmbedsIfPresent === 'function') {
+        // 4T-002023 (Epic 3E-000192, Entscheidung W9): Die Einbettung ändert ihre
+        // Höhe nach dem Einhängen — beim ersten Auflösen und seitdem bei jedem
+        // Auffrischen an Ort und Stelle (anderes Fenster, Änderung von außen).
+        // Sie meldet das dem Editor selbst (Entwicklungsrichtlinien, Kapitel 10).
+        beobachteWidgetHoehe(container);
         applyWikiEmbedsIfPresent(container, this.basePath).catch((err) => {
           console.warn('WikiEmbedWidget Async-Resolver-Fehler:', err);
         });
@@ -256,6 +267,11 @@ export class WikiEmbedWidget extends WidgetType {
       container.textContent = this.source;
     }
     return container;
+  }
+  // 4T-002023: Der Höhen-Beobachter hängt am DOM (live-widget-hoehe.js) und wird
+  // getrennt, wenn das Tile samt DOM fällt.
+  destroy(dom) {
+    loeseWidgetHoehenBeobachtung(dom);
   }
   // 4T-001925: wie beim ImageWidget — eine Bild-Einbettung und ein Bild in einer
   // eingebetteten Notiz öffnen per Doppelklick im Standardprogramm.
@@ -292,12 +308,18 @@ export class MarkdownBlockWidget extends WidgetType {
   //
   // Gesetzt wird er nur dort, wo ein Konstrukt ihn braucht (live-block-field.js),
   // damit kein anderes Konstrukt sein Render-Ergebnis unbemerkt ändert.
-  constructor(source, basePath, cacheKey, docPrefix) {
+  //
+  // 4T-002021 (Epic 3E-000192): `dokumentText` ist der Text, in dem ein
+  // Diagramm seine Tabelle sucht — allein die genannte Tabelle samt
+  // Namens-Zeile (live-chart-vorspann.js). Anders als `docPrefix` wird er NICHT
+  // mit gerendert: Die Tabelle erscheint im Widget des Diagramms nicht.
+  constructor(source, basePath, cacheKey, docPrefix, dokumentText) {
     super();
     this.source = source;
     this.basePath = basePath || '';
     this.cacheKey = cacheKey;
     this.docPrefix = docPrefix || '';
+    this.dokumentText = dokumentText || '';
   }
   eq(other) {
     return (
@@ -305,7 +327,8 @@ export class MarkdownBlockWidget extends WidgetType {
       other.source === this.source &&
       other.basePath === this.basePath &&
       other.cacheKey === this.cacheKey &&
-      other.docPrefix === this.docPrefix
+      other.docPrefix === this.docPrefix &&
+      other.dokumentText === this.dokumentText
     );
   }
   toDOM() {
@@ -348,10 +371,12 @@ export class MarkdownBlockWidget extends WidgetType {
       // 4T-001547 (Epic 3E-000251): .perspective-records aus demselben Grund
       // VOR table — ohne den Wrapper verlöre das Live-Widget die Zuordnung zur
       // Fence und den Fenster-Hinweis.
+      // 4T-002021 (Epic 3E-000192): .perspective-chart ebenso — der Container
+      // trägt den Block-Inhalt im Attribut und ist leer, bis er gezeichnet ist.
       const child =
         tmp.querySelector(
-          '.perspective-events, .perspective-datatable, .perspective-canvas, ' +
-            '.perspective-records, table, pre, .katex-display, .katex',
+          '.perspective-chart, .perspective-events, .perspective-datatable, ' +
+            '.perspective-canvas, .perspective-records, table, pre, .katex-display, .katex',
         ) || tmp.firstElementChild;
       if (child) {
         liveBlockCacheSet(this.cacheKey, child);
@@ -428,9 +453,27 @@ export class MarkdownBlockWidget extends WidgetType {
       // und er bringt das Markup mit lauter tabindex="-1" zurück, also ohne den
       // einen Tabulator-Stopp der Tabelle (Bauplan Z5).
       applyRecordRowAccess(container);
+      // 4T-002021 (Epic 3E-000192): Diagramm auflösen und zeichnen (No-op bei
+      // anderen Block-Widgets). Gezeichnet wird synchron, bevor der Editor das
+      // Widget einhängt und misst; die Höhe steht damit nach dem Bau-Schritt.
+      applyPerspectiveChartsIfPresent(container, this.basePath, {
+        dokumentText: this.dokumentText,
+        art: 'live',
+      });
+      // 4T-002023: Eine Tabelle in einem anderen Dokument wird asynchron
+      // gelesen; das Widget kann danach anders hoch sein als beim Einhängen
+      // (Entwicklungsrichtlinien, Kapitel 10: «ja») und meldet das selbst.
+      if (container.querySelector('.perspective-chart[data-chart-state="pending"]')) {
+        beobachteWidgetHoehe(container);
+      }
     } catch (err) {
       console.warn('MarkdownBlockWidget Nachverarbeitung fehlgeschlagen:', err);
     }
+  }
+  // 4T-002023: Gegenstück zur Höhen-Beobachtung eines Diagramm-Widgets; ohne
+  // Beobachter wirkungslos.
+  destroy(dom) {
+    loeseWidgetHoehenBeobachtung(dom);
   }
   // 4T-001925: Ein Bild in einer Tabelle oder einem anderen Block öffnet per
   // Doppelklick im Standardprogramm; alle übrigen Ereignisse bleiben bei den

@@ -12,11 +12,13 @@ Ce paragraphe porte une ancre. ^reunion-1
 
 Dans la vue rendue, l'ancre est invisible ; elle rend le bloc adressable. Les lettres (y compris accentuées), les chiffres, le trait d'union et le tiret bas sont autorisés. Les propriétés s'attachent à cet identifiant : tant que l'ancre figure dans le texte, les données appartiennent à ce bloc, où que le bloc soit déplacé dans le document.
 
+Une [table de données](datatable.md) porte son ancre dans son bloc, sous forme de ligne `table: Nom` avant les lignes de données.
+
 ## Le panneau Propriétés de bloc
 
 Le panneau « Propriétés de bloc » se commute comme tout panneau latéral : via le menu Affichage → Barre latérale → Panneaux → Propriétés de bloc, l'icône accolades de la barre d'état ou un raccourci clavier personnalisé (aucun n'est attribué par défaut). Côté, ordre et groupes d'onglets suivent les règles de la [barre latérale](sidebar.md).
 
-Le panneau **suit le curseur** : il montre les propriétés du bloc dans lequel se trouve le curseur. L'en-tête nomme l'ancre active et offre un sélecteur de toutes les ancres du fichier pour y sauter ; les ancres porteuses de propriétés y sont marquées. Si le curseur est dans un bloc **sans** ancre, le panneau propose « Créer une ancre » et écrit en fin de bloc un identifiant aléatoire court, unique dans le fichier.
+Le panneau **suit le curseur** : il montre les propriétés du bloc dans lequel se trouve le curseur. L'en-tête nomme l'ancre active et offre un sélecteur de toutes les ancres du fichier pour y sauter ; les ancres porteuses de propriétés y sont marquées. Si le curseur est dans un bloc **sans** ancre, le panneau propose « Créer une ancre » et écrit en fin de bloc un identifiant aléatoire court, unique dans le fichier ; pour un bloc de code ou un graphique, il l'écrit sur une ligne à part juste sous le bloc, dans une table de données sous forme de ligne `table:` au début du bloc.
 
 Les lignes de propriétés fonctionnent comme dans le panneau de propriétés du document : chaque ligne a une clé librement choisie, un type (texte, liste, nombre, vrai/faux, date, multiligne, lien, heure) et un champ de valeur adapté. Pour la clé, le panneau suggère les clés de bloc déjà utilisées dans le document. L'enregistrement est **automatique** peu après la saisie ; l'onglet du document n'est pas marqué comme modifié, car les données résident dans le fichier compagnon, pas dans le texte. Dans les vues en lecture seule, le panneau se contente d'afficher les données.
 
@@ -24,7 +26,7 @@ Si des **profils de propriétés** s’appliquent au document, ses blocs hérite
 
 ## Renommer une ancre
 
-L'icône crayon à côté du sélecteur d'ancres renomme l'ancre active. L'ancre dans le texte, l'entrée de données dans le fichier compagnon et les références entrantes **au sein du même document** sont mises à jour ensemble :
+L'icône crayon à côté du sélecteur d'ancres renomme l'ancre active. L'ancre dans le texte — pour une table de données, la ligne `table:` —, l'entrée de données dans le fichier compagnon et les références entrantes **au sein du même document** sont mises à jour ensemble, de même que les graphiques qui désignent la table :
 
 ```markdown
 Voir le premier point : [[#^reunion-1]]

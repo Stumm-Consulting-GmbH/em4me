@@ -8,7 +8,10 @@
 // Bereichs.
 import { describe, it, expect } from 'vitest';
 
-import { blockAnkerInZeile } from '../../../src/renderer/modules/live/live-block-anker.js';
+import {
+  blockAnkerInZeile,
+  tabelleOhneAnkerZeilen,
+} from '../../../src/renderer/modules/live/live-block-anker.js';
 import { extractBlockAnchors } from '../../../src/shared/block-anchors.js';
 
 describe('blockAnkerInZeile — Grenzen des ersetzten Bereichs', () => {
@@ -85,5 +88,47 @@ describe('blockAnkerInZeile — Gleichlauf mit der gemeinsamen Quelle (AK9)', ()
     for (const [id, zeilenNr] of lineById) {
       expect(blockAnkerInZeile(zeilen[zeilenNr - 1]).id).toBe(id);
     }
+  });
+});
+
+// 4T-002048 (Epic 3E-000192): Unter einer gewöhnlichen Tabelle nimmt der
+// Syntaxbaum eine alleinstehende Anker-Zeile als letzte Tabellenzeile auf.
+// Das Tabellen-Widget endet vor ihr, damit sie wie jede andere Anker-Zeile das
+// Anker-Zeichen bekommt und nicht als Tabellenzeile erscheint.
+describe('tabelleOhneAnkerZeilen — Ende des Tabellen-Widgets (4T-002048)', () => {
+  it('nimmt eine Anker-Zeile am Tabellenende heraus', () => {
+    expect(tabelleOhneAnkerZeilen('| A |\n|---|\n| 1 |\n^tab')).toBe('| A |\n|---|\n| 1 |');
+  });
+
+  it('nimmt mehrere Anker-Zeilen und einen abschließenden Umbruch mit', () => {
+    expect(tabelleOhneAnkerZeilen('| A |\n|---|\n| 1 |\n^a\n  ^b  \n')).toBe('| A |\n|---|\n| 1 |');
+  });
+
+  it('lässt eine Tabelle ohne Anker-Zeile unverändert', () => {
+    const quelle = '| A |\n|---|\n| 1 |';
+    expect(tabelleOhneAnkerZeilen(quelle)).toBe(quelle);
+    expect(tabelleOhneAnkerZeilen(quelle + '\n')).toBe(quelle + '\n');
+  });
+
+  it('lässt eine Anker-Zeile mitten in der Tabelle und einen Anker hinter Text stehen', () => {
+    expect(tabelleOhneAnkerZeilen('| A |\n|---|\n^mitte\n| 2 |')).toBe(
+      '| A |\n|---|\n^mitte\n| 2 |',
+    );
+    expect(tabelleOhneAnkerZeilen('| A |\n|---|\n| 1 | ^x')).toBe('| A |\n|---|\n| 1 | ^x');
+  });
+
+  it('behält Kopf- und Trennzeile immer', () => {
+    expect(tabelleOhneAnkerZeilen('| A |\n|---|\n^a')).toBe('| A |\n|---|');
+  });
+});
+
+// Nachbesserung F2: In einem Zitat oder Hinweisblock tragen die Zeilen ab der
+// zweiten die Zitat-Präfixe.
+describe('tabelleOhneAnkerZeilen im Zitat und Hinweisblock (4T-002048)', () => {
+  it('nimmt die Anker-Zeile mit Zitat-Präfix heraus', () => {
+    expect(tabelleOhneAnkerZeilen('| a |\n> |---|\n> | 1 |\n> ^x')).toBe('| a |\n> |---|\n> | 1 |');
+    expect(tabelleOhneAnkerZeilen('| a |\n> > |---|\n> > | 1 |\n> > ^x')).toBe(
+      '| a |\n> > |---|\n> > | 1 |',
+    );
   });
 });

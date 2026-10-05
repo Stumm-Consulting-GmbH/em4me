@@ -776,6 +776,22 @@ function kartenVerweisText(el) {
   return '';
 }
 
+/**
+ * Ob eine Karte ihren eigenen Text als Markdown zeigt (4T-002025): eine Karte
+ * ohne Verweis `doc=` und ohne Bild-Angabe `bild=`, auch ohne eine ungültige,
+ * deren Rohtext in `attrs` steht (G8: `doc=` vor `bild=` vor Text). Heimat der
+ * Regel für die Canvas-Ansicht und den portablen Export, der ein Diagramm nur
+ * in einer solchen Karte zeichnet.
+ *
+ * @param {object} el beliebiges Element des Modells.
+ * @returns {boolean}
+ */
+function istTextKarte(el) {
+  if (!el || el.art !== 'karte' || el.doc) return false;
+  const bild = el.bild || (el.attrs && el.attrs.bild != null ? el.attrs.bild : '');
+  return String(bild).trim() === '';
+}
+
 // Überschrift-Zeichen und Aufzählungs-Striche gehören zur Markdown-Syntax und
 // nicht zum Titel. Eigene Funktion seit 4T-001668, weil die Karten-Vorschau
 // des Blocks dieselbe Bereinigung braucht — und eine zweite Kopie der Regel
@@ -972,6 +988,7 @@ module.exports = {
   canvasFlaechenTitel,
   canvasKartenVorschau,
   kartenVerweisText,
+  istTextKarte,
   canvasUmfang,
   canvasListe,
 };

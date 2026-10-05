@@ -4,13 +4,14 @@ Un clic destro nell'editor apre un menu contestuale che rende accessibili i cost
 
 ## Struttura
 
-Dall'alto verso il basso, il menu è suddiviso in sei gruppi:
+Dall'alto verso il basso, il menu è suddiviso in sette gruppi:
 
 - **Collegamento** — racchiudere la selezione come collegamento wiki o come collegamento esterno.
 - **Formato** — livello carattere: grassetto, corsivo, barrato, evidenziato, codice, formula, commento e «rimuovi formattazione».
 - **Paragrafo** — livello riga: elenco puntato, elenco numerato, elenco attività, titolo da 1 a 6, nessun titolo e citazione.
 - **Inserisci** — modelli: nota a piè di pagina, tabella, riquadro, linea orizzontale e blocco di codice.
 - **Tabella** — operazioni di modifica per la tabella al cursore; appare solo quando il cursore si trova in una tabella.
+- **Grafico** — «Inserisci grafico per questa tabella» oppure «Modifica grafico»; appare solo quando il cursore si trova in una tabella dati o nel blocco di un grafico.
 - **Appunti** — taglia, copia, incolla, seleziona tutto.
 
 Le scorciatoie predefinite per grassetto (`Ctrl+B`) e corsivo (`Ctrl+I`) funzionano anche senza il menu; tutte le altre azioni possono essere associate a una scorciatoia nelle impostazioni.
@@ -43,6 +44,12 @@ Quando il cursore si trova in una tabella, appare in aggiunta il gruppo **Tabell
 - **Trasponi** — scambiare righe e colonne; la riga di intestazione diventa la prima colonna.
 
 Ogni operazione è un singolo passo di annullamento. Le destinazioni non possibili appaiono attenuate: la riga di intestazione e la riga di separazione di una tabella pipe non possono essere spostate o eliminate, e l'ultima colonna non può essere eliminata. Durante l'intervento, le tabelle pipe vengono riscritte formattate (pipe esterni, colonne allineate con spazi); questo vale anche per le tabelle senza bordi. Nelle tabelle Perspective, le operazioni sulle righe lavorano sulle sezioni `|-`; le operazioni sulle colonne e la trasposizione sono possibili lì solo senza `colspan`/`rowspan` e altrimenti vengono rifiutate con un avviso. Tutte le operazioni sono anche nella palette dei comandi e possono essere associate a scorciatoie; l'estensione «Strumenti tabella» disattiva il sottomenu e i suoi comandi. Nella modalità live, un clic destro in una cella porta il cursore proprio in quella cella; le operazioni agiscono quindi nel punto cliccato, e un inserimento in corso nella cella viene mantenuto.
+
+## Grafici di tabelle
+
+Se il cursore si trova in una [Perspective Datatable](datatable.md), la voce **Inserisci grafico per questa tabella** compare dopo il gruppo **Tabella** e prima degli appunti; se si trova nel blocco di un grafico, compare la voce **Modifica grafico**. Entrambe compaiono solo se il documento è modificabile e l'estensione «Grafico di una tabella dati» è attiva. Aprono la finestra di dialogo descritta nella pagina [Grafici di tabelle](charts.md).
+
+Sulla **griglia di una tabella dati** e su un **grafico disegnato** — in modalità live e nella metà renderizzata della vista divisa —, un clic destro apre, al posto di questo menu, un menu breve con esattamente la voce corrispondente. La tabella e il grafico restano disegnati, e il cursore resta dov'era. Nella vista di lettura e con la modalità modifica disattivata, lì non compare alcun menu. Nemmeno un clic destro nell'inserimento aperto di una cella ne mostra uno; l'inserimento resta aperto.
 
 ## Protezione in collegamenti e codice
 

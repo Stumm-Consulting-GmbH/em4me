@@ -14,7 +14,7 @@ const fs = require('node:fs');
 const chokidar = require('chokidar');
 const { MD_EXT_RE, normalizeNameKey } = require('../../shared/markdown/link-scan.js');
 const { MDDA_CACHE_FILENAME } = require('../documents/mdd-store.js');
-const { indexes, broadcast, scheduleInvalidate } = require('./store.js');
+const { indexes, broadcast, scheduleInvalidate, merkeGeaenderteDatei } = require('./store.js');
 const {
   SCAN_DEPTH,
   MAX_FILES,
@@ -411,6 +411,9 @@ function onWatcherChange(entry, filePath, kind) {
         entry.cacheFiles.delete(filePath);
         scheduleCacheWrite(entry);
       }
+      // 4T-002023 (Epic 3E-000192): Die Datei reist mit der Meldung, damit
+      // Einbettungen und Diagramme dieses Ziels auffrischen (store.js).
+      merkeGeaenderteDatei(entry, filePath, kind);
       scheduleInvalidate(entry);
     }
     return;
@@ -478,6 +481,7 @@ function onWatcherChange(entry, filePath, kind) {
     entry.cacheFiles.set(filePath, { mtimeMs, size, hash: parsed.hash || '' });
     scheduleCacheWrite(entry);
   }
+  merkeGeaenderteDatei(entry, filePath, kind);
   scheduleInvalidate(entry);
 }
 
@@ -585,4 +589,7 @@ function removeFromTagMap(entry, filePath, tags) {
 
 module.exports = {
   buildIndexAsync,
+  // 4T-002023: nur für Prüfungen — die Meldung des Beobachters ohne echten
+  // Datei-Beobachter nachstellen (test/unit/index-rundruf.test.js).
+  onWatcherChange,
 };

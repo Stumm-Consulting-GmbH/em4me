@@ -8,7 +8,9 @@
 // geprüft; hier stehen die vier Entscheidungen, in denen ein Irrtum still in
 // die Datei des Anwenders ginge.
 import { describe, it, expect } from 'vitest';
-import { ChangeSet, Text } from '@codemirror/state';
+import { ChangeSet, EditorState, Text } from '@codemirror/state';
+import { ensureSyntaxTree } from '@codemirror/language';
+import { markdown, markdownLanguage } from '@codemirror/lang-markdown';
 // live-deco.js haengt am Renderer-Modulgraphen; der Stub stellt den
 // Preload-Namensraum bereit, den dessen Modulkoepfe erwarten (Muster
 // book-panel.test.js). Der rechnende Kern selbst braucht ihn nicht.
@@ -24,11 +26,13 @@ import {
   maskiereZellText,
   nachbarZelle,
   neueZeileAmEnde,
+  tabellenMasse,
   zellBereich,
   zellePosZuDokumentStelle,
   zellTextAn,
 } from '../../../src/renderer/modules/live/live-table-zell-kern.js';
 import { parsePipeTable } from '../../../src/shared/markdown/table-edit.js';
+import { tabellenQuelleAm } from '../../../src/renderer/modules/live/live-table-zelle.js';
 
 const TABELLE = ['| A | B | C |', '| --- | --- | --- |', '| a1 | b1 | c1 |'];
 const QUELLE = TABELLE.join('\n');
@@ -379,5 +383,38 @@ describe('neueZeileAmEnde (die angelegte Zeile im Quelltext, 4T-001711)', () => 
 
   it('traegt eine Spaltenzahl von mindestens eins', () => {
     expect(neueZeileAmEnde('| A |\n| --- |', 0).einfuegen).toBe('\n| |');
+  });
+});
+
+// 4T-002048 (Nachbesserung F5): Der Ausweichweg der Übernahme liest die Tabelle
+// aus dem Syntaxbaum. Der nimmt eine Anker-Zeile direkt unter der Tabelle als
+// letzte Tabellenzeile auf; das Widget zeigt sie nicht. Die Quelle endet
+// deshalb vor ihr, sonst spränge der Tabulator in die nicht angezeigte Zeile
+// und eine neue Zeile am Ende käme hinter die Anker-Zeile.
+describe('tabellenQuelleAm mit Anker-Zeile unter der Tabelle (4T-002048)', () => {
+  const text = `${QUELLE}\n^x\n\nAbsatz danach.`;
+  const state = EditorState.create({
+    doc: text,
+    extensions: [markdown({ base: markdownLanguage })],
+  });
+  ensureSyntaxTree(state, state.doc.length, 5000);
+  const quelle = tabellenQuelleAm(state, 0);
+
+  it('die Quelle endet vor der Anker-Zeile', () => {
+    expect(quelle).toBe(QUELLE);
+  });
+
+  it('Tabulator in der letzten Zelle der letzten angezeigten Zeile legt eine Zeile an', () => {
+    const masse = tabellenMasse(parsePipeTable(quelle.split('\n')));
+    const pos = { rowKind: 'body', rowIndex: 0, col: 2 };
+    expect(legtTabulatorZeileAn(masse, pos, 'Tab', 'vor')).toBe(true);
+    expect(nachbarZelle(masse, pos, 'vor')).toBeNull();
+  });
+
+  it('die neue Zeile am Ende steht vor der Anker-Zeile', () => {
+    const block = blockAmAnker(state.doc, 0, quelle);
+    const anlage = neueZeileAmEnde(quelle, 3);
+    const danach = text.slice(0, block.to) + anlage.einfuegen + text.slice(block.to);
+    expect(danach.split('\n').slice(2, 5)).toEqual(['| a1 | b1 | c1 |', '| | | |', '^x']);
   });
 });

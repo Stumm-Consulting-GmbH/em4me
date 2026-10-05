@@ -23,3 +23,11 @@ Struktur-Fehler (unbekannter Typ, doppelte Spalte):
 columns: A:zahl, B:number, b:text
 | 1 |
 ```
+
+Benannte Tabelle (Kopf-Angabe table, Name als Block-Kennung):
+
+```perspective-datatable
+table: Umsatz
+columns: Monat:text, Betrag:number
+| Januar | 100 |
+```

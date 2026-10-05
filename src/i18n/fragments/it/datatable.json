@@ -6,6 +6,8 @@
   "datatable.error.badColumnLabel": "Riga {line}: etichetta di visualizzazione non valida nella definizione di colonna '{detail}' (atteso: identificatore e poi il testo tra virgolette doppie)",
   "datatable.error.unknownType": "Riga {line}: tipo di colonna sconosciuto '{detail}'",
   "datatable.error.unknownTypesValue": "Riga {line}: valore '{detail}' sconosciuto per la visualizzazione del tipo (consentito: shown, hidden)",
+  "datatable.error.emptyTableName": "Riga {line}: l'indicazione 'table:' non indica alcun nome",
+  "datatable.error.invalidTableName": "Riga {line}: nome di tabella non valido '{detail}' (consentiti lettere, cifre, trattino e trattino basso; niente spazi, niente punto, niente accento circonflesso)",
   "datatable.error.badFormat": "Riga {line}: formato di visualizzazione non valido in '{detail}' (consentito: number con 0-10 decimali)",
   "datatable.error.duplicateColumn": "Riga {line}: il nome di colonna '{detail}' compare più volte",
   "datatable.error.badAggregate": "Riga {line}: voce di aggregato non valida '{detail}'",

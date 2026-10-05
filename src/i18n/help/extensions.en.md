@@ -18,7 +18,7 @@ Above the switch list sits the Working mode section. A working mode sets the swi
 
 - **Beginner** — writing and linking. Included are the common Markdown repertoire (among others callouts, footnotes, highlight, typography, emoji, images with size, Perspective tables and syntax highlighting), the linking through wiki links, tags and autocomplete, plus the tools of everyday writing: task lists, templates, bookmarks, spell checking, format toolbar, table editor, title line, date picker, word statistics, focus mode and the demo area.
 - **Advanced** — all of that and, in addition, organising and planning: books, journals, property profiles, reminders, events, graph view, mindmap, outliner, workspaces, tab groups, clock, formulas and diagrams, plus the rarer Markdown constructs such as custom containers, definition lists, abbreviations, spoilers, comments, heading numbering and extended task states.
-- **Full** — all built-in extensions, that is additionally canvas areas, database, Perspective Datatable, inline calculation, Critic Markup, line blocks, heading attributes, custom calendar systems, custom interface language, My Extended Memory, custom status bar buttons and the exchange of your own setup.
+- **Full** — all built-in extensions, that is additionally canvas areas, database, Perspective Datatable, charts for tables, inline calculation, Critic Markup, line blocks, heading attributes, custom calendar systems, custom interface language, My Extended Memory, custom status bar buttons and the exchange of your own setup.
 
 Like every other change on this page, the choice takes effect on Apply or OK — then immediately, without restart and in all open windows.
 
@@ -52,7 +52,7 @@ Custom modes apply in all areas and travel with your own setup — see [Exportin
 
 ## Dependencies
 
-Some extensions build on each other: wiki embeds and area links need wiki links, reminders need tasks, events and the database need the property profiles. As long as such a dependent extension is enabled, its foundation cannot be disabled: the foundation's switch is locked, and below its description it reads "Cannot be disabled — required by:" together with the names of the dependants; several of them appear together in one sentence. A click on the locked row briefly shows the same hint in the status bar and changes nothing about the switch. To disable the foundation, disable its dependants first; after that its switch is free.
+Some extensions build on each other: wiki embeds and area links need wiki links, reminders need tasks, events and the database need the property profiles, charts for tables need the Perspective Datatable. As long as such a dependent extension is enabled, its foundation cannot be disabled: the foundation's switch is locked, and below its description it reads "Cannot be disabled — required by:" together with the names of the dependants; several of them appear together in one sentence. A click on the locked row briefly shows the same hint in the status bar and changes nothing about the switch. To disable the foundation, disable its dependants first; after that its switch is free.
 
 Locking only applies where the dependent extension cannot work at all without its foundation. Where disabling an extension merely impoverishes another one — a control disappears, a suggestion stays empty, a check stays silent, while the extension otherwise keeps running — the switch stays free.
 

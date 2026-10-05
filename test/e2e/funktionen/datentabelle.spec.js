@@ -19,6 +19,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { hauptSenden } = require('../helpers/haupt-zugriff');
 const { SEL } = require('../helpers/selectors');
+const { erwarteDateiUnveraendert } = require('../helpers/dateien');
 
 const FIXTURE = path.resolve(__dirname, '..', '..', 'fixtures', 'funktionen', 'datentabelle.md');
 
@@ -838,6 +839,85 @@ test.describe('DT-15: Vorschlagsliste in der geteilten Ansicht, Tasten-Vorrang (
     } finally {
       await closeApp(app, userData, { force: true });
       raeumeVorschlagsBereichAuf(dir);
+    }
+  });
+});
+
+// --- 4T-002072 (Epic 3E-000192): Name der Tabelle in der Kopf-Angabe table: ----
+
+// Ein Dokument mit genau einer Datentabelle, deren erste Zeile `kopf` ist; als
+// Datei in einem eigenen Temp-Ordner, damit kein geteiltes Fixture wächst.
+function dokumentMitKopf(kopf) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-datentabelle-name-'));
+  const datei = path.join(dir, 'Name.md');
+  const text = [
+    '# Name der Tabelle',
+    '',
+    '```perspective-datatable',
+    kopf,
+    'columns: Monat:text, Wert:number',
+    '| Januar | 100 |',
+    '```',
+    '',
+  ].join('\n');
+  fs.writeFileSync(datei, text, 'utf8');
+  return { dir, datei };
+}
+
+function entferneOrdner(dir) {
+  try {
+    fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+  } catch {
+    /* Windows-Handle noch gesperrt: Temp-Rest ist unkritisch */
+  }
+}
+
+test.describe('DT-17: Name in der Zeile table:', () => {
+  test('fehlerfrei; eine Zell-Aenderung laesst die Zeile table: als erste Zeile stehen', async () => {
+    const { dir, datei } = dokumentMitKopf('table: Umsatz');
+    const ausgang = fs.readFileSync(datei, 'utf8');
+    const { app, page, userData } = await launchApp({ args: [datei] });
+    try {
+      await waitForTab(page);
+      const { grid, editor } = await openSplit(page);
+      await expect(grid.locator('.pdt-errors')).toHaveCount(0);
+      await grid.locator('tr[data-dt-row="0"] td[data-dt-col="1"]').click();
+      const input = grid.locator('input.pdt-cell-input');
+      await expect(input).toBeVisible();
+      await input.fill('120');
+      await input.press('Enter');
+      await expect(editor).toContainText(/\| Januar \| 120 \|/);
+      // Der Serialisierer schreibt den ganzen Block neu; der Name bleibt die
+      // erste Zeile vor columns.
+      await expect(editor).toContainText(
+        /perspective-datatable\s*table: Umsatz\s*columns: Monat:text, Wert:number/,
+      );
+      // 4T-002026: Die Gitter-Eingabe steht im Puffer, nicht auf der Platte.
+      erwarteDateiUnveraendert(datei, ausgang);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      entferneOrdner(dir);
+    }
+  });
+
+  test('ein ungueltiger Name zeigt den Fehlerkasten mit Zeile, die Werte bleiben sichtbar', async () => {
+    const { dir, datei } = dokumentMitKopf('table: a b');
+    const { app, page, userData } = await launchApp({ args: [datei] });
+    try {
+      await waitForTab(page);
+      const grid = page
+        .locator(SEL.markdownBody0)
+        .locator('.perspective-datatable[data-dt-index="0"]');
+      const fehler = grid.locator('.pdt-errors .pdt-error-item');
+      await expect(fehler).toHaveCount(1);
+      await expect(fehler).toHaveAttribute('data-dt-code', 'invalidTableName');
+      await expect(fehler).toHaveAttribute('data-dt-line', '1');
+      await expect(fehler).toHaveAttribute('data-dt-detail', 'a b');
+      await expect(grid.locator('.pdt-grid')).toBeVisible();
+      await expect(grid.locator('tr[data-dt-row="0"] td[data-dt-col="0"]')).toHaveText('Januar');
+    } finally {
+      await closeApp(app, userData, { force: true });
+      entferneOrdner(dir);
     }
   });
 });

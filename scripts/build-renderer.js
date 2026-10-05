@@ -34,6 +34,15 @@ buildTourAssets();
 const { buildI18n } = require('./build-i18n.js');
 buildI18n();
 
+// 4T-002020 (Epic 3E-000192): die Teil-Einbindung der Zeichen-Bibliothek als
+// CommonJS-Stand für den gemeinsamen Zeichner (src/shared/charts/), samt den
+// Lizenz-Texten daneben. Er ist kein Teil des Renderer-Bündels; der Zeichner
+// lädt ihn im Preload beim ersten Diagramm. Hier gebaut, damit jeder
+// Programm-Bau (build, build:installer, build:portable, build:linux) und jeder
+// Start ihn vorfindet.
+const { buildEcharts } = require('./build-echarts.js');
+buildEcharts();
+
 // 4T-000021: separater Mermaid-Bundle, der vom Renderer lazy geladen wird.
 // Wird hier synchron gebaut, damit das Ergebnis bereits liegt, bevor das
 // Haupt-Renderer-Bundle gebaut wird.

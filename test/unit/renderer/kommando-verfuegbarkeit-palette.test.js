@@ -19,7 +19,7 @@
 //
 // Muster book-panel.test.js: jsdom plus api-Stub vor dem Modul-Import, weil
 // command-palette.js den Renderer-Zustand und die Editor-Module nachzieht.
-import { describe, expect, it, beforeEach } from 'vitest';
+import { describe, expect, it, beforeEach, vi } from 'vitest';
 import './api-stub.js';
 import { COMMANDS } from '../../../src/shared/commands/commands.js';
 import {
@@ -28,9 +28,27 @@ import {
 } from '../../../src/shared/commands/command-availability.js';
 import { state } from '../../../src/renderer/modules/app/app-state.js';
 import {
+  buildPaletteEntries,
   isCommandAvailable,
   isCommandIdAvailable,
+  rendererAvailabilityContext,
 } from '../../../src/renderer/modules/command-palette.js';
+import {
+  applyExtensionsState,
+  resetExtensionStateForTests,
+} from '../../../src/renderer/modules/extensions/extension-lifecycle.js';
+import { paneEditors } from '../../../src/renderer/modules/editor/editor.js';
+import { lageFuer } from '../../../src/renderer/modules/charts/chart-lage.js';
+
+// 4T-002024 (Epic 3E-000192): lageFuer wird beobachtet, damit der Fall «der
+// Kontext trägt die beiden Lage-Felder» den Kontext-Bau der Palette misst und
+// nicht die Lage-Erkennung selbst (die hat ihre eigene Prüfdatei,
+// renderer/diagramm-lage.test.js). Ohne vorgegebenen Rückgabewert läuft die
+// echte Funktion.
+vi.mock('../../../src/renderer/modules/charts/chart-lage.js', async (original) => {
+  const echt = await original();
+  return { ...echt, lageFuer: vi.fn(echt.lageFuer) };
+});
 
 // --- Die alte Entscheidungs-Logik, eingefroren ------------------------------
 //
@@ -188,6 +206,11 @@ const NACH_DER_MESSUNG = new Set([
   // 4T-001956 (Epic 3E-000319): «Notiz aus Karte erzeugen…», aus demselben
   // Grund.
   'kanban.noteFromCard',
+  // 4T-002024 (Epic 3E-000192): die beiden Diagramm-Kommandos, aus demselben
+  // Grund; sie lesen zudem die beiden Lage-Felder, die die alte Logik nicht
+  // kennt. Ihre Regel misst der eigene Block am Ende dieser Datei.
+  'chart.insert',
+  'chart.edit',
 ]);
 
 // 4T-001765 (Epic 3E-000186, E6): Die drei Editor-Schalter, deren REGEL dieser
@@ -213,7 +236,18 @@ const STRENGERE_EDITOR_REGEL = [
   'view.toggleWordWrap',
 ];
 
-const BOOL_FIELDS = AVAILABILITY_CONTEXT_FIELDS.filter((f) => f !== 'viewMode');
+// 4T-002024 (Epic 3E-000192): Die beiden Lagen des aktiven Editors bleiben aus
+// der Voll-Aufzählung, aus demselben Grund wie in
+// test/unit/command-availability.test.js: Jedes boolsche Feld verdoppelt die
+// Grundgesamtheit (heute 65 536, mit beiden 262 144), und sie trüge die Zeit
+// für genau zwei Kommandos. Die Lücke schließen zwei eigene Fälle am Ende
+// dieser Datei: Alle übrigen Kommandos sind gegen beide Felder unempfindlich,
+// und die beiden neuen werden über Basis mal vier Belegungen aufgezählt.
+const LAGE_FELDER = ['inDatentabelle', 'diagrammGewaehlt'];
+const NEUE_KOMMANDOS = ['chart.insert', 'chart.edit'];
+const BOOL_FIELDS = AVAILABILITY_CONTEXT_FIELDS.filter(
+  (f) => f !== 'viewMode' && !LAGE_FELDER.includes(f),
+);
 // 4T-001847 (Epic 3E-000110): 'kanban' als siebter Modus.
 const VIEW_MODES = [null, 'source', 'split', 'live', 'rendered', 'mindmap', 'canvas', 'kanban'];
 
@@ -436,6 +470,193 @@ describe('Vollbestands-Vergleich gegen die alte Logik (4T-001636)', () => {
       expect(unterschiede, `${id} weicht in keiner Lage ab`).toBeGreaterThan(0);
       expect(richtungsVerletzungen, `${id}: neue Regel ist nicht strenger`).toEqual([]);
       expect(lageVerletzungen, `${id}: unerwartete Abweichungs-Lage`).toEqual([]);
+    }
+  });
+});
+
+// --- 4T-002024 (Epic 3E-000192): die beiden Diagramm-Kommandos --------------
+
+describe('Diagramm-Kommandos in der Palette (4T-002024)', () => {
+  const kontexte = alleKontexte();
+  const LAGE_BELEGUNGEN = [
+    [false, false],
+    [true, false],
+    [false, true],
+    [true, true],
+  ];
+
+  function sollDiagramm(id, c) {
+    const editor =
+      c.hasTab &&
+      !c.manualTab &&
+      !c.systemTab &&
+      c.editMode &&
+      ['source', 'split', 'live'].includes(c.viewMode);
+    return !!(editor && (id === 'chart.insert' ? c.inDatentabelle : c.diagrammGewaehlt));
+  }
+
+  it('der Kontext trägt die beiden Lage-Felder aus lageFuer der aktiven Spalte', () => {
+    const tab = { ...DATEI_TAB, viewMode: 'live', editMode: true };
+    setzeZustand({ tab });
+    lageFuer.mockClear();
+    lageFuer.mockReturnValueOnce({
+      inDatentabelle: true,
+      diagrammGewaehlt: false,
+      art: 'datentabelle',
+      zeile: 3,
+      quelle: 'klick',
+    });
+    const ctx = rendererAvailabilityContext();
+    expect(ctx.inDatentabelle).toBe(true);
+    expect(ctx.diagrammGewaehlt).toBe(false);
+    // Gefragt wird der Editor der aktiven Spalte mit ihrem aktiven Reiter.
+    expect(lageFuer).toHaveBeenCalledTimes(1);
+    expect(lageFuer.mock.calls[0][0]).toBe(paneEditors[state.activePaneIndex]);
+    expect(lageFuer.mock.calls[0][1]).toBe(state.panes[0].tabs[0]);
+
+    // Derselbe Weg über isCommandIdAvailable: Einfügen wählbar, Bearbeiten nicht.
+    const lage = (a, d) => ({
+      inDatentabelle: a,
+      diagrammGewaehlt: d,
+      art: null,
+      zeile: null,
+      quelle: null,
+    });
+    lageFuer.mockReturnValueOnce(lage(true, false));
+    expect(isCommandIdAvailable('chart.insert')).toBe(true);
+    lageFuer.mockReturnValueOnce(lage(true, false));
+    expect(isCommandIdAvailable('chart.edit')).toBe(false);
+    lageFuer.mockReturnValueOnce(lage(false, true));
+    expect(isCommandIdAvailable('chart.edit')).toBe(true);
+    lageFuer.mockReturnValueOnce(lage(false, true));
+    expect(isCommandIdAvailable('chart.insert')).toBe(false);
+
+    // Anzeige statt Bearbeiten und Lese-Ansicht: trotz Lage nicht wählbar.
+    setzeZustand({ tab: { ...tab, editMode: false } });
+    lageFuer.mockReturnValueOnce(lage(true, true));
+    expect(isCommandIdAvailable('chart.insert')).toBe(false);
+    setzeZustand({ tab: { ...tab, viewMode: 'rendered' } });
+    lageFuer.mockReturnValueOnce(lage(true, true));
+    expect(isCommandIdAvailable('chart.edit')).toBe(false);
+  });
+
+  // AK22: Im Aus-Zustand der Erweiterung stehen beide Kommandos nicht in der
+  // Palette, auch nicht gedimmt; ist die Datentabelle aus, von der das
+  // Diagramm abhängt, ebenso.
+  it('Aus-Zustand der Erweiterung: keines der beiden Kommandos in der Palette (AK22)', async () => {
+    const ids = () => buildPaletteEntries().map((e) => e.id);
+    try {
+      resetExtensionStateForTests();
+      for (const id of NEUE_KOMMANDOS) expect(ids(), `${id} eingeschaltet`).toContain(id);
+      for (const aus of [['perspective-chart'], ['perspective-datatable']]) {
+        await applyExtensionsState(aus, { persist: false });
+        for (const id of NEUE_KOMMANDOS) expect(ids(), `${id} bei ${aus}`).not.toContain(id);
+        resetExtensionStateForTests();
+      }
+    } finally {
+      resetExtensionStateForTests();
+    }
+  });
+
+  it('ohne Editor und ohne Reiter tragen beide Felder false', () => {
+    setzeZustand();
+    lageFuer.mockClear();
+    const ctx = rendererAvailabilityContext();
+    expect(ctx.inDatentabelle).toBe(false);
+    expect(ctx.diagrammGewaehlt).toBe(false);
+    expect(isCommandIdAvailable('chart.insert')).toBe(false);
+    expect(isCommandIdAvailable('chart.edit')).toBe(false);
+  });
+
+  // Die Lücke, die das Herausnehmen der Lage-Felder aus der Voll-Aufzählung
+  // öffnet, für die Kommandos: Jedes Kommando außer den beiden neuen antwortet
+  // in allen vier Belegungen der Felder wie in der Grund-Belegung (V4b der
+  // Nachbesserung vom 2026-09-30; der frühere Vergleich «beide an» gegen «beide
+  // aus» übersah eine Bedingung, die nur bei gemischter Belegung kippt).
+  //
+  // 4T-002154: gemessen über das Lesen der Felder statt über vier Belegungen.
+  // Der Vergleich über Basis mal vier Belegungen kostete rund 65 Millionen
+  // Auswertungen und riss auf Windows auch ohne Last die 5-Sekunden-Grenze.
+  // Die Felder sind jetzt Getter, die ihr Lesen vermerken und `false` liefern,
+  // und jedes Kommando wird je Kontext einmal ausgewertet. Die Aussage bleibt
+  // vollständig: Liest eine Auswertung in der Grund-Belegung keines der beiden
+  // Felder, nimmt sie bei jeder anderen Belegung denselben Weg und kommt zum
+  // selben Ergebnis. Jedes empfindliche Kommando liest also mindestens eines
+  // der Felder, auch eines, das erst bei gemischter Belegung kippt (V4b).
+  // Strenger als zuvor ist der Fall nur bei einem Kommando, das ein Feld liest,
+  // ohne dass sein Ergebnis davon abhängt; auch das ist ein stilles Lesen.
+  function vermerkendeGrundBelegung() {
+    const messung = { gelesen: false };
+    const lesezeichen = {};
+    for (const feld of LAGE_FELDER) {
+      Object.defineProperty(lesezeichen, feld, {
+        get() {
+          messung.gelesen = true;
+          return false;
+        },
+      });
+    }
+    messung.fuer = (ctx) => {
+      const grund = Object.create(lesezeichen);
+      for (const [feld, wert] of Object.entries(ctx)) {
+        if (!LAGE_FELDER.includes(feld)) grund[feld] = wert;
+      }
+      return grund;
+    };
+    return messung;
+  }
+
+  it('alle bisherigen Kommandos sind gegen beide Lage-Felder unempfindlich', () => {
+    const bisherige = COMMANDS.filter((c) => !NEUE_KOMMANDOS.includes(c.id));
+    expect(bisherige.length).toBe(COMMANDS.length - NEUE_KOMMANDOS.length);
+    const messung = vermerkendeGrundBelegung();
+    const empfindlich = new Set();
+    for (const ctx of kontexte) {
+      const grund = messung.fuer(ctx);
+      for (const cmd of bisherige) {
+        messung.gelesen = false;
+        isCommandAvailable(cmd, grund);
+        if (messung.gelesen) empfindlich.add(cmd.id);
+      }
+    }
+    expect([...empfindlich], 'Kommandos, die still ein Lage-Feld lesen').toEqual([]);
+  });
+
+  // 4T-002154: Gegenprobe, dass die Messung ein Lesen überhaupt sieht: Das
+  // neue Kommando «Diagramm zu dieser Tabelle einfügen» liest das Feld in
+  // einer Lage, in der es mit Datentabelle frei wäre.
+  it('die Messung über das Lesen erkennt ein Kommando, das ein Lage-Feld liest', () => {
+    const messung = vermerkendeGrundBelegung();
+    const basis = kontexte.find((c) =>
+      sollDiagramm('chart.insert', { ...c, inDatentabelle: true }),
+    );
+    expect(basis, 'keine Lage, in der das Kommando frei wäre').toBeTruthy();
+    isCommandAvailable(
+      COMMANDS.find((c) => c.id === 'chart.insert'),
+      messung.fuer(basis),
+    );
+    expect(messung.gelesen).toBe(true);
+  });
+
+  it('die beiden neuen Kommandos, aufgezählt über Basis mal vier Belegungen', () => {
+    for (const id of NEUE_KOMMANDOS) {
+      const cmd = COMMANDS.find((c) => c.id === id);
+      expect(cmd, `${id} fehlt in der Registry`).toBeTruthy();
+      let frei = 0;
+      let gesperrt = 0;
+      const abweichend = [];
+      for (const ctx of kontexte) {
+        for (const [a, d] of LAGE_BELEGUNGEN) {
+          const c = { ...ctx, inDatentabelle: a, diagrammGewaehlt: d };
+          const wert = isCommandAvailable(cmd, c);
+          if (wert) frei += 1;
+          else gesperrt += 1;
+          if (wert !== sollDiagramm(id, c) && abweichend.length < 3) abweichend.push(c);
+        }
+      }
+      expect(abweichend, `${id}: weicht von der Regel ab`).toEqual([]);
+      expect(frei, `${id}: nie wählbar`).toBeGreaterThan(0);
+      expect(gesperrt, `${id}: nie gesperrt`).toBeGreaterThan(0);
     }
   });
 });

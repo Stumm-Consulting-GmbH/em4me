@@ -62,7 +62,11 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   calculate live, and links and tags in their text cells work as anywhere
   else; queries embed file lists that keep themselves current, filtered by
   properties, tags or tasks, grouped with counts and totals per group, and
-  a query you need often can be kept as a document of its own. All of it
+  a query you need often can be kept as a document of its own. A block of
+  its own draws a line, bar, pie or donut chart from a data table, which it
+  refers to by name, even in another document; it holds no numbers of its
+  own and follows the table as you type, on screen, in print and in the
+  portable export. All of it
   stays plain text inside your file.
 - **A database made of Markdown files** — a file can state in its own head
   that it is a table: which fields it has, of what type, with labels in

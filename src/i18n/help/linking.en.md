@@ -31,6 +31,17 @@ Block anchors are set with `^id` at the end of a line and anchor the surrounding
 This decision is binding. ^decision-1
 ```
 
+Below a code block or a chart the identifier stands on a line of its own directly below the block. There, too, it is not visible in the rendered view, and a link such as `[[Project plan#^interest-rate]]` jumps to the block:
+
+````markdown
+```js
+const interestRate = 0.04;
+```
+^interest-rate
+````
+
+A [data table](datatable.md) carries its identifier in its block, as the line `table: Sales` before the data rows; `[[Report#^Sales]]` jumps to it.
+
 The anchor looks different from view to view. The rendered view does not show it at all — there the block is merely a jump target. **Live mode** replaces it with a discreet marker at the end of the line: hovering names the identifier, a click puts the caret at the end of the line and reveals the raw text for editing. When the caret is already in that line, the anchor stays visible as usual. That live mode shows more than the rendered view is deliberate: an anchor is an address others point to, and while restructuring a document you should be able to see that it exists. If the same block carries [properties](block-properties.md), their marker sits next to it.
 
 Broken anchor targets are flagged by the [Markdown linter](tools.md) in the editor.
@@ -75,7 +86,7 @@ A raw space without angle brackets ends the target, so the link is not recognise
 ![[notes.md#^block]]     only the anchored block
 ```
 
-For block anchors the full surrounding block is embedded (list item with sub-lists, fenced code, table row, blockquote). Embedded Markdown renders with its own source as base; links inside resolve against the embedded file.
+For block anchors the full surrounding block is embedded (list item with sub-lists, fenced code, table row, blockquote), for the name of a data table the whole table. An anchor inside a code example does not count. Embedded Markdown renders with its own source as base; links inside resolve against the embedded file.
 
 **Where the target is looked for.** The app searches in three steps, the same way for every file type: first the path relative to your own file, then the subpage spelling, finally the plain **name** across the whole area. So `![[image.png]]` finds the file even when it sits in a different folder — you do not have to get the path right. The search ends at the area root: anything outside is not embedded. Without a bound area, the folder of your own file remains the limit.
 

@@ -4,6 +4,8 @@ La Perspective Datatable est une **table de données typée avec fonctions de ca
 
 Délimitation : la [Perspective Table](perspective-table.md) vise des contenus textuels riches (cellules de bloc multilignes, spans, mise en évidence d'état). La Datatable vise des **données structurées et calculables** — de petits ensembles comme des dépenses, un suivi du temps ou des inventaires. La table de données fait partie des [extensions internes](extensions.md) et peut y être désactivée ; désactivé, le bloc reste un bloc de code ordinaire.
 
+Les valeurs d’une table de données peuvent s’afficher en graphique en courbes, en barres, en secteurs ou en anneau ; la page [Graphiques de tables](charts.md) décrit comment.
+
 ## Structure du bloc
 
 Un bloc de code avec le tag de langue `perspective-datatable` contient des directives d'en-tête et des lignes de données :
@@ -26,6 +28,7 @@ aggregate: Montant:sum+avg, Fait:count
 | Bert | 2026-06-30 | -3 |  |
 ```
 
+- **`table:`** (facultatif) donne un nom à la table, par exemple `table: Ventes` ; sous ce nom, un [graphique](charts.md) désigne la table, et les liens, les incorporations et les [propriétés de bloc](block-properties.md) l'atteignent.
 - **`columns:`** (obligatoire) déclare les colonnes sous la forme `Nom:type`, séparées par des virgules. Les noms de colonnes peuvent contenir des espaces.
 - **`aggregate:`** (facultatif) associe des fonctions d'agrégat aux colonnes ; plusieurs par colonne se combinent avec `+`.
 - **`types:`** (facultatif) commute l'indication de type sous les en-têtes : `shown` ou `hidden`. Sans cette ligne, elle apparaît.
@@ -41,6 +44,10 @@ columns: Montant:number(2), Total "Total (brut, en €)":number(2) = Montant * 2
 ```
 
 Le libellé peut porter n'importe quels caractères, y compris espaces, virgules, deux-points et signes égal ; un guillemet à l'intérieur s'écrit deux fois. La colonne reste adressée uniquement par son identifiant, qui demeure accessible en infobulle sur l'en-tête.
+
+### Le nom de la table
+
+La ligne `table:` se place parmi les directives d'en-tête avant les lignes de données, au plus une fois dans le bloc ; lors de l'édition dans la grille, elle reste la première ligne. Le nom suit les règles des [ancres de bloc](linking.md) : lettres (y compris accentuées et ß), chiffres, trait d'union et trait de soulignement, sans espace ni point ; majuscules et minuscules comptent. `[[Document#^Ventes]]` mène à la table, `![[Document#^Ventes]]` l'incorpore. Si deux blocs du document portent le même nom, c'est la première occurrence qui compte ; la table ne le signale pas comme erreur, et le panneau [Propriétés de bloc](block-properties.md) indique le nom attribué plusieurs fois. Si la table de données est désactivée, la ligne figure comme texte dans le bloc de code, et le nom reste une cible de saut.
 
 ## Types de colonnes et formats
 
@@ -126,12 +133,12 @@ Le tri et le filtrage n'agissent **que sur la vue** — la source reste inchang�
 
 ## Erreurs
 
-- **Les erreurs de structure** (type inconnu, noms de colonnes en double, nombre de cellules divergent, expressions invalides) apparaissent en liste au-dessus de la grille avec le numéro de ligne dans le bloc.
+- **Les erreurs de structure** (type inconnu, noms de colonnes en double, nombre de cellules divergent, expressions invalides, nom vide ou invalide dans la ligne `table:`, deuxième ligne `table:` dans le bloc) apparaissent en liste au-dessus de la grille avec le numéro de ligne dans le bloc.
 - **Les erreurs de cellule** (valeur non conforme au type) ne marquent que la cellule concernée ; le texte est conservé.
 
 ## Export
 
-L'export portable et l'export PDF produisent la table sous forme de table statique dans l'ordre du document — avec toutes les lignes, les valeurs calculées des colonnes calculées et la ligne d'agrégats, sans interactivité. Les liens et les tags des cellules texte y apparaissent comme les liens et les tags du reste du document.
+L'export portable et l'export PDF produisent la table sous forme de table statique dans l'ordre du document — avec toutes les lignes, les valeurs calculées des colonnes calculées et la ligne d'agrégats, sans interactivité. Les liens et les tags des cellules texte y apparaissent comme les liens et les tags du reste du document. Si la table porte un nom, une ligne `^Nom` la suit dans l'export portable, afin que les liens du document exporté gardent leur cible.
 
 ## Limites
 

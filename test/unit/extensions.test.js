@@ -334,6 +334,9 @@ const HARTE_PAARE = [
   // Sechstes Paar seit der Zusammenführung mit dem Release 1.141.0: Die
   // Kanban-Tafel deklariert «Aufgaben» als harte Grundlage.
   ['kanban', 'tasks'],
+  // 4T-002019 (Epic 3E-000192): Das Diagramm zu einer Datentabelle deklariert die
+  // Datentabelle als harte Grundlage (4S-001021 AK17).
+  ['perspective-chart', 'perspective-datatable'],
 ];
 
 describe('Abhaengigkeits-Schutz: Sperre der Grundlage (4T-001877)', () => {
@@ -358,6 +361,16 @@ describe('Abhaengigkeits-Schutz: Sperre der Grundlage (4T-001877)', () => {
     expect(isExtensionLocked('property-profiles', ['events', 'database'])).toBe(false);
     expect(blockingDependentIds('tasks', ['reminders'])).toEqual(['kanban']);
     expect(blockingDependentIds('tasks', ['reminders', 'kanban'])).toEqual([]);
+  });
+
+  // 4T-002019 (Epic 3E-000192, 4S-001021 AK17): Solange das Diagramm an ist,
+  // ist die Datentabelle gesperrt; ist es aus, ist ihr Schalter frei.
+  it('4T-002019: das Diagramm sperrt die Datentabelle nur, solange es an ist', () => {
+    expect(blockingDependentIds('perspective-datatable', [])).toEqual(['perspective-chart']);
+    expect(isExtensionLocked('perspective-datatable', [])).toBe(true);
+    expect(blockingDependentIds('perspective-datatable', ['perspective-chart'])).toEqual([]);
+    expect(isExtensionLocked('perspective-datatable', ['perspective-chart'])).toBe(false);
+    expect(isExtensionLocked('perspective-chart', [])).toBe(false);
   });
 
   it('AK5: eine Grundlage ohne Abhaengige ist nie gesperrt', () => {
@@ -481,20 +494,22 @@ describe('Abhaengigkeits-Schutz: Sperre der Grundlage (4T-001877)', () => {
 // bewusst NICHT als zweite Liste wiederholt, weil eine zweite Liste genau das
 // waere, was die Pflicht-Angabe am Manifest verhindern soll. Seit der
 // Zusammenfuehrung mit dem Release 1.141.0 kommt die Kanban-Tafel als
-// dreiundsechzigste hinzu, auf «Fortgeschritten» (Sammeltask 4T-001891).
-const STUFEN_ZAHLEN = { beginner: 24, advanced: 27, full: 12 };
+// dreiundsechzigste hinzu, auf «Fortgeschritten» (Sammeltask 4T-001891). Mit
+// 4T-002019 kommt das Diagramm zu einer Datentabelle als vierundsechzigste
+// hinzu, auf «Voll».
+const STUFEN_ZAHLEN = { beginner: 24, advanced: 27, full: 13 };
 
 describe('Arbeitsmodi: Modus-Stufe der Registry (4T-001880)', () => {
   it('AK1: jede interne Erweiterung traegt eine gueltige Stufe', () => {
     const intern = internalExtensions();
-    expect(intern).toHaveLength(63);
+    expect(intern).toHaveLength(64);
     const gezaehlt = { beginner: 0, advanced: 0, full: 0 };
     for (const m of intern) {
       expect(EXTENSION_MODE_LEVELS, `${m.id} ohne gueltige Stufe`).toContain(m.modeLevel);
       gezaehlt[m.modeLevel] += 1;
     }
-    // Die Zahlen der entschiedenen Tabelle samt Kanban-Tafel: Einsteiger 24
-    // von 63, Fortgeschritten 51 von 63 (24 + 27), Voll 63 von 63.
+    // Die Zahlen der entschiedenen Tabelle samt Kanban-Tafel und Diagramm:
+    // Einsteiger 24 von 64, Fortgeschritten 51 von 64 (24 + 27), Voll 64 von 64.
     expect(gezaehlt).toEqual(STUFEN_ZAHLEN);
   });
 
@@ -536,6 +551,18 @@ describe('Arbeitsmodi: Modus-Stufe der Registry (4T-001880)', () => {
     expect(einsteiger).toContain('katex');
     expect(fortgeschritten).not.toContain('katex');
     expect(fortgeschritten).toContain('database');
+  });
+
+  // 4T-002019 (Epic 3E-000192, 4S-001021 AK16): Das Diagramm zu einer
+  // Datentabelle ist im Modus «Voll» an und in den beiden kleineren aus —
+  // gemeinsam mit seiner Grundlage, der Datentabelle.
+  it('4T-002019: das Diagramm ist nur im Modus «Voll» an, wie seine Datentabelle', () => {
+    expect(extensionById('perspective-chart').modeLevel).toBe('full');
+    expect(disabledIdsForModeLevel('full')).not.toContain('perspective-chart');
+    for (const stufe of ['advanced', 'beginner']) {
+      expect(disabledIdsForModeLevel(stufe)).toContain('perspective-chart');
+      expect(disabledIdsForModeLevel(stufe)).toContain('perspective-datatable');
+    }
   });
 
   it('AK6: eine unbekannte Stufen-Angabe schaltet nichts ab', () => {

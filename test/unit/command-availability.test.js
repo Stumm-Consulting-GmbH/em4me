@@ -60,7 +60,25 @@ const PALETTE_QUELLE = fs.readFileSync(
   'utf8',
 );
 
-const BOOL_FIELDS = AVAILABILITY_CONTEXT_FIELDS.filter((f) => f !== 'viewMode');
+// 4T-002024 (Epic 3E-000192): Die beiden Lagen des aktiven Editors bleiben aus
+// der Voll-Aufzählung. Jedes boolsche Feld verdoppelt sie, mit beiden stiege
+// sie von 65 536 auf 262 144 Kontexte, und ihre Zeit trüge jeder Lauf für
+// genau zwei Bedingungen. Stattdessen stehen zwei eigene Fälle weiter unten:
+// Alle Bedingungen, die die Felder nicht nennen, sind gegen sie unempfindlich
+// (Felder alle falsch gegen alle wahr über die Basis-Kontexte), und die beiden
+// Bedingungen, die sie nennen, werden über Basis mal vier Belegungen
+// aufgezählt. In der Grundgesamtheit KONTEXTE stehen beide auf false.
+const LAGE_FELDER = ['inDatentabelle', 'diagrammGewaehlt'];
+// Die vier Belegungen der beiden Lage-Felder.
+const LAGE_BELEGUNGEN = [
+  [false, false],
+  [true, false],
+  [false, true],
+  [true, true],
+];
+const BOOL_FIELDS = AVAILABILITY_CONTEXT_FIELDS.filter(
+  (f) => f !== 'viewMode' && !LAGE_FELDER.includes(f),
+);
 // Die sieben realen Ansichts-Modi plus null (kein Reiter). 'mindmap' ist seit
 // 4T-001047 dabei, 'canvas' seit 4T-001697 (Modus aus 4T-001653), 'kanban' seit
 // 4T-001847; sourceToggle laesst alle drei bewusst draussen, weil dort kein
@@ -94,7 +112,7 @@ function kontext(teil) {
 }
 
 describe('Kontext-Vertrag (4T-001635)', () => {
-  it('nennt die zwoelf gemeinsamen und die zwei renderer-eigenen Felder', () => {
+  it('nennt die vierzehn gemeinsamen und die zwei renderer-eigenen Felder', () => {
     expect(SHARED_CONTEXT_FIELDS).toEqual([
       'hasTab',
       'manualTab',
@@ -116,6 +134,12 @@ describe('Kontext-Vertrag (4T-001635)', () => {
       // über das Umwandeln in eine Tafel und wird auf beiden Prozess-Seiten
       // aus derselben Funktion hergeleitet (dokumentIstLeer).
       'leeresDokument',
+      // 4T-002024 (Epic 3E-000192): das dreizehnte und vierzehnte Feld, die
+      // ersten mit einer Lage IN der Ansicht — Datentabelle unter der
+      // Schreibmarke oder angeklickt, Diagramm unter der Schreibmarke oder
+      // ausgewählt. Beide Seiten lesen sie aus lageFuer (charts/chart-lage.js).
+      'inDatentabelle',
+      'diagrammGewaehlt',
     ]);
     expect(RENDERER_CONTEXT_FIELDS).toEqual(['inTable', 'hasCalendarConfig']);
     // 4T-001541: Die Gesamt-Liste wird nicht mehr gegen die Zahl 12 gehalten,
@@ -152,7 +176,7 @@ describe('Kontext-Vertrag (4T-001635)', () => {
 });
 
 describe('Bedingungs-Katalog (4T-001635)', () => {
-  it('traegt die zweiundzwanzig benannten Bedingungen des Katalogs', () => {
+  it('traegt die vierundzwanzig benannten Bedingungen des Katalogs', () => {
     expect(AVAILABILITY_NAMES).toEqual([
       'immer',
       'anyTab',
@@ -191,6 +215,11 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
       // nennt `tafelTab` ausdrücklich, obwohl ein Tafel-Dokument nie leer sein
       // kann; dieselbe Überlegung wie bei canvasFlaecheOffen.
       'leeresDokumentOhneTafel',
+      // 4T-002024 (Epic 3E-000192): die beiden Diagramm-Bedingungen —
+      // Editor-Kontext, sichtbarer Quelltext bzw. Live-Modus und die jeweilige
+      // Lage. Die ersten Bedingungen mit Menü-Eintrag, die editMode lesen.
+      'datentabelleAenderbar',
+      'diagrammAenderbar',
       'editor',
       'tabelle',
       'editorUndKalender',
@@ -267,6 +296,102 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
       }
     }
     expect(ertappt).toBe(true);
+  });
+
+  // 4T-002024 (Epic 3E-000192): Die beiden Lage-Felder stehen in KONTEXTE fest
+  // auf false. Die zwei Fälle hier schließen die Lücke, die das öffnet.
+  //
+  // Erstens: Jede Bedingung, die keines der beiden Felder nennt, antwortet mit
+  // beiden auf true genauso wie mit beiden auf false — über alle
+  // Basis-Kontexte. Damit ist die Aussage «keine Bedingung liest ein Feld, das
+  // sie nicht nennt» für die beiden Felder an dieser Stelle getroffen.
+  // Alle vier Belegungen der beiden Felder gegen die Grund-Belegung (V4b der
+  // Nachbesserung vom 2026-09-30): Ein Vergleich nur von «beide an» gegen
+  // «beide aus» übersähe eine Bedingung wie `inDatentabelle && !diagrammGewaehlt`.
+  function lageEmpfindlich(pruefe) {
+    return KONTEXTE.some((ctx) => {
+      const grund = pruefe({ ...ctx, inDatentabelle: false, diagrammGewaehlt: false });
+      return LAGE_BELEGUNGEN.some(
+        ([a, d]) => pruefe({ ...ctx, inDatentabelle: a, diagrammGewaehlt: d }) !== grund,
+      );
+    });
+  }
+
+  it('Bedingungen ohne Lage-Feld sind gegen beide Lage-Felder unempfindlich', () => {
+    const ohneLage = AVAILABILITY_CATALOG.filter(
+      (b) => !b.felder.some((f) => LAGE_FELDER.includes(f)),
+    );
+    expect(ohneLage.length).toBe(AVAILABILITY_CATALOG.length - 2);
+    const befunde = ohneLage.filter((b) => lageEmpfindlich(b.pruefe)).map((b) => b.name);
+    expect(befunde, 'Bedingungen, die still ein Lage-Feld lesen').toEqual([]);
+  });
+
+  // Gegenprobe zum Fall darüber: Eine Bedingung, die still ein Lage-Feld liest,
+  // muss er wirklich finden — auch eine, die nur bei gemischter Belegung kippt.
+  it('findet eine Bedingung, die still ein Lage-Feld liest (Gegenprobe)', () => {
+    const luegner = [
+      (c) => !!c.hasTab && !c.diagrammGewaehlt,
+      (c) => !!c.hasTab && !!c.inDatentabelle && !c.diagrammGewaehlt,
+      (c) => !!c.hasTab && !c.inDatentabelle && !!c.diagrammGewaehlt,
+      (c) => !!c.hasTab && c.inDatentabelle !== c.diagrammGewaehlt,
+    ];
+    expect(luegner.map(lageEmpfindlich)).toEqual([true, true, true, true]);
+  });
+
+  // Zweitens: Die beiden Bedingungen, die ein Lage-Feld nennen, werden über
+  // Basis mal vier Belegungen der Lage-Felder aufgezählt. Geprüft wird wie oben,
+  // dass keine ein Feld außerhalb ihrer Liste liest, und dazu ihr Ausdruck.
+  it('die beiden Lage-Bedingungen, aufgezählt über Basis mal vier Belegungen', () => {
+    const mitLage = AVAILABILITY_CATALOG.filter((b) =>
+      b.felder.some((f) => LAGE_FELDER.includes(f)),
+    );
+    expect(mitLage.map((b) => b.name)).toEqual(['datentabelleAenderbar', 'diagrammAenderbar']);
+    const soll = {
+      datentabelleAenderbar: (c) =>
+        !!c.hasTab &&
+        !c.manualTab &&
+        !c.systemTab &&
+        !!c.editMode &&
+        ['source', 'split', 'live'].includes(c.viewMode) &&
+        !!c.inDatentabelle,
+      diagrammAenderbar: (c) =>
+        !!c.hasTab &&
+        !c.manualTab &&
+        !c.systemTab &&
+        !!c.editMode &&
+        ['source', 'split', 'live'].includes(c.viewMode) &&
+        !!c.diagrammGewaehlt,
+    };
+    const befunde = [];
+    for (const b of mitLage) {
+      const gesehen = new Map();
+      let frei = 0;
+      let gesperrt = 0;
+      let falsch = 0;
+      for (const ctx of KONTEXTE) {
+        for (const [a, d] of [
+          [false, false],
+          [true, false],
+          [false, true],
+          [true, true],
+        ]) {
+          const c = { ...ctx, inDatentabelle: a, diagrammGewaehlt: d };
+          const wert = b.pruefe(c);
+          if (wert) frei += 1;
+          else gesperrt += 1;
+          if (wert !== soll[b.name](c)) falsch += 1;
+          const schluessel = b.felder.map((f) => String(c[f])).join('|');
+          if (!gesehen.has(schluessel)) gesehen.set(schluessel, wert);
+          else if (gesehen.get(schluessel) !== wert) {
+            befunde.push(`${b.name} liest ein Feld außerhalb von [${b.felder.join(', ')}]`);
+          }
+        }
+      }
+      expect(falsch, `${b.name}: Ausdruck weicht ab`).toBe(0);
+      expect(frei, `${b.name}: gibt nie frei`).toBeGreaterThan(0);
+      expect(gesperrt, `${b.name}: sperrt nie`).toBeGreaterThan(0);
+    }
+    expect([...new Set(befunde)]).toEqual([]);
   });
 
   it('wertet jede Bedingung an ihrer freigebenden und ihrer sperrenden Lage aus', () => {
@@ -356,6 +481,17 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
     expect(isAvailable('tabelle', kontext({ ...imEditor, inTable: true }))).toBe(true);
     expect(isAvailable('tabelle', kontext(imEditor))).toBe(false);
 
+    // 4T-002024 (Epic 3E-000192): die beiden Diagramm-Bedingungen; die
+    // Ansichten im Einzelnen misst der eigene Block weiter unten.
+    expect(
+      isAvailable('datentabelleAenderbar', kontext({ ...imEditor, inDatentabelle: true })),
+    ).toBe(true);
+    expect(isAvailable('datentabelleAenderbar', kontext(imEditor))).toBe(false);
+    expect(isAvailable('diagrammAenderbar', kontext({ ...imEditor, diagrammGewaehlt: true }))).toBe(
+      true,
+    );
+    expect(isAvailable('diagrammAenderbar', kontext(imEditor))).toBe(false);
+
     const mitKalender = { ...imEditor, hasArea: true, hasCalendarConfig: true };
     expect(isAvailable('editorUndKalender', kontext(mitKalender))).toBe(true);
     expect(isAvailable('editorUndKalender', kontext({ ...mitKalender, hasArea: false }))).toBe(
@@ -407,6 +543,64 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
       if (isAvailable('sourceToggle', ctx)) {
         expect(altSourceVisible(ctx), 'neue Regel gibt frei, wo die alte sperrte').toBe(true);
       }
+    }
+  });
+
+  // 4T-002024 (Epic 3E-000192): die beiden Diagramm-Bedingungen je Ansicht und
+  // Änderbarkeit (AK16, AK17, AK24 und AK31 des Vorgangs). Wählbar nur mit
+  // Lage, in Quelltext, geteilter Ansicht oder Live-Modus und mit
+  // eingeschaltetem Bearbeiten; nie in der Lese-Ansicht, der Canvas-, Tafel-
+  // und Mindmap-Ansicht, nie auf Handbuch- und System-Seiten, nie ohne Reiter.
+  it('Diagramm-Bedingungen je Ansicht, Bearbeiten und Anzeige', () => {
+    const faelle = [
+      ['datentabelleAenderbar', 'inDatentabelle'],
+      ['diagrammAenderbar', 'diagrammGewaehlt'],
+    ];
+    for (const [name, feld] of faelle) {
+      for (const viewMode of ['source', 'split', 'live']) {
+        const basis = { hasTab: true, viewMode, [feld]: true };
+        expect(
+          isAvailable(name, kontext({ ...basis, editMode: true })),
+          `${name} ${viewMode}`,
+        ).toBe(true);
+        // Anzeige statt Bearbeiten: nicht wählbar (AK17).
+        expect(
+          isAvailable(name, kontext({ ...basis, editMode: false })),
+          `${name} ${viewMode}`,
+        ).toBe(false);
+        // Ohne Lage: nicht wählbar (AK16).
+        expect(
+          isAvailable(name, kontext({ ...basis, editMode: true, [feld]: false })),
+          `${name} ${viewMode} ohne Lage`,
+        ).toBe(false);
+        // Die Lage der jeweils anderen Bedingung gibt nicht frei.
+        const anderes = feld === 'inDatentabelle' ? 'diagrammGewaehlt' : 'inDatentabelle';
+        expect(
+          isAvailable(name, kontext({ hasTab: true, viewMode, editMode: true, [anderes]: true })),
+          `${name} ${viewMode} mit fremder Lage`,
+        ).toBe(false);
+        // Handbuch- und System-Seite: nicht wählbar.
+        expect(isAvailable(name, kontext({ ...basis, editMode: true, manualTab: true }))).toBe(
+          false,
+        );
+        expect(isAvailable(name, kontext({ ...basis, editMode: true, systemTab: true }))).toBe(
+          false,
+        );
+      }
+      // Lese-Ansicht (AK31), Canvas-, Tafel- und Mindmap-Ansicht: auch mit Lage
+      // und eingeschaltetem Bearbeiten nicht wählbar.
+      for (const viewMode of ['rendered', 'canvas', 'kanban', 'mindmap', null]) {
+        for (const editMode of [true, false]) {
+          expect(
+            isAvailable(name, kontext({ hasTab: true, viewMode, editMode, [feld]: true })),
+            `${name} ${viewMode} editMode=${editMode}`,
+          ).toBe(false);
+        }
+      }
+      // Ohne Reiter: nicht wählbar.
+      expect(isAvailable(name, kontext({ viewMode: 'live', editMode: true, [feld]: true }))).toBe(
+        false,
+      );
     }
   });
 
@@ -662,6 +856,13 @@ const MENUE_BASISLINIE = new Map([
   // wird — `immer`, weil es weder Reiter noch offene Flaeche braucht. Der
   // Untermenue-Punkt darueber traegt bewusst keine eigene Regel.
   ['file.importJsonCanvas', 'immer'],
+  // 4T-002024 (Epic 3E-000192): die beiden Einträge des Untermenüs «Diagramm».
+  // Sie standen am 2026-09-09 nicht im gemessenen Menü, weil sie erst hier
+  // entstehen; ihre Basislinie ist die Bedingung, mit der sie eingehängt
+  // werden. Dass das Menü seither editMode liest, ändert keinen der Einträge
+  // darüber — der Nachweis steht in test/unit/diagramm-menue-ort.test.js.
+  ['chart.insert', 'datentabelleAenderbar'],
+  ['chart.edit', 'diagrammAenderbar'],
 ]);
 
 // --- Punkt 3: kein Nebenweg im Menue (4T-001637) ----------------------------

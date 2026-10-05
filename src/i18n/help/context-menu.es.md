@@ -4,13 +4,14 @@ Un clic derecho en el editor abre un menú contextual que hace accesibles las co
 
 ## Estructura
 
-De arriba abajo, el menú se divide en seis grupos:
+De arriba abajo, el menú se divide en siete grupos:
 
 - **Enlace** — envolver la selección como enlace wiki o como enlace externo.
 - **Formato** — nivel de carácter: negrita, cursiva, tachado, resaltado, código, fórmula, comentario y «quitar formato».
 - **Párrafo** — nivel de línea: lista con viñetas, lista numerada, lista de tareas, encabezado 1 a 6, sin encabezado y cita.
 - **Insertar** — plantillas: nota al pie, tabla, bloque de aviso, línea horizontal y bloque de código.
 - **Tabla** — operaciones de edición para la tabla en el cursor; aparece solo cuando el cursor está dentro de una tabla.
+- **Gráfico** — «Insertar gráfico para esta tabla» o «Editar gráfico»; aparece solo cuando el cursor está dentro de una tabla de datos o dentro del bloque de un gráfico.
 - **Portapapeles** — cortar, copiar, pegar, seleccionar todo.
 
 Los atajos predeterminados para negrita (`Ctrl+B`) y cursiva (`Ctrl+I`) también funcionan sin el menú; todas las demás acciones pueden asociarse a un atajo en la configuración.
@@ -43,6 +44,12 @@ Cuando el cursor está dentro de una tabla, aparece además el grupo **Tabla** c
 - **Transponer** — intercambiar filas y columnas; la fila de encabezado se convierte en la primera columna.
 
 Cada operación es un único paso de deshacer. Los destinos no posibles aparecen atenuados: la fila de encabezado y la fila de separación de una tabla pipe no se pueden mover ni eliminar, y la última columna no se puede eliminar. Al intervenir, las tablas pipe se reescriben con formato (pipes exteriores, columnas alineadas con espacios); esto también vale para las tablas sin bordes. En las tablas Perspective, las operaciones de fila trabajan sobre las secciones `|-`; las operaciones de columna y la transposición solo son posibles allí sin `colspan`/`rowspan` y, de lo contrario, se rechazan con un aviso. Todas las operaciones están también en la paleta de comandos y pueden asociarse a atajos; la extensión «Herramientas de tabla» desactiva el submenú y sus comandos. En el modo en vivo, un clic derecho en una celda coloca el cursor justo en esa celda; las operaciones actúan entonces en el lugar pulsado, y lo que se esté escribiendo en la celda se conserva.
+
+## Gráficos de tablas
+
+Si el cursor está dentro de una [Perspective Datatable](datatable.md), la entrada **Insertar gráfico para esta tabla** aparece después del grupo **Tabla** y antes del portapapeles; si está dentro del bloque de un gráfico, aparece la entrada **Editar gráfico**. Las dos aparecen solo si el documento se puede modificar y la extensión «Gráfico de una tabla de datos» está activada. Abren el cuadro de diálogo que describe la página [Gráficos de tablas](charts.md).
+
+Sobre la **cuadrícula de una tabla de datos** y sobre un **gráfico dibujado** — en modo live y en la mitad renderizada de la vista dividida —, un clic derecho abre, en lugar de este menú, un menú corto con exactamente la entrada que corresponde. La tabla y el gráfico siguen dibujados, y el cursor se queda donde estaba. En la vista de lectura y con el modo edición desactivado, allí no aparece ningún menú. Un clic derecho en la entrada abierta de una celda tampoco muestra ninguno; la entrada sigue abierta.
 
 ## Protección en enlaces y código
 

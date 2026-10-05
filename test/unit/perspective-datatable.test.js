@@ -762,3 +762,84 @@ describe('perspective-datatable — abschaltbare Typangabe (4T-001313)', () => {
     expect(model.rows[0][0].error).toBe('invalidNumber');
   });
 });
+
+// 4T-002072 (Epic 3E-000192): Die Kopf-Angabe `table` gibt der Tabelle ihren
+// Namen, in derselben Schreibweise wie im Diagramm. Für den Namen gelten die
+// Regeln der Block-Kennungen; ein leerer, ungültiger oder doppelter Name ist ein
+// Struktur-Fehler (Gitter gesperrt, Werte sichtbar).
+describe('perspective-datatable — Name in der Kopf-Angabe table (4T-002072)', () => {
+  it('Kopf-Angabe table: Name, fehlerfrei', () => {
+    expect(parseOk('table: Umsatz\ncolumns: A:number\n| 1 |').name).toBe('Umsatz');
+    expect(parseOk('TABLE:  Grün_2-a \ncolumns: A:number\n| 1 |').name).toBe('Grün_2-a');
+    // Reihenfolge der Kopf-Angaben frei, wie bei columns, aggregate und types.
+    expect(parseOk('columns: A:number\n\ntable: Umsatz\n| 1 |').name).toBe('Umsatz');
+    expect(parseOk('columns: A:number\n| 1 |').name).toBeNull();
+  });
+
+  it('leerer Name, unerlaubte Zeichen und Dach-Zeichen sind Struktur-Fehler', () => {
+    const faelle = [
+      ['table:', 'emptyTableName', ''],
+      ['table:   ', 'emptyTableName', ''],
+      ['table: Umsatz 2026', 'invalidTableName', 'Umsatz 2026'],
+      ['table: Umsatz.2026', 'invalidTableName', 'Umsatz.2026'],
+      ['table: ^Umsatz', 'invalidTableName', '^Umsatz'],
+    ];
+    for (const [kopf, code, detail] of faelle) {
+      const body = `columns: A:number\n${kopf}\n| 1 |`;
+      const model = parsePerspectiveDatatable(body);
+      expect(model.errors, kopf).toEqual([{ code, line: 2, detail }]);
+      expect(model.name, kopf).toBeNull();
+      // Die Werte bleiben sichtbar: Gitter und Fehlerkasten erscheinen beide.
+      const html = renderPerspectiveDatatableViewer(body);
+      expect(html, kopf).toContain('pdt-errors');
+      expect(html, kopf).toContain(`data-dt-code="${code}"`);
+      expect(html, kopf).toContain('<table class="pdt-grid">');
+    }
+  });
+
+  it('eine zweite Zeile table: ist eine Doppelung; der erste Name bleibt', () => {
+    const model = parsePerspectiveDatatable('table: Umsatz\ncolumns: A:number\ntable: B\n| 1 |');
+    expect(model.errors).toEqual([{ code: 'duplicateDirective', line: 3, detail: 'table' }]);
+    expect(model.name).toBe('Umsatz');
+    // Auch nach einer ungültigen ersten Angabe gilt die zweite als Doppelung.
+    const zwei = parsePerspectiveDatatable('table: a b\ntable: B\ncolumns: A:number\n| 1 |');
+    expect(zwei.errors.map((e) => [e.code, e.line])).toEqual([
+      ['invalidTableName', 1],
+      ['duplicateDirective', 2],
+    ]);
+    expect(zwei.name).toBeNull();
+  });
+
+  it('table: nach der ersten Datenzeile ist eine unlesbare Zeile', () => {
+    const model = parsePerspectiveDatatable('columns: A:number\n| 1 |\ntable: Umsatz\n| 2 |');
+    expect(model.errors).toEqual([{ code: 'invalidLine', line: 3, detail: 'table: Umsatz' }]);
+    expect(model.name).toBeNull();
+  });
+
+  it('Rundlauf: table: zuerst, Reihenfolge normalisiert', () => {
+    const body = 'types: hidden\naggregate: A:sum\nTable: Umsatz\ncolumns: A:number\n| 1 |';
+    const model = parseOk(body);
+    const text = serializePerspectiveDatatable(model);
+    expect(text.split('\n')[0]).toBe('table: Umsatz');
+    expect(text.split('\n')[1]).toMatch(/^columns: /);
+    expect(parseOk(text)).toEqual(model);
+    // Ohne Namen entsteht keine Zeile — sonst bekäme jede Tabelle beim ersten
+    // Zellklick eine, die niemand geschrieben hat.
+    expect(serializePerspectiveDatatable(parseOk('columns: A:number\n| 1 |'))).not.toContain(
+      'table:',
+    );
+  });
+
+  it('portabler Konverter hängt ^Name nach einer Leerzeile an', () => {
+    const mit = convertPerspectiveDatatableBlockToHtml('table: Umsatz\ncolumns: A:number\n| 1 |');
+    // Leerzeile davor, Zeilenende dahinter: die Zeile ist ein eigener Block.
+    expect(mit.endsWith('</table>\n\n^Umsatz\n')).toBe(true);
+    const ohne = convertPerspectiveDatatableBlockToHtml('columns: A:number\n| 1 |');
+    expect(ohne.endsWith('</table>')).toBe(true);
+    expect(ohne).not.toContain('^');
+    // Mit Namens-Fehler bleibt der Block im Export ein Code-Block (Bestand).
+    expect(convertPerspectiveDatatableBlockToHtml('table: a b\ncolumns: A:number\n| 1 |')).toBe(
+      null,
+    );
+  });
+});

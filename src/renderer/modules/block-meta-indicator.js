@@ -17,6 +17,11 @@
 // `blockData:changed`-Broadcast. Im PDF-Export blendet eine `.printing`-CSS-Regel
 // den Marker aus; der Portable-Export nutzt eine eigene String-Pipeline ohne
 // dieses DOM-Postprocessing und ist damit ohne Zutun frei von Indikatoren.
+//
+// 4T-002072 (Epic 3E-000192): Eine Datentabelle trägt ihren Namen auch in der
+// Kopf-Angabe `table:`. In der Lese-Ansicht trägt ihr Container die `id`
+// (blockAnchorsPlugin); im Live-Modus steht das Zeichen am Ende ihrer
+// Schluss-Zeile statt an der Zeile der Angabe, die im Block-Widget läge.
 'use strict';
 
 import { StateField, StateEffect } from '@codemirror/state';
@@ -75,6 +80,11 @@ function buildRenderIndicator(id, values) {
   btn.textContent = '◆';
   return btn;
 }
+
+// 4T-002048: Die Helfer, mit denen ein Block sein Zeichen behält, wenn er
+// seinen Inhalt nachträglich setzt; sie liegen im Blatt block-meta-zeichen.js
+// (Begründung dort) und werden hier weitergereicht.
+export { setzeInhalt, uebernimmAnker } from './block-meta-zeichen.js';
 
 // Post-Prozessor für applyRenderPipeline: lädt die Block-Metadaten der Datei und
 // hängt an jeden Block mit Daten (Element trägt die Anker-`id`) einen Indikator.
@@ -139,10 +149,17 @@ function buildBlockMetaDecos(editorState) {
   const map = metaByPath.get(pathKey(editorState.facet(liveBasePathFacet)));
   if (!map || map.size === 0) return Decoration.none;
   const text = getDocText(editorState.doc);
-  const { lineById } = extractBlockAnchors(text);
+  const { lineById, traegerById } = extractBlockAnchors(text);
   const ranges = [];
   for (const [id, values] of map) {
-    const lineNo = lineById.get(id);
+    // 4T-002072: Der Kopf-Name einer Datentabelle steht im Zaun, den der
+    // Live-Modus durch sein Block-Widget ersetzt; das Zeichen kommt deshalb an
+    // das Ende der Schluss-Zeile (bei offenem Zaun der letzten Zeile).
+    const traeger = traegerById.get(id);
+    const lineNo =
+      traeger && traeger.art === 'datentabelle'
+        ? (traeger.zaunBis ?? editorState.doc.lines)
+        : lineById.get(id);
     if (!lineNo || lineNo > editorState.doc.lines) continue;
     const line = editorState.doc.line(lineNo);
     ranges.push(

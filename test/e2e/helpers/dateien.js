@@ -48,4 +48,18 @@ async function warteAufJson(pfad, opts) {
   return leseJsonOderNull(pfad);
 }
 
-module.exports = { leseTextOderNull, leseJsonOderNull, warteAufText, warteAufJson };
+// 4T-002026 (Epic 3E-000192): Schluss eines Ablauf-Falls, der den
+// Dokument-Text ändert, ohne zu speichern. Die Änderung steht im Puffer der
+// Anwendung; die Datei auf der Platte trägt noch den Ausgangs-Text, Zeichen
+// für Zeichen am rohen Text gemessen.
+function erwarteDateiUnveraendert(pfad, ausgangsText) {
+  expect(fs.readFileSync(pfad, 'utf8'), `Datei auf der Platte: ${pfad}`).toBe(ausgangsText);
+}
+
+module.exports = {
+  leseTextOderNull,
+  leseJsonOderNull,
+  warteAufText,
+  warteAufJson,
+  erwarteDateiUnveraendert,
+};

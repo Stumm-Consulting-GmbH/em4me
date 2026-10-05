@@ -309,7 +309,10 @@ function appendNode(parent, node, depth, budget) {
       // Ausnahme, die eben entfernten Abfrage- und Skript-Bloecke; bis hierher
       // lief gar kein Schritt, und ein Mermaid-Block blieb Quelltext.
       // `dynamischeBloecke: false` haelt die zugesagte Ausnahme.
-      if (teilbaumSchritte) teilbaumSchritte(div, budget.basePath, { dynamischeBloecke: false });
+      // 4T-002021: Die Ausgabe ist das Dokument ihrer Diagramme.
+      if (teilbaumSchritte) {
+        teilbaumSchritte(div, budget.basePath, { dynamischeBloecke: false, dokumentText: text });
+      }
     }
     parent.appendChild(div);
     return;

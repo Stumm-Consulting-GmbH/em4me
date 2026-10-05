@@ -9,6 +9,8 @@ playwright-report/
 # Generated artifacts (not hand-maintained)
 src/renderer/renderer.bundle.js
 src/renderer/mermaid.bundle.js
+src/shared/charts/echarts.bundle.js
+src/shared/charts/echarts.LICENSES.txt
 src/renderer/hljs-themes.css
 src/renderer/katex/
 package-lock.json

@@ -81,6 +81,25 @@ const SHARED_CONTEXT_FIELDS = [
   // unter einem Namen versteckt, der beim naechsten Verbraucher nicht mehr
   // passt.
   'leeresDokument',
+  // 4T-002024 (Epic 3E-000192): Die beiden Lagen des aktiven Editors, an denen
+  // die Diagramm-Kommandos hängen. `inDatentabelle`: Die Schreibmarke steht in
+  // einer Datentabelle, oder eine Datentabelle ist angeklickt (Rechtsklick,
+  // Arbeit in einer Zelle). `diagrammGewaehlt`: Die Schreibmarke steht in
+  // einem Diagramm-Block, oder ein Diagramm ist angeklickt. Beide Seiten
+  // lesen sie aus derselben Quelle (lageFuer in
+  // src/renderer/modules/charts/chart-lage.js), die Palette direkt, der Main
+  // über den gemeldeten Menü-Zustand.
+  //
+  // **Erste Felder, die eine Lage IN der Ansicht melden** statt einer
+  // Eigenschaft des Dokuments oder des Zustands. Der Katalog-Kommentar bei
+  // `tafelKarte` hat das für die Kanban- und Canvas-Befehle bewusst
+  // vermieden, weil jeder Klick über die Prozess-Brücke gemeldet werden
+  // müsste; hier verlangt die Anforderung, dass beide Kommandos im Menü
+  // «nicht wählbar» sind, statt einen Fehlgriff mit einer Meldung abzufangen.
+  // Gemeldet wird deshalb nur bei einem Wechsel eines der beiden Werte,
+  // entprellt.
+  'inDatentabelle',
+  'diagrammGewaehlt',
 ];
 const RENDERER_CONTEXT_FIELDS = ['inTable', 'hasCalendarConfig'];
 const AVAILABILITY_CONTEXT_FIELDS = [...SHARED_CONTEXT_FIELDS, ...RENDERER_CONTEXT_FIELDS];
@@ -305,6 +324,25 @@ const AVAILABILITY_CATALOG = [
     name: 'leeresDokumentOhneTafel',
     felder: ['hasTab', 'manualTab', 'systemTab', 'tafelTab', 'leeresDokument'],
     pruefe: (c) => !!c.hasTab && !c.manualTab && !c.systemTab && !c.tafelTab && !!c.leeresDokument,
+  },
+  // 4T-002024 (Epic 3E-000192): Die Bedingungen der beiden Diagramm-Kommandos.
+  // Ein änderbares Dokument im Editor-Kontext (dieselbe Regel wie `editor`),
+  // eine Ansicht mit Quelltext oder Live-Modus (`sourceVisible` hält Canvas-,
+  // Tafel- und Mindmap-Ansicht heraus, in denen die Lage nichts bedeutet) und
+  // die jeweilige Lage. Die Lese-Ansicht fällt schon über `editorContext`
+  // heraus. Anders als `editor` tragen beide einen Menü-Eintrag; der Main
+  // übernimmt `editMode` deshalb seither aus dem gemeldeten Zustand. Kein
+  // bestehender Menü-Eintrag liest `editMode` — die drei Bedingungen, die es
+  // tun, sind menüfrei, und der Wächter hält das fest.
+  {
+    name: 'datentabelleAenderbar',
+    felder: ['hasTab', 'manualTab', 'systemTab', 'editMode', 'viewMode', 'inDatentabelle'],
+    pruefe: (c) => editorContext(c) && sourceVisible(c) && !!c.inDatentabelle,
+  },
+  {
+    name: 'diagrammAenderbar',
+    felder: ['hasTab', 'manualTab', 'systemTab', 'editMode', 'viewMode', 'diagrammGewaehlt'],
+    pruefe: (c) => editorContext(c) && sourceVisible(c) && !!c.diagrammGewaehlt,
   },
   {
     name: 'editor',

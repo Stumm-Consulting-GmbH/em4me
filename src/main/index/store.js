@@ -97,12 +97,45 @@ const INVALIDATE_DEBOUNCE_MS = 200;
 // beim Zustand, weil sowohl der Aufbau-/Watcher-Pfad (build.js) als auch die
 // Block-Daten-Invalidierung (lifecycle.js) sie brauchen und sie außer dem
 // Broadcast nichts kennt.
+//
+// 4T-002023 (Epic 3E-000192): Hat der Beobachter Dateien gemeldet
+// (`entry.geaenderteDateien`, gefüllt in build.js), reisen sie als `dateien`
+// mit. Der Anzeige-Prozess frischt damit Einbettungen und Diagramme genau
+// dieser Ziele auf, wenn eine Datei von außen geändert wurde (Entscheidung des
+// Product Owners vom 2026-09-29, «Beide frischen auf»). Ohne gemeldete Datei
+// bleibt die Nutzlast, wie sie war; kein bisheriger Empfänger liest mehr als
+// `wurzel`. Dazu `hinzugekommen` (nur wenn nicht leer):
+// Allein eine hinzugekommene Datei kann ein fehlendes Ziel auffindbar machen,
+// und nur dann sucht der Anzeige-Prozess die fehlenden Ziele neu.
 function scheduleInvalidate(entry) {
   if (entry.invalidateTimer) return;
   entry.invalidateTimer = setTimeout(() => {
     entry.invalidateTimer = null;
-    broadcast('backlinks:invalidated', { wurzel: entry.wurzel });
+    const nutzlast = { wurzel: entry.wurzel };
+    const gemeldet = entry.geaenderteDateien;
+    if (gemeldet && gemeldet.size > 0) {
+      nutzlast.dateien = [...gemeldet];
+      gemeldet.clear();
+    }
+    const neu = entry.hinzugekommeneDateien;
+    if (neu && neu.size > 0) {
+      nutzlast.hinzugekommen = [...neu];
+      neu.clear();
+    }
+    broadcast('backlinks:invalidated', nutzlast);
   }, INVALIDATE_DEBOUNCE_MS);
+}
+
+// 4T-002023: Eine vom Beobachter gemeldete Markdown-Datei für die nächste
+// Invalidierungs-Meldung vormerken; `art` ist die Art des Beobachters
+// ('add', 'change', 'unlink'), eine hinzugekommene Datei steht zusätzlich in
+// ihrer eigenen Liste.
+function merkeGeaenderteDatei(entry, filePath, art) {
+  if (!entry.geaenderteDateien) entry.geaenderteDateien = new Set();
+  entry.geaenderteDateien.add(filePath);
+  if (art !== 'add') return;
+  if (!entry.hinzugekommeneDateien) entry.hinzugekommeneDateien = new Set();
+  entry.hinzugekommeneDateien.add(filePath);
 }
 
 // Liefert die Wurzel zur aktiven Datei.
@@ -162,6 +195,7 @@ module.exports = {
   attachSelfWriter,
   selfWrite,
   scheduleInvalidate,
+  merkeGeaenderteDatei,
   // 4T-001158: Änderungs-Stand einer Wurzel für Zwischenspeicher.
   indexStand,
   resolveRootInfo,

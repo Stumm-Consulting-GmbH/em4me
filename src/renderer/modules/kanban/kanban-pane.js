@@ -791,8 +791,9 @@ export function renderKanban(paneIdx) {
     // Dieselbe Render-Kette, die Lese-Ansicht und Canvas-Karte benutzen; der
     // Pfad ist der Bezug für Verweise und Bilder.
     renderMarkdown: (text, basis, optionen) => api.renderMarkdown(text, basis, optionen),
-    nachRender: (knoten, basis) => {
-      if (teilbaumSchritte) teilbaumSchritte(knoten, basis);
+    // 4T-002021: Der Text der Karte ist das Dokument ihrer Diagramme.
+    nachRender: (knoten, basis, dokumentText) => {
+      if (teilbaumSchritte) teilbaumSchritte(knoten, basis, { dokumentText });
     },
     aenderbar,
     // 4T-001904: Schalter «Tags am Kartenfuß»; seit 4T-001955 aus der

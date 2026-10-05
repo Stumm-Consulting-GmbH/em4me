@@ -53,6 +53,9 @@ import { istCanvasModusVerfuegbar } from './canvas/canvas-modus.js';
 // 4T-001847 (Epic 3E-000110): Verfuegbarkeits-Regel des Tafel-Kommandos, aus
 // derselben einen Quelle wie der gemeldete Menue-Zustand sein tafelTab nimmt.
 import { istTafelModusVerfuegbar } from './kanban/kanban-modus.js';
+// 4T-002024 (Epic 3E-000192): Lage des aktiven Editors für die beiden
+// Diagramm-Kommandos, aus derselben Quelle wie der gemeldete Menü-Zustand.
+import { lageFuer } from './charts/chart-lage.js';
 
 function $(sel) {
   return document.querySelector(sel);
@@ -100,6 +103,7 @@ export function initCommandPalette({ executeCommand }) {
 // Leiste reichen das Ergebnis an statusbar-availability.js weiter.
 export function rendererAvailabilityContext() {
   const tab = activeTab();
+  const lage = lageFuer(paneEditors[state.activePaneIndex], tab);
   return availabilityContext({
     hasTab: !!tab,
     manualTab: !!(tab && tab.manualPage),
@@ -134,6 +138,11 @@ export function rendererAvailabilityContext() {
     // des gemeinsamen Vertrags; es traegt das Umwandeln in eine Tafel. Dieselbe
     // Funktion, aus der auch der gemeldete Menue-Zustand sein Feld baut.
     leeresDokument: !!tab && dokumentIstLeer(tab.content),
+    // 4T-002024 (Epic 3E-000192): Datentabelle unter der Schreibmarke oder
+    // angeklickt, Diagramm unter der Schreibmarke oder ausgewählt. Dreizehntes
+    // und vierzehntes Feld des gemeinsamen Vertrags.
+    inDatentabelle: lage.inDatentabelle,
+    diagrammGewaehlt: lage.diagrammGewaehlt,
   });
 }
 

@@ -75,6 +75,8 @@ module.exports = {
   setBufferOverlay: overlay.setBufferOverlay,
   clearBufferOverlay: overlay.clearBufferOverlay,
   clearAllBufferOverlays: overlay.clearAllBufferOverlays,
+  // 4T-002023 (Epic 3E-000192): Meldung einer Änderung der Schicht an alle Fenster.
+  meldeOverlayAenderung: overlay.meldeOverlayAenderung,
   // 4T-000948 (Befund E-01): Roh-Text der Schicht fuer die Wiki-Einbettung.
   bufferTextFor: overlay.bufferTextFor,
   // 4T-001727 (Epic 3E-000305): Fenster, dessen ungespeicherter Stand gilt.

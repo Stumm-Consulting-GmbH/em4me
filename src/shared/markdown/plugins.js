@@ -16,7 +16,8 @@
 // Die Gruppen:
 //   ./plugins/structure.js  Quellzeilen-Zuordnung, Ueberschriften-
 //                           Nummerierung, Listen-Neustart
-//   ./plugins/wiki.js       Wiki-Links, Wiki-Embeds, Tags, Block-Anker
+//   ./plugins/wiki.js       Wiki-Links, Wiki-Embeds, Tags
+//   ./plugins/block-anker.js Block-Anker samt Hülle der Zaun-Ausgabe
 //   ./plugins/callouts.js   Callouts und Custom Containers
 //   ./plugins/inline.js     Line Blocks, Superscript, Spoiler, Critic Markup
 //   ./plugins/tasks.js      erweiterte Task-Zustaende und Task-Marker
@@ -30,12 +31,9 @@ const {
   listRestartPlugin,
   stripHeadingMarkers,
 } = require('./plugins/structure.js');
-const {
-  wikiLinksPlugin,
-  wikiEmbedsPlugin,
-  tagsPlugin,
-  blockAnchorsPlugin,
-} = require('./plugins/wiki.js');
+const { wikiLinksPlugin, wikiEmbedsPlugin, tagsPlugin } = require('./plugins/wiki.js');
+// 4T-002048 (Epic 3E-000192): Block-Anker als eigenes Gruppen-Modul.
+const { blockAnchorsPlugin, blockAnkerAmZaun } = require('./plugins/block-anker.js');
 const {
   calloutsPlugin,
   customContainersPlugin,
@@ -80,6 +78,7 @@ module.exports = {
   wikiEmbedsPlugin,
   tagsPlugin,
   blockAnchorsPlugin,
+  blockAnkerAmZaun,
   calloutsPlugin,
   lineBlocksPlugin,
   customContainersPlugin,

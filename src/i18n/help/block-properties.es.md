@@ -12,11 +12,13 @@ Este párrafo lleva un ancla. ^reunion-1
 
 En la vista renderizada el ancla es invisible; hace que el bloque sea direccionable. Se permiten letras (también acentuadas), dígitos, guion y guion bajo. Las propiedades se asocian a este identificador: mientras el ancla figure en el texto, los datos pertenecen a este bloque, sin importar adónde se mueva el bloque dentro del documento.
 
+Una [tabla de datos](datatable.md) lleva su ancla en su bloque, como línea `table: Nombre` antes de las filas de datos.
+
 ## El panel Propiedades de bloque
 
 El panel «Propiedades de bloque» se conmuta como cualquier panel lateral: mediante el menú Ver → Barra lateral → Paneles → Propiedades de bloque, el icono de llaves de la barra de estado o un atajo de teclado personalizado (de fábrica no hay ninguno asignado). Lado, orden y grupos de pestañas siguen las reglas de la [barra lateral](sidebar.md).
 
-El panel **sigue al cursor**: muestra las propiedades del bloque en el que está el cursor. La cabecera nombra el ancla activa y ofrece un selector de todas las anclas del archivo para saltar; las anclas con propiedades están marcadas. Si el cursor está en un bloque **sin** ancla, el panel ofrece «Crear ancla» y escribe al final del bloque un identificador aleatorio corto, único dentro del archivo.
+El panel **sigue al cursor**: muestra las propiedades del bloque en el que está el cursor. La cabecera nombra el ancla activa y ofrece un selector de todas las anclas del archivo para saltar; las anclas con propiedades están marcadas. Si el cursor está en un bloque **sin** ancla, el panel ofrece «Crear ancla» y escribe al final del bloque un identificador aleatorio corto, único dentro del archivo; en un bloque de código o un gráfico lo escribe en una línea propia justo debajo del bloque, en una tabla de datos como línea `table:` al principio del bloque.
 
 Las filas de propiedades funcionan como en el panel de propiedades del documento: cada fila tiene una clave de libre elección, un tipo (texto, lista, número, verdadero/falso, fecha, multilínea, enlace, hora) y un campo de valor adecuado. Para la clave, el panel sugiere las claves de bloque ya usadas en el documento. El guardado es **automático** poco después de la entrada; la pestaña del documento no se marca como modificada, porque los datos residen en el archivo complementario, no en el texto. En las vistas de solo lectura el panel solo muestra los datos.
 
@@ -24,7 +26,7 @@ Si al documento le aplican **perfiles de propiedades**, sus bloques heredan sus 
 
 ## Renombrar un ancla
 
-El icono de lápiz junto al selector de anclas renombra el ancla activa. El ancla en el texto, la entrada de datos en el archivo complementario y las referencias entrantes **dentro del mismo documento** se actualizan a la vez:
+El icono de lápiz junto al selector de anclas renombra el ancla activa. El ancla en el texto —en una tabla de datos, la línea `table:`—, la entrada de datos en el archivo complementario y las referencias entrantes **dentro del mismo documento** se actualizan a la vez, igual que los gráficos que nombran la tabla:
 
 ```markdown
 Véase el primer punto: [[#^reunion-1]]

@@ -34,7 +34,7 @@
 
 const { isFilesystemCaseInsensitive } = require('../../shared/platform.js');
 const { isInsideArea } = require('../area/area-path.js');
-const { bufferOverlays } = require('./store.js');
+const { bufferOverlays, broadcast } = require('./store.js');
 const { parseContent } = require('./parse.js');
 // 4T-001610 (Epic 3E-000252): Ein offenes Folge-Segment erbt die Definition
 // seiner Kopf-Datei; ohne sie koennte der geschriebene Stand seine Zellen nicht
@@ -80,9 +80,45 @@ function clearBufferOverlay(filePath) {
   return entfernt;
 }
 
+// 4T-002023 (Epic 3E-000192): Alle Einträge, die ein Fenster zuletzt gemeldet
+// hat, zurücknehmen — beim Schließen des Fensters. Schließt der Anwender es
+// und verwirft dabei seine Änderungen, nimmt der Anzeige-Prozess keinen Puffer
+// mehr zurück; eine Einbettung oder ein Diagramm in einem anderen Fenster
+// zeigte sonst den verworfenen Stand, bis das Programm endet. Liefert die
+// Pfade, damit der Aufrufer ihre Änderung melden kann.
+//
+// Gilt je Besitzer, also für den zuletzt meldenden: Ist dieselbe Datei in einem
+// zweiten Fenster ungespeichert geändert, fällt ihr Stand mit dem Schließen
+// des Besitzers ebenfalls aus der Schicht, bis dort die nächste Eingabe ihn
+// wieder meldet (benannte Grenze, hingenommen).
+function clearBufferOverlaysOfOwner(besitzer) {
+  if (besitzer == null) return [];
+  const pfade = [];
+  for (const [pfad, eintrag] of bufferOverlays) {
+    if (eintrag.besitzer === besitzer) pfade.push(pfad);
+  }
+  for (const pfad of pfade) bufferOverlays.delete(pfad);
+  if (pfade.length > 0) overlayZaehler += 1;
+  return pfade;
+}
+
 function clearAllBufferOverlays() {
   if (bufferOverlays.size > 0) overlayZaehler += 1;
   bufferOverlays.clear();
+}
+
+// 4T-002023 (Epic 3E-000192): Meldung an ALLE Fenster, dass sich der
+// geschriebene Stand einer Datei geändert hat oder zurückgenommen ist
+// (Entscheidung des Product Owners vom 2026-09-29, «Beide folgen»). Die Schicht
+// gilt fensterübergreifend, die Meldung blieb bis dahin im tippenden Fenster;
+// eine Einbettung oder ein Diagramm desselben Ziels in einem anderen Fenster
+// folgte deshalb nicht. Das meldende Fenster bekommt sie ebenso und hat damit
+// genau einen Weg. Getrennt vom Setzen, weil der Kanal auch eine Rücknahme
+// meldet, die nichts zu entfernen fand: Ein anderes Fenster kann den Stand
+// derselben Datei noch vom vorigen Melden zeigen.
+function meldeOverlayAenderung(filePath) {
+  if (typeof filePath !== 'string' || !filePath) return;
+  broadcast('index:overlayChanged', { filePath });
 }
 
 // Overlays unterhalb einer Wurzel. Leere Map = nichts zu ueberlagern; die
@@ -202,6 +238,8 @@ module.exports = {
   setBufferOverlay,
   clearBufferOverlay,
   clearAllBufferOverlays,
+  clearBufferOverlaysOfOwner,
+  meldeOverlayAenderung,
   overlaysUnder,
   bufferTextFor,
   bufferOwnerFor,

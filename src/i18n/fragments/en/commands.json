@@ -151,5 +151,7 @@
   "command.kanban.convertToBoard": "Turn empty document into Kanban board",
   "command.kanban.toggleTagsFooter": "Turn tags in card footer on or off",
   "command.kanban.toggleRelativeDates": "Turn relative dates on or off",
-  "command.kanban.boardSettings": "Settings for this board…"
+  "command.kanban.boardSettings": "Settings for this board…",
+  "command.chart.insert": "Insert chart for this table",
+  "command.chart.edit": "Edit chart"
 }

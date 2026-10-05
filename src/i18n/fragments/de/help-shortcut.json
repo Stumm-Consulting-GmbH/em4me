@@ -142,6 +142,8 @@
   "help.shortcut.insertFootnote": "Fußnote einfügen",
   "help.shortcut.insertTable": "Tabelle einfügen",
   "help.shortcut.insertPerspectiveTable": "Perspective-Tabelle einfügen",
+  "help.shortcut.chartInsert": "Diagramm zur Datentabelle unter der Schreibmarke oder zur angeklickten Datentabelle über einen Dialog einfügen (im Edit-Modus)",
+  "help.shortcut.chartEdit": "Angaben des ausgewählten Diagramms über denselben Dialog ändern; ausgewählt ist es, wenn die Schreibmarke in seinem Block steht oder es angeklickt ist (im Edit-Modus)",
   "help.shortcut.insertCallout": "Hinweisblock einfügen",
   "help.shortcut.insertHorizontalRule": "Horizontale Linie einfügen",
   "help.shortcut.insertCodeBlock": "Quelltext-Block einfügen",

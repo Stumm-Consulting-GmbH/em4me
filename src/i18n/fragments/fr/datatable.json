@@ -6,6 +6,8 @@
   "datatable.error.badColumnLabel": "Ligne {line} : libellé d’affichage non valide dans la définition de colonne '{detail}' (attendu : identifiant, puis le texte entre guillemets doubles)",
   "datatable.error.unknownType": "Ligne {line} : type de colonne inconnu '{detail}'",
   "datatable.error.unknownTypesValue": "Ligne {line} : valeur '{detail}' inconnue pour l’affichage du type (autorisé : shown, hidden)",
+  "datatable.error.emptyTableName": "Ligne {line} : l’indication 'table:' ne donne aucun nom",
+  "datatable.error.invalidTableName": "Ligne {line} : nom de table invalide '{detail}' (autorisés : lettres, chiffres, trait d’union et tiret bas ; pas d’espace, pas de point, pas d’accent circonflexe)",
   "datatable.error.badFormat": "Ligne {line} : format d'affichage invalide dans '{detail}' (autorisé : number avec 0 à 10 décimales)",
   "datatable.error.duplicateColumn": "Ligne {line} : le nom de colonne '{detail}' apparaît plusieurs fois",
   "datatable.error.badAggregate": "Ligne {line} : entrée d'agrégat invalide '{detail}'",

@@ -37,6 +37,22 @@ vi.mock('../../../src/renderer/modules/render-mermaid.js', () => ({
   waitForWikiEmbedsIdle: async () => protokoll.push('embedsIdle'),
 }));
 
+// 4T-002025 (Epic 3E-000192): helles Neu-Zeichnen und Barriere der Diagramme,
+// je mit der Spalte, die sie bekommen, und dem Versprechen des Neu-Zeichnens.
+const diagrammAufrufe = [];
+vi.mock('../../../src/renderer/modules/charts/chart-view.js', () => ({
+  zeichneDiagrammeFuerAusgabe: (wurzel) => {
+    protokoll.push('chartsRedraw');
+    const gezeichnet = Promise.resolve();
+    diagrammAufrufe.push({ art: 'zeichnen', wurzel, gezeichnet });
+    return gezeichnet;
+  },
+  warteAufDiagrammeDerAusgabe: async (wurzel, gezeichnet) => {
+    protokoll.push('chartsIdle');
+    diagrammAufrufe.push({ art: 'warten', wurzel, gezeichnet });
+  },
+}));
+
 vi.mock('../../../src/renderer/modules/query/frontmatter-query-view.js', () => ({
   waitForFrontmatterQueriesIdle: async () => protokoll.push('frontmatterIdle'),
 }));
@@ -99,12 +115,17 @@ const BARRIEREN = [
   'journalNavIdle',
   'journalTimelineIdle',
   'scriptsIdle',
-  // 4T-001487 (Epic 3E-000199): die sechste, als letzte vor dem Reflow-Wait.
+  // 4T-001487 (Epic 3E-000199): die sechste.
   'embedsIdle',
+  // 4T-002025 (Epic 3E-000192): Diagramme hell neu zeichnen und ihre Lesungen
+  // abwarten, als letzte vor dem Reflow-Wait.
+  'chartsRedraw',
+  'chartsIdle',
 ];
 
 beforeEach(() => {
   protokoll.length = 0;
+  diagrammAufrufe.length = 0;
   paneEls.content = document.createElement('div');
   document.body.innerHTML = '';
   document.body.appendChild(paneEls.content);
@@ -255,6 +276,43 @@ describe('withPrintPreparation — Barrieren und Ansichts-Regel (AK5)', () => {
     });
     const bisZumEndpunkt = protokoll.slice(0, protokoll.indexOf('ENDPUNKT'));
     expect(bisZumEndpunkt.filter((e) => BARRIEREN.includes(e))).toEqual(BARRIEREN);
+  });
+
+  // 4T-002025: Die Diagramme zeichnen hinter der Einbettungs-Barriere (sie
+  // stehen auch in Einbettungen), dann wartet ihre Barriere, dann der Reflow.
+  // Zurück geht es über ihren Farb-Beobachter, nicht über einen eigenen Aufruf.
+  it('Diagramme: Einbettungs-Barriere, Neu-Zeichnen, Diagramm-Barriere, Reflow; kein Aufruf danach', async () => {
+    const raf = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
+      if (!protokoll.includes('reflow')) protokoll.push('reflow');
+      return setTimeout(cb, 0);
+    });
+    try {
+      root.setAttribute('data-theme', 'dark');
+      await withPrintPreparation({
+        output: async () => {
+          protokoll.push('ENDPUNKT');
+          return { ok: true };
+        },
+      });
+    } finally {
+      raf.mockRestore();
+    }
+    const folge = protokoll.filter((e) =>
+      ['embedsIdle', 'chartsRedraw', 'chartsIdle', 'reflow', 'ENDPUNKT'].includes(e),
+    );
+    expect(folge).toEqual(['embedsIdle', 'chartsRedraw', 'chartsIdle', 'reflow', 'ENDPUNKT']);
+    const nachDemEndpunkt = protokoll.slice(protokoll.indexOf('ENDPUNKT') + 1);
+    expect(nachDemEndpunkt).not.toContain('chartsRedraw');
+  });
+
+  // Durchsicht vom 2026-09-30 (D2): Gezeichnet und abgewartet wird allein in
+  // der gedruckten Spalte, und die Barriere wartet auf das Neu-Zeichnen, das
+  // unmittelbar davor begann.
+  it('Diagramme: Neu-Zeichnen und Barriere bekommen die gedruckte Spalte, nicht das Fenster', async () => {
+    await withPrintPreparation({ output: async () => ({ ok: true }) });
+    expect(diagrammAufrufe.map((a) => a.art)).toEqual(['zeichnen', 'warten']);
+    for (const a of diagrammAufrufe) expect(a.wurzel).toBe(paneEls.content);
+    expect(diagrammAufrufe[1].gezeichnet).toBe(diagrammAufrufe[0].gezeichnet);
   });
 
   it('stellt Mermaid nach dem Lauf in das aktive Theme zurueck', async () => {

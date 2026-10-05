@@ -579,3 +579,137 @@ test.describe('EB-08: Die Ausgabe wartet auf ihre Einbettungen (4T-001487)', () 
     }
   });
 });
+
+// --- 4T-002023 (Epic 3E-000192): Auffrischen über Fenster und Platte -----------
+//
+// EB-09: Eine Einbettung folgt dem ungespeicherten Stand ihres Ziels auch dann,
+//        wenn das Ziel in einem ANDEREN Fenster geöffnet ist und dort geändert
+//        wird — in der Lese-Ansicht und im Live-Modus (Entscheidung des Product
+//        Owners vom 2026-09-29, «Beide folgen»; Story 4S-000787, AK6).
+// EB-10: Eine Einbettung zeigt den neuen Stand, wenn die Datei des Ziels von
+//        außen geändert wird und die Anwendung das bemerkt, ohne dass das
+//        einbettende Dokument neu geöffnet wird; auch im Live-Modus
+//        («Beide frischen auf»; Story 4S-000207, AK8).
+
+function huelleUndQuelle() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-eb-auffrischen-'));
+  const quelle = path.join(dir, 'Quelle.md');
+  const huelle = path.join(dir, 'Huelle.md');
+  fs.writeFileSync(quelle, '# Quelle\n\nAlter Satz\n', 'utf8');
+  fs.writeFileSync(huelle, '# Huelle\n\n![[Quelle]]\n', 'utf8');
+  return { dir, quelle, huelle };
+}
+
+const EMBED_LESE = `${SEL.markdownBody0} .wiki-embed-md-body`;
+const EMBED_LIVE = `${SEL.paneSource0} .cm-live-embed .wiki-embed-md-body`;
+
+// Zweites Fenster derselben Applikation mit einer Datei als einzigem Reiter
+// (Muster rueckschreib-beobachtung.spec.js).
+async function zweitesFensterMit(app, page, datei) {
+  const win2Promise = app.waitForEvent('window');
+  await page.evaluate(() => window.api.openNewWindow([], null));
+  const page2 = await win2Promise;
+  await page2.waitForLoadState('domcontentloaded');
+  await page2.waitForFunction(() => document.body.dataset.rendererReady === '1', undefined, {
+    timeout: 20000,
+  });
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, f) => {
+      const wins = BrowserWindow.getAllWindows();
+      wins.sort((a, b) => a.webContents.id - b.webContents.id);
+      const win = wins[wins.length - 1];
+      if (win && !win.isDestroyed()) win.webContents.send('file:openExternal', [f]);
+    },
+    datei,
+  );
+  await expect(page2.locator(SEL.tabs0)).toHaveCount(1, { timeout: 20000 });
+  return page2;
+}
+
+async function tippeAmEnde(page, text) {
+  await page.locator(SEL.viewBtn('source')).click();
+  await page.locator(SEL.btnEdit).click();
+  await page.locator(SEL.editorContent0).click();
+  await page.keyboard.press('Control+End');
+  await page.keyboard.type(text);
+}
+
+test.describe('EB-09: Einbettung folgt dem Tippen in einem anderen Fenster (4T-002023)', () => {
+  test('Lese-Ansicht und Live-Modus des ersten Fensters, getippt im zweiten', async () => {
+    const { dir, quelle, huelle } = huelleUndQuelle();
+    const { app, page, userData } = await launchApp({ args: [huelle] });
+    try {
+      // Anker: Die Einbettung zeigt den Ausgangs-Satz.
+      await expect(page.locator(EMBED_LESE).first()).toContainText('Alter Satz', {
+        timeout: 15000,
+      });
+      const page2 = await zweitesFensterMit(app, page, quelle);
+      await tippeAmEnde(page2, ' — im zweiten Fenster');
+      await expect(page2.locator(SEL.dirtyTab0).first()).toBeVisible();
+      // Erstes Fenster, ohne einen Griff dort.
+      await expect(page.locator(EMBED_LESE).first()).toContainText('im zweiten Fenster', {
+        timeout: 15000,
+      });
+
+      await page.locator(SEL.viewBtn('live')).click();
+      await expect(page.locator(EMBED_LIVE).first()).toContainText('im zweiten Fenster', {
+        timeout: 15000,
+      });
+      await page2.keyboard.type(' und weiter');
+      await expect(page.locator(EMBED_LIVE).first()).toContainText('und weiter', {
+        timeout: 15000,
+      });
+      // Die Quelle ist nur im zweiten Fenster ungespeichert, die Platte unverändert.
+      expect(fs.readFileSync(quelle, 'utf8')).toBe('# Quelle\n\nAlter Satz\n');
+      await expect(page.locator(SEL.dirtyTab0)).toHaveCount(0);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      removeDir(dir);
+    }
+  });
+});
+
+test.describe('EB-10: Einbettung zeigt eine Änderung des Ziels von außen (4T-002023)', () => {
+  test('Ziel nicht geöffnet: Lese-Ansicht und Live-Modus folgen der Datei', async () => {
+    const { dir, quelle, huelle } = huelleUndQuelle();
+    const { app, page, userData } = await launchApp({ args: [huelle] });
+    // Von außen schreiben, bis die Anwendung es bemerkt hat. Der Beobachter
+    // des Verzeichnisses meldet eine Änderung erst nach seinem ersten
+    // Durchlauf, dessen Ende von außen nicht zu sehen ist; ein erneutes
+    // Schreiben ist eine weitere Änderung und schließt diese Lücke, ohne eine
+    // Zeit zu raten.
+    const schreibeVonAussen = (text, sel, erwartet) =>
+      expect(async () => {
+        fs.writeFileSync(quelle, text, 'utf8');
+        await expect(page.locator(sel).first()).toContainText(erwartet, { timeout: 3000 });
+      }).toPass({ timeout: 30000, intervals: [1000, 2000, 3000] });
+    try {
+      await expect(page.locator(EMBED_LESE).first()).toContainText('Alter Satz', {
+        timeout: 15000,
+      });
+      // Das Verzeichnis der Wurzel steht; erst dann beobachtet es die Dateien.
+      await expect
+        .poll(
+          async () =>
+            (await page.evaluate((f) => window.api.resolveWikiTargetInIndex(f, 'Quelle'), huelle))
+              .status,
+          { timeout: 15000 },
+        )
+        .toBe('ready');
+      await schreibeVonAussen('# Quelle\n\nNeuer Satz von außen\n', EMBED_LESE, 'Neuer Satz');
+
+      await page.locator(SEL.viewBtn('live')).click();
+      await expect(page.locator(EMBED_LIVE).first()).toContainText('Neuer Satz', {
+        timeout: 15000,
+      });
+      await schreibeVonAussen('# Quelle\n\nDritter Stand\n', EMBED_LIVE, 'Dritter Stand');
+      // Das einbettende Dokument wurde dafür weder neu geöffnet noch geändert.
+      await expect(page.locator(SEL.tabs0)).toHaveCount(1);
+      await expect(page.locator(SEL.dirtyTab0)).toHaveCount(0);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      removeDir(dir);
+    }
+  });
+});

@@ -86,6 +86,10 @@ import { livePreviewExtensions } from '../live/live-widgets.js';
 // 4T-000365 (Epic 3E-000067): Block-Metadaten-Indikator im Live-Modus (StateField)
 // und Cache-Nachladen beim Tab-/Datei-Wechsel.
 import { blockMetaField, refreshBlockMetaForPane } from '../block-meta-indicator.js';
+// 4T-002024 (Epic 3E-000192): Lage «Datentabelle angeklickt / Diagramm
+// ausgewählt» je Editor, im Grund-Satz statt im Live-Bündel, weil auch die
+// gerenderte Hälfte der geteilten Ansicht über diese Ansicht schreibt.
+import { lageErweiterung } from '../charts/chart-lage.js';
 import { api, getDocText } from '../app/api.js';
 import { foldChangeNotifier, foldGutterExtensions, foldStructureField } from './folding.js';
 import { scheduleWordCountUpdate, updateWordCountStatusbar } from '../render-mermaid.js';
@@ -308,7 +312,9 @@ export const typewriterScrollExtension = EditorView.updateListener.of((update) =
 // anschliessende Ereignis loest die Neubefuellung aus; app-init.js hoert
 // darauf und ruft dieselben drei Auffrisch-Wege wie bei einer
 // Index-Invalidierung (bewusst ueber ein Dokument-Ereignis statt ueber einen
-// Import, der einen Modul-Zyklus ergaebe).
+// Import, der einen Modul-Zyklus ergaebe). Seit 4T-002023 (Epic 3E-000192)
+// loest es der Hauptprozess in allen Fenstern aus, nicht mehr dieses Modul im
+// eigenen (Entscheidung des Product Owners vom 2026-09-29, «Beide folgen»).
 export const INDEX_OVERLAY_DEBOUNCE_MS = 300;
 export const INDEX_OVERLAY_EVENT = 'scg:index-overlay-changed';
 // 4T-000948: Der Melde-Plan haengt an der DATEI und nicht am Modul. Vorher gab
@@ -332,11 +338,11 @@ export function scheduleIndexOverlay(tab) {
   const timer = setTimeout(async () => {
     indexOverlayTimers.delete(filePath);
     try {
+      // 4T-002023 (Epic 3E-000192): Das Ereignis danach löst der Hauptprozess
+      // in ALLEN Fenstern aus, dieses eingeschlossen (app-input-bindings.js,
+      // bindOverlayAndBlurEvents); eine Selbst-Meldung hier wäre die zweite.
+      // Der gemeldete Pfad reist weiter mit (4T-000948, Befund E-01).
       await api.setIndexOverlay(filePath, content);
-      // 4T-000948 (Befund E-01): Der gemeldete Pfad reist mit. Nur so kann der
-      // Nachzug die Spalten finden, die genau diese Datei einbetten, statt
-      // pauschal alle neu zu zeichnen.
-      document.dispatchEvent(new CustomEvent(INDEX_OVERLAY_EVENT, { detail: { filePath } }));
     } catch (err) {
       console.warn('Index-Overlay konnte nicht gesetzt werden:', err);
     }
@@ -360,11 +366,10 @@ export async function clearIndexOverlayFor(filePath) {
     indexOverlayTimers.delete(filePath);
   }
   try {
-    await api.clearIndexOverlay(filePath);
     // 4T-000948: auch die Ruecknahme meldet ihren Pfad — nach Verwerfen oder
     // Schliessen soll eine Einbettung dieser Datei wieder den Platten-Stand
-    // zeigen.
-    document.dispatchEvent(new CustomEvent(INDEX_OVERLAY_EVENT, { detail: { filePath } }));
+    // zeigen. Seit 4T-002023 meldet der Hauptprozess an alle Fenster.
+    await api.clearIndexOverlay(filePath);
   } catch (err) {
     console.warn('Index-Overlay konnte nicht zurueckgenommen werden:', err);
   }
@@ -494,6 +499,9 @@ export function createEditorState(opts = {}) {
       pasteLinkHandler,
       // 4T-000790 (Epic 3E-000125): Doppelklick auf ein Bild oeffnet die Anlage.
       imageOpenHandler,
+      // 4T-002024 (Epic 3E-000192): Lage der Diagramm-Kommandos samt
+      // Hervorhebung des ausgewählten Diagramms und Meldung an das Menü.
+      lageErweiterung,
       EditorView.updateListener.of((update) => {
         const pIdx = paneEditors.indexOf(update.view);
         if (pIdx < 0) return;

@@ -120,6 +120,7 @@
   "menu.view.kanbanRelativeDates": "Termine relativ anzeigen",
   "menu.view.canvasEdit": "Canvas-Fläche bearbeiten",
   "menu.view.canvasStack": "Reihenfolge auf der Fläche",
+  "menu.view.chart": "Diagramm",
   "menu.file.exportJsonCanvas": "Canvas-Fläche als JSON Canvas…",
   "menu.file.import": "Importieren",
   "menu.file.importJsonCanvas": "JSON-Canvas-Datei…"

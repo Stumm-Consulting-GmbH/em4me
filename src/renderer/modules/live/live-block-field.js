@@ -25,6 +25,21 @@ import { blockIsActive, blockKlapptAuf, computeMathBlockRanges } from './live-de
 import { computeDeflistLineBlockScan, positionInsideTable } from './live-scans.js';
 import { MarkdownBlockWidget, MathBlockWidget } from './live-widget-render.js';
 import { FrontmatterBlockWidget, MermaidBlockWidget } from './live-mermaid-widget.js';
+// 4T-002021 (Epic 3E-000192): Diagramm-Widgets bekommen allein die genannte
+// Tabelle als Vorspann; ihr Schlüssel trägt die wirksamen Farben und die
+// Sprache (4T-002022).
+import { chartColorKey } from '../charts/chart-view.js';
+// 4T-002023 (Epic 3E-000192): Stand des anderen Dokuments im Schlüssel.
+import { zielStand } from '../charts/chart-targets.js';
+import {
+  chartOtherTarget,
+  chartTableName,
+  chartWidgetKey,
+  diagrammVorspaenne,
+  fenceBody,
+} from './live-chart-vorspann.js';
+// 4T-002048 (Epic 3E-000192): Anker-Zeilen am Ende einer Pipe-Tabelle.
+import { tabelleOhneAnkerZeilen } from './live-block-anker.js';
 
 // 4T-000084 / 4T-000088: StateField fuer Block-Widget-Decorations im Live-
 // Modus. ViewPlugins duerfen keine Replace-Decorations liefern, deren
@@ -126,6 +141,11 @@ export function buildBlockWidgetValue(state) {
   // ausgelassen und in 4T-000089 separat behandelt.
   const frontmatter = detectFrontmatterLines(state.doc);
   const frontmatterEndLine = frontmatter ? frontmatter.toLine : 0;
+  // 4T-002021: Die Code-Blöcke dieses Durchlaufs (der Vorspann eines Diagramms
+  // beginnt an der Öffner-Zeile, wenn der Name unter einem Code-Block steht),
+  // dazu die Diagramme, deren Widgets erst nach dem Durchlauf entstehen.
+  const zaeune = [];
+  const diagramme = [];
   // 4T-000283 (Epic 3E-000050): Frontmatter-Block-Widget (zusammengeklappte
   // Zeile aus 4T-000282) bei aktivem Schalter. Cursor- oder Selektions-
   // Eintritt demaskiert zum Quelltext mit der bestehenden
@@ -198,6 +218,9 @@ export function buildBlockWidgetValue(state) {
       const toPos = node.to > fromLine.from ? node.to - 1 : node.to;
       const toLine = state.doc.lineAt(Math.max(toPos, fromLine.from));
       if (fromLine.number <= frontmatterEndLine) return;
+      // Vor dem Kommentar- und dem Aufklapp-Filter: Auch eine Tabelle, die
+      // gerade bearbeitet wird, bleibt für ihr Diagramm auffindbar.
+      if (name === 'FencedCode') zaeune.push({ from: node.from, toLine: toLine.number });
       // 4T-000479: kommentierte Bloecke nicht als Widget rendern.
       if (intersectsComment(node.from, node.to)) return;
       spans.push({
@@ -212,13 +235,18 @@ export function buildBlockWidgetValue(state) {
       // Ausnahme steht in blockKlapptAuf (live-deco.js), damit sie an einer
       // Stelle lebt und ohne laufenden Editor pruefbar ist.
       if (blockKlapptAuf(name, activeLines, fromLine.number, toLine.number)) return;
-      const source = state.doc.sliceString(node.from, node.to);
+      let source = state.doc.sliceString(node.from, node.to);
+      let bis = node.to;
       let cacheKey;
       // 4T-001547: Vorspann für Konstrukte, deren Bedeutung außerhalb ihrer
       // Fence steht; leer für alle übrigen, damit deren Render-Ergebnis
       // unverändert bleibt.
       let docPrefix = '';
       if (name === 'Table') {
+        // 4T-002048: Das Widget endet vor den Anker-Zeilen am Tabellenende; sie
+        // stehen darunter mit dem Anker-Zeichen statt als Tabellenzeile.
+        source = tabelleOhneAnkerZeilen(source);
+        bis = node.from + source.length;
         cacheKey = `table:${mermaidHash(source)}`;
       } else {
         // FencedCode: Info-String extrahieren (Sprache oder perspective-table).
@@ -257,6 +285,20 @@ export function buildBlockWidgetValue(state) {
           );
           return;
         }
+        // 4T-002021: Das Diagramm braucht seine Tabelle, die erst nach dem
+        // ganzen Durchlauf feststeht (sie kann auch hinter ihm stehen).
+        if (lang === 'perspective-chart' && isExtensionActive('perspective-chart')) {
+          const body = fenceBody(state, node.node);
+          diagramme.push({
+            from: node.from,
+            to: node.to,
+            source,
+            name: chartTableName(body),
+            // 4T-002023: das andere Dokument, dessen Stand in den Schlüssel geht.
+            file: chartOtherTarget(body),
+          });
+          return;
+        }
         if (lang === 'perspective-records') {
           // 4T-001547 (Epic 3E-000251): Der einzige Block, dessen Bedeutung
           // AUSSERHALB seiner Fence steht — die Spalten stehen in der
@@ -290,10 +332,31 @@ export function buildBlockWidgetValue(state) {
       ranges.push(
         Decoration.replace({
           widget: new MarkdownBlockWidget(source, basePath, cacheKey, docPrefix),
-        }).range(node.from, node.to),
+        }).range(node.from, bis),
       );
     },
   });
+  if (diagramme.length > 0) {
+    const namen = diagramme.map((d) => d.name).filter(Boolean);
+    const vorspaenne = diagrammVorspaenne(state, zaeune, namen);
+    // 4T-002022: Die Sprache gehört zur Darstellung — Hinweis, Auslass-Zeile
+    // und Vorlese-Beschreibung sind übersetzt, und ein gleicher Schlüssel
+    // behielte nach einem Sprachwechsel das alte Widget.
+    const darstellung = `${chartColorKey()}|${getLanguage()}`;
+    for (const d of diagramme) {
+      const vorspann = d.name ? vorspaenne.get(d.name) : '';
+      // 4T-002023: Meldet die Anwendung eine Änderung des anderen Dokuments,
+      // ändert sich allein der Schlüssel dieses Widgets; der Neu-Aufbau des
+      // Editors baut dann nur es neu, und es liest den neuen Stand.
+      const stand = d.file ? zielStand(basePath, d.file) : '';
+      const key = chartWidgetKey(mermaidHash, darstellung, vorspann, d.source, stand);
+      ranges.push(
+        Decoration.replace({
+          widget: new MarkdownBlockWidget(d.source, basePath, key, '', vorspann),
+        }).range(d.from, d.to),
+      );
+    }
+  }
   return {
     deco: Decoration.set(ranges, true),
     spans,

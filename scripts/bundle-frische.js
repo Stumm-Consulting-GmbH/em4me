@@ -113,11 +113,16 @@ const QUELL_ORDNER = [
 // ruft davor `build-hljs-themes.js` (hljs-themes.css), `build-katex-assets.js`
 // (katex/), `build-tour-assets.js` (driverjs/) und `build-mermaid.js`
 // (mermaid.bundle.js). Ohne diese Liste hielte sich der Wächter an seinem
-// eigenen Bau-Ergebnis fest.
+// eigenen Bau-Ergebnis fest. 4T-002020: dazu der Stand der Zeichen-Bibliothek
+// samt Lizenz-Texten (`build-echarts.js`, ebenfalls aus `build-renderer.js`);
+// er liegt unter `src/shared/` und entsteht zusätzlich bei jedem Unit-Lauf neu,
+// wäre also ohne Eintrag regelmäßig jünger als das Bündel.
 const ERZEUGT_DATEIEN = new Set([
   'src/renderer/renderer.bundle.js',
   'src/renderer/mermaid.bundle.js',
   'src/renderer/hljs-themes.css',
+  'src/shared/charts/echarts.bundle.js',
+  'src/shared/charts/echarts.LICENSES.txt',
 ]);
 const ERZEUGT_ORDNER = ['src/renderer/katex/', 'src/renderer/driverjs/'];
 

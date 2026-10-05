@@ -137,7 +137,7 @@ En détail : [Perspective Table](perspective-table.md).
 
 ## Des tableaux qui calculent
 
-Pour les chiffres plutôt que le texte, il existe le second type de tableau. La Perspective Datatable est un tableau de données typé : chaque colonne a un type de valeur, les cellules n'acceptent que des valeurs conformes, les lignes d'agrégat calculent en direct et les colonnes calculées évaluent une expression par ligne. La saisie se fait directement dans la grille rendue, sans détour par le texte source. Cela porte des dépenses, un suivi du temps ou des inventaires sans devenir un fichier de base de données, car tout reste en texte clair dans le document.
+Pour les chiffres plutôt que le texte, il existe le second type de tableau. La Perspective Datatable est un tableau de données typé : chaque colonne a un type de valeur, les cellules n'acceptent que des valeurs conformes, les lignes d'agrégat calculent en direct et les colonnes calculées évaluent une expression par ligne. La saisie se fait directement dans la grille rendue, sans détour par le texte source. Cela porte des dépenses, un suivi du temps ou des inventaires sans devenir un fichier de base de données, car tout reste en texte clair dans le document. À partir des mêmes chiffres, un bloc distinct dessine un graphique en courbes, en barres, en secteurs ou en anneau, qui ne désigne la table que par son nom et la suit à chaque modification.
 
 - **Types de valeurs fixes** par colonne, pour que les nombres restent des nombres et les dates des dates.
 - **Agrégats** qui calculent en direct et **colonnes calculées** par ligne.

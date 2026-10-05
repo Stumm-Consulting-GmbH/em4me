@@ -13,6 +13,7 @@ import {
   zaunOeffnung,
   schliesstZaun,
   fenceOeffnerOffsets,
+  koennteStrukturZeileSein,
 } from '../../src/shared/markdown/fence-level.js';
 
 describe('fence-level: Öffnung einer Zaun-Zeile (4T-001833)', () => {
@@ -104,5 +105,89 @@ describe('fence-level: Öffner der obersten Ebene über dieselbe Regel (4T-00183
       zeilenAnfang[3],
       zeilenAnfang[8],
     ]);
+  });
+});
+
+// 4T-002024 (Epic 3E-000192): der Vorfilter für Zwischenspeicher der
+// Block-Bereiche. Er darf keine Zeile übersehen, die einen Zaun öffnet oder
+// schließt oder den Vorspann begrenzt; gewöhnlicher Text fällt nicht darunter.
+describe('fence-level: Vorfilter «könnte eine Struktur-Zeile sein» (4T-002024)', () => {
+  // Zufalls-Generator mit festem Startwert (mulberry32).
+  function zufall(startwert) {
+    let a = startwert >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) >>> 0;
+      let t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const ZEICHEN = [
+    ' ',
+    ' ',
+    '\t',
+    '`',
+    '`',
+    '`',
+    '~',
+    '~',
+    '-',
+    '-',
+    '.',
+    '.',
+    'a',
+    'js',
+    '>',
+    '|',
+  ];
+  // Vorspann-Grenzen nach der Regel von `frontmatterBodyStart` (link-scan.js):
+  // Beginn `---`, Ende `---` oder `...` mit Leerraum dahinter.
+  const istVorspannGrenze = (z) => /^(---|\.\.\.)\s*$/.test(z) || z.trimEnd() === '---';
+
+  it('wahr für jede Zeile, die einen Zaun öffnet oder schließt oder den Vorspann begrenzt', () => {
+    const rnd = zufall(20260930);
+    const verfehlt = [];
+    let geprueft = 0;
+    for (let i = 0; i < 20000; i++) {
+      let zeile = '';
+      const laenge = Math.floor(rnd() * 9);
+      for (let j = 0; j < laenge; j++) zeile += ZEICHEN[Math.floor(rnd() * ZEICHEN.length)];
+      const strukturell =
+        zaunOeffnung(zeile) !== null ||
+        schliesstZaun(zeile, { zeichen: '`', laenge: 3 }) ||
+        schliesstZaun(zeile, { zeichen: '~', laenge: 3 }) ||
+        istVorspannGrenze(zeile);
+      if (!strukturell) continue;
+      geprueft += 1;
+      if (!koennteStrukturZeileSein(zeile) && verfehlt.length < 5) verfehlt.push(zeile);
+    }
+    expect(verfehlt).toEqual([]);
+    expect(geprueft).toBeGreaterThan(100);
+  });
+
+  it('einzelne Formen: Zäune mit Einrückung und Infostring, Vorspann-Grenzen', () => {
+    for (const zeile of ['```', '````md', '~~~', '   ```js', '\t```', '---', '...', '--- ']) {
+      expect(koennteStrukturZeileSein(zeile), zeile).toBe(true);
+    }
+  });
+
+  it('falsch für gewöhnliche Text-Zeilen', () => {
+    for (const zeile of [
+      '',
+      'Text',
+      '| a | 1 |',
+      '- Punkt',
+      '> Zitat',
+      '^umsatz',
+      'table: ^umsatz',
+      '``inline``',
+      'a ``` b',
+      '--',
+      '..',
+    ]) {
+      expect(koennteStrukturZeileSein(zeile), zeile).toBe(false);
+    }
+    expect(koennteStrukturZeileSein(null)).toBe(false);
   });
 });

@@ -59,6 +59,7 @@ Edit it directly in **Split** view or **Live** mode.
 A `perspective-datatable` gives columns fixed types, a live aggregate row and computed columns (here `Total = Price * Qty`).
 
 ```perspective-datatable
+table: Orders
 columns: Item:text, Price:number(2), Qty:number, Total:number(2) = Price * Qty
 aggregate: Total:sum
 | Coffee | 4.00 | 2 |
@@ -85,6 +86,18 @@ aggregate: Total:sum
 types: hidden
 | 4.00 | 2 |
 | 3.50 | 1 |
+```
+
+## Chart — the table as a picture
+
+The line `table: Orders` at the top of the table gives it a name. A `perspective-chart` block names the table with the same line and draws the values of the table — change a price or a quantity above, and the chart follows as you type:
+
+```perspective-chart
+table: Orders
+type: bar
+labels: Item
+values: Total
+title: Total per item
 ```
 
 More structure awaits in [[04 Links and Structure]].

@@ -24,6 +24,7 @@
 // Schwester-Modul lädt den Kern.
 //
 // Format des Fence-Bodys:
+//   table: Umsatz
 //   columns: Name:text, Datum:date, Start:time, Betrag:number(2),
 //            Erledigt:boolean, Gesamt:number = Betrag * 2
 //   aggregate: Betrag:sum+avg, Erledigt:count
@@ -38,6 +39,17 @@
 // gilt die Anzeige. Beides ist reine Darstellung und ohne Wirkung auf die
 // Typ-Prüfung der Zellen.
 //
+// 4T-002072 (Epic 3E-000192): Die Kopf-Angabe `table: Name` gibt der Tabelle
+// ihren Namen, in derselben Schreibweise, in der ein Diagramm sie nennt. Sie
+// steht höchstens einmal vor den Datenzeilen; für den Namen gelten die Regeln
+// der Block-Kennungen (`isValidBlockAnchorId`), denn er ist eine Kennung des
+// Blocks: Die Heimat der Kennungen (src/shared/block-anchors.js) liest ihn
+// selbst aus dem Zaun, nach derselben Regel wie dieser Parser. Ein leerer,
+// ungültiger oder doppelter Name ist ein Struktur-Fehler (es gibt keine
+// Fehler-Art, die das Gitter bearbeitbar ließe); ein Dach-Zeichen davor ist
+// ungültig, weil das Zurückschreiben die Zeile sonst still umschriebe. Der
+// Serialisierer schreibt den Namen als erste Zeile.
+//
 // Kanonische Speicherformate (PO-Entscheidung D, Epic 3E-000079):
 //   number  Punkt-Dezimal (optionales Anzeige-Format `number(n)` = Dezimalstellen)
 //   date    JJJJ-MM-TT
@@ -47,6 +59,8 @@
 //
 // Datenmodell (Rückgabe von parsePerspectiveDatatable):
 //   {
+//     name:       string|null   Name aus der Kopf-Angabe `table` (4T-002072);
+//                 null ohne Angabe oder bei leerem bzw. ungültigem Wert
 //     columns:    [{ name, label|null, type, decimals|null, expr|null }]
 //                 expr = Rohtext der berechneten Spalte (Auswertung in
 //                 4T-000421); label = Anzeige-Überschrift, null ohne Angabe
@@ -90,6 +104,9 @@ const { parseColumnDef, parseAggregateEntry } = require('./perspective-datatable
 // 4T-002013 (Epic 3E-000332): Zell-Zerlegung, geteilt mit Verweis-Index,
 // Umbenennungs-Nachzug und Schlagwort-Umbenennung.
 const { splitTopLevel, splitPipeRow } = require('./perspective-datatable-cells.js');
+// 4T-002072 (Epic 3E-000192): die Regel der Block-Kennungen für den Namen der
+// Tabelle. Ein Zyklus entsteht nicht: Die Heimat lädt keinen Teil der Familie.
+const { isValidBlockAnchorId } = require('../block-anchors.js');
 
 // --- Werte-Parsing pro Typ ----------------------------------------------------
 
@@ -148,6 +165,10 @@ function parsePerspectiveDatatable(content) {
   // Der Unterschied zwischen null und true trägt die Serialisierung: Nur eine
   // ausdrückliche Angabe wird zurückgeschrieben.
   let showTypes = null;
+  // 4T-002072: Name aus der Kopf-Angabe `table`; `tableSeen` merkt die erste
+  // Angabe auch dann, wenn ihr Wert ungültig ist.
+  let name = null;
+  let tableSeen = false;
   const pendingAggregateLines = [];
   const rows = [];
   let inRows = false;
@@ -200,6 +221,23 @@ function parsePerspectiveDatatable(content) {
           continue;
         }
         showTypes = wert === 'shown';
+        continue;
+      }
+      // 4T-002072 (Epic 3E-000192): Name der Tabelle nach der Regel der
+      // Block-Kennungen; die Heimat der Kennungen liest dieselbe Zeile.
+      if (directive === 'table') {
+        if (tableSeen) {
+          errors.push({ code: 'duplicateDirective', line: lineNo, detail: 'table' });
+          continue;
+        }
+        tableSeen = true;
+        if (m[2] === '') {
+          errors.push({ code: 'emptyTableName', line: lineNo, detail: '' });
+        } else if (!isValidBlockAnchorId(m[2])) {
+          errors.push({ code: 'invalidTableName', line: lineNo, detail: m[2] });
+        } else {
+          name = m[2];
+        }
         continue;
       }
       errors.push({ code: 'invalidLine', line: lineNo, detail: trimmed });
@@ -257,7 +295,7 @@ function parsePerspectiveDatatable(content) {
     }
   }
 
-  return { columns, aggregates, rows, errors, showTypes };
+  return { name, columns, aggregates, rows, errors, showTypes };
 }
 
 // --- Serialisierer ---------------------------------------------------------------
@@ -292,6 +330,9 @@ function serializePerspectiveDatatable(model) {
   const aggregates = model.aggregates || [];
   const rows = model.rows || [];
   const lines = [];
+  // 4T-002072: Der Name steht als erste Zeile, der Schlüssel klein wie bei den
+  // übrigen Kopf-Angaben; ohne Namen entsteht keine Zeile.
+  if (model.name) lines.push('table: ' + model.name);
   lines.push('columns: ' + columns.map(serializeColumnDef).join(', '));
   const aggParts = [];
   columns.forEach((col, i) => {
@@ -427,11 +468,28 @@ function renderPerspectiveDatatableViewer(content, opts) {
 
 // Statische Tabelle für den Portable-Export. Bei Struktur-Fehlern null —
 // der Fence bleibt dann unverändert im Export (Muster perspective-table).
+//
+// 4T-002072: Trägt die Tabelle einen Namen, folgt ihr die Zeile `^Name`, damit
+// Verweise im exportierten Dokument ihr Ziel behalten. Die Leerzeile davor ist
+// eine Festlegung: Nach CommonMark endet ein HTML-Block erst an einer
+// Leerzeile; ohne sie gehörte die Zeile zum Block und bliebe Text darin. Das
+// Zeilenende dahinter ebenso: Die Fence-Ersetzung des Exports nimmt die
+// Leerzeile nach dem Zaun mit in ihren Treffer (portable-fences.js), und ohne
+// eigenes Zeilenende verschmölze die Zeile mit dem folgenden Absatz — die
+// Kennung bezeichnete dann ihn statt der Tabelle (gemessen am 2026-10-03).
+//
+// 4T-002072, Nachbesserung F5: `opts.ankerZeileFolgt` sagt, dass unter dem
+// Zaun schon eine Zeile `^Name` desselben Namens steht (die Heimat zählt sie
+// als dieselbe Kennung). Dann kommt keine zweite dazu, nur die Leerzeile, die
+// sie vom HTML-Block trennt; der Aufrufer weiß es, weil nur er den Text um den
+// Zaun sieht.
 function convertPerspectiveDatatableBlockToHtml(content, opts) {
   const model = parsePerspectiveDatatable(content);
   if (model.errors.length > 0 || model.columns.length === 0) return null;
   const { computed, aggs } = computeRenderData(model);
-  return buildPortableDatatableHtml(model, computed, aggs, opts);
+  const html = buildPortableDatatableHtml(model, computed, aggs, opts);
+  if (!model.name) return html;
+  return opts && opts.ankerZeileFolgt ? html + '\n' : html + '\n\n^' + model.name + '\n';
 }
 
 module.exports = {

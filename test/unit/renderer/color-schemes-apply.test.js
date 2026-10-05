@@ -114,4 +114,24 @@ describe('color-schemes (Renderer): pdfColorOverrides (Export-Option 2)', () => 
     const ov = pdfColorOverrides();
     expect(ov['--bg']).toBe('#fff8e0');
   });
+
+  // 4T-002030 (Epic 3E-000192): Druck und PDF zeichnen die Diagramme mit den
+  // zehn Reihen-Farben des HELLEN Schemas; die Tabelle trägt sie ohne eigenes
+  // Zutun, weil sie jede Slot-Variable liefert.
+  it('trägt die zehn Diagramm-Farben des aktiven Hell-Schemas, auch im dunklen Modus', () => {
+    setColorSchemeState({
+      custom: [{ id: 'l2', name: 'L', base: 'light', colors: { chart1: '#123456' } }],
+      activeLight: 'l2',
+      activeDark: 'standard-dark',
+    });
+    document.documentElement.setAttribute('data-theme', 'dark');
+    const ov = pdfColorOverrides();
+    expect(ov['--chart-1']).toBe('#123456');
+    for (let i = 2; i <= 10; i++) expect(ov[`--chart-${i}`]).toBe(BASE_DEFAULTS.light[`chart${i}`]);
+    // Ohne eigene Farbe gilt die Vorgabe des Hell-Schemas, nie die dunkle Reihe.
+    setColorSchemeState({ custom: [], activeLight: 'sepia-light', activeDark: 'standard-dark' });
+    expect(pdfColorOverrides()['--chart-2']).toBe(byId('sepia-light').colors.chart2);
+    expect(pdfColorOverrides()['--chart-1']).toBe(BASE_DEFAULTS.light.chart1);
+    expect(pdfColorOverrides()['--chart-1']).not.toBe(BASE_DEFAULTS.dark.chart1);
+  });
 });

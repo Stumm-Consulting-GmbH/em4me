@@ -315,7 +315,8 @@ describe('perspective-script-view: Schritt-Satz des erzeugten Teilbaums (4T-0011
     } finally {
       delete window.api.renderMarkdown;
     }
-    expect(rufe[0]).toEqual({ dynamischeBloecke: false });
+    // 4T-002021: Dazu der Text der Ausgabe als Dokument ihrer Diagramme.
+    expect(rufe[0]).toEqual({ dynamischeBloecke: false, dokumentText: 'Text' });
     registriereTeilbaumSchritte(() => {});
   });
 

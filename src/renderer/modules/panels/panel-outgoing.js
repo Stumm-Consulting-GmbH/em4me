@@ -9,6 +9,9 @@
 // (`doc="…"` an einer `!karte`-Zeile innerhalb einer Fence
 // `perspective-canvas`). Ohne ihn waere die Auskunft in der einen Richtung
 // vorhanden und in der anderen nicht, obwohl beide dasselbe behaupten.
+//
+// 4T-002023 (Epic 3E-000192): ebenso die erste Angabe `table: [[Datei#^name]]`
+// eines Diagramm-Blocks, als Einbettung desselben Ziels.
 'use strict';
 
 import { t } from '../../i18n.js';
@@ -52,6 +55,13 @@ import {
   neuerZellZustand,
   zellScanZeile,
 } from '../../../shared/markdown/perspective-datatable-cells.js';
+// 4T-002023 (Epic 3E-000192): die Angabe `table:` eines Diagramm-Blocks, aus
+// derselben Heimat wie im Bereichs-Index und im Umbenennungs-Nachzug.
+import {
+  istDiagrammFenceInfo,
+  scanneTabellenAngabe,
+} from '../../../shared/markdown/perspective-chart-ref.js';
+import { isValidBlockAnchorId } from '../../../shared/block-anchors.js';
 
 import { applySidebarVisibility } from './panels.js';
 
@@ -88,6 +98,10 @@ export function extractOutgoingLinks(text) {
   // 4T-002013 (Epic 3E-000332): Zeilen-Zustand der offenen Datentabelle, sonst
   // null.
   let zellZustand = null;
+  // 4T-002023 (Epic 3E-000192): Steht die offene Fence unter der Diagramm-Marke,
+  // und ist ihre wirksame Angabe `table:` schon vorbei?
+  let inChartFence = false;
+  let tabelleGesehen = false;
   for (let i = 0; i < lines.length; i++) {
     const original = lines[i];
     // Fenced-Code-Wechsel erkennen (am Anfang der Zeile, optional eingerueckt).
@@ -102,11 +116,14 @@ export function extractOutgoingLinks(text) {
         const info = original.slice(fenceMatch[0].length);
         inCanvasFence = istCanvasFenceInfo(info);
         zellZustand = istDatentabellenFenceInfo(info) ? neuerZellZustand() : null;
+        inChartFence = istDiagrammFenceInfo(info);
+        tabelleGesehen = false;
       } else if (marker === fenceChar) {
         inFence = false;
         fenceChar = '';
         inCanvasFence = false;
         zellZustand = null;
+        inChartFence = false;
       }
       continue;
     }
@@ -137,6 +154,24 @@ export function extractOutgoingLinks(text) {
               anchor,
               line: i + 1,
               snippet: snippetAroundIndex(kartenBeschriftung(lines, i) || original, 0),
+            });
+          }
+        }
+      } else if (inChartFence && !tabelleGesehen) {
+        // 4T-002023 (Epic 3E-000192): Die erste Angabe `table: [[Datei#^name]]`
+        // eines Diagramm-Blocks erscheint als Einbettung desselben Ziels — so
+        // zählt sie auch im Bereichs-Index. `^name` nennt das eigene Dokument
+        // und ist kein ausgehender Verweis.
+        const angabe = scanneTabellenAngabe(original);
+        if (angabe) {
+          tabelleGesehen = true;
+          if (angabe.form === 'other' && isValidBlockAnchorId(angabe.name)) {
+            links.push({
+              type: 'embed',
+              target: angabe.datei,
+              anchor: '^' + angabe.name,
+              line: i + 1,
+              snippet: snippetAroundIndex(original, angabe.dateiStart),
             });
           }
         }

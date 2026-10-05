@@ -984,6 +984,15 @@
       "vermerk": "Tritt dem bestehenden Vorgang 4T-001689 bei; kein neuer Vorgang. — Behoben am 2026-10-01 in 4T-001689; Ursache, Messung und Nachweis beim Eintrag vom 2026-09-11."
     },
     {
+      "spec": "test/e2e/funktionen/diagramme-dialog.spec.js",
+      "fall": "DE-02: Kommando-Palette und Menü während der Arbeit in einer Zelle (S-157, F-332, F-334) — Eingabe der Zelle wird übernommen, das Einfügen wirkt auf diese Tabelle (AK28)",
+      "datum": "2026-09-30",
+      "fehlerbild": "ERSTE Beobachtung dieses Falls. Aufgetreten im Epic-Abschluss-Test (Stufe 3) des Epics 3E-000192 «Diagramme zu Tabellen» am 2026-09-30 im Zug-Clone SC-027 Bereich C, Gruppe 1 von 7 (smoke.spec und diagramme*, 82 Fälle): 81 grün, 1 rot in 3,4 min (18:53 bis 18:56 UTC), ohne bekannte Fremdlast (kein zweiter Suite- oder Bau-Lauf; der Bau des Anzeige-Bündels war zuvor abgeschlossen). Beleg: Tests/test-4t-002028/a1-smoke-diagramme.log (clone-lokal), Protokoll im Vorgang 4T-002028. Fehler: «electronApplication.evaluate: Execution context was destroyed, most likely because of a navigation» im Helfer menuZustand (test/e2e/helpers/menu-zustand.js:56), gerufen an diagramme-dialog.spec.js:126 unmittelbar nach dem Öffnen des Live-Modus. Isolierter Wiederhol-Lauf der Prüfdatei um 19:16 UTC: 12 von 12 grün (Tests/test-4t-002028/a1-nachlauf-diagramme-dialog.log). Derselbe Fall war am 2026-09-30 nachmittags dreimal je Datei grün (Stabilitäts-Runde in 4T-002026) und im Vorab-Lauf desselben Ausschnitts grün.",
+      "vermutung": "Dasselbe Fehlerbild wie bei sprach-einspielen (4T-001813), panel-zugänge, regal und my-extended-memory: ein app.evaluate im Hauptprozess trifft auf einen zerstörten Kontext, wenn kurz nach dem Start noch ein Fenster oder eine Seite wechselt. Hier läuft die erste Menü-Abfrage direkt nach dem Ansichts-Wechsel in den Live-Modus; der Fall hängt an der Reihenfolge, nicht an den Diagrammen. Kein Bezug zur Änderung des Tages (4T-002048 hat in dieser Prüfdatei allein DE-20 ergänzt, DE-02 ist unverändert).",
+      "status": "behoben",
+      "vermerk": "Erstbeobachtung, deshalb nicht befördert. Bedingung für eine Beförderung: ein erneutes Auftreten von DE-02 oder eines weiteren Falls dieser Prüfdatei mit demselben Fehlerbild; dann tritt er 4T-001813 bei, weil das Fehlerbild dort schon eingegrenzt wird. — Behoben am 2026-10-04 beim Nachzug des Zuges 3E-000336 auf den Integrationsstand nach 1.145.0: Die Ursache, ein direkter Zugriff auf den Hauptprozess, dessen Rückmeldung verloren geht (Stabilitätsregel 31, Baustein test/e2e/helpers/haupt-zugriff.js aus 4T-001813), ist beseitigt. Der Helfer menuZustand, an dem DE-02 rot wurde, läuft seit dem Nachzug in der umgestellten Fassung des Integrationsstands (4T-001813), und die Prüfdatei samt ihrem Helfer test/e2e/helpers/diagramme-dialog.js geht seit demselben Tag ganz über den Baustein; danach einzeln nachgefahren, grün (Sammeltask 4T-002029, Abschnitt «Was nach dem Nachzug erneut fällig ist»)."
+    },
+    {
       "spec": "test/e2e/funktionen/bereichs-statistik.spec.js",
       "fall": "BS-07: Stand-Ausweis bei ungespeicherten Änderungen (S-118) — nennt den gespeicherten Stand und zählt die offenen Dokumente",
       "datum": "2026-10-01",
@@ -1072,6 +1081,16 @@
       "vermutung": "Reiter-Leiste unter Last kurz nach dem Start noch in Bewegung; dasselbe Muster wie bei TS-07 an diesem Tag. Kein Bezug zum Änderungs-Umfang des Zuges.",
       "status": "beobachtet",
       "vermerk": "Bei erneutem Auftreten zusammen mit 4T-002062 bewerten."
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-statistik.spec.js",
+      "fall": "BS-06",
+      "datum": "2026-10-05",
+      "fehlerbild": "ELFTE Beobachtung. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000336 «Diagramme zu Tabellen» im Stamm-Clone SC-026/A am 2026-10-05, Schritt 6 im Sammeltask 4T-002029: 1137 von 1138 grün, 1 rot in 96 min (Gate-Lauf 12:33 bis 14:16 UTC). Der Lauf fuhr ALLEIN, ohne parallelen Linux- oder Unit-Lauf; am selben Tag lief die monatliche Datensicherung des Rechners. Abbruch-Stelle dieselbe wie bei allen Vorgängern, «Timeout 10000ms exceeded while waiting on the predicate», Fall «das Bereichs-Panel zeigt beide Einträge, im Aus-Zustand nur den Graph» (bereichs-statistik.spec.js:233). Im am Vorabend abgebrochenen Lauf derselben Strecke war derselbe Fall ebenfalls rot. Isoliert unmittelbar danach dreimal geprüft: die ganze Datei je 7 von 7 grün. Beleg: test-berichte/rot/2026-10-05T14-16-40Z-zug-3E-000336-Diagramme-zu-Tabellen-e2e.log samt Trace und Bildschirmfoto.",
+      "vermutung": "Weiter an derselben Stelle wie die zehn Beobachtungen davor. Neu ist, dass der Lauf ohne parallelen Prüf-Lauf fuhr; die Last eines parallelen Laufs scheidet damit als alleinige Erklärung aus, die Eigenlast des vollen Laufs und die Datensicherung bleiben. Bezug zum Zug: keiner, der Zug ändert weder das Bereichs-Panel noch die Statistik-Erweiterung.",
+      "status": "befoerdert",
+      "vorgang": "4T-001100",
+      "vermerk": "Elfte Beobachtung, die dem bestehenden Vorgang 4T-001100 beitritt; kein neuer Vorgang. Die Wiederaufnahme-Bedingung des Vorgangs, ein roter Lauf mit gesichertem Trace im bearbeitenden Arbeitsbereich, ist mit dem Beleg dieses Laufs im Stamm-Clone SC-026/A erfüllt; der Trace liegt dort."
     }
   ]
 }

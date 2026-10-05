@@ -11,7 +11,8 @@
 //
 // Rein string-basiert und Electron-frei;
 // die einzigen Abhaengigkeiten sind src/shared/subpages.js
-// (Namens-Logik) und die gemeinsame Erkennungs-Quelle link-scan.js. Die Pfad-
+// (Namens-Logik) und die gemeinsame Erkennungs-Quelle link-scan.js, seit
+// 4T-002023 dazu das Blatt perspective-chart-ref.js (Angabe `table:`). Die Pfad-
 // Aufloesung relativer Markdown-Ziele ist als reine '/'-String-Operation
 // gekapselt (kein node:path), damit der Kern in Main und Renderer gleichermassen
 // laeuft; der Aufrufer uebergibt absolute Pfade vorab '/'-normalisiert.
@@ -54,6 +55,13 @@ const {
   neuerZellZustand,
   zellScanZeile,
 } = require('./markdown/perspective-datatable-cells.js');
+// 4T-002023 (Epic 3E-000192): die Angabe `table:` eines Diagramm-Blocks — dieselbe
+// Erkennung, aus der der Diagramm-Kern, der Bereichs-Index und die ausgehenden
+// Verweise lesen.
+const {
+  istDiagrammFenceInfo,
+  scanneTabellenAngabe,
+} = require('./markdown/perspective-chart-ref.js');
 
 // --- Pfad-Helfer (reine '/'-String-Operationen, kein node:path) -------------
 
@@ -489,6 +497,37 @@ function collectKartenRewrites(line, ctx) {
   return out;
 }
 
+// --- Angabe `table:` des Diagramm-Blocks (4T-002023, Epic 3E-000192) --------
+//
+// **Die zweite Ausnahme, aus demselben Grund wie die erste.** Die Angabe
+// `table: [[Datei#^name]]` eines Diagramm-Blocks nennt eine Tabelle in einem
+// anderen Dokument und verhaelt sich nach der Festlegung zum Bezug in jeder
+// Hinsicht wie eine Einbettung desselben Ziels; die Einbettung im Fliesstext
+// zieht beim Umbenennen nach, also zieht die Angabe ebenso nach.
+//
+// **Angefasst wird genau die Datei-Spanne**, und nur in der wirksamen, der
+// ersten Angabe der Fence (die Aufrufer-Schleife haelt das fest). Schluessel,
+// Leerraum, `#^name]]` und die uebrige Fence bleiben Byte fuer Byte. Welcher
+// Wert nachzieht, entscheidet dieselbe Regel wie bei `doc=` einer Karte
+// (`neuerDocWert`): Pfad-Weg, Namens-Weg samt Unterseiten, Endung
+// zurueckgebaut, und ein Ziel `@kuerzel:` bleibt stehen.
+function collectTabellenRewrites(line, angabe, ctx) {
+  if (!angabe || angabe.form !== 'other') return [];
+  const neu = neuerDocWert(angabe.datei, ctx);
+  if (neu === null || neu === angabe.datei) return [];
+  const fullStart = line.length - line.trimStart().length;
+  return [
+    {
+      spanStart: angabe.dateiStart,
+      spanLen: angabe.dateiLen,
+      replacement: neu,
+      typ: 'chart-table',
+      fullText: line.trim(),
+      fullStart,
+    },
+  ];
+}
+
 // --- Oeffentliche API -------------------------------------------------------
 
 // computeLinkRewrites(content, { renames, contextPath })
@@ -550,6 +589,10 @@ function computeLinkRewrites(content, options) {
   // 4T-002013 (Epic 3E-000332): Zeilen-Zustand der offenen Datentabelle, sonst
   // null.
   let zellZustand = null;
+  // 4T-002023 (Epic 3E-000192): Steht die offene Fence unter der Diagramm-Marke,
+  // und ist ihre wirksame Angabe `table:` schon vorbei?
+  let inChartFence = false;
+  let tabelleGesehen = false;
   for (let i = 0; i < lines.length; i++) {
     if (i < fmStart) continue; // Frontmatter ausklammern
     const { text: line, start: lineStart } = lines[i];
@@ -567,22 +610,28 @@ function computeLinkRewrites(content, options) {
         const info = line.slice(fenceMatch[0].length);
         inCanvasFence = istCanvasFenceInfo(info);
         zellZustand = istDatentabellenFenceInfo(info) ? neuerZellZustand() : null;
+        inChartFence = istDiagrammFenceInfo(info);
+        tabelleGesehen = false;
       } else if (ch === fenceChar) {
         inFence = false;
         fenceChar = null;
         inCanvasFence = false;
         zellZustand = null;
+        inChartFence = false;
       }
       continue;
     }
 
     let found;
     if (inFence) {
-      // 4T-001749: Die Nachführung greift in eine Fence nur an zwei benannten
+      // 4T-001749: Die Nachführung greift in eine Fence nur an drei benannten
       // Stellen hinein. Die erste sind die Verweis-Angaben einer
       // Karten-Marker-Zeile; alles Übrige einer Canvas-Fence bleibt unberührt.
       //
-      // 4T-002013 (Epic 3E-000332): Die zweite sind die Text-Zellen einer
+      // 4T-002023 (Epic 3E-000192): Die zweite ist die erste Angabe `table:`
+      // eines Diagramm-Blocks (Begründung an collectTabellenRewrites).
+      //
+      // 4T-002013 (Epic 3E-000332): Die dritte sind die Text-Zellen einer
       // Datentabelle. Dort ziehen Wiki-Verweise und Markdown-Links nach wie im
       // Fließtext (Entscheidung F1 b des Product Owners vom 2026-09-28);
       // Alias und das Tabellen-Escape `\|` bleiben dabei stehen, weil nur der
@@ -593,6 +642,11 @@ function computeLinkRewrites(content, options) {
       // Byte stehen.
       if (inCanvasFence) {
         found = collectKartenRewrites(line, ctx);
+      } else if (inChartFence && !tabelleGesehen) {
+        const angabe = scanneTabellenAngabe(line);
+        if (!angabe) continue;
+        tabelleGesehen = true;
+        found = collectTabellenRewrites(line, angabe, ctx);
       } else if (zellZustand) {
         const zellZeile = zellScanZeile(zellZustand, line);
         if (zellZeile === null) continue;

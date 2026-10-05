@@ -534,9 +534,15 @@
       "key": "help.feature.blockAnchors",
       "id": "F-039",
       "testart": "snapshot",
-      "tests": ["test/unit/render/snapshots.test.js", "test/unit/backlinks.test.js"],
-      "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
-      "hinweis": "Render-Snapshot plus Anker-Index-Units."
+      "tests": [
+        "test/unit/render/snapshots.test.js",
+        "test/unit/backlinks.test.js",
+        "test/unit/render/block-anker-zeile.test.js",
+        "test/unit/block-anchors.test.js",
+        "test/unit/embed-ausschnitt.test.js"
+      ],
+      "sichtbarkeit": ["test/e2e/funktionen/block-anker-eigene-zeile.spec.js"],
+      "hinweis": "Render-Snapshot plus Anker-Index-Units. 4T-002048 (Epic 3E-000192): Anker in einer eigenen Zeile — Snapshot-Fixture block-anker-zeilen.md mit allen Fällen der Messung, Ort der Kennung und Abwesenheit im sichtbaren Text je Fall (render/block-anker-zeile.test.js), Gleichlauf von Anzeige, Anker-Erkennung und Diagramm-Kern samt Raster Blockart mal Abstand mal Anzahl (block-anchors.test.js); BZ-01 bis BZ-06 in block-anker-eigene-zeile.spec.js (Lese-Ansicht und gerenderte Hälfte, Sprung über einen Verweis, Druck und PDF aus drei Ansichten, Einbettung, Live-Modus unter der gewöhnlichen Tabelle samt Zell-Eingabe, Eigenschaften-Zeichen an Datentabelle und Diagramm nach dem Neu-Zeichnen). 4T-002072: Name einer Datentabelle in ihrer Kopf-Angabe table: als Kennung — Träger je Kennung, Schreibmarke im Block, Umbenennen und Schreibort (block-anchors.test.js), Kennung am Container nur beim ersten Vorkommen (render/block-anker-zeile.test.js), Einbettung über die Heimat ohne Treffer in Code-Beispielen (embed-ausschnitt.test.js), Kennung im Index (backlinks.test.js); BZ-08 (Sprung in drei Ansichten auf die Zeile der Angabe, kein Anker-Zeichen im Live-Modus, Einbettung mit Gitter, Rückverweise), BP-07 in block-eigenschaften.spec.js (Anlegen schreibt die Kopf-Angabe, Umbenennen zieht die Diagramme mit). Nachbesserung nach der Durchsicht: BP-08 (Anker anlegen in einem Code-Block schreibt eine eigene Zeile unter den Block, über einer Datentabelle an die Zeile des Absatzes; der Zaun bleibt geschlossen), dazu Schreibort, Cursor-Folge im Zaun, gleiche Kennung in Kopf und Zeile, Diagramm im Zitat und Text ohne Frontmatter (block-anchors.test.js, render/block-anker-zeile.test.js), Einbettung ohne Zeile table: und mit BOM (embed-ausschnitt.test.js)."
     },
     {
       "key": "help.feature.liveBlockAnchor",
@@ -575,9 +581,14 @@
       "key": "help.feature.wikiEmbeds",
       "id": "F-042",
       "testart": "snapshot",
-      "tests": ["test/unit/render/snapshots.test.js", "test/unit/backlinks.test.js"],
+      "tests": [
+        "test/unit/render/snapshots.test.js",
+        "test/unit/backlinks.test.js",
+        "test/e2e/funktionen/einbettungen.spec.js",
+        "test/unit/index-rundruf.test.js"
+      ],
       "sichtbarkeit": "entfällt: Markdown-Konstrukt ohne Bedienelement; sichtbar ist das gerenderte Markup der Snapshot-Fixture",
-      "hinweis": "Embed-Platzhalter-Render; Anker-Snippet-Extraktion unit; PDF-/MD-Aufloesung braucht echte Dateien (Gesamtabnahme-Stichprobe)."
+      "hinweis": "Embed-Platzhalter-Render; Anker-Snippet-Extraktion unit; PDF-/MD-Aufloesung braucht echte Dateien (Gesamtabnahme-Stichprobe). 4T-002023 (Epic 3E-000192): Auffrischen einer Markdown-Einbettung ueber Fenster und Platte — EB-09 (das Ziel ist in einem anderen Fenster geoeffnet und wird dort ungespeichert geaendert; Lese-Ansicht und Live-Modus), EB-10 (die Datei des nicht geoeffneten Ziels wird von aussen geaendert; Lese-Ansicht und Live-Modus); dazu der Rundruf der Puffer-Schicht an alle Fenster und die geaenderten Dateien in der Invalidierungs-Meldung (index-rundruf.test.js)."
     },
     {
       "key": "help.feature.areaLinks",
@@ -902,8 +913,11 @@
         "test/unit/color-schemes.test.js",
         "test/unit/renderer/color-schemes-apply.test.js"
       ],
-      "sichtbarkeit": ["test/e2e/funktionen/farbschemas.spec.js"],
-      "hinweis": "Slot-Modell und Verwaltung (color-schemes.test.js), Renderer-Anwendung und PDF-Overrides (color-schemes-apply.test.js); UI-Roundtrip E2E test/e2e/funktionen/farbschemas.spec.js (FS-01/FS-02, 4T-000466). Auslieferungs-Voreinstellung und der Einmal-Schritt beim Start: test/e2e/funktionen/voreinstellungen.spec.js (VE-01/VE-02, 4T-000751)."
+      "sichtbarkeit": [
+        "test/e2e/funktionen/farbschemas.spec.js",
+        "test/e2e/funktionen/diagramme.spec.js"
+      ],
+      "hinweis": "Slot-Modell und Verwaltung (color-schemes.test.js), Renderer-Anwendung und PDF-Overrides (color-schemes-apply.test.js); UI-Roundtrip E2E test/e2e/funktionen/farbschemas.spec.js (FS-01/FS-02, 4T-000466). Auslieferungs-Voreinstellung und der Einmal-Schritt beim Start: test/e2e/funktionen/voreinstellungen.spec.js (VE-01/VE-02, 4T-000751). 4T-002030: Gruppe Diagramme mit zehn Farben der Datenreihen — Plätze, Gleichheit von Paletten-Konstante, Grundpalette und Stilblatt, Kontrast 3:1 je mitgeliefertem Schema, Kopie, Laden, Schema ohne Diagramm-Farben (color-schemes.test.js), Druck-Overrides mit --chart-N (color-schemes-apply.test.js); DG-14 in test/e2e/funktionen/diagramme.spec.js (Gruppe in den Einstellungen, geänderte Datenreihe 1 sofort im Diagramm)."
     },
     {
       "key": "help.feature.events",
@@ -2164,9 +2178,11 @@
         "test/e2e/funktionen/datentabelle-verweise.spec.js",
         "test/unit/perspective-datatable-verweise.test.js",
         "test/unit/zell-verweise-html.test.js",
-        "test/unit/datentabelle-zell-scan.test.js"
+        "test/unit/datentabelle-zell-scan.test.js",
+        "test/unit/datentabelle-name.test.js",
+        "test/unit/datentabelle-fehlertexte.test.js"
       ],
-      "hinweis": "4T-000417/4T-000418/4T-000421 (Epic 3E-000079): Konstrukt der Perspective Datatable; abgedeckt durch DT-01 bis DT-03 (Grid, lokalisierte Aggregate, Live-Paritaet) und DT-11 (berechnete Spalten) plus Parser-/Aggregat-/Formel-Unit-Suite und Snapshot-Fixture datentabelle.md. 4T-001313: Anzeige-Ueberschrift der Spalte und abschaltbare Typangabe (Unit-Faelle im Kern-Test, Rueckschreib-Nachweis im Pruef-Fall DT-13). 4T-002013 und 4T-002014 (Epic 3E-000332): Verweise und Schlagworte in Text-Zellen. DV-01 und DV-02 zeigen Verweis und Schlagwort in Lese-, geteilter und Live-Ansicht anklickbar, DT-16 den Rückverweis und das Nachziehen beim Umbenennen; perspective-datatable-verweise.test.js und zell-verweise-html.test.js tragen Anzeige, Aus-Zustände und portablen Export samt Snapshot-Fixture datentabelle-verweise.md, datentabelle-zell-scan.test.js die Erfassung im Index."
+      "hinweis": "4T-000417/4T-000418/4T-000421 (Epic 3E-000079): Konstrukt der Perspective Datatable; abgedeckt durch DT-01 bis DT-03 (Grid, lokalisierte Aggregate, Live-Paritaet) und DT-11 (berechnete Spalten) plus Parser-/Aggregat-/Formel-Unit-Suite und Snapshot-Fixture datentabelle.md. 4T-001313: Anzeige-Ueberschrift der Spalte und abschaltbare Typangabe (Unit-Faelle im Kern-Test, Rueckschreib-Nachweis im Pruef-Fall DT-13). 4T-002013 und 4T-002014 (Epic 3E-000332): Verweise und Schlagworte in Text-Zellen. DV-01 und DV-02 zeigen Verweis und Schlagwort in Lese-, geteilter und Live-Ansicht anklickbar, DT-16 den Rückverweis und das Nachziehen beim Umbenennen; perspective-datatable-verweise.test.js und zell-verweise-html.test.js tragen Anzeige, Aus-Zustände und portablen Export samt Snapshot-Fixture datentabelle-verweise.md, datentabelle-zell-scan.test.js die Erfassung im Index. 4T-002072 (Epic 3E-000192): Name der Tabelle in der Kopf-Angabe table: — Parser, Fehler-Kennungen, Serialisierer und Konverter im Kern-Test, Gleichlauf von Parser und Heimat der Kennungen samt Auflösung (datentabelle-name.test.js), Wächter über die Fehlertexte des Viewers (datentabelle-fehlertexte.test.js); DT-17 (fehlerfrei, Zeile bleibt beim Bearbeiten im Gitter erste Zeile, unzulässiger Name mit Fehlerkasten und sichtbaren Werten)."
     },
     {
       "key": "help.feature.datatableGrid",
@@ -2189,6 +2205,46 @@
         "test/unit/perspective-datatable.test.js"
       ],
       "hinweis": "4T-000420 (Epic 3E-000079): Ansichts-Sortierung und Filter; abgedeckt durch DT-09/DT-10 (Sortier-Zyklus ohne Dirty, Filter mit n-von-m und gefilterten Aggregaten, Editieren in gefilterter Ansicht, Tab-Wechsel) plus Vergleicher-/Filter-Unit-Suite."
+    },
+    {
+      "key": "help.feature.chart",
+      "id": "F-332",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/diagramme.spec.js",
+        "test/unit/perspective-chart.test.js",
+        "test/unit/render/extensions-aus-diagramm.test.js",
+        "test/unit/render/snapshots.test.js",
+        "test/unit/preload-diagramme.test.js",
+        "test/unit/chart-call-options.test.js",
+        "test/unit/renderer/diagramm-ansicht.test.js",
+        "test/unit/renderer/live-diagramm-vorspann.test.js",
+        "test/unit/renderer/diagramm-hinweis.test.js",
+        "test/e2e/funktionen/diagramme-anderes-dokument.spec.js",
+        "test/unit/chart-table-channel.test.js",
+        "test/unit/index-rundruf.test.js",
+        "test/e2e/funktionen/diagramme-verweise.spec.js",
+        "test/unit/diagramm-verweis-scan.test.js",
+        "test/unit/link-rewrite.test.js",
+        "test/unit/block-anchors.test.js",
+        "test/e2e/funktionen/diagramme-druck.spec.js",
+        "test/unit/renderer/druck-vorbereitung.test.js",
+        "test/unit/perspective-chart-export.test.js",
+        "test/unit/renderer/diagramm-export.test.js",
+        "test/e2e/funktionen/diagramme-export.spec.js",
+        "test/e2e/funktionen/diagramme-dialog.spec.js",
+        "test/e2e/funktionen/diagramme-bedienung.spec.js",
+        "test/e2e/funktionen/diagramme-reihen.spec.js",
+        "test/unit/renderer/diagramm-dialog.test.js",
+        "test/unit/renderer/diagramm-lage.test.js",
+        "test/unit/renderer/diagramm-auswahl.test.js",
+        "test/unit/renderer/diagramm-kontextmenue.test.js",
+        "test/unit/renderer/diagramm-kommandos.test.js",
+        "test/unit/renderer/diagramm-editor-kontextmenue.test.js",
+        "test/unit/diagramm-menue-ort.test.js",
+        "test/unit/datentabelle-name.test.js"
+      ],
+      "hinweis": "4T-002019 (Epic 3E-000192): Format-Kern des Diagramm-Blocks perspective-chart — Lesen und Zurueckschreiben der Angaben, Aufloesung des Namens im selben Dokument, Datenreihen und Gruende in der festen Reihenfolge (Unit), Container und Aus-Zustand (Snapshot-Fixture diagramme.md, extensions-aus-diagramm; der Fall stand bis zum Nachzug auf den Integrationsstand nach 1.145.0 in extensions-aus). Zeichnen und Darstellung in den Ansichten folgen mit den Tasks des Epics. 4T-002021: Darstellung in Lese-Ansicht, geteilter Ansicht und Live-Modus — DG-01 bis DG-08 (Werte der genannten Tabelle, gleiche Grafik in drei Ansichten, Farbschema und Hell-Dunkel, Sortieren und Filtern ohne Wirkung, ungespeicherte Änderung im Quelltext und im Grid samt berechneter Spalte, Zeilen und Rückgängig im Live-Modus, Schließen und erneutes Öffnen, Einbettung eines Abschnitts); Brücke im Preload, Schritt der Befüllung, Vorspann und Schlüssel des Live-Widgets (Unit). 4T-002022: Hinweis mit dem Grund an der Stelle eines nicht zeichenbaren Diagramms und Zeile der ausgelassenen Werte — je Grund und Anlass, zwei Gründe zugleich, Einzahl und Mehrzahl, Sonderzeichen, fünf Sprachen, Sprachwechsel (Unit); DG-10 bis DG-13 (drei Ansichten, Beheben und Entstehen beim Tippen, Leeren und Füllen von Zellen im Grid, zweite Sprache) und der Hinweis in DG-09. 4T-002030: Reihen-Farben aus den zehn Farb-Plätzen des Farbschemas — Lesen der Variablen und Neu-Zeichnen nach der Änderung einer Farbe (diagramm-ansicht.test.js), Farben der Reihe nach und Umlauf ab der elften Reihe oder dem elften Stück (test/unit/chart-draw.test.js); DG-14. 4T-002023: Tabelle in einem anderen Dokument (table: [[Datei#^name]]) — DF-01 (vier Arten, Spalten und Zeilen, gleiche Grafik wie im eigenen Dokument, Lese-Ansicht, geteilte Ansicht und Live-Modus, zweites Diagramm in einem dritten Dokument), DF-02 (ungespeicherte Aenderung im selben Fenster, Schliessen ohne Speichern, Quelle bleibt sauber), DF-03 (Aenderung in einem anderen Fenster, Diagramm und Einbettung, Lese-Ansicht und Live-Modus), DF-04 (Aenderung der Datei von aussen), DF-05 (Hinweis bei fehlendem Dokument, fehlender Tabelle, verknuepftem Bereich und Namen nur im Code-Block; Ziel erst nach Aufbau des Verzeichnisses gefunden), DF-06 (Hoehe des Live-Widgets nach verzoegertem Lesen und beim Auffrischen), DF-07 (nicht aktiver Reiter im Live-Modus), DF-08 (zweites Fenster ohne Speichern geschlossen: Diagramm und Einbettung im ersten Fenster zeigen wieder die Datei), DF-09 (Diagramm in einer eingebetteten Notiz folgt im Live-Modus); Lese-Kanal mit Parameter-Pruefung, Grenze, Puffer-Vorrang und reinem Lesen (chart-table-channel.test.js), vierter Wert der Bruecke (preload-diagramme.test.js), Lesen, Wettlauf, Zusammenlegen, Barriere und Auffrischen im Anzeige-Prozess (diagramm-ansicht.test.js), Stand des Ziels im Schluessel des Live-Widgets (live-diagramm-vorspann.test.js), Rundruf an alle Fenster (index-rundruf.test.js). 4T-002023: Bezug in ein anderes Dokument als Verweis — Nachzug der Angabe table: beim Umbenennen der Datei (link-rewrite.test.js) und des Tabellen-Namens im selben Dokument (block-anchors.test.js), Treffer im Bereichs-Index und in den ausgehenden Verweisen wie eine Einbettung samt geteilter Erkennung (diagramm-verweis-scan.test.js); DV-01 bis DV-03. 4T-002025: Druck und PDF — DD-01 (PDF aus Lese-Ansicht, geteilter Ansicht und Live-Modus bei dunklem Farbschema: helle Reihen-Farben, keine dunkle, ungespeicherte Zeile, danach wieder dunkel), DD-02 (Druck aus drei Ansichten, Zustand beim Druck-Aufruf: hell gezeichnet, Hinweis statt Grafik, anderes Dokument fertig gelesen, Umbruch-Schutz), DD-03 (PDF mit verzögert antwortendem Lese-Kanal eines ungespeichert geänderten anderen Dokuments), DD-04 (vier Arten, mehrere Reihen, jedes Diagramm an seiner Stelle), DD-05 (Erweiterung aus: Code-Block, keine Diagramm-Farbe im PDF), DD-06 (Druck und PDF aus dem Live-Modus lassen beide Dokumente byte-gleich); Reihenfolge Einbettungs-Barriere, helles Neu-Zeichnen, Diagramm-Barriere, Reflow (druck-vorbereitung.test.js), Verwerfen des geplanten Neu-Zeichnens, Rückkehr über den Farb-Beobachter und Neu-Lesen des anderen Dokuments (diagramm-ansicht.test.js). 4T-002025: portabler Export — DX-01 (dunkles Farbschema: helle Bilder an der Stelle der Blöcke, Tabelle bleibt Tabelle, nicht zeichenbarer Block byte-gleich), DX-02 (Bilder nach dem Sanitizer beim erneuten Öffnen geladen), DX-03 (ungespeicherte Änderung im eigenen und im anderen Dokument), DX-04 (Aus-Zustand: jeder Block bleibt Code), DX-05 (aus der Quelltext-Ansicht dieselben Bilder), DX-06 (Diagramm in einer Karte einer Canvas-Fläche gegen den Karten-Text aufgelöst); Erkennung, Ersetzung über Zeichen-Positionen und Marken der Karten-Diagramme im Kern (perspective-chart-export.test.js), helle Angaben, alle vier Arten als Bild, Alternativtext, Aus-Zustand, Zeit-Grenze der Lesung und Karten im Anzeige-Prozess (diagramm-export.test.js). Nachbesserung nach der Durchsicht vom 2026-09-30: DX-07 (gezeichnetes Kreis-Diagramm als helles Bild, ein Stück je Monat); Hinweis «nicht rechtzeitig gelesen» nach der Zeit-Grenze von Druck und PDF, Neu-Zeichnen und Barriere nur in der gedruckten Spalte (diagramm-ansicht.test.js, druck-vorbereitung.test.js), Text des Hinweises in fünf Sprachen (diagramm-hinweis.test.js); offener Block am Textende und eingerückter Block unter einem Listenpunkt (perspective-chart-export.test.js, am Lese-Ende in diagramm-export.test.js). Zeile der ausgelassenen Werte im Export (Entscheidung des Product Owners vom 2026-09-30): DX-08 (leere Zelle und Text in einer Zahl-Spalte: Bild und kursive Zeile in der Datei, wieder geöffnet beides, Zeile gleich der Ansicht); Ein- und Mehrzahl, keine Zeile ohne Auslassung, Wortlaut der Ansicht in zwei Sprachen, Einrückung im Listenpunkt, Karte einer Canvas-Fläche, Lese-Ende (diagramm-export.test.js), Maskierung der Sätze aller fünf Sprachen und eines Satzes voller Markdown-Zeichen (perspective-chart-export.test.js). 4T-002024: Einfügen und Bearbeiten eines Diagramms über den Dialog — Lage «Datentabelle angeklickt» und «Diagramm ausgewählt» je Editor samt Mitführen und Hervorhebung (diagramm-lage.test.js, diagramm-auswahl.test.js), kurzes Kontextmenü an Gitter und Diagramm im Live-Modus und in der gerenderten Hälfte (diagramm-kontextmenue.test.js) und im Editor bei Schreibmarke im Block (diagramm-editor-kontextmenue.test.js), Ausführung mit Meldung statt Dialog, mitgeführter Stelle und Rückgängig (diagramm-kommandos.test.js), Dialog ohne Darstellung (diagramm-dialog.test.js), Ort und Freigabe im Menü der Anwendung (diagramm-menue-ort.test.js); DE-01 bis DE-19 in diagramme-dialog.spec.js und diagramme-bedienung.spec.js. Nachbesserung nach der Durchsicht vom 2026-09-30: Prüfung nach dem Dialog (Bearbeiten aus, anderes Dokument aktiv), Fehler beim Schreiben mit Meldung, Zeile zum anderen Dokument als ein Satz (diagramm-kommandos.test.js, diagramm-dialog.test.js), Tasten fremder Oberflächen bei offenem Dialog (diagramm-dialog.test.js), Meldung an das Menü gegen das zuletzt gesendete Paar und Block-Bereiche je Dokument-Stand, gegen die Finder des Schreib-Kerns über Zufalls-Dokumente mit festem Startwert gehalten (diagramm-lage.test.js), Auswahl nur bei Änderbarkeit, Escape auf der Seite, Neben-Editor (diagramm-auswahl.test.js), eingerückter Block, echte Wählbarkeit der Palette und Rechtsklick in ein Eingabefeld (diagramm-kontextmenue.test.js), alle vier Belegungen der Lage-Felder in den Unempfindlichkeits-Wächtern (command-availability.test.js, kommando-verfuegbarkeit-palette.test.js). Aufteilung der Fall-Kennungen: diagramme-dialog.spec.js trägt DE-01, DE-02, DE-02b, DE-04, DE-08, DE-09, DE-10, DE-13, DE-14 und DE-15, diagramme-bedienung.spec.js trägt DE-03, DE-05, DE-06, DE-07, DE-11, DE-12 und DE-16 bis DE-19; die Helfer beider stehen in test/e2e/helpers/diagramme-dialog.js. 4T-002026 (Ablauf-Abdeckung der zuvor nur in Unit belegten Kriterien, diagramme-reihen.spec.js): DG-15 (eine gewöhnliche Markdown-Tabelle und eine Perspective Table als genannte Quelle ergeben den Hinweis «Tabelle anderer Art», Lese-Ansicht und Live-Modus), DG-16 (Text-Spalte als Werte: Hinweis «keine Zahl-Spalte»), DG-17 (Datenreihen aus Zeilen: mehrdeutiger und fehlender Eintrag je mit Hinweis, eindeutige Nennung gezeichnet), DG-18 (Donut mit zwei Werte-Spalten und Kreis mit zwei Zeilen: Hinweis «genau eine Datenreihe»), DG-19 (Linie und Balken mit drei Reihen: drei Farben des hellen Standard-Schemas, drei Namen sichtbar in der Legende), DG-20 (Kreis und Donut mit fünf Stücken: fünf Farben, jede Rubrik genau einmal sichtbar beschriftet); in diagramme-druck.spec.js DD-07 (Zeile der ausgelassenen Werte in Druck und PDF aus drei Ansichten sichtbar unter der Grafik, erfasst beim Druck-Aufruf und beim Aufruf der PDF-Erzeugung). Die Fall-Kennungen DG-15 bis DG-20 setzen die von diagramme.spec.js fort. Folge-Auftrag vom 2026-09-30: DG-16 auch mit der Beschriftungs-Spalte als Werte («keine Zahl-Spalte», Unit-Fälle in perspective-chart.test.js), DG-21 (Kreis mit 1500 Stücken gezeichnet, keine Beschriftung überdeckt eine andere, Lese-Ansicht und Live-Modus; Unit-Fälle zu 5, 12, 40 und 1000 Stücken in chart-draw.test.js). 4T-002072: Angabe table: ohne Dach-Zeichen und Tabelle mit Kopf-Namen — DG-22 (drei Ansichten, alte und neue Schreibweise nebeneinander), DF-10 (anderes Dokument, ungespeichert und zweites Fenster, Einbettung mit Gitter), DX-09 (portabler Export: Zeile mit dem Namen unter der Tabelle, wieder geöffnet Kennung statt Text). 4T-002026, Schluss-Prüfung der Ablauf-Abdeckung (2026-10-03): DF-03 auch in der geteilten Ansicht, DD-01 auch im Druck des ungespeicherten Stands, DD-02 auch beim Aufruf der PDF-Erzeugung, DE-22 in diagramme-dialog.spec.js (Kommando-Palette und Menü während der Arbeit in einer Zelle der gerenderten Hälfte der geteilten Ansicht); jeder schreibende Fall der Diagramm-Prüfdateien endet am unveränderten Inhalt der Datei (Helfer erwarteDateiUnveraendert in test/e2e/helpers/dateien.js)."
     },
     {
       "key": "help.feature.multiColumns",
@@ -3855,6 +3911,54 @@
       ],
       "sichtbarkeit": ["test/e2e/funktionen/erweiterungen.spec.js"],
       "hinweis": "4T-001760 und 4T-001761 (Epic 3E-000253): der Schalter «Datenbank» unter Einstellungen → Erweiterungen in der Kategorie Werkzeuge, seine Abhängigkeit von den Eigenschafts-Profilen und der vollständige Aus-Zustand. extensions-aus.test.js hält Registrierung, Kategorie, Abhängigkeit, die sechsundzwanzig zugeordneten Katalog-Zeilen, das gefilterte Kommando der Übersicht und den entfallenden Einstellungs-Abschnitt; extensions-aus.test.js zeigt zudem den Datensatz-Block als gewöhnlichen Code-Block in Lese-Ansicht, Änderungs-Modus und portablem Export; datensatz-aus-zustand.test.js den ruhenden Datensatz-Bestand des Index, den nicht mehr gebrochenen Datensatz-Verweis und die unveränderten Dateien über Ab- und Wiedereinschalten; settings-extensions.test.js die Zeile in der gerenderten Erweiterungs-Liste. 4T-001794 (Epic 3E-000255) ergänzt db-sperren-belege-aus-zustand.test.js um den Anteil der Sperren und Änderungsbelege: den mit dem Schalter entfallenden Zugang von der Datensatz-Zeile zu den Belegen, die beiden Stellen, die im Aus-Zustand bewusst WEITER greifen (Familien-Erkennung der Beleg-Datei und Ausschluss des Sperr-Ordners, beide ohne Bezug auf die Registry), und den Wächter über die schreibenden Wege von Sperre und Beleg, die nach Entscheidung E15.2 keinen eigenen Schalter tragen und heute keinen Aufrufer im Produkt-Code haben; der erste hinzukommende Aufrufer bringt seinen eigenen Aus-Zustands-Nachweis mit, statt dass die Begründung stillschweigend weitergilt. Testart unit, weil jede dieser Zusagen an einem Prädikat, an der Render-Kette oder am Index über einem Temp-Bereich hängt und keine gestartete Anwendung braucht. Sichtbarkeit über EW-01 bis EW-04, die den Einstellungs-Bereich «Erweiterungen» mit seiner aus der Registry gebauten Liste in der realen Anordnung rendern; die Zeile «Datenbank» entsteht dort aus demselben Eintrag. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001762 entstanden; sie beschreibt den Schalter selbst und steht deshalb in der Kern-Liste test/unit/funktions-seite-kern.js statt am Feld featureKeys der Erweiterung. 4T-002045 (Epic 3E-000258) ergänzt datensatz-abfrage-aus-zustand.test.js für die Datensatz-Abfrage, die im Aus-Zustand keine Tabelle liest und die leere Liste mit Hinweis zeigt. 4T-002083 (Epic 3E-000259) ordnet die Katalog-Zeile der Abfrage-Datei der Erweiterung zu."
+    },
+    {
+      "key": "help.shortcut.chartInsert",
+      "id": "S-157",
+      "testart": "e2e",
+      "tests": [
+        "test/unit/diagramm-menue-ort.test.js",
+        "test/unit/command-availability.test.js",
+        "test/unit/renderer/kommando-verfuegbarkeit-palette.test.js",
+        "test/unit/renderer/diagramm-editor-kontextmenue.test.js",
+        "test/e2e/funktionen/diagramme-dialog.spec.js",
+        "test/e2e/funktionen/diagramme-bedienung.spec.js"
+      ],
+      "hinweis": "4T-002024 (Epic 3E-000192): das Kommando «Diagramm zu dieser Tabelle einfügen». Geprüft sind die Bedingung datentabelleAenderbar je Ansicht, Bearbeiten und Anzeige samt Aufzählung über alle Kontexte (command-availability.test.js), der Kontext der Kommando-Palette mit der Lage der aktiven Spalte (renderer/kommando-verfuegbarkeit-palette.test.js) sowie Ort, Freigabe, Kanal und Aus-Zustand im Menü der Anwendung, dazu der Nachweis, dass das seither gemeldete editMode keinen anderen Menü-Eintrag verändert (diagramm-menue-ort.test.js). Dazu die Sektion im Kontextmenü des Editors bei Schreibmarke im Block, am Rechtsklick mit echter EditorView, samt schreibgeschütztem Editor, ausgeschaltetem Bearbeiten, Aus-Zustand und Neben-Editor (renderer/diagramm-editor-kontextmenue.test.js). Testart e2e, weil Kontextmenü an Datentabelle und Diagramm, Kommando-Palette und Dialog neue sichtbare Bedienelemente sind, deren Kette vom Klick bis zum geschriebenen Block erst in der laufenden Anwendung besteht; das native Menü erreicht der Ablauf-Test nicht, dort tragen die Unit-Fälle am gebauten Menü-Baum. Am Bedienweg in der laufenden Anwendung (diagramme-dialog.spec.js und diagramme-bedienung.spec.js): DE-01 Rechtsklick auf Datenzelle, Kopfzelle und Rand des Gitters im Live-Modus mit Einfügen samt Namens-Zeile, DE-02 und DE-02b Kommando-Palette, Rechtsklick auf eine andere Zelle bei offener Zell-Eingabe (der Rechtsklick in das Eingabefeld selbst bleibt beim Feld: kein Menü, die Eingabe bleibt offen) und Menü-Kanal während der Arbeit in einer Zelle samt automatischer Meldung an das Menü der Anwendung, DE-05 gerenderte Hälfte der geteilten Ansicht mit Abbrechen und Einfügen, DE-06 Lese-Ansicht, DE-07 Bearbeiten aus, DE-09 nur Tastatur, DE-10 Rückgängig in einem Schritt, DE-11 Erweiterung aus, DE-13 Meldung statt Dialog bei einer Tabelle ohne Zahl-Spalte, DE-14 sichtbarer Dialog bei einer großen Tabelle, DE-18 Datentabelle in einem Listenpunkt: Rechtsklick in der gerenderten Hälfte und Einfügen mit der Einrückung des Zauns. Aufteilung der Fall-Kennungen: diagramme-dialog.spec.js trägt DE-01, DE-02, DE-02b, DE-04, DE-08, DE-09, DE-10, DE-13, DE-14 und DE-15, diagramme-bedienung.spec.js trägt DE-03, DE-05, DE-06, DE-07, DE-11, DE-12 und DE-16 bis DE-19; die Helfer beider stehen in test/e2e/helpers/diagramme-dialog.js."
+    },
+    {
+      "key": "help.shortcut.chartEdit",
+      "id": "S-158",
+      "testart": "e2e",
+      "tests": [
+        "test/unit/diagramm-menue-ort.test.js",
+        "test/unit/command-availability.test.js",
+        "test/unit/renderer/kommando-verfuegbarkeit-palette.test.js",
+        "test/unit/renderer/diagramm-editor-kontextmenue.test.js",
+        "test/e2e/funktionen/diagramme-dialog.spec.js",
+        "test/e2e/funktionen/diagramme-bedienung.spec.js"
+      ],
+      "hinweis": "4T-002024 (Epic 3E-000192): das Kommando «Diagramm bearbeiten». Geprüft sind die Bedingung diagrammAenderbar je Ansicht, Bearbeiten und Anzeige samt Aufzählung über alle Kontexte (command-availability.test.js), der Kontext der Kommando-Palette mit der Lage der aktiven Spalte (renderer/kommando-verfuegbarkeit-palette.test.js) sowie Ort, Freigabe, Kanal und Aus-Zustand im Menü der Anwendung (diagramm-menue-ort.test.js). Dazu die Sektion im Kontextmenü des Editors bei Schreibmarke im Block, am Rechtsklick mit echter EditorView, samt schreibgeschütztem Editor, ausgeschaltetem Bearbeiten, Aus-Zustand und Neben-Editor (renderer/diagramm-editor-kontextmenue.test.js). Testart e2e, weil Kontextmenü an Datentabelle und Diagramm, Kommando-Palette und Dialog neue sichtbare Bedienelemente sind, deren Kette vom Klick bis zum geschriebenen Block erst in der laufenden Anwendung besteht; das native Menü erreicht der Ablauf-Test nicht, dort tragen die Unit-Fälle am gebauten Menü-Baum. Am Bedienweg in der laufenden Anwendung (diagramme-dialog.spec.js und diagramme-bedienung.spec.js): DE-03 Klick auf das Diagramm im Live-Modus (Hervorhebung, gleiche Höhe, Escape, automatische Meldung an das Menü der Anwendung), DE-04 Rechtsklick und Umstellen der Art mit sofortigem Neu-Zeichnen, DE-05 gerenderte Hälfte, DE-06 Lese-Ansicht, DE-07 Bearbeiten aus (ohne Auswahl und Hervorhebung, auch wenn Bearbeiten während einer Auswahl ausgeschaltet wird), DE-08 Diagramm auf eine Tabelle in einem anderen Dokument samt ungespeichert ergänzter Spalte, DE-09 nur Tastatur, DE-10 Rückgängig in einem Schritt, DE-11 Erweiterung aus, DE-12 Diagramm in einer Einbettung ohne Eintrag, DE-15 Bearbeiten bei offenem Dialog ausgeschaltet: nichts geschrieben, Meldung, DE-16 zwei Spalten: Auswahl in der nicht aktiven Spalte und Escape sperren den Eintrag im Menü der Anwendung wieder, DE-17 Kommando-Palette über dem offenen Dialog: Enter dort bestätigt den Dialog nicht, DE-18 eingerücktes Diagramm in einem Listenpunkt bearbeiten, DE-19 Escape mit dem Fokus auf der Seite nach geschlossener Palette. Aufteilung der Fall-Kennungen: diagramme-dialog.spec.js trägt DE-01, DE-02, DE-02b, DE-04, DE-08, DE-09, DE-10, DE-13, DE-14 und DE-15, diagramme-bedienung.spec.js trägt DE-03, DE-05, DE-06, DE-07, DE-11, DE-12 und DE-16 bis DE-19; die Helfer beider stehen in test/e2e/helpers/diagramme-dialog.js."
+    },
+    {
+      "key": "help.feature.chartInsertEdit",
+      "id": "F-334",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/diagramme-dialog.spec.js",
+        "test/e2e/funktionen/diagramme-bedienung.spec.js",
+        "test/unit/chart-edit.test.js",
+        "test/unit/chart-form.test.js",
+        "test/unit/renderer/diagramm-dialog.test.js",
+        "test/unit/renderer/diagramm-kommandos.test.js",
+        "test/unit/renderer/diagramm-kontextmenue.test.js",
+        "test/unit/renderer/diagramm-editor-kontextmenue.test.js",
+        "test/unit/renderer/diagramm-lage.test.js",
+        "test/unit/renderer/diagramm-auswahl.test.js",
+        "test/unit/diagramm-menue-ort.test.js",
+        "test/unit/command-availability.test.js"
+      ],
+      "hinweis": "4T-002024 und 4T-002027 (Epic 3E-000192): Einfügen und Bearbeiten eines Diagramms über den Dialog — Schreib- und Formular-Kern (chart-edit.test.js, chart-form.test.js), Dialog (renderer/diagramm-dialog.test.js), Ausführung mit Meldung statt Dialog und Rückgängig (renderer/diagramm-kommandos.test.js), DE-20 (4T-002048: nach dem Einfügen keine sichtbare Namens-Zeile, die Kennung am Container der Datentabelle, gerenderte Hälfte und Lese-Ansicht), Lage und Auswahl (renderer/diagramm-lage.test.js, renderer/diagramm-auswahl.test.js), kurzes Kontextmenü und Gruppe im Editor-Kontextmenü (renderer/diagramm-kontextmenue.test.js, renderer/diagramm-editor-kontextmenue.test.js), Menü der Anwendung (diagramm-menue-ort.test.js), Wählbarkeit (command-availability.test.js); am Bedienweg DE-01 bis DE-19 in diagramme-dialog.spec.js und diagramme-bedienung.spec.js. Testart e2e, weil Kontextmenü, Kommando-Palette und Dialog sichtbare Bedienelemente sind, deren Kette vom Klick bis zum geschriebenen Block erst in der laufenden Anwendung besteht. 4T-002072: Das Einfügen schreibt den Namen als Kopf-Angabe table: in den Block und nichts darunter — chart-edit.test.js (zwei Änderungen in Textfolge, Lage des neuen Blocks, Kopf-Name und alte Zeile), DE-21 (ein Schritt Rückgängig), DE-01, DE-09, DE-10, DE-18 und DE-20 auf die neue Form gestellt. 4T-002026, Schluss-Prüfung der Ablauf-Abdeckung (2026-10-03): DE-22 in diagramme-dialog.spec.js (Kommando-Palette und Menü während der Arbeit in einer Zelle der gerenderten Hälfte der geteilten Ansicht, wirkt auf diese Tabelle); jeder schreibende Fall von DE-01 bis DE-22 endet am unveränderten Inhalt der Datei."
     }
   ]
 }

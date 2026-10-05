@@ -432,8 +432,9 @@ function ansichtFuer(paneIdx) {
     // 4T-001747: Die Optionen reisen mit — der Körper einer Verweis-Karte wird
     // mit unterdrückter Frontmatter-Zeile gerendert, wie jede Einbettung.
     renderMarkdown: (text, pfad, optionen) => api.renderMarkdown(text, pfad, optionen),
-    nachRender: (container, pfad) => {
-      if (teilbaumSchritte) teilbaumSchritte(container, pfad);
+    // 4T-002021: Der Text der Karte ist das Dokument ihrer Diagramme.
+    nachRender: (container, pfad, dokumentText) => {
+      if (teilbaumSchritte) teilbaumSchritte(container, pfad, { dokumentText });
     },
     // 4T-001747: Der Einbettungs-Weg des Bestands, hereingereicht statt in der
     // Ansicht importiert (Injektions-Bauweise E4).

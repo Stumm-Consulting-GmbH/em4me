@@ -151,5 +151,7 @@
   "command.kanban.convertToBoard": "Leeres Dokument in Kanban-Tafel umwandeln",
   "command.kanban.toggleTagsFooter": "Tags am Kartenfuß ein-/ausschalten",
   "command.kanban.toggleRelativeDates": "Termine relativ anzeigen ein-/ausschalten",
-  "command.kanban.boardSettings": "Einstellungen dieser Tafel…"
+  "command.kanban.boardSettings": "Einstellungen dieser Tafel…",
+  "command.chart.insert": "Diagramm zu dieser Tabelle einfügen",
+  "command.chart.edit": "Diagramm bearbeiten"
 }

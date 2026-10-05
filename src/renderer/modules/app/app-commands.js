@@ -112,6 +112,8 @@ import { openAreaGraphTab } from '../graph/graph-tab.js';
 import { openAreaStatsPage } from '../area-stats-page.js';
 // 4T-001599 (Epic 3E-000191): My Extended Memory als System-Seite.
 import { openMemoryPage } from '../memory-page.js';
+// 4T-002024 (Epic 3E-000192): Diagramm einfügen und bearbeiten.
+import { runChartEdit, runChartInsert } from '../charts/chart-commands.js';
 // 4T-001759 (Epic 3E-000253): Uebersicht der Datenbank als System-Seite.
 import {
   oeffneDatenbankUebersicht,
@@ -313,6 +315,12 @@ export const commandHandlers = {
   'edit.insertTemplate': () => {
     return insertTemplateCommand();
   },
+  // 4T-002024 (Epic 3E-000192): Diagramm zur Datentabelle der aktiven Spalte
+  // einfügen bzw. das ausgewählte Diagramm bearbeiten. Ausführungs-Pfad für
+  // Kommando-Palette, Kontextmenü und belegtes Kürzel; der Menü-Weg läuft
+  // über seinen eigenen Kanal zu denselben Funktionen.
+  'chart.insert': () => runChartInsert(state.activePaneIndex),
+  'chart.edit': () => runChartEdit(state.activePaneIndex),
   // 4T-000512 (Epic 3E-000092): leeren Ereignis-Block an der Cursor-Position
   // einfuegen (Guards wie edit.insertTemplate).
   'edit.insertEvents': () => {

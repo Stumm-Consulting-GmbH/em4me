@@ -139,7 +139,12 @@ function buildMenu(win, state, actions) {
     manualTab: !!(state && state.manualTab),
     systemTab,
     viewMode,
-    editMode: false,
+    // 4T-002024 (Epic 3E-000192): seither der gemeldete Wert statt fest false.
+    // Die beiden Diagramm-Einträge müssen im nicht änderbaren Dokument «nicht
+    // wählbar» sein. Kein anderer Menü-Eintrag liest das Feld; die drei
+    // Bedingungen, die es sonst lesen, sind menüfrei (Wächter in
+    // test/unit/diagramm-menue-ort.test.js).
+    editMode: !!(state && state.editMode),
     hasArea: !!(state && state.hasArea),
     hasBook: !!(state && state.hasBook),
     hasShelf: !!(state && state.hasShelf),
@@ -153,6 +158,10 @@ function buildMenu(win, state, actions) {
     // 4T-001852 (Epic 3E-000110): das zwoelfte Feld, aus demselben gemeldeten
     // Zustand; es traegt die Bedingung 'leeresDokumentOhneTafel'.
     leeresDokument: !!(state && state.leeresDokument),
+    // 4T-002024 (Epic 3E-000192): die beiden Lagen des aktiven Editors, aus
+    // demselben gemeldeten Zustand; sie tragen die Diagramm-Bedingungen.
+    inDatentabelle: !!(state && state.inDatentabelle),
+    diagrammGewaehlt: !!(state && state.diagrammGewaehlt),
   });
   // Freigabe eines Menue-Eintrags. Das Argument ist immer die Kommando-Kennung
   // desselben Eintrags; der Waechter prueft, dass sie mit der in acc() gleich
@@ -1028,6 +1037,26 @@ function buildMenu(win, state, actions) {
               click: send('menu:canvasStack', 'ganzNachHinten'),
             }),
           ]),
+        ]),
+        // 4T-002024 (Epic 3E-000192): die beiden Diagramm-Befehle in einem
+        // Untermenü «Diagramm», nach dem Vorbild der übrigen an eine
+        // Konstrukt-Art gebundenen Befehle (Kanban-Tafel, Canvas-Fläche). Der
+        // Ort ist ein Vorschlag; entschieden wird er im Struktur-Prüfschritt
+        // vor dem Release. Im Aus-Zustand der Erweiterung fallen beide über
+        // unless() weg, und submenuOrNull lässt das leere Untermenü entfallen.
+        submenuOrNull('menu.view.chart', [
+          unless('chart.insert', {
+            label: t('command.chart.insert'),
+            enabled: avail('chart.insert'),
+            accelerator: acc('chart.insert'),
+            click: send('menu:chartInsert'),
+          }),
+          unless('chart.edit', {
+            label: t('command.chart.edit'),
+            enabled: avail('chart.edit'),
+            accelerator: acc('chart.edit'),
+            click: send('menu:chartEdit'),
+          }),
         ]),
         {
           // 4T-000019: Edit-Modus auch im Menue erreichbar (im Fokus-Modus ist

@@ -69,6 +69,12 @@ function normalizeMenuState(base, stored) {
     // deaktivierter Eintrag geht beim nächsten Report auf, ein fälschlich
     // aktivierter führte ins Leere.
     leeresDokument: !!b.leeresDokument,
+    // 4T-002024 (Epic 3E-000192): Lagen des aktiven Editors für die beiden
+    // Diagramm-Einträge — Datentabelle unter der Schreibmarke oder angeklickt,
+    // Diagramm unter der Schreibmarke oder ausgewählt. Vor dem ersten Report
+    // false, derselbe sichere Fall wie bei den Feldern darüber.
+    inDatentabelle: !!b.inDatentabelle,
+    diagrammGewaehlt: !!b.diagrammGewaehlt,
     restoreSession: !!s.restoreSession,
     autoSave: !!s.autoSave,
     // 4T-001904 (Epic 3E-000318): Anzeige-Schalter der Kanban-Tafel, je

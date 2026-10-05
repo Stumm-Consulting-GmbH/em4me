@@ -3,11 +3,26 @@
 // den Abschnitt zu einem Heading- oder Block-Anker (extractEmbedSnippet für
 // den embed:read-IPC-Handler); der markdown-it-Parser der Block-Range-
 // Erkennung lädt weiterhin lazy beim ersten Embed-Lookup.
+//
+// 4T-002072 (Epic 3E-000192): Ein Block-Anker wird über die Heimat der
+// Kennungen gefunden (src/shared/block-anchors.js), nicht mehr über eine eigene
+// Suche über alle Zeilen. Damit gilt dieselbe Regel wie im Index: das erste
+// Vorkommen außerhalb von Code-Blöcken und Frontmatter, Groß- und
+// Kleinschreibung zählen. Ein Anker in einem Code-Beispiel davor wird nicht mehr
+// eingebettet. Neu ist der Name aus der Kopf-Angabe `table:` einer
+// Datentabelle: Er bettet den ganzen Zaun ein, ohne diese Zeile (Nachbesserung
+// F2), und ein BOM am Textanfang stört die Suche nicht mehr (F8). Die
+// Überschriften-Suche unten trägt weiter ihre eigene Zaun-Verfolgung.
 
 'use strict';
 
 const { githubLikeSlug } = require('../../shared/markdown/slug.js');
 const { FENCE_RE } = require('../../shared/markdown/link-scan.js');
+const {
+  BLOCK_ANCHOR_RE,
+  ankerZeileAllein,
+  extractBlockAnchors,
+} = require('../../shared/block-anchors.js');
 const { HEADING_RE } = require('./parse.js');
 
 // 4T-000064 (Epic 3E-000012): markdown-it fuer die AST-basierte Block-Range-
@@ -64,22 +79,29 @@ const EMBED_CONTAINER_TYPES = new Set([
 // Liefert den extrahierten Block-Text mit entferntem `^id`-Marker, oder
 // null bei Parser-Fehler bzw. wenn der Marker nicht zu einem Token
 // zugeordnet werden kann (Fallback wird dann vom Aufrufer verwendet).
-function extractBlockByAnchor(content, blockId, lines) {
-  const escapedId = blockId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  // 4T-000064: Marker kann entweder mit Whitespace davor am Ende einer
-  // Inhalts-Zeile stehen (typisch: `Text ^id`) oder allein am Zeilen-
-  // anfang (typisch: nach einem Fenced Code Block, wo der Marker nicht
-  // auf der Closing-Fence-Zeile stehen darf).
-  const markerRe = new RegExp(`(?:^|\\s)\\^${escapedId}\\s*$`, 'u');
-  // Marker-Zeile in den Source-Lines suchen.
-  let markerLine = -1;
-  for (let i = 0; i < lines.length; i++) {
-    if (markerRe.test(lines[i])) {
-      markerLine = i;
-      break;
-    }
+//
+// 4T-002072: Zeile und Träger der Kennung kommen aus der Heimat (`anker`, das
+// Ergebnis von extractBlockAnchors über denselben Text). Trägt eine
+// Datentabelle die Kennung in ihrer Kopf-Angabe `table:`, ist der Block ihr
+// Zaun von der Öffner- bis zur Schluss-Zeile (bei offenem Zaun bis zum
+// Textende), ohne markdown-it.
+//
+// 4T-002072, Nachbesserung F2: ohne die Zeile der Kopf-Angabe `table:`, als
+// Gegenstück zum Abstreifen der Marke `^name` im anderen Zweig. Sonst trüge
+// die Einbettung den Namen als `id`, und ein Sprung auf `[[#^Name]]` könnte
+// die Kopie treffen statt der Tabelle. Alles andere bleibt Byte für Byte.
+function extractBlockByAnchor(content, blockId, lines, anker) {
+  const zeile = anker.lineById.get(blockId);
+  if (!zeile) return null;
+  const traeger = anker.traegerById.get(blockId);
+  if (traeger.art === 'datentabelle') {
+    const block = lines.slice(traeger.zaunVon - 1, traeger.zaunBis ?? lines.length);
+    block.splice(zeile - traeger.zaunVon, 1);
+    return block.join('\n');
   }
-  if (markerLine < 0) return null;
+  // Die Marker-Zeile 0-basiert: `Text ^id` am Ende einer Inhalts-Zeile oder
+  // `^id` allein, typisch nach einem Fenced Code Block.
+  const markerLine = zeile - 1;
 
   let tokens;
   try {
@@ -120,7 +142,7 @@ function extractBlockByAnchor(content, blockId, lines) {
     const inlineTok = tokens[fallbackTokenIndex + 1];
     const inlineContent =
       inlineTok && inlineTok.type === 'inline' ? String(inlineTok.content || '').trim() : '';
-    if (inlineContent === '^' + blockId) {
+    if (ankerZeileAllein(inlineContent) === blockId) {
       for (let k = fallbackTokenIndex - 1; k >= 0; k--) {
         const prev = tokens[k];
         if (!prev.map) continue;
@@ -140,14 +162,25 @@ function extractBlockByAnchor(content, blockId, lines) {
   const blockLines = [];
   for (let i = blockStart; i < blockEnd; i++) {
     const line = lines[i] != null ? lines[i] : '';
-    blockLines.push(i === markerLine ? line.replace(markerRe, '') : line);
+    blockLines.push(i === markerLine ? ohneAnker(line, blockId) : line);
   }
   return blockLines.join('\n');
 }
 
-function extractEmbedSnippet(content, anchor) {
-  if (!anchor) return content;
-  const lines = String(content || '').split(/\r?\n/);
+// 4T-002072: Streift den Anker `^blockId` am Ende der Zeile ab, samt dem
+// Leerraum davor — nur wenn die Zeile genau diese Kennung trägt.
+function ohneAnker(line, blockId) {
+  const m = line.match(BLOCK_ANCHOR_RE);
+  return m && m[1] === blockId ? line.replace(BLOCK_ANCHOR_RE, '') : line;
+}
+
+function extractEmbedSnippet(roh, anchor) {
+  if (!anchor) return roh;
+  // 4T-002072, Nachbesserung F8: Ein UTF-8-BOM am Anfang fällt für die Suche
+  // weg, wie im Index (parse.js); sonst sähe die Heimat in Zeile 1 weder einen
+  // Zaun noch ein Frontmatter, und eine Überschrift dort fände sich nicht.
+  const content = String(roh || '').replace(/^\uFEFF/, '');
+  const lines = content.split(/\r?\n/);
 
   if (anchor.startsWith('^')) {
     const id = anchor.slice(1);
@@ -156,19 +189,14 @@ function extractEmbedSnippet(content, anchor) {
     // Tabellen-Zeile, mehrzeiliger Blockquote) und extrahiert ihn vollstaen-
     // dig. Bei Fehler oder unbekannter Struktur Fallback auf die alte
     // Zeilen-Heuristik (eine Zeile mit dem Marker).
-    const blockSnippet = extractBlockByAnchor(content, id, lines);
+    // 4T-002072: Zeile und Träger aus der Heimat, einmal für beide Wege.
+    const anker = extractBlockAnchors(content);
+    const blockSnippet = extractBlockByAnchor(content, id, lines, anker);
     if (blockSnippet !== null) return blockSnippet;
-    // Fallback: nur die Marker-Zeile selbst (Verhalten vor 4T-000064).
-    // 4T-000064: Pattern erlaubt jetzt auch Marker am Zeilenanfang ohne
-    // Whitespace davor — symmetrisch zum AST-Pfad in extractBlockByAnchor.
-    const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const re = new RegExp(`(?:^|\\s)\\^${escapedId}\\s*$`, 'u');
-    for (let i = 0; i < lines.length; i++) {
-      if (re.test(lines[i])) {
-        return lines[i].replace(re, '');
-      }
-    }
-    return null;
+    // Fallback: nur die Marker-Zeile selbst (Verhalten vor 4T-000064), seit
+    // 4T-002072 dieselbe Zeile, die die Heimat nennt.
+    const zeile = anker.lineById.get(id);
+    return zeile ? ohneAnker(lines[zeile - 1], id) : null;
   }
 
   const wantedSlug = githubLikeSlug(anchor);

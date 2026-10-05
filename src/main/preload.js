@@ -42,6 +42,10 @@ const { configureExternalExtensions } = require('./extensions/extension-loader.j
 const { datenbankBruecke } = require('./preload-datenbank.js');
 // 4T-001505 (Zug 3E-000277): Kanal-Bindungen rund um Buecher.
 const { buecherBruecke } = require('./preload-buecher.js');
+// 4T-002021 (Epic 3E-000192): Aufloesen und Zeichnen der Diagramme.
+const { diagrammeBruecke } = require('./preload-diagramme.js');
+// 4T-002023 (Epic 3E-000192): Puffer-Overlay samt Meldung an alle Fenster.
+const { bufferOverlayBridge } = require('./preload-buffer-overlay.js');
 
 // 4T-000017: Electron-Standard-Zoom (Strg + +/-/0, Strg + Mausrad) komplett
 // abschalten. Der Renderer implementiert einen eigenen, pro-Tab gehaltenen
@@ -430,6 +434,10 @@ contextBridge.exposeInMainWorld('api', {
   // Weg wie renderMarkdown. Die Anordnung rechnet bewusst der Renderer, weil
   // sie eine echte Textmessung braucht.
   buildMindmap: (text, opts) => mindmapAusDokument(text, markdownModul.md, opts || {}),
+  // 4T-002021 (Epic 3E-000192): Diagramm zu einer Datentabelle, derselbe Weg
+  // wie renderMarkdown; die Begruendung des eigenen Moduls steht dort. Seit
+  // 4T-002023 dazu das Lesen einer Tabelle in einem anderen Dokument.
+  ...diagrammeBruecke(ipcRenderer),
   // 4T-000282/4T-000284: Frontmatter-Zeile der Preload-Pipeline schalten
   // (Muster configureTaskStates; Aufruf beim App-Start und bei jedem
   // Settings-Broadcast).
@@ -585,13 +593,9 @@ contextBridge.exposeInMainWorld('api', {
   // im Main; lang ist die Programmsprache der Formatierer (4T-001072).
   runFrontmatterQuery: (filePath, query, lang) =>
     ipcRenderer.invoke('frontmatterQuery:run', { filePath, query: query || '', lang }),
-  // 4T-000935 (Befund B-08): geschriebenen Stand einer offenen Datei an den
-  // Index-Overlay melden bzw. ihn zuruecknehmen (Speichern, Verwerfen,
-  // Schliessen). Die gerenderte Ansicht zeigt damit auch in eingebetteten
-  // Konstrukten den Stand des Editors und nicht den der Platte.
-  setIndexOverlay: (filePath, content) =>
-    ipcRenderer.invoke('index:overlay', { filePath, content }),
-  clearIndexOverlay: (filePath) => ipcRenderer.invoke('index:overlay', { filePath, content: null }),
+  // 4T-000935 (Befund B-08): Puffer-Overlay des Index — Melden, Zuruecknehmen
+  // und seit 4T-002023 die Meldung an alle Fenster (eigenes Modul).
+  ...bufferOverlayBridge(ipcRenderer),
   // 4T-000504 (Epic 3E-000096): Rueckschreiben aus der Abfrage-Ansicht — zeilen-
   // genaue Ersetzung in einer nicht im Fenster geoeffneten Quelldatei
   // (Konflikt-Antwort { ok:false, reason } statt Blind-Schreiben).

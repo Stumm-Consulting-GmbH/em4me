@@ -137,7 +137,7 @@ In detail: [Perspective Table](perspective-table.md).
 
 ## Tables that calculate
 
-For numbers rather than text there is the second kind of table. The Perspective Datatable is a typed data table: every column has a value type, cells only accept matching values, aggregate rows calculate live, and computed columns evaluate an expression per row. Editing happens right in the rendered grid, without the detour through the source text. That carries expenses, time tracking or inventory lists without turning into a database file, because everything stays plain text in the document.
+For numbers rather than text there is the second kind of table. The Perspective Datatable is a typed data table: every column has a value type, cells only accept matching values, aggregate rows calculate live, and computed columns evaluate an expression per row. Editing happens right in the rendered grid, without the detour through the source text. That carries expenses, time tracking or inventory lists without turning into a database file, because everything stays plain text in the document. From the same numbers, a block of its own draws a line, bar, pie or donut chart that refers to the table by name only and follows it on every change.
 
 - **Fixed value types** per column, so numbers stay numbers and dates stay dates.
 - **Aggregates** that calculate live, and **computed columns** per row.

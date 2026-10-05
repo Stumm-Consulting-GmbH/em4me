@@ -446,3 +446,155 @@ describe('link-rewrite — Text-Zellen der Datentabelle (4T-002013)', () => {
     expect(rewrite(tabelle('columns: A:text', '| [[Fremd]] |'), r).changed).toBe(false);
   });
 });
+
+// 4T-002023 (Epic 3E-000192), Task-AK11: Die Angabe `table: [[Datei#^name]]` im
+// Diagramm-Block zieht beim Umbenennen der Ziel-Datei nach — die zweite
+// Ausnahme im Fenced-Code nach der Canvas (Vorbild: canvas-verweis-scan.test.js,
+// «AK9: die übrige Fence bleibt byte-gleich»). Angefasst wird allein die
+// Datei-Spanne der ersten Angabe `table:`.
+describe('link-rewrite — Angabe table: im Diagramm-Block (4T-002023, AK11)', () => {
+  const r = [rename('Alt', 'Neu')];
+  // Ein Dokument mit genau einem Diagramm-Block.
+  const diagramm = (...zeilen) =>
+    lines('# Bericht', '', '```perspective-chart', ...zeilen, '```', '');
+  // Umschreiben eines einzelnen Wertes der Angabe; liefert den neuen Wert.
+  const nachzug = (wert, renames = r, contextPath = '/root/Quelle.md') => {
+    const res = computeLinkRewrites(diagramm(`table: ${wert}`), { renames, contextPath });
+    return res.newContent.split('\n')[3].slice('table: '.length);
+  };
+
+  it('AK11: zieht [[Datei#^name]] nach und meldet den Typ chart-table', () => {
+    const res = rewrite(diagramm('type: bar', 'table: [[Alt#^umsatz]]', 'values: Wert'), r);
+    expect(res.changed).toBe(true);
+    expect(res.newContent).toContain('\ntable: [[Neu#^umsatz]]\n');
+    expect(res.hits).toEqual([
+      {
+        zeile: 5,
+        alt: 'table: [[Alt#^umsatz]]',
+        neu: 'table: [[Neu#^umsatz]]',
+        typ: 'chart-table',
+      },
+    ]);
+  });
+
+  it('AK11: die übrige Fence bleibt byte-gleich', () => {
+    const vorher = diagramm(
+      'type: line',
+      '  Table :  [[Alt#^umsatz]]',
+      'values: Einnahmen, Ausgaben',
+      'title: Siehe [[Alt]] und [Text](Alt.md)',
+      'unbekannt: [[Alt#^umsatz]]',
+    );
+    const res = rewrite(vorher, r);
+    // Genau die Datei-Spanne der ersten Angabe ist angefasst — Schlüssel,
+    // Leerraum, Einrückung und `#^umsatz]]` bleiben, ebenso die Verweise im
+    // Titel und in einer unbekannten Zeile, weil sie im Fenced-Code stehen.
+    expect(res.newContent).toBe(vorher.replace('[[Alt#^umsatz]]', '[[Neu#^umsatz]]'));
+    expect(res.hits).toHaveLength(1);
+  });
+
+  it('AK11: alle Schreibformen der Datei', () => {
+    // Endung bleibt stehen.
+    expect(nachzug('[[Alt.md#^umsatz]]')).toBe('[[Neu.md#^umsatz]]');
+    // Leerraum um den Namen bleibt stehen.
+    expect(nachzug('[[ Alt #^umsatz]]')).toBe('[[ Neu #^umsatz]]');
+    // Pfad mit Endung, dokument-relativ aufgelöst.
+    expect(nachzug('[[sub/Alt.md#^umsatz]]', [rename('Alt', 'Neu', '/root/sub')])).toBe(
+      '[[sub/Neu.md#^umsatz]]',
+    );
+    // Unterseiten-Schreibweise.
+    expect(
+      nachzug('[[Eltern/Kind#^umsatz]]', [rename(`Eltern${SEP}Kind`, `Eltern${SEP}Neu`)]),
+    ).toBe('[[Eltern/Neu#^umsatz]]');
+    // Relative Unterseiten-Form, die durch die Umbenennung bricht.
+    expect(
+      nachzug('[[/Kind#^umsatz]]', [rename(`X${SEP}Kind`, `X${SEP}NeuKind`)], '/root/X.md'),
+    ).toBe('[[X/NeuKind#^umsatz]]');
+    // Eltern-Form `..` aus einer Unterseite, deren Eltern umbenannt wird.
+    expect(nachzug('[[..#^umsatz]]', [rename('X', 'Y')], `/root/X${SEP}Kind.md`)).toBe(
+      '[[Y#^umsatz]]',
+    );
+    // Groß- und Kleinschreibung wie beim Wiki-Link.
+    expect(nachzug('[[alt#^umsatz]]')).toBe('[[Neu#^umsatz]]');
+  });
+
+  it('AK11: Ordner ohne Endung zählt als Unterseiten-Name, wie bei der Einbettung', () => {
+    // Bestands-Verhalten beider Wege, am 2026-09-30 gemessen: `sub/Alt` ohne
+    // Endung ist für den Nachzug die Unterseite `sub∕Alt`, nicht die Datei
+    // `sub/Alt.md` — die Einbettung `![[sub/Alt#^umsatz]]` im Fließtext zieht
+    // ebenso nicht nach. Festgehalten, damit ein Unterschied auffällt.
+    const rr = [rename('Alt', 'Neu', '/root/sub')];
+    expect(nachzug('[[sub/Alt#^umsatz]]', rr)).toBe('[[sub/Alt#^umsatz]]');
+    expect(rewrite('![[sub/Alt#^umsatz]]', rr).changed).toBe(false);
+  });
+
+  it('AK11: eine gültig bleibende relative Form bleibt unverändert', () => {
+    const kaskade = [
+      rename('Eltern', 'NeuEltern'),
+      rename(`Eltern${SEP}Kind`, `NeuEltern${SEP}Kind`),
+    ];
+    expect(nachzug('[[..#^umsatz]]', kaskade, `/root/NeuEltern${SEP}Kind.md`)).toBe(
+      '[[..#^umsatz]]',
+    );
+  });
+
+  it('AK11: [[@kürzel:Datei#^name]] bleibt unverändert', () => {
+    const vorher = diagramm('table: [[@kz:Alt#^umsatz]]');
+    const res = rewrite(vorher, r);
+    expect(res.changed).toBe(false);
+    expect(res.newContent).toBe(vorher);
+  });
+
+  it('AK11: nur die erste Angabe table: der Fence zieht nach, auch wenn sie ungültig ist', () => {
+    const zwei = rewrite(diagramm('table: [[Alt#^a]]', 'table: [[Alt#^b]]'), r);
+    expect(zwei.newContent).toContain('\ntable: [[Neu#^a]]\ntable: [[Alt#^b]]\n');
+    expect(zwei.hits).toHaveLength(1);
+    // Die erste Angabe ist die wirksame, auch wenn ihr Wert keiner Schreibweise
+    // folgt — der Kern liest die zweite nicht, der Nachzug ebenso wenig.
+    const ungueltig = diagramm('table: [[Alt#^a|Bezeichnung]]', 'table: [[Alt#^b]]');
+    expect(rewrite(ungueltig, r).changed).toBe(false);
+    // Eine Angabe `^name` im selben Dokument ist ebenfalls die wirksame.
+    expect(rewrite(diagramm('table: ^a', 'table: [[Alt#^b]]'), r).changed).toBe(false);
+  });
+
+  it('AK11: jede Diagramm-Fence für sich, auch mit Tilden', () => {
+    const vorher = lines(
+      '```perspective-chart',
+      'table: [[Alt#^a]]',
+      '```',
+      '',
+      '~~~perspective-chart titel',
+      'table: [[Alt#^b]]',
+      '~~~',
+    );
+    expect(rewrite(vorher, r).newContent).toBe(vorher.replace(/\[\[Alt#/g, '[[Neu#'));
+  });
+
+  it('AK11 (Rot-Probe): eine Fence anderer Art bleibt unverändert', () => {
+    for (const info of ['', 'js', 'perspective-datatable', 'perspective-chartx']) {
+      const vorher = lines('```' + info, 'table: [[Alt#^umsatz]]', '```', '');
+      const res = rewrite(vorher, r);
+      expect(res.changed, info).toBe(false);
+      expect(res.newContent, info).toBe(vorher);
+    }
+  });
+
+  it('AK11 (Rot-Probe): ein nicht umbenanntes Ziel und table: ^name bleiben unverändert', () => {
+    expect(rewrite(diagramm('table: [[Bestand#^umsatz]]'), r).changed).toBe(false);
+    expect(rewrite(diagramm('table: ^Alt'), r).changed).toBe(false);
+  });
+
+  it('AK11: erhält CRLF-Zeilenenden', () => {
+    const vorher = diagramm('type: bar', 'table: [[Alt#^umsatz]]').replace(/\n/g, '\r\n');
+    const res = rewrite(vorher, r);
+    expect(res.newContent).toBe(vorher.replace('[[Alt#^umsatz]]', '[[Neu#^umsatz]]'));
+  });
+
+  it('AK11: zieht mit dem Fließtext im selben Lauf nach und ist idempotent', () => {
+    const vorher = lines('![[Alt#^umsatz]]', '', ...diagramm('table: [[Alt#^umsatz]]').split('\n'));
+    const erst = rewrite(vorher, r);
+    expect(erst.hits.map((h) => h.typ)).toEqual(['wiki-embed', 'chart-table']);
+    expect(erst.newContent).toBe(vorher.replace(/\[\[Alt#/g, '[[Neu#'));
+    expect(rewrite(erst.newContent, r).changed).toBe(false);
+  });
+});

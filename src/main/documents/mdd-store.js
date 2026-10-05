@@ -23,6 +23,9 @@
 //   `hashAfter` ist der SHA-256 des LF-normalisierten Nachher-Stands —
 //   der Abgleich gegen die reale Datei erkennt Fremd-Aenderungen, bevor
 //   die Delta-Kette inkonsistent wuerde.
+//
+// 4T-002072 (Epic 3E-000192): Schema-Version des Bereichs-Index-Cache auf 8,
+// die Begründung steht an der Konstante MDDA_CACHE_SCHEMA_VERSION.
 'use strict';
 
 const crypto = require('node:crypto');
@@ -151,12 +154,21 @@ const MDDA_CACHE_FILENAME = 'Area_Cache.mdda';
 // Ein Alt-Cache führt sie für unveränderte Dateien nicht, und der Warmstart
 // übernähme dessen Marken; eine vorhandene Abfrage-Datei fehlte in der
 // Übersicht der Datenbank bis zur nächsten Änderung der Datei.
+// Version 8 (4T-002023 und 4T-002072, Epic 3E-000192): Treffer aus der Angabe `table:` eines
+// Diagramm-Blocks im hits-Feld. Die Form ist unverändert, aber ein Alt-Cache
+// trägt sie nicht, und der Warmstart zeigte für unveränderte Dateien keinen
+// Rückverweis aus dem Diagramm. Dazu (4T-002072): `blockIds` aus der Heimat,
+// samt dem Namen der Kopf-Angabe `table:` einer Datentabelle; ein Alt-Cache
+// kennt ihn nicht, und Verweise darauf gälten für unveränderte Dateien als
+// defekt. Am Zug-Zweig als Versionen 6 und 7 vergeben; beim Nachzug auf den
+// Integrationsstand nach 1.145.0 zu Version 8 zusammengefasst, nach der Regel
+// unten (höchster Wert beider Seiten plus eins).
 // **Beim Rebase** auf einen Stand, der die Version unabhängig angehoben hat
 // (der Diagramme-Zweig hebt sie für seine Zell-Verweise ebenfalls an), ist der
 // Wert auf den höchsten beider Seiten plus eins zu setzen und hier ein Absatz
 // je Seite zu führen; Git meldet dabei keinen Konflikt, wenn beide Seiten
 // dieselbe Zahl gesetzt haben.
-const MDDA_CACHE_SCHEMA_VERSION = 7;
+const MDDA_CACHE_SCHEMA_VERSION = 8;
 
 // Format: { schemaVersion, linkIndex: { files: { <relPath>: { mtimeMs, size,
 // hash, parsed } } } }. `parsed` traegt das Datei-Parse-Ergebnis (hits,

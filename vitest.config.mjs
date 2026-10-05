@@ -61,7 +61,14 @@ export default defineConfig({
     // Hauptprozesses, Preload-Leser, Woerterbuch-Bereitschaft); ohne Vorlauf
     // liefen sie in einem frischen Clone gegen keine Datei und sonst gegen
     // einen alten Stand. Reihenfolge: erst die Zugangs-Pruefung, dann der Bau.
-    globalSetup: ['./scripts/gate-zugang.js', './scripts/build-i18n.js'],
+    // 4T-002020 (Epic 3E-000192): ebenso der erzeugte Stand der Zeichen-
+    // Bibliothek (src/shared/charts/echarts.bundle.js), den die Prüffälle des
+    // gemeinsamen Zeichners laden; er ist nicht versioniert.
+    globalSetup: [
+      './scripts/gate-zugang.js',
+      './scripts/build-i18n.js',
+      './scripts/build-echarts.js',
+    ],
     // 4T-001949 (Epic 3E-000156): Die wirksame Zeitgrenze je Fall geht als
     // `meta.zeitgrenze` in den Maschinen-Bericht; scripts/zeitgrenzen-abstand.js
     // meldet daraus die Faelle ueber der halben Grenze, bevor sie reissen. Ein

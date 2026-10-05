@@ -31,6 +31,17 @@ Block-Anker werden mit `^id` am Zeilenende gesetzt und ankern den umschließende
 Diese Entscheidung ist verbindlich. ^entscheidung-1
 ```
 
+Unter einem Code-Block oder einem Diagramm steht die Kennung in einer eigenen Zeile direkt unter dem Block. Auch dort ist sie in der gerenderten Ansicht nicht zu sehen, und ein Verweis wie `[[Projektplan#^zinssatz]]` springt zum Block:
+
+````markdown
+```js
+const zinssatz = 0.04;
+```
+^zinssatz
+````
+
+Eine [Datentabelle](datatable.md) trägt ihre Kennung in ihrem Block, als Zeile `table: Umsatz` vor den Datenzeilen; `[[Bericht#^Umsatz]]` springt zu ihr.
+
 In den Ansichten sieht der Anker verschieden aus. Die gerenderte Ansicht zeigt ihn gar nicht — der Block ist dort nur ein Sprungziel. Der **Live-Modus** ersetzt ihn durch ein dezentes Zeichen am Zeilenende: Zeigen darauf nennt die Kennung, ein Klick setzt die Schreibmarke ans Zeilenende und klappt den Roh-Text zum Bearbeiten auf. Steht die Schreibmarke ohnehin in der Zeile, ist der Anker unverändert sichtbar. Dass der Live-Modus mehr zeigt als die gerenderte Ansicht, ist Absicht: Ein Anker ist eine Adresse, auf die von außen gezeigt wird, und beim Umbauen eines Dokuments soll sichtbar bleiben, dass es sie gibt. Trägt derselbe Block [Eigenschaften](block-properties.md), steht deren Zeichen daneben.
 
 Defekte Anker-Ziele markiert der [Markdown-Linter](tools.md) im Editor.
@@ -75,7 +86,7 @@ Ein rohes Leerzeichen ohne spitze Klammern beendet das Ziel, sodass der Link nic
 ![[notizen.md#^block]]   nur der verankerte Block
 ```
 
-Bei Block-Ankern wird der vollständige umschließende Block eingebettet (Listen-Eintrag mit Unterlisten, Fenced Code, Tabellen-Zeile, Blockquote). Eingebettetes Markdown rendert mit eigener Quelle als Basis; Links darin lösen gegen die eingebettete Datei auf.
+Bei Block-Ankern wird der vollständige umschließende Block eingebettet (Listen-Eintrag mit Unterlisten, Fenced Code, Tabellen-Zeile, Blockquote), beim Namen einer Datentabelle die ganze Tabelle. Ein Anker in einem Code-Beispiel zählt dabei nicht. Eingebettetes Markdown rendert mit eigener Quelle als Basis; Links darin lösen gegen die eingebettete Datei auf.
 
 **Wo das Ziel gesucht wird.** Die Anwendung sucht in drei Schritten, und zwar für jede Datei-Art gleich: zuerst am Pfad relativ zur eigenen Datei, dann in der Schreibweise der Unterseiten, zuletzt über den bloßen **Namen** im ganzen Bereich. `![[bild.png]]` findet die Datei also auch dann, wenn sie in einem anderen Ordner liegt — der Pfad muss nicht getroffen werden. Der Suchraum endet an der Bereichs-Wurzel: Was außerhalb liegt, wird nicht eingebettet. Ohne gebundenen Bereich bleibt es beim Ordner der eigenen Datei.
 

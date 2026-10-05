@@ -79,6 +79,12 @@ Struktur-Fehler (unbekannter Typ, doppelte Spalte):
 columns: A:zahl, B:number, b:text
 | 1 |
 \`\`\`
+
+Benannte Tabelle (Kopf-Angabe table, Name als Block-Kennung):
+
+<table><thead><tr><th scope="col">Monat</th><th scope="col" style="text-align: right;">Betrag</th></tr></thead><tbody><tr><td>Januar</td><td style="text-align: right;">100</td></tr></tbody></table>
+
+^Umsatz
 "
 `;
 
@@ -175,6 +181,107 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert attributes-spans.md s
 </li>
 </ol>
 </section>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert block-anker-zeilen.md stabil 1`] = `
+"<p data-source-line="1" id="am-anfang"></p>
+<p data-source-line="3">Block-Anker in einer eigenen Zeile (4T-002048): Die Kennung erscheint nicht als Text.</p>
+<div id="umsatz" class="perspective-datatable" data-dt-index="0" data-dt-line-start="5" data-dt-line-end="9" data-source-line="5" data-dt-source="columns: Monat:text, Umsatz:number
+| Januar  | 120 |
+| Februar | 99  |
+"><table class="pdt-grid"><thead><tr><th class="pdt-row-del" aria-hidden="true"></th><th class="pdt-col pdt-type-text" data-dt-col="0" scope="col"><span class="pdt-name">Monat</span><span class="pdt-type">text</span></th><th class="pdt-col pdt-type-number" data-dt-col="1" scope="col"><span class="pdt-name">Umsatz</span><span class="pdt-type">number</span></th></tr></thead><tbody><tr data-dt-row="0"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0">Januar</td><td class="pdt-cell pdt-type-number" data-dt-col="1" tabindex="0">120</td></tr><tr data-dt-row="1"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0">Februar</td><td class="pdt-cell pdt-type-number" data-dt-col="1" tabindex="0">99</td></tr></tbody></table><div class="pdt-add-row"><button type="button" class="pdt-add-btn"><span aria-hidden="true">+</span> <span data-i18n="datatable.addRow">addRow</span></button></div></div>
+<p data-source-line="12" id="absatz-ende">Ein Absatz mit Anker am Ende.</p>
+<table data-source-line="14">
+<thead data-source-line="14">
+<tr data-source-line="14">
+<th>Spalte</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody data-source-line="16">
+<tr data-source-line="16">
+<td>a</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p data-source-line="17" id="pipe-tabelle"></p>
+<pre id="code"><code class="hljs language-js"><span class="hljs-keyword">const</span> a = <span class="hljs-number">1</span>;
+</code></pre>
+<pre id="code-nach-leerzeile"><code class="hljs language-js"><span class="hljs-keyword">const</span> b = <span class="hljs-number">2</span>;
+</code></pre>
+<ul data-source-line="30">
+<li data-source-line="30">eins</li>
+<li data-source-line="31">zwei</li>
+</ul>
+<p data-source-line="33" id="liste"></p>
+<p data-source-line="35">Liste mit Anker-Zeile ohne Leerzeile:</p>
+<ul data-source-line="37">
+<li data-source-line="37">drei</li>
+<li data-source-line="38" id="liste-direkt">vier</li>
+</ul>
+<p data-source-line="41">Enge Liste:</p>
+<ul data-source-line="43">
+<li data-source-line="43" id="eng">eng</li>
+<li data-source-line="44">zweiter Eintrag</li>
+</ul>
+<p data-source-line="46">Aufgabe:</p>
+<ul class="contains-task-list" data-source-line="48">
+<li class="task-list-item" data-source-line="48" id="aufgabe"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Aufgabe</label></li>
+</ul>
+<blockquote data-source-line="50">
+<p data-source-line="50" id="zitat">Zitat</p>
+</blockquote>
+<div id="diagramm" class="perspective-chart" data-chart-index="0" data-chart-line-start="53" data-chart-line-end="58" data-source-line="53" data-chart-source="table: ^umsatz
+type: bar
+labels: Monat
+values: Umsatz
+"></div>
+<pre id="fluss"><code class="hljs language-mermaid">graph TD; A--&gt;B
+</code></pre>
+<p data-source-line="66" id="mitte">Zeile eins
+Zeile drei</p>
+<pre id="erster"><code class="hljs language-js">x
+</code></pre>
+<p data-source-line="74" id="zweiter"></p>
+<p data-source-line="76">Ein Verweis <a href="#code" class="wikilink">zum Code</a> und ein Anker direkt hinter einem Verweis <a href="Ziel.md" class="wikilink">Ziel</a>^kein-anker.</p>
+<p data-source-line="78">Nachbesserung — zwei Anker in einem Absatz:</p>
+<p data-source-line="80" id="zwei-a">Zeile eins
+Zeile zwei<span id="zwei-b"></span></p>
+<blockquote data-source-line="83">
+<table data-source-line="83">
+<thead data-source-line="83">
+<tr data-source-line="83">
+<th>Zitat</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody data-source-line="85">
+<tr data-source-line="85">
+<td>a</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p data-source-line="86" id="tabelle-im-zitat"></p>
+</blockquote>
+<div class="callout callout-note"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span><span class="callout-title">Hinweis</span></div><div class="callout-body"><table data-source-line="89">
+<thead data-source-line="89">
+<tr data-source-line="89">
+<th>Hinweis</th>
+<th>Wert</th>
+</tr>
+</thead>
+<tbody data-source-line="91">
+<tr data-source-line="91">
+<td>b</td>
+<td>2</td>
+</tr>
+</tbody>
+</table>
+<p data-source-line="92" id="tabelle-im-hinweis"></p>
+</div></div><p data-source-line="94">Maskiert bleibt Text: ^kein-anker-1 und ^kein-anker-2</p>
 "
 `;
 
@@ -372,6 +479,11 @@ aggregate: Betrag:sum+avg, Datum:min+max, Erledigt:count
 <div class="perspective-datatable" data-dt-index="2" data-dt-line-start="22" data-dt-line-end="25" data-source-line="22" data-dt-source="columns: A:zahl, B:number, b:text
 | 1 |
 "><div class="pdt-errors"><span class="pdt-errors-title" data-i18n="datatable.errors.title">perspective-datatable</span><div class="pdt-error-item" data-dt-code="unknownType" data-dt-line="1" data-dt-detail="zahl">unknownType [1]</div><div class="pdt-error-item" data-dt-code="duplicateColumn" data-dt-line="1" data-dt-detail="b">duplicateColumn [1]</div></div><table class="pdt-grid"><thead><tr><th class="pdt-col pdt-type-number" data-dt-col="0" scope="col"><span class="pdt-name">B</span><span class="pdt-type">number</span></th></tr></thead><tbody><tr data-dt-row="0"><td class="pdt-cell pdt-type-number" data-dt-col="0">1</td></tr></tbody></table></div>
+<p data-source-line="27">Benannte Tabelle (Kopf-Angabe table, Name als Block-Kennung):</p>
+<div id="Umsatz" class="perspective-datatable" data-dt-index="3" data-dt-line-start="29" data-dt-line-end="33" data-source-line="29" data-dt-source="table: Umsatz
+columns: Monat:text, Betrag:number
+| Januar | 100 |
+"><table class="pdt-grid"><thead><tr><th class="pdt-row-del" aria-hidden="true"></th><th class="pdt-col pdt-type-text" data-dt-col="0" scope="col"><span class="pdt-name">Monat</span><span class="pdt-type">text</span></th><th class="pdt-col pdt-type-number" data-dt-col="1" scope="col"><span class="pdt-name">Betrag</span><span class="pdt-type">number</span></th></tr></thead><tbody><tr data-dt-row="0"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0">Januar</td><td class="pdt-cell pdt-type-number" data-dt-col="1" tabindex="0">100</td></tr></tbody></table><div class="pdt-add-row"><button type="button" class="pdt-add-btn"><span aria-hidden="true">+</span> <span data-i18n="datatable.addRow">addRow</span></button></div></div>
 "
 `;
 
@@ -405,6 +517,66 @@ auch mehrzeilig definiert.</dd>
 <dt data-source-line="15">Term nach Leerzeile</dt>
 <dd data-source-line="15">Definition trotz Leerzeile zwischen Term und Marker.</dd>
 </dl>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert diagramme.md bei ausgeschalteter Erweiterung als Code-Block (4T-002019) 1`] = `
+"<h1 id="diagramme-zu-tabellen" data-source-line="1">Diagramme zu Tabellen</h1>
+<p data-source-line="3">Ein Diagramm vor seiner Tabelle:</p>
+<pre><code class="hljs language-perspective-chart">table: ^umsatz
+type: bar
+labels: Monat
+values: Einnahmen, Ausgaben
+title: Umsatz &lt;2026&gt; &amp; &quot;Plan&quot;
+</code></pre>
+<div id="umsatz" class="perspective-datatable" data-dt-index="0" data-dt-line-start="13" data-dt-line-end="18" data-source-line="13" data-dt-source="columns: Monat:text, Einnahmen &quot;Einnahmen (netto)&quot;:number(2), Ausgaben:number
+aggregate: Einnahmen:sum
+| Januar  | 120.5 | 80 |
+| Februar | 99    | 95 |
+"><table class="pdt-grid"><thead><tr><th class="pdt-row-del" aria-hidden="true"></th><th class="pdt-col pdt-type-text" data-dt-col="0" scope="col"><span class="pdt-name">Monat</span><span class="pdt-type">text</span></th><th class="pdt-col pdt-type-number" data-dt-col="1" scope="col" title="Einnahmen"><span class="pdt-name">Einnahmen (netto)</span><span class="pdt-type">number</span></th><th class="pdt-col pdt-type-number" data-dt-col="2" scope="col"><span class="pdt-name">Ausgaben</span><span class="pdt-type">number</span></th></tr></thead><tbody><tr data-dt-row="0"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0">Januar</td><td class="pdt-cell pdt-type-number" data-dt-col="1" tabindex="0">120.50</td><td class="pdt-cell pdt-type-number" data-dt-col="2" tabindex="0">80</td></tr><tr data-dt-row="1"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0">Februar</td><td class="pdt-cell pdt-type-number" data-dt-col="1" tabindex="0">99.00</td><td class="pdt-cell pdt-type-number" data-dt-col="2" tabindex="0">95</td></tr></tbody><tfoot><tr class="pdt-agg-row"><td class="pdt-row-del"></td><td class="pdt-cell pdt-type-text" data-dt-col="0"></td><td class="pdt-cell pdt-type-number" data-dt-col="1"><span class="pdt-agg"><span class="pdt-agg-label" data-i18n="datatable.aggregate.sum">sum</span><span class="pdt-agg-value">219.50</span></span></td><td class="pdt-cell pdt-type-number" data-dt-col="2"></td></tr></tfoot></table><div class="pdt-add-row"><button type="button" class="pdt-add-btn"><span aria-hidden="true">+</span> <span data-i18n="datatable.addRow">addRow</span></button></div></div>
+<p data-source-line="21">Ein zweites Diagramm auf dieselbe Tabelle, mit Zeilen als Reihen:</p>
+<pre><code class="hljs language-perspective-chart">table: ^umsatz
+type: line
+series: rows
+labels: Monat
+rows: Januar, Februar
+</code></pre>
+<p data-source-line="31">Ein Diagramm auf eine Tabelle in einem anderen Dokument:</p>
+<pre><code class="hljs language-perspective-chart">table: [[Bericht#^kosten]]
+type: pie
+labels: Posten
+values: Betrag
+</code></pre>
+"
+`;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert diagramme.md stabil 1`] = `
+"<h1 id="diagramme-zu-tabellen" data-source-line="1">Diagramme zu Tabellen</h1>
+<p data-source-line="3">Ein Diagramm vor seiner Tabelle:</p>
+<div class="perspective-chart" data-chart-index="0" data-chart-line-start="5" data-chart-line-end="11" data-source-line="5" data-chart-source="table: ^umsatz
+type: bar
+labels: Monat
+values: Einnahmen, Ausgaben
+title: Umsatz &lt;2026&gt; &amp; &quot;Plan&quot;
+"></div>
+<div id="umsatz" class="perspective-datatable" data-dt-index="0" data-dt-line-start="13" data-dt-line-end="18" data-source-line="13" data-dt-source="columns: Monat:text, Einnahmen &quot;Einnahmen (netto)&quot;:number(2), Ausgaben:number
+aggregate: Einnahmen:sum
+| Januar  | 120.5 | 80 |
+| Februar | 99    | 95 |
+"><table class="pdt-grid"><thead><tr><th class="pdt-row-del" aria-hidden="true"></th><th class="pdt-col pdt-type-text" data-dt-col="0" scope="col"><span class="pdt-name">Monat</span><span class="pdt-type">text</span></th><th class="pdt-col pdt-type-number" data-dt-col="1" scope="col" title="Einnahmen"><span class="pdt-name">Einnahmen (netto)</span><span class="pdt-type">number</span></th><th class="pdt-col pdt-type-number" data-dt-col="2" scope="col"><span class="pdt-name">Ausgaben</span><span class="pdt-type">number</span></th></tr></thead><tbody><tr data-dt-row="0"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0">Januar</td><td class="pdt-cell pdt-type-number" data-dt-col="1" tabindex="0">120.50</td><td class="pdt-cell pdt-type-number" data-dt-col="2" tabindex="0">80</td></tr><tr data-dt-row="1"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0">Februar</td><td class="pdt-cell pdt-type-number" data-dt-col="1" tabindex="0">99.00</td><td class="pdt-cell pdt-type-number" data-dt-col="2" tabindex="0">95</td></tr></tbody><tfoot><tr class="pdt-agg-row"><td class="pdt-row-del"></td><td class="pdt-cell pdt-type-text" data-dt-col="0"></td><td class="pdt-cell pdt-type-number" data-dt-col="1"><span class="pdt-agg"><span class="pdt-agg-label" data-i18n="datatable.aggregate.sum">sum</span><span class="pdt-agg-value">219.50</span></span></td><td class="pdt-cell pdt-type-number" data-dt-col="2"></td></tr></tfoot></table><div class="pdt-add-row"><button type="button" class="pdt-add-btn"><span aria-hidden="true">+</span> <span data-i18n="datatable.addRow">addRow</span></button></div></div>
+<p data-source-line="21">Ein zweites Diagramm auf dieselbe Tabelle, mit Zeilen als Reihen:</p>
+<div class="perspective-chart" data-chart-index="1" data-chart-line-start="23" data-chart-line-end="29" data-source-line="23" data-chart-source="table: ^umsatz
+type: line
+series: rows
+labels: Monat
+rows: Januar, Februar
+"></div>
+<p data-source-line="31">Ein Diagramm auf eine Tabelle in einem anderen Dokument:</p>
+<div class="perspective-chart" data-chart-index="2" data-chart-line-start="33" data-chart-line-end="38" data-source-line="33" data-chart-source="table: [[Bericht#^kosten]]
+type: pie
+labels: Posten
+values: Betrag
+"></div>
 "
 `;
 
@@ -560,7 +732,7 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert highlight-footnotes-a
 "<p data-source-line="1">Markiert: <mark>wichtig</mark> und escaped: ==kein Highlight==</p>
 <p data-source-line="3">Fussnote im Text<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup> und inline<sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a></sup>.</p>
 <p data-source-line="7" id="anker-42">Absatz mit Block-Anker.</p>
-<h2 id="uberschrift-mit-anker-kapitel-1" data-source-line="9">Überschrift mit Anker</h2>
+<h2 id="uberschrift-mit-anker-kapitel-1" data-source-line="9">Überschrift mit Anker<span id="kapitel-1"></span></h2>
 <hr class="footnotes-sep">
 <section class="footnotes">
 <ol class="footnotes-list">

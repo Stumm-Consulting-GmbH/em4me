@@ -49,7 +49,13 @@ import { beschriftungsZeilen } from './canvas-linien.js';
 // bleibt. Die Regel — der Dateiname, nicht der Ordner — steht im Kern, weil
 // Flächen-Titel und Karten-Vorschau dieselbe Frage stellen; eine zweite
 // Fassung hier liefe bei der nächsten Ergänzung auseinander.
-import { kartenVerweisText } from '../../../shared/canvas/canvas-core.js';
+// 4T-002025: Welche Karte eine Text-Karte ist, entscheidet der Kern; der
+// portable Export stellt dieselbe Frage.
+import { istTextKarte, kartenVerweisText } from '../../../shared/canvas/canvas-core.js';
+// 4T-002021 (Epic 3E-000192): Ein Diagramm in einem verwiesenen Ausschnitt
+// nennt seine Tabelle im ganzen Dokument. Das Modul ist importfrei; gelesen
+// wird über den injizierten Rückruf `leseEinbettung`.
+import { dokumentTextEinerEinbettung } from '../charts/chart-embedding.js';
 
 // Auffrisch-Handlung je gezeichnetem Verweis-Körper. Eine WeakMap statt einer
 // Eigenschaft am DOM-Knoten: Der Eintrag verschwindet mit dem Knoten, und ein
@@ -166,8 +172,8 @@ function bildAngabe(el) {
  */
 export function baueKartenInneres(karte, el, ctx = {}) {
   if (el && el.doc) baueVerweisKarte(karte, el, ctx);
-  else if (bildAngabe(el).wert.trim() !== '') baueBildKarte(karte, el, ctx);
-  else baueTextKarte(karte, el, ctx);
+  else if (istTextKarte(el)) baueTextKarte(karte, el, ctx);
+  else baueBildKarte(karte, el, ctx);
 }
 
 function koerper(klassen) {
@@ -187,7 +193,7 @@ function baueTextKarte(karte, el, ctx) {
       // Der Karten-Inhalt ist ein erzeugter Teilbaum: Ohne den Schritt-Satz
       // bliebe alles inert, was die Render-Pipeline erst befüllt oder bedienbar
       // macht (Wächter 4T-001130).
-      if (typeof ctx.nachRender === 'function') ctx.nachRender(inhalt, ctx.pfad || '');
+      if (typeof ctx.nachRender === 'function') ctx.nachRender(inhalt, ctx.pfad || '', text);
     } catch {
       // Ein Render-Fehler darf die ganze Fläche nicht leeren; die Karte zeigt
       // dann ihren Klartext.
@@ -240,12 +246,19 @@ function hole(kopf, inhalt, el, ctx) {
     return Promise.resolve();
   }
   return abruf.then(
-    (erg) => uebernimm(kopf, inhalt, el, ctx, erg),
+    async (erg) => {
+      const dokumentText = await dokumentTextEinerEinbettung(
+        () => ctx.leseEinbettung(ctx.pfad || '', pfad, null),
+        erg && erg.ok ? erg.content || '' : '',
+        anker || null,
+      );
+      uebernimm(kopf, inhalt, el, ctx, erg, dokumentText);
+    },
     () => uebernimm(kopf, inhalt, el, ctx, null),
   );
 }
 
-function uebernimm(kopf, inhalt, el, ctx, erg) {
+function uebernimm(kopf, inhalt, el, ctx, erg, dokumentText) {
   // Die Karte ist inzwischen weg — die Fläche wurde neu gezeichnet, die Karte
   // gelöscht oder die Fläche gewechselt. Die Antwort wird verworfen, statt in
   // einen Baum zu schreiben, den niemand mehr sieht.
@@ -265,7 +278,9 @@ function uebernimm(kopf, inhalt, el, ctx, erg) {
       // Der Bezug ist der Pfad der **verwiesenen** Datei: Abfragen und
       // Journal-Blöcke darin beziehen sich auf deren Ort, nicht auf den der
       // Fläche.
-      if (typeof ctx.nachRender === 'function') ctx.nachRender(inhalt, erg.path || '');
+      if (typeof ctx.nachRender === 'function') {
+        ctx.nachRender(inhalt, erg.path || '', dokumentText || text);
+      }
     } catch {
       inhalt.textContent = text;
     }

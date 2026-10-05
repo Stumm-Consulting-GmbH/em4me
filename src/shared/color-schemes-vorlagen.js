@@ -13,7 +13,9 @@
 // Eine Vorlage speichert nur die Abweichungen von ihrer Grundpalette; die
 // beiden Standard-Schemas haben deshalb keine. Neue Slots erben damit
 // automatisch den Wert des Stilblatts, solange eine Vorlage ihn nicht
-// ausdrücklich setzt.
+// ausdrücklich setzt. So tragen die Vorlagen die zehn Diagramm-Farben
+// (4T-002030) als Reihe ihres Modus, außer wo eine Farbe auf dem Grund der
+// Vorlage 3:1 verfehlt.
 'use strict';
 
 // Mitgelieferte, unveränderliche Schemas (Basis + Abweichungen). Standard
@@ -94,6 +96,17 @@ const BUILTIN_SCHEMES = [
       syntaxKeyword: '#92353b',
       syntaxString: '#8a6232',
       syntaxNumber: '#965a2c',
+      // 4T-002030 (Epic 3E-000192): Sieben Farben der hellen Diagramm-Reihe
+      // verfehlen 3:1 auf dem Sepia-Grund; sie sind im selben Farbton
+      // abgedunkelt, bis der Wert erreicht ist. Die übrigen drei und alle
+      // anderen Vorlagen tragen die Reihe ihres Modus unverändert.
+      chart2: '#d06e0c',
+      chart4: '#4d938e',
+      chart5: '#54974a',
+      chart6: '#a58410',
+      chart7: '#ae779f',
+      chart8: '#d26772',
+      chart10: '#95857f',
     },
   },
   // 4T-000578 (Epic 3E-000106): vier kuratierte Paare als weitere Vorlagen. Jedes

@@ -142,6 +142,8 @@
   "help.shortcut.insertFootnote": "Insérer une note de bas de page",
   "help.shortcut.insertTable": "Insérer un tableau",
   "help.shortcut.insertPerspectiveTable": "Insérer un tableau Perspective",
+  "help.shortcut.chartInsert": "Insérer, via une boîte de dialogue, un graphique pour la table de données sous le curseur ou pour la table de données cliquée (en mode édition)",
+  "help.shortcut.chartEdit": "Modifier le graphique sélectionné via la même boîte de dialogue ; il est sélectionné lorsque le curseur se trouve dans son bloc ou qu’il a été cliqué (en mode édition)",
   "help.shortcut.insertCallout": "Insérer un encadré",
   "help.shortcut.insertHorizontalRule": "Insérer une ligne horizontale",
   "help.shortcut.insertCodeBlock": "Insérer un bloc de code",

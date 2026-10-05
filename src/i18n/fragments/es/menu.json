@@ -120,6 +120,7 @@
   "menu.view.kanbanRelativeDates": "Mostrar fechas relativas",
   "menu.view.canvasEdit": "Editar el lienzo",
   "menu.view.canvasStack": "Orden de apilamiento del lienzo",
+  "menu.view.chart": "Gráfico",
   "menu.file.exportJsonCanvas": "Lienzo como JSON Canvas…",
   "menu.file.import": "Importar",
   "menu.file.importJsonCanvas": "Archivo JSON Canvas…"

@@ -89,6 +89,19 @@
      Unterstreichung der Inline-Hinweise. Light-Theme: gedaempftes
      Bernstein, deutlich genug sichtbar ohne aufdringlich zu wirken. */
   --linter-warn: #c97a00;
+  /* 4T-002030 (Epic 3E-000192): Farben der Datenreihen 1 bis 10 in
+     Diagrammen (Light), Farb-Plaetze des Farbschemas; gespiegelt in
+     BASE_DEFAULTS von src/shared/color-schemes.js. */
+  --chart-1: #4e79a7;
+  --chart-2: #da730d;
+  --chart-3: #e15759;
+  --chart-4: #519a94;
+  --chart-5: #59a14f;
+  --chart-6: #ac8a11;
+  --chart-7: #b07aa1;
+  --chart-8: #d5707a;
+  --chart-9: #9c755f;
+  --chart-10: #9b8c86;
 }
 
 [data-theme='dark'] {
@@ -153,6 +166,17 @@
   /* 4T-000020: Linter-Warnfarbe im Dark-Theme — etwas waermer als Light,
      bleibt vor dunklem Hintergrund gut lesbar. */
   --linter-warn: #e8a544;
+  /* 4T-002030 (Epic 3E-000192): Farben der Datenreihen 1 bis 10 (Dark). */
+  --chart-1: #7ea6d8;
+  --chart-2: #f5a55a;
+  --chart-3: #f07f82;
+  --chart-4: #8fd1cb;
+  --chart-5: #80c26f;
+  --chart-6: #f1d465;
+  --chart-7: #caa0c1;
+  --chart-8: #ffb3bb;
+  --chart-9: #c39c82;
+  --chart-10: #cfc7c3;
 }
 
 /* === Reset / Basis ======================================================== */

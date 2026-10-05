@@ -4,13 +4,14 @@ Ein Rechtsklick im Editor öffnet ein Kontextmenü, das die Formatierungs-, Absa
 
 ## Aufbau
 
-Das Menü gliedert sich von oben nach unten in sechs Gruppen:
+Das Menü gliedert sich von oben nach unten in sieben Gruppen:
 
 - **Link** — die Markierung als Wiki-Link oder als externen Link umschließen.
 - **Format** — Zeichen-Ebene: Fett, Kursiv, Durchgestrichen, Hervorheben, Quelltext, Mathe, Kommentar und „Formatierung entfernen".
 - **Absatz** — Zeilen-Ebene: Aufzählung, nummerierte Liste, Aufgabenliste, Überschrift 1 bis 6, Keine Überschrift und Zitat.
 - **Einfügen** — Schablonen: Fußnote, Tabelle, Hinweisblock, horizontale Linie und Quelltext-Block.
 - **Tabelle** — Bearbeitungs-Operationen für die Tabelle am Cursor; erscheint nur, wenn der Cursor in einer Tabelle steht.
+- **Diagramm** — „Diagramm zu dieser Tabelle einfügen" bzw. „Diagramm bearbeiten"; erscheint nur, wenn der Cursor in einer Datentabelle bzw. im Block eines Diagramms steht.
 - **Zwischenablage** — Ausschneiden, Kopieren, Einfügen, Alles auswählen.
 
 Die Standard-Kürzel für Fett (`Strg+B`) und Kursiv (`Strg+I`) wirken auch ohne das Menü; alle übrigen Aktionen lassen sich in den Einstellungen mit einem Kürzel belegen.
@@ -43,6 +44,12 @@ Steht der Cursor in einer Tabelle, erscheint zusätzlich die Gruppe **Tabelle** 
 - **Transponieren** — Zeilen und Spalten tauschen; die Kopfzeile wird zur ersten Spalte.
 
 Jede Operation ist ein einzelner Undo-Schritt. Nicht mögliche Ziele erscheinen gedimmt: Die Kopf- und die Trennzeile einer Pipe-Tabelle lassen sich nicht verschieben oder löschen, die letzte Spalte lässt sich nicht löschen. Pipe-Tabellen werden beim Eingriff formatiert zurückgeschrieben (Rand-Pipes, Spalten mit Leerzeichen ausgerichtet); das gilt auch für randlose Tabellen. Bei Perspective-Tabellen arbeiten die Zeilen-Operationen auf den `|-`-Abschnitten; Spalten-Operationen und Transponieren sind dort nur ohne `colspan`/`rowspan` möglich und werden sonst mit einem Hinweis abgelehnt. Alle Operationen stehen auch in der Kommando-Palette und lassen sich mit Kürzeln belegen; die Erweiterung „Tabellen-Werkzeuge" schaltet das Untermenü samt Kommandos ab. Im Live-Modus setzt ein Rechtsklick in eine Zelle die Schreibmarke in genau diese Zelle; die Operationen wirken damit an der angeklickten Stelle, und eine laufende Zell-Eingabe bleibt erhalten.
+
+## Diagramme zu Tabellen
+
+Steht der Cursor in einer [Perspective Datatable](datatable.md), erscheint nach der Gruppe **Tabelle** und vor der Zwischenablage der Eintrag **Diagramm zu dieser Tabelle einfügen**; steht er im Block eines Diagramms, der Eintrag **Diagramm bearbeiten**. Beide erscheinen nur, wenn das Dokument änderbar und die Erweiterung „Diagramm zu einer Datentabelle" eingeschaltet ist. Sie öffnen den Dialog, den die Seite [Diagramme zu Tabellen](charts.md) beschreibt.
+
+Auf dem **Grid einer Datentabelle** und auf einem **gezeichneten Diagramm** — im Live-Modus und in der gerenderten Hälfte der geteilten Ansicht — öffnet ein Rechtsklick statt dieses Menüs ein kurzes Menü mit genau dem einen passenden Eintrag. Tabelle und Diagramm bleiben dabei gezeichnet, und der Cursor bleibt, wo er war. In der Lese-Ansicht und bei ausgeschaltetem Bearbeiten erscheint dort kein Menü. Ein Rechtsklick in eine geöffnete Zell-Eingabe zeigt ebenfalls keines; die Eingabe bleibt offen.
 
 ## Schutz in Links und Quelltext
 

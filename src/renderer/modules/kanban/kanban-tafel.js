@@ -101,7 +101,9 @@ function baueKoerper(fragment, anzeige) {
       // Der Karten-Inhalt ist ein erzeugter Teilbaum: Ohne den Schritt-Satz
       // bliebe alles inert, was die Render-Kette erst befüllt oder bedienbar
       // macht (Wächter 4T-001130).
-      if (typeof anzeige.nachRender === 'function') anzeige.nachRender(inhalt, anzeige.pfad || '');
+      if (typeof anzeige.nachRender === 'function') {
+        anzeige.nachRender(inhalt, anzeige.pfad || '', fragment);
+      }
     } catch {
       inhalt.textContent = fragment;
     }

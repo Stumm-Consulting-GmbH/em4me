@@ -330,7 +330,9 @@ describe('Verweis-Karten: Auffrischung bei Puffer-Änderung (AK8)', () => {
     // Anstoß bliebe die Karte auf ihrem alten Stand.
     const quelle = lies('src/renderer/modules/render-mermaid.js');
     expect(quelle).toContain("from './canvas/canvas-verweis-anzeige.js'");
-    expect(quelle).toContain('await frischeVerweisKarten(wurzel, zielPfad)');
+    // Seit 4T-002023 reist eine Menge von Zielen; die Karten nehmen je Aufruf
+    // weiter einen Pfad.
+    expect(quelle).toContain('await frischeVerweisKarten(wurzel, pfad)');
   });
 });
 

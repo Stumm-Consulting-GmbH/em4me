@@ -2018,6 +2018,37 @@ const COMMANDS = [
     // 4T-001697: wie jedes editorScoped-Kommando die Editor-Bedingung.
     availability: 'editor',
   },
+  // 4T-002024 (Epic 3E-000192): Diagramm zu der Datentabelle einfügen, in der
+  // die Schreibmarke steht oder die angeklickt ist, und das ausgewählte
+  // Diagramm bearbeiten. Beide öffnen denselben Dialog. Global statt
+  // editor-gebunden (Vorbild edit.insertTemplate): Die Ausführung liegt in
+  // der Kommando-Tabelle des Anzeige-Prozesses, weil sie auch aus der
+  // gerenderten Hälfte der geteilten Ansicht und aus dem Menü der Anwendung
+  // kommt, wo keine Tastenbelegung des Editors greift. Mit Menü-Eintrag:
+  // Die Anforderung verlangt den Zugang an drei Orten (Kontextmenü, Menü der
+  // Anwendung, Kommando-Palette); der Ort im Menü ist ein Vorschlag für den
+  // Struktur-Prüfschritt. Ohne Vorgabe-Kürzel wie die übrigen
+  // Einfüge-Kommandos. Beide hängen an der Erweiterung perspective-chart.
+  {
+    id: 'chart.insert',
+    defaultBindings: [],
+    labelKey: 'command.chart.insert',
+    descKey: 'help.shortcut.chartInsert',
+    categoryKey: 'help.group.editing',
+    menu: true,
+    editorScoped: false,
+    availability: 'datentabelleAenderbar',
+  },
+  {
+    id: 'chart.edit',
+    defaultBindings: [],
+    labelKey: 'command.chart.edit',
+    descKey: 'help.shortcut.chartEdit',
+    categoryKey: 'help.group.editing',
+    menu: true,
+    editorScoped: false,
+    availability: 'diagrammAenderbar',
+  },
   // 4T-000590 (Epic 3E-000109): Tabellen-Operationen des Kontextmenü-Untermenüs
   // „Tabelle" (Erweiterung table-tools). Ein Kommando-Satz für beide
   // Tabellenarten (Pipe-Tabelle und Perspective Table); die Ausführung

@@ -4,7 +4,9 @@ A color scheme defines the app's colors: the interface (backgrounds, text, accen
 
 ## Slots and groups
 
-A slot is a named color, not direct access to internal details. The slots are arranged in six groups: Surfaces (Background, Surface, Muted surface, Toolbar), Text (Main text, Muted text), Accent and borders (Accent, Accent text, Border, Strong border), Tabs (Tab bar, Active tab) Content (Code background, Warning color) and Editor text colors (Heading, Link, Address, Inline code, Markup characters, List marker, Quote, Comment, Keyword, String, Number). The rendered content follows the surface slots: links carry the accent, headings the main text, the heading rule and the table borders the border, the quote bar the strong border.
+A slot is a named color, not direct access to internal details. The slots are arranged in seven groups: Surfaces (Background, Surface, Muted surface, Toolbar), Text (Main text, Muted text), Accent and borders (Accent, Accent text, Border, Strong border), Tabs (Tab bar, Active tab), Content (Code background, Warning color) and Editor text colors (Heading, Link, Address, Inline code, Markup characters, List marker, Quote, Comment, Keyword, String, Number) and Charts (Data series 1 to Data series 10). The rendered content follows the surface slots: links carry the accent, headings the main text, the heading rule and the table borders the border, the quote bar the strong border.
+
+The ten colors of the group Charts color the data series of the [charts for tables](charts.md): the first data series carries the first color, the second the second and so on, for pie and donut per slice; from the eleventh series on it starts again with the first color. The built-in schemes carry checked defaults for them that stand out from their background with a contrast of at least 3:1; colors you choose yourself are not checked by the program.
 
 ## Managing schemes
 
@@ -19,4 +21,4 @@ The editor always edits the active scheme of the mode the app is currently runni
 
 ## Contrast and limits
 
-The readability of your own schemes is in your own hands: there is no automatic contrast check. The live preview shows the effect immediately, and "Reset" per slot returns to a template value. A few colors deliberately remain outside the slots: the colors of the tab groups and the highlighting inside code blocks still follow the theme. The colors the editor uses to mark up Markdown text, by contrast, have been part of the slots since 2026-08. The PDF export stays light and takes the colors of the active light scheme.
+The readability of your own schemes is in your own hands: there is no automatic contrast check. The live preview shows the effect immediately, and "Reset" per slot returns to a template value. A few colors deliberately remain outside the slots: the colors of the tab groups and the highlighting inside code blocks still follow the theme. The colors the editor uses to mark up Markdown text, by contrast, are part of the slots. The PDF export stays light and takes the colors of the active light scheme.

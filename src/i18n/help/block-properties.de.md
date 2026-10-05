@@ -12,11 +12,13 @@ Dieser Absatz trägt einen Anker. ^besprechung-1
 
 In der gerenderten Ansicht ist der Anker unsichtbar; er macht den Block ansprechbar. Erlaubt sind Buchstaben (auch Umlaute), Ziffern, Bindestrich und Unterstrich. Die Eigenschaften hängen an dieser Kennung: Solange der Anker im Text steht, gehören die Daten zu diesem Block, unabhängig davon, wohin der Block innerhalb des Dokuments verschoben wird.
 
+Eine [Datentabelle](datatable.md) trägt ihren Anker in ihrem Block, als Zeile `table: Name` vor den Datenzeilen.
+
 ## Das Panel Block-Eigenschaften
 
 Das Panel „Block-Eigenschaften" wird wie jedes Sidebar-Panel geschaltet: über das Menü Ansicht → Sidebar → Panels → Block-Eigenschaften, das Klammern-Symbol in der Statusbar oder ein selbst vergebenes Tastenkürzel (ab Werk ist keines belegt). Seite, Reihenfolge und Reiter-Gruppen folgen den Regeln der [Sidebar](sidebar.md).
 
-Das Panel **folgt dem Cursor**: Es zeigt die Eigenschaften des Blocks, in dem der Cursor steht. Die Kopfzeile nennt den aktiven Anker und bietet ein Auswahlfeld aller Anker der Datei zum Springen; Anker mit Eigenschaften sind darin markiert. Steht der Cursor in einem Block **ohne** Anker, bietet das Panel „Anker anlegen" an und schreibt eine kurze, in der Datei eindeutige Zufalls-Kennung an das Blockende.
+Das Panel **folgt dem Cursor**: Es zeigt die Eigenschaften des Blocks, in dem der Cursor steht. Die Kopfzeile nennt den aktiven Anker und bietet ein Auswahlfeld aller Anker der Datei zum Springen; Anker mit Eigenschaften sind darin markiert. Steht der Cursor in einem Block **ohne** Anker, bietet das Panel „Anker anlegen" an und schreibt eine kurze, in der Datei eindeutige Zufalls-Kennung an das Blockende; bei einem Code-Block oder Diagramm schreibt es sie in eine eigene Zeile direkt unter den Block, in einer Datentabelle als Zeile `table:` an den Anfang des Blocks.
 
 Die Eigenschafts-Zeilen arbeiten wie im Properties-Panel des Dokuments: Jede Zeile hat einen frei wählbaren Schlüssel, einen Typ (Text, Liste, Zahl, Wahr/Falsch, Datum, mehrzeilig, Verweis, Uhrzeit) und ein passendes Wert-Feld. Beim Schlüssel schlägt das Panel die im Dokument bereits verwendeten Block-Schlüssel vor. Gespeichert wird **automatisch** kurz nach der Eingabe; der Dokument-Tab wird dabei nicht als geändert markiert, denn die Daten liegen in der Begleitdatei, nicht im Text. In Lese-Ansichten zeigt das Panel die Daten nur an.
 
@@ -24,7 +26,7 @@ Gelten für das Dokument **Eigenschafts-Profile**, so erben seine Blöcke deren 
 
 ## Anker umbenennen
 
-Das Stift-Symbol neben dem Anker-Auswahlfeld benennt den aktiven Anker um. Dabei ziehen der Anker im Text, der Daten-Eintrag in der Begleitdatei und die eingehenden Verweise **innerhalb desselben Dokuments** synchron mit:
+Das Stift-Symbol neben dem Anker-Auswahlfeld benennt den aktiven Anker um. Dabei ziehen der Anker im Text — bei einer Datentabelle die Zeile `table:` —, der Daten-Eintrag in der Begleitdatei und die eingehenden Verweise **innerhalb desselben Dokuments** synchron mit, ebenso die Diagramme, die die Tabelle nennen:
 
 ```markdown
 Siehe den ersten Punkt: [[#^besprechung-1]]

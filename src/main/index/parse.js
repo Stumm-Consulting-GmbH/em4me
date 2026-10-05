@@ -15,6 +15,13 @@
 // Text-Zellen einer Fence `perspective-datatable`. Ihre Verweise und
 // Schlagworte werden gelesen wie im Fließtext und gehen als gewöhnliche Treffer
 // `wiki`/`md` und als Schlagworte in das Ergebnis.
+// 4T-002023 (Epic 3E-000192): Ebenso die erste Angabe `table: [[Datei#^name]]`
+// eines Diagramm-Blocks, als Treffer `linkTyp: 'wiki'` wie eine Einbettung.
+//
+// 4T-002072 (Epic 3E-000192): Die Block-Kennungen (`blockIds`) kommen aus der
+// Heimat src/shared/block-anchors.js statt aus einer eigenen Zeilen-Prüfung.
+// Damit kennt der Index auch den Namen aus der Kopf-Angabe `table:` einer
+// Datentabelle, und Index, Einbettung und Panel sehen dieselben Kennungen.
 
 'use strict';
 
@@ -50,11 +57,19 @@ const {
   scanneKartenVerweise,
   kartenBeschriftung,
 } = require('../../shared/markdown/link-scan.js');
+// 4T-002023 (Epic 3E-000192): die Angabe `table:` eines Diagramm-Blocks, aus
+// derselben Heimat wie im Diagramm-Kern und im Umbenennungs-Nachzug.
+const {
+  istDiagrammFenceInfo,
+  scanneTabellenAngabe,
+} = require('../../shared/markdown/perspective-chart-ref.js');
 // 4T-000363 (Epic 3E-000067): Block-Anker-Regex aus der gemeinsamen, prozess-
 // neutralen Quelle (Single Source). Dieselbe Definition nutzt der Renderer-
 // Abgleich des Block-Metadaten-Panels, damit Index (`blockIds`) und Panel
 // dieselben Anker als Block-Anker erkennen.
-const { BLOCK_ANCHOR_RE } = require('../../shared/block-anchors.js');
+// 4T-002023: dazu die Prüfung der Anker-Kennung für den Namen im Diagramm-Block.
+// 4T-002072: statt der Regex die Erfassung selbst, samt Kopf-Namen.
+const { extractBlockAnchors, isValidBlockAnchorId } = require('../../shared/block-anchors.js');
 // 4T-001529 (Epic 3E-000175): Adress-Schutz der Tag-Erkennung, geteilt mit dem
 // Render-Pfad — eine Regel, zwei Aufrufer.
 const {
@@ -284,6 +299,10 @@ function parseContent(filePath, content, segmentDefinition) {
   // null. Er kennt die Spalten-Typen, um die Text-Zellen jeder Datenzeile zu
   // finden.
   let zellZustand = null;
+  // 4T-002023 (Epic 3E-000192): Steht die offene Fence unter der Diagramm-Marke,
+  // und ist ihre wirksame Angabe `table:` schon vorbei?
+  let inChartFence = false;
+  let tabelleGesehen = false;
 
   // B-10 (4T-000175): Slug-Deduplizierung wie markdown-it-anchor (x, x-1,
   // x-2 …), damit Linter und Autocomplete dieselben Anker sehen wie der
@@ -436,11 +455,14 @@ function parseContent(filePath, content, segmentDefinition) {
         const info = line.slice(fenceMatch[0].length);
         inCanvasFence = istCanvasFenceInfo(info);
         zellZustand = istDatentabellenFenceInfo(info) ? neuerZellZustand() : null;
+        inChartFence = istDiagrammFenceInfo(info);
+        tabelleGesehen = false;
       } else if (ch === fenceChar) {
         inFence = false;
         fenceChar = null;
         inCanvasFence = false;
         zellZustand = null;
+        inChartFence = false;
       }
       continue;
     }
@@ -480,6 +502,31 @@ function parseContent(filePath, content, segmentDefinition) {
             snippet: shortSnippet(kartenBeschriftung(lines, i) || line),
           });
         }
+      } else if (inChartFence && !tabelleGesehen) {
+        // 4T-002023 (Epic 3E-000192): Die erste Angabe `table:` eines
+        // Diagramm-Blocks nennt mit `[[Datei#^name]]` eine Tabelle in einem
+        // anderen Dokument und zaehlt als Verweis dorthin wie eine Einbettung —
+        // derselbe Typ, dieselben Ziel-Regeln wie der Karten-Verweis oben. Nur
+        // die erste Angabe, weil allein sie im Diagramm wirkt; `^name` im
+        // selben Dokument und ein Ziel `@kuerzel:` erzeugen keinen Treffer.
+        const angabe = scanneTabellenAngabe(line);
+        if (angabe) {
+          tabelleGesehen = true;
+          const ziel =
+            angabe.form === 'other' && isValidBlockAnchorId(angabe.name)
+              ? kartenZiel(filePath, `${angabe.datei}#^${angabe.name}`)
+              : null;
+          if (ziel) {
+            out.push({
+              zeile: lineNum,
+              linkTyp: 'wiki',
+              zielBasename: ziel.ziel,
+              zielAbsolut: null,
+              anker: ziel.anker,
+              snippet: shortSnippet(line),
+            });
+          }
+        }
       }
       // 4T-002013 (Epic 3E-000332): In einer Datentabelle zählen Verweise und
       // Schlagworte der Text-Zellen wie im Fließtext (Weg B, Entscheidung F1 b
@@ -515,12 +562,6 @@ function parseContent(filePath, content, segmentDefinition) {
       if (isEq || isDash) pushHeadingSlug(line);
     }
 
-    // 4T-000054: Block-Anker am Zeilenende.
-    const blockMatch = line.match(BLOCK_ANCHOR_RE);
-    if (blockMatch) {
-      blockIds.push(blockMatch[1]);
-    }
-
     // 4T-000502 (Epic 3E-000096): Task-Zeilen sammeln (Checkbox-Zeilen laut
     // Marker-Kern; der Global Filter wird bewusst erst im Query-Zweig
     // angewandt, damit eine Filter-Aenderung keinen Index-Neuaufbau braucht).
@@ -531,6 +572,11 @@ function parseContent(filePath, content, segmentDefinition) {
 
     scanneVerweiseUndSchlagworte(line, lineNum, line);
   }
+  // 4T-002072 (Epic 3E-000192): Block-Kennungen aus der Heimat, über den
+  // BOM-bereinigten Text — Anker am Zeilenende samt dem Namen aus der
+  // Kopf-Angabe `table:` einer Datentabelle, ohne Frontmatter und Code-Blöcke,
+  // jede Kennung einmal. Wie die übrigen Kennungen schalter-unabhängig.
+  blockIds.push(...extractBlockAnchors(content).order);
   // 4T-001610: `recordDefSig` steht nur bei einem Folge-Segment und nennt die
   // Definition, gegen die zugeordnet wurde; der Zwischenspeicher vergleicht sie.
   //

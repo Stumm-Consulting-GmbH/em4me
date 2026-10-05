@@ -9,7 +9,7 @@
 // einen Anker, den der Index nicht kennt (oder umgekehrt).
 'use strict';
 
-import { BLOCK_ANCHOR_RE } from '../../../shared/block-anchors.js';
+import { BLOCK_ANCHOR_RE, ankerZeileAlleinImZitat } from '../../../shared/block-anchors.js';
 
 // Ermittelt den zu ersetzenden Bereich des Block-Ankers einer Zeile.
 //
@@ -29,4 +29,22 @@ export function blockAnkerInZeile(zeilenText) {
   if (!treffer) return null;
   if (!treffer[0].includes('^')) return null;
   return { von: treffer.index, bis: text.length, id: treffer[1] };
+}
+
+// 4T-002048 (Epic 3E-000192): Der Quelltext des Tabellen-Widgets ohne die
+// Anker-Zeilen an seinem Ende. Der Syntaxbaum nimmt eine alleinstehende
+// Anker-Zeile direkt unter einer gewöhnlichen Tabelle als letzte Tabellenzeile
+// auf; endet das Widget vor ihr, steht sie als eigene Zeile darunter und
+// bekommt das Anker-Zeichen wie jede andere (die gerenderte Ansicht gibt sie
+// ebenso nicht als Tabellenzeile aus). Nur am Ende: Der Klick-Abgleich zählt
+// die Zeilen über ihren Index. Kopf- und Trennzeile bleiben immer. Eine
+// Tabelle in einem Zitat oder Hinweisblock trägt ab der zweiten Zeile die
+// Zitat-Präfixe; die Heimat streift sie ab.
+export function tabelleOhneAnkerZeilen(quelle) {
+  const zeilen = String(quelle ?? '').split('\n');
+  let ende = zeilen.length;
+  if (ende > 0 && zeilen[ende - 1] === '') ende--;
+  const vorher = ende;
+  while (ende > 2 && ankerZeileAlleinImZitat(zeilen[ende - 1])) ende--;
+  return ende === vorher ? String(quelle ?? '') : zeilen.slice(0, ende).join('\n');
 }

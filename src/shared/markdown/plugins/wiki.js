@@ -1,7 +1,8 @@
 // 4T-000985 (Epic 3E-000196): aus src/shared/markdown/plugins.js geschnitten.
-// Wiki-Gruppe der eigenen markdown-it-Plugins: Wiki-Links, Wiki-Embeds,
-// Tags und Block-Anker. Electron-frei; die Instanz-Registrierung
-// (md.use/mdPortable.use) macht markdown.js in der Original-Reihenfolge.
+// Wiki-Gruppe der eigenen markdown-it-Plugins: Wiki-Links, Wiki-Embeds und
+// Tags (die Block-Anker seit 4T-002048 in ./block-anker.js). Electron-frei;
+// die Instanz-Registrierung (md.use/mdPortable.use) macht markdown.js in der
+// Original-Reihenfolge.
 'use strict';
 
 const { escapeHtml, githubLikeSlug } = require('../slug.js');
@@ -411,55 +412,8 @@ function tagsPlugin(mdInstance) {
   mdInstance.inline.ruler.before('link', 'tag', tokenize);
 }
 
-// 4T-000054 (Epic 3E-000011): Block-Anker-Syntax `^block-id` am Zeilenende.
-// Hängt id-Attribut an das umschließende Block-Open-Token (paragraph_open,
-// blockquote_open, list_item_open, td_open, etc.) und entfernt das Marker-
-// Snippet aus dem sichtbaren Text. Slug-Validierung: \p{L}\p{N}_- (inkl.
-// Umlaute), konsistent zur Block-Anker-Akzeptanz im Wiki-Link-Parser.
-function blockAnchorsPlugin(mdInstance) {
-  const BLOCK_ANCHOR_RE = /\s+\^([\p{L}\p{N}_-]+)\s*$/u;
-  mdInstance.core.ruler.push('blockAnchors', (state) => {
-    const tokens = state.tokens;
-    for (let i = 0; i < tokens.length; i++) {
-      const token = tokens[i];
-      if (token.type !== 'inline' || !token.children) continue;
-      // Letzten Text-Child finden, der nicht leer ist.
-      let lastText = null;
-      for (let j = token.children.length - 1; j >= 0; j--) {
-        const child = token.children[j];
-        if (child.type === 'text' && child.content && child.content.length > 0) {
-          lastText = child;
-          break;
-        }
-        // Nicht-Text oder leere Text-Knoten ueberspringen; aber sobald ein
-        // 'echtes' Element (z.B. link_close, em_close, code_inline) kommt,
-        // ist der ^id nicht am Zeilenende -> abbrechen.
-        if (child.type !== 'text') {
-          lastText = null;
-          break;
-        }
-      }
-      if (!lastText) continue;
-      const match = lastText.content.match(BLOCK_ANCHOR_RE);
-      if (!match) continue;
-      const id = match[1];
-      // Vorheriges Block-Open-Token suchen (nesting === 1, type !== 'inline').
-      for (let k = i - 1; k >= 0; k--) {
-        const prev = tokens[k];
-        if (prev.nesting === 1 && prev.type !== 'inline') {
-          if (!prev.attrGet('id')) prev.attrSet('id', id);
-          break;
-        }
-      }
-      // ^id-Snippet aus dem sichtbaren Text entfernen.
-      lastText.content = lastText.content.slice(0, match.index);
-    }
-  });
-}
-
 module.exports = {
   wikiLinksPlugin,
   wikiEmbedsPlugin,
   tagsPlugin,
-  blockAnchorsPlugin,
 };

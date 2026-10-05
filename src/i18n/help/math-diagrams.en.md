@@ -2,6 +2,8 @@
 
 KaTeX typesets formulas, Mermaid renders diagrams, code blocks get syntax highlighting — in Reading view, split view and Live mode alike.
 
+Charts drawn from the values of a data table have a page of their own: [Charts for tables](charts.md).
+
 ## KaTeX inline
 
 Formulas between single dollar signs render within running text. A heuristic protects dollar amounts: `$100` in a sentence stays text, only real formula pairs are typeset.

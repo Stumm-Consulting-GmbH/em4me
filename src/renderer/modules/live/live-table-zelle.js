@@ -56,6 +56,8 @@ import {
   closeCellSuggestions,
   handleCellSuggestionKey,
 } from './live-table-suggestions.js';
+// 4T-002048: Anker-Zeilen am Tabellenende gehören nicht zur Tabelle.
+import { tabelleOhneAnkerZeilen } from './live-block-anker.js';
 
 // Genau eine offene Zell-Bearbeitung app-weit (Muster des Datatable-Editors).
 let offeneBearbeitung = null;
@@ -151,14 +153,17 @@ function hinweisVerworfen() {
 
 // Der Quelltext der Tabelle, die an der Stelle `von` beginnt — aus dem
 // Syntaxbaum, also unabhaengig davon, ob ihr Widget gerade angezeigt wird.
-function tabellenQuelleAm(state, von) {
+// 4T-002048: ohne die Anker-Zeilen am Ende, wie das Widget sie zeigt; sonst
+// spränge der Tabulator in eine nicht angezeigte Zeile, und eine neue Zeile
+// am Ende käme hinter die Anker-Zeile. Exportiert für den Prüffall.
+export function tabellenQuelleAm(state, von) {
   let quelle = null;
   syntaxTree(state).iterate({
     from: von,
     to: von,
     enter(node) {
       if (quelle === null && node.name === 'Table' && node.from === von) {
-        quelle = state.doc.sliceString(node.from, node.to);
+        quelle = tabelleOhneAnkerZeilen(state.doc.sliceString(node.from, node.to));
       }
       return quelle === null;
     },

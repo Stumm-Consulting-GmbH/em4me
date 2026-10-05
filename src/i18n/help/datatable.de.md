@@ -4,6 +4,8 @@ Die Perspective Datatable ist eine **typisierte Datentabelle mit Rechenfunktione
 
 Abgrenzung: Die [Perspective Table](perspective-table.md) zielt auf reichhaltige Text-Inhalte (mehrzeilige Block-Zellen, Spans, Status-Hervorhebung). Die Datatable zielt auf **strukturierte, rechenbare Daten** — kleine Bestände wie Ausgaben, Zeiterfassung oder Inventarlisten. Die Datentabelle gehört zu den [internen Erweiterungen](extensions.md) und lässt sich dort deaktivieren; deaktiviert bleibt der Block ein regulärer Code-Block.
 
+Die Werte einer Datentabelle lassen sich als Linien-, Balken-, Kreis- oder Donut-Diagramm zeigen; wie, beschreibt die Seite [Diagramme zu Tabellen](charts.md).
+
 ## Aufbau des Blocks
 
 Ein Code-Block mit dem Sprach-Tag `perspective-datatable` enthält Kopf-Direktiven und Datenzeilen:
@@ -26,6 +28,7 @@ aggregate: Betrag:sum+avg, Erledigt:count
 | Bert | 2026-06-30 | -3 |  |
 ```
 
+- **`table:`** (optional) gibt der Tabelle einen Namen, etwa `table: Umsatz`; unter ihm nennt ein [Diagramm](charts.md) die Tabelle, und Verweise, Einbettungen und [Block-Eigenschaften](block-properties.md) erreichen sie.
 - **`columns:`** (Pflicht) deklariert die Spalten als `Name:typ`, kommagetrennt. Spaltennamen dürfen Leerzeichen enthalten.
 - **`aggregate:`** (optional) ordnet Spalten Aggregat-Funktionen zu, mehrere je Spalte mit `+` kombiniert.
 - **`types:`** (optional) schaltet die Typangabe unter den Überschriften: `shown` oder `hidden`. Ohne die Zeile erscheint sie.
@@ -41,6 +44,10 @@ columns: Betrag:number(2), Gesamt "Gesamt (brutto, in €)":number(2) = Betrag *
 ```
 
 Der Anzeigetext darf beliebige Zeichen tragen, auch Leerzeichen, Komma, Doppelpunkt und Gleichheitszeichen; ein Anführungszeichen darin wird verdoppelt geschrieben. Angesprochen wird die Spalte weiterhin nur über ihre Kennung, und sie bleibt am Spaltenkopf als Merkzettel erreichbar.
+
+### Der Name der Tabelle
+
+Die Zeile `table:` steht bei den Kopf-Angaben vor den Datenzeilen und höchstens einmal im Block; beim Bearbeiten im Grid bleibt sie als erste Zeile erhalten. Für den Namen gelten die Regeln der [Block-Anker](linking.md): Buchstaben (auch Umlaute und ß), Ziffern, Bindestrich und Unterstrich, kein Leerzeichen, kein Punkt; Groß- und Kleinschreibung zählen. `[[Dokument#^Umsatz]]` springt zur Tabelle, `![[Dokument#^Umsatz]]` bettet sie ein. Tragen zwei Blöcke im Dokument denselben Namen, gilt das erste Vorkommen; die Tabelle meldet das nicht als Fehler, das Panel [Block-Eigenschaften](block-properties.md) weist auf die Mehrfach-Vergabe hin. Ist die Datentabelle ausgeschaltet, steht die Zeile im Code-Block als Text, und der Name bleibt Sprungziel.
 
 ## Spalten-Typen und Formate
 
@@ -126,12 +133,12 @@ Sortieren und Filtern wirken **nur auf die Ansicht** — der Quelltext bleibt un
 
 ## Fehler
 
-- **Struktur-Fehler** (unbekannter Typ, doppelte Spaltennamen, abweichende Zellen-Anzahl, ungültige Ausdrücke) erscheinen als Liste über dem Grid mit Zeilennummer im Block.
+- **Struktur-Fehler** (unbekannter Typ, doppelte Spaltennamen, abweichende Zellen-Anzahl, ungültige Ausdrücke, ein leerer oder ungültiger Name in der Zeile `table:`, eine zweite Zeile `table:` im Block) erscheinen als Liste über dem Grid mit Zeilennummer im Block.
 - **Zell-Fehler** (Wert passt nicht zum Typ) markieren nur die betroffene Zelle; der Text bleibt erhalten.
 
 ## Export
 
-Der Portable-Export und der PDF-Export geben die Tabelle als statische Tabelle in Dokument-Reihenfolge aus — mit allen Zeilen, den gerechneten Werten der berechneten Spalten und der Aggregat-Zeile, ohne Interaktivität. Verweise und Schlagworte aus Text-Zellen erscheinen dort wie Verweise und Schlagworte im übrigen Dokument.
+Der Portable-Export und der PDF-Export geben die Tabelle als statische Tabelle in Dokument-Reihenfolge aus — mit allen Zeilen, den gerechneten Werten der berechneten Spalten und der Aggregat-Zeile, ohne Interaktivität. Verweise und Schlagworte aus Text-Zellen erscheinen dort wie Verweise und Schlagworte im übrigen Dokument. Trägt die Tabelle einen Namen, folgt ihr im portablen Export eine Zeile `^Name`, damit Verweise im exportierten Dokument ihr Ziel behalten.
 
 ## Grenzen
 

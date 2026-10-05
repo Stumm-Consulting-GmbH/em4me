@@ -46,6 +46,7 @@ const {
   wikiEmbedsPlugin,
   tagsPlugin,
   blockAnchorsPlugin,
+  blockAnkerAmZaun,
   calloutsPlugin,
   lineBlocksPlugin,
   customContainersPlugin,
@@ -66,6 +67,8 @@ const { renderPerspectiveDatatableViewer } = require('./perspective-datatable.js
 // Schlagworte, Inline-Code). Die Pipeline baut ihn je Schalter-Stand und reicht
 // ihn der Datentabelle als Argument, weil deren Familie die Pipeline nicht lädt.
 const { baueZellRenderer } = require('./cell-links-html.js');
+// 4T-002019 (Epic 3E-000192): Diagramm zu einer Datentabelle — allein der Container.
+const { CHART_FENCE, CHART_EXTENSION_ID, renderChartContainer } = require('./perspective-chart.js');
 // 4T-000512 (Epic 3E-000092): Ereignis-Fence — Tabellen-HTML für den Fence-Override.
 const { localTodayIso, renderPerspectiveEventsViewer } = require('./perspective-events.js');
 // 4T-001668 (Epic 3E-000287): Canvas-Fence — der Block, mit dem die Fläche
@@ -447,6 +450,7 @@ function buildPipelines(enabled) {
     mdPortable.use(wikiLinksPlugin);
     // 4T-000054: Block-Anker auch im portablen Export.
     mdPortable.use(blockAnchorsPlugin);
+    mdPortable.renderer.rules.fence = blockAnkerAmZaun(mdPortable.renderer.rules.fence);
   }
 
   // P-02 (4T-000176): Whitelist-Sanitizer an den Roh-HTML-Render-Rules des
@@ -605,6 +609,21 @@ function buildPipelines(enabled) {
           `${renderPerspectiveDatatableViewer(body, { zellHtml })}</div>\n`
         );
       }
+      // 4T-002019 (Epic 3E-000192): perspective-chart rendert als Container mit
+      // Index, Zeilenbereich und Body im Attribut (Muster Datatable). Die Pipeline
+      // löst hier nicht auf; wo aufgelöst und gezeichnet wird, entscheidet der Task
+      // zur Darstellung in den Ansichten. Aus: Rückfall auf den Code-Block.
+      if (lang === CHART_FENCE && enabled(CHART_EXTENSION_ID)) {
+        const offset = (env && env.sourceLineOffset) || 0;
+        return renderChartContainer(String(token.content || ''), {
+          index:
+            env && typeof env === 'object'
+              ? (env.__perspectiveChartCount = (env.__perspectiveChartCount || 0) + 1) - 1
+              : 0,
+          lineStart: token.map ? token.map[0] + 1 + offset : 0,
+          lineEnd: token.map ? token.map[1] + offset : 0,
+        });
+      }
       // 4T-000512 (Epic 3E-000092): perspective-events rendert als Container
       // mit Fence-Index, Token-Zeilenbereich und Stichtag (data-ev-today,
       // Kalendertag des Render-Laufs — die Differenz-Spalte lokalisiert
@@ -708,6 +727,8 @@ function buildPipelines(enabled) {
         ? defaultFenceRenderer.call(this, tokens, idx, options, env, self)
         : self.renderToken(tokens, idx, options);
     };
+    // 4T-002048: Die Kennung einer Anker-Zeile unter dem Block an sein erstes Tag.
+    md.renderer.rules.fence = blockAnkerAmZaun(md.renderer.rules.fence);
   }
 
   return { md, mdPortable, zellHtmlPortabel };

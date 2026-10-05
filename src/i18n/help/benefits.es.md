@@ -137,7 +137,7 @@ En detalle: [Perspective Table](perspective-table.md).
 
 ## Tablas que calculan
 
-Para números en lugar de texto está el segundo tipo de tabla. La Perspective Datatable es una tabla de datos tipada: cada columna tiene un tipo de valor, las celdas solo aceptan valores acordes, las filas de agregado calculan en vivo y las columnas calculadas evalúan una expresión por fila. Se edita directamente en la cuadrícula renderizada, sin el rodeo por el código fuente. Eso sostiene gastos, registro de tiempos o inventarios sin convertirse en un archivo de base de datos, porque todo sigue siendo texto plano en el documento.
+Para números en lugar de texto está el segundo tipo de tabla. La Perspective Datatable es una tabla de datos tipada: cada columna tiene un tipo de valor, las celdas solo aceptan valores acordes, las filas de agregado calculan en vivo y las columnas calculadas evalúan una expresión por fila. Se edita directamente en la cuadrícula renderizada, sin el rodeo por el código fuente. Eso sostiene gastos, registro de tiempos o inventarios sin convertirse en un archivo de base de datos, porque todo sigue siendo texto plano en el documento. A partir de las mismas cifras, un bloque propio dibuja un gráfico de líneas, de barras, circular o de anillo que se refiere a la tabla solo por su nombre y la sigue en cada cambio.
 
 - **Tipos de valor fijos** por columna, para que los números sigan siendo números y las fechas, fechas.
 - **Agregados** que calculan en vivo y **columnas calculadas** por fila.

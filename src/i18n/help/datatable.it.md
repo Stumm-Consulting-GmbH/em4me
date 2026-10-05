@@ -4,6 +4,8 @@ La Perspective Datatable è una **tabella dati tipizzata con funzioni di calcolo
 
 Delimitazione: la [Perspective Table](perspective-table.md) punta a contenuti testuali ricchi (celle di blocco multiriga, span, evidenziazione di stato). La Datatable punta a **dati strutturati e calcolabili**: piccoli insiemi come spese, registrazione dei tempi o inventari. La tabella dati fa parte delle [estensioni interne](extensions.md) e può essere disattivata lì; disattivato, il blocco resta un normale blocco di codice.
 
+I valori di una tabella dati si possono mostrare come grafico a linee, a barre, a torta o ad anello; la pagina [Grafici di tabelle](charts.md) descrive come.
+
 ## Struttura del blocco
 
 Un blocco di codice con il tag di lingua `perspective-datatable` contiene direttive di intestazione e righe di dati:
@@ -26,6 +28,7 @@ aggregate: Importo:sum+avg, Fatto:count
 | Bert | 2026-06-30 | -3 |  |
 ```
 
+- **`table:`** (facoltativa) dà un nome alla tabella, per esempio `table: Vendite`; con esso un [grafico](charts.md) indica la tabella, e collegamenti, incorporamenti e [proprietà del blocco](block-properties.md) la raggiungono.
 - **`columns:`** (obbligatoria) dichiara le colonne come `Nome:tipo`, separate da virgole. I nomi di colonna possono contenere spazi.
 - **`aggregate:`** (facoltativa) assegna funzioni di aggregato alle colonne; più funzioni per colonna si combinano con `+`.
 - **`types:`** (facoltativo) commuta l'indicazione di tipo sotto le intestazioni: `shown` o `hidden`. Senza questa riga compare.
@@ -41,6 +44,10 @@ columns: Importo:number(2), Totale "Totale (lordo, in €)":number(2) = Importo 
 ```
 
 Il testo di visualizzazione può portare qualsiasi carattere, compresi spazi, virgole, due punti e segni di uguale; una virgoletta al suo interno si scrive due volte. La colonna resta indirizzata solo tramite il suo identificatore, che rimane accessibile come suggerimento sull'intestazione.
+
+### Il nome della tabella
+
+La riga `table:` sta tra le direttive di intestazione prima delle righe di dati e al massimo una volta nel blocco; modificando nella griglia resta la prima riga. Per il nome valgono le regole delle [ancore di blocco](linking.md): lettere (anche accentate e ß), cifre, trattino e trattino basso, niente spazi, niente punti; maiuscole e minuscole contano. `[[Documento#^Vendite]]` salta alla tabella, `![[Documento#^Vendite]]` la incorpora. Se due blocchi del documento portano lo stesso nome, conta la prima occorrenza; la tabella non lo segnala come errore, e il pannello [Proprietà del blocco](block-properties.md) indica il nome assegnato più volte. Se la tabella dati è disattivata, la riga resta come testo nel blocco di codice, e il nome rimane una destinazione di salto.
 
 ## Tipi di colonna e formati
 
@@ -126,12 +133,12 @@ Ordinamento e filtro agiscono **solo sulla vista**: il sorgente resta invariato,
 
 ## Errori
 
-- **Gli errori di struttura** (tipo sconosciuto, nomi di colonna duplicati, numero di celle divergente, espressioni non valide) appaiono come elenco sopra la griglia con il numero di riga nel blocco.
+- **Gli errori di struttura** (tipo sconosciuto, nomi di colonna duplicati, numero di celle divergente, espressioni non valide, un nome vuoto o non valido nella riga `table:`, una seconda riga `table:` nel blocco) appaiono come elenco sopra la griglia con il numero di riga nel blocco.
 - **Gli errori di cella** (valore non conforme al tipo) contrassegnano solo la cella interessata; il testo viene conservato.
 
 ## Esportazione
 
-L'esportazione portable e l'esportazione PDF producono la tabella come tabella statica nell'ordine del documento: con tutte le righe, i valori calcolati delle colonne calcolate e la riga di aggregati, senza interattività. I collegamenti e i tag delle celle di testo vi compaiono come i collegamenti e i tag del resto del documento.
+L'esportazione portable e l'esportazione PDF producono la tabella come tabella statica nell'ordine del documento: con tutte le righe, i valori calcolati delle colonne calcolate e la riga di aggregati, senza interattività. I collegamenti e i tag delle celle di testo vi compaiono come i collegamenti e i tag del resto del documento. Se la tabella porta un nome, nell'esportazione portable la segue una riga `^Nome`, affinché i collegamenti nel documento esportato mantengano la loro destinazione.
 
 ## Limiti
 

@@ -39,6 +39,7 @@ import { getDocText } from '../app/api.js';
 // Unkritisch, weil alle Zugriffe erst zur Laufzeit (im Event-Handler) erfolgen.
 import { renderPaneContent } from '../views/pane-render.js';
 import { showStatusbarHint } from '../views/views.js';
+import { activeTabOfPane, renderedPaneIndex } from '../views/pane-lookup.js';
 // 4T-000986: die Datatable-Familie ist geschnitten; die Namen kommen direkt
 // aus dem jeweiligen Modul (Kern, berechnete Spalten, Ansicht).
 import {
@@ -86,17 +87,14 @@ function resolveContext(el) {
   // beziehen sich auf die Embed-Datei, nicht auf das aktive Doc.
   if (container.closest('.wiki-embed-md-body')) return null;
   const cmRoot = container.closest('.cm-editor');
-  let paneIdx;
   const live = !!cmRoot;
-  if (cmRoot) {
-    paneIdx = paneEditors.findIndex((v) => v && v.dom === cmRoot);
-  } else {
-    const group = container.closest('.pane-group');
-    paneIdx = group ? parseInt(group.dataset.pane, 10) : -1;
-  }
+  // 4T-002021: Der Weg zur Spalte und zum geöffneten Dokument ist mit dem
+  // Diagramm-Schritt geteilt (views/pane-lookup.js).
+  const paneIdx = cmRoot
+    ? paneEditors.findIndex((v) => v && v.dom === cmRoot)
+    : renderedPaneIndex(container);
   if (!Number.isFinite(paneIdx) || paneIdx < 0) return null;
-  const pane = state.panes[paneIdx];
-  const tab = pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+  const tab = activeTabOfPane(state.panes, paneIdx);
   const view = paneEditors[paneIdx];
   if (!tab || !view) return null;
   const modeOk = live ? tab.viewMode === 'live' : tab.viewMode === 'split';

@@ -201,6 +201,8 @@ describe('Der Schritt-Satz selbst (Entscheidung des Product Owners vom 2026-09-0
       'applyPerspectiveScriptsIfPresent',
       'applyBlockMetaIndicators',
       'applyMermaidIfPresent',
+      // 4T-002021: Diagramm zu einer Datentabelle.
+      'applyPerspectiveChartsIfPresent',
     ]) {
       expect(koerper, `${schritt} fehlt in der gemeinsamen Folge`).toContain(schritt);
     }
@@ -238,6 +240,31 @@ describe('Der Schritt-Satz selbst (Entscheidung des Product Owners vom 2026-09-0
     expect(koerper).toMatch(/einbettungen:\s*false/);
     // Gegenprobe: Der Aufrufer der Einbettung zählt weiterhin hoch.
     expect(s).toMatch(/applyWikiEmbedsIfPresent\(body, result\.path, depth \+ 1\)/);
+  });
+
+  it('die Diagramme sind eine Befüllung und kennen das Dokument ihres Teilbaums (4T-002021)', () => {
+    // Ein Diagramm nennt eine Tabelle im selben Dokument. Der Schritt steht in
+    // der gemeinsamen Folge hinter der Datentabelle und hängt an keinem
+    // Schalter; jeder Teilbaum reicht den Text mit, aus dem er gerendert
+    // wurde, sonst fände das Diagramm dort seine Tabelle nicht.
+    const s = quelle();
+    const ab = s.slice(s.indexOf('function wendeSchritteAn('));
+    const koerper = ab.slice(0, ab.indexOf('\n}\n'));
+    expect(koerper).toContain('applyPerspectiveChartsIfPresent(container, basePath');
+    expect(koerper).not.toMatch(/if \([^)]*\) applyPerspectiveChartsIfPresent/);
+    expect(koerper.indexOf('applyPerspectiveChartsIfPresent')).toBeGreaterThan(
+      koerper.indexOf('applyPerspectiveDatatablesIfPresent'),
+    );
+    for (const datei of TEILBAUM) {
+      expect(lies(datei), `${datei} reicht den Dokument-Text nicht mit`).toMatch(/dokumentText/);
+    }
+    // Die Einbettung eines Ausschnitts bezieht sich auf das ganze Dokument.
+    expect(s).toMatch(/dokumentTextEinerEinbettung\(/);
+    expect(s).toMatch(/applyTeilbaumSchritte\(body, result\.path, \{ dokumentText \}\)/);
+    // Im Block-Widget des Live-Modus läuft der einzelne Schritt, nicht die Folge.
+    expect(lies('modules/live/live-widget-render.js')).toContain(
+      'applyPerspectiveChartsIfPresent(container',
+    );
   });
 
   it('die Skript-Ausgabe hält ihre dokumentierte Ausnahme', () => {

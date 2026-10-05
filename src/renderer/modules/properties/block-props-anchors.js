@@ -1,6 +1,12 @@
 // Anker-Verwaltung des Block-Eigenschaften-Panels: Dropdown, Sprung, Anlegen,
 // Umbenennen und der Verwaisten-Abschnitt.
 // 4T-000979 (Epic 3E-000196): Auszug aus block-props-panel.js.
+// 4T-002072 (Epic 3E-000192): Das Anlegen fragt den Schreibort der Heimat
+// (`ankerZielFuerZeile`); in einer Datentabelle entsteht die Kennung als
+// Kopf-Angabe `table:` im Block. Das Umbenennen wirkt unverändert über
+// `rewriteAnchorReferences`, das die Kopf-Angabe und die Diagramm-Angaben beider
+// Schreibweisen mitzieht. Nachbesserung F1: In einem anderen Code-Block (auch im
+// Zitat oder eingerückt) entsteht die Kennung als eigene Zeile unter dem Zaun.
 'use strict';
 
 // 4T-000484 (Epic 3E-000088): Undo-Isolation der Ganz-Dokument-Ersetzung beim
@@ -11,6 +17,7 @@ import { api, getDocText } from '../app/api.js';
 import { state } from '../app/app-state.js';
 import { paneEditors } from '../editor/editor.js';
 import {
+  ankerZielFuerZeile,
   extractBlockAnchors,
   rewriteAnchorReferences,
   generateBlockAnchorId,
@@ -88,30 +95,64 @@ export function jumpToAnchor(paneIdx, anchorId) {
 
 // --- Anker anlegen / umbenennen ---------------------------------------------
 
-// Legt fuer den Block unter dem Cursor einen Anker an (kurze Zufalls-ID) und
-// schreibt ihn als `^id` an das Ende der letzten nicht-leeren Zeile des Blocks.
+// 4T-002072 (Epic 3E-000192): Die Änderung, die eine neue Kennung `id` an den
+// Schreibort `ziel` aus `ankerZielFuerZeile` bringt, samt der Stelle am Ende
+// des eingefügten Namens (dorthin kommt die Schreibmarke):
+//   zeilenende  ` ^id` an das Ende der Zeile (Bestand)
+//   kopf-neu    neue Zeile `einrueckung + 'table: ' + id` nach dem Öffner der
+//               Datentabelle; der Zaun bleibt geschlossen
+//   kopf-wert   den Wert der vorhandenen Angabe `table:` ersetzen; bei leerem
+//               Wert direkt hinter dem Doppelpunkt mit einem Leerzeichen davor
+//   zeile-neu   Nachbesserung F1: eigene Zeile `praefix + '^id'` unter der
+//               Schluss-Zeile eines Code-Blocks, im selben Zitat oder in
+//               derselben Einrückung; der Zaun bleibt unberührt. Folgt eine
+//               nicht leere Zeile, trennt eine Leerzeile die Anker-Zeile von ihr
+function ankerAenderung(editorState, ziel, id) {
+  const doc = editorState.doc;
+  if (ziel.art === 'kopf-neu') {
+    const oeffner = doc.line(ziel.nachZeile);
+    const insert = `${editorState.lineBreak}${ziel.einrueckung}table: ${id}`;
+    return { changes: { from: oeffner.to, insert }, ende: oeffner.to + insert.length };
+  }
+  if (ziel.art === 'kopf-wert') {
+    const zeile = doc.line(ziel.zeile);
+    const insert = ziel.von === ziel.bis ? ` ${id}` : id;
+    const from = zeile.from + ziel.von;
+    return { changes: { from, to: zeile.from + ziel.bis, insert }, ende: from + insert.length };
+  }
+  if (ziel.art === 'zeile-neu') {
+    const schluss = doc.line(ziel.nachZeile);
+    const zeile = `${editorState.lineBreak}${ziel.praefix}^${id}`;
+    const leer = ziel.leerzeile ? `${editorState.lineBreak}${ziel.praefix.trimEnd()}` : '';
+    return { changes: { from: schluss.to, insert: zeile + leer }, ende: schluss.to + zeile.length };
+  }
+  const zeile = doc.line(ziel.zeile);
+  const insert = ` ^${id}`;
+  return { changes: { from: zeile.to, insert }, ende: zeile.to + insert.length };
+}
+
+// Legt fuer den Block unter dem Cursor einen Anker an (kurze Zufalls-ID). Der
+// Schreibort kommt aus der Heimat (`ankerZielFuerZeile`, 4T-002072): sonst als
+// `^id` an das Ende der letzten nicht-leeren Zeile des Blocks, in einer
+// Datentabelle als Kopf-Angabe `table: id` am Anfang ihres Blocks — an der
+// Schluss-Zeile des Zauns stuende er hinter dem Zaun und schloesse ihn nicht
+// mehr. Nachbesserung F1: in jedem anderen Code-Block als eigene Zeile unter
+// seiner Schluss-Zeile; an eine Zaun-Zeile wird nie angehängt.
 export function createAnchorForCursor(paneIdx) {
   if (isReadOnlyForPane(paneIdx)) return;
   const view = paneEditors[paneIdx];
   if (!view) return;
   const text = docTextForPane(paneIdx);
-  const lines = text.split(/\r?\n/);
-  const cursorLine = cursorLineForPane(paneIdx);
-  const idx = cursorLine - 1;
-  if (idx < 0 || idx >= lines.length || lines[idx].trim() === '') return;
-  // Letzte nicht-leere Zeile des Blocks bestimmen (der Anker sitzt am Blockende).
-  let end = idx;
-  while (end < lines.length - 1 && lines[end + 1].trim() !== '') end++;
+  const ziel = ankerZielFuerZeile(text, cursorLineForPane(paneIdx));
+  if (!ziel) return;
   const { order } = extractBlockAnchors(text);
   const id = generateBlockAnchorId(new Set(order));
-  const targetLine = view.state.doc.line(end + 1);
-  // Anker ans Blockende anhaengen; der Cursor landet am Ende des eingefuegten
-  // Textes (weiter in derselben Zeile), damit die Cursor-Folge den neuen Anker
-  // erkennt.
-  const insert = ` ^${id}`;
+  // Der Cursor landet am Ende des eingefuegten Namens, damit die Cursor-Folge
+  // den neuen Anker erkennt.
+  const { changes, ende } = ankerAenderung(view.state, ziel, id);
   view.dispatch({
-    changes: { from: targetLine.to, insert },
-    selection: { anchor: targetLine.to + insert.length },
+    changes,
+    selection: { anchor: ende },
     scrollIntoView: true,
     // 4T-000484 (Epic 3E-000088): Klick-/Kommando-Pfad ohne Tipp-Ereignis —
     // Annotation verhindert das Verschmelzen mit dem vorherigen Historien-

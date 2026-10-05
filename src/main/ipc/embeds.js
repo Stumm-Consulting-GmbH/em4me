@@ -14,6 +14,9 @@
 // Er braucht genau den Auflöser dieser Gruppe, und ein zweiter daneben
 // entschiede dieselbe Frage ein zweites Mal.
 //
+// Seit 4T-002023 (Epic 3E-000192) aus demselben Grund `chart:readTableDocument`:
+// der ganze Text des Dokuments, in dem ein Diagramm seine Tabelle nennt.
+//
 // Eigener Zustand: keiner; Index, Unterseiten-Logik und Inhalts-Leser kommen
 // als Deps.
 'use strict';
@@ -27,6 +30,9 @@ const { isInsideArea } = require('../area/area-path.js');
 // der Angaben einer verlinkten Notiz.
 const { leseFrontmatterKopf } = require('../database/frontmatter-kopf.js');
 const { angabenAusKopf } = require('../../shared/kanban/kanban-angaben.js');
+// 4T-002023 (Epic 3E-000192): Ein Ziel in einem verknüpften Bereich löst der
+// Diagramm-Kanal nicht auf, wie die Einbettung auch nicht.
+const { isAreaLinkTarget } = require('../../shared/area-link-syntax.js');
 
 // 4T-001957: Obergrenzen der gebündelten Anfrage einer Tafel. Der Anzeige-Prozess
 // schickt je Ziel genau einen Eintrag; die Grenzen fangen allein einen
@@ -159,7 +165,19 @@ function registerEmbedsIpc(handle, deps) {
     }
     // Nichts gefunden: den dokument-relativen Pfad melden, damit der
     // Fehl-Hinweis das Ziel nennt, das der Anwender geschrieben hat.
-    return { ok: false, error: 'not found', abs };
+    // 4T-002023 (Epic 3E-000192): Dazu, ob die Namens-Suche schon greifen
+    // konnte. Ein nur über den Namen erreichbares Ziel gilt vor dem Aufbau des
+    // Verzeichnisses als nicht gefunden; der Anzeige-Prozess zeichnet es nach,
+    // sobald das Verzeichnis bereit ist. Additiv, die übrigen Aufrufer lesen
+    // das Feld nicht.
+    return { ok: false, error: 'not found', abs, indexBereit: !!(idx && idx.status === 'ready') };
+  }
+
+  // 4T-002023: Wie das Render-Plugin — ohne Endung ist `.md` gemeint; der
+  // Eltern-Verweis `..` bleibt, wie er ist, der Auflöser expandiert ihn. Eine
+  // Stelle für beide Kanäle, die ein Dokument über seinen Namen erreichen.
+  function mitMarkdownEndung(ziel) {
+    return /\.[a-z0-9]{1,8}$/i.test(ziel) || /^\.\.\/?$/.test(ziel) ? ziel : `${ziel}.md`;
   }
 
   // 4T-001486 (Epic 3E-000199): Ziel-Pfad einer Nicht-Markdown-Einbettung.
@@ -341,11 +359,7 @@ function registerEmbedsIpc(handle, deps) {
 
   async function angabenEinesZiels(event, basePath, ziel, schluessel, bilder) {
     if (typeof ziel !== 'string' || ziel.trim() === '') return null;
-    // Wie das Render-Plugin: ohne Endung ist `.md` gemeint; der Eltern-Verweis
-    // `..` bleibt, wie er ist, der Auflöser expandiert ihn.
-    const mitEndung =
-      /\.[a-z0-9]{1,8}$/i.test(ziel) || /^\.\.\/?$/.test(ziel) ? ziel : `${ziel}.md`;
-    const notiz = await loeseEmbedZiel(event, basePath, mitEndung, 'md');
+    const notiz = await loeseEmbedZiel(event, basePath, mitMarkdownEndung(ziel), 'md');
     if (!notiz.ok) return null;
     const kopf = await leseFrontmatterKopf({
       absPath: notiz.abs,
@@ -404,6 +418,84 @@ function registerEmbedsIpc(handle, deps) {
     }
     return { ok: true, ergebnisse };
   });
+
+  // 4T-002023 (Epic 3E-000192, Story 4S-001023): Der ganze Text des Dokuments,
+  // in dem ein Diagramm seine Tabelle nennt (`table: [[Datei#^name]]`).
+  //
+  // **Warum ein eigener Kanal und nicht `embed:read`.** Dessen Antwort mit
+  // Anker ist der Ausschnitt zum Einbetten; die Namens-Zeile, an der der
+  // Format-Kern die Tabelle erkennt, trägt er nicht. Den Namen sucht deshalb
+  // der Kern im ganzen Text, nach derselben Regel wie im eigenen Dokument
+  // (Ausführungs-Entscheidungen 4 und 5 des Tasks). Ohne Anker lieferte
+  // `embed:read` zwar denselben Text, aber mit roher Systemmeldung statt fester
+  // Kennung und ohne die Auskunft, ob das Verzeichnis schon bereit war.
+  //
+  // **Dieselbe Auflösung wie die Einbettung:** derselbe Auflöser, dieselbe
+  // Grenze, dieselbe Endungs-Regel, derselbe Puffer-Vorrang, dieselbe
+  // Größen-Grenze. Ein Ziel in einem verknüpften Bereich (`@kürzel:`) findet
+  // die Einbettung nicht, also auch dieser Kanal nicht (Entscheidung des
+  // Product Owners vom 2026-09-29, «Eigenes Vorhaben danach»).
+  //
+  // **Nur lesend.** Der Kanal öffnet nichts zum Schreiben und meldet keinen
+  // Puffer; das andere Dokument bleibt, wie es ist, auch nicht ungespeichert.
+  //
+  // Antwort: `{ ok: true, path, content, quelle: 'puffer'|'platte' }` oder
+  // `{ ok: false, error, path?, indexBereit? }` mit `error` aus 'missing
+  // params', 'area-link', 'not found', 'outside area root', 'extension not
+  // allowed', 'invalid path', 'too large', 'unreadable'. Der Anzeige-Prozess
+  // unterscheidet sie nicht: Jede ist der Grund «Dokument fehlt».
+  handle('chart:readTableDocument', async (event, params) => {
+    const basePath = params && params.basePath;
+    const file = params && params.file;
+    if (!istPfadAngabe(basePath) || !istPfadAngabe(file)) {
+      return { ok: false, error: 'missing params' };
+    }
+    if (isAreaLinkTarget(file)) return { ok: false, error: 'area-link' };
+    // Immer, nicht erst in der dritten Stufe: Erst ein angemeldeter Bedarf
+    // hält den Beobachter der Wurzel, über den eine Änderung der Ziel-Datei
+    // von außen bemerkt wird.
+    backlinks.ensureIndexForDemand(basePath, `${event.sender.id}:demand`, areaRootForEvent(event));
+    const ziel = await loeseEmbedZiel(event, basePath, mitMarkdownEndung(file), 'md');
+    // Wie `embed:read`: Ein nicht gefundenes Ziel kann noch als ungespeicherter
+    // Stand im Puffer liegen; ein Grenz- oder Endungs-Verstoß bricht ab.
+    if (!ziel.ok && !ziel.abs) return { ok: false, error: ziel.error };
+    const abs = ziel.abs;
+    const nichtGefunden = { ok: false, error: 'not found', path: abs };
+    if (!ziel.ok && typeof ziel.indexBereit === 'boolean') {
+      nichtGefunden.indexBereit = ziel.indexBereit;
+    }
+    try {
+      const gelesen = await embedInhalt.liesEmbedInhalt(
+        abs,
+        backlinks.bufferTextFor(abs),
+        MAX_EMBED_BYTES,
+      );
+      if (!gelesen.ok) {
+        return {
+          ok: false,
+          error: gelesen.error === 'file too large' ? 'too large' : 'unreadable',
+          path: abs,
+        };
+      }
+      return {
+        ok: true,
+        path: abs,
+        content: gelesen.content,
+        quelle: gelesen.ausPuffer ? 'puffer' : 'platte',
+      };
+    } catch (err) {
+      if (err && err.code === 'ENOENT') return nichtGefunden;
+      return { ok: false, error: 'unreadable', path: abs };
+    }
+  });
+}
+
+// 4T-002023: Grenze gegen einen fehlgeformten Aufruf; kein echter Pfad reicht
+// an sie heran.
+const MAX_PFAD_LAENGE = 4096;
+
+function istPfadAngabe(wert) {
+  return typeof wert === 'string' && wert !== '' && wert.length <= MAX_PFAD_LAENGE;
 }
 
 module.exports = { registerEmbedsIpc };

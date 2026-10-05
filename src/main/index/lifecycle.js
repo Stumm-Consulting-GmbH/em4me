@@ -10,6 +10,8 @@
 const path = require('node:path');
 const { indexes, broadcast, scheduleInvalidate, resolveRootInfo } = require('./store.js');
 const { buildIndexAsync } = require('./build.js');
+// 4T-002023 (Epic 3E-000192): geschriebene Stände eines geschlossenen Fensters.
+const { clearBufferOverlaysOfOwner, meldeOverlayAenderung } = require('./overlay.js');
 const { writeAreaCache } = require('./cache.js');
 const { normalizeBlockEntries } = require('./block-data.js');
 // 4T-001761 (Epic 3E-000253): Die abgeleiteten Zuordnungen des Datensatz-
@@ -279,7 +281,13 @@ function releaseRoot(rootPath, ownerKey) {
 
 // B-02 (4T-000175): Beim Schliessen eines Fensters alle Owner-Keys dieses
 // webContents freigeben (Keys haben die Form '<webContentsId>:<paneIdx>').
+//
+// 4T-002023 (Epic 3E-000192): Dazu die geschriebenen Stände, die dieses Fenster
+// zuletzt gemeldet hat (Besitzer ist dieselbe webContents-Kennung, siehe
+// index:overlay), samt Meldung an die übrigen Fenster. Hier und nicht im
+// Anzeige-Prozess, weil ein geschlossenes Fenster nichts mehr zurücknimmt.
 function releaseAllForOwner(webContentsId) {
+  for (const pfad of clearBufferOverlaysOfOwner(webContentsId)) meldeOverlayAenderung(pfad);
   const prefix = `${webContentsId}:`;
   for (const [rootPath, entry] of indexes) {
     let removed = false;

@@ -213,6 +213,11 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-000293)', () => {
     const off = renderOff('perspective-datatable', src);
     expect(off).not.toContain('pdt-grid');
     expect(off).toContain('columns: N:number');
+    // 4T-002072: Der Kopf-Name bleibt Kennung des Blocks; die id sitzt am <pre>.
+    const benannt = src.replace('columns', 'table: Umsatz\ncolumns');
+    expect(renderOff('perspective-datatable', benannt)).toMatch(
+      /<pre id="Umsatz">[^]*table: Umsatz/,
+    );
     // Portable-Export: Fence bleibt unkonvertiert (der Marker kommt von der
     // weiterhin aktiven perspective-table-Erweiterung).
     const conv = convertMarkdownPortable(src);

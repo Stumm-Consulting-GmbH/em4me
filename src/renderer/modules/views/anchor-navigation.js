@@ -5,6 +5,8 @@
 // data-source-line-Mapping); Source/Live setzen den Editor-Cursor auf die
 // Ziel-Zeile — im Live-Modus klappt das auch Block-Widgets auf. Split
 // bedient beide Seiten (Scroll-Sync zieht ohnehin nach).
+// 4T-002072 (Epic 3E-000192): Die Zeile einer Block-Kennung kommt aus der
+// Heimat src/shared/block-anchors.js (findBlockAnchorLine).
 'use strict';
 
 import { EditorView } from '@codemirror/view';
@@ -16,6 +18,8 @@ import { githubLikeSlug } from '../../../shared/markdown/slug.js';
 // 4T-001986 (Epic 3E-000332): die Datensatz-Zeile als dritte Anker-Herkunft,
 // gelesen mit der Grammatik des Datensatz-Blocks statt einer eigenen Kopie.
 import { findeDatensatzZeile } from '../../../shared/database/record-anchor.js';
+// 4T-002072: Block-Kennungen aus ihrer Heimat (Anker-Zeile und Kopf-Name).
+import { extractBlockAnchors } from '../../../shared/block-anchors.js';
 import { getPaneEls, state } from '../app/app-state.js';
 import { paneEditors } from '../editor/editor.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
@@ -130,19 +134,15 @@ export function findHeadingLineForSlug(view, slug) {
   return found;
 }
 
-// Block-Anker-Zeile (`^id` am Zeilenende) im Doc finden.
+// Zeile einer Block-Kennung im Doc finden: die Zeile des ersten Vorkommens nach
+// der Heimat der Kennungen. 4T-002072 (Epic 3E-000192): vorher eine eigene
+// Suche nach `^id` am Zeilenende, die auch Code-Beispiele und Frontmatter traf
+// und den Namen in der Kopf-Angabe `table:` einer Datentabelle nicht kannte.
+// Für einen solchen Namen ist die Zeile die der Angabe; im Live-Modus klappt
+// der Block dort auf.
 export function findBlockAnchorLine(view, id) {
   if (!view || !id) return 0;
-  const lines = getDocText(view.state.doc).split('\n');
-  const needle = '^' + id;
-  for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trimEnd();
-    if (trimmed.endsWith(needle)) {
-      const before = trimmed.slice(0, trimmed.length - needle.length);
-      if (before === '' || /\s$/.test(before)) return i + 1;
-    }
-  }
-  return 0;
+  return extractBlockAnchors(getDocText(view.state.doc)).lineById.get(id) || 0;
 }
 
 export function navigateToAnchorInPane(paneIdx, anchorId) {

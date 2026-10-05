@@ -2,6 +2,8 @@
 
 Formeln setzt KaTeX, Diagramme rendert Mermaid, Code-Blöcke erhalten Syntax-Highlighting — alles in Lese-Ansicht, geteilter Ansicht und Live-Modus.
 
+Diagramme aus den Werten einer Datentabelle beschreibt die eigene Seite [Diagramme zu Tabellen](charts.md).
+
 ## KaTeX inline
 
 Formeln zwischen einfachen Dollar-Zeichen rendern im Fließtext. Eine Heuristik schützt Dollar-Beträge: `$100` im Satz bleibt Text, nur echte Formel-Paare werden gesetzt.

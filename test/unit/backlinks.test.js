@@ -396,6 +396,39 @@ describe('B-06: Block-Anker auf eigener Zeile', () => {
   });
 });
 
+// 4T-002072 (Epic 3E-000192): Der Index liest die Block-Kennungen aus der
+// Heimat src/shared/block-anchors.js und kennt damit den Namen aus der
+// Kopf-Angabe `table:` einer Datentabelle; ein Anker in einem Code-Beispiel
+// zählt weiter nicht.
+describe('4T-002072: Name der Datentabelle in der Kopf-Angabe table:', () => {
+  const Z = '`'.repeat(3);
+  const ZIEL = [
+    '# Ziel',
+    '',
+    `${Z}perspective-datatable`,
+    'table: Umsatz',
+    'columns: Monat:text, Betrag:number',
+    '| Januar | 100 |',
+    Z,
+    '',
+    `${Z}markdown`,
+    'Beispiel ^nurImCode',
+    Z,
+    '',
+  ].join('\n');
+
+  it('der Kopf-Name ist eine Kennung der Datei, Verweise darauf gelten als vorhanden', async () => {
+    const root = makeRoot();
+    write(root, 'Ziel.md', ZIEL);
+    const quelle = write(root, 'quelle.md', 'Siehe [[Ziel#^Umsatz]].\n');
+    await indexFor(quelle);
+    const res = existingWikiTargets(quelle, ['Ziel#^Umsatz', 'Ziel#^umsatz', 'Ziel#^nurImCode']);
+    expect(res.existing).toEqual(['Ziel#^Umsatz']);
+    expect(res.brokenAnchor).toEqual(['Ziel#^umsatz', 'Ziel#^nurImCode']);
+    expect(anchorAutocompleteSuggestions(quelle, 'Ziel', 'block').suggestions).toEqual(['Umsatz']);
+  });
+});
+
 describe('B-07: Links in Inline-Code', () => {
   it('`[[Ziel]]` im Code-Span erzeugt keinen Backlink', async () => {
     const root = makeRoot();

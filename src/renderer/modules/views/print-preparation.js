@@ -8,7 +8,8 @@
 //   1. optionaler Vorbereitungs-Schritt im Normal-Layout (Zielpfad-Dialog)
 //   2. Inhalt herstellen (Quelltext-Print-Block oder Wechsel auf 'rendered')
 //   3. Theme fuer die Druck-Dauer auf Hell zwingen (Variante B+)
-//   4. fuenf Idle-Barrieren plus Reflow-Wait
+//   4. Idle-Barrieren und helles Neu-Zeichnen (Mermaid, Diagramme zu
+//      Tabellen) plus Reflow-Wait
 //   5. Endpunkt
 //   finally: vollstaendige Ruecknahme in umgekehrter Reihenfolge
 'use strict';
@@ -29,6 +30,8 @@ import { waitForJournalNavIdle } from '../calendar/journal-nav-view.js';
 import { waitForJournalTimelineIdle } from '../calendar/journal-timeline-view.js';
 // 4T-000412 (Epic 3E-000078): Idle-Barriere der Skript-Bloecke.
 import { waitForPerspectiveScriptsIdle } from '../query/perspective-script-view.js';
+// 4T-002025 (Epic 3E-000192): helles Neu-Zeichnen und Barriere der Diagramme.
+import { warteAufDiagrammeDerAusgabe, zeichneDiagrammeFuerAusgabe } from '../charts/chart-view.js';
 // 4T-000311 (Epic 3E-000055): Druck-Aufbereitung der Quelltext-Ansicht.
 import { buildPdfSourcePrintElement } from './pdf-source-print.js';
 // 4T-000465 (Epic 3E-000086): Farb-Overrides aus dem aktiven Hell-Schema.
@@ -177,6 +180,18 @@ export async function withPrintPreparation(steps) {
       // Mit verzögerter Auflösung enthielt das PDF weder das Bild noch den
       // eingebetteten Text.
       await waitForWikiEmbedsIdle();
+      // 4T-002025 (Epic 3E-000192): Diagramme zu Tabellen sofort hell neu
+      // zeichnen und ihre Lesungen eines anderen Dokuments abwarten. Hinter
+      // der Einbettungs-Barriere, weil Diagramme auch in Einbettungen stehen
+      // und deren Lesungen hier mitzählen. Ohne diesen Schritt hing die Farbe
+      // am entprellten Beobachter; ein Diagramm auf ein anderes Dokument kam
+      // am laufenden Programm dunkel ins PDF (Lesung noch unterwegs).
+      // Gezeichnet und abgewartet wird allein in der gedruckten Spalte; eine
+      // hängende Lesung einer anderen Spalte verzögert die Ausgabe nicht. Ist
+      // eine Lesung bis zur Zeit-Grenze nicht fertig, steht an ihrer Stelle
+      // ein Hinweis statt eines alten oder leeren Bilds.
+      const diagramme = zeichneDiagrammeFuerAusgabe(els.content);
+      await warteAufDiagrammeDerAusgabe(els.content, diagramme);
     }
     await waitForReflow();
 
@@ -218,6 +233,10 @@ export async function withPrintPreparation(steps) {
     if (printStateApplied && savedTheme !== 'light' && !sourceMode) {
       await rerenderAllMermaidBlocks();
     }
+    // 4T-002025: Die Diagramme zu Tabellen kehren über ihren Farb-Beobachter
+    // zurück (chart-view.js), den das Zurückstellen von Variablen und
+    // `data-theme` oben auslöst; Live-Widgets baut der Editor beim Zurück in
+    // den Live-Modus ohnehin neu. Kein eigener Aufruf hier.
     printRunning = false;
   }
 }

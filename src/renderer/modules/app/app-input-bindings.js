@@ -1,7 +1,7 @@
 // Fensterweite Eingabe-Wege: Ziehen und Ablegen externer Dateien, Klicks
 // ausserhalb von Menues, die Escape-Kaskade und der Kommando-Tastendruck;
-// dazu die Auffrischung am Puffer-Overlay des Index und das Sichern bei
-// Fokusverlust.
+// dazu die Auffrischung am Puffer-Overlay des Index, seit 4T-002023 auch nach
+// einer Aenderung einer Datei von aussen, und das Sichern bei Fokusverlust.
 //
 // Auszug aus app-init.js, 4T-001001 (Epic 3E-000196).
 'use strict';
@@ -9,6 +9,8 @@
 import { t } from '../../i18n.js';
 import { api } from './api.js';
 import { closeWordCountDialog, refreshEmbedsOfTarget } from '../render-mermaid.js';
+// 4T-002023 (Epic 3E-000192): Meldung einer Änderung an die Diagramm-Ziele.
+import { meldeDiagrammZielAenderung } from '../charts/chart-view.js';
 import {
   MIME_TAB,
   aboutModal,
@@ -227,6 +229,30 @@ export function bindInputEvents() {
 }
 
 /**
+ * 4T-002023 (Epic 3E-000192): Einbettungen und Diagramme eines Ziels in allen
+ * Spalten dieses Fensters auffrischen, je für den aktiven Reiter. Ein nicht
+ * aktiver Reiter braucht nichts Eigenes: Er zeichnet beim Wechsel neu.
+ *
+ * Gemeldet wird einmal je Anlass, bevor die Spalten laufen: Der Stand des Ziels
+ * im Schlüssel der Live-Widgets zählt sonst je Spalte hoch.
+ *
+ * @param {string|Set<string>|null} pfad Geänderte Datei oder Menge von Dateien
+ *   (eine Meldung, ein Durchlauf je Spalte); null für die fehlenden Ziele
+ *   (gebrochene Einbettungen, Diagramme mit dem Grund «Dokument fehlt»).
+ */
+function frischeZielAuf(pfad) {
+  meldeDiagrammZielAenderung(pfad);
+  for (let i = 0; i < state.panes.length; i++) {
+    const pane = state.panes[i];
+    if (!pane || pane.activeIndex < 0) continue;
+    const tab = pane.tabs[pane.activeIndex];
+    const wurzel = paneRoots[i];
+    if (!tab || !tab.path || !wurzel) continue;
+    void refreshEmbedsOfTarget(wurzel, pfad, tab.path);
+  }
+}
+
+/**
  * Registriert die Auffrischung am Puffer-Overlay des Index und das
  * Auto-Speichern bei Fokusverlust (letzter Teil der bindUi-Sequenz vor dem
  * Splitter).
@@ -275,17 +301,42 @@ export function bindOverlayAndBlurEvents() {
     // Aufruf ist billig, wenn keine Suchleiste offen ist (fruehes return).
     refreshSearchIfVisible();
     const gemeldeterPfad = ev && ev.detail && ev.detail.filePath;
-    if (gemeldeterPfad) {
-      for (let i = 0; i < state.panes.length; i++) {
-        const pane = state.panes[i];
-        if (!pane || pane.activeIndex < 0) continue;
-        const tab = pane.tabs[pane.activeIndex];
-        const wurzel = paneRoots[i];
-        if (!tab || !tab.path || !wurzel) continue;
-        void refreshEmbedsOfTarget(wurzel, gemeldeterPfad, tab.path);
-      }
-    }
+    if (gemeldeterPfad) frischeZielAuf(gemeldeterPfad);
   });
+
+  // 4T-002023 (Epic 3E-000192): Die Meldung kommt seit dem Rundruf aus dem
+  // Hauptprozess, an jedes Fenster und für jedes Setzen und jede Rücknahme,
+  // gleich in welchem Fenster getippt, gespeichert, verworfen oder geschlossen
+  // wurde (Entscheidung des Product Owners vom 2026-09-29, «Beide folgen»). Sie
+  // wird hier zu demselben Dokument-Ereignis wie bisher, damit alle seine
+  // Zuhörer — auch die Graphen — unverändert bleiben.
+  if (typeof api.onIndexOverlayChanged === 'function') {
+    api.onIndexOverlayChanged((nutzlast) => {
+      const filePath = nutzlast && typeof nutzlast.filePath === 'string' ? nutzlast.filePath : '';
+      document.dispatchEvent(new CustomEvent(INDEX_OVERLAY_EVENT, { detail: { filePath } }));
+    });
+  }
+
+  // 4T-002023: Eine Änderung einer Datei von außen bemerkt der Beobachter des
+  // Verzeichnisses; die Meldung nennt seither die Dateien (Entscheidung des
+  // Product Owners vom 2026-09-29, «Beide frischen auf»). Einbettungen und
+  // Diagramme dieser Ziele frischen auf, alle Dateien einer Meldung in einem
+  // Durchlauf je Spalte (ein zurückgespielter Ordner meldet Hunderte). Die
+  // fehlenden Ziele frischen nur auf, wo eines auftauchen kann: nach dem Aufbau
+  // des Verzeichnisses (Meldung ohne Dateien; ab dann greift die Namens-Suche)
+  // und wenn eine Datei hinzugekommen ist. Ändern oder Entfernen einer
+  // bestehenden Datei macht kein fehlendes Ziel auffindbar.
+  if (typeof api.onBacklinksInvalidated === 'function') {
+    api.onBacklinksInvalidated((nutzlast) => {
+      const liste = (feld) =>
+        nutzlast && Array.isArray(nutzlast[feld])
+          ? nutzlast[feld].filter((p) => typeof p === 'string' && p)
+          : [];
+      const dateien = liste('dateien');
+      if (dateien.length > 0) frischeZielAuf(new Set(dateien));
+      if (dateien.length === 0 || liste('hinzugekommen').length > 0) frischeZielAuf(null);
+    });
+  }
 
   // Auto-Save bei Fenster-Fokusverlust (Wechsel in andere App oder Fenster).
   window.addEventListener('blur', () => {

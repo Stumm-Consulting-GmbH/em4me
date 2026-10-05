@@ -125,6 +125,10 @@ body.printing .markdown-body .custom-container,
 body.printing .markdown-body .wiki-embed,
 body.printing .markdown-body .frontmatter-block,
 body.printing .markdown-body .canvas-block,
+/* 4T-002025 (Epic 3E-000192): Diagramm zu einer Tabelle samt Hinweis und
+   Auslass-Zeile. Die Grafik selbst schiebt Chromium als Ganzes weiter
+   (gemessen); die Regel hält den ganzen Container zusammen. */
+body.printing .markdown-body .perspective-chart,
 body.printing .markdown-body blockquote,
 body.printing .markdown-body img {
   page-break-inside: avoid;

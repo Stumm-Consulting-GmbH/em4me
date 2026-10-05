@@ -6,6 +6,8 @@
   "datatable.error.badColumnLabel": "Zeile {line}: ungültiger Anzeigetext in der Spalten-Definition '{detail}' (erwartet: Kennung, dann der Text in doppelten Anführungszeichen)",
   "datatable.error.unknownType": "Zeile {line}: unbekannter Spalten-Typ '{detail}'",
   "datatable.error.unknownTypesValue": "Zeile {line}: unbekannter Wert '{detail}' für die Typ-Anzeige (erlaubt: shown, hidden)",
+  "datatable.error.emptyTableName": "Zeile {line}: Die Angabe 'table:' nennt keinen Namen",
+  "datatable.error.invalidTableName": "Zeile {line}: ungültiger Tabellen-Name '{detail}' (erlaubt sind Buchstaben, Ziffern, Bindestrich und Unterstrich; kein Leerzeichen, kein Punkt, kein Dach-Zeichen)",
   "datatable.error.badFormat": "Zeile {line}: ungültiges Anzeige-Format in '{detail}' (erlaubt: number mit 0 bis 10 Dezimalstellen)",
   "datatable.error.duplicateColumn": "Zeile {line}: Spaltenname '{detail}' kommt mehrfach vor",
   "datatable.error.badAggregate": "Zeile {line}: ungültiger Aggregat-Eintrag '{detail}'",

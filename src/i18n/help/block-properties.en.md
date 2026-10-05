@@ -12,11 +12,13 @@ This paragraph carries an anchor. ^meeting-1
 
 In the rendered view the anchor is invisible; it makes the block addressable. Letters (including accented ones), digits, hyphen and underscore are allowed. The properties attach to this identifier: as long as the anchor is present in the text, the data belongs to this block, no matter where the block is moved within the document.
 
+A [data table](datatable.md) carries its anchor in its block, as the line `table: Name` before the data rows.
+
 ## The block properties panel
 
 The "Block properties" panel is toggled like any sidebar panel: via the View → Sidebar → Panels → Block properties menu, the braces icon in the status bar, or a custom keyboard shortcut (none is assigned by default). Side, order and tab groups follow the rules of the [sidebar](sidebar.md).
 
-The panel **follows the cursor**: it shows the properties of the block the cursor is in. The header names the active anchor and offers a selector of all anchors in the file for jumping; anchors that carry properties are marked. If the cursor is in a block **without** an anchor, the panel offers "Create anchor" and writes a short random identifier, unique within the file, to the end of the block.
+The panel **follows the cursor**: it shows the properties of the block the cursor is in. The header names the active anchor and offers a selector of all anchors in the file for jumping; anchors that carry properties are marked. If the cursor is in a block **without** an anchor, the panel offers "Create anchor" and writes a short random identifier, unique within the file, to the end of the block; for a code block or chart it writes it on a line of its own directly below the block, in a data table as the line `table:` at the start of the block.
 
 The property rows work like in the document properties panel: each row has a freely chosen key, a type (text, list, number, true/false, date, multiline, link, time) and a matching value field. For the key, the panel suggests the block keys already used in the document. Saving happens **automatically** shortly after typing; the document tab is not marked as modified, because the data lives in the companion file, not in the text. In read-only views the panel only displays the data.
 
@@ -24,7 +26,7 @@ If **property profiles** apply to the document, its blocks inherit their definit
 
 ## Renaming an anchor
 
-The pencil icon next to the anchor selector renames the active anchor. The anchor in the text, the data entry in the companion file and the incoming references **within the same document** are updated together:
+The pencil icon next to the anchor selector renames the active anchor. The anchor in the text — for a data table the line `table:` —, the data entry in the companion file and the incoming references **within the same document** are updated together, as are the charts that refer to the table:
 
 ```markdown
 See the first item: [[#^meeting-1]]

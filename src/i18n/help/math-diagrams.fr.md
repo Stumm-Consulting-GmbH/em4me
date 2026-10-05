@@ -2,6 +2,8 @@
 
 KaTeX compose les formules, Mermaid rend les diagrammes, les blocs de code reçoivent la coloration syntaxique — en vue Lecture, en vue scindée et en mode Direct.
 
+Les graphiques tirés des valeurs d’une table de données ont leur propre page : [Graphiques de tables](charts.md).
+
 ## KaTeX en ligne
 
 Les formules entre signes dollar simples se rendent dans le texte courant. Une heuristique protège les montants en dollars : `$100` dans une phrase reste du texte, seules les vraies paires de formules sont composées.

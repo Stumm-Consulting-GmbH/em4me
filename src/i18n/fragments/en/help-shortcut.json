@@ -142,6 +142,8 @@
   "help.shortcut.insertFootnote": "Insert a footnote",
   "help.shortcut.insertTable": "Insert a table",
   "help.shortcut.insertPerspectiveTable": "Insert a Perspective table",
+  "help.shortcut.chartInsert": "Insert a chart for the data table at the cursor or for the clicked data table, via a dialog (in edit mode)",
+  "help.shortcut.chartEdit": "Change the selected chart through the same dialog; a chart is selected when the cursor is in its block or it has been clicked (in edit mode)",
   "help.shortcut.insertCallout": "Insert a callout",
   "help.shortcut.insertHorizontalRule": "Insert a horizontal rule",
   "help.shortcut.insertCodeBlock": "Insert a code block",

@@ -142,6 +142,8 @@
   "help.shortcut.insertFootnote": "Insertar una nota al pie",
   "help.shortcut.insertTable": "Insertar una tabla",
   "help.shortcut.insertPerspectiveTable": "Insertar una tabla Perspective",
+  "help.shortcut.chartInsert": "Insertar, mediante un cuadro de diálogo, un gráfico para la tabla de datos bajo el cursor o para la tabla de datos pulsada (en modo edición)",
+  "help.shortcut.chartEdit": "Modificar el gráfico seleccionado con el mismo cuadro de diálogo; está seleccionado cuando el cursor está en su bloque o se ha hecho clic en él (en modo edición)",
   "help.shortcut.insertCallout": "Insertar un bloque de aviso",
   "help.shortcut.insertHorizontalRule": "Insertar una línea horizontal",
   "help.shortcut.insertCodeBlock": "Insertar un bloque de código",

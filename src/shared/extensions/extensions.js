@@ -323,6 +323,26 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.inlineCalc',
     descKey: 'help.feature.inlineCalc',
   },
+  // 4T-002019 (Epic 3E-000192): Diagramm zu einer Datentabelle, Zaun
+  // `perspective-chart` — neues Markdown-Konstrukt ohne abhängigen Kern-Teil,
+  // damit schaltbar. Aus-Zustand: der Block bleibt gewöhnlicher Code-Block.
+  // Arbeitsmodus «Voll», weil die einzige Quelle, die Datentabelle, erst dort
+  // an ist; harte Abhängigkeit von ihr, sie bleibt an, solange Diagramme an sind.
+  {
+    id: 'perspective-chart',
+    category: 'render',
+    modeLevel: 'full',
+    dependencies: ['perspective-datatable'],
+    nameKey: 'help.featureName.chart',
+    descKey: 'help.feature.chart',
+    // 4T-002024: Einfügen und Bearbeiten gehören zum Konstrukt. Ist die
+    // Erweiterung aus, verschwinden beide aus Menü, Palette, Kontextmenü und
+    // Tastenkürzel-Seite.
+    commands: ['chart.insert', 'chart.edit'],
+    // 4T-002027: die zweite Katalog-Zeile (Einfügen und Bearbeiten über den
+    // Dialog) trägt im Aus-Zustand dieselbe Kennzeichnung auf der Funktions-Seite.
+    featureKeys: ['help.feature.chartInsertEdit'],
+  },
   {
     id: 'katex',
     category: 'render',

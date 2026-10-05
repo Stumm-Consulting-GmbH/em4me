@@ -8,6 +8,11 @@ src/renderer/hljs-themes.css
 src/renderer/katex/
 src/renderer/mermaid.bundle.js
 
+# Generated chart library build and its license texts (created by
+# scripts/build-echarts.js before every start, test and build)
+src/shared/charts/echarts.bundle.js
+src/shared/charts/echarts.LICENSES.txt
+
 # Generated language catalogues (assembled from src/i18n/fragments/ by
 # scripts/build-i18n.js before every start, test and build)
 src/i18n/*.json

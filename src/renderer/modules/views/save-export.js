@@ -26,6 +26,11 @@ import {
   replaceMermaidFences,
 } from '../../../shared/mermaid-fence.js';
 import { renderMermaidSvgsForExport } from '../render-mermaid.js';
+// 4T-002025 (Epic 3E-000192): vierte Fence-Ersetzung, die Diagramme zu Tabellen.
+import {
+  markiereKartenDiagrammeFuerExport,
+  replaceChartFencesForExport,
+} from '../charts/chart-export.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { EDITOR_VIEW_FM_KEYS, getEditorViewDefaults, state, withDialog } from '../app/app-state.js';
 // 4T-000572 (Epic 3E-000105): Frontmatter-Lesen der dokument-gebundenen Editor-
@@ -424,8 +429,11 @@ export async function exportCurrentTabAsPortable() {
     // selbst lesen und bekommt die Beschriftungen deshalb vom Aufrufer.
     // Fehlt die Datei, steht getLanguage() bereits auf der Rueckfall-Sprache,
     // und der mitgelieferte Weg greift ohne Sonderfall.
+    // 4T-002025: Diagramme in Karten einer Canvas-Fläche vor der Umwandlung
+    // markieren; sie werden unten gegen ihren Karten-Text aufgelöst.
+    const kartenDiagramme = markiereKartenDiagrammeFuerExport(tab.content);
     let portableText = api.convertMarkdownPortable(
-      tab.content,
+      kartenDiagramme.text,
       getLanguage(),
       isCustomLocale(getLanguage()) ? currentDictionary() : undefined,
     );
@@ -443,6 +451,16 @@ export async function exportCurrentTabAsPortable() {
     // Fence stehen. Zuletzt in der Kette, weil die beiden Journal-Ersetzungen
     // keine Diagramme erzeugen und die Reihenfolge damit frei ist.
     portableText = await replaceMermaidFencesForExport(portableText);
+    // 4T-002025 (Epic 3E-000192): Diagramme zu Tabellen werden als hell
+    // gezeichnetes Bild eingebrannt. Gesucht wird im umgewandelten Text,
+    // aufgelöst gegen den Text des Reiters: Dort steht die Datentabelle noch
+    // als Block, im umgewandelten Text ist sie schon eine HTML-Tabelle. Ein
+    // nicht zeichenbares Diagramm und der Aus-Zustand lassen den Block stehen.
+    portableText = await replaceChartFencesForExport(portableText, {
+      dokumentText: tab.content,
+      basePath: tab.path || '',
+      karten: kartenDiagramme.karten,
+    });
     let suggestedPath = null;
     if (tab.path) {
       // '.md'-Suffix durch '-portable.md' ersetzen, falls vorhanden;

@@ -6,6 +6,8 @@
   "datatable.error.badColumnLabel": "Línea {line}: rótulo de presentación no válido en la definición de columna '{detail}' (se espera: identificador y luego el texto entre comillas dobles)",
   "datatable.error.unknownType": "Línea {line}: tipo de columna desconocido '{detail}'",
   "datatable.error.unknownTypesValue": "Línea {line}: valor '{detail}' desconocido para la presentación del tipo (permitido: shown, hidden)",
+  "datatable.error.emptyTableName": "Línea {line}: la indicación 'table:' no indica ningún nombre",
+  "datatable.error.invalidTableName": "Línea {line}: nombre de tabla no válido '{detail}' (se permiten letras, dígitos, guion y guion bajo; sin espacios, sin punto, sin acento circunflejo)",
   "datatable.error.badFormat": "Línea {line}: formato de visualización no válido en '{detail}' (permitido: number con 0 a 10 decimales)",
   "datatable.error.duplicateColumn": "Línea {line}: el nombre de columna '{detail}' aparece varias veces",
   "datatable.error.badAggregate": "Línea {line}: entrada de agregado no válida '{detail}'",

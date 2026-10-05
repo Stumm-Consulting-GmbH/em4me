@@ -120,6 +120,7 @@
   "menu.view.kanbanRelativeDates": "Mostra date relative",
   "menu.view.canvasEdit": "Modifica tela",
   "menu.view.canvasStack": "Ordine di sovrapposizione della tela",
+  "menu.view.chart": "Grafico",
   "menu.file.exportJsonCanvas": "Tela come JSON Canvas…",
   "menu.file.import": "Importare",
   "menu.file.importJsonCanvas": "File JSON Canvas…"

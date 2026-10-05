@@ -189,6 +189,8 @@
   "help.featureName.datatable": "Perspective Datatable",
   "help.featureName.datatableGrid": "Edición en cuadrícula de la tabla de datos",
   "help.featureName.datatableView": "Ordenación y filtros de la tabla de datos",
+  "help.featureName.chart": "Gráfico de una tabla de datos",
+  "help.featureName.chartInsertEdit": "Insertar y editar gráficos",
   "help.featureName.frontmatterQuery": "Consulta Perspective",
   "help.featureName.querySources": "Fuentes de consulta",
   "help.featureName.queryTable": "Tabla de consulta",

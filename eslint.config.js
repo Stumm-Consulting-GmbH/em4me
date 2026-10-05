@@ -19,6 +19,8 @@ module.exports = [
       'playwright-report/',
       'src/renderer/renderer.bundle.js',
       'src/renderer/mermaid.bundle.js',
+      // 4T-002020: Teil-Einbindung der Zeichen-Bibliothek (scripts/build-echarts.js).
+      'src/shared/charts/echarts.bundle.js',
       'src/renderer/katex/',
     ],
   },

@@ -27,6 +27,8 @@ import {
 // 4T-001852 (Epic 3E-000110): die beiden Wege zu einer Tafel.
 import { legeNeueTafelAn, wandleInTafelUm } from '../kanban/kanban-anlegen.js';
 import { schalteKanbanAnzeige } from '../kanban/kanban-anzeige-schalter.js';
+// 4T-002024 (Epic 3E-000192): Diagramm einfügen und bearbeiten.
+import { runChartEdit, runChartInsert } from '../charts/chart-commands.js';
 import { starteCanvasVerbindung } from '../panels/panel-canvas-liste.js';
 import { toggleOutlinePanel } from '../panels/panel-outline.js';
 import { toggleOutgoingPanel } from '../panels/panel-outgoing.js';
@@ -205,6 +207,14 @@ export function bindMenuEvents() {
   // Kommando, derselbe Weg wie aus der Kommando-Palette.
   if (typeof api.onMenuKanbanSchalter === 'function') {
     api.onMenuKanbanSchalter((kommando) => schalteKanbanAnzeige(kommando));
+  }
+  // 4T-002024 (Epic 3E-000192): 'Ansicht -> Diagramm -> Diagramm zu dieser
+  // Tabelle einfügen' und '… -> Diagramm bearbeiten'.
+  if (typeof api.onMenuChartInsert === 'function') {
+    api.onMenuChartInsert(() => runChartInsert(state.activePaneIndex));
+  }
+  if (typeof api.onMenuChartEdit === 'function') {
+    api.onMenuChartEdit(() => runChartEdit(state.activePaneIndex));
   }
   // 4T-001701 (Epic 3E-000288): 'Form auf der Flaeche anlegen' und die vier
   // Stapel-Befehle des gewaehlten Elements.

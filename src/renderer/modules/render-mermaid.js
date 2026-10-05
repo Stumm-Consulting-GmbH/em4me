@@ -52,7 +52,7 @@ import { applyRecordRowAccess } from './database/datensatz-zeilen-zugang.js';
 // Dieselbe Richtung wie die beiden Importe darueber (modules -> modules/canvas);
 // der Canvas-Ordner importiert nichts zurueck.
 import { frischeVerweisKarten } from './canvas/canvas-verweis-anzeige.js';
-import { applyBlockMetaIndicators } from './block-meta-indicator.js';
+import { applyBlockMetaIndicators, setzeInhalt, uebernimmAnker } from './block-meta-indicator.js';
 // 4T-000418 (Epic 3E-000079): Lokalisierung der Perspective-Datatable-Texte
 // mit Platzhaltern (Struktur-Fehler, Zeilen-Limit).
 import { applyPerspectiveDatatablesIfPresent } from './query/perspective-datatable-view.js';
@@ -68,6 +68,13 @@ import {
   bindPerspectiveDatatableEditor,
   applyPerspectiveDatatableViewStates,
 } from './query/perspective-datatable-editor.js';
+// 4T-002021 (Epic 3E-000192): Diagramm zu einer Datentabelle — Schritt der
+// Befüllung; der Dokument-Text der Vollansicht ist der Puffer des geöffneten
+// Dokuments der Spalte (Weg geteilt mit dem Grid-Editor).
+import { applyPerspectiveChartsIfPresent, frischeDiagrammeAuf } from './charts/chart-view.js';
+import { zielPfadListe, zielPruefer } from './charts/chart-targets.js';
+import { dokumentTextEinerEinbettung } from './charts/chart-embedding.js';
+import { activeTabOfPane, renderedPaneIndex } from './views/pane-lookup.js';
 
 // --- Mermaid (4T-000021) ------------------------------------------------------
 // Mermaid wird per dynamischem import() lazy geladen (siehe scripts/
@@ -522,10 +529,12 @@ export async function applyMermaidIfPresent(container) {
     const block = document.createElement('div');
     block.className = 'mermaid-block';
     block.dataset.source = source;
+    // 4T-002048: Kennung einer Anker-Zeile darunter und Eigenschaften-Zeichen.
+    uebernimmAnker(preEl, block);
     const cacheKey = mermaidCacheKey(theme, source);
     const cached = mermaidRenderCache.get(cacheKey);
     if (cached) {
-      block.innerHTML = cached;
+      setzeInhalt(block, cached);
       preEl.replaceWith(block);
       continue;
     }
@@ -556,7 +565,7 @@ export async function applyMermaidIfPresent(container) {
       if (isError) {
         renderMermaidErrorBlock(item.block, item.source, t('mermaid.syntaxError'));
       } else {
-        item.block.innerHTML = svgHtml;
+        setzeInhalt(item.block, svgHtml);
         item.block.classList.remove('mermaid-error');
         mermaidCacheSet(item.cacheKey, svgHtml);
       }
@@ -567,7 +576,7 @@ export async function applyMermaidIfPresent(container) {
 
 export function renderMermaidErrorBlock(block, source, message) {
   block.classList.add('mermaid-error');
-  block.innerHTML = '';
+  setzeInhalt(block, '');
   const pre = document.createElement('pre');
   pre.className = 'mermaid-error-source';
   pre.textContent = source;
@@ -714,13 +723,27 @@ async function applyWikiEmbedsInner(container, basePath, depth) {
 // aufgeloesten Ziel-Pfad. Ueber die uebergeordneten Embed-Koerper ergeben
 // sich Basis-Pfad und Tiefe der Verschachtelung, die renderMarkdownEmbed
 // braucht.
+//
+// 4T-002023 (Epic 3E-000192): Derselbe Weg frischt die Diagramme desselben
+// Ziels auf (frischeDiagrammeAuf), damit Einbettung und Diagramm einander
+// gleich folgen; der Pfad-Vergleich ist beider (Trenner, Schreibweise). Ohne
+// Ziel-Pfad (null) sind die fehlenden Ziele gemeint: Gebrochene Einbettungen
+// tragen kein 'data-embed-base' und werden neu aufgeloest, sobald das
+// Verzeichnis bereit ist oder eine Datei angelegt wurde.
+// Ein Ziel ist ein Pfad oder eine Menge von Pfaden (eine Invalidierungs-Meldung
+// nennt viele); die Spalte wird dann einmal durchlaufen, nicht je Pfad.
 export async function refreshEmbedsOfTarget(wurzel, zielPfad, dokumentPfad) {
-  if (!wurzel || !zielPfad) return 0;
-  const ziel = String(zielPfad).toLowerCase();
+  const fehlende = zielPfad === null;
+  const pfade = fehlende ? [] : zielPfadListe(zielPfad);
+  if (!wurzel || (!fehlende && pfade.length === 0)) return 0;
+  const trifft = zielPruefer(pfade);
   const treffer = [];
-  for (const body of wurzel.querySelectorAll('.wiki-embed-md-body[data-embed-base]')) {
-    if (String(body.dataset.embedBase || '').toLowerCase() !== ziel) continue;
-    const span = body.closest('.wiki-embed');
+  const auswahl = fehlende
+    ? '.wiki-embed-broken[data-embed-kind="md"]'
+    : '.wiki-embed-md-body[data-embed-base]';
+  for (const el of wurzel.querySelectorAll(auswahl)) {
+    if (!fehlende && !trifft(el.dataset.embedBase)) continue;
+    const span = fehlende ? el : el.closest('.wiki-embed');
     if (span) treffer.push(span);
   }
   for (const span of treffer) {
@@ -748,8 +771,9 @@ export async function refreshEmbedsOfTarget(wurzel, zielPfad, dokumentPfad) {
   // Auffrisch-Weg im Canvas-Ordner, wo auch ihr Abruf-Rueckruf liegt; hier
   // steht nur der Anstoss. Die Zaehlung nimmt beide Arten zusammen, weil der
   // Aufrufer wissen will, wie viele Einbettungen der Datei aufgefrischt wurden.
-  const karten = await frischeVerweisKarten(wurzel, zielPfad);
-  return treffer.length + karten;
+  let karten = 0;
+  for (const pfad of pfade) karten += await frischeVerweisKarten(wurzel, pfad);
+  return treffer.length + karten + (await frischeDiagrammeAuf(wurzel, fehlende ? null : pfade));
 }
 
 // R2-07 (4T-000174): file:///-URL aus einem Windows-Pfad bauen. '#', '?', '%'
@@ -862,6 +886,16 @@ export async function renderMarkdownEmbed(span, basePath, embedPath, anchor, dep
     renderBrokenEmbed(span, embedPath, result && result.error);
     return;
   }
+  // 4T-002021: Ein Diagramm in einem eingebetteten Ausschnitt nennt seine
+  // Tabelle im ganzen Dokument; derselbe Kanal liefert es ohne Anker, Puffer
+  // vor Platte. Gelesen wird nur, wenn der Ausschnitt ein Diagramm trägt.
+  const dokumentText = await dokumentTextEinerEinbettung(
+    () => api.readEmbedFile(basePath, embedPath, null),
+    result.content || '',
+    anchor,
+  );
+  // 4T-002023: Eine vorher gebrochene Einbettung ist es nach dem Auffrischen nicht mehr.
+  span.classList.remove('wiki-embed-broken');
   span.innerHTML = '';
   const header = document.createElement('div');
   header.className = 'wiki-embed-md-header';
@@ -903,7 +937,7 @@ export async function renderMarkdownEmbed(span, basePath, embedPath, anchor, dep
   // eingebetteten Dokuments beziehen sich auf dessen Ort, nicht auf den des
   // offenen Reiters. Zuvor liefen hier fuenf der neunzehn Schritte von Hand
   // nachgezogen; jeder spaeter hinzugekommene Schritt fehlte damit still.
-  applyTeilbaumSchritte(body, result.path);
+  applyTeilbaumSchritte(body, result.path, { dokumentText });
   // Die Einbettungen bleiben hier, weil dieser Aufrufer den Tiefenzaehler
   // fuehrt: Der eingebettete Inhalt zaehlt eine Ebene hoeher (Grenze aus AK6
   // der Story 4S-000207).
@@ -1098,13 +1132,13 @@ export async function rerenderAllMermaidBlocks() {
     const cacheKey = mermaidCacheKey(theme, source);
     const cached = mermaidRenderCache.get(cacheKey);
     if (cached) {
-      block.innerHTML = cached;
+      setzeInhalt(block, cached);
       block.classList.remove('mermaid-error');
       continue;
     }
     // Wrapper-Block zuruecksetzen und einen frischen <div class="mermaid">
     // mit dem Quelltext einsetzen, den mermaid.run() ersetzt.
-    block.innerHTML = '';
+    setzeInhalt(block, '');
     block.classList.remove('mermaid-error');
     const inner = document.createElement('div');
     inner.className = 'mermaid';
@@ -1126,7 +1160,7 @@ export async function rerenderAllMermaidBlocks() {
       if (isError) {
         renderMermaidErrorBlock(item.block, item.source, t('mermaid.syntaxError'));
       } else {
-        item.block.innerHTML = svgHtml;
+        setzeInhalt(item.block, svgHtml);
         mermaidCacheSet(item.cacheKey, svgHtml);
       }
     }
@@ -1182,6 +1216,20 @@ export function applyFrontmatterLine(container) {
   }
 }
 
+// 4T-002021: Das Dokument, auf das sich die Diagramme beziehen. Ein Teilbaum
+// bringt seinen Text mit; die Vollansicht liest zu jedem Zeichnen den Puffer
+// des geöffneten Dokuments ihrer Spalte, damit auch ein Neu-Zeichnen nach
+// einem Farbwechsel den geschriebenen Stand zeigt.
+function diagrammKontext(container, lage) {
+  if (typeof lage.dokumentText === 'string') return { dokumentText: lage.dokumentText };
+  const spalte = renderedPaneIndex(container);
+  const dokumentText = () => {
+    const tab = activeTabOfPane(state.panes, spalte);
+    return tab && typeof tab.content === 'string' ? tab.content : '';
+  };
+  return spalte >= 0 ? { dokumentText, kennung: `p${spalte}` } : { dokumentText };
+}
+
 // 4T-001130 (Epic 3E-000272): Der Schritt-Satz eines ERZEUGTEN TEILBAUMS.
 //
 // Ein Modul, das aus Markdown einen Teilbaum baut und ihn per `innerHTML`
@@ -1230,6 +1278,10 @@ function wendeSchritteAn(container, basePath, lage) {
     bindPerspectiveDatatableEditor(container);
     applyPerspectiveDatatableViewStates(container);
   }
+  // 4T-002021: Diagramme sind eine Befüllung und gelten im Teilbaum wie in der
+  // Vollansicht. Sie lesen den geschriebenen Text, nie das DOM der Tabelle;
+  // Sortieren und Filtern darüber ändern sie deshalb nicht.
+  applyPerspectiveChartsIfPresent(container, basePath, diagrammKontext(container, lage));
   applyPerspectiveEventsIfPresent(container);
   if (bearbeitbar) {
     bindPerspectiveEventsEditor(container);
@@ -1267,15 +1319,19 @@ function wendeSchritteAn(container, basePath, lage) {
  * @param {boolean} [opts.dynamischeBloecke] Abfrage- und Skript-Bloecke
  *   ausfuehren. `false` allein fuer die Ausgabe eines Skript-Blocks, deren
  *   Rekursions-Sperre das Handbuch zusagt.
+ * @param {string} [opts.dokumentText] Der Text, aus dem der Teilbaum gerendert
+ *   wurde (4T-002021); bei einem eingebetteten Ausschnitt der ganze Text der
+ *   eingebetteten Datei. Die Diagramme lösen ihre Tabelle darin auf.
  */
 export function applyTeilbaumSchritte(container, basePath, opts = {}) {
-  const { dynamischeBloecke = true } = opts;
+  const { dynamischeBloecke = true, dokumentText = '' } = opts;
   wendeSchritteAn(container, basePath, {
     bearbeitbar: false,
     dynamischeBloecke,
     frontmatterZeile: false,
     einbettungen: false,
     suchLauf: false,
+    dokumentText: typeof dokumentText === 'string' ? dokumentText : '',
   });
 }
 

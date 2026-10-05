@@ -15,6 +15,7 @@ import {
   renderMarkdown,
   convertMarkdownPortable,
   setCalendarConfig,
+  configureExtensions,
 } from '../../../src/shared/markdown/markdown.js';
 import { extractFrontmatter, writeFrontmatter } from '../../../src/shared/markdown/frontmatter.js';
 // 4T-000546 (Epic 3E-000097): Demo-Konfiguration für die Kalender-Wert-Fixture.
@@ -112,6 +113,22 @@ describe('Render-Pipeline-Snapshots (Viewer-Pfad)', () => {
       expect(html).toMatchSnapshot();
     });
   }
+
+  // 4T-002019 (Epic 3E-000192): Der Diagramm-Block geht nur als Container in den
+  // Snapshot (Muster Mermaid); die obige Schleife friert den An-Zustand ein,
+  // dieser Fall den Aus-Zustand derselben Fixture, in dem der Block ein
+  // gewöhnlicher Code-Block ist.
+  it('rendert diagramme.md bei ausgeschalteter Erweiterung als Code-Block (4T-002019)', () => {
+    const src = fs.readFileSync(path.join(FIXTURE_DIR, 'diagramme.md'), 'utf8');
+    try {
+      configureExtensions(['perspective-chart']);
+      const html = renderMarkdown(src, 'de');
+      expect(html).not.toContain('class="perspective-chart"');
+      expect(html).toMatchSnapshot();
+    } finally {
+      configureExtensions([]);
+    }
+  });
 
   it('Determinismus: drei Laeufe identisch (Stichprobe)', () => {
     const src = fs.readFileSync(path.join(FIXTURE_DIR, 'commonmark-basis.md'), 'utf8');

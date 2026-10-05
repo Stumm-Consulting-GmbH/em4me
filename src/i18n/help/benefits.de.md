@@ -137,7 +137,7 @@ Ausführlich: [Perspective Table](perspective-table.md).
 
 ## Tabellen, die rechnen
 
-Für Zahlen statt Text gibt es die zweite Tabellen-Art. Die Perspective Datatable ist eine typisierte Datentabelle: Jede Spalte hat einen Wertetyp, Zellen nehmen nur passende Werte an, Aggregat-Zeilen rechnen live mit, und berechnete Spalten werten je Zeile einen Ausdruck aus. Bearbeitet wird direkt im gerenderten Gitter, ohne den Umweg über den Quelltext. Das trägt Ausgaben, Zeiterfassung oder Inventarlisten, ohne dass daraus eine Datenbank-Datei wird, denn alles bleibt Klartext im Dokument.
+Für Zahlen statt Text gibt es die zweite Tabellen-Art. Die Perspective Datatable ist eine typisierte Datentabelle: Jede Spalte hat einen Wertetyp, Zellen nehmen nur passende Werte an, Aggregat-Zeilen rechnen live mit, und berechnete Spalten werten je Zeile einen Ausdruck aus. Bearbeitet wird direkt im gerenderten Gitter, ohne den Umweg über den Quelltext. Das trägt Ausgaben, Zeiterfassung oder Inventarlisten, ohne dass daraus eine Datenbank-Datei wird, denn alles bleibt Klartext im Dokument. Aus denselben Zahlen zeichnet ein eigener Block ein Linien-, Balken-, Kreis- oder Donut-Diagramm, das die Tabelle nur beim Namen nennt und ihr bei jeder Änderung folgt.
 
 - **Feste Wertetypen** je Spalte, damit Zahlen Zahlen bleiben und Daten Daten.
 - **Aggregate**, die live rechnen, und **berechnete Spalten** je Zeile.

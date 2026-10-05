@@ -22,6 +22,9 @@ import {
   parseTabDrag,
   reorderTabsWithinPane,
 } from '../tabs/tabs.js';
+// 4T-002024 (Epic 3E-000192): Klick und Rechtsklick auf Datentabelle und
+// Diagramm, im Live-Modus und in der gerenderten Hälfte der geteilten Ansicht.
+import { bindeDiagrammBedienung } from '../charts/chart-bedienung.js';
 import { handleRenderedClick } from '../views/link-navigation.js';
 import { saveScroll } from '../views/pane-render.js';
 
@@ -52,6 +55,8 @@ export function bindPaneEvents() {
     bindSidebarSplitters(idx);
     // 4T-000289: Drag-and-Drop der Panel-Header und Container-Drop-Zonen.
     bindSidebarPanelDnd(idx);
+    // 4T-002024: Hörer an der Spalten-Wurzel, deckt Editor und gerenderte Hälfte.
+    bindeDiagrammBedienung(root, idx);
 
     initInnerSplitter(idx);
 

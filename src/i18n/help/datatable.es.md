@@ -4,6 +4,8 @@ La Perspective Datatable es una **tabla de datos tipada con funciones de cálcul
 
 Delimitación: la [Perspective Table](perspective-table.md) apunta a contenidos de texto ricos (celdas de bloque multilínea, spans, resaltado de estado). La Datatable apunta a **datos estructurados y calculables**: conjuntos pequeños como gastos, registro de tiempos o inventarios. La tabla de datos pertenece a las [extensiones internas](extensions.md) y puede desactivarse allí; desactivada, el bloque sigue siendo un bloque de código normal.
 
+Los valores de una tabla de datos se pueden mostrar como gráfico de líneas, de barras, circular o de anillo; la página [Gráficos de tablas](charts.md) describe cómo.
+
 ## Estructura del bloque
 
 Un bloque de código con la etiqueta de lenguaje `perspective-datatable` contiene directivas de cabecera y filas de datos:
@@ -26,6 +28,7 @@ aggregate: Importe:sum+avg, Hecho:count
 | Bert | 2026-06-30 | -3 |  |
 ```
 
+- **`table:`** (opcional) da un nombre a la tabla, por ejemplo `table: Ventas`; con él un [gráfico](charts.md) nombra la tabla, y los enlaces, las incrustaciones y las [propiedades de bloque](block-properties.md) llegan a ella.
 - **`columns:`** (obligatoria) declara las columnas como `Nombre:tipo`, separadas por comas. Los nombres de columna pueden contener espacios.
 - **`aggregate:`** (opcional) asigna funciones de agregado a las columnas; varias por columna se combinan con `+`.
 - **`types:`** (opcional) conmuta la indicación de tipo bajo los encabezados: `shown` o `hidden`. Sin esa línea aparece.
@@ -41,6 +44,10 @@ columns: Importe:number(2), Total "Total (bruto, en €)":number(2) = Importe * 
 ```
 
 El texto de presentación puede llevar cualquier carácter, incluidos espacios, comas, dos puntos y signos igual; unas comillas dentro se escriben dos veces. La columna se sigue direccionando solo por su identificador, que permanece accesible como información sobre el encabezado.
+
+### El nombre de la tabla
+
+La línea `table:` va entre las directivas de cabecera antes de las filas de datos y como mucho una vez en el bloque; al editar en la cuadrícula se conserva como primera línea. Para el nombre rigen las reglas de las [anclas de bloque](linking.md): letras (también con tilde y la ß), cifras, guion y guion bajo, sin espacios ni puntos; mayúsculas y minúsculas cuentan. `[[Documento#^Ventas]]` salta a la tabla, `![[Documento#^Ventas]]` la incrusta. Si dos bloques del documento llevan el mismo nombre, cuenta la primera aparición; la tabla no lo señala como error, y el panel [Propiedades de bloque](block-properties.md) indica el nombre repetido. Si la tabla de datos está desactivada, la línea queda como texto en el bloque de código, y el nombre sigue siendo destino de salto.
 
 ## Tipos de columna y formatos
 
@@ -126,12 +133,12 @@ Ordenar y filtrar actúan **solo sobre la vista**: el código fuente permanece s
 
 ## Errores
 
-- **Los errores de estructura** (tipo desconocido, nombres de columna duplicados, número de celdas divergente, expresiones no válidas) aparecen como lista sobre la cuadrícula con el número de línea dentro del bloque.
+- **Los errores de estructura** (tipo desconocido, nombres de columna duplicados, número de celdas divergente, expresiones no válidas, un nombre vacío o no válido en la línea `table:`, una segunda línea `table:` en el bloque) aparecen como lista sobre la cuadrícula con el número de línea dentro del bloque.
 - **Los errores de celda** (valor no conforme al tipo) marcan solo la celda afectada; el texto se conserva.
 
 ## Exportación
 
-La exportación portable y la exportación a PDF generan la tabla como tabla estática en el orden del documento: con todas las filas, los valores calculados de las columnas calculadas y la fila de agregados, sin interactividad. Los enlaces y las etiquetas de las celdas de texto aparecen allí como los enlaces y las etiquetas del resto del documento.
+La exportación portable y la exportación a PDF generan la tabla como tabla estática en el orden del documento: con todas las filas, los valores calculados de las columnas calculadas y la fila de agregados, sin interactividad. Los enlaces y las etiquetas de las celdas de texto aparecen allí como los enlaces y las etiquetas del resto del documento. Si la tabla lleva un nombre, en la exportación portable la sigue una línea `^Nombre`, para que los enlaces del documento exportado conserven su destino.
 
 ## Límites
 

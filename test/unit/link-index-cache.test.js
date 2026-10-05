@@ -7,6 +7,10 @@
 // bewusst vom Disk-Stand abweichendem Parse-Ergebnis. Stimmen mtime+size, muss
 // der Index den Cache-Stand zeigen (kein Neu-Parsen); bei mtime-Mismatch den
 // Disk-Stand (Neu-Parsen).
+//
+// 4T-002072 (Epic 3E-000192): dazu die Untergrenze der Cache-Version 8 (am
+// Zug-Zweig 7; beim Nachzug auf den Integrationsstand nach 1.145.0 auf 8, weil
+// der Integrationsstand die 7 für die Abfrage-Datei vergeben hat).
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -88,6 +92,17 @@ describe('mdd-store — Area_Cache-Container', () => {
       parseCacheContainer(
         JSON.stringify({ schemaVersion: MDD_SCHEMA_VERSION, linkIndex: { files: {} } }),
       ).ok,
+    ).toBe(false);
+  });
+
+  // 4T-002072 (Epic 3E-000192): `blockIds` tragen seither den Namen aus der
+  // Kopf-Angabe `table:` einer Datentabelle. Ein Cache der Version 7 (der
+  // Integrationsstand vor dem Nachzug) kennt ihn nicht; der Warmstart aus ihm
+  // meldete Verweise darauf als defekt.
+  it('Cache-schemaVersion ist mindestens 8, ein Cache der Version 7 wird verworfen', () => {
+    expect(MDDA_CACHE_SCHEMA_VERSION).toBeGreaterThanOrEqual(8);
+    expect(
+      parseCacheContainer(JSON.stringify({ schemaVersion: 7, linkIndex: { files: {} } })).ok,
     ).toBe(false);
   });
 });

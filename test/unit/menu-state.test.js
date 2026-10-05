@@ -170,6 +170,33 @@ describe('normalizeMenuState (4T-000277)', () => {
     expect(leer.hasShelf).toBe(false);
   });
 
+  // 4T-002024 (Epic 3E-000192): Die beiden Lagen des aktiven Editors und der
+  // Bearbeiten-Zustand tragen die Freigabe der Diagramm-Einträge. Seither liest
+  // die Menü-Fabrik editMode für ihre Freigabe; ein Wert, der nicht als
+  // Wahrheitswert ankommt, gäbe dort sonst einen Eintrag frei, der ins Leere
+  // führt.
+  it('4T-002024: inDatentabelle, diagrammGewaehlt und editMode werden durchgereicht und normalisiert', () => {
+    const gesetzt = normalizeMenuState(
+      { inDatentabelle: true, diagrammGewaehlt: true, editMode: true },
+      {},
+    );
+    expect(gesetzt.inDatentabelle).toBe(true);
+    expect(gesetzt.diagrammGewaehlt).toBe(true);
+    expect(gesetzt.editMode).toBe(true);
+
+    const roh = normalizeMenuState({ inDatentabelle: 1, diagrammGewaehlt: 'ja', editMode: 0 }, {});
+    expect(roh.inDatentabelle).toBe(true);
+    expect(roh.diagrammGewaehlt).toBe(true);
+    expect(roh.editMode).toBe(false);
+
+    // Vor dem ersten Report eines frischen Fensters: der sichere Fall «nicht
+    // wählbar».
+    const leer = normalizeMenuState(null, null);
+    expect(leer.inDatentabelle).toBe(false);
+    expect(leer.diagrammGewaehlt).toBe(false);
+    expect(leer.editMode).toBe(false);
+  });
+
   it('4T-000626: liefert ohne Meldung die leere Varianten-Form', () => {
     expect(normalizeMenuState(null, null).sidebarVariants).toEqual({
       global: [],

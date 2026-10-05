@@ -579,7 +579,8 @@ function zeichneKoerper(wurzel, daten) {
       const block = el('div', 'db-form-md markdown-body');
       block.innerHTML = api.renderMarkdown(String(segment.text), seite.tabellenPfad);
       koerper.appendChild(block);
-      bloecke.push(block);
+      // 4T-002021: Der Text des Segments ist das Dokument seiner Diagramme.
+      bloecke.push({ knoten: block, text: String(segment.text) });
     } else if (segment && segment.art === 'feld') {
       const feld = felder.get(segment.name) || { name: segment.name, type: 'string' };
       const entwurf = seite.entwurf ? seite.entwurf[segment.name] : undefined;
@@ -640,7 +641,9 @@ function zeichne() {
     }
   }
   container.appendChild(wurzel);
-  for (const block of bloecke) applyTeilbaumSchritte(block, seite.tabellenPfad);
+  for (const { knoten, text } of bloecke) {
+    applyTeilbaumSchritte(knoten, seite.tabellenPfad, { dokumentText: text });
+  }
   // Das erste betroffene Feld eines abgewiesenen Auftrags bekommt einmal den
   // Fokus (B5).
   const fokus = seite.fokus;

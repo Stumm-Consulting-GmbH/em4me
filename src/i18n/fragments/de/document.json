@@ -1,5 +1,6 @@
 {
   "export.mermaidAlt": "Diagramm",
+  "export.chartAlt": "Diagramm zu einer Tabelle",
   "recent.missingFileTitle": "Datei nicht gefunden",
   "recent.missingFile": "Die Datei existiert nicht mehr und wurde aus der Liste der zuletzt geöffneten Dateien entfernt.",
   "save.unsavedTitle": "Ungespeicherte Änderungen",

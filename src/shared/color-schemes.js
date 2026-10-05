@@ -58,6 +58,20 @@ const BASE_DEFAULTS = {
     syntaxKeyword: '#cf222e',
     syntaxString: '#0a3069',
     syntaxNumber: '#0550ae',
+    // 4T-002030 (Epic 3E-000192): Die zehn Farben der Datenreihen eines
+    // Diagramms, die geprüfte helle Reihe aus
+    // src/shared/charts/chart-call-options.js. Der Wächter prüft die
+    // Gleichheit mit der Konstante und dem Stilblatt.
+    chart1: '#4e79a7',
+    chart2: '#da730d',
+    chart3: '#e15759',
+    chart4: '#519a94',
+    chart5: '#59a14f',
+    chart6: '#ac8a11',
+    chart7: '#b07aa1',
+    chart8: '#d5707a',
+    chart9: '#9c755f',
+    chart10: '#9b8c86',
   },
   dark: {
     bg: '#1e1e1e',
@@ -88,6 +102,17 @@ const BASE_DEFAULTS = {
     syntaxKeyword: '#ff7b72',
     syntaxString: '#a5d6ff',
     syntaxNumber: '#79c0ff',
+    // 4T-002030 (Epic 3E-000192): die geprüfte dunkle Reihe der Diagramme.
+    chart1: '#7ea6d8',
+    chart2: '#f5a55a',
+    chart3: '#f07f82',
+    chart4: '#8fd1cb',
+    chart5: '#80c26f',
+    chart6: '#f1d465',
+    chart7: '#caa0c1',
+    chart8: '#ffb3bb',
+    chart9: '#c39c82',
+    chart10: '#cfc7c3',
   },
 };
 
@@ -100,7 +125,13 @@ const SLOT_GROUPS = [
   { id: 'content', nameKey: 'settings.colorSchemes.group.content' },
   // 4T-001314 (Epic 3E-000235): Die Farben der Markdown-Auszeichnung im Editor.
   { id: 'editorText', nameKey: 'settings.colorSchemes.group.editorText' },
+  // 4T-002030 (Epic 3E-000192): Die Farben der Datenreihen in Diagrammen.
+  { id: 'charts', nameKey: 'settings.colorSchemes.group.charts' },
 ];
+
+// 4T-002030 (Epic 3E-000192): Zahl der Farb-Plätze der Diagramme. Die elfte
+// Reihe beginnt wieder mit der ersten Farbe (Umlauf im Zeichner).
+const CHART_SLOT_COUNT = 10;
 
 // Kuratierte Slot-Liste. `vars` ist die Liste der gespeisten CSS-Variablen;
 // die erste ist die Leit-Variable (ihr Wert trägt die Basis-Palette und den
@@ -245,7 +276,20 @@ const COLOR_SLOTS = [
     nameKey: 'settings.colorSchemes.slot.syntaxNumber',
     vars: ['--syntax-number'],
   },
+
+  // 4T-002030 (Epic 3E-000192): Datenreihe 1 bis 10 der Diagramme, je eine
+  // Variable `--chart-N`. Das Farbschema ist die einzige Quelle der
+  // Reihen-Farben in der Anzeige (src/renderer/modules/charts/chart-view.js).
+  ...Array.from({ length: CHART_SLOT_COUNT }, (_, i) => ({
+    id: `chart${i + 1}`,
+    group: 'charts',
+    nameKey: `settings.colorSchemes.slot.chart${i + 1}`,
+    vars: [`--chart-${i + 1}`],
+  })),
 ];
+
+// Die Plätze der Diagramm-Farben in der Reihenfolge der Datenreihen.
+const CHART_SLOT_IDS = COLOR_SLOTS.filter((s) => s.group === 'charts').map((s) => s.id);
 
 const SLOT_IDS = COLOR_SLOTS.map((s) => s.id);
 const SLOT_ID_SET = new Set(SLOT_IDS);
@@ -533,6 +577,8 @@ module.exports = {
   SLOT_GROUPS,
   COLOR_SLOTS,
   SLOT_IDS,
+  CHART_SLOT_COUNT,
+  CHART_SLOT_IDS,
   BUILTIN_SCHEMES,
   DEFAULT_LIGHT_ID,
   DEFAULT_DARK_ID,

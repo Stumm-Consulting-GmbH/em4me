@@ -2,6 +2,8 @@
 
 KaTeX compone le formule, Mermaid renderizza i diagrammi, i blocchi di codice ricevono l'evidenziazione della sintassi — nella vista Lettura, nella vista divisa e nella modalità Live.
 
+I grafici ricavati dai valori di una tabella dati hanno una pagina propria: [Grafici di tabelle](charts.md).
+
 ## KaTeX in linea
 
 Le formule tra segni di dollaro singoli si renderizzano nel testo corrente. Un'euristica protegge gli importi in dollari: `$100` in una frase resta testo, solo le vere coppie di formule vengono composte.

@@ -5,6 +5,8 @@
 //       stylesheet-abhaengiges KaTeX-HTML im Export).
 // 4T-000596 (Epic 3E-000111): Inline-Berechnungen werden als selbsttragende
 //       Ergebnis-Spans eingebrannt; Fehler/Code/Escape bleiben roh.
+// 4T-002072 (Epic 3E-000192): Name der Datentabelle aus der Kopf-Angabe
+//       `table:` als Zeile `^Name` hinter der gewöhnlichen Tabelle.
 import { describe, it, expect, afterEach } from 'vitest';
 import {
   convertMarkdownPortable,
@@ -319,5 +321,72 @@ describe('Portable-Export: Zaun des Datensatz-Blocks (4T-001833)', () => {
     expect(out).toContain('<td>Basel<br>```<br>code<br>```</td>');
     expect(out).toContain('<td>Bert</td>');
     expect(out).not.toContain('perspective-records');
+  });
+});
+
+// 4T-002072 (Epic 3E-000192): Trägt eine Datentabelle ihren Namen in der
+// Kopf-Angabe `table:`, folgt im Export der gewöhnlichen Tabelle nach einer
+// Leerzeile die Zeile `^Name`, damit Verweise im exportierten Dokument ihr Ziel
+// behalten. Wo die Tabelle Code-Block bleibt — Namens-Fehler, Tilden-Zaun,
+// Erweiterung aus —, steht die Kopf-Angabe darin, und eine Zeile kommt nicht
+// dazu (Bestand des Exports).
+describe('Portable-Export: Name der Datentabelle aus der Kopf-Angabe (4T-002072)', () => {
+  function dokument(oeffnend, schliessend, angabe) {
+    return [
+      '# Umsatz',
+      '',
+      oeffnend + 'perspective-datatable',
+      angabe,
+      'columns: Monat:text, Betrag:number',
+      '| Januar | 100 |',
+      schliessend,
+      '',
+      'Schluss.',
+      '',
+    ].join('\n');
+  }
+
+  afterEach(() => {
+    configureExtensions([]);
+  });
+
+  it('hängt nach der Tabelle eine Leerzeile und ^Umsatz an; wieder gelesen ein leerer Träger', () => {
+    const out = convertMarkdownPortable(dokument('```', '```', 'table: Umsatz'), true, 'de');
+    expect(out).toContain('</table>\n\n^Umsatz\n\nSchluss.');
+    expect(out).not.toContain('table: Umsatz');
+    // Am Lese-Ende: eigener Absatz mit der Kennung, der Name nicht als Text.
+    const html = renderMarkdown(out, 'de');
+    expect(html).toContain('<p id="Umsatz"></p>');
+    expect(html).not.toContain('^Umsatz');
+  });
+
+  // Nachbesserung F5: Steht unter der Tabelle schon `^Umsatz`, kommt keine
+  // zweite Zeile dazu — auch hinter einem Frontmatter, das der Export vor der
+  // Fence-Konvertierung abschneidet.
+  it('Kopf-Name und Zeile ^Umsatz darunter: die Zeile steht genau einmal', () => {
+    const quelle = '---\ntitel: X\n---\n' + dokument('```', '```', 'table: Umsatz');
+    const mitZeile = quelle.replace('```\n\nSchluss.', '```\n^Umsatz\n\nSchluss.');
+    const out = convertMarkdownPortable(mitZeile, true, 'de');
+    expect(out.match(/\^Umsatz/g)).toHaveLength(1);
+    expect(out).toContain('</table>\n\n^Umsatz\n\nSchluss.');
+    expect(renderMarkdown(out, 'de').match(/ id="Umsatz"/g)).toHaveLength(1);
+  });
+
+  it('eine Tabelle ohne Namen bekommt keine Zeile', () => {
+    const out = convertMarkdownPortable(dokument('```', '```', ''), true, 'de');
+    expect(out).toContain('</table>');
+    expect(out).not.toContain('^');
+  });
+
+  it('mit Namens-Fehler, im Tilden-Zaun und bei ausgeschalteter Erweiterung bleibt der Code-Block', () => {
+    const fehler = dokument('```', '```', 'table: Umsatz 2026');
+    expect(convertMarkdownPortable(fehler, true, 'de')).toContain(fehler);
+    const tilde = dokument('~~~', '~~~', 'table: Umsatz');
+    expect(convertMarkdownPortable(tilde, true, 'de')).toContain(tilde);
+    configureExtensions(['perspective-datatable']);
+    const aus = dokument('```', '```', 'table: Umsatz');
+    const out = convertMarkdownPortable(aus, true, 'de');
+    expect(out).toContain(aus);
+    expect(out).not.toContain('^Umsatz');
   });
 });

@@ -12,11 +12,13 @@ Questo paragrafo porta un'ancora. ^riunione-1
 
 Nella vista renderizzata l'ancora è invisibile; rende il blocco indirizzabile. Sono ammessi lettere (anche accentate), cifre, trattino e trattino basso. Le proprietà si legano a questo identificatore: finché l'ancora è presente nel testo, i dati appartengono a questo blocco, ovunque il blocco venga spostato all'interno del documento.
 
+Una [tabella dati](datatable.md) porta la sua ancora nel proprio blocco, come riga `table: Nome` prima delle righe di dati.
+
 ## Il pannello Proprietà del blocco
 
 Il pannello «Proprietà del blocco» si attiva come ogni pannello laterale: dal menu Visualizza → Barra laterale → Pannelli → Proprietà del blocco, dall'icona a graffe nella barra di stato o con una scorciatoia personalizzata (di fabbrica non ne è assegnata nessuna). Lato, ordine e gruppi di schede seguono le regole della [barra laterale](sidebar.md).
 
-Il pannello **segue il cursore**: mostra le proprietà del blocco in cui si trova il cursore. L'intestazione indica l'ancora attiva e offre un selettore di tutte le ancore del file per saltare; le ancore con proprietà vi sono contrassegnate. Se il cursore è in un blocco **senza** ancora, il pannello propone «Crea ancora» e scrive alla fine del blocco un identificatore casuale breve, unico nel file.
+Il pannello **segue il cursore**: mostra le proprietà del blocco in cui si trova il cursore. L'intestazione indica l'ancora attiva e offre un selettore di tutte le ancore del file per saltare; le ancore con proprietà vi sono contrassegnate. Se il cursore è in un blocco **senza** ancora, il pannello propone «Crea ancora» e scrive alla fine del blocco un identificatore casuale breve, unico nel file; per un blocco di codice o un grafico lo scrive su una riga a sé subito sotto il blocco, in una tabella dati come riga `table:` all'inizio del blocco.
 
 Le righe delle proprietà funzionano come nel pannello delle proprietà del documento: ogni riga ha una chiave a scelta libera, un tipo (testo, elenco, numero, vero/falso, data, multiriga, collegamento, ora) e un campo valore adeguato. Per la chiave il pannello suggerisce le chiavi di blocco già usate nel documento. Il salvataggio è **automatico** poco dopo l'inserimento; la scheda del documento non viene contrassegnata come modificata, perché i dati risiedono nel file associato, non nel testo. Nelle viste di sola lettura il pannello si limita a mostrare i dati.
 
@@ -24,7 +26,7 @@ Se al documento si applicano **profili delle proprietà**, i suoi blocchi eredit
 
 ## Rinominare un'ancora
 
-L'icona a matita accanto al selettore delle ancore rinomina l'ancora attiva. L'ancora nel testo, la voce dati nel file associato e i riferimenti in ingresso **all'interno dello stesso documento** vengono aggiornati insieme:
+L'icona a matita accanto al selettore delle ancore rinomina l'ancora attiva. L'ancora nel testo — per una tabella dati la riga `table:` —, la voce dati nel file associato e i riferimenti in ingresso **all'interno dello stesso documento** vengono aggiornati insieme, come pure i grafici che indicano la tabella:
 
 ```markdown
 Si veda il primo punto: [[#^riunione-1]]

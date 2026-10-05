@@ -4,6 +4,8 @@ The Perspective Datatable is a **typed data table with calculation functions**: 
 
 Scope: The [Perspective Table](perspective-table.md) targets rich text content (multi-line block cells, spans, status highlighting). The Datatable targets **structured, computable data** — small data sets such as expenses, time tracking, or inventory lists. The data table belongs to the [internal extensions](extensions.md) and can be disabled there; disabled, the block remains a regular code block.
 
+The values of a data table can be shown as a line, bar, pie or donut chart; the page [Charts for tables](charts.md) describes how.
+
 ## Block structure
 
 A code block with the language tag `perspective-datatable` contains header directives and data rows:
@@ -26,6 +28,7 @@ aggregate: Amount:sum+avg, Done:count
 | Bert | 2026-06-30 | -3 |  |
 ```
 
+- **`table:`** (optional) gives the table a name, for example `table: Sales`; under it a [chart](charts.md) refers to the table, and links, embeds and [block properties](block-properties.md) reach it.
 - **`columns:`** (required) declares the columns as `Name:type`, comma-separated. Column names may contain spaces.
 - **`aggregate:`** (optional) assigns aggregate functions to columns; combine several per column with `+`.
 - **`types:`** (optional) switches the type shown beneath the headings: `shown` or `hidden`. Without the line it appears.
@@ -41,6 +44,10 @@ columns: Amount:number(2), Total "Total (gross, in €)":number(2) = Amount * 2
 ```
 
 The display text may carry any characters, including spaces, commas, colons and equals signs; a quote inside it is written twice. The column is still addressed by its identifier only, and that identifier stays reachable as a tooltip on the column heading.
+
+### The name of the table
+
+The line `table:` stands among the header directives before the data rows and at most once in the block; when editing in the grid it is kept as the first line. The name follows the rules of [block anchors](linking.md): letters (including accented letters and ß), digits, hyphen and underscore, no space, no full stop; upper and lower case count. `[[Document#^Sales]]` jumps to the table, `![[Document#^Sales]]` embeds it. If two blocks in the document carry the same name, the first occurrence counts; the table does not report this as an error, and the [Block properties](block-properties.md) panel points out the repeated name. If the data table is switched off, the line stands in the code block as text, and the name remains a jump target.
 
 ## Column types and formats
 
@@ -126,12 +133,12 @@ Sorting and filtering affect **the view only** — the source stays unchanged, n
 
 ## Errors
 
-- **Structural errors** (unknown type, duplicate column names, mismatched cell count, invalid expressions) appear as a list above the grid with the line number within the block.
+- **Structural errors** (unknown type, duplicate column names, mismatched cell count, invalid expressions, an empty or invalid name in the line `table:`, a second line `table:` in the block) appear as a list above the grid with the line number within the block.
 - **Cell errors** (value does not match the type) mark only the affected cell; the text is preserved.
 
 ## Export
 
-The portable export and the PDF export output the table as a static table in document order — with all rows, the calculated values of the computed columns, and the aggregate row, without interactivity. Links and tags from text cells appear there like links and tags in the rest of the document.
+The portable export and the PDF export output the table as a static table in document order — with all rows, the calculated values of the computed columns, and the aggregate row, without interactivity. Links and tags from text cells appear there like links and tags in the rest of the document. If the table has a name, a line `^Name` follows it in the portable export, so that links in the exported document keep their target.
 
 ## Limits
 

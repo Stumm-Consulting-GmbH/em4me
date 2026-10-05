@@ -14,6 +14,301 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.146.0.3682] - 2026-10-05 — Diagramme zu Tabellen
+
+Zug
+3E-000336
+mit einem einzigen Mitglied, auf ausdrückliche Anweisung des Product Owners vom
+2026-09-29 unter der Regelgröße:
+3E-000192,
+die Diagramme zu Tabellen. Zu einer Datentabelle lässt sich ein eigener Block
+setzen, der sie beim Namen nennt und ihre Werte als Linien-, Balken-, Kreis- oder
+Donut-Diagramm zeigt; die Datenreihen sind wahlweise Spalten oder Zeilen der
+Tabelle, und die Tabelle darf in einem anderen Dokument liegen. Das Diagramm
+hält keine eigenen Zahlen und folgt der Tabelle schon beim Tippen, in
+Lese-Ansicht, geteilter Ansicht und Live-Modus, im Druck, im PDF und im
+portablen Export. Eingefügt und geändert wird es über einen Dialog, ohne die
+Schreibweise des Blocks zu kennen; kann es nicht gezeichnet werden, nennt an
+seiner Stelle ein Hinweis den Grund. Seine Farben sind zehn neue Farb-Plätze
+des Farbschemas. Gezeichnet wird mit einem gemeinsamen Zeichen-Baustein auf
+Apache ECharts, auf den spätere Diagramme des Produkts aufsetzen. Der
+Abschluss-Anteil des Epics liegt in
+4T-002028.
+
+### Neu
+
+- **Diagramm zu einer Datentabelle** (`4T-002019`, `4T-002021`). Ein Code-Block
+  `perspective-chart` nennt mit `table: Name` die Datentabelle, die in ihrem
+  Block die Zeile `table: Name` trägt, und trägt je Zeile eine Angabe: `type`
+  (`line`, `bar`, `pie`, `donut`), `labels` (Beschriftungs-Spalte), `values`
+  (Werte-Spalten), `series` (`columns` oder `rows`), `rows` (Zeilen als Reihen)
+  und `title`. Die Schlüssel sind in jeder Sprache englisch, Spalten werden über
+  ihre Kennung ohne Rücksicht auf die Schreibung genannt, und unbekannte Zeilen
+  bleiben beim Zurückschreiben unverändert stehen. Linie und Balken tragen
+  mehrere Reihen, Kreis und Donut genau eine; die Aggregat-Zeile der Tabelle
+  gehört nicht ins Diagramm, berechnete Spalten schon. Das Diagramm erscheint in
+  Lese-Ansicht, geteilter Ansicht und Live-Modus gleich, auch in einer
+  Einbettung, in der Ausgabe eines Skript-Blocks, in der Notiz-Vorschau, auf
+  einer Karte einer Canvas-Fläche oder der Kanban-Tafel und in der Maske der
+  Datenbank. Es liest allein den geschriebenen Text und folgt der Tabelle beim
+  Tippen; Sortieren und Filtern im Gitter ändern es nicht. Die Grafik trägt eine
+  Beschreibung für Hilfstechnik («Balkendiagramm mit 2 Datenreihen und 4
+  Rubriken»), die Werte-Achse zeigt Zahlen mit Dezimalpunkt ohne
+  Tausender-Trennzeichen wie die Tabelle, und bei vielen Rubriken dünnt die Achse
+  ihre Beschriftungen aus. Die Funktion ist die schaltbare Erweiterung «Diagramm
+  zu einer Datentabelle» im Arbeitsmodus «Voll» und hängt von der Erweiterung
+  der Datentabelle ab; ausgeschaltet erscheint der Block als gewöhnlicher
+  Code-Block.
+- **Gemeinsamer Zeichen-Baustein auf Apache ECharts** (`4T-002020`). Ein
+  Baustein nimmt Beschriftungen und Zahlenreihen entgegen und zeichnet daraus
+  ohne Fenster und ohne Animation eine Vektor-Grafik; er kennt weder Tabelle
+  noch Datenbank. Eingebunden ist die Bibliothek Apache ECharts 6.1.0 als
+  Teil-Einbindung mit genau den benötigten Bestandteilen, gebaut in einem
+  eigenen Bau-Schritt und erst beim ersten Diagramm geladen; ihre Lizenz-Texte
+  (Apache-2.0, BSD-3-Clause, 0BSD) gehen mit dem Programm aus. Anwender-Text
+  steht in der Grafik nur als maskierter Text-Inhalt. Beschriftungen von Kreis-
+  und Donut-Stücken, die einander überdecken würden, werden nicht gezeichnet
+  (`4T-002026`): Ein Kreis mit 1000 Stücken trägt so 56 statt 1000
+  Beschriftungen.
+- **Hinweis statt leerer Fläche** (`4T-002022`). Kann ein Diagramm nicht
+  gezeichnet werden, steht an seiner Stelle ein Kasten «Das Diagramm kann nicht
+  gezeichnet werden» mit genau einem Grund, geprüft in fester Reihenfolge:
+  Dokument fehlt, Tabelle fehlt, Tabelle anderer Art, Tabelle fehlerhaft,
+  Spalte oder Zeile fehlt oder ist nicht eindeutig, Spalte ohne Zahlen, keine
+  einzige Zahl, Art passt nicht zu den Werten. Der Satz nennt den Anlass, etwa
+  den Namen der Tabelle oder der Spalte, erscheint in der Sprache der
+  Oberfläche und wechselt mit ihr; das Dokument bleibt unverändert. Einzelne
+  leere oder unlesbare Zellen lassen das Diagramm stehen: Die Zeile «2 Werte
+  wurden ausgelassen, weil ihre Zellen leer oder nicht lesbar sind.» steht dann
+  unter der Grafik. Nennt ein Diagramm die Beschriftungs-Spalte als Werte, obwohl
+  sie keine Zahl-Spalte ist, lautet der Grund «keine Zahl-Spalte» (`4T-002019`,
+  `4T-002026`).
+- **Diagramm-Farben im Farbschema** (`4T-002030`). Unter **Datei →
+  Einstellungen… → Farbschemas** trägt jedes Schema die neue Gruppe «Diagramme»
+  mit «Datenreihe 1» bis «Datenreihe 10»; ab der elften Reihe beginnen die Farben
+  von vorn. Eine Änderung zeichnet jedes offene Diagramm sofort neu. Die
+  Vorgaben der mitgelieferten Schemas erreichen gegen deren Hintergrund einen
+  Kontrast von mindestens 3:1; das helle Sepia-Schema trägt dafür sieben
+  abgedunkelte Farben im selben Farbton. Text und Achsen nehmen die Text-Farben
+  des Schemas.
+- **Diagramm zu einer Tabelle in einem anderen Dokument** (`4T-002023`). Mit
+  `table: [[Datei#^Name]]` nennt ein Diagramm eine Tabelle in einem anderen
+  Dokument, und der Bezug verhält sich wie eine Einbettung: gesucht wird wie
+  dort, die Endung darf fehlen, gezeigt wird der geschriebene Stand des anderen
+  Dokuments, auch ungespeichert und in einem anderen Fenster, und bemerkt die
+  Anwendung eine Änderung der Datei von außen, zeichnet das Diagramm neu.
+  Benennt man die andere Datei um, zieht die Angabe `table:` nach; der Bezug
+  erscheint in den Rückverweisen, den ausgehenden Verweisen und im Graphen.
+  Benennt man die Tabelle über die Block-Eigenschaften um, ziehen die Diagramme
+  im selben Dokument nach. Fehlt das andere Dokument oder die Tabelle darin,
+  nennt der Hinweis es beim Namen.
+- **Diagramm einfügen und bearbeiten** (`4T-002024`). Zwei Befehle, «Diagramm zu
+  dieser Tabelle einfügen» und «Diagramm bearbeiten», öffnen denselben Dialog
+  mit Diagramm-Art, Richtung der Datenreihen, Beschriftungs-Spalte, Datenreihen
+  und Titel; er bietet nur an, was die Tabelle hergibt. Beide stehen im neuen
+  Untermenü **Ansicht → Diagramm**, in der Kommando-Palette, im Kontextmenü des
+  Editors, wenn die Schreibmarke im Block steht, und als kurzes Kontextmenü mit
+  genau diesem einen Eintrag auf dem Gitter der Datentabelle und auf dem
+  gezeichneten Diagramm, im Live-Modus und in der gerenderten Hälfte der
+  geteilten Ansicht; Tabelle und Diagramm bleiben dabei gezeichnet. Im
+  Live-Modus wählt ein Klick ein Diagramm aus, ohne die Schreibmarke zu bewegen.
+  Eine Tabelle ohne Namen bekommt beim Einfügen die Zeile `table: tabelle-1`
+  mit der kleinsten freien Zahl in ihren Block; ein Rückgängig-Schritt nimmt Diagramm und Namen zusammen zurück.
+  Beim Bearbeiten wird allein der Block geschrieben, unbekannte Angaben bleiben,
+  und ein unverändertes Bestätigen schreibt nichts. Wo kein Diagramm entstehen
+  kann, erscheint statt des Dialogs eine Meldung mit dem Grund; wurde Tabelle
+  oder Diagramm geändert, während der Dialog offen war, wird nichts geschrieben.
+  In der Lese-Ansicht und bei ausgeschaltetem Bearbeiten sind die Befehle nicht
+  wählbar; ausgeschaltet verschwinden sie mit der Erweiterung.
+- **Diagramme in Druck, PDF und portablem Export** (`4T-002025`). Drucken und
+  PDF-Export zeichnen jedes Diagramm der gedruckten Spalte hell mit den
+  Diagramm-Farben des hellen Farbschemas und stellen danach die Anzeige zurück;
+  ein Diagramm wird nicht über einen Seitenumbruch geteilt, und ein Diagramm
+  auf ein anderes Dokument wird vor der Ausgabe gelesen, sonst nennt der Hinweis
+  «Die Tabelle konnte nicht rechtzeitig gelesen werden.» den Grund. Der portable
+  Export setzt an die Stelle des Blocks ein helles Bild mit dem Hintergrund des
+  hellen Schemas, darunter bei ausgelassenen Werten dieselbe Zeile wie am
+  Bildschirm (Entscheidung des Product Owners vom 2026-09-30); ein
+  nicht zeichenbarer Block bleibt als Code-Block stehen, die Tabelle als Tabelle.
+  Auch ein Diagramm in einer Text-Karte einer Canvas-Fläche und eines unter
+  einem Listenpunkt wird zum Bild.
+- **Der Name einer Datentabelle steht in ihrem Block** (`4T-002072`). Eine
+  Zeile `table: Name` bei den Kopf-Angaben gibt der Tabelle ihren Namen, in
+  derselben Schreibweise wie im Diagramm. Unter ihm erreichen Diagramme,
+  Verweise, Einbettungen, Rückverweise, die Abfrage über Blöcke und die
+  Block-Eigenschaften die Tabelle; beim Bearbeiten im Gitter bleibt die Zeile
+  erste Zeile. Ein leerer oder ungültiger Name und eine zweite Zeile `table:`
+  im selben Block melden sich an der Tabelle mit Zeilennummer; trägt derselbe
+  Name mehr als einen Block, gilt das erste Vorkommen, und das Panel
+  Block-Eigenschaften weist auf die Mehrfach-Vergabe hin. Eine Zeile `^name`
+  unter der Tabelle gilt weiter, mit dem Namen aus dem Kopf als dieselbe
+  Kennung; ein Diagramm darf den Namen auch als `table: ^Name` nennen. Im
+  portablen Export folgt der Tabelle die Zeile `^Name`, genau einmal. Eine
+  Einbettung zeigt die Tabelle ohne die Zeile `table:`, damit ein Sprung auf
+  den Namen die Tabelle selbst trifft.
+
+### Geändert
+
+- **Der geschriebene Stand eines Dokuments erreicht alle Fenster**
+  (`4T-002023`). Tippt man in einem Dokument, zeigen Einbettungen,
+  Diagramme, Abfragen, Skript-Blöcke und die übrigen Verbraucher des
+  geschriebenen Stands in **jedem** Fenster den neuen Stand, nicht mehr nur im
+  tippenden. Eine Einbettung frischt auch auf, wenn die eingebettete Datei von
+  außen geändert wird, und eine gebrochene Einbettung zeigt ihren Inhalt, sobald
+  die fehlende Datei angelegt wird.
+- **Ein Rechtsklick auf eine Datentabelle im Live-Modus lässt sie als Gitter
+  stehen** (`4T-002024`, Entscheidung des Product Owners vom 2026-09-30). Ein
+  Rechtsklick auf Zelle, Spalten-Überschrift oder Rand verwandelt die Tabelle
+  nicht mehr in ihren Quelltext und zeigt das kurze Menü mit «Diagramm zu
+  dieser Tabelle einfügen» statt des allgemeinen Menüs. Das Kontextmenü des
+  Editors trägt die neue Gruppe «Diagramm» zwischen «Tabelle» und der
+  Zwischenablage.
+
+### Behoben
+
+- **Namen von Blöcken hinter einer Zeile mit drei Backticks im Fließtext**
+  (`4T-002024`). Die Erkennung der Block-Namen folgt jetzt der Zaun-Regel der
+  Anwendung. Eine Zeile wie `` ```inline``` `` im Fließtext oder ein längerer
+  Zaun um einen inneren Öffner ließ bis dahin jeden folgenden Namen
+  verschwinden, in der Liste der Block-Eigenschaften, an der Marke der
+  Anker-Zeile und beim Umbenennen samt Nachzug.
+- **Ein geschlossenes Fenster hinterlässt keinen verworfenen Stand**
+  (`4T-002023`). Schloss man ein Fenster, ohne zu speichern, zeigten
+  Einbettungen desselben Dokuments in einem anderen Fenster weiter den
+  verworfenen Text; der Stand wird jetzt beim Schließen zurückgenommen.
+- **Der Name eines Blocks in einer eigenen Zeile erscheint nicht mehr als Text**
+  (`4T-002048`). Eine Zeile, die allein aus `^name` besteht, blieb unter einer
+  Datentabelle, einem Code-Block, einem Diagramm oder einer Liste als Absatz
+  sichtbar, unter einer gewöhnlichen Tabelle als zusätzliche Tabellenzeile.
+  Jetzt ist sie in Lese-Ansicht, geteilter Ansicht, Druck, PDF und
+  Einbettungen unsichtbar wie ein Anker am Zeilenende, und ein Verweis darauf
+  springt zum Block. Unter einem Code-Block, einer Datentabelle, einem Diagramm
+  oder einem Mermaid-Diagramm trägt der Block selbst den Namen; im Live-Modus
+  steht unter einer gewöhnlichen Tabelle das Anker-Zeichen. Ein Anker in einer
+  Zeile mitten in einem Absatz und in einer Aufgaben-Zeile verschwindet ebenso,
+  und die Kennung eines Eintrags einer engen Liste geht nicht mehr verloren.
+  Unter einer Tabelle in einem Zitat oder Hinweisblock gilt dasselbe; trägt ein
+  Block mehrere Namen, ist jeder ein Sprungziel, auch der Name am Ende einer
+  Überschrift; ein maskiertes `\^name` bleibt Text. Der portable Export behält
+  den Namen im Text.
+- **Einbettung und Sprung finden einen Blocknamen nicht mehr in einem
+  Code-Beispiel** (`4T-002072`). Stand ein Name in einem Dokument zuerst in
+  einem Code-Block, etwa in einem Beispiel, nahmen eine Einbettung
+  `![[Datei#^name]]` und der Sprung auf diesen Namen dieses Vorkommen. Jetzt
+  werden Code-Blöcke dabei übersprungen, und es gilt das erste Vorkommen im
+  Text, wie schon beim Diagramm.
+- **«Anker anlegen» zerstört keinen Code-Block mehr** (`4T-002072`). Stand
+  die Schreibmarke in einem Code-Block, einem Diagramm oder einer Tabelle in
+  einem Zitat, oder in einem Absatz direkt über einem solchen Block, hängte
+  das Panel Block-Eigenschaften die neue Kennung an die Schluss-Zeile des
+  Blocks; der Block schloss danach nicht mehr. Jetzt steht die Kennung in
+  einer eigenen Zeile unter dem Block, im selben Zitat oder in derselben
+  Einrückung, und ein Absatz darüber bekommt sie an seiner eigenen letzten
+  Zeile. Steht die Schreibmarke in einem Code-Block ohne Kennung, zeigt das
+  Panel nicht mehr die Kennung eines Absatzes darunter. Beim Umbenennen zieht
+  auch ein Diagramm in einem Zitat seine Angabe `table:` nach, und Einbettung
+  und Diagramm finden eine Tabelle auch in der ersten Zeile einer Datei mit
+  Byte-Order-Mark.
+
+### Dokumentation
+
+- **Handbuch-Seite «Diagramme zu Tabellen»** (`4T-002027`), neu in allen fünf
+  Sprachfassungen, mit zwei gezeichneten Beispielen: Name der Tabelle, Angaben
+  des Blocks, die vier Arten, Datenreihen aus Spalten oder Zeilen, Tabelle in
+  einem anderen Dokument, die Hinweise samt ausgelassener Werte, Farben, Druck
+  und Export, Einfügen und Bearbeiten, die Erweiterung und die Grenzen. Die
+  Überblicksseite führt sie im Block «Metadaten, Daten und Abfragen» hinter der
+  Datentabelle. Nachgezogen sind die Seiten «Farbschemas» (sieben Gruppen mit
+  «Diagramme»), «Editor-Kontextmenü» (Gruppe «Diagramm» und das kurze Menü),
+  «Werkzeuge» (Drucken und PDF), «Erweiterungen» (Arbeitsmodus «Voll» und
+  Abhängigkeit), «Mathematik und Diagramme» und «Perspective Datatable» (je ein
+  Verweis auf die neue Seite).
+- **Funktions-Übersicht** (`4T-002019`, `4T-002027`): zwei neue Zeilen,
+  «Diagramm zu einer Datentabelle» und «Diagramm einfügen und bearbeiten», beide
+  an der Erweiterung; die Zeile «Farbschemas» nennt die zehn Farben der
+  Datenreihen.
+- **Demo-Tour** (`4T-002027`, `4T-002072`): Die Seite «03 Tables» benennt ihre
+  erste Datentabelle mit der Zeile `table: Orders` und zeigt im neuen Abschnitt «Chart — the table as a
+  picture» ein Balken-Diagramm auf ihre berechnete Spalte.
+- **Handbuch auf der Produkt-Webseite** (`4T-002027`): Die Beispiele der neuen
+  Seite erscheinen dort gezeichnet, je in einer hellen und einer dunklen
+  Fassung.
+- **Die Nutzen-Darstellung nennt die Diagramme zu Tabellen** (`4T-002028`,
+  Entscheidung des Product Owners vom 2026-09-30), in allen fünf
+  Sprachfassungen und in beiden Ausspielungen. Der Abschnitt «Tabellen, die
+  rechnen» der Nutzen-Seite des Handbuchs und der gleichlautende Block der
+  Nutzen-Seite der Produkt-Webseite führen einen Satz dazu: Aus denselben Zahlen
+  zeichnet ein eigener Block ein Linien-, Balken-, Kreis- oder Donut-Diagramm,
+  das die Tabelle nur beim Namen nennt und ihr bei jeder Änderung folgt.
+  Einfügen über den Dialog, Farben und Export bleiben als Verfeinerungen
+  draußen.
+- **Die öffentliche Roadmap nennt Balken und Datentabelle** (`4T-002029`;
+  Entscheidung des Product Owners vom 2026-09-29, Wortlaut bestätigt am
+  2026-10-04): Der Text der Kachel «Diagramme zu Tabellen» auf der
+  Produkt-Webseite nennt in allen fünf Sprachfassungen das Balken-Diagramm und
+  die Datentabelle als Quelle, das andere Dokument und das Folgen beim Tippen.
+  Mit diesem Release wechselt die Kachel von «geplant» nach «ausgeliefert».
+- **Hilfe-Inhalte** (`4T-002019`, `4T-002024`, `4T-002027`, `4T-002028`,
+  `4T-002048`, `4T-002072`): neun neue Hilfe-Schlüssel je Sprache — je drei für
+  die beiden Zeilen der Funktions-Übersicht, zwei Beschreibungen der Befehle auf
+  der Seite der Tastenkürzel, der Titel der neuen Handbuch-Seite — und vier
+  geänderte (`help.feature.colorSchemes`, `help.feature.blockAnchors`,
+  `help.feature.datatable`, `help.featureAccess.datatable`); eine neue
+  Handbuch-Seite und zehn ergänzte, je in allen fünf Sprachfassungen.
+- **Vernetzung** (`4T-002048`, `4T-002072`): Die Handbuch-Seite nennt mit einem
+  Beispiel die Kennung in einer eigenen Zeile unter einem Code-Block oder einem
+  Diagramm und die Kennung einer Datentabelle in ihrer Zeile `table:`; die Seite
+  «Diagramme zu Tabellen» sagt, dass diese Zeile in der gerenderten Ansicht, im
+  Druck und im PDF nicht zu sehen ist.
+- **Der Name der Datentabelle im Handbuch** (`4T-002072`): Die Seiten «Diagramme
+  zu Tabellen», «Perspective Datatable», «Vernetzung» und «Block-Eigenschaften»
+  zeigen den Namen als Zeile `table:` im Block der Tabelle, mit seinen Regeln,
+  seinen Fehlern und seinem Weg in den portablen Export; die Beispiele nennen
+  ihn im Diagramm ohne Dach-Zeichen.
+
+### i18n
+
+- Alle neuen Texte liegen in **allen fünf Sprachfassungen** vor, 90 neue
+  Schlüssel je Sprache (`4T-002019`, `4T-002021`, `4T-002022`, `4T-002023`,
+  `4T-002024`, `4T-002025`, `4T-002027`, `4T-002030`, `4T-002072`): im neuen
+  Fragment `chart` die Beschreibung für Hilfstechnik, die Hinweise und die Zeile
+  der ausgelassenen Werte, Dialog und Meldungen der Befehle; dazu die elf Namen
+  der Farb-Gruppe, die beiden Befehle, das Untermenü, der Alternativtext des
+  Bilds im Export, die zwei Fehler-Meldungen der Datentabelle zu einem leeren
+  oder ungültigen Namen und die Hilfe-Schlüssel. Die Schlüssel-Wörter des Blocks
+  bleiben in jeder Sprache englisch.
+
+### Intern
+
+- **Ablauf-Abdeckung und Prüfung an vorhandenen Tabellen** (`4T-002026`). Acht
+  Ablauf-Prüfdateien der Diagramme mit zusammen 72 Fällen decken Zeichnen,
+  Hinweise, Reihen, anderes Dokument, Verweise, Dialog, Bedienung, Druck und
+  Export ab. An fünf
+  Datentabellen aus Demo und Prüf-Beispielen mit je acht Diagrammen stimmen
+  Anzeige und Format-Kern überein, und jede Datei bleibt byte-gleich. Gemessen
+  sind Tabellen mit 1000, 2000 und 5000 Zeilen in allen Ansichten, beim Tippen,
+  im Druck, im PDF und im Export. Kein Anwender-Text nötig.
+- **Bausteine für die Parität** (`4T-002021`, `4T-002025`). Der Weg vom Element
+  der Ansicht zur Spalte liegt als eigener Baustein, den Grid-Editor und Diagramm
+  teilen; die Regel «welche Karte einer Canvas-Fläche ist eine Text-Karte» steht
+  an einer Stelle im geteilten Kern. Die Schema-Version des Zwischenspeichers
+  des Bereichs-Verzeichnisses steigt auf 8, weil der Bezug eines Diagramms als Verweis
+  zählt und der Name einer Datentabelle als Kennung (`4T-002023`, `4T-002072`);
+  ein Zwischenspeicher der älteren Version wird nicht mehr
+  gelesen. Kein Anwender-Text nötig.
+- **Die Nachzügler des vorigen Releases** (`4T-001981`, Sammeltask des Zuges
+  `3E-000331`). Nach der Auslieferung von 1.145.0 hat dessen Abschluss die
+  Bildschirmfotos der Produkt-Webseite erneuert. Der Commit liegt seither auf
+  dem Integrationsstand und steht hier, weil er Dateien der Webseite berührt; er
+  gehört nicht zu diesem Zug. Kein Anwendungs-Code berührt, kein Anwender-Text
+  nötig.
+- **Prüfdatei der Kanban-Marker vom Integrationsstand** (`4T-002063`). Ein
+  Prüffall der Karten-Abzeichen hing an der Wanduhr und wurde am 2026-10-02 rot;
+  die Behebung liegt auf dem Integrationsstand, und die behobene Prüfdatei ist
+  unverändert von dort übernommen, damit der Prüf-Lauf dieses Zuges grün bleibt.
+  Sie steht hier, weil der Commit, der sie übernimmt, auch Anwendungs-Code
+  dieses Zuges trägt; sie gehört nicht zu diesem Zug. Kein Anwender-Text nötig.
+
 ## [1.145.0.3623] - 2026-10-04 — Stufe 3 der Datenbank: Datensätze abfragen, über Verweise und Hierarchien verfolgen und nach Gruppen auswerten
 
 Zug 3E-000331,
