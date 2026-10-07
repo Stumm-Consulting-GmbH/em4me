@@ -89,6 +89,62 @@ describe('P-02-Sanitizer: Bilder nur mit eingebetteter Adresse (4T-001471)', () 
   });
 });
 
+// 4T-002068 (Epic 3E-000344): Wert-Schranke für `style`. Ein Stil-Wert lädt
+// über `url(…)` ein Bild an der `src`-Schranke oben vorbei. Zulässig ist nur
+// eine Adresse, die auch als `src` bestünde; sonst entfällt das Attribut,
+// das Element bleibt — dieselbe Bauform wie bei `src`.
+describe('P-02-Sanitizer: style nur mit eingebetteter Adresse (4T-002068)', () => {
+  const block = (attribut) =>
+    renderMarkdown(`${MARKER}\n\n<div><span ${attribut}>Inhalt</span></div>\n`, 'de');
+
+  it('ein Stil-Wert ohne Adresse bleibt unverändert', () => {
+    expect(block(`style="color: red"`)).toContain('style="color: red"');
+    expect(block(`style="text-align:right"`)).toContain('style="text-align:right"');
+  });
+
+  it('eine eingebettete Bild-Adresse in url(…) bleibt erhalten', () => {
+    const html = block(`style="background:url(data:image/png;base64,AA)"`);
+    expect(html).toContain('background:url(data:image/png;base64,AA)');
+    expect(block(`style="background:url('data:image/png;base64,AA')"`)).toContain('style=');
+  });
+
+  it('eine freie Adresse in url(…) setzt den Stil-Wert außer Kraft, das Element bleibt', () => {
+    for (const attribut of [
+      `style="background:url(file:///C:/geheim/bild.png)"`,
+      `style="background-image:url(//rechner/freigabe/x.png)"`,
+      `style="background:url(\\\\rechner\\freigabe\\x.png)"`,
+      `style="background:url(http://tracker.example/p.png)"`,
+      `style="background:url(https://tracker.example/p.png)"`,
+      `style="background:url('file:///x.png')"`,
+      `style='background:url("file:///x.png")'`,
+      `style="background:URL(file:///x.png)"`,
+      `style="background: url (  file:///x.png  )"`,
+      `style="background:url(data:text/html,x)"`,
+      `style="background:url(data:image/png;base64,AA), url(file:///x.png)"`,
+      // Der DOMParser löst Zeichen-Referenzen auf, bevor die Schranke prüft.
+      `style="background:&#117;rl(file:///x.png)"`,
+    ]) {
+      const html = block(attribut);
+      expect(html, attribut).not.toContain('style=');
+      expect(html, attribut).toContain('<span');
+      expect(html, attribut).toContain('Inhalt');
+    }
+  });
+
+  it('ein nicht sicher beurteilbarer Stil-Wert fällt weg: Escape, Kommentar, image-set', () => {
+    for (const attribut of [
+      `style="background:\\75rl(file:///x.png)"`,
+      `style="background:/* x */url(file:///x.png)"`,
+      `style="background-image:image-set('file:///x.png' 1x)"`,
+      `style="background-image:-webkit-image-set(url(file:///x.png) 1x)"`,
+    ]) {
+      const html = block(attribut);
+      expect(html, attribut).not.toContain('style=');
+      expect(html, attribut).toContain('Inhalt');
+    }
+  });
+});
+
 // 4T-001556 (Epic 3E-000298): Das `scope`-Attribut der Kopfzellen sagt einem
 // Vorleseprogramm, ob eine Kopfzelle fuer ihre Spalte oder ihre Zeile gilt.
 // Geprueft wird am LESE-ENDE (Auflage aus Kapitel 5.3 der Test-Strategie):

@@ -4,8 +4,14 @@
     <meta charset="UTF-8" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self';"
+      content="default-src 'self'; img-src data:; style-src 'self' 'unsafe-inline'; script-src 'self';"
     />
+    <!-- 4T-002068 (Epic 3E-000344): Bilder und Hintergründe nur als Daten-Adresse.
+         'self' ließe jede Datei-Adresse zu, weil die Seite selbst von file://
+         stammt, und damit auch Adressen auf eine Netz-Freigabe. Lokale Bilder
+         kommen über einen geprüften Weg als Daten-Adresse ins Fenster
+         (src/main/preload-images.js, Kanal embed:readImage). Den Wortlaut hält
+         test/unit/inhalts-regel-fenster.test.js. -->
     <title>EM4me</title>
     <link rel="stylesheet" href="styles.css" />
     <!-- 4T-000992 (Epic 3E-000196): Das Renderer-Stilblatt ist in 18 zusammenhängende

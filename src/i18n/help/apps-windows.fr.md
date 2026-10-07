@@ -109,7 +109,7 @@ La question apparaît sur chaque chemin qui ouvre une zone, par exemple via « O
 
 Au sein d'une application de zone, la zone est la limite : le dialogue d'ouverture démarre dans la zone et rejette une sélection extérieure, « Récents » n'affiche que les fichiers de la zone, « Enregistrer sous » n'accepte que des cibles dans la zone, et aucun fichier étranger n'entre par glisser-déposer. Les fichiers ouverts depuis le gestionnaire de fichiers s'ouvrent toujours dans une application sans zone.
 
-Les liens dont la cible se trouve hors de la zone sont marqués d'un soulignement d'avertissement ; l'info-bulle indique le chemin complet de la cible. Un clic n'ouvre pas la cible mais signale la raison dans la barre d'état. Les images intégrées restent affichées même si elles se trouvent à l'extérieur ; la limite concerne l'ouverture de fichiers, pas le rendu.
+Les liens dont la cible se trouve hors de la zone sont marqués d'un soulignement d'avertissement ; l'info-bulle indique le chemin complet de la cible. Un clic n'ouvre pas la cible mais signale la raison dans la barre d'état. Les images intégrées, elles aussi, n'apparaissent que si leur fichier se trouve dans la zone ; détails sur la page [Images](images.md).
 
 ### Espace de recherche et index
 

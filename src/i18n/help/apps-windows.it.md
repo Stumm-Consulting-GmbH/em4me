@@ -109,7 +109,7 @@ La domanda compare su ogni percorso che apre un'area, per esempio da «Apri area
 
 All'interno di un'applicazione di area, l'area è il confine: la finestra di apertura parte nell'area e respinge una selezione esterna, «Recenti» mostra solo file dell'area, «Salva con nome» accetta solo destinazioni nell'area, e nemmeno tramite trascinamento entra un file estraneo. I file aperti dal gestore file si aprono sempre in un'applicazione senza area.
 
-I collegamenti la cui destinazione si trova fuori dall'area sono contrassegnati con una sottolineatura di avviso; il suggerimento mostra il percorso completo della destinazione. Un clic non apre la destinazione ma segnala il motivo nella barra di stato. Le immagini incorporate vengono comunque mostrate anche se si trovano all'esterno; il confine riguarda l'apertura dei file, non il rendering.
+I collegamenti la cui destinazione si trova fuori dall'area sono contrassegnati con una sottolineatura di avviso; il suggerimento mostra il percorso completo della destinazione. Un clic non apre la destinazione ma segnala il motivo nella barra di stato. Anche le immagini incorporate compaiono solo se il loro file si trova nell'area; dettagli nella pagina [Immagini](images.md).
 
 ### Spazio di ricerca e indice
 

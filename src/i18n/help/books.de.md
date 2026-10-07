@@ -157,7 +157,7 @@ Ein geöffnetes Buch und ein geöffnetes Bücherregal sagen auch in den Einstell
 An erster Stelle des Blocks steht der Abschnitt **Eigene Angaben**. Er führt die Angaben, die Buch und Regal ohnehin tragen:
 
 - **Titel**, **Autor** und **Beschreibung** — drei Frontmatter-Felder der Buch- beziehungsweise Regal-Datei.
-- **Titelbild** — der Bild-Verweis `cover`, angegeben als Pfad relativ zum Buch- oder Regal-Ordner. Ein leeres Feld heißt: kein Titelbild. Liegt unter dem Pfad keine Datei, sagt der Abschnitt das und die Regal-Ansicht nimmt die Platzhalter-Kachel; ein Fehler ist es nicht.
+- **Titelbild** — der Bild-Verweis `cover`, angegeben als Pfad relativ zum Buch- oder Regal-Ordner. Ein leeres Feld heißt: kein Titelbild. Die Datei muss im Regal-Ordner liegen, die Buch-Ordner darunter eingeschlossen, bei einem Buch, das in keinem Regal liegt, im Buch-Ordner; anderswo im umgebenden Bereich genügt nicht. Sie muss eine Bilddatei in einem der Formate sein, die die Seite [Bilder](images.md) nennt, und darf höchstens 20 MB groß sein. Liegt unter dem Pfad keine Datei, liegt sie außerhalb dieser Grenze oder ist sie unzulässig, sagt der Abschnitt das und die Regal-Ansicht nimmt die Platzhalter-Kachel. Ein Fehler ist es in keinem dieser Fälle.
 - **Darstellung** — nur beim Regal: Kacheln oder Zeilen, dieselbe Wahl wie der Umschalter der Regal-Ansicht. Sie gilt je Regal und nur an diesem Rechner.
 
 Wie überall auf der Einstellungs-Seite wirken Änderungen erst mit Anwenden oder OK.

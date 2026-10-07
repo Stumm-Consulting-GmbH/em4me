@@ -351,35 +351,64 @@ test.describe('HB-08: Generierte Tastenkürzel-Seite', () => {
 // die gerenderte Seite zeigt bloss den Alt-Text. Deshalb wird hier der
 // tatsaechliche Lade-Zustand geprueft (naturalWidth), nicht die blosse
 // Existenz des Elements.
+//
+// 4T-002068 (Epic 3E-000344): Handbuch-Überblick zeigt das Logo, in allen fünf
+// Sprachen. Seit die Bild-Regel des Fensters allein Daten-Adressen zulässt,
+// kommt das Logo als Daten-Adresse über die Bild-Umwandlung im Vorlade-Skript
+// (feste Wurzel: Bild-Ordner der Anwendung); die geschriebene Adresse steht in
+// `data-anwendungsbild`. Geprüft wird zusätzlich, dass die Inhalts-Regel
+// dabei nichts abweist: Ein Logo über eine Datei-Adresse fiele sonst als
+// Verstoß auf, nicht erst als fehlendes Bild.
 test.describe('HB-11: Bildmarke auf der Überblicksseite', () => {
-  test('Logo ist eingebunden, geladen und auf Anzeigegröße begrenzt', async () => {
+  const TITEL = { en: 'Manual', fr: 'Manuel', es: 'Manual', it: 'Manuale', de: 'Handbuch' };
+  test('Logo ist in jeder Sprache als Daten-Adresse eingebunden, geladen und auf Anzeigegröße begrenzt', async () => {
+    test.setTimeout(120000);
     const { app, page, userData } = await launchApp();
     try {
+      await page.evaluate(() => {
+        window.__hb11Verstoesse = [];
+        document.addEventListener('securitypolicyviolation', (e) => {
+          window.__hb11Verstoesse.push(`${e.effectiveDirective} ${e.blockedURI}`);
+        });
+      });
       await setLanguage(page, 'de');
       await openManualPage(page, 'overview');
-      const logo = page.locator(SEL.markdownBody0).locator('img[src$="em4me-logo.svg"]');
-      await expect(logo).toHaveCount(1);
-      await expect(logo).toBeVisible();
-      // naturalWidth > 0 heisst: die Datei wurde wirklich gefunden und
-      // dekodiert. Bei totem Pfad bliebe der Wert 0.
-      await expect.poll(async () => logo.evaluate((el) => el.naturalWidth)).toBeGreaterThan(0);
-      // Die Groesse kommt aus dem Stylesheet, nicht aus einer Groessen-
-      // Angabe im Markdown (die haengt an der Erweiterung „Figuren").
-      const breite = await logo.evaluate((el) => el.getBoundingClientRect().width);
-      expect(breite).toBeGreaterThan(80);
-      expect(breite).toBeLessThan(120);
+      for (const lang of ALL_LANGS) {
+        await page.locator('#lang-select').selectOption(lang);
+        await expect(page.locator('html')).toHaveAttribute('lang', lang);
+        const body = page.locator(SEL.markdownBody0);
+        await expect(body.locator('h1')).toHaveText(TITEL[lang]);
+        const logo = body.locator('img[data-anwendungsbild$="em4me-logo.svg"]');
+        await expect(logo, lang).toHaveCount(1);
+        await expect(logo, lang).toBeVisible();
+        await expect(logo, lang).toHaveAttribute('src', /^data:image\/svg\+xml;base64,/);
+        // Ein Bild der Anwendung ist keine Anlage des Dokuments.
+        await expect(logo, lang).not.toHaveAttribute('data-src-original', /.*/);
+        // naturalWidth > 0 heisst: die Datei wurde wirklich gefunden und
+        // dekodiert. Bei totem Pfad bliebe der Wert 0.
+        await expect
+          .poll(async () => logo.evaluate((el) => el.naturalWidth), { message: lang })
+          .toBeGreaterThan(0);
+        // Die Groesse kommt aus dem Stylesheet, nicht aus einer Groessen-
+        // Angabe im Markdown (die haengt an der Erweiterung „Figuren").
+        const breite = await logo.evaluate((el) => el.getBoundingClientRect().width);
+        expect(breite, lang).toBeGreaterThan(80);
+        expect(breite, lang).toBeLessThan(120);
 
-      // 4T-000643: Unter dem Logo steht der ausgeschriebene Claim — und NICHT
-      // zusaetzlich der Alt-Text als Bildunterschrift. Die Erweiterung
-      // „Figuren" wuerde ihn dort sonst wiederholen (PO-Befund).
-      const body = page.locator(SEL.markdownBody0);
-      await expect(body.getByText('extended memory for me')).toBeVisible();
-      const bildunterschrift = body.locator('figure:has(img[src$="em4me-logo.svg"]) figcaption');
-      if ((await bildunterschrift.count()) > 0) {
-        await expect(bildunterschrift).toBeHidden();
+        // 4T-000643: Unter dem Logo steht der ausgeschriebene Claim — und NICHT
+        // zusaetzlich der Alt-Text als Bildunterschrift. Die Erweiterung
+        // „Figuren" wuerde ihn dort sonst wiederholen (PO-Befund).
+        await expect(body.getByText('extended memory for me'), lang).toBeVisible();
+        const bildunterschrift = body.locator(
+          'figure:has(img[data-anwendungsbild$="em4me-logo.svg"]) figcaption',
+        );
+        if ((await bildunterschrift.count()) > 0) {
+          await expect(bildunterschrift, lang).toBeHidden();
+        }
+        // Der Alt-Text bleibt am Bild erhalten (Linter-Regel und Barrierefreiheit).
+        await expect(logo, lang).toHaveAttribute('alt', 'EM4me');
       }
-      // Der Alt-Text bleibt am Bild erhalten (Linter-Regel und Barrierefreiheit).
-      await expect(logo).toHaveAttribute('alt', 'EM4me');
+      expect(await page.evaluate(() => window.__hb11Verstoesse)).toEqual([]);
     } finally {
       await closeApp(app, userData);
     }

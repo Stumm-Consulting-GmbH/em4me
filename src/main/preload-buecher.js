@@ -102,7 +102,7 @@ function buecherBruecke(ipcRenderer) {
       // 4T-001885 (Epic 3E-000189): Die eigenen Angaben des Buches — Titel,
       // Autor, Beschreibung und Titelbild aus dem Frontmatter der Buch-Datei.
       // getInfo liefert zusaetzlich `coverGefunden` (null ohne Verweis, sonst
-      // die Auskunft, ob die Bild-Datei da ist); setInfo nimmt die vier Felder
+      // die Auskunft, ob die Anzeige das Titelbild zeigt: Datei da, innerhalb der Grenze, Bilddatei bis 20 MB); setInfo nimmt die vier Felder
       // und entfernt ein Feld, dessen Wert leer ist.
       getInfo: () => ipcRenderer.invoke('books:getInfo'),
       setInfo: (werte) => ipcRenderer.invoke('books:setInfo', werte),

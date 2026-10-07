@@ -63,4 +63,4 @@ Seules les cibles situées dans la zone sont ouvertes, ou, sans zone, dans le do
 
 ## Pièces jointes et limites de zone
 
-Avec une zone ouverte, les images de toute la zone sont visibles, même au-dessus du dossier du document. C'est ce qui rend le dossier central utilisable. Sans zone, la limite reste le dossier du document et ses sous-dossiers ; voir aussi la page [Images](images.md).
+Si le document se trouve dans une zone ouverte, les images de toute la zone sont visibles, même au-dessus du dossier du document. C'est ce qui rend le dossier central utilisable. Sinon, la limite reste le dossier du document et ses sous-dossiers. Les formats d'image affichés et la taille maximale d'un fichier image sont indiqués sur la page [Images](images.md).

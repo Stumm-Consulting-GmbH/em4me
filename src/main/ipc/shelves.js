@@ -47,8 +47,11 @@ function registerShelvesIpc(handle, deps) {
   handle('shelves:getState', (event) => shelfPayloadFor(appIdOfWindow(senderWindow(event))));
 
   // 4T-000868: Anzeige-Daten der Regal-Ansicht (Kachel- und Zeilen-Darstellung):
-  // je Buch Titel, Autor, Beschreibung, aufgeloestes Bild und Kapitel-Anzahl.
+  // je Buch Titel, Autor, Beschreibung, Titelbild und Kapitel-Anzahl.
   // Bei jedem Abruf frisch von der Platte (Muster shelves:getState).
+  // 4T-002068 (Epic 3E-000344): Das Titelbild kommt als Daten-Adresse, gelesen
+  // innerhalb des Regal-Ordners des aktiven Regals — des Ordners, den dieses
+  // Fenster ohnehin freigibt (Grenzprüfung in src/main/books/angaben.js).
   handle('shelves:getViewData', async (event) => {
     const appId = appIdOfWindow(senderWindow(event));
     const shelfDir = appId != null ? activeShelves.get(appId) : null;

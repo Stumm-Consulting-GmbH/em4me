@@ -2,13 +2,13 @@
 // 4T-000179 (Epic 3E-000039): Die komplette Markdown-Pipeline (markdown-it-
 // Konfiguration, eigene Plugins, Frontmatter, Perspective Table, Portable-Konverter)
 // ist nach src/shared/markdown/** extrahiert und dort Electron-frei testbar.
-// Hier verbleiben nur die Bridge (IPC), Pfad-Helfer und der fs-abhaengige Bild-Resolver.
+// Hier verbleiben nur die Bridge (IPC), Pfad-Helfer und der Aufruf des fs-abhaengigen
+// Bild-Resolvers; dieser liegt seit 4T-002068 in preload-images.js.
 'use strict';
 
 const electron = require('electron');
 const { contextBridge, ipcRenderer, webUtils } = electron;
 const path = require('node:path');
-const fs = require('node:fs');
 
 const { githubLikeSlug } = require('../shared/markdown/slug.js');
 const { extractFrontmatter, writeFrontmatter } = require('../shared/markdown/frontmatter.js');
@@ -46,6 +46,9 @@ const { buecherBruecke } = require('./preload-buecher.js');
 const { diagrammeBruecke } = require('./preload-diagramme.js');
 // 4T-002023 (Epic 3E-000192): Puffer-Overlay samt Meldung an alle Fenster.
 const { bufferOverlayBridge } = require('./preload-buffer-overlay.js');
+// 4T-002068 (Epic 3E-000344): Bild-Umwandlung der Anzeige; Grenze und
+// Begründung im Kopf des Moduls.
+const { resolveImagesForBase, mindmapBilderAufloesen } = require('./preload-images.js');
 
 // 4T-000017: Electron-Standard-Zoom (Strg + +/-/0, Strg + Mausrad) komplett
 // abschalten. Der Renderer implementiert einen eigenen, pro-Tab gehaltenen
@@ -78,93 +81,6 @@ let bildAufloesungsWurzel = null;
 
 function configureAttachmentArea(rootPath) {
   bildAufloesungsWurzel = typeof rootPath === 'string' && rootPath !== '' ? rootPath : null;
-}
-
-// Liegt ziel innerhalb von wurzel? Case-insensitiv wie das Windows-Dateisystem,
-// Semantik identisch zu area-path.isInsideArea (die Wurzel selbst zählt als
-// innerhalb, Präfix-Nachbarn matchen nicht). Hier nachgebildet statt importiert,
-// weil das Preload-Bündel ohne Main-Module auskommt.
-function liegtInWurzel(wurzel, ziel) {
-  const w = path
-    .resolve(wurzel)
-    .replace(/[\\/]+$/, '')
-    .toLowerCase();
-  const z = path.resolve(ziel).toLowerCase();
-  return z === w || z.startsWith(w + path.sep);
-}
-
-// Bilder mit relativen Pfaden zum data:-URI auflösen, damit sie im
-// file://-Kontext zuverlässig laden. Alternativ könnten wir auf file:// URLs
-// umstellen, aber data: ist robuster und vermeidet Caching-Probleme.
-function resolveImagesForBase(html, basePath) {
-  if (!basePath) return html;
-  const baseDir = path.dirname(basePath);
-  // 4T-000788 (Epic 3E-000125): Die Containment-Wurzel ist bei gebundenem Bereich
-  // dessen Wurzel, sonst der Ordner des Dokuments. Damit wird ein zentraler
-  // Anlagen-Ordner des Bereichs auch aus einem Unterordner heraus sichtbar,
-  // was er unter der reinen Dokument-Ordner-Grenze nie war. Die Prüfung bleibt
-  // in ihrer Härte unverändert: eine harte Grenze gegen genau eine Wurzel, und
-  // zwar dieselbe, die die App überall sonst als Arbeitsraum-Grenze durchsetzt.
-  // Der Bereich muss den Dokument-Ordner tatsächlich enthalten; ein
-  // fensterlokal stehengebliebener Fremd-Bereich weitet sonst die Grenze für
-  // ein Dokument, das gar nicht in ihm liegt.
-  const wurzel =
-    bildAufloesungsWurzel && liegtInWurzel(bildAufloesungsWurzel, baseDir)
-      ? path.resolve(bildAufloesungsWurzel)
-      : baseDir;
-  // P-03 (4T-000176): nur echte Bild-Formate mit bekanntem MIME-Typ einbetten.
-  const IMAGE_EXT_WHITELIST = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp']);
-  const MAX_IMAGE_BYTES = 20 * 1024 * 1024; // 20 MB
-  return html.replace(/<img\s+([^>]*?)src="([^"]+)"([^>]*)>/gi, (match, pre, src, post) => {
-    if (/^(https?:|data:|file:)/i.test(src)) return match;
-    // P-01 (4T-000174): decodeURI INNERHALB des try — ein literales '%' im
-    // Bildnamen (z.B. aus unkodiertem Wiki-Embed-src) wirft sonst einen
-    // URIError und bricht den gesamten Voll-Render des Dokuments ab.
-    try {
-      const abs = path.resolve(baseDir, decodeURI(src));
-      // P-03 (4T-000176): Containment — der Resolver folgt sonst '../' und
-      // absoluten Pfaden und liest beliebige lokale Dateien ins DOM.
-      // Bilder ausserhalb der Wurzel bleiben unaufgeloest (Browser zeigt das
-      // Bild nicht; bewusster Trade-off, im Task dokumentiert). 4T-000788: Die
-      // Wurzel ist bei gebundenem Bereich dessen Wurzelordner, sonst wie bisher
-      // der Ordner des Dokuments.
-      if (!liegtInWurzel(wurzel, abs)) return match;
-      const ext = path.extname(abs).slice(1).toLowerCase();
-      if (!IMAGE_EXT_WHITELIST.has(ext)) return match;
-      // Groessenlimit VOR dem Lesen (Memory-Schutz).
-      if (fs.statSync(abs).size > MAX_IMAGE_BYTES) return match;
-      const mime = mimeForImage(ext);
-      const data = fs.readFileSync(abs).toString('base64');
-      // 4T-000790 (Epic 3E-000125): Original-Quelle als Attribut erhalten. Nach der
-      // Ersetzung steht in `src` ein data:-URI, aus dem sich kein Pfad mehr
-      // ableiten laesst; der Klick-Pfad braucht ihn aber, um die Anlage in der
-      // Standardanwendung zu oeffnen. Der Wert stammt aus dem src-Attribut des
-      // gerenderten HTML und ist dort bereits attribut-sicher.
-      return `<img ${pre}data-src-original="${src}" src="data:${mime};base64,${data}"${post}>`;
-    } catch {
-      return match;
-    }
-  });
-}
-
-function mimeForImage(ext) {
-  switch (ext) {
-    case 'png':
-      return 'image/png';
-    case 'jpg':
-    case 'jpeg':
-      return 'image/jpeg';
-    case 'gif':
-      return 'image/gif';
-    case 'webp':
-      return 'image/webp';
-    case 'svg':
-      return 'image/svg+xml';
-    case 'bmp':
-      return 'image/bmp';
-    default:
-      return 'application/octet-stream';
-  }
 }
 
 contextBridge.exposeInMainWorld('api', {
@@ -428,12 +344,14 @@ contextBridge.exposeInMainWorld('api', {
     // lang-Kontext und der fs-abhaengige Bild-Resolver.
     const lang = (document.documentElement.lang || 'de').split('-')[0].toLowerCase();
     const html = renderMarkdown(text, lang, opts);
-    return resolveImagesForBase(html, basePath);
+    return resolveImagesForBase(html, basePath, bildAufloesungsWurzel);
   },
   // 4T-001045 (Epic 3E-000151): Knoten-Baum fuer die Mindmap-Ansicht, derselbe
   // Weg wie renderMarkdown. Die Anordnung rechnet bewusst der Renderer, weil
-  // sie eine echte Textmessung braucht.
-  buildMindmap: (text, opts) => mindmapAusDokument(text, markdownModul.md, opts || {}),
+  // sie eine echte Textmessung braucht. 4T-002068: Bilder der Notizen über die
+  // Bild-Umwandlung ohne Dokument-Pfad (Kopf von preload-images.js).
+  buildMindmap: (text, opts) =>
+    mindmapBilderAufloesen(mindmapAusDokument(text, markdownModul.md, opts || {})),
   // 4T-002021 (Epic 3E-000192): Diagramm zu einer Datentabelle, derselbe Weg
   // wie renderMarkdown; die Begruendung des eigenen Moduls steht dort. Seit
   // 4T-002023 dazu das Lesen einer Tabelle in einem anderen Dokument.
@@ -562,7 +480,8 @@ contextBridge.exposeInMainWorld('api', {
   resolveEmbedTarget: (basePath, embedPath, kind) =>
     ipcRenderer.invoke('embed:resolveTarget', { basePath, embedPath, kind }),
   // 4T-001486: Inhalt einer Bild-Einbettung als Daten-Adresse — die
-  // Inhalts-Sicherheits-Regel laesst fuer Bilder nur 'self' und 'data:' zu.
+  // Inhalts-Sicherheits-Regel lässt für Bilder seit 4T-002068 allein
+  // Daten-Adressen zu (`img-src data:`).
   // Antwort: { ok, path, dataUrl } oder { ok: false, error }.
   readEmbedImage: (basePath, embedPath) =>
     ipcRenderer.invoke('embed:readImage', { basePath, embedPath }),

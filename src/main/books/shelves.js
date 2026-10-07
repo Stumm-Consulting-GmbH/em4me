@@ -50,7 +50,7 @@ const {
 // eigenen Angaben — gemeinsam mit dem Buch, siehe den Kopf von angaben.js.
 const {
   readFrontmatterExcerpt,
-  resolveImagePath,
+  titelbildAlsDaten,
   leseAngaben,
   schreibeAngaben,
 } = require('./angaben.js');
@@ -155,6 +155,22 @@ async function bookDirContaining(shelfDir, filePath) {
   const kandidat = path.join(root, teile[0]);
   const settings = await readBookSettings(kandidat);
   return settings.ok ? kandidat : null;
+}
+
+// 4T-002068 (Epic 3E-000344): Der Regal-Ordner, in dem ein Buch-Ordner
+// unmittelbar liegt, oder null. Grundlage der Grenze des Titelbilds in den
+// eigenen Angaben des Buches: Sie ist in jedem Fall der Regal-Ordner und bei
+// einem Buch ohne Regal der Buch-Ordner (Entscheidung des Product Owners vom
+// 2026-10-04, «Weg A»), damit die Auskunft im Einstellungs-Abschnitt dasselbe
+// sagt wie die Regal-Ansicht. Ein Buch liegt immer unmittelbar unter seinem
+// Regal-Ordner (Hierarchie endet beim Regal), erkannt an der Begleitdatei des
+// Eltern-Ordners wie beim Öffnen eines Regals; eine defekte Begleitdatei zählt
+// nicht als Regal, dann gilt die engere Grenze.
+async function shelfDirOfBook(bookDir) {
+  if (typeof bookDir !== 'string' || bookDir === '') return null;
+  const parent = path.dirname(path.resolve(bookDir));
+  const settings = await readShelfSettings(parent);
+  return settings.ok ? parent : null;
 }
 
 // --- Zustand des aktiven Regals ----------------------------------------------
@@ -311,8 +327,15 @@ async function unassignBookDir(shelfDir, rawDirName) {
 // denselben Weg bekommt.
 
 // Ansichts-Eintrag eines Buch-Ordners: Titel (Frontmatter-Titel der
-// Buch-Datei, sonst Ordner-Name), Autor, Beschreibung, aufgelöstes Bild und
+// Buch-Datei, sonst Ordner-Name), Autor, Beschreibung, Titelbild und
 // Kapitel-Anzahl aus der Begleitdatei.
+//
+// 4T-002068 (Epic 3E-000344): Das Titelbild kommt als Daten-Adresse
+// (`imageData`) statt als Pfad, den die Ansicht zur Datei-Adresse machte: Das
+// Anzeige-Fenster lädt Bilder allein aus Daten-Adressen. Grenze ist der
+// Regal-Ordner (Entscheidung des Product Owners vom 2026-10-04, «Weg A»);
+// außerhalb, mit fremder Endung, über 20 MB oder fehlend bleibt `imageData`
+// null, und die Ansicht zeigt die Platzhalter-Kachel.
 async function buildBookEntry(shelfDir, dirName, assigned) {
   const bookDir = path.join(path.resolve(shelfDir), dirName);
   const entry = {
@@ -323,7 +346,7 @@ async function buildBookEntry(shelfDir, dirName, assigned) {
     title: dirName,
     author: null,
     description: null,
-    imagePath: null,
+    imageData: null,
     chapters: 0,
   };
   const settings = await readBookSettings(bookDir);
@@ -331,11 +354,12 @@ async function buildBookEntry(shelfDir, dirName, assigned) {
   entry.chapters = flattenChapters(readChapterTree(settings.container)).length;
   const bookFileName = readBookFileName(settings.container);
   if (bookFileName === null) return entry;
-  const excerpt = await readFrontmatterExcerpt(path.join(bookDir, bookFileName));
+  const bookFilePath = path.join(bookDir, bookFileName);
+  const excerpt = await readFrontmatterExcerpt(bookFilePath);
   if (excerpt.title !== null) entry.title = excerpt.title;
   entry.author = excerpt.author;
   entry.description = excerpt.description;
-  entry.imagePath = await resolveImagePath(bookDir, excerpt.cover);
+  entry.imageData = await titelbildAlsDaten(bookFilePath, excerpt.cover, path.resolve(shelfDir));
   return entry;
 }
 
@@ -373,7 +397,7 @@ async function buildShelfViewData(shelfDir) {
         title: dirName,
         author: null,
         description: null,
-        imagePath: null,
+        imageData: null,
         chapters: 0,
       });
     } else {
@@ -431,6 +455,7 @@ module.exports = {
   detectShelfDirFor,
   collectBookDirs,
   bookDirContaining,
+  shelfDirOfBook,
   buildShelfState,
   buildShelfViewData,
   // 4T-001598 (Epic 3E-000191): Der Titel-Auszug ist ab hier der Titel-Weg auch

@@ -7,13 +7,14 @@
 // heute gepflegt werden. Ein Fall mit gestelltem Dateisystem misst diese Aussage
 // gerade nicht; er misst die Stellung. Setup-Muster der benachbarten
 // Main-Tests (test/unit/books-main.test.js).
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
+import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { leseAngaben, schreibeAngaben } from '../../src/main/books/angaben.js';
 import { readBookInfo, writeBookInfo } from '../../src/main/books/books.js';
-import { readShelfInfo, writeShelfInfo } from '../../src/main/books/shelves.js';
+import { readShelfInfo, shelfDirOfBook, writeShelfInfo } from '../../src/main/books/shelves.js';
 import { BOOK_SETTINGS_FILENAME } from '../../src/shared/books/book-core.js';
 import { SHELF_SETTINGS_FILENAME } from '../../src/shared/books/shelf-core.js';
 
@@ -120,6 +121,162 @@ describe('Eigene Angaben lesen (4T-001885)', () => {
     const angaben = await readShelfInfo(shelfDir);
     expect(angaben).toMatchObject({ ok: true, title: 'Meine Bibliothek', author: 'Haus' });
     expect(angaben.shelfDir).toBe(path.resolve(shelfDir));
+  });
+});
+
+// 4T-002068 (Epic 3E-000344, Verdacht 2 aus 4T-001963): Grenze des Titelbilds
+// in der Auskunft des Einstellungs-Abschnitts.
+//
+// **Was zugesichert wird.** «Gefunden» heißt dasselbe wie «die Regal-Ansicht
+// zeigt es»: innerhalb der Grenze, mit Bild-Endung, höchstens 20 MB. Grenze ist
+// in jedem Fall der Regal-Ordner, bei einem Buch ohne Regal der Buch-Ordner
+// (Entscheidung des Product Owners vom 2026-10-04, «Weg A»): beim Regal und
+// beim Buch im Regal der Regal-Ordner, beim Buch ohne Regal der Buch-Ordner.
+// Ein umgebender Bereich weitet sie nicht; «Regal im Bereich»
+// prüft deshalb dieselbe Grenze wie «Regal ohne Bereich». Jeder Fall außerhalb
+// prüft zusätzlich, dass kein Datei-Zugriff außerhalb der Grenze stattfand
+// (Muster test/unit/preload-images.test.js); der Freigabe-Rechner liegt unter
+// `.invalid` und wird nie aufgelöst.
+describe('Grenze des Titelbilds in der Auskunft (4T-002068)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  // Der Verweis steht in Anführungszeichen, damit Rückstriche und Doppelpunkte
+  // als Text gelten.
+  function mitTitelbild(cover) {
+    return `---\ncover: ${JSON.stringify(cover)}\n---\n`;
+  }
+
+  function schreibeBild(datei, inhalt = 'PNG') {
+    fs.mkdirSync(path.dirname(datei), { recursive: true });
+    fs.writeFileSync(datei, inhalt);
+    return datei;
+  }
+
+  function zugriffeMitzaehlen() {
+    const zugriffe = [];
+    const statOriginal = fsp.stat;
+    const readOriginal = fsp.readFile;
+    vi.spyOn(fsp, 'stat').mockImplementation((p, ...rest) => {
+      zugriffe.push(String(p));
+      return statOriginal.call(fsp, p, ...rest);
+    });
+    vi.spyOn(fsp, 'readFile').mockImplementation((p, ...rest) => {
+      zugriffe.push(String(p));
+      return readOriginal.call(fsp, p, ...rest);
+    });
+    return zugriffe;
+  }
+
+  function ausserhalb(zugriffe, grenze) {
+    return zugriffe.filter((p) => {
+      const rel = path.relative(grenze, path.resolve(p));
+      return rel.startsWith('..') || path.isAbsolute(rel);
+    });
+  }
+
+  it('Buch: `../` aus dem Buch-Ordner hinaus gilt als nicht gefunden, ohne Zugriff', async () => {
+    const root = makeDir();
+    schreibeBild(path.join(root, 'aussen.png'));
+    const bookDir = makeBook(root, 'Reise', mitTitelbild('../aussen.png'));
+    const zugriffe = zugriffeMitzaehlen();
+    expect(await readBookInfo(bookDir)).toMatchObject({
+      cover: '../aussen.png',
+      coverGefunden: false,
+    });
+    expect(ausserhalb(zugriffe, bookDir)).toEqual([]);
+  });
+
+  it('Buch: absoluter Pfad außerhalb gilt als nicht gefunden, ohne Zugriff', async () => {
+    const fremd = schreibeBild(path.join(makeDir(), 'fremd.png'));
+    const bookDir = makeBook(makeDir(), 'Reise', mitTitelbild(fremd));
+    const zugriffe = zugriffeMitzaehlen();
+    expect((await readBookInfo(bookDir)).coverGefunden).toBe(false);
+    expect(ausserhalb(zugriffe, bookDir)).toEqual([]);
+  });
+
+  it('Buch: Netz-Pfad in jeder Schreibweise gilt als nicht gefunden, ohne Zugriff', async () => {
+    for (const cover of [
+      '\\\\rechner.invalid\\freigabe\\bild.png',
+      '//rechner.invalid/freigabe/bild.png',
+    ]) {
+      const bookDir = makeBook(makeDir(), 'Reise', mitTitelbild(cover));
+      const zugriffe = zugriffeMitzaehlen();
+      expect((await readBookInfo(bookDir)).coverGefunden, cover).toBe(false);
+      expect(ausserhalb(zugriffe, bookDir), cover).toEqual([]);
+      vi.restoreAllMocks();
+    }
+  });
+
+  it('Buch: Datei ohne Bild-Endung gilt als nicht gefunden', async () => {
+    const root = makeDir();
+    const bookDir = makeBook(root, 'Reise', mitTitelbild('titel.txt'));
+    const text = schreibeBild(path.join(bookDir, 'titel.txt'), 'kein Bild');
+    const zugriffe = zugriffeMitzaehlen();
+    expect((await readBookInfo(bookDir)).coverGefunden).toBe(false);
+    expect(zugriffe).not.toContain(text);
+  });
+
+  it('Buch: Bilddatei über 20 MB gilt als nicht gefunden, ihr Inhalt wird nicht gelesen', async () => {
+    const root = makeDir();
+    const bookDir = makeBook(root, 'Reise', mitTitelbild('gross.png'));
+    const gross = path.join(bookDir, 'gross.png');
+    const fd = fs.openSync(gross, 'w');
+    fs.ftruncateSync(fd, 20 * 1024 * 1024 + 1);
+    fs.closeSync(fd);
+    zugriffeMitzaehlen();
+    expect((await readBookInfo(bookDir)).coverGefunden).toBe(false);
+    expect(fsp.readFile).not.toHaveBeenCalledWith(gross);
+  });
+
+  it('Buch im Regal: Grenze ist der Regal-Ordner, wie in der Regal-Ansicht', async () => {
+    const root = makeDir();
+    schreibeBild(path.join(root, 'aussen.png'));
+    const shelfDir = makeShelf(root, 'Bibliothek', '---\ntitle: Regal\n---\n');
+    schreibeBild(path.join(shelfDir, 'gemeinsam.png'));
+    const innen = makeBook(shelfDir, 'Reise', mitTitelbild('../gemeinsam.png'));
+    expect(await shelfDirOfBook(innen)).toBe(path.resolve(shelfDir));
+    expect((await readBookInfo(innen, shelfDir)).coverGefunden).toBe(true);
+    // Über den Regal-Ordner hinaus: nicht gefunden, ohne Zugriff.
+    const hinaus = makeBook(shelfDir, 'Fahrt', mitTitelbild('../../aussen.png'));
+    const zugriffe = zugriffeMitzaehlen();
+    expect((await readBookInfo(hinaus, shelfDir)).coverGefunden).toBe(false);
+    expect(ausserhalb(zugriffe, shelfDir)).toEqual([]);
+  });
+
+  it('Buch ohne Regal: Grenze ist der Buch-Ordner', async () => {
+    const root = makeDir();
+    schreibeBild(path.join(root, 'daneben.png'));
+    const bookDir = makeBook(root, 'Reise', mitTitelbild('../daneben.png'));
+    expect(await shelfDirOfBook(bookDir)).toBeNull();
+    const zugriffe = zugriffeMitzaehlen();
+    expect((await readBookInfo(bookDir)).coverGefunden).toBe(false);
+    expect(ausserhalb(zugriffe, bookDir)).toEqual([]);
+  });
+
+  it('Regal ohne Bereich: Grenze ist der Regal-Ordner', async () => {
+    const innen = makeShelf(makeDir(), 'Bibliothek', mitTitelbild('bilder/titel.png'));
+    schreibeBild(path.join(innen, 'bilder', 'titel.png'));
+    expect((await readShelfInfo(innen)).coverGefunden).toBe(true);
+
+    const root = makeDir();
+    schreibeBild(path.join(root, 'aussen.png'));
+    const aussen = makeShelf(root, 'Bibliothek', mitTitelbild('../aussen.png'));
+    const zugriffe = zugriffeMitzaehlen();
+    expect((await readShelfInfo(aussen)).coverGefunden).toBe(false);
+    expect(ausserhalb(zugriffe, aussen)).toEqual([]);
+  });
+
+  it('Regal im Bereich: dieselbe Grenze — ein Titelbild im Bereich außerhalb des Regals gilt als nicht gefunden', async () => {
+    // Der Ordner `bereich` steht für den umgebenden Bereich; das Bild liegt
+    // darin, aber außerhalb des Regal-Ordners.
+    const bereich = path.join(makeDir(), 'bereich');
+    schreibeBild(path.join(bereich, 'anlagen', 'titel.png'));
+    const shelfDir = makeShelf(bereich, 'Bibliothek', mitTitelbild('../anlagen/titel.png'));
+    const zugriffe = zugriffeMitzaehlen();
+    expect((await readShelfInfo(shelfDir)).coverGefunden).toBe(false);
+    expect(ausserhalb(zugriffe, shelfDir)).toEqual([]);
   });
 });
 

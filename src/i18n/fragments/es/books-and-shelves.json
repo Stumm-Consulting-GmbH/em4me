@@ -34,7 +34,7 @@
   "settings.bookInfo.description": "Descripción",
   "settings.bookInfo.cover": "Imagen de portada",
   "settings.bookInfo.coverHint": "Ruta al archivo de imagen, relativa a la carpeta. Déjelo vacío si no hay imagen de portada.",
-  "settings.bookInfo.coverMissing": "No hay ningún archivo en esta ruta. La vista utiliza entonces el marcador de posición.",
+  "settings.bookInfo.coverMissing": "En esta ruta no hay ninguna imagen de portada que se pueda mostrar: el archivo falta, está fuera de la carpeta de la estantería o del libro, o no es un archivo de imagen de hasta 20 MB. La vista utiliza entonces el marcador de posición.",
   "settings.bookInfo.viewMode": "Presentación",
   "settings.bookInfo.viewModeHint": "Presentación de los libros en la vista de la estantería. Solo vale en este equipo.",
   "settings.bookInfo.loading": "Cargando los datos …",

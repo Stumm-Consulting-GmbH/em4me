@@ -109,7 +109,7 @@ The question appears on every path that opens an area, for example via “Open A
 
 Within an area application the area is the boundary: the open dialog starts in the area and rejects selections outside it, "Recent" only shows area files, "Save As" only accepts targets inside the area, and no foreign file gets in via drag and drop either. Files from the file manager always open in an application without an area.
 
-Links whose target lies outside the area are marked with a warning underline; the tooltip shows the full target path. A click does not open the target but reports the reason in the status bar. Embedded images are still displayed even if they lie outside; the boundary applies to opening files, not to rendering.
+Links whose target lies outside the area are marked with a warning underline; the tooltip shows the full target path. A click does not open the target but reports the reason in the status bar. Embedded images, too, appear only if their file lies inside the area; details on the page [Images](images.md).
 
 ### Search scope and index
 

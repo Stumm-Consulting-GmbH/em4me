@@ -218,8 +218,8 @@ export function renderBookInfoSection(container, draft) {
     'cover',
   );
   hinweisZeile(container, t('settings.bookInfo.coverHint'));
-  // Die Bild-Datei liegt im Dateisystem und ist nicht in der Hand der
-  // Anwendung: Ihr Fehlen ist kein Fehler, sondern eine Auskunft. Gemessen ist
+  // Ein nicht anzeigbares Titelbild (fehlt, außerhalb der Grenze, keine
+  // Bilddatei bis 20 MB) ist kein Fehler, sondern eine Auskunft. Gemessen ist
   // der Stand beim Laden — wer den Verweis gerade tippt, bekommt die Auskunft
   // nach dem nächsten Öffnen der Seite (Abgrenzung der Story 4S-000994).
   if (werte.coverGefunden === false && (werte.cover || '') === werte.coverGemessen) {

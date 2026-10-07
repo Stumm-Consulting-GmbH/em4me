@@ -387,8 +387,9 @@ function uebernimmBild(inhalt, ctx, wert, erg) {
   // Nach der Namens-Suche ist er ein anderer als der geschriebene, und gemeint
   // ist die gefundene Datei.
   bild.dataset.srcOriginal = erg.path || wert;
-  // Daten-Adresse statt `file://`: Die Inhalts-Sicherheits-Regel der Anwendung
-  // lässt als Bild-Quelle nur `self` und `data:` zu.
+  // Daten-Adresse statt `file://`: Die Inhalts-Sicherheits-Regel des
+  // Anzeige-Fensters lässt als Bild-Quelle allein `data:` zu (seit 4T-002068)
+  // und weist eine Datei-Adresse ab.
   bild.src = erg.dataUrl;
   inhalt.appendChild(bild);
 }

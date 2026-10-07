@@ -157,7 +157,7 @@ An open book and an open bookshelf also say in the settings (File → Settings�
 In first place of the block sits the section **Own details**. It carries the details that a book and a shelf hold anyway:
 
 - **Title**, **Author** and **Description** — three front matter fields of the book or shelf file.
-- **Cover image** — the image reference `cover`, given as a path relative to the book or shelf folder. An empty field means: no cover image. If there is no file at that path, the section says so and the shelf view uses the placeholder tile; it is not an error.
+- **Cover image** — the image reference `cover`, given as a path relative to the book or shelf folder. An empty field means: no cover image. The file must lie in the shelf folder, the book folders below it included, or, for a book that lies in no shelf, in the book folder; anywhere else in the surrounding area is not enough. It must be an image file in one of the formats listed on the [Images](images.md) page and may be at most 20 MB in size. If there is no file at that path, or the file lies outside this boundary or is not permitted, the section says so and the shelf view uses the placeholder tile. None of these cases is an error.
 - **Display** — for a shelf only: tiles or rows, the same choice as the switch of the shelf view. It applies per shelf and on this computer only.
 
 As everywhere on the settings page, changes only take effect with Apply or OK.

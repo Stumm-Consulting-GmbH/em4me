@@ -1,6 +1,6 @@
 # Images
 
-Les images se chargent depuis des fichiers locaux dont le chemin est indiqué par rapport au fichier Markdown, ou depuis des données intégrées au texte. Les images dont l'adresse provient du réseau (`http(s)`) ne sont volontairement pas affichées, car par sécurité l'application ne charge aucun contenu depuis le réseau ; placez plutôt une telle image comme fichier à côté du document. Le manuel n'embarque pas d'images de démonstration ; les exemples montrent donc la syntaxe en bloc de code avec le résultat décrit — dans vos propres fichiers, elles se rendent directement.
+Les images se chargent depuis des fichiers locaux dont le chemin est indiqué par rapport au fichier Markdown, ou depuis des données intégrées au texte. Dans un document jamais enregistré, les images locales n'apparaissent qu'après l'enregistrement, car il n'a pas encore de dossier par rapport auquel leur chemin pourrait se résoudre. Les images dont l'adresse provient du réseau (`http(s)`) ne sont volontairement pas affichées, car par sécurité l'application ne charge aucun contenu depuis le réseau ; placez plutôt une telle image comme fichier à côté du document. Le manuel n'embarque pas d'images de démonstration ; les exemples montrent donc la syntaxe en bloc de code avec le résultat décrit — dans vos propres fichiers, elles se rendent directement.
 
 ## Syntaxe des images
 
@@ -10,7 +10,7 @@ Le texte alternatif entre crochets décrit l'image (important pour l'accessibili
 ![Diagramme d'architecture](images/architecture.png)
 ```
 
-Les chemins relatifs se résolvent par rapport au dossier du fichier Markdown. Par sécurité, seules les images situées à l'intérieur d'une limite fixe se résolvent : la racine de la zone lorsqu'une zone est ouverte, sinon le dossier du fichier Markdown. Aucun `../` ne mène au-delà. Formats pris en charge : PNG, JPG/JPEG, GIF, WebP, SVG, BMP.
+Les chemins relatifs se résolvent par rapport au dossier du fichier Markdown. Par sécurité, seules les images situées à l'intérieur d'une limite fixe apparaissent : si le document se trouve dans une zone ouverte, c'est la zone entière, sinon le dossier du fichier Markdown et ses sous-dossiers. Ne sont pas affichées les images avec une adresse de fichier (`file:`), les images sur un partage réseau (`//serveur/…` ou `\\serveur\…`) et les chemins qui mènent hors de la limite, qu'ils soient relatifs avec `../` ou absolus. Formats pris en charge : PNG, JPG/JPEG, GIF, WebP, SVG, BMP ; un fichier image peut peser au plus 20 Mo.
 
 ## Tailles d'image
 
@@ -53,4 +53,4 @@ Sous l'image figure sa légende — le texte alternatif ou, à défaut, le nom d
 
 Trois moyens de le fermer, tous avec le même effet : le bouton « Fermer », la touche `Esc` ou un clic sur la zone assombrie à côté de l'image. Au clavier, `Tab` passe d'un bouton à l'autre sans quitter l'agrandissement.
 
-Une image que la vue n'affiche pas — par exemple parce que son fichier manque — n'ouvre pas d'agrandissement. Dans la vue « Direct », un clic n'ouvre pas d'agrandissement ; là, un double clic ouvre l'image dans le programme par défaut.
+Une image que la vue n'affiche pas — par exemple parce que son fichier manque — apparaît sous la forme de son texte alternatif et n'ouvre pas d'agrandissement. Dans la vue « Direct », un clic n'ouvre pas d'agrandissement ; là, un double clic ouvre l'image dans le programme par défaut.

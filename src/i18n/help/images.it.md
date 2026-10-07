@@ -1,6 +1,6 @@
 # Immagini
 
-Le immagini si caricano da file locali il cui percorso è indicato rispetto al file Markdown, oppure da dati incorporati nel testo. Le immagini con un indirizzo di rete (`http(s)`) volutamente non vengono mostrate, perché per sicurezza l'applicazione non carica contenuti dalla rete; metti invece un'immagine del genere come file accanto al documento. Il manuale non include immagini dimostrative; gli esempi mostrano quindi la sintassi come blocco di codice con il risultato descritto — nei tuoi file si renderizzano direttamente.
+Le immagini si caricano da file locali il cui percorso è indicato rispetto al file Markdown, oppure da dati incorporati nel testo. In un documento mai salvato le immagini locali compaiono solo dopo il salvataggio, perché fino ad allora non ha una cartella rispetto alla quale risolvere il loro percorso. Le immagini con un indirizzo di rete (`http(s)`) volutamente non vengono mostrate, perché per sicurezza l'applicazione non carica contenuti dalla rete; metti invece un'immagine del genere come file accanto al documento. Il manuale non include immagini dimostrative; gli esempi mostrano quindi la sintassi come blocco di codice con il risultato descritto — nei tuoi file si renderizzano direttamente.
 
 ## Sintassi delle immagini
 
@@ -10,7 +10,7 @@ Il testo alternativo tra parentesi quadre descrive l'immagine (importante per l'
 ![Diagramma dell'architettura](immagini/architettura.png)
 ```
 
-I percorsi relativi si risolvono rispetto alla cartella del file Markdown. Per sicurezza si risolvono solo immagini entro un confine fisso: la radice dell'area quando ne è aperta una, altrimenti la cartella del file Markdown. Nessun `../` porta oltre. Formati supportati: PNG, JPG/JPEG, GIF, WebP, SVG, BMP.
+I percorsi relativi si risolvono rispetto alla cartella del file Markdown. Per sicurezza compaiono solo immagini entro un confine fisso: se il documento si trova in un'area aperta, è l'intera area, altrimenti la cartella del file Markdown con le sue sottocartelle. Non vengono mostrate le immagini con un indirizzo di file (`file:`), le immagini su una condivisione di rete (`//server/…` o `\\server\…`) e i percorsi che portano fuori dal confine, relativi con `../` o assoluti. Formati supportati: PNG, JPG/JPEG, GIF, WebP, SVG, BMP; un file immagine può essere grande al massimo 20 MB.
 
 ## Dimensioni delle immagini
 
@@ -53,4 +53,4 @@ Sotto l'immagine compare la didascalia — il testo alternativo o, se manca, il 
 
 Tre modi per chiuderlo, tutti con lo stesso effetto: il pulsante «Chiudi», il tasto `Esc` o un clic sull'area scurita accanto all'immagine. Con la tastiera, `Tab` passa da un pulsante all'altro senza uscire dall'ingrandimento.
 
-Un'immagine che la vista non visualizza — per esempio perché manca il suo file — non apre alcun ingrandimento. Nella vista «Live» un clic non apre alcun ingrandimento; lì un doppio clic apre l'immagine nel programma predefinito.
+Un'immagine che la vista non visualizza — per esempio perché manca il suo file — è sostituita dal suo testo alternativo e non apre alcun ingrandimento. Nella vista «Live» un clic non apre alcun ingrandimento; lì un doppio clic apre l'immagine nel programma predefinito.

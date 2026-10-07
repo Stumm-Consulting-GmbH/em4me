@@ -91,8 +91,10 @@ test.describe('P-03: Bild-Resolver respektiert seine Wurzel', () => {
       const srcs = await body
         .locator('img')
         .evaluateAll((imgs) => imgs.map((i) => i.getAttribute('src')));
-      expect(srcs.some((s) => s.includes('geheim'))).toBe(true); // unaufgeloest geblieben
-      expect(srcs.filter((s) => s.startsWith('data:')).length).toBe(1);
+      // 4T-002068: Das Traversal-Ziel verliert seine Adresse, statt unaufgelöst
+      // stehen zu bleiben; sonst lüde das Fenster es selbst.
+      await expect(body.locator('img[alt="boese"]:not([src])')).toHaveCount(1);
+      expect(srcs.filter((s) => s !== null && s.startsWith('data:')).length).toBe(1);
     } finally {
       await closeApp(app, userData);
       try {
@@ -106,7 +108,7 @@ test.describe('P-03: Bild-Resolver respektiert seine Wurzel', () => {
   // zentralen Anlagen-Ordner, das Dokument liegt in einem Unterordner und
   // verweist mit '../' hinein — genau die Konstellation, die unter der reinen
   // Dokument-Ordner-Grenze nie ein Bild zeigte. Das zweite Bild liegt
-  // ausserhalb des Bereichs und muss unaufgeloest bleiben.
+  // ausserhalb des Bereichs und darf nicht aufgelöst werden.
   test('mit Bereich loest der zentrale Anlagen-Ordner auf, ausserhalb des Bereichs nicht', async () => {
     const workDir = makeWorkDir('scg-md-4t0788-');
     const areaDir = path.join(workDir, 'bereich');
@@ -147,12 +149,10 @@ test.describe('P-03: Bild-Resolver respektiert seine Wurzel', () => {
       const body = page.locator(SEL.markdownBody0);
       await expect(body.locator('img')).toHaveCount(2);
       // Genau EINS ist eingebettet: das im Bereich. Das Ziel ausserhalb des
-      // Bereichs bleibt unaufgeloest, die Grenze wirkt also weiterhin.
+      // Bereichs verliert seine Adresse (4T-002068), die Grenze wirkt also
+      // weiterhin.
       await expect(body.locator('img[src^="data:image/png"]')).toHaveCount(1);
-      const srcs = await body
-        .locator('img')
-        .evaluateAll((imgs) => imgs.map((i) => i.getAttribute('src')));
-      expect(srcs.some((s) => s.includes('fremd'))).toBe(true);
+      await expect(body.locator('img[alt="fremd"]:not([src])')).toHaveCount(1);
     } finally {
       await closeApp(app, userData);
       try {

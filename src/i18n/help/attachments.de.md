@@ -31,16 +31,16 @@ Mehrere gleichzeitig gezogene Dateien ergeben mehrere Verweise. Ein Einfügen od
 
 ## Wohin die Datei gelegt wird
 
-Der Ablage-Ort steht in den Einstellungen unter „Anlagen" und lässt sich zusätzlich je Arbeitsbereich abweichend festlegen (Einstellungen → Aktueller Bereich → Anlagen). Bei geöffnetem Buch heißt der Block dort **Aktuelles Buch**, bei geöffnetem Bücherregal **Aktuelles Bücherregal**.
+Der Ablage-Ort steht in den Einstellungen unter „Anlagen" und lässt sich zusätzlich je Bereich abweichend festlegen (Einstellungen → Aktueller Bereich → Anlagen). Bei geöffnetem Buch heißt der Block dort **Aktuelles Buch**, bei geöffnetem Bücherregal **Aktuelles Bücherregal**.
 
 | Ablage-Ort | Wohin die Datei kommt |
 |---|---|
 | Ordner mit dem Namen des Dokuments | in einen Unterordner, der wie das Dokument heißt (Voreinstellung) |
 | Fester Unterordner | in einen Unterordner mit dem eingestellten Namen |
 | Neben dem Dokument | in denselben Ordner wie das Dokument |
-| Zentraler Ordner des Bereichs | in einen Ordner direkt in der Wurzel des Arbeitsbereichs |
+| Zentraler Ordner des Bereichs | in einen Ordner direkt in der Wurzel des Bereichs |
 
-Der zentrale Ordner steht nur bei geöffnetem Arbeitsbereich zur Wahl, weil er ohne ihn keinen Bezugspunkt hätte. Der Ordnername gilt für die beiden Formen, die einen brauchen; er ist ein einzelner Name ohne Pfad-Angaben.
+Der zentrale Ordner steht nur bei geöffnetem Bereich zur Wahl, weil er ohne ihn keinen Bezugspunkt hätte. Der Ordnername gilt für die beiden Formen, die einen brauchen; er ist ein einzelner Name ohne Pfad-Angaben.
 
 Ein bereits vorhandener Dateiname wird nie überschrieben. Stattdessen erhält die neue Datei einen Zähler, also `Bild-2.png` neben `Bild.png`. Anlagen ohne eigenen Namen, etwa ein Bildschirmfoto aus der Zwischenablage, werden nach dem Dokument und dem Zeitpunkt benannt.
 
@@ -59,8 +59,8 @@ In der gerenderten Ansicht zeigt der Klick das Bild also zuerst groß; wer es in
 
 Ein Bild aus einer eingebetteten Notiz öffnet die Datei, auf die die Notiz selbst verweist, auch wenn sie in einem anderen Ordner liegt als das offene Dokument.
 
-Geöffnet werden nur Ziele innerhalb des Arbeitsbereichs beziehungsweise, ohne Arbeitsbereich, innerhalb des Dokument-Ordners. Bei Dateien, die beim Öffnen Programmcode ausführen können, erscheint zuerst eine Rückfrage mit Namen und vollständigem Pfad.
+Geöffnet werden nur Ziele innerhalb des Bereichs beziehungsweise, ohne Bereich, innerhalb des Dokument-Ordners. Bei Dateien, die beim Öffnen Programmcode ausführen können, erscheint zuerst eine Rückfrage mit Namen und vollständigem Pfad.
 
 ## Anlagen und Bereichsgrenzen
 
-Bei geöffnetem Arbeitsbereich sind Bilder aus dem gesamten Bereich sichtbar, auch wenn sie über dem Ordner des Dokuments liegen. Genau das macht den zentralen Anlagen-Ordner nutzbar. Ohne Arbeitsbereich bleibt es beim Ordner des Dokuments samt seiner Unterordner; siehe auch die Seite [Bilder](images.md).
+Liegt das Dokument in einem geöffneten Bereich, sind Bilder aus dem gesamten Bereich sichtbar, auch wenn sie über dem Ordner des Dokuments liegen. Genau das macht den zentralen Anlagen-Ordner nutzbar. Sonst bleibt es beim Ordner des Dokuments samt seiner Unterordner. Welche Bildformate erscheinen und wie groß eine Bilddatei sein darf, steht auf der Seite [Bilder](images.md).

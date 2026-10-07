@@ -109,7 +109,7 @@ La pregunta aparece en cada camino que abre un área, por ejemplo desde «Abrir 
 
 Dentro de una aplicación de área, el área es el límite: el diálogo de apertura empieza en el área y rechaza una selección externa, «Recientes» solo muestra archivos del área, «Guardar como» solo acepta destinos dentro del área, y tampoco entra ningún archivo ajeno por arrastrar y soltar. Los archivos del gestor de archivos se abren siempre en una aplicación sin área.
 
-Los enlaces cuyo destino está fuera del área se marcan con un subrayado de advertencia; la información sobre herramientas muestra la ruta completa del destino. Un clic no abre el destino, sino que informa del motivo en la barra de estado. Las imágenes incrustadas se siguen mostrando aunque estén fuera; el límite se aplica a la apertura de archivos, no al renderizado.
+Los enlaces cuyo destino está fuera del área se marcan con un subrayado de advertencia; la información sobre herramientas muestra la ruta completa del destino. Un clic no abre el destino, sino que informa del motivo en la barra de estado. También las imágenes incrustadas aparecen solo si su archivo está dentro del área; detalles en la página [Imágenes](images.md).
 
 ### Espacio de búsqueda e índice
 

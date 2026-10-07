@@ -157,7 +157,7 @@ Un libro aperto e una libreria aperta dicono anche nelle impostazioni (File → 
 Al primo posto del blocco si trova la sezione **Dati propri**. Porta i dati che il libro e la libreria contengono comunque:
 
 - **Titolo**, **Autore** e **Descrizione** — tre campi del front matter del file del libro o della libreria.
-- **Immagine di copertina** — il riferimento immagine `cover`, indicato come percorso relativo alla cartella del libro o della libreria. Un campo vuoto significa: nessuna immagine di copertina. Se in quel percorso non c'è alcun file, la sezione lo segnala e la vista della libreria usa il riquadro segnaposto; non è un errore.
+- **Immagine di copertina** — il riferimento immagine `cover`, indicato come percorso relativo alla cartella del libro o della libreria. Un campo vuoto significa: nessuna immagine di copertina. Il file deve trovarsi nella cartella della libreria, comprese le cartelle di libro sottostanti, oppure, per un libro che non si trova in alcuna libreria, nella cartella del libro; un altro punto dell'area circostante non basta. Deve essere un file immagine in uno dei formati indicati nella pagina [Immagini](images.md), di al massimo 20 MB. Se in quel percorso non c'è alcun file, oppure il file si trova fuori da questo confine o non è ammesso, la sezione lo segnala e la vista della libreria usa il riquadro segnaposto. Nessuno di questi casi è un errore.
 - **Visualizzazione** — solo per la libreria: riquadri o righe, la stessa scelta del commutatore della vista della libreria. Vale per libreria e solo su questo computer.
 
 Come ovunque nella pagina delle impostazioni, le modifiche hanno effetto solo con Applica o OK.

@@ -11,6 +11,8 @@
 
 const path = require('node:path');
 const books = require('../books/books');
+// 4T-002068 (Epic 3E-000344): Regal eines Buches für die Grenze des Titelbilds.
+const { shelfDirOfBook } = require('../books/shelves');
 const { isInsideArea } = require('../area/area-path');
 // 4T-001789 (Epic 3E-000255): Die Fehlschlag-Kennungen des Mitziehens erreichen
 // den Anwender auch auf diesem Bedienweg.
@@ -75,11 +77,16 @@ function registerBooksIpc(handle, deps) {
   // Beide Kanaele beziehen sich wie alle uebrigen auf das aktive Buch der
   // APPLIKATION des aufrufenden Fensters. Damit haengt der Abschnitt an der
   // Bindung des Fensters und nicht am sichtbaren Dokument (AK13).
-  handle('books:getInfo', (event) => {
+  //
+  // 4T-002068 (Epic 3E-000344): Die Auskunft, ob das Titelbild gefunden ist,
+  // gilt mit derselben Grenze wie die Regal-Ansicht: der Regal-Ordner, wenn das
+  // Buch in einem Regal liegt, sonst der Buch-Ordner.
+  handle('books:getInfo', async (event) => {
     const appId = appIdOfWindow(senderWindow(event));
     const bookDir = appId != null ? activeBooks.get(appId) : null;
     if (!bookDir) return { ok: false, error: 'no-book' };
-    return books.readBookInfo(bookDir);
+    const regal = await shelfDirOfBook(bookDir);
+    return books.readBookInfo(bookDir, regal || undefined);
   });
 
   // Rein schreibend auf die Buch-Datei; kein Zustands-Broadcast noetig, weil

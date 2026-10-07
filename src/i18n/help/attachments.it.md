@@ -63,4 +63,4 @@ Vengono aperte solo destinazioni all'interno dell'area oppure, senza area, all'i
 
 ## Allegati e confini dell'area
 
-Con un'area aperta sono visibili le immagini di tutta l'area, anche al di sopra della cartella del documento. È questo che rende utilizzabile la cartella centrale degli allegati. Senza area il confine resta la cartella del documento con le sue sottocartelle; vedere anche la pagina [Immagini](images.md).
+Se il documento si trova in un'area aperta, sono visibili le immagini di tutta l'area, anche al di sopra della cartella del documento. È questo che rende utilizzabile la cartella centrale degli allegati. Altrimenti il confine resta la cartella del documento con le sue sottocartelle. Quali formati di immagine compaiono e quanto può essere grande un file immagine è indicato nella pagina [Immagini](images.md).

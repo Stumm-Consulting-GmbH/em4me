@@ -82,6 +82,29 @@ function erlaubteBildAdresse(wert) {
   return String(wert).trim().toLowerCase().startsWith('data:image/');
 }
 
+// 4T-002068 (Epic 3E-000344): Schranke für `style`. Ein Stil-Wert lädt über
+// `url(…)` ein Bild an der `src`-Schranke vorbei — als Datei-, Freigabe- oder
+// Netz-Adresse beim bloßen Öffnen. Zulässig ist eine Adresse im Stil-Wert
+// deshalb nur, wenn sie die `src`-Schranke besteht; geprüft wird jede
+// `url(`-Stelle, gleich in welcher Schreibung und mit welchem Leerraum. Was
+// sich nicht sicher beurteilen lässt, gilt als unzulässig: ein Backslash
+// (CSS-Escape, etwa `\75rl(`), ein Kommentar, ein `@` und die Funktionen,
+// deren Zeichenketten selbst Adressen sind (`image-set`, `image`, `src`).
+// Bauform wie bei `src`: Das Attribut entfällt, das Element bleibt.
+const STIL_UNBEURTEILBAR = /\\|\/\*|@|(?:image-set|\bimage|\bsrc)\s*\(/i;
+
+function erlaubterStilWert(wert) {
+  const text = String(wert);
+  if (STIL_UNBEURTEILBAR.test(text)) return false;
+  for (const treffer of text.matchAll(/url\s*\(/gi)) {
+    const rest = text.slice(treffer.index + treffer[0].length);
+    const argument = rest.match(/^\s*(?:"([^"]*)"|'([^']*)'|([^\s"'()]*))\s*\)/);
+    if (!argument) return false;
+    if (!erlaubteBildAdresse(argument[1] || argument[2] || argument[3] || '')) return false;
+  }
+  return true;
+}
+
 // Block-HTML (in sich geschlossene Fragmente): per DOMParser filtern.
 // Nicht erlaubte Elemente werden samt Inhalt entfernt (deckt <style>,
 // <form>, <script>, <iframe> ab); nicht erlaubte Attribute und
@@ -105,6 +128,8 @@ function sanitizePortableHtmlBlock(rawHtml) {
       } else if (name === 'href' && /^\s*(javascript|data|vbscript):/i.test(attr.value)) {
         el.removeAttribute(attr.name);
       } else if (name === 'src' && !erlaubteBildAdresse(attr.value)) {
+        el.removeAttribute(attr.name);
+      } else if (name === 'style' && !erlaubterStilWert(attr.value)) {
         el.removeAttribute(attr.name);
       } else if (name === 'scope' && !erlaubterScopeWert(attr.value)) {
         el.removeAttribute(attr.name);
@@ -139,6 +164,7 @@ function sanitizePortableHtmlInline(src) {
     const bare = /^["']/.test(value) ? value.slice(1, -1) : value;
     if (name === 'href' && /^\s*(javascript|data|vbscript):/i.test(bare)) continue;
     if (name === 'src' && !erlaubteBildAdresse(bare)) continue;
+    if (name === 'style' && !erlaubterStilWert(bare)) continue;
     if (name === 'scope' && !erlaubterScopeWert(bare)) continue;
     attrs.push(`${name}="${escapeHtml(bare)}"`);
   }

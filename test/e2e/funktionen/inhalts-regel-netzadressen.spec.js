@@ -3,11 +3,10 @@
 //
 // Die Fälle prüfen den SOLL-Zustand: Eine Adress-Form, die nicht aus der
 // Anwendung selbst oder als Daten-Adresse kommt, wird weder geladen, noch geht
-// eine Anfrage an ihr Ziel ab. Fälle, in denen die Anwendung heute schon
-// abweist, sind gewöhnliche Zusicherungen. Fälle, in denen heute geladen wird,
-// tragen die Markierung `test.fail()`: Sie gelten als bestanden, solange der
-// Zustand besteht, und werden rot, sobald die Behebung (Vorgang 4T-002068)
-// greift. Wer behebt, entfernt die Markierung und hat damit die Zusicherung.
+// eine Anfrage an ihr Ziel ab. Die Fälle, in denen die Anwendung bei der
+// Messung noch lud, trugen bis zur Behebung (Vorgang 4T-002068) die Markierung
+// `test.fail()`; seit dessen Schritt 4 trägt keiner sie mehr, und alle Fälle
+// sind gewöhnliche Zusicherungen. IR-09 ist mit Schritt 4 hinzugekommen.
 //
 // Jeder Fall trägt seinen ANKER: Eine Form, die laden muss (Daten-Adresse,
 // relatives Bild des Dokuments, Titelbild), oder die abgewiesene http-Adresse
@@ -299,6 +298,36 @@ async function geladeneBilder(page) {
   );
 }
 
+// Liest im gerenderten Dokument je Prüf-Element (am Text erkannt) den
+// Stil-Wert; `null` heißt, das Attribut ist entfallen.
+async function stilWerte(page, texte) {
+  return page.evaluate(
+    ({ sel, liste }) => {
+      const spans = Array.from(document.querySelectorAll(`${sel} span`));
+      return liste
+        .map((t) => ({ text: t, el: spans.find((s) => s.textContent === t) }))
+        .filter((e) => e.el)
+        .map((e) => ({ text: e.text, stil: e.el.getAttribute('style') }));
+    },
+    { sel: SEL.markdownBody0, liste: texte },
+  );
+}
+
+// Erwartet, dass jedes Prüf-Element gerendert ist und keine `url(…)`-Angabe
+// mehr trägt: Die Stil-Schranke des portablen Modus lässt das Attribut
+// entfallen, das Element bleibt.
+async function erwarteStileOhneAdresse(page, texte) {
+  const stile = await stilWerte(page, texte);
+  expect(
+    stile.map((s) => s.text),
+    'Anker: die Prüf-Elemente stehen im Dokument',
+  ).toEqual(texte);
+  expect(
+    stile.filter((s) => /url\s*\(/i.test(s.stil || '')).map((s) => s.text),
+    'Prüf-Elemente mit url(…) im Stil',
+  ).toEqual([]);
+}
+
 function bildOrdner() {
   const dir = makeDir('em4me-csp-');
   const bildAbs = path.join(dir, 'bild.png');
@@ -340,8 +369,9 @@ test.describe('IR-01: Fenster weist http und kodierte Freigabe-Adresse ab', () =
 });
 
 test.describe('IR-02: Fenster weist Freigabe-Adressen ab', () => {
-  // Bekannter Zustand bis zur Behebung, Vorgang 4T-002068.
-  test.fail('Bild und Hintergrund über eine Freigabe werden nicht geladen', async () => {
+  // Behoben mit 4T-002068, Schritt 1: Die Bild-Regel des Fensters lässt allein
+  // Daten-Adressen zu.
+  test('Bild und Hintergrund über eine Freigabe werden nicht geladen', async () => {
     test.setTimeout(120000);
     const { dir, bildAbs } = bildOrdner();
     try {
@@ -366,8 +396,9 @@ test.describe('IR-02: Fenster weist Freigabe-Adressen ab', () => {
 });
 
 test.describe('IR-03: Fenster weist Datei-Adressen ab', () => {
-  // Bekannter Zustand bis zur Behebung, Vorgang 4T-002068.
-  test.fail('Bild und Hintergrund über eine Datei-Adresse werden nicht geladen', async () => {
+  // Behoben mit 4T-002068, Schritt 1: Die Bild-Regel des Fensters lässt allein
+  // Daten-Adressen zu.
+  test('Bild und Hintergrund über eine Datei-Adresse werden nicht geladen', async () => {
     test.setTimeout(120000);
     const { dir, bildAbs } = bildOrdner();
     try {
@@ -438,8 +469,9 @@ test.describe('IR-04: Gewöhnliches Dokument weist http, Einbettung und Schema-F
 });
 
 test.describe('IR-05: Gewöhnliches Dokument weist Freigabe-Adressen ohne Schema ab', () => {
-  // Bekannter Zustand bis zur Behebung, Vorgang 4T-002068.
-  test.fail('Bild über //rechner/… wird nicht geladen', async () => {
+  // Behoben mit 4T-002068, Schritt 2: Die Bild-Umwandlung nimmt einer Adresse
+  // außerhalb der Grenze ihre Quelle.
+  test('Bild über //rechner/… wird nicht geladen', async () => {
     test.setTimeout(120000);
     const { dir, bildAbs } = bildOrdner();
     try {
@@ -472,6 +504,12 @@ test.describe('IR-05: Gewöhnliches Dokument weist Freigabe-Adressen ohne Schema
   });
 });
 
+// Anker der portablen Fälle: ein Markdown-Bild über http. Es läuft nicht durch
+// den Roh-HTML-Filter des portablen Modus, die Bild-Umwandlung lässt http
+// stehen, und die Inhalts-Regel des Fensters weist es ab — der Verstoß kommt
+// aus derselben Darstellung wie die Prüf-Elemente. Seit 4T-002068, Schritt 3,
+// erreicht eine Adresse im Stil-Wert die Inhalts-Regel nicht mehr, weil das
+// Attribut schon beim Filtern entfällt; als Anker taugt sie deshalb nicht mehr.
 test.describe('IR-06: Portables Dokument weist Bild-Element auf Freigabe und Hintergrund über http ab', () => {
   test('Bild-Element mit //rechner/… und Hintergrund über http werden nicht geladen', async () => {
     test.setTimeout(120000);
@@ -487,7 +525,9 @@ test.describe('IR-06: Portables Dokument weist Bild-Element auf Freigabe und Hin
             '',
             '# Prüfdokument portabel',
             '',
-            `<div><img src="${f.A2}" alt="P1"><span style="display:inline-block;width:4px;height:4px;background:url(http://127.0.0.1:${server.port}/anker-ir06.png)">P3</span></div>`,
+            `<div><img src="${f.A2}" alt="P1"><span style="display:inline-block;width:4px;height:4px;background:url(http://127.0.0.1:${server.port}/hg-ir06.png)">P3</span></div>`,
+            '',
+            `![P0](http://127.0.0.1:${server.port}/anker-ir06.png)`,
             '',
           ].join('\n'),
           'utf8',
@@ -497,6 +537,7 @@ test.describe('IR-06: Portables Dokument weist Bild-Element auf Freigabe und Hin
         expect(await geladeneBilder(page)).toEqual([]);
         expect(server.treffer).toEqual([]);
         expect(zielAnfragen(await mitschnittLesen(app), bildAbs)).toEqual([]);
+        await erwarteStileOhneAdresse(page, ['P3']);
       });
     } finally {
       cleanupDir(dir);
@@ -505,87 +546,176 @@ test.describe('IR-06: Portables Dokument weist Bild-Element auf Freigabe und Hin
 });
 
 test.describe('IR-07: Portables Dokument weist Hintergründe über Freigabe- und Datei-Adressen ab', () => {
-  // Bekannter Zustand bis zur Behebung, Vorgang 4T-002068.
-  test.fail(
-    'Hintergrund über //rechner/…, file:/// und file://rechner/… wird nicht geladen',
-    async () => {
-      test.setTimeout(120000);
-      const { dir, bildAbs } = bildOrdner();
-      try {
-        await mitFenster(async ({ app, page, server }) => {
-          const f = adressFormen(bildAbs, server.port);
-          const datei = path.join(dir, 'portabel-ir07.md');
-          fs.writeFileSync(
-            datei,
-            [
-              '<!-- perspective-portable -->',
-              '',
-              '# Prüfdokument portabel',
-              '',
-              `<div><span style="display:inline-block;width:4px;height:4px;background-image:url(${f.A2}?p=css)">P2</span><span style="display:inline-block;width:4px;height:4px;background:url(${f.A7}?p=css7)">P4</span><span style="display:inline-block;width:4px;height:4px;background:url(http://127.0.0.1:${server.port}/anker-ir07.png)">P3</span></div>`,
-              '',
-              `<span style="display:inline-block;width:4px;height:4px;background:url(${f.A5}?p=inline)">P5</span>`,
-              '',
-            ].join('\n'),
-            'utf8',
-          );
-          await zeigeGerendert(app, page, datei);
-          await warteAufVerstoss(page, 'anker-ir07.png');
-          expect(zielAnfragen(await mitschnittLesen(app), bildAbs)).toEqual([]);
-        });
-      } finally {
-        cleanupDir(dir);
-      }
-    },
-  );
+  // Behoben mit 4T-002068, Schritt 3: Die Stil-Schranke des portablen Modus
+  // lässt einen Stil-Wert mit einer anderen als einer eingebetteten Adresse
+  // entfallen. Anker wie bei IR-06.
+  test('Hintergrund über //rechner/…, file:/// und file://rechner/… wird nicht geladen', async () => {
+    test.setTimeout(120000);
+    const { dir, bildAbs } = bildOrdner();
+    try {
+      await mitFenster(async ({ app, page, server }) => {
+        const f = adressFormen(bildAbs, server.port);
+        const datei = path.join(dir, 'portabel-ir07.md');
+        fs.writeFileSync(
+          datei,
+          [
+            '<!-- perspective-portable -->',
+            '',
+            '# Prüfdokument portabel',
+            '',
+            `<div><span style="display:inline-block;width:4px;height:4px;background-image:url(${f.A2}?p=css)">P2</span><span style="display:inline-block;width:4px;height:4px;background:url(${f.A7}?p=css7)">P4</span></div>`,
+            '',
+            `<span style="display:inline-block;width:4px;height:4px;background:url(${f.A5}?p=inline)">P5</span>`,
+            '',
+            `![P0](http://127.0.0.1:${server.port}/anker-ir07.png)`,
+            '',
+          ].join('\n'),
+          'utf8',
+        );
+        await zeigeGerendert(app, page, datei);
+        await warteAufVerstoss(page, 'anker-ir07.png');
+        expect(zielAnfragen(await mitschnittLesen(app), bildAbs)).toEqual([]);
+        expect(await geladeneBilder(page)).toEqual([]);
+        expect(server.treffer).toEqual([]);
+        await erwarteStileOhneAdresse(page, ['P2', 'P4', 'P5']);
+      });
+    } finally {
+      cleanupDir(dir);
+    }
+  });
 });
 
-test.describe('IR-08: Titelbild der Regal-Ansicht ohne Datei-Adresse', () => {
-  // Bekannter Zustand bis zur Behebung, Vorgang 4T-002068.
-  test.fail(
-    'cover.png im Buch-Ordner erscheint, ohne über eine Datei-Adresse geladen zu werden',
-    async () => {
-      test.setTimeout(120000);
-      const parent = makeDir('em4me-csp-regal-');
-      const shelfDir = path.join(parent, 'Bibliothek');
-      fs.mkdirSync(shelfDir);
-      fs.writeFileSync(path.join(shelfDir, 'Bibliothek.md'), '# Bibliothek\n', 'utf8');
-      fs.writeFileSync(
-        path.join(shelfDir, SHELF_SETTINGS_FILENAME),
-        JSON.stringify(
-          { schemaVersion: 1, shelf: { file: 'Bibliothek.md' }, books: ['Mit Bild'] },
-          null,
-          2,
-        ),
-        'utf8',
-      );
-      const bookDir = path.join(shelfDir, 'Mit Bild');
-      fs.mkdirSync(bookDir);
-      fs.writeFileSync(path.join(bookDir, 'Mit Bild.md'), '---\ncover: cover.png\n---\n', 'utf8');
-      const coverAbs = path.join(bookDir, 'cover.png');
-      fs.writeFileSync(coverAbs, PNG_1X1);
-      fs.writeFileSync(
-        path.join(bookDir, BOOK_SETTINGS_FILENAME),
-        serializeBookContainer(emptyBookContainer('Mit Bild.md')),
-        'utf8',
-      );
-      try {
-        await mitFenster(async ({ app, page }) => {
-          await page.evaluate((d) => window.api.shelves.openPath(d), shelfDir);
-          const VIEW = '.pane-group[data-pane="0"] .pane-system .shelf-view-page';
-          await expect(page.locator(VIEW)).toBeVisible();
-          const bild = page.locator(`${VIEW} img`).first();
-          await expect(bild).toBeAttached();
-          await expect.poll(() => bild.evaluate((i) => i.complete)).toBe(true);
-          expect(
-            await bild.evaluate((i) => i.naturalWidth),
-            'Anker: das Titelbild erscheint',
-          ).toBeGreaterThan(0);
-          expect(zielAnfragen(await mitschnittLesen(app), coverAbs)).toEqual([]);
-        });
-      } finally {
-        cleanupDir(parent);
-      }
-    },
+// Regal-Ordner mit Regal-Datei und Begleitdatei; die Bücher stehen in der
+// angegebenen Reihenfolge in der Zuordnung.
+function regalAnlegen(parent, buecher) {
+  const shelfDir = path.join(parent, 'Bibliothek');
+  fs.mkdirSync(shelfDir);
+  fs.writeFileSync(path.join(shelfDir, 'Bibliothek.md'), '# Bibliothek\n', 'utf8');
+  fs.writeFileSync(
+    path.join(shelfDir, SHELF_SETTINGS_FILENAME),
+    JSON.stringify({ schemaVersion: 1, shelf: { file: 'Bibliothek.md' }, books: buecher }, null, 2),
+    'utf8',
   );
+  return shelfDir;
+}
+
+// Buch-Ordner im Regal; der Titelbild-Verweis steht in Anführungszeichen, damit
+// Rückstriche und Doppelpunkte als Text gelten.
+function buchAnlegen(shelfDir, name, cover) {
+  const bookDir = path.join(shelfDir, name);
+  fs.mkdirSync(bookDir);
+  fs.writeFileSync(
+    path.join(bookDir, `${name}.md`),
+    `---\ntitle: ${JSON.stringify(name)}\ncover: ${JSON.stringify(cover)}\n---\n`,
+    'utf8',
+  );
+  fs.writeFileSync(
+    path.join(bookDir, BOOK_SETTINGS_FILENAME),
+    serializeBookContainer(emptyBookContainer(`${name}.md`)),
+    'utf8',
+  );
+  return bookDir;
+}
+
+const REGAL_ANSICHT = '.pane-group[data-pane="0"] .pane-system .shelf-view-page';
+
+test.describe('IR-08: Titelbild der Regal-Ansicht ohne Datei-Adresse', () => {
+  // Behoben mit 4T-002068, Schritt 4: Das Titelbild kommt als Daten-Adresse
+  // aus dem Hauptprozess, gelesen innerhalb des Regal-Ordners.
+  test('cover.png im Buch-Ordner erscheint, ohne über eine Datei-Adresse geladen zu werden', async () => {
+    test.setTimeout(120000);
+    const parent = makeDir('em4me-csp-regal-');
+    const shelfDir = regalAnlegen(parent, ['Mit Bild']);
+    const bookDir = buchAnlegen(shelfDir, 'Mit Bild', 'cover.png');
+    const coverAbs = path.join(bookDir, 'cover.png');
+    fs.writeFileSync(coverAbs, PNG_1X1);
+    try {
+      await mitFenster(async ({ app, page }) => {
+        await page.evaluate((d) => window.api.shelves.openPath(d), shelfDir);
+        await expect(page.locator(REGAL_ANSICHT)).toBeVisible();
+        const bild = page.locator(`${REGAL_ANSICHT} img`).first();
+        await expect(bild).toBeAttached();
+        await expect.poll(() => bild.evaluate((i) => i.complete)).toBe(true);
+        expect(
+          await bild.evaluate((i) => i.naturalWidth),
+          'Anker: das Titelbild erscheint',
+        ).toBeGreaterThan(0);
+        expect(await bild.evaluate((i) => i.src.slice(0, 22))).toBe('data:image/png;base64,');
+        expect(zielAnfragen(await mitschnittLesen(app), coverAbs)).toEqual([]);
+      });
+    } finally {
+      cleanupDir(parent);
+    }
+  });
+});
+
+test.describe('IR-09: Titelbild außerhalb des Regal-Ordners erscheint nicht', () => {
+  // 4T-002068, Schritt 4 (Verdacht 2 aus 4T-001963): Grenze des Titelbilds ist
+  // der Regal-Ordner (Entscheidung des Product Owners vom 2026-10-04, «Weg A»).
+  // Ein Titelbild außerhalb davon — über `../` hinaus in den umgebenden
+  // Ordner, absolut, über eine Freigabe oder als Datei-Adresse — erscheint
+  // nicht; an seiner Stelle steht die Platzhalter-Kachel mit dem Titel, ohne
+  // defektes Bild, ohne Verstoß gegen die Inhalts-Regel und ohne
+  // Konsolen-Meldung. Anker sind die beiden Titelbilder innerhalb der Grenze:
+  // eines im Buch-Ordner und eines im Regal-Ordner außerhalb des Buch-Ordners,
+  // das zeigt, dass die Grenze der Regal-Ordner ist und nicht der Buch-Ordner.
+  test('Titelbilder über ../ hinaus, absolut, über eine Freigabe und als Datei-Adresse zeigen die Platzhalter-Kachel', async () => {
+    test.setTimeout(120000);
+    const parent = makeDir('em4me-csp-regal9-');
+    const fremd = bildOrdner();
+    const aussenAbs = path.join(parent, 'aussen.png');
+    fs.writeFileSync(aussenAbs, PNG_1X1);
+    const innen = ['A Im Buch', 'B Im Regal'];
+    const aussen = ['C Hinaus', 'D Absolut', 'E Freigabe', 'F Datei-Adresse'];
+    const shelfDir = regalAnlegen(parent, [...innen, ...aussen]);
+    const imBuch = buchAnlegen(shelfDir, 'A Im Buch', 'cover.png');
+    fs.writeFileSync(path.join(imBuch, 'cover.png'), PNG_1X1);
+    buchAnlegen(shelfDir, 'B Im Regal', '../gemeinsam/regal.png');
+    fs.mkdirSync(path.join(shelfDir, 'gemeinsam'));
+    fs.writeFileSync(path.join(shelfDir, 'gemeinsam', 'regal.png'), PNG_1X1);
+    buchAnlegen(shelfDir, 'C Hinaus', '../../aussen.png');
+    buchAnlegen(shelfDir, 'D Absolut', fremd.bildAbs);
+    const f = adressFormen(fremd.bildAbs, 9);
+    buchAnlegen(shelfDir, 'E Freigabe', f.A2);
+    buchAnlegen(shelfDir, 'F Datei-Adresse', f.A7);
+    try {
+      await mitFenster(async ({ app, page }) => {
+        await page.evaluate((d) => window.api.shelves.openPath(d), shelfDir);
+        await expect(page.locator(REGAL_ANSICHT)).toBeVisible();
+        await expect(page.locator(`${REGAL_ANSICHT} .shelf-view-tile`)).toHaveCount(6);
+        const bilder = page.locator(`${REGAL_ANSICHT} img`);
+        await expect(bilder).toHaveCount(2);
+        await expect
+          .poll(() => bilder.evaluateAll((liste) => liste.every((i) => i.complete)))
+          .toBe(true);
+        const geladen = await bilder.evaluateAll((liste) =>
+          liste.map((i) => ({
+            alt: i.alt,
+            breite: i.naturalWidth,
+            daten: i.src.startsWith('data:image/png;base64,'),
+          })),
+        );
+        expect(geladen, 'Anker: beide Titelbilder innerhalb der Grenze erscheinen').toEqual(
+          innen.map((alt) => ({ alt, breite: 1, daten: true })),
+        );
+        await expect(
+          page.locator(`${REGAL_ANSICHT} .shelf-view-placeholder-title`),
+          'Platzhalter-Kacheln mit Titel',
+        ).toHaveText(aussen);
+        expect(await verstoesseLesen(page), 'Verstöße gegen die Inhalts-Regel').toEqual([]);
+        const mitschnitt = await mitschnittLesen(app);
+        for (const ziel of [aussenAbs, fremd.bildAbs]) {
+          expect(zielAnfragen(mitschnitt, ziel), ziel).toEqual([]);
+        }
+        expect(
+          mitschnitt.filter((e) => /^file:/i.test(e.url) && /\.png/i.test(e.url)).map((e) => e.url),
+          'Bild-Anfragen über eine Datei-Adresse',
+        ).toEqual([]);
+        expect(app.__konsolenFunde, 'Konsolen-Meldungen').toEqual([]);
+      });
+    } finally {
+      cleanupDir(parent);
+      cleanupDir(fremd.dir);
+    }
+  });
 });

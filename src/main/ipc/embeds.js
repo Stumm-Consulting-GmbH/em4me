@@ -43,21 +43,13 @@ const MAX_ANGABEN_SCHLUESSEL = 50;
 // 4T-001486 (Epic 3E-000199): Groessen-Limit und MIME-Zuordnung der
 // Bild-Einbettung. Beide stammen aus dem bisherigen synchronen Weg im Preload
 // (P-03, 4T-000176) und wandern mit, damit der neue Weg nicht schwaecher ist
-// als der alte.
-const MAX_EMBED_IMAGE_BYTES = 20 * 1024 * 1024;
-const EMBED_IMAGE_MIME = {
-  png: 'image/png',
-  jpg: 'image/jpeg',
-  jpeg: 'image/jpeg',
-  gif: 'image/gif',
-  webp: 'image/webp',
-  svg: 'image/svg+xml',
-  bmp: 'image/bmp',
-};
-
-function mimeForImageExt(ext) {
-  return EMBED_IMAGE_MIME[ext] || 'application/octet-stream';
-}
+// als der alte. Seit 4T-002068 in bild-daten.js, zusammen mit dem Lesen als
+// Daten-Adresse, weil das Titelbild von Buch und Regal sie mitbenutzt.
+const {
+  MAX_EMBED_IMAGE_BYTES,
+  mimeForImageExt,
+  bildDateiAlsDaten,
+} = require('../documents/bild-daten');
 
 /**
  * Registriert die Kanaele der Wiki-Einbettungen.
@@ -198,10 +190,12 @@ function registerEmbedsIpc(handle, deps) {
 
   // 4T-001486 (Epic 3E-000199): Inhalt einer Bild-Einbettung als Daten-Adresse.
   //
-  // Warum die Daten und nicht der Pfad: Die Inhalts-Sicherheits-Regel der
-  // Anwendung erlaubt Bild-Quellen nur aus 'self' und 'data:' — eine
-  // file://-Adresse laedt der Anzeige-Prozess nicht. Der PDF-Zweig kommt mit
-  // file:// aus, weil ein <embed> keine Bild-Quelle ist.
+  // Warum die Daten und nicht der Pfad: Die Inhalts-Sicherheits-Regel des
+  // Anzeige-Fensters lässt Bilder und Hintergründe seit 4T-002068 allein als
+  // Daten-Adresse zu (`img-src data:` in src/renderer/index.html); eine
+  // Datei-Adresse weist das Fenster ab, bevor eine Anfrage abgeht. Der
+  // PDF-Zweig kommt mit file:// aus, weil ein <embed> nicht unter die
+  // Bild-Angabe fällt, sondern unter `default-src`.
   //
   // Endungs-Whitelist und Groessen-Limit stammen aus dem bisherigen synchronen
   // Weg (P-03/4T-000176) und wandern mit, damit der neue Weg nicht schwaecher
@@ -319,29 +313,22 @@ function registerEmbedsIpc(handle, deps) {
   });
 
   // 4T-001957 (Epic 3E-000319): Ein Bild-Wert einer verlinkten Notiz als
-  // Daten-Adresse. Aufgelöst relativ zur NOTIZ (Vorbild `resolveImagePath` der
-  // Regal-Ansicht), aber über denselben Auflöser wie `embed:readImage` und
-  // damit mit Grenze, Bild-Endungen und Größen-Limit; ein Pfad aus fremdem
-  // Dokument-Inhalt folgt keinem `../`-Ausbruch und keinem absoluten Pfad
-  // hinaus. Ein fehlendes oder unlesbares Bild liefert null — die Karte zeigt
-  // dann nichts statt eines Platzhalters.
+  // Daten-Adresse. Aufgelöst relativ zur NOTIZ, über denselben Auflöser wie
+  // `embed:readImage` und damit mit Grenze, Bild-Endungen und Größen-Limit;
+  // ein Pfad aus fremdem Dokument-Inhalt folgt keinem `../`-Ausbruch und
+  // keinem absoluten Pfad hinaus. Ein fehlendes oder unlesbares Bild liefert
+  // null — die Karte zeigt dann nichts statt eines Platzhalters.
+  //
+  // Seit 4T-002068 geht das Titelbild von Buch und Regal einen eigenen,
+  // gleich gebauten Weg (`resolveImagePath` in src/main/books/angaben.js):
+  // dieselbe Grenzprüfung (`resolveContainedEmbedPath`) und dasselbe Lesen
+  // (`bildDateiAlsDaten`), aber ohne Namens-Suche im Bereichs-Index und mit
+  // dem Regal-Ordner als Grenze statt der Bereichs-Bindung des Fensters.
   async function bildAlsDaten(event, notizPfad, bildPfad, cache) {
     const ziel = await loeseEmbedZiel(event, notizPfad, bildPfad, 'image');
     if (!ziel.ok) return null;
     if (cache.has(ziel.abs)) return cache.get(ziel.abs);
-    let url = null;
-    try {
-      const stat = await fs.stat(ziel.abs);
-      if (stat.isFile() && stat.size <= MAX_EMBED_IMAGE_BYTES) {
-        const daten = await fs.readFile(ziel.abs);
-        const ext = path.extname(ziel.abs).slice(1).toLowerCase();
-        url = `data:${mimeForImageExt(ext)};base64,${daten.toString('base64')}`;
-      }
-    } catch {
-      // Zwischen Auflösen und Lesen verschwunden oder gesperrt: kein Bild,
-      // wie bei einem Verweis, der nie aufzulösen war.
-      url = null;
-    }
+    const url = await bildDateiAlsDaten(ziel.abs);
     cache.set(ziel.abs, url);
     return url;
   }

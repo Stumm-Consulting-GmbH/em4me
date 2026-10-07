@@ -781,7 +781,7 @@
   "settings.bookInfo.description": "Descrizione",
   "settings.bookInfo.cover": "Immagine di copertina",
   "settings.bookInfo.coverHint": "Percorso del file immagine, relativo alla cartella. Lasciare vuoto se non c'è un'immagine di copertina.",
-  "settings.bookInfo.coverMissing": "Non esiste alcun file in questo percorso. La visualizzazione usa allora il segnaposto.",
+  "settings.bookInfo.coverMissing": "In questo percorso non c'è alcuna immagine di copertina visualizzabile: il file manca, si trova fuori dalla cartella della libreria o del libro, oppure non è un file immagine fino a 20 MB. La visualizzazione usa allora il segnaposto.",
   "settings.bookInfo.viewMode": "Visualizzazione",
   "settings.bookInfo.viewModeHint": "Presentazione dei libri nella vista della libreria. Vale solo su questo computer.",
   "settings.bookInfo.loading": "Caricamento dei dati …",

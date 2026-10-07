@@ -157,7 +157,7 @@ Un libro abierto y una estantería abierta dicen también en la configuración (
 En primer lugar del bloque está la sección **Datos propios**. Lleva los datos que el libro y la estantería tienen de todos modos:
 
 - **Título**, **Autor** y **Descripción** — tres campos del front matter del archivo del libro o de la estantería.
-- **Imagen de portada** — la referencia de imagen `cover`, indicada como ruta relativa a la carpeta del libro o de la estantería. Un campo vacío significa: sin imagen de portada. Si en esa ruta no hay ningún archivo, la sección lo indica y la vista de la estantería toma el mosaico de relleno; no es un error.
+- **Imagen de portada** — la referencia de imagen `cover`, indicada como ruta relativa a la carpeta del libro o de la estantería. Un campo vacío significa: sin imagen de portada. El archivo debe estar en la carpeta de la estantería, incluidas las carpetas de libro que hay debajo, o, en un libro que no está en ninguna estantería, en la carpeta del libro; otro lugar del área circundante no basta. Debe ser un archivo de imagen en uno de los formatos que indica la página [Imágenes](images.md), de 20 MB como máximo. Si en esa ruta no hay ningún archivo, o el archivo está fuera de este límite o no se admite, la sección lo indica y la vista de la estantería toma el mosaico de relleno. Ninguno de estos casos es un error.
 - **Presentación** — solo en la estantería: mosaicos o filas, la misma elección que el conmutador de la vista de la estantería. Vale por estantería y solo en este equipo.
 
 Como en toda la página de configuración, los cambios solo surten efecto con Aplicar u OK.

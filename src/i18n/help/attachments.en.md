@@ -63,4 +63,4 @@ Only targets inside the area are opened, or, without an area, inside the documen
 
 ## Attachments and area boundaries
 
-While an area is open, images from anywhere in that area are visible, even above the document's own folder. That is what makes the central attachment folder usable. Without an area, the document's folder and its subfolders remain the boundary; see also the page [Images](images.md).
+If the document lies in an open area, images from anywhere in that area are visible, even above the document's own folder. That is what makes the central attachment folder usable. Otherwise the document's folder and its subfolders remain the boundary. Which image formats appear and how large an image file may be is described on the page [Images](images.md).

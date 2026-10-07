@@ -63,4 +63,4 @@ Solo se abren destinos dentro del área o, sin área, dentro de la carpeta del d
 
 ## Adjuntos y límites del área
 
-Con un área abierta, las imágenes de toda el área son visibles, incluso por encima de la carpeta del documento. Eso es lo que hace utilizable la carpeta central de adjuntos. Sin área, el límite sigue siendo la carpeta del documento y sus subcarpetas; véase también la página [Imágenes](images.md).
+Si el documento está en un área abierta, las imágenes de toda el área son visibles, incluso por encima de la carpeta del documento. Eso es lo que hace utilizable la carpeta central de adjuntos. Si no, el límite sigue siendo la carpeta del documento y sus subcarpetas. Qué formatos de imagen aparecen y qué tamaño puede tener un archivo de imagen se indica en la página [Imágenes](images.md).

@@ -781,7 +781,7 @@
   "settings.bookInfo.description": "Description",
   "settings.bookInfo.cover": "Image de couverture",
   "settings.bookInfo.coverHint": "Chemin du fichier image, relatif au dossier. Laisser vide s'il n'y a pas d'image de couverture.",
-  "settings.bookInfo.coverMissing": "Aucun fichier ne se trouve à ce chemin. L'affichage utilise alors l'espace réservé.",
+  "settings.bookInfo.coverMissing": "Aucune image de couverture affichable ne se trouve à ce chemin : le fichier manque, se trouve hors du dossier de la bibliothèque ou du livre, ou n'est pas un fichier image de 20 Mo au plus. L'affichage utilise alors l'espace réservé.",
   "settings.bookInfo.viewMode": "Affichage",
   "settings.bookInfo.viewModeHint": "Présentation des livres dans la vue de la bibliothèque. Ne vaut que sur cet ordinateur.",
   "settings.bookInfo.loading": "Chargement des informations …",

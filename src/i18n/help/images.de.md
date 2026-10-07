@@ -1,6 +1,6 @@
 # Bilder
 
-Bilder laden aus lokalen Dateien, deren Pfad relativ zur Markdown-Datei angegeben ist, oder aus im Text eingebetteten Daten. Bilder mit einer Adresse aus dem Netz (`http(s)`) zeigt die Anwendung bewusst nicht an, weil sie aus Sicherheitsgründen keine Inhalte aus dem Netz nachlädt; ein solches Bild wird stattdessen als Datei neben das Dokument gelegt. Das Handbuch bündelt keine Demo-Bilder; die Beispiele zeigen deshalb die Syntax als Code-Block mit beschriebenem Ergebnis — in eigenen Dateien rendern sie direkt.
+Bilder laden aus lokalen Dateien, deren Pfad relativ zur Markdown-Datei angegeben ist, oder aus im Text eingebetteten Daten. In einem noch nie gespeicherten Dokument erscheinen lokale Bilder erst nach dem Speichern, weil es vorher keinen Ordner hat, gegen den ihr Pfad auflösen könnte. Bilder mit einer Adresse aus dem Netz (`http(s)`) zeigt die Anwendung bewusst nicht an, weil sie aus Sicherheitsgründen keine Inhalte aus dem Netz nachlädt; ein solches Bild wird stattdessen als Datei neben das Dokument gelegt. Das Handbuch bündelt keine Demo-Bilder; die Beispiele zeigen deshalb die Syntax als Code-Block mit beschriebenem Ergebnis — in eigenen Dateien rendern sie direkt.
 
 ## Bild-Syntax
 
@@ -10,7 +10,7 @@ Der Alt-Text in den eckigen Klammern beschreibt das Bild (wichtig für Barrieref
 ![Diagramm der Architektur](bilder/architektur.png)
 ```
 
-Relative Pfade lösen gegen den Ordner der Markdown-Datei auf. Aus Sicherheitsgründen bleiben nur Bilder innerhalb einer festen Grenze auflösbar: bei geöffnetem Arbeitsbereich ist das dessen Wurzel, sonst der Ordner der Markdown-Datei. Darüber hinaus führt kein `../` hinaus. Unterstützte Formate: PNG, JPG/JPEG, GIF, WebP, SVG, BMP.
+Relative Pfade lösen gegen den Ordner der Markdown-Datei auf. Aus Sicherheitsgründen erscheinen nur Bilder innerhalb einer festen Grenze: Liegt das Dokument in einem geöffneten Bereich, ist das der ganze Bereich, sonst der Ordner der Markdown-Datei samt seiner Unterordner. Nicht angezeigt werden Bilder mit einer Datei-Adresse (`file:`), Bilder auf einer Netz-Freigabe (`//rechner/…` oder `\\rechner\…`) und Pfade, die aus der Grenze hinausführen, ob relativ mit `../` oder absolut. Unterstützte Formate: PNG, JPG/JPEG, GIF, WebP, SVG, BMP; eine Bilddatei darf höchstens 20 MB groß sein.
 
 ## Bild-Größen
 
@@ -53,4 +53,4 @@ Unter dem Bild steht seine Beschriftung — der Alt-Text oder, wo er fehlt, der 
 
 Geschlossen wird auf drei Wegen mit derselben Wirkung: mit der Schaltfläche „Schließen", mit der Taste `Escape` oder mit einem Klick auf die abgedunkelte Fläche neben dem Bild. Mit der Tastatur wechselt `Tab` zwischen den beiden Schaltflächen, ohne die Vergrößerung zu verlassen.
 
-Ein Bild, das die Ansicht nicht anzeigt — etwa weil seine Datei fehlt —, öffnet keine Vergrößerung. In der Ansicht „Live" öffnet ein Klick keine Vergrößerung; dort öffnet der Doppelklick das Bild im Standardprogramm.
+Ein Bild, das die Ansicht nicht anzeigt — etwa weil seine Datei fehlt —, erscheint als sein Alt-Text und öffnet keine Vergrößerung. In der Ansicht „Live" öffnet ein Klick keine Vergrößerung; dort öffnet der Doppelklick das Bild im Standardprogramm.

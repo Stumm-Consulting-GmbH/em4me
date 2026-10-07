@@ -674,12 +674,16 @@ async function reassignChapter(bookDir, missingPath, newPath) {
 // des Ordners die Buch-Datei ist. Ein Ordner ohne Begleitdatei oder mit einer
 // defekten meldet denselben Fehler wie überall sonst in diesem Modul.
 
-async function readBookInfo(bookDir) {
+// 4T-002068 (Epic 3E-000344): `grenze` ist die Grenze des Titelbilds — der
+// Regal-Ordner, wenn das Buch in einem Regal liegt, sonst der Buch-Ordner
+// (ohne Angabe). Ermittelt vom Aufrufer über shelves.shelfDirOfBook, weil
+// dieses Modul shelves.js nicht laden darf (Zyklus).
+async function readBookInfo(bookDir, grenze) {
   const settings = await readBookSettings(bookDir);
   if (!settings.ok) return { ok: false, error: settings.error };
   const fileName = readBookFileName(settings.container);
   if (fileName === null) return { ok: false, error: 'invalid' };
-  return leseAngaben(bookDir, fileName);
+  return leseAngaben(bookDir, fileName, grenze);
 }
 
 async function writeBookInfo(bookDir, werte) {

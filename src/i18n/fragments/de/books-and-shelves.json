@@ -34,7 +34,7 @@
   "settings.bookInfo.description": "Beschreibung",
   "settings.bookInfo.cover": "Titelbild",
   "settings.bookInfo.coverHint": "Pfad zur Bild-Datei, bezogen auf den Ordner. Leer lassen, wenn es kein Titelbild gibt.",
-  "settings.bookInfo.coverMissing": "Unter diesem Pfad liegt keine Datei. Die Anzeige nimmt dann den Platzhalter.",
+  "settings.bookInfo.coverMissing": "Unter diesem Pfad liegt kein Titelbild, das angezeigt werden kann: Die Datei fehlt, liegt außerhalb des Regal- oder Buch-Ordners oder ist keine Bilddatei bis 20 MB. Die Anzeige nimmt dann den Platzhalter.",
   "settings.bookInfo.viewMode": "Darstellung",
   "settings.bookInfo.viewModeHint": "Darstellung der Bücher in der Regal-Ansicht. Gilt nur an diesem Rechner.",
   "settings.bookInfo.loading": "Angaben werden geladen …",

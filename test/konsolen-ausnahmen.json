@@ -12,18 +12,6 @@
   ],
   "eintraege": [
     {
-      "enthaelt": "ERR_FILE_NOT_FOUND",
-      "spec": "test/e2e/regression/4t-0174.spec.js",
-      "grund": "Die beiden Faelle laden absichtlich fehlerhafte Bildpfade (mehrzeiliges Bild, Prozentzeichen im Embed-Namen) und pruefen, dass Live-Modus und Voll-Render das aushalten. Die nicht ladbare Ressource ist der Gegenstand des Tests.",
-      "datum": "2026-08-06"
-    },
-    {
-      "enthaelt": "ERR_FILE_NOT_FOUND",
-      "spec": "test/e2e/regression/4t-0176.spec.js",
-      "grund": "Sicherheits-Faelle des Bild-Resolvers: Ein Pfad ausserhalb der zulaessigen Wurzel wird bewusst NICHT eingebettet. Dass die Ressource danach fehlt, ist das gewuenschte Verhalten und nicht der Fehler.",
-      "datum": "2026-08-06"
-    },
-    {
       "enthaelt": "gibt-es-nicht-4t0187.md",
       "spec": "test/e2e/regression/4t-0187.spec.js",
       "grund": "Der Fall oeffnet ueber die Befehlszeile eine nicht existierende Datei und prueft den Hinweis in der Statusleiste. Die Protokoll-Meldung des Lesefehlers gehoert zum geprueften Verhalten.",
@@ -54,12 +42,6 @@
       "datum": "2026-08-14"
     },
     {
-      "enthaelt": "ERR_FILE_NOT_FOUND",
-      "spec": "test/e2e/funktionen/bild-ansicht.spec.js",
-      "grund": "4T-001870: Das Dokument des Falls verweist absichtlich auf zwei fehlende Bild-Dateien, eine davon innerhalb eines Verweises. Geprüft wird, dass ein nicht angezeigtes Bild keine Vergrößerung öffnet und der Klick im Verweis dem Verweis folgt; die nicht ladbare Ressource ist der Gegenstand des Tests.",
-      "datum": "2026-09-23"
-    },
-    {
       "enthaelt": "violates the following Content Security Policy directive",
       "spec": "test/e2e/funktionen/bild-ansicht.spec.js",
       "grund": "4T-001870: Das Dokument des Falls enthält absichtlich ein Bild aus dem Netz. Die Inhalts-Sicherheits-Regel der Anzeige lädt es nicht, und geprüft wird, dass ein so nicht angezeigtes Bild keine Vergrößerung öffnet (E9 des Epics 3E-000322). Die Ablehnungs-Meldung ist das gewünschte Verhalten.",
@@ -74,19 +56,7 @@
     {
       "enthaelt": "violates the following Content Security Policy directive",
       "spec": "test/e2e/funktionen/inhalts-regel-netzadressen.spec.js",
-      "grund": "4T-001920: Die Fälle legen absichtlich Bilder und Hintergründe mit Adressen an, die die Inhalts-Regel des Anzeige-Fensters abweisen soll; jeder Fall trägt dazu eine http-Adresse als Anker. Die Ablehnungs-Meldung ist das gewünschte Verhalten und der Gegenstand der Prüfung.",
-      "datum": "2026-10-01"
-    },
-    {
-      "enthaelt": "net::ERR_FAILED",
-      "spec": "test/e2e/funktionen/inhalts-regel-netzadressen.spec.js",
-      "grund": "4T-001920: Die kodierte Form %2F%2F und die Rückstrich-Form im Markdown-Bild werden zu relativen Adressen im Ordner der Anwendung, die es nicht gibt. Geprüft wird gerade, dass sie keine Freigabe erreichen; die nicht ladbare Ressource ist der Gegenstand des Tests.",
-      "datum": "2026-10-01"
-    },
-    {
-      "enthaelt": "net::ERR_FILE_NOT_FOUND",
-      "spec": "test/e2e/funktionen/inhalts-regel-netzadressen.spec.js",
-      "grund": "4T-001920: Die Rückstrich-Formen als Hintergrund werden von der Stil-Auswertung zu lokalen Adressen zerlegt, die es nicht gibt. Geprüft wird gerade, dass sie keine Freigabe erreichen; die nicht ladbare Ressource ist der Gegenstand des Tests.",
+      "grund": "4T-001920: Die Fälle legen absichtlich Bilder und Hintergründe mit Adressen an, die die Inhalts-Regel des Anzeige-Fensters abweisen soll: Freigabe- und Datei-Adressen, die ins Fenster gelangen, und als Anker der meisten Fälle eine http-Adresse (seit 4T-002068 nicht mehr jeder Fall; das gewöhnliche Dokument mit Freigabe-Adressen ankert an seinem relativen Bild). Die Ablehnungs-Meldung ist das gewünschte Verhalten und der Gegenstand der Prüfung.",
       "datum": "2026-10-01"
     }
   ]

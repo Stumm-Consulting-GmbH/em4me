@@ -55,3 +55,57 @@ describe('Portable Inline-Sanitizer (B-01, 4T-000307)', () => {
     expect(html).toContain('Kopftext');
   });
 });
+
+// 4T-002068 (Epic 3E-000344): Wert-Schranke für `style`. Ein Stil-Wert lädt
+// über `url(…)` ein Bild an der `src`-Schranke vorbei; zulässig ist nur eine
+// Adresse, die auch als `src` bestünde. Der Inline-Pfad baut den Tag selbst
+// neu auf und trägt die Schranke deshalb eigens — Gegenstück zu den Fällen
+// in sanitizer-dom.test.js.
+describe('Portable Inline-Sanitizer: style nur mit eingebetteter Adresse (4T-002068)', () => {
+  const zelle = (attribut) => portable(`Zelle <span ${attribut}>Inhalt</span> Ende.`);
+
+  it('ein Stil-Wert ohne Adresse bleibt unverändert', () => {
+    expect(zelle(`style="color: red"`)).toContain('style="color: red"');
+    expect(zelle(`style="text-align:right"`)).toContain('style="text-align:right"');
+  });
+
+  it('eine eingebettete Bild-Adresse in url(…) bleibt erhalten', () => {
+    const html = zelle(`style="background:url(data:image/png;base64,AA)"`);
+    expect(html).toContain('style="background:url(data:image/png;base64,AA)"');
+    expect(zelle(`style="background:url('data:image/png;base64,AA')"`)).toContain('style=');
+  });
+
+  it('eine freie Adresse in url(…) setzt den Stil-Wert außer Kraft, das Element bleibt', () => {
+    for (const attribut of [
+      `style="background:url(file:///C:/geheim/bild.png)"`,
+      `style="background-image:url(//rechner/freigabe/x.png)"`,
+      `style="background:url(\\\\rechner\\freigabe\\x.png)"`,
+      `style="background:url(http://tracker.example/p.png)"`,
+      `style="background:url(https://tracker.example/p.png)"`,
+      `style="background:url('file:///x.png')"`,
+      `style='background:url("file:///x.png")'`,
+      `style="background:URL(file:///x.png)"`,
+      `style="background: url (  file:///x.png  )"`,
+      `style="background:url(data:text/html,x)"`,
+      `style="background:url(data:image/png;base64,AA), url(file:///x.png)"`,
+    ]) {
+      const html = zelle(attribut);
+      expect(html, attribut).not.toContain('style=');
+      expect(html, attribut).toContain('<span');
+      expect(html, attribut).toContain('Inhalt');
+    }
+  });
+
+  it('ein nicht sicher beurteilbarer Stil-Wert fällt weg: Escape, Kommentar, image-set', () => {
+    for (const attribut of [
+      `style="background:\\75rl(file:///x.png)"`,
+      `style="background:/* x */url(file:///x.png)"`,
+      `style="background-image:image-set('file:///x.png' 1x)"`,
+      `style="background-image:-webkit-image-set(url(file:///x.png) 1x)"`,
+    ]) {
+      const html = zelle(attribut);
+      expect(html, attribut).not.toContain('style=');
+      expect(html, attribut).toContain('Inhalt');
+    }
+  });
+});

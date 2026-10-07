@@ -1,6 +1,6 @@
 # Images
 
-Images load from local files whose path is given relative to the Markdown file, or from data embedded in the text. Images with a web address (`http(s)`) are deliberately not shown, because for security the application loads no content from the web; place such an image as a file next to the document instead. The manual bundles no demo images; the examples therefore show the syntax as code blocks with the result described — in your own files they render directly.
+Images load from local files whose path is given relative to the Markdown file, or from data embedded in the text. In a document that has never been saved, local images appear only after saving, because until then it has no folder for their path to resolve against. Images with a web address (`http(s)`) are deliberately not shown, because for security the application loads no content from the web; place such an image as a file next to the document instead. The manual bundles no demo images; the examples therefore show the syntax as code blocks with the result described — in your own files they render directly.
 
 ## Image syntax
 
@@ -10,7 +10,7 @@ The alt text in the square brackets describes the image (important for accessibi
 ![Architecture diagram](images/architecture.png)
 ```
 
-Relative paths resolve against the folder of the Markdown file. For security, only images within a fixed boundary resolve: the root of the area while one is open, otherwise the folder of the Markdown file. No `../` leads beyond it. Supported formats: PNG, JPG/JPEG, GIF, WebP, SVG, BMP.
+Relative paths resolve against the folder of the Markdown file. For security, only images within a fixed boundary appear: if the document lies in an open area, that is the whole area, otherwise the folder of the Markdown file and its subfolders. Not shown are images with a file address (`file:`), images on a network share (`//server/…` or `\\server\…`) and paths that lead beyond the boundary, whether relative with `../` or absolute. Supported formats: PNG, JPG/JPEG, GIF, WebP, SVG, BMP; an image file may be at most 20 MB in size.
 
 ## Image sizes
 
@@ -53,4 +53,4 @@ Below the image is its caption — the alt text or, where it is missing, the fil
 
 There are three ways to close it, all with the same effect: the “Close” button, the `Escape` key or a click on the dimmed area beside the image. With the keyboard, `Tab` moves between the two buttons without leaving the enlarged view.
 
-An image the view does not display — for example because its file is missing — opens no enlarged view. In the “Live” view a click opens no enlarged view; there a double click opens the image in the default program.
+An image the view does not display — for example because its file is missing — appears as its alt text and opens no enlarged view. In the “Live” view a click opens no enlarged view; there a double click opens the image in the default program.

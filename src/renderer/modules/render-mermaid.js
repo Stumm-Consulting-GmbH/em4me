@@ -799,9 +799,10 @@ export function fileUrlFor(absolutePath) {
 // dreistufigen Weg wie jede andere Art.
 //
 // Der Inhalt kommt als Daten-Adresse und nicht als file://-Pfad: Die
-// Inhalts-Sicherheits-Regel der Anwendung erlaubt Bild-Quellen nur aus 'self'
-// und 'data:'. Der PDF-Zweig darunter kommt mit file:// aus, weil ein <embed>
-// keine Bild-Quelle ist.
+// Inhalts-Sicherheits-Regel des Anzeige-Fensters lässt Bilder seit 4T-002068
+// allein als Daten-Adresse zu (`img-src data:`) und weist eine Datei-Adresse
+// ab. Der PDF-Zweig darunter kommt mit file:// aus, weil ein <embed> nicht
+// unter die Bild-Angabe fällt, sondern unter `default-src`.
 export async function renderImageEmbed(span, basePath, embedPath, widthAttr) {
   let result;
   try {

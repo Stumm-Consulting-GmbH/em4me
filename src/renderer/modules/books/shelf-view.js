@@ -24,9 +24,6 @@ import {
   openSystemPage,
   findSystemTabAcrossPanes,
 } from '../app/system-pages.js';
-// file:///-URL aus einem Windows-Pfad (R2-07): dieselbe Maskierung wie bei
-// den übrigen lokalen Einbettungen, keine zweite Fassung.
-import { fileUrlFor } from '../render-mermaid.js';
 // 4T-001885 (Epic 3E-000189): Der Zugriff auf die abgelegte Darstellung liegt
 // seit dem Einstellungs-Abschnitt «Eigene Angaben» in einem eigenen Modul, das
 // sich beide Bedienorte teilen; die Ablage selbst ist unverändert.
@@ -95,19 +92,41 @@ function oeffneBuch(entry) {
   void api.books.openPath(entry.bookDir);
 }
 
-// Bild oder Platzhalter-Kachel (PO-Entscheidung: Buch-Titel als Text auf
-// neutralem Hintergrund, kein erzwungenes Bild, keine leere Kachel).
-function bildElement(entry, className) {
-  if (entry.imagePath) {
-    const img = el('img', className);
-    img.src = fileUrlFor(entry.imagePath);
-    img.alt = entry.title;
-    img.draggable = false;
-    return img;
-  }
+// Platzhalter-Kachel (PO-Entscheidung: Buch-Titel als Text auf neutralem
+// Hintergrund, kein erzwungenes Bild, keine leere Kachel).
+function platzhalterElement(entry, className) {
   const platzhalter = el('div', `${className} shelf-view-placeholder`);
   platzhalter.appendChild(el('span', 'shelf-view-placeholder-title', entry.title));
   return platzhalter;
+}
+
+// Bild oder Platzhalter-Kachel.
+//
+// 4T-002068 (Epic 3E-000344): Das Titelbild kommt als Daten-Adresse
+// (`imageData`) aus dem Hauptprozess, der es innerhalb des Regal-Ordners
+// gelesen und geprüft hat; bis dahin setzte die Ansicht eine Datei-Adresse,
+// die das Fenster selbst lud — für jede Bilddatei des Rechners, auf die ein
+// Buch zeigte. Seit die Bild-Regel des Fensters allein Daten-Adressen zulässt,
+// gelangt keine Pfad- oder Datei-Adresse mehr hierher. Ohne Daten-Adresse
+// (außerhalb der Grenze, fremde Endung, zu groß, fehlend) steht die
+// Platzhalter-Kachel. Lässt sich eine gelieferte Datei nicht als Bild
+// darstellen, tritt sie ebenfalls an seine Stelle, statt eines defekten Bildes.
+function bildElement(entry, className) {
+  if (typeof entry.imageData === 'string' && entry.imageData.startsWith('data:')) {
+    const img = el('img', className);
+    img.alt = entry.title;
+    img.draggable = false;
+    img.addEventListener(
+      'error',
+      () => {
+        if (img.isConnected) img.replaceWith(platzhalterElement(entry, className));
+      },
+      { once: true },
+    );
+    img.src = entry.imageData;
+    return img;
+  }
+  return platzhalterElement(entry, className);
 }
 
 function aktionsKnopf(labelKey, onClick) {

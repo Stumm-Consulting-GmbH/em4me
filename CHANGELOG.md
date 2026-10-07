@@ -14,6 +14,88 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.146.1.3719] - 2026-10-07 — Sicherheit beim Laden von Bildern
+
+Zug 3E-000343
+mit einem einzigen Mitglied, auf ausdrückliche Entscheidung des Product Owners
+vom 2026-10-03 als eigenes Fehler-Release vor dem Zug der Fehlerbehebungen:
+3E-000344,
+die Sicherheit beim Laden von Bildern. Das Anzeige-Fenster ließ über seine
+Inhalts-Regel jede Datei-Adresse zu, auch eine auf einer Netz-Freigabe eines
+anderen Rechners, und das Titelbild der Regal-Ansicht kam ohne jede Grenze aus
+einer beliebigen Bilddatei des Rechners. Jetzt nimmt das Fenster Bilder allein
+als Daten-Adresse an, und jede Stelle, die ein lokales Bild zeigt, holt es über
+einen geprüften Weg mit Grenze, Endungs-Liste und Größen-Grenze. Der
+Abschluss-Anteil des Epics liegt in
+4T-002116.
+
+### Behoben
+
+- **Das Anzeige-Fenster lädt keine Bilder mehr über Datei- und
+  Freigabe-Adressen** (`4T-002068`). Die Bild-Angabe der Inhalts-Regel des
+  Fensters lautet jetzt `img-src data:`; Bilder und Hintergründe kommen allein
+  als Daten-Adresse an, und eine Datei- oder Freigabe-Adresse weist das Fenster
+  ab, bevor eine Anfrage abgeht. Bilder über `http:` und `https:` waren und
+  bleiben gesperrt. Ein Wächter hält den Wortlaut der Bild-Angabe fest.
+- **Lokale Bilder eines Dokuments nur noch über den geprüften Weg**
+  (`4T-002068`). Ein Bild im Text erscheint, wenn seine Datei innerhalb der
+  Grenze liegt — der Bereich, wenn er den Ordner des Dokuments enthält, sonst
+  der Ordner des Dokuments —, eine der unterstützten Bild-Endungen trägt und
+  höchstens 20 MB groß ist; die Grenze wird vor jedem Datei-Zugriff geprüft. Jede
+  andere Adresse verliert ihre Quelle, statt unverändert stehen zu bleiben:
+  Datei-Adressen (`file:`), Freigabe-Adressen (`//rechner/…`, `\\rechner\…`),
+  Pfade, die relativ mit `../` oder absolut aus der Grenze hinausführen, fremde
+  Endungen und zu große Dateien. An der Stelle steht der Alt-Text mit dem
+  kleinen Symbol für ein nicht ladbares Bild. Darstellungen ohne Dokument-Pfad
+  (Handbuch-Seiten samt Logo der Überblicks-Seite, unbenannte Dokumente, Karten
+  ohne Pfad) und die Notizen der Mindmap laufen über denselben Weg, mit dem
+  Bild-Ordner der Anwendung als Grenze.
+- **Hintergrund-Adressen in portablen Dokumenten begrenzt** (`4T-002068`). Eine
+  Stil-Angabe mit `url(…)` besteht nur noch mit einer Bild-Daten-Adresse; jede
+  andere Adresse oder ein nicht sicher beurteilbarer Wert nimmt dem Element die
+  ganze Stil-Angabe, das Element selbst bleibt.
+- **Titelbild der Regal-Ansicht über den geprüften Weg, Grenze Regal-Ordner**
+  (`4T-002068`, Behebung zu `4T-001963`; Entscheidung des Product Owners vom
+  2026-10-04). Bisher holte eine Buch-Datei über ihren Bild-Verweis jede
+  Bilddatei des Rechners in die Regal-Ansicht. Jetzt kommt das Titelbild als
+  Daten-Adresse, geprüft vor jedem Datei-Zugriff gegen den Regal-Ordner — bei
+  einem Buch, das in keinem Regal liegt, gegen den Buch-Ordner —, gegen die
+  Bild-Endungen und gegen 20 MB. Ein Titelbild außerhalb davon, auch im
+  umgebenden Bereich, erscheint nicht; an seiner Stelle steht die
+  Platzhalter-Kachel. «Gefunden» im Abschnitt «Eigene Angaben» von Buch und
+  Regal heißt seither dasselbe wie «die Regal-Ansicht zeigt es».
+
+### Geändert
+
+- **Das Handbuch nennt die Grenzen der Bilder** (`4T-002117`), je in allen fünf
+  Sprachfassungen. «Bilder»: die vollständige Grenze samt der Adressen, die
+  nicht angezeigt werden, die Größen-Grenze von 20 MB, dass lokale Bilder in
+  einem noch nie gespeicherten Dokument erst nach dem Speichern erscheinen und
+  dass ein nicht anzeigbares Bild als sein Alt-Text erscheint. «Anlagen»: die
+  Bedingung, dass das Dokument im Bereich liegt. «Applikationen, Fenster und
+  Bereiche»: Auch eingebettete Bilder erscheinen nur, wenn ihre Datei innerhalb
+  des Bereichs liegt; der frühere gegenteilige Satz ist ersetzt. «Bücher»: die
+  Grenze des Titelbilds. In der deutschen Fassung der Seite «Anlagen» ist der
+  Begriff «Arbeitsbereich» an den Stellen, an denen der Bereich gemeint war, zu
+  «Bereich» berichtigt.
+
+### i18n
+
+- Der Hinweis-Text zu einem nicht anzeigbaren Titelbild im Abschnitt «Eigene
+  Angaben» ist in **allen fünf Sprachfassungen** angepasst (`4T-002068`): Er
+  nennt statt einer fehlenden Datei alle Gründe — die Datei fehlt, liegt
+  außerhalb des Regal- oder Buch-Ordners oder ist keine Bilddatei bis 20 MB. Kein
+  neuer Schlüssel.
+
+### Intern
+
+- **Der Nachzügler des vorigen Releases** (`4T-002029`, Sammeltask des Zuges
+  `3E-000336`). Nach der Auslieferung von 1.146.0 hat dessen Abschluss die
+  Bildschirmfotos der Produkt-Webseite erneuert. Der Commit liegt seither auf dem
+  Integrationsstand und steht hier, weil er Dateien der Webseite berührt; er
+  gehört nicht zu diesem Zug. Kein Anwendungs-Code berührt, kein Anwender-Text
+  nötig.
+
 ## [1.146.0.3682] - 2026-10-05 — Diagramme zu Tabellen
 
 Zug

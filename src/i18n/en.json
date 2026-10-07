@@ -781,7 +781,7 @@
   "settings.bookInfo.description": "Description",
   "settings.bookInfo.cover": "Cover image",
   "settings.bookInfo.coverHint": "Path to the image file, relative to the folder. Leave empty if there is no cover image.",
-  "settings.bookInfo.coverMissing": "There is no file at this path. The display then uses the placeholder.",
+  "settings.bookInfo.coverMissing": "There is no cover image at this path that can be displayed: the file is missing, lies outside the shelf or book folder, or is not an image file of up to 20 MB. The display then uses the placeholder.",
   "settings.bookInfo.viewMode": "Display",
   "settings.bookInfo.viewModeHint": "How the books appear in the bookshelf view. Applies on this computer only.",
   "settings.bookInfo.loading": "Loading details …",

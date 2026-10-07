@@ -42,9 +42,13 @@
    Suffix `=96x96` haengt an der Erweiterung „Bilder mit Groesse und Figuren".
    Ist sie ausgeschaltet, wuerde das Suffix Teil der Bild-Adresse und das Logo
    fiele ganz aus. Ueber CSS erscheint es in beiden Zustaenden richtig, im
-   Render-Pane wie im Live-Modus. */
-.markdown-body img[src$='em4me-logo.svg'],
-.cm-editor .cm-live-image img[src$='em4me-logo.svg'] {
+   Render-Pane wie im Live-Modus.
+   4T-002068: Adressiert ueber `data-anwendungsbild` statt ueber `src`. Das
+   Logo kommt seither als Daten-Adresse ins Fenster; die geschriebene Adresse
+   haelt die Bild-Umwandlung im Vorlade-Skript in diesem Attribut fest
+   (src/main/preload-images.js). */
+.markdown-body img[data-anwendungsbild$='em4me-logo.svg'],
+.cm-editor .cm-live-image img[data-anwendungsbild$='em4me-logo.svg'] {
   width: 96px;
   height: auto;
 }
@@ -54,8 +58,8 @@
    „EM4me" direkt ueber dem ausgeschriebenen Claim. Der Alt-Text selbst
    bleibt am Bild: Der Markdown-Linter verlangt ihn, und Vorlese-Programme
    brauchen ihn. Nur seine sichtbare Wiederholung entfaellt. */
-.markdown-body figure:has(img[src$='em4me-logo.svg']) figcaption,
-.cm-editor .cm-live-image figure:has(img[src$='em4me-logo.svg']) figcaption {
+.markdown-body figure:has(img[data-anwendungsbild$='em4me-logo.svg']) figcaption,
+.cm-editor .cm-live-image figure:has(img[data-anwendungsbild$='em4me-logo.svg']) figcaption {
   display: none;
 }
 /* 4T-000643: Der Marken-Claim direkt unter dem Logo laeuft mittig mit, sonst
@@ -63,8 +67,8 @@
    Logo-Bild adressiert statt ueber eine allgemeine Regel „Absatz nach Bild",
    damit Dokumente der Nutzer unberuehrt bleiben. Zwei Faelle, weil das Bild
    ohne die Erweiterung „Figuren" nicht in <figure> steht, sondern in <p>. */
-.markdown-body figure:has(img[src$='em4me-logo.svg']) + p,
-.markdown-body p:has(img[src$='em4me-logo.svg']) + p {
+.markdown-body figure:has(img[data-anwendungsbild$='em4me-logo.svg']) + p,
+.markdown-body p:has(img[data-anwendungsbild$='em4me-logo.svg']) + p {
   text-align: center;
   color: var(--fg-muted);
   letter-spacing: 0.02em;

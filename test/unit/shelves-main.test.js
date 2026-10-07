@@ -3,8 +3,9 @@
 // (Story 4S-000760, AK2), Zustands-Aufbau für die Preload-API, Neuanlage (AK3)
 // und Zuordnung samt «nicht zugeordnet» (AK4). Setup-Muster
 // test/unit/books-main.test.js (mkdtemp je Fall, Aufräumen im afterEach).
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
+import fsp from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { isFilesystemCaseInsensitive } from '../../src/shared/platform.js';
@@ -226,7 +227,9 @@ describe('shelves: Ansichts-Daten (4T-000868)', () => {
     expect(reise.title).toBe('Reise nach Ithaka');
     expect(reise.author).toBe('K. P. Kavafis');
     expect(reise.description).toBe('Eine Heimkehr.');
-    expect(reise.imagePath).toBe(path.join(buchDir, 'cover.png'));
+    // 4T-002068: Das Titelbild kommt als Daten-Adresse, nie als Pfad.
+    expect(reise.imageData).toBe(`data:image/png;base64,${Buffer.from('png').toString('base64')}`);
+    expect(reise).not.toHaveProperty('imagePath');
     expect(reise.chapters).toBe(2);
     expect(reise.missing).toBe(false);
     expect(verschollen.missing).toBe(true);
@@ -234,7 +237,7 @@ describe('shelves: Ansichts-Daten (4T-000868)', () => {
     // wird zu null (Platzhalter-Kachel).
     expect(result.view.unassigned.map((e) => e.dirName)).toEqual(['Kochbuch']);
     expect(result.view.unassigned[0].title).toBe('Kochbuch');
-    expect(result.view.unassigned[0].imagePath).toBe(null);
+    expect(result.view.unassigned[0].imageData).toBe(null);
     expect(result.view.unassigned[0].assigned).toBe(false);
   });
 
@@ -245,6 +248,175 @@ describe('shelves: Ansichts-Daten (4T-000868)', () => {
     expect(result.ok).toBe(true);
     expect(result.view.shelfTitle).toBe('Bibliothek');
     expect((await buildShelfViewData(path.join(parent, 'fehlt'))).error).toBe('no-shelf');
+  });
+});
+
+// 4T-002068 (Epic 3E-000344, Verdacht 2 aus 4T-001963): Grenze des Titelbilds
+// in der Regal-Ansicht.
+//
+// **Was zugesichert wird.** Das Titelbild eines Buches kommt als Daten-Adresse,
+// gelesen innerhalb des Regal-Ordners, mit Bild-Endung und höchstens 20 MB;
+// sonst bleibt `imageData` null und die Ansicht zeigt die Platzhalter-Kachel.
+// Grenze ist in jedem Fall der Regal-Ordner (Entscheidung des Product Owners
+// vom 2026-10-04, «Weg A»): Ein umgebender Bereich weitet sie nicht. Die
+// Ansichts-Daten bekommen deshalb gar keinen Bereich herein; «Regal im Bereich»
+// prüft dieselbe Grenze wie «Regal ohne Bereich», mit einem Titelbild, das im
+// umgebenden Ordner liegt.
+//
+// **Warum die Datei-Zugriffe gezählt werden** (Muster
+// test/unit/preload-images.test.js): Schon der Größen-Zugriff auf eine
+// Freigabe-Adresse wäre die Verbindung zum fremden Rechner. Jeder Fall prüft
+// deshalb, dass kein Zugriff außerhalb des Regal-Ordners stattfand. Die
+// Freigabe-Adressen nennen einen Rechner unter `.invalid`, der nie aufgelöst
+// wird.
+describe('shelves: Grenze des Titelbilds (4T-002068)', () => {
+  const BILD = Buffer.from('PNG-Probe');
+  const DATEN = `data:image/png;base64,${BILD.toString('base64')}`;
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  // Ein Regal in einem umgebenden Ordner mit einem nicht zugeordneten Buch,
+  // dessen Titelbild-Verweis der Fall setzt. Der Verweis steht in
+  // Anführungszeichen, damit Rückstriche und Doppelpunkte als Text gelten.
+  function regalMitTitelbild(cover) {
+    const umgebung = makeTempDir();
+    const shelfDir = makeShelf(umgebung, 'Bibliothek');
+    const buchDir = makeBook(shelfDir, 'Reise');
+    fs.writeFileSync(
+      path.join(buchDir, 'Reise.md'),
+      `---\ncover: ${JSON.stringify(cover)}\n---\n`,
+      'utf8',
+    );
+    return { umgebung, shelfDir, buchDir };
+  }
+
+  function schreibeBild(datei, inhalt = BILD) {
+    fs.mkdirSync(path.dirname(datei), { recursive: true });
+    fs.writeFileSync(datei, inhalt);
+    return datei;
+  }
+
+  // Zählt die Datei-Zugriffe (Größe und Inhalt) ab jetzt mit.
+  function zugriffeMitzaehlen() {
+    const zugriffe = [];
+    const statOriginal = fsp.stat;
+    const readOriginal = fsp.readFile;
+    vi.spyOn(fsp, 'stat').mockImplementation((p, ...rest) => {
+      zugriffe.push(String(p));
+      return statOriginal.call(fsp, p, ...rest);
+    });
+    vi.spyOn(fsp, 'readFile').mockImplementation((p, ...rest) => {
+      zugriffe.push(String(p));
+      return readOriginal.call(fsp, p, ...rest);
+    });
+    return zugriffe;
+  }
+
+  function ausserhalb(zugriffe, shelfDir) {
+    return zugriffe.filter((p) => {
+      const rel = path.relative(shelfDir, path.resolve(p));
+      return rel.startsWith('..') || path.isAbsolute(rel);
+    });
+  }
+
+  async function titelbildVon(shelfDir) {
+    const result = await buildShelfViewData(shelfDir);
+    expect(result.ok).toBe(true);
+    expect(result.view.unassigned.map((e) => e.dirName)).toEqual(['Reise']);
+    return result.view.unassigned[0].imageData;
+  }
+
+  it('`../` aus dem Regal-Ordner hinaus: Platzhalter, kein Zugriff auf das Ziel', async () => {
+    const { umgebung, shelfDir } = regalMitTitelbild('../../aussen.png');
+    schreibeBild(path.join(umgebung, 'aussen.png'));
+    const zugriffe = zugriffeMitzaehlen();
+    expect(await titelbildVon(shelfDir)).toBeNull();
+    expect(ausserhalb(zugriffe, shelfDir)).toEqual([]);
+  });
+
+  it('absoluter Pfad außerhalb des Regal-Ordners: Platzhalter, kein Zugriff', async () => {
+    const fremd = schreibeBild(path.join(makeTempDir(), 'fremd.png'));
+    const { shelfDir } = regalMitTitelbild(fremd);
+    const zugriffe = zugriffeMitzaehlen();
+    expect(await titelbildVon(shelfDir)).toBeNull();
+    expect(ausserhalb(zugriffe, shelfDir)).toEqual([]);
+  });
+
+  it('Netz-Pfad in jeder Schreibweise: Platzhalter, kein Zugriff auf die Freigabe', async () => {
+    for (const cover of [
+      '\\\\rechner.invalid\\freigabe\\bild.png',
+      '//rechner.invalid/freigabe/bild.png',
+    ]) {
+      const { shelfDir } = regalMitTitelbild(cover);
+      const zugriffe = zugriffeMitzaehlen();
+      expect(await titelbildVon(shelfDir), cover).toBeNull();
+      expect(ausserhalb(zugriffe, shelfDir), cover).toEqual([]);
+      // Die Schreibweise mit Rückstrichen ist allein unter Windows eine
+      // Freigabe-Adresse (4T-001920). Unter Linux ist sie ein Dateiname im
+      // Buch-Ordner; ein Lese-Versuch dort erreicht keine Freigabe, und dass er
+      // innerhalb des Regal-Ordners bleibt, prüft die Zeile darüber (4T-002158).
+      if (process.platform === 'win32' || !cover.includes('\\')) {
+        expect(
+          zugriffe.filter((p) => p.toLowerCase().includes('rechner.invalid')),
+          cover,
+        ).toEqual([]);
+      }
+      vi.restoreAllMocks();
+    }
+  });
+
+  it('Datei ohne Bild-Endung im Buch-Ordner: Platzhalter, die Datei wird nicht gelesen', async () => {
+    const { shelfDir, buchDir } = regalMitTitelbild('titel.txt');
+    const text = schreibeBild(path.join(buchDir, 'titel.txt'), 'kein Bild');
+    const zugriffe = zugriffeMitzaehlen();
+    expect(await titelbildVon(shelfDir)).toBeNull();
+    expect(zugriffe).not.toContain(text);
+  });
+
+  it('Bilddatei über 20 MB: Platzhalter, der Inhalt wird nicht gelesen', async () => {
+    const { shelfDir, buchDir } = regalMitTitelbild('gross.png');
+    const gross = path.join(buchDir, 'gross.png');
+    const fd = fs.openSync(gross, 'w');
+    fs.ftruncateSync(fd, 20 * 1024 * 1024 + 1);
+    fs.closeSync(fd);
+    zugriffeMitzaehlen();
+    expect(await titelbildVon(shelfDir)).toBeNull();
+    expect(fsp.readFile).not.toHaveBeenCalledWith(gross);
+  });
+
+  it('Regal ohne Bereich: Grenze ist der Regal-Ordner, nicht der Buch-Ordner', async () => {
+    // Relativ über den Buch-Ordner hinaus, aber im Regal-Ordner.
+    const relativ = regalMitTitelbild('../gemeinsam/titel.png');
+    schreibeBild(path.join(relativ.shelfDir, 'gemeinsam', 'titel.png'));
+    let zugriffe = zugriffeMitzaehlen();
+    expect(await titelbildVon(relativ.shelfDir)).toBe(DATEN);
+    expect(ausserhalb(zugriffe, relativ.shelfDir)).toEqual([]);
+    vi.restoreAllMocks();
+    // Absolut geschrieben, Ziel im Regal-Ordner: zählt wie relativ.
+    const absolut = makeTempDir();
+    const shelfDir = makeShelf(absolut, 'Bibliothek');
+    const buchDir = makeBook(shelfDir, 'Reise');
+    const ziel = schreibeBild(path.join(buchDir, 'bilder', 'titel.png'));
+    fs.writeFileSync(
+      path.join(buchDir, 'Reise.md'),
+      `---\ncover: ${JSON.stringify(ziel)}\n---\n`,
+      'utf8',
+    );
+    zugriffe = zugriffeMitzaehlen();
+    expect(await titelbildVon(shelfDir)).toBe(DATEN);
+    expect(ausserhalb(zugriffe, shelfDir)).toEqual([]);
+  });
+
+  it('Regal im Bereich: dieselbe Grenze — ein Titelbild im Bereich außerhalb des Regals erscheint nicht', async () => {
+    // Der umgebende Ordner steht für den Bereich; das Bild liegt darin, aber
+    // außerhalb des Regal-Ordners.
+    const { umgebung, shelfDir } = regalMitTitelbild('../../anlagen/titel.png');
+    schreibeBild(path.join(umgebung, 'anlagen', 'titel.png'));
+    const zugriffe = zugriffeMitzaehlen();
+    expect(await titelbildVon(shelfDir)).toBeNull();
+    expect(ausserhalb(zugriffe, shelfDir)).toEqual([]);
   });
 });
 
