@@ -774,9 +774,10 @@
         "test/e2e/funktionen/navigation-und-datei.spec.js",
         "test/e2e/funktionen/bereichs-lesezeichen.spec.js",
         "test/unit/renderer/struktur-und-state.test.js",
-        "test/unit/renderer/lesezeichen-beschriftung.test.js"
+        "test/unit/renderer/lesezeichen-beschriftung.test.js",
+        "test/unit/renderer/lesezeichen-kontextmenue.test.js"
       ],
-      "hinweis": "FN-03 (anlegen, Stern, Sidebar) plus Tree-Helfer-Units; DnD/Ordner-Operationen in der Gesamtabnahme (Maus-Geometrie). 4T-001775 (Epic 3E-000304): BL-07 — die Zeile beschriftet den automatisch gebildeten Namen ohne Markdown-Endung, ein selbst gewaehlter Name bleibt stehen, und ein unveraendert bestaetigtes Inline-Umbenennen laesst den gespeicherten Namen automatisch; gelesen wird dafuer der gespeicherte Baum und nicht die Anzeige, weil beide Faelle gleich aussehen. Die Namens-Logik selbst in test/unit/renderer/lesezeichen-beschriftung.test.js."
+      "hinweis": "FN-03 (anlegen, Stern, Sidebar) plus Tree-Helfer-Units; DnD/Ordner-Operationen in der Gesamtabnahme (Maus-Geometrie). 4T-001775 (Epic 3E-000304): BL-07 — die Zeile beschriftet den automatisch gebildeten Namen ohne Markdown-Endung, ein selbst gewaehlter Name bleibt stehen, und ein unveraendert bestaetigtes Inline-Umbenennen laesst den gespeicherten Namen automatisch; gelesen wird dafuer der gespeicherte Baum und nicht die Anzeige, weil beide Faelle gleich aussehen. Die Namens-Logik selbst in test/unit/renderer/lesezeichen-beschriftung.test.js. 4T-002176 (Epic 3E-000352): BL-08 — Rechtsklick an einer Koordinate der freien Flaeche des Panels oeffnet \"Neuer Ordner\" (vorher belegt, dass dort der Panel-Rumpf liegt), und das Menue eines Lesezeichens legt den Ordner auf dessen Ebene an; die Zuordnung der Flaeche zum Abschnitt und die Menue-Eintraege am Bedienweg in test/unit/renderer/lesezeichen-kontextmenue.test.js."
     },
     {
       "key": "help.feature.areaBookmarks",

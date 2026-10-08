@@ -44,7 +44,7 @@ Beim Umwandeln in ein Bereichs-Lesezeichen prüft die App, ob alle betroffenen Z
 
 ## Ordnen und pflegen
 
-Beide Abschnitte teilen dieselben Werkzeuge. Über das Rechtsklick-Menü eines Eintrags entstehen neue Ordner und Unterordner; Einträge lassen sich umbenennen, in einen Ordner verschieben und entfernen. Ordner enthalten wieder Ordner, sodass sich die Sammlung frei gliedern lässt.
+Beide Abschnitte teilen dieselben Werkzeuge. Ein neuer Ordner entsteht über das Rechtsklick-Menü der freien Fläche des Panels oder eines Lesezeichens, ein Unterordner über das Rechtsklick-Menü eines Ordners; Einträge lassen sich umbenennen, in einen Ordner verschieben und entfernen. Ordner enthalten wieder Ordner, sodass sich die Sammlung frei gliedern lässt.
 
 Per Drag-and-Drop wird innerhalb eines Abschnitts sortiert und in Ordner einsortiert. Das Ziehen bleibt bewusst auf den eigenen Abschnitt beschränkt: Ein Eintrag wird nicht über die Grenze zwischen Bereichs- und allgemeinen Lesezeichen gezogen. Für den Wechsel des Abschnitts dient das Umwandeln.
 

@@ -76,9 +76,45 @@ export function renderBookmarks(paneIdx) {
       body.insertBefore(els.bookmarksAreaGroup, els.bookmarksGeneralGroup);
     else body.insertBefore(els.bookmarksGeneralGroup, els.bookmarksAreaGroup);
   }
+  bindFreeAreaContextMenu(els);
   if (areaActive) renderSectionInto(els, paneIdx, bookmarkSection(SECTION_AREA));
   else if (els.bookmarksAreaTree) els.bookmarksAreaTree.innerHTML = '';
   renderSectionInto(els, paneIdx, bookmarkSection(SECTION_GENERAL));
+}
+
+// 4T-002176 (Epic 3E-000352): Rechtsklick in die freie Flaeche des Panels.
+// Seit der Zweiteilung (4T-000612) hingen die Kontextmenues allein an den
+// beiden Abschnitts-Gruppen. Die sind nur so hoch wie ihr Inhalt; die freie
+// Flaeche darunter gehoert dem Panel-Rumpf, an dem kein Handler mehr hing, und
+// ohne vorhandenen Ordner liess sich kein erster anlegen. Der Rumpf-Handler
+// greift fuer alles ausserhalb der Gruppen (Gruppen- und Knoten-Handler
+// beenden die Weitergabe ohnehin) und bietet "Neuer Ordner" fuer den
+// naechstgelegenen sichtbaren Abschnitt an. Einmal gebunden, weil der Rumpf
+// zwischen den Aufbauten nicht ersetzt wird.
+function bindFreeAreaContextMenu(els) {
+  const body = els.bookmarksGeneralGroup && els.bookmarksGeneralGroup.parentElement;
+  if (!body || body.dataset.contextBound) return;
+  body.addEventListener('contextmenu', (ev) => {
+    if (ev.target.closest && ev.target.closest('.bookmarks-group')) return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    showBookmarkContextMenu(ev, null, bookmarkSection(freeAreaSectionKind(body, ev.clientY)));
+  });
+  body.dataset.contextBound = '1';
+}
+
+// 4T-002176: Der Abschnitt, dem eine Stelle der freien Flaeche gehoert —
+// oberhalb des ersten sichtbaren Abschnitts dieser, sonst der letzte sichtbare,
+// also der Abschnitt ueber der Flaeche unter den Eintraegen. Ohne geoeffneten
+// Bereich ist das der allgemeine Abschnitt.
+export function freeAreaSectionKind(body, clientY) {
+  const groups = [...body.children].filter(
+    (el) => el.classList.contains('bookmarks-group') && !el.hidden,
+  );
+  if (groups.length === 0) return SECTION_GENERAL;
+  const target =
+    clientY < groups[0].getBoundingClientRect().top ? groups[0] : groups[groups.length - 1];
+  return target.classList.contains('bookmarks-group-area') ? SECTION_AREA : SECTION_GENERAL;
 }
 
 // 4T-000612: Rendert den Baum EINES Abschnitts in dessen Tree-Container. Bindet

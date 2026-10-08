@@ -44,7 +44,7 @@ Nella conversione in un segnalibro dell'area, l'applicazione verifica che tutte 
 
 ## Organizzare e curare
 
-Entrambe le sezioni condividono gli stessi strumenti. Il menu del clic destro di una voce crea nuove cartelle e sottocartelle; le voci possono essere rinominate, spostate in una cartella e rimosse. Le cartelle contengono a loro volta cartelle, così la raccolta può essere strutturata liberamente.
+Entrambe le sezioni condividono gli stessi strumenti. Una nuova cartella si crea tramite il menu del clic destro sullo spazio libero del pannello o su un segnalibro, una sottocartella tramite il menu del clic destro di una cartella; le voci possono essere rinominate, spostate in una cartella e rimosse. Le cartelle contengono a loro volta cartelle, così la raccolta può essere strutturata liberamente.
 
 Il trascina e rilascia ordina all'interno di una sezione e sistema le voci nelle cartelle. Il trascinamento resta volutamente all'interno della propria sezione: una voce non viene trascinata oltre il confine tra segnalibri dell'area e generali. Per cambiare sezione si usa la conversione.
 

@@ -14,6 +14,60 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.146.2.3736] - 2026-10-08 — Ordner im Lesezeichen-Panel
+
+Zug 3E-000351
+mit einem einzigen Mitglied, auf ausdrückliche Anweisung des Product Owners
+vom 2026-10-08 als eigenes Fehler-Release:
+3E-000352,
+das Anlegen von Ordnern im Lesezeichen-Panel. Ein Rechtsklick in die freie
+Fläche des Panels öffnete seit der Zweiteilung des Panels in Version 0.91.0 kein
+Menü mehr, sodass sich ohne vorhandenen Ordner kein erster Ordner anlegen ließ.
+Jetzt öffnet die freie Fläche wieder «Neuer Ordner», und das Menü jedes
+Lesezeichens bietet ihn ebenfalls an. Der Abschluss-Anteil des Epics liegt in
+4T-002178.
+
+### Behoben
+
+- **Rechtsklick in die freie Fläche des Lesezeichen-Panels** (`4T-002176`).
+  Seit der Zweiteilung des Panels hingen die Kontextmenüs allein an den beiden
+  Abschnitts-Gruppen, die nur so hoch sind wie ihr Inhalt; ein Rechtsklick
+  darunter traf den Panel-Rumpf, an dem kein Handler mehr hing. Der Rumpf trägt
+  das Menü jetzt wieder und öffnet «Neuer Ordner» für den nächstgelegenen
+  Abschnitt, bei zwei Abschnitten unterhalb der Einträge für den unteren. Ein
+  Ablauf-Test klickt an einer Koordinate der freien Fläche; der bisherige Fall
+  klickte auf die Gruppe selbst und konnte den Fehler nicht sehen.
+- **«Neuer Ordner» im Menü eines Lesezeichens** (`4T-002176`; Entscheidung des
+  Product Owners vom 2026-10-08). Das Menü eines Lesezeichens nennt ihn an
+  erster Stelle und legt den Ordner auf der Ebene des Lesezeichens an, im selben
+  Ordner oder in der Wurzel. Die Handbuch-Seite sagte das bereits zu; das Menü
+  eines Ordners bleibt bei «Neuer Unterordner». Kein neuer Sprach-Schlüssel.
+
+### Geändert
+
+- **Das Handbuch nennt beide Wege zum neuen Ordner** (`4T-002177`), in allen
+  fünf Sprachfassungen der Seite «Lesezeichen»: die freie Fläche des Panels und
+  das Menü eines Lesezeichens für einen neuen Ordner, das Menü eines Ordners für
+  einen Unterordner.
+
+### Intern
+
+- **Der Nachzügler des vorigen Releases** (`4T-002115`, Sammeltask des Zuges
+  `3E-000343`). Nach der Auslieferung von 1.146.1 hat dessen Abschluss die
+  Bildschirmfotos der Produkt-Webseite erneuert. Der Commit liegt seither auf
+  dem Integrationsstand und steht hier, weil er Dateien der Webseite berührt; er
+  gehört nicht zu diesem Zug. Kein Anwendungs-Code berührt, kein Anwender-Text
+  nötig.
+- **Neue Kachel «Dokumente als HTML weitergeben» auf der öffentlichen Roadmap**
+  (`4T-000721`, Konzept-Abschluss der Präsentations-Ansicht mit den Epics
+  `3E-000347`, `3E-000348`, `3E-000349`, dem Zug `3E-000350` und dessen
+  Sammeltask `4T-002171`; Entscheidung des Product Owners vom 2026-10-07). Der
+  Commit liegt seit dem 2026-10-07 auf dem Integrationsstand und steht hier, weil
+  er den Bau der Webseite (`scripts/build-web.js`) und die Roadmap-Texte in fünf
+  Sprachen berührt; die Kachel erscheint mit der Webseiten-Übertragung dieses
+  Releases unter «geplant». Er gehört nicht zu diesem Zug. Kein Anwendungs-Code
+  berührt, kein Anwender-Text nötig.
+
 ## [1.146.1.3719] - 2026-10-07 — Sicherheit beim Laden von Bildern
 
 Zug 3E-000343

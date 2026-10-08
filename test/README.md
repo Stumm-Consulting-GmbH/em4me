@@ -1124,6 +1124,24 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     seinen Gegenstand; verlangt ein Fund eine Änderung am Anwendungs-Code,
     etwa eine fehlende Bezugs-Zeit, ist das eine eigene Aufgabe.
 
+34. **Wer eine Fläche zusagt, klickt auf die Fläche und nicht auf den
+    Handler** (seit dem 2026-10-08, `4T-002176`). Sagt eine Anwendung zu, dass
+    ein Bereich der Oberfläche auf einen Klick reagiert — etwa die freie Fläche
+    eines Panels mit einem Kontextmenü —, klickt der Ablauf-Fall an einer
+    **Koordinate** dieses Bereichs (`page.mouse.click(x, y, …)`) und belegt
+    vorher mit `document.elementFromPoint`, welches Element dort liegt. Ein
+    Klick über `locator(…).click()` trifft immer die Mitte des gewählten
+    Elements; wählt der Fall das Element, an dem der Handler hängt, misst er
+    die Bindung und nicht die Fläche des Anwenders, und eine zu klein gewählte
+    Bindungs-Fläche bleibt grün. Anlass: Seit der Zweiteilung des
+    Lesezeichen-Panels hing dessen Kontextmenü an Gruppen, die nur so hoch
+    sind wie ihr Inhalt; ein Rechtsklick in die freie Fläche darunter öffnete
+    über mehr als sechzig Releases kein Menü, während der Fall, der auf die
+    Gruppe klickte, grün blieb. Vorbild: BL-08 in
+    `test/e2e/funktionen/bereichs-lesezeichen.spec.js`. Kein Wächter: Ob ein
+    Klick-Ziel das Element des Handlers oder die Fläche des Anwenders meint, ist
+    eine Frage der Absicht, die eine Text-Prüfung nicht beurteilen kann.
+
 ## E2E-Praxis
 
 Wiederkehrende Stolperstellen der Playwright-Suite. Jede hat mindestens

@@ -77,10 +77,11 @@ export function appendBookmarkInlineEditInput(row, id, initialValue) {
 }
 
 // 4T-000078: Kontext-Menue fuer Bookmarks. Je nach Knotentyp:
-//  - Bookmark (file): Umbenennen, In Ordner verschieben..., Umwandeln, Entfernen.
+//  - Bookmark (file): Neuer Ordner (auf der Ebene des Bookmarks, 4T-002176),
+//                      Umbenennen, In Ordner verschieben..., Umwandeln, Entfernen.
 //  - Folder:           Neuer Unterordner, Umbenennen, In Ordner verschieben...,
 //                      Umwandeln, Entfernen (mit Bestaetigung bei Inhalt).
-//  - Leerer Sektions-Bereich: Neuer Ordner (im Root).
+//  - Leerer Sektions-Bereich und freie Panel-Flaeche: Neuer Ordner (im Root).
 // 4T-000612: der "umwandeln"-Eintrag richtet sich nach dem Abschnitt (allgemein
 // -> Bereich nur bei geoeffnetem Bereich; Bereich -> allgemein immer).
 export function showBookmarkContextMenu(ev, node, section) {
@@ -124,10 +125,14 @@ export function showBookmarkContextMenu(ev, node, section) {
   };
 
   if (!node) {
-    // Klick auf leeren Sektions-Bereich oder Sektions-Header.
-    addItem('bookmarks.newFolder', () => createNewFolderUI(null, menuPaneIdx, sec));
+    // Klick auf leeren Sektions-Bereich, Sektions-Header oder freie Panel-Flaeche.
+    addItem('bookmarks.newFolder', () => createNewFolderUI(null, menuPaneIdx, sec), {
+      dataId: 'bookmark-new-folder',
+    });
   } else if (node.type === 'folder') {
-    addItem('bookmarks.newSubfolder', () => createNewFolderUI(node.id, menuPaneIdx, sec));
+    addItem('bookmarks.newSubfolder', () => createNewFolderUI(node.id, menuPaneIdx, sec), {
+      dataId: 'bookmark-new-subfolder',
+    });
     addItem('bookmarks.rename', () =>
       startInlineEdit(node.id, { isNew: false, paneIdx: menuPaneIdx, section: sec }),
     );
@@ -136,6 +141,14 @@ export function showBookmarkContextMenu(ev, node, section) {
     addSeparator();
     addItem('bookmarks.remove', () => removeNodeWithConfirm(node.id, sec), { danger: true });
   } else {
+    // 4T-002176 (Epic 3E-000352): "Neuer Ordner" auch am Bookmark (Entscheidung
+    // des Product Owners vom 2026-10-08), angelegt auf dessen Ebene: im Ordner,
+    // in dem das Bookmark liegt, sonst im Root.
+    const loc = findNodeLocation(sec.getTree(), node.id);
+    const parentId = loc && loc.parent ? loc.parent.id : null;
+    addItem('bookmarks.newFolder', () => createNewFolderUI(parentId, menuPaneIdx, sec), {
+      dataId: 'bookmark-new-folder',
+    });
     addItem('bookmarks.rename', () =>
       startInlineEdit(node.id, { isNew: false, paneIdx: menuPaneIdx, section: sec }),
     );

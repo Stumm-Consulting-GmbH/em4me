@@ -44,7 +44,7 @@ Lors d'une conversion en signet de zone, l'application vérifie que toutes les c
 
 ## Organiser et entretenir
 
-Les deux sections partagent les mêmes outils. Le menu du clic droit d'une entrée crée de nouveaux dossiers et sous-dossiers ; les entrées peuvent être renommées, déplacées dans un dossier et supprimées. Les dossiers contiennent à nouveau des dossiers, de sorte que la collection peut être structurée librement.
+Les deux sections partagent les mêmes outils. Un nouveau dossier se crée via le menu du clic droit sur l'espace libre du panneau ou sur un signet, un sous-dossier via le menu du clic droit d'un dossier ; les entrées peuvent être renommées, déplacées dans un dossier et supprimées. Les dossiers contiennent à nouveau des dossiers, de sorte que la collection peut être structurée librement.
 
 Le glisser-déposer trie à l'intérieur d'une section et range les entrées dans des dossiers. Le glissement reste volontairement dans sa propre section : une entrée n'est pas glissée par-dessus la frontière entre signets de zone et signets généraux. Pour changer de section, on utilise la conversion.
 

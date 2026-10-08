@@ -1091,6 +1091,32 @@
       "status": "befoerdert",
       "vorgang": "4T-001100",
       "vermerk": "Elfte Beobachtung, die dem bestehenden Vorgang 4T-001100 beitritt; kein neuer Vorgang. Die Wiederaufnahme-Bedingung des Vorgangs, ein roter Lauf mit gesichertem Trace im bearbeitenden Arbeitsbereich, ist mit dem Beleg dieses Laufs im Stamm-Clone SC-026/A erfüllt; der Trace liegt dort."
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-statistik.spec.js",
+      "fall": "BS-06",
+      "datum": "2026-10-08",
+      "fehlerbild": "ZWOELFTE Beobachtung; die elfte steht unter dem 2026-10-05. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000351 «Fehler-Release Lesezeichen-Ordner» im Stamm-Clone SC-026/A am 2026-10-08, Schritt 6 im Sammeltask 4T-002179: 1137 von 1140 grün, 3 rot in 1,4 h (Gate-Lauf 14:18 bis 15:43 UTC), parallel zum Linux-Lauf im Container. Abbruch-Stelle dieselbe wie bei allen Vorgaengern, «Timeout 10000ms exceeded while waiting on the predicate», Fall «das Bereichs-Panel zeigt beide Eintraege, im Aus-Zustand nur den Graph». Beleg: test-berichte/rot/2026-10-08T15-43-52Z-zug-3E-000351-Lesezeichen-Ordner-e2e.log samt Artefakten. Isoliert unmittelbar danach nachgeprüft: die drei Prüfdateien bereichs-statistik, datentabelle und diagramme-verweise zusammen 30 von 30 grün in 1,9 min.",
+      "vermutung": "Weiter an derselben Stelle; diesmal mit parallelem Linux-Lauf. Bezug zum Zug: keiner, der Zug aendert allein das Lesezeichen-Panel und die Handbuch-Seite Lesezeichen.",
+      "status": "befoerdert",
+      "vorgang": "4T-001100",
+      "vermerk": "Zwoelfte Beobachtung, die dem bestehenden Vorgang 4T-001100 beitritt; kein neuer Vorgang."
+    },
+    {
+      "spec": "test/e2e/funktionen/datentabelle.spec.js",
+      "fall": "DT-16: Rückverweis und Umbenennen aus einer Datentabellen-Zelle (4T-002013) — das Ziel nennt die Tabelle unter seinen Rückverweisen, das Umbenennen ändert die Zelle",
+      "datum": "2026-10-08",
+      "fehlerbild": "Erste Beobachtung. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000351 «Fehler-Release Lesezeichen-Ordner» im Stamm-Clone SC-026/A am 2026-10-08, Schritt 6 im Sammeltask 4T-002179: 1137 von 1140 grün, 3 rot in 1,4 h (Gate-Lauf 14:18 bis 15:43 UTC), parallel zum Linux-Lauf im Container. «expect(locator).toBeVisible() failed», erwartet sichtbar, erhalten verborgen, nach 10000 ms. Beleg: test-berichte/rot/2026-10-08T15-43-52Z-zug-3E-000351-Lesezeichen-Ordner-e2e.log samt Artefakten. Isoliert unmittelbar danach nachgeprüft: die drei Prüfdateien bereichs-statistik, datentabelle und diagramme-verweise zusammen 30 von 30 grün in 1,9 min.",
+      "vermutung": "Wartezeit unter Last: Das Rueckverweis-Panel fuellt sich nach dem Index-Lauf, und unter der Last des parallelen Container-Laufs reichten 10 s nicht. Bezug zum Zug: keiner, der Zug aendert weder Datentabellen noch Rueckverweise.",
+      "status": "beobachtet"
+    },
+    {
+      "spec": "test/e2e/funktionen/diagramme-verweise.spec.js",
+      "fall": "DV-02: das Diagramm zählt in den Rückverweisen wie eine Einbettung (F-332) — Bericht erscheint in den Rückverweisen von Quartal, ein Code-Block anderer Art nicht",
+      "datum": "2026-10-08",
+      "fehlerbild": "Erste Beobachtung. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000351 «Fehler-Release Lesezeichen-Ordner» im Stamm-Clone SC-026/A am 2026-10-08, Schritt 6 im Sammeltask 4T-002179: 1137 von 1140 grün, 3 rot in 1,4 h (Gate-Lauf 14:18 bis 15:43 UTC), parallel zum Linux-Lauf im Container. «expect(locator).toHaveText(expected) failed», erwartet /Quartal/, erhalten «Bericht×», nach 10000 ms. Beleg: test-berichte/rot/2026-10-08T15-43-52Z-zug-3E-000351-Lesezeichen-Ordner-e2e.log samt Artefakten. Isoliert unmittelbar danach nachgeprüft: die drei Prüfdateien bereichs-statistik, datentabelle und diagramme-verweise zusammen 30 von 30 grün in 1,9 min.",
+      "vermutung": "Wartezeit unter Last wie DT-16 im selben Lauf: Der Wechsel des Ziels im Rueckverweis-Panel kam nicht binnen 10 s. Bezug zum Zug: keiner, der Zug aendert weder Diagramme noch Rueckverweise.",
+      "status": "beobachtet"
     }
   ]
 }

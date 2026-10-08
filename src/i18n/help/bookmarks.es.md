@@ -44,7 +44,7 @@ Al convertir en un marcador del área, la aplicación comprueba si todos los des
 
 ## Organizar y mantener
 
-Ambas secciones comparten las mismas herramientas. El menú del clic derecho de una entrada crea nuevas carpetas y subcarpetas; las entradas pueden renombrarse, moverse a una carpeta y eliminarse. Las carpetas contienen a su vez carpetas, de modo que la colección puede estructurarse libremente.
+Ambas secciones comparten las mismas herramientas. Una carpeta nueva se crea mediante el menú del clic derecho en el espacio libre del panel o en un marcador, una subcarpeta mediante el menú del clic derecho de una carpeta; las entradas pueden renombrarse, moverse a una carpeta y eliminarse. Las carpetas contienen a su vez carpetas, de modo que la colección puede estructurarse libremente.
 
 El arrastrar y soltar ordena dentro de una sección y coloca las entradas en carpetas. El arrastre se mantiene deliberadamente dentro de su propia sección: una entrada no se arrastra por encima del límite entre marcadores del área y generales. Para cambiar de sección, se usa la conversión.
 

@@ -11,7 +11,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, warteAufDateiArgument } = require('../helpers/app');
 const { PANEL_ACCESS, DEFAULT_PANEL_TOGGLE_ORDER } = require('../../../src/shared/panel-access.js');
 // 4T-000777 (Epic 3E-000156): Strg+D ging im Voll-Lauf sporadisch ins Leere (BL-03).
 // Der Druck wird wiederholt, bis seine Wirkung sichtbar ist; er ist dafuer
@@ -336,6 +336,93 @@ test.describe('BL-07: Beschriftung ohne Markdown-Endung (4T-001775)', () => {
     } finally {
       await closeApp(app, userData, { force: true });
       removeDir(dir);
+    }
+  });
+});
+
+test.describe('BL-08: Neuer Ordner ueber die freie Flaeche und am Lesezeichen (4T-002176)', () => {
+  // 4T-002176 (Epic 3E-000352): Seit der Zweiteilung des Panels hingen die
+  // Kontextmenues allein an den Abschnitts-Gruppen, die nur so hoch sind wie
+  // ihr Inhalt. Ein Rechtsklick in die freie Flaeche darunter traf den
+  // Panel-Rumpf und oeffnete nichts; ohne vorhandenen Ordner liess sich kein
+  // erster anlegen. Der bisherige Fall PZ-07 klickte auf die Mitte der Gruppe,
+  // also auf das Element des Handlers statt auf die Flaeche des Anwenders.
+  // Dieser Fall klickt deshalb an einer KOORDINATE der freien Flaeche und
+  // belegt vorher, dass dort der Panel-Rumpf liegt (Stabilitaetsregel 34 in
+  // test/README.md).
+  test('Rechtsklick unterhalb der Eintraege und im Menue eines Lesezeichens legt je einen Ordner an', async () => {
+    const ZWEITE = path.join(FIXTURES, 'zweite.md');
+    const { app, page, userData } = await launchApp({
+      args: [BASIS],
+      settings: {
+        language: 'de',
+        sidebar: { layout: { left: [{ panels: ['bookmarks'], active: 'bookmarks' }], right: [] } },
+        bookmarks: { visibleColumn0: true },
+        bookmarksTree: [
+          {
+            type: 'folder',
+            id: 'f-ablage',
+            name: 'Ablage',
+            expanded: true,
+            children: [{ type: 'file', id: 'b-innen', filePath: ZWEITE }],
+          },
+          { type: 'file', id: 'b-wurzel', filePath: BASIS },
+        ],
+      },
+    });
+    try {
+      // Stabilitaetsregel 32: erst auf den Eintrag des Start-Dokuments warten.
+      // Oeffnet es erst nach dem Rechtsklick, holt der Editor den Fokus aus dem
+      // Namensfeld des neuen Ordners, und der Ordner behaelt seinen
+      // Vorgabe-Namen (gemessen am 2026-10-08 gegen die Release-Fassung).
+      await warteAufDateiArgument(page, BASIS);
+      const rumpf = page.locator(`${PANE} .sidebar-bookmarks .sidebar-section-body`);
+      await expect(rumpf).toBeVisible();
+      await expect(page.locator(`${PANE} li[data-id="b-wurzel"]`)).toBeVisible();
+
+      // 1. Freie Flaeche: eine Stelle nahe dem unteren Rand des Panels.
+      const box = await rumpf.boundingBox();
+      const x = box.x + box.width / 2;
+      const y = box.y + box.height - 20;
+      const unterDemZeiger = await page.evaluate(
+        ([px, py]) => document.elementFromPoint(px, py)?.className ?? null,
+        [x, y],
+      );
+      expect(unterDemZeiger).toContain('sidebar-section-body');
+      await page.mouse.click(x, y, { button: 'right' });
+      const neuerOrdner = page.locator('#context-menu [data-menu-id="bookmark-new-folder"]');
+      await expect(neuerOrdner).toBeVisible();
+      await neuerOrdner.click();
+      const feld = page.locator(`${PANE} .bookmark-inline-edit-input`);
+      await expect(feld).toBeFocused();
+      await feld.fill('Projekte');
+      await feld.press('Enter');
+      await expect(
+        page.locator(`${PANE} .bookmarks-group-general .bookmarks-tree > li.bookmark-folder`, {
+          hasText: 'Projekte',
+        }),
+      ).toBeVisible();
+
+      // 2. Menue eines Lesezeichens im Ordner: "Neuer Ordner" an erster Stelle,
+      //    angelegt in diesem Ordner.
+      await page
+        .locator(`${PANE} li[data-id="b-innen"] > .bookmark-row`)
+        .click({ button: 'right' });
+      await expect(page.locator('#context-menu .context-menu-item').first()).toHaveAttribute(
+        'data-menu-id',
+        'bookmark-new-folder',
+      );
+      await neuerOrdner.click();
+      await expect(feld).toBeFocused();
+      await feld.fill('Innen');
+      await feld.press('Enter');
+      await expect(
+        page.locator(`${PANE} li[data-id="f-ablage"] > .bookmark-children > li.bookmark-folder`, {
+          hasText: 'Innen',
+        }),
+      ).toBeVisible();
+    } finally {
+      await closeApp(app, userData, { force: true });
     }
   });
 });

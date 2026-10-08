@@ -44,7 +44,7 @@ When converting to an area bookmark, the app checks whether all affected targets
 
 ## Organizing and maintaining
 
-Both sections share the same tools. The right-click menu of an entry creates new folders and subfolders; entries can be renamed, moved into a folder and removed. Folders contain folders again, so the collection can be structured freely.
+Both sections share the same tools. A new folder is created via the right-click menu of the free area of the panel or of a bookmark, a subfolder via the right-click menu of a folder; entries can be renamed, moved into a folder and removed. Folders contain folders again, so the collection can be structured freely.
 
 Drag-and-drop sorts within a section and files entries into folders. Dragging deliberately stays within its own section: an entry is not dragged across the boundary between area and general bookmarks. To switch sections, use conversion.
 
