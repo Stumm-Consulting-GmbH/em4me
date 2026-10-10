@@ -129,6 +129,47 @@ test.describe('SE-04: Erweiterungs-Zeilen im Suchraum (4T-000872)', () => {
   });
 });
 
+// 4T-002107: «Die erste Eingabetaste soll zum ersten Treffer springen»
+// (Entscheidung des Product Owners vom 2026-10-03). Gemessen vorher: nach dem
+// Tippen «1 / 22» ohne hervorgehobene Zeile, die erste Eingabetaste hob die
+// ZWEITE Fundstelle hervor und zählte «2 / 22».
+test.describe('SE-05: Die erste Eingabetaste zeigt den ersten Treffer (4T-002107)', () => {
+  test('4T-002107: Tippen bewegt nichts, die erste Eingabetaste zeigt «1 / n», die zweite «2 / n»', async () => {
+    test.setTimeout(120000);
+    const { app, page, userData } = await launchApp({ args: [makeWorkFile()] });
+    try {
+      await oeffneEinstellungen(page);
+      const ueberschrift = page.locator(`${SETTINGS_PAGE} .settings-section-heading`);
+      const startBereich = await ueberschrift.innerText();
+      await sucheOeffnen(page, 'Schrift');
+      const gesamt = await warteAufTrefferliste(page, { mindestens: 3, panel: PANEL });
+      const zaehler = page.locator('#search-count');
+      await expect(zaehler).toHaveText(`1 / ${gesamt}`);
+      const treffer = page.locator(`${PANEL} .search-results-item`);
+      const beschriftung = async (i) =>
+        (await treffer.nth(i).innerText()).split('\n')[0].replace('…', '').trim();
+      const erster = await beschriftung(0);
+      const zweiter = await beschriftung(1);
+      const hervorgehoben = (text) =>
+        page.locator(`${SETTINGS_PAGE} .settings-row-hervorgehoben`, { hasText: text });
+
+      // Das Tippen hebt nichts hervor und wechselt keinen Bereich.
+      await expect(page.locator(`${SETTINGS_PAGE} .settings-row-hervorgehoben`)).toHaveCount(0);
+      expect(await ueberschrift.innerText()).toBe(startBereich);
+
+      await page.keyboard.press('Enter');
+      await expect(hervorgehoben(erster)).toBeVisible();
+      await expect(zaehler).toHaveText(`1 / ${gesamt}`);
+
+      await page.keyboard.press('Enter');
+      await expect(zaehler).toHaveText(`2 / ${gesamt}`);
+      await expect(hervorgehoben(zweiter)).toBeVisible();
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+});
+
 test.describe('SE-03: Entwurf überlebt den Sprung', () => {
   test('eine geänderte Schriftgröße bleibt nach dem Bereichswechsel erhalten', async () => {
     test.setTimeout(120000);
@@ -155,4 +196,33 @@ test.describe('SE-03: Entwurf überlebt den Sprung', () => {
       await closeApp(app, userData);
     }
   });
+});
+
+// 4T-002129: Sprung während des Suchlaufs in den Einstellungen. Auch dieser
+// Raum liefert sein Ergebnis asynchron; ein Sprung davor wird vorgemerkt und
+// auf dem Ergebnis dieses Laufs ausgeführt.
+test.describe('SE-06: Sprung während des Suchlaufs (4T-002129)', () => {
+  for (const druecke of [2, 1]) {
+    test(`4T-002129: neuer Begriff, sofort ${druecke}× Eingabetaste — «${druecke} / n» und die Zeile hervorgehoben, nach einer Sekunde unverändert`, async () => {
+      test.setTimeout(120000);
+      const { app, page, userData } = await launchApp({ args: [makeWorkFile()] });
+      try {
+        await oeffneEinstellungen(page);
+        await page.keyboard.press('Control+f');
+        await expect(page.locator('#search-input')).toBeVisible();
+        await page.keyboard.type('Schrift', { delay: 20 });
+        for (let i = 0; i < druecke; i++) await page.keyboard.press('Enter');
+        const gesamt = await warteAufTrefferliste(page, { mindestens: 3, panel: PANEL });
+        await page.waitForTimeout(1000);
+        await expect(page.locator('#search-count')).toHaveText(`${druecke} / ${gesamt}`);
+        const zeile = page.locator(`${PANEL} .search-results-item`).nth(druecke - 1);
+        const text = (await zeile.innerText()).split('\n')[0].replace('…', '').trim();
+        await expect(
+          page.locator(`${SETTINGS_PAGE} .settings-row-hervorgehoben`, { hasText: text }),
+        ).toBeVisible();
+      } finally {
+        await closeApp(app, userData);
+      }
+    });
+  }
 });

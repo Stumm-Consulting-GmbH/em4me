@@ -37,6 +37,8 @@ Cuando un recordatorio vence, un diálogo lo avisa con la descripción de la tar
 
 **En todas las ventanas.** El diálogo aparece en cada ventana abierta de la aplicación, también en ventanas de otra área, en ventanas sin área y en ventanas de libro y de estantería. Por eso cada entrada indica su origen, por ejemplo «Origen: Proyectos»: el área, el libro o la estantería de donde procede el recordatorio. Hecho, Recordar más tarde y Cerrar actúan siempre sobre el archivo de ese origen, sea cual sea la ventana, y una sola vez: el recordatorio desaparece después de todas las ventanas, y una segunda acción casi simultánea en otra ventana queda sin efecto y sin mensaje de error. Si vencen varios recordatorios, cada ventana los reúne en un solo diálogo. Una ventana abierta más tarde muestra también un recordatorio que sigue pendiente.
 
+**Con cambios sin guardar.** Si el archivo de la tarea está abierto con cambios sin guardar, también en una ventana distinta de aquella en la que se hace clic o como documento que no está en primer plano, Hecho y Recordar más tarde actúan sobre ese estado sin guardar: el cambio aparece allí en el editor, el documento sigue sin guardar y llega al disco solo al guardarlo, y el recordatorio desaparece como tras cualquier otra acción. Marcar una tarea y las demás acciones en una consulta de tareas se comportan igual (página [Listas de tareas](tasks.md), sección «Consultas de tareas y reescritura»).
+
 **Enlace al archivo de origen.** Un clic en el nombre del archivo abre el archivo en la línea de la tarea, en la ventana de su área. Si la ventana en la que se hizo clic muestra otra área o ninguna, la ventana del área de origen pasa al frente y abre allí el archivo; si esa área no está abierta, se abre. El recordatorio sigue en su sitio: abrir el archivo no cuenta como atenderlo.
 
 ## Solo con la aplicación en ejecución
@@ -49,7 +51,7 @@ Con un área abierta, la aplicación comprueba de forma continua los marcadores 
 
 Un panel de la barra lateral lista todos los recordatorios del área, agrupados en **Atrasados**, **Hoy**, **Mañana** y **Más tarde**. El panel se abre mediante el icono de despertador de la barra de estado o mediante Ver → Barra lateral → Paneles → Recordatorios.
 
-- Cada entrada ofrece las acciones directas **Hecho** y **Más tarde**.
+- Cada entrada ofrece las acciones directas **Hecho** y **Más tarde**; actúan como en el diálogo de aviso, también con cambios sin guardar.
 - Un clic en una entrada abre el archivo de origen en la línea correspondiente.
 - El nombre del archivo de origen aparece aquí y en el diálogo de aviso sin la extensión Markdown; la información sobre herramientas indica la ruta completa.
 - El grupo **Atrasados** incluye también los recordatorios silenciados y ofrece allí **Activar de nuevo**.

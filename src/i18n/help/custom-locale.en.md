@@ -85,16 +85,16 @@ A dialog offers the loaded languages for selection, even if there is only one; t
 
 ## Removing
 
-"File → Your own language → Remove…" offers the loaded languages by name for selection; cancelling is the default. What is deleted is the language file in your user profile — the file it was loaded from stays where it lies.
+"File → Your own language → Remove…" offers the loaded languages by name for selection; cancelling is the default. What is deleted is the language file the application stored on loading — the file it was loaded from stays where it lies.
 
 If the removed language is the one currently set, the interface switches to English. That is the difference from the missing file above: whoever takes a language away themselves should not be reminded of it at every start.
 
 ## Where the language file lies
 
-On loading, the application stores a copy in your **user profile**, in the `locales` folder beside its remaining data. Three assurances follow from that:
+On loading, the application stores a copy in the `locales` folder beside its remaining data. Where that is depends on the version: in the installed version in your **user profile**, in the [portable version](portable-version.md) in the `Data` folder next to the program. Three assurances follow from that:
 
-- Your own language **survives a reinstallation** of the program; it lies outside the program directory.
-- **Nothing is written into the program directory.** The path therefore requires no elevated rights and also works where the program directory is write-protected.
+- In the installed version, your own language **survives a reinstallation** of the program; it lies outside the program directory. In the portable version it travels with the `Data` folder.
+- **Nothing is written into the program directory of the installed version.** The path therefore requires no elevated rights and also works where that directory is write-protected.
 - The stored file is **the same kind of file** as the one loaded: it carries its naming onwards and is named after the language code. Anyone wanting to back it up or pass it on copies it.
 
 The file is read anew at every start and checked anew in the process — the folder is reachable with an editor, which is why checking does not happen only on loading.

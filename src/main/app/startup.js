@@ -75,6 +75,8 @@ function gibWartendeZweitstartDateien() {
  * @param {object} deps.reminderChecker Erinnerungs-Pruefer.
  * @param {object} deps.alarmChecker Wecker-Pruefer.
  * @param {object} deps.timerChecker Timer-Pruefer.
+ * @param {{portabel: boolean, datenOrdner: string|null, beschreibbar: boolean|null}} deps.portablerBetrieb
+ *   4T-001990: Ergebnis der Erkennung des portablen Betriebs aus main.js.
  * @returns {{starteApp: Function, zweitInstanz: Function}} Einstiege der App-Ereignisse.
  */
 function createStartup(deps) {
@@ -104,6 +106,7 @@ function createStartup(deps) {
     reminderChecker,
     alarmChecker,
     timerChecker,
+    portablerBetrieb,
   } = deps;
   // Der Behaelter reist als Wert; ersetzt wird er nie (4T-000998-Konvention).
   const pendingSecondInstanceFiles = wartendeZweitstartDateien;
@@ -204,14 +207,18 @@ function createStartup(deps) {
       // 4T-001336 (Epic 3E-000237): gesetzt nur in der zweiten Auspraegung; sie
       // uebernimmt die produktive Einrichtung beim ersten Start einmalig.
       auspraegung: auspraegungsKennzeichnung(eigenePaketAngaben),
+      // 4T-001990 (Epic 3E-000188): im portablen Betrieb keine Uebernahme aus
+      // dem Benutzerprofil; ermittelt einmal in main.js.
+      portabel: portablerBetrieb.portabel,
     });
     setStore(geladen.store);
     const store = getStore();
     setWorkspacesState(geladen.workspaces);
 
     // 4T-000946 (Story 4S-000005): Die gemappten Netzlaufwerke frueh und nebenher
-    // ermitteln. Bewusst ohne await: Die Abfrage startet einen fremden Prozess
-    // und darf den Programmstart nicht bremsen; bis eine Datei geoeffnet ist,
+    // ermitteln. Bewusst ohne await: Die Abfrage laeuft nachgelagert (seit
+    // 4T-001991 direkt bei Windows statt ueber einen fremden Prozess) und darf
+    // den Programmstart nicht bremsen; bis eine Datei geoeffnet ist,
     // liegt das Ergebnis in aller Regel vor, und andernfalls zieht die
     // Beobachtung selbst nach.
     netzPfade.ermittleNetzLaufwerke();

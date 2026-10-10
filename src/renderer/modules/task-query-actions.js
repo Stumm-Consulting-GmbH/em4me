@@ -10,16 +10,34 @@
 //   Index-Watcher nach). Toggle laeuft ueber performStatusToggle und damit
 //   ueber denselben Ketten-Toggle samt Automatik-Daten und Wiederholung
 //   wie der Klick im Dokument.
-// - Datei ist offen, aber INAKTIV und dirty: kein Schreiben (weder Puffer
-//   noch Platte) — Statusbar-Hinweis, der Nutzer arbeitet im Editor weiter.
-//   Der inaktive Editor-Zustand ist nicht gemountet; ihn blind zu patchen
-//   waere ein zweiter Wahrheits-Stand neben dem Puffer.
+// - 4T-001978 (Epic 3E-000330, E1 und E2): Hält ein ANDERES Fenster den
+//   ungespeicherten Stand der Datei, geht der Handgriff dorthin (Kanal
+//   taskQuery:edit, Besitzer-Regel im Hauptprozess wie bei den Erinnerungen)
+//   und wird dort über genau diese Funktionen ausgeführt, als Änderung im
+//   Editor. Auf die Platte wird nicht geschrieben, der Konflikt-Dialog
+//   entsteht nicht, und auch eine nur ungespeichert vorhandene Aufgabe lässt
+//   sich so bearbeiten. Scheitert die Übergabe selbst, geht es weiter wie
+//   bisher (Rückfall wie bei den Erinnerungen).
+// - Datei ist offen, aber INAKTIV und dirty (4T-001978, E9 und E10): Die
+//   Änderung wirkt im ungespeicherten Stand des Reiters (tab.content), der
+//   Reiter bleibt ungespeichert, die Platte bleibt unverändert. Bis dahin
+//   stand hier nur ein Statusbar-Hinweis, mit der Begründung, der inaktive
+//   Editor-Zustand sei nicht gemountet und ihn blind zu patchen wäre ein
+//   zweiter Wahrheits-Stand neben dem Puffer. Die Begründung trägt nicht:
+//   Für einen inaktiven Reiter IST tab.content der Puffer — es gibt keinen
+//   Editor-Zustand daneben, beim Aktivieren füllt syncEditorForPane den
+//   Editor aus tab.content (derselbe Weg wie handleAppendTabFromOtherWindow
+//   in tabs.js). Die Zeile wird gesucht wie im Editor (erwartete Nummer, sonst
+//   eindeutige Suche), das Abhaken läuft über statusToggleAufText und damit
+//   über dieselbe Kette wie der Klick im Dokument; danach ziehen
+//   Änderungs-Kennzeichen und Index-Overlay nach wie beim Tippen.
 // - Sonst (geschlossen oder inaktiv und nicht dirty): zeilen-genaues
 //   Schreiben ueber den Main (task:applyLineEdit, Konflikt-Erkennung im
 //   prozessneutralen Kern); offene nicht-dirty Tabs ziehen ueber den
-//   file:changed-Reload nach, dirty Tabs anderer Fenster ueber den
-//   Konflikt-Dialog. Konflikte (Zeile veraendert/verschwunden) melden
-//   einen Statusbar-Hinweis statt blind zu schreiben.
+//   file:changed-Reload nach, dirty Tabs anderer Fenster nur noch im
+//   Rückfall über den Konflikt-Dialog. Konflikte (Zeile
+//   verändert/verschwunden) melden einen Statusbar-Hinweis statt blind zu
+//   schreiben.
 //
 // Der Bearbeiten-Knopf delegiert an einen registrierbaren Handler (Dialog
 // aus 4T-000506); ohne Handler oeffnet er die Quelldatei an der Zeile.
@@ -28,9 +46,9 @@
 import { api } from './app/api.js';
 import { t } from '../i18n.js';
 import { state, contextMenu } from './app/app-state.js';
-import { paneEditors } from './editor/editor.js';
+import { paneEditors, scheduleIndexOverlay, updateWindowTitle } from './editor/editor.js';
 import { activatePane, openInPane } from './tabs/tabs.js';
-import { performStatusToggle, computeStatusToggle } from './task-states.js';
+import { performStatusToggle, computeStatusToggle, statusToggleAufText } from './task-states.js';
 import { taskToggleAugmenter, todayIsoDate } from './tasks.js';
 import {
   parseTaskLine,
@@ -42,7 +60,8 @@ import { shiftIsoDateByDays, primaryDateField } from '../../shared/tasks/task-re
 import { showDateTimePicker } from './calendar/date-picker.js';
 import { scrollToLineAfterOpen } from './views/anchor-navigation.js';
 import { saveTab } from './views/save-export.js';
-import { showStatusbarHint } from './views/views.js';
+import { renderTabbar } from './views/tabbar.js';
+import { scheduleAutoSave, showStatusbarHint } from './views/views.js';
 import { appendContextMenuItem, placeContextMenuAt } from './dialogs/context-menu-utils.js';
 
 // --- Treffer-Aufloesung -------------------------------------------------------
@@ -56,27 +75,123 @@ function findOpenTab(path) {
   return null;
 }
 
-// Ziel-Zeile im Editor-Doc: erwartete Zeilennummer zuerst, sonst eindeutige
-// Suche (Semantik wie computeLineReplacement im Main). 0 = fehlt, -1 = mehrdeutig.
-function findDocLine(view, line, expectedText) {
-  const doc = view.state.doc;
-  if (line >= 1 && line <= doc.lines && doc.line(line).text === expectedText) return line;
+// Ziel-Zeile: erwartete Zeilennummer zuerst, sonst eindeutige Suche (Semantik
+// wie computeLineReplacement im Main). 0 = fehlt, -1 = mehrdeutig. Die Zeilen
+// kommen über einen Zugriff, damit Editor-Doc und ungespeicherter Text eines
+// inaktiven Reiters dieselbe Suche teilen (4T-001978).
+function findLine(count, textOf, line, expectedText) {
+  if (line >= 1 && line <= count && textOf(line) === expectedText) return line;
   let found = 0;
-  for (let i = 1; i <= doc.lines; i++) {
-    if (doc.line(i).text !== expectedText) continue;
+  for (let i = 1; i <= count; i++) {
+    if (textOf(i) !== expectedText) continue;
     if (found) return -1;
     found = i;
   }
   return found;
 }
 
+function findDocLine(view, line, expectedText) {
+  const doc = view.state.doc;
+  return findLine(doc.lines, (i) => doc.line(i).text, line, expectedText);
+}
+
 function conflictHint() {
   showStatusbarHint(null, { text: t('taskQuery.conflict'), error: true, duration: 3000 });
 }
 
-function dirtyOpenHint() {
-  showStatusbarHint(null, { text: t('taskQuery.dirtyOpen'), error: true, duration: 3000 });
+// --- Ungespeicherter Stand eines inaktiven Reiters (4T-001978, E9) ------------
+
+// Den neuen Text in den Puffer des Reiters legen und nachziehen, was beim
+// Tippen der Editor-Listener nachzieht (editor.js, createEditorState):
+// Änderungs-Kennzeichen samt Reiter-Leiste und Fenster-Titel, automatisches
+// Speichern (nur wenn eingeschaltet, dann wie beim Tippen) und den
+// Index-Overlay, über den Abfrage und andere Fenster den neuen Stand sehen.
+function uebernimmInPuffer(open, text) {
+  const tab = open.tab;
+  tab.content = text;
+  const wasDirty = !!tab.dirty;
+  tab.dirty = text !== tab.originalContent;
+  if (wasDirty !== tab.dirty) {
+    renderTabbar(open.paneIdx);
+    updateWindowTitle();
+  }
+  scheduleAutoSave();
+  scheduleIndexOverlay(tab);
 }
+
+// Treffer-Zeile im ungespeicherten Text suchen; Konflikt-Hinweis, wenn sie
+// fehlt oder mehrdeutig ist. Liefert Zeilen-Liste und 1-basierte Nummer.
+function findeImPuffer(open, hit) {
+  const zeilen = String(open.tab.content == null ? '' : open.tab.content).split('\n');
+  const nr = findLine(zeilen.length, (i) => zeilen[i - 1], hit.line, hit.taskText);
+  if (nr <= 0) {
+    conflictHint();
+    return null;
+  }
+  return { zeilen, nr };
+}
+
+// Abhaken im ungespeicherten Stand: dieselbe Kette wie der Klick im Dokument
+// (statusToggleAufText ruft performStatusToggle auf dem Text, samt
+// Automatik-Daten und Wiederholungs-Instanz an der eingestellten Stelle).
+function togglePuffer(open, hit) {
+  const fund = findeImPuffer(open, hit);
+  if (!fund) return false;
+  const ergebnis = statusToggleAufText(fund.zeilen.join('\n'), fund.nr);
+  if (!ergebnis) return false;
+  uebernimmInPuffer(open, ergebnis.text);
+  return true;
+}
+
+// Neue Zeilen-Fassung im ungespeicherten Stand (Verschieben, Dialog).
+function ersetzeImPuffer(open, hit, newText) {
+  const fund = findeImPuffer(open, hit);
+  if (!fund) return false;
+  fund.zeilen.splice(fund.nr - 1, 1, String(newText));
+  uebernimmInPuffer(open, fund.zeilen.join('\n'));
+  return true;
+}
+
+// --- Übergabe an das Fenster des ungespeicherten Stands (4T-001978, E2) ---------
+
+// Hält ein ANDERES Fenster den ungespeicherten Stand der Datei, bekommt es den
+// Auftrag (Hauptprozess, Besitzer-Regel wie reminders:edit). true heißt: Das
+// andere Fenster schreibt, hier ist nichts mehr zu tun. Scheitert die Anfrage
+// selbst, schreibt dieses Fenster wie bisher (Rückfall, AK8).
+async function uebergibAnPufferFenster(hit, bearbeitung) {
+  if (typeof api.taskQueryEdit !== 'function') return false;
+  try {
+    const antwort = await api.taskQueryEdit({
+      hit: { path: hit.path, line: hit.line, taskText: hit.taskText },
+      bearbeitung,
+    });
+    return !!(antwort && antwort.delegiert);
+  } catch (err) {
+    console.warn('taskQuery:edit fehlgeschlagen:', err);
+    return false;
+  }
+}
+
+// Auftrag aus dem Hauptprozess: Dieses Fenster hält den ungespeicherten Stand.
+// Ausgeführt über dieselben beiden Funktionen, genau so, als wäre hier
+// geklickt worden; nur eine erneute Übergabe entfällt (kein Hin und Her).
+// Scheitert es, steht der Hinweis in der Statusleiste dieses Fensters.
+async function fuehreAbfrageAuftragAus(auftrag) {
+  const hit = auftrag && auftrag.hit;
+  const bearbeitung = auftrag && auftrag.bearbeitung;
+  if (!hit || typeof hit.path !== 'string' || typeof hit.taskText !== 'string') return;
+  if (!bearbeitung) return;
+  const ziel = { path: hit.path, line: hit.line, taskText: hit.taskText };
+  if (bearbeitung.art === 'toggle') await toggleTaskFromQuery(ziel, { uebergeben: true });
+  else if (bearbeitung.art === 'zeile' && typeof bearbeitung.newText === 'string') {
+    await writeTaskHitLine(ziel, bearbeitung.newText, { uebergeben: true });
+  }
+}
+// Am Modulkopf angemeldet wie der Auftrag der Erinnerungen (reminders.js): Ein
+// Fenster mit geändertem Reiter ist ohnehin fertig initialisiert.
+api.onTaskQueryEdit?.((auftrag) => {
+  void fuehreAbfrageAuftragAus(auftrag);
+});
 
 // Aktiver Tab seiner Pane? Nur dann ist der Editor-Zustand gemountet.
 function isActiveTab(open) {
@@ -120,7 +235,12 @@ async function writeLineViaMain(hit, newText, insert) {
 // computeStatusToggle plus taskToggleAugmenter, geschrieben ueber den Main.
 // 4T-001727 (Epic 3E-000305): Liefert true, wenn geschrieben wurde; der
 // Erinnerungs-Dialog gibt seinen Anspruch sonst zurueck.
-export async function toggleTaskFromQuery(hit) {
+// 4T-001978 (Epic 3E-000330): Weiche in fester Reihenfolge — aktiver Reiter,
+// Übergabe an ein anderes Fenster mit ungespeichertem Stand, inaktiver
+// geänderter Reiter dieses Fensters, Platte. true auch, wenn ein anderes
+// Fenster den Auftrag übernommen hat. optionen.uebergeben: Der Auftrag kam
+// bereits aus dem Hauptprozess und wird nicht erneut uebergeben.
+export async function toggleTaskFromQuery(hit, optionen = {}) {
   const open = findOpenTab(hit.path);
   if (open && isActiveTab(open)) {
     const view = paneEditors[open.paneIdx];
@@ -135,10 +255,10 @@ export async function toggleTaskFromQuery(hit) {
     await persistIfWasClean(open, wasDirty);
     return true;
   }
-  if (open && open.tab.dirty) {
-    dirtyOpenHint();
-    return false;
+  if (!optionen.uebergeben && (await uebergibAnPufferFenster(hit, { art: 'toggle' }))) {
+    return true;
   }
+  if (open && open.tab.dirty) return togglePuffer(open, hit);
   const toggle = computeStatusToggle(hit.taskText);
   if (!toggle) return false;
   // Augmenter zuerst (Automatik-Daten plus Wiederholungs-Instanz); ohne
@@ -176,8 +296,10 @@ export function postponedDateValue(value, mode, todayIso) {
 // Neue Zeilen-Fassung eines Treffers schreiben — gemeinsamer Schreibweg
 // des Verschiebe-Menues und des Bearbeitungs-Dialogs (4T-000506): aktiver
 // Tab per CodeMirror-Transaktion (ein Undo-Schritt, Save nur wenn der Tab
-// vorher sauber war), inaktiver dirty Tab Hinweis, sonst Main-Schreibweg.
-export async function writeTaskHitLine(hit, newText) {
+// vorher sauber war), sonst Übergabe an ein anderes Fenster mit
+// ungespeichertem Stand, inaktiver dirty Tab im eigenen Puffer (beides
+// 4T-001978), sonst Main-Schreibweg. optionen wie bei toggleTaskFromQuery.
+export async function writeTaskHitLine(hit, newText, optionen = {}) {
   const open = findOpenTab(hit.path);
   if (open && isActiveTab(open)) {
     const view = paneEditors[open.paneIdx];
@@ -196,10 +318,13 @@ export async function writeTaskHitLine(hit, newText) {
     await persistIfWasClean(open, wasDirty);
     return true;
   }
-  if (open && open.tab.dirty) {
-    dirtyOpenHint();
-    return false;
+  if (
+    !optionen.uebergeben &&
+    (await uebergibAnPufferFenster(hit, { art: 'zeile', newText: String(newText) }))
+  ) {
+    return true;
   }
+  if (open && open.tab.dirty) return ersetzeImPuffer(open, hit, newText);
   return writeLineViaMain(hit, newText, null);
 }
 

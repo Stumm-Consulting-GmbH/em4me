@@ -12,6 +12,7 @@ Dall'alto verso il basso, il menu è suddiviso in sette gruppi:
 - **Inserisci** — modelli: nota a piè di pagina, tabella, riquadro, linea orizzontale e blocco di codice.
 - **Tabella** — operazioni di modifica per la tabella al cursore; appare solo quando il cursore si trova in una tabella.
 - **Grafico** — «Inserisci grafico per questa tabella» oppure «Modifica grafico»; appare solo quando il cursore si trova in una tabella dati o nel blocco di un grafico.
+- **Converti data** — apre il dialogo che mostra una data negli altri calendari dello stesso blocco ([Sistemi di calendario](custom-calendars.md)); compare solo con i sistemi di calendario attivati ed è attivo non appena l'area aperta definisce un calendario.
 - **Appunti** — taglia, copia, incolla, seleziona tutto.
 
 Le scorciatoie predefinite per grassetto (`Ctrl+B`) e corsivo (`Ctrl+I`) funzionano anche senza il menu; tutte le altre azioni possono essere associate a una scorciatoia nelle impostazioni.
@@ -57,4 +58,4 @@ All'interno di una destinazione di collegamento wiki e di codice in linea, le az
 
 ## Editor di sola lettura
 
-Se l'editor è di sola lettura, cioè una vista senza modalità modifica, il menu mostra solo copia e seleziona tutto; i gruppi collegamento, formato, paragrafo e inserimento vengono omessi.
+Se l'editor è di sola lettura, cioè una vista senza modalità modifica, il menu mostra solo converti data, copia e seleziona tutto; i gruppi collegamento, formato, paragrafo e inserimento vengono omessi. Converti data resta perché lì il dialogo si limita a mostrare e copiare: il suo pulsante «Inserisci» è disattivato in questa vista.

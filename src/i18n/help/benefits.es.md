@@ -121,8 +121,9 @@ Quien trabaja mucho tiempo con un programa acaba moldeándolo: colores, atajos d
 - **Un sexto idioma: el tuyo.** Traducir una plantilla, instalarla, elegirla en la barra de estado; lo que falte en ella aparece en inglés y no como una clave en bruto.
 - **Todos los contenedores en un solo lugar**: añadidos a mano en vez de recogidos automáticamente, con cifras y el momento en que se tomaron.
 - **Nada ocurre a tus espaldas**: no se recorre ningún disco, y ninguna lectura escribe nada antes de que lo confirmes.
+- **Todo el entorno de trabajo en una carpeta**: la versión portátil guarda configuración, sesión y borradores en la carpeta junto al programa; quien la copia en una memoria USB trabaja en cualquier ordenador con su propia configuración.
 
-En detalle: [Exportar e importar la configuración](setup-exchange.md), [Idioma de interfaz propio](custom-locale.md), [My Extended Memory](my-extended-memory.md).
+En detalle: [Exportar e importar la configuración](setup-exchange.md), [Idioma de interfaz propio](custom-locale.md), [My Extended Memory](my-extended-memory.md), [Versión portátil](portable-version.md).
 
 ## Tablas que sostienen más de una línea
 
@@ -189,6 +190,7 @@ Más allá de las cuatro construcciones grandes, el lenguaje aporta más de cinc
 - **Presentación** con fórmulas, diagramas y código resaltado; en la exportación portátil un diagrama viaja como imagen terminada y se ve también donde EM4me no está instalado.
 - **Referencias dentro del texto** mediante anclas, inserciones y etiquetas.
 - **Jornada de trabajo** con tareas, recordatorios, citas, plantillas y diarios.
+- **Fechas en otros calendarios**: nueve calendarios incluidos, del juliano al japonés pasando por el hijri, además de cronologías propias de libre definición; las fechas de un mismo bloque se convierten entre sí.
 - **Activables una a una** o agrupadas en tres modos de trabajo, además de combinaciones personales, y abierto a extensiones propias mediante una interfaz documentada.
 
 En detalle: [Funciones](functions.md), [Extensiones](extensions.md), [Crear extensiones](extensions-dev.md).

@@ -150,6 +150,22 @@
   margin-top: 20px;
   min-width: 100px;
 }
+/* 4T-001993 (Epic 3E-000188): Ort der Daten der portablen Fassung. Ein langer
+   Pfad bricht an beliebiger Stelle um, statt den Dialog über seine
+   Höchstbreite zu schieben; er bleibt markier- und kopierbar. Der Knopf sitzt
+   dicht unter dem Pfad, der Schließen-Knopf behält seinen Abstand. */
+.about-modal-content .about-portable {
+  margin-top: 14px;
+}
+.about-modal-content .about-portable-path {
+  margin: 2px 0 0;
+  font-size: 0.85em;
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+.about-modal-content .about-portable button {
+  margin-top: 10px;
+}
 
 /* 4T-000072: Word-Count-Detail-Dialog. Stil-Familie analog about-modal. */
 .wordcount-modal {
@@ -500,25 +516,50 @@
 }
 
 /* === Treffer-Hervorhebung ================================================ */
-.mdv-match {
+/* 4T-002113: Die Treffer der Lese-Ansicht sind <mark>-Elemente in
+   `.markdown-body`, und dort gilt auch die Regel der Hervorhebung `==Text==`
+   (`.markdown-body mark` in block-eigenschaften-und-konstrukte.css). Sie ist
+   spezifischer als die bloßen Klassen und gewann deshalb: Gemessen am
+   2026-10-03 trugen in «Gerendert» der aktuelle und die übrigen Treffer
+   dieselbe Farbe, in beiden Farbschemata und in Dokument-, Handbuch- und
+   Bereichs-Suche. Die zweite Selektor-Zeile je Regel hebt die Treffer-Farben
+   über jene Regel.
+   4T-002125: Dazu trägt jeder Treffer eine Kontur. Der Hintergrund allein
+   reicht nicht: Ein übriger Treffer und ein Textmarker liegen gemessen fast
+   gleich (hell #fff59d gegen #fff3a3, dunkel #6b5a00 gegen #7d6b00), ein
+   Treffer IM Textmarker war im hellen Farbschema gar nicht zu sehen. Die
+   Kontur ist ein Schatten ohne Versatz statt eines Rahmens, damit sich kein
+   Text verschiebt; ihre Farbe hält zu Textmarker, Treffer und Seite je
+   mindestens 3:1 Leuchtdichte-Kontrast (hell #8a6500, dunkel #ffe066). Der
+   aktuelle Treffer trägt sie doppelt so breit im Orange seiner Fläche, nach
+   dem Muster des Umrisses der Mindmap-Treffer (mindmap.css), im hellen
+   Farbschema dunkler (#e65100), weil #ff9800 sich dort weder von der eigenen
+   Fläche noch von der Seite abhebt. */
+.mdv-match,
+.markdown-body mark.mdv-match {
   background: #fff59d;
   color: inherit;
   border-radius: 2px;
   padding: 0;
+  box-shadow: 0 0 0 1px #8a6500;
 }
-.mdv-match-current {
+.mdv-match-current,
+.markdown-body mark.mdv-match-current {
   background: #ff9800;
   color: #000;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 0 2px #e65100;
 }
-[data-theme='dark'] .mdv-match {
+[data-theme='dark'] .mdv-match,
+[data-theme='dark'] .markdown-body mark.mdv-match {
   background: #6b5a00;
   color: #fff;
+  box-shadow: 0 0 0 1px #ffe066;
 }
-[data-theme='dark'] .mdv-match-current {
+[data-theme='dark'] .mdv-match-current,
+[data-theme='dark'] .markdown-body mark.mdv-match-current {
   background: #ff9800;
   color: #1a1a1a;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 2px #ffb74d;
 }
 
 /* === Markdown-Linter-Light (4T-000020) ==================================== */

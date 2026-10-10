@@ -17,6 +17,7 @@ import {
   cancelSettingsPage,
   isSettingsPageDirty,
   okSettingsPage,
+  reevaluateSettingsErrors,
   sectionById,
   settingsSections,
 } from './settings-page.js';
@@ -214,8 +215,19 @@ export function refreshSettingsNav() {
 // E2), „OK" bleibt immer klickbar (schließt die Seite auch ohne Änderungen).
 // Exportiert, damit Bereichs-Module mit eigenem Broadcast-Abgleich
 // (sidebar-settings.js) nach einer Entwurfs-Anpassung nachziehen können.
+//
+// 4T-002107 (Epic 3E-000323): Hier kommt jede Entwurfs-Änderung jedes Bereichs
+// an — über die delegierten Dokument-Listener der Seite, das Re-Render der
+// Struktur-Editoren und die ausdrücklichen Aufrufe nach einem await. Deshalb
+// zieht an dieser Stelle auch die Fehler-Auskunft des letzten Anwendens nach,
+// damit Meldung und Markierung nicht stehen bleiben, wenn der Bereich wieder
+// gültig ist.
 export function refreshSettingsButtons() {
   if (!pageEls || !pageEls.applyBtn || !pageEls.applyBtn.isConnected) return;
+  if (reevaluateSettingsErrors()) {
+    refreshSettingsNav();
+    renderActiveSectionError();
+  }
   const dirty = isSettingsPageDirty();
   pageEls.applyBtn.disabled = !dirty;
   pageEls.applyBtn.classList.toggle('btn-primary', dirty);
@@ -229,6 +241,30 @@ export function renderActiveSectionError() {
   const error = pageState.errors.get(pageState.activeSectionId) || null;
   pageEls.error.hidden = !error;
   pageEls.error.textContent = error || '';
+}
+
+// 4T-002098 (Epic 3E-000323): Kann wegen eines ungültigen Bereichs nicht
+// angewendet werden, steht die Seite danach auf einem Bereich mit Fehler, damit
+// dessen Fehlertext unter dem Inhalt erscheint. Die Fehler-Zeile zeigt allein
+// den Fehler des AKTIVEN Bereichs; lag der Fehler in einem anderen, blieb es
+// bei der Markierung in der Navigation, und «OK» und «Anwenden» wirkten ohne
+// jede Meldung nicht. Hat der aktive Bereich selbst einen Fehler, bleibt die
+// Seite dort, sonst wechselt sie zum ersten erreichbaren Bereich mit Fehler in
+// der Reihenfolge der Bereichs-Registry.
+export function zeigeBereichMitFehler() {
+  if (pageState.errors.size === 0 || pageState.errors.has(pageState.activeSectionId)) return;
+  const ziel = settingsSections().find(
+    (section) => pageState.errors.has(section.id) && sektionErreichbar(section),
+  );
+  if (ziel) activateSection(ziel.id);
+}
+
+// Erreichbar ist ein Bereich, den die Navigation zeigt: sichtbar und, wenn er
+// bereichsgebunden ist, nur mit gebundenem Bereich (Regeln aus
+// buildSettingsNavEntries und renderActiveSection).
+function sektionErreichbar(section) {
+  if (section.group === 'area' && !state.areaPath) return false;
+  return sektionSichtbar(section);
 }
 
 export function renderActiveSection() {

@@ -39,6 +39,7 @@ async function warteAufSeitenInhalt(paneIdx, regex, versuche = 60) {
 // Hebt die Fundstellen der aktuellen Seite hervor und scrollt die gesuchte
 // heran. Welche das ist, sagt die laufende Nummer des Treffers innerhalb
 // seiner Gruppe: Die Hervorhebung zählt je Seite wieder bei null.
+//
 function hebeHervorUndScrolle(els, nummerInGruppe, regex) {
   if (!els || !els.renderedHtml || !regex) return;
   const marks = highlightInContainer(els.renderedHtml, regex);
@@ -47,7 +48,31 @@ function hebeHervorUndScrolle(els, nummerInGruppe, regex) {
   if (!ziel) return;
   search.currentIndex = marks.indexOf(ziel);
   ziel.classList.add('mdv-match-current');
+  rolleZurFundstelleInDerLeseAnsicht(ziel);
+}
+
+// 4T-002099: Rollt die Lese-Ansicht der aktiven Spalte zu einer Fundstelle
+// eines Raum-Sprungs und trägt die erreichte Lage zugleich als gemerkte
+// Lese-Lage des aktiven Reiters ein. Gemeinsamer Weg für Handbuch- und
+// Bereichs-Sprung (search-area.js).
+//
+// Warum das Eintragen nötig ist: Jeder Raum-Sprung aktiviert den Ziel-Reiter,
+// und das Rendern der Ansicht (renderPaneContent in views/pane-render.js)
+// stellt die gemerkte Lage erst im nächsten Bild-Takt wieder her — also NACH
+// diesem Rollen. Das Merken über das Roll-Ereignis ist in genau diesem
+// Fenster abgeschaltet; ohne den Eintrag setzte die Wiederherstellung die
+// alte Lage zurück, und der Sprung markierte die Fundstelle, ohne sie zu
+// zeigen. Gemessen auf jeder Handbuch-Seite (mitgeliefert und erzeugt, offen
+// oder nicht) und beim Sprung in eine Bereichs-Datei in der Ansicht
+// «Gerendert»; aufgefallen war es auf der langen Seite «Funktionen».
+export function rolleZurFundstelleInDerLeseAnsicht(ziel) {
+  if (!ziel || typeof ziel.scrollIntoView !== 'function') return;
   ziel.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
+  const els = getPaneEls(state.activePaneIndex);
+  const tab = activeTab();
+  if (tab && els && els.renderedEl && els.renderedEl.contains(ziel)) {
+    tab.scrollRen = els.renderedEl.scrollTop;
+  }
 }
 
 // Sprung-Weg je Herkunft. Das Handbuch trägt sich unten selbst ein, die
@@ -64,6 +89,10 @@ export function registriereSprungWeg(quelle, fn) {
 
 export async function springeZuTreffer(treffer) {
   if (!treffer || !treffer.gruppe) return;
+  // 4T-002107: Jeder Raum-Sprung — F3, Eingabetaste, Weiter-Knopf, Klick oder
+  // Eingabetaste in der Trefferliste — zeigt den aktuellen Treffer; der
+  // nächste Vorwärts-Sprung geht danach weiter statt zu ihm.
+  search.angesprungen = true;
   const weg = SPRUNG_WEGE.get(treffer.quelle);
   if (weg) await weg(treffer);
 }

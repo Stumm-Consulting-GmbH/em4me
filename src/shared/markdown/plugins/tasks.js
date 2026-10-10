@@ -431,10 +431,19 @@ function taskMarkersPlugin(mdInstance, options) {
         const rawLine = li.map ? srcLines[li.map[0]] : null;
         if (rawLine == null || !taskMarkers.isTaskLine(rawLine, cfg.globalFilter)) continue;
       }
-      // Marker-Segmente aus dem letzten Text-Child.
+      // Marker-Segmente aus dem letzten Text-Child der ERSTEN Zeile.
+      // 4T-001716 (Epic 3E-000301): Die Marker einer Aufgabe stehen am Ende
+      // ihrer ersten Zeile, vor dem ersten harten oder weichen Umbruch des
+      // Absatzes. Mit einer Folgezeile ist das letzte Text-Child des Punkts
+      // die Folgezeile, und die Marker gingen in der gesetzten Darstellung
+      // verloren; die übrigen Zeilen bleiben unverändert.
       const children = inline.children;
+      let firstLineEnd = children.findIndex(
+        (t) => t.type === 'softbreak' || t.type === 'hardbreak',
+      );
+      if (firstLineEnd < 0) firstLineEnd = children.length;
       let lastTextIdx = -1;
-      for (let c = children.length - 1; c >= 0; c--) {
+      for (let c = firstLineEnd - 1; c >= 0; c--) {
         if (children[c].type === 'text') {
           lastTextIdx = c;
           break;

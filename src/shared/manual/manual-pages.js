@@ -169,6 +169,16 @@ const MANUAL_PAGES = [
   // Bewegung — eine Datei verlaesst die Anwendung, wird ausserhalb bearbeitet
   // und kommt zurueck.
   { id: 'custom-locale', titleKey: 'manual.page.customLocale.title', source: 'bundled' },
+  // 4T-001996 (Epic 3E-000188): Portable Fassung (Entpacken und Starten, der
+  // Ordner Data neben dem Programm und das Mitnehmen, Anzeige unter
+  // Hilfe › Ueber…, erster Start und Mitnehmen der Einrichtung ueber die
+  // Austausch-Datei, nicht beschreibbarer Ort, was auf dem Rechner bleibt,
+  // Unterschiede zur installierten Fassung). Steht hinter „Eigene
+  // Oberflaechen-Sprache" und vor „Erweiterungen erstellen": Die Seiten davor
+  // und danach nennen den Ablage-Ort der Anwendung und verweisen fuer die
+  // portable Fassung hierher, und das Mitnehmen der Einrichtung laeuft ueber
+  // die Seite zum Ex- und Import.
+  { id: 'portable-version', titleKey: 'manual.page.portableVersion.title', source: 'bundled' },
   // 4T-000301 (Epic 3E-000053): Entwickler-Seite — eigene externe
   // Erweiterungen erstellen (Manifest-Referenz, Erweiterungs-API v1,
   // Referenz-Beispiel, Sicherheits-Hinweis).

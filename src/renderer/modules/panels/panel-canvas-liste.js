@@ -544,6 +544,23 @@ initCanvasListenTasten({ stand, waehle, zeichne, merkeFokus, zeilen, paneZu });
 // deshalb sonst niemanden erreichte (AK5, AK11).
 beobachteCanvasStand(zeichneSichtbare);
 
+// 4T-002129: Status-Zeile, Ersatz-Beschriftungen und Kurzhinweise der Zeilen
+// entstehen beim Zeichnen per t() und tragen kein i18n-Merkmal. Nach dem
+// Sprachwechsel zeichnet die Liste sie aus ihrem Stand neu; das Filter-Feld
+// wird dabei nicht angefasst, und liegt der Fokus auf einer Zeile, kehrt er
+// über ihre Kennung dorthin zurück (Muster der Trefferliste, 4T-002125).
+document.addEventListener('i18n-language-changed', () => {
+  for (let i = 0; i < state.panes.length; i++) {
+    const els = getPaneEls(i);
+    const liste = els ? els.canvasListList : null;
+    const aktiv = document.activeElement;
+    const zeile =
+      liste && aktiv && liste.contains(aktiv) ? aktiv.closest('[data-canvas-id]') : null;
+    if (zeile) merkeFokus(zeile.dataset.canvasId, zeilen(liste).indexOf(zeile));
+    zeichneSichtbare(i);
+  }
+});
+
 registerSidebarPanel({
   id: 'canvaslist',
   titleKey: 'canvas.liste.titel',

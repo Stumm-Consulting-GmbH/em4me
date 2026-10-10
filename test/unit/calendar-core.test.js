@@ -19,6 +19,7 @@ import {
   findCalendarValues,
   spanUnits,
   spanTiers,
+  unitNameFor,
 } from '../../src/shared/calendar/calendar-core.js';
 // 4T-000995 (Epic 3E-000196): Sektions-Normalisierung und Persistenz-Form liegen
 // im Konfigurations-Rand, die gregorianische Vorlage in ihrem eigenen Modul.
@@ -1002,5 +1003,42 @@ describe('spanTiers — gestaffelte Zeitspanne', () => {
       'Halbjahr',
       'Jahr',
     ]);
+  });
+});
+
+// 4T-001863 (Epic 3E-000307): Einzahl und Mehrzahl der Einheiten-Namen.
+describe('Einzahl und Mehrzahl der Einheiten-Namen (4T-001863)', () => {
+  const formen = (t, i) => t[i].map((u) => `${u.count} ${unitNameFor(u, u.count)}`).join(', ');
+
+  it('AK1/AK6: die Vorlage trägt an Ebenen, Woche und Gruppierungen beide Formen', () => {
+    const paare = [...GREG.levels, ...GREG.cycles, ...GREG.groups].map(
+      (e) => `${e.name}/${e.namePlural}`,
+    );
+    expect(paare.join(' ')).toBe(
+      'Sekunde/Sekunden Minute/Minuten Stunde/Stunden Tag/Tage Monat/Monate Jahr/Jahre ' +
+        'Woche/Wochen Quartal/Quartale Halbjahr/Halbjahre',
+    );
+  });
+
+  it('AK2/AK3: eine Einheit in der Einzahl, sonst Mehrzahl; ohne Mehrzahl gilt die Einzahl', () => {
+    const tag = { name: 'Tag', namePlural: 'Tage' };
+    expect([0, 1, 2, 10].map((n) => unitNameFor(tag, n))).toEqual(['Tage', 'Tag', 'Tage', 'Tage']);
+    expect(unitNameFor({ name: 'Tag' }, 10)).toBe('Tag');
+    expect(unitNameFor({ name: 'Tag', namePlural: '  ' }, 10)).toBe('Tag');
+  });
+
+  it('AK4: eine Definition ohne Mehrzahl bleibt unverändert, eine leere legt nichts an', () => {
+    expect(JSON.stringify(WORLD)).not.toContain('namePlural');
+    const leer = { ...TAKT, levels: TAKT.levels.map((l) => ({ ...l, namePlural: '  ' })) };
+    const config = normalizeCalendarConfig({ blocks: [{ id: 'welt', calendars: [leer] }] });
+    expect(config.blocks[0].calendars[0]).toStrictEqual(TAKT_N);
+  });
+
+  it('AK10: Wochen und Quartale zählen in der Mehrzahl, auch über eine Ableitung', () => {
+    const { block, cal } = abgeleitet({ zero: [2005, 9, 17] });
+    const wert = convertInBlock(block, 'gregorian', [2026, 9, 15, 0, 0, 0], 'abl').tuple;
+    const { tiers } = spanTiers(cal, wert);
+    expect(formen(tiers, 3)).toBe('83 Quartale, 2 Monate, 4 Wochen, 2 Tage');
+    expect(formen(tiers, 5)).toBe('20 Jahre, 1 Halbjahr, 1 Quartal, 2 Monate, 4 Wochen, 2 Tage');
   });
 });

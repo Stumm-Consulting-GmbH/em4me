@@ -12,6 +12,7 @@ Das Menü gliedert sich von oben nach unten in sieben Gruppen:
 - **Einfügen** — Schablonen: Fußnote, Tabelle, Hinweisblock, horizontale Linie und Quelltext-Block.
 - **Tabelle** — Bearbeitungs-Operationen für die Tabelle am Cursor; erscheint nur, wenn der Cursor in einer Tabelle steht.
 - **Diagramm** — „Diagramm zu dieser Tabelle einfügen" bzw. „Diagramm bearbeiten"; erscheint nur, wenn der Cursor in einer Datentabelle bzw. im Block eines Diagramms steht.
+- **Datum umrechnen** — öffnet den Dialog, der ein Datum in den anderen Kalendern desselben Blocks zeigt ([Kalender-Systeme](custom-calendars.md)); erscheint nur bei eingeschalteten Kalender-Systemen und ist aktiv, sobald der geöffnete Bereich einen Kalender definiert.
 - **Zwischenablage** — Ausschneiden, Kopieren, Einfügen, Alles auswählen.
 
 Die Standard-Kürzel für Fett (`Strg+B`) und Kursiv (`Strg+I`) wirken auch ohne das Menü; alle übrigen Aktionen lassen sich in den Einstellungen mit einem Kürzel belegen.
@@ -57,4 +58,4 @@ Innerhalb eines Wiki-Link-Ziels und innerhalb von Inline-Quelltext bleiben die F
 
 ## Schreibgeschützter Editor
 
-Ist der Editor schreibgeschützt, also eine Ansicht ohne Edit-Modus, zeigt das Menü nur Kopieren und Alles auswählen; die Link-, Format-, Absatz- und Einfüge-Gruppen entfallen.
+Ist der Editor schreibgeschützt, also eine Ansicht ohne Edit-Modus, zeigt das Menü nur Datum umrechnen, Kopieren und Alles auswählen; die Link-, Format-, Absatz- und Einfüge-Gruppen entfallen. Datum umrechnen bleibt, weil der Dialog dort nur anzeigt und kopiert: Seine Taste «Einfügen» ist in dieser Ansicht deaktiviert.

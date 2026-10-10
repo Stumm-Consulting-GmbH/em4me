@@ -53,6 +53,23 @@ In editing mode you can restructure a list from the keyboard: `Alt+Arrow Up`
 and `Alt+Arrow Down` move an item with all its sub-items, `Tab` and
 `Shift+Tab` change its level, and numbered lists renumber themselves. A blank
 line starts a new list.
+A second line within the same item starts with `Shift+Enter`: the line
+before ends with a backslash, and the new line is indented under the text
+of the item, even behind a task checkbox. Enter at the end of such a line
+starts a new item, and in a numbered task list it continues the checkbox.
+
+```markdown
+- Groceries\
+  milk, bread and cheese
+1. [ ] Check the offer\
+       note the deadline
+```
+
+- Groceries\
+  milk, bread and cheese
+
+1. [ ] Check the offer\
+       note the deadline
 
 ## Blockquote and horizontal rule
 

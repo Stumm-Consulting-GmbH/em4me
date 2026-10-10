@@ -59,7 +59,6 @@
   "taskQuery.postpone.noDate": "No date field available to postpone",
   "taskQuery.edit": "Edit task",
   "taskQuery.conflict": "Line no longer found – the source file was changed in the meantime",
-  "taskQuery.dirtyOpen": "File has unsaved changes – please edit it in the editor",
   "taskQuery.writeFailed": "Writing to the source file failed",
   "taskQuery.urgency": "Urgency",
   "taskDialog.title.edit": "Edit task",

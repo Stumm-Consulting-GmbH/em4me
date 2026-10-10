@@ -85,16 +85,16 @@ Ein Dialog stellt die eingespielten Sprachen zur Auswahl, auch wenn es nur eine 
 
 ## Entfernen
 
-„Datei → Eigene Sprache → Entfernen…" stellt die eingespielten Sprachen mit ihrem Namen zur Auswahl; Abbrechen ist die Vorgabe. Gelöscht wird die Sprachdatei im Benutzerprofil — die Datei, aus der sie eingespielt wurde, bleibt liegen, wo sie liegt.
+„Datei → Eigene Sprache → Entfernen…" stellt die eingespielten Sprachen mit ihrem Namen zur Auswahl; Abbrechen ist die Vorgabe. Gelöscht wird die Sprachdatei, die die Anwendung beim Einspielen abgelegt hat — die Datei, aus der sie eingespielt wurde, bleibt liegen, wo sie liegt.
 
 Ist die entfernte Sprache gerade eingestellt, wechselt die Oberfläche auf Englisch. Das ist der Unterschied zur fehlenden Datei oben: Wer eine Sprache selbst wegnimmt, soll nicht bei jedem Start an sie erinnert werden.
 
 ## Wo die Sprachdatei liegt
 
-Beim Einspielen legt die Anwendung eine Kopie im **Benutzerprofil** ab, im Ordner `locales` neben ihren übrigen Daten. Daraus folgen drei Zusicherungen:
+Beim Einspielen legt die Anwendung eine Kopie im Ordner `locales` neben ihren übrigen Daten ab. Wo das ist, hängt von der Fassung ab: in der installierten Fassung im **Benutzerprofil**, in der [portablen Fassung](portable-version.md) im Ordner `Data` neben dem Programm. Daraus folgen drei Zusicherungen:
 
-- Die eigene Sprache **überdauert eine Neuinstallation** des Programms; sie liegt außerhalb des Programm-Verzeichnisses.
-- Es wird **nichts in das Programm-Verzeichnis geschrieben**. Der Weg verlangt damit keine erhöhten Rechte und funktioniert auch dort, wo das Programm-Verzeichnis schreibgeschützt ist.
+- In der installierten Fassung **überdauert die eigene Sprache eine Neuinstallation** des Programms; sie liegt außerhalb des Programm-Verzeichnisses. In der portablen Fassung wandert sie mit dem Ordner `Data`.
+- Es wird **nichts in das Programm-Verzeichnis der installierten Fassung geschrieben**. Der Weg verlangt damit keine erhöhten Rechte und funktioniert auch dort, wo dieses Verzeichnis schreibgeschützt ist.
 - Die abgelegte Datei ist **dieselbe Art Datei** wie die eingespielte: Sie trägt ihre Benennung weiter und heißt nach dem Sprach-Kürzel. Wer sie sichern oder weitergeben will, kopiert sie.
 
 Gelesen wird die Datei bei jedem Start erneut und dabei erneut geprüft — der Ordner ist mit einem Editor erreichbar, und geprüft wird deshalb nicht nur beim Einspielen.

@@ -8,6 +8,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   parseListLine,
+  parseListItemHead,
+  hardBreakStart,
   scanListBlock,
   subtreeRange,
   siblingRange,
@@ -18,6 +20,12 @@ import {
   indentSubtree,
   outdentSubtree,
   shiftLineRange,
+  hasContinuationLine,
+  firstSubItem,
+  parentItem,
+  nextSiblingIndex,
+  buildListMarker,
+  renumberSiblings,
 } from '../../src/shared/markdown/list-outline.js';
 
 // Beispiel aus der Task-Dokumentation: Punkt mit Unterpunkt zwischen zwei
@@ -340,5 +348,230 @@ describe('Code-Zeilen (opts.isCode)', () => {
     const src = ['1. A', '  ```', '  3. kein Punkt', '  ```', '2. B'];
     const result = moveSubtree(src, 0, +1, opts);
     expect(result.lines).toEqual(['1. B', '2. A', '  ```', '  3. kein Punkt', '  ```']);
+  });
+});
+
+// 4T-001716 (Epic 3E-000301): die eine Erkennung des Listenpunkt-Kopfs samt
+// Kästchen und Inhalts-Spalte, dazu die Listen-Operationen an einem Punkt mit
+// Folgezeile nach Rückstrich (AK8, AK9).
+describe('parseListItemHead (4T-001716)', () => {
+  it('erkennt alle Marker samt Inhalts-Spalte', () => {
+    expect(parseListItemHead('- Text').contentColumn).toBe(2);
+    expect(parseListItemHead('* Text').contentColumn).toBe(2);
+    expect(parseListItemHead('+ Text').contentColumn).toBe(2);
+    expect(parseListItemHead('1. Text').contentColumn).toBe(3);
+    expect(parseListItemHead('12. Text').contentColumn).toBe(4);
+    const klammer = parseListItemHead('1) Text');
+    expect(klammer.contentColumn).toBe(3);
+    expect(klammer.ordered).toBe(true);
+    expect(klammer.delimiter).toBe(')');
+    expect(parseListItemHead('1. Text').delimiter).toBe('.');
+    expect(parseListItemHead('- Text').delimiter).toBeNull();
+  });
+
+  it('rechnet das Kästchen hinter jedem Marker zur Spalte', () => {
+    expect(parseListItemHead('- [ ] Text')).toMatchObject({ checkbox: '[ ]', contentColumn: 6 });
+    expect(parseListItemHead('- [x] Text').checkbox).toBe('[x]');
+    expect(parseListItemHead('- [X] Text').checkbox).toBe('[X]');
+    expect(parseListItemHead('1. [ ] Text')).toMatchObject({ checkbox: '[ ]', contentColumn: 7 });
+    expect(parseListItemHead('1) [x] Text')).toMatchObject({ checkbox: '[x]', contentColumn: 7 });
+  });
+
+  it('ein Kästchen ohne folgenden Leerraum ist Text', () => {
+    expect(parseListItemHead('- [ ]Text')).toMatchObject({ checkbox: null, contentColumn: 2 });
+    expect(parseListItemHead('- [ ]')).toMatchObject({ checkbox: null, contentColumn: 2 });
+  });
+
+  it('zählt einen Tabulator als ein Zeichen der Spalte', () => {
+    const kopf = parseListItemHead('\t- \tText');
+    expect(kopf.indent).toBe('\t');
+    expect(kopf.gap).toBe(' \t');
+    expect(kopf.contentColumn).toBe(4);
+  });
+
+  it('folgt der Ebene', () => {
+    expect(parseListItemHead('  - Text')).toMatchObject({ indent: '  ', contentColumn: 4 });
+    expect(parseListItemHead('    1. [ ] Text').contentColumn).toBe(11);
+  });
+
+  it('liefert null für Nicht-Listen-Zeilen', () => {
+    expect(parseListItemHead('Text')).toBeNull();
+    expect(parseListItemHead('-Text')).toBeNull();
+    expect(parseListItemHead('1.Text')).toBeNull();
+    expect(parseListItemHead('---')).toBeNull();
+    expect(parseListItemHead('  Fortsetzung')).toBeNull();
+    expect(parseListItemHead(null)).toBeNull();
+  });
+
+  it('lässt LIST_LINE_RE unberührt: parseListLine kennt 1) weiterhin nicht (E13)', () => {
+    expect(parseListLine('1) Text')).toBeNull();
+    expect(parseListItemHead('1) Text')).not.toBeNull();
+  });
+});
+
+describe('hardBreakStart (4T-001716)', () => {
+  it('findet den Rückstrich am Zeilenende samt Leerraum davor', () => {
+    expect(hardBreakStart('Text\\')).toBe(4);
+    expect(hardBreakStart('Text  \\')).toBe(4);
+    expect(hardBreakStart('\\')).toBe(0);
+  });
+
+  it('ein maskierter Rückstrich ist kein Umbruch, ein dritter wieder', () => {
+    expect(hardBreakStart('C:\\\\')).toBe(-1);
+    expect(hardBreakStart('C:\\\\\\')).toBe(4);
+  });
+
+  it('kein Rückstrich am Ende oder Leerraum dahinter: kein Umbruch', () => {
+    expect(hardBreakStart('Text')).toBe(-1);
+    expect(hardBreakStart('Text\\ ')).toBe(-1);
+    expect(hardBreakStart('')).toBe(-1);
+    expect(hardBreakStart(null)).toBe(-1);
+  });
+});
+
+describe('Folgezeile nach Rückstrich (4T-001716, AK8, AK9)', () => {
+  const LISTE = ['1. A', '2. B\\', '   Fortsetzung B', '3. C'];
+
+  it('gehört zum Teilbaum ihres Punkts', () => {
+    expect(subtreeRange(LISTE, 1)).toEqual({ from: 1, to: 2 });
+  });
+
+  it('wandert beim Verschieben mit', () => {
+    const r = moveSubtree(LISTE, 1, -1);
+    expect(r.lines).toEqual(['1. B\\', '   Fortsetzung B', '2. A', '3. C']);
+  });
+
+  it('rückt beim Einrücken mit', () => {
+    const r = indentSubtree(LISTE, 1);
+    expect(r.lines).toEqual(['1. A', '   1. B\\', '      Fortsetzung B', '2. C']);
+  });
+
+  it('zählt bei der Nummerierung nicht als eigener Punkt', () => {
+    const lines = ['1. A\\', '   Fortsetzung A', '5. B', '9. C'];
+    expect(renumberOrdered(lines, 0, 3)).toEqual(['1. A\\', '   Fortsetzung A', '2. B', '3. C']);
+  });
+});
+
+// 4T-001862 und 4T-001977 (Epic 3E-000301, E11): Rechnungen der Eingabetaste.
+describe('firstSubItem (4T-001862)', () => {
+  it('findet den ersten tieferen Punkt samt Art und Nummer', () => {
+    const sub = firstSubItem(['1. [ ] a', '   3. [x] b', '   4. c'], 0);
+    expect(sub.index).toBe(1);
+    expect(sub.number).toBe(3);
+    expect(sub.head).toMatchObject({ indent: '   ', delimiter: '.', checkbox: '[x]' });
+  });
+
+  it('überspringt Folgezeilen des Punkts, auch tief eingerückte', () => {
+    const lines = ['- a\\', '      tief eingerückte Folgezeile', '  - b'];
+    expect(firstSubItem(lines, 0)).toMatchObject({ index: 2, head: { marker: '-' } });
+  });
+
+  it('zählt nie den Leerraum: ohne Unterpunkt kein Ergebnis', () => {
+    expect(firstSubItem(['- a\\', '    Folgezeile', '- b'], 0)).toBeNull();
+    expect(firstSubItem(['- a\\', '    Folgezeile'], 0)).toBeNull();
+  });
+
+  it('endet an Geschwister, Leerzeile und nicht eingerückter Zeile', () => {
+    expect(firstSubItem(['- a', '- b', '  - c'], 0)).toBeNull();
+    expect(firstSubItem(['- a', '', '  - c'], 0)).toBeNull();
+    expect(firstSubItem(['- a', 'Absatz', '  - c'], 0)).toBeNull();
+  });
+
+  it('erkennt den Trenner `)` beim Punkt und beim Unterpunkt', () => {
+    const sub = firstSubItem(['1) a', '   1) b'], 0);
+    expect(sub).toMatchObject({ index: 1, number: 1, head: { delimiter: ')' } });
+  });
+
+  it('beginnt mit opts.after hinter einer Folgezeile', () => {
+    const lines = ['- a\\', '  Folgezeile', '  - b'];
+    expect(firstSubItem(lines, 0, { after: 1 })).toMatchObject({ index: 2 });
+  });
+
+  it('Code-Zeilen sind nie Unterpunkte', () => {
+    const lines = ['- a', '  - im Code', '  - b'];
+    expect(firstSubItem(lines, 0, { isCode: (i) => i === 1 })).toMatchObject({ index: 2 });
+  });
+});
+
+describe('hasContinuationLine, parentItem, nextSiblingIndex (4T-001862, 4T-001977)', () => {
+  it('Folgezeile: eingerückt, ohne Marker, nicht leer', () => {
+    expect(hasContinuationLine(['- a', '  b'], 0)).toBe(true);
+    expect(hasContinuationLine(['- a', '  - b'], 0)).toBe(false);
+    expect(hasContinuationLine(['- a', ''], 0)).toBe(false);
+    expect(hasContinuationLine(['  - a', '  b'], 0)).toBe(false);
+    expect(hasContinuationLine(['- a'], 0)).toBe(false);
+  });
+
+  it('Elternpunkt: nächster Punkt darüber mit geringerer Einrückung', () => {
+    const lines = ['1. [ ] a', '   1. b', '      mehr', '   2. [ ] '];
+    expect(parentItem(lines, 3)).toMatchObject({ index: 0, number: 1 });
+    expect(parentItem(lines, 0)).toBeNull();
+    expect(parentItem(['- a', '', '  - b'], 2)).toBeNull();
+  });
+
+  it('nächstes Geschwister überspringt Unterpunkte und Folgezeilen', () => {
+    const lines = ['1. a', '   1. b', '   Folgezeile', '2. c', '- d'];
+    expect(nextSiblingIndex(lines, 0)).toBe(3);
+    expect(nextSiblingIndex(lines, 1)).toBe(-1);
+    expect(nextSiblingIndex(['1. a', '', '2. b'], 0)).toBe(-1);
+  });
+});
+
+describe('buildListMarker (4T-001862, 4T-001977)', () => {
+  const art = (zeile) => parseListItemHead(zeile);
+
+  it('übernimmt Zeichen und Einrückung einer Aufzählung', () => {
+    expect(buildListMarker(art('  - b'), null)).toBe('  - ');
+    expect(buildListMarker(art('* b'), null)).toBe('* ');
+  });
+
+  it('übernimmt Nummer und Trenner', () => {
+    expect(buildListMarker(art('   1. b'), 4)).toBe('   4. ');
+    expect(buildListMarker(art('1) b'), 2)).toBe('2) ');
+  });
+
+  it('Kästchen nur, wenn das Vorbild eines trägt, und immer leer', () => {
+    expect(buildListMarker(art('   1. [x] b'), 1)).toBe('   1. [ ] ');
+    expect(buildListMarker(art('- [X] b'), null)).toBe('- [ ] ');
+    expect(buildListMarker(art('1. b'), 1)).toBe('1. ');
+  });
+});
+
+describe('renumberSiblings (4T-001862, 4T-001977)', () => {
+  it('zählt die Geschwister ab der Vorgabe weiter, Unterpunkte bleiben', () => {
+    const lines = ['   1. a', '      - x', '   2. b', '- c'];
+    expect(renumberSiblings(lines, 0, 2)).toEqual([
+      { index: 0, from: 3, to: 4, insert: '2' },
+      { index: 2, from: 3, to: 4, insert: '3' },
+    ]);
+  });
+
+  it('hält an einer Lücke der bisherigen Zählung an (Regel der eingekauften Fortsetzung)', () => {
+    expect(renumberSiblings(['1. a', '1. b', '1. c'], 0, 2)).toEqual([
+      { index: 0, from: 0, to: 1, insert: '2' },
+    ]);
+  });
+
+  it('mit opts.prev muss schon der erste Punkt anschließen', () => {
+    expect(renumberSiblings(['2. a', '3. b'], 0, 1, { prev: 1 })).toHaveLength(2);
+    expect(renumberSiblings(['5. a'], 0, 1, { prev: 1 })).toEqual([]);
+  });
+
+  it('kennt den Trenner `)` und hält am Wechsel des Trenners an', () => {
+    expect(renumberSiblings(['1) a', '2) b', '3. c'], 0, 2)).toEqual([
+      { index: 0, from: 0, to: 1, insert: '2' },
+      { index: 1, from: 0, to: 1, insert: '3' },
+    ]);
+  });
+
+  it('mehrstellige Nummern werden ganz ersetzt', () => {
+    expect(renumberSiblings(['9. a', '10. b'], 0, 10)).toEqual([
+      { index: 0, from: 0, to: 1, insert: '10' },
+      { index: 1, from: 0, to: 2, insert: '11' },
+    ]);
+  });
+
+  it('eine Aufzählung wird nicht nummeriert', () => {
+    expect(renumberSiblings(['- a', '- b'], 0, 1)).toEqual([]);
   });
 });

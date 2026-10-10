@@ -30,6 +30,9 @@
 
 const { isInsideArea, isSamePath } = require('../area/area-path');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
+// 4T-001978 (Epic 3E-000330): die mit der Aufgaben-Abfrage geteilte Regel,
+// welches Fenster einen Auftrag zum ungespeicherten Stand bekommt.
+const { uebergibAnPufferBesitzer } = require('./puffer-fenster');
 
 /**
  * Registriert die Erinnerungs- und Wecker-Kanaele.
@@ -112,8 +115,8 @@ function registerRemindersIpc(handle, deps) {
     if (!key) return { granted: false };
     return { granted: reminderDelivery.claim([key]).length === 1 };
   });
-  // 4T-001727: Die Bearbeitung konnte nicht schreiben (Konflikt, ungesicherte
-  // Datei). Die Erinnerung ist dann nicht bearbeitet und wird erneut an alle
+  // 4T-001727: Die Bearbeitung konnte nicht schreiben (Konflikt; eine
+  // ungesicherte Datei ist seit 4T-001978 kein Grund mehr). Die Erinnerung ist dann nicht bearbeitet und wird erneut an alle
   // Fenster zugestellt, statt bis zum Neustart zu verschwinden.
   handle('reminders:release', (event, payload) => {
     const key = payload && typeof payload.key === 'string' ? payload.key : '';
@@ -228,6 +231,10 @@ function registerRemindersIpc(handle, deps) {
 // anderes Fenster ging; sonst schreibt das klickende Fenster wie bisher selbst
 // (kein ungespeicherter Stand, er liegt bei ihm selbst, oder sein Besitzer ist
 // nicht mehr da).
+//
+// 4T-001978 (Epic 3E-000330): Die Besitzer-Regel liegt seither in
+// src/main/ipc/puffer-fenster.js, weil auch die Aufgaben-Abfrage sie nutzt
+// (taskQuery:edit); das Verhalten dieses Kanals ist unverändert.
 function registerPufferBearbeitung(handle, deps) {
   const { windows, backlinks } = deps;
   handle('reminders:edit', (event, auftrag) => {
@@ -235,16 +242,11 @@ function registerPufferBearbeitung(handle, deps) {
     const art = auftrag && auftrag.bearbeitung ? auftrag.bearbeitung.art : null;
     if (!item || typeof item.path !== 'string' || !item.path) return { delegiert: false };
     if (art !== 'erledigt' && art !== 'aufschub') return { delegiert: false };
-    const besitzer =
-      backlinks && typeof backlinks.bufferOwnerFor === 'function'
-        ? backlinks.bufferOwnerFor(item.path)
-        : null;
-    const absender = event && event.sender ? event.sender.id : null;
-    if (besitzer == null || besitzer === absender) return { delegiert: false };
-    const ziel = windows ? windows.get(besitzer) : null;
-    if (!ziel || ziel.isDestroyed()) return { delegiert: false };
-    ziel.webContents.send('reminders:edit', { item, bearbeitung: auftrag.bearbeitung });
-    return { delegiert: true };
+    const nutzlast = { item, bearbeitung: auftrag.bearbeitung };
+    const quellen = { windows, backlinks };
+    return {
+      delegiert: uebergibAnPufferBesitzer(quellen, event, item.path, 'reminders:edit', nutzlast),
+    };
   });
 }
 

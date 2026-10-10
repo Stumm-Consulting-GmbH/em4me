@@ -12,6 +12,7 @@ De haut en bas, le menu se divise en sept groupes :
 - **Insérer** — modèles : note de bas de page, tableau, encadré, ligne horizontale et bloc de code.
 - **Tableau** — opérations d'édition pour le tableau au niveau du curseur ; n'apparaît que lorsque le curseur se trouve dans un tableau.
 - **Graphique** — « Insérer un graphique pour cette table » ou « Modifier le graphique » ; n'apparaît que lorsque le curseur se trouve dans une table de données ou dans le bloc d'un graphique.
+- **Convertir une date** — ouvre la boîte de dialogue qui montre une date dans les autres calendriers du même bloc ([Systèmes de calendrier](custom-calendars.md)) ; n'apparaît que si les systèmes de calendrier sont activés et devient actif dès que la zone ouverte définit un calendrier.
 - **Presse-papiers** — couper, copier, coller, tout sélectionner.
 
 Les raccourcis par défaut pour gras (`Ctrl+B`) et italique (`Ctrl+I`) fonctionnent aussi sans le menu ; toutes les autres actions peuvent être associées à un raccourci dans les paramètres.
@@ -57,4 +58,4 @@ Sur la **grille d'une table de données** et sur un **graphique dessiné** — e
 
 ## Éditeur en lecture seule
 
-Si l'éditeur est en lecture seule, c'est-à-dire une vue sans mode édition, le menu n'affiche que copier et tout sélectionner ; les groupes lien, format, paragraphe et insertion sont omis.
+Si l'éditeur est en lecture seule, c'est-à-dire une vue sans mode édition, le menu n'affiche que convertir une date, copier et tout sélectionner ; les groupes lien, format, paragraphe et insertion sont omis. Convertir une date reste, car la boîte de dialogue s'y contente d'afficher et de copier : son bouton « Insérer » y est désactivé.

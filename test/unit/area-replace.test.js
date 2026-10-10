@@ -491,3 +491,81 @@ describe('Bereichsweites Ersetzen: die reale Konstellation', () => {
     }
   });
 });
+
+// 4T-002003 (Epic 3E-000307): Ein Ziel darf je Fundstelle einen eigenen Text
+// tragen (`ersetzungen`). Die Strecke dedupliziert und sortiert die Offsets
+// eines Ziels; die Fälle hier belegen, dass die Zuordnung Offset -> Text das
+// übersteht — beim Zusammenfassen desselben Pfads, beim Verwerfen ungültiger
+// Offsets und bei unsortierter Eingabe.
+describe('Bereichsweites Ersetzen: Text je Fundstelle (4T-002003)', () => {
+  const MUSTER = '(?<!@)@\\{[^{}\\n]*\\}';
+  const lauf = (dateien) => ({
+    muster: MUSTER,
+    flags: 'g',
+    ersetzung: '',
+    regexModus: false,
+    dateien,
+  });
+
+  it('setzt je Fundstelle ihren Text ein, auch unsortiert und über zwei Einträge desselben Pfads', async () => {
+    const root = makeRoot();
+    const vorher = 'A @{K: 1}\nB @{K: 2}\nC @{K: 3}\n';
+    const ziel = write(root, 'alpha.md', vorher);
+    const offsets = [...(await auswahl(root, MUSTER, 'g')).get(ziel).offsets];
+    expect(offsets).toHaveLength(3);
+
+    const ersetzeImBereich = streckeFuer(root);
+    const ergebnis = await ersetzeImBereich(
+      root,
+      lauf([
+        {
+          pfad: ziel,
+          offsets: [offsets[2], -1, offsets[0]],
+          ersetzungen: ['@{K: drei}', 'weg', '@{K: eins}'],
+        },
+        { pfad: ziel, offsets: [offsets[1]], ersetzungen: ['@{K: zwei}'] },
+      ]),
+    );
+
+    expect(ergebnis).toEqual({
+      geaendert: [{ pfad: ziel, anzahl: 3 }],
+      fehlgeschlagen: [],
+      veraendert: [],
+    });
+    expect(lies(ziel)).toBe('A @{K: eins}\nB @{K: zwei}\nC @{K: drei}\n');
+    const behaelter = mddStore.parseContainer(lies(mddPfad(ziel)));
+    expect(behaelter.container.history.anchors[0].text).toBe(vorher);
+  });
+
+  it('weist einen mehrdeutigen Auftrag je Datei ab und schreibt dort nichts', async () => {
+    const root = makeRoot();
+    const alpha = write(root, 'alpha.md', 'A @{K: 1}\n');
+    const beta = write(root, 'beta.md', 'B @{K: 2}\n');
+    const gamma = write(root, 'gamma.md', 'C @{K: 3}\n');
+    const gefunden = await auswahl(root, MUSTER, 'g');
+    const o = (p) => gefunden.get(p).offsets[0];
+
+    const ersetzeImBereich = streckeFuer(root);
+    const ergebnis = await ersetzeImBereich(
+      root,
+      lauf([
+        // Länge passt nicht zu den Offsets.
+        { pfad: alpha, offsets: [o(alpha)], ersetzungen: ['x', 'y'] },
+        // Derselbe Pfad einmal mit, einmal ohne Texte.
+        { pfad: beta, offsets: [o(beta)], ersetzungen: ['@{K: zwei}'] },
+        { pfad: beta, offsets: [o(beta)] },
+        // Gültig: belegt, dass der Lauf weitergeht.
+        { pfad: gamma, offsets: [o(gamma)], ersetzungen: ['@{K: drei}'] },
+      ]),
+    );
+
+    expect(ergebnis.geaendert).toEqual([{ pfad: gamma, anzahl: 1 }]);
+    expect(ergebnis.fehlgeschlagen).toEqual([
+      { pfad: alpha, grund: 'offsetUngueltig' },
+      { pfad: beta, grund: 'offsetUngueltig' },
+    ]);
+    expect(lies(alpha)).toBe('A @{K: 1}\n');
+    expect(lies(beta)).toBe('B @{K: 2}\n');
+    expect(lies(gamma)).toBe('C @{K: drei}\n');
+  });
+});

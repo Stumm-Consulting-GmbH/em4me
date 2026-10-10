@@ -121,8 +121,9 @@ Chi lavora a lungo con un programma finisce per plasmarlo: colori, scorciatoie d
 - **Una sesta lingua: la tua.** Tradurre un modello, installarlo, sceglierlo nella barra di stato; ciò che vi manca compare in inglese e non come chiave grezza.
 - **Tutti i contenitori in un solo luogo**: inseriti a mano invece che raccolti automaticamente, con cifre e il momento in cui sono state rilevate.
 - **Nulla accade alle tue spalle**: nessun disco viene percorso, e nessuna lettura scrive alcunché prima della tua conferma.
+- **Tutto l’ambiente di lavoro in una cartella**: la versione portatile conserva impostazioni, sessione e bozze nella cartella accanto al programma; chi la copia su una chiavetta USB lavora su qualsiasi computer con la propria configurazione.
 
-In dettaglio: [Esportare e importare le impostazioni](setup-exchange.md), [Lingua dell’interfaccia propria](custom-locale.md), [My Extended Memory](my-extended-memory.md).
+In dettaglio: [Esportare e importare le impostazioni](setup-exchange.md), [Lingua dell’interfaccia propria](custom-locale.md), [My Extended Memory](my-extended-memory.md), [Versione portatile](portable-version.md).
 
 ## Tabelle che reggono più di una riga
 
@@ -189,6 +190,7 @@ Oltre ai quattro grandi costrutti, il linguaggio porta più di cinquanta estensi
 - **Presentazione** con formule, diagrammi e codice evidenziato; nell'esportazione portatile un diagramma viaggia come immagine finita ed è visibile anche dove EM4me non è installato.
 - **Rimandi all'interno del testo** tramite ancore, incorporamenti ed etichette.
 - **Giornata di lavoro** con attività, promemoria, appuntamenti, modelli e diari.
+- **Date in altri calendari**: nove calendari forniti, dal giuliano al giapponese passando per l'Hijri, oltre a cronologie proprie liberamente definibili; le date dello stesso blocco si convertono l'una nell'altra.
 - **Attivabili una per una** o raggruppate in tre modalità di lavoro, oltre a combinazioni personali, e aperto a estensioni proprie tramite un'interfaccia documentata.
 
 In dettaglio: [Funzionalità](functions.md), [Estensioni](extensions.md), [Creare estensioni](extensions-dev.md).

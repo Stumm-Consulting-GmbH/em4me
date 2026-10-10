@@ -37,6 +37,8 @@ Ist eine Erinnerung fällig, meldet sie ein Dialog mit der Beschreibung der Aufg
 
 **In allen Fenstern.** Der Dialog erscheint in jedem geöffneten Fenster der App, auch in Fenstern eines anderen Bereichs, in Fenstern ohne Bereich sowie in Buch- und Bücherregal-Fenstern. Unter jedem Eintrag steht deshalb seine Herkunft, etwa „Herkunft: Projekte": der Bereich, das Buch oder das Bücherregal, aus dem die Erinnerung stammt. Erledigen, Später erinnern und Wegklicken wirken immer auf die Datei dieser Herkunft, gleich in welchem Fenster sie geschehen, und genau einmal: Die Erinnerung verschwindet danach in allen Fenstern, und eine fast gleichzeitige zweite Bearbeitung in einem anderen Fenster bleibt ohne Wirkung und ohne Fehlermeldung. Sind mehrere Erinnerungen fällig, sammelt jedes Fenster sie in einem Dialog. Ein Fenster, das erst später geöffnet wird, zeigt eine noch offene Erinnerung ebenfalls.
 
+**Bei ungespeicherten Änderungen.** Ist die Datei der Aufgabe mit ungespeicherten Änderungen geöffnet, auch in einem anderen Fenster als dem, in dem geklickt wird, oder als Dokument, das gerade nicht im Vordergrund steht, wirken Erledigt und Später erinnern in diesem ungespeicherten Stand: Die Änderung steht dort im Editor, das Dokument bleibt ungespeichert und kommt erst mit seinem Speichern auf die Festplatte, und die Erinnerung verschwindet wie nach jeder anderen Bearbeitung. Ebenso verhalten sich das Abhaken und die übrigen Handgriffe in einer Task-Abfrage (Seite [Aufgaben-Listen](tasks.md), Abschnitt „Task-Abfragen und Rückschreiben“).
+
 **Link zur Quelldatei.** Ein Klick auf den Dateinamen öffnet die Datei an der Zeile der Aufgabe, und zwar im Fenster ihres Bereichs. Zeigt das Fenster, in dem geklickt wurde, einen anderen Bereich oder keinen, kommt das Fenster des Herkunfts-Bereichs nach vorn und öffnet die Datei dort; ist dieser Bereich gerade nicht geöffnet, wird er geöffnet. Die Erinnerung bleibt dabei stehen: Das Öffnen der Datei ist keine Bearbeitung.
 
 ## Nur bei laufender App
@@ -49,7 +51,7 @@ Bei geöffnetem Bereich prüft die App die Marker aller Bereichs-Dateien laufend
 
 Ein Sidebar-Panel listet alle Erinnerungen des Bereichs, gruppiert nach **Überfällig**, **Heute**, **Morgen** und **Später**. Das Panel öffnet sich über das Wecker-Symbol in der Statusleiste oder über Ansicht → Sidebar → Panels → Erinnerungen.
 
-- Pro Eintrag gibt es die Direkt-Aktionen **Erledigt** und **Später**.
+- Pro Eintrag gibt es die Direkt-Aktionen **Erledigt** und **Später**; sie wirken wie im Melde-Dialog, auch bei ungespeicherten Änderungen.
 - Ein Klick auf einen Eintrag öffnet die Quelldatei an der zugehörigen Zeile.
 - Der Name der Quelldatei steht hier und im Melde-Dialog ohne die Markdown-Endung; der Kurzhinweis nennt den vollständigen Pfad.
 - Die Gruppe **Überfällig** führt auch stummgeschaltete Erinnerungen und bietet dort **Erneut auslösen** an.

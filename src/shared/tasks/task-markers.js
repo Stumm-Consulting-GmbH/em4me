@@ -50,6 +50,10 @@
 //   ohne Funktion (Abschluss-Aktionen sind verworfen, Workshop-Punkt 11).
 'use strict';
 
+// 4T-001716 (Epic 3E-000301): Erkennung des harten Zeilenumbruchs am
+// Zeilenende; list-outline.js lädt keines der Aufgaben-Module (kein Zyklus).
+const { hardBreakStart } = require('../markdown/list-outline.js');
+
 // --- Symbol-Tabelle ----------------------------------------------------------------
 // Kanonische Schreib-Symbole pro Feld. Beim Lesen sind zusaetzlich
 // gaengige Varianten-Symbole und ein angehaengter Variation Selector
@@ -291,6 +295,16 @@ function parseMarkerSegments(text) {
   if (tm) {
     trailing = tm[0];
     tail = tail.slice(0, -trailing.length);
+  }
+  // 4T-001716 (Epic 3E-000301, E10): Ein Rückstrich am Zeilenende (harter
+  // Zeilenumbruch) gehört samt Leerraum davor ebenfalls zum Zeilen-Ende. So
+  // greifen die Ende-Anker der Marker vor ihm, ein neu gesetzter Marker steht
+  // vor ihm, und der Round-Trip bleibt byte-identisch. Ein maskierter
+  // Rückstrich bleibt Text; die Erkennung liegt in list-outline.js.
+  const umbruch = hardBreakStart(tail);
+  if (umbruch >= 0) {
+    trailing = tail.slice(umbruch) + trailing;
+    tail = tail.slice(0, umbruch);
   }
   for (;;) {
     let matched = null;

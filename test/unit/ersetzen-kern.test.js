@@ -179,3 +179,51 @@ describe('wendeErsetzungenAn: Datei-Form', () => {
     expect(erg.text).toBe('﻿Merk eins\r\nzweite Merk\r\n');
   });
 });
+
+// 4T-002003 (Epic 3E-000307): Ersetzungs-Text je Fundstelle. Das Sichern von
+// Kalender-Werten beim Nachtragen einer Epoche schreibt jeden Wert in seine
+// eigene Schreibweise; der Kern nimmt dafür je Offset einen Text entgegen und
+// prüft weiterhin, dass an jedem Offset ein Fund des Musters beginnt.
+describe('wendeErsetzungenAn: Text je Fundstelle (4T-002003)', () => {
+  const text = 'A @{K: 1} B @{K: 22} C @{K: 333}\n';
+  const opts = { muster: '(?<!@)@\\{[^{}\\n]*\\}', flags: 'g', ersetzung: '', regexModus: false };
+  const offsets = offsetsVon(text, opts.muster, opts.flags);
+
+  it('setzt an jeder Stelle ihren eigenen Text ein', () => {
+    expect(offsets).toHaveLength(3);
+    const erg = wendeErsetzungenAn(text, offsets, opts, ['@{K: eins}', '@{K: zwei}', '@{K: drei}']);
+    expect(erg).toEqual({ ok: true, text: 'A @{K: eins} B @{K: zwei} C @{K: drei}\n', anzahl: 3 });
+  });
+
+  it('hält die Zuordnung, wenn die Offsets unsortiert und doppelt kommen', () => {
+    const erg = wendeErsetzungenAn(text, [offsets[2], offsets[0], offsets[2]], opts, [
+      '@{K: drei}',
+      '@{K: eins}',
+      '@{K: drei}',
+    ]);
+    expect(erg).toEqual({ ok: true, text: 'A @{K: eins} B @{K: 22} C @{K: drei}\n', anzahl: 2 });
+  });
+
+  it('nimmt `$` im Text wörtlich, auch mit eingeschaltetem Regex-Modus', () => {
+    const erg = wendeErsetzungenAn(text, [offsets[0]], { ...opts, regexModus: true }, ['$1 $&']);
+    expect(erg.text).toBe('A $1 $& B @{K: 22} C @{K: 333}\n');
+  });
+
+  it('weist einen mehrdeutigen Auftrag ab, statt zu raten', () => {
+    const fehler = { ok: false, grund: 'offsetUngueltig' };
+    // Ungleiche Länge.
+    expect(wendeErsetzungenAn(text, offsets, opts, ['x', 'y'])).toEqual(fehler);
+    // Ein Nicht-Text.
+    expect(wendeErsetzungenAn(text, [offsets[0]], opts, [7])).toEqual(fehler);
+    expect(wendeErsetzungenAn(text, [offsets[0]], opts, null)).toEqual(fehler);
+    // Derselbe Offset mit zwei verschiedenen Texten.
+    expect(wendeErsetzungenAn(text, [offsets[0], offsets[0]], opts, ['x', 'y'])).toEqual(fehler);
+    // Am Offset beginnt kein Fund des Musters.
+    expect(wendeErsetzungenAn(text, [offsets[0] + 1], opts, ['x'])).toEqual(fehler);
+  });
+
+  it('verhält sich ohne viertes Argument wie bisher', () => {
+    const erg = wendeErsetzungenAn(text, offsets, { ...opts, ersetzung: '@{K: gleich}' });
+    expect(erg.text).toBe('A @{K: gleich} B @{K: gleich} C @{K: gleich}\n');
+  });
+});

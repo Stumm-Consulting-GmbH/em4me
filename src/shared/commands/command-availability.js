@@ -367,6 +367,18 @@ const AVAILABILITY_CATALOG = [
     ],
     pruefe: (c) => editorContext(c) && !!c.hasArea && !!c.hasCalendarConfig,
   },
+  // 4T-001874 (Epic 3E-000323): Die Bedingung des Dialogs «Datum umrechnen»:
+  // ein Bereich ist geöffnet und trägt mindestens eine Zeitrechnung. Bewusst
+  // OHNE die Editor-Bedingung von `editorUndKalender`, weil der Dialog nichts
+  // schreibt und auch in der Lese-Ansicht und ohne geöffnetes Dokument seinen
+  // Zweck erfüllt; die Vorbelegung aus dem Cursor entfällt dann. Sie liest das
+  // renderer-eigene Feld `hasCalendarConfig` und steht deshalb wie jene ohne
+  // Menü-Eintrag.
+  {
+    name: 'bereichUndKalender',
+    felder: ['hasArea', 'hasCalendarConfig'],
+    pruefe: (c) => !!c.hasArea && !!c.hasCalendarConfig,
+  },
 ];
 
 const AVAILABILITY_NAMES = AVAILABILITY_CATALOG.map((b) => b.name);
@@ -378,7 +390,15 @@ const AVAILABILITY_BY_NAME = new Map(AVAILABILITY_CATALOG.map((b) => [b.name, b]
 // im Katalog, damit die Palette auch ihre Regel aus derselben Quelle liest wie
 // alle uebrigen; der Durchlauf-Waechter des Menues (4T-001637) nimmt sie
 // bewusst aus.
-const AVAILABILITY_NAMES_OHNE_MENUE = ['editor', 'tabelle', 'editorUndKalender'];
+// 4T-001874 (Epic 3E-000323): `bereichUndKalender` als vierte, aus demselben
+// Grund — sie liest das renderer-eigene Feld `hasCalendarConfig`, das der Main
+// nicht kennt.
+const AVAILABILITY_NAMES_OHNE_MENUE = [
+  'editor',
+  'tabelle',
+  'editorUndKalender',
+  'bereichUndKalender',
+];
 
 function isAvailabilityName(name) {
   return AVAILABILITY_BY_NAME.has(name);

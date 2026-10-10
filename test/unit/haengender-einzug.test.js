@@ -47,6 +47,31 @@ describe('haengenderEinzug: Listen (4T-001312)', () => {
   });
 });
 
+// 4T-001716 (Epic 3E-000301, E14, AK14): Die nummerierte Aufgabe rückt hinter
+// das Kästchen ein, damit die Fortsetzung unter dem Aufgaben-Text steht.
+describe('haengenderEinzug: nummerierte Aufgabe (4T-001716)', () => {
+  it('nummerierte Aufgabe mit Punkt: hinter dem Kästchen', () => {
+    // '1. [ ] ' sind sieben Zeichen.
+    expect(haengenderEinzug('1. [ ] Text')).toBe(7);
+    expect(haengenderEinzug('1. [x] Text')).toBe(7);
+    expect(haengenderEinzug('1. [X] Text')).toBe(7);
+  });
+
+  it('nummerierte Aufgabe mit Klammer: hinter dem Kästchen', () => {
+    expect(haengenderEinzug('1) [ ] Text')).toBe(7);
+    expect(haengenderEinzug('10) [x] Text')).toBe(8);
+  });
+
+  it('verschachtelt und mit Tabulator', () => {
+    expect(haengenderEinzug('   1. [ ] Text')).toBe(10);
+    expect(haengenderEinzug('1. [ ]\tText')).toBe(10);
+  });
+
+  it('ein Kästchen ohne folgenden Leerraum bleibt Text', () => {
+    expect(haengenderEinzug('1. [ ]Text')).toBe(3);
+  });
+});
+
 describe('haengenderEinzug: übrige Zeilen (4T-001312)', () => {
   it('eine Zeile ohne Einzug und ohne Marke bekommt keinen Einzug', () => {
     expect(haengenderEinzug('Ein gewöhnlicher Absatz.')).toBe(0);

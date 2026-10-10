@@ -14,6 +14,1052 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.147.0.3834] - 2026-10-10 — Portable Fassung, mitgelieferte Kalender und Umrechnung, Listen-Eingabe und Aufgaben-Abfrage
+
+Zug
+3E-000329,
+der dritte Zug des Arbeitspakets «Einstellungen und Funktionsumfangs-Steuerung».
+Die Mitglieder in der Reihenfolge ihrer Umsetzung, je mit dem Task, der ihren
+Abschluss-Anteil trägt:
+
+1. 3E-000188
+   — die portable Programmdatei legt alles, was sie speichert, in den Ordner
+   `Data` neben sich, auch Vorübergehendes;
+   Abschluss-Anteil in
+   4T-001976.
+   Die Zusage nach außen ist zweigeteilt: verbindlich, was EM4me selbst
+   speichert, und der Art nach, mit Beispielen und ohne Anspruch auf
+   Vollständigkeit, was Windows über jedes gestartete Programm festhält.
+2. 3E-000307
+   — neun mitgelieferte Kalender stehen im Aufklapp-Menü «Vorlage einfügen …»
+   der Kalender-Systeme, dazu Einzahl und Mehrzahl der Einheiten, zwei Bausteine
+   des Definitions-Modells (Kürzel der Epoche immer schreiben, Schaltjahre nach
+   Muster) und der Schutz gespeicherter Datums-Werte beim Nachtragen einer
+   Epoche; Abschluss-Anteil in
+   4T-001736.
+   Das Epic liefert die erste Stufe; die Systeme mit Jahr für Jahr wechselndem
+   Aufbau (Persisch in der amtlichen Lesart, Hebräisch, traditionell Chinesisch,
+   Islamisch nach Umm al-Qura) folgen in einem eigenen Vorhaben. Zusage nach
+   außen: Das Projekt pflegt die japanische Vorlage und nimmt eine neue Ära mit
+   der nächsten Programm-Version nach ihrer Bekanntgabe auf.
+3. 3E-000323
+   — das Kommando «Datum umrechnen» zeigt einen Zeitpunkt in allen weiteren
+   Kalendern desselben Blocks, in einem Dialog mit der Auswahl als Quelldatum
+   und den Tasten «Kopieren» und «Einfügen» je Entsprechung; dazu Behebungen an
+   Suche, Einstellungen und Sprachwechsel der Seitenleiste, die das Nachgehen
+   der Prüf-Anleitungen am gebauten Programm gefunden hat; Abschluss-Anteil in
+   4T-001876.
+4. 3E-000301
+   — eine zweite Zeile im selben Listenpunkt mit Umschalt+Enter und eine eigene
+   Behandlung der Eingabetaste in Listen (erster Unterpunkt in der Art der
+   vorhandenen, Kästchen in nummerierten Aufgaben-Listen, neuer Punkt am Ende
+   einer zweiten Zeile), in jedem Arbeitsmodus und auch im Notiz-Feld;
+   Abschluss-Anteil in
+   4T-001718.
+
+5. 3E-000330
+   — Abhaken, Verschieben und Bearbeitungs-Dialog an einem Treffer der
+   Aufgaben-Abfrage wirken dort, wo die Datei mit ungespeicherten Änderungen
+   offen ist, auch in einem anderen Fenster oder als nicht aktives Dokument,
+   statt auf die Festplatte zu schreiben und einen Konflikt-Dialog auszulösen;
+   die Erinnerungen ziehen mit. Abschluss-Anteil in
+   4T-001980.
+### Neu
+
+- **Die portable Fassung legt alles in den Ordner `Data` neben dem Programm**
+  (`4T-001990`). Liegt neben der Programmdatei ein Ordner `Data`, arbeitet
+  EM4me portabel und legt sein gesamtes Nutzerdaten-Verzeichnis dorthin:
+  Einstellungen, Sitzung, Zuletzt-Listen, Entwürfe, eigene Sprachen, externe
+  Erweiterungen und die Zwischenspeicher der Laufzeit-Umgebung. Die Umlenkung
+  geschieht beim Start vor dem Schutz gegen eine zweite Instanz, sodass auch
+  dieser Schutz im Ordner `Data` arbeitet; ein zweiter Start derselben Fassung
+  übergibt an die laufende. Fehlt der Ordner, verhält sich das Programm wie die
+  installierte Fassung. Der **erste portable Start** beginnt mit den
+  Voreinstellungen und liest das Benutzerprofil des Rechners nicht; wer seine
+  Einrichtung mitnehmen will, nutzt die Austausch-Datei der Einstellungen. Kann
+  EM4me in seinem Ordner `Data` nicht schreiben, etwa auf einem
+  schreibgeschützten Stick, zeigt es die Meldung «EM4me kann nicht starten» in
+  der Sprache des Betriebssystems und beendet sich, ohne irgendwo sonst
+  auszuweichen.
+- **Der Ort der Daten im Fenster «Über EM4me»** (`4T-001993`). In der portablen
+  Fassung zeigt Hilfe → Über… die Zeile «Portable Fassung – Ihre Daten liegen
+  in:» mit dem vollständigen Pfad des Ordners `Data` und darunter die
+  Schaltfläche «Daten-Ordner öffnen», die ihn im Dateimanager öffnet. Geöffnet
+  wird allein der vom Haupt-Prozess ermittelte Ordner; das Fenster reicht keinen
+  Pfad herein. In der installierten Fassung fehlen Zeile und Schaltfläche. Die
+  Anzeige ist Kern und in jedem Arbeitsmodus da.
+- **Neun mitgelieferte Kalender im Aufklapp-Menü «Vorlage einfügen …»**
+  (`4T-001997`, `4T-001998`, `4T-002000`, `4T-002002`). In der Detail-Ansicht
+  eines Blocks unter Einstellungen → Kalender-Systeme bietet das Menü in der
+  vom Product Owner festgelegten Reihenfolge an: Gregorianischer Kalender,
+  Julianischer Kalender, Hidschri-Kalender (tabellarisch), Indischer
+  Nationalkalender, Buddhistischer Kalender, Äthiopischer Kalender, Koptischer
+  Kalender, Japanischer Kalender, Minguo-Kalender. Die Auswahl legt die
+  Zeitrechnung sofort fertig ausgefüllt im Block an; sie ist danach eine
+  gewöhnliche, frei bearbeitbare Definition des Bereichs und wird mit
+  «Anwenden» gespeichert. Jede Vorlage bringt Sekunde, Minute und Stunde, eine
+  Sieben-Tage-Woche aus einem Stichtag-Paar und Einzahl und Mehrzahl ihrer
+  Einheiten mit, ihre Namen in fünf Sprachen nach den Namen der
+  Internationalisierungs-Daten (CLDR), wo es sie dort gibt, sonst nach belegtem
+  Gebrauch. Alle Vorlagen liegen auf derselben Tages-Achse wie die
+  gregorianische und rechnen im selben Block ohne weitere Angabe ineinander um.
+  Das Menü zeigt nur Lieferbares; die übrigen Systeme der Liste erscheinen mit
+  ihrer Lieferung an ihrem Platz. Die Vorlagen hängen an der Erweiterung
+  «Kalender-Systeme» und sind wie sie im Arbeitsmodus «Voll» da.
+- **Sechs Vorlagen im bestehenden Definitions-Modell** (`4T-001998`):
+  Julianisch (Schaltjahr alle vier Jahre), Indischer Nationalkalender
+  (Saka-Zählung, zwölf Monate ab Chaitra, Schaltjahr wie gregorianisch),
+  Buddhistisch (gregorianische Monate, Jahreszahl um 543 höher), Äthiopisch und
+  Koptisch (zwölf Monate zu 30 Tagen und ein dreizehnter zu fünf, im Schaltjahr
+  sechs Tagen, Zeitalter Amätä Məhrät beziehungsweise Anno Martyrum) und Minguo
+  (gregorianisch mit Jahr 1 = 1912). Wochen-Nummerierung nach der
+  Donnerstags-Regel tragen nur Buddhistisch und Minguo, die das gregorianische
+  Jahr zählen; Quartal und Halbjahr nur die Vorlagen mit den zwölf
+  gregorianischen Monaten. Die buddhistische Zählung rechnet
+  durchgehend mit dem Jahresbeginn am 1. Januar und zeigt vor 1941 von Januar
+  bis März ein um eins höheres Jahr als der damalige thailändische Gebrauch; das
+  Handbuch nennt diese und die übrigen Grenzen.
+- **Japanischer Kalender** (`4T-002000`): gregorianischer Aufbau mit den Ären
+  Meiji ab 23.10.1868, Taishō ab 30.07.1912, Shōwa ab 25.12.1926, Heisei ab
+  08.01.1989 und Reiwa ab 01.05.2019, davor die rückwärts zählende Epoche «vor
+  Meiji». Die Vorlage schreibt die Ära immer mit (der 30.09.2026 steht als
+  `8-09-30 Reiwa` im Dokument), damit gespeicherte Werte beim Nachtragen einer
+  neuen Ära ihre Bedeutung behalten.
+- **Hidschri-Kalender (tabellarisch)** (`4T-002002`): zwölf Monate mit 30 und 29
+  Tagen im Wechsel, Schalttag am Ende des zwölften Monats in den Jahren 2, 5, 7,
+  10, 13, 16, 18, 21, 24, 26 und 29 jedes 30-Jahres-Zyklus, bürgerliche Epoche;
+  der Name sagt in allen fünf Sprachen, dass es die tabellarische Lesart ist. Das
+  religiös gelebte Datum nach der Sichtung der Mondsichel kann um einen, selten
+  zwei Tage abweichen, und die Tage beginnen um Mitternacht; das Handbuch nennt
+  beides.
+- **Einzahl und Mehrzahl der Einheiten** (`4T-001863`). Jede Ebene, der Zyklus
+  und jede Gruppierung einer Zeitrechnung tragen neben dem Namen das Feld
+  «Mehrzahl». Wo ein Name mit einer Anzahl erscheint, im Abzeichen eines Werts
+  einer abgeleiteten Zeitrechnung und in der Vorschau der Einstellungen, steht
+  bei genau einer Einheit die Einzahl, sonst die Mehrzahl: «1 Monat, 2 Wochen, 4
+  Tage» statt «1 Monat, 2 Woche, 4 Tag»; ohne Mehrzahl gilt die Einzahl. Die
+  gregorianische Vorlage bringt die Mehrzahl für alle Einheiten mit. Bestehende
+  Definitionen bleiben Zeichen für Zeichen unverändert; eine nachgetragene
+  Mehrzahl löst keine Rückfrage zu den abgeleiteten Zeitrechnungen aus.
+- **Kürzel der Epoche immer schreiben** (`4T-001999`). Ein Kontrollkästchen am
+  Ende der Gruppe «Epochen» jeder eigenständigen Zeitrechnung lässt das Kürzel
+  auch in der jüngsten Epoche in den Wert schreiben: in die kanonische Form, die
+  Namens-Form des Abzeichens, den Kopf der Eingabe-Hilfe und den übernommenen
+  Wert. Ein Wert der jüngsten Epoche wird mit und ohne Kürzel als derselbe Tag
+  gelesen. Bestehende Definitionen und abgeleitete Zeitrechnungen tragen das
+  Kennzeichen nicht; vorbelegt ist es allein in der japanischen Vorlage.
+- **Schaltjahre nach Muster** (`4T-002001`). Neben der Teilbarkeits-Kette
+  («Schaltung alle 4, außer alle 100, außer alle 400») bestimmt eine Schalt-Regel
+  ihre Schaltjahre jetzt wahlweise als Plätze in einem Zyklus fester Länge, etwa
+  die Jahre 2, 5, 7 … 29 eines Zyklus von 30 Jahren. Die Pflege an der
+  Schalt-Ebene bietet dafür die Auswahl «Schaltjahre bestimmen: nach Teilbarkeit
+  / nach Muster» mit den Feldern «Länge des Zyklus (Jahre)» und «Schaltjahre im
+  Zyklus»; ein Wechsel behält die Eingaben der anderen Form im Entwurf, ein
+  ungültiges Muster macht die Zeitrechnung ungültig. Eine Definition mit Muster
+  wurde zuvor als ungültig verworfen, ihre Werte waren unbekannt. Bestehende
+  Schalt-Regeln rechnen unverändert.
+- **Gespeicherte Datums-Werte beim Nachtragen einer Epoche sichern**
+  (`4T-002003`). Ein Wert ohne Kürzel wird als Wert der jüngsten Epoche gelesen;
+  bekam eine Zeitrechnung eine neue jüngste Epoche, bezeichneten gespeicherte
+  Werte der bisherigen deshalb still einen anderen Tag oder wurden ungültig. Gibt
+  es im Bereich solche Werte, fragt «Anwenden» jetzt vor dem Speichern mit
+  «Gespeicherte Datums-Werte sichern?» nach, nennt die Zahl der Werte und der
+  Dokumente und bietet «Werte sichern und anwenden», «Ohne Sichern anwenden» und
+  «Abbrechen». Gesichert werden die Werte in den Markdown-Dokumenten des Bereichs
+  und in den Dokument-Notizen so, dass sie denselben Tag bezeichnen wie zuvor:
+  vor dem Beginn der neuen Epoche mit dem Kürzel der bisherigen, ab ihrem Beginn
+  in der Jahreszählung der neuen. Der bisherige Stand jedes geänderten Dokuments
+  geht vorher in die Dokument-Historie; ein geöffnetes Dokument mit
+  ungespeicherten Änderungen bekommt die Änderung in seinen ungespeicherten
+  Stand. Ein Bericht nennt je Dokument die gesicherten Werte und getrennt, was
+  nicht geändert werden konnte (geteilte Dokumente, in einem anderen Fenster
+  ungespeichert geöffnete, seit der Zählung geänderte). In einem Bereich, dessen
+  Text die Bereichs-Suche nicht vorhält, bietet die Rückfrage nur «Anwenden» und
+  «Abbrechen».
+- **Die Beispiel-Sammlung zeigt die Kalender-Systeme** (`4T-001735`,
+  Entscheidung des Product Owners vom 2026-10-02). Die mitgelieferte, englische
+  Beispiel-Sammlung (Datei → Bereich → Demo-Area erstellen…) hat die neue Station
+  «14 Calendar Systems»: Werte-Paare desselben Tages im gregorianischen und im
+  japanischen Kalender, als Quelltext und als Abzeichen mit Namen, der Weg zur
+  Eingabe-Hilfe mit dem Tag im anderen Kalender, der Weg zum Aufklapp-Menü der
+  Vorlagen samt der Liste der neun Kalender und der Hinweis, dass die
+  Kalender-Systeme zum Arbeitsmodus «Full» gehören und die Werte sonst
+  Klartext bleiben. Die Bereichsdatei der Sammlung trägt dafür einen Block
+  «Demo calendars» mit beiden Kalendern, erzeugt aus den Vorlagen. Die Station
+  «13 Kanban» ist nicht mehr die letzte und verweist weiter, die
+  Willkommens-Seite nennt Punkt 14.
+- **Kommando «Datum umrechnen»** (`4T-001874`, Entscheidungen des Product
+  Owners vom 2026-10-03 zu Block-Grenze und Bedien-Ort). Ein neuer Dialog zeigt
+  einen Zeitpunkt eines Kalenders in allen weiteren Kalendern desselben Blocks:
+  oben die Auswahlen «Block» (nur bei mehreren Blöcken) und «Kalender», das Feld
+  «Datum» in kanonischer Schreibweise und der Knopf «Wählen …» zur
+  Eingabe-Hilfe, darunter die Liste «Entspricht» mit einer Zeile «Name: Wert»
+  je weiterem Kalender. Ein Klick oder die Eingabetaste auf eine Zeile macht
+  deren Kalender zum Ausgangspunkt; so wird in jede Richtung umgerechnet. Jede
+  Zeile entsteht aus derselben Umrechnung des Kalender-Kerns wie die
+  Entsprechungen der Eingabe-Hilfe und zeigt den Wert wie das Abzeichen im
+  Dokument, bei einer gewöhnlichen Zeitrechnung mit Namen. Wo es kein Ergebnis
+  gibt, steht eine Auskunft statt eines Werts: «Kein gültiges Datum dieses
+  Kalenders.» (in Fehler-Farbe, die Liste entfällt), «Name: außerhalb des
+  darstellbaren Bereichs» oder der Hinweis, dass der Block keinen zweiten
+  Kalender hat; eine Hinweis-Zeile sagt, dass nur innerhalb eines Blocks
+  umgerechnet wird. Die Block-Grenze bleibt bestehen. Vorbelegt ist der Dialog
+  mit dem Kalender-Wert unter dem Cursor (das Notiz-Feld hat Vorrang vor dem
+  Haupt-Editor, die Lese-Ansicht belegt nicht vor), sonst mit dem
+  Anker-Zeitpunkt des ersten Kalenders. Aufruf über die
+  Kommando-Palette, das Kontextmenü des Editors (eigene Gruppe vor der
+  Zwischenablage, auch im schreibgeschützten Editor sichtbar, ohne Bereich mit
+  Kalender sichtbar deaktiviert) und ein unter Datei → Einstellungen… →
+  Tastenkürzel belegbares Kürzel; aktiv, sobald der geöffnete Bereich
+  mindestens einen Kalender definiert, auch in der Lese-Ansicht. Der Tabulator
+  bleibt im Dialog, der Fokus kehrt nach dem Schließen in den Editor zurück, im
+  niedrigen Fenster rollt der Dialog in sich. Das Kommando gehört zur
+  Erweiterung «Kalender-Systeme», hat keinen eigenen Schalter und ist wie sie
+  im Arbeitsmodus «Voll» da; ist sie abgeschaltet, fehlen Kommando und
+  Menü-Eintrag.
+- **Ausgewähltes Datum als Quelldatum, «Kopieren» und «Einfügen» je
+  Entsprechung** (`4T-002097`, Anordnung des Product Owners vom 2026-10-03).
+  Berührt die Auswahl im Text einen Kalender-Wert, belegt sie den Dialog mit
+  dessen Kalender und Wert; ein ausgewählter einzeiliger Text ohne Kalender-Wert
+  gilt als kanonischer Wert im ersten Kalender des Bereichs, in dem er gültig
+  ist, sonst steht er im ersten Kalender mit der Meldung des ungültigen Datums.
+  Andere Schreibweisen deutet der Dialog nicht. Jede Zeile mit Ergebnis trägt
+  die Tasten «Kopieren» und «Einfügen»; beide übernehmen die Entsprechung als
+  Kalender-Wert mit Namen, `@{Name: Wert}`, wie «Kalender-Datum einfügen» ihn
+  schreibt. «Kopieren» legt ihn über denselben Weg wie das Kontextmenü des
+  Editors in die Zwischenablage, der Dialog bleibt offen und die Taste zeigt
+  kurz «Kopiert». «Einfügen» schreibt ihn in einem Rückgängig-Schritt ins
+  Dokument und schließt den Dialog: Eine Auswahl wird ersetzt, eine
+  Teil-Auswahl in einem Kalender-Wert ersetzt den ganzen Wert, und steht die
+  Schreibmarke ohne Auswahl in einem Kalender-Wert, kommt die Entsprechung
+  dahinter. «Einfügen» ist nur aus einem Dokument im Bearbeiten-Modus möglich,
+  sonst deaktiviert und nennt im Kurzhinweis den Grund. Damit ist die frühere
+  Abgrenzung «keine Umrechnung in Dokument-Text hinein» aufgehoben; von selbst
+  ändert der Dialog weiterhin nichts am Dokument.
+- **Zweite Zeile im selben Listenpunkt** (`4T-001716`, Entscheidungen des
+  Product Owners vom 2026-09-12 und 2026-09-28). Das neue Kommando
+  «Zeilenumbruch im Listenpunkt», Vorgabe Umschalt+Enter, umbelegbar unter
+  Datei → Einstellungen… → Tastenkürzel, beginnt im selben Punkt eine zweite
+  Zeile: Die Zeile davor endet auf einen Rückstrich (`\`) als harten Umbruch,
+  und die Folgezeile ist bis zur Inhalts-Spalte des Punkts eingerückt, bei
+  einer Aufgabe bis hinter das Kästchen; in der gerenderten Ansicht erscheint
+  sie als neue Zeile desselben Punkts. Steht die Schreibmarke mitten im Text,
+  teilt das Kürzel die Zeile, und der Rest wandert eingerückt in die
+  Folgezeile. Außerhalb von Listen setzt es einen harten Umbruch ohne
+  Einrückung. Bleibt die Folgezeile eines Listenpunkts leer, nimmt die
+  Rücktaste sie samt Rückstrich zurück, und die Eingabetaste räumt sie auf,
+  bevor sie wie gewohnt wirkt. Das
+  Kommando gilt im Editor und im Notiz-Feld, in jedem Arbeitsmodus und
+  unabhängig von der Erweiterung «Listen-Struktur»; es ist Kern und hat keinen
+  Schalter.
+- **Die Eingabetaste in Listen** (`4T-001862`, `4T-001977`, Entscheidungen
+  des Product Owners vom 2026-09-21 und 2026-09-28). Folgen einem Punkt schon
+  Unterpunkte, entsteht der neue Punkt als erster Unterpunkt in der Art der
+  vorhandenen Unterpunkte (Zeichen oder Nummer, Kästchen ja oder nein; ein
+  Kästchen ist immer leer), und die Nummern der Geschwister ziehen nach; steht
+  die Schreibmarke mitten im Text, wird der Rest der Zeile zu diesem ersten
+  Unterpunkt. Am Ende einer Folgezeile mit Text entsteht ein neuer Punkt, auf
+  der Ebene folgender Unterpunkte, sonst auf der des Punkts. Am Ende eines
+  Punkts einer nummerierten Aufgaben-Liste bekommt der neue Punkt ein leeres
+  Kästchen, mit den Trennern `1.` und `1)` und auch nach einem erledigten
+  Punkt; Rückgängig nimmt beides in einem Schritt zurück. Ein leerer
+  nummerierter Aufgaben-Punkt auf einer Unterebene rückt eine Ebene aus, setzt
+  Nummer und Trenner der Eltern-Ebene fort und trägt ein leeres Kästchen, wenn
+  die Eltern-Ebene Aufgaben trägt. Am Ende der ersten Zeile eines Punkts mit
+  Folgezeile bleibt es wie bisher, der Text dahinter samt Folgezeile wandert in
+  den neuen Punkt; ein Rückstrich am Ende dieser Zeile fällt dabei weg. Die
+  neuen Fälle gelten in jedem Arbeitsmodus, unabhängig von der Erweiterung
+  «Listen-Struktur», und auch im Notiz-Feld, in dem jetzt zusätzlich der
+  Listen-Ausstieg eingehängt ist; der Ausstieg auf der obersten Ebene bleibt
+  dort wie im Haupt-Editor an «Listen-Struktur» gebunden. Kern, kein Schalter.
+
+### Geändert
+
+- **Zweite Zeile einer Aufgabe in «Gerendert» unter dem Text** (`4T-001716`,
+  Entscheidung des Product Owners vom 2026-10-09 mit der Abnahme). In der
+  gesetzten Darstellung beginnt die zweite Zeile einer Aufgabe jetzt unter dem
+  Text der ersten Zeile und nicht mehr unter dem Kästchen, wie in der
+  Quellcode- und der Live-Ansicht; dasselbe gilt für eine lange Aufgaben-Zeile,
+  die der Fensterrand umbricht. Eine Stil-Regel setzt das gewöhnliche Kästchen
+  außerhalb des Zeilenflusses und gibt dem Status-Kästchen einen hängenden
+  Einzug; Aufzählungen ohne Kästchen, Unterlisten, Kästchen in Tabellen und
+  Abfrage-Treffer sind unverändert. Das Handbuch sagt die Lage in der Anzeige
+  seither ausdrücklich zu («Markdown-Basis», Abschnitt «Zweite Zeile im selben
+  Punkt», fünf Sprachen).
+- **Abhaken in der Aufgaben-Abfrage bei ungespeichertem Stand** (`4T-001978`).
+  Ist die Datei eines Treffers irgendwo mit ungespeicherten Änderungen
+  geöffnet — in einem anderen Fenster, aktiv oder nicht, oder im selben Fenster
+  als nicht aktives Dokument —, wirken die Status-Box, der Verschiebe-Knopf und
+  die Übernahme aus dem Bearbeitungs-Dialog in diesem ungespeicherten Stand:
+  Die Änderung steht dort im Editor, das Dokument bleibt ungespeichert, die
+  Festplatte bleibt unverändert, und der Konflikt-Dialog im anderen Fenster
+  entsteht nicht mehr. Das gilt auch für eine Aufgabe, die bisher nur im
+  ungespeicherten Stand steht. Bis dahin schrieb die Abfrage auf die
+  Festplatte, das andere Fenster fragte über den Konflikt-Dialog, und die
+  Trefferliste zeigte weiter die alte Zeile, weil der ungespeicherte Stand die
+  Festplatte überdeckte — das Abhaken war unsichtbar und ging mit dem nächsten
+  Speichern verloren (gemessen am Bau vor dem Vorhaben). Beim nicht aktiven,
+  ungespeicherten Dokument desselben Fensters entfällt der Hinweis «Datei hat
+  ungespeicherte Änderungen – bitte im Editor bearbeiten»; die Zeile wird im
+  gehaltenen Text des Dokuments geändert und steht beim Wechsel dorthin im
+  Editor. «Erledigt» und «Später erinnern» im Erinnerungs-Dialog und in der
+  Erinnerungs-Liste verhalten sich ebenso. Unverändert: Ist die Zeile nicht
+  mehr eindeutig zu finden, erscheint der Hinweis statt eines blinden
+  Schreibens, und ohne ungespeicherten Stand wird wie bisher auf die
+  Festplatte geschrieben, auch in nicht geöffnete Dateien.
+- **Die portable Fassung bleibt eine einzelne Programmdatei und legt ihre
+  Daten neben sich ab** (`4T-002222`, Anordnung des Product Owners vom
+  2026-10-10). Ausgeliefert wird wie bisher `EM4me-<version>-Portable.exe`.
+  Ihr Start-Rahmen nennt dem Programm den Ordner, in dem die Programmdatei
+  liegt; daran erkennt das Programm den portablen Betrieb, legt beim ersten
+  Start daneben den Ordner `Data` an und speichert dort. Das Entpacken des
+  Programms in den temporären Ordner von Windows beim Start bleibt eine
+  Eigenschaft dieser Lieferform. Die zwischenzeitliche Umstellung auf ein
+  Archiv zum Entpacken (`4T-001992`) ist vor der Auslieferung vollständig
+  zurückgenommen: Bau, Versions-Archiv, Prüfsummen, Release-Vorbereitung und
+  Auslieferung verarbeiten wieder die Programmdatei.
+- **Nichts außerhalb des Ordners `Data`, was das Programm selbst speichert**
+  (`4T-001991`). Im portablen Betrieb bekommt das Programm den eigenen
+  temporären Ordner `Data\Temp`, in dem die Laufzeit-Umgebung ihre Datei je
+  Fenster anlegt; das Programm-Symbol wird unverpackt ausgeliefert und von dort
+  geladen, statt bei jedem Start als Kopie im temporären Ordner von Windows zu
+  landen. Alle Datei-Dialoge weisen Windows an, nichts in die Liste zuletzt
+  verwendeter Dateien einzutragen, und beginnen nach dem Start im Ordner
+  «Dokumente»; den zuletzt besuchten Ordner hält das Programm nur im
+  Arbeitsspeicher, solange es läuft. «Zum Wörterbuch hinzufügen» im
+  Kontextmenü des Editors und das Entfernen eigener Wörter in den Einstellungen
+  der Rechtschreibprüfung erscheinen in der portablen Fassung nicht, weil beides
+  in das Wörterbuch des Windows-Benutzers schriebe; die Rechtschreibprüfung
+  selbst arbeitet wie gewohnt. Die installierte Fassung ist in allen Punkten
+  unverändert.
+- **Die Netzlaufwerke werden ohne PowerShell ermittelt, in jeder Fassung**
+  (`4T-001991`). Windows wird über die bereits eingebundene Bibliothek für
+  Aufrufe in das Betriebssystem direkt gefragt; es startet kein fremder Prozess
+  mehr, und es entstehen dabei keine Dateien. Die Erkennung fremder Änderungen
+  an geöffneten Dateien auf Netzlaufwerken bleibt unverändert, der Programmstart
+  wartet nicht auf die Abfrage.
+- **Die Zusage nach außen ist zweigeteilt** (`4T-001995`, Entscheidung des
+  Product Owners vom 2026-09-30). Die Bezugs-Kachel «Ohne Installation» der
+  Produkt-Webseite sagt in allen fünf Sprachen, dass EM4me nur in seinem eigenen
+  Ordner und in den geöffneten Dokumenten und Bereichen speichert und dass das
+  Handbuch nennt, was Windows selbst festhält; der Knopf heißt «Programmdatei
+  laden».
+  Beide README-Fassungen tragen den vollständigen Abschnitt «Was die portable
+  Fassung auf dem Rechner hinterlässt», die Schablone der Release-Hinweise
+  nennt die Programmdatei. Die bisherige Aussage, die portable Fassung schreibe nichts
+  außerhalb ihres eigenen Ordners, traf nicht zu, weil sich die Programmdatei
+  beim Start in den temporären Ordner von Windows entpackt; Handbuch und
+  README-Fassungen nennen das jetzt.
+- **Das Aufklapp-Menü ersetzt den Knopf für den Standard-Kalender, und ein
+  zweites Einfügen bekommt einen eigenen Namen** (`4T-001997`). An der Stelle
+  des Knopfs «Standard-Kalender als Vorlage einfügen» steht das Auswahl-Feld
+  «Vorlage einfügen …»; nach der Auswahl steht es wieder auf diesem ersten
+  Eintrag. Bisher ergab zweimaliges Einfügen zwei Zeitrechnungen mit demselben
+  Namen, und «Anwenden» speicherte nichts, bis eine von Hand umbenannt war. Ist
+  der Name einer Vorlage im Bereich schon vergeben (ohne Rücksicht auf Groß- und
+  Kleinschreibung, über alle Blöcke), bekommt die neue Zeitrechnung jetzt eine
+  angehängte Zahl: «Gregorianischer Kalender 2», dann «… 3».
+- **Die erste Eingabetaste der Suche führt zur ersten Fundstelle**
+  (`4T-002107`, Entscheidung des Product Owners vom 2026-10-03). Das ist eine
+  Änderung des Verhaltens: Nach dem Tippen stand der Zähler auf «1 / n», die
+  erste Fundstelle war markiert, aber nicht angesprungen, und der erste
+  Vorwärts-Sprung (Eingabetaste, F3, Weiter-Knopf) ging gleich zur zweiten.
+  Jetzt zeigt der erste Vorwärts-Sprung die erste Fundstelle, jeder weitere die
+  nächste. Das gilt in allen Suchräumen: Dokument (Quellcode, Live, Gerendert),
+  Handbuch, Einstellungen und Bereich; die Mindmap-Suche springt schon beim
+  Tippen und ist unverändert. Ein Klick in der Trefferliste zählt als Sprung.
+  Beim Tippen bewegt sich die Schreibmarke weiterhin nicht, und der
+  Rückwärts-Sprung ist unverändert.
+- **Die Eingabetaste am Ende einer zweiten Zeile im Punkt beginnt einen neuen
+  Punkt** (`4T-001862`, Entscheidung des Product Owners vom 2026-09-28). Das
+  ist eine Änderung des Verhaltens: Bisher entstand am Ende einer eingerückten
+  Folgezeile eine weitere eingerückte Zeile ohne Marker. Eine weitere Zeile im
+  selben Punkt beginnt jetzt allein das Kommando «Zeilenumbruch im
+  Listenpunkt» (Vorgabe Umschalt+Enter).
+- **Die Fortsetzung umbrochener nummerierter Aufgaben beginnt unter dem
+  Aufgaben-Text** (`4T-001716`). Bricht der Editor eine lange Zeile wie
+  `1. [ ] Text` oder `1) [ ] Text` am Fensterrand um (Ansicht →
+  Editor-Darstellung → Zeilenumbruch), beginnt die Fortsetzung jetzt hinter dem
+  Kästchen statt unter ihm, wie schon bei Aufgaben mit Aufzählungszeichen; die
+  Einzugs-Rechnung erkennt dafür die nummerierte Aufgabe.
+- **In der Live-Ansicht liegt die Fortsetzung einer Aufgabe genau auf dem
+  Text-Anfang** (`4T-001716`). Bei einer Aufgabe mit Aufzählungszeichen begann
+  sie bisher rund 7 Pixel rechts davon, weil das gezeichnete Kästchen schmaler
+  ist als die drei Zeichen `[ ]`, die es ersetzt. Eine Stilregel der
+  Live-Ansicht gleicht den Unterschied für die umbrochene Aufgaben-Zeile und
+  ihre Folgezeilen aus, solange das Kästchen gezeichnet ist.
+- **Der Rückstrich eines harten Umbruchs ist in der Live-Ansicht verborgen,
+  außer in der Zeile mit der Schreibmarke** (`4T-001716`, Entscheidung des
+  Product Owners vom 2026-09-28), wie die übrigen Auszeichnungs-Zeichen dort.
+  Das gilt für jeden Rückstrich, der als harter Umbruch vor einem Zeilenwechsel
+  im selben Absatz steht, auch in bestehenden Dokumenten; die Form mit zwei
+  Leerzeichen am Zeilenende ist unberührt.
+- **Einrücken und Ausrücken nehmen die Folgezeilen eines Punkts mit, auch ohne
+  «Listen-Struktur»** (`4T-001716`). Bei abgeschalteter Erweiterung verschob
+  das Einrücken bisher nur Zeilen mit Marker, und ein Punkt mit Folgezeile
+  zerriss. Jetzt wandern die Folgezeilen mit, bis zum nächsten Listenpunkt, zur
+  Leerzeile oder zur ersten Code-Zeile.
+- **Umschalt+Enter ist keine feste Belegung mehr** (`4T-001716`). Die
+  Tastenkombination ist jetzt die Vorgabe des Kommandos «Zeilenumbruch im
+  Listenpunkt» und lässt sich unter Datei → Einstellungen… → Tastenkürzel
+  umbelegen. Bisher setzte sie im Editor einen einfachen Zeilenwechsel, der den
+  Leerraum der laufenden Zeile übernahm, ohne Marker und ohne Rückstrich; eine
+  andere Wirkung der Taste, die verloren ginge, gibt es nach der Messung am
+  gebauten Programm nicht. Der Sprung zum vorherigen Treffer mit
+  Umschalt+Enter im Suchfeld ist unberührt, weil die Such-Navigation an ihr
+  Eingabefeld gebunden ist.
+
+### Behoben
+
+- **Die Einheiten der Standard-Zeitrechnung erscheinen in der Sprache der
+  Oberfläche** (`4T-001863`). Vorschau der Zeitspanne und Auswahl der
+  Gliederungs-Tiefe einer abgeleiteten Zeitrechnung auf der Standard-Zeitrechnung
+  zeigten in jeder Oberflächen-Sprache die deutschen Namen der Einheiten, mit
+  englischer Oberfläche etwa «Span: 1 Monat, 2 Woche, 4 Tag». Die Einstellungen
+  bauten den Text selbst aus der Definition, während das Abzeichen im Dokument
+  die Übersetzungen nutzte. Beide Stellen nutzen jetzt denselben Spannen-Text des
+  Abzeichens: «Span: 1 month, 2 weeks, 4 days». Der Fehler stammt aus der
+  Einführung der abgeleiteten Zeitrechnungen.
+- **Eine reine Benennung löst keine Rückfrage zu den abgeleiteten
+  Zeitrechnungen mehr aus** (`4T-002065`). Ändert der Anwender an einer
+  Zeitrechnung mit Ableitungen allein einen Namen — den Namen oder die Mehrzahl
+  einer Ebene, eines Zyklus oder einer Gruppierung, einen Monats- oder
+  Wochentags-Namen —, fragte «Anwenden» nach, weil sich die Werte der
+  abgeleiteten Zeitrechnungen verschöben. Eine Benennung verschiebt keinen Wert;
+  die Rückfrage entfällt dort und bleibt bei jeder rechnenden Änderung (Länge,
+  Faktor, Schalt-Regel, Zyklus-Länge, Anker, Skala, Ebenen-Bereich).
+- **Positions-Namen an einer Ebene ohne Längen-Tabelle gehen beim Anwenden
+  nicht mehr verloren** (`4T-002066`). Das Definitions-Modell erlaubt Namen der
+  Positionen an jeder Ebene, etwa Monats-Namen an gleich langen Monaten über
+  einen festen Faktor; die Pflege führt sie nur an der Längen-Tabelle. Eine
+  solche Definition, von Hand in der Bereichsdatei angelegt oder über den
+  Austausch der eigenen Einrichtung eingelesen, verlor die Namen beim nächsten
+  «Anwenden», auch bei einer Änderung an ganz anderer Stelle, und Werte im
+  Dokument zeigten danach Zahlen statt Namen. Jetzt trägt der Entwurf der
+  Einstellungen die Positions-Namen jeder Ebene ohne Längen-Tabelle und jeder
+  Gruppierung unverändert durch; wechselt eine solche Ebene auf eine leere
+  Längen-Tabelle, werden die Namen deren Zeilen. Keine mitgelieferte Vorlage war
+  betroffen. Vier verwandte Grenzfälle mit Namens-Listen und Schalt-Zahlen sind
+  benannt; sie brauchen eine Entscheidung zum Verhalten der Pflege und sind nach
+  Entscheidung des Product Owners vom 2026-10-01 als eigenes, späteres Vorhaben
+  angelegt (`3E-000338`).
+- **Die Namens-Felder an Zyklus und Gruppierung tragen eine sichtbare
+  Beschriftung** (`4T-001863`, Entscheidung des Product Owners vom 2026-10-02).
+  «Zyklus-Name» und «Gruppierungs-Name» standen bisher nur als Platzhalter im
+  Feld und verschwanden, sobald es gefüllt war; dasselbe galt für die mit diesem
+  Zug neuen Felder «Zyklus-Name (Mehrzahl)» und «Gruppierungs-Name (Mehrzahl)».
+  Jetzt stehen alle vier als Beschriftung über ihrem Feld, wie Name und
+  Mehrzahl an den Ebenen, und die Zeilen brechen in schmalen Fenstern um, statt
+  über den Rahmen zu laufen.
+- **Einzahl in drei Texten zu den abgeleiteten Zeitrechnungen** (`4T-002065`,
+  Entscheidung des Product Owners vom 2026-10-02). Bei genau einer Ableitung
+  sprachen der Hinweis an der Bezugs-Zeitrechnung, die Rückfrage beim Anwenden
+  und die Meldung der Lösch-Sperre in der Mehrzahl («Auf dieser Zeitrechnung
+  stehen 1 abgeleitete», «die Werte von 1 abgeleiteten Zeitrechnungen»). Jede
+  der drei Stellen hat jetzt eine eigene Einzahl-Fassung, etwa «Auf dieser
+  Zeitrechnung steht eine abgeleitete: …». Die bisherigen Schlüssel tragen
+  weiter die Mehrzahl und sind bewusst nicht umbenannt, damit eigene
+  Sprachdateien ihre Übersetzung behalten. In der spanischen Mehrzahl-Fassung
+  der Lösch-Sperre ist «básense» zu «báselas» berichtigt. Der Fehler stammt aus
+  der Einführung der abgeleiteten Zeitrechnungen.
+- **Die Bereichs-Suche verfälscht beim Tippen kein Dokument mehr**
+  (`4T-002107`). Bei geöffnetem Bereich und einem Dokument in «Quellcode» oder
+  «Geteilt» sprang schon beim Tippen in der Suchleiste die Schreibmarke auf den
+  ersten Treffer, und weiteres Tippen landete im Dokument statt im Suchfeld:
+  Gemessen wurde aus «Termin» an anderer Stelle «T», im Treffer stand «Erster
+  erminQuittentreffer» — eine stille Verfälschung des Inhalts. Der Weg, der in
+  der offenen Datei die Treffer der Bereichs-Suche markiert, lief nach jedem
+  Suchlauf mit Bewegung; die Regel «eine Neu-Ermittlung bewegt die Schreibmarke
+  nicht» war nur für die Dokument-Suche gesichert. Jetzt bewegt er nur auf
+  Anforderung eines Sprungs. Mit behoben: Der zweite Sprung in dieselbe Datei
+  landete danach oben in der Ansicht, weil das Aktivieren des Dokuments die
+  gemerkte Bildlage wiederherstellte.
+- **Die Kalender-Pflege nimmt dieselben Zahlen an wie das Programm, und «OK»
+  und «Anwenden» bleiben nicht mehr stumm** (`4T-002098`, Anordnung des
+  Product Owners vom 2026-10-03). Die Zahlenfelder der Kalender-Pflege lasen
+  höchstens fünfzehn Ziffern, das Programm nimmt jede sichere ganze Zahl an; ein
+  Kalender mit sechzehnstelligem Maßstab wurde beim Öffnen des Bereichs
+  angenommen, in den Einstellungen aber abgelehnt. Danach blieben «OK» und
+  «Anwenden» auf jeder Einstellungs-Seite ohne Meldung wirkungslos, weil die
+  Meldung nur im gerade gezeigten Bereich erschien und auch ein unveränderter
+  Bereich das Anwenden blockierte. Jetzt gilt in der Pflege dieselbe Grenze wie
+  im Programm; liegt ein Fehler in einem nicht gezeigten Bereich, wechselt die
+  Seite beim Anwenden zum ersten Bereich mit Fehler und zeigt dessen Meldung;
+  ein Bereich ohne Änderung wird beim Anwenden nicht mehr geprüft und
+  blockiert nichts. Ein unveränderter Bestand, den die Pflege ablehnen würde,
+  wird deshalb nicht mehr rot markiert; den Hinweis am einzelnen Kalender zeigt
+  der Bereich weiter. Gilt für alle neun Einstellungs-Bereiche mit eigener
+  Prüfung. Bekannter Rest: Die Text-Schreibweise eines Datums liest im
+  Rechen-Kern weiter höchstens fünfzehn Ziffern je Teil; die Vorschau eines
+  Kalenders mit sechzehnstelligem Anker-Jahr kann «ungültiger Wert» zeigen.
+- **Meldung und Markierung eines Einstellungs-Bereichs verschwinden nach dem
+  Korrigieren** (`4T-002107`). Nach dem Korrigieren eines ungültigen Werts
+  verschwand der Hinweis am Kalender, die Meldungs-Zeile des Bereichs und die
+  rote Markierung der Navigation blieben aber bis zum nächsten «Anwenden» oder
+  Schließen stehen. Jetzt wird eine beim Anwenden ermittelte Fehler-Auskunft bei
+  jeder Änderung im Bereich neu bewertet: Ist er gültig oder wieder
+  unverändert, verschwinden beide sofort. Vor dem ersten Anwenden mit Fehler
+  bleibt alles still wie bisher.
+- **Der Sprung zu einem Suchtreffer zeigt die Fundstelle** (`4T-002099`,
+  Anordnung des Product Owners vom 2026-10-03). Ein angesprungener Treffer der
+  Handbuch-Suche wurde hervorgehoben, die Ansicht rollte aber nicht zu ihm — auf
+  jeder Handbuch-Seite und über jeden Weg (Klick in der Trefferliste,
+  Eingabetaste, Weiter-Sprung); sichtbar wurde das, sobald die Fundstelle
+  unterhalb des ersten Bildschirms lag, etwa auf der Seite «Funktionen». Dieselbe
+  Ursache traf die Bereichs-Suche beim Sprung in ein anderes Dokument in der
+  Ansicht «Gerendert». Das Öffnen der Zielseite stellte im nächsten Bildtakt
+  die gemerkte Lese-Lage wieder her und setzte das Hinrollen zurück; jetzt wird
+  die Sprung-Lage als gemerkte Lese-Lage eingetragen.
+- **Der aktuelle Suchtreffer ist in «Gerendert» farblich abgehoben**
+  (`4T-002113`, Entscheidung des Product Owners vom 2026-10-03). In der
+  gerenderten Ansicht trugen alle Treffer jeder Suche — Dokument, Bereich,
+  Handbuch — dieselbe Farbe samt kleinem Innenabstand, weil die Farbregel der
+  Hervorhebung `==Text==` jede Markierung im gerenderten Text erfasste und
+  schwerer wog als die Farben der Suchtreffer; welcher Treffer der aktuelle war,
+  zeigte nur die Trefferliste. Jetzt gelten die Farben für Treffer und aktuellen
+  Treffer auch im gerenderten Text, hell und dunkel, und der Innenabstand
+  entfällt. Der zunächst gemeldete Befund, der Rückwärts-Sprung der
+  Bereichs-Suche öffne ein Dokument in einer anderen Ansicht als der
+  Vorwärts-Sprung, hat sich bei der Erhebung nicht bestätigt: Beide öffnen ein
+  noch nicht offenes Dokument in der Standard-Ansicht der Einstellungen; das
+  bleibt so.
+- **Suchtreffer sind in «Gerendert» von einer Hervorhebung unterscheidbar**
+  (`4T-002125`). Übrige Treffer und eine Hervorhebung `==Text==` hatten fast
+  dieselbe Fläche (hell #fff59d gegen #fff3a3); ein Treffer innerhalb einer
+  Hervorhebung war hell nicht, dunkel kaum zu erkennen. Jeder Treffer trägt
+  jetzt zusätzlich eine Kontur, die keinen Text verschiebt: übrige Treffer
+  1 Bildpunkt, hell #8a6500, dunkel #ffe066; der aktuelle 2 Bildpunkte, hell
+  #e65100, dunkel #ffb74d, je mit mindestens 3:1 Kontrast zur Hervorhebung und
+  zur Seite. Flächen der Treffer und Aussehen der Hervorhebung sind unverändert;
+  in «Quellcode» und «Live» blieb ein Treffer erkennbar und ist nicht berührt.
+- **Die Seitenleiste folgt dem Sprachwechsel** (`4T-002125`, `4T-002129`,
+  Entscheidung des Product Owners vom 2026-10-03 zu `4T-002129`). Nach dem
+  Wechsel der Oberflächen-Sprache blieben die Reiter aller Panels in
+  Reiter-Gruppen in der alten Sprache, in der Standard-Anordnung also alle außer
+  «Notizen», ebenso die Überschrift und die Status-Zeile der Trefferliste; im
+  Symbol-Zustand ersetzte der Wechsel zudem das Symbol eines allein stehenden
+  Panels durch Text. Jetzt tragen Reiter, Panel-Köpfe und die Knöpfe zum Ein-
+  und Ausklappen der Seitenleiste die neue Sprache, und die Trefferliste
+  zeichnet sich aus ihrem Bestand neu, ohne neue Suche (`4T-002125`). Alt
+  blieben außerdem die eigenen Texte der Panels Datei-Graph (Richtungs-Auswahl),
+  Erinnerungen (Hinweis ohne Bereich), Notizen (Platzhalter), Canvas-Liste,
+  Block-Eigenschaften (leerer Zustand), Buch und Bereich; sie wechseln jetzt
+  mit, ohne dass das Panel neu aufgebaut wird (`4T-002129`). Und der Wechsel
+  kostete Panels ihren Zustand, weil er die Ansichten neu zeichnet und sich
+  darüber mehrere Panels neu aufbauen: Das Inhaltsverzeichnis sprang an den
+  Anfang (gemessen von 800 auf 4 Bildpunkte, schon vor diesem Zug so), die
+  Tag-Liste verlor ihre Roll-Lage, das Eigenschaften-Panel den Fokus im Feld.
+  Jetzt rollt das Inhaltsverzeichnis nur noch mit, wenn ein anderer Eintrag
+  aktiv wird, die Tag-Liste hält ihre Roll-Lage über den Neuaufbau, die
+  Eigenschaften geben Fokus und Auswahl ins selbe Feld zurück, und im
+  Notizen-Panel bleiben Eingabe und Fokus (`4T-002129`). Kein Panel verliert
+  beim Sprachwechsel Inhalt, laufende Eingabe, Fokus oder Roll-Lage. Der
+  zunächst vermutete Platzhalter-Fehler «Duplicate anchor: on» der
+  Block-Eigenschaften besteht nicht; die frühere Erhebung hatte den Satz
+  gekürzt.
+- **Ein Sprung der Suche direkt nach der Eingabe bleibt bestehen**
+  (`4T-002129`). Wer unmittelbar nach dem Tippen des Suchbegriffs sprang,
+  etwa mit der Eingabetaste, sah Zähler und Hervorhebung nach einem Augenblick
+  auf den ersten Treffer zurückfallen: Die Eingabe-Drossel der Suchleiste
+  startete 150 Millisekunden nach dem Tippen einen neuen Suchlauf und setzte
+  dabei den aktuellen Treffer zurück. Gemeldet war der Rückfall nach einem
+  Wechsel des Farbschemas; die Messung zeigte, dass er allein an der Zeitfolge
+  hing, auch im Handbuch. Jetzt führen Vorwärts- und Rückwärts-Sprung einen
+  noch ausstehenden Suchlauf vor dem Sprung aus, und eine Eingabe mit
+  unverändertem Begriff plant keinen neuen Lauf. Die Regel «Tippen bewegt
+  nichts, der erste Sprung zeigt den ersten Treffer» ist unverändert. Im
+  Handbuch, in den Einstellungen und im Bereich, wo das Ergebnis der Suche erst
+  einen Augenblick später eintrifft, wird ein Sprung vor dem Eintreffen
+  vorgemerkt und danach ausgeführt; ein neuer Begriff lässt vorgemerkte Sprünge
+  des älteren Laufs verfallen. Ein Nachziehen der Suche, das vor einem solchen
+  Sprung beginnt und erst danach eintrifft, setzt den angesprungenen Treffer
+  nicht mehr auf den Stand bei seinem Beginn zurück (`4T-002216`, gefunden im
+  Abnahme-Lauf der Release-Strecke).
+- **Einzahl in den Zähl-Texten von Trefferliste, Ersetzen und
+  Tag-Umbenennung** (`4T-002107`, Entscheidung des Product Owners vom
+  2026-10-03). Bei genau einer Fundstelle oder genau einer Datei sprachen die
+  Status-Zeile der Trefferliste für Dateien und Abschnitte (Bereich, Handbuch,
+  Einstellungen), die Auswahl-Zeile und die Meldung der Tag-Umbenennung und
+  beide Meldungen des Ersetzens im Bereich in der Mehrzahl, etwa «1 Treffer in 1
+  Dateien». Eine gemeinsame Regel wählt jetzt die Form: «1 Treffer in 1 Datei»,
+  «5 Treffer in 1 Datei». Die bisherigen Schlüssel tragen weiter die Mehrzahl
+  und sind bewusst nicht umbenannt, damit eigene Sprachdateien ihre
+  Übersetzung behalten.
+- **Der Bericht der Tag-Umbenennung trägt seine eigene Überschrift**
+  (`4T-002113`). Der Bericht nach «Tag umbenennen…» trug die Überschrift
+  «Ersetzen im Bereich»; jetzt heißt er wie der Menüpunkt, und die Abschnitte
+  sprechen von «Nicht umbenannt» statt vom Ersetzen. Der Bericht des Ersetzens
+  im Bereich ist unverändert.
+- **Termin und Status einer Aufgabe mit Rückstrich am Zeilenende**
+  (`4T-001716`). Endete eine Aufgaben-Zeile auf einen Rückstrich, wurde ein
+  Termin davor nicht erkannt, und beim Abhaken landete der Erledigt-Marker
+  hinter dem Rückstrich, sodass auch der Umbruch in der gerenderten Ansicht
+  verloren ging. Die Marker-Erkennung rechnet den Rückstrich samt Leerraum
+  jetzt zum Zeilen-Ende: Termin- und Status-Marker werden davor erkannt, ein
+  neu gesetzter Marker, auch der Erledigt-Marker beim Abhaken, steht vor ihm,
+  und Einlesen und Zurückschreiben lassen die Zeile Zeichen für Zeichen
+  unverändert.
+- **Die gerenderte Ansicht zeigt Termin und Status einer Aufgabe mit
+  Folgezeile** (`4T-001716`). Die gesetzte Darstellung las die Marker einer
+  Aufgabe aus dem letzten Text-Stück des Punkts, und bei jeder Aufgabe mit
+  Folgezeile gingen Termin und Status dort verloren, mit und ohne Rückstrich.
+  Sie liest sie jetzt aus der ersten Zeile des Punkts. Der Mangel bestand schon
+  vorher und wäre mit dem neuen Kürzel häufig geworden; Aufgaben-Index und
+  Abfragen lesen die Aufgaben-Zeile je Zeile und waren nicht betroffen.
+
+### Dokumentation
+
+- **Handbuch zum Rückschreiben bei ungespeichertem Stand** (`4T-001979`), in
+  allen fünf Sprachen: Die Seite «Aufgaben-Listen» beschreibt im Abschnitt
+  «Task-Abfragen und Rückschreiben» die Wirkung im ungespeicherten Stand für
+  alle drei Handgriffe und beide Lagen der Datei, die Seite «Erinnerungen» im
+  neuen Absatz «Bei ungespeicherten Änderungen» dasselbe für «Erledigt» und
+  «Später erinnern» samt den Direkt-Aktionen der Erinnerungs-Liste, und der
+  Katalog-Eintrag «Rückschreiben aus Abfrage-Treffern» nennt die Wirkung im
+  ungespeicherten Stand.
+- **Neue Handbuch-Seite «Portable Fassung»** (`4T-001996`), in allen fünf
+  Sprachen im Block «Oberfläche, Werkzeuge und Erweiterungen»: das Starten der
+  Programmdatei, der Ordner `Data` und das Mitnehmen, der Ort der Daten, der erste
+  Start samt Mitnehmen der Einrichtung über die Austausch-Datei, das Verhalten
+  am nicht beschreibbaren Ort, der vollständige Wortlaut der Zusage und was in
+  der portablen Fassung anders ist. Die Seiten «Eigene Oberflächen-Sprache» und
+  «Erweiterungen erstellen» nennen den Ablage-Ort für beide Fassungen, die
+  Seite «Werkzeuge» sagt im Abschnitt zur Rechtschreibprüfung, dass Wörter in
+  der portablen Fassung nicht aufgenommen werden. Die Funktions-Übersicht führt
+  die neue Zeile «Portable Fassung» in der Gruppe «Allgemein».
+- **Handbuch-Seite «Kalender-Systeme» zu den Vorlagen und den neuen Bausteinen**
+  (`4T-001735`, `4T-002003`, `4T-002065`), in allen fünf Sprachen. Neuer
+  Abschnitt «Mitgelieferte Vorlagen» mit den neun Vorlagen in Menü-Reihenfolge
+  und je Sprache unter dem Namen, den das Menü zeigt, dem Ablauf der Anlage, der
+  gemeinsamen Tages-Achse, dem Unterabschnitt «Was eine angelegte Vorlage ist»,
+  den «Lesarten und Grenzen» der Vorlagen und dem Unterabschnitt «Eine neue
+  japanische Ära nachtragen» mit der Pflege-Zusage und den vier Handgriffen für
+  eine bereits angelegte Zeitrechnung (`4T-001735`). Die Pflege in den
+  Einstellungen nennt das Aufklapp-Menü statt des Knopfs, das Feld «Mehrzahl»,
+  das Kontrollkästchen «Kürzel der Epoche immer schreiben» und die Schalt-Regel
+  in beiden Formen; zwei durch die Mehrzahl und das Kontrollkästchen falsch
+  gewordene Sätze sind berichtigt (`4T-001735`). Neuer Abschnitt «Eine Epoche
+  nachtragen» zur Rückfrage beim Anwenden samt Grenzen (`4T-002003`); der
+  Abschnitt «Änderungen an der Bezugs-Zeitrechnung» sagt, dass reine
+  Benennungen keine Bestätigung verlangen (`4T-002065`). Die Überblicksseite des
+  Handbuchs nimmt die mitgelieferten Vorlagen in die Zeile der Kalender-Systeme
+  auf. Die Funktions-Übersicht führt die neue Zeile «Kalender-Vorlagen» direkt
+  hinter den abgeleiteten Zeitrechnungen; sie ist mit der Erweiterung
+  «Kalender-Systeme» an- und abgeschaltet (`4T-001735`).
+- **Die Nutzen-Darstellung nennt die Daten in anderen Kalendern** (`4T-001736`,
+  Entscheidung des Product Owners vom 2026-10-02), in allen fünf
+  Sprachfassungen und in beiden Ausspielungen. Der Abschnitt «Und der Rest der
+  Sprache» der Handbuch-Seite «Nutzen und Arbeitsweise» und der gleichlautende
+  Block der Nutzen-Seite der Produkt-Webseite führen den Punkt «Daten in
+  anderen Kalendern»: neun mitgelieferte Kalender vom julianischen über den
+  Hidschri- bis zum japanischen, dazu frei definierbare eigene Zeitrechnungen,
+  und Daten im selben Block rechnen ineinander um. Auf der Webseite steht er
+  vor dem Schluss-Punkt zur Schaltbarkeit.
+- **Die öffentliche Roadmap trennt die beiden Stufen der Kalender-Vorlagen**
+  (`4T-001736`, Entscheidung des Product Owners vom 2026-10-02). Der Eintrag
+  «Weitere Kalendersysteme» spricht in allen fünf Sprachfassungen jetzt von den
+  neun gelieferten Kalendern; der neue Eintrag «Kalender mit jährlich
+  wechselndem Aufbau» trägt die zweite Stufe (`3E-000333`) mit dem hebräischen,
+  dem chinesischen, dem amtlichen persischen Kalender und Umm al-Qura. Beide
+  stehen unter «geplant»; die Umstufung des ersten nach «ausgeliefert» folgt
+  mit dem Release.
+- **Handbuch und Funktions-Übersicht zu «Datum umrechnen»** (`4T-001875`,
+  `4T-002097`), in allen fünf Sprachen. Die Seite «Kalender-Systeme» trägt den
+  neuen Abschnitt «Datum umrechnen» zwischen «Picker» und «Abgeleitete
+  Zeitrechnungen»: Aufruf über Palette, Kontextmenü und
+  belegbares Kürzel, Aufbau des Dialogs, beide Richtungen über die Zeilen,
+  Vorbelegung samt Auswahl als Quelldatum, die Tasten «Kopieren» und
+  «Einfügen» mit dem Ziel des Einfügens, die drei Fälle ohne Ergebnis im
+  Wortlaut, die Block-Grenze samt dem Weg, zusammengehörige Kalender in einen
+  Block zu legen, und der Satz, dass ein Ergebnis so gut ist wie Anker und
+  Skala der beteiligten Kalender (`4T-001875`, fortgeschrieben in
+  `4T-002097`). Der Abschnitt «Umrechnung über die Block-Achse» verweist
+  darauf; der Satz, dass Kalender verschiedener Blöcke bewusst nicht umrechenbar
+  sind, bleibt. Die Seite «Editor-Kontextmenü» nennt die neue Gruppe mit der
+  angepassten Zahl der Gruppen und den Eintrag im schreibgeschützten Editor in
+  der Reihenfolge des Menüs. Die Funktions-Übersicht führt die neue Zeile
+  «Datum umrechnen» direkt hinter den Kalender-Vorlagen; sie ist mit der
+  Erweiterung «Kalender-Systeme» an- und abgeschaltet, deren Beschreibung jetzt
+  die Umrechnung nennt (`4T-001875`, `4T-001874`). Die Seite «14 Calendar
+  Systems» der Beispiel-Sammlung hat einen Absatz zu «Convert date» mit
+  «Copy» und «Insert» (`4T-002097`, Entscheidung des Product Owners vom
+  2026-10-03).
+- **Funktions-Übersicht und Handbuch zur zweiten Zeile im Listenpunkt**
+  (`4T-001717`), in allen fünf Sprachen. Die Funktions-Übersicht führt die neue
+  Zeile «Zweite Zeile im Listenpunkt» direkt hinter «Listen fortsetzen und
+  beenden»; sie ist Kern und steht in der Kern-Liste der Funktions-Seite.
+  Beschreibung und Zugang von «Listen fortsetzen und beenden» nennen jetzt die
+  nummerierte Aufgaben-Liste, den ersten Unterpunkt in der Art der vorhandenen,
+  das Teilen mitten im Text, den neuen Punkt am Ende einer zweiten Zeile, das
+  Ausrücken eines leeren Aufgaben-Punkts auch in nummerierten Listen und das
+  Notiz-Feld. Die Handbuch-Seite «Markdown-Basis» hat den neuen Unterabschnitt
+  «Zweite Zeile im selben Punkt» mit einem Beispiel als Quelltext und
+  gerendert; der Abschnitt «Fortsetzen und beenden» beschreibt die Fälle der
+  Eingabetaste, und «Harte Zeilenumbrüche» nennt das Kürzel. Die Seite
+  «Ansichten und Darstellung» sagt, dass die Fortsetzung einer umbrochenen
+  Aufgaben-Zeile hinter dem Kästchen beginnt, auch bei nummerierten Aufgaben.
+  Die Seite der Tastenkürzel zieht das Kürzel aus dem Register nach. Die
+  Prüfung aller deutschen Handbuch-Seiten auf berührte Stellen ergab keine
+  weitere zu berichtigende Seite.
+
+### i18n
+
+- **Ein Schlüssel je Sprachfassung entfernt** (`4T-001978`): der Hinweis
+  `taskQuery.dirtyOpen` im Fragment `tasks`, den nach dem Wegfall des
+  Hinweises niemand mehr liest; der gleichlautende Hinweis der Ereignis-Tabelle
+  bleibt.
+- **Acht neue Schlüssel je Sprachfassung**, also 40 über alle fünf: Titel und
+  Text der Meldung am nicht beschreibbaren Ort im Fragment `common`
+  (`4T-001990`), Zeile und Schaltfläche des Fensters «Über EM4me» im Fragment
+  `about-and-tour` (`4T-001993`), Name, Beschreibung und Zugang der
+  Katalog-Zeile «Portable Fassung» sowie der Seitentitel der Handbuch-Seite
+  (`4T-001996`). Geändert ist je Sprachfassung der Katalog-Text der
+  Rechtschreibprüfung um den Satz zur portablen Fassung (`4T-001996`).
+- **90 neue Schlüssel je Sprachfassung für die Kalender-Vorlagen**, also 450
+  über alle fünf, einer entfällt je Sprachfassung; alle im Fragment `calendar`
+  außer den drei Katalog-Schlüsseln. Mehrzahl der gregorianischen Vorlage (neun)
+  sowie Beschriftungen und Hinweis der Mehrzahl-Felder (vier, `4T-001863`); der
+  Eintrag «Vorlage einfügen …» des Menüs (`4T-001997`), der Schlüssel des
+  früheren Knopfs `settings.calendar.calTemplate` entfällt; Menü-Namen,
+  Monats-Namen und Zeitalter der sechs Vorlagen im bestehenden Modell unter
+  `settings.calendar.tpl.<id>.*` (29, `4T-001998`); Kontrollkästchen und
+  Hinweis des Epochen-Kürzels (zwei, `4T-001999`); Menü-Name, «vor Meiji» und
+  fünf Ära-Namen der japanischen Vorlage (acht, `4T-002000`); Auswahl, Felder
+  und Hinweis des Schaltjahr-Musters (sechs, `4T-002001`), in Französisch,
+  Spanisch und Italienisch mit dem üblichen Wort für das Schaltjahr; Menü-Name,
+  Monats-Namen und Zeitalter der islamischen Vorlage (sechs, `4T-002002`);
+  Name, Beschreibung und Zugang der Katalog-Zeile «Kalender-Vorlagen» (drei,
+  `4T-001735`); Rückfrage und Bericht des Sicherns gespeicherter Datums-Werte,
+  mit Einzahl und Mehrzahl (19, `4T-002003`); die Einzahl-Fassungen von
+  Hinweis, Rückfrage und Lösch-Sperre bei genau einer abgeleiteten Zeitrechnung
+  (drei, `settings.calendar.derivedHintOne`,
+  `settings.calendar.derivedConfirm.messageOne`,
+  `settings.calendar.derivedBlocked.messageOne`, `4T-002065`). Geändert ist
+  allein die spanische Mehrzahl-Fassung der Lösch-Sperre
+  (`settings.calendar.derivedBlocked.message`, «básense» zu «báselas»,
+  `4T-002065`). Die Namen der Monate und
+  Zeitalter folgen je Sprache den Internationalisierungs-Daten (CLDR), wo diese
+  sie führen; zwei gekennzeichnete Abweichungen betreffen die Zeit vor Minguo
+  (deutsch «vor Minguo» statt des sachlich falschen «vor Volksrepublik China»,
+  englisch der Name «Before R.O.C.» neben dem Kürzel «B.R.O.C.»).
+- **36 neue Schlüssel je Sprachfassung für «Datum umrechnen» und die Suche**,
+  also 180 über alle fünf, keiner entfällt. Der neue Namensraum
+  `calendarConvert` im Fragment `calendar` mit Titel, Feldern, Meldungen und
+  Hinweis des Dialogs (zwölf, `4T-001874`) und den Tasten «Kopieren» und
+  «Einfügen» samt Kurzhinweisen, Bestätigung und Grund der Deaktivierung
+  (sechs, `4T-002097`); `command.calendar.convert` und
+  `help.shortcut.convertCalendarValue` (zwei, `4T-001874`); Name, Beschreibung
+  und Zugang der Katalog-Zeile «Datum umrechnen» (drei, `4T-001875`); die
+  Einzahl-Fassungen der Zähl-Texte `searchResults.countOne`,
+  `searchResults.countManyInOne`, `searchResults.countFilesOne`,
+  `searchResults.countFilesManyInOne`, `areaReplace.countOne`,
+  `areaReplace.countManyInOne`, `areaReplace.hitsOne`, `tagRename.barOne`,
+  `tagRename.doneOne` und `tagRename.doneManyInOne` (zehn, `4T-002107`); Titel,
+  Abschnitt «Nicht umbenannt» und ein Grund im Bericht der Tag-Umbenennung,
+  `tagRename.report.title`, `tagRename.report.failed`,
+  `tagRename.reason.geteilt` (drei, `4T-002113`). Geändert ist je Sprachfassung
+  die Beschreibung der Erweiterung `extension.custom-calendars.description` um
+  die Umrechnung (`4T-001874`). Kein bestehender Schlüssel ist umbenannt oder
+  umgedeutet.
+- **Fünf neue Schlüssel je Sprachfassung für die zweite Zeile im Listenpunkt**,
+  also 25 über alle fünf, keiner entfällt: die Beschriftung des Kommandos
+  `command.list.lineBreak` und die Kürzel-Beschreibung
+  `help.shortcut.listLineBreak` (`4T-001716`); Name, Beschreibung und Zugang
+  der Katalog-Zeile, `help.featureName.listLineBreak`,
+  `help.feature.listLineBreak` und `help.featureAccess.listLineBreak`
+  (`4T-001717`). Geändert sind je Sprachfassung Beschreibung und Zugang der
+  Katalog-Zeile «Listen fortsetzen und beenden», `help.feature.listExit` und
+  `help.featureAccess.listExit`, um die neuen Fälle der Eingabetaste und das
+  Notiz-Feld (`4T-001717`). Kein bestehender Schlüssel ist umbenannt.
+
+### Intern
+
+- **Die portable Fassung ist immer eine Programmdatei** (`4T-002221`). Die
+  Leitdatei hält die Anordnung des Product Owners fest, dass die portable
+  Fassung in jedem Release und in jedem temporären Bau eine EXE ist und nie ein
+  Archiv, dazu die Pflicht, eine Änderung an dem, was der Anwender bekommt, nie
+  in einem Paket von Empfehlungen vorzulegen. Ein Wächter prüft Bau-Ziel,
+  Namensmuster, Bau-Kommandos und die erwarteten Dateien des Versions-Archivs.
+- **Der Nachzügler des vorigen Releases** (`4T-002179`, Sammeltask des Zuges
+  `3E-000351`). Nach der Auslieferung von 1.146.2 hat dessen Abschluss die
+  Bildschirmfotos der Produkt-Webseite erneuert. Der Commit liegt seither auf
+  dem Integrationsstand und steht hier, weil er Dateien der Webseite berührt; er
+  gehört nicht zu diesem Zug. Kein Anwendungs-Code berührt, kein Anwender-Text
+  nötig.
+- **Eigener Kanal für Handgriffe an Abfrage-Treffern** (`4T-001978`). Der
+  Kanal `taskQuery:edit` reicht einen Handgriff an das Fenster weiter, dessen
+  ungespeicherter Stand für die Datei gilt, mit der Bauart des
+  Erinnerungs-Kanals `reminders:edit`; die Besitzer-Regel beider Kanäle liegt
+  einmal im neuen Modul `src/main/ipc/puffer-fenster.js`. Im Anzeige-Prozess
+  fragt der Schreibweg der Treffer in fester Reihenfolge — aktives Dokument,
+  anderes Fenster, nicht aktives geändertes Dokument, Festplatte — und schreibt
+  beim nicht aktiven Dokument in dessen gehaltenen Text mit der Text-Fassung
+  der Status-Kette. Der Ablauf-Fall RB-03 sichert die Übergabe statt des
+  Konflikt-Dialogs, neu sind RB-07 bis RB-09 (nur ungespeichert vorhandene
+  Aufgabe, Verschieben mit zwei Fenstern, ein Fenster mit nicht aktivem
+  Dokument), dazu 26 Unit-Fälle an Weiche, Kanal und Erinnerungen; das heutige
+  Verhalten war vor dem Bau am gebauten Programm gemessen (sieben Punkte, zwei
+  Fenster, gestubbter Konflikt-Dialog).
+- **Abnahme-Messung am gebauten Programm mit Bedienung** (`4T-001994`). Zwei
+  Messungen der damals gebauten Ordner-Fassung ohne Test-Umlenkung, je mit
+  Zweitstart, hartem Beenden, einer Annäherung an einen Absturz und dem nicht
+  beschreibbaren Ort, verglichen mit einem Leerlauf ohne Programm: Das
+  Benutzerprofil des Rechners blieb in allen Läufen unverändert, `Data\Temp`
+  ist nach jedem Ende leer. Die Befunde zum Datei-Dialog und zum Wörterbuch
+  sind an der Ursache beseitigt; die Aufzeichnungen, die Windows über jedes
+  Programm führt, sind der Grund der zweigeteilten Zusage. Kein Anwender-Text
+  nötig.
+- **Wächter der portablen Fassung** (`4T-001990`, `4T-001991`, `4T-001993`):
+  Prüffälle für Erkennung, Schreib-Probe, Meldungs-Sprache, temporären Ordner,
+  Hülle der Datei-Dialoge, Laufwerks-Ermittlung, beide Kanäle der Anzeige und
+  das Ausblenden der Wörterbuch-Befehle; dazu ein Wächter, der über alle Dateien
+  des Haupt-Prozesses festhält, dass keine PowerShell gestartet und keine
+  Dialog-Funktion an der Hülle vorbei entnommen wird, und dass beide
+  Symbol-Dateien unverpackt liegen. Ein Ablauf-Fall hält fest, dass Zeile und
+  Schaltfläche in der nicht portablen Fassung fehlen. Kein Anwender-Text nötig.
+- **Vorlagen-Sammlung in drei Modulen** (`4T-001997`, `4T-001998`, `4T-002000`,
+  `4T-002002`). `src/shared/calendar/calendar-templates.js` führt die Sammlung
+  in Menü-Reihenfolge (Kennung, Platz, Übersetzungs-Schlüssel, Stichtag-Paar,
+  Fabrik); eine weitere Vorlage tritt allein durch ihren Eintrag hinzu.
+  `calendar-template-tools.js` trägt die Bausteine (Zeit- und Datums-Ebenen,
+  Woche aus dem Stichtag-Paar, Gruppierungen, beliebig viele Epochen, das
+  Schaltjahr-Muster, `buildTemplateDefinition`) und den Anker-Helfer, der jede
+  Vorlage auf die Tages-Achse der gregorianischen legt;
+  `calendar-template-systems.js` die Fabriken der acht weiteren Vorlagen. Der
+  Ordner bleibt zyklenfrei, die gregorianische Vorlage setzt weiter keinen
+  ausdrücklichen Anker. Jede Erweiterung der Bausteine ist per Schnappschuss
+  gegen die zuvor erzeugten Definitionen in allen fünf Sprachen geprüft.
+- **Nachweis der Vorlagen an fremden Vergleichs-Daten** (`4T-001998`,
+  `4T-002000`, `4T-002002`). Voll-Durchlauf jeden Tag vom 1900-01-01 bis
+  2100-12-31 gegen die Kalender der Internationalisierungs-Schnittstelle
+  (indisch, buddhistisch, äthiopisch, koptisch, Minguo, bürgerlich-islamisch)
+  und für Julianisch gegen die veröffentlichte Formel der julianischen
+  Tages-Nummer, für Japanisch ab dem 1868-10-23: jeweils 0 Abweichungen in
+  Zeitalter, Jahr, Monat, Tag und Wochentag. Die Spanne vom 1868-09-08 bis
+  1868-10-22, in der die Schnittstelle bereits Meiji 1 nennt, ist als benannte
+  Ausnahme mit eigenem Prüffall festgehalten. Dazu veröffentlichte Stichtage
+  mit Quell-Adresse je Paar, benannte Grenzfälle, Rundreise bei ±1 000 000
+  Jahren und die Umrechnung im Block mit Uhrzeit in beide Richtungen;
+  Mutationsproben festgehalten. Prüfdateien `kalender-vorlagen.test.js`,
+  `kalender-vorlagen-nachweis.test.js`, `kalender-vorlagen-stichtage.test.js`,
+  `kalender-vorlage-japanisch.test.js`, `kalender-vorlage-islamisch.test.js`
+  und `renderer/kalender-vorlagen-menue.test.js`.
+- **Schalt-Rechnung im eigenen Modul** (`4T-002001`). Die Schalt-Regel ist aus
+  dem Kalender-Kern in das Blatt-Modul `src/shared/calendar/calendar-leap.js`
+  umgezogen (Teilbarkeits-Kette unverändert, Muster neu, geschlossene Rechnung
+  ohne Tabelle über alle Plätze); der Kern steht danach bei 931 statt 958 von
+  966 eingefrorenen Code-Zeilen. Prüfdateien `kalender-schaltjahr-muster.test.js`
+  mit vor dem Umzug gemessenen gregorianischen Achsen-Werten und
+  `renderer/kalender-schaltjahr-muster-pflege.test.js`.
+- **Je eine Regel an einer Stelle für Mehrzahl und Epochen-Kürzel**
+  (`4T-001863`, `4T-001999`): `unitNameFor` und `writesEpochLabel` im Kern; die
+  Vorschau der Einstellungen nutzt den Spannen-Text des Abzeichens, ihre eigene
+  Fassung ist entfallen. Prüfdateien `renderer/kalender-namensformen.test.js`,
+  `kalender-zeitalter-kuerzel.test.js` und
+  `renderer/kalender-zeitalter-kuerzel-pflege.test.js`; Ablauf-Fall KS-08 für
+  das Abzeichen mit Mehrzahl.
+- **Bausteine des Epochen-Schutzes** (`4T-002003`). Neu
+  `src/shared/calendar/calendar-epoch-guard.js` (Erkennung des Nachtrags,
+  Schreibweise der neuen Definition für dieselben Koordinaten),
+  `src/main/area/calendar-epoch-scan.js` mit dem Kanal `calendarEpoch:scan`,
+  der Kanal `calendar:confirmEpochGuard` für die Rückfrage und
+  `src/renderer/modules/settings/settings-calendar-epoch-guard.js` für den
+  Ablauf beim Anwenden. Die bereichsweite Ersetzen-Strecke nimmt je Fundstelle
+  einen eigenen Ersetzungs-Text an und verhält sich ohne ihn wie zuvor;
+  `parseCanonical` meldet auf Wunsch Kürzel und geschriebenen Zeit-Teil. Neue
+  Prüfdateien `kalender-epochen-schutz.test.js`, `kalender-epochen-scan.test.js`,
+  `kalender-epochen-rueckfrage.test.js` und
+  `renderer/kalender-epochen-schutz-pflege.test.js`, ergänzt
+  `ersetzen-kern.test.js`, `area-replace.test.js` und
+  `renderer/such-ersetzen.test.js`; Ablauf-Fall KS-09.
+- **Vergleichs-Form der Rückfrage und Entwurf der Einstellungen** (`4T-002065`,
+  `4T-002066`): Die Vergleichs-Form nimmt Name, Mehrzahl und Positions-Namen
+  aus, der Ebenen-Bereich bleibt im Vergleich; der Entwurf merkt sich die
+  Positions-Namen ohne Längen-Tabelle beim Laden. 17 neue Fälle in
+  `renderer/kalender-namensformen.test.js` und die neue Prüfdatei
+  `renderer/kalender-entwurf-rundlauf.test.js` mit dem Rundlauf aller neun
+  Vorlagen; Mutationsproben festgehalten.
+- **Karten und Grenzen nachgezogen.** Abdeckungs-Matrix mit dem neuen Eintrag
+  `F-340` der Kalender-Vorlagen (`4T-001735`) und KS-09 am Eintrag der
+  Kalender-Systeme (`4T-002003`); Klassen-Karte der Änderungsklassen um die
+  neuen Prüfdateien (`4T-001997`, `4T-001998`, `4T-002001`, `4T-002002`,
+  `4T-002003`); eingefrorene Größen mit Begründung angehoben für die
+  Erweiterungs-Registry, 774 statt 770 Code-Zeilen wegen der Schlüssel-Liste der
+  Erweiterung (`4T-001735`), und für die Prozess-Brücke um ihre zwei
+  Kanal-Zeilen (`4T-002003`).
+- **Kalender der Beispiel-Sammlung aus den Vorlagen erzeugt** (`4T-001735`).
+  Das neue Skript `scripts/demo-kalender-erzeugen.js` schreibt die Sektion
+  `calendarSystems` von `src/demo/Area_Settings.mdda` allein über die Fabriken
+  der Vorlagen mit den englischen Texten und den Schreiber der Bereichsdatei;
+  von Hand wird an ihr nichts geschrieben. Der neue Wächter
+  `demo-kalender.test.js` hält die Sektion gleich dem heutigen Erzeugnis der
+  Vorlagen, prüft, dass jedes Werte-Paar der Seite im Block denselben Tag
+  bezeichnet, dass die Werte gerendert als Abzeichen mit Namen erscheinen, ohne
+  die Erweiterung Klartext bleiben und die Liste der Seite dem Aufklapp-Menü
+  folgt. Manifest-Wächter `demo-area.test.js`, Abdeckungs-Matrix (Eintrag
+  `F-132`), Klassen-Karte und die Liste des Quellcode-Exports sind nachgezogen.
+- **Prüffälle der Nachzügler** (`4T-001863`, `4T-002065`): neue Prüfdatei
+  `renderer/kalender-pflege-beschriftung-einzahl.test.js` (sichtbare
+  Beschriftungen an Zyklus, Gruppierung und Ebene, Einzahl- und
+  Mehrzahl-Fassung des Hinweises), vier neue Fälle in
+  `kalender-epochen-rueckfrage.test.js` für Rückfrage und Lösch-Sperre.
+- **Zweiter Roadmap-Eintrag im Bau der Webseite** (`4T-001736`): Der Bau führt
+  den Eintrag `kalenderJahresaufbau` unter «geplant», die Zuordnung zur
+  Roadmap stellt `3E-000333` auf ihn um.
+- **Bausteine der Umrechnung** (`4T-001874`, `4T-002097`). Neu
+  `src/shared/calendar/calendar-convert.js` mit `blockEquivalents(block,
+  fromId, tuple)` und der Konstante `EQUIVALENT_UNKNOWN`; das Modul rechnet
+  nicht selbst, jede Zeile entsteht mit `convertBetween` des Kerns, der
+  unverändert bleibt. Neu
+  `src/renderer/modules/calendar/calendar-convert-dialog.js` mit dem Dialog,
+  der Ermittlung des Werts unter dem Cursor, dem gemeinsamen Weg von Kommando
+  und Kontextmenü `openCalendarConvertAt` und den reinen Funktionen
+  `calendarPrefillFromSelection` und `calendarInsertTarget`; der Dialog kennt
+  keinen Editor, den Einfüge-Rückruf reicht der gemeinsame Weg nur bei
+  beschreibbarem Editor herein. `applyResult` und `resultToSource` der
+  Eingabe-Hilfe sind dafür exportiert. Kommando `calendar.convert` mit der neuen
+  Verfügbarkeits-Regel `bereichUndKalender` (Bereich offen und mindestens ein
+  Kalender, ohne Editor-Bedingung), gebunden an die Erweiterung
+  `custom-calendars` über ihr Feld `commands`. Prüfdateien
+  `kalender-umrechnung-entsprechungen.test.js` (44 Fälle: je zwei belegte
+  Stichtag-Paare der acht nicht-gregorianischen Vorlagen in beiden Richtungen,
+  Gleichheit mit `convertInBlock`, die Fälle ohne Ergebnis, ±1,5 Milliarden
+  Jahre hin und zurück), `renderer/kalender-umrechnung-dialog.test.js`
+  (29 Fälle) und `renderer/kalender-umrechnung-uebernahme.test.js` (18 Fälle),
+  ergänzt `render/extensions-aus.test.js`; Ablauf-Fall `KS-10` in
+  `kalender-systeme.spec.js`.
+- **Zahlen-Grenze und Anwenden der Einstellungen** (`4T-002098`, `4T-002107`).
+  `calSysInt` (`settings-calendar-model.js`) nimmt jede Ziffernfolge an, deren
+  Wert eine sichere ganze Zahl ist; neu `zeigeBereichMitFehler`
+  (`settings-mount.js`), von `applySettingsPage` bei einem Fehler aufgerufen;
+  die Prüfschleife überspringt einen Bereich mit Änderungs-Erkennung, der
+  keine Änderung meldet (vorher erhoben: keine Bereichs-Prüfung liest den
+  Entwurf eines anderen Bereichs, die Bereiche mit geteiltem Entwurf bleiben
+  zusammenpassend). Die Prüfung eines Bereichs liegt in einer Hilfsfunktion,
+  die das Anwenden und die neue Neubewertung `reevaluateSettingsErrors`
+  (`settings-page.js`) teilen; diese läuft bei jeder Entwurfs-Änderung nur für
+  Bereiche mit Meldung. Prüfdatei
+  `renderer/kalender-pflege-zahlgrenze.test.js` (17 Fälle zur Grenze, fünf zur
+  Neubewertung).
+- **Sprung, Zustand und Zähl-Form der Suche** (`4T-002099`, `4T-002107`,
+  `4T-002113`). Gemeinsamer Helfer `rolleZurFundstelleInDerLeseAnsicht`
+  (`search-jump.js`) für Handbuch- und Bereichs-Sprung; der Zustand
+  `angesprungen` und die reine Funktion `vorwaertsZiel` (`search-run.js`) für
+  die erste Eingabetaste; der Markier-Weg der Bereichs-Suche
+  (`markiereOffeneDatei`, `search-area.js`) bewegt nur noch auf Anforderung,
+  `halteSprungImEditor` rollt nach dem Aktivieren des Ziel-Dokuments erneut;
+  die gemeinsame Form-Regel `zaehlForm` (`search-panel.js`); `berichtSchluessel`
+  (`search-ersetzen.js`) wählt die Texte des Berichts nach Aufrufer. Der
+  Zuwachs in `search.js` ist ausgeglichen (720 Code-Zeilen, wie eingefroren).
+  Treffer-Regeln und Kontur in `dialoge-und-suche.css` (`4T-002113`,
+  `4T-002125`). Neue Ablauf-Datei `suche-dokument.spec.js` (`SD-01`, `SD-02`),
+  neue Fälle `SH-06`, `SH-08`, `SE-05`, `BS-08` bis `BS-11`, fortgeschrieben
+  `SH-07`, zwei Fälle `BS-05` und die Gegenprobe `4t-0904-b10.spec.js`;
+  Unit-Fälle in `such-ersetzen.test.js` und den Prüfdateien der Suche.
+- **Beschriftung der Seitenleiste über den Übersetzungs-Mechanismus**
+  (`4T-002125`). Die Panel-Köpfe tragen die Schlüssel für Kurzhinweis,
+  Vorlese-Text und, nur im Text-Zustand, den sichtbaren Text
+  (`panel-sections.js`), ebenso die Knöpfe zum Ein- und Ausklappen
+  (`sidebar-collapse.js`); die Trefferliste zeichnet sich beim Ereignis des
+  Sprachwechsels neu (`search-panel.js`). Ein Neubau der Seitenleiste ist
+  verworfen, weil er gemessen Tastatur-Fokus und Roll-Lage kostet.
+  Ablauf-Fälle `SP-03` und `SP-04` in `such-panel.spec.js`.
+- **Eigene Panel-Texte und Panel-Zustand beim Sprachwechsel, Such-Sprung vor
+  der Eingabe-Drossel** (`4T-002129`). Zwei neue Helfer-Module:
+  `panels/panel-sprache.js` merkt Schlüssel und Werte zusammengesetzter
+  Panel-Texte und setzt sie beim Sprachwechsel neu, ohne das Panel neu
+  aufzubauen (Erinnerungen, Datei-Graph, Bereich, Buch, Block-Eigenschaften);
+  `panels/panel-rolllage.js` hält die Roll-Lage über einen asynchronen Neuaufbau
+  desselben Inhalts (Tag-Liste). Feste Panel-Texte tragen das
+  Übersetzungs-Merkmal; die Canvas-Liste zeichnet sich beim Ereignis des
+  Sprachwechsels aus ihrem Stand neu; der Platzhalter der Notizen sitzt in einem
+  eigenen Compartment des Editors; das Inhaltsverzeichnis (`panel-outline.js`)
+  rollt nur bei einem Wechsel des aktiven Eintrags; die Eigenschaften geben Fokus
+  und Auswahl ins selbe Feld zurück (`properties-fields.js`). In der Suche führen
+  Vorwärts- und Rückwärts-Sprung einen ausstehenden Lauf der Eingabe-Drossel
+  vorher aus (`stoppeEingabeDrossel`, `search-run.js`), und ein Eingabe-Ereignis
+  mit unverändertem Begriff plant keinen Lauf; `search.js` ohne Zuwachs. Keine
+  neuen und keine geänderten Sprach-Schlüssel; die Zählung unter «i18n» bleibt.
+  Modul-Karte und Designentscheidungen der Architektur um beide Helfer und die
+  Regel «ein Sprachwechsel kostet kein Panel Inhalt, laufende Eingabe, Fokus
+  oder Roll-Lage» fortgeschrieben. Ablauf-Fälle `SP-05`, `SP-06`, `SP-07` in
+  `such-panel.spec.js` und `SD-03` (zwei Fälle) in `suche-dokument.spec.js`;
+  Unit-Fälle in `such-raum.test.js` und `sidebar-collapse.test.js`. Die
+  Umsetzung liegt im selben Commit wie der erste Änderungsprotokoll- und
+  Anwender-Text-Anteil des Epics aus dem Abschluss-Task `4T-001876`.
+- **Karten und Grenzen nachgezogen** (`4T-001874`, `4T-001875`, `4T-002097`).
+  Abdeckungs-Matrix mit den neuen Einträgen `S-159` (Kurz-Beschreibung des
+  Kommandos) und `F-341` (Katalog-Zeile), beide um die Prüfdatei der Übernahme
+  ergänzt; Karte der Prüf-Ausschnitte um die neue Prüfdatei des gemeinsamen
+  Moduls; eingefrorene Zeilen-Budgets der beiden Kommando-Registries mit
+  Begründung angehoben (`commands.js` 1911 → 1921, `app-commands.js` 595 →
+  601, je ein Registry-Eintrag); Modul-Karte der Architektur um beide neuen
+  Module.
+- **Messung vor dem Bau** (`4T-001716`, Schritt 0): Das Verhalten vor der
+  Änderung ist am 2026-10-07 an einem temporären Bau mit echten
+  Tastatur-Ereignissen an 46 Mess-Punkten gemessen worden, 38 bestätigten den
+  Bestands-Befund des Epics, und dass Umschalt+Enter sonst keine Wirkung hat,
+  die mit dem Kommando verloren ginge, ist an sieben Orten gemessen.
+- **Eine Heimat der eigenen Eingabe-Behandlung in Listen** (`4T-001716`,
+  `4T-001862`, `4T-001977`). Neu
+  `src/renderer/modules/editor/editor-list-enter.js` mit dem Kommando
+  `runListLineBreak`, dem Aufräumen leer gebliebener Folgezeilen
+  (`runListBreakBackspace`, `runListBreakEnterCleanup`) und `runListEnter` für
+  die Eingabetaste, eingehängt als Belegung `listEnterKeymap` mit höchstem
+  Vorrang hinter Schreibschutz-Wache und Listen-Ausstieg, im Haupt-Editor und
+  im Notiz-Feld (`editor.js`); im Notiz-Feld ist dazu `listExitKeymap`
+  eingehängt. Der Handler lehnt Schreibschutz, Auswahl, Code- und
+  Tabellen-Zeilen selbst ab und überlässt alle nicht benannten Fälle der
+  eingekauften Fortsetzung von `lang-markdown`. Für das Kästchen in
+  nummerierten Aufgaben-Listen erzeugt diese den neuen Punkt; ihr `dispatch`
+  wird abgefangen und ihre Transaktion zusammen mit dem Kästchen als eine
+  hinausgegeben, sodass Nummer, Trenner `)`, Einrückung, Nummern-Nachzug und
+  lockere Listen ihre Sache bleiben.
+- **Blatt-Modul `editor-code-zeile.js`** (`4T-001716`, `4T-001862`) mit
+  `lineInsideCodeBlock` und `isTableContextLine` (Re-Export am alten Ort): Der
+  Import aus `editor-keymaps.js` hätte das neue Modul in die eingefrorene
+  Zyklus-Komponente des Anzeige-Prozesses gezogen. Die Verbraucher lesen jetzt
+  vom Blatt, und die Zyklus-Ratsche `scripts/ordner-import-ausnahme.json` sinkt
+  um eine Datei.
+- **Erkennungen und Rechnungen im Struktur-Kern**
+  `src/shared/markdown/list-outline.js` (`4T-001716`, `4T-001862`,
+  `4T-001977`): `parseListItemHead` (Einrückung, Marker `-`, `*`, `+`, `1.` und
+  `1)`, Kästchen, Inhalts-Spalte) und `hardBreakStart` für den unmaskierten
+  Rückstrich am Zeilenende, dazu `firstSubItem`, `hasContinuationLine`,
+  `nextSiblingIndex`, `buildListMarker`, `renumberSiblings` und `parentItem`.
+  `LIST_LINE_RE` und `parseListLine` sind unverändert, weil Einrücken,
+  Verschieben und Nummerierung auf ihnen stehen. Die Einzugs-Rechnung
+  `src/shared/haengender-einzug.js` liest die neue Erkennung; die
+  Marker-Erkennung `parseMarkerSegments` (`src/shared/tasks/task-markers.js`)
+  rechnet den Rückstrich zum Zeilen-Ende; das Aufgaben-Plugin
+  `src/shared/markdown/plugins/tasks.js` liest die Marker aus der ersten Zeile
+  des Punkts; `applyListIndent` nimmt im zeilenweisen Rückfall die Folgezeilen
+  mit.
+- **Kommando und Tasten-Verwaltung** (`4T-001716`): `list.lineBreak` im
+  Register `commands.js` mit Vorgabe `Shift+Enter` und Eintrag in
+  `EDITOR_COMMAND_FUNCTIONS`; `Shift+Enter` steht nicht mehr in
+  `FIXED_BINDINGS`, und `isBindingCapturable` lässt genau diese Kombination als
+  benannte Ausnahme zu (`command-bindings.js`). Eingefrorenes Zeilen-Budget von
+  `commands.js` angehoben (1941 → 1951).
+- **Live-Ansicht** (`4T-001716`): Verborgen wird der Rückstrich über den
+  Parser-Knoten `HardBreak` in `live-pass-lezer.js`; die Lage unter dem
+  gezeichneten Kästchen gleicht eine Stilregel in `footnotes.css` aus
+  (`3ch - 1rem - 2px`, beim Status-Kästchen `0.85rem`), für die Folgezeilen
+  über eine Zeilen-Klasse aus `live-pass-tasks.js`.
+- **Prüffälle und Karten** (`4T-001716`, `4T-001862`, `4T-001977`,
+  `4T-001717`): neue Prüfdateien `renderer/listen-zeilenumbruch.test.js` (42
+  Fälle an echter EditorView, beide Editoren) und
+  `renderer/listen-eingabetaste.test.js` (59 Fälle, je Fall die Task-Nummer),
+  Erweiterungen in `list-outline.test.js`, `haengender-einzug.test.js`,
+  `task-markers.test.js`, `commands.test.js` (samt drei Konflikt-Fällen für
+  das Kürzel) und ein Fall in `render/snapshots.test.js` mit der Render-Fixture
+  `listen-zeilenumbruch.md`; Ablauf-Fälle `ZU-02` bis `ZU-06` in
+  `zeilenumbruch.spec.js` und `LE-01` bis `LE-03` in
+  `listen-eingabetaste.spec.js`. Abdeckungs-Matrix mit den neuen Einträgen
+  `S-160` (Kürzel-Beschreibung) und `F-344` (Katalog-Zeile), `F-236` um beide
+  neuen Prüfdateien ergänzt; Gruppen-Zuordnung `HELP_FEATURE_GROUPS` und
+  Kern-Liste der Funktions-Seite um die neue Katalog-Zeile.
+
 ## [1.146.2.3736] - 2026-10-08 — Ordner im Lesezeichen-Panel
 
 Zug 3E-000351

@@ -27,6 +27,7 @@ import {
   epochOf,
   cycleAt,
   formatTuple,
+  writesEpochLabel,
   parseCanonical,
   convertBetween,
   findCalendarByName,
@@ -264,6 +265,10 @@ function labelFor(level, seg) {
 
 // Kopf-Beschriftung der Gitter-Einheit: benannte Einheit + Anzeige-Jahr
 // (+ Epochen-Kuerzel ausserhalb der letzten Epoche).
+// 4T-001999 (Epic 3E-000307): Ob das Kürzel steht, entscheidet dieselbe
+// Kern-Regel wie in der kanonischen Form (writesEpochLabel), damit Kopf und
+// geschriebener Wert nie auseinanderlaufen; mit dem Kennzeichen
+// alwaysWriteEpoch steht es auch in der letzten Epoche.
 function unitLabel(cal, tuple) {
   const timeCount = timeCountOf(cal);
   const top = cal.levels.length - 1;
@@ -274,7 +279,7 @@ function unitLabel(cal, tuple) {
     parts.push(labelFor(cal.levels[i], tuple[tuplePos(cal, i)]));
   }
   let yearPart = ep ? String(ep.year) : String(tuple[0]);
-  if (ep && ep.index < cal.epochs.length - 1) {
+  if (ep && writesEpochLabel(cal, ep.index)) {
     yearPart += ` ${cal.epochs[ep.index].abbr || cal.epochs[ep.index].name || `#${ep.index + 1}`}`;
   }
   parts.push(yearPart);
@@ -781,7 +786,9 @@ function anchorForPos(view, pos) {
   return { x: rect.left + 40, y: rect.top + 40 };
 }
 
-function applyResult(view, from, to, text) {
+// 4T-002097 (Epic 3E-000323): exportiert, weil «Einfügen» im Dialog «Datum
+// umrechnen» denselben Schreibweg nimmt.
+export function applyResult(view, from, to, text) {
   // Programmatischer Dispatch wird von EditorState.readOnly nicht
   // blockiert — expliziter Guard (Muster date-picker.js).
   if (view.state.readOnly) return;
@@ -795,8 +802,9 @@ function applyResult(view, from, to, text) {
 }
 
 // Quelltext-Form eines Picker-Ergebnisses (kanonischer Wert mit
-// Kalender-Nennung).
-function resultToSource(result) {
+// Kalender-Nennung); auch die Form, die der Dialog «Datum umrechnen» kopiert
+// und einfügt (4T-002097).
+export function resultToSource(result) {
   return `@{${result.calendarName}: ${result.text}}`;
 }
 

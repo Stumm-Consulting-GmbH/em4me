@@ -97,6 +97,8 @@ describe('Registry-Invarianten', () => {
   // 4T-001682 (Epic 3E-000287): plus insert.canvas, die leere Canvas-Fläche —
   // ein Einfüge-Kommando wie seine Nachbarn und deshalb ebenfalls an die
   // CodeMirror-View gebunden.
+  // 4T-001716 (Epic 3E-000301): plus list.lineBreak, der Zeilenumbruch im
+  // Listenpunkt.
   it('editorScoped-Kommandos sind Fold, Format/Link, Absatz, Einfügen, Tabelle und Liste', () => {
     const scoped = COMMANDS.filter((c) => c.editorScoped)
       .map((c) => c.id)
@@ -123,6 +125,7 @@ describe('Registry-Invarianten', () => {
       'insert.table',
       'link.insertExternal',
       'link.insertWiki',
+      'list.lineBreak',
       'list.moveDown',
       'list.moveUp',
       'list.selectSubtree',
@@ -333,6 +336,16 @@ describe('isBindingCapturable (Sperr-Regel)', () => {
     expect(isBindingCapturable('')).toBe(false);
   });
 
+  // 4T-001716 (Epic 3E-000301, E9): Umschalt+Eingabe ist die eine benannte
+  // Ausnahme — umbelegbare Vorgabe des Zeilenumbruchs im Listenpunkt.
+  it('Umschalt+Eingabe ist als einzige Umschalt-Kombination ohne Strg/Alt zulässig', () => {
+    expect(isBindingCapturable('Shift+Enter')).toBe(true);
+    expect(isBindingCapturable('Shift+Return')).toBe(true);
+    expect(isBindingCapturable('Shift+Tab')).toBe(false);
+    expect(isBindingCapturable('Shift+Space')).toBe(false);
+    expect(isBindingCapturable('Shift+Escape')).toBe(false);
+  });
+
   it('alle Registry-Defaults bestehen die Sperr-Regel', () => {
     for (const cmd of COMMANDS) {
       for (const binding of cmd.defaultBindings) {
@@ -386,7 +399,7 @@ describe('findBindingConflict', () => {
       type: 'fixed',
       descKey: 'help.shortcut.tabIndent',
     });
-    expect(findBindingConflict(draft(), 'search.open', 'Shift+Enter')).toEqual({
+    expect(findBindingConflict(draft(), 'search.open', 'Enter')).toEqual({
       type: 'fixed',
       descKey: 'help.shortcut.searchNavEnter',
     });
@@ -408,6 +421,30 @@ describe('findBindingConflict', () => {
         expect(dicts[lang][fixed.descKey], `${lang}: ${fixed.descKey}`).toBeTruthy();
       }
     }
+  });
+
+  // 4T-001716 (Epic 3E-000301, E9): Umschalt+Eingabe ist keine feste Belegung
+  // mehr, sondern die Vorgabe von list.lineBreak.
+  it('Umschalt+Eingabe ist keine feste Belegung mehr', () => {
+    expect(FIXED_BINDINGS.some((f) => normalizeBinding(f.binding) === 'Shift+Enter')).toBe(false);
+    expect(findBindingConflict(draft(), 'list.lineBreak', 'Shift+Enter')).toBeNull();
+  });
+
+  it('Umschalt+Eingabe kollidiert mit der Vorgabe des Zeilenumbruchs', () => {
+    expect(findBindingConflict(draft(), 'search.open', 'Shift+Enter')).toEqual({
+      type: 'command',
+      commandId: 'list.lineBreak',
+    });
+  });
+
+  it('nach dem Umbelegen ist Umschalt+Eingabe wieder frei und zuweisbar', () => {
+    const d = draft();
+    d['list.lineBreak'] = 'Ctrl+Alt+Enter';
+    expect(findBindingConflict(d, 'search.open', 'Shift+Enter')).toBeNull();
+    expect(findBindingConflict(d, 'search.open', 'Ctrl+Alt+Enter')).toEqual({
+      type: 'command',
+      commandId: 'list.lineBreak',
+    });
   });
 
   it('Ueberschreiben-Semantik: anderes Kommando freiraeumen loest den Konflikt', () => {

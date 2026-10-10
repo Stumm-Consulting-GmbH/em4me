@@ -85,6 +85,7 @@ import {
   renderActiveSection,
   renderActiveSectionError,
   settingsPageEls,
+  zeigeBereichMitFehler,
 } from './settings-mount.js';
 import {
   applyProfilesSection,
@@ -173,7 +174,13 @@ function closeSettingsTab() {
 //   validate  optional; prüft den Entwurf des Bereichs und liefert bei
 //             Ablehnung einen lokalisierten Fehlertext (String), sonst
 //             null. Ein Fehler markiert den Bereich in der Navigation
-//             und blockiert Anwenden/OK seitenweit.
+//             und blockiert Anwenden/OK seitenweit; die Seite wechselt
+//             dann zu einem Bereich mit Fehler und zeigt dessen Text
+//             (4T-002098). Hat der Bereich einen dirty-Hook, wird nur
+//             geprüft, solange er eine Änderung meldet. Eine so ermittelte
+//             Auskunft wird nach jeder Entwurfs-Änderung neu bewertet
+//             (4T-002107, reevaluateSettingsErrors); der Haken muss deshalb
+//             frei von Seiteneffekten sein.
 //   apply     optional; persistiert den Bereichs-Entwurf (läuft erst,
 //             wenn ALLE Bereiche validiert sind — ein halber Apply wäre
 //             verwirrender als ein abgelehnter, Muster des Modals).
@@ -543,21 +550,69 @@ export function isSettingsPageDirty() {
   return settingsSections().some((s) => typeof s.dirty === 'function' && !!s.dirty(draft));
 }
 
+// --- Fehler-Auskunft der Bereiche -------------------------------------------------
+// Fehlertext eines Bereichs so, wie ihn das Anwenden ermittelt, oder null.
+// 4T-002098 (Epic 3E-000323, E3): Geprüft wird, was angewendet würde. Ein
+// Bereich mit Änderungs-Erkennung, der keine Änderung meldet, schreibt beim
+// Anwenden nichts (der dirty-Hook spiegelt genau das); ein unverändert
+// geladener Stand, den seine Pflege ablehnen würde, hielt sonst das Anwenden
+// jeder anderen Änderung an. Ohne Änderungs-Erkennung wird weiterhin immer
+// geprüft. 4T-002107: Eine Funktion für beide Wege (Anwenden und
+// Neubewertung), damit die Auskunft nach einer Eingabe nie anders lautet als
+// beim nächsten Anwenden.
+function sectionError(section, draft) {
+  if (typeof section.validate !== 'function') return null;
+  if (typeof section.dirty === 'function' && !section.dirty(draft)) return null;
+  return section.validate(draft) || null;
+}
+
+// 4T-002107 (Epic 3E-000323): Die beim Anwenden ermittelte Fehler-Auskunft
+// gilt nur für den Zustand, für den sie ermittelt wurde. Nach jeder Entwurfs-
+// Änderung wird sie für die Bereiche neu bewertet, die gerade eine tragen:
+// Ein wieder gültiger oder auf den geladenen Stand zurückgestellter Bereich
+// verliert Meldung und Markierung sofort, ein weiter ungültiger zeigt den
+// jetzigen Fehler. Bereiche ohne Auskunft bleiben unberührt — vor dem ersten
+// Anwenden mit Fehler bleibt die Seite also still («im Entwurf weich, beim
+// Anwenden hart»), und die Kosten fallen nur bei einer offenen Auskunft an.
+// Ein Bereich, der inzwischen nicht mehr in der Registry steht (Erweiterung
+// abgeschaltet), verliert seine Auskunft, weil das Anwenden ihn nicht prüft.
+// Liefert true, wenn sich die Auskunft geändert hat (Navigation und
+// Fehler-Zeile müssen dann nachziehen).
+export function reevaluateSettingsErrors() {
+  const draft = pageState.draft;
+  if (!draft || pageState.errors.size === 0) return false;
+  let changed = false;
+  for (const [id, previous] of [...pageState.errors]) {
+    const section = sectionById(id);
+    const error = section ? sectionError(section, draft) : null;
+    if (error === previous) continue;
+    changed = true;
+    if (error) pageState.errors.set(id, error);
+    else pageState.errors.delete(id);
+  }
+  return changed;
+}
+
 // --- Apply/OK/Abbrechen (seitenweit, Semantik des Modals) ----------------------
-// Erst ALLE Bereiche validieren (Fehler markieren die Navigation und
-// blockieren komplett), dann alle apply-Hooks in Registry-Reihenfolge.
+// Erst ALLE Bereiche validieren (Fehler markieren die Navigation, führen zum
+// Bereich mit Fehler und blockieren komplett), dann alle apply-Hooks in
+// Registry-Reihenfolge.
 export async function applySettingsPage() {
   if (!pageState.draft) return false;
   cancelHotkeyCapture();
   pageState.errors = new Map();
   for (const section of settingsSections()) {
-    if (typeof section.validate !== 'function') continue;
-    const error = section.validate(pageState.draft);
+    const error = sectionError(section, pageState.draft);
     if (error) pageState.errors.set(section.id, error);
   }
   refreshSettingsNav();
   renderActiveSectionError();
-  if (pageState.errors.size > 0) return false;
+  if (pageState.errors.size > 0) {
+    // 4T-002098 (Epic 3E-000323): Nie still nicht wirken — die Seite führt zum
+    // Bereich mit dem Fehler, dessen Text dann unter dem Inhalt steht.
+    zeigeBereichMitFehler();
+    return false;
+  }
   for (const section of settingsSections()) {
     if (typeof section.apply === 'function') await section.apply(pageState.draft);
   }

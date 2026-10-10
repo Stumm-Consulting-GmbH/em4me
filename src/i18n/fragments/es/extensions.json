@@ -1,6 +1,6 @@
 {
   "extension.custom-calendars.name": "Sistemas de calendario",
-  "extension.custom-calendars.description": "Cronologías libremente definibles por área: mantenimiento en los ajustes, selector y valores de calendario en el documento. Desactivada, los valores quedan como texto sin formato.",
+  "extension.custom-calendars.description": "Cronologías libremente definibles por área: mantenimiento en los ajustes, selector, conversión entre los calendarios de un bloque y valores de calendario en el documento. Desactivada, los valores quedan como texto sin formato.",
   "extension.command-placement.name": "Colocación de comandos",
   "extension.command-placement.description": "Botones de comando propios en la barra de estado, una lista de ocultación para los botones predeterminados, una sección personalizada en el menú contextual del editor y macros como secuencias de comandos.",
   "extension.reminders.name": "Recordatorios",

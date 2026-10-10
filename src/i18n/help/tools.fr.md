@@ -34,6 +34,8 @@ Un clic droit sur un mot signalé ouvre le menu contextuel de l'éditeur avec ju
 
 Les mots ainsi ajoutés figurent sous Paramètres → Correcteur orthographique et peuvent y être supprimés individuellement.
 
+Dans la [version portable](portable-version.md), l'ajout et la suppression ne sont pas proposés, car tous deux écriraient dans le dictionnaire du système d'exploitation et donc en dehors de son dossier de données ; les suggestions et le remplacement restent disponibles.
+
 ### Limite
 
 La syntaxe Markdown, les chemins et le code sont vérifiés eux aussi, car le correcteur voit le texte mot à mot et ignore le balisage. C'est la raison pour laquelle la vérification est désactivée par défaut.

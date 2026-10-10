@@ -164,6 +164,16 @@ function readDocFrontmatter(doc) {
 // Setzt die is-active-Klasse auf dem Outline-Eintrag, der die aktuell aktive
 // Heading-Zeile traegt. Aktive Zeile wird ueber state.outline.activeLineByPane
 // gehalten; aufruf nach Cursor-/Scroll-Sync oder Outline-Rerender.
+//
+// 4T-002129: Mitgeführt wird die Liste nur, wenn ein ANDERER Eintrag aktiv
+// wird — anderes Dokument oder andere Überschrift. Ein Neuaufbau der Liste mit
+// demselben aktiven Eintrag (Sprachwechsel, Tippen im selben Abschnitt,
+// Neuzeichnen der Spalte) lässt die Roll-Lage stehen, die der Anwender gewählt
+// hat. Vorher holte jeder Neuaufbau den aktiven Eintrag zurück ins Bild;
+// gemessen sprang das Inhaltsverzeichnis beim Sprachwechsel von 800 auf 4
+// Pixel, auch bei einem Wechsel im anderen Fenster.
+const gezeigterEintrag = [];
+
 export function applyOutlineActiveHighlight(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.outlineTree) return;
@@ -177,7 +187,12 @@ export function applyOutlineActiveHighlight(paneIdx) {
   });
   if (activeEntry) {
     activeEntry.classList.add('is-active');
-    if (typeof activeEntry.scrollIntoView === 'function') {
+    const pane = state.panes[paneIdx];
+    const tab = pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+    const vorher = gezeigterEintrag[paneIdx];
+    const neu = !vorher || vorher.tab !== tab || vorher.line !== activeLine;
+    gezeigterEintrag[paneIdx] = { tab, line: activeLine };
+    if (neu && typeof activeEntry.scrollIntoView === 'function') {
       const rect = activeEntry.getBoundingClientRect();
       const body = activeEntry.closest('.sidebar-section-body');
       if (body) {
@@ -367,6 +382,11 @@ export function applyOutlineVisibility(paneIdx) {
   // aktive Datei). Zwangsweise unsichtbar, persistierte Preference bleibt
   // unveraendert und greift wieder, sobald ein Tab offen ist.
   const outlineVisible = !isAllEmpty() && !!state.outline.visibleByPane[paneIdx];
+  // 4T-002129: Wird das Panel eingeblendet, holt es den aktiven Eintrag wie
+  // bisher ins Bild (Merker zurücksetzen, siehe applyOutlineActiveHighlight).
+  if (outlineVisible && els.outlineSection && els.outlineSection.hidden) {
+    gezeigterEintrag[paneIdx] = null;
+  }
   if (els.outlineSection) els.outlineSection.hidden = !outlineVisible;
   applySidebarVisibility(paneIdx);
   if (outlineVisible) {

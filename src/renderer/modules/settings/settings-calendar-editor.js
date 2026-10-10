@@ -16,7 +16,9 @@ import {
   buildCalSysGroupEditors,
   buildCalSysLevelEditor,
   buildCalSysLevelSelect,
+  buildCalSysNameCell,
   buildCalSysNumCell,
+  buildCalSysPluralInput,
   buildCalSysSegRow,
 } from './settings-calendar-parts.js';
 import { renderActiveSection } from './settings-mount.js';
@@ -50,13 +52,20 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
   group.appendChild(head);
 
   // 4T-000747: Dauerhafter Hinweis auf die Abhängigen, damit vor einer
-  // Änderung sichtbar ist, dass sie mitwandern.
+  // Änderung sichtbar ist, dass sie mitwandern. 4T-002065 (Epic 3E-000307):
+  // eigene Einzahl-Fassung bei genau einer Ableitung. Der bisherige Schlüssel
+  // trägt weiter die Mehrzahl und wird nicht umbenannt, weil eigene
+  // Sprachdateien der Anwender ihn übersetzt haben; die Einzahl steht daneben.
   const dependents = calSysDependents(block, calDraft);
   if (dependents.length > 0) {
     const dep = document.createElement('p');
     dep.className = 'settings-row-hint';
     dep.id = `settings-calsys-cal-dependents-${calIdx}`;
-    dep.textContent = t('settings.calendar.derivedHint')
+    const key =
+      dependents.length === 1
+        ? 'settings.calendar.derivedHintOne'
+        : 'settings.calendar.derivedHint';
+    dep.textContent = t(key)
       .replace('{count}', String(dependents.length))
       .replace('{names}', dependents.join(', '));
     group.appendChild(dep);
@@ -115,6 +124,12 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
   levelsHeading.className = 'settings-export-group-title';
   levelsHeading.textContent = t('settings.calendar.levelsGroup');
   group.appendChild(levelsHeading);
+  // 4T-001863 (Epic 3E-000307): Hinweis auf Einzahl und Mehrzahl der Namen.
+  const pluralHint = document.createElement('p');
+  pluralHint.className = 'settings-row-hint';
+  pluralHint.id = `settings-calsys-plural-hint-${calIdx}`;
+  pluralHint.textContent = t('settings.calendar.namePluralHint');
+  group.appendChild(pluralHint);
   calDraft.levels.forEach((level, levelIdx) => {
     buildCalSysLevelEditor(group, calDraft, level, levelIdx, calIdx, refresh);
   });
@@ -128,6 +143,7 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
     calDraft.levels.push({
       id: calSysNextId('ebene', taken),
       name: '',
+      namePlural: '',
       section: calDraft.levels.length ? calDraft.levels[calDraft.levels.length - 1].section : '',
       start: '1',
       relType: 'factor',
@@ -233,6 +249,23 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
     renderActiveSection();
   });
   group.appendChild(epochAdd);
+  // 4T-001999 (Epic 3E-000307): Kennzeichen «Kürzel der Epoche immer
+  // schreiben» (Weg A der Plan-Freigabe: sichtbar und schaltbar, damit eine
+  // Vorlage keinen verborgenen Zustand trägt). Die Vorschau folgt sofort.
+  const epochAlways = document.createElement('input');
+  epochAlways.type = 'checkbox';
+  epochAlways.id = `settings-calsys-epoch-always-${calIdx}`;
+  epochAlways.checked = calDraft.alwaysWriteEpoch === true;
+  epochAlways.addEventListener('change', () => {
+    calDraft.alwaysWriteEpoch = epochAlways.checked;
+    refresh();
+  });
+  group.appendChild(buildSettingsRow('settings.calendar.epochAlways', epochAlways));
+  const epochAlwaysHint = document.createElement('p');
+  epochAlwaysHint.className = 'settings-row-hint';
+  epochAlwaysHint.id = `settings-calsys-epoch-always-hint-${calIdx}`;
+  epochAlwaysHint.textContent = t('settings.calendar.epochAlwaysHint');
+  group.appendChild(epochAlwaysHint);
 
   // Eigenständige Zyklen (Woche).
   const cyclesHeading = document.createElement('h4');
@@ -243,12 +276,13 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
     const box = document.createElement('div');
     box.className = 'settings-calsys-level';
     const headRow = document.createElement('div');
-    headRow.className = 'settings-calsys-level-head';
+    // 4T-001863 (Epic 3E-000307): Die beschrifteten Namens-Zellen sind höher als
+    // der Knopf; die Kopfzeile richtet ihn deshalb an den Feldern aus.
+    headRow.className = 'settings-calsys-level-head settings-calsys-cycle-head';
     const nameIn = document.createElement('input');
     nameIn.type = 'text';
     nameIn.id = `settings-calsys-cycle-${calIdx}-${cycleIdx}-name`;
     nameIn.className = 'settings-input';
-    nameIn.placeholder = t('settings.calendar.cycleName');
     nameIn.value = cycle.name;
     nameIn.addEventListener('input', () => {
       cycle.name = nameIn.value;
@@ -263,7 +297,18 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
       calDraft.cycles.splice(cycleIdx, 1);
       renderActiveSection();
     });
-    headRow.append(nameIn, del);
+    // 4T-001863 (Epic 3E-000307): Mehrzahl neben dem Zyklus-Namen, beide
+    // sichtbar beschriftet wie an den Ebenen statt nur über den Platzhalter.
+    const pluralIn = buildCalSysPluralInput(
+      `settings-calsys-cycle-${calIdx}-${cycleIdx}-plural`,
+      cycle,
+      refresh,
+    );
+    headRow.append(
+      buildCalSysNameCell('settings.calendar.cycleName', nameIn),
+      buildCalSysNameCell('settings.calendar.cycleNamePlural', pluralIn),
+      del,
+    );
     box.appendChild(headRow);
     const relRow = document.createElement('div');
     relRow.className = 'settings-calsys-level-rel';
@@ -348,6 +393,7 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
     calDraft.cycles.push({
       id: calSysNextId('zyklus', taken),
       name: '',
+      namePlural: '',
       of: calDraft.levels.length ? calDraft.levels[0].id : '',
       length: '',
       namesText: '',

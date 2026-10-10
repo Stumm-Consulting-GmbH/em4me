@@ -34,6 +34,8 @@ Ein Rechtsklick auf ein markiertes Wort öffnet das Editor-Kontextmenü mit bis 
 
 Die selbst aufgenommenen Wörter stehen unter Einstellungen → Rechtschreibprüfung und lassen sich dort einzeln wieder entfernen.
 
+In der [portablen Fassung](portable-version.md) werden Aufnahme und Entfernen nicht angeboten, weil beides in das Wörterbuch des Betriebssystems und damit außerhalb ihres Daten-Ordners schriebe; Vorschläge und Ersetzen bleiben.
+
 ### Grenze
 
 Markdown-Syntax, Pfade und Code werden mitgeprüft, weil der Prüfer den Text Wort für Wort sieht und die Auszeichnung nicht kennt. Das ist der Grund, aus dem die Prüfung ab Werk aus ist.

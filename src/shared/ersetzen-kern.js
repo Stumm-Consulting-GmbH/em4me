@@ -75,12 +75,22 @@ function ersetzungFuer(fund, { ersetzung, regexModus, muster, flags }) {
  * hineinragt, ist ein Auftrags-Fehler und wird gemeldet statt zurechtgebogen:
  * An dieser Stelle blind zu schreiben hieße, den Text des Anwenders zu raten.
  *
+ * **4T-002003 (Epic 3E-000307): Ersetzungs-Text je Fundstelle.** Das Sichern
+ * von Kalender-Werten beim Nachtragen einer Epoche schreibt jeden Wert in seine
+ * eigene neue Schreibweise; ein gemeinsamer Ersetzungs-Text mit Rückverweisen
+ * kann das nicht ausdrücken. Mit `ersetzungen` steht deshalb je Offset der
+ * Text, der den Fund dort ersetzt. Das Muster prüft weiterhin, dass an jedem
+ * Offset ein Fund beginnt — die Zusicherung, nie an einer geratenen Stelle zu
+ * schreiben, gilt für beide Formen.
+ *
  * @param {string} text Der Text, in dem die Offsets gelten.
  * @param {number[]} offsets Ausgewählte Fundstellen.
  * @param {object} opts muster, flags, ersetzung, regexModus.
+ * @param {string[]} [ersetzungen] Je Offset der Ersetzungs-Text, im Gleichschritt
+ *   mit `offsets`. Ohne Angabe gilt `opts.ersetzung` für alle Fundstellen.
  * @returns {{ok: true, text: string, anzahl: number}|{ok: false, grund: string}}
  */
-function wendeErsetzungenAn(text, offsets, opts) {
+function wendeErsetzungenAn(text, offsets, opts, ersetzungen) {
   let regex;
   try {
     if (!opts || typeof opts.muster !== 'string' || !opts.muster) throw new Error('leeres Muster');
@@ -88,6 +98,9 @@ function wendeErsetzungenAn(text, offsets, opts) {
   } catch (err) {
     return { ok: false, grund: 'muster', detail: err && err.message ? err.message : String(err) };
   }
+
+  const jeOffset = ersetzungen === undefined ? null : textJeOffset(offsets, ersetzungen);
+  if (jeOffset === false) return { ok: false, grund: 'offsetUngueltig' };
 
   const sortiert = [...new Set(offsets)].sort((a, b) => a - b);
   const gefunden = fundstellen(text, regex);
@@ -97,11 +110,29 @@ function wendeErsetzungenAn(text, offsets, opts) {
     const fund = gefunden.get(offset);
     if (fund === undefined || offset < gelesenBis) return { ok: false, grund: 'offsetUngueltig' };
     neu += text.slice(gelesenBis, offset);
-    neu += ersetzungFuer(fund, opts);
+    neu += jeOffset ? jeOffset.get(offset) : ersetzungFuer(fund, opts);
     gelesenBis = offset + fund.length;
   }
   neu += text.slice(gelesenBis);
   return { ok: true, text: neu, anzahl: sortiert.length };
+}
+
+// Die Zuordnung Offset -> Ersetzungs-Text, oder false bei einem Auftrag, der
+// sich nicht eindeutig lesen lässt: ungleiche Längen, ein Nicht-Text, derselbe
+// Offset mit zwei verschiedenen Texten. Wie beim Offset ohne Fund gilt: melden
+// statt raten. Derselbe Offset mit demselben Text ist dagegen eindeutig und
+// wird wie bisher zusammengefasst.
+function textJeOffset(offsets, ersetzungen) {
+  if (!Array.isArray(offsets) || !Array.isArray(ersetzungen)) return false;
+  if (ersetzungen.length !== offsets.length) return false;
+  const jeOffset = new Map();
+  for (let i = 0; i < offsets.length; i++) {
+    if (typeof ersetzungen[i] !== 'string') return false;
+    const bekannt = jeOffset.get(offsets[i]);
+    if (bekannt !== undefined && bekannt !== ersetzungen[i]) return false;
+    jeOffset.set(offsets[i], ersetzungen[i]);
+  }
+  return jeOffset;
 }
 
 module.exports = { baueSuchAusdruck, fundstellen, ersetzungFuer, wendeErsetzungenAn };

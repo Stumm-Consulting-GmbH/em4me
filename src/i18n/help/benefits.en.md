@@ -121,8 +121,9 @@ Anyone who works with a program for long enough shapes it: colours, keyboard sho
 - **A sixth language: your own.** Translate a template, load it in, pick it in the status bar; whatever is missing from it appears in English instead of as a raw key.
 - **Every container in one place**: entered by hand rather than collected automatically, with figures and the moment those figures were taken.
 - **Nothing happens behind your back**: no drive is scanned, and no import writes anything before you have confirmed.
+- **The whole working environment in one folder**: the portable version keeps settings, session and drafts in the folder next to the program; anyone who copies it onto a USB stick works on any computer with their own setup.
 
-In detail: [Exporting and importing settings](setup-exchange.md), [Your own interface language](custom-locale.md), [My Extended Memory](my-extended-memory.md).
+In detail: [Exporting and importing settings](setup-exchange.md), [Your own interface language](custom-locale.md), [My Extended Memory](my-extended-memory.md), [Portable version](portable-version.md).
 
 ## Tables that hold more than a line
 
@@ -189,6 +190,7 @@ Beyond the four large constructs, the language brings more than fifty extensions
 - **Presentation** with formulas, diagrams and highlighted code; on a portable export a diagram travels along as a finished image and is visible even where EM4me is not installed.
 - **References within the text** through anchors, embeds and tags.
 - **The working day** with tasks, reminders, events, templates and journals.
+- **Dates in other calendars**: nine bundled calendars, from the Julian through the Hijri to the Japanese, plus freely definable time reckonings of your own; dates in the same block convert into one another.
 - **Individually switchable** or bundled through three working modes, plus compositions of your own, and open to your own extensions through a documented interface.
 
 In detail: [Features](functions.md), [Extensions](extensions.md), [Creating extensions](extensions-dev.md).

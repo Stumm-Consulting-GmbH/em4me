@@ -7,10 +7,10 @@ Le estensioni esterne sono pacchetti creati da te che estendono il rendering e l
 
 ## Struttura del pacchetto
 
-Un pacchetto di estensione è una cartella nella directory delle estensioni del profilo utente. L'azione «Apri cartella» della sezione impostazioni Estensioni (esterne) apre la directory nel gestore file.
+Un pacchetto di estensione è una cartella nella directory delle estensioni dell'applicazione. Si trova insieme agli altri dati dell'applicazione: nella versione installata nel profilo utente, nella [versione portatile](portable-version.md) nella cartella `Data` accanto al programma. L'azione «Apri cartella» della sezione impostazioni Estensioni (esterne) apre la directory nel gestore file.
 
 ```text
-<profilo utente>/extensions/
+<dati dell'applicazione>/extensions/
 └── mia-estensione/
     ├── manifest.json     (obbligatorio: descrive il pacchetto)
     ├── main.js           (punto d'ingresso UI, modulo ES)

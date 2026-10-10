@@ -211,6 +211,10 @@ const NACH_DER_MESSUNG = new Set([
   // kennt. Ihre Regel misst der eigene Block am Ende dieser Datei.
   'chart.insert',
   'chart.edit',
+  // 4T-001874 (Epic 3E-000323): «Datum umrechnen», aus demselben Grund — es
+  // entsteht lange nach der Erhebung und trägt die neue Bedingung
+  // bereichUndKalender, die die eingefrorene alte Logik nicht kennt.
+  'calendar.convert',
 ]);
 
 // 4T-001765 (Epic 3E-000186, E6): Die drei Editor-Schalter, deren REGEL dieser

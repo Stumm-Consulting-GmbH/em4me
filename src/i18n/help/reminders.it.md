@@ -37,6 +37,8 @@ Quando un promemoria è dovuto, un dialogo lo segnala con la descrizione dell'at
 
 **In tutte le finestre.** Il dialogo compare in ogni finestra aperta dell'applicazione, anche nelle finestre di un'altra area, nelle finestre senza area e nelle finestre di libro e di libreria. Per questo ogni voce indica la sua provenienza, per esempio «Provenienza: Progetti»: l'area, il libro o la libreria da cui viene il promemoria. Completato, Ricordamelo più tardi e Chiudere agiscono sempre sul file di quella provenienza, da qualunque finestra vengano, e una sola volta: il promemoria scompare poi da tutte le finestre, e una seconda azione quasi contemporanea in un'altra finestra resta senza effetto e senza messaggio di errore. Se scadono più promemoria, ogni finestra li raccoglie in un unico dialogo. Una finestra aperta più tardi mostra anch'essa un promemoria ancora aperto.
 
+**Con modifiche non salvate.** Se il file dell'attività è aperto con modifiche non salvate, anche in una finestra diversa da quella in cui si fa clic o come documento che non è in primo piano, Completato e Ricordamelo più tardi agiscono su quello stato non salvato: la modifica compare lì nell'editor, il documento resta non salvato e arriva sul disco solo con il suo salvataggio, e il promemoria scompare come dopo qualsiasi altra azione. Spuntare un'attività e le altre azioni in una query di attività si comportano allo stesso modo (pagina [Liste di attività](tasks.md), sezione «Query di attività e riscrittura»).
+
 **Collegamento al file di origine.** Un clic sul nome del file apre il file alla riga dell'attività, nella finestra della sua area. Se la finestra in cui si è fatto clic mostra un'altra area o nessuna, la finestra dell'area di provenienza passa in primo piano e vi apre il file; se quell'area non è aperta, viene aperta. Il promemoria resta al suo posto: aprire il file non conta come gestirlo.
 
 ## Solo con l'applicazione in esecuzione
@@ -49,7 +51,7 @@ Con un'area aperta, l'applicazione controlla di continuo i marcatori di tutti i 
 
 Un pannello della barra laterale elenca tutti i promemoria dell'area, raggruppati in **In ritardo**, **Oggi**, **Domani** e **Più tardi**. Il pannello si apre tramite l'icona di sveglia della barra di stato o tramite Visualizza → Barra laterale → Pannelli → Promemoria.
 
-- Ogni voce offre le azioni dirette **Completato** e **Più tardi**.
+- Ogni voce offre le azioni dirette **Completato** e **Più tardi**; agiscono come nella finestra di promemoria, anche con modifiche non salvate.
 - Un clic su una voce apre il file di origine alla riga corrispondente.
 - Il nome del file di origine compare qui e nella finestra di notifica senza l'estensione Markdown; il suggerimento indica il percorso completo.
 - Il gruppo **In ritardo** comprende anche i promemoria silenziati e vi propone **Attiva di nuovo**.

@@ -22,6 +22,11 @@
 //                         { type: 'lengths', table: [n, …] }    Längen-Tabelle
 //                         { type: 'leap',    count, rules: [{ cycle }, …],
 //                           targetIndex, extra }                Schalt-Regel
+//                         { type: 'leap',    count, pattern: { cycle,
+//                           years: [n, …] }, targetIndex, extra }
+//                                            Schaltjahr-Muster (4T-002001,
+//                                            Epic 3E-000307; Rechnung und
+//                                            Regeln in calendar-leap.js)
 //                       Schalt-Regeln sind geschachtelte Zyklen mit
 //                       „letzter Treffer entscheidet"-Semantik (alle 4,
 //                       außer alle 100, außer alle 400: gerader Regel-Index
@@ -43,6 +48,13 @@
 //                       Zählung); letzte Epoche offen in die Zukunft. Grenzen
 //                       nahtlos per Konstruktion (Ende = Start der nächsten);
 //                       Jahres-Zählung je Epoche ab 1, kein Jahr 0.
+//         alwaysWriteEpoch  optional, nur als true vorhanden (4T-001999, Epic
+//                       3E-000307): die kanonische Form schreibt das Epochen-
+//                       Kürzel auch in der letzten Epoche, damit gespeicherte
+//                       Werte ihre Bedeutung behalten, wenn später eine
+//                       Epoche nachgetragen wird. Ohne Feld gilt die Regel
+//                       „Kürzel nur außerhalb der letzten Epoche"; eine
+//                       abgeleitete Zeitrechnung trägt es nie.
 //         blockAnchor Kalender-Zeitpunkt (volles Tupel), der auf Block-Achse 0
 //                       liegt (Default: Jahr 0, alle Segmente minimal)
 //         blockScale  { num, den } — Dauer der kleinsten Einheit in Block-
@@ -89,6 +101,10 @@
 // malformed | yearZero; convertInBlock zusätzlich unknownCalendar | outOfRange.
 'use strict';
 
+// 4T-002001 (Epic 3E-000307): Schalt-Regel (Teilbarkeits-Kette oder Muster)
+// in einem eigenen Blatt-Modul; es lädt nichts aus diesem Ordner.
+const { normalizeLeapRule, leapRuleInfo, isLeapYear, leapsBefore } = require('./calendar-leap.js');
+
 const MAX_SAFE = Number.MAX_SAFE_INTEGER;
 
 // Kompilierte Rechen-Daten je normalisiertem Kalender-Objekt (BigInt-Tabellen,
@@ -127,26 +143,6 @@ function toSafeNumber(v) {
 
 // --- Normalisierung ----------------------------------------------------------------
 
-// Schalt-Zyklen: nicht-leere Liste, streng aufsteigend, jeder Zyklus ein
-// Vielfaches des vorigen (nur so ist die „letzter Treffer entscheidet"-
-// Semantik eindeutig und die Jahres-Summe geschlossen berechenbar).
-function normalizeRules(raw) {
-  if (!Array.isArray(raw) || raw.length === 0) return null;
-  const rules = [];
-  for (const entry of raw) {
-    const cycle =
-      typeof entry === 'number' ? entry : entry && typeof entry === 'object' ? entry.cycle : null;
-    if (!isPosInt(cycle)) return null;
-    rules.push({ cycle });
-  }
-  for (let i = 1; i < rules.length; i++) {
-    if (rules[i].cycle <= rules[i - 1].cycle || rules[i].cycle % rules[i - 1].cycle !== 0) {
-      return null;
-    }
-  }
-  return rules;
-}
-
 function normalizeRel(raw) {
   if (!raw || typeof raw !== 'object') return null;
   if (raw.type === 'factor') {
@@ -158,15 +154,17 @@ function normalizeRel(raw) {
     return { type: 'lengths', table: raw.table.slice() };
   }
   if (raw.type === 'leap') {
-    const rules = normalizeRules(raw.rules);
-    if (!rules || !isPosInt(raw.count) || !isPosInt(raw.extra)) return null;
+    // 4T-002001 (Epic 3E-000307): Regel-Teil (Teilbarkeits-Kette oder Muster,
+    // genau eines) aus dem Schalt-Modul; die Feld-Reihenfolge bleibt.
+    const rule = normalizeLeapRule(raw);
+    if (!rule || !isPosInt(raw.count) || !isPosInt(raw.extra)) return null;
     if (!isInt(raw.targetIndex) || raw.targetIndex < 0 || raw.targetIndex >= raw.count) {
       return null;
     }
     return {
       type: 'leap',
       count: raw.count,
-      rules,
+      ...rule,
       targetIndex: raw.targetIndex,
       extra: raw.extra,
     };
@@ -180,6 +178,23 @@ function normalizeNames(raw) {
   if (!Array.isArray(raw) || raw.length === 0) return null;
   const names = raw.map((n) => cleanString(n));
   return names.every((n) => n !== '') ? names : null;
+}
+
+// 4T-001863 (Epic 3E-000307): Mehrzahl eines Einheiten-Namens (Ebene, Zyklus,
+// Gruppierung) als optionales Feld. Es entsteht nur mit Inhalt, damit
+// Definitionen ohne Mehrzahl Zeichen für Zeichen unverändert bleiben.
+function pluralField(raw) {
+  const namePlural = cleanString(raw);
+  return namePlural === '' ? {} : { namePlural };
+}
+
+// 4T-001863 (Epic 3E-000307): Namens-Form zu einer Anzahl — genau eine Einheit
+// trägt die Einzahl, jede andere Anzahl die Mehrzahl; ohne Mehrzahl gilt die
+// Einzahl. Bewusst ohne Plural-Regeln der Sprache: zwei Nomen-Formen genügen.
+function unitNameFor(unit, count) {
+  if (!unit) return '';
+  const plural = cleanString(unit.namePlural);
+  return count === 1 || plural === '' ? unit.name : plural;
 }
 
 // Wirbelsäule normalisieren; null = Kalender strukturell defekt.
@@ -198,6 +213,7 @@ function normalizeLevels(raw) {
     levels.push({
       id,
       name: cleanString(value.name) || id,
+      ...pluralField(value.namePlural),
       section: cleanString(value.section),
       start: isInt(value.start) ? value.start : 1,
       names: normalizeNames(value.names),
@@ -283,7 +299,7 @@ function compileSafe(cal) {
   }
   if (iLeap >= 0) {
     const rel = levels[iLeap].rel;
-    const cycles = rel.rules.map((r) => BigInt(r.cycle));
+    const rule = leapRuleInfo(rel);
     let yearBase;
     if (iLen >= 0) {
       const L = c.lengthsInfo;
@@ -292,17 +308,17 @@ function compileSafe(cal) {
       yearBase = BigInt(rel.count) * unitLen[iLeap - 1];
     }
     const extraLen = BigInt(rel.extra) * unitLen[iLeap - 2];
-    const period = cycles[cycles.length - 1];
+    const period = rule.period;
     const info = {
       count: rel.count,
-      cycles,
+      rule,
       targetIndex: rel.targetIndex,
       extra: rel.extra,
       yearBase,
       extraLen,
       period,
     };
-    info.periodLen = period * yearBase + leapsBeforeWith(cycles, period) * extraLen;
+    info.periodLen = period * yearBase + leapsBefore(rule, period) * extraLen;
     c.leapInfo = info;
   }
   // Stellen-Breiten der kanonischen Form: Ziffern des größten Anzeige-Werts
@@ -320,32 +336,17 @@ function compileSafe(cal) {
 }
 
 // --- Schalt-Rechnung ----------------------------------------------------------------
+// 4T-002001 (Epic 3E-000307): Schaltjahr-Auskunft und Anzahl der Schaltjahre
+// vor einem Jahr liegen im Schalt-Modul (calendar-leap.js), für beide Formen
+// der Regel hinter einer Schnittstelle.
 
-// Schalt-Instanz? Letzter treffender Zyklus entscheidet; gerader Regel-Index
-// = verlängert (alle 4 [ja], außer alle 100 [nein], außer alle 400 [ja]).
 function isLeapY(c, Y) {
-  const cycles = c.leapInfo.cycles;
-  for (let i = cycles.length - 1; i >= 0; i--) {
-    if (floorMod(Y, cycles[i]) === 0n) return i % 2 === 0;
-  }
-  return false;
-}
-
-// Anzahl Schalt-Instanzen in [0, Y) (für negatives Y vorzeichenbehaftet über
-// [Y, 0)): Einschluss-Ausschluss über die geschachtelten Zyklen; die Anzahl
-// der Vielfachen von cycle in [0, Y) ist floorDiv(Y + cycle - 1, cycle).
-function leapsBeforeWith(cycles, Y) {
-  let sum = 0n;
-  for (let i = 0; i < cycles.length; i++) {
-    const term = floorDiv(Y + cycles[i] - 1n, cycles[i]);
-    sum += i % 2 === 0 ? term : -term;
-  }
-  return sum;
+  return isLeapYear(c.leapInfo.rule, Y);
 }
 
 function yearStartAxis(c, Y) {
   const li = c.leapInfo;
-  return Y * li.yearBase + leapsBeforeWith(li.cycles, Y) * li.extraLen;
+  return Y * li.yearBase + leapsBefore(li.rule, Y) * li.extraLen;
 }
 
 // Start-Offset der Kind-Instanz pos innerhalb einer Schalt-Ebenen-Instanz
@@ -742,8 +743,17 @@ function epochLabel(cal, index) {
   return cal.epochs[index].abbr || cal.epochs[index].name || `#${index + 1}`;
 }
 
+// 4T-001999 (Epic 3E-000307): Die EINE Fassung der Regel, ob ein Wert der
+// Epoche epochIndex ihr Kürzel trägt — außerhalb der letzten Epoche immer,
+// in der letzten nur mit dem Kennzeichen alwaysWriteEpoch. Kanonische Form
+// und Kopf-Beschriftung der Eingabe-Hilfe nutzen beide diese Funktion.
+function writesEpochLabel(cal, epochIndex) {
+  return cal.alwaysWriteEpoch === true || epochIndex < cal.epochs.length - 1;
+}
+
 // Kanonische Form: Datums-Segmente groß nach klein mit '-', Epochen-Kürzel
-// nur außerhalb der letzten (offenen Zukunfts-)Epoche, Zeit-Teil mit ':'
+// nur außerhalb der letzten (offenen Zukunfts-)Epoche oder mit Kennzeichen
+// alwaysWriteEpoch (4T-001999), Zeit-Teil mit ':'
 // (entfällt in Minimal-Stellung). Mit opts.named ersetzen Positions-Namen
 // (z.B. Monatsnamen) die gepolsterten Zahlen. null bei ungültigem Tupel.
 function formatTuple(cal, tuple, opts = {}) {
@@ -766,7 +776,7 @@ function formatTuple(cal, tuple, opts = {}) {
     parts.push(name != null ? name : padSeg(tuple[k], c.widths[levelIdx]));
   }
   let out = parts.join('-');
-  if (ep.index < cal.epochs.length - 1) out += ` ${epochLabel(cal, ep.index)}`;
+  if (writesEpochLabel(cal, ep.index)) out += ` ${epochLabel(cal, ep.index)}`;
   if (c.timeCount > 0) {
     const timeSegs = tuple.slice(c.dateCount);
     const starts = timeStartSegs(c);
@@ -780,7 +790,14 @@ function formatTuple(cal, tuple, opts = {}) {
 // Kanonische Form parsen: { ok: true, tuple, epochIndex } oder Fehler-Code.
 // Ohne Epochen-Label gilt die letzte (offene Zukunfts-)Epoche; der Zeit-Teil
 // darf links-bündig verkürzt sein (fehlende kleine Segmente = Minimal-Stellung).
-function parseCanonical(cal, text) {
+// 4T-002003 (Epic 3E-000307): Mit opts.reportLabel kommen `labeled` — ob der
+// Wert ein Epochen-Kürzel trägt — und `timeText` hinzu, der Zeit-Teil so, wie
+// er hinter Datum und Kürzel geschrieben steht ('' ohne). Der Schutz beim
+// Nachtragen einer Epoche schreibt einen Wert um und muss dabei wissen, was er
+// vorfindet; die Zerlegung entsteht nur hier. Als Option, weil bestehende
+// Aufrufer und Prüffälle die Rückgabe Feld für Feld vergleichen. Abgeleitete
+// Zeitrechnungen tragen die Angaben nicht.
+function parseCanonical(cal, text, opts = {}) {
   const c = compileSafe(cal);
   if (!c || !Array.isArray(cal.epochs) || cal.epochs.length === 0) {
     return { ok: false, code: 'calendar' };
@@ -801,6 +818,7 @@ function parseCanonical(cal, text) {
   // Epochen-Label: längste Übereinstimmung über Kürzel, Namen und die
   // technische #N-Ersatzform (Labels dürfen Leerzeichen enthalten).
   let epochIndex = cal.epochs.length - 1;
+  let labeled = false;
   if (rest !== '') {
     const labels = [];
     for (let i = 0; i < cal.epochs.length; i++) {
@@ -812,6 +830,7 @@ function parseCanonical(cal, text) {
     for (const cand of labels) {
       if (rest === cand.label || rest.startsWith(cand.label + ' ')) {
         epochIndex = cand.index;
+        labeled = true;
         rest = rest.slice(cand.label.length).trim();
         break;
       }
@@ -835,7 +854,9 @@ function parseCanonical(cal, text) {
   ];
   const v = validateTuple(cal, tuple, { epochIndex });
   if (!v.ok) return v;
-  return { ok: true, tuple, epochIndex };
+  return opts.reportLabel
+    ? { ok: true, tuple, epochIndex, labeled, timeText: rest }
+    : { ok: true, tuple, epochIndex };
 }
 
 // --- Umrechnung über die Block-Achse --------------------------------------------------
@@ -975,13 +996,30 @@ function spanUnits(cal) {
   const c = compileSafe(cal);
   if (!c) return null;
   const units = [];
+  // 4T-001863 (Epic 3E-000307): Die Einheit trägt die Mehrzahl ihrer Quelle
+  // mit, damit die Anzeige zur Anzahl die passende Form wählen kann.
   for (let i = c.timeCount; i <= c.top; i++) {
-    units.push({ id: c.levels[i].id, name: c.levels[i].name, levelIdx: i, mult: 1, kind: 'level' });
+    const lv = c.levels[i];
+    units.push({
+      id: lv.id,
+      name: lv.name,
+      ...pluralField(lv.namePlural),
+      levelIdx: i,
+      mult: 1,
+      kind: 'level',
+    });
   }
   const add = (entry, mult, kind) => {
     const idx = c.levels.findIndex((lv) => lv.id === entry.of);
     if (idx < c.timeCount || idx > c.top || !isPosInt(mult) || mult < 2) return;
-    units.push({ id: entry.id, name: entry.name, levelIdx: idx, mult, kind });
+    units.push({
+      id: entry.id,
+      name: entry.name,
+      ...pluralField(entry.namePlural),
+      levelIdx: idx,
+      mult,
+      kind,
+    });
   };
   for (const cy of cal.cycles || []) add(cy, cy.length, 'cycle');
   for (const g of cal.groups || []) add(g, g.size, 'group');
@@ -1191,7 +1229,14 @@ function spanTiers(cal, tuple) {
       }
       const n = Math.floor(amount / u.mult);
       amount -= n * u.mult;
-      items.push({ id: u.id, name: u.name, kind: u.kind, mult: u.mult, count: n });
+      items.push({
+        id: u.id,
+        name: u.name,
+        ...pluralField(u.namePlural),
+        kind: u.kind,
+        mult: u.mult,
+        count: n,
+      });
     }
     tiers.push(items);
   }
@@ -1202,6 +1247,8 @@ module.exports = {
   // 4T-000746 (Epic 3E-000138): Zeitspannen.
   spanUnits,
   spanTiers,
+  // 4T-001863 (Epic 3E-000307): Namens-Form zu einer Anzahl.
+  unitNameFor,
   tupleToAxis,
   axisToTuple,
   validateTuple,
@@ -1210,6 +1257,11 @@ module.exports = {
   cycleAt,
   groupAt,
   formatTuple,
+  // 4T-001999 (Epic 3E-000307): Kürzel-Regel für die Eingabe-Hilfe.
+  writesEpochLabel,
+  // 4T-002003 (Epic 3E-000307): dieselbe Kürzel-Bildung für den Schutz beim
+  // Nachtragen einer Epoche (calendar-epoch-guard.js).
+  epochLabel,
   parseCanonical,
   convertInBlock,
   convertBetween,
@@ -1231,4 +1283,5 @@ module.exports = {
   tupleToAxisUnchecked,
   normalizeNames,
   normalizeLevels,
+  pluralField,
 };

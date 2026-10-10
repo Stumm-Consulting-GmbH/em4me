@@ -54,7 +54,7 @@ El submenú Ver → Presentación del editor agrupa los cinco interruptores que 
 
 - **Plegado** muestra el margen de plegado en el borde izquierdo: encabezados, listas y bloques se pliegan allí, y la jerarquía queda visible como rastro.
 - **Números de línea** muestra la columna de números.
-- **Ajuste de línea** corta las líneas largas en el borde de la ventana en lugar de desplazarse en horizontal. La continuación de una línea partida empieza a la altura de la sangría de su contenido: en una entrada de lista tras la marca, en una numerada tras el número, en una línea sangrada en su propia sangría. Un párrafo sin sangría permanece alineado a la izquierda.
+- **Ajuste de línea** corta las líneas largas en el borde de la ventana en lugar de desplazarse en horizontal. La continuación de una línea partida empieza a la altura de la sangría de su contenido: en una entrada de lista tras la marca, en una numerada tras el número, en una tarea tras la casilla, esté numerada o no, en una línea sangrada en su propia sangría. Un párrafo sin sangría permanece alineado a la izquierda.
 - **Sincronización de desplazamiento** acopla ambas mitades en la vista dividida: al desplazar el código, el resultado sigue por contenido, y a la inversa. El interruptor vale por pestaña.
 - **Desplazamiento máquina de escribir** mantiene la línea del cursor centrada en vertical en cuanto el cursor se mueve. Solo actúa en el modo de edición.
 

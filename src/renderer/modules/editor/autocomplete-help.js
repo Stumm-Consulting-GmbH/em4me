@@ -59,6 +59,8 @@ import {
   baueWikiErgebnis,
   baueSchlagwortErgebnis,
 } from './vervollstaendigung.js';
+// 4T-002129: Roll-Lage des Tags-Panels über den asynchronen Neuaufbau.
+import { halteRollLage } from '../panels/panel-rolllage.js';
 
 // --- Autocomplete-Quellen (4T-000057, Epic 3E-000011) ---------------------------
 // Zwei Completion-Sources fuer CodeMirror: Wiki-Link (`[[…`) und Tag (`#…`).
@@ -563,6 +565,11 @@ export async function renderTags(paneIdx) {
   const pane = state.panes[paneIdx];
   const tab = pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
   const filePath = tab && tab.path ? tab.path : null;
+  const filterTag = state.tags.filterByPane[paneIdx];
+  // 4T-002129: Das Leeren vor dem Laden setzte die Roll-Lage auf null (gemessen
+  // beim Sprachwechsel); sie kehrt nach dem Füllen zurück, wenn dieselbe Datei
+  // mit demselben Filter gezeichnet wird.
+  const rollLageZurueck = halteRollLage(els.tagsSection, `${filePath}|${filterTag}`);
 
   els.tagsTree.innerHTML = '';
   els.tagsFiles.hidden = true;
@@ -575,7 +582,6 @@ export async function renderTags(paneIdx) {
     els.tagsStatus.textContent = t('tags.unavailable');
     return;
   }
-  const filterTag = state.tags.filterByPane[paneIdx];
   let payload;
   try {
     payload = await api.requestTags(filePath, filterTag);
@@ -635,6 +641,7 @@ export async function renderTags(paneIdx) {
   } else {
     renderTagsTreeView(paneIdx, els, payload.tags || []);
   }
+  rollLageZurueck();
 }
 
 // 4T-001531 (Epic 3E-000175): Kontextmenü eines Tag-Eintrags. Ein Eintrag, und

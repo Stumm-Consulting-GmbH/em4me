@@ -55,7 +55,7 @@ import {
   toggleShowLineNumbers,
   toggleWrapLines,
 } from '../views/views.js';
-import { cancelAliasDialog, hideAbout } from '../dialogs/dialogs.js';
+import { cancelAliasDialog, hideAbout, oeffneDatenOrdner } from '../dialogs/dialogs.js';
 import { addPropertiesField } from '../properties/properties-suggest.js';
 import { handleProfilesChanged } from '../properties/properties-types.js';
 import { togglePropertiesPanel, toggleTagsPanel } from '../properties/properties-tags.js';
@@ -92,6 +92,8 @@ export function bindAppUi() {
   $('#btn-open-empty').addEventListener('click', openDialog);
   $('#btn-about-close').addEventListener('click', hideAbout);
   aboutModal.querySelector('.about-modal-backdrop').addEventListener('click', hideAbout);
+  // 4T-001993 (Epic 3E-000188): Knopf «Daten-Ordner öffnen» der portablen Fassung.
+  $('#btn-about-portable-open').addEventListener('click', oeffneDatenOrdner);
 
   // 4T-000674 (Epic 3E-000135): Rückverweis auf die Produkt-Webseite. Der Klick
   // öffnet die sprachabhängige Adresse (about.websiteUrl) im Standard-Browser

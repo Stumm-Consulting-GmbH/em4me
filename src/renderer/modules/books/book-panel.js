@@ -31,6 +31,8 @@ import { api } from '../app/api.js';
 import { getPaneEls, state } from '../app/app-state.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { applySidebarVisibility } from '../panels/panels.js';
+// 4T-002129: zusammengesetzter Kurzhinweis, der dem Sprachwechsel folgt.
+import { setzeSprachSatz } from '../panels/panel-sprache.js';
 import { ensurePanelTabActive, registerSidebarPanel } from '../sidebar-layout.js';
 import { reportMenuStateNow } from '../tabs/tabs.js';
 import { persistSetting, showStatusbarHint } from '../views/views.js';
@@ -93,6 +95,8 @@ function buildEntryRow(
   handle.textContent = '⠿';
   handle.draggable = true;
   handle.title = t('bookPanel.handleTitle');
+  // 4T-002129: Die Merkmale tragen die festen Texte beim Sprachwechsel mit.
+  handle.setAttribute('data-i18n-title', 'bookPanel.handleTitle');
   handle.setAttribute('aria-hidden', 'true');
   handle.addEventListener('dragstart', (ev) => startEntryDrag(ev, relPath, unlinked));
   handle.addEventListener('dragend', endEntryDrag);
@@ -104,7 +108,7 @@ function buildEntryRow(
   row.appendChild(label);
 
   if (missing) {
-    row.title = `${relPath} (${t('bookPanel.missing')})`;
+    setzeSprachSatz(row, 'title', 'bookPanel.missing', { vor: `${relPath} (`, nach: ')' });
     const mark = document.createElement('span');
     mark.className = 'book-entry-missing-mark';
     mark.textContent = '!';
@@ -115,6 +119,7 @@ function buildEntryRow(
       hint.className = 'book-entry-suggest-mark';
       hint.textContent = '⌕';
       hint.title = t('bookPanel.reassignSuggestion');
+      hint.setAttribute('data-i18n-title', 'bookPanel.reassignSuggestion');
       row.appendChild(hint);
     }
   } else {
@@ -183,6 +188,7 @@ export function renderBookPanel(paneIdx) {
       const hint = document.createElement('div');
       hint.className = 'book-chapters-empty';
       hint.textContent = t('bookPanel.chaptersEmpty');
+      hint.setAttribute('data-i18n', 'bookPanel.chaptersEmpty');
       els.bookTree.appendChild(hint);
     }
   }

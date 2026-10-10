@@ -93,6 +93,11 @@ function renderSpellcheckWords(liste, draft) {
     const label = document.createElement('span');
     label.textContent = wort;
     zeile.appendChild(label);
+    liste.appendChild(zeile);
+    // 4T-001991 (Epic 3E-000188): In der portablen Fassung steht das Wort ohne
+    // Knopf da; das Entfernen schriebe in das Wörterbuch des Windows-Benutzers
+    // (settings-draft.js, Auskunft `spellcheckWoerterEntfernbar`).
+    if (draft.spellcheckWoerterEntfernbar !== true) continue;
     const entfernen = document.createElement('button');
     entfernen.type = 'button';
     entfernen.className = 'btn';
@@ -107,7 +112,6 @@ function renderSpellcheckWords(liste, draft) {
       });
     });
     zeile.appendChild(entfernen);
-    liste.appendChild(zeile);
   }
 }
 

@@ -58,6 +58,49 @@ function parseListLine(text) {
   };
 }
 
+// 4T-001716 (Epic 3E-000301): Kopf eines Listenpunkts samt Kästchen — die eine
+// Erkennung, die der Zeilenumbruch im Listenpunkt, die Einzugs-Rechnung
+// (src/shared/haengender-einzug.js) und die Eingabetaste der nummerierten
+// Aufgaben-Liste lesen. Anders als LIST_LINE_RE erkennt sie den Trenner `1)`
+// und das Kästchen `[ ]`, `[x]`, `[X]` hinter dem Marker; LIST_LINE_RE bleibt
+// unverändert, weil Einrücken, Verschieben und Nummerierung auf seinem
+// Ausschluss von `1)` stehen (E13 des Epics). Hinter Marker und Kästchen steht
+// mindestens ein Leerzeichen oder Tabulator; ein Kästchen ohne folgenden
+// Leerraum ist Text.
+const LIST_ITEM_HEAD_RE = /^([ \t]*)([-*+]|\d{1,9}[.)])([ \t]+)(?:(\[[ xX]\])([ \t]+))?/;
+
+// Zerlegt eine Zeile als Listenpunkt samt Kästchen; null, wenn sie keiner
+// ist. `contentColumn` ist der Zeichen-Index, an dem der Text beginnt — ein
+// Tabulator zählt hier als ein Zeichen. Die Breite in Zeichenbreiten
+// (Tabulator voll) rechnet die Einzugs-Rechnung aus denselben Teilen.
+function parseListItemHead(text) {
+  const m = LIST_ITEM_HEAD_RE.exec(String(text == null ? '' : text));
+  if (!m) return null;
+  const ordered = /\d/.test(m[2]);
+  return {
+    indent: m[1],
+    marker: m[2],
+    ordered,
+    delimiter: ordered ? m[2].slice(-1) : null,
+    gap: m[3],
+    checkbox: m[4] || null,
+    checkboxGap: m[4] ? m[5] : '',
+    contentColumn: m[0].length,
+  };
+}
+
+// 4T-001716 (Epic 3E-000301, E10): harter Zeilenumbruch am Zeilenende — ein
+// Rückstrich als letztes Zeichen, der nicht selbst maskiert ist (gerade Zahl
+// von Rückstrichen davor). Liefert den Index, an dem der Leerraum vor ihm
+// beginnt, oder -1. Die eine Erkennung für den Zeilenumbruch im Listenpunkt
+// und die Aufgaben-Marker (src/shared/tasks/task-markers.js).
+const HARD_BREAK_END_RE = /[ \t]*(?<=(?:^|[^\\])(?:\\\\)*)\\$/;
+
+function hardBreakStart(text) {
+  const m = HARD_BREAK_END_RE.exec(String(text == null ? '' : text));
+  return m ? m.index : -1;
+}
+
 // Führender Leerraum einer beliebigen Zeile (auch ohne Marker).
 function leadingWhitespace(text) {
   const m = /^[ \t]*/.exec(String(text == null ? '' : text));
@@ -445,10 +488,147 @@ function outdentSubtree(lines, index, opts) {
   return shiftSubtree(lines, index, -1, opts);
 }
 
+// === 4T-001862 und 4T-001977 (Epic 3E-000301, E11): Rechnungen der Eingabetaste ===
+// Reine Rechnungen für die eigene Eingabetaste in Listen
+// (src/renderer/modules/editor/editor-list-enter.js). Sie lesen Listenpunkte
+// über parseListItemHead, weil die Eingabetaste auch den Trenner `1)` und das
+// Kästchen kennen muss; LIST_LINE_RE bleibt unverändert (E13). Die Block- und
+// Teilbaum-Regeln sind dieselben wie bei scanListBlock und subtreeRange: Eine
+// Leerzeile und eine nicht eingerückte Zeile ohne Marker beenden den Block,
+// eingerückte Zeilen ohne Marker (Folgezeilen, Code) gehören zum Punkt
+// darüber, die Ebene ist die Länge der Einrückung. subtreeRange selbst trägt
+// hier nicht, weil es auf LIST_LINE_RE steht und einen Punkt mit Trenner `1)`
+// gar nicht als Punkt erkennt. Gezählt werden nur Listenpunkte, nie der
+// Leerraum einer Zeile: Folgezeilen sind tiefer eingerückt, ohne Unterpunkte
+// zu sein.
+
+// Kopf des Listenpunkts an Position index; Code-Zeilen sind nie Punkte.
+function itemHeadAt(lines, index, opts) {
+  if (index < 0 || index >= lines.length) return null;
+  const head = parseListItemHead(lines[index]);
+  if (!head) return null;
+  if (opts && typeof opts.isCode === 'function' && opts.isCode(index)) return null;
+  return head;
+}
+
+// Beendet die Zeile den Listen-Block? Leerzeile oder nicht eingerückte Zeile
+// ohne Marker (Regel von scanListBlock).
+function endsListBlock(lines, index, head) {
+  if (isBlank(lines[index])) return true;
+  return !head && leadingWhitespace(lines[index]).length === 0;
+}
+
+function itemNumber(head) {
+  return head && head.ordered ? parseInt(head.marker, 10) : null;
+}
+
+// Folgt dem Punkt an index unmittelbar eine Folgezeile (eingerückt, ohne
+// Marker, nicht leer)? Eine Code-Zeile im Punkt zählt als Folgezeile.
+function hasContinuationLine(lines, index, opts) {
+  const item = itemHeadAt(lines, index, opts);
+  const next = index + 1;
+  if (!item || next >= lines.length || isBlank(lines[next])) return false;
+  if (itemHeadAt(lines, next, opts)) return false;
+  return leadingWhitespace(lines[next]).length > item.indent.length;
+}
+
+// Erster Unterpunkt des Punkts an index: der erste Listenpunkt hinter ihm,
+// der tiefer eingerückt ist. Folgezeilen werden übersprungen; ein Punkt
+// gleicher oder geringerer Ebene und das Block-Ende beenden die Suche. Mit
+// opts.after beginnt die Suche erst hinter dieser Zeile (Eingabetaste am Ende
+// einer Folgezeile). Liefert { index, head, number } oder null.
+function firstSubItem(lines, index, opts) {
+  const item = itemHeadAt(lines, index, opts);
+  if (!item) return null;
+  const after = opts && Number.isInteger(opts.after) ? opts.after : index;
+  for (let i = after + 1; i < lines.length; i++) {
+    const head = itemHeadAt(lines, i, opts);
+    if (endsListBlock(lines, i, head)) return null;
+    if (!head) continue;
+    if (head.indent.length <= item.indent.length) return null;
+    return { index: i, head, number: itemNumber(head) };
+  }
+  return null;
+}
+
+// Elternpunkt des Punkts an index: der nächste Listenpunkt darüber mit
+// geringerer Einrückung im selben Block. Liefert { index, head, number } oder
+// null.
+function parentItem(lines, index, opts) {
+  const item = itemHeadAt(lines, index, opts);
+  if (!item) return null;
+  for (let i = index - 1; i >= 0; i--) {
+    const head = itemHeadAt(lines, i, opts);
+    if (endsListBlock(lines, i, head)) return null;
+    if (head && head.indent.length < item.indent.length) {
+      return { index: i, head, number: itemNumber(head) };
+    }
+  }
+  return null;
+}
+
+// Nächstes Geschwister des Punkts an index (gleiche Einrückung, im selben
+// Teilbaum des Elternpunkts); Unterpunkte und Folgezeilen dazwischen werden
+// übersprungen. Liefert den Index oder -1.
+function nextSiblingIndex(lines, index, opts) {
+  const item = itemHeadAt(lines, index, opts);
+  if (!item) return -1;
+  for (let i = index + 1; i < lines.length; i++) {
+    const head = itemHeadAt(lines, i, opts);
+    if (endsListBlock(lines, i, head)) return -1;
+    if (!head || head.indent.length > item.indent.length) continue;
+    return head.indent.length === item.indent.length ? i : -1;
+  }
+  return -1;
+}
+
+// Marker eines neuen Punkts nach der Art eines vorhandenen (E17): dessen
+// Einrückung, Zeichen oder Nummer `number` samt Trenner, Abstand und — nur wenn
+// das Vorbild eines trägt — ein Kästchen, das immer leer ist.
+function buildListMarker(head, number) {
+  const marker = head.ordered ? String(number) + head.delimiter : head.marker;
+  const box = head.checkbox ? '[ ]' + head.checkboxGap : '';
+  return head.indent + marker + head.gap + box;
+}
+
+// Neu-Nummerierung ab dem nummerierten Punkt an index: Er bekommt `first`,
+// jedes folgende Geschwister gleicher Ebene und gleichen Trenners eins mehr,
+// solange die bisherigen Nummern lückenlos aufeinander folgten — die Regel der
+// eingekauften Fortsetzung (renumberList in @codemirror/lang-markdown), damit
+// eine bewusst gleich nummerierte Liste (`1.`, `1.`, `1.`) stehen bleibt. Mit
+// opts.prev muss schon der erste Punkt auf diese Nummer folgen. Liefert die
+// Änderungen als { index, from, to, insert } mit Spalten innerhalb der Zeile;
+// unveränderte Nummern fehlen.
+function renumberSiblings(lines, index, first, opts) {
+  const start = itemHeadAt(lines, index, opts);
+  if (!start || !start.ordered) return [];
+  const level = start.indent.length;
+  const changes = [];
+  let prev = opts && Number.isInteger(opts.prev) ? opts.prev : null;
+  let value = first;
+  for (let i = index; i < lines.length; i++) {
+    const head = itemHeadAt(lines, i, opts);
+    if (i > index && endsListBlock(lines, i, head)) break;
+    if (!head || head.indent.length > level) continue;
+    if (head.indent.length < level || head.delimiter !== start.delimiter) break;
+    const number = itemNumber(head);
+    if (prev !== null && number !== prev + 1) break;
+    if (number !== value) {
+      const digits = head.marker.length - 1;
+      changes.push({ index: i, from: level, to: level + digits, insert: String(value) });
+    }
+    prev = number;
+    value += 1;
+  }
+  return changes;
+}
+
 module.exports = {
   LIST_LINE_RE,
   LIST_INDENT_STEP,
   parseListLine,
+  parseListItemHead,
+  hardBreakStart,
   prefixLength,
   scanListBlock,
   subtreeRange,
@@ -460,4 +640,10 @@ module.exports = {
   indentSubtree,
   outdentSubtree,
   shiftLineRange,
+  hasContinuationLine,
+  firstSubItem,
+  parentItem,
+  nextSiblingIndex,
+  buildListMarker,
+  renumberSiblings,
 };

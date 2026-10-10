@@ -12,6 +12,7 @@ De arriba abajo, el menú se divide en siete grupos:
 - **Insertar** — plantillas: nota al pie, tabla, bloque de aviso, línea horizontal y bloque de código.
 - **Tabla** — operaciones de edición para la tabla en el cursor; aparece solo cuando el cursor está dentro de una tabla.
 - **Gráfico** — «Insertar gráfico para esta tabla» o «Editar gráfico»; aparece solo cuando el cursor está dentro de una tabla de datos o dentro del bloque de un gráfico.
+- **Convertir fecha** — abre el diálogo que muestra una fecha en los demás calendarios del mismo bloque ([Sistemas de calendario](custom-calendars.md)); aparece solo con los sistemas de calendario activados y está activo en cuanto el área abierta define un calendario.
 - **Portapapeles** — cortar, copiar, pegar, seleccionar todo.
 
 Los atajos predeterminados para negrita (`Ctrl+B`) y cursiva (`Ctrl+I`) también funcionan sin el menú; todas las demás acciones pueden asociarse a un atajo en la configuración.
@@ -57,4 +58,4 @@ Dentro de un destino de enlace wiki y dentro de código en línea, las acciones 
 
 ## Editor de solo lectura
 
-Si el editor es de solo lectura, es decir, una vista sin modo edición, el menú muestra solo copiar y seleccionar todo; los grupos enlace, formato, párrafo e inserción se omiten.
+Si el editor es de solo lectura, es decir, una vista sin modo edición, el menú muestra solo convertir fecha, copiar y seleccionar todo; los grupos enlace, formato, párrafo e inserción se omiten. Convertir fecha se mantiene porque allí el diálogo solo muestra y copia: su botón «Insertar» está desactivado en esta vista.

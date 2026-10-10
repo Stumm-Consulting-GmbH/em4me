@@ -322,6 +322,11 @@ contextBridge.exposeInMainWorld('api', {
   getVersion: () => ipcRenderer.invoke('app:version'),
   // 4T-001335 (Epic 3E-000237): Kennzeichnung der zweiten Auspraegung oder null.
   getAuspraegung: () => ipcRenderer.invoke('app:auspraegung'),
+  // 4T-001993 (Epic 3E-000188): Ort der Daten der portablen Fassung und dessen
+  // Öffnen. Das Öffnen reicht bewusst keinen Wert weiter: Welcher Ordner
+  // aufgeht, bestimmt allein der Hauptprozess.
+  getPortablerBetrieb: () => ipcRenderer.invoke('app:portablerBetrieb'),
+  oeffneDatenOrdner: () => ipcRenderer.invoke('app:oeffneDatenOrdner'),
   getTheme: () => ipcRenderer.invoke('theme:current'),
   // 4T-000030: Theme-Vorzug ('light' | 'dark' | 'system'). 'system' folgt dem
   // OS-Theme (alte Logik), die anderen erzwingen das jeweilige Theme.
@@ -519,6 +524,10 @@ contextBridge.exposeInMainWorld('api', {
   // genaue Ersetzung in einer nicht im Fenster geoeffneten Quelldatei
   // (Konflikt-Antwort { ok:false, reason } statt Blind-Schreiben).
   applyTaskLineEdit: (params) => ipcRenderer.invoke('task:applyLineEdit', params),
+  // 4T-001978 (Epic 3E-000330): Handgriff am Treffer im Fenster, dessen
+  // ungespeicherter Stand gilt (Anfrage und Auftrag, Bauart reminders:edit).
+  taskQueryEdit: (auftrag) => ipcRenderer.invoke('taskQuery:edit', auftrag),
+  onTaskQueryEdit: (cb) => ipcRenderer.on('taskQuery:edit', (_e, auftrag) => cb(auftrag)),
   // 4T-000413 (Epic 3E-000078): Daten-Snapshot fuer Skript-Bloecke — der
   // Renderer reicht ihn mit dem Run-Auftrag in die Sandbox (kein Live-Kanal).
   getPerspectiveScriptData: (filePath) =>
@@ -773,6 +782,9 @@ contextBridge.exposeInMainWorld('api', {
   // 4T-000747: Schutz der abgeleiteten Zeitrechnungen (Bestätigung bzw. Sperre).
   calendarConfirmDependents: (names) => ipcRenderer.invoke('calendar:confirmDependents', names),
   calendarBlockedDelete: (names) => ipcRenderer.invoke('calendar:blockedDelete', names),
+  // 4T-002003: Schutz gespeicherter Werte beim Nachtragen einer Epoche (Zählung, Rückfrage).
+  calendarEpochScan: (auftrag) => ipcRenderer.invoke('calendarEpoch:scan', auftrag),
+  calendarConfirmEpochGuard: (daten) => ipcRenderer.invoke('calendar:confirmEpochGuard', daten),
   onCalendarChanged: (cb) => ipcRenderer.on('calendar:changed', (_e, payload) => cb(payload)),
   // 4T-000446 (Epic 3E-000083): Profil-Konfiguration des Bereichs
   // (propertyProfiles-Sektion der Bereichsdatei) lesen/schreiben;

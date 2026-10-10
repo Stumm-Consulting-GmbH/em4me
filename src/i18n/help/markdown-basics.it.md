@@ -95,7 +95,31 @@ Una riga vuota inizia un nuovo elenco. Se nasce dalla tua modifica, l'elenco suc
 
 ### Proseguire e terminare
 
-Il tasto Invio prosegue un elenco e aggiunge un punto elenco, un numero consecutivo o una casella vuota. Su un sottoelemento vuoto riduce il rientro di un livello; al livello superiore termina l'elenco.
+Il tasto Invio prosegue un elenco e aggiunge un punto elenco, un numero consecutivo o una casella vuota, anche negli elenchi di attività numerati. Una nuova casella è sempre aperta. Dove nasce il nuovo elemento dipende dal contesto:
+
+- Se all'elemento seguono già dei sottoelementi, il nuovo elemento nasce come primo sottoelemento e ne riprende il tipo: punto elenco o numero, con o senza casella. Se il cursore si trova a metà del testo, il resto della riga diventa questo primo sottoelemento.
+- Alla fine di una seconda riga di un elemento (vedi «Seconda riga nello stesso elemento») il tasto Invio inizia un nuovo elemento.
+- Su un sottoelemento vuoto riduce il rientro di un livello, anche nelle attività numerate; al livello superiore termina l'elenco.
+
+Nel campo nota del pannello «Note» il tasto Invio agisce allo stesso modo.
+
+### Seconda riga nello stesso elemento
+
+`Maiusc+Invio` (predefinito) inizia una seconda riga nello stesso elemento dell'elenco, senza creare un nuovo elemento. La riga è rientrata sotto il testo dell'elemento, per un'attività sotto il testo dopo la casella; se il cursore si trova a metà del testo, il resto della riga passa nella nuova riga. Nel sorgente la riga precedente termina con una barra rovesciata, l'interruzione di riga forzata (vedi «Interruzioni di riga forzate»); la vista Live la mostra solo nella riga del cursore. Nella visualizzazione il testo appare come seconda riga dello stesso elemento, anche qui sotto il testo dopo la casella.
+
+```markdown
+- Fare la spesa\
+  Latte, pane e formaggio
+- [ ] Verificare l'offerta\
+      Rispettare la scadenza
+```
+
+- Fare la spesa\
+  Latte, pane e formaggio
+- [ ] Verificare l'offerta\
+      Rispettare la scadenza
+
+Se la nuova riga resta vuota, Backspace la toglie insieme alla barra rovesciata, e nemmeno il tasto Invio vi lascia una barra rovesciata. Quando l'elemento viene rientrato o riportato indietro, la seconda riga lo segue. La scorciatoia vale in ogni modalità di lavoro e anche nel campo nota; si può modificare in File → Impostazioni… → Scorciatoie da tastiera.
 
 ### Il cursore al cambio di riga
 
@@ -157,7 +181,7 @@ Vedi la [pagina di esempio][ref].
 
 ## Interruzioni di riga forzate
 
-Due spazi a fine riga o una barra rovesciata forzano un'interruzione di riga all'interno di un paragrafo.
+Due spazi a fine riga o una barra rovesciata forzano un'interruzione di riga all'interno di un paragrafo. Nell'editor `Maiusc+Invio` (predefinito) inserisce la barra rovesciata insieme a una nuova riga. In un elenco la nuova riga è rientrata e appartiene allo stesso elemento (vedi «Seconda riga nello stesso elemento»).
 
 ```markdown
 Prima riga\

@@ -95,7 +95,31 @@ A blank line begins a new list. If it arises from your edit, the list below star
 
 ### Continuing and ending
 
-The Enter key continues a list and adds a bullet, a consecutive number or an empty checkbox. On an empty sub-item it outdents by one level; on the top level it ends the list.
+The Enter key continues a list and adds a bullet, a consecutive number or an empty checkbox, also in numbered task lists. A new checkbox is always open. Where the new item appears depends on its surroundings:
+
+- If sub-items already follow the item, the new item becomes the first sub-item and takes on their kind: bullet or number, with or without a checkbox. If the cursor is in the middle of the text, the rest of the line becomes this first sub-item.
+- At the end of a second line in an item (see “Second line in the same item”) the Enter key starts a new item.
+- On an empty sub-item it outdents by one level, numbered tasks included; on the top level it ends the list.
+
+In the note field of the “Notes” panel the Enter key works the same way.
+
+### Second line in the same item
+
+`Shift+Enter` (default) starts a second line within the same list item without creating a new item. The line is indented under the item's text, for a task under the text after the checkbox; if the cursor is in the middle of the text, the rest of the line moves to the new line. In the source the line before it ends with a backslash, the hard line break (see “Hard line breaks”); Live view shows it only in the line with the cursor. In the rendered view the text appears as a second line of the same item, likewise under the text after the checkbox.
+
+```markdown
+- Do the shopping\
+  Milk, bread and cheese
+- [ ] Review the offer\
+      Mind the deadline
+```
+
+- Do the shopping\
+  Milk, bread and cheese
+- [ ] Review the offer\
+      Mind the deadline
+
+If the new line stays empty, Backspace takes it back together with the backslash, and the Enter key does not leave a backslash behind either. When the item is indented or outdented, the second line moves with it. The shortcut works in every working mode and in the note field as well; it can be changed under File → Settings… → Keyboard shortcuts.
 
 ### The cursor when changing lines
 
@@ -157,7 +181,7 @@ See the [example page][ref].
 
 ## Hard line breaks
 
-Two trailing spaces or a backslash force a line break within a paragraph.
+Two trailing spaces or a backslash force a line break within a paragraph. In the editor, `Shift+Enter` (default) inserts the backslash together with a new line. In a list the new line is indented and belongs to the same item (see “Second line in the same item”).
 
 ```markdown
 First line\

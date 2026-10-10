@@ -6,6 +6,8 @@
   "about.website": "em4me.ch",
   "about.websiteUrl": "https://em4me.ch/fr/",
   "about.ok": "OK",
+  "about.portableDataLabel": "Version portable – vos données se trouvent dans :",
+  "about.portableOpenDataFolder": "Ouvrir le dossier de données",
   "tour.welcome.title": "Bienvenue dans la visite",
   "tour.welcome.text": "En onze étapes, cette visite montre ce qui distingue cette application d'un éditeur ordinaire. Chaque étape désigne l'endroit dont il est question. Vous pouvez fermer la visite à tout moment et la relancer plus tard depuis le menu Aide.",
   "tour.modes.title": "Quelle quantité afficher ?",

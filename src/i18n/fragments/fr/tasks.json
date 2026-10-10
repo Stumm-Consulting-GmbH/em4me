@@ -59,7 +59,6 @@
   "taskQuery.postpone.noDate": "Aucun champ de date à reporter",
   "taskQuery.edit": "Modifier la tâche",
   "taskQuery.conflict": "Ligne introuvable – le fichier source a été modifié entre-temps",
-  "taskQuery.dirtyOpen": "Le fichier a des modifications non enregistrées – veuillez le modifier dans l'éditeur",
   "taskQuery.writeFailed": "Échec de l'écriture dans le fichier source",
   "taskQuery.urgency": "Urgence",
   "taskDialog.title.edit": "Modifier la tâche",

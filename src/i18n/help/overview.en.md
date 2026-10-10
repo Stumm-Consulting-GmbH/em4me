@@ -32,7 +32,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 - [Task lists](tasks.md) — task lists with standard and extended states.
 - [Reminders](reminders.md) — notification times on tasks with ⏰: notification and catch-up dialog in every window with its origin, reminder list; the announcement runs only while the app is running.
 - [Events](events.md) — appointments, birthdays and anniversaries in the document: event block with tiered time differences, milestones, filters and four views, aggregation via frontmatter, links.
-- [Calendar systems](custom-calendars.md) — freely definable time reckonings per area: blocks with parallel calendars, levels with five relation types, epochs, conversion, value syntax in the document and picker.
+- [Calendar systems](custom-calendars.md) — freely definable time reckonings per area: blocks with parallel calendars, levels with five relation types, epochs, conversion, bundled templates, value syntax in the document and picker.
 
 ## Metadata, data and queries
 
@@ -72,7 +72,8 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 - [Command placement](command-placement.md) — commands as permanent custom access points: status bar buttons, hide list, context menu entries, macros.
 - [Extensions](extensions.md) — enable or disable features individually: categories, working modes including custom ones, dependencies, effect of the disabled state.
 - [Exporting and importing settings](setup-exchange.md) — take your own setup with you: choice of data kinds down to individual calendar blocks, structure of the exchange file, preview before applying, merging with existing values, version compatibility.
-- [Your own interface language](custom-locale.md) — translate the interface yourself: download the template, translate it in your own editor, load and check it, select it, fallback to English, updating and removing, storage in your user profile.
+- [Your own interface language](custom-locale.md) — translate the interface yourself: download the template, translate it in your own editor, load and check it, select it, fallback to English, updating and removing, storage of the language file.
+- [Portable version](portable-version.md) — EM4me without installation: starting the program file, the data folder next to it and taking it along, location of the data under "Help → About…", first start and taking your own setup along, behaviour at a location without write access, what remains on the computer, differences from the installed version.
 - [Creating extensions](extensions-dev.md) — develop your own external extensions: manifest, extension API, reference example, security notes.
 
 ## Usage tips

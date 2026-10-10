@@ -127,7 +127,19 @@ test.describe('B-10: Tippen bei offener Suche schreibt an der Cursor-Stelle', ()
         .evaluate((el) => el.scrollTop);
       expect(scrollOben).toBe(0);
 
+      // 4T-002107: Der erste Druck zeigt den nach dem Tippen als aktuell
+      // gemeldeten ersten Treffer (oben, Zaehler bleibt «1 / 2») und setzt
+      // die Schreibmarke dorthin — schon das ist eine Bewegung durch den
+      // Sprung. Bis dahin uebersprang er ihn; der Bildlauf zum zweiten
+      // Treffer kommt deshalb erst mit dem zweiten Druck.
       await page.keyboard.press('F3');
+      await expect(page.locator(`${SEL.editorContent0} .cm-activeLine`)).toHaveText(
+        'Erstes Ankerwort steht hier oben.',
+      );
+      await expect(page.locator(SEL.searchCount)).toHaveText(/1\s*\/\s*2/);
+
+      await page.keyboard.press('F3');
+      await expect(page.locator(SEL.searchCount)).toHaveText(/2\s*\/\s*2/);
       await expect(page.locator(`${SEL.editorContent0} .cm-search-match-current`)).toHaveCount(1);
       await expect
         .poll(async () =>

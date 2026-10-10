@@ -59,7 +59,6 @@
   "taskQuery.postpone.noDate": "Kein Termin-Feld zum Verschieben vorhanden",
   "taskQuery.edit": "Aufgabe bearbeiten",
   "taskQuery.conflict": "Zeile nicht mehr gefunden – die Quelldatei wurde zwischenzeitlich geändert",
-  "taskQuery.dirtyOpen": "Datei hat ungespeicherte Änderungen – bitte im Editor bearbeiten",
   "taskQuery.writeFailed": "Schreiben in die Quelldatei fehlgeschlagen",
   "taskQuery.urgency": "Dringlichkeit",
   "taskDialog.title.edit": "Aufgabe bearbeiten",

@@ -59,7 +59,6 @@
   "taskQuery.postpone.noDate": "No hay campo de fecha para aplazar",
   "taskQuery.edit": "Editar tarea",
   "taskQuery.conflict": "Línea no encontrada – el archivo de origen se modificó entretanto",
-  "taskQuery.dirtyOpen": "El archivo tiene cambios sin guardar – edítelo en el editor",
   "taskQuery.writeFailed": "Error al escribir en el archivo de origen",
   "taskQuery.urgency": "Urgencia",
   "taskDialog.title.edit": "Editar tarea",

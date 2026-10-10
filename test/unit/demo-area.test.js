@@ -54,6 +54,12 @@ const EXPECTED_FILES = [
   // Start-Seiten-Festlegung auf „00 Welcome.md", damit die mitgelieferte Demo
   // die Funktion vorfuehrt statt sie nur zu beschreiben: Wer die Demo-Area
   // oeffnet, landet auf ihrer Willkommens-Seite.
+  // 4T-001735 (Epic 3E-000307): dazu die Kalender-Sektion mit dem Block «Demo
+  // calendars» (gregorianischer und japanischer Kalender aus den Vorlagen, in
+  // englischer Sprache), auf die «14 Calendar Systems.md» sich stützt. Von Hand
+  // wird an ihr nichts geschrieben: Sie entsteht allein durch
+  // scripts/demo-kalender-erzeugen.js, und test/unit/demo-kalender.test.js hält
+  // sie gegen die Vorlagen.
   'Area_Settings.mdda',
   // 4T-001826 (Epic 3E-000254): die Zähler-Datei der Vorgangs-Kennung des
   // Demo-Bereichs. Sie reist mit, weil sonst der erste eigene Schreibvorgang des
@@ -131,7 +137,19 @@ const EXPECTED_FILES = [
   // aus `topic` und `chapter`, damit die Karte Angaben aus dem Kopf der
   // verlinkten Seite zeigt; dazu ein Absatz, der die Wege nennt. Keine neue
   // Datei, kein neues Verweis-Ziel: Datei-Liste und E2E-Zählungen bleiben.
+  //
+  // 4T-001735 (Epic 3E-000307): Die Tafel ist nicht mehr die letzte Station;
+  // ihr Schluss-Satz führt weiter zu «14 Calendar Systems».
   '13 Kanban.md',
+  // 4T-001735 (Epic 3E-000307): die Station der Kalender-Systeme — Werte im
+  // gregorianischen und im japanischen Kalender, der Weg zur Eingabe-Hilfe mit
+  // dem Tag im anderen Kalender, der Weg zum Aufklapp-Menü der Vorlagen samt
+  // der neun mitgelieferten Kalender und der Hinweis auf den Arbeitsmodus
+  // «Full». Die Kalender selbst trägt die Bereichsdatei (oben). Schlagwörter
+  // demo und planning wie die Tafel, damit die Tag-Menge der Demo-Area gleich
+  // bleibt; die Zeilen-Erwartung der ersten Abfrage von „08 Queries.md" in der
+  // E2E-Spec rechnet aus dem Bestand und wächst von selbst mit.
+  '14 Calendar Systems.md',
   // 4T-000645 (Epic 3E-000127): astronomischer Themenbereich als vierstufige
   // Unterseiten-Hierarchie (Galaxie, Stern, Planet, Mond) plus drei
   // ergaenzende Themenseiten. Traeger der Hierarchie ist der Dateiname mit

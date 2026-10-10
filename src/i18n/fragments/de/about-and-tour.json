@@ -6,6 +6,8 @@
   "about.website": "em4me.ch",
   "about.websiteUrl": "https://em4me.ch/de/",
   "about.ok": "OK",
+  "about.portableDataLabel": "Portable Fassung – Ihre Daten liegen in:",
+  "about.portableOpenDataFolder": "Daten-Ordner öffnen",
   "tour.welcome.title": "Willkommen zur Tour",
   "tour.welcome.text": "Diese Tour zeigt in elf Stationen, was diese Anwendung von einem gewöhnlichen Editor unterscheidet. Jede Station zeigt auf die Stelle, um die es geht. Du kannst die Tour jederzeit schließen und später über das Hilfe-Menü neu starten.",
   "tour.modes.title": "Wie viel soll sichtbar sein?",

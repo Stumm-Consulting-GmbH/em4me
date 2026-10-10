@@ -59,7 +59,6 @@
   "taskQuery.postpone.noDate": "Nessun campo data da posticipare",
   "taskQuery.edit": "Modifica attività",
   "taskQuery.conflict": "Riga non trovata – il file di origine è stato modificato nel frattempo",
-  "taskQuery.dirtyOpen": "Il file ha modifiche non salvate – modificalo nell'editor",
   "taskQuery.writeFailed": "Scrittura nel file di origine non riuscita",
   "taskQuery.urgency": "Urgenza",
   "taskDialog.title.edit": "Modifica attività",

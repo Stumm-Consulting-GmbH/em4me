@@ -30,7 +30,7 @@ import { activeTab, state } from '../app/app-state.js';
 import { showNameInputDialog } from '../dialogs/dialogs.js';
 import { showStatusbarHint } from '../views/views.js';
 import { istGueltigerTagName } from '../../../shared/tag-erkennung.js';
-import { beendeUmbenennung, zeigeSuchPanel, zeigeUmbenennung } from './search-panel.js';
+import { beendeUmbenennung, zaehlForm, zeigeSuchPanel, zeigeUmbenennung } from './search-panel.js';
 
 // Sonderzeichen eines regulären Ausdrucks im alten Namen. Tag-Namen tragen
 // zwar nur Buchstaben, Ziffern, Unterstrich, Schrägstrich und Bindestrich —
@@ -165,8 +165,19 @@ async function fuehreAus(opts) {
   for (let p = 0; p < state.panes.length; p++) void renderTags(p);
 
   const stellen = ergebnis.geaendert.reduce((summe, g) => summe + g.anzahl, 0);
-  hinweis('tagRename.done', {
+  hinweis(umbenanntSchluessel(stellen, ergebnis.geaendert.length), {
     '{n}': String(stellen),
     '{d}': String(ergebnis.geaendert.length),
+  });
+}
+
+// 4T-002107: Der Schlüssel des Hinweises nach der Umbenennung, mit Einzahl bei
+// einer Fundstelle bzw. einer Datei («1 Fundstellen in 1 Dateien» vorher).
+// Form-Wahl über die gemeinsame Regel zaehlForm in search-panel.js.
+export function umbenanntSchluessel(stellen, dateien) {
+  return zaehlForm(stellen, dateien, {
+    eins: 'tagRename.doneOne',
+    vieleInEiner: 'tagRename.doneManyInOne',
+    viele: 'tagRename.done',
   });
 }

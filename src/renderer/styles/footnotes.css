@@ -240,6 +240,42 @@
 .cm-editor .cm-line.cm-haengender-einzug * {
   text-indent: 0;
 }
+/* 4T-001716 (Epic 3E-000301): Fortsetzung einer Aufgabe in der Live-Ansicht.
+   Das gezeichnete Kästchen (`.cm-live-task-marker::before`, unten) ersetzt
+   die drei Zeichen `[ ]`, die der Einzug in Zeichenbreiten zählt, ist aber
+   schmaler; ohne Ausgleich begann die Fortsetzung rund 7 Pixel rechts vom
+   Aufgaben-Text (Messung A2 vom 2026-10-07). Der Einzug schrumpft deshalb um
+   drei Zeichenbreiten abzüglich der Kästchen-Breite, und der
+   Erst-Zeilen-Einzug zieht mit, damit die erste Zeile bleibt, wo sie ist.
+
+   Die Kästchen-Breite ist ihr Inhalt (`1em` bei `font-size: 1rem`, beim
+   erweiterten Status-Zeichen `0.85rem`, markdown-erweiterungen.css) plus
+   beide Rahmen. Die Rahmen sind mit 1,5px angegeben und werden auf ganze
+   Bildpunkte abgerundet; gemessen am 2026-10-07 mit 16px Kästchen bei 14px
+   Grundschrift, also 2px Rahmen zusammen. Bei anderer Bildschirm-Skalierung
+   bleibt die Abweichung unter einem Pixel.
+
+   In der Zeile mit der Schreibmarke steht der rohe Text ohne gezeichnetes
+   Kästchen; dort greift die Regel nicht. */
+.cm-editor .cm-line.cm-haengender-einzug:has(.cm-live-task-marker) {
+  --kaestchen-ausgleich: calc(3ch - 1rem - 2px);
+  margin-left: calc(var(--haengender-einzug) - var(--kaestchen-ausgleich));
+  text-indent: calc(var(--kaestchen-ausgleich) - var(--haengender-einzug));
+}
+/* Folgezeilen derselben Aufgabe (Zeilen-Klasse aus dem Listen-Pass der
+   Live-Ansicht, live-pass-tasks.js): Ihre Einrückung besteht aus Leerzeichen
+   in Zeichenbreiten. Die ganze Zeile rückt deshalb um den Ausgleich nach
+   links — der Außenabstand schrumpft, der Erst-Zeilen-Einzug bleibt —, damit
+   Text und Fortsetzung unter dem Aufgaben-Text stehen. */
+.cm-editor .cm-line.cm-live-aufgabe-folgezeile {
+  --kaestchen-ausgleich: calc(3ch - 1rem - 2px);
+  margin-left: calc(var(--haengender-einzug, 0px) - var(--kaestchen-ausgleich));
+  text-indent: calc(-1 * var(--haengender-einzug, 0px));
+}
+.cm-editor .cm-line.cm-haengender-einzug:has(.cm-live-task-state),
+.cm-editor .cm-line.cm-live-aufgabe-folgezeile.cm-live-aufgabe-folgezeile-status {
+  --kaestchen-ausgleich: calc(3ch - 0.85rem - 2px);
+}
 /* Blockquote im Live-Modus: linker Akzent-Balken plus Einrueckung und
    gedaempfte Schrift. Akzent-Farbe ueber --syntax-quote (gleiche Quelle wie
    die Heading-Highlight-Stufe aus mdHighlightStyle). Padding-Left enthaelt

@@ -20,6 +20,9 @@ const { baseCalendarOf, STANDARD_CALENDAR_ID } = require('../../calendar/calenda
 // Owners vom 2026-07-26, Variante 1c); bei selbst definierten Kalendern
 // bleibt der Name der Definition stehen, weil das Modell dort keine
 // Mehrzahl kennt.
+// 4T-001863 (Epic 3E-000307): Seither kennt das Modell die Mehrzahl. Der Weg
+// über die i18n-Schlüssel bleibt für die Standard-Zeitrechnung vorrangig;
+// sonst wählt die gemeinsame Regel des Kerns die Form zur Anzahl.
 const CALENDAR_SPAN_UNIT_KEYS = {
   day: ['events.unit.day', 'events.unit.days'],
   week: ['events.unit.week', 'events.unit.weeks'],
@@ -45,7 +48,7 @@ function calendarSpanUnitName(cal, unit, count, L) {
       if (typeof text === 'string' && text !== '' && !text.startsWith('events.')) return text;
     }
   }
-  return unit.name;
+  return calendarCore.unitNameFor(unit, count);
 }
 
 // Zeitspanne eines Werts in der konfigurierten Gliederungs-Tiefe; Anteile
@@ -160,6 +163,9 @@ function calendarValuesPlugin(mdInstance, opts) {
 module.exports = {
   calendarValueBadgeSpec,
   calendarSpanText,
+  // 4T-001863 (Epic 3E-000307): auch für die Einstellungen, damit Vorschau und
+  // Tiefen-Auswahl dieselben Einheiten-Namen zeigen wie das Abzeichen.
+  calendarSpanUnitName,
   CALENDAR_SPAN_LABEL_KEYS,
   calendarValuesPlugin,
 };

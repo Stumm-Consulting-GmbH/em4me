@@ -10,7 +10,7 @@
 
 import { Prec } from '@codemirror/state';
 import { keymap } from '@codemirror/view';
-import { foldAll, foldCode, syntaxTree, unfoldAll, unfoldCode } from '@codemirror/language';
+import { foldAll, foldCode, unfoldAll, unfoldCode } from '@codemirror/language';
 import { indentLess, indentMore } from '@codemirror/commands';
 // 4T-000207 (Epic 3E-000015): Editor-Keymap (Fold-Kommandos) aus der Kommando-
 // Registry statt des pauschalen foldKeymap; Bindings damit konfigurierbar.
@@ -24,8 +24,6 @@ import { state } from '../app/app-state.js';
 import {
   buildEmptyTableRow,
   findCellAt,
-  findUnescapedPipes,
-  isTableLine,
   parseTableCells,
 } from '../../../shared/markdown/table-edit.js';
 // 4T-000599 (Epic 3E-000112): Struktur-Kern der Listen-Bearbeitung plus sein
@@ -37,6 +35,14 @@ import {
   runListMove,
   runListSelectSubtree,
 } from './editor-list-tools.js';
+// 4T-001716 (Epic 3E-000301): Zeilenumbruch im Listenpunkt (Kommando-Wrapper
+// unten), der Code-Block-Test aus seinem Blatt-Modul (bis dahin hier
+// definiert) und die Kopf-Erkennung für die Folgezeilen des zeilenweisen
+// Einrückens. editor-list-enter.js lädt nichts von hier zurück.
+import { runListLineBreak } from './editor-list-enter.js';
+// 4T-001862: dort liegt seither auch die Tabellen-Erkennung (Re-Export unten).
+import { isTableContextLine, lineInsideCodeBlock } from './editor-code-zeile.js';
+import { parseListItemHead } from '../../../shared/markdown/list-outline.js';
 // 4T-001575 (Epic 3E-000282): reine Spalten-Rechnung des Cursor-Sprungs. Das
 // Modul importiert bewusst nichts aus dem Renderer zurueck (Begruendung in
 // seinem Kopf-Kommentar).
@@ -91,6 +97,10 @@ export const EDITOR_COMMAND_FUNCTIONS = {
   'list.moveDown': (view) => runListMove(view, +1),
   // 4T-000600 (Epic 3E-000112): Listenpunkt samt Teilbaum auswaehlen.
   'list.selectSubtree': (view) => runListSelectSubtree(view),
+  // 4T-001716 (Epic 3E-000301): harter Zeilenumbruch im Listenpunkt. Liefert
+  // der Handler false (Code-, Tabellen-Zeile, Auswahl), fällt Umschalt+Eingabe
+  // an die Standard-Belegung durch.
+  'list.lineBreak': (view) => runListLineBreak(view),
 };
 
 /**
@@ -133,22 +143,9 @@ export function buildEditorCommandKeymap() {
 // Konsumenten stehen. Muster src/shared/markdown/table-edit.js.
 export { LIST_LINE_RE, LIST_INDENT_STEP };
 
-/**
- * Liegt die Zeile in einem Code-Block (FencedCode oder CodeBlock)?
- *
- * @param {import('@codemirror/state').EditorState} state Editor-Zustand.
- * @param {{from: number}} line Zeilen-Objekt des Dokuments.
- * @returns {boolean} true innerhalb eines Code-Blocks.
- */
-export function lineInsideCodeBlock(state, line) {
-  const tree = syntaxTree(state);
-  let node = tree.resolveInner(line.from, 1);
-  while (node) {
-    if (node.name === 'FencedCode' || node.name === 'CodeBlock') return true;
-    node = node.parent;
-  }
-  return false;
-}
+// 4T-001716 (Epic 3E-000301): Der Code-Block-Test `lineInsideCodeBlock` liegt
+// seither im Blatt-Modul editor-code-zeile.js (Import oben); seine Verbraucher
+// laden ihn dort.
 
 // Liefert true, wenn mindestens eine Zeile in der aktuellen Selektion ein
 // Listen-Marker traegt; sonst false (dann faellt der Tab-Handler durch und
@@ -167,9 +164,30 @@ export function selectionTouchesList(state) {
   return false;
 }
 
+// 4T-001716 (Epic 3E-000301, E15): Ohne «Listen-Struktur» nimmt das zeilenweise
+// Ein- und Ausrücken die Folgezeilen eines Punkts mit, damit er nicht
+// zerreißt: eingerückte Zeilen ohne Marker bis zum nächsten Listenpunkt, zur
+// Leerzeile oder zur ersten Code-Zeile. `shift` ist die Strecke, um die die
+// Inhalts-Spalte des Punkts wandert (negativ beim Ausrücken). Mit der
+// Erweiterung bleibt alles wie zuvor; dort trägt die Teilbaum-Mitnahme.
+function carryContinuationLines(state, itemLine, shift, changes, seenLines) {
+  if (shift === 0 || isExtensionActive('outliner')) return;
+  for (let n = itemLine + 1; n <= state.doc.lines; n++) {
+    const line = state.doc.line(n);
+    if (line.text.trim() === '') return;
+    if (parseListItemHead(line.text)) return;
+    const leading = /^[ \t]*/.exec(line.text)[0].length;
+    if (leading === 0 || lineInsideCodeBlock(state, line)) return;
+    seenLines.add(n);
+    if (shift > 0) changes.push({ from: line.from, insert: ' '.repeat(shift) });
+    else changes.push({ from: line.from, to: line.from + Math.min(-shift, leading) });
+  }
+}
+
 // Erzeugt eine Transaktion, die Listen-Zeilen der aktuellen Selektion ein-
 // oder ausrueckt. delta = +1 (Einruecken) oder -1 (Ausruecken). Nicht-Listen-
-// Zeilen bleiben unveraendert. Alle Aenderungen laufen als ein dispatch, damit
+// Zeilen bleiben unveraendert, außer den Folgezeilen eines Punkts ohne
+// «Listen-Struktur» (4T-001716, carryContinuationLines). Alle Aenderungen laufen als ein dispatch, damit
 // Strg+Z sie als atomaren Schritt rueckgaengig macht.
 export function applyListIndent(view, delta) {
   const state = view.state;
@@ -211,6 +229,9 @@ export function applyListIndent(view, delta) {
             insert: ' '.repeat(LIST_INDENT_STEP),
           });
         }
+        // 4T-001716: Folgezeilen um dieselbe Strecke wie die Inhalts-Spalte.
+        const shift = isOrdered ? LIST_INDENT_STEP + 3 - marker.length : LIST_INDENT_STEP;
+        carryContinuationLines(state, n, shift, changes, seenLines);
       } else {
         if (leading.length === 0) continue; // Ebene 0 -> No-Op
         // Bis zu LIST_INDENT_STEP fuehrende Whitespace-Zeichen entfernen.
@@ -220,6 +241,7 @@ export function applyListIndent(view, delta) {
           to: line.from + removeCount,
           insert: '',
         });
+        carryContinuationLines(state, n, -removeCount, changes, seenLines);
       }
     }
   }
@@ -284,6 +306,10 @@ export const tabIndentKeymap = keymap.of([
 // Schutz wirkt damit auch fuer kuenftige Erweiterungen, die dieselben Tasten
 // belegen; im Bearbeitungs-Modus liefert die Wache false und alles laeuft
 // unveraendert weiter.
+// 4T-001716 (Epic 3E-000301): Umschalt+Eingabe ist seit dem Zeilenumbruch im
+// Listenpunkt die umbelegbare Vorgabe des Kommandos `list.lineBreak`; dessen
+// Handler prüft den Schreibschutz selbst, die Wache fängt die Taste trotzdem
+// weiter ab, damit sie auch umbelegt im Lesemodus nichts schreibt.
 const READ_ONLY_GUARD_KEYS = ['Enter', 'Shift-Enter', 'Mod-Enter', 'Backspace', 'Delete'];
 
 export const readOnlyGuardKeymap = Prec.highest(
@@ -384,21 +410,12 @@ export const cursorSprungKeymap = keymap.of([
 // der Tabellen-Handler false, und die Tab-/Shift+Tab-Taste faellt an
 // listIndentKeymap weiter.
 
-// R2-19 (4T-000186): Tabellen-Erkennung deckt auch randlose GFM-Tabellen ab
-// (die Preview rendert sie laengst). Rand-Pipe-Zeilen wie bisher rein
-// textuell; Zeilen ohne Rand-Pipes nur dann, wenn der Lezer-Baum sie
-// tatsaechlich einer Table zuordnet — eine einzelne Pipe in Fliesstext
-// darf Tab/Enter nicht kapern.
-export function isTableContextLine(state, line) {
-  if (isTableLine(line.text)) return true;
-  if (findUnescapedPipes(line.text).length === 0) return false;
-  let n = syntaxTree(state).resolveInner(Math.min(line.from + 1, line.to), 1);
-  while (n) {
-    if (n.name === 'Table') return true;
-    n = n.parent;
-  }
-  return false;
-}
+// R2-19 (4T-000186): Tabellen-Erkennung `isTableContextLine` (auch randlose
+// GFM-Tabellen). Seit 4T-001862 liegt sie unverändert im Blatt-Modul
+// editor-code-zeile.js, weil die Eingabetaste in Listen (editor-list-enter.js)
+// Tabellen-Zeilen selbst ablehnen muss und von hier nichts laden darf; der
+// Re-Export hält die Bestands-Importe (editor-table-tools.js) stabil.
+export { isTableContextLine };
 
 /**
  * Springt mit Tab/Umschalt+Tab zwischen den Zellen einer Pipe-Tabelle und

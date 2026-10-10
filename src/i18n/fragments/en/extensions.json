@@ -1,6 +1,6 @@
 {
   "extension.custom-calendars.name": "Calendar systems",
-  "extension.custom-calendars.description": "Freely definable time reckonings per area: maintenance in the settings, picker and calendar values in the document. When disabled, the values remain plain text.",
+  "extension.custom-calendars.description": "Freely definable time reckonings per area: maintenance in the settings, picker, conversion between the calendars of a block and calendar values in the document. When disabled, the values remain plain text.",
   "extension.command-placement.name": "Command placement",
   "extension.command-placement.description": "Custom command buttons in the status bar, a hide list for default buttons, a user-defined section in the editor context menu and macros as command sequences.",
   "extension.reminders.name": "Reminders",

@@ -29,6 +29,9 @@ import { runTaskEditDialogCommand } from '../task-dialog.js';
 // 4T-000887 (Befund L-04 des Struktur-Reviews): drei Kommandos ohne Bedienort im
 // Menü bekommen hier einen; Ausführungs-Pfad wie insertTemplateCommand.
 import { openCalendarPickerAtSelection } from '../calendar/calendar-picker.js';
+// 4T-001874 (Epic 3E-000323): Dialog «Datum umrechnen», derselbe Weg wie das
+// Registry-Kommando, vorbelegt aus der Auswahl der angeklickten View.
+import { openCalendarConvertAt } from '../calendar/calendar-convert-dialog.js';
 import { insertEventsBlock } from '../events/events-editor.js';
 import { runListSelectSubtree } from './editor-list-tools.js';
 // 4T-000521 (Epic 3E-000094): nutzerdefinierte Sektion am Menü-Ende. Die
@@ -255,6 +258,24 @@ function buildInsertItems(view) {
   ];
 }
 
+// --- Datum umrechnen (4T-001874, Epic 3E-000323) ---------------------------------
+// Eigene Sektion auf der obersten Ebene, nicht im Untermenü «Einfügen», weil der
+// Eintrag zuerst umrechnet. Sie steht hinter den schreibenden Gruppen und vor dem
+// Klipboard-Block und bleibt auch im Read-only-Editor: Der Dialog rechnet dort
+// um und kopiert, nur sein «Einfügen» ist dann deaktiviert (4T-002097).
+// Vorbelegung aus der Auswahl der angeklickten View (Notiz-Feld oder
+// Haupt-Editor); ohne Bereich mit Zeitrechnung erscheint der Eintrag
+// deaktiviert statt still wirkungslos. Entfällt mit der Erweiterung.
+function buildCalendarConvertItems(view) {
+  if (disabledCommandIdSet(getDisabledExtensionIds()).has('calendar.convert')) return [];
+  return [
+    {
+      ...kmd('calendar.convert', 'calendar-convert', () => openCalendarConvertAt(view)),
+      disabled: !isCommandIdAvailable('calendar.convert'),
+    },
+  ];
+}
+
 // --- Tabellen-Untermenü (4T-000590, Epic 3E-000109) ------------------------------
 // Untermenü „Tabelle" mit den table.*-Operationen, sichtbar nur, wenn der
 // Cursor in einer Tabelle steht (leere Sektion entfällt samt Trenner —
@@ -315,7 +336,17 @@ function buildTableItems(view) {
 
 // Zustand des laufenden Rechtsklicks. Die Marke unterscheidet Menü-Aufbauten:
 // eine Meldung zu einem älteren Klick darf ein neueres Menü nicht umbauen.
-let spellState = { marke: 0, view: null, x: 0, y: 0, zeit: 0, wort: '', vorschlaege: [] };
+// 4T-001991: `aufnahme` sagt, ob «Zum Wörterbuch hinzufügen» angeboten wird.
+let spellState = {
+  marke: 0,
+  view: null,
+  x: 0,
+  y: 0,
+  zeit: 0,
+  wort: '',
+  vorschlaege: [],
+  aufnahme: false,
+};
 let spellMarke = 0;
 
 // Verfallszeit einer Meldung. Sie trifft im Normalfall nach wenigen
@@ -328,10 +359,48 @@ const SPELL_PAYLOAD_MAX_ALTER_MS = 500;
 // überlaufen ließe.
 const MAX_SPELL_SUGGESTIONS = 5;
 
+// 4T-001991 (Epic 3E-000188): «Zum Wörterbuch hinzufügen» fehlt in der
+// portablen Fassung (Entscheidung des Product Owners vom 2026-09-28). Die
+// Aufnahme schreibt das Wort auch in das Wörterbuch des Windows-Benutzers,
+// also außerhalb des Daten-Ordners; der Haupt-Prozess führt sie dort deshalb
+// ohnehin nicht aus (ipc/dialogs.js), und die Oberfläche bietet sie gar nicht
+// erst an. Die Vorschläge bleiben.
+//
+// Die Auskunft kommt über `app:portablerBetrieb` aus dem beim Start einmal
+// ermittelten Ergebnis der Erkennung und ändert sich zur Laufzeit nicht; sie
+// wird deshalb einmal je Fenster erfragt und behalten. Angeboten wird die
+// Aufnahme NUR auf die ausdrückliche Auskunft «nicht portabel». Eine gestörte
+// oder unerwartete Auskunft blendet den Eintrag aus, weil ein fälschlich
+// angebotener Eintrag außerhalb des Daten-Ordners schriebe, ein fälschlich
+// fehlender dagegen nichts; eine gestörte Auskunft wird nicht behalten, damit
+// der nächste Rechtsklick neu fragt.
+let aufnahmeAuskunft = null;
+
+function woerterbuchAufnahmeAngeboten() {
+  if (!aufnahmeAuskunft) {
+    aufnahmeAuskunft = api.getPortablerBetrieb().then(
+      (auskunft) => !!auskunft && auskunft.portabel === false,
+      (err) => {
+        console.warn('Auskunft ueber den portablen Betrieb nicht erhalten:', err);
+        aufnahmeAuskunft = null;
+        return false;
+      },
+    );
+  }
+  return aufnahmeAuskunft;
+}
+
 // Meldung des Main-Prozesses: gehört sie zum laufenden Klick, wird das Menü
 // mit Vorschlags-Sektion neu aufgebaut. Ohne Tippfehler unter dem Zeiger
 // bleibt alles, wie es ist.
-export function handleSpellcheckContext(payload) {
+//
+// 4T-001991: Vor dem Neuaufbau steht die Auskunft über den portablen Betrieb.
+// Erfragt wird sie schon beim Rechtsklick (showEditorContextMenu), sodass sie
+// beim Eintreffen dieser Meldung in aller Regel vorliegt. Nach dem Warten
+// gelten dieselben Prüfungen wie davor, dazu die, dass das Menü noch offen
+// ist: Ein inzwischen geschlossenes Menü würde der Neuaufbau sonst wieder
+// aufdecken.
+export async function handleSpellcheckContext(payload) {
   const wort = payload && typeof payload.word === 'string' ? payload.word : '';
   const vorschlaege =
     payload && Array.isArray(payload.suggestions)
@@ -340,7 +409,10 @@ export function handleSpellcheckContext(payload) {
   if (!spellState.view || spellState.marke !== spellMarke) return;
   if (performance.now() - spellState.zeit > SPELL_PAYLOAD_MAX_ALTER_MS) return;
   if (!wort) return;
-  spellState = { ...spellState, wort, vorschlaege };
+  const marke = spellState.marke;
+  const aufnahme = await woerterbuchAufnahmeAngeboten();
+  if (spellState.marke !== marke || spellMarke !== marke || contextMenu.hidden) return;
+  spellState = { ...spellState, wort, vorschlaege, aufnahme };
   renderEditorContextMenu(spellState.view, spellState.x, spellState.y);
 }
 
@@ -358,6 +430,9 @@ function buildSpellItems(view) {
       void api.spellcheckReplace(vorschlag);
     },
   }));
+  // 4T-001991 (Epic 3E-000188): ohne Aufnahme-Eintrag kein Trenner, der ins
+  // Leere zeigt; die Vorschläge bleiben unverändert.
+  if (spellState.aufnahme !== true) return items;
   if (items.length > 0) items.push({ separator: true });
   items.push({
     key: 'editor.contextMenu.addToDictionary',
@@ -436,7 +511,8 @@ function buildCustomItems(view) {
 
 // --- Menü-Aufbau ------------------------------------------------------------
 // Sektionen in Hardcopy-Reihenfolge: Link, Format, Absatz, Einfügen,
-// Tabelle (nur in Tabellen, 4T-000590), Klipboard, nutzerdefinierte Sektion.
+// Tabelle (nur in Tabellen, 4T-000590), Datum umrechnen (4T-001874),
+// Klipboard, nutzerdefinierte Sektion.
 // Leere Sektionen entfallen; zwischen nicht-leeren Sektionen steht ein
 // Trenner. Exportiert für Unit-nahe Nutzung und die Folge-Tasks.
 export function buildEditorContextMenuItems(view) {
@@ -465,6 +541,7 @@ export function buildEditorContextMenuItems(view) {
         !disabledCommandIdSet(getDisabledExtensionIds()).has(e.commandId) &&
         isCommandIdAvailable(e.commandId),
     ),
+    buildCalendarConvertItems(view),
     buildClipboardItems(view),
     buildCustomItems(view),
   ].filter((section) => section.length > 0);
@@ -535,6 +612,10 @@ export function showEditorContextMenu(event, view) {
     zeit: performance.now(),
     wort: '',
     vorschlaege: [],
+    aufnahme: false,
   };
+  // 4T-001991: Auskunft über den portablen Betrieb schon jetzt anstoßen, damit
+  // sie beim Eintreffen der Vorschlags-Daten vorliegt.
+  void woerterbuchAufnahmeAngeboten();
   renderEditorContextMenu(view, event.clientX, event.clientY);
 }

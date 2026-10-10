@@ -31,7 +31,11 @@ import { reportMenuStateNow } from '../tabs/tabs.js';
 import { isAllEmpty, persistSetting } from '../views/views.js';
 import { ensurePanelTabActive, registerSidebarPanel } from '../sidebar-layout.js';
 import { decideNoteSync } from './notes-sync.js';
-import { applySpellcheckToView, createNotesEditorState } from '../editor/editor.js';
+import {
+  applySpellcheckToView,
+  createNotesEditorState,
+  setzeNotizPlatzhalter,
+} from '../editor/editor.js';
 import { showEditorContextMenu } from '../editor/editor-context-menu.js';
 import { pathCompareKey } from '../../../shared/platform.js';
 
@@ -61,6 +65,14 @@ const notesEditors = [];
 // waere ein Modul-Zyklus, weil dieses Modul aus editor.js liest.
 document.addEventListener('scg:spellcheck-changed', () => {
   for (const view of notesEditors) applySpellcheckToView(view);
+});
+
+// 4T-002129: Der Platzhalter steht als Extension im Zustand des Felds und nicht
+// im DOM-Merkmal; applyTranslations erreicht ihn deshalb nicht. Beim
+// Sprachwechsel wird nur er neu gesetzt — Inhalt, Auswahl, Fokus und der
+// Rückgängig-Verlauf einer laufenden Eingabe bleiben unberührt.
+document.addEventListener('i18n-language-changed', () => {
+  for (const view of notesEditors) setzeNotizPlatzhalter(view, t('notes.placeholder'));
 });
 
 function activeTabForPane(paneIdx) {

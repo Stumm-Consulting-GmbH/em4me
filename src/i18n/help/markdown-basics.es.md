@@ -95,7 +95,31 @@ Una línea vacía comienza una lista nueva. Si surge de tu edición, la lista si
 
 ### Continuar y terminar
 
-La tecla Intro continúa una lista y añade una viñeta, un número consecutivo o una casilla vacía. En un subelemento vacío reduce la sangría un nivel; en el nivel superior termina la lista.
+La tecla Intro continúa una lista y añade una viñeta, un número consecutivo o una casilla vacía, también en las listas de tareas numeradas. Una casilla nueva siempre está abierta. Dónde se crea el elemento nuevo depende de su entorno:
+
+- Si al elemento ya le siguen subelementos, el nuevo elemento se crea como primer subelemento y adopta su tipo: viñeta o número, con o sin casilla. Si el cursor está en medio del texto, el resto de la línea pasa a ser ese primer subelemento.
+- Al final de una segunda línea de un elemento (véase «Segunda línea en el mismo elemento»), la tecla Intro empieza un elemento nuevo.
+- En un subelemento vacío reduce la sangría un nivel, también en tareas numeradas; en el nivel superior termina la lista.
+
+En el campo de nota del panel «Notas», la tecla Intro actúa del mismo modo.
+
+### Segunda línea en el mismo elemento
+
+`Mayús+Intro` (predeterminado) empieza una segunda línea dentro del mismo elemento de lista, sin crear un elemento nuevo. Queda sangrada bajo el texto del elemento, en una tarea bajo el texto tras la casilla; si el cursor está en medio del texto, el resto de la línea pasa a la nueva línea. En el texto fuente, la línea anterior termina con una barra invertida, el salto de línea forzado (véase «Saltos de línea forzados»); la vista Live solo la muestra en la línea del cursor. En la vista, el texto aparece como segunda línea del mismo elemento, también bajo el texto tras la casilla.
+
+```markdown
+- Hacer la compra\
+  Leche, pan y queso
+- [ ] Revisar la oferta\
+      Tener en cuenta el plazo
+```
+
+- Hacer la compra\
+  Leche, pan y queso
+- [ ] Revisar la oferta\
+      Tener en cuenta el plazo
+
+Si la nueva línea queda vacía, Retroceso la retira junto con la barra invertida, y la tecla Intro tampoco deja allí ninguna barra invertida. Al aumentar o reducir la sangría del elemento, la segunda línea se mueve con él. El atajo vale en todos los modos de trabajo y también en el campo de nota; se puede cambiar en Archivo → Configuración… → Atajos de teclado.
 
 ### El cursor al cambiar de línea
 
@@ -157,7 +181,7 @@ Ver la [página de ejemplo][ref].
 
 ## Saltos de línea forzados
 
-Dos espacios al final de la línea o una barra invertida fuerzan un salto de línea dentro de un párrafo.
+Dos espacios al final de la línea o una barra invertida fuerzan un salto de línea dentro de un párrafo. En el editor, `Mayús+Intro` (predeterminado) inserta la barra invertida junto con una línea nueva. En una lista, la línea nueva queda sangrada y pertenece al mismo elemento (véase «Segunda línea en el mismo elemento»).
 
 ```markdown
 Primera línea\

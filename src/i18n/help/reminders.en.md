@@ -37,6 +37,8 @@ When a reminder is due, a dialog announces it with the description of the task a
 
 **In every window.** The dialog appears in every open window of the app, including windows of another area, windows without an area, and book and bookshelf windows. Each entry therefore shows its origin, for example "From: Projects": the area, book or bookshelf the reminder comes from. Done, Remind me later and Dismiss always act on the file of that origin, whichever window they come from, and exactly once: the reminder then disappears from all windows, and a second action on it in another window a moment later has no effect and shows no error. If several reminders are due, each window gathers them in one dialog. A window opened later also shows a reminder that is still open.
 
+**With unsaved changes.** If the task's file is open with unsaved changes, including in a window other than the one you click in, or as a document that is not in front at the moment, Done and Remind me later take effect in that unsaved state: the change shows up there in the editor, the document stays unsaved and reaches the disk only when it is saved, and the reminder disappears as after any other action. Checking off a task and the other actions in a task query behave the same way ([Task lists](tasks.md) page, section "Task queries and write-back").
+
 **Link to the source file.** A click on the file name opens the file at the line of the task, in the window of its area. If the window you clicked in shows another area or none, the window of the originating area comes to the front and opens the file there; if that area is not open at the moment, it is opened. The reminder stays in place: opening the file does not count as acting on it.
 
 ## Only while the app is running
@@ -49,7 +51,7 @@ While an area is open, the app continuously checks the markers of all area files
 
 A sidebar panel lists all reminders of the area, grouped into **Overdue**, **Today**, **Tomorrow** and **Later**. The panel opens via the alarm icon in the status bar or via View → Sidebar → Panels → Reminders.
 
-- Each entry offers the direct actions **Done** and **Later**.
+- Each entry offers the direct actions **Done** and **Later**; they behave as in the reminder dialog, including with unsaved changes.
 - A click on an entry opens the source file at the corresponding line.
 - The name of the source file appears here and in the notification dialog without the Markdown extension; the tooltip gives the full path.
 - The **Overdue** group also carries muted reminders and offers **Trigger again** there.

@@ -43,6 +43,47 @@ import {
   setzeWertEditorUmgebung,
 } from './properties-wert-editor.js';
 
+// 4T-002129: Der Neuaufbau des Panels ersetzt die Feld-DOM; ein Eingabefeld,
+// in dem der Anwender gerade steht, verlöre dabei den Fokus. Gemessen beim
+// Sprachwechsel aus einem anderen Fenster, der das Panel über das Neuzeichnen
+// der Spalten neu aufbaut: Der eingegebene Wert blieb (der Speicher-Weg wird
+// vorher geleert), der Fokus fiel auf die Seite. Zeigt das Panel danach
+// denselben Reiter, kehrt der Fokus samt Auswahl in dasselbe Feld zurück;
+// bei einem anderen Reiter nicht, denn dort ist es ein anderes Dokument.
+const gezeichneterReiter = [];
+const FOKUS_ZIELE = 'input, textarea, select, button';
+
+function merkeFeldFokus(container) {
+  const aktiv = document.activeElement;
+  const feld = aktiv && container.contains(aktiv) ? aktiv.closest('.properties-field') : null;
+  if (!feld) return null;
+  let von = null;
+  let bis = null;
+  try {
+    von = aktiv.selectionStart;
+    bis = aktiv.selectionEnd;
+  } catch {
+    /* Feld-Art ohne Auswahl (Auswahl-Liste, Knopf) */
+  }
+  const stelle = [...feld.querySelectorAll(FOKUS_ZIELE)].indexOf(aktiv);
+  return { key: feld.dataset.originalKey, stelle, von, bis };
+}
+
+function stelleFeldFokusWieder(container, merker) {
+  const feld = [...container.querySelectorAll('.properties-field')].find(
+    (el) => el.dataset.originalKey === merker.key,
+  );
+  const ziel = feld ? feld.querySelectorAll(FOKUS_ZIELE)[merker.stelle] : null;
+  if (!ziel) return;
+  ziel.focus({ preventScroll: true });
+  if (merker.von == null || typeof ziel.setSelectionRange !== 'function') return;
+  try {
+    ziel.setSelectionRange(merker.von, merker.bis);
+  } catch {
+    /* Feld-Art ohne Auswahl */
+  }
+}
+
 // 4T-000051: Rendert die Properties-Sidebar-Sektion fuer eine Spalte neu.
 // Wird gerufen bei Toggle-on, Tab-Wechsel, View-Mode-Wechsel und externer
 // Datei-Aenderung. Bewusst synchron: api.getFrontmatter ist im Preload als
@@ -51,6 +92,18 @@ import {
 // dem ein paralleler Aufruf nochmals appendet — Folge: doppelte/dreifache
 // Property-Listen je nach Zahl der parallelen Trigger.
 export function renderProperties(paneIdx) {
+  const els = getPaneEls(paneIdx);
+  const pane = state.panes[paneIdx];
+  const reiter = pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+  const gleich = gezeichneterReiter[paneIdx] === reiter;
+  gezeichneterReiter[paneIdx] = reiter;
+  const merker =
+    els && els.propertiesFields && gleich ? merkeFeldFokus(els.propertiesFields) : null;
+  zeichneProperties(paneIdx);
+  if (merker) stelleFeldFokusWieder(els.propertiesFields, merker);
+}
+
+function zeichneProperties(paneIdx) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.propertiesSection) return;
   // R5-03 (4T-000172): pending Debounce-Save des bisherigen Tabs flushen,

@@ -934,6 +934,39 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert link-blanks.md stabil
 "
 `;
 
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert listen-zeilenumbruch.md stabil 1`] = `
+"<h1 id="harter-umbruch-im-listenpunkt" data-source-line="1">Harter Umbruch im Listenpunkt</h1>
+<p data-source-line="3">Aufzählung mit Folgezeile nach Rückstrich:</p>
+<ul data-source-line="5">
+<li data-source-line="5">Erste Zeile des Punkts<br>
+zweite Zeile desselben Punkts</li>
+<li data-source-line="7">Nächster Punkt</li>
+</ul>
+<p data-source-line="9">Nummerierte Liste mit Folgezeile:</p>
+<ol data-source-line="11">
+<li data-source-line="11">Erste Zeile<br>
+zweite Zeile</li>
+<li data-source-line="13">Nächster Punkt</li>
+</ol>
+<p data-source-line="15">Aufgaben-Liste mit Folgezeile:</p>
+<ul class="contains-task-list" data-source-line="17">
+<li class="task-list-item" data-source-line="17"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Offene Aufgabe<br>
+zweite Zeile der Aufgabe</label></li>
+<li class="task-list-item" data-source-line="19"><label><input class="task-list-item-checkbox" checked="" disabled="" type="checkbox"> Erledigte Aufgabe</label></li>
+</ul>
+<p data-source-line="21">Aufgabe mit Termin und Folgezeile:</p>
+<ul class="contains-task-list" data-source-line="23">
+<li class="task-list-item" data-source-line="23"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Aufgabe mit Termin<span class="task-marker task-marker-date task-marker-due" title="Fällig">📅 2099-12-31</span><br>
+zweite Zeile der Aufgabe</label></li>
+</ul>
+<p data-source-line="26">Nummerierte Aufgabe mit Folgezeile:</p>
+<ol class="contains-task-list" data-source-line="28">
+<li class="task-list-item" data-source-line="28"><label><input class="task-list-item-checkbox" disabled="" type="checkbox"> Nummerierte Aufgabe<br>
+zweite Zeile</label></li>
+</ol>
+"
+`;
+
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert mermaid-container.md stabil 1`] = `
 "<pre><code class="hljs language-mermaid">graph TD
   A[Start] --&gt; B[Ende]

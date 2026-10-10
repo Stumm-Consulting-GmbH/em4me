@@ -1,4 +1,5 @@
 {
+  "command.calendar.convert": "Convertir une date",
   "command.calendar.insertValue": "Insérer une date de calendrier",
   "commandPalette.title": "Palette de commandes",
   "commandPalette.filterPlaceholder": "Filtrer…",
@@ -108,6 +109,7 @@
   "command.list.moveUp": "Déplacer l'élément vers le haut",
   "command.list.moveDown": "Déplacer l'élément vers le bas",
   "command.list.selectSubtree": "Sélectionner la branche",
+  "command.list.lineBreak": "Saut de ligne dans l'élément de liste",
   "command.insert.footnote": "Note de bas de page",
   "command.insert.table": "Tableau",
   "command.insert.perspectiveTable": "Tableau Perspective",

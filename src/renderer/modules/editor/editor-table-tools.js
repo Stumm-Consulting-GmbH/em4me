@@ -33,8 +33,10 @@ import {
 import { parsePerspectiveTableHeaderAttrs } from '../../../shared/markdown/perspective-table-syntax.js';
 // 4T-001002 (Epic 3E-000196): Tabellen- und Code-Block-Kontext liegen seit dem
 // Schnitt in editor-keymaps.js (Laufzeit-Zyklus, Zugriffe nur in
-// Funktionskoerpern).
-import { isTableContextLine, lineInsideCodeBlock } from './editor-keymaps.js';
+// Funktionskoerpern). Seit 4T-001716 liegt der Code-Block-Test im Blatt-Modul
+// editor-code-zeile.js.
+import { isTableContextLine } from './editor-keymaps.js';
+import { lineInsideCodeBlock } from './editor-code-zeile.js';
 import { showStatusbarHint } from '../views/views.js';
 
 // Statusbar-Hinweise für abgelehnte Operationen (geschützte Ziele bzw.

@@ -5,6 +5,8 @@
   "view.rendered": "Rendu",
   "view.live": "Direct",
   "app.claim": "extended memory for me",
+  "app.portableNotWritableTitle": "EM4me ne peut pas démarrer",
+  "app.portableNotWritableMessage": "EM4me ne peut pas écrire dans son dossier de données. Veuillez placer le fichier du programme dans un emplacement où vous disposez des droits d'écriture, par exemple votre dossier Documents ou une clé USB.",
   "empty.title": "EM4me",
   "empty.hint": "Ouvrez un fichier ou deposez-le ici.",
   "drop.hint": "Deposez le fichier Markdown ici",

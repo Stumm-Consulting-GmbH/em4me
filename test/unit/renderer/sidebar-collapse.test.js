@@ -109,3 +109,72 @@ describe('clearSidebarCollapsed (4T-000697, Aus-Zustand der Erweiterung)', () =>
     expect(window.api.setSetting).not.toHaveBeenCalled();
   });
 });
+
+// 4T-002129: Die beiden Helfer der Panels für den Sprachwechsel. Ein Text mit
+// Platzhalter oder festem Bestandteil kann kein i18n-Merkmal tragen; er wird
+// beim Ereignis des Sprachwechsels aus Schlüssel und gemerkten Werten neu
+// gebaut. Die Roll-Lage überdauert einen asynchronen Neuaufbau desselben Inhalts.
+describe('4T-002129: zusammengesetzte Panel-Texte und Roll-Lage beim Sprachwechsel', () => {
+  it('4T-002129: setzeSprachSatz füllt den Platzhalter und baut den Text beim Sprachwechsel in der neuen Sprache neu', async () => {
+    const i18n = await import('../../../src/renderer/i18n.js');
+    const { setzeSprachSatz } =
+      await import('../../../src/renderer/modules/panels/panel-sprache.js');
+    const de = (await import('../../../src/i18n/de.json')).default;
+    const en = (await import('../../../src/i18n/en.json')).default;
+    // Die Kataloge kommen im Programm per fetch aus dem Bündel (Muster
+    // eigenschaften-neue-typen.test.js); hier aus den erzeugten Sprachdateien.
+    const fetchVorher = global.fetch;
+    global.fetch = vi.fn(async (url) => ({
+      ok: true,
+      json: async () => (String(url).endsWith('/en.json') ? en : de),
+    }));
+    await i18n.loadTranslations('de');
+    const auswahl = document.createElement('select');
+    const kopf = document.createElement('div');
+    document.body.append(auswahl, kopf);
+    setzeSprachSatz(auswahl, 'title', 'properties.profileTypeLocked', {
+      werte: { profile: 'Projekt' },
+    });
+    setzeSprachSatz(kopf, 'text', 'reminders.group.today', { nach: ' (3)' });
+    const gesperrt = (k) => k['properties.profileTypeLocked'].replace('{profile}', 'Projekt');
+    expect(auswahl.title).toBe(gesperrt(de));
+    expect(auswahl.title).not.toContain('{profile}');
+    expect(kopf.textContent).toBe(`${de['reminders.group.today']} (3)`);
+    try {
+      await i18n.loadTranslations('en');
+      document.dispatchEvent(new CustomEvent('i18n-language-changed'));
+      expect(auswahl.title).toBe(gesperrt(en));
+      expect(kopf.textContent).toBe(`${en['reminders.group.today']} (3)`);
+    } finally {
+      await i18n.loadTranslations('de');
+      global.fetch = fetchVorher;
+      auswahl.remove();
+      kopf.remove();
+    }
+  });
+
+  it('4T-002129: halteRollLage stellt die Lage nach dem Neuaufbau desselben Inhalts wieder her, auch über zwei Aufrufe hinweg', async () => {
+    const { halteRollLage } =
+      await import('../../../src/renderer/modules/panels/panel-rolllage.js');
+    const sektion = document.createElement('section');
+    const koerper = document.createElement('div');
+    koerper.className = 'sidebar-section-body';
+    sektion.appendChild(koerper);
+    // Erster Aufbau: Es gibt noch keine Lage, die zurückkehren könnte.
+    halteRollLage(sektion, 'a.md|')();
+    koerper.scrollTop = 300;
+    // Neuaufbau: Leeren setzt die Lage auf null, ein zweiter Aufruf sieht schon
+    // die geleerte Fläche und teilt sich die zuerst gemerkte Lage.
+    halteRollLage(sektion, 'a.md|');
+    koerper.scrollTop = 0;
+    const zurueck = halteRollLage(sektion, 'a.md|');
+    zurueck();
+    expect(koerper.scrollTop).toBe(300);
+    // Ein anderes Dokument beginnt oben.
+    koerper.scrollTop = 120;
+    const anders = halteRollLage(sektion, 'b.md|');
+    koerper.scrollTop = 0;
+    anders();
+    expect(koerper.scrollTop).toBe(0);
+  });
+});

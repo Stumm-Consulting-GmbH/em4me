@@ -72,6 +72,11 @@ import { markdown } from '@codemirror/lang-markdown';
 import { mdHighlightStyle } from '../live/live-deco.js';
 // 4T-001312: haengender Einzug umgebrochener Zeilen, in beiden Instanzen fest.
 import { haengenderEinzugPlugin } from './editor-einzug.js';
+// 4T-001716 (Epic 3E-000301): Aufräumen der leer gebliebenen Folgezeile nach
+// dem Zeilenumbruch im Listenpunkt, in beiden Instanzen hinter der
+// Schreibschutz-Wache. Das Modul lädt nichts aus editor.js oder
+// editor-keymaps.js zurück.
+import { listEnterKeymap } from './editor-list-enter.js';
 import {
   calloutMarkerField,
   commentMarkerField,
@@ -187,7 +192,20 @@ export const editorCompartments = {
   // WebContents sich sonst nie mehr zum Pruefen bewegen laesst. Compartment,
   // damit der Schalter ohne Neustart und ohne Editor-Neuaufbau wirkt.
   spellcheck: new Compartment(),
+  // 4T-002129: Platzhalter des Notiz-Felds. Compartment, damit er dem
+  // Sprachwechsel folgt, ohne dass Inhalt, Auswahl, Fokus und Rückgängig-
+  // Verlauf des Felds verloren gehen (setzeNotizPlatzhalter).
+  notesPlaceholder: new Compartment(),
 };
+
+// 4T-002129: Setzt den Platzhalter eines Notiz-Felds neu, samt dem
+// aria-placeholder, den CodeMirror zu einem Text-Platzhalter mitführt.
+export function setzeNotizPlatzhalter(view, text) {
+  if (!view) return;
+  view.dispatch({
+    effects: editorCompartments.notesPlaceholder.reconfigure(text ? placeholder(text) : []),
+  });
+}
 
 // 4T-000581 (Epic 3E-000107): Ist die Pruefung gerade wirksam? Schalter aus den
 // Einstellungen UND aktive Erweiterung.
@@ -256,6 +274,13 @@ export function createNotesEditorState({ content = '', placeholderText = '', onD
       history(),
       // 4T-000640 (Epic 3E-000069): Schreibschutz-Wache vor der Markdown-Belegung.
       readOnlyGuardKeymap,
+      // 4T-001862 (Epic 3E-000301, E24): Listen-Ausstieg auch im Notiz-Feld,
+      // in derselben Reihenfolge wie im Haupt-Editor vor der eigenen
+      // Eingabetaste.
+      listExitKeymap,
+      // 4T-001716, 4T-001862, 4T-001977 (Epic 3E-000301): leer gebliebene
+      // Folgezeile und eigene Eingabetaste in Listen (E24 des Epics).
+      listEnterKeymap,
       // 4T-000655 (Epic 3E-000112): Nummerierungs-Invariante auch im Notiz-Feld,
       // damit sich Listen dort wie im Haupt-Editor verhalten (die Listen-
       // Kommandos wirken ueber buildEditorCommandKeymap ohnehin schon hier).
@@ -269,7 +294,7 @@ export function createNotesEditorState({ content = '', placeholderText = '', onD
       // 4T-000581 (Epic 3E-000107): Das Notiz-Feld folgt demselben Schalter wie
       // der Haupt-Editor (einheitliches Verhalten beider Schreibflaechen).
       editorCompartments.spellcheck.of(spellcheckContentAttributes()),
-      placeholderText ? placeholder(placeholderText) : [],
+      editorCompartments.notesPlaceholder.of(placeholderText ? placeholder(placeholderText) : []),
       buildEditorCommandKeymap(),
       keymap.of([...defaultKeymap, ...historyKeymap]),
       drawSelection(),
@@ -429,6 +454,10 @@ export function createEditorState(opts = {}) {
       // 4T-000600 (Epic 3E-000112): Listen-Ausstieg auf der obersten Ebene, vor
       // der eingekauften Markdown-Belegung.
       listExitKeymap,
+      // 4T-001716, 4T-001862, 4T-001977 (Epic 3E-000301): leer gebliebene
+      // Folgezeile und eigene Eingabetaste in Listen; Prec.highest, hinter
+      // Wache und Listen-Ausstieg (E11 des Epics).
+      listEnterKeymap,
       // 4T-000655 (Epic 3E-000112): Nummerierungs-Invariante. Haengt die Nummern-
       // Korrektur beruehrter Listen-Bloecke an dieselbe Transaktion, damit
       // Bearbeitung und Korrektur ein Rueckgaengig-Schritt bleiben.

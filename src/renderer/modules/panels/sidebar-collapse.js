@@ -80,6 +80,10 @@ export function injectCollapseToggle(headEl, paneIdx, side) {
   const label = t('sidebar.collapse.tooltip');
   btn.title = label;
   btn.setAttribute('aria-label', label);
+  // 4T-002125: Der Sprachwechsel baut die Spalte nicht neu; die Merkmale
+  // tragen den Tooltip über applyTranslations in die neue Sprache.
+  btn.setAttribute('data-i18n-title', 'sidebar.collapse.tooltip');
+  btn.setAttribute('data-i18n-aria-label', 'sidebar.collapse.tooltip');
   btn.appendChild(buildSidebarToggleIcon());
   bindCollapseToggleHandlers(btn, paneIdx, side);
   if (side === 'right') headEl.insertBefore(btn, headEl.firstChild);
@@ -96,6 +100,10 @@ export function buildCollapseStrip(paneIdx, side) {
   const label = t('sidebar.expand.tooltip');
   btn.title = label;
   btn.setAttribute('aria-label', label);
+  // 4T-002125: Der Sprachwechsel baut die Spalte nicht neu; die Merkmale
+  // tragen den Tooltip über applyTranslations in die neue Sprache.
+  btn.setAttribute('data-i18n-title', 'sidebar.expand.tooltip');
+  btn.setAttribute('data-i18n-aria-label', 'sidebar.expand.tooltip');
   btn.appendChild(buildSidebarToggleIcon());
   bindCollapseToggleHandlers(btn, paneIdx, side);
   return btn;

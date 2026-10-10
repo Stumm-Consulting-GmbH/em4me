@@ -849,3 +849,59 @@ describe('computeDependencyFlags (4T-000508)', () => {
     expect(flags[1]).toEqual({ blocked: false, blocking: false, duplicateId: false });
   });
 });
+
+// 4T-001716 (Epic 3E-000301, E10, AK15): Ein Rückstrich am Zeilenende (harter
+// Zeilenumbruch im Listenpunkt) zählt wie der Leerraum am Zeilenende zum
+// Zeilen-Ende: Marker davor werden erkannt, neue Marker kommen vor ihn, und
+// der Round-Trip bleibt byte-identisch.
+describe('Rückstrich am Zeilenende (4T-001716)', () => {
+  it('erkennt Termin- und Status-Marker vor dem Rückstrich', () => {
+    const model = parseTaskLine('- [ ] Aufgabe mit Termin 📅 2026-12-24 \\');
+    expect(model.due).toEqual({ date: '2026-12-24', time: null, invalid: false });
+    expect(model.description).toBe('Aufgabe mit Termin');
+    expect(model.trailing).toBe(' \\');
+    const erledigt = parseTaskLine('1. [x] Fertig ✅ 2026-10-01\\');
+    expect(erledigt.done).toEqual({ date: '2026-10-01', time: null, invalid: false });
+    expect(erledigt.trailing).toBe('\\');
+  });
+
+  it('setzt einen neuen Marker vor den Rückstrich, auch den Erledigt-Marker', () => {
+    const model = parseTaskLine('- [ ] Aufgabe mit Termin 📅 2026-12-24 \\');
+    setStatusChar(model, 'x');
+    setDateField(model, 'done', { date: '2026-10-07' });
+    expect(serializeTaskLine(model)).toBe(
+      '- [x] Aufgabe mit Termin 📅 2026-12-24 ✅ 2026-10-07 \\',
+    );
+    const ohneMarker = parseTaskLine('- [ ] Nur Text\\');
+    setPriority(ohneMarker, 'high');
+    expect(serializeTaskLine(ohneMarker)).toBe('- [ ] Nur Text ⏫\\');
+  });
+
+  it('bleibt im Round-Trip byte-identisch', () => {
+    const zeilen = [
+      '- [ ] Aufgabe 📅 2026-12-24 \\',
+      '- [ ] Aufgabe 📅 2026-12-24\\',
+      '1) [x] Aufgabe ✅ 2026-10-01 \\',
+      '- [ ] Ohne Marker\\',
+      '- [ ] \\',
+    ];
+    for (const zeile of zeilen) expect(serializeTaskLine(parseTaskLine(zeile))).toBe(zeile);
+  });
+
+  it('verträgt Rückstrich und zwei Leerzeichen in einer Zeile', () => {
+    for (const zeile of ['- [ ] Aufgabe 📅 2026-12-24  \\', '- [ ] Aufgabe 📅 2026-12-24 \\  ']) {
+      const model = parseTaskLine(zeile);
+      expect(model.due.date).toBe('2026-12-24');
+      expect(serializeTaskLine(model)).toBe(zeile);
+    }
+  });
+
+  it('ein maskierter Rückstrich am Ende bleibt Text', () => {
+    const model = parseTaskLine('- [ ] Pfad C:\\\\');
+    expect(model.trailing).toBe('');
+    expect(model.description).toBe('Pfad C:\\\\');
+    const mitTermin = parseTaskLine('- [ ] Pfad 📅 2026-12-24 \\\\');
+    expect(mitTermin.due).toBeNull();
+    expect(serializeTaskLine(mitTermin)).toBe('- [ ] Pfad 📅 2026-12-24 \\\\');
+  });
+});

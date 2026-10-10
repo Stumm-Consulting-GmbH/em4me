@@ -12,6 +12,7 @@ From top to bottom, the menu is organised into seven groups:
 - **Insert** — templates: footnote, table, callout, horizontal rule and code block.
 - **Table** — editing operations for the table at the cursor; appears only when the cursor is inside a table.
 - **Chart** — "Insert chart for this table" or "Edit chart"; appears only when the cursor is inside a data table or inside the block of a chart.
+- **Convert date** — opens the dialog that shows a date in the other calendars of the same block ([Calendar systems](custom-calendars.md)); appears only with calendar systems switched on and is active as soon as the open area defines a calendar.
 - **Clipboard** — cut, copy, paste, select all.
 
 The default shortcuts for bold (`Ctrl+B`) and italic (`Ctrl+I`) also work without the menu; every other action can be bound to a shortcut in the settings.
@@ -57,4 +58,4 @@ Inside a wiki link target and inside inline code, the format actions deliberatel
 
 ## Read-only editor
 
-If the editor is read-only, that is, a view without edit mode, the menu shows only copy and select all; the link, format, paragraph and insert groups are omitted.
+If the editor is read-only, that is, a view without edit mode, the menu shows only convert date, copy and select all; the link, format, paragraph and insert groups are omitted. Convert date stays because the dialog only shows and copies there: its «Insert» button is disabled in this view.

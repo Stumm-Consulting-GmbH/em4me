@@ -278,18 +278,53 @@ function baueAnkreuzfeld({ klasse, schluessel: sch, gewaehlt, unbestimmt, beschr
   return feld;
 }
 
+// 4T-002107: Die Form eines Zähl-Textes mit zwei Zahlen — Fundstellen und die
+// Gruppen, in denen sie liegen (Dateien, Abschnitte). Die Bestands-Schlüssel
+// tragen die Mehrzahl und behalten diese Bedeutung, weil Anwender eigene
+// Sprachdateien haben können; die Einzahl-Formen kommen als eigene Schlüssel
+// dazu (Muster `…One` wie `search.replaceCountOne`). Getrennt nach beiden
+// Zahlen, weil nur das Deutsche «Treffer» in Einzahl und Mehrzahl gleich
+// schreibt: «1 Treffer in 1 Datei», «3 Treffer in 1 Datei», «3 Treffer in 2
+// Dateien». Eine Fundstelle in mehreren Gruppen kommt nicht vor und fällt auf
+// die Mehrzahl zurück. Eine Regel für alle Zähl-Texte von Suche und Ersetzen:
+// Status-Zeile hier, Hinweis nach dem Ersetzen (search-ersetzen.js) und nach
+// der Tag-Umbenennung (tag-umbenennen.js).
+export function zaehlForm(anzahl, gruppen, { eins, vieleInEiner, viele }) {
+  if (gruppen !== 1) return viele;
+  return anzahl === 1 ? eins : vieleInEiner;
+}
+
+// 4T-002107: Der Schlüssel der Status-Zeile nach Raum und Zahl.
+export function zaehlSchluessel(raum, anzahl, gruppen) {
+  // 4T-000616: Im Bereichs-Raum sind die Gruppen Dateien, in den übrigen
+  // Räumen Seiten bzw. Bereiche. Ein eigener Schlüssel statt eines
+  // zusammengesetzten Satzes, damit jede Sprache ihre eigene Wendung wählen
+  // kann.
+  // Die Schlüssel stehen ausgeschrieben, damit eine Suche nach ihnen im
+  // Quelltext ihre Verwendung findet.
+  const formen =
+    raum === 'area'
+      ? {
+          eins: 'searchResults.countFilesOne',
+          vieleInEiner: 'searchResults.countFilesManyInOne',
+          viele: 'searchResults.countFiles',
+        }
+      : {
+          eins: 'searchResults.countOne',
+          vieleInEiner: 'searchResults.countManyInOne',
+          viele: 'searchResults.count',
+        };
+  return zaehlForm(anzahl, gruppen, formen);
+}
+
 function statusText() {
   if (bestand.raum === 'document') return t('searchResults.documentScope');
   if (bestand.raum === null) return t('searchResults.noQuery');
   if (bestand.treffer.length === 0) return t('searchResults.empty');
-  const anzahl = String(bestand.treffer.length);
-  const gruppen = String(bestand.gruppen.length);
-  // 4T-000616: Im Bereichs-Raum sind die Gruppen Dateien, in den uebrigen
-  // Raeumen Seiten bzw. Bereiche. Ein eigener Schluessel statt eines
-  // zusammengesetzten Satzes, damit jede Sprache ihre eigene Wendung waehlen
-  // kann.
-  const schluessel = bestand.raum === 'area' ? 'searchResults.countFiles' : 'searchResults.count';
-  let text = t(schluessel).replace('{n}', anzahl).replace('{g}', gruppen);
+  const anzahl = bestand.treffer.length;
+  const gruppen = bestand.gruppen.length;
+  const schluessel = zaehlSchluessel(bestand.raum, anzahl, gruppen);
+  let text = t(schluessel).replace('{n}', String(anzahl)).replace('{g}', String(gruppen));
   if (bestand.abgeschnitten) text += ` ${t('searchResults.truncated')}`;
   // Der Rueckfall-Modus des Vorrats ist kein Fehler, aber er erklaert, warum
   // die Suche in einem sehr grossen Bereich traeger reagiert.
@@ -394,10 +429,13 @@ function zeichneUmbenennung(els) {
 
   const satz = document.createElement('div');
   satz.className = 'search-results-rename-text';
-  satz.textContent = t('tagRename.bar')
+  // 4T-002107: Eine einzelne Fundstelle in der Einzahl; der Bestands-Schlüssel
+  // bleibt die Mehrzahl (Begründung an zaehlSchluessel).
+  const gewaehlt = auswahl.anzahlAusgewaehlt(bestand.treffer);
+  satz.textContent = t(gewaehlt === 1 ? 'tagRename.barOne' : 'tagRename.bar')
     .replace('{alt}', umbenennung.alt)
     .replace('{neu}', umbenennung.neu)
-    .replace('{n}', String(auswahl.anzahlAusgewaehlt(bestand.treffer)));
+    .replace('{n}', String(gewaehlt));
   balken.appendChild(satz);
 
   if (umbenennung.kinder > 0) {
@@ -616,6 +654,19 @@ export async function loadSearchResultsSettings() {
 
 export function initSearchResultsPanel() {
   document.addEventListener('keydown', onKeydown);
+  document.addEventListener('i18n-language-changed', zeichneNachSprachwechsel);
+}
+
+// 4T-002125: Status-Zeile, Balken und Beschriftungen entstehen hier per t() und
+// tragen kein i18n-Merkmal. Nach dem Sprachwechsel zeichnet das Panel sie aus
+// dem vorhandenen Bestand neu — ohne neuen Suchlauf, die Treffer bleiben. Liegt
+// der Fokus auf einer Zeile oder einem Ankreuzfeld, kehrt er über den
+// Schlüssel dorthin zurück (Muster 4T-001561).
+function zeichneNachSprachwechsel() {
+  const aktiv = document.activeElement;
+  const feld =
+    aktiv && aktiv.closest ? aktiv.closest('.sidebar-searchresults [data-schluessel]') : null;
+  zeichneAllePanes(feld ? feld.dataset.schluessel : null);
 }
 
 registerSidebarPanel({

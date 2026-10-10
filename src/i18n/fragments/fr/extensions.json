@@ -1,6 +1,6 @@
 {
   "extension.custom-calendars.name": "Systèmes de calendrier",
-  "extension.custom-calendars.description": "Chronologies librement définissables par zone : gestion dans les réglages, sélecteur et valeurs de calendrier dans le document. Désactivées, les valeurs restent du texte brut.",
+  "extension.custom-calendars.description": "Chronologies librement définissables par zone : gestion dans les réglages, sélecteur, conversion entre les calendriers d'un bloc et valeurs de calendrier dans le document. Désactivées, les valeurs restent du texte brut.",
   "extension.command-placement.name": "Placement des commandes",
   "extension.command-placement.description": "Boutons de commande personnalisés dans la barre d'état, une liste de masquage pour les boutons par défaut, une section personnalisée dans le menu contextuel de l'éditeur et des macros comme séquences de commandes.",
   "extension.reminders.name": "Rappels",

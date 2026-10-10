@@ -2388,6 +2388,18 @@
         <p class="about-credits" data-i18n="about.lucide">
           Statusbar-Icons: Lucide (ISC) &mdash; lucide.dev
         </p>
+        <!-- 4T-001993 (Epic 3E-000188): Ort der Daten, nur in der portablen Fassung.
+             Der Block bleibt verborgen (hidden), bis showAbout die Auskunft des
+             Hauptprozesses erhalten hat; verborgen ist auch der Knopf weder
+             sichtbar noch per Tastatur erreichbar. Der Pfad ist gewöhnlicher Text
+             und damit markier- und kopierbar. -->
+        <div id="about-portable" class="about-portable" hidden>
+          <p class="about-credits" data-i18n="about.portableDataLabel"></p>
+          <p id="about-portable-path" class="about-portable-path"></p>
+          <button id="btn-about-portable-open" class="btn" data-i18n="about.portableOpenDataFolder">
+            Daten-Ordner öffnen
+          </button>
+        </div>
         <button id="btn-about-close" class="btn btn-primary" data-i18n="about.ok">OK</button>
       </div>
     </div>

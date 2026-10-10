@@ -33,9 +33,18 @@ export function dirtyCalendarSection(draft) {
 // Entwurf (Hinweis-Zeile pro Kalender), hart beim Anwenden (validate).
 
 // Zahlen-Eingabe streng parsen (ganze Zahl, auch negativ); null = ungültig.
+// 4T-002098 (Epic 3E-000323): Die Grenze ist dieselbe wie im Kern, der jede
+// Zahl beim Einlesen über isInt/isPosInt prüft — eine sichere ganze Zahl
+// (Number.isSafeInteger). Bis dahin ließ die Pflege höchstens 15 Ziffern zu;
+// eine Definition mit sechzehnstelligem Wert (etwa einem Maßstab) lud der Kern
+// und rechnete damit, die Pflege hielt sie für ungültig und sperrte damit das
+// Anwenden der ganzen Einstellungs-Seite. Jenseits der sicheren Grenze bleibt
+// die Eingabe ungültig: Dort wäre die Zahl nicht mehr genau darstellbar.
 export function calSysInt(v) {
   const s = String(v == null ? '' : v).trim();
-  return /^-?\d{1,15}$/.test(s) ? Number(s) : null;
+  if (!/^-?\d+$/.test(s)) return null;
+  const n = Number(s);
+  return Number.isSafeInteger(n) ? n : null;
 }
 
 // Zeit-Teil-Länge der Entwurfs-Ebenen (Regel des Kerns: Präfix mit dem
@@ -95,6 +104,50 @@ export function calSysZeroValue(segCount) {
     .join('-');
 }
 
+// 4T-001863 (Epic 3E-000307): Mehrzahl eines Namens in der Ablage-Form — die
+// Eigenschaft entsteht nur mit Inhalt, damit Definitionen ohne Mehrzahl beim
+// Anwenden unverändert bleiben (Entwurf und Schnappschuss gleich).
+function pluralOf(draftEntry) {
+  const namePlural = String(draftEntry.namePlural || '').trim();
+  return namePlural === '' ? {} : { namePlural };
+}
+
+// 4T-002066 (Epic 3E-000307): Durchgetragene Positions-Namen in der Ablage-
+// Form; ein Entwurf ohne sie (etwa eine neu angelegte Ebene) bleibt ohne Feld.
+function keptNamesOf(draftEntry) {
+  const names = draftEntry.positionNames;
+  return Array.isArray(names) && names.length > 0 ? { names: names.slice() } : {};
+}
+
+// 4T-002066 (Epic 3E-000307): Wechselt eine Ebene mit durchgetragenen
+// Positions-Namen auf die Längen-Tabelle, werden die Namen zu deren Zeilen —
+// die Zeilen sind dort die Quelle der Namen. Das geschieht nur bei leerer
+// Tabelle: Dann ergibt sich die Zahl der Zeilen aus den Namen und passt. Eine
+// Tabelle mit Zeilen (etwa aus einem früheren Wechsel) bleibt, wie sie ist;
+// die Längen trägt der Anwender ein.
+export function calSysTakeOverNames(level) {
+  if (!level || level.relType !== 'lengths' || level.table.length > 0) return;
+  const { names } = keptNamesOf(level);
+  if (names) level.table = names.map((name) => ({ name, length: '' }));
+}
+
+// 4T-002001 (Epic 3E-000307): Regel-Teil einer Schalt-Ebene in der Ablage-Form
+// — je nach Form genau eines der Felder rules oder pattern. Ein Entwurf ohne
+// Form-Angabe (etwa eine neu angelegte Ebene) gilt als Teilbarkeits-Kette.
+// Die Jahre des Musters dürfen mit Komma oder Leerzeichen getrennt sein;
+// ungültige Einträge reichen als ungültige Werte durch, die Kern-
+// Normalisierung lehnt die Zeitrechnung dann ab.
+function calSysLeapRule(level) {
+  if (level.leapMode !== 'pattern') {
+    return { rules: level.leapRules.map((cycle) => ({ cycle: calSysInt(cycle) })) };
+  }
+  const years = String(level.leapPatternYears || '')
+    .split(/[\s,]+/)
+    .filter((s) => s !== '')
+    .map((s) => calSysInt(s));
+  return { pattern: { cycle: calSysInt(level.leapPatternCycle), years } };
+}
+
 export function calendarToDraft(cal) {
   // 4T-000747: Eine abgeleitete Zeitrechnung trägt im Entwurf nur ihre eigenen
   // Angaben; Ebenen, Zyklen, Gruppierungen und Epochen entstehen bei der
@@ -117,6 +170,8 @@ export function calendarToDraft(cal) {
     const draft = {
       id: level.id,
       name: level.name,
+      // 4T-001863 (Epic 3E-000307): Mehrzahl im Entwurf immer als Eingabe-Text.
+      namePlural: level.namePlural || '',
       section: level.section,
       start: String(level.start),
       relType: level.rel ? level.rel.type : '',
@@ -126,6 +181,19 @@ export function calendarToDraft(cal) {
       leapRules: [],
       leapTarget: '',
       leapExtra: '',
+      // 4T-002001 (Epic 3E-000307): Form der Schalt-Regel und die beiden
+      // Eingaben des Musters, im Entwurf immer vorhanden (Muster der übrigen
+      // Schalt-Felder); die jeweils andere Form bleibt beim Wechsel erhalten.
+      leapMode: 'rules',
+      leapPatternCycle: '',
+      leapPatternYears: '',
+      // 4T-002066 (Epic 3E-000307): Positions-Namen einer Ebene ohne Längen-
+      // Tabelle. Die Pflege bietet sie dort nicht an, das Modell erlaubt sie an
+      // jeder Ebene (etwa Monats-Namen an gleich langen Monaten); der Entwurf
+      // trägt sie deshalb unverändert durch, sonst gingen sie beim nächsten
+      // Anwenden still verloren. An der Längen-Tabelle sind die Zeilen die Quelle.
+      positionNames:
+        level.names && !(level.rel && level.rel.type === 'lengths') ? level.names.slice() : null,
     };
     if (level.rel && level.rel.type === 'factor') draft.factorCount = String(level.rel.count);
     if (level.rel && level.rel.type === 'lengths') {
@@ -136,7 +204,13 @@ export function calendarToDraft(cal) {
     }
     if (level.rel && level.rel.type === 'leap') {
       draft.leapCount = String(level.rel.count);
-      draft.leapRules = level.rel.rules.map((r) => String(r.cycle));
+      if (level.rel.pattern) {
+        draft.leapMode = 'pattern';
+        draft.leapPatternCycle = String(level.rel.pattern.cycle);
+        draft.leapPatternYears = level.rel.pattern.years.join(', ');
+      } else {
+        draft.leapRules = level.rel.rules.map((r) => String(r.cycle));
+      }
       draft.leapTarget = String(level.rel.targetIndex + 1);
       draft.leapExtra = String(level.rel.extra);
     }
@@ -149,6 +223,7 @@ export function calendarToDraft(cal) {
     cycles: cal.cycles.map((cycle) => ({
       id: cycle.id,
       name: cycle.name,
+      namePlural: cycle.namePlural || '',
       of: cycle.of,
       length: String(cycle.length),
       namesText: cycle.names ? cycle.names.join(', ') : '',
@@ -159,14 +234,21 @@ export function calendarToDraft(cal) {
     groups: cal.groups.map((group) => ({
       id: group.id,
       name: group.name,
+      namePlural: group.namePlural || '',
       of: group.of,
       size: String(group.size),
+      // 4T-002066 (Epic 3E-000307): Positions-Namen der Gruppierung, ebenfalls
+      // ohne Eingabe-Feld und deshalb unverändert durchgetragen.
+      positionNames: group.names ? group.names.slice() : null,
     })),
     epochs: cal.epochs.map((epoch) => ({
       name: epoch.name,
       abbr: epoch.abbr || '',
       startSegs: epoch.start ? epoch.start.map(String) : null,
     })),
+    // 4T-001999 (Epic 3E-000307): Kennzeichen «Epochen-Kürzel immer
+    // schreiben» im Entwurf immer als Wahrheitswert (Kontrollkästchen).
+    alwaysWriteEpoch: cal.alwaysWriteEpoch === true,
     anchorSegs: cal.blockAnchor.map(String),
     scaleNum: String(cal.blockScale.num),
     scaleDen: String(cal.blockScale.den),
@@ -197,11 +279,18 @@ export function calendarPersistForm(calDraft) {
     const out = {
       id: level.id,
       name: String(level.name || '').trim(),
+      ...pluralOf(level),
       section: String(level.section || '').trim(),
       start: calSysInt(level.start) ?? NaN,
     };
     const names = level.table.map((row) => String(row.name || '').trim());
-    if (level.table.length > 0 && names.every((n) => n !== '')) out.names = names;
+    if (level.table.length > 0 && names.every((n) => n !== '')) {
+      out.names = names;
+    } else if (level.relType !== 'lengths') {
+      // 4T-002066 (Epic 3E-000307): Ebene ohne Längen-Tabelle — die geladenen
+      // Namen gehen unverändert zurück.
+      Object.assign(out, keptNamesOf(level));
+    }
     if (i === 0) return out;
     if (level.relType === 'factor') {
       out.rel = { type: 'factor', count: calSysInt(level.factorCount) };
@@ -215,7 +304,7 @@ export function calendarPersistForm(calDraft) {
       out.rel = {
         type: 'leap',
         count,
-        rules: level.leapRules.map((cycle) => ({ cycle: calSysInt(cycle) })),
+        ...calSysLeapRule(level),
         targetIndex: target === null ? null : target - 1,
         extra: calSysInt(level.leapExtra),
       };
@@ -237,6 +326,7 @@ export function calendarPersistForm(calDraft) {
       const entry = {
         id: cycle.id,
         name: String(cycle.name || '').trim(),
+        ...pluralOf(cycle),
         of: cycle.of,
         length: calSysInt(cycle.length),
         anchor: {
@@ -252,14 +342,20 @@ export function calendarPersistForm(calDraft) {
     groups: calDraft.groups.map((group) => ({
       id: group.id,
       name: String(group.name || '').trim(),
+      ...pluralOf(group),
       of: group.of,
       size: calSysInt(group.size),
+      ...keptNamesOf(group),
     })),
     epochs: calDraft.epochs.map((epoch) => ({
       name: String(epoch.name || '').trim(),
       abbr: String(epoch.abbr || '').trim() || null,
       start: epoch.startSegs === null ? null : segsOf(epoch.startSegs),
     })),
+    // 4T-001999 (Epic 3E-000307): Die Eigenschaft entsteht nur, wenn sie
+    // gesetzt ist — Definitionen ohne Kennzeichen bleiben beim Anwenden
+    // unverändert (Entwurf und Schnappschuss gleich).
+    ...(calDraft.alwaysWriteEpoch === true ? { alwaysWriteEpoch: true } : {}),
   };
   // Leerer Anker/leere Skala = Kern-Defaults (Minimal-Tupel bzw. 1/1);
   // teilweise gefüllte Eingaben reichen als ungültig durch.

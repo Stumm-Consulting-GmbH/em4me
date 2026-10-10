@@ -145,6 +145,9 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.listOutline',
       'help.feature.listNumbering',
       'help.feature.listExit',
+      // 4T-001717 (Epic 3E-000301): Zweite Zeile im Listenpunkt — dieselbe
+      // Taste im Schreibfluss wie das Fortsetzen, deshalb unmittelbar dahinter.
+      'help.feature.listLineBreak',
       // 4T-001577 (Epic 3E-000282): Cursor-Sprung hinter den Listen-Marker —
       // das Ende der Listen-Familie. Er steht hinter dem Fortsetzen und
       // Beenden, weil er dieselbe Bewegung im Schreibfluss betrifft (Taste
@@ -322,6 +325,12 @@ const HELP_FEATURE_GROUPS = [
       // 4T-000749 (Epic 3E-000138): abgeleitete Zeitrechnungen direkt hinter den
       // Kalender-Systemen, auf denen sie aufsetzen.
       'help.feature.derivedCalendars',
+      // 4T-001735 (Epic 3E-000307): mitgelieferte Kalender-Vorlagen direkt
+      // hinter den abgeleiteten Zeitrechnungen, im selben Kalender-Cluster.
+      'help.feature.calendarTemplates',
+      // 4T-001875 (Epic 3E-000323): «Datum umrechnen» direkt hinter den
+      // Kalender-Vorlagen, im selben Kalender-Cluster.
+      'help.feature.calendarConvert',
       // 4T-000071 (Epic 3E-000013): Code-Block Copy-Button im Render-Pane.
       'help.feature.codeCopyButton',
       // 4T-000380 (Epic 3E-000071): Editor-Kontextmenue als zentraler Editier-
@@ -693,6 +702,12 @@ const HELP_FEATURE_GROUPS = [
       // Eintrag. Beide sind Hilfe-Zugaenge ohne eigene Syntax und ohne
       // Konfiguration; die Tour fuehrt vor, was das Handbuch erklaert.
       'help.feature.tour',
+      // 4T-001996 (Epic 3E-000188): die portable Fassung als Eigenschaft der
+      // ganzen Anwendung — wo sie ihre Daten ablegt und wie sie mitwandert —,
+      // deshalb in «Allgemein» und nicht bei einer einzelnen Bedien-Funktion.
+      // Am Ende der Gruppe, weil sie keine Funktion im Programm ist, sondern
+      // die Form, in der es vorliegt.
+      'help.feature.portableVersion',
     ],
   },
 ];

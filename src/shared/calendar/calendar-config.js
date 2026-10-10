@@ -29,6 +29,7 @@ const {
   normalizeNames,
   normalizeLevels,
   cycleAt,
+  pluralField,
 } = require('./calendar-core.js');
 const { createGregorianTemplate } = require('./calendar-template.js');
 
@@ -145,9 +146,11 @@ function normalizeCycles(cal, c, raw) {
       numbering = { ruleIndex };
     }
     seen.add(id);
+    // 4T-001863 (Epic 3E-000307): Mehrzahl des Zyklus-Namens (nur mit Inhalt).
     cycles.push({
       id,
       name: cleanString(entry.name) || id,
+      ...pluralField(entry.namePlural),
       of: c.levels[ofIdx].id,
       length: entry.length,
       names: normalizeNames(entry.names),
@@ -169,9 +172,11 @@ function normalizeGroups(c, raw) {
     const ofIdx = c.levels.findIndex((lv) => lv.id === cleanString(entry.of));
     if (ofIdx < 0 || ofIdx >= c.top || !isPosInt(entry.size)) continue;
     seen.add(id);
+    // 4T-001863 (Epic 3E-000307): Mehrzahl des Gruppierungs-Namens (nur mit Inhalt).
     groups.push({
       id,
       name: cleanString(entry.name) || id,
+      ...pluralField(entry.namePlural),
       of: c.levels[ofIdx].id,
       size: entry.size,
       names: normalizeNames(entry.names),
@@ -197,6 +202,11 @@ function normalizeCalendar(value) {
     cycles: [],
     groups: [],
     epochs: [],
+    // 4T-001999 (Epic 3E-000307): Kennzeichen «Epochen-Kürzel immer
+    // schreiben». Übernommen nur bei genau true und nur dann als Feld
+    // vorhanden, damit Definitionen ohne Kennzeichen samt ihrer Ablage-Form
+    // Zeichen für Zeichen unverändert bleiben.
+    ...(value.alwaysWriteEpoch === true ? { alwaysWriteEpoch: true } : {}),
     blockAnchor: null,
     blockScale: null,
   };
@@ -308,7 +318,15 @@ function deriveCalendar(base, raw) {
   // Ebenen kopieren, Namens-Listen auf die Position des Nullpunkts drehen.
   // Zeit-Ebenen bleiben dabei unverändert, weil ihre Position null ist.
   const levels = c.levels.map((lv, i) => {
-    const out = { id: lv.id, name: lv.name, section: lv.section, start: lv.start };
+    // 4T-001863 (Epic 3E-000307): Die Mehrzahl wandert mit, sonst ginge sie
+    // in jeder Ableitung still verloren.
+    const out = {
+      id: lv.id,
+      name: lv.name,
+      ...pluralField(lv.namePlural),
+      section: lv.section,
+      start: lv.start,
+    };
     if (lv.names) out.names = i < c.top ? rotateList(lv.names, posAt(i)) : lv.names.slice();
     if (lv.rel) out.rel = { ...lv.rel };
     return out;
@@ -366,6 +384,7 @@ function deriveCalendar(base, raw) {
     return {
       id: cy.id,
       name: cy.name,
+      ...pluralField(cy.namePlural),
       of: cy.of,
       length: cy.length,
       names: cy.names ? rotateList(cy.names, at ? at.position : 0) : null,
@@ -381,6 +400,7 @@ function deriveCalendar(base, raw) {
     return {
       id: g.id,
       name: g.name,
+      ...pluralField(g.namePlural),
       of: g.of,
       size: g.size,
       names: g.names ? rotateList(g.names, idx >= 0 ? Math.floor(posAt(idx) / g.size) : 0) : null,
@@ -389,6 +409,10 @@ function deriveCalendar(base, raw) {
 
   const labelBefore = cleanString(raw.labelBefore) || 'vor';
   const labelAfter = cleanString(raw.labelAfter) || 'nach';
+  // 4T-001999 (Epic 3E-000307): Das Kennzeichen alwaysWriteEpoch des Bezugs
+  // wird bewusst NICHT übernommen — die Ableitung zählt vom Nullpunkt weg und
+  // trägt ihre Richtung ohnehin; im Bezug wirkt es dort, wo dessen Datum
+  // gezeigt wird.
   const draft = {
     id,
     name: cleanString(raw.name) || id,

@@ -7,10 +7,10 @@ Les extensions externes sont des paquets créés par vous-même qui étendent le
 
 ## Structure d'un paquet
 
-Un paquet d'extension est un dossier dans le répertoire des extensions du profil utilisateur. L'action « Ouvrir le dossier » de la section de paramètres Extensions (externes) ouvre le répertoire dans le gestionnaire de fichiers.
+Un paquet d'extension est un dossier dans le répertoire des extensions de l'application. Il se trouve avec les autres données de l'application : dans la version installée, dans le profil utilisateur ; dans la [version portable](portable-version.md), dans le dossier `Data` à côté du programme. L'action « Ouvrir le dossier » de la section de paramètres Extensions (externes) ouvre le répertoire dans le gestionnaire de fichiers.
 
 ```text
-<profil utilisateur>/extensions/
+<données de l'application>/extensions/
 └── mon-extension/
     ├── manifest.json     (obligatoire : décrit le paquet)
     ├── main.js           (point d'entrée UI, module ES)

@@ -11,9 +11,12 @@ import {
   convertInBlock,
   formatTuple,
   parseCanonical,
-  spanTiers,
   spanUnits,
 } from '../../../shared/calendar/calendar-core.js';
+import {
+  calendarSpanText,
+  calendarSpanUnitName,
+} from '../../../shared/markdown/plugins/calendar.js';
 import { t } from '../../i18n.js';
 import { showCalendarPicker } from '../calendar/calendar-picker.js';
 import {
@@ -91,7 +94,13 @@ export function buildDerivedCalendarEditor(container, block, calDraft, calIdx) {
         formatTuple(normalized, parsed.tuple) || '',
       ),
     ];
-    const span = calSysSpanText(normalized, parsed.tuple, calDraft.derived.depth);
+    // 4T-001863 (Epic 3E-000307): Die Vorschau nutzt den Spannen-Text des
+    // Abzeichens im Dokument, statt ihn ein zweites Mal zu bauen. Damit gilt
+    // eine Regel für Einzahl und Mehrzahl, und eine Ableitung auf der
+    // eingebauten Bezugs-Zeitrechnung zeigt ihre Einheiten in der Sprache der
+    // Oberfläche — die eigene Fassung zeigte dort die deutschen Vorgaben der
+    // Vorlage in jeder Sprache. Die gewählte Tiefe trägt die Probe-Definition.
+    const span = calendarSpanText(normalized, parsed.tuple, t);
     if (span) lines.push(t('settings.calendar.derivedPreviewSpan').replace('{span}', span));
     const baseCal = probe.calendars.find((c) => c.id === 'probe-base');
     if (baseCal) {
@@ -193,9 +202,11 @@ export function buildDerivedCalendarEditor(container, block, calDraft, calIdx) {
     units.forEach((_, i) => {
       const opt = document.createElement('option');
       opt.value = String(i);
+      // 4T-001863 (Epic 3E-000307): Einheiten-Namen wie im Abzeichen (Einzahl),
+      // bei der eingebauten Bezugs-Zeitrechnung also in der Oberflächen-Sprache.
       opt.textContent = units
         .slice(0, i + 1)
-        .map((u) => u.name)
+        .map((u) => calendarSpanUnitName(normalized, u, 1, t))
         .reverse()
         .join(', ');
       depthSelect.appendChild(opt);
@@ -253,24 +264,6 @@ export function buildDerivedCalendarEditor(container, block, calDraft, calIdx) {
 
   refresh();
   container.appendChild(group);
-}
-
-// Zeitspanne eines Werts als Text in der gewählten Tiefe; Bestandteile der
-// Länge null entfallen, die Richtung trägt das Kürzel der Ableitung.
-function calSysSpanText(cal, tuple, depthRaw) {
-  const result = spanTiers(cal, tuple);
-  if (!result || result.tiers.length === 0) return '';
-  const depth = calSysInt(String(depthRaw || '').trim());
-  const idx =
-    depth !== null && depth >= 0 && depth < result.tiers.length ? depth : result.tiers.length - 1;
-  const items = result.tiers[idx];
-  const shown = items.filter((u) => u.count > 0);
-  const text = (shown.length > 0 ? shown : items.slice(-1))
-    .map((u) => `${u.count} ${u.name}`)
-    .join(', ');
-  if (result.direction !== 'before') return text;
-  const label = cal.epochs[0].abbr || cal.epochs[0].name || '';
-  return label === '' ? text : `${text} ${label}`;
 }
 
 // Nullpunkt über den vorhandenen Picker wählen: Er läuft auf einer Probe-

@@ -121,8 +121,9 @@ Qui travaille longtemps avec un programme finit par le façonner : couleurs, rac
 - **Une sixième langue : la vôtre.** Traduire un modèle, l'installer, la choisir dans la barre d'état ; ce qui y manque apparaît en anglais et non sous forme de clé brute.
 - **Tous les contenants en un seul endroit** : saisis à la main plutôt que collectés automatiquement, avec des chiffres et le moment où ils ont été relevés.
 - **Rien ne se fait à votre insu** : aucun disque n'est parcouru, et aucune relecture n'écrit quoi que ce soit avant votre confirmation.
+- **Tout l'environnement de travail dans un dossier** : la version portable range paramètres, session et brouillons dans le dossier à côté du programme ; qui le copie sur une clé USB travaille sur n'importe quel ordinateur avec sa propre configuration.
 
-En détail : [Exporter et importer les paramètres](setup-exchange.md), [Votre propre langue d'interface](custom-locale.md), [My Extended Memory](my-extended-memory.md).
+En détail : [Exporter et importer les paramètres](setup-exchange.md), [Votre propre langue d'interface](custom-locale.md), [My Extended Memory](my-extended-memory.md), [Version portable](portable-version.md).
 
 ## Des tableaux qui portent plus qu'une ligne
 
@@ -189,6 +190,7 @@ Au-delà des quatre grandes constructions, le langage apporte plus de cinquante 
 - **Présentation** avec formules, diagrammes et code mis en évidence ; lors d'un export portable, un diagramme voyage sous forme d'image finie et reste visible là où EM4me n'est pas installé.
 - **Renvois à l'intérieur du texte** par ancres, inclusions et mots-clés.
 - **Journée de travail** avec tâches, rappels, rendez-vous, modèles et journaux.
+- **Dates dans d'autres calendriers** : neuf calendriers fournis, du julien au japonais en passant par l'hégirien, ainsi que des chronologies propres librement définissables ; les dates d'un même bloc se convertissent les unes dans les autres.
 - **Activables une par une** ou regroupées en trois modes de travail, avec en plus des combinaisons à vous, et ouvert à vos propres extensions via une interface documentée.
 
 En détail : [Fonctionnalités](functions.md), [Extensions](extensions.md), [Créer des extensions](extensions-dev.md).

@@ -62,6 +62,8 @@ export function aktuellerRaumTreffer() {
 
 export function leereRaumBestand(raum = null) {
   generation++;
+  // 4T-002129: Mit dem Bestand verfallen die vorgemerkten Sprünge.
+  vormerkung = null;
   bestand = { treffer: [], gruppen: [], abgeschnitten: false, raum, index: -1 };
   leereTreffer(raum);
 }
@@ -74,9 +76,12 @@ export function leereRaumBestand(raum = null) {
 // Ein Sprung aktiviert den Ziel-Reiter, das löst refreshSearchIfVisible aus,
 // und ein zurückgesetzter Zeiger schickte den nächsten F3-Druck wieder zum
 // ersten Treffer — die Seitengrenze wäre nie zu überschreiten.
+// 4T-002216: Behalten wird der Zeiger beim EINTREFFEN des Ergebnisses, nicht
+// der beim Start des Laufs. Ein Sprung während des Laufs (etwa die vorgemerkten
+// Sprünge eines neuen Begriffs, während das Öffnen der Trefferliste die Suche
+// nachzieht) bewegt ihn, und das spätere Ergebnis setzte ihn sonst zurück.
 export async function sucheImRaum(raum, regex, { behalteIndex = false } = {}) {
   const lieferant = LIEFERANTEN.get(raum);
-  const vorherigerIndex = behalteIndex && bestand.raum === raum ? bestand.index : -1;
   const meine = ++generation;
   // 4T-001525 (Epic 3E-000169): Die Anfrage reist zur Trefferliste mit. Sie
   // entscheidet dort, ob eine bestehende Auswahl weiterhin gilt — dasselbe
@@ -95,6 +100,7 @@ export async function sucheImRaum(raum, regex, { behalteIndex = false } = {}) {
     geliefert = [];
   }
   if (meine !== generation) return false;
+  const vorherigerIndex = behalteIndex && bestand.raum === raum ? bestand.index : -1;
 
   // Eintrags-Liste: hier suchen. Fertiges Ergebnis: übernehmen, aber die
   // erwarteten Felder absichern — ein Lieferant, der über eine Prozess-Grenze
@@ -139,13 +145,106 @@ export function setzeRaumIndex(index) {
   return bestand.treffer[index];
 }
 
+// 4T-002107: Ziel eines Vorwärts-Sprungs, gemeinsam für Dokument- und
+// Raum-Suche (search.js nutzt es für die Dokument-Suche mit).
+//
+// Eine Neu-Ermittlung der Treffer markiert den aktuellen Treffer, zeigt ihn
+// aber nicht (B-10, 4T-000904: sie bewegt weder Schreibmarke noch Bildlauf).
+// Der erste Vorwärts-Sprung danach führt deshalb zu GENAU diesem Treffer und
+// zeigt ihn; vorher übersprang er ihn, und der als «1 / n» gemeldete Treffer
+// war nie zu sehen (Entscheidung des Product Owners vom 2026-10-03). Ist der
+// aktuelle Treffer schon angesprungen, geht es wie bisher zum nächsten, im
+// Kreis. Liefert -1 ohne Treffer.
+export function vorwaertsZiel(aktuell, anzahl, angesprungen) {
+  if (!(anzahl > 0)) return -1;
+  if (!angesprungen && aktuell >= 0 && aktuell < anzahl) return aktuell;
+  return (aktuell + 1) % anzahl;
+}
+
+// 4T-002129: Hält die Eingabe-Drossel der Suchleiste an (`debounceTimer` am
+// übergebenen Such-Zustand) und meldet, ob noch ein Suchlauf ausstand. Ein
+// Sprung ruft sie zuerst und holt einen ausstehenden Lauf sofort nach: Lief
+// die Drossel erst nach dem Sprung ab, bestimmte sie die Treffer neu und warf
+// den eben angesprungenen Treffer auf den ersten zurück (gemessen: Eingabe,
+// zweimal die Eingabetaste binnen 150 ms, «2 / 3» fiel auf «1 / 3»).
+export function stoppeEingabeDrossel(zustand) {
+  if (!zustand.debounceTimer) return false;
+  clearTimeout(zustand.debounceTimer);
+  zustand.debounceTimer = null;
+  return true;
+}
+
+// 4T-002129: Sprünge, die kommen, solange der Lauf eines NEUEN Begriffs in
+// einem Raum aussteht oder läuft. Der Lauf ist asynchron (Handbuch-Seiten und
+// Bereich per IPC, auch die Einstellungen liefern über ein Versprechen); ein
+// Sprung davor bediente den alten Bestand, und das eintreffende Ergebnis setzte
+// ihn zurück (gemessen am gebauten Programm: «Bereichs-Panel» getippt, binnen
+// 0,3 Sekunden zweimal Enter, «1 / 27» statt «2 / 27»). Jetzt wird er hier
+// vorgemerkt (1 vorwärts, -1 rückwärts) und in seiner Reihenfolge auf dem
+// Ergebnis DIESES Laufs ausgeführt. Ein neuer Begriff beginnt eine neue
+// Vormerkung, die Sprünge des älteren Laufs verfallen damit. Ein Nachzieh-Lauf
+// (gleicher Begriff) merkt nichts vor; trifft er vor dem neuen ein, gilt sein
+// Ergebnis als das des neuen, weil er denselben, aktuellen Begriff sucht.
+let vormerkung = null;
+
+/**
+ * Sprung-Vorlauf für nextMatch/prevMatch: holt eine noch gedrosselte Eingabe
+ * sofort nach (stoppeEingabeDrossel) und merkt den Sprung vor, wenn danach der
+ * Lauf eines neuen Begriffs in einem Raum aussteht.
+ *
+ * @returns {boolean} true, wenn der Sprung vorgemerkt ist und jetzt nichts tun darf.
+ */
+export function sprungVormerken(zustand, richtung, suchlauf) {
+  if (stoppeEingabeDrossel(zustand)) suchlauf();
+  if (!vormerkung || !LIEFERANTEN.has(zustand.scope)) return false;
+  vormerkung.push(richtung);
+  return true;
+}
+
+/**
+ * Startet den Lauf eines Raums samt Vormerkung (performSearch, Raum-Zweig).
+ *
+ * @param {object} zustand Der Such-Zustand (`search`): Raum und «angesprungen».
+ * @param {(ziel: object|null) => void} nachher Zähler und Markierung, dazu der
+ *   Sprung zum Ziel der vorgemerkten Sprünge (null: keiner vorgemerkt), sobald
+ *   das Ergebnis angezeigt ist.
+ */
+export function starteRaumLauf(zustand, regex, behalteIndex, neu, nachher) {
+  if (neu) vormerkung = [];
+  return sucheImRaum(zustand.scope, regex, { behalteIndex }).then((angezeigt) => {
+    if (!angezeigt) return;
+    const spruenge = vormerkung;
+    vormerkung = null;
+    // 4T-002107: Die neue Menge kommt erst jetzt an und ist noch nicht gezeigt.
+    if (neu || spruenge) zustand.angesprungen = false;
+    nachher(zielDerSpruenge(spruenge, zustand.angesprungen));
+  });
+}
+
+// Mehrere vorgemerkte Sprünge werden zu EINEM: Der Zeiger wandert Schritt für
+// Schritt nach denselben Regeln wie F3 und Umschalt+F3, gesprungen wird nur zum
+// Ziel. Zwei Sprünge in derselben Aufgabe liefen sonst nebeneinander — jeder
+// öffnet seine Seite bzw. Datei asynchron —, und der ältere überholte den
+// jüngeren (gemessen im Bereich: «1 / 4» statt «2 / 4»).
+function zielDerSpruenge(spruenge, angesprungen) {
+  let ziel = null;
+  let gezeigt = angesprungen;
+  for (const richtung of spruenge || []) {
+    ziel = richtung < 0 ? vorherigerRaumTreffer() : naechsterRaumTreffer({ angesprungen: gezeigt });
+    gezeigt = true;
+  }
+  return ziel;
+}
+
 // Nächster bzw. vorheriger Treffer über Gruppen-Grenzen hinweg, zyklisch
 // wie die Dokument-Suche. Genau hier lebt der Grenz-Durchlauf: Die Treffer
 // liegen bereits in einer flachen Liste über alle Seiten bzw. Bereiche, ein
 // Sonderfall an der Grenze entfällt deshalb.
-export function naechsterRaumTreffer() {
+// 4T-002107: `angesprungen` sagt, ob der aktuelle Treffer schon gezeigt
+// wurde; ohne Angabe geht es wie bisher zum nächsten.
+export function naechsterRaumTreffer({ angesprungen = true } = {}) {
   if (bestand.treffer.length === 0) return null;
-  return setzeRaumIndex((bestand.index + 1) % bestand.treffer.length);
+  return setzeRaumIndex(vorwaertsZiel(bestand.index, bestand.treffer.length, angesprungen));
 }
 
 export function vorherigerRaumTreffer() {

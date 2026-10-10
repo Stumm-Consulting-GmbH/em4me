@@ -1,6 +1,431 @@
 {
   "schemaVersion": 1,
   "settings": {
-    "startPage": "00 Welcome.md"
+    "startPage": "00 Welcome.md",
+    "calendarSystems": {
+      "blocks": [
+        {
+          "id": "demo-calendars",
+          "name": "Demo calendars",
+          "calendars": [
+            {
+              "id": "gregorian-calendar",
+              "name": "Gregorian calendar",
+              "levels": [
+                {
+                  "id": "second",
+                  "name": "Second",
+                  "namePlural": "Seconds",
+                  "section": "Time",
+                  "start": 0,
+                  "names": null,
+                  "rel": null
+                },
+                {
+                  "id": "minute",
+                  "name": "Minute",
+                  "namePlural": "Minutes",
+                  "section": "Time",
+                  "start": 0,
+                  "names": null,
+                  "rel": {
+                    "type": "factor",
+                    "count": 60
+                  }
+                },
+                {
+                  "id": "hour",
+                  "name": "Hour",
+                  "namePlural": "Hours",
+                  "section": "Time",
+                  "start": 0,
+                  "names": null,
+                  "rel": {
+                    "type": "factor",
+                    "count": 60
+                  }
+                },
+                {
+                  "id": "day",
+                  "name": "Day",
+                  "namePlural": "Days",
+                  "section": "Date",
+                  "start": 1,
+                  "names": null,
+                  "rel": {
+                    "type": "factor",
+                    "count": 24
+                  }
+                },
+                {
+                  "id": "month",
+                  "name": "Month",
+                  "namePlural": "Months",
+                  "section": "Date",
+                  "start": 1,
+                  "names": [
+                    "January",
+                    "February",
+                    "March",
+                    "April",
+                    "May",
+                    "June",
+                    "July",
+                    "August",
+                    "September",
+                    "October",
+                    "November",
+                    "December"
+                  ],
+                  "rel": {
+                    "type": "lengths",
+                    "table": [
+                      31,
+                      28,
+                      31,
+                      30,
+                      31,
+                      30,
+                      31,
+                      31,
+                      30,
+                      31,
+                      30,
+                      31
+                    ]
+                  }
+                },
+                {
+                  "id": "year",
+                  "name": "Year",
+                  "namePlural": "Years",
+                  "section": "Date",
+                  "start": 1,
+                  "names": null,
+                  "rel": {
+                    "type": "leap",
+                    "count": 12,
+                    "rules": [
+                      {
+                        "cycle": 4
+                      },
+                      {
+                        "cycle": 100
+                      },
+                      {
+                        "cycle": 400
+                      }
+                    ],
+                    "targetIndex": 1,
+                    "extra": 1
+                  }
+                }
+              ],
+              "cycles": [
+                {
+                  "id": "week",
+                  "name": "Week",
+                  "namePlural": "Weeks",
+                  "of": "day",
+                  "length": 7,
+                  "names": [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                    "Sunday"
+                  ],
+                  "anchor": {
+                    "tuple": [
+                      2000,
+                      1,
+                      1
+                    ],
+                    "position": 5
+                  },
+                  "numbering": {
+                    "ruleIndex": 3
+                  }
+                }
+              ],
+              "groups": [
+                {
+                  "id": "quarter",
+                  "name": "Quarter",
+                  "namePlural": "Quarters",
+                  "of": "month",
+                  "size": 3,
+                  "names": null
+                },
+                {
+                  "id": "half-year",
+                  "name": "Half-year",
+                  "namePlural": "Half-years",
+                  "of": "month",
+                  "size": 6,
+                  "names": null
+                }
+              ],
+              "epochs": [
+                {
+                  "name": "BC",
+                  "abbr": "BC",
+                  "start": null
+                },
+                {
+                  "name": "AD",
+                  "abbr": "AD",
+                  "start": [
+                    1,
+                    1,
+                    1
+                  ]
+                }
+              ],
+              "blockAnchor": [
+                0,
+                1,
+                1,
+                0,
+                0,
+                0
+              ],
+              "blockScale": {
+                "num": 1,
+                "den": 1
+              }
+            },
+            {
+              "id": "japanese-calendar",
+              "name": "Japanese calendar",
+              "levels": [
+                {
+                  "id": "second",
+                  "name": "Second",
+                  "namePlural": "Seconds",
+                  "section": "Time",
+                  "start": 0,
+                  "names": null,
+                  "rel": null
+                },
+                {
+                  "id": "minute",
+                  "name": "Minute",
+                  "namePlural": "Minutes",
+                  "section": "Time",
+                  "start": 0,
+                  "names": null,
+                  "rel": {
+                    "type": "factor",
+                    "count": 60
+                  }
+                },
+                {
+                  "id": "hour",
+                  "name": "Hour",
+                  "namePlural": "Hours",
+                  "section": "Time",
+                  "start": 0,
+                  "names": null,
+                  "rel": {
+                    "type": "factor",
+                    "count": 60
+                  }
+                },
+                {
+                  "id": "day",
+                  "name": "Day",
+                  "namePlural": "Days",
+                  "section": "Date",
+                  "start": 1,
+                  "names": null,
+                  "rel": {
+                    "type": "factor",
+                    "count": 24
+                  }
+                },
+                {
+                  "id": "month",
+                  "name": "Month",
+                  "namePlural": "Months",
+                  "section": "Date",
+                  "start": 1,
+                  "names": [
+                    "January",
+                    "February",
+                    "March",
+                    "April",
+                    "May",
+                    "June",
+                    "July",
+                    "August",
+                    "September",
+                    "October",
+                    "November",
+                    "December"
+                  ],
+                  "rel": {
+                    "type": "lengths",
+                    "table": [
+                      31,
+                      28,
+                      31,
+                      30,
+                      31,
+                      30,
+                      31,
+                      31,
+                      30,
+                      31,
+                      30,
+                      31
+                    ]
+                  }
+                },
+                {
+                  "id": "year",
+                  "name": "Year",
+                  "namePlural": "Years",
+                  "section": "Date",
+                  "start": 1,
+                  "names": null,
+                  "rel": {
+                    "type": "leap",
+                    "count": 12,
+                    "rules": [
+                      {
+                        "cycle": 4
+                      },
+                      {
+                        "cycle": 100
+                      },
+                      {
+                        "cycle": 400
+                      }
+                    ],
+                    "targetIndex": 1,
+                    "extra": 1
+                  }
+                }
+              ],
+              "cycles": [
+                {
+                  "id": "week",
+                  "name": "Week",
+                  "namePlural": "Weeks",
+                  "of": "day",
+                  "length": 7,
+                  "names": [
+                    "Monday",
+                    "Tuesday",
+                    "Wednesday",
+                    "Thursday",
+                    "Friday",
+                    "Saturday",
+                    "Sunday"
+                  ],
+                  "anchor": {
+                    "tuple": [
+                      2000,
+                      1,
+                      1
+                    ],
+                    "position": 5
+                  },
+                  "numbering": {
+                    "ruleIndex": 3
+                  }
+                }
+              ],
+              "groups": [
+                {
+                  "id": "quarter",
+                  "name": "Quarter",
+                  "namePlural": "Quarters",
+                  "of": "month",
+                  "size": 3,
+                  "names": null
+                },
+                {
+                  "id": "half-year",
+                  "name": "Half-year",
+                  "namePlural": "Half-years",
+                  "of": "month",
+                  "size": 6,
+                  "names": null
+                }
+              ],
+              "epochs": [
+                {
+                  "name": "before Meiji",
+                  "abbr": "before Meiji",
+                  "start": null
+                },
+                {
+                  "name": "Meiji",
+                  "abbr": "Meiji",
+                  "start": [
+                    1868,
+                    10,
+                    23
+                  ]
+                },
+                {
+                  "name": "Taishō",
+                  "abbr": "Taishō",
+                  "start": [
+                    1912,
+                    7,
+                    30
+                  ]
+                },
+                {
+                  "name": "Shōwa",
+                  "abbr": "Shōwa",
+                  "start": [
+                    1926,
+                    12,
+                    25
+                  ]
+                },
+                {
+                  "name": "Heisei",
+                  "abbr": "Heisei",
+                  "start": [
+                    1989,
+                    1,
+                    8
+                  ]
+                },
+                {
+                  "name": "Reiwa",
+                  "abbr": "Reiwa",
+                  "start": [
+                    2019,
+                    5,
+                    1
+                  ]
+                }
+              ],
+              "alwaysWriteEpoch": true,
+              "blockAnchor": [
+                0,
+                1,
+                1,
+                0,
+                0,
+                0
+              ],
+              "blockScale": {
+                "num": 1,
+                "den": 1
+              }
+            }
+          ]
+        }
+      ]
+    }
   }
 }

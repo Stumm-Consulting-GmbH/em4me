@@ -5,6 +5,8 @@
   "view.rendered": "Rendered",
   "view.live": "Live",
   "app.claim": "extended memory for me",
+  "app.portableNotWritableTitle": "EM4me cannot start",
+  "app.portableNotWritableMessage": "EM4me cannot write to its data folder. Please place the program file in a location where you have write access, for example your Documents folder or a USB stick.",
   "empty.title": "EM4me",
   "empty.hint": "Open a file or drop one here.",
   "drop.hint": "Drop Markdown file here",

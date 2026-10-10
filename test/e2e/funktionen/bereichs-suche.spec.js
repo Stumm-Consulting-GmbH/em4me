@@ -234,9 +234,16 @@ test.describe('BS-05: Durchlauf ueber die Datei-Grenze', () => {
       await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await sucheOeffnen(page, BEGRIFF);
       await warteAufTreffer(page, 3);
-      // start.md steht als offene Datei vorn und traegt genau einen Treffer;
-      // der naechste Schritt muss also in eine andere Datei fuehren.
+      // start.md steht als offene Datei vorn und traegt genau einen Treffer.
+      // 4T-002107: Der erste Druck zeigt diesen Treffer (Zaehler «1 / 4»,
+      // Datei bleibt); erst der zweite muss in eine andere Datei fuehren.
+      // Bis dahin uebersprang der erste Druck den aktuellen Treffer.
       await page.keyboard.press('F3');
+      await expect(page.locator('#search-count')).toHaveText('1 / 4');
+      expect(await page.title()).toContain('start');
+      // Nachfassend: Der erste Druck hat in der kurzen Datei keine sichtbare
+      // Wirkung, ein verlorener (4T-001410) faellt erst hier auf.
+      await pressNachfassend(page, 'F3', async () => !(await page.title()).includes('start'));
       await expect.poll(() => page.title(), { timeout: 15000 }).not.toContain('start');
     } finally {
       await closeApp(app, userData);
@@ -259,6 +266,13 @@ test.describe('BS-05: Durchlauf ueber die Datei-Grenze', () => {
       await warteAufTreffer(page, 3);
 
       const zaehler = page.locator('#search-count');
+      await expect(zaehler).toHaveText('1 / 4');
+      // 4T-002107: Erst der Klick auf den ersten Eintrag der Liste springt ihn
+      // an. Ohne ihn zeigte der erste F3-Druck diesen Treffer (Zaehler bleibt
+      // «1 / 4»), und ein Druck ohne sichtbare Wirkung liesse sich hier nicht
+      // als zugestellt belegen. Ein angesprungener Treffer wird beim naechsten
+      // Druck verlassen — genau die Folge, die dieser Fall misst.
+      await page.locator(`${PANEL} .search-results-item`).first().click();
       await expect(zaehler).toHaveText('1 / 4');
       // 4T-001410: Der Druck wird zugestellt, nicht bloss abgeschickt. Gemessen
       // am 2026-09-05 geht unter Last ein F3 verloren, ohne dass die Anwendung
@@ -349,4 +363,396 @@ test.describe('BS-06: ohne Bereich bleibt es bei der Dokument-Suche', () => {
       removeDir(dir);
     }
   });
+});
+
+// 4T-002099: Der Sprung in eine andere Datei rollt in der Lese-Ansicht zur
+// Fundstelle. BS-04 prüft nur, DASS die Fundstelle hervorgehoben ist; in einer
+// kurzen Datei ist sie ohnehin sichtbar. Vor der Behebung setzte das Rendern
+// des aktivierten Ziel-Reiters die gemerkte Roll-Lage nachträglich zurück, und
+// die Fundstelle blieb unterhalb des sichtbaren Bereichs.
+test.describe('BS-08: Sprung rollt zur Fundstelle (4T-002099)', () => {
+  test('4T-002099: Klick auf einen Treffer weit unten in einer nicht geöffneten Datei bringt die Fundstelle in den sichtbaren Bereich', async () => {
+    test.setTimeout(120000);
+    const dir = makeAreaDir();
+    const absaetze = [];
+    for (let i = 1; i <= 300; i++) absaetze.push(`Absatz ${i}: Fülltext ohne den Suchbegriff.`);
+    fs.writeFileSync(
+      path.join(dir, 'lang.md'),
+      `# Lang\n\n${absaetze.join('\n\n')}\n\nGanz unten steht Quittengelee.\n`,
+      'utf8',
+    );
+    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    try {
+      await bindArea(page, dir);
+      await sucheOeffnen(page, 'Quittengelee');
+      await warteAufTreffer(page, 1);
+      await page.locator(`${PANEL} .search-results-item`).first().click();
+
+      await expect.poll(() => page.title()).toContain('lang');
+      const aktuell = page.locator(`${PANE} .pane-rendered mark.mdv-match-current`);
+      await expect(aktuell).toHaveCount(1);
+      const sichtbar = () =>
+        page.evaluate((pane) => {
+          const roll = document.querySelector(`${pane} .pane-rendered`);
+          const mark = roll && roll.querySelector('mark.mdv-match-current');
+          if (!mark) return false;
+          const r = mark.getBoundingClientRect();
+          const c = roll.getBoundingClientRect();
+          return r.top >= c.top && r.bottom <= c.bottom;
+        }, PANE);
+      await expect.poll(sichtbar).toBe(true);
+      // Auch nach dem abgeschlossenen Render-Zyklus des Ziel-Reiters.
+      await page.waitForTimeout(500);
+      expect(await sichtbar()).toBe(true);
+      await expect(page.locator('#search-count')).toHaveText('1 / 1');
+    } finally {
+      await closeApp(app, userData);
+      removeDir(dir);
+    }
+  });
+});
+
+// 4T-002107: «Die erste Eingabetaste soll zum ersten Treffer springen»
+// (Entscheidung des Product Owners vom 2026-10-03). Die offene Datei führt die
+// Trefferliste an und trägt den ersten Treffer weit unten; nach dem Tippen ist
+// er markiert, aber nicht angerollt. Vorher ging die erste Eingabetaste von
+// dort zum ZWEITEN Treffer, der erste wurde nie gezeigt.
+test.describe('BS-09: Die erste Eingabetaste zeigt den ersten Treffer (4T-002107)', () => {
+  test('4T-002107: Tippen bewegt nichts, die erste Eingabetaste zeigt «1 / 6», die zweite «2 / 6»', async () => {
+    test.setTimeout(120000);
+    const dir = makeAreaDir();
+    const absaetze = [];
+    for (let i = 1; i <= 200; i++) absaetze.push(`Absatz ${i}: Fülltext ohne den Suchbegriff.`);
+    // start.md: drei Treffer, alle unterhalb des ersten Bildschirms; dazu zwei
+    // in zweite.md und einer in unter/dritte.md.
+    fs.writeFileSync(
+      path.join(dir, 'start.md'),
+      `# Start\n\n${absaetze.join('\n\n')}\n\nErster ${BEGRIFF} unten.\n\n` +
+        `${absaetze.slice(0, 40).join('\n\n')}\n\nZweiter ${BEGRIFF} unten.\n\nDritter ${BEGRIFF}.\n`,
+      'utf8',
+    );
+    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    try {
+      await bindArea(page, dir);
+      await sucheOeffnen(page, BEGRIFF);
+      await warteAufTreffer(page, 3);
+      const zaehler = page.locator('#search-count');
+      await expect(zaehler).toHaveText('1 / 6');
+      const aktuell = page.locator(`${PANE} .pane-rendered mark.mdv-match-current`);
+      await expect(aktuell).toHaveCount(1);
+      const lage = () =>
+        page.evaluate((pane) => {
+          const roll = document.querySelector(`${pane} .pane-rendered`);
+          const mark = roll && roll.querySelector('mark.mdv-match-current');
+          if (!mark) return { sichtbar: false, absatz: '', rollen: roll ? roll.scrollTop : -1 };
+          const r = mark.getBoundingClientRect();
+          const c = roll.getBoundingClientRect();
+          return {
+            sichtbar: r.top >= c.top && r.bottom <= c.bottom,
+            absatz: (mark.closest('p') || mark).textContent,
+            rollen: roll.scrollTop,
+          };
+        }, PANE);
+      // Das Tippen markiert den ersten Treffer, rollt aber nicht.
+      const vorher = await lage();
+      expect(vorher.rollen).toBe(0);
+      expect(vorher.sichtbar).toBe(false);
+      expect(vorher.absatz).toContain('Erster');
+
+      await page.keyboard.press('Enter');
+      await expect
+        .poll(async () => {
+          const l = await lage();
+          return l.sichtbar && l.absatz.startsWith('Erster');
+        })
+        .toBe(true);
+      await expect(zaehler).toHaveText('1 / 6');
+      expect(await page.title()).toContain('start');
+
+      await page.keyboard.press('Enter');
+      await expect(zaehler).toHaveText('2 / 6');
+      await expect
+        .poll(async () => {
+          const l = await lage();
+          return l.sichtbar && l.absatz.startsWith('Zweiter');
+        })
+        .toBe(true);
+    } finally {
+      await closeApp(app, userData);
+      removeDir(dir);
+    }
+  });
+});
+
+// 4T-002107: B-10 (4T-000904) im Bereichs-Raum. Bei geöffnetem Bereich lief der
+// Markier-Weg der offenen Datei nach JEDEM Suchlauf und setzte im Editor die
+// Schreibmarke auf den aktuellen Treffer. Gemessen am 2026-10-03 in Quellcode
+// und Geteilt: Aus «Termin», getippt in einer anderen Zeile, wurde ein «T» dort
+// und ein «ermin» mitten im Treffer. Szenario-treu wie die B-10-Spec: Suche
+// offen, Schreibmarke in einer anderen Zeile, erstes Zeichen, Pause über das
+// Debounce hinaus, restliche Zeichen — in beiden Editor-Ansichten.
+test.describe('BS-10: Tippen bei offener Bereichs-Suche schreibt an der Schreibmarke (4T-002107)', () => {
+  for (const modus of ['source', 'split']) {
+    test(`4T-002107: ${modus} — Suchlauf bewegt die Schreibmarke nicht, getippter Text bleibt in seiner Zeile`, async () => {
+      test.setTimeout(120000);
+      const dir = makeAreaDir();
+      const fuell = [];
+      for (let i = 1; i <= 120; i++) fuell.push(`Fülltext ${i}.`);
+      fs.writeFileSync(
+        path.join(dir, 'start.md'),
+        `# Start\n\nNotiz: \n\n${fuell.join('\n\n')}\n\nHier steht ${BEGRIFF} unten.\n\n` +
+          `${fuell.slice(0, 40).join('\n\n')}\n\nNoch einmal ${BEGRIFF} ganz unten.\n`,
+        'utf8',
+      );
+      const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+      try {
+        await bindArea(page, dir);
+        await warteAufReiter(page);
+        await page.locator(SEL.viewBtn(modus)).click();
+        await page.locator(SEL.btnEdit).click();
+        const editor = page.locator(SEL.editorContent0);
+        await expect(editor).toHaveAttribute('contenteditable', 'true');
+        await editor.locator('.cm-line', { hasText: 'Notiz:' }).click();
+        await page.keyboard.press('End');
+
+        await page.keyboard.press('Control+f');
+        await page.locator('#search-input').fill(BEGRIFF);
+        await warteAufTreffer(page, 3);
+        await expect(page.locator('#search-count')).toHaveText('1 / 5');
+        // Der Suchlauf hat die Schreibmarke nicht auf den Treffer gezogen.
+        await page.waitForTimeout(400);
+        await expect(editor.locator('.cm-activeLine')).toHaveText(/^Notiz:\s*$/);
+
+        // Zurück in den Editor an dieselbe Stelle und tippen.
+        await editor.locator('.cm-line', { hasText: 'Notiz:' }).click();
+        await page.keyboard.press('End');
+        await page.keyboard.type('T');
+        await page.waitForTimeout(400);
+        await page.keyboard.type('ermin');
+        await page.waitForTimeout(400);
+
+        const text = await editor.innerText();
+        expect(text).toContain('Notiz: Termin');
+        expect(text).not.toContain(`ermin${BEGRIFF}`);
+        expect(text).not.toContain(`${BEGRIFF}ermin`);
+
+        // Die Gegenrichtung: Der Sprung bewegt weiterhin, auch innerhalb der
+        // offenen Datei. Der zweite Sprung dort wurde von der ersten Fassung
+        // dieser Behebung durch die Roll-Wiederherstellung des Reiters wieder
+        // zurückgesetzt (Schreibmarke auf dem Treffer, Ansicht oben).
+        await page.keyboard.press('Control+f');
+        const zaehler = page.locator('#search-count');
+        const aktuellSichtbar = (anfang) =>
+          page.evaluate(
+            ({ pane, text: t }) => {
+              const roll = document.querySelector(`${pane} .pane-source .cm-scroller`);
+              const m = roll && roll.querySelector('.cm-search-match-current');
+              const zeile = m && m.closest('.cm-line');
+              if (!zeile) return false;
+              const r = m.getBoundingClientRect();
+              const c = roll.getBoundingClientRect();
+              return r.top >= c.top && r.bottom <= c.bottom && zeile.textContent.startsWith(t);
+            },
+            { pane: PANE, text: anfang },
+          );
+        await page.keyboard.press('Enter');
+        await expect.poll(() => aktuellSichtbar('Hier steht')).toBe(true);
+        await expect(zaehler).toHaveText('1 / 5');
+        await page.keyboard.press('Enter');
+        await expect(zaehler).toHaveText('2 / 5');
+        await expect.poll(() => aktuellSichtbar('Noch einmal')).toBe(true);
+        await page.waitForTimeout(300);
+        expect(await aktuellSichtbar('Noch einmal')).toBe(true);
+      } finally {
+        await closeApp(app, userData, { force: true });
+        removeDir(dir);
+      }
+    });
+  }
+});
+
+// 4T-002113: Der Sprung in ein anderes Dokument, vorwärts wie rückwärts, zeigt
+// den aktuellen Treffer als aktuellen. Gemeldet am gebauten Programm für den
+// Rückwärts-Sprung; gemessen am 2026-10-03 traf es jede Richtung und jede
+// Suche in «Gerendert»: Der aktuelle Treffer trug seine Klasse, aber die Regel
+// der Hervorhebung `==Text==` gab ihm dieselbe Farbe wie allen übrigen. Die
+// Fälle messen deshalb die berechnete Farbe und nicht bloß die Klasse.
+//
+// Die Ansicht des Ziels folgt der Regel des Öffnens, in beiden Richtungen
+// gleich: Ein noch nicht geöffnetes Dokument öffnet in der Standard-Ansicht
+// der Einstellungen (im Prüf-Profil «Gerendert»), ein geöffnetes behält seine
+// eigene Ansicht. Die Ansicht des Ausgangs-Dokuments spielt keine Rolle.
+function makeDatenDir() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-bereichssuche-4t2113-'));
+  fs.writeFileSync(
+    path.join(dir, 'start.md'),
+    `# Start\n\nOben ${BEGRIFF}.\n\nUnten ${BEGRIFF}.\n`,
+    'utf8',
+  );
+  fs.writeFileSync(
+    path.join(dir, 'daten.md'),
+    `# Daten\n\nErster ${BEGRIFF} hier.\n\nZweiter ${BEGRIFF} hier.\n\nDritter ${BEGRIFF} hier.\n`,
+    'utf8',
+  );
+  return dir;
+}
+
+// Der aktuelle Treffer der Lese-Ansicht: wie viele Marken die Klasse tragen,
+// ob die eine sichtbar ist, in welchem Absatz sie steht und ob ihre Farbe sich
+// von der jeder übrigen Marke unterscheidet.
+function aktuellerTrefferGerendert(page) {
+  return page.evaluate((pane) => {
+    const roll = document.querySelector(`${pane} .pane-rendered`);
+    const marken = [...roll.querySelectorAll('mark.mdv-match')];
+    const aktuelle = marken.filter((m) => m.classList.contains('mdv-match-current'));
+    const farbe = (m) => getComputedStyle(m).backgroundColor;
+    const m = aktuelle[0];
+    const r = m && m.getBoundingClientRect();
+    const c = roll.getBoundingClientRect();
+    const uebrige = marken.filter((x) => x !== m).map(farbe);
+    return {
+      anzahl: aktuelle.length,
+      sichtbar: !!m && r.top >= c.top && r.bottom <= c.bottom,
+      absatz: m ? (m.closest('p') || m).textContent : '',
+      abgehoben: !!m && uebrige.length > 0 && uebrige.every((f) => f !== farbe(m)),
+    };
+  }, PANE);
+}
+
+function aktiveAnsicht(page) {
+  return page.locator('.view-toggle .view-btn.active').getAttribute('data-view');
+}
+
+async function sucheInQuellcode(page) {
+  await page.locator(SEL.viewBtn('source')).click();
+  await sucheOeffnen(page, BEGRIFF);
+  await warteAufTreffer(page, 2);
+  await expect(page.locator('#search-count')).toHaveText('1 / 5');
+}
+
+test.describe('BS-11: Sprung in ein anderes Dokument zeigt den aktuellen Treffer (4T-002113)', () => {
+  // Reihenfolge mit Anker start.md: start(2), daten(3). Rückwärts von «1 / 5»
+  // landet auf dem dritten Treffer in daten.md, vorwärts der dritte Druck auf
+  // dem ersten (der erste Druck zeigt «1 / 5», 4T-002107).
+  const faelle = [
+    { richtung: 'rückwärts', tasten: ['Shift+Enter'], zaehler: '5 / 5', absatz: 'Dritter' },
+    {
+      richtung: 'vorwärts',
+      tasten: ['Enter', 'Enter', 'Enter'],
+      zaehler: '3 / 5',
+      absatz: 'Erster',
+    },
+  ];
+  for (const fall of faelle) {
+    test(`4T-002113: ${fall.richtung} aus «Quellcode» in ein nicht geöffnetes Dokument — Standard-Ansicht, genau ein aktueller Treffer, sichtbar und farblich abgehoben`, async () => {
+      test.setTimeout(120000);
+      const dir = makeDatenDir();
+      const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+      try {
+        await bindArea(page, dir);
+        await warteAufReiter(page);
+        await sucheInQuellcode(page);
+        const zaehler = page.locator('#search-count');
+        for (const [i, taste] of fall.tasten.entries()) {
+          await page.keyboard.press(taste);
+          if (i < fall.tasten.length - 1) await expect(zaehler).toHaveText(`${i + 1} / 5`);
+        }
+        await expect.poll(() => page.title()).toContain('daten');
+        await expect(zaehler).toHaveText(fall.zaehler);
+        await expect.poll(() => aktiveAnsicht(page)).toBe('rendered');
+        await expect
+          .poll(async () => {
+            const a = await aktuellerTrefferGerendert(page);
+            return a.anzahl === 1 && a.sichtbar && a.absatz.startsWith(fall.absatz);
+          })
+          .toBe(true);
+        // Auch nach dem abgeschlossenen Render-Zyklus des Ziel-Reiters.
+        await page.waitForTimeout(500);
+        const a = await aktuellerTrefferGerendert(page);
+        expect(a.anzahl).toBe(1);
+        expect(a.sichtbar).toBe(true);
+        expect(a.abgehoben).toBe(true);
+      } finally {
+        await closeApp(app, userData);
+        removeDir(dir);
+      }
+    });
+  }
+
+  test('4T-002113: rückwärts in ein Dokument, das in «Quellcode» schon offen ist — es behält seine Ansicht, genau ein aktueller Treffer, sichtbar', async () => {
+    test.setTimeout(120000);
+    const dir = makeDatenDir();
+    const { app, page, userData } = await launchApp({
+      args: [path.join(dir, 'daten.md'), path.join(dir, 'start.md')],
+    });
+    try {
+      await bindArea(page, dir);
+      await warteAufReiter(page);
+      await page.locator(SEL.tabs0, { hasText: 'daten' }).click();
+      await page.locator(SEL.viewBtn('source')).click();
+      await page.locator(SEL.tabs0, { hasText: 'start' }).click();
+      await sucheInQuellcode(page);
+      await page.keyboard.press('Shift+Enter');
+      await expect.poll(() => page.title()).toContain('daten');
+      await expect(page.locator('#search-count')).toHaveText('5 / 5');
+      await expect.poll(() => aktiveAnsicht(page)).toBe('source');
+      const aktuell = () =>
+        page.evaluate((pane) => {
+          const roll = document.querySelector(`${pane} .pane-source .cm-scroller`);
+          const alle = [...roll.querySelectorAll('.cm-search-match-current')];
+          const r = alle[0] && alle[0].getBoundingClientRect();
+          const c = roll.getBoundingClientRect();
+          const zeile = alle[0] && alle[0].closest('.cm-line');
+          return {
+            anzahl: alle.length,
+            sichtbar: !!r && r.top >= c.top && r.bottom <= c.bottom,
+            zeile: zeile ? zeile.textContent : '',
+          };
+        }, PANE);
+      await expect
+        .poll(async () => {
+          const a = await aktuell();
+          return a.anzahl === 1 && a.sichtbar && a.zeile.startsWith('Dritter');
+        })
+        .toBe(true);
+    } finally {
+      await closeApp(app, userData);
+      removeDir(dir);
+    }
+  });
+});
+
+// 4T-002129: Sprung während des Suchlaufs im Bereich. Der Lauf geht über die
+// Prozess-Grenze; ein Sprung, der vor seinem Ergebnis kommt, wird vorgemerkt
+// und auf diesem Ergebnis ausgeführt, statt den alten Bestand zu bedienen und
+// danach überschrieben zu werden. Nach den Treffern der offenen Datei folgen
+// die übrigen in Pfad-Reihenfolge: Der zweite steht in unter/dritte.md
+// (gemessen mit zwei Eingabetasten nach abgewartetem Ergebnis).
+test.describe('BS-12: Sprung während des Suchlaufs (4T-002129)', () => {
+  for (const [druecke, datei] of [
+    [2, 'dritte'],
+    [1, 'start'],
+  ]) {
+    test(`4T-002129: neuer Begriff, sofort ${druecke}× Eingabetaste — «${druecke} / 4» in ${datei}.md, nach einer Sekunde unverändert`, async () => {
+      test.setTimeout(120000);
+      const dir = makeAreaDir();
+      const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+      try {
+        await bindArea(page, dir);
+        await warteAufReiter(page);
+        await page.keyboard.press('Control+f');
+        await expect(page.locator('#search-input')).toBeVisible();
+        await page.keyboard.type(BEGRIFF, { delay: 20 });
+        for (let i = 0; i < druecke; i++) await page.keyboard.press('Enter');
+        await warteAufTreffer(page, 3);
+        await page.waitForTimeout(1000);
+        await expect(page.locator('#search-count')).toHaveText(`${druecke} / 4`);
+        await expect.poll(() => page.title()).toContain(datei);
+        await expect(page.locator(`${PANE} .pane-rendered mark.mdv-match-current`)).toHaveCount(1);
+      } finally {
+        await closeApp(app, userData);
+        removeDir(dir);
+      }
+    });
+  }
 });

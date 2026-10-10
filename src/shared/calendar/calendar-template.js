@@ -16,6 +16,9 @@ const { cleanString } = require('./calendar-core.js');
 // Donnerstags-Regel (Anker: 2000-01-01 war ein Samstag), Epochen
 // v. Chr./n. Chr., Zeit-Ebenen Sekunde/Minute/Stunde. Namen mit deutschen
 // Defaults, per opts lokalisierbar (die i18n-Anbindung liegt beim Aufrufer).
+// 4T-001863 (Epic 3E-000307): Ebenen, Woche und Gruppierungen tragen zur
+// Einzahl die Mehrzahl (Optionen levelNamesPlural, weekNamePlural,
+// groupNamesPlural nach dem Muster der Einzahl-Optionen).
 function createGregorianTemplate(opts = {}) {
   const monthNames = opts.monthNames || [
     'Januar',
@@ -53,16 +56,37 @@ function createGregorianTemplate(opts = {}) {
     year: 'Jahr',
     ...(opts.levelNames || {}),
   };
+  const levelNamesPlural = {
+    second: 'Sekunden',
+    minute: 'Minuten',
+    hour: 'Stunden',
+    day: 'Tage',
+    month: 'Monate',
+    year: 'Jahre',
+    ...(opts.levelNamesPlural || {}),
+  };
   const sectionNames = { time: 'Zeit', date: 'Datum', ...(opts.sectionNames || {}) };
   const groupNames = { quarter: 'Quartal', halfYear: 'Halbjahr', ...(opts.groupNames || {}) };
+  const groupNamesPlural = {
+    quarter: 'Quartale',
+    halfYear: 'Halbjahre',
+    ...(opts.groupNamesPlural || {}),
+  };
   return {
     id: cleanString(opts.id) || 'gregorian',
     name: cleanString(opts.name) || 'Gregorianischer Kalender',
     levels: [
-      { id: 'second', name: levelNames.second, section: sectionNames.time, start: 0 },
+      {
+        id: 'second',
+        name: levelNames.second,
+        namePlural: levelNamesPlural.second,
+        section: sectionNames.time,
+        start: 0,
+      },
       {
         id: 'minute',
         name: levelNames.minute,
+        namePlural: levelNamesPlural.minute,
         section: sectionNames.time,
         start: 0,
         rel: { type: 'factor', count: 60 },
@@ -70,6 +94,7 @@ function createGregorianTemplate(opts = {}) {
       {
         id: 'hour',
         name: levelNames.hour,
+        namePlural: levelNamesPlural.hour,
         section: sectionNames.time,
         start: 0,
         rel: { type: 'factor', count: 60 },
@@ -77,6 +102,7 @@ function createGregorianTemplate(opts = {}) {
       {
         id: 'day',
         name: levelNames.day,
+        namePlural: levelNamesPlural.day,
         section: sectionNames.date,
         start: 1,
         rel: { type: 'factor', count: 24 },
@@ -84,6 +110,7 @@ function createGregorianTemplate(opts = {}) {
       {
         id: 'month',
         name: levelNames.month,
+        namePlural: levelNamesPlural.month,
         section: sectionNames.date,
         start: 1,
         names: monthNames,
@@ -92,6 +119,7 @@ function createGregorianTemplate(opts = {}) {
       {
         id: 'year',
         name: levelNames.year,
+        namePlural: levelNamesPlural.year,
         section: sectionNames.date,
         start: 1,
         rel: {
@@ -107,6 +135,7 @@ function createGregorianTemplate(opts = {}) {
       {
         id: 'week',
         name: opts.weekName || 'Woche',
+        namePlural: opts.weekNamePlural || 'Wochen',
         of: 'day',
         length: 7,
         names: weekdayNames,
@@ -115,8 +144,20 @@ function createGregorianTemplate(opts = {}) {
       },
     ],
     groups: [
-      { id: 'quarter', name: groupNames.quarter, of: 'month', size: 3 },
-      { id: 'half-year', name: groupNames.halfYear, of: 'month', size: 6 },
+      {
+        id: 'quarter',
+        name: groupNames.quarter,
+        namePlural: groupNamesPlural.quarter,
+        of: 'month',
+        size: 3,
+      },
+      {
+        id: 'half-year',
+        name: groupNames.halfYear,
+        namePlural: groupNamesPlural.halfYear,
+        of: 'month',
+        size: 6,
+      },
     ],
     epochs: [
       { name: epochNames[0].name, abbr: epochNames[0].abbr, start: null },

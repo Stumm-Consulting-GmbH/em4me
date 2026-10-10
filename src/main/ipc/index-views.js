@@ -6,9 +6,9 @@
 // src/main/ipc/embeds.js gezogen.
 //
 // Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: backlinks:*,
-// wikiLink:*, tags:request, frontmatterQuery:run, task:applyLineEdit,
+// wikiLink:*, tags:request, frontmatterQuery:run, task:applyLineEdit, taskQuery:edit,
 // events:*, graph:edges, areaStats:collect, areaSearch:*, areaReplace:run,
-// index:overlay,
+// tagRename:scan, calendarEpoch:scan, index:overlay,
 // perspectiveScript:data, autocomplete:*, linter:resolveWikiTargets.
 //
 // Eigener Zustand: keiner; der Index und der Suchraum gehoeren ihren Modulen
@@ -27,10 +27,16 @@ const { createTaskStatusTypeResolver } = require('../../shared/markdown/plugins.
 // den Kanaelen von Wertevorrat und Lookup-Feld (src/main/ipc/profiles.js).
 const { buildTaskEnv } = require('../index/task-env.js');
 const { computeLineReplacement } = require('../documents/task-line-edit.js');
+// 4T-001978 (Epic 3E-000330): welches Fenster einen Auftrag zum ungespeicherten
+// Stand einer Datei bekommt — dieselbe Regel wie bei den Erinnerungen.
+const { uebergibAnPufferBesitzer } = require('./puffer-fenster.js');
 const { createAreaReplace } = require('../area/area-replace.js');
 // 4T-001531 (Epic 3E-000175): Die Fundstellen einer Tag-Umbenennung. Sie
 // braucht jede Datei des Bereichs und laeuft deshalb hier, nicht im Renderer.
 const { ermittleUmbenennung } = require('../area/tag-rename.js');
+// 4T-002003 (Epic 3E-000307): Die Werte, die das Nachtragen einer Epoche
+// umdeuten würde — aus demselben Grund im Hauptprozess wie die Tag-Umbenennung.
+const { createEpochenSchutzScan } = require('../area/calendar-epoch-scan.js');
 const { normalizeProfilesConfig, DEFAULT_ASSIGN_FIELD } = require('../../shared/property-profiles');
 const { EVENT_PROFILE_NAME } = require('../../shared/events/events-core.js');
 const { writeFrontmatter, extractFrontmatter } = require('../../shared/markdown/frontmatter');
@@ -48,6 +54,7 @@ const { istFeldKonflikt } = require('../documents/save-guard.js');
  * @param {(event: object) => string|null} deps.areaRootForEvent Bereichs-Wurzel der Anfrage.
  * @param {() => object|null} deps.getStore Einstellungs-Speicher (steht bei der Registrierung fest).
  * @param {object} deps.backlinks Bereichs-Index samt seiner Sichten.
+ * @param {Map} deps.windows Fenster-Register (Ziel einer Übergabe an das Fenster des ungespeicherten Stands).
  * @param {Function} deps.collectAreaStats Kennzahlen-Erhebung des Bereichs.
  * @param {Function} deps.sucheImBereich Volltext-Suche ueber den Bereich.
  * @param {Function} deps.gibBereichsVorratFrei Speicher-Vorrat der Suche freigeben.
@@ -57,6 +64,7 @@ const { istFeldKonflikt } = require('../documents/save-guard.js');
  * @param {Function} deps.readPreviousTextFor Datei-Stand vor dem Ueberschreiben.
  * @param {Function} deps.recordMddOnSave Historien-Paket beim Speichern schreiben.
  * @param {Function} deps.resolveQueryTemplatesFolder Vorlagen-Ordner, den eine Abfrage ausschließt.
+ * @param {(p: string) => string} deps.mddPathFor Pfad der Begleitdatei.
  */
 function registerIndexViewsIpc(handle, deps) {
   const {
@@ -65,6 +73,7 @@ function registerIndexViewsIpc(handle, deps) {
     areaRootForEvent,
     getStore,
     backlinks,
+    windows,
     collectAreaStats,
     sucheImBereich,
     gibBereichsVorratFrei,
@@ -74,6 +83,7 @@ function registerIndexViewsIpc(handle, deps) {
     readPreviousTextFor,
     recordMddOnSave,
     resolveQueryTemplatesFolder,
+    mddPathFor,
   } = deps;
   // 4T-000999: registerIpc laeuft nach loadStore, der Speicher steht also fest.
   // Der Bezeichner bleibt `store`, damit die Handler-Rumpfe unveraendert sind.
@@ -95,6 +105,18 @@ function registerIndexViewsIpc(handle, deps) {
   // steht deshalb hier statt als freie Funktion. Gebaut wird sie einmal bei der
   // Registrierung, weil ihre Abhaengigkeiten dann bereits feststehen.
   const { ersetzeImBereich } = createAreaReplace({ resolveHistoryFor, recordMddOnSave });
+  // 4T-002003: Der Ermittler liest die Notizen über dieselbe Pfad-Bildung wie
+  // `note:read` und steht deshalb ebenfalls hier. Gebaut wird er beim ersten
+  // Aufruf, nicht bei der Registrierung: Sein Wächter auf `mddPathFor` soll
+  // dort greifen, wo der Scan läuft, und nicht jede Prüfdatei zwingen, eine
+  // Abhängigkeit zu stellen, deren Kanal sie gar nicht ruft (seit dem Rebase
+  // auf 1.146.0, dessen Prüfdatei der Index-Rundrufe die Kanäle mit einem
+  // Mindest-Satz an Abhängigkeiten registriert).
+  let epochenSchutzScan = null;
+  const ermittleEpochenSchutz = (...args) => {
+    if (!epochenSchutzScan) epochenSchutzScan = createEpochenSchutzScan({ mddPathFor });
+    return epochenSchutzScan.ermittleEpochenSchutz(...args);
+  };
 
   // 4T-000015: Backlinks-Anfrage einer Pane. Registriert den Owner
   // (webContents + Pane) auf der Wurzel der angefragten Datei und liefert
@@ -199,13 +221,17 @@ function registerIndexViewsIpc(handle, deps) {
   //     haengt und ein dirty Reiter den Schreibweg nach der Weg-Regel der
   //     Aufrufer gar nicht erreicht.
   //   - In einem ANDEREN Fenster: stiller Reload, wenn der Reiter sauber ist,
-  //     Konflikt-Dialog, wenn er geaendert ist.
+  //     Konflikt-Dialog, wenn er geändert ist. Seit 4T-001978 (Epic
+  //     3E-000330) erreicht die Aufgaben-Abfrage diesen Fall nur noch als
+  //     Rückfall: Hält ein anderes Fenster den ungespeicherten Stand, geht
+  //     ihr Handgriff vorher über taskQuery:edit dorthin.
   // Ein fall-abhaengiges markSelfWriting gibt es hier nicht: Die
   // Unterdrueckung sitzt pro DATEIPFAD und nicht pro Fenster
   // (documents/self-write.js gegen documents/file-watching.js); ein Eintrag
   // an dieser Stelle naehme die Meldung ALLEN Besitzern weg, auch den anderen
-  // Fenstern. Bewacht von RB-01 bis RB-03 in
-  // test/e2e/funktionen/rueckschreib-beobachtung.spec.js und von
+  // Fenstern. Bewacht von RB-01 und RB-02 in
+  // test/e2e/funktionen/rueckschreib-beobachtung.spec.js (RB-03 sichert seit
+  // 4T-001978 die Übergabe statt des Dialogs) und von
   // test/unit/beobachtungs-anlage.test.js (Anlage-Stelle samt Negativ-Probe).
   handle('task:applyLineEdit', async (event, params) => {
     // BOM-Strip wie file:read (Escape-Form, kein unsichtbares Literal, M-04).
@@ -238,6 +264,39 @@ function registerIndexViewsIpc(handle, deps) {
     } catch (err) {
       return { ok: false, error: err && err.message ? err.message : String(err) };
     }
+  });
+
+  // 4T-001978 (Epic 3E-000330): Handgriff an einem Treffer der Aufgaben-Abfrage
+  // (Abhaken, Verschieben, Übernahme aus dem Bearbeitungs-Dialog), dessen Datei
+  // ungespeichert im Editor eines ANDEREN Fensters liegt. Dieses Fenster bekommt
+  // den Auftrag und führt ihn über seine eigene Schreib-Kette aus, als Änderung
+  // im Editor; auf die Platte wird nicht geschrieben, und der Konflikt-Dialog
+  // entsteht damit nicht. Eigener Kanal gleicher Bauart wie reminders:edit,
+  // dieselbe Besitzer-Regel (src/main/ipc/puffer-fenster.js). Antwort
+  // { delegiert: true }, wenn der Auftrag an ein anderes Fenster ging; sonst
+  // schreibt das anfragende Fenster wie bisher selbst. Die Felder werden einzeln
+  // entnommen, weil der Auftrag aus dem Anzeige-Prozess stammt; wer den Vertrag
+  // erweitert, zieht ihn hier und in task-query-actions.js nach.
+  handle('taskQuery:edit', (event, auftrag) => {
+    const hit = auftrag && auftrag.hit;
+    const bearbeitung = auftrag && auftrag.bearbeitung;
+    if (!hit || typeof hit.path !== 'string' || !hit.path) return { delegiert: false };
+    if (typeof hit.taskText !== 'string') return { delegiert: false };
+    const art = bearbeitung ? bearbeitung.art : null;
+    const zeile = art === 'zeile' && typeof bearbeitung.newText === 'string';
+    if (art !== 'toggle' && !zeile) return { delegiert: false };
+    const nutzlast = {
+      hit: {
+        path: hit.path,
+        line: Number.isInteger(hit.line) ? hit.line : 1,
+        taskText: hit.taskText,
+      },
+      bearbeitung: zeile ? { art, newText: bearbeitung.newText } : { art },
+    };
+    const quellen = { windows, backlinks };
+    return {
+      delegiert: uebergibAnPufferBesitzer(quellen, event, hit.path, 'taskQuery:edit', nutzlast),
+    };
   });
 
   // 4T-000515 (Epic 3E-000092): Ereignis-Aggregation — Treffer-Dateien mit
@@ -454,6 +513,22 @@ function registerIndexViewsIpc(handle, deps) {
     const areaRoot = areaRootForEvent(event);
     if (!areaRoot) return leer;
     return ermittleUmbenennung(areaRoot, {
+      alt: params && params.alt,
+      neu: params && params.neu,
+      aktiv: params && params.aktiv,
+    });
+  });
+
+  // 4T-002003 (Epic 3E-000307): Die gespeicherten Werte einer Zeitrechnung, die
+  // das Nachtragen einer Epoche umdeuten würde, gezählt über den Bereich samt
+  // Notizen. Eingabe sind die gespeicherte und die anzuwendende Sektion
+  // calendarSystems; was ein Nachtrag ist, entscheidet der geteilte Kern
+  // (`shared/calendar/calendar-epoch-guard.js`). Ohne geöffneten Bereich gibt es
+  // nichts zu zählen.
+  handle('calendarEpoch:scan', async (event, params) => {
+    const areaRoot = areaRootForEvent(event);
+    if (!areaRoot) return { vorratModus: 'leer', nachtraege: [], dateien: [], notizen: [] };
+    return ermittleEpochenSchutz(areaRoot, {
       alt: params && params.alt,
       neu: params && params.neu,
       aktiv: params && params.aktiv,

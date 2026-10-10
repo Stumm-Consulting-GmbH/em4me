@@ -299,6 +299,23 @@ function ladeAppearanceInDraft() {
     pageState.draft.spellcheckWords = normalizeDictionaryWords(words);
     if (pageState.activeSectionId === 'spellcheck') renderActiveSection();
   });
+  // 4T-001991 (Epic 3E-000188): Das Entfernen eines eigenen Worts schreibt
+  // auch in das Wörterbuch des Windows-Benutzers und entfällt deshalb in der
+  // portablen Fassung (Entscheidung des Product Owners vom 2026-09-28); die
+  // Liste selbst bleibt, weil sie allein das Wörterbuch des Programms liest.
+  // Angeboten wird das Entfernen nur auf die ausdrückliche Auskunft «nicht
+  // portabel»; bis sie da ist und bei einer gestörten Auskunft fehlt der Knopf
+  // (Begründung wie beim Kontextmenü, editor-context-menu.js).
+  api.getPortablerBetrieb().then(
+    (auskunft) => {
+      if (generation !== pageState.generation || !pageState.draft) return;
+      pageState.draft.spellcheckWoerterEntfernbar = !!auskunft && auskunft.portabel === false;
+      if (pageState.activeSectionId === 'spellcheck') renderActiveSection();
+    },
+    (err) => {
+      console.warn('Auskunft ueber den portablen Betrieb nicht erhalten:', err);
+    },
+  );
   // 4T-000604 (Epic 3E-000113): Zeitstempel-Automatik (eigener Bereich).
   Promise.all([
     api.getSetting('frontmatter.createdEnabled'),

@@ -6,6 +6,11 @@
 // Auszug aus main.js, 4T-000999 (Epic 3E-000196). Kanal-Gruppe: window:*,
 // tab:appendToWindow, app:*, workspace:*, drafts:save.
 //
+// 4T-001993 (Epic 3E-000188): Dazu die Auskunft über den portablen Betrieb und
+// das Öffnen seines Daten-Ordners (app:portablerBetrieb, app:oeffneDatenOrdner)
+// neben den übrigen Angaben über die laufende Fassung (app:version,
+// app:auspraegung), die der Dialog «Über EM4me» anzeigt.
+//
 // Eigener Zustand: keiner; Fenster-Registry, App-Registry und der
 // Arbeitsbereichs-Stand gehoeren ihren Modulen und kommen als Deps.
 'use strict';
@@ -60,6 +65,9 @@ const eigenePaketAngaben = require('../../../package.json');
  * @param {Function} deps.appendDrafts Entwuerfe additiv schreiben.
  * @param {Function} deps.retagDraftsToGlobal Entwuerfe in den globalen Topf umhaengen.
  * @param {() => string} deps.fullVersion Volle Anzeige-Version.
+ * @param {object} deps.shell Electron-Shell-Modul (Öffnen des Daten-Ordners).
+ * @param {object} deps.portablerBetrieb Eingefrorenes Ergebnis der Erkennung des
+ *   portablen Betriebs `{ portabel, datenOrdner, beschreibbar }` (4T-001990).
  */
 function registerWindowsIpc(handle, deps) {
   const {
@@ -96,6 +104,8 @@ function registerWindowsIpc(handle, deps) {
     appendDrafts,
     retagDraftsToGlobal,
     fullVersion,
+    shell,
+    portablerBetrieb,
   } = deps;
 
   // Renderer signalisiert, dass das Fenster nun tatsaechlich geschlossen
@@ -361,6 +371,39 @@ function registerWindowsIpc(handle, deps) {
   // 4T-001335: null in der produktiven Auspraegung, sonst die Kennzeichnung
   // ("Pruefstand"), die der Renderer an den Fenstertitel haengt.
   handle('app:auspraegung', () => auspraegungsKennzeichnung(eigenePaketAngaben));
+
+  // 4T-001993 (Epic 3E-000188): Der Dialog «Über EM4me» nennt in der portablen
+  // Fassung den Ort ihrer Daten und bietet einen Knopf, der ihn öffnet.
+  //
+  // Beide Kanäle lesen allein das beim Start EINMAL ermittelte Ergebnis der
+  // Erkennung; der Ort wird hier nicht neu bestimmt. Im laufenden Programm
+  // heißt «portabel» zugleich «beschreibbar», weil ein nicht beschreibbarer
+  // Daten-Ordner den Start abbricht, bevor ein Fenster entsteht (main.js).
+  //
+  // SICHERHEIT: Das Öffnen nimmt KEINEN Pfad vom Fenster entgegen. Geöffnet wird
+  // ausschließlich der Daten-Ordner aus der Erkennung; was der Aufrufer
+  // mitgibt, bleibt unbeachtet. Sonst wäre der Kanal ein allgemeiner
+  // «öffne beliebigen Pfad»-Zugang, den ein Anzeige-Prozess nicht haben soll.
+  const portablerDatenOrdner = () =>
+    portablerBetrieb.portabel === true ? portablerBetrieb.datenOrdner : null;
+
+  handle('app:portablerBetrieb', () => {
+    const datenOrdner = portablerDatenOrdner();
+    return datenOrdner ? { portabel: true, datenOrdner } : { portabel: false, datenOrdner: null };
+  });
+
+  // Rückgabe nach dem IPC-Muster { ok, error }. shell.openPath meldet einen
+  // Fehlschlag nicht als Ausnahme, sondern als nicht leere Zeichenkette.
+  handle('app:oeffneDatenOrdner', async () => {
+    const datenOrdner = portablerDatenOrdner();
+    if (!datenOrdner) return { ok: false, error: 'not portable' };
+    const fehler = await shell.openPath(datenOrdner);
+    if (fehler) {
+      console.warn(`Daten-Ordner ${datenOrdner} nicht geoeffnet:`, fehler);
+      return { ok: false, error: fehler };
+    }
+    return { ok: true };
+  });
 
   // 4T-000319 (Epic 3E-000057): "Neue Applikation" — neue logische App mit
   // leerem Fenster, ohne die EXE zu bemuehen (Menuepunkt bzw. Kommando).

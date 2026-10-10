@@ -9,6 +9,8 @@
 // (toggleTaskFromQuery, writeTaskHitLine) ist durch einen Zähler ersetzt: Geprüft wird hier, OB
 // geschrieben wird, nicht wie — das Wie deckt der Ablauf-Fall mit der
 // Quelldatei (test/e2e/funktionen/erinnerungen-alle-fenster.spec.js).
+// Ausnahme seit 4T-001978 (Epic 3E-000330): der letzte Abschnitt, der die echte
+// Kette bei einem nicht aktiven, geänderten Dokument dieses Fensters fährt.
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import './api-stub.js';
 
@@ -20,17 +22,26 @@ vi.mock('../../../src/renderer/i18n.js', async (importOriginal) => ({
   ...(await importOriginal()),
   t: (key) => ({ 'reminders.dialog.origin': 'Herkunft: {name}' })[key] || key,
 }));
-vi.mock('../../../src/renderer/modules/task-query-actions.js', async (importOriginal) => ({
-  ...(await importOriginal()),
-  toggleTaskFromQuery: async (hit) => {
-    schreibvorgaenge.push(hit);
-    return schreibErgebnis;
-  },
-  writeTaskHitLine: async (hit, neu) => {
-    schreibvorgaenge.push({ ...hit, neu });
-    return schreibErgebnis;
-  },
-}));
+// 4T-001978 (Epic 3E-000330): Mit `echteKette` laufen die echten Funktionen —
+// für die Fälle, in denen gerade das Wie geprüft wird (nicht aktives, geändertes
+// Dokument dieses Fensters, E10 des Epics).
+let echteKette = false;
+vi.mock('../../../src/renderer/modules/task-query-actions.js', async (importOriginal) => {
+  const original = await importOriginal();
+  return {
+    ...original,
+    toggleTaskFromQuery: async (hit) => {
+      if (echteKette) return original.toggleTaskFromQuery(hit);
+      schreibvorgaenge.push(hit);
+      return schreibErgebnis;
+    },
+    writeTaskHitLine: async (hit, neu) => {
+      if (echteKette) return original.writeTaskHitLine(hit, neu);
+      schreibvorgaenge.push({ ...hit, neu });
+      return schreibErgebnis;
+    },
+  };
+});
 vi.mock('../../../src/renderer/modules/views/views.js', async (importOriginal) => ({
   ...(await importOriginal()),
   showStatusbarHint: (key, opts) => hinweise.push({ key, opts }),
@@ -359,6 +370,127 @@ describe('4T-001727: Bearbeitung im Fenster mit dem ungespeicherten Stand', () =
       expect(schreibvorgaenge).toEqual([]);
     } finally {
       window.api.remindersRelease = bisher;
+    }
+  });
+});
+
+// 4T-001978 (Epic 3E-000330, E10): Ist die Datei einer fälligen Erinnerung in
+// DIESEM Fenster ein nicht aktives Dokument mit ungespeicherten Änderungen,
+// wirken «Erledigt» und «Später erinnern» in dessen ungespeichertem Stand —
+// genauso wie das Abhaken in der Aufgaben-Abfrage. Kein Hinweis, kein Schreiben
+// auf die Platte, und die Erinnerung geht nicht zurück. Hier läuft die echte
+// Schreib-Kette (echteKette); der Hauptprozess ist die Attrappe.
+describe('4T-001978: Erinnerung bei nicht aktivem, geändertem Dokument dieses Fensters', () => {
+  const PFAD = 'C:/Projekte/aufgaben.md';
+  let reiter;
+  let rueckgaben;
+  let platte;
+  let bisherRelease;
+  let bisherPlatte;
+
+  beforeEach(async () => {
+    const { state } = await import('../../../src/renderer/modules/app/app-state.js');
+    editorActivity.lastDocEditAt = 0;
+    hinweise.length = 0;
+    window.__remindersClaim = null;
+    window.__remindersEdit = null;
+    window.__taskQueryEdit = null;
+    echteKette = true;
+    rueckgaben = [];
+    platte = [];
+    bisherRelease = window.api.remindersRelease;
+    bisherPlatte = window.api.applyTaskLineEdit;
+    window.api.remindersRelease = async (entry) => {
+      rueckgaben.push(entry);
+      return { released: true };
+    };
+    window.api.applyTaskLineEdit = async (params) => {
+      platte.push(params);
+      return { ok: true };
+    };
+    const gespeichert = '# Aufgaben\n- [ ] Newsletter ⏰ 2020-01-01 08:00\n';
+    reiter = {
+      path: PFAD,
+      content: `${gespeichert}Eigener Zusatz`,
+      originalContent: gespeichert,
+      dirty: true,
+    };
+    const abfrage = { path: 'C:/Projekte/start.md', content: '', originalContent: '' };
+    state.panes = [{ tabs: [abfrage, reiter], activeIndex: 0 }];
+    state.activePaneIndex = 0;
+  });
+
+  function aufraeumen(key) {
+    echteKette = false;
+    window.api.remindersRelease = bisherRelease;
+    window.api.applyTaskLineEdit = bisherPlatte;
+    window.__remindersHandledHandler({ keys: [key] });
+  }
+
+  const newsletter = (key) =>
+    eintrag(key, { line: 2, taskText: '- [ ] Newsletter ⏰ 2020-01-01 08:00' });
+
+  async function zeigeUndHole(key) {
+    window.__remindersDueHandler({ items: [newsletter(key)] });
+    await warte();
+    await warte();
+    return zeilen().find((li) => li.querySelector('.reminders-item-desc').textContent === key);
+  }
+
+  it('«Erledigt» wirkt im ungespeicherten Stand, ohne Hinweis und ohne Rückgabe (AK15)', async () => {
+    try {
+      const zeile = await zeigeUndHole('ungespeichert-erledigt');
+      zeile.querySelector('button').click();
+      await warte();
+      await warte();
+      expect(reiter.content.split('\n')[1]).toMatch(/^- \[x\] Newsletter/);
+      expect(reiter.content.endsWith('Eigener Zusatz')).toBe(true);
+      expect(reiter.dirty).toBe(true);
+      expect(platte).toEqual([]);
+      expect(hinweise).toEqual([]);
+      expect(rueckgaben).toEqual([]);
+      // Der Eintrag ist bearbeitet; mit dem letzten schließt der Dialog.
+      expect(modal().hidden).toBe(true);
+    } finally {
+      aufraeumen('ungespeichert-erledigt');
+    }
+  });
+
+  it('«Später erinnern» setzt den neuen Zeitpunkt in den ungespeicherten Stand (AK15)', async () => {
+    try {
+      const zeile = await zeigeUndHole('ungespeichert-spaeter');
+      zeile.querySelectorAll('button')[1].click();
+      const menue = document.getElementById('context-menu');
+      expect(menue.children.length).toBeGreaterThan(1);
+      menue.firstElementChild.click();
+      await warte();
+      await warte();
+      const neu = reiter.content.split('\n')[1];
+      expect(neu).toMatch(/^- \[ \] Newsletter ⏰ \d{4}-\d{2}-\d{2} \d{2}:\d{2}$/);
+      expect(neu).not.toBe('- [ ] Newsletter ⏰ 2020-01-01 08:00');
+      expect(reiter.dirty).toBe(true);
+      expect(platte).toEqual([]);
+      expect(hinweise).toEqual([]);
+      expect(rueckgaben).toEqual([]);
+    } finally {
+      aufraeumen('ungespeichert-spaeter');
+    }
+  });
+
+  it('Auftrag aus dem Hauptprozess im empfangenden Fenster: wirkt ebenso, die Erinnerung geht nicht zurück (AK16)', async () => {
+    try {
+      window.__remindersEditHandler({
+        item: newsletter('auftrag-ungespeichert'),
+        bearbeitung: { art: 'erledigt' },
+      });
+      await warte();
+      await warte();
+      expect(reiter.content.split('\n')[1]).toMatch(/^- \[x\] Newsletter/);
+      expect(platte).toEqual([]);
+      expect(hinweise).toEqual([]);
+      expect(rueckgaben).toEqual([]);
+    } finally {
+      aufraeumen('auftrag-ungespeichert');
     }
   });
 });

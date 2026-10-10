@@ -6,6 +6,8 @@
   "about.website": "em4me.ch",
   "about.websiteUrl": "https://em4me.ch/",
   "about.ok": "OK",
+  "about.portableDataLabel": "Portable version – your data is stored in:",
+  "about.portableOpenDataFolder": "Open data folder",
   "tour.welcome.title": "Welcome to the tour",
   "tour.welcome.text": "In eleven stops, this tour shows what sets this application apart from an ordinary editor. Each stop points at the place it is about. You can close the tour at any time and start it again later from the Help menu.",
   "tour.modes.title": "How much should be visible?",

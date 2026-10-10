@@ -31,6 +31,8 @@ const path = require('node:path');
 const { BrowserWindow, shell, nativeTheme } = require('electron');
 const backlinks = require('./backlinks');
 const { erzeugeSchliessKaskade } = require('./app/schliess-kaskade.js');
+// 4T-001991 (Epic 3E-000188): Pfad des Programm-Symbols ausserhalb des Archivs.
+const { programmSymbolPfad } = require('./app/portabler-betrieb.js');
 
 /**
  * Baut die Fenster-Verwaltung.
@@ -173,7 +175,12 @@ function createWindowManager(deps) {
     const useStored = isBoundsVisibleOnAnyDisplay(opts.bounds);
     // 4T-001202: Fenster-Icon je Plattform — Linux nimmt PNG (ICO ist dort nicht
     // das Fenster-Format); macOS ignoriert die Option (Dock-Symbol aus Bundle).
-    const iconDatei = process.platform === 'linux' ? 'icon.png' : 'icon.ico';
+    // 4T-001991 (Epic 3E-000188): Das Symbol kommt im gepackten Programm aus
+    // der unverpackten Ablage (asarUnpack in package.json). Aus dem
+    // Programm-Archiv heraus kopierte Electron es bei jedem Start als
+    // <GUID>.tmp.ico in den Temp-Ordner, und die Kopie blieb liegen (Messung
+    // vom 2026-09-28; mit unverpacktem Symbol blieb sie aus).
+    const iconPfad = programmSymbolPfad(path.join(__dirname, '..', 'assets'), process.platform);
 
     const options = {
       width: 1200,
@@ -181,7 +188,7 @@ function createWindowManager(deps) {
       minWidth: 600,
       minHeight: 400,
       backgroundColor: nativeTheme.shouldUseDarkColors ? '#1e1e1e' : '#ffffff',
-      icon: path.join(__dirname, '..', 'assets', iconDatei),
+      icon: iconPfad,
       show: false,
       webPreferences: {
         preload: path.join(__dirname, 'preload.js'),

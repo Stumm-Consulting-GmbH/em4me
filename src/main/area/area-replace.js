@@ -173,7 +173,15 @@ function createAreaReplace(deps) {
     // Ersetzt wird ausschliesslich an den uebergebenen Fundstellen; die Regel
     // dafuer teilt sich dieser Weg mit dem Puffer-Weg des Anzeige-Prozesses
     // (4T-001526), damit beide an derselben Stelle dasselbe einsetzen.
-    const gewirkt = wendeErsetzungenAn(roh, offsets, { muster, flags, ersetzung, regexModus });
+    // 4T-002003 (Epic 3E-000307): Trägt das Ziel je Fundstelle einen eigenen
+    // Text, gehen Offsets und Texte UNSORTIERT und im Gleichschritt an den Kern;
+    // die Sortierung oben zerriss sonst die Zuordnung. Der Kern sortiert und
+    // fasst selbst zusammen und weist einen mehrdeutigen Auftrag ab.
+    const optionen = { muster, flags, ersetzung, regexModus };
+    const gewirkt =
+      ziel.ersetzungen === undefined
+        ? wendeErsetzungenAn(roh, offsets, optionen)
+        : wendeErsetzungenAn(roh, ziel.offsets, optionen, ziel.ersetzungen);
     if (!gewirkt.ok) return { art: 'fehler', grund: gewirkt.grund, detail: gewirkt.detail };
 
     // 4T-001531 (Epic 3E-000175): Der Frontmatter-Anteil der Tag-Umbenennung.
@@ -260,8 +268,10 @@ function createAreaReplace(deps) {
    * @param {string} auftrag.flags Flags desselben Ausdrucks.
    * @param {string} auftrag.ersetzung Ersetzungs-Text.
    * @param {boolean} auftrag.regexModus Rückverweise im Ersetzungs-Text auswerten.
-   * @param {Array<{pfad: string, offsets: number[]}>} auftrag.dateien Ausgewählte
-   *   Fundstellen je Datei (absoluter Pfad, Offsets im gesuchten Text).
+   * @param {Array<{pfad: string, offsets: number[], ersetzungen?: string[]}>} auftrag.dateien
+   *   Ausgewählte Fundstellen je Datei (absoluter Pfad, Offsets im gesuchten
+   *   Text). Mit `ersetzungen` (4T-002003) ersetzt je Offset der Text an
+   *   derselben Listen-Stelle statt `auftrag.ersetzung`.
    * @param {object|null} auftrag.owner Fenster der Anfrage (für die Historie).
    * @returns {Promise<{geaendert: Array, fehlgeschlagen: Array, veraendert: Array}>}
    */
@@ -342,9 +352,7 @@ function sammleZiele(dateien, mitTag) {
   const nachPfad = new Map();
   for (const eintrag of Array.isArray(dateien) ? dateien : []) {
     if (!eintrag || typeof eintrag.pfad !== 'string' || !eintrag.pfad) continue;
-    const offsets = (Array.isArray(eintrag.offsets) ? eintrag.offsets : []).filter(
-      (o) => Number.isInteger(o) && o >= 0,
-    );
+    const { offsets, ersetzungen } = gueltigeStellen(eintrag);
     // 4T-001531: Die Frontmatter-Auswahl reist als Index-Liste mit, nie als
     // fertiger Wert — und nur, wenn der Auftrag ueberhaupt eine Umbenennung
     // ist. Ein Index ohne Tag-Namen haette nichts, woraus er einen Wert bilden
@@ -357,15 +365,49 @@ function sammleZiele(dateien, mitTag) {
     if (bestand) {
       bestand.offsets.push(...offsets);
       bestand.frontmatter.push(...frontmatter);
+      // 4T-002003: Die Texte wachsen im Gleichschritt mit den Offsets. Zwei
+      // Einträge desselben Pfads, von denen nur einer Texte trägt, lassen sich
+      // nicht zu einem Auftrag vereinen; der Kern weist ihn dann ab (null).
+      if (bestand.ersetzungen !== undefined || ersetzungen !== undefined) {
+        bestand.ersetzungen =
+          Array.isArray(bestand.ersetzungen) && Array.isArray(ersetzungen)
+            ? [...bestand.ersetzungen, ...ersetzungen]
+            : null;
+      }
     } else {
       nachPfad.set(eintrag.pfad, {
         pfad: eintrag.pfad,
         offsets: [...offsets],
         frontmatter: [...frontmatter],
+        ersetzungen: Array.isArray(ersetzungen) ? [...ersetzungen] : ersetzungen,
       });
     }
   }
   return [...nachPfad.values()];
+}
+
+// 4T-002003 (Epic 3E-000307): Die gültigen Offsets eines Eintrags und, falls er
+// je Fundstelle einen Text trägt, die zugehörigen Texte im Gleichschritt. Ein
+// verworfener Offset nimmt seinen Text mit — sonst rückte jeder folgende Text
+// an die Stelle davor. Ohne `ersetzungen` bleibt es `undefined` und der Lauf
+// Zeichen für Zeichen der bisherige; eine Liste, deren Länge nicht zu den
+// Offsets passt, wird zu null und vom Kern als mehrdeutig abgewiesen.
+function gueltigeStellen(eintrag) {
+  const roh = Array.isArray(eintrag.offsets) ? eintrag.offsets : [];
+  const gueltig = (o) => Number.isInteger(o) && o >= 0;
+  if (eintrag.ersetzungen === undefined)
+    return { offsets: roh.filter(gueltig), ersetzungen: undefined };
+  if (!Array.isArray(eintrag.ersetzungen) || eintrag.ersetzungen.length !== roh.length) {
+    return { offsets: roh.filter(gueltig), ersetzungen: null };
+  }
+  const offsets = [];
+  const ersetzungen = [];
+  roh.forEach((o, i) => {
+    if (!gueltig(o)) return;
+    offsets.push(o);
+    ersetzungen.push(eintrag.ersetzungen[i]);
+  });
+  return { offsets, ersetzungen };
 }
 
 function meldung(err) {

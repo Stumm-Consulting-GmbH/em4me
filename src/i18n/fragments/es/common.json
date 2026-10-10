@@ -5,6 +5,8 @@
   "view.rendered": "Renderizado",
   "view.live": "En vivo",
   "app.claim": "extended memory for me",
+  "app.portableNotWritableTitle": "EM4me no puede iniciarse",
+  "app.portableNotWritableMessage": "EM4me no puede escribir en su carpeta de datos. Coloque el archivo del programa en una ubicación en la que tenga permiso de escritura, por ejemplo, su carpeta Documentos o una memoria USB.",
   "empty.title": "EM4me",
   "empty.hint": "Abra un archivo o arrastrelo aqui.",
   "drop.hint": "Suelte el archivo Markdown aqui",

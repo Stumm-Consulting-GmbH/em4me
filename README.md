@@ -160,8 +160,9 @@ Ready-made builds for both platforms are available on the product website:
 [em4me.ch](https://em4me.ch), each in two forms — with and without
 installation. All builds are 64-bit and need no runtime.
 
-- **Windows**: installer or portable executable. EM4me targets Windows 11;
-  Windows 10 should work too.
+- **Windows**: installer, or a portable program file that runs without
+  installation. EM4me targets
+  Windows 11; Windows 10 should work too.
 - **Linux**: `.deb` package for regular installation on Debian and Ubuntu
   systems, or an AppImage that runs without installation. The AppImage
   requires the libfuse2 library, which recent distributions no longer ship
@@ -171,6 +172,37 @@ installation. All builds are 64-bit and need no runtime.
 Every release ships with SHA256 checksums, published on the website and in
 the release entries of this repository, so the files can be verified from
 two independent places.
+
+### What the portable version leaves on the computer
+
+The portable version is a single program file and is not installed.
+Everything EM4me saves lies in the `Data` folder, which it creates next to the
+program file at first start: settings, session, drafts and temporary files
+too. Take the program file together with the `Data` folder with you, on a USB
+stick for example, and you take everything with you. At startup the program
+file unpacks the actual program into the Windows temporary folder and removes
+it again on exit.
+
+Your documents lie wherever you put them. In the folder of an area you open,
+EM4me creates its area files as usual.
+
+**What Windows records.** Windows keeps its own records about every program;
+EM4me cannot switch that off. They show that EM4me ran on the computer, from
+which location it was started and which folders you visited in its file
+dialogs. Examples are the display name of the program, the remembered folder
+views and the last folder visited in the file dialog, a graphics cache and the
+modification time of two spell-checking files. This list is not complete. The
+contents of your documents and the names of your files appear in none of the
+records measured.
+
+**What EM4me does about it.** The portable version adds nothing to the list
+of recently used files, remembers the last folder visited only while it is
+running, and adds no words to the dictionary; the spell check itself works as
+usual.
+
+If EM4me cannot create its `Data` folder next to the program file or write to
+it, on a write-protected USB stick for example, it says so at startup and
+quits.
 
 ## Building from source
 
@@ -183,7 +215,7 @@ npm install
 npm start           # run the app in development mode
 npm test            # unit and snapshot tests
 npm run test:e2e    # end-to-end tests (Playwright)
-npm run build       # Windows: installer and portable executable
+npm run build       # Windows: installer and portable program file
 npm run build:linux # Linux: AppImage and .deb package (needs Docker)
 ```
 

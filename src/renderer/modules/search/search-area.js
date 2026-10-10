@@ -30,7 +30,11 @@ import {
   raumIndex,
   registriereLieferant,
 } from './search-run.js';
-import { registriereMarkierWeg, registriereSprungWeg } from './search-jump.js';
+import {
+  registriereMarkierWeg,
+  registriereSprungWeg,
+  rolleZurFundstelleInDerLeseAnsicht,
+} from './search-jump.js';
 
 // Lauf-Kennung für den Hauptprozess. Sie erlaubt ihm, einen laufenden
 // Vorrat-Aufbau abzubrechen, sobald eine jüngere Anfrage eintrifft; die
@@ -117,7 +121,17 @@ function zeigtEditor(tab) {
 // sie um die Liste. Ohne diesen Schritt verschwänden beim Tippen die Treffer
 // aus dem Text, und die Suche fühlte sich im Editor grundlegend anders an als
 // bisher.
-function markiereOffeneDatei() {
+//
+// 4T-002107: `bewegen` trennt den Sprung von der bloßen Markierung, wie es B-10
+// (4T-000904) für die Dokument-Suche festgelegt hat: Eine Neu-Ermittlung
+// bewegt weder Schreibmarke noch Bildlauf. Als registrierter Markier-Weg läuft
+// diese Funktion nach JEDEM Bereichs-Suchlauf — nach dem Tippen in der
+// Suchleiste und nach jedem Nachziehen, auch dem der Vorschau-Pipeline im
+// geteilten Modus. Bis hierher setzte sie im Editor dabei die Schreibmarke auf
+// den aktuellen Treffer: gemessen am 2026-10-03, bei offener Bereichs-Suche
+// landete getippter Text mitten im Treffer («Erster erminQuittentreffer»), in
+// Quellcode und Geteilt. Nur der Sprung (springeZuBereichsDatei) bewegt.
+function markiereOffeneDatei({ bewegen = false } = {}) {
   const tab = aktivesDokument();
   if (!tab) return;
   let regex;
@@ -143,8 +157,8 @@ function markiereOffeneDatei() {
     // In einem Tabellen-Dokument mit Prosa hinter dem Datenblock zählt die
     // Liste weniger Fundstellen, und das Abzählen landete auf der falschen.
     const idx = trefferIndexNachStelle(tab, treffer);
-    if (idx >= 0) setCurrentMatch(idx);
-    else if (nummer >= 0 && nummer < search.matches.length) setCurrentMatch(nummer);
+    if (idx >= 0) setCurrentMatch(idx, bewegen);
+    else if (nummer >= 0 && nummer < search.matches.length) setCurrentMatch(nummer, bewegen);
     return;
   }
 
@@ -233,8 +247,27 @@ async function springeZuBereichsDatei(treffer) {
   clearSearchHighlights();
   await openInPane(state.activePaneIndex, [pfad]);
   await warteAufInhalt(pfad);
-  markiereOffeneDatei();
+  markiereOffeneDatei({ bewegen: true });
   scrolleZumAktiven();
+  await halteSprungImEditor();
+}
+
+// 4T-002107: Das Aktivieren des Ziel-Reiters stellt die gemerkte Roll-Lage des
+// Editors im nächsten Bild-Takt wieder her (renderPaneContent in
+// views/pane-render.js) und setzt den eben gerollten Sprung damit zurück —
+// gemessen am 2026-10-03: Schreibmarke auf dem Treffer, Ansicht oben. Bis
+// hierher glich das der Markier-Weg nach dem Nachziehen aus, weil er bei jedem
+// Lauf rollte; seit er es nicht mehr tut (B-10), rollt der Sprung nach diesem
+// Bild-Takt selbst noch einmal. Hat das Nachziehen die Treffer inzwischen neu
+// aufgebaut, lag die Wiederherstellung schon vor dem Sprung, und es bleibt
+// nichts zu tun. Die Lese-Ansicht hat ihren eigenen Weg (4T-002099).
+async function halteSprungImEditor() {
+  if (!zeigtEditor(aktivesDokument())) return;
+  const idx = search.currentIndex;
+  const ziel = search.matches[idx];
+  if (!ziel || typeof ziel.from !== 'number') return;
+  await new Promise((r) => requestAnimationFrame(() => r()));
+  if (search.matches[idx] === ziel) setCurrentMatch(idx, true);
 }
 
 // Wartet, bis der Reiter der Zieldatei aktiv ist und Inhalt trägt. Das Öffnen
@@ -247,13 +280,14 @@ async function warteAufInhalt(pfad, versuche = 60) {
   }
 }
 
+// 4T-002099: Über den gemeinsamen Weg des Raum-Sprungs, der die erreichte
+// Lage zugleich als gemerkte Lese-Lage einträgt; sonst setzte die
+// Wiederherstellung beim Aktivieren des Ziel-Reiters sie wieder zurück
+// (Begründung am Helfer in search-jump.js).
 function scrolleZumAktiven() {
   const tab = aktivesDokument();
   if (!tab || zeigtEditor(tab)) return; // Editor scrollt über setCurrentMatch
-  const aktiv = search.matches[search.currentIndex];
-  if (aktiv && typeof aktiv.scrollIntoView === 'function') {
-    aktiv.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
-  }
+  rolleZurFundstelleInDerLeseAnsicht(search.matches[search.currentIndex]);
 }
 
 registriereLieferant('area', bereichsTreffer);

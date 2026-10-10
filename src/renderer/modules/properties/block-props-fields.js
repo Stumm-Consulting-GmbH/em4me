@@ -28,6 +28,8 @@ import {
 // 4T-001156: Öffnen eines Verweis-Ziels über den Wiki-Link-Weg.
 import { activateLink } from '../views/link-navigation.js';
 import { BLOCK_PROP_TYPES, keyDatalistId } from './block-props-context.js';
+// 4T-002129: zusammengesetzte Kurzhinweise, die dem Sprachwechsel folgen.
+import { setzeSprachSatz } from '../panels/panel-sprache.js';
 import { extractRowValue, scheduleSaveBlockProps } from './block-props-save.js';
 // 4T-001156 (Epic 3E-000219): dieselben Bau-Funktionen wie im Dokument-Panel —
 // die Parität der neuen Typen hängt damit an einer Quelle statt an zwei
@@ -126,7 +128,13 @@ export function buildFieldRow(paneIdx, key, value, type, readOnly, def = null, h
   keyInput.value = key;
   keyInput.spellcheck = false;
   keyInput.disabled = readOnly;
-  if (def) keyInput.title = t('properties.profileDefined').replace('{profile}', def.profile);
+  // 4T-002129: Kurzhinweise und feste Texte der Zeile folgen dem Sprachwechsel
+  // (Merkmal bzw. setzeSprachSatz); das Panel wird dafür nicht neu gebaut.
+  if (def) {
+    setzeSprachSatz(keyInput, 'title', 'properties.profileDefined', {
+      werte: { profile: def.profile },
+    });
+  }
   // Schluessel-Vorschlaege aus dem Dokument-Bestand (Konzept-Entscheidung 1).
   keyInput.setAttribute('list', keyDatalistId(paneIdx));
   head.appendChild(keyInput);
@@ -137,6 +145,7 @@ export function buildFieldRow(paneIdx, key, value, type, readOnly, def = null, h
     const opt = document.createElement('option');
     opt.value = tname;
     opt.textContent = t('properties.type.' + tname) || tname;
+    opt.setAttribute('data-i18n', 'properties.type.' + tname);
     typeSelect.appendChild(opt);
   }
   typeSelect.value = type;
@@ -146,7 +155,9 @@ export function buildFieldRow(paneIdx, key, value, type, readOnly, def = null, h
   if (def && hintCode !== 'typeMismatch') {
     typeSelect.value = def.type;
     typeSelect.disabled = true;
-    typeSelect.title = t('properties.profileTypeLocked').replace('{profile}', def.profile);
+    setzeSprachSatz(typeSelect, 'title', 'properties.profileTypeLocked', {
+      werte: { profile: def.profile },
+    });
   }
   typeSelect.addEventListener('change', () => {
     onTypeChange(wrap, typeSelect.value, paneIdx);
@@ -166,6 +177,7 @@ export function buildFieldRow(paneIdx, key, value, type, readOnly, def = null, h
   delBtn.className = 'properties-field-delete';
   delBtn.textContent = '×';
   delBtn.title = t('properties.deleteField');
+  delBtn.setAttribute('data-i18n-title', 'properties.deleteField');
   delBtn.disabled = readOnly;
   delBtn.addEventListener('click', () => {
     wrap.remove();
@@ -232,6 +244,7 @@ function renderBlockValueSelect(container, def, value, paneIdx) {
   const customOpt = document.createElement('option');
   customOpt.value = '__custom__';
   customOpt.textContent = t('properties.profileCustomValue');
+  customOpt.setAttribute('data-i18n', 'properties.profileCustomValue');
   select.appendChild(customOpt);
   select.value = current === '' ? '' : current;
   select.addEventListener('change', () => {
@@ -351,6 +364,7 @@ export function renderValueEditor(container, type, value, paneIdx, readOnly, opt
       input.type = 'text';
       input.className = 'properties-field-multistring-input';
       input.placeholder = t('properties.multistringPlaceholder');
+      input.setAttribute('data-i18n-placeholder', 'properties.multistringPlaceholder');
       // PO-Befund Release 0.56.0: Chip nur anfügen, wenn der Wert noch nicht
       // gesetzt ist (keine doppelten Listen-Einträge; Regel wie im
       // Properties-Editor — ein Verhalten, zwei Oberflächen).
@@ -460,7 +474,9 @@ function onTypeChange(wrap, newType, paneIdx) {
     const typeSelect = wrap.querySelector('.properties-field-type');
     if (typeSelect) {
       typeSelect.disabled = true;
-      typeSelect.title = t('properties.profileTypeLocked').replace('{profile}', def.profile);
+      setzeSprachSatz(typeSelect, 'title', 'properties.profileTypeLocked', {
+        werte: { profile: def.profile },
+      });
     }
     applyFieldHint(
       wrap.querySelector('.properties-field-hint'),

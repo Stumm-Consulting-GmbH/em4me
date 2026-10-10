@@ -37,6 +37,8 @@ Lorsqu'un rappel est dû, un dialogue le signale avec la description de la tâch
 
 **Dans toutes les fenêtres.** Le dialogue apparaît dans chaque fenêtre ouverte de l'application, y compris les fenêtres d'une autre zone, les fenêtres sans zone et les fenêtres de livre et de bibliothèque. Chaque entrée indique donc sa provenance, par exemple « Provenance : Projets » : la zone, le livre ou la bibliothèque d'où vient le rappel. Terminé, Me le rappeler plus tard et Fermer agissent toujours sur le fichier de cette provenance, quelle que soit la fenêtre, et une seule fois : le rappel disparaît ensuite de toutes les fenêtres, et une seconde action presque simultanée dans une autre fenêtre reste sans effet et sans message d'erreur. Si plusieurs rappels sont dus, chaque fenêtre les rassemble dans un seul dialogue. Une fenêtre ouverte plus tard affiche elle aussi un rappel encore ouvert.
 
+**En cas de modifications non enregistrées.** Si le fichier de la tâche est ouvert avec des modifications non enregistrées, y compris dans une autre fenêtre que celle où l'on clique ou comme document qui n'est pas au premier plan, Terminé et Me le rappeler plus tard agissent sur cet état non enregistré : la modification apparaît là dans l'éditeur, le document reste non enregistré et n'arrive sur le disque qu'à son enregistrement, et le rappel disparaît comme après tout autre traitement. Cocher une tâche et les autres actions dans une requête de tâches se comportent de la même façon (page [Listes de tâches](tasks.md), section « Requêtes de tâches et réécriture »).
+
 **Lien vers le fichier source.** Un clic sur le nom du fichier ouvre le fichier à la ligne de la tâche, dans la fenêtre de sa zone. Si la fenêtre où l'on a cliqué affiche une autre zone ou aucune, la fenêtre de la zone de provenance passe au premier plan et y ouvre le fichier ; si cette zone n'est pas ouverte, elle est ouverte. Le rappel reste affiché : ouvrir le fichier n'est pas un traitement.
 
 ## Uniquement lorsque l'application est ouverte
@@ -49,7 +51,7 @@ Lorsqu'une zone est ouverte, l'application vérifie en continu les marqueurs de 
 
 Un panneau de la barre latérale liste tous les rappels de la zone, regroupés en **En retard**, **Aujourd'hui**, **Demain** et **Plus tard**. Le panneau s'ouvre via l'icône de réveil de la barre d'état ou via Affichage → Barre latérale → Panneaux → Rappels.
 
-- Chaque entrée offre les actions directes **Terminé** et **Plus tard**.
+- Chaque entrée offre les actions directes **Terminé** et **Plus tard** ; elles agissent comme dans la boîte de rappel, y compris avec des modifications non enregistrées.
 - Un clic sur une entrée ouvre le fichier source à la ligne correspondante.
 - Le nom du fichier source apparaît ici et dans la boîte de dialogue de notification sans l'extension Markdown ; l'info-bulle indique le chemin complet.
 - Le groupe **En retard** comporte aussi les rappels en sourdine et y propose **Déclencher à nouveau**.

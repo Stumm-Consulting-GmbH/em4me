@@ -7,10 +7,10 @@ Las extensiones externas son paquetes creados por ti que amplían el renderizado
 
 ## Estructura del paquete
 
-Un paquete de extensión es una carpeta dentro del directorio de extensiones del perfil de usuario. La acción «Abrir carpeta» de la sección de configuración Extensiones (externas) abre el directorio en el gestor de archivos.
+Un paquete de extensión es una carpeta dentro del directorio de extensiones de la aplicación. Está junto a los demás datos de la aplicación: en la versión instalada, en el perfil de usuario; en la [versión portátil](portable-version.md), en la carpeta `Data` junto al programa. La acción «Abrir carpeta» de la sección de configuración Extensiones (externas) abre el directorio en el gestor de archivos.
 
 ```text
-<perfil de usuario>/extensions/
+<datos de la aplicación>/extensions/
 └── mi-extension/
     ├── manifest.json     (obligatorio: describe el paquete)
     ├── main.js           (punto de entrada de UI, módulo ES)

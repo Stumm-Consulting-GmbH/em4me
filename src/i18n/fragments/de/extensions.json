@@ -1,6 +1,6 @@
 {
   "extension.custom-calendars.name": "Kalender-Systeme",
-  "extension.custom-calendars.description": "Frei definierbare Zeitrechnungen pro Bereich: Pflege in den Einstellungen, Picker und Kalender-Werte im Dokument. Deaktiviert bleiben die Werte reiner Klartext.",
+  "extension.custom-calendars.description": "Frei definierbare Zeitrechnungen pro Bereich: Pflege in den Einstellungen, Picker, Umrechnung zwischen den Kalendern eines Blocks und Kalender-Werte im Dokument. Deaktiviert bleiben die Werte reiner Klartext.",
   "extension.command-placement.name": "Kommando-Platzierung",
   "extension.command-placement.description": "Eigene Kommando-Buttons in der Statusleiste, eine Ausblende-Liste für Standard-Buttons, eine nutzerdefinierte Sektion im Editor-Kontextmenü und Makros als Kommando-Sequenzen.",
   "extension.reminders.name": "Erinnerungen",

@@ -34,6 +34,8 @@ A right-click on a marked word opens the editor context menu with up to five sug
 
 The words added this way are listed under Settings → Spell checking and can be removed there individually.
 
+In the [portable version](portable-version.md), adding and removing are not offered, because both would write into the dictionary of the operating system and thus outside its data folder; suggestions and replacing remain.
+
 ### Limit
 
 Markdown syntax, paths and code are checked along with the rest, because the checker sees the text word by word and knows nothing about the markup. That is the reason the check is off by default.

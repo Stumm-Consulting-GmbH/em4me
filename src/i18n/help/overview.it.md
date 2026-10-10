@@ -32,7 +32,7 @@ Benvenuto nel manuale di EM4me. Questa pagina di panoramica è il punto di ingre
 - [Liste di attività](tasks.md) — liste di attività con stati standard ed estesi.
 - [Promemoria](reminders.md) — momenti di avviso sulle attività con ⏰: dialogo di notifica e di recupero in tutte le finestre con la provenienza, elenco promemoria; l'avviso funziona solo con l'applicazione in esecuzione.
 - [Eventi](events.md) — appuntamenti, compleanni e anniversari nel documento: blocco eventi con differenze di tempo scaglionate, traguardi, filtri e quattro viste, aggregazione tramite frontmatter, collegamenti.
-- [Sistemi di calendario](custom-calendars.md) — cronologie liberamente definibili per area: blocchi con calendari paralleli, livelli con cinque tipi di relazione, epoche, conversione, sintassi dei valori nel documento e selettore.
+- [Sistemi di calendario](custom-calendars.md) — cronologie liberamente definibili per area: blocchi con calendari paralleli, livelli con cinque tipi di relazione, epoche, conversione, modelli forniti, sintassi dei valori nel documento e selettore.
 
 ## Metadati, dati e query
 
@@ -72,7 +72,8 @@ Benvenuto nel manuale di EM4me. Questa pagina di panoramica è il punto di ingre
 - [Posizionamento dei comandi](command-placement.md) — comandi come accessi propri permanenti: pulsanti della barra di stato, elenco di occultamento, voci del menu contestuale, macro.
 - [Estensioni](extensions.md) — attivare o disattivare le funzioni singolarmente: categorie, modalità di lavoro comprese quelle personalizzate, dipendenze, effetto dello stato disattivato.
 - [Esportare e importare le impostazioni](setup-exchange.md) — portare con sé la propria configurazione: scelta dei tipi di dati fino ai singoli blocchi di calendario, struttura del file di scambio, anteprima prima dell'applicazione, fusione con i valori esistenti, compatibilità delle versioni.
-- [Lingua dell'interfaccia propria](custom-locale.md) — tradurre da sé l'interfaccia: scaricare il modello, tradurlo nel proprio editor, caricarlo e verificarlo, sceglierlo, ripiego sull'inglese, aggiornamento e rimozione, deposito nel profilo dell'utente.
+- [Lingua dell'interfaccia propria](custom-locale.md) — tradurre da sé l'interfaccia: scaricare il modello, tradurlo nel proprio editor, caricarlo e verificarlo, sceglierlo, ripiego sull'inglese, aggiornamento e rimozione, deposito del file della lingua.
+- [Versione portatile](portable-version.md) — EM4me senza installazione: avviare il file del programma, la cartella dei dati accanto e come portarla con sé, posizione dei dati in «Aiuto → Informazioni…», primo avvio e come portare con sé la propria configurazione, comportamento in una posizione senza permessi di scrittura, che cosa resta sul computer, differenze rispetto alla versione installata.
 - [Creare estensioni](extensions-dev.md) — sviluppare estensioni esterne proprie: manifest, API delle estensioni, esempio di riferimento, avvisi di sicurezza.
 
 ## Consigli d'uso

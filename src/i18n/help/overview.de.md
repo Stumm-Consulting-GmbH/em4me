@@ -32,7 +32,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 - [Aufgaben-Listen](tasks.md) — Task-Listen mit Standard- und erweiterten Status.
 - [Erinnerungen](reminders.md) — Melde-Zeitpunkte auf Aufgaben mit ⏰: Benachrichtigungs- und Nachhol-Dialog in allen Fenstern mit Herkunfts-Angabe, Erinnerungs-Liste; die Meldung läuft nur bei laufender App.
 - [Ereignisse](events.md) — Termine, Geburtstage und Jahrestage im Dokument: Ereignis-Block mit Zeitdifferenz-Staffelung, Meilensteinen, Filtern und vier Ansichten, Aggregation über Frontmatter, Verknüpfungen.
-- [Kalender-Systeme](custom-calendars.md) — frei definierbare Zeitrechnungen je Bereich: Blöcke mit parallelen Kalendern, Ebenen mit fünf Beziehungs-Typen, Epochen, Umrechnung, Wert-Syntax im Dokument und Picker.
+- [Kalender-Systeme](custom-calendars.md) — frei definierbare Zeitrechnungen je Bereich: Blöcke mit parallelen Kalendern, Ebenen mit fünf Beziehungs-Typen, Epochen, Umrechnung, mitgelieferte Vorlagen, Wert-Syntax im Dokument und Picker.
 
 ## Metadaten, Daten und Abfragen
 
@@ -72,7 +72,8 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 - [Kommando-Platzierung](command-placement.md) — Kommandos als dauerhafte eigene Zugänge: Statusbar-Buttons, Ausblende-Liste, Kontextmenü-Einträge, Makros.
 - [Erweiterungen](extensions.md) — Funktionen einzeln ein- und ausschalten: Kategorien, Arbeitsmodi samt eigenen Modi, Abhängigkeiten, Wirkung des Aus-Zustands.
 - [Einstellungen exportieren und importieren](setup-exchange.md) — die eigene Einrichtung mitnehmen: Auswahl der Datenarten samt einzelner Kalender-Blöcke, Aufbau der Austausch-Datei, Vorschau vor der Übernahme, Zusammenführung mit vorhandenen Werten, Fassungs-Verträglichkeit.
-- [Eigene Oberflächen-Sprache](custom-locale.md) — die Oberfläche selbst übersetzen: Vorlage herunterladen, im eigenen Editor übersetzen, einspielen und prüfen, auswählen, Rückfall auf Englisch, Aktualisieren und Entfernen, Ablage im Benutzerprofil.
+- [Eigene Oberflächen-Sprache](custom-locale.md) — die Oberfläche selbst übersetzen: Vorlage herunterladen, im eigenen Editor übersetzen, einspielen und prüfen, auswählen, Rückfall auf Englisch, Aktualisieren und Entfernen, Ablage der Sprachdatei.
+- [Portable Fassung](portable-version.md) — EM4me ohne Installation: Starten der Programmdatei, der Daten-Ordner neben ihr und das Mitnehmen, Ort der Daten unter „Hilfe → Über…“, erster Start und Mitnehmen der eigenen Einrichtung, Verhalten am nicht beschreibbaren Ort, was auf dem Rechner bleibt, Unterschiede zur installierten Fassung.
 - [Erweiterungen erstellen](extensions-dev.md) — eigene externe Erweiterungen entwickeln: Manifest, Erweiterungs-API, Referenz-Beispiel, Sicherheits-Hinweise.
 
 ## Tipps zur Nutzung

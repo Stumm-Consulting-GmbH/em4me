@@ -181,6 +181,8 @@ async function buildFilesFragment(paneIdx, dirPath) {
     const empty = document.createElement('div');
     empty.className = 'area-files-empty';
     empty.textContent = t('areaPanel.filesEmpty');
+    // 4T-002129: Das Merkmal trägt den Hinweis beim Sprachwechsel mit.
+    empty.setAttribute('data-i18n', 'areaPanel.filesEmpty');
     frag.appendChild(empty);
     return frag;
   }

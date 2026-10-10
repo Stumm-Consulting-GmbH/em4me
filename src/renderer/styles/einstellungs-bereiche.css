@@ -531,6 +531,53 @@
   text-align: left;
   margin: 0 0 2px;
 }
+/* 4T-001874 (Epic 3E-000323): Dialog «Datum umrechnen». Rahmen, Zeilen und
+   Knöpfe kommen von den festen Dialogen und der Entsprechungs-Liste der
+   Eingabe-Hilfe; hier steht allein die Zeile ohne Ergebnis, die kein Knopf ist. */
+.calendar-convert-row-text {
+  margin: 0 0 2px;
+  padding: 4px 8px;
+  color: var(--fg-muted);
+}
+/* Der Dialog bleibt auch im niedrigen Fenster ganz erreichbar. */
+.calendar-convert-content {
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+/* Die Meldung «kein gültiges Datum» ist ein Fehler, kein Hinweis. */
+.calendar-convert-content .name-input-error {
+  color: var(--linter-error, #d13438);
+}
+.calendar-convert-content input[aria-invalid='true'] {
+  border-color: var(--linter-error, #d13438);
+}
+.calendar-convert-hint {
+  margin: 12px 0 0;
+  font-size: 11px;
+  color: var(--fg-muted);
+}
+/* 4T-002097: Eine Zeile mit Ergebnis trägt rechts neben «Name: Wert» die Tasten
+   «Kopieren» und «Einfügen». Der Wert-Knopf füllt die Breite und bricht bei
+   langen Werten um, statt den Dialog zu verbreitern; die Tasten bleiben schmal. */
+.calendar-convert-item {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  margin: 0 0 2px;
+}
+.calendar-convert-item .calendar-convert-entry {
+  flex: 1 1 auto;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.calendar-convert-action {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
 /* 4T-000544 (Epic 3E-000097): Einstellungs-Bereich Kalender-Systeme — Block-
    Zeilen (Muster Journal-Regale), Kalender-Editoren mit Ebenen-/Epochen-/
    Zyklus-Boxen, Segment-Eingaben und Live-Vorschau. */
@@ -579,6 +626,22 @@
 .settings-calsys-level-head .settings-input {
   flex: 1;
   min-width: 0;
+}
+/* 4T-001863 (Epic 3E-000307): Kopfzeile eines Zyklus und Zeile einer
+   Gruppierung mit beschrifteten Namens-Zellen — der Entfernen-Knopf steht auf
+   der Linie der Felder. Bei schmalem Fenster bricht die Zeile um, statt über
+   den Rahmen zu laufen, und eine Namens-Zelle wird nie schmaler als ihre
+   Beschriftung, damit sich die Beschriftungen nicht überdecken. */
+.settings-calsys-cycle-head {
+  align-items: flex-end;
+}
+.settings-calsys-cycle-head,
+.settings-calsys-group-row {
+  flex-wrap: wrap;
+}
+.settings-calsys-cycle-head > .settings-calsys-level-name,
+.settings-calsys-group-row > .settings-calsys-level-name {
+  min-width: max-content;
 }
 .settings-calsys-level-title {
   font-size: 12px;

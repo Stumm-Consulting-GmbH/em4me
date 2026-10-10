@@ -335,9 +335,13 @@
       "key": "help.feature.spellcheck",
       "id": "F-249",
       "testart": "unit",
-      "tests": ["test/unit/spellcheck.test.js"],
+      "tests": [
+        "test/unit/spellcheck.test.js",
+        "test/unit/wörterbuch-portabler-betrieb.test.js",
+        "test/unit/renderer/wörterbuch-portabler-betrieb-oberfläche.test.js"
+      ],
       "sichtbarkeit": ["test/e2e/funktionen/einstellungen-seite.spec.js"],
-      "hinweis": "Schalter-Aufloesung, Woerterbuch-Normalisierung und der Waechter gegen setSpellCheckerLanguages. Der Pruefer selbst gehoert dem Betriebssystem und ist im Testlauf nicht nachstellbar; die Kette Rechtsklick bis Vorschlag ist am 2026-08-02 an Electron 33 gemessen (Belege im Epic 3E-000107)."
+      "hinweis": "Schalter-Aufloesung, Woerterbuch-Normalisierung und der Waechter gegen setSpellCheckerLanguages. Der Pruefer selbst gehoert dem Betriebssystem und ist im Testlauf nicht nachstellbar; die Kette Rechtsklick bis Vorschlag ist am 2026-08-02 an Electron 33 gemessen (Belege im Epic 3E-000107). 4T-001991 (Epic 3E-000188): Im portablen Betrieb werden Aufnahme und Entfernen weder angeboten noch ausgeführt — wörterbuch-portabler-betrieb.test.js hält den Riegel am Kanal des Haupt-Prozesses, renderer/wörterbuch-portabler-betrieb-oberfläche.test.js das fehlende Angebot im Kontextmenü des Editors und in der Liste unter Einstellungen → Rechtschreibprüfung, je portabel, nicht portabel und bei gestörter Auskunft; nachgetragen im Hilfe- und Handbuch-Task 4T-001996."
     },
     {
       "key": "help.feature.perspectiveTable",
@@ -955,7 +959,7 @@
       "id": "F-131",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/kalender-systeme.spec.js"],
-      "hinweis": "4T-000544/4T-000545/4T-000546 (Epic 3E-000097): Einstellungs-Sektion, Picker und Wert-Syntax — KS-01 bis KS-04; 4T-000747 (Epic 3E-000138): abgeleitete Zeitrechnung anlegen, Hinweis am Bezug und Loeschsperre — KS-05; 4T-000748: Zeitspanne im Dokument, Kurzhinweis mit Bezugs-Datum und Picker in Bezugs-Notation — KS-06; Kalender-Arithmetik, Normalisierung und Badge-Darstellung zusaetzlich unit-getestet (calendar-core.test.js, Snapshot kalender-werte, extensions-aus); 4T-000943 (Epic 3E-000197): Strg-Klick-Zugang in der Zeile mit dem Cursor — KS-07."
+      "hinweis": "4T-000544/4T-000545/4T-000546 (Epic 3E-000097): Einstellungs-Sektion, Picker und Wert-Syntax — KS-01 bis KS-04; 4T-000747 (Epic 3E-000138): abgeleitete Zeitrechnung anlegen, Hinweis am Bezug und Loeschsperre — KS-05; 4T-000748: Zeitspanne im Dokument, Kurzhinweis mit Bezugs-Datum und Picker in Bezugs-Notation — KS-06; Kalender-Arithmetik, Normalisierung und Badge-Darstellung zusaetzlich unit-getestet (calendar-core.test.js, Snapshot kalender-werte, extensions-aus); 4T-000943 (Epic 3E-000197): Strg-Klick-Zugang in der Zeile mit dem Cursor — KS-07; 4T-001863 (Epic 3E-000307): Mehrzahl der Einheiten-Namen im Abzeichen einer selbst definierten Zeitrechnung — KS-08; Auswahl der Form, Rückfall ohne Mehrzahl, Entwurfs-Weg und Pflege-Felder zusätzlich unit-getestet (calendar-core.test.js, renderer/kalender-namensformen.test.js).; 4T-002003 (Epic 3E-000307): Nachtragen einer Epoche — Rückfrage, Sichern der Werte beiderseits der neuen Grenze in Dokumenten und Notiz, Bericht und Lese-Ansicht mit demselben Tag — KS-09; Erkennung, neue Schreibweise je Wert, Zählung über den Bereich, Schreiben über die Ersetzen-Strecke und der Ablauf in den Einstellungen zusätzlich unit-getestet (kalender-epochen-schutz.test.js, kalender-epochen-scan.test.js, kalender-epochen-rueckfrage.test.js, renderer/kalender-epochen-schutz-pflege.test.js)."
     },
     {
       "key": "help.feature.derivedCalendars",
@@ -963,6 +967,25 @@
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/kalender-systeme.spec.js"],
       "hinweis": "4T-000747/4T-000748 (Epic 3E-000138): abgeleitete Zeitrechnungen — Anlage, Schutz der Abhaengigen (KS-05) sowie Zeitspanne im Dokument, Kurzhinweis und Picker in Bezugs-Notation (KS-06); Ableitung, Klemmung, kanonische Form und Staffelung zusaetzlich unit-getestet (calendar-core.test.js, Snapshot kalender-werte)."
+    },
+    {
+      "key": "help.feature.calendarTemplates",
+      "id": "F-340",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/kalender-systeme.spec.js"],
+      "hinweis": "4T-001997 (Epic 3E-000307): Aufklapp-Menü «Vorlage einfügen …» — KS-01 und KS-05 legen die gregorianische Vorlage über das Menü an; Menü an der Stelle des früheren Knopfs, Anlage ohne weitere Eingabe, eindeutige Namen bei zweimaligem Anlegen und der Weg ohne Vorlage zusätzlich unit-getestet (renderer/kalender-vorlagen-menue.test.js); Sammlung, Menü-Reihenfolge, Zeit-Ebenen und gemeinsame Tages-Achse (kalender-vorlagen.test.js); 4T-001998: Voll-Durchlauf und veröffentlichte Stichtage der Vorlagen im heutigen Modell (kalender-vorlagen-nachweis.test.js, kalender-vorlagen-stichtage.test.js); 4T-002000: japanische Vorlage (kalender-vorlage-japanisch.test.js); 4T-002002: tabellarischer Hidschri-Kalender (kalender-vorlage-islamisch.test.js)."
+    },
+    {
+      "key": "help.feature.calendarConvert",
+      "id": "F-341",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/kalender-systeme.spec.js",
+        "test/unit/renderer/kalender-umrechnung-dialog.test.js",
+        "test/unit/kalender-umrechnung-entsprechungen.test.js",
+        "test/unit/renderer/kalender-umrechnung-uebernahme.test.js"
+      ],
+      "hinweis": "4T-001874/4T-001875 (Epic 3E-000323): Dialog «Datum umrechnen» über die Kalender eines Blocks — KS-10 (Aufruf, Liste «Entspricht», Wechsel des Ausgangspunkts, Schließen); Vergleichswerte der neun Vorlagen je Richtung und die Fälle ohne Ergebnis im Unit-Satz des gemeinsamen Moduls (kalender-umrechnung-entsprechungen.test.js), Aufbau, Vorbelegung aus dem Cursor und Tastatur im Unit-Satz des Dialogs (renderer/kalender-umrechnung-dialog.test.js). 4T-002097: KS-10 dazu mit der Auswahl als Quelldatum, «Kopieren» und «Einfügen»; Vorbelegung und Einfüge-Ziel im Unit-Satz der Übernahme."
     },
     {
       "key": "help.feature.taskStates",
@@ -999,8 +1022,12 @@
       "key": "help.feature.taskQueryActions",
       "id": "F-116",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/aufgaben-abfrage.spec.js"],
-      "hinweis": "4T-000509 (Epic 3E-000096): Status-Toggle und Verschieben in nicht geoeffnete Dateien — TQ-04, TQ-05; Konflikt-Kern unit (task-line-edit.test.js)."
+      "tests": [
+        "test/e2e/funktionen/aufgaben-abfrage.spec.js",
+        "test/e2e/funktionen/rueckschreib-beobachtung.spec.js",
+        "test/unit/renderer/task-query-actions.test.js"
+      ],
+      "hinweis": "4T-000509 (Epic 3E-000096): Status-Toggle und Verschieben in nicht geoeffnete Dateien — TQ-04, TQ-05; Konflikt-Kern unit (task-line-edit.test.js). 4T-001978 (Epic 3E-000330): Handgriff im Fenster des ungespeicherten Stands und im nicht aktiven geaenderten Dokument — RB-03, RB-07 bis RB-09; Weiche unit (task-query-actions.test.js), Kanal unit (meldungen-alle-fenster.test.js)."
     },
     {
       "key": "help.feature.taskDialog",
@@ -1969,8 +1996,20 @@
       "key": "help.feature.listExit",
       "id": "F-236",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/bearbeitung-und-ansicht.spec.js"],
-      "hinweis": "4T-000600: FB-17 prueft alle drei Enter-Schritte (Fortsetzung, Ausruecken, Ausstieg). Die Fortsetzung selbst stammt aus der Editor-Bibliothek und ist dort nicht eigens getestet."
+      "tests": [
+        "test/e2e/funktionen/bearbeitung-und-ansicht.spec.js",
+        "test/unit/renderer/listen-eingabetaste.test.js",
+        "test/e2e/funktionen/listen-eingabetaste.spec.js"
+      ],
+      "hinweis": "4T-000600: FB-17 prueft alle drei Enter-Schritte (Fortsetzung, Ausruecken, Ausstieg). 4T-001862/4T-001977 (Epic 3E-000301): eigene Eingabetaste in Listen — neuer Punkt auf der Ebene folgender Unterpunkte in deren Art, Rest der Zeile als erster Unterpunkt, neuer Punkt am Ende einer Folgezeile, Kästchen-Fortsetzung in nummerierten Aufgaben-Listen (beide Trenner, ein Rückgängig-Schritt), Ausrücken des leeren nummerierten Aufgaben-Punkts, Notiz-Feld samt Listen-Ausstieg; die 59 Unit-Fälle laufen an echter EditorView, LE-01 bis LE-03 in Quellcode-, Live-Ansicht und Notiz-Feld. Die Fortsetzung selbst stammt weiter aus der Editor-Bibliothek."
+    },
+    {
+      "key": "help.feature.listLineBreak",
+      "id": "F-344",
+      "testart": "unit",
+      "tests": ["test/unit/renderer/listen-zeilenumbruch.test.js"],
+      "sichtbarkeit": ["test/e2e/funktionen/zeilenumbruch.spec.js"],
+      "hinweis": "4T-001716/4T-001717 (Epic 3E-000301): Zweite Zeile im Listenpunkt — Kommando list.lineBreak mit Rückstrich und eingerückter Folgezeile (auch bei Aufgaben und mitten im Text), Aufräumen der leer gebliebenen Folgezeile, Fließtext außerhalb von Listen, beide Editoren. Die Ablauf-Fälle ZU-02 bis ZU-06 prüfen Kürzel, Lage der Folgezeile in Quellcode- und Live-Ansicht und den verborgenen Rückstrich; die Kürzel-Seite deckt S-160."
     },
     {
       "key": "help.feature.listenCursor",
@@ -1989,6 +2028,21 @@
       "tests": ["test/unit/list-outline.test.js", "test/unit/commands.test.js"],
       "sichtbarkeit": "entfällt: Kommando ohne eigenes dauerhaftes Bedienelement; der Paletten-Eintrag ist mit der Palette als Ganzes gedeckt (kommando-palette.spec.js)",
       "hinweis": "4T-000600: Teilbaum-Bestimmung im Struktur-Kern (subtreeRange) und Registrierung des Kommandos; die Auswahl selbst braucht eine EditorView und ist manuell geprueft."
+    },
+    {
+      "key": "help.shortcut.listLineBreak",
+      "id": "S-160",
+      "testart": "unit",
+      "tests": [
+        "test/unit/renderer/listen-zeilenumbruch.test.js",
+        "test/unit/list-outline.test.js",
+        "test/unit/haengender-einzug.test.js",
+        "test/unit/task-markers.test.js",
+        "test/unit/commands.test.js",
+        "test/unit/render/snapshots.test.js"
+      ],
+      "sichtbarkeit": ["test/e2e/funktionen/zeilenumbruch.spec.js"],
+      "hinweis": "4T-001716 (Epic 3E-000301): Kommando list.lineBreak (Vorgabe Umschalt+Eingabe, umbelegbar) — Rückstrich und eingerückte Folgezeile im Listenpunkt, Kopf-Erkennung parseListItemHead und Rückstrich-Erkennung hardBreakStart im Struktur-Kern, Einzug der nummerierten Aufgabe, Aufgaben-Marker vor dem Rückstrich, Aufräumen der leer gebliebenen Folgezeile, Einrücken mit Folgezeile ohne Listen-Struktur. Die Ablauf-Fälle ZU-02 bis ZU-06 prüfen Kürzel, Lage der Folgezeile in Quellcode- und Live-Ansicht und den verborgenen Rückstrich. Dazu die gesetzte Darstellung: Umbruch und Folgezeile im selben Listenpunkt, Termin-Marker einer Aufgabe mit Folgezeile (render/snapshots.test.js)."
     },
     {
       "key": "help.shortcut.insertFootnote",
@@ -2913,11 +2967,23 @@
       "hinweis": "4T-000546 (Epic 3E-000097): Kommando ohne Default-Kuerzel (Picker fuer benutzerdefinierte Kalender, kanonischer Wert am Cursor) — KS-04 (Einfuegen per belegtem Kuerzel); Klick-Bearbeitung ueber KS-03."
     },
     {
+      "key": "help.shortcut.convertCalendarValue",
+      "id": "S-159",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/kalender-systeme.spec.js",
+        "test/unit/renderer/kalender-umrechnung-dialog.test.js",
+        "test/unit/kalender-umrechnung-entsprechungen.test.js",
+        "test/unit/renderer/kalender-umrechnung-uebernahme.test.js"
+      ],
+      "hinweis": "4T-001874 (Epic 3E-000323): Kommando ohne Default-Kuerzel — Dialog «Datum umrechnen» ueber die Kalender eines Blocks; KS-10 (Aufruf per belegtem Kuerzel, Liste «Entspricht», Wechsel des Ausgangspunkts, Schliessen). Vergleichswerte der neun Vorlagen je Richtung und die Faelle ohne Ergebnis im Unit-Satz des gemeinsamen Moduls, Aufbau, Vorbelegung und Tastatur im Unit-Satz des Dialogs. 4T-002097: KS-10 dazu mit der Auswahl als Quelldatum, «Kopieren» (Zwischenablage traegt die Dokument-Form), «Einfuegen» (ersetzt die Auswahl, ein Rueckgaengig-Schritt, Teil-Auswahl ersetzt das ganze Datum) und der deaktivierten Taste ohne Bearbeiten-Modus; Vorbelegung und Einfuege-Ziel im Unit-Satz der Uebernahme."
+    },
+    {
       "key": "help.feature.demoArea",
       "id": "F-132",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/demo-area.spec.js"],
-      "hinweis": "4T-000632 (Epic 3E-000102): mitgelieferte Demo-Area (englisch) — Erstellen in leeren Ordner inkl. Anlagen, Ablehnung nicht-leerer Ziele, Linter-Sauberkeit der Demo-Dateien; Manifest-Waechter test/unit/demo-area.test.js. 4T-001826 (Epic 3E-000254): dazu die von der Anwendung selbst geschriebene Beleg-Datei Library.mddl und die Zaehler-Datei Area_Database.mdda neben der Demo-Tabelle — erzeugt ueber scripts/demo-belege-erzeugen.js allein durch die Schreib-Schnittstelle, wiederholbar byte-gleich (Waechter test/unit/demo-belege-erzeugen.test.js); Verkettung, Herkunft und Zaehler-Stand im Manifest-Waechter test/unit/demo-area.test.js, der Kopier-Weg nimmt beide Dateien mit."
+      "hinweis": "4T-000632 (Epic 3E-000102): mitgelieferte Demo-Area (englisch) — Erstellen in leeren Ordner inkl. Anlagen, Ablehnung nicht-leerer Ziele, Linter-Sauberkeit der Demo-Dateien; Manifest-Waechter test/unit/demo-area.test.js. 4T-001826 (Epic 3E-000254): dazu die von der Anwendung selbst geschriebene Beleg-Datei Library.mddl und die Zaehler-Datei Area_Database.mdda neben der Demo-Tabelle — erzeugt ueber scripts/demo-belege-erzeugen.js allein durch die Schreib-Schnittstelle, wiederholbar byte-gleich (Waechter test/unit/demo-belege-erzeugen.test.js); Verkettung, Herkunft und Zaehler-Stand im Manifest-Waechter test/unit/demo-area.test.js, der Kopier-Weg nimmt beide Dateien mit. 4T-001735 (Epic 3E-000307): dazu die Seite 14 Calendar Systems.md und die Kalender-Sektion der Bereichsdatei mit zwei mitgelieferten Vorlagen in Englisch — erzeugt ueber scripts/demo-kalender-erzeugen.js mit dem Schreiber der Bereichsdatei (Waechter test/unit/demo-kalender.test.js: Sektion gleich dem heutigen Erzeugnis der Vorlagen, Werte-Paare der Seite bezeichnen denselben Tag, Anzeige mit Namen, Klartext bei ausgeschalteter Erweiterung)."
     },
     {
       "key": "help.shortcut.createDemoArea",
@@ -3960,6 +4026,19 @@
         "test/unit/command-availability.test.js"
       ],
       "hinweis": "4T-002024 und 4T-002027 (Epic 3E-000192): Einfügen und Bearbeiten eines Diagramms über den Dialog — Schreib- und Formular-Kern (chart-edit.test.js, chart-form.test.js), Dialog (renderer/diagramm-dialog.test.js), Ausführung mit Meldung statt Dialog und Rückgängig (renderer/diagramm-kommandos.test.js), DE-20 (4T-002048: nach dem Einfügen keine sichtbare Namens-Zeile, die Kennung am Container der Datentabelle, gerenderte Hälfte und Lese-Ansicht), Lage und Auswahl (renderer/diagramm-lage.test.js, renderer/diagramm-auswahl.test.js), kurzes Kontextmenü und Gruppe im Editor-Kontextmenü (renderer/diagramm-kontextmenue.test.js, renderer/diagramm-editor-kontextmenue.test.js), Menü der Anwendung (diagramm-menue-ort.test.js), Wählbarkeit (command-availability.test.js); am Bedienweg DE-01 bis DE-19 in diagramme-dialog.spec.js und diagramme-bedienung.spec.js. Testart e2e, weil Kontextmenü, Kommando-Palette und Dialog sichtbare Bedienelemente sind, deren Kette vom Klick bis zum geschriebenen Block erst in der laufenden Anwendung besteht. 4T-002072: Das Einfügen schreibt den Namen als Kopf-Angabe table: in den Block und nichts darunter — chart-edit.test.js (zwei Änderungen in Textfolge, Lage des neuen Blocks, Kopf-Name und alte Zeile), DE-21 (ein Schritt Rückgängig), DE-01, DE-09, DE-10, DE-18 und DE-20 auf die neue Form gestellt. 4T-002026, Schluss-Prüfung der Ablauf-Abdeckung (2026-10-03): DE-22 in diagramme-dialog.spec.js (Kommando-Palette und Menü während der Arbeit in einer Zelle der gerenderten Hälfte der geteilten Ansicht, wirkt auf diese Tabelle); jeder schreibende Fall von DE-01 bis DE-22 endet am unveränderten Inhalt der Datei."
+    },
+    {
+      "key": "help.feature.portableVersion",
+      "id": "F-333",
+      "testart": "unit",
+      "tests": [
+        "test/unit/portabler-betrieb.test.js",
+        "test/unit/portabler-betrieb-kanal.test.js",
+        "test/unit/renderer/ueber-dialog-portabel.test.js",
+        "test/e2e/funktionen/ueber-dialog.spec.js"
+      ],
+      "sichtbarkeit": "entfällt: Kein Ablauf-Fall rendert die sichtbare Seite der portablen Fassung, also Zeile und Schaltfläche «Daten-Ordner öffnen» im Fenster «Über EM4me». Die Ablauf-Suite startet aus den Quellen mit Test-Umlenkung und läuft nach der Erkennungs-Regel nie portabel; ein Schalter, der den portablen Betrieb im Testlauf vortäuscht, ist bewusst nicht gebaut, weil er ein zweiter Weg in den portablen Betrieb wäre, den die Zusage nach außen nicht kennt. Belegt ist die sichtbare Seite am Dialog-Modul und am echten Markup mit eingeschobener Auskunft (renderer/ueber-dialog-portabel.test.js) und am gebauten Programm; ueber-dialog.spec.js zeigt an der gestarteten Anwendung, dass Zeile und Schaltfläche außerhalb des portablen Betriebs fehlen",
+      "hinweis": "4T-001990, 4T-001991 und 4T-001993 (Epic 3E-000188): die portable Fassung. portabler-betrieb.test.js hält die Erkennung am Ordner Data neben der Programmdatei samt Schreib-Probe und Sprache der Meldung am nicht beschreibbaren Ort, das Ausbleiben jeder Übernahme aus dem Benutzerprofil beim ersten Start, die Pfad-Bildung von temporärem Ordner und Programm-Symbol und die Hülle der Datei-Dialoge (kein Eintrag in die Listen zuletzt verwendeter Elemente, zuletzt besuchter Ordner nur im Arbeitsspeicher, Start im Ordner Dokumente); portabler-betrieb-kanal.test.js die Auskunft «läuft portabel» samt Pfad und das Öffnen allein des im Haupt-Prozess ermittelten Daten-Ordners; renderer/ueber-dialog-portabel.test.js Zeile und Schaltfläche im Über-Dialog, die nur bei ausdrücklicher Auskunft «portabel» erscheinen. Testart unit, weil jede dieser Zusagen an einer reinen Funktion, am Kanal oder am Dialog-Modul hängt und der portable Betrieb im Testlauf nicht entsteht; die Messungen am gebauten Programm stehen in den Tasks. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001996 entstanden; sie beschreibt die Form, in der das Programm vorliegt, und steht deshalb in der Kern-Liste test/unit/funktions-seite-kern.js."
     }
   ]
 }

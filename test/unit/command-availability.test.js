@@ -223,6 +223,9 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
       'editor',
       'tabelle',
       'editorUndKalender',
+      // 4T-001874 (Epic 3E-000323): die Bedingung des Dialogs «Datum
+      // umrechnen» — Bereich mit Zeitrechnung, bewusst ohne Editor-Bedingung.
+      'bereichUndKalender',
     ]);
     expect(new Set(AVAILABILITY_NAMES).size).toBe(AVAILABILITY_NAMES.length);
   });
@@ -500,6 +503,24 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
     expect(
       isAvailable('editorUndKalender', kontext({ ...mitKalender, hasCalendarConfig: false })),
     ).toBe(false);
+
+    // 4T-001874 (Epic 3E-000323): Bereich und Zeitrechnung genügen — ohne
+    // Editor, ohne Dokument, in der Lese-Ansicht. Ohne Bereich oder ohne
+    // Zeitrechnung gesperrt.
+    const bereichMitKalender = { hasArea: true, hasCalendarConfig: true };
+    expect(isAvailable('bereichUndKalender', kontext(bereichMitKalender))).toBe(true);
+    expect(
+      isAvailable(
+        'bereichUndKalender',
+        kontext({ ...bereichMitKalender, hasTab: true, viewMode: 'rendered' }),
+      ),
+    ).toBe(true);
+    expect(isAvailable('bereichUndKalender', kontext({ hasCalendarConfig: true }))).toBe(false);
+    expect(isAvailable('bereichUndKalender', kontext({ hasArea: true }))).toBe(false);
+    expect(availabilityCondition('bereichUndKalender').felder).toEqual([
+      'hasArea',
+      'hasCalendarConfig',
+    ]);
   });
 
   // 4T-001765 (Epic 3E-000186, E6): die strengere Editor-Regel im Katalog.

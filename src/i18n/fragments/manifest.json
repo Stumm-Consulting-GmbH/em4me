@@ -128,7 +128,13 @@
     },
     {
       "name": "calendar",
-      "praefixe": ["calendar", "calendarPicker", "datePicker", "settings.calendar"]
+      "praefixe": [
+        "calendar",
+        "calendarConvert",
+        "calendarPicker",
+        "datePicker",
+        "settings.calendar"
+      ]
     },
     { "name": "clock", "praefixe": ["clock", "settings.clock"] },
     { "name": "events", "praefixe": ["events"] },

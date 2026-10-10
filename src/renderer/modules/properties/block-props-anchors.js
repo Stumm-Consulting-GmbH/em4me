@@ -57,6 +57,8 @@ export function buildAnchorSelect(els, ctx, active) {
     const opt = document.createElement('option');
     opt.value = '';
     opt.textContent = t('blockProps.noAnchorsInFile');
+    // 4T-002129: Das Merkmal trägt den Text beim Sprachwechsel mit, ohne Neubau.
+    opt.setAttribute('data-i18n', 'blockProps.noAnchorsInFile');
     opt.disabled = true;
     sel.appendChild(opt);
     sel.disabled = true;
@@ -280,6 +282,7 @@ export function buildOrphans(paneIdx, els, orphans, ctx, readOnly) {
       const placeholder = document.createElement('option');
       placeholder.value = '';
       placeholder.textContent = t('blockProps.assignTo');
+      placeholder.setAttribute('data-i18n', 'blockProps.assignTo');
       assignSel.appendChild(placeholder);
       for (const target of freeAnchors) {
         const opt = document.createElement('option');
@@ -295,6 +298,7 @@ export function buildOrphans(paneIdx, els, orphans, ctx, readOnly) {
       delBtn.type = 'button';
       delBtn.className = 'block-props-orphan-delete';
       delBtn.textContent = t('blockProps.orphanDelete');
+      delBtn.setAttribute('data-i18n', 'blockProps.orphanDelete');
       delBtn.addEventListener('click', () => deleteOrphan(paneIdx, orphanId));
       row.appendChild(delBtn);
     }

@@ -3,8 +3,12 @@
 'use strict';
 
 const path = require('node:path');
+// 4T-001991 (Epic 3E-000188): Anlegen des temporaeren Ordners im Daten-Ordner.
+const fs = require('node:fs');
 const {
   app,
+  // 4T-001991 (Epic 3E-000188): Fenster-Erkennung der Datei-Dialog-Huelle.
+  BaseWindow,
   BrowserWindow,
   dialog,
   ipcMain,
@@ -41,7 +45,10 @@ const { collectAreaStats } = require('./area/area-stats');
 const { sucheImBereich, gibBereichsVorratFrei } = require('./area/area-search');
 // 4T-000375 (Epic 3E-000070): erweiterte Versionsnummer — volle Anzeige-Version
 // (X.Y.Z.N) aus der package.json-Version plus der Build-Info.
-const { computeFullVersion } = require('../shared/build-version');
+const { computeFullVersion, auspraegungsKennzeichnung } = require('../shared/build-version');
+// 4T-002222: eingepackte Paket-Angaben, Träger der Kennzeichnung einer zweiten
+// Ausprägung (Muster src/main/ipc/windows.js).
+const eigenePaketAngaben = require('../../package.json');
 
 // 4T-001000 (Epic 3E-000196): Verdrahtung und Start-Ablauf liegen in eigenen
 // Modulen. Beide sind Aufbau-Funktionen ohne Lade-Zeit-Seiteneffekte; die
@@ -51,6 +58,18 @@ const { createMainWiring } = require('./app/wiring');
 // 4T-000971 (Epic 3E-000207): letzte Auffang-Ebene dieser Prozess-Seite.
 const { erstelleAuffangEbene } = require('./app/auffang-ebene');
 const { createStartup, gibWartendeZweitstartDateien } = require('./app/startup');
+// 4T-001990 (Epic 3E-000188): portabler Betrieb mit Daten-Ordner neben dem
+// Programm, und der Katalog-Lader fuer seine Meldung vor dem ready-Ereignis.
+const {
+  ermittlePortablenBetrieb,
+  meldungsSprache,
+  temporaerOrdnerPfad,
+  umhuelleDateiDialoge,
+  startOrdnerDerDialoge,
+  MELDUNG_TITEL_SCHLUESSEL,
+  MELDUNG_TEXT_SCHLUESSEL,
+} = require('./app/portabler-betrieb');
+const { tForLocale } = require('./menu/menu-dict');
 
 // 4T-000999/4T-001000 (Epic 3E-000196): die siebzehn ipc-Module der Kanal-Gruppen.
 // Sie sind zur Lade-Zeit electron-frei und tragen keine Seiteneffekte;
@@ -107,6 +126,109 @@ if (process.env.SCG_TEST_USER_DATA) {
   app.setPath('userData', process.env.SCG_TEST_USER_DATA);
 }
 
+// 4T-001990 (Epic 3E-000188): Portabler Betrieb. Liegt neben der gepackten
+// Programmdatei der Daten-Ordner, wandert das gesamte Nutzerdaten-Verzeichnis
+// dorthin — aus demselben Grund und an derselben Stelle wie die
+// Test-Umlenkung darueber: vor requestSingleInstanceLock(), dessen Datei
+// `lockfile` sonst als erste im Benutzerprofil entstuende, und vor jedem
+// Store-Zugriff. Die Test-Umlenkung hat Vorrang (die Erkennung meldet dann
+// «nicht portabel»). Die Chromium-Bestaende (Pfad sessionData) folgen userData
+// von selbst: Mit einer gleichwertigen Umlenkung lagen sie am 2026-09-28
+// vollstaendig im umgelenkten Ordner (4T-001844, Zusatz Z1 bis Z3). Die Pfade
+// logs und crashDumps legt die Anwendung nicht an (kein setAppLogsPath, kein
+// crashReporter); beide braeuchten zum Umlenken zudem einen schon
+// vorhandenen Ordner. Das Ergebnis wird hier EINMAL ermittelt und
+// weitergereicht (Start-Ablauf, IPC-Bezuege).
+const portablerBetrieb = ermittlePortablenBetrieb({
+  programmPfad: process.execPath,
+  gepackt: app.isPackaged,
+  testUmlenkung: process.env.SCG_TEST_USER_DATA,
+  // 4T-002222: Ordner der portablen EXE, gesetzt von ihrem Start-Rahmen. Die
+  // zweite Ausprägung für den Prüfstand zählt nicht als portabel.
+  portableExeOrdner: process.env.PORTABLE_EXECUTABLE_DIR,
+  zweiteAuspraegung: auspraegungsKennzeichnung(eigenePaketAngaben) !== null,
+});
+if (portablerBetrieb.portabel && portablerBetrieb.beschreibbar) {
+  app.setPath('userData', portablerBetrieb.datenOrdner);
+  legeTemporaerOrdnerInDenDatenOrdner(portablerBetrieb.datenOrdner);
+  // 4T-001991 (Epic 3E-000188): Kein Datei-Dialog des Programms traegt die
+  // gewaehlte Datei in die Listen zuletzt benutzter Dateien von Windows ein
+  // (Eigenschaft dontAddToRecent). Ersetzt werden die vier Funktionen am
+  // dialog-Objekt der Laufzeit-Umgebung, und zwar HIER statt an den rund
+  // zwanzig Aufruf-Stellen: Eine neue Aufruf-Stelle erbte den Schutz sonst
+  // nicht. Das traegt, weil jedes Modul dasselbe Objekt haelt und die Funktion
+  // erst beim Aufruf von ihm liest; das sichert der Waechter
+  // test/unit/spuren-außerhalb-des-daten-ordners.test.js. Dieselbe Huelle
+  // oeffnet jeden Dialog im zuletzt besuchten Ordner, gemerkt nur im
+  // Arbeitsspeicher, anfangs in «Dokumente» — nie in dem Ordner, den Windows
+  // sich gemerkt hat.
+  Object.assign(
+    dialog,
+    umhuelleDateiDialoge(dialog, (x) => x instanceof BaseWindow, {
+      startOrdner: startOrdnerDerDialoge(
+        () => app.getPath('documents'),
+        path.dirname(process.execPath),
+      ),
+    }),
+  );
+}
+
+// 4T-001991 (Epic 3E-000188): Im portablen, beschreibbaren Betrieb liegt auch
+// der temporaere Ordner des Prozesses im Daten-Ordner. Der Anzeige-Prozess
+// jedes Fensters legt dort eine leere Datei <GUID>.tmp an und haelt sie bis
+// zum Schliessen (Messung am gebauten Programm vom 2026-09-28, Halter-Abfrage);
+// ohne diese Umlenkung entsteht sie im Temp-Ordner des Benutzerprofils. Gesetzt
+// werden die Umgebungsvariablen TEMP und TMP, die Windows fuer den
+// temporaeren Ordner liest und die jeder spaeter gestartete Kind-Prozess
+// erbt, dazu der Electron-Pfad `temp`. Das geschieht vor dem
+// Einzel-Instanz-Schutz und vor jedem Fenster, also bevor ein Kind-Prozess
+// startet. Installierte Fassung und Testlauf bleiben unberuehrt; am nicht
+// beschreibbaren Ort wird nichts angelegt. Scheitert das Anlegen, bleibt es
+// nach einer Warnung beim bisherigen temporaeren Ordner: Das Programm laeuft
+// dann wie vor dieser Umlenkung, statt am Start zu scheitern.
+function legeTemporaerOrdnerInDenDatenOrdner(datenOrdner) {
+  const tempOrdner = temporaerOrdnerPfad(datenOrdner);
+  try {
+    fs.mkdirSync(tempOrdner, { recursive: true });
+  } catch (err) {
+    console.warn(`Temporaerer Ordner ${tempOrdner} nicht angelegt:`, err);
+    return;
+  }
+  process.env.TEMP = tempOrdner;
+  process.env.TMP = tempOrdner;
+  app.setPath('temp', tempOrdner);
+}
+
+// 4T-001990: Ist der Daten-Ordner nicht beschreibbar, zeigt das Programm eine
+// Meldung und beendet sich, ohne irgendwo etwas abzulegen (Entscheidung des
+// Product Owners vom 2026-09-28, Weg A der Vorlage 1). Kein
+// Einzel-Instanz-Schutz, kein Einstellungs-Speicher, kein Fenster.
+const START_ABGEBROCHEN = portablerBetrieb.portabel && !portablerBetrieb.beschreibbar;
+
+function brecheStartAb(datenOrdner) {
+  // userData trotzdem auf den Daten-Ordner, damit bis zum Beenden kein
+  // Bestandteil der Laufzeit ins Benutzerprofil ausweicht. setPath wirft, wenn
+  // der Ordner nicht als Verzeichnis erreichbar ist (Fall «unbekannt» der
+  // Erkennung); dann bleibt es beim Beenden, das ohnehin unmittelbar folgt.
+  try {
+    app.setPath('userData', datenOrdner);
+  } catch (err) {
+    console.warn(`Nutzerdaten-Verzeichnis nicht auf ${datenOrdner} gesetzt:`, err);
+  }
+  // Vor ready zulaessig: getPreferredSystemLanguages (ohne ready-Vorbehalt in
+  // der API) und showErrorBox (ausdruecklich vor ready freigegeben). Die
+  // Spracheinstellung des Programms steht im Einstellungs-Speicher und wird
+  // hier bewusst nicht gelesen.
+  const sprache = meldungsSprache(app.getPreferredSystemLanguages());
+  dialog.showErrorBox(
+    tForLocale(sprache, MELDUNG_TITEL_SCHLUESSEL),
+    tForLocale(sprache, MELDUNG_TEXT_SCHLUESSEL),
+  );
+  app.exit(1);
+}
+
+if (START_ABGEBROCHEN) brecheStartAb(portablerBetrieb.datenOrdner);
+
 // 4T-000784 (Epic 3E-000156): Im E2E-Lauf nehmen die Fenster keinen Fokus.
 //
 // Ein Lauf oeffnet ueber eine halbe Stunde hinweg laufend Fenster. Jedes davon
@@ -133,8 +255,12 @@ if (process.env.SCG_TEST_USER_DATA) {
 const IM_TESTLAUF = !!process.env.SCG_TEST_USER_DATA;
 
 // Single-Instance-Lock: zweite Instanz reicht ihre Datei an die laufende weiter.
-const gotLock = app.requestSingleInstanceLock();
-if (!gotLock) {
+// 4T-001990: nach abgebrochenem Start nicht — seine Datei `lockfile` waere das
+// Erste, was im Daten-Ordner entstuende. Dieser und der Waechter am
+// ready-Ereignis unten greifen nur, falls app.exit vor ready nicht sofort
+// beendet.
+const gotLock = !START_ABGEBROCHEN && app.requestSingleInstanceLock();
+if (!gotLock && !START_ABGEBROCHEN) {
   app.quit();
 }
 
@@ -256,6 +382,9 @@ function registerIpc() {
     getStore: () => store,
     // Registry, Konstanten und Modul-APIs, die main.js haelt
     appRegistry,
+    // 4T-001990 (Epic 3E-000188): Ergebnis der Erkennung des portablen
+    // Betriebs, eingefroren; bereit fuer eine spaetere Abfrage ueber IPC.
+    portablerBetrieb,
     isMarkdownPath,
     pushRecent,
     fullVersion,
@@ -329,13 +458,15 @@ const { starteApp, zweitInstanz } = createStartup({
   registerIpc,
   isMarkdownPath,
   appRegistry,
+  portablerBetrieb,
 });
 
 app.on('second-instance', (_event, argv, workingDirectory) => {
   zweitInstanz(argv, workingDirectory);
 });
 
-app.whenReady().then(starteApp);
+// 4T-001990: Nach abgebrochenem Start laedt nichts den Einstellungs-Speicher.
+if (!START_ABGEBROCHEN) app.whenReady().then(starteApp);
 
 // 4T-001214 (Epic 3E-000225): Ausfall des Anzeige-Prozesses. Zwei getrennte
 // Faelle: `render-process-gone` meldet den verschwundenen Prozess samt Grund,

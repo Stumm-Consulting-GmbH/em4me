@@ -13,8 +13,11 @@
 //   RB-01  Konstellation 2 — das Ziel ist im AUFRUFENDEN Fenster geoeffnet.
 //          Erreichbar ist der IPC-Weg dort nur als inaktiver, sauberer Reiter:
 //          Der aktive Reiter laeuft ueber den Editor-Puffer, der offene dirty
-//          Reiter bekommt nur einen Statusbar-Hinweis (Weg-Regel in
-//          `task-query-actions.js` und `events-aggregation.js`).
+//          Reiter über seinen ungespeicherten Stand (`tab.content`; seit
+//          4T-001978, vorher nur ein Statusbar-Hinweis, siehe RB-09) — Weg-Regel
+//          in `task-query-actions.js`. Die Ereignis-Aggregation
+//          (`events-aggregation.js`) gibt beim offenen dirty Reiter weiter nur
+//          einen Hinweis.
 //          NEBENBEFUND aus der Erhebung, hier bewusst NICHT geprueft: Die
 //          Trefferliste der Abfrage zieht in dieser Konstellation nicht nach,
 //          weil der Puffer-Overlay des offenen Reiters den Index mit dem Stand
@@ -26,12 +29,18 @@
 //   RB-02  Konstellation 3, sauber — Ziel in einem ANDEREN Fenster, nicht
 //          geaendert: stiller Reload, kein Dialog.
 //   RB-03  Konstellation 3, dirty — Ziel in einem ANDEREN Fenster mit
-//          geaendertem Puffer: der Konflikt-Dialog erscheint dort.
+//          geändertem Puffer. Bis 4T-001978 (Epic 3E-000330) erschien dort der
+//          Konflikt-Dialog, und die Platte wurde geschrieben. Seither geht der
+//          Handgriff an dieses Fenster und wirkt in seinem Editor: kein Dialog,
+//          keine Platte (Entscheidung des Product Owners vom 2026-09-28, E1 des
+//          Epics). Der Fall ist umgestellt und nicht gelöscht, weil er genau
+//          die Konstellation sichert, deren Verhalten sich geändert hat.
 //
-// RB-03 ist zugleich der Beleg, dass das Fehlen von `markSelfWriting` traegt:
-// Die Unterdrueckung sitzt pro Dateipfad und nicht pro Fenster
-// (`documents/file-watching.js`), ein `markSelfWriting` naehme die Meldung
-// deshalb ALLEN Fenstern weg.
+// Beleg, dass das Fehlen von `markSelfWriting` trägt (die Unterdrückung
+// sitzt pro Dateipfad und nicht pro Fenster, `documents/file-watching.js`; ein
+// `markSelfWriting` nähme die Meldung deshalb ALLEN Fenstern weg), ist seit
+// 4T-001978 allein RB-02: Das andere Fenster lädt dort still nach, bekommt
+// die Meldung also. Bis dahin trug RB-03 diesen Beleg mit.
 //
 // Konstellation 1 (beobachtet, in keinem Fenster geoeffnet) hat keinen
 // erzeugenden Pfad und ist deshalb nicht als E2E-Fall darstellbar: Die
@@ -239,37 +248,223 @@ test.describe('RB-02: Rueckschreiben bei sauberem Reiter in einem ANDEREN Fenste
   });
 });
 
+// ---------------------------------------------------------------------------
+// 4T-001978 (Epic 3E-000330): Der Handgriff am Treffer wirkt dort, wo der
+// ungespeicherte Stand der Datei liegt.
+//
+//   RB-03  (umgestellt, Fall (a) der Messung) Zwei Fenster, Alpha steht auf
+//          der Platte und im ungespeicherten Stand des anderen Fensters:
+//          Abhaken wirkt dort im Editor samt Erledigt-Datum.
+//   RB-07  (Fall (b)) Die Aufgabe steht NUR im ungespeicherten Stand des
+//          anderen Fensters: Sie lässt sich aus der Abfrage abhaken.
+//   RB-08  (Fall (e)) Zwei Fenster, Verschieben «Auf morgen» am Treffer.
+//   RB-09  (Fall (d)) Ein Fenster, die Datei ist ein nicht aktives Dokument
+//          mit ungespeicherten Änderungen: Abhaken wirkt in dessen
+//          ungespeichertem Stand, ohne Hinweis der Statusleiste.
+//
+// Zugesichert wird jeweils: kein Konflikt-Dialog (gestubbt und gezählt), die
+// Platte unverändert, das Dokument bleibt ungespeichert, und die Trefferliste
+// zeigt danach den neuen Stand (AK10). Die Messung vom 2026-10-07 hatte in
+// genau diesen Lagen eine Trefferliste belegt, die nach dem Schreiben auf die
+// Platte die alte Zeile weiter zeigte, weil der ungespeicherte Stand die
+// Platte überdeckt.
+//
+// Ungespeichert geändert wird über eine zusätzliche Aufgaben-Zeile «Gamma».
+// Das ist nicht nur Fall (b), sondern auch die Bedingung, auf die gewartet
+// wird: Der Stand eines Editors geht verzögert (300 ms) an den Hauptprozess,
+// und erst danach kennt er das Fenster des Stands. Steht Gamma mit vollem Text
+// in der Trefferliste des anderen Fensters, ist das geschehen — ohne feste
+// Pause (Stabilitätsregel zu geratenen Wartezeiten).
+const GAMMA = `- [ ] Gamma ${DUE} 2099-03-03`;
+
+// Im (aktiven) Reiter eines Fensters eine Zeile am Dateiende tippen:
+// Quelltext-Ansicht mit eingeschaltetem Bearbeiten (Muster
+// regression/4t-0945-b12.spec.js). Die Fixture endet mit einem Umbruch, die
+// Zeile entsteht also als eigene letzte Zeile.
+async function pufferAendern(seite, text) {
+  await seite.locator(SEL.viewBtn('source')).click();
+  await seite.locator(SEL.btnEdit).click();
+  await expect(seite.locator(SEL.editorContent0)).toHaveAttribute('contenteditable', 'true');
+  await seite.locator(`${SEL.editorContent0} .cm-line`).last().click();
+  await seite.keyboard.press('Control+End');
+  await seite.keyboard.type(text);
+  await expect(seite.locator(SEL.dirtyTab0)).toHaveCount(1);
+}
+
+// Treffer-Zeile über ihre Beschreibung (Reihenfolge nicht zugesichert).
+function trefferZeile(wurzel, beschreibung) {
+  return wurzel.locator('.perspective-query-task').filter({ hasText: beschreibung });
+}
+
+// Die Trefferliste kennt den ungespeicherten Stand: Gamma mit vollem Text.
+async function warteAufGammaInListe(taskList) {
+  await expect(trefferZeile(taskList, 'Gamma')).toHaveAttribute('data-task-text', GAMMA, {
+    timeout: 15000,
+  });
+}
+
+// Lage der Fälle mit zwei Fenstern: Fenster 1 zeigt die Abfrage, Fenster 2
+// hält Aufgaben.md mit der ungespeicherten Gamma-Zeile; der Konflikt-Dialog
+// ist gestubbt und gezählt.
+async function zweiFensterMitPuffer(app, page, aufgaben) {
+  const taskList = await warteAufTrefferliste(page);
+  const page2 = await zweitesFensterMitDatei(app, page, aufgaben);
+  await pufferAendern(page2, GAMMA);
+  await warteAufGammaInListe(taskList);
+  await stubKonfliktDialog(app, 1);
+  return { taskList, page2 };
+}
+
+// Hinweise der Statusleiste mitschreiben (der Hinweis verschwindet nach drei
+// Sekunden; ein späterer Blick sähe ihn nicht mehr).
+async function beobachteHinweise(seite) {
+  await seite.evaluate(() => {
+    const el = document.getElementById('statusbar-hint');
+    window.__rbHinweise = [];
+    if (!el) return;
+    new MutationObserver(() => {
+      const text = (el.textContent || '').trim();
+      if (text) window.__rbHinweise.push(text);
+    }).observe(el, { childList: true, characterData: true, subtree: true });
+  });
+}
+
+function hinweise(seite) {
+  return seite.evaluate(() => window.__rbHinweise || []);
+}
+
 test.describe('RB-03: Rueckschreiben bei geaendertem Reiter in einem ANDEREN Fenster', () => {
-  test('das andere Fenster fragt ueber den Konflikt-Dialog', async () => {
+  test('wirkt im Editor des anderen Fensters, ohne Konflikt-Dialog und ohne Platte', async () => {
     const dir = makeFixtureDir();
     const uebersicht = path.join(dir, 'Uebersicht.md');
     const aufgaben = path.join(dir, 'Aufgaben.md');
     const { app, page, userData } = await launchApp({ args: [uebersicht] });
     try {
-      const taskList = await warteAufTrefferliste(page);
-      const page2 = await zweitesFensterMitDatei(app, page, aufgaben);
+      const { taskList, page2 } = await zweiFensterMitPuffer(app, page, aufgaben);
+      const alpha = trefferStatus(taskList, 'Alpha');
+      await expect(alpha).toHaveAttribute('data-status-char', ' ');
 
-      // Im zweiten Fenster den Puffer aendern (Quelltext-Ansicht mit
-      // eingeschaltetem Bearbeiten; Muster regression/4t-0945-b12.spec.js).
-      await page2.locator(SEL.viewBtn('source')).click();
-      await page2.locator(SEL.btnEdit).click();
-      await expect(page2.locator(SEL.editorContent0)).toHaveAttribute('contenteditable', 'true');
-      await page2.locator(`${SEL.editorContent0} .cm-line`).last().click();
-      await page2.keyboard.press('Control+End');
-      await page2.keyboard.type('Eigener Zusatz');
+      await alpha.click();
+
+      // Die Wirkung steht im Editor des anderen Fensters, samt Erledigt-Datum
+      // der Status-Kette, und das Dokument bleibt ungespeichert (AK3, AK6).
+      await expect(page2.locator(SEL.editorContent0)).toContainText(/\[x\] Alpha .*✅ \d{4}-/, {
+        timeout: 15000,
+      });
+      await expect(page2.locator(SEL.editorContent0)).toContainText('Gamma');
       await expect(page2.locator(SEL.dirtyTab0)).toHaveCount(1);
+      // Die Trefferliste zeigt den neuen Stand (AK10).
+      await expect(alpha).toHaveAttribute('data-status-char', 'x', { timeout: 15000 });
+      // Nach der Übergabe schreibt das klickende Fenster nichts mehr; was der
+      // Editor zeigt, ist damit der ganze Handgriff (AK4).
+      expect(fs.readFileSync(aufgaben, 'utf8')).toBe(aufgabenContent());
+      expect(await dialogCalls(app)).toBe(0);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+});
 
-      // 'Eigene Version behalten' — der Puffer des Anwenders bleibt stehen.
+test.describe('RB-07: Aufgabe nur im ungespeicherten Stand eines ANDEREN Fensters', () => {
+  test('lässt sich aus der Abfrage abhaken, die Platte bleibt ohne sie', async () => {
+    const dir = makeFixtureDir();
+    const uebersicht = path.join(dir, 'Uebersicht.md');
+    const aufgaben = path.join(dir, 'Aufgaben.md');
+    const { app, page, userData } = await launchApp({ args: [uebersicht] });
+    try {
+      const { taskList, page2 } = await zweiFensterMitPuffer(app, page, aufgaben);
+      await beobachteHinweise(page);
+      const gamma = trefferStatus(taskList, 'Gamma');
+      await expect(gamma).toHaveAttribute('data-status-char', ' ');
+
+      await gamma.click();
+
+      await expect(page2.locator(SEL.editorContent0)).toContainText('[x] Gamma', {
+        timeout: 15000,
+      });
+      await expect(page2.locator(SEL.dirtyTab0)).toHaveCount(1);
+      await expect(gamma).toHaveAttribute('data-status-char', 'x', { timeout: 15000 });
+      // Kein «Zeile nicht mehr gefunden» mehr im klickenden Fenster (AK5).
+      expect(await hinweise(page)).toEqual([]);
+      expect(fs.readFileSync(aufgaben, 'utf8')).toBe(aufgabenContent());
+      expect(await dialogCalls(app)).toBe(0);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+});
+
+test.describe('RB-08: Verschieben am Treffer bei geändertem Reiter in einem ANDEREN Fenster', () => {
+  test('«Auf morgen» wirkt im Editor des anderen Fensters, ohne Dialog und ohne Platte', async () => {
+    const dir = makeFixtureDir();
+    const uebersicht = path.join(dir, 'Uebersicht.md');
+    const aufgaben = path.join(dir, 'Aufgaben.md');
+    const { app, page, userData } = await launchApp({ args: [uebersicht] });
+    try {
+      const { taskList, page2 } = await zweiFensterMitPuffer(app, page, aufgaben);
+      const zeile = trefferZeile(taskList, 'Alpha');
+
+      await zeile.locator('button[data-task-action="postpone"]').click();
+      const menue = page.locator('#context-menu .context-menu-item');
+      await expect(menue.first()).toBeVisible();
+      await menue.first().click();
+
+      // AK11: Termin um einen Tag verschoben, im Editor des anderen Fensters.
+      await expect(page2.locator(SEL.editorContent0)).toContainText(`Alpha ${DUE} 2099-01-02`, {
+        timeout: 15000,
+      });
+      await expect(page2.locator(SEL.dirtyTab0)).toHaveCount(1);
+      await expect(zeile).toHaveAttribute('data-task-text', `- [ ] Alpha ${DUE} 2099-01-02`, {
+        timeout: 15000,
+      });
+      expect(fs.readFileSync(aufgaben, 'utf8')).toBe(aufgabenContent());
+      expect(await dialogCalls(app)).toBe(0);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+});
+
+test.describe('RB-09: Abhaken bei nicht aktivem, geändertem Reiter DESSELBEN Fensters', () => {
+  test('wirkt im ungespeicherten Stand des Reiters, ohne Hinweis und ohne Platte', async () => {
+    const dir = makeFixtureDir();
+    const uebersicht = path.join(dir, 'Uebersicht.md');
+    const aufgaben = path.join(dir, 'Aufgaben.md');
+    const { app, page, userData } = await launchApp({ args: [aufgaben, uebersicht] });
+    try {
+      // Aufgaben.md ungespeichert ändern, danach die Abfrage aktiv schalten.
+      await expect(page.locator(SEL.tabs0)).toHaveCount(2, { timeout: 15000 });
+      await page.locator(SEL.tabs0).filter({ hasText: 'Aufgaben' }).click();
+      await expect(page.locator(SEL.activeTab0)).toContainText('Aufgaben');
+      await pufferAendern(page, GAMMA);
+      await page.locator(SEL.tabs0).filter({ hasText: 'Uebersicht' }).click();
+      await expect(page.locator(SEL.activeTab0)).toContainText('Uebersicht');
+      const taskList = page.locator(`${SEL.markdownBody0} .perspective-query-tasks`);
+      await warteAufGammaInListe(taskList);
       await stubKonfliktDialog(app, 1);
+      await beobachteHinweise(page);
+      const alpha = trefferStatus(taskList, 'Alpha');
+      await expect(alpha).toHaveAttribute('data-status-char', ' ');
 
-      await taskList.locator('.perspective-query-task-status').nth(0).click();
+      await alpha.click();
 
-      await expect
-        .poll(async () => fs.readFileSync(aufgaben, 'utf8'), { timeout: 15000 })
-        .toMatch(/- \[x\] Alpha/);
-      // Der definierte Weg der Begruendung: es wird gefragt.
-      await expect.poll(async () => dialogCalls(app), { timeout: 15000 }).toBeGreaterThan(0);
-      await expect(page2.locator(SEL.dirtyTab0)).toHaveCount(1);
+      // AK13 und AK10: Die Trefferliste zeigt den Haken aus dem ungespeicherten
+      // Stand; die Platte bleibt, wie sie war, und kein Hinweis erscheint.
+      await expect(alpha).toHaveAttribute('data-status-char', 'x', { timeout: 15000 });
+      expect(fs.readFileSync(aufgaben, 'utf8')).toBe(aufgabenContent());
+      expect(await hinweise(page)).toEqual([]);
+      expect(await dialogCalls(app)).toBe(0);
+      // Nach dem Wechsel zum Dokument steht die geänderte Zeile im Editor, und
+      // das Änderungs-Kennzeichen bleibt.
+      await expect(page.locator(SEL.dirtyTab0)).toHaveCount(1);
+      await page.locator(SEL.tabs0).filter({ hasText: 'Aufgaben' }).click();
+      await expect(page.locator(SEL.activeTab0)).toContainText('Aufgaben');
+      await expect(page.locator(SEL.editorContent0)).toContainText(/\[x\] Alpha .*✅ \d{4}-/);
+      await expect(page.locator(SEL.editorContent0)).toContainText('Gamma');
+      await expect(page.locator(SEL.dirtyTab0)).toHaveCount(1);
     } finally {
       await closeApp(app, userData, { force: true });
       cleanupDir(dir);

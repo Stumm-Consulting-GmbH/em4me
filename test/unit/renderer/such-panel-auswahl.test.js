@@ -38,6 +38,8 @@ const {
   ausgewaehlteFundstellen,
   anzahlAusgewaehlt,
   setzeSprungHandler,
+  zaehlForm,
+  zaehlSchluessel,
 } = await import('../../../src/renderer/modules/search/search-panel.js');
 const { state } = await import('../../../src/renderer/modules/app/app-state.js');
 
@@ -447,5 +449,77 @@ describe('Trennung von Auswahl und Sprung (AK5)', () => {
     setzeErsetzenModus(false);
     setzeErsetzenModus(true);
     expect(anzahlAusgewaehlt()).toBe(4);
+  });
+});
+
+// 4T-002107: Die Status-Zeile der Trefferliste wählt Einzahl und Mehrzahl je
+// Zahl. Vorher stand dort «1 Treffer in 1 Dateien», weil es nur die Mehrzahl gab.
+// Die Bestands-Schlüssel bleiben die Mehrzahl, die Einzahl kommt dazu.
+describe('4T-002107: Einzahl und Mehrzahl in der Status-Zeile', () => {
+  it('4T-002107: wählt im Bereich die Form nach Treffer- und Dateizahl (1/1, n/1, n/g)', () => {
+    expect(zaehlSchluessel('area', 1, 1)).toBe('searchResults.countFilesOne');
+    expect(zaehlSchluessel('area', 3, 1)).toBe('searchResults.countFilesManyInOne');
+    expect(zaehlSchluessel('area', 3, 2)).toBe('searchResults.countFiles');
+  });
+
+  it('4T-002107: wählt in Handbuch und Einstellungen die Form nach Treffer- und Abschnittszahl', () => {
+    for (const raum of ['manual', 'settings']) {
+      expect(zaehlSchluessel(raum, 1, 1)).toBe('searchResults.countOne');
+      expect(zaehlSchluessel(raum, 4, 1)).toBe('searchResults.countManyInOne');
+      expect(zaehlSchluessel(raum, 4, 3)).toBe('searchResults.count');
+    }
+  });
+
+  it('4T-002107: fällt bei einem Treffer in mehreren Gruppen auf die Mehrzahl zurück', () => {
+    // Kommt nicht vor (ein Treffer gehört genau einer Gruppe); die Wahl bleibt
+    // trotzdem bestimmt, statt eine falsche Einzahl zu zeigen.
+    expect(zaehlSchluessel('area', 1, 2)).toBe('searchResults.countFiles');
+    expect(zaehlSchluessel('manual', 1, 2)).toBe('searchResults.count');
+  });
+
+  it('4T-002107: die Status-Zeile verwendet die gewählte Form', () => {
+    // Ohne geladene Sprache liefert t() den Schlüssel selbst; so zeigt der
+    // Text, welcher Schlüssel gewählt wurde.
+    const status = () =>
+      document.querySelector('.pane-group[data-pane="0"] .search-results-status').textContent;
+    zeigeTreffer({
+      raum: 'area',
+      muster: 'Notiz',
+      flags: 'gm',
+      gruppen: [{ gruppe: 'alpha.md', titel: 'alpha', anzahl: 1 }],
+      treffer: [treffer('alpha.md', DATEI_A, 10)],
+    });
+    expect(status()).toBe('searchResults.countFilesOne');
+    zeigeTreffer({
+      raum: 'area',
+      muster: 'Notiz',
+      flags: 'gm',
+      gruppen: [{ gruppe: 'alpha.md', titel: 'alpha', anzahl: 2 }],
+      treffer: [treffer('alpha.md', DATEI_A, 10), treffer('alpha.md', DATEI_A, 40)],
+    });
+    expect(status()).toBe('searchResults.countFilesManyInOne');
+    zeigeTreffer(bestand());
+    expect(status()).toBe('searchResults.countFiles');
+  });
+});
+
+// 4T-002107: Dieselbe Regel für den Hinweis nach der Tag-Umbenennung. Vorher
+// «1 Fundstellen in 1 Dateien umbenannt».
+describe('4T-002107: Einzahl und Mehrzahl nach der Tag-Umbenennung', () => {
+  it('4T-002107: wählt die Form nach Fundstellen und Dateien (1/1, n/1, n/g)', async () => {
+    const { umbenanntSchluessel } =
+      await import('../../../src/renderer/modules/search/tag-umbenennen.js');
+    expect(umbenanntSchluessel(1, 1)).toBe('tagRename.doneOne');
+    expect(umbenanntSchluessel(4, 1)).toBe('tagRename.doneManyInOne');
+    expect(umbenanntSchluessel(4, 3)).toBe('tagRename.done');
+  });
+
+  it('4T-002107: zaehlForm ist die eine Regel für alle Zähl-Texte', () => {
+    const formen = { eins: 'E', vieleInEiner: 'V1', viele: 'V' };
+    expect(zaehlForm(1, 1, formen)).toBe('E');
+    expect(zaehlForm(2, 1, formen)).toBe('V1');
+    expect(zaehlForm(2, 2, formen)).toBe('V');
+    expect(zaehlForm(1, 2, formen)).toBe('V');
+    expect(zaehlForm(0, 0, formen)).toBe('V');
   });
 });

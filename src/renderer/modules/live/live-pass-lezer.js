@@ -79,6 +79,21 @@ export function runLezerPass(ctx) {
           ranges.push(liveMarkerHiddenDeco.range(markers[1].from, markers[1].to));
           return;
         }
+        if (name === 'HardBreak') {
+          // 4T-001716 (Epic 3E-000301, E25): Der Rückstrich eines harten
+          // Zeilenumbruchs ist außerhalb der Zeile mit der Schreibmarke
+          // verborgen, wie die übrigen Auszeichnungs-Zeichen. Der Knoten des
+          // Parsers ist die Erkennung: Er entsteht nur, wenn der Rückstrich
+          // unmaskiert vor einem Zeilenwechsel im selben Absatz steht. Die
+          // Form aus zwei Leerzeichen bleibt unberührt.
+          if (state.doc.sliceString(node.from, node.from + 1) !== '\\') return;
+          if (nodeInsideCode(node)) return;
+          const lineNo = state.doc.lineAt(node.from).number;
+          if (lineNo <= frontmatterEndLine) return;
+          if (activeLines.has(lineNo)) return;
+          ranges.push(liveMarkerHiddenDeco.range(node.from, node.from + 1));
+          return;
+        }
         if (name === 'InlineCode') {
           if (nodeInsideCode(node)) return;
           const lineNo = state.doc.lineAt(node.from).number;

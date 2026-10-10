@@ -28,6 +28,8 @@ import { groupForPanel } from '../../shared/reminders.js';
 // gemeinsamen Quelle (keine zweite Endungs-Liste).
 import { fileLabelFromBasename } from '../../shared/subpages.js';
 import { erledigeErinnerung, openReminderSource, showSnoozeMenu } from './reminders.js';
+// 4T-002129: zusammengesetzte Texte, die dem Sprachwechsel folgen.
+import { setzeSprachSatz } from './panels/panel-sprache.js';
 
 // Gruppen in Anzeige-Reihenfolge mit ihren Titel-Keys.
 const GROUPS = [
@@ -53,11 +55,13 @@ function buildEntry(paneIdx, item) {
   main.appendChild(desc);
   const meta = document.createElement('span');
   meta.className = 'reminders-item-meta';
-  const mutedSuffix = item.muted ? ` · ${t('reminders.panel.muted')}` : '';
   // 4T-001775 (Epic 3E-000304): Der Datei-Name steht ohne Markdown-Endung.
-  meta.textContent = `${fileLabelFromBasename(api.basename(item.path))} · ${item.date}${
+  const ort = `${fileLabelFromBasename(api.basename(item.path))} · ${item.date}${
     item.time ? ` ${item.time}` : ''
-  }${mutedSuffix}`;
+  }`;
+  // 4T-002129: Der Zusatz «stummgeschaltet» folgt dem Sprachwechsel, Name und Datum nicht.
+  if (item.muted) setzeSprachSatz(meta, 'text', 'reminders.panel.muted', { vor: `${ort} · ` });
+  else meta.textContent = ort;
   main.appendChild(meta);
   // 4T-001775: Dieser Eintrag trug bisher GAR KEINEN Kurzhinweis. Mit der
   // Kuerzung waere die Auskunft ueber den echten Dateinamen sonst ersatzlos
@@ -75,6 +79,7 @@ function buildEntry(paneIdx, item) {
     retriggerBtn.className = 'reminders-action-btn';
     retriggerBtn.textContent = '🔔';
     retriggerBtn.title = t('reminders.panel.retrigger');
+    retriggerBtn.setAttribute('data-i18n-title', 'reminders.panel.retrigger');
     retriggerBtn.addEventListener('click', async () => {
       try {
         await api.remindersRetrigger([item.key]);
@@ -89,6 +94,7 @@ function buildEntry(paneIdx, item) {
   doneBtn.className = 'reminders-action-btn';
   doneBtn.textContent = '✓';
   doneBtn.title = t('reminders.dialog.done');
+  doneBtn.setAttribute('data-i18n-title', 'reminders.dialog.done');
   doneBtn.addEventListener('click', async () => {
     // 4T-001727 (Epic 3E-000305): derselbe Weg wie im Dialog — steht die
     // Erinnerung gerade als Meldung in den Fenstern, räumt ihre Bearbeitung
@@ -102,6 +108,7 @@ function buildEntry(paneIdx, item) {
   snoozeBtn.className = 'reminders-action-btn';
   snoozeBtn.textContent = '⏰';
   snoozeBtn.title = t('reminders.dialog.snooze');
+  snoozeBtn.setAttribute('data-i18n-title', 'reminders.dialog.snooze');
   snoozeBtn.addEventListener('click', () => {
     const rect = snoozeBtn.getBoundingClientRect();
     showSnoozeMenu(item, rect.left, rect.bottom + 2, () => renderRemindersPanel(paneIdx));
@@ -109,6 +116,15 @@ function buildEntry(paneIdx, item) {
   actions.appendChild(snoozeBtn);
   row.appendChild(actions);
   return row;
+}
+
+// 4T-002129: Die Status-Zeile ist ein fester Text je Zustand; das Merkmal trägt
+// ihn beim Sprachwechsel über applyTranslations in die neue Sprache, ohne dass
+// das Panel neu geladen wird.
+function zeigeStatus(statusEl, key) {
+  statusEl.textContent = t(key);
+  statusEl.setAttribute('data-i18n', key);
+  statusEl.hidden = false;
 }
 
 export async function renderRemindersPanel(paneIdx) {
@@ -127,15 +143,11 @@ export async function renderRemindersPanel(paneIdx) {
   const statusEl = els.remindersStatus;
   groupsEl.innerHTML = '';
   if (!result || !result.ready) {
-    statusEl.textContent = t(
-      state.areaPath ? 'reminders.panel.notReady' : 'reminders.panel.noArea',
-    );
-    statusEl.hidden = false;
+    zeigeStatus(statusEl, state.areaPath ? 'reminders.panel.notReady' : 'reminders.panel.noArea');
     return;
   }
   if (result.items.length === 0) {
-    statusEl.textContent = t('reminders.panel.empty');
-    statusEl.hidden = false;
+    zeigeStatus(statusEl, 'reminders.panel.empty');
     return;
   }
   statusEl.hidden = true;
@@ -147,7 +159,7 @@ export async function renderRemindersPanel(paneIdx) {
     if (!items || items.length === 0) continue;
     const header = document.createElement('div');
     header.className = 'reminders-group-header';
-    header.textContent = `${t(group.titleKey)} (${items.length})`;
+    setzeSprachSatz(header, 'text', group.titleKey, { nach: ` (${items.length})` });
     groupsEl.appendChild(header);
     for (const item of items) groupsEl.appendChild(buildEntry(paneIdx, item));
   }

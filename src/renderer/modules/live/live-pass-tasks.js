@@ -17,11 +17,35 @@ import { parseTaskLine, isTaskLine } from '../../../shared/tasks/task-markers.js
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { activeTaskStateMap, getLiveTaskMarkerRe } from '../task-states.js';
 import {
+  liveAufgabeFolgezeileDeco,
+  liveAufgabeFolgezeileStatusDeco,
   liveListBulletLineDeco,
   liveListNumberLineDeco,
   liveTaskMarkerDecoAt,
 } from './live-deco.js';
 import { nodeInsideCode } from './live-shared.js';
+// 4T-001716 (Epic 3E-000301): Kopf-Erkennung und Code-Block-Test für die
+// Folgezeilen einer Aufgabe; das Blatt-Modul lädt nichts aus dem Renderer.
+import { parseListItemHead } from '../../../shared/markdown/list-outline.js';
+import { lineInsideCodeBlock } from '../editor/editor-code-zeile.js';
+
+// 4T-001716 (Epic 3E-000301, AK3, AK14): Folgezeilen eines Listenpunkts —
+// eingerückte Zeilen ohne Marker, deren Einrückung über die des Punkts
+// hinausgeht, bis zum nächsten Listenpunkt, zur Leerzeile, zu einer nicht
+// weiter eingerückten Zeile oder zur ersten Code-Zeile. Dieselbe
+// Zugehörigkeits-Regel wie `owningItem` in editor/editor-list-enter.js.
+function folgezeilenVon(state, itemLine, punktEinzug) {
+  const zeilen = [];
+  for (let n = itemLine.number + 1; n <= state.doc.lines; n++) {
+    const zeile = state.doc.line(n);
+    if (zeile.text.trim() === '') break;
+    if (parseListItemHead(zeile.text)) break;
+    if (/^[ \t]*/.exec(zeile.text)[0].length <= punktEinzug) break;
+    if (lineInsideCodeBlock(state, zeile)) break;
+    zeilen.push(zeile);
+  }
+  return zeilen;
+}
 import { TaskMarkerBadgeWidget } from './live-widget-inline.js';
 
 // 4T-000083: Listen-Items. BulletList und OrderedList enthalten
@@ -68,6 +92,16 @@ export function runListItemPass(ctx, node) {
             : undefined,
         ).range(markerFrom, markerTo),
       );
+      // 4T-001716 (Epic 3E-000301): Das Kästchen ist gezeichnet und schmaler
+      // als die drei Zeichen `[ ]`; die Folgezeilen rücken um denselben
+      // Unterschied nach links, damit sie unter dem Aufgaben-Text stehen.
+      // Gilt auch, wenn eine Folgezeile die Schreibmarke trägt, weil das
+      // Kästchen darüber gezeichnet bleibt.
+      const folgeDeko = stateDef ? liveAufgabeFolgezeileStatusDeco : liveAufgabeFolgezeileDeco;
+      const punktEinzug = /^[ \t]*/.exec(itemText)[0].length;
+      for (const zeile of folgezeilenVon(state, itemLine, punktEinzug)) {
+        ranges.push(folgeDeko.range(zeile.from));
+      }
       // 4T-000498 (Epic 3E-000090): Task-Marker-Badges am Zeilenende
       // (Paritaet zum Render-Pane: gleiche Spec-Quelle, gleiche
       // Guards — Erweiterung aktiv, kein NON_TASK-Status, Global

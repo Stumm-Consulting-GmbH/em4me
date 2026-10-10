@@ -259,11 +259,18 @@ function acceleratorToCmKey(binding) {
 // und sind nur abbrechbar, nicht ueberschreibbar. Alt allein und Maus-
 // Bindings koennen gar nicht erfasst werden (reiner Modifier bzw. kein
 // Tastatur-Event) und brauchen keinen Eintrag.
+//
+// 4T-001716 (Epic 3E-000301, E9): `Shift+Enter` steht nicht mehr hier. Die Taste
+// ist die umbelegbare Vorgabe des Registry-Kommandos `list.lineBreak`. Die
+// Such-Navigation verliert dadurch nichts: Sie bindet Umschalt+Eingabe allein
+// in ihrem eigenen Eingabefeld (keydown-Listener auf dem Such-Feld in
+// src/renderer/modules/search/search.js, `e.shiftKey` → prevMatch); das
+// Kommando wirkt dagegen nur in der Tastenbelegung des Editors, und beide
+// Orte haben nie zugleich den Fokus.
 const FIXED_BINDINGS = [
   { binding: 'Tab', descKey: 'help.shortcut.tabIndent' },
   { binding: 'Shift+Tab', descKey: 'help.shortcut.tabIndent' },
   { binding: 'Enter', descKey: 'help.shortcut.searchNavEnter' },
-  { binding: 'Shift+Enter', descKey: 'help.shortcut.searchNavEnter' },
   { binding: 'Alt+Enter', descKey: 'help.shortcut.replaceAll' },
   { binding: 'Escape', descKey: 'help.shortcut.escape' },
 ];
@@ -273,9 +280,17 @@ const FIXED_BINDINGS = [
 // F-Tasten zulaessig. Modifierlose Zeichen-Tasten (auch mit Umschalt)
 // wuerden das normale Tippen kapern; nacktes Tab/Esc/Enter faellt damit
 // ebenfalls weg.
+//
+// 4T-001716 (Epic 3E-000301, E9): genau eine benannte Ausnahme, `Shift+Enter`.
+// Sie ist die umbelegbare Vorgabe des Registry-Kommandos `list.lineBreak` und
+// muss deshalb nach einer Umbelegung wieder zuweisbar sein; sie kapert kein
+// Tippen, weil Umschalt+Eingabe kein Zeichen erzeugt.
+const CAPTURABLE_EXCEPTIONS = new Set(['Shift+Enter']);
+
 function isBindingCapturable(binding) {
   const normalized = normalizeBinding(binding);
   if (!normalized) return false;
+  if (CAPTURABLE_EXCEPTIONS.has(normalized)) return true;
   let rest = normalized;
   let hasStrongModifier = false;
   if (rest.startsWith('Ctrl+')) {

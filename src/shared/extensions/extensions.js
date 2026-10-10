@@ -882,8 +882,15 @@ const INTERNAL_EXTENSIONS = [
     modeLevel: 'full',
     nameKey: 'extension.custom-calendars.name',
     descKey: 'extension.custom-calendars.description',
-    featureKeys: ['help.feature.customCalendars', 'help.feature.derivedCalendars'],
-    commands: ['calendar.insertValue'],
+    featureKeys: [
+      'help.feature.customCalendars',
+      'help.feature.derivedCalendars',
+      'help.feature.calendarTemplates',
+      'help.feature.calendarConvert',
+    ],
+    // 4T-001874 (Epic 3E-000323): «Datum umrechnen» gehört zur selben
+    // Erweiterung — ohne sie gibt es keine zweite Zeitrechnung.
+    commands: ['calendar.insertValue', 'calendar.convert'],
     settingsSections: ['calendarSystems'],
   },
   // 4T-000448 (Epic 3E-000083): Eigenschafts-Profile als schaltbare Werkzeug-

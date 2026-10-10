@@ -34,6 +34,8 @@ Un clic derecho sobre una palabra marcada abre el menú contextual del editor co
 
 Las palabras añadidas así figuran en Configuración → Corrección ortográfica y pueden quitarse allí una a una.
 
+En la [versión portátil](portable-version.md) no se ofrecen ni añadir ni quitar, porque ambas cosas escribirían en el diccionario del sistema operativo y, por tanto, fuera de su carpeta de datos; las sugerencias y la sustitución se mantienen.
+
 ### Límite
 
 La sintaxis Markdown, las rutas y el código se comprueban también, porque el corrector ve el texto palabra por palabra y desconoce el marcado. Esa es la razón por la que la comprobación está desactivada de fábrica.

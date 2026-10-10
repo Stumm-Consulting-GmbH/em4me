@@ -3,12 +3,16 @@
 'use strict';
 
 import { normalizeCalendarConfig } from '../../../shared/calendar/calendar-config.js';
-import { createGregorianTemplate } from '../../../shared/calendar/calendar-template.js';
+import {
+  CALENDAR_TEMPLATES,
+  findCalendarTemplate,
+} from '../../../shared/calendar/calendar-templates.js';
 import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { showStatusbarHint } from '../views/views.js';
 import { buildDerivedCalendarEditor } from './settings-calendar-derived.js';
 import { buildCalendarEditor } from './settings-calendar-editor.js';
+import { pruefeEpochenSchutz, sichereEpochenWerte } from './settings-calendar-epoch-guard.js';
 import {
   calSysDependents,
   calSysIdFromName,
@@ -80,6 +84,45 @@ function renderCalendarBlocksOverview(container, values) {
   container.appendChild(addBtn);
 }
 
+// 4T-001997 (Epic 3E-000307): Name einer eingefügten Vorlage, der im Entwurf
+// noch frei ist. Verglichen wird wie in validateCalendarSection — ohne
+// Groß-/Kleinschreibung und über alle Blöcke —, damit zweimaliges Einfügen
+// zwei unterscheidbare Zeitrechnungen ergibt statt einer Sperre beim Anwenden:
+// «Gregorianischer Kalender», dann «Gregorianischer Kalender 2», «… 3».
+export function calSysFreeTemplateName(values, baseName) {
+  const taken = new Set();
+  for (const block of values.blocks) {
+    for (const calDraft of block.calendars) {
+      taken.add(
+        String(calDraft.name || '')
+          .trim()
+          .toLowerCase(),
+      );
+    }
+  }
+  const base = String(baseName || '').trim();
+  if (!taken.has(base.toLowerCase())) return base;
+  let n = 2;
+  while (taken.has(`${base} ${n}`.toLowerCase())) n++;
+  return `${base} ${n}`;
+}
+
+// 4T-001997 (Epic 3E-000307): Vorlage der Sammlung in den geöffneten Block
+// einfügen. Die Definition entsteht lokalisiert über die Fabrik des Eintrags;
+// die id entsteht (eindeutig) erst beim Anwenden, der Entwurf trägt nur Namen
+// und Struktur. false, wenn die Normalisierung die Definition verwirft.
+function insertCalendarTemplate(values, block, entry) {
+  const normalized = normalizeCalendarConfig({
+    blocks: [{ id: 'probe', calendars: [{ id: entry.id, ...entry.create(t) }] }],
+  });
+  if (!normalized || normalized.blocks[0].calendars.length === 0) return false;
+  const draft = calendarToDraft(normalized.blocks[0].calendars[0]);
+  draft.id = '';
+  draft.name = calSysFreeTemplateName(values, draft.name);
+  block.calendars.push(draft);
+  return true;
+}
+
 function renderCalendarBlockDetail(container, values) {
   const block = values.blocks[values.openBlock];
   if (!block) {
@@ -131,6 +174,7 @@ function renderCalendarBlockDetail(container, values) {
         {
           id: 'ebene-1',
           name: '',
+          namePlural: '',
           section: '',
           start: '1',
           relType: '',
@@ -155,53 +199,28 @@ function renderCalendarBlockDetail(container, values) {
     });
     renderActiveSection();
   });
-  const templateBtn = document.createElement('button');
-  templateBtn.type = 'button';
-  templateBtn.id = 'settings-calsys-cal-template';
-  templateBtn.className = 'btn settings-calsys-cal-template';
-  templateBtn.textContent = t('settings.calendar.calTemplate');
-  templateBtn.addEventListener('click', () => {
-    // Vorlage lokalisiert über die Kern-Fixture; die id entsteht (eindeutig)
-    // erst beim Anwenden, der Entwurf trägt nur Namen und Struktur.
-    const template = createGregorianTemplate({
-      name: t('settings.calendar.templateName'),
-      monthNames: t('settings.calendar.templateMonths').split(','),
-      weekdayNames: t('settings.calendar.templateWeekdays').split(','),
-      weekName: t('settings.calendar.templateWeek'),
-      epochNames: [
-        {
-          name: t('settings.calendar.templateEpochPast'),
-          abbr: t('settings.calendar.templateEpochPast'),
-        },
-        {
-          name: t('settings.calendar.templateEpochFuture'),
-          abbr: t('settings.calendar.templateEpochFuture'),
-        },
-      ],
-      levelNames: {
-        second: t('settings.calendar.templateLevelSecond'),
-        minute: t('settings.calendar.templateLevelMinute'),
-        hour: t('settings.calendar.templateLevelHour'),
-        day: t('settings.calendar.templateLevelDay'),
-        month: t('settings.calendar.templateLevelMonth'),
-        year: t('settings.calendar.templateLevelYear'),
-      },
-      sectionNames: {
-        time: t('settings.calendar.templateSectionTime'),
-        date: t('settings.calendar.templateSectionDate'),
-      },
-      groupNames: {
-        quarter: t('settings.calendar.templateQuarter'),
-        halfYear: t('settings.calendar.templateHalfYear'),
-      },
-    });
-    const normalized = normalizeCalendarConfig({
-      blocks: [{ id: 'probe', calendars: [template] }],
-    });
-    if (!normalized) return;
-    const draft = calendarToDraft(normalized.blocks[0].calendars[0]);
-    draft.id = '';
-    block.calendars.push(draft);
+  // 4T-001997 (Epic 3E-000307): Aufklapp-Menü der mitgelieferten Vorlagen an
+  // der Stelle des früheren Vorlage-Knopfes. Es zeigt nur gelieferte Vorlagen
+  // in der Reihenfolge der Sammlung; die Auswahl legt die Zeitrechnung sofort
+  // an, danach steht das Menü wieder auf dem ersten Eintrag.
+  const templateSelect = document.createElement('select');
+  templateSelect.id = 'settings-calsys-cal-template';
+  templateSelect.className = 'settings-select settings-calsys-cal-template';
+  const templateMenuLabel = t('settings.calendar.templateMenu');
+  templateSelect.setAttribute('aria-label', templateMenuLabel);
+  const addTemplateOption = (value, label) => {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = label;
+    templateSelect.appendChild(opt);
+  };
+  addTemplateOption('', templateMenuLabel);
+  CALENDAR_TEMPLATES.forEach((entry) => addTemplateOption(entry.id, t(entry.nameKey)));
+  templateSelect.value = '';
+  templateSelect.addEventListener('change', () => {
+    const entry = findCalendarTemplate(templateSelect.value);
+    templateSelect.value = '';
+    if (!entry || !insertCalendarTemplate(values, block, entry)) return;
     renderActiveSection();
   });
   // 4T-000747: Anlage einer abgeleiteten Zeitrechnung (kurze Form).
@@ -227,7 +246,7 @@ function renderCalendarBlockDetail(container, values) {
   });
   const btnRow = document.createElement('div');
   btnRow.className = 'settings-calsys-detail-buttons';
-  btnRow.append(addBtn, derivedBtn, templateBtn);
+  btnRow.append(addBtn, derivedBtn, templateSelect);
   container.appendChild(btnRow);
 }
 
@@ -304,12 +323,28 @@ export function validateCalendarSection(draft) {
 
 // 4T-000747: Vergleichs-Form einer Bezugs-Zeitrechnung ohne die Bestandteile,
 // die in einer Ableitung nicht durchschlagen (Anzeige-Name und Epochen).
+// 4T-001863 (Epic 3E-000307): Die Mehrzahl eines Einheiten-Namens verschiebt
+// keinen Wert und bleibt deshalb außen vor — wer seinen Zeitrechnungen die
+// Mehrzahl nachträgt, soll keine Warnung vor verschobenen Werten bekommen.
+// 4T-001999 (Epic 3E-000307): Ebenso das Kennzeichen alwaysWriteEpoch — die
+// Ableitung übernimmt es nicht, es verschiebt also keinen ihrer Werte.
+// 4T-002065 (Epic 3E-000307): Dasselbe gilt für jede Benennung — Name und
+// Positions-Namen einer Ebene, eines Zyklus oder einer Gruppierung. Der Wert
+// einer Ableitung ist eine Zählung ab dem Nullpunkt; Namen gehen in keine
+// Umrechnung ein, sie sind Anzeige. In der Ablage-Form tragen die Schlüssel
+// name, namePlural und names auf keiner Ebene eine rechnende Angabe (Ebenen
+// und Zyklen hängen über id und of zusammen), deshalb genügt der Ersetzer über
+// den Schlüssel-Namen. Der Ebenen-Bereich (section) bleibt im Vergleich: Er
+// trennt Datums- und Zeit-Teil und bestimmt damit die Gestalt eines Werts.
+const CAL_SYS_LABEL_KEYS = new Set(['name', 'namePlural', 'names']);
+
 function calSysEffectiveForm(entry) {
   if (!entry) return null;
   const rest = { ...entry };
   delete rest.name;
   delete rest.epochs;
-  return JSON.stringify(rest);
+  delete rest.alwaysWriteEpoch;
+  return JSON.stringify(rest, (key, value) => (CAL_SYS_LABEL_KEYS.has(key) ? undefined : value));
 }
 
 // Namen der Ableitungen, deren Werte sich durch eine wirksame Änderung an
@@ -369,6 +404,24 @@ export async function applyCalendarSection(draft) {
     }
     if (!confirmed) return;
   }
+  // 4T-002003 (Epic 3E-000307): Bekommt eine Zeitrechnung eine neue jüngste
+  // Epoche, würden gespeicherte Werte danach einen anderen Tag bezeichnen oder
+  // ungültig werden. Rückfrage VOR dem Speichern; gesichert wird erst, wenn das
+  // Speichern gelungen ist (Begründung in settings-calendar-epoch-guard.js).
+  // Ließ sich gar nicht prüfen, wird nicht still abgebrochen, sondern gesagt,
+  // dass die Änderung nicht angewendet wurde.
+  const alt = draft.calendarSnapshot;
+  const schutz = await pruefeEpochenSchutz(alt, out);
+  if (schutz.antwort === 'abbrechen') {
+    if (schutz.fehler) {
+      showStatusbarHint(null, {
+        text: t('settings.calendar.epochGuard.failed'),
+        error: true,
+        duration: 4000,
+      });
+    }
+    return;
+  }
   let result;
   try {
     result = await api.calendarSetAreaConfig(out);
@@ -385,4 +438,5 @@ export async function applyCalendarSection(draft) {
     return;
   }
   draft.calendarSnapshot = out;
+  if (schutz.antwort === 'sichern') await sichereEpochenWerte(alt, out, schutz.erste);
 }

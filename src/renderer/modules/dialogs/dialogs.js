@@ -22,12 +22,54 @@ export async function showAbout() {
       aboutVersionEl.textContent = '?';
     }
   }
+  await zeigePortablenBetrieb();
   aboutModal.hidden = false;
   setTimeout(() => $('#btn-about-close').focus(), 0);
 }
 
 export function hideAbout() {
   aboutModal.hidden = true;
+}
+
+// 4T-001993 (Epic 3E-000188): Zeile zur portablen Fassung im Über-Dialog.
+//
+// Sichtbar wird der Block NUR, wenn der Hauptprozess ausdrücklich «portabel»
+// samt Pfad meldet. Jede andere Antwort — nicht portabel, eine unerwartete
+// Form, ein Fehler über die Brücke — lässt ihn verborgen: Die installierte
+// Fassung und der Start aus den Quellen zeigen den Dialog damit unverändert,
+// und eine gestörte Auskunft behauptet keinen Ort, den es nicht gibt. Gefragt
+// wird vor dem Aufdecken des Dialogs, damit die Zeile nicht nachträglich
+// hineinspringt.
+async function zeigePortablenBetrieb() {
+  const block = $('#about-portable');
+  const pfadEl = $('#about-portable-path');
+  let datenOrdner = null;
+  try {
+    const auskunft = await api.getPortablerBetrieb();
+    if (auskunft && auskunft.portabel === true && typeof auskunft.datenOrdner === 'string') {
+      datenOrdner = auskunft.datenOrdner;
+    }
+  } catch (err) {
+    console.warn('Auskunft ueber den portablen Betrieb nicht erhalten:', err);
+  }
+  pfadEl.textContent = datenOrdner || '';
+  block.hidden = !datenOrdner;
+}
+
+// 4T-001993: Knopf «Daten-Ordner öffnen». Er gibt keinen Pfad mit; welcher
+// Ordner aufgeht, bestimmt allein der Hauptprozess.
+export async function oeffneDatenOrdner() {
+  let ergebnis;
+  try {
+    ergebnis = await api.oeffneDatenOrdner();
+  } catch (err) {
+    console.warn('Daten-Ordner nicht geoeffnet:', err);
+    return { ok: false, error: String((err && err.message) || err) };
+  }
+  if (!ergebnis || ergebnis.ok !== true) {
+    console.warn('Daten-Ordner nicht geoeffnet:', ergebnis && ergebnis.error);
+  }
+  return ergebnis;
 }
 
 // --- Alias-Modal (4T-000050) --------------------------------------------------
@@ -342,6 +384,9 @@ export function showLinkPreviewDialog(opts) {
 
 // 4T-000346 (Epic 3E-000062): Ergebnis-Bericht nach dem Link-Update. opts:
 //   title, sections, okLabel. Liefert nichts (nur Bestaetigung).
+// 4T-002003 (Epic 3E-000307): optional `notes` — Hinweis-Zeilen unter den
+// Abschnitten (der Kalender-Schutz sagt dort, welches Kürzel von Hand zu
+// ergänzen ist). Ohne das Feld bleibt der Bericht, wie er war.
 export function showLinkReportDialog(opts) {
   const modal = $('#link-report-modal');
   const titleEl = $('#link-report-title');
@@ -352,6 +397,12 @@ export function showLinkReportDialog(opts) {
   return new Promise((resolve) => {
     titleEl.textContent = (opts && opts.title) || '';
     renderLinkUpdateSections(bodyEl, (opts && opts.sections) || []);
+    for (const note of (opts && Array.isArray(opts.notes) && opts.notes) || []) {
+      const p = document.createElement('p');
+      p.className = 'link-update-empty';
+      p.textContent = note;
+      bodyEl.appendChild(p);
+    }
     btnOk.textContent = (opts && opts.okLabel) || t('dialog.ok');
 
     const finish = () => {

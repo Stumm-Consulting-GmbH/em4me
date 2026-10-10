@@ -153,6 +153,26 @@ describe('Render-Pipeline-Snapshots (Viewer-Pfad)', () => {
     const html = renderMarkdown(long, 'de');
     expect(html.startsWith('<p')).toBe(true);
   });
+
+  // 4T-001716 (Epic 3E-000301): Die Marker einer Aufgabe stehen am Ende ihrer
+  // ersten Zeile. Mit einer Folgezeile — nach Rückstrich oder als weicher
+  // Umbruch — liest das Aufgaben-Plugin sie dort und nicht aus der Folgezeile;
+  // die Folgezeile bleibt Text im selben Listenpunkt.
+  it('Termin-Marker einer Aufgabe mit Folgezeile (4T-001716)', () => {
+    for (const trenner of [' \\\n', '\n']) {
+      const src = `- [ ] Aufgabe mit Termin 📅 2099-12-31${trenner}      zweite Zeile 📅 kein Datum\n`;
+      const html = renderMarkdown(src, 'de');
+      const punkte = html.match(/<li[\s\S]*?<\/li>/g) || [];
+      expect(punkte).toHaveLength(1);
+      const [punkt] = punkte;
+      // Der Termin steht als Marker, nicht als Text der ersten Zeile.
+      expect(punkt).toMatch(/<span class="[^"]*task-marker-due"[^>]*>📅 2099-12-31<\/span>/);
+      expect(punkt).toContain('Aufgabe mit Termin<span');
+      expect(punkt.indexOf('task-marker-due')).toBeLessThan(punkt.indexOf('zweite Zeile'));
+      expect(punkt).toContain('zweite Zeile 📅 kein Datum');
+      if (trenner !== '\n') expect(punkt).toContain('<br>');
+    }
+  });
 });
 
 describe('Portable-Export-Snapshots', () => {

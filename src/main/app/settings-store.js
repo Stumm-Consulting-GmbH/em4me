@@ -27,6 +27,15 @@ const { startupDisabledIds } = require('../../shared/extensions/extensions-core.
 // user-data-migration.js, damit die Unit-Tests denselben Pfad pruefen. Hier nur
 // die Bindung an die Electron-Pfade des Aufrufers.
 async function migrateSettingsFromPreviousName(dirs) {
+  // 4T-001990 (Epic 3E-000188): Im portablen Betrieb gibt es keine Uebernahme,
+  // in keinem der beiden Zweige (Entscheidung des Product Owners vom
+  // 2026-09-28, Weg A der Vorlage 2). Die portable Fassung liest das
+  // Benutzerprofil des Rechners nie — sonst truege sie dessen Zuletzt-Listen
+  // auf den Stick und verhielte sich auf jedem Rechner anders. Sie beginnt mit
+  // den Voreinstellungen; der Weg der eigenen Einrichtung ist die
+  // Austausch-Datei der Einstellungen. Der Ausstieg steht deshalb VOR jedem
+  // Aufruf von migrateUserData, das die Quelle schon zum Nachsehen liest.
+  if (dirs.portabel) return;
   // 4T-001336 (Epic 3E-000237): In der zweiten Auspraegung ist die Quelle die
   // PRODUKTIVE Einrichtung und der Umfang enger — ohne die Entwuerfe. Die
   // Rebrand-Kette der Vorgaengernamen entfaellt hier bewusst: Sie gehoert der
@@ -136,6 +145,8 @@ function migrateLegacySettings(store) {
  * @param {string|null} [dirs.auspraegung] 4T-001336: Kennzeichnung der zweiten
  *   Auspraegung; gesetzt schaltet sie die Uebernahme auf die produktive
  *   Einrichtung als Quelle um, null bzw. fehlend laesst die Rebrand-Kette laufen.
+ * @param {boolean} [dirs.portabel] 4T-001990: true im portablen Betrieb; dann
+ *   entfaellt jede Uebernahme aus einem Vorgaenger- oder produktiven Profil.
  * @returns {Promise<{store: object, workspaces: Array}>} Store und der
  *   normalisierte Arbeitsbereichs-Stand; der Aufrufer haelt beide.
  */
@@ -210,4 +221,7 @@ async function loadStore(dirs) {
   return { store, workspaces };
 }
 
-module.exports = { loadStore };
+// 4T-001990: migrateSettingsFromPreviousName ist fuer die Unit-Pruefung der
+// abgeschalteten Uebernahme mit exportiert; loadStore selbst laedt
+// electron-store, das seinerseits Electron importiert.
+module.exports = { loadStore, migrateSettingsFromPreviousName };

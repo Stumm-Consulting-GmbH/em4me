@@ -95,7 +95,31 @@ Eine Leerzeile beginnt eine neue Liste. Entsteht sie durch deine Bearbeitung, z�
 
 ### Fortsetzen und beenden
 
-Die Eingabetaste setzt eine Liste fort und ergänzt Aufzählungszeichen, fortlaufende Nummer oder leeres Kontrollkästchen. Auf einem leeren Unterpunkt rückt sie eine Ebene aus, auf der obersten Ebene beendet sie die Liste.
+Die Eingabetaste setzt eine Liste fort und ergänzt Aufzählungszeichen, fortlaufende Nummer oder leeres Kontrollkästchen, auch in nummerierten Aufgaben-Listen. Ein neues Kästchen ist dabei immer offen. Wo der neue Punkt entsteht, richtet sich nach seiner Umgebung:
+
+- Folgen dem Punkt schon Unterpunkte, entsteht der neue Punkt als erster Unterpunkt und übernimmt deren Art: Zeichen oder Nummer, mit oder ohne Kästchen. Steht die Schreibmarke dabei mitten im Text, wird der Rest der Zeile zu diesem ersten Unterpunkt.
+- Am Ende einer zweiten Zeile im Punkt (siehe „Zweite Zeile im selben Punkt“) beginnt die Eingabetaste einen neuen Punkt.
+- Auf einem leeren Unterpunkt rückt sie eine Ebene aus, auch bei nummerierten Aufgaben; auf der obersten Ebene beendet sie die Liste.
+
+Im Notiz-Feld des Seitenbereichs „Notizen“ wirkt die Eingabetaste ebenso.
+
+### Zweite Zeile im selben Punkt
+
+Mit `Umschalt+Enter` (Standard) beginnt im selben Listenpunkt eine zweite Zeile, ohne dass ein neuer Punkt entsteht. Sie steht eingerückt unter dem Text des Punkts, bei einer Aufgabe unter dem Text hinter dem Kästchen; steht die Schreibmarke mitten im Text, wandert der Rest der Zeile in die neue Zeile. Im Quelltext endet die Zeile davor mit einem Backslash, dem harten Zeilenumbruch (siehe „Harte Zeilenumbrüche“); die Live-Ansicht zeigt ihn nur in der Zeile mit der Schreibmarke. In der Anzeige erscheint der Text als zweite Zeile desselben Punkts, ebenfalls unter dem Text hinter dem Kästchen.
+
+```markdown
+- Einkauf erledigen\
+  Milch, Brot und Käse
+- [ ] Angebot prüfen\
+      Frist beachten
+```
+
+- Einkauf erledigen\
+  Milch, Brot und Käse
+- [ ] Angebot prüfen\
+      Frist beachten
+
+Bleibt die neue Zeile leer, nimmt die Rücktaste sie samt Backslash zurück, und auch die Eingabetaste lässt dort keinen Backslash stehen. Beim Ein- und Ausrücken des Punkts wandert die zweite Zeile mit. Das Kürzel gilt in jedem Arbeitsmodus und auch im Notiz-Feld; ändern lässt es sich unter Datei → Einstellungen… → Tastenkürzel.
 
 ### Schreibmarke beim Zeilenwechsel
 
@@ -157,7 +181,7 @@ Siehe [Beispielseite][ref].
 
 ## Harte Zeilenumbrüche
 
-Zwei Leerzeichen am Zeilenende oder ein Backslash erzwingen einen Zeilenumbruch innerhalb eines Absatzes.
+Zwei Leerzeichen am Zeilenende oder ein Backslash erzwingen einen Zeilenumbruch innerhalb eines Absatzes. Im Editor setzt `Umschalt+Enter` (Standard) den Backslash samt neuer Zeile. In einer Liste steht die neue Zeile eingerückt und gehört zum selben Punkt (siehe „Zweite Zeile im selben Punkt“).
 
 ```markdown
 Erste Zeile\

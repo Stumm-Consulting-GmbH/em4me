@@ -305,6 +305,70 @@
   cursor: pointer;
   user-select: none;
 }
+/* 4T-001716 (Epic 3E-000301), Entscheidung des Product Owners vom 2026-10-09
+   nach Beobachtung 3 der Abnahme: In der gesetzten Darstellung beginnt die
+   zweite Zeile einer Aufgabe unter dem Text der ersten Zeile und nicht unter
+   dem Kästchen — hängender Einzug hinter dem Kästchen, wie in der Quellcode-
+   und der Live-Ansicht (`--kaestchen-ausgleich`, footnotes.css). Das gilt für
+   den harten Umbruch ebenso wie für den Umbruch am Fensterrand.
+
+   **Das gewöhnliche Kästchen verlässt den Zeilenfluss, statt dass der Einzug
+   es nachrechnet.** Hinter ihm steht im Markup ein Leerzeichen (`<input> Text`,
+   markdown-it-task-lists), dessen Breite an der Schriftart hängt, und die
+   Schriftart der gesetzten Darstellung ist einstellbar. Ein Paar aus
+   Innenabstand und negativem Erst-Zeilen-Einzug müsste diese Breite schätzen
+   (gemessen am 2026-10-09: 3,42px daneben bei 15px Grundschrift). Steht das
+   Kästchen absolut im Innenabstand des Punkts, beginnt jede Zeile an derselben
+   Kante, und das Leerzeichen fällt als Leerraum am Zeilen-Anfang weg. Waagerecht
+   steht es wie bisher (4px und 13px sind die Vorgaben des Browsers für linken
+   Außenabstand und Breite; `0.65em` ist der bisherige Abstand 0.4em plus ein
+   Wortabstand von etwa 0.25em), senkrecht mittig zur ersten Zeile. Die Schrift
+   erbt es vom Punkt, damit `1lh` dessen Zeilenhöhe ist; seine Größe hängt an
+   der ausdrücklichen Breite und Höhe, nicht an der Schrift.
+
+   **Das Status-Kästchen bleibt im Zeilenfluss** und trägt das bewährte Paar aus
+   Innenabstand und negativem Erst-Zeilen-Einzug (Muster `.perspective-query-task`
+   in frontmatter.css samt Rücksetzer auf den Nachkommen): Das Aufgaben-Plugin
+   entfernt das Leerzeichen hinter `[/]`, die Breite ist also genau rechenbar,
+   und seine senkrechte Lage bleibt unverändert. Eine registrierte Eigenschaft
+   (`@property`) ist bewusst vermieden: Der Stil des Web-Handbuchs übernimmt nur
+   Regeln mit `.markdown-body` (scripts/build-web-handbuch-stil.js).
+
+   Unterlisten behalten ihren Platz, der Einzug gilt dem Text und nicht der
+   Gliederung. Abfrage-Treffer (`.perspective-query-task`) und Kästchen in
+   Tabellen sind keine `li.task-list-item` und bleiben unberührt. */
+.markdown-body li.task-list-item {
+  --aufgabe-kasten-links: 4px;
+  --aufgabe-kasten-breite: 13px;
+  --aufgabe-einzug: calc(var(--aufgabe-kasten-links) + var(--aufgabe-kasten-breite) + 0.65em);
+  position: relative;
+  padding-left: var(--aufgabe-einzug);
+}
+.markdown-body li.task-list-item > label > input.task-list-item-checkbox,
+.markdown-body li.task-list-item > p:first-child > label > input.task-list-item-checkbox {
+  position: absolute;
+  left: var(--aufgabe-kasten-links);
+  width: var(--aufgabe-kasten-breite);
+  height: var(--aufgabe-kasten-breite);
+  font: inherit;
+  margin: calc((1lh - var(--aufgabe-kasten-breite)) / 2) 0 0;
+}
+/* Status-Kästchen: Breite und Abstand aus `.task-state-box` (1.1em und 0.4em,
+   Rahmen innen, in dessen Schrift von 0.85em), umgerechnet in die des Punkts. */
+.markdown-body li.task-list-item.task-state-item {
+  --aufgabe-einzug: calc(0.85 * (1.1em + 0.4em));
+  text-indent: calc(-1 * var(--aufgabe-einzug));
+}
+.markdown-body li.task-state-item * {
+  text-indent: 0;
+}
+.markdown-body li.task-state-item > p:first-child {
+  text-indent: calc(-1 * var(--aufgabe-einzug));
+}
+.markdown-body li.task-list-item > ul,
+.markdown-body li.task-list-item > ol {
+  margin-left: calc(-1 * var(--aufgabe-einzug));
+}
 /* 4T-000204: Live-Modus-Pendant — Glyph via ::before content:attr(),
    gleiche Mechanik wie die Checkbox-Nachbildung darueber. */
 .cm-editor .cm-live-task-marker.cm-live-task-state::before {

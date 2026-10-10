@@ -39,7 +39,7 @@ import { wendeErsetzungenAn } from '../../../shared/ersetzen-kern.js';
 // 4T-001531 (Epic 3E-000175): Der Frontmatter-Weg der Tag-Umbenennung, geteilt
 // mit dem Hauptprozess aus demselben Grund wie die Ersetzungs-Regel selbst.
 import { benenneTagImFrontmatterUm } from '../../../shared/tag-erkennung.js';
-import { ausgewaehlteFundstellen } from './search-panel.js';
+import { ausgewaehlteFundstellen, zaehlForm } from './search-panel.js';
 
 function gleicherPfad(a, b) {
   return !!a && !!b && normalizeForCompare(a) === normalizeForCompare(b);
@@ -88,7 +88,13 @@ function ersetzeInPuffern(ziele, opts) {
   for (const { tab, paneIdx, aktiv } of offeneReiter()) {
     const ziel = ziele.find((z) => gleicherPfad(z.pfad, tab.path));
     if (!ziel) continue;
-    const gewirkt = wendeErsetzungenAn(tab.content, ziel.offsets, opts);
+    // 4T-002003 (Epic 3E-000307): Ein Ziel kann je Fundstelle einen eigenen
+    // Ersetzungs-Text tragen (`ersetzungen`, gleiche Länge wie `offsets`) — der
+    // Kalender-Schutz schreibt jeden Wert anders um. Ohne sie gilt die eine
+    // Ersetzung des Laufs wie bisher.
+    const gewirkt = Array.isArray(ziel.ersetzungen)
+      ? wendeErsetzungenAn(tab.content, ziel.offsets, opts, ziel.ersetzungen)
+      : wendeErsetzungenAn(tab.content, ziel.offsets, opts);
     if (!gewirkt.ok) {
       if (!erledigt.has(ziel.pfad)) veraendert.push(ziel.pfad);
       erledigt.add(ziel.pfad);
@@ -164,26 +170,75 @@ async function ladeGeschriebeneNach(geschrieben) {
 // Der Grund eines Fehlschlags als Satz. Die Kennungen kommen aus dem
 // Hauptprozess (4T-001524) und aus dem Puffer-Weg; ein unbekannter Grund wird
 // wörtlich gezeigt, statt still zu verschwinden.
-function grundText(grund) {
+// 4T-002003: exportiert für den Bericht des Kalender-Schutzes, der dieselben
+// Gründe nennt und sie nicht ein zweites Mal übersetzen soll.
+// 4T-002113: `eigene` ist der Schlüssel-Vorsatz eines Aufrufers mit eigenem
+// Wortlaut für einzelne Gründe (Tag-Umbenennung); was er nicht kennt, kommt
+// wie bisher aus den Gründen des Ersetzens.
+export function grundText(grund, eigene = null) {
+  if (eigene) {
+    const eigenerSchluessel = `${eigene}${grund}`;
+    const eigenerText = t(eigenerSchluessel);
+    if (eigenerText !== eigenerSchluessel) return eigenerText;
+  }
   const schluessel = `areaReplace.reason.${grund}`;
   const text = t(schluessel);
   return text === schluessel ? grund : text;
 }
 
-function zeigeBericht({ geaendert, fehlgeschlagen, veraendert }) {
+// 4T-002113: Die Schlüssel des Berichts je Aufrufer. Die Tag-Umbenennung geht
+// durch dieselbe Tür wie das Ersetzen im Bereich und bekam bis hierher auch
+// dessen Bericht: Überschrift «Ersetzen im Bereich», Abschnitt «Nicht ersetzt»,
+// Grund «hier wird nicht ersetzt». Erkannt wird sie an `opts.tag`, das nur sie
+// setzt (tag-umbenennen.js). Die übrigen Texte des Berichts sprechen nicht vom
+// Ersetzen und bleiben gemeinsam.
+export function berichtSchluessel(opts) {
+  const umbenennung = !!(opts && opts.tag && opts.tag.alt && opts.tag.neu);
+  return umbenennung
+    ? {
+        titel: 'tagRename.report.title',
+        nichtGeaendert: 'tagRename.report.failed',
+        gruende: 'tagRename.reason.',
+      }
+    : {
+        titel: 'areaReplace.report.title',
+        nichtGeaendert: 'areaReplace.report.failed',
+        gruende: null,
+      };
+}
+
+// 4T-002107: Die Zahl der Fundstellen einer Datei im Bericht, mit Einzahl bei
+// einer; der Bestands-Schlüssel bleibt die Mehrzahl («1 Fundstellen» vorher).
+export function fundstellenText(anzahl) {
+  const schluessel = anzahl === 1 ? 'areaReplace.hitsOne' : 'areaReplace.hits';
+  return t(schluessel).replace('{n}', String(anzahl));
+}
+
+// 4T-002107: Der Hinweis nach «Alle ersetzen» im Bereich. Er steht hier und
+// nicht in search.js, weil er zum Lauf gehört und search.js ihn mit dem Lauf
+// zusammen zur Laufzeit holt (Form-Wahl: zaehlForm in search-panel.js).
+export function ersetztHinweis(stellen, dateien) {
+  const schluessel = zaehlForm(stellen, dateien, {
+    eins: 'areaReplace.countOne',
+    vieleInEiner: 'areaReplace.countManyInOne',
+    viele: 'areaReplace.count',
+  });
+  return t(schluessel).replace('{n}', String(stellen)).replace('{d}', String(dateien));
+}
+
+function zeigeBericht({ geaendert, fehlgeschlagen, veraendert }, opts) {
+  const schluessel = berichtSchluessel(opts);
   const geaendertZeilen = geaendert.map((g) => ({
     text: anzeigeName(g.pfad),
-    detail:
-      t('areaReplace.hits').replace('{n}', String(g.anzahl)) +
-      (g.imPuffer ? ` · ${t('areaReplace.inBuffer')}` : ''),
+    detail: fundstellenText(g.anzahl) + (g.imPuffer ? ` · ${t('areaReplace.inBuffer')}` : ''),
   }));
   const fehlerZeilen = fehlgeschlagen.map((f) => ({
     text: anzeigeName(f.pfad),
-    detail: grundText(f.grund),
+    detail: grundText(f.grund, schluessel.gruende),
   }));
   const veraendertZeilen = veraendert.map((p) => ({ text: anzeigeName(p) }));
   return showLinkReportDialog({
-    title: t('areaReplace.report.title'),
+    title: t(schluessel.titel),
     sections: [
       {
         title: t('areaReplace.report.changed'),
@@ -191,7 +246,7 @@ function zeigeBericht({ geaendert, fehlgeschlagen, veraendert }) {
         emptyText: t('areaReplace.report.empty'),
       },
       {
-        title: t('areaReplace.report.failed'),
+        title: t(schluessel.nichtGeaendert),
         rows: fehlerZeilen,
         emptyText: t('areaReplace.report.empty'),
       },
@@ -206,24 +261,36 @@ function zeigeBericht({ geaendert, fehlgeschlagen, veraendert }) {
 }
 
 /**
- * Führt das bereichsweite Ersetzen über die Auswahl der Trefferliste aus.
+ * Führt das bereichsweite Ersetzen an vorgegebenen Zielen aus.
  *
+ * 4T-002003 (Epic 3E-000307): Herausgelöst aus `ersetzeAuswahlImBereich`, weil
+ * ein zweiter Aufrufer seine Ziele nicht aus der Trefferliste bezieht: Der
+ * Schutz gespeicherter Kalender-Werte ermittelt sie selbst und schreibt über
+ * dieselbe Tür, samt Puffer-Schnitt, Nachladen offener Reiter und
+ * Historien-Sicherung im Hauptprozess. Er führt mehrere Läufe nacheinander
+ * und zeigt am Ende EINEN eigenen Bericht; deshalb lässt sich der Bericht hier
+ * abschalten, und das Ergebnis kommt in jedem Fall zurück.
+ *
+ * @param {Array<{pfad: string, offsets: number[], ersetzungen?: string[]}>} ziele
+ *   Datei-Pfade mit den Datei-Offsets der Fundstellen; optional je Fundstelle
+ *   der eigene Ersetzungs-Text. Die Ziele reisen unverändert zum Hauptprozess
+ *   bzw. auf den Puffer.
  * @param {object} opts muster, flags, ersetzung, regexModus. Bei einer
  *   Tag-Umbenennung (4T-001531) zusätzlich `tag` mit altem und neuem Namen;
  *   `opts` reist als Ganzes zum Hauptprozess, ein weiterer Schnitt entstünde
  *   sonst allein aus dieser Ergänzung.
- * @returns {Promise<object|null>} Das zusammengeführte Ergebnis, oder null,
- *   wenn nichts ausgewählt war.
+ * @param {{zeigen?: boolean}} [bericht] `zeigen: false` unterdrückt den
+ *   Bericht dieses Laufs; ohne Angabe wird er gezeigt.
+ * @returns {Promise<{geaendert: Array, fehlgeschlagen: Array, veraendert: string[]}>}
  */
-export async function ersetzeAuswahlImBereich(opts) {
-  const auswahl = ausgewaehlteFundstellen();
-  if (auswahl.length === 0) return null;
+export async function ersetzeZieleImBereich(ziele, opts, bericht = {}) {
+  const liste = Array.isArray(ziele) ? ziele : [];
 
   // Der Schnitt zwischen Puffer und Platte. Er läuft VOR dem Auftrag, damit
   // der Hauptprozess die Puffer-Dateien gar nicht erst als «offen» abweisen
   // muss — die Abweisung bleibt das Netz für alles, was hier durchrutscht.
-  const imPuffer = auswahl.filter((z) => istImPuffer(z.pfad));
-  const anPlatte = auswahl.filter((z) => !istImPuffer(z.pfad));
+  const imPuffer = liste.filter((z) => istImPuffer(z.pfad));
+  const anPlatte = liste.filter((z) => !istImPuffer(z.pfad));
 
   let antwort = { geaendert: [], fehlgeschlagen: [], veraendert: [] };
   if (anPlatte.length > 0) {
@@ -255,6 +322,19 @@ export async function ersetzeAuswahlImBereich(opts) {
     fehlgeschlagen: antwort.fehlgeschlagen,
     veraendert: [...antwort.veraendert, ...puffer.veraendert],
   };
-  await zeigeBericht(ergebnis);
+  if (!bericht || bericht.zeigen !== false) await zeigeBericht(ergebnis, opts);
   return ergebnis;
+}
+
+/**
+ * Führt das bereichsweite Ersetzen über die Auswahl der Trefferliste aus.
+ *
+ * @param {object} opts Wie bei `ersetzeZieleImBereich`.
+ * @returns {Promise<object|null>} Das zusammengeführte Ergebnis, oder null,
+ *   wenn nichts ausgewählt war.
+ */
+export async function ersetzeAuswahlImBereich(opts) {
+  const auswahl = ausgewaehlteFundstellen();
+  if (auswahl.length === 0) return null;
+  return ersetzeZieleImBereich(auswahl, opts);
 }

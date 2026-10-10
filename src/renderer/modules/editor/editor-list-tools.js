@@ -34,9 +34,9 @@ import {
   parseListLine,
   renumberOrdered,
 } from '../../../shared/markdown/list-outline.js';
-// 4T-001002 (Epic 3E-000196): der Code-Block-Test liegt seit dem Schnitt in
-// editor-keymaps.js (Laufzeit-Zyklus, Zugriffe nur in Funktionskoerpern).
-import { lineInsideCodeBlock } from './editor-keymaps.js';
+// 4T-001002 (Epic 3E-000196): der Code-Block-Test lag seit dem Schnitt in
+// editor-keymaps.js; seit 4T-001716 liegt er im Blatt-Modul editor-code-zeile.js.
+import { lineInsideCodeBlock } from './editor-code-zeile.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 
 // Zeilen-Ausschnitt um den betroffenen Bereich samt Code-Maske. first/last

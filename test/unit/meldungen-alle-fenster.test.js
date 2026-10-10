@@ -14,6 +14,9 @@
 //   3b. (Befund der Abnahme vom 2026-09-24) die Bearbeitung einer Erinnerung,
 //      deren Stand ungespeichert im Editor eines anderen Fensters liegt, geht an
 //      dieses Fenster (reminders:edit);
+//   3c. (4T-001978) dieselbe Regel für einen Handgriff am Treffer der
+//      Aufgaben-Abfrage (taskQuery:edit, gemeinsame Regel in
+//      src/main/ipc/puffer-fenster.js);
 //   4. (4T-001728) Wecker und Timer über dasselbe Register: Zustellung an alle
 //      Fenster, Schlummern und Bestätigen bzw. der Anspruch des Timers wirken
 //      einmal, Nachholen und einmalige Benachrichtigung.
@@ -23,6 +26,7 @@ import { describe, it, expect } from 'vitest';
 import { createDueDelivery } from '../../src/main/checks/due-delivery.js';
 import { createCheckers } from '../../src/main/checks/checkers.js';
 import { registerRemindersIpc } from '../../src/main/ipc/reminders.js';
+import { registerIndexViewsIpc } from '../../src/main/ipc/index-views.js';
 
 // --- Hilfen ------------------------------------------------------------------------
 
@@ -590,6 +594,100 @@ describe('Erinnerungs-Kanäle — Bearbeitung dort, wo der ungespeicherte Stand 
       await rufe('reminders:edit', { item: pufferItem, bearbeitung: { art: 'loeschen' } }),
     ).toEqual({ delegiert: false });
     expect(gesendet).toEqual([]);
+  });
+});
+
+// --- 3c. Aufgaben-Abfrage im Fenster des ungespeicherten Stands (4T-001978) ---------
+//
+// Dieselbe Besitzer-Regel, eigener Kanal: Ein Handgriff am Treffer der
+// Aufgaben-Abfrage (Abhaken, Verschieben, Übernahme aus dem Bearbeitungs-Dialog)
+// geht an das Fenster, das den ungespeicherten Stand der Datei hält
+// (taskQuery:edit in src/main/ipc/index-views.js, Regel in
+// src/main/ipc/puffer-fenster.js).
+
+function abfrageWelt({ besitzer = null, zerstoert = false } = {}) {
+  const gesendet = [];
+  const fenster = (id) => ({
+    isDestroyed: () => zerstoert,
+    webContents: { id, send: (kanal, daten) => gesendet.push({ an: id, kanal, daten }) },
+  });
+  const handler = new Map();
+  registerIndexViewsIpc((kanal, fn) => handler.set(kanal, fn), {
+    senderWindow: () => null,
+    areaOfWindow: () => null,
+    areaRootForEvent: () => null,
+    getStore: () => null,
+    windows: new Map([
+      [1, fenster(1)],
+      [7, fenster(7)],
+    ]),
+    backlinks: { bufferOwnerFor: (p) => (p === 'C:/A/a.md' ? besitzer : null) },
+  });
+  const rufe = (...args) => handler.get('taskQuery:edit')({ sender: { id: 1 } }, ...args);
+  return { gesendet, rufe };
+}
+
+const abfrageTreffer = { path: 'C:/A/a.md', line: 3, taskText: '- [ ] Alpha 📅 2099-01-01' };
+
+describe('Aufgaben-Abfrage — Handgriff dort, wo der ungespeicherte Stand liegt (4T-001978)', () => {
+  it('liegt der Stand im Editor eines anderen Fensters, bekommt dieses den Auftrag', async () => {
+    const { gesendet, rufe } = abfrageWelt({ besitzer: 7 });
+    const toggle = { hit: abfrageTreffer, bearbeitung: { art: 'toggle' } };
+    expect(await rufe(toggle)).toEqual({ delegiert: true });
+    const zeile = {
+      hit: abfrageTreffer,
+      bearbeitung: { art: 'zeile', newText: '- [ ] Alpha 📅 2099-01-02' },
+    };
+    expect(await rufe(zeile)).toEqual({ delegiert: true });
+    expect(gesendet).toEqual([
+      { an: 7, kanal: 'taskQuery:edit', daten: toggle },
+      { an: 7, kanal: 'taskQuery:edit', daten: zeile },
+    ]);
+  });
+
+  it('liegt er beim anfragenden Fenster selbst oder gar nicht vor, schreibt das anfragende Fenster', async () => {
+    for (const besitzer of [1, null]) {
+      const { gesendet, rufe } = abfrageWelt({ besitzer });
+      expect(await rufe({ hit: abfrageTreffer, bearbeitung: { art: 'toggle' } })).toEqual({
+        delegiert: false,
+      });
+      expect(gesendet).toEqual([]);
+    }
+  });
+
+  it('ist das Fenster des Stands nicht mehr da, schreibt das anfragende Fenster', async () => {
+    const auftrag = { hit: abfrageTreffer, bearbeitung: { art: 'toggle' } };
+    const weg = abfrageWelt({ besitzer: 12 });
+    expect(await weg.rufe(auftrag)).toEqual({ delegiert: false });
+    const zu = abfrageWelt({ besitzer: 7, zerstoert: true });
+    expect(await zu.rufe(auftrag)).toEqual({ delegiert: false });
+    expect([...weg.gesendet, ...zu.gesendet]).toEqual([]);
+  });
+
+  it('unvollständige oder unbekannte Aufträge werden nicht weitergegeben; weitergereicht wird nur der Vertrag', async () => {
+    const { gesendet, rufe } = abfrageWelt({ besitzer: 7 });
+    expect(await rufe(null)).toEqual({ delegiert: false });
+    expect(await rufe({ hit: { path: 'C:/A/a.md' }, bearbeitung: { art: 'toggle' } })).toEqual({
+      delegiert: false,
+    });
+    expect(await rufe({ hit: abfrageTreffer, bearbeitung: { art: 'zeile' } })).toEqual({
+      delegiert: false,
+    });
+    expect(await rufe({ hit: abfrageTreffer, bearbeitung: { art: 'loeschen' } })).toEqual({
+      delegiert: false,
+    });
+    expect(gesendet).toEqual([]);
+    await rufe({
+      hit: { ...abfrageTreffer, line: 'x', fremd: 1 },
+      bearbeitung: { art: 'toggle', newText: 'nicht mitzunehmen' },
+    });
+    expect(gesendet).toEqual([
+      {
+        an: 7,
+        kanal: 'taskQuery:edit',
+        daten: { hit: { ...abfrageTreffer, line: 1 }, bearbeitung: { art: 'toggle' } },
+      },
+    ]);
   });
 });
 

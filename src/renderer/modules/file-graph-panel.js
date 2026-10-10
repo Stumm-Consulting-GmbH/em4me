@@ -57,8 +57,12 @@ function ensureView(paneIdx) {
   return views[paneIdx];
 }
 
-// Steuerungs-Selects (neu) befüllen — Labels lokalisiert, deshalb pro
-// Render neu aufgebaut (Sprachwechsel zieht so automatisch nach).
+// Steuerungs-Selects (neu) befüllen — Labels lokalisiert.
+// 4T-002129: Der Satz «Sprachwechsel zieht so automatisch nach» stand hier,
+// traf aber nicht zu: Ein Render folgt nur dem Wechsel der Datei, nicht dem der
+// Sprache. Die Richtungs-Einträge und die Status-Zeile tragen deshalb ihr
+// i18n-Merkmal; applyTranslations bringt sie in die neue Sprache, ohne dass die
+// Auswahl oder der Graph neu aufgebaut werden.
 function rebuildControls(paneIdx, els) {
   const depthSelect = els.fileGraphDepth;
   depthSelect.innerHTML = '';
@@ -79,6 +83,7 @@ function rebuildControls(paneIdx, els) {
     const option = document.createElement('option');
     option.value = value;
     option.textContent = t(key);
+    option.setAttribute('data-i18n', key);
     directionSelect.appendChild(option);
   }
   directionSelect.value = state.fileGraph.directionByPane[paneIdx];
@@ -105,7 +110,9 @@ export async function renderFileGraphPanel(paneIdx) {
   const statusEl = els.fileGraphStatus;
   if (status !== 'ready') {
     statusEl.hidden = false;
-    statusEl.textContent = t(status === 'indexing' ? 'graph.indexing' : 'graph.loadError');
+    const statusKey = status === 'indexing' ? 'graph.indexing' : 'graph.loadError';
+    statusEl.textContent = t(statusKey);
+    statusEl.setAttribute('data-i18n', statusKey);
     els.fileGraphCanvas.hidden = true;
     els.fileGraphNote.hidden = true;
     els.fileGraphScopeHint.hidden = true;

@@ -85,16 +85,16 @@ Une boîte de dialogue propose les langues chargées pour une sélection, même 
 
 ## Supprimer
 
-« Fichier → Votre propre langue → Supprimer… » propose au choix les langues chargées avec leur nom ; annuler est la valeur par défaut. Ce qui est supprimé, c'est le fichier de langue dans le profil de l'utilisateur — le fichier dont il a été chargé reste là où il est.
+« Fichier → Votre propre langue → Supprimer… » propose au choix les langues chargées avec leur nom ; annuler est la valeur par défaut. Ce qui est supprimé, c'est le fichier de langue que l'application a déposé lors du chargement — le fichier dont il a été chargé reste là où il est.
 
 Si la langue supprimée est celle qui est réglée, l'interface passe à l'anglais. C'est la différence avec le fichier manquant ci-dessus : qui retire lui-même une langue ne doit pas s'en voir rappeler l'absence à chaque démarrage.
 
 ## Où se trouve le fichier de langue
 
-Lors du chargement, l'application dépose une copie dans le **profil de l'utilisateur**, dans le dossier `locales`, à côté de ses autres données. Trois garanties en découlent :
+Lors du chargement, l'application dépose une copie dans le dossier `locales`, à côté de ses autres données. Où cela se trouve dépend de la version : dans la version installée, dans le **profil de l'utilisateur** ; dans la [version portable](portable-version.md), dans le dossier `Data` à côté du programme. Trois garanties en découlent :
 
-- La langue propre **survit à une réinstallation** du programme ; elle se trouve hors du répertoire du programme.
-- **Rien n'est écrit dans le répertoire du programme.** Le chemin n'exige donc aucun droit élevé et fonctionne aussi là où le répertoire du programme est protégé en écriture.
+- Dans la version installée, la langue propre **survit à une réinstallation** du programme ; elle se trouve hors du répertoire du programme. Dans la version portable, elle suit le dossier `Data`.
+- **Rien n'est écrit dans le répertoire du programme de la version installée.** Le chemin n'exige donc aucun droit élevé et fonctionne aussi là où ce répertoire est protégé en écriture.
 - Le fichier déposé est **du même type** que celui qui a été chargé : il porte son nommage plus loin et s'appelle d'après le code de la langue. Qui veut le sauvegarder ou le transmettre le copie.
 
 Le fichier est relu à chaque démarrage et vérifié à nouveau à cette occasion — le dossier est accessible avec un éditeur, et la vérification n'a donc pas lieu au seul chargement.

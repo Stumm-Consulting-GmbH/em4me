@@ -7,10 +7,10 @@ External extensions are self-built packages that extend the app's rendering and 
 
 ## Package layout
 
-An extension package is a folder inside the extensions directory of your user profile. The "Open folder" action in the Extensions (external) settings section opens the directory in the file manager.
+An extension package is a folder inside the extensions directory of the application. It lies with the application's remaining data: in the installed version in your user profile, in the [portable version](portable-version.md) in the `Data` folder next to the program. The "Open folder" action in the Extensions (external) settings section opens the directory in the file manager.
 
 ```text
-<user profile>/extensions/
+<application data>/extensions/
 └── my-extension/
     ├── manifest.json     (required: describes the package)
     ├── main.js           (UI entry point, ES module)

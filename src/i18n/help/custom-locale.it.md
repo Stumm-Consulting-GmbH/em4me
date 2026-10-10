@@ -85,16 +85,16 @@ Una finestra di dialogo propone le lingue caricate per una scelta, anche se ve n
 
 ## Rimuovere
 
-«File → Lingua propria → Rimuovere…» propone in scelta le lingue caricate con il loro nome; annullare è il valore predefinito. Viene cancellato il file della lingua nel profilo dell'utente; il file da cui è stata caricata resta dove si trova.
+«File → Lingua propria → Rimuovere…» propone in scelta le lingue caricate con il loro nome; annullare è il valore predefinito. Viene cancellato il file della lingua che l'applicazione ha depositato al caricamento; il file da cui è stata caricata resta dove si trova.
 
 Se la lingua rimossa è quella impostata, l'interfaccia passa all'inglese. È questa la differenza rispetto al file mancante di cui sopra: a chi toglie da sé una lingua non se ne deve ricordare l'assenza a ogni avvio.
 
 ## Dove si trova il file della lingua
 
-Al caricamento l'applicazione deposita una copia nel **profilo dell'utente**, nella cartella `locales`, accanto ai suoi altri dati. Ne derivano tre garanzie:
+Al caricamento l'applicazione deposita una copia nella cartella `locales`, accanto ai suoi altri dati. Dove si trovi dipende dalla versione: nella versione installata nel **profilo dell'utente**, nella [versione portatile](portable-version.md) nella cartella `Data` accanto al programma. Ne derivano tre garanzie:
 
-- La lingua propria **sopravvive a una reinstallazione** del programma; si trova fuori dalla directory del programma.
-- **Non viene scritto nulla nella directory del programma.** Il percorso non richiede quindi diritti elevati e funziona anche là dove la directory del programma è protetta da scrittura.
+- Nella versione installata la lingua propria **sopravvive a una reinstallazione** del programma; si trova fuori dalla directory del programma. Nella versione portatile viaggia con la cartella `Data`.
+- **Non viene scritto nulla nella directory del programma della versione installata.** Il percorso non richiede quindi diritti elevati e funziona anche là dove questa directory è protetta da scrittura.
 - Il file depositato è **dello stesso tipo** di quello caricato: porta con sé il proprio nome e si chiama secondo il codice della lingua. Chi vuole conservarlo o trasmetterlo, lo copia.
 
 Il file viene riletto a ogni avvio e in quell'occasione verificato di nuovo: la cartella è raggiungibile con un editor, e per questo la verifica non avviene solo al caricamento.

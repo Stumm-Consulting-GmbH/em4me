@@ -34,6 +34,8 @@ Un clic destro su una parola segnalata apre il menu contestuale dell'editor con 
 
 Le parole aggiunte in questo modo figurano in Impostazioni → Correzione ortografica e possono essere rimosse lì una per una.
 
+Nella [versione portatile](portable-version.md) l'aggiunta e la rimozione non vengono offerte, perché entrambe scriverebbero nel dizionario del sistema operativo e quindi fuori dalla sua cartella dei dati; i suggerimenti e la sostituzione restano.
+
 ### Limite
 
 La sintassi Markdown, i percorsi e il codice vengono controllati anch'essi, perché il correttore vede il testo parola per parola e non conosce la marcatura. È la ragione per cui il controllo è disattivato di fabbrica.

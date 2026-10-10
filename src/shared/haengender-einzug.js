@@ -13,6 +13,8 @@
 // Renderer-Modul editor-einzug.js.
 'use strict';
 
+const { parseListItemHead } = require('./markdown/list-outline.js');
+
 // Obergrenze in Zeichenbreiten. Ohne sie schöbe eine tief verschachtelte Zeile
 // ihre Fortsetzung so weit nach rechts, dass kaum nutzbare Restbreite bleibt;
 // jenseits der Grenze ist ein etwas ungenauer Einzug besser als eine
@@ -40,8 +42,9 @@ function breiteVon(text, tabBreite) {
  *
  * Vier Fälle, in dieser Reihenfolge geprüft:
  *
- *   1. **Aufgaben-Zeile** (`- [ ] Text`): hinter dem Kästchen, damit die
- *      Fortsetzung unter dem Aufgaben-Text steht und nicht unter dem Kästchen.
+ *   1. **Aufgaben-Zeile** (`- [ ] Text`, seit 4T-001716 auch `1. [ ] Text`
+ *      und `1) [ ] Text`): hinter dem Kästchen, damit die Fortsetzung unter
+ *      dem Aufgaben-Text steht und nicht unter dem Kästchen.
  *   2. **Aufzählung** (`- Text`, auch `*` und `+`): hinter der Marke.
  *   3. **Nummerierte Liste** (`1. Text`, auch `1)`): hinter Nummer und
  *      Trennzeichen; mehrstellige Nummern rücken entsprechend weiter ein.
@@ -55,30 +58,20 @@ function haengenderEinzug(zeile, { tabBreite = TAB_BREITE, hoechstens = EINZUG_H
   const text = String(zeile == null ? '' : zeile);
   const begrenzt = (wert) => Math.min(Math.max(0, wert), hoechstens);
 
-  const aufgabe = /^([ \t]*)([-*+])([ \t]+)(\[[ xX]\])([ \t]+)/.exec(text);
-  if (aufgabe) {
+  // 4T-001716 (Epic 3E-000301): Die Fälle 1 bis 3 liest die eine Erkennung des
+  // Listenpunkt-Kopfs (E14 des Epics). Sie kennt das Kästchen auch hinter
+  // einer Nummer, sodass die Fortsetzung von `1. [ ] Text` und `1) [ ] Text`
+  // unter dem Aufgaben-Text beginnt statt unter dem Kästchen.
+  const kopf = parseListItemHead(text);
+  if (kopf) {
+    const kaestchen = kopf.checkbox
+      ? kopf.checkbox.length + breiteVon(kopf.checkboxGap, tabBreite)
+      : 0;
     return begrenzt(
-      breiteVon(aufgabe[1], tabBreite) +
-        1 +
-        breiteVon(aufgabe[3], tabBreite) +
-        aufgabe[4].length +
-        breiteVon(aufgabe[5], tabBreite),
-    );
-  }
-
-  const aufzaehlung = /^([ \t]*)([-*+])([ \t]+)/.exec(text);
-  if (aufzaehlung) {
-    return begrenzt(
-      breiteVon(aufzaehlung[1], tabBreite) + 1 + breiteVon(aufzaehlung[3], tabBreite),
-    );
-  }
-
-  const nummeriert = /^([ \t]*)(\d{1,9}[.)])([ \t]+)/.exec(text);
-  if (nummeriert) {
-    return begrenzt(
-      breiteVon(nummeriert[1], tabBreite) +
-        nummeriert[2].length +
-        breiteVon(nummeriert[3], tabBreite),
+      breiteVon(kopf.indent, tabBreite) +
+        kopf.marker.length +
+        breiteVon(kopf.gap, tabBreite) +
+        kaestchen,
     );
   }
 

@@ -63,6 +63,19 @@ describe('Render-Erweiterungen: Aus-Zustand (4T-000293)', () => {
     expect(off).toContain('@{Irgendwas: 1-2-3}');
   });
 
+  // 4T-001874 (Epic 3E-000323): «Datum umrechnen» hängt an derselben
+  // Erweiterung; ohne sie gibt es keine zweite Zeitrechnung. Der Eintrag im
+  // Kontextmenü des Editors liest dieselbe Menge (buildCalendarConvertItems).
+  it('4T-001874 AK8: bei abgeschalteter Erweiterung custom-calendars steht calendar.convert in der Menge der abgeschalteten Kommandos, bei eingeschalteter nicht', () => {
+    expect(COMMANDS.some((c) => c.id === 'calendar.convert')).toBe(true);
+    expect(extensionById('custom-calendars').commands).toContain('calendar.convert');
+    const aus = disabledCommandIdSet(['custom-calendars']);
+    expect(aus.has('calendar.convert')).toBe(true);
+    // Das Einfüge-Kommando derselben Erweiterung fällt mit.
+    expect(aus.has('calendar.insertValue')).toBe(true);
+    expect(disabledCommandIdSet([]).has('calendar.convert')).toBe(false);
+  });
+
   it('highlight: ==…== bleibt Klartext', () => {
     const src = 'Text mit ==Markierung== dazwischen';
     expect(renderMarkdown(src, 'de')).toContain('<mark');

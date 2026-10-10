@@ -80,6 +80,14 @@ export const liveBlockquoteLineDeco = Decoration.line({ class: 'cm-live-blockquo
 export const liveHrLineDeco = Decoration.line({ class: 'cm-live-hr' });
 export const liveListBulletLineDeco = Decoration.line({ class: 'cm-live-list-bullet' });
 export const liveListNumberLineDeco = Decoration.line({ class: 'cm-live-list-number' });
+// 4T-001716 (Epic 3E-000301): Folgezeile einer Aufgabe mit gezeichnetem
+// Kästchen; die Stilregel gleicht die Kästchen-Breite aus (footnotes.css).
+export const liveAufgabeFolgezeileDeco = Decoration.line({
+  class: 'cm-live-aufgabe-folgezeile',
+});
+export const liveAufgabeFolgezeileStatusDeco = Decoration.line({
+  class: 'cm-live-aufgabe-folgezeile cm-live-aufgabe-folgezeile-status',
+});
 
 // 4T-000183 (Knip-Zusatzfund): LIVE_CALLOUT_HEADER_TEST entfernt — 4T-000083-
 // Altlast ohne Aufrufer; die Callout-Erkennung laeuft seit 4T-000087 ueber

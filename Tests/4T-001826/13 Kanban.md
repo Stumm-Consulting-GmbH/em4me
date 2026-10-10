@@ -6,7 +6,7 @@ topic: planning
 kanban-plugin: board
 ---
 
-The last stop is a board. This page is an ordinary Markdown file: every heading below is a column, every checkbox line under it a card, and the indented lines are what a card shows underneath its text. Press `Ctrl+7` (View → Board) to see it as a board, switch on edit mode with `Ctrl+E`, then drag a card from one column into the next — the line moves in this very file. Back to [[00 Welcome]].
+This stop is a board. This page is an ordinary Markdown file: every heading below is a column, every checkbox line under it a card, and the indented lines are what a card shows underneath its text. Press `Ctrl+7` (View → Board) to see it as a board, switch on edit mode with `Ctrl+E`, then drag a card from one column into the next — the line moves in this very file. Back to [[00 Welcome]].
 
 This page carries no title heading on purpose: a heading would be read as one more column. What makes the file a board is the `kanban-plugin` entry in its frontmatter — switch to source view and look at the very first lines.
 
@@ -14,7 +14,7 @@ The cards carry more than their text. Due dates show as badges below it; right-c
 
 Cards and notes work together. A card that links a note shows details from that note's frontmatter — which ones is a setting of this board: View → Kanban board → Settings for this board… edits it, and the file keeps it in a settings block at its very end. Right-click a card and choose Create note from card… to turn its text into a note of its own; the card then carries the link. A click on a link in a card opens its target.
 
-That is the whole tour — head back to [[00 Welcome]] and start editing. :tada:
+One stop left, and it counts the days in more than one way: [[14 Calendar Systems]].
 
 ## To do
 

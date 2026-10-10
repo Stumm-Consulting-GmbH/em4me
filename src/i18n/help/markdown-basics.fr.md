@@ -95,7 +95,31 @@ Une ligne vide commence une nouvelle liste. Si elle naît de votre modification,
 
 ### Poursuivre et terminer
 
-La touche Entrée poursuit une liste et ajoute une puce, un numéro consécutif ou une case à cocher vide. Sur un sous-élément vide, elle désindente d'un niveau ; au niveau supérieur, elle termine la liste.
+La touche Entrée poursuit une liste et ajoute une puce, un numéro consécutif ou une case à cocher vide, y compris dans les listes de tâches numérotées. Une nouvelle case est toujours ouverte. L'endroit où naît le nouvel élément dépend de son entourage :
+
+- Si des sous-éléments suivent déjà l'élément, le nouvel élément devient le premier sous-élément et reprend leur type : puce ou numéro, avec ou sans case. Si le curseur se trouve au milieu du texte, le reste de la ligne devient ce premier sous-élément.
+- À la fin d'une deuxième ligne d'un élément (voir « Deuxième ligne dans le même élément »), la touche Entrée commence un nouvel élément.
+- Sur un sous-élément vide, elle désindente d'un niveau, tâches numérotées comprises ; au niveau supérieur, elle termine la liste.
+
+Dans le champ de note du panneau « Notes », la touche Entrée agit de la même façon.
+
+### Deuxième ligne dans le même élément
+
+`Maj+Entrée` (par défaut) commence une deuxième ligne dans le même élément de liste, sans créer de nouvel élément. Elle est en retrait sous le texte de l'élément, pour une tâche sous le texte après la case ; si le curseur se trouve au milieu du texte, le reste de la ligne passe dans la nouvelle ligne. Dans la source, la ligne précédente se termine par une barre oblique inverse, le saut de ligne forcé (voir « Sauts de ligne forcés ») ; la vue Live ne l'affiche que dans la ligne du curseur. À l'affichage, le texte apparaît comme deuxième ligne du même élément, là aussi sous le texte après la case.
+
+```markdown
+- Faire les courses\
+  Lait, pain et fromage
+- [ ] Vérifier l'offre\
+      Respecter le délai
+```
+
+- Faire les courses\
+  Lait, pain et fromage
+- [ ] Vérifier l'offre\
+      Respecter le délai
+
+Si la nouvelle ligne reste vide, Retour arrière la retire avec la barre oblique inverse, et la touche Entrée n'y laisse pas non plus de barre oblique inverse. Lorsque l'élément est indenté ou désindenté, la deuxième ligne suit. Le raccourci vaut dans chaque mode de travail et aussi dans le champ de note ; il se modifie sous Fichier → Paramètres… → Raccourcis clavier.
 
 ### Le curseur au changement de ligne
 
@@ -157,7 +181,7 @@ Voir la [page d'exemple][ref].
 
 ## Sauts de ligne forcés
 
-Deux espaces en fin de ligne ou une barre oblique inverse forcent un saut de ligne dans un paragraphe.
+Deux espaces en fin de ligne ou une barre oblique inverse forcent un saut de ligne dans un paragraphe. Dans l'éditeur, `Maj+Entrée` (par défaut) insère la barre oblique inverse avec une nouvelle ligne. Dans une liste, la nouvelle ligne est en retrait et appartient au même élément (voir « Deuxième ligne dans le même élément »).
 
 ```markdown
 Première ligne\

@@ -76,6 +76,10 @@ const KERN_ZEILEN = [
   'help.feature.tabIndent',
   'help.feature.listNumbering',
   'help.feature.listExit',
+  // 4T-001717 (Epic 3E-000301): Die zweite Zeile im Listenpunkt ist Kern und
+  // keine schaltbare Erweiterung (E5, E16 und E23 des Epics): eine Eingabe-Hilfe
+  // fuer eine Syntax, die das Programm laengst kennt, in jedem Arbeitsmodus.
+  'help.feature.listLineBreak',
   // 4T-001577 (Epic 3E-000282): Der Cursor-Sprung in Listen ist Kern und keine
   // schaltbare Erweiterung (Entscheidung E4 des Epics): Die Registry fuehrt
   // Markdown-Konstrukte und abgrenzbare Funktions-Pakete, eine
@@ -248,6 +252,12 @@ const KERN_ZEILEN = [
   'help.feature.extensionsDev',
   'help.feature.manual',
   'help.feature.tour',
+  // 4T-001996 (Epic 3E-000188): Die portable Fassung ist die Form, in der das
+  // Programm vorliegt, und keine Funktion darin; es gibt nichts, was ein
+  // Schalter abschalten koennte. Die beiden Abweichungen, die sie mitbringt
+  // (Woerterbuch, Datei-Dialoge), haengen am portablen Betrieb und nicht an
+  // einer Erweiterung.
+  'help.feature.portableVersion',
 ];
 
 // Reine Funktion fuer den Waechter und seine Gegenprobe: Welche Katalog-Zeile

@@ -7,10 +7,10 @@ Externe Erweiterungen sind selbst erstellte Pakete, die Rendering und Oberfläch
 
 ## Paket-Aufbau
 
-Ein Erweiterungs-Paket ist ein Ordner im Erweiterungs-Verzeichnis des Nutzerprofils. Der Zugang „Ordner öffnen" im Einstellungs-Bereich Erweiterungen (extern) öffnet das Verzeichnis im Dateimanager.
+Ein Erweiterungs-Paket ist ein Ordner im Erweiterungs-Verzeichnis der Anwendung. Es liegt bei ihren übrigen Daten: in der installierten Fassung im Benutzerprofil, in der [portablen Fassung](portable-version.md) im Ordner `Data` neben dem Programm. Der Zugang „Ordner öffnen" im Einstellungs-Bereich Erweiterungen (extern) öffnet das Verzeichnis im Dateimanager.
 
 ```text
-<Nutzerprofil>/extensions/
+<Daten der Anwendung>/extensions/
 └── meine-erweiterung/
     ├── manifest.json     (Pflicht: beschreibt das Paket)
     ├── main.js           (UI-Einstiegspunkt, ES-Modul)

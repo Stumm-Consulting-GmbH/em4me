@@ -15,8 +15,9 @@
 //   Wiederholung; der ⏰-Marker wandert verschoben in die Folge-Instanz).
 // - Snooze schreibt den neuen Zeitpunkt ueber setReminder direkt in den
 //   Marker der Quelldatei (writeTaskHitLine: aktiver Tab per Transaktion,
-//   inaktiver dirty Tab Hinweis, sonst Main-Schreibweg mit Konflikt-
-//   Schutz). Optionen aus den Einstellungen plus freie Picker-Wahl.
+//   inaktiver dirty Tab im ungespeicherten Stand des Reiters (seit
+//   4T-001978), sonst Main-Schreibweg mit Konflikt-Schutz). Optionen aus den
+//   Einstellungen plus freie Picker-Wahl.
 // - Wegklicken (Escape, Backdrop, Schliessen) mutet die verbliebenen
 //   Eintraege bis zum Neustart (Punkt 3); Wiederausloesung uebernimmt die
 //   Ueberfaellig-Sektion des Panels (4T-000527).
@@ -142,8 +143,8 @@ async function beanspruche(item) {
   return false;
 }
 
-// Das Schreiben ist gescheitert (Konflikt, ungesicherte Datei; der Hinweis
-// steht bereits in der Statusleiste). Die Erinnerung ist damit nicht
+// Das Schreiben ist gescheitert (Konflikt; der Hinweis steht bereits in der
+// Statusleiste). Eine ungesicherte Datei ist seit 4T-001978 kein Grund mehr. Die Erinnerung ist damit nicht
 // bearbeitet und wird allen Fenstern erneut zugestellt.
 async function gibZurueck(item) {
   try {
@@ -190,8 +191,11 @@ function schreibeErledigt(item) {
 
 // Auftrag aus dem Hauptprozess: Dieses Fenster hält den ungespeicherten Stand
 // der Datei. Der Anspruch ist im klickenden Fenster bereits gewährt; hier wird
-// nur geschrieben, genau so, als wäre hier geklickt worden. Scheitert es (etwa
-// weil der Reiter inaktiv und geändert ist; der Hinweis steht dann in der
+// nur geschrieben, genau so, als wäre hier geklickt worden. Ist die Datei hier
+// ein inaktiver, geänderter Reiter, wirkt die Bearbeitung seit 4T-001978 (Epic
+// 3E-000330, E10) in dessen ungespeichertem Stand und gilt als geschrieben; die
+// Erinnerung geht in diesem Fall nicht mehr zurück. Scheitert es dennoch (etwa
+// weil die Zeile dort nicht mehr steht; der Hinweis steht dann in der
 // Statusleiste dieses Fensters), geht der Anspruch zurück, und die Erinnerung
 // erscheint wieder in allen Fenstern.
 async function fuehreAuftragAus(auftrag) {

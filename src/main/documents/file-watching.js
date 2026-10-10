@@ -78,7 +78,7 @@ function createFileWatching(deps) {
       });
     }
     entry.owners.add(ownerId);
-    // Die Laufwerks-Liste kommt aus einem fremden Prozess und liegt beim ersten
+    // Die Laufwerks-Liste wird nachgelagert ermittelt und liegt beim ersten
     // Oeffnen womoeglich noch nicht vor. Wer auf einem gemappten Netzlaufwerk
     // liegt, wird deshalb nachtraeglich umgestellt, sobald sie da ist — sonst
     // haette die Zusage von der Startreihenfolge abgehangen.

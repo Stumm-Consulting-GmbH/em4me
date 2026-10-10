@@ -39,12 +39,21 @@ vi.mock('../../../src/renderer/modules/dialogs/dialogs.js', () => ({
 vi.mock('../../../src/renderer/modules/editor/editor.js', () => ({ paneEditors: [null, null] }));
 
 let auswahl = [];
-vi.mock('../../../src/renderer/modules/search/search-panel.js', () => ({
+// 4T-002107: Die übrigen Ausfuhren bleiben echt — die Form-Wahl der Zähl-Texte
+// (zaehlForm) lebt dort und soll hier nicht nachgebaut werden.
+vi.mock('../../../src/renderer/modules/search/search-panel.js', async (importOriginal) => ({
+  ...(await importOriginal()),
   ausgewaehlteFundstellen: () => auswahl,
 }));
 
-const { ersetzeAuswahlImBereich } =
-  await import('../../../src/renderer/modules/search/search-ersetzen.js');
+const {
+  berichtSchluessel,
+  ersetzeAuswahlImBereich,
+  ersetzeZieleImBereich,
+  ersetztHinweis,
+  fundstellenText,
+  grundText,
+} = await import('../../../src/renderer/modules/search/search-ersetzen.js');
 const { state } = await import('../../../src/renderer/modules/app/app-state.js');
 const { paneEditors } = await import('../../../src/renderer/modules/editor/editor.js');
 
@@ -268,5 +277,180 @@ describe('Bericht nach dem Lauf (AK6)', () => {
     expect(erg.fehlgeschlagen).toHaveLength(1);
     expect(erg.fehlgeschlagen[0].grund).toBe('kanal');
     expect(berichte).toHaveLength(1);
+  });
+});
+
+// 4T-002003 (Epic 3E-000307): Der Rumpf ist als `ersetzeZieleImBereich`
+// herausgelöst, damit der Schutz gespeicherter Kalender-Werte seine selbst
+// ermittelten Ziele durch dieselbe Tür schicken kann — mehrere Läufe
+// nacheinander und am Ende ein eigener Bericht.
+describe('Lauf mit vorgegebenen Zielen (4T-002003)', () => {
+  it('schreibt die übergebenen Ziele ohne Auswahl der Trefferliste und trennt Puffer und Platte', async () => {
+    const view = editorDoppel(11);
+    paneEditors[0] = view;
+    setzeReiter([reiter(DATEI_A, 'Notiz eins\n', true), reiter(DATEI_B, 'Notiz zwei\n', false)], 0);
+    auswahl = [];
+    antwort = { geaendert: [{ pfad: DATEI_B, anzahl: 1 }], fehlgeschlagen: [], veraendert: [] };
+
+    const erg = await ersetzeZieleImBereich(
+      [
+        { pfad: DATEI_A, offsets: [0] },
+        { pfad: DATEI_B, offsets: [0] },
+      ],
+      OPTS,
+    );
+
+    expect(auftraege).toHaveLength(1);
+    expect(auftraege[0].dateien).toEqual([{ pfad: DATEI_B, offsets: [0] }]);
+    expect(view.auftraege).toHaveLength(1);
+    expect(erg.geaendert).toEqual([
+      { pfad: DATEI_B, anzahl: 1 },
+      { pfad: DATEI_A, anzahl: 1, imPuffer: true },
+    ]);
+    expect(berichte).toHaveLength(1);
+  });
+
+  // Plan-Änderung vom 2026-10-01: Jeder Wert bekommt seinen eigenen neuen
+  // Text. Der Puffer-Weg muss ihn genauso setzen wie die Platte, und der
+  // Platten-Anteil reist mit seinen `ersetzungen` unverändert zum Hauptprozess.
+  it('setzt im Puffer je Fundstelle den eigenen Ersetzungs-Text und reicht ihn zur Platte durch', async () => {
+    const view = editorDoppel(43);
+    paneEditors[0] = view;
+    const puffer = '@{K: 25-02-03} und @{K: 6-03-07} im Puffer\n';
+    setzeReiter([reiter(DATEI_A, puffer, true), reiter(DATEI_B, 'Platte\n', false)], 0);
+    const anPlatte = { pfad: DATEI_B, offsets: [0], ersetzungen: ['@{K: 1-01-01}'] };
+    antwort = { geaendert: [{ pfad: DATEI_B, anzahl: 1 }], fehlgeschlagen: [], veraendert: [] };
+    const opts = { muster: '(?<!@)@\\{[^{}\\n]*\\}', flags: 'g', ersetzung: '', regexModus: false };
+
+    await ersetzeZieleImBereich(
+      [
+        { pfad: DATEI_A, offsets: [0, 19], ersetzungen: ['@{K: 5-02-03}', '@{K: 6-03-07 NZ}'] },
+        anPlatte,
+      ],
+      opts,
+      { zeigen: false },
+    );
+
+    expect(view.auftraege).toHaveLength(1);
+    expect(view.auftraege[0].changes.insert).toBe('@{K: 5-02-03} und @{K: 6-03-07 NZ} im Puffer\n');
+    expect(auftraege).toHaveLength(1);
+    expect(auftraege[0].dateien).toEqual([anPlatte]);
+  });
+
+  it('zeigt mit zeigen: false keinen Bericht und gibt das Ergebnis trotzdem zurück', async () => {
+    antwort = {
+      geaendert: [],
+      fehlgeschlagen: [{ pfad: DATEI_A, grund: 'geteilt' }],
+      veraendert: [],
+    };
+
+    const erg = await ersetzeZieleImBereich([{ pfad: DATEI_A, offsets: [0] }], OPTS, {
+      zeigen: false,
+    });
+
+    expect(berichte).toHaveLength(0);
+    expect(erg.fehlgeschlagen).toEqual([{ pfad: DATEI_A, grund: 'geteilt' }]);
+  });
+});
+
+// 4T-002107: Einzahl und Mehrzahl in den Zähl-Texten des Ersetzens. Vorher
+// stand dort «1 Fundstellen in 1 Dateien ersetzt» bzw. «1 Fundstellen», weil es
+// nur die Mehrzahl gab. Geprüft am deutschen Wortlaut der Sprachdatei.
+describe('4T-002107: Einzahl und Mehrzahl beim Ersetzen im Bereich', () => {
+  it('4T-002107: der Hinweis nach «Alle ersetzen» wählt die Form nach Fundstellen und Dateien (1/1, n/1, n/g)', () => {
+    expect(ersetztHinweis(1, 1)).toBe('1 Fundstelle in 1 Datei ersetzt');
+    expect(ersetztHinweis(3, 1)).toBe('3 Fundstellen in 1 Datei ersetzt');
+    expect(ersetztHinweis(5, 2)).toBe('5 Fundstellen in 2 Dateien ersetzt');
+    // Die Bestands-Schlüssel behalten ihre Bedeutung (Mehrzahl).
+    expect(de['areaReplace.count']).toBe('{n} Fundstellen in {d} Dateien ersetzt');
+  });
+
+  it('4T-002107: der Bericht nennt je Datei «1 Fundstelle» bzw. «n Fundstellen»', async () => {
+    expect(fundstellenText(1)).toBe('1 Fundstelle');
+    expect(fundstellenText(2)).toBe('2 Fundstellen');
+    auswahl = [{ pfad: DATEI_A, offsets: [0] }];
+    antwort = { geaendert: [{ pfad: DATEI_A, anzahl: 1 }], fehlgeschlagen: [], veraendert: [] };
+    gelesen[DATEI_A] = 'Merk eins\n';
+
+    await ersetzeAuswahlImBereich(OPTS);
+
+    expect(berichte).toHaveLength(1);
+    expect(berichte[0].sections[0].rows).toEqual([{ text: 'alpha.md', detail: '1 Fundstelle' }]);
+  });
+});
+
+// 4T-002113: Die Tag-Umbenennung schreibt durch dieselbe Tür wie das Ersetzen
+// im Bereich und bekam bis hierher auch dessen Bericht — Überschrift «Ersetzen
+// im Bereich», Abschnitt «Nicht ersetzt», Grund «hier wird nicht ersetzt»,
+// gemeldet am gebauten Programm. Gewählt wird nach dem Aufrufer, erkannt an
+// `opts.tag`; der Bericht des Ersetzens bleibt unverändert.
+describe('4T-002113: Bericht je Aufrufer', () => {
+  // Das Muster ist für die Wahl des Berichts ohne Belang; die Platte ist ein
+  // Stub. Erkannt wird die Umbenennung allein an `tag`.
+  const TAG_OPTS = {
+    muster: 'projekt((?:/[a-z]+)?)',
+    flags: 'gui',
+    ersetzung: 'arbeit$1',
+    regexModus: true,
+    tag: { alt: 'projekt', neu: 'arbeit' },
+  };
+  const FEHLSCHLAG = {
+    geaendert: [{ pfad: DATEI_A, anzahl: 2 }],
+    fehlgeschlagen: [{ pfad: DATEI_B, grund: 'geteilt' }],
+    veraendert: [],
+  };
+
+  it('4T-002113: berichtSchluessel wählt für die Umbenennung die eigenen, sonst die des Ersetzens', () => {
+    expect(berichtSchluessel(TAG_OPTS)).toEqual({
+      titel: 'tagRename.report.title',
+      nichtGeaendert: 'tagRename.report.failed',
+      gruende: 'tagRename.reason.',
+    });
+    for (const opts of [OPTS, undefined, { ...OPTS, tag: { alt: 'x' } }]) {
+      expect(berichtSchluessel(opts)).toEqual({
+        titel: 'areaReplace.report.title',
+        nichtGeaendert: 'areaReplace.report.failed',
+        gruende: null,
+      });
+    }
+  });
+
+  it('4T-002113: der Bericht der Umbenennung heißt «Tag umbenennen» und spricht nirgends vom Ersetzen', async () => {
+    auswahl = [
+      { pfad: DATEI_A, offsets: [0] },
+      { pfad: DATEI_B, offsets: [0] },
+    ];
+    antwort = FEHLSCHLAG;
+
+    await ersetzeAuswahlImBereich(TAG_OPTS);
+
+    expect(berichte).toHaveLength(1);
+    const b = berichte[0];
+    expect(b.title).toBe('Tag umbenennen');
+    expect(b.sections.map((s) => s.title)).toEqual([
+      'Geändert',
+      'Nicht umbenannt',
+      'Seit der Suche geändert',
+    ]);
+    expect(b.sections[1].rows[0].detail).toBe('Geteiltes Dokument; hier wird nicht umbenannt');
+    const alles = JSON.stringify(b);
+    expect(alles).not.toMatch(/ersetz/i);
+  });
+
+  it('4T-002113: der Bericht des Ersetzens im Bereich bleibt unverändert', async () => {
+    auswahl = [
+      { pfad: DATEI_A, offsets: [0] },
+      { pfad: DATEI_B, offsets: [0] },
+    ];
+    antwort = FEHLSCHLAG;
+
+    await ersetzeAuswahlImBereich(OPTS);
+
+    const b = berichte[0];
+    expect(b.title).toBe('Ersetzen im Bereich');
+    expect(b.sections[1].title).toBe('Nicht ersetzt');
+    expect(b.sections[1].rows[0].detail).toBe('Geteiltes Dokument; hier wird nicht ersetzt');
+    // Ein Grund ohne eigenen Wortlaut der Umbenennung kommt aus dem Ersetzen.
+    expect(grundText('lesen', 'tagRename.reason.')).toBe(de['areaReplace.reason.lesen']);
   });
 });

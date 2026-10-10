@@ -85,16 +85,16 @@ Un diálogo ofrece a elegir los idiomas cargados, incluso si hay solo uno; ello 
 
 ## Eliminar
 
-«Archivo → Idioma propio → Eliminar…» ofrece a elegir los idiomas cargados con su nombre; cancelar es el valor predeterminado. Se borra el archivo de idioma en el perfil del usuario; el archivo desde el que se cargó permanece donde está.
+«Archivo → Idioma propio → Eliminar…» ofrece a elegir los idiomas cargados con su nombre; cancelar es el valor predeterminado. Se borra el archivo de idioma que la aplicación depositó al cargarlo; el archivo desde el que se cargó permanece donde está.
 
 Si el idioma eliminado es el que está configurado, la interfaz cambia a inglés. Esa es la diferencia con el archivo ausente de más arriba: a quien retira un idioma por sí mismo no se le debe recordar en cada arranque.
 
 ## Dónde está el archivo de idioma
 
-Al cargarlo, la aplicación deposita una copia en el **perfil del usuario**, en la carpeta `locales`, junto a sus demás datos. De ello se siguen tres garantías:
+Al cargarlo, la aplicación deposita una copia en la carpeta `locales`, junto a sus demás datos. Dónde está eso depende de la versión: en la versión instalada, en el **perfil del usuario**; en la [versión portátil](portable-version.md), en la carpeta `Data` junto al programa. De ello se siguen tres garantías:
 
-- El idioma propio **sobrevive a una reinstalación** del programa; está fuera del directorio del programa.
-- **No se escribe nada en el directorio del programa.** El camino no exige, pues, derechos elevados y funciona también allí donde el directorio del programa está protegido contra escritura.
+- En la versión instalada, el idioma propio **sobrevive a una reinstalación** del programa; está fuera del directorio del programa. En la versión portátil viaja con la carpeta `Data`.
+- **No se escribe nada en el directorio del programa de la versión instalada.** El camino no exige, pues, derechos elevados y funciona también allí donde ese directorio está protegido contra escritura.
 - El archivo depositado es **del mismo tipo** que el cargado: lleva consigo su nombrado y se llama según el código del idioma. Quien quiera guardarlo o transmitirlo, lo copia.
 
 El archivo se lee de nuevo en cada arranque y se comprueba otra vez al hacerlo: la carpeta es accesible con un editor, y por eso la comprobación no ocurre solo al cargar.

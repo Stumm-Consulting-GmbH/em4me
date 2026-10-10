@@ -10,7 +10,7 @@ topic: overview
 This folder is a **sandbox**. Every page demonstrates a feature of the app: the syntax as a code block, the living result right below it. Poke at anything.
 
 > [!tip] Edit freely
-> These are copies. Change them, break them, delete them. Nothing here touches your own notes. To start over, create the Demo-Area again from the menu (File → Create Demo-Area…).
+> These are copies. Change them, break them, delete them. Nothing here touches your own notes. To start over, create the Demo-Area again from the menu (File → Area → Create Demo-Area…).
 
 ## A guided tour
 
@@ -29,6 +29,7 @@ Read in order, or jump straight to what you need:
 11. [[11 Templates]] — reusable building blocks with placeholders
 12. [[12 Canvas]] — cards and connections on a spatial working surface
 13. [[13 Kanban]] — the tasks of one document as a board of columns and cards
+14. [[14 Calendar Systems]] — the same day in the Gregorian and the Japanese calendar, and seven more to add
 
 Beside the tour, the folder `Bookshelf` holds a small **bookshelf** grouping two books — among them the `Demo Book`, a handful of chapters tied into one declared reading path. Open the shelf with **File → Open Bookshelf…** (or a single book with **File → Open Book…**); [[Bookshelf]] and [[Demo Book]] explain what to try. :books:
 

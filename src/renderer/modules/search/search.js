@@ -23,8 +23,11 @@ import {
   naechsterRaumTreffer,
   raumIndex,
   raumTrefferAnzahl,
-  sucheImRaum,
+  sprungVormerken,
+  starteRaumLauf,
+  stoppeEingabeDrossel,
   vorherigerRaumTreffer,
+  vorwaertsZiel,
 } from './search-run.js';
 // 4T-001525 (Epic 3E-000169): Der Ersetzen-Modus schaltet die Auswahl-Ebene
 // der Trefferliste. Der Import geht nur in diese Richtung — search-panel.js
@@ -60,6 +63,11 @@ export const search = {
   currentIndex: -1,
   scope: 'rendered', // 'source' | 'rendered'
   debounceTimer: null,
+  // 4T-002107: Wurde der aktuelle Treffer schon angesprungen, also gezeigt?
+  // Eine Neu-Ermittlung (Tippen, Options-Wechsel) markiert ihn nur und setzt
+  // das zurück; jeder Sprung setzt es. Der erste Vorwärts-Sprung danach zeigt
+  // den markierten Treffer, statt ihn zu überspringen (vorwaertsZiel).
+  angesprungen: false,
 };
 
 export let searchEls = null;
@@ -380,8 +388,7 @@ export function findFirstVisibleMatchIndex() {
 // DOM-Elemente? Geprueft wird am ersten Eintrag, weil die Liste immer aus
 // einer Quelle stammt und deshalb homogen ist.
 function sindEditorTreffer(matches) {
-  const erster = matches && matches[0];
-  return !!erster && typeof erster.from === 'number';
+  return !!(matches && matches[0]) && typeof matches[0].from === 'number';
 }
 
 export function setCurrentMatch(idx, scroll = true) {
@@ -393,6 +400,8 @@ export function setCurrentMatch(idx, scroll = true) {
   // fuellt. Der Pfad fuer die gerenderte Ansicht traf dann auf eine
   // Editor-Position ohne classList und brach mitten im Ablauf ab — still,
   // ohne Markierung und ohne die nachfolgende Zaehler-Aktualisierung.
+  // 4T-002107: Mit Bewegung ist es ein Sprung, der aktuelle Treffer also gezeigt.
+  if (scroll && search.matches[idx]) search.angesprungen = true;
   if (search.scope === 'source' || sindEditorTreffer(search.matches)) {
     // Source-Pane: Decoration-Set aktualisieren, der aktive Treffer bekommt
     // die zusaetzliche cm-search-match-current-Klasse.
@@ -472,6 +481,14 @@ export function updateSearchScopeLabel() {
   els.scope.textContent = t(SCOPE_LABEL_KEYS[search.scope] || 'search.scopeRendered');
 }
 
+// 4T-002129: Nach dem Ergebnis eines Raum-Laufs Zähler und Markierung nachziehen,
+// dann zum Ziel der vorgemerkten Sprünge springen (search-run.js).
+function nachRaumLauf(ziel) {
+  updateSearchCounter();
+  if (raumMarkierHandler) raumMarkierHandler();
+  if (ziel) springeZuRaumTreffer(ziel);
+}
+
 export function setInvalidRegex(invalid) {
   const els = getSearchEls();
   els.input.classList.toggle('invalid', !!invalid);
@@ -496,7 +513,17 @@ export function performSearch(opts = {}) {
   // geteilten Ansicht refresht am Ende ihrer Render-Pipeline ebenfalls. Wer
   // eine Bewegung braucht, fordert sie jetzt an, statt dass jeder neue
   // Aufrufer sie stillschweigend erbt.
-  const { keepCurrent = false, moveCursor = false } = opts;
+  //
+  // 4T-002107: `neuErmittlung` sagt, ob der Lauf eine neue Treffermenge
+  // bestimmt (Tippen, Options-Wechsel, Öffnen der Leiste, Ersetzen) oder nur
+  // eine bestehende nachzieht (Doc-Änderung, Reiter- und Ansichts-Wechsel,
+  // Sprung über eine Reiter-Grenze; alle über refreshSearchIfVisible). Nur
+  // die neue Menge setzt «angesprungen» zurück; das Nachziehen darf es nicht,
+  // sonst zeigte der nächste F3-Druck nach einem Raum-Sprung denselben
+  // Treffer noch einmal. Die Vorgabe folgt keepCurrent; die Options-Schalter
+  // behalten den Index und sagen es deshalb ausdrücklich.
+  const { keepCurrent = false, moveCursor = false, neuErmittlung = !keepCurrent } = opts;
+  if (neuErmittlung) search.angesprungen = false;
   const prevIdx = keepCurrent ? search.currentIndex : -1;
   clearSearchHighlights();
   const vorherigerScope = search.scope;
@@ -541,12 +568,9 @@ export function performSearch(opts = {}) {
   // 4T-000760: Raum-Suche. Der Lieferant arbeitet asynchron (Handbuch-Seiten
   // kommen per IPC), deshalb laeuft der Zaehler dem Tastendruck hinterher;
   // ueberholte Laeufe verwirft sucheImRaum selbst ueber seine Generation.
+  // 4T-002129: Start und Vormerkung der Sprünge in search-run.js (starteRaumLauf).
   if (isRaumScope(search.scope)) {
-    void sucheImRaum(search.scope, regex, { behalteIndex: keepCurrent }).then((angezeigt) => {
-      if (!angezeigt) return;
-      updateSearchCounter();
-      if (raumMarkierHandler) raumMarkierHandler();
-    });
+    void starteRaumLauf(search, regex, keepCurrent, neuErmittlung, nachRaumLauf);
     return;
   }
 
@@ -627,7 +651,7 @@ export function performSourceSearch(regex, prevIdx, moveCursor = false) {
 }
 
 export function debouncedSearch() {
-  if (search.debounceTimer) clearTimeout(search.debounceTimer);
+  stoppeEingabeDrossel(search);
   search.debounceTimer = setTimeout(() => {
     search.debounceTimer = null;
     performSearch();
@@ -647,6 +671,9 @@ export function scheduleSearchRefresh() {
 }
 
 export function nextMatch() {
+  // 4T-002129: Eine noch gedrosselte Eingabe gilt vor dem Sprung, nicht danach;
+  // steht der Lauf eines Raums noch aus, wird der Sprung vorgemerkt.
+  if (sprungVormerken(search, 1, performSearch)) return;
   // 4T-001893: In der Mindmap wandert F3 von Knoten zu Knoten, im Kreis.
   if (search.scope === 'mindmap') {
     naechsterMindmapTreffer();
@@ -655,18 +682,22 @@ export function nextMatch() {
   }
   // 4T-000760: Im Raum-Scope laeuft F3 ueber die Seiten- bzw. Bereichsgrenze
   // hinweg; der Sprung selbst haengt am Sprung-Handler des Panels.
+  // 4T-002107: Der erste Vorwärts-Sprung nach einer Neu-Ermittlung zeigt den
+  // als aktuell markierten Treffer, erst der nächste geht weiter
+  // (vorwaertsZiel in search-run.js). Der Sprung selbst setzt «angesprungen»:
+  // im Dokument über setCurrentMatch, im Raum über springeZuTreffer.
   if (isRaumScope(search.scope)) {
-    const treffer = naechsterRaumTreffer();
+    const treffer = naechsterRaumTreffer({ angesprungen: search.angesprungen });
     if (treffer) springeZuRaumTreffer(treffer);
     updateSearchCounter();
     return;
   }
   if (search.matches.length === 0) return;
-  const n = (search.currentIndex + 1) % search.matches.length;
-  setCurrentMatch(n);
+  setCurrentMatch(vorwaertsZiel(search.currentIndex, search.matches.length, search.angesprungen));
 }
 
 export function prevMatch() {
+  if (sprungVormerken(search, -1, performSearch)) return;
   if (search.scope === 'mindmap') {
     vorigerMindmapTreffer();
     updateSearchCounter();
@@ -712,14 +743,10 @@ export function closeSearchBar() {
   setzeErsetzenModus(false);
   // R5-04 (4T-000171): laufende Debounce-Timer stoppen, sonst laeuft
   // performSearch nach dem Schliessen weiter (Highlights + Scroll).
-  if (search.debounceTimer) {
-    clearTimeout(search.debounceTimer);
-    search.debounceTimer = null;
-  }
-  if (searchRefreshTimer) {
-    clearTimeout(searchRefreshTimer);
-    searchRefreshTimer = null;
-  }
+  stoppeEingabeDrossel(search);
+  // clearTimeout(null) ist ohne Wirkung; die Abfrage davor entfällt deshalb.
+  clearTimeout(searchRefreshTimer);
+  searchRefreshTimer = null;
   els.bar.classList.remove('replace-mode');
   els.bar.hidden = true;
   closeRegexHelp();
@@ -813,7 +840,7 @@ async function ersetzeImBereichsRaum() {
   // Zyklus-Komponente des Renderers hinein (dieses Modul ist Teil von ihr,
   // und der Waechter scripts/lint-ordner-importe.js laesst sie nicht mehr
   // wachsen). Sachlich passt es: Der Lauf ist ein Knopfdruck, kein Ladevorgang.
-  const { ersetzeAuswahlImBereich } = await import('./search-ersetzen.js');
+  const { ersetzeAuswahlImBereich, ersetztHinweis } = await import('./search-ersetzen.js');
   const ergebnis = await ersetzeAuswahlImBereich({
     muster: regex.source,
     flags: regex.flags,
@@ -826,12 +853,9 @@ async function ersetzeImBereichsRaum() {
   }
   performSearch();
   const stellen = ergebnis.geaendert.reduce((summe, g) => summe + g.anzahl, 0);
-  showStatusbarHint('', {
-    text: t('areaReplace.count')
-      .replace('{n}', String(stellen))
-      .replace('{d}', String(ergebnis.geaendert.length)),
-    duration: 2000,
-  });
+  // 4T-002107: Text samt Einzahl-Form aus search-ersetzen.js (ersetztHinweis).
+  const text = ersetztHinweis(stellen, ergebnis.geaendert.length);
+  showStatusbarHint('', { text, duration: 2000 });
 }
 
 export function replaceAllMatches() {
@@ -936,6 +960,10 @@ export function bindSearchUi() {
   const els = getSearchEls();
 
   els.input.addEventListener('input', (e) => {
+    // 4T-002129: Ein Eingabe-Ereignis ohne geänderten Begriff (etwa dasselbe
+    // Wort über die Auswahl eingefügt) ist keine neue Anfrage; ein Lauf danach
+    // würde den aktuellen Treffer ohne Grund auf den ersten setzen.
+    if (e.target.value === search.query) return;
     search.query = e.target.value;
     debouncedSearch();
   });
@@ -969,14 +997,14 @@ export function bindSearchUi() {
     search.caseSensitive = !search.caseSensitive;
     els.btnCase.classList.toggle('active', search.caseSensitive);
     await persistSetting('searchCaseSensitive', search.caseSensitive);
-    performSearch({ keepCurrent: true });
+    performSearch({ keepCurrent: true, neuErmittlung: true });
     els.input.focus();
   });
   els.btnRegex.addEventListener('click', async () => {
     search.useRegex = !search.useRegex;
     els.btnRegex.classList.toggle('active', search.useRegex);
     await persistSetting('searchUseRegex', search.useRegex);
-    performSearch({ keepCurrent: true });
+    performSearch({ keepCurrent: true, neuErmittlung: true });
     els.input.focus();
   });
 

@@ -192,6 +192,22 @@ const COMMANDS = [
     editorScoped: false,
     availability: 'editorUndKalender',
   },
+  // 4T-001874 (Epic 3E-000323): Datum umrechnen — öffnet den Dialog, der einen
+  // Zeitpunkt in den übrigen Zeitrechnungen desselben Blocks zeigt. Er schreibt
+  // nichts und braucht deshalb keinen Editor: verfügbar bei Bereich mit
+  // mindestens einer Zeitrechnung, auch in der Lese-Ansicht und ohne
+  // geöffnetes Dokument. Ohne Default-Kürzel (Palette und Kontextmenü des
+  // Editors; Kürzel per Einstellungen belegbar).
+  {
+    id: 'calendar.convert',
+    defaultBindings: [],
+    labelKey: 'command.calendar.convert',
+    descKey: 'help.shortcut.convertCalendarValue',
+    categoryKey: 'help.group.editing',
+    menu: false,
+    editorScoped: false,
+    availability: 'bereichUndKalender',
+  },
   {
     id: 'edit.insertEvents',
     defaultBindings: [],
@@ -1850,6 +1866,19 @@ const COMMANDS = [
     defaultBindings: [],
     labelKey: 'command.list.selectSubtree',
     descKey: 'help.shortcut.listSelectSubtree',
+    categoryKey: 'help.group.editing',
+    menu: false,
+    editorScoped: true,
+    availability: 'editor',
+  },
+  // 4T-001716 (Epic 3E-000301): harter Zeilenumbruch im Listenpunkt (E9, E10).
+  // Umschalt+Eingabe ist umbelegbare Vorgabe; die Sperr-Regel lässt sie als
+  // benannte Ausnahme zu (command-bindings.js, isBindingCapturable).
+  {
+    id: 'list.lineBreak',
+    defaultBindings: ['Shift+Enter'],
+    labelKey: 'command.list.lineBreak',
+    descKey: 'help.shortcut.listLineBreak',
     categoryKey: 'help.group.editing',
     menu: false,
     editorScoped: true,

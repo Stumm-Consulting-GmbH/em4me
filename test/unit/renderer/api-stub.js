@@ -36,6 +36,9 @@ window.api = {
   spellcheckRemoveWord: async () => true,
   spellcheckAddWord: async () => true,
   spellcheckReplace: async () => true,
+  // 4T-001991 (Epic 3E-000188): Einstellungs-Seite und Editor-Kontextmenü
+  // fragen, ob das Programm portabel läuft; der Testlauf ist nie portabel.
+  getPortablerBetrieb: async () => ({ portabel: false, datenOrdner: null }),
   // 4T-000635: Der Erinnerungs-Zuhoerer meldet sich seit der Behebung am
   // Modulkopf an, nicht mehr in initReminders(). Ohne diesen Eintrag bricht
   // schon der Modul-Import. Der Handler wird festgehalten, damit ein Test die
@@ -66,6 +69,13 @@ window.api = {
     window.__remindersEdit ? window.__remindersEdit(auftrag) : { delegiert: false },
   onRemindersEdit: (handler) => {
     window.__remindersEditHandler = handler;
+  },
+  // 4T-001978 (Epic 3E-000330): Handgriff am Treffer der Aufgaben-Abfrage im
+  // Fenster des ungespeicherten Stands — Anfrage und Auftrag, Bauart wie oben.
+  taskQueryEdit: async (auftrag) =>
+    window.__taskQueryEdit ? window.__taskQueryEdit(auftrag) : { delegiert: false },
+  onTaskQueryEdit: (handler) => {
+    window.__taskQueryEditHandler = handler;
   },
   // 4T-001728 (Epic 3E-000305): Wecker und Timer melden sich in allen Fenstern;
   // die Init der Uhr meldet sich an der Räum-Meldung an und holt den offenen

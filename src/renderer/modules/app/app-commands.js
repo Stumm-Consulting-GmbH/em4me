@@ -106,6 +106,7 @@ import { schalteKanbanAnzeige } from '../kanban/kanban-anzeige-schalter.js';
 import { oeffneTafelSuche } from '../kanban/kanban-suche.js';
 import { openDatePickerAtSelection } from '../calendar/date-picker.js';
 import { openCalendarPickerAtSelection } from '../calendar/calendar-picker.js';
+import { openCalendarConvertAt } from '../calendar/calendar-convert-dialog.js';
 import * as journale from '../calendar/journals.js';
 import { openHistoryPageForActiveTab } from '../views/history-page.js';
 import { openAreaGraphTab } from '../graph/graph-tab.js';
@@ -353,6 +354,15 @@ export const commandHandlers = {
     }
     if (!view || view.state.readOnly) return false;
     void openCalendarPickerAtSelection(view);
+  },
+  // 4T-001874/4T-002097 (Epic 3E-000323): Datum umrechnen, ohne Bedingung an
+  // Bearbeiten-Modus oder Editor; ein Editor liefert die Vorbelegung aus der
+  // Auswahl und, nur wenn beschreibbar, das Ziel von «Einfügen» (Notiz-Feld vor
+  // dem Haupt-Editor wie oben, ohne Editor in der Lese-Ansicht).
+  'calendar.convert': () => {
+    const tab = activeTab();
+    const main = tab && tab.viewMode !== 'rendered' ? paneEditors[state.activePaneIndex] : null;
+    void openCalendarConvertAt(activeNotesEditorView() || main);
   },
   // 4T-000339 (Epic 3E-000061): aktive Datei umbenennen.
   'file.rename': () => {

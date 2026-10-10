@@ -1117,6 +1117,69 @@
       "fehlerbild": "Erste Beobachtung. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000351 «Fehler-Release Lesezeichen-Ordner» im Stamm-Clone SC-026/A am 2026-10-08, Schritt 6 im Sammeltask 4T-002179: 1137 von 1140 grün, 3 rot in 1,4 h (Gate-Lauf 14:18 bis 15:43 UTC), parallel zum Linux-Lauf im Container. «expect(locator).toHaveText(expected) failed», erwartet /Quartal/, erhalten «Bericht×», nach 10000 ms. Beleg: test-berichte/rot/2026-10-08T15-43-52Z-zug-3E-000351-Lesezeichen-Ordner-e2e.log samt Artefakten. Isoliert unmittelbar danach nachgeprüft: die drei Prüfdateien bereichs-statistik, datentabelle und diagramme-verweise zusammen 30 von 30 grün in 1,9 min.",
       "vermutung": "Wartezeit unter Last wie DT-16 im selben Lauf: Der Wechsel des Ziels im Rueckverweis-Panel kam nicht binnen 10 s. Bezug zum Zug: keiner, der Zug aendert weder Diagramme noch Rueckverweise.",
       "status": "beobachtet"
+    },
+    {
+      "spec": "test/unit/db-intent-recovery.test.js",
+      "fall": "Wiederanlauf: Abbruch an jeder Stelle der Klammer (4T-001824, AK8) › AK8 sperren (haengen): danach vollständig gewirkt oder vollständig unberührt",
+      "datum": "2026-10-09",
+      "fehlerbild": "Erster Eintrag dieses Falls. Einzel-Fehlschlag im Testsuite-Gate der Merge-Queue (volle Gates, erster Lauf des Tages) für den Arbeitszweig arbeit/3E-000261-Plan (Projektmanagement-Änderung, eine Datei) im Arbeitsbereich SC-026/C: 1 von 13067 Fällen rot, Fehlerbild STACK_TRACE_ERROR des Vitest-Läufers (Zeitlimit des Falls); Beleg test-berichte/rot/2026-10-09T08-13-59Z-arbeit-3E-000261-Plan-test.log und .json. Wiederholung der Datei allein unmittelbar danach grün (36 von 36).",
+      "vermutung": "Rechnerlast als Auslöser bei einem Fall, der einen hängenden Schreib-Prozess mit festem Zeitlimit nachstellt; dieselbe Familie wie der Eintrag zu db-intent-recovery-absturz.test.js vom 2026-10-07 (Prozess-Wettläufe der Datenbank-Aufträge). Zur selben Zeit lief auf dem Rechner kein weiterer Testlauf dieser Sitzung; Fremdlast nicht gemessen.",
+      "status": "beobachtet",
+      "vermerk": "Bei der Sichtung je Release zu beachten: zweiter Zeitlimit-Fall der Auftrags-Familie innerhalb von zwei Tagen (Absturz-Prüfung am 2026-10-07, Wiederanlauf am 2026-10-09). Tritt ein dritter auf, ist das ein Wiederholungs-Muster und kein Einzelfall: dann eigener Vorgang zur Last-Empfindlichkeit dieser Prüffälle (Zeitlimit messen, Prozess-Starts entzerren)."
+    },
+    {
+      "spec": "test/unit/renderer/wörterbuch-portabler-betrieb-oberfläche.test.js",
+      "fall": "Editor-Kontextmenü im portablen Betrieb (4T-001991) › beforeAll",
+      "datum": "2026-10-10",
+      "fehlerbild": "Erste Beobachtung. Aufgetreten im WINDOWS-Unit-Lauf der Release-Strecke des Zuges 3E-000329 im Stamm-Clone SC-026/A am 2026-10-10 (node scripts/gate-lauf.js alle), im Gate test:uhr (Suite mit um fünf Jahre verschobener Uhr), parallel zum Linux-Lauf im Container; das Gate test davor grün. «Hook timed out in 10000ms» im beforeAll der Gruppe, 1 von 633 Prüfdateien. Beleg: test-berichte/rot/2026-10-10T06-34-25Z-zug-3E-000329-Zug-3-Einstellungen-test-uhr.log und .json. Allein nachgeprüft, während der Linux-Ablauf-Lauf weiterlief: mit verschobener Uhr einmal rot, einmal grün; ohne Verschiebung grün.",
+      "vermutung": "Kosten des Hakens nahe an seiner Grenze: Er setzt die Modul-Ablage zurück und lädt das Menü-Modul neu, der erste Import zieht den ganzen Modul-Graphen durch die Umwandlung. Unter Last reißt er. Die Uhr ist es nicht, der zweite Lauf mit verschobener Uhr war grün.",
+      "status": "befoerdert",
+      "vorgang": "4T-002214",
+      "vermerk": "Befördert zum Vorgang der Pflege, der die Kosten des Hakens angeht (Sichtungs-Punkt Zeitgrenzen-Abstand; das Werkzeug misst Haken nicht)."
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-statistik.spec.js",
+      "fall": "BS-06",
+      "datum": "2026-10-10",
+      "fehlerbild": "DREIZEHNTE Beobachtung; die zwölfte steht unter dem 2026-10-08. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000329 «Einstellungen und Funktionsumfangs-Steuerung» im Stamm-Clone SC-026/A am 2026-10-10, Schritt 6 im Sammeltask 4T-001975: 1184 von 1190 grün, 6 rot in 2,3 h (Gate-Lauf 06:44 bis 09:05 UTC), bis 07:08 UTC parallel zu den Linux-Läufen im Container, gegen Ende parallel zu einem Unit-Lauf aus SC-026/C. Beleg: test-berichte/rot/2026-10-10T09-05-12Z-zug-3E-000329-Zug-3-Einstellungen-e2e.log samt Artefakten. Abbruch-Stelle dieselbe wie bei allen Vorgaengern, «Timeout 10000ms exceeded while waiting on the predicate», Fall «das Bereichs-Panel zeigt beide Eintraege, im Aus-Zustand nur den Graph». Isoliert unmittelbar danach ohne fremde Last nachgeprüft: die fünf Prüfdateien der roten Fälle (bereichs-statistik, bereichs-suche, datenbank-bereich, datentabelle, ereignisse) zusammen 65 von 66 grün in 4,5 min; rot allein BS-12, ein Produktfehler des Zuges, behoben in 4T-002216.",
+      "vermutung": "Weiter an derselben Stelle, wieder unter Last. Bezug zum Zug: keiner, der Zug ändert weder die Bereichs-Statistik noch das Kontextmenü des Bereichs-Panels.",
+      "status": "befoerdert",
+      "vorgang": "4T-001100",
+      "vermerk": "Dreizehnte Beobachtung, die dem bestehenden Vorgang 4T-001100 beitritt; kein neuer Vorgang."
+    },
+    {
+      "spec": "test/e2e/funktionen/datentabelle.spec.js",
+      "fall": "DT-16: Rückverweis und Umbenennen aus einer Datentabellen-Zelle (4T-002013) — das Ziel nennt die Tabelle unter seinen Rückverweisen, das Umbenennen ändert die Zelle",
+      "datum": "2026-10-10",
+      "fehlerbild": "ZWEITE Beobachtung; die erste steht unter dem 2026-10-08. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000329 «Einstellungen und Funktionsumfangs-Steuerung» im Stamm-Clone SC-026/A am 2026-10-10, Schritt 6 im Sammeltask 4T-001975: 1184 von 1190 grün, 6 rot in 2,3 h (Gate-Lauf 06:44 bis 09:05 UTC), bis 07:08 UTC parallel zu den Linux-Läufen im Container, gegen Ende parallel zu einem Unit-Lauf aus SC-026/C. Beleg: test-berichte/rot/2026-10-10T09-05-12Z-zug-3E-000329-Zug-3-Einstellungen-e2e.log samt Artefakten. Dieselbe Stelle wie dort: «expect(locator).toBeVisible() failed», das Rückverweis-Panel blieb nach dem Klick auf seinen Knopf verborgen, nach 10000 ms. Isoliert unmittelbar danach ohne fremde Last nachgeprüft: die fünf Prüfdateien der roten Fälle (bereichs-statistik, bereichs-suche, datenbank-bereich, datentabelle, ereignisse) zusammen 65 von 66 grün in 4,5 min; rot allein BS-12, ein Produktfehler des Zuges, behoben in 4T-002216.",
+      "vermutung": "Wartezeit unter Last wie bei der ersten Beobachtung. Bezug zum Zug: keiner, der Zug ändert weder Datentabellen noch Rückverweise.",
+      "status": "beobachtet",
+      "vermerk": "Zweite Beobachtung in drei Tagen, beide im Windows-Voll-Lauf mit paralleler Last. Bei einer dritten zum Testfehler-Vorgang befördern; die Bereinigung der beobachteten Fälle (4T-002181) nimmt ihn mit."
+    },
+    {
+      "spec": "test/e2e/funktionen/datenbank-bereich.spec.js",
+      "fall": "DB-BER-01: Einstellungs-Bereich «Datenbank» (4T-001758) — die Option landet in der Bereichsdatei und wird zurückgelesen",
+      "datum": "2026-10-10",
+      "fehlerbild": "Erste Beobachtung. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000329 «Einstellungen und Funktionsumfangs-Steuerung» im Stamm-Clone SC-026/A am 2026-10-10, Schritt 6 im Sammeltask 4T-001975: 1184 von 1190 grün, 6 rot in 2,3 h (Gate-Lauf 06:44 bis 09:05 UTC), bis 07:08 UTC parallel zu den Linux-Läufen im Container, gegen Ende parallel zu einem Unit-Lauf aus SC-026/C. Beleg: test-berichte/rot/2026-10-10T09-05-12Z-zug-3E-000329-Zug-3-Einstellungen-e2e.log samt Artefakten. Kein Zeitlimit, sondern die Konsolen-Prüfung beim Schließen: «[renderer] unbehandelte Promise-Ablehnung: Cannot read properties of null (reading 'journals')», dazu derselbe Fehler als pageerror. Isoliert unmittelbar danach ohne fremde Last nachgeprüft: die fünf Prüfdateien der roten Fälle (bereichs-statistik, bereichs-suche, datenbank-bereich, datentabelle, ereignisse) zusammen 65 von 66 grün in 4,5 min; rot allein BS-12, ein Produktfehler des Zuges, behoben in 4T-002216.",
+      "vermutung": "Ein Leser der Journal-Konfiguration bekommt unter Last kurzzeitig keine Konfiguration (null), vermutlich zwischen Einstellungs-Änderung und Neuladen; der Code liest dort ohne Prüfung config.journals. Bezug zum Zug: keiner, der Zug ändert weder den Kalender-Bereich noch den Datenbank-Bereich der Einstellungen.",
+      "status": "beobachtet",
+      "vermerk": "Anders als ein Zeitlimit eine echte Ausnahme im Anwendungs-Code unter Last. Tritt sie erneut auf, nicht weiter beobachten, sondern als Produktfehler-Vorgang befördern (Stelle ermitteln, Null-Fall absichern)."
+    },
+    {
+      "spec": "test/e2e/funktionen/ereignisse.spec.js",
+      "fall": "EV-15: Gantt-Ansicht mit Balken, Raute und Abhängigkeits-Linie — Umschalter schreibt view: gantt; Achse, Balken und Overlay stehen; Balken-Klick springt zur Tabelle",
+      "datum": "2026-10-10",
+      "fehlerbild": "Erste Beobachtung. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000329 «Einstellungen und Funktionsumfangs-Steuerung» im Stamm-Clone SC-026/A am 2026-10-10, Schritt 6 im Sammeltask 4T-001975: 1184 von 1190 grün, 6 rot in 2,3 h (Gate-Lauf 06:44 bis 09:05 UTC), bis 07:08 UTC parallel zu den Linux-Läufen im Container, gegen Ende parallel zu einem Unit-Lauf aus SC-026/C. Beleg: test-berichte/rot/2026-10-10T09-05-12Z-zug-3E-000329-Zug-3-Einstellungen-e2e.log samt Artefakten. «Test timeout of 60000ms exceeded», im selben Lauf auch der Nachbar-Fall derselben Gruppe. Isoliert unmittelbar danach ohne fremde Last nachgeprüft: die fünf Prüfdateien der roten Fälle (bereichs-statistik, bereichs-suche, datenbank-bereich, datentabelle, ereignisse) zusammen 65 von 66 grün in 4,5 min; rot allein BS-12, ein Produktfehler des Zuges, behoben in 4T-002216.",
+      "vermutung": "Zeitlimit des Falls unter Last. Bezug zum Zug: keiner, der Zug ändert die Ereignis-Ansichten nicht.",
+      "status": "beobachtet"
+    },
+    {
+      "spec": "test/e2e/funktionen/ereignisse.spec.js",
+      "fall": "EV-15: Gantt-Ansicht mit Balken, Raute und Abhängigkeits-Linie — Filter-Umschalter und Ansichts-Knöpfe überlappen einander nicht",
+      "datum": "2026-10-10",
+      "fehlerbild": "Erste Beobachtung. Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke des Zuges 3E-000329 «Einstellungen und Funktionsumfangs-Steuerung» im Stamm-Clone SC-026/A am 2026-10-10, Schritt 6 im Sammeltask 4T-001975: 1184 von 1190 grün, 6 rot in 2,3 h (Gate-Lauf 06:44 bis 09:05 UTC), bis 07:08 UTC parallel zu den Linux-Läufen im Container, gegen Ende parallel zu einem Unit-Lauf aus SC-026/C. Beleg: test-berichte/rot/2026-10-10T09-05-12Z-zug-3E-000329-Zug-3-Einstellungen-e2e.log samt Artefakten. «Test timeout of 60000ms exceeded», im selben Lauf wie der Nachbar-Fall derselben Gruppe. Isoliert unmittelbar danach ohne fremde Last nachgeprüft: die fünf Prüfdateien der roten Fälle (bereichs-statistik, bereichs-suche, datenbank-bereich, datentabelle, ereignisse) zusammen 65 von 66 grün in 4,5 min; rot allein BS-12, ein Produktfehler des Zuges, behoben in 4T-002216.",
+      "vermutung": "Zeitlimit des Falls unter Last, gemeinsam mit dem Nachbar-Fall. Bezug zum Zug: keiner.",
+      "status": "beobachtet"
     }
   ]
 }

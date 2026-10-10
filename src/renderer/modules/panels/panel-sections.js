@@ -49,13 +49,30 @@ export function panelIconFor(def) {
 // erhalten; die Überschrift-Semantik (h2 bzw. Reiter) ändert sich nicht.
 // Ohne klonbares Symbol bleibt es beim Text — lieber eine Textzeile zu viel
 // als ein leerer Kopf.
+//
+// 4T-002125: Der Sprachwechsel erreicht den Kopf über die i18n-Merkmale, die
+// `applyTranslations` erfasst — derselbe Weg wie für jeden festen Text. Vorher
+// trug nur die Überschrift aus index.html ein `data-i18n`; die Reiter einer
+// Gruppe entstehen hier neu und blieben in der alten Sprache, bis die Spalte
+// zufällig neu gebaut wurde. Den Neubau beim Sprachwechsel anzustoßen, kostete
+// gemessen den Tastatur-Fokus in einem Panel-Feld (Notizen) und die Roll-Lage
+// (Inhaltsverzeichnis), weil das Umhängen der Sektionen beides verwirft. Im
+// Symbol-Zustand trägt der Kopf kein `data-i18n`: Es ersetzte das Symbol durch
+// den Text (gemessen an einem Panel ohne Gruppe).
 export function applyPanelHeading(el, def, useIcon) {
   const label = t(def.titleKey);
   el.title = label;
   el.setAttribute('aria-label', label);
+  el.setAttribute('data-i18n-title', def.titleKey);
+  el.setAttribute('data-i18n-aria-label', def.titleKey);
   const icon = useIcon ? panelIconFor(def) : null;
   el.textContent = '';
   el.classList.toggle('icon-heading', !!icon);
-  if (icon) el.appendChild(icon);
-  else el.textContent = label;
+  if (icon) {
+    el.removeAttribute('data-i18n');
+    el.appendChild(icon);
+  } else {
+    el.setAttribute('data-i18n', def.titleKey);
+    el.textContent = label;
+  }
 }
