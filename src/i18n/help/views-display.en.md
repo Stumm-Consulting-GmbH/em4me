@@ -2,9 +2,9 @@
 
 How a document appears is decided on two levels. The **view** belongs to the individual tab: it determines whether the document is shown rendered, as source text, split or live. The **appearance** applies to the whole application: theme, zoom, content width and fonts. This page brings both levels together and names the place of every setting.
 
-## The seven views
+## The eight views
 
-Every tab is in exactly one of seven views. The chosen mode applies per tab, not globally: one document may be open rendered while a second one is edited as source text next to it.
+Every tab is in exactly one of eight views. The chosen mode applies per tab, not globally: one document may be open rendered while a second one is edited as source text next to it.
 
 | View       | What it shows                                     | Default shortcut |
 | ---------- | ------------------------------------------------- | ---------------- |
@@ -15,8 +15,9 @@ Every tab is in exactly one of seven views. The chosen mode applies per tab, not
 | **Mind map** | the structure of the document as a map instead of text | `Ctrl+5`  |
 | **Canvas**   | a surface with cards and connections from the document | `Ctrl+6`  |
 | **Board**    | the tasks of the document as a Kanban board            | `Ctrl+7`   |
+| **Slides**   | the slides of a presentation, one after the other      | `Ctrl+8`   |
 
-Switching happens via the buttons in the status bar or via the top of the View menu; the mind map lives in the menu and on its shortcut, not in the status bar, the canvas button stays dimmed as long as the document holds no canvas surface, and the board button likewise as long as the document is not a Kanban board. Which view a newly opened tab receives is set in the “Behaviour” section of the settings.
+Switching happens via the buttons in the status bar or via the top of the View menu; the mind map lives in the menu and on its shortcut, not in the status bar, the canvas button stays dimmed as long as the document holds no canvas surface, the board button likewise as long as the document is not a Kanban board, and the slides button as long as it is not a presentation. Which view a newly opened tab receives is set in the “Behaviour” section of the settings.
 
 ### Live mode
 
@@ -43,6 +44,10 @@ The canvas shows a surface with cards and connections that lives inside the docu
 ### Board
 
 The board shows the tasks of the document as a Kanban board: the named lists of the document as columns, the task lines within them as cards. It belongs to the “Kanban” extension and goes with it; like the canvas it depends on the document and can be chosen only when the document carries the header marker of a board. Creating and converting, handling cards and columns, moving with the mouse, dates, tags, limit, archive and filter, the board settings, the connection between card and note as well as the storage format are described on the page [Kanban board](kanban.md).
+
+### Slides
+
+The Slides view shows a presentation slide by slide, with a counter and paging; the slide show in full screen starts from it. It belongs to the “Presentation view” extension and goes with it; like the canvas and the board it depends on the document and can be chosen only when the document carries the flag `presentation: true` in its front matter. Separation rule, control keys, themes, speaker notes, slide show and the exports of the slides are described on the page [Presentation](presentation.md).
 
 ### Editing
 

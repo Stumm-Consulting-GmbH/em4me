@@ -1,11 +1,12 @@
 // IPC-Kanal-Gruppe Dialoge und Systemdienste: die nativen Meldungs- und
-// Bestaetigungs-Dialoge (Speichern, Konflikt, Loeschen), der PDF-Export sowie
-// die beiden Dienste, die nur im Main erreichbar sind (externer Aufruf einer
-// Adresse, Rechtschreibpruefung ueber Session und WebContents).
+// Bestaetigungs-Dialoge (Speichern, Konflikt, Loeschen), der PDF- und der
+// HTML-Export sowie die beiden Dienste, die nur im Main erreichbar sind
+// (externer Aufruf einer Adresse, Rechtschreibpruefung ueber Session und
+// WebContents).
 //
 // Auszug aus main.js, 4T-000999 (Epic 3E-000196). Kanal-Gruppe: dialog:*,
-// events:confirmDelete, calendar:confirmDependents/blockedDelete/confirmEpochGuard, pdf:*,
-// shell:openExternal, spellcheck:*, canvas:austauschBericht.
+// events:confirmDelete, calendar:confirmDependents/blockedDelete/confirmEpochGuard,
+// pdf:*, html:*, shell:openExternal, spellcheck:*, canvas:austauschBericht.
 //
 // Eigener Zustand: keiner. Electron-Werte kommen ueber das Deps-Objekt, damit
 // das Modul zur Lade-Zeit ohne Electron ladbar bleibt.
@@ -14,6 +15,8 @@
 const path = require('node:path');
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 const { printToPdfOptions, printSystemOptions } = require('../../shared/pdf-options');
+// 4T-002167 (Epic 3E-000347): KaTeX-Stilblatt samt Schriften fuer den HTML-Export.
+const { katexStilMitSchriften } = require('../documents/katex-export-stil');
 // 4T-001805 (Epic 3E-000292): Die Saetze der Austausch-Meldung, prozessneutral
 // gebildet und von beiden Richtungen geteilt.
 const { austauschBericht } = require('../../shared/canvas/canvas-austausch-bericht.js');
@@ -197,6 +200,64 @@ function registerDialogsIpc(handle, deps) {
       if (!owner.isDestroyed() && savedBackgroundColor) {
         owner.setBackgroundColor(savedBackgroundColor);
       }
+    }
+  });
+
+  // --- 4T-002167 (Epic 3E-000347): HTML-Export ----------------------------------
+  // Nach dem Muster der PDF-Kanaele: html:chooseTarget zeigt den Speichern-
+  // Dialog, html:write schreibt den fertigen Text. Getrennt aus demselben Grund
+  // wie beim PDF — der Renderer baut den Druck-Zustand erst nach dem Dialog
+  // auf. html:katexStyles liefert das KaTeX-Stilblatt mit eingesetzten
+  // Schriften; der Renderer ruft es nur, wenn das Dokument Formeln enthaelt.
+  handle('html:chooseTarget', async (event, params) => {
+    const owner = senderWindow(event);
+    const suggestedPath =
+      params && typeof params.suggestedPath === 'string' && params.suggestedPath
+        ? params.suggestedPath
+        : null;
+    const suggestedName =
+      params && typeof params.suggestedName === 'string' && params.suggestedName
+        ? params.suggestedName
+        : null;
+    // Reiter mit Pfad: <basename>.html im selben Ordner (kommt fertig aus dem
+    // Renderer). Pfadloser Reiter (Unbenannt, Handbuch): Name im Home-Verzeichnis.
+    const defaultPath =
+      suggestedPath ||
+      path.join(
+        app.getPath('home'),
+        suggestedName || `${tForWindow(owner, 'export.html.defaultUntitled')}.html`,
+      );
+    const dlgResult = await dialog.showSaveDialog(owner || undefined, {
+      title: tForWindow(owner, 'export.html.saveDialogTitle'),
+      defaultPath,
+      filters: [{ name: tForWindow(owner, 'dialog.filterHtml'), extensions: ['html', 'htm'] }],
+    });
+    if (dlgResult.canceled || !dlgResult.filePath) return { ok: false, canceled: true };
+    return { ok: true, path: path.resolve(dlgResult.filePath) };
+  });
+
+  handle('html:write', async (_event, targetPath, text) => {
+    if (typeof targetPath !== 'string' || !targetPath) {
+      return { ok: false, error: 'html:write ohne Pfad aufgerufen' };
+    }
+    if (typeof text !== 'string') {
+      return { ok: false, error: 'html:write ohne Text aufgerufen' };
+    }
+    try {
+      const absolute = path.resolve(targetPath);
+      // Eine Zeichenkette schreibt der Schreib-Weg als UTF-8.
+      await ersetzeDateiOderWirf(absolute, text);
+      return { ok: true, path: absolute };
+    } catch (err) {
+      return { ok: false, error: err && err.message ? err.message : String(err) };
+    }
+  });
+
+  handle('html:katexStyles', async () => {
+    try {
+      return { ok: true, css: await katexStilMitSchriften() };
+    } catch (err) {
+      return { ok: false, error: err && err.message ? err.message : String(err) };
     }
   });
 

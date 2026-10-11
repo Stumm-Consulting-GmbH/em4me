@@ -142,10 +142,13 @@ describe('Der Schnitt trennt die großen Namensräume auf (AK3)', () => {
   // oberster Namensraum des Produkts fuegt genau ein Fragment hinzu — das
   // Fenster wehrt Zersplitterung in Klein-Fragmente ab, nicht das Wachstum des
   // Produkts. Der Korridor bleibt eng genug, um eine Zerlegung je Schluessel
-  // zu melden.
-  it('führt zwischen 30 und 45 Fragmente', () => {
+  // zu melden. 4T-002160 (Epic 3E-000149): aus demselben Grund von 45 auf 50
+  // gehoben — die Praesentation bringt den obersten Namensraum
+  // «presentation» und damit das 46. Fragment; der Abstand von fuenf haelt
+  // die Abwehr der Zersplitterung, wie beim ersten Heben.
+  it('führt zwischen 30 und 50 Fragmente', () => {
     expect(FRAGMENT_NAMEN.length).toBeGreaterThanOrEqual(30);
-    expect(FRAGMENT_NAMEN.length).toBeLessThanOrEqual(45);
+    expect(FRAGMENT_NAMEN.length).toBeLessThanOrEqual(50);
   });
 
   it('«help» steht nicht als ein Fragment, sondern in vier geschnittenen', () => {

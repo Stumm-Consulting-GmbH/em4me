@@ -33,6 +33,9 @@ import {
 import { initCanvasPane, waehleCanvasFlaecheAbZeile } from './canvas/canvas-pane.js';
 // 4T-001847 (Epic 3E-000110): Zugang der Tafel-Ansicht zum Fenster-Zustand.
 import { initKanbanPane } from './kanban/kanban-pane.js';
+// 4T-002160 (Epic 3E-000149): Zugang der Praesentations-Ansicht zum Fenster-Zustand.
+import { initPresentationPane } from './presentation/presentation-pane.js';
+import { activeTabOfPane } from './views/pane-lookup.js';
 // 4T-001852 (Epic 3E-000110): die beiden Wege zu einer Tafel.
 import { initTafelAnlegen } from './kanban/kanban-anlegen.js';
 // 4T-001668 (Epic 3E-000287): Bedienung des Canvas-Blocks außerhalb der
@@ -126,9 +129,14 @@ import {
   reportMenuStateNow,
   syncToolbarToActiveTab,
 } from './tabs/tabs.js';
-import { applyAllLayouts, markFileMissing, reloadFile } from './views/pane-render.js';
+import {
+  applyAllLayouts,
+  markFileMissing,
+  reloadFile,
+  renderPaneContent,
+} from './views/pane-render.js';
 import { newUntitledTab, openDraftsAsUntitled } from './views/untitled-tabs.js';
-import { persistSetting, showStatusbarHint } from './views/views.js';
+import { persistSetting, persistState, showStatusbarHint } from './views/views.js';
 // 4T-000332 (Epic 3E-000060): Statusbar-Element der Dokument-Historie.
 import { initHistoryStatus, updateHistoryStatus } from './views/history-status.js';
 // 4T-000333 (Epic 3E-000060): Historien-Ansicht — Registrierung explizit über
@@ -808,6 +816,31 @@ async function init() {
       typeof api.kanbanConfirmDeleteColumn === 'function'
         ? api.kanbanConfirmDeleteColumn(angaben)
         : Promise.resolve(false),
+  });
+  // 4T-002160 (Epic 3E-000149): Zugang der Praesentations-Ansicht, nach dem
+  // Muster der Tafel darueber. Dazu zwei Rueckrufe, die die Tafel nicht hat:
+  // die Zeile der Schreibmarke fuer die Startfolie und der Rueckfall in die
+  // Lese-Ansicht, wenn das Dokument sein Kennzeichen verliert, waehrend es in
+  // dieser Ansicht steht (Story 4S-001049, AK7). Den Modus des Dokuments setzt
+  // die Flaeche selbst zurueck; hier wird nur gezeichnet und gemeldet.
+  initPresentationPane({
+    getPaneEls,
+    aktivesDokument: (paneIdx) => activeTabOfPane(state.panes, paneIdx),
+    beiVerfuegbarkeitsWechsel: () => {
+      syncToolbarToActiveTab();
+      reportMenuStateNow();
+    },
+    beiRueckfall: (paneIdx) => {
+      renderPaneContent(paneIdx);
+      syncToolbarToActiveTab();
+      reportMenuStateNow();
+      persistState();
+    },
+    // Eins-basiert wie `vonZeile`/`bisZeile` des Format-Kerns.
+    schreibmarkenZeile: (paneIdx) => {
+      const view = paneEditors[paneIdx];
+      return view ? view.state.doc.lineAt(view.state.selection.main.head).number : null;
+    },
   });
   // 4T-001852 (Epic 3E-000110): Zugang der beiden Anlege-Wege. Er ist schmal,
   // weil beide Wege ansetzen, wo es noch keine gezeichnete Tafel gibt: das

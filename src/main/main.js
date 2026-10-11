@@ -105,6 +105,8 @@ const { registerLocalesIpc } = require('./ipc/locales');
 const { registerMemoryIpc } = require('./ipc/memory');
 // 4T-001806 (Epic 3E-000292): Einlesen einer Datei des offenen Formats JSON Canvas.
 const { registerCanvasImportIpc } = require('./ipc/canvas-import');
+// 4T-002163 (Epic 3E-000149): PDF und HTML-Seiten des Foliensatzes.
+const { registerPresentationExportIpc } = require('./ipc/presentation-export');
 
 // 4T-000375: volle Version aus package.json-Version und Build-Info; fehlende
 // oder defekte Build-Info fällt auf die dreiteilige Version zurück.
@@ -441,6 +443,7 @@ function registerIpc() {
   registerLocalesIpc(registriere, ipcDeps);
   registerMemoryIpc(registriere, ipcDeps);
   registerCanvasImportIpc(registriere, ipcDeps);
+  registerPresentationExportIpc(registriere, ipcDeps);
 }
 
 // --- App-Lifecycle -----------------------------------------------------------

@@ -560,6 +560,20 @@ const COMMANDS = [
     editorScoped: false,
     availability: 'contentTab',
   },
+  // 4T-002167 (Epic 3E-000347): HTML-Export des gerenderten Inhalts als eine
+  // eigenstaendige Datei. Verfuegbarkeit wie der PDF-Export (auch aus einem
+  // Handbuch-Reiter, nicht aus dem Einstellungs-Reiter); ohne Vorgabe-Kuerzel
+  // wie der portable Export, belegbar ueber die Einstellungen.
+  {
+    id: 'file.exportHtml',
+    defaultBindings: [],
+    labelKey: 'menu.file.exportHtml',
+    descKey: 'help.shortcut.exportHtml',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+    availability: 'contentTab',
+  },
   // 4T-000890 (Epic 3E-000168, Befund L-05): portabler Markdown-Export als
   // regulaeres Registry-Kommando. Der Menue-Eintrag war bis dahin hart auf
   // den IPC-Kanal 'menu:exportPortable' verdrahtet — das Kommando erschien
@@ -966,6 +980,98 @@ const COMMANDS = [
     // Dokument-abhaengig wie die Canvas und aus demselben Grund: Ohne Tafel im
     // Dokument gibt es nichts zu zeigen.
     availability: 'tafelAnsicht',
+  },
+  {
+    // 4T-002160 (Epic 3E-000149): Achter Ansichts-Modus, die Präsentation.
+    // Setzt die Folge 1 bis 7 mit CmdOrCtrl+8 fort, dem naechsten freien Platz
+    // der Reihe (am 2026-10-07 und 2026-10-09 in src/shared und src/main als
+    // frei belegt). Der Erweiterungs-Schalter 'presentation' nimmt den Eintrag
+    // im Aus-Zustand aus Menue, Palette und Dispatcher.
+    id: 'view.modePresentation',
+    defaultBindings: ['CmdOrCtrl+8'],
+    labelKey: 'menu.view.presentation',
+    descKey: 'help.feature.presentation',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    // Dokument-abhaengig wie Canvas und Tafel: Ohne Kennzeichen im Kopf gibt
+    // es keine Folien zu zeigen.
+    availability: 'praesentationsAnsicht',
+  },
+  {
+    // 4T-002162 (Epic 3E-000149): Vorfuehrung der gezeigten Praesentation im
+    // Vollbild, ab der gerade gezeigten Folie. F5 ist das Kuerzel der
+    // verbreiteten Praesentations-Werkzeuge und war am 2026-10-07 und
+    // 2026-10-09 in src/ nicht belegt. Verfuegbar nur in der gezeigten
+    // Praesentations-Ansicht; der Erweiterungs-Schalter 'presentation' nimmt
+    // den Eintrag im Aus-Zustand aus Menue, Palette und Tastenbelegung.
+    id: 'presentation.start',
+    defaultBindings: ['F5'],
+    labelKey: 'menu.view.presentationStart',
+    descKey: 'help.shortcut.presentationStart',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'praesentationsAnsichtAktiv',
+  },
+  {
+    // 4T-002162 (Epic 3E-000149): Vorfuehrung beenden. Der gewoehnliche Weg ist
+    // Esc in der Vorfuehrung; das Kommando macht den Weg in der Palette
+    // auffindbar und belegbar. Ohne Vorgabe-Kuerzel und ohne Menue-Eintrag:
+    // In der Vorfuehrung ist kein Menue zu sehen. Beschreibung aus dem
+    // Katalog-Eintrag der Praesentation (Muster canvas.addCard): eine eigene
+    // Katalog-Zeile fuer das Gegenstueck des Starts waere doppelt gepflegt.
+    id: 'presentation.stop',
+    defaultBindings: [],
+    labelKey: 'presentation.vorfuehrungBeenden',
+    descKey: 'help.feature.presentationSlideShow',
+    categoryKey: 'help.group.view',
+    menu: false,
+    editorScoped: false,
+    availability: 'praesentationsAnsichtAktiv',
+  },
+  {
+    // 4T-002163 (Epic 3E-000149): Eine neue Praesentation mit Startinhalt,
+    // nach dem Vorbild kanban.newBoard: Sie legt ein Dokument an, das bereits
+    // eine Praesentation ist, und oeffnet es in der Praesentations-Ansicht.
+    // Verfuegbar, sobald sich ein neues Dokument anlegen laesst, unabhaengig
+    // vom Vorlagen-Ordner; ohne Vorgabe-Kuerzel wie das Vorbild.
+    id: 'presentation.new',
+    defaultBindings: [],
+    labelKey: 'menu.view.presentationNew',
+    descKey: 'help.shortcut.presentationNew',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'immer',
+  },
+  {
+    // 4T-002163 (Epic 3E-000149): PDF des Foliensatzes, eine Folie je Seite im
+    // Folien-Format. Neben dem Dokument-PDF im Untermenue «Exportieren» und
+    // ohne Vorgabe-Kuerzel wie der HTML-Export dort. Verfuegbar bei jeder
+    // Praesentation, auch ausserhalb ihrer Ansicht (Story 4S-001054, AK1);
+    // die Bedingung schreibt den Reiter aus, weil das Untermenue ihn verlangt.
+    id: 'presentation.exportPdf',
+    defaultBindings: [],
+    labelKey: 'menu.file.exportPresentationPdf',
+    descKey: 'help.shortcut.presentationExportPdf',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+    availability: 'praesentationsDokument',
+  },
+  {
+    // 4T-002163 (Epic 3E-000149): HTML-Seiten des Foliensatzes, ein Ordner mit
+    // einer Seite je Folie und der Startseite. Gleiche Regel wie der PDF-Weg
+    // darueber (Story 4S-001057, AK1).
+    id: 'presentation.exportHtml',
+    defaultBindings: [],
+    labelKey: 'menu.file.exportPresentationHtml',
+    descKey: 'help.shortcut.presentationExportHtml',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+    availability: 'praesentationsDokument',
   },
   {
     // 4T-001654 (Epic 3E-000287): Karte auf der Canvas-Flaeche anlegen. Der

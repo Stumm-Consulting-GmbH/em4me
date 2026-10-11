@@ -1,7 +1,8 @@
 // IPC-Kanal-Gruppe Fenster, Applikationen und Arbeitsbereiche: Schliess-
 // Quittung des Renderers, Meldungen ueber Panes, Menue-Stand und Reiter-Meta,
-// die Fenster-Liste des Reiter-Kontextmenues, der Lebenszyklus der
-// Arbeitsbereiche sowie der Entwurfs-Zwischenspeicher.
+// die Fenster-Liste des Reiter-Kontextmenues, das Vollbild der Vorfuehrung
+// (4T-002162), der Lebenszyklus der Arbeitsbereiche sowie der
+// Entwurfs-Zwischenspeicher.
 //
 // Auszug aus main.js, 4T-000999 (Epic 3E-000196). Kanal-Gruppe: window:*,
 // tab:appendToWindow, app:*, workspace:*, drafts:save.
@@ -422,6 +423,21 @@ function registerWindowsIpc(handle, deps) {
       console.warn('Entwickler-Werkzeuge umschalten fehlgeschlagen:', err);
       return false;
     }
+  });
+
+  // 4T-002162 (Epic 3E-000149): Vollbild des eigenen Fensters fuer die
+  // Vorfuehrung einer Praesentation. Der Renderer setzt es beim Start und
+  // nimmt es beim Ende auf den Zustand davor zurueck; die Antwort ist dieser
+  // Zustand VOR dem Aufruf, damit er nicht eigens erfragt werden muss.
+  // Maximiert, Groesse und Lage stellt Electron beim Verlassen des Vollbilds
+  // selbst wieder her. `null`, wenn es das Fenster nicht (mehr) gibt.
+  handle('window:setFullScreen', (event, an) => {
+    const w = senderWindow(event);
+    if (!w || w.isDestroyed()) return null;
+    const vorher = w.isFullScreen();
+    const ziel = an === true;
+    if (vorher !== ziel) w.setFullScreen(ziel);
+    return vorher;
   });
 
   // Renderer meldet seine aktuelle Pane-Struktur, damit Bounds-Saves auch immer

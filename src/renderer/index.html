@@ -41,6 +41,7 @@
     <link rel="stylesheet" href="styles/canvas.css" />
     <link rel="stylesheet" href="styles/canvas-liste.css" />
     <link rel="stylesheet" href="styles/kanban.css" />
+    <link rel="stylesheet" href="styles/presentation.css" />
     <link rel="stylesheet" href="styles/suche-und-buch.css" />
     <!-- 4T-000644 (Epic 3E-000127): Overlay- und Popover-Stilblatt von driver.js
          für die geführte Produkt-Tour. Kopiert von scripts/build-tour-assets.js
@@ -602,6 +603,10 @@
                Sichtbar nur bei .content.view-kanban; die Zeichnung haengt
                4T-001848 hier ein (dasselbe Muster). -->
           <section class="pane pane-kanban"></section>
+          <!-- 4T-002160 (Epic 3E-000149): Container der Praesentations-Ansicht.
+               Sichtbar nur bei .content.view-presentation; die Folie zeichnet
+               presentation-pane.js hinein (dasselbe Muster). -->
+          <section class="pane pane-presentation"></section>
           <div
             class="splitter sidebar-splitter sidebar-splitter-right"
             aria-hidden="true"
@@ -1144,6 +1149,10 @@
                Sichtbar nur bei .content.view-kanban; die Zeichnung haengt
                4T-001848 hier ein (dasselbe Muster). -->
           <section class="pane pane-kanban"></section>
+          <!-- 4T-002160 (Epic 3E-000149): Container der Praesentations-Ansicht.
+               Sichtbar nur bei .content.view-presentation; die Folie zeichnet
+               presentation-pane.js hinein (dasselbe Muster). -->
+          <section class="pane pane-presentation"></section>
           <div
             class="splitter sidebar-splitter sidebar-splitter-right"
             aria-hidden="true"
@@ -1942,6 +1951,36 @@
               <rect x="2.5" y="3.5" width="5" height="17" rx="1.5" />
               <rect x="9.5" y="3.5" width="5" height="11" rx="1.5" />
               <rect x="16.5" y="3.5" width="5" height="7" rx="1.5" />
+            </svg>
+          </button>
+          <!-- 4T-002160 (Epic 3E-000149): Praesentations-Modus als achte
+               Schaltflaeche, hinter der Tafel und aus demselben Grund neben dem
+               Render-Spektrum. Das Symbol zeigt eine Folie auf einem Staender.
+               Die Schaltflaeche folgt dem Schalt-Zustand der Erweiterung
+               (tabs.js, syncToolbarToActiveTab); ohne Kennzeichen im Dokument
+               bleibt sie sichtbar deaktiviert. -->
+          <button
+            data-view="presentation"
+            class="view-btn btn-icon"
+            data-i18n-title="menu.view.presentation"
+            data-i18n-aria-label="menu.view.presentation"
+            title=""
+            aria-label="Presentation"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="2.5" y="3.5" width="19" height="12" rx="1.5" />
+              <path d="M12 15.5v5" />
+              <path d="M8 20.5h8" />
             </svg>
           </button>
         </div>

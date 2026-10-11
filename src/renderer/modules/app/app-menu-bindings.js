@@ -27,6 +27,11 @@ import {
 // 4T-001852 (Epic 3E-000110): die beiden Wege zu einer Tafel.
 import { legeNeueTafelAn, wandleInTafelUm } from '../kanban/kanban-anlegen.js';
 import { schalteKanbanAnzeige } from '../kanban/kanban-anzeige-schalter.js';
+// 4T-002162 (Epic 3E-000149): Start der Vorfuehrung aus dem Menue.
+import { starteVorfuehrung } from '../presentation/presentation-vorfuehrung.js';
+// 4T-002163 (Epic 3E-000149): neue Praesentation und die Ausgaben des Foliensatzes.
+import { legeNeuePraesentationAn } from '../presentation/presentation-anlegen.js';
+import { exportiereFoliensatzAlsHtml, exportiereFoliensatzAlsPdf } from '../views/folien-export.js';
 // 4T-002024 (Epic 3E-000192): Diagramm einfügen und bearbeiten.
 import { runChartEdit, runChartInsert } from '../charts/chart-commands.js';
 import { starteCanvasVerbindung } from '../panels/panel-canvas-liste.js';
@@ -48,6 +53,7 @@ import {
 } from '../views/file-actions.js';
 import { handleLinkUpdateApplied } from '../views/link-update.js';
 import { exportActiveTabAsPdf } from '../views/pdf-export.js';
+import { exportActiveTabAsHtml } from '../views/html-export.js';
 // 4T-001479 (Epic 3E-000177): Druck ueber den Systemdialog.
 import { printActiveTab } from '../views/print.js';
 // 4T-001806 (Epic 3E-000292): Einlesen einer JSON-Canvas-Datei.
@@ -202,6 +208,10 @@ export function bindMenuEvents() {
   if (typeof api.onMenuKanbanConvertToBoard === 'function') {
     api.onMenuKanbanConvertToBoard(() => wandleInTafelUm(state.activePaneIndex));
   }
+  // 4T-002162 (Epic 3E-000149): 'Ansicht -> Praesentation -> Vorfuehrung starten'.
+  if (typeof api.onMenuPresentationStart === 'function') {
+    api.onMenuPresentationStart(() => starteVorfuehrung(state.activePaneIndex));
+  }
   // 4T-001904 (Epic 3E-000318): die Häkchen der Anzeige-Schalter im Untermenü
   // 'Ansicht -> Kanban-Tafel'. Ein Kanal für alle Schalter; das Menü nennt das
   // Kommando, derselbe Weg wie aus der Kommando-Palette.
@@ -287,6 +297,21 @@ export function bindMenuEvents() {
   // 4T-000303 (Epic 3E-000054): Export 'Als PDF exportieren...'.
   if (typeof api.onMenuExportPdf === 'function') {
     api.onMenuExportPdf(() => exportActiveTabAsPdf());
+  }
+  // 4T-002167 (Epic 3E-000347): Export 'Als HTML exportieren...'.
+  if (typeof api.onMenuExportHtml === 'function') {
+    api.onMenuExportHtml(() => exportActiveTabAsHtml());
+  }
+  // 4T-002163 (Epic 3E-000149): 'Ansicht -> Praesentation -> Neue Praesentation'
+  // und 'Exportieren -> Foliensatz als PDF/HTML exportieren'.
+  if (typeof api.onMenuPresentationNew === 'function') {
+    api.onMenuPresentationNew(() => legeNeuePraesentationAn(newUntitledTab));
+  }
+  if (typeof api.onMenuPresentationExportPdf === 'function') {
+    api.onMenuPresentationExportPdf(() => exportiereFoliensatzAlsPdf());
+  }
+  if (typeof api.onMenuPresentationExportHtml === 'function') {
+    api.onMenuPresentationExportHtml(() => exportiereFoliensatzAlsHtml());
   }
   // 4T-001479 (Epic 3E-000177): Menue-Eintrag 'Drucken...'.
   if (typeof api.onMenuPrint === 'function') {

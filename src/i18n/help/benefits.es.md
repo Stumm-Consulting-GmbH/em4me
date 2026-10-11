@@ -4,7 +4,7 @@ Esta página no responde **cómo** se hace algo, sino **para qué sirve**. Tiene
 
 ## Un documento, tal como lo necesitas ahora
 
-Leer, escribir y revisar son actividades distintas y requieren presentaciones distintas del mismo texto. En lugar de imponer un compromiso, la aplicación mantiene siete vistas listas y una tecla basta para cambiar entre ellas: la página terminada para leer, el código fuente para el trabajo preciso, ambos en paralelo para comparar, el modo en vivo para escribir con fluidez, el mapa mental para ver la estructura, el lienzo para tarjetas sobre una superficie y el tablero para tareas en columnas. El cambio no cuesta nada y nunca modifica el archivo.
+Leer, escribir y revisar son actividades distintas y requieren presentaciones distintas del mismo texto. En lugar de imponer un compromiso, la aplicación mantiene ocho vistas listas y una tecla basta para cambiar entre ellas: la página terminada para leer, el código fuente para el trabajo preciso, ambos en paralelo para comparar, el modo en vivo para escribir con fluidez, el mapa mental para ver la estructura, el lienzo para tarjetas sobre una superficie, el tablero para tareas en columnas y las diapositivas para una exposición. El cambio no cuesta nada y nunca modifica el archivo.
 
 - **Renderizada** para leer, **código fuente** para el trabajo preciso con la sintaxis.
 - **Dividida** muestra fuente y resultado uno junto al otro, para construcciones delicadas.
@@ -12,8 +12,9 @@ Leer, escribir y revisar son actividades distintas y requieren presentaciones di
 - **Mapa mental** convierte la estructura de títulos en un árbol.
 - **Lienzo** muestra una superficie con tarjetas y conexiones que se encuentra en el propio documento.
 - **Tablero** coloca las tareas del documento una junto a otra, como tarjetas en columnas.
+- **Diapositivas** muestran un documento con el indicador `presentation: true` como una serie de diapositivas, para proyectarlo a pantalla completa y para entregarlo como PDF o como páginas HTML.
 
-En detalle: [Vistas y presentación](views-display.md), [Vista de mapa mental](mindmap.md), [Superficie Canvas](canvas.md), [Tablero Kanban](kanban.md).
+En detalle: [Vistas y presentación](views-display.md), [Vista de mapa mental](mindmap.md), [Superficie Canvas](canvas.md), [Tablero Kanban](kanban.md), [Presentación](presentation.md).
 
 ## Muchos documentos uno junto a otro
 

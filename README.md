@@ -58,6 +58,17 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   board is another view of an ordinary Markdown document, the order of the
   cards is the order of the lines, and boards kept with another widely used
   tool open here without conversion, their settings included.
+- **From document to talk** — put `presentation: true` in the head of a
+  Markdown document, and a line `---` separates its slides. A view of its own
+  shows them one at a time, in one of three themes whose colours and font you
+  can adjust for that one file, with a background image or a slide split into
+  picture and text, page numbers, header and footer, and with speaker notes
+  that appear nowhere else. Present them full screen from the slide you are
+  on, page through them with the keyboard, the mouse wheel or a click, and
+  hand them on as a PDF with one slide per page or as a folder of web pages
+  that any browser shows without the application. The file stays ordinary
+  Markdown, and presentations made for another widely used slide tool, marked
+  `marp: true`, open here as well.
 - **Tables that calculate and query** — data tables with typed columns
   calculate live, and links and tags in their text cells work as anywhere
   else; queries embed file lists that keep themselves current, filtered by
@@ -129,7 +140,12 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
 - **On paper and on its way out** — print a document straight from the file
   menu through your system's print dialog, export it as PDF, or hand it on as
   portable Markdown with diagrams burned in as images, so the recipient sees
-  them without owning the application.
+  them without owning the application. A document can also go out as a single
+  HTML file that any browser shows without the application and without a
+  network connection, images, diagrams and formulas included; private
+  comments stay out, and whatever has no target in a single file, such as a
+  link to another document, is kept as marked text instead of vanishing
+  silently.
 - **Only the features you want** — extra functions are extensions with a
   switch of their own; what you turn off disappears from menus, commands
   and rendering. Three working modes — Beginner, Advanced and Full — set the
@@ -221,8 +237,10 @@ npm run build:linux # Linux: AppImage and .deb package (needs Docker)
 
 ## Feedback
 
-Bug reports and feature requests are welcome in the issue list of this
-repository.
+Bug reports and feature requests are welcome as issues in this repository;
+[CONTRIBUTING.md](./CONTRIBUTING.md) says what a good report contains.
+Security vulnerabilities are reported privately, see
+[SECURITY.md](./SECURITY.md).
 
 ## License
 

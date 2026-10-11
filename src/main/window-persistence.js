@@ -62,7 +62,12 @@ function createWindowPersistence(deps) {
     // M-07 (4T-000173): minimiert liefert getNormalBounds die Restore-Bounds.
     // Vorher returnte der Pfad null und persistAllWindows ueberschrieb die
     // gespeicherten Bounds mit null (naechster Start mit Default-Groesse).
-    // Nur Fullscreen bleibt ausgeschlossen (in dieser App ohne UI-Pfad).
+    // Nur Fullscreen bleibt ausgeschlossen: Im Vollbild wird keine
+    // Fenstergroesse gespeichert. Einen Bedienweg dorthin gibt es seit
+    // 4T-002162 mit der Vorfuehrung der Praesentation; das Vollbild ist dort
+    // ein Zustand auf Zeit und keine Fenstergroesse, die der naechste Start
+    // wiederherstellen soll (4T-002163 berichtigt den frueheren Vermerk
+    // «ohne UI-Pfad»).
     if (win.isFullScreen()) return null;
     const isMax = win.isMaximized();
     const bounds = isMax || win.isMinimized() ? win.getNormalBounds() : win.getBounds();

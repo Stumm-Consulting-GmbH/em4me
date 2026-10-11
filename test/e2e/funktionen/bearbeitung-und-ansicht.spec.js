@@ -488,6 +488,10 @@ test.describe('FA-06: Zentrierte Editor- und Ansicht-Schalter', () => {
         // Abdeckungs-Matrix — er misst das gerenderte Layout an der gebauten
         // Programmdatei und nicht den Quelltext.
         'kanban',
+        // 4T-002160 (Epic 3E-000149): Elf, weil die Präsentations-Ansicht
+        // dazugekommen ist; zugleich ihr Sichtbarkeits-Nachweis in der
+        // Abdeckungs-Matrix, aus demselben Grund wie bei der Tafel.
+        'presentation',
       ]);
       // Fenster-Mitte, nicht Rest-Platz-Mitte (Toleranz für Rundung).
       expect(geo.offset).toBeLessThanOrEqual(1);

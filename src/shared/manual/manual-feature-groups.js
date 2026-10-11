@@ -86,6 +86,10 @@ const HELP_FEATURE_GROUPS = [
       // Reihenfolge ist dieselbe wie im Datei-Menue.
       'help.feature.print',
       'help.feature.exportPdf',
+      // 4T-002169 (Epic 3E-000347): HTML-Export unmittelbar hinter dem
+      // PDF-Export — er teilt dessen Aufbereitung und Ansichts-Regel und
+      // folgt ihm auch im Untermenue 'Exportieren'.
+      'help.feature.exportHtml',
       'help.feature.autoReload',
       'help.feature.restoreSession',
       // 4T-000370 (Epic 3E-000068): Entwurfs-Zwischenspeicher — was ueberlebt das
@@ -488,6 +492,19 @@ const HELP_FEATURE_GROUPS = [
       // in Stufe 2, nicht je Stufe; Stories 4S-000987 und 4S-000984.
       'help.feature.kanbanBoardSettings',
       'help.feature.kanbanNotes',
+      // 4T-002160 (Epic 3E-000149): Die Praesentation als achter Ansichts-Modus,
+      // hinter der Tafel und aus demselben Grund neben den abgeleiteten Sichten.
+      // Die Zeile entsteht mit dem Modus, weil der Erweiterungs-Eintrag auf sie
+      // zeigt; der Hilfe- und Handbuch-Task 4T-002165 fuehrt sie weiter.
+      'help.feature.presentation',
+      // 4T-002165 (Epic 3E-000149): Vorfuehrung und die beiden Ausgaben des
+      // Foliensatzes direkt dahinter, je eine eigene Zeile wie die beiden
+      // Austausch-Zeilen der Canvas: Jede ist ein eigener Befehl mit eigenem
+      // Menue-Eintrag und gehoert zu genau einer Story (4S-001050, 4S-001054,
+      // 4S-001057). In der Reihenfolge, in der der Anwender ihnen begegnet.
+      'help.feature.presentationSlideShow',
+      'help.feature.presentationExportPdf',
+      'help.feature.presentationExportHtml',
       'help.feature.sourceToggles',
       // 4T-000290 (Epic 3E-000051): dynamische Sidebar (Seite, Reihenfolge,
       // Reiter-Gruppen) — Ansicht-Eigenschaft, die Panels selbst bleiben

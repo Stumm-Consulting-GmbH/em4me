@@ -38,6 +38,7 @@
   "help.shortcut.saveAs": "Salva con nome",
   "help.shortcut.print": "Stampa la scheda attiva",
   "help.shortcut.exportPdf": "Esporta la scheda attiva come PDF",
+  "help.shortcut.exportHtml": "Esporta il documento attivo come file HTML",
   "help.shortcut.exportPortable": "Esporta la scheda attiva come Markdown portabile",
   "help.shortcut.toggleAutoSave": "Attiva/disattiva il salvataggio automatico",
   "help.shortcut.toggleScrollSync": "Attiva/disattiva la sincronizzazione dello scorrimento nella vista divisa",
@@ -173,5 +174,9 @@
   "help.shortcut.updateLocale": "Salvare il proprio file di lingua allo stato della versione in esecuzione, con le voci mancanti in inglese",
   "help.group.database": "Banca dati",
   "help.shortcut.exportJsonCanvas": "Salvare la tela selezionata nella vista tela come file JSON Canvas",
-  "help.shortcut.importJsonCanvas": "Leggere uno o più file JSON Canvas; ciascuno crea accanto un documento con la tela"
+  "help.shortcut.importJsonCanvas": "Leggere uno o più file JSON Canvas; ciascuno crea accanto un documento con la tela",
+  "help.shortcut.presentationStart": "Proiettare la presentazione a schermo intero dalla diapositiva mostrata; Esc termina la proiezione",
+  "help.shortcut.presentationNew": "Creare una nuova presentazione con diapositive di esempio e aprirla nella vista «Diapositive»",
+  "help.shortcut.presentationExportPdf": "Esportare le diapositive come file PDF, una diapositiva per pagina nel formato della diapositiva e senza margini",
+  "help.shortcut.presentationExportHtml": "Esportare le diapositive come cartella con una pagina HTML per diapositiva, da sfogliare con tasti e pulsanti"
 }

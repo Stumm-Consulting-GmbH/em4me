@@ -2,9 +2,9 @@
 
 L'aspetto di un documento si decide su due livelli. La **vista** appartiene alla singola scheda: stabilisce se il documento viene mostrato renderizzato, come sorgente, diviso o live. L'**aspetto** vale per l'intera applicazione: tema, zoom, larghezza del contenuto e caratteri. Questa pagina unisce i due livelli e indica il posto di ogni impostazione.
 
-## Le sette viste
+## Le otto viste
 
-Ogni scheda si trova in esattamente una delle sette viste. La modalità scelta vale per scheda e non globalmente: un documento può restare aperto renderizzato mentre accanto un secondo viene modificato come sorgente.
+Ogni scheda si trova in esattamente una delle otto viste. La modalità scelta vale per scheda e non globalmente: un documento può restare aperto renderizzato mentre accanto un secondo viene modificato come sorgente.
 
 | Vista             | Che cosa mostra                                    | Scorciatoia predefinita |
 | ----------------- | -------------------------------------------------- | ----------------------- |
@@ -15,8 +15,9 @@ Ogni scheda si trova in esattamente una delle sette viste. La modalità scelta v
 | **Mappa mentale** | la struttura del documento come mappa invece che come testo | `Ctrl+5`   |
 | **Tela**          | una superficie con schede e collegamenti dal documento | `Ctrl+6`                |
 | **Bacheca**       | le attività del documento come bacheca Kanban      | `Ctrl+7`                |
+| **Diapositive**   | le diapositive di una presentazione, una dopo l'altra | `Ctrl+8`                |
 
-Il cambio avviene con i pulsanti della barra di stato o dalla parte alta del menu Visualizza; la mappa mentale sta nel menu e sulla sua scorciatoia, non nella barra di stato, il pulsante della tela resta attenuato finché il documento non contiene una superficie Canvas, e quello della bacheca altrettanto finché il documento non è una bacheca Kanban. Quale vista riceve una scheda appena aperta si imposta nella sezione «Comportamento» delle impostazioni.
+Il cambio avviene con i pulsanti della barra di stato o dalla parte alta del menu Visualizza; la mappa mentale sta nel menu e sulla sua scorciatoia, non nella barra di stato, il pulsante della tela resta attenuato finché il documento non contiene una superficie Canvas, quello della bacheca altrettanto finché il documento non è una bacheca Kanban, e quello delle diapositive finché non è una presentazione. Quale vista riceve una scheda appena aperta si imposta nella sezione «Comportamento» delle impostazioni.
 
 ### Modalità live
 
@@ -43,6 +44,10 @@ La tela mostra una superficie con schede e collegamenti che si trova nel documen
 ### Bacheca
 
 La bacheca mostra le attività del documento come bacheca Kanban: gli elenchi con nome del documento come colonne, le righe di attività al loro interno come schede. Appartiene all'estensione «Kanban» e scompare con essa; come la tela dipende dal documento ed è selezionabile solo se questo porta il contrassegno di intestazione di una bacheca. Creare e convertire, usare schede e colonne, spostare con il mouse, scadenze, tag, limite, archivio e filtro, le impostazioni della bacheca, il collegamento tra scheda e nota nonché il formato di memorizzazione sono descritti nella pagina [Bacheca Kanban](kanban.md).
+
+### Diapositive
+
+La vista Diapositive mostra una presentazione diapositiva per diapositiva, con contatore e possibilità di sfogliare; da essa si avvia la proiezione a schermo intero. Appartiene all'estensione «Vista presentazione» e scompare con essa; come la tela e la bacheca dipende dal documento ed è selezionabile solo se questo porta l'indicatore `presentation: true` nell'intestazione. La regola di separazione, le chiavi di controllo, i temi, le note del relatore, la proiezione e le esportazioni delle diapositive sono descritte nella pagina [Presentazione](presentation.md).
 
 ### Modifica
 

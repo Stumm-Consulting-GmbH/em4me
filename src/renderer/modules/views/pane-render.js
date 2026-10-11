@@ -41,6 +41,7 @@ import { renderTabbar } from './tabbar.js';
 // Modularisierungs-Zyklen views <-> editor, history-status, templates).
 import { updateEmptyState } from './views.js';
 import { SYSTEM_VIEW_CLASS, applyContentViewClass } from './view-modes.js';
+import { raeumePraesentationAuf } from '../presentation/presentation-pane.js';
 
 // 4T-000179: Dieses Laufzeit-Flag wird ausschliesslich hier geschrieben und
 // bleibt deshalb modul-privat; ueber die Modul-Grenze fuehrt kein
@@ -81,13 +82,22 @@ export function renderPaneContent(paneIdx) {
   // Suppress save während wir DOM-Updates machen, die scroll-Events auslösen.
   suppressScrollSave = true;
 
+  // 4T-002162 (Befund der zweiten Abnahme vom 2026-10-10): Zeigt die Spalte
+  // keine Praesentation mehr, wird deren Flaeche geleert.
+  raeumePraesentationAuf(paneIdx);
+
   if (!pane || pane.activeIndex < 0) {
     syncEditorForPane(paneIdx);
     els.renderedHtml.innerHTML = '';
     paneRenderCache[paneIdx] = null;
     // 4T-000277: war zuletzt eine System-Seite aktiv, bliebe ihr DOM sonst
     // in der leeren Pane sichtbar stehen.
-    els.content.classList.remove('view-system');
+    // 4T-002162 (Befund vom 2026-10-10): Dasselbe gilt fuer jede Ansichts-
+    // Klasse. Blieb etwa `view-presentation` stehen, blieb die Flaeche der
+    // Folien sichtbar, waehrend die Leer-Anzeige darueber erschien; ebenso die
+    // Flaechen von Mindmap, Canvas und Tafel. Ohne Dokument traegt die Spalte
+    // keine Ansichts-Klasse.
+    applyContentViewClass(els.content, '');
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         suppressScrollSave = false;

@@ -620,6 +620,45 @@ const INTERNAL_EXTENSIONS = [
     // mit den globalen Vorgaben der Tafel; er verschwindet mit der Erweiterung.
     settingsSections: ['kanban'],
   },
+  // 4T-002160 (Epic 3E-000149): Präsentations-Ansicht, der achte Ansichts-Modus.
+  // Erweiterungs-Pruefschritt des Epics, entschieden am 2026-10-07 (Punkt 7a):
+  // schaltbar, weil die Praesentation eine abgrenzbare Zusatz-Ansicht ist, von
+  // der kein Kern-Teil abhaengt. Direkt hinter der Tafel, weil alle vier
+  // dokument-abhaengigen Ansichts-Modi derselben Familie sind.
+  //
+  // Im Aus-Zustand entfaellt der Ansichts-Modus, das Kommando verschwindet aus
+  // Menue, Palette, Dispatcher und Tastenbelegung, das Kennzeichen im Kopf hat
+  // keine Wirkung (`---` bleibt thematische Linie, die Render-Pipeline ist
+  // unberuehrt), und ein im Praesentations-Modus gespeichertes Dokument oeffnet
+  // in der Lese-Ansicht. Geschrieben wird dabei nie. Keine Abhaengigkeit zu
+  // einer anderen Erweiterung, keine Einstellungs-Abschnitte in dieser Stufe.
+  {
+    id: 'presentation',
+    category: 'render',
+    // Punkt 7b vom 2026-10-07: «Fortgeschritten», wie Mindmap und Tafel.
+    modeLevel: 'advanced',
+    nameKey: 'help.featureName.presentation',
+    descKey: 'help.feature.presentation',
+    // 4T-002165: die Katalog-Zeilen von Vorfuehrung und Ausgaben gehoeren ebenso
+    // zur Erweiterung und tragen im Aus-Zustand dieselbe Kennzeichnung.
+    featureKeys: [
+      'help.feature.presentationSlideShow',
+      'help.feature.presentationExportPdf',
+      'help.feature.presentationExportHtml',
+    ],
+    // 4T-002162: dazu Start und Ende der Vorfuehrung; im Aus-Zustand entfallen
+    // sie mit dem Modus aus Menue, Palette und Tastenbelegung.
+    // 4T-002163: dazu der Weg zu einer neuen Praesentation und die beiden
+    // Ausgaben des Foliensatzes, aus demselben Grund.
+    commands: [
+      'view.modePresentation',
+      'presentation.start',
+      'presentation.stop',
+      'presentation.new',
+      'presentation.exportPdf',
+      'presentation.exportHtml',
+    ],
+  },
   // Werkzeug-Erweiterungen (4T-000294). 'focus-mode' buendelt Fokus-Modus
   // und Typewriter-Scroll (eine Schreib-Umgebung, zwei Facetten).
   {

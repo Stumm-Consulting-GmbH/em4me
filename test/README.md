@@ -236,7 +236,7 @@ Windows-Rechner kann die Schreibweisen-Kollisionen nicht tragen und wird mit die
 gemeldet. Die Prüfdatei `test/unit/linux-pruefmaterial.test.js` hält beide Richtungen fest.
 
 **Verhältnis zum Prüfstand-Abbild** (Abschnitt «Das Kommando»): Beide sind Container, aber
-getrennte Dinge. Das Prüfstand-Abbild trägt die **automatisierten** Anzeige-Gates, wird bei
+getrennte Dinge. Das Prüfstand-Abbild trägt die **automatisierten** Gates des Linux-Laufs, wird bei
 jedem Lauf neu gestartet und braucht dieses Material nicht; die Prüfumgebung hier dient der
 **manuellen** Abnahme in einer Desktop-Sitzung, überdauert zwischen zwei Releases und trägt
 das Material. Das Werkzeug berührt das Prüfstand-Abbild nicht.
@@ -1597,8 +1597,16 @@ Zwang berührt, ist Beurteilung; maschinell ist allein die Zuordnungs-Messung.
 führt nacheinander die sperrenden Schritte aus und verweigert den Commit,
 sobald einer rot ist: zuerst das Mandats-Gate (`node scripts/mandat.js
 --gate`, Zweig-Bindung und Commit-Inhalt gegen das Sitzungs-Mandat,
-fail-closed), dann `npm run format:check` (Prettier), `npm run lint`
-(ESLint) und den PM-Linter. Dahinter laufen drei Schritte, die nur bei
+fail-closed), seit dem 2026-10-10 direkt danach der Wächter gegen gestagte
+erzeugte Überblicke (`node scripts/lint-erzeugte-sichten.js --gestagt`: Den
+Aufgaben- und den Anforderungs-Überblick erzeugt und committet allein die
+Merge-Queue, die mit `EM4ME_QUEUE_LAUF=1` durchgelassen wird; der seltene
+Hand-Weg für kuratierte Zellen ist `EM4ME_SICHTEN_HAND=1` und wird mit
+Hinweis durchgelassen), dann `npm run format:check` (Prettier), `npm run lint`
+(ESLint) und den PM-Linter. Die Linter-Regeln, die erzeugte Abschnitte der
+Überblicke gegen die Objekte halten, prüfen seit demselben Tag nur im
+Queue-Lauf oder mit `--sichten`; die Queue fährt sie dort als Pflicht-Schritt
+vor den Gates. Dahinter laufen drei Schritte, die nur bei
 Befund sperren und allein die gestagten Dateien ihrer Art lesen (ohne
 solche Datei kosten sie nichts; «nicht messbar» blockiert bewusst nicht):
 seit dem 2026-09-03 die gedrosselte Zuordnungs-Messung der gestagten
@@ -1608,7 +1616,16 @@ Form-Prüfung der gestagten Ablauf-Prüfdateien (unten) und seit dem
 2026-09-08 die Budget-Prüfung der gestagten Dateien mit Zeilen-Budget
 (`node scripts/budget-gestagt.js`, aus dem Index; sie bringt den Befund des
 Datei-Größen-Wächters an die Stelle, an der er entsteht, statt in den
-Queue-Lauf unter gehaltener Release-Sperre). Die vollständige Beschreibung
+Queue-Lauf unter gehaltener Release-Sperre) und seit dem 2026-10-10 der
+Landkarten-Wächter für gestagte **neue** Pflicht-Dateien
+(`node scripts/lint-doku-landkarte.js --gestagt`, aus dem Index: Erreicht der
+Commit-Stand von `DOKUMENTATION.md` jede neu angelegte Datei der
+Pflicht-Bereiche? Anlass war ein Zweig, der zwei Wurzel-Dokumente ohne
+Landkarten-Zeile anlegte und das erst nach 18 Minuten voller Gates erfuhr).
+Dazu seit dem 2026-10-10 ein weiterer Hinweis ohne Sperr-Wirkung vor den
+sperrenden Schritten: `node scripts/gate-auswahl.js --gestagt --warnung`
+nennt gestagte Pfade ohne Muster in der Änderungsklassen-Karte, für die die
+Queue sonst stumm die vollen Gates führe. Die vollständige Beschreibung
 nach Wirkung trägt die Anforderung «Schnelle Gates vor jedem Commit»; für
 den Wortlaut ist die Hook-Datei maßgeblich. Gemessen am 2026-09-22: rund
 25 Sekunden je Commit, rund 29 mit einer neu zu messenden gestagten
@@ -1624,6 +1641,29 @@ Commit eines fertigen Tasks. Der PM-Linter misst dagegen den
 **Git-Index** (`PM_LINT_SOURCE=index node scripts/lint-pm-dokumente.js`),
 also den Commit-Stand; jeder einzelne Commit muss deshalb für sich
 regelkonform sein.
+
+**Bei einer Zusammenführung** (seit dem 2026-10-11, Nachzug eines Zug- oder
+Epic-Zweigs per `git merge` mit `node scripts/zug-nachzug.js`). Ein sauberer
+Merge löst keinen Commit-Hook aus und braucht keinen, weil das Hereingeholte
+am Integrationsstand geprüft ist; den Sicherungs-Push trägt dann der
+versionierte Hook `.githooks/post-merge` über den gemeinsamen Rumpf
+`.githooks/sicherungs-push.sh`, den auch `.githooks/post-commit` ruft (bei
+`--squash` schweigt er). Hält der Merge an einem Konflikt an und schließt
+die Sitzung ihn mit `git commit` ab, läuft der pre-commit-Hook mit allem
+gestagt, was hereinkommt. Deshalb prüfen bei liegendem `MERGE_HEAD` das
+Mandats-Gate, der Überblick-Wächter, die Zuordnungs-Messung, die
+Form-Prüfung der Ablauf-Prüfdateien, die Budget-Prüfung, die Lauf-Spur, der
+Landkarten-Wächter, die Gate-Auswahl und die Kalendertag-Warnung des
+PM-Linters nur die Dateien, die sich zugleich vom ersten Elter (gestagt)
+und vom hereingeholten Stand unterscheiden, also die eigenen und die
+konflikt-aufgelösten; den Datei-Satz liefert ihnen ein gemeinsamer Leser
+(`scripts/gestagte-dateien.js`). Die Schnittmenge verhindert, dass ein
+älterer eigener Commit außerhalb des heutigen Schreibbereichs den
+Konflikt-Merge sperrt; ist `MERGE_HEAD` nicht ermittelbar, gilt der Commit
+als gewöhnlicher. Die Frische-Warnung schweigt im Merge-Fall, weil der
+Commit selbst der Nachzug ist. Eine selbst geänderte Datei außerhalb des
+Schreibbereichs wird weiterhin abgewiesen. Format-Check und Lint messen wie
+immer den ganzen Arbeitsbaum, der PM-Linter den Index.
 
 **Zwei nicht blockierende Hinweise laufen davor** (PO-Staffelung vom
 2026-08-20, erweitert am 2026-08-26): die Rückstands-Warnung
@@ -1661,7 +1701,9 @@ gestagten Dateien liest.
 
 **Zentral, pro Integration.** Das Testsuite-Gate der Merge-Queue läuft am
 Integrationsstand, zusammen mit Format-Check und Lint; erst bei Grün
-erreicht ein Branch `main`. Sein Umfang folgt seit dem 2026-08-14 der
+erreicht ein Branch `main`. Integrationsstand heißt bei einem gewöhnlichen
+Branch der auf `main` aufgesetzte Stand, bei einem Release-Zweig seit dem
+2026-10-10 das Ergebnis seiner Zusammenführung in `main`. Sein Umfang folgt seit dem 2026-08-14 der
 Änderungsklasse (Absatz „Stand der Umsetzung"). Ein
 lokaler Lauf vor dem Abliefern eines Branches bleibt gute Praxis, das
 Pflicht-Gate ist der Queue-Lauf. Bewusst ist die Suite nicht mehr Teil
@@ -1669,7 +1711,8 @@ des Hooks: Sie kostet pro Commit zu viel Zeit, und am Integrationsstand
 ist ihre Aussage stärker als am Arbeitsbaum einer einzelnen Sitzung.
 
 **Produkt-Code-Wächter der Queue** (4T-000860, Release-Isolation): Vor der
-Gate-Strecke, unmittelbar nach dem Rebase, weist die Queue jeden Branch
+Gate-Strecke, unmittelbar nach dem Rebase (bei einem Release-Zweig nach
+der Zusammenführung), weist die Queue jeden Branch
 ab, dessen Diff gegen den Integrationsstand `src/**`, `package.json` oder
 `package-lock.json` berührt und der nicht mit `--release` integriert;
 ein nicht ermittelbarer Diff wird abgewiesen statt durchgelassen (fail
@@ -1882,7 +1925,7 @@ steuern: Ein mechanischer Vorgang kann Ä7 auslösen (Umbenennung in einem
 
 | Klasse | Datei-Muster | Ausschnitt der Unit-Suite | E2E |
 |---|---|---|---|
-| **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md`, `web/roadmap-zuordnung.json` | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`, `dashboard-sicht`) plus `quellcode-export` und `doku-pfade`; kein Format, kein Lint | keine |
+| **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md`, `web/roadmap-zuordnung.json`, `.github/**` (Issue-Vorlagen und Steuer-Dateien der Plattform, seit dem 2026-10-10) | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`, `dashboard-sicht`) plus `quellcode-export` und `doku-pfade`; kein Format, kein Lint | keine |
 | **Ä2 Auslieferungs-Texte** | `CHANGELOG.md`, `docs/öffentlich/**`, `web/inhalte/versionen/**` | Ä1 plus `web-inhalte` | keine |
 | **Ä3 Sprachdateien und Katalog** | `src/i18n/**`, `test/abdeckungs-matrix.json` | Katalog-Gruppe: `i18n`, `abdeckungs-matrix`, `manual-pages`, `manual-generated`, `hilfetext-stil`, `rueckverweis-webseite`, `bildmarke`, `panel-access`, `command-placement`, `commands`, `menu-accelerator`, `register-paare`, `color-schemes`, `web-handbuch`, `web-handbuch-funktionen`, `web-mermaid`, dazu die drei Renderer-Wächter `frontmatter-query-view`, `graph-view`, `perspective-script-view`, dazu `doku-pfade`; Format wegen JSON | Smoke plus `regression/4t-0185.spec.js`; bei `src/i18n/help/**` zusätzlich `funktionen/handbuch.spec.js` |
 | **Ä4 Renderer-Modul** | `src/renderer/**` ohne `index.html` | Import-Graph-Ausschnitt des geänderten Moduls plus `test/unit/renderer/**`, `spellcheck`, `save-guard-aufrufer`, `panel-access`, `script-sandbox-runtime`, `color-schemes`, `doku-pfade`, `datei-groessen`, `plattform-erosion`; Format und Lint | Smoke plus die Funktions-Specs des berührten Bereichs; dazu die Regressions-Specs, die die Karte nennt (Canvas-Karten, Statusleisten-Knopf der Karten-Liste, Datei-Zeile des Bildschirmfoto-Werkzeugs) |
@@ -2248,7 +2291,8 @@ Wer die Aufteilung ändert, ändert den Prüfstand einer Release-Abnahme; `test/
 
 **Das E2E-Gate läuft in einem eigenen Prüfstand-Abbild** (seit dem 2026-09-23, `4T-001693`). Das Referenz-Abbild `electronuserland/builder:22` ist eine Bau-Umgebung und kann die Anwendung nicht starten; bis dahin beschaffte deshalb jeder Lauf des E2E-Gates die Anzeige-Bibliotheken neu über `playwright install-deps`, 337 Pakete mit rund 219 MB Download, und bei langsamer Paketquelle hing ein Lauf am 2026-09-11 über 44 Minuten darin fest. Jetzt stehen Bibliotheken, `xvfb` und der Prüf-Nutzer in einem abgeleiteten Abbild aus `scripts/pruefstand.Dockerfile`:
 
-- **Das Werkzeug baut es selbst**, sobald es fehlt, und meldet das in einer Zeile mit Dauer; gemessen am 2026-09-23 auf SC-027 mit 90 s bei schneller Paketquelle. Schlägt der Bau fehl, bricht der Lauf ab, einen Rückfall auf die Beschaffung je Lauf gibt es nicht. Die kopflosen Gates bleiben im Referenz-Abbild und brauchen das Prüfstand-Abbild nicht.
+- **Das Werkzeug baut es selbst**, sobald es fehlt, und meldet das in einer Zeile mit Dauer; gemessen am 2026-09-23 auf SC-027 mit 90 s bei schneller Paketquelle. Schlägt der Bau fehl, bricht der Lauf ab, einen Rückfall auf die Beschaffung je Lauf gibt es nicht.
+- **Seit dem 2026-10-11 laufen alle Gates darin, auch die kopflosen** (`4T-002243`). Das Abbild trägt Git aus dem Paket-Archiv der Git-Betreuer (`ppa:git-core/ppa`) und prüft beim Bau, dass die Fassung mindestens 2.36 ist. Grund: Das Referenz-Abbild bringt mit Ubuntu 22.04 Git 2.34.1 mit, Werkzeuge der Integrations-Strecke lesen Zusammenführungs-Commits aber mit `--remerge-diff`, das es erst ab Git 2.36 gibt; im Referenz-Abbild schlugen dadurch Prüffälle fehl, ohne dass am Bestand etwas falsch war. Die Prüfumgebung trägt damit dieselbe Werkzeug-Fassung wie die Arbeitsumgebung. Ohne Tag des Prüfstand-Abbilds startet das Werkzeug keinen Lauf, auch keinen kopflosen.
 - **Das Tag heißt `em4me-pruefstand:<hash>`**, gebildet aus dem Inhalt des Dockerfiles, der Playwright-Version aus `package-lock.json` und der ID des Referenz-Abbilds. Ein Playwright-Sprung, eine Änderung am Rezept oder ein neu gezogenes Referenz-Abbild ergibt damit ein neues Tag und beim nächsten Lauf einen neuen Bau, ohne dass jemand daran denken muss; ein bestehendes Tag wird nie überschrieben.
 - **Größenordnung** (2026-09-23, SC-027, ein einzelner Fall mit `e2e --nur`): mit `--ohne-install --ohne-kopie` 13 s Wanduhr bei 3 s Rüstzeit bis zum ersten Gate; ohne Schalter 20 s Wanduhr bei 16 s Rüstzeit, davon 13 s für die Kopie. Jeder Lauf nennt seine Rüstzeit in der Zeile «Ruestzeit bis zum ersten Gate».
 - **Alte Tags räumt das Werkzeug bewusst nicht auf**, weil die Arbeitsbereiche eines Rechners auf Zweigen mit verschiedenen Playwright-Ständen arbeiten können und ein Bau in einem Bereich das Abbild eines anderen nicht entfernen darf. Ein Tag belegt rund 650 MB über dem Referenz-Abbild. Von Hand: `docker image ls em4me-pruefstand` zeigt die vorhandenen Tags samt Alter (die Playwright-Version steht im Label `em4me.playwright`, sichtbar über `docker image inspect <tag>`), und `docker image rm em4me-pruefstand:<hash>` entfernt ein nicht mehr benötigtes; ein Tag, das gerade ein Container benutzt, lehnt Docker dabei ab.
@@ -2640,7 +2684,11 @@ pro Funktionsgruppe); `describe`-Titel tragen die Matrix-IDs.
 `scripts/lint-pm-dokumente.js` prüft die Projektmanagement-Dokumente gegen die
 PM-Konventionen (Dateiname und Identität, Frontmatter, Metadaten-Schema,
 Body-Kapitel, Hierarchie und Bidirektionalität, Überblick-Konsistenz, Notation
-der Eltern-Listen, Verweis-Disziplin). Eingebunden über
+der Eltern-Listen, Verweis-Disziplin). Die Überblick-Konsistenz der erzeugten
+Abschnitte prüft er seit dem 2026-10-10 nur im Lauf der Merge-Queue
+(`EM4ME_QUEUE_LAUF=1`) oder mit `--sichten`, weil allein die Queue den
+Überblick erzeugt; die Roadmap in `Projektmanagement/Aufgaben/0 Roadmap.md`
+prüft er in jedem Lauf. Eingebunden über
 `test/unit/pm-dokumente.test.js`, läuft er in `npm test` und damit im
 Testsuite-Gate der Merge-Queue; zusätzlich fährt ihn der pre-commit-Hook
 direkt gegen den Git-Index. Die Parse-Logik teilt er sich mit

@@ -60,6 +60,10 @@ const KERN_ZEILEN = [
   // PDF-Export — eine Ausgabe-Grundfunktion ohne sinnvollen Aus-Zustand.
   'help.feature.print',
   'help.feature.exportPdf',
+  // 4T-002169 (Epic 3E-000347, Erweiterungs-Pruefschritt): der HTML-Export
+  // ist Kern wie der PDF-Export, mit dem er Aufbereitung und Ansichts-Regel
+  // teilt; kein Ausgabe-Weg der Anwendung ist eine Erweiterung.
+  'help.feature.exportHtml',
   'help.feature.autoReload',
   'help.feature.restoreSession',
   'help.feature.unsavedDrafts',

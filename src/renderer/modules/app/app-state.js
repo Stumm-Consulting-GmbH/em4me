@@ -46,6 +46,8 @@ import { resolveCanvasViewMode } from '../canvas/canvas-modus.js';
 // 4T-001847 (Epic 3E-000110): Der Tafel-Modus ist ebenso dokument-abhaengig und
 // an eine Erweiterung gebunden; derselbe Zuschnitt, dasselbe winzige Modul.
 import { resolveTafelViewMode } from '../kanban/kanban-modus.js';
+// 4T-002160 (Epic 3E-000149): Der Praesentations-Modus ebenso.
+import { resolvePraesentationsViewMode } from '../presentation/presentation-modus.js';
 import { editorCompartments, paneEditors, typewriterScrollExtension } from '../editor/editor.js';
 import { reportMenuStateNow } from '../tabs/tabs.js';
 // 3E-000105: Frontmatter-Parser fuer die dokument-gebundenen Editor-Ansicht-
@@ -508,9 +510,15 @@ export function createTab(path, content, settings = {}) {
     // (Story 4S-000978, AK2). Die drei Rueckfaelle sind hintereinander
     // geschaltet und stoeren einander nicht: Jeder reicht jeden fremden Modus
     // unveraendert durch.
-    viewMode: resolveTafelViewMode(
-      resolveCanvasViewMode(
-        resolveViewModeForTab(settings.viewMode || state.defaultViewMode || DEFAULT_VIEW_MODE),
+    // 4T-002160: Und der Praesentations-Modus auf die Lese-Ansicht, wenn das
+    // Dokument kein Kennzeichen (mehr) traegt oder die Erweiterung
+    // `presentation` abgeschaltet ist (Story 4S-001049, AK7; 4S-001056, AK6).
+    viewMode: resolvePraesentationsViewMode(
+      resolveTafelViewMode(
+        resolveCanvasViewMode(
+          resolveViewModeForTab(settings.viewMode || state.defaultViewMode || DEFAULT_VIEW_MODE),
+          content,
+        ),
         content,
       ),
       content,
@@ -666,6 +674,9 @@ function buildPaneEls(paneIdx) {
     // 4T-001847 (Epic 3E-000110): Container der Tafel-Ansicht, sichtbar nur
     // bei .content.view-kanban (dasselbe Muster).
     kanbanEl: root.querySelector('.pane-kanban'),
+    // 4T-002160 (Epic 3E-000149): Container der Praesentations-Ansicht,
+    // sichtbar nur bei .content.view-presentation (dasselbe Muster).
+    presentationEl: root.querySelector('.pane-presentation'),
     innerSplitter: root.querySelector('.splitter.inner-splitter'),
     // 4T-000288 (Epic 3E-000051): je Pane ein linker und ein rechter Sidebar-
     // Container mit eigenem Splitter. Die Sektions-Referenzen darunter sind

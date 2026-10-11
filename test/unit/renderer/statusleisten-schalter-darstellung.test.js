@@ -79,6 +79,10 @@ const BASISLINIE = new Map([
   // nicht gab; seine Basislinie ist deshalb die Bedingung, mit der er
   // eingehaengt wird — dokument-abhaengig wie die Arbeitsflaeche.
   ['view:kanban', 'tafelAnsicht'],
+  // 4T-002160 (Epic 3E-000149): Der achte Modus, die Präsentation — aus
+  // demselben Grund wie die Tafel darüber mit der Bedingung, mit der er
+  // eingehängt wird.
+  ['view:presentation', 'praesentationsAnsicht'],
   ['btn-edit', 'fileTab'],
   ['btn-scroll-sync', 'anyTab'],
   ['btn-history', 'fileTab'],
@@ -142,7 +146,7 @@ describe('Ziel-Liste der Leisten-Schalter (4T-001765, AK1)', () => {
     const kennungen = STATUSBAR_AVAILABILITY_TARGETS.map(kennung);
     expect(kennungen).toEqual([...BASISLINIE.keys()]);
     expect(new Set(kennungen).size).toBe(kennungen.length);
-    expect(kennungen).toHaveLength(13);
+    expect(kennungen).toHaveLength(14);
   });
 
   it('nennt keinen Panel-Schalter — die kennen den Zustand nicht (E5)', () => {

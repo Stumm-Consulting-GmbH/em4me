@@ -111,6 +111,13 @@ const MANUAL_PAGES = [
   // grenzt die Tafel ausserdem ausdruecklich gegen die Aufgaben-Abfrage ab
   // (Struktur-Pruefschritt 4T-001854).
   { id: 'kanban', titleKey: 'manual.page.kanban.title', source: 'bundled' },
+  // 4T-002165 (Epic 3E-000149): Praesentation (achter Ansichts-Modus, Erkennung
+  // am Kennzeichen, Trenn-Regel, Steuer-Schluessel, Themes und Uebersteuerung,
+  // Hintergrundbild und Zweiteilung, Sprecher-Notizen, Vorfuehrung, Exporte,
+  // Vertraeglichkeit mit anderen Werkzeugen, Grenzen). Direkt hinter der Tafel,
+  // weil alle vier dokument-abhaengigen Ansichts-Modi derselben Familie sind
+  // (Struktur-Pruefschritt 4T-002165).
+  { id: 'presentation', titleKey: 'manual.page.presentation.title', source: 'bundled' },
   // 4T-000290 (Epic 3E-000051): Sidebar-Seite (Panels, Anordnung, Reiter-Gruppen).
   { id: 'sidebar', titleKey: 'manual.page.sidebar.title', source: 'bundled' },
   // 4T-000613 (Epic 3E-000115): Lesezeichen (allgemeine und bereichsgebundene mit

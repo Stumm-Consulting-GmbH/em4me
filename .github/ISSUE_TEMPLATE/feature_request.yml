@@ -1,0 +1,23 @@
+name: Feature request
+description: Something you would like EM4me to do.
+title: '[Feature] '
+labels: ['enhancement']
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: What are you trying to do?
+      description: The task in your own words, not the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: How do you do it today, and what gets in the way?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea, if you have one
+      description: A concrete idea of how it could work. Optional.

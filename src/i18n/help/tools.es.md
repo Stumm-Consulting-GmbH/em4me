@@ -1,6 +1,6 @@
 # Herramientas
 
-Once ayudantes para el trabajo diario con el texto: linter, corrección ortográfica, búsqueda, buscar y reemplazar, editor de tablas, impresión, exportación a PDF, paleta de comandos, entrada de fecha y hora, reloj con alarmas, temporizador, cronómetro y calendario mensual, línea de título. Los accesos y atajos predeterminados figuran en la [tabla de funciones](functions.md).
+Doce ayudantes para el trabajo diario con el texto: linter, corrección ortográfica, búsqueda, buscar y reemplazar, editor de tablas, impresión, exportación a PDF, exportación a HTML, paleta de comandos, entrada de fecha y hora, reloj con alarmas, temporizador, cronómetro y calendario mensual, línea de título. Los accesos y atajos predeterminados figuran en la [tabla de funciones](functions.md).
 
 ## Linter Markdown
 
@@ -120,9 +120,23 @@ La impresión sigue la vista activa, igual que la exportación a PDF de más aba
 
 ## Exportación a PDF
 
-«Archivo → Más funciones de archivo → Exportar → Exportar como PDF…» (predeterminado `Ctrl+Mayús+P`) imprime el contenido de la pestaña activa en un archivo PDF. La exportación sigue la vista activa: la vista de código fuente imprime el Markdown en bruto con resaltado de sintaxis, incluidos los números de línea si están activados en la pestaña; los modos renderizado, dividido y en vivo imprimen el documento formateado (dividido y en vivo cambian internamente a la vista renderizada para imprimir y después restauran la vista). El PDF es siempre claro, incluso si la aplicación usa el tema oscuro; los diagramas Mermaid se redibujan en colores claros y siguen siendo gráficos vectoriales, y los gráficos de tablas también se dibujan en claro. Fórmulas, resaltado de código, avisos y tablas perspective aparecen como en la vista previa.
+«Archivo → Más funciones de archivo → Exportar → Exportar como PDF…» (predeterminado `Ctrl+Mayús+P`) imprime el contenido de la pestaña activa en un archivo PDF. La exportación sigue la vista activa: la vista de código fuente imprime el Markdown en bruto con resaltado de sintaxis, incluidos los números de línea si están activados en la pestaña; los modos renderizado, dividido y en vivo imprimen el documento formateado (dividido y en vivo cambian internamente a la vista renderizada para imprimir y después restauran la vista). El PDF es siempre claro, incluso si la aplicación usa el tema oscuro; los diagramas Mermaid se redibujan en colores claros y siguen siendo gráficos vectoriales, y los gráficos de tablas también se dibujan en claro. Fórmulas, resaltado de código, avisos y tablas perspective aparecen como en la vista previa. Los comentarios privados no aparecen en el PDF, tampoco al exportar desde la vista de código fuente: su texto se omite, pero las líneas se mantienen, de modo que ningún número de línea se desplaza; la impresión se comporta igual. Si la extensión «Comentarios» está desactivada, su texto es texto normal y aparece en la salida.
 
 El tamaño de página, la orientación y los márgenes se configuran en la sección «Exportación» de la configuración (Archivo → Configuración…); el valor predeterminado es A4 vertical con márgenes normales. Al fluir el contenido entre páginas, los bloques de código, tablas, diagramas, fórmulas y avisos se mantienen juntos en lo posible; los encabezados no quedan solos al final de una página.
+
+Las diapositivas de una presentación se exportan con una orden propia, una diapositiva por página; véase [Presentación](presentation.md).
+
+## Exportación a HTML
+
+«Archivo → Más funciones de archivo → Exportar → Exportar como HTML…» guarda el contenido de la pestaña activa como un único archivo HTML que cualquier navegador abre, sin la aplicación, sin más archivos al lado y sin conexión de red. No hay un atajo predeterminado; puede asignar uno en la configuración, y la paleta de comandos también encuentra el comando. Para un documento guardado, el diálogo de guardado propone su nombre con la extensión `.html` en la misma carpeta. Si cancela el diálogo, no se crea ningún archivo. La pestaña de configuración no se puede exportar, las del manual sí.
+
+La exportación sigue la vista activa, igual que la exportación a PDF: la vista de código fuente da el Markdown en bruto con resaltado de sintaxis; los modos renderizado, dividido y en vivo dan el documento formateado. El archivo es siempre claro, incluso si la aplicación usa el tema oscuro. Las imágenes, los diagramas Mermaid, los [gráficos de tablas](charts.md) y las fórmulas van incrustados en el archivo; fórmulas, resaltado de código, avisos y tablas perspective aparecen como en la vista previa.
+
+El archivo muestra el estado visible en el momento de la exportación y no contiene código de programa. Los elementos de control, como los botones de copiar, los tiradores de ordenación, las barras de filtro y las filas de entrada, se omiten; las casillas de las tareas siguen visibles con su marca, pero no se pueden cambiar. Los destinos de salto dentro del documento, los enlaces web y las direcciones de correo electrónico siguen siendo clicables. Un enlace a otro documento, a un adjunto o a una etiqueta no tiene destino en el archivo único: se conserva como texto con subrayado punteado que indica su destino original al pasar el ratón por encima. Una imagen que no se puede incrustar —por ejemplo, porque su archivo está fuera del área— aparece en el archivo como su texto alternativo dentro de un marco discontinuo.
+
+Tras la exportación, la barra de estado indica «Exportado como HTML». Si se ha omitido algo, el mensaje indica el número de enlaces sin destino, de imágenes no incrustadas y de diagramas no dibujados.
+
+Las diapositivas de una presentación se exportan con una orden propia, como carpeta con una página por diapositiva; véase [Presentación](presentation.md).
 
 ## Paleta de comandos
 

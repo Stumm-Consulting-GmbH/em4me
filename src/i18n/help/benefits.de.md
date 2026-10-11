@@ -4,7 +4,7 @@ Diese Seite beantwortet nicht, **wie** etwas geht, sondern **wozu** es gut ist. 
 
 ## Ein Dokument, so wie Sie es gerade brauchen
 
-Lesen, schreiben und prüfen sind verschiedene Tätigkeiten, und sie brauchen verschiedene Darstellungen desselben Textes. Statt einen Kompromiss zu erzwingen, hält die Anwendung sieben Ansichten bereit, zwischen denen ein Tastendruck wechselt: die fertige Seite zum Lesen, den Quelltext zum genauen Arbeiten, beides nebeneinander zum Vergleichen, den Live-Modus zum flüssigen Schreiben, die Mindmap für den Blick auf die Gliederung, die Canvas für Karten auf einer Fläche und die Tafel für Aufgaben in Spalten. Der Wechsel kostet nichts und verändert die Datei nicht.
+Lesen, schreiben und prüfen sind verschiedene Tätigkeiten, und sie brauchen verschiedene Darstellungen desselben Textes. Statt einen Kompromiss zu erzwingen, hält die Anwendung acht Ansichten bereit, zwischen denen ein Tastendruck wechselt: die fertige Seite zum Lesen, den Quelltext zum genauen Arbeiten, beides nebeneinander zum Vergleichen, den Live-Modus zum flüssigen Schreiben, die Mindmap für den Blick auf die Gliederung, die Canvas für Karten auf einer Fläche, die Tafel für Aufgaben in Spalten und die Folien für den Vortrag. Der Wechsel kostet nichts und verändert die Datei nicht.
 
 - **Gerendert** zum Lesen, **Quellcode** für die genaue Arbeit an der Syntax.
 - **Geteilt** zeigt Quelltext und Ergebnis nebeneinander, für Konstrukte mit Tücken.
@@ -12,8 +12,9 @@ Lesen, schreiben und prüfen sind verschiedene Tätigkeiten, und sie brauchen ve
 - **Mindmap** macht aus der Überschriften-Gliederung eine Baumkarte.
 - **Canvas** zeigt eine Fläche mit Karten und Verbindungen, die im Dokument selbst liegt.
 - **Tafel** stellt die Aufgaben des Dokuments als Karten in Spalten nebeneinander.
+- **Folien** zeigen ein Dokument mit dem Kennzeichen `presentation: true` als Foliensatz, zum Vorführen im Vollbild und zur Weitergabe als PDF oder als HTML-Seiten.
 
-Ausführlich: [Ansichten und Darstellung](views-display.md), [Mindmap](mindmap.md), [Canvas-Fläche](canvas.md), [Kanban-Tafel](kanban.md).
+Ausführlich: [Ansichten und Darstellung](views-display.md), [Mindmap](mindmap.md), [Canvas-Fläche](canvas.md), [Kanban-Tafel](kanban.md), [Präsentation](presentation.md).
 
 ## Viele Dokumente nebeneinander
 

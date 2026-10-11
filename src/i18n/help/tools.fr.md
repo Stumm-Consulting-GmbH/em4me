@@ -1,6 +1,6 @@
 # Outils
 
-Onze assistants pour le travail quotidien sur le texte : linter, correcteur orthographique, recherche, rechercher et remplacer, éditeur de tableaux, impression, export PDF, palette de commandes, saisie de date et d'heure, horloge avec réveils, minuteur, chronomètre et calendrier mensuel, ligne de titre. Les accès et raccourcis par défaut figurent dans le [tableau des fonctionnalités](functions.md).
+Douze assistants pour le travail quotidien sur le texte : linter, correcteur orthographique, recherche, rechercher et remplacer, éditeur de tableaux, impression, export PDF, export HTML, palette de commandes, saisie de date et d'heure, horloge avec réveils, minuteur, chronomètre et calendrier mensuel, ligne de titre. Les accès et raccourcis par défaut figurent dans le [tableau des fonctionnalités](functions.md).
 
 ## Linter Markdown
 
@@ -120,9 +120,23 @@ L'impression suit la vue active, exactement comme l'export PDF ci-dessous : la v
 
 ## Export PDF
 
-« Fichier → Autres fonctions de fichier → Exporter → Exporter en PDF… » (défaut `Ctrl+Maj+P`) imprime le contenu de l'onglet actif dans un fichier PDF. L'export suit la vue active : la vue source imprime le Markdown brut avec coloration syntaxique, numéros de ligne compris s'ils sont activés dans l'onglet ; les modes rendu, partagé et direct impriment le document mis en forme (partagé et direct basculent en interne vers la vue rendue pour l'impression, puis restaurent la vue). Le PDF est toujours clair, même si l'application utilise le thème sombre ; les diagrammes Mermaid sont redessinés en couleurs claires et restent vectoriels, et les graphiques de tables sont eux aussi dessinés en clair. Formules, coloration du code, encadrés et tableaux perspective apparaissent comme dans l'aperçu.
+« Fichier → Autres fonctions de fichier → Exporter → Exporter en PDF… » (défaut `Ctrl+Maj+P`) imprime le contenu de l'onglet actif dans un fichier PDF. L'export suit la vue active : la vue source imprime le Markdown brut avec coloration syntaxique, numéros de ligne compris s'ils sont activés dans l'onglet ; les modes rendu, partagé et direct impriment le document mis en forme (partagé et direct basculent en interne vers la vue rendue pour l'impression, puis restaurent la vue). Le PDF est toujours clair, même si l'application utilise le thème sombre ; les diagrammes Mermaid sont redessinés en couleurs claires et restent vectoriels, et les graphiques de tables sont eux aussi dessinés en clair. Formules, coloration du code, encadrés et tableaux perspective apparaissent comme dans l'aperçu. Les commentaires privés n'apparaissent pas dans le PDF, pas même lors d'un export depuis la vue source : leur texte est omis mais les lignes restent en place, si bien qu'aucun numéro de ligne ne se décale ; l'impression se comporte de la même façon. Si l'extension « Commentaires » est désactivée, leur texte est du texte ordinaire et apparaît dans la sortie.
 
 Le format de page, l'orientation et les marges se règlent dans la section « Export » des paramètres (Fichier → Paramètres…) ; par défaut : A4 en portrait avec des marges normales. Lors du passage d'une page à l'autre, blocs de code, tableaux, diagrammes, formules et encadrés restent ensemble dans la mesure du possible ; les titres ne restent pas seuls en bas de page.
+
+Les diapositives d'une présentation s'exportent par une commande propre, une diapositive par page ; voir [Présentation](presentation.md).
+
+## Export HTML
+
+« Fichier → Autres fonctions de fichier → Exporter → Exporter en HTML… » enregistre le contenu de l'onglet actif dans un seul fichier HTML que tout navigateur ouvre — sans l'application, sans autres fichiers à côté et sans connexion réseau. Aucun raccourci n'est attribué par défaut ; vous pouvez en attribuer un dans les paramètres, et la palette de commandes trouve aussi la commande. Pour un document enregistré, la boîte de dialogue d'enregistrement propose son nom avec l'extension `.html` dans le même dossier. Si vous annulez la boîte de dialogue, aucun fichier n'est créé. L'onglet des paramètres ne s'exporte pas, les onglets du manuel si.
+
+L'export suit la vue active, comme l'export PDF : la vue source donne le Markdown brut avec coloration syntaxique ; les modes rendu, partagé et direct donnent le document mis en forme. Le fichier est toujours clair, même si l'application utilise le thème sombre. Images, diagrammes Mermaid, [graphiques de tables](charts.md) et formules sont intégrés au fichier ; formules, coloration du code, encadrés et tableaux perspective apparaissent comme dans l'aperçu.
+
+Le fichier montre l'état affiché au moment de l'export et ne contient aucun code de programme. Les éléments de commande tels que boutons de copie, poignées de tri, barres de filtre et lignes de saisie sont omis ; les cases à cocher des tâches restent visibles avec leur coche, mais ne peuvent pas être basculées. Les cibles de saut à l'intérieur du document, les liens web et les adresses e-mail restent cliquables. Un lien vers un autre document, une pièce jointe ou un tag n'a pas de cible dans le fichier unique : il reste sous forme de texte souligné en pointillé qui indique sa cible d'origine au survol de la souris. Une image qui ne peut pas être intégrée — par exemple parce que son fichier se trouve hors de la zone — apparaît dans le fichier sous forme de son texte alternatif dans un cadre en tirets.
+
+Après l'export, la barre d'état indique « Exporté en HTML ». Si quelque chose a été omis, le message indique le nombre de liens sans cible, d'images non intégrées et de diagrammes non dessinés.
+
+Les diapositives d'une présentation s'exportent par une commande propre, dans un dossier avec une page par diapositive ; voir [Présentation](presentation.md).
 
 ## Palette de commandes
 

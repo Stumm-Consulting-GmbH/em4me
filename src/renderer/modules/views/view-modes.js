@@ -17,7 +17,19 @@
 // 4T-001847 (Epic 3E-000110): 'kanban' als siebter Modus, die Tafel. Wie die
 // Canvas dokument-abhängig und an eine Erweiterung gebunden; die Liste trägt
 // den Modus, die Bedingungen stehen in kanban-modus.js.
-export const VIEW_MODES = ['source', 'split', 'rendered', 'live', 'mindmap', 'canvas', 'kanban'];
+// 4T-002160 (Epic 3E-000149): 'presentation' als achter Modus, die
+// Präsentations-Ansicht. Dokument-abhängig und an eine Erweiterung gebunden wie
+// die Tafel; die Bedingungen stehen in presentation-modus.js.
+export const VIEW_MODES = [
+  'source',
+  'split',
+  'rendered',
+  'live',
+  'mindmap',
+  'canvas',
+  'kanban',
+  'presentation',
+];
 
 /** Klasse der System-Seiten. Kein Modus, aber von denselben Stellen gesetzt. */
 export const SYSTEM_VIEW_CLASS = 'view-system';
@@ -35,7 +47,8 @@ export function isViewMode(wert) {
  * die wählbaren Ziele des Wechsels in den Bearbeiten-Modus.
  *
  * Die Lese-Ansicht fehlt, weil sie der Ausgangspunkt des Wechsels ist und kein
- * Ziel; Mindmap, Canvas und Tafel fehlen, weil sie keine Editor-Modi sind. Die
+ * Ziel; Mindmap, Canvas, Tafel und Präsentation fehlen, weil sie keine
+ * Editor-Modi sind. Die
  * Liste steht hier und nicht im Zustand, weil dieses Modul die eine Quelle der
  * Modus-Listen ist.
  */

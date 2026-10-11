@@ -4,7 +4,7 @@ This page does not answer **how** something works, but **what it is good for**. 
 
 ## One document, the way you need it right now
 
-Reading, writing and checking are different activities, and they need different presentations of the same text. Instead of forcing a compromise, the app keeps seven views ready, and one keystroke switches between them: the finished page for reading, the source text for precise work, both side by side for comparing, live mode for fluent writing, the mind map for a look at the outline, the canvas for cards on a surface, and the board for tasks in columns. Switching costs nothing and never changes the file.
+Reading, writing and checking are different activities, and they need different presentations of the same text. Instead of forcing a compromise, the app keeps eight views ready, and one keystroke switches between them: the finished page for reading, the source text for precise work, both side by side for comparing, live mode for fluent writing, the mind map for a look at the outline, the canvas for cards on a surface, the board for tasks in columns, and the slides for a talk. Switching costs nothing and never changes the file.
 
 - **Rendered** for reading, **source** for precise work on the syntax.
 - **Split** shows source and result side by side, for constructs with pitfalls.
@@ -12,8 +12,9 @@ Reading, writing and checking are different activities, and they need different 
 - **Mind map** turns the heading outline into a tree.
 - **Canvas** shows a surface with cards and connections that lives inside the document itself.
 - **Board** puts the tasks of the document side by side, as cards in columns.
+- **Slides** show a document with the flag `presentation: true` as a set of slides, for a full-screen slide show and for passing on as a PDF or as HTML pages.
 
-In detail: [Views and display](views-display.md), [Mind map view](mindmap.md), [Canvas surface](canvas.md), [Kanban board](kanban.md).
+In detail: [Views and display](views-display.md), [Mind map view](mindmap.md), [Canvas surface](canvas.md), [Kanban board](kanban.md), [Presentation](presentation.md).
 
 ## Many documents side by side
 

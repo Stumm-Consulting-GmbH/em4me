@@ -55,6 +55,7 @@
   "menu.file.exportPortable": "Portable Markdown…",
   "menu.file.print": "Print…",
   "menu.file.exportPdf": "Export as PDF…",
+  "menu.file.exportHtml": "Export as HTML…",
   "menu.file.settings": "Settings…",
   "menu.file.quit": "Exit",
   "menu.view.properties": "Properties",
@@ -115,6 +116,7 @@
   "menu.file.updateLocale": "Update…",
   "menu.view.canvas": "Canvas",
   "menu.view.kanban": "Board",
+  "menu.view.presentation": "Slides",
   "menu.view.kanbanBoard": "Kanban board",
   "menu.view.kanbanTagsFooter": "Tags in card footer",
   "menu.view.kanbanRelativeDates": "Show dates as relative",
@@ -123,5 +125,10 @@
   "menu.view.chart": "Chart",
   "menu.file.exportJsonCanvas": "Canvas as JSON Canvas…",
   "menu.file.import": "Import",
-  "menu.file.importJsonCanvas": "JSON Canvas file…"
+  "menu.file.importJsonCanvas": "JSON Canvas file…",
+  "menu.view.presentationMenu": "Presentation",
+  "menu.view.presentationStart": "Start slide show",
+  "menu.view.presentationNew": "New Presentation",
+  "menu.file.exportPresentationPdf": "Export Slides as PDF…",
+  "menu.file.exportPresentationHtml": "Export Slides as HTML…"
 }

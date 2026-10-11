@@ -42,6 +42,7 @@ import {
   renameActiveFile,
 } from '../views/file-actions.js';
 import { exportActiveTabAsPdf } from '../views/pdf-export.js';
+import { exportActiveTabAsHtml } from '../views/html-export.js';
 // 4T-001479 (Epic 3E-000177): Druck ueber den Systemdialog.
 import { printActiveTab } from '../views/print.js';
 // 4T-001806 (Epic 3E-000292): Einlesen einer JSON-Canvas-Datei.
@@ -100,6 +101,11 @@ import {
 } from '../kanban/kanban-pane.js';
 // 4T-001852 (Epic 3E-000110): die beiden Wege zu einer Tafel.
 import { legeNeueTafelAn, wandleInTafelUm } from '../kanban/kanban-anlegen.js';
+// 4T-002162 (Epic 3E-000149): Start und Ende der Vorfuehrung.
+import { beendeVorfuehrung, starteVorfuehrung } from '../presentation/presentation-vorfuehrung.js';
+// 4T-002163 (Epic 3E-000149): neue Praesentation und die Ausgaben des Foliensatzes.
+import { legeNeuePraesentationAn } from '../presentation/presentation-anlegen.js';
+import { exportiereFoliensatzAlsHtml, exportiereFoliensatzAlsPdf } from '../views/folien-export.js';
 // 4T-001904 (Epic 3E-000318): die Anzeige-Schalter der Tafel.
 import { schalteKanbanAnzeige } from '../kanban/kanban-anzeige-schalter.js';
 // 4T-001907 (Epic 3E-000318): Strg+F in der Tafel-Ansicht führt in ihr Filter-Feld.
@@ -388,6 +394,11 @@ export const commandHandlers = {
   'file.exportPdf': () => {
     exportActiveTabAsPdf();
   },
+  // 4T-002167 (Epic 3E-000347): HTML-Export; der Einstellungs-Reiter-Guard
+  // sitzt wie beim PDF-Export in der gemeinsamen Druck-Vorbereitung.
+  'file.exportHtml': () => {
+    exportActiveTabAsHtml();
+  },
   // 4T-001479 (Epic 3E-000177): Drucken. Der Einstellungs-Tab-Guard sitzt
   // wie beim PDF-Export in der gemeinsamen Druck-Vorbereitung.
   'file.print': () => {
@@ -482,6 +493,27 @@ export const commandHandlers = {
   // heraus; bei einem Dokument ohne Tafel faengt setViewMode den Rest ab.
   'view.modeKanban': () => {
     setViewMode('kanban');
+  },
+  // 4T-002160 (Epic 3E-000149): Achter Ansichts-Modus, die Praesentation; der
+  // Aus-Zustand und das Dokument ohne Kennzeichen wie bei der Tafel.
+  'view.modePresentation': () => {
+    setViewMode('presentation');
+  },
+  // 4T-002162 (Epic 3E-000149): Vorfuehrung der gezeigten Praesentation ab der
+  // gezeigten Folie. Ausserhalb der Praesentations-Ansicht ohne Wirkung; der
+  // Tastendruck gilt dann als nicht verarbeitet.
+  'presentation.start': () => starteVorfuehrung(state.activePaneIndex),
+  // 4T-002162: Vorfuehrung beenden (Palette; Esc faengt die Vorfuehrung selbst).
+  'presentation.stop': () => beendeVorfuehrung(),
+  // 4T-002163: der Weg zu einer neuen Praesentation (Vorbild kanban.newBoard)
+  // und die beiden Ausgaben; den Einstellungs-Reiter faengt die gemeinsame
+  // Druck-Vorbereitung ab, ein Dokument ohne Kennzeichen die Ausgabe selbst.
+  'presentation.new': () => legeNeuePraesentationAn(newUntitledTab),
+  'presentation.exportPdf': () => {
+    exportiereFoliensatzAlsPdf();
+  },
+  'presentation.exportHtml': () => {
+    exportiereFoliensatzAlsHtml();
   },
   // 4T-001654 (Epic 3E-000287): Karte in der Mitte des sichtbaren Ausschnitts
   // der aktiven Flaeche anlegen; ausserhalb der Canvas-Ansicht ein Hinweis

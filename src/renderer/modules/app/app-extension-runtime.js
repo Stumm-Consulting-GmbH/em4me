@@ -34,6 +34,9 @@ import { CANVAS_EXTENSION_ID } from '../../../shared/canvas/canvas-core.js';
 // Modus-Modul und nicht im Format-Kern, weil kein Preload-Teil nach ihr fragt
 // (Begruendung im Kopf von kanban-modus.js).
 import { KANBAN_EXTENSION_ID } from '../kanban/kanban-modus.js';
+// 4T-002160 (Epic 3E-000149): Kennung der Praesentations-Erweiterung, aus
+// demselben Grund im Modus-Modul.
+import { PRESENTATION_EXTENSION_ID } from '../presentation/presentation-modus.js';
 
 // 4T-000294: Statusbar-Buttons erweiterungs-gebundener Panels folgen dem
 // Schalt-Zustand (keine toten UI-Elemente). Die Wort-Statistik verwaltet
@@ -242,6 +245,21 @@ export function registerExtensionRuntimeHooks() {
       for (const pane of state.panes) {
         for (const tab of pane.tabs || []) {
           if (tab.viewMode === 'kanban') tab.viewMode = 'rendered';
+        }
+      }
+    },
+  });
+  // 4T-002160 (Epic 3E-000149): Aus-Zustand der Praesentations-Ansicht, aus
+  // demselben Grund wie bei der Tafel: Ohne den Hook bliebe ein offenes
+  // Dokument in einer Ansicht ohne Schalter und ohne Menue-Eintrag stehen. Es
+  // faellt auf die Lese-Ansicht, in der `---` eine thematische Linie ist
+  // (Story 4S-001056, AK5 und AK6). Geschrieben wird nichts (AK8); kein
+  // activate-Gegenstueck, die Folien stehen unveraendert im Dokument (AK7).
+  attachExtensionRuntime(PRESENTATION_EXTENSION_ID, {
+    deactivate: () => {
+      for (const pane of state.panes) {
+        for (const tab of pane.tabs || []) {
+          if (tab.viewMode === 'presentation') tab.viewMode = 'rendered';
         }
       }
     },

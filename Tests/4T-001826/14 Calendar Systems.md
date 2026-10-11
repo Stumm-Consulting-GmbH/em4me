@@ -55,4 +55,4 @@ Each one arrives fully filled in under its own name — the name a value then st
 
 Calendar systems belong to the **Full** working mode. In Beginner and Advanced mode they are switched off: the values on this page then stay plain text, exactly as written, and the settings section is not shown — the calendars kept with the area stay untouched all the same. Turn them on under **Settings → Extensions** with the switch **Calendar systems**, or choose the working mode Full there.
 
-That is the whole tour — head back to [[00 Welcome]] and start editing. :tada:
+One stop left, and it turns a document into slides: [[15 Presentation]].

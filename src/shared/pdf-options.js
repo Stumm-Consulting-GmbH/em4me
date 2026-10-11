@@ -8,6 +8,9 @@
 // Rand-Stufen und Defaults aus derselben Quelle liest.
 'use strict';
 
+// 4T-002163 (Epic 3E-000149): die Geometrie der Folie fuer den Foliensatz-PDF.
+const { folienGeometrie } = require('./presentation/presentation-darstellung.js');
+
 // Formate: Auswahl der Einstellungs-Seite (4T-000304). printToPDF kennt
 // weitere (A0-A6, Tabloid, Ledger); die App bietet die fuenf gaengigen an.
 const PDF_PAGE_SIZES = ['A4', 'A3', 'A5', 'Letter', 'Legal'];
@@ -77,6 +80,32 @@ function printSystemOptions(raw) {
   };
 }
 
+// 4T-002163 (Epic 3E-000149): PDF des Foliensatzes. Das Seitenformat ist die
+// Folie (Story 4S-001054, AK3): Entwurfsgroesse der Folie in CSS-Pixeln
+// (1280 x 720 bei 16:9, 960 x 720 bei 4:3), umgerechnet in Zoll, ohne Rand,
+// mit Hintergruenden. Die Seiten-Einstellungen des Dokument-Exports
+// (export.pdf.*) wirken hier bewusst NICHT (AK7); ein unbekanntes Format
+// faellt wie in der Ansicht auf 16:9.
+//
+// Querformat ergibt sich aus Breite > Hoehe; `landscape` bleibt false. Ein
+// `landscape: true` tauschte nach der Chromium-Quelle (PrintSettings::
+// SetOrientation dreht das Seitenformat) Breite und Hoehe und ergaebe ein
+// Hochformat. Das ist am Quelltext gelesen und nicht am Programm gemessen;
+// die manuelle Abnahme von 4T-002163 prueft es an der PDF-Datei.
+function folienPdfOptionen(size) {
+  const geometrie = folienGeometrie(size);
+  return {
+    pageSize: {
+      width: geometrie.breite / CSS_PIXEL_PRO_ZOLL,
+      height: geometrie.hoehe / CSS_PIXEL_PRO_ZOLL,
+    },
+    landscape: false,
+    printBackground: true,
+    margins: { top: 0, bottom: 0, left: 0, right: 0 },
+    preferCSSPageSize: false,
+  };
+}
+
 module.exports = {
   PDF_PAGE_SIZES,
   PDF_MARGIN_PRESETS,
@@ -84,4 +113,5 @@ module.exports = {
   normalizePdfExportSettings,
   printToPdfOptions,
   printSystemOptions,
+  folienPdfOptionen,
 };

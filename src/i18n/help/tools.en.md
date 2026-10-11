@@ -1,6 +1,6 @@
 # Tools
 
-Eleven helpers for daily text work: linter, spell checking, search, search and replace, table editor, printing, PDF export, command palette, date and time entry, clock with alarms, timer, stopwatch and month calendar, title line. Access paths and default shortcuts are listed in the [features table](functions.md).
+Twelve helpers for daily text work: linter, spell checking, search, search and replace, table editor, printing, PDF export, HTML export, command palette, date and time entry, clock with alarms, timer, stopwatch and month calendar, title line. Access paths and default shortcuts are listed in the [features table](functions.md).
 
 ## Markdown linter
 
@@ -120,9 +120,23 @@ Printing follows the active view, exactly like the PDF export below: the source 
 
 ## PDF export
 
-"File → More File Functions → Export → Export as PDF…" (default `Ctrl+Shift+P`) prints the content of the active tab to a PDF file. The export follows the active view: the source view prints the raw Markdown with syntax highlighting, including line numbers when they are enabled in the tab; rendered, split and live mode print the formatted document (split and live switch internally to the rendered view for printing and restore the view afterwards). The PDF is always light, even when the app runs in the dark theme; Mermaid diagrams are redrawn in light colours and remain vector graphics, and charts for tables are drawn light as well. Formulas, code highlighting, callouts and perspective tables appear as in the preview.
+"File → More File Functions → Export → Export as PDF…" (default `Ctrl+Shift+P`) prints the content of the active tab to a PDF file. The export follows the active view: the source view prints the raw Markdown with syntax highlighting, including line numbers when they are enabled in the tab; rendered, split and live mode print the formatted document (split and live switch internally to the rendered view for printing and restore the view afterwards). The PDF is always light, even when the app runs in the dark theme; Mermaid diagrams are redrawn in light colours and remain vector graphics, and charts for tables are drawn light as well. Formulas, code highlighting, callouts and perspective tables appear as in the preview. Private comments do not appear in the PDF, not even when exporting from the source view: their text is left out while the lines stay in place, so no line number shifts; printing behaves the same way. If the extension "Comments" is switched off, their text is ordinary text and appears in the output.
 
 Page size, orientation and margins are set in the "Export" section of the settings (File → Settings…); the default is A4 in portrait with normal margins. When content flows across pages, code blocks, tables, diagrams, formulas and callouts stay together where possible; headings do not end up alone at the bottom of a page.
+
+The slides of a presentation are exported by a command of their own, one slide per page; see [Presentation](presentation.md).
+
+## HTML export
+
+"File → More File Functions → Export → Export as HTML…" saves the content of the active tab as a single HTML file that any browser opens — without the application, without further files alongside it and without a network connection. No default shortcut is assigned; you can assign one in the settings, and the command palette finds the command as well. For a saved document, the save dialog suggests its name with the extension `.html` in the same folder. If you cancel the dialog, no file is created. The settings tab cannot be exported, manual tabs can.
+
+The export follows the active view, like the PDF export: the source view yields the raw Markdown with syntax highlighting; rendered, split and live yield the formatted document. The file is always light, even when the app runs in the dark theme. Images, Mermaid diagrams, [charts for tables](charts.md) and formulas are embedded in the file; formulas, code highlighting, callouts and perspective tables appear as in the preview.
+
+The file shows the state displayed at the time of export and contains no program code. Controls such as copy buttons, sort handles, filter bars and input rows are left out; task checkboxes remain visible with their tick but cannot be toggled. Jump targets within the document, web links and e-mail addresses remain clickable. A link to another document, an attachment or a tag has no target in the single file: it remains as text with a dotted underline that names its original target when you hover over it with the mouse. An image that cannot be embedded — for example because its file lies outside the area — appears in the file as its alternative text in a dashed frame.
+
+After the export, the status bar reports "Exported as HTML". If something was left out, the message names the number of links without target, images not embedded and diagrams not drawn.
+
+The slides of a presentation are exported by a command of their own, as a folder with one page per slide; see [Presentation](presentation.md).
 
 ## Command palette
 

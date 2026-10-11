@@ -35,4 +35,4 @@ Priority: {{select:Priority:High,Medium,Low}}
 - `{{clipboard}}` — the current clipboard text
 - `{{cursor}}` — where the cursor lands after applying
 
-One stop left, and it is a spatial one: [[12 Canvas]].
+The next stop is a spatial one: [[12 Canvas]].

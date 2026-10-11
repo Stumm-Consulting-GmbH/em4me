@@ -1,0 +1,515 @@
+/* 4T-002160 (Epic 3E-000149): Präsentations-Ansicht — die Sichtbarkeit ihres
+   Containers und eine schlichte, lesbare Fläche für die eine Folie samt
+   Zähler und Blätter-Schaltflächen. Geometrie (16:9, skaliert), Themes und
+   Vorführung kommen mit 4T-002161 und 4T-002162. Farben ausschließlich über
+   Theme-Variablen (hell/dunkel), wie im Stilblatt der Tafel; die Fläche
+   (presentation-pane.js) vergibt nur Klassen.
+   4T-002161: dazu die Folie selbst in fester Geometrie, gestaltet allein
+   ueber die Folien-Slots des Themes (--slide-*), mit Hintergrund-Ebene,
+   Zweiteilung, Kopf, Fuss, Seitenzahl und Ueberlauf-Markierung. Die Flaeche
+   ausserhalb der Folie folgt weiter dem Farbschema der Anwendung. */
+
+/* Der Präsentations-Modus ersetzt Editor und Render-Pane vollständig, genau
+   wie Mindmap, Canvas und Tafel. Sichtbar wird der Container erst über die
+   Modus-Klasse am .content-Element. */
+.pane-presentation {
+  display: none;
+}
+.content.view-presentation .pane-source,
+.content.view-presentation .pane-rendered,
+.content.view-presentation .inner-splitter {
+  display: none;
+}
+.content.view-presentation .pane-presentation {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Die Fläche selbst: Kopfzeile mit Zähler und Schaltflächen, darunter die
+   Folie. Sie trägt den Fokus für das Blättern per Tastatur. */
+.praesentation-flaeche {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  outline: none;
+}
+.praesentation-flaeche:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.praesentation-leiste {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex: 0 0 auto;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-ui);
+  font-size: 13px;
+}
+
+.praesentation-zaehler {
+  min-width: 5em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.praesentation-knopf {
+  padding: 2px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+}
+.praesentation-knopf:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* 4T-002161: Hinweis-Zeile mit den Befunden der Gestaltung (unbekanntes
+   Theme, ungueltiger Slot-Wert, unbekanntes Format); ohne Befund verborgen. */
+.praesentation-hinweise {
+  flex: 0 0 auto;
+  padding: 4px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--code-bg);
+  color: var(--linter-warn, var(--fg));
+  font-family: var(--font-ui);
+  font-size: 12px;
+}
+.praesentation-hinweise[hidden] {
+  display: none;
+}
+
+/* 4T-002161: Die Buehne ist die verfuegbare Flaeche; die Folie steht mittig
+   darin, eingepasst von passeFolieEin (presentation-folie.js), der den Rand
+   von 24px ringsum einrechnet. Gerollt wird nie: Die Folie skaliert. */
+.praesentation-buehne {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Die Huelle hat die skalierte Groesse (inline gesetzt); die Folie darin hat
+   die Entwurfsgroesse (1280 x 720, bei 4:3 960 x 720, inline gesetzt) und
+   wird ueber transform: scale() als Ganzes verkleinert. */
+.presentation-slide-huelle {
+  position: relative;
+  flex: 0 0 auto;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Die Folie. Alle Farben und die Schrift kommen aus den Folien-Slots des
+   Themes (--slide-*, gesetzt von presentation-folie.js), nie aus dem
+   Farbschema der Anwendung. Damit der gerenderte Inhalt (.markdown-body,
+   render-basis.css) dem Theme folgt, werden die Variablen der Oberflaeche,
+   die er liest, im Bereich der Folie auf die Slots umgelegt.
+   Befund der Abnahme vom 2026-10-10: Umgelegt werden ALLE Farb-Variablen, die
+   die Inhalts-Regeln der Anwendung lesen (Erhebung ueber die Regeln mit
+   .markdown-body: Tabellen-Kopf --bg-alt, Rahmen und Linien --border, Zitat
+   --border-strong und --fg-muted, Code --code-bg, Verweise --accent, Schlag-
+   wort-Verweise --syntax-link, Flaechen --bg-muted und --hover). Fehlt eine,
+   nimmt der Inhalt sie aus dem Farbschema der Anwendung (Ansicht) oder aus
+   dem erzwungenen hellen Schema (PDF, HTML-Seiten). Abgeleitete Flaechen
+   mischen die Textfarbe in den Hintergrund (color-mix, Chromium ab 111). */
+.presentation-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: var(--slide-background);
+  color: var(--slide-text);
+  font-family: var(--slide-font);
+  --fg: var(--slide-text);
+  --bg: var(--slide-background);
+  --accent: var(--slide-accent);
+  --fg-muted: color-mix(in srgb, var(--slide-text) 70%, var(--slide-background));
+  --bg-alt: color-mix(in srgb, var(--slide-text) 10%, var(--slide-background));
+  --bg-muted: color-mix(in srgb, var(--slide-text) 14%, var(--slide-background));
+  --hover: color-mix(in srgb, var(--slide-text) 12%, var(--slide-background));
+  --border: color-mix(in srgb, var(--slide-text) 22%, var(--slide-background));
+  --border-strong: color-mix(in srgb, var(--slide-text) 35%, var(--slide-background));
+  /* Code-Flaechen: Vorgabe hier, je Farbsatz unten festgelegt. */
+  --code-bg: color-mix(in srgb, var(--slide-text) 11%, var(--slide-background));
+  --slide-code-inline-bg: color-mix(in srgb, var(--slide-text) 8%, var(--slide-background));
+  --syntax-link: var(--slide-accent);
+  --render-font-family: var(--slide-font);
+  /* Grundschrift in Folien-Einheiten: 28px bei 720px Hoehe. */
+  --render-font-size: 28px;
+}
+
+/* Hintergrund-Ebene: ueber die ganze Folie, bei der Zweiteilung die
+   Bildspalte (Breite inline). Mehrere Bilder stehen nebeneinander, mit
+   `vertical` uebereinander (Marp). */
+.presentation-slide-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+}
+.presentation-slide-bg.is-vertikal {
+  flex-direction: column;
+}
+.presentation-slide--geteilt-left .presentation-slide-bg {
+  right: auto;
+}
+.presentation-slide--geteilt-right .presentation-slide-bg {
+  left: auto;
+}
+.presentation-bg-zelle {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.presentation-bg-bild {
+  display: block;
+  max-width: none;
+  max-height: none;
+}
+.presentation-bg-bild--cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.presentation-bg-bild--contain {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.presentation-bg-bild--auto {
+  width: auto;
+  height: auto;
+}
+.presentation-bg-bild--prozent {
+  height: auto;
+}
+
+/* Inhalts-Bereich: die ganze Folie, bei der Zweiteilung die andere Seite
+   (left/right inline). Kopf, Fuss und Seitenzahl liegen darin, wie bei Marp. */
+.presentation-slide-inhalt {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.presentation-slide .praesentation-folie.markdown-body {
+  position: absolute;
+  inset: 0;
+  max-width: none;
+  margin: 0;
+  padding: 78px 78px;
+  box-sizing: border-box;
+  overflow: hidden;
+  line-height: 1.45;
+}
+.presentation-slide .markdown-body > :first-child {
+  margin-top: 0;
+}
+.presentation-slide .markdown-body h1,
+.presentation-slide .markdown-body h2,
+.presentation-slide .markdown-body h3,
+.presentation-slide .markdown-body h4,
+.presentation-slide .markdown-body h5,
+.presentation-slide .markdown-body h6 {
+  color: var(--slide-heading);
+}
+.presentation-slide .markdown-body blockquote {
+  border-left-color: var(--slide-accent);
+}
+/* Inline-Code etwas zarter als der Code-Block (beide lesen sonst --code-bg). */
+.presentation-slide .markdown-body :not(pre) > code {
+  background: var(--slide-code-inline-bg);
+}
+
+/* Befund der Abnahme vom 2026-10-10: Farbsatz der Code-Bloecke und der
+   Markierung je Theme. hljs-themes.css haengt die Farben an data-theme am
+   Wurzel-Element (Farbschema der Anwendung, im Druck erzwungen hell); die
+   Folie waehlt ihren Satz dagegen ueber die Klasse
+   presentation-slide--syntax-light/-dark (presentation-themes.js,
+   FOLIEN_THEME_SYNTAX). Werte: die beiden Saetze aus hljs-themes.css
+   (github, github-dark) und der Markierung (block-eigenschaften-und-
+   konstrukte.css). Die Regeln darunter sind um eine Klasse spezifischer als
+   die dortigen (:root:not([data-theme]) zaehlt zwei), weil hljs-themes.css
+   spaeter geladen wird.
+   Die Code-Flaechen haengen am Satz (Entscheidung der Steuerung vom
+   2026-10-10): beim hellen Satz die Textfarbe in den Hintergrund gemischt,
+   beim dunklen der Hintergrund ins Dunkle (schwarz 22 % bzw. 14 %), damit der
+   dunkle Satz auch auf einem mittelhellen Grund wie dem Theme accent traegt.
+   Die doppelte Klasse haelt die Werte ueber der Vorgabe an .presentation-slide. */
+.presentation-slide.presentation-slide--syntax-light {
+  --code-bg: color-mix(in srgb, var(--slide-text) 11%, var(--slide-background));
+  --slide-code-inline-bg: color-mix(in srgb, var(--slide-text) 8%, var(--slide-background));
+  --slide-hl-text: #24292e;
+  --slide-hl-keyword: #d73a49;
+  --slide-hl-title: #6f42c1;
+  --slide-hl-attr: #005cc5;
+  --slide-hl-string: #032f62;
+  --slide-hl-built: #e36209;
+  --slide-hl-comment: #6a737d;
+  --slide-hl-name: #22863a;
+  --slide-hl-section: #005cc5;
+  --slide-hl-bullet: #735c0f;
+  --slide-hl-add: #22863a;
+  --slide-hl-add-bg: #f0fff4;
+  --slide-hl-del: #b31d28;
+  --slide-hl-del-bg: #ffeef0;
+  --slide-mark-bg: #fff3a3;
+  --slide-mark-text: var(--slide-text);
+}
+.presentation-slide.presentation-slide--syntax-dark {
+  --code-bg: color-mix(in srgb, black 22%, var(--slide-background));
+  --slide-code-inline-bg: color-mix(in srgb, black 14%, var(--slide-background));
+  --slide-hl-text: #c9d1d9;
+  --slide-hl-keyword: #ff7b72;
+  --slide-hl-title: #d2a8ff;
+  --slide-hl-attr: #79c0ff;
+  --slide-hl-string: #a5d6ff;
+  --slide-hl-built: #ffa657;
+  --slide-hl-comment: #8b949e;
+  --slide-hl-name: #7ee787;
+  --slide-hl-section: #1f6feb;
+  --slide-hl-bullet: #f2cc60;
+  --slide-hl-add: #aff5b4;
+  --slide-hl-add-bg: #033a16;
+  --slide-hl-del: #ffdcd7;
+  --slide-hl-del-bg: #67060c;
+  --slide-mark-bg: #7d6b00;
+  --slide-mark-text: #fff8d6;
+}
+.presentation-slide .praesentation-folie.markdown-body .hljs,
+.presentation-slide .praesentation-folie.markdown-body .hljs-subst,
+.presentation-slide .praesentation-folie.markdown-body .hljs-emphasis,
+.presentation-slide .praesentation-folie.markdown-body .hljs-strong {
+  color: var(--slide-hl-text);
+}
+.presentation-slide .praesentation-folie.markdown-body .hljs-doctag,
+.presentation-slide .praesentation-folie.markdown-body .hljs-keyword,
+.presentation-slide .praesentation-folie.markdown-body .hljs-meta .hljs-keyword,
+.presentation-slide .praesentation-folie.markdown-body .hljs-template-tag,
+.presentation-slide .praesentation-folie.markdown-body .hljs-template-variable,
+.presentation-slide .praesentation-folie.markdown-body .hljs-type,
+.presentation-slide .praesentation-folie.markdown-body .hljs-variable.language_ {
+  color: var(--slide-hl-keyword);
+}
+.presentation-slide .praesentation-folie.markdown-body .hljs-title,
+.presentation-slide .praesentation-folie.markdown-body .hljs-title.class_,
+.presentation-slide .praesentation-folie.markdown-body .hljs-title.class_.inherited__,
+.presentation-slide .praesentation-folie.markdown-body .hljs-title.function_ {
+  color: var(--slide-hl-title);
+}
+.presentation-slide .praesentation-folie.markdown-body .hljs-attr,
+.presentation-slide .praesentation-folie.markdown-body .hljs-attribute,
+.presentation-slide .praesentation-folie.markdown-body .hljs-literal,
+.presentation-slide .praesentation-folie.markdown-body .hljs-meta,
+.presentation-slide .praesentation-folie.markdown-body .hljs-number,
+.presentation-slide .praesentation-folie.markdown-body .hljs-operator,
+.presentation-slide .praesentation-folie.markdown-body .hljs-variable,
+.presentation-slide .praesentation-folie.markdown-body .hljs-selector-attr,
+.presentation-slide .praesentation-folie.markdown-body .hljs-selector-class,
+.presentation-slide .praesentation-folie.markdown-body .hljs-selector-id {
+  color: var(--slide-hl-attr);
+}
+.presentation-slide .praesentation-folie.markdown-body .hljs-regexp,
+.presentation-slide .praesentation-folie.markdown-body .hljs-string,
+.presentation-slide .praesentation-folie.markdown-body .hljs-meta .hljs-string {
+  color: var(--slide-hl-string);
+}
+.presentation-slide .praesentation-folie.markdown-body .hljs-built_in,
+.presentation-slide .praesentation-folie.markdown-body .hljs-symbol {
+  color: var(--slide-hl-built);
+}
+.presentation-slide .praesentation-folie.markdown-body .hljs-comment,
+.presentation-slide .praesentation-folie.markdown-body .hljs-code,
+.presentation-slide .praesentation-folie.markdown-body .hljs-formula {
+  color: var(--slide-hl-comment);
+}
+.presentation-slide .praesentation-folie.markdown-body .hljs-name,
+.presentation-slide .praesentation-folie.markdown-body .hljs-quote,
+.presentation-slide .praesentation-folie.markdown-body .hljs-selector-tag,
+.presentation-slide .praesentation-folie.markdown-body .hljs-selector-pseudo {
+  color: var(--slide-hl-name);
+}
+.presentation-slide .praesentation-folie.markdown-body .hljs-section {
+  color: var(--slide-hl-section);
+}
+.presentation-slide .praesentation-folie.markdown-body .hljs-bullet {
+  color: var(--slide-hl-bullet);
+}
+.presentation-slide .praesentation-folie.markdown-body .hljs-addition {
+  color: var(--slide-hl-add);
+  background-color: var(--slide-hl-add-bg);
+}
+.presentation-slide .praesentation-folie.markdown-body .hljs-deletion {
+  color: var(--slide-hl-del);
+  background-color: var(--slide-hl-del-bg);
+}
+.presentation-slide .praesentation-folie.markdown-body mark {
+  background: var(--slide-mark-bg);
+  color: var(--slide-mark-text);
+}
+
+/* Kopf- und Fusszeile, Seitenzahl: feste Lage in Folien-Einheiten; ein
+   langer Text wird auf die Breite begrenzt und schiebt den Inhalt nie. */
+.presentation-slide-kopf,
+.presentation-slide-fuss {
+  position: absolute;
+  left: 30px;
+  right: 30px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 18px;
+  line-height: 1.3;
+  color: var(--slide-header-footer);
+}
+.presentation-slide-kopf {
+  top: 21px;
+}
+.presentation-slide-fuss {
+  bottom: 21px;
+  right: 90px;
+}
+.presentation-slide-kopf a,
+.presentation-slide-fuss a {
+  color: var(--slide-accent);
+}
+.presentation-slide-nummer {
+  position: absolute;
+  right: 30px;
+  bottom: 21px;
+  font-size: 24px;
+  line-height: 1.3;
+  color: var(--slide-page-number);
+  font-variant-numeric: tabular-nums;
+}
+.presentation-slide-kopf[hidden],
+.presentation-slide-fuss[hidden],
+.presentation-slide-nummer[hidden] {
+  display: none;
+}
+
+/* Ueberlauf-Markierung am unteren Rand (Entscheidung 4a): bewusst in einer
+   festen Warnfarbe statt einer Theme-Farbe, damit sie auf jedem Hintergrund
+   auffaellt. In der Vorfuehrung (body.presentation-vorfuehrung) nie. */
+.presentation-slide-ueberlauf {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12px;
+  z-index: 3;
+  background: repeating-linear-gradient(-45deg, #d93025 0 12px, #fbbc04 12px 24px);
+}
+.presentation-slide--ueberlauf .presentation-slide-ueberlauf {
+  display: block;
+}
+body.presentation-vorfuehrung .presentation-slide-ueberlauf {
+  display: none;
+}
+
+/* 4T-002162: Die Vorfuehrung (body.presentation-vorfuehrung, gesetzt von
+   presentation-vorfuehrung.js). Wie der Fokus-Modus blendet sie die Leisten
+   aus, aber weiter: Reiterleiste, Statusleiste, Seitenleisten, alle Trenner,
+   Format-Leiste, Titelzeile, Suchleiste, die andere Spalte und die Leiste der
+   Flaeche selbst. Den Zustand des Fokus-Modus beruehrt sie nicht; beide
+   Klassen koennen zugleich stehen. Die Flaeche der vorgefuehrten Spalte liegt
+   schwarz ueber dem ganzen Fenster, die Folie passt sich darin ohne Rand ein
+   (passeFolieEin) - der Rest ringsum bleibt schwarz. */
+body.presentation-vorfuehrung .tabbar,
+body.presentation-vorfuehrung .statusbar,
+body.presentation-vorfuehrung .pane-sidebar,
+body.presentation-vorfuehrung .splitter,
+body.presentation-vorfuehrung .format-toolbar,
+body.presentation-vorfuehrung .title-line,
+body.presentation-vorfuehrung .search-bar,
+body.presentation-vorfuehrung .pane-group:not(.presentation-vorfuehrung-spalte),
+body.presentation-vorfuehrung .praesentation-leiste,
+body.presentation-vorfuehrung .praesentation-hinweise {
+  display: none !important;
+}
+body.presentation-vorfuehrung .presentation-vorfuehrung-spalte .praesentation-flaeche {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: #000;
+}
+body.presentation-vorfuehrung
+  .presentation-vorfuehrung-spalte
+  .praesentation-flaeche:focus-visible {
+  box-shadow: none;
+}
+body.presentation-vorfuehrung .presentation-slide-huelle {
+  box-shadow: none;
+}
+
+/* 4T-002163: Druck-Flaeche der beiden Ausgaben des Foliensatzes (PDF und
+   HTML-Seiten, views/folien-export.js). Sie haengt fuer die Dauer der Ausgabe
+   im Inhalts-Bereich der aktiven Spalte und traegt je Folie eine Seite in
+   Entwurfsgroesse (1280 x 720, bei 4:3 960 x 720, inline gesetzt), ohne
+   Skalierung. Ausserhalb des Druck-Zustands liegt sie ausserhalb des
+   Fensters statt verborgen: Mermaid misst Textbreiten und bekaeme in einem
+   verborgenen Knoten Breite 0. Im Druck-Zustand der Ausgabe
+   (body.printing.printing-folien) ist sie das Einzige, was die Spalte zeigt,
+   und jede Seite bricht nach ihrer Folie um. */
+.presentation-druck {
+  position: fixed;
+  left: -100000px;
+  top: 0;
+}
+.presentation-druck-seite {
+  position: relative;
+  overflow: hidden;
+  break-after: page;
+  page-break-after: always;
+}
+.presentation-druck-seite:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+.presentation-druck .presentation-slide-huelle {
+  box-shadow: none;
+}
+.presentation-druck .presentation-slide-ueberlauf {
+  display: none !important;
+}
+body.printing.printing-folien,
+body.printing.printing-folien .panes-container,
+body.printing.printing-folien .pane-group.active-pane,
+body.printing.printing-folien .pane-group.active-pane > .content {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+body.printing.printing-folien .pane-group.active-pane > :not(.content),
+body.printing.printing-folien .pane-group.active-pane > .content > :not(.presentation-druck) {
+  display: none !important;
+}
+body.printing.printing-folien .presentation-druck {
+  position: static;
+  display: block;
+}
+/* Die Druck-Schriftgroesse des Dokument-PDFs (body.printing .markdown-body)
+   gilt nicht fuer die Folie; dort bleibt die Grundschrift der Folie. */
+body.printing .presentation-druck .markdown-body {
+  font-size: var(--render-font-size);
+}

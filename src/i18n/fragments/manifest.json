@@ -144,6 +144,7 @@
     { "name": "graph", "praefixe": ["graph", "mindmap", "settings.mindmap"] },
     { "name": "canvas", "praefixe": ["canvas"] },
     { "name": "kanban", "praefixe": ["kanban", "settings.kanban"] },
+    { "name": "presentation", "praefixe": ["presentation", "settings.presentation"] },
     { "name": "stats", "praefixe": ["stats", "wordCount"] },
     { "name": "memory", "praefixe": ["memory"] },
     { "name": "color-schemes", "praefixe": ["colorScheme", "settings.colorSchemes"] },

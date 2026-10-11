@@ -175,10 +175,28 @@ const NACH_DER_MESSUNG = new Set([
   'insert.canvas',
   'file.exportJsonCanvas',
   'file.importJsonCanvas',
+  // 4T-002167 (Epic 3E-000347): der HTML-Export, aus demselben Grund — es gibt
+  // ihn erst seit diesem Vorgang. Seine Regel ist die des PDF-Exports
+  // (contentTab); die eingefrorene alte Logik kennt das Kommando nicht.
+  'file.exportHtml',
   // 4T-001847 (Epic 3E-000110): der Tafel-Ansichts-Modus. Wie die Canvas-Zeilen
   // darueber entsteht er lange nach der Erhebung; es gibt zu ihm keinen alten
   // Wert, gegen den sich vergleichen liesse.
   'view.modeKanban',
+  // 4T-002160 (Epic 3E-000149): der Präsentations-Ansichts-Modus, aus demselben
+  // Grund wie die Tafel darüber; sein Feld praesentationTab kennt die
+  // eingefrorene alte Logik nicht.
+  'view.modePresentation',
+  // 4T-002162 (Epic 3E-000149): Start und Ende der Vorführung, aus demselben
+  // Grund — es gibt sie erst seit diesem Vorgang.
+  'presentation.start',
+  'presentation.stop',
+  // 4T-002163 (Epic 3E-000149): der Weg zu einer neuen Präsentation und die
+  // beiden Ausgaben des Foliensatzes, aus demselben Grund — es gibt sie erst
+  // seit diesem Vorgang.
+  'presentation.new',
+  'presentation.exportPdf',
+  'presentation.exportHtml',
   // 4T-001849 (Epic 3E-000110): die Karten-Anlage der Tafel, aus demselben
   // Grund wie der Modus darueber.
   'kanban.addCard',
@@ -253,7 +271,18 @@ const BOOL_FIELDS = AVAILABILITY_CONTEXT_FIELDS.filter(
   (f) => f !== 'viewMode' && !LAGE_FELDER.includes(f),
 );
 // 4T-001847 (Epic 3E-000110): 'kanban' als siebter Modus.
-const VIEW_MODES = [null, 'source', 'split', 'live', 'rendered', 'mindmap', 'canvas', 'kanban'];
+// 4T-002160 (Epic 3E-000149): 'presentation' als achter.
+const VIEW_MODES = [
+  null,
+  'source',
+  'split',
+  'live',
+  'rendered',
+  'mindmap',
+  'canvas',
+  'kanban',
+  'presentation',
+];
 
 function alleKontexte() {
   const out = [];

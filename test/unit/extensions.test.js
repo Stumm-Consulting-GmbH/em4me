@@ -496,20 +496,23 @@ describe('Abhaengigkeits-Schutz: Sperre der Grundlage (4T-001877)', () => {
 // Zusammenfuehrung mit dem Release 1.141.0 kommt die Kanban-Tafel als
 // dreiundsechzigste hinzu, auf «Fortgeschritten» (Sammeltask 4T-001891). Mit
 // 4T-002019 kommt das Diagramm zu einer Datentabelle als vierundsechzigste
-// hinzu, auf «Voll».
-const STUFEN_ZAHLEN = { beginner: 24, advanced: 27, full: 13 };
+// hinzu, auf «Voll». Mit 4T-002160 kommt die Praesentations-Ansicht als
+// fuenfundsechzigste hinzu, auf «Fortgeschritten» (Entscheidung 7b des
+// Product Owners vom 2026-10-07).
+const STUFEN_ZAHLEN = { beginner: 24, advanced: 28, full: 13 };
 
 describe('Arbeitsmodi: Modus-Stufe der Registry (4T-001880)', () => {
   it('AK1: jede interne Erweiterung traegt eine gueltige Stufe', () => {
     const intern = internalExtensions();
-    expect(intern).toHaveLength(64);
+    expect(intern).toHaveLength(65);
     const gezaehlt = { beginner: 0, advanced: 0, full: 0 };
     for (const m of intern) {
       expect(EXTENSION_MODE_LEVELS, `${m.id} ohne gueltige Stufe`).toContain(m.modeLevel);
       gezaehlt[m.modeLevel] += 1;
     }
-    // Die Zahlen der entschiedenen Tabelle samt Kanban-Tafel und Diagramm:
-    // Einsteiger 24 von 64, Fortgeschritten 51 von 64 (24 + 27), Voll 64 von 64.
+    // Die Zahlen der entschiedenen Tabelle samt Kanban-Tafel, Diagramm und
+    // Praesentation: Einsteiger 24 von 65, Fortgeschritten 52 von 65 (24 + 28),
+    // Voll 65 von 65.
     expect(gezaehlt).toEqual(STUFEN_ZAHLEN);
   });
 

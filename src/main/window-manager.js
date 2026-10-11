@@ -319,6 +319,14 @@ function createWindowManager(deps) {
     win.on('resize', () => scheduleSaveBoundsAndPersist(win));
     win.on('maximize', () => persistAllWindows());
     win.on('unmaximize', () => persistAllWindows());
+    // 4T-002162 (Epic 3E-000149): Das Fenster hat das Vollbild verlassen —
+    // auch auf einem Weg ausserhalb der Anwendung (Taste oder Geste des
+    // Betriebssystems). Die Vorfuehrung einer Praesentation endet dann im
+    // Renderer ebenso sauber wie mit Esc; beim eigenen Ende kommt die Meldung
+    // ebenfalls an und bleibt dort ohne Wirkung.
+    win.on('leave-full-screen', () => {
+      if (!win.isDestroyed()) win.webContents.send('window:leftFullScreen');
+    });
 
     win.on('close', (e) => {
       // Dirty-Check: wenn der Renderer noch nicht bestaetigt hat, dass das

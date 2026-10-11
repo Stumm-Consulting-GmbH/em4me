@@ -17,6 +17,9 @@ const { extractFrontmatter, writeFrontmatter } = require('../shared/markdown/fro
 // module.exports.md beim Schalten einer Erweiterung NEU zuweist.
 const { mindmapAusDokument } = require('../shared/mindmap-core.js');
 const markdownModul = require('../shared/markdown/markdown.js');
+// 4T-002160 (Epic 3E-000149): Format-Kern der Praesentation (4T-002159); die
+// Bruecke darunter reicht seine Zerlegung unveraendert an den Renderer.
+const { lesePraesentation } = require('../shared/presentation/presentation-core.js');
 const {
   renderMarkdown,
   convertMarkdownPortable,
@@ -150,6 +153,20 @@ contextBridge.exposeInMainWorld('api', {
   // dem Dialog aufbaut (Begruendung am Handler in main.js).
   choosePdfExportTarget: (params) => ipcRenderer.invoke('pdf:chooseTarget', params),
   printPdfToFile: (targetPath) => ipcRenderer.invoke('pdf:print', targetPath),
+  // 4T-002167 (Epic 3E-000347): HTML-Export nach dem Muster des PDF-Exports —
+  // Zielpfad-Dialog, Schreiben des fertigen Texts und das KaTeX-Stilblatt mit
+  // eingesetzten Schriften (nur bei Formeln abgerufen).
+  chooseHtmlExportTarget: (params) => ipcRenderer.invoke('html:chooseTarget', params),
+  writeHtmlExport: (targetPath, text) => ipcRenderer.invoke('html:write', targetPath, text),
+  readHtmlExportKatexStyles: () => ipcRenderer.invoke('html:katexStyles'),
+  // 4T-002163 (Epic 3E-000149): Ausgaben des Foliensatzes — PDF im
+  // Folien-Format (Zielpfad ueber choosePdfExportTarget), Ordner-Wahl und das
+  // Schreiben aller HTML-Seiten in einem Aufruf.
+  printFolienPdf: (targetPath, size) =>
+    ipcRenderer.invoke('presentationPdf:print', targetPath, size),
+  chooseFolienHtmlOrdner: (params) => ipcRenderer.invoke('presentationHtml:chooseFolder', params),
+  writeFolienHtml: (ordner, unterordner, dateien) =>
+    ipcRenderer.invoke('presentationHtml:write', ordner, unterordner, dateien),
   // 4T-001479 (Epic 3E-000177): Druck ueber den Systemdialog. Kein Argument —
   // Format, Ausrichtung und Raender liest der Hauptprozess aus dem Store,
   // alles Uebrige waehlt der Anwender im Dialog des Betriebssystems.
@@ -357,6 +374,13 @@ contextBridge.exposeInMainWorld('api', {
   // Bild-Umwandlung ohne Dokument-Pfad (Kopf von preload-images.js).
   buildMindmap: (text, opts) =>
     mindmapBilderAufloesen(mindmapAusDokument(text, markdownModul.md, opts || {})),
+  // 4T-002160 (Epic 3E-000149): Folien-Zerlegung eines Praesentations-Dokuments,
+  // derselbe Weg wie buildMindmap: Der Kern bekommt die Markdown-Instanz
+  // gereicht, weil sie entscheidet, wo `---` eine thematische Linie ist; sie
+  // lebt hier und nicht im Renderer. Rein lesend und ohne Datei-Zugriff; der
+  // Renderer rendert jede Folie danach ueber renderMarkdown.
+  lesePraesentation: (text, opts) =>
+    lesePraesentation(text, { ...(opts || {}), md: markdownModul.md }),
   // 4T-002021 (Epic 3E-000192): Diagramm zu einer Datentabelle, derselbe Weg
   // wie renderMarkdown; die Begruendung des eigenen Moduls steht dort. Seit
   // 4T-002023 dazu das Lesen einer Tabelle in einem anderen Dokument.
@@ -867,6 +891,19 @@ contextBridge.exposeInMainWorld('api', {
   // umgeschalteten Werts an alle Fenster (Nutzlast = { schluessel, wert }).
   onMenuKanbanSchalter: (cb) => ipcRenderer.on('menu:kanbanSchalter', (_e, id) => cb(id)),
   onKanbanAnzeigeChanged: (cb) => ipcRenderer.on('kanbanAnzeige:changed', (_e, m) => cb(m)),
+  // 4T-002162 (Epic 3E-000149): Vorfuehrung der Praesentation — der Eintrag
+  // 'Ansicht -> Praesentation -> Vorfuehrung starten', das Vollbild des
+  // eigenen Fensters (Antwort: Vollbild-Zustand VOR dem Aufruf) und die
+  // Meldung, dass das Fenster das Vollbild verlassen hat, auch auf einem Weg
+  // ausserhalb der Anwendung.
+  onMenuPresentationStart: (cb) => ipcRenderer.on('menu:presentationStart', () => cb()),
+  setWindowFullScreen: (an) => ipcRenderer.invoke('window:setFullScreen', !!an),
+  onWindowLeftFullScreen: (cb) => ipcRenderer.on('window:leftFullScreen', () => cb()),
+  // 4T-002163 (Epic 3E-000149): 'Ansicht -> Praesentation -> Neue Praesentation'
+  // und die beiden Ausgaben des Foliensatzes im Untermenue 'Exportieren'.
+  onMenuPresentationNew: (cb) => ipcRenderer.on('menu:presentationNew', () => cb()),
+  onMenuPresentationExportPdf: (cb) => ipcRenderer.on('menu:presentationExportPdf', () => cb()),
+  onMenuPresentationExportHtml: (cb) => ipcRenderer.on('menu:presentationExportHtml', () => cb()),
   // 4T-001701 (Epic 3E-000288): 'Ansicht -> Form auf der Flaeche anlegen'.
   onMenuCanvasAddShape: (cb) => ipcRenderer.on('menu:canvasAddShape', () => cb()),
   // 4T-001702 (Epic 3E-000288): 'Ansicht -> Gruppe auf der Flaeche anlegen'.
@@ -895,6 +932,8 @@ contextBridge.exposeInMainWorld('api', {
   onMenuImportJsonCanvas: (cb) => ipcRenderer.on('menu:importJsonCanvas', () => cb()),
   // 4T-000303 (Epic 3E-000054): Menu-Event 'Datei -> Als PDF exportieren...'
   onMenuExportPdf: (cb) => ipcRenderer.on('menu:exportPdf', () => cb()),
+  // 4T-002167 (Epic 3E-000347): Menu-Event 'Datei -> Exportieren -> Als HTML exportieren...'
+  onMenuExportHtml: (cb) => ipcRenderer.on('menu:exportHtml', () => cb()),
   // 4T-001587 (Epic 3E-000160): Menu-Event 'Datei -> Einstellungen -> Exportieren...'
   onMenuExportSetup: (cb) => ipcRenderer.on('menu:exportSetup', () => cb()),
   // 4T-001588 (Epic 3E-000160): Menu-Event 'Datei -> Einstellungen -> Importieren...'

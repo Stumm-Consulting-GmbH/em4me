@@ -55,6 +55,7 @@
   "menu.file.exportPortable": "Markdown portable…",
   "menu.file.print": "Imprimer…",
   "menu.file.exportPdf": "Exporter en PDF…",
+  "menu.file.exportHtml": "Exporter en HTML…",
   "menu.file.settings": "Paramètres…",
   "menu.file.quit": "Quitter",
   "menu.view.properties": "Propriétés",
@@ -115,6 +116,7 @@
   "menu.file.updateLocale": "Mettre à jour…",
   "menu.view.canvas": "Canevas",
   "menu.view.kanban": "Tableau",
+  "menu.view.presentation": "Diapositives",
   "menu.view.kanbanBoard": "Tableau Kanban",
   "menu.view.kanbanTagsFooter": "Tags en pied de carte",
   "menu.view.kanbanRelativeDates": "Afficher les dates en relatif",
@@ -123,5 +125,10 @@
   "menu.view.chart": "Graphique",
   "menu.file.exportJsonCanvas": "Canevas au format JSON Canvas…",
   "menu.file.import": "Importer",
-  "menu.file.importJsonCanvas": "Fichier JSON Canvas…"
+  "menu.file.importJsonCanvas": "Fichier JSON Canvas…",
+  "menu.view.presentationMenu": "Présentation",
+  "menu.view.presentationStart": "Lancer le diaporama",
+  "menu.view.presentationNew": "Nouvelle présentation",
+  "menu.file.exportPresentationPdf": "Exporter les diapositives en PDF…",
+  "menu.file.exportPresentationHtml": "Exporter les diapositives en HTML…"
 }

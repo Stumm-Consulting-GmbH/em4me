@@ -69,6 +69,11 @@ const SHARED_CONTEXT_FIELDS = [
   // aus derselben Quelle (istTafelModusVerfuegbar), der Main ueber den
   // normalisierten Menue-Zustand, der Renderer direkt.
   'tafelTab',
+  // 4T-002160 (Epic 3E-000149): Ist das aktive Dokument eine Praesentation UND
+  // die Erweiterung «Praesentation» eingeschaltet? Im Zuschnitt von `tafelTab`
+  // und aus derselben Art Quelle (istPraesentationsModusVerfuegbar), der Main
+  // ueber den normalisierten Menue-Zustand, der Renderer direkt.
+  'praesentationTab',
   // 4T-001852 (Epic 3E-000110): Ist das aktive Dokument leer, also ohne Inhalt
   // ausser Leerraum? Das zwoelfte gemeinsame Feld und das dritte, das eine
   // Eigenschaft des INHALTS meldet. Beide Seiten ermitteln es aus derselben
@@ -105,9 +110,9 @@ const RENDERER_CONTEXT_FIELDS = ['inTable', 'hasCalendarConfig'];
 const AVAILABILITY_CONTEXT_FIELDS = [...SHARED_CONTEXT_FIELDS, ...RENDERER_CONTEXT_FIELDS];
 
 // viewMode ist das einzige nicht-boolsche Feld: 'source' | 'split' | 'live' |
-// 'rendered' | 'mindmap' | 'canvas' | 'kanban' | null. Alles Uebrige ist
-// boolsch. ('canvas' seit 4T-001653, im Katalog gebraucht von 4T-001697;
-// 'kanban' seit 4T-001847.)
+// 'rendered' | 'mindmap' | 'canvas' | 'kanban' | 'presentation' | null. Alles
+// Uebrige ist boolsch. ('canvas' seit 4T-001653, im Katalog gebraucht von
+// 4T-001697; 'kanban' seit 4T-001847; 'presentation' seit 4T-002160.)
 const VIEW_MODE_FIELD = 'viewMode';
 
 // Defensive Normalisierung nach dem Muster normalizeCommandPlacement: ein
@@ -289,6 +294,38 @@ const AVAILABILITY_CATALOG = [
     name: 'tafelAnsicht',
     felder: ['systemTab', 'tafelTab'],
     pruefe: (c) => !c.systemTab && !!c.tafelTab,
+  },
+  // 4T-002160 (Epic 3E-000149): Die Bedingung des Praesentations-Ansichts-Modus,
+  // im Zuschnitt von `tafelAnsicht`. Eine eigene Bedingung, weil sie eine
+  // eigene Dokument-Eigenschaft meint — ein Dokument kann eine Praesentation
+  // sein, ohne eine Tafel zu sein, und umgekehrt.
+  {
+    name: 'praesentationsAnsicht',
+    felder: ['systemTab', 'praesentationTab'],
+    pruefe: (c) => !c.systemTab && !!c.praesentationTab,
+  },
+  // 4T-002162 (Epic 3E-000149): Die Bedingung der Vorfuehrung, im Zuschnitt von
+  // `tafelKarte`: Die Vorfuehrung startet aus der GEZEIGTEN Praesentations-
+  // Ansicht und nirgends sonst. Kein neues Feld — `praesentationTab` und
+  // `viewMode` tragen sie bereits.
+  {
+    name: 'praesentationsAnsichtAktiv',
+    felder: ['systemTab', 'praesentationTab', 'viewMode'],
+    pruefe: (c) => !c.systemTab && !!c.praesentationTab && c.viewMode === 'presentation',
+  },
+  // 4T-002163 (Epic 3E-000149): Die Bedingung der beiden Ausgaben des
+  // Foliensatzes (PDF, HTML-Seiten), im Zuschnitt von `canvasFlaecheOffen` und
+  // aus demselben Grund: Beide haengen im Untermenue «Exportieren», dessen
+  // eigene Regel `hasTab && !systemTab` lautet, und der Durchlauf-Waechter
+  // prueft jede Kind-Bedingung gegen alle Kontext-Belegungen. Der Inhalt ist
+  // der von `praesentationsAnsicht` mit ausgeschriebenem `hasTab`; eine
+  // Ausgabe braucht die Praesentation, nicht ihre gezeigte Ansicht (Stories
+  // 4S-001054 und 4S-001057, AK1). Eine eigene Bedingung statt einer Aenderung
+  // an `praesentationsAnsicht`, weil jene den Ansichts-Modus traegt.
+  {
+    name: 'praesentationsDokument',
+    felder: ['hasTab', 'systemTab', 'praesentationTab'],
+    pruefe: (c) => !!c.hasTab && !c.systemTab && !!c.praesentationTab,
   },
   // 4T-001849 (Epic 3E-000110): Die Bedingung der Tafel-Befehle, im Zuschnitt
   // von `canvasKarte` und aus demselben Grund: Die Karte entsteht in der

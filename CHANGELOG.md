@@ -14,6 +14,220 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.148.0.3892] - 2026-10-11 — HTML-Export und Präsentations-Ansicht Stufe 1
+
+Zug 3E-000350
+mit zwei Mitgliedern. Als erstes:
+3E-000347,
+der HTML-Export der Dokumente. Jedes Dokument lässt sich als eine einzige,
+eigenständige HTML-Datei ausgeben, die jeder Browser ohne die Anwendung und
+ohne Netzverbindung so zeigt, wie das Dokument im hellen Farbschema erscheint.
+Als zweites Mitglied die Stufe 1 der Präsentations-Ansicht
+(3E-000149):
+Ein Markdown-Dokument mit dem Kennzeichen `presentation: true` im Dateikopf
+erscheint als Foliensatz in einer achten Ansicht «Folien», lässt sich im
+Vollbild vorführen und als PDF oder als Ordner mit HTML-Seiten ausgeben; ihr
+Folien-Export baut auf dem HTML-Export auf. Die Abschluss-Anteile der beiden
+Epics liegen in
+4T-002170
+und
+4T-002166.
+
+### Neu
+
+- **Dokument als HTML-Datei exportieren** (`4T-002167`). «Datei → Weitere
+  Datei-Funktionen → Exportieren → Als HTML exportieren…» steht unmittelbar
+  nach dem PDF-Export und in der Kommando-Palette, ohne vorbelegtes
+  Tastenkürzel; belegbar ist eines in den Einstellungen. Der Speichern-Dialog
+  schlägt den Namen des Dokuments mit der Endung `.html` im selben Ordner vor,
+  ein Abbruch schreibt nichts. Die Datei ist eigenständig: Stile des hellen
+  Farbschemas, Bilder, Mermaid-Diagramme, Diagramme zu Tabellen und Formeln
+  stehen in ihr selbst, ein Programm enthält sie nicht. Der Export folgt der
+  aktiven Ansicht wie der PDF-Export und nutzt dessen Vorbereitung als dritten
+  Endpunkt (helles Farbschema für die Dauer erzwungen, Diagramme hell neu
+  gezeichnet, Rücknahme danach): Die Quelltext-Ansicht ergibt das Roh-Markdown
+  mit Hervorhebung, jede andere Ansicht das formatierte Dokument. Die Gestaltung
+  stammt aus den wirksamen Regeln der Anwendung, beschränkt auf den Inhalt,
+  statt aus einem eigenen Export-Stylesheet. Stil und Schriften der Formeln
+  reisen nur mit, wenn das Dokument Formeln enthält (gemessen rund 415 statt
+  50 KB).
+- **Bestmöglicher Ersatz, nie still** (`4T-002167`). Ein Verweis auf ein anderes
+  Dokument, eine Anlage oder einen Tag hat in der einzelnen Datei kein Ziel; er
+  bleibt als gekennzeichneter Text stehen und nennt sein Ziel beim Überfahren
+  mit der Maus. Sprungziele im Dokument, Web-Verweise und E-Mail-Adressen
+  bleiben anklickbar. Ein Bild, das sich nicht einbetten lässt, steht als sein
+  Alternativtext im gestrichelten Rahmen. Bedien-Elemente wie Kopier-Knöpfe,
+  Sortier-Griffe und Filter-Leisten entfallen; Aufgaben-Checkboxen bleiben mit
+  ihrem Haken sichtbar und lassen sich nicht umschalten. Die Statusleiste meldet
+  «Als HTML exportiert» und nennt in derselben Zeile, was entfallen ist; ein
+  Dialog erscheint nicht.
+- **Private Kommentare bleiben draußen, auch beim Quelltext-Export**
+  (`4T-002167`). Die `%%`-Kommentare fehlen in jeder exportierten Datei; aus der
+  Quelltext-Ansicht werden sie zeilentreu entfernt, mit demselben Scanner und im
+  selben Umfang wie beim Rendern. Ist die Erweiterung «Kommentare» abgeschaltet,
+  sind sie gewöhnlicher Text und bleiben stehen. PDF-Export und Druck ziehen
+  nach (siehe «Geändert»).
+- **Präsentation aus einem Markdown-Dokument: Kennzeichen und Folien-Trennung**
+  (`4T-002159`). Ein Dokument mit `presentation: true` im Dateikopf ist eine
+  Präsentation; `marp: true`, das Kennzeichen eines verbreiteten Folien-Werkzeugs,
+  wird beim Lesen ebenso erkannt und nie geschrieben. Eine Zeile `---` trennt die
+  Folien, und zwar nur dort, wo sie nach CommonMark eine waagerechte Linie ist;
+  entschieden wird das an den Tokens derselben Markdown-Instanz, die die
+  Lese-Ansicht zeichnet. Setext-Unterstreichung, Code-Zäune, Zitate und
+  eingerückte Listen trennen nicht, `***` und `___` bleiben Linien auf der Folie
+  (benannte Abweichung vom Vorbild). Der Dateikopf trägt die Steuer-Schlüssel
+  `theme`, `paginate`, `header`, `footer` und `size` mit den Namen des Vorbilds,
+  fremde Schlüssel bleiben unangetastet, ein ungültiger Wert fällt auf die
+  Vorgabe zurück und wird benannt. Private `%%`-Kommentare und HTML-Kommentare
+  einer Folie sind ihre Sprecher-Notizen; Kommentare mit Steuer-Angaben des
+  Vorbilds zählen nicht als Notiz. Der prozessneutrale Format-Kern liegt unter
+  `src/shared/presentation/` und liest nur, er schreibt nie.
+- **Achte Ansicht «Folien» und schaltbare Erweiterung** (`4T-002160`). Die
+  Präsentation ist ein Ansichts-Modus desselben Dokuments nach dem Muster von
+  Mindmap, Canvas und Tafel: «Ansicht → Folien», Standard Strg+8, Schaltfläche
+  «Folien» in der Statusleiste und Kommando-Palette. Die Ansicht zeigt eine Folie
+  mit Zähler und den Schaltflächen «Zurück» und «Weiter»; geblättert wird auch
+  mit Pfeil rechts und links, Leertaste, Bild auf und ab, Pos1 und Ende. Ein
+  Dokument ohne Kennzeichen lässt Schaltfläche und Menü-Eintrag sichtbar
+  deaktiviert; verliert ein offenes Dokument sein Kennzeichen, fällt es in die
+  Lese-Ansicht zurück. Die interne Erweiterung `presentation` (Gruppe
+  «Rendering», Arbeitsmodus «Fortgeschritten») schaltet Ansicht und alle Befehle
+  ab; das Kennzeichen wirkt dann nicht, `---` bleibt eine Linie, und nichts geht
+  verloren.
+- **Folien-Darstellung: Themes, Hintergrund, Seitenzahl, Kopf und Fuß**
+  (`4T-002161`). Folien im Format 16:9 (1280 × 720) oder mit `size: 4:3`
+  (960 × 720), gleichmäßig eingepasst. Drei mitgelieferte Themes `light`, `dark`
+  und `accent` über einen Satz kuratierter Folien-Slots (Hintergrund, Text,
+  Überschrift, Akzent, Schrift, Kopf- und Fußzeile, Seitenzahl); ein Block unter
+  `theme:` übersteuert einzelne Slots für genau diese Datei, ohne freies CSS und
+  mit Wert-Prüfung, die kein Laden von Ressourcen zulässt. Ein Bild mit dem
+  Alternativtext `bg` füllt den Hintergrund, `bg left` und `bg right` samt Breite
+  teilen die Folie; geladen wird es über denselben Bild-Weg wie jedes
+  Markdown-Bild. `paginate`, `header` und `footer` zeigen Seitenzahl, Kopf- und
+  Fußzeile. Was über die Folie hinausläuft, wird abgeschnitten und in der Ansicht
+  markiert. Unbekannte Themes und Werte fallen zurück und stehen in einer
+  Hinweis-Zeile über der Folie. Alle Inhalts-Farben kommen aus dem Theme der
+  Folie und nicht aus dem Farbschema der Anwendung (Befund der Abnahme vom
+  2026-10-10): Tabellen-Kopf, Code-Fläche, Inline-Code, Rahmen, Zitate und
+  gedämpfter Text mischen die Textfarbe des Themes in seinen Hintergrund, und
+  jedes Theme trägt seinen Farbsatz der Syntax-Hervorhebung (`light` hell,
+  `dark` und `accent` dunkel), in der Ansicht wie in beiden Exporten.
+- **Vorführung im Vollbild** (`4T-002162`). «Ansicht → Präsentation → Vorführung
+  starten», Standard F5, oder die Schaltfläche «Vorführung starten» über der
+  Folie: Das Fenster geht ins Vollbild, alle Leisten verschwinden, und die
+  Vorführung beginnt an der gezeigten Folie. Geblättert wird mit denselben Tasten
+  wie in der Ansicht und mit einem Mausklick; Esc beendet, ebenso das Verlassen
+  des Vollbilds, der Wechsel in ein anderes Fenster und der Wechsel von Dokument
+  oder Ansicht. Danach steht das Fenster im Vollbild-Zustand von vorher und die
+  Ansicht auf der zuletzt gezeigten Folie. Neu ist der Kanal
+  `window:setFullScreen` zum Hauptprozess samt Meldung `window:leftFullScreen`.
+  Aus den Abnahmen vom 2026-10-10: In der Ansicht und in der Vorführung blättert
+  auch das Mausrad, eine Folie je Rad-Bewegung, nach unten weiter und nach oben
+  zurück; ein Schub aus mehreren Ereignissen überspringt keine Folie,
+  horizontales Rollen und Strg+Rad bleiben unberührt. Ohne gezeigte
+  Präsentation ist die Fläche leer: Nach dem Schließen des letzten Dokuments
+  und beim Wechsel in eine andere Ansicht verschwinden Folie, Zähler und
+  Schaltflächen, und das Schließen des vorgeführten Dokuments beendet die
+  Vorführung.
+- **Foliensatz als PDF und als HTML-Seiten, Neue Präsentation** (`4T-002163`).
+  «Datei → Weitere Datei-Funktionen → Exportieren → Foliensatz als PDF
+  exportieren…» schreibt eine PDF-Seite je Folie im Format der Folie ohne Rand,
+  «… → Foliensatz als HTML exportieren…» einen Ordner mit `index.html` und
+  `folie-001.html` und folgenden, eigenständig mit eingebetteten Bildern,
+  Diagrammen und Formeln und mit Blätter-Leiste und Tasten auch ohne die
+  Anwendung. Beide sind der vierte und fünfte Endpunkt der gemeinsamen
+  Druck-Vorbereitung und stehen bei jedem Präsentations-Dokument zur Wahl,
+  gleich in welcher Ansicht; Sprecher-Notizen und die Überlauf-Markierung
+  erscheinen nicht, die Statusleiste nennt die Zahl der Folien und was entfallen
+  ist. «Ansicht → Präsentation → Neue Präsentation» legt ein neues Dokument mit
+  drei Beispiel-Folien in der Ansicht «Folien» an. Im Ansichts-Menü heißt der
+  Modus-Eintrag «Folien», das Untermenü «Präsentation».
+
+### Geändert
+
+- **Nutzen-Darstellung in Handbuch und Webseite auf acht Ansichten**
+  (`4T-002171`, Entscheidung des Product Owners vom 2026-10-10, Punkt N1). Die
+  Nutzen-Seite des Handbuchs und die Nutzen-Seite der Produkt-Webseite nennen
+  im Abschnitt «Ein Dokument, so wie Sie es gerade brauchen» acht statt sieben
+  Ansichten und führen die Folien als eigenen Punkt, in allen fünf
+  Sprachfassungen.
+- **PDF-Export und Druck aus der Quelltext-Ansicht lassen private Kommentare
+  weg** (`4T-002188`, Entscheidung des Product Owners vom 2026-10-09). Wie beim
+  HTML-Export fallen die `%%`-Kommentare zeilentreu weg, die übrigen Zeilen
+  behalten Position und Nummer; `%%` in Code-Spannen, das geschützte `\%%` und
+  der Eigenschaften-Kopf bleiben stehen, und bei abgeschalteter Erweiterung
+  «Kommentare» ist `%%` gewöhnlicher Text. Die Regel lebt für alle drei
+  Ausgabe-Wege an einem Ort, die gemeinsame Druck-Vorbereitung baut ihren
+  Quelltext-Block danach. Die Ausgabe aus der gerenderten Ansicht ist
+  unverändert. Die Handbuch-Seite «Werkzeuge» sagt es im Abschnitt «PDF-Export»
+  in allen fünf Sprachfassungen.
+
+### Behoben
+
+- **Flächen von Mindmap, Canvas und Tafel nach dem Schließen des letzten
+  Dokuments** (`4T-002162`, Nebenbefund der Abnahme der Präsentation vom
+  2026-10-10). War ein Seiten-Panel eingeschaltet (Lesezeichen, Bereich,
+  Erinnerungen, Uhr), blieb nach dem Schließen des letzten Dokuments die Fläche
+  der zuletzt gezeigten Ansicht unter der Leer-Anzeige stehen, weil die leere
+  Spalte die Klasse ihrer Ansicht behielt. Eine Spalte ohne Dokument trägt jetzt
+  keine Ansichts-Klasse mehr, und keine Ansichts-Fläche bleibt sichtbar; die
+  Behebung sitzt an der Ursache und gilt für alle vier Ansichten mit eigener
+  Fläche, die neue Ansicht «Folien» eingeschlossen.
+
+### i18n
+
+- **Funktions-Katalog und Handbuch des HTML-Exports** (`4T-002169`), in allen
+  fünf Sprachfassungen. Der Funktions-Katalog führt die Zeile «HTML-Export» in
+  der Gruppe «Datei und Sitzung» unmittelbar hinter dem PDF-Export; die
+  Handbuch-Seite «Werkzeuge» trägt einen eigenen Abschnitt «HTML-Export» hinter
+  dem PDF-Export, und ihre Einleitung zählt zwölf statt elf Helfer. Dazu die
+  Texte von Menü-Eintrag, Kommando-Palette, Speichern-Dialog und Meldungen
+  (`4T-002167`).
+- **Funktions-Katalog und Handbuch der Präsentation** (`4T-002165`), in allen
+  fünf Sprachfassungen. Neue Handbuch-Seite «Präsentation» mit Kennzeichen,
+  Trenn-Regel, Steuer-Schlüsseln, Gestaltung, Notizen, Ansicht, Vorführung,
+  Exporten, Erweiterung, der Verträglichkeit mit dem Folien-Werkzeug, das
+  `marp: true` setzt, samt ihren Abweichungen, und den Grenzen der Stufe; dazu
+  nachgezogen die Seiten «Ansichten und Darstellung» (acht Ansichten), «Überblick»
+  und «Werkzeuge». Der Funktions-Katalog führt in der Gruppe «Ansicht» hinter der
+  Tafel vier Zeilen: Präsentations-Ansicht, Vorführung, Foliensatz als PDF und
+  als HTML-Seiten. Die Demo-Area endet mit der neuen Station «Presentation».
+  Neu je Sprache **58 Schlüssel**, davon 35 im neuen Fragment `presentation`,
+  geändert einer (`help.feature.viewModes`), gezählt gegen den Zug-Zweig.
+  Der Abschluss-Anteil (`4T-002166`) ergänzt auf der Handbuch-Seite je Sprache
+  einen Satz: Der Kopf-Schlüssel `headingDivider` des Vorbilds wirkt in dieser
+  Stufe nicht, und die Trennung an Überschriften ist für eine spätere
+  Ausbaustufe vorgesehen.
+
+### Intern
+
+- **Ablauf-Tests des HTML-Exports** (`4T-002168`). Acht Fälle an der gestarteten
+  Anwendung: Export aus dem dunklen Farbschema, Formeln mit eingebetteten
+  Schriften, Mermaid-Diagramm, Ansichts-Bezug, Meldung, Abbruch des Dialogs,
+  ein großes Dokument und der Fehlerpfad; jeder endet an der geschriebenen
+  Datei. Verortet in der Klassen-Karte der Prüf-Ausschnitte und in der
+  Abdeckungs-Matrix. Der Abschluss-Anteil (`4T-002170`) ergänzt zwei Unit-Fälle
+  für das leere Dokument und das unveränderte Ausgangs-Dokument.
+- **Ablauf-Tests der Präsentation und Prüfung an nachgebauten Dateien des
+  Vorbilds** (`4T-002164`). Dreizehn Fälle `PR-01` bis `PR-12` in zwei
+  Ablauf-Prüfdateien an der gestarteten Anwendung: Erkennung und Ansicht samt
+  Rückfall, zwei Nachbauten im Format des Vorbilds, Trenn-Regel, Notizen,
+  Darstellung, 4:3, Vorführung über drei Wege mit dem Vollbild am Kanal gemessen,
+  Aus-Zustand, gespeicherter Modus nach dem Neustart, PDF, HTML-Seiten und Neue
+  Präsentation. Gemessen und im Handbuch benannt: Theme-Namen des Vorbilds fallen
+  auf `light` zurück, Steuer-Anweisungen je Folie und `headingDivider` wirken in
+  dieser Stufe nicht. Verortet in der Klassen-Karte der Prüf-Ausschnitte und in
+  der Abdeckungs-Matrix. Der Abschluss-Anteil (`4T-002166`) stellt die Testart
+  der fünf Matrix-Zeilen mit Ablauf-Prüfdatei auf «e2e» um.
+- **Der Nachzügler des vorigen Releases** (`4T-001975`, Sammeltask des Zuges
+  `3E-000329`). Nach der Auslieferung von 1.147.0 hat dessen Abschluss sechs
+  Bildschirmfotos der Produkt-Webseite erneuert. Der Commit liegt seither auf
+  dem Integrationsstand und kam mit dem Nachzug per Zusammenführung in diesen
+  Zug; er steht hier, weil er Dateien der Webseite berührt, und gehört nicht zu
+  diesem Zug. Kein Anwendungs-Code berührt, kein Anwender-Text nötig. (Der
+  entsprechende Nachzügler von 1.146.2, `4T-002179`, liegt seit dem Nachzug vor
+  dem Release 1.147.0 und zählt nicht mehr zu diesem Block.)
+
 ## [1.147.0.3834] - 2026-10-10 — Portable Fassung, mitgelieferte Kalender und Umrechnung, Listen-Eingabe und Aufgaben-Abfrage
 
 Zug

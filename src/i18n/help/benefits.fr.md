@@ -4,7 +4,7 @@ Cette page ne répond pas à la question **comment** faire, mais à la question 
 
 ## Un document, tel que vous en avez besoin
 
-Lire, écrire et vérifier sont des activités différentes, et elles demandent des présentations différentes du même texte. Plutôt que d'imposer un compromis, l'application tient sept vues à disposition, entre lesquelles une touche suffit à basculer : la page finie pour la lecture, le texte source pour le travail précis, les deux côte à côte pour la comparaison, le mode direct pour écrire sans rupture, la carte mentale pour voir la structure, le canevas pour des cartes sur une surface et le tableau pour des tâches en colonnes. Le changement ne coûte rien et ne modifie jamais le fichier.
+Lire, écrire et vérifier sont des activités différentes, et elles demandent des présentations différentes du même texte. Plutôt que d'imposer un compromis, l'application tient huit vues à disposition, entre lesquelles une touche suffit à basculer : la page finie pour la lecture, le texte source pour le travail précis, les deux côte à côte pour la comparaison, le mode direct pour écrire sans rupture, la carte mentale pour voir la structure, le canevas pour des cartes sur une surface, le tableau pour des tâches en colonnes et les diapositives pour un exposé. Le changement ne coûte rien et ne modifie jamais le fichier.
 
 - **Rendu** pour lire, **code source** pour le travail précis sur la syntaxe.
 - **Partagée** montre source et résultat côte à côte, pour les constructions délicates.
@@ -12,8 +12,9 @@ Lire, écrire et vérifier sont des activités différentes, et elles demandent 
 - **Carte mentale** transforme la structure des titres en arborescence.
 - **Canevas** montre une surface avec des cartes et des connexions qui se trouve dans le document lui-même.
 - **Tableau** place les tâches du document côte à côte, sous forme de cartes en colonnes.
+- **Diapositives** montrent un document portant l'indicateur `presentation: true` comme une suite de diapositives, à projeter en plein écran et à transmettre en PDF ou en pages HTML.
 
-En détail : [Vues et affichage](views-display.md), [Vue carte mentale](mindmap.md), [Surface Canvas](canvas.md), [Tableau Kanban](kanban.md).
+En détail : [Vues et affichage](views-display.md), [Vue carte mentale](mindmap.md), [Surface Canvas](canvas.md), [Tableau Kanban](kanban.md), [Présentation](presentation.md).
 
 ## Plusieurs documents côte à côte
 

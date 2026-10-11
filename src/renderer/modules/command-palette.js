@@ -53,6 +53,9 @@ import { istCanvasModusVerfuegbar } from './canvas/canvas-modus.js';
 // 4T-001847 (Epic 3E-000110): Verfuegbarkeits-Regel des Tafel-Kommandos, aus
 // derselben einen Quelle wie der gemeldete Menue-Zustand sein tafelTab nimmt.
 import { istTafelModusVerfuegbar } from './kanban/kanban-modus.js';
+// 4T-002160 (Epic 3E-000149): Verfuegbarkeits-Regel des Praesentations-Kommandos,
+// aus derselben einen Quelle wie das gemeldete Feld praesentationTab.
+import { istPraesentationsModusVerfuegbar } from './presentation/presentation-modus.js';
 // 4T-002024 (Epic 3E-000192): Lage des aktiven Editors für die beiden
 // Diagramm-Kommandos, aus derselben Quelle wie der gemeldete Menü-Zustand.
 import { lageFuer } from './charts/chart-lage.js';
@@ -134,6 +137,10 @@ export function rendererAvailabilityContext() {
     // Funktion ohnehin false, und die Kommando-Filterung des Schalters nimmt
     // den Eintrag dann ganz heraus.
     tafelTab: istTafelModusVerfuegbar(tab),
+    // 4T-002160 (Epic 3E-000149): Ist das aktive Dokument eine Praesentation?
+    // Im Zuschnitt des Felds darueber und aus derselben einen Quelle wie der
+    // gemeldete Menue-Zustand.
+    praesentationTab: istPraesentationsModusVerfuegbar(tab),
     // 4T-001852 (Epic 3E-000110): Ist das aktive Dokument leer? Zwoelftes Feld
     // des gemeinsamen Vertrags; es traegt das Umwandeln in eine Tafel. Dieselbe
     // Funktion, aus der auch der gemeldete Menue-Zustand sein Feld baut.

@@ -38,6 +38,7 @@
   "help.shortcut.saveAs": "Speichern unter",
   "help.shortcut.print": "Aktiven Tab drucken",
   "help.shortcut.exportPdf": "Aktiven Tab als PDF exportieren",
+  "help.shortcut.exportHtml": "Aktives Dokument als HTML-Datei exportieren",
   "help.shortcut.exportPortable": "Aktiven Tab als portables Markdown exportieren",
   "help.shortcut.toggleAutoSave": "Automatisches Speichern ein-/ausschalten",
   "help.shortcut.toggleScrollSync": "Scroll-Synchronisation der geteilten Ansicht ein-/ausschalten",
@@ -173,5 +174,9 @@
   "help.shortcut.updateLocale": "Die eigene Sprachdatei auf dem Stand der laufenden Programmfassung speichern, fehlende Einträge auf Englisch",
   "help.group.database": "Datenbank",
   "help.shortcut.exportJsonCanvas": "Die in der Canvas-Ansicht gewählte Fläche als JSON-Canvas-Datei sichern",
-  "help.shortcut.importJsonCanvas": "Eine oder mehrere JSON-Canvas-Dateien einlesen; je Datei entsteht daneben ein Dokument mit der Fläche"
+  "help.shortcut.importJsonCanvas": "Eine oder mehrere JSON-Canvas-Dateien einlesen; je Datei entsteht daneben ein Dokument mit der Fläche",
+  "help.shortcut.presentationStart": "Die Präsentation im Vollbild vorführen, ab der gezeigten Folie; Esc beendet die Vorführung",
+  "help.shortcut.presentationNew": "Eine neue Präsentation mit Beispiel-Folien anlegen und in der Ansicht „Folien“ öffnen",
+  "help.shortcut.presentationExportPdf": "Den Foliensatz als PDF-Datei exportieren, eine Folie je Seite im Format der Folie und ohne Rand",
+  "help.shortcut.presentationExportHtml": "Den Foliensatz als Ordner mit einer HTML-Seite je Folie exportieren, im Browser mit Tasten und Schaltflächen zu blättern"
 }

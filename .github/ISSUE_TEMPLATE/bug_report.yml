@@ -1,0 +1,54 @@
+name: Bug report
+description: Something in EM4me does not work as it should.
+title: '[Bug] '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to report a bug. Please do not report security vulnerabilities here; use the private reporting described in SECURITY.md instead.
+  - type: input
+    id: version
+    attributes:
+      label: EM4me version
+      description: The version number of your installation.
+      placeholder: '1.146.2'
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - Linux
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What did you do, step by step?
+      placeholder: |
+        1. Open ...
+        2. Click ...
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected to happen
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: What happened instead
+    validations:
+      required: true
+  - type: textarea
+    id: material
+    attributes:
+      label: Additional material
+      description: A small Markdown file that shows the problem, a screenshot, or anything else that helps. You can attach files by dragging them into this field.

@@ -68,6 +68,24 @@ describe('Druck-Menuepunkt: Ort und Verdrahtung (E5)', () => {
     expect(davor.match(/label: t\(/g) || []).toHaveLength(0);
   });
 
+  // 4T-002163 (Epic 3E-000149): Die beiden Ausgaben des Foliensatzes stehen im
+  // selben Untermenü, unmittelbar nach den Dokument-Ausgaben PDF und HTML und
+  // vor dem portablen Markdown; der Dokument-PDF-Export bleibt der erste.
+  it('die Ausgaben des Foliensatzes folgen den Dokument-Ausgaben PDF und HTML', () => {
+    const iHtml = menuQuelle.indexOf("label: t('menu.file.exportHtml')");
+    const iFolienPdf = menuQuelle.indexOf("label: t('menu.file.exportPresentationPdf')");
+    const iFolienHtml = menuQuelle.indexOf("label: t('menu.file.exportPresentationHtml')");
+    expect(iFolienPdf, 'Eintrag «Foliensatz als PDF exportieren…» fehlt').toBeGreaterThan(-1);
+    expect(iFolienHtml, 'Eintrag «Foliensatz als HTML exportieren…» fehlt').toBeGreaterThan(-1);
+    expect(I_PDF).toBeLessThan(iHtml);
+    expect(iHtml).toBeLessThan(iFolienPdf);
+    expect(iFolienPdf).toBeLessThan(iFolienHtml);
+    expect(iFolienHtml).toBeLessThan(I_PORTABEL);
+    const dazwischen = menuQuelle.slice(iHtml, I_PORTABEL);
+    expect(dazwischen).not.toContain("type: 'separator'");
+    expect(dazwischen.match(/label: t\(/g) || []).toHaveLength(3);
+  });
+
   it('teilt die Verfügbarkeits-Regel des PDF-Exports', () => {
     // Handbuch-Reiter sind druckbar, nur die Einstellungs-Seite nicht.
     //

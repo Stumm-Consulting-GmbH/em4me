@@ -62,6 +62,13 @@ import { istCanvasModusVerfuegbar } from '../canvas/canvas-modus.js';
 import { istTafelModusVerfuegbar } from '../kanban/kanban-modus.js';
 import { renderKanban } from '../kanban/kanban-pane.js';
 import { beendeTafelSuche } from '../kanban/kanban-suche.js';
+// 4T-002160 (Epic 3E-000149): Die Praesentation folgt demselben Zuschnitt.
+import { istPraesentationsModusVerfuegbar } from '../presentation/presentation-modus.js';
+import {
+  fokussierePraesentation,
+  raeumePraesentationAuf,
+  renderPresentation,
+} from '../presentation/presentation-pane.js';
 import { renderPaneContent } from './pane-render.js';
 import { stampTabTimestamps } from './save-export.js';
 import { renderTabbar } from './tabbar.js';
@@ -106,12 +113,18 @@ export function setViewMode(mode) {
   // istTafelModusVerfuegbar beide prueft. Stiller Verzicht statt Rueckfall,
   // woertlich aus demselben Grund wie eine Zeile darueber.
   if (mode === 'kanban' && !istTafelModusVerfuegbar(tab)) return;
+  // 4T-002160 (Epic 3E-000149): Dieselbe Reissleine fuer die Praesentation,
+  // woertlich aus demselben Grund.
+  if (mode === 'presentation' && !istPraesentationsModusVerfuegbar(tab)) return;
 
   if (tab.viewMode !== mode && !uebernimmOffeneZellEingabe()) return;
   tab.viewMode = mode;
   // 4T-001907: Der Wechsel der Ansicht beendet den Filter der Tafel; wer
   // zurückkommt, sieht wieder alle Karten.
   if (mode !== 'kanban') beendeTafelSuche(state.activePaneIndex);
+  // 4T-002162 (Befund vom 2026-10-10): Wer die Folien verlaesst, laesst keine
+  // Folie stehen; beim naechsten Eintritt wird die Flaeche neu gebaut.
+  raeumePraesentationAuf(state.activePaneIndex);
   // Edit-Modus ist nur in Source/Split/Live sinnvoll. Beim Wechsel auf
   // "Gerendert" wird der Edit-Modus automatisch ausgeschaltet, damit der
   // Statusbar-Toggle konsistent zum sichtbaren View ist. Bei Source,
@@ -160,6 +173,12 @@ export function setViewMode(mode) {
     // tab.content auf und nicht auf dem Editor; ein Editor-Abgleich waere hier
     // ohne Wirkung. Die Zeichnung selbst haengt in 4T-001848 an dieser Stelle.
     renderKanban(state.activePaneIndex);
+  } else if (mode === 'presentation') {
+    // 4T-002160 (Epic 3E-000149): Wie die Tafel baut die Folie auf tab.content
+    // auf. Beim Eintritt steht die Folie der Schreibmarke (Fokus fuer das
+    // Blaettern per Tastatur auf der Flaeche, Story 4S-001049, AK3).
+    renderPresentation(state.activePaneIndex, { anSchreibmarke: true });
+    fokussierePraesentation(state.activePaneIndex);
   } else {
     syncEditorForPane(state.activePaneIndex);
   }

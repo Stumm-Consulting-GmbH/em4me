@@ -1,6 +1,6 @@
 # Strumenti
 
-Undici aiutanti per il lavoro quotidiano sul testo: linter, correzione ortografica, ricerca, trova e sostituisci, editor di tabelle, stampa, esportazione PDF, palette dei comandi, inserimento di data e ora, orologio con sveglie, timer, cronometro e calendario mensile, riga del titolo. Gli accessi e le scorciatoie predefinite figurano nella [tabella delle funzionalità](functions.md).
+Dodici aiutanti per il lavoro quotidiano sul testo: linter, correzione ortografica, ricerca, trova e sostituisci, editor di tabelle, stampa, esportazione PDF, esportazione HTML, palette dei comandi, inserimento di data e ora, orologio con sveglie, timer, cronometro e calendario mensile, riga del titolo. Gli accessi e le scorciatoie predefinite figurano nella [tabella delle funzionalità](functions.md).
 
 ## Linter Markdown
 
@@ -120,9 +120,23 @@ La stampa segue la vista attiva, esattamente come l’esportazione PDF qui sotto
 
 ## Esportazione PDF
 
-«File → Altre funzioni file → Esporta → Esporta come PDF…» (predefinito `Ctrl+Maiusc+P`) stampa il contenuto della scheda attiva in un file PDF. L'esportazione segue la vista attiva: la vista codice sorgente stampa il Markdown grezzo con evidenziazione della sintassi, inclusi i numeri di riga se attivi nella scheda; le modalità renderizzata, divisa e live stampano il documento formattato (divisa e live passano internamente alla vista renderizzata per la stampa e poi ripristinano la vista). Il PDF è sempre chiaro, anche se l'applicazione usa il tema scuro; i diagrammi Mermaid vengono ridisegnati con colori chiari e restano grafica vettoriale, e anche i grafici di tabelle vengono disegnati in chiaro. Formule, evidenziazione del codice, callout e tabelle perspective appaiono come nell'anteprima.
+«File → Altre funzioni file → Esporta → Esporta come PDF…» (predefinito `Ctrl+Maiusc+P`) stampa il contenuto della scheda attiva in un file PDF. L'esportazione segue la vista attiva: la vista codice sorgente stampa il Markdown grezzo con evidenziazione della sintassi, inclusi i numeri di riga se attivi nella scheda; le modalità renderizzata, divisa e live stampano il documento formattato (divisa e live passano internamente alla vista renderizzata per la stampa e poi ripristinano la vista). Il PDF è sempre chiaro, anche se l'applicazione usa il tema scuro; i diagrammi Mermaid vengono ridisegnati con colori chiari e restano grafica vettoriale, e anche i grafici di tabelle vengono disegnati in chiaro. Formule, evidenziazione del codice, callout e tabelle perspective appaiono come nell'anteprima. I commenti privati non compaiono nel PDF, nemmeno esportando dalla vista codice sorgente: il loro testo viene omesso ma le righe restano al loro posto, così nessun numero di riga si sposta; la stampa si comporta allo stesso modo. Se l'estensione «Commenti» è disattivata, il loro testo è testo normale e compare nell'output.
 
 Formato pagina, orientamento e margini si impostano nella sezione «Esportazione» delle impostazioni (File → Impostazioni…); il valore predefinito è A4 verticale con margini normali. Quando il contenuto scorre su più pagine, blocchi di codice, tabelle, diagrammi, formule e callout restano insieme per quanto possibile; i titoli non rimangono soli a fine pagina.
+
+Le diapositive di una presentazione si esportano con un comando proprio, una diapositiva per pagina; vedi [Presentazione](presentation.md).
+
+## Esportazione HTML
+
+«File → Altre funzioni file → Esporta → Esporta come HTML…» salva il contenuto della scheda attiva in un unico file HTML che qualsiasi browser apre — senza l'applicazione, senza altri file accanto e senza connessione di rete. Non è assegnata alcuna scorciatoia predefinita; potete assegnarne una nelle impostazioni, e anche la palette dei comandi trova il comando. Per un documento salvato, la finestra di salvataggio propone il suo nome con l'estensione `.html` nella stessa cartella. Se annullate la finestra, non viene creato alcun file. La scheda delle impostazioni non si esporta, quelle del manuale sì.
+
+L'esportazione segue la vista attiva, come l'esportazione PDF: la vista codice sorgente dà il Markdown grezzo con evidenziazione della sintassi; le modalità renderizzata, divisa e live danno il documento formattato. Il file è sempre chiaro, anche se l'applicazione usa il tema scuro. Immagini, diagrammi Mermaid, [grafici di tabelle](charts.md) e formule sono incorporati nel file; formule, evidenziazione del codice, callout e tabelle perspective appaiono come nell'anteprima.
+
+Il file mostra lo stato visualizzato al momento dell'esportazione e non contiene codice di programma. Gli elementi di comando come i pulsanti di copia, le maniglie di ordinamento, le barre dei filtri e le righe di inserimento vengono omessi; le caselle delle attività restano visibili con il loro segno di spunta, ma non si possono attivare o disattivare. I punti di salto all'interno del documento, i link web e gli indirizzi e-mail restano cliccabili. Un collegamento a un altro documento, a un allegato o a un tag non ha destinazione nel singolo file: resta come testo sottolineato a puntini che, al passaggio del mouse, indica la sua destinazione originale. Un'immagine che non si può incorporare — ad esempio perché il suo file si trova fuori dall'area — compare nel file come il suo testo alternativo in una cornice tratteggiata.
+
+Dopo l'esportazione, la barra di stato indica «Esportato come HTML». Se qualcosa è stato omesso, il messaggio indica il numero di collegamenti senza destinazione, di immagini non incorporate e di diagrammi non disegnati.
+
+Le diapositive di una presentazione si esportano con un comando proprio, come cartella con una pagina per diapositiva; vedi [Presentazione](presentation.md).
 
 ## Palette dei comandi
 

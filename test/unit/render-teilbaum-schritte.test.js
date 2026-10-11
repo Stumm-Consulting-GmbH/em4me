@@ -60,6 +60,19 @@ const TEILBAUM = [
   // Karte ist eine Ansicht auf eine Zeile des offenen Dokuments. Den
   // Schritt-Satz bekommt die Einbettung ebenso hereingereicht.
   'modules/kanban/kanban-pane.js',
+  // 4T-002160 (Epic 3E-000149): Die Folie der Präsentations-Ansicht — eine
+  // Ansicht auf einen Ausschnitt des offenen Dokuments, per innerHTML in die
+  // Fläche gesetzt. Siebte Fundstelle der Klasse, aus demselben Grund wie die
+  // Tafel-Karte; den Schritt-Satz bekommt die Fläche ebenso hereingereicht.
+  'modules/presentation/presentation-pane.js',
+  // 4T-002163 (Epic 3E-000149): Die Folien der beiden Ausgaben des
+  // Foliensatzes (PDF, HTML-Seiten) — jede Folie mit derselben Funktion wie in
+  // der Ansicht gezeichnet und per innerHTML in eine Druck-Fläche im offenen
+  // Dokument gesetzt; die Ausgabe übernimmt den fertig nachbearbeiteten Stand.
+  // Achte Fundstelle der Klasse, gefunden von diesem Wächter im
+  // Epic-Abschluss-Test. Der Ordner views/ importiert den Schritt-Satz direkt
+  // (wie print-preparation.js) und ruft ihn je Folie wie die Fläche der Ansicht.
+  'modules/views/folien-export.js',
   // 4T-001939 (Epic 3E-000257): Die Markdown-Segmente der Einzel-Maske der
   // Datenbank — aus der Tabellen-Definition erzeugt oder aus der Masken-Datei
   // gelesen, per innerHTML in die Masken-Seite gesetzt. Sechste Fundstelle der

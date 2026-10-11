@@ -98,5 +98,11 @@ describe('Deaktivierte Schaltflächen sind sichtbar deaktiviert (4T-001653)', ()
     // (zusätzlich eine Fläche im Dokument).
     expect(COMMANDS.find((c) => c.id === 'view.modeSource').availability).toBe('viewMode');
     expect(COMMANDS.find((c) => c.id === 'view.modeCanvas').availability).toBe('canvasAnsicht');
+    // 4T-002160 (Epic 3E-000149): Der Präsentations-Schalter ist der dritte
+    // dokument-abhängige Fall neben Arbeitsfläche und Tafel — ohne Kennzeichen
+    // im Kopf sichtbar deaktiviert.
+    expect(COMMANDS.find((c) => c.id === 'view.modePresentation').availability).toBe(
+      'praesentationsAnsicht',
+    );
   });
 });

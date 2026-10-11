@@ -79,11 +79,21 @@ const LAGE_BELEGUNGEN = [
 const BOOL_FIELDS = AVAILABILITY_CONTEXT_FIELDS.filter(
   (f) => f !== 'viewMode' && !LAGE_FELDER.includes(f),
 );
-// Die sieben realen Ansichts-Modi plus null (kein Reiter). 'mindmap' ist seit
+// Die acht realen Ansichts-Modi plus null (kein Reiter). 'mindmap' ist seit
 // 4T-001047 dabei, 'canvas' seit 4T-001697 (Modus aus 4T-001653), 'kanban' seit
-// 4T-001847; sourceToggle laesst alle drei bewusst draussen, weil dort kein
-// Quelltext sichtbar ist.
-const VIEW_MODES = [null, 'source', 'split', 'live', 'rendered', 'mindmap', 'canvas', 'kanban'];
+// 4T-001847, 'presentation' seit 4T-002160; sourceToggle laesst alle vier
+// bewusst draussen, weil dort kein Quelltext sichtbar ist.
+const VIEW_MODES = [
+  null,
+  'source',
+  'split',
+  'live',
+  'rendered',
+  'mindmap',
+  'canvas',
+  'kanban',
+  'presentation',
+];
 
 // Alle Kontexte ueber den Vertrag: jede boolsche Belegung der Felder mal jeden
 // Ansichts-Modus samt «kein Reiter». Das ist die Grundgesamtheit der
@@ -112,7 +122,7 @@ function kontext(teil) {
 }
 
 describe('Kontext-Vertrag (4T-001635)', () => {
-  it('nennt die vierzehn gemeinsamen und die zwei renderer-eigenen Felder', () => {
+  it('nennt die fünfzehn gemeinsamen und die zwei renderer-eigenen Felder', () => {
     expect(SHARED_CONTEXT_FIELDS).toEqual([
       'hasTab',
       'manualTab',
@@ -129,6 +139,9 @@ describe('Kontext-Vertrag (4T-001635)', () => {
       // 4T-001847 (Epic 3E-000110): das elfte Feld, das zweite mit einer
       // Eigenschaft des INHALTS — ist das aktive Dokument eine Tafel?
       'tafelTab',
+      // 4T-002160 (Epic 3E-000149): ist das aktive Dokument eine Präsentation?
+      // Im Zuschnitt von tafelTab, eine weitere Eigenschaft des INHALTS.
+      'praesentationTab',
       // 4T-001852 (Epic 3E-000110): das zwölfte Feld, das dritte mit einer
       // Eigenschaft des INHALTS — ist das aktive Dokument leer? Es entscheidet
       // über das Umwandeln in eine Tafel und wird auf beiden Prozess-Seiten
@@ -176,7 +189,7 @@ describe('Kontext-Vertrag (4T-001635)', () => {
 });
 
 describe('Bedingungs-Katalog (4T-001635)', () => {
-  it('traegt die vierundzwanzig benannten Bedingungen des Katalogs', () => {
+  it('traegt die siebenundzwanzig benannten Bedingungen des Katalogs', () => {
     expect(AVAILABILITY_NAMES).toEqual([
       'immer',
       'anyTab',
@@ -206,6 +219,17 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
       // Zuschnitt von canvasAnsicht und aus demselben Grund — der Modus ist
       // dokument-abhaengig.
       'tafelAnsicht',
+      // 4T-002160 (Epic 3E-000149): die Bedingung des Präsentations-Ansichts-
+      // Modus, im Zuschnitt von tafelAnsicht.
+      'praesentationsAnsicht',
+      // 4T-002162 (Epic 3E-000149): die Bedingung der Vorführung, im Zuschnitt
+      // von tafelKarte — sie startet nur aus der gezeigten Präsentations-Ansicht.
+      'praesentationsAnsichtAktiv',
+      // 4T-002163 (Epic 3E-000149): die Bedingung der beiden Ausgaben des
+      // Foliensatzes, im Zuschnitt von canvasFlaecheOffen — sie nennt `hasTab`
+      // ausdrücklich, weil beide Einträge unter dem Untermenü «Exportieren»
+      // mit eigener Freigabe-Regel hängen.
+      'praesentationsDokument',
       // 4T-001849 (Epic 3E-000110): die Bedingung der Tafel-Befehle, im
       // Zuschnitt von canvasKarte — die Karte entsteht in der gezeigten Tafel,
       // und die gibt es nur in dieser Ansicht.
@@ -608,9 +632,9 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
           false,
         );
       }
-      // Lese-Ansicht (AK31), Canvas-, Tafel- und Mindmap-Ansicht: auch mit Lage
-      // und eingeschaltetem Bearbeiten nicht wählbar.
-      for (const viewMode of ['rendered', 'canvas', 'kanban', 'mindmap', null]) {
+      // Lese-Ansicht (AK31), Canvas-, Tafel-, Präsentations- und Mindmap-Ansicht:
+      // auch mit Lage und eingeschaltetem Bearbeiten nicht wählbar.
+      for (const viewMode of ['rendered', 'canvas', 'kanban', 'presentation', 'mindmap', null]) {
         for (const editMode of [true, false]) {
           expect(
             isAvailable(name, kontext({ hasTab: true, viewMode, editMode, [feld]: true })),
@@ -769,6 +793,15 @@ const MENUE_BASISLINIE = new Map([
   ['file.rejoinParts', 'fileTab'],
   ['file.print', 'contentTab'],
   ['file.exportPdf', 'contentTab'],
+  // 4T-002167 (Epic 3E-000347): Der HTML-Export stand am 2026-09-09 nicht im
+  // gemessenen Menue, weil er erst hier entsteht; seine Basislinie ist die
+  // Bedingung, mit der er eingehaengt wird — die des PDF-Exports darueber.
+  ['file.exportHtml', 'contentTab'],
+  // 4T-002163 (Epic 3E-000149): die beiden Ausgaben des Foliensatzes, aus
+  // demselben Grund wie der HTML-Export darüber — es gibt sie erst seit diesem
+  // Vorgang; ihre Basislinie ist die Bedingung, mit der sie eingehängt werden.
+  ['presentation.exportPdf', 'praesentationsDokument'],
+  ['presentation.exportHtml', 'praesentationsDokument'],
   ['file.exportPortable', 'contentTab'],
   ['app.openSettings', 'immer'],
   ['history.open', 'fileTab'],
@@ -800,6 +833,18 @@ const MENUE_BASISLINIE = new Map([
   // stand am 2026-09-09 in keinem gemessenen Menue; seine Basislinie ist die
   // Bedingung, mit der er eingehaengt wird.
   ['view.modeKanban', 'tafelAnsicht'],
+  // 4T-002160 (Epic 3E-000149): Der Präsentations-Eintrag, aus demselben Grund
+  // wie der Tafel-Eintrag darüber: Er entsteht auf dem Zug-Zweig der
+  // Präsentation, und seine Basislinie ist die Bedingung, mit der er
+  // eingehängt wird.
+  ['view.modePresentation', 'praesentationsAnsicht'],
+  // 4T-002162 (Epic 3E-000149): der Start der Vorführung im Untermenü
+  // «Präsentation», aus demselben Grund wie der Modus-Eintrag darüber; seine
+  // Basislinie ist die Bedingung, mit der er eingehängt wird.
+  ['presentation.start', 'praesentationsAnsichtAktiv'],
+  // 4T-002163 (Epic 3E-000149): der Weg zu einer neuen Präsentation im selben
+  // Untermenü, aus demselben Grund; wie die neue Kanban-Tafel immer wählbar.
+  ['presentation.new', 'immer'],
   // 4T-001849 (Epic 3E-000110): Die Karten-Anlage der Tafel. Dieselbe
   // Begruendung wie beim Modus darueber — sie entsteht auf dem Zug-Zweig der
   // Kanban-Tafel, und ihre Basislinie ist die Bedingung, mit der sie in das

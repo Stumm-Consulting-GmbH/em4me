@@ -1,6 +1,6 @@
 # Werkzeuge
 
-Elf Helfer für die tägliche Arbeit am Text: Linter, Rechtschreibprüfung, Suche, Suchen und Ersetzen, Tabellen-Editor, Drucken, PDF-Export, Kommando-Palette, Datums- und Uhrzeit-Eingabe, Uhr mit Wecker, Timer, Stoppuhr und Monatskalender, Titelzeile. Die Zugänge und Standard-Kürzel stehen in der [Funktions-Tabelle](functions.md).
+Zwölf Helfer für die tägliche Arbeit am Text: Linter, Rechtschreibprüfung, Suche, Suchen und Ersetzen, Tabellen-Editor, Drucken, PDF-Export, HTML-Export, Kommando-Palette, Datums- und Uhrzeit-Eingabe, Uhr mit Wecker, Timer, Stoppuhr und Monatskalender, Titelzeile. Die Zugänge und Standard-Kürzel stehen in der [Funktions-Tabelle](functions.md).
 
 ## Markdown-Linter
 
@@ -120,9 +120,23 @@ Der Druck folgt der aktiven Ansicht, genau wie der PDF-Export darunter: Die Quel
 
 ## PDF-Export
 
-„Datei → Weitere Datei-Funktionen → Exportieren → Als PDF exportieren…" (Standard `Strg+Umschalt+P`) druckt den Inhalt des aktiven Tabs in eine PDF-Datei. Der Export folgt der aktiven Ansicht: die Quelltext-Ansicht druckt das Roh-Markdown mit Syntax-Hervorhebung, inklusive Zeilennummern, wenn sie im Tab eingeschaltet sind; Gerendert, Geteilt und Live drucken das formatierte Dokument (Geteilt und Live wechseln für den Druck intern auf die gerenderte Darstellung und stellen die Ansicht danach wieder her). Das PDF ist immer hell, auch wenn die App im dunklen Theme läuft; Mermaid-Diagramme werden dafür hell neu gezeichnet und bleiben Vektorgrafik, ebenso werden die Diagramme zu Tabellen hell gezeichnet. Formeln, Code-Hervorhebung, Callouts und Perspective-Tabellen erscheinen wie in der Vorschau.
+„Datei → Weitere Datei-Funktionen → Exportieren → Als PDF exportieren…" (Standard `Strg+Umschalt+P`) druckt den Inhalt des aktiven Tabs in eine PDF-Datei. Der Export folgt der aktiven Ansicht: die Quelltext-Ansicht druckt das Roh-Markdown mit Syntax-Hervorhebung, inklusive Zeilennummern, wenn sie im Tab eingeschaltet sind; Gerendert, Geteilt und Live drucken das formatierte Dokument (Geteilt und Live wechseln für den Druck intern auf die gerenderte Darstellung und stellen die Ansicht danach wieder her). Das PDF ist immer hell, auch wenn die App im dunklen Theme läuft; Mermaid-Diagramme werden dafür hell neu gezeichnet und bleiben Vektorgrafik, ebenso werden die Diagramme zu Tabellen hell gezeichnet. Formeln, Code-Hervorhebung, Callouts und Perspective-Tabellen erscheinen wie in der Vorschau. Private Kommentare erscheinen nicht im PDF, auch nicht beim Export aus der Quelltext-Ansicht: Ihr Text fällt weg, die Zeilen bleiben stehen, sodass sich keine Zeilennummer verschiebt; der Druck verhält sich ebenso. Ist die Erweiterung „Kommentare" abgeschaltet, ist ihr Text gewöhnlicher Text und erscheint mit.
 
 Seitenformat, Ausrichtung und Ränder stellt der Bereich „Export" der Einstellungen ein (Datei → Einstellungen…); Standard ist A4 im Hochformat mit normalen Rändern. Beim Umbruch über Seiten bleiben Code-Blöcke, Tabellen, Diagramme, Formeln und Callouts nach Möglichkeit zusammen; Überschriften stehen nicht allein am Seitenende.
+
+Den Foliensatz einer Präsentation gibt ein eigener Befehl aus, eine Folie je Seite; siehe [Präsentation](presentation.md).
+
+## HTML-Export
+
+„Datei → Weitere Datei-Funktionen → Exportieren → Als HTML exportieren…" speichert den Inhalt des aktiven Tabs als eine einzige HTML-Datei, die jeder Browser öffnet — ohne die Anwendung, ohne weitere Dateien daneben und ohne Netzverbindung. Ein Standard-Kürzel ist nicht vorbelegt; in den Einstellungen lässt sich eines belegen, und die Kommando-Palette findet den Befehl ebenfalls. Bei einem gespeicherten Dokument schlägt der Speichern-Dialog dessen Namen mit der Endung `.html` im selben Ordner vor. Brechen Sie den Dialog ab, entsteht keine Datei. Der Einstellungs-Tab lässt sich nicht exportieren, Handbuch-Tabs schon.
+
+Der Export folgt der aktiven Ansicht wie der PDF-Export: Die Quelltext-Ansicht ergibt das Roh-Markdown mit Syntax-Hervorhebung, Gerendert, Geteilt und Live ergeben das formatierte Dokument. Die Datei ist immer hell, auch wenn die App im dunklen Theme läuft. Bilder, Mermaid-Diagramme, [Diagramme zu Tabellen](charts.md) und Formeln stehen eingebettet in der Datei; Formeln, Code-Hervorhebung, Callouts und Perspective-Tabellen erscheinen wie in der Vorschau.
+
+Die Datei zeigt den Stand, der beim Export angezeigt wird, und enthält keinen Programm-Code. Bedien-Elemente wie Kopier-Knöpfe, Sortier-Griffe, Filter-Leisten und Eingabe-Zeilen entfallen; Aufgaben-Checkboxen bleiben mit ihrem Haken sichtbar, lassen sich aber nicht umschalten. Sprungziele innerhalb des Dokuments, Web-Verweise und E-Mail-Adressen bleiben anklickbar. Ein Verweis auf ein anderes Dokument, eine Anlage oder einen Tag hat in der einzelnen Datei kein Ziel: Er bleibt als gepunktet unterstrichener Text stehen, der beim Überfahren mit der Maus sein ursprüngliches Ziel nennt. Ein Bild, das sich nicht einbetten lässt — etwa weil seine Datei außerhalb des Bereichs liegt —, steht in der Datei als sein Alternativtext in einem gestrichelten Rahmen.
+
+Nach dem Export meldet die Statusleiste „Als HTML exportiert". Ist dabei etwas entfallen, nennt die Meldung die Zahl der Verweise ohne Ziel, der nicht eingebetteten Bilder und der nicht gezeichneten Diagramme.
+
+Den Foliensatz einer Präsentation gibt ein eigener Befehl als Ordner mit einer Seite je Folie aus; siehe [Präsentation](presentation.md).
 
 ## Kommando-Palette
 

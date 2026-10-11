@@ -2,9 +2,9 @@
 
 L'apparence d'un document se décide à deux niveaux. La **vue** appartient à l'onglet : elle détermine si le document est montré rendu, en source, scindé ou en direct. L'**apparence** vaut pour toute l'application : thème, zoom, largeur du contenu et polices. Cette page réunit les deux niveaux et nomme l'emplacement de chaque réglage.
 
-## Les sept vues
+## Les huit vues
 
-Chaque onglet se trouve dans exactement une des sept vues. Le mode choisi vaut par onglet et non globalement : un document peut rester ouvert en rendu pendant qu'un deuxième est édité en source à côté.
+Chaque onglet se trouve dans exactement une des huit vues. Le mode choisi vaut par onglet et non globalement : un document peut rester ouvert en rendu pendant qu'un deuxième est édité en source à côté.
 
 | Vue         | Ce qu'elle montre                                     | Raccourci par défaut |
 | ----------- | ----------------------------------------------------- | -------------------- |
@@ -15,8 +15,9 @@ Chaque onglet se trouve dans exactement une des sept vues. Le mode choisi vaut p
 | **Carte mentale** | la structure du document sous forme de carte    | `Ctrl+5`             |
 | **Canevas** | une surface avec cartes et connexions issue du document | `Ctrl+6`             |
 | **Tableau** | les tâches du document en tableau Kanban              | `Ctrl+7`             |
+| **Diapositives** | les diapositives d'une présentation, l'une après l'autre | `Ctrl+8`             |
 
-Le changement se fait par les boutons de la barre d'état ou par le haut du menu Affichage ; la carte mentale se trouve dans le menu et sur son raccourci, pas dans la barre d'état, le bouton du canevas reste atténué tant que le document ne porte pas de surface Canvas, et le bouton du tableau de même tant que le document n'est pas un tableau Kanban. La vue qu'obtient un onglet nouvellement ouvert se règle dans la section « Comportement » des paramètres.
+Le changement se fait par les boutons de la barre d'état ou par le haut du menu Affichage ; la carte mentale se trouve dans le menu et sur son raccourci, pas dans la barre d'état, le bouton du canevas reste atténué tant que le document ne porte pas de surface Canvas, le bouton du tableau de même tant que le document n'est pas un tableau Kanban, et celui des diapositives tant qu'il n'est pas une présentation. La vue qu'obtient un onglet nouvellement ouvert se règle dans la section « Comportement » des paramètres.
 
 ### Mode direct
 
@@ -43,6 +44,10 @@ Le canevas montre une surface avec des cartes et des connexions qui se trouve da
 ### Tableau
 
 Le tableau montre les tâches du document sous forme de tableau Kanban : les listes nommées du document comme colonnes, les lignes de tâche qu'elles contiennent comme cartes. Il appartient à l'extension « Kanban » et disparaît avec elle ; comme le canevas, il dépend du document et n'est sélectionnable que si celui-ci porte la marque d'en-tête d'un tableau. Créer et convertir, manipuler cartes et colonnes, déplacer à la souris, échéances, tags, limite, archive et filtre, les paramètres du tableau, le lien entre carte et note ainsi que le format d'enregistrement sont décrits sur la page [Tableau Kanban](kanban.md).
+
+### Diapositives
+
+La vue Diapositives montre une présentation diapositive par diapositive, avec compteur et défilement ; c'est d'elle que se lance le diaporama en plein écran. Elle appartient à l'extension « Vue présentation » et disparaît avec elle ; comme le canevas et le tableau, elle dépend du document et n'est sélectionnable que si celui-ci porte l'indicateur `presentation: true` dans son en-tête. La règle de séparation, les clés de pilotage, les thèmes, les notes de l'orateur, le diaporama et les exports des diapositives sont décrits sur la page [Présentation](presentation.md).
 
 ### Modifier
 

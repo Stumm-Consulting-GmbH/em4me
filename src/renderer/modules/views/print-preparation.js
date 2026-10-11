@@ -34,9 +34,18 @@ import { waitForPerspectiveScriptsIdle } from '../query/perspective-script-view.
 import { warteAufDiagrammeDerAusgabe, zeichneDiagrammeFuerAusgabe } from '../charts/chart-view.js';
 // 4T-000311 (Epic 3E-000055): Druck-Aufbereitung der Quelltext-Ansicht.
 import { buildPdfSourcePrintElement } from './pdf-source-print.js';
+// 4T-002188 (Epic 3E-000347): private Kommentare fallen aus dem Print-Block,
+// nach derselben Regel wie beim HTML-Export.
+import { quelltextFuerExport } from './quelltext-export.js';
+import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 // 4T-000465 (Epic 3E-000086): Farb-Overrides aus dem aktiven Hell-Schema.
 import { pdfColorOverrides } from '../color-schemes.js';
 import { syncToolbarToActiveTab } from '../tabs/tabs.js';
+// 4T-002162 (Nachbesserung in der Release-Strecke vom 2026-10-11): Die
+// Präsentations-Ansicht leert ihre Fläche, sobald die Spalte keine
+// Präsentation zeigt; die Rücknahme baut sie neu auf. Kein neuer Lade-Kreis,
+// pane-render.js und views.js binden das Modul bereits ein.
+import { fokussierePraesentation, renderPresentation } from '../presentation/presentation-pane.js';
 
 import { renderPaneContent } from './pane-render.js';
 import { applyContentViewClass } from './view-modes.js';
@@ -107,6 +116,13 @@ export async function withPrintPreparation(steps) {
   const els = getPaneEls(paneIdx);
   const root = document.documentElement;
   const savedViewMode = tab.viewMode;
+  // 4T-002162 (2026-10-11): Lag der Tastatur-Fokus vor dem Lauf auf der
+  // Folien-Fläche, bekommt ihn die neu gebaute Fläche nach der Rücknahme
+  // zurück; sonst blätterten die Pfeiltasten nach einem Export nicht mehr.
+  const fokusAufFolien =
+    savedViewMode === 'presentation' &&
+    !!(els && els.presentationEl) &&
+    els.presentationEl.contains(document.activeElement);
   const savedTheme = root.getAttribute('data-theme') || '';
   const savedVars = {};
   let printStateApplied = false;
@@ -126,14 +142,17 @@ export async function withPrintPreparation(steps) {
     }
 
     // 2. Inhalt: Quelltext-Ansicht baut den Print-Block aus dem
-    //    Dokumenttext auf (Zeilennummern gemaess Tab-Toggle, 4T-000311);
+    //    Dokumenttext auf (Zeilennummern gemaess Tab-Toggle, 4T-000311;
+    //    private %%-Kommentare entfernt, solange die Erweiterung an ist,
+    //    4T-002188);
     //    Geteilt und Live schalten temporaer auf 'rendered' (befuellt das
     //    Render-Pane frisch, falls der Inhalt seit dem letzten Render
     //    geaendert wurde); der Modus wird im finally wiederhergestellt.
     if (sourceMode) {
-      sourcePrintEl = buildPdfSourcePrintElement(tab.content, {
-        showLineNumbers: !!tab.showLineNumbers,
-      });
+      sourcePrintEl = buildPdfSourcePrintElement(
+        quelltextFuerExport(tab.content, isExtensionActive('comments')),
+        { showLineNumbers: !!tab.showLineNumbers },
+      );
       els.content.appendChild(sourcePrintEl);
       document.body.classList.add('printing-source');
     } else if (tab.viewMode !== 'rendered') {
@@ -225,6 +244,18 @@ export async function withPrintPreparation(steps) {
       tab.viewMode = savedViewMode;
       applyContentViewClass(els.content, `view-${savedViewMode}`);
       syncEditorForPane(paneIdx);
+      // 4T-002162 (Nachbesserung in der Release-Strecke vom 2026-10-11): Der
+      // Zwischenschritt über die Lese-Ansicht hat die Folien-Fläche geleert
+      // (raeumePraesentationAuf in renderPaneContent). Zurück in den Folien
+      // wird sie neu gebaut, und zwar wie beim Ansichts-Wechsel in views.js,
+      // aber ohne Wahl an der Schreibmarke: Es steht wieder die zuvor gezeigte
+      // Folie. Den Fokus bekommt die Fläche nur, wenn sie ihn vorher hatte;
+      // der Ansichts-Wechsel fokussiert immer, weil er eine Handlung auf der
+      // Fläche ist, die Rücknahme stellt dagegen den Zustand davor her.
+      if (savedViewMode === 'presentation') {
+        renderPresentation(paneIdx);
+        if (fokusAufFolien) fokussierePraesentation(paneIdx);
+      }
       syncToolbarToActiveTab();
     }
     // Mermaid zurueck ins aktive Theme (No-op, wenn das Theme Light war

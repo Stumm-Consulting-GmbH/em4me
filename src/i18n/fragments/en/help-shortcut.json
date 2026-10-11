@@ -38,6 +38,7 @@
   "help.shortcut.saveAs": "Save As",
   "help.shortcut.print": "Print the active tab",
   "help.shortcut.exportPdf": "Export the active tab as PDF",
+  "help.shortcut.exportHtml": "Export the active document as an HTML file",
   "help.shortcut.exportPortable": "Export the active tab as portable Markdown",
   "help.shortcut.toggleAutoSave": "Turn auto-save on or off",
   "help.shortcut.toggleScrollSync": "Turn scroll synchronisation of the split view on or off",
@@ -173,5 +174,9 @@
   "help.shortcut.updateLocale": "Save your own language file at the state of the running program version, missing entries in English",
   "help.group.database": "Database",
   "help.shortcut.exportJsonCanvas": "Save the canvas selected in the canvas view as a JSON Canvas file",
-  "help.shortcut.importJsonCanvas": "Read in one or more JSON Canvas files; each one creates a document with the canvas next to it"
+  "help.shortcut.importJsonCanvas": "Read in one or more JSON Canvas files; each one creates a document with the canvas next to it",
+  "help.shortcut.presentationStart": "Show the presentation full screen, starting at the slide shown; Esc ends the slide show",
+  "help.shortcut.presentationNew": "Create a new presentation with sample slides and open it in the “Slides” view",
+  "help.shortcut.presentationExportPdf": "Export the slides as a PDF file, one slide per page in the slide format and without margins",
+  "help.shortcut.presentationExportHtml": "Export the slides as a folder with one HTML page per slide, browsable with keys and buttons"
 }

@@ -110,6 +110,10 @@ function buildMenu(win, state, actions) {
   // Erweiterungs-Schalter vorbehalten und laeuft ueber
   // unless('view.modeKanban', …).
   const tafelTab = !!(state && state.tafelTab);
+  // 4T-002160 (Epic 3E-000149): Der Praesentations-Modus folgt demselben
+  // Zuschnitt — sichtbar und deaktiviert ohne Kennzeichen, verschwunden ueber
+  // unless('view.modePresentation', …) bei abgeschalteter Erweiterung.
+  const praesentationTab = !!(state && state.praesentationTab);
   // 4T-001904: Anzeige-Schalter der Tafel, { Einstellungs-Schlüssel: Wert }.
   const kanbanAnzeige = (state && state.kanbanAnzeige) || {};
 
@@ -155,6 +159,9 @@ function buildMenu(win, state, actions) {
     // 4T-001847 (Epic 3E-000110): das elfte Feld, aus demselben gemeldeten
     // Zustand; es traegt die Bedingung 'tafelAnsicht'.
     tafelTab,
+    // 4T-002160 (Epic 3E-000149): aus demselben gemeldeten Zustand; es traegt
+    // die Bedingung 'praesentationsAnsicht'.
+    praesentationTab,
     // 4T-001852 (Epic 3E-000110): das zwoelfte Feld, aus demselben gemeldeten
     // Zustand; es traegt die Bedingung 'leeresDokumentOhneTafel'.
     leeresDokument: !!(state && state.leeresDokument),
@@ -471,6 +478,31 @@ function buildMenu(win, state, actions) {
                 enabled: avail('file.exportPdf'),
                 click: send('menu:exportPdf'),
               },
+              {
+                // 4T-002167 (Epic 3E-000347): HTML-Export des gerenderten
+                // Inhalts, unmittelbar nach dem PDF-Export und mit dessen
+                // Verfuegbarkeits-Regel; ohne Vorgabe-Kuerzel.
+                label: t('menu.file.exportHtml'),
+                accelerator: acc('file.exportHtml'),
+                enabled: avail('file.exportHtml'),
+                click: send('menu:exportHtml'),
+              },
+              // 4T-002163 (Epic 3E-000149): die beiden Ausgaben des
+              // Foliensatzes, unmittelbar nach den Dokument-Ausgaben, die sie
+              // nicht ersetzen. Sichtbar und deaktiviert bei einem Dokument
+              // ohne Kennzeichen; im Aus-Zustand der Erweiterung entfallen sie.
+              unless('presentation.exportPdf', {
+                label: t('menu.file.exportPresentationPdf'),
+                accelerator: acc('presentation.exportPdf'),
+                enabled: avail('presentation.exportPdf'),
+                click: send('menu:presentationExportPdf'),
+              }),
+              unless('presentation.exportHtml', {
+                label: t('menu.file.exportPresentationHtml'),
+                accelerator: acc('presentation.exportHtml'),
+                enabled: avail('presentation.exportHtml'),
+                click: send('menu:presentationExportHtml'),
+              }),
               {
                 // 4T-000890 (Befund L-05): seit der Registrierung als Kommando
                 // 'file.exportPortable' mit Accelerator-Anzeige; der Klick
@@ -835,6 +867,17 @@ function buildMenu(win, state, actions) {
           accelerator: acc('view.modeKanban'),
           click: send('menu:viewChange', 'kanban'),
         }),
+        // 4T-002160 (Epic 3E-000149): Achter Modus, die Praesentation. Bei
+        // ausgeschalteter Erweiterung faellt der Eintrag ueber unless() weg;
+        // ohne Kennzeichen im Dokument bleibt er sichtbar und ist deaktiviert.
+        unless('view.modePresentation', {
+          label: t('menu.view.presentation'),
+          type: 'radio',
+          checked: viewMode === 'presentation',
+          enabled: avail('view.modePresentation'),
+          accelerator: acc('view.modePresentation'),
+          click: send('menu:viewChange', 'presentation'),
+        }),
         // 4T-001852 (Epic 3E-000110): die Wege zu einer Tafel und die Befehle
         // auf ihr, gebuendelt in EINEM Untermenue, das den Namen der
         // Dokument-Art traegt (Festlegung des Product Owners zum Untermenue
@@ -932,6 +975,32 @@ function buildMenu(win, state, actions) {
             enabled: avail('kanban.boardSettings'),
             accelerator: acc('kanban.boardSettings'),
             click: send('menu:kanbanBoardSettings'),
+          }),
+        ]),
+        // 4T-002162 (Epic 3E-000149): das Untermenue der Dokument-Art
+        // Praesentation (Festlegung «Untermenue einer Dokument-Art», Vorbild
+        // «Kanban-Tafel» darueber) mit dem Start der Vorfuehrung. Aktiviert
+        // allein in der gezeigten Praesentations-Ansicht; im Aus-Zustand der
+        // Erweiterung faellt der Eintrag ueber unless() weg und mit ihm das
+        // Untermenue (submenuOrNull). Der Modus-Eintrag bleibt oben bei den
+        // Modi, aus demselben Grund wie bei der Tafel.
+        //
+        // 4T-002163: Der Weg zu einer neuen Praesentation steht zuerst, durch
+        // einen Trenner abgesetzt von dem, was auf einer gezeigten wirkt
+        // (Vorbild der beiden Wege zu einer Tafel).
+        submenuOrNull('menu.view.presentationMenu', [
+          unless('presentation.new', {
+            label: t('menu.view.presentationNew'),
+            enabled: avail('presentation.new'),
+            accelerator: acc('presentation.new'),
+            click: send('menu:presentationNew'),
+          }),
+          { type: 'separator' },
+          unless('presentation.start', {
+            label: t('menu.view.presentationStart'),
+            enabled: avail('presentation.start'),
+            accelerator: acc('presentation.start'),
+            click: send('menu:presentationStart'),
           }),
         ]),
         // 4T-001796 (Epic 3E-000315): die sieben Eintraege, die auf der Flaeche

@@ -1375,6 +1375,17 @@
       "hinweis": "PD-01/PD-02 (4T-000303): Strg+Umschalt+P loest den Export aus (Save-Dialog im Test durch Stub mit festem Zielpfad ersetzt); der native Dialog selbst ist manueller Test."
     },
     {
+      "key": "help.shortcut.exportHtml",
+      "id": "S-161",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/html-export.spec.js",
+        "test/unit/renderer/html-export.test.js",
+        "test/unit/renderer/kommando-dispatcher.test.js"
+      ],
+      "hinweis": "4T-002167 (Epic 3E-000347): der HTML-Export als Registry-Kommando ohne Default-Kürzel, im Untermenü «Exportieren» unmittelbar nach dem PDF-Export. Die Unit-Prüfdatei hält Registry-Eintrag, Menü-Ort, Verfügbarkeit, Datei-Hülle, Stil-Erfassung, Bedien-Elemente, Bilder, Verweise und Meldung; der Vollständigkeits-Wächter der Dispatcher-Map hält fest, dass Palette und belegtes Kürzel wirklich ausführen. Die Ablauf-Fälle an der gestarteten Anwendung trägt 4T-002168 (der Export über die Kommando-Palette in HE-01); Testart seit dem Abschluss-Anteil 4T-002170 «e2e» wie die Zeile des PDF-Exports. Der Speichern-Dialog bleibt OS-UI der Gesamtabnahme."
+    },
+    {
       "key": "help.shortcut.newApp",
       "id": "S-037",
       "testart": "e2e",
@@ -1562,6 +1573,17 @@
         "test/unit/renderer/pdf-source-print.test.js"
       ],
       "hinweis": "PD-01 bis PD-08 (4T-000303/4T-000304/4T-000311): Export aus Dark-Theme mehrseitig ohne Dark-Reste, Abbruch, Fehlerpfad, Modus-Wiederherstellung, Print-Layout-Regeln, Export-Einstellungen mit Querformat, Quelltext-Export mit Print-Block; Unit-Tests decken das printToPDF-Options-Mapping und die Quelltext-Druck-Aufbereitung. Save-Dialog im Test gestubbt, der native Dialog selbst ist manueller Test."
+    },
+    {
+      "key": "help.feature.exportHtml",
+      "id": "F-345",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/html-export.spec.js",
+        "test/unit/renderer/html-export.test.js",
+        "test/unit/html-export-katex.test.js"
+      ],
+      "hinweis": "4T-002169 (Epic 3E-000347): Katalog-Zeile des HTML-Exports. Die Unit-Prüfdateien aus 4T-002167 halten Datei-Hülle, Stil-Erfassung gegen die echten Stilblätter, Entfernen der Bedien-Elemente, Bilder, Verweise ohne Ziel, Meldung, Endpunkt und Bedienweg sowie das KaTeX-Stilblatt mit eingesetzten Schriften. Die Ablauf-Fälle an der gestarteten Anwendung trägt 4T-002168; Testart seit dem Abschluss-Anteil 4T-002170 «e2e» wie die Zeile des PDF-Exports. Der Speichern-Dialog bleibt OS-UI der Gesamtabnahme."
     },
     {
       "key": "help.feature.multiApp",
@@ -2800,6 +2822,114 @@
       ],
       "sichtbarkeit": ["test/e2e/funktionen/kanban-notizen.spec.js"],
       "hinweis": "4T-001954, 4T-001955, 4T-001959 und 4T-001960 (Epic 3E-000319): die Einstellungen der Tafel der Stufe 3 — Lesen der acht Schlüssel des Einstellungs-Blocks und Schreiben je Schlüssel mit Byte-Treue aller übrigen, Anlegen des Blocks und Zurücksetzen (kanban-einstellungen.test.js), die Auflösungs-Kette Tafel vor Vorgabe samt Herkunft und das Archivieren mit Zeitstempel und Obergrenze aus ihr (kanban-wirksam.test.js), der Abschnitt «Kanban-Tafel» der Einstellungs-Seite mit den fünf Vorgaben (renderer/kanban-settings.test.js), der Dialog «Einstellungen dieser Tafel…» mit drei Zuständen je Schalter, eigenem Wert für Obergrenze, Zielordner, Vorlage und Feldwahl, einem Rückgängig-Schritt je Übernahme und seinen Zugängen über Untermenü, Kontextmenü des Spalten-Kopfs und Palette (renderer/kanban-einstellungs-dialog.test.js), die Bindung von Abschnitt und Kommando an die Erweiterung (render/extensions-aus.test.js) und die Ablauf-Fälle KB-15 bis KB-17 und KB-24 an der gestarteten Anwendung (funktionen/kanban-notizen.spec.js). Testart unit, weil der Nachweis-Schwerpunkt an reinen Funktionen und am gezeichneten Dialog liegt; die Ablauf-Datei steht zusätzlich im Feld sichtbarkeit, weil sie Dialog, Einstellungs-Abschnitt und Wirkung auf der Karte in der realen Anordnung sichtbar macht."
+    },
+    {
+      "key": "help.feature.presentation",
+      "id": "F-347",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation.spec.js",
+        "test/unit/renderer/presentation-modus.test.js",
+        "test/unit/renderer/presentation-pane.test.js",
+        "test/unit/render/extensions-aus-praesentation.test.js",
+        "test/unit/command-availability.test.js"
+      ],
+      "sichtbarkeit": [
+        "test/e2e/funktionen/bearbeitung-und-ansicht.spec.js",
+        "test/e2e/funktionen/praesentation.spec.js"
+      ],
+      "hinweis": "4T-002160 (Epic 3E-000149): die Präsentations-Ansicht als achter Ansichts-Modus. Der Modus-Anteil trägt die eine Verfügbarkeits-Entscheidung (Erweiterung an UND Dokument ist nach dem Format-Kern eine Präsentation), den Rückfall auf die Lese-Ansicht beim Öffnen, beim Abschalten und beim verlorenen Kennzeichen, die Verdrahtung über alle Zugänge (eine Modus-Liste, Container je Spalte, Statusleisten-Schalter, Überlauf-Menü, Ansichtsmenü, Kommando mit Vorgabe-Kürzel Strg+8, Kommando-Palette, Sitzungs-Wiederherstellung und Laufzeit-Nachzug beim Tippen) sowie die Registry-Seite des Aus-Zustands samt der Render-Probe, in der `---` eine Linie bleibt (renderer/presentation-modus.test.js, render/extensions-aus-praesentation.test.js, command-availability.test.js). Die Fläche zeigt eine Folie mit Zähler, blättert per Schaltfläche, mit den Tasten der Vorführung und mit dem Mausrad (eine Folie je Rad-Bewegung, Ergänzung aus der Abnahme vom 2026-10-10), beginnt an der Folie der Schreibmarke und zieht beim Tippen nach (renderer/presentation-pane.test.js, darunter ein Fall mit dem echten Format-Kern hinter der Preload-Brücke). Die Unit-Fälle tragen jede dieser Zusagen an einer reinen Funktion, an der Registry, an der Verdrahtung oder am gezeichneten Baum; die Testart steht seit dem Abschluss-Anteil 4T-002166 auf e2e, weil die Ablauf-Prüfdatei hinzugekommen ist und an erster Stelle steht; der Sichtbarkeits-Nachweis der Schaltfläche läuft wie bei Canvas und Tafel über die Schalter-Liste der Statusleisten-Gruppe. Die Ablauf-Fälle an der gestarteten Anwendung trägt 4T-002164 (praesentation.spec.js): Erkennung samt Statusleisten-Schalter und Menü-Zustand, Strg+8, Zähler und Blättern mit Tasten und Mausrad, ausgegraut ohne Kennzeichen (PR-01), die nachgebauten Marp-Dateien (PR-02), Trenn-Regel (PR-03), Notizen (PR-04), Darstellung samt Theme, Übersteuerung, Kopf, Fuß, Seitenzahl, Hintergrund, Zweiteilung, Überlauf und 4:3 (PR-05, PR-06), Aus-Zustand über die Einstellungen (PR-08) der gespeicherte Modus nach dem Neustart (PR-09) und die leere Fläche nach dem Schließen aller Dokumente samt Wiedereintritt (PR-13, Befund der zweiten Abnahme vom 2026-10-10)."
+    },
+    {
+      "key": "help.feature.presentationSlideShow",
+      "id": "F-348",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation.spec.js",
+        "test/unit/renderer/presentation-vorfuehrung.test.js",
+        "test/unit/praesentation-vollbild-kanal.test.js"
+      ],
+      "sichtbarkeit": ["test/e2e/funktionen/praesentation.spec.js"],
+      "hinweis": "4T-002165 (Epic 3E-000149, Story 4S-001050): Katalog-Zeile der Vorführung einer Präsentation. Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-07 in praesentation.spec.js): Start über F5, die Schaltfläche «Vorführung starten» und den Menü-Kanal, Blättern mit Pfeil, Mausklick und Mausrad, Esc mit Rückkehr in die Ansicht auf dieselbe Folie; das Vollbild ist am Kanal gemessen (Aufruf und Rückgabewert), nicht am Fenster. Tasten-Tabelle, Ende auf jedem Weg und Verdrahtung halten renderer/presentation-vorfuehrung.test.js, den Kanal des Hauptprozesses praesentation-vollbild-kanal.test.js."
+    },
+    {
+      "key": "help.feature.presentationExportPdf",
+      "id": "F-349",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation-export.spec.js",
+        "test/unit/renderer/presentation-export.test.js",
+        "test/unit/praesentation-export-kanal.test.js"
+      ],
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette ohne DOM-Bedienelement; das Ergebnis ist eine PDF-Datei außerhalb der Anwendung, die der Product Owner an der gebauten Programmdatei prüft",
+      "hinweis": "4T-002165 (Epic 3E-000149, Story 4S-001054): Katalog-Zeile des PDF-Exports des Foliensatzes. Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-10 in praesentation-export.spec.js): Ausführung über die Kommando-Palette, eine PDF-Seite je Folie im Format 960 × 540 Punkte, Meldung mit entfallener Notiz, Ansicht danach unverändert. Druck-Optionen, Druck-Fläche und Endpunkt halten renderer/presentation-export.test.js, den Kanal des Hauptprozesses praesentation-export-kanal.test.js."
+    },
+    {
+      "key": "help.feature.presentationExportHtml",
+      "id": "F-350",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation-export.spec.js",
+        "test/unit/renderer/presentation-export.test.js",
+        "test/unit/praesentation-export-kanal.test.js"
+      ],
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette ohne DOM-Bedienelement; das Ergebnis ist ein Ordner mit HTML-Seiten außerhalb der Anwendung, den der Product Owner im Browser prüft",
+      "hinweis": "4T-002165 (Epic 3E-000149, Story 4S-001057): Katalog-Zeile des HTML-Exports des Foliensatzes. Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-11 in praesentation-export.spec.js): Ausführung über die Kommando-Palette, Ordner mit index.html und folie-001.html bis folie-003.html, ohne Notiz, mit Blätter-Verweisen, Theme-Variablen im :root und eingebettetem Hintergrund-Bild. Seiten-Bau, Blätter-Skript und Ziel-Ordner halten renderer/presentation-export.test.js und praesentation-export-kanal.test.js."
+    },
+    {
+      "key": "help.shortcut.presentationStart",
+      "id": "S-162",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation.spec.js",
+        "test/unit/renderer/presentation-vorfuehrung.test.js",
+        "test/unit/praesentation-vollbild-kanal.test.js",
+        "test/unit/command-availability.test.js",
+        "test/unit/render/extensions-aus-praesentation.test.js"
+      ],
+      "sichtbarkeit": ["test/e2e/funktionen/praesentation.spec.js"],
+      "hinweis": "4T-002162 (Epic 3E-000149, Story 4S-001050): die Vorführung der Präsentation im Vollbild des eigenen Fensters. Geprüft sind der Start an der gezeigten Folie samt Klassen, Ausblendung und Aufruf der Vollbild-Brücke, die Tasten-Tabelle (Pfeile, Leertaste, Umschalt+Leertaste, Bild auf/ab, Pos1/Ende), der Mausklick vorwärts, das Mausrad mit einer Folie je Rad-Bewegung (Ergänzung aus der Abnahme vom 2026-10-10), das Ende mit Esc, über das Kommando, beim Verlassen des Vollbilds außerhalb der Anwendung, beim Fenster- und beim Dokument-Wechsel jeweils mit Rückkehr auf den Vollbild-Zustand von vorher und auf dieselbe Folie, das Nebeneinander mit dem Fokus-Modus, die Verfügbarkeit nur in der gezeigten Präsentations-Ansicht und die Verdrahtung über Registry, Erweiterung, Menü, Brücke, Menü-Horcher und Dispatcher (renderer/presentation-vorfuehrung.test.js); dazu der Kanal des Hauptprozesses am echten Handler (praesentation-vollbild-kanal.test.js). Das Vollbild selbst und das Bild am Beamer prüft der Product Owner an der gebauten Programmdatei. Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-07 in praesentation.spec.js): Start über F5, die Schaltfläche «Vorführung starten» der Leiste und den Menü-Kanal, Blättern mit Pfeil, Mausklick und Mausrad, Esc mit Rückkehr in die Ansicht; das Vollbild ist am Kanal gemessen (Aufruf und Rückgabewert), nicht am Fenster."
+    },
+    {
+      "key": "help.shortcut.presentationNew",
+      "id": "S-163",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation-export.spec.js",
+        "test/unit/renderer/presentation-anlegen.test.js",
+        "test/unit/command-availability.test.js",
+        "test/unit/render/extensions-aus-praesentation.test.js"
+      ],
+      "sichtbarkeit": ["test/e2e/funktionen/praesentation-export.spec.js"],
+      "hinweis": "4T-002163 (Epic 3E-000149, Story 4S-001055): der Befehl «Neue Präsentation». Geprüft sind der Startinhalt über den echten Format-Kern (Kennzeichen presentation: true, theme light, paginate, drei Beispiel-Folien, Sprecher-Notiz in der zweiten, Zweiteilung als Code-Spanne ohne Hintergrund-Wirkung) in allen fünf Sprachen, das Anlegen über den Weg von «Datei → Neu» mit der Präsentations-Ansicht, die Unabhängigkeit vom Vorlagen-Ordner, die Verdrahtung über Registry, Erweiterung, Brücke, Menü-Horcher und Dispatcher und das gebaute Untermenü «Präsentation» samt Aus-Zustand. Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-12 in praesentation-export.spec.js): Ausführung über die Kommando-Palette, die neue Präsentation erscheint in der Ansicht «Folien» mit drei Folien, die Notiz steht nicht auf der Folie, der gespeicherte Text trägt das Kennzeichen."
+    },
+    {
+      "key": "help.shortcut.presentationExportPdf",
+      "id": "S-164",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation-export.spec.js",
+        "test/unit/renderer/presentation-export.test.js",
+        "test/unit/praesentation-export-kanal.test.js",
+        "test/unit/command-availability.test.js",
+        "test/unit/render/extensions-aus-praesentation.test.js"
+      ],
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette ohne DOM-Bedienelement; das Ergebnis ist eine PDF-Datei außerhalb der Anwendung, die der Product Owner an der gebauten Programmdatei prüft",
+      "hinweis": "4T-002163 (Epic 3E-000149, Story 4S-001054): PDF des Foliensatzes. Geprüft sind die Druck-Optionen im Folien-Format (Seitengröße aus der Entwurfsgröße, ohne Rand, Hintergründe, keine Seiten-Einstellung des Dokument-Exports), die Druck-Fläche mit einer Seite je Folie samt Umbruch-Regeln, der Endpunkt (Abbruch still, Erfolg mit Folien-Zahl und entfallenen Notizen, Fehler, kein Foliensatz) und der Kanal des Hauptprozesses am echten Handler (praesentation-export-kanal.test.js). Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-10 in praesentation-export.spec.js): Ausführung über die Kommando-Palette, eine PDF-Seite je Folie im Format 960 × 540 Punkte, Meldung mit entfallener Notiz, Ansicht danach unverändert."
+    },
+    {
+      "key": "help.shortcut.presentationExportHtml",
+      "id": "S-165",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation-export.spec.js",
+        "test/unit/renderer/presentation-export.test.js",
+        "test/unit/praesentation-export-kanal.test.js",
+        "test/unit/command-availability.test.js",
+        "test/unit/render/extensions-aus-praesentation.test.js"
+      ],
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette ohne DOM-Bedienelement; das Ergebnis ist ein Ordner mit HTML-Seiten außerhalb der Anwendung, den der Product Owner im Browser prüft",
+      "hinweis": "4T-002163 (Epic 3E-000149, Story 4S-001057): HTML-Seiten des Foliensatzes. Geprüft sind Startseite index.html und folie-001.html bis folie-00N.html, die Blätter-Leiste mit Verweisen und Enden, das Blätter-Skript mit der Tasten-Tabelle der Vorführung, eingebettete Stile ohne Druck-Regeln, KaTeX nur bei Formeln, fehlende Notizen, die Zählung fehlender Bilder, die Meldung und der Ziel-Ordner im Hauptprozess (leer, fremd, früherer Export, nur Seiten-Namen). Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-11 in praesentation-export.spec.js): Ausführung über die Kommando-Palette, Ordner mit index.html und folie-001.html bis folie-003.html, ohne Notiz, mit Blätter-Verweisen an den Enden, Theme-Variablen im :root und eingebettetem Hintergrund-Bild."
     },
     {
       "key": "help.feature.kanbanNotes",

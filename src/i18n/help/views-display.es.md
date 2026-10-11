@@ -2,9 +2,9 @@
 
 El aspecto de un documento se decide en dos niveles. La **vista** pertenece a la pestaña: determina si el documento se muestra renderizado, como código fuente, dividido o en vivo. La **apariencia** vale para toda la aplicación: tema, zoom, ancho del contenido y fuentes. Esta página reúne ambos niveles y nombra el lugar de cada ajuste.
 
-## Las siete vistas
+## Las ocho vistas
 
-Cada pestaña está exactamente en una de las siete vistas. El modo elegido vale por pestaña y no globalmente: un documento puede estar abierto renderizado mientras al lado se edita un segundo como código fuente.
+Cada pestaña está exactamente en una de las ocho vistas. El modo elegido vale por pestaña y no globalmente: un documento puede estar abierto renderizado mientras al lado se edita un segundo como código fuente.
 
 | Vista            | Qué muestra                                        | Atajo predeterminado |
 | ---------------- | -------------------------------------------------- | -------------------- |
@@ -15,8 +15,9 @@ Cada pestaña está exactamente en una de las siete vistas. El modo elegido vale
 | **Mapa mental**  | la estructura del documento como mapa en vez de texto | `Ctrl+5`          |
 | **Lienzo**       | una superficie con tarjetas y conexiones del documento | `Ctrl+6`             |
 | **Tablero**      | las tareas del documento como tablero Kanban        | `Ctrl+7`             |
+| **Diapositivas** | las diapositivas de una presentación, una tras otra | `Ctrl+8`             |
 
-El cambio se hace con los botones de la barra de estado o por la parte superior del menú Ver; el mapa mental está en el menú y en su atajo, no en la barra de estado, el botón del lienzo permanece atenuado mientras el documento no contenga una superficie Canvas, y el botón del tablero igualmente mientras el documento no sea un tablero Kanban. Qué vista recibe una pestaña recién abierta se ajusta en la sección «Comportamiento» de la configuración.
+El cambio se hace con los botones de la barra de estado o por la parte superior del menú Ver; el mapa mental está en el menú y en su atajo, no en la barra de estado, el botón del lienzo permanece atenuado mientras el documento no contenga una superficie Canvas, el botón del tablero igualmente mientras el documento no sea un tablero Kanban, y el de las diapositivas mientras no sea una presentación. Qué vista recibe una pestaña recién abierta se ajusta en la sección «Comportamiento» de la configuración.
 
 ### Modo en vivo
 
@@ -43,6 +44,10 @@ El lienzo muestra una superficie con tarjetas y conexiones que se encuentra en e
 ### Tablero
 
 El tablero muestra las tareas del documento como tablero Kanban: las listas con nombre del documento como columnas y las líneas de tarea que contienen como tarjetas. Pertenece a la extensión «Kanban» y desaparece con ella; como el lienzo, depende del documento y solo puede elegirse si este lleva la marca de encabezado de un tablero. Crear y convertir, manejar tarjetas y columnas, mover con el ratón, fechas, etiquetas, límite, archivo y filtro, la configuración del tablero, la unión entre tarjeta y nota, así como el formato de almacenamiento, se describen en la página [Tablero Kanban](kanban.md).
+
+### Diapositivas
+
+La vista Diapositivas muestra una presentación diapositiva a diapositiva, con contador y paso de diapositivas; desde ella se inicia la proyección a pantalla completa. Pertenece a la extensión «Vista de presentación» y desaparece con ella; como el lienzo y el tablero, depende del documento y solo puede elegirse si este lleva el indicador `presentation: true` en su encabezado. La regla de separación, las claves de control, los temas, las notas del orador, la proyección y las exportaciones de las diapositivas se describen en la página [Presentación](presentation.md).
 
 ### Editar
 

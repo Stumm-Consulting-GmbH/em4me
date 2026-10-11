@@ -41,6 +41,9 @@ import { registriereCanvasTeilbaumSchritte } from './canvas/canvas-pane.js';
 // 4T-001848 (Epic 3E-000110): Der Karten-Inhalt der Kanban-Tafel ist aus
 // demselben Grund ein erzeugter Teilbaum und bekommt denselben Schritt-Satz.
 import { registriereKanbanTeilbaumSchritte } from './kanban/kanban-pane.js';
+// 4T-002160 (Epic 3E-000149): Die Folie der Praesentations-Ansicht ist aus
+// demselben Grund ein erzeugter Teilbaum und bekommt denselben Schritt-Satz.
+import { registrierePraesentationsTeilbaumSchritte } from './presentation/presentation-pane.js';
 // 4T-001668 (Epic 3E-000287): Zugang und Klapp-Zustand des Canvas-Blocks
 // (Entscheidung E8). Das Modul importiert selbst kein Renderer-Modul und
 // bildet deshalb keinen Ordner-Zyklus.
@@ -1357,3 +1360,5 @@ registriereTeilbaumSchritte(applyTeilbaumSchritte);
 registriereCanvasTeilbaumSchritte(applyTeilbaumSchritte);
 // 4T-001848: Und dieselbe Richtung fuer die Tafel, aus demselben Grund.
 registriereKanbanTeilbaumSchritte(applyTeilbaumSchritte);
+// 4T-002160: Und dieselbe Richtung fuer die Folie der Praesentation.
+registrierePraesentationsTeilbaumSchritte(applyTeilbaumSchritte);

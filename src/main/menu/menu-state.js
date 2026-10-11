@@ -63,6 +63,10 @@ function normalizeMenuState(base, stored) {
     // ist der Tafel-Ansichts-Modus auswaehlbar. Vor dem ersten Report eines
     // frischen Fensters false — derselbe sichere Fall wie eine Zeile darueber.
     tafelTab: !!b.tafelTab,
+    // 4T-002160 (Epic 3E-000149): Ist das aktive Dokument eine Praesentation?
+    // Nur dann ist der Praesentations-Ansichts-Modus auswaehlbar. Vor dem
+    // ersten Report false — derselbe sichere Fall wie eine Zeile darueber.
+    praesentationTab: !!b.praesentationTab,
     // 4T-001852 (Epic 3E-000110): Ist das aktive Dokument leer? Nur dann lässt
     // es sich in eine Tafel umwandeln. Vor dem ersten Report eines frischen
     // Fensters false — derselbe sichere Fall wie die beiden Zeilen darüber: Ein

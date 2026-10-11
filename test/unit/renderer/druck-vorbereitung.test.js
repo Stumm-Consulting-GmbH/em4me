@@ -69,13 +69,23 @@ vi.mock('../../../src/renderer/modules/query/perspective-script-view.js', () => 
   waitForPerspectiveScriptsIdle: async () => protokoll.push('scriptsIdle'),
 }));
 
+// 4T-002188 (Epic 3E-000347): Der Ersatz haelt den uebergebenen Text fest, damit
+// die Faelle zu den privaten Kommentaren pruefen koennen, was in den Block geht.
+const blockTexte = [];
 vi.mock('../../../src/renderer/modules/views/pdf-source-print.js', () => ({
-  buildPdfSourcePrintElement: () => {
+  buildPdfSourcePrintElement: (text) => {
     protokoll.push('sourcePrintBlock');
+    blockTexte.push(text);
     const el = document.createElement('div');
     el.className = 'pdf-source-print';
+    el.textContent = text;
     return el;
   },
+}));
+
+let kommentareAn = true;
+vi.mock('../../../src/renderer/modules/extensions/extension-lifecycle.js', () => ({
+  isExtensionActive: (id) => (id === 'comments' ? kommentareAn : true),
 }));
 
 vi.mock('../../../src/renderer/modules/color-schemes.js', () => ({
@@ -92,6 +102,14 @@ vi.mock('../../../src/renderer/modules/views/pane-render.js', () => ({
 
 vi.mock('../../../src/renderer/modules/views/view-modes.js', () => ({
   applyContentViewClass: (_el, klasse) => protokoll.push(`viewClass:${klasse}`),
+}));
+
+// 4T-002162 (Nachbesserung vom 2026-10-11): Neu-Aufbau der Folien-Fläche und
+// Fokus nach der Rücknahme, je mit der Spalte, die sie bekommen.
+vi.mock('../../../src/renderer/modules/presentation/presentation-pane.js', () => ({
+  renderPresentation: (paneIdx, optionen) =>
+    protokoll.push(`renderPresentation:${paneIdx}:${JSON.stringify(optionen ?? null)}`),
+  fokussierePraesentation: (paneIdx) => protokoll.push(`fokusFolien:${paneIdx}`),
 }));
 
 const { withPrintPreparation, isPrintPreparationRunning } =
@@ -126,6 +144,8 @@ const BARRIEREN = [
 beforeEach(() => {
   protokoll.length = 0;
   diagrammAufrufe.length = 0;
+  blockTexte.length = 0;
+  kommentareAn = true;
   paneEls.content = document.createElement('div');
   document.body.innerHTML = '';
   document.body.appendChild(paneEls.content);
@@ -238,6 +258,90 @@ describe('withPrintPreparation — Ruecknahme auf jedem Ausgang (AK3)', () => {
     expect(protokoll).toContain('viewClass:view-split');
     expect(protokoll).toContain('syncEditor');
     expect(protokoll).toContain('syncToolbar');
+  });
+});
+
+// 4T-002162 (Nachbesserung in der Release-Strecke vom 2026-10-11): Der
+// Zwischenschritt über die Lese-Ansicht leert die Folien-Fläche
+// (raeumePraesentationAuf in renderPaneContent). Ohne Neu-Aufbau fehlte sie nach
+// jedem Export, Druck und PDF aus der Präsentation (Ablauf-Fälle PR-10, PR-11).
+describe('withPrintPreparation — Rücknahme aus der Präsentation', () => {
+  function folienEreignisse() {
+    return protokoll.filter(
+      (e) => e.startsWith('renderPresentation:') || e.startsWith('fokusFolien:'),
+    );
+  }
+
+  it('baut die Folien-Fläche nach der Rücknahme genau einmal neu, ohne Wahl an der Schreibmarke', async () => {
+    const tab = setzeTab({ viewMode: 'presentation' });
+    await withPrintPreparation({
+      output: async () => {
+        protokoll.push('ENDPUNKT');
+        return { ok: true };
+      },
+    });
+    expect(tab.viewMode).toBe('presentation');
+    expect(folienEreignisse()).toEqual(['renderPresentation:0:null']);
+    // Nach dem Endpunkt, nach dem Editor-Abgleich der Rücknahme und vor dem
+    // Leisten-Abgleich, der die Vorführung prüft.
+    const ruecknahme = protokoll.slice(protokoll.indexOf('ENDPUNKT') + 1);
+    expect(ruecknahme.indexOf('viewClass:view-presentation')).toBeGreaterThanOrEqual(0);
+    expect(ruecknahme.indexOf('syncEditor')).toBeLessThan(
+      ruecknahme.indexOf('renderPresentation:0:null'),
+    );
+    expect(ruecknahme.indexOf('renderPresentation:0:null')).toBeLessThan(
+      ruecknahme.indexOf('syncToolbar'),
+    );
+  });
+
+  it('auch nach einem geworfenen Fehler des Endpunkts', async () => {
+    setzeTab({ viewMode: 'presentation' });
+    await withPrintPreparation({
+      output: async () => {
+        throw new Error('Fenster weg');
+      },
+    });
+    expect(folienEreignisse()).toEqual(['renderPresentation:0:null']);
+  });
+
+  it('gibt der Fläche den Fokus zurück, wenn sie ihn vor dem Lauf hatte', async () => {
+    setzeTab({ viewMode: 'presentation' });
+    paneEls.presentationEl = document.createElement('div');
+    const flaeche = document.createElement('div');
+    flaeche.tabIndex = 0;
+    paneEls.presentationEl.appendChild(flaeche);
+    document.body.appendChild(paneEls.presentationEl);
+    flaeche.focus();
+    try {
+      await withPrintPreparation({ output: async () => ({ ok: true }) });
+    } finally {
+      delete paneEls.presentationEl;
+    }
+    expect(folienEreignisse()).toEqual(['renderPresentation:0:null', 'fokusFolien:0']);
+  });
+
+  it('lässt den Fokus, wo er war, wenn die Fläche ihn vor dem Lauf nicht hatte', async () => {
+    setzeTab({ viewMode: 'presentation' });
+    paneEls.presentationEl = document.createElement('div');
+    document.body.appendChild(paneEls.presentationEl);
+    try {
+      await withPrintPreparation({ output: async () => ({ ok: true }) });
+    } finally {
+      delete paneEls.presentationEl;
+    }
+    expect(folienEreignisse()).toEqual(['renderPresentation:0:null']);
+  });
+
+  it('baut nichts, wenn die Spalte vorher in der Lese-Ansicht stand', async () => {
+    setzeTab({ viewMode: 'rendered' });
+    await withPrintPreparation({ output: async () => ({ ok: true }) });
+    expect(folienEreignisse()).toEqual([]);
+  });
+
+  it('baut nichts aus der geteilten Ansicht', async () => {
+    setzeTab({ viewMode: 'split' });
+    await withPrintPreparation({ output: async () => ({ ok: true }) });
+    expect(folienEreignisse()).toEqual([]);
   });
 });
 
@@ -354,6 +458,42 @@ describe('withPrintPreparation — Barrieren und Ansichts-Regel (AK5)', () => {
     expect(protokoll).toContain('sourcePrintBlock');
     for (const barriere of BARRIEREN) expect(protokoll).not.toContain(barriere);
     expect(paneEls.content.querySelector('.pdf-source-print')).toBeNull();
+  });
+});
+
+// 4T-002188 (Epic 3E-000347): PDF-Export und Druck aus der Quelltext-Ansicht
+// lassen die privaten %%-Kommentare weg, wie der HTML-Export. Die Regel selbst
+// (zeilentreu, Frontmatter und Code-Spannen unberuehrt) prueft html-export.test.js
+// am gemeinsamen Helfer; hier zaehlt, dass die Klammer ihn nutzt.
+describe('withPrintPreparation — private Kommentare im Quelltext-Block', () => {
+  const TEXT =
+    '# Kopf\nVorher %% privat eins %% nachher\n%% mehrzeilig\ngeheim zwei\nEnde %%\nSchluss';
+
+  async function blockImLauf() {
+    let text = null;
+    await withPrintPreparation({
+      output: async () => {
+        text = paneEls.content.querySelector('.pdf-source-print').textContent;
+        return { ok: true };
+      },
+    });
+    return text;
+  }
+
+  it('bei aktiver Erweiterung enthält der Block den Kommentar-Text nicht', async () => {
+    setzeTab({ viewMode: 'source', content: TEXT });
+    const text = await blockImLauf();
+    expect(text).not.toContain('privat eins');
+    expect(text).not.toContain('geheim zwei');
+    expect(text).toContain('Vorher  nachher');
+    expect(text.split('\n')).toHaveLength(TEXT.split('\n').length);
+    expect(blockTexte).toEqual([text]);
+  });
+
+  it('bei abgeschalteter Erweiterung bleibt der Kommentar-Text als gewöhnlicher Text', async () => {
+    kommentareAn = false;
+    setzeTab({ viewMode: 'source', content: TEXT });
+    expect(await blockImLauf()).toBe(TEXT);
   });
 });
 

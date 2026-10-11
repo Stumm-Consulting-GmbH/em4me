@@ -91,6 +91,8 @@ const ZUSATZ_ANSICHTEN = [
   ['canvas', 'menu.view.canvas'],
   // 4T-001847 (Epic 3E-000110): der siebte Modus, aus demselben Grund hier.
   ['kanban', 'menu.view.kanban'],
+  // 4T-002160 (Epic 3E-000149): der achte Modus, aus demselben Grund hier.
+  ['presentation', 'menu.view.presentation'],
 ];
 
 // Je Seite die aktuell eingeklappten Elemente in Leisten-Reihenfolge;

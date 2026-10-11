@@ -62,6 +62,8 @@ describe('Ziel-Ansicht des Bearbeiten-Modus (4T-001341)', () => {
     // Editor-Modus; beide waeren als Ziel sinnlos.
     expect(zielAnsichtDesAenderungsmodus('rendered')).toBe('split');
     expect(zielAnsichtDesAenderungsmodus('mindmap')).toBe('split');
+    // 4T-002160 (Epic 3E-000149): Die Präsentation ist ebenso kein Editor-Modus.
+    expect(zielAnsichtDesAenderungsmodus('presentation')).toBe('split');
     expect(zielAnsichtDesAenderungsmodus('unsinn')).toBe('split');
   });
 
@@ -69,6 +71,7 @@ describe('Ziel-Ansicht des Bearbeiten-Modus (4T-001341)', () => {
     for (const modus of EDIT_VIEW_MODES) expect(VIEW_MODES).toContain(modus);
     expect(EDIT_VIEW_MODES).not.toContain('rendered');
     expect(EDIT_VIEW_MODES).not.toContain('mindmap');
+    expect(EDIT_VIEW_MODES).not.toContain('presentation');
     expect(EDIT_VIEW_MODES).toContain(DEFAULT_EDIT_VIEW_MODE);
   });
 });

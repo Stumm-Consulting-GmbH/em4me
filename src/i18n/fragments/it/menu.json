@@ -55,6 +55,7 @@
   "menu.file.exportPortable": "Markdown portabile…",
   "menu.file.print": "Stampa…",
   "menu.file.exportPdf": "Esporta come PDF…",
+  "menu.file.exportHtml": "Esporta come HTML…",
   "menu.file.settings": "Impostazioni…",
   "menu.file.quit": "Esci",
   "menu.view.properties": "Proprietà",
@@ -115,6 +116,7 @@
   "menu.file.updateLocale": "Aggiornare…",
   "menu.view.canvas": "Tela",
   "menu.view.kanban": "Bacheca",
+  "menu.view.presentation": "Diapositive",
   "menu.view.kanbanBoard": "Bacheca Kanban",
   "menu.view.kanbanTagsFooter": "Tag in fondo alla scheda",
   "menu.view.kanbanRelativeDates": "Mostra date relative",
@@ -123,5 +125,10 @@
   "menu.view.chart": "Grafico",
   "menu.file.exportJsonCanvas": "Tela come JSON Canvas…",
   "menu.file.import": "Importare",
-  "menu.file.importJsonCanvas": "File JSON Canvas…"
+  "menu.file.importJsonCanvas": "File JSON Canvas…",
+  "menu.view.presentationMenu": "Presentazione",
+  "menu.view.presentationStart": "Avvia proiezione",
+  "menu.view.presentationNew": "Nuova presentazione",
+  "menu.file.exportPresentationPdf": "Esporta diapositive come PDF…",
+  "menu.file.exportPresentationHtml": "Esporta diapositive come HTML…"
 }

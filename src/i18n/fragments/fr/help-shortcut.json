@@ -38,6 +38,7 @@
   "help.shortcut.saveAs": "Enregistrer sous",
   "help.shortcut.print": "Imprimer l’onglet actif",
   "help.shortcut.exportPdf": "Exporter l'onglet actif en PDF",
+  "help.shortcut.exportHtml": "Exporter le document actif en fichier HTML",
   "help.shortcut.exportPortable": "Exporter l'onglet actif en Markdown portable",
   "help.shortcut.toggleAutoSave": "Activer ou désactiver l'enregistrement automatique",
   "help.shortcut.toggleScrollSync": "Activer ou désactiver la synchronisation du défilement en vue partagée",
@@ -173,5 +174,9 @@
   "help.shortcut.updateLocale": "Enregistrer votre propre fichier de langue à l’état de la version en cours d’exécution, les entrées manquantes en anglais",
   "help.group.database": "Base de données",
   "help.shortcut.exportJsonCanvas": "Enregistrer le canevas sélectionné dans la vue canevas en fichier JSON Canvas",
-  "help.shortcut.importJsonCanvas": "Lire un ou plusieurs fichiers JSON Canvas ; chacun crée à côté un document avec le canevas"
+  "help.shortcut.importJsonCanvas": "Lire un ou plusieurs fichiers JSON Canvas ; chacun crée à côté un document avec le canevas",
+  "help.shortcut.presentationStart": "Projeter la présentation en plein écran à partir de la diapositive affichée ; Échap quitte le diaporama",
+  "help.shortcut.presentationNew": "Créer une nouvelle présentation avec des diapositives d’exemple et l’ouvrir dans la vue « Diapositives »",
+  "help.shortcut.presentationExportPdf": "Exporter les diapositives en fichier PDF, une diapositive par page au format de la diapositive et sans marge",
+  "help.shortcut.presentationExportHtml": "Exporter les diapositives dans un dossier avec une page HTML par diapositive, à parcourir avec les touches et les boutons"
 }

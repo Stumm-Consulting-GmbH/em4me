@@ -18,6 +18,14 @@ import { istCanvasErweiterungAn, istCanvasModusVerfuegbar } from '../canvas/canv
 // 4T-001847 (Epic 3E-000110): Verfuegbarkeit des Tafel-Modus fuer Schaltflaeche
 // und Menue-Meldung, aus derselben einen Quelle wie bei der Canvas.
 import { istKanbanErweiterungAn, istTafelModusVerfuegbar } from '../kanban/kanban-modus.js';
+// 4T-002160 (Epic 3E-000149): ebenso fuer die Praesentation.
+import {
+  istPraesentationsErweiterungAn,
+  istPraesentationsModusVerfuegbar,
+} from '../presentation/presentation-modus.js';
+// 4T-002162 (Epic 3E-000149): Der Wechsel von Dokument, Spalte oder Ansicht
+// beendet eine laufende Vorfuehrung; geprueft bei jedem Abgleich der Leisten.
+import { pruefeVorfuehrung } from '../presentation/presentation-vorfuehrung.js';
 // 4T-001765 (Epic 3E-000186, E6): Die Statusleiste beantwortet die Frage «ist
 // dieser Schalter gerade aktivierbar?» nicht mehr selbst. Der Kontext kommt
 // aus der einen Renderer-Stelle, die ihn baut (command-palette.js), die
@@ -313,6 +321,7 @@ export function updateActivePaneClasses() {
 // Setzt View-Buttons + Toggle-Buttons passend zum aktiven Tab.
 // Toggles werden ausgegraut, wenn keine Quellcode-Pane sichtbar ist.
 export function syncToolbarToActiveTab() {
+  pruefeVorfuehrung(state.activePaneIndex);
   const tab = activeTab();
   // 4T-000572 (Epic 3E-000105): ohne aktiven Tab zeigen die Toggles die globale
   // Voreinstellung statt der frueheren hartkodierten Konstanten.
@@ -362,10 +371,15 @@ export function syncToolbarToActiveTab() {
   // 'tafelAnsicht' des Modells ueber `disabled` (es gibt sie, dieses Dokument
   // traegt sie nur nicht). Der Grund der Deaktivierung steht im Titel.
   const kanbanErweiterungAn = istKanbanErweiterungAn();
+  // 4T-002160 (Epic 3E-000149): Die Praesentations-Schaltflaeche folgt demselben
+  // Zuschnitt — Erweiterung entscheidet ueber `hidden`, die Bedingung
+  // 'praesentationsAnsicht' ueber `disabled`, der Grund steht im Titel.
+  const praesentationErweiterungAn = istPraesentationsErweiterungAn();
   document.querySelectorAll('.view-btn').forEach((b) => {
     if (b.dataset.view === 'mindmap') b.hidden = !mindmapVerfuegbar;
     if (b.dataset.view === 'canvas') b.hidden = !canvasErweiterungAn;
     if (b.dataset.view === 'kanban') b.hidden = !kanbanErweiterungAn;
+    if (b.dataset.view === 'presentation') b.hidden = !praesentationErweiterungAn;
     b.classList.toggle('active', !systemTab && b.dataset.view === viewMode);
     const aktivierbar = setzeLeistenSchalter(b, ANSICHTS_KOMMANDOS[b.dataset.view], verfuegbarkeit);
     if (b.dataset.view === 'canvas') {
@@ -373,6 +387,9 @@ export function syncToolbarToActiveTab() {
     }
     if (b.dataset.view === 'kanban') {
       b.title = aktivierbar ? t('menu.view.kanban') : t('kanban.keineTafel');
+    }
+    if (b.dataset.view === 'presentation') {
+      b.title = aktivierbar ? t('menu.view.presentation') : t('presentation.keinePraesentation');
     }
   });
 
@@ -512,6 +529,9 @@ export function reportMenuStateNow() {
     // Menue-Eintrag der Tafel-Ansicht haengt daran, wie der Canvas-Eintrag an
     // der Zeile darueber.
     tafelTab: istTafelModusVerfuegbar(tab),
+    // 4T-002160 (Epic 3E-000149): Ist das aktive Dokument eine Praesentation?
+    // Der Menue-Eintrag der Praesentations-Ansicht haengt daran.
+    praesentationTab: istPraesentationsModusVerfuegbar(tab),
     // 4T-001852 (Epic 3E-000110): Ist das aktive Dokument leer? Der Eintrag
     // «Leeres Dokument in Kanban-Tafel umwandeln» haengt daran. Gemessen ueber
     // dieselbe Funktion, die auch die Kommando-Palette fragt, damit die Grenze

@@ -150,6 +150,20 @@ const EXPECTED_FILES = [
   // bleibt; die Zeilen-Erwartung der ersten Abfrage von „08 Queries.md" in der
   // E2E-Spec rechnet aus dem Bestand und wächst von selbst mit.
   '14 Calendar Systems.md',
+  // 4T-002165 (Epic 3E-000149): die Praesentations-Station der Fuehrung, ihre
+  // letzte Seite - ein echtes Praesentations-Dokument mit dem Kennzeichen
+  // `presentation: true`, Theme, Seitenzahl und Fusszeile im Kopf, fuenf Folien
+  // an `---`, einer Linie `***` AUF einer Folie, je einer Sprecher-Notiz als
+  // privater Kommentar und als HTML-Kommentar und einer Zweiteilung mit der
+  // vorhandenen Anlage "attachments/demo-image.png" (kein neues Verweis-Ziel,
+  // die Datei-Liste waechst allein um diese Seite). Sie traegt wie die
+  // uebrigen Fuehrungs-Seiten das Schlagwort #demo und das vorhandene
+  // Schlagwort #visual, damit die Tag-Menge der Demo-Area gleich bleibt; die
+  // Zeilen-Erwartung der ersten Abfrage von "08 Queries.md" rechnet aus dem
+  // Bestand und waechst von selbst mit. Bei der Zusammenfuehrung mit dem
+  // Release 1.147.0 am 2026-10-11 von 14 auf 15 umnummeriert, hinter
+  // "14 Calendar Systems", das ihr nun die Weiterleitung gibt.
+  '15 Presentation.md',
   // 4T-000645 (Epic 3E-000127): astronomischer Themenbereich als vierstufige
   // Unterseiten-Hierarchie (Galaxie, Stern, Planet, Mond) plus drei
   // ergaenzende Themenseiten. Traeger der Hierarchie ist der Dateiname mit

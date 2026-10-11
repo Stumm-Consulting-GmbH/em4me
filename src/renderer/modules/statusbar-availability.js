@@ -77,6 +77,8 @@ export const ANSICHTS_KOMMANDOS = {
   canvas: 'view.modeCanvas',
   // 4T-001847 (Epic 3E-000110): der siebte Modus, die Tafel.
   kanban: 'view.modeKanban',
+  // 4T-002160 (Epic 3E-000149): der achte Modus, die Praesentation.
+  presentation: 'view.modePresentation',
 };
 
 /**

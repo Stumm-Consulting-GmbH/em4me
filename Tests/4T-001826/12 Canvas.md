@@ -133,4 +133,4 @@ Every element starts with a marker in column 0; the lines below it are its conte
 
 Insert an empty surface of your own with **Insert → Canvas** from the editor context menu, then fill it. The canvas view is switchable under **Settings → Extensions**; turned off, the block above is an ordinary code block and nothing is lost.
 
-One stop left, and it puts your tasks on a surface too: [[13 Kanban]].
+Next, the tour puts your tasks on a surface too: [[13 Kanban]].

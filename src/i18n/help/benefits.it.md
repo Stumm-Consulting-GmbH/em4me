@@ -4,7 +4,7 @@ Questa pagina non risponde a **come** si fa qualcosa, ma a **a che cosa serve**.
 
 ## Un documento, come serve in questo momento
 
-Leggere, scrivere e verificare sono attività diverse e richiedono presentazioni diverse dello stesso testo. Invece di imporre un compromesso, l'applicazione tiene pronte sette viste, e basta un tasto per passare dall'una all'altra: la pagina finita per leggere, il testo sorgente per il lavoro preciso, entrambi affiancati per confrontare, la modalità dal vivo per scrivere in scioltezza, la mappa mentale per vedere la struttura, la tela per schede su una superficie e la bacheca per le attività in colonne. Il passaggio non costa nulla e non modifica mai il file.
+Leggere, scrivere e verificare sono attività diverse e richiedono presentazioni diverse dello stesso testo. Invece di imporre un compromesso, l'applicazione tiene pronte otto viste, e basta un tasto per passare dall'una all'altra: la pagina finita per leggere, il testo sorgente per il lavoro preciso, entrambi affiancati per confrontare, la modalità dal vivo per scrivere in scioltezza, la mappa mentale per vedere la struttura, la tela per schede su una superficie, la bacheca per le attività in colonne e le diapositive per una presentazione. Il passaggio non costa nulla e non modifica mai il file.
 
 - **Renderizzata** per leggere, **codice sorgente** per il lavoro preciso sulla sintassi.
 - **Divisa** mostra sorgente e risultato affiancati, per i costrutti insidiosi.
@@ -12,8 +12,9 @@ Leggere, scrivere e verificare sono attività diverse e richiedono presentazioni
 - **Mappa mentale** trasforma la struttura dei titoli in un albero.
 - **Tela** mostra una superficie con schede e collegamenti che si trova nel documento stesso.
 - **Bacheca** dispone le attività del documento una accanto all'altra, come schede in colonne.
+- **Diapositive** mostrano un documento con l'indicatore `presentation: true` come serie di diapositive, da proiettare a schermo intero e da consegnare come PDF o come pagine HTML.
 
-In dettaglio: [Viste e visualizzazione](views-display.md), [Vista mappa mentale](mindmap.md), [Superficie Canvas](canvas.md), [Bacheca Kanban](kanban.md).
+In dettaglio: [Viste e visualizzazione](views-display.md), [Vista mappa mentale](mindmap.md), [Superficie Canvas](canvas.md), [Bacheca Kanban](kanban.md), [Presentazione](presentation.md).
 
 ## Molti documenti affiancati
 
