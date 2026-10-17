@@ -18,6 +18,10 @@
 // Daten und lesen keine Variable der Oberflaeche; `light` uebernimmt die
 // Akzentfarbe des hellen Farbschemas nur als Wert (BASE_DEFAULTS.light.accent).
 //
+// **Eigene Themes** (4T-002281, Epic 3E-000348): `themeAufloesen` nimmt den
+// Katalog eigener Themes als Option `eigene`; Speicherform, Normalisierung und
+// Namens-Regel stehen in der Schwester-Datei presentation-eigene-themes.js.
+//
 // **Kopf-Angabe** (Paket 2, Punkt 3a): `theme: <Name>` oder ein Block mit
 // `name:` fuer das Basis-Theme und einzelnen Slot-Werten. Fehler werfen nie,
 // sie werden Befunde (Codes, keine Prosa) und fallen auf die Vorgabe zurueck.
@@ -128,51 +132,115 @@ function basisSlots(name) {
   return { ...FOLIEN_THEMES[name] };
 }
 
-function ergebnis(name, slots, befunde) {
-  return { name, slots, syntax: FOLIEN_THEME_SYNTAX[name], befunde };
+const hatEigenen = (obj, schluessel) => Object.prototype.hasOwnProperty.call(obj, schluessel);
+
+// 4T-002281: Die Liste eigener Themes aus der Option `eigene`, als Liste oder
+// als Zustand `{ custom: [...] }` (Form des Schlüssels `presentationThemes`).
+function katalogListe(eigene) {
+  if (Array.isArray(eigene)) return eigene;
+  if (eigene && typeof eigene === 'object' && Array.isArray(eigene.custom)) return eigene.custom;
+  return [];
+}
+
+// 4T-002281: Das eigene Theme zu einem Namen, oder null. Der Name gilt nach
+// Trimmen ohne Rücksicht auf Groß- und Kleinschreibung, weil die Namens-Regel
+// Eindeutigkeit genau so misst (Ausführungs-Entscheidung der Sitzung, 2026-10-15). Der Katalog kommt
+// normalisiert herein (presentation-eigene-themes.js); hier wird nur noch
+// abgewiesen, was sich nicht auflösen ließe (keine bekannte Basis).
+function eigenesThemeSuchen(eigene, name) {
+  for (const eintrag of katalogListe(eigene)) {
+    if (!eintrag || typeof eintrag !== 'object' || typeof eintrag.name !== 'string') continue;
+    if (eintrag.name.trim().toLowerCase() !== String(name).trim().toLowerCase()) continue;
+    if (typeof eintrag.basis === 'string' && hatEigenen(FOLIEN_THEMES, eintrag.basis))
+      return eintrag;
+  }
+  return null;
+}
+
+// Grundlage einer Auflösung: Name, Basis, voller Slot-Satz und Farbsatz.
+function mitgeliefert(name) {
+  return { name, basis: name, slots: basisSlots(name), syntax: FOLIEN_THEME_SYNTAX[name] };
+}
+
+// 4T-002281 (d): Ein eigenes Theme ergibt die Slots seiner Basis, überschrieben
+// von seinen Abweichungen; jeder Wert läuft erneut durch slotWertPruefen.
+function ausEigenem(eintrag) {
+  const slots = basisSlots(eintrag.basis);
+  const abweichungen = eintrag.slots && typeof eintrag.slots === 'object' ? eintrag.slots : {};
+  for (const slot of FOLIEN_SLOTS) {
+    const wert = hatEigenen(abweichungen, slot) ? slotWertPruefen(abweichungen[slot]) : null;
+    if (wert !== null) slots[slot] = wert;
+  }
+  return {
+    name: eintrag.name.trim(),
+    basis: eintrag.basis,
+    slots,
+    syntax: FOLIEN_THEME_SYNTAX[eintrag.basis],
+  };
+}
+
+function ergebnis(grund, slots, befunde) {
+  return { name: grund.name, basis: grund.basis, slots, syntax: grund.syntax, befunde };
 }
 
 /**
- * Loest die Kopf-Angabe `theme` zu einem vollstaendigen Slot-Satz auf. Wirft nie.
+ * Löst die Kopf-Angabe `theme` zu einem vollständigen Slot-Satz auf. Wirft nie.
  *
  * - null/undefined: das Standard-Theme.
- * - String: Name eines mitgelieferten Themes; unbekannt -> Standard-Theme und
- *   Befund `themeUnbekannt`.
- * - Objekt: `name` als Basis (ohne Angabe das Standard-Theme, unbekannt wie
- *   oben), dazu die uebersteuerten Slots. Unbekannte Schluessel ergeben den
- *   Befund `slotUnbekannt` und werden nicht beachtet; ein unbedenklicher Wert
- *   ersetzt den des Themes, ein bedenklicher ergibt `slotWertUngueltig` und
- *   laesst den Wert des Themes stehen.
+ * - String: Name eines mitgelieferten Themes, sonst eines eigenen Themes aus
+ *   `optionen.eigene` (4T-002281); unbekannt -> Standard-Theme und Befund
+ *   `themeUnbekannt`.
+ * - Objekt: `name` als Basis (ohne Angabe das Standard-Theme, sonst wie oben,
+ *   also auch ein eigenes Theme), dazu die übersteuerten Slots. Unbekannte
+ *   Schlüssel ergeben den Befund `slotUnbekannt` und werden nicht beachtet;
+ *   ein unbedenklicher Wert ersetzt den des Themes, ein bedenklicher ergibt
+ *   `slotWertUngueltig` und lässt den Wert des Themes stehen.
  * - alles andere: Standard-Theme und Befund `themeUngueltig`.
  *
+ * Reihenfolge der Namens-Auflösung (4T-002281, Punkt (d)): mitgeliefertes
+ * Theme, dann eigenes Theme, sonst Rückfall auf `light`. Die Kette eines
+ * eigenen Themes: Slots der Basis, darüber seine Abweichungen, darüber der
+ * Block im Kopf; die Angaben je Folie legt der Format-Kern darüber
+ * (presentation-folien-schluessel.js).
+ *
  * @param {unknown} kopfTheme
- * @returns {{name: string, slots: Object<string,string>, syntax: string,
- *   befunde: Array<{code: string, detail: string}>}}
+ * @param {{eigene?: Array<object>|{custom: Array<object>}}} [optionen]
+ *   `eigene`: der Katalog eigener Themes (`{ id, name, basis, slots }`), als
+ *   Liste oder als Zustand des Schlüssels `presentationThemes`. Ohne ihn
+ *   gelten nur die mitgelieferten Themes.
+ * @returns {{name: string, basis: string, slots: Object<string,string>,
+ *   syntax: string, befunde: Array<{code: string, detail: string}>}}
+ *   `basis` ist das mitgelieferte Theme, auf dem die Gestaltung aufbaut.
  */
-function themeAufloesen(kopfTheme) {
+function themeAufloesen(kopfTheme, optionen) {
+  const eigene = optionen && typeof optionen === 'object' ? optionen.eigene : null;
   const befunde = [];
-  const basis = (roh) => {
-    if (roh === undefined || roh === null || roh === '') return THEME_VORGABE;
+  const grund = (roh) => {
+    if (roh === undefined || roh === null || roh === '') return mitgeliefert(THEME_VORGABE);
     const name = typeof roh === 'string' ? roh.trim() : String(roh);
-    if (Object.prototype.hasOwnProperty.call(FOLIEN_THEMES, name)) return name;
+    if (hatEigenen(FOLIEN_THEMES, name)) return mitgeliefert(name);
+    const eigen = eigenesThemeSuchen(eigene, name);
+    if (eigen) return ausEigenem(eigen);
     befunde.push({ code: 'themeUnbekannt', detail: name });
-    return THEME_VORGABE;
+    return mitgeliefert(THEME_VORGABE);
   };
 
   if (kopfTheme === undefined || kopfTheme === null) {
-    return ergebnis(THEME_VORGABE, basisSlots(THEME_VORGABE), befunde);
+    const g = grund(null);
+    return ergebnis(g, g.slots, befunde);
   }
   if (typeof kopfTheme === 'string') {
-    const name = basis(kopfTheme);
-    return ergebnis(name, basisSlots(name), befunde);
+    const g = grund(kopfTheme);
+    return ergebnis(g, g.slots, befunde);
   }
   if (typeof kopfTheme !== 'object' || Array.isArray(kopfTheme)) {
     befunde.push({ code: 'themeUngueltig', detail: String(kopfTheme) });
-    return ergebnis(THEME_VORGABE, basisSlots(THEME_VORGABE), befunde);
+    const g = grund(null);
+    return ergebnis(g, g.slots, befunde);
   }
 
-  const name = basis(kopfTheme.name);
-  const slots = basisSlots(name);
+  const g = grund(kopfTheme.name);
+  const slots = { ...g.slots };
   for (const schluessel of Object.keys(kopfTheme)) {
     if (schluessel === 'name') continue;
     if (!FOLIEN_SLOTS.includes(schluessel)) {
@@ -183,7 +251,7 @@ function themeAufloesen(kopfTheme) {
     if (wert === null) befunde.push({ code: 'slotWertUngueltig', detail: schluessel });
     else slots[schluessel] = wert;
   }
-  return ergebnis(name, slots, befunde);
+  return ergebnis(g, slots, befunde);
 }
 
 /**

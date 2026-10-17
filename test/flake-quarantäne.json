@@ -822,9 +822,9 @@
       "datum": "2026-09-19",
       "fehlerbild": "Erster Eintrag dieses Falls. Einzel-Fehlschlag im Gate «test» (vollständige Unit- und Snapshot-Suite) als Epic-Abschluss-Test des Epics 3E-000255 auf dem Epic-Zweig epic/3E-000255-Sperren-und-Belege im Arbeitsbereich SC-026/C, unmittelbar nach dem Rebase auf das Release 1.138.0 (1 von 8634 Fällen rot, Beleg test-berichte/rot/2026-09-19T16-10-10Z-epic-3E-000255-Sperren-und-Belege-test.log): Der Fall lief in das voreingestellte Zeitlimit von 5000 ms. Isoliert zweimal grün; der zweite Lauf hat die Dauer des einzelnen Falls gemessen, 4393 ms ohne Suiten-Last.",
       "vermutung": "Rechnerlast als Auslöser, aber auf einem Fall, der sein Limit schon ohne Last zu 88 Prozent ausschöpft: Zur selben Zeit liefen drei fremde Anwendungs-Instanzen (Warnung des Gate-Wegs) und zwei lesende Agenten der Sitzung. Der Fall wertet jede Bedingung des Katalogs an jeder Kombination der Kontext-Felder aus und prüft jede Auswertung einzeln; sein Aufwand wächst mit jedem weiteren Kontext-Feld um einen Faktor und mit jeder Bedingung linear. Bezug zum Änderungs-Umfang geprüft und ausgeschlossen: Weder das Epic noch der Rebase berühren die Prüfdatei oder den Bedingungs-Katalog.",
-      "status": "befoerdert",
+      "status": "behoben",
       "vorgang": "4T-002255",
-      "vermerk": "Bei der Sichtung je Release zu beachten: Der Abstand zum Zeitlimit ist gemessen und klein, eine zweite Beobachtung oder ein weiteres Kontext-Feld macht aus der Beobachtung einen Testfehler (Zeitlimit des Falls benennen oder die Kombinatorik ohne Einzel-Erwartung je Auswertung zählen). Befördert am 2026-10-11 bei der Sichtung als Schritt 6 der Release-Strecke des Zuges 3E-000350: Die Bedingung ist eingetreten, der Zug hat dem Kontext-Vertrag das Feld praesentationTab hinzugefügt (4T-002160), und ein Nachbar-Fall derselben Datei riss im selben Release-Lauf seine Grenze. Der Pflege-Vorgang 4T-002255 nimmt den Fall mit."
+      "vermerk": "Bei der Sichtung je Release zu beachten: Der Abstand zum Zeitlimit ist gemessen und klein, eine zweite Beobachtung oder ein weiteres Kontext-Feld macht aus der Beobachtung einen Testfehler (Zeitlimit des Falls benennen oder die Kombinatorik ohne Einzel-Erwartung je Auswertung zählen). Befördert am 2026-10-11 bei der Sichtung als Schritt 6 der Release-Strecke des Zuges 3E-000350: Die Bedingung ist eingetreten, der Zug hat dem Kontext-Vertrag das Feld praesentationTab hinzugefügt (4T-002160), und ein Nachbar-Fall derselben Datei riss im selben Release-Lauf seine Grenze. Der Pflege-Vorgang 4T-002255 nimmt den Fall mit. Behoben in 4T-002255 am 2026-10-14 ohne Eingriff in diesen Fall: Er lag am Integrationsstand ohne fremde Last bei 588, 591 und 651 ms, also bei 12 bis 13 Prozent seiner Grenze von 5000 ms. Woher der Abstand zu den 4393 ms vom 2026-09-19 rührt, ist nicht untersucht; der Fall braucht nach der Messung keine Änderung. Nach der Änderung der beiden Nachbar-Fälle 522, 541 und 528 ms. Die Grenze ist unverändert."
     },
     {
       "spec": "test/e2e/funktionen/bereichs-index-cache.spec.js",
@@ -1215,9 +1215,9 @@
       "datum": "2026-10-11",
       "fehlerbild": "Erste Beobachtung dieses Falls. Aufgetreten im ersten WINDOWS-Unit-Lauf der Release-Strecke des Zuges 3E-000350 im Stamm-Clone SC-026/A am 2026-10-11, Schritt 6 im Sammeltask 4T-002171 (node scripts/gate-lauf.js alle, 09:17 bis 10:15 UTC), unter Last: zwei fremde Suiten parallel auf SC-026, dazu der Linux-Lauf derselben Strecke im Container. «Test timed out in 5000ms» (STACK_TRACE_ERROR des Vitest-Läufers), 1 von 37 Fällen der Datei. Beleg: test-berichte/rot/2026-10-11T10-15-08Z-zug-3E-000350-HTML-Export-und-Praesentation-test.log und .json. Isoliert nachgeprüft: die vier Prüfdateien der Zeitlimit-Fälle dieses Laufs zusammen 107 von 107 grün. Im zweiten, grünen Windows-Lauf meldete der Zeitgrenzen-Abstand denselben Fall mit 64,9 Prozent seiner Grenze.",
       "vermutung": "Rechnerlast auf einem Fall, der jede Bedingung des Katalogs an jeder Kombination der Kontext-Felder auswertet. Der Zug 3E-000350 hat dem Kontext-Vertrag ein Feld (praesentationTab) und dem Feld viewMode einen Wert hinzugefügt (4T-002160); die Kombinatorik wächst damit. Das ist die Bedingung, die der Eintrag vom 2026-09-19 zu einem anderen Fall dieser Datei als Anlass zur Beförderung nennt.",
-      "status": "befoerdert",
+      "status": "behoben",
       "vorgang": "4T-002255",
-      "vermerk": "Befördert zum Pflege-Vorgang der Zeitgrenzen-Meldung desselben Release-Laufs, der die Kosten des Falls angeht und nicht die Grenze hebt."
+      "vermerk": "Befördert zum Pflege-Vorgang der Zeitgrenzen-Meldung desselben Release-Laufs, der die Kosten des Falls angeht und nicht die Grenze hebt. Behoben in 4T-002255 am 2026-10-14: Am 2026-10-14 riss der Fall auch im Queue-Lauf ohne fremde Suite die 5000 ms (5117 ms, Beleg test-berichte/rot/2026-10-14T09-26-39Z-arbeit-4T-002262-Beleg-Aufbewahrung-zaehlt-Laeufe-test.log und .json); einzeln ohne Last 3437, 4023 und 4227 ms. Die Freigabe jedes Kindes kommt jetzt aus einem geteilten Speicher je Bedingung, der Ausdruck des Untermenü-Punkts wird einmal aufgelöst, und die Befunde werden gesammelt und einmal behauptet; Zusicherung und Grenze sind unverändert. Danach einzeln 23, 21 und 20 ms."
     },
     {
       "spec": "test/unit/db-intent-recovery-absturz.test.js",
@@ -1277,6 +1277,119 @@
       "vermutung": "Ursache nicht gemessen. Der Fall scheiterte nach 1,4 s und damit nicht an einer ausgeschöpften Wartezeit, sondern an der Sichtbarkeit des Bereichs-Titels im Moment des Klicks; naheliegend ist ein unter Last noch nicht fertig aufgebautes Bereichs-Panel. Bezug zum Zug: keiner, der Zug ändert weder die Datenbank-Übersicht noch das Bereichs-Panel.",
       "status": "beobachtet",
       "vermerk": "Erste Beobachtung. Bei einer zweiten den Ablauf-Anfang des Falls ansehen: Wartet er auf das sichtbare Bereichs-Panel, bevor er klickt?"
+    },
+    {
+      "spec": "test/unit/renderer/kommando-verfuegbarkeit-palette.test.js",
+      "fall": "Vollbestands-Vergleich gegen die alte Logik (4T-001636) › genau die sechs gemessenen Kommandos entscheiden anders als vorher",
+      "datum": "2026-10-14",
+      "fehlerbild": "Erster Eintrag dieses Falls. Einzel-Fehlschlag im Gate «test» des Queue-Laufs am 2026-10-14 um 09:26 UTC (Zweig arbeit/4T-002262-Beleg-Aufbewahrung-zaehlt-Laeufe), zusammen mit dem Untermenü-Fall aus test/unit/command-availability.test.js (2 von 14551 Fällen rot): «Test timed out in 5000ms» nach 5195 ms. Auf dem Rechner lief keine fremde Suite, nur eine Anwendungs-Instanz des Product Owners. Beleg: test-berichte/rot/2026-10-14T09-26-39Z-arbeit-4T-002262-Beleg-Aufbewahrung-zaehlt-Laeufe-test.log und .json. Isoliert nachgeprüft zusammen mit der Nachbar-Datei: rot nach 5518 ms. Einzeln und ohne Last am Integrationsstand 4494, 5320 (rot) und 4519 ms.",
+      "vermutung": "Keine Last, sondern die Kosten des Falls: Er wertete für jedes der rund 170 Kommandos des gemessenen Bestands die alte und die neue Logik an jeder der 147 456 Kontext-Belegungen aus, rund 25 Millionen Paare. Der Zug 3E-000350 hat die Belegungen mit dem Feld praesentationTab und dem Ansichts-Modus presentation vergrößert (4T-002160). Kein Flake im Sinn der Quarantäne; der Eintrag hält die Beobachtung fest, damit die Wiederholungs-Zählung den Fall kennt.",
+      "status": "behoben",
+      "vorgang": "4T-002255",
+      "vermerk": "Behoben in 4T-002255 am 2026-10-14: Jede Regel der alten Logik und jede Bedingung der neuen wird einmal je Belegung ausgewertet, jedes Paar aus alter Regel und neuer Bedingung einmal verglichen; die neue Seite läuft weiter über isCommandAvailable, und eine lesende Hülle prüft mit, dass die Palette am Kommando allein das Feld availability liest. Zusicherung und Grenze sind unverändert. Danach einzeln 959, 948 und 937 ms."
+    },
+    {
+      "spec": "test/unit/web-handbuch.test.js",
+      "fall": "Handbuch-Bau — Erzeugnis (4T-000714): interne Verweise treffen vorhandene Dateien (auch die generierten Seiten)",
+      "datum": "2026-10-14",
+      "fehlerbild": "Einzel-Fehlschlag im Gate «test» des Queue-Laufs am 2026-10-14 um 13:30 UTC (Zweig arbeit/4T-002256-Sichtung-L10-U4, volle Gates): «Test timed out in 30000ms» nach 30 339 ms, ohne verletzte Erwartung. Auf dem Rechner lief keine fremde Suite. Beleg: test-berichte/rot/2026-10-14T13-30-43Z-arbeit-4T-002256-Sichtung-L10-U4-test.log und .json. Isoliert nachgeprüft: grün, der Fall mit 28 388 ms, also 95 Prozent seiner Grenze BAU_ZEITLIMIT (30 000 ms); der Bau selbst brauchte im ersten Fall der Datei 8961 ms und ist memoisiert. Prüfdatei und Bau-Skripte sind auf dem Zweig gegenüber origin/main unverändert, der Befund stammt vom Integrationsstand.",
+      "vermutung": "Keine Last, sondern die Kosten des Falls, gemessen: Er prüfte für jeden der 20 705 relativen Ordner-Verweise der 52 Handbuch-Seiten in fünf Sprachen einzeln mit fs.existsSync, obwohl sie auf nur 290 verschiedene Ziele zeigen (Seitenleiste und Sprachschalter wiederholen sich auf jeder Seite). In einer Nachstellung außerhalb der Suite kosteten diese Zugriffe 29 380 ms von 31 048 ms des Prüf-Durchgangs. Die Zahl der Verweise wächst mit Seiten mal Sprachen mal Verweisen je Seite, zuletzt mit den beiden Handbuch-Seiten des Zuges 3E-000350. Kein Flake im Sinn der Quarantäne; der Eintrag hält die Beobachtung fest, damit die Wiederholungs-Zählung den Fall kennt.",
+      "status": "behoben",
+      "vorgang": "4T-002275",
+      "vermerk": "Behoben in 4T-002275 am 2026-10-14: Das Ergebnis der Existenz-Prüfung wird je Ziel-Ordner gemerkt, das Dateisystem wird je Ziel einmal gefragt. Jeder Verweis jeder Seite jeder Sprache wird weiter geprüft, und die Fehlliste nennt jeden einzeln; Zusicherung und Grenze sind unverändert. Danach einzeln 1644, 1452 und 1421 ms. Derselbe Fall steht mit dem Eintrag vom 2026-08-30 schon einmal in der Liste, damals unter belegter Sync-Last; dessen Einordnung ist hier nicht berührt."
+    },
+    {
+      "spec": "test/unit/preload-images.test.js",
+      "fall": "mindmapBilderAufloesen: Notizen der Mindmap über denselben Weg verträgt ein leeres Ergebnis",
+      "datum": "2026-10-17",
+      "fehlerbild": "Erste Beobachtung dieses Falls. Aufgetreten im Gate «test» des Queue-Laufs am 2026-10-17 um 07:48 UTC (Zweig arbeit/3E-000263-Plan-Vorlage, volle Gates als erster Integrationslauf des Tages, SC-026 Bereich C): 2 von 14 516 Fällen rot, dazu ein Start-Zeitlimit eines Vitest-Arbeiters an test/unit/renderer/diagramm-ansicht.test.js («Failed to start forks worker», «Timeout waiting for worker to respond»). Auf demselben Rechner lief die Voll-Suite der Release-Strecke des Zuges 3E-000362 im Stamm-Clone (SC-026 Bereich A); die Queue hatte die Fremdlast beim Start gemeldet. Zeitlimit im Haken beforeEach (Zeile 80). Beleg: test-berichte/rot/2026-10-17T08-22-11Z-arbeit-3E-000263-Plan-Vorlage-test.log und .json. Isoliert nachgeprüft nach dem Ende des fremden Laufs: grün, 25 von 25 Fällen in 4,09 s (10:46 Ortszeit, kein fremder Lauf mehr auf dem Rechner).",
+      "vermutung": "Last durch die fremde Voll-Suite auf demselben Rechner, nicht die Kosten des Falls: Beide Fälle riefen keine verletzte Erwartung, sondern das Zeitlimit; der Vorfall steht im Fehlerklassen-Register (L10 U1, Beleg 4T-002301), der Schutz ist dort verortet. Kein Bezug zum Zweig, der allein ein Aufgaben-Objekt ändert.",
+      "status": "beobachtet",
+      "vermerk": "Erste Beobachtung unter belegter Fremdlast. Bei einer zweiten ohne Fremdlast den Aufbau des Hakens beforeEach ansehen."
+    },
+    {
+      "spec": "test/unit/shelves-main.test.js",
+      "fall": "shelves: Grenze des Titelbilds (4T-002068) › Regal im Bereich: dieselbe Grenze — ein Titelbild im Bereich außerhalb des Regal-Ordners",
+      "datum": "2026-10-17",
+      "fehlerbild": "Erste Beobachtung dieses Falls. Aufgetreten im Gate «test» des Queue-Laufs am 2026-10-17 um 07:48 UTC (Zweig arbeit/3E-000263-Plan-Vorlage, volle Gates als erster Integrationslauf des Tages, SC-026 Bereich C): 2 von 14 516 Fällen rot, dazu ein Start-Zeitlimit eines Vitest-Arbeiters an test/unit/renderer/diagramm-ansicht.test.js («Failed to start forks worker», «Timeout waiting for worker to respond»). Auf demselben Rechner lief die Voll-Suite der Release-Strecke des Zuges 3E-000362 im Stamm-Clone (SC-026 Bereich A); die Queue hatte die Fremdlast beim Start gemeldet. Zeitlimit des Falls (Zeile 412). Beleg: test-berichte/rot/2026-10-17T08-22-11Z-arbeit-3E-000263-Plan-Vorlage-test.log und .json. Isoliert nachgeprüft nach dem Ende des fremden Laufs: grün, 19 von 19 Fällen in 3,94 s (10:46 Ortszeit, kein fremder Lauf mehr auf dem Rechner).",
+      "vermutung": "Last durch die fremde Voll-Suite auf demselben Rechner, nicht die Kosten des Falls: Beide Fälle riefen keine verletzte Erwartung, sondern das Zeitlimit; der Vorfall steht im Fehlerklassen-Register (L10 U1, Beleg 4T-002301), der Schutz ist dort verortet. Kein Bezug zum Zweig, der allein ein Aufgaben-Objekt ändert.",
+      "status": "beobachtet",
+      "vermerk": "Erste Beobachtung unter belegter Fremdlast. Bei einer zweiten ohne Fremdlast die Kosten des Falls messen (Dateisystem-Aufbau je Fall)."
+    },
+    {
+      "spec": "test/unit/web-llms.test.js",
+      "fall": "Hook afterAll (Aufräumen der gebauten Temp-Ordner) — Hook timed out in 10000ms",
+      "datum": "2026-10-17",
+      "fehlerbild": "Erneute Beobachtung des bereits beförderten Falls (Vorgang 4T-002247, dort die drei Beobachtungen vom 2026-10-07, 2026-10-10 und 2026-10-11). Aufgetreten im Gate «test» des Queue-Laufs am 2026-10-17 um 10:41 UTC (Zweig arbeit/3E-000263-Plan-Vorlage, volle Gates, SC-026 Bereich C): 3818 von 3819 Prüfdateien und alle 14 565 Fälle grün, null fehlgeschlagene Fälle, allein der Haken afterAll der Prüfdatei (Zeile 38) riss sein Limit von 10 000 ms. Auf dem Rechner lief nach der Fremdlast-Heuristik der Queue kein fremder Suite- oder Bau-Lauf (0 Treffer vor dem Start und danach). Beleg: test-berichte/rot/2026-10-17T10-41-19Z-arbeit-3E-000263-Plan-Vorlage-test.log und .json. Isoliert nachgeprüft: grün, 10 von 10 Fällen in 16,67 s.",
+      "vermutung": "Dieselbe Ursache wie in 4T-002247 benannt: Das Löschen des gebauten Webseiten-Baums im Temp-Verzeichnis liegt unter der Last der Voll-Suite über zehn Sekunden; kein Bezug zum Zweig, der allein Aufgaben-Objekte, das Register und diese Liste ändert.",
+      "status": "befoerdert",
+      "vorgang": "4T-002247",
+      "vermerk": "Vierte Beobachtung, erste ohne jede Fremdlast; der Vorgang 4T-002247 ist offen (Gefäß 3E-000156). Keine neue Beförderung, die Zeile hält die Spur für die Sichtung."
+    },
+    {
+      "spec": "test/e2e/funktionen/diagramme.spec.js",
+      "fall": "DG-10, DG-11, DG-12, DG-13 (F-332): Hinweis und Auslass-Zeile in den drei Ansichten, beim Tippen, beim Leeren und Füllen, in zweiter Sprache",
+      "datum": "2026-10-15",
+      "fehlerbild": "Vier Fälle derselben Prüfdatei rot im Gate «e2e» des Epic-Abschluss-Tests (Zweig epic/3E-000348-Praesentation-Stufe-2, volle Gates nach Rückfall, 1217 von 1222 grün, 55 Minuten): «worker process exited unexpectedly (code=3221226505)», dazu viermal die Laufzeit-Zusicherung «Assertion failed: new_time >= loop->time» aus libuv (win/core.c). Beleg: test-berichte/rot/2026-10-15T09-53-15Z-epic-3E-000348-Praesentation-Stufe-2-e2e.log und .json. Isoliert nachgeprüft (npx playwright test diagramme.spec.js zusammen mit bereichs-suche.spec.js): alle 25 Diagramm-Fälle grün, darunter die vier in 1,6 bis 2,7 s.",
+      "vermutung": "Absturz des Test-Arbeiters durch eine Uhr-Zusicherung der Laufzeit unter Last am Ende eines 55-Minuten-Laufs, nicht durch die Prüffälle oder den Produkt-Code; der Epic-Zweig ändert weder Diagramme noch deren Prüfdatei. Dieselbe libuv-Zusicherung fällt nur auf Windows bei rückwärts laufender Monotonie-Uhr unter hoher Last.",
+      "status": "behoben",
+      "vorgang": "3E-000348 (Epic-Abschluss-Test, E1 in 4T-002286)",
+      "vermerk": "Vier Fälle eines Absturzes als ein Eintrag, weil Ursache und Zeitpunkt dieselben sind."
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-suche.spec.js",
+      "fall": "BS-07: Tastatur-Führung der Trefferliste — bewegt sich zweimal und springt dann in die Zieldatei",
+      "datum": "2026-10-15",
+      "fehlerbild": "Rot im Gate «e2e» des Epic-Abschluss-Tests (Zweig epic/3E-000348-Praesentation-Stufe-2, volle Gates): nach dem ersten ArrowDown trägt die zweite Zeile nicht die Klasse «selected» («Received string: search-results-item»). Beleg: test-berichte/rot/2026-10-15T09-53-15Z-epic-3E-000348-Praesentation-Stufe-2-e2e.log und .json. Isoliert nachgeprüft: im Lauf beider Prüfdateien rot (11,8 s), mit --repeat-each 2 einmal rot und einmal grün.",
+      "vermutung": "Dasselbe Rennen zwischen Fokus-Rückgabe und Tastendruck, das die Prüfdatei selbst in ihrem Kommentar beschreibt (4T-001533, 4T-001561) und das die Quarantäne seit dem 2026-09-08 siebenmal führt; der Epic-Zweig ändert die Bereichs-Suche nicht. Mit diesem Eintrag achtmal auffällig — die Beförderung zum Stabilitäts-Vorgang gehört in das Pflege-Gefäß der Test-Infrastruktur (Widmung 1P-000002), nicht in diesen Zug.",
+      "status": "befoerdert",
+      "vorgang": "4T-002289",
+      "vermerk": "Wiederholter Fall; Beförderung als Hinweis an den zuständigen Bereich im Koordinations-Register. Befördert am 2026-10-17 bei der Sichtung als Schritt 6 der Release-Strecke 1.149.0 des Zuges 3E-000362 (Sammeltask 4T-002287): Der Stabilitäts-Vorgang 4T-002289 im Pflege-Gefäß 3E-000156 ist angelegt (Status Offen) und nimmt den Fall mit. Der Status stand bis dahin auf «behoben» mit dem Epic-Abschluss-Test als Vorgang, obwohl der Fall nicht behoben ist; berichtigt."
+    },
+    {
+      "spec": "test/unit/web-inhalte.test.js",
+      "fall": "Web-Generator — Erzeugnis (4T-000669) › uebernimmt die Beigaben unveraendert",
+      "datum": "2026-10-17",
+      "fehlerbild": "Aufgetreten im ersten WINDOWS-Unit-Lauf der Release-Strecke 1.149.0 des Zuges 3E-000362 «Präsentations-Ansicht Stufe 2» im Stamm-Clone SC-026, Schritt 6 im Sammeltask 4T-002287 (node scripts/gate-lauf.js alle, Gate test bis 07:59 UTC): 14 805 Fälle, davon 14 792 grün, 12 übersprungen, 1 rot. «Hook timed out in 60000ms» im Haken afterEach (Zeile 95, Löschen der temporären Bau-Ordner mit fs.promises.rm), keine inhaltliche Erwartung verletzt. Im selben Lauf riss der Aufräum-Haken afterAll von web-llms.test.js ohne roten Einzelfall; nach test/README.md, Abschnitt «Null fehlgeschlagene Tests, trotzdem rot», ist das kein Quarantäne-Fall und steht deshalb nicht hier, sondern im Sammeltask. Beleg: test-berichte/rot/2026-10-17T07-59-34Z-zug-3E-000362-Praesentation-Stufe-2-test.log und .json. Isoliert unmittelbar danach (08:01 bis 08:06 UTC) zusammen mit web-llms.test.js 48 von 48 grün in 301 s, diese Datei allein 38 Fälle in 245,8 s (Normalwert laut Eintrag vom 2026-09-06: 36 Fälle in 39,9 s). Der zweite Windows-Lauf derselben Strecke war grün.",
+      "vermutung": "Rechnerlast, als VERMUTUNG und nicht als Nachweis: Zur Laufzeit lag die Prozessor-Auslastung bei 71 Prozent, die Synchronisation des Projektordners (Synology Drive) hatte die höchste Prozessor-Zeit, parallel liefen im Container das Linux-Unit-Gate und danach das Linux-Ablauf-Gate derselben Strecke, und die Kopie des Arbeitsbaums ins Container-Dateisystem (241 s und 180 s) fiel in den Windows-Lauf. Auch der isolierte Lauf war rund sechsmal langsamer als der Normalwert. Samstag, kein Montags-Sicherungsfenster; die tägliche Sicherung um 09:00 Uhr Ortszeit (Eintrag vom 2026-09-06) ist möglich, nicht gemessen. Kein Bezug zum Zug: Der Zug ändert den Webseiten-Bau an diesen Stellen nicht.",
+      "status": "beobachtet",
+      "vermerk": "Zweiter Eintrag dieser Datei im Bestand nach dem 2026-09-06, diesmal im Aufräum-Haken statt in einem Fall. Ein weiterer Eintrag zur Datei vom 2026-10-11 (zwei Fälle, Zeitlimit 30 s) liegt auf dem noch nicht integrierten Zug-Zweig zug/3E-000346-Stufe-4-Datenbank (Commit 98e44c6a3) und sieht bei einem dritten Vorfall die Beförderung zum Vorgang vor; mit ihm ist dies der dritte Vorfall der Datei. Der offene Vorgang 4T-002247 zum Haken der Nachbar-Datei web-llms.test.js nennt dieselbe Bauweise als offenen Punkt, ohne sie mit zu erledigen."
+    },
+    {
+      "spec": "test/e2e/funktionen/diagramme-verweise.spec.js",
+      "fall": "DV-01: Umbenennen der Datei zieht die Angabe table: im Diagramm-Block nach (F-332) — Quartal umbenennen: Angabe und Einbettung im Bericht folgen, der Rest bleibt byte-gleich",
+      "datum": "2026-10-17",
+      "fehlerbild": "Erste Beobachtung dieses Falls, zweite der Datei (DV-02 am 2026-10-08). Aufgetreten im WINDOWS-E2E-Voll-Lauf der Release-Strecke 1.149.0 des Zuges 3E-000362 «Präsentations-Ansicht Stufe 2» im Stamm-Clone SC-026, Schritt 6 im Sammeltask 4T-002287: 1220 grün, 2 rot in 1,4 h (Gate-Lauf 08:46 bis 10:12 UTC); der Linux-Ablauf-Lauf derselben Strecke im Container war um 08:39 UTC zu Ende. «expect(locator).toHaveText(expected) failed» auf dem aktiven Reiter der ersten Spalte, erwartet /Quartal/, erhalten «Bericht×», nach 10000 ms, im Helfer reiterWaehlen (diagramme-verweise.spec.js:98, aufgerufen aus Zeile 144 am Anfang des Falls), Fall nach 19,8 s. Beleg: test-berichte/rot/2026-10-17T10-11-59Z-zug-3E-000362-Praesentation-Stufe-2-e2e.log samt -e2e.json und -e2e-artefakte. Isoliert unmittelbar danach (10:13 UTC) die ganze Datei 3 von 3 grün, DV-01 in 4,9 s.",
+      "vermutung": "Ursache nicht gemessen. Nach dem Klick auf den Reiter «Quartal» blieb der aktive Reiter 10 s lang «Bericht»; derselbe Fingerabdruck wie beim Eintrag zu DV-02 (erwartet /Quartal/, erhalten «Bericht×»), dort unter der Last eines parallelen Container-Laufs, hier ohne gemessene parallele Last am Ende eines Laufs von 1,4 h. Bezug zum Zug nicht erkennbar: Unter den seit v1.148.0 geänderten Dateien unter src/ trägt keine Diagramme, Reiter, Rückverweise oder Umbenennen im Namen.",
+      "status": "beobachtet",
+      "vermerk": "Erste Beobachtung des Falls; der Eintrag zu DV-02 vom 2026-10-08 derselben Datei steht weiter auf «beobachtet». Bei einer weiteren Beobachtung eines Falls dieser Datei den gemeinsamen Fingerabdruck ansehen: Beide Fälle wählen am Anfang mit reiterWaehlen den Reiter «Quartal», und beide Fehlschläge tragen die Erwartung dieses Helfers."
+    },
+    {
+      "spec": "test/e2e/funktionen/editor-kontextmenue.spec.js",
+      "fall": "EK-02: Editor-Kontextmenü öffnet im Live-Modus — Rechtsklick im Live-Modus öffnet dasselbe Menü",
+      "datum": "2026-10-17",
+      "fehlerbild": "Erste Beobachtung dieses Falls. Aufgetreten im LINUX-E2E-Voll-Lauf der Release-Strecke 1.149.0 des Zuges 3E-000362 «Präsentations-Ansicht Stufe 2» im Container, Stamm-Clone SC-026, Schritt 6 im Sammeltask 4T-002287: 1208 grün, 5 rot, 9 übersprungen in 58,0 min (07:41 bis 08:39 UTC), parallel zum zweiten Windows-Unit-Lauf derselben Strecke. «Test timeout of 60000ms exceeded» (timedOut 60027 ms). Beleg: test-berichte/rot/2026-10-17T08-38-59Z-zug-3E-000362-Praesentation-Stufe-2-e2e.log samt -e2e.json und -e2e-artefakte. Isoliert im Container über die Kopie (10:22 bis 10:24 UTC): die ganze Datei 5 von 5 grün in 10,1 s, EK-02 in 1,6 s. Im Windows-E2E-Voll-Lauf derselben Strecke grün.",
+      "vermutung": "Last als Vermutung, nicht gemessen: Der Fall lief in sein Zeitlimit von 60 s, ohne dass eine einzelne Erwartung gescheitert wäre, und zur selben Zeit lief der zweite Windows-Unit-Lauf auf demselben Rechner. Kein Bezug zum Zug: Der Zug ändert das Editor-Kontextmenü nicht (git diff --stat v1.148.0..4bb98eef0 -- src/renderer/modules/editor ohne Ausgabe).",
+      "status": "beobachtet",
+      "vermerk": "Erste Beobachtung. Bei einer zweiten den Ablauf des Falls ansehen: An welchem Schritt bleibt er stehen, wenn er sein ganzes Zeitlimit ausschöpft?"
+    },
+    {
+      "spec": "test/e2e/funktionen/wecker.spec.js",
+      "fall": "WE-02: der Aktiv-Schalter wirkt und die Liste ueberlebt den Neustart",
+      "datum": "2026-10-17",
+      "fehlerbild": "ZWEITE Beobachtung dieses Falls; der Erst-Eintrag steht unter dem 2026-09-01 (Linux, Release-Abnahme 1.126.0, lastbedingt eingeordnet). Aufgetreten im LINUX-E2E-Voll-Lauf der Release-Strecke 1.149.0 des Zuges 3E-000362 «Präsentations-Ansicht Stufe 2» im Container, Stamm-Clone SC-026, Schritt 6 im Sammeltask 4T-002287: 1208 grün, 5 rot, 9 übersprungen in 58,0 min (07:41 bis 08:39 UTC). Fingerabdruck wie am 2026-09-01: Nach dem Neustart bleibt .pane-group .sidebar-clock .alarm-row unsichtbar (toBeVisible, 10 s), der Fall nach 11 477 ms. Beleg: test-berichte/rot/2026-10-17T08-38-59Z-zug-3E-000362-Praesentation-Stufe-2-e2e.log samt -e2e.json und -e2e-artefakte. Isoliert im Container über die Kopie (10:26 bis 10:28 UTC): 5 von 5 grün in 1,2 min, WE-02 in 3,2 s.",
+      "vermutung": "Unverändert die des Erst-Eintrags: Last beim Wiederaufbau der Sitzung nach dem Neustart. Kein Bezug zum Zug: Der Zug ändert weder die Uhr-Erweiterung noch die Sitzungs-Wiederherstellung (git diff --stat v1.148.0..4bb98eef0 -- src/renderer/modules/clock src/main/window-persistence.js ohne Ausgabe).",
+      "status": "beobachtet",
+      "vermerk": "Antwort auf die Frage des Erst-Eintrags, ob der Fall wiederkehrt und ob auch unter Windows: Er kehrt wieder, erneut allein unter Linux; im Windows-E2E-Voll-Lauf derselben Strecke (ab 08:46 UTC) war er grün."
+    },
+    {
+      "spec": "test/e2e/funktionen/praesentation-fenster.spec.js",
+      "fall": "PR-15: Referenten-Ansicht über zwei Fenster (S-167) — Hauptfenster zeigt nächste Folie, Notizen und Zeitgeber, das Publikums-Fenster die Folie; Blättern in beiden, Ende über das Kommando",
+      "datum": "2026-10-17",
+      "fehlerbild": "Erste Beobachtung. Aufgetreten unter Windows im Nachweis-Lauf zur Berichtigung von PR-14 (4T-002304) in der Release-Strecke 1.149.0 des Zuges 3E-000362, Stamm-Clone SC-026, Schritt 6 im Sammeltask 4T-002287: npx playwright test praesentation-fenster smoke (11 Fälle, ein Worker, 10:21 bis 10:23 UTC), 10 grün, 1 rot. «expect(locator).toHaveText(expected) failed»: Unmittelbar nach starteBisPublikum('menu:presentationPresenter') und vor jedem Blättern zeigte der Zähler des Hauptfensters «2 / 4» statt «1 / 4», 23 Auflösungen über 10 s unverändert, Fall nach 17,6 s. Kein Beleg unter test-berichte/, weil der Lauf nicht über den Gate-Weg ging. Grün im Windows-E2E-Voll-Lauf derselben Strecke (ab 08:46 UTC), isoliert um 10:13 UTC und in der Wiederholung 10:29 bis 10:30 UTC dreimal (5,6, 6,9 und 5,9 s).",
+      "vermutung": "Ursache nicht belegt. Am Trace ausgewertet: Der Startbefehl ging dreimal hinaus, ist aber sperrend und blättert nicht (presentation-referent.js, Zeile 349); «2 / 4» ist die zweite Folie, weil der Vortrag keine Aufdeck-Listen trägt; kein Code-Weg ändert den Folien-Index ohne Eingabe-Ereignis; die Berichtigung von PR-14 hat keinen Einfluss, weil jeder Fall eine eigene Instanz mit eigenem Profil startet. VERMUTUNG: eine Maus-Eingabe von außen. Das Publikums-Fenster erscheint im Testlauf im Vollbild auf einem anderen der drei Bildschirme dieses Rechners, und ein Klick oder Rad-Schritt dort bedeutet «weiter» (publikum-seite.js, Zeilen 139 bis 149); der Rechner war zur Laufzeit in Benutzung.",
+      "status": "beobachtet",
+      "vermerk": "Erste Beobachtung. Bedingung einer Beförderung: erneutes Auftreten ohne Bedienung des Rechners während des Laufs."
     }
   ]
 }

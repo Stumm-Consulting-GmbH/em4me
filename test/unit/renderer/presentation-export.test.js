@@ -262,6 +262,30 @@ describe('baueDruckFlaeche — eine Seite je Folie in Entwurfsgroesse', () => {
     expect(flaeche.textContent).not.toContain(NOTIZ);
   });
 
+  // 4T-002277, AK8: PDF- und HTML-Export bauen beide auf dieser Flaeche auf;
+  // jede Seite traegt die Gestaltung ihrer Folie.
+  it('zeigt die Angaben je Folie auf ihrer Seite und nur dort', () => {
+    const text =
+      '---\npresentation: true\npaginate: true\n---\n# A\n\n---\n\n<!-- _backgroundColor: #c0392b -->\n<!-- _paginate: false -->\n<!-- footer: ab hier -->\n# B\n\n---\n\n# C\n';
+    const m = window.api.lesePraesentation(text, { kommentareAktiv: true });
+    const flaeche = baueDruckFlaeche({
+      ziel: paneEls.content,
+      folien: m.folien,
+      kopf: m.kopf,
+      render: (md) => renderMarkdown(md, 'de', { frontmatterBlock: false }),
+    });
+    const slides = [...flaeche.querySelectorAll('.presentation-slide')];
+    expect(slides.map((s) => s.style.getPropertyValue('--slide-background'))).toEqual([
+      '#ffffff',
+      '#c0392b',
+      '#ffffff',
+    ]);
+    const nummern = slides.map((s) => s.querySelector('.presentation-slide-nummer'));
+    expect(nummern.map((n) => (n.hidden ? '' : n.textContent))).toEqual(['1', '', '3']);
+    const fuesse = slides.map((s) => s.querySelector('.presentation-slide-fuss'));
+    expect(fuesse.map((f) => (f.hidden ? '' : f.textContent))).toEqual(['', 'ab hier', 'ab hier']);
+  });
+
   it('4:3 setzt 960 x 720', () => {
     const flaeche = baueDruckFlaeche({
       ziel: paneEls.content,
@@ -721,5 +745,56 @@ describe('Bedienweg: Registry, Menü-Ort, Brücke und Dispatcher', () => {
     // Der Dokument-Export bleibt (Story 4S-001054, AK8).
     expect(aus.has('file.exportPdf')).toBe(false);
     expect(aus.has('file.exportHtml')).toBe(false);
+  });
+});
+
+// --- Folie für das Publikums-Fenster (4T-002278) -----------------------------------
+
+describe('Folien-Dokument des Publikums-Fensters (4T-002278)', () => {
+  function gezeichneteHuellen() {
+    const m = lesePraesentation(DECK, { md: markdownModul.md });
+    const flaeche = baueDruckFlaeche({
+      ziel: paneEls.content,
+      folien: m.folien,
+      kopf: m.kopf,
+      render: (md) => renderMarkdown(md, 'de', { frontmatterBlock: false }),
+    });
+    return [...flaeche.querySelectorAll('.presentation-slide-huelle')];
+  }
+
+  it('eigenständiges Dokument in Entwurfsgröße, ohne Skript, mit den Folien-Regeln', async () => {
+    const [huelle] = gezeichneteHuellen();
+    // Die Fläche skaliert die Folie; das Dokument setzt sie zurück.
+    huelle.style.width = '320px';
+    huelle.querySelector('.presentation-slide').style.transform = 'scale(0.25)';
+    const dok = await folienExport.baueFolienDokument(huelle, { basisStile: ['/* BASIS */'] });
+    expect(dok.breite).toBe(1280);
+    expect(dok.hoehe).toBe(720);
+    expect(dok.html.startsWith('<!doctype html>')).toBe(true);
+    expect(dok.html).toContain('Erste Folie');
+    expect(dok.html).toContain('/* BASIS */');
+    expect(dok.html).toContain(folienExport.PUBLIKUM_REGELN.split('\n')[0]);
+    expect(dok.html).not.toMatch(/<script/i);
+    expect(dok.html).not.toContain('scale(0.25)');
+    expect(dok.html).toContain('width: 1280px');
+    // Die Folie im Fenster bleibt unverändert.
+    expect(huelle.style.width).toBe('320px');
+  });
+
+  it('KaTeX nur bei einer Formel, einmal je Fenster gelesen', async () => {
+    const huellen = gezeichneteHuellen();
+    const katex = vi.fn(async () => '/* KATEX */');
+    const ohne = await folienExport.baueFolienDokument(huellen[0], {
+      basisStile: [],
+      leseKatexStile: katex,
+    });
+    expect(ohne.html).not.toContain('/* KATEX */');
+    const mit = await folienExport.baueFolienDokument(huellen[1], {
+      basisStile: [],
+      leseKatexStile: katex,
+    });
+    expect(mit.html).toContain('/* KATEX */');
+    await folienExport.baueFolienDokument(huellen[1], { basisStile: [], leseKatexStile: katex });
+    expect(katex).toHaveBeenCalledTimes(1);
   });
 });

@@ -42,8 +42,11 @@
 // Bilder, eingebettet in die Seiten statt als eigene Dateien.
 //
 // **Sprecher-Notizen** stehen nie im Quelltext einer Folie (der Format-Kern
-// entfernt sie vor dem Zerlegen); hat der Foliensatz welche, nennt die Meldung
-// sie als entfallen (Grundsatz «bestmoeglicher Ersatz, nie still»).
+// entfernt sie vor dem Zerlegen). Mit dem Schalter «Sprecher-Notizen
+// mitgeben» (4T-002283) kommen sie als eigene Seite hinter ihre Folie ins PDF
+// und als zugeklappter Notiz-Bereich auf die HTML-Seite, und die Meldung nennt
+// ihre Zahl (folien-export-notizen.js); ohne ihn nennt die Meldung sie als
+// entfallen (Grundsatz «bestmoeglicher Ersatz, nie still»).
 'use strict';
 
 import { intlLocale, t } from '../../i18n.js';
@@ -59,6 +62,7 @@ import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import {
   ARTIKEL_KLASSE,
   HUELLE_KLASSE,
+  SLIDE_KLASSE,
   UEBERLAUF_KLASSE,
   baueFolie,
   zeichneFolie,
@@ -68,7 +72,18 @@ import {
 // Ansicht bekommt ihn dagegen hereingereicht, weil ihr Ordner sonst in den
 // Datei-Zyklus des Renderers geriete.
 import { applyTeilbaumSchritte } from '../render-mermaid.js';
+// 4T-002278: Die Vorführung im eigenen Fenster bekommt den Bauer des
+// Folien-Dokuments von hier gereicht.
+import { registriereFolienDokumentBauer } from '../presentation/presentation-publikum.js';
+import { eigeneThemes } from '../presentation/presentation-themes-stand.js';
 
+import {
+  NOTIZEN_SEITEN_REGELN,
+  baueNotizSeite,
+  mitgegebeneNotizen,
+  notizBereichVon,
+  notizenMitgeben,
+} from './folien-export-notizen.js';
 import { baueHtmlDatei } from './html-export-datei.js';
 import {
   EXPORT_REGELN,
@@ -184,6 +199,7 @@ export function leseFoliensatz(tab) {
   if (!tab || typeof api.lesePraesentation !== 'function') return null;
   const modell = api.lesePraesentation(tab.content, {
     kommentareAktiv: isExtensionActive('comments'),
+    eigeneThemes: eigeneThemes(),
   });
   if (!modell || !modell.istPraesentation || !Array.isArray(modell.folien)) return null;
   return modell;
@@ -206,9 +222,10 @@ export function notizenZahl(modell) {
  * @param {object} angaben.kopf Kopf des Format-Kerns.
  * @param {(markdown: string) => string} angaben.render Render-Pipeline.
  * @param {(artikel: Element) => void} [angaben.schritte] Schritt-Satz je Folie.
+ * @param {boolean} [angaben.notizen] hinter jeder Folie mit Notizen deren Seite.
  * @returns {HTMLElement} die Flaeche.
  */
-export function baueDruckFlaeche({ ziel, folien, kopf, render, schritte }) {
+export function baueDruckFlaeche({ ziel, folien, kopf, render, schritte, notizen }) {
   const doc = ziel.ownerDocument;
   const flaeche = doc.createElement('div');
   flaeche.className = DRUCK_KLASSE;
@@ -228,13 +245,19 @@ export function baueDruckFlaeche({ ziel, folien, kopf, render, schritte }) {
     zeichneFolie(huelle, { folie, index, kopf, render });
     const artikel = huelle.querySelector(`.${ARTIKEL_KLASSE}`);
     if (schritte && artikel) schritte(artikel);
+    if (!notizen) return;
+    const angaben = { folie, index, geometrie, seitenKlasse: DRUCK_SEITE_KLASSE, render };
+    const notizSeite = baueNotizSeite(doc, angaben);
+    if (!notizSeite) return;
+    flaeche.appendChild(notizSeite);
+    if (schritte) schritte(notizSeite.lastElementChild);
   });
   return flaeche;
 }
 
 // Die Flaeche in der aktiven Spalte des Dokuments; der Druck-Zustand der
 // Ausgabe kommt an den body.
-function haengeDruckFlaecheAn(paneIdx, tab, modell) {
+function haengeDruckFlaecheAn(paneIdx, tab, modell, notizen) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.content) throw new Error('keine Spalte fuer den Foliensatz');
   const flaeche = baueDruckFlaeche({
@@ -247,6 +270,7 @@ function haengeDruckFlaecheAn(paneIdx, tab, modell) {
     // — Darstellung und Befuellung ohne Bearbeitbarkeit, das ganze Dokument
     // als Quelle der Diagramm-Tabellen.
     schritte: (artikel) => applyTeilbaumSchritte(artikel, tab.path, { dokumentText: tab.content }),
+    notizen,
   });
   document.body.classList.add(DRUCK_ZUSTAND);
   return flaeche;
@@ -283,16 +307,22 @@ function zahlTeil(n, schluessel, uebersetze) {
  * Zahl der Folien und, nur wenn etwas entfallen ist, die Liste dazu.
  *
  * @param {string} schluessel `presentation.export.pdfOk` oder `...htmlOk`.
- * @param {{folien: number, ordner?: string, notizen?: number,
+ * @param {{folien: number, ordner?: string, notizen?: number, mitgegeben?: number,
  *   verweise?: number, bilder?: number, diagramme?: number}} angaben
+ *   `notizen` zaehlt entfallene, `mitgegeben` mitgegebene Notizen.
  * @param {(key: string) => string} [uebersetze]
  * @returns {{text: string, hinweise: boolean}}
  */
 export function folienMeldung(schluessel, angaben, uebersetze = t) {
   const a = angaben || {};
-  const grund = uebersetze(schluessel)
+  let grund = uebersetze(schluessel)
     .replace('{folien}', zahlTeil(a.folien || 0, 'presentation.export.folien', uebersetze))
     .replace('{ordner}', String(a.ordner || ''));
+  if (a.mitgegeben > 0) {
+    grund = uebersetze('export.folien.mitNotizen')
+      .replace('{meldung}', grund)
+      .replace('{notizen}', zahlTeil(a.mitgegeben, 'export.folien.notizenMit', uebersetze));
+  }
   const teile = [];
   if (a.verweise > 0) teile.push(zahlTeil(a.verweise, 'export.html.verweise', uebersetze));
   if (a.bilder > 0) teile.push(zahlTeil(a.bilder, 'export.html.bilder', uebersetze));
@@ -305,6 +335,11 @@ export function folienMeldung(schluessel, angaben, uebersetze = t) {
       .replace('{hinweise}', teile.join(', ')),
     hinweise: true,
   };
+}
+
+// Mit Schalter die Zahl der mitgegebenen, ohne die der entfallenen Notizen.
+function notizAngaben(modell, mitNotizen) {
+  return mitNotizen ? { mitgegeben: mitgegebeneNotizen(modell) } : { notizen: notizenZahl(modell) };
 }
 
 function meldeLauf() {
@@ -332,6 +367,7 @@ function meldeKeinFoliensatz() {
 export async function exportiereFoliensatzAlsPdf() {
   let flaeche = null;
   let modell = null;
+  let mitNotizen = false;
   try {
     const outcome = await withPrintPreparation({
       prepare: async (tab) => {
@@ -349,8 +385,9 @@ export async function exportiereFoliensatzAlsPdf() {
           api.choosePdfExportTarget({ suggestedPath, suggestedName }),
         );
         if (!ziel || !ziel.ok || !ziel.path) return null;
+        mitNotizen = await notizenMitgeben();
         meldeLauf();
-        flaeche = haengeDruckFlaecheAn(state.activePaneIndex, tab, modell);
+        flaeche = haengeDruckFlaecheAn(state.activePaneIndex, tab, modell, mitNotizen);
         return { path: ziel.path, size: modell.kopf && modell.kopf.size };
       },
       output: async (ziel) => {
@@ -368,7 +405,7 @@ export async function exportiereFoliensatzAlsPdf() {
     if (outcome.ok) {
       const meldung = folienMeldung('presentation.export.pdfOk', {
         folien: modell.folien.length,
-        notizen: notizenZahl(modell),
+        ...notizAngaben(modell, mitNotizen),
       });
       showStatusbarHint('presentation.export.pdfOk', {
         duration: meldung.hinweise ? 4000 : 2000,
@@ -425,15 +462,19 @@ export async function baueFolienSeiten({
     zaehler.bilder += Math.max(0, erwartet - gezeigt);
     for (const marke of behaelter.querySelectorAll(`.${UEBERLAUF_KLASSE}`)) marke.remove();
     const z = bereiteInhaltVor(behaelter, { uebersetze });
-    zaehler.verweise += z.verweise;
-    zaehler.bilder += z.bilder;
-    zaehler.diagramme += z.diagramme;
+    // Der Notiz-Bereich (4T-002283) aus der Notiz-Seite der Flaeche, durch
+    // dieselbe Einbettung wie die Folie; nur, wenn die Folie eine hat.
+    const notizen = notizBereichVon(flaeche, i, bereiteInhaltVor, uebersetze);
+    for (const k of ['verweise', 'bilder', 'diagramme']) {
+      zaehler[k] += z[k] + (notizen ? notizen.z[k] : 0);
+    }
     const stile = [...basisStile];
-    if (z.formeln) {
+    if (z.formeln || (notizen && notizen.z.formeln)) {
       if (katex === null) katex = await (leseKatexStile || leseKatexStileUeberHauptprozess)();
       stile.push(katex);
     }
     stile.push(FOLIEN_SEITEN_REGELN);
+    if (notizen) stile.push(NOTIZEN_SEITEN_REGELN);
     const text = baueHtmlDatei({
       titel: uebersetze('presentation.export.seitenTitel')
         .replace('{titel}', String(titel || ''))
@@ -442,8 +483,11 @@ export async function baueFolienSeiten({
       sprache: sprache || intlLocale(),
       inhaltHtml: [
         `<div class="praesentation-seite-buehne">${behaelter.innerHTML}</div>`,
+        notizen ? notizen.html : '',
         blaetterLeiste(i, anzahl, uebersetze),
-      ].join('\n'),
+      ]
+        .filter(Boolean)
+        .join('\n'),
       stile,
       wurzelKlassen,
       hauptKlassen: 'praesentation-seite',
@@ -502,7 +546,7 @@ export function blaetterLeiste(index, anzahl, uebersetze = t) {
  * @returns {string}
  */
 export function themeVariablen(kopf) {
-  const theme = themeAufloesen(kopf && kopf.theme);
+  const theme = themeAufloesen(kopf && kopf.theme, { eigene: eigeneThemes() });
   const zeilen = Object.entries(slotVariablen(theme.slots)).map(([n, w]) => `  ${n}: ${w};`);
   return `:root {\n${zeilen.join('\n')}\n}`;
 }
@@ -518,6 +562,7 @@ export async function exportiereFoliensatzAlsHtml() {
   let flaeche = null;
   let modell = null;
   let ergebnis = null;
+  let mitNotizen = false;
   try {
     const outcome = await withPrintPreparation({
       prepare: async (tab) => {
@@ -530,9 +575,10 @@ export async function exportiereFoliensatzAlsHtml() {
           api.chooseFolienHtmlOrdner({ suggestedDir: tab.path ? ordnerVon(tab.path) : null }),
         );
         if (!wahl || !wahl.ok || !wahl.path) return null;
+        mitNotizen = await notizenMitgeben();
         meldeLauf();
         const name = basisName(tab) || t('presentation.export.ordnerOhneName');
-        flaeche = haengeDruckFlaecheAn(state.activePaneIndex, tab, modell);
+        flaeche = haengeDruckFlaecheAn(state.activePaneIndex, tab, modell, mitNotizen);
         return {
           ordner: wahl.path,
           unterordner: t('presentation.export.unterordner').replace('{name}', name),
@@ -569,7 +615,7 @@ export async function exportiereFoliensatzAlsHtml() {
       const meldung = folienMeldung('presentation.export.htmlOk', {
         ...ergebnis,
         folien: modell.folien.length,
-        notizen: notizenZahl(modell),
+        ...notizAngaben(modell, mitNotizen),
       });
       showStatusbarHint('presentation.export.htmlOk', {
         duration: meldung.hinweise ? 4000 : 2000,
@@ -584,3 +630,72 @@ export async function exportiereFoliensatzAlsHtml() {
     entferneDruckFlaeche(flaeche);
   }
 }
+
+// --- Folie für das Publikums-Fenster (4T-002278, Epic 3E-000348) ------------
+// Dasselbe Verfahren wie bei den HTML-Seiten, für eine einzelne, bereits
+// gezeichnete Folie der Fläche: geklont, auf ihre Entwurfsgröße
+// zurückgesetzt (die Fläche skaliert sie), ohne Bedien- und Programm-
+// Elemente (bereiteInhaltVor), mit den Inhalts-Stilen der Seite und ohne
+// Skript. Das Publikums-Fenster passt den Rahmen als Ganzes ein.
+
+/** Eigene Regeln des Folien-Dokuments im Publikums-Fenster. */
+export const PUBLIKUM_REGELN = [
+  'html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }',
+  'main.praesentation-publikum { margin: 0; padding: 0; }',
+  '.praesentation-publikum .presentation-slide-huelle { position: absolute; left: 0; top: 0; ' +
+    'box-shadow: none; }',
+  `.${UEBERLAUF_KLASSE} { display: none !important; }`,
+].join('\n');
+
+// KaTeX samt Schriften, einmal je Fenster gelesen.
+let publikumKatex = null;
+
+/**
+ * Baut aus einer gezeichneten Folie das eigenständige Dokument des
+ * Publikums-Fensters.
+ *
+ * @param {Element} huelle Hülle der gezeichneten Folie.
+ * @param {object} [angaben]
+ * @param {string[]} [angaben.basisStile] Vorgabe: die Stile dieses Fensters.
+ * @param {() => Promise<string>} [angaben.leseKatexStile]
+ * @param {string} [angaben.sprache]
+ * @param {(key: string) => string} [angaben.uebersetze]
+ * @returns {Promise<{html: string, breite: number, hoehe: number}|null>}
+ */
+export async function baueFolienDokument(huelle, angaben = {}) {
+  const slide = huelle ? huelle.querySelector(`.${SLIDE_KLASSE}`) : null;
+  if (!slide) return null;
+  const doc = huelle.ownerDocument;
+  const { breite, hoehe } = folienGeometrie(slide.dataset.size);
+  const behaelter = doc.createElement('div');
+  const klon = huelle.cloneNode(true);
+  klon.style.width = `${breite}px`;
+  klon.style.height = `${hoehe}px`;
+  const klonSlide = klon.querySelector(`.${SLIDE_KLASSE}`);
+  if (klonSlide) klonSlide.style.transform = '';
+  behaelter.appendChild(klon);
+  for (const marke of behaelter.querySelectorAll(`.${UEBERLAUF_KLASSE}`)) marke.remove();
+  const uebersetze = angaben.uebersetze || t;
+  const z = bereiteInhaltVor(behaelter, { uebersetze });
+  const stile = angaben.basisStile
+    ? [...angaben.basisStile]
+    : [variablenBlock(doc, doc.defaultView), sammleInhaltsRegeln(doc, FOLIEN_ANKER), EXPORT_REGELN];
+  if (z.formeln) {
+    if (publikumKatex === null) {
+      publikumKatex = await (angaben.leseKatexStile || leseKatexStileUeberHauptprozess)();
+    }
+    stile.push(publikumKatex);
+  }
+  stile.push(PUBLIKUM_REGELN);
+  const html = baueHtmlDatei({
+    titel: '',
+    sprache: angaben.sprache || intlLocale(),
+    inhaltHtml: behaelter.innerHTML,
+    stile,
+    wurzelKlassen: klassenOhneDruck(doc.documentElement),
+    hauptKlassen: 'praesentation-publikum',
+  });
+  return { html, breite, hoehe };
+}
+
+registriereFolienDokumentBauer((huelle) => baueFolienDokument(huelle));

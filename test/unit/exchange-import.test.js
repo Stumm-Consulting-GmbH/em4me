@@ -629,3 +629,91 @@ describe('Rundlauf — ausgeben und wieder einlesen', () => {
     expect(eintrag(plan, 'bookmarksTree').uebersprungen).toBe(1);
   });
 });
+
+// 4T-002281 (Epic 3E-000348): die eigenen Folien-Themes als Datenart (AK6) und
+// ihre Verteilung an alle Fenster (AK5).
+describe('4T-002281 — eigene Folien-Themes', () => {
+  const IST_THEMES = {
+    presentationThemes: {
+      custom: [{ id: 't1', name: 'Firma', basis: 'dark', slots: { accent: '#c0392b' } }],
+    },
+  };
+  const themesAbschnitt = (custom) => [
+    { name: 'presentationThemes', value: { presentationThemes: { custom } } },
+  ];
+
+  it('AK6: reist als eigene Datenart mit und zählt die eigenen Themes', async () => {
+    const kind = dataKindById('presentationThemes');
+    expect(kind.paths).toEqual(['presentationThemes']);
+    expect(kind.labelKey).toBe('exchange.kind.presentationThemes');
+    const zeile = (await istStand(IST_THEMES)).find((k) => k.id === 'presentationThemes');
+    expect(zeile.count).toBe(1);
+  });
+
+  it('AK6: fügt eingelesene Themes an und lässt die vorhandenen unberührt', async () => {
+    const sections = themesAbschnitt([{ id: 't9', name: 'Messe', basis: 'light', slots: {} }]);
+    const zeile = eintrag(planFuer(await istStand(IST_THEMES), sections), 'presentationThemes');
+    expect(zeile.action).toBe('append');
+    expect(zeile.hinzu).toBe(1);
+    const custom = zeile.values.presentationThemes.custom;
+    expect(custom[0]).toEqual(IST_THEMES.presentationThemes.custom[0]);
+    expect(custom[1].name).toBe('Messe');
+  });
+
+  it('AK6: benennt gleichnamige um, auch bei anderer Groß- und Kleinschreibung', async () => {
+    const sections = themesAbschnitt([
+      { id: 't1', name: 'Firma', basis: 'light', slots: {} },
+      { id: 't2', name: 'FIRMA', basis: 'accent', slots: {} },
+    ]);
+    const zeile = eintrag(planFuer(await istStand(IST_THEMES), sections), 'presentationThemes');
+    const custom = zeile.values.presentationThemes.custom;
+    expect(custom.map((t) => t.name)).toEqual(['Firma', 'Firma (2)', 'FIRMA (3)']);
+    expect(new Set(custom.map((t) => t.id)).size).toBe(3);
+    expect(zeile.umbenannt).toEqual([
+      { von: 'Firma', nach: 'Firma (2)' },
+      { von: 'FIRMA', nach: 'FIRMA (3)' },
+    ]);
+  });
+
+  it('AK6: die Umbenennung der übrigen Datenarten bleibt beim Wortlaut', async () => {
+    const sections = [
+      {
+        name: 'colorSchemes',
+        value: { colorSchemes: { custom: [{ id: 'n2', name: 'NACHT', base: 'dark' }] } },
+      },
+    ];
+    const zeile = eintrag(planFuer(await istStand(EINGERICHTET), sections), 'colorSchemes');
+    expect(zeile.umbenannt).toEqual([]);
+  });
+
+  it('AK6: ein Wert in fremder Gestalt wird verworfen statt geschrieben', async () => {
+    const sections = [{ name: 'presentationThemes', value: { presentationThemes: ['x'] } }];
+    const zeile = eintrag(planFuer(await istStand(IST_THEMES), sections), 'presentationThemes');
+    expect(zeile.action).toBe('skip');
+    expect(zeile.verworfen).toEqual(['presentationThemes']);
+  });
+
+  it('AK5: der Schlüssel wird verteilt, an alle Fenster samt Sender', async () => {
+    const { createSettingsVerteilung } = await import('../../src/main/ipc/settings-verteilung.js');
+    expect(VERTEIL_SCHLUESSEL).toContain('presentationThemes');
+    const gesendet = [];
+    const fenster = (name, zerstoert = false) => ({
+      isDestroyed: () => zerstoert,
+      webContents: { send: (kanal, wert) => gesendet.push({ name, kanal, wert }) },
+    });
+    const sender = fenster('a');
+    const verteile = createSettingsVerteilung({
+      BrowserWindow: { getAllWindows: () => [sender, fenster('b'), fenster('c', true)] },
+      getStore: () => null,
+      applyMenuToAllWindows: () => {},
+      updateAllCaptionColors: () => {},
+      timerChecker: { reschedule: () => {} },
+    });
+    const wert = IST_THEMES.presentationThemes;
+    verteile('presentationThemes', wert, sender.webContents);
+    expect(gesendet).toEqual([
+      { name: 'a', kanal: 'presentationThemes:changed', wert },
+      { name: 'b', kanal: 'presentationThemes:changed', wert },
+    ]);
+  });
+});

@@ -11,6 +11,7 @@
   "exchange.entryCountMany": "{n} entries",
   "exchange.kind.settings": "Settings",
   "exchange.kind.colorSchemes": "Color schemes",
+  "exchange.kind.presentationThemes": "Custom slide themes",
   "exchange.kind.hotkeys": "Keyboard shortcuts",
   "exchange.kind.formatToolbar": "Format toolbar",
   "exchange.kind.commandPlacement": "Status bar buttons and macros",

@@ -115,6 +115,10 @@ function ergaenzeListen(deklaration, istWerte, neuWerte, idAbbildung) {
 
   for (const liste of deklaration.lists || []) {
     const { path: pfad, at, idKey, nameKey, refs, refPrefix, pruefe } = liste;
+    // 4T-002281: `nameVergleich` (optional) bildet einen Namen auf seine
+    // Vergleichs-Form ab, etwa ohne Rücksicht auf Groß- und Kleinschreibung
+    // bei den eigenen Folien-Themes. Ohne Angabe gilt der Wortlaut.
+    const vergleich = typeof liste.nameVergleich === 'function' ? liste.nameVergleich : (n) => n;
     if (!(pfad in neuWerte)) continue;
 
     const istListe = holeTief(istWerte[pfad], at);
@@ -126,8 +130,12 @@ function ergaenzeListen(deklaration, istWerte, neuWerte, idAbbildung) {
       vorhanden.map((e) => (e && idKey ? e[idKey] : undefined)).filter((v) => v !== undefined),
     );
     const belegteNamen = new Set(
-      vorhanden.map((e) => (e && nameKey ? e[nameKey] : undefined)).filter((v) => v !== undefined),
+      vorhanden
+        .map((e) => (e && nameKey ? e[nameKey] : undefined))
+        .filter((v) => v !== undefined)
+        .map(vergleich),
     );
+    const namenBelegt = { has: (n) => belegteNamen.has(vergleich(n)) };
 
     const zusammen = vorhanden.map((e) => kopiere(e));
     // Wohin ein eingelesener Eintrag gewandert ist: Grundlage der
@@ -157,13 +165,13 @@ function ergaenzeListen(deklaration, istWerte, neuWerte, idAbbildung) {
       }
       if (idKey && eintrag[idKey] !== undefined) belegteIds.add(eintrag[idKey]);
 
-      if (nameKey && belegteNamen.has(eintrag[nameKey])) {
+      if (nameKey && eintrag[nameKey] !== undefined && namenBelegt.has(eintrag[nameKey])) {
         const alt = eintrag[nameKey];
-        const neu = freierName(alt, belegteNamen);
+        const neu = freierName(alt, namenBelegt);
         eintrag[nameKey] = neu;
         umbenannt.push({ von: String(alt), nach: neu });
       }
-      if (nameKey && eintrag[nameKey] !== undefined) belegteNamen.add(eintrag[nameKey]);
+      if (nameKey && eintrag[nameKey] !== undefined) belegteNamen.add(vergleich(eintrag[nameKey]));
 
       if (alteId !== undefined) stelleFuerAlteId.set(alteId, eintrag[idKey]);
       zusammen.push(eintrag);

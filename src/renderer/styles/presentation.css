@@ -513,3 +513,187 @@ body.printing.printing-folien .presentation-druck {
 body.printing .presentation-druck .markdown-body {
   font-size: var(--render-font-size);
 }
+
+/* 4T-002279 (Epic 3E-000348): Die Referenten-Ansicht (Klasse
+   praesentation-flaeche--referent, gesetzt von presentation-referent.js). Die
+   Flaeche teilt sich in die aktuelle Folie links und eine Seite rechts mit
+   naechster Folie, Notizen und Zeitgeber; Leiste und Hinweis-Zeile bleiben
+   oben ueber beide. Farben ueber die Variablen der Oberflaeche (hell/dunkel);
+   nur die Folien selbst folgen ihrem Theme. Der Start der Vorfuehrung ist in
+   der Referenten-Ansicht ohne Gegenstand und verborgen. */
+.praesentation-flaeche--referent {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(240px, 2fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-areas:
+    'leiste leiste'
+    'hinweise hinweise'
+    'buehne seite';
+}
+.praesentation-flaeche--referent > .praesentation-leiste {
+  grid-area: leiste;
+}
+.praesentation-flaeche--referent > .praesentation-hinweise {
+  grid-area: hinweise;
+}
+.praesentation-flaeche--referent > .praesentation-buehne {
+  grid-area: buehne;
+}
+.praesentation-flaeche--referent .praesentation-vorfuehren {
+  display: none;
+}
+
+.praesentation-referent {
+  grid-area: seite;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding: 12px;
+  border-left: 1px solid var(--border);
+  background: var(--bg-alt, var(--bg));
+  color: var(--fg);
+  overflow: hidden;
+}
+.praesentation-referent-titel {
+  margin-bottom: 4px;
+  color: var(--fg-muted, var(--fg));
+  font-family: var(--font-ui);
+  font-size: 12px;
+}
+
+/* Die naechste Folie: eine kleine Buehne, eingepasst von passeFolieEin. */
+.praesentation-referent-naechste {
+  flex: 0 0 auto;
+}
+.praesentation-referent-vorschau,
+.praesentation-referent-ende {
+  height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.praesentation-referent-ende {
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  color: var(--fg-muted, var(--fg));
+  font-family: var(--font-ui);
+}
+.praesentation-referent-vorschau[hidden],
+.praesentation-referent-ende[hidden],
+.praesentation-referent-notizen-inhalt[hidden],
+.praesentation-referent-leer[hidden] {
+  display: none;
+}
+
+/* Die Notizen: gerendert wie Dokument-Inhalt, scrollbar. */
+.praesentation-referent-notizen {
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.praesentation-referent-notizen-inhalt {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  font-size: 15px;
+}
+.praesentation-referent-notiz + .praesentation-referent-notiz {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.praesentation-referent-leer {
+  margin: 0;
+  color: var(--fg-muted, var(--fg));
+  font-family: var(--font-ui);
+  font-style: italic;
+}
+
+/* Der Zeitgeber: verstrichene Zeit gross, Uhrzeit, zwei Knoepfe. */
+.praesentation-referent-zeit {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-ui);
+}
+.praesentation-referent-verstrichen {
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+}
+.praesentation-referent-uhrzeit {
+  color: var(--fg-muted, var(--fg));
+  font-variant-numeric: tabular-nums;
+}
+
+/* 4T-002280 (Epic 3E-000348): Die Folien-Übersicht (Zustand
+   praesentation-flaeche--uebersicht, gesetzt von presentation-uebersicht.js).
+   Das Raster nimmt die ganze Fläche ein, auch in der Referenten-Ansicht;
+   Leiste, Hinweis-Zeile, Bühne und Seite treten so lange zurück. Gerollt wird
+   im Raster. Jede Kachel ist eine kleine Bühne, die Folie darin eingepasst
+   ohne Rand; die gewählte Kachel trägt den Akzent-Rahmen. */
+.praesentation-flaeche.praesentation-flaeche--uebersicht {
+  display: flex;
+  flex-direction: column;
+}
+.praesentation-flaeche--uebersicht > :not(.praesentation-uebersicht) {
+  display: none;
+}
+.praesentation-uebersicht {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  align-content: start;
+  gap: 16px;
+  padding: 16px;
+}
+.praesentation-uebersicht-kachel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+}
+.praesentation-uebersicht-kachel:hover {
+  border-color: var(--border);
+}
+.praesentation-uebersicht-kachel.is-gewaehlt {
+  border-color: var(--accent);
+}
+.praesentation-uebersicht-buehne {
+  width: 100%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Die Folie einer Kachel ist Bild, nicht Bedienelement: Klicks gehen an die
+   Kachel, nie an einen Verweis im Inhalt. */
+.praesentation-uebersicht-buehne .presentation-slide-huelle {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  pointer-events: none;
+}
+.praesentation-uebersicht-nummer {
+  color: var(--fg-muted, var(--fg));
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.praesentation-uebersicht-kachel.is-gewaehlt .praesentation-uebersicht-nummer {
+  color: var(--accent);
+  font-weight: 600;
+}

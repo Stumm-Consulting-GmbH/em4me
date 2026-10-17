@@ -75,6 +75,8 @@ const VERTEIL_SCHLUESSEL = [
   'input.cursorSprung',
   'hotkeys',
   'colorSchemes',
+  // 4T-002281 (Epic 3E-000348): die eigenen Folien-Themes der Präsentations-Ansicht.
+  'presentationThemes',
 ];
 
 // Der eine Prefix-Zweig: `appearance.*` prüft nicht auf Gleichheit, sondern auf
@@ -412,6 +414,16 @@ function createSettingsVerteilung(deps) {
     if (key === 'colorSchemes') {
       for (const w of BrowserWindow.getAllWindows()) {
         if (!w.isDestroyed()) w.webContents.send('colorScheme:changed', value);
+      }
+    }
+    // 4T-002281 (Epic 3E-000348): eigene Folien-Themes (Objekt { custom }) an
+    // alle Fenster, auch an den Sender (Muster colorSchemes) — der Empfangspfad
+    // normalisiert, übergeht einen unveränderten Katalog und zeichnet offene
+    // Präsentationen neu. Der Wert wird wie gesendet weitergereicht; die
+    // Normalisierung liegt beim Empfänger (presentation-eigene-themes.js).
+    if (key === 'presentationThemes') {
+      for (const w of BrowserWindow.getAllWindows()) {
+        if (!w.isDestroyed()) w.webContents.send('presentationThemes:changed', value);
       }
     }
   };

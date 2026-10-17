@@ -16,6 +16,7 @@ These data kinds are available:
 |---|---|
 | Settings | Behavior and appearance: language, appearance, editor and view options, automatic saving, history, attachments, export options, the configuration of tasks, reminders and calendar display as well as the column preferences of the panels |
 | Color schemes | the schemes you created yourself together with the assignment of which one applies in light and which in dark mode |
+| Custom slide themes | the themes for presentations you created yourself |
 | Keyboard shortcuts | your own reassignments of the commands |
 | Format toolbar | your own layout of the button bar |
 | Status bar buttons and macros | your own access points in the status bar, the context menu section, the hide list and the macros you built yourself |
@@ -84,7 +85,7 @@ Nothing is passed over silently: every deviation from the straightforward case s
 
 > What you created as a named object is added. What is a setting or an arrangement is replaced.
 
-Added are therefore your own color schemes, the macros, the layout variants of the sidebar, the custom working modes, the bookmarks and the calendar blocks: they step **alongside** what is there, and the existing stock is not touched in the process. Replaced are the settings, the keyboard shortcut assignment, the format toolbar, the template rules and the on/off state of the extensions: a value knows no plural, and two interleaved arrangements would yield a third that nobody set up.
+Added are therefore your own color schemes, your custom slide themes, the macros, the layout variants of the sidebar, the custom working modes, the bookmarks and the calendar blocks: they step **alongside** what is there, and the existing stock is not touched in the process. Replaced are the settings, the keyboard shortcut assignment, the format toolbar, the template rules and the on/off state of the extensions: a value knows no plural, and two interleaved arrangements would yield a third that nobody set up.
 
 **With an identical name the existing entry stays unchanged**, and the one read in comes alongside it with a distinguishing addition: "Sample" becomes "Sample (2)". The preview names every such renaming by name. References follow along — a macro read in that receives a new identifier is still found by its button.
 

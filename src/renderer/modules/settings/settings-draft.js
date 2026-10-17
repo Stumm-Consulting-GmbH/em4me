@@ -42,7 +42,11 @@ import {
 } from './settings-mount.js';
 import { readProfilesFromConfig } from './settings-profiles.js';
 import { pageState } from './settings-shared.js';
-import { normalizeTimestampDraft, readPdfExportFromStore } from './settings-small-sections.js';
+import {
+  normalizeTimestampDraft,
+  readFolienExportFromStore,
+  readPdfExportFromStore,
+} from './settings-small-sections.js';
 import { readTemplatesFromConfig } from './settings-templates.js';
 // 4T-001455 (Epic 3E-000190): Verknuepfungen des Bereichs.
 import { readAreaLinksFromConfig } from './settings-area-links.js';
@@ -133,6 +137,10 @@ export function buildDraft() {
     // geladenen Stand fuer den Nur-bei-Aenderung-Persist.
     exportPdf: null,
     exportPdfSnapshot: null,
+    // 4T-002283 (Epic 3E-000348): Schalter «Sprecher-Notizen mitgeben» der
+    // Gruppe «Foliensatz» im selben Bereich, null = noch nicht geladen.
+    exportFolien: null,
+    exportFolienSnapshot: null,
     // 4T-000332 (Epic 3E-000060): Dokument-Historie (App-Schalter, Zeitparameter,
     // Bereichs-Default). null = noch nicht geladen (Muster exportPdf).
     history: null,
@@ -176,6 +184,12 @@ function ladeAppearanceInDraft() {
     if (generation !== pageState.generation || !pageState.draft) return;
     pageState.draft.exportPdf = { ...values };
     pageState.draft.exportPdfSnapshot = { ...values };
+    if (pageState.activeSectionId === 'export') renderActiveSection();
+  });
+  readFolienExportFromStore().then((values) => {
+    if (generation !== pageState.generation || !pageState.draft) return;
+    pageState.draft.exportFolien = { ...values };
+    pageState.draft.exportFolienSnapshot = { ...values };
     if (pageState.activeSectionId === 'export') renderActiveSection();
   });
   readHistoryFromStore().then((values) => {

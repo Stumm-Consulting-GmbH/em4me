@@ -14,6 +14,198 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.149.0.3972] - 2026-10-17 — Präsentations-Ansicht Stufe 2: Referenten-Ansicht, Übersicht und eigene Themes
+
+Zug 3E-000362
+mit einem Mitglied, als ausdrückliche Anweisung des Product Owners unter der
+Regelgröße: die Stufe 2 der Präsentations-Ansicht
+(3E-000348).
+Wer vorträgt, bekommt ein eigenes Fenster für das Publikum und behält im
+Hauptfenster die Referenten-Ansicht mit nächster Folie, Notizen und Zeit; der
+Foliensatz lässt sich als Raster überblicken, Listen-Punkte decken sich
+schrittweise auf, eine übervolle Folie verkleinert sich, und die Gestaltung
+wird eigen — als benannt gespeichertes Theme in den Einstellungen oder für
+eine einzelne Datei über einen Dialog. Dazu kommen Angaben je Folie und die
+Trennung an Überschriften in der Schreibweise des verbreiteten
+Folien-Werkzeugs und die Sprecher-Notizen in beiden Ausgaben des Foliensatzes.
+Konzept-Runde und Entscheidungen in
+4T-002276,
+der Abschluss-Anteil in
+4T-002286.
+
+### Neu
+
+- **Angaben je Folie in Marp-Schreibweise und Trennung an Überschriften**
+  (`4T-002277`, Entscheidung D1 vom 2026-10-14). Ein HTML-Kommentar auf einer
+  Folie trägt Angaben in drei Geltungen: mit `_` nur für diese Folie
+  (`<!-- _backgroundColor: #123456 -->`), ohne `_` ab dieser Folie für alle
+  folgenden, und `headingDivider` global mit dem letzten Wert. Gedeutet werden
+  die Schlüssel des Vorbilds mit hiesiger Entsprechung — `backgroundColor` und
+  `backgroundImage` auf den Slot `background`, `color` auf `text`, `header`,
+  `footer`, `paginate` mit `true`, `false`, `hold` und `skip`, `theme` als
+  Wechsel ab dieser Folie — und die sieben Slot-Namen selbst; die übrigen
+  Schlüssel des Vorbilds bleiben ohne Wirkung und ohne Hinweis. Ein
+  ungültiger Wert und ein unbekannter Theme-Name lassen den geltenden Wert
+  stehen und erscheinen in der Hinweis-Zeile ihrer Folie. Ein Slot-Wert lädt
+  weiterhin keine Ressource; ein Hintergrundbild je Folie kommt über die
+  Bild-Schreibweise `![bg](…)`. `headingDivider: N` (Kopf oder Kommentar)
+  beginnt vor jeder Überschrift der Ebene 1 bis N eine neue Folie, außer die
+  Überschrift steht ohnehin am Anfang ihrer Folie; Überschriften in
+  Code-Zäunen, Listen und Zitaten trennen nicht, die Listen-Form des Vorbilds
+  bleibt ohne Wirkung. Die Ergebnis-Form je Folie im Modell des Format-Kerns
+  trägt die wirksame Gestaltung (`gestaltung`), die Aufdeck-Schritte
+  (`aufdeckSchritte`) und die Notizen als Liste mit Herkunft; die Deutung
+  liegt in der Schwester-Datei
+  `src/shared/presentation/presentation-folien-schluessel.js`. Listen-Punkte
+  mit `*` oder `1)` sind Aufdeck-Schritte.
+- **Vorführung im eigenen Fenster** (`4T-002278`, Entscheidung B1 vom
+  2026-10-14). «Ansicht → Präsentation → Vorführung im eigenen Fenster» öffnet
+  ein Publikums-Fenster, das allein die Folie zeigt: mit zwei oder mehr
+  Bildschirmen im Vollbild auf dem ersten, auf dem das Hauptfenster nicht
+  liegt, mit einem Bildschirm als gewöhnliches Fenster von 960 × 540. Das
+  Hauptfenster behält Menü und Bedienung; geblättert wird in beiden Fenstern
+  mit Tasten, Mausklick und Mausrad, Esc beendet. Das Publikums-Fenster ist
+  eine zweite Fensterart mit eigenem Erzeuger
+  (`src/main/praesentation-fenster.js`), eigener Seite (`publikum.html` mit
+  eigenem Bau-Einstieg), schmalem Preload (`preload-publikum.js`, allein
+  `bereit`, `onFolie` und `eingabe`), `sandbox: true` und eigener
+  Inhalts-Regel; es zeigt die im Hauptfenster gezeichnete Folie in einem
+  Rahmen ohne Skript und erscheint weder in Fenster-Liste noch
+  Sitzungs-Persistenz noch Fenster-Menü. Neue Kanal-Gruppe
+  `src/main/ipc/presentation-window.js` mit `presentationWindow:open`,
+  `:close`, `:slide`, `:input`, `:closed` und `audience:ready`, `:input`,
+  `:slide`; jede Nutzlast wird im Hauptprozess geprüft. «Vorführung beenden»
+  steht seither auch im Menü. Ohne Vorgabe-Kürzel.
+- **Referenten-Ansicht** (`4T-002279`). «Ansicht → Präsentation →
+  Referenten-Ansicht» öffnet das Publikums-Fenster und macht die Fläche des
+  Hauptfensters zur Referenten-Ansicht: aktuelle Folie, daneben die nächste
+  (auf der letzten «Ende»), die Notizen der Folie gerendert und die Zeit mit
+  verstrichener Dauer, Uhrzeit, «Anhalten»/«Fortsetzen» und «Zurücksetzen».
+  Es gibt einen Folien-Zustand für beide Fenster; eine Änderung am Dokument
+  während des Vortrags zeichnet beide nach. Die Referenten-Ansicht endet mit
+  der Vorführung im eigenen Fenster, gleich auf welchem Weg. Ohne
+  Vorgabe-Kürzel.
+- **Folien-Übersicht, schrittweises Aufdecken, automatische Verkleinerung**
+  (`4T-002280`). «Ansicht → Präsentation → Folien-Übersicht» zeigt alle Folien
+  als Raster mit Nummer; Pfeiltasten, Pos1 und Ende bewegen die Auswahl,
+  Klick, Enter oder Leertaste wechseln zur Folie, Esc schließt ohne Wechsel.
+  In Vorführung und Referenten-Ansicht deckt «weiter» die Aufdeck-Schritte
+  einer Folie einzeln auf und erst danach die nächste Folie, «zurück» deckt
+  zu; rückwärts betretene Folien erscheinen vollständig. Ansicht, Übersicht
+  und Ausgaben zeigen jede Folie vollständig. Ohne Vorgabe-Kürzel.
+- **Eigene Folien-Themes: Speicher, Auflösung, Verteilung** (`4T-002281`,
+  Entscheidung C1 vom 2026-10-14). Eigene Themes liegen in `config.json` unter
+  `presentationThemes` als Liste aus Name, Basis (`light`, `dark` oder
+  `accent`) und den Abweichungen in den sieben Slots, normalisiert in
+  `src/shared/presentation/presentation-eigene-themes.js`. Ein Name ist
+  eindeutig ohne Rücksicht auf Groß- und Kleinschreibung und darf keinem
+  mitgelieferten Theme gehören; die Namen des Vorbilds `default`, `gaia` und
+  `uncover` sind erlaubt (Entscheidung D2). `theme: <Name>` im Kopf oder in
+  einer Angabe je Folie findet ein eigenes Theme; fehlt es, fällt die Folie mit
+  Hinweis auf `light` zurück. Änderungen erreichen alle offenen Fenster sofort,
+  und die Austausch-Datei der Einrichtung nimmt die eigenen Themes als eigene
+  Datenart mit.
+- **Abschnitt «Folien-Themes» und Dialog «Gestaltung dieser Präsentation…»**
+  (`4T-002282`, Entscheidung C2 vom 2026-10-14). Der Einstellungs-Abschnitt
+  «Folien-Themes» (an der Erweiterung, im Block der Erweiterungen) legt eigene
+  Themes aus einer Vorlage an, dupliziert, benennt um und löscht sie, mit den
+  sieben Slot-Zeilen und einer Vorschau-Folie, die bei jeder Eingabe mitgeht.
+  «Ansicht → Präsentation → Gestaltung dieser Präsentation…» zeigt dieselben
+  Zeilen über dem gewählten Theme und schreibt in den Dateikopf, als ein
+  Rückgängig-Schritt und nur den Eintrag `theme`, fremde Kopf-Zeilen bleiben
+  byte-gleich. «Als Theme speichern…» macht die Gestaltung zum eigenen Theme,
+  «Theme-Werte in die Datei übernehmen» schreibt den vollständigen Slot-Satz
+  eines eigenen Themes in die Datei, damit sie ohne das Theme weitergegeben
+  werden kann. Beide Oberflächen teilen ein Formular-Modul. Der Dialog steht
+  nur in einer änderbaren Präsentation zur Wahl (neue Bedingung
+  `praesentationAenderbar`). Ohne Vorgabe-Kürzel.
+- **Sprecher-Notizen im PDF und in den HTML-Seiten** (`4T-002283`,
+  Entscheidung des Product Owners vom 2026-10-15). Die Einstellungs-Seite
+  «Export» trägt die Gruppe «Foliensatz» mit dem Schalter «Sprecher-Notizen
+  mitgeben», Vorgabe aus. Eingeschaltet folgt im PDF jeder Folie mit Notizen
+  eine Notiz-Seite im Folien-Format («Folie N – Notizen», längere Notizen auf
+  Folge-Seiten), und jede HTML-Seite einer Folie mit Notizen trägt einen
+  zugeklappten Bereich «Notizen»; beide schöpfen aus derselben Notiz-Seite.
+  Die Meldung nennt dann die Zahl der mitgegebenen Notizen statt «nicht
+  enthalten».
+
+### Geändert
+
+- **Übervolle Folien werden verkleinert statt nur markiert** (`4T-002280`).
+  Passt der Inhalt nicht auf die Folie, wird er als Ganzes bis auf die Hälfte
+  verkleinert, bis er passt; Kopf, Fuß und Seitenzahl bleiben unverändert. Die
+  Überlauf-Markierung erscheint nur noch, wenn selbst die Hälfte nicht reicht.
+  Die Verkleinerung wirkt in Ansicht, Vorführung, Referenten-Ansicht,
+  Übersicht, Publikums-Fenster und beiden Ausgaben gleich.
+- **Nutzen-Darstellung in Handbuch und Webseite um die Referenten-Ansicht**
+  (`3E-000348`, Entscheidung des Product Owners vom 2026-10-17, Empfehlung
+  pauschal übernommen). Der Punkt zu den Folien im Abschnitt «Ein Dokument, so
+  wie Sie es gerade brauchen» der Nutzen-Seite des Handbuchs und der
+  Nutzen-Seite der Produkt-Webseite nennt neben dem Vorführen im Vollbild das
+  Vorführen mit Referenten-Ansicht auf einem zweiten Bildschirm, in allen fünf
+  Sprachfassungen. Eigene Themes und Sprecher-Notizen im Export bleiben als
+  Verfeinerungen draußen.
+- **Der Marp-Kommentar `<!-- fit -->` ist keine Notiz mehr** (`4T-002277`).
+  Er zählt als Steuer-Kommentar und bleibt ohne Wirkung, statt als Notiz «fit»
+  zu erscheinen.
+
+### Behoben
+
+- **Gestaltungs-Block ohne Namen im Dateikopf** (`4T-002277`, Befund des
+  Bestands-Abgleichs in `4T-002276`). Ein Block unter `theme:` allein aus
+  Slot-Werten wurde verworfen und ergab `light` ohne Übersteuerung, obwohl er
+  nach Handbuch und Architektur auf `light` aufbauen sollte. Der Kopf-Leser
+  lässt ihn jetzt durch.
+
+### i18n
+
+- **Texte der Stufe in den Umsetzungs-Vorgängen** (`4T-002277`, `4T-002278`,
+  `4T-002279`, `4T-002280`, `4T-002281`, `4T-002282`, `4T-002283`), in allen
+  fünf Sprachfassungen: Menü-Einträge und
+  Kommando-Beschreibungen der vier neuen Kommandos, Fenster-Titel des
+  Publikums-Fensters, Referenten-Ansicht, Folien-Übersicht, Abschnitt
+  «Folien-Themes» und Dialog samt Namens-Regel und Slot-Namen, Hinweise je
+  Folie, Datenart der Austausch-Datei, Schalter und Meldungen der Notizen im
+  Export. **Zählung nach Kapitel 13 der Entwicklungsrichtlinien**, erhoben am
+  2026-10-15 gegen den Zug-Zweig über die Schlüssel aller Fragmente je Sprache:
+  je Sprache **74 neue Schlüssel** (4426 statt 4352), keiner geändert, keiner
+  entfernt, in allen fünf Sprachen gleich.
+- **Funktions-Katalog und Handbuch der Stufe 2** (`4T-002285`), in allen fünf
+  Sprachfassungen: Handbuch-Seite «Präsentation» um Vortragen mit zwei
+  Bildschirmen, Übersicht und Aufdecken, Angaben je Folie und Trennung an
+  Überschriften, eigene Themes und Notizen im Export, Kapitel «Verträglichkeit
+  mit anderen Werkzeugen» und «Grenzen» fortgeschrieben; die Seiten
+  «Überblick», «Ansichten und Darstellung» und «Einstellungen exportieren und
+  importieren» nachgezogen; vier neue Katalog-Zeilen (Folien-Übersicht,
+  Referenten-Ansicht und Vorführung im eigenen Fenster, Gestaltung einer
+  Präsentation, eigene Folien-Themes) und die Demo-Station «15 Presentation» von
+  fünf auf neun Folien erweitert. **Zählung nach Kapitel 13 der
+  Entwicklungsrichtlinien:** je Sprache **12 neue und 7 geänderte
+  Katalog-Schlüssel**, keiner entfernt, in allen fünf Sprachen gleich; mit den
+  Umsetzungs-Vorgängen trägt jede Sprache damit 4438 Schlüssel
+  (`node scripts/check-i18n.js` am 2026-10-17).
+
+### Intern
+
+- **Ablauf-Tests der Stufe und Prüfung an Marp-Dateien** (`4T-002284`):
+  Ablauf-Fälle ab `PR-14` an der gestarteten Anwendung samt dem Fall mit zwei
+  Fenstern, dazu die Prüfung an nachgebauten Dateien des Vorbilds mit Angaben
+  je Folie, `headingDivider` und Aufdeck-Listen.
+- **Roadmap-Zuordnung der Stufe** (`4T-002276`): Die Konzept-Runde hat das
+  Epic der Stufe und das Zug-Epic in der Roadmap-Zuordnung eingetragen; die
+  Kachel «Präsentationen aus Markdown» bleibt «geplant» bis zur Stufe 3. Kein
+  Anwender-Text nötig.
+- **Die Nachzügler des vorigen Releases** (Sammeltask `4T-002171` des Zuges
+  `3E-000350` und `4T-002266`). Nach der Auslieferung von 1.148.0 hat der
+  Abschluss des Sammeltasks die Bildschirmfotos der Produkt-Webseite erneuert;
+  sein Betreff nennt die dabei angelegten Pflege-Vorgänge `4T-002261` bis
+  `4T-002265` und `4T-002267` bis `4T-002270`, von denen keiner zu diesem Zug
+  gehört. `4T-002266` lässt die Unit-Suite die Themes-Datei der
+  Code-Hervorhebung im Vorlauf erzeugen (`scripts/build-hljs-themes.js`). Beide
+  Commits liegen seither auf dem Integrationsstand und stehen hier, weil sie
+  Dateien der Webseite oder des Bau-Ablaufs berühren; kein Anwendungs-Code
+  berührt, kein Anwender-Text nötig.
+
 ## [1.148.0.3892] - 2026-10-11 — HTML-Export und Präsentations-Ansicht Stufe 1
 
 Zug 3E-000350

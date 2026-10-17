@@ -38,6 +38,7 @@
 import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
+import { eigeneThemes, themesStand } from './presentation-themes-stand.js';
 import { PRESENTATION_VIEW_MODE, istPraesentationsModusVerfuegbar } from './presentation-modus.js';
 import {
   ARTIKEL_KLASSE,
@@ -48,6 +49,7 @@ import {
   pruefeUeberlauf,
   zeichneFolie,
 } from './presentation-folie.js';
+import { blaetterZiel, zeigeAufdeckStand } from './presentation-aufdecken.js';
 
 // Takt des verzögerten Nachzugs, gleich dem der Tafel.
 const PRESENTATION_RENDER_DEBOUNCE_MS = 200;
@@ -72,7 +74,22 @@ const HINWEIS_TEXTE = {
   slotUnbekannt: 'presentation.hinweis.slotUnbekannt',
   slotWertUngueltig: 'presentation.hinweis.slotWertUngueltig',
   unbekannteGroesse: 'presentation.hinweis.unbekannteGroesse',
+  // 4T-002277: Befunde der Angaben je Folie (nur auf ihrer Folie) und der
+  // globale Befund zu `headingDivider` (auf jeder Folie).
+  folieWertUngueltig: 'presentation.hinweis.folieWertUngueltig',
+  folieThemeUnbekannt: 'presentation.hinweis.folieThemeUnbekannt',
+  headingDividerUngueltig: 'presentation.hinweis.headingDividerUngueltig',
 };
+const FOLIEN_BEFUNDE = ['folieWertUngueltig', 'folieThemeUnbekannt'];
+
+// Die Befunde des Kerns, die auf der gezeigten Folie als Hinweis erscheinen.
+function befundeDerFolie(befunde, folie) {
+  return (Array.isArray(befunde) ? befunde : []).filter((b) => {
+    if (b.code === 'headingDividerUngueltig') return true;
+    if (!FOLIEN_BEFUNDE.includes(b.code) || !folie) return false;
+    return b.zeile >= folie.vonZeile && b.zeile <= folie.bisZeile;
+  });
+}
 export const ZURUECK_KLASSE = 'praesentation-zurueck';
 export const WEITER_KLASSE = 'praesentation-weiter';
 export const VORFUEHREN_KLASSE = 'praesentation-vorfuehren';
@@ -81,6 +98,9 @@ let umgebung = null;
 let teilbaumSchritte = null;
 // 4T-002162: Start der Vorführung für die Schaltfläche der Leiste.
 let vorfuehrungsStart = null;
+// 4T-002279 (Epic 3E-000348): Meldung nach jedem Zeichnen der Spalte, für die
+// Referenten-Ansicht (presentation-referent.js): (paneIdx, neu) => void.
+let nachZeichnen = null;
 
 // Zuletzt gemeldete Verfügbarkeit je Spalte; siehe pruefeVerfuegbarkeit.
 const verfuegbar = [];
@@ -108,6 +128,19 @@ export function registrierePraesentationsTeilbaumSchritte(fn) {
 /** Reicht den Start der Vorführung herein (4T-002162): (paneIdx) => void. */
 export function registriereVorfuehrungsStart(fn) {
   if (typeof fn === 'function') vorfuehrungsStart = fn;
+}
+
+/**
+ * Reicht die Meldung nach dem Zeichnen herein (4T-002279): (paneIdx, neu) =>
+ * void; `neu` ist true, wenn die Folie neu gezeichnet wurde, und false, wenn
+ * der Stand unverändert war und nur eingepasst wurde.
+ */
+export function registriereNachZeichnen(fn) {
+  nachZeichnen = typeof fn === 'function' ? fn : null;
+}
+
+function meldeGezeichnet(paneIdx, neu) {
+  if (nachZeichnen) nachZeichnen(paneIdx, neu);
 }
 
 /**
@@ -147,14 +180,20 @@ function rufeZugang(name, ...args) {
 function leseModell(paneIdx, tab) {
   const kommentareAktiv = isExtensionActive(KOMMENTAR_ERWEITERUNG);
   const stand = gelesen[paneIdx];
-  if (stand && stand.content === tab.content && stand.kommentareAktiv === kommentareAktiv) {
+  const themes = themesStand();
+  if (
+    stand &&
+    stand.content === tab.content &&
+    stand.kommentareAktiv === kommentareAktiv &&
+    stand.themes === themes
+  ) {
     return stand.modell;
   }
   const modell =
     typeof api.lesePraesentation === 'function'
-      ? api.lesePraesentation(tab.content, { kommentareAktiv })
+      ? api.lesePraesentation(tab.content, { kommentareAktiv, eigeneThemes: eigeneThemes() })
       : null;
-  gelesen[paneIdx] = { content: tab.content, kommentareAktiv, modell };
+  gelesen[paneIdx] = { content: tab.content, kommentareAktiv, themes, modell };
   return modell;
 }
 
@@ -342,17 +381,14 @@ export function richtungAusRad(ereignis, sperrZustand) {
 export function blaettere(paneIdx, richtung) {
   const tab = rufeZugang('aktivesDokument', paneIdx);
   if (!tab || tab.viewMode !== PRESENTATION_VIEW_MODE) return null;
-  const anzahl = folienAus(leseModell(paneIdx, tab)).length;
-  const jetzt = klemme(folieJeDokument.get(tab) || 0, anzahl);
-  let ziel = jetzt;
-  if (richtung === 'weiter') ziel = jetzt + 1;
-  else if (richtung === 'zurueck') ziel = jetzt - 1;
-  else if (richtung === 'erste') ziel = 0;
-  else if (richtung === 'letzte') ziel = anzahl - 1;
-  ziel = klemme(ziel, anzahl);
-  folieJeDokument.set(tab, ziel);
-  if (ziel !== jetzt) renderPresentation(paneIdx);
-  return ziel;
+  const folien = folienAus(leseModell(paneIdx, tab));
+  const jetzt = klemme(folieJeDokument.get(tab) || 0, folien.length);
+  // 4T-002280: Aufdecken in der Vorführung und Sprung aus der Übersicht
+  // (eine Zahl als Richtung) regelt presentation-aufdecken.js.
+  const ziel = blaetterZiel({ paneIdx, tab, folien, jetzt, richtung });
+  folieJeDokument.set(tab, ziel.index);
+  if (ziel.geaendert) renderPresentation(paneIdx);
+  return ziel.index;
 }
 
 /**
@@ -439,9 +475,12 @@ export function renderPresentation(paneIdx, { anSchreibmarke = false } = {}) {
     stand.index === index &&
     stand.pfad === pfad &&
     stand.sprache === sprache &&
+    stand.themes === themesStand() &&
     stand.content === tab.content
   ) {
     passeFolieEin(buehne);
+    zeigeAufdeckStand(paneIdx, tab, index, folie, folieEl);
+    meldeGezeichnet(paneIdx, false);
     return container;
   }
   const modell = leseModell(paneIdx, tab);
@@ -459,10 +498,20 @@ export function renderPresentation(paneIdx, { anSchreibmarke = false } = {}) {
   const kopfBefunde = (modell && Array.isArray(modell.befunde) ? modell.befunde : [])
     .filter((b) => b.code === 'themeUngueltig' || b.code === 'unbekannteGroesse')
     .map((b) => ({ code: b.code, detail: kopfWert(kopf, b.code) }));
-  setzeHinweise(flaeche, [...kopfBefunde, ...gestaltung.befunde]);
+  const folienBefunde = befundeDerFolie(modell && modell.befunde, folie);
+  setzeHinweise(flaeche, [...kopfBefunde, ...gestaltung.befunde, ...folienBefunde]);
   passeFolieEin(buehne);
   pruefeUeberlauf(huelle);
-  gezeichnet[paneIdx] = { quelltext, index, pfad, sprache, content: tab.content };
+  zeigeAufdeckStand(paneIdx, tab, index, folie, folieEl);
+  gezeichnet[paneIdx] = {
+    quelltext,
+    index,
+    pfad,
+    sprache,
+    content: tab.content,
+    themes: themesStand(),
+  };
+  meldeGezeichnet(paneIdx, true);
   return container;
 }
 
@@ -488,6 +537,83 @@ function setzeHinweise(flaeche, befunde) {
     .map((b) => t(HINWEIS_TEXTE[b.code]).replace('{wert}', String(b.detail || '')));
   zeile.textContent = texte.join(' · ');
   zeile.hidden = texte.length === 0;
+}
+
+/**
+ * Stand der gezeigten Folie der Spalte: Index und Zahl der Folien (4T-002278:
+ * das Publikums-Fenster bekommt beides mit der gezeichneten Folie).
+ *
+ * @param {number} paneIdx
+ * @returns {{index: number, anzahl: number}|null} null ohne gezeigte Präsentation.
+ */
+export function folienStand(paneIdx) {
+  const tab = gezeigtePraesentation(paneIdx);
+  if (!tab) return null;
+  const anzahl = folienAus(leseModell(paneIdx, tab)).length;
+  return { index: klemme(folieJeDokument.get(tab) || 0, anzahl), anzahl };
+}
+
+/**
+ * Die Folien der gezeigten Präsentation der Spalte (4T-002279: Notizen und
+ * nächste Folie der Referenten-Ansicht); ohne gezeigte Präsentation leer.
+ *
+ * @param {number} paneIdx
+ * @returns {Array<object>}
+ */
+export function folienDerSpalte(paneIdx) {
+  const tab = gezeigtePraesentation(paneIdx);
+  return tab ? folienAus(leseModell(paneIdx, tab)) : [];
+}
+
+/**
+ * Rendert Markdown der gezeigten Präsentation in ein Element, über dieselbe
+ * Pipeline und denselben Teilbaum-Schritt-Satz wie die Folie (4T-002279: die
+ * Notizen der Referenten-Ansicht). Kein Roh-HTML: Die Pipeline des Viewers
+ * rendert ohne HTML-Durchlass.
+ *
+ * @param {number} paneIdx
+ * @param {Element} ziel
+ * @param {string} markdown
+ * @returns {boolean} false ohne gezeigte Präsentation.
+ */
+export function rendereInElement(paneIdx, ziel, markdown) {
+  const tab = gezeigtePraesentation(paneIdx);
+  if (!tab || !ziel) return false;
+  const text = typeof markdown === 'string' ? markdown : '';
+  ziel.innerHTML = text.trim()
+    ? api.renderMarkdown(text, tab.path, { frontmatterBlock: false })
+    : '';
+  if (teilbaumSchritte) teilbaumSchritte(ziel, tab.path, { dokumentText: tab.content });
+  return true;
+}
+
+/**
+ * Zeichnet eine weitere Folie der gezeigten Präsentation in ein eigenes
+ * Gerüst (4T-002279: die nächste Folie der Referenten-Ansicht), mit Kopf,
+ * Pipeline und Teilbaum-Schritten wie die gezeigte Folie.
+ *
+ * @param {number} paneIdx
+ * @param {HTMLElement} huelle Ergebnis von baueFolie.
+ * @param {number} index Null-basiert.
+ * @returns {boolean} false ohne gezeigte Präsentation oder ohne diese Folie.
+ */
+export function zeichneWeitereFolie(paneIdx, huelle, index) {
+  const tab = gezeigtePraesentation(paneIdx);
+  if (!tab || !huelle) return false;
+  const modell = leseModell(paneIdx, tab);
+  const folie = folienAus(modell)[index];
+  if (!folie) return false;
+  zeichneFolie(huelle, {
+    folie,
+    index,
+    kopf: (modell && modell.kopf) || {},
+    render: (markdown) => api.renderMarkdown(markdown, tab.path, { frontmatterBlock: false }),
+  });
+  const artikel = huelle.querySelector(`.${FOLIE_KLASSE}`);
+  if (teilbaumSchritte && artikel) {
+    teilbaumSchritte(artikel, tab.path, { dokumentText: tab.content });
+  }
+  return true;
 }
 
 /** Container der Präsentations-Ansicht der Spalte oder null. */

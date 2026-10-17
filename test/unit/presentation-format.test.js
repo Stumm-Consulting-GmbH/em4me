@@ -67,6 +67,12 @@ function trennerZeilen(model) {
   return model.folien.slice(0, -1).map((f) => f.bisZeile + 1);
 }
 
+// Die Texte der Notizen einer Folie (4T-002277: Notizen tragen Text und
+// Herkunft).
+function texte(notizen) {
+  return notizen.map((n) => n.text);
+}
+
 function folienZahl(text, optionen) {
   return lesePraesentation(text, optionen).folien.length;
 }
@@ -370,7 +376,8 @@ describe('presentation-core — Steuer-Schluessel im Kopf (AK4, AK6)', () => {
   });
 
   it('meldet ein ungueltiges Theme und faellt auf kein Theme zurueck', () => {
-    for (const wert of ['42', '[a, b]', '\n  accent: red', '""']) {
+    // Ein Block ohne `name:` ist seit 4T-002277 gueltig (AK6, eigener Fall).
+    for (const wert of ['42', '[a, b]', '""']) {
       const model = lesePraesentation(`---\npresentation: true\ntheme: ${wert}\n---\n`);
       expect(model.kopf.theme, wert).toBeNull();
       expect(
@@ -395,13 +402,13 @@ describe('presentation-core — Steuer-Schluessel im Kopf (AK4, AK6)', () => {
 describe('presentation-core — Sprecher-Notizen (AK5)', () => {
   it('liest einen einzeiligen `%%`-Kommentar als Notiz und entfernt ihn', () => {
     const [folie] = lesePraesentation(`${KOPF}# A %% kurz %%\n`).folien;
-    expect(folie.notizen).toEqual(['kurz']);
+    expect(texte(folie.notizen)).toEqual(['kurz']);
     expect(folie.quelltext).toBe('# A \n');
   });
 
   it('liest einen mehrzeiligen `%%`-Kommentar zeilentreu', () => {
     const [folie] = lesePraesentation(`${KOPF}# A\n%% erste\nzweite %%\nText\n`).folien;
-    expect(folie.notizen).toEqual(['erste\nzweite']);
+    expect(texte(folie.notizen)).toEqual(['erste\nzweite']);
     expect(folie.quelltext).toBe('# A\n\n\nText\n');
   });
 
@@ -409,14 +416,14 @@ describe('presentation-core — Sprecher-Notizen (AK5)', () => {
     const [folie] = lesePraesentation(
       `${KOPF}# A\n<!--\nzwei\nZeilen\n-->\nText <!-- mittendrin --> weiter\n`,
     ).folien;
-    expect(folie.notizen).toEqual(['zwei\nZeilen', 'mittendrin']);
+    expect(texte(folie.notizen)).toEqual(['zwei\nZeilen', 'mittendrin']);
     expect(folie.quelltext).toBe('# A\n\n\n\n\nText  weiter\n');
   });
 
   it('ordnet Notizen ihrer Folie in Dokument-Reihenfolge zu', () => {
     const text = `${KOPF}# A\n<!-- eins -->\n%% zwei %%\n\n---\n\n# B\n\n---\n\n%% drei %%\n`;
     const model = lesePraesentation(text);
-    expect(model.folien.map((f) => f.notizen)).toEqual([['eins', 'zwei'], [], ['drei']]);
+    expect(model.folien.map((f) => texte(f.notizen))).toEqual([['eins', 'zwei'], [], ['drei']]);
   });
 
   it('haelt Steuer-Kommentare aus den Notizen und fuehrt sie als Rohdaten', () => {
@@ -425,7 +432,7 @@ describe('presentation-core — Sprecher-Notizen (AK5)', () => {
     expect(folie.steuerKommentare).toEqual(['paginate: false', '_class: lead']);
     // Ein Wort mit Doppelpunkt, das kein Steuer-Schluessel ist, bleibt wie bei
     // Marp eine Notiz.
-    expect(folie.notizen).toEqual(['Hinweis: langsam sprechen']);
+    expect(texte(folie.notizen)).toEqual(['Hinweis: langsam sprechen']);
     // Beide Formen erscheinen nicht im Quelltext der Folie.
     expect(folie.quelltext).toBe('\n\n\n# A\n');
   });
@@ -438,39 +445,39 @@ describe('presentation-core — Sprecher-Notizen (AK5)', () => {
       'prettier-ignore',
       'size: 4:3',
     ]);
-    expect(folie.notizen).toEqual([]);
+    expect(texte(folie.notizen)).toEqual([]);
   });
 
   it('behandelt `%%` bei abgeschalteter Erweiterung als Text', () => {
     const [folie] = lesePraesentation(`${KOPF}# A %% kurz %%\n`, {
       kommentareAktiv: false,
     }).folien;
-    expect(folie.notizen).toEqual([]);
+    expect(texte(folie.notizen)).toEqual([]);
     expect(folie.quelltext).toBe('# A %% kurz %%\n');
   });
 
   it('liest Kommentare in Code und Code-Spannen nicht als Notiz', () => {
     const text = `${KOPF}\`<!-- kein -->\` und \`%% kein %%\`\n\n\`\`\`\n<!-- kein -->\n%% kein %%\n\`\`\`\n`;
     const [folie] = lesePraesentation(text).folien;
-    expect(folie.notizen).toEqual([]);
+    expect(texte(folie.notizen)).toEqual([]);
     expect(folie.quelltext).toBe(text.slice(KOPF.length));
   });
 
   it('beachtet das Escape `\\%%` des Kommentar-Scanners', () => {
     const [folie] = lesePraesentation(`${KOPF}50 \\%% Rabatt\n`).folien;
-    expect(folie.notizen).toEqual([]);
+    expect(texte(folie.notizen)).toEqual([]);
   });
 
   it('stuerzt bei einem offenen `%%`-Kommentar nicht ab und folgt der Bestands-Regel', () => {
     const model = lesePraesentation(`${KOPF}# A\n%% offen bis zum Ende\n\n---\n\n# B\n`);
     expect(model.folien.length).toBe(1);
-    expect(model.folien[0].notizen).toEqual(['offen bis zum Ende\n\n---\n\n# B']);
+    expect(texte(model.folien[0].notizen)).toEqual(['offen bis zum Ende\n\n---\n\n# B']);
   });
 
   it('liest die Notizen und Steuer-Kommentare der Marp-Beispieldatei', () => {
     const model = lesePraesentation(MARP);
     expect(model.folien.length).toBe(4);
-    expect(model.folien.map((f) => f.notizen)).toEqual([
+    expect(model.folien.map((f) => texte(f.notizen))).toEqual([
       ['Begrüßen und das Thema nennen.'],
       ['Notiz über\nzwei Zeilen'],
       ['kurzer Notiz'],
@@ -532,7 +539,7 @@ describe('presentation-core — Ohne Parser', () => {
       expect(model.istPraesentation).toBe(true);
       expect(model.folien.length).toBe(1);
       expect(model.folien[0]).toMatchObject({ vonZeile: 4, quelltext: '# A\n\n---\n\n# B \n' });
-      expect(model.folien[0].notizen).toEqual(['n']);
+      expect(texte(model.folien[0].notizen)).toEqual(['n']);
       expect(model.befunde).toEqual([{ code: 'keinParser', zeile: 4, detail: '' }]);
     }
   });
@@ -563,12 +570,25 @@ describe('presentation-core — Prozess-Neutralitaet (AK7)', () => {
     );
     const importe = [...quelle.matchAll(/require\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => m[1]);
     expect(importe).toEqual([
-      'js-yaml',
       '../markdown/frontmatter.js',
       '../markdown/plugins/comments.js',
       '../markdown/fence-level.js',
       '../markdown/link-scan.js',
+      './presentation-folien-schluessel.js',
     ]);
+  });
+
+  // 4T-002277, AK9: die Schwester-Datei der Angaben je Folie ebenso.
+  it('haelt die Deutung der Angaben je Folie prozess-neutral', () => {
+    const quelle = readFileSync(
+      fileURLToPath(
+        new URL('../../src/shared/presentation/presentation-folien-schluessel.js', import.meta.url),
+      ),
+      'utf8',
+    );
+    const importe = [...quelle.matchAll(/require\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => m[1]);
+    expect(importe).toEqual(['js-yaml', './presentation-themes.js']);
+    expect(quelle).not.toMatch(/\b(document|window|electron|require\(['"]fs['"]\))\b/);
   });
 });
 
@@ -614,7 +634,7 @@ describe('presentation-core — Nachgebaute Marp-Beispiele (4T-002164)', () => {
 
   it('fuehrt im Vortrag Notizen und Steuer-Anweisungen getrennt, keine auf der Folie', () => {
     const model = lesePraesentation(MARP_VORTRAG);
-    expect(model.folien.map((f) => f.notizen)).toEqual([
+    expect(model.folien.map((f) => texte(f.notizen))).toEqual([
       ['Begrüßung: kurz vorstellen, dann zur Agenda.'],
       ['Die Agenda nur vorlesen,\nnicht erklären.'],
       [],
@@ -678,11 +698,10 @@ describe('presentation-core — Nachgebaute Marp-Beispiele (4T-002164)', () => {
     }
   });
 
-  // Abweichung, die die Messung zeigt: Steuer-Anweisungen werden nicht
-  // gedeutet (Entscheidung der Sitzung in 4T-002159); `headingDivider` teilt
-  // deshalb nicht an Ueberschriften, wie Marp es taete.
-  it('teilt bei headingDivider nicht an Ueberschriften', () => {
+  // Seit 4T-002277 deutet der Kern `headingDivider` (Abweichung der Messung
+  // aus 4T-002164 behoben): Er teilt an Ueberschriften wie Marp.
+  it('teilt bei headingDivider an Ueberschriften wie Marp', () => {
     const text = '---\nmarp: true\nheadingDivider: 2\n---\n\n# A\n\n## B\n\n## C\n';
-    expect(lesePraesentation(text).folien.length).toBe(1);
+    expect(lesePraesentation(text).folien.length).toBe(3);
   });
 });

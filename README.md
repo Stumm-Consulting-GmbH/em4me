@@ -60,13 +60,17 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   tool open here without conversion, their settings included.
 - **From document to talk** — put `presentation: true` in the head of a
   Markdown document, and a line `---` separates its slides. A view of its own
-  shows them one at a time, in one of three themes whose colours and font you
-  can adjust for that one file, with a background image or a slide split into
-  picture and text, page numbers, header and footer, and with speaker notes
-  that appear nowhere else. Present them full screen from the slide you are
-  on, page through them with the keyboard, the mouse wheel or a click, and
-  hand them on as a PDF with one slide per page or as a folder of web pages
-  that any browser shows without the application. The file stays ordinary
+  shows them one at a time, in one of three themes or a theme of your own,
+  with colours and font adjustable for that one file or for a single slide, a
+  background image or a slide split into picture and text, page numbers,
+  header and footer, and with speaker notes. An overview shows all slides as a
+  grid, list points can be revealed one by one, and a crowded slide shrinks to
+  fit. Present them full screen from the slide you are on, or in a window of
+  their own on a second screen or projector while the presenter view shows you
+  the next slide, your notes and the time; page through them with the
+  keyboard, the mouse wheel or a click, and hand them on as a PDF with one
+  slide per page or as a folder of web pages that any browser shows without
+  the application, with your notes if you choose. The file stays ordinary
   Markdown, and presentations made for another widely used slide tool, marked
   `marp: true`, open here as well.
 - **Tables that calculate and query** — data tables with typed columns

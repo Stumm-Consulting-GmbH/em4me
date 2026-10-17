@@ -4,6 +4,7 @@
 // gegebener Spaltengroesse, die `bg`-Schreibweise nach Marp mit Zweiteilung,
 // der Weg der Hintergrund-Bilder durch die Render-Pipeline, Seitenzahl, Kopf-
 // und Fusszeile, die Ueberlauf-Markierung und die Hinweis-Zeile der Flaeche.
+// 4T-002280: dazu die Verkleinerung übervoller Folien.
 //
 // jsdom misst nicht: Spaltengroesse und Inhaltshoehe werden je Fall ueber
 // `clientWidth`/`clientHeight`/`scrollHeight` am Element gestellt. Die
@@ -18,9 +19,11 @@ import { fileURLToPath } from 'node:url';
 import markdownModul, { renderMarkdown } from '../../../src/shared/markdown/markdown.js';
 import { lesePraesentation } from '../../../src/shared/presentation/presentation-core.js';
 import {
+  VERKLEINERUNG_MIN,
   bgAngabe,
   hintergrundAnordnung,
   hintergrundBilderZiehen,
+  verkleinerungsFaktor,
 } from '../../../src/shared/presentation/presentation-darstellung.js';
 import { FOLIEN_THEMES } from '../../../src/shared/presentation/presentation-themes.js';
 import { COLOR_SLOTS } from '../../../src/shared/color-schemes.js';
@@ -49,6 +52,7 @@ const {
   pruefeUeberlauf,
   zeichneFolie,
   UEBERLAUF_ZUSTAND,
+  VERKLEINERUNG_ATTR,
 } = await import('../../../src/renderer/modules/presentation/presentation-folie.js');
 const { initPresentationPane, renderPresentation } =
   await import('../../../src/renderer/modules/presentation/presentation-pane.js');
@@ -357,6 +361,50 @@ describe('Seitenzahl, Kopf- und Fusszeile (4S-001052)', () => {
   });
 });
 
+// 4T-002277, AK8: Die Folie liest ihre wirksame Gestaltung aus dem Kern.
+describe('Angaben je Folie an der Folie (4T-002277, AK8)', () => {
+  const folienVon = (text) =>
+    lesePraesentation(text, { md: markdownModul.md, kommentareAktiv: true });
+
+  it('zeigt die eigene Hintergrundfarbe nur auf ihrer Folie, die folgende im Theme', () => {
+    const text =
+      '---\npresentation: true\ntheme: dark\n---\n# A\n\n---\n\n<!-- _backgroundColor: #c0392b -->\n# B\n\n---\n\n# C\n';
+    const m = folienVon(text);
+    const hintergrund = m.folien.map((folie, index) => {
+      const huelle = baueFolie();
+      document.body.append(huelle);
+      zeichneFolie(huelle, { folie, index, kopf: m.kopf, render: echt });
+      return slideVon(huelle).style.getPropertyValue('--slide-background');
+    });
+    expect(hintergrund).toEqual([
+      FOLIEN_THEMES.dark.background,
+      '#c0392b',
+      FOLIEN_THEMES.dark.background,
+    ]);
+  });
+
+  it('wechselt Theme, Farbsatz, Kopfzeile und Seitenzahl je Folie', () => {
+    const text =
+      '---\npresentation: true\npaginate: true\nheader: Kopf\n---\n# A\n\n---\n\n<!-- _theme: dark -->\n<!-- _header: Eigen -->\n<!-- _paginate: hold -->\n# B\n';
+    const m = folienVon(text);
+    const huelle = baueFolie();
+    document.body.append(huelle);
+    const ergebnis = zeichneFolie(huelle, {
+      folie: m.folien[1],
+      index: 1,
+      kopf: m.kopf,
+      render: echt,
+    });
+    const slide = slideVon(huelle);
+    expect(ergebnis.name).toBe('dark');
+    expect(slide.dataset.theme).toBe('dark');
+    expect(slide.classList.contains('presentation-slide--syntax-dark')).toBe(true);
+    expect(teil(huelle, 'presentation-slide-kopf').textContent).toBe('Eigen');
+    // `hold` zeigt die Zahl, zaehlt aber nicht weiter: Folie 2 traegt 1.
+    expect(teil(huelle, 'presentation-slide-nummer').textContent).toBe('1');
+  });
+});
+
 describe('Ueberlauf-Markierung (AK8)', () => {
   function stelleHoehen(huelle, scroll, client) {
     const artikel = teil(huelle, 'praesentation-folie');
@@ -394,6 +442,107 @@ describe('Ueberlauf-Markierung (AK8)', () => {
     );
     // Abgeschnitten wird an der Folie und an ihrem Inhalt.
     expect(css).toMatch(/\.presentation-slide \{[^}]*overflow: hidden;/);
+  });
+});
+
+describe('Verkleinerung übervoller Folien (4T-002280, AK4)', () => {
+  // Modell der Messung: Der Inhalt braucht `inhalt.hoehe` Folien-Pixel, der
+  // Artikel ist bei Faktor f um 1/f höher (720 / f).
+  function stelleInhalt(huelle, inhalt) {
+    const artikel = teil(huelle, 'praesentation-folie');
+    const faktor = () => Number(artikel.getAttribute(VERKLEINERUNG_ATTR)) || 1;
+    Object.defineProperty(artikel, 'clientHeight', {
+      configurable: true,
+      get: () => 720 / faktor(),
+    });
+    Object.defineProperty(artikel, 'scrollHeight', {
+      configurable: true,
+      get: () => Math.max(inhalt.hoehe, artikel.clientHeight),
+    });
+    return artikel;
+  }
+
+  function zeichneUebervoll(hoehe, kopf = {}) {
+    const huelle = baueFolie();
+    document.body.append(huelle);
+    const inhalt = { hoehe };
+    const artikel = stelleInhalt(huelle, inhalt);
+    const folie = { quelltext: '# Viel\n\n- eins\n- zwei' };
+    const ergebnis = zeichneFolie(huelle, { folie, index: 0, kopf, render: echt });
+    return { huelle, slide: slideVon(huelle), artikel, inhalt, ergebnis };
+  }
+
+  it('der Faktor ist der größte, bei dem der Inhalt passt, zwischen Untergrenze und 1', () => {
+    expect(VERKLEINERUNG_MIN).toBe(0.5);
+    expect(verkleinerungsFaktor(() => true)).toBe(1);
+    expect(verkleinerungsFaktor(() => false)).toBe(VERKLEINERUNG_MIN);
+    const f = verkleinerungsFaktor((x) => x <= 0.8);
+    expect(f).toBeLessThanOrEqual(0.8);
+    expect(f).toBeGreaterThan(0.795);
+  });
+
+  it('zeichneFolie verkleinert den Inhalt einer übervollen Folie, bis er passt', () => {
+    const kopf = { header: 'Kopf', footer: 'Fuß', paginate: true };
+    const { huelle, slide, artikel } = zeichneUebervoll(900, kopf);
+    const f = Number(artikel.getAttribute(VERKLEINERUNG_ATTR));
+    // Die Messung duldet ein Pixel, wie die Überlauf-Prüfung der Stufe 1.
+    expect(f).toBeLessThanOrEqual(0.801);
+    expect(f).toBeGreaterThan(0.795);
+    expect(artikel.style.transform).toBe(`scale(${f})`);
+    expect(artikel.style.transformOrigin).toBe('0 0');
+    expect(parseFloat(artikel.style.width)).toBeCloseTo(100 / f, 3);
+    expect(artikel.style.height).toBe(artikel.style.width);
+    expect(artikel.style.right).toBe('auto');
+    // Keine Markierung, der Inhalt passt.
+    expect(slide.classList).not.toContain(UEBERLAUF_ZUSTAND);
+    expect(pruefeUeberlauf(huelle)).toBe(false);
+    // Kopf, Fuß und Seitenzahl bleiben unverändert.
+    for (const klasse of ['presentation-slide-kopf', 'presentation-slide-fuss']) {
+      expect(teil(huelle, klasse).hidden).toBe(false);
+      expect(teil(huelle, klasse).getAttribute('style')).toBeNull();
+    }
+    expect(teil(huelle, 'presentation-slide-nummer').textContent).toBe('1');
+    expect(teil(huelle, 'presentation-slide-nummer').getAttribute('style')).toBeNull();
+  });
+
+  it('ein passender Inhalt bleibt unverkleinert; schrumpft er, fällt die Verkleinerung weg', () => {
+    const { huelle, artikel, inhalt } = zeichneUebervoll(900);
+    expect(artikel.hasAttribute(VERKLEINERUNG_ATTR)).toBe(true);
+    inhalt.hoehe = 600;
+    expect(pruefeUeberlauf(huelle)).toBe(false);
+    expect(artikel.hasAttribute(VERKLEINERUNG_ATTR)).toBe(false);
+    expect(artikel.style.transform).toBe('');
+    expect(artikel.style.width).toBe('');
+  });
+
+  it('passt der Inhalt selbst bei der Untergrenze nicht, bleibt sie, und die Markierung erscheint', () => {
+    const { huelle, slide, artikel } = zeichneUebervoll(2000);
+    expect(artikel.getAttribute(VERKLEINERUNG_ATTR)).toBe('0.5000');
+    expect(slide.classList).toContain(UEBERLAUF_ZUSTAND);
+    expect(pruefeUeberlauf(huelle)).toBe(true);
+  });
+
+  it('der Innenrand wächst mit, damit der sichtbare Rand gleich bleibt', () => {
+    const echterStil = window.getComputedStyle;
+    const spion = vi.spyOn(window, 'getComputedStyle').mockImplementation((el) => {
+      if (el.classList && el.classList.contains('praesentation-folie')) {
+        return {
+          paddingTop: '78px',
+          paddingRight: '78px',
+          paddingBottom: '78px',
+          paddingLeft: '78px',
+        };
+      }
+      return echterStil(el);
+    });
+    try {
+      const { artikel } = zeichneUebervoll(900);
+      const f = Number(artikel.getAttribute(VERKLEINERUNG_ATTR));
+      expect(parseFloat(artikel.style.paddingTop)).toBeCloseTo(78 / f, 1);
+      expect(parseFloat(artikel.style.paddingLeft) * f).toBeCloseTo(78, 1);
+    } finally {
+      spion.mockRestore();
+    }
   });
 });
 
@@ -474,6 +623,21 @@ describe('Flaeche: Folie und Hinweis-Zeile (AK3, AK5)', () => {
     oeffne(['size: "5:4"'], ['# Eins']);
     expect(hinweis().textContent).toBe('Unbekanntes Folien-Format „5:4“; gezeigt wird 16:9.');
     expect(container.querySelector('.presentation-slide').dataset.size).toBe('16:9');
+  });
+
+  // 4T-002277: Befunde der Angaben je Folie erscheinen auf ihrer Folie.
+  it('benennt einen ungueltigen Wert und ein unbekanntes Theme je Folie nur auf ihrer Folie', () => {
+    oeffne(
+      [],
+      ['# Eins', '', '---', '', '<!-- _accent: url(x.png) -->', '<!-- _theme: gaia -->', '# Zwei'],
+    );
+    expect(hinweis().hidden).toBe(true);
+    container
+      .querySelector('.praesentation-flaeche')
+      .dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    const text = hinweis().textContent;
+    expect(text).toContain('Ungültiger Wert für „accent“ in einer Angabe dieser Folie');
+    expect(text).toContain('Unbekanntes Theme „gaia“ in einer Angabe dieser Folie');
   });
 
   it('zwei Folien mit gleichem Inhalt tragen je ihre eigene Seitenzahl', () => {

@@ -128,7 +128,11 @@
   "menu.file.importJsonCanvas": "Fichier JSON Canvas…",
   "menu.view.presentationMenu": "Présentation",
   "menu.view.presentationStart": "Lancer le diaporama",
+  "menu.view.presentationStartWindow": "Diaporama dans une fenêtre séparée",
+  "menu.view.presentationPresenter": "Mode présentateur",
+  "menu.view.presentationOverview": "Vue d’ensemble des diapositives",
   "menu.view.presentationNew": "Nouvelle présentation",
   "menu.file.exportPresentationPdf": "Exporter les diapositives en PDF…",
-  "menu.file.exportPresentationHtml": "Exporter les diapositives en HTML…"
+  "menu.file.exportPresentationHtml": "Exporter les diapositives en HTML…",
+  "menu.view.presentationGestaltung": "Mise en forme de cette présentation…"
 }

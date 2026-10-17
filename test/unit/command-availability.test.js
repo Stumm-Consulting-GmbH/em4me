@@ -189,7 +189,7 @@ describe('Kontext-Vertrag (4T-001635)', () => {
 });
 
 describe('Bedingungs-Katalog (4T-001635)', () => {
-  it('traegt die siebenundzwanzig benannten Bedingungen des Katalogs', () => {
+  it('traegt die achtundzwanzig benannten Bedingungen des Katalogs', () => {
     expect(AVAILABILITY_NAMES).toEqual([
       'immer',
       'anyTab',
@@ -230,6 +230,11 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
       // ausdrücklich, weil beide Einträge unter dem Untermenü «Exportieren»
       // mit eigener Freigabe-Regel hängen.
       'praesentationsDokument',
+      // 4T-002282 (Epic 3E-000348): die Bedingung des Dialogs «Gestaltung
+      // dieser Präsentation…», der in den Dateikopf schreibt — eine änderbare
+      // Präsentation in jeder Ansicht; sie liest editMode wie die beiden
+      // Diagramm-Bedingungen.
+      'praesentationAenderbar',
       // 4T-001849 (Epic 3E-000110): die Bedingung der Tafel-Befehle, im
       // Zuschnitt von canvasKarte — die Karte entsteht in der gezeigten Tafel,
       // und die gibt es nur in dieser Ansicht.
@@ -842,6 +847,17 @@ const MENUE_BASISLINIE = new Map([
   // «Präsentation», aus demselben Grund wie der Modus-Eintrag darüber; seine
   // Basislinie ist die Bedingung, mit der er eingehängt wird.
   ['presentation.start', 'praesentationsAnsichtAktiv'],
+  // 4T-002278 (Epic 3E-000348): die Vorführung im eigenen Fenster und das Ende
+  // im selben Untermenü, aus demselben Grund; Bedingung wie beim Start.
+  ['presentation.startWindow', 'praesentationsAnsichtAktiv'],
+  ['presentation.presenterView', 'praesentationsAnsichtAktiv'],
+  ['presentation.stop', 'praesentationsAnsichtAktiv'],
+  // 4T-002280 (Epic 3E-000348): die Folien-Übersicht, nur in der Ansicht.
+  ['presentation.overview', 'praesentationsAnsichtAktiv'],
+  // 4T-002282 (Epic 3E-000348): der Dialog «Gestaltung dieser Präsentation…»
+  // im selben Untermenü, aus demselben Grund; seine Basislinie ist die
+  // Bedingung, mit der er eingehängt wird.
+  ['presentation.gestaltung', 'praesentationAenderbar'],
   // 4T-002163 (Epic 3E-000149): der Weg zu einer neuen Präsentation im selben
   // Untermenü, aus demselben Grund; wie die neue Kanban-Tafel immer wählbar.
   ['presentation.new', 'immer'],
@@ -988,10 +1004,16 @@ function menueEintraege() {
   return eintraege;
 }
 
-// Wertet den rohen enabled-Ausdruck eines Untermenue-Punkts gegen einen Kontext
-// aus. Die Ausdrucks-Formen des Bestands sind endlich und in der Messung
-// benannt; eine unbekannte Form wirft, statt still mit einem Ja zu antworten.
-function elternFreigabe(ausdruck, ctx) {
+// Loest den rohen enabled-Ausdruck eines Untermenue-Punkts in die Regel auf,
+// die ihn gegen einen Kontext auswertet. Die Ausdrucks-Formen des Bestands sind
+// endlich und in der Messung benannt; eine unbekannte Form wirft, statt still
+// mit einem Ja zu antworten.
+//
+// 4T-002255: Bis hierher normierte die Funktion den Ausdruck bei JEDER
+// Kontext-Belegung neu, mit zwei regulaeren Ausdruecken je Aufruf. Jetzt wird
+// er einmal je Untermenue-Punkt aufgeloest, und die Regel laeuft gegen die
+// Belegungen. Die Formen und ihre Ausdruecke sind unveraendert.
+function elternRegel(ausdruck) {
   const normiert = ausdruck.replace(/\s+/g, '').replace(/!!\((state&&[^)]+)\)/g, '$1');
   const formen = {
     'state&&state.hasActiveTab&&!systemTab': (c) => !!c.hasTab && !c.systemTab,
@@ -1002,7 +1024,21 @@ function elternFreigabe(ausdruck, ctx) {
   const f = formen[normiert];
   if (!f)
     throw new Error('unbekannte Untermenue-Regel: ' + ausdruck + ' (normiert: ' + normiert + ')');
-  return f(ctx);
+  return f;
+}
+
+// 4T-002255: Die Freigabe einer Bedingung je Kontext-Belegung, einmal je
+// Bedingung ueber die ganze Grundgesamtheit KONTEXTE berechnet und zwischen den
+// Kindern aller Untermenue-Punkte geteilt. Der Eintrag an Stelle i ist genau
+// der Wert von isAvailable(name, KONTEXTE[i]); isAvailable ist eine reine
+// Funktion von Name und Kontext, der Speicher aendert also kein Ergebnis,
+// sondern spart die Wiederholung derselben Auswertung fuer jedes Kind mit
+// derselben Bedingung.
+const FREIGABE_JE_BEDINGUNG = new Map();
+function freigabeJeKontext(name) {
+  const werte = FREIGABE_JE_BEDINGUNG.get(name) || KONTEXTE.map((ctx) => isAvailable(name, ctx));
+  FREIGABE_JE_BEDINGUNG.set(name, werte);
+  return werte;
 }
 
 describe('Durchlauf-Wächter Punkt 3: kein Nebenweg im Menü (4T-001637)', () => {
@@ -1050,6 +1086,18 @@ describe('Durchlauf-Wächter Punkt 3: kein Nebenweg im Menü (4T-001637)', () =>
   // Kommando und bekommt keinen Modell-Eintrag — aber seine eigene Regel darf
   // keinem Kind die Freigabe nehmen, die dessen Bedingung ihm gibt. Gemessen
   // statt geglaubt, über alle Kontext-Belegungen.
+  //
+  // 4T-002255: Der Fall stellt dieselbe Frage an dieselbe Grundgesamtheit, aber
+  // billiger. Bis hierher wertete er je Untermenü-Punkt, je Kind und je
+  // Kontext-Belegung die Bedingung des Kindes aus, normierte den Ausdruck des
+  // Punkts neu und stellte eine eigene Erwartung auf; mit dem Feld
+  // praesentationTab und dem Ansichts-Modus presentation riss er am 2026-10-14
+  // ohne fremde Last die 5000 ms. Jetzt kommt die Freigabe des Kindes aus dem
+  // geteilten Speicher je Bedingung, der Ausdruck des Punkts wird einmal
+  // aufgelöst, und die Befunde werden gesammelt und einmal behauptet. Jeder
+  // Befund nennt Punkt, Kind, Bedingung, die Zahl der sperrenden Belegungen und
+  // die erste davon; die frühere Einzel-Erwartung brach beim ersten Befund ab
+  // und nannte nur ihn.
   it('ein Untermenü-Punkt mit eigener Regel nimmt keinem Kind seine Freigabe', () => {
     const zeilen = MENUE_QUELLE.split('\n');
     const eigene = [];
@@ -1063,6 +1111,7 @@ describe('Durchlauf-Wächter Punkt 3: kein Nebenweg im Menü (4T-001637)', () =>
       eigene.push({ zeile: i, ausdruck: m[1] });
     });
 
+    const befunde = [];
     for (const e of eigene) {
       const [start, ende] = objektBereich(zeilen, e.zeile);
       const kinder = [
@@ -1075,17 +1124,25 @@ describe('Durchlauf-Wächter Punkt 3: kein Nebenweg im Menü (4T-001637)', () =>
         kinder.length,
         `eigene enabled-Regel in Zeile ${e.zeile + 1} ohne Kommando darunter: ${e.ausdruck}`,
       ).toBeGreaterThan(0);
+      // Aufgelöst erst, wenn ein Kind in einer Belegung frei ist, wie vorher:
+      // Eine unbekannte Form wirft an derselben Stelle wie bisher.
+      let eltern = null;
       for (const kind of kinder) {
         const cmd = COMMANDS.find((c) => c.id === kind);
-        for (const ctx of KONTEXTE) {
-          if (!isAvailable(cmd.availability, ctx)) continue;
-          expect(
-            elternFreigabe(e.ausdruck, ctx),
-            `Untermenü-Regel "${e.ausdruck}" sperrt ${kind}, obwohl dessen Bedingung "${cmd.availability}" freigibt`,
-          ).toBe(true);
+        const frei = freigabeJeKontext(cmd.availability);
+        const sperrend = [];
+        for (let i = 0; i < KONTEXTE.length; i++) {
+          if (!frei[i]) continue;
+          if (!eltern) eltern = elternRegel(e.ausdruck);
+          if (eltern(KONTEXTE[i]) !== true) sperrend.push(KONTEXTE[i]);
         }
+        if (sperrend.length > 0)
+          befunde.push(
+            `Untermenü-Regel "${e.ausdruck}" (Zeile ${e.zeile + 1}) sperrt ${kind}, obwohl dessen Bedingung "${cmd.availability}" freigibt: in ${sperrend.length} Belegungen, zuerst ${JSON.stringify(sperrend[0])}`,
+          );
       }
     }
+    expect(befunde, 'Untermenü-Regeln, die einem Kind die Freigabe nehmen').toEqual([]);
   });
 });
 

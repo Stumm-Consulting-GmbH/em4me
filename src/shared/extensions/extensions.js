@@ -631,7 +631,8 @@ const INTERNAL_EXTENSIONS = [
   // keine Wirkung (`---` bleibt thematische Linie, die Render-Pipeline ist
   // unberuehrt), und ein im Praesentations-Modus gespeichertes Dokument oeffnet
   // in der Lese-Ansicht. Geschrieben wird dabei nie. Keine Abhaengigkeit zu
-  // einer anderen Erweiterung, keine Einstellungs-Abschnitte in dieser Stufe.
+  // einer anderen Erweiterung, keine Einstellungs-Abschnitte in dieser Stufe
+  // (seit 4T-002282 der Abschnitt «Folien-Themes», siehe settingsSections).
   {
     id: 'presentation',
     category: 'render',
@@ -641,8 +642,14 @@ const INTERNAL_EXTENSIONS = [
     descKey: 'help.feature.presentation',
     // 4T-002165: die Katalog-Zeilen von Vorfuehrung und Ausgaben gehoeren ebenso
     // zur Erweiterung und tragen im Aus-Zustand dieselbe Kennzeichnung.
+    // 4T-002285: dazu die vier Zeilen der Stufe 2 (Übersicht, Vortrag mit
+    // zwei Bildschirmen, Gestaltung je Datei, eigene Themes).
     featureKeys: [
+      'help.feature.presentationOverview',
       'help.feature.presentationSlideShow',
+      'help.feature.presentationPresenterView',
+      'help.feature.presentationDesign',
+      'help.feature.presentationThemes',
       'help.feature.presentationExportPdf',
       'help.feature.presentationExportHtml',
     ],
@@ -650,14 +657,24 @@ const INTERNAL_EXTENSIONS = [
     // sie mit dem Modus aus Menue, Palette und Tastenbelegung.
     // 4T-002163: dazu der Weg zu einer neuen Praesentation und die beiden
     // Ausgaben des Foliensatzes, aus demselben Grund.
+    // 4T-002278: dazu die Vorführung im eigenen Fenster (Entscheidung A2).
     commands: [
       'view.modePresentation',
       'presentation.start',
+      'presentation.startWindow',
+      'presentation.presenterView',
       'presentation.stop',
+      // 4T-002280: die Folien-Übersicht.
+      'presentation.overview',
       'presentation.new',
       'presentation.exportPdf',
       'presentation.exportHtml',
+      // 4T-002282: der Dialog «Gestaltung dieser Präsentation…».
+      'presentation.gestaltung',
     ],
+    // 4T-002282 (Epic 3E-000348): Abschnitt «Folien-Themes» der Einstellungen,
+    // der Theme-Editor der eigenen Themes; er verschwindet mit der Erweiterung.
+    settingsSections: ['presentationThemes'],
   },
   // Werkzeug-Erweiterungen (4T-000294). 'focus-mode' buendelt Fokus-Modus
   // und Typewriter-Scroll (eine Schreib-Umgebung, zwei Facetten).

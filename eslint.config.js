@@ -18,6 +18,8 @@ module.exports = [
       'test-results/',
       'playwright-report/',
       'src/renderer/renderer.bundle.js',
+      // 4T-002278: Bündel der Seite des Publikums-Fensters.
+      'src/renderer/publikum.bundle.js',
       'src/renderer/mermaid.bundle.js',
       // 4T-002020: Teil-Einbindung der Zeichen-Bibliothek (scripts/build-echarts.js).
       'src/shared/charts/echarts.bundle.js',

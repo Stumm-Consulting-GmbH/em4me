@@ -12,7 +12,7 @@ Lire, écrire et vérifier sont des activités différentes, et elles demandent 
 - **Carte mentale** transforme la structure des titres en arborescence.
 - **Canevas** montre une surface avec des cartes et des connexions qui se trouve dans le document lui-même.
 - **Tableau** place les tâches du document côte à côte, sous forme de cartes en colonnes.
-- **Diapositives** montrent un document portant l'indicateur `presentation: true` comme une suite de diapositives, à projeter en plein écran et à transmettre en PDF ou en pages HTML.
+- **Diapositives** montrent un document portant l'indicateur `presentation: true` comme une suite de diapositives, à projeter en plein écran ou avec le mode présentateur sur un second écran, et à transmettre en PDF ou en pages HTML.
 
 En détail : [Vues et affichage](views-display.md), [Vue carte mentale](mindmap.md), [Surface Canvas](canvas.md), [Tableau Kanban](kanban.md), [Présentation](presentation.md).
 

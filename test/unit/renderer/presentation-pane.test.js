@@ -178,13 +178,18 @@ describe('Präsentations-Fläche: Folie und Zähler (4S-001049, AK1/AK2/AK9)', (
 
   it('fragt den Kern mit dem Schalt-Zustand der Kommentare', () => {
     renderPresentation(0);
-    expect(window.api.lesePraesentation).toHaveBeenLastCalledWith(DREI, { kommentareAktiv: true });
+    // 4T-002281: Der Aufruf trägt zusätzlich den Katalog eigener Themes (`eigeneThemes`).
+    expect(window.api.lesePraesentation).toHaveBeenLastCalledWith(
+      DREI,
+      expect.objectContaining({ kommentareAktiv: true }),
+    );
     aktiv.set('comments', false);
     dokumente[0] = { ...dokumente[0], content: `${DREI}\n` };
     renderPresentation(0);
-    expect(window.api.lesePraesentation).toHaveBeenLastCalledWith(`${DREI}\n`, {
-      kommentareAktiv: false,
-    });
+    expect(window.api.lesePraesentation).toHaveBeenLastCalledWith(
+      `${DREI}\n`,
+      expect.objectContaining({ kommentareAktiv: false }),
+    );
   });
 
   it('liest bei unverändertem Puffer nicht neu und rendert nicht neu', () => {

@@ -31,6 +31,10 @@ releases/
 test-results/
 playwright-report/
 
+# Test reports and working copies written by the test suite
+test-berichte/
+Tests/
+
 # Logs
 *.log
 npm-debug.log*

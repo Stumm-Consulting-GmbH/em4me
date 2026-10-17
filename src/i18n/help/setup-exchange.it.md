@@ -16,6 +16,7 @@ Questi tipi di dati sono a disposizione:
 |---|---|
 | Impostazioni | Comportamento e presentazione: lingua, aspetto, opzioni di editor e di visualizzazione, salvataggio automatico, cronologia, allegati, opzioni di esportazione, la configurazione di attività, promemoria e visualizzazione del calendario nonché le preferenze di colonna dei pannelli |
 | Combinazioni di colori | le combinazioni create da voi stessi, insieme all'assegnazione di quale valga in modalità chiara e quale in modalità scura |
+| Temi delle diapositive personalizzati | i temi per le presentazioni creati da voi stessi |
 | Scorciatoie da tastiera | le riassegnazioni proprie dei comandi |
 | Barra di formattazione | l'occupazione propria della barra dei pulsanti |
 | Pulsanti della barra di stato e macro | gli accessi propri nella barra di stato, la sezione del menu contestuale, l'elenco degli elementi nascosti e le macro costruite da voi |
@@ -84,7 +85,7 @@ Vale **una sola** regola per tutti i tipi di dati:
 
 > Viene aggiunto ciò che avete creato come oggetto con un nome. Viene sostituito ciò che è un'impostazione o una disposizione.
 
-Vengono perciò aggiunte le combinazioni di colori proprie, le macro, le varianti di disposizione della barra laterale, le modalità di lavoro personalizzate, i segnalibri e i blocchi di calendario: si collocano **accanto** a ciò che c'è, e il patrimonio esistente non viene toccato. Vengono sostituite le impostazioni, l'assegnazione delle scorciatoie da tastiera, la barra di formattazione, le regole dei modelli e lo stato delle estensioni: un valore non conosce il plurale, e due disposizioni intrecciate darebbero una terza che nessuno ha configurato.
+Vengono perciò aggiunte le combinazioni di colori proprie, i temi delle diapositive personalizzati, le macro, le varianti di disposizione della barra laterale, le modalità di lavoro personalizzate, i segnalibri e i blocchi di calendario: si collocano **accanto** a ciò che c'è, e il patrimonio esistente non viene toccato. Vengono sostituite le impostazioni, l'assegnazione delle scorciatoie da tastiera, la barra di formattazione, le regole dei modelli e lo stato delle estensioni: un valore non conosce il plurale, e due disposizioni intrecciate darebbero una terza che nessuno ha configurato.
 
 **A parità di nome la voce esistente resta invariata**, e quella riletta si affianca con un'aggiunta distintiva: da «Modello» diventa «Modello (2)». L'anteprima nomina ogni rinomina di questo genere. I riferimenti si adeguano — una macro riletta che riceve un nuovo identificativo continua a essere trovata dal suo pulsante.
 

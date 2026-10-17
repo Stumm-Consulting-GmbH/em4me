@@ -15,6 +15,12 @@
 // Ablauf-Prüfungen nicht vollständig abdecken; wer die Regel ändern will, ändert
 // diesen Wächter bewusst mit und begründet es im Vorgang.
 //
+// 4T-002278 (Epic 3E-000348): Seit es das Publikums-Fenster der Präsentation
+// gibt, trägt die Anwendung eine zweite Seite (`src/renderer/publikum.html`).
+// Sie bekommt hier eine eigene Prüfung derselben Art und dazu die engere Regel
+// ihres Zwecks: nichts nachladen außer dem eigenen Skript, kein Inline-Skript,
+// die Folie in einem Rahmen ohne Skripte.
+//
 // Gelesen wird im Modulkopf (Bestands-Lesungen gehören in den Modulkopf,
 // test/README.md).
 import { describe, expect, it } from 'vitest';
@@ -23,6 +29,10 @@ import path from 'node:path';
 
 const INDEX_HTML = fs.readFileSync(
   path.join(__dirname, '..', '..', 'src', 'renderer', 'index.html'),
+  'utf8',
+);
+const PUBLIKUM_HTML = fs.readFileSync(
+  path.join(__dirname, '..', '..', 'src', 'renderer', 'publikum.html'),
   'utf8',
 );
 
@@ -60,5 +70,41 @@ describe('Inhalts-Regel des Anzeige-Fensters: Bild-Angabe', () => {
     const bild = angaben(regel).filter((a) => a.name === 'img-src');
     expect(bild).toHaveLength(1);
     expect(bild[0].quellen).toEqual(['data:']);
+  });
+});
+
+describe('Inhalts-Regel des Publikums-Fensters (4T-002278, AK4)', () => {
+  it('die Seite trägt genau eine Inhalts-Regel', () => {
+    expect(inhaltsRegeln(PUBLIKUM_HTML)).toHaveLength(1);
+  });
+
+  it('die Regel trägt genau eine Bild-Angabe, und deren Wert ist genau «data:»', () => {
+    const [regel] = inhaltsRegeln(PUBLIKUM_HTML);
+    const bild = angaben(regel).filter((a) => a.name === 'img-src');
+    expect(bild).toHaveLength(1);
+    expect(bild[0].quellen).toEqual(['data:']);
+  });
+
+  it('Vorgabe «none», Skripte allein aus der eigenen Ablage', () => {
+    const [regel] = inhaltsRegeln(PUBLIKUM_HTML);
+    const liste = angaben(regel);
+    const wert = (name) => (liste.find((a) => a.name === name) || {}).quellen;
+    expect(wert('default-src')).toEqual(["'none'"]);
+    expect(wert('script-src')).toEqual(["'self'"]);
+    expect(wert('font-src')).toEqual(['data:']);
+    // Keine Quelle, die Netz oder Datei-Adressen öffnet.
+    for (const a of liste) {
+      for (const q of a.quellen) expect(q, a.name).not.toMatch(/^(https?:|file:|\*|blob:)/);
+    }
+  });
+
+  it('kein Inline-Skript, genau das eigene Bündel, die Folie im Rahmen ohne Skripte', () => {
+    const skripte = [...PUBLIKUM_HTML.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
+    expect(skripte).toHaveLength(1);
+    expect(skripte[0][1]).toMatch(/src="publikum\.bundle\.js"/);
+    expect(skripte[0][2].trim()).toBe('');
+    const rahmen = [...PUBLIKUM_HTML.matchAll(/<iframe\b[^>]*>/gi)].map((m) => m[0]);
+    expect(rahmen).toHaveLength(1);
+    expect(rahmen[0]).toMatch(/\ssandbox=""/);
   });
 });

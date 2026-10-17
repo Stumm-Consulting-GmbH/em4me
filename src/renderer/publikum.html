@@ -1,0 +1,54 @@
+<!doctype html>
+<!--
+  4T-002278 (Epic 3E-000348): Seite des Publikums-Fensters der Präsentation.
+
+  Sicherheits-Modell: Das Fenster läuft mit sandbox: true, ohne Node und mit
+  eigenem Preload (src/main/preload-publikum.js), Navigation gesperrt
+  (src/main/praesentation-fenster.js). Die Inhalts-Regel lässt Skripte allein
+  aus der eigenen Ablage zu (das Bündel publikum.bundle.js), Bilder und
+  Schriften allein als Daten-Adresse und sonst nichts nachladen. Die Folie
+  steht in einem Rahmen mit sandbox="" (ohne Skripte) und erbt diese Regel;
+  Stile der Folie sind eingebettet, daher 'unsafe-inline' für Stile. Den
+  Wortlaut hält test/unit/inhalts-regel-fenster.test.js.
+-->
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src data:; font-src data:;"
+    />
+    <title>EM4me</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+        cursor: default;
+      }
+      .publikum-buehne {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+      .publikum-folie {
+        position: absolute;
+        left: 0;
+        top: 0;
+        border: 0;
+        background: #000;
+        transform-origin: 0 0;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="publikum-buehne">
+      <iframe class="publikum-folie" sandbox="" tabindex="-1" title="" hidden></iframe>
+    </div>
+    <script src="publikum.bundle.js"></script>
+  </body>
+</html>

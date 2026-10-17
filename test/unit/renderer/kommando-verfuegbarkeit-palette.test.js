@@ -56,9 +56,17 @@ vi.mock('../../../src/renderer/modules/charts/chart-lage.js', async (original) =
 // 4T-001636): acht Kontext-Mengen, drei eigens behandelte Kennungen, Endpunkt
 // `return true`. Sie steht hier als MASSSTAB, nicht als Vorbild — sie ist im
 // Programm entfernt, und dieser Vergleich ist der einzige Ort, an dem sie
-// weiterlebt. Die einzige Abweichung von der Vorlage: sourceVisible und
+// weiterlebt. Die erste Abweichung von der Vorlage: sourceVisible und
 // hasCalendarConfig kommen aus dem Kontext statt aus einem eigenen Feld und
 // einem Modul-Aufruf; beide Ausdruecke sind woertlich dieselben.
+//
+// 4T-002255: Die zweite Abweichung betrifft die Form, nicht den Inhalt. Die
+// Vorlage waehlte je Kommando eine Regel und wertete sie im selben Zug aus.
+// Beides ist hier getrennt: altRegelFuer waehlt die Regel nach derselben
+// Kette von Pruefungen in derselben Reihenfolge, ALT_REGELN traegt ihre
+// Ausdruecke woertlich, und altIsCommandAvailable setzt beides wieder
+// zusammen. So kann der Vollbestands-Vergleich jede Regel einmal je
+// Kontext-Belegung auswerten statt einmal je Kommando.
 const ALT_AREA = new Set([
   'journal.openToday',
   'journal.openForDate',
@@ -102,21 +110,40 @@ function altSourceVisible(ctx) {
   return ctx.viewMode === 'source' || ctx.viewMode === 'split' || ctx.viewMode === 'live';
 }
 
+const ALT_REGELN = {
+  tabelle: (ctx) => altEditorContext(ctx) && !!ctx.inTable,
+  editor: (ctx) => altEditorContext(ctx),
+  kalender: (ctx) => altEditorContext(ctx) && ctx.hasArea && ctx.hasCalendarConfig,
+  area: (ctx) => ctx.hasArea,
+  workspaceOhne: (ctx) => !ctx.hasWorkspace,
+  workspaceMit: (ctx) => ctx.hasWorkspace,
+  fileTab: (ctx) => ctx.hasTab && !ctx.manualTab && !ctx.systemTab,
+  contentTab: (ctx) => ctx.hasTab && !ctx.systemTab,
+  anyTab: (ctx) => ctx.hasTab,
+  areaOrTab: (ctx) => ctx.hasTab || ctx.hasArea,
+  viewMode: (ctx) => !ctx.systemTab,
+  sourceToggle: (ctx) => altSourceVisible(ctx),
+  immer: () => true,
+};
+
+function altRegelFuer(cmd) {
+  if (cmd.id.startsWith('table.')) return 'tabelle';
+  if (cmd.editorScoped || ALT_EDITOR_CONTEXT.has(cmd.id)) return 'editor';
+  if (cmd.id === 'calendar.insertValue') return 'kalender';
+  if (ALT_AREA.has(cmd.id)) return 'area';
+  if (cmd.id === 'workspace.saveAs') return 'workspaceOhne';
+  if (cmd.id === 'workspace.close') return 'workspaceMit';
+  if (ALT_FILE_TAB.has(cmd.id)) return 'fileTab';
+  if (ALT_CONTENT_TAB.has(cmd.id)) return 'contentTab';
+  if (ALT_ANY_TAB.has(cmd.id)) return 'anyTab';
+  if (ALT_AREA_OR_TAB.has(cmd.id)) return 'areaOrTab';
+  if (ALT_VIEW_MODE.has(cmd.id)) return 'viewMode';
+  if (ALT_SOURCE_TOGGLE.has(cmd.id)) return 'sourceToggle';
+  return 'immer';
+}
+
 function altIsCommandAvailable(cmd, ctx) {
-  if (cmd.id.startsWith('table.')) return altEditorContext(ctx) && !!ctx.inTable;
-  if (cmd.editorScoped || ALT_EDITOR_CONTEXT.has(cmd.id)) return altEditorContext(ctx);
-  if (cmd.id === 'calendar.insertValue')
-    return altEditorContext(ctx) && ctx.hasArea && ctx.hasCalendarConfig;
-  if (ALT_AREA.has(cmd.id)) return ctx.hasArea;
-  if (cmd.id === 'workspace.saveAs') return !ctx.hasWorkspace;
-  if (cmd.id === 'workspace.close') return ctx.hasWorkspace;
-  if (ALT_FILE_TAB.has(cmd.id)) return ctx.hasTab && !ctx.manualTab && !ctx.systemTab;
-  if (ALT_CONTENT_TAB.has(cmd.id)) return ctx.hasTab && !ctx.systemTab;
-  if (ALT_ANY_TAB.has(cmd.id)) return ctx.hasTab;
-  if (ALT_AREA_OR_TAB.has(cmd.id)) return ctx.hasTab || ctx.hasArea;
-  if (ALT_VIEW_MODE.has(cmd.id)) return !ctx.systemTab;
-  if (ALT_SOURCE_TOGGLE.has(cmd.id)) return altSourceVisible(ctx);
-  return true;
+  return ALT_REGELN[altRegelFuer(cmd)](ctx);
 }
 
 // Die sechs gemessenen Abweichungen aus 4T-000918 mit dem Soll der
@@ -191,6 +218,15 @@ const NACH_DER_MESSUNG = new Set([
   // Grund — es gibt sie erst seit diesem Vorgang.
   'presentation.start',
   'presentation.stop',
+  // 4T-002278 (Epic 3E-000348): die Vorführung im eigenen Fenster, aus
+  // demselben Grund.
+  'presentation.startWindow',
+  'presentation.presenterView',
+  // 4T-002280 (Epic 3E-000348): die Folien-Übersicht, aus demselben Grund.
+  'presentation.overview',
+  // 4T-002282 (Epic 3E-000348): der Dialog «Gestaltung dieser Präsentation…»,
+  // aus demselben Grund.
+  'presentation.gestaltung',
   // 4T-002163 (Epic 3E-000149): der Weg zu einer neuen Präsentation und die
   // beiden Ausgaben des Foliensatzes, aus demselben Grund — es gibt sie erst
   // seit diesem Vorgang.
@@ -296,6 +332,41 @@ function alleKontexte() {
     }
   }
   return out;
+}
+
+// 4T-002255: Die Grundgesamtheit einmal je Prüfdatei, geteilt zwischen dem
+// Vollbestands-Vergleich und den Diagramm-Fällen; bis hierher baute jeder der
+// beiden Blöcke sie selbst.
+const KONTEXTE = alleKontexte();
+
+// 4T-002255: Hülle um ein Kommando, die jedes Lesen am Kommando außer seinem
+// Feld `availability` vermerkt. Zwei Fälle unten werten isCommandAvailable
+// einmal je Bedingung statt einmal je Kommando über alle Belegungen aus,
+// und das trägt nur, solange die Palette am Kommando allein dieses Feld
+// liest: Dann nimmt jedes Kommando derselben Bedingung bei derselben Belegung
+// denselben Weg zum selben Ergebnis. Die Hülle prüft genau diese Voraussetzung
+// bei jeder Auswertung mit, statt sie aus dem heutigen Quelltext zu folgern;
+// liest die Palette künftig etwa die Kennung, steht das im Befund, und der
+// Fall ist rot.
+function lesendeHuelle(cmd, fremdGelesen) {
+  return new Proxy(cmd, {
+    get(ziel, schluessel, empfaenger) {
+      if (schluessel !== 'availability') fremdGelesen.add(`liest ${String(schluessel)}`);
+      return Reflect.get(ziel, schluessel, empfaenger);
+    },
+    has(ziel, schluessel) {
+      fremdGelesen.add(`fragt nach ${String(schluessel)}`);
+      return Reflect.has(ziel, schluessel);
+    },
+    ownKeys(ziel) {
+      fremdGelesen.add('zählt die Felder auf');
+      return Reflect.ownKeys(ziel);
+    },
+    getOwnPropertyDescriptor(ziel, schluessel) {
+      fremdGelesen.add(`liest die Beschreibung von ${String(schluessel)}`);
+      return Reflect.getOwnPropertyDescriptor(ziel, schluessel);
+    },
+  });
 }
 
 // --- Renderer-Zustand fuer den Weg ueber isCommandIdAvailable ---------------
@@ -424,21 +495,54 @@ describe('Vollbestands-Vergleich gegen die alte Logik (4T-001636)', () => {
   // bleibt es. Gemessen ueber alle Kommandos der Erhebungs-Zeit und alle
   // Belegungen des Kontext-Vertrags — nicht an einer Stichprobe, die die
   // interessante Lage gerade auslassen koennte.
-  const kontexte = alleKontexte();
+  const kontexte = KONTEXTE;
   const gemessenerBestand = COMMANDS.filter(
     (c) => !NACH_DER_MESSUNG.has(c.id) && !STRENGERE_EDITOR_REGEL.includes(c.id),
   );
 
+  // 4T-002255: Dieselbe Frage an dieselbe Grundgesamtheit, billiger gerechnet.
+  // Bis hierher wertete der Fall für jedes der rund 170 Kommandos beide
+  // Logiken an allen Belegungen aus, rund 25 Millionen Paare; mit dem Feld
+  // praesentationTab und dem Ansichts-Modus presentation riss er am
+  // 2026-10-14 ohne fremde Last die 5000 ms. Jetzt wird jede Regel der alten
+  // Logik und jede Bedingung der neuen einmal je Belegung ausgewertet, und
+  // jedes Paar aus alter Regel und neuer Bedingung einmal verglichen; ein
+  // Kommando weicht ab, wenn sein Paar abweicht. Die neue Seite läuft dabei
+  // weiter über isCommandAvailable, mit dem ersten Kommando der Bedingung in
+  // der lesenden Hülle; warum das für alle Kommandos derselben Bedingung
+  // trägt und wie es mitgeprüft wird, steht bei lesendeHuelle.
   it('genau die sechs gemessenen Kommandos entscheiden anders als vorher', () => {
+    const fremdGelesen = new Set();
+    const altWerte = new Map();
+    const neuWerte = new Map();
+    const paarWeichtAb = new Map();
     const abweichend = new Set();
     for (const cmd of gemessenerBestand) {
-      for (const ctx of kontexte) {
-        if (isCommandAvailable(cmd, ctx) !== altIsCommandAvailable(cmd, ctx)) {
-          abweichend.add(cmd.id);
-          break;
-        }
+      const altName = altRegelFuer(cmd);
+      if (!altWerte.has(altName)) altWerte.set(altName, kontexte.map(ALT_REGELN[altName]));
+      if (!neuWerte.has(cmd.availability)) {
+        const beobachtet = lesendeHuelle(cmd, fremdGelesen);
+        neuWerte.set(
+          cmd.availability,
+          kontexte.map((ctx) => isCommandAvailable(beobachtet, ctx)),
+        );
       }
+      const paar = `${altName}|${cmd.availability}`;
+      if (!paarWeichtAb.has(paar)) {
+        const alt = altWerte.get(altName);
+        const neu = neuWerte.get(cmd.availability);
+        let weichtAb = false;
+        for (let i = 0; i < kontexte.length; i++) {
+          if (neu[i] !== alt[i]) {
+            weichtAb = true;
+            break;
+          }
+        }
+        paarWeichtAb.set(paar, weichtAb);
+      }
+      if (paarWeichtAb.get(paar)) abweichend.add(cmd.id);
     }
+    expect([...fremdGelesen], 'die Palette liest am Kommando mehr als availability').toEqual([]);
     expect([...abweichend].sort()).toEqual(SECHS_FAELLE.map((f) => f.id).sort());
   });
 
@@ -510,7 +614,7 @@ describe('Vollbestands-Vergleich gegen die alte Logik (4T-001636)', () => {
 // --- 4T-002024 (Epic 3E-000192): die beiden Diagramm-Kommandos --------------
 
 describe('Diagramm-Kommandos in der Palette (4T-002024)', () => {
-  const kontexte = alleKontexte();
+  const kontexte = KONTEXTE;
   const LAGE_BELEGUNGEN = [
     [false, false],
     [true, false],
@@ -639,19 +743,38 @@ describe('Diagramm-Kommandos in der Palette (4T-002024)', () => {
     return messung;
   }
 
+  // 4T-002255: Dieselbe Messung, einmal je Bedingung statt einmal je Kommando.
+  // Der Fall lag am 2026-10-14 ohne fremde Last bei rund 4900 ms seiner
+  // 5000 ms. Jede Bedingung wird an allen Grund-Belegungen ausgewertet, über
+  // isCommandAvailable mit ihrem ersten Kommando in der lesenden Hülle, und
+  // ein Kommando gilt als empfindlich, wenn seine Bedingung ein Lage-Feld
+  // liest; warum das für alle Kommandos derselben Bedingung trägt, steht bei
+  // lesendeHuelle.
   it('alle bisherigen Kommandos sind gegen beide Lage-Felder unempfindlich', () => {
     const bisherige = COMMANDS.filter((c) => !NEUE_KOMMANDOS.includes(c.id));
     expect(bisherige.length).toBe(COMMANDS.length - NEUE_KOMMANDOS.length);
     const messung = vermerkendeGrundBelegung();
+    const grundBelegungen = kontexte.map((ctx) => messung.fuer(ctx));
+    const fremdGelesen = new Set();
+    const bedingungLiest = new Map();
     const empfindlich = new Set();
-    for (const ctx of kontexte) {
-      const grund = messung.fuer(ctx);
-      for (const cmd of bisherige) {
-        messung.gelesen = false;
-        isCommandAvailable(cmd, grund);
-        if (messung.gelesen) empfindlich.add(cmd.id);
+    for (const cmd of bisherige) {
+      if (!bedingungLiest.has(cmd.availability)) {
+        const beobachtet = lesendeHuelle(cmd, fremdGelesen);
+        let liest = false;
+        for (const grund of grundBelegungen) {
+          messung.gelesen = false;
+          isCommandAvailable(beobachtet, grund);
+          if (messung.gelesen) {
+            liest = true;
+            break;
+          }
+        }
+        bedingungLiest.set(cmd.availability, liest);
       }
+      if (bedingungLiest.get(cmd.availability)) empfindlich.add(cmd.id);
     }
+    expect([...fremdGelesen], 'die Palette liest am Kommando mehr als availability').toEqual([]);
     expect([...empfindlich], 'Kommandos, die still ein Lage-Feld lesen').toEqual([]);
   });
 

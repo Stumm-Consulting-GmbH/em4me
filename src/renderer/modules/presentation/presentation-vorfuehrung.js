@@ -29,12 +29,19 @@
 // Spalte oder der Ansicht (`pruefeVorfuehrung`, gerufen bei jedem Abgleich der
 // Leisten in tabs.js) beenden die Vorfuehrung gleich.
 //
-// **Zyklusfrei:** importiert nur die Bruecke, die Flaeche und die Folie; den
-// Fenster-Zustand kennt es nicht. Die aktive Spalte reicht der Aufrufer herein.
+// 4T-002280: Während der Vorführung deckt «weiter» die Aufdeck-Schritte
+// einer Folie einzeln auf (presentation-aufdecken.js); beim Start schließt
+// eine offene Folien-Übersicht.
+//
+// **Zyklusfrei:** importiert nur die Bruecke, die Flaeche, die Folie, das
+// Aufdecken und die Übersicht; den Fenster-Zustand kennt es nicht. Die aktive
+// Spalte reicht der Aufrufer herein.
 'use strict';
 
 import { api } from '../app/api.js';
 import { VORFUEHRUNG_KLASSE } from './presentation-folie.js';
+import { setzeAufdeckModus } from './presentation-aufdecken.js';
+import { schliesseUebersicht } from './presentation-uebersicht.js';
 import {
   blaettere,
   fokussierePraesentation,
@@ -54,6 +61,17 @@ export const SPALTE_KLASSE = 'presentation-vorfuehrung-spalte';
 let lauf = null;
 // Die Meldung des Hauptprozesses haengt einmal je Fenster.
 let meldungVerdrahtet = false;
+// 4T-002278 (Epic 3E-000348): die Vorführung im eigenen Fenster
+// (presentation-publikum.js) meldet sich hier an, weil sie dieses Modul
+// importiert: { aktiv(), pruefe(spalte), beende() }. Beide Arten schließen
+// einander aus, und Kommando und Menü-Eintrag «Vorführung beenden» beenden
+// die gerade laufende.
+let fensterLauf = null;
+
+/** Meldet die Vorführung im eigenen Fenster an (4T-002278). */
+export function registriereFensterLauf(zugang) {
+  fensterLauf = zugang && typeof zugang.aktiv === 'function' ? zugang : null;
+}
 
 /**
  * Setzt das Vollbild des eigenen Fensters.
@@ -121,6 +139,11 @@ export function istVorfuehrungAktiv() {
   return lauf !== null;
 }
 
+/** Läuft die Vorführung im eigenen Fenster (4T-002278)? */
+function fensterLaufAktiv() {
+  return !!fensterLauf && fensterLauf.aktiv() === true;
+}
+
 /**
  * Startet die Vorfuehrung der Spalte an der gerade gezeigten Folie.
  *
@@ -129,11 +152,14 @@ export function istVorfuehrungAktiv() {
  *   laeuft oder die Spalte keine Praesentation zeigt.
  */
 export function starteVorfuehrung(paneIdx) {
-  if (lauf) return false;
+  if (lauf || fensterLaufAktiv()) return false;
   const tab = gezeigtePraesentation(paneIdx);
   const container = praesentationsContainer(paneIdx);
   if (!tab || !container) return false;
   verdrahteMeldung();
+  // 4T-002280: Die Übersicht schließt, das Aufdecken beginnt an der gezeigten Folie.
+  schliesseUebersicht(paneIdx);
+  setzeAufdeckModus(paneIdx, true, tab);
   const spalte = container.closest('.pane-group') || container;
   const eigener = { paneIdx, tab, spalte, vollbildVorher: null, radSperre: { bis: 0 } };
   lauf = eigener;
@@ -163,7 +189,7 @@ registriereVorfuehrungsStart(starteVorfuehrung);
  */
 export function beendeVorfuehrung() {
   const eigener = lauf;
-  if (!eigener) return false;
+  if (!eigener) return fensterLaufAktiv() ? fensterLauf.beende() === true : false;
   lauf = null;
   window.removeEventListener('keydown', beiTaste, true);
   window.removeEventListener('click', beiKlick, true);
@@ -171,6 +197,7 @@ export function beendeVorfuehrung() {
   window.removeEventListener('blur', beiFensterWechsel);
   document.body.classList.remove(VORFUEHRUNG_KLASSE);
   eigener.spalte.classList.remove(SPALTE_KLASSE);
+  setzeAufdeckModus(eigener.paneIdx, false, eigener.tab);
   // Zurueck auf den Zustand davor, sobald er bekannt ist; war das Fenster
   // schon vorher im Vollbild, bleibt es dort.
   Promise.resolve(eigener.vollbildVorher).then((vorher) => {
@@ -190,7 +217,7 @@ export function beendeVorfuehrung() {
  * @returns {boolean} true, wenn beendet wurde.
  */
 export function pruefeVorfuehrung(aktiveSpalte) {
-  if (!lauf) return false;
+  if (!lauf) return fensterLaufAktiv() ? fensterLauf.pruefe(aktiveSpalte) === true : false;
   if (aktiveSpalte === lauf.paneIdx && gezeigtePraesentation(lauf.paneIdx) === lauf.tab) {
     return false;
   }

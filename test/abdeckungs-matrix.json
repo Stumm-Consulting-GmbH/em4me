@@ -2832,13 +2832,15 @@
         "test/unit/renderer/presentation-modus.test.js",
         "test/unit/renderer/presentation-pane.test.js",
         "test/unit/render/extensions-aus-praesentation.test.js",
-        "test/unit/command-availability.test.js"
+        "test/unit/command-availability.test.js",
+        "test/e2e/funktionen/praesentation-uebersicht.spec.js",
+        "test/e2e/funktionen/praesentation-themes.spec.js"
       ],
       "sichtbarkeit": [
         "test/e2e/funktionen/bearbeitung-und-ansicht.spec.js",
         "test/e2e/funktionen/praesentation.spec.js"
       ],
-      "hinweis": "4T-002160 (Epic 3E-000149): die Präsentations-Ansicht als achter Ansichts-Modus. Der Modus-Anteil trägt die eine Verfügbarkeits-Entscheidung (Erweiterung an UND Dokument ist nach dem Format-Kern eine Präsentation), den Rückfall auf die Lese-Ansicht beim Öffnen, beim Abschalten und beim verlorenen Kennzeichen, die Verdrahtung über alle Zugänge (eine Modus-Liste, Container je Spalte, Statusleisten-Schalter, Überlauf-Menü, Ansichtsmenü, Kommando mit Vorgabe-Kürzel Strg+8, Kommando-Palette, Sitzungs-Wiederherstellung und Laufzeit-Nachzug beim Tippen) sowie die Registry-Seite des Aus-Zustands samt der Render-Probe, in der `---` eine Linie bleibt (renderer/presentation-modus.test.js, render/extensions-aus-praesentation.test.js, command-availability.test.js). Die Fläche zeigt eine Folie mit Zähler, blättert per Schaltfläche, mit den Tasten der Vorführung und mit dem Mausrad (eine Folie je Rad-Bewegung, Ergänzung aus der Abnahme vom 2026-10-10), beginnt an der Folie der Schreibmarke und zieht beim Tippen nach (renderer/presentation-pane.test.js, darunter ein Fall mit dem echten Format-Kern hinter der Preload-Brücke). Die Unit-Fälle tragen jede dieser Zusagen an einer reinen Funktion, an der Registry, an der Verdrahtung oder am gezeichneten Baum; die Testart steht seit dem Abschluss-Anteil 4T-002166 auf e2e, weil die Ablauf-Prüfdatei hinzugekommen ist und an erster Stelle steht; der Sichtbarkeits-Nachweis der Schaltfläche läuft wie bei Canvas und Tafel über die Schalter-Liste der Statusleisten-Gruppe. Die Ablauf-Fälle an der gestarteten Anwendung trägt 4T-002164 (praesentation.spec.js): Erkennung samt Statusleisten-Schalter und Menü-Zustand, Strg+8, Zähler und Blättern mit Tasten und Mausrad, ausgegraut ohne Kennzeichen (PR-01), die nachgebauten Marp-Dateien (PR-02), Trenn-Regel (PR-03), Notizen (PR-04), Darstellung samt Theme, Übersteuerung, Kopf, Fuß, Seitenzahl, Hintergrund, Zweiteilung, Überlauf und 4:3 (PR-05, PR-06), Aus-Zustand über die Einstellungen (PR-08) der gespeicherte Modus nach dem Neustart (PR-09) und die leere Fläche nach dem Schließen aller Dokumente samt Wiedereintritt (PR-13, Befund der zweiten Abnahme vom 2026-10-10)."
+      "hinweis": "4T-002160 (Epic 3E-000149): die Präsentations-Ansicht als achter Ansichts-Modus. Der Modus-Anteil trägt die eine Verfügbarkeits-Entscheidung (Erweiterung an UND Dokument ist nach dem Format-Kern eine Präsentation), den Rückfall auf die Lese-Ansicht beim Öffnen, beim Abschalten und beim verlorenen Kennzeichen, die Verdrahtung über alle Zugänge (eine Modus-Liste, Container je Spalte, Statusleisten-Schalter, Überlauf-Menü, Ansichtsmenü, Kommando mit Vorgabe-Kürzel Strg+8, Kommando-Palette, Sitzungs-Wiederherstellung und Laufzeit-Nachzug beim Tippen) sowie die Registry-Seite des Aus-Zustands samt der Render-Probe, in der `---` eine Linie bleibt (renderer/presentation-modus.test.js, render/extensions-aus-praesentation.test.js, command-availability.test.js). Die Fläche zeigt eine Folie mit Zähler, blättert per Schaltfläche, mit den Tasten der Vorführung und mit dem Mausrad (eine Folie je Rad-Bewegung, Ergänzung aus der Abnahme vom 2026-10-10), beginnt an der Folie der Schreibmarke und zieht beim Tippen nach (renderer/presentation-pane.test.js, darunter ein Fall mit dem echten Format-Kern hinter der Preload-Brücke). Die Unit-Fälle tragen jede dieser Zusagen an einer reinen Funktion, an der Registry, an der Verdrahtung oder am gezeichneten Baum; die Testart steht seit dem Abschluss-Anteil 4T-002166 auf e2e, weil die Ablauf-Prüfdatei hinzugekommen ist und an erster Stelle steht; der Sichtbarkeits-Nachweis der Schaltfläche läuft wie bei Canvas und Tafel über die Schalter-Liste der Statusleisten-Gruppe. Die Ablauf-Fälle an der gestarteten Anwendung trägt 4T-002164 (praesentation.spec.js): Erkennung samt Statusleisten-Schalter und Menü-Zustand, Strg+8, Zähler und Blättern mit Tasten und Mausrad, ausgegraut ohne Kennzeichen (PR-01), die nachgebauten Marp-Dateien (PR-02), Trenn-Regel (PR-03), Notizen (PR-04), Darstellung samt Theme, Übersteuerung, Kopf, Fuß, Seitenzahl, Hintergrund, Zweiteilung, Überlauf und 4:3 (PR-05, PR-06), Aus-Zustand über die Einstellungen (PR-08) der gespeicherte Modus nach dem Neustart (PR-09) und die leere Fläche nach dem Schließen aller Dokumente samt Wiedereintritt (PR-13, Befund der zweiten Abnahme vom 2026-10-10). Die Stufe 2 trägt 4T-002284: die nachgebaute Marp-Datei mit Angaben je Folie, headingDivider und Aufdeck-Listen (PR-18 in praesentation-uebersicht.spec.js) und der Aus-Zustand der Kommandos und des Abschnitts «Folien-Themes» der Stufe (PR-21 in praesentation-themes.spec.js)."
     },
     {
       "key": "help.feature.presentationSlideShow",
@@ -2862,7 +2864,7 @@
         "test/unit/praesentation-export-kanal.test.js"
       ],
       "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette ohne DOM-Bedienelement; das Ergebnis ist eine PDF-Datei außerhalb der Anwendung, die der Product Owner an der gebauten Programmdatei prüft",
-      "hinweis": "4T-002165 (Epic 3E-000149, Story 4S-001054): Katalog-Zeile des PDF-Exports des Foliensatzes. Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-10 in praesentation-export.spec.js): Ausführung über die Kommando-Palette, eine PDF-Seite je Folie im Format 960 × 540 Punkte, Meldung mit entfallener Notiz, Ansicht danach unverändert. Druck-Optionen, Druck-Fläche und Endpunkt halten renderer/presentation-export.test.js, den Kanal des Hauptprozesses praesentation-export-kanal.test.js."
+      "hinweis": "4T-002165 (Epic 3E-000149, Story 4S-001054): Katalog-Zeile des PDF-Exports des Foliensatzes. Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-10 in praesentation-export.spec.js): Ausführung über die Kommando-Palette, eine PDF-Seite je Folie im Format 960 × 540 Punkte, Meldung mit entfallener Notiz, Ansicht danach unverändert. Druck-Optionen, Druck-Fläche und Endpunkt halten renderer/presentation-export.test.js, den Kanal des Hauptprozesses praesentation-export-kanal.test.js. Mit Sprecher-Notizen trägt 4T-002284 den Ablauf (PR-22 in praesentation-export.spec.js)."
     },
     {
       "key": "help.feature.presentationExportHtml",
@@ -2874,7 +2876,55 @@
         "test/unit/praesentation-export-kanal.test.js"
       ],
       "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette ohne DOM-Bedienelement; das Ergebnis ist ein Ordner mit HTML-Seiten außerhalb der Anwendung, den der Product Owner im Browser prüft",
-      "hinweis": "4T-002165 (Epic 3E-000149, Story 4S-001057): Katalog-Zeile des HTML-Exports des Foliensatzes. Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-11 in praesentation-export.spec.js): Ausführung über die Kommando-Palette, Ordner mit index.html und folie-001.html bis folie-003.html, ohne Notiz, mit Blätter-Verweisen, Theme-Variablen im :root und eingebettetem Hintergrund-Bild. Seiten-Bau, Blätter-Skript und Ziel-Ordner halten renderer/presentation-export.test.js und praesentation-export-kanal.test.js."
+      "hinweis": "4T-002165 (Epic 3E-000149, Story 4S-001057): Katalog-Zeile des HTML-Exports des Foliensatzes. Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-11 in praesentation-export.spec.js): Ausführung über die Kommando-Palette, Ordner mit index.html und folie-001.html bis folie-003.html, ohne Notiz, mit Blätter-Verweisen, Theme-Variablen im :root und eingebettetem Hintergrund-Bild. Seiten-Bau, Blätter-Skript und Ziel-Ordner halten renderer/presentation-export.test.js und praesentation-export-kanal.test.js. Mit Sprecher-Notizen trägt 4T-002284 den Ablauf (PR-23 in praesentation-export.spec.js)."
+    },
+    {
+      "key": "help.feature.presentationOverview",
+      "id": "F-359",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation-uebersicht.spec.js",
+        "test/unit/renderer/presentation-uebersicht.test.js"
+      ],
+      "sichtbarkeit": "Ablauf-Fall PR-16 in praesentation-uebersicht.spec.js: Raster mit Kacheln und Nummern sichtbar, Auswahl und Wechsel zur Folie",
+      "hinweis": "4T-002285 (Epic 3E-000348, Story 4S-001076): Katalog-Zeile der Folien-Übersicht. Den Ablauf an der gestarteten Anwendung trägt 4T-002284 (PR-16): Übersicht öffnen, Folie wählen, Schließen mit Esc. Raster, Auswahl per Tastatur und Klick hält renderer/presentation-uebersicht.test.js."
+    },
+    {
+      "key": "help.feature.presentationPresenterView",
+      "id": "F-360",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation-fenster.spec.js",
+        "test/unit/renderer/presentation-referent.test.js",
+        "test/unit/renderer/presentation-publikum.test.js",
+        "test/unit/praesentation-fenster.test.js"
+      ],
+      "sichtbarkeit": "Ablauf-Fälle PR-14 und PR-15 in praesentation-fenster.spec.js: Publikums-Fenster mit derselben Folie, Referenten-Ansicht mit Notizen und Zeitgeber im Hauptfenster",
+      "hinweis": "4T-002285 (Epic 3E-000348, Story 4S-001075): Katalog-Zeile für Referenten-Ansicht und Vorführung im eigenen Fenster, eine gemeinsame Zusage. Den Ablauf an der gestarteten Anwendung über zwei Fenster trägt 4T-002284 (PR-14, PR-15). Fenster-Erzeuger, Kanäle und Preload hält praesentation-fenster.test.js, die Übertragung der gezeichneten Folie renderer/presentation-publikum.test.js, die Referenten-Ansicht renderer/presentation-referent.test.js."
+    },
+    {
+      "key": "help.feature.presentationDesign",
+      "id": "F-361",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation-themes.spec.js",
+        "test/unit/renderer/presentation-gestaltung-dialog.test.js",
+        "test/unit/renderer/presentation-gestaltung-formular.test.js"
+      ],
+      "sichtbarkeit": "Ablauf-Fall PR-20 in praesentation-themes.spec.js: Dialog «Gestaltung dieser Präsentation…», Block im Dateikopf der gespeicherten Datei, «Als Theme speichern…»",
+      "hinweis": "4T-002285 (Epic 3E-000348, Story 4S-001080): Katalog-Zeile der Gestaltung einer Präsentation über den Dialog je Datei. Den Ablauf bis zur Datei auf der Platte trägt 4T-002284 (PR-20). Zustände «wie Theme», byte-gleiche übrige Kopf-Zeilen, Rückgängig als ein Schritt und das Formular-Modul halten renderer/presentation-gestaltung-dialog.test.js und renderer/presentation-gestaltung-formular.test.js."
+    },
+    {
+      "key": "help.feature.presentationThemes",
+      "id": "F-362",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation-themes.spec.js",
+        "test/unit/renderer/presentation-themes-settings.test.js",
+        "test/unit/presentation-eigene-themes.test.js"
+      ],
+      "sichtbarkeit": "Ablauf-Fall PR-19 in praesentation-themes.spec.js: Abschnitt «Folien-Themes» der Einstellungen, eigenes Theme in config.json und im Dateikopf wirksam",
+      "hinweis": "4T-002285 (Epic 3E-000348, Story 4S-001079): Katalog-Zeile der eigenen Folien-Themes. Den Ablauf vom Einstellungs-Abschnitt bis zur gespeicherten Einstellung trägt 4T-002284 (PR-19). Verwaltung, Slot-Zeilen und Vorschau-Folie hält renderer/presentation-themes-settings.test.js, Speicherform, Normalisierung und Namens-Regel presentation-eigene-themes.test.js."
     },
     {
       "key": "help.shortcut.presentationStart",
@@ -2889,6 +2939,66 @@
       ],
       "sichtbarkeit": ["test/e2e/funktionen/praesentation.spec.js"],
       "hinweis": "4T-002162 (Epic 3E-000149, Story 4S-001050): die Vorführung der Präsentation im Vollbild des eigenen Fensters. Geprüft sind der Start an der gezeigten Folie samt Klassen, Ausblendung und Aufruf der Vollbild-Brücke, die Tasten-Tabelle (Pfeile, Leertaste, Umschalt+Leertaste, Bild auf/ab, Pos1/Ende), der Mausklick vorwärts, das Mausrad mit einer Folie je Rad-Bewegung (Ergänzung aus der Abnahme vom 2026-10-10), das Ende mit Esc, über das Kommando, beim Verlassen des Vollbilds außerhalb der Anwendung, beim Fenster- und beim Dokument-Wechsel jeweils mit Rückkehr auf den Vollbild-Zustand von vorher und auf dieselbe Folie, das Nebeneinander mit dem Fokus-Modus, die Verfügbarkeit nur in der gezeigten Präsentations-Ansicht und die Verdrahtung über Registry, Erweiterung, Menü, Brücke, Menü-Horcher und Dispatcher (renderer/presentation-vorfuehrung.test.js); dazu der Kanal des Hauptprozesses am echten Handler (praesentation-vollbild-kanal.test.js). Das Vollbild selbst und das Bild am Beamer prüft der Product Owner an der gebauten Programmdatei. Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-07 in praesentation.spec.js): Start über F5, die Schaltfläche «Vorführung starten» der Leiste und den Menü-Kanal, Blättern mit Pfeil, Mausklick und Mausrad, Esc mit Rückkehr in die Ansicht; das Vollbild ist am Kanal gemessen (Aufruf und Rückgabewert), nicht am Fenster."
+    },
+    {
+      "key": "help.shortcut.presentationStartWindow",
+      "id": "S-166",
+      "testart": "unit",
+      "tests": [
+        "test/e2e/funktionen/praesentation-fenster.spec.js",
+        "test/unit/renderer/presentation-publikum.test.js",
+        "test/unit/praesentation-fenster.test.js",
+        "test/unit/inhalts-regel-fenster.test.js",
+        "test/unit/command-availability.test.js",
+        "test/unit/render/extensions-aus-praesentation.test.js"
+      ],
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette ohne DOM-Bedienelement; das Publikums-Fenster ist ein eigenes Fenster außerhalb des Hauptfensters, das der Product Owner an der gebauten Programmdatei prüft",
+      "hinweis": "4T-002278 (Epic 3E-000348, Story 4S-001075): die Vorführung im eigenen Fenster. Geprüft sind Start, Senden der gezeichneten Folie, Blättern aus beiden Fenstern, das Ende über Esc, Kommando und Schließen des Publikums-Fensters, der Fokus-Wechsel ohne Ende und die Verdrahtung über Registry, Erweiterung, Menü, Menü-Horcher und Dispatcher (renderer/presentation-publikum.test.js); Fenster-Erzeuger mit Bildschirm-Wahl, Fenster-Optionen, Navigations-Sperre, Lebenszyklus, Kanal-Verträge und Preload-Oberflächen (praesentation-fenster.test.js); die Inhalts-Regel der Seite (inhalts-regel-fenster.test.js). Den Ablauf an der gestarteten Anwendung trägt 4T-002284 (PR-14 in praesentation-fenster.spec.js): Start über den Menü-Kanal, das Publikums-Fenster in der Fenster-Liste mit dem Titel «Vorführung», derselbe Folien-Inhalt in beiden Fenstern, Blättern aus dem Hauptfenster und aus dem Publikums-Fenster, Ende über Esc im Publikums-Fenster, beim Schließen des Publikums-Fensters und mit dem Hauptfenster."
+    },
+    {
+      "key": "help.shortcut.presentationPresenter",
+      "id": "S-167",
+      "testart": "unit",
+      "tests": [
+        "test/e2e/funktionen/praesentation-fenster.spec.js",
+        "test/unit/renderer/presentation-referent.test.js",
+        "test/unit/renderer/presentation-publikum.test.js",
+        "test/unit/command-availability.test.js",
+        "test/unit/render/extensions-aus-praesentation.test.js"
+      ],
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette ohne DOM-Bedienelement; die Referenten-Ansicht prüft der Product Owner an der gebauten Programmdatei mit zwei Fenstern",
+      "hinweis": "4T-002279 (Epic 3E-000348, Story 4S-001075): die Referenten-Ansicht im Hauptfenster mit aktueller und nächster Folie, gerenderten Notizen und Zeitgeber, die Folie im Publikums-Fenster. Geprüft sind Start, ein Folien-Zustand für beide Fenster, Blättern, Notizen in Reihenfolge, Zeitgeber mit Anhalten und Zurücksetzen, Dokument-Änderung mit entfallener Folie und das Ende auf allen drei Wegen (renderer/presentation-referent.test.js); Kommando-Verfügbarkeit und Aus-Zustand der Erweiterung in den beiden Listen-Prüfungen. Den Ablauf über beide Fenster trägt 4T-002284 (PR-15 in praesentation-fenster.spec.js): Start über den Menü-Kanal, nächste Folie, Notizen in Reihenfolge, Hinweis ohne Notizen, «Ende» auf der letzten Folie, Zeitgeber mit Anhalten und Fortsetzen, Blättern in beiden Fenstern mit demselben Folien-Inhalt, Ende über «Vorführung beenden»."
+    },
+    {
+      "key": "help.shortcut.presentationGestaltung",
+      "id": "S-168",
+      "testart": "unit",
+      "tests": [
+        "test/e2e/funktionen/praesentation-themes.spec.js",
+        "test/unit/renderer/presentation-gestaltung-dialog.test.js",
+        "test/unit/renderer/presentation-gestaltung-formular.test.js",
+        "test/unit/renderer/presentation-themes-settings.test.js",
+        "test/unit/command-availability.test.js",
+        "test/unit/render/extensions-aus-praesentation.test.js"
+      ],
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette; der Dialog selbst ist ein Modal, dessen Ablauf an der gestarteten Anwendung 4T-002284 trägt",
+      "hinweis": "4T-002282 (Epic 3E-000348, Story 4S-001080): der Dialog «Gestaltung dieser Präsentation…» und der Abschnitt «Folien-Themes» der Einstellungen. Geprüft sind das gemeinsame Formular in beiden Rahmen (presentation-gestaltung-formular.test.js), Lesen und Schreiben des theme-Eintrags im Kopf mit Byte-Vergleich fremder Schlüssel und Kommentare, die Zustände des Modals, ein Rückgängig-Schritt an einem Editor-Zustand mit Historie, «Als Theme speichern…» mit Namens-Regel, «Theme-Werte in die Datei übernehmen» und die Verdrahtung über Registry, Verfügbarkeit, Menü, Menü-Horcher und Dispatcher (presentation-gestaltung-dialog.test.js); Verwaltung, Namens-Regel, Vorschau-Folie und Speichern des Abschnitts (presentation-themes-settings.test.js); Aus-Zustand von Kommando und Abschnitt (extensions-aus-praesentation.test.js). Den Ablauf an der gestarteten Anwendung trägt 4T-002284 (praesentation-themes.spec.js): eigenes Theme im Abschnitt «Folien-Themes» anlegen bis zur config.json und im Kopf wählen (PR-19), Dialog mit Theme-Wahl und eigenem Wert bis zur gespeicherten Datei mit byte-gleichem Rest und «Als Theme speichern…» bis zur config.json und zum Kopf mit dem Namen (PR-20), Aus-Zustand der Kommandos und des Abschnitts (PR-21)."
+    },
+    {
+      "key": "help.shortcut.presentationOverview",
+      "id": "S-169",
+      "testart": "unit",
+      "tests": [
+        "test/e2e/funktionen/praesentation-uebersicht.spec.js",
+        "test/unit/renderer/presentation-uebersicht.test.js",
+        "test/unit/renderer/presentation-aufdecken.test.js",
+        "test/unit/renderer/presentation-verkleinerung.test.js",
+        "test/unit/renderer/presentation-darstellung.test.js",
+        "test/unit/command-availability.test.js",
+        "test/unit/render/extensions-aus-praesentation.test.js"
+      ],
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette; das Raster der Übersicht, das Aufdecken in der Vorführung und die Verkleinerung prüft der Product Owner an der gebauten Programmdatei, den Ablauf trägt 4T-002284",
+      "hinweis": "4T-002280 (Epic 3E-000348, Stories 4S-001076, 4S-001077, 4S-001082): die Folien-Übersicht als Raster, das schrittweise Aufdecken von Listen-Punkten und die Verkleinerung übervoller Folien. Geprüft sind Raster mit Nummern, Klick, Enter, Esc und Pfeiltasten samt Verdrahtung über Registry, Verfügbarkeit, Menü, Menü-Horcher und Dispatcher (renderer/presentation-uebersicht.test.js); Aufdecken und Zudecken in Vorführung, Vorführung im eigenen Fenster und Referenten-Ansicht, rückwärts betretene Folie vollständig, Ansicht vollständig (renderer/presentation-aufdecken.test.js); Faktor, Untergrenze, Innenrand, Kopf und Fuß unverändert (renderer/presentation-darstellung.test.js); derselbe Faktor in Ansicht, Vorführung, Referenten-Ansicht, Übersicht, Druck-Fläche und Publikums-Dokument, Exporte vollständig aufgedeckt (renderer/presentation-verkleinerung.test.js). Den Ablauf an der gestarteten Anwendung trägt 4T-002284 (praesentation-uebersicht.spec.js): Übersicht mit nummerierten Kacheln, Klick auf die Kachel-Fläche, Pfeil und Enter, Esc ohne Wechsel (PR-16); Aufdecken in der Vorführung Schritt für Schritt, rückwärts betreten vollständig, Verkleinerung mit Faktor zwischen 0,5 und 1 ohne Überlauf-Markierung (PR-17)."
     },
     {
       "key": "help.shortcut.presentationNew",
@@ -2915,7 +3025,7 @@
         "test/unit/render/extensions-aus-praesentation.test.js"
       ],
       "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette ohne DOM-Bedienelement; das Ergebnis ist eine PDF-Datei außerhalb der Anwendung, die der Product Owner an der gebauten Programmdatei prüft",
-      "hinweis": "4T-002163 (Epic 3E-000149, Story 4S-001054): PDF des Foliensatzes. Geprüft sind die Druck-Optionen im Folien-Format (Seitengröße aus der Entwurfsgröße, ohne Rand, Hintergründe, keine Seiten-Einstellung des Dokument-Exports), die Druck-Fläche mit einer Seite je Folie samt Umbruch-Regeln, der Endpunkt (Abbruch still, Erfolg mit Folien-Zahl und entfallenen Notizen, Fehler, kein Foliensatz) und der Kanal des Hauptprozesses am echten Handler (praesentation-export-kanal.test.js). Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-10 in praesentation-export.spec.js): Ausführung über die Kommando-Palette, eine PDF-Seite je Folie im Format 960 × 540 Punkte, Meldung mit entfallener Notiz, Ansicht danach unverändert."
+      "hinweis": "4T-002163 (Epic 3E-000149, Story 4S-001054): PDF des Foliensatzes. Geprüft sind die Druck-Optionen im Folien-Format (Seitengröße aus der Entwurfsgröße, ohne Rand, Hintergründe, keine Seiten-Einstellung des Dokument-Exports), die Druck-Fläche mit einer Seite je Folie samt Umbruch-Regeln, der Endpunkt (Abbruch still, Erfolg mit Folien-Zahl und entfallenen Notizen, Fehler, kein Foliensatz) und der Kanal des Hauptprozesses am echten Handler (praesentation-export-kanal.test.js). Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-10 in praesentation-export.spec.js): Ausführung über die Kommando-Palette, eine PDF-Seite je Folie im Format 960 × 540 Punkte, Meldung mit entfallener Notiz, Ansicht danach unverändert. Mit Sprecher-Notizen (4T-002283) trägt 4T-002284 den Ablauf (PR-22): Schalter auf der Einstellungs-Seite «Export» bis zur config.json, eine Notiz-Seite im Folien-Format hinter der Folie mit Notiz, Meldung mit der mitgegebenen Notiz."
     },
     {
       "key": "help.shortcut.presentationExportHtml",
@@ -2929,7 +3039,7 @@
         "test/unit/render/extensions-aus-praesentation.test.js"
       ],
       "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette ohne DOM-Bedienelement; das Ergebnis ist ein Ordner mit HTML-Seiten außerhalb der Anwendung, den der Product Owner im Browser prüft",
-      "hinweis": "4T-002163 (Epic 3E-000149, Story 4S-001057): HTML-Seiten des Foliensatzes. Geprüft sind Startseite index.html und folie-001.html bis folie-00N.html, die Blätter-Leiste mit Verweisen und Enden, das Blätter-Skript mit der Tasten-Tabelle der Vorführung, eingebettete Stile ohne Druck-Regeln, KaTeX nur bei Formeln, fehlende Notizen, die Zählung fehlender Bilder, die Meldung und der Ziel-Ordner im Hauptprozess (leer, fremd, früherer Export, nur Seiten-Namen). Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-11 in praesentation-export.spec.js): Ausführung über die Kommando-Palette, Ordner mit index.html und folie-001.html bis folie-003.html, ohne Notiz, mit Blätter-Verweisen an den Enden, Theme-Variablen im :root und eingebettetem Hintergrund-Bild."
+      "hinweis": "4T-002163 (Epic 3E-000149, Story 4S-001057): HTML-Seiten des Foliensatzes. Geprüft sind Startseite index.html und folie-001.html bis folie-00N.html, die Blätter-Leiste mit Verweisen und Enden, das Blätter-Skript mit der Tasten-Tabelle der Vorführung, eingebettete Stile ohne Druck-Regeln, KaTeX nur bei Formeln, fehlende Notizen, die Zählung fehlender Bilder, die Meldung und der Ziel-Ordner im Hauptprozess (leer, fremd, früherer Export, nur Seiten-Namen). Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-11 in praesentation-export.spec.js): Ausführung über die Kommando-Palette, Ordner mit index.html und folie-001.html bis folie-003.html, ohne Notiz, mit Blätter-Verweisen an den Enden, Theme-Variablen im :root und eingebettetem Hintergrund-Bild. Mit Sprecher-Notizen (4T-002283) trägt 4T-002284 den Ablauf (PR-23): Schalter auf der Einstellungs-Seite «Export», zugeklappter Bereich «Notizen» nur auf der Seite der Folie mit Notiz, Meldung mit der mitgegebenen Notiz."
     },
     {
       "key": "help.feature.kanbanNotes",

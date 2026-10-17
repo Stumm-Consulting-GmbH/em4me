@@ -103,6 +103,12 @@ import {
 import { legeNeueTafelAn, wandleInTafelUm } from '../kanban/kanban-anlegen.js';
 // 4T-002162 (Epic 3E-000149): Start und Ende der Vorfuehrung.
 import { beendeVorfuehrung, starteVorfuehrung } from '../presentation/presentation-vorfuehrung.js';
+import { starteVorfuehrungImFenster } from '../presentation/presentation-publikum.js';
+// 4T-002279 (Epic 3E-000348): Referenten-Ansicht.
+import { starteReferentenAnsicht } from '../presentation/presentation-referent.js';
+import { schalteUebersicht } from '../presentation/presentation-uebersicht.js';
+// 4T-002282 (Epic 3E-000348): Dialog «Gestaltung dieser Präsentation…».
+import { oeffneGestaltungDerSpalte } from '../presentation/presentation-gestaltung-start.js';
 // 4T-002163 (Epic 3E-000149): neue Praesentation und die Ausgaben des Foliensatzes.
 import { legeNeuePraesentationAn } from '../presentation/presentation-anlegen.js';
 import { exportiereFoliensatzAlsHtml, exportiereFoliensatzAlsPdf } from '../views/folien-export.js';
@@ -503,6 +509,12 @@ export const commandHandlers = {
   // gezeigten Folie. Ausserhalb der Praesentations-Ansicht ohne Wirkung; der
   // Tastendruck gilt dann als nicht verarbeitet.
   'presentation.start': () => starteVorfuehrung(state.activePaneIndex),
+  // 4T-002278: im Publikums-Fenster; 'presentation.stop' beendet beide Arten.
+  'presentation.startWindow': () => starteVorfuehrungImFenster(state.activePaneIndex),
+  // 4T-002279: Referenten-Ansicht; 'presentation.stop' beendet auch sie.
+  'presentation.presenterView': () => starteReferentenAnsicht(state.activePaneIndex),
+  // 4T-002280: Folien-Übersicht; ein zweiter Aufruf schließt sie.
+  'presentation.overview': () => schalteUebersicht(state.activePaneIndex),
   // 4T-002162: Vorfuehrung beenden (Palette; Esc faengt die Vorfuehrung selbst).
   'presentation.stop': () => beendeVorfuehrung(),
   // 4T-002163: der Weg zu einer neuen Praesentation (Vorbild kanban.newBoard)
@@ -515,6 +527,9 @@ export const commandHandlers = {
   'presentation.exportHtml': () => {
     exportiereFoliensatzAlsHtml();
   },
+  // 4T-002282 (Epic 3E-000348): der Dialog «Gestaltung dieser Präsentation…»;
+  // ein nicht änderbares Dokument fängt der Dialog mit einem Hinweis ab.
+  'presentation.gestaltung': () => oeffneGestaltungDerSpalte(state.activePaneIndex),
   // 4T-001654 (Epic 3E-000287): Karte in der Mitte des sichtbaren Ausschnitts
   // der aktiven Flaeche anlegen; ausserhalb der Canvas-Ansicht ein Hinweis
   // (Guard-Muster edit.insertEvents).

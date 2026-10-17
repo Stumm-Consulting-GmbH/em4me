@@ -3,6 +3,9 @@
 // Marp und das Herausziehen der Hintergrund-Bilder aus dem Quelltext einer
 // Folie.
 //
+// 4T-002280 (Epic 3E-000348): dazu die Suche des Verkleinerungs-Faktors einer
+// übervollen Folie; die Messung am DOM steht in presentation-folie.js.
+//
 // Prozessneutral (CJS, reine Funktionen, kein Electron, kein DOM). Die
 // Ansicht (renderer/modules/presentation/presentation-folie.js) baut daraus
 // die Folie; die Ausgaben des Foliensatzes (4T-002163) brauchen dieselben
@@ -69,6 +72,44 @@ function folienSkalierung(verfuegbarBreite, verfuegbarHoehe, geometrie, rand = F
   let skala = Math.min(b / g.breite, h / g.hoehe);
   if (!Number.isFinite(skala) || skala < 0) skala = 0;
   return { skala, breite: g.breite * skala, hoehe: g.hoehe * skala };
+}
+
+// --- Verkleinerung übervoller Folien (4T-002280) --------------------------
+
+/**
+ * Untergrenze des Verkleinerungs-Faktors. Darunter wäre der Inhalt kaum noch
+ * lesbar; eine Folie, die selbst bei diesem Faktor nicht passt, bleibt bei
+ * ihm stehen und trägt wieder die Überlauf-Markierung (technische Feinheit,
+ * festgelegt in 4T-002280).
+ */
+const VERKLEINERUNG_MIN = 0.5;
+// Halbierungs-Schritte der Suche: Genauigkeit (1 - min) / 2^7, unter 0,4 %.
+const VERKLEINERUNG_SCHRITTE = 7;
+
+/**
+ * Der größte Faktor in [min, 1], bei dem der Inhalt passt (Halbierungs-
+ * Suche). Passt er ungekürzt, ist es 1; passt er selbst bei `min` nicht,
+ * ist es `min`. Die Messung reicht der Aufrufer herein: Sie setzt den Faktor
+ * an den Inhalt und meldet, ob er dann passt.
+ *
+ * @param {(faktor: number) => boolean} passt
+ * @param {{min?: number, schritte?: number}} [optionen]
+ * @returns {number}
+ */
+function verkleinerungsFaktor(
+  passt,
+  { min = VERKLEINERUNG_MIN, schritte = VERKLEINERUNG_SCHRITTE } = {},
+) {
+  if (passt(1)) return 1;
+  if (!passt(min)) return min;
+  let unten = min;
+  let oben = 1;
+  for (let i = 0; i < schritte; i += 1) {
+    const mitte = (unten + oben) / 2;
+    if (passt(mitte)) unten = mitte;
+    else oben = mitte;
+  }
+  return unten;
 }
 
 // --- Hintergrund-Angaben ---------------------------------------------------
@@ -185,6 +226,8 @@ module.exports = {
   FOLIEN_RAND,
   folienGeometrie,
   folienSkalierung,
+  VERKLEINERUNG_MIN,
+  verkleinerungsFaktor,
   bgAngabe,
   hintergrundBilderZiehen,
   hintergrundAnordnung,

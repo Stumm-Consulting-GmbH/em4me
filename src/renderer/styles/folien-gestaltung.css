@@ -1,0 +1,79 @@
+/* 4T-002282 (Epic 3E-000348): Formular der Folien-Slots, Dialog «Gestaltung
+   dieser Präsentation…» und Abschnitt «Folien-Themes» der Einstellungen.
+   Rahmen, Hintergrund und Knopf-Leiste des Dialogs kommen von den
+   Modal-Klassen des Bestands (bookmark-modal), die Zeilen von settings-row;
+   hier stehen allein Anordnung und Zustände. Farben ausschließlich über die
+   Variablen der Oberfläche; die Vorschau-Folie färbt sich selbst über ihre
+   Slots (presentation.css). */
+
+/* Dialog: so hoch wie der Inhalt, höchstens wie das Fenster. */
+.folien-gestaltung-inhalt {
+  max-height: 85vh;
+  overflow-y: auto;
+  max-width: 680px;
+}
+
+.folien-gestaltung-zeile,
+.folien-gestaltung-themezeile,
+.folien-themes-aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.folien-gestaltung-zeile > label,
+.folien-gestaltung-themezeile > label {
+  flex: 0 0 180px;
+}
+.folien-gestaltung-text {
+  flex: 1 1 160px;
+  min-width: 120px;
+  font-family: var(--font-mono, monospace);
+}
+.folien-gestaltung-farbe {
+  width: 36px;
+  height: 26px;
+  padding: 0;
+}
+.folien-gestaltung-zuruecksetzen:disabled {
+  opacity: 0.4;
+}
+/* «wie Theme»: der gezeigte Wert ist der des Themes, nicht ein eigener. */
+.folien-gestaltung--dialog .folien-gestaltung-zeile[data-zustand='theme'] .folien-gestaltung-text {
+  color: var(--fg-muted);
+}
+.folien-gestaltung-ungueltig .folien-gestaltung-text {
+  border-color: var(--linter-error, #d13438);
+  outline: 1px solid var(--linter-error, #d13438);
+}
+
+/* Einstellungen: Slot-Zeilen links, Vorschau-Folie rechts; schmal untereinander. */
+.folien-themes-raster {
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(240px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .folien-themes-raster {
+    grid-template-columns: 1fr;
+  }
+}
+.folien-gestaltung-vorschau {
+  height: 220px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-alt);
+}
+.folien-themes-fehler {
+  color: var(--linter-error, #d13438);
+  font-size: 0.9em;
+  margin: 0 0 8px;
+}
+.folien-themes-fehler[hidden] {
+  display: none;
+}

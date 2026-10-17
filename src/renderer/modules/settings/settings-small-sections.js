@@ -21,11 +21,15 @@ import {
   headingNumberingStartLevel,
   isHeadingNumberingEnabled,
 } from '../heading-numbering.js';
+import { NOTIZEN_EINSTELLUNG } from '../views/folien-export-notizen.js';
 import { persistSetting } from '../views/views.js';
 import { buildSettingsRow, jsonEqual } from './settings-shared.js';
 
 // Spiegelt applyExportSection (normalisierte Werte gegen den Snapshot).
 export function dirtyExportSection(draft) {
+  if (draft.exportFolien && draft.exportFolien.notizen !== draft.exportFolienSnapshot.notizen) {
+    return true;
+  }
   if (!draft.exportPdf) return false;
   return !jsonEqual(normalizePdfExportSettings(draft.exportPdf), draft.exportPdfSnapshot);
 }
@@ -280,6 +284,16 @@ export async function readPdfExportFromStore() {
   });
 }
 
+// 4T-002283 (Epic 3E-000348): Gruppe «Foliensatz» mit dem Schalter
+// «Sprecher-Notizen mitgeben» für beide Ausgaben des Foliensatzes (PDF und
+// HTML-Seiten). Vorgabe aus (Entscheidung des Product Owners vom 2026-10-15);
+// nur der gespeicherte Wert true schaltet ein. Den Schlüssel liest der Export
+// aus derselben Konstante (views/folien-export-notizen.js).
+
+export async function readFolienExportFromStore() {
+  return { notizen: (await api.getSetting(NOTIZEN_EINSTELLUNG)) === true };
+}
+
 // Select-Baustein: options als [wert, label]-Paare.
 function buildExportSelect(id, options, value, onChange) {
   const select = document.createElement('select');
@@ -349,9 +363,34 @@ export function renderExportSection(container, draft) {
       ),
     ),
   );
+  renderFolienGroup(container, draft);
+}
+
+function renderFolienGroup(container, draft) {
+  const heading = document.createElement('h4');
+  heading.className = 'settings-export-group-title';
+  heading.textContent = t('settings.export.folienGroup');
+  container.appendChild(heading);
+  const box = document.createElement('input');
+  box.id = 'settings-export-folien-notizen';
+  box.type = 'checkbox';
+  box.checked = !!(draft.exportFolien && draft.exportFolien.notizen === true);
+  // Aenderungs-Guard wie oben: vor dem Laden gilt die Vorgabe aus.
+  box.addEventListener('change', () => {
+    if (!draft.exportFolien) {
+      draft.exportFolien = { notizen: false };
+      draft.exportFolienSnapshot = { notizen: false };
+    }
+    draft.exportFolien.notizen = box.checked;
+  });
+  container.appendChild(buildSettingsRow('settings.export.folienNotizen', box));
 }
 
 export async function applyExportSection(draft) {
+  if (draft.exportFolien && draft.exportFolien.notizen !== draft.exportFolienSnapshot.notizen) {
+    await persistSetting(NOTIZEN_EINSTELLUNG, draft.exportFolien.notizen === true);
+    draft.exportFolienSnapshot = { notizen: draft.exportFolien.notizen === true };
+  }
   // Noch nicht aus dem Store geladen und nicht angefasst: nichts zu tun.
   if (!draft.exportPdf) return;
   const values = normalizePdfExportSettings(draft.exportPdf);

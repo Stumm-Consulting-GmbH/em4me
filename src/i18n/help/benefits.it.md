@@ -12,7 +12,7 @@ Leggere, scrivere e verificare sono attività diverse e richiedono presentazioni
 - **Mappa mentale** trasforma la struttura dei titoli in un albero.
 - **Tela** mostra una superficie con schede e collegamenti che si trova nel documento stesso.
 - **Bacheca** dispone le attività del documento una accanto all'altra, come schede in colonne.
-- **Diapositive** mostrano un documento con l'indicatore `presentation: true` come serie di diapositive, da proiettare a schermo intero e da consegnare come PDF o come pagine HTML.
+- **Diapositive** mostrano un documento con l'indicatore `presentation: true` come serie di diapositive, da proiettare a schermo intero o con la visualizzazione relatore su un secondo schermo, e da consegnare come PDF o come pagine HTML.
 
 In dettaglio: [Viste e visualizzazione](views-display.md), [Vista mappa mentale](mindmap.md), [Superficie Canvas](canvas.md), [Bacheca Kanban](kanban.md), [Presentazione](presentation.md).
 

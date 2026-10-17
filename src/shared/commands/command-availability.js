@@ -327,6 +327,20 @@ const AVAILABILITY_CATALOG = [
     felder: ['hasTab', 'systemTab', 'praesentationTab'],
     pruefe: (c) => !!c.hasTab && !c.systemTab && !!c.praesentationTab,
   },
+  // 4T-002282 (Epic 3E-000348): Die Bedingung des Dialogs «Gestaltung dieser
+  // Präsentation…», der in den Dateikopf schreibt: eine Präsentation, die
+  // geschrieben werden darf — weder Handbuch- noch System-Seite und im
+  // Änderungs-Modus. Anders als bei den Tafel-Befehlen steht `editMode` hier im
+  // Katalog, weil die Story die Verfügbarkeit nur in einer änderbaren
+  // Präsentation zusagt; der Main übernimmt das Feld aus dem gemeldeten
+  // Zustand (wie bei `datentabelleAenderbar`). Die Ansicht spielt keine Rolle:
+  // Der Kopf ist in jeder Ansicht derselbe.
+  {
+    name: 'praesentationAenderbar',
+    felder: ['hasTab', 'manualTab', 'systemTab', 'editMode', 'praesentationTab'],
+    pruefe: (c) =>
+      !!c.hasTab && !c.manualTab && !c.systemTab && !!c.editMode && !!c.praesentationTab,
+  },
   // 4T-001849 (Epic 3E-000110): Die Bedingung der Tafel-Befehle, im Zuschnitt
   // von `canvasKarte` und aus demselben Grund: Die Karte entsteht in der
   // gezeigten Tafel, und die gibt es nur in dieser Ansicht.

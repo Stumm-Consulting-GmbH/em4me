@@ -16,6 +16,7 @@ Diese Datenarten stehen zur Wahl:
 |---|---|
 | Einstellungen | Verhalten und Darstellung: Sprache, Erscheinungsbild, Editor- und Ansichts-Optionen, automatisches Speichern, Historie, Anlagen, Export-Optionen, die Konfiguration von Aufgaben, Erinnerungen und Kalender-Anzeige sowie die Spalten-Vorlieben der Panels |
 | Farbschemas | die selbst angelegten Schemas samt der Zuordnung, welches im hellen und welches im dunklen Modus gilt |
+| Eigene Folien-Themes | die selbst angelegten Themes für Präsentationen |
 | Tastenkürzel | eigene Umbelegungen der Kommandos |
 | Format-Toolbar | die eigene Belegung der Schaltflächen-Leiste |
 | Statusleisten-Schaltflächen und Makros | eigene Zugänge in der Statusleiste, die Kontextmenü-Sektion, die Ausblend-Liste und die selbst gebauten Makros |
@@ -84,7 +85,7 @@ Es gilt **eine** Regel für alle Datenarten:
 
 > Ergänzt wird, was Sie als benannten Gegenstand angelegt haben. Ersetzt wird, was eine Einstellung oder eine Anordnung ist.
 
-Ergänzt werden deshalb die eigenen Farbschemas, die Makros, die Layout-Varianten der Sidebar, die eigenen Arbeitsmodi, die Lesezeichen und die Kalender-Blöcke: Sie treten **neben** das Vorhandene, und der vorhandene Bestand wird dabei nicht angefasst. Ersetzt werden die Einstellungen, die Tastenkürzel-Belegung, die Format-Toolbar, die Vorlagen-Regeln und der Schalt-Zustand der Erweiterungen: Ein Wert kennt keine Mehrzahl, und zwei verschränkte Anordnungen ergäben eine dritte, die niemand eingerichtet hat.
+Ergänzt werden deshalb die eigenen Farbschemas, die eigenen Folien-Themes, die Makros, die Layout-Varianten der Sidebar, die eigenen Arbeitsmodi, die Lesezeichen und die Kalender-Blöcke: Sie treten **neben** das Vorhandene, und der vorhandene Bestand wird dabei nicht angefasst. Ersetzt werden die Einstellungen, die Tastenkürzel-Belegung, die Format-Toolbar, die Vorlagen-Regeln und der Schalt-Zustand der Erweiterungen: Ein Wert kennt keine Mehrzahl, und zwei verschränkte Anordnungen ergäben eine dritte, die niemand eingerichtet hat.
 
 **Bei gleichem Namen bleibt der vorhandene Eintrag unverändert**, und der eingelesene kommt mit einem unterscheidenden Zusatz daneben: aus „Muster" wird „Muster (2)". Die Vorschau nennt jede solche Umbenennung namentlich. Verweise ziehen dabei mit — ein eingelesenes Makro, das eine neue Kennung bekommt, wird von seiner Schaltfläche weiterhin gefunden.
 

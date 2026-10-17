@@ -68,7 +68,7 @@ describe('Startinhalt (AK2, AK3)', () => {
     const [titel, liste, zweiteilung] = modell.folien;
     expect(titel.quelltext).toContain(`# ${DE['presentation.vorlage.titel']}`);
     expect(liste.quelltext).toContain(`- ${DE['presentation.vorlage.punkt1']}`);
-    expect(liste.notizen).toEqual([DE['presentation.vorlage.notiz']]);
+    expect(liste.notizen.map((n) => n.text)).toEqual([DE['presentation.vorlage.notiz']]);
     // Die Notiz steht nicht im Quelltext der Folie.
     expect(liste.quelltext).not.toContain(DE['presentation.vorlage.notiz']);
     expect(zweiteilung.quelltext).toContain('`![bg left](bild.png)`');
@@ -97,7 +97,10 @@ describe('Startinhalt (AK2, AK3)', () => {
         expect(k[key], `${code} ${key}`).toBeTruthy();
         expect(inhalt, `${code} ${key}`).toContain(k[key]);
       }
-      expect(m.folien[1].notizen, code).toEqual([k['presentation.vorlage.notiz']]);
+      expect(
+        m.folien[1].notizen.map((n) => n.text),
+        code,
+      ).toEqual([k['presentation.vorlage.notiz']]);
       // Die Platzhalter sind ersetzt, die Code-Spannen stehen.
       expect(inhalt, code).not.toMatch(/\{bg\}|\{links\}/);
       expect(inhalt, code).toContain('`![bg](bild.png)`');
@@ -211,6 +214,15 @@ describe('Präsentation: das gebaute Untermenü', () => {
       tForLocale('de', 'menu.view.presentationNew'),
       '—',
       tForLocale('de', 'menu.view.presentationStart'),
+      // 4T-002278: die Vorführung im eigenen Fenster und ihr Ende.
+      tForLocale('de', 'menu.view.presentationStartWindow'),
+      tForLocale('de', 'menu.view.presentationPresenter'),
+      tForLocale('de', 'presentation.vorfuehrungBeenden'),
+      // 4T-002280: die Folien-Übersicht.
+      tForLocale('de', 'menu.view.presentationOverview'),
+      // 4T-002282: die Gestaltung der Datei, abgesetzt von der Vorführung.
+      '—',
+      tForLocale('de', 'menu.view.presentationGestaltung'),
     ]);
     expect(eintrag.submenu[0].enabled).toBe(true);
   });

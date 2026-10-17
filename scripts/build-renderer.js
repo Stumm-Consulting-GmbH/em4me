@@ -10,6 +10,18 @@ const path = require('node:path');
 const root = path.join(__dirname, '..');
 const entry = path.join(root, 'src', 'renderer', 'renderer.js');
 const outfile = path.join(root, 'src', 'renderer', 'renderer.bundle.js');
+// 4T-002278 (Epic 3E-000348): zweiter Einstieg, die schmale Seite des
+// Publikums-Fensters der Präsentation (src/renderer/publikum.html). Eigenes
+// Bündel, damit das Fenster nichts vom Renderer des Hauptfensters lädt.
+const publikumEntry = path.join(
+  root,
+  'src',
+  'renderer',
+  'modules',
+  'presentation',
+  'publikum-einstieg.js',
+);
+const publikumOutfile = path.join(root, 'src', 'renderer', 'publikum.bundle.js');
 
 // 4T-000023: highlight.js-Themes vor dem Bundle bauen. Erzeugt
 // src/renderer/hljs-themes.css aus den GitHub-Light/Dark-Themes.
@@ -65,15 +77,27 @@ const buildOptions = {
   logLevel: 'info',
 };
 
+// 4T-002278: als klassisches Skript (iife) ohne Modul-Lader; die Seite hat
+// nur dieses eine Skript.
+const publikumOptions = {
+  ...buildOptions,
+  entryPoints: [publikumEntry],
+  outfile: publikumOutfile,
+  format: 'iife',
+};
+
 async function main() {
   // 4T-000021: Mermaid-Bundle vor dem Haupt-Renderer-Bundle bauen.
   await buildMermaid();
   if (watch) {
     const ctx = await esbuild.context(buildOptions);
     await ctx.watch();
+    const publikumCtx = await esbuild.context(publikumOptions);
+    await publikumCtx.watch();
     console.log('build-renderer: watching for changes…');
   } else {
     await esbuild.build(buildOptions);
+    await esbuild.build(publikumOptions);
   }
 }
 

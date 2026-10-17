@@ -1015,18 +1015,60 @@ const COMMANDS = [
     availability: 'praesentationsAnsichtAktiv',
   },
   {
+    // 4T-002278 (Epic 3E-000348): Vorführung im eigenen Fenster — das
+    // Publikums-Fenster zeigt die Folie, das Hauptfenster bleibt bedienbar.
+    // Mit zwei Bildschirmen im Vollbild auf dem anderen, sonst als
+    // gewöhnliches Fenster. Ohne Vorgabe-Kürzel; Bedingung wie beim Start.
+    id: 'presentation.startWindow',
+    defaultBindings: [],
+    labelKey: 'menu.view.presentationStartWindow',
+    descKey: 'help.shortcut.presentationStartWindow',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'praesentationsAnsichtAktiv',
+  },
+  {
+    // 4T-002279 (Epic 3E-000348): Referenten-Ansicht — im Hauptfenster
+    // aktuelle und nächste Folie, Notizen und Zeitgeber, die Folie im
+    // Publikums-Fenster. Ohne Vorgabe-Kürzel; Bedingung wie beim Start.
+    id: 'presentation.presenterView',
+    defaultBindings: [],
+    labelKey: 'menu.view.presentationPresenter',
+    descKey: 'help.shortcut.presentationPresenter',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'praesentationsAnsichtAktiv',
+  },
+  {
+    // 4T-002280 (Epic 3E-000348): Folien-Übersicht — alle Folien als Raster
+    // über der Fläche; ein zweiter Aufruf schließt sie. Ohne Vorgabe-Kürzel;
+    // verfügbar nur in der Ansicht «Folien».
+    id: 'presentation.overview',
+    defaultBindings: [],
+    labelKey: 'menu.view.presentationOverview',
+    descKey: 'help.shortcut.presentationOverview',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'praesentationsAnsichtAktiv',
+  },
+  {
     // 4T-002162 (Epic 3E-000149): Vorfuehrung beenden. Der gewoehnliche Weg ist
     // Esc in der Vorfuehrung; das Kommando macht den Weg in der Palette
-    // auffindbar und belegbar. Ohne Vorgabe-Kuerzel und ohne Menue-Eintrag:
-    // In der Vorfuehrung ist kein Menue zu sehen. Beschreibung aus dem
+    // auffindbar und belegbar. Ohne Vorgabe-Kürzel. Beschreibung aus dem
     // Katalog-Eintrag der Praesentation (Muster canvas.addCard): eine eigene
     // Katalog-Zeile fuer das Gegenstueck des Starts waere doppelt gepflegt.
+    // 4T-002278: seither auch im Menü, weil das Hauptfenster bei der
+    // Vorführung im eigenen Fenster sein Menü behält; es beendet die
+    // gerade laufende Vorführung beider Arten.
     id: 'presentation.stop',
     defaultBindings: [],
     labelKey: 'presentation.vorfuehrungBeenden',
     descKey: 'help.feature.presentationSlideShow',
     categoryKey: 'help.group.view',
-    menu: false,
+    menu: true,
     editorScoped: false,
     availability: 'praesentationsAnsichtAktiv',
   },
@@ -1072,6 +1114,21 @@ const COMMANDS = [
     menu: true,
     editorScoped: false,
     availability: 'praesentationsDokument',
+  },
+  {
+    // 4T-002282 (Epic 3E-000348): Dialog «Gestaltung dieser Präsentation…»,
+    // der den Gestaltungs-Block im Dateikopf schreibt (Story 4S-001080). Ohne
+    // Vorgabe-Kürzel wie «Einstellungen dieser Tafel…»; verfügbar nur in einer
+    // änderbaren Präsentation, in jeder Ansicht. Der Erweiterungs-Schalter
+    // 'presentation' nimmt den Eintrag im Aus-Zustand aus Menü und Palette.
+    id: 'presentation.gestaltung',
+    defaultBindings: [],
+    labelKey: 'menu.view.presentationGestaltung',
+    descKey: 'help.shortcut.presentationGestaltung',
+    categoryKey: 'help.group.view',
+    menu: true,
+    editorScoped: false,
+    availability: 'praesentationAenderbar',
   },
   {
     // 4T-001654 (Epic 3E-000287): Karte auf der Canvas-Flaeche anlegen. Der

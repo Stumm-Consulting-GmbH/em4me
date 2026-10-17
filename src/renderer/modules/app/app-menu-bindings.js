@@ -28,7 +28,12 @@ import {
 import { legeNeueTafelAn, wandleInTafelUm } from '../kanban/kanban-anlegen.js';
 import { schalteKanbanAnzeige } from '../kanban/kanban-anzeige-schalter.js';
 // 4T-002162 (Epic 3E-000149): Start der Vorfuehrung aus dem Menue.
-import { starteVorfuehrung } from '../presentation/presentation-vorfuehrung.js';
+import { beendeVorfuehrung, starteVorfuehrung } from '../presentation/presentation-vorfuehrung.js';
+import { starteVorfuehrungImFenster } from '../presentation/presentation-publikum.js';
+import { starteReferentenAnsicht } from '../presentation/presentation-referent.js';
+import { schalteUebersicht } from '../presentation/presentation-uebersicht.js';
+// 4T-002282 (Epic 3E-000348): Dialog «Gestaltung dieser Präsentation…».
+import { oeffneGestaltungDerSpalte } from '../presentation/presentation-gestaltung-start.js';
 // 4T-002163 (Epic 3E-000149): neue Praesentation und die Ausgaben des Foliensatzes.
 import { legeNeuePraesentationAn } from '../presentation/presentation-anlegen.js';
 import { exportiereFoliensatzAlsHtml, exportiereFoliensatzAlsPdf } from '../views/folien-export.js';
@@ -211,6 +216,28 @@ export function bindMenuEvents() {
   // 4T-002162 (Epic 3E-000149): 'Ansicht -> Praesentation -> Vorfuehrung starten'.
   if (typeof api.onMenuPresentationStart === 'function') {
     api.onMenuPresentationStart(() => starteVorfuehrung(state.activePaneIndex));
+  }
+  // 4T-002278 (Epic 3E-000348): 'Vorführung im eigenen Fenster' und
+  // 'Vorführung beenden' im selben Untermenü.
+  if (typeof api.onMenuPresentationStartWindow === 'function') {
+    api.onMenuPresentationStartWindow(() => starteVorfuehrungImFenster(state.activePaneIndex));
+  }
+  // 4T-002279 (Epic 3E-000348): Referenten-Ansicht über das Menü.
+  if (typeof api.onMenuPresentationPresenter === 'function') {
+    api.onMenuPresentationPresenter(() => starteReferentenAnsicht(state.activePaneIndex));
+  }
+  // 4T-002280 (Epic 3E-000348): Folien-Übersicht über das Menü.
+  if (typeof api.onMenuPresentationOverview === 'function') {
+    api.onMenuPresentationOverview(() => schalteUebersicht(state.activePaneIndex));
+  }
+
+  if (typeof api.onMenuPresentationStop === 'function') {
+    api.onMenuPresentationStop(() => beendeVorfuehrung());
+  }
+  // 4T-002282 (Epic 3E-000348): 'Gestaltung dieser Präsentation…' im selben
+  // Untermenü.
+  if (typeof api.onMenuPresentationGestaltung === 'function') {
+    api.onMenuPresentationGestaltung(() => oeffneGestaltungDerSpalte(state.activePaneIndex));
   }
   // 4T-001904 (Epic 3E-000318): die Häkchen der Anzeige-Schalter im Untermenü
   // 'Ansicht -> Kanban-Tafel'. Ein Kanal für alle Schalter; das Menü nennt das

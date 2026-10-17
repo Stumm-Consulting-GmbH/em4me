@@ -64,10 +64,14 @@ export default defineConfig({
     // 4T-002020 (Epic 3E-000192): ebenso der erzeugte Stand der Zeichen-
     // Bibliothek (src/shared/charts/echarts.bundle.js), den die Prüffälle des
     // gemeinsamen Zeichners laden; er ist nicht versioniert.
+    // 4T-002266 (Epic 3E-000156): ebenso die Themes der Code-Hervorhebung
+    // (src/renderer/hljs-themes.css), an deren Fehlen die öffentliche Suite des
+    // Releases 1.148.0 im frischen Checkout des Quellcode-Exports ausfiel.
     globalSetup: [
       './scripts/gate-zugang.js',
       './scripts/build-i18n.js',
       './scripts/build-echarts.js',
+      './scripts/build-hljs-themes.js',
     ],
     // 4T-001949 (Epic 3E-000156): Die wirksame Zeitgrenze je Fall geht als
     // `meta.zeitgrenze` in den Maschinen-Bericht; scripts/zeitgrenzen-abstand.js

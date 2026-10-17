@@ -16,6 +16,7 @@ Estos tipos de datos están a elección:
 |---|---|
 | Ajustes | Comportamiento y presentación: idioma, apariencia, opciones de editor y de vista, guardado automático, historial, adjuntos, opciones de exportación, la configuración de tareas, recordatorios y visualización del calendario, así como las preferencias de columnas de los paneles |
 | Esquemas de color | los esquemas creados por uno mismo, junto con la asignación de cuál rige en el modo claro y cuál en el oscuro |
+| Temas de diapositivas propios | los temas para presentaciones creados por uno mismo |
 | Atajos de teclado | las reasignaciones propias de los comandos |
 | Barra de formato | la ocupación propia de la barra de botones |
 | Botones de la barra de estado y macros | los accesos propios en la barra de estado, la sección del menú contextual, la lista de elementos ocultos y las macros construidas por uno mismo |
@@ -84,7 +85,7 @@ Rige **una sola** regla para todos los tipos de datos:
 
 > Se añade lo que usted ha creado como objeto con nombre. Se reemplaza lo que es un ajuste o una disposición.
 
-Por eso se añaden los esquemas de color propios, las macros, las variantes de disposición de la barra lateral, los modos de trabajo propios, los marcadores y los bloques de calendario: se colocan **junto** a lo existente, y el fondo presente no se toca al hacerlo. Se reemplazan los ajustes, la asignación de los atajos de teclado, la barra de formato, las reglas de plantillas y el estado de las extensiones: un valor no conoce el plural, y dos disposiciones entrelazadas darían una tercera que nadie ha configurado.
+Por eso se añaden los esquemas de color propios, los temas de diapositivas propios, las macros, las variantes de disposición de la barra lateral, los modos de trabajo propios, los marcadores y los bloques de calendario: se colocan **junto** a lo existente, y el fondo presente no se toca al hacerlo. Se reemplazan los ajustes, la asignación de los atajos de teclado, la barra de formato, las reglas de plantillas y el estado de las extensiones: un valor no conoce el plural, y dos disposiciones entrelazadas darían una tercera que nadie ha configurado.
 
 **Con el mismo nombre, la entrada existente queda inalterada**, y la leída llega a su lado con un añadido distintivo: «Muestra» se convierte en «Muestra (2)». La vista previa nombra cada uno de esos cambios de nombre. Las referencias se ajustan con ello: una macro leída que recibe un identificador nuevo sigue siendo encontrada por su botón.
 

@@ -176,7 +176,11 @@
   "help.shortcut.exportJsonCanvas": "Enregistrer le canevas sélectionné dans la vue canevas en fichier JSON Canvas",
   "help.shortcut.importJsonCanvas": "Lire un ou plusieurs fichiers JSON Canvas ; chacun crée à côté un document avec le canevas",
   "help.shortcut.presentationStart": "Projeter la présentation en plein écran à partir de la diapositive affichée ; Échap quitte le diaporama",
+  "help.shortcut.presentationStartWindow": "Projeter la présentation dans une fenêtre séparée, en plein écran sur l’autre écran s’il y en a deux ; la fenêtre principale reste utilisable, Échap quitte le diaporama",
+  "help.shortcut.presentationPresenter": "Projeter la présentation dans une fenêtre séparée et afficher dans la fenêtre principale la diapositive actuelle et la suivante, les notes de l’orateur et le temps ; Échap quitte le diaporama",
+  "help.shortcut.presentationOverview": "Afficher toutes les diapositives de la présentation sous forme de grille ; un clic ou Entrée affiche la diapositive choisie, Échap ferme la vue d’ensemble",
   "help.shortcut.presentationNew": "Créer une nouvelle présentation avec des diapositives d’exemple et l’ouvrir dans la vue « Diapositives »",
   "help.shortcut.presentationExportPdf": "Exporter les diapositives en fichier PDF, une diapositive par page au format de la diapositive et sans marge",
-  "help.shortcut.presentationExportHtml": "Exporter les diapositives dans un dossier avec une page HTML par diapositive, à parcourir avec les touches et les boutons"
+  "help.shortcut.presentationExportHtml": "Exporter les diapositives dans un dossier avec une page HTML par diapositive, à parcourir avec les touches et les boutons",
+  "help.shortcut.presentationGestaltung": "Régler les couleurs et la police de cette présentation par-dessus le thème choisi, les enregistrer comme thème personnel ou copier les valeurs d’un thème personnel dans le fichier"
 }

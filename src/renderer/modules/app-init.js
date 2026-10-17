@@ -191,6 +191,8 @@ import './settings/format-toolbar-settings.js';
 import './settings/mindmap-settings.js';
 // 4T-001955 (Epic 3E-000319): Abschnitt «Kanban-Tafel» der Einstellungen.
 import './settings/kanban-settings.js';
+// 4T-002282 (Epic 3E-000348): Abschnitt «Folien-Themes» der Einstellungen.
+import './settings/presentation-themes-settings.js';
 // 4T-000522 (Epic 3E-000094): Makros — initMacros injiziert Handler-Map und
 // Dispatch-Rebuild (Zyklus-Vermeidung, Muster initCommandPalette).
 import { initMacros } from './macros.js';

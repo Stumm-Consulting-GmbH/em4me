@@ -16,6 +16,12 @@
 // wie in pdf-export.spec.js (PD-01) an den `/Type /Page`-Objekten gezaehlt,
 // das Format an der ersten MediaBox.
 //
+// **Sprecher-Notizen (4T-002284, Stufe 2).** PR-22 und PR-23 schalten «Sprecher-
+// Notizen mitgeben» auf der Einstellungs-Seite «Export» ein — den Weg des
+// Anwenders — und belegen den gespeicherten Schalter in der config.json des
+// Profils, die Notiz-Seite im PDF und den Notiz-Bereich der HTML-Seite
+// (4T-002283).
+//
 // describe-Titel tragen die Matrix-IDs (test/abdeckungs-matrix.json, S-163 bis
 // S-165).
 'use strict';
@@ -30,8 +36,13 @@ const {
   warteAufDateiArgument,
   warteAufRendererBereit,
 } = require('../helpers/app');
-const { pressUntilVisible, pressNachfassend } = require('../helpers/eingabe');
-const { warteAufText } = require('../helpers/dateien');
+const {
+  pressUntilVisible,
+  pressNachfassend,
+  oeffneEinstellungsSeite,
+  EINSTELLUNGS_SEITE,
+} = require('../helpers/eingabe');
+const { warteAufText, leseJsonOderNull } = require('../helpers/dateien');
 const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 const { SEL } = require('../helpers/selectors');
 
@@ -337,6 +348,126 @@ test.describe('PR-12: Neue Präsentation anlegen (S-163)', () => {
       ]);
       expect(zeilen.slice(5).filter((z) => z === '---')).toHaveLength(2);
       expect(text).toContain('%% Sprecher-Notiz:');
+    } finally {
+      await closeApp(app, userData, { force: true });
+      raeumeAuf(dir);
+    }
+  });
+});
+
+// Den Schalter «Sprecher-Notizen mitgeben» auf der Einstellungs-Seite «Export»
+// einschalten und den gespeicherten Wert in der config.json abwarten.
+async function schalteNotizenEin(page, userData) {
+  await oeffneEinstellungsSeite(page);
+  await page.locator(`${EINSTELLUNGS_SEITE} .settings-nav-entry[data-section-id="export"]`).click();
+  const schalter = page.locator('#settings-export-folien-notizen');
+  await expect(schalter).toBeVisible();
+  await expect(schalter).not.toBeChecked();
+  await schalter.check();
+  await page.locator('#btn-settings-ok').click();
+  await expect(page.locator(EINSTELLUNGS_SEITE)).toBeHidden();
+  await expect
+    .poll(() => {
+      const konfig = leseJsonOderNull(path.join(userData, 'config.json')) || {};
+      return Boolean(konfig.export && konfig.export.folien && konfig.export.folien.notizen);
+    })
+    .toBe(true);
+}
+
+test.describe('PR-22: Foliensatz als PDF mit Sprecher-Notizen (S-164)', () => {
+  test('eingeschaltet folgt der Folie mit Notiz eine Notiz-Seite im Folien-Format; die Meldung nennt die mitgegebene Notiz', async () => {
+    const dir = machVerzeichnis();
+    const datei = schreibeFoliensatz(dir);
+    const ziel = path.join(dir, 'Vortrag.pdf');
+    const { app, page, userData } = await launchApp({ args: [datei] });
+    try {
+      await warteAufDateiArgument(page, datei);
+      await schalteNotizenEin(page, userData);
+      await oeffneFolien(page);
+      await expect(page.locator(ZAEHLER)).toHaveText('1 / 3');
+      await stubDialoge(app, { speichern: ziel });
+      await zeichneMeldungenAuf(page);
+      await fuehreAusUeberPalette(
+        page,
+        app,
+        'Foliensatz als PDF',
+        'Foliensatz als PDF exportieren…',
+      );
+      await expect.poll(async () => (await dialogAufrufe(app)).speichern).toBe(1);
+      // Drei Folien und eine Notiz-Seite hinter der zweiten.
+      await expect
+        .poll(() => (fs.existsSync(ziel) ? pdfSeitenZahl(fs.readFileSync(ziel)) : 0), {
+          timeout: 30000,
+        })
+        .toBe(4);
+      const roh = fs.readFileSync(ziel).toString('latin1');
+      const boxen = [...roh.matchAll(/\/MediaBox\s*\[\s*0 0 ([\d.]+) ([\d.]+)\s*\]/g)];
+      expect(boxen.length).toBeGreaterThanOrEqual(1);
+      for (const box of boxen) {
+        expect(Math.abs(parseFloat(box[1]) - 960)).toBeLessThanOrEqual(2);
+        expect(Math.abs(parseFloat(box[2]) - 540)).toBeLessThanOrEqual(2);
+      }
+      await expect
+        .poll(() => folienMeldungen(page))
+        .toContain('Foliensatz als PDF exportiert: 3 Folien, 1 Sprecher-Notiz mitgegeben');
+      // Die Ansicht steht danach wie vorher, ohne Notiz auf der Folie.
+      await expect(page.locator(FLAECHE)).toBeVisible();
+      await expect(page.locator(ZAEHLER)).toHaveText('1 / 3');
+      await expect(page.locator(FLAECHE)).not.toContainText('Geheime Sprecher-Notiz');
+    } finally {
+      await closeApp(app, userData, { force: true });
+      raeumeAuf(dir);
+    }
+  });
+});
+
+test.describe('PR-23: Foliensatz als HTML-Seiten mit Sprecher-Notizen (S-165)', () => {
+  test('eingeschaltet trägt nur die Seite der Folie mit Notiz einen zugeklappten Bereich «Notizen» mit der Notiz', async () => {
+    const dir = machVerzeichnis();
+    const datei = schreibeFoliensatz(dir);
+    const ordner = path.join(dir, 'ausgabe');
+    fs.mkdirSync(ordner);
+    const { app, page, userData } = await launchApp({ args: [datei] });
+    try {
+      await warteAufDateiArgument(page, datei);
+      await schalteNotizenEin(page, userData);
+      await oeffneFolien(page);
+      await expect(page.locator(ZAEHLER)).toHaveText('1 / 3');
+      await stubDialoge(app, { ordner });
+      await zeichneMeldungenAuf(page);
+      await fuehreAusUeberPalette(
+        page,
+        app,
+        'Foliensatz als HTML',
+        'Foliensatz als HTML exportieren…',
+      );
+      await expect.poll(async () => (await dialogAufrufe(app)).ordner).toBe(1);
+      await expect
+        .poll(() => folienMeldungen(page), { timeout: 30000 })
+        .toContain(
+          'Foliensatz als HTML exportiert: 3 Folien in „ausgabe“, 1 Sprecher-Notiz mitgegeben',
+        );
+      const seiten = {};
+      for (const name of ['index.html', 'folie-001.html', 'folie-002.html', 'folie-003.html']) {
+        seiten[name] = await warteAufText(path.join(ordner, name), '</html>', { timeout: 30000 });
+      }
+      // Nur die zweite Folie hat eine Notiz: zugeklappt, beschriftet, mit Text.
+      const zweite = seiten['folie-002.html'];
+      const bereich = zweite.match(
+        /<details class="praesentation-seite-notizen"[^>]*>([\s\S]*?)<\/details>/,
+      );
+      expect(bereich).not.toBeNull();
+      expect(bereich[0]).not.toMatch(/<details[^>]*\sopen/);
+      expect(bereich[1]).toMatch(/<summary[^>]*>Notizen<\/summary>/);
+      expect(bereich[1]).toContain('Geheime Sprecher-Notiz');
+      for (const name of ['index.html', 'folie-001.html', 'folie-003.html']) {
+        expect(seiten[name], name).not.toContain('praesentation-seite-notizen"');
+        expect(seiten[name], name).not.toContain('Geheime Sprecher-Notiz');
+      }
+      // Die Blaetter-Leiste steht weiter auf jeder Seite.
+      for (const [name, html] of Object.entries(seiten)) {
+        expect(html, name).toContain('<nav class="praesentation-seite-nav"');
+      }
     } finally {
       await closeApp(app, userData, { force: true });
       raeumeAuf(dir);

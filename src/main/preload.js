@@ -725,6 +725,9 @@ contextBridge.exposeInMainWorld('api', {
   // activeDark }) wird von Main an alle Renderer gebrodcastet (Store-Key
   // colorSchemes), damit eigene Schemas sofort in allen Fenstern greifen.
   onColorSchemeChanged: (cb) => ipcRenderer.on('colorScheme:changed', (_e, s) => cb(s)),
+  // 4T-002281 (Epic 3E-000348): eigene Folien-Themes aus der Einstellungs-Verteilung.
+  onPresentationThemesChanged: (cb) =>
+    ipcRenderer.on('presentationThemes:changed', (_e, s) => cb(s)),
   onInitialState: (cb) => ipcRenderer.once('window:initialState', (_e, payload) => cb(payload)),
 
   // Menue-Events vom Main an den Renderer
@@ -899,6 +902,26 @@ contextBridge.exposeInMainWorld('api', {
   onMenuPresentationStart: (cb) => ipcRenderer.on('menu:presentationStart', () => cb()),
   setWindowFullScreen: (an) => ipcRenderer.invoke('window:setFullScreen', !!an),
   onWindowLeftFullScreen: (cb) => ipcRenderer.on('window:leftFullScreen', () => cb()),
+  // 4T-002278 (Epic 3E-000348): Vorführung im eigenen Fenster — der Eintrag
+  // 'Ansicht -> Präsentation -> Vorführung im eigenen Fenster', das
+  // Publikums-Fenster öffnen, schließen und mit der gezeichneten Folie
+  // versorgen, dazu seine Eingaben und die Meldung seines Schließens
+  // (Kanal-Vertrag in src/main/ipc/presentation-window.js).
+  onMenuPresentationStartWindow: (cb) => ipcRenderer.on('menu:presentationStartWindow', () => cb()),
+  onMenuPresentationStop: (cb) => ipcRenderer.on('menu:presentationStop', () => cb()),
+  // 4T-002282 (Epic 3E-000348): Dialog «Gestaltung dieser Präsentation…» über das Menü.
+  onMenuPresentationGestaltung: (cb) => ipcRenderer.on('menu:presentationGestaltung', () => cb()),
+  openPresentationWindow: () => ipcRenderer.invoke('presentationWindow:open'),
+  closePresentationWindow: () => ipcRenderer.invoke('presentationWindow:close'),
+  sendPresentationSlide: (folie) => ipcRenderer.invoke('presentationWindow:slide', folie),
+  onPresentationWindowInput: (cb) =>
+    ipcRenderer.on('presentationWindow:input', (_e, eingabe) => cb(eingabe)),
+  onPresentationWindowClosed: (cb) => ipcRenderer.on('presentationWindow:closed', () => cb()),
+  // 4T-002279 (Epic 3E-000348): 'Ansicht -> Präsentation -> Referenten-Ansicht';
+  // sie nutzt die Wege der Vorführung im eigenen Fenster darüber.
+  onMenuPresentationPresenter: (cb) => ipcRenderer.on('menu:presentationPresenter', () => cb()),
+  // 4T-002280 (Epic 3E-000348): 'Ansicht -> Präsentation -> Folien-Übersicht'.
+  onMenuPresentationOverview: (cb) => ipcRenderer.on('menu:presentationOverview', () => cb()),
   // 4T-002163 (Epic 3E-000149): 'Ansicht -> Praesentation -> Neue Praesentation'
   // und die beiden Ausgaben des Foliensatzes im Untermenue 'Exportieren'.
   onMenuPresentationNew: (cb) => ipcRenderer.on('menu:presentationNew', () => cb()),

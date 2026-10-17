@@ -52,6 +52,13 @@ const lies = (rel) => fs.readFileSync(path.join(WURZEL, rel), 'utf8');
 const menuQuelle = lies('src/main/menu/menu.js');
 
 const NEU = ['chart.insert', 'chart.edit'];
+// 4T-002282 (Epic 3E-000348): Spätere Menü-Kommandos, die editMode mit Absicht
+// lesen. Der Dialog «Gestaltung dieser Präsentation…» schreibt in den
+// Dateikopf und ist nach seiner Story nur in einer änderbaren Präsentation
+// verfügbar (Bedingung praesentationAenderbar). Die Wächter unten prüfen
+// weiterhin, dass kein Bestands-Eintrag still dem Feld folgt.
+const SPAETER_MIT_EDITMODE = ['presentation.gestaltung'];
+const EDITMODE_BEDINGUNGEN_SPAETER = ['praesentationAenderbar'];
 const MARKE_UNTERMENUE = "submenuOrNull('menu.view.chart', [";
 const MARKE_CANVAS = "submenuOrNull('menu.view.canvasEdit', [";
 const MARKE_BEARBEITEN = "label: t('menu.view.edit'),";
@@ -343,7 +350,13 @@ describe('Diagramm: das echte editMode ändert keinen anderen Menü-Eintrag (4T-
   function modellBefunde(kommandos, katalog) {
     const liest = new Set(katalog.filter((b) => b.felder.includes('editMode')).map((b) => b.name));
     return kommandos
-      .filter((c) => c.menu && !NEU.includes(c.id) && liest.has(c.availability))
+      .filter(
+        (c) =>
+          c.menu &&
+          !NEU.includes(c.id) &&
+          !SPAETER_MIT_EDITMODE.includes(c.id) &&
+          liest.has(c.availability),
+      )
       .map((c) => `${c.id}: ${c.availability}`);
   }
 
@@ -443,6 +456,8 @@ describe('Diagramm: das echte editMode ändert keinen anderen Menü-Eintrag (4T-
           if (isAvailable(name, ohne) !== isAvailable(name, mit)) folgen.add(name);
       }
     }
-    expect([...folgen].sort()).toEqual(['datentabelleAenderbar', 'diagrammAenderbar']);
+    expect([...folgen].sort()).toEqual(
+      ['datentabelleAenderbar', 'diagrammAenderbar', ...EDITMODE_BEDINGUNGEN_SPAETER].sort(),
+    );
   });
 });

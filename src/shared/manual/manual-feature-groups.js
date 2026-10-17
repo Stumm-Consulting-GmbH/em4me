@@ -497,12 +497,26 @@ const HELP_FEATURE_GROUPS = [
       // Die Zeile entsteht mit dem Modus, weil der Erweiterungs-Eintrag auf sie
       // zeigt; der Hilfe- und Handbuch-Task 4T-002165 fuehrt sie weiter.
       'help.feature.presentation',
+      // 4T-002285 (Epic 3E-000348): die Folien-Übersicht direkt hinter der
+      // Ansicht, weil sie in ihr wirkt; eigene Zeile wie die Vorführung, weil
+      // sie ein eigener Befehl mit eigenem Menü-Eintrag und eigener Story
+      // (4S-001076) ist.
+      'help.feature.presentationOverview',
       // 4T-002165 (Epic 3E-000149): Vorfuehrung und die beiden Ausgaben des
       // Foliensatzes direkt dahinter, je eine eigene Zeile wie die beiden
       // Austausch-Zeilen der Canvas: Jede ist ein eigener Befehl mit eigenem
       // Menue-Eintrag und gehoert zu genau einer Story (4S-001050, 4S-001054,
       // 4S-001057). In der Reihenfolge, in der der Anwender ihnen begegnet.
       'help.feature.presentationSlideShow',
+      // 4T-002285 (Epic 3E-000348): die Stufe 2 in derselben Reihenfolge —
+      // Vortrag mit zwei Bildschirmen (Vorführung im eigenen Fenster und
+      // Referenten-Ansicht, eine Zusage, Story 4S-001075), Gestaltung der
+      // einzelnen Datei (4S-001080) und eigene Themes (4S-001079), danach die
+      // Ausgaben. Angaben je Folie, Trennung an Überschriften, Aufdecken,
+      // Verkleinerung und Notizen im Export erweitern bestehende Zeilen.
+      'help.feature.presentationPresenterView',
+      'help.feature.presentationDesign',
+      'help.feature.presentationThemes',
       'help.feature.presentationExportPdf',
       'help.feature.presentationExportHtml',
       'help.feature.sourceToggles',

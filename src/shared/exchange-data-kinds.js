@@ -30,6 +30,7 @@
 'use strict';
 
 const { normalizeCalendarConfig } = require('./calendar/calendar-config.js');
+const { themeNameVergleich } = require('./presentation/presentation-eigene-themes.js');
 
 // Schlüssel des globalen Speichers, die zur Datenart «Einstellungen» gehören.
 //
@@ -271,6 +272,32 @@ const DATA_KINDS = [
       ],
     },
     formen: { colorSchemes: 'object' },
+  },
+  {
+    // 4T-002281 (Epic 3E-000348): die eigenen Folien-Themes der
+    // Präsentations-Ansicht, Muster der Farbschemas. Ein Theme ist benannte
+    // Arbeit und wird ergänzt; bei Namensgleichheit bekommt das eingelesene
+    // einen freien Namen. Gleich heißt hier ohne Rücksicht auf Groß- und
+    // Kleinschreibung, weil die Namens-Regel der Themes so vergleicht — sonst
+    // trügen nach dem Einlesen «Firma» und «firma» nebeneinander, und die
+    // Normalisierung verwürfe das zweite still.
+    id: 'presentationThemes',
+    labelKey: 'exchange.kind.presentationThemes',
+    paths: ['presentationThemes'],
+    zaehle: (werte) => laenge(werte.presentationThemes && werte.presentationThemes.custom),
+    merge: {
+      mode: MERGE_APPEND,
+      lists: [
+        {
+          path: 'presentationThemes',
+          at: ['custom'],
+          idKey: 'id',
+          nameKey: 'name',
+          nameVergleich: themeNameVergleich,
+        },
+      ],
+    },
+    formen: { presentationThemes: 'object' },
   },
   {
     id: 'hotkeys',

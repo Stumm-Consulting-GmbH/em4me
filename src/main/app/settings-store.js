@@ -199,6 +199,19 @@ async function loadStore(dirs) {
       // 4T-000369 (Epic 3E-000068): Entwurfs-Zwischenspeicher — nie gespeicherte
       // Unbenannt-Tabs ueberleben das App-Ende. Default an.
       keepUnsavedDrafts: true,
+      // 4T-002281 (Epic 3E-000348): eigene Folien-Themes der Präsentations-
+      // Ansicht, Speicherform und Normalisierung in
+      // src/shared/presentation/presentation-eigene-themes.js (Schlüssel
+      // PRESENTATION_THEMES_KEY). Leer heißt: nur die mitgelieferten Themes.
+      presentationThemes: { custom: [] },
+      // 4T-002283 (Epic 3E-000348): Schalter «Sprecher-Notizen mitgeben» der
+      // Foliensatz-Ausgaben (Einstellungs-Seite «Export»), Vorgabe aus
+      // (Entscheidung des Product Owners vom 2026-10-15). conf fuehrt die
+      // Vorgaben flach zusammen: Ein gespeicherter export-Zweig (etwa mit
+      // export.pdf.*) ueberdeckt diesen Eintrag. Der Anzeige-Prozess liest
+      // deshalb nur den Wert true als eingeschaltet, und die Vorgabe aus gilt
+      // in beiden Faellen.
+      export: { folien: { notizen: false } },
       // Legacy-Defaults bleiben fuer Migration verwertbar:
       openTabs: [],
       panes: null,

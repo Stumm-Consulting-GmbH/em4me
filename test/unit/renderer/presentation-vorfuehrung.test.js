@@ -458,10 +458,12 @@ describe('Kommandos und Verdrahtung (4T-002162, AK1/AK6)', () => {
     expect(start.availability).toBe('praesentationsAnsichtAktiv');
   });
 
-  it('Ende ohne Kürzel und ohne Menü-Eintrag, nur Palette und Esc', () => {
+  // 4T-002278: seit der Vorführung im eigenen Fenster auch im Menü, weil das
+  // Hauptfenster dabei sein Menü behält.
+  it('Ende ohne Kürzel, in Palette und Menü', () => {
     expect(stopp).toBeTruthy();
     expect(stopp.defaultBindings).toEqual([]);
-    expect(stopp.menu).toBe(false);
+    expect(stopp.menu).toBe(true);
     expect(stopp.labelKey).toBe('presentation.vorfuehrungBeenden');
     expect(stopp.availability).toBe('praesentationsAnsichtAktiv');
   });

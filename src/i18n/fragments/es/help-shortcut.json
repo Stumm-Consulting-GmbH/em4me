@@ -176,7 +176,11 @@
   "help.shortcut.exportJsonCanvas": "Guardar el lienzo seleccionado en la vista de lienzo como archivo JSON Canvas",
   "help.shortcut.importJsonCanvas": "Leer uno o varios archivos JSON Canvas; cada uno crea a su lado un documento con el lienzo",
   "help.shortcut.presentationStart": "Proyectar la presentación a pantalla completa desde la diapositiva mostrada; Esc finaliza la proyección",
+  "help.shortcut.presentationStartWindow": "Proyectar la presentación en una ventana aparte, a pantalla completa en la otra pantalla si hay dos; la ventana principal sigue disponible, Esc finaliza la proyección",
+  "help.shortcut.presentationPresenter": "Proyectar la presentación en una ventana aparte y mostrar en la ventana principal la diapositiva actual y la siguiente, las notas del orador y el tiempo; Esc finaliza la proyección",
+  "help.shortcut.presentationOverview": "Mostrar todas las diapositivas de la presentación en una cuadrícula; un clic o Intro abre la diapositiva elegida, Esc cierra la vista general",
   "help.shortcut.presentationNew": "Crear una nueva presentación con diapositivas de ejemplo y abrirla en la vista «Diapositivas»",
   "help.shortcut.presentationExportPdf": "Exportar las diapositivas como archivo PDF, una diapositiva por página en el formato de la diapositiva y sin márgenes",
-  "help.shortcut.presentationExportHtml": "Exportar las diapositivas como carpeta con una página HTML por diapositiva, navegable con teclas y botones"
+  "help.shortcut.presentationExportHtml": "Exportar las diapositivas como carpeta con una página HTML por diapositiva, navegable con teclas y botones",
+  "help.shortcut.presentationGestaltung": "Ajustar los colores y la fuente de esta presentación sobre el tema elegido, guardarlos como tema propio o copiar en el archivo los valores de un tema propio"
 }

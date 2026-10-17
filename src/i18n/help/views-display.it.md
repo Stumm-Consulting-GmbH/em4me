@@ -47,7 +47,7 @@ La bacheca mostra le attività del documento come bacheca Kanban: gli elenchi co
 
 ### Diapositive
 
-La vista Diapositive mostra una presentazione diapositiva per diapositiva, con contatore e possibilità di sfogliare; da essa si avvia la proiezione a schermo intero. Appartiene all'estensione «Vista presentazione» e scompare con essa; come la tela e la bacheca dipende dal documento ed è selezionabile solo se questo porta l'indicatore `presentation: true` nell'intestazione. La regola di separazione, le chiavi di controllo, i temi, le note del relatore, la proiezione e le esportazioni delle diapositive sono descritte nella pagina [Presentazione](presentation.md).
+La vista Diapositive mostra una presentazione diapositiva per diapositiva, con contatore e possibilità di sfogliare; da essa si avviano la panoramica delle diapositive, la proiezione a schermo intero o in una finestra separata e la visualizzazione relatore. Appartiene all'estensione «Vista presentazione» e scompare con essa; come la tela e la bacheca dipende dal documento ed è selezionabile solo se questo porta l'indicatore `presentation: true` nell'intestazione. La regola di separazione, le chiavi di controllo, le indicazioni per singola diapositiva, i temi compresi i temi propri, le note del relatore, la proiezione, la visualizzazione relatore e le esportazioni delle diapositive sono descritte nella pagina [Presentazione](presentation.md).
 
 ### Modifica
 

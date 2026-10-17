@@ -59,11 +59,18 @@ describe('Erweiterung presentation: Registry und Aus-Zustand (4T-002160)', () =>
     expect(manifest.commands).toEqual([
       'view.modePresentation',
       'presentation.start',
+      // 4T-002278: die Vorführung im eigenen Fenster.
+      'presentation.startWindow',
+      'presentation.presenterView',
       'presentation.stop',
+      // 4T-002280: die Folien-Übersicht.
+      'presentation.overview',
       // 4T-002163: der Weg zu einer neuen Präsentation und die beiden Ausgaben.
       'presentation.new',
       'presentation.exportPdf',
       'presentation.exportHtml',
+      // 4T-002282: der Dialog «Gestaltung dieser Präsentation…».
+      'presentation.gestaltung',
     ]);
     for (const id of manifest.commands) {
       expect(
@@ -94,11 +101,18 @@ describe('Erweiterung presentation: Registry und Aus-Zustand (4T-002160)', () =>
     }
   });
 
-  it('der Abschnitt der Einstellungen bleibt unberührt: es gibt keinen eigenen', () => {
-    expect(extensionById('presentation').settingsSections || []).toEqual([]);
-    expect(disabledSettingsSectionIdSet(['presentation']).size).toBe(
-      disabledSettingsSectionIdSet([]).size,
-    );
+  // 4T-002282 (Epic 3E-000348): seither der Abschnitt «Folien-Themes».
+  it('trägt genau den Abschnitt «Folien-Themes» der Einstellungen', () => {
+    expect(extensionById('presentation').settingsSections || []).toEqual(['presentationThemes']);
+    // AK7 von 4T-002282: Im Aus-Zustand entfällt der Abschnitt, im An-Zustand
+    // steht er (Navigation und Seite lesen dieselbe Menge, settings-page.js).
+    expect(disabledSettingsSectionIdSet(['presentation']).has('presentationThemes')).toBe(true);
+    expect(disabledSettingsSectionIdSet([]).has('presentationThemes')).toBe(false);
+  });
+
+  it('AK7 von 4T-002282: der Aus-Zustand nimmt den Gestaltungs-Dialog aus Menü, Palette und Tastenbelegung', () => {
+    expect(disabledCommandIdSet(['presentation']).has('presentation.gestaltung')).toBe(true);
+    expect(disabledCommandIdSet([]).has('presentation.gestaltung')).toBe(false);
   });
 
   it('AK5: ein Präsentations-Dokument ist im Aus-Zustand gewöhnliches Markdown, `---` bleibt Linie', () => {

@@ -11,6 +11,7 @@
   "exchange.entryCountMany": "{n} Einträge",
   "exchange.kind.settings": "Einstellungen",
   "exchange.kind.colorSchemes": "Farbschemas",
+  "exchange.kind.presentationThemes": "Eigene Folien-Themes",
   "exchange.kind.hotkeys": "Tastenkürzel",
   "exchange.kind.formatToolbar": "Format-Toolbar",
   "exchange.kind.commandPlacement": "Statusleisten-Schaltflächen und Makros",

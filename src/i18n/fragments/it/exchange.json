@@ -11,6 +11,7 @@
   "exchange.entryCountMany": "{n} voci",
   "exchange.kind.settings": "Impostazioni",
   "exchange.kind.colorSchemes": "Combinazioni di colori",
+  "exchange.kind.presentationThemes": "Temi delle diapositive personalizzati",
   "exchange.kind.hotkeys": "Scorciatoie da tastiera",
   "exchange.kind.formatToolbar": "Barra di formattazione",
   "exchange.kind.commandPlacement": "Pulsanti della barra di stato e macro",

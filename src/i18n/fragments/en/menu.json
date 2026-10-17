@@ -128,7 +128,11 @@
   "menu.file.importJsonCanvas": "JSON Canvas file…",
   "menu.view.presentationMenu": "Presentation",
   "menu.view.presentationStart": "Start slide show",
+  "menu.view.presentationStartWindow": "Slide show in separate window",
+  "menu.view.presentationPresenter": "Presenter view",
+  "menu.view.presentationOverview": "Slide overview",
   "menu.view.presentationNew": "New Presentation",
   "menu.file.exportPresentationPdf": "Export Slides as PDF…",
-  "menu.file.exportPresentationHtml": "Export Slides as HTML…"
+  "menu.file.exportPresentationHtml": "Export Slides as HTML…",
+  "menu.view.presentationGestaltung": "Design of this presentation…"
 }

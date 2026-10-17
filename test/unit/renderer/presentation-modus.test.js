@@ -253,14 +253,22 @@ describe('Präsentations-Erweiterung: Registry und Aus-Zustand im Renderer (4T-0
     expect(eintrag.commands).toEqual([
       'view.modePresentation',
       'presentation.start',
+      // 4T-002278: die Vorführung im eigenen Fenster.
+      'presentation.startWindow',
+      'presentation.presenterView',
       'presentation.stop',
+      // 4T-002280: die Folien-Übersicht.
+      'presentation.overview',
       // 4T-002163: der Weg zu einer neuen Präsentation und die beiden Ausgaben.
       'presentation.new',
       'presentation.exportPdf',
       'presentation.exportHtml',
+      // 4T-002282: der Dialog «Gestaltung dieser Präsentation…».
+      'presentation.gestaltung',
     ]);
     expect(eintrag.dependencies || []).toEqual([]);
-    expect(eintrag.settingsSections || []).toEqual([]);
+    // 4T-002282: der Abschnitt «Folien-Themes» der Einstellungen.
+    expect(eintrag.settingsSections || []).toEqual(['presentationThemes']);
   });
 
   it('fragt genau die eigene Erweiterungs-Kennung ab', () => {

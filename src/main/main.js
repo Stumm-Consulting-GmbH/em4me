@@ -107,6 +107,8 @@ const { registerMemoryIpc } = require('./ipc/memory');
 const { registerCanvasImportIpc } = require('./ipc/canvas-import');
 // 4T-002163 (Epic 3E-000149): PDF und HTML-Seiten des Foliensatzes.
 const { registerPresentationExportIpc } = require('./ipc/presentation-export');
+// 4T-002278 (Epic 3E-000348): das Publikums-Fenster der Präsentation.
+const { registerPresentationWindowIpc } = require('./ipc/presentation-window');
 
 // 4T-000375: volle Version aus package.json-Version und Build-Info; fehlende
 // oder defekte Build-Info fällt auf die dreiteilige Version zurück.
@@ -387,6 +389,8 @@ function registerIpc() {
     // 4T-001990 (Epic 3E-000188): Ergebnis der Erkennung des portablen
     // Betriebs, eingefroren; bereit fuer eine spaetere Abfrage ueber IPC.
     portablerBetrieb,
+    // 4T-002278: das Publikums-Fenster erscheint im Testlauf ohne Fokus.
+    imTestlauf: IM_TESTLAUF,
     isMarkdownPath,
     pushRecent,
     fullVersion,
@@ -444,6 +448,7 @@ function registerIpc() {
   registerMemoryIpc(registriere, ipcDeps);
   registerCanvasImportIpc(registriere, ipcDeps);
   registerPresentationExportIpc(registriere, ipcDeps);
+  registerPresentationWindowIpc(registriere, ipcDeps);
 }
 
 // --- App-Lifecycle -----------------------------------------------------------

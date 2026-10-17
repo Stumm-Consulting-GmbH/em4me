@@ -1,8 +1,8 @@
 # Präsentation
 
-Eine **Präsentation** ist ein gewöhnliches Markdown-Dokument, dessen Inhalt in **Folien** geteilt ist. Die Anwendung zeigt es in der Ansicht **Folien** Folie für Folie, führt es im Vollbild vor und gibt den Foliensatz als PDF oder als HTML-Seiten aus.
+Eine **Präsentation** ist ein gewöhnliches Markdown-Dokument, dessen Inhalt in **Folien** geteilt ist. Die Anwendung zeigt es in der Ansicht **Folien** Folie für Folie, führt es im Vollbild oder in einem eigenen Fenster vor, gibt dem Vortragenden eine **Referenten-Ansicht** mit Notizen und Zeit und gibt den Foliensatz als PDF oder als HTML-Seiten aus.
 
-Die Präsentation ist eine **weitere Ansicht desselben Dokuments** und kein eigenes Dateiformat. Geschrieben wird in den Markdown-Ansichten; die Ansicht **Folien** zeigt nur und ändert nie etwas am Text.
+Die Präsentation ist eine **weitere Ansicht desselben Dokuments** und kein eigenes Dateiformat. Geschrieben wird in den Markdown-Ansichten; die Ansicht **Folien** zeigt nur und ändert nie etwas am Text. Einzige Ausnahme ist der Dialog **Gestaltung dieser Präsentation…**, der auf Wunsch die Gestaltung in den Kopf der Datei schreibt.
 
 ## Woran eine Präsentation erkannt wird
 
@@ -50,17 +50,39 @@ Text der ersten Folie.
 
 Die Trennzeile gehört zu keiner Folie. Zwei Trennzeilen hintereinander ergeben eine leere Folie, ebenso eine Trennzeile direkt nach dem Kopf oder am Dokument-Ende; ein Dokument ohne Trennzeile ist eine einzige Folie.
 
+### An Überschriften trennen
+
+Mit dem Schlüssel `headingDivider` im Kopf beginnt zusätzlich **vor jeder Überschrift** bis zur angegebenen Ebene eine neue Folie. Der Wert ist eine Zahl von 1 bis 6:
+
+```markdown
+---
+presentation: true
+headingDivider: 2
+---
+
+# Erster Teil
+
+## Ein Unterpunkt
+
+## Noch ein Unterpunkt
+```
+
+Hier ergibt jede Überschrift der Ebenen 1 und 2 eine eigene Folie, also drei Folien ohne eine einzige Trennzeile. Die Überschrift steht oben auf ihrer neuen Folie. Steht vor ihr auf der Folie nichts als Leerzeilen und Kommentare, beginnt keine weitere Folie; Trennzeilen und Überschriften lassen sich deshalb mischen, ohne dass leere Folien entstehen. Überschriften in Code-Blöcken, Zitaten und Listen trennen nicht.
+
+Die Angabe gilt für den ganzen Foliensatz, auch wenn sie in einem Kommentar weiter unten steht (siehe «Angaben je Folie»); gibt es mehrere, gilt die letzte. Ein ungültiger Wert wird nicht beachtet, und die Hinweis-Zeile nennt ihn. Die Schreibweise als Liste, etwa `[1, 3]`, bleibt ohne Wirkung.
+
 ## Der Kopf: Steuer-Schlüssel
 
-Neben dem Kennzeichen stehen im Kopf fünf Steuer-Schlüssel; alle sind freiwillig:
+Neben dem Kennzeichen stehen im Kopf sechs Steuer-Schlüssel; alle sind freiwillig:
 
 | Schlüssel | Wirkung | Vorgabe |
 | --------- | ------- | ------- |
-| `theme` | Gestaltung der Folien: `light`, `dark` oder `accent`, wahlweise mit eigenen Werten (siehe unten) | `light` |
+| `theme` | Gestaltung der Folien: `light`, `dark`, `accent` oder der Name eines eigenen Themes, wahlweise mit eigenen Werten (siehe unten) | `light` |
 | `paginate` | `true` zeigt die Seitenzahl unten rechts auf jeder Folie | `false` |
 | `header` | Text der Kopfzeile auf jeder Folie | keine |
 | `footer` | Text der Fußzeile auf jeder Folie | keine |
 | `size` | Format der Folien: `16:9` oder `4:3` | `16:9` |
+| `headingDivider` | Zahl von 1 bis 6: jede Überschrift bis zu dieser Ebene beginnt eine neue Folie (siehe oben) | keine |
 
 Ein vollständiger Kopf:
 
@@ -75,7 +97,7 @@ size: 4:3
 ---
 ```
 
-Weitere Schlüssel im Kopf, etwa `title` oder `tags`, bleiben unberührt und wirken wie in jedem anderen Dokument. Ist ein Wert ungültig, gilt die Vorgabe. Bei einem unbekannten oder ungültigen Theme und bei einem unbekannten Format nennt eine **Hinweis-Zeile** über der Folie den Grund.
+Weitere Schlüssel im Kopf, etwa `title` oder `tags`, bleiben unberührt und wirken wie in jedem anderen Dokument. Ist ein Wert ungültig, gilt die Vorgabe. Bei einem unbekannten oder ungültigen Theme, bei einem unbekannten Format und bei einem ungültigen Wert für `headingDivider` nennt eine **Hinweis-Zeile** über der Folie den Grund. Für einzelne Folien lassen sich Theme, Farben, Kopf- und Fußzeile und Seitenzahl abweichend angeben (siehe «Angaben je Folie»).
 
 ## Gestaltung
 
@@ -87,7 +109,7 @@ Weitere Schlüssel im Kopf, etwa `title` oder `tags`, bleiben unberührt und wir
 | `dark` | helle Schrift auf fast Schwarz, Akzent in hellem Blau |
 | `accent` | weiße Schrift auf kräftigem Blau, Akzent in Gelb |
 
-Die Folien sehen unter jedem Farbschema der Anwendung gleich aus: Das Theme gehört zur Präsentation, nicht zur Oberfläche.
+Die Folien sehen unter jedem Farbschema der Anwendung gleich aus: Das Theme gehört zur Präsentation, nicht zur Oberfläche. Wer eine Gestaltung öfter braucht, legt sie als **eigenes Theme** an und wählt sie mit ihrem Namen (siehe «Eigene Themes»).
 
 ### Einzelne Werte übersteuern
 
@@ -135,11 +157,80 @@ Mehrere Hintergrundbilder einer Folie stehen nebeneinander, mit `vertical` am er
 
 ### Übervolle Folien
 
-Jede Folie hat ein festes Format, 16:9 oder 4:3, und wird gleichmäßig in die verfügbare Fläche eingepasst; die Schrift wächst und schrumpft mit. Was nicht auf die Folie passt, wird am Rand abgeschnitten, und ein **schraffierter Balken** am unteren Rand zeigt die übervolle Folie an. In der Vorführung und in den Exporten erscheint der Balken nicht. Abhilfe schafft eine weitere Folie.
+Jede Folie hat ein festes Format, 16:9 oder 4:3, und wird gleichmäßig in die verfügbare Fläche eingepasst; die Schrift wächst und schrumpft mit. Passt der Inhalt einer Folie nicht hinein, wird er **von selbst verkleinert**, bis er passt, höchstens auf die Hälfte seiner Größe. Kopfzeile, Fußzeile und Seitenzahl behalten ihre Größe, und der Rand der Folie bleibt gleich. Die Verkleinerung wirkt überall gleich: in der Ansicht, in Vorführung und Referenten-Ansicht, in der Folien-Übersicht und in beiden Exporten.
+
+Erst was selbst bei halber Größe nicht passt, wird am Rand abgeschnitten, und ein **schraffierter Balken** am unteren Rand zeigt die übervolle Folie an. In der Vorführung und in den Exporten erscheint der Balken nicht. Abhilfe schafft eine weitere Folie.
+
+## Eigene Themes
+
+Ein **eigenes Theme** ist eine benannte Gestaltung, die auf einem der drei mitgelieferten Themes aufbaut und einzelne der sieben Werte anders setzt. Es gilt in jeder Präsentation, die es im Kopf nennt:
+
+```yaml
+theme: Firma
+```
+
+Der Name wird ohne Rücksicht auf Groß- und Kleinschreibung gefunden; `theme: firma` wählt also ebenso das Theme «Firma». Auf einem eigenen Theme lässt sich wie auf jedem anderen mit einem Block aufbauen, dessen Eintrag `name` es nennt. Gibt es das genannte Theme nicht, etwa auf einem anderen Rechner, erscheinen die Folien im Theme `light`, und die Hinweis-Zeile nennt den Namen.
+
+Eigene Themes gehören zu den Einstellungen der Anwendung, nicht zur Datei. Sie gelten in allen Fenstern, und sie reisen in der Datei der eigenen Einrichtung mit (siehe [Einstellungen exportieren und importieren](setup-exchange.md)).
+
+### Der Abschnitt «Folien-Themes» der Einstellungen
+
+Unter **Datei → Einstellungen… → Folien-Themes** im Block «Erweiterungen (intern)» werden die eigenen Themes verwaltet:
+
+- **Neu** legt ein Theme an, das auf der unter **Vorlage** gewählten Gestaltung `light`, `dark` oder `accent` aufbaut; es heißt zunächst «Neues Theme».
+- **Duplizieren** legt eine Kopie des gewählten Themes an, **Löschen** entfernt es.
+- Im Feld **Name** wird das Theme umbenannt. Ein Name darf nicht leer sein, nicht einem mitgelieferten Theme gehören und nicht schon vergeben sein, auch nicht in anderer Groß- und Kleinschreibung; ein Verstoß wird sofort genannt, und Anwenden und OK bleiben gesperrt, bis er behoben ist.
+
+Darunter stehen die sieben Werte aus der Tafel «Einzelne Werte übersteuern», je mit einer Zeile: Die Farben haben einen Farbwähler und ein Textfeld, das jede Schreibweise von CSS annimmt, die Schrift ein Textfeld mit Vorschlägen. **Zurücksetzen** stellt eine Zeile auf den Wert des zugrunde liegenden Themes zurück. Ein ungültiger Wert wird markiert und nicht übernommen. Eine **Vorschau-Folie** zeigt die Gestaltung mit jeder Eingabe. Gespeichert wird mit **Anwenden** oder **OK**; die Änderung wirkt sofort in allen offenen Präsentationen.
+
+### Gestaltung dieser Präsentation
+
+**Ansicht → Präsentation → Gestaltung dieser Präsentation…** stellt die Gestaltung einer einzelnen Datei ein, ohne den Kopf von Hand zu schreiben. Der Befehl steht bei jeder Präsentation zur Wahl, die sich ändern lässt, gleich in welcher Ansicht sie steht, und in der Kommando-Palette.
+
+Der Dialog nennt oben das Theme, gewählt aus den mitgelieferten und den eigenen Themes; ein unbekannter Name aus dem Kopf bleibt als «Name (unbekannt)» wählbar. Darunter steht je Wert, ob er **wie Theme** gilt, mit dem Wert des Themes in Klammern, oder als **eigener Wert**. Eine Eingabe stellt die Zeile auf «eigener Wert», **Zurücksetzen** wieder auf «wie Theme».
+
+**OK** schreibt die Wahl in den Kopf der Datei: ohne eigene Werte als `theme:` mit dem Namen, sonst als Block mit `name:` und den eigenen Werten. Der Schritt lässt sich als Ganzes rückgängig machen. Die übrigen Einträge des Kopfs bleiben unverändert, und wer nichts geändert hat, ändert auch nichts an der Datei. Hat sich das Dokument geändert, während der Dialog offen war, wird nichts geschrieben, und die Statusleiste sagt es.
+
+Zwei weitere Schaltflächen führen über die einzelne Datei hinaus:
+
+- **Als Theme speichern…** fragt nach einem Namen, legt aus dem gewählten Theme und den eigenen Werten ein eigenes Theme an und schreibt in die Datei nur noch `theme:` mit diesem Namen. Wird der Name abgebrochen, bleibt alles, wie es war.
+- **Theme-Werte in die Datei übernehmen** steht bei einem eigenen Theme zur Wahl. Sie schreibt alle sieben Werte als Block in den Kopf, aufgebaut auf dem mitgelieferten Theme darunter. Die Datei sieht danach auch dort gleich aus, wo es das eigene Theme nicht gibt, etwa nach der Weitergabe an andere.
 
 ## Seitenzahl, Kopf- und Fußzeile
 
-`paginate: true` zeigt auf jeder Folie unten rechts ihre Nummer. `header` und `footer` setzen eine Zeile oben bzw. unten auf jede Folie; einfache Auszeichnungen wie fett, kursiv oder ein Verweis erscheinen dabei formatiert. Ein leerer Wert zeigt keine Zeile, ein zu langer Text endet mit Auslassungspunkten. Die Angaben gelten für alle Folien gleich.
+`paginate: true` zeigt auf jeder Folie unten rechts ihre Nummer. `header` und `footer` setzen eine Zeile oben bzw. unten auf jede Folie; einfache Auszeichnungen wie fett, kursiv oder ein Verweis erscheinen dabei formatiert. Ein leerer Wert zeigt keine Zeile, ein zu langer Text endet mit Auslassungspunkten. Im Kopf gelten die Angaben für alle Folien gleich; für einzelne Folien lassen sie sich abweichend setzen (siehe «Angaben je Folie»).
+
+## Angaben je Folie
+
+Einzelne Folien lassen sich anders gestalten als der Rest. Dazu steht auf der Folie ein HTML-Kommentar mit einem oder mehreren Schlüsseln:
+
+```markdown
+# Zwischenstand
+
+<!-- _backgroundColor: "#fff3bf" -->
+<!-- _paginate: false -->
+```
+
+**Die Geltung hängt am Unterstrich:**
+
+- Mit `_` vor dem Schlüssel gilt die Angabe **nur für diese Folie**.
+- Ohne `_` gilt sie **ab dieser Folie** für alle folgenden, bis eine neue Angabe desselben Schlüssels kommt.
+- Allein `headingDivider` gilt immer für den ganzen Foliensatz (siehe «An Überschriften trennen»).
+
+**Gedeutet werden diese Schlüssel:**
+
+| Schlüssel | Wirkung |
+| --------- | ------- |
+| `theme` | wechselt das Theme, mit dem Namen eines mitgelieferten oder eigenen Themes |
+| `backgroundColor`, `backgroundImage` | Hintergrund der Folie, etwa eine Farbe oder ein Farbverlauf |
+| `color` | Schriftfarbe des Fließtexts |
+| `header`, `footer` | Text der Kopf- und der Fußzeile; ein leerer Text blendet die Zeile aus |
+| `paginate` | `true` zeigt die Seitenzahl, `false` verbirgt sie und zählt weiter, `hold` zeigt sie, ohne weiterzuzählen, `skip` verbirgt sie, ohne weiterzuzählen |
+| `background`, `text`, `heading`, `accent`, `font`, `header-footer`, `page-number` | die sieben Werte aus der Tafel «Einzelne Werte übersteuern» |
+
+Ein Wechsel des Themes ersetzt das Theme samt den eigenen Werten aus dem Block im Kopf; Farben und Schrift, die per Kommentar gesetzt sind, gelten über den Wechsel hinweg weiter. Werte, die eine Datei oder Adresse laden würden, werden wie im Kopf nicht übernommen; ein Hintergrundbild setzt die Schreibweise mit `bg` (siehe «Hintergrundbild und Zweiteilung»). Ist ein Wert ungültig oder ein Theme unbekannt, gilt der bisherige Wert weiter, und die Hinweis-Zeile nennt den Grund auf dieser Folie.
+
+Solche Kommentare sind keine Sprecher-Notizen. Weitere Schlüssel derselben Schreibweise, etwa `class` oder `style`, stehen im Dokument, bleiben hier aber ohne Wirkung (siehe «Verträglichkeit mit anderen Werkzeugen»).
 
 ## Sprecher-Notizen
 
@@ -156,7 +247,7 @@ Kommentare auf einer Folie sind ihre **Sprecher-Notizen**. Beide Formen gelten:
 <!-- Bei Fragen auf den Anhang verweisen. -->
 ```
 
-Notizen stehen allein im Quelltext: nicht auf der Folie, nicht in der Vorführung, nicht im PDF und nicht in den HTML-Seiten. Im Editor bleiben sie sichtbar. Ist die Erweiterung „Kommentare" abgeschaltet, ist `%%` gewöhnlicher Text und erscheint auf der Folie; HTML-Kommentare bleiben auch dann Notizen. Mehr zu den privaten Kommentaren mit `%%` steht auf der Seite [Inline-Konstrukte](inline.md).
+Notizen erscheinen nicht auf der Folie und nicht in der Vorführung. Die **Referenten-Ansicht** zeigt sie dem Vortragenden, formatiert wie Text auf einer Folie, also mit fett, kursiv, Listen und Verweisen; HTML in einer Notiz erscheint dort als Text. In PDF und HTML-Seiten erscheinen sie nur, wenn sie eingeschaltet sind (siehe «Sprecher-Notizen mitgeben»). Im Editor bleiben sie sichtbar. Ist die Erweiterung „Kommentare" abgeschaltet, ist `%%` gewöhnlicher Text und erscheint auf der Folie; HTML-Kommentare bleiben auch dann Notizen. Mehr zu den privaten Kommentaren mit `%%` steht auf der Seite [Inline-Konstrukte](inline.md).
 
 ## Die Ansicht «Folien»
 
@@ -176,6 +267,20 @@ Die Ansicht zeigt eine Folie, darüber den Zähler, etwa „3 / 12", und die Sch
 
 An der ersten und an der letzten Folie bleibt das Blättern stehen.
 
+## Folien-Übersicht
+
+**Ansicht → Präsentation → Folien-Übersicht** zeigt in der Ansicht **Folien** alle Folien als **Raster**, jede als kleines Bild mit ihrer Nummer. Ausgewählt ist zu Beginn die Folie, die die Ansicht gerade zeigt.
+
+| Eingabe | Wirkung |
+| ------- | ------- |
+| `Pfeil links`, `Pfeil rechts` | eine Folie zurück oder weiter |
+| `Pfeil hoch`, `Pfeil runter` | eine Zeile des Rasters hoch oder runter |
+| `Pos1`, `Ende` | erste bzw. letzte Folie |
+| Klick, `Enter`, `Leertaste` | zur gewählten Folie wechseln und die Übersicht schließen |
+| `Esc` | die Übersicht schließen, ohne die Folie zu wechseln |
+
+Das Mausrad rollt das Raster. Ein zweiter Aufruf des Befehls schließt die Übersicht ebenfalls, ebenso der Start einer Vorführung. Die Übersicht zeigt den Stand beim Öffnen; ein erneutes Öffnen zeigt Änderungen am Dokument. Der Befehl steht auch in der Kommando-Palette.
+
 ## Vorführung
 
 Die Vorführung zeigt die Präsentation im **Vollbild**: Das Fenster geht ins Vollbild, alle Leisten der Anwendung verschwinden, und zu sehen ist allein die Folie, so groß, wie der Bildschirm sie fasst. Gestartet wird sie in der Ansicht **Folien**:
@@ -184,13 +289,63 @@ Die Vorführung zeigt die Präsentation im **Vollbild**: Das Fenster geht ins Vo
 - mit Standard `F5`,
 - mit der Schaltfläche **Vorführung starten** über der Folie.
 
-Die Kommando-Palette führt den Befehl ebenfalls. Die Vorführung beginnt an der Folie, die die Ansicht gerade zeigt. Geblättert wird mit denselben Tasten wie in der Ansicht; dazu blättert ein **Mausklick** eine Folie weiter und das **Mausrad** eine Folie je Rad-Bewegung, nach unten weiter und nach oben zurück.
+Die Kommando-Palette führt den Befehl ebenfalls. Die Vorführung beginnt an der Folie, die die Ansicht gerade zeigt. Geblättert wird mit denselben Tasten wie in der Ansicht; dazu blättert ein **Mausklick** eine Folie weiter und das **Mausrad** eine Folie je Rad-Bewegung, nach unten weiter und nach oben zurück. Listen, deren Punkte Schritt für Schritt erscheinen sollen, beschreibt «Listen Punkt für Punkt aufdecken».
 
 **Beendet** wird sie mit `Esc`. Sie endet auch, wenn das Vollbild auf anderem Weg verlassen wird, wenn ein anderes Fenster in den Vordergrund kommt oder wenn Dokument oder Ansicht wechseln. Danach steht die Ansicht auf der zuletzt gezeigten Folie. Das Fenster verlässt das Vollbild wieder, es sei denn, es war schon vor der Vorführung darin.
 
+Diese Vorführung läuft immer im Fenster der Anwendung, auch wenn ein zweiter Bildschirm angeschlossen ist. Für den Vortrag mit Beamer oder zweitem Bildschirm gibt es die Vorführung im eigenen Fenster und die Referenten-Ansicht (siehe «Vortragen mit zwei Bildschirmen»).
+
+## Listen Punkt für Punkt aufdecken
+
+Die Punkte einer Liste lassen sich in der Vorführung **einzeln aufdecken**. Maßgeblich ist die Schreibweise der Liste:
+
+```markdown
+* erscheint mit dem ersten Schritt
+* erscheint mit dem zweiten Schritt
+
+1) auch nummerierte Listen
+2) mit Klammer statt Punkt
+
+- erscheint sofort
+1. erscheint ebenfalls sofort
+```
+
+Punkte mit `*` und nummerierte Punkte mit `)` werden aufgedeckt, Punkte mit `-` oder `+` und nummerierte Punkte mit `.` stehen sofort da. Jeder Punkt ist ein Schritt, auch ein eingerückter; ein eingerückter Punkt bleibt verborgen, solange sein übergeordneter Punkt es ist.
+
+In der Vorführung, gleich ob im Vollbild oder im eigenen Fenster, und in der Referenten-Ansicht deckt «weiter» den nächsten Punkt auf, erst nach dem letzten kommt die nächste Folie; «zurück» deckt den zuletzt aufgedeckten Punkt wieder zu. Eine Folie, die man rückwärts betritt, erscheint vollständig, eine Folie, die man vorwärts betritt, mit verdeckten Punkten. Verdeckte Punkte behalten ihren Platz, sodass die Folie beim Aufdecken nicht springt.
+
+In der Ansicht **Folien**, in der Folien-Übersicht, in der Vorschau der nächsten Folie und in beiden Exporten erscheinen alle Punkte sofort.
+
+## Vortragen mit zwei Bildschirmen
+
+Für einen Vortrag mit Beamer oder zweitem Bildschirm zeigt ein **eigenes Fenster** dem Publikum allein die Folie, während das Fenster der Anwendung bedienbar bleibt. Beide Befehle stehen in der Ansicht **Folien** zur Wahl, im Untermenü **Ansicht → Präsentation** und in der Kommando-Palette; ein Vorgabe-Kürzel haben sie nicht, eines lässt sich unter Einstellungen → Tastenkürzel belegen.
+
+**Der Bildschirm:** Sind zwei oder mehr Bildschirme angeschlossen, öffnet das Fenster im Vollbild auf einem Bildschirm, auf dem das Fenster der Anwendung nicht steht. Mit einem einzigen Bildschirm öffnet es als gewöhnliches Fenster, das sich verschieben und in der Größe ändern lässt. Das Fenster hat weder Menü noch Reiter, zählt nicht zu den Fenstern der Applikation und kehrt nach einem Neustart nicht zurück.
+
+### Vorführung im eigenen Fenster
+
+**Ansicht → Präsentation → Vorführung im eigenen Fenster** öffnet das Fenster für das Publikum und zeigt darin die Folie, die die Ansicht gerade zeigt. Geblättert wird in beiden Fenstern mit denselben Tasten wie in der Ansicht; im Fenster des Publikums blättern auch Mausklick und Mausrad. Beide Fenster zeigen stets dieselbe Folie. Änderungen am Dokument erscheinen sofort auch beim Publikum.
+
+**Beendet** wird sie mit `Esc` in einem der beiden Fenster, mit **Ansicht → Präsentation → Vorführung beenden** oder durch Schließen des Fensters für das Publikum. Sie endet auch, wenn das Dokument nicht mehr in der Ansicht **Folien** steht. Es läuft immer nur eine Vorführung zugleich.
+
+### Referenten-Ansicht
+
+**Ansicht → Präsentation → Referenten-Ansicht** startet die Vorführung im eigenen Fenster und macht das Fenster der Anwendung zum Platz des Vortragenden. Dort stehen:
+
+- links die **aktuelle Folie**, wie das Publikum sie sieht;
+- rechts oben die **nächste Folie**, auf der letzten Folie stattdessen das Wort «Ende»;
+- darunter die **Sprecher-Notizen** der aktuellen Folie, formatiert und bei langen Notizen rollbar; ohne Notizen ein kurzer Hinweis;
+- darunter die **verstrichene Zeit** seit dem Start und die **Uhrzeit**, dazu die Schaltflächen **Anhalten** bzw. **Fortsetzen** und **Zurücksetzen**.
+
+Über beiden stehen wie gewohnt der Zähler und die Schaltflächen **Zurück** und **Weiter**. Die Zeit beginnt mit dem Start der Referenten-Ansicht; **Zurücksetzen** stellt sie auf null, eine laufende Zeit läuft danach weiter, eine angehaltene bleibt angehalten.
+
+Geblättert wird wie in der Vorführung im eigenen Fenster, in beiden Fenstern mit denselben Tasten; Listen mit aufzudeckenden Punkten deckt «weiter» Schritt für Schritt auf. Wird das Dokument während des Vortrags geändert, ziehen aktuelle Folie, nächste Folie und Notizen sofort nach; entfällt die gezeigte Folie, steht die Ansicht auf der letzten vorhandenen.
+
+**Beendet** wird die Referenten-Ansicht auf denselben Wegen wie die Vorführung im eigenen Fenster. Danach ist die Zeit fort, und die Ansicht **Folien** steht auf der zuletzt gezeigten Folie.
+
 ## Foliensatz exportieren
 
-Beide Ausgaben stehen unter **Datei → Weitere Datei-Funktionen → Exportieren** und in der Kommando-Palette. Sie stehen bei jedem Präsentations-Dokument zur Wahl, gleich in welcher Ansicht es gerade steht; bei einem Dokument ohne Kennzeichen bleiben sie gedämpft. Jede Folie erscheint darin so, wie die Ansicht sie zeigt, mit Theme, Hintergrundbildern, Seitenzahl, Kopf- und Fußzeile, Diagrammen und Formeln, aber ohne Sprecher-Notizen und ohne den Balken übervoller Folien. Bricht man den Dialog ab, entsteht nichts. Nach dem Export meldet die Statusleiste die Zahl der Folien und, falls etwas entfallen ist, was.
+Beide Ausgaben stehen unter **Datei → Weitere Datei-Funktionen → Exportieren** und in der Kommando-Palette. Sie stehen bei jedem Präsentations-Dokument zur Wahl, gleich in welcher Ansicht es gerade steht; bei einem Dokument ohne Kennzeichen bleiben sie gedämpft. Jede Folie erscheint darin so, wie die Ansicht sie zeigt, mit Theme, Angaben je Folie, Hintergrundbildern, Seitenzahl, Kopf- und Fußzeile, Diagrammen und Formeln, aber ohne den Balken übervoller Folien. Sprecher-Notizen kommen nur mit, wenn sie eingeschaltet sind (siehe unten). Bricht man den Dialog ab, entsteht nichts. Nach dem Export meldet die Statusleiste die Zahl der Folien und, falls etwas entfallen ist, was.
 
 ### Als PDF
 
@@ -202,37 +357,56 @@ Beide Ausgaben stehen unter **Datei → Weitere Datei-Funktionen → Exportieren
 
 Die Seiten öffnet jeder Browser, ohne die Anwendung und ohne Netzverbindung. Jede Seite ist für sich vollständig: Bilder, Diagramme und Formeln sind in ihr eingebettet, sodass sich der Ordner als Ganzes verschieben oder weitergeben lässt. Unter der Folie stehen **Zurück**, der Zähler und **Weiter**, in der Sprache, die die Oberfläche beim Export hatte; geblättert wird außerdem mit denselben Tasten wie in der Vorführung, und die Folie passt sich der Größe des Browser-Fensters an. Verweise und Bilder folgen den Regeln des HTML-Exports eines Dokuments (siehe [Werkzeuge](tools.md)): Ein Verweis auf ein anderes Dokument bleibt als Text stehen, und ein Bild, das sich nicht einbetten lässt, steht als sein Text; ein solches Hintergrundbild entfällt.
 
+### Sprecher-Notizen mitgeben
+
+Ob die Notizen in die Ausgabe kommen, bestimmt der Schalter **Sprecher-Notizen mitgeben** unter **Datei → Einstellungen… → Export**, Gruppe **Foliensatz**. Er ist zu Beginn aus, damit eine Weitergabe nie unbemerkt Notizen enthält, und gilt für beide Ausgaben.
+
+- **Im PDF** folgt hinter jeder Folie mit Notizen eine **Notiz-Seite** im Format der Folie, überschrieben mit «Folie N – Notizen», darunter die Notizen formatiert auf weißem Grund. Längere Notizen laufen auf weiteren Seiten desselben Formats weiter.
+- **In den HTML-Seiten** steht bei jeder Folie mit Notizen zwischen Folie und Blätter-Leiste ein zugeklappter Bereich **Notizen**. Aufgeklappt legt er sich über die Folie, höchstens bis zur halben Höhe des Browser-Fensters, und lässt sich rollen.
+
+Folien ohne Notizen bekommen weder Notiz-Seite noch Notiz-Bereich. Mit eingeschaltetem Schalter nennt die Meldung nach dem Export die Zahl der mitgegebenen Notizen; ausgeschaltet meldet sie, dass Sprecher-Notizen nicht enthalten sind.
+
 ## Die Erweiterung „Präsentations-Ansicht"
 
 Die Funktion gehört zu den [internen Erweiterungen](extensions.md) („Präsentations-Ansicht", Gruppe „Rendering") und zum Arbeitsmodus **Fortgeschritten**: Im Modus **Einsteiger** ist sie aus, in **Fortgeschritten** und **Voll** an.
 
-Ist sie abgeschaltet, entfallen die Ansicht **Folien**, das Untermenü **Präsentation** im Menü **Ansicht**, die beiden Export-Befehle und ihre Einträge in Kommando-Palette und Tastenbelegung. Das Kennzeichen hat dann keine Wirkung: Ein Präsentations-Dokument ist ein gewöhnliches Markdown-Dokument, und `---` ist darin eine waagerechte Linie. Ein Dokument, das in der Ansicht **Folien** offen war, erscheint in der Lese-Ansicht. Verloren geht dabei nichts, und geschrieben wird beim Ab- und Einschalten nie; nach dem Wiedereinschalten ist die Präsentation unverändert da.
+Ist sie abgeschaltet, entfallen die Ansicht **Folien**, das Untermenü **Präsentation** im Menü **Ansicht** mit allen seinen Befehlen, die beiden Export-Befehle, ihre Einträge in Kommando-Palette und Tastenbelegung und der Abschnitt **Folien-Themes** der Einstellungen. Das Kennzeichen hat dann keine Wirkung: Ein Präsentations-Dokument ist ein gewöhnliches Markdown-Dokument, und `---` ist darin eine waagerechte Linie. Ein Dokument, das in der Ansicht **Folien** offen war, erscheint in der Lese-Ansicht. Verloren geht dabei nichts, und geschrieben wird beim Ab- und Einschalten nie; nach dem Wiedereinschalten sind die Präsentation und die eigenen Themes unverändert da.
 
 ## Verträglichkeit mit anderen Werkzeugen
 
-Kennzeichen, Steuer-Schlüssel, Trennzeilen und die Bild-Schreibweise mit `bg` folgen einem verbreiteten Werkzeug, das Folien aus Markdown erzeugt und seine Dateien mit `marp: true` kennzeichnet. Die Verträglichkeit ist eine ausdrückliche Zusage: Eine dort geschriebene Präsentation öffnet hier als Präsentation, ohne dass an der Datei etwas geändert werden muss.
+Kennzeichen, Steuer-Schlüssel, Trennzeilen, die Angaben je Folie und die Bild-Schreibweise mit `bg` folgen einem verbreiteten Werkzeug, das Folien aus Markdown erzeugt und seine Dateien mit `marp: true` kennzeichnet. Die Verträglichkeit ist eine ausdrückliche Zusage: Eine dort geschriebene Präsentation öffnet hier als Präsentation, ohne dass an der Datei etwas geändert werden muss.
 
-**Was hier wie dort gilt:** das Kennzeichen `marp: true`, die Trennung an `---`, die Schlüssel `paginate`, `header`, `footer` und `size`, die Bild-Schreibweise `![bg …](…)` samt Zweiteilung und HTML-Kommentare als Sprecher-Notizen. Kommentare mit Steuer-Angaben des anderen Werkzeugs zählen hier wie dort nicht als Notiz.
+**Was hier wie dort gilt:**
+
+- das Kennzeichen `marp: true` und die Trennung an `---`;
+- die Schlüssel `paginate`, `header`, `footer` und `size` im Kopf und `headingDivider` mit einer Zahl;
+- die Angaben je Folie in derselben Schreibweise, mit `_` nur für die eigene Folie und ohne `_` ab dieser Folie, für `backgroundColor`, `backgroundImage`, `color`, `header`, `footer` und `paginate`;
+- die Bild-Schreibweise `![bg …](…)` samt Zweiteilung;
+- Listen mit `*` und mit `1)`, deren Punkte in der Vorführung einzeln erscheinen;
+- HTML-Kommentare als Sprecher-Notizen. Kommentare mit Angaben je Folie zählen hier wie dort nicht als Notiz.
 
 **Wo die Anwendung abweicht:**
 
 - **`***` und `___` trennen hier keine Folien.** Das andere Werkzeug beginnt auch an ihnen eine neue Folie. Wer eine Datei in beiden Werkzeugen gleich geteilt sehen will, trennt allein mit `---` und setzt Linien auf einer Folie nicht mit `***` oder `___`.
 - **`%%`-Notizen kennt das andere Werkzeug nicht** und zeigt sie als Text auf der Folie. Wer Notizen in beiden Werkzeugen braucht, schreibt sie als HTML-Kommentar `<!-- … -->`; diese gelten in beiden Richtungen.
-- **Steuer-Angaben je Folie wirken hier nicht.** Kommentare wie `<!-- _paginate: false -->` oder `<!-- _class: lead -->`, mit denen das andere Werkzeug einzelne Folien anders gestaltet, bleiben im Dokument stehen, werden aber nicht ausgeführt; für alle Folien gelten die Angaben des Kopfs. Ebenso wenig wirkt der Kopf-Schlüssel `headingDivider`, mit dem das andere Werkzeug an Überschriften neue Folien beginnt: Eine Datei, die ihn nutzt, ergibt hier weniger Folien. Beides kommt mit einer späteren Ausbaustufe.
+- **Die Themes des anderen Werkzeugs gibt es hier nicht.** `default`, `gaia` und `uncover` sind hier unbekannt; die Folien erscheinen dann im Theme `light`, und die Hinweis-Zeile nennt den Namen. Ein **eigenes Theme** darf aber genau so heißen und greift dann: Wer unter dem Namen `gaia` ein eigenes Theme anlegt, sieht die Datei hier in dieser Gestaltung, ohne sie zu ändern.
+- **`theme` in einem Kommentar gilt hier ab seiner Folie.** Das andere Werkzeug wendet ein Theme stets auf den ganzen Foliensatz an. Wer eine Datei in beiden Werkzeugen gleich sehen will, wählt das Theme im Kopf.
+- **Einige Angaben je Folie bleiben ohne Wirkung:** `class`, `style`, `backgroundPosition`, `backgroundRepeat` und `backgroundSize`, ebenso `lang` und `math`. Sie bleiben im Dokument stehen und werden nicht ausgeführt, ohne Hinweis. Ein Hintergrundbild über `backgroundImage` mit einer Datei oder Adresse wird nicht geladen; dafür gibt es die Schreibweise mit `bg`.
+- **`headingDivider` als Liste**, etwa `[1, 3]`, bleibt ohne Wirkung; eine Datei, die sie nutzt, ergibt hier weniger Folien.
+- **Der Kommentar `<!-- fit -->`**, mit dem das andere Werkzeug eine Überschrift auf die Breite der Folie bringt, bleibt ohne Wirkung. Hier wird stattdessen eine übervolle Folie als Ganzes verkleinert.
 
 **Was sonst zu beachten ist:**
 
 - Die Anwendung schreibt `marp: true` nie selbst. Wer seine Datei auch im anderen Werkzeug vorführen will, trägt es zusätzlich zu `presentation: true` ein.
-- Die Theme-Namen sind verschieden. Ein Theme-Name des anderen Werkzeugs ist hier unbekannt; die Folien erscheinen dann im Theme `light`, und die Hinweis-Zeile nennt den Namen. Der Block unter `theme:` mit eigenen Werten ist eine Schreibweise dieser Anwendung.
+- Der Block unter `theme:` mit eigenen Werten und die sieben Werte als Angabe je Folie, etwa `<!-- accent: "#ff6b6b" -->`, sind eine Schreibweise dieser Anwendung.
 - Das Wort `bg` muss hier das **erste** Wort des Alternativtexts sein. Weitere Wörter, etwa Bild-Filter, werden nicht gedeutet.
 
 ## Grenzen
 
-- **Notizen erscheinen nur im Quelltext.** Eine Referenten-Ansicht mit Notizen, nächster Folie und Uhr gibt es nicht, ebenso wenig Notizen im PDF oder in den HTML-Seiten.
-- **Eine Folien-Übersicht** als Raster aller Folien gibt es nicht; zwischen den Folien wird geblättert.
-- **Eigene Themes** entstehen allein über den Block unter `theme:` im Kopf; einen Editor für Themes in den Einstellungen gibt es nicht.
 - **Ausgegeben wird als PDF und als HTML-Seiten.** Eine Datei im Format pptx entsteht nicht.
-- **Gestaltet wird für den ganzen Foliensatz.** Ein eigenes Theme, ein eigener Hintergrund oder eine eigene Kopfzeile für eine einzelne Folie lässt sich nicht angeben, und eine Überschrift beginnt nicht von selbst eine neue Folie.
+- **Gestaltet wird über die Themes und ihre sieben Werte.** Eigene Stilangaben in CSS, Folien-Layouts über die Zweiteilung hinaus sowie Animationen und Übergänge zwischen den Folien gibt es nicht.
+- **Aufgedeckt werden nur Listen-Punkte**, keine anderen Teile einer Folie.
+- **Verkleinert wird höchstens auf die Hälfte.** Was dann noch nicht passt, wird abgeschnitten.
 - **Bearbeitet wird in den Markdown-Ansichten**, nicht auf der Folie.
 
-Referenten-Ansicht, Folien-Übersicht, Theme-Editor, Angaben je Folie, die Trennung an Überschriften und die Ausgabe als pptx-Datei sind für spätere Ausbaustufen vorgesehen.
+Die Ausgabe als pptx-Datei ist für eine spätere Ausbaustufe vorgesehen.

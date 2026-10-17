@@ -176,7 +176,11 @@
   "help.shortcut.exportJsonCanvas": "Die in der Canvas-Ansicht gewählte Fläche als JSON-Canvas-Datei sichern",
   "help.shortcut.importJsonCanvas": "Eine oder mehrere JSON-Canvas-Dateien einlesen; je Datei entsteht daneben ein Dokument mit der Fläche",
   "help.shortcut.presentationStart": "Die Präsentation im Vollbild vorführen, ab der gezeigten Folie; Esc beendet die Vorführung",
+  "help.shortcut.presentationStartWindow": "Die Präsentation in einem eigenen Fenster vorführen, mit zwei Bildschirmen im Vollbild auf dem anderen; das Hauptfenster bleibt bedienbar, Esc beendet die Vorführung",
+  "help.shortcut.presentationPresenter": "Die Präsentation im eigenen Fenster vorführen und im Hauptfenster aktuelle und nächste Folie, Sprecher-Notizen und Zeit zeigen; Esc beendet die Vorführung",
+  "help.shortcut.presentationOverview": "Alle Folien der Präsentation als Raster zeigen; Klick oder Enter wechselt zur gewählten Folie, Esc schließt die Übersicht",
   "help.shortcut.presentationNew": "Eine neue Präsentation mit Beispiel-Folien anlegen und in der Ansicht „Folien“ öffnen",
   "help.shortcut.presentationExportPdf": "Den Foliensatz als PDF-Datei exportieren, eine Folie je Seite im Format der Folie und ohne Rand",
-  "help.shortcut.presentationExportHtml": "Den Foliensatz als Ordner mit einer HTML-Seite je Folie exportieren, im Browser mit Tasten und Schaltflächen zu blättern"
+  "help.shortcut.presentationExportHtml": "Den Foliensatz als Ordner mit einer HTML-Seite je Folie exportieren, im Browser mit Tasten und Schaltflächen zu blättern",
+  "help.shortcut.presentationGestaltung": "Farben und Schrift dieser Präsentation über dem gewählten Theme einstellen, als eigenes Theme speichern oder die Werte eines eigenen Themes in die Datei übernehmen"
 }

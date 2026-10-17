@@ -176,7 +176,11 @@
   "help.shortcut.exportJsonCanvas": "Save the canvas selected in the canvas view as a JSON Canvas file",
   "help.shortcut.importJsonCanvas": "Read in one or more JSON Canvas files; each one creates a document with the canvas next to it",
   "help.shortcut.presentationStart": "Show the presentation full screen, starting at the slide shown; Esc ends the slide show",
+  "help.shortcut.presentationStartWindow": "Show the presentation in a separate window, full screen on the other display when there are two; the main window stays usable, Esc ends the slide show",
+  "help.shortcut.presentationPresenter": "Show the presentation in a separate window and show the current and next slide, speaker notes and time in the main window; Esc ends the slide show",
+  "help.shortcut.presentationOverview": "Show all slides of the presentation as a grid; click or Enter goes to the selected slide, Esc closes the overview",
   "help.shortcut.presentationNew": "Create a new presentation with sample slides and open it in the “Slides” view",
   "help.shortcut.presentationExportPdf": "Export the slides as a PDF file, one slide per page in the slide format and without margins",
-  "help.shortcut.presentationExportHtml": "Export the slides as a folder with one HTML page per slide, browsable with keys and buttons"
+  "help.shortcut.presentationExportHtml": "Export the slides as a folder with one HTML page per slide, browsable with keys and buttons",
+  "help.shortcut.presentationGestaltung": "Set the colours and font of this presentation on top of the chosen theme, save them as a custom theme or copy the values of a custom theme into the file"
 }

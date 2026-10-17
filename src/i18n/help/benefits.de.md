@@ -12,7 +12,7 @@ Lesen, schreiben und prüfen sind verschiedene Tätigkeiten, und sie brauchen ve
 - **Mindmap** macht aus der Überschriften-Gliederung eine Baumkarte.
 - **Canvas** zeigt eine Fläche mit Karten und Verbindungen, die im Dokument selbst liegt.
 - **Tafel** stellt die Aufgaben des Dokuments als Karten in Spalten nebeneinander.
-- **Folien** zeigen ein Dokument mit dem Kennzeichen `presentation: true` als Foliensatz, zum Vorführen im Vollbild und zur Weitergabe als PDF oder als HTML-Seiten.
+- **Folien** zeigen ein Dokument mit dem Kennzeichen `presentation: true` als Foliensatz, zum Vorführen im Vollbild oder mit Referenten-Ansicht auf einem zweiten Bildschirm und zur Weitergabe als PDF oder als HTML-Seiten.
 
 Ausführlich: [Ansichten und Darstellung](views-display.md), [Mindmap](mindmap.md), [Canvas-Fläche](canvas.md), [Kanban-Tafel](kanban.md), [Präsentation](presentation.md).
 

@@ -26,6 +26,21 @@
 // unteren Rand wird sichtbar. In der Vorfuehrung (Klasse
 // `presentation-vorfuehrung` am body, gesetzt von 4T-002162) blendet das
 // Stilblatt sie aus.
+//
+// 4T-002280 (Epic 3E-000348): **Verkleinerung statt nur Markierung**
+// (Option (b) derselben Frage). Läuft der Inhalt über, wird die ganze
+// Inhalts-Fläche (der Artikel) über einen Transformations-Faktor verkleinert,
+// bis sie passt: Der Artikel wird um 1/Faktor größer gesetzt, sein Innenrand
+// ebenso, und als Ganzes um den Faktor skaliert; Kopf, Fuß und Seitenzahl sind
+// Geschwister des Artikels und bleiben unverändert. Gemessen wird in
+// `pruefeUeberlauf`, das `zeichneFolie` am Ende selbst ruft; damit wirkt die
+// Verkleinerung überall, wo eine Folie gezeichnet wird — Ansicht, Vorführung,
+// Referenten-Ansicht, Übersicht und beide Exporte (Druck-Fläche über
+// `zeichneFolie`, Publikums-Fenster und HTML-Seiten über den Klon der Folie,
+// der die Angaben am Element mitnimmt). Die Markierung erscheint nur noch,
+// wenn der Inhalt selbst bei der Untergrenze `VERKLEINERUNG_MIN` nicht passt.
+// Nachgeladene Bilder und nachgezeichnete Diagramme lösen die Messung über
+// `beobachteInhalt` erneut aus, auch auf der Druck-Fläche.
 'use strict';
 
 import { t } from '../../i18n.js';
@@ -35,8 +50,10 @@ import {
   folienSkalierung,
   hintergrundAnordnung,
   hintergrundBilderZiehen,
+  verkleinerungsFaktor,
 } from '../../../shared/presentation/presentation-darstellung.js';
 import { slotVariablen, themeAufloesen } from '../../../shared/presentation/presentation-themes.js';
+import { eigeneThemes } from './presentation-themes-stand.js';
 
 /** Klassen der Folie; Groessen und Farben stehen im Stilblatt presentation.css. */
 export const HUELLE_KLASSE = 'presentation-slide-huelle';
@@ -52,6 +69,11 @@ export const UEBERLAUF_ZUSTAND = 'presentation-slide--ueberlauf';
 /** Praefix der Klasse fuer den Farbsatz der Code-Bloecke (`...light`, `...dark`). */
 export const SYNTAX_KLASSE = 'presentation-slide--syntax-';
 const SYNTAX_SAETZE = ['light', 'dark'];
+/**
+ * Attribut am Artikel mit dem Faktor der Verkleinerung (4T-002280); ohne
+ * Verkleinerung fehlt es. Das Publikums-Fenster horcht auf seine Änderung.
+ */
+export const VERKLEINERUNG_ATTR = 'data-verkleinerung';
 /** Klasse am body waehrend der Vorfuehrung (4T-002162). */
 export const VORFUEHRUNG_KLASSE = 'presentation-vorfuehrung';
 
@@ -94,13 +116,32 @@ export function baueFolie() {
 /**
  * Setzt Theme und Geometrie an die Folie.
  *
+ * Traegt die Folie ihre wirksame Gestaltung aus dem Format-Kern (4T-002277:
+ * Angaben je Folie), gelten deren Slot-Werte und Farbsatz; sonst das Theme
+ * des Kopfs. Die Befunde sind in beiden Faellen die der Kopf-Angabe `theme`;
+ * die Befunde der Angaben je Folie fuehrt der Kern selbst.
+ *
+ * 4T-002281: Die Kopf-Angabe wird mit dem Katalog eigener Themes des Fensters
+ * aufgelöst (presentation-themes-stand.js); ein eigenes Theme ist damit kein
+ * unbekannter Name mehr.
+ *
  * @param {HTMLElement} slide
  * @param {{theme?: unknown, size?: string}} kopf
+ * @param {{theme: string, slots: object, syntax: string}|null} [gestaltung]
  * @returns {{name: string, befunde: Array<{code: string, detail: string}>}}
  */
-export function setzeGestaltung(slide, kopf) {
+export function setzeGestaltung(slide, kopf, gestaltung = null) {
   const k = kopf || {};
-  const theme = themeAufloesen(k.theme);
+  const kopfTheme = themeAufloesen(k.theme, { eigene: eigeneThemes() });
+  const theme =
+    gestaltung && gestaltung.slots
+      ? {
+          name: gestaltung.theme,
+          slots: gestaltung.slots,
+          syntax: gestaltung.syntax,
+          befunde: kopfTheme.befunde,
+        }
+      : kopfTheme;
   for (const [name, wert] of Object.entries(slotVariablen(theme.slots))) {
     slide.style.setProperty(name, wert);
   }
@@ -196,7 +237,9 @@ function setzeZeile(el, text, render) {
  *
  * @param {HTMLElement} huelle Ergebnis von baueFolie.
  * @param {object} angaben
- * @param {{quelltext?: string}|null} angaben.folie die Folie des Format-Kerns.
+ * @param {{quelltext?: string, gestaltung?: object}|null} angaben.folie die
+ *   Folie des Format-Kerns; ihre `gestaltung` (Theme, Slots, Kopf- und
+ *   Fusszeile, Seitenzahl) geht dem Kopf vor.
  * @param {number} angaben.index Null-basiert; die Seitenzahl ist index + 1.
  * @param {object} [angaben.kopf] Kopf des Format-Kerns (`theme`, `paginate`,
  *   `header`, `footer`, `size`).
@@ -208,18 +251,27 @@ function setzeZeile(el, text, render) {
 export function zeichneFolie(huelle, { folie, index, kopf, render }) {
   const slide = teil(huelle, SLIDE_KLASSE);
   const k = kopf || {};
-  const gestaltung = setzeGestaltung(slide, k);
+  const eigen = folie && folie.gestaltung ? folie.gestaltung : null;
+  const gestaltung = setzeGestaltung(slide, k, eigen);
   const quelle = folie && typeof folie.quelltext === 'string' ? folie.quelltext : '';
   const gezogen = hintergrundBilderZiehen(quelle);
   setzeHintergrund(slide, gezogen.bilder, render);
   const artikel = teil(slide, ARTIKEL_KLASSE);
   artikel.innerHTML = gezogen.quelltext.trim() ? render(gezogen.quelltext) : '';
-  setzeZeile(teil(slide, KOPF_KLASSE), k.header, render);
-  setzeZeile(teil(slide, FUSS_KLASSE), k.footer, render);
+  // Kopf-, Fusszeile und Seitenzahl je Folie aus der Kette des Kerns
+  // (4T-002277), ohne sie aus dem Kopf.
+  setzeZeile(teil(slide, KOPF_KLASSE), eigen ? eigen.header : k.header, render);
+  setzeZeile(teil(slide, FUSS_KLASSE), eigen ? eigen.footer : k.footer, render);
   const nummer = teil(slide, NUMMER_KLASSE);
-  nummer.hidden = k.paginate !== true;
-  nummer.textContent = k.paginate === true ? String((Number(index) || 0) + 1) : '';
+  const zeigen = eigen
+    ? eigen.seitenzahl === 'zeigen' || eigen.seitenzahl === 'halten'
+    : k.paginate === true;
+  const seite = eigen ? eigen.seite : (Number(index) || 0) + 1;
+  nummer.hidden = !zeigen;
+  nummer.textContent = zeigen ? String(seite) : '';
   beschrifteUeberlauf(huelle);
+  beobachteInhalt(huelle);
+  pruefeUeberlauf(huelle);
   return gestaltung;
 }
 
@@ -232,19 +284,77 @@ export function beschrifteUeberlauf(huelle) {
   marke.setAttribute('aria-label', text);
 }
 
+const laeuftUeber = (artikel) => artikel.scrollHeight > artikel.clientHeight + 1;
+const RAND_SEITEN = ['Top', 'Right', 'Bottom', 'Left'];
+const VERKLEINERUNG_STILE = ['right', 'bottom', 'width', 'height', 'transform', 'transformOrigin'];
+
+// Der Innenrand des Artikels aus dem Stilblatt, in Folien-Pixeln; ohne
+// Messung (etwa ohne Stilblatt) null, dann bleibt er unangetastet.
+function leseInnenrand(artikel) {
+  const ansicht = artikel.ownerDocument && artikel.ownerDocument.defaultView;
+  if (!ansicht || typeof ansicht.getComputedStyle !== 'function') return null;
+  const stil = ansicht.getComputedStyle(artikel);
+  const werte = RAND_SEITEN.map((seite) => parseFloat(stil[`padding${seite}`]));
+  return werte.every((w) => Number.isFinite(w)) ? werte : null;
+}
+
 /**
- * Prueft, ob der Inhalt ueber die Folie hinauslaeuft, und setzt den Zustand.
+ * Setzt den Faktor der Verkleinerung an den Artikel (4T-002280): größer um
+ * 1/Faktor, ebenso der Innenrand, skaliert um den Faktor; 1 nimmt alles zurück.
+ *
+ * @param {HTMLElement} artikel
+ * @param {number} faktor
+ * @param {number[]|null} [innenrand] oben, rechts, unten, links bei Faktor 1.
+ */
+export function setzeVerkleinerung(artikel, faktor, innenrand = null) {
+  const stil = artikel.style;
+  // Auf vier Stellen gerundet, damit Angabe, Größe und Skalierung übereinstimmen.
+  const f = Math.round(Number(faktor) * 10000) / 10000;
+  if (!(f < 1)) {
+    for (const name of VERKLEINERUNG_STILE) stil[name] = '';
+    for (const seite of RAND_SEITEN) stil[`padding${seite}`] = '';
+    artikel.removeAttribute(VERKLEINERUNG_ATTR);
+    return;
+  }
+  const prozent = `${(100 / f).toFixed(4)}%`;
+  stil.right = 'auto';
+  stil.bottom = 'auto';
+  stil.width = prozent;
+  stil.height = prozent;
+  stil.transformOrigin = '0 0';
+  stil.transform = `scale(${f})`;
+  if (innenrand) {
+    RAND_SEITEN.forEach((seite, i) => {
+      stil[`padding${seite}`] = `${(innenrand[i] / f).toFixed(2)}px`;
+    });
+  }
+  artikel.setAttribute(VERKLEINERUNG_ATTR, f.toFixed(4));
+}
+
+/**
+ * Prüft, ob der Inhalt über die Folie hinausläuft; wenn ja, verkleinert sie
+ * ihn auf den größten Faktor, bei dem er passt (4T-002280), und setzt die
+ * Markierung nur, wenn er selbst bei der Untergrenze nicht passt.
  *
  * @param {HTMLElement} huelle
- * @returns {boolean}
+ * @returns {boolean} läuft der Inhalt nach der Verkleinerung noch über?
  */
 export function pruefeUeberlauf(huelle) {
   const slide = huelle ? teil(huelle, SLIDE_KLASSE) : null;
   const artikel = slide ? teil(slide, ARTIKEL_KLASSE) : null;
   if (!artikel) return false;
-  const laeuftUeber = artikel.scrollHeight > artikel.clientHeight + 1;
-  slide.classList.toggle(UEBERLAUF_ZUSTAND, laeuftUeber);
-  return laeuftUeber;
+  setzeVerkleinerung(artikel, 1);
+  // Gelesen erst, wenn verkleinert werden muss, und dann nur einmal.
+  let innenrand;
+  const faktor = verkleinerungsFaktor((f) => {
+    if (f < 1 && innenrand === undefined) innenrand = leseInnenrand(artikel);
+    setzeVerkleinerung(artikel, f, innenrand || null);
+    return !laeuftUeber(artikel);
+  });
+  setzeVerkleinerung(artikel, faktor, innenrand || null);
+  const ueber = laeuftUeber(artikel);
+  slide.classList.toggle(UEBERLAUF_ZUSTAND, ueber);
+  return ueber;
 }
 
 /**
@@ -264,7 +374,11 @@ export function passeFolieEin(buehne) {
   // Eine verborgene Buehne misst 0; dann bleibt die letzte Einpassung.
   if (!breite && !hoehe) return null;
   const geometrie = folienGeometrie(slide.dataset.size);
-  const rand = document.body.classList.contains(VORFUEHRUNG_KLASSE) ? 0 : FOLIEN_RAND;
+  // 4T-002280: Eine Bühne kann ihren Rand selbst nennen (die Kacheln der
+  // Übersicht ohne Rand); die Vorführung hat nie einen.
+  const eigen = Number(buehne.dataset.folienRand);
+  let rand = buehne.dataset.folienRand !== undefined && eigen >= 0 ? eigen : FOLIEN_RAND;
+  if (document.body.classList.contains(VORFUEHRUNG_KLASSE)) rand = 0;
   const { skala, breite: b, hoehe: h } = folienSkalierung(breite, hoehe, geometrie, rand);
   huelle.style.width = `${b}px`;
   huelle.style.height = `${h}px`;
@@ -277,9 +391,10 @@ const beobachtet = new WeakSet();
 
 /**
  * Haengt die Beobachter an eine Buehne: Groessen-Aenderung -> Einpassung und
- * Ueberlauf-Pruefung; nachgeladene Bilder und nachgezeichnete Diagramme im
- * Inhalt -> Ueberlauf-Pruefung. Ohne ResizeObserver/MutationObserver (etwa in
- * einer Test-Umgebung) bleibt es bei der Pruefung nach jedem Zeichnen.
+ * Ueberlauf-Pruefung. Ohne ResizeObserver (etwa in einer Test-Umgebung)
+ * bleibt es bei der Pruefung nach jedem Zeichnen. Nachgeladene Bilder und
+ * nachgezeichnete Diagramme beobachtet seit 4T-002280 `beobachteInhalt` an
+ * jeder gezeichneten Folie, nicht nur an der Bühne der Fläche.
  *
  * @param {HTMLElement} buehne
  */
@@ -297,10 +412,26 @@ export function beobachteBuehne(buehne) {
       pruefe();
     }).observe(buehne);
   }
-  // Ein geladenes Bild aendert die Hoehe des Inhalts (load blubbert nicht,
-  // daher in der Fang-Phase).
-  buehne.addEventListener('load', pruefe, true);
-  const artikel = buehne.querySelector(`.${ARTIKEL_KLASSE}`);
+}
+
+// Je Hülle ein Beobachter-Satz des Inhalts.
+const inhaltBeobachtet = new WeakSet();
+
+/**
+ * Hängt die Beobachter des Inhalts an eine gezeichnete Folie (4T-002280): Ein
+ * geladenes Bild oder ein nachgezeichnetes Diagramm ändert die Höhe des
+ * Inhalts und damit Überlauf und Verkleinerung. Beobachtet wird nur die
+ * Kinder-Liste; die Angaben der Verkleinerung selbst lösen nichts aus.
+ *
+ * @param {HTMLElement} huelle
+ */
+export function beobachteInhalt(huelle) {
+  if (!huelle || inhaltBeobachtet.has(huelle)) return;
+  inhaltBeobachtet.add(huelle);
+  const pruefe = () => pruefeUeberlauf(huelle);
+  // load blubbert nicht, daher in der Fang-Phase.
+  huelle.addEventListener('load', pruefe, true);
+  const artikel = huelle.querySelector(`.${ARTIKEL_KLASSE}`);
   if (artikel && typeof MutationObserver === 'function') {
     new MutationObserver(pruefe).observe(artikel, { childList: true, subtree: true });
   }

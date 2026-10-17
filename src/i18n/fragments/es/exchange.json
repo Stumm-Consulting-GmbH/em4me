@@ -11,6 +11,7 @@
   "exchange.entryCountMany": "{n} entradas",
   "exchange.kind.settings": "Ajustes",
   "exchange.kind.colorSchemes": "Esquemas de color",
+  "exchange.kind.presentationThemes": "Temas de diapositivas propios",
   "exchange.kind.hotkeys": "Atajos de teclado",
   "exchange.kind.formatToolbar": "Barra de formato",
   "exchange.kind.commandPlacement": "Botones de la barra de estado y macros",

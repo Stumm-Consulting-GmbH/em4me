@@ -47,7 +47,7 @@ Die Tafel zeigt die Aufgaben des Dokuments als Kanban-Tafel: die benannten Liste
 
 ### Folien
 
-Die Ansicht Folien zeigt eine Präsentation Folie für Folie, mit Zähler und Blättern; aus ihr heraus startet die Vorführung im Vollbild. Sie gehört zur Erweiterung „Präsentations-Ansicht" und entfällt mit ihr; wie Canvas und Tafel ist sie dokument-abhängig und nur wählbar, wenn das Dokument das Kennzeichen `presentation: true` im Kopf trägt. Trenn-Regel, Steuer-Schlüssel, Themes, Sprecher-Notizen, Vorführung und die Exporte des Foliensatzes beschreibt die Seite [Präsentation](presentation.md).
+Die Ansicht Folien zeigt eine Präsentation Folie für Folie, mit Zähler und Blättern; aus ihr heraus starten die Folien-Übersicht, die Vorführung im Vollbild oder im eigenen Fenster und die Referenten-Ansicht. Sie gehört zur Erweiterung „Präsentations-Ansicht" und entfällt mit ihr; wie Canvas und Tafel ist sie dokument-abhängig und nur wählbar, wenn das Dokument das Kennzeichen `presentation: true` im Kopf trägt. Trenn-Regel, Steuer-Schlüssel, Angaben je Folie, Themes samt eigenen Themes, Sprecher-Notizen, Vorführung, Referenten-Ansicht und die Exporte des Foliensatzes beschreibt die Seite [Präsentation](presentation.md).
 
 ### Bearbeiten
 

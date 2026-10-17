@@ -261,7 +261,7 @@ das Material. Das Werkzeug berührt das Prüfstand-Abbild nicht.
 | Kommando | Zweck |
 |---|---|
 | `npm test` | Vitest-Lauf (Unit/Snapshot). Pflicht-Gate zentral in der Merge-Queue vor jeder Integration nach `main`, im Umfang der Änderungsklasse; lokal vor dem Abliefern eines Branches gute Praxis. |
-| `node scripts/gate-lauf.js ausschnitt [--basis <ref>]` | Prüf-Ausschnitt der Änderungsklasse gegen die Basis des Zweigs (Epic-Zweig gegen seinen Zug-Zweig, sonst gegen `origin/main`), mit derselben Auswahl wie die Merge-Queue; der Werkzeug-Weg für Stufe 2 der Test-Strategie, auch auf Zug- und Epic-Zweigen. Ersetzt das Gate der Queue nicht. |
+| `node scripts/gate-lauf.js ausschnitt [--basis <ref>] [--ablauf]` | Prüf-Ausschnitt der Änderungsklasse gegen die Basis des Zweigs (Epic-Zweig gegen seinen Zug-Zweig, sonst gegen `origin/main`), mit derselben Auswahl wie die Merge-Queue; der Werkzeug-Weg für Stufe 2 der Test-Strategie, auch auf Zug- und Epic-Zweigen. Ersetzt das Gate der Queue nicht. Die Umfangs-Zeile nennt die Ablauf-Pflicht der berührten Klassen; `--ablauf` fährt deren Ablauf-Prüfdateien zusätzlich als Gate `e2e (Ausschnitt)`. Ist der Ablauf-Anteil nicht am selben Produkt-Stand grün gelaufen, endet das Gate rot (Abschnitt „Änderungsklassen und Prüf-Ausschnitt", Absatz „Ablauf-Pflicht des Gates ausschnitt"). Unter Linux läuft dasselbe Gate über `node scripts/test-linux-docker.js ausschnitt`, dort ohne Prüfung des Ablauf-Nachweises (Abschnitt „Prüf-Umfang je Plattform", Absatz „Epic-Tor"). |
 | `node scripts/gate-lauf.js test:uhr` | Wanduhr-Wächter: die Unit-Suite mit einer um fünf Jahre verschobenen Uhr, Bericht nach `test-berichte/unit-uhr.json`. Läuft in den vollen Gates von selbst mit (Stabilitätsregel 33). |
 | `npm run test:watch` | Vitest-Watch-Modus; `.only` ist hier erlaubt (`--allowOnly`). |
 | `npm run test:e2e` | Playwright-E2E-Lauf; baut vorher das Renderer-Bundle (`pretest:e2e`). Umfang pro Task nach Änderungsklasse (Abschnitt „Änderungsklassen und Prüf-Ausschnitt"), Voll-Suite im Release-Sammeltask. |
@@ -1357,9 +1357,24 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   Fehlermeldung nennt den Pfad: die **volle** Konsolen-Ausgabe als `.log`
   (die Meldung selbst bleibt auf die letzten 25 Zeilen gekürzt) und beim
   Testsuite-Gate zusätzlich die Kopie von `test-berichte/unit.json`. Ein
-  grüner Lauf sichert nichts, die jüngsten zehn Belege bleiben liegen, und
-  ein Fehlschlag der Sicherung verdrängt nie die Meldung des eigentlichen
-  Fehlschlags.
+  grüner Lauf sichert nichts, und ein Fehlschlag der Sicherung verdrängt nie
+  die Meldung des eigentlichen Fehlschlags.
+
+  **Aufbewahrung je Lauf** (seit 4T-002262). Die Grenze zählt **Läufe**, nicht
+  Einträge: Ein Lauf ist die Gruppe aller Einträge mit demselben
+  Zeitstempel-Präfix, ein roter Unit-Lauf hinterlässt zwei (`.log`, `.json`),
+  ein roter Ablauf-Lauf drei (dazu `…-artefakte`). Liegen bleiben die jüngsten
+  zehn Läufe, und ein Lauf wird nur ganz entfernt, nie zur Hälfte. Ein Lauf,
+  dessen Zeitstempel jünger als 24 Stunden ist, wird **nie** entfernt, auch
+  wenn dadurch mehr als zehn Läufe liegen; so überleben die Belege einer
+  Release-Strecke bis zu ihrem Nachzügler. Ein Eintrag ohne lesbaren
+  Zeitstempel zählt als alt. Entfernt die Grenze einen Lauf, nennt die
+  Meldezeile ihn: `…; entfernt wegen der Aufbewahrungs-Grenze:
+  <Zeitstempel-Präfixe>`. Ohne Entfernung bleibt die Zeile, wie sie war.
+  Anlass: Bis zum 2026-10-14 zählte die Grenze Einträge, und am 2026-10-11
+  verschwanden zwei zitierte Belege derselben Release-Strecke noch am Tag
+  ihrer Entstehung, still. Der Preis der Frist ist Platz an Tagen mit vielen
+  roten Läufen, je Unit-Lauf rund 5,6 MB, je Ablauf-Lauf rund 2,5 MB.
 
   **Für E2E-Läufe gilt das seit 4T-001099 ebenso, aber nur über den Zugang:**
   `node scripts/gate-lauf.js e2e` sichert im roten Fall zusätzlich den Bericht
@@ -2119,7 +2134,9 @@ eigenem Grund:
 Datei passt auf kein Muster; die Klassen-Karte selbst,
 `scripts/merge-queue.js`, die Gate-Definition `scripts/gate-lauf.js`, die
 Auswahl-Funktion `scripts/gate-auswahl.js`, die Basis-Ermittlung des
-lokalen Ausschnitts `scripts/gate-ausschnitt.js`,
+lokalen Ausschnitts `scripts/gate-ausschnitt.js`, Ablauf-Anteil und
+Ablauf-Nachweis `scripts/gate-ablauf-nachweis.js`, der Argument-Schutz
+`scripts/gate-lauf-argumente.js`,
 eine Test-Konfiguration oder eine Ignore-Datei ist geändert; der Lauf ist
 eine Release-Integration (`--release`). Ergänzend gilt fail-closed: eine
 Ausnahme in der Auswahl, eine unlesbare Karte und ein leeres
@@ -2189,6 +2206,35 @@ Vorgang (Stufe 2) fährt `node scripts/gate-lauf.js ausschnitt` denselben
 Ausschnitt lokal, gegen die Basis des Zweigs statt gegen den rebasten
 Integrationsstand; auf Zug- und Epic-Zweigen, die die Queue erst mit dem
 Release erreichen, ist er der einzige Weg zum Ausschnitt.
+
+**Ablauf-Pflicht des Gates `ausschnitt`** (seit dem 2026-10-14). Das Gate
+fährt von sich aus keine Ablauf-Prüfungen. Seine Umfangs-Zeile sagt deshalb
+ausdrücklich, ob die berührten Klassen einen Ablauf-Anteil haben: Eine Klasse
+hat ihn, wenn ihr Eintrag in der Karte (samt der über `erbt` übernommenen
+Klassen) `e2e.pflicht` setzt; die Prüfdateien stehen in `e2e.specs`. Eine
+zweite Liste gibt es nicht. Die Zeile nennt im Regelfall wie im Rückfall auf
+die vollen Gates entweder «keine Ablauf-Pflicht der berührten Klassen» oder
+«Ablauf-Prüfungen nicht enthalten (Klassen …: N Ablauf-Prüfdateien)» samt
+dem Kommando `node scripts/gate-lauf.js ausschnitt --ablauf`; sind die
+berührten Klassen nicht bekannt (Rückfall ohne Klasse, Karte unlesbar),
+heißt sie «Ablauf-Pflicht nicht ermittelbar» mit dem Kommando
+`node scripts/gate-lauf.js e2e`. Der Schalter `--ablauf` fährt den
+Ablauf-Anteil als eigenes Gate `e2e (Ausschnitt)` über `npm run test:e2e`
+mit der Vereinigung der Prüfdateien aller berührten Klassen; ohne bekannte
+Klassen fährt er die vollständige Ablauf-Suite als Gate `e2e`. **Nachweis
+am selben Stand:** Nach dem grünen Lauf befragt das Gate die Lauf-Spur
+(`scripts/e2e-laufstand.js`), die je Prüfdatei Inhalts-Hash, Ergebnis und
+den Produkt-Stand des Laufs führt (Baum-Hash von `src`, nur bei sauberem
+`src` und unbewegtem `HEAD` belegbar). Fehlt für eine Prüfdatei des
+Ablauf-Anteils ein grüner Lauf mit ihrem jetzigen Inhalt am jetzigen
+Produkt-Stand, endet das Gate rot mit Rückgabewert 1, nennt die Dateien
+samt Grund (nie gelaufen, rot, Inhalt geändert, Stand abweichend, Stand
+unbekannt, `src` ungesichert) und das Kommando, das den Nachweis
+herstellt; ohne bekannte Klassen gilt das fail-closed für die vollständige
+Suite. Ohne Ablauf-Pflicht entfällt die Prüfung. Grund ist die Bedingung E1
+der Release-Strecke,
+Kapitel 2: Der Epic-Abschluss-Test gilt erst mit gelaufenen
+Ablauf-Prüfungen am selben Produkt-Stand als grün.
 
 **Stand der Umsetzung: scharf seit dem 2026-08-14.** Die Karte aus
 Pfad-Mustern liegt als `scripts/aenderungsklassen.json` und ist die
@@ -2265,6 +2311,14 @@ Festgelegt am 2026-08-28 durch den Product Owner (Vorgang 4T-001251), auf der Gr
 3. **Der manuelle Test bleibt für Windows die Regel und findet auf weiteren Plattformen nur bei Anlass statt — und was ein Anlass ist, sagt ein benannter Auslöser-Katalog, nicht das Ermessen der Release-Sitzung** (Entscheidung des Product Owners vom 2026-09-03, Weg 3 aus `4T-001382`; bis dahin stand hier ein Prosa-Urteil, dem die Release-Strecke mit «eine Strecke je ausgelieferter Bezugs-Form» widersprach, und bei `1.125.1` entschied die Anordnung des Product Owners statt des Regelwerks). Ein Anlass liegt vor, sobald **einer** der folgenden Auslöser zutrifft: **(a)** Bau-Ziele und Bau-Konfiguration (`build/**`, `scripts/build-*.js`); **(b)** Datei-Zuordnung (Dateitypen, Protokoll-Registrierung); **(c)** Desktop-Einbindung (Menü- und Start-Einträge, Icons, Autostart); **(d)** Pfad- und Dateisystem-Verhalten des Haupt-Prozesses (plattformgebundene Zweige unter `src/main/**`, Groß-/Kleinschreibung, Symlinks, Berechtigungen); **(e)** jede Änderung am `build`-Block der `package.json`; dazu **(f)** ein Befund des automatisierten Laufs auf der Plattform, der eine Sicht-Prüfung braucht. Trifft keiner zu, genügt die Windows-Strecke, und der Sammeltask hält das mit dem geprüften Katalog fest («kein Auslöser, a bis f geprüft»). Fünf der sechs Auslöser sind am Release-Diff erkennbar; eine maschinelle Stütze ist deshalb möglich und bewusst noch nicht gebaut — erst wenn sich der Katalog an zwei Releases bewährt hat, lohnt ein Werkzeug, das die Auslöser aus dem Diff vorschlägt, und (f) bleibt ohnehin ein Urteil. Grund: Der gründliche manuelle Durchgang vom 2026-08-26 fand drei Befunde und **keinen** der drei, die die automatisierte Suite zwei Tage später fand. Beide Prüf-Arten sehen Verschiedenes; die manuelle ist die teurere und gehört dorthin, wo sie allein etwas leisten kann.
 4. **Ausgelöst wird der Lauf von jedem Release mit Produkt-Code-Anteil.** Ein Release ohne ihn kann die Plattform nicht brechen und löst deshalb keinen Lauf aus.
 
+**Epic-Tor** (seit dem 2026-10-14). Enthält der Diff eines Epics neue oder geänderte Prüfdateien oder Test-Helfer, also die Klasse Ä8 oder den Rückfall «Test-Konfiguration, Helfer oder Fixtures» der Klassen-Karte, läuft der Epic-Abschluss-Test zusätzlich einmal im Linux-Prüfstand:
+
+```bash
+node scripts/test-linux-docker.js ausschnitt
+```
+
+Damit fällt eine Plattform-Annahme einer neuen Prüfdatei am Epic-Tor auf und nicht erst im Linux-Lauf der Release-Strecke, wo sie unter gehaltener Release-Sperre die Sitzung trifft, die sie nicht verursacht hat; zwei solche Fälle im Oktober 2026 (Freigabe-Adressen in Windows-Schreibweise, ein Hook ohne Ausführungsrecht) gaben den Anlass. Das Gate fährt dort denselben Prüf-Ausschnitt der Änderungsklasse wie auf der Haupt-Plattform, aus der Kopie im Container-Dateisystem, die das Git-Verzeichnis für die Basis-Ermittlung trägt; `--basis <ref>` wird durchgereicht. **Grenze:** Den Ablauf-Nachweis des Gates (Absatz «Ablauf-Pflicht des Gates `ausschnitt`») prüft der Container nicht, weil die Kopie `src` wegen der Datei-Rechte als geändert sehen kann; die Umfangs-Zeile sagt «Ablauf-Nachweis im Linux-Prüfstand nicht geprüft; er gilt auf der Haupt-Plattform», und der Nachweis bleibt Pflicht des Laufs unter Windows. Der Preis ist ein Container-Lauf des Ausschnitts je solchem Epic, die Kopie des Arbeitsbaums kostet dabei gemessen 86 bis 290 Sekunden. Die vier Größen oben bleiben unberührt: Der Lauf am Epic-Tor ersetzt den Linux-Lauf der Release-Strecke nicht. Herkunft: Empfehlung der Sitzung, pauschal übernommen mit dem Mandat des Product Owners vom 2026-10-14 für Block C und D (ohne Nachfragen).
+
 ### Wie eine Plattform in die Menge kommt und sie verlässt
 
 Die Festlegung spricht bewusst von **freigegebenen Plattformen** und nicht von Windows und Linux: Eine Plattform tritt mit ihrer **ersten Auslieferung** ein und mit ihrer **Zurückstellung** aus, beides durch Entscheidung des Product Owners im Zielbild. Damit trägt der Abschnitt eine dritte Plattform, ohne umgeschrieben zu werden, und schrumpft von selbst, solange macOS zurückgestellt ist.
@@ -2277,11 +2331,11 @@ Die Festlegung spricht bewusst von **freigegebenen Plattformen** und nicht von W
 node scripts/test-linux-docker.js e2e
 ```
 
-Gate-Namen (`format:check`, `lint`, `test`, `e2e`, `alle`) werden unverändert an `scripts/gate-lauf.js` im Container durchgereicht; es fällt dort dasselbe Kommando wie auf der Haupt-Plattform. `--nur <muster>` fährt einen einzelnen Fall und ist der Diagnose-Weg, wenn ein roter Fall nach der Leiter unten isoliert nachzuprüfen ist. **Der Schalter gilt allein für das Gate `e2e`**, wo das Muster an den E2E-Lauf weitergereicht wird; zusammen mit einem anderen Gate — auch wenn `e2e` daneben steht — endet der Aufruf vor dem ersten Docker-Aufruf mit einer Meldung, statt das volle Gate zu fahren. Für das Unit-Gate gibt es diesen Weg damit nicht. Voraussetzung ist Docker; ein Kaltstart von Docker Desktop braucht mehrere Minuten, bevor der Dienst antwortet.
+Gate-Namen (`format:check`, `lint`, `test`, `e2e`, `alle`, seit dem 2026-10-14 auch `ausschnitt` für das Epic-Tor oben) werden unverändert an `scripts/gate-lauf.js` im Container durchgereicht; es fällt dort dasselbe Kommando wie auf der Haupt-Plattform. `--basis <ref>` gilt allein für das Gate `ausschnitt` und geht an dessen Basis-Ermittlung; den Ablauf-Nachweis dieses Gates prüft der Container nicht. `--nur <muster>` fährt einen einzelnen Fall und ist der Diagnose-Weg, wenn ein roter Fall nach der Leiter unten isoliert nachzuprüfen ist. **Der Schalter gilt allein für das Gate `e2e`**, wo das Muster an den E2E-Lauf weitergereicht wird; zusammen mit einem anderen Gate — auch wenn `e2e` daneben steht — endet der Aufruf vor dem ersten Docker-Aufruf mit einer Meldung, statt das volle Gate zu fahren. Für das Unit-Gate gibt es diesen Weg damit nicht. Voraussetzung ist Docker; ein Kaltstart von Docker Desktop braucht mehrere Minuten, bevor der Dienst antwortet.
 
 **Woher der Lauf seine Dateien liest, ist nicht überall dasselbe** (seit dem 2026-08-31, Vorgang zum Rechner-Unterschied weiter unten):
 
-- Das **E2E-Gate** (`e2e`), das **Unit-Gate** (`test`) und das **Sammel-Gate** (`alle`) laufen aus einer **Kopie im Container-Dateisystem**. Sie entsteht je Lauf neu, ohne `node_modules`, `releases`, `dist`, `test-results` und `playwright-report`, mit dem Git-Verzeichnis; `node_modules` hängt als dasselbe Volume auch unter dem Pfad der Kopie. Bevor ein Gate startet, prüft der Lauf die Kopie auf die Bäume, die seine Wächter lesen, also `src`, `test`, `scripts`, `docs`, `web`, `Projektmanagement` und das Git-Verzeichnis, und bricht ab, statt gegen einen halben Baum zu prüfen. Nach dem Lauf wandert der Maschinen-Bericht jedes Gates zurück in den Arbeitsbaum, für `test` und `alle` also `test-berichte/unit.json` und für `e2e` die Datei `test-berichte/e2e.json`, dazu die Rot-Belege, auch nach einem roten Lauf.
+- Das **E2E-Gate** (`e2e`), das **Unit-Gate** (`test`), das **Sammel-Gate** (`alle`) und seit dem 2026-10-14 das Gate **`ausschnitt`** laufen aus einer **Kopie im Container-Dateisystem**. Sie entsteht je Lauf neu, ohne `node_modules`, `releases`, `dist`, `test-results` und `playwright-report`, mit dem Git-Verzeichnis; `node_modules` hängt als dasselbe Volume auch unter dem Pfad der Kopie. Bevor ein Gate startet, prüft der Lauf die Kopie auf die Bäume, die seine Wächter lesen, also `src`, `test`, `scripts`, `docs`, `web`, `Projektmanagement` und das Git-Verzeichnis, und bricht ab, statt gegen einen halben Baum zu prüfen. Nach dem Lauf wandert der Maschinen-Bericht jedes Gates zurück in den Arbeitsbaum, für `test`, `alle` und `ausschnitt` also `test-berichte/unit.json` und für `e2e` die Datei `test-berichte/e2e.json`, dazu die Rot-Belege, auch nach einem roten Lauf.
 - **Das Unit-Gate ist erst seit dem 2026-09-20 dabei** (`4T-001837`). Bis dahin blieb es auf dem Arbeitsbaum, weil seine Bestands-Wächter ihn samt Git-Verzeichnis nur einmal lesen und eine Kopie dort kein Gewinn gewesen wäre. Diese Rechnung hat das Wachstum des Webseiten-Baus gekippt: Seine vier Bau-Prüfdateien rissen im Container ihre Zeitgrenze, während dieselbe Suite unter Windows grün blieb. Damit war die Schwelle des Absatzes «Die Zeitgrenzen bleiben plattform-einheitlich» erreicht, und dessen Antwort darauf ist genau dieser Weg.
 - **Das Sammel-Gate steht aus einem eigenen Grund dabei.** Es fällt im Container als ein einziger Aufruf und hat deshalb genau einen Arbeitsordner; stünde es nicht in der Menge, liefe das Unit-Gate wieder über die Brücke, sobald jemand die Release-Abnahme mit `alle` fährt statt mit `test`. Format und Lint messen denselben Datei-Bestand, gleich aus welchem Baum sie ihn lesen.
 - **Einzeln gefahren bleiben `format:check` und `lint` auf dem Arbeitsbaum.** Sie lesen wenig und gewönnen nichts, und eine Kopie für sie allein wäre teurer als der Lauf.

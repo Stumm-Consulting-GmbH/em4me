@@ -54,8 +54,13 @@
 // einen bekannten Steuer-Schluessel traegt (lokal auch mit `_` davor), dazu die
 // drei bekannten Werkzeug-Kommentare (prettier, markdownlint, remark-lint). Ein
 // Kommentar wie `<!-- Hinweis: langsam sprechen -->` ist damit wie bei Marp
-// eine Notiz. Steuer-Kommentare werden nicht gedeutet und je Folie als Rohdaten
-// mitgefuehrt (`steuerKommentare`).
+// eine Notiz. Steuer-Kommentare werden je Folie als Rohdaten mitgefuehrt
+// (`steuerKommentare`); seit 4T-002277 (Stufe 2) deutet sie die Schwester-Datei
+// presentation-folien-schluessel.js zur wirksamen Gestaltung je Folie
+// (`gestaltung`) und zu `headingDivider`, und `fit` zaehlt mit. Notizen sind
+// je Folie `{ text, herkunft: 'html' | 'prozent' }` in Dokument-Reihenfolge;
+// dazu traegt jede Folie ihre Aufdeck-Schritte (`aufdeckSchritte`, Listen-
+// Punkte mit `*` und `1)`).
 //
 // **Quelltext der Folie** ist ihr Ausschnitt mit `\n` als Zeilenende, aus dem
 // alle Kommentare (Notizen wie Steuer-Kommentare) zeilentreu entfernt sind:
@@ -68,13 +73,18 @@
 // geworfen. Ein fehlerhafter Kopf-Wert faellt auf die Vorgabe zurueck.
 'use strict';
 
-const yaml = require('js-yaml');
 const { extractFrontmatter } = require('../markdown/frontmatter.js');
 const { findPercentCommentRanges } = require('../markdown/plugins/comments.js');
 // Die Zaun-Regel wohnt in `fence-level.js` (Waechter `zaun-kopien.test.js`).
 const { zaunOeffnung, schliesstZaun } = require('../markdown/fence-level.js');
 // Inline-Code maskieren, damit ein `<!-- -->` in Backticks kein Kommentar ist.
 const { maskInlineCode } = require('../markdown/link-scan.js');
+// Deutung der Angaben je Folie und `headingDivider` (4T-002277).
+const {
+  istSteuerKommentar,
+  ueberschriftenTrennung,
+  gestaltungJeFolie,
+} = require('./presentation-folien-schluessel.js');
 
 const PRAESENTATION_KOPF_SCHLUESSEL = 'presentation';
 const MARP_KOPF_SCHLUESSEL = 'marp';
@@ -94,28 +104,6 @@ const TRENNER_RE = /^ {0,3}(-[ \t]*){3,}$/;
 const KOMMENTAR_RE = /<!--+\s*([\s\S]*?)\s*--+>/g;
 const KOMMENTAR_BLOCK_OEFFNER_RE = /^ {0,3}<!--/;
 const KOMMENTAR_SCHLIESSER = '-->';
-
-// Steuer-Schluessel von Marp (Marpit `directives.js`: globale und lokale;
-// marp-core: `size`, `math` als eigene globale).
-const MARP_GLOBAL = ['headingDivider', 'style', 'theme', 'lang'];
-const MARP_GLOBAL_KERN = ['size', 'math'];
-const MARP_LOKAL = [
-  'backgroundColor',
-  'backgroundImage',
-  'backgroundPosition',
-  'backgroundRepeat',
-  'backgroundSize',
-  'class',
-  'color',
-  'footer',
-  'header',
-  'paginate',
-];
-const MARP_WERKZEUG_KOMMENTARE = [
-  /^prettier-ignore(-(start|end))?$/,
-  /^markdownlint-((disable|enable).*|capture|restore)$/,
-  /^lint (disable|enable|ignore).*$/,
-];
 
 // --- Zeilen-Werkzeug (Muster kanban-core.js) ---------------------------------
 
@@ -190,11 +178,11 @@ function leseKopf(daten, zeilen, kopfZeilen, befunde) {
 
   if (hat('theme')) {
     const t = kopf.roh.theme;
-    const istBlock =
-      typeof t === 'object' && !Array.isArray(t) && typeof t.name === 'string' && t.name !== '';
     // Name oder Block aus `name` und Uebersteuerungen (Paket 2, Punkt 3a);
-    // der Block wird unveraendert durchgereicht, gedeutet wird er in der
-    // Darstellung.
+    // der Block wird unveraendert durchgereicht und in `themeAufloesen`
+    // gedeutet. Ein Block ohne `name:` baut auf `light` auf, wie die
+    // Architektur es zusagt (4T-002277, Punkt (e)).
+    const istBlock = typeof t === 'object' && !Array.isArray(t);
     if ((typeof t === 'string' && t !== '') || istBlock) kopf.theme = t;
     else befund('themeUngueltig', 'theme', t);
   }
@@ -213,53 +201,6 @@ function leseKopf(daten, zeilen, kopfZeilen, befunde) {
     else befund('unbekannteGroesse', 'size', kopf.roh.size);
   }
   return kopf;
-}
-
-// --- Steuer-Kommentare nach Marp-Art -------------------------------------------
-
-function yamlAbbildung(text) {
-  try {
-    const obj = yaml.load(text, { schema: yaml.FAILSAFE_SCHEMA });
-    return obj !== null && typeof obj === 'object' ? obj : null;
-  } catch {
-    return null;
-  }
-}
-
-// Marpit `looseYAML` (in marp-core voreingestellt): der Wert eines bekannten
-// Schluessels wird in Anfuehrungszeichen gesetzt, damit `color: #fff` lesbar ist.
-const LOCKER_SCHLUESSEL = [...MARP_GLOBAL, ...MARP_LOKAL]
-  .map((k) => `_?${k}`)
-  .flatMap((k) => [k, `"${k}"`, `'${k}'`])
-  .join('|');
-const LOCKER_RE = new RegExp(`^((?:${LOCKER_SCHLUESSEL})\\s*:)(.+)$`);
-const YAML_SONDERZEICHEN = `["'{|>~&*`;
-
-function locker(text) {
-  return text
-    .split(/\r?\n/)
-    .map((zeile) =>
-      zeile.replace(LOCKER_RE, (original, schluessel, wert) => {
-        const getrimmt = wert.trim();
-        if (getrimmt === '' || YAML_SONDERZEICHEN.includes(getrimmt[0])) return original;
-        const abstand = wert.slice(0, wert.length - wert.trimStart().length);
-        return `${schluessel}${abstand}"${getrimmt.split('"').join('\\"')}"`;
-      }),
-    )
-    .join('\n')
-    .trim();
-}
-
-function istSteuerKommentar(inhalt) {
-  if (MARP_WERKZEUG_KOMMENTARE.some((re) => re.test(inhalt.trim()))) return true;
-  const obj = yamlAbbildung(locker(inhalt));
-  if (!obj) return false;
-  return Object.keys(obj).some((k) => {
-    if (MARP_GLOBAL.includes(k) || MARP_GLOBAL_KERN.includes(k) || MARP_LOKAL.includes(k)) {
-      return true;
-    }
-    return k.startsWith('_') && MARP_LOKAL.includes(k.slice(1));
-  });
 }
 
 // --- Zerlegung -------------------------------------------------------------------
@@ -394,18 +335,54 @@ function htmlKommentare(sicht, anfang, kopfZeilen) {
 // Die Trenner-Zeilen (0-basiert im Gesamt-Dokument) aus den `hr`-Tokens der
 // hereingereichten Markdown-Instanz. Gelesen wird der bereinigte Rumpf; seine
 // Zeilen-Nummern sind die des Dokuments minus der Kopf-Zeilen.
-function trennerAusTokens(md, rumpfZeilen, kopfZeilen) {
+//
+// Aus derselben Token-Folge kommen die Ueberschriften der obersten Ebene (fuer
+// `headingDivider`; Ueberschriften in Code-Zaeunen, Listen und Zitaten sind
+// dort keine Token der obersten Ebene, Kommentare sind vorher entfernt) und
+// alle Listen-Punkte mit ihrer Marke (fuer die Aufdeck-Schritte, 4T-002277).
+function strukturAusTokens(md, rumpfZeilen, kopfZeilen) {
   const tokens = md.parse(rumpfZeilen.join('\n'), {});
   const trenner = [];
+  const ueberschriften = [];
+  const punkte = [];
   for (const t of tokens) {
-    if (t.type !== 'hr' || t.level !== 0 || !t.map) continue;
-    if (!TRENNER_RE.test(rumpfZeilen[t.map[0]] || '')) continue;
-    trenner.push(t.map[0] + kopfZeilen);
+    if (!t.map) continue;
+    if (t.type === 'hr' && t.level === 0) {
+      if (TRENNER_RE.test(rumpfZeilen[t.map[0]] || '')) trenner.push(t.map[0] + kopfZeilen);
+    } else if (t.type === 'heading_open' && t.level === 0) {
+      ueberschriften.push({ zeile: t.map[0] + kopfZeilen, ebene: Number(t.tag.slice(1)) });
+    } else if (t.type === 'list_item_open') {
+      // Marp: `*` und `1)` decken schrittweise auf, `-`, `+` und `1.` nicht.
+      punkte.push({
+        zeile: t.map[0] + kopfZeilen,
+        aufdecken: t.markup === '*' || t.markup === ')',
+      });
+    }
   }
-  return trenner;
+  return { trenner, ueberschriften, punkte };
 }
 
-function zerlege(quelle, zeilen, kopfZeilen, bodyOffset, optionen, befunde) {
+// 1-basierte Zeile eines Dokument-Offsets.
+function zeileVon(anfang, offset) {
+  let i = 0;
+  while (i + 1 < anfang.length && anfang[i + 1] <= offset) i++;
+  return i + 1;
+}
+
+// Die Aufdeck-Schritte einer Folie aus den Listen-Punkten ihrer Zeilen
+// [von, bis) (0-basiert): `punkt` ist die Stelle unter allen Listen-Punkten
+// der Folie in Dokument-Reihenfolge (die Reihenfolge der `li` im gerenderten
+// Inhalt), `schritt` die 1-basierte Nummer des Aufdeck-Schritts.
+function aufdeckSchritteVon(punkte, von, bis) {
+  const eigene = punkte.filter((p) => p.zeile >= von && p.zeile < bis);
+  const liste = [];
+  eigene.forEach((p, punkt) => {
+    if (p.aufdecken) liste.push({ zeile: p.zeile + 1, punkt, schritt: liste.length + 1 });
+  });
+  return { zahl: liste.length, punkte: liste };
+}
+
+function zerlege(quelle, zeilen, kopfZeilen, bodyOffset, optionen, befunde, kopf) {
   const anfang = zeilenAnfaenge(zeilen);
   // Arbeits-Kopie ohne `\r`; Kommentar-Zeichen werden darin durch den
   // Platzhalter ersetzt und erst im Ergebnis entfernt.
@@ -416,6 +393,7 @@ function zerlege(quelle, zeilen, kopfZeilen, bodyOffset, optionen, befunde) {
       const inhaltEnde = b.closed ? b.to - 2 : b.to;
       kommentare.push({
         steuer: false,
+        herkunft: 'prozent',
         von: b.from,
         inhalt: quelle
           .slice(b.from + 2, inhaltEnde)
@@ -429,17 +407,29 @@ function zerlege(quelle, zeilen, kopfZeilen, bodyOffset, optionen, befunde) {
   // der Folie; Notizen und Steuer-Kommentare bleiben als Rohdaten erhalten.
   for (const k of htmlKommentare(sicht, anfang, kopfZeilen)) {
     k.steuer = istSteuerKommentar(k.inhalt);
+    k.zeile = zeileVon(anfang, k.von);
+    k.herkunft = 'html';
     kommentare.push(k);
     leere(sicht, anfang, k.von, k.bis);
   }
+  kommentare.sort((a, b) => a.von - b.von);
 
-  let trenner = [];
+  // `headingDivider` ist global: der letzte Wert aus Kopf und Kommentaren.
+  const roh = (kopf && kopf.roh) || {};
+  const ebene = ueberschriftenTrennung(
+    roh.headingDivider,
+    kopfZeileVon(zeilen, kopfZeilen, 'headingDivider'),
+    kommentare.filter((k) => k.steuer),
+    befunde,
+  );
+
+  let struktur = { trenner: [], ueberschriften: [], punkte: [] };
   const md = optionen.md;
   if (!md || typeof md.parse !== 'function') {
     befunde.push({ code: 'keinParser', zeile: kopfZeilen + 1, detail: '' });
   } else {
     try {
-      trenner = trennerAusTokens(md, sicht.slice(kopfZeilen).map(rein), kopfZeilen);
+      struktur = strukturAusTokens(md, sicht.slice(kopfZeilen).map(rein), kopfZeilen);
     } catch (err) {
       befunde.push({
         code: 'keinParser',
@@ -450,20 +440,26 @@ function zerlege(quelle, zeilen, kopfZeilen, bodyOffset, optionen, befunde) {
   }
 
   // Folien an den Trennern schneiden; die Trenner-Zeile gehoert zu keiner.
+  // Bei `headingDivider: N` beginnt zusaetzlich vor jeder Ueberschrift der
+  // Ebene 1 bis N eine neue Folie, ausser die Ueberschrift ist ohnehin die
+  // erste Inhalts-Zeile ihrer Folie; die Ueberschrift gehoert zur neuen Folie.
   const folien = [];
+  const steuerJeFolie = [];
   let start = kopfZeilen;
   const folieBis = (endeExklusiv) => {
     const vonOffset = start < zeilen.length ? anfang[start] : Infinity;
     const bisOffset = endeExklusiv < zeilen.length ? anfang[endeExklusiv] : Infinity;
-    const eigene = kommentare
-      .filter((k) => k.von >= vonOffset && k.von < bisOffset)
-      .sort((a, b) => a.von - b.von);
+    const eigene = kommentare.filter((k) => k.von >= vonOffset && k.von < bisOffset);
     const notizen = [];
     const steuerKommentare = [];
+    const steuer = [];
     for (const k of eigene) {
-      if (k.steuer) steuerKommentare.push(k.inhalt);
-      else if (k.inhalt !== '') notizen.push(k.inhalt);
+      if (k.steuer) {
+        steuerKommentare.push(k.inhalt);
+        steuer.push({ inhalt: k.inhalt, zeile: k.zeile });
+      } else if (k.inhalt !== '') notizen.push({ text: k.inhalt, herkunft: k.herkunft });
     }
+    steuerJeFolie.push(steuer);
     folien.push({
       index: folien.length,
       vonZeile: start + 1,
@@ -471,13 +467,32 @@ function zerlege(quelle, zeilen, kopfZeilen, bodyOffset, optionen, befunde) {
       quelltext: sicht.slice(start, endeExklusiv).map(rein).join('\n'),
       notizen,
       steuerKommentare,
+      aufdeckSchritte: aufdeckSchritteVon(struktur.punkte, start, endeExklusiv),
     });
   };
-  for (const zeile of trenner) {
-    folieBis(zeile);
-    start = zeile + 1;
+  const hatInhalt = (von, bis) => sicht.slice(von, bis).some((z) => rein(z).trim() !== '');
+  const schnitte = [
+    ...struktur.trenner.map((zeile) => ({ zeile, trenner: true })),
+    ...struktur.ueberschriften
+      .filter((u) => u.ebene <= ebene)
+      .map((u) => ({ zeile: u.zeile, trenner: false })),
+  ].sort((a, b) => a.zeile - b.zeile);
+  for (const schnitt of schnitte) {
+    if (schnitt.trenner) {
+      folieBis(schnitt.zeile);
+      start = schnitt.zeile + 1;
+    } else if (hatInhalt(start, schnitt.zeile)) {
+      folieBis(schnitt.zeile);
+      start = schnitt.zeile;
+    }
   }
   folieBis(zeilen.length);
+  const gestaltungen = gestaltungJeFolie(kopf, steuerJeFolie, befunde, {
+    eigene: optionen.eigeneThemes,
+  });
+  folien.forEach((folie, i) => {
+    folie.gestaltung = gestaltungen[i];
+  });
   return folien;
 }
 
@@ -485,11 +500,14 @@ function zerlege(quelle, zeilen, kopfZeilen, bodyOffset, optionen, befunde) {
  * Liest ein Dokument als Praesentation. Wirft nie.
  *
  * @param {string} text voller Dokument-Text.
- * @param {{kommentareAktiv?: boolean, md?: object}} [optionen]
+ * @param {{kommentareAktiv?: boolean, md?: object, eigeneThemes?: Array<object>}} [optionen]
  *   `kommentareAktiv` (Vorgabe true): ob die Kommentar-Erweiterung aktiv ist;
  *   bei false sind `%%` Text. `md`: die Markdown-Instanz der Anwendung
  *   (markdown-it, etwa `md` aus src/shared/markdown/markdown.js); ohne sie gibt
  *   es eine Folie aus dem ganzen Rumpf und den Befund `keinParser`.
+ *   `eigeneThemes` (4T-002281): der Katalog eigener Themes (Liste der
+ *   Einträge des Schlüssels `presentationThemes`); ohne ihn gelten nur die
+ *   mitgelieferten Themes.
  * @returns {{istPraesentation: boolean, kennzeichen: string|null,
  *   kopf: object, folien: Array<object>, zeilenende: string,
  *   befunde: Array<{code: string, zeile: number, detail: string}>}}
@@ -498,6 +516,7 @@ function lesePraesentation(text, optionen = {}) {
   const optionenZerlegen = {
     kommentareAktiv: !(optionen && optionen.kommentareAktiv === false),
     md: optionen ? optionen.md : null,
+    eigeneThemes: optionen ? optionen.eigeneThemes : null,
   };
   const quelle = String(text == null ? '' : text);
   const zeilen = trenneZeilen(quelle);
@@ -542,6 +561,7 @@ function lesePraesentation(text, optionen = {}) {
     kopfText.endOffset || 0,
     optionenZerlegen,
     befunde,
+    model.kopf,
   );
   return model;
 }

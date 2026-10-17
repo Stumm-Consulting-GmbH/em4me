@@ -80,7 +80,21 @@ function buildHljsThemes() {
   console.log('build-hljs-themes: geschrieben ->', path.relative(root, outFile));
 }
 
-module.exports = { buildHljsThemes };
+/**
+ * Setup-Einsprung für Vitest (`globalSetup` ruft den Standard-Export, sonst den
+ * benannten Export `setup`), Muster scripts/build-i18n.js. 4T-002266: Prüffälle
+ * der Präsentation lesen die Themes als Daten, und `npm test` fährt den
+ * Renderer-Bau nicht; ohne Vorlauf fehlt die Datei in einem frischen Checkout.
+ * Der benannte Export `buildHljsThemes` bleibt für scripts/build-renderer.js
+ * und scripts/build-web-handbuch-stil.js.
+ */
+function setup() {
+  buildHljsThemes();
+}
+
+module.exports = setup;
+module.exports.setup = setup;
+module.exports.buildHljsThemes = buildHljsThemes;
 
 if (require.main === module) {
   buildHljsThemes();

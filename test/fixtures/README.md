@@ -15,6 +15,10 @@ Statisches Test-Material für Unit- und E2E-Tests. Struktur:
   `test/e2e/funktionen/praesentation.spec.js` öffnet), die Grenzfälle der
   Trenn-Regel und ein Dokument ohne Kennzeichen; Inhalte erfunden. Die Bilder,
   die die Marp-Nachbauten nennen, legt der Ablauf-Fall selbst an.
+  Seit der zweiten Ausbaustufe dazu `marp-angaben-je-folie.md` (Angaben je
+  Folie in allen drei Geltungen, `headingDivider`, Aufdeck-Listen und `fit`;
+  Kern-Prüfung in `test/unit/presentation-folien-schluessel.test.js`, Ablauf-Fall
+  `PR-18` in `test/e2e/funktionen/praesentation-uebersicht.spec.js`).
 - `query/` — festgehaltene Vorlagen der Abfrage-Ausgabe für den Vergleichs-Prüffall
   `test/unit/renderer/ergebnismenge-vorher-nachher.test.js`; einmal mit dem
   bisherigen Bau-Weg aufgenommen und danach nur noch gelesen. Eine Änderung ist

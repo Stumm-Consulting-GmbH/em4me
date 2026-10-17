@@ -28,6 +28,7 @@ import { invalidatePaneRenderCache, renderAllPanes } from '../views/pane-render.
 import { applyFrontmatterDisplay, applyFrontmatterExpanded } from '../frontmatter-display.js';
 import { applyHeadingNumbering } from '../heading-numbering.js';
 import { setColorSchemeState } from '../color-schemes.js';
+import { starteThemesStand } from '../presentation/presentation-themes-stand.js';
 import { applyPerspectiveScriptsEnabled } from '../query/perspective-script-view.js';
 
 // 4T-001001: Das Init-Fertig-Flag gehoert app-init.js; eine Zuweisung an ein
@@ -94,6 +95,14 @@ export function registerSettingsBroadcasts(deps) {
       setColorSchemeState(schemeState);
     });
   }
+
+  // 4T-002281 (Epic 3E-000348): Katalog eigener Folien-Themes — Hörer zuerst,
+  // dann der gespeicherte Stand; ein echter Wechsel zeichnet alle Spalten neu.
+  starteThemesStand(api, {
+    neuZeichnen: () => {
+      if (initDone()) renderAllPanes();
+    },
+  });
 
   // 4T-000414 (Epic 3E-000078): Skript-Block-Schalter-Broadcast (auch das
   // ausloesende Fenster empfaengt ihn — applyPerspectiveScriptsEnabled ist

@@ -1002,6 +1002,43 @@ function buildMenu(win, state, actions) {
             accelerator: acc('presentation.start'),
             click: send('menu:presentationStart'),
           }),
+          // 4T-002278 (Epic 3E-000348): die Vorführung im Publikums-Fenster
+          // und ihr Ende; das Hauptfenster behält dabei sein Menü.
+          unless('presentation.startWindow', {
+            label: t('menu.view.presentationStartWindow'),
+            enabled: avail('presentation.startWindow'),
+            accelerator: acc('presentation.startWindow'),
+            click: send('menu:presentationStartWindow'),
+          }),
+          // 4T-002279 (Epic 3E-000348): die Referenten-Ansicht.
+          unless('presentation.presenterView', {
+            label: t('menu.view.presentationPresenter'),
+            enabled: avail('presentation.presenterView'),
+            accelerator: acc('presentation.presenterView'),
+            click: send('menu:presentationPresenter'),
+          }),
+          unless('presentation.stop', {
+            label: t('presentation.vorfuehrungBeenden'),
+            enabled: avail('presentation.stop'),
+            accelerator: acc('presentation.stop'),
+            click: send('menu:presentationStop'),
+          }),
+          // 4T-002280 (Epic 3E-000348): die Folien-Übersicht.
+          unless('presentation.overview', {
+            label: t('menu.view.presentationOverview'),
+            enabled: avail('presentation.overview'),
+            accelerator: acc('presentation.overview'),
+            click: send('menu:presentationOverview'),
+          }),
+          // 4T-002282 (Epic 3E-000348): die Gestaltung der Datei, abgesetzt
+          // von der Vorführung (Vorbild «Einstellungen dieser Tafel…»).
+          { type: 'separator' },
+          unless('presentation.gestaltung', {
+            label: t('menu.view.presentationGestaltung'),
+            enabled: avail('presentation.gestaltung'),
+            accelerator: acc('presentation.gestaltung'),
+            click: send('menu:presentationGestaltung'),
+          }),
         ]),
         // 4T-001796 (Epic 3E-000315): die sieben Eintraege, die auf der Flaeche
         // wirken, gebuendelt in EINEM Untermenue «Flaeche bearbeiten»

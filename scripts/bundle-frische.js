@@ -120,6 +120,8 @@ const QUELL_ORDNER = [
 const ERZEUGT_DATEIEN = new Set([
   'src/renderer/renderer.bundle.js',
   'src/renderer/mermaid.bundle.js',
+  // 4T-002278 (Epic 3E-000348): zweiter Bau-Einstieg, das Bündel des Publikums-Fensters.
+  'src/renderer/publikum.bundle.js',
   'src/renderer/hljs-themes.css',
   'src/shared/charts/echarts.bundle.js',
   'src/shared/charts/echarts.LICENSES.txt',
