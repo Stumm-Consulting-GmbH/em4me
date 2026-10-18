@@ -477,7 +477,58 @@ function taskMarkersPlugin(mdInstance, options) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// 4T-001918 (Epic 3E-000340): Aufgaben-Kästchen der PORTABLEN Pipeline als
+// Zeichen. Das Kästchen entsteht als Roh-HTML-Stücke — `<label>`,
+// `<input … type="checkbox">`, `</label>` aus markdown-it-task-lists, beim
+// erweiterten Zustand ein vollständiger `<span class="task-state-box">` aus
+// extendedTaskStatesPlugin — und liefe damit durch den Filter für portable
+// Dokumente, der eigene Stücke nicht von fremdem Roh-HTML unterscheidet: Das
+// Kästchen entfiele, der Zustand wäre nicht mehr sichtbar. Der Ruler setzt
+// deshalb ☐ (offen) und ☑ (erledigt), beim erweiterten Zustand die Klammerform
+// `[/]`, wie der Anwender sie schreibt; die `label`-Stücke entfallen. Er gilt
+// in der Anzeige einer portablen Datei wie im Zell-Export und wird allein an
+// mdPortable registriert — die gewöhnliche Anzeige behält echte Kästchen.
+// Gepusht, damit er nach task-lists und extended_task_states läuft.
+const KAESTCHEN_RE = /^<input class="task-list-item-checkbox"[^>]*type="checkbox">$/;
+
+function kaestchenAlsZeichen(tokens) {
+  for (let i = 2; i < tokens.length; i++) {
+    const inline = tokens[i];
+    const li = tokens[i - 2];
+    if (inline.type !== 'inline' || li.type !== 'list_item_open' || !inline.children) continue;
+    if (!/\btask-list-item\b/.test(li.attrGet('class') || '')) continue;
+    const zustand = li.attrGet('data-task-state');
+    const kinder = [];
+    for (const kind of inline.children) {
+      if (kind.type !== 'html_inline') {
+        kinder.push(kind);
+      } else if (kind.content === '<label>' || kind.content === '</label>') {
+        continue;
+      } else if (KAESTCHEN_RE.test(kind.content)) {
+        kinder.push(zeichenStueck(kind, / checked=""/.test(kind.content) ? '☑' : '☐'));
+      } else if (zustand && kind.content.startsWith('<span class="task-state-box"')) {
+        kinder.push(zeichenStueck(kind, `[${zustand}] `));
+      } else {
+        kinder.push(kind);
+      }
+    }
+    inline.children = kinder;
+  }
+}
+
+function zeichenStueck(vorlage, zeichen) {
+  const stueck = new vorlage.constructor('text', '', 0);
+  stueck.content = zeichen;
+  return stueck;
+}
+
+function kaestchenAlsZeichenPlugin(mdInstance) {
+  mdInstance.core.ruler.push('kaestchen_als_zeichen', (state) => kaestchenAlsZeichen(state.tokens));
+}
+
 module.exports = {
+  kaestchenAlsZeichenPlugin,
   TASK_STATE_DEFAULTS,
   TASK_STATE_FORBIDDEN_CHARS,
   TASK_STATE_TYPES,

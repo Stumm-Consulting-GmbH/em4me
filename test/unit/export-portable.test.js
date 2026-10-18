@@ -378,15 +378,123 @@ describe('Portable-Export: Name der Datentabelle aus der Kopf-Angabe (4T-002072)
     expect(out).not.toContain('^');
   });
 
-  it('mit Namens-Fehler, im Tilden-Zaun und bei ausgeschalteter Erweiterung bleibt der Code-Block', () => {
+  it('mit Namens-Fehler und bei ausgeschalteter Erweiterung bleibt der Code-Block', () => {
     const fehler = dokument('```', '```', 'table: Umsatz 2026');
     expect(convertMarkdownPortable(fehler, true, 'de')).toContain(fehler);
-    const tilde = dokument('~~~', '~~~', 'table: Umsatz');
-    expect(convertMarkdownPortable(tilde, true, 'de')).toContain(tilde);
     configureExtensions(['perspective-datatable']);
     const aus = dokument('```', '```', 'table: Umsatz');
     const out = convertMarkdownPortable(aus, true, 'de');
     expect(out).toContain(aus);
     expect(out).not.toContain('^Umsatz');
+  });
+
+  // 4T-002037 (Epic 3E-000360): Bis dahin stand hier, dass eine Datentabelle
+  // im Tilden-Zaun Code-Block bleibt. Das war die Festschreibung des damaligen
+  // Verhaltens des Exports, keine Entscheidung über das Produkt (4T-002072
+  // entscheidet allein den Fall «Erweiterung aus»); die Ansicht zeigt dieselbe
+  // Tabelle als Tabelle. Seither wird sie nach der Zaun-Regel umgewandelt wie
+  // im Backtick-Zaun, samt Zeile ^Umsatz.
+  it('im Tilden-Zaun wird die Tabelle umgewandelt wie im Backtick-Zaun (4T-002037)', () => {
+    const out = convertMarkdownPortable(dokument('~~~', '~~~', 'table: Umsatz'), true, 'de');
+    expect(out).toContain('</table>\n\n^Umsatz\n\nSchluss.');
+    expect(out).not.toContain('~~~');
+    expect(out).not.toContain('table: Umsatz');
+  });
+});
+
+// 4T-002037 (Epic 3E-000360): Jede Ersetzung des portablen Exports erkennt ihr
+// Konstrukt nach der Zaun-Regel der Anwendung (src/shared/markdown/fence-level.js)
+// — in jeder Form, die die Ansicht als Konstrukt zeigt. Gemessen am 2026-10-11:
+// Tabelle, Datentabelle und Ereignis-Liste wurden allein im Backtick-Zaun mit
+// gleich langem Schluss-Zaun umgewandelt, der Datensatz-Block nicht mit
+// Leerzeichen vor dem Info-Wort.
+describe('Portable-Export: Zaun-Formen aller Ersetzungen (4T-002037)', () => {
+  afterEach(() => {
+    configureExtensions([]);
+  });
+
+  const ARTEN = [
+    {
+      name: 'perspective-table',
+      kopf: '',
+      rumpf: ['{|', '! Kopf', '|-', '| Wert', '|}'],
+      erkannt: /<table[\s\S]*Wert/,
+    },
+    {
+      name: 'perspective-datatable',
+      kopf: '',
+      rumpf: ['columns: Monat:text, Betrag:number', '| Januar | 100 |'],
+      erkannt: /<table[\s\S]*Januar/,
+    },
+    {
+      name: 'perspective-events',
+      kopf: '',
+      rumpf: ['| 2020-01-01 | 2020-06-30 | Projektstart | projekt | Notiz | | | | |'],
+      erkannt: /<table[\s\S]*Projektstart/,
+    },
+    {
+      name: 'perspective-records',
+      kopf: [
+        '---',
+        'db-table:',
+        '  fields:',
+        '    - name: name',
+        '    - name: ort',
+        '---',
+        '',
+      ].join('\n'),
+      rumpf: ['|- id="r-00001"', '| Anna', '| Basel'],
+      erkannt: /<td>Anna<\/td>/,
+    },
+  ];
+  const FORMEN = [
+    ['Backtick-Zaun (Gegenprobe)', (n) => '```' + n, '```'],
+    ['Tilde-Zaun', (n) => '~~~' + n, '~~~'],
+    ['Leerzeichen vor dem Info-Wort', (n) => '``` ' + n, '```'],
+    ['Schluss-Zaun länger als der öffnende', (n) => '```' + n, '`````'],
+    ['eingerückter Zaun mit Titel', (n) => '  ~~~~ ' + n + ' Titel', '   ~~~~~'],
+  ];
+
+  function dokument(art, auf, zu) {
+    return (
+      (art.kopf ? art.kopf + '\n' : '') + [auf, ...art.rumpf, zu, '', 'Danach.', ''].join('\n')
+    );
+  }
+
+  for (const art of ARTEN) {
+    for (const [form, auf, zu] of FORMEN) {
+      it(`${art.name}: ${form} wird umgewandelt`, () => {
+        const out = convertMarkdownPortable(dokument(art, auf(art.name), zu), true, 'de');
+        expect(out, out).toMatch(art.erkannt);
+        expect(out).not.toContain(art.name);
+        expect(out).toContain('Danach.');
+      });
+    }
+
+    it(`${art.name}: Gegenproben bleiben Code-Block`, () => {
+      // Ein äußerer Zaun macht den Block zu zitiertem Text.
+      const zitiert = '````markdown\n' + dokument(art, '~~~' + art.name, '~~~') + '````\n';
+      expect(convertMarkdownPortable(zitiert, true, 'de')).toContain('~~~' + art.name);
+      // Ein kürzerer Schluss-Zaun schließt nicht; ohne Schluss bleibt der Block stehen.
+      const kurz = dokument(art, '~~~~' + art.name, '~~~');
+      expect(convertMarkdownPortable(kurz, true, 'de')).toContain('~~~~' + art.name);
+      // Ein anderes Info-Wort mit demselben Anfang ist ein anderes Konstrukt.
+      const anders = dokument(art, '```' + art.name + 'x', '```');
+      expect(convertMarkdownPortable(anders, true, 'de')).toContain('```' + art.name + 'x');
+    });
+  }
+
+  it('abgeschaltete Erweiterungen lassen jede Form als Code-Block stehen', () => {
+    const SCHALTER = {
+      'perspective-table': 'perspective-table',
+      'perspective-datatable': 'perspective-datatable',
+      'perspective-events': 'events',
+      'perspective-records': 'database',
+    };
+    for (const art of ARTEN) {
+      configureExtensions([SCHALTER[art.name]]);
+      const doc = dokument(art, '~~~' + art.name, '~~~');
+      expect(convertMarkdownPortable(doc, true, 'de'), art.name).toContain('~~~' + art.name);
+    }
   });
 });

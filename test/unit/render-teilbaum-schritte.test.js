@@ -93,6 +93,16 @@ const TEILBAUM = [
 const WIDGET_EXTRAKTION = [
   'modules/live/live-widget-render.js',
   'modules/live/live-mermaid-widget.js',
+  // 4T-002054: Druck und PDF zeichnen eine gekürzte Datentabelle mit allen
+  // Zeilen neu (zeichneGekuerzteDatentabellenVoll). Gerendert wird allein der
+  // eine Block in einen Wegwerf-Container; entnommen wird sein Inhalt und für
+  // die Dauer der Ausgabe in den bestehenden, bereits nachverarbeiteten
+  // Behälter gesetzt, danach kehren die alten Knoten zurück. Der Inhalt ist
+  // nie bedienbar; die zwei Schritte, die eine Datentabelle zum Lesen braucht
+  // (Übersetzungen und Hinweis-Texte), zieht die Stelle selbst. Ein Import von
+  // render-mermaid.js für den Schritt-Satz schlösse einen Zyklus, weil jenes
+  // Modul dieses lädt.
+  'modules/query/perspective-datatable-view.js',
 ];
 
 function dateienMitRenderAufruf() {

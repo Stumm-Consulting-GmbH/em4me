@@ -164,6 +164,10 @@ test.describe('IM-02: Übernahme mit Namens-Kollision (S-145)', () => {
     try {
       await stubOeffnen(app, datei);
       await oeffneVorschau(app, page);
+      // 4T-002094 (Story 4S-000904, AK12): Die Vorschau kündigt an ...
+      const vorschau = (await page.locator(ZEILEN).allTextContents()).join(' | ');
+      expect(vorschau).toContain('wird ersetzt');
+      expect(vorschau).toContain('‹Nacht› kommt als ‹Nacht (2)› hinzu');
       await page.locator('#btn-setup-import-confirm').click();
 
       // Der Bericht steht als zweite Phase im selben Rahmen.
@@ -171,6 +175,11 @@ test.describe('IM-02: Übernahme mit Namens-Kollision (S-145)', () => {
       await expect(page.locator(ZEILEN, { hasText: 'Farbschemas' }).first()).toContainText(
         'Nacht (2)',
       );
+      // ... und der Bericht spricht in der Vollzugsform, ohne Ankündigung.
+      const bericht = (await page.locator(ZEILEN).allTextContents()).join(' | ');
+      expect(bericht).toContain('wurde ersetzt');
+      expect(bericht).toContain('‹Nacht› ist als ‹Nacht (2)› hinzugekommen');
+      expect(bericht).not.toMatch(/wird ersetzt|kommt als|kommt hinzu|kommen hinzu/);
       await page.locator('#btn-setup-import-confirm').click();
       await expect(page.locator(MODAL)).toBeHidden();
 

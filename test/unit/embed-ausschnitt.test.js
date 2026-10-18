@@ -108,3 +108,65 @@ describe('embed-ausschnitt: dieselbe Regel wie der Index', () => {
     expect(extractEmbedSnippet(text, '^code')).toBe(code.join('\n'));
   });
 });
+
+// 4T-001912 (Epic 3E-000360): Die Überschriften-Suche überspringt Code-Blöcke
+// nach der Zaun-Regel (fence-level.js). Ein Block endet allein an einer Zeile
+// desselben Zeichens, mindestens so lang wie die öffnende, ohne Sprach-Angabe;
+// bis dahin endete er an jeder Zaun-Zeile desselben Zeichens, und eine
+// Überschrift im Rest eines äußeren Blocks wurde gefunden beziehungsweise
+// beendete den Abschnitt.
+describe('embed-ausschnitt: Überschriften in verschachtelten Code-Blöcken (4T-001912)', () => {
+  const T = '~';
+  function lagen(innen) {
+    return {
+      'längerer Zaun um einen kürzeren': [`${Z}\`markdown`, Z, ...innen, Z, ...innen, `${Z}\``],
+      Tilden: [T.repeat(4), T.repeat(3), ...innen, T.repeat(3), ...innen, T.repeat(4)],
+      'Sprach-Angabe an der inneren Zeile': [Z, 'Beispiel:', `${Z}js`, ...innen, Z],
+    };
+  }
+
+  for (const [lage, block] of Object.entries(lagen(['## Ziel', 'Beispiel-Text']))) {
+    it(`${lage}: eine Überschrift im äußeren Block ist kein Anker-Ziel`, () => {
+      const text = ['Davor.', '', ...block, '', '## Ziel', 'Echter Inhalt.'].join('\n');
+      expect(extractEmbedSnippet(text, 'Ziel')).toBe('## Ziel\nEchter Inhalt.');
+    });
+  }
+
+  for (const [lage, block] of Object.entries(lagen(['# Ende']))) {
+    it(`${lage}: eine Überschrift im äußeren Block beendet den Abschnitt nicht`, () => {
+      const text = ['## Ziel', 'Text.', ...block, 'Weiter.', '## Nächstes', 'Anderes.'].join('\n');
+      const erwartet = ['## Ziel', 'Text.', ...block, 'Weiter.'].join('\n');
+      expect(extractEmbedSnippet(text, 'Ziel')).toBe(erwartet);
+    });
+  }
+});
+
+// 4T-002057 (Epic 3E-000360): Charakterisierung der Anker-Erkennung beim
+// Einbetten. Seit 4T-002072 liest `extractEmbedSnippet` die Heimat
+// (src/shared/block-anchors.js); die Fälle halten den erreichten Stand fest,
+// damit eine neue eigene Erkennung an dieser Stelle auffällt.
+describe('embed-ausschnitt: Anker-Erkennung (4T-002057, Charakterisierung)', () => {
+  it('ein Anker am Zeilenende bettet den Absatz ohne Anker ein', () => {
+    expect(extractEmbedSnippet('Davor.\n\nDer Absatz. ^ziel\n\nDanach.', '^ziel')).toBe(
+      'Der Absatz.',
+    );
+  });
+
+  it('ohne Leerraum vor dem Zeichen ist es kein Anker', () => {
+    expect(extractEmbedSnippet('Text^ziel\n', '^ziel')).toBe(null);
+  });
+
+  it('von zwei gleichen Kennungen zählt das erste Vorkommen', () => {
+    const text = ['Erster. ^doppelt', '', 'Zweiter. ^doppelt', ''].join('\n');
+    expect(extractEmbedSnippet(text, '^doppelt')).toBe('Erster.');
+  });
+
+  it('ein Anker in einem Code-Beispiel zählt nicht, ein echter danach schon', () => {
+    const text = [`${Z}`, 'Beispiel ^ziel', Z, '', 'Echt. ^ziel', ''].join('\n');
+    expect(extractEmbedSnippet(text, '^ziel')).toBe('Echt.');
+  });
+
+  it('eine unbekannte Kennung liefert nichts', () => {
+    expect(extractEmbedSnippet('Absatz. ^da\n', '^fehlt')).toBe(null);
+  });
+});

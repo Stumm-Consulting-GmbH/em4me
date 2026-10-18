@@ -350,3 +350,42 @@ test.describe('LU-09: Suchraum endet an der Bereichs-Grenze (4T-001458)', () => 
     }
   });
 });
+
+test.describe('LU-10: Wiki-Ziel mit Markdown-Endung zieht nach (4T-002036)', () => {
+  test('B umbenennen passt [[B.md]], [[B.md#^umsatz]] und ![[B.md#^umsatz]] in A an, die Endung bleibt', async () => {
+    // 4T-002036 (Epic 3E-000360): Die Schreibweise mit Endung loest die
+    // Anwendung auf; bis zur Behebung blieb sie beim Umbenennen stehen und
+    // zeigte danach ins Leere. Die Form ohne Endung steht als Gegenprobe mit
+    // in der Datei und bekommt keine Endung.
+    const dir = makeDir();
+    const aFile = path.join(dir, 'A.md');
+    const bFile = path.join(dir, 'B.md');
+    fs.writeFileSync(
+      aFile,
+      '# A\n\nWiki: [[B.md]]\nAnker: [[B.md#^umsatz]]\nEmbed: ![[B.md#^umsatz]]\nOhne: [[B]]\n',
+      'utf8',
+    );
+    fs.writeFileSync(bFile, '# B\n\n| Monat | Umsatz |\n|---|---|\n| Jan | 1 |\n^umsatz\n', 'utf8');
+    const { app, page, userData } = await launchApp({ args: [bFile] });
+    try {
+      await waitForTab(page);
+      await openRenameDialog(app, page);
+      await page.locator('#name-input-field').fill('C');
+      await page.locator('#btn-name-input-ok').click();
+      await expect(page.locator('#name-input-modal')).toBeHidden();
+      await continuePreviewAndReport(page);
+      await expect
+        .poll(() => fs.readFileSync(aFile, 'utf8'), { timeout: 5000 })
+        .toContain('[[C.md]]');
+      const a = fs.readFileSync(aFile, 'utf8');
+      expect(a).toContain('Wiki: [[C.md]]');
+      expect(a).toContain('Anker: [[C.md#^umsatz]]');
+      expect(a).toContain('Embed: ![[C.md#^umsatz]]');
+      expect(a).toContain('Ohne: [[C]]');
+      expect(a).not.toContain('B.md');
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+});

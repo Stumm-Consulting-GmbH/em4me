@@ -69,6 +69,17 @@ vi.mock('../../../src/renderer/modules/query/perspective-script-view.js', () => 
   waitForPerspectiveScriptsIdle: async () => protokoll.push('scriptsIdle'),
 }));
 
+// 4T-002054: gekürzte Datentabellen für die Dauer der Ausgabe mit allen Zeilen,
+// je mit der Spalte und dem Pfad, die sie bekommen; die Rücknahme protokolliert.
+const datentabellenAufrufe = [];
+vi.mock('../../../src/renderer/modules/query/perspective-datatable-view.js', () => ({
+  zeichneGekuerzteDatentabellenVoll: (wurzel, pfad) => {
+    protokoll.push('datatablesFull');
+    datentabellenAufrufe.push({ wurzel, pfad });
+    return () => protokoll.push('datatablesBack');
+  },
+}));
+
 // 4T-002188 (Epic 3E-000347): Der Ersatz haelt den uebergebenen Text fest, damit
 // die Faelle zu den privaten Kommentaren pruefen koennen, was in den Block geht.
 const blockTexte = [];
@@ -144,6 +155,7 @@ const BARRIEREN = [
 beforeEach(() => {
   protokoll.length = 0;
   diagrammAufrufe.length = 0;
+  datentabellenAufrufe.length = 0;
   blockTexte.length = 0;
   kommentareAn = true;
   paneEls.content = document.createElement('div');
@@ -458,6 +470,56 @@ describe('withPrintPreparation — Barrieren und Ansichts-Regel (AK5)', () => {
     expect(protokoll).toContain('sourcePrintBlock');
     for (const barriere of BARRIEREN) expect(protokoll).not.toContain(barriere);
     expect(paneEls.content.querySelector('.pdf-source-print')).toBeNull();
+  });
+});
+
+// 4T-002054 (Story 4S-000163, AK10): Die Ausgabe zeigt alle Zeilen einer
+// Datentabelle. Neu gezeichnet wird hinter der Einbettungs-Barriere in der
+// gedruckten Spalte, zurückgestellt auf jedem Ausgang nach dem Endpunkt.
+describe('withPrintPreparation — gekürzte Datentabellen mit allen Zeilen (4T-002054)', () => {
+  async function laufMit(ausgang) {
+    return withPrintPreparation({
+      output: async () => {
+        protokoll.push('ENDPUNKT');
+        return ausgang();
+      },
+    });
+  }
+
+  it('zeichnet hinter der Einbettungs-Barriere in der gedruckten Spalte, vor dem Endpunkt', async () => {
+    await laufMit(() => ({ ok: true }));
+    const folge = protokoll.filter((e) =>
+      ['embedsIdle', 'datatablesFull', 'chartsRedraw', 'ENDPUNKT', 'datatablesBack'].includes(e),
+    );
+    expect(folge).toEqual([
+      'embedsIdle',
+      'datatablesFull',
+      'chartsRedraw',
+      'ENDPUNKT',
+      'datatablesBack',
+    ]);
+    expect(datentabellenAufrufe).toEqual([{ wurzel: paneEls.content, pfad: 'C:\\A\\B.md' }]);
+  });
+
+  it('stellt nach einem gemeldeten Fehlschlag und nach einem geworfenen Fehler zurück', async () => {
+    await laufMit(() => ({ ok: false, error: 'x' }));
+    expect(protokoll.filter((e) => e === 'datatablesBack')).toHaveLength(1);
+    protokoll.length = 0;
+    await laufMit(() => {
+      throw new Error('Fenster weg');
+    });
+    expect(protokoll.filter((e) => e === 'datatablesBack')).toHaveLength(1);
+  });
+
+  it('läuft nicht beim Quelltext-Druck und nicht nach dem Abbruch im Vorbereitungs-Schritt', async () => {
+    setzeTab({ viewMode: 'source' });
+    await laufMit(() => ({ ok: true }));
+    expect(protokoll).not.toContain('datatablesFull');
+    expect(protokoll).not.toContain('datatablesBack');
+    setzeTab();
+    protokoll.length = 0;
+    await withPrintPreparation({ prepare: async () => null, output: async () => ({ ok: true }) });
+    expect(protokoll).toEqual([]);
   });
 });
 

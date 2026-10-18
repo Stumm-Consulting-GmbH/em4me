@@ -112,7 +112,7 @@ aggregate: Totale:sum
 
 ## Modificare nella griglia
 
-Nella **vista divisa** e in **modalità live** la griglia è modificabile direttamente; la vista di lettura e le pagine del manuale la mostrano in sola lettura. Ogni conferma riscrive il blocco di codice nel sorgente: il documento risulta non salvato come di consueto e annulla/ripristina funzionano normalmente.
+Nella **vista divisa** e in **modalità live** la griglia è modificabile direttamente finché **Visualizza › Modifica** è attivo; quando è disattivato, lì la griglia si può solo consultare, ordinare e filtrare, come nella vista di lettura. La vista di lettura e le pagine del manuale la mostrano in sola lettura. Ogni conferma riscrive il blocco di codice nel sorgente: il documento risulta non salvato come di consueto e annulla/ripristina funzionano normalmente.
 
 - **Modificare una cella**: un clic sulla cella (o `Invio`/`F2` con la cella a fuoco) apre un campo di immissione adeguato al tipo. `Invio` o la perdita del fuoco conferma, `Esc` annulla, `Tab`/`Maiusc+Tab` conferma e passa alla cella successiva o precedente.
 - **Collegamenti nella cella**: un clic su un collegamento o un tag in una cella di testo lo segue e non apre la cella. Un clic nella parte libera della cella, `Invio` o `F2` la aprono con il testo scritto. Se il collegamento stesso ha il fuoco della tastiera, `Invio` lo segue e `F2` apre la cella.
@@ -142,4 +142,4 @@ L'esportazione portable e l'esportazione PDF producono la tabella come tabella s
 
 ## Limiti
 
-A partire da 1000 righe di dati la griglia mostra solo l'area di intestazione e gli aggregati con una nota; gli aggregati continuano a calcolare su tutte le righe. Gli insiemi di dati molto grandi appartengono a uno strumento dati dedicato.
+Con più di 1000 righe di dati la griglia mostra solo l'area di intestazione e gli aggregati con una nota; gli aggregati continuano a calcolare su tutte le righe. Gli insiemi di dati molto grandi appartengono a uno strumento dati dedicato.

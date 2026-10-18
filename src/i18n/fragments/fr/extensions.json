@@ -14,7 +14,7 @@
   "extension.wiki-links.name": "Liens wiki",
   "extension.wiki-links.description": "Liens wiki `[[cible]]` avec ancres de titres et de blocs, ancres de bloc `^id`, ainsi que les panneaux des liens sortants et des rétroliens avec l'index des liens.",
   "extension.graph-view.name": "Vue graphe",
-  "extension.graph-view.description": "Affiche les relations de liens des fichiers Markdown sous forme de graphe interactif : le graphe de l'espace dans son propre onglet, le graphe du fichier dans un panneau latéral.",
+  "extension.graph-view.description": "Affiche les relations de liens des fichiers Markdown sous forme de graphe interactif : le graphe de la zone dans son propre onglet, le graphe du fichier dans un panneau latéral.",
   "extension.focus-mode.name": "Mode focus et défilement machine à écrire",
   "extension.focus-mode.description": "Le mode focus masque la barre d'onglets, la barre d'état et la barre latérale pour écrire sans distraction ; le défilement machine à écrire garde la ligne du curseur centrée verticalement.",
   "extension.sidebar-collapse.name": "Réduire les colonnes de la barre latérale",

@@ -8,7 +8,8 @@
 // Untermenü aus; TK-05: Kommando-Palette führt Tabellen-Operationen aus
 // und dimmt sie außerhalb von Tabellen; TK-06: dasselbe Untermenü wirkt im
 // perspective-table-Fence (Zeile verschieben, Ein-Schritt-Undo); TK-07:
-// Spalten-Operationen werden bei colspan mit Statusbar-Hinweis abgelehnt.
+// Spalten-Operationen werden bei colspan mit Statusbar-Hinweis abgelehnt;
+// TK-08: Spalte einfügen setzt in einer Kopfzeile eine Kopfzelle (4T-002093).
 // Die Operations-Semantik selbst ist unit-getestet
 // (test/unit/table-edit.test.js, test/unit/perspective-table-edit.test.js).
 'use strict';
@@ -304,6 +305,50 @@ test.describe('TK-07: Span-Ablehnung mit Statusbar-Hinweis (F-142)', () => {
       await expect(hint).toHaveClass(/visible/);
       await expect(hint).toContainText('colspan');
       expect(await editorLines(page)).toEqual(before);
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+// TK-08 (4T-002093, Story 4S-000161 AK11): Spalte einfügen in einem
+// perspective-table-Fence mit Kopfzeile. Die neue Zelle der Kopfzeile ist
+// eine Kopfzelle; mit einer Datenzelle zerfiele die Kopfzeile, und die
+// gerenderte Tabelle verlöre ihren Kopf (kein thead mehr). Strg+Z nimmt die
+// Operation in einem Schritt zurück (AK10).
+test.describe('TK-08: Spalte einfügen setzt in der Kopfzeile eine Kopfzelle (4T-002093)', () => {
+  test('Kopfzelle in der Kopfzeile, durchgehender Kopf in der Lese-Ansicht, Strg+Z', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    try {
+      await waitForTab(page);
+      await enterEditSource(app, page);
+      const vorher = await editorLines(page);
+
+      // Regulärer Ausdruck: 'P1' allein träfe auch die Zeilen 'p1a' und 'p1b'.
+      const einfuegen = async () => {
+        await openTableSubmenu(page, /^! P1$/);
+        await page.locator(item('table-col-insert')).click();
+      };
+      await einfuegen();
+      const lines = await editorLines(page);
+      const p1 = lines.indexOf('! P1');
+      expect(lines.slice(p1, p1 + 3)).toEqual(['! P1', '! ', '! P2']);
+      const p1a = lines.indexOf('| p1a');
+      expect(lines.slice(p1a, p1a + 3)).toEqual(['| p1a', '| ', '| p2a']);
+
+      // AK10: ein Rückgängig-Schritt stellt den Text exakt wieder her (wie
+      // TK-06 unmittelbar nach der Operation).
+      await page.locator(SEL.editorContent0).click();
+      await page.keyboard.press('Control+z');
+      expect(await editorLines(page)).toEqual(vorher);
+
+      // AK11, zweite Hälfte: Die Lese-Ansicht zeigt einen durchgehenden Kopf.
+      await einfuegen();
+      await sendMenuChannel(app, 'menu:viewChange', 'rendered');
+      const tabelle = page.locator(`${SEL.markdownBody0} table.perspective-table`, {
+        has: page.locator('caption', { hasText: 'Perspective Beispiel' }),
+      });
+      await expect(tabelle.locator('thead th')).toHaveCount(3);
     } finally {
       await closeApp(app, userData, { force: true });
     }

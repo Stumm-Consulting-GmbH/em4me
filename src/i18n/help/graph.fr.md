@@ -1,12 +1,12 @@
 # Vue graphe
 
-La vue graphe rend visibles les relations de liens des fichiers Markdown : chaque fichier est un nœud, chaque lien une arête orientée. Il existe deux points d'entrée avec la même interaction : le **graphe de l'espace** dans son propre onglet pour l'espace entier, et le **graphe du fichier** dans un panneau latéral pour le voisinage du fichier actif. Le graphe de l'espace présente ses données au choix sous forme de **réseau** ou d'**arbre**.
+La vue graphe rend visibles les relations de liens des fichiers Markdown : chaque fichier est un nœud, chaque lien une arête orientée. Il existe deux points d'entrée avec la même interaction : le **graphe de la zone** dans son propre onglet pour la zone entière, et le **graphe du fichier** dans un panneau latéral pour le voisinage du fichier actif. Le graphe de la zone présente ses données au choix sous forme de **réseau** ou d'**arbre**.
 
 Les deux formes appartiennent à l'extension **Vue graphe** et peuvent être désactivées ensemble sous Paramètres → Extensions.
 
-## Graphe de l'espace (onglet)
+## Graphe de la zone (onglet)
 
-Le graphe de l'espace montre tous les fichiers Markdown de l'espace ouvert avec leurs liens sur la grande surface d'un onglet dédié. Il s'ouvre via le menu Affichage → Graphe de l'espace ou via le menu contextuel du panneau de l'espace ; il existe un onglet graphe par fenêtre, une nouvelle ouverture active l'onglet existant. L'onglet est une vue en lecture seule sans mode d'édition ; son titre porte le nom de l'espace. Sans espace ouvert, l'entrée n'est pas disponible.
+Le graphe de la zone montre tous les fichiers Markdown de la zone ouverte avec leurs liens sur la grande surface d'un onglet dédié. Il s'ouvre via le menu Affichage → Graphe de la zone ou via le menu contextuel du panneau de la zone ; il existe un onglet graphe par fenêtre, une nouvelle ouverture active l'onglet existant. L'onglet est une vue en lecture seule sans mode d'édition ; son titre porte le nom de la zone. Sans zone ouverte, l'entrée n'est pas disponible.
 
 La barre d'outils en tête de l'onglet propose :
 
@@ -36,7 +36,7 @@ Deux réglages se trouvent dans l'en-tête du panneau :
 - **Profondeur** (1 à 5) — combien d'étapes de liens autour du fichier actif sont incluses. La profondeur 1 ne montre que les voisins directs, des valeurs plus grandes étendent le voisinage pas à pas.
 - **Direction** — « Sortants » ne suit que les liens sortant du fichier, « Entrants » seulement les liens pointant vers le fichier, « Les deux directions » combine les deux.
 
-Les deux réglages s'appliquent par colonne pour la session en cours. Un fichier sans relation de lien apparaît comme un nœud isolé avec une indication. En dehors d'un espace, le panneau travaille avec l'espace de recherche limité autour du dossier du fichier et l'indique discrètement ; le graphe complet est fourni par l'espace.
+Les deux réglages s'appliquent par colonne pour la session en cours. Un fichier sans relation de lien apparaît comme un nœud isolé avec une indication. En dehors d'une zone, le panneau travaille avec l'espace de recherche limité autour du dossier du fichier et l'indique discrètement ; le graphe complet est fourni par la zone.
 
 ## Interaction
 
@@ -54,5 +54,5 @@ Les arêtes sont orientées : la flèche pointe du document liant vers le docume
 ## Limites
 
 - Les nœuds sont exclusivement des **fichiers Markdown** ; les tags, pièces jointes ou blocs individuels n'apparaissent pas dans le graphe.
-- Pour les très grands espaces (plus de 1500 fichiers), **le réseau** montre les nœuds les plus connectés et signale ceux qui sont masqués. L'arbre ne connaît pas cette limite : il ne dessine que les branches dépliées et reste donc complet.
-- Le graphe de l'espace nécessite un espace ouvert ; le panneau du fichier fonctionne aussi sans espace, alors avec un espace de recherche limité.
+- Pour les très grandes zones (plus de 1500 fichiers), **le réseau** montre les nœuds les plus connectés et signale ceux qui sont masqués. L'arbre ne connaît pas cette limite : il ne dessine que les branches dépliées et reste donc complet.
+- Le graphe de la zone nécessite une zone ouverte ; le panneau du fichier fonctionne aussi sans zone, alors avec un espace de recherche limité.

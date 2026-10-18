@@ -15,6 +15,9 @@
 
 const path = require('node:path');
 const { pathCompareKey } = require('../../shared/platform.js');
+// 4T-001799: die eine Endungs-Erkennung der Anzeige-Namen, damit Beschriftung
+// und Ordnung der Dateiliste nicht auseinanderlaufen.
+const { fileLabelFromBasename } = require('../../shared/subpages.js');
 // 4T-001731 (Epic 3E-000306): Namens-Pruefung des Kopier-Kandidaten. Dieselbe
 // Quelle wie der Umbenennen-Dialog, damit Kopie und Umbenennung denselben
 // Massstab an einen Dateinamen legen.
@@ -97,7 +100,15 @@ function sortedAreaListing(entries, isMarkdownName) {
     else if (isMarkdownName(e.name)) files.push(e.name);
   }
   dirs.sort(collator.compare);
-  files.sort(collator.compare);
+  // 4T-001799: Verglichen wird der Name OHNE Markdown-Endung, so wie die Liste
+  // ihn zeigt. Über den Namen mit Endung stand «alpha.md» hinter «alpha-1.md»,
+  // weil der Kollator den Bindestrich schwächer wertet als den Punkt. Die
+  // Endung entscheidet nur bei gleichem Stamm, damit die Ordnung stabil bleibt.
+  files.sort(
+    (a, b) =>
+      collator.compare(fileLabelFromBasename(a), fileLabelFromBasename(b)) ||
+      collator.compare(a, b),
+  );
   return { dirs, files };
 }
 

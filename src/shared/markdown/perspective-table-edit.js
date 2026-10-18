@@ -84,7 +84,7 @@ function scanPerspectiveTable(lines) {
       continue;
     }
     if (trimmed.startsWith('|+')) continue;
-    if (trimmed.startsWith('!') || trimmed.startsWith('|')) {
+    if (zellMarker(trimmed)) {
       closeCell(n - 1);
       if (currentRow) {
         currentCell = { startLine: n, endLine: n };
@@ -102,6 +102,15 @@ function scanPerspectiveTable(lines) {
   return { headerLine, endLine, rows };
 }
 
+// Marker einer Zell-Zeile: '!' Kopfzelle, '|' Datenzelle, sonst null. Die eine
+// Zell-Erkennung der Datei (Abschnitts-Scan, Attribut-Kopf und seit 4T-002093
+// die Spalten-Einfügung, die den Charakter einer Zeile an ihr abliest). Die
+// Abschnitts-Zeilen ('|-', '|+', '|}') prüft der Scan vorher.
+function zellMarker(lineText) {
+  const c = String(lineText || '').trimStart()[0];
+  return c === '!' || c === '|' ? c : null;
+}
+
 // === Span-Prüfung ===========================================================
 
 // Attribut-Kopf einer Zell-Marker-Zeile parser-treu lesen: Marker (!/|)
@@ -109,7 +118,7 @@ function scanPerspectiveTable(lines) {
 // Zell-Grammatik (Attribute stehen ausschließlich auf der Marker-Zeile).
 function cellAttrsOfLine(lineText) {
   const trimmed = String(lineText || '').trimStart();
-  if (!trimmed.startsWith('!') && !trimmed.startsWith('|')) return {};
+  if (!zellMarker(trimmed)) return {};
   const afterMarker = trimmed.slice(1).trimStart();
   const { rest } = extractPerspectiveTableStatusClass(afterMarker);
   return parsePerspectiveTableCellAttrs(rest).attrs;
@@ -361,7 +370,12 @@ function editPerspectiveTable(bodyLines, cursor, op) {
       if (!inRow) return null;
       const next = rebuildWithCells(lines, scan, (blocks) => {
         const copy = blocks.slice();
-        copy.splice(Math.min(pos.col + 1, copy.length), 0, ['| ']);
+        // 4T-002093 (Story 4S-000161, AK11): Die neue Zelle übernimmt den
+        // Charakter ihrer Zeile — eine Zeile aus lauter Kopfzellen bekommt eine
+        // Kopfzelle, jede andere (auch eine mit Zeilen-Kopf) eine Datenzelle.
+        // Sonst zerfällt eine Kopfzeile, und die Tabelle verliert ihren Kopf.
+        const kopfZeile = blocks.length > 0 && blocks.every((b) => zellMarker(b[0]) === '!');
+        copy.splice(Math.min(pos.col + 1, copy.length), 0, [kopfZeile ? '! ' : '| ']);
         return copy;
       });
       const rescanned = scanPerspectiveTable(next);

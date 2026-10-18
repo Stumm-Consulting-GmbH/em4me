@@ -313,13 +313,18 @@ export class MarkdownBlockWidget extends WidgetType {
   // Diagramm seine Tabelle sucht — allein die genannte Tabelle samt
   // Namens-Zeile (live-chart-vorspann.js). Anders als `docPrefix` wird er NICHT
   // mit gerendert: Die Tabelle erscheint im Widget des Diagramms nicht.
-  constructor(source, basePath, cacheKey, docPrefix, dokumentText) {
+  //
+  // 4T-002055 (Epic 3E-000360): `dokLaenge` ist die Länge des ersetzten
+  // Bereichs im Dokument. Bei einer Tabelle in einem Zitat ist `source` ohne
+  // die Zitat-Präfixe und damit kürzer; der Klick-Pfad braucht beide.
+  constructor(source, basePath, cacheKey, docPrefix, dokumentText, dokLaenge) {
     super();
     this.source = source;
     this.basePath = basePath || '';
     this.cacheKey = cacheKey;
     this.docPrefix = docPrefix || '';
     this.dokumentText = dokumentText || '';
+    this.dokLaenge = dokLaenge ?? String(source).length;
   }
   eq(other) {
     return (
@@ -328,7 +333,8 @@ export class MarkdownBlockWidget extends WidgetType {
       other.basePath === this.basePath &&
       other.cacheKey === this.cacheKey &&
       other.docPrefix === this.docPrefix &&
-      other.dokumentText === this.dokumentText
+      other.dokumentText === this.dokumentText &&
+      other.dokLaenge === this.dokLaenge
     );
   }
   toDOM() {
@@ -404,7 +410,7 @@ export class MarkdownBlockWidget extends WidgetType {
       // Pipe-Tabellen — der Cache-Schluessel des Pre-Passes traegt die
       // Unterscheidung gegen Perspective-Tabellen und Fenced-Code.
       if (String(this.cacheKey || '').startsWith('table:')) {
-        bindLiveTableCellClicks(container, this.source);
+        bindLiveTableCellClicks(container, this.source, this.dokLaenge);
       }
       // 4T-000355: perspective-query-Platzhalter im Live-Modus befüllen. Läuft
       // bei jedem Einhängen (auch Cache-Klon), sodass die Liste aktuell ist;

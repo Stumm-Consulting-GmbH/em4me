@@ -950,3 +950,43 @@ test.describe('ES-16: Schalter des Cursor-Sprungs (Verhalten)', () => {
     }
   });
 });
+
+// 4T-002106 (Story 4S-001042, AK2): Nach dem Schließen der Einstellungs-Seite,
+// mit «OK» wie mit «Abbrechen», ist das Dokument wieder aktiv, das vor ihrem
+// Öffnen aktiv war — nicht das Dokument ganz rechts im Dokument-Streifen.
+test.describe('ES-17: Nach den Einstellungen ist das zuvor aktive Dokument wieder aktiv (4T-002106)', () => {
+  test('drei Dokumente, das mittlere aktiv: nach Abbrechen und nach OK wieder das mittlere', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-es17-'));
+    const dateien = ['Erstes', 'Zweites', 'Drittes'].map((name) => {
+      const datei = path.join(dir, `${name}.md`);
+      fs.writeFileSync(datei, `# ${name}\n`, 'utf8');
+      return datei;
+    });
+    const { app, page, userData } = await launchApp({ args: dateien });
+    try {
+      await expect(page.locator(SEL.tabs0)).toHaveCount(3);
+      await page.locator(SEL.tabs0).nth(1).click();
+      await expect(page.locator(SEL.activeTab0)).toContainText('Zweites');
+
+      await openSettingsPageViaKeyboard(page);
+      await expect(page.locator(SEL.activeTab0)).not.toContainText('Zweites');
+      await page.locator('#btn-settings-cancel').click();
+      await expect(page.locator(SETTINGS_PAGE)).toBeHidden();
+      await expect(page.locator(SEL.tabs0)).toHaveCount(3);
+      await expect(page.locator(SEL.activeTab0)).toContainText('Zweites');
+
+      await openSettingsPageViaKeyboard(page);
+      await page.locator('#btn-settings-ok').click();
+      await expect(page.locator(SETTINGS_PAGE)).toBeHidden();
+      await expect(page.locator(SEL.tabs0)).toHaveCount(3);
+      await expect(page.locator(SEL.activeTab0)).toContainText('Zweites');
+    } finally {
+      await closeApp(app, userData, { force: true });
+      try {
+        fs.rmSync(dir, { recursive: true, force: true });
+      } catch {
+        /* Temp-Rest ist unkritisch */
+      }
+    }
+  });
+});

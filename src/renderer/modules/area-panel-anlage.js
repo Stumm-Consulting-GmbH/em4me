@@ -44,6 +44,112 @@ function meldeAnlageFehler(result, existiertKey, fehlerKey) {
   showStatusbarHint(fehlerKey, { duration: 2500, error: true });
 }
 
+// --- 4T-002067 (Epic 3E-000341): Erhalt einer offenen Eingabe ---------------
+// Der Neuaufbau des Panels (renderAreaPanel) leert Baum und Dateiliste, und
+// genau dort haengen die beiden Eingaben. Ausgeloest wird er von jeder
+// Aenderung am Bestand, auch vom Echo der eigenen Anlage; ohne Erhalt
+// verschwand die Eingabe samt getipptem Namen. Das Panel haelt deshalb vor dem
+// Leeren die offene Eingabe fest und setzt dasselbe Element danach wieder ein —
+// mit seinem Tasten-Hoerer, seinem Wert und, falls es ihn hatte, dem Fokus samt
+// Schreibmarke. Fehlt der Ort zum Wiedereinhaengen, wird die Eingabe verworfen,
+// und der Anwender erfaehrt es. Beide Schritte laufen im token-geschuetzten,
+// synchronen Abschnitt des Neuaufbaus; dazwischen liegt kein await.
+
+function merkeEingabe(huelle, input) {
+  const fokus = document.activeElement === input;
+  return {
+    huelle,
+    input,
+    fokus,
+    start: input.selectionStart,
+    ende: input.selectionEnd,
+    richtung: input.selectionDirection || 'none',
+  };
+}
+
+function setzeFokusZurueck(merker) {
+  if (!merker.fokus) return; // Fremden Fokus nicht an sich ziehen.
+  merker.input.focus();
+  try {
+    merker.input.setSelectionRange(merker.start, merker.ende, merker.richtung);
+  } catch {
+    // Schreibmarke nicht setzbar: Der Fokus genuegt.
+  }
+}
+
+function verwirfEingabe(merker) {
+  merker.huelle.remove();
+  // Waehrend einer laufenden Anlage meldet deren Ergebnis selbst; ein zweiter
+  // Hinweis «verworfen» widerspraeche dem angelegten Objekt.
+  if (merker.input.dataset.anlageLaeuft === '1') return;
+  showStatusbarHint('areaPanel.inputDiscarded', { duration: 4000, error: true });
+}
+
+/**
+ * Haelt eine offene Ordner-Eingabe im Baum vor dem Leeren fest.
+ *
+ * @param {HTMLElement} baum Baum-Container des Panels.
+ * @returns {object|null} Merker fuer setzeOrdnerEingabeWieder, oder null.
+ */
+export function merkeOrdnerEingabe(baum) {
+  const zeile = baum.querySelector('.area-new-folder-row');
+  const input = zeile && zeile.querySelector('.area-new-folder-input');
+  return input ? merkeEingabe(zeile, input) : null;
+}
+
+/**
+ * Setzt die festgehaltene Ordner-Eingabe hinter die Ordner-Zeile mit gleichem
+ * Pfad; fehlt sie (Ordner verschwunden, Eltern-Ordner zugeklappt, anderer
+ * Bereich), wird die Eingabe mit Hinweis verworfen.
+ *
+ * @param {HTMLElement} baum Neu befuellter Baum-Container.
+ * @param {object|null} merker Ergebnis von merkeOrdnerEingabe.
+ * @param {(a: string, b: string) => boolean} istGleicherPfad Pfad-Vergleich des Panels.
+ */
+export function setzeOrdnerEingabeWieder(baum, merker, istGleicherPfad) {
+  if (!merker) return;
+  const ziel = merker.huelle.dataset.ordner;
+  const anker = [...baum.querySelectorAll('.area-dir-row')].find((zeile) =>
+    istGleicherPfad(zeile.title, ziel),
+  );
+  if (!anker) {
+    verwirfEingabe(merker);
+    return;
+  }
+  anker.insertAdjacentElement('afterend', merker.huelle);
+  setzeFokusZurueck(merker);
+}
+
+/**
+ * Haelt eine offene Datei-Eingabe in der Dateiliste vor dem Leeren fest.
+ *
+ * @param {HTMLElement} liste Dateilisten-Container des Panels.
+ * @returns {object|null} Merker fuer setzeDateiEingabeWieder, oder null.
+ */
+export function merkeDateiEingabe(liste) {
+  const input = liste.querySelector('.area-new-file-input');
+  return input ? merkeEingabe(input, input) : null;
+}
+
+/**
+ * Setzt die festgehaltene Datei-Eingabe vorn in die Dateiliste, wenn die Liste
+ * noch ihren Ziel-Ordner zeigt und dieser noch besteht; sonst wird sie mit
+ * Hinweis verworfen.
+ *
+ * @param {HTMLElement} liste Neu befuellter Dateilisten-Container.
+ * @param {object|null} merker Ergebnis von merkeDateiEingabe.
+ * @param {(ordner: string) => boolean} ortBesteht Zeigt die Liste diesen Ordner, und besteht er?
+ */
+export function setzeDateiEingabeWieder(liste, merker, ortBesteht) {
+  if (!merker) return;
+  if (!ortBesteht(merker.input.dataset.ordner)) {
+    verwirfEingabe(merker);
+    return;
+  }
+  liste.prepend(merker.input);
+  setzeFokusZurueck(merker);
+}
+
 /**
  * Baut die beiden Anlage-Wege gegen eine Panel-Bruecke.
  *
@@ -68,6 +174,10 @@ export function erstelleAnlageWege(bruecke) {
     const els = getPaneEls(paneIdx);
     if (!els || !els.areaFiles || !state.areaPath) return;
     if (dirPath && !bruecke.istGleicherPfad(bruecke.ausgewaehlterOrdner(paneIdx), dirPath)) {
+      // 4T-002067: Eine noch offene Eingabe fuer den bisherigen Ordner ersetzt
+      // der Anwender hier selbst; sie geht ohne Hinweis «verworfen».
+      const alt = els.areaFiles.querySelector('.area-new-file-input');
+      if (alt) alt.remove();
       state.areaPanel.selectedDirByPane[paneIdx] = dirPath;
       await bruecke.render(paneIdx);
     }
@@ -80,6 +190,9 @@ export function erstelleAnlageWege(bruecke) {
     input.type = 'text';
     input.className = 'area-new-file-input';
     input.placeholder = t('areaPanel.newFilePlaceholder');
+    // 4T-002067: Ziel-Ordner am Feld, damit der Neuaufbau pruefen kann, ob die
+    // Dateiliste noch diesen Ordner zeigt (setzeDateiEingabeWieder).
+    input.dataset.ordner = bruecke.ausgewaehlterOrdner(paneIdx);
     input.addEventListener('keydown', async (e) => {
       if (e.key === 'Escape') {
         input.remove();
@@ -94,7 +207,9 @@ export function erstelleAnlageWege(bruecke) {
         return;
       }
       const dir = bruecke.ausgewaehlterOrdner(paneIdx);
+      input.dataset.anlageLaeuft = '1';
       const result = await api.areaCreateFile(dir, name);
+      delete input.dataset.anlageLaeuft;
       if (result && result.ok) {
         input.remove();
         bruecke.listingVerwerfen(dir);
@@ -137,6 +252,9 @@ export function erstelleAnlageWege(bruecke) {
     const zeile = document.createElement('div');
     zeile.className = 'area-new-folder-row';
     zeile.style.paddingLeft = `${(parseInt(anker.style.paddingLeft, 10) || 6) + 14}px`;
+    // 4T-002067: Pfad der Ordner-Zeile, hinter die der Neuaufbau die Eingabe
+    // wieder einhaengt (setzeOrdnerEingabeWieder).
+    zeile.dataset.ordner = dirPath;
     const input = document.createElement('input');
     input.type = 'text';
     input.className = 'area-new-folder-input';
@@ -152,7 +270,9 @@ export function erstelleAnlageWege(bruecke) {
         showStatusbarHint('areaPanel.newNameEmpty', { duration: 2500, error: true });
         return;
       }
+      input.dataset.anlageLaeuft = '1';
       const result = await api.areaCreateFolder(dirPath, name);
+      delete input.dataset.anlageLaeuft;
       if (result && result.ok) {
         zeile.remove();
         bruecke.listingVerwerfen(dirPath);

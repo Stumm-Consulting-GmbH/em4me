@@ -54,6 +54,7 @@ const {
   spoilerPlugin,
   criticMarkupPlugin,
   extendedTaskStatesPlugin,
+  kaestchenAlsZeichenPlugin,
   taskMarkersPlugin,
   stripPercentComments,
   stripHeadingMarkers,
@@ -418,6 +419,8 @@ function buildPipelines(enabled) {
     highlight: enabled('code-highlight') ? highlightFence : undefined,
   });
   mdPortable.use(taskLists, { enabled: false, label: true });
+  // 4T-001918: Kästchen als Zeichen statt Roh-HTML-Stück (plugins/tasks.js).
+  mdPortable.use(kaestchenAlsZeichenPlugin);
   mdPortable.use(markdownItAnchor, { slugify: githubLikeSlug, tabIndex: false, permalink: false });
   if (enabled('katex')) {
     mdPortable.use(markdownItKatex, { throwOnError: false, errorColor: '#cc0000' });
@@ -606,7 +609,7 @@ function buildPipelines(enabled) {
           `<div class="perspective-datatable" data-dt-index="${dtIndex}" ` +
           `data-dt-line-start="${lineStart}" data-dt-line-end="${lineEnd}" ` +
           `data-source-line="${lineStart}" data-dt-source="${escapeHtml(body)}">` +
-          `${renderPerspectiveDatatableViewer(body, { zellHtml })}</div>\n`
+          `${renderPerspectiveDatatableViewer(body, { zellHtml, alleZeilen: !!(env && env.datatableAlleZeilen) })}</div>\n`
         );
       }
       // 4T-002019 (Epic 3E-000192): perspective-chart rendert als Container mit
@@ -959,6 +962,9 @@ function renderMarkdown(text, lang, opts) {
     // ihren Katalog als opts.labelCatalog durch; ohne ihn bleibt es beim
     // Sprach-Code und damit beim bisherigen Weg.
     calendarLabels: portableLabels(lang, opts && opts.labelCatalog),
+    // 4T-002054: Druck und PDF zeichnen eine gekürzte Datentabelle mit allen
+    // Zeilen neu (print-preparation.js); die Anzeige kennt die Option nicht.
+    datatableAlleZeilen: !!(opts && opts.datatableAlleZeilen),
   });
   const showBlock =
     frontmatterDisplayEnabled && fm.raw != null && !(opts && opts.frontmatterBlock === false);
@@ -1005,11 +1011,19 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', la
   // Ersetzungen**: Jene setzen einen HTML-Block ein, der sich vom folgenden Absatz
   // von selbst trennt. Hier steht Markdown, und eine mit verschluckte Leerzeile
   // zöge den nächsten Absatz in die Verbindungs-Liste hinein.
-  const canvasFenceRegex = /^( {0,3}`{3,})perspective-canvas[^\n]*\n([\s\S]*?)\n\1[ \t]*$/gm;
+  //
+  // 4T-002037 (Epic 3E-000360): Die Fläche wird nach der Zaun-Regel der
+  // Anwendung erkannt wie die übrigen Ersetzungen (`ersetzeObersteEbene` in
+  // portable-fences.js), in jeder Form, die die Ansicht als Fläche zeigt; der
+  // eigene Ausdruck verlangte einen Backtick-Zaun, das Info-Wort ohne Leerraum
+  // davor und einen genau gleichen Schluss-Zaun.
   const flaeche = activeEffectiveDisabled.has(CANVAS_EXTENSION_ID)
     ? { text: restSource, getroffen: false }
-    : ersetzeObersteEbene(restSource, canvasFenceRegex, (content) =>
-        canvasPortabel(content, portableLabels(lang, labelCatalog)),
+    : ersetzeObersteEbene(
+        restSource,
+        'perspective-canvas',
+        (content) => canvasPortabel(content, portableLabels(lang, labelCatalog)),
+        { ausklang: 'zeile' },
       );
   const restMitFlaeche = flaeche.text;
   const canvasConverted = flaeche.getroffen;

@@ -259,12 +259,13 @@ Con **File → Altre funzioni file → Esporta → Markdown portabile…** salvi
 - **L'attributo `scope`** di accessibilità sulle celle di intestazione viene preservato.
 - **Annidamento**: fino a tre livelli vengono convertiti ricorsivamente.
 - **Formattazione inline nelle celle** (grassetto, corsivo, codice, link) viene convertita in HTML per apparire correttamente anche nei renderer di terze parti.
+- **Le caselle delle attività** compaiono nel file portabile come caratteri: ☐ aperta, ☑ completata, uno stato esteso nella sua forma tra parentesi quadre come `[/]` — nelle celle come negli elenchi di attività normali, affinché lo stato resti leggibile in ogni programma.
 
 #### Marcatore per la visualizzazione nel viewer
 
 Affinché il file esportato venga visualizzato **anche come tabella nel viewer EM4me** (invece di come testo sorgente con tag `<table>`), il convertitore inserisce il marcatore `<!-- perspective-portable -->` all'inizio del file. Il viewer riconosce questo marcatore e passa il file in una modalità di rendering compatibile con HTML.
 
-**Nota di sicurezza**: i file `.md` regolari continuano ad aprirsi senza rendering HTML — nessun HTML dal Markdown viene eseguito. Solo il marcatore sblocca il rendering HTML. Per un file `.md` di terze parti che porta questo marcatore (caso limite), devi fidarti della fonte, perché il contenuto HTML lì verrebbe eseguito.
+**Nota di sicurezza**: i file `.md` regolari continuano ad aprirsi senza rendering HTML — nessun HTML dal Markdown viene eseguito. Solo il marcatore sblocca il rendering HTML, e anche allora solo per la visualizzazione di tabelle e di markup di struttura come elenchi, titoli e blocchi di codice. Non viene eseguito nulla, nemmeno in un file `.md` di terze parti che porta questo marcatore: script, moduli, pagine incorporate e gestori di eventi vengono rimossi, e un'immagine al suo interno mostra solo un'immagine incorporata o un file immagine accanto al documento, mai un indirizzo in rete o su una cartella condivisa.
 
 ## Ordinamento, evidenziazione dello stato e allineamento predefinito
 

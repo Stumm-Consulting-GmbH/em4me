@@ -108,9 +108,11 @@ function segmentValidationError(segment) {
 
 // 4T-000585 (Epic 3E-000108): Anzeige-Titel aus einem Datei-Basename (mit oder
 // ohne Endung) — Markdown-Endung entfernen, Unterseiten-Trennzeichen in die
-// logische Slash-Form uebersetzen. Die Endungs-Liste entspricht dem
-// Umbenennen-Fluss (views.js) und den akzeptierten Markdown-Endungen.
-const MD_EXTENSION_RE = /\.(md|markdown|mdown|mkd)$/i;
+// logische Slash-Form uebersetzen. 4T-001899: Die Endungs-Liste ist die eine
+// der Markdown-Pipeline (MD_EXT_RE in markdown/link-scan.js), nicht eine
+// zweite gleichlautende; sonst liefen Index und Anzeige bei einer neuen Endung
+// auseinander.
+const { MD_EXT_RE: MD_EXTENSION_RE } = require('./markdown/link-scan.js');
 
 // 4T-001724 (Epic 3E-000304): Die reine Endungs-Erkennung als eigene benannte
 // Funktion. Anlass ist die Reiter-Beschriftung: Sie braucht genau diesen

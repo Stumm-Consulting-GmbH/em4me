@@ -239,9 +239,11 @@ function formatClockDate(date, options, lang = 'de') {
 const MIN_CALENDAR_YEAR = 100;
 const MAX_CALENDAR_YEAR = 9999;
 
-function clampCalendarYear(year) {
+// 4T-002073: Ein fehlendes oder unlesbares Jahr fällt auf die Bezugs-Zeit des
+// Aufrufers zurück; nur ohne Angabe ist das die Wanduhr.
+function clampCalendarYear(year, now = new Date()) {
   const y = Math.trunc(Number(year));
-  if (!Number.isFinite(y)) return new Date().getFullYear();
+  if (!Number.isFinite(y)) return now.getFullYear();
   return Math.min(MAX_CALENDAR_YEAR, Math.max(MIN_CALENDAR_YEAR, y));
 }
 
@@ -256,7 +258,7 @@ function normalizeMonthView(raw, now = new Date()) {
   const src = raw && typeof raw === 'object' ? raw : {};
   const monthIndex = Math.trunc(Number(src.monthIndex));
   return {
-    year: clampCalendarYear(src.year),
+    year: clampCalendarYear(src.year, now),
     monthIndex:
       Number.isFinite(monthIndex) && monthIndex >= 0 && monthIndex <= 11
         ? monthIndex

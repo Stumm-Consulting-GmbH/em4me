@@ -224,13 +224,25 @@ function liegtInVerknuepftemBereich(links, zielPfad) {
  * keinen Datei-Zugriff. Ein Fehler beim Lesen schliesst die Grenze (fail
  * closed).
  *
+ * 4T-002069: Die Ausnahme ist eine Wirkung der Erweiterung «Bereichs-
+ * Verknuepfungen» und gilt nur, solange sie eingeschaltet ist. Im Aus-Zustand
+ * gilt allein die eigene Wurzel — ohne Ausnahme, auf jedem Lese-Weg
+ * (Sitzungs-Wiederherstellung, Neuladen, Uebergabe aus einem anderen Fenster),
+ * weil sie alle durch diese eine Grenze laufen (Story 4S-000874, AK7). Gefragt
+ * wird erst, wenn die eigene Grenze «ausserhalb» gesagt hat; fehlt die Abfrage,
+ * bleibt die Ausnahme geschlossen (fail closed). Die eingetragenen
+ * Verknuepfungen bleiben unberuehrt; abgeschaltet wird die Wirkung, nicht die
+ * Angabe (Entscheidung E7).
+ *
  * @param {string} eigeneWurzel Wurzel der Bereichs-Applikation.
  * @param {string} zielPfad Zu lesender Pfad.
  * @param {Function} readAreaLinks Leser der Sektion areaLinks.
+ * @param {() => boolean} [verknuepfungenAktiv] Schalter-Zustand der Erweiterung.
  * @returns {Promise<boolean>} true, wenn gelesen werden darf.
  */
-async function darfBereichLesen(eigeneWurzel, zielPfad, readAreaLinks) {
+async function darfBereichLesen(eigeneWurzel, zielPfad, readAreaLinks, verknuepfungenAktiv) {
   if (isInsideArea(eigeneWurzel, zielPfad)) return true;
+  if (typeof verknuepfungenAktiv !== 'function' || !verknuepfungenAktiv()) return false;
   try {
     const links = await readAreaLinks(eigeneWurzel);
     return liegtInVerknuepftemBereich(links, zielPfad);

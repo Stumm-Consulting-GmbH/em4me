@@ -49,6 +49,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs');
+const { pathCompareKey } = require('../shared/platform.js');
 
 // P-03 (4T-000176): nur echte Bild-Formate mit bekanntem MIME-Typ einbetten.
 const IMAGE_EXT_WHITELIST = new Set(['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp']);
@@ -61,16 +62,20 @@ const MAX_IMAGE_BYTES = 20 * 1024 * 1024; // 20 MB
 const SEITEN_ORDNER = path.join(__dirname, '..', 'renderer');
 const ANWENDUNGS_BILDER = path.join(__dirname, '..', 'assets');
 
-// Liegt ziel innerhalb von wurzel? Case-insensitiv wie das Windows-Dateisystem,
-// Semantik identisch zu area-path.isInsideArea (die Wurzel selbst zählt als
-// innerhalb, Präfix-Nachbarn matchen nicht). Hier nachgebildet statt importiert,
-// damit das Modul ohne weitere Abhängigkeit prüfbar bleibt.
+// Liegt ziel innerhalb von wurzel? Die Wurzel selbst zählt als innerhalb,
+// Präfix-Nachbarn matchen nicht. Groß- und Kleinschreibung zählen nach der
+// Regel der Plattform, über denselben Vergleichs-Schlüssel wie die zentrale
+// Bereichs-Prüfung area-path.isInsideArea: unter Windows und macOS ohne
+// Rücksicht auf die Schreibweise, unter Linux mit ihr — dort ist `…/notizen`
+// ein anderer Ordner als `…/Notizen` (4T-002175; bis dahin schrieb diese
+// Prüfung auf jeder Plattform klein und ließ unter Linux Bilder aus einem
+// solchen Nachbar-Ordner durch). Der Schlüssel kommt aus dem
+// abhängigkeitsfreien src/shared/platform.js; die Prüfung selbst bleibt hier,
+// weil area-path.js weitere Module nachzieht und die Wurzel des Dateisystems
+// (`/`) anders behandelt: Dort liegt nach isInsideArea nichts innerhalb.
 function liegtInWurzel(wurzel, ziel) {
-  const w = path
-    .resolve(wurzel)
-    .replace(/[\\/]+$/, '')
-    .toLowerCase();
-  const z = path.resolve(ziel).toLowerCase();
+  const w = pathCompareKey(path.resolve(wurzel).replace(/[\\/]+$/, ''));
+  const z = pathCompareKey(path.resolve(ziel));
   return z === w || z.startsWith(w + path.sep);
 }
 

@@ -34,6 +34,8 @@ Ein Tab, der **aus einem anderen heraus** entsteht, öffnet sich unmittelbar rec
 
 Alle Öffnungen **ohne** Herkunft hängen wie gewohnt ans Ende der Tab-Leiste: Datei-Dialog, Kommando-Palette, Lesezeichen, Panels, Datei-Liste des Bereichs sowie das Handbuch und die Einstellungen.
 
+Wird das aktive Dokument geschlossen, ist danach das Dokument derselben Spalte aktiv, das zuvor aktiv war; ist es inzwischen ebenfalls geschlossen, das davor aktive, und erst wenn keines davon mehr geöffnet ist, das benachbarte in der Tab-Leiste. Das gilt ebenso für das Handbuch und die Einstellungen: Nach „OK“ oder „Abbrechen“ ist wieder das Dokument aktiv, das vor ihnen aktiv war.
+
 ## Tab-Gruppen
 
 Tabs lassen sich zu benannten, farbigen Gruppen zusammenfassen: Die Mitglieder stehen zusammenhängend hinter einem farbigen **Gruppen-Kopf** im Tab-Streifen, ihre Reiter tragen eine Unterstreichung in der Gruppen-Farbe.
@@ -121,7 +123,7 @@ Das Panel „Bereich" zeigt den Bereich als Ordnerstruktur in der Sidebar (links
 
 ### Datei-Verwaltung im Bereichs-Panel
 
-Der Rechtsklick verwaltet den Bestand, ohne dass Sie die Anwendung verlassen müssen. An einer **Ordner-Zeile** stehen zwei Einträge: **Neuer Unterordner…** und **Neue Markdown-Datei…**. Beide fragen den Namen an Ort und Stelle ab — der Ordner-Name in einer Zeile unter dem angeklickten Ordner, der Dateiname am Kopf der Dateiliste — und legen im **angeklickten** Ordner an, auch wenn gerade ein anderer ausgewählt ist. Einem Dateinamen ohne Endung wird die Markdown-Endung ergänzt; die neue Datei wird geöffnet und durchläuft dabei die Ordner-Regel für Vorlagen wie jede andere Anlage. Ein bereits vergebener, ein für das Dateisystem unzulässiger und ein leerer Name werden gemeldet, bevor etwas angelegt wird; Escape bricht ab und hinterlässt nichts.
+Der Rechtsklick verwaltet den Bestand, ohne dass Sie die Anwendung verlassen müssen. An einer **Ordner-Zeile** stehen zwei Einträge: **Neuer Unterordner…** und **Neue Markdown-Datei…**. Beide fragen den Namen an Ort und Stelle ab — der Ordner-Name in einer Zeile unter dem angeklickten Ordner, der Dateiname am Kopf der Dateiliste — und legen im **angeklickten** Ordner an, auch wenn gerade ein anderer ausgewählt ist. Einem Dateinamen ohne Endung wird die Markdown-Endung ergänzt; die neue Datei wird geöffnet und durchläuft dabei die Ordner-Regel für Vorlagen wie jede andere Anlage. Ein bereits vergebener, ein für das Dateisystem unzulässiger und ein leerer Name werden gemeldet, bevor etwas angelegt wird; Escape bricht ab und hinterlässt nichts. Ändert sich der Bestand, während die Eingabe offen ist, bleibt sie mit dem getippten Namen stehen, und Sie tippen an derselben Stelle weiter; wird ihr Zielordner nicht mehr angezeigt, etwa weil er inzwischen gelöscht ist, wird sie mit einem Hinweis verworfen.
 
 An einer **Datei-Zeile** stehen **Kopieren**, **Umbenennen…** und **Löschen…** am Ende des Menüs, abgesetzt von den Einträgen darüber. Sie sind nach zunehmendem Eingriff geordnet: Kopieren lässt die Vorlage unberührt, Umbenennen ändert ihren Namen, Löschen nimmt sie weg.
 
@@ -135,7 +137,7 @@ An einer **Datei-Zeile** stehen **Kopieren**, **Umbenennen…** und **Löschen�
 
 **Die Änderungsbelege einer Datenbank-Tabelle gehen mit in den Papierkorb**, und die Rückfrage sagt das ausdrücklich. Aus dem Papierkorb holen Sie beide gemeinsam zurück. Lassen sich die Belege ausnahmsweise nicht mitnehmen, liegt die Tabellen-Datei im Papierkorb, während die Beleg-Datei im Ordner zurückbleibt; die Anwendung nennt dann deren Namen.
 
-Ist die Datei geöffnet, wird ihr Reiter geschlossen; ungesicherte Änderungen laufen vorher durch die gewohnte Speichern-Abfrage. **Ein Abbruch dieser Abfrage bricht auch das Löschen ab** — es ist dann nichts geschehen.
+Ist die Datei geöffnet, wird sie geschlossen; ungesicherte Änderungen laufen vorher durch die gewohnte Speichern-Abfrage. **Ein Abbruch dieser Abfrage bricht auch das Löschen ab** — es ist dann nichts geschehen.
 
 **Verweise auf eine gelöschte Datei werden nicht angepasst.** Anders als beim Umbenennen gibt es kein Ersatz-Ziel; die Verweise bleiben stehen und werden zu gebrochenen Verweisen. Das ist so gewollt und keine Fehlfunktion: Der gebrochene Verweis zeigt, dass dort einmal etwas stand, und lässt sich gezielt auflösen.
 
@@ -143,7 +145,7 @@ Umbenennen, Löschen und Kopieren von **Ordnern** sowie das Verschieben von Date
 
 ### Bereichs-Statistik
 
-„Ansicht → Bereichs-Statistik" öffnet eine Kennzahlen-Seite des geöffneten Bereichs als eigenen Reiter; derselbe Einstieg liegt im Kontextmenü des Bereichs-Panels. Die Seite ist nicht änderbar und zeigt sechs Abschnitte: **Dateien und Speicher** (Markdown- und Nicht-Markdown-Dateien nach Bildern, PDF und Sonstigem, Ordner-Anzahl, belegter Speicher mit seinen Anteilen), **Eigenschaften** und **Tags** (je Eintrag die Zahl der Dateien, sortierbar nach Name oder Anzahl), **Begleitdateien** (die `.mdd` je Dokument, die Bereichs-Dateien `.mdda` und die Änderungsbelege `.mddl` der Datenbank-Tabellen), **Inhalte** (Aufgaben nach Zustand, Wiki- und Markdown-Verweise, Aliase, Dateien ohne eingehenden Verweis) und **Auffälligkeiten** (die größten, die zuletzt geänderten, die meistverlinkten und die Dateien ohne eingehenden Verweis). Ein Klick auf einen Dateinamen dieser vier Listen öffnet die Datei.
+„Ansicht → Bereichs-Statistik" öffnet eine Kennzahlen-Seite des geöffneten Bereichs als eigene Ansicht; derselbe Einstieg liegt im Kontextmenü des Bereichs-Panels. Die Seite ist nicht änderbar und zeigt sechs Abschnitte: **Dateien und Speicher** (Markdown- und Nicht-Markdown-Dateien nach Bildern, PDF und Sonstigem, Ordner-Anzahl, belegter Speicher mit seinen Anteilen), **Eigenschaften** und **Tags** (je Eintrag die Zahl der Dateien, sortierbar nach Name oder Anzahl), **Begleitdateien** (die `.mdd` je Dokument, die Bereichs-Dateien `.mdda` und die Änderungsbelege `.mddl` der Datenbank-Tabellen), **Inhalte** (Aufgaben nach Zustand, Wiki- und Markdown-Verweise, Aliase, Dateien ohne eingehenden Verweis) und **Auffälligkeiten** (die größten, die zuletzt geänderten, die meistverlinkten und die Dateien ohne eingehenden Verweis). Ein Klick auf einen Dateinamen dieser vier Listen öffnet die Datei.
 
 Gezählt werden **Dateien, nicht Fundstellen**: Steht beim Tag `#projekt` die Zahl 180, tragen 180 Dateien diesen Tag; wie oft er in ihrem Text vorkommt, bleibt offen. Lange Listen zeigen zunächst 25 Zeilen und lassen sich vollständig aufklappen.
 

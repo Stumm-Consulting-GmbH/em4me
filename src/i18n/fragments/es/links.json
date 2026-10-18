@@ -79,7 +79,8 @@
   "settings.renameLinks.group": "Enlaces al cambiar el nombre",
   "settings.renameLinks.updateLinks": "Actualizar los enlaces en otros archivos",
   "settings.renameLinks.preview": "Mostrar una vista previa antes de actualizar",
-  "embed.notFound": "Archivo embebido no encontrado: {path}",
+  "embed.notFound": "No se puede incrustar: «{path}» no se encuentra",
+  "embed.linkedArea": "No se puede incrustar: «{path}» está en un área vinculada, desde la que no se puede incrustar nada",
   "embed.depthExceeded": "Profundidad de incrustación excedida",
   "outgoing.notOpenable": "No se puede abrir el destino enlazado"
 }

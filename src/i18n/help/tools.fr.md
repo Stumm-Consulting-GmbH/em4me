@@ -83,7 +83,7 @@ La portée suit l’onglet dans lequel la recherche est ouverte ; les portées s
 
 La portée en vigueur s’affiche à gauche dans la barre de recherche. Dans la vue carte mentale, la recherche parcourt la carte elle-même, y compris dans une zone ouverte ; voir [Vue carte mentale](mindmap.md).
 
-Au-delà du fichier isolé, les occurrences apparaissent dans le panneau **Résultats de recherche**, groupées par fichier, page ou section, avec un décompte par groupe. Un clic ouvre la cible et met l’endroit en évidence ; `F3` franchit la limite du groupe.
+Au-delà du fichier isolé, les occurrences apparaissent dans le panneau **Résultats de recherche**, groupées par fichier, page ou section, avec un décompte par groupe. Un clic ouvre la cible et met l’endroit en évidence ; `F3` franchit la limite du groupe. Dans la liste, les touches fléchées déplacent la sélection, et `Entrée` saute à l’occurrence sélectionnée. La sélection est conservée lorsque la liste se reconstruit pour une recherche inchangée ; seule une nouvelle recherche repart de la première occurrence.
 
 ### Dans une zone
 
@@ -140,7 +140,7 @@ Les diapositives d'une présentation s'exportent par une commande propre, dans u
 
 ## Palette de commandes
 
-« Affichage → Palette de commandes » (défaut `Ctrl+K`) ouvre une fenêtre contextuelle filtrable de toutes les commandes de l'application. La saisie filtre la liste par sous-chaîne sur les noms de commande ; les flèches déplacent la sélection, `Entrée` ou un clic exécute la commande et ferme la fenêtre, `Échap` annule. À droite de chaque commande figure le raccourci clavier actuellement actif, y compris vos propres réaffectations de la section de paramètres « Raccourcis clavier ». Les commandes non disponibles dans le contexte actuel (par exemple les commandes d'espace sans espace ouvert) apparaissent estompées et ne peuvent pas être exécutées.
+« Affichage → Palette de commandes » (défaut `Ctrl+K`) ouvre une fenêtre contextuelle filtrable de toutes les commandes de l'application. La saisie filtre la liste par sous-chaîne sur les noms de commande ; les flèches déplacent la sélection, `Entrée` ou un clic exécute la commande et ferme la fenêtre, `Échap` annule. À droite de chaque commande figure le raccourci clavier actuellement actif, y compris vos propres réaffectations de la section de paramètres « Raccourcis clavier ». Les commandes non disponibles dans le contexte actuel (par exemple les commandes de zone sans zone ouverte) apparaissent estompées et ne peuvent pas être exécutées.
 
 La palette est l'accès clavier éphémère au registre des commandes ; pour des accès personnalisés durables — boutons de barre d'état, entrées de menu contextuel et macros — voir la page [Placement des commandes](command-placement.md).
 

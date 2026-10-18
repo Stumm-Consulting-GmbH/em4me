@@ -34,6 +34,8 @@ Se un'azione apre più file in una volta, essi si dispongono dietro l'origine ne
 
 Tutte le aperture **senza** origine si collocano come sempre alla fine della barra: finestra di dialogo dei file, tavolozza dei comandi, segnalibri, pannelli, elenco dei file dell'area, oltre al manuale e alle impostazioni.
 
+Quando si chiude il documento attivo, torna attivo il documento della stessa colonna che era attivo prima di esso; se nel frattempo è stato chiuso anche quello, quello attivo ancora prima, e solo quando nessuno di essi è più aperto, quello adiacente nella barra. Lo stesso vale per il manuale e le impostazioni: dopo «OK» o «Annulla» torna attivo il documento che era attivo prima di loro.
+
 ## Gruppi di schede
 
 Le schede possono essere riunite in gruppi denominati e colorati: i membri stanno insieme dietro un'**intestazione di gruppo** colorata nella barra delle schede, e le loro schede portano una sottolineatura nel colore del gruppo.
@@ -121,7 +123,7 @@ Il pannello «Area» mostra l'area come struttura di cartelle nella barra latera
 
 ### Gestione dei file nel pannello dell'area
 
-Il clic destro gestisce l'insieme dei file senza uscire dall'applicazione. Una **riga di cartella** offre due voci: **Nuova sottocartella…** e **Nuovo file Markdown…**. Entrambe chiedono il nome sul posto — il nome della cartella in una riga sotto la cartella su cui si è fatto clic, quello del file in cima all'elenco dei file — e creano l'elemento nella cartella **su cui si è fatto clic**, anche se al momento ne è selezionata un'altra. A un nome di file senza estensione viene aggiunta l'estensione Markdown; il nuovo file viene aperto e passa attraverso la regola di cartella dei modelli come ogni altra creazione. Un nome già assegnato, un nome non consentito dal file system e un nome vuoto vengono segnalati prima che venga creato qualcosa; Esc annulla e non lascia nulla.
+Il clic destro gestisce l'insieme dei file senza uscire dall'applicazione. Una **riga di cartella** offre due voci: **Nuova sottocartella…** e **Nuovo file Markdown…**. Entrambe chiedono il nome sul posto — il nome della cartella in una riga sotto la cartella su cui si è fatto clic, quello del file in cima all'elenco dei file — e creano l'elemento nella cartella **su cui si è fatto clic**, anche se al momento ne è selezionata un'altra. A un nome di file senza estensione viene aggiunta l'estensione Markdown; il nuovo file viene aperto e passa attraverso la regola di cartella dei modelli come ogni altra creazione. Un nome già assegnato, un nome non consentito dal file system e un nome vuoto vengono segnalati prima che venga creato qualcosa; Esc annulla e non lascia nulla. Se l'insieme dei file cambia mentre l'inserimento è aperto, questo resta al suo posto con il nome digitato e potete continuare a scrivere nello stesso punto; se la sua cartella di destinazione non è più visualizzata, ad esempio perché nel frattempo è stata eliminata, l'inserimento viene annullato con un avviso.
 
 Una **riga di file** offre **Copia**, **Rinomina…** ed **Elimina…** in fondo al menu, separate dalle voci soprastanti. Sono ordinate per intervento crescente: copiare lascia intatto il modello, rinominare ne cambia il nome, eliminare lo porta via.
 

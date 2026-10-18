@@ -69,6 +69,11 @@ export function createMindmapView(container, options = {}) {
 
   // Sitzungs-Zustand.
   const eingeklappt = new Set(); // Schlüssel der eingeklappten Knoten
+  // 4T-001936: Merker der angewendeten Anfangs-Tiefe, { dokument, tiefe }.
+  // Ein leeres Klapp-Set steht sonst zugleich für «noch nie angewendet» und für
+  // «der Anwender hat alles geöffnet»; die Anfangs-Tiefe ist ein Start-Verhalten
+  // und greift nur für ein anderes Dokument oder einen geänderten Wert erneut.
+  let angewendet = null;
   let baum = null;
   let darstellung = {};
   let gekappt = false;
@@ -543,6 +548,28 @@ export function createMindmapView(container, options = {}) {
     anwendenTransform();
   }
 
+  // 4T-001936: Anfangs ausgeklappte Tiefe (Story 4S-000805). Sie greift beim
+  // ersten Baum, für ein anderes Dokument (`dokument` ist eine Kennung des
+  // Aufrufers, verglichen auf Identität) und bei einem geänderten Wert; dann
+  // wird das Klapp-Set auf die neue Tiefe gesetzt. Sonst bleibt es unberührt,
+  // auch wenn es leer ist. Der Wechsel auf «alles ausgeklappt» (null) öffnet
+  // alles; ein Dokument-Wechsel ohne Anfangs-Tiefe lässt das Set wie bisher.
+  function wendeAnfangsTiefeAn(tiefe, dokument) {
+    const vorher = angewendet;
+    angewendet = { dokument, tiefe };
+    if (vorher && vorher.dokument === dokument && vorher.tiefe === tiefe) return;
+    if (tiefe == null) {
+      if (vorher && vorher.tiefe != null && vorher.dokument === dokument) eingeklappt.clear();
+      return;
+    }
+    eingeklappt.clear();
+    const lauf = (k, ebene) => {
+      if (ebene >= tiefe && (k.kinder || []).length > 0) eingeklappt.add(schluessel(k));
+      (k.kinder || []).forEach((kind) => lauf(kind, ebene + 1));
+    };
+    lauf(baum, 0);
+  }
+
   return {
     /**
      * Übernimmt einen Baum des Kerns und zeichnet ihn.
@@ -553,16 +580,7 @@ export function createMindmapView(container, options = {}) {
       baum = neuerBaum || null;
       darstellung = opts.darstellung || {};
       gekappt = Boolean(opts.gekappt);
-      if (baum && opts.anfangsTiefe != null && eingeklappt.size === 0) {
-        // Anfangs ausgeklappte Tiefe: Alles darunter startet eingeklappt.
-        const lauf = (k, tiefe) => {
-          if (tiefe >= opts.anfangsTiefe && (k.kinder || []).length > 0) {
-            eingeklappt.add(schluessel(k));
-          }
-          (k.kinder || []).forEach((kind) => lauf(kind, tiefe + 1));
-        };
-        lauf(baum, 0);
-      }
+      if (baum) wendeAnfangsTiefeAn(opts.anfangsTiefe ?? null, opts.dokument);
       render();
     },
     fit,

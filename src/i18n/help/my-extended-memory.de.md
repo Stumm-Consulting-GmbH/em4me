@@ -2,7 +2,7 @@
 
 Wer länger mit dieser Anwendung arbeitet, sammelt Gefäße an: [Bereiche](apps-windows.md) für Projekte, [Bücher](books.md) für längere Texte, Bücherregale für ganze Sammlungen, dazu die eingerichteten [Arbeitsbereiche](apps-windows.md). Sie liegen verstreut auf der Platte, auf Sticks und auf Netzlaufwerken, und keine Ansicht der Anwendung zeigt sie gemeinsam — jede Ansicht gilt dem, was gerade geöffnet ist.
 
-**My Extended Memory ist diese gemeinsame Sicht.** Die Seite öffnet sich über „Ansicht → My Extended Memory" oder über die Kommando-Palette als eigener Reiter; sie ist nicht änderbar. In vier Abschnitten — Arbeitsbereiche, Bereiche, Bücher, Bücherregale — steht je Gefäß eine Zeile mit seinem Namen, seinem Ort und ein paar Kennzahlen.
+**My Extended Memory ist diese gemeinsame Sicht.** Die Seite öffnet sich über „Ansicht → My Extended Memory" oder über die Kommando-Palette als eigene Ansicht; sie ist nicht änderbar. In vier Abschnitten — Arbeitsbereiche, Bereiche, Bücher, Bücherregale — steht je Gefäß eine Zeile mit seinem Namen, seinem Ort und ein paar Kennzahlen.
 
 ## Was die Seite zeigt — und was sie nicht tut
 
@@ -36,7 +36,7 @@ Je Zeile stehen ein Stand-Zeitstempel und eine kurze Auswahl: beim Bereich die Z
 
 Der **Arbeitsbereich** hat keine Kennzahlen und keinen Erhebungs-Knopf: Er ist kein Ordner, sondern eine Zusammenstellung. Was er zusammenstellt, steht in seiner Zeile und in der Detail-Sicht: die Gefäße, an die er gebunden ist, die Zahl seiner Fenster und die Zahl der darin **geöffneten Dokumente**.
 
-**Gezählt werden geöffnete Dokumente, nicht Dateien in einem Ordner.** Die Zahl sagt, wie viele Markdown-Dokumente der Arbeitsbereich in seinen Fenstern aufgeschlagen hat; gezählt wird je Fenster. Unbenannte Reiter, Handbuch- und System-Seiten und andere Dateiarten zählen nicht mit. Beide Zahlen stammen aus der Ablage des Arbeitsbereichs und stehen deshalb für einen geschlossenen genauso da wie für einen geöffneten; eine Null ist dabei eine gezählte Null wie jede andere.
+**Gezählt werden geöffnete Dokumente, nicht Dateien in einem Ordner.** Die Zahl sagt, wie viele Markdown-Dokumente der Arbeitsbereich in seinen Fenstern aufgeschlagen hat; gezählt wird je Fenster. Unbenannte Dokumente, Handbuch- und System-Seiten und andere Dateiarten zählen nicht mit. Beide Zahlen stammen aus der Ablage des Arbeitsbereichs und stehen deshalb für einen geschlossenen genauso da wie für einen geöffneten; eine Null ist dabei eine gezählte Null wie jede andere.
 
 ### Ein Gefäß, das gerade nicht erreichbar ist
 
@@ -79,6 +79,6 @@ Der Zugang steht hier, weil beide dieselbe Frage bedienen: Was habe ich mir eing
 
 ## Abschalten
 
-Die Funktion ist als [Erweiterung](extensions.md) „My Extended Memory" abschaltbar. Im Aus-Zustand entfallen der Menü-Eintrag und das Kommando in der Palette; ein bereits geöffneter Reiter bleibt stehen, bis Sie ihn schließen.
+Die Funktion ist als [Erweiterung](extensions.md) „My Extended Memory" abschaltbar. Im Aus-Zustand entfallen der Menü-Eintrag und das Kommando in der Palette; eine bereits geöffnete Ansicht bleibt stehen, bis Sie sie schließen.
 
 **Die eingetragene Liste bleibt erhalten.** Das Abschalten nimmt den Zugang, nicht die Daten: Nach dem Einschalten steht die Liste unverändert wieder da, mit allen Einträgen und ihren zuletzt erhobenen Zahlen.

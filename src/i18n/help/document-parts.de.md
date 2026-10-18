@@ -1,6 +1,6 @@
 # Teilung großer Dokumente
 
-Sehr große Dokumente teilt die Anwendung beim Speichern in mehrere Dateien auf und setzt sie beim Öffnen wieder zu einem Dokument zusammen. Im Reiter arbeiten Sie wie immer: Sie sehen einen durchgehenden Text, Rückgängig läuft über die Grenzen hinweg, und die Suche findet das Dokument als Ganzes.
+Sehr große Dokumente teilt die Anwendung beim Speichern in mehrere Dateien auf und setzt sie beim Öffnen wieder zu einem Dokument zusammen. Im geöffneten Dokument arbeiten Sie wie immer: Sie sehen einen durchgehenden Text, Rückgängig läuft über die Grenzen hinweg, und die Suche findet das Dokument als Ganzes.
 
 Der Grund ist die Bedienbarkeit. Ein Dokument, das über eine bestimmte Größe hinauswächst, macht den Wechsel in den Änderungsmodus zäh. Die Teilung hält die einzelne Datei handlich, ohne Ihnen eine Größengrenze aufzuerlegen.
 
@@ -8,9 +8,9 @@ Der Grund ist die Bedienbarkeit. Ein Dokument, das über eine bestimmte Größe 
 
 Geteilt wird beim **Speichern**, sobald das Dokument etwa ein Megabyte überschreitet. Das Anzeigen und Lesen ist nie betroffen.
 
-Das erste Teilen eines Dokuments wird angekündigt. Sie können es ablehnen: Dann bleibt die Datei ungeteilt, und der Reiter wird bis zum nächsten Öffnen auf „nur lesen" gestellt. Sind die Teile einmal angelegt, kommen weitere still dazu.
+Das erste Teilen eines Dokuments wird angekündigt. Sie können es ablehnen: Dann bleibt die Datei ungeteilt, und das geöffnete Dokument wird bis zum nächsten Öffnen auf „nur lesen" gestellt. Sind die Teile einmal angelegt, kommen weitere still dazu.
 
-Läuft das automatische Speichern im Hintergrund, wird **nicht** ungefragt geteilt. Der Reiter bleibt so lange geändert stehen, bis Sie einmal von Hand speichern und die Frage beantworten.
+Läuft das automatische Speichern im Hintergrund, wird **nicht** ungefragt geteilt. Das Dokument bleibt so lange geändert stehen, bis Sie einmal von Hand speichern und die Frage beantworten.
 
 **Für Datenbank-Tabellen gilt all das etwas anders.** Eine Tabellen-Datei der [Datenbank](database.md) ist technische Ablage und nicht Ihr Text: Sie wird schon ab rund 0,7 MB geteilt, der Schnitt liegt zwischen zwei Datensätzen statt vor einer Überschrift, und angekündigt wird nichts — die Datei war nie etwas, in dem Sie von Hand arbeiten. Alles Weitere auf dieser Seite gilt für sie unverändert, mit einer Ausnahme: Die Suche über den Bereich nimmt eine Tabellen-Datei ohne ihre Datensätze auf, gleich in welchem Teil sie stehen.
 

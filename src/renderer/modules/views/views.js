@@ -70,12 +70,19 @@ import {
   renderPresentation,
 } from '../presentation/presentation-pane.js';
 import { renderPaneContent } from './pane-render.js';
-import { stampTabTimestamps } from './save-export.js';
+// 4T-001923: Reihung je Dokument-Pfad und Wiederfinden des Reiters danach.
+import {
+  findeReiterOrt,
+  reiheSpeichern,
+  speichernVonHandOffen,
+  stampTabTimestamps,
+} from './save-export.js';
 import { renderTabbar } from './tabbar.js';
 import { applyContentViewClass, isViewMode, zielAnsichtDesAenderungsmodus } from './view-modes.js';
 // 4T-001712 (Epic 3E-000300): Der Ansichts-Wechsel entfernt das Tabellen-Widget
 // samt offenem Eingabefeld; die Eingabe wird vorher uebernommen.
 import { uebernimmOffeneZellEingabe } from '../live/live-table-zelle.js';
+import { uebernimmOffeneDatentabellenEingabe } from '../query/perspective-datatable-editor.js';
 
 // 4T-000179: Diese beiden Laufzeit-Flags werden ausschliesslich hier
 // geschrieben und bleiben deshalb modul-privat; ueber die Modul-Grenze fuehrt
@@ -327,6 +334,76 @@ export function scheduleAutoSave() {
   }, 2000);
 }
 
+// 4T-001923: Kann dieser Reiter im Hintergrund gespeichert werden?
+// 4T-000945: Ein erkannter Konflikt setzt ihn aus, bis der Anwender entscheidet
+// (Speichern von Hand oder Neuladen); sonst liefe der Hinweis alle zwei
+// Sekunden erneut auf. 4T-001291: Dasselbe gilt fuer ein Dokument, das geteilt
+// werden muesste; die Frage danach stellt allein das Speichern von Hand.
+function istImHintergrundSpeicherbar(tab) {
+  return !!(tab.dirty && tab.path && !tab.saveConflict && !tab.splitPending && !tab.readOnly);
+}
+
+// 4T-001923: Ein Reiter im Hintergrund gespeichert, in der Reihe seines Pfads
+// (save-export.js). Nach dem Warten wird neu geprueft, weil inzwischen ein
+// anderes Speichern gelaufen sein kann; der Reiter wird ueber sich selbst neu
+// gesucht. Liefert 'gespeichert', 'konflikt', 'split' oder 'uebersprungen' und
+// wirft bei einem Schreibfehler.
+async function speichereImHintergrund(tab, pfad) {
+  const ort = findeReiterOrt(tab);
+  if (!ort || tab.path !== pfad || !istImHintergrundSpeicherbar(tab)) return 'uebersprungen';
+  // 4T-000604 (Epic 3E-000113): Zeitstempel-Felder auch im Autosave-Pfad.
+  await stampTabTimestamps(ort.paneIdx, ort.tabIdx, tab);
+  // W-02 (4T-000309): {ok,error}-Vertrag — Fehler ueber den catch des Aufrufers.
+  // 4T-000945 (Story 4S-000786): auch im Hintergrund wird der Stand geprueft.
+  // Eine im Nachlade-Dialog getroffene Entscheidung gilt hier ebenso:
+  // Sie ist gefallen, das Hintergrund-Speichern setzt sie um und sichert
+  // die ueberschriebene Fassung, statt den Reiter auszusetzen.
+  const vorentschieden = tab.foreignOverride != null;
+  // 4T-001923: der geschriebene Stand, wie in saveTab.
+  const geschrieben = tab.content;
+  const res = await api.saveFile(tab.path, geschrieben, {
+    expected: vorentschieden ? tab.foreignOverride : tab.originalContent,
+    force: vorentschieden,
+    // 4T-001291 (Epic 3E-000224): Das Hintergrund-Speichern gibt sich zu
+    // erkennen, damit der Haupt-Prozess die Teilungs-Ankuendigung
+    // unterlaesst statt sie ungefragt aufspringen zu lassen.
+    hintergrund: true,
+  });
+  // Das Dokument muesste zum ersten Mal geteilt werden. Der Reiter setzt
+  // aus, bis von Hand gespeichert wird — wie beim Konflikt, und aus
+  // demselben Grund: Der Schaden ist verhindert, sobald nicht geschrieben
+  // wird, und die Entscheidung gehoert dem Anwender.
+  if (res && res.reason === 'splitPending') {
+    tab.splitPending = true;
+    return 'split';
+  }
+  // 4T-001292: Einem geteilten Dokument fehlt ein Teil. Der Reiter geht in
+  // den Nur-Lese-Zustand und wird vom Hintergrund-Speichern nicht mehr
+  // angefasst; die Meldung kommt beim naechsten Speichern von Hand.
+  if (res && res.reason === 'partsMissing') {
+    tab.readOnly = true;
+    tab.fehlendeTeile = res.fehlend || null;
+    return 'uebersprungen';
+  }
+  if (res && res.reason === 'conflict') {
+    // Bewusst ohne Dialog: Ein Fenster, das ungefragt aufspringt,
+    // waehrend man in einer anderen Datei tippt, waere ein Uebergriff.
+    // Der Schaden ist bereits verhindert, sobald nicht geschrieben wird;
+    // der Reiter bleibt geaendert und nichts geht verloren.
+    tab.saveConflict = true;
+    return 'konflikt';
+  }
+  if (!res || !res.ok) throw new Error((res && res.error) || 'save failed');
+  // 4T-001923 (AK9): Erwartung auf den geschriebenen Stand; die Aenderungs-
+  // Markierung faellt nur, wenn der Puffer ihm gleicht.
+  tab.originalContent = geschrieben;
+  tab.dirty = tab.content !== geschrieben;
+  tab.foreignOverride = null;
+  const jetzt = findeReiterOrt(tab);
+  if (jetzt) renderTabbar(jetzt.paneIdx);
+  return 'gespeichert';
+}
+
 export async function performAutoSave() {
   if (!state.autoSave) return;
   if (dialogDepth > 0) return;
@@ -337,64 +414,19 @@ export async function performAutoSave() {
   for (let p = 0; p < state.panes.length; p++) {
     for (let i = 0; i < state.panes[p].tabs.length; i++) {
       const tab = state.panes[p].tabs[i];
-      // 4T-000945: Ein erkannter Konflikt setzt diesen Reiter aus, bis der
-      // Anwender entscheidet (Speichern von Hand oder Neuladen). Sonst
-      // liefe der Hinweis alle zwei Sekunden erneut auf.
-      // 4T-001291: Dasselbe gilt fuer ein Dokument, das geteilt werden muesste;
-      // die Frage danach stellt allein das Speichern von Hand.
-      if (!tab.dirty || !tab.path || tab.saveConflict || tab.splitPending) continue;
-      if (tab.readOnly) continue;
+      if (!istImHintergrundSpeicherbar(tab)) continue;
+      // 4T-001923: Laeuft fuer dieses Dokument ein Speichern von Hand oder
+      // wartet eines, bleibt der Reiter diesmal aus; das naechste automatische
+      // Speichern holt ihn nach, falls er dann noch geaendert ist.
+      if (speichernVonHandOffen(tab.path)) continue;
+      const pfad = tab.path;
       try {
-        // 4T-000604 (Epic 3E-000113): Zeitstempel-Felder auch im Autosave-Pfad.
-        await stampTabTimestamps(p, i, tab);
-        // W-02 (4T-000309): {ok,error}-Vertrag — Fehler ueber den catch.
-        // 4T-000945 (Story 4S-000786): auch im Hintergrund wird der Stand geprueft.
-        // Eine im Nachlade-Dialog getroffene Entscheidung gilt hier ebenso:
-        // Sie ist gefallen, das Hintergrund-Speichern setzt sie um und sichert
-        // die ueberschriebene Fassung, statt den Reiter auszusetzen.
-        const vorentschieden = tab.foreignOverride != null;
-        const res = await api.saveFile(tab.path, tab.content, {
-          expected: vorentschieden ? tab.foreignOverride : tab.originalContent,
-          force: vorentschieden,
-          // 4T-001291 (Epic 3E-000224): Das Hintergrund-Speichern gibt sich zu
-          // erkennen, damit der Haupt-Prozess die Teilungs-Ankuendigung
-          // unterlaesst statt sie ungefragt aufspringen zu lassen.
-          hintergrund: true,
-        });
-        // Das Dokument muesste zum ersten Mal geteilt werden. Der Reiter setzt
-        // aus, bis von Hand gespeichert wird — wie beim Konflikt, und aus
-        // demselben Grund: Der Schaden ist verhindert, sobald nicht geschrieben
-        // wird, und die Entscheidung gehoert dem Anwender.
-        if (res && res.reason === 'splitPending') {
-          tab.splitPending = true;
-          splitOffen = true;
-          continue;
-        }
-        // 4T-001292: Einem geteilten Dokument fehlt ein Teil. Der Reiter geht in
-        // den Nur-Lese-Zustand und wird vom Hintergrund-Speichern nicht mehr
-        // angefasst; die Meldung kommt beim naechsten Speichern von Hand.
-        if (res && res.reason === 'partsMissing') {
-          tab.readOnly = true;
-          tab.fehlendeTeile = res.fehlend || null;
-          continue;
-        }
-        if (res && res.reason === 'conflict') {
-          // Bewusst ohne Dialog: Ein Fenster, das ungefragt aufspringt,
-          // waehrend man in einer anderen Datei tippt, waere ein Uebergriff.
-          // Der Schaden ist bereits verhindert, sobald nicht geschrieben wird;
-          // der Reiter bleibt geaendert und nichts geht verloren.
-          tab.saveConflict = true;
-          konflikt = true;
-          continue;
-        }
-        if (!res || !res.ok) throw new Error((res && res.error) || 'save failed');
-        tab.originalContent = tab.content;
-        tab.dirty = false;
-        tab.foreignOverride = null;
-        renderTabbar(p);
-        savedAny = true;
+        const ergebnis = await reiheSpeichern(pfad, false, () => speichereImHintergrund(tab, pfad));
+        if (ergebnis === 'gespeichert') savedAny = true;
+        else if (ergebnis === 'konflikt') konflikt = true;
+        else if (ergebnis === 'split') splitOffen = true;
       } catch (err) {
-        console.error('Auto-Save fehlgeschlagen:', tab.path, err);
+        console.error('Auto-Save fehlgeschlagen:', pfad, err);
         failed = true;
       }
     }
@@ -432,6 +464,8 @@ export function toggleEditMode() {
   // Menue-Pfad laufen ebenfalls hier durch). 4T-000277: System-Seiten ebenso.
   if (tab.manualPage || tab.systemPage) return;
   if (!uebernimmOffeneZellEingabe()) return;
+  // 4T-002053: ebenso eine offene Zell-Eingabe im Raster der Datentabelle.
+  if (!uebernimmOffeneDatentabellenEingabe()) return;
   if (tab.viewMode === 'rendered') {
     const ziel = zielAnsichtDesAenderungsmodus(state.editViewMode);
     tab.viewMode = ziel;

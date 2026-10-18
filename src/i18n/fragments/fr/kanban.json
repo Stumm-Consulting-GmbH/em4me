@@ -77,7 +77,7 @@
   "kanban.einstellungen.feldEntfernen": "Supprimer",
   "kanban.einstellungen.feldHinzufuegen": "Ajouter une information",
   "kanban.einstellungen.uebernehmen": "Appliquer",
-  "kanban.einstellungen.ordnerAusserhalb": "Le dossier se trouve en dehors de l’espace.",
+  "kanban.einstellungen.ordnerAusserhalb": "Le dossier se trouve en dehors de la zone.",
   "kanban.einstellungen.nichtGeschrieben": "Le bloc de paramètres à la fin du tableau est illisible — les paramètres n’ont pas été écrits.",
   "kanban.notizAusKarte": "Créer une note à partir de la carte…",
   "kanban.notiz.keineVorlage": "Aucun modèle (note vide)",

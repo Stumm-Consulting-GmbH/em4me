@@ -105,8 +105,19 @@ export async function applyBlockMetaIndicators(container, basePath) {
   for (const [id, values] of map) {
     const block = container.querySelector(`[id="${attrEscape(id)}"]`);
     if (!block) continue;
-    if (block.querySelector(':scope > .block-meta-indicator')) continue;
-    block.appendChild(buildRenderIndicator(id, values));
+    // 4T-002018 (Epic 3E-000360): Eine Pipe-Tabelle und eine Tabellen-Zeile
+    // tragen die Kennung selbst; ein Kind dort stünde als eigene Zelle in der
+    // Tabelle. Das Zeichen steht deshalb unter der Tabelle (wo bis dahin der
+    // leere Träger der Kennung stand) beziehungsweise in der letzten Zelle.
+    if (block.tagName === 'TABLE') {
+      const danach = block.nextElementSibling;
+      if (danach && danach.classList.contains('block-meta-indicator')) continue;
+      block.after(buildRenderIndicator(id, values));
+      continue;
+    }
+    const ort = block.tagName === 'TR' && block.lastElementChild ? block.lastElementChild : block;
+    if (ort.querySelector(':scope > .block-meta-indicator')) continue;
+    ort.appendChild(buildRenderIndicator(id, values));
   }
 }
 

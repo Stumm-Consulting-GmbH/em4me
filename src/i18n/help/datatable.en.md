@@ -112,7 +112,7 @@ aggregate: Total:sum
 
 ## Editing in the grid
 
-In the **split view** and in **live mode** the grid is directly editable; the reading view and manual pages show it read-only. Every commit writes back into the code block in the source — the document becomes unsaved as usual, and undo/redo work as expected.
+In the **split view** and in **live mode** the grid is directly editable as long as **View › Edit** is switched on; when it is off, the grid there can only be viewed, sorted and filtered, as in the reading view. The reading view and manual pages show it read-only. Every commit writes back into the code block in the source — the document becomes unsaved as usual, and undo/redo work as expected.
 
 - **Edit a cell**: Click the cell (or `Enter`/`F2` when the cell is focused) to open a type-appropriate input field. `Enter` or losing focus commits, `Esc` discards, `Tab`/`Shift+Tab` commits and moves to the next or previous cell.
 - **Links in a cell**: A click on a link or a tag in a text cell follows it and does not open the cell. A click in the free part of the cell, `Enter` or `F2` opens it with the written text. If the link itself has keyboard focus, `Enter` follows it and `F2` opens the cell.
@@ -142,4 +142,4 @@ The portable export and the PDF export output the table as a static table in doc
 
 ## Limits
 
-From 1000 data rows on, the grid shows only the header area and aggregates with a note; the aggregates still calculate over all rows. Very large data sets belong in a dedicated data tool.
+With more than 1000 data rows, the grid shows only the header area and aggregates with a note; the aggregates still calculate over all rows. Very large data sets belong in a dedicated data tool.

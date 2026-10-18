@@ -40,6 +40,9 @@ import {
 } from './live-chart-vorspann.js';
 // 4T-002048 (Epic 3E-000192): Anker-Zeilen am Ende einer Pipe-Tabelle.
 import { tabelleOhneAnkerZeilen } from './live-block-anker.js';
+// 4T-002055 (Epic 3E-000360): Block-Text ohne Zitat-Präfixe und die Rechnung
+// zurück ins Dokument, dieselbe wie im Zell-Editor der Tabelle.
+import { dokStelle, ohneZitatPraefixe, zitatPraefixeAb } from './live-table-zell-kern.js';
 
 // 4T-000084 / 4T-000088: StateField fuer Block-Widget-Decorations im Live-
 // Modus. ViewPlugins duerfen keine Replace-Decorations liefern, deren
@@ -238,6 +241,15 @@ export function buildBlockWidgetValue(state) {
       let source = state.doc.sliceString(node.from, node.to);
       let bis = node.to;
       let cacheKey;
+      // 4T-002055 (Epic 3E-000360): In einem Zitat oder einer Hinweis-Box
+      // tragen die Folgezeilen die Zitat-Präfixe; die Pipeline läse den Text
+      // mit ihnen nicht als Tabelle oder Code-Block. Das Widget bekommt ihn
+      // ohne sie, ersetzt wird derselbe Bereich im Dokument (Weg A). Die
+      // Präfixe gehen in den Schlüssel, damit zwei gleiche Blöcke in
+      // verschiedener Zitat-Tiefe sich nicht vertauschen.
+      const praefixe = zitatPraefixeAb(state.doc, node.from, source.split('\n').length);
+      const zitatSchluessel = praefixe ? `:zitat:${mermaidHash(praefixe.join('\n'))}` : '';
+      source = ohneZitatPraefixe(source, praefixe);
       // 4T-001547: Vorspann für Konstrukte, deren Bedeutung außerhalb ihrer
       // Fence steht; leer für alle übrigen, damit deren Render-Ergebnis
       // unverändert bleibt.
@@ -246,8 +258,8 @@ export function buildBlockWidgetValue(state) {
         // 4T-002048: Das Widget endet vor den Anker-Zeilen am Tabellenende; sie
         // stehen darunter mit dem Anker-Zeichen statt als Tabellenzeile.
         source = tabelleOhneAnkerZeilen(source);
-        bis = node.from + source.length;
-        cacheKey = `table:${mermaidHash(source)}`;
+        bis = dokStelle(node.from, praefixe, source, source.length);
+        cacheKey = `table:${mermaidHash(source)}${zitatSchluessel}`;
       } else {
         // FencedCode: Info-String extrahieren (Sprache oder perspective-table).
         let lang = '';
@@ -329,9 +341,17 @@ export function buildBlockWidgetValue(state) {
           cacheKey = `fence:${lang}:${mermaidHash(source)}`;
         }
       }
+      if (name !== 'Table') cacheKey += zitatSchluessel;
       ranges.push(
         Decoration.replace({
-          widget: new MarkdownBlockWidget(source, basePath, cacheKey, docPrefix),
+          widget: new MarkdownBlockWidget(
+            source,
+            basePath,
+            cacheKey,
+            docPrefix,
+            '',
+            bis - node.from,
+          ),
         }).range(node.from, bis),
       );
     },

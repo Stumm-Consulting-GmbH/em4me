@@ -23,8 +23,7 @@
 'use strict';
 
 const path = require('node:path');
-const { toLogicalName } = require('../../shared/subpages.js');
-const { MD_EXT_RE } = require('../../shared/markdown/link-scan.js');
+const { displayTitleFromBasename } = require('../../shared/subpages.js');
 const { indexes, resolveRootInfo } = require('./store.js');
 
 // Ordner-Pfad auf die Wurzel bezogen und mit '/' normalisiert; '' für eine
@@ -98,7 +97,7 @@ function verweisZiele(activeFile, areaRoot, optionen) {
     if (!imBereich(ordner, praefixe)) continue;
     // Unterseiten erscheinen in Slash-Schreibweise, so wie sie im Wiki-Link
     // geschrieben werden (Muster der Wiki-Vorschläge).
-    const name = toLogicalName(path.basename(datei).replace(MD_EXT_RE, ''));
+    const name = displayTitleFromBasename(path.basename(datei));
     const schluessel = name.toLowerCase();
     if (gesehen.has(schluessel)) continue;
     gesehen.add(schluessel);

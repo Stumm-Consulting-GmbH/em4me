@@ -20,6 +20,8 @@ import {
   highlightActiveLineGutter,
 } from '@codemirror/view';
 import { Table as LezerTable } from '@lezer/markdown';
+// 4T-002055 (Epic 3E-000360): Tabelle direkt unter einer Textzeile im Zitat.
+import { TabelleImZitat } from './tabelle-im-zitat.js';
 import { t, hatUebersetzungen } from '../../i18n.js';
 import {
   syntaxHighlighting,
@@ -270,7 +272,7 @@ export function createNotesEditorState({ content = '', placeholderText = '', onD
       // 4T-000603 (Epic 3E-000113): eingebauten lang-markdown-Paste-Handler
       // abschalten, damit der eigene pasteLinkHandler mit unseren Regeln
       // (Spitze-Klammern, Schalter, Code-Schutz) allein greift.
-      markdown({ extensions: [LezerTable], pasteURLAsLink: false }),
+      markdown({ extensions: [LezerTable, TabelleImZitat], pasteURLAsLink: false }),
       syntaxHighlighting(mdHighlightStyle, { fallback: true }),
       haengenderEinzugPlugin,
       history(),
@@ -445,7 +447,7 @@ export function createEditorState(opts = {}) {
       // 4T-000603 (Epic 3E-000113): eingebauten lang-markdown-Paste-Handler
       // abschalten, damit der eigene pasteLinkHandler mit unseren Regeln
       // (Spitze-Klammern, Schalter, Code-Schutz) allein greift.
-      markdown({ extensions: [LezerTable], pasteURLAsLink: false }),
+      markdown({ extensions: [LezerTable, TabelleImZitat], pasteURLAsLink: false }),
       syntaxHighlighting(mdHighlightStyle, { fallback: true }),
       haengenderEinzugPlugin,
       history(),

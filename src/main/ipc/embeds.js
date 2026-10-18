@@ -32,7 +32,11 @@ const { leseFrontmatterKopf } = require('../database/frontmatter-kopf.js');
 const { angabenAusKopf } = require('../../shared/kanban/kanban-angaben.js');
 // 4T-002023 (Epic 3E-000192): Ein Ziel in einem verknüpften Bereich löst der
 // Diagramm-Kanal nicht auf, wie die Einbettung auch nicht.
-const { isAreaLinkTarget } = require('../../shared/area-link-syntax.js');
+// 4T-002092: Erkennung der Verknüpfungs-Form und der Grund für den Hinweis.
+const {
+  isAreaLinkTarget,
+  EMBED_GRUND_VERKNUEPFTER_BEREICH,
+} = require('../../shared/area-link-syntax.js');
 
 // 4T-001957: Obergrenzen der gebündelten Anfrage einer Tafel. Der Anzeige-Prozess
 // schickt je Ziel genau einen Eintrag; die Grenzen fangen allein einen
@@ -82,6 +86,13 @@ function registerEmbedsIpc(handle, deps) {
    * @returns {Promise<{ok: true, abs: string}|{ok: false, error: string}>}
    */
   async function loeseEmbedZiel(event, basePath, embedPathRoh, kind) {
+    // 4T-002092: Ein Ziel in einem verknüpften Bereich ('@kürzel:Datei') löst
+    // die Einbettung nicht auf; das Einbetten über die Bereichs-Grenze ist ein
+    // eigenes Vorhaben. Der Grund reist bis zum Hinweis, statt als «nicht
+    // gefunden» samt Systemmeldung zu enden. Ohne Pfad (abs), damit kein Kanal
+    // danach noch zu lesen versucht.
+    if (isAreaLinkTarget(embedPathRoh))
+      return { ok: false, error: EMBED_GRUND_VERKNUEPFTER_BEREICH };
     let embedPath = embedPathRoh;
     // 4T-000337 (Epic 3E-000061): relative Unterseiten-Embeds ('![[/Name]]',
     // '![[..]]') gegen den Basename der Basis-Datei expandieren; Ergebnis

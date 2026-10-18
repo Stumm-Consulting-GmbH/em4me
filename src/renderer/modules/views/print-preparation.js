@@ -30,6 +30,8 @@ import { waitForJournalNavIdle } from '../calendar/journal-nav-view.js';
 import { waitForJournalTimelineIdle } from '../calendar/journal-timeline-view.js';
 // 4T-000412 (Epic 3E-000078): Idle-Barriere der Skript-Bloecke.
 import { waitForPerspectiveScriptsIdle } from '../query/perspective-script-view.js';
+// 4T-002054: gekürzte Datentabellen für die Dauer der Ausgabe mit allen Zeilen.
+import { zeichneGekuerzteDatentabellenVoll } from '../query/perspective-datatable-view.js';
 // 4T-002025 (Epic 3E-000192): helles Neu-Zeichnen und Barriere der Diagramme.
 import { warteAufDiagrammeDerAusgabe, zeichneDiagrammeFuerAusgabe } from '../charts/chart-view.js';
 // 4T-000311 (Epic 3E-000055): Druck-Aufbereitung der Quelltext-Ansicht.
@@ -132,6 +134,7 @@ export async function withPrintPreparation(steps) {
   // Virtualisierung nicht druckbar); alle anderen Modi drucken gerendert.
   const sourceMode = tab.viewMode === 'source';
   let sourcePrintEl = null;
+  let datentabellenZurueck = null;
   try {
     // 1. Vorbereitungs-Schritt im Normal-Layout (Zielpfad-Dialog der
     //    PDF-Ausgabe; der Druck hat keinen). Abbruch: still, kein Hinweis.
@@ -199,6 +202,10 @@ export async function withPrintPreparation(steps) {
       // Mit verzögerter Auflösung enthielt das PDF weder das Bild noch den
       // eingebetteten Text.
       await waitForWikiEmbedsIdle();
+      // 4T-002054: Die Ausgabe zeigt alle Zeilen einer Datentabelle, die Grenze
+      // gilt allein dem Gitter. Hinter der Einbettungs-Barriere, weil auch eine
+      // eingebettete Tabelle gekürzt sein kann; zurückgestellt im finally.
+      datentabellenZurueck = zeichneGekuerzteDatentabellenVoll(els.content, tab.path);
       // 4T-002025 (Epic 3E-000192): Diagramme zu Tabellen sofort hell neu
       // zeichnen und ihre Lesungen eines anderen Dokuments abwarten. Hinter
       // der Einbettungs-Barriere, weil Diagramme auch in Einbettungen stehen
@@ -230,6 +237,7 @@ export async function withPrintPreparation(steps) {
       sourcePrintEl.remove();
       document.body.classList.remove('printing-source');
     }
+    if (datentabellenZurueck) datentabellenZurueck();
     if (printStateApplied) {
       document.body.classList.remove('printing');
       root.classList.remove('printing');

@@ -112,7 +112,7 @@ aggregate: Total:sum
 
 ## Editar en la cuadrícula
 
-En la **vista dividida** y en el **modo en vivo** la cuadrícula es directamente editable; la vista de lectura y las páginas del manual la muestran en modo de solo lectura. Cada confirmación escribe de vuelta en el bloque de código del código fuente: el documento queda sin guardar como de costumbre y deshacer/rehacer funcionan con normalidad.
+En la **vista dividida** y en el **modo en vivo** la cuadrícula es directamente editable mientras **Ver › Editar** esté activado; si está desactivado, allí la cuadrícula solo se puede ver, ordenar y filtrar, como en la vista de lectura. La vista de lectura y las páginas del manual la muestran en modo de solo lectura. Cada confirmación escribe de vuelta en el bloque de código del código fuente: el documento queda sin guardar como de costumbre y deshacer/rehacer funcionan con normalidad.
 
 - **Editar una celda**: un clic en la celda (o `Intro`/`F2` con la celda enfocada) abre un campo de entrada adecuado al tipo. `Intro` o perder el foco confirma, `Esc` descarta, `Tab`/`Mayús+Tab` confirma y salta a la celda siguiente o anterior.
 - **Enlaces en la celda**: un clic en un enlace o una etiqueta de una celda de texto lo sigue y no abre la celda. Un clic en la parte libre de la celda, `Intro` o `F2` la abren con el texto escrito. Si el propio enlace tiene el foco del teclado, `Intro` lo sigue y `F2` abre la celda.
@@ -142,4 +142,4 @@ La exportación portable y la exportación a PDF generan la tabla como tabla est
 
 ## Límites
 
-A partir de 1000 filas de datos, la cuadrícula muestra solo la cabecera y los agregados con una nota; los agregados siguen calculando sobre todas las filas. Los conjuntos de datos muy grandes pertenecen a una herramienta de datos dedicada.
+Con más de 1000 filas de datos, la cuadrícula muestra solo la cabecera y los agregados con una nota; los agregados siguen calculando sobre todas las filas. Los conjuntos de datos muy grandes pertenecen a una herramienta de datos dedicada.

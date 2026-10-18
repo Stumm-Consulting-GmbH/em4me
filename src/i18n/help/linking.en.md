@@ -25,7 +25,7 @@ Links can point to a heading or a block inside the target file:
 [[#Wiki links]]                anchor within the same document
 ```
 
-Block anchors are set with `^id` at the end of a line and anchor the surrounding block (paragraph, list item, table, code block):
+Block anchors are set with `^id` at the end of a line and anchor the surrounding block (paragraph, list item, table row, code block):
 
 ```markdown
 This decision is binding. ^decision-1
@@ -41,6 +41,8 @@ const interestRate = 0.04;
 ````
 
 A [data table](datatable.md) carries its identifier in its block, as the line `table: Sales` before the data rows; `[[Report#^Sales]]` jumps to it.
+
+Below a table, too, the identifier stands on a line of its own, with a blank line before and after; it then refers to the whole table. At the end of a table row it refers to that row only.
 
 The anchor looks different from view to view. The rendered view does not show it at all — there the block is merely a jump target. **Live mode** replaces it with a discreet marker at the end of the line: hovering names the identifier, a click puts the caret at the end of the line and reveals the raw text for editing. When the caret is already in that line, the anchor stays visible as usual. That live mode shows more than the rendered view is deliberate: an anchor is an address others point to, and while restructuring a document you should be able to see that it exists. If the same block carries [properties](block-properties.md), their marker sits next to it.
 
@@ -86,9 +88,11 @@ A raw space without angle brackets ends the target, so the link is not recognise
 ![[notes.md#^block]]     only the anchored block
 ```
 
-For block anchors the full surrounding block is embedded (list item with sub-lists, fenced code, table row, blockquote), for the name of a data table the whole table. An anchor inside a code example does not count. Embedded Markdown renders with its own source as base; links inside resolve against the embedded file.
+For block anchors the full surrounding block is embedded (list item with sub-lists, fenced code, table row, blockquote), for an identifier on its own line below a table and for the name of a data table the whole table. An anchor inside a code example does not count. Embedded Markdown renders with its own source as base; links inside resolve against the embedded file.
 
 **Where the target is looked for.** The app searches in three steps, the same way for every file type: first the path relative to your own file, then the subpage spelling, finally the plain **name** across the whole area. So `![[image.png]]` finds the file even when it sits in a different folder — you do not have to get the path right. The search ends at the area root: anything outside is not embedded. Without a bound area, the folder of your own file remains the limit.
+
+**When the target does not appear.** If the app cannot find the target, a notice with the name of the target takes the place of the embed — the same in the reading view, live mode and split view.
 
 If a Markdown file carries the same name as an attachment, the Markdown file wins; written with its extension (`![[image.png]]`) the case is unambiguous. Plain Markdown images `![](path.png)` are unaffected — their spelling means a path, not a name.
 ## Area links
@@ -107,6 +111,8 @@ In text the prefix precedes the target:
 ```
 
 The target is looked up at the given path first and, if nothing is there, by name across the whole linked area — just like an ordinary wiki link within your own area. Clicking opens the target in the same window.
+
+**Embedding** from a linked area is not possible: `![[@zt:Note]]` shows a notice in its place that says exactly that, whether area links are switched on or not. The link `[[@zt:Note]]` to the same target opens it as described.
 
 **Templates of the linked area** can be offered alongside your own; there is a switch per link. The template picker then shows both sets, and every entry from elsewhere names its origin. Without the switch a link does not change the set of templates.
 
@@ -129,7 +135,7 @@ An area link leads **there**, not back. Deliberately not carried across the area
 - the **area-wide search**,
 - and **link updating on rename**: when a file is renamed, references from a linked area stay unchanged. The editor marks them as invalid afterwards — that is the net which makes them visible.
 
-Area links are an [extension](extensions.md) and can be switched off. A prefixed reference is then left unresolved, the check on opening does not run, and the links you entered remain — what is switched off is the effect, not the entry.
+Area links are an [extension](extensions.md) and can be switched off. A prefixed reference is then left unresolved, the check on opening does not run, and nothing is read from a linked area any more, not even after a restart. Documents from a linked area that are open when you switch off are closed; if one has unsaved changes, you are asked first as usual. The links you entered remain — what is switched off is the effect, not the entry.
 
 ## Tags
 

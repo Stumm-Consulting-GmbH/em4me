@@ -2,11 +2,11 @@
 
 Die Mindmap-Ansicht zeigt die Struktur **eines** Dokuments als Karte: Überschriften und Listenpunkte werden zu Knoten eines Baums, der Fließtext darunter wird zur Notiz seines Knotens. Sie ist eine Ansicht auf dasselbe Dokument, kein zweites Dokument, und ändert den Text nicht.
 
-Die Ansicht gehört zur Erweiterung **Mindmap-Ansicht** und lässt sich unter Einstellungen → Erweiterungen abschalten. Ist sie aus, entfällt der Menü-Eintrag, und ein Reiter, der zuletzt als Mindmap offen war, kehrt in die Lese-Ansicht zurück.
+Die Ansicht gehört zur Erweiterung **Mindmap-Ansicht** und lässt sich unter Einstellungen → Erweiterungen abschalten. Ist sie aus, entfällt der Menü-Eintrag, und ein Dokument in der Mindmap-Ansicht kehrt in die Lese-Ansicht zurück: ein geöffnetes sofort, ein zuletzt als Mindmap geöffnetes beim nächsten Öffnen.
 
 ## Öffnen
 
-Die Mindmap ist der fünfte Ansichts-Modus eines Reiters, neben Quellcode, Geteilt, Gerendert und Live: Ansicht → Mindmap oder Standard `Strg+5`. Der Modus gilt pro Reiter, ein Dokument darf also als Karte offen sein, während daneben ein zweites im Quelltext bearbeitet wird. Die Karte folgt dem Dokument: Wer im Quelltext eine Überschrift ergänzt, sieht sie kurz darauf in der Karte.
+Die Mindmap ist der fünfte Ansichts-Modus eines geöffneten Dokuments, neben Quellcode, Geteilt, Gerendert und Live: Ansicht → Mindmap oder Standard `Strg+5`. Der Modus gilt je geöffnetem Dokument, ein Dokument darf also als Karte offen sein, während daneben ein zweites im Quelltext bearbeitet wird. Die Karte folgt dem Dokument: Wer im Quelltext eine Überschrift ergänzt, sieht sie kurz darauf in der Karte.
 
 ## Was zum Knoten wird
 

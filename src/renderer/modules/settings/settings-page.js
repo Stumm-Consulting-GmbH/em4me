@@ -599,6 +599,16 @@ export function reevaluateSettingsErrors() {
 // Registry-Reihenfolge.
 export async function applySettingsPage() {
   if (!pageState.draft) return false;
+  // 4T-001970 (Epic 3E-000341): Der Entwurf wird zu Beginn festgehalten, und
+  // die Übernahme-Schleife unten gibt allen Abschnitten diese eine Referenz
+  // (Muster okSettingsPage: Zustand vor dem Warten festhalten, nicht danach
+  // neu lesen). Schließt der Reiter während der Übernahme, setzt der
+  // Schließ-Haken pageState.draft auf null; früher bekam jeder Abschnitt
+  // hinter dem ersten Wartepunkt dann null, die Übernahme brach ab, und seine
+  // Änderungen gingen still verloren. Die Prüf-Schleife darunter liest
+  // weiterhin pageState.draft: Sie läuft vor dem ersten Warten, das Objekt
+  // ist dort dasselbe.
+  const draft = pageState.draft;
   cancelHotkeyCapture();
   pageState.errors = new Map();
   for (const section of settingsSections()) {
@@ -613,8 +623,18 @@ export async function applySettingsPage() {
     zeigeBereichMitFehler();
     return false;
   }
-  for (const section of settingsSections()) {
-    if (typeof section.apply === 'function') await section.apply(pageState.draft);
+  // 4T-001970: Merker «Übernahme läuft» — Schließen und Neu-Öffnen der Seite
+  // warten mit ihrer Nacharbeit auf das Ende (settings-draft.js).
+  const lauf = (async () => {
+    for (const section of settingsSections()) {
+      if (typeof section.apply === 'function') await section.apply(draft);
+    }
+  })();
+  pageState.applying = lauf;
+  try {
+    await lauf;
+  } finally {
+    if (pageState.applying === lauf) pageState.applying = null;
   }
   // 4T-000554: Die apply-Hooks haben Snapshots bzw. Laufzeit-Zustand auf den
   // neuen Referenzstand gezogen — Schaltflächen zurück auf „nicht dirty".

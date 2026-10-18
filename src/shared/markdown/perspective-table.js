@@ -431,6 +431,8 @@ function renderPerspectiveTableCellForPortable(content) {
   if (!/\n/.test(withInnerHtml.trim())) {
     return getMdPortable().renderInline(withInnerHtml);
   }
+  // 4T-001918 (B4): Aufgaben-Kästchen schreibt die portable Pipeline selbst
+  // als Zeichen (kaestchenAlsZeichenPlugin in plugins/tasks.js).
   return getMdPortable().render(withInnerHtml);
 }
 

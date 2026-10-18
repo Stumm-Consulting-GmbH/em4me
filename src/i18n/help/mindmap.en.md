@@ -2,7 +2,7 @@
 
 The mind map view shows the structure of **one** document as a map: headings and list items become nodes of a tree, and the body text below them becomes the note of its node. It is a view of the same document, not a second document, and never changes the text.
 
-The view belongs to the **Mind map view** extension and can be switched off under Settings → Extensions. With it off, the menu entry disappears, and a tab that was last open as a map returns to the reading view.
+The view belongs to the **Mind map view** extension and can be switched off under Settings → Extensions. With it off, the menu entry disappears, and a document in the mind map view returns to the reading view: an open one immediately, one last opened as a map the next time it is opened.
 
 ## Opening
 

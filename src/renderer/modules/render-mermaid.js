@@ -78,6 +78,7 @@ import { applyPerspectiveChartsIfPresent, frischeDiagrammeAuf } from './charts/c
 import { zielPfadListe, zielPruefer } from './charts/chart-targets.js';
 import { dokumentTextEinerEinbettung } from './charts/chart-embedding.js';
 import { activeTabOfPane, renderedPaneIndex } from './views/pane-lookup.js';
+import { EMBED_GRUND_VERKNUEPFTER_BEREICH } from '../../shared/area-link-syntax.js';
 
 // --- Mermaid (4T-000021) ------------------------------------------------------
 // Mermaid wird per dynamischem import() lazy geladen (siehe scripts/
@@ -834,6 +835,7 @@ export async function renderImageEmbed(span, basePath, embedPath, widthAttr) {
 
 export async function renderPdfEmbed(span, basePath, embedPath, widthAttr) {
   let resolved;
+  let grund = null;
   try {
     // 4T-001486 (Epic 3E-000199): derselbe dreistufige Weg mit Containment wie
     // bei den uebrigen Arten. Vorher lief das ueber api.resolveLink — nichts
@@ -841,11 +843,12 @@ export async function renderPdfEmbed(span, basePath, embedPath, widthAttr) {
     // Datei ausserhalb des Bereichs in den Viewer.
     const r = await api.resolveEmbedTarget(basePath, embedPath, 'pdf');
     resolved = r && r.ok ? r.path : null;
+    grund = r && !r.ok ? r.error : null;
   } catch {
     resolved = null;
   }
   if (!resolved) {
-    renderBrokenEmbed(span, embedPath, null);
+    renderBrokenEmbed(span, embedPath, grund);
     return;
   }
   // W-18 (4T-000309): fileExists kapseln (Muster renderOtherEmbed R2-18); eine
@@ -950,6 +953,7 @@ export async function renderMarkdownEmbed(span, basePath, embedPath, anchor, dep
 
 export async function renderOtherEmbed(span, basePath, embedPath) {
   let resolved;
+  let grund = null;
   try {
     // 4T-001486 (Epic 3E-000199): wie beim PDF-Zweig — dreistufiger Weg mit
     // Containment statt des grenzenlosen api.resolveLink. Fuer diese Art gilt
@@ -957,6 +961,7 @@ export async function renderOtherEmbed(span, basePath, embedPath) {
     // die Bereichs-Grenze.
     const r = await api.resolveEmbedTarget(basePath, embedPath, 'other');
     resolved = r && r.ok ? r.path : null;
+    grund = r && !r.ok ? r.error : null;
   } catch {
     resolved = null;
   }
@@ -973,7 +978,7 @@ export async function renderOtherEmbed(span, basePath, embedPath) {
     if (!exists) resolved = null;
   }
   if (!resolved) {
-    renderBrokenEmbed(span, embedPath, null);
+    renderBrokenEmbed(span, embedPath, grund);
     return;
   }
   span.innerHTML = '';
@@ -1002,12 +1007,18 @@ export async function renderOtherEmbed(span, basePath, embedPath) {
   span.appendChild(link);
 }
 
-export function renderBrokenEmbed(span, embedPath, errorMsg) {
+// 4T-002092: Der Hinweis nennt den Grund in der Sprache der Oberfläche und nie
+// eine Systemmeldung; ein unbekannter Grund liest sich wie «nicht gefunden».
+// 4T-002120: Er nennt das Ziel, wie es im Dokument steht ('data-embed-name'),
+// nicht mit dem '.md', das die Aufloesung angehaengt hat.
+export function renderBrokenEmbed(span, embedPath, grund) {
   span.classList.add('wiki-embed-broken');
   span.innerHTML = '';
-  const tmpl = t('embed.notFound');
-  const text = tmpl.replace('{path}', embedPath);
-  span.textContent = errorMsg ? `${text} (${errorMsg})` : text;
+  const verknuepft = grund === EMBED_GRUND_VERKNUEPFTER_BEREICH;
+  span.textContent = t(verknuepft ? 'embed.linkedArea' : 'embed.notFound').replace(
+    '{path}',
+    span.dataset.embedName || embedPath,
+  );
 }
 
 // 4T-000303 (Epic 3E-000054): Barriere auf der gemeinsamen Mermaid-Queue.

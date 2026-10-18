@@ -14,6 +14,418 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.149.1.4096] - 2026-10-17 — Schutz von Eingaben und Korrekturen an Anzeige, Tabellen und Verweisen
+
+Zug 3E-000339,
+ein Fehler-Release aus liegengebliebenen Fehlerbehebungen und kleinen
+Pflege-Aufgaben der beiden Pflege-Gefäße, die selbst kein Release tragen
+können. Die Mitglieder in der Reihenfolge ihrer Umsetzung, je mit dem Task, der
+ihren Abschluss-Anteil trägt:
+
+1. 3E-000340 —
+   sechzehn kleine Korrekturen an Anzeige, Texten und Code-Pflege samt ihrem
+   Handbuch-Anteil; Abschluss-Anteil in
+   4T-002088.
+2. 3E-000341
+   — fünf Korrekturen zum Schutz von Eingaben und zur Bereichs-Grenze samt
+   ihrem Handbuch-Anteil; Abschluss-Anteil in
+   4T-002090.
+3. 3E-000360 — elf
+   liegengebliebene Fehlerbehebungen und Pflege-Aufgaben an Bildern, Verweisen,
+   portablem Export, Tabellen, Datentabelle und Dokument-Streifen samt ihrem
+   Handbuch-Anteil; Abschluss-Anteil in
+   4T-002244.
+
+**Was der Zug als Ganzes bringt:** Stellen, an denen sich die Anwendung anders
+verhielt, als sie es zusagt, arbeiten wieder wie beschrieben, und was der
+Anwender eingibt oder einstellt, geht nicht mehr still verloren. In Anzeige und
+Texten betrifft das die Mindmap-Ansicht beim Abschalten ihrer Erweiterung und
+nach einer Änderung am Dokument, die Reihenfolge der Dateiliste, die Kopfzeile
+einer Perspective-Tabelle, den Bericht nach dem Import einer Einrichtungs-Datei,
+die Hinweise einer Einbettung, die Markierung über hinterlegtem Text, den
+verdeckten Text im Live-Modus und das lokale Bild nach dem ersten Speichern;
+«Reiter» meint in den deutschen Texten nur noch den Griff, und die französische
+Fassung nennt den Bereich durchgehend «zone». Die Einstellungs-Seite übernimmt
+alle Abschnitte, auch wenn sie sofort geschlossen wird, zweimal schnelles
+Speichern bringt keine Konflikt-Frage, und die gewählte Zeile der Trefferliste
+und eine offene Eingabe im Bereichs-Panel überstehen den Neuaufbau ihrer Liste.
+Die Bereichs-Grenze hält an zwei weiteren Stellen: Bei abgeschalteten
+Bereichs-Verknüpfungen liest die Anwendung auf keinem Weg mehr aus einem
+verknüpften Bereich, und unter Linux beachtet die Grenze der Bilder die
+Schreibweise der Ordner. Bei Tabellen, Verweisen und Export meint ein
+Block-Anker unter einer Tabelle die ganze Tabelle, Tabellen und Code-Blöcke in
+Zitaten und Hinweis-Boxen erscheinen im Live-Modus als Widget, Druck und PDF
+zeigen alle Zeilen einer großen Datentabelle, Verweise mit Markdown-Endung
+ziehen beim Umbenennen nach, Code-Beispiele mit verschachtelten Code-Blöcken
+bleiben wörtlicher Text, und der portable Export zeigt Perspective-Tabellen mit
+ihrem Zell-Inhalt und wandelt seine Blöcke in jeder Zaun-Form um, die die
+Anzeige kennt. Zwei Abläufe sind geändert: Das Gitter der Datentabelle lässt
+sich bei ausgeschaltetem Bearbeiten nur noch ansehen, und nach dem Schließen
+wird das zuvor aktive Dokument wieder aktiv. Eine neue Funktion bringt der Zug
+nicht.
+
+### Behoben
+
+- **Die Mindmap-Ansicht schließt mit ihrer Erweiterung** (`4T-001688`). Wurde
+  die Erweiterung «Mindmap-Ansicht» abgeschaltet, während ein Dokument als
+  Mindmap offen war, blieb die Ansicht stehen. Jetzt wechselt jedes geöffnete
+  Dokument im Mindmap-Modus sofort in die Lese-Ansicht, wie es Canvas und Tafel
+  schon taten; Statusleiste und Ansichtsmenü ziehen nach, das Dokument bleibt
+  unverändert.
+- **Die Anfangs-Tiefe der Mindmap wirkt nur noch als Start-Verhalten**
+  (`4T-001936`). Trug ein Dokument eine Anfangs-Tiefe und waren alle Äste von
+  Hand oder durch die Suche geöffnet, klappte die Karte nach einer Änderung am
+  Dokument wieder auf die Anfangs-Tiefe zurück. Sie wirkt jetzt beim ersten
+  Zeichnen, bei einem anderen Dokument in derselben Spalte und bei einem
+  geänderten Wert im Kopf des Dokuments oder in der Einstellung; jeder andere
+  Klapp-Zustand bleibt erhalten.
+- **Die Dateiliste sortiert eine Datei vor ihre Kopien** (`4T-001799`). Die
+  Dateiliste des Bereichs-Panels sortierte über den vollen Dateinamen samt
+  Endung, sodass «alpha-1» vor «alpha» stand. Sortiert wird jetzt über den
+  angezeigten Namen ohne Markdown-Endung, numerisch wie bisher («alpha-2» vor
+  «alpha-10»); bei gleichem Namen mit verschiedener Markdown-Endung entscheidet
+  die Endung. Die Ordnung der Ordner ist unverändert.
+- **Spalte einfügen setzt in einer Kopfzeile eine Kopfzelle** (`4T-002093`). In
+  einer Perspective-Tabelle fügte «Tabelle › Spalte einfügen» auch in die
+  Kopfzeile eine Datenzelle ein, und die gerenderte Tabelle verlor ihren
+  durchgehenden Kopf. Besteht eine Zeile nur aus Kopfzellen, entsteht jetzt eine
+  Kopfzelle, sonst eine Datenzelle, auch in einer Zeile mit Zeilen-Kopf; die
+  Operation bleibt ein einziger Rückgängig-Schritt.
+- **Der Bericht nach dem Import einer Einrichtungs-Datei spricht vom
+  Geschehenen** (`4T-002094`). Das Fenster «Einstellungen importiert» nannte die
+  Übernahme in der Ankündigungsform der Vorschau («wird ersetzt», «kommt
+  hinzu»). Es sagt jetzt «wurde ersetzt», «1 Eintrag ist hinzugekommen» und
+  «‹Nacht› ist als ‹Nacht (2)› hinzugekommen»; eine nicht übernommene Datenart
+  behält die Ankündigung samt «nicht übernommen». Die Vorschau bleibt
+  unverändert.
+- **Eine Einbettung nennt den Grund statt der Systemmeldung** (`4T-002092`).
+  Fand eine Einbettung ihr Ziel nicht, hing an ihrem Hinweis die Meldung des
+  Betriebssystems (`ENOENT: …`), und PDF und sonstige Datei nannten gar keinen
+  Grund. Jetzt steht dort «Einbetten nicht möglich: … ist nicht zu finden», und
+  ein Ziel in einem verknüpften Bereich (`![[@kürzel:Datei]]`) bekommt einen
+  eigenen Hinweis, dass sich daraus nichts einbetten lässt, unabhängig vom
+  Schalter der Bereichs-Verknüpfungen. Beide Hinweise erscheinen gleich in
+  Lese-Ansicht, Live-Modus und geteilter Ansicht und für Dokument, Bild, PDF und
+  sonstige Datei. Das Einbetten aus einem verknüpften Bereich selbst gehört
+  nicht zu diesem Release.
+- **Die Markierung bleibt über hinterlegtem Text sichtbar** (`4T-002095`). Über
+  einem Rechen-Ausdruck, einer Kritik-Hervorhebung und der Zeile eines
+  Containers im Live-Modus verdeckte ein deckender Hintergrund die
+  Text-Markierung des Editors, weil sie unter dem Text liegt. Diese Hintergründe
+  sind jetzt halbdurchsichtig, in hellem und dunklem Erscheinungsbild und weiter
+  an das Farbschema gebunden; der Kasten des verdeckten Textes bleibt bewusst
+  deckend. Ein Wächter meldet künftig jeden neuen deckenden Hintergrund an einer
+  Text-Hervorhebung des Editors, sofern die Regel ihn nicht ausdrücklich als
+  gewollt kennzeichnet.
+- **Verdeckter Text bleibt im Live-Modus verdeckt** (`4T-002096`). Enthielt ein
+  verdeckter Text (`||…||`) eingefärbte Bestandteile wie Inline-Code, einen
+  Verweis oder eine Hervorhebung, waren sie im Live-Modus lesbar. Jetzt nimmt
+  jeder Bestandteil die Farbe des Kastens an, bis die Maus darüber steht, wie in
+  der Lese-Ansicht.
+- **Perspective-Tabellen eines portablen Dokuments zeigen ihren Zell-Inhalt**
+  (`4T-001918`). In einem als «Portables Markdown» exportierten Dokument blieb
+  in EM4me jede mehrzeilige Zelle leer, und fett, kursiv, durchgestrichen oder
+  als Code gesetzte Wörter verschwanden samt Text; fremde Programme zeigten
+  dieselbe Datei richtig. Der Filter für portable Dokumente kennt jetzt alle
+  Elemente, die nur Text gliedern — Text-Auszeichnung, Absätze, Listen,
+  Überschriften, Zitat, Code-Block, Trennlinie, Definitionsliste —, und packt
+  ein nicht aufgeführtes Element aus, statt es samt Inhalt zu entfernen; was nie
+  Anzeige-Text ist, etwa Skripte, Stile und eingebettete Seiten, fällt weiter
+  samt Inhalt weg. Ein Bild mit Adresse relativ
+  zum Dokument erscheint jetzt auch in einer Zelle, über den geprüften Weg der
+  lokalen Bilder; Freigabe-, absolute, Datei- und Netz-Adressen bleiben
+  gesperrt. Aufgaben-Kästchen schreibt und zeigt der portable Weg als Zeichen
+  (☐ offen, ☑ erledigt, ein erweiterter Zustand in seiner Klammerform wie
+  `[/]`), in Zellen wie in gewöhnlichen Listen; bisher standen sie schon in der
+  Datei als maskierter HTML-Text. Auch Formatierung in verschachtelten Tabellen
+  bleibt in der Datei erhalten. Ein Element-Wächter hält die erzeugten Elemente
+  in beiden Richtungen gegen die Liste.
+- **Ein lokales Bild erscheint gleich nach dem ersten Speichern**
+  (`4T-002151`). Verwies ein neues, noch nie gespeichertes Dokument relativ auf
+  ein lokales Bild, stand nach dem ersten Speichern in den Ordner des Bildes
+  weiter nur der Alt-Text; das Bild kam erst nach einem Wechsel der Ansicht
+  oder nach erneutem Öffnen. Ändert sich der Pfad eines geöffneten Dokuments,
+  baut die Anwendung die Ansicht jetzt sofort gegen den neuen Ordner neu auf:
+  nach dem ersten Speichern, nach «Speichern unter» in einen anderen Ordner und
+  nach dem Verschieben eines Buch-Kapitels über «Kapitel-Datei verschieben…».
+  Gewöhnliches Speichern bleibt unberührt.
+- **Die Einstellungs-Seite übernimmt alle Abschnitte, auch wenn sie sofort
+  geschlossen wird** (`4T-001970`). Wurde die Seite unmittelbar nach «Anwenden»
+  oder «OK» geschlossen, etwa mit Strg+W, brach die Übernahme hinter dem ersten
+  Abschnitt ab, der auf das Speichern wartete: Die Änderungen aller folgenden
+  Abschnitte gingen still verloren, und die Oberfläche meldete einen
+  Programmfehler. Jetzt hält die Übernahme den Entwurf beim Klick fest und läuft
+  mit ihm zu Ende, während die Seite sofort schließt. Die Live-Vorschau wird
+  erst nach dem Ende der Übernahme zurückgesetzt, und eine währenddessen wieder
+  geöffnete, noch unberührte Seite baut ihren Entwurf danach neu auf, damit sie
+  keine alten Werte zeigt.
+- **Zweimal schnell gespeichert bringt keine Konflikt-Frage mehr**
+  (`4T-001923`). Zwei unmittelbar folgende Speicher-Befehle für dasselbe
+  Dokument — zweimal Strg+S, Speichern von Hand während eines automatischen
+  Speicherns — oder eine verspätete Meldung der Datei-Beobachtung über das
+  eigene Speichern lösten gelegentlich die Frage aus, die Datei sei außerhalb
+  der App geändert worden. Das Speichern läuft jetzt je Dokument nacheinander;
+  der zweite Vorgang wartet auf den ersten und schreibt dann den neuesten Stand.
+  Die Erwartung an die Datei folgt dem tatsächlich geschriebenen Stand, sodass
+  eine Eingabe während des Speicherns als ungespeichert markiert bleibt. Eigene
+  Schreibvorgänge erkennt die Anwendung je Datei an mehreren eigenen Ständen,
+  weiter am Inhalt und ohne Zeitsperre; ein älterer Stand verfällt, sobald der
+  jüngere fertig geschrieben ist, damit eine fremde Änderung, die einen früheren
+  eigenen Inhalt wiederherstellt, weiter als fremd gilt. Eine echte Änderung von
+  außen löst die Frage weiterhin aus.
+- **Die gewählte Zeile der Trefferliste bleibt beim Neuaufbau stehen**
+  (`4T-001921`). Im Panel «Suchergebnisse» fiel eine mit den Pfeiltasten
+  gewählte Zeile auf den ersten Treffer zurück, sobald sich die Liste neu aufbaute
+  — nach einer Änderung am Dokument, einem Wechsel des Dokuments oder der
+  Ansicht, am Ende einer Diagramm-Zeichnung —, und die Eingabetaste sprang zum
+  falschen Treffer. Die Auswahl wird jetzt an ihrer Fundstelle festgehalten und
+  in der neuen Liste wiedergefunden; nur eine neue Anfrage setzt sie auf den
+  ersten Treffer. Lag der Fokus auf einer Trefferzeile, bekommt die gewählte
+  Zeile ihn nach dem Neuaufbau zurück, sodass die Pfeiltasten weiter wirken. F3
+  in der Suchleiste verhält sich unverändert.
+- **Eine offene Eingabe im Bereichs-Panel übersteht Änderungen im Bereich**
+  (`4T-002067`). Änderte sich der Bereich, während im Panel «Bereich» das Feld
+  für eine neue Datei oder einen neuen Unterordner offen war — durch eine von
+  außen angelegte Datei oder durch das Echo der eigenen Anlage —, verschwand das
+  Feld samt getipptem Namen. Jetzt bleibt es mit Wert, Fokus und Schreibmarke
+  stehen, während die Liste sich aktualisiert. Fehlt sein Ort danach, weil der
+  Ziel-Ordner gelöscht, zugeklappt oder nicht mehr ausgewählt ist, wird die
+  Eingabe verworfen, und die Statusleiste meldet «Der Zielordner wird nicht mehr
+  angezeigt; die Eingabe wurde verworfen».
+- **Abgeschaltete Bereichs-Verknüpfungen lesen nichts mehr aus dem verknüpften
+  Bereich** (`4T-002069`). War die Erweiterung «Bereichs-Verknüpfungen»
+  abgeschaltet, ließ die Lese-Grenze der Anwendung Dateien aus einem verknüpften
+  Bereich weiter durch, etwa beim Neuladen eines noch geöffneten Dokuments, bei
+  der Wiederherstellung der Sitzung nach einem Neustart oder bei der Übergabe
+  aus einem anderen Fenster. Die Grenze fragt den Schalter jetzt selbst ab:
+  Abgeschaltet gilt allein die eigene Bereichs-Wurzel, und ohne Antwort des
+  Schalters bleibt die Ausnahme geschlossen. Beim Abschalten schließen geöffnete
+  Dokumente aus einem verknüpften Bereich, bei ungespeicherten Änderungen nach
+  der üblichen Rückfrage. Die eingetragenen Verknüpfungen bleiben erhalten.
+- **Unter Linux bleiben Bilder aus einem Ordner anderer Schreibweise außen
+  vor** (`4T-002175`). Unterschied sich der Name eines Ordners vom Ordner des
+  Bereichs oder des Dokuments nur in Groß- und Kleinschreibung (`…/Notizen` und
+  `…/notizen`), erschien ein Bild daraus unter Linux trotzdem in der Anzeige,
+  weil die Grenz-Prüfung der Bilder im Text beide Namen für gleich hielt; unter
+  Linux sind es zwei Ordner. Die Prüfung vergleicht jetzt nach der Regel der
+  Plattform wie die übrige Bereichs-Grenze: unter Linux mit Rücksicht auf die
+  Schreibweise, unter Windows und macOS wie bisher ohne.
+- **Verweise mit Markdown-Endung ziehen beim Umbenennen nach** (`4T-002036`).
+  Ein Wiki-Verweis oder eine Einbettung, die ihr Ziel mit Endung nennt
+  (`[[A.md]]`, `![[A.md#^umsatz]]`), blieb beim Umbenennen des Ziels stehen und
+  zeigte danach ins Leere, obwohl die Anwendung diese Schreibweise auflöst.
+  Jetzt zieht sie nach wie ein Verweis ohne Endung, auch in der Unterseiten-Form;
+  die Endung in ihrer Schreibweise, Anker und Anzeigetext bleiben erhalten.
+  Wiki-Verweis und Karten-Angabe `doc=` folgen dabei derselben Regel. Die
+  Pfad-Form mit Ordner (`[[sub/A.md]]`) verhält sich wie bisher.
+- **Der portable Export wandelt seine Blöcke in jeder Zaun-Form um**
+  (`4T-002037`). Canvas-Fläche, Perspective-Tabelle, Datentabelle und
+  Ereignis-Liste blieben im portablen Export als roher Code-Block stehen, wenn
+  ihr Zaun aus Tilden bestand, vor dem Info-Wort ein Leerzeichen stand oder der
+  Schluss-Zaun länger war als der öffnende, beim Datensatz-Block bei einem
+  Leerzeichen vor dem Info-Wort; die Anzeige zeigt sie in all diesen Formen. Jetzt
+  erkennt der Export jeden dieser Blöcke nach derselben Regel wie die Anzeige.
+  Umgekehrt bleibt ein Block, dessen Info-Wort nur mit dem Namen beginnt (etwa
+  `perspective-tablex`), wie in der Anzeige ein gewöhnlicher Code-Block, statt
+  umgewandelt zu werden.
+- **Code-Beispiele mit verschachtelten Code-Blöcken bleiben wörtlicher Text**
+  (`4T-001912`). Legte ein Dokument einen Code-Block mit längerem Zaun um einen
+  inneren mit kürzerem — etwa ein Markdown-Beispiel, das selbst einen Code-Block
+  zeigt —, endete der äußere Block für den Verweis-Index, das Umbenennen mit
+  Verweis-Anpassung, die Tag-Umbenennung und die Abschnitts-Suche der Einbettung
+  schon an der inneren Zaun-Zeile. Verweise, Schlagworte und Überschriften im
+  Beispiel galten damit als echte: Sie landeten im Index, wurden beim Umbenennen
+  umgeschrieben und bei der Tag-Umbenennung mit geändert. Jetzt endet ein
+  Code-Block an allen diesen Stellen wie in der Anzeige nach der Regel von
+  CommonMark: an einer Zaun-Zeile aus demselben Zeichen, mindestens so lang wie
+  die öffnende und ohne Sprach-Angabe. Ebenfalls wie in der Anzeige öffnen eine
+  mit Tabulator eingerückte Zaun-Zeile und eine Backtick-Zeile mit Backtick in
+  der Sprach-Angabe keinen Block mehr.
+- **Ein Block-Anker unter einer Tabelle meint die ganze Tabelle** (`4T-002018`;
+  Entscheidung des Product Owners vom 2026-10-03). Stand ein Block-Anker `^id`
+  in eigener Zeile unter einer Pipe-Tabelle, bettete `![[Datei#^id]]` nur die
+  letzte Zeile oder gar nichts ein, und der Sprung landete unter der Tabelle.
+  Jetzt meint der Anker dort die ganze Tabelle; Einbettung, Sprungziel, das Panel
+  «Block-Eigenschaften» und das Eigenschaften-Zeichen behandeln ihn gleich, auch
+  in einem Zitat oder Listen-Eintrag. Am Ende einer Tabellen-Zeile meint er wie
+  bisher diese Zeile und ist jetzt auch dort ein Sprungziel. Eine Kennung in der
+  letzten Zelle bleibt, wie bisher, kein Block-Anker.
+- **Tabellen und Code-Blöcke in einem Zitat erscheinen im Live-Modus als
+  Widget** (`4T-002055`; Entscheidung des Product Owners vom 2026-10-03). Eine
+  Pipe-Tabelle in einem Zitat oder einer Hinweis-Box zeigte im Live-Modus kein
+  Gitter, weil ihre Folgezeilen das Zitat-Zeichen `>` mittrugen; ebenso erschien
+  ein Code-Block im Zitat nicht als Widget. Jetzt erscheinen beide wie in der
+  Lese-Ansicht, auch in verschachtelten Zitaten. Klick, Zell-Eingabe, Zellsprung
+  mit der Tabulatortaste und eine neue Zeile am Ende treffen die richtige Stelle
+  und erhalten die Zitat-Zeichen jeder Zeile. Eine Tabelle, die in einem Zitat
+  direkt unter einer Textzeile steht — in einer Hinweis-Box etwa unter der
+  Titel-Zeile —, erkennt jetzt auch der Editor als Tabelle, wie die Lese-Ansicht.
+  Eine Tabelle in einem Listen-Eintrag bleibt unverändert.
+- **Der Hinweis bei fehlendem Einbettungs-Ziel nennt den Namen wie im
+  Dokument** (`4T-002120`). Fand eine Einbettung wie `![[Fehlt]]` ihr Ziel
+  nicht, nannte der Hinweis es mit angehängter Endung («Fehlt.md»), ebenso mit
+  Anker und in einem verknüpften Bereich («@nachbar:Notiz.md»). Jetzt steht dort
+  der Name, wie er im Dokument steht; ein Ziel, das die Endung selbst trägt,
+  nennt sie weiter.
+- **Druck und PDF zeigen alle Zeilen einer großen Datentabelle** (`4T-002054`;
+  Entscheidung des Product Owners vom 2026-09-30). Hatte eine Datentabelle mehr
+  als 1000 Datenzeilen, enthielten Druck und PDF-Export wie die Ansicht nur
+  Kopf, Aggregat-Zeile und den Hinweis auf die Grenze. Jetzt zeichnet die
+  Anwendung solche Tabellen für die Dauer der Ausgabe mit allen Zeilen neu und
+  stellt die Ansicht danach unverändert wieder her; die Grenze gilt allein dem
+  Gitter in der Anwendung. Der portable Export schrieb schon bisher alle Zeilen.
+
+### Geändert
+
+- **«Reiter» meint in den deutschen Texten den Griff** (`4T-001661`;
+  Entscheidung des Product Owners vom 2026-10-03). In Oberfläche,
+  Funktions-Katalog und Handbuch stand «Reiter» an 49 Stellen für das geöffnete
+  Dokument oder eine Ansicht statt für den anklickbaren Streifen. Dort heißt es
+  jetzt «geöffnetes Dokument», «Dokument» oder «Ansicht». Wo der Streifen gemeint
+  ist, bleibt «Reiter», ebenso in den Befehls-Beschriftungen und in den übrigen
+  vier Sprachen. Neun Stellen mit nicht eindeutiger Bedeutung bleiben
+  unverändert, darunter drei Sätze der Nutzen-Seite, die wortgleich auf der
+  Produkt-Webseite stehen.
+- **Das Gitter der Datentabelle folgt dem Schalter «Bearbeiten»**
+  (`4T-002053`; Entscheidung des Product Owners vom 2026-09-30). Bei
+  ausgeschaltetem **Ansicht › Bearbeiten** ließ sich das Gitter einer
+  Datentabelle in der geteilten Ansicht und im Live-Modus weiter bearbeiten, und
+  die Eingabe änderte das Dokument. Jetzt lässt es sich dort wie in der
+  Lese-Ansicht nur ansehen, sortieren und filtern: keine Zell-Eingabe, kein
+  Umschalten eines Wahrheitswerts, kein Hinzufügen oder Löschen von Zeilen; «×»
+  und «Zeile hinzufügen» sind ausgeblendet. Eine beim Ausschalten noch offene
+  Zell-Eingabe wird übernommen; ist ihr Wert ungültig, bleibt die Zelle offen und
+  Bearbeiten eingeschaltet, damit die Eingabe nicht verloren geht.
+- **Nach dem Schließen wird das zuvor aktive Dokument wieder aktiv**
+  (`4T-002106`; Entscheidung des Product Owners vom 2026-10-03). Wurde das
+  aktive Dokument geschlossen, rückte bisher das nächste Dokument im Streifen
+  nach, am Ende des Streifens das letzte — nach «OK» oder «Abbrechen» in den
+  Einstellungen etwa das Dokument ganz rechts statt des zuvor bearbeiteten. Jetzt
+  wird je Spalte das Dokument aktiv, das zuletzt vor ihm aktiv war und noch offen
+  ist; gibt es keines, gilt die bisherige Regel. Das gilt für jedes Dokument und
+  für die Einstellungs-Seite gleich. Das Schließen eines nicht aktiven Dokuments
+  ändert die Auswahl nicht, und die Reihenfolge wird nicht über einen Neustart
+  gespeichert.
+
+### Dokumentation
+
+- **Das Handbuch zu den Korrekturen** (`4T-002089`), je in allen fünf
+  Sprachfassungen. «Mindmap-Ansicht»: Beim Abschalten der Erweiterung kehrt ein
+  geöffnetes Dokument sofort in die Lese-Ansicht zurück. «Kontextmenü», Abschnitt
+  «Tabelle»: Eine eingefügte Spalte erhält in einer Kopfzeile eine Kopfzelle.
+  «Vernetzung»: was der Hinweis sagt, wenn ein eingebettetes Ziel nicht
+  erscheint, und dass aus einem verknüpften Bereich nichts eingebettet wird.
+- **Der Sicherheits-Hinweis zum portablen Export ist berichtigt** (`4T-001918`),
+  Seite «Perspective Table», fünf Sprachfassungen. Der Abschnitt «Marker für die
+  Viewer-Anzeige» sagte, der HTML-Inhalt einer fremden Datei mit Marker würde
+  ausgeführt; seit dem Filter für portable Dokumente stimmt das nicht. Er sagt
+  jetzt, dass der Marker nur die Anzeige von Tabellen und gliedernder
+  Auszeichnung freischaltet, nichts ausgeführt wird, Skripte, Formulare,
+  eingebettete Seiten und Ereignis-Behandlungen entfallen und ein Bild nur
+  eingebettet oder als Bild-Datei neben dem Dokument erscheint. Dazu kommt im
+  Abschnitt «HTML-Export für externe Markdown-Renderer» ein Punkt zu den
+  Aufgaben-Kästchen als Zeichen.
+- **Der Katalog-Text «Kapitel-Datei verschieben» nennt den Menü-Weg**
+  (`4T-001681`), in allen fünf Sprachfassungen zuerst «Datei → Buch und
+  Bücherregal → Kapitel-Datei verschieben…», danach das Kontextmenü des
+  Buch-Panels und die Kommando-Palette.
+- **Das Handbuch zum Schutz von Eingaben und zur Bereichs-Grenze**
+  (`4T-002091`), je in allen fünf Sprachfassungen. «Vernetzung», Abschnitt
+  «Bereichs-Verknüpfungen»: Beim Abschalten der Erweiterung werden geöffnete
+  Dokumente aus einem verknüpften Bereich geschlossen, bei ungespeicherten
+  Änderungen nach der üblichen Rückfrage, und aus einem verknüpften Bereich wird
+  nichts mehr gelesen, auch nicht nach einem Neustart. «Applikationen, Fenster
+  und Bereiche», Abschnitt «Datei-Verwaltung im Bereichs-Panel», und der
+  Katalog-Text «Ordner und Datei im Bereichs-Panel anlegen»: Eine offene Eingabe
+  bleibt bei Änderungen im Bereich stehen und wird ohne Ziel-Ordner mit Hinweis
+  verworfen. «Werkzeuge», Abschnitt «Wo gesucht wird»: Die Pfeiltasten bewegen
+  die Auswahl der Trefferliste, die Eingabetaste springt zum gewählten Treffer,
+  und bei unveränderter Suche bleibt die Auswahl erhalten.
+- **Das Handbuch zum Block-Anker an einer Tabelle** (`4T-002018`), je in allen
+  fünf Sprachfassungen. «Vernetzung»: Eine Kennung am Ende einer Tabellen-Zeile
+  meint diese Zeile, eine Kennung in eigener Zeile unter der Tabelle, mit
+  Leerzeile davor und danach, die ganze Tabelle, auch beim Einbetten (Abschnitt
+  «Wiki-Embeds»). Der Katalog-Text «Block-Anker» nennt die eigene Zeile unter
+  einer Tabelle.
+- **Das Handbuch zur Datentabelle** (`4T-002054`, `4T-002053`), Seite
+  «Perspective Datatable», je in allen fünf Sprachfassungen. Abschnitt
+  «Grenzen»: «Bei mehr als 1000 Datenzeilen» statt «Ab 1000 Datenzeilen», wie die
+  Anwendung rechnet; der Satz, dass der Export die Tabelle mit allen Zeilen
+  ausgibt, trifft jetzt auch für Druck und PDF zu. Abschnitt «Bearbeiten im
+  Grid»: Bearbeitbar ist das Grid nur, solange **Ansicht › Bearbeiten**
+  eingeschaltet ist; sonst lässt es sich nur ansehen, sortieren und filtern.
+- **Die Handbuch-Durchsicht zu den Nachzüglern** (`4T-002225`), fünf
+  Sprachfassungen: Katalog und Handbuch sind nach allen elf Aufgaben des
+  Bündels gegen das Verhalten der Anwendung gelesen; die Änderungen an den
+  Seiten «Vernetzung» und «Perspective Datatable» stehen in den beiden
+  Einträgen davor, die Seite «Ansichten und Darstellung» trifft für Tabellen in
+  Zitaten ohne Änderung zu. Neu sagt die Seite «Applikationen, Fenster und
+  Bereiche» im Abschnitt zur Position neuer Tabs, welches Dokument nach dem
+  Schließen aktiv wird (die Regel aus `4T-002106`), und der Katalog-Eintrag
+  «Tabs und Spalten» nennt sie ebenfalls.
+
+### i18n
+
+- **Französisch heißt der Bereich durchgehend «zone»** (`4T-001782`). An 80
+  Stellen in Oberfläche, Funktions-Katalog und zwölf Handbuch-Seiten stand
+  «espace», wo der Bereich gemeint war, an anderen schon «zone». Jetzt steht
+  einheitlich «zone», mit Artikel und Endungen mitgezogen («Graphe de la zone»
+  in Menü, Katalog und Handbuch). «espace de travail» für den Arbeitsbereich und
+  die übrigen Bedeutungen von «espace» bleiben.
+- **Neue und geänderte Schlüssel** in allen fünf Sprachfassungen: fünf
+  Schlüssel `exchange.import.done.*` für den Bericht nach dem Import
+  (`4T-002094`), `embed.linkedArea` neu und `embed.notFound` neu gefasst
+  (`4T-002092`), `areaPanel.inputDiscarded` neu für den Hinweis beim Verwerfen
+  einer offenen Eingabe im Bereichs-Panel (`4T-002067`),
+  `help.feature.blockAnchors` neu gefasst für die Kennung in eigener Zeile unter
+  einer Tabelle (`4T-002018`), `help.feature.tabs` um die Schließ-Regel ergänzt
+  (`4T-002225`).
+
+### Intern
+
+- **Die Endungs-Erkennung der Anzeige-Namen liegt an einer Stelle**
+  (`4T-001899`). Zwei gleichlautende Listen der Markdown-Endungen sind zu einer
+  geworden; Reiter, Dateiliste, Graph, Schnell-Öffnen, Verweis-Vorschläge,
+  Eigenschaften, Gruppen-Kopf der Bereichs-Suche und Regal-Überschrift lesen
+  dieselbe Liste und dieselbe Funktion. Ein Wächter hält die umgestellten
+  Dateien frei von einer eigenen Regel. Sichtbar ändert sich nichts.
+- **Ein Kommentar zum portablen Export der Journal-Zeitleiste ist berichtigt**
+  (`4T-002049`): Er beschrieb Perspective-Table und Datatable noch als
+  Pipe-Tabellen, sie werden aber zu eingebetteten HTML-Tabellen. Kein Verhalten
+  berührt.
+- **Kalender-Jahr und Journal-Kontext nehmen eine Bezugs-Zeit an**
+  (`4T-002073`), statt still auf die Wanduhr zurückzufallen; die zweite,
+  inhaltsgleiche Fassung der Kontext-Ermittlung im Navigations-Block eines
+  Journals ist entfallen. Die Prüffälle laufen dafür ohne gestellte Uhr.
+  Sichtbar ändert sich nichts.
+- **Die Kennungs-Prüfung der Block-Anker liegt an einer Stelle, ein Wächter
+  hält sie dort** (`4T-002057`). Die beiden letzten eigenen Prüfungen einer
+  Anker-Kennung, im Render-Weg der Wiki-Verweise und in der Live-Ansicht,
+  lesen jetzt die Regel aus ihrer Heimat. Ein neuer Wächter
+  (`test/unit/anker-kopien.test.js`) weist nach dem Muster des
+  Zaun-Kopien-Wächters jede neue eigene Kopie der Anker-Erkennung unter `src/`
+  ab; seine Ausnahme-Liste ist leer, er fährt in den Prüf-Ausschnitten der
+  Änderungsklassen mit, und der Quellcode-Export lässt ihn aus. Sichtbar ändert
+  sich nichts.
+- **Die Ausnahme-Liste der Zaun-Kopien ist um sieben Dateien kürzer**
+  (`4T-002037`, `4T-001912`). Portabler Export, Pipeline-Kern, Einbettung,
+  Index-Parser, Verweis-Umschreibung, Tag-Erkennung und Link-Scan tragen keine
+  eigene Zaun-Erkennung mehr, der Ausdruck `FENCE_RE` ist entfallen, und der
+  Wächter weist dort jede neue Kopie ab.
+- **Die Klassen-Karte der Prüf-Ausschnitte kennt die neuen Prüfdateien**
+  (`4T-002018`, `4T-002055`, `4T-002120`, `4T-002054`, `4T-002053`,
+  `4T-002057`), wie es die Zuordnungs-Messung verlangt; die Modul-Karte der
+  Architektur nennt die beiden neuen Module des Anzeige-Prozesses (`4T-002106`,
+  `4T-002055`).
+- **Der Nachzügler des vorigen Releases** (Sammeltask `4T-002287` des Zuges
+  `3E-000362`). Nach der Auslieferung von 1.149.0 hat der Abschluss des
+  Sammeltasks die Bildschirmfotos der Produkt-Webseite erneuert; sein Betreff
+  nennt den dabei angelegten Pflege-Vorgang `4T-002314` und den offenen Punkt,
+  der in `3E-000349` verortet ist, von denen keiner zu diesem Zug gehört. Der
+  Commit liegt seither auf dem Integrationsstand und steht hier, weil er
+  Dateien der Webseite berührt; kein Anwendungs-Code berührt, kein
+  Anwender-Text nötig.
+
 ## [1.149.0.3972] - 2026-10-17 — Präsentations-Ansicht Stufe 2: Referenten-Ansicht, Übersicht und eigene Themes
 
 Zug 3E-000362

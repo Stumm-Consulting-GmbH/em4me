@@ -259,12 +259,13 @@ Mit **Datei → Weitere Datei-Funktionen → Exportieren → Portables Markdown�
 - **Accessibility-`scope`** auf Header-Zellen bleibt erhalten.
 - **Verschachtelung**: bis zu drei Ebenen werden rekursiv mitkonvertiert.
 - **Inline-Formatierung in Zellen** (fett, kursiv, Code, Links) wird zu HTML konvertiert, damit auch sie in fremden Renderern korrekt erscheint.
+- **Aufgaben-Kästchen** erscheinen in der portablen Datei als Zeichen: ☐ offen, ☑ erledigt, ein erweiterter Zustand in seiner Klammerform wie `[/]` — in Zellen wie in gewöhnlichen Aufgabenlisten, damit der Zustand in jedem Programm lesbar bleibt.
 
 #### Marker für die Viewer-Anzeige
 
 Damit die exportierte Datei **auch in EM4me** als Tabelle gerendert wird (statt als Quelltext mit `<table>`-Tags), fügt der Konverter am Datei-Anfang den Marker `<!-- perspective-portable -->` ein. Der Viewer erkennt diesen Marker und schaltet die Datei in einen HTML-fähigen Render-Modus.
 
-**Sicherheits-Hinweis**: reguläre `.md`-Dateien werden weiterhin ohne HTML-Rendering geöffnet — kein HTML aus dem Markdown wird ausgeführt. Erst der Marker schaltet das HTML-Rendering frei. Bei einer fremden `.md`-Datei mit diesem Marker (Edge-Case) musst du der Quelle vertrauen, weil der HTML-Inhalt dort ausgeführt würde.
+**Sicherheits-Hinweis**: reguläre `.md`-Dateien werden weiterhin ohne HTML-Rendering geöffnet — kein HTML aus dem Markdown wird ausgeführt. Erst der Marker schaltet das HTML-Rendering frei, und auch dann nur für die Anzeige von Tabellen und gliedernder Auszeichnung wie Listen, Überschriften und Code-Blöcken. Ausgeführt wird nichts, auch nicht in einer fremden `.md`-Datei mit diesem Marker: Skripte, Formulare, eingebettete Seiten und Ereignis-Behandlungen werden entfernt, und ein Bild darin zeigt nur ein eingebettetes Bild oder eine Bild-Datei neben dem Dokument, nie eine Adresse im Netz oder auf einer Freigabe.
 
 ## Sortierung, Status-Hervorhebung und Spalten-Default
 

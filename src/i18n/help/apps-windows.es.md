@@ -34,6 +34,8 @@ Si una acción abre varios archivos a la vez, se colocan detrás del origen en s
 
 Todas las aperturas **sin** origen siguen colocándose al final de la barra: diálogo de archivos, paleta de comandos, marcadores, paneles, lista de archivos del área, así como el manual y los ajustes.
 
+Al cerrar el documento activo, vuelve a estar activo el documento de la misma columna que estaba activo antes que él; si entretanto también se ha cerrado, el que estaba activo antes, y solo cuando ninguno de ellos sigue abierto, el contiguo en la barra. Lo mismo vale para el manual y los ajustes: tras «OK» o «Cancelar», vuelve a estar activo el documento que lo estaba antes de ellos.
+
 ## Grupos de pestañas
 
 Las pestañas pueden reunirse en grupos con nombre y color: los miembros permanecen juntos detrás de una **cabecera de grupo** coloreada en la barra de pestañas, y sus pestañas llevan un subrayado en el color del grupo.
@@ -121,7 +123,7 @@ El panel «Área» muestra el área como estructura de carpetas en la barra late
 
 ### Gestión de archivos en el panel del área
 
-El clic derecho gestiona el conjunto de archivos sin salir de la aplicación. Una **fila de carpeta** ofrece dos entradas: **Nueva subcarpeta…** y **Nuevo archivo Markdown…**. Ambas piden el nombre in situ —el nombre de la carpeta en una fila bajo la carpeta sobre la que se ha hecho clic, el del archivo en la cabecera de la lista de archivos— y crean el elemento en la carpeta **sobre la que se ha hecho clic**, aunque en ese momento esté seleccionada otra. A un nombre de archivo sin extensión se le añade la extensión Markdown; el archivo nuevo se abre y pasa por la regla de carpeta de las plantillas como cualquier otra creación. Un nombre ya usado, un nombre que el sistema de archivos no permite y un nombre vacío se comunican antes de crear nada; Escape cancela y no deja nada.
+El clic derecho gestiona el conjunto de archivos sin salir de la aplicación. Una **fila de carpeta** ofrece dos entradas: **Nueva subcarpeta…** y **Nuevo archivo Markdown…**. Ambas piden el nombre in situ —el nombre de la carpeta en una fila bajo la carpeta sobre la que se ha hecho clic, el del archivo en la cabecera de la lista de archivos— y crean el elemento en la carpeta **sobre la que se ha hecho clic**, aunque en ese momento esté seleccionada otra. A un nombre de archivo sin extensión se le añade la extensión Markdown; el archivo nuevo se abre y pasa por la regla de carpeta de las plantillas como cualquier otra creación. Un nombre ya usado, un nombre que el sistema de archivos no permite y un nombre vacío se comunican antes de crear nada; Escape cancela y no deja nada. Si el conjunto de archivos cambia mientras la entrada está abierta, esta se mantiene con el nombre escrito y usted sigue escribiendo en el mismo punto; si su carpeta de destino ya no se muestra, por ejemplo porque entretanto se ha eliminado, la entrada se descarta con un aviso.
 
 Una **fila de archivo** ofrece **Copiar**, **Cambiar el nombre…** y **Eliminar…** al final del menú, separados de las entradas superiores. Están ordenados por intervención creciente: copiar deja intacta la plantilla, cambiar el nombre modifica su nombre, eliminar la quita.
 

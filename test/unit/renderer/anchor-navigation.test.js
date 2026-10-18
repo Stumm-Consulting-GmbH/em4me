@@ -33,7 +33,7 @@ vi.mock(
   }),
 );
 
-const { navigateToAnchorInPane } =
+const { navigateToAnchorInPane, findBlockAnchorLine } =
   await import('../../../src/renderer/modules/views/anchor-navigation.js');
 const { state } = await import('../../../src/renderer/modules/app/app-state.js');
 const { paneEditors } = await import('../../../src/renderer/modules/editor/editor.js');
@@ -205,5 +205,37 @@ describe('Editor: Datensatz-Zeile als dritter Suchweg (AK2)', () => {
     editor(TABELLE);
     expect(() => navigateToAnchorInPane(0, 'r-09999')).not.toThrow();
     expect(auftraege).toHaveLength(0);
+  });
+});
+
+// 4T-002057 (Epic 3E-000360): Charakterisierung der Anker-Suche des Editors
+// (`findBlockAnchorLine`). Seit 4T-002072 liest sie die Heimat
+// (src/shared/block-anchors.js, `lineById`); die Fälle halten den erreichten
+// Stand fest, damit eine neue eigene Erkennung an dieser Stelle auffällt.
+describe('findBlockAnchorLine: Anker-Erkennung (4T-002057, Charakterisierung)', () => {
+  const zeileVon = (text, id) =>
+    findBlockAnchorLine({ state: EditorState.create({ doc: text }) }, id);
+
+  it('ein Anker am Zeilenende liefert seine Zeile (1-basiert)', () => {
+    expect(zeileVon('Davor.\n\nDer Absatz. ^ziel\n', 'ziel')).toBe(3);
+  });
+
+  it('eine Anker-Zeile allein unter einem Code-Block liefert ihre Zeile', () => {
+    expect(zeileVon(['```js', 'a = 1;', '```', '^code', ''].join('\n'), 'code')).toBe(4);
+  });
+
+  it('ein Anker in einem Code-Beispiel oder im Frontmatter zählt nicht', () => {
+    const text = ['---', 'notiz: x ^ziel', '---', '```', 'Beispiel ^ziel', '```', 'Echt. ^ziel'];
+    expect(zeileVon(text.join('\n'), 'ziel')).toBe(7);
+  });
+
+  it('von zwei gleichen Kennungen zählt das erste Vorkommen', () => {
+    expect(zeileVon('Erster. ^d\n\nZweiter. ^d\n', 'd')).toBe(1);
+  });
+
+  it('ohne Leerraum vor dem Zeichen, ohne Kennung oder ohne Ansicht: 0', () => {
+    expect(zeileVon('Text^ziel\n', 'ziel')).toBe(0);
+    expect(zeileVon('Absatz. ^da\n', 'fehlt')).toBe(0);
+    expect(findBlockAnchorLine(null, 'x')).toBe(0);
   });
 });

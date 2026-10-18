@@ -93,6 +93,7 @@
   "areaPanel.newFolderError": "Le dossier n'a pas pu être créé",
   "areaPanel.newNameEmpty": "Veuillez saisir un nom",
   "areaPanel.newNameInvalid": "Le nom contient des caractères non autorisés",
+  "areaPanel.inputDiscarded": "Le dossier cible n'est plus affiché ; la saisie a été abandonnée",
   "area.outsideTitle": "Hors de la zone",
   "area.outsideOpenMessage": "La sélection se trouve hors de la zone et ne sera pas ouverte.",
   "area.outsideSaveMessage": "L'emplacement choisi se trouve hors de la zone. Veuillez choisir un emplacement dans la zone."

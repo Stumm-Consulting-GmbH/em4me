@@ -374,12 +374,17 @@ test.describe('KS: Konflikt-Schutz beim Speichern (4T-000945)', () => {
   // Befehl des Menü-Eintrags «Datei → Speichern», derselbe wie bei Strg+S
   // (src/main/menu/menu-apply.js, `save`).
   //
-  // KS-07 und KS-08 sichern den GEWÜNSCHTEN Zustand zu und sind bis zur Behebung
-  // als erwartet scheiternd markiert. Die Markierung steht bewusst im Rumpf und
-  // erst NACH den Vorbedingungen: Scheitert eine Vorbedingung (der zweite Befehl
-  // kam nicht während des ersten Speicherns), ist das ein gewöhnliches Rot und
-  // wird nicht als «erwartet gescheitert» verbucht. Wer behebt, entfernt die
-  // Zeile mit `test.fail` und hat damit die Zusicherung.
+  // KS-07, KS-08, KS-10 und KS-11 sichern den GEWÜNSCHTEN Zustand zu. Bis zur
+  // Behebung in 4T-001923 (2026-10-10) waren sie als erwartet scheiternd
+  // markiert; seither gelten sie ohne Markierung. Die Vorbedingungen stehen
+  // weiterhin vor den Zusicherungen: Scheitert eine (der zweite Befehl kam nicht
+  // während des ersten Speicherns), ist die gestellte Lage nicht entstanden.
+  //
+  // Die Behebung: Speichervorgänge desselben Dokuments laufen nacheinander
+  // (save-export.js, Reihung je Pfad), die Erwartung folgt dem geschriebenen
+  // Stand statt dem Puffer, und der Eigen-Schreib-Merker kennt je Pfad mehrere
+  // eigene Stände (self-write.js), deren älterer mit dem Abschluss des jüngeren
+  // verfällt (atomic-write.js).
 
   // Gestellte Dauer eines Speichervorgangs und Abstand der beiden Befehle in
   // KS-07: die Werte der Messung, bei denen die Frage in 20 von 20 Durchgängen kam.
@@ -535,8 +540,6 @@ test.describe('KS: Konflikt-Schutz beim Speichern (4T-000945)', () => {
       expect(z.laufendBeiSendung[0]).toBe(0);
       expect(z.laufendBeiSendung[1]).toBeGreaterThanOrEqual(1);
 
-      // Bekannter Zustand bis zur Behebung, Vorgang 4T-001923.
-      test.fail(true, 'Bekannter Zustand bis zur Behebung, Vorgang 4T-001923.');
       expect(await konfliktDialogCalls(app)).toBe(0);
       expect(fs.readFileSync(datei, 'utf8')).toContain('Eigene Ergaenzung');
       await expect(page.locator(SEL.dirtyTab0)).toHaveCount(0);
@@ -571,8 +574,6 @@ test.describe('KS: Konflikt-Schutz beim Speichern (4T-000945)', () => {
       expect(z.laufendBeiSendung[0]).toBe(0);
       expect(z.laufendBeiSendung[1]).toBeGreaterThanOrEqual(1);
 
-      // Bekannter Zustand bis zur Behebung, Vorgang 4T-001923.
-      test.fail(true, 'Bekannter Zustand bis zur Behebung, Vorgang 4T-001923.');
       expect(await konfliktDialogCalls(app)).toBe(0);
       expect(fs.readFileSync(datei, 'utf8')).toContain('Vor dem Speichern und danach');
       await expect(page.locator(SEL.dirtyTab0)).toHaveCount(0);
@@ -619,8 +620,6 @@ test.describe('KS: Konflikt-Schutz beim Speichern (4T-000945)', () => {
       expect(aufPlatte).not.toContain('und danach');
       expect(await konfliktDialogCalls(app)).toBe(0);
 
-      // Bekannter Zustand bis zur Behebung, Vorgang 4T-001923.
-      test.fail(true, 'Bekannter Zustand bis zur Behebung, Vorgang 4T-001923.');
       await expect(page.locator(SEL.dirtyTab0).first()).toBeVisible({ timeout: 1000 });
     } finally {
       await nimmSpeicherDauerZurueck(app).catch(() => {});
@@ -746,13 +745,105 @@ test.describe('KS: Konflikt-Schutz beim Speichern (4T-000945)', () => {
       expect(umb[1].start - umb[0].ende).toBeLessThan(HOECHSTER_ABSTAND_MS);
       expect((await speicherStand(app)).konflikte).toBe(0);
 
-      // Bekannter Zustand bis zur Behebung, Vorgang 4T-001923.
-      test.fail(true, 'Bekannter Zustand bis zur Behebung, Vorgang 4T-001923.');
       expect(await konfliktDialogCalls(app)).toBe(0);
       expect(fs.readFileSync(datei, 'utf8')).toContain('Erste Ergaenzung und mehr');
       await expect(page.locator(SEL.dirtyTab0)).toHaveCount(0);
     } finally {
       await gibUmbenennenFrei(app).catch(() => {});
+      await nimmSpeicherDauerZurueck(app).catch(() => {});
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+
+  // Hintergrund-Weg (Nachtrag zu 4T-001923 vom 2026-10-07): Das automatische
+  // Speichern schickte dieselbe Erwartung wie das Speichern von Hand, ohne Reihung
+  // mit ihm, und zog die Erwartung danach auf den Puffer-Stand nach statt auf den
+  // geschriebenen. Der Fall prüft beides an einem gestellten, verlangsamten
+  // automatischen Speichern:
+  //   1. Was während des automatischen Speicherns getippt wird, bleibt danach als
+  //      ungespeichert markiert (AK9 im Hintergrund-Weg).
+  //   2. «Speichern» von Hand während eines automatischen Speicherns bringt keine
+  //      Rückfrage, und die Datei trägt danach den neuesten Stand.
+  // Das Ende des automatischen Speicherns in der Oberfläche erkennt der Fall am
+  // Hinweis «Gespeichert», den performAutoSave als letzten Schritt zeigt.
+  const AUTO_SPEICHER_DAUER_MS = 1000;
+  const NEUESTER_STAND = 'Vor dem Speichern und danach und mehr zuletzt';
+
+  test('KS-12 Speichern von Hand während des automatischen Speicherns: keine Rückfrage, der neueste Stand steht auf der Platte (4T-001923)', async () => {
+    const dir = makeDir('scg-md-ks12-');
+    const datei = path.join(dir, 'Notiz.md');
+    fs.writeFileSync(datei, AUSGANG, 'utf8');
+
+    const { app, page, userData } = await launchApp({
+      args: [datei],
+      settings: { language: 'de', autoSave: true },
+    });
+    try {
+      await oeffneZumBearbeiten(page);
+      await expect(page.locator(SEL.editorContent0)).toContainText('Erste Zeile');
+      await stubKonfliktDialog(app, 1); // 'Eigene Version behalten'
+      await stelleSpeicherDauer(app, AUTO_SPEICHER_DAUER_MS);
+      const hinweis = page.locator('#statusbar-hint');
+
+      // Teil 1: Eingabe während des ersten automatischen Speicherns.
+      await tippeAmEnde(page, 'Vor dem Speichern');
+      // Eng abgefragt: Das Speichern ist nur AUTO_SPEICHER_DAUER_MS lang offen.
+      await expect
+        .poll(async () => (await speicherStand(app)).laufend, { intervals: [20], timeout: 15000 })
+        .toBe(1);
+      await page.keyboard.type(' und danach');
+      // Vorbedingung: Die Eingabe war fertig, während das Speichern noch lief.
+      const waehrend = await speicherStand(app);
+      expect(waehrend.gestartet).toBe(1);
+      expect(waehrend.laufend).toBe(1);
+      await expect(hinweis).toHaveText('Gespeichert', { timeout: 15000 });
+      const nachErstem = fs.readFileSync(datei, 'utf8');
+      expect(nachErstem).toContain('Vor dem Speichern');
+      expect(nachErstem).not.toContain('und danach');
+      await expect(page.locator(SEL.dirtyTab0).first()).toBeVisible({ timeout: 1000 });
+
+      // Teil 2: Eine weitere Eingabe löst das nächste automatische Speichern
+      // aus; währenddessen weiter tippen und von Hand speichern. Die Eingabe
+      // vorab macht Teil 2 unabhängig vom Ausgang von Teil 1.
+      await page.keyboard.type(' und mehr');
+      await expect
+        .poll(
+          async () => {
+            const z = await speicherStand(app);
+            return z.gestartet === 2 && z.laufend === 1;
+          },
+          { intervals: [20], timeout: 15000 },
+        )
+        .toBe(true);
+      await page.keyboard.type(' zuletzt');
+      await sendeSpeichern(app);
+      await expect
+        .poll(
+          async () => {
+            const z = await speicherStand(app);
+            return (
+              z.gestartet >= 3 &&
+              z.laufend === 0 &&
+              z.konfliktOffen === 0 &&
+              fs.readFileSync(datei, 'utf8').includes(NEUESTER_STAND)
+            );
+          },
+          { timeout: 15000 },
+        )
+        .toBe(true);
+
+      // Vorbedingung: Der Befehl von Hand kam, während das automatische
+      // Speichern lief.
+      const z = await speicherStand(app);
+      expect(z.laufendBeiSendung.length).toBe(1);
+      expect(z.laufendBeiSendung[0]).toBeGreaterThanOrEqual(1);
+
+      expect(z.konflikte).toBe(0);
+      expect(await konfliktDialogCalls(app)).toBe(0);
+      expect(fs.readFileSync(datei, 'utf8')).toContain(NEUESTER_STAND);
+      await expect(page.locator(SEL.dirtyTab0)).toHaveCount(0);
+    } finally {
       await nimmSpeicherDauerZurueck(app).catch(() => {});
       await closeApp(app, userData, { force: true });
       cleanupDir(dir);

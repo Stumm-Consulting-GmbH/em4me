@@ -160,7 +160,7 @@
   "help.featureAccess.bookToc": "View → Sidebar → Panels → Book; Book button in the status-bar strip; command palette",
   "help.featureAccess.bookStructure": "book panel: dragging the marker in front of a chapter name; on the focused entry Alt+↑ and Alt+↓ to reorder, Alt+→ and Alt+← to nest and unnest; context menu “New chapter”, “Link in”, “Unlink”",
   "help.featureAccess.bookReading": "forward and back buttons in the header of the book panel; command palette (default Ctrl+Alt+Page Down and Ctrl+Alt+Page Up)",
-  "help.featureAccess.bookMoveFile": "context menu of an entry in the book panel → “Move chapter file…”; command palette",
+  "help.featureAccess.bookMoveFile": "File menu → Book and Bookshelf → Move chapter file…; context menu of an entry in the book panel → “Move chapter file…”; command palette",
   "help.featureAccess.bookRepair": "context menu of a missing entry in the book panel → “Reassign…” and “Unlink”",
   "help.featureAccess.bookshelf": "File menu → Book and Bookshelf → Open Bookshelf…, New Bookshelf…, Close Bookshelf; opening the shelf file; File → Settings… → Current bookshelf → Own details",
   "help.featureAccess.shelfView": "opens when a bookshelf is opened; tiles/rows switch in the view; File → Settings… → Current bookshelf → Own details → Display",

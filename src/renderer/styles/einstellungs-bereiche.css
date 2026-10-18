@@ -461,9 +461,11 @@
   background: transparent;
   border: 1px dashed var(--error, #c0392b);
 }
+/* 4T-002095: halbdurchsichtig, damit die Markierung (Ebene unter dem Text)
+   über dem Ausdruck sichtbar bleibt; Wächter test/unit/editor-markierung-deckend. */
 .cm-inline-calc-marker {
   color: var(--fg-muted);
-  background: var(--hover);
+  background: color-mix(in srgb, var(--hover) 70%, transparent);
   border-radius: 3px;
 }
 /* 4T-000545 (Epic 3E-000097): Picker fuer benutzerdefinierte Kalender — Kopf-

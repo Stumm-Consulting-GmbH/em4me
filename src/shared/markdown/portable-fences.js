@@ -33,84 +33,102 @@ const { convertPerspectiveEventsBlockToHtml } = require('./perspective-events.js
 const { convertPerspectiveRecordsBlockToHtml } = require('./perspective-records-html.js');
 const { RECORD_FENCE } = require('../database/record-block.js');
 // 4T-001803 (Epic 3E-000291): das gemeinsame Urteil «Öffner der obersten Ebene».
-// Es liegt in einem abhängigkeitsfreien Nachbar-Modul, weil außer den vier
-// Konstrukten hier auch die Fläche im Pipeline-Kern und die beiden
-// Journal-Blöcke unter src/shared/ danach fragen.
-const { fenceOeffnerOffsets } = require('./fence-level.js');
+// 4T-002037 (Epic 3E-000360): Seither kommt von dort die ganze Zaun-Regel —
+// Öffnung und Schluss eines Blocks —, und die Ersetzungen führen keinen eigenen
+// Zaun-Ausdruck mehr.
+const { zaunOeffnung, schliesstZaun } = require('./fence-level.js');
 // 4T-002072 (Epic 3E-000192), Nachbesserung F5: die Heimat der Block-Kennungen,
 // für die Frage, ob unter einer Datentabelle schon die Zeile ihres Namens steht.
 const { extractBlockAnchors } = require('../block-anchors.js');
 
-// Fence-Erkennung: öffnender Zaun in Spalte 0 bis 3, Infostring bis zum
-// Zeilenende, Rumpf bis zum gleich langen schließenden Zaun. Der Name steht als
-// Parameter, damit der Datensatz-Block seine Kennung aus dem Format-Modul
-// nimmt statt sie hier ein zweites Mal zu führen.
-function fenceRegexFuer(name) {
-  return new RegExp('^( {0,3}`{3,})' + name + '[^\\n]*\\n([\\s\\S]*?)\\n\\1\\s*$', 'gm');
+// 4T-002037 (Epic 3E-000360): **Erkannt wird jedes Konstrukt nach der
+// Zaun-Regel der Anwendung** (src/shared/markdown/fence-level.js), nicht mehr
+// über einen eigenen Ausdruck je Konstrukt. Bis dahin verlangten Tabelle,
+// Datentabelle, Ereignis-Liste und die Fläche einen Backtick-Zaun, das Info-Wort
+// unmittelbar nach dem Zaun und einen Schluss-Zaun, der dem öffnenden genau
+// glich; der Datensatz-Block (4T-001833) ließ kein Leerzeichen vor dem Info-Wort
+// zu. Die Ansicht zeigt das Konstrukt in jeder dieser Formen, der Export ließ es
+// in den übrigen als Code-Block stehen. Umgekehrt wandelte der Export ein
+// Info-Wort um, das mit dem Namen nur beginnt (`perspective-tablex`), das die
+// Ansicht als gewöhnlichen Code-Block zeigt. Seither gilt für alle fünf:
+// Öffner ist eine Zaun-Zeile der obersten Ebene aus Backticks oder Tilden, deren
+// Sprache (erstes Wort des Infostrings) der Name ist; Schluss ist die erste
+// Zeile, die nach der Regel schließt — dasselbe Zeichen, mindestens so lang,
+// ohne Infostring. Ein Block ohne Schluss bleibt wie bisher stehen.
+//
+// **Der Ausklang hinter dem Schluss-Zaun ist der bisherige** und je Konstrukt
+// verschieden, damit die Ausgabe um den Block zeichengleich bleibt: Die vier
+// HTML-Konstrukte nehmen wie bisher Leerraum bis vor die letzte
+// Leerzeilen-Grenze mit (`\s*$`), weil sich ein HTML-Block vom folgenden Absatz
+// von selbst trennt; die Fläche setzt Markdown ein und nimmt allein Leerzeichen
+// und Tabulatoren der Schluss-Zeile mit (`[ \t]*$`, Begründung in markdown.js).
+const AUSKLANG = Object.freeze({
+  leerraum: /\s*$/my,
+  zeile: /[ \t]*$/my,
+});
+
+// Ende des Treffers: hinter der Schluss-Sequenz der Ausklang, gemessen wie im
+// bisherigen Ausdruck an derselben Stelle. Trägt er nicht (ein Leerraum-Zeichen,
+// das der Ausklang `zeile` nicht kennt), endet der Treffer am Zeilenende vor
+// einem `\r`.
+function trefferEnde(src, zeilenStart, zeilenEnde, zeile, ausklang) {
+  const eigene = zaunOeffnung(zeile);
+  const einrueckung = zeile.length - zeile.trimStart().length;
+  const sequenzEnde = zeilenStart + einrueckung + eigene.laenge;
+  const re = AUSKLANG[ausklang] || AUSKLANG.leerraum;
+  re.lastIndex = sequenzEnde;
+  const m = re.exec(src);
+  if (m) return sequenzEnde + m[0].length;
+  return src.charAt(zeilenEnde - 1) === '\r' ? zeilenEnde - 1 : zeilenEnde;
 }
 
-const TABLE_RE = fenceRegexFuer('perspective-table');
-// 4T-000418 (Epic 3E-000079): perspective-datatable wird beim Export zur
-// statischen HTML-Tabelle (alle Zeilen, mit Aggregat-Zeile); bei
-// Struktur-Fehlern bleibt der Fence unveraendert. Wie perspective-table an die
-// eigene Erweiterung gebunden (PO-Festlegung 2026-07-09): deaktiviert wird
-// nicht konvertiert.
-const DATATABLE_RE = fenceRegexFuer('perspective-datatable');
-// 4T-000512 (Epic 3E-000092): perspective-events (Art 1) wird zur statischen
-// Tabelle mit Staffelung zum Export-Stichtag; Art 2 (query-Direktive) und
-// Struktur-Fehler bleiben unveraendert (PO-Festlegung 2026-07-15).
-const EVENTS_RE = fenceRegexFuer('perspective-events');
-// 4T-001548 (Epic 3E-000251, E29.2): der Datensatz-Block der Datenbank,
-// vollständig und ohne das Anzeige-Fenster der Anwendung.
+// Ersetzt alle Blöcke der Sprache `sprache`, die auf der obersten Ebene stehen.
+// Liefert den neuen Text und ob mindestens ein Block tatsächlich konvertiert
+// hat. Ein Block in einem äußeren Zaun ist zitierter Text und bleibt stehen
+// (4T-001803); ein Block ohne Schluss ebenso.
 //
-// 4T-001833 (Epic 3E-000254): **Der Datensatz-Block schließt nach der
-// Standard-Regel** und nicht nur an einer Zeile, die dem öffnenden Zaun
-// gleicht. Öffnend sind Backticks ODER Tilden (Gruppe 2 hält das Zeichen);
-// schließend ist die erste Zeile mit bis zu drei Leerzeichen Einrückung, der
-// öffnenden Sequenz, beliebig vielen weiteren Zeichen derselben Art und danach
-// nur Leerraum. Eine kürzere innere Zeile oder eine mit Sprach-Angabe beendet
-// den Block damit nicht. Der Rumpf steht in Gruppe 3. Der Schluss `\s*$` ist
-// bewusst der bisherige: Er nimmt wie zuvor eine folgende Leerzeile mit in den
-// Treffer, und die Ausgabe um den Block bleibt zeichengleich (Snapshot des
-// portablen Exports). Die drei übrigen Arten
-// bleiben bei ihrer bisherigen Erkennung; sie sind nicht Gegenstand des
-// Vorgangs.
-const RECORDS_RE = new RegExp(
-  '^ {0,3}((`|~)\\2{2,})' + RECORD_FENCE + '[^\\n]*\\n([\\s\\S]*?)\\n {0,3}\\1\\2*\\s*$',
-  'gm',
-);
-const RECORDS_INHALT_GRUPPE = 3;
-
-// Ersetzt alle Fences einer Art, die auf der obersten Ebene stehen. Liefert den
-// neuen Text und ob mindestens eine Fence tatsächlich konvertiert hat.
-//
-// Die Offsets werden je Durchgang am **übergebenen** Text berechnet, weil jede
-// vorangegangene Ersetzung die folgenden verschiebt. Ein Treffer, der nicht
-// selbst ein Block der obersten Ebene ist, bleibt als Rohtext stehen; das ist
-// derselbe Ausgang wie beim `null` eines Konverters.
-//
-// 4T-001833 (Epic 3E-000254): `inhaltGruppe` nennt die Gruppe des Rumpfes; ohne
-// Angabe ist es wie bisher die zweite. Der Datensatz-Block braucht eine
-// zusätzliche Gruppe für das Zaun-Zeichen. Ausdrücke mit benannten Gruppen
-// sind hier nicht vorgesehen, weil der Offset als vorletztes Argument gelesen
-// wird.
-//
-// 4T-002072, Nachbesserung F5: Der Konverter bekommt als zweites Argument den
-// Offset des Öffners im übergebenen Text, damit er dessen Umgebung befragen
-// kann; die bisherigen Konverter lesen nur den Rumpf und bleiben unverändert.
-function ersetzeObersteEbene(text, regex, konverter, inhaltGruppe = 2) {
+// Der Konverter bekommt den Rumpf (die Zeilen zwischen Öffner und Schluss, ohne
+// den Zeilenumbruch vor dem Schluss) und den Offset der Öffner-Zeile; liefert
+// er `null`, bleibt der Rohtext stehen (4T-002072, Nachbesserung F5: der
+// Offset, damit ein Konverter die Umgebung des Blocks befragen kann).
+// `optionen.ausklang` ist `leerraum` (Vorgabe) oder `zeile` (Kopf-Kommentar).
+// Ein Block, dessen Schluss unmittelbar auf den Öffner folgt, hat keinen Rumpf
+// und bleibt wie bisher stehen.
+function ersetzeObersteEbene(text, sprache, konverter, optionen = {}) {
+  const src = String(text == null ? '' : text);
+  const ausklang = optionen.ausklang === 'zeile' ? 'zeile' : 'leerraum';
   let getroffen = false;
-  const offsets = fenceOeffnerOffsets(text);
-  const neu = text.replace(regex, (match, ...args) => {
-    const offset = args[args.length - 2];
-    const content = args[inhaltGruppe - 1];
-    if (!offsets.has(offset)) return match;
-    const html = konverter(content, offset);
-    if (html === null) return match;
-    getroffen = true;
-    return html;
-  });
-  return { text: neu, getroffen };
+  let aus = '';
+  let kopiertBis = 0;
+  let offen = null;
+  let pos = 0;
+  for (;;) {
+    const nl = src.indexOf('\n', pos);
+    const ende = nl === -1 ? src.length : nl;
+    const zeile = src.slice(pos, ende);
+    if (offen) {
+      if (schliesstZaun(zeile, offen.oeffnung)) {
+        if (offen.passt && pos > offen.rumpfStart && offen.start >= kopiertBis) {
+          const html = konverter(src.slice(offen.rumpfStart, pos - 1), offen.start);
+          if (html !== null) {
+            aus += src.slice(kopiertBis, offen.start) + html;
+            kopiertBis = trefferEnde(src, pos, ende, zeile, ausklang);
+            getroffen = true;
+          }
+        }
+        offen = null;
+      }
+    } else {
+      const oeffnung = zaunOeffnung(zeile);
+      if (oeffnung) {
+        offen = { oeffnung, start: pos, rumpfStart: ende + 1, passt: oeffnung.sprache === sprache };
+      }
+    }
+    if (nl === -1) break;
+    pos = nl + 1;
+  }
+  if (!getroffen) return { text: src, getroffen };
+  return { text: aus + src.slice(kopiertBis), getroffen };
 }
 
 // 4T-002072, Nachbesserung F5: Der Konverter der Datentabelle für den Text
@@ -148,35 +166,43 @@ function convertPortableFences(text, opts) {
   const stand = { table: false, datatable: false, events: false, records: false };
 
   if (o.tableEnabled) {
-    const r = ersetzeObersteEbene(aktuell, TABLE_RE, (content) =>
+    const r = ersetzeObersteEbene(aktuell, 'perspective-table', (content) =>
       convertPerspectiveTableBlockToHtml(content),
     );
     aktuell = r.text;
     stand.table = r.getroffen;
   }
+  // 4T-000418 (Epic 3E-000079): perspective-datatable wird beim Export zur
+  // statischen HTML-Tabelle (alle Zeilen, mit Aggregat-Zeile); bei
+  // Struktur-Fehlern bleibt der Fence unveraendert. Wie perspective-table an die
+  // eigene Erweiterung gebunden (PO-Festlegung 2026-07-09): deaktiviert wird
+  // nicht konvertiert.
   if (o.datatableEnabled) {
     const r = ersetzeObersteEbene(
       aktuell,
-      DATATABLE_RE,
+      'perspective-datatable',
       datentabellenKonverter(aktuell, o.zellHtml),
     );
     aktuell = r.text;
     stand.datatable = r.getroffen;
   }
+  // 4T-000512 (Epic 3E-000092): perspective-events (Art 1) wird zur statischen
+  // Tabelle mit Staffelung zum Export-Stichtag; Art 2 (query-Direktive) und
+  // Struktur-Fehler bleiben unveraendert (PO-Festlegung 2026-07-15).
   if (o.eventsEnabled) {
-    const r = ersetzeObersteEbene(aktuell, EVENTS_RE, (content) =>
+    const r = ersetzeObersteEbene(aktuell, 'perspective-events', (content) =>
       convertPerspectiveEventsBlockToHtml(content, { labels: o.labels }),
     );
     aktuell = r.text;
     stand.events = r.getroffen;
   }
+  // 4T-001548 (Epic 3E-000251, E29.2): der Datensatz-Block der Datenbank,
+  // vollständig und ohne das Anzeige-Fenster der Anwendung. Seit 4T-001833
+  // (Epic 3E-000254) schloss er als erstes Konstrukt nach der Standard-Regel;
+  // seit 4T-002037 gilt die ganze Zaun-Regel für alle fünf Ersetzungen.
   if (o.recordsEnabled) {
-    const r = ersetzeObersteEbene(
-      aktuell,
-      RECORDS_RE,
-      (content) =>
-        convertPerspectiveRecordsBlockToHtml(content, { fields: o.fields, labels: o.labels }),
-      RECORDS_INHALT_GRUPPE,
+    const r = ersetzeObersteEbene(aktuell, RECORD_FENCE, (content) =>
+      convertPerspectiveRecordsBlockToHtml(content, { fields: o.fields, labels: o.labels }),
     );
     aktuell = r.text;
     stand.records = r.getroffen;

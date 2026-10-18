@@ -6,7 +6,7 @@
   "book.notABookMessage": "Der gewählte Ordner ist kein Buch: Er enthält keine Begleitdatei, die eine Buch-Datei benennt.",
   "book.invalidSettingsMessage": "Die Begleitdatei des Buches ist beschädigt und konnte nicht gelesen werden.",
   "book.fileMissingTitle": "Buch-Datei nicht gefunden",
-  "book.fileMissingMessage": "Die in der Begleitdatei benannte Buch-Datei existiert nicht. Das Buch ist geöffnet, es wird aber kein Reiter angelegt.",
+  "book.fileMissingMessage": "Die in der Begleitdatei benannte Buch-Datei existiert nicht. Das Buch ist geöffnet, es wird aber kein Dokument geöffnet.",
   "book.createFailedTitle": "Buch nicht angelegt",
   "book.createInvalidNameMessage": "Der Name ist leer oder enthält unzulässige Zeichen.",
   "book.createExistsMessage": "An dieser Stelle gibt es bereits einen Ordner mit diesem Namen. Er bleibt unverändert.",

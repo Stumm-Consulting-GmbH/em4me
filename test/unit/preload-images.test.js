@@ -21,12 +21,21 @@
 // Setup-Muster der benachbarten Main-Tests (test/unit/books-angaben.test.js).
 // Die Freigabe-Adressen nennen einen Rechner unter `.invalid`, der nie
 // aufgelöst wird.
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { JSDOM } from 'jsdom';
 import { mindmapBilderAufloesen, resolveImagesForBase } from '../../src/main/preload-images.js';
+import { convertMarkdownPortable, renderMarkdown } from '../../src/shared/markdown/markdown.js';
+import { isInsideArea } from '../../src/main/area/area-path.js';
+import { createRequire } from 'node:module';
+
+// 4T-002175: Die Plattform wird über DIESELBE Modul-Instanz gesetzt, die
+// preload-images.js und area-path.js benutzen; Vitest führt für `import` und
+// `require` getrennte Instanzen (Muster test/unit/area-path.test.js).
+const { setPlatformForTests } = createRequire(import.meta.url)('../../src/shared/platform.js');
 
 const BILD_INHALT = Buffer.from('PNG-Probe');
 const BILD_BASE64 = BILD_INHALT.toString('base64');
@@ -274,6 +283,67 @@ const LOGO_BASE64 = fs
   .readFileSync(path.join(ANWENDUNGS_BILDER, 'em4me-logo.svg'))
   .toString('base64');
 
+// 4T-001918 (Epic 3E-000340): der durchgehende Fall für das relative Bild in
+// einer Tabellenzelle einer portablen Datei. Export, Anzeige mit dem Filter
+// für portable Dokumente und danach diese Umwandlung — die Strecke, die die
+// Anzeige im Programm nimmt. `renderMarkdown` ruft die Umwandlung nicht auf,
+// deshalb steht der Fall hier. Der Block-Weg des Filters braucht einen
+// DOM-Parser; er kommt für diese Gruppe aus jsdom und wird danach entfernt.
+describe('Portable Datei: relatives Bild in einer Tabellenzelle bis zur Umwandlung (4T-001918)', () => {
+  beforeAll(() => {
+    globalThis.DOMParser = new JSDOM('').window.DOMParser;
+  });
+  afterAll(() => {
+    delete globalThis.DOMParser;
+  });
+
+  function anzeigeDerDatei(zellen) {
+    const quelle = [
+      '```perspective-table',
+      '{|',
+      '! Kopf',
+      ...zellen.map((z) => `|-\n| ${z}`),
+      '|}',
+      '```',
+      '',
+    ].join('\n');
+    const datei = convertMarkdownPortable(quelle, true);
+    return resolveImagesForBase(renderMarkdown(datei, 'de'), dokPfad, null);
+  }
+
+  it('ein relatives Bild in einer Zelle passiert den Filter und wird als Daten-Adresse eingebettet', () => {
+    for (const zelle of [
+      '![Probe](bild.png)',
+      'Text <img alt="Probe" src="unter/tief.png">',
+      'vor\n\nText <img alt="Probe" src="bild.png">',
+    ]) {
+      const html = anzeigeDerDatei([zelle]);
+      expect(quelleVon(html), zelle).toBe(`data:image/png;base64,${BILD_BASE64}`);
+      expect(html, zelle).toMatch(/data-src-original="(bild\.png|unter\/tief\.png)"/);
+    }
+  });
+
+  it('eine Freigabe- oder absolute Adresse in einer Zelle verliert ihre Quelle, ohne Zugriff', () => {
+    for (const zelle of [
+      'Text <img alt="A" src="//rechner.invalid/freigabe/x.png">',
+      'Text <img alt="A" src="\\\\rechner.invalid\\freigabe\\x.png">',
+      'vor\n\nText <img alt="A" src="%2F%2Frechner.invalid/x.png">',
+      `Text <img alt="A" src="${path.join(aussen, 'fremd.png').split(path.sep).join('/')}">`,
+    ]) {
+      const html = anzeigeDerDatei([zelle]);
+      expect(quelleVon(html), zelle).toBeNull();
+      expect(html, zelle).toContain('<img');
+    }
+    expect(zugriffAusserhalb()).toEqual([]);
+  });
+
+  it('ein relativer Pfad aus der Grenze hinaus wird nicht aufgelöst', () => {
+    const html = anzeigeDerDatei(['Text <img alt="A" src="../../aussen/fremd.png">']);
+    expect(quelleVon(html)).toBeNull();
+    expect(zugriffAusserhalb()).toEqual([]);
+  });
+});
+
 describe('resolveImagesForBase: ohne Dokument-Pfad gilt der Bild-Ordner der Anwendung', () => {
   it('bettet das Logo der Handbuch-Überblicksseite als Daten-Adresse ein', () => {
     for (const basis of [null, '', undefined]) {
@@ -364,5 +434,109 @@ describe('mindmapBilderAufloesen: Notizen der Mindmap über denselben Weg', () =
   it('verträgt ein leeres Ergebnis', () => {
     expect(mindmapBilderAufloesen(null)).toBeNull();
     expect(mindmapBilderAufloesen({ root: null })).toEqual({ root: null });
+  });
+});
+
+// 4T-002175 (Epic 3E-000360): Die Grenze folgt der Schreibweise-Regel der
+// Plattform wie die zentrale Bereichs-Prüfung `isInsideArea`
+// (src/main/area/area-path.js): Unter Windows und macOS unterscheidet das
+// Dateisystem Groß- und Kleinschreibung nicht, unter Linux schon — dort ist
+// `…/NOTIZEN` ein Nachbar-Ordner von `…/notizen` und liegt außerhalb. Die
+// Plattform kommt über die Prüf-Naht von src/shared/platform.js; der
+// Pfad-Baustein bleibt der des Wirts. Die Bilddatei im Ordner anderer
+// Schreibweise wird angelegt: unter Linux ein eigener Ordner, unter Windows
+// derselbe Ordner wie der des Dokuments. So liegt sie auf beiden Wirten vor,
+// und allein die Grenze entscheidet, ob sie erscheint.
+describe('resolveImagesForBase: Grenze nach der Schreibweise-Regel der Plattform (4T-002175)', () => {
+  let nachbarOrdner;
+
+  beforeEach(() => {
+    nachbarOrdner = path.join(bereich, 'NOTIZEN');
+    schreibe(path.join(nachbarOrdner, 'nachbar.png'));
+  });
+
+  afterEach(() => {
+    setPlatformForTests(undefined);
+  });
+
+  // Zugriffe auf einen Pfad, der den Ordner in anderer Schreibweise nennt.
+  function zugriffImNachbarOrdner() {
+    const marke = `${path.sep}NOTIZEN${path.sep}`;
+    return zugriffe.filter((p) => path.resolve(String(p)).includes(marke));
+  }
+
+  it('unter Linux erscheint ein Bild aus dem Ordner anderer Schreibweise nicht, ohne Zugriff dort', () => {
+    setPlatformForTests('linux');
+    for (const src of [
+      '../NOTIZEN/nachbar.png',
+      path.join(nachbarOrdner, 'nachbar.png').split(path.sep).join('/'),
+    ]) {
+      const html = resolveImagesForBase(bild(src), dokPfad, null);
+      expect(quelleVon(html), src).toBeNull();
+      expect(html, src).toContain('alt="Probe"');
+    }
+    expect(zugriffImNachbarOrdner()).toEqual([]);
+  });
+
+  it('unter Linux weitet ein Bereich anderer Schreibweise die Grenze nicht', () => {
+    setPlatformForTests('linux');
+    const bereichAndereSchreibweise = path.join(wurzel, 'BEREICH');
+    const html = resolveImagesForBase(
+      bild('../anlagen/anlage.png'),
+      dokPfad,
+      bereichAndereSchreibweise,
+    );
+    expect(quelleVon(html)).toBeNull();
+    // Das Bild im eigenen Ordner bleibt sichtbar: Grenze ist dann der Dokument-Ordner.
+    const eigenes = resolveImagesForBase(bild('bild.png'), dokPfad, bereichAndereSchreibweise);
+    expect(quelleVon(eigenes)).toBe(`data:image/png;base64,${BILD_BASE64}`);
+  });
+
+  it('unter Linux erscheint ein Bild im eigenen Ordner und im Bereich wie bisher', () => {
+    setPlatformForTests('linux');
+    expect(quelleVon(resolveImagesForBase(bild('bild.png'), dokPfad, null))).toBe(
+      `data:image/png;base64,${BILD_BASE64}`,
+    );
+    expect(quelleVon(resolveImagesForBase(bild('../anlagen/anlage.png'), dokPfad, bereich))).toBe(
+      `data:image/png;base64,${BILD_BASE64}`,
+    );
+  });
+
+  it('unter Windows und macOS bleibt die Grenze ohne Rücksicht auf die Schreibweise', () => {
+    for (const plattform of ['win32', 'darwin']) {
+      setPlatformForTests(plattform);
+      const html = resolveImagesForBase(bild('../NOTIZEN/nachbar.png'), dokPfad, null);
+      expect(quelleVon(html), plattform).toBe(`data:image/png;base64,${BILD_BASE64}`);
+      const imBereich = resolveImagesForBase(
+        bild('../anlagen/anlage.png'),
+        dokPfad,
+        path.join(wurzel, 'BEREICH'),
+      );
+      expect(quelleVon(imBereich), plattform).toBe(`data:image/png;base64,${BILD_BASE64}`);
+    }
+  });
+
+  it('entscheidet auf jeder Plattform wie die zentrale Bereichs-Prüfung isInsideArea', () => {
+    const ziele = [
+      'bild.png',
+      'unter/tief.png',
+      '../NOTIZEN/nachbar.png',
+      '../anlagen/anlage.png',
+      '../../aussen/fremd.png',
+    ];
+    const bereiche = [null, bereich, path.join(wurzel, 'BEREICH')];
+    for (const plattform of ['win32', 'darwin', 'linux']) {
+      setPlatformForTests(plattform);
+      for (const gebunden of bereiche) {
+        // Grenze nach der Regel der Anforderung, gebildet mit isInsideArea.
+        const grenze = gebunden && isInsideArea(gebunden, dokOrdner) ? gebunden : dokOrdner;
+        for (const src of ziele) {
+          const erwartet = isInsideArea(grenze, path.resolve(dokOrdner, src));
+          const html = resolveImagesForBase(bild(src), dokPfad, gebunden);
+          const eingebettet = quelleVon(html) !== null;
+          expect(eingebettet, `${plattform} ${gebunden} ${src}`).toBe(erwartet);
+        }
+      }
+    }
   });
 });

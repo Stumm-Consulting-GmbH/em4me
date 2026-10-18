@@ -93,6 +93,7 @@
   "areaPanel.newFolderError": "Ordner konnte nicht angelegt werden",
   "areaPanel.newNameEmpty": "Bitte einen Namen eingeben",
   "areaPanel.newNameInvalid": "Der Name enthält unzulässige Zeichen",
+  "areaPanel.inputDiscarded": "Der Zielordner wird nicht mehr angezeigt; die Eingabe wurde verworfen",
   "area.outsideTitle": "Außerhalb des Bereichs",
   "area.outsideOpenMessage": "Die Auswahl liegt außerhalb des Bereichs und wird nicht geöffnet.",
   "area.outsideSaveMessage": "Der gewählte Speicherort liegt außerhalb des Bereichs. Bitte einen Ort innerhalb des Bereichs wählen."

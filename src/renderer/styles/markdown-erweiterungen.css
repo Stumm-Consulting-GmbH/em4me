@@ -127,9 +127,10 @@
   font-weight: 600;
   margin: 0 0 0.4em 0;
 }
-/* 4T-000200: Live-Modus-Pendant der neutralen Container-Box. */
+/* 4T-000200: Live-Modus-Pendant der neutralen Container-Box. 4T-002095:
+   halbdurchsichtig, sonst verdeckt die Zeile die Markierung darunter. */
 .cm-editor .cm-line.cm-live-container {
-  background: var(--bg-alt);
+  background: color-mix(in srgb, var(--bg-alt) 70%, transparent);
   border-left: 2px solid var(--border-strong);
   padding-left: 0.6em;
 }
@@ -251,11 +252,21 @@
 }
 /* 4T-000203: Live-Modus-Pendants (Marker versteckt der Pass). */
 .cm-editor .cm-live-spoiler {
+  /* deckend-gewollt: verdeckter Text muss verdeckt bleiben (4T-002095, 4T-002096) */
   background: var(--fg);
   color: var(--fg);
   border-radius: 3px;
 }
+/* 4T-002096: wie in der Lese-Ansicht (.markdown-body .spoiler oben) erben innere
+   Spannen im verdeckten Zustand die Farbe des Kastens und tragen keinen eigenen
+   Hintergrund; sonst blieb eine eingefärbte Spanne (Inline-Code, Verweis,
+   Hervorhebung) auf dem deckenden Kasten lesbar. */
+.cm-editor .cm-live-spoiler:not(:hover) * {
+  color: inherit;
+  background: transparent;
+}
 .cm-editor .cm-live-spoiler:hover {
+  /* deckend-gewollt: Aufdecken des verdeckten Textes beim Zeigen (4T-002095) */
   background: var(--bg-alt);
   color: inherit;
 }
@@ -267,8 +278,10 @@
   color: #dc3545;
   text-decoration: line-through;
 }
+/* 4T-002095: halbdurchsichtig nach dem Vorbild .cm-mark-marker, damit die
+   Markierung über der Hervorhebung sichtbar bleibt. */
 .cm-editor .cm-live-critic-mark {
-  background: #fff3a3;
+  background: rgba(255, 243, 163, 0.55);
   border-radius: 2px;
 }
 .cm-editor .cm-live-critic-comment {
@@ -282,7 +295,7 @@
   color: #ea868f;
 }
 [data-theme='dark'] .cm-editor .cm-live-critic-mark {
-  background: #7d6b00;
+  background: rgba(125, 107, 0, 0.45);
   color: #fff8d6;
 }
 /* 4T-000204: Erweiterte Task-States — Status-Box im Render-Pane. Kaestchen-

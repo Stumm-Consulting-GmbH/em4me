@@ -96,7 +96,7 @@
   "menu.help.restoreSession": "Restaurer la session",
   "menu.file.autoSave": "Enregistrement automatique",
   "menu.view.history": "Historique du document",
-  "menu.view.areaGraph": "Graphe de l'espace",
+  "menu.view.areaGraph": "Graphe de la zone",
   "menu.view.areaStats": "Statistiques de la zone",
   "menu.view.databaseOverview": "Vue d’ensemble de la base de données",
   "menu.view.myExtendedMemory": "My Extended Memory",

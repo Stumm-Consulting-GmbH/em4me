@@ -160,7 +160,7 @@
   "help.featureAccess.bookToc": "Visualizza → Barra laterale → Pannelli → Libro; pulsante Libro nella barra di stato; palette dei comandi",
   "help.featureAccess.bookStructure": "pannello del libro: trascinare il marcatore davanti al nome di un capitolo; sulla voce con il fuoco Alt+↑ e Alt+↓ per riordinare, Alt+→ e Alt+← per annidare e togliere l'annidamento; menu contestuale «Nuovo capitolo», «Aggancia», «Sgancia»",
   "help.featureAccess.bookReading": "pulsanti avanti e indietro nell'intestazione del pannello del libro; palette dei comandi (predefinito Ctrl+Alt+Pag giù e Ctrl+Alt+Pag su)",
-  "help.featureAccess.bookMoveFile": "menu contestuale di una voce del pannello del libro → «Sposta il file del capitolo…»; palette dei comandi",
+  "help.featureAccess.bookMoveFile": "menu File → Libro e libreria → Sposta il file del capitolo…; menu contestuale di una voce del pannello del libro → «Sposta il file del capitolo…»; palette dei comandi",
   "help.featureAccess.bookRepair": "menu contestuale di una voce mancante del pannello del libro → «Riassegna…» e «Sgancia»",
   "help.featureAccess.bookshelf": "Menu File → Libro e libreria → Apri libreria…, Nuova libreria…, Chiudi libreria; apertura del file della libreria; File → Impostazioni… → Libreria corrente → Dati propri",
   "help.featureAccess.shelfView": "si apre all'apertura di una libreria; commutatore riquadri/righe nella vista; File → Impostazioni… → Libreria corrente → Dati propri → Visualizzazione",

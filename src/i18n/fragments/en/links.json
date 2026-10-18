@@ -79,7 +79,8 @@
   "settings.renameLinks.group": "Links when renaming",
   "settings.renameLinks.updateLinks": "Update links in other files",
   "settings.renameLinks.preview": "Show a preview before updating",
-  "embed.notFound": "Embed file not found: {path}",
+  "embed.notFound": "Cannot embed: “{path}” was not found",
+  "embed.linkedArea": "Cannot embed: “{path}” is in a linked area, from which nothing can be embedded",
   "embed.depthExceeded": "Embed depth exceeded",
   "outgoing.notOpenable": "Linked target cannot be opened"
 }

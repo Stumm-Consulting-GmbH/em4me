@@ -25,7 +25,7 @@ Links können auf eine Überschrift oder einen Block innerhalb der Ziel-Datei ze
 [[#Wiki-Links]]                  Anker im selben Dokument
 ```
 
-Block-Anker werden mit `^id` am Zeilenende gesetzt und ankern den umschließenden Block (Absatz, Listen-Eintrag, Tabelle, Code-Block):
+Block-Anker werden mit `^id` am Zeilenende gesetzt und ankern den umschließenden Block (Absatz, Listen-Eintrag, Tabellen-Zeile, Code-Block):
 
 ```markdown
 Diese Entscheidung ist verbindlich. ^entscheidung-1
@@ -41,6 +41,8 @@ const zinssatz = 0.04;
 ````
 
 Eine [Datentabelle](datatable.md) trägt ihre Kennung in ihrem Block, als Zeile `table: Umsatz` vor den Datenzeilen; `[[Bericht#^Umsatz]]` springt zu ihr.
+
+Unter einer Tabelle steht die Kennung ebenso in einer eigenen Zeile, mit einer Leerzeile davor und danach; sie meint dann die ganze Tabelle. Am Ende einer Tabellen-Zeile meint sie nur diese Zeile.
 
 In den Ansichten sieht der Anker verschieden aus. Die gerenderte Ansicht zeigt ihn gar nicht — der Block ist dort nur ein Sprungziel. Der **Live-Modus** ersetzt ihn durch ein dezentes Zeichen am Zeilenende: Zeigen darauf nennt die Kennung, ein Klick setzt die Schreibmarke ans Zeilenende und klappt den Roh-Text zum Bearbeiten auf. Steht die Schreibmarke ohnehin in der Zeile, ist der Anker unverändert sichtbar. Dass der Live-Modus mehr zeigt als die gerenderte Ansicht, ist Absicht: Ein Anker ist eine Adresse, auf die von außen gezeigt wird, und beim Umbauen eines Dokuments soll sichtbar bleiben, dass es sie gibt. Trägt derselbe Block [Eigenschaften](block-properties.md), steht deren Zeichen daneben.
 
@@ -86,9 +88,11 @@ Ein rohes Leerzeichen ohne spitze Klammern beendet das Ziel, sodass der Link nic
 ![[notizen.md#^block]]   nur der verankerte Block
 ```
 
-Bei Block-Ankern wird der vollständige umschließende Block eingebettet (Listen-Eintrag mit Unterlisten, Fenced Code, Tabellen-Zeile, Blockquote), beim Namen einer Datentabelle die ganze Tabelle. Ein Anker in einem Code-Beispiel zählt dabei nicht. Eingebettetes Markdown rendert mit eigener Quelle als Basis; Links darin lösen gegen die eingebettete Datei auf.
+Bei Block-Ankern wird der vollständige umschließende Block eingebettet (Listen-Eintrag mit Unterlisten, Fenced Code, Tabellen-Zeile, Blockquote), bei der Kennung in eigener Zeile unter einer Tabelle und beim Namen einer Datentabelle die ganze Tabelle. Ein Anker in einem Code-Beispiel zählt dabei nicht. Eingebettetes Markdown rendert mit eigener Quelle als Basis; Links darin lösen gegen die eingebettete Datei auf.
 
 **Wo das Ziel gesucht wird.** Die Anwendung sucht in drei Schritten, und zwar für jede Datei-Art gleich: zuerst am Pfad relativ zur eigenen Datei, dann in der Schreibweise der Unterseiten, zuletzt über den bloßen **Namen** im ganzen Bereich. `![[bild.png]]` findet die Datei also auch dann, wenn sie in einem anderen Ordner liegt — der Pfad muss nicht getroffen werden. Der Suchraum endet an der Bereichs-Wurzel: Was außerhalb liegt, wird nicht eingebettet. Ohne gebundenen Bereich bleibt es beim Ordner der eigenen Datei.
+
+**Wenn das Ziel nicht erscheint.** Findet die Anwendung das Ziel nicht, steht an der Stelle der Einbettung ein Hinweis mit dem Namen des Ziels — in der Lese-Ansicht, im Live-Modus und in der geteilten Ansicht gleich.
 
 Trägt eine Markdown-Datei denselben Namen wie eine Anlage, gewinnt die Markdown-Datei; mit Endung geschrieben (`![[bild.png]]`) ist die Sache eindeutig. Gewöhnliche Markdown-Bilder `![](pfad.png)` bleiben davon unberührt — ihre Schreibweise meint einen Pfad und keinen Namen.
 ## Bereichs-Verknüpfungen
@@ -107,6 +111,8 @@ Im Text steht das Kürzel vor dem Ziel:
 ```
 
 Gesucht wird zuerst am angegebenen Pfad und, falls dort nichts liegt, über den Namen im ganzen verknüpften Bereich — wie ein gewöhnlicher Wiki-Link im eigenen Bereich. Der Klick öffnet das Ziel im selben Fenster.
+
+**Einbetten** lässt sich aus einem verknüpften Bereich nichts: `![[@zt:Notiz]]` zeigt an seiner Stelle einen Hinweis, der genau das sagt, gleich ob die Bereichs-Verknüpfungen eingeschaltet sind. Der Verweis `[[@zt:Notiz]]` auf dasselbe Ziel öffnet es wie beschrieben.
 
 **Vorlagen des verknüpften Bereichs** lassen sich zusätzlich zu den eigenen anbieten; dafür gibt es je Verknüpfung einen Schalter. In der Vorlagen-Auswahl erscheinen dann beide Bestände, und jeder fremde Eintrag nennt seine Herkunft. Ohne den Schalter ändert eine Verknüpfung den Vorlagen-Bestand nicht.
 
@@ -129,7 +135,7 @@ Ein Verknüpfungs-Link führt **hin**, nicht zurück. Bewusst nicht über die Be
 - die **bereichsweite Suche**,
 - und die **Nachführung beim Umbenennen**: Wird eine Datei umbenannt, bleiben Verweise aus einem verknüpften Bereich unverändert. Der Editor markiert sie danach als ungültig — das ist das Netz, das sie sichtbar macht.
 
-Die Bereichs-Verknüpfungen sind eine [Erweiterung](extensions.md) und lassen sich abschalten. Dann bleibt ein Kürzel-Verweis unaufgelöst, die Prüfung beim Öffnen unterbleibt, und die eingetragenen Verknüpfungen bleiben erhalten — abgeschaltet wird die Wirkung, nicht die Angabe.
+Die Bereichs-Verknüpfungen sind eine [Erweiterung](extensions.md) und lassen sich abschalten. Dann bleibt ein Kürzel-Verweis unaufgelöst, die Prüfung beim Öffnen unterbleibt, und aus einem verknüpften Bereich wird nichts mehr gelesen, auch nicht nach einem Neustart. Dokumente aus einem verknüpften Bereich, die beim Abschalten geöffnet sind, werden geschlossen; bei ungespeicherten Änderungen kommt vorher die übliche Rückfrage. Die eingetragenen Verknüpfungen bleiben erhalten — abgeschaltet wird die Wirkung, nicht die Angabe.
 
 ## Tags
 
@@ -147,7 +153,7 @@ Ein Rechtsklick auf einen Eintrag der Tag-Sidebar benennt den Tag über alle sei
 
 **Vor dem Schreiben steht die Vorschau.** Sie listet jede Fundstelle mit ihrer Zeile, weist die mitwandernden Kinder aus und lässt einzelne Stellen abwählen. Erst die Zusage im Balken über der Liste schreibt; ein Abbruch lässt den Bestand, wie er war.
 
-Geschrieben wird innerhalb der Bereichs-Grenze, und von jeder geänderten Datei liegt der Stand davor in der [Versionshistorie](history.md) — unabhängig davon, ob die Historisierung eingeschaltet ist. Eine Datei mit ungespeicherten Änderungen bekommt die Umbenennung auf ihren Reiter statt auf die Platte; ein Bericht am Ende nennt jede Datei und, wo etwas nicht ging, den Grund.
+Geschrieben wird innerhalb der Bereichs-Grenze, und von jeder geänderten Datei liegt der Stand davor in der [Versionshistorie](history.md) — unabhängig davon, ob die Historisierung eingeschaltet ist. Eine Datei mit ungespeicherten Änderungen bekommt die Umbenennung in ihr geöffnetes Dokument statt auf die Platte; ein Bericht am Ende nennt jede Datei und, wo etwas nicht ging, den Grund.
 
 ## Autocomplete
 

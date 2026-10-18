@@ -1012,9 +1012,18 @@ describe('area-links: Aus-Zustand der Bereichs-Verknuepfungen (4T-001457)', () =
     expect(html).toContain('href="@zt:Datei.md"');
   });
 
-  it('aus: auch die Einbettung traegt kein Kuerzel mehr', () => {
-    const html = renderOff('area-links', '![[@zt:Notiz]]');
-    expect(html).not.toContain('data-area-prefix');
+  // 4T-002069 (AK5): Der fruehere Fall pruefte allein die Abwesenheit von
+  // data-area-prefix; das Attribut erscheint im HTML einer Einbettung aber auch
+  // im An-Zustand nie (gemessen in 4T-002031), der Fall bewies also nichts.
+  // Ersetzt durch die Form, an der der Schalter im Render sichtbar wird: die
+  // Eltern-Einbettung mit Kuerzel. Was im Aus-Zustand gelesen wird, sichert die
+  // Lese-Grenze (test/unit/area-link-resolve.test.js).
+  it('aus: die Einbettung trennt das Kuerzel nicht mehr ab (mit Gegenprobe)', () => {
+    const an = renderMarkdown('![[@zt:..]]', 'de');
+    expect(an).toContain('data-embed-path="@zt:.."');
+    const aus = renderOff('area-links', '![[@zt:..]]');
+    expect(aus).not.toContain('data-embed-path="@zt:.."');
+    expect(aus).toContain('data-embed-path="@zt:...md"');
   });
 
   it('aus: ein gewoehnlicher Wiki-Link bleibt unberuehrt', () => {

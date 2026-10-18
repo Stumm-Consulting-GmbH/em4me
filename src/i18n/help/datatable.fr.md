@@ -112,7 +112,7 @@ aggregate: Total:sum
 
 ## Modifier dans la grille
 
-Dans la **vue partagée** et en **mode direct**, la grille est directement modifiable ; la vue lecture et les pages du manuel l'affichent en lecture seule. Chaque validation réécrit le bloc de code dans la source — le document devient non enregistré comme d'habitude, annuler/rétablir fonctionnent normalement.
+Dans la **vue partagée** et en **mode direct**, la grille est directement modifiable tant que **Affichage › Modifier** est activé ; lorsqu'il est désactivé, la grille ne peut y être que consultée, triée et filtrée, comme dans la vue lecture. La vue lecture et les pages du manuel l'affichent en lecture seule. Chaque validation réécrit le bloc de code dans la source — le document devient non enregistré comme d'habitude, annuler/rétablir fonctionnent normalement.
 
 - **Modifier une cellule** : un clic sur la cellule (ou `Entrée`/`F2` quand elle a le focus) ouvre un champ de saisie adapté au type. `Entrée` ou la perte de focus valide, `Échap` annule, `Tab`/`Maj+Tab` valide et passe à la cellule suivante ou précédente.
 - **Liens dans la cellule** : un clic sur un lien ou un tag dans une cellule texte le suit et n'ouvre pas la cellule. Un clic dans la partie libre de la cellule, `Entrée` ou `F2` l'ouvrent avec le texte écrit. Si le lien lui-même a le focus clavier, `Entrée` le suit et `F2` ouvre la cellule.
@@ -142,4 +142,4 @@ L'export portable et l'export PDF produisent la table sous forme de table statiq
 
 ## Limites
 
-À partir de 1000 lignes de données, la grille n'affiche que l'en-tête et les agrégats avec une note ; les agrégats calculent toujours sur toutes les lignes. Les très grands ensembles de données relèvent d'un outil de données dédié.
+Au-delà de 1000 lignes de données, la grille n'affiche que l'en-tête et les agrégats avec une note ; les agrégats calculent toujours sur toutes les lignes. Les très grands ensembles de données relèvent d'un outil de données dédié.

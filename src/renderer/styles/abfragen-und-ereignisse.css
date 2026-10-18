@@ -159,6 +159,19 @@
   display: block;
   margin: 0.2em 0 0.5em;
 }
+/* 4T-002053: Bei ausgeschaltetem Bearbeiten ist das Raster nur ansehbar; es
+   bietet keine Zeilen-Handlung an. Merkmal ist der Schreibschutz des Editors
+   (Klasse read-only an .pane-source-editor, gesetzt von syncEditorForPane). */
+.content.view-split:has(.pane-source-editor.read-only)
+  .pane-rendered
+  .markdown-body
+  .pdt-grid
+  .pdt-row-del,
+.content.view-split:has(.pane-source-editor.read-only) .pane-rendered .markdown-body .pdt-add-row,
+.pane-source-editor.read-only .cm-live-block .pdt-grid .pdt-row-del,
+.pane-source-editor.read-only .cm-live-block .pdt-add-row {
+  display: none;
+}
 .markdown-body .pdt-del-btn {
   border: none;
   background: none;

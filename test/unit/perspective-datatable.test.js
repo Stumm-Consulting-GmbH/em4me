@@ -406,6 +406,23 @@ describe('perspective-datatable — Viewer-HTML (4T-000418)', () => {
     expect(html).toContain(`<span class="pdt-agg-value">${MAX_RENDER_ROWS + 1}</span>`);
     expect(html).toContain(`data-dt-total="${MAX_RENDER_ROWS + 1}"`);
   });
+
+  // 4T-002054 (Story 4S-000163, AK10): Druck und PDF geben alle Zeilen aus.
+  it('Ober-Grenze: mit alleZeilen alle Datenzeilen und Aggregate, ohne Hinweis', () => {
+    const rows = Array.from({ length: MAX_RENDER_ROWS + 1 }, (_, i) => `| ${i + 1} |`).join('\n');
+    const quelle = `columns: N:number\naggregate: N:count\n${rows}`;
+    const html = renderPerspectiveDatatableViewer(quelle, { alleZeilen: true });
+    expect(html).toContain('<tbody>');
+    expect(html.match(/<tr data-dt-row="/g)).toHaveLength(MAX_RENDER_ROWS + 1);
+    expect(html).toContain(`data-dt-row="${MAX_RENDER_ROWS}"`);
+    expect(html).toContain('<tfoot>');
+    expect(html).not.toContain('pdt-limit');
+    // Ohne die Option byte-gleich zum Bestand, mit falschem Wert ebenso.
+    expect(renderPerspectiveDatatableViewer(quelle, { alleZeilen: false })).toBe(
+      renderPerspectiveDatatableViewer(quelle),
+    );
+    expect(renderPerspectiveDatatableViewer(quelle)).toContain('pdt-limit');
+  });
 });
 
 describe('perspective-datatable — Portable-HTML (4T-000418)', () => {
@@ -421,6 +438,19 @@ describe('perspective-datatable — Portable-HTML (4T-000418)', () => {
     expect(html).not.toContain('<input');
     expect(html).toContain('<tfoot>');
     expect(html).toContain('sum</span> 12.50');
+  });
+
+  // 4T-002054 (AK2): Der portable Export schreibt auch über der Zeilen-Grenze
+  // alle Zeilen; gemessen mit 2000 Zeilen.
+  it('schreibt über der Zeilen-Grenze alle Zeilen (2000 Zeilen)', () => {
+    const rows = Array.from({ length: 2000 }, (_, i) => `| ${i + 1} | Zeile ${i + 1} |`);
+    const html = convertPerspectiveDatatableBlockToHtml(
+      `columns: Nr:number, Name:text\naggregate: Nr:count\n${rows.join('\n')}`,
+    );
+    const koerper = html.slice(html.indexOf('<tbody>'), html.indexOf('</tbody>'));
+    expect(koerper.match(/<tr[\s>]/g)).toHaveLength(2000);
+    expect(koerper).toContain('Zeile 2000');
+    expect(html).toContain('<tfoot>');
   });
 
   it('liefert null bei Struktur-Fehlern (Fence bleibt im Export unverändert)', () => {

@@ -8,6 +8,8 @@ import {
   resolveContainedEmbedPath,
   containmentWurzel,
 } from '../../src/main/documents/embed-path.js';
+import { registerEmbedsIpc } from '../../src/main/ipc/embeds.js';
+import { EMBED_GRUND_VERKNUEPFTER_BEREICH } from '../../src/shared/area-link-syntax.js';
 
 const base = path.join(path.sep === '\\' ? 'C:\\' : '/', 'docs', 'projekt', 'aktiv.md');
 const dir = path.dirname(base);
@@ -147,5 +149,58 @@ describe('containmentWurzel (4T-001485)', () => {
   it('liefert den Ordner, wenn die Wurzel ihn nicht enthaelt', () => {
     const fremd = path.join(path.sep === '\\' ? 'C:\\' : '/', 'woanders');
     expect(containmentWurzel(dir, fremd)).toBe(dir);
+  });
+});
+
+// 4T-002092 (Story 4S-001041): Der Auflöser der Einbettung nennt den Grund,
+// statt ein Ziel in einem verknüpften Bereich als «nicht gefunden» samt
+// Systemmeldung enden zu lassen. Geprüft an allen Kanälen, die ihn nutzen.
+describe('Grund der Einbettung: verknüpfter Bereich (4T-002092)', () => {
+  const kanaele = () => {
+    const handlers = new Map();
+    registerEmbedsIpc((kanal, fn) => handlers.set(kanal, fn), {
+      areaRootForEvent: () => null,
+      backlinks: {
+        ensureIndexForDemand: () => {},
+        resolveWikiTargetInIndex: () => null,
+        bufferTextFor: () => null,
+      },
+      subpages: {
+        isRelativeTarget: () => false,
+        expandRelativeTarget: () => null,
+        toFileBasename: (s) => s,
+      },
+      embedInhalt: { liesEmbedInhalt: async () => ({ ok: false, error: 'ENOENT: no such file' }) },
+      MAX_EMBED_BYTES: 1024,
+    });
+    return handlers;
+  };
+  const EREIGNIS = { sender: { id: 1 } };
+
+  it('meldet für die Kürzel-Form den Grund, an jedem Kanal und ohne Pfad', async () => {
+    const h = kanaele();
+    const md = await h.get('embed:read')(EREIGNIS, { basePath: base, embedPath: '@nachbar:Notiz' });
+    const bild = await h.get('embed:readImage')(EREIGNIS, {
+      basePath: base,
+      embedPath: '@nachbar:bild.png',
+    });
+    const pdf = await h.get('embed:resolveTarget')(EREIGNIS, {
+      basePath: base,
+      embedPath: '@nachbar:handbuch.pdf',
+      kind: 'pdf',
+    });
+    for (const r of [md, bild, pdf]) {
+      expect(r).toEqual({ ok: false, error: EMBED_GRUND_VERKNUEPFTER_BEREICH });
+    }
+  });
+
+  it('ein gewöhnliches fehlendes Ziel bleibt «nicht gefunden»', async () => {
+    const h = kanaele();
+    const pdf = await h.get('embed:resolveTarget')(EREIGNIS, {
+      basePath: base,
+      embedPath: 'fehlt.pdf',
+      kind: 'pdf',
+    });
+    expect(pdf).toEqual({ ok: false, error: 'not found' });
   });
 });

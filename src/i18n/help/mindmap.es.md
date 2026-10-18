@@ -2,7 +2,7 @@
 
 La vista de mapa mental muestra la estructura de **un** documento como un mapa: los títulos y los puntos de lista se convierten en nodos de un árbol, y el texto corrido que va debajo se convierte en la nota de su nodo. Es una vista del mismo documento, no un segundo documento, y nunca cambia el texto.
 
-La vista pertenece a la extensión **Vista de mapa mental** y puede desactivarse en Configuración → Extensiones. Con ella desactivada desaparece la entrada de menú, y una pestaña que estaba abierta como mapa vuelve a la vista de lectura.
+La vista pertenece a la extensión **Vista de mapa mental** y puede desactivarse en Configuración → Extensiones. Con ella desactivada desaparece la entrada de menú, y un documento en la vista de mapa mental vuelve a la vista de lectura: uno abierto de inmediato, uno abierto por última vez como mapa la próxima vez que se abra.
 
 ## Abrir
 

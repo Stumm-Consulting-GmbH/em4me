@@ -1142,6 +1142,28 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     Klick-Ziel das Element des Handlers oder die Fläche des Anwenders meint, ist
     eine Frage der Absicht, die eine Text-Prüfung nicht beurteilen kann.
 
+35. **Kopien der Anker-Erkennung werden weniger, nicht mehr** (seit dem
+    2026-10-11, `4T-002057`, Fehlerklasse `L5`). Welche Zeichenfolge ein
+    Block-Anker ist und welche Kennung gültig ist, wohnt in
+    `src/shared/block-anchors.js`. `test/unit/anker-kopien.test.js` zerlegt
+    jede Quelldatei unter `src/` (ohne `*.bundle.js` und ohne die Heimat) mit
+    `espree`, nach dem Muster der Regel 30, und zählt als eigene
+    Anker-Erkennung einen regulären Ausdruck mit dem Anker-Zeichen `\^` vor der
+    Kennungs-Klasse, einen Ausdruck, der genau die Kennungs-Prüfung ist, eine
+    Zeichenkette, die als Muster-Text für `new RegExp` mit dem maskierten
+    Anker-Zeichen endet, und einen Vergleich mit `'^'` plus Kennung.
+    Kommentare, der Schreibweg (eine Anzeige oder ein Datenfeld aus `'^'` und
+    einer Kennung), Fußnoten, Hochstellung und das Lesen des Verweis-Ziels
+    `#^name` zählen nicht. Die Ausnahme-Liste
+    `scripts/anker-kopien-ausnahmen.json` ist seit ihrer Anlage leer: Die
+    letzten beiden Kopien, Kennungs-Prüfungen im Render-Weg der Wiki-Verweise
+    und in der Live-Ansicht, sind mit dem Wächter auf `isValidBlockAnchorId`
+    umgestellt. Rot wird der Wächter in beide Richtungen wie in Regel 30.
+    Anlass ist der Vorfall zu `4T-002048`: Die Anzeige trug ein eigenes Muster,
+    das Leerraum vor dem `^` verlangte, und zeigte eine Anker-Zeile allein
+    unter einem Block als Text, während Index und Diagramm-Kern sie über die
+    Heimat als Anker lasen. Die Bestands-Lesung steht im Modulkopf.
+
 ## E2E-Praxis
 
 Wiederkehrende Stolperstellen der Playwright-Suite. Jede hat mindestens

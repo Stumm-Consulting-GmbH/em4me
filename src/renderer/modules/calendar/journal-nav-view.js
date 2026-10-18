@@ -26,8 +26,8 @@ import { intlLocale, t } from '../../i18n.js';
 import { api } from '../app/api.js';
 // 4T-001326 (Epic 3E-000236): gemeinsame Plausibilitäts-Prüfung beider Journal-Blöcke.
 import { pruefeBlockPfad, zeigeBlockFehler } from './journal-pfad-pruefung.js';
+import { contextForPath } from './journal-timeline-daten.js';
 import {
-  findPeriodForPath,
   nextPeriod,
   periodDistance,
   periodOf,
@@ -119,19 +119,10 @@ export function periodRelationLine(period) {
 
 // --- Kontext-Ermittlung --------------------------------------------------------------
 
-// Journal und Periode des Eintrags-Pfads: erster Treffer über alle Journale
-// des Bereichs (Konfigurations-Reihenfolge). null = kein Journal-Eintrag.
-function contextForPath(config, rootPath, basePath) {
-  if (!config || !rootPath || !basePath) return null;
-  const rel = api.relative(rootPath, basePath);
-  if (!rel || rel.startsWith('..')) return null;
-  const relPath = rel.replace(/\\/g, '/');
-  for (const journal of config.journals) {
-    const period = findPeriodForPath(journal, relPath);
-    if (period) return { journal, period };
-  }
-  return null;
-}
+// Journal und Periode des Eintrags-Pfads: contextForPath aus
+// journal-timeline-daten.js. 4T-002073: Die eigene, inhaltsgleiche Fassung
+// dieses Moduls ist entfallen; beide Blöcke lesen dieselbe, die eine
+// Bezugs-Zeit annimmt und durchreicht.
 
 // Übergeordnete Journale desselben Regals: pro gröberer Granularität das
 // erste Journal (Konfigurations-Reihenfolge) mit gleichem Regal-Wert;

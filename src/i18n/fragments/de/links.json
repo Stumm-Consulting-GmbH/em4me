@@ -79,7 +79,8 @@
   "settings.renameLinks.group": "Links beim Umbenennen",
   "settings.renameLinks.updateLinks": "Links in anderen Dateien anpassen",
   "settings.renameLinks.preview": "Vor dem Anpassen eine Vorschau anzeigen",
-  "embed.notFound": "Embed-Datei nicht gefunden: {path}",
+  "embed.notFound": "Einbetten nicht möglich: «{path}» ist nicht zu finden",
+  "embed.linkedArea": "Einbetten nicht möglich: «{path}» liegt in einem verknüpften Bereich, aus dem sich nichts einbetten lässt",
   "embed.depthExceeded": "Embed-Tiefe überschritten",
   "outgoing.notOpenable": "Verknüpftes Ziel kann nicht geöffnet werden"
 }

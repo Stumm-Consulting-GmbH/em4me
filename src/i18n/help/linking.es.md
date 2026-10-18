@@ -25,7 +25,7 @@ Los enlaces pueden apuntar a un encabezado o a un bloque dentro del archivo de d
 [[#Enlaces wiki]]                 ancla en el mismo documento
 ```
 
-Las anclas de bloque se colocan con `^id` al final de la línea y anclan el bloque envolvente (párrafo, elemento de lista, tabla, bloque de código):
+Las anclas de bloque se colocan con `^id` al final de la línea y anclan el bloque envolvente (párrafo, elemento de lista, fila de tabla, bloque de código):
 
 ```markdown
 Esta decisión es vinculante. ^decision-1
@@ -41,6 +41,8 @@ const tipoInteres = 0.04;
 ````
 
 Una [tabla de datos](datatable.md) lleva su identificador en su bloque, como línea `table: Ventas` antes de las filas de datos; `[[Informe#^Ventas]]` salta a ella.
+
+También bajo una tabla el identificador va en una línea propia, con una línea en blanco antes y después; entonces designa la tabla entera. Al final de una fila de tabla designa solo esa fila.
 
 El ancla se presenta de forma distinta según la vista. La vista renderizada no la muestra en absoluto: allí el bloque es solo un destino de salto. El **modo en vivo** la sustituye por una marca discreta al final de la línea: al pasar el puntero se indica el identificador y, al hacer clic, el cursor se sitúa al final de la línea y se despliega el texto original para editarlo. Si el cursor ya está en esa línea, el ancla permanece visible como siempre. Que el modo en vivo muestre más que la vista renderizada es intencionado: un ancla es una dirección a la que apuntan otros documentos, y al reorganizar un documento conviene ver que existe. Si el mismo bloque tiene [propiedades](block-properties.md), su marca aparece al lado.
 
@@ -86,9 +88,11 @@ Un espacio sin corchetes angulares termina el destino, de modo que el enlace no 
 ![[notas.md#^bloque]]      solo el bloque anclado
 ```
 
-Con anclas de bloque se incrusta el bloque envolvente completo (elemento de lista con sublistas, bloque de código, fila de tabla, cita), con el nombre de una tabla de datos la tabla entera. Un ancla dentro de un ejemplo de código no cuenta. El Markdown incrustado se renderiza con su propia fuente como base; los enlaces internos se resuelven contra el archivo incrustado.
+Con anclas de bloque se incrusta el bloque envolvente completo (elemento de lista con sublistas, bloque de código, fila de tabla, cita), con un identificador en una línea propia bajo una tabla y con el nombre de una tabla de datos la tabla entera. Un ancla dentro de un ejemplo de código no cuenta. El Markdown incrustado se renderiza con su propia fuente como base; los enlaces internos se resuelven contra el archivo incrustado.
 
 **Dónde se busca el destino.** La aplicación busca en tres pasos, igual para cada tipo de archivo: primero la ruta relativa a su propio archivo, después la escritura de las subpáginas y por último el simple **nombre** en toda el área. Así `![[imagen.png]]` encuentra el archivo aunque esté en otra carpeta: no hace falta acertar la ruta. La búsqueda termina en la raíz del área: lo que quede fuera no se incrusta. Sin un área vinculada, el límite sigue siendo la carpeta del propio archivo.
+
+**Cuando el destino no aparece.** Si la aplicación no encuentra el destino, en el lugar de la incrustación aparece un aviso con el nombre del destino, igual en la vista de lectura, el modo en vivo y la vista dividida.
 
 Si un archivo Markdown lleva el mismo nombre que un adjunto, gana el archivo Markdown; escrito con su extensión (`![[imagen.png]]`) el caso es inequívoco. Las imágenes Markdown corrientes `![](ruta.png)` no se ven afectadas: su escritura significa una ruta, no un nombre.
 ## Vínculos entre áreas
@@ -107,6 +111,8 @@ En el texto el prefijo precede al destino:
 ```
 
 El destino se busca primero en la ruta indicada y, si allí no hay nada, por su nombre en toda el área vinculada, igual que un vínculo wiki dentro de la propia área. Al hacer clic, el destino se abre en la misma ventana.
+
+**Incrustar** desde un área vinculada no es posible: `![[@zt:Nota]]` muestra en su lugar un aviso que lo dice exactamente, estén activados o no los vínculos entre áreas. El vínculo `[[@zt:Nota]]` al mismo destino lo abre como se describe.
 
 **Las plantillas del área vinculada** pueden ofrecerse junto a las propias; hay un interruptor por vínculo. La selección de plantillas muestra entonces ambos conjuntos, y cada entrada ajena indica su procedencia. Sin ese interruptor, un vínculo no cambia el conjunto de plantillas.
 
@@ -129,7 +135,7 @@ Un vínculo entre áreas lleva **hacia allá**, no de vuelta. Deliberadamente no
 - la **búsqueda en toda el área**,
 - y la **actualización de vínculos al renombrar**: al renombrar un archivo, las referencias desde un área vinculada quedan sin cambios. El editor las marca después como no válidas; esa es la red que las hace visibles.
 
-Los vínculos entre áreas son una [extensión](extensions.md) y pueden desactivarse. Una referencia con prefijo queda entonces sin resolver, la comprobación al abrir no se realiza y los vínculos introducidos se conservan: lo que se desactiva es el efecto, no la entrada.
+Los vínculos entre áreas son una [extensión](extensions.md) y pueden desactivarse. Una referencia con prefijo queda entonces sin resolver, la comprobación al abrir no se realiza y ya no se lee nada de un área vinculada, ni siquiera tras un reinicio. Los documentos de un área vinculada que estén abiertos al desactivarlos se cierran; si alguno tiene cambios sin guardar, antes aparece la pregunta habitual. Los vínculos introducidos se conservan: lo que se desactiva es el efecto, no la entrada.
 
 ## Etiquetas
 

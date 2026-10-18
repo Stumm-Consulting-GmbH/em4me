@@ -11,7 +11,8 @@
 // 4T-002072 (Epic 3E-000192): ERROR_KEYS vervollständigt; ein Wächter in
 // test/unit/perspective-datatable.test.js hält sie mit dem Parser gleich.
 
-import { t } from '../../i18n.js';
+import { applyTranslations, t } from '../../i18n.js';
+import { api } from '../app/api.js';
 
 // Struktur-Fehler-Codes des Parsers (src/shared/markdown/perspective-
 // datatable.js) auf i18n-Keys abgebildet; unbekannte Codes behalten den
@@ -59,4 +60,41 @@ export function applyPerspectiveDatatablesIfPresent(container) {
   for (const el of limits) {
     el.textContent = t('datatable.rowLimit').replace('{total}', el.dataset.dtTotal || '');
   }
+}
+
+// 4T-002054: Druck und PDF geben alle Zeilen aus; die Zeilen-Grenze gilt allein
+// dem Gitter in der Anwendung (Entscheidung des Product Owners vom 2026-09-30).
+// Jede gekürzte Datentabelle unter `wurzel` (erkennbar am Hinweis `.pdt-limit`)
+// wird aus ihrem `data-dt-source` über dieselbe Pipeline mit allen Zeilen neu
+// gezeichnet; der Behälter samt seinen Angaben bleibt stehen, getauscht wird
+// allein sein Inhalt. Die alten Knoten werden aufbewahrt, nicht neu gebaut, damit
+// das Zurückstellen Bindungen und Zustand des Gitters unverändert zurückbringt.
+// Liefert die Rücknahme; sie ist auch ohne gekürzte Tabelle aufrufbar.
+export function zeichneGekuerzteDatentabellenVoll(wurzel, basePath) {
+  const ruecknahmen = [];
+  if (!wurzel || typeof wurzel.querySelectorAll !== 'function') return () => {};
+  for (const behaelter of wurzel.querySelectorAll('.perspective-datatable')) {
+    if (!behaelter.querySelector(':scope > .pdt-limit')) continue;
+    const quelle = behaelter.dataset.dtSource || '';
+    // Zaun länger als jeder Backtick-Lauf im Inhalt, damit er den Block nicht beendet.
+    const laeufe = quelle.match(/`+/g) || [];
+    const zaun = '`'.repeat(Math.max(3, ...laeufe.map((l) => l.length + 1)));
+    const text = `${zaun}perspective-datatable\n${quelle.replace(/\n?$/, '\n')}${zaun}\n`;
+    const huelle = document.createElement('div');
+    huelle.innerHTML = api.renderMarkdown(text, basePath || '', {
+      frontmatterBlock: false,
+      datatableAlleZeilen: true,
+    });
+    const neu = huelle.querySelector('.perspective-datatable');
+    if (!neu || neu.querySelector('.pdt-limit')) continue;
+    const alt = document.createDocumentFragment();
+    while (behaelter.firstChild) alt.appendChild(behaelter.firstChild);
+    while (neu.firstChild) behaelter.appendChild(neu.firstChild);
+    applyTranslations(behaelter);
+    applyPerspectiveDatatablesIfPresent(behaelter);
+    ruecknahmen.push(() => behaelter.replaceChildren(alt));
+  }
+  return () => {
+    for (const zurueck of ruecknahmen) zurueck();
+  };
 }

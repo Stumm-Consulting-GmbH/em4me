@@ -21,6 +21,14 @@ export const pageState = {
   // dem Store) verwerfen ihr Ergebnis, wenn zwischenzeitlich neu geöffnet
   // wurde.
   generation: 0,
+  // 4T-001970 (Epic 3E-000341): Merker «Übernahme läuft» — das Versprechen
+  // der laufenden Übernahme aller Abschnitte, sonst null. Schließen und
+  // Neu-Öffnen der Seite hängen ihre Nacharbeit daran (settings-draft.js).
+  applying: null,
+  // 4T-001970: true, solange die Seite seit dem Öffnen keine Eingabe im
+  // Inhalts-Bereich gesehen hat; nur dann darf ein während einer Übernahme
+  // gebauter Entwurf danach neu aufgebaut werden.
+  draftUntouched: true,
 };
 export function jsonEqual(a, b) {
   return JSON.stringify(a) === JSON.stringify(b);

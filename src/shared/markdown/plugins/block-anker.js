@@ -17,9 +17,15 @@
 // gehört die erste nach der Regel im Kopf von perspective-chart-resolve.js zum
 // Code-Block davor, wenn einer davor steht; sonst bleibt an der Stelle der
 // Zeilen ein leerer Träger. Eine Regel, welchen Block ein Anker unter einer
-// Tabelle oder Liste meint, führt dieses Modul bewusst nicht ein: Sie gehört
-// dem Einbettungs-Schnitt, und die Anzeige soll nur nichts Sichtbares
+// Liste meint, führt dieses Modul bewusst nicht ein: Sie gehört dem
+// Einbettungs-Schnitt, und die Anzeige soll nur nichts Sichtbares
 // hinterlassen.
+//
+// 4T-002018 (Epic 3E-000360): **Unter einer Pipe-Tabelle** folgt die Anzeige
+// dem Einbettungs-Schnitt (Entscheidung des Product Owners vom 2026-10-03,
+// Weg 1): Eine Kennung in eigener Zeile unter der Tabelle wird die `id` der
+// Tabelle, mit und ohne Leerzeile davor, und eine Kennung am Ende einer
+// Tabellen-Zeile die `id` dieser Zeile.
 //
 // 4T-002072 (Epic 3E-000192): **Der Name einer Datentabelle aus ihrer
 // Kopf-Angabe `table: Name`.** Er wird die `id` ihres Zauns, bevor die Anker-
@@ -203,11 +209,24 @@ function traeger(state, vorlage, funde, zeile) {
   return [auf, inline, zu];
 }
 
+// Das `table_open` zum `table_close` an Stelle `zu` (gleiche Ebene).
+function tabellenAnfang(tokens, zu) {
+  for (let k = zu - 1; k >= 0; k--) {
+    if (tokens[k].type === 'table_open' && tokens[k].level === tokens[zu].level) return tokens[k];
+  }
+  return null;
+}
+
 // Pipe-Tabelle: Eine alleinstehende Anker-Zeile direkt unter der Tabelle nimmt
 // markdown-it als letzte Tabellenzeile auf, auch in einem Zitat oder
 // Hinweisblock. Solche Zeilen am Ende des Rumpfs entfallen (nur am Ende: der
-// Klick-Abgleich des Live-Modus zählt die Zeilen über ihren Index), und die
-// Kennungen stehen in einem leeren Träger direkt unter der Tabelle.
+// Klick-Abgleich des Live-Modus zählt die Zeilen über ihren Index).
+//
+// 4T-002018 (Epic 3E-000360): Die erste Kennung wird die `id` der Tabelle,
+// weil eine Kennung in eigener Zeile unter der Tabelle die ganze Tabelle meint
+// (Entscheidung des Product Owners vom 2026-10-03, Weg 1, wie der
+// Einbettungs-Schnitt in src/main/index/embed.js); jede weitere steht in einem
+// leeren Träger direkt unter der Tabelle. Bis dahin standen alle im Träger.
 function tabellenAnker(state) {
   const tokens = state.tokens;
   const zeilen = state.src.split('\n');
@@ -234,8 +253,36 @@ function tabellenAnker(state) {
       tokens.splice(k, 2);
       tabelleZu = k;
     }
-    tokens.splice(tabelleZu + 1, 0, ...traeger(state, tokens[tabelleZu], funde, erste));
+    const tabelle = tabellenAnfang(tokens, tabelleZu);
+    if (tabelle && !tabelle.attrGet('id')) tabelle.attrSet('id', funde.shift().id);
+    if (funde.length > 0) {
+      tokens.splice(tabelleZu + 1, 0, ...traeger(state, tokens[tabelleZu], funde, erste));
+    }
     i = k;
+  }
+}
+
+// 4T-002018 (Epic 3E-000360): Eine Kennung am Ende einer Tabellen-Zeile meint
+// diese Zeile. Steht sie hinter dem letzten Strich, verwirft markdown-it sie
+// als überzählige Zelle, und die Kennung verschwand ohne Sprungziel; sie wird
+// die `id` der Zeile. Liegt sie in einer Zelle, die erhalten bleibt, behandelt
+// sie die Regel unten wie bisher.
+function zeilenAnker(state) {
+  const tokens = state.tokens;
+  const zeilen = state.src.split('\n');
+  for (let i = 0; i < tokens.length; i++) {
+    const zeile = tokens[i];
+    if (zeile.type !== 'tr_open' || !zeile.map || zeile.attrGet('id')) continue;
+    const treffer = String(zeilen[zeile.map[0]] ?? '').match(BLOCK_ANCHOR_RE);
+    if (!treffer) continue;
+    let inZelle = false;
+    for (let k = i + 1; k < tokens.length && tokens[k].type !== 'tr_close'; k++) {
+      const t = tokens[k];
+      if (t.type === 'inline' && (t.content.match(BLOCK_ANCHOR_RE) || [])[1] === treffer[1]) {
+        inZelle = true;
+      }
+    }
+    if (!inZelle) zeile.attrSet('id', treffer[1]);
   }
 }
 
@@ -263,8 +310,16 @@ function ankerAbsatz(tokens, i, funde, quelle) {
     tokens.splice(i - 1, 3);
     return -2;
   }
+  // 4T-002018: Folgt der Absatz unmittelbar auf eine Pipe-Tabelle derselben
+  // Ebene, meint die erste Kennung die ganze Tabelle, wie beim Code-Block.
+  const tabelle =
+    davor && davor.type === 'table_close' && davor.level === auf.level
+      ? tabellenAnfang(tokens, i - 2)
+      : null;
   if (davor && davor.type === 'fence' && davor.level === auf.level && !davor.attrGet('id')) {
     alsId(davor, rest.shift(), inline);
+  } else if (tabelle && !tabelle.attrGet('id')) {
+    alsId(tabelle, rest.shift(), inline);
   } else if (auf.hidden) {
     const huelle = sichtbarerBlockDavor(tokens, i - 1, auf.level - 1);
     if (huelle && !huelle.attrGet('id')) alsId(huelle, rest.shift(), inline);
@@ -305,6 +360,7 @@ function blockAnchorsPlugin(mdInstance) {
   mdInstance.core.ruler.push('blockAnchors', (state) => {
     datentabellenNamen(state);
     tabellenAnker(state);
+    zeilenAnker(state);
     const tokens = state.tokens;
     const zeilen = state.src.split('\n');
     for (let i = 0; i < tokens.length; i++) {

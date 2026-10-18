@@ -42,6 +42,8 @@ let bestand = {
   // 'manual' | 'settings' | 'document' | null
   raum: null,
   auswahl: -1,
+  // 4T-001921: die Anfrage dieses Bestands (kennungDesLaufs), null ohne Lauf.
+  anfrage: null,
 };
 
 // Zugeklappte Gruppen (Gruppen-Kennung). Bleibt über einen neuen Suchlauf
@@ -68,6 +70,43 @@ let umbenennung = null;
 // beiden vorkommen kann, gibt es nicht.
 function kennungDerAnfrage(muster, flags) {
   return JSON.stringify([muster || '', flags || '']);
+}
+
+// 4T-001921 (Epic 3E-000341): Für die Panel-Auswahl zählt der Raum mit. Dasselbe
+// Muster im Handbuch und im Bereich meint verschiedene Fundstellen; die
+// Umbenennung oben braucht ihn nicht, weil sie nur im Bereich vorkommt.
+function kennungDesLaufs(raum, muster, flags) {
+  return JSON.stringify([raum || '', muster || '', flags || '']);
+}
+
+// 4T-001921: Wo steht die bisher gewählte Fundstelle in der neuen Liste?
+//
+// Gemerkt wird über den Schlüssel der Fundstelle und nicht über den Index: Ein
+// Neuaufbau kann die Treffer-Zahl ändern, und ein Index zeigte dann auf eine
+// andere Zeile als die gewählte. -1 heißt: nichts zu übernehmen, weil die
+// Anfrage eine andere ist, keine Auswahl bestand oder auch der Rückfall nicht
+// trägt.
+//
+// Rückfall auf den Index: Der Schlüssel enthält den Offset der Fundstelle, und
+// wer in der offenen Datei VOR ihr tippt, verschiebt ihn. Die Auswahl soll
+// deshalb nicht springen; bei derselben Anfrage gilt dann der bisherige Index,
+// solange er in der neuen Liste liegt.
+function gehalteneAuswahl(neueTreffer, anfrage) {
+  if (anfrage !== bestand.anfrage) return -1;
+  const bisher = bestand.treffer[bestand.auswahl];
+  if (!bisher) return -1;
+  const sch = zeilenSchluessel(bisher);
+  const gefunden = neueTreffer.findIndex((tr) => zeilenSchluessel(tr) === sch);
+  if (gefunden >= 0) return gefunden;
+  return bestand.auswahl < neueTreffer.length ? bestand.auswahl : -1;
+}
+
+// 4T-001921: Liegt der Tastatur-Fokus auf einer Zeile der Trefferliste? Nur
+// dann gibt der Neuaufbau ihn zurück; einer Suchleiste oder einem Editor nimmt
+// er ihn nie weg (Grundsatz aus 4T-001561).
+function fokusAufTrefferZeile() {
+  const el = document.activeElement;
+  return !!(el && el.classList && el.classList.contains('search-results-item'));
 }
 
 /**
@@ -138,16 +177,34 @@ export function zeigeTreffer({
   auswahl.pruefeAnfrage(raum, muster, flags);
   // 4T-001531: Derselbe Maßstab für den Balken der Tag-Umbenennung.
   pruefeUmbenennungsBestand(muster, flags);
+  const neueTreffer = Array.isArray(treffer) ? treffer : [];
+  const anfrage = kennungDesLaufs(raum, muster, flags);
+  // 4T-001921 (Epic 3E-000341): Die gewählte Zeile überlebt einen Lauf mit
+  // derselben Anfrage. Solche Läufe löst der Anwender nicht selbst aus — eine
+  // Eingabe im Dokument, ein Ansichts-Wechsel, das Zeichnen eines Diagramms
+  // (refreshSearchIfVisible) —, und bis hierher setzte jeder davon die mit den
+  // Pfeiltasten gewählte Zeile auf die erste zurück. Neue Anfrage oder
+  // verschwundene Fundstelle: wie bisher die erste Zeile.
+  const gehalten = gehalteneAuswahl(neueTreffer, anfrage);
+  // Der Neuaufbau entfernt die fokussierte Zeile aus dem Baum, der Fokus fiele
+  // auf BODY, und der nächste Pfeil-Druck erreichte den Handler nicht mehr —
+  // die gehaltene Auswahl wäre für die Tastatur wertlos.
+  const fokusZurueck = fokusAufTrefferZeile();
   bestand = {
-    treffer: Array.isArray(treffer) ? treffer : [],
+    treffer: neueTreffer,
     gruppen: Array.isArray(gruppen) ? gruppen : [],
     abgeschnitten: !!abgeschnitten,
     raum: raum || null,
     // 4T-000616: 'direkt' meldet einen Bereich oberhalb des Vorrats-Deckels.
     vorratModus: vorratModus || null,
-    auswahl: Array.isArray(treffer) && treffer.length > 0 ? 0 : -1,
+    auswahl: gehalten >= 0 ? gehalten : neueTreffer.length > 0 ? 0 : -1,
+    anfrage,
   };
-  zeichneAllePanes();
+  const gewaehlt = neueTreffer[bestand.auswahl];
+  zeichneAllePanes(fokusZurueck && gewaehlt ? zeilenSchluessel(gewaehlt) : null);
+  // 4T-001921: Der Suchlauf erfährt so, ob eine Auswahl übernommen wurde; nur
+  // wenn nicht, legt er seinen F3-Zeiger darüber (search-run.js).
+  return gehalten >= 0;
 }
 
 export function leereTreffer(raum = null) {
@@ -162,6 +219,7 @@ export function leereTreffer(raum = null) {
     raum,
     vorratModus: null,
     auswahl: -1,
+    anfrage: null,
   };
   zeichneAllePanes();
 }

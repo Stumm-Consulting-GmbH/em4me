@@ -93,6 +93,7 @@
   "areaPanel.newFolderError": "No se pudo crear la carpeta",
   "areaPanel.newNameEmpty": "Introduzca un nombre",
   "areaPanel.newNameInvalid": "El nombre contiene caracteres no permitidos",
+  "areaPanel.inputDiscarded": "La carpeta de destino ya no se muestra; la entrada se ha descartado",
   "area.outsideTitle": "Fuera del área",
   "area.outsideOpenMessage": "La selección está fuera del área y no se abrirá.",
   "area.outsideSaveMessage": "La ubicación elegida está fuera del área. Elija una ubicación dentro del área."

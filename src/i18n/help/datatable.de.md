@@ -112,7 +112,7 @@ aggregate: Gesamt:sum
 
 ## Bearbeiten im Grid
 
-In der **geteilten Ansicht** und im **Live-Modus** ist das Grid direkt bearbeitbar; die Lese-Ansicht und Handbuch-Seiten zeigen es schreibgeschützt. Jede Übernahme schreibt in den Code-Block im Quelltext zurück — das Dokument wird regulär ungespeichert, Rückgängig/Wiederherstellen funktionieren wie gewohnt.
+In der **geteilten Ansicht** und im **Live-Modus** ist das Grid direkt bearbeitbar, solange **Ansicht › Bearbeiten** eingeschaltet ist; ist es ausgeschaltet, lässt sich das Grid dort wie in der Lese-Ansicht nur ansehen, sortieren und filtern. Die Lese-Ansicht und Handbuch-Seiten zeigen es schreibgeschützt. Jede Übernahme schreibt in den Code-Block im Quelltext zurück — das Dokument wird regulär ungespeichert, Rückgängig/Wiederherstellen funktionieren wie gewohnt.
 
 - **Zelle bearbeiten**: Klick auf die Zelle (oder `Enter`/`F2` bei Zell-Fokus) öffnet ein typ-gerechtes Eingabefeld. `Enter` oder Fokus-Verlust übernimmt, `Esc` verwirft, `Tab`/`Umschalt+Tab` übernimmt und springt zur nächsten bzw. vorherigen Zelle.
 - **Verweise in der Zelle**: Ein Klick auf einen Verweis oder ein Schlagwort in einer Text-Zelle folgt ihm und öffnet die Zelle nicht. Ein Klick in den freien Teil der Zelle, `Enter` oder `F2` öffnen sie mit dem geschriebenen Text. Hat der Verweis selbst den Tastatur-Fokus, folgt ihm `Enter`, und `F2` öffnet die Zelle.
@@ -142,4 +142,4 @@ Der Portable-Export und der PDF-Export geben die Tabelle als statische Tabelle i
 
 ## Grenzen
 
-Ab 1000 Datenzeilen zeigt das Grid nur Kopfbereich und Aggregate mit einem Hinweis; die Aggregate rechnen weiterhin über alle Zeilen. Sehr große Bestände gehören in ein dediziertes Daten-Werkzeug.
+Bei mehr als 1000 Datenzeilen zeigt das Grid nur Kopfbereich und Aggregate mit einem Hinweis; die Aggregate rechnen weiterhin über alle Zeilen. Sehr große Bestände gehören in ein dediziertes Daten-Werkzeug.

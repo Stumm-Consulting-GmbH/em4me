@@ -1,6 +1,6 @@
 # Ansichten und Darstellung
 
-Wie ein Dokument erscheint, entscheiden zwei Ebenen. Die **Ansicht** gehört zum einzelnen Reiter: Sie legt fest, ob das Dokument gerendert, als Quelltext, geteilt oder live gezeigt wird. Das **Erscheinungsbild** gilt für die ganze Anwendung: Theme, Zoom, Inhalts-Breite und Schriften. Diese Seite führt beide Ebenen zusammen und nennt zu jeder Einstellung ihren Ort.
+Wie ein Dokument erscheint, entscheiden zwei Ebenen. Die **Ansicht** gehört zum einzelnen geöffneten Dokument: Sie legt fest, ob das Dokument gerendert, als Quelltext, geteilt oder live gezeigt wird. Das **Erscheinungsbild** gilt für die ganze Anwendung: Theme, Zoom, Inhalts-Breite und Schriften. Diese Seite führt beide Ebenen zusammen und nennt zu jeder Einstellung ihren Ort.
 
 ## Die acht Ansichten
 
@@ -17,7 +17,7 @@ Jedes geöffnete Dokument steht in genau einer von acht Ansichten. Der gewählte
 | **Tafel**     | die Aufgaben des Dokuments als Kanban-Tafel              | `Strg+7`        |
 | **Folien**    | die Folien einer Präsentation, eine nach der anderen     | `Strg+8`        |
 
-Umgeschaltet wird über die Schaltflächen in der Statusleiste oder über den Kopf des Ansicht-Menüs; die Mindmap steht im Menü und auf ihrem Kürzel, nicht in der Statusleiste, die Canvas-Schaltfläche bleibt gedämpft, solange das Dokument keine Canvas-Fläche trägt, die Tafel-Schaltfläche ebenso, solange das Dokument keine Kanban-Tafel ist, und die Folien-Schaltfläche, solange es keine Präsentation ist. Welche Ansicht ein neu geöffneter Reiter bekommt, stellt der Bereich „Verhalten" der Einstellungen ein.
+Umgeschaltet wird über die Schaltflächen in der Statusleiste oder über den Kopf des Ansicht-Menüs; die Mindmap steht im Menü und auf ihrem Kürzel, nicht in der Statusleiste, die Canvas-Schaltfläche bleibt gedämpft, solange das Dokument keine Canvas-Fläche trägt, die Tafel-Schaltfläche ebenso, solange das Dokument keine Kanban-Tafel ist, und die Folien-Schaltfläche, solange es keine Präsentation ist. Welche Ansicht ein neu geöffnetes Dokument bekommt, stellt der Bereich „Verhalten" der Einstellungen ein.
 
 ### Live-Modus
 
@@ -60,7 +60,7 @@ Das Untermenü Ansicht → Editor-Darstellung bündelt die fünf Schalter, die d
 - **Gliederung** blendet die Falt-Spur am linken Rand ein: Überschriften, Listen und Blöcke lassen sich dort zuklappen, und die Hierarchie bleibt als Spur sichtbar.
 - **Zeilennummern** zeigt die Nummern-Spalte.
 - **Zeilenumbruch** bricht lange Zeilen am Fensterrand um, statt waagerecht zu rollen. Die Fortsetzung einer umgebrochenen Zeile beginnt dabei auf der Einzug-Höhe ihres Inhalts: bei einem Listen-Eintrag hinter der Listen-Marke, bei einem nummerierten hinter der Nummer, bei einer Aufgabe hinter dem Kästchen, auch wenn sie nummeriert ist, bei einer eingerückten Zeile auf deren eigenem Einzug. Ein Absatz ohne Einzug bleibt linksbündig.
-- **Scroll-Synchronisation** koppelt in der geteilten Ansicht beide Hälften: Beim Rollen im Quelltext folgt das Ergebnis inhaltlich und umgekehrt. Der Schalter gilt pro Reiter.
+- **Scroll-Synchronisation** koppelt in der geteilten Ansicht beide Hälften: Beim Rollen im Quelltext folgt das Ergebnis inhaltlich und umgekehrt. Der Schalter gilt je geöffnetem Dokument.
 - **Typewriter-Scroll** hält die Cursor-Zeile vertikal in der Mitte, sobald der Cursor bewegt wird. Er wirkt nur im Bearbeiten-Modus.
 
 Die ersten drei Schalter sind **dokument-gebunden**: Ihr Wert wandert in das Frontmatter der Datei (`fold-gutter`, `line-numbers`, `word-wrap`) und reist mit ihr. Das Umschalten schreibt den neuen Wert dort hinein und macht die Datei änderungsbedürftig; ein Dokument ohne eigene Angabe folgt der Voreinstellung unter Datei → Einstellungen… → Darstellung. Die Auflösungs-Reihenfolge beschreibt die Seite [Frontmatter und Properties](frontmatter.md).
@@ -83,7 +83,7 @@ Die Zeile mit dem Cursor wird im Bearbeiten-Modus dezent hinterlegt, im Quellcod
 
 ### Zoom
 
-Der Inhalt jedes Reiters lässt sich unabhängig in Zehn-Prozent-Schritten vergrößern und verkleinern (Standard `Strg + +`, `Strg + −`, `Strg + 0`, dazu `Strg` mit dem Mausrad). Weicht der Faktor von hundert Prozent ab, zeigt ihn die Statusleiste an; ein Klick darauf setzt zurück. Der Zoom ist flüchtig und überlebt das Schließen des Fensters nicht.
+Der Inhalt jedes geöffneten Dokuments lässt sich unabhängig in Zehn-Prozent-Schritten vergrößern und verkleinern (Standard `Strg + +`, `Strg + −`, `Strg + 0`, dazu `Strg` mit dem Mausrad). Weicht der Faktor von hundert Prozent ab, zeigt ihn die Statusleiste an; ein Klick darauf setzt zurück. Der Zoom ist flüchtig und überlebt das Schließen des Fensters nicht.
 
 ### Inhalts-Breite
 
@@ -95,7 +95,7 @@ Schriftart und Schriftgröße lassen sich getrennt für die Bearbeiten-Fläche u
 
 ## Fenster-Zustand
 
-Position, Größe und Maximiert-Zustand eines Fensters werden beim Beenden gemerkt und beim nächsten Start wiederhergestellt. Dafür ist nichts einzustellen. Was darüber hinaus eine ganze Sitzung mit ihren Reitern zurückholt, beschreibt die Seite [Applikationen, Fenster und Bereiche](apps-windows.md).
+Position, Größe und Maximiert-Zustand eines Fensters werden beim Beenden gemerkt und beim nächsten Start wiederhergestellt. Dafür ist nichts einzustellen. Was darüber hinaus eine ganze Sitzung mit ihren geöffneten Dokumenten zurückholt, beschreibt die Seite [Applikationen, Fenster und Bereiche](apps-windows.md).
 
 ## Statusleiste
 
@@ -113,14 +113,14 @@ Die Statusleiste zeigt Wörter, Zeichen und die geschätzte Lesezeit der aktiven
 
 ## Einstellungen
 
-Die Einstellungen öffnen als eigener Reiter (Datei → Einstellungen…, Standard `Strg+,`). Ihre Navigation gliedert sich in vier Blöcke:
+Die Einstellungen öffnen als eigene Ansicht (Datei → Einstellungen…, Standard `Strg+,`). Ihre Navigation gliedert sich in vier Blöcke:
 
 - **Allgemein** — alles, was für die ganze Anwendung gilt, etwa Darstellung, Verhalten, Tastenkürzel und Export.
 - **Aktueller Bereich** — die Einstellungen des geöffneten Bereichs. Der Block erscheint nur, solange ein Bereich offen ist. Bei einem geöffneten Buch heißt er **Aktuelles Buch**, bei einem geöffneten Bücherregal **Aktuelles Bücherregal**; dann steht an seiner ersten Stelle der Abschnitt **Eigene Angaben** mit Titel, Autor, Beschreibung und Titelbild, beim Regal zusätzlich mit der Darstellung. Die übrigen Abschnitte des Blocks bleiben in allen drei Fällen dieselben, siehe [Bücher](books.md).
 - **Erweiterungen (intern)** — der Arbeitsmodus, der sie gebündelt umschaltet, und das Ein- und Ausschalten der mitgelieferten Erweiterungen samt ihren eigenen Bereichen.
 - **Erweiterungen (extern)** — die Verwaltung selbst installierter Erweiterungs-Pakete.
 
-Änderungen wirken zunächst als Entwurf mit Live-Vorschau der Darstellung. Anwenden und OK speichern; beide sind nur bei ungesicherten Änderungen hervorgehoben, ohne Änderungen ist Anwenden abgeblendet. Abbrechen oder das Schließen des Reiters verwirft den Entwurf. Gespeicherte Werte gelten sofort in allen offenen Fenstern. Mehr zu den beiden Erweiterungs-Blöcken steht auf der Seite [Erweiterungen](extensions.md).
+Änderungen wirken zunächst als Entwurf mit Live-Vorschau der Darstellung. Anwenden und OK speichern; beide sind nur bei ungesicherten Änderungen hervorgehoben, ohne Änderungen ist Anwenden abgeblendet. Abbrechen oder das Schließen der Einstellungen verwirft den Entwurf. Gespeicherte Werte gelten sofort in allen offenen Fenstern. Mehr zu den beiden Erweiterungs-Blöcken steht auf der Seite [Erweiterungen](extensions.md).
 
 ## Sprache
 

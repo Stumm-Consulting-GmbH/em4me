@@ -109,40 +109,40 @@ sind bewusst stabil: 2020-01-01 ist immer ueberfaellig, 2099-12-31 nie. Keine
 Daten nahe heute, damit der Snapshot maschinen- und zeitunabhaengig bleibt.</p>
 <h2 id="termine">Termine</h2>
 <ul class="contains-task-list">
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Faelliger Termin, ueberfaellig&lt;span class=&quot;task-marker task-marker-date task-marker-due task-marker-overdue&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;border-color:#dc3545;color:#b02a37;&quot;&gt;📅 2020-01-01&lt;/span&gt;&lt;/label&gt;</li>
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Faelliger Termin, Zukunft&lt;span class=&quot;task-marker task-marker-date task-marker-due&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;📅 2099-12-31&lt;/span&gt;&lt;/label&gt;</li>
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Faellig mit Uhrzeit&lt;span class=&quot;task-marker task-marker-date task-marker-due&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;📅 2099-12-31 09:30&lt;/span&gt;&lt;/label&gt;</li>
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Geplanter Termin&lt;span class=&quot;task-marker task-marker-date task-marker-scheduled&quot; title=&quot;Geplant&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;⏳ 2099-06-15&lt;/span&gt;&lt;/label&gt;</li>
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Start-Termin&lt;span class=&quot;task-marker task-marker-date task-marker-start&quot; title=&quot;Start&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🛫 2099-03-01&lt;/span&gt;&lt;/label&gt;</li>
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Erstellt-Datum&lt;span class=&quot;task-marker task-marker-date task-marker-created&quot; title=&quot;Erstellt&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;➕ 2020-01-01&lt;/span&gt;&lt;/label&gt;</li>
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; checked=&quot;&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Erledigt-Datum&lt;span class=&quot;task-marker task-marker-date task-marker-done&quot; title=&quot;Erledigt&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;✅ 2099-12-31&lt;/span&gt;&lt;/label&gt;</li>
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Abgebrochen-Datum&lt;span class=&quot;task-marker task-marker-date task-marker-cancelled&quot; title=&quot;Abgebrochen&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;❌ 2099-12-31&lt;/span&gt;&lt;/label&gt;</li>
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Ungueltiges Datum&lt;span class=&quot;task-marker task-marker-date task-marker-due task-marker-invalid&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;border-color:#dc3545;color:#b02a37;text-decoration:line-through;&quot;&gt;📅 2099-02-30&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">☐ Faelliger Termin, ueberfaellig&lt;span class=&quot;task-marker task-marker-date task-marker-due task-marker-overdue&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;border-color:#dc3545;color:#b02a37;&quot;&gt;📅 2020-01-01&lt;/span&gt;</li>
+<li class="task-list-item">☐ Faelliger Termin, Zukunft&lt;span class=&quot;task-marker task-marker-date task-marker-due&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;📅 2099-12-31&lt;/span&gt;</li>
+<li class="task-list-item">☐ Faellig mit Uhrzeit&lt;span class=&quot;task-marker task-marker-date task-marker-due&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;📅 2099-12-31 09:30&lt;/span&gt;</li>
+<li class="task-list-item">☐ Geplanter Termin&lt;span class=&quot;task-marker task-marker-date task-marker-scheduled&quot; title=&quot;Geplant&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;⏳ 2099-06-15&lt;/span&gt;</li>
+<li class="task-list-item">☐ Start-Termin&lt;span class=&quot;task-marker task-marker-date task-marker-start&quot; title=&quot;Start&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🛫 2099-03-01&lt;/span&gt;</li>
+<li class="task-list-item">☐ Erstellt-Datum&lt;span class=&quot;task-marker task-marker-date task-marker-created&quot; title=&quot;Erstellt&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;➕ 2020-01-01&lt;/span&gt;</li>
+<li class="task-list-item">☑ Erledigt-Datum&lt;span class=&quot;task-marker task-marker-date task-marker-done&quot; title=&quot;Erledigt&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;✅ 2099-12-31&lt;/span&gt;</li>
+<li class="task-list-item">☐ Abgebrochen-Datum&lt;span class=&quot;task-marker task-marker-date task-marker-cancelled&quot; title=&quot;Abgebrochen&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;❌ 2099-12-31&lt;/span&gt;</li>
+<li class="task-list-item">☐ Ungueltiges Datum&lt;span class=&quot;task-marker task-marker-date task-marker-due task-marker-invalid&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;border-color:#dc3545;color:#b02a37;text-decoration:line-through;&quot;&gt;📅 2099-02-30&lt;/span&gt;</li>
 </ul>
 <h2 id="prioritaet">Prioritaet</h2>
 <ul class="contains-task-list">
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Hoechste Prioritaet&lt;span class=&quot;task-marker task-marker-priority&quot; title=&quot;Höchste Priorität&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🔺&lt;/span&gt;&lt;/label&gt;</li>
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Hohe Prioritaet&lt;span class=&quot;task-marker task-marker-priority&quot; title=&quot;Hohe Priorität&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;⏫&lt;/span&gt;&lt;/label&gt;</li>
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Mittlere Prioritaet&lt;span class=&quot;task-marker task-marker-priority&quot; title=&quot;Mittlere Priorität&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🔼&lt;/span&gt;&lt;/label&gt;</li>
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Niedrige Prioritaet&lt;span class=&quot;task-marker task-marker-priority&quot; title=&quot;Niedrige Priorität&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🔽&lt;/span&gt;&lt;/label&gt;</li>
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Niedrigste Prioritaet&lt;span class=&quot;task-marker task-marker-priority&quot; title=&quot;Niedrigste Priorität&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;⏬&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">☐ Hoechste Prioritaet&lt;span class=&quot;task-marker task-marker-priority&quot; title=&quot;Höchste Priorität&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🔺&lt;/span&gt;</li>
+<li class="task-list-item">☐ Hohe Prioritaet&lt;span class=&quot;task-marker task-marker-priority&quot; title=&quot;Hohe Priorität&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;⏫&lt;/span&gt;</li>
+<li class="task-list-item">☐ Mittlere Prioritaet&lt;span class=&quot;task-marker task-marker-priority&quot; title=&quot;Mittlere Priorität&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🔼&lt;/span&gt;</li>
+<li class="task-list-item">☐ Niedrige Prioritaet&lt;span class=&quot;task-marker task-marker-priority&quot; title=&quot;Niedrige Priorität&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🔽&lt;/span&gt;</li>
+<li class="task-list-item">☐ Niedrigste Prioritaet&lt;span class=&quot;task-marker task-marker-priority&quot; title=&quot;Niedrigste Priorität&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;⏬&lt;/span&gt;</li>
 </ul>
 <h2 id="wiederholung-id-und-abhaengigkeit">Wiederholung, ID und Abhaengigkeit</h2>
 <ul class="contains-task-list">
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Woechentliche Wiederholung&lt;span class=&quot;task-marker task-marker-recurrence&quot; title=&quot;Wiederholung&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🔁 every week&lt;/span&gt;&lt;/label&gt;</li>
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Aufgabe mit Kennung&lt;span class=&quot;task-marker task-marker-other&quot; title=&quot;ID&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🆔 abc123&lt;/span&gt;&lt;/label&gt;</li>
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Abhaengige Aufgabe&lt;span class=&quot;task-marker task-marker-other&quot; title=&quot;Abhängig von&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;⛔ abc123&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">☐ Woechentliche Wiederholung&lt;span class=&quot;task-marker task-marker-recurrence&quot; title=&quot;Wiederholung&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🔁 every week&lt;/span&gt;</li>
+<li class="task-list-item">☐ Aufgabe mit Kennung&lt;span class=&quot;task-marker task-marker-other&quot; title=&quot;ID&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🆔 abc123&lt;/span&gt;</li>
+<li class="task-list-item">☐ Abhaengige Aufgabe&lt;span class=&quot;task-marker task-marker-other&quot; title=&quot;Abhängig von&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;⛔ abc123&lt;/span&gt;</li>
 </ul>
 <h2 id="toleranz-marker">Toleranz-Marker</h2>
 <ul class="contains-task-list">
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Aufgabe mit Abschluss-Aktion&lt;span class=&quot;task-marker task-marker-other&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🏁 delete&lt;/span&gt;&lt;/label&gt;</li>
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Aufgabe mit Erinnerung&lt;span class=&quot;task-marker task-marker-reminder&quot; title=&quot;Erinnerung&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;⏰ 2099-12-31 08:00&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">☐ Aufgabe mit Abschluss-Aktion&lt;span class=&quot;task-marker task-marker-other&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;🏁 delete&lt;/span&gt;</li>
+<li class="task-list-item">☐ Aufgabe mit Erinnerung&lt;span class=&quot;task-marker task-marker-reminder&quot; title=&quot;Erinnerung&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;⏰ 2099-12-31 08:00&lt;/span&gt;</li>
 </ul>
 <h2 id="sonderfaelle">Sonderfaelle</h2>
 <ul class="contains-task-list">
-<li class="task-list-item">&lt;label&gt;&lt;input class=&quot;task-list-item-checkbox&quot; disabled=&quot;&quot; type=&quot;checkbox&quot;&gt; Zeile mit <strong>Fett</strong> und Termin&lt;span class=&quot;task-marker task-marker-date task-marker-due&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;📅 2099-12-31&lt;/span&gt;&lt;/label&gt;</li>
+<li class="task-list-item">☐ Zeile mit <strong>Fett</strong> und Termin&lt;span class=&quot;task-marker task-marker-date task-marker-due&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;📅 2099-12-31&lt;/span&gt;</li>
 <li>Bullet ohne Checkbox mit 📅 2099-12-31 (kein Badge)</li>
-<li class="task-list-item task-state-item" data-task-state="/">&lt;span class=&quot;task-state-box&quot; title=&quot;In Arbeit&quot; style=&quot;display:inline-flex;align-items:center;justify-content:center;width:1.1em;height:1.1em;border:1.5px solid #0d6efd;border-radius:3px;color:#0d6efd;font-weight:700;font-size:0.85em;line-height:1;margin-right:0.4em;vertical-align:text-bottom;&quot;&gt;/&lt;/span&gt;Erweiterter Status mit Termin&lt;span class=&quot;task-marker task-marker-date task-marker-due&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;📅 2099-12-31&lt;/span&gt;</li>
+<li class="task-list-item task-state-item" data-task-state="/">[/] Erweiterter Status mit Termin&lt;span class=&quot;task-marker task-marker-date task-marker-due&quot; title=&quot;Fällig&quot; style=&quot;display:inline-block;margin-left:0.45em;padding:0 0.35em;border:1px solid #bbb;border-radius:0.7em;font-size:0.82em;color:#555;white-space:nowrap;&quot;&gt;📅 2099-12-31&lt;/span&gt;</li>
 </ul>
 "
 `;
@@ -192,7 +192,7 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert block-anker-zeilen.md
 | Februar | 99  |
 "><table class="pdt-grid"><thead><tr><th class="pdt-row-del" aria-hidden="true"></th><th class="pdt-col pdt-type-text" data-dt-col="0" scope="col"><span class="pdt-name">Monat</span><span class="pdt-type">text</span></th><th class="pdt-col pdt-type-number" data-dt-col="1" scope="col"><span class="pdt-name">Umsatz</span><span class="pdt-type">number</span></th></tr></thead><tbody><tr data-dt-row="0"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0">Januar</td><td class="pdt-cell pdt-type-number" data-dt-col="1" tabindex="0">120</td></tr><tr data-dt-row="1"><td class="pdt-row-del"><button type="button" class="pdt-del-btn" data-i18n-title="datatable.deleteRow" tabindex="-1">×</button></td><td class="pdt-cell pdt-type-text" data-dt-col="0" tabindex="0">Februar</td><td class="pdt-cell pdt-type-number" data-dt-col="1" tabindex="0">99</td></tr></tbody></table><div class="pdt-add-row"><button type="button" class="pdt-add-btn"><span aria-hidden="true">+</span> <span data-i18n="datatable.addRow">addRow</span></button></div></div>
 <p data-source-line="12" id="absatz-ende">Ein Absatz mit Anker am Ende.</p>
-<table data-source-line="14">
+<table data-source-line="14" id="pipe-tabelle">
 <thead data-source-line="14">
 <tr data-source-line="14">
 <th>Spalte</th>
@@ -206,7 +206,6 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert block-anker-zeilen.md
 </tr>
 </tbody>
 </table>
-<p data-source-line="17" id="pipe-tabelle"></p>
 <pre id="code"><code class="hljs language-js"><span class="hljs-keyword">const</span> a = <span class="hljs-number">1</span>;
 </code></pre>
 <pre id="code-nach-leerzeile"><code class="hljs language-js"><span class="hljs-keyword">const</span> b = <span class="hljs-number">2</span>;
@@ -250,7 +249,7 @@ Zeile drei</p>
 <p data-source-line="80" id="zwei-a">Zeile eins
 Zeile zwei<span id="zwei-b"></span></p>
 <blockquote data-source-line="83">
-<table data-source-line="83">
+<table data-source-line="83" id="tabelle-im-zitat">
 <thead data-source-line="83">
 <tr data-source-line="83">
 <th>Zitat</th>
@@ -264,9 +263,8 @@ Zeile zwei<span id="zwei-b"></span></p>
 </tr>
 </tbody>
 </table>
-<p data-source-line="86" id="tabelle-im-zitat"></p>
 </blockquote>
-<div class="callout callout-note"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span><span class="callout-title">Hinweis</span></div><div class="callout-body"><table data-source-line="89">
+<div class="callout callout-note"><div class="callout-header"><span class="callout-icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></span><span class="callout-title">Hinweis</span></div><div class="callout-body"><table data-source-line="89" id="tabelle-im-hinweis">
 <thead data-source-line="89">
 <tr data-source-line="89">
 <th>Hinweis</th>
@@ -280,7 +278,6 @@ Zeile zwei<span id="zwei-b"></span></p>
 </tr>
 </tbody>
 </table>
-<p data-source-line="92" id="tabelle-im-hinweis"></p>
 </div></div><p data-source-line="94">Maskiert bleibt Text: ^kein-anker-1 und ^kein-anker-2</p>
 "
 `;
@@ -1194,9 +1191,9 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert task-states.md stabil
 
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert unterseiten-embeds.md stabil 1`] = `
 "<h1 id="unterseiten-embeds-4t-000337" data-source-line="1">Unterseiten-Embeds (4T-000337)</h1>
-<p data-source-line="3">Embed in Slash-Schreibweise: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Prozess-A/Entwurf.md"></span></p>
-<p data-source-line="5">Embed mit Anker: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Prozess-A/Entwurf.md" data-embed-anchor="Abschnitt"></span></p>
-<p data-source-line="7">Relatives Kind-Embed: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="/Entwurf.md"></span></p>
+<p data-source-line="3">Embed in Slash-Schreibweise: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Prozess-A/Entwurf.md" data-embed-name="Prozess-A/Entwurf"></span></p>
+<p data-source-line="5">Embed mit Anker: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Prozess-A/Entwurf.md" data-embed-anchor="Abschnitt" data-embed-name="Prozess-A/Entwurf"></span></p>
+<p data-source-line="7">Relatives Kind-Embed: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="/Entwurf.md" data-embed-name="/Entwurf"></span></p>
 <p data-source-line="9">Eltern-Embed: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path=".."></span></p>
 "
 `;
@@ -1218,8 +1215,8 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert unterseiten-links.md 
 exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert wiki-embeds.md stabil 1`] = `
 "<p data-source-line="1">Bild-Embed: <span class="wiki-embed wiki-embed-image" data-embed-kind="image" data-embed-path="bild.png"></span></p>
 <p data-source-line="3">Bild mit Breite: <span class="wiki-embed wiki-embed-image" data-embed-kind="image" data-embed-path="bild.png" data-embed-width="300"></span></p>
-<p data-source-line="5">Markdown-Embed: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md"></span></p>
-<p data-source-line="7">Markdown-Embed mit Anker: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md" data-embed-anchor="Abschnitt"></span></p>
+<p data-source-line="5">Markdown-Embed: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md" data-embed-name="Andere Notiz"></span></p>
+<p data-source-line="7">Markdown-Embed mit Anker: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md" data-embed-anchor="Abschnitt" data-embed-name="Andere Notiz"></span></p>
 <p data-source-line="9">PDF-Embed: <span class="wiki-embed wiki-embed-pdf" data-embed-kind="pdf" data-embed-path="dokument.pdf"></span></p>
 <p data-source-line="11">Sonstiges Embed: <span class="wiki-embed wiki-embed-other" data-embed-kind="other" data-embed-path="archiv.zip"></span></p>
 "
@@ -1229,9 +1226,9 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert wiki-embeds-portable.
 "&lt;!-- perspective-portable --&gt;
 <p>Bild-Embed: <img class="wiki-embed wiki-embed-image" src="bild.png" alt=""></p>
 <p>Bild mit Breite: <img class="wiki-embed wiki-embed-image" src="bild.png" alt="" style="max-width: 300px"></p>
-<p>Markdown-Embed: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md"><a href="Andere Notiz.md" class="wikilink">Andere Notiz.md</a></span></p>
-<p>Markdown-Embed mit Anker: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md" data-embed-anchor="Abschnitt"><a href="Andere Notiz.md#abschnitt" class="wikilink">Andere Notiz.md#Abschnitt</a></span></p>
-<p>Markdown-Embed mit Block-Anker: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md" data-embed-anchor="^block-id"><a href="Andere Notiz.md#block-id" class="wikilink">Andere Notiz.md#^block-id</a></span></p>
+<p>Markdown-Embed: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md" data-embed-name="Andere Notiz"><a href="Andere Notiz.md" class="wikilink">Andere Notiz.md</a></span></p>
+<p>Markdown-Embed mit Anker: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md" data-embed-anchor="Abschnitt" data-embed-name="Andere Notiz"><a href="Andere Notiz.md#abschnitt" class="wikilink">Andere Notiz.md#Abschnitt</a></span></p>
+<p>Markdown-Embed mit Block-Anker: <span class="wiki-embed wiki-embed-md" data-embed-kind="md" data-embed-path="Andere Notiz.md" data-embed-anchor="^block-id" data-embed-name="Andere Notiz"><a href="Andere Notiz.md#block-id" class="wikilink">Andere Notiz.md#^block-id</a></span></p>
 <p>PDF-Embed: <span class="wiki-embed wiki-embed-pdf" data-embed-kind="pdf" data-embed-path="dokument.pdf"><a href="dokument.pdf" class="wikilink">dokument.pdf</a></span></p>
 <p>Sonstiges Embed: <span class="wiki-embed wiki-embed-other" data-embed-kind="other" data-embed-path="archiv.zip"><a href="archiv.zip" class="wikilink">archiv.zip</a></span></p>
 <p>Wiki-Link zum Vergleich: <a href="Andere Notiz.md" class="wikilink">Andere Notiz</a></p>

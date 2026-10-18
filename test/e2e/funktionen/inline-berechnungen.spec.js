@@ -126,3 +126,60 @@ test.describe('IB-04: Erweiterung inline-calc aus lässt die Syntax Fließtext (
     }
   });
 });
+
+// IB-05 (4T-002095, Story 4S-000168 AK8): Die Markierung bleibt über einem
+// Rechen-Ausdruck sichtbar. CodeMirror zeichnet die Markierung als Ebene UNTER
+// dem Text; ein deckender Hintergrund des Ausdrucks verdeckte sie. Geprüft
+// wird bei markiertem Text, dass die Markierungs-Ebene steht und der
+// Hintergrund des Ausdrucks durchscheint, im Quelltext- und im Live-Modus, in
+// hellem und dunklem Erscheinungsbild.
+function deckkraft(farbe) {
+  // Chromium liefert rgb(…)/rgba(…) oder für color-mix color(srgb … / a).
+  const schraeg = /\/\s*([\d.]+)\s*\)$/.exec(farbe);
+  if (schraeg) return parseFloat(schraeg[1]);
+  const rgba = /^rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)$/.exec(farbe);
+  if (rgba) return parseFloat(rgba[1]);
+  return farbe === 'transparent' ? 0 : 1;
+}
+
+test.describe('IB-05: Markierung über dem Rechen-Ausdruck sichtbar (4T-002095)', () => {
+  test('Quelltext und Live-Modus, hell und dunkel: der Ausdruck verdeckt die Markierung nicht', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    try {
+      await waitForTab(page);
+      const marker = page.locator(`${SEL.paneSource0} .cm-inline-calc-marker`).first();
+      const pruefe = async () => {
+        await expect(marker).toBeVisible();
+        await expect(
+          page.locator(`${SEL.paneSource0} .cm-selectionBackground`).first(),
+        ).toBeAttached();
+        for (const thema of ['light', 'dark']) {
+          await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), thema);
+          const farbe = await marker.evaluate((el) => getComputedStyle(el).backgroundColor);
+          expect(deckkraft(farbe), `${thema}: ${farbe}`).toBeLessThan(1);
+        }
+      };
+
+      await page.locator(SEL.viewBtn('source')).click();
+      await page.locator(SEL.editorContent0).click();
+      await page.keyboard.press('Control+a');
+      await pruefe();
+
+      // Live-Modus: Markierung aufheben (sonst ist jede Zeile aktiv und zeigt
+      // den Roh-Ausdruck), Klick ins Ergebnis-Widget deckt den Ausdruck auf,
+      // dann die Zeile markieren.
+      await page.keyboard.press('Control+Home');
+      await page.locator(SEL.viewBtn('live')).click();
+      await page
+        .locator(`${SEL.paneSource0} .cm-inline-calc`)
+        .filter({ hasText: '14' })
+        .first()
+        .click();
+      await page.keyboard.press('Home');
+      await page.keyboard.press('Shift+End');
+      await pruefe();
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});

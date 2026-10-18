@@ -142,6 +142,11 @@ export function renderMindmap(paneIdx) {
     gekappt: Boolean(ergebnis && ergebnis.gekappt),
     darstellung: optionen,
     anfangsTiefe: optionen.anfangsTiefe >= 0 ? optionen.anfangsTiefe : null,
+    // 4T-001936: Die Ansicht einer Spalte überlebt den Dokument-Wechsel; die
+    // Identität des geöffneten Dokuments sagt ihr, wann die Anfangs-Tiefe neu
+    // gilt. Das Objekt und nicht der Pfad, damit auch unbenannte Dokumente
+    // unterscheidbar sind und eine Umbenennung kein neues Dokument ist.
+    dokument: tab,
   });
   // 4T-001893: Eine laufende Suche folgt dem neuen Baum, ohne die Karte zu bewegen.
   gezeichnet[paneIdx] = tab;

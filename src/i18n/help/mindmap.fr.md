@@ -2,7 +2,7 @@
 
 La vue carte mentale montre la structure d'**un** document sous forme de carte : les titres et les puces deviennent les nœuds d'un arbre, et le texte courant qui les suit devient la note de son nœud. C'est une vue du même document, pas un second document, et elle ne modifie jamais le texte.
 
-La vue appartient à l'extension **Vue carte mentale** et peut être désactivée sous Paramètres → Extensions. Une fois désactivée, l'entrée de menu disparaît, et un onglet ouvert en dernier comme carte revient à la vue de lecture.
+La vue appartient à l'extension **Vue carte mentale** et peut être désactivée sous Paramètres → Extensions. Une fois désactivée, l'entrée de menu disparaît, et un document en vue carte mentale revient à la vue de lecture : un document ouvert immédiatement, un document ouvert en dernier comme carte à sa prochaine ouverture.
 
 ## Ouvrir
 

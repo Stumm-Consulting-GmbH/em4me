@@ -26,6 +26,9 @@ import {
   LIVE_WIKILINK_RE,
 } from './live-scans.js';
 import { positionInsideCode } from './live-shared.js';
+// 4T-002057 (Epic 3E-000360): Ob eine Block-Kennung gültig ist, sagt die Heimat
+// der Anker-Erkennung — dieselbe Regel wie im Render-Pfad (wiki.js).
+import { isValidBlockAnchorId } from '../../../shared/block-anchors.js';
 
 // 4T-000996: Erster Inline-Block eines Sichtbereichs. Die Reihenfolge der
 // Pässe ist semantiktragend und unverändert.
@@ -150,7 +153,7 @@ export function runInlinePasses(ctx) {
       if (anchorRaw) {
         if (anchorRaw.startsWith('^')) {
           const id = anchorRaw.slice(1).trim();
-          if (/^[\p{L}\p{N}_-]+$/u.test(id)) anchorPart = '#' + id;
+          if (isValidBlockAnchorId(id)) anchorPart = '#' + id;
         } else {
           const slug = githubLikeSlug(anchorRaw);
           if (slug) anchorPart = '#' + slug;

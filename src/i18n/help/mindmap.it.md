@@ -2,7 +2,7 @@
 
 La vista mappa mentale mostra la struttura di **un** documento come mappa: i titoli e i punti elenco diventano nodi di un albero, e il testo corrente sotto di essi diventa la nota del proprio nodo. È una vista dello stesso documento, non un secondo documento, e non modifica mai il testo.
 
-La vista appartiene all'estensione **Vista mappa mentale** e si può disattivare in Impostazioni → Estensioni. Con l'estensione disattivata la voce di menu scompare, e una scheda rimasta aperta come mappa torna alla vista di lettura.
+La vista appartiene all'estensione **Vista mappa mentale** e si può disattivare in Impostazioni → Estensioni. Con l'estensione disattivata la voce di menu scompare, e un documento nella vista mappa mentale torna alla vista di lettura: uno aperto subito, uno aperto per l’ultima volta come mappa alla prossima apertura.
 
 ## Aprire
 

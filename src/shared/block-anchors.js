@@ -49,6 +49,10 @@ const {
 // 4T-002072: Info-Wort des Zauns der Datentabelle (erstes Wort, wie
 // `zaunOeffnung` die Sprache liest).
 const DATENTABELLE_SPRACHE = 'perspective-datatable';
+// 4T-002018 (Epic 3E-000360): Strich- und Trennzeilen-Erkennung der
+// Pipe-Tabellen aus ihrem Bearbeitungs-Kern (ein Blatt ohne eigene
+// Abhängigkeiten; ein Zyklus entsteht nicht).
+const { findUnescapedPipes, isSeparatorLine } = require('./markdown/table-edit.js');
 
 // Block-Anker am Zeilenende: `^id` als letztes Element einer Zeile (mit
 // optionalem fuehrenden Whitespace) oder als einziger Zeileninhalt. \p{L}/\p{N}
@@ -87,6 +91,9 @@ function ankerZeileAlleinImZitat(zeile) {
   return id && treffer && treffer[1] === id ? id : null;
 }
 
+// Eine Zitat-Ebene am Zeilenanfang: bis drei Leerzeichen, `>`, ein Leerzeichen.
+const ZITAT_EBENE_RE = /^ {0,3}> ?/;
+
 // 4T-002072, Nachbesserung F1: Eine Zeile, zerlegt in ihre Zitat-Präfixe (je
 // Ebene bis drei Leerzeichen davor und eines danach, wie oben), die Einrückung
 // dahinter und den Kern. `praefix` ist alles vor dem Kern, `tiefe` die Zahl
@@ -96,13 +103,43 @@ function zitatTeile(zeile) {
   const roh = String(zeile ?? '');
   let rest = roh;
   let tiefe = 0;
-  while (/^ {0,3}>/.test(rest)) {
-    rest = rest.replace(/^ {0,3}> ?/, '');
+  let m;
+  while ((m = ZITAT_EBENE_RE.exec(rest))) {
+    rest = rest.slice(m[0].length);
     tiefe++;
   }
   const kern = rest.replace(/^[ \t]+/, '');
   const einrueckung = rest.length - kern.length;
   return { tiefe, einrueckung, kern, praefix: roh.slice(0, roh.length - kern.length) };
+}
+
+// 4T-002055 (Epic 3E-000360): Die Zahl der Zitat-Ebenen am Anfang eines Textes
+// (nach der Regel oben).
+function zitatTiefe(text) {
+  return zitatTeile(text).tiefe;
+}
+
+// 4T-002055: Das Präfix einer Folgezeile eines Blocks, der in einem Zitat
+// steht. `vorlage` ist der Text vor dem Block in seiner ersten Zeile (etwa
+// `> ` oder `> > ` oder `>   ` im Listen-Eintrag eines Zitats). Gezählt werden
+// so viele Zitat-Ebenen, wie die Vorlage trägt, danach höchstens so viel
+// Leerraum, wie sie nach ihrer letzten Ebene trägt; was danach kommt, gehört
+// zum Inhalt (etwa die Einrückung in einem Code-Block). Eine Zeile mit weniger
+// Ebenen verliert nur, was sie trägt. Leer, wenn die Vorlage kein Zitat ist.
+// Genutzt vom Live-Modus, der den Block ohne die Präfixe zeichnet und sie beim
+// Zurückschreiben stehen lässt.
+function zitatPraefixWie(zeile, vorlage) {
+  const v = zitatTeile(vorlage);
+  const roh = String(zeile ?? '');
+  if (v.tiefe === 0) return '';
+  let rest = roh;
+  for (let i = 0; i < v.tiefe; i++) {
+    const m = ZITAT_EBENE_RE.exec(rest);
+    if (!m) break;
+    rest = rest.slice(m[0].length);
+  }
+  const einzug = /^[ \t]*/.exec(rest)[0].length;
+  return roh.slice(0, roh.length - rest.length + Math.min(einzug, v.einrueckung));
 }
 
 // 4T-002072, Nachbesserung F1: Die Code-Blöcke eines Textes für den Schreibort
@@ -464,6 +501,11 @@ function generateBlockAnchorId(existing) {
 // (plugins/block-anker.js, `ankerAbsatz`): Dort wird nur ein Absatz aus
 // Anker-Zeilen direkt nach dem Zaun zu dessen Kennung. Und der Absatz der
 // Absatz-Regel endet an Zaun-Grenzen, wie beim Schreibort unten.
+//
+// 4T-002018 (Epic 3E-000360): Ist der Absatz eine Pipe-Tabelle ohne eigenen
+// Anker, gilt eine Anker-Zeile unter ihr nach einer Leerzeile (Weg 1: sie
+// meint die ganze Tabelle). Bis dahin lieferte jede Zeile der Tabelle dann
+// null, und der Anker galt nur auf seiner eigenen Zeile.
 function blockAnchorForLine(text, line) {
   const lines = String(text ?? '').split(/\r?\n/);
   const idx = line - 1;
@@ -487,7 +529,29 @@ function blockAnchorForLine(text, line) {
     const li = ln - 1;
     if (li >= start && li <= end) return id;
   }
-  return null;
+  return istPipeTabelle(lines, start, end) ? ankerZeileDarunter(lines, end, lineById) : null;
+}
+
+// 4T-002018 (Epic 3E-000360): Ist der Absatz `start..end` (0-basiert) eine
+// Pipe-Tabelle? Kopfzeile mit einem Strich, darunter die Trennzeile — die
+// Bedingung, unter der markdown-it eine Tabelle beginnt.
+function istPipeTabelle(lines, start, end) {
+  return (
+    end > start && findUnescapedPipes(lines[start]).length > 0 && isSeparatorLine(lines[start + 1])
+  );
+}
+
+// 4T-002018: Eine Kennung in eigener Zeile unter einer Pipe-Tabelle meint die
+// ganze Tabelle (Entscheidung des Product Owners vom 2026-10-03, Weg 1, wie
+// der Einbettungs-Schnitt): die erste nicht leere Zeile nach dem Absatz, wenn
+// sie allein eine Kennung trägt, die dort zählt. Ohne Leerzeile davor gehört
+// sie schon zum Absatz der Tabelle und wird oben gefunden.
+function ankerZeileDarunter(lines, end, lineById) {
+  let j = end + 1;
+  while (j < lines.length && lines[j].trim() === '') j++;
+  if (j >= lines.length) return null;
+  const id = ankerZeileAllein(lines[j]);
+  return id && lineById.get(id) === j + 1 ? id : null;
 }
 
 // 4T-002072, Nachbesserung F1/F3: Der Absatz um die 0-basierte Zeile `idx`:
@@ -589,6 +653,8 @@ module.exports = {
   isValidBlockAnchorId,
   ankerZeileAllein,
   ankerZeileAlleinImZitat,
+  zitatTiefe,
+  zitatPraefixWie,
   namensAngabe,
   extractBlockAnchors,
   blockAnchorForLine,

@@ -259,12 +259,13 @@ Use **File → More File Functions → Export → Portable Markdown…** to save
 - **Accessibility `scope`** on header cells is preserved.
 - **Nesting**: up to three levels are converted recursively.
 - **Inline formatting in cells** (bold, italic, code, links) is converted to HTML so it appears correctly in third-party renderers too.
+- **Task checkboxes** appear in the portable file as characters: ☐ open, ☑ done, an extended state in its bracket form such as `[/]` — in cells as well as in ordinary task lists, so the state stays readable in every program.
 
 #### Marker for the viewer's display
 
 To make the exported file also render **as a table in the EM4me viewer** (instead of as source text with `<table>` tags), the converter inserts the marker `<!-- perspective-portable -->` at the start of the file. The viewer detects this marker and switches the file into an HTML-capable render mode.
 
-**Security note**: regular `.md` files still open without HTML rendering — no HTML from the Markdown is executed. Only the marker unlocks HTML rendering. For a third-party `.md` file carrying this marker (edge case), you must trust the source, since the HTML content there would be executed.
+**Security note**: regular `.md` files still open without HTML rendering — no HTML from the Markdown is executed. Only the marker unlocks HTML rendering, and even then only for displaying tables and structural markup such as lists, headings and code blocks. Nothing is executed, not even in a third-party `.md` file carrying this marker: scripts, forms, embedded pages and event handlers are removed, and an image in it shows only an embedded image or an image file next to the document, never an address on the network or on a network share.
 
 ## Sorting, status highlighting and column default
 

@@ -259,12 +259,13 @@ Con **Archivo → Más funciones de archivo → Exportar → Markdown portable�
 - **El atributo `scope`** de accesibilidad en las celdas de encabezado se conserva.
 - **Anidamiento**: hasta tres niveles se convierten recursivamente.
 - **Formato en línea en celdas** (negrita, cursiva, código, enlaces) se convierte en HTML para que también aparezca correctamente en renderizadores de terceros.
+- **Las casillas de tareas** aparecen en el archivo portable como caracteres: ☐ abierta, ☑ hecha, un estado ampliado en su forma entre corchetes como `[/]` — tanto en celdas como en listas de tareas normales, para que el estado siga siendo legible en cualquier programa.
 
 #### Marcador para la visualización en el visor
 
 Para que el archivo exportado también se muestre **como tabla en el visor EM4me** (en lugar de como texto fuente con etiquetas `<table>`), el convertidor inserta el marcador `<!-- perspective-portable -->` al principio del archivo. El visor reconoce este marcador y cambia el archivo a un modo de renderizado compatible con HTML.
 
-**Nota de seguridad**: los archivos `.md` regulares siguen abriéndose sin renderizado HTML — no se ejecuta ningún HTML del Markdown. Solo el marcador desbloquea el renderizado HTML. Para un archivo `.md` de terceros que lleve este marcador (caso límite), debes confiar en la fuente, ya que el contenido HTML allí se ejecutaría.
+**Nota de seguridad**: los archivos `.md` regulares siguen abriéndose sin renderizado HTML — no se ejecuta ningún HTML del Markdown. Solo el marcador desbloquea el renderizado HTML, y aun así solo para mostrar tablas y marcado de estructura como listas, encabezados y bloques de código. No se ejecuta nada, ni siquiera en un archivo `.md` de terceros que lleve este marcador: los scripts, formularios, páginas incrustadas y manejadores de eventos se eliminan, y una imagen en él muestra solo una imagen incrustada o un archivo de imagen junto al documento, nunca una dirección de la red o de una carpeta compartida.
 
 ## Ordenación, resaltado de estado y alineación predeterminada
 

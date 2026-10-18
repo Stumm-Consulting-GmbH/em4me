@@ -101,12 +101,14 @@ function buildComputedCellHtml(col, colIdx, comp) {
 // Grid-Tabelle des Viewers. computed (aus computeComputedCells) und aggs
 // (aus computeAggregates über den Wert-Resolver) rechnet der Kern vorab
 // und reicht sie herein. 4T-002014: opts.zellHtml, siehe buildCellHtml.
+// 4T-002054: opts.alleZeilen hebt die Grenze für Druck und PDF auf (die
+// Ausgabe zeigt alle Zeilen); ohne die Option bleibt das Ergebnis byte-gleich.
 function buildDatatableTableHtml(model, computed, aggs, opts) {
   const zellHtml = opts && opts.zellHtml;
   const columns = model.columns;
   const dataIdx = dataIndexByColumn(columns);
   const hasAgg = (model.aggregates || []).some((a) => a && a.length > 0);
-  const truncated = model.rows.length > MAX_RENDER_ROWS;
+  const truncated = !(opts && opts.alleZeilen) && model.rows.length > MAX_RENDER_ROWS;
   // 4T-000419: Editier-Affordanzen (Lösch-Spalte, Zeile-hinzufügen-Knopf,
   // fokussierbare Zellen) nur bei struktur-fehlerfreier Tabelle — der
   // Grid-Editor blockiert das Rückschreiben sonst ohnehin. Sichtbar werden

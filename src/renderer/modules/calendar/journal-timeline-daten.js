@@ -21,13 +21,16 @@ import {
 // Journal und Periode des Eintrags-Pfads: erster Treffer über alle Journale
 // des Bereichs (Konfigurations-Reihenfolge). null = kein Journal-Eintrag.
 // Muster journal-nav-view.js.
-export function contextForPath(config, rootPath, basePath) {
+// 4T-002073: Die Bezugs-Zeit `nowMs` ist die Mitte des Such-Fensters von
+// findPeriodForPath; nur ohne Angabe ist sie die Wanduhr. Wer eine kennt,
+// reicht sie durch, statt den Kern still die Uhr lesen zu lassen.
+export function contextForPath(config, rootPath, basePath, nowMs = Date.now()) {
   if (!config || !rootPath || !basePath) return null;
   const rel = api.relative(rootPath, basePath);
   if (!rel || rel.startsWith('..')) return null;
   const relPath = rel.replace(/\\/g, '/');
   for (const journal of config.journals) {
-    const period = findPeriodForPath(journal, relPath);
+    const period = findPeriodForPath(journal, relPath, { aroundMs: nowMs });
     if (period) return { journal, period };
   }
   return null;

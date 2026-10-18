@@ -328,3 +328,47 @@ test.describe('TZ-09: Quelltext-Ansicht', () => {
     }
   });
 });
+
+// 4T-002055 (Epic 3E-000360): Eine Tabelle in einem Zitat und in einer
+// Hinweis-Box erscheint im Live-Modus als Raster, und eine Eingabe in eine
+// Zelle lässt die Zitat-Präfixe aller Zeilen stehen (Weg A).
+const FIXTURE_ZITAT = path.resolve(
+  __dirname,
+  '..',
+  '..',
+  'fixtures',
+  'funktionen',
+  'tabellen-im-zitat.md',
+);
+
+test.describe('TZ-10: Tabelle im Zitat und in der Hinweis-Box', () => {
+  test('beide Tabellen als Raster, die Eingabe steht mit Präfix im Quelltext', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE_ZITAT] });
+    try {
+      await liveBearbeiten(app, page);
+      const tabellen = page.locator(`${SEL.editorContent0} .cm-live-block table`);
+      await expect(tabellen).toHaveCount(2);
+      await expect(tabellen.nth(1)).toContainText('Miete');
+      await schreibeZelle(
+        page,
+        tabellen.first().locator('tbody tr').first().locator('td').nth(1),
+        '105',
+      );
+      expect(await datenZeile(page, 0)).toEqual(['Januar', '105']);
+      await sendMenuChannel(app, 'menu:viewChange', 'source');
+      const zeilen = await editorZeilen(page);
+      const zitat = zeilen.slice(zeilen.indexOf('> Umsatz im ersten Quartal'));
+      expect(zitat.slice(0, 6)).toEqual([
+        '> Umsatz im ersten Quartal',
+        '>',
+        '> | Monat | Umsatz |',
+        '> |---|---|',
+        '> | Januar | 105 |',
+        '> | Februar | 20 |',
+      ]);
+      expect(zeilen).toContain('> | Miete | 800 |');
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});

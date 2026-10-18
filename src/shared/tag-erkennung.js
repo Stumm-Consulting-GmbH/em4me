@@ -33,6 +33,9 @@
 
 const { maskInlineCode } = require('./markdown/link-scan.js');
 const { extractFrontmatter } = require('./markdown/frontmatter.js');
+// 4T-001912 (Epic 3E-000360): Fence-Zeilen nach der Zaun-Regel aus ihrer einen
+// Heimat, wie im Index; der eigene Ausdruck verglich allein das Zeichen.
+const { schliesstZaun, zaunOeffnung } = require('./markdown/fence-level.js');
 // 4T-002013 (Epic 3E-000332): Lage der Text-Zellen einer Datentabelle, dieselbe
 // Quelle, aus der auch der Bereichs-Index liest. Schlagworte in Text-Zellen
 // zählen dort, also muss die Umbenennung sie hier ebenso finden.
@@ -58,8 +61,6 @@ const HEX_COLOR_RE = /^[0-9a-f]{3,8}$/i;
 // 4T-000060: Ein Tag braucht mindestens einen Buchstaben, damit reine Zahlen
 // (Issue-Referenzen, Fussnoten) nicht indexiert werden.
 const TAG_LETTER_RE = /[\p{L}]/u;
-// Fence-Zeilen: derselbe Marker-Begriff wie im Index.
-const FENCE_RE = /^\s{0,3}(`{3,}|~{3,})/;
 // Ein Dokument ohne Tag-Feld braucht keine Stellen-Ermittlung.
 const LEER_STELLEN = { stellen: [], feldOffset: 0 };
 
@@ -302,29 +303,29 @@ function ermittleFundstellen(text, alt, neu) {
 
   const fliesstext = [];
   let zeilenOffset = bodyOffset;
-  let inFence = false;
-  let fenceChar = null;
+  // 4T-001912 (Epic 3E-000360): die Öffnung des offenen Code-Blocks (Zeichen und
+  // Länge, aus fence-level.js), sonst null. Ein Block endet allein an einer
+  // Zeile desselben Zeichens, mindestens so lang wie die öffnende, ohne
+  // Sprach-Angabe; bis dahin endete er an jeder Zaun-Zeile desselben Zeichens,
+  // und Tags im Rest eines äußeren Blocks mit längerem Zaun wurden gefunden.
+  let offen = null;
   // 4T-002013 (Epic 3E-000332): Zeilen-Zustand der offenen Datentabelle, sonst
   // null.
   let zellZustand = null;
   for (const zeile of body.split('\n')) {
-    const fence = zeile.match(FENCE_RE);
-    if (fence) {
-      const ch = fence[1][0];
-      if (!inFence) {
-        inFence = true;
-        fenceChar = ch;
-        zellZustand = istDatentabellenFenceInfo(zeile.slice(fence[0].length))
-          ? neuerZellZustand()
-          : null;
-      } else if (ch === fenceChar) {
-        inFence = false;
-        fenceChar = null;
+    const zaun = zaunOeffnung(zeile);
+    if (zaun) {
+      if (!offen) {
+        offen = zaun;
+        zellZustand = istDatentabellenFenceInfo(zaun.sprache) ? neuerZellZustand() : null;
+      } else if (schliesstZaun(zeile, offen)) {
+        offen = null;
         zellZustand = null;
       }
       zeilenOffset += zeile.length + 1;
       continue;
     }
+    const inFence = offen !== null;
     // 4T-002013 (Epic 3E-000332): Code-Blöcke bleiben übersprungen, mit einer
     // benannten Ausnahme: den Text-Zellen einer Datentabelle. Ihr Scan läuft
     // auf der Zeile, die außerhalb der Text-Zellen längengleich maskiert ist;

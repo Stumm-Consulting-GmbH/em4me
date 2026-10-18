@@ -84,19 +84,26 @@ describe('Anker-Zeile unter einem Code-Block: Kennung am Block (4T-002048)', () 
 });
 
 describe('Anker-Zeile ohne Code-Block davor: leerer Träger an ihrer Stelle (4T-002048)', () => {
-  it('unter einer gewöhnlichen Tabelle: keine Tabellenzeile, Träger direkt darunter (AK8)', () => {
+  // 4T-002018 (Epic 3E-000360): Unter einer Pipe-Tabelle meint die Kennung in
+  // eigener Zeile die ganze Tabelle (Weg 1); sie wird die `id` der Tabelle,
+  // und ein Träger bleibt nur für jede weitere Kennung. Bis dahin stand die
+  // erste im Träger unter der Tabelle.
+  it('unter einer gewöhnlichen Tabelle: keine Tabellenzeile, die Kennung an der Tabelle (AK8, 4T-002018)', () => {
     const html = render('| A | B |\n|---|---|\n| 1 | 2 |\n^tab\n');
     expect(html).not.toContain('<td>^tab</td>');
     expect(html.match(/<tr/g)).toHaveLength(2);
-    expect(html).toContain('</table>\n<p data-source-line="4" id="tab"></p>');
+    expect(html).toContain('<table data-source-line="1" id="tab">');
+    expect(html).not.toContain('<p');
     expect(sichtbar(html)).not.toContain('^tab');
   });
 
   it('unter einer gewöhnlichen Tabelle ohne weitere Zeile: der leere Rumpf entfällt', () => {
     const html = render('| A |\n|---|\n^a\n^b\n');
     expect(html).not.toContain('<tbody');
-    // Nachbesserung F1: eine Kennung am Träger, jede weitere als Sprungziel darin.
-    expect(html).toContain('<p data-source-line="3" id="a"><span id="b"></span></p>');
+    // Nachbesserung F1: eine Kennung an der Tabelle (4T-002018), jede weitere
+    // im Träger.
+    expect(html).toContain('<table data-source-line="1" id="a">');
+    expect(html).toContain('<p data-source-line="3" id="b"></p>');
   });
 
   it('eine Anker-Zeile mitten in der Tabelle bleibt eine Tabellenzeile', () => {
@@ -104,9 +111,10 @@ describe('Anker-Zeile ohne Code-Block davor: leerer Träger an ihrer Stelle (4T-
     expect(html).toContain('<td>^mitte</td>');
   });
 
-  it('unter einer gewöhnlichen Tabelle nach einer Leerzeile', () => {
+  it('unter einer gewöhnlichen Tabelle nach einer Leerzeile: an der Tabelle (4T-002018)', () => {
     const html = render('| A |\n|---|\n| 1 |\n\n^tab\n');
-    expect(html).toContain('<p data-source-line="5" id="tab"></p>');
+    expect(html).toContain('<table data-source-line="1" id="tab">');
+    expect(html).not.toContain('<p');
     expect(sichtbar(html)).not.toContain('^tab');
   });
 
@@ -206,22 +214,24 @@ describe('Nachbesserung: jede Kennung bleibt Sprungziel (F1)', () => {
 });
 
 describe('Nachbesserung: Tabelle im Zitat und im Hinweisblock (F2)', () => {
-  it('Zitat: keine Tabellenzeile mit der Kennung, Träger unter der Tabelle', () => {
+  // 4T-002018: Die Kennung steht an der Tabelle statt im Träger darunter.
+  it('Zitat: keine Tabellenzeile mit der Kennung, die Kennung an der Tabelle', () => {
     const html = render('> | a |\n> |---|\n> | 1 |\n> ^x\n');
     expect(html).not.toContain('^x');
-    expect(html).toContain('</table>\n<p data-source-line="4" id="x"></p>');
+    expect(html).toContain('<table data-source-line="1" id="x">');
+    expect(html).not.toContain('<p');
   });
 
-  it('Hinweisblock: ebenso, der Träger mit seiner Quellzeile', () => {
+  it('Hinweisblock: ebenso', () => {
     const html = render('> [!note] Titel\n> | a |\n> |---|\n> | 1 |\n> ^x\n');
     expect(html).not.toContain('^x');
-    expect(html).toContain('</table>\n<p data-source-line="5" id="x"></p>');
+    expect(html).toMatch(/<table data-source-line="2" id="x">/);
   });
 
   it('Zitat in zwei Ebenen', () => {
     const html = render('> > | a |\n> > |---|\n> > | 1 |\n> > ^x\n');
     expect(html).not.toContain('^x');
-    expect(html).toContain('<p data-source-line="4" id="x"></p>');
+    expect(html).toContain('<table data-source-line="1" id="x">');
   });
 });
 
@@ -270,7 +280,8 @@ describe('Datei mit Portable-Marker und portabler Export', () => {
       `<!-- perspective-portable -->\n\n${Z}js\nx\n${Z}\n^p\n\n| A |\n|---|\n| 1 |\n^q\n`,
     );
     expect(html).toContain('<pre id="p">');
-    expect(html).toContain('</table>\n<p id="q"></p>');
+    // 4T-002018: die Kennung unter der Tabelle an der Tabelle.
+    expect(html).toContain('<table id="q">');
     expect(sichtbar(html)).not.toMatch(/\^[pq]/);
   });
 
@@ -423,5 +434,29 @@ describe('Einbettung einer benannten Datentabelle: keine id in der Kopie (F2)', 
     expect(html).toContain('class="perspective-datatable"');
     expect(html).not.toContain(' id="');
     expect(render(quelle)).toContain('<div id="Umsatz" class="perspective-datatable"');
+  });
+});
+
+// 4T-002057 (Epic 3E-000360): Charakterisierung der Kennungs-Prüfung im Ziel
+// eines Wiki-Verweises (`wikiAnchorPart` in src/shared/markdown/plugins/wiki.js),
+// am Stand vor der Umstellung auf `isValidBlockAnchorId` erhoben und danach
+// unverändert grün: Eine gültige Kennung wird zum Fragment der Adresse, eine
+// ungültige fällt weg, und der Verweis zeigt allein auf die Datei.
+describe('Wiki-Verweis mit Block-Anker: Kennung im Ziel (4T-002057, Charakterisierung)', () => {
+  const href = (quelle) => {
+    const m = /<a [^>]*href="([^"]*)"/.exec(render(quelle));
+    return m ? m[1] : null;
+  };
+
+  it('eine gültige Kennung wird zum Fragment, auch mit Umlaut, Ziffer, Binde- und Unterstrich', () => {
+    expect(href('[[Ziel#^abschnitt]]')).toBe('Ziel.md#abschnitt');
+    expect(href('[[Ziel#^Über_sicht-2]]')).toBe('Ziel.md#Über_sicht-2');
+    expect(href('[[Ziel#^ umsatz ]]')).toBe('Ziel.md#umsatz');
+  });
+
+  it('eine ungültige Kennung fällt weg, der Verweis zeigt auf die Datei', () => {
+    for (const ziel of ['[[Ziel#^a b]]', '[[Ziel#^a.b]]', '[[Ziel#^]]', '[[Ziel#^a/b]]']) {
+      expect(href(ziel), ziel).toBe('Ziel.md');
+    }
   });
 });

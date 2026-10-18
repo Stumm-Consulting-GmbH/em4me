@@ -104,7 +104,13 @@ function joinAreaLink(prefix, target) {
   return prefix ? `@${prefix}:${target}` : String(target ?? '');
 }
 
+// 4T-002092: Grund, mit dem der Auflöser einer Einbettung ein Ziel in einem
+// verknüpften Bereich abweist. Hauptprozess (Auflöser) und Anzeige (Hinweis)
+// lesen ihn von hier, damit beide Seiten dieselbe Kennung meinen.
+const EMBED_GRUND_VERKNUEPFTER_BEREICH = 'linked-area';
+
 module.exports = {
+  EMBED_GRUND_VERKNUEPFTER_BEREICH,
   AREA_PREFIX_MUSTER,
   isValidAreaPrefix,
   normalizeAreaPrefix,

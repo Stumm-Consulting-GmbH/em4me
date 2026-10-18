@@ -277,9 +277,9 @@ Einen neuen Datensatz legen drei Wege an:
 
 - die Schaltfläche **«Neuer Datensatz»** unter jeder Tabelle, auch unter einer leeren,
 - die Schaltfläche **«Neuer Datensatz»** in der Zeile jeder Tabelle in der Übersicht der Datenbank,
-- das Kommando **«Neuer Datensatz in der aktiven Tabelle»** in der Kommando-Palette. Es wirkt auf die Tabellen-Datei im aktiven Reiter; ist dort keine offen, sagt die Statuszeile das.
+- das Kommando **«Neuer Datensatz in der aktiven Tabelle»** in der Kommando-Palette. Es wirkt auf das aktive Dokument, wenn es eine Tabellen-Datei ist; ist es keine, sagt die Statuszeile das.
 
-Die Maske öffnet als eigener Reiter, dessen Titel Datei und Datensatz nennt. Es gibt sie einmal je Fenster: Öffnen Sie einen anderen Datensatz, zeigt derselbe Reiter ihn. Ist die laufende Bearbeitung noch nicht gespeichert, fragt die Maske vorher, ob sie verworfen werden soll.
+Die Maske öffnet als eigene Ansicht, deren Titel Datei und Datensatz nennt. Es gibt sie einmal je Fenster: Öffnen Sie einen anderen Datensatz, zeigt dieselbe Ansicht ihn. Ist die laufende Bearbeitung noch nicht gespeichert, fragt die Maske vorher, ob sie verworfen werden soll.
 
 Ein neuer Datensatz bekommt seine interne Kennung schon beim Öffnen der Maske: Sie steht im Kopf, und der Hochwasserstand `lastId` der Tabelle ist bereits fortgeschrieben. Die Felder stehen leer da, und in die Datei kommt der Datensatz erst mit dem ersten Speichern.
 
@@ -394,7 +394,7 @@ Fünf Eigenschaften sind zu kennen:
 
 ### Die Ansicht am Datensatz
 
-In der Lese-Ansicht und in der Live-Ansicht trägt jede Datensatz-Zeile an ihrem Anfang eine Schaltfläche **«Änderungsbelege anzeigen»**. Ein Klick darauf öffnet die Seite **«Änderungsbelege»** als eigenen Reiter. Ohne Maus führt der Tabulator in die Tabelle, die Pfeiltasten wechseln die Zeile, Pos1 und Ende führen zur ersten und zur letzten, und die Eingabe- oder die Leertaste öffnet die Seite.
+In der Lese-Ansicht und in der Live-Ansicht trägt jede Datensatz-Zeile an ihrem Anfang eine Schaltfläche **«Änderungsbelege anzeigen»**. Ein Klick darauf öffnet die Seite **«Änderungsbelege»** als eigene Ansicht. Ohne Maus führt der Tabulator in die Tabelle, die Pfeiltasten wechseln die Zeile, Pos1 und Ende führen zur ersten und zur letzten, und die Eingabe- oder die Leertaste öffnet die Seite.
 
 Die Seite zeigt die Belege des Datensatzes, den **jüngsten zuerst**. Je Beleg stehen der Zeitpunkt in Ihrer Zeitzone, die Art (**Angelegt**, **Geändert**, **Gelöscht**), der Benutzer, der Rechner und je berührtem Feld der Wert **Vorher** und **Nachher**. Ein fehlender Wert steht als «nicht vorhanden» da, ein leerer als «leer»; beides ist nicht dasselbe.
 
@@ -442,7 +442,7 @@ Eine Sperre sorgt dafür, dass ein Datensatz nicht an zwei Stellen zugleich bear
 
 Gesperrt wird der einzelne **Datensatz**, und zwar in dem Augenblick, in dem seine Bearbeitung beginnt. Freigegeben wird er, sobald die Bearbeitung endet, beim Speichern ebenso wie beim Verwerfen. Das bloße Ansehen sperrt nichts: Eine Liste mit hunderten Datensätzen sperrte sonst mit jedem Blick alle auf einmal.
 
-In der Maske beginnt die Bearbeitung mit **«Bearbeiten»** oder mit **«Löschen»**, das die Sperre schon vor seiner Rückfrage nimmt. Sie endet mit dem Speichern, mit **«Verwerfen»**, mit **«Neu laden»**, mit dem Abbruch der Lösch-Rückfrage, beim Wechsel zu einem anderen Datensatz und beim Schließen des Reiters der Maske. Weist die Anwendung ein Speichern ab, bleibt die Sperre bestehen, weil die Bearbeitung weiterläuft. Das Öffnen der Maske und eine Neuanlage sperren nichts.
+In der Maske beginnt die Bearbeitung mit **«Bearbeiten»** oder mit **«Löschen»**, das die Sperre schon vor seiner Rückfrage nimmt. Sie endet mit dem Speichern, mit **«Verwerfen»**, mit **«Neu laden»**, mit dem Abbruch der Lösch-Rückfrage, beim Wechsel zu einem anderen Datensatz und beim Schließen der Maske. Weist die Anwendung ein Speichern ab, bleibt die Sperre bestehen, weil die Bearbeitung weiterläuft. Das Öffnen der Maske und eine Neuanlage sperren nichts.
 
 Wird die **Definition einer Tabelle** geändert, ist für diese Zeit die Definition gesperrt, weil eine Änderung an den Spalten alle Datensätze der Tabelle berührt.
 
@@ -599,7 +599,7 @@ Sobald ein Dokument im Bestand eines Bereichs den Steckbrief trägt, führt die 
 
 Ein Datenbank-Bereich bekommt zwei Dinge, die ein gewöhnlicher Bereich nicht hat.
 
-**Die Übersicht der Datenbank-Objekte** beantwortet an einer Stelle, was in diesem Bereich liegt: den Steckbrief mit Name und Beschreibung, die Tabellen je mit der Zahl ihrer Felder, die Abfrage-Dateien und die Fehlerlagen aus dem Einlesen der Definitionen, im Klartext statt als Code. Sie öffnet als eigener Reiter, und in ihr selbst wird nichts bearbeitet; ihre Aktionen führen in die Maske und in die Prüfungen. Drei Wege führen zu ihr:
+**Die Übersicht der Datenbank-Objekte** beantwortet an einer Stelle, was in diesem Bereich liegt: den Steckbrief mit Name und Beschreibung, die Tabellen je mit der Zahl ihrer Felder, die Abfrage-Dateien und die Fehlerlagen aus dem Einlesen der Definitionen, im Klartext statt als Code. Sie öffnet als eigene Ansicht, und in ihr selbst wird nichts bearbeitet; ihre Aktionen führen in die Maske und in die Prüfungen. Drei Wege führen zu ihr:
 
 - **Ansicht → Übersicht der Datenbank**,
 - das **Kontextmenü des Bereichs-Panels**,

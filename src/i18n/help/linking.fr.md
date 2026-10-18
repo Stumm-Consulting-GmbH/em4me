@@ -25,7 +25,7 @@ Les liens peuvent pointer vers un titre ou un bloc du fichier cible :
 [[#Liens wiki]]               ancre dans le même document
 ```
 
-Les ancres de bloc se posent avec `^id` en fin de ligne et ancrent le bloc englobant (paragraphe, élément de liste, tableau, bloc de code) :
+Les ancres de bloc se posent avec `^id` en fin de ligne et ancrent le bloc englobant (paragraphe, élément de liste, ligne de tableau, bloc de code) :
 
 ```markdown
 Cette décision est contraignante. ^decision-1
@@ -41,6 +41,8 @@ const taux = 0.04;
 ````
 
 Une [table de données](datatable.md) porte son identifiant dans son bloc, sous forme de ligne `table: Ventes` avant les lignes de données ; `[[Rapport#^Ventes]]` y saute.
+
+Sous un tableau aussi, l’identifiant se place sur une ligne à part, précédée et suivie d’une ligne vide ; il désigne alors le tableau entier. En fin de ligne de tableau, il ne désigne que cette ligne.
 
 L'ancre ne se présente pas de la même façon selon la vue. La vue rendue ne l'affiche pas du tout — le bloc n'y est qu'une cible de saut. Le **mode direct** la remplace par un discret repère en fin de ligne : le survol indique l'identifiant, un clic place le curseur en fin de ligne et déplie le texte source pour l'édition. Si le curseur se trouve déjà dans la ligne, l'ancre reste visible comme d'habitude. Que le mode direct en montre plus que la vue rendue est voulu : une ancre est une adresse vers laquelle pointent d'autres documents, et lors d'une réorganisation il faut pouvoir voir qu'elle existe. Si le même bloc porte des [propriétés](block-properties.md), leur repère se place à côté.
 
@@ -86,9 +88,11 @@ Un espace brut sans chevrons met fin à la cible, de sorte que le lien n'est pas
 ![[notes.md#^bloc]]      seulement le bloc ancré
 ```
 
-Pour les ancres de bloc, le bloc englobant complet est incorporé (élément de liste avec sous-listes, bloc de code, ligne de tableau, citation), pour le nom d'une table de données la table entière. Une ancre dans un exemple de code ne compte pas. Le Markdown incorporé se rend avec sa propre source comme base ; les liens à l'intérieur se résolvent contre le fichier incorporé.
+Pour les ancres de bloc, le bloc englobant complet est incorporé (élément de liste avec sous-listes, bloc de code, ligne de tableau, citation), pour un identifiant sur une ligne à part sous un tableau le tableau entier, pour le nom d'une table de données la table entière. Une ancre dans un exemple de code ne compte pas. Le Markdown incorporé se rend avec sa propre source comme base ; les liens à l'intérieur se résolvent contre le fichier incorporé.
 
-**Où la cible est cherchée.** L'application cherche en trois étapes, de la même manière pour chaque type de fichier : d'abord le chemin relatif à votre propre fichier, puis l'écriture des sous-pages, enfin le simple **nom** dans tout l'espace. Ainsi `![[image.png]]` trouve le fichier même s'il se trouve dans un autre dossier — le chemin n'a pas besoin d'être exact. La recherche s'arrête à la racine de l'espace : ce qui est en dehors n'est pas incorporé. Sans espace lié, la limite reste le dossier de votre propre fichier.
+**Où la cible est cherchée.** L'application cherche en trois étapes, de la même manière pour chaque type de fichier : d'abord le chemin relatif à votre propre fichier, puis l'écriture des sous-pages, enfin le simple **nom** dans toute la zone. Ainsi `![[image.png]]` trouve le fichier même s'il se trouve dans un autre dossier — le chemin n'a pas besoin d'être exact. La recherche s'arrête à la racine de la zone : ce qui est en dehors n'est pas incorporé. Sans zone liée, la limite reste le dossier de votre propre fichier.
+
+**Quand la cible n'apparaît pas.** Si l'application ne trouve pas la cible, un avis portant le nom de la cible prend la place de l'incorporation — de la même manière dans la vue de lecture, le mode direct et la vue partagée.
 
 Si un fichier Markdown porte le même nom qu'une pièce jointe, le fichier Markdown l'emporte ; écrit avec son extension (`![[image.png]]`), le cas est sans ambiguïté. Les images Markdown ordinaires `![](chemin.png)` ne sont pas concernées — leur écriture désigne un chemin et non un nom.
 ## Liens entre zones
@@ -107,6 +111,8 @@ Dans le texte, le préfixe précède la cible :
 ```
 
 La cible est d'abord cherchée au chemin indiqué puis, si rien ne s'y trouve, par son nom dans toute la zone liée — comme un lien wiki ordinaire dans votre propre zone. Un clic ouvre la cible dans la même fenêtre.
+
+**L'incorporation** depuis une zone liée n'est pas possible : `![[@zt:Note]]` affiche à sa place un avis qui le dit précisément, que les liens entre zones soient activés ou non. Le lien `[[@zt:Note]]` vers la même cible l'ouvre comme décrit.
 
 **Les modèles de la zone liée** peuvent être proposés à côté des vôtres ; un interrupteur existe par lien. La sélection de modèles montre alors les deux ensembles, et chaque entrée externe indique son origine. Sans cet interrupteur, un lien ne change pas l'ensemble des modèles.
 
@@ -129,7 +135,7 @@ Un lien entre zones mène **là-bas**, pas en retour. Ne franchissent délibér�
 - la **recherche à l'échelle de la zone**,
 - et la **mise à jour des liens lors d'un renommage** : lorsqu'un fichier est renommé, les références venant d'une zone liée restent inchangées. L'éditeur les signale ensuite comme non valides — c'est le filet qui les rend visibles.
 
-Les liens entre zones sont une [extension](extensions.md) et peuvent être désactivés. Une référence préfixée reste alors non résolue, la vérification à l'ouverture n'a pas lieu, et les liens saisis subsistent — ce qui est désactivé, c'est l'effet, pas la saisie.
+Les liens entre zones sont une [extension](extensions.md) et peuvent être désactivés. Une référence préfixée reste alors non résolue, la vérification à l'ouverture n'a pas lieu, et plus rien n'est lu dans une zone liée, pas même après un redémarrage. Les documents d'une zone liée ouverts au moment de la désactivation sont fermés ; si l'un d'eux contient des modifications non enregistrées, la question habituelle est posée auparavant. Les liens saisis subsistent — ce qui est désactivé, c'est l'effet, pas la saisie.
 
 ## Tags
 
@@ -159,9 +165,9 @@ Pendant la saisie en mode édition, un menu de suggestions s'ouvre :
 
 Les flèches naviguent, Entrée sélectionne, Échap ferme.
 
-Tant que rien n'est saisi après `[[`, les fichiers de l'espace modifiés le plus récemment figurent en tête, le plus récent d'abord. Dès que l'on filtre, la qualité de correspondance reprend la tête ; la date de modification ne départage plus que les suggestions de même rang.
+Tant que rien n'est saisi après `[[`, les fichiers de la zone modifiés le plus récemment figurent en tête, le plus récent d'abord. Dès que l'on filtre, la qualité de correspondance reprend la tête ; la date de modification ne départage plus que les suggestions de même rang.
 
-Après `#`, les tags les plus souvent attribués dans l’espace figurent en tête, le plus fréquent d’abord ; là aussi la qualité de correspondance prime dès que quelque chose est saisi, et la fréquence tranche alors entre égaux. Le nombre derrière chaque suggestion l’indique.
+Après `#`, les tags les plus souvent attribués dans la zone figurent en tête, le plus fréquent d’abord ; là aussi la qualité de correspondance prime dès que quelque chose est saisi, et la fréquence tranche alors entre égaux. Le nombre derrière chaque suggestion l’indique.
 
 La validation d'une suggestion de fichier ou d'alias écrit aussi les crochets fermants et place le curseur derrière. S'ils sont déjà présents, aucune seconde paire n'apparaît.
 

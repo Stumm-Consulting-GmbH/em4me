@@ -71,19 +71,19 @@ Wirkung:   12.06.2026 → 2026-06-12
 
 ## Wo gesucht wird
 
-Der Suchbereich folgt dem Reiter, in dem die Suche geöffnet wird; die Bereiche schließen einander aus. Ist kein Reiter offen, entscheidet der gebundene Bereich:
+Der Suchbereich folgt der Ansicht, in der die Suche geöffnet wird; die Bereiche schließen einander aus. Ist nichts geöffnet, entscheidet der gebundene Bereich:
 
-| Aktiver Reiter | Gesucht wird |
+| Aktive Ansicht | Gesucht wird |
 |---|---|
 | Einzelne Datei | in dieser Datei, in Quelltext oder Vorschau |
 | Datei in einem geöffneten Bereich | in **allen** Markdown-Dateien des Bereichs |
 | Handbuch-Seite | in **allen** Handbuch-Seiten, auch den nicht geöffneten |
 | Einstellungen | in **allen** Einstellungs-Bereichen, auch den nie besuchten |
-| Kein Reiter offen, Bereich gebunden | in **allen** Markdown-Dateien des Bereichs |
+| Nichts geöffnet, Bereich gebunden | in **allen** Markdown-Dateien des Bereichs |
 
 Welcher Bereich gilt, steht links in der Suchleiste. In der Mindmap-Ansicht durchsucht die Suche die Karte selbst, auch in einem geöffneten Bereich; siehe [Mindmap-Ansicht](mindmap.md).
 
-Außerhalb der einzelnen Datei erscheinen die Treffer im Sidebar-Panel **Suchergebnisse**, gruppiert nach Datei, Seite beziehungsweise Einstellungs-Bereich und mit der Trefferzahl je Gruppe. Ein Klick öffnet das Ziel und hebt die Fundstelle hervor; `F3` läuft über die Gruppen-Grenze hinweg weiter.
+Außerhalb der einzelnen Datei erscheinen die Treffer im Sidebar-Panel **Suchergebnisse**, gruppiert nach Datei, Seite beziehungsweise Einstellungs-Bereich und mit der Trefferzahl je Gruppe. Ein Klick öffnet das Ziel und hebt die Fundstelle hervor; `F3` läuft über die Gruppen-Grenze hinweg weiter. In der Liste bewegen die Pfeiltasten die Auswahl, und `Enter` springt zum gewählten Treffer. Die Auswahl bleibt erhalten, wenn sich die Liste bei unveränderter Suche neu aufbaut; erst eine neue Suche beginnt wieder beim ersten Treffer.
 
 ### Im Bereich
 
@@ -91,13 +91,13 @@ Die **offene Datei steht an erster Stelle** der Liste, und zwar mit ihrem ungesp
 
 Gesucht wird in den Markdown-Dateien des Bereichs. Andere Dateien und die Begleitdateien der Anwendung bleiben außen vor. Eine **Tabellen-Datei der [Datenbank](database.md)** geht ohne den Inhalt ihres Datensatz-Blocks ein: Ihr erklärender Text bleibt durchsuchbar, ihre Datensätze werden über diesen Weg nicht gefunden. Wer die Datei öffnet und darin sucht, findet sie unverändert.
 
-Ist **kein Reiter offen**, gilt der Bereich trotzdem: Suchen und Ersetzen erreichen seinen Bestand, ohne dass erst eine Datei geöffnet werden müsste. Zwei Dinge entfallen dann, weil es sie ohne offene Datei nicht gibt — die Liste wird rein alphabetisch geordnet, statt eine Datei voranzustellen, und im Text ist nichts markiert.
+Ist **nichts geöffnet**, gilt der Bereich trotzdem: Suchen und Ersetzen erreichen seinen Bestand, ohne dass erst eine Datei geöffnet werden müsste. Zwei Dinge entfallen dann, weil es sie ohne offene Datei nicht gibt — die Liste wird rein alphabetisch geordnet, statt eine Datei voranzustellen, und im Text ist nichts markiert.
 
 **Ersetzen wirkt hier über den ganzen Bereich.** Wer die Ersetzen-Zeile öffnet (`Strg+H`), bekommt in der Trefferliste ein Ankreuzfeld vor jeder Fundstelle und vor jeder Datei; zu Beginn ist alles ausgewählt. Die Liste ist damit zugleich die Vorschau: Was angehakt bleibt, wird ersetzt. „Alle ersetzen" führt den Lauf über die ausgewählten Stellen aus, auch in Dateien, die gar nicht geöffnet sind. Danach nennt ein Bericht die geänderten Dateien, die übergangenen mit ihrem Grund und die, die sich seit der Suche geändert haben.
 
 **Jede geänderte Datei bekommt ihren Vor-Stand in die Versionshistorie — auch dann, wenn die Historisierung ausgeschaltet ist.** Das ist keine Option neben dem Lauf, sondern Teil des Schreibvorgangs: Lässt sich der Vor-Stand nicht sichern, wird die Datei nicht geschrieben. Zurück geht es über die Historien-Ansicht der betroffenen Datei, dort steht die Fassung von vor dem Lauf.
 
-Im Regex-Modus wirken die Rückverweise `$1`, `$2` wie in der einzelnen Datei. Geschrieben wird ausschließlich innerhalb des Bereichs. Eine Datei, die mit ungespeicherten Änderungen in einem Reiter offen ist, wird in diesem Reiter ersetzt und bleibt ungespeichert — ein `Strg+Z` nimmt den ganzen Lauf dort wieder zurück. Geteilte Dokumente bleiben außen vor und erscheinen im Bericht.
+Im Regex-Modus wirken die Rückverweise `$1`, `$2` wie in der einzelnen Datei. Geschrieben wird ausschließlich innerhalb des Bereichs. Eine Datei, die mit ungespeicherten Änderungen geöffnet ist, wird im geöffneten Dokument ersetzt und bleibt ungespeichert — ein `Strg+Z` nimmt den ganzen Lauf dort wieder zurück. Geteilte Dokumente bleiben außen vor und erscheinen im Bericht.
 
 In einem sehr großen Bereich weist die Statuszeile des Panels darauf hin, dass bei jeder Suche neu gelesen wird; die Suche antwortet dann langsamer.
 

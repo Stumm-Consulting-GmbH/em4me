@@ -153,7 +153,7 @@
   "database.form.refNoTable": "Die Ziel-Tabelle dieses Verweises ist nicht angegeben oder nicht zu finden; das Feld lässt sich deshalb nur lesen.",
   "database.form.refUnresolved": "Dieser Wert trifft keinen Datensatz der Ziel-Tabelle eindeutig.",
   "database.form.newFailed": "Der neue Datensatz ließ sich nicht anlegen.",
-  "database.form.noTableActive": "Ein neuer Datensatz lässt sich nur anlegen, wenn im aktiven Reiter eine Tabellen-Datei der Datenbank offen ist.",
+  "database.form.noTableActive": "Ein neuer Datensatz lässt sich nur anlegen, wenn das aktive Dokument eine Tabellen-Datei der Datenbank ist.",
   "database.form.confirm.text": "Die Bearbeitung dieses Datensatzes ist nicht gespeichert. Beim Wechsel zu einem anderen Datensatz geht sie verloren.",
   "database.form.confirm.discard": "Verwerfen",
   "database.form.confirm.back": "Zurück",

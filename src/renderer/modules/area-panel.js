@@ -30,7 +30,13 @@ import {
   showAreaFileContextMenu,
   showAreaPanelContextMenu,
 } from './area-panel-menus.js';
-import { erstelleAnlageWege } from './area-panel-anlage.js';
+import {
+  erstelleAnlageWege,
+  merkeDateiEingabe,
+  merkeOrdnerEingabe,
+  setzeDateiEingabeWieder,
+  setzeOrdnerEingabeWieder,
+} from './area-panel-anlage.js';
 // 4T-001225 (Epic 3E-000122, Befund F1 des Linux-Nachweises): Pfad-Trenner und
 // Vergleichs-Verhalten kommen aus dem zentralen Plattform-Modul; der frueher
 // hart verdrahtete Backslash liess unter Linux Pfade wie `/bereich\ordner`
@@ -271,8 +277,13 @@ export async function renderAreaPanel(paneIdx) {
     await renderDirInto(treeFrag, paneIdx, root, state.areaName || root, 0);
     // Ueberholt? Dann verwirft dieser Lauf sein Ergebnis, statt es einzuhaengen.
     if (token !== areaRenderToken[paneIdx]) return;
+    // 4T-002067 (Epic 3E-000341): Eine offene Ordner-Eingabe ueberlebt den
+    // Neuaufbau samt Wert, Fokus und Schreibmarke; festhalten, leeren,
+    // einsetzen und wieder einhaengen laufen ohne await dazwischen.
+    const ordnerEingabe = merkeOrdnerEingabe(els.areaTree);
     els.areaTree.innerHTML = '';
     els.areaTree.appendChild(treeFrag);
+    setzeOrdnerEingabeWieder(els.areaTree, ordnerEingabe, isSamePathRenderer);
   }
   if (els.areaFilesTitle) {
     els.areaFilesTitle.textContent = dir === root ? state.areaName || '' : dir.split(/[\\/]/).pop();
@@ -280,10 +291,36 @@ export async function renderAreaPanel(paneIdx) {
   }
   if (els.areaFiles) {
     const filesFrag = await buildFilesFragment(paneIdx, dir);
+    // 4T-002067: Ob der gezeigte Ordner noch besteht, braucht das Listing
+    // seines Eltern-Ordners und damit ein await — deshalb vor dem Token-Check.
+    const dirBesteht = await ordnerBesteht(root, dir);
     if (token !== areaRenderToken[paneIdx]) return;
+    // 4T-002067: dasselbe fuer die Datei-Eingabe; sie bleibt nur, wenn die
+    // Liste noch ihren Ziel-Ordner zeigt und dieser besteht.
+    const dateiEingabe = merkeDateiEingabe(els.areaFiles);
     els.areaFiles.innerHTML = '';
     els.areaFiles.appendChild(filesFrag);
+    setzeDateiEingabeWieder(
+      els.areaFiles,
+      dateiEingabe,
+      (ziel) => dirBesteht && isSamePathRenderer(ziel, dir),
+    );
   }
+}
+
+// 4T-002067 (Epic 3E-000341): Besteht der Ordner noch? Das Listing eines
+// verschwundenen Ordners kommt nicht als Fehler, sondern leer zurueck
+// (area:listDir toleriert Lese-Fehler je Knoten); verlaesslich ist deshalb
+// allein der Eintrag im Listing des Eltern-Ordners. Die Wurzel besteht, solange
+// der Bereich gebunden ist.
+async function ordnerBesteht(root, dirPath) {
+  if (isSamePathRenderer(root, dirPath)) return true;
+  const rein = String(dirPath).replace(/[\\/]+$/, '');
+  const schnitt = Math.max(rein.lastIndexOf('/'), rein.lastIndexOf('\\'));
+  if (schnitt <= 0) return false;
+  const eltern = rein.slice(0, schnitt);
+  const listing = await ensureListing(eltern);
+  return listing.dirs.some((name) => isSamePathRenderer(joinPath(eltern, name), rein));
 }
 
 // --- Sichtbarkeit, Toggle, Persistenz (Muster Outline) -------------------------

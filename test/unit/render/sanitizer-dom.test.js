@@ -5,7 +5,11 @@
 // produktive Tag-/Attribut-Whitelist aus 4T-000176.
 import { describe, it, expect } from 'vitest';
 import { renderMarkdown, convertMarkdownPortable } from '../../../src/shared/markdown/markdown.js';
-import { PORTABLE_HTML_ALLOWED_ATTRS } from '../../../src/shared/markdown/portable-sanitizer.js';
+import {
+  PORTABLE_HTML_ALLOWED_ATTRS,
+  PORTABLE_HTML_ALLOWED_TAGS,
+  PORTABLE_HTML_DROP_WITH_CONTENT,
+} from '../../../src/shared/markdown/portable-sanitizer.js';
 
 const MARKER = '<!-- perspective-portable -->';
 
@@ -295,5 +299,418 @@ describe('Portabler Export: erzeugte Attribute gegen die Positivliste (4T-001556
     ]) {
       expect(PORTABLE_HTML_ALLOWED_ATTRS.has(name), name).toBe(false);
     }
+  });
+});
+
+// 4T-001918 (Epic 3E-000340): Die Element-Liste ist um 26 gliedernde Elemente
+// gewachsen, ein nicht erlaubtes Element wird ausgepackt statt samt Inhalt
+// entfernt (Entscheidung des Product Owners vom 2026-09-23, Option D). Geprüft
+// am LESE-ENDE: Die Tabelle entsteht über den echten Export, geht durch die
+// Anzeige und wird dort geprüft; wo der Befund schon in der Datei lag (B4,
+// B5), zusätzlich am Datei-Inhalt.
+const F3 = '```';
+
+// Eine Perspective-Tabelle mit einer Zelle je Eintrag. Der äußere Zaun ist
+// vier Backticks lang, damit Code-Blöcke und innere Tabellen in einer Zelle
+// ihn nicht schließen.
+function tabelle(zellen) {
+  return [
+    '````perspective-table',
+    '{|',
+    '|+ Beschriftung',
+    '! Kopf',
+    ...zellen.map((z) => `|-\n| ${z}`),
+    '|}',
+    '````',
+    '',
+  ].join('\n');
+}
+
+function exportUndAnzeige(zellen) {
+  const datei = convertMarkdownPortable(tabelle(zellen), true);
+  return { datei, anzeige: renderMarkdown(datei, 'de') };
+}
+
+describe('Portabler Filter: gliedernder Zell-Inhalt bis zur Anzeige (4T-001918)', () => {
+  it('Text-Auszeichnung erscheint: Code, fett, kursiv, durchgestrichen, tiefgestellt, eingefügt', () => {
+    const { anzeige } = exportUndAnzeige(['`code` **fett** *kursiv* ~~weg~~ H~2~O ++neu++']);
+    for (const stueck of [
+      '<code>code</code>',
+      '<strong>fett</strong>',
+      '<em>kursiv</em>',
+      '<s>weg</s>',
+      '<sub>2</sub>',
+      '<ins>neu</ins>',
+    ]) {
+      expect(anzeige, stueck).toContain(stueck);
+    }
+  });
+
+  it('Text-Auszeichnung erscheint: Abkürzung, gelöscht, hochgestellt (Fußnote)', () => {
+    const { anzeige } = exportUndAnzeige([
+      '*[HTML]: Hyper Text\nHTML hier\nzwei',
+      '{++neu++} und {--alt--}\nzwei',
+      'Text mit Fußnote[^1]\n\n[^1]: Die Fußnote',
+    ]);
+    expect(anzeige).toMatch(/<abbr title="Hyper Text"[^>]*>HTML<\/abbr>/);
+    expect(anzeige).toMatch(/<del\b[^>]*>alt<\/del>/);
+    expect(anzeige).toMatch(/<sup\b[^>]*><a href="#fn1">\[1\]<\/a><\/sup>/);
+    expect(anzeige).toMatch(/<section\b[^>]*>/);
+    expect(anzeige).toContain('Die Fußnote');
+  });
+
+  it('eine mehrzeilige Zelle mit Aufzählung und eine mit Code-Block erscheinen', () => {
+    const { anzeige } = exportUndAnzeige([
+      '- erster Punkt\n- zweiter Punkt',
+      '1. eins\n2. zwei',
+      `${F3}js\nlet a = 1;\n${F3}\nnach`,
+    ]);
+    expect(anzeige).toMatch(/<ul>\s*<li>erster Punkt<\/li>\s*<li>zweiter Punkt<\/li>\s*<\/ul>/);
+    expect(anzeige).toMatch(/<ol>\s*<li>eins<\/li>/);
+    expect(anzeige).toMatch(/<pre><code class="[^"]*">/);
+    expect(anzeige).toContain('let</span> a = ');
+    expect(anzeige).toContain('<p>nach</p>');
+  });
+
+  it('Absätze, Überschriften, Zitat, Trennlinie und Definitionsliste erscheinen', () => {
+    const { anzeige } = exportUndAnzeige([
+      'Absatz eins\n\nAbsatz zwei',
+      '# H1\n## H2\n### H3\n#### H4\n##### H5\n###### H6',
+      '> Zitat\n> zwei',
+      'oben\n\n---\n\nunten',
+      'Begriff\n: Erklärung',
+    ]);
+    expect(anzeige).toContain('<p>Absatz eins</p>');
+    for (let n = 1; n <= 6; n++) expect(anzeige).toContain(`<h${n}>H${n}</h${n}>`);
+    expect(anzeige).toMatch(/<blockquote>\s*<p>Zitat/);
+    expect(anzeige).toMatch(/<p>oben<\/p>\s*<hr>\s*<p>unten<\/p>/);
+    expect(anzeige).toMatch(/<dl>\s*<dt>Begriff<\/dt>\s*<dd\b[^>]*>Erklärung<\/dd>/);
+  });
+
+  it('B5: eine innere Tabelle behält ihre Fettschrift in der Datei und in der Anzeige', () => {
+    const { datei, anzeige } = exportUndAnzeige([
+      `\n${F3}perspective-table\n{|\n| **fett** innen\n|}\n${F3}`,
+    ]);
+    expect(datei).toContain('<strong>fett</strong> innen');
+    expect(datei).not.toContain('&lt;');
+    expect(anzeige).toContain('<strong>fett</strong> innen');
+  });
+
+  it('B4: Aufgaben-Kästchen stehen als Zeichen in der Datei und in der Anzeige', () => {
+    const { datei, anzeige } = exportUndAnzeige(['- [ ] offen\n- [x] erledigt\n- [/] halb']);
+    expect(datei).toContain('☐ offen');
+    expect(datei).toContain('☑ erledigt');
+    // Erweiterter Aufgaben-Zustand: Klammerform, wie der Anwender sie schreibt.
+    expect(datei).toContain('>[/] halb</li>');
+    for (const verboten of ['&lt;', '<input', '<label', 'task-state-box']) {
+      expect(datei, verboten).not.toContain(verboten);
+    }
+    expect(anzeige).toContain('☐ offen');
+    expect(anzeige).toContain('☑ erledigt');
+    expect(anzeige).toContain('[/] halb');
+    expect(anzeige).not.toContain('&lt;');
+  });
+
+  it('die gewöhnliche Anzeige behält ihr Kästchen als Eingabefeld', () => {
+    const html = renderMarkdown('- [ ] offen\n', 'de');
+    expect(html).toContain('<input class="task-list-item-checkbox"');
+  });
+
+  it('ein nicht aufgeführtes, harmloses Element wird ausgepackt, sein Text erscheint', () => {
+    const html = renderMarkdown(
+      `${MARKER}\n\n<div><u>unterstrichen</u> und <font color="red">alt</font> <form><button>Knopf</button><input name="x"></form></div>\n`,
+      'de',
+    );
+    for (const text of ['unterstrichen', 'alt', 'Knopf']) expect(html, text).toContain(text);
+    for (const element of ['<u>', '<font', '<form', '<button', '<input']) {
+      expect(html, element).not.toContain(element);
+    }
+  });
+
+  it('ein ausgepacktes Element gibt seinen Inhalt der Prüfung weiter', () => {
+    const html = renderMarkdown(
+      `${MARKER}\n\n<div><u><span onclick="alert(1)">x</span><iframe src="https://example.org">IN</iframe></u></div>\n`,
+      'de',
+    );
+    expect(html).toContain('<span>x</span>');
+    expect(html).not.toContain('onclick');
+    expect(html).not.toContain('<iframe');
+  });
+
+  it('ein gefährliches Element wird weiterhin samt Inhalt entfernt', () => {
+    for (const stueck of [
+      '<script>INNEN()</script>',
+      '<style>.INNEN{}</style>',
+      '<template>INNEN</template>',
+      '<iframe>INNEN</iframe>',
+      '<noscript>INNEN</noscript>',
+      '<noembed>INNEN</noembed>',
+      '<noframes>INNEN</noframes>',
+      '<xmp>INNEN</xmp>',
+      '<title>INNEN</title>',
+      '<svg><text>INNEN</text><desc>INNEN</desc></svg>',
+      '<math><mi>INNEN</mi><annotation-xml>INNEN</annotation-xml></math>',
+      '<audio>INNEN</audio>',
+      '<video>INNEN</video>',
+      '<object>INNEN</object>',
+      '<textarea>INNEN</textarea>',
+      '<select><option>INNEN</option></select>',
+    ]) {
+      const html = renderMarkdown(`${MARKER}\n\n<div>vor${stueck}nach</div>\n`, 'de');
+      expect(html, stueck).not.toContain('INNEN');
+      expect(html, stueck).toContain('vor');
+      expect(html, stueck).toContain('nach');
+    }
+    expect(renderMarkdown(`${MARKER}\n\n<div><embed src="x.swf">ok</div>\n`, 'de')).not.toContain(
+      '<embed',
+    );
+  });
+});
+
+// 4T-001918, Frage 2 Option B: Ein Bild mit Adresse relativ zum Dokument darf
+// am `src` eines `img` stehen; jede Adresse mit Schema, mit führendem `/` oder
+// `\`, mit Steuerzeichen oder ohne gültige Entschlüsselung verliert wie bisher
+// ihre Quelle, das Element bleibt. Im Stil-Wert bleibt allein die eingebettete
+// Adresse zulässig.
+describe('P-02-Sanitizer: relative Bild-Adresse am img (4T-001918)', () => {
+  const bild = (quelle) =>
+    renderMarkdown(`${MARKER}\n\n<p><img alt="X" src="${quelle}"></p>\n`, 'de');
+
+  it('eine Adresse relativ zum Dokument bleibt erhalten', () => {
+    for (const quelle of ['bild.png', 'bilder/x.png', './x.png', 'Bild%20eins.png', ' bild.png']) {
+      expect(bild(quelle), quelle).toContain(`src="${quelle}"`);
+    }
+  });
+
+  it('Freigabe-, absolute, Laufwerks- und kodierte Adressen verlieren ihre Quelle', () => {
+    for (const quelle of [
+      '//rechner/x.png',
+      '\\\\rechner\\x.png',
+      '/x.png',
+      'C:/x.png',
+      '%2F%2Frechner/x.png',
+      '%5C%5Crechner/x.png',
+      'c%3A/x.png',
+      ' //rechner/x.png',
+      '%20//rechner/x.png',
+      'bild%00.png',
+      'bild&#9;.png',
+      '%E0%A4%A.png',
+      'mailto:x@example.org',
+    ]) {
+      const html = bild(quelle);
+      expect(html, quelle).not.toMatch(/\ssrc=/);
+      expect(html, quelle).toContain('<img');
+    }
+  });
+
+  it('die relative Adresse gilt nur am img, nicht an einem anderen Element', () => {
+    const html = renderMarkdown(`${MARKER}\n\n<div><span src="bild.png">x</span></div>\n`, 'de');
+    expect(html).not.toContain('src=');
+  });
+
+  it('eine relative Adresse in url(…) setzt den Stil-Wert weiterhin außer Kraft', () => {
+    const html = renderMarkdown(
+      `${MARKER}\n\n<div><span style="background:url(relativ.png)">Inhalt</span></div>\n`,
+      'de',
+    );
+    expect(html).not.toContain('style=');
+    expect(html).toContain('Inhalt');
+  });
+
+  it('ein relatives Bild in einer Zelle steht in der Datei und in der Anzeige', () => {
+    // Eine Folgezeile, die mit `!` beginnt, wäre eine Kopfzelle; das zweite
+    // Bild steht deshalb hinter Text.
+    const { datei, anzeige } = exportUndAnzeige([
+      '![Bild](bild.png)',
+      'vor\n\nText ![Zwei](zwei.png)',
+    ]);
+    expect(datei).toContain('src="bild.png"');
+    expect(anzeige).toContain('src="bild.png"');
+    expect(anzeige).toContain('src="zwei.png"');
+  });
+
+  it('eine Freigabe-Adresse als Roh-HTML in einer Zelle erreicht die Anzeige nicht', () => {
+    const { datei, anzeige } = exportUndAnzeige([
+      'Text <img alt="A" src="//rechner/x.png">',
+      'vor\n\n<img alt="B" src="\\\\rechner\\x.png">',
+    ]);
+    expect(anzeige).not.toContain('rechner');
+    expect(datei).not.toContain('//rechner');
+  });
+});
+
+// 4T-001918: Der Element-Wächter — Gegenstück zum Attribut-Wächter oben, nach
+// dessen Muster. Er misst die Elemente, die der Export am erzeugten Dokument
+// schreibt, und hält sie in BEIDEN Richtungen gegen die Liste: Ein neu
+// erzeugtes Element fällt hier auf, statt am Lese-Ende still ausgepackt zu
+// werden; ein Listen-Eintrag, den kein Erzeuger mehr braucht, fällt ebenso
+// auf. Das Muster folgt den gemessenen Konstrukten der Erhebung.
+describe('Portabler Export: erzeugte Elemente gegen die Liste (4T-001918)', () => {
+  const MUSTER =
+    tabelle([
+      '`code` **fett** *kursiv* ~~weg~~ H~2~O ++neu++ ==mark== [Link](https://example.org) Zeile<br>zwei',
+      'Text mit Fußnote[^1]\n\n[^1]: Die Fußnote',
+      'Absatz eins\n\nAbsatz zwei',
+      '- a\n- b',
+      '3. drei\n4. vier',
+      '- [ ] offen\n- [x] erledigt\n- [/] halb',
+      '# H1\n## H2\n### H3\n#### H4\n##### H5\n###### H6',
+      '> Zitat\n> zwei',
+      `${F3}js\nlet a = 1;\n${F3}`,
+      'oben\n\n---\n\nunten',
+      'Begriff\n: Erklärung',
+      '> [!note] Titel\n> Text',
+      '*[HTML]: Hyper Text\nHTML hier',
+      '{++neu++} und {--alt--}\nzwei',
+      '![Bild](data:image/png;base64,AA)',
+      '![Bild](bild.png)',
+      `\n${F3}perspective-table\n{|\n| **fett** innen\n|}\n${F3}`,
+    ]) +
+    [
+      '',
+      '```perspective-datatable',
+      'columns: Name:text, Zahl:number(2)',
+      'aggregate: Zahl:sum',
+      '| a | 1 |',
+      '```',
+      '',
+      '```perspective-events',
+      '| 2026-01-01 | 2026-01-05 | urlaub | Text |',
+      '```',
+      '',
+    ].join('\n');
+
+  // Auch Elemente mit Bindestrich und Groß-Klein-Schreibung (SVG) zählen.
+  function elementeIn(text) {
+    const gefunden = new Set();
+    for (const m of text.matchAll(/<([a-zA-Z][a-zA-Z0-9-]*)/g)) gefunden.add(m[1].toLowerCase());
+    return [...gefunden].sort();
+  }
+
+  // Bewusst nicht auf der Liste, aber vom Export geschrieben: das Symbol im
+  // Kopf eines Hinweis-Kastens (inline Grafik, Begründung aus 4T-001471). Es
+  // fehlt in der Anzeige, Titel und Text des Kastens erscheinen.
+  const BEWUSST_DRAUSSEN = ['path', 'svg'];
+
+  // Bewusst auf der Liste, aber von keinem Erzeuger geschrieben: die
+  // Spalten-Gruppe der ursprünglichen Kalibrierung aus 4T-000176. Die
+  // Entscheidung vom 2026-09-23 hält die 16 bisherigen Einträge unverändert;
+  // sie bleiben, weil sie reine Spalten-Gliederung ohne Inhalt sind und eine
+  // früher oder von Hand geschriebene Exporttabelle sie tragen darf.
+  const OHNE_ERZEUGER = ['col', 'colgroup'];
+
+  it('die Erzeuger schreiben genau die erhobenen Elemente', () => {
+    expect(elementeIn(convertMarkdownPortable(MUSTER, true))).toEqual([
+      'a',
+      'abbr',
+      'blockquote',
+      'br',
+      'caption',
+      'code',
+      'dd',
+      'del',
+      'div',
+      'dl',
+      'dt',
+      'em',
+      'h1',
+      'h2',
+      'h3',
+      'h4',
+      'h5',
+      'h6',
+      'hr',
+      'img',
+      'ins',
+      'li',
+      'mark',
+      'ol',
+      'p',
+      'path',
+      'pre',
+      's',
+      'section',
+      'span',
+      'strong',
+      'sub',
+      'sup',
+      'svg',
+      'table',
+      'tbody',
+      'td',
+      'tfoot',
+      'th',
+      'thead',
+      'tr',
+      'ul',
+    ]);
+  });
+
+  it('Richtung 1: jedes erzeugte Element steht auf der Liste oder ist bewusst draußen', () => {
+    for (const name of elementeIn(convertMarkdownPortable(MUSTER, true))) {
+      const erlaubt = PORTABLE_HTML_ALLOWED_TAGS.has(name);
+      expect(erlaubt || BEWUSST_DRAUSSEN.includes(name), name).toBe(true);
+      expect(erlaubt && BEWUSST_DRAUSSEN.includes(name), name).toBe(false);
+    }
+  });
+
+  it('Richtung 2: jeder Eintrag der Liste wird erzeugt, bis auf die benannte Spalten-Gruppe', () => {
+    const erzeugt = new Set(elementeIn(convertMarkdownPortable(MUSTER, true)));
+    const ungenutzt = [...PORTABLE_HTML_ALLOWED_TAGS].filter((name) => !erzeugt.has(name)).sort();
+    expect(ungenutzt).toEqual(OHNE_ERZEUGER);
+    expect(PORTABLE_HTML_ALLOWED_TAGS.size).toBe(42);
+  });
+
+  it('am Lese-Ende kommt jedes erlaubte erzeugte Element an, das bewusst draußen gelassene nicht', () => {
+    const datei = convertMarkdownPortable(MUSTER, true);
+    const anzeige = elementeIn(renderMarkdown(datei, 'de'));
+    const erwartet = elementeIn(datei).filter((name) => !BEWUSST_DRAUSSEN.includes(name));
+    expect(anzeige).toEqual(erwartet);
+  });
+
+  it('die bewusst draußen gelassenen Elemente gehen samt Inhalt, die Liste überschneidet sich nicht', () => {
+    expect(PORTABLE_HTML_DROP_WITH_CONTENT.has('svg')).toBe(true);
+    for (const name of PORTABLE_HTML_DROP_WITH_CONTENT) {
+      expect(PORTABLE_HTML_ALLOWED_TAGS.has(name), name).toBe(false);
+    }
+    for (const name of ['label', 'input']) {
+      expect(PORTABLE_HTML_ALLOWED_TAGS.has(name), name).toBe(false);
+    }
+  });
+
+  // Gegenrichtung der Attribute (Befund Punkt 8): Die gliedernden Elemente
+  // bringen Attribute mit, die nicht auf der Attribut-Liste stehen und beim
+  // Lesen bewusst verloren gehen — `id` an Überschriften und am Fußnoten-
+  // Rücksprung, `start` an einer nummerierten Liste, `data-task-state` am
+  // erweiterten Aufgaben-Zustand und die Zeichen-Angaben des Symbols im
+  // Hinweis-Kasten. Die Attribut-Liste bleibt unverändert (AK1).
+  it('die Attribute der gliedernden Elemente, die beim Lesen entfallen, sind genau benannt', () => {
+    const datei = convertMarkdownPortable(MUSTER, true);
+    const attribute = new Set();
+    for (const m of datei.matchAll(
+      /<[a-zA-Z][a-zA-Z0-9-]*((?:\s+[a-zA-Z-]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s">]+))?)*)\s*\/?>/g,
+    )) {
+      for (const a of m[1].matchAll(/([a-zA-Z-]+)(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s">]+))?/g)) {
+        attribute.add(a[1].toLowerCase());
+      }
+    }
+    const draussen = [...attribute].filter((name) => !PORTABLE_HTML_ALLOWED_ATTRS.has(name)).sort();
+    expect(draussen).toEqual([
+      'aria-hidden',
+      'd',
+      'data-task-state',
+      'fill',
+      'height',
+      'id',
+      'start',
+      'stroke',
+      'stroke-linecap',
+      'stroke-linejoin',
+      'stroke-width',
+      'viewbox',
+      'width',
+      'xmlns',
+    ]);
   });
 });

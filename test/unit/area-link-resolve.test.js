@@ -14,6 +14,8 @@ import aufloesung from '../../src/main/area/area-link-resolve.js';
 import mddStore from '../../src/main/documents/mdd-store.js';
 // 4T-001452: Der Index-Parser belegt, dass die eingehende Richtung draussen bleibt.
 import { parseContent } from '../../src/main/index/parse.js';
+// 4T-002069: der echte Lese-Kanal file:read fuer die Grenze im Aus-Zustand.
+import filesIpc from '../../src/main/ipc/files.js';
 
 const {
   pfadImVerknuepftenBereich,
@@ -243,6 +245,89 @@ describe('liegtInVerknuepftemBereich — die praezisierte Grenz-Zusicherung (P2)
     const { fremd, links } = await zweiVerknuepfteBereiche();
     // '<fremd>-anderer' beginnt mit demselben Text, liegt aber daneben.
     expect(liegtInVerknuepftemBereich(links, fremd + '-anderer' + path.sep + 'x.md')).toBe(false);
+  });
+});
+
+// 4T-002069: Die Lese-Grenze fragt den Schalter der Erweiterung ab. Nachgebaut
+// nach der Probe des Befunds (4T-002031, Nebenbefund): der ECHTE Kanal
+// file:read und der echte Leser der Verknuepfungen ueber eine echte
+// Bereichsdatei, der Schalter im Einstellungs-Speicher unter
+// extensions.disabled wie in der Anwendung. Ersetzt sind allein Fenster-
+// Zuordnung, Beobachter und Historie, die fuer die Grenze keine Rolle spielen.
+describe('Lese-Grenze und Schalter der Erweiterung (4T-002069)', () => {
+  async function aufbau() {
+    const eigen = makeRoot('em4me-lg-eigen-');
+    const fremd = makeRoot('em4me-lg-fremd-');
+    const dritt = makeRoot('em4me-lg-dritt-');
+    const notiz = schreibe(eigen, 'Notiz.md', '# Notiz\n');
+    const ziel = schreibe(fremd, 'A.md', '# A im verknuepften Bereich\n');
+    const geheim = schreibe(dritt, 'Geheim.md', '# nicht verknuepft\n');
+    const zustand = { disabled: [] };
+    const store = { get: (k) => (k === 'extensions.disabled' ? zustand.disabled : undefined) };
+    const cfg = createAreaConfig({
+      getStore: () => store,
+      areaOfWindow: () => null,
+      markSelfWriting: vi.fn(),
+      mddStore,
+      attachmentPath: {},
+      resolveTemplatesConfig: () => ({}),
+    });
+    await cfg.writeAreaLinks(eigen, [{ prefix: 'zt', path: fremd }]);
+    const handlers = new Map();
+    filesIpc.registerFilesIpc((name, fn) => handlers.set(name, fn), {
+      dialog: {},
+      senderWindow: () => ({ id: 1 }),
+      areaOfWindow: () => ({ rootPath: eigen, name: 'Eigen' }),
+      tForWindow: () => (k) => k,
+      isMddPath: (p) => /\.mdd[ab]?$/i.test(p),
+      isMarkdownPath: (p) => /\.md$/i.test(p),
+      watchFile: () => {},
+      unwatchFile: () => {},
+      resolveHistoryFor: async () => ({ effective: false }),
+      recordMddExternalOnOpen: async () => {},
+      readPreviousTextFor: async () => null,
+      recordMddOnSave: async () => {},
+      saveGuard: {},
+      pushRecent: () => {},
+      getStore: () => store,
+      readAreaLinks: (rootPath) => cfg.readAreaLinks(rootPath),
+    });
+    const lies = (p) => handlers.get('file:read')({ sender: { id: 1 } }, p);
+    return { eigen, cfg, zustand, lies, notiz, ziel, geheim };
+  }
+
+  it('an: der verknuepfte Bereich ist lesbar, ein fremder Ordner nicht (Gegenprobe)', async () => {
+    const { lies, notiz, ziel, geheim } = await aufbau();
+    const l2 = await lies(ziel);
+    expect(l2.ok).toBe(true);
+    expect(l2.content).toContain('# A im verknuepften Bereich');
+    expect(await lies(geheim)).toEqual({ ok: false, error: 'outside-area' });
+    expect((await lies(notiz)).ok).toBe(true);
+  });
+
+  it('aus: nichts mehr aus dem verknuepften Bereich, der eigene Bereich bleibt (AK2, AK3)', async () => {
+    const { eigen, cfg, zustand, lies, notiz, ziel, geheim } = await aufbau();
+    zustand.disabled = ['area-links'];
+    // L1: Die Angabe bleibt erhalten — abgeschaltet wird die Wirkung (E7).
+    expect((await cfg.readAreaLinks(eigen)).map((l) => l.prefix)).toEqual(['zt']);
+    // L2: Der Befund — vor der Behebung lieferte der Kanal hier ok: true.
+    expect(await lies(ziel)).toEqual({ ok: false, error: 'outside-area' });
+    // L3 und L4 unveraendert.
+    expect(await lies(geheim)).toEqual({ ok: false, error: 'outside-area' });
+    expect((await lies(notiz)).ok).toBe(true);
+    // Wieder an: Die Verknuepfung wirkt sofort wieder.
+    zustand.disabled = [];
+    expect((await lies(ziel)).ok).toBe(true);
+  });
+
+  it('ohne Abfrage des Schalters bleibt die Ausnahme geschlossen (fail closed)', async () => {
+    const { eigen, fremd, links } = await zweiVerknuepfteBereiche();
+    const ziel = path.join(fremd, 'Datei.md');
+    const leser = async () => links;
+    expect(await aufloesung.darfBereichLesen(eigen, ziel, leser, () => true)).toBe(true);
+    expect(await aufloesung.darfBereichLesen(eigen, ziel, leser, () => false)).toBe(false);
+    expect(await aufloesung.darfBereichLesen(eigen, ziel, leser)).toBe(false);
+    expect(await aufloesung.darfBereichLesen(eigen, path.join(eigen, 'x.md'), leser)).toBe(true);
   });
 });
 describe('Die eingehende Richtung bleibt draussen (AK4, Ausschluss aus E3)', () => {

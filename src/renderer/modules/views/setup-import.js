@@ -21,31 +21,52 @@ import { api, $ } from '../app/api.js';
 import { showStatusbarHint } from './views.js';
 import { speichereEinrichtung } from './setup-export.js';
 
+// 4T-002094 (Story 4S-000904, AK12): Die Zeilen sprechen in der Vorschau in
+// der Ankündigungsform («kommt hinzu») und im Bericht nach der Übernahme in der
+// Vollzugsform («ist hinzugekommen»). Je Lage ein Satz wörtlicher Schlüssel,
+// damit jeder Schlüssel im Quelltext auffindbar bleibt. Die Zeilen
+// «übersprungen», «verworfen» und «nicht übernommen» lesen in beiden Lagen
+// richtig und bleiben gemeinsam.
+const TEXTE_VORSCHAU = {
+  replaced: 'exchange.import.replaced',
+  addedOne: 'exchange.import.addedOne',
+  addedMany: 'exchange.import.addedMany',
+  addedNone: 'exchange.import.addedNone',
+  renamed: 'exchange.import.renamed',
+};
+const TEXTE_BERICHT = {
+  replaced: 'exchange.import.done.replaced',
+  addedOne: 'exchange.import.done.addedOne',
+  addedMany: 'exchange.import.done.addedMany',
+  addedNone: 'exchange.import.done.addedNone',
+  renamed: 'exchange.import.done.renamed',
+};
+
 // Wirkung einer Zeile als Text. Bewusst je Fall ein eigener Schlüssel statt
 // einer zusammengesetzten Zeichenkette: Die Fälle stehen in den fünf
 // Sprachfassungen unterschiedlich, und «ergänzt: 3» wäre in keiner davon ein
 // Satz.
-function wirkungsText(eintrag) {
+function wirkungsText(eintrag, texte) {
   if (eintrag.action === 'skip') {
     return eintrag.grund === 'no-area'
       ? t('exchange.import.skippedNoArea')
       : t('exchange.import.skippedForm');
   }
   if (eintrag.action === 'append') {
-    if (eintrag.hinzu === 0) return t('exchange.import.addedNone');
+    if (eintrag.hinzu === 0) return t(texte.addedNone);
     return eintrag.hinzu === 1
-      ? t('exchange.import.addedOne')
-      : t('exchange.import.addedMany').replace('{n}', String(eintrag.hinzu));
+      ? t(texte.addedOne)
+      : t(texte.addedMany).replace('{n}', String(eintrag.hinzu));
   }
-  return t('exchange.import.replaced');
+  return t(texte.replaced);
 }
 
 // Die Zusatz-Zeilen unter einer Datenart: was umbenannt, was übersprungen und
 // was verworfen wurde. Jede Abweichung vom geradlinigen Fall wird benannt.
-function detailZeilen(eintrag) {
+function detailZeilen(eintrag, texte) {
   const zeilen = [];
   for (const u of eintrag.umbenannt || []) {
-    zeilen.push(t('exchange.import.renamed').replace('{von}', u.von).replace('{nach}', u.nach));
+    zeilen.push(t(texte.renamed).replace('{von}', u.von).replace('{nach}', u.nach));
   }
   if (eintrag.uebersprungen > 0) {
     zeilen.push(t('exchange.import.duplicates').replace('{n}', String(eintrag.uebersprungen)));
@@ -68,11 +89,15 @@ function detailZeilen(eintrag) {
   return zeilen;
 }
 
-function zeichneListe(container, kinds, unknownSections) {
+function zeichneListe(container, kinds, unknownSections, bericht) {
   container.innerHTML = '';
   const ul = document.createElement('ul');
   ul.className = 'setup-import-rows';
   for (const eintrag of kinds) {
+    // Vollzugsform nur für das, was tatsächlich übernommen wurde; eine nicht
+    // übernommene Datenart behält im Bericht die Ankündigung samt der Zeile
+    // «nicht übernommen».
+    const texte = bericht && eintrag.uebernommen !== false ? TEXTE_BERICHT : TEXTE_VORSCHAU;
     const li = document.createElement('li');
     if (eintrag.action === 'skip' || eintrag.uebernommen === false) {
       li.className = 'setup-import-skipped';
@@ -84,11 +109,11 @@ function zeichneListe(container, kinds, unknownSections) {
     name.textContent = t(eintrag.labelKey);
     const wirkung = document.createElement('span');
     wirkung.className = 'setup-import-action';
-    wirkung.textContent = wirkungsText(eintrag);
+    wirkung.textContent = wirkungsText(eintrag, texte);
     kopf.appendChild(name);
     kopf.appendChild(wirkung);
     li.appendChild(kopf);
-    for (const zeile of detailZeilen(eintrag)) {
+    for (const zeile of detailZeilen(eintrag, texte)) {
       const p = document.createElement('div');
       p.className = 'setup-import-detail';
       p.textContent = zeile;
@@ -135,7 +160,7 @@ function zeigeModal(optionen) {
     $('#setup-import-intro').textContent = optionen.intro;
     warnEl.textContent = optionen.warnung || '';
     warnEl.hidden = !optionen.warnung;
-    zeichneListe(listEl, optionen.kinds, optionen.unknownSections);
+    zeichneListe(listEl, optionen.kinds, optionen.unknownSections, !optionen.bestaetigen);
 
     btnConfirm.textContent = optionen.bestaetigen
       ? t('exchange.import.confirm')

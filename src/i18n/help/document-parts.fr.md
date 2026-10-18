@@ -55,7 +55,7 @@ Cette ligne est l'information qui fait foi sur ce qui va ensemble, et non le nom
 Peu de choses, et c'est voulu :
 
 - **L'onglet et l'éditeur** montrent un document continu.
-- **La liste de fichiers de l'espace** ne montre que le document, pas ses parties.
+- **La liste de fichiers de la zone** ne montre que le document, pas ses parties.
 - **La recherche** signale un résultat d'une partie ultérieure comme résultat du document ; le saut l'ouvre à l'endroit trouvé.
 - **Le renommage** emmène toutes les parties.
 - **L'en-tête du premier fichier** porte la ligne d'appartenance. Elle est la trace visible de la division et apparaît aussi dans les propriétés.

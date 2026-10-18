@@ -20,7 +20,7 @@ Masquer ne retire que l'accès, la fonction demeure : tout ce qui est masqué re
 
 Les entrées de commande personnalisées apparaissent comme une section supplémentaire à la fin du menu contextuel de l'éditeur, en mode source comme en mode live. Elles se gèrent dans la liste de la section « Menu contextuel et macros » — même flux de création et même modèle d'entrée que les boutons de la barre d'état, mais avec un ordre propre. Chaque entrée montre son icône et son nom d'affichage.
 
-Les entrées dont la commande n'est pas exécutable dans le contexte actuel (par exemple une commande d'espace sans espace ouvert) apparaissent désactivées au lieu de disparaître — en cohérence avec le reste du menu. Sans entrées configurées, la section disparaît complètement. La section appartient à l'éditeur principal ; le menu contextuel du champ de note reste inchangé.
+Les entrées dont la commande n'est pas exécutable dans le contexte actuel (par exemple une commande de zone sans zone ouverte) apparaissent désactivées au lieu de disparaître — en cohérence avec le reste du menu. Sans entrées configurées, la section disparaît complètement. La section appartient à l'éditeur principal ; le menu contextuel du champ de note reste inchangé.
 
 ## Macros
 

@@ -20,6 +20,9 @@ import { locatePipeCellPosition, parsePipeTable } from '../../../shared/markdown
 // Klick-Pfad setzt die Schreibmarke und uebergibt dann an den Zell-Editor;
 // beide Zugriffe laufen zur Laufzeit im Handler, der Import bleibt gerichtet.
 import { ereignisGehoertZurBearbeitung } from './live-table-zelle.js';
+// 4T-002055 (Epic 3E-000360): Stellen im Block-Text einer Tabelle im Zitat
+// rechnen über die Zitat-Präfixe ins Dokument.
+import { dokStelle, zitatPraefixeAb } from './live-table-zell-kern.js';
 
 // Logische Zelle aus dem gerenderten DOM (exportiert, weil der Unit-Test die
 // Zuordnung ohne laufenden Editor pruefen koennen soll): Kopfzeilen liegen im thead, Datenzeilen
@@ -72,12 +75,15 @@ export function liegtInAuswahl(ranges, stelle) {
 // ist der Roh-Quelltext des Tabellen-Blocks, mit dem das Widget gebaut wurde.
 // Laeuft bei jedem Einhaengen des Widgets — auch beim Cache-Klon, weil
 // cloneNode die Listener verliert (Muster der uebrigen Nachverarbeitung).
-export function bindLiveTableCellClicks(container, source) {
+//
+// 4T-002055: `source` ist der Block-Text ohne Zitat-Praefixe, `dokLaenge` die
+// Laenge des Blocks im Dokument samt ihnen (ohne Zitat dieselbe Zahl).
+export function bindLiveTableCellClicks(container, source, dokLaenge = String(source).length) {
   // 4T-001346: Die Laenge des Blocks am Container. Der Auswahl-Beobachter
   // (live-table-zelle.js) erkennt daran, ob eine Stelle des Dokuments in DIESER
   // Tabelle liegt, ohne den Quelltext ein zweites Mal im DOM zu halten — er
   // steht ohnehin im Dokument und wird von dort gelesen.
-  container.dataset.tabellenLaenge = String(String(source).length);
+  container.dataset.tabellenLaenge = String(dokLaenge);
   // 4T-001861 (Epic 3E-000300): Die Tabelle setzt die Schreibmarke beim
   // Rechtsklick selbst, zellgenau. Der allgemeine Kontextmenue-Weg des Editors
   // (editor-context-menu.js) liest diese Kennzeichnung und setzt dann keine
@@ -127,7 +133,8 @@ export function bindLiveTableCellClicks(container, source) {
     const quellText = zeilenText.slice(stelle.contentStart, stelle.contentEnd);
     const feinOffset = klickOffsetInZelle(event, zelle, quellText);
     const basis = view.posAtDOM(container);
-    const anker = basis + stelle.offset + feinOffset;
+    const praefixe = zitatPraefixeAb(view.state.doc, basis, lines.length);
+    const anker = dokStelle(basis, praefixe, source, stelle.offset + feinOffset);
     event.preventDefault();
     // 4T-001861: Ein Rechtsklick in eine bestehende Auswahl laesst sie stehen,
     // wie der allgemeine Kontextmenue-Weg ausserhalb von Tabellen.

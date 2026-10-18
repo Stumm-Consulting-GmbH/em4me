@@ -93,6 +93,7 @@
   "areaPanel.newFolderError": "Impossibile creare la cartella",
   "areaPanel.newNameEmpty": "Immettere un nome",
   "areaPanel.newNameInvalid": "Il nome contiene caratteri non consentiti",
+  "areaPanel.inputDiscarded": "La cartella di destinazione non è più visualizzata; l'inserimento è stato annullato",
   "area.outsideTitle": "Fuori dall'area",
   "area.outsideOpenMessage": "La selezione si trova fuori dall'area e non verrà aperta.",
   "area.outsideSaveMessage": "La posizione scelta si trova fuori dall'area. Scegliere una posizione all'interno dell'area."

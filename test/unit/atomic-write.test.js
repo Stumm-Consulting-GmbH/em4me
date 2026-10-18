@@ -11,6 +11,7 @@ import path from 'node:path';
 import os from 'node:os';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 import {
   benenneUmMitWiederholung,
@@ -294,6 +295,27 @@ describe('atomic-write: Anbindung an den Datei-Beobachter', () => {
   it('kommt ohne Rueckruf aus', async () => {
     const ergebnis = await ersetzeDatei(ziel, NEU);
     expect(ergebnis.ok).toBe(true);
+  });
+
+  // 4T-001923 (Story 4S-000005, AK6): Nach dem Umbenennen meldet der Schreibweg
+  // den Abschluss an den Eigen-Schreib-Merker; der aeltere eigene Stand
+  // verfaellt damit, und eine fremde Aenderung, die ihn wiederherstellt, gilt
+  // als fremd. Geprueft mit dem echten Merker, wie ihn die Verdrahtung reicht.
+  // Er kommt ueber require, damit es dieselbe Modul-Instanz ist, die
+  // atomic-write.js selbst laedt (ein import ergaebe hier eine zweite).
+  it('laesst nach dem Umbenennen den aelteren eigenen Stand verfallen', async () => {
+    const selbstSchreib = createRequire(import.meta.url)('../../src/main/documents/self-write.js');
+    selbstSchreib._leeren();
+    try {
+      const markSelfWriting = selbstSchreib.merke;
+      await ersetzeDatei(ziel, ALT, { markSelfWriting });
+      await ersetzeDatei(ziel, NEU, { markSelfWriting });
+      expect(await selbstSchreib.istEigenerStand(ziel)).toBe(true);
+      await fs.writeFile(ziel, ALT, 'utf8');
+      expect(await selbstSchreib.istEigenerStand(ziel)).toBe(false);
+    } finally {
+      selbstSchreib._leeren();
+    }
   });
 
   // Entwicklungsrichtlinien Kapitel 3: der einmal gepruefte Vertrag, der laut

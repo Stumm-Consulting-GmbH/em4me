@@ -36,6 +36,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { stripMarkdownExtension } = require('../../shared/subpages.js');
 
 const backlinks = require('../backlinks.js');
 const { sucheInTexten } = require('../../shared/search-scope.js');
@@ -83,8 +84,11 @@ function konfiguriereBereichsSuche(optionen) {
 // Dateiname waere kuerzer, aber in einem Bereich mit gleichnamigen Dateien in
 // verschiedenen Ordnern nicht unterscheidbar — und genau das ist der Fall,
 // den eine bereichsweite Suche erzeugt.
+// 4T-001899: die gemeinsame Endungs-Erkennung. Der Vorrat enthält allein
+// Markdown-Dateien (area-search-vorrat.js), die bisherige Kürzung jeder Endung
+// war deshalb gleichwertig, aber eine zweite Regel.
 function anzeigeTitel(rel) {
-  return rel.replace(/\.[^./]+$/, '');
+  return stripMarkdownExtension(rel);
 }
 
 // --- Suche ------------------------------------------------------------------

@@ -160,7 +160,7 @@
   "help.featureAccess.bookToc": "Ver → Barra lateral → Paneles → Libro; botón Libro en la barra de estado; paleta de comandos",
   "help.featureAccess.bookStructure": "panel del libro: arrastrar el marcador delante del nombre de un capítulo; en la entrada con el foco, Alt+↑ y Alt+↓ para reordenar, Alt+→ y Alt+← para anidar y desanidar; menú contextual «Nuevo capítulo», «Enganchar», «Desenganchar»",
   "help.featureAccess.bookReading": "botones de avance y retroceso en la cabecera del panel del libro; paleta de comandos (predeterminado Ctrl+Alt+Av Pág y Ctrl+Alt+Re Pág)",
-  "help.featureAccess.bookMoveFile": "menú contextual de una entrada del panel del libro → «Mover el archivo del capítulo…»; paleta de comandos",
+  "help.featureAccess.bookMoveFile": "menú Archivo → Libro y estantería → Mover el archivo del capítulo…; menú contextual de una entrada del panel del libro → «Mover el archivo del capítulo…»; paleta de comandos",
   "help.featureAccess.bookRepair": "menú contextual de una entrada faltante del panel del libro → «Reasignar…» y «Desenganchar»",
   "help.featureAccess.bookshelf": "Menú Archivo → Libro y estantería → Abrir estantería…, Estantería nueva…, Cerrar estantería; apertura del archivo de estantería; Archivo → Configuración… → Estantería actual → Datos propios",
   "help.featureAccess.shelfView": "se abre al abrir una estantería; conmutador mosaicos/filas en la vista; Archivo → Configuración… → Estantería actual → Datos propios → Presentación",

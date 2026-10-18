@@ -70,7 +70,7 @@ fields:
 ---
 ```
 
-Une **note de valeurs** est une note ordinaire avec une valeur par ligne ; son chemin est relatif à l'espace. Les lignes vides et les espaces de bord sont écartés, un bloc de métadonnées de la note ne fait pas partie du réservoir. Elle est actualisée comme un fichier de profil : une modification prend effet sans redémarrage, même venue de l'extérieur. Le réservoir devient ainsi un contenu ordinaire que l'on peut lier, commenter et transmettre.
+Une **note de valeurs** est une note ordinaire avec une valeur par ligne ; son chemin est relatif à la zone. Les lignes vides et les espaces de bord sont écartés, un bloc de métadonnées de la note ne fait pas partie du réservoir. Elle est actualisée comme un fichier de profil : une modification prend effet sans redémarrage, même venue de l'extérieur. Le réservoir devient ainsi un contenu ordinaire que l'on peut lier, commenter et transmettre.
 
 Une **requête** fournit les valeurs depuis le fonds — les noms de ses résultats. Elle n'est évaluée que lorsqu'un champ a réellement besoin de ses valeurs, et est mémorisée jusqu'à la prochaine modification du fonds ; rien n'est calculé à l'avance sur l'ensemble. Un document sans champ de requête ne coûte donc aucune évaluation. Une requête regroupée fournit les mêmes valeurs que sans regroupement ; les valeurs de groupe ne deviennent pas des valeurs du réservoir, et une condition sur le groupe (`HAVING`) ne laisse que les résultats des groupes restants. Une requête de tâches fournit les noms des documents qui portent ses tâches ; le Filtre global et la requête globale des [Listes de tâches](tasks.md) s'appliquent. Les enregistrements ne fournissent aucune valeur, et ce qui se trouve dans le dossier de modèles ne compte pas.
 
@@ -80,10 +80,10 @@ Si une source manque, est vide ou n'est pas évaluable, le **champ reste utilisa
 
 Les documents s'associent via un champ de frontmatter ; le nom du champ est configurable par zone (par défaut `class`). La valeur est un nom de profil ou une liste de plusieurs noms de profils :
 
-Un document trouve en outre son profil par une **étiquette** ou son **dossier**, sans qu'un champ d'association doive y figurer. Ces affectations appartiennent à l'espace et se règlent sous Paramètres → Profils de propriétés : une ligne par profil, avec ses étiquettes et ses chemins de dossier.
+Un document trouve en outre son profil par une **étiquette** ou son **dossier**, sans qu'un champ d'association doive y figurer. Ces affectations appartiennent à la zone et se règlent sous Paramètres → Profils de propriétés : une ligne par profil, avec ses étiquettes et ses chemins de dossier.
 
 - **Étiquette** : elle compte aussi bien depuis le bloc de métadonnées (`tags`) que depuis le texte (`#étiquette`) — pour l'association, une étiquette est une étiquette. Une modification non enregistrée prend effet immédiatement elle aussi.
-- **Dossier** : un chemin lié inclut ses sous-dossiers, afin qu'une subdivision ultérieure n'ait pas à être maintenue. Le chemin relatif à l'espace est comparé sur des noms de dossier entiers ; « 10 Projets Archive » ne tombe donc pas sous « 10 Projets ».
+- **Dossier** : un chemin lié inclut ses sous-dossiers, afin qu'une subdivision ultérieure n'ait pas à être maintenue. Le chemin relatif à la zone est comparé sur des noms de dossier entiers ; « 10 Projets Archive » ne tombe donc pas sous « 10 Projets ».
 
 ```yaml
 ---
@@ -126,7 +126,7 @@ Pour un fichier s'applique la réunion de toutes les définitions de tous les pr
 1. le **champ d'association** du document, dans l'ordre de mention
 2. une **étiquette** du document
 3. le **dossier** du document
-4. le **profil standard** de l'espace
+4. le **profil standard** de la zone
 
 Par profil atteint viennent d'abord ses propres champs, puis ceux de sa chaîne parente de bas en haut ; chaque profil est traité exactement une fois, toutes étapes confondues. Si plusieurs profils définissent le même nom de champ, les règles sont déterministes :
 
@@ -161,7 +161,7 @@ Les définitions agissent dans l'éditeur de propriétés et de manière identiq
 - **Suggestions de champs** : « Ajouter une propriété » montre d'abord les champs définis non encore présents (avec le nom du profil comme badge), puis les suggestions habituelles ; « Champ personnalisé » à la fin reste la voie libre. La sélection crée le champ avec le type défini et la valeur par défaut.
 - **Listes de sélection** : les champs avec plage de valeurs proposent les valeurs définies sous forme de liste de sélection (choix simple) ou de suggestions de saisie de la barre de pastilles (choix multiple) ; « Valeur personnalisée… » permet toujours une saisie libre.
 - **Type imposé** : les champs définis affichent le type défini, le sélecteur de type est verrouillé et nomme le profil. Si la valeur existante s'écarte du type, le sélecteur reste libre afin que la valeur puisse être convertie vers le type défini.
-- Les **champs de lien** proposent les cibles de l'espace en complétion, signalent une cible inexistante et l'ouvrent via la flèche — le même chemin qu'un clic sur un lien wiki. Avec `multiple`, ils portent plusieurs cibles dans la barre de puces.
+- Les **champs de lien** proposent les cibles de la zone en complétion, signalent une cible inexistante et l'ouvrent via la flèche — le même chemin qu'un clic sur un lien wiki. Avec `multiple`, ils portent plusieurs cibles dans la barre de puces.
 - Les **champs d'heure** utilisent le contrôle d'heure ; la valeur figure entre guillemets dans le bloc de métadonnées, car `09:30` serait sinon lu comme un nombre.
 - Les champs définis portent un marquage discret au nom du champ ; l'infobulle nomme le profil.
 
@@ -210,7 +210,7 @@ WHERE class = "projet"
 
 Deux cas font exception :
 
-- **Le profil standard de l'espace** s'applique à tout ce qui n'a pas d'autre association. Pour lui, la commande produit donc une requête portant sur tous les documents de l'espace, plutôt que la négation de toutes les liaisons — celle-ci serait longue, opaque et deviendrait silencieusement fausse dès qu'une liaison est ajoutée.
+- **Le profil standard de la zone** s'applique à tout ce qui n'a pas d'autre association. Pour lui, la commande produit donc une requête portant sur tous les documents de la zone, plutôt que la négation de toutes les liaisons — celle-ci serait longue, opaque et deviendrait silencieusement fausse dès qu'une liaison est ajoutée.
 - **Les profils héritiers restent en dehors.** Si `client` hérite de `projet`, les documents client n'apparaissent pas dans la requête portant sur `projet` : ils portent ses champs, mais ne sont pas des projets.
 
 Le bloc inséré est dès lors un contenu ordinaire — il peut être modifié, enrichi de colonnes, d'un tri ou d'une limite, déplacé et supprimé comme toute autre requête. Un document qui le contient est ainsi également une vue enregistrée : il peut être nommé, lié et mis en signet. À l'inverse : la requête reflète l'association **au moment de sa génération**. Si une liaison est ajoutée plus tard, le bloc déjà écrit ne suit pas ; il est alors généré de nouveau ou complété à la main.

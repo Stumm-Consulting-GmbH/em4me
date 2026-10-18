@@ -42,7 +42,7 @@ Ohne geöffneten Bereich erscheint die Datenart gar nicht — es gibt dann keine
 Ausgegeben wird ausschließlich, was zu den Datenarten oben gehört. Alles Übrige bleibt liegen, und zwar nicht aus Versehen, sondern als Zusicherung:
 
 - **Zugangs-Geheimnisse jeder Art gehen nie mit.** Der Ablage-Raum, in dem eine externe Erweiterung ihre eigenen Daten hält, ist als Ganzes vom Export ausgenommen — auch dann, wenn niemand weiß, was darin steht. Gerade weil die Anwendung diesen Bestand nicht kennt, wird er nicht weitergegeben. Ihr Schalt-Zustand, also ob eine Erweiterung ein- oder ausgeschaltet ist, geht dagegen mit; das ist Einrichtung und kein Geheimnis.
-- **Sitzungs-Stand** wie offene Reiter, Fenster-Größe und -Lage sowie die Zuletzt-Listen. Sie tragen absolute Pfade des Herkunfts-Rechners, die anderswo ins Leere zeigen.
+- **Sitzungs-Stand** wie geöffnete Dokumente, Fenster-Größe und -Lage sowie die Zuletzt-Listen. Sie tragen absolute Pfade des Herkunfts-Rechners, die anderswo ins Leere zeigen.
 - **Maschinengebundene Angaben** wie die eingerichteten Arbeitsbereiche und Bereiche mit ihren Pfaden, die gesehenen Einführungen und die Entscheidung, ob einer bestimmten externen Erweiterung auf diesem Rechner vertraut wird. Diese Entscheidung ist je Rechner zu treffen; sie mitzunehmen hieße, sie andernorts vorwegzunehmen.
 - **Laufende Zustände** wie Wecker, Timer und Stoppuhr.
 

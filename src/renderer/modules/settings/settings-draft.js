@@ -82,6 +82,47 @@ export function resetPageState() {
   disarmHotkeysResetAll();
   pageState.draft = buildDraft();
   void ladeAppearanceInDraft();
+  // 4T-001970 (Epic 3E-000341): Läuft noch die Übernahme einer eben
+  // geschlossenen Seite, stammt der Entwurf aus dem Laufzeit-Zustand VOR ihrem
+  // Ende — er trüge alte Werte, die Abschnitte erschienen als geändert, und
+  // ein OK schriebe den alten Stand still zurück. Nach dem Ende wird er
+  // deshalb einmal neu aufgebaut, sofern auf der Seite noch nichts geändert
+  // ist (Generationen-Prüfung wie bei den Nachlade-Wegen unten).
+  pageState.draftUntouched = true;
+  if (pageState.applying) entwurfNachUebernahmeNeuAufbauen(pageState.applying);
+}
+
+function entwurfNachUebernahmeNeuAufbauen(lauf) {
+  const generation = pageState.generation;
+  const nachDemEnde = () => {
+    if (generation !== pageState.generation || !pageState.draft) return;
+    if (!pageState.draftUntouched) return;
+    // Hat die neue Seite inzwischen selbst eine Übernahme begonnen, gilt deren
+    // Entwurf; ein Neu-Aufbau würde ihn unter ihr austauschen.
+    if (pageState.applying && pageState.applying !== lauf) return;
+    pageState.generation += 1;
+    pageState.draft = buildDraft();
+    void ladeAppearanceInDraft();
+    renderActiveSection();
+  };
+  lauf.then(nachDemEnde, nachDemEnde);
+}
+
+// 4T-001970: Jede Eingabe im Inhalts-Bereich der Seite gilt als Änderung am
+// Entwurf (Muster der delegierten Dokument-Zuhörer in settings-page.js; die
+// Navigation zählt nicht, ein Bereichswechsel ändert nichts). Capture-Phase,
+// damit ein Handler mit stopPropagation den Merker nicht umgeht.
+for (const eventType of ['input', 'change', 'click', 'keyup']) {
+  document.addEventListener(
+    eventType,
+    (e) => {
+      const els = settingsPageEls();
+      if (els && els.content && e.target instanceof Node && els.content.contains(e.target)) {
+        pageState.draftUntouched = false;
+      }
+    },
+    true,
+  );
 }
 
 // 4T-000761 (Epic 3E-000142): Der Entwurfs-Aufbau ist aus resetPageState
@@ -360,17 +401,38 @@ function ladeAppearanceInDraft() {
 export function handleSettingsPageClose() {
   cancelHotkeyCapture();
   disarmHotkeysResetAll();
-  if (pageState.draft && pageState.draft.appearanceSnapshot) {
-    applyAppearanceVars(pageState.draft.appearanceSnapshot);
+  const draft = pageState.draft;
+  // 4T-001970 (Epic 3E-000341): Läuft eine Übernahme, wird erst nach ihrem
+  // Ende zurückgesetzt. Sofort zurückgesetzt, zeigte das Fenster sonst den
+  // alten Stand, wenn das Schließen zwischen das Speichern und das Nachziehen
+  // des Vergleichsstands fällt (Farbschemas: der Hauptprozess verteilt den
+  // neuen Stand schon vor seiner Antwort). Nach dem Ende tragen die
+  // Vergleichsstände den gespeicherten Stand, das Zurücksetzen ist dann
+  // wirkungslos. Ist die Seite inzwischen neu geöffnet, gehört die Vorschau
+  // ihr, und es wird nichts zurückgesetzt (Generationen-Prüfung).
+  if (pageState.applying) {
+    const generation = pageState.generation;
+    const nachDemEnde = () => {
+      if (generation === pageState.generation) setzeVorschauZurueck(draft);
+    };
+    pageState.applying.then(nachDemEnde, nachDemEnde);
+  } else {
+    setzeVorschauZurueck(draft);
+  }
+  pageState.draft = null;
+  setSettingsPageEls(null);
+}
+
+function setzeVorschauZurueck(draft) {
+  if (draft && draft.appearanceSnapshot) {
+    applyAppearanceVars(draft.appearanceSnapshot);
   }
   // 4T-000466 (Epic 3E-000086): Farbschema-Live-Vorschau auf den Snapshot
   // zurücksetzen (Semantik Abbrechen). Bei OK trägt der Snapshot bereits den
   // angewandten Stand, der Revert ist dann ein No-op.
-  if (pageState.draft && pageState.draft.colorSchemesSnapshot) {
-    setColorSchemeState(pageState.draft.colorSchemesSnapshot);
+  if (draft && draft.colorSchemesSnapshot) {
+    setColorSchemeState(draft.colorSchemesSnapshot);
   }
-  pageState.draft = null;
-  setSettingsPageEls(null);
 }
 
 // 4T-000555 (Epic 3E-000100): Bereichs-Wechsel einer offenen Seite (Bindung

@@ -83,7 +83,7 @@ El ámbito sigue a la pestaña en la que se abre la búsqueda; los ámbitos se e
 
 El ámbito vigente se muestra a la izquierda en la barra de búsqueda. En la vista de mapa mental la búsqueda recorre el propio mapa, también en un área abierta; véase [Vista de mapa mental](mindmap.md).
 
-Más allá del archivo suelto, las coincidencias aparecen en el panel **Resultados de búsqueda**, agrupadas por archivo, página o sección y con un recuento por grupo. Un clic abre el destino y resalta el lugar; `F3` cruza el límite del grupo.
+Más allá del archivo suelto, las coincidencias aparecen en el panel **Resultados de búsqueda**, agrupadas por archivo, página o sección y con un recuento por grupo. Un clic abre el destino y resalta el lugar; `F3` cruza el límite del grupo. En la lista, las teclas de flecha mueven la selección e `Intro` salta a la coincidencia seleccionada. La selección se conserva cuando la lista se reconstruye con la búsqueda sin cambios; solo una búsqueda nueva vuelve a empezar por la primera coincidencia.
 
 ### Dentro de un área
 

@@ -128,8 +128,16 @@ export async function sucheImRaum(raum, regex, { behalteIndex = false } = {}) {
     raum,
     index,
   };
-  zeigeTreffer({ ...ergebnis, raum, ...anfrage });
-  if (index > 0) setzeAuswahl(index);
+  // 4T-001921 (Epic 3E-000341): Der F3-Zeiger kommt nur noch über die
+  // Panel-Auswahl, wenn die Liste keine übernommen hat. Bei einem Neuzeichen-Lauf
+  // hat die gehaltene Panel-Auswahl Vorrang — sonst landete eine mit den
+  // Pfeiltasten gewählte Zeile wieder auf dem Zeiger. Ein F3-Sprung verliert
+  // dadurch nichts: setzeRaumIndex hat die Panel-Auswahl im Augenblick des
+  // Sprungs schon auf den Zeiger gestellt, und der Lauf danach übernimmt genau
+  // diese Zeile. Übrig bleibt der Zeiger für die Läufe ohne übernommene Auswahl,
+  // etwa nach einem umgeschalteten Options-Schalter — dort wie bisher.
+  const uebernommen = zeigeTreffer({ ...ergebnis, raum, ...anfrage });
+  if (index > 0 && !uebernommen) setzeAuswahl(index);
   // Ein Treffer, den niemand sieht, ist keiner: Bei Fundstellen öffnet sich
   // das Panel, falls es zu ist.
   if (ergebnis.treffer.length > 0) await zeigeSuchPanel(state.activePaneIndex);

@@ -215,6 +215,98 @@ describe('link-rewrite — relative Unterseiten-Formen', () => {
   });
 });
 
+// 4T-002036 (Epic 3E-000360): Ein Wiki-Verweis oder eine Einbettung, die das
+// Ziel MIT Markdown-Endung nennt, zieht beim Umbenennen nach wie dieselbe Form
+// ohne Endung. Die Anwendung löst die Schreibweise auf (die Namens-Auflösung
+// schneidet die Endung vor der Suche ab); die Umbenennungen führen ihre
+// Basenames ohne Endung, deshalb wird sie für die Suche abgetrennt und am neuen
+// Namen in der Schreibweise des Verweises wieder angehängt.
+describe('link-rewrite — Wiki-Ziel mit Markdown-Endung (4T-002036)', () => {
+  const r = [rename('A', 'A2')];
+
+  it('AK1/AK3: Einbettung mit Endung und Block-Anker', () => {
+    const res = rewrite('![[A.md#^umsatz]]', r);
+    expect(res.changed).toBe(true);
+    expect(res.newContent).toBe('![[A2.md#^umsatz]]');
+    expect(res.hits[0].typ).toBe('wiki-embed');
+  });
+
+  it('AK1/AK3: Wiki-Verweis mit Endung und Block-Anker', () => {
+    expect(rewrite('[[A.md#^umsatz]]', r).newContent).toBe('[[A2.md#^umsatz]]');
+  });
+
+  it('AK1: Wiki-Verweis mit Endung ohne Anker', () => {
+    expect(rewrite('[[A.md]]', r).newContent).toBe('[[A2.md]]');
+  });
+
+  it('AK3: Anzeigetext und Überschriften-Anker bleiben erhalten', () => {
+    expect(rewrite('[[A.md|Anzeige]]', r).newContent).toBe('[[A2.md|Anzeige]]');
+    expect(rewrite('[[A.md#abschnitt|Anzeige]]', r).newContent).toBe('[[A2.md#abschnitt|Anzeige]]');
+    expect(rewrite('| [[A.md\\|Anzeige]] |', r).newContent).toBe('| [[A2.md\\|Anzeige]] |');
+  });
+
+  it('AK2: die Endung bleibt in der Schreibweise des Verweises', () => {
+    expect(rewrite('[[A.MD]]', r).newContent).toBe('[[A2.MD]]');
+    expect(rewrite('[[A.markdown]]', r).newContent).toBe('[[A2.markdown]]');
+    expect(rewrite('[[ A.md ]]', r).newContent).toBe('[[ A2.md ]]');
+    expect(rewrite('[[a.md]]', r).newContent).toBe('[[A2.md]]');
+  });
+
+  it('AK2 (Gegenprobe): ein Verweis ohne Endung bekommt keine', () => {
+    expect(rewrite('[[A]] ![[A#^umsatz]] [[A|Anzeige]]', r).newContent).toBe(
+      '[[A2]] ![[A2#^umsatz]] [[A2|Anzeige]]',
+    );
+  });
+
+  it('Unterseiten-Schreibweise mit Endung', () => {
+    const rr = [rename(`Eltern${SEP}Kind`, `Eltern${SEP}NeuKind`)];
+    expect(rewrite('[[Eltern/Kind.md#^a]]', rr).newContent).toBe('[[Eltern/NeuKind.md#^a]]');
+  });
+
+  it('relative Unterseiten-Form mit Endung folgt derselben Regel', () => {
+    // Brechende relative Form: auf die absolute Slash-Form, Endung bleibt.
+    const rr = [rename(`X${SEP}Kind`, `X${SEP}NeuKind`)];
+    expect(
+      computeLinkRewrites('[[/Kind.md#^a]]', { renames: rr, contextPath: '/root/X.md' }).newContent,
+    ).toBe('[[X/NeuKind.md#^a]]');
+    // Gültig bleibende relative Form: unverändert, wie ohne Endung.
+    const kaskade = [rename('X', 'Y'), rename(`X${SEP}Kind`, `Y${SEP}Kind`)];
+    const bleibt = computeLinkRewrites('[[/Kind.md#^a]]', {
+      renames: kaskade,
+      contextPath: '/root/Y.md',
+    });
+    expect(bleibt.changed).toBe(false);
+    // Gegenprobe ohne Endung: dieselbe Lage, ebenso unverändert.
+    expect(
+      computeLinkRewrites('[[/Kind#^a]]', { renames: kaskade, contextPath: '/root/Y.md' }).changed,
+    ).toBe(false);
+  });
+
+  it('Rot-Probe: ein nicht umbenanntes Ziel und fremde Endungen bleiben unverändert', () => {
+    for (const vorher of ['[[B.md]]', '[[A.txt]]', '[[A.png]]', '![[A.pdf#page=2]]', '[[.md]]']) {
+      const res = rewrite(vorher, r);
+      expect(res.changed, vorher).toBe(false);
+      expect(res.newContent, vorher).toBe(vorher);
+    }
+  });
+
+  it('Pfad-Form mit Ordner bleibt wie ohne Endung (Bestand, Unterseiten-Name)', () => {
+    // `sub/A` gilt dem Nachzug als Unterseite `sub∕A`, nicht als Datei
+    // `sub/A.md` (Bestand, festgehalten im Block zur Angabe `table:`); die
+    // Endung ändert daran nichts.
+    const rr = [rename('A', 'A2', '/root/sub')];
+    expect(rewrite('[[sub/A.md]]', rr).changed).toBe(false);
+    expect(rewrite('[[sub/A]]', rr).changed).toBe(false);
+  });
+
+  it('ist idempotent und erhält CRLF', () => {
+    const vorher = '[[A.md]]\r\n![[A.md#^umsatz]]\r\n';
+    const erst = rewrite(vorher, r);
+    expect(erst.newContent).toBe('[[A2.md]]\r\n![[A2.md#^umsatz]]\r\n');
+    expect(rewrite(erst.newContent, r).changed).toBe(false);
+  });
+});
+
 describe('link-rewrite — Kaskade, Idempotenz, EOL/BOM', () => {
   it('wendet mehrere Rename-Paare in einem Lauf an', () => {
     const r = [rename('Alt', 'Neu'), rename('Beta', 'Gamma')];
@@ -596,5 +688,51 @@ describe('link-rewrite — Angabe table: im Diagramm-Block (4T-002023, AK11)', (
     expect(erst.hits.map((h) => h.typ)).toEqual(['wiki-embed', 'chart-table']);
     expect(erst.newContent).toBe(vorher.replace(/\[\[Alt#/g, '[[Neu#'));
     expect(rewrite(erst.newContent, r).changed).toBe(false);
+  });
+});
+
+// 4T-001912 (Epic 3E-000360): Die Verweis-Umschreibung verfolgt Code-Blöcke nach
+// der Zaun-Regel (fence-level.js). Ein Block endet allein an einer Zeile
+// desselben Zeichens, mindestens so lang wie die öffnende, ohne Sprach-Angabe;
+// bis dahin endete er an jeder Zaun-Zeile desselben Zeichens, und ein Verweis
+// im Rest eines äußeren Blocks mit längerem Zaun wurde umgeschrieben.
+describe('link-rewrite — verschachtelte Code-Blöcke (4T-001912)', () => {
+  const r = [rename('Alt', 'Neu')];
+  const B = '`';
+  const T = '~';
+  const INNEN = ['[[Alt]] und ![[Alt#^a]] und [Text](Alt.md)'];
+  const LAGEN = {
+    'längerer Zaun um einen kürzeren': [
+      `${B.repeat(4)}markdown`,
+      B.repeat(3),
+      ...INNEN,
+      B.repeat(3),
+      ...INNEN,
+      B.repeat(4),
+    ],
+    Tilden: [T.repeat(4), T.repeat(3), ...INNEN, T.repeat(3), ...INNEN, T.repeat(4)],
+    'Sprach-Angabe an der inneren Zeile': [
+      B.repeat(3),
+      'Beispiel:',
+      `${B.repeat(3)}js`,
+      ...INNEN,
+      B.repeat(3),
+    ],
+  };
+
+  for (const [lage, block] of Object.entries(LAGEN)) {
+    it(`${lage}: ein Verweis im äußeren Block bleibt stehen, einer danach zieht nach`, () => {
+      const vorher = lines(...block, '', 'Echt [[Alt]]');
+      const res = rewrite(vorher, r);
+      expect(res.newContent).toBe(lines(...block, '', 'Echt [[Neu]]'));
+      expect(res.hits).toHaveLength(1);
+    });
+  }
+
+  it('Gegenprobe: ein einfacher Block endet wie bisher an seinem Schluss-Zaun', () => {
+    const vorher = lines(B.repeat(3), '[[Alt]]', B.repeat(3), '[[Alt]]');
+    expect(rewrite(vorher, r).newContent).toBe(
+      lines(B.repeat(3), '[[Alt]]', B.repeat(3), '[[Neu]]'),
+    );
   });
 });

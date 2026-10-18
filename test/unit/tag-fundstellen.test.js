@@ -197,3 +197,46 @@ describe('ermittleFundstellen — Randlagen', () => {
     expect(fliesstext[0].neu).toBe('arbeit');
   });
 });
+
+// 4T-001912 (Epic 3E-000360): Der Ermittler der Tag-Umbenennung verfolgt
+// Code-Blöcke nach der Zaun-Regel (fence-level.js), wie der Index-Parser. Bis
+// dahin endete ein Block an jeder Zaun-Zeile desselben Zeichens, und ein Tag im
+// Rest eines äußeren Blocks mit längerem Zaun wurde umbenannt.
+describe('ermittleFundstellen — verschachtelte Code-Blöcke (4T-001912)', () => {
+  const B = '`';
+  const T = '~';
+  const LAGEN = {
+    'längerer Zaun um einen kürzeren': [
+      `${B.repeat(4)}markdown`,
+      B.repeat(3),
+      'Beispiel #projekt',
+      B.repeat(3),
+      'Beispiel #projekt',
+      B.repeat(4),
+    ],
+    Tilden: [
+      T.repeat(4),
+      T.repeat(3),
+      'Beispiel #projekt',
+      T.repeat(3),
+      'Beispiel #projekt',
+      T.repeat(4),
+    ],
+    'Sprach-Angabe an der inneren Zeile': [
+      B.repeat(3),
+      'Beispiel:',
+      `${B.repeat(3)}js`,
+      'Beispiel #projekt',
+      B.repeat(3),
+    ],
+  };
+
+  for (const [lage, block] of Object.entries(LAGEN)) {
+    it(`${lage}: ein Tag im äußeren Block ist keine Fundstelle`, () => {
+      const text = [...block, '', 'Echt #projekt'].join('\n');
+      const { fliesstext } = ermittleFundstellen(text, 'projekt', 'arbeit');
+      expect(fliesstext).toHaveLength(1);
+      expect(fliesstext[0].offset).toBe(text.lastIndexOf('#projekt') + 1);
+    });
+  }
+});

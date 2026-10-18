@@ -79,7 +79,8 @@
   "settings.renameLinks.group": "Link durante la rinomina",
   "settings.renameLinks.updateLinks": "Aggiorna i link negli altri file",
   "settings.renameLinks.preview": "Mostra un'anteprima prima di aggiornare",
-  "embed.notFound": "File incorporato non trovato: {path}",
+  "embed.notFound": "Impossibile incorporare: «{path}» non è stato trovato",
+  "embed.linkedArea": "Impossibile incorporare: «{path}» si trova in un’area collegata, da cui non si può incorporare nulla",
   "embed.depthExceeded": "Profondità di incorporamento superata",
   "outgoing.notOpenable": "Impossibile aprire la destinazione collegata"
 }

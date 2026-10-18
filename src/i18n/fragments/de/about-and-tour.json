@@ -15,7 +15,7 @@
   "tour.views.title": "Ein Dokument, mehrere Ansichten",
   "tour.views.text": "Dasselbe Dokument in verschiedenen Ansichten: gerendert, geteilt, im Quellcode, live beim Schreiben und als Mindmap. Hier wird umgeschaltet, der Text bleibt derselbe.",
   "tour.tabs.title": "Mehrere Dokumente nebeneinander",
-  "tour.tabs.text": "Dokumente liegen in Reitern, wahlweise in zwei Spalten nebeneinander. Zusammengehörige Reiter lassen sich zu einer benannten Gruppe mit eigener Farbe bündeln, zuklappen und gemeinsam bewegen.",
+  "tour.tabs.text": "Geöffnete Dokumente tragen je einen Reiter und liegen wahlweise in zwei Spalten nebeneinander. Zusammengehörige Reiter lassen sich zu einer benannten Gruppe mit eigener Farbe bündeln, zuklappen und gemeinsam bewegen.",
   "tour.sidebars.title": "Sidebars und Panels",
   "tour.sidebars.text": "Links und rechts liegen die Sidebars mit ihren Panels: Inhaltsverzeichnis, Backlinks, Tags, Suchergebnisse, Lesezeichen und weitere. Jedes Panel kann auf jede Seite, die Reihenfolge ist frei, und eine fertige Anordnung lässt sich als benannte Variante sichern.",
   "tour.windows.title": "Fenster und Applikationen",

@@ -1,6 +1,6 @@
 {
   "memory.pageTitle": "My Extended Memory",
-  "memory.note": "Cette page montre ce que vous avez ajouté vous-même. Elle n'explore aucun disque et ne trouve rien d'elle-même. Utilisez « Ajouter un conteneur… » pour ajouter un espace de travail, un espace, un livre ou une bibliothèque.",
+  "memory.note": "Cette page montre ce que vous avez ajouté vous-même. Elle n'explore aucun disque et ne trouve rien d'elle-même. Utilisez « Ajouter un conteneur… » pour ajouter un espace de travail, une zone, un livre ou une bibliothèque.",
   "memory.addButton": "Ajouter un conteneur…",
   "memory.empty": "Rien n'a encore été ajouté. Utilisez « Ajouter un conteneur… » pour inscrire le premier conteneur dans la liste : les derniers ouverts sont proposés, et « Choisir un dossier… » permet d'atteindre tous les autres.",
   "memory.section.workspaces": "Espaces de travail",

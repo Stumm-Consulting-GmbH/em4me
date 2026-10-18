@@ -418,3 +418,38 @@ describe('tabellenQuelleAm mit Anker-Zeile unter der Tabelle (4T-002048)', () =>
     expect(danach.split('\n').slice(2, 5)).toEqual(['| a1 | b1 | c1 |', '| | | |', '^x']);
   });
 });
+
+// 4T-002055 (Epic 3E-000360): Dieselbe Tabelle in einem Zitat, mit Anker-Zeile
+// darunter. Die Quelle ist ohne Zitat-Präfixe und ohne Anker-Zeile, der Block
+// wird gegen den Text mit Präfixen bestätigt, und Zelle und neue Zeile gehen mit
+// Präfix ins Dokument. Ausführlich in live-tabelle-im-zitat.test.js.
+describe('tabellenQuelleAm und Zurückschreiben im Zitat (4T-002055)', () => {
+  const imZitat = TABELLE.map((z) => '> ' + z).join('\n');
+  const text = `Vorspann\n\n${imZitat}\n> ^x\n\nAbsatz danach.`;
+  const von = text.indexOf('| A');
+  const state = EditorState.create({
+    doc: text,
+    extensions: [markdown({ base: markdownLanguage })],
+  });
+  ensureSyntaxTree(state, state.doc.length, 5000);
+  const quelle = tabellenQuelleAm(state, von);
+
+  it('die Quelle ist ohne Präfixe und endet vor der Anker-Zeile', () => {
+    expect(quelle).toBe(QUELLE);
+  });
+
+  it('der Block trägt die Präfixe, der Zell-Bereich trifft die Zelle', () => {
+    const block = blockAmAnker(state.doc, von, quelle);
+    expect(block.praefixe).toEqual(['', '> ', '> ']);
+    const bereich = zellBereich(block, parsePipeTable(TABELLE), {
+      rowKind: 'body',
+      rowIndex: 0,
+      col: 2,
+    });
+    expect(text.slice(bereich.from, bereich.to)).toBe('c1');
+  });
+
+  it('ein Block-Text, der die Präfixe noch trägt, wird nicht bestätigt', () => {
+    expect(blockAmAnker(state.doc, von, imZitat.slice(2))).toBeNull();
+  });
+});

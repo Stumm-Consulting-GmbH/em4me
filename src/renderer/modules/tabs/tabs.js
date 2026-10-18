@@ -125,6 +125,8 @@ import {
   pruneSelection,
   setSelection,
 } from './tab-selection.js';
+// 4T-002106: Nach dem Schließen wird das zuvor aktive Dokument aktiv.
+import { aktivNachSchliessen, merkeAktivierung } from './aktivierungs-folge.js';
 
 // K-04 (4T-000310): Tab-Drag-Payload parsen — gehoert fachlich zum Tab-System
 // (zuvor Fremdkoerper in settings-search.js). Verwirft Payloads mit fremdem
@@ -581,6 +583,8 @@ export function activateTab(paneIdx, tabIdx, opts = {}) {
   // 4T-001712: bleibt eine Zell-Eingabe wegen eines Konflikts offen, bleibt
   // auch das Dokument, sonst ginge sie mit ihm.
   if (pane.activeIndex !== tabIdx && !uebernimmOffeneZellEingabe()) return;
+  // 4T-002106: das verlassene und das neue Dokument in die Aktivierungs-Folge.
+  merkeAktivierung(pane, pane.tabs[pane.activeIndex], pane.tabs[tabIdx]);
   pane.activeIndex = tabIdx;
   if (!opts.keepSelection) setSelection(pane, tabIdx);
   // 4T-000767 (Epic 3E-000158): Eine Aktivierung von aussen (Datei-Oeffnen,
@@ -665,6 +669,7 @@ export async function closeTab(paneIdx, tabIdx, opts = {}) {
   // ebenfalls durch, damit eine verworfene Aenderung nicht ueberlebt.
   if (tab.path && !stillElsewhere) void clearIndexOverlayFor(tab.path);
 
+  const warAktiv = tabIdx === pane.activeIndex;
   pane.tabs.splice(tabIdx, 1);
   // 4T-000279: System-Seiten (Einstellungen) raeumen beim Schliessen auf —
   // Tab-Schliessen ohne Anwenden entspricht Abbrechen (Revert der
@@ -676,6 +681,9 @@ export async function closeTab(paneIdx, tabIdx, opts = {}) {
   }
   if (pane.tabs.length === 0) {
     pane.activeIndex = -1;
+  } else if (warAktiv) {
+    // 4T-002106: das zuvor aktive Dokument der Spalte, sonst die bisherige Regel.
+    pane.activeIndex = aktivNachSchliessen(pane, tab);
   } else if (pane.activeIndex >= pane.tabs.length) {
     pane.activeIndex = pane.tabs.length - 1;
   } else if (tabIdx < pane.activeIndex) {

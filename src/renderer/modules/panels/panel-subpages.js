@@ -19,7 +19,7 @@ import { ensurePanelTabActive, registerSidebarPanel } from '../sidebar-layout.js
 import { openInPane, reportMenuStateNow } from '../tabs/tabs.js';
 import { isAllEmpty, persistSetting } from '../views/views.js';
 // 4T-000341: Segment-Logik fuer die Unterseiten-Sektion.
-import { lastSegment, segmentsOf } from '../../../shared/subpages.js';
+import { lastSegment, segmentsOf, stripMarkdownExtension } from '../../../shared/subpages.js';
 
 import { applySidebarVisibility } from './panels.js';
 
@@ -63,13 +63,12 @@ export async function renderSubpages(paneIdx) {
     return;
   }
   // Nur DIREKTE Unterseiten (genau ein Segment tiefer als die aktive Datei).
-  const ownDepth = segmentsOf(
-    api.basename(tab.path).replace(/\.(md|markdown|mdown|mkd)$/i, ''),
-  ).length;
+  // 4T-001899: die gemeinsame Endungs-Erkennung statt einer eigenen Liste.
+  const ownDepth = segmentsOf(stripMarkdownExtension(api.basename(tab.path))).length;
   const children = scan.files
     .map((f) => ({
       path: f,
-      base: api.basename(f).replace(/\.(md|markdown|mdown|mkd)$/i, ''),
+      base: stripMarkdownExtension(api.basename(f)),
     }))
     .filter((c) => segmentsOf(c.base).length === ownDepth + 1)
     .sort((a, b) => lastSegment(a.base).localeCompare(lastSegment(b.base)));

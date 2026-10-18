@@ -4,7 +4,7 @@
   "statusbar.rejoinPartsMissing": "Es fehlt ein Teil. Vereinen würde den fehlenden Inhalt endgültig verlieren.",
   "statusbar.rejoinFailed": "Die Teile konnten nicht vereint werden.",
   "statusbar.splitNoHeading": "Das Dokument ist sehr groß, hat aber keine Überschrift der obersten zwei Ebenen, an der geteilt werden könnte. Es bleibt ungeteilt.",
-  "statusbar.splitReadOnly": "Dieser Reiter ist auf «nur lesen» gestellt, weil die Teilung abgelehnt wurde. Zum Speichern die Datei neu öffnen.",
+  "statusbar.splitReadOnly": "Dieses Dokument ist auf «nur lesen» gestellt, weil die Teilung abgelehnt wurde. Zum Speichern die Datei neu öffnen.",
   "statusbar.splitPending": "Dieses Dokument ist so groß geworden, dass es beim Speichern geteilt werden muss. Bitte einmal von Hand speichern.",
   "statusbar.partsMissing": "Dieses Dokument besteht aus mehreren Teilen, und Teil {teile} fehlt. Es ist deshalb nur lesbar. Lege die fehlende Datei zurück, oder lösche die Begleitdatei, wenn du ohne sie weiterarbeiten willst.",
   "statusbar.theme.tooltipLight": "Theme: Hell. Klicken für Dunkel.",

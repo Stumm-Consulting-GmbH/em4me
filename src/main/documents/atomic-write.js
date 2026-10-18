@@ -38,6 +38,8 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 
 const saveGuard = require('./save-guard');
+// 4T-001923: Abschluss-Meldung an den Eigen-Schreib-Merker (siehe unten).
+const selbstSchreib = require('./self-write');
 
 // Wachsende Abstaende ueber rund drei Sekunden. Die Messung brauchte auf der
 // Freigabe hoechstens sechs Versuche à 10 ms; im Synchronisations-Ordner
@@ -524,6 +526,13 @@ async function ersetzeDatei(zielPfad, inhalt, opts = {}) {
       }
       return fehlerAntwort(err);
     }
+    // 4T-001923 (Story 4S-000005, AK6): Die Datei traegt jetzt den neuen Stand.
+    // Der Merker laesst damit die aelteren eigenen Staende dieses Pfads
+    // verfallen; bis hierher galten sie weiter, weil die Beobachtung den
+    // vorigen eigenen Schreibvorgang verspaetet melden kann, waehrend dieser
+    // noch laeuft. Die Meldung sitzt hier und nicht bei den Aufrufern des
+    // Merkers, damit jeder Schreibweg mit Merker sie ohne eigenes Zutun gibt.
+    if (markSelfWriting) selbstSchreib.abgeschlossen(zielPfad, inhalt);
     // 4T-001436: Gelegenheit zum Aufraeumen, wenn die Anwendung in diesem
     // Verzeichnis ohnehin gerade arbeitet. Gedrosselt, damit nicht jeder
     // Schreibvorgang ein zusaetzliches Verzeichnis-Lesen kostet. Bewusst

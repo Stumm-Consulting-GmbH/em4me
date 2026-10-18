@@ -18,6 +18,9 @@ const fs = require('node:fs/promises');
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 // 4T-001276 (Epic 3E-000232, Befund B1): Ordner-Identität über die zentrale Auskunft.
 const { pathCompareKey } = require('../../shared/platform.js');
+// 4T-001899: Die Regal-Datei ist eine Markdown-Datei (angelegt als «Name.md»);
+// ihr Anzeige-Name kommt aus der gemeinsamen Endungs-Erkennung.
+const { fileLabelFromBasename } = require('../../shared/subpages.js');
 
 const {
   SHELF_SETTINGS_FILENAME,
@@ -384,7 +387,7 @@ async function buildShelfViewData(shelfDir) {
     shelfExcerpt.title !== null
       ? shelfExcerpt.title
       : shelfFileName !== null
-        ? shelfFileName.replace(/\.[^.]+$/, '')
+        ? fileLabelFromBasename(shelfFileName)
         : path.basename(root);
   const assignedEntries = [];
   for (const dirName of books) {

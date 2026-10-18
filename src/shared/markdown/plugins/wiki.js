@@ -16,6 +16,9 @@ const { istInAdresse } = require('../../tag-erkennung.js');
 // Stelle aus einer Quelle — eine Endung mehr ist damit eine Aenderung an
 // einer Stelle statt an dreien.
 const { BILD_ENDUNGEN } = require('../../bild-endungen.js');
+// 4T-002057 (Epic 3E-000360): Ob eine Block-Kennung gültig ist, sagt die Heimat
+// der Anker-Erkennung (wie in ./block-anker.js).
+const { isValidBlockAnchorId } = require('../../block-anchors.js');
 
 // 4T-000891 (Epic 3E-000168): Anker-Teil eines Wiki-Ziels als href-Fragment.
 // Ein '^'-Prefix bezeichnet einen Block-Anker (ID unveraendert uebernommen,
@@ -28,7 +31,9 @@ function wikiAnchorPart(anchorRaw) {
   if (raw.startsWith('^')) {
     const id = raw.slice(1).trim();
     // Bei ungueltiger Block-ID: Anker faellt weg, Link zeigt nur auf Datei.
-    return /^[\p{L}\p{N}_-]+$/u.test(id) ? '#' + id : '';
+    // 4T-002057 (Epic 3E-000360): die Kennungs-Regel aus ihrer Heimat statt
+    // eines eigenen Ausdrucks.
+    return isValidBlockAnchorId(id) ? '#' + id : '';
   }
   // P-05 (4T-000183): beide Zweige der frueheren Verzweigung waren
   // identisch — auf eine Zuweisung reduziert.
@@ -254,6 +259,11 @@ function wikiEmbedsPlugin(mdInstance, options) {
       if (areaPrefix) token.attrSet('data-area-prefix', areaPrefix);
       if (anchorRaw) token.attrSet('data-embed-anchor', anchorRaw);
       if (width != null) token.attrSet('data-embed-width', String(width));
+      // 4T-002120: Der Name, wie er im Dokument steht, fuer den Hinweis bei
+      // fehlendem Ziel; nur gesetzt, wenn die Aufloesung '.md' angehaengt hat.
+      if (finalPath !== pathPart) {
+        token.attrSet('data-embed-name', joinAreaLink(areaPrefix, pathPart));
+      }
     }
 
     state.pos = end + 2;
@@ -303,6 +313,8 @@ function wikiEmbedsPlugin(mdInstance, options) {
     attrStr += ` data-embed-path="${escapeHtml(embedPath)}"`;
     if (anchor) attrStr += ` data-embed-anchor="${escapeHtml(anchor)}"`;
     if (width) attrStr += ` data-embed-width="${escapeHtml(width)}"`;
+    const name = token.attrGet('data-embed-name') || '';
+    if (name) attrStr += ` data-embed-name="${escapeHtml(name)}"`;
     // 4T-000891: sichtbarer Rueckfall nur im Portable-Zweig; der Viewer-Zweig
     // behaelt den leeren Platzhalter, den sein Postprocessing ohnehin fuellt.
     // Der Linktext nennt das Ziel so, wie der Embed es adressiert (Pfad und

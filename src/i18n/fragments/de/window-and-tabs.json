@@ -38,7 +38,7 @@
   "rejoin.cancel": "Abbrechen",
   "split.announceTitle": "Großes Dokument wird geteilt",
   "split.announceMessage": "Dieses Dokument ist so groß geworden, dass die Anwendung es beim Speichern in mehrere Dateien aufteilt.",
-  "split.announceDetail": "Die Teile liegen im selben Ordner und werden weiterhin als ein Dokument geöffnet und bearbeitet. Geschnitten wird nur an Überschriften der obersten zwei Ebenen. Wählst du «Nur lesen», bleibt die Datei ungeteilt und wird in diesem Reiter nicht mehr gespeichert.",
+  "split.announceDetail": "Die Teile liegen im selben Ordner und werden weiterhin als ein Dokument geöffnet und bearbeitet. Geschnitten wird nur an Überschriften der obersten zwei Ebenen. Wählst du «Nur lesen», bleibt die Datei ungeteilt und wird in diesem geöffneten Dokument nicht mehr gespeichert.",
   "split.btnSplit": "Teilen und speichern",
   "split.btnReadOnly": "Nur lesen",
   "window.title.suffix": "Fenster {n}",

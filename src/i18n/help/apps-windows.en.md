@@ -34,6 +34,8 @@ If one action opens several files at once, they line up behind the origin in the
 
 All openings **without** an origin still go to the end of the tab strip: file dialog, command palette, bookmarks, panels, the area's file list, as well as the manual and the settings.
 
+When the active document is closed, the document of the same column that was active before it becomes active again; if that one has been closed as well, the one active before it, and only when none of them is open any more, the adjacent one in the tab strip. The same applies to the manual and the settings: after “OK” or “Cancel”, the document that was active before them is active again.
+
 ## Tab groups
 
 Tabs can be combined into named, colored groups: the members sit together behind a colored **group header** in the tab bar, and their tabs carry an underline in the group color.
@@ -121,7 +123,7 @@ The "Area" panel shows the area as a folder structure in the sidebar (dockable l
 
 ### File management in the area panel
 
-The context menu manages the file tree without leaving the application. A **folder row** offers two entries: **New subfolder…** and **New Markdown file…**. Both ask for the name in place — the folder name in a row below the folder you clicked, the file name at the top of the file list — and create the item in the folder **you clicked**, even if a different one is currently selected. A file name without an extension gets the Markdown extension added; the new file is opened and passes through the folder rule for templates like any other creation. A name already taken, a name the file system does not allow and an empty name are reported before anything is created; Escape cancels and leaves nothing behind.
+The context menu manages the file tree without leaving the application. A **folder row** offers two entries: **New subfolder…** and **New Markdown file…**. Both ask for the name in place — the folder name in a row below the folder you clicked, the file name at the top of the file list — and create the item in the folder **you clicked**, even if a different one is currently selected. A file name without an extension gets the Markdown extension added; the new file is opened and passes through the folder rule for templates like any other creation. A name already taken, a name the file system does not allow and an empty name are reported before anything is created; Escape cancels and leaves nothing behind. If the file tree changes while the input is open, it stays in place with the name you typed, and you continue typing at the same position; if its target folder is no longer shown, for instance because it has been deleted in the meantime, the input is discarded with a notice.
 
 A **file row** offers **Copy**, **Rename…** and **Delete…** at the end of the menu, set apart from the entries above. They are ordered by increasing intervention: copying leaves the template untouched, renaming changes its name, deleting takes it away.
 

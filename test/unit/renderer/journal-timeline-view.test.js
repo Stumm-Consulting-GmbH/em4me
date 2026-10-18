@@ -497,3 +497,21 @@ describe('Journal-Timeline-Block: Wiederholter Aufbau', () => {
     expect(getConfig).not.toHaveBeenCalled();
   });
 });
+
+// 4T-002073: Die Kontext-Ermittlung reicht eine Bezugs-Zeit an die Suche des
+// Kerns durch. Geprüft ohne gestellte Uhr: Der Eintrag KW 10/2015 liegt weit
+// außerhalb des Such-Fensters um die Wanduhr (beim Wochen-Journal 165 Wochen
+// zurück), innerhalb dessen um die übergebene Bezugs-Zeit. Bis 4T-002073 rief
+// contextForPath die Suche ohne Bezugs-Zeit, und der Eintrag blieb unfindbar.
+describe('Journal-Kontext: Bezugs-Zeit statt Wanduhr (4T-002073)', () => {
+  it('findet einen Eintrag fern der Wanduhr über die übergebene Bezugs-Zeit', async () => {
+    vi.useRealTimers();
+    const { contextForPath } =
+      await import('../../../src/renderer/modules/calendar/journal-timeline-daten.js');
+    const eintrag = `${ROOT}/Journal/2015/2015-KW10.md`;
+    const bezug = new Date(2015, 2, 5, 12, 0, 0).getTime();
+    const kontext = contextForPath(CONFIG, ROOT, eintrag, bezug);
+    expect(kontext && kontext.journal.id).toBe('woche');
+    expect(kontext.period.granularity).toBe('week');
+  });
+});

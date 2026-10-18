@@ -62,7 +62,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 
 ## Oberfläche, Werkzeuge und Erweiterungen
 
-- [Ansichten und Darstellung](views-display.md) — Ansichten pro Reiter und Erscheinungsbild der App: die acht Ansichten samt Live-Modus, Editor-Darstellung, Theme und Fokus-Modus, Zoom, Inhalts-Breite und Schriften, Statusleiste, Einstellungen, Sprache und Menüleiste.
+- [Ansichten und Darstellung](views-display.md) — Ansichten je geöffnetem Dokument und Erscheinungsbild der App: die acht Ansichten samt Live-Modus, Editor-Darstellung, Theme und Fokus-Modus, Zoom, Inhalts-Breite und Schriften, Statusleiste, Einstellungen, Sprache und Menüleiste.
 - [Mindmap-Ansicht](mindmap.md) — Überschriften und Listen eines Dokuments als Karte: Lage der Wurzel in fünf Richtungen, Klappen, Zoom, Notizen am Knoten, Sprung zur Quelle, Suche in der Karte, Vorgabe je Dokument.
 - [Canvas-Fläche](canvas.md) — Karten und Verbindungen frei auf einer Fläche im Dokument: Fläche anlegen, Canvas-Ansicht, Reiter mehrerer Flächen, Karten und Verbindungen bedienen, Block außerhalb der Ansicht, Speicherformat.
 - [Kanban-Tafel](kanban.md) — die Aufgaben eines Dokuments als Tafel: Tafel anlegen und umwandeln, Spalten und Karten bedienen, Verschieben mit der Maus, die Spalte, die abhakt, Termine und Tags auf der Karte, Obergrenze je Spalte, Archiv, Karten filtern, Einstellungen der Tafel, Notiz aus einer Karte, Angaben der verlinkten Notiz, Verweise und Datum auf der Karte, Speicherformat, Abgrenzung zur Aufgaben-Abfrage.

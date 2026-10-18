@@ -40,15 +40,19 @@ import {
   ankerNachAenderung,
   blockAmAnker,
   blockImDokument,
+  blockStelle,
   blockTextNachUebernahme,
+  dokStelle,
   legtTabulatorZeileAn,
   maskiereZellText,
   nachbarZelle,
-  neueZeileAmEnde,
+  neueZeileFuerBlock,
+  ohneZitatPraefixe,
   tabellenMasse,
   zellBereich,
   zellePosZuDokumentStelle,
   zellTextAn,
+  zitatPraefixeAb,
 } from './live-table-zell-kern.js';
 // 4T-001713 (Epic 3E-000300): die Vorschlagsliste am Eingabefeld der Zelle.
 import {
@@ -156,6 +160,7 @@ function hinweisVerworfen() {
 // 4T-002048: ohne die Anker-Zeilen am Ende, wie das Widget sie zeigt; sonst
 // spränge der Tabulator in eine nicht angezeigte Zeile, und eine neue Zeile
 // am Ende käme hinter die Anker-Zeile. Exportiert für den Prüffall.
+// 4T-002055: ohne die Zitat-Präfixe, wie das Widget sie zeigt.
 export function tabellenQuelleAm(state, von) {
   let quelle = null;
   syntaxTree(state).iterate({
@@ -163,7 +168,9 @@ export function tabellenQuelleAm(state, von) {
     to: von,
     enter(node) {
       if (quelle === null && node.name === 'Table' && node.from === von) {
-        quelle = tabelleOhneAnkerZeilen(state.doc.sliceString(node.from, node.to));
+        const roh = state.doc.sliceString(node.from, node.to);
+        const praefixe = zitatPraefixeAb(state.doc, node.from, roh.split('\n').length);
+        quelle = tabelleOhneAnkerZeilen(ohneZitatPraefixe(roh, praefixe));
       }
       return quelle === null;
     },
@@ -491,9 +498,11 @@ export function uebernehmeBearbeitung({
     const textDanach = unveraendert
       ? block.zeilen.join('\n')
       : blockTextNachUebernahme(block, bereich, neu);
-    const anlage = neueZeileAmEnde(textDanach, modell.columnCount);
+    // 4T-002055: In einem Zitat bekommt die neue Zeile das Präfix der Zeile
+    // darüber (`neueZeileFuerBlock`).
+    const anlage = neueZeileFuerBlock(block, textDanach, modell.columnCount);
     aenderungen.push({ from: block.to, insert: anlage.einfuegen });
-    transaktion.selection = { anchor: block.from + anlage.zielOffset };
+    transaktion.selection = { anchor: anlage.anker };
     transaktion.scrollIntoView = true;
   }
   if (aenderungen.length > 0) {
@@ -513,8 +522,9 @@ export function uebernehmeBearbeitung({
     // Rueckwaerts-Gehen ebenfalls am Anfang, liefe die Pfeiltaste links nur noch
     // von Zell-Anfang zu Zell-Anfang und erreichte den Text nie (AK5).
     const laenge = zielStelle.contentEnd - zielStelle.contentStart;
+    const imBlock = zielStelle.offset + (zielRand === 'ende' ? laenge : 0);
     transaktion.selection = {
-      anchor: block.from + zielStelle.offset + (zielRand === 'ende' ? laenge : 0),
+      anchor: dokStelle(block.from, block.praefixe, zeilenDanach.join('\n'), imBlock),
     };
     transaktion.scrollIntoView = true;
   }
@@ -593,11 +603,16 @@ export function oeffneZelleFuerDokumentStelle(view, kopf) {
       continue;
     }
     if (typeof von !== 'number' || kopf < von || kopf > von + laenge) continue;
-    const source = view.state.doc.sliceString(von, von + laenge);
+    // 4T-002055: `laenge` zählt im Dokument, samt der Zitat-Präfixe; der
+    // Block-Text ist ohne sie, und die Stelle der Schreibmarke rechnet hinein.
+    const dokText = view.state.doc.sliceString(von, von + laenge);
+    const praefixe = zitatPraefixeAb(view.state.doc, von, dokText.split('\n').length);
+    const source = ohneZitatPraefixe(dokText, praefixe);
     const zeilen = source.split('\n');
     const modell = parsePipeTable(zeilen);
     if (!modell) return;
-    const treffer = zellePosZuDokumentStelle(zeilen, modell, kopf - von);
+    const relativ = blockStelle(praefixe, dokText, kopf - von);
+    const treffer = zellePosZuDokumentStelle(zeilen, modell, relativ);
     if (!treffer) return;
     if (offeneBearbeitung && offeneBearbeitung.container === container) {
       const offen = offeneBearbeitung.pos;

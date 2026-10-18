@@ -166,14 +166,17 @@
       "id": "F-019",
       "testart": "e2e",
       "tests": ["test/e2e/smoke/smoke.spec.js", "test/e2e/regression/4t-0945-b12.spec.js"],
-      "hinweis": "SM-04 (menu:save-IPC, Platte geprueft); Speichern-unter-Dialog ist OS-UI. 4T-001923: KS-07, KS-08, KS-10 und KS-11 (zwei Speicher-Befehle, Eingabe waehrend eines laufenden Speicherns, Meldung der Datei-Beobachtung zum eigenen Speichern waehrend des naechsten; gestellte Lagen; bis zur Behebung als erwartet scheiternd markiert) und der Gegenfall KS-09 (Fremd-Aenderung zwischen zwei Speicher-Befehlen fragt weiterhin)."
+      "hinweis": "SM-04 (menu:save-IPC, Platte geprueft); Speichern-unter-Dialog ist OS-UI. 4T-001923: KS-07, KS-08, KS-10 und KS-11 (zwei Speicher-Befehle, Eingabe waehrend eines laufenden Speicherns, Meldung der Datei-Beobachtung zum eigenen Speichern waehrend des naechsten; gestellte Lagen; seit der Behebung vom 2026-10-10 ohne Markierung gruen), KS-12 (Speichern von Hand waehrend eines automatischen Speicherns, Eingabe waehrend des automatischen Speicherns bleibt geaendert) und der Gegenfall KS-09 (Fremd-Aenderung zwischen zwei Speicher-Befehlen fragt weiterhin)."
     },
     {
       "key": "help.feature.autoSave",
       "id": "F-020",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/navigation-und-datei.spec.js"],
-      "hinweis": "FD-03 (Platten-Roundtrip)."
+      "tests": [
+        "test/e2e/funktionen/navigation-und-datei.spec.js",
+        "test/e2e/regression/4t-0945-b12.spec.js"
+      ],
+      "hinweis": "FD-03 (Platten-Roundtrip). KS-04 (4T-000945, Konflikt im Hintergrund ohne Dialog) und KS-12 (4T-001923, Speichern von Hand waehrend eines automatischen Speicherns, Eingabe waehrend des automatischen Speicherns bleibt geaendert)."
     },
     {
       "key": "help.feature.attachments",
@@ -1657,8 +1660,12 @@
       "key": "help.feature.areaFileCreate",
       "id": "F-279",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/bereichs-panel.spec.js", "test/unit/area-anlage.test.js"],
-      "hinweis": "BP-05/BP-06 (3E-000170): Anlage von Unterordner und Datei im ANGEKLICKTEN Ordner statt im ausgewaehlten, Abbruch der Eingabe, Namens-Kollision und der Ordner-Regel-Durchlauf der neu angelegten Datei. Unit: Namens-Pruefung des Ordners und die Bereichs-Grenze beider Anlage-Wege am echten Handler, samt Ausbruch ueber Trenner-Zeichen."
+      "tests": [
+        "test/e2e/funktionen/bereichs-panel.spec.js",
+        "test/unit/area-anlage.test.js",
+        "test/unit/renderer/area-panel-render.test.js"
+      ],
+      "hinweis": "BP-05/BP-06 (3E-000170): Anlage von Unterordner und Datei im ANGEKLICKTEN Ordner statt im ausgewaehlten, Abbruch der Eingabe, Namens-Kollision und der Ordner-Regel-Durchlauf der neu angelegten Datei. Unit: Namens-Pruefung des Ordners und die Bereichs-Grenze beider Anlage-Wege am echten Handler, samt Ausbruch ueber Trenner-Zeichen. 4T-002067 (3E-000341): BP-10 — die offene Datei-Eingabe ueberlebt den Neuaufbau des Panels samt Name, Fokus und Schreibmarke, bei einer Datei von aussen und beim zurueckgehaltenen und dann zugestellten Echo der eigenen Ordner-Anlage; Unit in area-panel-render.test.js: Datei-Eingabe ueber Plus-Knopf und Ordner-Menue, Ordner-Eingabe samt Platz unter ihrer Ordner-Zeile, kein Fokus-Raub, Verwerfen mit Hinweis bei verschwundenem Ziel-Ordner und bei einer Liste, die einen anderen Ordner zeigt."
     },
     {
       "key": "help.feature.areaFileRenameDelete",

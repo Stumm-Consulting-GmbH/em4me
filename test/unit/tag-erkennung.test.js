@@ -151,3 +151,50 @@ describe('Fundstellen in Text-Zellen der Datentabelle (4T-002013)', () => {
     expect(tagsAus(text)).toEqual(['drei', 'eins', 'projekt']);
   });
 });
+
+// 4T-001912 (Epic 3E-000360): Der Index-Parser (parse.js) verfolgt Code-Blöcke
+// nach der Zaun-Regel (fence-level.js). Ein Block endet allein an einer Zeile
+// desselben Zeichens, mindestens so lang wie die öffnende, ohne Sprach-Angabe;
+// bis dahin endete er an jeder Zaun-Zeile desselben Zeichens, und Verweise,
+// Tags und Überschriften im Rest eines äußeren Blocks kamen in den Index.
+describe('Index-Parser: verschachtelte Code-Blöcke (4T-001912)', () => {
+  const B = '`';
+  const T = '~';
+  const INNEN = ['[[Ziel]] und #schlagwort', '# Innen'];
+  const LAGEN = {
+    'längerer Zaun um einen kürzeren': [
+      `${B.repeat(4)}markdown`,
+      B.repeat(3),
+      ...INNEN,
+      B.repeat(3),
+      ...INNEN,
+      B.repeat(4),
+    ],
+    Tilden: [T.repeat(4), T.repeat(3), ...INNEN, T.repeat(3), ...INNEN, T.repeat(4)],
+    'Sprach-Angabe an der inneren Zeile': [
+      B.repeat(3),
+      'Beispiel:',
+      `${B.repeat(3)}js`,
+      ...INNEN,
+      B.repeat(3),
+    ],
+  };
+
+  for (const [lage, block] of Object.entries(LAGEN)) {
+    it(`${lage}: Verweise, Tags und Überschriften im äußeren Block kommen nicht in den Index`, () => {
+      const text = ['# Kopf', '', ...block, '', 'Danach [[Echt]] #echt', ''].join('\n');
+      const ergebnis = parseContent('/bereich/notiz.md', text);
+      expect(ergebnis.hits.map((h) => h.zielBasename)).toEqual(['Echt']);
+      expect([...ergebnis.tags].sort()).toEqual(['echt']);
+      // Die Überschriften stehen als Anker-Schlüssel im Index.
+      expect(ergebnis.headings).toEqual(['kopf']);
+    });
+  }
+
+  it('Gegenprobe: ein einfacher Block endet wie bisher an seinem Schluss-Zaun', () => {
+    const text = [B.repeat(3), '[[Code]]', B.repeat(3), '[[Echt]] #echt'].join('\n');
+    const ergebnis = parseContent('/bereich/notiz.md', text);
+    expect(ergebnis.hits.map((h) => h.zielBasename)).toEqual(['Echt']);
+    expect(ergebnis.tags).toEqual(['echt']);
+  });
+});

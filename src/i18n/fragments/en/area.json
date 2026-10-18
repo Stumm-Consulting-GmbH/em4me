@@ -93,6 +93,7 @@
   "areaPanel.newFolderError": "Folder could not be created",
   "areaPanel.newNameEmpty": "Please enter a name",
   "areaPanel.newNameInvalid": "The name contains characters that are not allowed",
+  "areaPanel.inputDiscarded": "The target folder is no longer shown; the input was discarded",
   "area.outsideTitle": "Outside the area",
   "area.outsideOpenMessage": "The selection is outside the area and will not be opened.",
   "area.outsideSaveMessage": "The chosen location is outside the area. Please choose a location inside the area."

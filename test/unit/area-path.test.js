@@ -223,6 +223,42 @@ describe('sortedAreaListing (4T-000327)', () => {
       files: [],
     });
   });
+
+  // 4T-001799: Der Kollator wertet den Bindestrich schwächer als den Punkt;
+  // über den Namen MIT Endung stand die Vorlage deshalb hinter ihren Kopien.
+  // Sortiert wird über den Namen ohne Markdown-Endung, die Endung entscheidet
+  // erst bei gleichem Stamm.
+  const isMdLang = (n) => /\.(md|markdown)$/i.test(n);
+  const datei = (name) => ({ name, isDir: false });
+
+  it('AK1/AK2: die Vorlage steht vor ihren Kopien, die Zahlen bleiben numerisch', () => {
+    const entries = ['alpha-10.md', 'alpha.md', 'alpha-1-1.md', 'alpha-2.md', 'alpha-1.md'].map(
+      datei,
+    );
+    expect(sortedAreaListing(entries, isMdLang).files).toEqual([
+      'alpha.md',
+      'alpha-1.md',
+      'alpha-1-1.md',
+      'alpha-2.md',
+      'alpha-10.md',
+    ]);
+  });
+
+  it('AK3: gleicher Stamm mit verschiedener Endung ordnet stabil über die Endung', () => {
+    const vorwaerts = sortedAreaListing([datei('notiz.md'), datei('notiz.markdown')], isMdLang);
+    const rueckwaerts = sortedAreaListing([datei('notiz.markdown'), datei('notiz.md')], isMdLang);
+    expect(vorwaerts.files).toEqual(['notiz.markdown', 'notiz.md']);
+    expect(rueckwaerts.files).toEqual(vorwaerts.files);
+  });
+
+  it('AK4: die Ordner-Ordnung bleibt unverändert', () => {
+    const entries = [
+      { name: 'alpha', isDir: true },
+      { name: 'alpha-1', isDir: true },
+      { name: 'alpha.d', isDir: true },
+    ];
+    expect(sortedAreaListing(entries, isMdLang).dirs).toEqual(['alpha', 'alpha-1', 'alpha.d']);
+  });
 });
 
 describe('sanitizeNewFileName (4T-000328)', () => {

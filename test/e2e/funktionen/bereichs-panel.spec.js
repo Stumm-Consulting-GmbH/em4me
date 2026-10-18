@@ -12,6 +12,9 @@
 // BP-05 (4T-001349): Rechtsklick auf eine Ordner-Zeile legt Unterordner und
 //        Markdown-Datei im angeklickten Ordner an; Abbruch und Namens-
 //        Kollision bleiben folgenlos.
+// BP-10 (4T-002067): Eine offene Anlege-Eingabe überlebt den Neuaufbau des
+//        Panels samt Name, Fokus und Schreibmarke — bei einer Datei von außen
+//        und beim Echo der eigenen Ordner-Anlage.
 // BP-06 (4T-001349): Die über das Ordner-Menü angelegte Datei durchläuft den
 //        Ordner-Regel-Trigger und bekommt den Vorlagen-Inhalt.
 // BP-07 (4T-001350): Umbenennen über das Kontextmenü einer Datei-Zeile, an
@@ -32,7 +35,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, warteAufRendererBereit } = require('../helpers/app');
 // 4T-001351: Editor- und Reiter-Selektoren für den geänderten Reiter in BP-08.
 const { SEL } = require('../helpers/selectors');
 const { fuelleBis } = require('../helpers/eingabe');
@@ -240,6 +243,138 @@ test.describe('BP-05: Anlegen über das Kontextmenü (4T-001349)', () => {
       // AK11: Die panel-weiten Einträge bleiben im Ordner-Menü erreichbar.
       await unterordner.click({ button: 'right' });
       await expect(page.locator('#context-menu [data-menu-id="area-panel-graph"]')).toBeVisible();
+    } finally {
+      await closeApp(app, userData);
+      removeDir(dir);
+    }
+  });
+});
+
+// BP-10 (4T-002067, Epic 3E-000341): Eine offene Anlege-Eingabe überlebt den
+// Neuaufbau des Panels samt getipptem Namen, Fokus und Schreibmarke. Zwei
+// Auslöser, beide über den echten Verzeichnis-Wächter (`area:changed`):
+// eine Datei, die von außen entsteht (Nachstellung aus 4T-001690), und das
+// Echo der eigenen Ordner-Anlage — der Mechanismus, an dem BP-05 und
+// BP-02/BP-03 wackelten. Das Echo wird im Hauptprozess zurückgehalten, bis die
+// Datei-Eingabe offen ist und den Namen trägt, und dann zugestellt; sonst
+// entschiede die Last der Maschine, ob es vor oder nach dem Öffnen eintrifft,
+// und der Fall bewiese im ersten Fall nichts.
+test.describe('BP-10: Offene Eingabe überlebt den Neuaufbau (4T-002067)', () => {
+  // Leerungen der Dateiliste in der Seite zählen: Ein Neuaufbau leert den
+  // Container und setzt ihn neu. Der Beobachter meldet nach dem synchronen
+  // Abschnitt des Neuaufbaus, also nach dem Wiedereinhängen der Eingabe.
+  async function zaehleLeerungen(page) {
+    await page.evaluate(() => {
+      window.__bp10Leerungen = 0;
+      const liste = document.querySelector('.pane-group[data-pane="0"] .area-files');
+      new MutationObserver((eintraege) => {
+        if (eintraege.some((e) => e.removedNodes.length > 0)) window.__bp10Leerungen += 1;
+      }).observe(liste, { childList: true });
+    });
+  }
+
+  async function pruefeEingabe(eingabe, wert, auswahl) {
+    await expect(eingabe).toHaveCount(1);
+    await expect(eingabe).toHaveValue(wert);
+    await expect(eingabe).toBeFocused();
+    expect(await eingabe.evaluate((el) => [el.selectionStart, el.selectionEnd])).toEqual(auswahl);
+  }
+
+  test('Datei von außen: Eingabe bleibt mit Name, Fokus und Schreibmarke stehen', async () => {
+    const { app, page, userData } = await launchApp();
+    const dir = makeAreaTree();
+    try {
+      // 4T-002321: Erst das Ende der Initialisierung abwarten. launchApp wartet
+      // nur auf ihr frühes Zeichen; ihr Ende ruft applyAllLayouts() auf, das die
+      // Seitenleiste neu einhängt und dem schon offenen Feld den Fokus nimmt.
+      // Gemessen auf SC-026: Klick nach etwa 205 ms, Ende der Initialisierung
+      // nach 336 bis 376 ms, 3 von 4 Läufen rot; mit diesem Warten 4 von 4 grün.
+      await warteAufRendererBereit(page);
+      await page.evaluate((p) => window.api.openAreaPath(p), dir);
+      const section = page.locator('.pane-group[data-pane="0"] .sidebar-area');
+      await expect(section.locator('.area-file-row')).toHaveCount(2);
+
+      await section.locator('.area-new-file-btn').click();
+      const eingabe = section.locator('.area-new-file-input');
+      await eingabe.fill('Mein Entwurf');
+      await eingabe.evaluate((el) => el.setSelectionRange(4, 4));
+
+      fs.writeFileSync(path.join(dir, 'von-aussen.md'), '# Extern\n', 'utf8');
+      // Die neue Datei steht in der Liste: Der Neuaufbau ist durch.
+      await expect(section.locator('.area-file-row')).toHaveCount(3, { timeout: 15000 });
+      await pruefeEingabe(eingabe, 'Mein Entwurf', [4, 4]);
+
+      // Weitertippen an der Schreibmarke und anlegen.
+      await page.keyboard.type('er');
+      await expect(eingabe).toHaveValue('Meiner Entwurf');
+      await eingabe.press('Enter');
+      await expect(page.locator('.pane-group[data-pane="0"] .tabbar .tab .tab-title')).toHaveText(
+        /Meiner Entwurf/,
+      );
+      expect(fs.existsSync(path.join(dir, 'Meiner Entwurf.md'))).toBe(true);
+    } finally {
+      await closeApp(app, userData);
+      removeDir(dir);
+    }
+  });
+
+  test('Echo der eigenen Ordner-Anlage: Eingabe bleibt mit Name, Fokus und Schreibmarke stehen', async () => {
+    const { app, page, userData } = await launchApp();
+    const dir = makeAreaTree();
+    try {
+      // 4T-002321: Ende der Initialisierung abwarten, Grund am Fall davor.
+      await warteAufRendererBereit(page);
+      await page.evaluate((p) => window.api.openAreaPath(p), dir);
+      const section = page.locator('.pane-group[data-pane="0"] .sidebar-area');
+      await expect(section.locator('.area-dir-row')).toHaveCount(2);
+
+      // Meldungen des Wächters an dieses Fenster zurückhalten.
+      await hauptSenden(app, ({ BrowserWindow }) => {
+        globalThis.__bp10Gehalten = [];
+        globalThis.__bp10Halten = true;
+        for (const w of BrowserWindow.getAllWindows()) {
+          const wc = w.webContents;
+          const orig = wc.send.bind(wc);
+          wc.send = (kanal, ...rest) => {
+            if (kanal === 'area:changed' && globalThis.__bp10Halten) {
+              globalThis.__bp10Gehalten.push(() => orig(kanal, ...rest));
+              return undefined;
+            }
+            return orig(kanal, ...rest);
+          };
+        }
+      });
+
+      // Eigene Anlage des Ordners «Kapitel» in der Wurzel.
+      await section.locator('.area-dir-row').first().click({ button: 'right' });
+      await page.locator('#context-menu [data-menu-id="area-dir-new-folder"]').click();
+      await section.locator('.area-new-folder-input').fill('Kapitel');
+      await section.locator('.area-new-folder-input').press('Enter');
+      await expect(section.locator('.area-dir-row')).toHaveCount(3);
+      // Das Echo der Anlage ist im Hauptprozess angekommen und wartet.
+      await expect
+        .poll(() => hauptLesen(app, () => globalThis.__bp10Gehalten.length), { timeout: 15000 })
+        .toBeGreaterThan(0);
+
+      await section.locator('.area-new-file-btn').click();
+      const eingabe = section.locator('.area-new-file-input');
+      await eingabe.fill('Nach dem Echo');
+      await eingabe.evaluate((el) => el.setSelectionRange(0, 4));
+      await zaehleLeerungen(page);
+
+      // Echo zustellen und auf den Neuaufbau warten.
+      await hauptSenden(app, () => {
+        globalThis.__bp10Halten = false;
+        for (const zustellen of globalThis.__bp10Gehalten) zustellen();
+      });
+      await expect.poll(() => page.evaluate(() => window.__bp10Leerungen)).toBeGreaterThan(0);
+      await pruefeEingabe(eingabe, 'Nach dem Echo', [0, 4]);
+
+      await eingabe.press('Enter');
+      await expect(page.locator('.pane-group[data-pane="0"] .tabbar .tab .tab-title')).toHaveText(
+        /Nach dem Echo/,
+      );
+      expect(fs.existsSync(path.join(dir, 'Nach dem Echo.md'))).toBe(true);
     } finally {
       await closeApp(app, userData);
       removeDir(dir);
@@ -573,22 +708,19 @@ test.describe('BP-09: Kopieren über das Kontextmenü (4T-001731)', () => {
     // Reihenfolge die NUMERISCHE Sortierung (alpha-2 vor alpha-10 und nicht
     // dahinter, wie es eine reine Zeichen-Sortierung ergäbe).
     //
-    // **Zur erwarteten Reihenfolge**, damit sie niemand für einen Tippfehler
-    // hält: Die Vorlage steht HINTER ihren Kopien. `sortedAreaListing`
-    // (src/main/area/area-path.js) sortiert die Dateinamen MIT Endung, und der
-    // Kollator wertet den Bindestrich schwächer als den Punkt — 'alpha-1.md'
-    // liegt damit vor 'alpha.md'. Das ist Bestands-Verhalten des Panels und
-    // nicht Gegenstand dieses Tasks; der Prüffall hält es fest, statt es
-    // wegzurunden, und der Befund ist im Lösungs-Kapitel von 4T-001731
-    // verortet. Die Zusage des Epics ist davon unberührt und hier belegt:
-    // alpha-2 steht vor alpha-10.
+    // **Zur erwarteten Reihenfolge** (4T-001799): Die Vorlage steht VOR ihren
+    // Kopien. `sortedAreaListing` (src/main/area/area-path.js) sortiert über
+    // den Namen ohne Markdown-Endung, so wie die Liste ihn zeigt; bis 4T-001799
+    // sortierte es mit Endung, und weil der Kollator den Bindestrich schwächer
+    // wertet als den Punkt, stand 'alpha-1.md' vor 'alpha.md'. Die numerische
+    // Zusage des Epics bleibt belegt: alpha-2 steht vor alpha-10.
     fs.writeFileSync(path.join(dir, 'alpha-10.md'), '# Alpha zehn\n', 'utf8');
     try {
       await page.evaluate((p) => window.api.openAreaPath(p), dir);
       const section = page.locator('.pane-group[data-pane="0"] .sidebar-area');
       await expect(section).toBeVisible();
       const zeilen = section.locator('.area-file-row');
-      await expect(zeilen).toHaveText(['alpha-10', 'alpha', 'beta']);
+      await expect(zeilen).toHaveText(['alpha', 'alpha-10', 'beta']);
 
       // AK1: Der Eintrag steht in der Datei-Verwaltungs-Gruppe, VOR dem
       // Umbenennen — die Gruppe ist nach zunehmendem Eingriff geordnet.
@@ -605,7 +737,7 @@ test.describe('BP-09: Kopieren über das Kontextmenü (4T-001731)', () => {
       // und steht unmittelbar an ihrer Sortier-Position. Die Beschriftung
       // führt keine Endung (4T-001775).
       await menu.locator('[data-menu-id="area-file-copy"]').click();
-      await expect(zeilen).toHaveText(['alpha-1', 'alpha-10', 'alpha', 'beta']);
+      await expect(zeilen).toHaveText(['alpha', 'alpha-1', 'alpha-10', 'beta']);
       // Der Kurzhinweis nennt den vergebenen Namen MIT Endung.
       await expect(page.locator('#statusbar-hint')).toContainText('alpha-1.md');
 
@@ -621,7 +753,7 @@ test.describe('BP-09: Kopieren über das Kontextmenü (4T-001731)', () => {
       // numerischen Sortierung: alpha-2 steht VOR alpha-10.
       await dateiZeile(section, 'alpha').click({ button: 'right' });
       await menu.locator('[data-menu-id="area-file-copy"]').click();
-      await expect(zeilen).toHaveText(['alpha-1', 'alpha-2', 'alpha-10', 'alpha', 'beta']);
+      await expect(zeilen).toHaveText(['alpha', 'alpha-1', 'alpha-2', 'alpha-10', 'beta']);
       expect(fs.readFileSync(path.join(dir, 'alpha-1.md'), 'utf8')).toBe('# Alpha\n');
 
       // AK5: Aus einer bereits nummerierten Vorlage wird angehängt, nicht
@@ -629,11 +761,11 @@ test.describe('BP-09: Kopieren über das Kontextmenü (4T-001731)', () => {
       await dateiZeile(section, 'alpha-1').click({ button: 'right' });
       await menu.locator('[data-menu-id="area-file-copy"]').click();
       await expect(zeilen).toHaveText([
-        'alpha-1-1',
+        'alpha',
         'alpha-1',
+        'alpha-1-1',
         'alpha-2',
         'alpha-10',
-        'alpha',
         'beta',
       ]);
       expect(fs.existsSync(path.join(dir, 'alpha-3.md'))).toBe(false);
@@ -648,10 +780,10 @@ test.describe('BP-09: Kopieren über das Kontextmenü (4T-001731)', () => {
       await page.locator('#btn-name-input-ok').click();
       await expect(page.locator('#name-input-modal')).toBeHidden();
       await expect(zeilen).toHaveText([
+        'alpha',
         'alpha-1',
         'alpha-2',
         'alpha-10',
-        'alpha',
         'beta',
         'Umbenannt',
       ]);
@@ -691,7 +823,7 @@ test.describe('BP-09: Kopieren über das Kontextmenü (4T-001731)', () => {
 
       await dateiZeile(section, 'alpha').click({ button: 'right' });
       await page.locator('#context-menu [data-menu-id="area-file-copy"]').click();
-      await expect(section.locator('.area-file-row')).toHaveText(['alpha-1', 'alpha', 'beta']);
+      await expect(section.locator('.area-file-row')).toHaveText(['alpha', 'alpha-1', 'beta']);
 
       // AK7: Die Begleitdatei der Kopie trägt die Block-Eigenschaften und eine
       // LEERE Historie.

@@ -32,7 +32,9 @@ Un onglet créé **depuis un autre** s'ouvre immédiatement à sa droite. Cela c
 
 Si une action ouvre plusieurs fichiers à la fois, ils se rangent derrière l'origine dans leur propre ordre. Si le fichier cible est déjà ouvert, seul son onglet est activé ; l'ordre de la barre n'en est jamais modifié.
 
-Toutes les ouvertures **sans** origine se placent comme d'habitude en fin de barre : boîte de dialogue de fichier, palette de commandes, signets, panneaux, liste des fichiers de l'espace, ainsi que le manuel et les réglages.
+Toutes les ouvertures **sans** origine se placent comme d'habitude en fin de barre : boîte de dialogue de fichier, palette de commandes, signets, panneaux, liste des fichiers de la zone, ainsi que le manuel et les réglages.
+
+Lorsque le document actif est fermé, le document de la même colonne qui était actif avant lui redevient actif ; s'il a lui aussi été fermé entre-temps, celui qui était actif auparavant, et seulement si aucun d'eux n'est plus ouvert, le document voisin dans la barre. Il en va de même pour le manuel et les réglages : après « OK » ou « Annuler », le document qui était actif avant eux redevient actif.
 
 ## Groupes d'onglets
 
@@ -121,7 +123,7 @@ Le panneau « Zone » affiche la zone comme structure de dossiers dans la barre 
 
 ### Gestion des fichiers dans le panneau de zone
 
-Le clic droit gère l'arborescence sans quitter l'application. Une **ligne de dossier** propose deux entrées : **Nouveau sous-dossier…** et **Nouveau fichier Markdown…**. Toutes deux demandent le nom sur place — le nom du dossier dans une ligne sous le dossier cliqué, le nom du fichier en tête de la liste des fichiers — et créent l'élément dans le dossier **sur lequel vous avez cliqué**, même si un autre est actuellement sélectionné. Un nom de fichier sans extension reçoit l'extension Markdown ; le nouveau fichier est ouvert et passe par la règle de dossier des modèles comme toute autre création. Un nom déjà pris, un nom que le système de fichiers n'autorise pas et un nom vide sont signalés avant que quoi que ce soit ne soit créé ; Échap annule et ne laisse rien.
+Le clic droit gère l'arborescence sans quitter l'application. Une **ligne de dossier** propose deux entrées : **Nouveau sous-dossier…** et **Nouveau fichier Markdown…**. Toutes deux demandent le nom sur place — le nom du dossier dans une ligne sous le dossier cliqué, le nom du fichier en tête de la liste des fichiers — et créent l'élément dans le dossier **sur lequel vous avez cliqué**, même si un autre est actuellement sélectionné. Un nom de fichier sans extension reçoit l'extension Markdown ; le nouveau fichier est ouvert et passe par la règle de dossier des modèles comme toute autre création. Un nom déjà pris, un nom que le système de fichiers n'autorise pas et un nom vide sont signalés avant que quoi que ce soit ne soit créé ; Échap annule et ne laisse rien. Si l'arborescence change pendant que la saisie est ouverte, celle-ci reste en place avec le nom tapé, et vous continuez à taper au même endroit ; si son dossier cible n'est plus affiché, par exemple parce qu'il a été supprimé entre-temps, la saisie est abandonnée avec un message.
 
 Une **ligne de fichier** propose **Copier**, **Renommer…** et **Supprimer…** à la fin du menu, séparés des entrées au-dessus. Ils sont classés par intervention croissante : copier laisse le modèle intact, renommer change son nom, supprimer l'enlève.
 

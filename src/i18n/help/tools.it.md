@@ -83,7 +83,7 @@ L'ambito segue la scheda in cui la ricerca viene aperta; gli ambiti si escludono
 
 L'ambito in vigore è mostrato a sinistra nella barra di ricerca. Nella vista mappa mentale la ricerca percorre la mappa stessa, anche in un'area aperta; vedi [Vista mappa mentale](mindmap.md).
 
-Oltre il singolo file, le corrispondenze compaiono nel pannello **Risultati della ricerca**, raggruppate per file, pagina o sezione e con un conteggio per gruppo. Un clic apre la destinazione ed evidenzia il punto; `F3` supera il confine del gruppo.
+Oltre il singolo file, le corrispondenze compaiono nel pannello **Risultati della ricerca**, raggruppate per file, pagina o sezione e con un conteggio per gruppo. Un clic apre la destinazione ed evidenzia il punto; `F3` supera il confine del gruppo. Nell'elenco i tasti freccia spostano la selezione e `Invio` salta alla corrispondenza selezionata. La selezione resta quando l'elenco si ricostruisce con la ricerca invariata; solo una nuova ricerca riparte dalla prima corrispondenza.
 
 ### In un'area
 

@@ -43,7 +43,6 @@ const { expandRelativeTarget, isRelativeTarget } = require('../../shared/subpage
 // erkennen (keine duplizierten Patterns).
 const {
   MD_EXT_RE,
-  FENCE_RE,
   createWikiLinkRegex,
   isAreaLinkTarget,
   createMdLinkRegex,
@@ -57,6 +56,9 @@ const {
   scanneKartenVerweise,
   kartenBeschriftung,
 } = require('../../shared/markdown/link-scan.js');
+// 4T-001912 (Epic 3E-000360): die Zaun-Regel aus ihrer einen Heimat statt des
+// geteilten Ausdrucks `FENCE_RE`, der allein das Zeichen verglich.
+const { schliesstZaun, zaunOeffnung } = require('../../shared/markdown/fence-level.js');
 // 4T-002023 (Epic 3E-000192): die Angabe `table:` eines Diagramm-Blocks, aus
 // derselben Heimat wie im Diagramm-Kern und im Umbenennungs-Nachzug.
 const {
@@ -289,8 +291,9 @@ function parseContent(filePath, content, segmentDefinition) {
   // (heading-Feld des Evaluators). Modell-Parsing erst im Query-Zweig.
   const tasks = [];
   let currentHeading = null;
-  let inFence = false;
-  let fenceChar = null;
+  // 4T-001912 (Epic 3E-000360): die Öffnung des offenen Code-Blocks (Zeichen und
+  // Länge, aus fence-level.js), sonst null.
+  let offen = null;
   // 4T-001749 (Epic 3E-000289): Steht die offene Fence unter der Canvas-Marke?
   // Der Uebersprung bleibt, aber die Verweis-Angaben ihrer Karten werden
   // gelesen — siehe die Begruendung an der Schleife.
@@ -439,34 +442,38 @@ function parseContent(filePath, content, segmentDefinition) {
     const line = lines[i];
     const lineNum = i + 1;
 
-    // Fenced-Code-Tracking.
-    const fenceMatch = line.match(FENCE_RE);
-    if (fenceMatch) {
-      const marker = fenceMatch[1];
-      const ch = marker.charAt(0);
-      if (!inFence) {
-        inFence = true;
-        fenceChar = ch;
-        // 4T-001749 (Epic 3E-000289): Die Info-Zeichenfolge wurde hier bisher
-        // nirgends gelesen. Sie ist die einzige Stelle, an der eine Fence sagt,
-        // was sie ist — und damit die Voraussetzung dafuer, die Canvas-Fence
-        // von jeder anderen zu unterscheiden. Vorbild: src/shared/mindmap-core.js
-        // und src/shared/document-split.js lesen sie fuer dieselbe Fence.
-        const info = line.slice(fenceMatch[0].length);
-        inCanvasFence = istCanvasFenceInfo(info);
-        zellZustand = istDatentabellenFenceInfo(info) ? neuerZellZustand() : null;
-        inChartFence = istDiagrammFenceInfo(info);
-        tabelleGesehen = false;
-      } else if (ch === fenceChar) {
-        inFence = false;
-        fenceChar = null;
+    // Fenced-Code-Tracking. 4T-001912 (Epic 3E-000360): nach der Zaun-Regel aus
+    // fence-level.js — ein Block endet allein an einer Zeile desselben Zeichens,
+    // mindestens so lang wie die öffnende, ohne Sprach-Angabe. Bis dahin endete
+    // er an jeder Zaun-Zeile desselben Zeichens, und der Rest eines äußeren
+    // Blocks mit längerem Zaun kam als gewöhnlicher Text in den Index. Eine
+    // Zaun-Zeile im Block, die ihn nicht schließt, bleibt wie bisher
+    // übersprungen.
+    const zaun = zaunOeffnung(line);
+    if (offen && zaun) {
+      if (schliesstZaun(line, offen)) {
+        offen = null;
         inCanvasFence = false;
         zellZustand = null;
         inChartFence = false;
       }
       continue;
     }
-    if (inFence) {
+    if (!offen && zaun) {
+      offen = zaun;
+      // 4T-001749 (Epic 3E-000289): Die Info-Zeichenfolge wurde hier bisher
+      // nirgends gelesen. Sie ist die einzige Stelle, an der eine Fence sagt,
+      // was sie ist — und damit die Voraussetzung dafuer, die Canvas-Fence
+      // von jeder anderen zu unterscheiden. Vorbild: src/shared/mindmap-core.js
+      // und src/shared/document-split.js lesen sie fuer dieselbe Fence. Seit
+      // 4T-001912 kommt sie als Sprache aus der Öffnung.
+      inCanvasFence = istCanvasFenceInfo(zaun.sprache);
+      zellZustand = istDatentabellenFenceInfo(zaun.sprache) ? neuerZellZustand() : null;
+      inChartFence = istDiagrammFenceInfo(zaun.sprache);
+      tabelleGesehen = false;
+      continue;
+    }
+    if (offen) {
       // 4T-001749 (Epic 3E-000289): Innerhalb einer Fence `perspective-canvas`
       // traegt die Marker-Zeile einer Karte mit `doc="…"` einen Verweis auf ein
       // Dokument. Er wird gelesen wie ein Wiki-Link und geht als gewoehnlicher

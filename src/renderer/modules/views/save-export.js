@@ -40,12 +40,7 @@ import { EDITOR_VIEW_FM_KEYS, getEditorViewDefaults, state, withDialog } from '.
 import { extractFrontmatter } from '../../../shared/markdown/frontmatter.js';
 // 4T-000604 (Epic 3E-000113): reiner Kern der Zeitstempel-Automatik.
 import { applyTimestampFields } from '../../../shared/markdown/frontmatter-timestamps.js';
-import {
-  clearIndexOverlayFor,
-  paneEditors,
-  syncEditorForPane,
-  updateWindowTitle,
-} from '../editor/editor.js';
+import { clearIndexOverlayFor, paneEditors, updateWindowTitle } from '../editor/editor.js';
 // 4T-000585 (Epic 3E-000108): Titelzeile — nach Speichern unter den angezeigten
 // Dateinamen nachziehen (Laufzeit-Zyklus ueber title-line.js ist unkritisch).
 import { updateTitleLineForPane } from './title-line.js';
@@ -54,7 +49,7 @@ import { closeTab, meldeFehlendeTeile } from '../tabs/tabs.js';
 // Zyklus save-export <-> history-status, Muster 4T-000179).
 import { updateHistoryStatus } from './history-status.js';
 
-import { invalidatePaneRenderCache, reloadFile } from './pane-render.js';
+import { invalidatePaneRenderCache, reloadFile, renderPaneContent } from './pane-render.js';
 import { renderTabbar } from './tabbar.js';
 // 4T-000989: Laufzeit-Zyklus save-export <-> views (Kern). Der Kern ruft
 // stampTabTimestamps im Auto-Save-Pfad, save-export ruft Hinweis, Persistenz
@@ -132,6 +127,60 @@ export async function stampTabTimestamps(paneIdx, tabIdx, tab) {
   stampFrontmatterInPaneView(paneIdx, tabIdx, next);
 }
 
+// --- 4T-001923 (Story 4S-000786): Speichervorgänge je Dokument reihen --------
+//
+// Zwei Speichervorgänge desselben Dokuments, die sich überschnitten, lösten die
+// Konflikt-Frage ohne fremde Änderung aus: Der zweite schickte noch den alten
+// Stand als Erwartung mit, während der erste die Datei schon geändert hatte
+// (gemessen in 4T-001923). Deshalb laufen sie je Dokument-Pfad nacheinander;
+// ein zweiter Aufruf wartet auf das Ende des ersten und schreibt dann den dann
+// aktuellen Inhalt. Vorbild ist die Kette der Entwurfs-Schreibvorgänge
+// (enqueueDraftWrite in src/main/documents/draft-cache.js), hier je Pfad.
+//
+// Pfad -> { kette, offen, vonHand }: `kette` ist das Ende der Reihe, `offen`
+// zählt laufende und wartende Vorgänge, `vonHand` davon die vom Anwender
+// ausgelösten. Das Hintergrund-Speichern fragt `vonHand` ab und überspringt
+// ein Dokument, dessen Speichern von Hand läuft oder wartet.
+const speicherReihen = new Map();
+
+// Hängt `fn` an die Reihe des Pfads und liefert dessen Ergebnis. Ein Fehler
+// eines Vorgangs hält die Reihe nicht auf; er erreicht nur seinen Aufrufer.
+export function reiheSpeichern(pfad, vonHand, fn) {
+  let reihe = speicherReihen.get(pfad);
+  if (!reihe) {
+    reihe = { kette: Promise.resolve(), offen: 0, vonHand: 0 };
+    speicherReihen.set(pfad, reihe);
+  }
+  reihe.offen += 1;
+  if (vonHand) reihe.vonHand += 1;
+  const lauf = reihe.kette.then(() => fn());
+  reihe.kette = lauf
+    .catch(() => {})
+    .then(() => {
+      reihe.offen -= 1;
+      if (vonHand) reihe.vonHand -= 1;
+      if (reihe.offen === 0 && speicherReihen.get(pfad) === reihe) speicherReihen.delete(pfad);
+    });
+  return lauf;
+}
+
+// Läuft für diesen Pfad ein Speichern von Hand, oder wartet eines?
+export function speichernVonHandOffen(pfad) {
+  const reihe = speicherReihen.get(pfad);
+  return !!reihe && reihe.vonHand > 0;
+}
+
+// Wo steht dieser Reiter jetzt? Nach dem Warten in der Reihe können Spalten-
+// und Reiter-Nummer veraltet sein (verschoben, andere Reiter geschlossen), der
+// Reiter selbst kann geschlossen sein; dann null.
+export function findeReiterOrt(tab) {
+  for (let p = 0; p < state.panes.length; p++) {
+    const i = state.panes[p].tabs.indexOf(tab);
+    if (i >= 0) return { paneIdx: p, tabIdx: i };
+  }
+  return null;
+}
+
 export async function saveTab(paneIdx, tabIdx) {
   const pane = state.panes[paneIdx];
   if (!pane) return false;
@@ -158,6 +207,25 @@ export async function saveTab(paneIdx, tabIdx) {
     return false;
   }
   if (!tab.path) return saveTabAs(paneIdx, tabIdx);
+  // 4T-001923: hinter einem laufenden Speichern desselben Dokuments warten. Das
+  // Ergebnis bleibt das Ja/Nein, auf das sich die Aufrufer verlassen.
+  const pfad = tab.path;
+  return reiheSpeichern(pfad, true, () => {
+    const ort = findeReiterOrt(tab);
+    // Inzwischen geschlossen: Es gibt nichts mehr zu speichern.
+    if (!ort) return false;
+    // Inzwischen umbenannt: in die Reihe des neuen Pfads.
+    if (tab.path !== pfad) return saveTab(ort.paneIdx, ort.tabIdx);
+    // Ein vorangehendes Speichern hat den Reiter in den Nur-Lese-Zustand
+    // gesetzt und den Hinweis gezeigt; die Frage kommt nicht ein zweites Mal.
+    if (tab.readOnly) return false;
+    return schreibeReiter(ort.paneIdx, ort.tabIdx, tab);
+  });
+}
+
+// Der eigentliche Schreibvorgang von saveTab, in der Reihe seines Pfads.
+async function schreibeReiter(paneIdx, tabIdx, tab) {
+  const pane = state.panes[paneIdx];
   try {
     // 4T-000604 (Epic 3E-000113): Zeitstempel-Felder vor dem Schreiben setzen; der
     // gestempelte Text ist damit sowohl der gespeicherte als auch der im Tab
@@ -174,7 +242,11 @@ export async function saveTab(paneIdx, tabIdx) {
     // ohne zweite Frage geschrieben und dabei gesichert. Hat sich die Datei
     // seitdem ERNEUT geaendert, greift die Pruefung und fragt wieder.
     const vorentschieden = tab.foreignOverride != null;
-    let res = await api.saveFile(tab.path, tab.content, {
+    // 4T-001923: Der geschriebene Stand ist der Text, der hier übergeben wird,
+    // nicht der Puffer nach der Antwort. Was währenddessen getippt wird, steht
+    // nicht in der Datei und darf nicht als gespeichert gelten (AK9).
+    let geschrieben = tab.content;
+    let res = await api.saveFile(tab.path, geschrieben, {
       expected: vorentschieden ? tab.foreignOverride : tab.originalContent,
       force: vorentschieden,
     });
@@ -187,8 +259,10 @@ export async function saveTab(paneIdx, tabIdx) {
         return false;
       }
       // Eigene Fassung behalten: schreiben und die ueberschriebene fremde
-      // Fassung in der Historie sichern.
-      res = await api.saveFile(tab.path, tab.content, { force: true });
+      // Fassung in der Historie sichern. Geschrieben ist dann der Text dieses
+      // zweiten Aufrufs.
+      geschrieben = tab.content;
+      res = await api.saveFile(tab.path, geschrieben, { force: true });
     }
     // 4T-001291 (Epic 3E-000224): Das Dokument müsste geteilt werden, und der
     // Anwender hat in der Ankündigung «nur lesen» gewählt. Geschrieben wurde
@@ -215,8 +289,10 @@ export async function saveTab(paneIdx, tabIdx) {
     // im Frontmatter. Der Puffer zieht nach, sonst meldete das nächste
     // Speichern einen Konflikt gegen den eigenen Schreibvorgang. Der Weg ist
     // derselbe wie bei der Zeitstempel-Automatik, samt eigener Undo-Einheit.
-    if (typeof res.content === 'string' && res.content !== tab.content) {
-      stampFrontmatterInPaneView(paneIdx, tabIdx, res.content);
+    // 4T-001923: Dann gilt res.content als geschriebener Stand.
+    if (typeof res.content === 'string') {
+      if (res.content !== tab.content) stampFrontmatterInPaneView(paneIdx, tabIdx, res.content);
+      geschrieben = res.content;
     }
     // Das Dokument ist über der Schwelle, hat aber keine Überschrift der
     // obersten zwei Ebenen, an der sich schneiden ließe (AK3, O5). Der Hinweis
@@ -231,7 +307,10 @@ export async function saveTab(paneIdx, tabIdx) {
     // haengt am Ergebnis des Schreibens, nicht an der Absicht, damit er nicht
     // erscheint, wenn es gar nichts zu ueberschreiben gab.
     if (res.gesichert) showStatusbarHint('statusbar.saveConflictKept', { duration: 6000 });
-    tab.originalContent = tab.content;
+    // 4T-001923: Die Erwartung des nächsten Speicherns ist der geschriebene
+    // Stand. Nur so findet ein gereihtes zweites Speichern die Datei so vor,
+    // wie es sie erwartet, statt einen Konflikt gegen das erste zu melden.
+    tab.originalContent = geschrieben;
     tab.saveConflict = false;
     // 4T-001291: Das Hintergrund-Speichern hatte diesen Reiter ausgesetzt, weil
     // die Teilung eine Frage an den Anwender verlangt. Sie ist jetzt
@@ -241,8 +320,12 @@ export async function saveTab(paneIdx, tabIdx) {
     // R4-12 (4T-000180): andere Panes koennten diese Datei als Wiki-Embed
     // zeigen — deren Render-Skip-Cache verwerfen.
     invalidatePaneRenderCache();
-    if (tab.dirty) {
-      tab.dirty = false;
+    // 4T-001923 (AK9): Die Änderungs-Markierung fällt nur, wenn der Puffer dem
+    // geschriebenen Stand gleicht. Eine Eingabe während des Speicherns bleibt
+    // als ungespeichert markiert, bis sie selbst gespeichert ist.
+    const nochGeaendert = tab.content !== geschrieben;
+    if (tab.dirty !== nochGeaendert) {
+      tab.dirty = nochGeaendert;
       renderTabbar(paneIdx);
       if (paneIdx === state.activePaneIndex && tabIdx === pane.activeIndex) {
         updateWindowTitle();
@@ -276,6 +359,21 @@ export async function saveTabAs(paneIdx, tabIdx, opts) {
   // 4T-000213: Handbuch-Tabs sind read-only — kein Speichern unter.
   // 4T-000277: System-Seiten (Einstellungen) ebenso.
   if (tab.manualPage || tab.systemPage) return false;
+  // 4T-001923: Hat das Dokument einen Pfad, wartet «Speichern unter» hinter
+  // einem laufenden Speichern desselben Dokuments; sonst änderte es Pfad und
+  // Erwartung des Reiters, während jenes noch schreibt.
+  if (!tab.path) return speichereReiterUnter(paneIdx, tabIdx, tab, opts);
+  return reiheSpeichern(tab.path, true, () => {
+    const ort = findeReiterOrt(tab);
+    if (!ort) return false;
+    return speichereReiterUnter(ort.paneIdx, ort.tabIdx, tab, opts);
+  });
+}
+
+// Der eigentliche Vorgang von saveTabAs, bei einem Dokument mit Pfad in der
+// Reihe dieses Pfads.
+async function speichereReiterUnter(paneIdx, tabIdx, tab, opts) {
+  const pane = state.panes[paneIdx];
   // 4T-000572 (Epic 3E-000105): Uebernahme fluechtiger Editor-Ansicht-Toggles beim
   // ersten Speichern eines Unbenannt-Tabs — Werte, die von der globalen
   // Voreinstellung abweichen, wandern ins Frontmatter der neuen Datei. Bei
@@ -325,8 +423,10 @@ export async function saveTabAs(paneIdx, tabIdx, opts) {
     const oldPath = tab.path;
     tab.path = result.path;
     if (contentTakenOver) tab.content = contentToSave;
-    tab.originalContent = tab.content;
-    tab.dirty = false;
+    // 4T-001923: Erwartung auf den geschriebenen Stand; eine Eingabe während
+    // des Schreibens bleibt als ungespeichert markiert.
+    tab.originalContent = contentToSave;
+    tab.dirty = tab.content !== contentToSave;
     // R4-12 (4T-000180): wie in saveTab — Embed-Frische anderer Panes.
     invalidatePaneRenderCache();
     if (oldPath && oldPath !== result.path) {
@@ -348,10 +448,18 @@ export async function saveTabAs(paneIdx, tabIdx, opts) {
     // 4T-000585 (Epic 3E-000108): Titelzeile zeigt den neuen Dateinamen (der
     // Tab kann vorher pfadlos gewesen sein — Unbenannt-Platzhalter).
     if (tabIdx === pane.activeIndex) updateTitleLineForPane(paneIdx);
-    // 4T-000572: uebernommene Editor-Ansicht-Flags in den Editor spiegeln
-    // (nur wenn dieser Tab im Pane aktiv ist; sonst zieht activateTab nach).
-    if (contentTakenOver && tabIdx === pane.activeIndex) {
-      syncEditorForPane(paneIdx);
+    // 4T-002151 (Epic 3E-000340): Hat das Dokument einen neuen Pfad (erstes
+    // Speichern, Speichern unter in einen anderen Ordner) oder neuen Inhalt
+    // (uebernommene Frontmatter-Werte), wird die Ansicht neu aufgebaut; sonst
+    // loesten relative Bild-Verweise erst beim naechsten Wechsel der Ansicht
+    // gegen den neuen Ordner auf. Der Pfad ist Teil des Render-Skip-Vergleichs,
+    // der Zwischenspeicher ist oben ohnehin geleert (Muster reloadFile).
+    // renderPaneContent gleicht den Editor selbst ab und ersetzt damit den
+    // frueheren syncEditorForPane-Aufruf fuer die uebernommenen
+    // Editor-Ansicht-Flags (4T-000572); dabei zieht es auch den Pfad der
+    // Live-Bloecke nach. Ein nicht aktives Dokument rendert beim Aktivieren.
+    if (tabIdx === pane.activeIndex && (oldPath !== result.path || contentTakenOver)) {
+      renderPaneContent(paneIdx);
     }
     if (paneIdx === state.activePaneIndex && tabIdx === pane.activeIndex) {
       updateWindowTitle();

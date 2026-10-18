@@ -713,3 +713,66 @@ test.describe('EB-10: Einbettung zeigt eine Änderung des Ziels von außen (4T-0
     }
   });
 });
+
+// EB-11 (4T-002092, Story 4S-001041): Kann eine Einbettung ihr Ziel nicht
+// zeigen, nennt der Hinweis den Grund in der Sprache der Oberfläche und nie
+// eine Systemmeldung. Zwei Gründe: Das Ziel fehlt, oder es liegt in einem
+// verknüpften Bereich ('@kürzel:Datei'), aus dem sich nichts einbetten lässt —
+// je Einbettungs-Art (Dokument, Bild, PDF, sonstige Datei), in der Lese-Ansicht
+// und im Live-Modus.
+test.describe('EB-11: Der Hinweis nennt den Grund, keine Systemmeldung (4T-002092)', () => {
+  test('fehlendes Ziel und Ziel im verknüpften Bereich, Lese-Ansicht und Live-Modus', async () => {
+    const wurzel = makeBereich();
+    const { app, page, userData } = await starteMitEinbettung(
+      wurzel,
+      [
+        '# Aktiv',
+        '',
+        'Text davor.',
+        '',
+        '![[Fehlt]]',
+        '',
+        '![[@nachbar:Notiz]]',
+        '',
+        '![[@nachbar:bild.png]]',
+        '',
+        '![[@nachbar:handbuch.pdf]]',
+        '',
+        '![[@nachbar:tabelle.xlsx]]',
+        '',
+        'Text danach.',
+        '',
+      ].join('\n'),
+    );
+    try {
+      const pruefe = async (wo) => {
+        const hinweise = page.locator(`${wo} .wiki-embed-broken`);
+        await expect(hinweise).toHaveCount(5, { timeout: 20000 });
+        const texte = await hinweise.allTextContents();
+        // Der Name steht, wie er im Dokument steht, ohne das '.md', das das
+        // Wiki-Plugin zur Auflösung anhängt (4T-002120; bis dahin «Fehlt.md»).
+        expect(texte[0]).toBe('Einbetten nicht möglich: «Fehlt» ist nicht zu finden');
+        for (const [i, ziel] of [
+          [1, '@nachbar:Notiz'],
+          [2, '@nachbar:bild.png'],
+          [3, '@nachbar:handbuch.pdf'],
+          [4, '@nachbar:tabelle.xlsx'],
+        ]) {
+          expect(texte[i]).toBe(
+            `Einbetten nicht möglich: «${ziel}» liegt in einem verknüpften Bereich, aus dem sich nichts einbetten lässt`,
+          );
+        }
+        // Keine Systemmeldung, wie sie bis 4T-002092 in Klammern folgte.
+        expect(texte.join(' ')).not.toMatch(/ENOENT|\(|not found/);
+      };
+      await pruefe(SEL.markdownBody0);
+
+      await page.locator(SEL.viewBtn('live')).click();
+      await expect(page.locator(SEL.content0)).toHaveClass(/view-live/);
+      await pruefe(`${SEL.content0} .cm-live-embed`);
+    } finally {
+      removeDir(wurzel);
+      await closeApp(app, userData);
+    }
+  });
+});

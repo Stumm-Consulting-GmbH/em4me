@@ -8,6 +8,9 @@
 // Renderer-Zustand hochzöge; geprüft wird genau die Rückfall-Regel, nicht die
 // Verdrahtung (die deckt der E2E-Anteil des Epic-Abschlusses).
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const istAktiv = vi.fn();
 
@@ -63,5 +66,29 @@ describe('Mindmap-Pane: Rückfall des Ansichts-Modus (4T-001047)', () => {
     expect(isMindmapModeAvailable()).toBe(false);
     istAktiv.mockReturnValue(true);
     expect(isMindmapModeAvailable()).toBe(true);
+  });
+});
+
+describe('Mindmap-Erweiterung: Abschalten bei offener Mindmap (4T-001688)', () => {
+  // Der Rückfall oben greift beim ÖFFNEN eines Dokuments. Wird die Erweiterung
+  // abgeschaltet, während ein Dokument in der Mindmap-Ansicht steht, braucht
+  // es den Laufzeit-Hook, sonst bleibt die Ansicht ohne Schalter und ohne
+  // Menü-Eintrag stehen (Muster der Canvas, 4T-001656, und der Tafel,
+  // 4T-001847). Geprüft wird die Verdrahtung am Quelltext wie dort: Der
+  // Lebenszyklus bräuchte Store und Preload-Brücke.
+  const lies = (rel) =>
+    readFileSync(path.join(path.dirname(fileURLToPath(import.meta.url)), '../../..', rel), 'utf8');
+
+  it('AK1: eine offene Mindmap fällt beim Abschalten auf die Lese-Ansicht', () => {
+    const quelle = lies('src/renderer/modules/app/app-extension-runtime.js');
+    expect(quelle).toContain('attachExtensionRuntime(MINDMAP_EXTENSION_ID, {');
+    expect(quelle).toMatch(/if \(tab\.viewMode === 'mindmap'\) tab\.viewMode = 'rendered';/);
+  });
+
+  it('AK3: der Hook schreibt nichts, er setzt allein den Modus des geöffneten Dokuments', () => {
+    const quelle = lies('src/renderer/modules/app/app-extension-runtime.js');
+    const start = quelle.indexOf('attachExtensionRuntime(MINDMAP_EXTENSION_ID, {');
+    const rumpf = quelle.slice(start, quelle.indexOf('});', start));
+    expect(rumpf).not.toMatch(/save|write|dirty|markModified/i);
   });
 });

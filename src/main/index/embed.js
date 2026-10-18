@@ -12,15 +12,19 @@
 // eingebettet. Neu ist der Name aus der Kopf-Angabe `table:` einer
 // Datentabelle: Er bettet den ganzen Zaun ein, ohne diese Zeile (Nachbesserung
 // F2), und ein BOM am Textanfang stört die Suche nicht mehr (F8). Die
-// Überschriften-Suche unten trägt weiter ihre eigene Zaun-Verfolgung.
+// Überschriften-Suche unten trägt weiter ihre eigene Zaun-Verfolgung, seit
+// 4T-001912 nach der Zaun-Regel aus fence-level.js.
 
 'use strict';
 
 const { githubLikeSlug } = require('../../shared/markdown/slug.js');
-const { FENCE_RE } = require('../../shared/markdown/link-scan.js');
+// 4T-001912 (Epic 3E-000360): die Zaun-Regel aus ihrer einen Heimat statt des
+// geteilten Ausdrucks `FENCE_RE`, der allein das Zeichen verglich.
+const { schliesstZaun, zaunOeffnung } = require('../../shared/markdown/fence-level.js');
 const {
   BLOCK_ANCHOR_RE,
   ankerZeileAllein,
+  ankerZeileAlleinImZitat,
   extractBlockAnchors,
 } = require('../../shared/block-anchors.js');
 const { HEADING_RE } = require('./parse.js');
@@ -132,6 +136,13 @@ function extractBlockByAnchor(content, blockId, lines, anker) {
   let finalToken = bestToken || fallbackToken;
   if (!finalToken || !finalToken.map) return null;
 
+  // 4T-002018 (Epic 3E-000360): Eine Kennung in eigener Zeile unter einer
+  // Pipe-Tabelle meint die ganze Tabelle (Entscheidung des Product Owners vom
+  // 2026-10-03, Weg 1); eine Kennung am Ende einer Tabellen-Zeile meint
+  // weiterhin diese Zeile und bleibt beim Behälter `tr_open` oben.
+  const tabelle = tabelleDerAnkerZeile(tokens, bestToken, fallbackTokenIndex, blockId, lines);
+  if (tabelle) return tabellenText(tabelle, lines);
+
   // Sonderfall fuer Fenced Code Blocks: der Marker `^id` kann nicht auf
   // der schliessenden ```-Zeile stehen (das wuerde den Fence-Close zer-
   // stoeren). Obsidian-Konvention ist daher `^id` auf einer eigenen Zeile
@@ -165,6 +176,62 @@ function extractBlockByAnchor(content, blockId, lines, anker) {
     blockLines.push(i === markerLine ? ohneAnker(line, blockId) : line);
   }
   return blockLines.join('\n');
+}
+
+// 4T-002018 (Epic 3E-000360): Das `table_open`-Token der Pipe-Tabelle, die eine
+// Anker-Zeile `^blockId` meint, sonst null. Zwei Lagen, beide nach der Regel
+// des Render-Wegs (plugins/block-anker.js) und der Bereichs-Regel des
+// Diagramm-Kerns («Steht die Anker-Zeile allein, gehört sie zum Block davor;
+// Leerzeilen dazwischen trennen nicht»):
+//   - Der Absatz, der die Zeile trägt, besteht allein aus der Kennung und folgt
+//     unmittelbar auf eine Tabelle derselben Ebene (Schreibweise mit Leerzeile
+//     davor, auch im Zitat oder Listen-Eintrag).
+//   - Die Zeile steht direkt unter der Tabelle ohne Leerzeile; markdown-it nimmt
+//     sie dann als letzte Tabellen-Zeile auf, die Anzeige gibt sie seit
+//     4T-002048 nicht als Zeile aus. Gezählt wird sie nur unter den
+//     Anker-Zeilen am Ende des Rumpfs, wie dort.
+function tabelleDerAnkerZeile(tokens, bestToken, absatzIndex, blockId, lines) {
+  if (absatzIndex > 0) {
+    const inline = tokens[absatzIndex + 1];
+    const inhalt = inline && inline.type === 'inline' ? String(inline.content || '').trim() : '';
+    const davor = tokens[absatzIndex - 1];
+    if (
+      tokens[absatzIndex].type === 'paragraph_open' &&
+      ankerZeileAllein(inhalt) === blockId &&
+      davor.type === 'table_close' &&
+      davor.level === tokens[absatzIndex].level
+    ) {
+      return tabellenAnfang(tokens, absatzIndex - 1);
+    }
+  }
+  if (!bestToken || bestToken.type !== 'tr_open') return null;
+  const i = tokens.indexOf(bestToken);
+  if (ankerZeileAlleinImZitat(lines[bestToken.map[0]]) !== blockId) return null;
+  // Nur am Ende des Rumpfs: Bis zum Schluss der Tabelle folgen allein weitere
+  // Anker-Zeilen.
+  let k = i + 1;
+  for (; k < tokens.length && tokens[k].type !== 'table_close'; k++) {
+    const t = tokens[k];
+    if (t.type === 'tr_open' && !ankerZeileAlleinImZitat(lines[t.map[0]])) return null;
+  }
+  return k < tokens.length ? tabellenAnfang(tokens, k) : null;
+}
+
+// Das `table_open` zum `table_close` an Stelle `zu`.
+function tabellenAnfang(tokens, zu) {
+  for (let k = zu - 1; k >= 0; k--) {
+    if (tokens[k].type === 'table_open' && tokens[k].level === tokens[zu].level) {
+      return tokens[k].map ? tokens[k] : null;
+    }
+  }
+  return null;
+}
+
+// Der Text der Tabelle ohne die Anker-Zeilen am Ende ihres Bereichs.
+function tabellenText(tabelle, lines) {
+  let ende = tabelle.map[1];
+  while (ende > tabelle.map[0] + 2 && ankerZeileAlleinImZitat(lines[ende - 1])) ende--;
+  return lines.slice(tabelle.map[0], ende).join('\n');
 }
 
 // 4T-002072: Streift den Anker `^blockId` am Ende der Zeile ab, samt dem
@@ -202,22 +269,19 @@ function extractEmbedSnippet(roh, anchor) {
   const wantedSlug = githubLikeSlug(anchor);
   let startLine = -1;
   let headingLevel = 0;
-  let inFence = false;
-  let fenceChar = null;
+  // 4T-001912 (Epic 3E-000360): Code-Blöcke nach der Zaun-Regel überspringen
+  // (fence-level.js): Ein Block endet allein an einer Zeile desselben Zeichens,
+  // mindestens so lang wie die öffnende, ohne Sprach-Angabe. Bis dahin endete er
+  // an jeder Zaun-Zeile desselben Zeichens, und eine Überschrift im Rest eines
+  // äußeren Blocks mit längerem Zaun wurde als Anker gefunden.
+  let offen = null;
   for (let i = 0; i < lines.length; i++) {
-    const fenceMatch = lines[i].match(FENCE_RE);
-    if (fenceMatch) {
-      const ch = fenceMatch[1].charAt(0);
-      if (!inFence) {
-        inFence = true;
-        fenceChar = ch;
-      } else if (ch === fenceChar) {
-        inFence = false;
-        fenceChar = null;
-      }
+    if (offen) {
+      if (schliesstZaun(lines[i], offen)) offen = null;
       continue;
     }
-    if (inFence) continue;
+    offen = zaunOeffnung(lines[i]);
+    if (offen) continue;
     const m = lines[i].match(HEADING_RE);
     if (m && githubLikeSlug(m[1]) === wantedSlug) {
       startLine = i;
@@ -228,22 +292,16 @@ function extractEmbedSnippet(roh, anchor) {
   if (startLine < 0) return null;
 
   let endLine = lines.length;
-  inFence = false;
-  fenceChar = null;
+  // Dieselbe Verfolgung für das Ende des Abschnitts: Eine Überschrift in einem
+  // Code-Block beendet ihn nicht.
+  offen = null;
   for (let i = startLine + 1; i < lines.length; i++) {
-    const fenceMatch = lines[i].match(FENCE_RE);
-    if (fenceMatch) {
-      const ch = fenceMatch[1].charAt(0);
-      if (!inFence) {
-        inFence = true;
-        fenceChar = ch;
-      } else if (ch === fenceChar) {
-        inFence = false;
-        fenceChar = null;
-      }
+    if (offen) {
+      if (schliesstZaun(lines[i], offen)) offen = null;
       continue;
     }
-    if (inFence) continue;
+    offen = zaunOeffnung(lines[i]);
+    if (offen) continue;
     const m = lines[i].match(/^(#{1,6})\s+/);
     if (m && m[1].length <= headingLevel) {
       endLine = i;

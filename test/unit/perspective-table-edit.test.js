@@ -196,8 +196,28 @@ describe('editPerspectiveTable: Spalten-Operationen und Transponieren', () => {
     expect(r.cursor.line).toBe(8);
   });
   it('colInsert und colDelete wirken über alle Abschnitte', () => {
+    // 4T-002093 (Story 4S-000161, AK11): In der Kopfzeile entsteht eine
+    // Kopfzelle, in den beiden Datenzeilen je eine Datenzelle. Bis 4T-002093
+    // hielt dieser Fall drei Datenzellen fest, auch in der Kopfzeile.
     const ins = edit(BODY, { line: 3, ch: 0 }, 'colInsert');
-    expect(ins.lines.filter((l) => l === '| ').length).toBe(3);
+    expect(ins.lines).toEqual([
+      '{|',
+      '|+ Beispiel',
+      '|-',
+      '! K1',
+      '! ',
+      '! K2',
+      '|-.warn',
+      '| a1',
+      '| ',
+      '| a2',
+      'noch a2',
+      '|-',
+      '| b1',
+      '| ',
+      '| b2',
+      '|}',
+    ]);
     expect(ins.cursor).toEqual({ line: 4, ch: 2 });
     const del = edit(BODY, { line: 4, ch: 0 }, 'colDelete');
     expect(del.lines).toEqual([
@@ -211,6 +231,34 @@ describe('editPerspectiveTable: Spalten-Operationen und Transponieren', () => {
       '| b1',
       '|}',
     ]);
+  });
+  it('colInsert: eine Zeile mit Zeilen-Kopf bleibt Datenzeile, mehrere Kopfzeilen bleiben Kopf (4T-002093)', () => {
+    const body = ['{|', '|-', '! A', '! B', '|-', '! A2', '! B2', '|-', '! Zeile', '| x', '|}'];
+    const ins = edit(body, { line: 9, ch: 0 }, 'colInsert');
+    expect(ins.lines).toEqual([
+      '{|',
+      '|-',
+      '! A',
+      '! B',
+      '! ',
+      '|-',
+      '! A2',
+      '! B2',
+      '! ',
+      '|-',
+      '! Zeile',
+      '| x',
+      '| ',
+      '|}',
+    ]);
+    // Die Schreibmarke stand in der zweiten Spalte; eingefügt wird dahinter,
+    // und sie steht danach in der neuen Zelle ihrer Zeile.
+    expect(ins.cursor).toEqual({ line: 12, ch: 2 });
+  });
+  it('colInsert: eine Tabelle ohne Kopfzeile bekommt nur Datenzellen (4T-002093)', () => {
+    const body = ['{|', '|-', '| a', '|-', '| b', '|}'];
+    const ins = edit(body, { line: 2, ch: 0 }, 'colInsert');
+    expect(ins.lines).toEqual(['{|', '|-', '| a', '| ', '|-', '| b', '| ', '|}']);
   });
   it('Ränder sind No-ops, die letzte Spalte bleibt erhalten', () => {
     expect(edit(BODY, { line: 3, ch: 0 }, 'colLeft')).toBe(null);

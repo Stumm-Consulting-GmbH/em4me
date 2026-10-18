@@ -83,7 +83,7 @@ The search scope follows the tab the search is opened in; the scopes exclude one
 
 The scope in effect is shown at the left of the search bar. In the mind map view the search looks through the map itself, also in an open area; see [Mind map view](mindmap.md).
 
-Beyond the single file, matches appear in the sidebar panel **Search results**, grouped by file, page or settings section and with a count per group. A click opens the target and highlights the location; `F3` continues across the group boundary.
+Beyond the single file, matches appear in the sidebar panel **Search results**, grouped by file, page or settings section and with a count per group. A click opens the target and highlights the location; `F3` continues across the group boundary. In the list the arrow keys move the selection, and `Enter` jumps to the selected match. The selection is kept when the list is rebuilt for an unchanged search; only a new search starts again at the first match.
 
 ### Within an area
 

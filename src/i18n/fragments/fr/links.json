@@ -79,7 +79,8 @@
   "settings.renameLinks.group": "Liens lors du renommage",
   "settings.renameLinks.updateLinks": "Mettre à jour les liens dans les autres fichiers",
   "settings.renameLinks.preview": "Afficher un aperçu avant la mise à jour",
-  "embed.notFound": "Fichier embarqué introuvable : {path}",
+  "embed.notFound": "Incorporation impossible : « {path} » est introuvable",
+  "embed.linkedArea": "Incorporation impossible : « {path} » se trouve dans une zone liée, depuis laquelle rien ne peut être incorporé",
   "embed.depthExceeded": "Profondeur d'imbrication dépassée",
   "outgoing.notOpenable": "La cible liée ne peut pas être ouverte"
 }

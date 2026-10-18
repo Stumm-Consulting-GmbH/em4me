@@ -8,7 +8,7 @@
 'use strict';
 
 const path = require('node:path');
-const { toLogicalName } = require('../../shared/subpages.js');
+const { displayTitleFromBasename } = require('../../shared/subpages.js');
 // 4T-001749 (Epic 3E-000289): NAMENS_LINK_TYPEN traegt neben dem Wiki-Link den
 // Verweis einer Canvas-Karte; beide nennen ihr Ziel mit einem Namen und werden
 // gleich aufgeloest. Die Menge steht in der geteilten Erkennungs-Quelle, damit
@@ -98,8 +98,9 @@ function createTargetResolver(entry) {
 }
 
 // Logischer Anzeige-Name einer Index-Datei (Unterseiten-Notation inklusive).
+// 4T-001899: dieselbe Funktion wie jede andere Anzeige eines Datei-Namens.
 function logicalNameFor(absPath) {
-  return toLogicalName(path.basename(absPath).replace(MD_EXT_RE, ''));
+  return displayTitleFromBasename(path.basename(absPath));
 }
 
 // Wurzel-relativer, portabler Pfad ('/', wie die Cache-Schluessel).

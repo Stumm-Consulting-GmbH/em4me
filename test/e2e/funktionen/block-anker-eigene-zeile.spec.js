@@ -116,7 +116,9 @@ const ERWARTETE_ARTEN = {
   bild: 'perspective-chart',
   fluss: 'mermaid-block',
   liste: 'p',
-  pipe: 'p',
+  // 4T-002018 (Epic 3E-000360): Die Kennung unter der Pipe-Tabelle meint die
+  // ganze Tabelle und steht an ihr, nicht mehr in einem Träger darunter.
+  pipe: 'table',
   zitat: 'p',
   code: 'pre',
 };
@@ -137,8 +139,9 @@ test.describe('BZ-01: Lese-Ansicht und gerenderte Hälfte (help.feature.blockAnc
         const stand = await gerendert(page);
         expect(stand.text, ansicht).not.toMatch(SICHTBARER_ANKER);
         expect(stand.arten, ansicht).toEqual(ERWARTETE_ARTEN);
-        // Die Träger unter der Liste und der Tabelle: keine Höhe, und der
-        // Abstand zum nächsten Block ist derselbe wie ohne Anker-Zeile.
+        // Der Träger unter der Liste: keine Höhe; unter der Tabelle steht seit
+        // 4T-002018 keiner mehr, und der Abstand zum nächsten Block ist
+        // derselbe wie ohne Anker-Zeile.
         const lage = await page.evaluate((sel) => {
           const body = document.querySelector(sel);
           const r = (el) => el.getBoundingClientRect();
@@ -150,12 +153,12 @@ test.describe('BZ-01: Lese-Ansicht und gerenderte Hälfte (help.feature.blockAnc
                 : t.nextElementSibling,
             ).top - r(t).bottom;
           return {
-            hoehen: ['liste', 'pipe'].map((id) => r(body.querySelector(`[id="${id}"]`)).height),
+            hoehen: ['liste'].map((id) => r(body.querySelector(`[id="${id}"]`)).height),
             mitAnker: abstand(tabellen[0]),
             ohneAnker: abstand(tabellen[1]),
           };
         }, BODY);
-        expect(lage.hoehen, ansicht).toEqual([0, 0]);
+        expect(lage.hoehen, ansicht).toEqual([0]);
         expect(Math.abs(lage.mitAnker - lage.ohneAnker), ansicht).toBeLessThanOrEqual(0.5);
       }
     });
@@ -463,9 +466,9 @@ test.describe('BZ-07: Tabelle im Zitat und im Hinweisblock, zwei Anker (help.fea
       await expect(page.locator(`${BODY} [id="zwei-b"]`)).toHaveCount(1);
 
       // Live-Modus: Die Anker-Zeile steht außerhalb des Tabellen-Widgets und
-      // trägt das Anker-Zeichen. (Dass das Widget einer Tabelle im Zitat sie
-      // nicht als Tabelle zeigt, weil ihre Folgezeilen die Zitat-Präfixe
-      // tragen, ist Bestand und nicht Gegenstand; gemessen am 2026-09-30.)
+      // trägt das Anker-Zeichen. (Seit 4T-002055 zeigt das Widget einer
+      // Tabelle im Zitat sie als Tabelle; geprüft in tabellen-zelle.spec.js,
+      // Fall TZ-10.)
       await page.locator(SEL.viewBtn('live')).click();
       const widgets = page.locator(`${SEL.editorContent0} .cm-live-block`);
       await expect(widgets.first()).toBeVisible({ timeout: 15000 });

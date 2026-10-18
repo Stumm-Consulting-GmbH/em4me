@@ -15,6 +15,91 @@ import {
   locatePipeCellPosition,
   parsePipeTable,
 } from '../../../shared/markdown/table-edit.js';
+// 4T-002055 (Epic 3E-000360): die Zitat-Präfix-Regel aus der Heimat der
+// Anker-Erkennung, die Zitat-Präfixe beliebiger Tiefe kennt.
+import { zitatPraefixWie, zitatTiefe } from '../../../shared/block-anchors.js';
+
+// --- Block in einem Zitat (4T-002055) ----------------------------------------
+//
+// Eine Tabelle in einem Zitat oder einer Hinweis-Box trägt ab ihrer zweiten
+// Zeile die Zitat-Präfixe (`> `). Das Widget bekommt ihren Text ohne sie, sonst
+// liest die Anzeige-Pipeline keine Tabelle (Entscheidung des Product Owners vom
+// 2026-10-03, Weg A). Alle Stellen in diesem Text (der «Block-Text») werden
+// über die Präfixe je Zeile auf Stellen im Dokument zurückgerechnet, und beim
+// Zurückschreiben bleiben die Präfixe stehen. Außerhalb eines Zitats gibt es
+// keine Präfixe (`null`), und jede Rechnung bleibt, was sie war.
+
+// Der Text vor der Stelle `von` in ihrer Zeile, über die Lese-Schnittstelle
+// `sliceString` (genügt auch dem Ersatz-Dokument der Prüffälle).
+function textVorStelle(doc, von) {
+  let start = von;
+  let vor;
+  do {
+    start = Math.max(0, start - 256);
+    vor = doc.sliceString(start, von);
+  } while (start > 0 && !vor.includes('\n'));
+  const nl = vor.lastIndexOf('\n');
+  return nl < 0 ? vor : vor.slice(nl + 1);
+}
+
+// Die Präfixe der Zeilen des Blocks, der an `von` beginnt und `zeilenzahl`
+// Zeilen hat: je Zeile der Text des Präfixes im Dokument, die erste leer.
+// `null`, wenn der Block in keinem Zitat steht.
+export function zitatPraefixeAb(doc, von, zeilenzahl) {
+  const vorlage = textVorStelle(doc, von);
+  if (zitatTiefe(vorlage) === 0) return null;
+  let ende = von;
+  let text = '';
+  while (text.split('\n').length < zeilenzahl + 1 && ende < doc.length) {
+    ende = Math.min(doc.length, ende + 1024);
+    text = doc.sliceString(von, ende);
+  }
+  const zeilen = text.split('\n').slice(0, zeilenzahl);
+  return zeilen.map((zeile, i) => (i === 0 ? '' : zitatPraefixWie(zeile, vorlage)));
+}
+
+// Der Block-Text ohne die Präfixe: `docText` ist der Text des Dokuments ab der
+// ersten Zeile des Blocks.
+export function ohneZitatPraefixe(docText, praefixe) {
+  if (!praefixe) return docText;
+  return String(docText)
+    .split('\n')
+    .map((zeile, i) => zeile.slice((praefixe[i] || '').length))
+    .join('\n');
+}
+
+// Die Stelle im Dokument zu der Stelle `offset` im Block-Text `text`. Eine
+// Zeile hinter der letzten bekannten (eine neu angefügte) trägt das Präfix der
+// letzten.
+export function dokStelle(von, praefixe, text, offset) {
+  if (!praefixe) return von + offset;
+  const zeilen = String(text).split('\n');
+  let rest = offset;
+  let zusatz = 0;
+  for (let i = 0; i < zeilen.length; i++) {
+    if (i > 0) zusatz += (praefixe[Math.min(i, praefixe.length - 1)] || '').length;
+    if (rest <= zeilen[i].length) break;
+    rest -= zeilen[i].length + 1;
+  }
+  return von + offset + zusatz;
+}
+
+// Umgekehrt: die Stelle im Block-Text zu einer Stelle relativ zum Block-Anfang
+// im Dokument. Eine Stelle im Präfix fällt auf den Anfang ihrer Zeile.
+export function blockStelle(praefixe, docText, relativeStelle) {
+  if (!praefixe) return relativeStelle;
+  const zeilen = String(docText).split('\n');
+  let rest = relativeStelle;
+  let ergebnis = 0;
+  for (let i = 0; i < zeilen.length; i++) {
+    const praefix = (praefixe[i] || '').length;
+    if (rest <= zeilen[i].length) return ergebnis + Math.max(0, rest - praefix);
+    rest -= zeilen[i].length + 1;
+    ergebnis += zeilen[i].length - praefix + 1;
+  }
+  return ergebnis;
+}
+
 // Lokalisiert den Tabellen-Block des Containers im aktuellen Dokument und
 // bestaetigt ihn gegen den Stand, mit dem das Widget gebaut wurde. `null`, wenn
 // die Zuordnung nicht zweifelsfrei gelingt — dann wird nichts geschrieben.
@@ -47,13 +132,20 @@ export function blockImDokument(view, container, source) {
 // Zuordnung: Steht an der Stelle noch genau der Text, aus dem die Bearbeitung
 // hervorging, ist der Block gefunden; sonst nicht, und es wird nichts
 // geschrieben.
+//
+// 4T-002055: `source` ist der Block-Text ohne Zitat-Präfixe; abgeglichen wird
+// gegen den Dokument-Text mit den Präfixen, die dort stehen. Der Block trägt
+// sie in `praefixe` (außerhalb eines Zitats fehlt das Feld).
 export function blockAmAnker(doc, von, source) {
   if (typeof von !== 'number' || von < 0) return null;
   const text = String(source);
-  const to = von + text.length;
+  const zeilen = text.split('\n');
+  const praefixe = von <= doc.length ? zitatPraefixeAb(doc, von, zeilen.length) : null;
+  const dokText = praefixe ? zeilen.map((z, i) => (praefixe[i] || '') + z).join('\n') : text;
+  const to = von + dokText.length;
   if (to > doc.length) return null;
-  if (doc.sliceString(von, to) !== text) return null;
-  return { from: von, to, zeilen: text.split('\n') };
+  if (doc.sliceString(von, to) !== dokText) return null;
+  return praefixe ? { from: von, to, zeilen, praefixe } : { from: von, to, zeilen };
 }
 
 // 4T-001712: Schreibt die Dokument-Stelle eines Blocks durch eine Aenderung
@@ -83,7 +175,8 @@ export function zellTextAn(zeilen, pos) {
 // Padding vor der schliessenden Pipe, wie es der Bestands-Zellsprung tut.
 export function zellBereich(block, modell, pos) {
   const stelle = locatePipeCellPosition(block.zeilen, modell, pos);
-  const from = block.from + stelle.offset;
+  // 4T-002055: über die Zitat-Präfixe der Zeilen davor ins Dokument.
+  const from = dokStelle(block.from, block.praefixe, block.zeilen.join('\n'), stelle.offset);
   return { from, to: from + (stelle.contentEnd - stelle.contentStart), stelle };
 }
 
@@ -154,6 +247,21 @@ export function neueZeileAmEnde(blockText, spalten) {
   return { einfuegen, zielOffset: stelle.offset, ziel };
 }
 
+// 4T-002055 (Epic 3E-000360): Die neue Zeile am Ende eines Blocks im Dokument:
+// der einzufügende Text — in einem Zitat mit dem Präfix der letzten Zeile — und
+// die Stelle der ersten Zelle der neuen Zeile im Dokument. `textDanach` ist der
+// Block-Text nach einer etwaigen Zell-Übernahme.
+export function neueZeileFuerBlock(block, textDanach, spalten) {
+  const anlage = neueZeileAmEnde(textDanach, spalten);
+  const praefix = block.praefixe ? block.praefixe[block.praefixe.length - 1] || '' : '';
+  const mitZeile = textDanach + anlage.einfuegen;
+  return {
+    einfuegen: anlage.einfuegen.replace('\n', '\n' + praefix),
+    anker: dokStelle(block.from, block.praefixe, mitZeile, anlage.zielOffset),
+    ziel: anlage.ziel,
+  };
+}
+
 // Die logische Zell-Position und der Zeichen-Offset darin, zu einer Stelle im
 // Dokument. `null`, wenn die Stelle in keiner Zelle liegt.
 export function zellePosZuDokumentStelle(zeilen, modell, relativeStelle) {
@@ -188,9 +296,12 @@ export function maskiereZellText(text) {
 // Der Block-Text, wie er nach der Uebernahme dasteht — gebraucht, um die
 // Ziel-Stelle eines Sprungs im NEUEN Dokument zu berechnen. Die Ersetzung wird
 // dafuer lokal auf den Block angewandt, statt auf die Transaktion zu warten.
+// 4T-002055: gerechnet im Block-Text über die Stelle der Zelle darin, nicht
+// über den Abstand im Dokument, der die Zitat-Präfixe mitzählt.
 export function blockTextNachUebernahme(block, bereich, neu) {
   const alt = block.zeilen.join('\n');
-  return alt.slice(0, bereich.from - block.from) + neu + alt.slice(bereich.to - block.from);
+  const von = bereich.stelle.offset;
+  return alt.slice(0, von) + neu + alt.slice(von + (bereich.to - bereich.from));
 }
 
 // Uebernimmt die offene Bearbeitung. `ziel` ist die logische Zell-Position, zu

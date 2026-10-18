@@ -259,12 +259,13 @@ Avec **Fichier → Autres fonctions de fichier → Exporter → Markdown portabl
 - **L'attribut `scope`** d'accessibilité sur les cellules d'en-tête est préservé.
 - **Imbrication** : jusqu'à trois niveaux sont convertis récursivement.
 - **Mise en forme en ligne dans les cellules** (gras, italique, code, liens) est convertie en HTML afin de s'afficher correctement aussi dans les rendus tiers.
+- **Les cases à cocher des tâches** apparaissent dans le fichier portable sous forme de caractères : ☐ ouverte, ☑ terminée, un état étendu sous sa forme entre crochets comme `[/]` — dans les cellules comme dans les listes de tâches ordinaires, afin que l'état reste lisible dans tout programme.
 
 #### Marqueur pour l'affichage dans le viewer
 
 Pour que le fichier exporté s'affiche **aussi comme un tableau dans le viewer EM4me** (au lieu de texte source avec balises `<table>`), le convertisseur insère le marqueur `<!-- perspective-portable -->` au début du fichier. Le viewer reconnaît ce marqueur et passe le fichier dans un mode de rendu compatible HTML.
 
-**Note de sécurité** : les fichiers `.md` réguliers s'ouvrent toujours sans rendu HTML — aucun HTML du Markdown n'est exécuté. Seul le marqueur déverrouille le rendu HTML. Pour un fichier `.md` tiers portant ce marqueur (cas limite), tu dois faire confiance à la source, car le contenu HTML qui s'y trouve serait exécuté.
+**Note de sécurité** : les fichiers `.md` réguliers s'ouvrent toujours sans rendu HTML — aucun HTML du Markdown n'est exécuté. Seul le marqueur déverrouille le rendu HTML, et uniquement pour l'affichage des tableaux et du balisage de structure comme les listes, les titres et les blocs de code. Rien n'est exécuté, pas même dans un fichier `.md` tiers portant ce marqueur : les scripts, formulaires, pages intégrées et gestionnaires d'événements sont supprimés, et une image qui s'y trouve n'affiche qu'une image intégrée ou un fichier image situé à côté du document, jamais une adresse sur le réseau ou sur un partage réseau.
 
 ## Tri, mise en évidence des statuts et alignement par défaut
 

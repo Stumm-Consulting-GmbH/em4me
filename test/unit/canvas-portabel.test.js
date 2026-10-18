@@ -315,3 +315,89 @@ describe('Canvas im portablen Export: die Weiche im Konverter (AK1, AK9, AK12, A
     expect(out).not.toContain('geheim');
   });
 });
+
+// 4T-002037 (Epic 3E-000360): Die Fläche wird im Export nach der Zaun-Regel der
+// Anwendung erkannt (src/shared/markdown/fence-level.js) — in jeder Form, die
+// die Ansicht als Fläche zeigt. Bis dahin wandelte der Export allein den
+// Backtick-Zaun mit gleich langem Schluss-Zaun um; in den übrigen Formen blieb
+// die rohe Fläche mit ihren Koordinaten-Zeilen stehen.
+describe('Canvas im portablen Export: Zaun-Formen nach der Zaun-Regel (4T-002037)', () => {
+  const RUMPF = ['!karte k1 x=0 y=0 b=200 h=100', '## Zielbild', 'Was am Ende dastehen soll'].join(
+    '\n',
+  );
+  const KOPF = '**Zielbild · 1 Karte, 0 Verbindungen**';
+
+  afterEach(() => {
+    configureExtensions([]);
+  });
+
+  function umgewandelt(doc) {
+    const out = convertMarkdownPortable(doc, false, 'de');
+    return { out, ok: out.includes(KOPF) && !out.includes('!karte') };
+  }
+
+  it('Tilde-Zaun', () => {
+    const { out, ok } = umgewandelt(`~~~perspective-canvas\n${RUMPF}\n~~~\n\nDanach.\n`);
+    expect(ok, out).toBe(true);
+    expect(out).not.toContain('~~~');
+    expect(out).toContain('Was am Ende dastehen soll\n\nDanach.');
+  });
+
+  it('Leerzeichen vor dem Info-Wort', () => {
+    const { out, ok } = umgewandelt(`\`\`\` perspective-canvas\n${RUMPF}\n\`\`\`\n`);
+    expect(ok, out).toBe(true);
+  });
+
+  it('Schluss-Zaun länger als der öffnende', () => {
+    const { out, ok } = umgewandelt(`\`\`\`perspective-canvas\n${RUMPF}\n\`\`\`\`\`\n\nDanach.\n`);
+    expect(ok, out).toBe(true);
+    expect(out).not.toContain('`````');
+    expect(out).toContain('Was am Ende dastehen soll\n\nDanach.');
+  });
+
+  it('eingerückter Zaun und eingerückter Schluss-Zaun, auch mit Windows-Zeilenenden', () => {
+    const doc = `  ~~~~ perspective-canvas Titel\r\n${RUMPF.replace(/\n/g, '\r\n')}\r\n   ~~~~~~\r\n`;
+    const { out, ok } = umgewandelt(doc);
+    expect(ok, out).toBe(true);
+  });
+
+  it('Gegenprobe: Backtick-Zaun mit gleich langem Schluss-Zaun wie bisher', () => {
+    const { out, ok } = umgewandelt(`\`\`\`perspective-canvas\n${RUMPF}\n\`\`\`\n\nDanach.\n`);
+    expect(ok, out).toBe(true);
+    expect(out).toContain('Was am Ende dastehen soll\n\nDanach.');
+  });
+
+  it('Gegenprobe: eine Fläche in einem äußeren Zaun bleibt zitierter Text', () => {
+    for (const aussen of ['````markdown', '~~~markdown']) {
+      const zu = aussen.slice(0, aussen.indexOf('m'));
+      const doc = `${aussen}\n~~~perspective-canvas\n${RUMPF}\n~~~\n${zu}\n`;
+      expect(convertMarkdownPortable(doc, false, 'de'), aussen).toBe(doc);
+    }
+  });
+
+  it('Gegenprobe: ein kürzerer Schluss-Zaun gehört zum Inhalt, der Block bleibt offen', () => {
+    // `~~~` schließt einen `~~~~`-Zaun nicht; ohne Schluss bleibt der Block
+    // wie bisher als Code-Block stehen.
+    const doc = `~~~~perspective-canvas\n${RUMPF}\n~~~\n`;
+    expect(convertMarkdownPortable(doc, false, 'de')).toBe(doc);
+  });
+
+  it('Gegenprobe: ein anderes Info-Wort und ein Zaun anderer Art bleiben Code-Block', () => {
+    for (const doc of [
+      `\`\`\`perspective-canvasx\n${RUMPF}\n\`\`\`\n`,
+      `\`\`\`perspective-canvas\n${RUMPF}\n~~~\n`,
+    ]) {
+      expect(convertMarkdownPortable(doc, false, 'de'), doc).toBe(doc);
+    }
+  });
+
+  it('Gegenprobe: abgeschaltete Canvas-Funktion lässt jede Form als Code-Block stehen', () => {
+    configureExtensions(['canvas']);
+    for (const doc of [
+      `~~~perspective-canvas\n${RUMPF}\n~~~\n`,
+      `\`\`\`perspective-canvas\n${RUMPF}\n\`\`\`\`\`\n`,
+    ]) {
+      expect(convertMarkdownPortable(doc, false, 'de'), doc).toBe(doc);
+    }
+  });
+});

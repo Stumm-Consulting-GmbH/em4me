@@ -548,4 +548,83 @@ test.describe('BV-06: Aus-Zustand der Erweiterung area-links (4T-001457)', () =>
       removeDir(fremd);
     }
   });
+
+  // 4T-002069 (Story 4S-000874, AK7 und AK8): «Ausgeschaltet» heisst ohne
+  // Ausnahme kein Lesen aus dem verknuepften Bereich, und ein geoeffnetes
+  // Dokument von dort schliesst beim Ausschalten — mit der ueblichen Rueckfrage,
+  // wenn es ungespeicherte Aenderungen traegt.
+  test('Ausschalten schließt Dokumente aus dem verknüpften Bereich, gelesen wird nichts mehr', async () => {
+    const eigen = tmpDir('em4me-bv-schliessen-');
+    const fremd = tmpDir('em4me-bv-schliessen-ziel-');
+    const ziel = path.join(fremd, 'Zielnotiz.md');
+    fs.writeFileSync(ziel, '# Zielnotiz\n\nInhalt aus dem verknuepften Bereich.\n', 'utf8');
+    const quelle = path.join(eigen, 'Quelle.md');
+    fs.writeFileSync(quelle, '# Quelle\n\nVerweis: [[@zt:Zielnotiz]]\n', 'utf8');
+    schreibeVerknuepfung(eigen, 'zt', fremd);
+
+    const { app, page, userData } = await launchApp();
+    // Rueckfrage beim Schliessen zaehlen und mit «Verwerfen» (1) beantworten.
+    const rueckfragen = () => hauptLesen(app, () => globalThis.__bvRueckfragen || []);
+    const oeffneZiel = async () => {
+      await hauptSenden(app, ({ BrowserWindow }) => {
+        BrowserWindow.getAllWindows()[0].webContents.send('menu:viewChange', 'rendered');
+      });
+      await page.locator(`${PANE} a.arealink[data-area-prefix="zt"]`).first().click();
+      await expect.poll(() => page.locator(TABS).count()).toBe(2);
+      await expect(page.locator(`${PANE} .tabbar .tab.active .tab-title`)).toHaveText(/Zielnotiz/);
+    };
+    try {
+      await hauptSenden(app, ({ dialog }) => {
+        globalThis.__bvRueckfragen = [];
+        dialog.showMessageBox = async (a, b) => {
+          globalThis.__bvRueckfragen.push(String((b || a || {}).message));
+          return { response: 1 };
+        };
+      });
+      await bindeBereich(page, eigen);
+      await oeffneDatei(app, quelle);
+      await expect(page.locator(TABS).first()).toBeVisible();
+      await oeffneZiel();
+      // Gegenprobe im An-Zustand: Der Kanal liest das Ziel.
+      expect((await page.evaluate((p) => window.api.readFile(p), ziel)).ok).toBe(true);
+
+      // Ungespeicherte Aenderung am Dokument aus dem verknuepften Bereich.
+      await hauptSenden(app, ({ BrowserWindow }) => {
+        BrowserWindow.getAllWindows()[0].webContents.send('menu:viewChange', 'source');
+      });
+      await page.locator('#btn-edit').click();
+      await page.locator(`${PANE} .pane-source .cm-content .cm-line`).last().click();
+      await page.keyboard.press('End');
+      await page.keyboard.type(' Ergaenzt.');
+      await expect(page.locator(`${PANE} .tabbar .tab.dirty`)).toHaveCount(1);
+
+      await page.evaluate(() => window.api.setSetting('extensions.disabled', ['area-links']));
+      // AK8: die uebliche Rueckfrage, danach ist das Dokument geschlossen.
+      await expect.poll(async () => (await rueckfragen()).length).toBe(1);
+      await expect.poll(() => page.locator(TABS).count()).toBe(1);
+      await expect(page.locator(`${PANE} .tabbar .tab .tab-title`)).toHaveText(/Quelle/);
+      // AK7: Der Lese-Kanal gibt nichts mehr aus dem verknuepften Bereich her.
+      expect(await page.evaluate((p) => window.api.readFile(p), ziel)).toEqual({
+        ok: false,
+        error: 'outside-area',
+      });
+      // Verworfen heisst verworfen: Die Datei ist unveraendert.
+      expect(fs.readFileSync(ziel, 'utf8')).not.toContain('Ergaenzt');
+
+      // Wieder an, Ziel unveraendert oeffnen, erneut aus: Ein Dokument ohne
+      // ungespeicherte Aenderung schliesst ohne Rueckfrage.
+      await page.evaluate(() => window.api.setSetting('extensions.disabled', []));
+      await expect
+        .poll(async () => (await page.evaluate((p) => window.api.readFile(p), ziel)).ok)
+        .toBe(true);
+      await oeffneZiel();
+      await page.evaluate(() => window.api.setSetting('extensions.disabled', ['area-links']));
+      await expect.poll(() => page.locator(TABS).count()).toBe(1);
+      expect(await rueckfragen()).toHaveLength(1);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      removeDir(eigen);
+      removeDir(fremd);
+    }
+  });
 });

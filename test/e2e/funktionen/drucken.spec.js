@@ -11,6 +11,8 @@
 // abgebaut ist und dass ein Abbruch nichts meldet.
 'use strict';
 
+const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
@@ -178,6 +180,95 @@ test.describe('DR-05: Strg+P im Editor-Fokus (Messung zu 4T-000024)', () => {
       expect(await printCalls(app)).toBeGreaterThan(0);
       await expect(page.locator('body.printing')).toHaveCount(0);
     } finally {
+      await closeApp(app, userData);
+    }
+  });
+});
+
+// 4T-002054 (Story 4S-000163, AK10; 4S-000881): Der Druck zeigt alle Zeilen
+// einer Datentabelle; die Zeilen-Grenze gilt allein dem Gitter. Gemessen am
+// Zustand der Seite im Augenblick des Druck-Aufrufs (Muster DD-01 in
+// diagramme-druck.spec.js): Der Stub liest die Datenzeilen der gedruckten
+// Spalte, bevor er den Systemdialog als erledigt meldet.
+const ERFASSE_DATENTABELLE = `(() => {
+  const b = document.querySelector('.pane-group[data-pane="0"] .markdown-body .perspective-datatable');
+  return b ? {
+    zeilen: b.querySelectorAll('tbody tr').length,
+    letzte: (b.querySelector('tbody tr:last-child') || {}).textContent || null,
+    hinweis: !!b.querySelector('.pdt-limit'),
+    aggregat: (b.querySelector('tfoot .pdt-agg-value') || {}).textContent || null,
+  } : null;
+})()`;
+
+test.describe('DR-06: Datentabelle mit 2000 Zeilen im Druck (4T-002054)', () => {
+  test('beim Druck-Aufruf trägt die Seite alle 2000 Datenzeilen, danach ist das Gitter wieder gekürzt', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-druck-e2e-dt-'));
+    const datei = path.join(dir, 'Datentabelle-2000-Zeilen.md');
+    const zeilen = Array.from({ length: 2000 }, (_, i) => `| ${i + 1} | Zeile ${i + 1} |`);
+    fs.writeFileSync(
+      datei,
+      [
+        '# Große Tabelle',
+        '',
+        '```perspective-datatable',
+        'columns: Nr:number, Name:text',
+        'aggregate: Nr:count',
+        ...zeilen,
+        '```',
+        '',
+      ].join('\n'),
+      'utf8',
+    );
+    const { app, page, userData } = await launchApp({ args: [datei] });
+    try {
+      const behaelter = page.locator(`${SEL.markdownBody0} .perspective-datatable`);
+      await expect(behaelter.locator('.pdt-limit')).toBeVisible({ timeout: 20000 });
+
+      await hauptSenden(
+        app,
+        ({ BrowserWindow }, erfasse) => {
+          globalThis.__dtDruck = [];
+          for (const win of BrowserWindow.getAllWindows()) {
+            win.webContents.print = (options, callback) => {
+              win.webContents.executeJavaScript(erfasse).then(
+                (stand) => {
+                  globalThis.__dtDruck.push(stand);
+                  callback(true, '');
+                },
+                (err) => {
+                  globalThis.__dtDruck.push({ fehler: String(err) });
+                  callback(true, '');
+                },
+              );
+            };
+          }
+        },
+        ERFASSE_DATENTABELLE,
+      );
+      await hauptSenden(app, ({ BrowserWindow }) => {
+        BrowserWindow.getAllWindows()[0].webContents.send('menu:print');
+      });
+      await expect
+        .poll(() => hauptLesen(app, () => globalThis.__dtDruck.length), { timeout: 30000 })
+        .toBe(1);
+      const stand = await hauptLesen(app, () => globalThis.__dtDruck[0]);
+      expect(stand).toEqual({
+        zeilen: 2000,
+        letzte: expect.stringContaining('Zeile 2000'),
+        hinweis: false,
+        aggregat: '2000',
+      });
+
+      // AK4: danach zeigt das Gitter wieder Kopf, Aggregate und Hinweis.
+      await expect(page.locator('body.printing')).toHaveCount(0);
+      await expect(behaelter.locator('.pdt-limit')).toBeVisible();
+      await expect(behaelter.locator('tbody tr')).toHaveCount(0);
+    } finally {
+      try {
+        fs.rmSync(dir, { recursive: true, force: true });
+      } catch {
+        /* Temp-Reste sind unkritisch */
+      }
       await closeApp(app, userData);
     }
   });

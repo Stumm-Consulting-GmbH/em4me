@@ -92,6 +92,12 @@ test.describe('DV-01: Verweis in der Zelle in Lese-, geteilter und Live-Ansicht 
         .locator(SEL.markdownBody0)
         .locator('.perspective-datatable tr[data-dt-row="0"] td[data-dt-col="0"]');
       await expect(zelleWieder.locator('a.wikilink')).toBeVisible();
+      // 4T-002053: Das Raster öffnet eine Zelle nur bei eingeschaltetem
+      // Bearbeiten; der Zustand gilt danach auch für die Live-Ansicht.
+      await page.locator(SEL.btnEdit).click();
+      await expect(page.locator('.pane-group[data-pane="0"] .pane-source-editor')).not.toHaveClass(
+        /read-only/,
+      );
       await klickDaneben(zelleWieder);
       const eingabe = page.locator(SEL.markdownBody0).locator('input.pdt-cell-input');
       await expect(eingabe).toBeVisible();

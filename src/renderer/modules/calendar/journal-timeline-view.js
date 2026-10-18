@@ -389,11 +389,11 @@ export async function waitForJournalTimelineIdle() {
 // --- 4T-001066: Portable-Export ---------------------------------------------------------
 
 // Der Portable-Export ersetzt Konstrukte durch ihre informationserhaltende
-// statische Entsprechung (Perspective-Table und Datatable werden zu
-// Pipe-Tabellen, Ereignisse zur statischen Tabelle). Beim Timeline-Block ist
-// das Gitter der Inhalt, also wird es zur Pipe-Tabelle; eine bloße
-// Perioden-Beschriftung wie beim Navigations-Block würde ihn wegwerfen
-// (Konzept-Entscheid E8).
+// statische Entsprechung (Perspective-Table, Datatable, Ereignis-Aufstellung
+// und Datensatz-Block werden zu eingebetteten HTML-Tabellen). Beim
+// Timeline-Block ist das Gitter der Inhalt, also wird es zur Pipe-Tabelle;
+// eine bloße Perioden-Beschriftung wie beim Navigations-Block würde ihn
+// wegwerfen (Konzept-Entscheid E8).
 //
 // Zeichen-Regeln der Tabelle: ein vorhandener Eintrag hängt '•' an die
 // Tageszahl, der heutige Tag steht fett, Randtage der Nachbar-Monate stehen

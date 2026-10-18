@@ -434,3 +434,59 @@ test.describe('PD-08: Print-Layout-Regeln des Quelltext-Drucks (DOM-Spike)', () 
     }
   });
 });
+
+// 4T-002054 (Story 4S-000163, AK10; 4S-000452): Die PDF-Ausgabe zeigt alle
+// Zeilen einer Datentabelle; die Zeilen-Grenze gilt allein dem Gitter. Vor der
+// Behebung hatte das PDF bei 2000 Zeilen eine Seite (nur Kopf, Aggregat-Zeile
+// und Hinweis), bei 1000 Zeilen 42 Seiten.
+function datentabelleMitZeilen(zahl) {
+  const zeilen = Array.from({ length: zahl }, (_, i) => `| ${i + 1} | Zeile ${i + 1} |`);
+  return [
+    '# Große Tabelle',
+    '',
+    '```perspective-datatable',
+    'columns: Nr:number, Name:text',
+    'aggregate: Nr:count',
+    ...zeilen,
+    '```',
+    '',
+  ].join('\n');
+}
+
+test.describe('PD-09: Datentabelle mit 2000 Zeilen im PDF (4T-002054)', () => {
+  test('das PDF trägt alle Zeilen auf mehreren Seiten, das Gitter danach wieder gekürzt', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-pdf-e2e-dt-'));
+    const datei = path.join(dir, 'Datentabelle-2000-Zeilen.md');
+    fs.writeFileSync(datei, datentabelleMitZeilen(2000), 'utf8');
+    const { app, page, userData } = await launchApp({ args: [datei] });
+    const target = tmpPdfPath('datentabelle');
+    try {
+      const behaelter = page.locator(`${SEL.markdownBody0} .perspective-datatable`);
+      await expect(behaelter.locator('.pdt-limit')).toBeVisible({ timeout: 20000 });
+      await expect(behaelter.locator('tbody tr')).toHaveCount(0);
+
+      await stubSaveDialog(app, { canceled: false, filePath: target });
+      await triggerExportOnce(page, app);
+      await expect.poll(() => fs.existsSync(target), { timeout: 60000 }).toBe(true);
+      await expect(page.locator('body.printing')).toHaveCount(0);
+
+      const buffer = fs.readFileSync(target);
+      expect(buffer.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+      // 2000 Zeilen brauchen weit mehr Seiten als 1000 (42 vor der Behebung).
+      expect(pdfPageCount(buffer)).toBeGreaterThan(42);
+
+      // AK4: danach zeigt das Gitter wieder Kopf, Aggregate und Hinweis.
+      await expect(behaelter.locator('.pdt-limit')).toBeVisible();
+      await expect(behaelter.locator('tbody tr')).toHaveCount(0);
+      await expect(behaelter.locator('tfoot .pdt-agg-value')).toHaveText('2000');
+    } finally {
+      try {
+        fs.rmSync(target, { force: true });
+        fs.rmSync(dir, { recursive: true, force: true });
+      } catch {
+        /* Temp-Reste sind unkritisch */
+      }
+      await closeApp(app, userData);
+    }
+  });
+});

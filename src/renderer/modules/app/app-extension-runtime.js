@@ -20,7 +20,8 @@ import { clearSidebarCollapsed } from '../panels/sidebar-collapse.js';
 import { getPanelToggleOrder } from '../sidebar-layout.js';
 import { PANEL_ACCESS } from '../../../shared/panel-access.js';
 import { applyBookmarksVisibility } from '../bookmarks/bookmarks.js';
-import { reportMenuStateNow } from '../tabs/tabs.js';
+import { closeTab, reportMenuStateNow } from '../tabs/tabs.js';
+import { isOutsideActiveArea } from '../area.js';
 import { applyCommandPlacementUi } from '../command-placement.js';
 import { applyFormatToolbarUi } from '../editor/format-toolbar.js';
 import { applyTagsVisibility } from '../properties/properties-tags.js';
@@ -34,6 +35,9 @@ import { CANVAS_EXTENSION_ID } from '../../../shared/canvas/canvas-core.js';
 // Modus-Modul und nicht im Format-Kern, weil kein Preload-Teil nach ihr fragt
 // (Begruendung im Kopf von kanban-modus.js).
 import { KANBAN_EXTENSION_ID } from '../kanban/kanban-modus.js';
+// 4T-001688: Kennung der Mindmap-Erweiterung, aus dem Modus-Modul wie bei der
+// Tafel (app-state.js liest dieselbe Quelle).
+import { MINDMAP_EXTENSION_ID } from '../mindmap/mindmap-modus.js';
 // 4T-002160 (Epic 3E-000149): Kennung der Praesentations-Erweiterung, aus
 // demselben Grund im Modus-Modul.
 import { PRESENTATION_EXTENSION_ID } from '../presentation/presentation-modus.js';
@@ -249,6 +253,21 @@ export function registerExtensionRuntimeHooks() {
       }
     },
   });
+  // 4T-001688: Aus-Zustand der Mindmap-Ansicht, aus demselben Grund wie bei
+  // Canvas und Tafel. Der Rückfall in mindmap-modus.js greift nur beim ÖFFNEN;
+  // ohne diesen Hook bliebe ein offenes Dokument nach dem Abschalten in einer
+  // Ansicht ohne Schalter und ohne Menü-Eintrag stehen (Story 4S-000804, AK7).
+  // Geschrieben wird nichts, und ein activate-Gegenstück gibt es wie dort nicht.
+  attachExtensionRuntime(MINDMAP_EXTENSION_ID, {
+    deactivate: () => {
+      for (const pane of state.panes) {
+        for (const tab of pane.tabs || []) {
+          if (tab.viewMode === 'mindmap') tab.viewMode = 'rendered';
+        }
+      }
+    },
+  });
+
   // 4T-002160 (Epic 3E-000149): Aus-Zustand der Praesentations-Ansicht, aus
   // demselben Grund wie bei der Tafel: Ohne den Hook bliebe ein offenes
   // Dokument in einer Ansicht ohne Schalter und ohne Menue-Eintrag stehen. Es
@@ -264,4 +283,43 @@ export function registerExtensionRuntimeHooks() {
       }
     },
   });
+  // 4T-002069 (Story 4S-000874, AK8): Aus-Zustand der Bereichs-Verknuepfungen.
+  // Die Lese-Grenze im Hauptprozess gibt aus einem verknuepften Bereich nichts
+  // mehr her; ein dort geoeffnetes Dokument wird deshalb geschlossen, statt
+  // stehen zu bleiben und beim naechsten Neuladen als fehlend zu erscheinen
+  // (Entscheidung des Product Owners vom 2026-10-03). Kein activate-Gegenstueck:
+  // Ein geschlossenes Dokument oeffnet der Anwender ueber den Verweis wieder.
+  attachExtensionRuntime('area-links', {
+    deactivate: () => {
+      void schliesseDokumenteAusVerknuepftenBereichen();
+    },
+  });
+}
+
+// 4T-002069: Schliesst jedes geoeffnete Dokument ausserhalb der eigenen
+// Bereichs-Wurzel. In einem Bereichs-Fenster ist das genau die Menge aus den
+// verknuepften Bereichen: Ein anderes Ziel ausserhalb weisen Oeffnen-Weg und
+// Lese-Grenze ab, und den Wurzeln der Verknuepfungen muss der Anzeige-Prozess
+// dafuer nicht nachfragen. Ohne Bereich schliesst nichts (isOutsideActiveArea).
+// Geschlossen wird ueber den gewoehnlichen Schliess-Weg, also mit der
+// ueblichen Rueckfrage bei ungespeicherten Aenderungen; bricht der Anwender
+// dort ab, bleibt das Dokument stehen, gelesen wird es trotzdem nicht mehr.
+// Nacheinander statt gleichzeitig, weil jede Rueckfrage ein eigener Dialog ist.
+async function schliesseDokumenteAusVerknuepftenBereichen() {
+  const ziele = [];
+  for (const pane of state.panes) {
+    for (const tab of pane.tabs || []) {
+      if (tab.path && isOutsideActiveArea(tab.path)) ziele.push(tab);
+    }
+  }
+  for (const tab of ziele) {
+    // Indizes erst jetzt bestimmen: Jedes Schliessen verschiebt sie.
+    const paneIdx = state.panes.findIndex((p) => (p.tabs || []).includes(tab));
+    if (paneIdx < 0) continue;
+    try {
+      await closeTab(paneIdx, state.panes[paneIdx].tabs.indexOf(tab));
+    } catch (err) {
+      console.warn('Schliessen nach dem Abschalten der Bereichs-Verknuepfungen:', err);
+    }
+  }
 }

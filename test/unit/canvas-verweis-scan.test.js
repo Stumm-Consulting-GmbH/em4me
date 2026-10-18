@@ -148,9 +148,10 @@ describe('Geteilte Erkennung der Verweis-Angaben (link-scan.js, 4T-001749)', () 
       'utf8',
     );
     const importe = [...quelle.matchAll(/require\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => m[1]);
-    // Unverändert die eine Abhängigkeit des Bestands — der Canvas-Kern ist
-    // bewusst NICHT hinzugekommen (Entscheidung 4T-001749).
-    expect(importe).toEqual(['../area-link-syntax.js']);
+    // Die Abhängigkeit des Bestands — der Canvas-Kern ist bewusst NICHT
+    // hinzugekommen (Entscheidung 4T-001749). 4T-001912 (Epic 3E-000360): dazu
+    // die Heimat der Zaun-Regel, selbst abhängigkeitsfrei und prozessneutral.
+    expect(importe).toEqual(['../area-link-syntax.js', './fence-level.js']);
     expect(typeof window).toBe('undefined');
     expect(typeof document).toBe('undefined');
   });

@@ -12,6 +12,8 @@ const path = require('node:path');
 const fs = require('node:fs/promises');
 const { isInsideArea } = require('../area/area-path');
 const { darfBereichLesen } = require('../area/area-link-resolve');
+// 4T-002069: Schalter der Erweiterung area-links an der Lese-Grenze.
+const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 const selbstSchreib = require('../documents/self-write');
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 // 4T-001290 (Epic 3E-000224): Zusammensetzen geteilter Dokumente beim Lesen.
@@ -81,6 +83,8 @@ const DATEI_ARTEN = Object.freeze({
  * @param {Function} deps.recordMddOnSave Protokollierung einer Speicherung.
  * @param {object} deps.saveGuard Stand-Pruefung vor dem Ueberschreiben.
  * @param {(filePath: string) => void} deps.pushRecent Eintrag in die Zuletzt-Liste.
+ * @param {Function} deps.readAreaLinks Leser der Verknuepfungen eines Bereichs.
+ * @param {() => object|null} deps.getStore Einstellungs-Speicher (Schalter der Erweiterungen).
  */
 function registerFilesIpc(handle, deps) {
   const {
@@ -101,7 +105,16 @@ function registerFilesIpc(handle, deps) {
     // 4T-001452 (Epic 3E-000190): Verknuepfungen des Bereichs fuer die benannte
     // Ausnahme der Bereichsgrenze.
     readAreaLinks,
+    // 4T-002069: Einstellungs-Speicher fuer den Schalter der Erweiterung.
+    getStore,
   } = deps;
+
+  // 4T-002069: Die Ausnahme der verknuepften Bereiche gilt nur bei
+  // eingeschalteter Erweiterung (Muster verknuepfungenAktiv in areas.js).
+  const verknuepfungenAktiv = () => {
+    const store = typeof getStore === 'function' ? getStore() : null;
+    return isExtensionEnabled('area-links', store ? store.get('extensions.disabled') : null);
+  };
 
   handle('file:openDialog', async (event) => {
     const owner = senderWindow(event);
@@ -155,8 +168,12 @@ function registerFilesIpc(handle, deps) {
     // 4T-000323 (Epic 3E-000058): harte Bereichs-Grenze als zweite Linie hinter
     // den UI-Pfaden. 4T-001452 (Epic 3E-000190): mit der benannten Ausnahme der
     // verknuepften Bereiche; Begruendung und Fail-closed-Regel stehen im Kern.
+    // 4T-002069: im Aus-Zustand der Erweiterung ohne diese Ausnahme.
     const ownerArea = areaOfWindow(senderWindow(event));
-    if (ownerArea && !(await darfBereichLesen(ownerArea.rootPath, filePath, readAreaLinks))) {
+    if (
+      ownerArea &&
+      !(await darfBereichLesen(ownerArea.rootPath, filePath, readAreaLinks, verknuepfungenAktiv))
+    ) {
       return { ok: false, error: 'outside-area' };
     }
     try {

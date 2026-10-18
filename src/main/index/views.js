@@ -10,7 +10,7 @@
 
 const path = require('node:path');
 const {
-  toLogicalName,
+  displayTitleFromBasename,
   expandRelativeTarget,
   isRelativeTarget,
 } = require('../../shared/subpages.js');
@@ -127,7 +127,7 @@ function wikiLinkAutocompleteSuggestions(activeFile, areaRoot) {
   for (const f of entry.files.keys()) {
     // 4T-000337 (Epic 3E-000061): Unterseiten erscheinen in Slash-Schreibweise
     // (U+2215 im Basename -> '/'), so wie sie im Wiki-Link geschrieben werden.
-    const base = toLogicalName(path.basename(f).replace(MD_EXT_RE, ''));
+    const base = displayTitleFromBasename(path.basename(f));
     const key = base.toLowerCase();
     if (seenFiles.has(key)) continue;
     seenFiles.add(key);
@@ -144,7 +144,7 @@ function wikiLinkAutocompleteSuggestions(activeFile, areaRoot) {
       }
     }
     const firstFile = [...fileSet][0];
-    const detail = firstFile ? toLogicalName(path.basename(firstFile).replace(MD_EXT_RE, '')) : '';
+    const detail = firstFile ? displayTitleFromBasename(path.basename(firstFile)) : '';
     // 4T-001307: Ein Zweitname erbt die Aenderungszeit der Datei, auf die er
     // zeigt; er hat keine eigene. Bei mehreren Dateien gilt dieselbe Datei,
     // aus der auch das Detail stammt, damit Anzeige und Sortierung zusammen

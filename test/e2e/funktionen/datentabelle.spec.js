@@ -75,11 +75,24 @@ test.describe('DT-02: Aggregat-Zeile rechnet und ist lokalisiert', () => {
   });
 });
 
-// Editor-Helfer: geteilte Ansicht aktivieren und Grid + Quelltext-Pane liefern.
-async function openSplit(page) {
+// 4T-002053: Das Raster schreibt nur bei eingeschaltetem Bearbeiten. Schaltet
+// es ein, falls es aus ist; ein bereits eingeschaltetes bleibt eingeschaltet.
+const QUELL_EDITOR = '.pane-group[data-pane="0"] .pane-source-editor';
+async function schalteBearbeitenEin(page) {
+  const quelle = page.locator(QUELL_EDITOR);
+  if (await quelle.evaluate((el) => el.classList.contains('read-only'))) {
+    await page.locator(SEL.btnEdit).click();
+  }
+  await expect(quelle).not.toHaveClass(/read-only/);
+}
+
+// Editor-Helfer: geteilte Ansicht aktivieren, Bearbeiten einschalten (bis auf
+// ausdrücklichen Wunsch) und Grid + Quelltext-Pane liefern.
+async function openSplit(page, { bearbeiten = true } = {}) {
   await page.locator(SEL.viewBtn('split')).click();
   const grid = page.locator(SEL.markdownBody0).locator('.perspective-datatable[data-dt-index="0"]');
   await expect(grid.locator('.pdt-grid')).toBeVisible();
+  if (bearbeiten) await schalteBearbeitenEin(page);
   return { grid, editor: page.locator(SEL.editorContent0) };
 }
 
@@ -106,10 +119,8 @@ test.describe('DT-04: Zell-Eingabe mit Typ-Zwang schreibt in den Quelltext', () 
       await expect(freshGrid.locator('tfoot .pdt-agg-value').first()).toHaveText('17.00');
       // Dokument ist regulaer dirty.
       await expect(page.locator(SEL.dirtyTab0)).toHaveCount(1);
-      // Undo laeuft ueber die Editor-Historie (Tastatur-Undo braucht den
-      // Edit-Modus; die Grid-Uebernahme selbst laeuft wie der Checkbox-
-      // Toggle auch ohne ihn).
-      await page.locator(SEL.btnEdit).click();
+      // Undo laeuft ueber die Editor-Historie. Bearbeiten ist seit 4T-002053
+      // fuer die Grid-Uebernahme selbst schon eingeschaltet (openSplit).
       await page.locator(SEL.editorContent0).click();
       await page.keyboard.press('Control+z');
       await expect(editor).toContainText('12.5');
@@ -225,6 +236,7 @@ test.describe('DT-08: Bearbeitung im Live-Block-Widget', () => {
       await page.locator(SEL.viewBtn('live')).click();
       const liveGrid = page.locator(`${SEL.editorContent0} .perspective-datatable`).first();
       await expect(liveGrid.locator('.pdt-grid')).toBeVisible({ timeout: 15000 });
+      await schalteBearbeitenEin(page);
       await liveGrid.locator('tr[data-dt-row="0"] td[data-dt-col="1"]').click();
       const input = page.locator(`${SEL.editorContent0} input.pdt-cell-input`);
       await expect(input).toBeVisible();
@@ -918,6 +930,69 @@ test.describe('DT-17: Name in der Zeile table:', () => {
     } finally {
       await closeApp(app, userData, { force: true });
       entferneOrdner(dir);
+    }
+  });
+});
+
+// 4T-002053 (Stories 4S-000051 AK1, 4S-000164 AK15): Bei ausgeschaltetem
+// Bearbeiten ist das Raster in Live-Modus und geteilter Ansicht nur ansehbar —
+// kein Eingabefeld, kein Umschalten, keine Zeilen-Bedienelemente, und das
+// Dokument bleibt unverändert. Vorbild DT-07 (Reading bleibt read-only).
+test.describe('DT-18: Bearbeiten aus, Raster nur ansehbar (4T-002053)', () => {
+  test('Live-Modus und geteilte Ansicht: kein Eingabefeld, nichts geschrieben, Sortieren bleibt', async () => {
+    const ausgang = fs.readFileSync(FIXTURE, 'utf8');
+    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    try {
+      await waitForTab(page);
+      const pruefe = async (grid) => {
+        await expect(grid.locator('.pdt-grid')).toBeVisible({ timeout: 15000 });
+        await expect(page.locator(QUELL_EDITOR)).toHaveClass(/read-only/);
+        // Sortieren bleibt verfügbar (4S-000165): Der Klick auf den Kopf
+        // «Betrag» ordnet die Zeilen um; der Zustand gilt je Reiter, deshalb
+        // wird nur die Änderung gegen den Stand davor geprüft. Vor den
+        // Zell-Klicks, weil im Live-Modus ein Kopf-Klick nach einem Zell-Klick
+        // das Widget verlässt — auch bei eingeschaltetem Bearbeiten gemessen,
+        // Bestand und nicht Gegenstand dieses Falls.
+        const reihenfolge = () =>
+          grid.locator('tbody tr').evaluateAll((z) => z.map((tr) => tr.dataset.dtRow).join(','));
+        // Je Klick eine Stufe (aufsteigend, absteigend, ohne); eine davon
+        // ordnet anders als der Stand davor.
+        const vorher = await reihenfolge();
+        await expect
+          .poll(
+            async () => {
+              await grid.locator('th.pdt-col[data-dt-col="1"]').click();
+              return reihenfolge();
+            },
+            { intervals: [300], timeout: 5000 },
+          )
+          .not.toBe(vorher);
+        await grid.locator('tr[data-dt-row="0"] td[data-dt-col="1"]').click();
+        await expect(grid.locator('input.pdt-cell-input')).toHaveCount(0);
+        const zelle = grid.locator('tr[data-dt-row="1"] td[data-dt-col="1"]');
+        await zelle.focus();
+        await zelle.press('Enter');
+        await expect(grid.locator('input.pdt-cell-input')).toHaveCount(0);
+        await grid.locator('tr[data-dt-row="1"] td[data-dt-col="2"]').click();
+        await expect(
+          grid.locator('tr[data-dt-row="1"] td[data-dt-col="2"] input'),
+        ).not.toBeChecked();
+        await expect(grid.locator('.pdt-add-btn')).toBeHidden();
+        await expect(grid.locator('.pdt-del-btn').first()).toBeHidden();
+        await expect(page.locator(SEL.dirtyTab0)).toHaveCount(0);
+      };
+
+      await page.locator(SEL.viewBtn('live')).click();
+      await pruefe(page.locator(`${SEL.editorContent0} .perspective-datatable`).first());
+
+      await page.locator(SEL.viewBtn('split')).click();
+      await pruefe(
+        page.locator(SEL.markdownBody0).locator('.perspective-datatable[data-dt-index="0"]'),
+      );
+      await expect(page.locator(SEL.editorContent0)).toContainText(/\| Anna \| 12.5\s+\| x \|/);
+      erwarteDateiUnveraendert(FIXTURE, ausgang);
+    } finally {
+      await closeApp(app, userData, { force: true });
     }
   });
 });

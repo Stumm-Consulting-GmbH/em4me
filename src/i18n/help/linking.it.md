@@ -25,7 +25,7 @@ I collegamenti possono puntare a un'intestazione o a un blocco nel file di desti
 [[#Wiki link]]                       ancora nello stesso documento
 ```
 
-Le ancore di blocco si impostano con `^id` a fine riga e ancorano il blocco circostante (paragrafo, voce di elenco, tabella, blocco di codice):
+Le ancore di blocco si impostano con `^id` a fine riga e ancorano il blocco circostante (paragrafo, voce di elenco, riga di tabella, blocco di codice):
 
 ```markdown
 Questa decisione è vincolante. ^decisione-1
@@ -41,6 +41,8 @@ const tasso = 0.04;
 ````
 
 Una [tabella dati](datatable.md) porta il suo identificatore nel proprio blocco, come riga `table: Vendite` prima delle righe di dati; `[[Rapporto#^Vendite]]` salta a essa.
+
+Anche sotto una tabella l’identificatore sta su una riga a sé, con una riga vuota prima e dopo; indica allora l’intera tabella. Alla fine di una riga di tabella indica solo quella riga.
 
 L'ancora si presenta in modo diverso a seconda della vista. La vista renderizzata non la mostra affatto: lì il blocco è soltanto una destinazione di salto. La **modalità dal vivo** la sostituisce con un segno discreto a fine riga: passando il puntatore viene indicato l'identificativo e, con un clic, il cursore si porta a fine riga e il testo originale si apre per la modifica. Se il cursore si trova già in quella riga, l'ancora resta visibile come di consueto. Che la modalità dal vivo mostri più della vista renderizzata è voluto: un'ancora è un indirizzo verso cui puntano altri documenti e, riorganizzando un documento, deve restare visibile che esiste. Se lo stesso blocco porta [proprietà](block-properties.md), il loro segno compare accanto.
 
@@ -86,9 +88,11 @@ Uno spazio grezzo senza parentesi angolari termina la destinazione, per cui il c
 ![[note.md#^blocco]]       solo il blocco ancorato
 ```
 
-Con le ancore di blocco viene incorporato l'intero blocco circostante (voce di elenco con sotto-elenchi, blocco di codice, riga di tabella, citazione), per il nome di una tabella dati l'intera tabella. Un'ancora in un esempio di codice non conta. Il Markdown incorporato si renderizza con la propria sorgente come base; i collegamenti al suo interno si risolvono rispetto al file incorporato.
+Con le ancore di blocco viene incorporato l'intero blocco circostante (voce di elenco con sotto-elenchi, blocco di codice, riga di tabella, citazione), con un identificatore su una riga a sé sotto una tabella e per il nome di una tabella dati l'intera tabella. Un'ancora in un esempio di codice non conta. Il Markdown incorporato si renderizza con la propria sorgente come base; i collegamenti al suo interno si risolvono rispetto al file incorporato.
 
 **Dove viene cercata la destinazione.** L'applicazione cerca in tre passaggi, allo stesso modo per ogni tipo di file: prima il percorso relativo al proprio file, poi la scrittura delle sottopagine, infine il semplice **nome** nell'intera area. Così `![[immagine.png]]` trova il file anche se si trova in un'altra cartella: non occorre indovinare il percorso. La ricerca termina alla radice dell'area: ciò che sta fuori non viene incorporato. Senza un'area collegata il limite resta la cartella del proprio file.
+
+**Quando la destinazione non compare.** Se l’applicazione non trova la destinazione, al posto dell’incorporamento compare un avviso con il nome della destinazione — allo stesso modo nella vista di lettura, nella modalità live e nella vista divisa.
 
 Se un file Markdown porta lo stesso nome di un allegato, vince il file Markdown; scritto con la sua estensione (`![[immagine.png]]`) il caso è inequivocabile. Le immagini Markdown ordinarie `![](percorso.png)` non sono interessate: la loro scrittura indica un percorso e non un nome.
 ## Collegamenti tra aree
@@ -107,6 +111,8 @@ Nel testo il prefisso precede la destinazione:
 ```
 
 La destinazione viene cercata prima al percorso indicato e, se lì non c’è nulla, per nome in tutta l’area collegata — come un normale collegamento wiki nella propria area. Il clic apre la destinazione nella stessa finestra.
+
+**Incorporare** da un’area collegata non è possibile: `![[@zt:Nota]]` mostra al suo posto un avviso che lo dice esattamente, che i collegamenti tra aree siano attivi o no. Il collegamento `[[@zt:Nota]]` alla stessa destinazione la apre come descritto.
 
 **I modelli dell’area collegata** possono essere proposti accanto ai propri; esiste un interruttore per ciascun collegamento. La scelta dei modelli mostra allora entrambi gli insiemi, e ogni voce esterna indica la sua provenienza. Senza l’interruttore un collegamento non modifica l’insieme dei modelli.
 
@@ -129,7 +135,7 @@ Un collegamento tra aree porta **là**, non indietro. Non superano deliberatamen
 - la **ricerca sull’intera area**,
 - e l’**aggiornamento dei collegamenti alla rinomina**: rinominando un file, i riferimenti provenienti da un’area collegata restano invariati. L’editor li segnala poi come non validi — è la rete che li rende visibili.
 
-I collegamenti tra aree sono un’[estensione](extensions.md) e possono essere disattivati. Un riferimento con prefisso resta allora non risolto, la verifica all’apertura non avviene e i collegamenti inseriti rimangono: ciò che si disattiva è l’effetto, non l’indicazione.
+I collegamenti tra aree sono un’[estensione](extensions.md) e possono essere disattivati. Un riferimento con prefisso resta allora non risolto, la verifica all’apertura non avviene e da un’area collegata non viene più letto nulla, nemmeno dopo un riavvio. I documenti di un’area collegata aperti al momento della disattivazione vengono chiusi; se uno ha modifiche non salvate, prima compare la consueta richiesta. I collegamenti inseriti rimangono: ciò che si disattiva è l’effetto, non l’indicazione.
 
 ## Tag
 

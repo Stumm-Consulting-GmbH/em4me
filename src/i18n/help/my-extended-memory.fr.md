@@ -36,7 +36,7 @@ Chaque ligne porte un horodatage et une courte sélection : pour une zone le nom
 
 Un **espace de travail** n'a ni chiffres clés ni bouton de relevé : ce n'est pas un dossier mais un assemblage. Ce qu'il assemble figure dans sa ligne et dans la vue de détail : les conteneurs auxquels il est lié, le nombre de ses fenêtres et le nombre de **documents ouverts** dans celles-ci.
 
-**Ce qui est compté, ce sont les documents ouverts, non les fichiers d'un dossier.** Le chiffre dit combien de documents Markdown l'espace de travail a ouverts dans ses fenêtres ; le comptage se fait par fenêtre. Les onglets sans titre, les pages du manuel et du système ainsi que les autres types de fichiers ne comptent pas. Les deux chiffres proviennent de l'enregistrement de l'espace de travail et figurent donc pour un espace fermé tout comme pour un espace ouvert ; un zéro y est un zéro compté comme tout autre.
+**Ce qui est compté, ce sont les documents ouverts, non les fichiers d'un dossier.** Le chiffre dit combien de documents Markdown l'espace de travail a ouverts dans ses fenêtres ; le comptage se fait par fenêtre. Les onglets sans titre, les pages du manuel et du système ainsi que les autres types de fichiers ne comptent pas. Les deux chiffres proviennent de l'enregistrement de l'espace de travail et figurent donc pour une zone fermée tout comme pour une zone ouverte ; un zéro y est un zéro compté comme tout autre.
 
 ### Un conteneur momentanément inaccessible
 

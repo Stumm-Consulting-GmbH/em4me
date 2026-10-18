@@ -1,6 +1,6 @@
 # Surface Canvas
 
-Un **canevas** est une surface de travail spatiale au sein d'un document Markdown ordinaire : des **cartes** portant leur propre texte y sont disposées librement, des **connexions** tracent les relations entre elles, des **formes** posent des repères à côté d'elles et des **groupes** rassemblent ce qui va ensemble. Une carte porte soit son propre texte, soit elle montre le contenu d'un autre document ou une image de l'espace. Lorsque des variantes sont posées côte à côte, qu'un déroulement est esquissé ou que des idées sont d'abord triées, l'ordre vient ici de la position et non de la séquence.
+Un **canevas** est une surface de travail spatiale au sein d'un document Markdown ordinaire : des **cartes** portant leur propre texte y sont disposées librement, des **connexions** tracent les relations entre elles, des **formes** posent des repères à côté d'elles et des **groupes** rassemblent ce qui va ensemble. Une carte porte soit son propre texte, soit elle montre le contenu d'un autre document ou une image de la zone. Lorsque des variantes sont posées côte à côte, qu'un déroulement est esquissé ou que des idées sont d'abord triées, l'ordre vient ici de la position et non de la séquence.
 
 La surface est portée par un bloc de code avec la balise de langage `perspective-canvas`. Un document peut en contenir autant que voulu, et tout le reste y demeure du Markdown ordinaire.
 
@@ -12,7 +12,7 @@ Les deux montrent des cadres et des lignes, et elles ne disent pas la même chos
 
 | Question | [Vue graphe](graph.md) | Canevas |
 | -------- | ---------------------- | ------- |
-| D'où viennent les nœuds ? | des fichiers de l'espace | créés par vous |
+| D'où viennent les nœuds ? | des fichiers de la zone | créés par vous |
 | D'où viennent les lignes ? | des liens existants | tracées par vous |
 | D'où vient la disposition ? | l'application la **calcule** | vous la **décidez** |
 | Quel est le résultat ? | une analyse de l'existant | une surface de travail au contenu propre |
@@ -75,7 +75,7 @@ Un texte inchangé n'écrit rien dans le document.
 Au lieu de porter son propre texte, une carte montre au choix le contenu d'un **autre document** — en entier, ou à partir d'un titre ou d'un bloc. Le contenu reste là où il se trouve : la carte n'en garde aucune copie et ne se modifie pas à cet endroit. S'il ne tient pas dans la carte, celle-ci défile.
 
 - **Créer** — la commande **« Ajouter une carte de lien au canevas »** (palette de commandes, Affichage → Modifier le canevas) la place au centre de la portion visible, le clic droit sur le fond libre à l'endroit du clic. Les deux demandent d'abord la cible : `Entrée` crée la carte, `Échap` abandonne. Sans cible, aucune carte n'est créée.
-- **Définir, changer, supprimer la cible** — une carte sélectionnée porte une **barre** avec le champ « Cible du lien » ; à la saisie, il propose les documents de l'espace. Une carte de texte devient ainsi une carte de lien, et « Supprimer le lien » la ramène à une carte de texte — son propre texte reste en place. Les mêmes actions figurent dans le **menu contextuel** de la carte.
+- **Définir, changer, supprimer la cible** — une carte sélectionnée porte une **barre** avec le champ « Cible du lien » ; à la saisie, il propose les documents de la zone. Une carte de texte devient ainsi une carte de lien, et « Supprimer le lien » la ramène à une carte de texte — son propre texte reste en place. Les mêmes actions figurent dans le **menu contextuel** de la carte.
 - **Ouvrir la cible** — un **double-clic sur le contenu affiché** ouvre le document lié à l'endroit lié, tout comme « Ouvrir la cible » dans la barre et le menu contextuel. Cela reste permis en affichage pur, car ouvrir ne modifie rien.
 - **Ligne d'en-tête** — elle porte l'**étiquette** de la carte, c'est-à-dire son propre texte, et sinon la cible avec son ancre. Un double-clic sur la ligne d'en-tête modifie l'étiquette comme le texte de toute autre carte.
 
@@ -83,9 +83,9 @@ Si la cible est introuvable, la carte reste en place et indique, là où serait 
 
 ### Cartes d'image
 
-Une carte montre tout aussi bien une **image** de l'espace. Là non plus elle n'en garde aucune copie : l'image reste un fichier et la carte y renvoie — par un chemin relatif au document ou par le seul nom de fichier. Elle est **ajustée** à la carte en conservant ses proportions ; une carte d'image ne défile pas.
+Une carte montre tout aussi bien une **image** de la zone. Là non plus elle n'en garde aucune copie : l'image reste un fichier et la carte y renvoie — par un chemin relatif au document ou par le seul nom de fichier. Elle est **ajustée** à la carte en conservant ses proportions ; une carte d'image ne défile pas.
 
-Elle se manipule comme la carte de lien : la commande **« Ajouter une carte d'image au canevas »** et la même entrée dans le menu contextuel de la surface, dans la barre de la carte sélectionnée le champ « Image » — avec les fichiers image de l'espace en propositions — ainsi que « Supprimer l'image » et « Ouvrir la cible ». Un double-clic sur l'image ouvre le fichier comme l'application ouvre toute [pièce jointe](attachments.md). La ligne d'en-tête porte l'étiquette et sinon le nom du fichier image.
+Elle se manipule comme la carte de lien : la commande **« Ajouter une carte d'image au canevas »** et la même entrée dans le menu contextuel de la surface, dans la barre de la carte sélectionnée le champ « Image » — avec les fichiers image de la zone en propositions — ainsi que « Supprimer l'image » et « Ouvrir la cible ». Un double-clic sur l'image ouvre le fichier comme l'application ouvre toute [pièce jointe](attachments.md). La ligne d'en-tête porte l'étiquette et sinon le nom du fichier image.
 
 Si l'image est introuvable, trop volumineuse ou sans extension d'image, la carte le dit à la place de l'image. **Une carte montre soit un document, soit une image ;** si les deux attributs figurent côte à côte, c'est le document qui vaut.
 
@@ -369,7 +369,7 @@ L’entrée n’est sélectionnable que tant que la vue canevas montre une surfa
 **Lire un fichier** — en quatre étapes :
 
 1. Choisir **Fichier → Autres fonctions de fichier → Importer → Fichier JSON Canvas…**. Cela ne demande ni surface ouverte ni document ouvert.
-2. Dans la boîte d’ouverture, choisir un ou plusieurs fichiers portant l’extension `.canvas` ; avec un espace ouvert, ils doivent s’y trouver.
+2. Dans la boîte d’ouverture, choisir un ou plusieurs fichiers portant l’extension `.canvas` ; avec une zone ouverte, ils doivent s’y trouver.
 3. Pour chaque fichier choisi, un nouveau document naît **à côté de lui**, avec son nom et l’extension `.md`. Si ce nom est déjà pris, un nombre est ajouté : `Plan.canvas` devient alors `Plan-2.md`. Chaque nouveau document est ouvert et montre la vue canevas.
 4. Ensuite, **un seul** message couvre tous les fichiers choisis, avec une section par fichier.
 
@@ -408,7 +408,7 @@ Les fichiers choisis restent en place, inchangés. **Les liens retrouvent leurs 
 
 **Si la vue canevas est désactivée comme [extension interne](extensions.md)**, aucune des deux voies n’est disponible : l’entrée d’écriture et l’entrée de lecture disparaissent du menu, et les deux commandes ne sont pas davantage accessibles par la palette de commandes.
 
-## Les liens dans le réseau de l'espace
+## Les liens dans le réseau de la zone
 
 Une carte de lien est un **lien comme un lien dans le texte courant** — simplement posé sur une surface. Elle apparaît donc partout où l'application montre des liens :
 
@@ -456,7 +456,7 @@ Deux attributs supplémentaires font de la carte une **carte de lien** ou une **
 
 `doc=` montre le contenu d'un document. La cible prend les mêmes formes que la cible d'une inclusion : le nom du document ou un chemin relatif au document lui-même, suivi au choix de `#Titre` ou de `#^block-id`.
 
-`bild=` montre une image. La valeur est un chemin relatif au document ou le seul nom d'un fichier image de l'espace ; les extensions admises sont `png`, `jpg`, `jpeg`, `gif`, `svg`, `webp`, `bmp` et `ico`.
+`bild=` montre une image. La valeur est un chemin relatif au document ou le seul nom d'un fichier image de la zone ; les extensions admises sont `png`, `jpg`, `jpeg`, `gif`, `svg`, `webp`, `bmp` et `ico`.
 
 Si les deux attributs figurent sur la même carte, c'est `doc=` qui vaut. Une valeur vide et une extension hors de la liste sont un **constat** ; l'attribut reste malgré tout inchangé dans le fichier. Les lignes sous le marqueur sont ici aussi le propre texte de la carte — pour une carte de lien et une carte d'image, son **étiquette**.
 
@@ -595,7 +595,7 @@ se conditionnent
 - Un lien dans le **propre texte** d'une carte n'apparaît ni dans le graphe des liens ni dans les rétroliens ; seule la cible d'une carte de lien compte. Une image n'obtient pas de nœud dans le graphe des liens.
 - **Le glissement libre et le zoom n'existent pas au clavier.** La liste du canevas sélectionne, modifie, supprime et crée ; la position d'un élément ne se change au clavier que par les quatre commandes de l'ordre. Déplacer, redimensionner et bouger la portion restent réservés à la souris.
 - **La liste rend la surface manipulable, non parlante.** Elle énumère ce qui s'y trouve et ne remplace pas ce que montre l'agencement spatial.
-- **La recherche dans l'espace trouve toujours un document porteur d'une surface par son texte**, car la surface y figure en clair ; elle n'est pas pour autant une source d'occurrences à part. Les cartes, formes et groupes pris isolément n'apparaissent donc pas comme occurrences propres — c'est le champ de filtre de la liste du canevas qui les trouve.
+- **La recherche dans la zone trouve toujours un document porteur d'une surface par son texte**, car la surface y figure en clair ; elle n'est pas pour autant une source d'occurrences à part. Les cartes, formes et groupes pris isolément n'apparaissent donc pas comme occurrences propres — c'est le champ de filtre de la liste du canevas qui les trouve.
 - **L'export portable restitue la surface sous forme de texte, pas d'image.** L'agencement spatial ne voyage pas, et aucune surface ne peut être reconstituée à partir de la correspondance ; passent le contenu, les groupes et le réseau des connexions.
 - **Un élément erroné n'est pas omis en silence dans l'export** : il est écrit avec ce qu'il a de lisible et accompagné d'une ligne de remarque. Une forme sans étiquette est en revanche omise, parce qu'il n'en resterait rien sans la représentation spatiale.
 - **L’échange avec le format ouvert n’est pas un aller-retour sans perte.** Une surface écrite puis relue ne revient pas identique : une forme revient en carte de texte, la légende d’une carte de lien en cadre.

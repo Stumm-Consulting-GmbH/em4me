@@ -40,7 +40,7 @@ import { openCreatedFileWithRule } from '../templates.js';
 import { runLinkUpdatePreview, showLinkUpdateReport } from './link-update.js';
 // 4T-001789 (Epic 3E-000255): gemeinsame Meldung der Begleit-Fehlschlaege.
 import { begleitFehlerMeldung } from './rename-companion.js';
-import { invalidatePaneRenderCache } from './pane-render.js';
+import { invalidatePaneRenderCache, renderPaneContent } from './pane-render.js';
 import { saveTab } from './save-export.js';
 import { updateSubpageBreadcrumb } from './subpage-breadcrumb.js';
 import { renderTabbar } from './tabbar.js';
@@ -433,6 +433,12 @@ export async function handleFileRenamed(oldPath, newPath) {
     if (state.subpages && state.subpages.visibleByPane[p]) scheduleSubpagesRender(p);
     // 4T-000585 (Epic 3E-000108): Titelzeile zeigt den neuen Namen.
     updateTitleLineForPane(p);
+    // 4T-002151 (Epic 3E-000340): Ist das aktive Dokument der Spalte das
+    // umbenannte oder verschobene, wird seine Ansicht gegen den neuen Ordner
+    // neu aufgebaut; sonst loesten relative Bild-Verweise erst beim naechsten
+    // Wechsel der Ansicht auf (Muster saveTabAs, Zwischenspeicher oben geleert).
+    const aktiv = state.panes[p].tabs[state.panes[p].activeIndex];
+    if (aktiv && aktiv.path === newPath) renderPaneContent(p);
   }
   persistState();
 }

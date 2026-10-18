@@ -10,7 +10,9 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   MAX_EINTRAEGE,
+  MAX_STAENDE_JE_PFAD,
   merke,
+  abgeschlossen,
   vergiss,
   istEigenerStand,
   _anzahl,
@@ -89,13 +91,77 @@ describe('selbst-schreib: Zugehoerigkeit haengt am Inhalt', () => {
     expect(await istEigenerStand(p)).toBe(false);
   });
 
-  it('ersetzt den Eintrag beim naechsten eigenen Schreibvorgang', async () => {
+  // Seit 4T-001923 ersetzt der juengere Stand den aelteren nicht sofort, er
+  // tritt neben ihn; der Pfad bleibt ein Eintrag.
+  it('kennt den Stand des naechsten eigenen Schreibvorgangs unter demselben Eintrag', async () => {
     const p = datei('e.md', '# Erst\n');
     merke(p, '# Erst\n');
     fs.writeFileSync(p, '# Zweit\n', 'utf8');
     merke(p, '# Zweit\n');
     expect(_anzahl()).toBe(1);
     expect(await istEigenerStand(p)).toBe(true);
+  });
+});
+
+// 4T-001923 (Story 4S-000005, AK6): Die Datei-Beobachtung meldet einen eigenen
+// Schreibvorgang erst rund 150 ms danach. Laeuft dann schon das naechste eigene
+// Speichern, traegt die Datei noch den vorigen Stand, der Merker aber schon den
+// neuen. Deshalb kennt der Merker je Pfad mehrere eigene Staende: den laufenden
+// und den zuletzt fertig geschriebenen. Der aeltere gilt nur, bis der juengere
+// fertig geschrieben ist; danach verfaellt er, damit eine fremde Aenderung, die
+// genau einen aelteren eigenen Inhalt wiederherstellt, als fremd gilt.
+describe('selbst-schreib: mehrere eigene Staende je Pfad (4T-001923)', () => {
+  it('erkennt den aelteren eigenen Stand, solange der juengere noch laeuft', async () => {
+    const p = datei('g.md', '# Erst\n');
+    merke(p, '# Erst\n');
+    abgeschlossen(p, '# Erst\n');
+    // Das zweite Speichern hat seinen Stand gemerkt, aber noch nicht umbenannt:
+    // Die Datei traegt noch den ersten.
+    merke(p, '# Zweit\n');
+    expect(await istEigenerStand(p)).toBe(true);
+    // Ein dritter, fremder Inhalt gilt weiterhin als fremd.
+    fs.writeFileSync(p, '# Fremd\n', 'utf8');
+    expect(await istEigenerStand(p)).toBe(false);
+  });
+
+  it('zweiter Stand verfaellt nach Abschluss des juengeren', async () => {
+    const p = datei('h.md', '# Erst\n');
+    merke(p, '# Erst\n');
+    abgeschlossen(p, '# Erst\n');
+    merke(p, '# Zweit\n');
+    fs.writeFileSync(p, '# Zweit\n', 'utf8');
+    abgeschlossen(p, '# Zweit\n');
+    expect(await istEigenerStand(p)).toBe(true);
+    // Eine fremde Aenderung stellt genau den aelteren eigenen Inhalt wieder her
+    // (etwa eine Synchronisation): Sie muss als fremd gelten.
+    fs.writeFileSync(p, '# Erst\n', 'utf8');
+    expect(await istEigenerStand(p)).toBe(false);
+  });
+
+  it('haelt den aelteren Stand, solange der juengere nie abgeschlossen wird', async () => {
+    const p = datei('i.md', '# Erst\n');
+    merke(p, '# Erst\n');
+    merke(p, '# Zweit\n');
+    // Das zweite Umbenennen ist gescheitert: Auf der Platte steht der erste.
+    expect(await istEigenerStand(p)).toBe(true);
+  });
+
+  // Schreibwege ohne Abschluss-Meldung (etwa ein reines Umbenennen) duerfen die
+  // Liste eines Pfads nicht unbegrenzt wachsen lassen.
+  it('haelt je Pfad hoechstens MAX_STAENDE_JE_PFAD Staende', async () => {
+    const p = datei('k.md', 'Stand 0');
+    for (let i = 0; i <= MAX_STAENDE_JE_PFAD; i++) merke(p, `Stand ${i}`);
+    // Der aelteste ist herausgefallen, der juengste gilt.
+    expect(await istEigenerStand(p)).toBe(false);
+    fs.writeFileSync(p, `Stand ${MAX_STAENDE_JE_PFAD}`, 'utf8');
+    expect(await istEigenerStand(p)).toBe(true);
+  });
+
+  it('ignoriert einen Abschluss ohne gemerkten Stand', async () => {
+    const p = datei('j.md', '# Fremd\n');
+    abgeschlossen(p, '# Fremd\n');
+    expect(_anzahl()).toBe(0);
+    expect(await istEigenerStand(p)).toBe(false);
   });
 });
 

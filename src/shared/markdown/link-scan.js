@@ -21,8 +21,13 @@ const { isAreaLinkTarget, splitAreaLink } = require('../area-link-syntax.js');
 // Markdown-Datei-Endungen (Basename-Suffix, case-insensitiv).
 const MD_EXT_RE = /\.(md|markdown|mdown|mkd)$/i;
 
-// Fenced-Code-Block-Marker (```+ oder ~~~+, bis zu drei fuehrende Spaces).
-const FENCE_RE = /^\s{0,3}(```+|~~~+)/;
+// 4T-001912 (Epic 3E-000360): Der geteilte Ausdruck `FENCE_RE` für
+// Fenced-Code-Zeilen ist entfallen. Er erkannte eine Zaun-Zeile, nicht aber, ob
+// sie einen offenen Block schließt, und seine Nutzer verglichen allein das
+// Zeichen; dazu ließ er Tabulatoren als Einrückung zu, die nach CommonMark
+// eingerückten Code einleiten. Alle Verfolger lesen die Regel seither aus
+// fence-level.js.
+const { zaunOeffnung } = require('./fence-level.js');
 
 // Frontmatter-Schluss-Zeile: '---' oder '...' am exakten Zeilenanfang. Zusammen
 // mit einem '---' in Zeile 1 grenzt das den YAML-Block ab. Halt-Heuristik
@@ -280,7 +285,7 @@ function kartenBeschriftung(zeilen, markerIndex) {
     const zeile = ohneCr(zeilen[i]);
     // Die Fence endet, oder das nächste Element beginnt: Die Karte hat keine
     // weiteren Inhalts-Zeilen.
-    if (FENCE_RE.test(zeile)) return '';
+    if (zaunOeffnung(zeile)) return '';
     if (/^![A-Za-z]/.test(zeile)) return '';
     if (zeile.trim() === '') continue;
     return /^\\+!/.test(zeile) ? zeile.slice(1) : zeile;
@@ -295,7 +300,6 @@ module.exports = {
   // Stelle bekommen wie das Muster selbst.
   isAreaLinkTarget,
   splitAreaLink,
-  FENCE_RE,
   FRONTMATTER_END_LINE,
   createWikiLinkRegex,
   createMdLinkRegex,

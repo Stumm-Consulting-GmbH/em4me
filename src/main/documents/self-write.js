@@ -16,8 +16,24 @@
 // an die Grenze.
 //
 // Deshalb verfaellt hier nichts mehr nach Zeit: Ein Eintrag bleibt, bis ein
-// neuer eigener Schreibvorgang ihn ersetzt oder die Beobachtung der Datei
+// juengerer eigener Schreibvorgang ihn abloest oder die Beobachtung der Datei
 // endet. Ueber die Zugehoerigkeit entscheidet allein der Inhalt.
+//
+// 4T-001923 (Story 4S-000005, AK6): mehrere eigene Staende je Pfad. Die
+// Beobachtung meldet einen eigenen Schreibvorgang erst rund 150 ms danach
+// (awaitWriteFinish in file-watching.js). Lief dann schon das naechste eigene
+// Speichern, trug der Merker bereits dessen Stand (gesetzt vor dem Umbenennen),
+// die Datei aber noch den vorigen: Die Meldung galt als fremd, und ein noch
+// geaenderter Reiter stellte die Konflikt-Frage ohne fremde Aenderung.
+// Deshalb fuehrt der Merker je Pfad eine Liste eigener Staende, aelteste
+// zuerst: den zuletzt fertig geschriebenen und die laufenden.
+//
+// Verfalls-Regel: Ein aelterer Stand gilt nur, bis ein juengerer fertig
+// geschrieben ist. Den Abschluss meldet atomic-write.js nach dem Umbenennen
+// (abgeschlossen unten), zentral fuer alle Schreibwege mit Merker. Bliebe der
+// aeltere Stand dauerhaft, gaelte eine fremde Aenderung, die genau einen
+// aelteren eigenen Inhalt wiederherstellt (Synchronisation, Versionsverwaltung),
+// als eigene, und ein ungeaenderter Reiter wuerde nicht neu geladen.
 'use strict';
 
 const crypto = require('node:crypto');
@@ -29,25 +45,46 @@ const fs = require('node:fs/promises');
 // Eintraege fallen in Einfuege-Reihenfolge weg (Map haelt sie).
 const MAX_EINTRAEGE = 500;
 
-// filePath -> Hash des zuletzt selbst geschriebenen Inhalts.
+// 4T-001923: Obergrenze der Staende je Pfad. Sie greift nur fuer Schreibwege,
+// die nie einen Abschluss melden (etwa das Umbenennen der alten Bereichs-
+// Datei in area-migration.js); dort faellt der aelteste Stand weg.
+const MAX_STAENDE_JE_PFAD = 8;
+
+// filePath -> Hashes der eigenen Staende, aeltester zuerst (4T-001923).
 const eintraege = new Map();
 
 function hashContent(s) {
   return crypto.createHash('sha256').update(String(s), 'utf8').digest('hex');
 }
 
-// Haelt fest, was gerade selbst geschrieben wurde.
+// Haelt fest, was gerade selbst geschrieben wird. Der Stand kommt als
+// juengster ans Ende der Liste des Pfads; ein gleicher Inhalt steht nur
+// einmal darin.
 function merke(filePath, content) {
   if (!filePath) return;
+  const hash = hashContent(content);
+  const staende = (eintraege.get(filePath) || []).filter((h) => h !== hash);
+  staende.push(hash);
+  while (staende.length > MAX_STAENDE_JE_PFAD) staende.shift();
   // Neu einfuegen statt aktualisieren, damit ein erneut geschriebener Pfad in
   // der Verfalls-Reihenfolge nach hinten rueckt und nicht als aeltester gilt.
   eintraege.delete(filePath);
-  eintraege.set(filePath, hashContent(content));
+  eintraege.set(filePath, staende);
   while (eintraege.size > MAX_EINTRAEGE) {
     const aeltester = eintraege.keys().next().value;
     if (aeltester === undefined) break;
     eintraege.delete(aeltester);
   }
+}
+
+// 4T-001923: Der Schreibvorgang mit diesem Inhalt ist fertig (die Datei traegt
+// ihn). Alle aelteren Staende des Pfads verfallen; juengere, noch laufende
+// bleiben. Ohne gemerkten Stand ist der Aufruf wirkungslos.
+function abgeschlossen(filePath, content) {
+  const staende = eintraege.get(filePath);
+  if (!staende) return;
+  const stelle = staende.lastIndexOf(hashContent(content));
+  if (stelle > 0) staende.splice(0, stelle);
 }
 
 // Wird gerufen, wenn die Beobachtung einer Datei endet.
@@ -56,17 +93,18 @@ function vergiss(filePath) {
 }
 
 /**
- * Entspricht der aktuelle Datei-Stand dem zuletzt selbst geschriebenen?
+ * Entspricht der aktuelle Datei-Stand einem eigenen Stand (dem zuletzt fertig
+ * geschriebenen oder einem laufenden)?
  *
  * true unterdrueckt die Meldung, false laesst sie durch. Ein Lesefehler gilt
  * als fremd: Dann greift der Weg fuer geloeschte oder unlesbare Dateien.
  */
 async function istEigenerStand(filePath) {
-  const hash = eintraege.get(filePath);
-  if (hash === undefined) return false;
+  const staende = eintraege.get(filePath);
+  if (!staende || staende.length === 0) return false;
   try {
     const aktuell = await fs.readFile(filePath, 'utf8');
-    return hashContent(aktuell) === hash;
+    return staende.includes(hashContent(aktuell));
   } catch {
     return false;
   }
@@ -85,4 +123,14 @@ function _leeren() {
   eintraege.clear();
 }
 
-module.exports = { MAX_EINTRAEGE, merke, vergiss, istEigenerStand, _anzahl, _hat, _leeren };
+module.exports = {
+  MAX_EINTRAEGE,
+  MAX_STAENDE_JE_PFAD,
+  merke,
+  abgeschlossen,
+  vergiss,
+  istEigenerStand,
+  _anzahl,
+  _hat,
+  _leeren,
+};

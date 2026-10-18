@@ -17,7 +17,8 @@
 // verworfen und ein Statusbar-Hinweis gezeigt, nie falsch geschrieben.
 //
 // Geltungsbereich: editierbar sind der Render-Pane der geteilten Ansicht
-// (viewMode 'split') und das Live-Block-Widget (viewMode 'live'); Reading
+// (viewMode 'split') und das Live-Block-Widget (viewMode 'live'), solange
+// Bearbeiten eingeschaltet ist (4T-002053); Reading
 // und Handbuch-Tabs bleiben read-only (Affordanzen per CSS ausgeblendet,
 // die Handler prüfen den Modus zusätzlich zur Laufzeit). Tabellen mit
 // Struktur-Fehlern sind nicht editierbar (der kanonische Serialisierer
@@ -106,7 +107,10 @@ function resolveContext(el) {
     view,
     live,
     blocked,
-    editable: modeOk && !tab.manualPage && !blocked,
+    // 4T-002053: Bei ausgeschaltetem Bearbeiten ist das Raster nur ansehbar.
+    // Kriterium ist der Schreibschutz des Editors wie in `editorKontext`
+    // (live-table-zelle.js); er folgt dem Schalter und trägt Handbuch-Seiten mit.
+    editable: modeOk && !tab.manualPage && !blocked && !view.state.readOnly,
     dtIndex: parseInt(container.dataset.dtIndex, 10),
   };
 }
@@ -148,6 +152,10 @@ function locateFence(ctx) {
 // --- Rückschreiben -------------------------------------------------------------
 
 function writeBody(ctx, fence, model) {
+  // 4T-002053: Der Schreibschutz sperrt nur Eingaben des Anwenders, nicht
+  // Änderungen, die das Programm absetzt; eine vor dem Ausschalten geöffnete
+  // Zelle trägt noch den alten Kontext. Deshalb hier die letzte Prüfung.
+  if (ctx.view.state.readOnly) return false;
   const newBody = serializePerspectiveDatatable(model);
   const doc = ctx.view.state.doc;
   if (fence.bodyStartLine > doc.lines) return false;
@@ -309,10 +317,22 @@ function commitActiveEdit(move) {
     }
   } else {
     model.rows[edit.rowIdx][di] = { text: raw, value, error: null };
-    writeBody(edit.ctx, fence, model);
+    // 4T-002053: Nicht geschrieben (etwa schreibgeschützt): Zelle zurückstellen.
+    if (!writeBody(edit.ctx, fence, model) && edit.td.isConnected) {
+      edit.td.classList.remove('pdt-editing');
+      edit.td.innerHTML = edit.originalHtml;
+    }
   }
   if (move) focusCellAfterUpdate(edit, move);
   return true;
+}
+
+// 4T-002053: Übernimmt eine offene Zell-Eingabe des Rasters, bevor Bearbeiten
+// ausgeschaltet wird (Muster `uebernimmOffeneZellEingabe` der Pipe-Tabelle).
+// `false`, wenn der Wert ungültig ist und die Zelle offen bleibt; der Aufrufer
+// bricht dann ab, damit die Eingabe nicht verloren geht.
+export function uebernimmOffeneDatentabellenEingabe() {
+  return commitActiveEdit();
 }
 
 // --- Navigation nach Übernahme ---------------------------------------------------

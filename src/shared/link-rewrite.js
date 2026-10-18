@@ -22,7 +22,8 @@
 // veralteter Index ist damit schlimmstenfalls eine uebersehene Datei, nie ein
 // korrumpierter Edit. Erkennungs-Regeln (Regexe, Inline-Code-Maskierung,
 // Frontmatter-Ausschluss, Fence-Tracking, NFC-/Case-Normalisierung) sind
-// deckungsgleich mit dem Backlinks-Index, weil beide aus link-scan.js lesen.
+// deckungsgleich mit dem Backlinks-Index, weil beide aus link-scan.js lesen,
+// das Fence-Tracking seit 4T-001912 aus fence-level.js.
 'use strict';
 
 const {
@@ -31,9 +32,11 @@ const {
   isRelativeTarget,
   expandRelativeTarget,
 } = require('./subpages.js');
+// 4T-001912 (Epic 3E-000360): die Zaun-Regel aus ihrer einen Heimat statt des
+// geteilten Ausdrucks `FENCE_RE`, der allein das Zeichen verglich.
+const { schliesstZaun, zaunOeffnung } = require('./markdown/fence-level.js');
 const {
   MD_EXT_RE,
-  FENCE_RE,
   createWikiLinkRegex,
   isAreaLinkTarget,
   createMdLinkRegex,
@@ -212,6 +215,22 @@ function resolveRelativeWikiNewName(core, ctx) {
   return toLogicalName(r.newBase);
 }
 
+// Neuer Name eines Wiki-Ziels, das eine Markdown-Endung tragen darf, oder null.
+// Die Umbenennungen fuehren ihre Basenames ohne Endung; eine Endung wird fuer
+// die Suche abgeschnitten und an den neuen Namen in der Schreibweise des
+// Verweises wieder angehaengt — wie die Namens-Aufloesung der Anwendung, die
+// sie vor der Suche ebenfalls abschneidet (src/main/index/resolve.js). Gilt fuer
+// direkte Namen, Unterseiten- und relative Unterseiten-Formen gleichermassen.
+// 4T-002036 (Epic 3E-000360): bis dahin allein im Weg der Karten-Angabe `doc=`
+// (neuerDocWert); im Fliesstext blieb `[[A.md]]` beim Umbenennen stehen.
+function neuerWikiName(core, ctx) {
+  const endung = (core.match(MD_EXT_RE) || [''])[0];
+  const ohneEndung = endung ? core.slice(0, core.length - endung.length) : core;
+  if (!ohneEndung) return null;
+  const neu = resolveWikiNewName(ohneEndung, ctx);
+  return neu === null ? null : neu + endung;
+}
+
 // Sammelt die Wiki-Link-Ersetzungen einer Zeile. `masked` ist die inline-code-
 // maskierte Zeile (laengengleich zu `line`), auf der gematcht wird; ersetzt wird
 // an denselben Offsets im Original `line`.
@@ -237,7 +256,7 @@ function collectWikiRewrites(line, masked, ctx) {
     const leadWs = nm[1];
     const core = nm[2];
     if (!core) continue; // reiner Anker [[#x]] oder leer
-    const newName = resolveWikiNewName(core, ctx);
+    const newName = neuerWikiName(core, ctx);
     if (newName === null) continue;
     const isEmbed = m.index > 0 && line.charAt(m.index - 1) === '!';
     const spanStart = m.index + 2 + leadWs.length; // nach '[[' plus fuehrender Ws
@@ -443,12 +462,10 @@ function neuerDocWert(wert, ctx) {
   if (!kern || isAreaLinkTarget(kern)) return null;
   const ueberPfad = neuerPfadWert(kern, ctx);
   if (ueberPfad !== null) return ueberPfad + anker;
-  const endung = (kern.match(MD_EXT_RE) || [''])[0];
-  const ohneEndung = endung ? kern.slice(0, kern.length - endung.length) : kern;
-  if (!ohneEndung) return null;
-  const neu = resolveWikiNewName(ohneEndung, ctx);
+  // Namens-Weg mit der Endungs-Regel des Fliesstexts (neuerWikiName).
+  const neu = neuerWikiName(kern, ctx);
   if (neu === null) return null;
-  return neu + endung + anker;
+  return neu + anker;
 }
 
 // Neuer Wert der Angabe `bild=`. Zuerst derselbe Pfad-Weg; danach der
@@ -582,8 +599,9 @@ function computeLinkRewrites(content, options) {
   const reps = [];
   const hits = [];
 
-  let inFence = false;
-  let fenceChar = null;
+  // 4T-001912 (Epic 3E-000360): die Öffnung des offenen Code-Blocks (Zeichen und
+  // Länge, aus fence-level.js), sonst null.
+  let offen = null;
   // 4T-001749 (Epic 3E-000289): Steht die offene Fence unter der Canvas-Marke?
   let inCanvasFence = false;
   // 4T-002013 (Epic 3E-000332): Zeilen-Zustand der offenen Datentabelle, sonst
@@ -599,31 +617,36 @@ function computeLinkRewrites(content, options) {
     const lineNum = i + 1;
 
     // Fenced-Code-Tracking (gleiche Maschine wie der Backlinks-Parser).
-    const fenceMatch = line.match(FENCE_RE);
-    if (fenceMatch) {
-      const ch = fenceMatch[1].charAt(0);
-      if (!inFence) {
-        inFence = true;
-        fenceChar = ch;
-        // 4T-001749: Die Info-Zeichenfolge entscheidet, ob die Fence eine
-        // Flaeche ist; gelesen wird sie mit derselben Regel wie im Index.
-        const info = line.slice(fenceMatch[0].length);
-        inCanvasFence = istCanvasFenceInfo(info);
-        zellZustand = istDatentabellenFenceInfo(info) ? neuerZellZustand() : null;
-        inChartFence = istDiagrammFenceInfo(info);
-        tabelleGesehen = false;
-      } else if (ch === fenceChar) {
-        inFence = false;
-        fenceChar = null;
+    // 4T-001912 (Epic 3E-000360): nach der Zaun-Regel aus fence-level.js — ein
+    // Block endet allein an einer Zeile desselben Zeichens, mindestens so lang
+    // wie die öffnende, ohne Sprach-Angabe. Bis dahin endete er an jeder
+    // Zaun-Zeile desselben Zeichens, und Verweise im Rest eines äußeren Blocks
+    // mit längerem Zaun wurden umgeschrieben. Eine Zaun-Zeile im Block, die ihn
+    // nicht schließt, bleibt wie bisher übersprungen.
+    const zaun = zaunOeffnung(line);
+    if (offen && zaun) {
+      if (schliesstZaun(line, offen)) {
+        offen = null;
         inCanvasFence = false;
         zellZustand = null;
         inChartFence = false;
       }
       continue;
     }
+    if (!offen && zaun) {
+      offen = zaun;
+      // 4T-001749: Die Info-Zeichenfolge entscheidet, ob die Fence eine
+      // Flaeche ist; gelesen wird sie mit derselben Regel wie im Index, seit
+      // 4T-001912 als Sprache aus der Öffnung.
+      inCanvasFence = istCanvasFenceInfo(zaun.sprache);
+      zellZustand = istDatentabellenFenceInfo(zaun.sprache) ? neuerZellZustand() : null;
+      inChartFence = istDiagrammFenceInfo(zaun.sprache);
+      tabelleGesehen = false;
+      continue;
+    }
 
     let found;
-    if (inFence) {
+    if (offen) {
       // 4T-001749: Die Nachführung greift in eine Fence nur an drei benannten
       // Stellen hinein. Die erste sind die Verweis-Angaben einer
       // Karten-Marker-Zeile; alles Übrige einer Canvas-Fence bleibt unberührt.

@@ -10,6 +10,14 @@
 //        Doppelklick); dort öffnet der Doppelklick das Standardprogramm.
 // VG-05: abgeschaltete Erweiterungen «figures» und «wiki-embeds».
 //
+// 4T-002151 (Epic 3E-000340, Story 4S-000687 AK9 bis AK11): Bekommt ein
+// Dokument einen anderen Ordner, löst die Lese-Ansicht seine Bild-Verweise
+// sofort gegen den neuen Ordner auf, ohne Wechsel der Ansicht.
+// BO-01: erstes Speichern eines neuen Dokuments in den Ordner des Bildes.
+// BO-02: «Speichern unter» von Ordner A nach Ordner B, das Bild liegt nur in B.
+// BO-03: Verschieben eines geöffneten Dokuments in einen anderen Ordner über
+//        den Umbenennungs-Weg (Kapitel-Datei eines Buches).
+//
 // Der Weg ins Standardprogramm wird im Hauptprozess abgefangen (Muster AN-08
 // in anlagen.spec.js): geprüft wird, DASS und WOMIT geöffnet wird, nicht das
 // Programm selbst.
@@ -23,6 +31,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
+const { makeBook } = require('../helpers/buch');
 
 // --- Bild-Material ---------------------------------------------------------
 // Einfarbige PNG-Dateien in gewünschter Größe, ohne Fremd-Paket erzeugt. Die
@@ -569,6 +578,158 @@ test.describe('VG-05: abgeschaltete Erweiterungen', () => {
     } finally {
       await closeApp(app, userData, { force: true });
       removeDir(workDir);
+    }
+  });
+});
+
+// --- BO: Bild nach einem Ordner-Wechsel des Dokuments (4T-002151) ------------
+// Ursache des Befunds: «Speichern unter» (auch das erste Speichern) und der
+// Nachzug nach Umbenennen oder Verschieben setzten den neuen Pfad, bauten die
+// Lese-Ansicht aber nicht neu auf; das Bild erschien erst mit dem nächsten
+// Wechsel der Ansicht. Jeder Fall prüft deshalb ausdrücklich OHNE Wechsel der
+// Ansicht, und vor dem Ordner-Wechsel steht der Nachweis, dass das Bild
+// unaufgelöst ist — sonst wäre der grüne Ausgang keine Aussage.
+
+const VERWEIS = '![Testbild](bild.png)';
+const TESTBILD = `${SEL.markdownBody0} img[alt="Testbild"]`;
+
+// Das Bild ist unaufgelöst: ein Bild-Element ohne Quelle, an seiner Stelle der
+// Alt-Text (Story 4S-000687, AK8).
+async function unaufgeloest(page) {
+  const img = page.locator(TESTBILD);
+  await expect(img).toHaveCount(1, { timeout: 10000 });
+  expect(await img.getAttribute('src')).toBeNull();
+}
+
+// Das Bild ist gegen den neuen Ordner aufgelöst: Daten-Adresse, erhaltener
+// Verweis und eine geladene Breite größer null.
+async function aufgeloest(page) {
+  const img = page.locator(TESTBILD);
+  await geladen(img);
+  expect(await img.evaluate((i) => i.src.slice(0, 22))).toBe('data:image/png;base64,');
+  await expect(img).toHaveAttribute('data-src-original', 'bild.png');
+}
+
+// Speicher-Dialog im Hauptprozess stellvertreten (Muster einbettungen.spec.js)
+// und «Speichern unter» über den Menü-Kanal auslösen.
+async function speichernUnter(app, ziel) {
+  await hauptSenden(
+    app,
+    ({ dialog }, z) => {
+      dialog.showSaveDialog = async () => ({ canceled: false, filePath: z });
+    },
+    ziel,
+  );
+  await hauptSenden(app, ({ BrowserWindow }) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    if (win && !win.isDestroyed()) win.webContents.send('menu:saveAs');
+  });
+  await expect.poll(() => fs.existsSync(ziel), { timeout: 10000 }).toBe(true);
+}
+
+test.describe('BO-01: erstes Speichern eines neuen Dokuments in den Ordner des Bildes', () => {
+  test('das Bild erscheint unmittelbar nach dem Speichern, ohne Wechsel der Ansicht', async () => {
+    const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bo01-'));
+    fs.writeFileSync(path.join(workDir, 'bild.png'), png(80, 60, [40, 80, 220]));
+    const ziel = path.join(workDir, 'Neu.md');
+    const { app, page, userData } = await launchApp();
+    try {
+      // Datei → Neue Datei (Poll: der Menü-Listener steht erst nach init(),
+      // Muster titelzeile.spec.js).
+      const vorher = await page.locator(SEL.tabs0).count();
+      await expect
+        .poll(async () => {
+          await hauptSenden(app, ({ BrowserWindow }) => {
+            const win = BrowserWindow.getAllWindows()[0];
+            if (win && !win.isDestroyed()) win.webContents.send('menu:new');
+          });
+          return page.locator(SEL.tabs0).count();
+        })
+        .toBeGreaterThan(vorher);
+      const editor = page.locator(SEL.editorContent0);
+      await expect(editor).toHaveAttribute('contenteditable', 'true');
+      await editor.click();
+      await page.keyboard.insertText(`${VERWEIS}\n`);
+      // Ohne Pfad gibt es keinen Ordner, gegen den der Verweis auflöst.
+      await unaufgeloest(page);
+
+      await speichernUnter(app, ziel);
+      await aufgeloest(page);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      removeDir(workDir);
+    }
+  });
+});
+
+test.describe('BO-02: «Speichern unter» in einen anderen Ordner', () => {
+  test('die Verweise lösen gegen den neuen Ordner auf, ohne Wechsel der Ansicht', async () => {
+    const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bo02-'));
+    const ordnerA = path.join(workDir, 'A');
+    const ordnerB = path.join(workDir, 'B');
+    fs.mkdirSync(ordnerA);
+    fs.mkdirSync(ordnerB);
+    // Das Bild liegt NUR im Ziel-Ordner.
+    fs.writeFileSync(path.join(ordnerB, 'bild.png'), png(80, 60, [200, 40, 40]));
+    const quelle = path.join(ordnerA, 'Notiz.md');
+    fs.writeFileSync(quelle, `# Notiz\n\n${VERWEIS}\n`, 'utf8');
+    const { app, page, userData } = await launchApp({ args: [quelle] });
+    try {
+      await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+      await unaufgeloest(page);
+
+      await speichernUnter(app, path.join(ordnerB, 'Notiz.md'));
+      await aufgeloest(page);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      removeDir(workDir);
+    }
+  });
+});
+
+test.describe('BO-03: Verschieben eines geöffneten Dokuments in einen anderen Ordner', () => {
+  test('die Verweise lösen gegen den neuen Ordner auf, ohne Wechsel der Ansicht', async () => {
+    // Der Weg, auf dem die Anwendung ein Dokument in einen anderen Ordner
+    // bewegt, ist das Verschieben einer Kapitel-Datei im Buch-Panel: Der
+    // Hauptprozess bewegt die Datei und meldet den neuen Pfad über
+    // 'file:renamed' an alle Fenster (src/main/ipc/books.js über
+    // renameSingleFile in src/main/documents/link-update.js); im Fenster zieht
+    // handleFileRenamed nach. Ausgelöst wird er über den dialogfreien
+    // Pfad-Einstieg wie in BU-06 (buch.spec.js).
+    const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'bo03-'));
+    const bookDir = makeBook(parent);
+    const kapitel = path.join(bookDir, 'Schluss.md');
+    fs.writeFileSync(kapitel, `# Schluss\n\n${VERWEIS}\n`, 'utf8');
+    // Das Bild liegt NUR im Ziel-Ordner.
+    fs.writeFileSync(path.join(bookDir, 'Teil2', 'bild.png'), png(80, 60, [30, 150, 150]));
+    const { app, page, userData } = await launchApp();
+    try {
+      const geoeffnet = await page.evaluate((dir) => window.api.books.openPath(dir), bookDir);
+      expect(geoeffnet).toMatchObject({ ok: true });
+      await expect.poll(() => page.title()).toContain('(Buch Reise)');
+      // Erst die Buch-Datei abwarten, die das Öffnen des Buches selbst anlegt:
+      // Käme sie nach dem Kapitel, wäre sie das aktive Dokument.
+      await expect
+        .poll(() => page.locator(`${SEL.tabs0} .tab-title`).allTextContents())
+        .toContain('Reise');
+      await expect
+        .poll(async () => {
+          await page.evaluate(() => window.api.books.openChapter('Schluss.md'));
+          return page.locator(`${SEL.activeTab0} .tab-title`).allTextContents();
+        })
+        .toContain('Schluss');
+      await unaufgeloest(page);
+
+      const bewegt = await page.evaluate(
+        (payload) => window.api.books.moveChapterFileTo(payload.relPath, payload.targetDir),
+        { relPath: 'Schluss.md', targetDir: path.join(bookDir, 'Teil2') },
+      );
+      expect(bewegt).toMatchObject({ ok: true, relPath: 'Teil2/Schluss.md' });
+      expect(fs.existsSync(path.join(bookDir, 'Teil2', 'Schluss.md'))).toBe(true);
+      await aufgeloest(page);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      removeDir(parent);
     }
   });
 });

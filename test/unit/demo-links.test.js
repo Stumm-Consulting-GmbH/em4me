@@ -22,7 +22,6 @@ import {
 import {
   createWikiLinkRegex,
   maskInlineCode,
-  FENCE_RE,
   // 4T-001750 (Epic 3E-000289): dieselbe Erkennung, aus der auch der
   // Bereichs-Index seine Karten-Verweise liest. Ein zweiter Leser hier
   // wuerde beim ersten Auseinanderlaufen einen gruenen Test bei rotem
@@ -30,6 +29,9 @@ import {
   istCanvasFenceInfo,
   scanneKartenVerweise,
 } from '../../src/shared/markdown/link-scan.js';
+// 4T-001912 (Epic 3E-000360): Code-Blöcke nach der Zaun-Regel aus ihrer einen
+// Heimat, wie im Bereichs-Index; der geteilte Ausdruck `FENCE_RE` ist entfallen.
+import { schliesstZaun, zaunOeffnung } from '../../src/shared/markdown/fence-level.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEMO_DIR = path.resolve(HERE, '..', '..', 'src', 'demo');
@@ -82,16 +84,17 @@ describe('Verweis-Ziele der Beispiel-Sammlung', () => {
     const tot = [];
     for (const datei of DATEIEN) {
       const text = fs.readFileSync(datei.voll, 'utf8');
-      let imCodeblock = false;
+      let offen = null;
       for (const roh of text.split('\n')) {
         // Code-Blöcke überspringen: Die Sammlung erklärt die Link-Syntax und
         // zeigt dafür Beispiel-Ziele, die absichtlich nicht existieren
         // ("[[/Details]]"). Ein Beispiel ist kein Verweis.
-        if (FENCE_RE.test(roh)) {
-          imCodeblock = !imCodeblock;
+        if (offen) {
+          if (schliesstZaun(roh, offen)) offen = null;
           continue;
         }
-        if (imCodeblock) continue;
+        offen = zaunOeffnung(roh);
+        if (offen) continue;
         // Inline-Code ebenso ausblenden; dieselbe Maskierung nutzt der Bestand
         // beim Link-Scan.
         const zeile = maskInlineCode(roh);
@@ -128,31 +131,30 @@ describe('Verweis-Ziele der Beispiel-Sammlung', () => {
   // entgehen damit dem Wiki-Scan darüber; ein totes Ziel fiele sonst erst dem
   // Anwender auf — und zwar in dem Bestand, der ihm die Anwendung erklärt.
   //
-  // Die Fence-Verfolgung ist bewusst so einfach wie die des Bereichs-Index
-  // (src/main/index/parse.js): Sie kennt keine Verschachtelung. Der
-  // Syntax-Auszug der Canvas-Seite steht deshalb in einer Fence, die bereits
-  // als geschlossen gilt, und wird nicht geprüft — genau richtig, denn er ist
-  // ein Beispiel und kein Verweis.
+  // Die Fence-Verfolgung folgt der des Bereichs-Index (src/main/index/parse.js),
+  // seit 4T-001912 nach der Zaun-Regel aus fence-level.js: Ein Syntax-Auszug in
+  // einem äußeren Block mit längerem Zaun ist Inhalt dieses Blocks und wird
+  // nicht geprüft — genau richtig, denn er ist ein Beispiel und kein Verweis.
   it('löst jeden Karten-Verweis der Canvas-Flächen innerhalb der Sammlung auf', () => {
     const tot = [];
     let gefunden = 0;
     for (const datei of DATEIEN) {
       const text = fs.readFileSync(datei.voll, 'utf8');
-      let imCodeblock = false;
+      let offen = null;
       let imCanvas = false;
       for (const roh of text.split('\n')) {
-        const zaun = roh.match(FENCE_RE);
+        const zaun = zaunOeffnung(roh);
         if (zaun) {
-          if (!imCodeblock) {
-            imCodeblock = true;
-            imCanvas = istCanvasFenceInfo(roh.slice(zaun[0].length));
-          } else {
-            imCodeblock = false;
+          if (!offen) {
+            offen = zaun;
+            imCanvas = istCanvasFenceInfo(zaun.sprache);
+          } else if (schliesstZaun(roh, offen)) {
+            offen = null;
             imCanvas = false;
           }
           continue;
         }
-        if (!imCodeblock || !imCanvas) continue;
+        if (!offen || !imCanvas) continue;
         for (const treffer of scanneKartenVerweise(roh)) {
           gefunden += 1;
           // Anker abschneiden wie beim Wiki-Link: Er ist ein Sprungziel in der

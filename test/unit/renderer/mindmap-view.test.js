@@ -560,3 +560,79 @@ describe('Mindmap-Renderer: Treffer der Suche (4T-001893)', () => {
     expect(container.querySelector('.mindmap-viewport').getAttribute('transform')).toBe(vorher);
   });
 });
+
+describe('Mindmap-Renderer: Anfangs-Tiefe nur als Start-Verhalten (4T-001936)', () => {
+  // Ein leeres Klapp-Set stand bis 4T-001936 zugleich für «noch nie
+  // angewendet» und für «alles geöffnet»: Jede Neu-Zeichnung nach einer
+  // Änderung klappte eine vollständig geöffnete Karte wieder auf die
+  // Anfangs-Tiefe ein. Die Fälle folgen den Klapp-Fällen oben und klappen über
+  // den Anfasser auf, weil `klappen` intern ist.
+  const DOK_A = { name: 'A' };
+  const DOK_B = { name: 'B' };
+  const allesAufklappen = (container, view) => {
+    for (let i = 0; i < 20 && view.getStats().eingeklappt > 0; i++) {
+      container
+        .querySelector('.mindmap-anfasser-zu')
+        .dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    }
+    expect(view.getStats().eingeklappt).toBe(0);
+  };
+  const neuZeichnen = (view, opts) => {
+    const { root, gekappt } = baumAus();
+    view.setTree(root, { gekappt, ...opts });
+  };
+
+  it('AK1: alles geöffnet bleibt nach einer Neu-Übergabe mit derselben Anfangs-Tiefe offen', () => {
+    const { container, view } = baueAnsicht(QUELLE, {
+      setTree: { anfangsTiefe: 1, dokument: DOK_A },
+    });
+    expect(view.getStats().eingeklappt).toBe(2);
+    allesAufklappen(container, view);
+    neuZeichnen(view, { anfangsTiefe: 1, dokument: DOK_A });
+    expect(view.getStats().eingeklappt).toBe(0);
+    expect(knotenGruppen(container)).toHaveLength(6);
+  });
+
+  it('AK1: auch wenn die Suche den letzten eingeklappten Ast geöffnet hat', () => {
+    const { view } = baueAnsicht(QUELLE, { setTree: { anfangsTiefe: 1, dokument: DOK_A } });
+    const knoten = view.knotenFuerSuche();
+    for (const titel of ['Blatt A', 'Blatt C']) {
+      view.klappeAufBis(knoten.find((k) => k.titel === titel).schluessel);
+    }
+    expect(view.getStats().eingeklappt).toBe(0);
+    neuZeichnen(view, { anfangsTiefe: 1, dokument: DOK_A });
+    expect(view.getStats().eingeklappt).toBe(0);
+  });
+
+  it('AK2: ein geänderter Wert der Anfangs-Tiefe wirkt mit der nächsten Neu-Übergabe', () => {
+    const { container, view } = baueAnsicht(QUELLE, {
+      setTree: { anfangsTiefe: 1, dokument: DOK_A },
+    });
+    allesAufklappen(container, view);
+    neuZeichnen(view, { anfangsTiefe: 0, dokument: DOK_A });
+    // Tiefe 0: allein die Wurzel ist sichtbar.
+    expect(knotenGruppen(container)).toHaveLength(1);
+  });
+
+  it('AK2: ein anderes Dokument in derselben Ansicht startet wieder mit seiner Anfangs-Tiefe', () => {
+    const { container, view } = baueAnsicht(QUELLE, {
+      setTree: { anfangsTiefe: 1, dokument: DOK_A },
+    });
+    allesAufklappen(container, view);
+    neuZeichnen(view, { anfangsTiefe: 1, dokument: DOK_B });
+    expect(view.getStats().eingeklappt).toBe(2);
+    expect(knotenGruppen(container)).toHaveLength(3);
+  });
+
+  it('AK3: ein anderer Klapp-Zustand überlebt die Neu-Übergabe mit Anfangs-Tiefe', () => {
+    const { container, view } = baueAnsicht(QUELLE, {
+      setTree: { anfangsTiefe: 1, dokument: DOK_A },
+    });
+    container
+      .querySelector('.mindmap-anfasser-zu')
+      .dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    expect(view.getStats().eingeklappt).toBe(1);
+    neuZeichnen(view, { anfangsTiefe: 1, dokument: DOK_A });
+    expect(view.getStats().eingeklappt).toBe(1);
+  });
+});

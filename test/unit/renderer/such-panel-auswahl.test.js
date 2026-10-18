@@ -42,6 +42,8 @@ const {
   zaehlSchluessel,
 } = await import('../../../src/renderer/modules/search/search-panel.js');
 const { state } = await import('../../../src/renderer/modules/app/app-state.js');
+// 4T-001921: der Suchlauf, der Trefferliste und F3-Zeiger zusammenfuehrt.
+const lauf = await import('../../../src/renderer/modules/search/search-run.js');
 
 const DATEI_A = 'C:/Bereich/alpha.md';
 const DATEI_B = 'C:/Bereich/unter/beta.md';
@@ -449,6 +451,191 @@ describe('Trennung von Auswahl und Sprung (AK5)', () => {
     setzeErsetzenModus(false);
     setzeErsetzenModus(true);
     expect(anzahlAusgewaehlt()).toBe(4);
+  });
+});
+
+// 4T-001921 (Epic 3E-000341): Die mit den Pfeiltasten gewaehlte Zeile ueberlebt
+// einen neuen Aufbau der Liste mit derselben Anfrage. Den loest der Anwender
+// nicht selbst aus — eine Eingabe im Dokument, ein Ansichts-Wechsel oder das
+// Zeichnen eines Diagramms genuegen —, und bis zur Behebung setzte jeder davon
+// die Auswahl auf die erste Zeile zurueck; die Eingabetaste sprang danach zum
+// falschen Treffer. Gemessen wird deshalb am Bedienweg: zwei Druecke, ein
+// zweiter Aufbau, dann die Eingabetaste.
+describe('Auswahl ueber den Neuaufbau der Liste (4T-001921)', () => {
+  function druecke(el, taste) {
+    el.dispatchEvent(new window.KeyboardEvent('keydown', { key: taste, bubbles: true }));
+  }
+
+  // Derselbe Bestand ohne die Fundstellen an den genannten Positionen, mit
+  // nachgezogenen Gruppen-Anzahlen — so sieht ein Lauf aus, dessen Treffer-Zahl
+  // sich geaendert hat.
+  function ohne(...positionen) {
+    const b = bestand();
+    const weg = new Set(positionen.map((i) => auswahlSchluessel(b.treffer[i])));
+    b.treffer = b.treffer.filter((tr) => !weg.has(auswahlSchluessel(tr)));
+    for (const g of b.gruppen) g.anzahl = b.treffer.filter((tr) => tr.gruppe === g.gruppe).length;
+    return b;
+  }
+
+  function auswahlSchluessel(tr) {
+    return `${tr.gruppe}|${tr.sprung.offset}`;
+  }
+
+  function gewaehlteZeile() {
+    return liste().querySelector('.search-results-item.selected');
+  }
+
+  it('haelt die gewaehlte Zeile bei derselben Anfrage, und Enter springt zu ihr (AK1)', async () => {
+    const { initSearchResultsPanel } =
+      await import('../../../src/renderer/modules/search/search-panel.js');
+    initSearchResultsPanel();
+    const gesprungen = [];
+    setzeSprungHandler((tr, index) => gesprungen.push([index, tr.sprung.offset]));
+    zeigeTreffer(bestand());
+    liste().querySelectorAll('.search-results-item')[0].focus();
+    druecke(document.activeElement, 'ArrowDown');
+    druecke(document.activeElement, 'ArrowDown');
+    expect(aktuelleAuswahl()).toBe(2);
+
+    zeigeTreffer(bestand());
+
+    expect(aktuelleAuswahl()).toBe(2);
+    expect(gewaehlteZeile().dataset.index).toBe('2');
+    druecke(gewaehlteZeile(), 'Enter');
+    expect(gesprungen).toEqual([[2, 90]]);
+  });
+
+  it('findet die Fundstelle wieder, wenn sich die Treffer-Zahl aendert', () => {
+    zeigeTreffer(bestand());
+    setzeAuswahl(3); // unter/beta.md, Offset 5
+
+    zeigeTreffer(ohne(1)); // eine Fundstelle davor faellt weg
+
+    expect(aktuelleAuswahl()).toBe(2);
+    expect(gewaehlteZeile().dataset.schluessel).toContain('unter/beta.md');
+  });
+
+  it('faellt auf die erste Zeile, wenn Fundstelle und bisheriger Index fehlen', () => {
+    zeigeTreffer(bestand());
+    setzeAuswahl(4);
+    zeigeTreffer(ohne(4)); // vier Treffer, Index 4 liegt ausserhalb
+    expect(aktuelleAuswahl()).toBe(0);
+  });
+
+  it('haelt den bisherigen Index, wenn sich der Offset der Fundstelle verschiebt', () => {
+    // Wer in der offenen Datei VOR der gewaehlten Fundstelle tippt, verschiebt
+    // ihren Offset; der Schluessel findet sie dann nicht mehr wieder.
+    zeigeTreffer(bestand());
+    setzeAuswahl(1); // alpha.md, Offset 40
+    const verschoben = bestand();
+    for (const tr of verschoben.treffer.slice(0, 3)) tr.sprung.offset += 5;
+
+    zeigeTreffer(verschoben);
+
+    expect(aktuelleAuswahl()).toBe(1);
+  });
+
+  it('gibt den Fokus nach dem Neuaufbau an die gewaehlte Zeile zurueck', () => {
+    zeigeTreffer(bestand());
+    setzeAuswahl(2, { fokus: true });
+    expect(document.activeElement.dataset.index).toBe('2');
+
+    zeigeTreffer(bestand());
+
+    // Ohne Rueckgabe faende sich der Fokus auf BODY, und der naechste
+    // Pfeil-Druck erreichte den Handler des Panels nicht mehr.
+    expect(document.activeElement.tagName).toBe('BUTTON');
+    expect(document.activeElement.dataset.index).toBe('2');
+  });
+
+  it('nimmt einem Fokus ausserhalb der Liste nichts weg', () => {
+    const feld = document.createElement('input');
+    document.body.appendChild(feld);
+    zeigeTreffer(bestand());
+    feld.focus();
+
+    zeigeTreffer(bestand());
+
+    expect(document.activeElement).toBe(feld);
+    feld.remove();
+  });
+
+  it('setzt bei einer neuen Anfrage auf die erste Zeile (AK2)', () => {
+    zeigeTreffer(bestand());
+    setzeAuswahl(3);
+    zeigeTreffer(bestand('Merk'));
+    expect(aktuelleAuswahl()).toBe(0);
+  });
+
+  it('setzt bei anderen Schaltern oder einem anderen Raum auf die erste Zeile', () => {
+    zeigeTreffer(bestand());
+    setzeAuswahl(3);
+    zeigeTreffer({ ...bestand(), flags: 'gim' });
+    expect(aktuelleAuswahl()).toBe(0);
+
+    setzeAuswahl(3);
+    zeigeTreffer({ ...bestand(), raum: 'manual' });
+    expect(aktuelleAuswahl()).toBe(0);
+  });
+
+  it('beginnt nach dem Leeren der Liste wieder bei der ersten Zeile', () => {
+    zeigeTreffer(bestand());
+    setzeAuswahl(3);
+    leereTreffer('area');
+    zeigeTreffer(bestand());
+    expect(aktuelleAuswahl()).toBe(0);
+  });
+});
+
+// 4T-001921: Der Suchlauf kennt zwei Auswahl-Zustaende, den F3-Zeiger der
+// Suchleiste und die Auswahl des Panels. Ein Neuzeichen-Lauf legt den Zeiger
+// nicht mehr ueber eine gehaltene Panel-Auswahl; ein F3-Sprung bewegt die
+// Panel-Auswahl dagegen weiterhin mit, und das ueberlebt den Lauf, den der
+// Sprung nach sich zieht.
+describe('F3-Zeiger und Panel-Auswahl im Suchlauf (4T-001921)', () => {
+  const MUSTER = /Notiz/gm;
+
+  beforeEach(() => {
+    lauf.registriereLieferant('area', async () => {
+      const { treffer: tr, gruppen, abgeschnitten } = bestand();
+      return { treffer: tr, gruppen, abgeschnitten };
+    });
+    lauf.leereRaumBestand(null);
+  });
+
+  it('laesst die Panel-Auswahl bei einem Neuzeichen-Lauf vor dem F3-Zeiger stehen', async () => {
+    await lauf.sucheImRaum('area', MUSTER);
+    lauf.setzeRaumIndex(1); // F3-Zeiger auf der zweiten Zeile
+    setzeAuswahl(3); // danach mit den Pfeiltasten weiter
+
+    await lauf.sucheImRaum('area', MUSTER, { behalteIndex: true });
+
+    expect(aktuelleAuswahl()).toBe(3);
+    expect(lauf.raumIndex()).toBe(1);
+  });
+
+  it('nimmt die Panel-Auswahl bei einem F3-Sprung mit, auch ueber den folgenden Lauf', async () => {
+    await lauf.sucheImRaum('area', MUSTER);
+    lauf.setzeRaumIndex(1);
+    setzeAuswahl(3);
+
+    lauf.naechsterRaumTreffer(); // F3 vom Zeiger aus, nicht von der Panel-Auswahl
+    expect(aktuelleAuswahl()).toBe(2);
+    await lauf.sucheImRaum('area', MUSTER, { behalteIndex: true });
+
+    expect(aktuelleAuswahl()).toBe(2);
+    expect(lauf.raumIndex()).toBe(2);
+  });
+
+  it('zeigt den gehaltenen Zeiger, wenn ein Schalter die Anfrage aendert', async () => {
+    await lauf.sucheImRaum('area', MUSTER);
+    lauf.setzeRaumIndex(2);
+    setzeAuswahl(4);
+
+    await lauf.sucheImRaum('area', /Notiz/g, { behalteIndex: true });
+
+    expect(aktuelleAuswahl()).toBe(2);
+    expect(lauf.raumIndex()).toBe(2);
   });
 });
 
