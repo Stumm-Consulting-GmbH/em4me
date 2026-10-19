@@ -83,7 +83,17 @@ describe('Druck-Menuepunkt: Ort und Verdrahtung (E5)', () => {
     expect(iFolienHtml).toBeLessThan(I_PORTABEL);
     const dazwischen = menuQuelle.slice(iHtml, I_PORTABEL);
     expect(dazwischen).not.toContain("type: 'separator'");
-    expect(dazwischen.match(/label: t\(/g) || []).toHaveLength(3);
+    // 4T-002294 (Epic 3E-000349): dazu die PowerPoint-Datei des Foliensatzes
+    // nach den HTML-Seiten, ebenso ohne Trenner.
+    const iFolienPptx = menuQuelle.indexOf("label: t('menu.file.exportPresentationPptx')");
+    expect(iFolienHtml).toBeLessThan(iFolienPptx);
+    expect(iFolienPptx).toBeLessThan(I_PORTABEL);
+    // 4T-002295 (Epic 3E-000349): dazu die Bilder des Foliensatzes nach der
+    // PowerPoint-Datei, ebenso ohne Trenner.
+    const iFolienBilder = menuQuelle.indexOf("label: t('menu.file.exportPresentationImages')");
+    expect(iFolienPptx).toBeLessThan(iFolienBilder);
+    expect(iFolienBilder).toBeLessThan(I_PORTABEL);
+    expect(dazwischen.match(/label: t\(/g) || []).toHaveLength(5);
   });
 
   it('teilt die Verfügbarkeits-Regel des PDF-Exports', () => {

@@ -12,7 +12,7 @@ Leer, escribir y revisar son actividades distintas y requieren presentaciones di
 - **Mapa mental** convierte la estructura de títulos en un árbol.
 - **Lienzo** muestra una superficie con tarjetas y conexiones que se encuentra en el propio documento.
 - **Tablero** coloca las tareas del documento una junto a otra, como tarjetas en columnas.
-- **Diapositivas** muestran un documento con el indicador `presentation: true` como una serie de diapositivas, para proyectarlo a pantalla completa o con la vista del moderador en una segunda pantalla, y para entregarlo como PDF o como páginas HTML.
+- **Diapositivas** muestran un documento con el indicador `presentation: true` como una serie de diapositivas, para proyectarlo a pantalla completa o con la vista del moderador en una segunda pantalla, y para entregarlo como PDF, como páginas HTML, como archivo de PowerPoint o como imágenes.
 
 En detalle: [Vistas y presentación](views-display.md), [Vista de mapa mental](mindmap.md), [Superficie Canvas](canvas.md), [Tablero Kanban](kanban.md), [Presentación](presentation.md).
 

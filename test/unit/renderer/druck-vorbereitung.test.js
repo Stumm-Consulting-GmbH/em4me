@@ -51,6 +51,13 @@ vi.mock('../../../src/renderer/modules/charts/chart-view.js', () => ({
     protokoll.push('chartsIdle');
     diagrammAufrufe.push({ art: 'warten', wurzel, gezeichnet });
   },
+  // 4T-002294: Ohne Hell-Zwang wartet die Barriere auf die laufenden Lesungen.
+  waitForChartsIdle: () => {
+    protokoll.push('chartsReadsIdle');
+    const gelesen = Promise.resolve();
+    diagrammAufrufe.push({ art: 'lesungen', wurzel: null, gezeichnet: gelesen });
+    return gelesen;
+  },
 }));
 
 vi.mock('../../../src/renderer/modules/query/frontmatter-query-view.js', () => ({
@@ -470,6 +477,92 @@ describe('withPrintPreparation — Barrieren und Ansichts-Regel (AK5)', () => {
     expect(protokoll).toContain('sourcePrintBlock');
     for (const barriere of BARRIEREN) expect(protokoll).not.toContain(barriere);
     expect(paneEls.content.querySelector('.pdf-source-print')).toBeNull();
+  });
+});
+
+// 4T-002294 (Epic 3E-000349): Die PowerPoint-Datei des Foliensatzes zeigt,
+// was der Beamer zeigt. Mit `hellErzwingen: false` bleiben Theme und
+// Zeichnung der Ansicht stehen; Druck-Zustand, Barrieren und Rücknahme bleiben.
+describe('withPrintPreparation — Option hellErzwingen', () => {
+  async function lauf(steps = {}) {
+    const imLauf = {};
+    await withPrintPreparation({
+      ...steps,
+      output: async () => {
+        imLauf.theme = root.getAttribute('data-theme');
+        imLauf.bg = root.style.getPropertyValue('--bg');
+        imLauf.printing = document.body.classList.contains('printing');
+        protokoll.push('ENDPUNKT');
+        return { ok: true };
+      },
+    });
+    return imLauf;
+  }
+
+  it('Vorgabe: Hell wird erzwungen, Mermaid und Diagramme hell neu gezeichnet', async () => {
+    root.setAttribute('data-theme', 'dark');
+    const imLauf = await lauf();
+    expect(imLauf.theme).toBe('light');
+    expect(imLauf.bg).toBe('#ffffff');
+    const vorher = protokoll.slice(0, protokoll.indexOf('ENDPUNKT'));
+    expect(vorher).toContain('mermaidRerender');
+    expect(vorher).toContain('chartsRedraw');
+    expect(vorher).not.toContain('chartsReadsIdle');
+    expect(protokoll.slice(protokoll.indexOf('ENDPUNKT') + 1)).toContain('mermaidRerender');
+    expect(root.getAttribute('data-theme')).toBe('dark');
+  });
+
+  it('hellErzwingen: true verhält sich wie die Vorgabe', async () => {
+    root.setAttribute('data-theme', 'dark');
+    const imLauf = await lauf({ hellErzwingen: true });
+    expect(imLauf.theme).toBe('light');
+    expect(protokoll).toContain('chartsRedraw');
+  });
+
+  it('false: data-theme und Farb-Variablen bleiben, nichts wird neu gezeichnet', async () => {
+    root.setAttribute('data-theme', 'dark');
+    const imLauf = await lauf({ hellErzwingen: false });
+    expect(imLauf.theme).toBe('dark');
+    expect(imLauf.bg).toBe('');
+    expect(imLauf.printing).toBe(true);
+    expect(protokoll).not.toContain('mermaidRerender');
+    expect(protokoll).not.toContain('chartsRedraw');
+    expect(root.getAttribute('data-theme')).toBe('dark');
+    expect(root.style.getPropertyValue('--bg')).toBe('');
+  });
+
+  it('false: ohne gesetztes Theme wird keines gesetzt, auch nicht in der Rücknahme', async () => {
+    const imLauf = await lauf({ hellErzwingen: false });
+    expect(imLauf.theme).toBeNull();
+    expect(root.hasAttribute('data-theme')).toBe(false);
+  });
+
+  it('false: die Barrieren laufen; die Diagramm-Barriere wartet auf die Lesungen der Spalte', async () => {
+    root.setAttribute('data-theme', 'dark');
+    await lauf({ hellErzwingen: false });
+    const vorher = protokoll.slice(0, protokoll.indexOf('ENDPUNKT'));
+    const erwartet = BARRIEREN.filter((b) => b !== 'mermaidRerender' && b !== 'chartsRedraw');
+    expect(vorher.filter((e) => erwartet.includes(e))).toEqual(erwartet);
+    expect(vorher.indexOf('chartsReadsIdle')).toBeGreaterThan(vorher.indexOf('embedsIdle'));
+    expect(vorher.indexOf('chartsReadsIdle')).toBeLessThan(vorher.indexOf('chartsIdle'));
+    expect(diagrammAufrufe.map((a) => a.art)).toEqual(['lesungen', 'warten']);
+    expect(diagrammAufrufe[1].wurzel).toBe(paneEls.content);
+    expect(diagrammAufrufe[1].gezeichnet).toBe(diagrammAufrufe[0].gezeichnet);
+  });
+
+  it('false: vollständige Rücknahme des Druck-Zustands, auch nach einem Fehler', async () => {
+    root.setAttribute('data-theme', 'dark');
+    const ergebnis = await withPrintPreparation({
+      hellErzwingen: false,
+      output: async () => {
+        throw new Error('Fenster weg');
+      },
+    });
+    expect(ergebnis).toEqual({ ok: false, error: 'Fenster weg' });
+    expect(root.classList.contains('printing')).toBe(false);
+    expect(document.body.classList.contains('printing')).toBe(false);
+    expect(root.getAttribute('data-theme')).toBe('dark');
+    expect(isPrintPreparationRunning()).toBe(false);
   });
 });
 

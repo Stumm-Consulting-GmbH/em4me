@@ -15,6 +15,7 @@
   "dialog.filterAll": "Tous les fichiers",
   "dialog.filterJson": "Fichiers JSON",
   "dialog.filterPdf": "PDF",
+  "dialog.filterPptx": "Présentation PowerPoint",
   "dialog.filterHtml": "Fichier HTML",
   "dialog.ok": "OK",
   "dialog.cancel": "Annuler",

@@ -69,10 +69,12 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   their own on a second screen or projector while the presenter view shows you
   the next slide, your notes and the time; page through them with the
   keyboard, the mouse wheel or a click, and hand them on as a PDF with one
-  slide per page or as a folder of web pages that any browser shows without
-  the application, with your notes if you choose. The file stays ordinary
-  Markdown, and presentations made for another widely used slide tool, marked
-  `marp: true`, open here as well.
+  slide per page or a folder of web pages that any browser shows without the
+  application, both with your notes if you choose, as a PowerPoint file in
+  which every slide appears as a picture exactly as in the slide show and your
+  notes sit in the notes field, or as one picture per slide. The file stays
+  ordinary Markdown, and presentations made for another widely used slide
+  tool, marked `marp: true`, open here as well.
 - **Tables that calculate and query** — data tables with typed columns
   calculate live, and links and tags in their text cells work as anywhere
   else; queries embed file lists that keep themselves current, filtered by

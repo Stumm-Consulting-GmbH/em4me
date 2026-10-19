@@ -240,6 +240,8 @@
   "help.featureName.presentationSlideShow": "Presentation slide show",
   "help.featureName.presentationExportPdf": "Slides as PDF",
   "help.featureName.presentationExportHtml": "Slides as HTML pages",
+  "help.featureName.presentationExportPptx": "Slides as PowerPoint file",
+  "help.featureName.presentationExportImages": "Slides as images",
   "help.featureName.presentationOverview": "Slide overview",
   "help.featureName.presentationPresenterView": "Presenter view and slide show in a separate window",
   "help.featureName.presentationDesign": "Design of a presentation",

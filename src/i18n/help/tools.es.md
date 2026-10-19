@@ -124,7 +124,7 @@ La impresión sigue la vista activa, igual que la exportación a PDF de más aba
 
 El tamaño de página, la orientación y los márgenes se configuran en la sección «Exportación» de la configuración (Archivo → Configuración…); el valor predeterminado es A4 vertical con márgenes normales. Al fluir el contenido entre páginas, los bloques de código, tablas, diagramas, fórmulas y avisos se mantienen juntos en lo posible; los encabezados no quedan solos al final de una página.
 
-Las diapositivas de una presentación se exportan con una orden propia, una diapositiva por página; véase [Presentación](presentation.md).
+Las diapositivas de una presentación se exportan con una orden propia, una diapositiva por página; otras dos órdenes propias las exportan como archivo PowerPoint y como imágenes; véase [Presentación](presentation.md).
 
 ## Exportación a HTML
 

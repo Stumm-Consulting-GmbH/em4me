@@ -1116,6 +1116,31 @@ const COMMANDS = [
     availability: 'praesentationsDokument',
   },
   {
+    // 4T-002294 (Epic 3E-000349): PowerPoint-Datei des Foliensatzes, je Folie
+    // ein Bild und ihre Sprecher-Notizen im Notizen-Feld (Story 4S-001084).
+    // Gleiche Regel wie der PDF-Weg darueber, ohne Vorgabe-Kuerzel.
+    id: 'presentation.exportPptx',
+    defaultBindings: [],
+    labelKey: 'menu.file.exportPresentationPptx',
+    descKey: 'help.shortcut.presentationExportPptx',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+    availability: 'praesentationsDokument',
+  },
+  {
+    // 4T-002295 (Epic 3E-000349): ein PNG je Folie in einen Ordner (Story
+    // 4S-001085). Gleiche Regel wie der PowerPoint-Weg darueber.
+    id: 'presentation.exportImages',
+    defaultBindings: [],
+    labelKey: 'menu.file.exportPresentationImages',
+    descKey: 'help.shortcut.presentationExportImages',
+    categoryKey: 'help.group.file',
+    menu: true,
+    editorScoped: false,
+    availability: 'praesentationsDokument',
+  },
+  {
     // 4T-002282 (Epic 3E-000348): Dialog «Gestaltung dieser Präsentation…»,
     // der den Gestaltungs-Block im Dateikopf schreibt (Story 4S-001080). Ohne
     // Vorgabe-Kürzel wie «Einstellungen dieser Tafel…»; verfügbar nur in einer

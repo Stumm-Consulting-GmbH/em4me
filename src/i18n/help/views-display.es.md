@@ -47,7 +47,7 @@ El tablero muestra las tareas del documento como tablero Kanban: las listas con 
 
 ### Diapositivas
 
-La vista Diapositivas muestra una presentación diapositiva a diapositiva, con contador y paso de diapositivas; desde ella se inician la vista general de diapositivas, la proyección a pantalla completa o en una ventana aparte y la vista del moderador. Pertenece a la extensión «Vista de presentación» y desaparece con ella; como el lienzo y el tablero, depende del documento y solo puede elegirse si este lleva el indicador `presentation: true` en su encabezado. La regla de separación, las claves de control, las indicaciones por diapositiva, los temas incluidos los temas propios, las notas del orador, la proyección, la vista del moderador y las exportaciones de las diapositivas se describen en la página [Presentación](presentation.md).
+La vista Diapositivas muestra una presentación diapositiva a diapositiva, con contador y paso de diapositivas; desde ella se inician la vista general de diapositivas, la proyección a pantalla completa o en una ventana aparte y la vista del moderador. Pertenece a la extensión «Vista de presentación» y desaparece con ella; como el lienzo y el tablero, depende del documento y solo puede elegirse si este lleva el indicador `presentation: true` en su encabezado. La regla de separación, las claves de control, las indicaciones por diapositiva, los temas incluidos los temas propios, las notas del orador, la proyección, la vista del moderador y las exportaciones de las diapositivas como PDF, páginas HTML, archivo PowerPoint e imágenes se describen en la página [Presentación](presentation.md).
 
 ### Editar
 

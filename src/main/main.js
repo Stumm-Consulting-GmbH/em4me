@@ -15,6 +15,8 @@ const {
   shell,
   nativeTheme,
   Notification,
+  // 4T-002292 (Epic 3E-000349): Ladeweg des Render-Fensters der Folien-Bilder.
+  protocol,
   // 4T-000582 (Epic 3E-000107): Woerterbuch-Pflege der Rechtschreibpruefung.
   session,
 } = require('electron');
@@ -107,8 +109,14 @@ const { registerMemoryIpc } = require('./ipc/memory');
 const { registerCanvasImportIpc } = require('./ipc/canvas-import');
 // 4T-002163 (Epic 3E-000149): PDF und HTML-Seiten des Foliensatzes.
 const { registerPresentationExportIpc } = require('./ipc/presentation-export');
+// 4T-002294 (Epic 3E-000349): die PowerPoint-Datei des Foliensatzes.
+const { registerPresentationPptxIpc } = require('./ipc/presentation-export-pptx');
+// 4T-002295 (Epic 3E-000349): die Bilder des Foliensatzes.
+const { registerPresentationBilderIpc } = require('./ipc/presentation-export-bilder');
 // 4T-002278 (Epic 3E-000348): das Publikums-Fenster der Präsentation.
 const { registerPresentationWindowIpc } = require('./ipc/presentation-window');
+// 4T-002292 (Epic 3E-000349): Bild je Folie über das Render-Fenster.
+const { createFolienBilder, bildSchemaPrivilegien } = require('./slide-images');
 
 // 4T-000375: volle Version aus package.json-Version und Build-Info; fehlende
 // oder defekte Build-Info fällt auf die dreiteilige Version zurück.
@@ -391,6 +399,9 @@ function registerIpc() {
     portablerBetrieb,
     // 4T-002278: das Publikums-Fenster erscheint im Testlauf ohne Fokus.
     imTestlauf: IM_TESTLAUF,
+    // 4T-002294: der Erzeuger der Folien-Bilder (unten angelegt, weil sein
+    // Schema vor ready angemeldet wird), als Getter wie der Speicher.
+    getFolienBilder: () => folienBilder,
     isMarkdownPath,
     pushRecent,
     fullVersion,
@@ -448,6 +459,8 @@ function registerIpc() {
   registerMemoryIpc(registriere, ipcDeps);
   registerCanvasImportIpc(registriere, ipcDeps);
   registerPresentationExportIpc(registriere, ipcDeps);
+  registerPresentationPptxIpc(registriere, ipcDeps);
+  registerPresentationBilderIpc(registriere, ipcDeps);
   registerPresentationWindowIpc(registriere, ipcDeps);
 }
 
@@ -472,6 +485,16 @@ const { starteApp, zweitInstanz } = createStartup({
 app.on('second-instance', (_event, argv, workingDirectory) => {
   zweitInstanz(argv, workingDirectory);
 });
+
+// 4T-002292 (Epic 3E-000349): Das Schema der Folien-Bilder. Electron nimmt
+// die Privilegien nur einmal und nur vor dem ready-Ereignis an; ein weiteres
+// eigenes Schema gehört in dieselbe Liste (slide-images.js). Den
+// Ladeweg selbst registriert der Erzeuger nach ready, vor dem Start-Ablauf.
+const folienBilder = createFolienBilder({ BrowserWindow, protocol });
+if (!START_ABGEBROCHEN) {
+  protocol.registerSchemesAsPrivileged(bildSchemaPrivilegien());
+  app.whenReady().then(() => folienBilder.registriereBildSchema());
+}
 
 // 4T-001990: Nach abgebrochenem Start laedt nichts den Einstellungs-Speicher.
 if (!START_ABGEBROCHEN) app.whenReady().then(starteApp);

@@ -2886,6 +2886,30 @@
       "hinweis": "4T-002165 (Epic 3E-000149, Story 4S-001057): Katalog-Zeile des HTML-Exports des Foliensatzes. Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-11 in praesentation-export.spec.js): Ausführung über die Kommando-Palette, Ordner mit index.html und folie-001.html bis folie-003.html, ohne Notiz, mit Blätter-Verweisen, Theme-Variablen im :root und eingebettetem Hintergrund-Bild. Seiten-Bau, Blätter-Skript und Ziel-Ordner halten renderer/presentation-export.test.js und praesentation-export-kanal.test.js. Mit Sprecher-Notizen trägt 4T-002284 den Ablauf (PR-23 in praesentation-export.spec.js)."
     },
     {
+      "key": "help.feature.presentationExportPptx",
+      "id": "F-363",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation-export-pptx.spec.js",
+        "test/unit/renderer/presentation-export-pptx.test.js",
+        "test/unit/praesentation-export-pptx-kanal.test.js"
+      ],
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette ohne DOM-Bedienelement; das Ergebnis ist eine PowerPoint-Datei außerhalb der Anwendung, die der Product Owner an der gebauten Programmdatei in einem Präsentationsprogramm prüft",
+      "hinweis": "4T-002294 (Epic 3E-000349, Story 4S-001084): Katalog-Zeile der PowerPoint-Datei des Foliensatzes. Geprüft sind der Ablauf in der Seite (Speichern-Dialog mit Vorschlag, je Folie das eigenständige Dokument in Entwurfsgröße, Notizen immer als Klartext, Format aus dem Kopf, Meldung mit Folien- und Notizen-Zahl, Fehler mit Folie und Grund, Abbruch still) und der Kanal des Hauptprozesses am echten Handler mit Attrappen des Render-Fensters (Eingabe-Prüfung, Bilder zu Container, Schreibweg, Fehler-Angabe ohne Stacktrace, Abbruch beim Schließen des Absenders). Den Ablauf an der gestarteten Anwendung bis zur geschriebenen Datei trägt 4T-002296 (praesentation-export-pptx.spec.js): Ausführung über die Kommando-Palette, Archiv streng entpackt mit [Content_Types].xml zuerst, eine Folie je Folie mit Bild 2560 × 1440 und mehr als einer Farbe auf Formel- und Diagramm-Folie, Notizen maskiert bei der richtigen Folie und leere Notizen-Folie ohne Notiz, Meldung mit Folien- und Notizen-Zahl (PR-24); dieselben Notizen mit aus- und eingeschaltetem Schalter «Sprecher-Notizen mitgeben» (PR-25); 4:3 mit Folien-Größe 9144000 × 6858000 EMU und Bildern 1920 × 1440 (PR-26); Dialog-Abbruch ohne Datei und Meldung, danach ein Export möglich (PR-29)."
+    },
+    {
+      "key": "help.feature.presentationExportImages",
+      "id": "F-364",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation-export-pptx.spec.js",
+        "test/unit/renderer/presentation-export-bilder.test.js",
+        "test/unit/praesentation-export-bilder-kanal.test.js"
+      ],
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette ohne DOM-Bedienelement; das Ergebnis ist ein Ordner mit PNG-Bildern außerhalb der Anwendung, den der Product Owner an der gebauten Programmdatei im Datei-Explorer und in einer Bildanzeige prüft",
+      "hinweis": "4T-002295 (Epic 3E-000349, Story 4S-001085): Katalog-Zeile der Bilder des Foliensatzes. Geprüft sind der Ablauf in der Seite (Ordner-Dialog mit dem Ordner des Dokuments, je Folie das eigenständige Dokument in Entwurfsgröße ohne Notizen, Druck-Vorbereitung ohne Hell-Zwang, Meldung mit Zahl der Bilder und Ordner, Fehler mit Folie und Grund, Abbruch still) und die Kanäle des Hauptprozesses (Eingabe-Prüfung, Zielordner-Regel mit leerem, neuem, fremdem Ordner und früherem Bilder-Export, Dateien folie-001.png und folgende, Abbruch beim Schließen des Absenders, Schreibweg). Den Ablauf an der gestarteten Anwendung bis zu den geschriebenen Dateien trägt 4T-002296 (praesentation-export-pptx.spec.js): leerer Ordner mit folie-001.png bis folie-004.png in 2560 × 1440 und Meldung mit Zahl und Ordner (PR-27), Ordner mit fremder Datei mit Unterordner «<Name>-Folien» und unberührter fremder Datei (PR-28), Dialog-Abbruch ohne Datei und Meldung (PR-29)."
+    },
+    {
       "key": "help.feature.presentationOverview",
       "id": "F-359",
       "testart": "e2e",
@@ -3047,6 +3071,34 @@
       ],
       "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette ohne DOM-Bedienelement; das Ergebnis ist ein Ordner mit HTML-Seiten außerhalb der Anwendung, den der Product Owner im Browser prüft",
       "hinweis": "4T-002163 (Epic 3E-000149, Story 4S-001057): HTML-Seiten des Foliensatzes. Geprüft sind Startseite index.html und folie-001.html bis folie-00N.html, die Blätter-Leiste mit Verweisen und Enden, das Blätter-Skript mit der Tasten-Tabelle der Vorführung, eingebettete Stile ohne Druck-Regeln, KaTeX nur bei Formeln, fehlende Notizen, die Zählung fehlender Bilder, die Meldung und der Ziel-Ordner im Hauptprozess (leer, fremd, früherer Export, nur Seiten-Namen). Den Ablauf an der gestarteten Anwendung trägt 4T-002164 (PR-11 in praesentation-export.spec.js): Ausführung über die Kommando-Palette, Ordner mit index.html und folie-001.html bis folie-003.html, ohne Notiz, mit Blätter-Verweisen an den Enden, Theme-Variablen im :root und eingebettetem Hintergrund-Bild. Mit Sprecher-Notizen (4T-002283) trägt 4T-002284 den Ablauf (PR-23): Schalter auf der Einstellungs-Seite «Export», zugeklappter Bereich «Notizen» nur auf der Seite der Folie mit Notiz, Meldung mit der mitgegebenen Notiz."
+    },
+    {
+      "key": "help.shortcut.presentationExportPptx",
+      "id": "S-170",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation-export-pptx.spec.js",
+        "test/unit/renderer/presentation-export-pptx.test.js",
+        "test/unit/praesentation-export-pptx-kanal.test.js",
+        "test/unit/command-availability.test.js",
+        "test/unit/render/extensions-aus-praesentation.test.js"
+      ],
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette ohne DOM-Bedienelement; das Ergebnis ist eine PowerPoint-Datei außerhalb der Anwendung, die der Product Owner an der gebauten Programmdatei in einem Präsentationsprogramm prüft",
+      "hinweis": "4T-002294 (Epic 3E-000349, Story 4S-001084): Kommando «Foliensatz als PowerPoint exportieren…». Geprüft sind Registry-Eintrag ohne Vorgabe-Kürzel, Verfügbarkeit bei jedem Präsentations-Dokument, Menü-Ort im Untermenü «Exportieren» nach dem HTML-Export, Brücke, Menü-Bindung und Dispatcher sowie der Aus-Zustand der Erweiterung presentation. Den Ablauf an der gestarteten Anwendung trägt 4T-002296 (praesentation-export-pptx.spec.js): Ausführung über die Kommando-Palette bis zur geschriebenen Datei (PR-24 bis PR-26), Dialog-Abbruch (PR-29), Menü-Eintrag und Palette-Treffer entfallen mit ausgeschalteter Erweiterung und kehren zurück (PR-30)."
+    },
+    {
+      "key": "help.shortcut.presentationExportImages",
+      "id": "S-171",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/praesentation-export-pptx.spec.js",
+        "test/unit/renderer/presentation-export-bilder.test.js",
+        "test/unit/praesentation-export-bilder-kanal.test.js",
+        "test/unit/command-availability.test.js",
+        "test/unit/render/extensions-aus-praesentation.test.js"
+      ],
+      "sichtbarkeit": "entfällt: Eintrag im nativen Anwendungsmenü und in der Kommando-Palette ohne DOM-Bedienelement; das Ergebnis ist ein Ordner mit PNG-Bildern außerhalb der Anwendung, den der Product Owner an der gebauten Programmdatei im Datei-Explorer und in einer Bildanzeige prüft",
+      "hinweis": "4T-002295 (Epic 3E-000349, Story 4S-001085): Kommando «Foliensatz als Bilder exportieren…». Geprüft sind Registry-Eintrag ohne Vorgabe-Kürzel, Verfügbarkeit bei jedem Präsentations-Dokument, Menü-Ort im Untermenü «Exportieren» nach der PowerPoint-Datei, Brücke, Menü-Bindung und Dispatcher sowie der Aus-Zustand der Erweiterung presentation. Den Ablauf an der gestarteten Anwendung trägt 4T-002296 (praesentation-export-pptx.spec.js): Ausführung über die Kommando-Palette bis zu den geschriebenen Bildern (PR-27, PR-28), Dialog-Abbruch (PR-29), Menü-Eintrag und Palette-Treffer entfallen mit ausgeschalteter Erweiterung und kehren zurück (PR-30)."
     },
     {
       "key": "help.feature.kanbanNotes",

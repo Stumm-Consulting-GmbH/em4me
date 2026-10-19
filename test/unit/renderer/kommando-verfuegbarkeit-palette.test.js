@@ -233,6 +233,11 @@ const NACH_DER_MESSUNG = new Set([
   'presentation.new',
   'presentation.exportPdf',
   'presentation.exportHtml',
+  // 4T-002294 (Epic 3E-000349): die PowerPoint-Datei des Foliensatzes, aus
+  // demselben Grund.
+  'presentation.exportPptx',
+  // 4T-002295 (Epic 3E-000349): die Bilder des Foliensatzes, ebenso.
+  'presentation.exportImages',
   // 4T-001849 (Epic 3E-000110): die Karten-Anlage der Tafel, aus demselben
   // Grund wie der Modus darueber.
   'kanban.addCard',

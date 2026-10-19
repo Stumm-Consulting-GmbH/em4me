@@ -12,7 +12,7 @@ Reading, writing and checking are different activities, and they need different 
 - **Mind map** turns the heading outline into a tree.
 - **Canvas** shows a surface with cards and connections that lives inside the document itself.
 - **Board** puts the tasks of the document side by side, as cards in columns.
-- **Slides** show a document with the flag `presentation: true` as a set of slides, for a full-screen slide show or with the presenter view on a second display, and for passing on as a PDF or as HTML pages.
+- **Slides** show a document with the flag `presentation: true` as a set of slides, for a full-screen slide show or with the presenter view on a second display, and for passing on as a PDF, as HTML pages, as a PowerPoint file or as images.
 
 In detail: [Views and display](views-display.md), [Mind map view](mindmap.md), [Canvas surface](canvas.md), [Kanban board](kanban.md), [Presentation](presentation.md).
 

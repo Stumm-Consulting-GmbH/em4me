@@ -12,6 +12,13 @@
 //      Tabellen) plus Reflow-Wait
 //   5. Endpunkt
 //   finally: vollstaendige Ruecknahme in umgekehrter Reihenfolge
+//
+// 4T-002294 (Epic 3E-000349): Mit `hellErzwingen: false` entfallen Schritt 3
+// und das helle Neu-Zeichnen in Schritt 4 samt ihrer Ruecknahme. Die
+// PowerPoint-Datei des Foliensatzes zeigt, was der Beamer zeigt (Vorfuehrung,
+// Publikums-Fenster), nicht die Papier-Fassung; die Entscheidung «Ausgabe
+// stets hell» (4T-000465) gilt fuer Papier, PDF und HTML-Export und bleibt
+// dort die Vorgabe. Druck-Zustand, Barrieren und Ruecknahme bleiben.
 'use strict';
 
 import { getPaneEls, state } from '../app/app-state.js';
@@ -33,7 +40,13 @@ import { waitForPerspectiveScriptsIdle } from '../query/perspective-script-view.
 // 4T-002054: gekürzte Datentabellen für die Dauer der Ausgabe mit allen Zeilen.
 import { zeichneGekuerzteDatentabellenVoll } from '../query/perspective-datatable-view.js';
 // 4T-002025 (Epic 3E-000192): helles Neu-Zeichnen und Barriere der Diagramme.
-import { warteAufDiagrammeDerAusgabe, zeichneDiagrammeFuerAusgabe } from '../charts/chart-view.js';
+// 4T-002294: ohne helles Neu-Zeichnen wartet die Diagramm-Barriere allein auf
+// die laufenden Lesungen.
+import {
+  waitForChartsIdle,
+  warteAufDiagrammeDerAusgabe,
+  zeichneDiagrammeFuerAusgabe,
+} from '../charts/chart-view.js';
 // 4T-000311 (Epic 3E-000055): Druck-Aufbereitung der Quelltext-Ansicht.
 import { buildPdfSourcePrintElement } from './pdf-source-print.js';
 // 4T-002188 (Epic 3E-000347): private Kommentare fallen aus dem Print-Block,
@@ -100,6 +113,11 @@ function waitForReflow() {
  *   Lauf still ab — ohne Hinweis, wie der Dialog-Abbruch es immer getan hat.
  * @param {(context: any) => Promise<{ok: boolean, error?: string}>} steps.output
  *   Der Endpunkt. Bekommt den Rueckgabewert von `prepare`.
+ * @param {boolean} [steps.hellErzwingen=true] Theme fuer die Dauer auf Hell
+ *   zwingen und Mermaid-Bloecke sowie Diagramme zu Tabellen hell neu zeichnen
+ *   (4T-000465). `false` (4T-002294, PowerPoint-Datei des Foliensatzes): Die
+ *   Ausgabe behaelt Theme und Zeichnung der Ansicht; die Barrieren laufen
+ *   unveraendert, die Diagramm-Barriere wartet auf die laufenden Lesungen.
  * @returns {Promise<{ok: boolean, canceled?: boolean, error?: string}>}
  *   `canceled` heisst: nichts ist geschehen und nichts ist zu melden.
  */
@@ -125,6 +143,7 @@ export async function withPrintPreparation(steps) {
     savedViewMode === 'presentation' &&
     !!(els && els.presentationEl) &&
     els.presentationEl.contains(document.activeElement);
+  const hellErzwingen = steps.hellErzwingen !== false;
   const savedTheme = root.getAttribute('data-theme') || '';
   const savedVars = {};
   let printStateApplied = false;
@@ -166,12 +185,15 @@ export async function withPrintPreparation(steps) {
     }
 
     // 3. Theme fuer die Print-Dauer auf Light zwingen (B+). Gilt auch fuer
-    //    den Quelltext-Druck (hljs-Farben haengen an data-theme).
-    for (const [key, value] of Object.entries(pdfColorOverrides())) {
-      savedVars[key] = root.style.getPropertyValue(key);
-      root.style.setProperty(key, value);
+    //    den Quelltext-Druck (hljs-Farben haengen an data-theme). Entfaellt
+    //    mit `hellErzwingen: false` (4T-002294); savedVars bleibt dann leer.
+    if (hellErzwingen) {
+      for (const [key, value] of Object.entries(pdfColorOverrides())) {
+        savedVars[key] = root.style.getPropertyValue(key);
+        root.style.setProperty(key, value);
+      }
+      root.setAttribute('data-theme', 'light');
     }
-    root.setAttribute('data-theme', 'light');
     root.classList.add('printing');
     document.body.classList.add('printing');
     printStateApplied = true;
@@ -182,7 +204,7 @@ export async function withPrintPreparation(steps) {
     //    Druckbild; die versteckten Panes bleiben unangetastet).
     if (!sourceMode) {
       await waitForMermaidIdle();
-      await rerenderAllMermaidBlocks();
+      if (hellErzwingen) await rerenderAllMermaidBlocks();
       // 4T-000355: Abfrage-Listen fertig befüllen lassen, sonst druckt die
       // Ausgabe den leeren Platzhalter statt der Datei-Liste.
       await waitForFrontmatterQueriesIdle();
@@ -216,7 +238,12 @@ export async function withPrintPreparation(steps) {
       // hängende Lesung einer anderen Spalte verzögert die Ausgabe nicht. Ist
       // eine Lesung bis zur Zeit-Grenze nicht fertig, steht an ihrer Stelle
       // ein Hinweis statt eines alten oder leeren Bilds.
-      const diagramme = zeichneDiagrammeFuerAusgabe(els.content);
+      // 4T-002294: Ohne helles Neu-Zeichnen bleibt die Zeichnung der Ansicht
+      // stehen; die Barriere wartet dann auf die laufenden Lesungen, mit
+      // derselben Zeit-Grenze und demselben Hinweis.
+      const diagramme = hellErzwingen
+        ? zeichneDiagrammeFuerAusgabe(els.content)
+        : waitForChartsIdle();
       await warteAufDiagrammeDerAusgabe(els.content, diagramme);
     }
     await waitForReflow();
@@ -245,8 +272,10 @@ export async function withPrintPreparation(steps) {
         if (value) root.style.setProperty(key, value);
         else root.style.removeProperty(key);
       }
-      if (savedTheme) root.setAttribute('data-theme', savedTheme);
-      else root.removeAttribute('data-theme');
+      if (hellErzwingen) {
+        if (savedTheme) root.setAttribute('data-theme', savedTheme);
+        else root.removeAttribute('data-theme');
+      }
     }
     if (modeChanged) {
       tab.viewMode = savedViewMode;
@@ -269,7 +298,7 @@ export async function withPrintPreparation(steps) {
     // Mermaid zurueck ins aktive Theme (No-op, wenn das Theme Light war
     // und die Cache-Treffer greifen; beim Quelltext-Druck lief kein
     // Light-Re-Render).
-    if (printStateApplied && savedTheme !== 'light' && !sourceMode) {
+    if (printStateApplied && hellErzwingen && savedTheme !== 'light' && !sourceMode) {
       await rerenderAllMermaidBlocks();
     }
     // 4T-002025: Die Diagramme zu Tabellen kehren über ihren Farb-Beobachter

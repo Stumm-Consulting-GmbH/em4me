@@ -652,6 +652,10 @@ const INTERNAL_EXTENSIONS = [
       'help.feature.presentationThemes',
       'help.feature.presentationExportPdf',
       'help.feature.presentationExportHtml',
+      // 4T-002294: die PowerPoint-Datei des Foliensatzes.
+      'help.feature.presentationExportPptx',
+      // 4T-002295: die Bilder des Foliensatzes.
+      'help.feature.presentationExportImages',
     ],
     // 4T-002162: dazu Start und Ende der Vorfuehrung; im Aus-Zustand entfallen
     // sie mit dem Modus aus Menue, Palette und Tastenbelegung.
@@ -669,6 +673,10 @@ const INTERNAL_EXTENSIONS = [
       'presentation.new',
       'presentation.exportPdf',
       'presentation.exportHtml',
+      // 4T-002294: die PowerPoint-Datei des Foliensatzes.
+      'presentation.exportPptx',
+      // 4T-002295: die Bilder des Foliensatzes.
+      'presentation.exportImages',
       // 4T-002282: der Dialog «Gestaltung dieser Präsentation…».
       'presentation.gestaltung',
     ],

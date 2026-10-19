@@ -47,7 +47,7 @@ The board shows the tasks of the document as a Kanban board: the named lists of 
 
 ### Slides
 
-The Slides view shows a presentation slide by slide, with a counter and paging; the slide overview, the slide show in full screen or in a separate window and the presenter view start from it. It belongs to the “Presentation view” extension and goes with it; like the canvas and the board it depends on the document and can be chosen only when the document carries the flag `presentation: true` in its front matter. Separation rule, control keys, settings per slide, themes including custom themes, speaker notes, slide show, presenter view and the exports of the slides are described on the page [Presentation](presentation.md).
+The Slides view shows a presentation slide by slide, with a counter and paging; the slide overview, the slide show in full screen or in a separate window and the presenter view start from it. It belongs to the “Presentation view” extension and goes with it; like the canvas and the board it depends on the document and can be chosen only when the document carries the flag `presentation: true` in its front matter. Separation rule, control keys, settings per slide, themes including custom themes, speaker notes, slide show, presenter view and the exports of the slides as PDF, HTML pages, PowerPoint file and images are described on the page [Presentation](presentation.md).
 
 ### Editing
 

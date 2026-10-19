@@ -107,8 +107,35 @@ theme:
 
 ---
 
+# Formulas on a slide
+
+A formula between two lines of `$$` is typeset on the slide just as in a document:
+
+$$
+x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+$$
+
+It appears the same way in the slide show and in every export.
+
+%% Speaker note: name the parts of the formula _from left to right_. %%
+
+---
+
+# Diagrams on a slide
+
+A Mermaid diagram is drawn on the slide as well, and it goes along into every export:
+
+```mermaid
+flowchart LR
+  A[Write] --> B[Slides]
+  B --> C{Share}
+  C --> D[Present]
+```
+
+---
+
 # Take it with you
 
-**File → More File Functions → Export** writes the slides as a PDF with one slide per page, or as a folder of HTML pages any browser can show. Speaker notes stay behind unless you switch on **Include speaker notes** under **File → Settings… → Export**.
+**File → More File Functions → Export** writes the slides as a PDF with one slide per page, as a folder of HTML pages any browser can show, as a PowerPoint file with one picture per slide, or as a folder of PNG images. The PowerPoint file always carries your speaker notes in its notes field, and the images never do; for the PDF and the HTML pages, notes stay behind unless you switch on **Include speaker notes** under **File → Settings… → Export**.
 
 That is the whole tour — head back to [[00 Welcome]] and start editing. :tada:

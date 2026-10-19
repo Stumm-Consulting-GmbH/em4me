@@ -167,6 +167,15 @@ contextBridge.exposeInMainWorld('api', {
   chooseFolienHtmlOrdner: (params) => ipcRenderer.invoke('presentationHtml:chooseFolder', params),
   writeFolienHtml: (ordner, unterordner, dateien) =>
     ipcRenderer.invoke('presentationHtml:write', ordner, unterordner, dateien),
+  // 4T-002294 (Epic 3E-000349): PowerPoint-Datei des Foliensatzes —
+  // Speichern-Dialog und ein Auftrag mit allen Folien-Dokumenten und Notizen;
+  // Bilder, Datei und Schreiben entstehen im Hauptprozess.
+  choosePptxExportTarget: (params) => ipcRenderer.invoke('pptx:chooseTarget', params),
+  exportFolienPptx: (auftrag) => ipcRenderer.invoke('presentationPptx:export', auftrag),
+  // 4T-002295 (Epic 3E-000349): Bilder des Foliensatzes — Ordner-Wahl und ein
+  // Auftrag mit allen Folien-Dokumenten; Bilder und Schreiben im Hauptprozess.
+  chooseFolienBilderOrdner: (p) => ipcRenderer.invoke('presentationImages:chooseFolder', p),
+  exportFolienBilder: (auftrag) => ipcRenderer.invoke('presentationImages:export', auftrag),
   // 4T-001479 (Epic 3E-000177): Druck ueber den Systemdialog. Kein Argument —
   // Format, Ausrichtung und Raender liest der Hauptprozess aus dem Store,
   // alles Uebrige waehlt der Anwender im Dialog des Betriebssystems.
@@ -927,6 +936,11 @@ contextBridge.exposeInMainWorld('api', {
   onMenuPresentationNew: (cb) => ipcRenderer.on('menu:presentationNew', () => cb()),
   onMenuPresentationExportPdf: (cb) => ipcRenderer.on('menu:presentationExportPdf', () => cb()),
   onMenuPresentationExportHtml: (cb) => ipcRenderer.on('menu:presentationExportHtml', () => cb()),
+  // 4T-002294: 'Exportieren -> Foliensatz als PowerPoint exportieren'.
+  onMenuPresentationExportPptx: (cb) => ipcRenderer.on('menu:presentationExportPptx', () => cb()),
+  // 4T-002295: 'Exportieren -> Foliensatz als Bilder exportieren'.
+  onMenuPresentationExportImages: (cb) =>
+    ipcRenderer.on('menu:presentationExportImages', () => cb()),
   // 4T-001701 (Epic 3E-000288): 'Ansicht -> Form auf der Flaeche anlegen'.
   onMenuCanvasAddShape: (cb) => ipcRenderer.on('menu:canvasAddShape', () => cb()),
   // 4T-001702 (Epic 3E-000288): 'Ansicht -> Gruppe auf der Flaeche anlegen'.

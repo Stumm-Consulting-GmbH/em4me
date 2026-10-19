@@ -134,5 +134,7 @@
   "menu.view.presentationNew": "New Presentation",
   "menu.file.exportPresentationPdf": "Export Slides as PDF…",
   "menu.file.exportPresentationHtml": "Export Slides as HTML…",
+  "menu.file.exportPresentationPptx": "Export Slides as PowerPoint…",
+  "menu.file.exportPresentationImages": "Export Slides as Images…",
   "menu.view.presentationGestaltung": "Design of this presentation…"
 }

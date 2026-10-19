@@ -37,6 +37,8 @@ import { oeffneGestaltungDerSpalte } from '../presentation/presentation-gestaltu
 // 4T-002163 (Epic 3E-000149): neue Praesentation und die Ausgaben des Foliensatzes.
 import { legeNeuePraesentationAn } from '../presentation/presentation-anlegen.js';
 import { exportiereFoliensatzAlsHtml, exportiereFoliensatzAlsPdf } from '../views/folien-export.js';
+import { exportiereFoliensatzAlsPptx } from '../views/folien-export-pptx.js';
+import { exportiereFoliensatzAlsBilder } from '../views/folien-export-bilder.js';
 // 4T-002024 (Epic 3E-000192): Diagramm einfügen und bearbeiten.
 import { runChartEdit, runChartInsert } from '../charts/chart-commands.js';
 import { starteCanvasVerbindung } from '../panels/panel-canvas-liste.js';
@@ -339,6 +341,14 @@ export function bindMenuEvents() {
   }
   if (typeof api.onMenuPresentationExportHtml === 'function') {
     api.onMenuPresentationExportHtml(() => exportiereFoliensatzAlsHtml());
+  }
+  // 4T-002294 (Epic 3E-000349): 'Exportieren -> Foliensatz als PowerPoint exportieren'.
+  if (typeof api.onMenuPresentationExportPptx === 'function') {
+    api.onMenuPresentationExportPptx(() => exportiereFoliensatzAlsPptx());
+  }
+  // 4T-002295 (Epic 3E-000349): 'Exportieren -> Foliensatz als Bilder exportieren'.
+  if (typeof api.onMenuPresentationExportImages === 'function') {
+    api.onMenuPresentationExportImages(() => exportiereFoliensatzAlsBilder());
   }
   // 4T-001479 (Epic 3E-000177): Menue-Eintrag 'Drucken...'.
   if (typeof api.onMenuPrint === 'function') {

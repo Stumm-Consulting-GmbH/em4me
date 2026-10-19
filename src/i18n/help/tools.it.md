@@ -124,7 +124,7 @@ La stampa segue la vista attiva, esattamente come l’esportazione PDF qui sotto
 
 Formato pagina, orientamento e margini si impostano nella sezione «Esportazione» delle impostazioni (File → Impostazioni…); il valore predefinito è A4 verticale con margini normali. Quando il contenuto scorre su più pagine, blocchi di codice, tabelle, diagrammi, formule e callout restano insieme per quanto possibile; i titoli non rimangono soli a fine pagina.
 
-Le diapositive di una presentazione si esportano con un comando proprio, una diapositiva per pagina; vedi [Presentazione](presentation.md).
+Le diapositive di una presentazione si esportano con un comando proprio, una diapositiva per pagina; altri due comandi propri le esportano come file PowerPoint e come immagini; vedi [Presentazione](presentation.md).
 
 ## Esportazione HTML
 

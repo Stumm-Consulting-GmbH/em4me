@@ -14,6 +14,184 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.150.0.4122] - 2026-10-18 — Präsentations-Ansicht Stufe 3: PowerPoint-Datei und Bilder
+
+Zug 3E-000363
+mit einem Mitglied, nach der Entscheidung des Product Owners vom 2026-10-07
+über einen eigenen Zug je Stufe und damit unter der Regelgröße: die Stufe 3
+der Präsentations-Ansicht
+(3E-000349).
+Ein Foliensatz lässt sich als PowerPoint-Datei weitergeben, in der jede Folie
+als Bild erscheint, genau so, wie sie in der Vorführung aussieht, und die
+Sprecher-Notizen im Notizen-Feld der Folie stehen; dazu lässt er sich als Satz
+von Bildern ausgeben, ein Bild je Folie. Beide Wege stehen im Untermenü
+«Exportieren» neben PDF und HTML-Seiten. Die Datei entsteht ohne zusätzliches
+Programm und ohne neue Abhängigkeit der Anwendung. Weil jede Folie ein Bild
+ist, lässt sich ihr Text in PowerPoint weder bearbeiten noch durchsuchen.
+Konzept-Runde und Entscheidungen in
+4T-002290,
+der Abschluss-Anteil in
+4T-002298.
+
+**Entscheidungen des Product Owners vom 2026-10-17** (im Wortlaut: «Ich folge
+allen Empfehlungen des Entscheidungs-Pakets 1 (A1 Bilder-Export aufnehmen, A2
+nur geprüfte Programme nennen, B1 unsichtbares Render-Fenster, C1 Eigenbau ohne
+Abhängigkeit). Mach weiter.»): Die Folien gehen als Bilder samt Notizen in die
+PowerPoint-Datei, wie es schon am 2026-10-07 festgelegt war, und nicht als
+bearbeitbare Text-Objekte, weil deren Übersetzung in das fremde Layout keine
+Treue zusagen könnte. Das Bild jeder Folie entsteht in einem unsichtbaren
+Fenster, das die Folie so zeichnet wie das Publikums-Fenster (B1). Die
+PowerPoint-Datei baut die Anwendung selbst, ohne Bibliothek (C1, gekennzeichnete
+Abweichung vom verbreiteten Weg über die Bibliothek pptxgenjs: ein fester
+Ausschnitt des Formats in rund 500 eigenen Zeilen statt rund 3,3 MB in sieben
+Paketen). Der Bilder-Export kommt als zweites Kommando hinzu (A1). Das Handbuch
+nennt nur die Programme, in denen die Datei tatsächlich geöffnet worden ist
+(A2), nach der Angabe des Product Owners vom selben Tag: Microsoft PowerPoint
+unter Windows, LibreOffice Impress allein im Linux-Prüfstand. Weil dessen
+Abbild noch kein LibreOffice enthielt, hat er am Abend desselben Tages die
+Aufnahme entschieden.
+
+### Neu
+
+- **Bild je Folie aus einem unsichtbaren Fenster** (`4T-002292`, Entscheidung
+  B1 vom 2026-10-17). Die Grundlage beider Exporte: Ein Fenster ohne
+  Bildschirm-Ausgabe lädt je Folie das eigenständige Dokument, das auch das
+  Publikums-Fenster zeigt, wartet, bis Schriften, Bilder, Formeln und Diagramme
+  gezeichnet sind, und nimmt die Folie in doppelter Auflösung auf: 2560 × 1440
+  Pixel bei 16:9, 1920 × 1440 bei 4:3. Theme oder eigenes Theme, Angaben je
+  Folie, Hintergrundbilder und die Verkleinerung übervoller Folien erscheinen
+  im Bild wie in der Vorführung. Das Fenster läuft abgeschottet, ohne Zugriff
+  auf Dateien und ohne Netz, erscheint weder in Fenster-Liste noch
+  Sitzungs-Persistenz und wird in jedem Ausgang wieder geschlossen; eine Folie
+  hat zehn Sekunden Zeit, ein Fehlschlag nennt ihre Nummer, und beim Schließen
+  des Hauptfensters bricht der Export ab. Ausgewählt nach einem Nachweis unter
+  Windows und Linux: Nur das Zeichnen ohne Bildschirm lief ohne Ausfall, ein
+  bloß verborgenes Fenster blieb sporadisch hängen. Das Modul liegt in
+  `src/main/slide-images.js`; die Folie kommt über ein eigenes, nur für den
+  Export angemeldetes Schema `em4me-folie` aus dem Speicher, mit der
+  Inhalts-Regel `default-src 'none'; img-src data:; font-src data:; style-src
+  'unsafe-inline'`.
+- **PowerPoint-Container ohne neue Abhängigkeit** (`4T-002293`, Entscheidung
+  C1 vom 2026-10-17). Die Anwendung schreibt das Format selbst: ein
+  ZIP-Schreiber (`src/shared/presentation/zip-writer.js`, Kompression aus dem
+  Hauptprozess übergeben) und der Container
+  (`src/shared/presentation/pptx-writer.js` mit den Vorlagen in
+  `pptx-templates.js`) mit Folien in 16:9 oder 4:3, je Folie einem Bild in
+  voller Folien-Größe und einer Notizen-Folie, auch bei fehlenden Notizen; jede
+  Notiz-Zeile ist ein Absatz, Notizen einer Folie trennt ein leerer Absatz.
+  Folien-Master und Notizen-Master tragen je ein eigenes Theme, weil PowerPoint
+  die Datei sonst nur mit Reparatur öffnet (in der Prüfung vor dem ersten
+  Commit gefunden und behoben).
+- **Foliensatz als PowerPoint exportieren** (`4T-002294`). «Datei → Weitere
+  Datei-Funktionen → Exportieren → Foliensatz als PowerPoint exportieren…»
+  (Kommando `presentation.exportPptx`, direkt nach dem HTML-Export, ohne
+  Vorgabe-Kürzel, an der Erweiterung «Präsentations-Ansicht») fragt nach dem
+  Ziel, vorgeschlagen ist der Name des Dokuments mit der Endung `.pptx` im
+  selben Ordner, und schreibt die Datei ganz oder gar nicht. Die
+  Sprecher-Notizen gehen **immer** mit, als Text ohne Formatierung im
+  Notizen-Feld; der Schalter «Sprecher-Notizen mitgeben» gilt weiterhin nur für
+  PDF und HTML-Seiten. Die Meldung nennt Folien und mitgegebene Notizen,
+  etwa «Foliensatz als PowerPoint exportiert: 11 Folien, 5 Sprecher-Notizen
+  mitgegeben»; ein Fehlschlag nennt den Grund und bei Bedarf die Folie.
+  Diagramme erscheinen im Bild wie in der Vorführung und werden, anders als für
+  PDF und Druck, nicht hell neu gezeichnet (neue Option `hellErzwingen` der
+  Druck-Vorbereitung, Vorgabe unverändert). Die Seite übergibt je Folie ihr
+  Dokument und ihre Notizen; Bilder, Datei und Schreiben entstehen im
+  Hauptprozess (`src/main/ipc/presentation-export-pptx.js`, Kanäle
+  `pptx:chooseTarget` und `presentationPptx:export`).
+- **Foliensatz als Bilder exportieren** (`4T-002295`, Entscheidung A1 vom
+  2026-10-17). «Datei → Weitere Datei-Funktionen → Exportieren → Foliensatz als
+  Bilder exportieren…» (Kommando `presentation.exportImages`, ohne
+  Vorgabe-Kürzel) legt in einem gewählten Ordner ein PNG-Bild je Folie an,
+  `folie-001.png`, `folie-002.png` und so fort, in derselben Auflösung wie in
+  der PowerPoint-Datei und ohne Notizen. Für den Ordner gilt die Regel der
+  HTML-Seiten: leer, neu oder ein früherer Bilder-Export, dann direkt hinein,
+  sonst ein Unterordner mit dem Namen des Dokuments und dem Zusatz `-Folien`;
+  vorhandene Dateien bleiben unberührt, und ein Fehlschlag hinterlässt keinen
+  leeren Ordner. Die Meldung nennt die Zahl der Bilder und den Ordner.
+  Hauptprozess in `src/main/ipc/presentation-export-bilder.js` (Kanäle
+  `presentationImages:chooseFolder` und `presentationImages:export`).
+
+### Geändert
+
+- **Nutzen-Darstellung in Handbuch und Webseite um PowerPoint-Datei und
+  Bilder** (`3E-000349`, `4T-002297`, Entscheidung des Product Owners vom
+  2026-10-17 am Abend, im Wortlaut «Ich folge den vier Empfehlungen des
+  Tagesberichts vom 2026-10-17: LibreOffice Impress in den Prüfstand aufnehmen,
+  die Demo-Seite um Formel- und Diagramm-Folie ergänzen, die Nutzen-Seiten
+  ergänzen, die Nebenbefunde als Fundstellen in den Zug Fehlerbehebungen
+  geben. Mach weiter.»). Der Satz zur Weitergabe der Folien im Abschnitt «Ein
+  Dokument, so wie Sie es gerade brauchen» der Nutzen-Seite des Handbuchs und
+  der Nutzen-Seite der Produkt-Webseite endet jetzt auf «als PDF, als
+  HTML-Seiten, als PowerPoint-Datei oder als Bilder», in allen fünf
+  Sprachfassungen.
+
+### i18n
+
+- **Texte der beiden Exporte** (`4T-002294`, `4T-002295`), in allen fünf
+  Sprachfassungen: Menü-Einträge und Kommando-Beschreibungen, Speichern- und
+  Ordner-Dialog samt Filter «PowerPoint-Präsentation», Bild-Name in der
+  PowerPoint-Datei, Meldungen, Fehler und zehn Fehler-Gründe, dazu je Export
+  die drei Katalog-Schlüssel. **Zählung nach Kapitel 13 der
+  Entwicklungsrichtlinien**, erhoben am 2026-10-18 gegen den Epic-Zweig über die
+  Schlüssel aller Fragmente je Sprache im Vergleich mit dem Release 1.149.1:
+  je Sprache **32 neue Schlüssel** (4477 statt 4445), davon 21 aus `4T-002294`
+  und 11 aus `4T-002295`, darunter **6 neue Katalog-Schlüssel**; keiner
+  geändert, keiner entfernt, in allen fünf Sprachen gleich.
+- **Funktions-Katalog und Handbuch der Stufe 3** (`4T-002297`), in allen fünf
+  Sprachfassungen: Handbuch-Seite «Präsentation» mit den Unterkapiteln «Als
+  PowerPoint-Datei» und «Als Bilder» im Kapitel «Foliensatz exportieren», der
+  Absatz «Sprecher-Notizen mitgeben» auf PDF und HTML-Seiten eingegrenzt, das
+  Kapitel «Grenzen» ohne die Ankündigung der PowerPoint-Ausgabe und mit den
+  Punkten «jede Folie ein Bild» (Text weder bearbeitbar noch durchsuchbar,
+  keine bearbeitbaren Text-Objekte, kein Einlesen von PowerPoint-Dateien) und
+  «Geprüfte Programme» (Microsoft PowerPoint unter Windows, LibreOffice Impress
+  im automatischen Prüfstand unter Linux, andere wie Keynote oder Google Slides
+  nach dem Standard, aber nicht geprüft; Entscheidung A2); die Seiten
+  «Handbuch» (Überblick), «Ansichten und Darstellung» und «Werkzeuge»
+  nachgezogen; zwei neue Katalog-Zeilen (Foliensatz als PowerPoint-Datei, Foliensatz als
+  Bilder). Die Demo-Station «15 Presentation» nennt alle vier Ausgaben und hat
+  mit einer Formel- und einer Diagramm-Folie jetzt elf Folien mit fünf
+  Sprecher-Notizen (`3E-000349`, Entscheidung vom 2026-10-17 am Abend). Dazu
+  im Kapitel «Sprecher-Notizen» der Satz, dass Kommentare mit Anweisungen für
+  Format-Werkzeuge wie `<!-- prettier-ignore -->` oder
+  `<!-- markdownlint-disable -->` keine Sprecher-Notizen sind und nirgends
+  erscheinen (`4T-002298`, Lücke aus der Prüfung an Marp-Dateien bei der
+  Abnahme; das Verhalten besteht seit der Stufe 2). Keine Katalog-Schlüssel neu
+  oder geändert über die der Umsetzungs-Vorgänge hinaus.
+
+### Intern
+
+- **Ablauf-Tests der Stufe und Prüfung in LibreOffice Impress** (`4T-002296`):
+  Ablauf-Fälle `PR-24` bis `PR-30` an der gestarteten Anwendung in
+  `test/e2e/funktionen/praesentation-export-pptx.spec.js` (PowerPoint-Export in
+  16:9 und 4:3, Notizen bei aus- und eingeschaltetem Schalter, Bilder in leeren
+  Ordner und in Ordner mit fremder Datei, Abbruch beider Dialoge, Aus-Zustand
+  der Erweiterung) mit den Prüf-Vorlagen unter `test/fixtures/presentation/`;
+  das Prüfstand-Abbild unter Linux enthält jetzt LibreOffice Impress
+  (`scripts/pruefstand.Dockerfile`, Entscheidung vom 2026-10-17 am Abend), und
+  der Prüffall `test/unit/pptx-impress.test.js` öffnet dort die erzeugte Datei
+  ohne Oberfläche und vergleicht die Seitenzahl mit der Folien-Zahl (unter
+  Windows übersprungen).
+- **Abschluss-Anteil der Stufe** (`4T-002298`): Modul-Karte der Architektur um
+  die acht neuen Module der Stufe fortgeschrieben, und der PowerPoint-Kanal
+  nimmt seine Prüf-Hilfen nicht mehr aus dem Verdrahtungs-Objekt, das sie nicht
+  liefert, sondern aus einem eigenen, nur für Prüfungen gedachten Parameter
+  (`src/main/ipc/presentation-export-pptx.js`, ohne Wirkung auf den
+  Anwender). Epic-Abschluss-Test unter Windows und im Linux-Prüfstand grün,
+  Rauch-Probe an der gebauten portablen Programmdatei mit beiden Exporten der
+  Demo.
+- **Nachzug auf das Release 1.149.1** (`3E-000363`, `3E-000349`): Zug-Zweig und
+  Epic-Zweig haben das Release 1.149.1 per Zusammenführung aufgenommen; dessen
+  Inhalt steht im eigenen Block und ist nicht Teil dieses Zuges.
+- **Fundstellen für den Zug der Fehlerbehebungen** (Entscheidung vom
+  2026-10-17 am Abend): Diagramme auf den Folien folgen dem Theme der
+  Anwendung statt dem der Folie und verlieren im Hauptfenster Pfeilspitzen
+  (`4T-002323`), und die Präsentations-Brücken der Seite sollen aus der
+  Brücke zum Hauptprozess in ein eigenes Modul geschnitten werden
+  (`4T-002324`); beide hängen im Gefäß der laufenden Fehlerbehebung
+  (`3E-000161`) und sind nicht Teil dieses Zuges.
+
 ## [1.149.1.4096] - 2026-10-17 — Schutz von Eingaben und Korrekturen an Anzeige, Tabellen und Verweisen
 
 Zug 3E-000339,

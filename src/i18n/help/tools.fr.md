@@ -124,7 +124,7 @@ L'impression suit la vue active, exactement comme l'export PDF ci-dessous : la v
 
 Le format de page, l'orientation et les marges se règlent dans la section « Export » des paramètres (Fichier → Paramètres…) ; par défaut : A4 en portrait avec des marges normales. Lors du passage d'une page à l'autre, blocs de code, tableaux, diagrammes, formules et encadrés restent ensemble dans la mesure du possible ; les titres ne restent pas seuls en bas de page.
 
-Les diapositives d'une présentation s'exportent par une commande propre, une diapositive par page ; voir [Présentation](presentation.md).
+Les diapositives d'une présentation s'exportent par une commande propre, une diapositive par page ; deux autres commandes propres les exportent en fichier PowerPoint et en images ; voir [Présentation](presentation.md).
 
 ## Export HTML
 

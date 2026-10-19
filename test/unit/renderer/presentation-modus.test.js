@@ -263,6 +263,10 @@ describe('Präsentations-Erweiterung: Registry und Aus-Zustand im Renderer (4T-0
       'presentation.new',
       'presentation.exportPdf',
       'presentation.exportHtml',
+      // 4T-002294: die PowerPoint-Datei des Foliensatzes.
+      'presentation.exportPptx',
+      // 4T-002295: die Bilder des Foliensatzes.
+      'presentation.exportImages',
       // 4T-002282: der Dialog «Gestaltung dieser Präsentation…».
       'presentation.gestaltung',
     ]);

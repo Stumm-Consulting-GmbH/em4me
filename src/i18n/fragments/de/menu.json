@@ -134,5 +134,7 @@
   "menu.view.presentationNew": "Neue Präsentation",
   "menu.file.exportPresentationPdf": "Foliensatz als PDF exportieren…",
   "menu.file.exportPresentationHtml": "Foliensatz als HTML exportieren…",
+  "menu.file.exportPresentationPptx": "Foliensatz als PowerPoint exportieren…",
+  "menu.file.exportPresentationImages": "Foliensatz als Bilder exportieren…",
   "menu.view.presentationGestaltung": "Gestaltung dieser Präsentation…"
 }

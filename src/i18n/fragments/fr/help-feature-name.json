@@ -240,6 +240,8 @@
   "help.featureName.presentationSlideShow": "Diaporama d’une présentation",
   "help.featureName.presentationExportPdf": "Diapositives en PDF",
   "help.featureName.presentationExportHtml": "Diapositives en pages HTML",
+  "help.featureName.presentationExportPptx": "Diapositives en fichier PowerPoint",
+  "help.featureName.presentationExportImages": "Diapositives en images",
   "help.featureName.presentationOverview": "Vue d’ensemble des diapositives",
   "help.featureName.presentationPresenterView": "Mode présentateur et diaporama dans une fenêtre séparée",
   "help.featureName.presentationDesign": "Mise en forme d’une présentation",

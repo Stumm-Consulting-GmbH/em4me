@@ -182,5 +182,7 @@
   "help.shortcut.presentationNew": "Create a new presentation with sample slides and open it in the “Slides” view",
   "help.shortcut.presentationExportPdf": "Export the slides as a PDF file, one slide per page in the slide format and without margins",
   "help.shortcut.presentationExportHtml": "Export the slides as a folder with one HTML page per slide, browsable with keys and buttons",
+  "help.shortcut.presentationExportPptx": "Export the slides as a PowerPoint file, one image per slide and the speaker notes in the notes field",
+  "help.shortcut.presentationExportImages": "Export the slides as a folder with one PNG image per slide, at double resolution",
   "help.shortcut.presentationGestaltung": "Set the colours and font of this presentation on top of the chosen theme, save them as a custom theme or copy the values of a custom theme into the file"
 }

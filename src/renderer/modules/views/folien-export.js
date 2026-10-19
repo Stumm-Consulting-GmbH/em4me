@@ -257,7 +257,7 @@ export function baueDruckFlaeche({ ziel, folien, kopf, render, schritte, notizen
 
 // Die Flaeche in der aktiven Spalte des Dokuments; der Druck-Zustand der
 // Ausgabe kommt an den body.
-function haengeDruckFlaecheAn(paneIdx, tab, modell, notizen) {
+export function haengeDruckFlaecheAn(paneIdx, tab, modell, notizen) {
   const els = getPaneEls(paneIdx);
   if (!els || !els.content) throw new Error('keine Spalte fuer den Foliensatz');
   const flaeche = baueDruckFlaeche({
@@ -276,13 +276,14 @@ function haengeDruckFlaecheAn(paneIdx, tab, modell, notizen) {
   return flaeche;
 }
 
-function entferneDruckFlaeche(flaeche) {
+export function entferneDruckFlaeche(flaeche) {
   if (flaeche) flaeche.remove();
   document.body.classList.remove(DRUCK_ZUSTAND);
 }
 
-// Der Name des Dokuments ohne Endung, fuer Datei- und Ordner-Vorschlaege.
-function basisName(tab) {
+// Der Name des Dokuments ohne Endung, fuer Datei- und Ordner-Vorschlaege
+// (4T-002294: auch fuer den Vorschlag der PowerPoint-Datei).
+export function basisName(tab) {
   if (tab.path) {
     const datei = tab.path.split(/[\\/]/).pop() || '';
     return datei.replace(/\.(md|markdown|mdown|mkd)$/i, '');
@@ -292,7 +293,7 @@ function basisName(tab) {
     .trim();
 }
 
-function ordnerVon(pfad) {
+export function ordnerVon(pfad) {
   const i = Math.max(pfad.lastIndexOf('/'), pfad.lastIndexOf('\\'));
   return i > 0 ? pfad.slice(0, i) : null;
 }
@@ -342,7 +343,7 @@ function notizAngaben(modell, mitNotizen) {
   return mitNotizen ? { mitgegeben: mitgegebeneNotizen(modell) } : { notizen: notizenZahl(modell) };
 }
 
-function meldeLauf() {
+export function meldeLauf() {
   showStatusbarHint('presentation.export.laeuft', { duration: 60000 });
 }
 
@@ -354,7 +355,7 @@ function meldeFehler(schluessel, fehler) {
   });
 }
 
-function meldeKeinFoliensatz() {
+export function meldeKeinFoliensatz() {
   showStatusbarHint('presentation.keinePraesentation', { duration: 2500, error: true });
 }
 

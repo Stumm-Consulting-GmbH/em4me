@@ -503,6 +503,22 @@ function buildMenu(win, state, actions) {
                 enabled: avail('presentation.exportHtml'),
                 click: send('menu:presentationExportHtml'),
               }),
+              // 4T-002294 (Epic 3E-000349): die PowerPoint-Datei des
+              // Foliensatzes, unmittelbar nach den HTML-Seiten.
+              unless('presentation.exportPptx', {
+                label: t('menu.file.exportPresentationPptx'),
+                accelerator: acc('presentation.exportPptx'),
+                enabled: avail('presentation.exportPptx'),
+                click: send('menu:presentationExportPptx'),
+              }),
+              // 4T-002295 (Epic 3E-000349): die Bilder des Foliensatzes,
+              // unmittelbar nach der PowerPoint-Datei.
+              unless('presentation.exportImages', {
+                label: t('menu.file.exportPresentationImages'),
+                accelerator: acc('presentation.exportImages'),
+                enabled: avail('presentation.exportImages'),
+                click: send('menu:presentationExportImages'),
+              }),
               {
                 // 4T-000890 (Befund L-05): seit der Registrierung als Kommando
                 // 'file.exportPortable' mit Accelerator-Anzeige; der Klick

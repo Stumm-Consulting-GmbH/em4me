@@ -17,13 +17,16 @@
 // Container. Jeder Fall trägt einen Anker, der vor der Messung belegt, dass der
 // Ausgangs-Stand sichtbar ist (Muster regression/4t-000952-index-verbraucher.spec.js).
 // Die Dokumente entstehen je Fall in einem eigenen Temp-Ordner.
+// Jeder Fall wartet nach dem Start, bis beide Datei-Argumente offen sind
+// (Stabilitätsregel 32, 4T-002328): Die Oberfläche öffnet sie nacheinander,
+// und ein früher Wechsel auf «Quartal» fiele sonst in die Lücke vor «Bericht».
 'use strict';
 
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, warteAufDateiArgument } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { hauptSenden } = require('../helpers/haupt-zugriff');
 
@@ -140,6 +143,7 @@ test.describe('DV-01: Umbenennen der Datei zieht die Angabe table: im Diagramm-B
     ].join('\n');
     const bericht = schreibe(dir, 'Bericht.md', berichtVorher);
     const { app, page, userData } = await launchApp({ args: [quartal, bericht] });
+    await warteAufDateiArgument(page, bericht);
     try {
       await reiterWaehlen(page, 'Quartal');
       await sendeMenue(app, 'menu:renameFile');
@@ -186,6 +190,7 @@ test.describe('DV-02: das Diagramm zählt in den Rückverweisen wie eine Einbett
       ['# Fremd', '', '```js', 'table: [[Quartal#^umsatz]]', '```', ''].join('\n'),
     );
     const { app, page, userData } = await launchApp({ args: [quartal, bericht] });
+    await warteAufDateiArgument(page, bericht);
     try {
       await reiterWaehlen(page, 'Quartal');
       await page.locator('#btn-backlinks').click();
@@ -208,6 +213,7 @@ test.describe('DV-03: Umbenennen des Tabellen-Namens über die Block-Eigenschaft
     const quartal = schreibe(dir, 'Quartal.md', QUARTAL);
     const bericht = schreibe(dir, 'Bericht.md', BERICHT);
     const { app, page, userData } = await launchApp({ args: [quartal, bericht] });
+    await warteAufDateiArgument(page, bericht);
     try {
       // Anker: Das Diagramm im Bericht zeichnet aus der Tabelle in Quartal.
       await reiterWaehlen(page, 'Bericht');

@@ -124,7 +124,7 @@ Der Druck folgt der aktiven Ansicht, genau wie der PDF-Export darunter: Die Quel
 
 Seitenformat, Ausrichtung und Ränder stellt der Bereich „Export" der Einstellungen ein (Datei → Einstellungen…); Standard ist A4 im Hochformat mit normalen Rändern. Beim Umbruch über Seiten bleiben Code-Blöcke, Tabellen, Diagramme, Formeln und Callouts nach Möglichkeit zusammen; Überschriften stehen nicht allein am Seitenende.
 
-Den Foliensatz einer Präsentation gibt ein eigener Befehl aus, eine Folie je Seite; siehe [Präsentation](presentation.md).
+Den Foliensatz einer Präsentation gibt ein eigener Befehl aus, eine Folie je Seite; zwei weitere eigene Befehle geben ihn als PowerPoint-Datei und als Bilder aus; siehe [Präsentation](presentation.md).
 
 ## HTML-Export
 

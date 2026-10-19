@@ -807,6 +807,11 @@ const MENUE_BASISLINIE = new Map([
   // Vorgang; ihre Basislinie ist die Bedingung, mit der sie eingehängt werden.
   ['presentation.exportPdf', 'praesentationsDokument'],
   ['presentation.exportHtml', 'praesentationsDokument'],
+  // 4T-002294 (Epic 3E-000349): die PowerPoint-Datei des Foliensatzes, aus
+  // demselben Grund.
+  ['presentation.exportPptx', 'praesentationsDokument'],
+  // 4T-002295 (Epic 3E-000349): die Bilder des Foliensatzes, ebenso.
+  ['presentation.exportImages', 'praesentationsDokument'],
   ['file.exportPortable', 'contentTab'],
   ['app.openSettings', 'immer'],
   ['history.open', 'fileTab'],

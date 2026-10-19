@@ -182,5 +182,7 @@
   "help.shortcut.presentationNew": "Créer une nouvelle présentation avec des diapositives d’exemple et l’ouvrir dans la vue « Diapositives »",
   "help.shortcut.presentationExportPdf": "Exporter les diapositives en fichier PDF, une diapositive par page au format de la diapositive et sans marge",
   "help.shortcut.presentationExportHtml": "Exporter les diapositives dans un dossier avec une page HTML par diapositive, à parcourir avec les touches et les boutons",
+  "help.shortcut.presentationExportPptx": "Exporter les diapositives en fichier PowerPoint, une image par diapositive et les notes de l’orateur dans le champ des notes",
+  "help.shortcut.presentationExportImages": "Exporter les diapositives dans un dossier avec une image PNG par diapositive, en double résolution",
   "help.shortcut.presentationGestaltung": "Régler les couleurs et la police de cette présentation par-dessus le thème choisi, les enregistrer comme thème personnel ou copier les valeurs d’un thème personnel dans le fichier"
 }

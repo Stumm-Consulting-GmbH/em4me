@@ -1,6 +1,6 @@
 # Präsentation
 
-Eine **Präsentation** ist ein gewöhnliches Markdown-Dokument, dessen Inhalt in **Folien** geteilt ist. Die Anwendung zeigt es in der Ansicht **Folien** Folie für Folie, führt es im Vollbild oder in einem eigenen Fenster vor, gibt dem Vortragenden eine **Referenten-Ansicht** mit Notizen und Zeit und gibt den Foliensatz als PDF oder als HTML-Seiten aus.
+Eine **Präsentation** ist ein gewöhnliches Markdown-Dokument, dessen Inhalt in **Folien** geteilt ist. Die Anwendung zeigt es in der Ansicht **Folien** Folie für Folie, führt es im Vollbild oder in einem eigenen Fenster vor, gibt dem Vortragenden eine **Referenten-Ansicht** mit Notizen und Zeit und gibt den Foliensatz als PDF, als HTML-Seiten, als PowerPoint-Datei oder als Bilder aus.
 
 Die Präsentation ist eine **weitere Ansicht desselben Dokuments** und kein eigenes Dateiformat. Geschrieben wird in den Markdown-Ansichten; die Ansicht **Folien** zeigt nur und ändert nie etwas am Text. Einzige Ausnahme ist der Dialog **Gestaltung dieser Präsentation…**, der auf Wunsch die Gestaltung in den Kopf der Datei schreibt.
 
@@ -247,6 +247,8 @@ Kommentare auf einer Folie sind ihre **Sprecher-Notizen**. Beide Formen gelten:
 <!-- Bei Fragen auf den Anhang verweisen. -->
 ```
 
+Ausgenommen sind Kommentare mit Anweisungen für Format-Werkzeuge, etwa `<!-- prettier-ignore -->` oder `<!-- markdownlint-disable -->`: Sie sind wie die Kommentare mit Angaben je Folie keine Sprecher-Notizen und erscheinen weder auf der Folie noch in der Referenten-Ansicht noch in einem Export.
+
 Notizen erscheinen nicht auf der Folie und nicht in der Vorführung. Die **Referenten-Ansicht** zeigt sie dem Vortragenden, formatiert wie Text auf einer Folie, also mit fett, kursiv, Listen und Verweisen; HTML in einer Notiz erscheint dort als Text. In PDF und HTML-Seiten erscheinen sie nur, wenn sie eingeschaltet sind (siehe «Sprecher-Notizen mitgeben»). Im Editor bleiben sie sichtbar. Ist die Erweiterung „Kommentare" abgeschaltet, ist `%%` gewöhnlicher Text und erscheint auf der Folie; HTML-Kommentare bleiben auch dann Notizen. Mehr zu den privaten Kommentaren mit `%%` steht auf der Seite [Inline-Konstrukte](inline.md).
 
 ## Die Ansicht «Folien»
@@ -345,7 +347,7 @@ Geblättert wird wie in der Vorführung im eigenen Fenster, in beiden Fenstern m
 
 ## Foliensatz exportieren
 
-Beide Ausgaben stehen unter **Datei → Weitere Datei-Funktionen → Exportieren** und in der Kommando-Palette. Sie stehen bei jedem Präsentations-Dokument zur Wahl, gleich in welcher Ansicht es gerade steht; bei einem Dokument ohne Kennzeichen bleiben sie gedämpft. Jede Folie erscheint darin so, wie die Ansicht sie zeigt, mit Theme, Angaben je Folie, Hintergrundbildern, Seitenzahl, Kopf- und Fußzeile, Diagrammen und Formeln, aber ohne den Balken übervoller Folien. Sprecher-Notizen kommen nur mit, wenn sie eingeschaltet sind (siehe unten). Bricht man den Dialog ab, entsteht nichts. Nach dem Export meldet die Statusleiste die Zahl der Folien und, falls etwas entfallen ist, was.
+Alle vier Ausgaben stehen unter **Datei → Weitere Datei-Funktionen → Exportieren** und in der Kommando-Palette. Sie stehen bei jedem Präsentations-Dokument zur Wahl, gleich in welcher Ansicht es gerade steht; bei einem Dokument ohne Kennzeichen bleiben sie gedämpft. Jede Folie erscheint darin so, wie die Ansicht sie zeigt, mit Theme, Angaben je Folie, Hintergrundbildern, Seitenzahl, Kopf- und Fußzeile, Diagrammen und Formeln, aber ohne den Balken übervoller Folien. Sprecher-Notizen kommen ins PDF und in die HTML-Seiten nur, wenn sie eingeschaltet sind; die PowerPoint-Datei nimmt sie immer mit, die Bilder nie (siehe unten). Bricht man den Dialog ab, entsteht nichts. Nach dem Export meldet die Statusleiste die Zahl der Folien und, falls etwas entfallen ist, was.
 
 ### Als PDF
 
@@ -357,9 +359,21 @@ Beide Ausgaben stehen unter **Datei → Weitere Datei-Funktionen → Exportieren
 
 Die Seiten öffnet jeder Browser, ohne die Anwendung und ohne Netzverbindung. Jede Seite ist für sich vollständig: Bilder, Diagramme und Formeln sind in ihr eingebettet, sodass sich der Ordner als Ganzes verschieben oder weitergeben lässt. Unter der Folie stehen **Zurück**, der Zähler und **Weiter**, in der Sprache, die die Oberfläche beim Export hatte; geblättert wird außerdem mit denselben Tasten wie in der Vorführung, und die Folie passt sich der Größe des Browser-Fensters an. Verweise und Bilder folgen den Regeln des HTML-Exports eines Dokuments (siehe [Werkzeuge](tools.md)): Ein Verweis auf ein anderes Dokument bleibt als Text stehen, und ein Bild, das sich nicht einbetten lässt, steht als sein Text; ein solches Hintergrundbild entfällt.
 
+### Als PowerPoint-Datei
+
+**Foliensatz als PowerPoint exportieren…** fragt nach dem Ziel, vorgeschlagen ist der Name des Dokuments mit der Endung `.pptx` im selben Ordner, und schreibt eine PowerPoint-Datei mit **einer PowerPoint-Folie je Folie**. Jede dieser Folien trägt ein einziges Bild, das die Folie genau so zeigt wie die Vorführung: mit Theme oder eigenem Theme, Angaben je Folie, Hintergrundbildern, Formeln, Diagrammen, Bildern und, bei übervollen Folien, der Verkleinerung. Das Bild hat die doppelte Auflösung der Folie, damit es auch auf großen Bildschirmen und Beamern scharf bleibt. Die Datei hat das Format der Folie, 16:9 oder 4:3, nach dem Schlüssel `size`.
+
+Die **Sprecher-Notizen** stehen als Text im Notizen-Feld der jeweiligen Folie, wo das Präsentationsprogramm sie dem Vortragenden zeigt und das Publikum sie nicht sieht. Sie kommen **immer** mit, unabhängig vom Schalter **Sprecher-Notizen mitgeben**, und stehen dort so, wie sie im Dokument geschrieben sind, ohne Formatierung; mehrere Notizen einer Folie trennt ein leerer Absatz. Nach dem Export nennt die Meldung die Zahl der Folien und der mitgegebenen Sprecher-Notizen.
+
+Weil jede Folie ein Bild ist, lässt sich ihr Text in PowerPoint weder bearbeiten noch durchsuchen; geändert wird im Dokument und danach neu exportiert.
+
+### Als Bilder
+
+**Foliensatz als Bilder exportieren…** fragt nach einem Ordner und legt darin **ein Bild je Folie** im Format PNG an: `folie-001.png`, `folie-002.png` und so fort. Für den Ordner gilt dieselbe Regel wie bei den HTML-Seiten: Ist der gewählte Ordner leer, eben neu angelegt oder enthält er einen früheren Bilder-Export, entstehen die Bilder darin; sonst entsteht ein Unterordner mit dem Namen des Dokuments und dem Zusatz `-Folien`, und die vorhandenen Dateien bleiben unberührt. Die Bilder sind dieselben wie in der PowerPoint-Datei, in doppelter Auflösung, und enthalten keine Sprecher-Notizen. Nach dem Export nennt die Meldung die Zahl der Bilder und den Ordner.
+
 ### Sprecher-Notizen mitgeben
 
-Ob die Notizen in die Ausgabe kommen, bestimmt der Schalter **Sprecher-Notizen mitgeben** unter **Datei → Einstellungen… → Export**, Gruppe **Foliensatz**. Er ist zu Beginn aus, damit eine Weitergabe nie unbemerkt Notizen enthält, und gilt für beide Ausgaben.
+Ob die Notizen in die Ausgabe kommen, bestimmt der Schalter **Sprecher-Notizen mitgeben** unter **Datei → Einstellungen… → Export**, Gruppe **Foliensatz**. Er ist zu Beginn aus, damit eine Weitergabe nie unbemerkt Notizen enthält, und gilt für das PDF und die HTML-Seiten. Die PowerPoint-Datei trägt die Notizen immer in ihrem Notizen-Feld (siehe oben), die Bilder tragen keine.
 
 - **Im PDF** folgt hinter jeder Folie mit Notizen eine **Notiz-Seite** im Format der Folie, überschrieben mit «Folie N – Notizen», darunter die Notizen formatiert auf weißem Grund. Längere Notizen laufen auf weiteren Seiten desselben Formats weiter.
 - **In den HTML-Seiten** steht bei jeder Folie mit Notizen zwischen Folie und Blätter-Leiste ein zugeklappter Bereich **Notizen**. Aufgeklappt legt er sich über die Folie, höchstens bis zur halben Höhe des Browser-Fensters, und lässt sich rollen.
@@ -370,7 +384,7 @@ Folien ohne Notizen bekommen weder Notiz-Seite noch Notiz-Bereich. Mit eingescha
 
 Die Funktion gehört zu den [internen Erweiterungen](extensions.md) („Präsentations-Ansicht", Gruppe „Rendering") und zum Arbeitsmodus **Fortgeschritten**: Im Modus **Einsteiger** ist sie aus, in **Fortgeschritten** und **Voll** an.
 
-Ist sie abgeschaltet, entfallen die Ansicht **Folien**, das Untermenü **Präsentation** im Menü **Ansicht** mit allen seinen Befehlen, die beiden Export-Befehle, ihre Einträge in Kommando-Palette und Tastenbelegung und der Abschnitt **Folien-Themes** der Einstellungen. Das Kennzeichen hat dann keine Wirkung: Ein Präsentations-Dokument ist ein gewöhnliches Markdown-Dokument, und `---` ist darin eine waagerechte Linie. Ein Dokument, das in der Ansicht **Folien** offen war, erscheint in der Lese-Ansicht. Verloren geht dabei nichts, und geschrieben wird beim Ab- und Einschalten nie; nach dem Wiedereinschalten sind die Präsentation und die eigenen Themes unverändert da.
+Ist sie abgeschaltet, entfallen die Ansicht **Folien**, das Untermenü **Präsentation** im Menü **Ansicht** mit allen seinen Befehlen, die vier Export-Befehle des Foliensatzes, ihre Einträge in Kommando-Palette und Tastenbelegung und der Abschnitt **Folien-Themes** der Einstellungen. Das Kennzeichen hat dann keine Wirkung: Ein Präsentations-Dokument ist ein gewöhnliches Markdown-Dokument, und `---` ist darin eine waagerechte Linie. Ein Dokument, das in der Ansicht **Folien** offen war, erscheint in der Lese-Ansicht. Verloren geht dabei nichts, und geschrieben wird beim Ab- und Einschalten nie; nach dem Wiedereinschalten sind die Präsentation und die eigenen Themes unverändert da.
 
 ## Verträglichkeit mit anderen Werkzeugen
 
@@ -403,10 +417,10 @@ Kennzeichen, Steuer-Schlüssel, Trennzeilen, die Angaben je Folie und die Bild-S
 
 ## Grenzen
 
-- **Ausgegeben wird als PDF und als HTML-Seiten.** Eine Datei im Format pptx entsteht nicht.
+- **Ausgegeben wird als PDF, als HTML-Seiten, als PowerPoint-Datei und als Bilder.**
+- **In der PowerPoint-Datei ist jede Folie ein Bild.** Ihr Text ist dort weder bearbeitbar noch durchsuchbar. Eine PowerPoint-Datei mit bearbeitbaren Text-Objekten entsteht nicht, und PowerPoint-Dateien lassen sich nicht einlesen.
+- **Geprüfte Programme:** Geprüft ist das Öffnen der Datei in Microsoft PowerPoint unter Windows. LibreOffice Impress wird im automatischen Prüfstand unter Linux geprüft. Andere Programme, etwa Keynote oder Google Slides, lesen das Format nach dem Standard, sind aber nicht geprüft.
 - **Gestaltet wird über die Themes und ihre sieben Werte.** Eigene Stilangaben in CSS, Folien-Layouts über die Zweiteilung hinaus sowie Animationen und Übergänge zwischen den Folien gibt es nicht.
 - **Aufgedeckt werden nur Listen-Punkte**, keine anderen Teile einer Folie.
 - **Verkleinert wird höchstens auf die Hälfte.** Was dann noch nicht passt, wird abgeschnitten.
 - **Bearbeitet wird in den Markdown-Ansichten**, nicht auf der Folie.
-
-Die Ausgabe als pptx-Datei ist für eine spätere Ausbaustufe vorgesehen.

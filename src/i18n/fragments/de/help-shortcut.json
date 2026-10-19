@@ -182,5 +182,7 @@
   "help.shortcut.presentationNew": "Eine neue Präsentation mit Beispiel-Folien anlegen und in der Ansicht „Folien“ öffnen",
   "help.shortcut.presentationExportPdf": "Den Foliensatz als PDF-Datei exportieren, eine Folie je Seite im Format der Folie und ohne Rand",
   "help.shortcut.presentationExportHtml": "Den Foliensatz als Ordner mit einer HTML-Seite je Folie exportieren, im Browser mit Tasten und Schaltflächen zu blättern",
+  "help.shortcut.presentationExportPptx": "Den Foliensatz als PowerPoint-Datei exportieren, je Folie ein Bild und die Sprecher-Notizen im Notizen-Feld",
+  "help.shortcut.presentationExportImages": "Den Foliensatz als Ordner mit einem PNG-Bild je Folie exportieren, in doppelter Auflösung",
   "help.shortcut.presentationGestaltung": "Farben und Schrift dieser Präsentation über dem gewählten Theme einstellen, als eigenes Theme speichern oder die Werte eines eigenen Themes in die Datei übernehmen"
 }

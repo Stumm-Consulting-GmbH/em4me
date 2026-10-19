@@ -112,6 +112,8 @@ import { oeffneGestaltungDerSpalte } from '../presentation/presentation-gestaltu
 // 4T-002163 (Epic 3E-000149): neue Praesentation und die Ausgaben des Foliensatzes.
 import { legeNeuePraesentationAn } from '../presentation/presentation-anlegen.js';
 import { exportiereFoliensatzAlsHtml, exportiereFoliensatzAlsPdf } from '../views/folien-export.js';
+import { exportiereFoliensatzAlsPptx } from '../views/folien-export-pptx.js';
+import { exportiereFoliensatzAlsBilder } from '../views/folien-export-bilder.js';
 // 4T-001904 (Epic 3E-000318): die Anzeige-Schalter der Tafel.
 import { schalteKanbanAnzeige } from '../kanban/kanban-anzeige-schalter.js';
 // 4T-001907 (Epic 3E-000318): Strg+F in der Tafel-Ansicht führt in ihr Filter-Feld.
@@ -526,6 +528,14 @@ export const commandHandlers = {
   },
   'presentation.exportHtml': () => {
     exportiereFoliensatzAlsHtml();
+  },
+  // 4T-002294 (Epic 3E-000349): die PowerPoint-Datei des Foliensatzes.
+  'presentation.exportPptx': () => {
+    exportiereFoliensatzAlsPptx();
+  },
+  // 4T-002295 (Epic 3E-000349): die Bilder des Foliensatzes.
+  'presentation.exportImages': () => {
+    exportiereFoliensatzAlsBilder();
   },
   // 4T-002282 (Epic 3E-000348): der Dialog «Gestaltung dieser Präsentation…»;
   // ein nicht änderbares Dokument fängt der Dialog mit einem Hinweis ab.

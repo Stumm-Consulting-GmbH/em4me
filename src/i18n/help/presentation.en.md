@@ -1,6 +1,6 @@
 # Presentation
 
-A **presentation** is an ordinary Markdown document whose content is divided into **slides**. The application shows it slide by slide in the **Slides** view, shows it as a slide show full screen or in a separate window, gives the speaker a **presenter view** with notes and time, and exports the slides as a PDF or as HTML pages.
+A **presentation** is an ordinary Markdown document whose content is divided into **slides**. The application shows it slide by slide in the **Slides** view, shows it as a slide show full screen or in a separate window, gives the speaker a **presenter view** with notes and time, and exports the slides as a PDF, as HTML pages, as a PowerPoint file or as images.
 
 The presentation is **another view of the same document** and not a file format of its own. Writing happens in the Markdown views; the **Slides** view only shows and never changes anything in the text. The one exception is the **Design of this presentation…** dialog, which writes the design into the front matter of the file on request.
 
@@ -247,6 +247,8 @@ Comments on a slide are its **speaker notes**. Both forms count:
 <!-- Refer to the appendix for questions. -->
 ```
 
+Comments with instructions for formatting tools, such as `<!-- prettier-ignore -->` or `<!-- markdownlint-disable -->`, are an exception: like comments with settings per slide, they are not speaker notes and appear neither on the slide nor in the presenter view nor in any export.
+
 Notes do not appear on the slide or in the slide show. The **presenter view** shows them to the speaker, formatted like text on a slide, that is with bold, italic, lists and links; HTML in a note appears there as text. In the PDF and the HTML pages they appear only when switched on (see “Including speaker notes”). In the editor they stay visible. If the “Comments” extension is switched off, `%%` is ordinary text and appears on the slide; HTML comments stay notes even then. More about private comments with `%%` is on the page [Inline constructs](inline.md).
 
 ## The “Slides” view
@@ -345,7 +347,7 @@ The presenter view is **ended** in the same ways as the slide show in a separate
 
 ## Exporting the slides
 
-Both exports are under **File → More File Functions → Export** and in the command palette. They can be chosen for every presentation document, whichever view it is currently shown in; for a document without the flag they stay dimmed. Every slide appears in them as the view shows it, with theme, settings per slide, background images, page number, header and footer, diagrams and formulas, but without the bar of overfull slides. Speaker notes come along only when switched on (see below). If the dialog is cancelled, nothing is created. After the export, the status bar reports the number of slides and, if something was left out, what.
+All four exports are under **File → More File Functions → Export** and in the command palette. They can be chosen for every presentation document, whichever view it is currently shown in; for a document without the flag they stay dimmed. Every slide appears in them as the view shows it, with theme, settings per slide, background images, page number, header and footer, diagrams and formulas, but without the bar of overfull slides. Speaker notes go into the PDF and the HTML pages only when switched on; the PowerPoint file always includes them, the images never do (see below). If the dialog is cancelled, nothing is created. After the export, the status bar reports the number of slides and, if something was left out, what.
 
 ### As PDF
 
@@ -357,9 +359,21 @@ Both exports are under **File → More File Functions → Export** and in the co
 
 Any browser opens the pages, without the application and without a network connection. Every page is complete on its own: images, diagrams and formulas are embedded in it, so the folder can be moved or passed on as a whole. Below the slide stand **Previous**, the counter and **Next**, in the language the interface had at the time of the export; paging also works with the same keys as in the slide show, and the slide adapts to the size of the browser window. Links and images follow the rules of the HTML export of a document (see [Tools](tools.md)): a link to another document stays as text, and an image that cannot be embedded stands as its text; such a background image is left out.
 
+### As a PowerPoint file
+
+**Export Slides as PowerPoint…** asks for the target, suggesting the name of the document with the extension `.pptx` in the same folder, and writes a PowerPoint file with **one PowerPoint slide per slide**. Each of these slides carries a single image that shows the slide exactly as the slide show does: with the theme or a custom theme, settings per slide, background images, formulas, diagrams, images and, for overfull slides, the reduction. The image has twice the resolution of the slide, so that it stays sharp on large screens and projectors as well. The file has the format of the slide, 16:9 or 4:3, according to the key `size`.
+
+The **speaker notes** are placed as text in the notes field of the respective slide, where the presentation program shows them to the speaker and the audience does not see them. They are **always** included, regardless of the switch **Include speaker notes**, and appear as they are written in the document, without formatting; several notes of one slide are separated by an empty paragraph. After the export, the message names the number of slides and of speaker notes included.
+
+Because every slide is an image, its text can be neither edited nor searched in PowerPoint; changes are made in the document, followed by a new export.
+
+### As images
+
+**Export Slides as Images…** asks for a folder and creates **one image per slide** in it, in PNG format: `folie-001.png`, `folie-002.png` and so on. The folder follows the same rule as for the HTML pages: if the chosen folder is empty, has just been created or contains an earlier image export, the images are created in it; otherwise a subfolder with the name of the document and the suffix `-slides` is created, and the files already present stay untouched. The images are the same as in the PowerPoint file, at twice the resolution, and contain no speaker notes. After the export, the message names the number of images and the folder.
+
 ### Including speaker notes
 
-Whether the notes go into the export is decided by the switch **Include speaker notes** under **File → Settings… → Export**, group **Slide deck**. It is off at first, so that passing a file on never includes notes unnoticed, and it applies to both exports.
+Whether the notes go into the export is decided by the switch **Include speaker notes** under **File → Settings… → Export**, group **Slide deck**. It is off at first, so that passing a file on never includes notes unnoticed, and it applies to the PDF and the HTML pages. The PowerPoint file always carries the notes in its notes field (see above); the images carry none.
 
 - **In the PDF**, every slide with notes is followed by a **notes page** in the format of the slide, headed “Slide N – Notes”, below it the notes formatted on a white background. Longer notes continue on further pages of the same format.
 - **In the HTML pages**, every slide with notes has a collapsed **Notes** area between the slide and the paging bar. Opened, it lies over the slide, up to half the height of the browser window at most, and can be scrolled.
@@ -370,7 +384,7 @@ Slides without notes get neither a notes page nor a notes area. With the switch 
 
 The feature belongs to the [internal extensions](extensions.md) (“Presentation view”, group “Rendering”) and to the **Advanced** working mode: in **Beginner** mode it is off, in **Advanced** and **Full** it is on.
 
-When it is switched off, the **Slides** view, the **Presentation** submenu in the **View** menu with all its commands, the two export commands, their entries in the command palette and the key bindings, and the **Slide themes** section of the settings go away. The flag then has no effect: a presentation document is an ordinary Markdown document, and `---` is a horizontal rule in it. A document that was open in the **Slides** view appears in the reading view. Nothing is lost, and switching off and on never writes anything; after switching back on, the presentation and the custom themes are there unchanged.
+When it is switched off, the **Slides** view, the **Presentation** submenu in the **View** menu with all its commands, the four export commands of the slides, their entries in the command palette and the key bindings, and the **Slide themes** section of the settings go away. The flag then has no effect: a presentation document is an ordinary Markdown document, and `---` is a horizontal rule in it. A document that was open in the **Slides** view appears in the reading view. Nothing is lost, and switching off and on never writes anything; after switching back on, the presentation and the custom themes are there unchanged.
 
 ## Working together with other tools
 
@@ -403,10 +417,10 @@ Flag, control keys, separator lines, the settings per slide and the image notati
 
 ## Limits
 
-- **The exports are PDF and HTML pages.** No file in the pptx format is created.
+- **The exports are PDF, HTML pages, a PowerPoint file and images.**
+- **In the PowerPoint file, every slide is an image.** Its text can be neither edited nor searched there. A PowerPoint file with editable text objects is not created, and PowerPoint files cannot be imported.
+- **Tested programs:** Opening the file has been tested in Microsoft PowerPoint on Windows. LibreOffice Impress is tested in the automated test setup on Linux. Other programs, such as Keynote or Google Slides, read the format according to the standard but have not been tested.
 - **Design works through the themes and their seven values.** Style rules of your own in CSS, slide layouts beyond the split layout, and animations and transitions between slides do not exist.
 - **Only list items are revealed**, no other parts of a slide.
 - **Reduction goes down to half at most.** Whatever still does not fit is cut off.
 - **Editing happens in the Markdown views**, not on the slide.
-
-The export as a pptx file is planned for a later stage of expansion.

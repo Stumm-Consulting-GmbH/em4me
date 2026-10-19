@@ -1,6 +1,6 @@
 # Présentation
 
-Une **présentation** est un document Markdown ordinaire dont le contenu est divisé en **diapositives**. L'application l'affiche diapositive par diapositive dans la vue **Diapositives**, la projette en plein écran ou dans une fenêtre séparée, offre à l'orateur un **mode présentateur** avec notes et minutage, et exporte les diapositives en PDF ou en pages HTML.
+Une **présentation** est un document Markdown ordinaire dont le contenu est divisé en **diapositives**. L'application l'affiche diapositive par diapositive dans la vue **Diapositives**, la projette en plein écran ou dans une fenêtre séparée, offre à l'orateur un **mode présentateur** avec notes et minutage, et exporte les diapositives en PDF, en pages HTML, en fichier PowerPoint ou en images.
 
 La présentation est une **autre vue du même document** et non un format de fichier propre. On écrit dans les vues Markdown ; la vue **Diapositives** ne fait qu'afficher et ne modifie jamais le texte. Seule exception : la boîte de dialogue **Mise en forme de cette présentation…**, qui écrit sur demande la mise en forme dans l'en-tête du fichier.
 
@@ -247,6 +247,8 @@ Les commentaires d'une diapositive sont ses **notes de l'orateur**. Les deux for
 <!-- En cas de questions, renvoyer à l'annexe. -->
 ```
 
+Font exception les commentaires portant des instructions pour des outils de mise en forme, comme `<!-- prettier-ignore -->` ou `<!-- markdownlint-disable -->` : comme les commentaires portant des indications par diapositive, ils ne sont pas des notes de l'orateur et n'apparaissent ni sur la diapositive, ni dans le mode présentateur, ni dans aucune exportation.
+
 Les notes n'apparaissent ni sur la diapositive ni dans le diaporama. Le **mode présentateur** les montre à l'orateur, mises en forme comme du texte sur une diapositive, donc avec gras, italique, listes et liens ; du HTML dans une note y apparaît comme texte. Dans le PDF et les pages HTML, elles n'apparaissent que si elles sont activées (voir « Inclure les notes de l'orateur »). Dans l'éditeur, elles restent visibles. Si l'extension « Commentaires » est désactivée, `%%` est du texte ordinaire et apparaît sur la diapositive ; les commentaires HTML restent alors des notes. Les commentaires privés avec `%%` sont décrits sur la page [Constructions en ligne](inline.md).
 
 ## La vue « Diapositives »
@@ -345,7 +347,7 @@ On **quitte** le mode présentateur par les mêmes moyens que le diaporama dans 
 
 ## Exporter les diapositives
 
-Les deux exports se trouvent sous **Fichier → Autres fonctions de fichier → Exporter** et dans la palette de commandes. Ils sont proposés pour tout document de présentation, quelle que soit la vue dans laquelle il est affiché ; pour un document sans indicateur, ils restent atténués. Chaque diapositive y apparaît telle que la vue la montre, avec thème, indications par diapositive, images d'arrière-plan, numéro de page, en-tête et pied de page, diagrammes et formules, mais sans la barre des diapositives trop pleines. Les notes de l'orateur ne sont incluses que si elles sont activées (voir plus bas). Si l'on annule la boîte de dialogue, rien n'est créé. Après l'export, la barre d'état indique le nombre de diapositives et, si quelque chose a été omis, quoi.
+Les quatre exports se trouvent sous **Fichier → Autres fonctions de fichier → Exporter** et dans la palette de commandes. Ils sont proposés pour tout document de présentation, quelle que soit la vue dans laquelle il est affiché ; pour un document sans indicateur, ils restent atténués. Chaque diapositive y apparaît telle que la vue la montre, avec thème, indications par diapositive, images d'arrière-plan, numéro de page, en-tête et pied de page, diagrammes et formules, mais sans la barre des diapositives trop pleines. Les notes de l'orateur n'entrent dans le PDF et les pages HTML que si elles sont activées ; le fichier PowerPoint les inclut toujours, les images jamais (voir plus bas). Si l'on annule la boîte de dialogue, rien n'est créé. Après l'export, la barre d'état indique le nombre de diapositives et, si quelque chose a été omis, quoi.
 
 ### En PDF
 
@@ -357,9 +359,21 @@ Les deux exports se trouvent sous **Fichier → Autres fonctions de fichier → 
 
 Tout navigateur ouvre les pages, sans l'application et sans connexion réseau. Chaque page est complète à elle seule : images, diagrammes et formules y sont intégrés, si bien que le dossier peut être déplacé ou transmis en entier. Sous la diapositive se trouvent **Précédente**, le compteur et **Suivante**, dans la langue qu'avait l'interface au moment de l'export ; on fait aussi défiler avec les mêmes touches que dans le diaporama, et la diapositive s'adapte à la taille de la fenêtre du navigateur. Les liens et les images suivent les règles de l'export HTML d'un document (voir [Outils](tools.md)) : un lien vers un autre document reste du texte, et une image qui ne peut pas être intégrée apparaît sous la forme de son texte ; une telle image d'arrière-plan est omise.
 
+### En fichier PowerPoint
+
+**Exporter les diapositives en PowerPoint…** demande la cible, en proposant le nom du document avec l'extension `.pptx` dans le même dossier, et écrit un fichier PowerPoint avec **une diapositive PowerPoint par diapositive**. Chacune porte une seule image qui montre la diapositive exactement comme le diaporama : avec le thème ou un thème propre, les indications par diapositive, les images d'arrière-plan, les formules, les diagrammes, les images et, pour les diapositives trop pleines, la réduction. L'image a le double de la résolution de la diapositive, afin de rester nette aussi sur les grands écrans et les vidéoprojecteurs. Le fichier a le format de la diapositive, 16:9 ou 4:3, selon la clé `size`.
+
+Les **notes de l'orateur** figurent en texte dans le champ de notes de la diapositive correspondante, où le logiciel de présentation les montre à l'orateur sans que le public les voie. Elles sont **toujours** incluses, indépendamment de l'interrupteur **Inclure les notes de l'orateur**, et apparaissent telles qu'elles sont écrites dans le document, sans mise en forme ; plusieurs notes d'une même diapositive sont séparées par un paragraphe vide. Après l'export, le message indique le nombre de diapositives et de notes de l'orateur incluses.
+
+Comme chaque diapositive est une image, son texte ne peut être ni modifié ni retrouvé par une recherche dans PowerPoint ; on modifie dans le document, puis on exporte à nouveau.
+
+### En images
+
+**Exporter les diapositives en images…** demande un dossier et y crée **une image par diapositive** au format PNG : `folie-001.png`, `folie-002.png` et ainsi de suite. Le dossier suit la même règle que pour les pages HTML : si le dossier choisi est vide, vient d'être créé ou contient un export d'images antérieur, les images y sont créées ; sinon un sous-dossier portant le nom du document et le suffixe `-diapositives` est créé, et les fichiers déjà présents restent intacts. Les images sont les mêmes que dans le fichier PowerPoint, en double résolution, et ne contiennent pas de notes de l'orateur. Après l'export, le message indique le nombre d'images et le dossier.
+
 ### Inclure les notes de l'orateur
 
-L'interrupteur **Inclure les notes de l'orateur** sous **Fichier → Paramètres… → Export**, groupe **Diaporama**, décide si les notes vont dans l'export. Il est désactivé au départ, afin qu'une transmission n'emporte jamais de notes à votre insu, et vaut pour les deux exports.
+L'interrupteur **Inclure les notes de l'orateur** sous **Fichier → Paramètres… → Export**, groupe **Diaporama**, décide si les notes vont dans l'export. Il est désactivé au départ, afin qu'une transmission n'emporte jamais de notes à votre insu, et vaut pour le PDF et les pages HTML. Le fichier PowerPoint porte toujours les notes dans son champ de notes (voir plus haut) ; les images n'en portent aucune.
 
 - **Dans le PDF**, chaque diapositive avec notes est suivie d'une **page de notes** au format de la diapositive, intitulée « Diapositive N – Notes », et en dessous les notes mises en forme sur fond blanc. Les notes plus longues continuent sur d'autres pages du même format.
 - **Dans les pages HTML**, chaque diapositive avec notes porte, entre la diapositive et la barre de défilement, une zone **Notes** repliée. Dépliée, elle se pose sur la diapositive, au plus jusqu'à la moitié de la hauteur de la fenêtre du navigateur, et peut défiler.
@@ -370,7 +384,7 @@ Les diapositives sans notes n'ont ni page ni zone de notes. Interrupteur activé
 
 La fonction fait partie des [extensions internes](extensions.md) (« Vue présentation », groupe « Rendu ») et du mode de travail **Avancé** : en mode **Débutant** elle est désactivée, en **Avancé** et **Complet** elle est activée.
 
-Désactivée, la vue **Diapositives**, le sous-menu **Présentation** du menu **Affichage** avec toutes ses commandes, les deux commandes d'export, leurs entrées dans la palette de commandes et les raccourcis, ainsi que la section **Thèmes de diapositives** des paramètres disparaissent. L'indicateur n'a alors aucun effet : un document de présentation est un document Markdown ordinaire, et `---` y est une ligne horizontale. Un document ouvert dans la vue **Diapositives** apparaît dans la vue de lecture. Rien ne se perd, et la désactivation comme la réactivation n'écrivent jamais rien ; après la réactivation, la présentation et les thèmes propres sont là, inchangés.
+Désactivée, la vue **Diapositives**, le sous-menu **Présentation** du menu **Affichage** avec toutes ses commandes, les quatre commandes d'export des diapositives, leurs entrées dans la palette de commandes et les raccourcis, ainsi que la section **Thèmes de diapositives** des paramètres disparaissent. L'indicateur n'a alors aucun effet : un document de présentation est un document Markdown ordinaire, et `---` y est une ligne horizontale. Un document ouvert dans la vue **Diapositives** apparaît dans la vue de lecture. Rien ne se perd, et la désactivation comme la réactivation n'écrivent jamais rien ; après la réactivation, la présentation et les thèmes propres sont là, inchangés.
 
 ## Compatibilité avec d'autres outils
 
@@ -403,10 +417,10 @@ L'indicateur, les clés de pilotage, les lignes de séparation, les indications 
 
 ## Limites
 
-- **Les exports sont le PDF et les pages HTML.** Aucun fichier au format pptx n'est créé.
+- **Les exports sont le PDF, les pages HTML, le fichier PowerPoint et les images.**
+- **Dans le fichier PowerPoint, chaque diapositive est une image.** Son texte ne peut y être ni modifié ni retrouvé par une recherche. Aucun fichier PowerPoint avec des objets texte modifiables n'est créé, et les fichiers PowerPoint ne peuvent pas être importés.
+- **Programmes vérifiés :** l'ouverture du fichier est vérifiée dans Microsoft PowerPoint sous Windows. LibreOffice Impress est vérifié sur le banc de test automatique sous Linux. D'autres programmes, comme Keynote ou Google Slides, lisent le format selon la norme, mais ne sont pas vérifiés.
 - **L'apparence passe par les thèmes et leurs sept valeurs.** Des règles de style propres en CSS, des mises en page au-delà du partage en deux, ainsi que des animations et des transitions entre diapositives n'existent pas.
 - **Seuls les éléments de liste se dévoilent**, aucune autre partie d'une diapositive.
 - **La réduction va au plus jusqu'à la moitié.** Ce qui ne tient toujours pas est coupé.
 - **On modifie dans les vues Markdown**, pas sur la diapositive.
-
-L'export en fichier pptx est prévu pour une étape d'extension ultérieure.

@@ -47,7 +47,7 @@ Le tableau montre les tâches du document sous forme de tableau Kanban : les lis
 
 ### Diapositives
 
-La vue Diapositives montre une présentation diapositive par diapositive, avec compteur et défilement ; c'est d'elle que se lancent la vue d'ensemble des diapositives, le diaporama en plein écran ou dans une fenêtre séparée et le mode présentateur. Elle appartient à l'extension « Vue présentation » et disparaît avec elle ; comme le canevas et le tableau, elle dépend du document et n'est sélectionnable que si celui-ci porte l'indicateur `presentation: true` dans son en-tête. La règle de séparation, les clés de pilotage, les indications par diapositive, les thèmes y compris les thèmes propres, les notes de l'orateur, le diaporama, le mode présentateur et les exports des diapositives sont décrits sur la page [Présentation](presentation.md).
+La vue Diapositives montre une présentation diapositive par diapositive, avec compteur et défilement ; c'est d'elle que se lancent la vue d'ensemble des diapositives, le diaporama en plein écran ou dans une fenêtre séparée et le mode présentateur. Elle appartient à l'extension « Vue présentation » et disparaît avec elle ; comme le canevas et le tableau, elle dépend du document et n'est sélectionnable que si celui-ci porte l'indicateur `presentation: true` dans son en-tête. La règle de séparation, les clés de pilotage, les indications par diapositive, les thèmes y compris les thèmes propres, les notes de l'orateur, le diaporama, le mode présentateur et les exports des diapositives en PDF, en pages HTML, en fichier PowerPoint et en images sont décrits sur la page [Présentation](presentation.md).
 
 ### Modifier
 

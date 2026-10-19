@@ -519,6 +519,10 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.presentationThemes',
       'help.feature.presentationExportPdf',
       'help.feature.presentationExportHtml',
+      // 4T-002294 (Epic 3E-000349): die PowerPoint-Datei des Foliensatzes.
+      'help.feature.presentationExportPptx',
+      // 4T-002295 (Epic 3E-000349): die Bilder des Foliensatzes.
+      'help.feature.presentationExportImages',
       'help.feature.sourceToggles',
       // 4T-000290 (Epic 3E-000051): dynamische Sidebar (Seite, Reihenfolge,
       // Reiter-Gruppen) — Ansicht-Eigenschaft, die Panels selbst bleiben

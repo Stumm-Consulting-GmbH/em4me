@@ -166,6 +166,35 @@ function registerDialogsIpc(handle, deps) {
     return { ok: true, path: path.resolve(dlgResult.filePath) };
   });
 
+  // 4T-002294 (Epic 3E-000349): Speichern-Dialog der PowerPoint-Datei des
+  // Foliensatzes, nach dem Muster von pdf:chooseTarget: Vorschlag aus der
+  // Seite (<Dokumentname>.pptx neben dem Dokument), ein pfadloses Dokument im
+  // Home-Verzeichnis. Das Schreiben liegt in presentation-export-pptx.js.
+  handle('pptx:chooseTarget', async (event, params) => {
+    const owner = senderWindow(event);
+    const suggestedPath =
+      params && typeof params.suggestedPath === 'string' && params.suggestedPath
+        ? params.suggestedPath
+        : null;
+    const suggestedName =
+      params && typeof params.suggestedName === 'string' && params.suggestedName
+        ? params.suggestedName
+        : null;
+    const defaultPath =
+      suggestedPath ||
+      path.join(
+        app.getPath('home'),
+        suggestedName || `${tForWindow(owner, 'presentation.export.ordnerOhneName')}.pptx`,
+      );
+    const dlgResult = await dialog.showSaveDialog(owner || undefined, {
+      title: tForWindow(owner, 'presentation.export.pptxDialogTitel'),
+      defaultPath,
+      filters: [{ name: tForWindow(owner, 'dialog.filterPptx'), extensions: ['pptx'] }],
+    });
+    if (dlgResult.canceled || !dlgResult.filePath) return { ok: false, canceled: true };
+    return { ok: true, path: path.resolve(dlgResult.filePath) };
+  });
+
   handle('pdf:print', async (event, targetPath) => {
     if (typeof targetPath !== 'string' || !targetPath) {
       return { ok: false, error: 'pdf:print ohne Pfad aufgerufen' };

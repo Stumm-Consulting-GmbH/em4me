@@ -124,7 +124,7 @@ Printing follows the active view, exactly like the PDF export below: the source 
 
 Page size, orientation and margins are set in the "Export" section of the settings (File → Settings…); the default is A4 in portrait with normal margins. When content flows across pages, code blocks, tables, diagrams, formulas and callouts stay together where possible; headings do not end up alone at the bottom of a page.
 
-The slides of a presentation are exported by a command of their own, one slide per page; see [Presentation](presentation.md).
+The slides of a presentation are exported by a command of their own, one slide per page; two further commands of their own export them as a PowerPoint file and as images; see [Presentation](presentation.md).
 
 ## HTML export
 
