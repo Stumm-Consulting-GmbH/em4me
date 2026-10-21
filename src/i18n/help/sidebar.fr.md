@@ -41,7 +41,7 @@ Les variantes sont indépendantes des espaces de travail : un espace de travail 
 
 ## Groupes d'onglets
 
-Plusieurs panneaux à la même position se partagent la place sous forme de groupe d'onglets : une barre d'onglets remplace les titres des panneaux, seul le panneau actif est visible. Afficher un panneau groupé active son onglet ; l'onglet actif est mémorisé.
+Plusieurs panneaux à la même position se partagent la place sous forme de groupe d'onglets : une barre d'onglets remplace les titres des panneaux, seul le panneau actif est visible. Afficher un panneau groupé active son onglet ; l'onglet actif est mémorisé. Si la barre latérale n'est pas assez large pour tous les onglets côte à côte, la barre d'onglets passe sur une ligne supplémentaire, et chaque onglet affiche son nom en entier ; avec les titres en symbole, le symbole reste.
 
 ## Largeurs
 

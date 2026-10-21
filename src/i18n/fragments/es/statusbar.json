@@ -34,6 +34,8 @@
   "statusbar.viewToggleYamlError": "Frontmatter no válido, no se puede escribir el ajuste de vista",
   "statusbar.collapse.left": "Más elementos de la barra de estado (izquierda)",
   "statusbar.collapse.right": "Más elementos de la barra de estado (derecha)",
+  "statusbar.group.commands": "Comandos",
+  "statusbar.group.views": "Vista",
   "settings.statusbar.title": "Barra de estado",
   "settings.statusbar.collapseMode": "Plegado",
   "settings.statusbar.collapseMode.auto": "Automáticamente cuando falta espacio",

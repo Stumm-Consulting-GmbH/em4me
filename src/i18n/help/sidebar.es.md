@@ -41,7 +41,7 @@ Las variantes son independientes de los espacios de trabajo: un espacio de traba
 
 ## Grupos de pestañas
 
-Varios paneles en la misma posición comparten el espacio como grupo de pestañas: una barra de pestañas sustituye a los títulos de los paneles y solo el panel activo es visible. Mostrar un panel agrupado activa su pestaña; la pestaña activa se recuerda.
+Varios paneles en la misma posición comparten el espacio como grupo de pestañas: una barra de pestañas sustituye a los títulos de los paneles y solo el panel activo es visible. Mostrar un panel agrupado activa su pestaña; la pestaña activa se recuerda. Si la barra lateral no es lo bastante ancha para todas las pestañas una junto a otra, la barra de pestañas continúa en una línea más y cada pestaña muestra su nombre completo; con los títulos como símbolo, se mantiene el símbolo.
 
 ## Anchuras
 

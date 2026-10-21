@@ -34,6 +34,8 @@
   "statusbar.viewToggleYamlError": "Frontmatter fehlerhaft, Ansicht-Schalter nicht schreibbar",
   "statusbar.collapse.left": "Weitere Elemente der Statusleiste (links)",
   "statusbar.collapse.right": "Weitere Elemente der Statusleiste (rechts)",
+  "statusbar.group.commands": "Kommandos",
+  "statusbar.group.views": "Ansicht",
   "settings.statusbar.title": "Statusleiste",
   "settings.statusbar.collapseMode": "Zusammenklappen",
   "settings.statusbar.collapseMode.auto": "Automatisch bei knappem Platz",

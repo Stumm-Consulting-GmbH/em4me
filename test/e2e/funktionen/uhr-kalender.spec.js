@@ -10,6 +10,10 @@
 // UK-02: Blättern um Monat und Jahr, Rückkehr über „Heute".
 // UK-03: Direkte Jahres-Eingabe erreicht ein weit zurückliegendes Jahr.
 // UK-04: Die Kalenderwochen-Spalte folgt der Einstellung.
+// UK-05: Eine offene Jahres-Eingabe übersteht den Sprachwechsel samt Ziffern
+//        und Fokus (4T-002190, Story 4S-000465, AK9).
+// UK-06: Ebenso eine Wecker-Änderung aus einem anderen Fenster, die das Panel
+//        ebenfalls neu aufbaut (4T-002190).
 'use strict';
 
 const fs = require('node:fs');
@@ -18,6 +22,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp, schliesseTour } = require('../helpers/app');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const CLOCK_BTN = '#btn-clock';
 const SECTION = '.pane-group .sidebar-clock';
@@ -182,6 +187,77 @@ test.describe('UK-04: Kalenderwochen-Spalte', () => {
       await schliesseTour(page);
       await openMode(page, 'calendar');
       await expect(page.locator(WEEK_CELLS)).toHaveCount(0);
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+});
+
+// 4T-002190: Jahres-Eingabe öffnen und zwei Ziffern ändern (dritte und
+// vierte Stelle je eins herunter), Fokus bleibt in der Eingabe.
+async function oeffneJahresEingabeMitAenderung(page) {
+  await openMode(page, 'calendar');
+  await page.click(LABEL);
+  await expect(page.locator(YEAR_EDIT).first()).toBeVisible();
+  for (const taste of ['ArrowRight', 'ArrowRight', 'ArrowDown', 'ArrowRight', 'ArrowDown']) {
+    await page.keyboard.press(taste);
+  }
+}
+
+// Stand der Jahres-Eingabe: offen, Ziffern, aktive Stelle und ob der Fokus
+// auf ihr liegt.
+function jahresEingabe(page) {
+  return page.evaluate((sel) => {
+    const wrap = document.querySelector(sel);
+    const zellen = [...wrap.querySelectorAll('.clock-cal-year-digit')];
+    return {
+      offen: !wrap.hidden,
+      ziffern: zellen.map((z) => z.textContent).join(''),
+      aktiv: zellen.findIndex((z) => z.classList.contains('active')),
+      fokus: zellen.indexOf(document.activeElement),
+    };
+  }, YEAR_EDIT);
+}
+
+test.describe('UK-05: Jahres-Eingabe beim Sprachwechsel', () => {
+  test('bleibt offen mit den geänderten Ziffern und dem Fokus', async () => {
+    const { app, page, userData } = await launchApp();
+    try {
+      await oeffneJahresEingabeMitAenderung(page);
+      const vorher = await jahresEingabe(page);
+      expect(vorher).toMatchObject({ offen: true, aktiv: 3, fokus: 3 });
+      await page.locator('#lang-select').selectOption('en');
+      // Der Neubau ist erfolgt, wenn die Monats-Beschriftung englisch ist;
+      // erwartet wird sie in der Sprache, die das Dokument danach trägt.
+      await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+      await expect(page.locator(LABEL).first()).toHaveText(await currentMonthLabel(page));
+      expect(await jahresEingabe(page)).toEqual(vorher);
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+});
+
+test.describe('UK-06: Jahres-Eingabe bei einer Wecker-Änderung aus einem anderen Fenster', () => {
+  test('bleibt offen mit den geänderten Ziffern und dem Fokus', async () => {
+    const { app, page, userData } = await launchApp();
+    try {
+      await oeffneJahresEingabeMitAenderung(page);
+      const vorher = await jahresEingabe(page);
+      // Merkmal am alten Panel-Körper: Ein Neubau ersetzt die Eingabe durch
+      // ein neues Element, und erst danach ist der Stand aussagekräftig.
+      await page.evaluate((sel) => {
+        document.querySelector(sel).dataset.vorNeubau = '1';
+      }, YEAR_EDIT);
+      // Weg einer Änderung aus einem anderen Fenster: die Verteilung des
+      // Hauptprozesses an jedes Fenster (settings-verteilung.js).
+      await hauptSenden(app, ({ BrowserWindow }) => {
+        for (const w of BrowserWindow.getAllWindows()) {
+          w.webContents.send('clockAlarms:changed', [{ id: 'a1', time: '07:30' }]);
+        }
+      });
+      await expect(page.locator(`${YEAR_EDIT}[data-vor-neubau]`)).toHaveCount(0);
+      expect(await jahresEingabe(page)).toEqual(vorher);
     } finally {
       await closeApp(app, userData);
     }

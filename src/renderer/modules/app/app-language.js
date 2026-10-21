@@ -32,6 +32,7 @@ import { renderOutgoingLinks } from '../panels/panel-outgoing.js';
 import { refreshTaskStateLabels } from '../task-states.js';
 import { refreshTaskMarkerLabels } from '../tasks.js';
 import { updateBookmarksToggleButton } from '../bookmarks/bookmarks.js';
+import { updateHistoryStatus } from '../views/history-status.js';
 import { reportMenuStateNow } from '../tabs/tabs.js';
 import { renderAllPanes } from '../views/pane-render.js';
 import { refreshOpenManualTabs } from '../manual.js';
@@ -264,6 +265,11 @@ export async function applyLanguageChange(newLang, { persist }) {
   // die Kontext-Menue-Strings und der Empty-Hinweis sind data-i18n abgedeckt.
   // Aktiv-Stern aktualisieren, weil Tooltip lokalisiert ist.
   updateBookmarksToggleButton();
+  // 4T-002190: Der Kurzhinweis der Dokument-Historie hängt vom Zustand ab und
+  // trägt einen Platzhalter; ein Übersetzungs-Merkmal kann ihn deshalb nicht
+  // tragen, und ohne diesen Nachzug blieb er bis zum nächsten Reiter-Wechsel
+  // oder Speichern in der alten Sprache (Story 4S-000465, AK8).
+  void updateHistoryStatus();
   // Such-Labels (Scope, Counter) sind nicht ueber data-i18n abgedeckt.
   if (search.visible) {
     updateSearchScopeLabel();

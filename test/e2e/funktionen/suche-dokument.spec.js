@@ -15,6 +15,11 @@
 //
 // 4T-002125 (SD-02): In «Gerendert» trägt jeder Treffer eine Kontur, die ihn
 // vom Textmarker `==Text==` unterscheidet, auch wenn er in einem liegt.
+//
+// 4T-002217 (SD-04, SD-05): Der Treffer steht nach jedem Sprung im mittleren
+// Drittel des sichtbaren Bereichs, am Anfang und am Ende des Inhalts am Rand
+// und vollständig sichtbar; kurzer Inhalt rollt nicht. Lage-Rechnung in
+// `helpers/treffer-lage.js`, gemeinsam mit den übrigen Such-Wegen.
 'use strict';
 
 const fs = require('node:fs');
@@ -24,6 +29,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { hauptSenden } = require('../helpers/haupt-zugriff');
+const { erwarteTrefferInDerMitte } = require('../helpers/treffer-lage');
 
 const PANE = '.pane-group[data-pane="0"]';
 const BEGRIFF = 'Quittentreffer';
@@ -105,13 +111,11 @@ async function fall(modus) {
     if (imEditor) expect(vorher.schreibmarke).toBe('# Probe 4T-002107');
 
     // Erste Eingabetaste: derselbe Treffer, jetzt gezeigt und ausgewählt.
+    // 4T-002217: «gezeigt» heißt seither im mittleren Drittel, nicht bloß
+    // irgendwo im sichtbaren Bereich (gemeinsame Lage-Rechnung).
+    const art = imEditor ? 'editor' : 'gerendert';
     await page.keyboard.press('Enter');
-    await expect
-      .poll(async () => {
-        const l = await lage(page, imEditor);
-        return l.sichtbar && l.treffer.startsWith('Erster');
-      })
-      .toBe(true);
+    await erwarteTrefferInDerMitte(page, { art, zeileEnthaelt: 'Erster' });
     await expect(zaehler).toHaveText('1 / 3');
     if (imEditor) {
       expect((await lage(page, imEditor)).schreibmarke).toBe(`Erster ${BEGRIFF} hier.`);
@@ -120,12 +124,7 @@ async function fall(modus) {
     // Zweite Eingabetaste: erst jetzt der nächste Treffer.
     await page.keyboard.press('Enter');
     await expect(zaehler).toHaveText('2 / 3');
-    await expect
-      .poll(async () => {
-        const l = await lage(page, imEditor);
-        return l.sichtbar && l.treffer.startsWith('Zweiter');
-      })
-      .toBe(true);
+    await erwarteTrefferInDerMitte(page, { art, zeileEnthaelt: 'Zweiter' });
   } finally {
     await closeApp(app, userData, { force: true });
     try {
@@ -350,6 +349,262 @@ test.describe('SD-03: Ein Sprung bleibt nach dem Neuzeichnen stehen (4T-002129)'
       await page.keyboard.press('Enter');
       await page.keyboard.press('Enter');
       await bleibt('2 / 4', '2 von 4');
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 4T-002217 (Epic 3E-000355): Lage des Treffers nach dem Sprung.
+//
+// ZUSICHERUNG, keine Behebung: Die Fälle sind am Stand ihrer Anlage grün. Sie
+// halten das gemessene Verhalten fest (Messungen vom 2026-10-10 und
+// 2026-10-17, 112 Messpunkte), damit es nicht unbemerkt verloren geht. Vorher
+// verlangten die Fälle nur «im sichtbaren Bereich»; ein Treffer am Rand
+// bestand sie.
+//
+// Prüf-Dokument wie in der Messung: 400 Absätze, rund 23 Fensterhöhen, das
+// Suchwort in Absatz 5 (Roll-Lage bleibt am Anfang), 200 (Mitte erreichbar)
+// und 395 (Roll-Lage am Ende). Bedien-Wege der Mess-Prüfdatei: Eingabetaste,
+// Umschalt+Eingabetaste, die beiden Knöpfe der Suchleiste, F3 und Umschalt+F3,
+// dazu der Sprung vom letzten zum ersten Treffer und zurück.
+const LAGE_BEGRIFF = 'Quittenmus';
+
+function lageText(n = 400, ersatz = {}) {
+  const z = ['# Lage 4T-002217', ''];
+  for (let i = 1; i <= n; i++) {
+    if (ersatz[i]) z.push(...ersatz[i], '');
+    else if (i === 5 || i === 200 || i === 395) {
+      z.push(`Absatz ${i}: hier steht ${LAGE_BEGRIFF}.`, '');
+    } else z.push(`Absatz ${i}: Fülltext ohne Suchwort.`, '');
+  }
+  return z.join('\n');
+}
+
+// Ansicht wählen; die Editor-Ansichten zusätzlich bearbeitbar machen und die
+// Schreibmarke an den Anfang setzen, damit der erste Sprung von oben kommt.
+async function lageAnsicht(page, modus) {
+  await page.locator(SEL.viewBtn(modus)).click();
+  await expect(page.locator(SEL.viewBtn(modus))).toHaveClass(/active/);
+  if (modus === 'rendered') return;
+  const inhalt = page.locator(SEL.editorContent0);
+  if ((await inhalt.getAttribute('contenteditable')) !== 'true') {
+    await page.locator(SEL.btnEdit).click();
+  }
+  await expect(inhalt).toHaveAttribute('contenteditable', 'true');
+  await inhalt.locator('.cm-line').first().click();
+  await page.keyboard.press('Control+Home');
+}
+
+// Startet die Anwendung mit einem Prüf-Dokument und gibt die Seite an `ablauf`.
+async function lageFall(text, ablauf) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-4t2217-dokument-'));
+  const datei = path.join(dir, 'lage.md');
+  fs.writeFileSync(datei, text, 'utf8');
+  const { app, page, userData } = await launchApp({ args: [datei] });
+  try {
+    await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+    await ablauf(page);
+  } finally {
+    await closeApp(app, userData, { force: true });
+    try {
+      fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+    } catch {
+      // Temp-Verzeichnis bleibt liegen; unkritisch.
+    }
+  }
+}
+
+async function lageSuche(page, gesamt) {
+  await page.keyboard.press('Control+f');
+  await expect(page.locator(SEL.searchInput)).toBeVisible();
+  await page.locator(SEL.searchInput).fill(LAGE_BEGRIFF);
+  await expect(page.locator(SEL.searchCount)).toHaveText(`1 / ${gesamt}`);
+}
+
+// Ein Handgriff, dann Zähler und Lage. `rand` ist die Roll-Lage, die das
+// Prüf-Dokument an dieser Stelle festlegt (Anfang, Mitte erreichbar, Ende).
+async function lageSchritt(page, art, [griff, zaehler, absatz, rand]) {
+  if (griff === 'Knopf Vorheriger') await page.locator('#btn-search-prev').click();
+  else if (griff === 'Knopf Nächster') await page.locator('#btn-search-next').click();
+  else await page.keyboard.press(griff);
+  await expect(page.locator(SEL.searchCount)).toHaveText(zaehler);
+  await erwarteTrefferInDerMitte(page, {
+    art,
+    rand,
+    zeileEnthaelt: `Absatz ${absatz}:`,
+    schritt: `${griff} -> ${zaehler}`,
+  });
+}
+
+const LAGE_SCHRITTE = [
+  ['Enter', '1 / 3', 5, 'Anfang'],
+  ['Enter', '2 / 3', 200, 'nein'],
+  ['Enter', '3 / 3', 395, 'Ende'],
+  ['Enter', '1 / 3', 5, 'Anfang'],
+  ['Shift+Enter', '3 / 3', 395, 'Ende'],
+  ['Knopf Vorheriger', '2 / 3', 200, 'nein'],
+  ['Knopf Nächster', '3 / 3', 395, 'Ende'],
+  ['F3', '1 / 3', 5, 'Anfang'],
+  ['Shift+F3', '3 / 3', 395, 'Ende'],
+];
+
+// Zeilen-Texte, die der Editor der Spalte gerade als Editor-Zeilen zeichnet.
+function editorZeilen(page) {
+  return page.evaluate(() => {
+    const p = document.querySelector('.pane-group[data-pane="0"] .pane-source');
+    return [...p.querySelectorAll('.cm-line')].map((l) => l.textContent);
+  });
+}
+
+// Rollt den Editor so, dass die Zeile mit `text` mittig steht (ohne `text` an
+// den Anfang). Die Lage der Zeile kommt aus der CodeMirror-Sicht (Zugang wie in
+// `helpers/treffer-lage.js`), weil die Höhen außerhalb des gezeichneten
+// Bereichs geschätzt sind und sich beim Rollen noch ändern.
+function editorRollen(page, text) {
+  return page.evaluate((suche) => {
+    const p = document.querySelector('.pane-group[data-pane="0"] .pane-source');
+    const roll = p.querySelector('.cm-scroller');
+    if (!suche) {
+      roll.scrollTop = 0;
+      return Math.round(roll.scrollTop);
+    }
+    let kachel = p.querySelector('.cm-content').cmTile;
+    while (kachel && kachel.parent) kachel = kachel.parent;
+    const sicht = kachel && kachel.view;
+    const block = sicht.lineBlockAt(sicht.state.doc.toString().indexOf(suche));
+    roll.scrollTop = block.top - roll.clientHeight / 2;
+    return Math.round(roll.scrollTop);
+  }, text || '');
+}
+
+test.describe('SD-04: Treffer im mittleren Drittel, am Anfang und Ende am Rand (4T-002217)', () => {
+  const ANSICHTEN = { source: 'Quellcode', split: 'Geteilt', live: 'Live', rendered: 'Gerendert' };
+  for (const [modus, name] of Object.entries(ANSICHTEN)) {
+    test(`4T-002217: ${name} — jeder Sprung vor und zurück, mit Tasten und Knöpfen, auch vom letzten zum ersten Treffer`, async () => {
+      test.setTimeout(120000);
+      const art = modus === 'rendered' ? 'gerendert' : 'editor';
+      await lageFall(lageText(), async (page) => {
+        await lageAnsicht(page, modus);
+        await lageSuche(page, 3);
+        for (const schritt of LAGE_SCHRITTE) await lageSchritt(page, art, schritt);
+      });
+    });
+  }
+
+  // Ein Block, den die Live-Ansicht als Widget zeichnet, klappt beim Sprung zur
+  // Quelle auf; seine Höhe ändert sich dabei. Gemessen am 2026-10-10 mit dem
+  // Treffer in der Mitte (Code-Block; eine Tabellen-Zelle trägt in der
+  // Live-Ansicht keine Treffer-Dekoration, Nebenbefund der Messung).
+  test('4T-002217: Live — Treffer in einem Code-Block, der als Widget gezeichnet ist, steht nach dem Aufklappen in der Mitte', async () => {
+    test.setTimeout(120000);
+    const text = lageText(400, {
+      5: ['Absatz 5: Fülltext ohne Suchwort.'],
+      200: ['```js', `const absatz200 = '${LAGE_BEGRIFF}';`, '```'],
+      395: ['Absatz 395: Fülltext ohne Suchwort.'],
+    });
+    await lageFall(text, async (page) => {
+      await lageAnsicht(page, 'live');
+      // Vorbedingung: Der Block ist als Widget gezeichnet — seine Zaun-Zeile
+      // ist keine Editor-Zeile, die Nachbar-Absätze sind es. Dafür einmal zum
+      // Block rollen und danach zurück an den Anfang. Gerollt wird in jedem
+      // Durchgang neu, bis die Nachbar-Absätze gezeichnet sind: Die Höhen
+      // werden beim Zeichnen genauer und verschieben den Block noch.
+      await expect
+        .poll(async () => {
+          await editorRollen(page, '```js');
+          const z = await editorZeilen(page);
+          return (
+            z.some((t) => t.startsWith('Absatz 199:')) && z.some((t) => t.startsWith('Absatz 201:'))
+          );
+        })
+        .toBe(true);
+      expect((await editorZeilen(page)).some((t) => t.startsWith('```'))).toBe(false);
+      await expect.poll(() => editorRollen(page)).toBe(0);
+
+      await lageSuche(page, 1);
+      await page.keyboard.press('Enter');
+      await expect(page.locator(SEL.searchCount)).toHaveText('1 / 1');
+      await erwarteTrefferInDerMitte(page, {
+        art: 'editor',
+        rand: 'nein',
+        zeileEnthaelt: 'const absatz200',
+      });
+      // Der Block steht jetzt als Quelle da.
+      expect((await editorZeilen(page)).some((t) => t.startsWith('```js'))).toBe(true);
+    });
+  });
+});
+
+// Behebung (4T-002217, Vorlage P1 vom 2026-10-17): Ein Treffer in einem
+// eingeklappten Hinweis-Kasten (`> [!note]-`, gerendert als `details` ohne
+// `open`) blieb in «Gerendert» unsichtbar — der Zähler zeigte «2 / 3», die
+// Ansicht rollte nicht. Gemessen am 2026-10-17 vorwärts und rückwärts. Der
+// Sprung öffnet den Kasten und holt den Treffer in die Mitte; der Kasten bleibt
+// beim Weiterblättern offen. Rot-Probe am unveränderten Stand: rot.
+const KASTEN = '.pane-group[data-pane="0"] .pane-rendered details';
+
+function kastenText() {
+  return lageText(400, {
+    200: ['> [!note]- Eingeklappt', `> Absatz 200: hier steht ${LAGE_BEGRIFF}.`],
+  });
+}
+
+test.describe('SD-06: Treffer in einem eingeklappten Hinweis-Kasten (4T-002217)', () => {
+  test('4T-002217: Gerendert — der Sprung öffnet den Kasten und zeigt den Treffer in der Mitte, vorwärts und rückwärts, der Kasten bleibt offen', async () => {
+    test.setTimeout(120000);
+    await lageFall(kastenText(), async (page) => {
+      await lageAnsicht(page, 'rendered');
+      // Vorbedingung: genau ein Kasten, geschlossen.
+      await expect(page.locator(KASTEN)).toHaveCount(1);
+      await expect(page.locator(KASTEN)).not.toHaveAttribute('open', '');
+      await lageSuche(page, 3);
+
+      await lageSchritt(page, 'gerendert', ['Enter', '1 / 3', 5, 'Anfang']);
+      await expect(page.locator(KASTEN)).not.toHaveAttribute('open', '');
+      await lageSchritt(page, 'gerendert', ['Enter', '2 / 3', 200, 'nein']);
+      await expect(page.locator(KASTEN)).toHaveAttribute('open', '');
+      // Weiterblättern lässt ihn offen.
+      await lageSchritt(page, 'gerendert', ['Enter', '3 / 3', 395, 'Ende']);
+      await expect(page.locator(KASTEN)).toHaveAttribute('open', '');
+
+      // Rückwärts in den wieder geschlossenen Kasten: von Hand zuklappen wie
+      // der Anwender (Klick auf den Titel), dann der Knopf «Vorheriger», weil
+      // der Klick den Fokus aus der Suchleiste nimmt.
+      await page.locator(`${KASTEN} > summary`).click();
+      await expect(page.locator(KASTEN)).not.toHaveAttribute('open', '');
+      await expect(page.locator(SEL.searchCount)).toHaveText('3 / 3');
+      await lageSchritt(page, 'gerendert', ['Knopf Vorheriger', '2 / 3', 200, 'nein']);
+      await expect(page.locator(KASTEN)).toHaveAttribute('open', '');
+    });
+  });
+});
+
+// Gegenprobe (AK7): Ein Inhalt, der in den sichtbaren Bereich passt, rollt beim
+// Sprung nicht — gemessen am 2026-10-17 in allen drei Ansichten mit
+// `scrollMax 0`. Die Zusicherung «rollt nicht» schließt eine Roll-Lage außer 0
+// aus; der Treffer ist vollständig sichtbar.
+test.describe('SD-05: Kurzer Inhalt rollt beim Sprung nicht (4T-002217)', () => {
+  test('4T-002217: Quellcode, Live und Gerendert — jeder Sprung, auch vom letzten zum ersten Treffer, lässt die Roll-Lage bei 0', async () => {
+    test.setTimeout(120000);
+    const kurz = ['# Kurz 4T-002217', ''];
+    for (let i = 1; i <= 3; i++) kurz.push(`Absatz ${i}: ${LAGE_BEGRIFF}.`, '');
+    await lageFall(kurz.join('\n'), async (page) => {
+      for (const modus of ['source', 'live', 'rendered']) {
+        const art = modus === 'rendered' ? 'gerendert' : 'editor';
+        await lageAnsicht(page, modus);
+        await lageSuche(page, 3);
+        for (const schritt of [
+          ['Enter', '1 / 3', 1, 'rollt nicht'],
+          ['Enter', '2 / 3', 2, 'rollt nicht'],
+          ['Enter', '3 / 3', 3, 'rollt nicht'],
+          ['Enter', '1 / 3', 1, 'rollt nicht'],
+          ['Shift+Enter', '3 / 3', 3, 'rollt nicht'],
+        ]) {
+          await lageSchritt(page, art, schritt);
+        }
+        await page.keyboard.press('Escape');
+        await expect(page.locator(SEL.searchBar)).toBeHidden();
+      }
     });
   });
 });

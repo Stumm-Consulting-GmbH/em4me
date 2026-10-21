@@ -279,14 +279,6 @@
 .bookmark-modal[hidden] {
   display: none;
 }
-/* 4T-000633 (Epic 3E-000102): Der Namens-und-Farb-Dialog der Arbeitsbereiche
-   oeffnet auch AUS dem Verwaltungs-Dialog heraus ("Umbenennen und Farbe...").
-   Beide teilen sich .bookmark-modal (z-index 3000); der Verwaltungs-Dialog
-   steht spaeter im DOM und ueberdeckte den Dialog deshalb. Eine Stufe
-   darueber haelt ihn als Zweit-Ebene immer bedienbar. */
-#workspace-modal {
-  z-index: 3100;
-}
 .bookmark-modal-backdrop {
   position: absolute;
   inset: 0;

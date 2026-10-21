@@ -66,16 +66,16 @@ Unordered lists with `-`, `*` or `+`, ordered lists with `1.`. A sub-item belong
 
 ### Editing the structure
 
-In editing mode the outline can be changed from the keyboard. The depth always follows the item above, so you never have to count spaces yourself.
+In editing mode the outline can be changed from the keyboard. The depth always follows the item above, so you never have to count spaces yourself. Moving, indenting together with sub-items and “Select subtree” belong to the [internal extension](extensions.md) “List structure” and to the **Advanced** working mode: in **Beginner** mode it is off, in **Advanced** and **Full** it is on.
 
-- `Alt+Arrow Up` and `Alt+Arrow Down` move an item together with all its sub-items. The jump spans the whole neighbouring branch and the level stays the same. Outside lists the shortcuts move the single line.
-- `Tab` and `Shift+Tab` indent and outdent the item together with its sub-items. Indenting only works where there is an item above for the current one to move under.
+- `Alt+Arrow Up` and `Alt+Arrow Down` move an item together with all its sub-items. The jump spans the whole neighbouring branch and the level stays the same. Outside lists and without the extension the shortcuts move the single line.
+- `Tab` and `Shift+Tab` indent and outdent the item together with its sub-items. Indenting only works where there is an item above for the current one to move under. Without the extension both keys indent and outdent only the item with its further lines, when indenting likewise to where the content of the item above starts; its sub-items stay where they are.
 - With several lines selected, both keys act on exactly the selected range.
 - The command "Select subtree" marks an item with everything below it.
 
 ### Numbering
 
-Numbered lists renumber themselves in the source as soon as you work in them. The starting number is kept: a list beginning at `3.` continues with `4.`.
+Numbered lists renumber themselves in the source as soon as you work in them; this applies in every working mode and in the note field as well. The starting number is kept: a list beginning at `3.` continues with `4.`. If a number becomes longer or shorter in the process, say from `9.` to `10.` or from `1.` back to `11.` when outdenting, the further lines of the item move along and start exactly below its text again; lines of a code block stay where they are.
 
 A blank line begins a new list. If it arises from your edit, the list below starts again at 1; if it was already there, the second list keeps its own starting number. Source text and rendered view show the same numbers.
 
@@ -101,7 +101,7 @@ The Enter key continues a list and adds a bullet, a consecutive number or an emp
 - At the end of a second line in an item (see “Second line in the same item”) the Enter key starts a new item.
 - On an empty sub-item it outdents by one level, numbered tasks included; on the top level it ends the list.
 
-In the note field of the “Notes” panel the Enter key works the same way.
+The Enter key works this way in every working mode and likewise in the note field of the “Notes” panel.
 
 ### Second line in the same item
 

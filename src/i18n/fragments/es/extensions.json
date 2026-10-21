@@ -20,7 +20,7 @@
   "extension.sidebar-collapse.name": "Contraer las columnas de la barra lateral",
   "extension.sidebar-collapse.description": "Contrae la columna izquierda o derecha de la barra lateral de cada columna del editor en conjunto y la vuelve a expandir; se conserva la visibilidad de cada panel.",
   "extension.outliner.name": "Estructura de listas",
-  "extension.outliner.description": "Mover elementos de lista junto con sus subelementos y aumentar o reducir la sangría de ramas completas; después las listas numeradas se renumeran de forma continua.",
+  "extension.outliner.description": "Mover elementos de lista junto con sus subelementos, aumentar o reducir la sangría de ramas completas y seleccionar una rama.",
   "extension.tasks.name": "Tareas",
   "extension.tasks.description": "Marcadores de tarea para fechas, prioridad y recurrencia, fechas automáticas al cambiar de estado y filtro global.",
   "settings.extensions.title": "Extensiones",

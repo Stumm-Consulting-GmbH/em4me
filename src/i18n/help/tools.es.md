@@ -46,7 +46,7 @@ La corrección ortográfica es una extensión conmutable (Configuración → Ext
 
 ## Búsqueda de texto completo
 
-La búsqueda (predeterminado `Ctrl+F`) encuentra en vivo al teclear; el ámbito de búsqueda sigue la vista (texto fuente o vista previa). Dos conmutadores la amplían: `.*` para expresiones regulares, `Aa` para mayúsculas/minúsculas. `F3` y `Mayús+F3` saltan entre resultados, en la barra de búsqueda también `Intro` / `Mayús+Intro`.
+La búsqueda (predeterminado `Ctrl+F`) encuentra en vivo al teclear; el ámbito de búsqueda sigue la vista (texto fuente o vista previa). Dos conmutadores la amplían: `.*` para expresiones regulares, `Aa` para mayúsculas/minúsculas. `F3` y `Mayús+F3` saltan entre resultados, en la barra de búsqueda también `Intro` / `Mayús+Intro`. El resultado al que se salta queda después aproximadamente en el centro de la zona visible, en la medida en que el contenido puede desplazarse hasta allí; esto vale en todas las vistas y también cuando antes hay que abrir un archivo, una página del manual o una sección de ajustes. Si el resultado está en un callout plegado, en la vista «Renderizado» o en una página del manual, el callout se despliega al llegar a él y sigue abierto.
 
 El signo de interrogación de la barra abre una referencia rápida de regex; los patrones más importantes:
 
@@ -83,7 +83,7 @@ El ámbito sigue a la pestaña en la que se abre la búsqueda; los ámbitos se e
 
 El ámbito vigente se muestra a la izquierda en la barra de búsqueda. En la vista de mapa mental la búsqueda recorre el propio mapa, también en un área abierta; véase [Vista de mapa mental](mindmap.md).
 
-Más allá del archivo suelto, las coincidencias aparecen en el panel **Resultados de búsqueda**, agrupadas por archivo, página o sección y con un recuento por grupo. Un clic abre el destino y resalta el lugar; `F3` cruza el límite del grupo. En la lista, las teclas de flecha mueven la selección e `Intro` salta a la coincidencia seleccionada. La selección se conserva cuando la lista se reconstruye con la búsqueda sin cambios; solo una búsqueda nueva vuelve a empezar por la primera coincidencia.
+Más allá del archivo suelto, las coincidencias aparecen en el panel **Resultados de búsqueda**, agrupadas por archivo, página o sección y con un recuento por grupo. Un clic abre el destino y resalta el lugar, que queda entonces aproximadamente en el centro, como al saltar; `F3` cruza el límite del grupo. En la lista, las teclas de flecha mueven la selección e `Intro` salta a la coincidencia seleccionada. La selección se conserva cuando la lista se reconstruye con la búsqueda sin cambios; solo una búsqueda nueva vuelve a empezar por la primera coincidencia.
 
 ### Dentro de un área
 

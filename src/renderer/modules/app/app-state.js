@@ -528,6 +528,10 @@ export function createTab(path, content, settings = {}) {
     showFoldGutter: view.showFoldGutter,
     // Edit-Modus pro Tab; nicht persistiert ueber Neustarts.
     editMode: false,
+    // 4T-002193 (Story 4S-000051, AK6): War der Edit-Modus an, als der Reiter in
+    // die Lese-Ansicht wechselte? Gesetzt und gelesen in views.js (setViewMode,
+    // toggleEditMode); Laufzeit-Zustand wie editMode, nicht persistiert.
+    bearbeitenVorLeseAnsicht: false,
     // 4T-000070: Scroll-Synchronisation in der geteilten Ansicht. Pro Tab,
     // Default aus. Wird in der Sitzungswiederherstellung erhalten.
     scrollSyncEnabled: !!settings.scrollSyncEnabled,

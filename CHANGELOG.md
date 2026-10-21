@@ -14,6 +14,387 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.151.0.4205] - 2026-10-21 — Kalender-Pflege ohne stille Änderung, Listen-Grundfunktionen in jedem Arbeitsmodus, Suchtreffer in der Mitte des sichtbaren Bereichs, Arbeitsbereiche als Seite, Restpunkte aus Zug 3
+
+Zug
+3E-000354,
+der vierte Zug des Arbeitspakets «Einstellungen und Funktionsumfangs-Steuerung».
+Die Mitglieder in der Reihenfolge ihrer Umsetzung, je mit dem Task, der ihren
+Abschluss-Anteil trägt:
+
+1. 3E-000338
+   — die Pflege der Kalender-Systeme in den Einstellungen ändert an einer
+   Zeitrechnung nur, was der Anwender geändert hat; vier Fälle, in denen das
+   «Anwenden» eine Angabe still änderte oder verwarf, sind behoben, einer davon
+   verschob gespeicherte Datums-Werte. Abschluss-Anteil in
+   4T-002208.
+2. 3E-000334
+   — Listen-Ausstieg und selbsttätige Nummerierung gelten in jedem
+   Arbeitsmodus, auch im Einsteiger-Modus und bei ausgeschalteter Erweiterung
+   «Listen-Struktur»; das zeilenweise Einrücken ohne die Erweiterung rückt auf
+   die Breite des übergeordneten Markers, damit die Anzeige einen eingerückten
+   nummerierten Punkt als Unterpunkt liest. Abschluss-Anteil in
+   4T-002211.
+3. 3E-000355
+   — jede Suche zeigte den angesprungenen Treffer bereits in der Mitte des
+   sichtbaren Bereichs, gemessen an allen Such-Wegen; behoben ist die eine
+   Lage, in der ein Treffer unsichtbar blieb, ein eingeklappter Callout in der
+   Ansicht «Gerendert» und im Handbuch, und das Handbuch nennt die Lage des
+   Treffers. Abschluss-Anteil in
+   4T-002219.
+4. 3E-000356
+   — das Pop-up «Arbeitsbereiche verwalten» ist eine Seite in einem eigenen
+   Reiter, auf der Namen und Pfade der Arbeitsbereiche ungekürzt stehen.
+   Abschluss-Anteil in
+   4T-002229.
+5. 3E-000353
+   — neun Beobachtungen aus Abnahmen sind behoben: Suchleiste
+   und Reiter der Seitenleiste, Sprachwechsel, Text-Schreibweise der
+   Kalender-Daten, Bearbeiten-Zustand und Erledigt-Abzeichen in der Ansicht
+   «Gerendert», Escape-Taste der Eingabe-Hilfe, Einstellungs-Zeilen im schmalen
+   Fenster, die Folgezeilen nummerierter Punkte und der Code-Block beim Ein- und
+   Ausrücken eines Listenpunkts; dazu ein Hinweis in der
+   Pflege der Kalender-Systeme. Abschluss-Anteil in
+   4T-002196.
+
+### Geändert
+
+- **Feld «Durchläufe der Längen-Tabelle je Instanz»** (`4T-002204`). Die
+  Schalt-Ebene über einer Längen-Tabelle zeigt ein Feld für die Zahl der
+  Durchläufe (ganze Zahl ab 1, vorbelegt 1, beim Laden aus der Definition
+  errechnet); die Auskunft daneben nennt das Ergebnis, Durchläufe mal Zeilen,
+  und folgt beim Hinzufügen und Entfernen eines Eintrags. Liegt die verlängerte
+  Einheit nicht innerhalb der Positionen, nennt die Pflege diesen Grund an der
+  Ebene und beim Anwenden, statt nur «ungültig» zu melden; abgelegt wird nichts.
+  Texte in fünf Sprachen (`4T-002207`).
+- **Positions-Namen eines Zyklus: ein Name je Zeile** (`4T-002206`). Das Feld
+  «Positions-Namen (ein Name je Zeile)» ist mehrzeilig; ein Komma gehört zum
+  Namen, eine leere Zeile mitten in der Liste lässt die Position unbenannt,
+  leere Zeilen am Ende entfallen. Beschriftung in fünf Sprachen (`4T-002207`).
+- **Listen beenden und Nummern nachziehen in jedem Arbeitsmodus**
+  (`4T-002209`). Die Eingabetaste auf einem leeren Punkt der obersten Ebene
+  beendet eine Liste, und nummerierte Listen zählen nach einer Änderung selbst
+  weiter — jetzt auch im Arbeitsmodus «Einsteiger» und bei ausgeschalteter
+  Erweiterung «Listen-Struktur», im Editor wie im Notiz-Feld. Mit der
+  Nummerierung gilt auch der Neustart nach einer durch die Bearbeitung
+  entstandenen Leerzeile in jedem Arbeitsmodus: Quelltext und Anzeige beginnen
+  die Liste dahinter gleichermaßen bei 1. Wer die Erweiterung ausgeschaltet
+  hat, behält seinen Schalter-Stand; Verschieben von Punkten samt Unterpunkten,
+  Ein- und Ausrücken ganzer Äste und «Teilbaum auswählen» bleiben Teil der
+  Erweiterung.
+- **Einrücken ohne «Listen-Struktur» auf die Breite des übergeordneten
+  Markers** (`4T-002302`). Ohne die Erweiterung, also auch im Arbeitsmodus
+  «Einsteiger», rückt Tab einen Listenpunkt jetzt um die Breite des Markers des
+  Punkts darüber ein — unter `1. ` drei Zeichen statt bisher zwei, unter `10. `
+  vier, unter einem Aufzählungs-Punkt wie bisher zwei —, damit die Anzeige
+  einen eingerückten nummerierten Punkt als Unterpunkt liest und Quelltext und
+  Anzeige dieselben Nummern zeigen. Umschalt+Tab nimmt dieselbe Breite zurück,
+  die weiteren Zeilen des Punkts wandern um dieselbe Breite mit; mit
+  eingeschalteter Erweiterung ändert sich am Einrücken samt Teilbaum nichts.
+- **Die Verwaltung der Arbeitsbereiche ist eine Seite statt eines Pop-ups**
+  (`4T-002227`). «Datei → Arbeitsbereiche → Arbeitsbereiche verwalten…», das
+  Kommando in der Kommando-Palette und ein dem Kommando zugewiesenes
+  Tastenkürzel öffnen den Reiter «Arbeitsbereiche». Je Arbeitsbereich steht dort
+  eine Zeile mit dem Namen in voller Länge, dem Pfad des gebundenen Ordners, dem
+  Zustand und dem letzten Öffnen; daneben dieselben Aktionen wie bisher,
+  «Öffnen», «Umbenennen und Farbe…» und «Löschen» samt Rückfrage, und die Pfeile
+  für die Reihenfolge, mit der Tastatur bedienbar wie bisher. Jede Änderung
+  wirkt sofort, auch eine aus einem anderen Fenster; eine Schaltflächen-Leiste
+  gibt es nicht, geschlossen wird die Seite über ihren Reiter. Im schmalen
+  Fenster rücken die Schaltflächen unter den Text. Ist die Erweiterung
+  «Arbeitsbereiche» ausgeschaltet, zeigt eine offene Seite statt der Liste einen
+  Hinweis; nach einem Neustart öffnet sich die Seite nicht von selbst wieder,
+  wie bisher das Pop-up.
+- **Hinweis in der Pflege der Kalender-Systeme, wenn eine neue Zeitrechnung
+  weder Anker noch Skala hat** (`4T-002191`). Legt der Anwender in einem
+  Block neben einer anderen Zeitrechnung eine neue an und lässt
+  «Anker-Zeitpunkt», «Skala: Zähler» und «Skala: Nenner» leer, beginnt sie am
+  selben Punkt der Block-Achse wie die andere, und Umrechnungen zwischen beiden
+  setzen das voraus. Die Pflege sagt das jetzt unter den Feldern: «Ohne Anker
+  und Skala beginnt diese Zeitrechnung am selben Punkt der Block-Achse wie
+  ‹Name›. Umrechnungen zwischen beiden stimmen nur, wenn das so gemeint ist.»
+  Der Hinweis verschwindet, sobald eines der Felder einen Wert trägt;
+  eingefügte Vorlagen und eingelesene Zeitrechnungen zeigen ihn nicht. Die
+  Umrechnung selbst, der Dialog «Datum umrechnen» und die Eingabe-Hilfe sind
+  unverändert (Entscheidung des Product Owners vom 2026-10-10). Text in fünf
+  Sprachen.
+
+### Behoben
+
+- **Ein Jahr aus zwei Durchläufen der Monats-Tabelle wurde beim Anwenden auf
+  einen gekürzt** (`4T-002204`). Eine von Hand geschriebene oder über die
+  Weitergabe einer Einrichtung übernommene Zeitrechnung mit 24 Monaten je Jahr
+  über zwölf Tabellen-Zeilen hatte nach «Anwenden» ohne Änderung zwölf; Monat 20
+  war danach ungültig, und ein gespeicherter Wert bezeichnete einen anderen Tag.
+  Die Zahl bleibt erhalten, Namen der Positionen jenseits der Tabellen-Zeilen
+  bleiben ohne eigenes Feld erhalten, und eine Ebene, die im Entwurf von der
+  Längen-Tabelle auf einen festen Faktor wechselt, bekommt keine Zeilen-Namen
+  der Tabelle mehr.
+- **Eine Namens-Liste mit einer Lücke ging beim Anwenden ganz verloren**
+  (`4T-002205`). Zehn Monats-Namen an zwölf Zeilen, eine geleerte Zeile oder ein
+  unbenannter neuer Eintrag verwarfen bisher alle Namen. Jetzt gehört jeder Name
+  zu seiner Position: Das Modell nimmt leere Namen an, bringt jede Namens-Liste
+  beim Einlesen auf die Zahl der Positionen (kürzere aufgefüllt, längere
+  beschnitten), und eine unbenannte Position zeigt ihre Zahl, auch mitten in
+  der Liste und als Spalten-Kopf im Wochen-Gitter der Eingabe-Hilfe. Die Pflege
+  schreibt die Zeilen-Namen so, wie sie dastehen.
+- **Abgeleitete Zeitrechnungen trugen falsche Positions-Namen, wenn der Bezug
+  nicht jede Position benannte** (`4T-002205`). Die Ableitung drehte die Namen
+  über die Länge der Liste statt über die Zahl der Positionen; bei zehn
+  Monats-Namen hieß der November «Januar». Gedreht wird jetzt über die Zahl der
+  Positionen beziehungsweise die Zyklus-Länge.
+- **Ein Zyklus-Name mit Komma zerfiel beim Anwenden in zwei** (`4T-002206`).
+  «Mo, früh» ergab zwei Namen, und alle folgenden Positionen rückten um eine
+  Stelle. Mit dem mehrzeiligen Feld bleibt ein Komma Teil des Namens.
+- **Ein Suchtreffer in einem eingeklappten Callout blieb unsichtbar**
+  (`4T-002217`). In der Ansicht «Gerendert» und auf Handbuch-Seiten rollte der
+  Sprung auf einen Treffer in einem eingeklappten Callout (`> [!note]- Titel`)
+  die Ansicht nicht; der Zähler zählte den Treffer, zu sehen war er nicht. Das
+  galt für die Suche im Dokument, die Suche über einen Bereich und die
+  Handbuch-Suche, beim Springen wie beim Klick in der Trefferliste. Jetzt klappt
+  der Sprung den Callout auf, auch ineinander geschachtelte, und rollt den
+  Treffer in die Mitte des sichtbaren Bereichs; der Callout bleibt danach offen
+  wie von Hand aufgeklappt.
+- **Die offene Suchleiste verdeckte die Statusleiste, und Reiter der
+  Seitenleiste waren abgeschnitten** (`4T-002189`). Die Suchleiste lag über dem
+  unteren Fensterrand und verdeckte unter anderem die Sprach-Auswahl der
+  Statusleiste und bei zusammengeklappter Statusleiste den Knopf ihres Menüs.
+  Sie steht jetzt über der Statusleiste, der Inhalt darüber rückt um ihre Höhe
+  zusammen, und die Statusleiste bleibt ganz sichtbar und bedienbar. In einer
+  schmalen Seitenleiste wurden die Namen der Reiter einer Panel-Gruppe gekürzt,
+  etwa «Suchergebnisse» neben «Inhaltsverzeichnis»; reicht die Breite nicht,
+  rücken die Reiter jetzt in eine weitere Zeile, und jeder Name ist ganz
+  lesbar.
+- **Der Sprachwechsel erreichte drei Stellen nicht** (`4T-002190`). Der
+  Kurzhinweis «Dokument-Historie» der Statusleiste blieb in der bisherigen
+  Sprache; dreizehn Vorlese-Texte für Bildschirmleser — die Knöpfe der
+  Suchleiste, mehrere Elemente der Statusleiste und deren beide Gruppen — waren
+  fest deutsch; und eine offene Jahres-Eingabe in der Kalender-Ansicht des
+  Panels «Uhr» schloss sich samt eingegebener Ziffern. Alle drei folgen jetzt
+  der gewählten Sprache; die Jahres-Eingabe bleibt mit ihren Ziffern offen,
+  auch wenn das Panel aus einem anderen Anlass neu aufgebaut wird, etwa weil
+  ein Wecker in einem anderen Fenster geändert wurde.
+- **Ein Kalender-Datum mit mehr als fünfzehn Ziffern in einem Teil galt als
+  ungültig** (`4T-002191`). Das Programm schrieb solche Werte, etwa ein
+  sechzehnstelliges Jahr, las sie aber nicht wieder; die Vorschau der Pflege
+  meldete bei einem solchen Anker-Jahr einen ungültigen Wert. Jetzt gilt beim Lesen
+  dieselbe Grenze wie überall sonst: jede ganze Zahl, die das Programm genau
+  rechnen kann.
+- **Der Bearbeiten-Zustand ging bei einem Abstecher in die Ansicht «Gerendert»
+  verloren** (`4T-002193`). Wer in «Quellcode» mit eingeschaltetem
+  «Bearbeiten» kurz nach «Gerendert» wechselte und zurück nach «Quellcode»,
+  «Geteilt» oder «Live» ging, fand «Bearbeiten» ausgeschaltet. Jetzt ist es
+  nach der Rückkehr wieder an; wer es in «Gerendert» selbst umschaltet, behält
+  seine Wahl.
+- **Das Erledigt-Abzeichen erschien in «Gerendert» erst nach einem
+  Ansichts-Wechsel** (`4T-002194`). Das Abhaken einer Aufgabe in der Ansicht
+  «Gerendert» setzte nur das Kästchen; das Erledigt-Datum und bei einer
+  wiederkehrenden Aufgabe die neue offene Zeile standen im Text, waren aber
+  erst nach einem Wechsel der Ansicht zu sehen. Beide erscheinen jetzt sofort,
+  und die Ansicht bleibt an ihrer Stelle.
+- **Die Escape-Taste schloss die Eingabe-Hilfe der Kalender-Werte nicht mehr**
+  (`4T-002212`). Nach einem Klick auf eine Entsprechung, einer Wahl in den
+  Auswahl-Listen für Block, Kalender und Epoche oder einem Klick auf einen der
+  Blätter-Knöpfe blieb die Eingabe-Hilfe bei Escape offen. Jetzt schließt
+  Escape sie in jeder Lage, ohne den Wert im Dokument zu ändern.
+- **Einstellungs-Zeilen liefen im schmalen Fenster über den Rand**
+  (`4T-002213`). In einem schmalen Programmfenster blieben Beschriftung und
+  Eingabefeld einer Einstellungs-Zeile nebeneinander, auch wenn der Platz nicht
+  reichte; in der Pflege der Kalender-Systeme ragten Datums-Felder,
+  Knopf-Gruppen und Namen über den Rand, und die Seite ließ sich waagrecht
+  rollen. Jetzt rückt das Feld unter die Beschriftung, Knopf-Gruppen und lange
+  Namen brechen um, und nichts steht über den Rand; das gilt über die
+  gemeinsame Zeilen-Regel auf jeder Einstellungs-Seite, und die Tabelle der
+  Seite «Task-Status» rollt bei Bedarf in ihrem eigenen Rahmen statt mit der
+  ganzen Seite. Solange Beschriftung und Feld nebeneinander passen, bleibt
+  alles, wie es war; die Dialoge «Datum umrechnen», Diagramm und
+  Kanban-Einstellungen sind nicht berührt.
+- **Folgezeilen eines nummerierten Punkts standen nach einer Änderung der
+  Nummer falsch** (`4T-002306`). Machte die selbsttätige Nummerierung aus ‹1.›
+  wieder ‹11.› oder aus ‹9.› ein ‹10.›, etwa beim Ausrücken, beim Verschieben
+  eines Punkts oder beim Einfügen eines Punkts darüber, blieben die weiteren
+  Zeilen des Punkts stehen und begannen ein Zeichen neben seinem Text. Jetzt
+  rücken sie um dieselbe Breite mit und beginnen wieder genau unter dem Text,
+  mit und ohne die Erweiterung «Listen-Struktur»; Zeilen in einem Code-Block
+  bleiben unverändert.
+- **Ein Code-Block unter einem Listenpunkt blieb beim Ein- und Ausrücken
+  stehen** (`4T-002326`). Ohne die Erweiterung «Listen-Struktur» verschob Tab
+  oder Umschalt+Tab bei einem Listenpunkt mit eingerücktem Code-Block nur den
+  Punkt und die öffnende Zaun-Zeile; der Inhalt des Blocks und die schließende
+  Zaun-Zeile blieben stehen. Jetzt wandert der ganze Block mit, und Leerzeilen
+  darin bleiben leer.
+
+### Dokumentation
+
+- **Handbuch-Seite «Kalender-Systeme»** (`4T-002207`): Durchläufe der
+  Längen-Tabelle, Positions-Namen nach der Zahl der Positionen (unbenannte
+  Position zeigt die Zahl, Namen über die Zahl der Positionen hinaus entfallen
+  beim Einlesen), Eingabe der Zyklus-Namen je Zeile und die Abgrenzung der
+  Meldung zum Schalt-Ziel gegenüber «nie gesperrt», in allen fünf Sprachen.
+- **Handbuch «Markdown-Basis» und «Erweiterungen», Funktions-Katalog, Demo-Seite,
+  Registry und Architektur** (`4T-002210`): Die Beschreibung der Erweiterung
+  «Listen-Struktur» nennt allein die verbleibenden Werkzeuge; die Katalog-Zeile
+  «Listen-Einrückung» unterscheidet beide Zustände; das Handbuch nennt die
+  Geltung von Nummerierung sowie Fortsetzen und Beenden in jedem Arbeitsmodus
+  und die Bindung von Verschieben, Teilbaum-Einrücken und «Teilbaum auswählen»
+  an die Erweiterung; die Modus-Liste der Seite «Erweiterungen» nennt
+  «Listen-Struktur» und «Tab-Gruppen» mit ihren Anzeige-Namen; die Demo-Seite
+  «Markdown Basics» nennt bei Alt+Pfeil die Einschränkung; Registry-Kopf und
+  Architektur beschreiben die Liste der abgeschalteten Erweiterungen
+  zutreffend (sie trägt jede abgeschaltete Kennung, gleich wie gesetzt).
+- **Handbuch «Werkzeuge»** (`4T-002218`): Der Abschnitt «Volltextsuche» nennt
+  die Lage des angesprungenen Treffers — ungefähr in der Mitte des sichtbaren
+  Bereichs, soweit sich der Inhalt so weit rollen lässt, in jeder Ansicht und
+  auch nach dem Öffnen einer Datei, einer Handbuch-Seite oder eines
+  Einstellungs-Bereichs — und dass ein eingeklappter Callout dabei aufklappt;
+  der Absatz zur Trefferliste sagt dasselbe für den Klick. Fünf Sprachen, keine
+  neuen i18n-Schlüssel, Funktions-Katalog unverändert.
+- **Handbuch «Applikationen, Fenster und Bereiche» und Funktions-Katalog**
+  (`4T-002228`): Der Abschnitt «Verwaltung» beschreibt die Seite
+  «Arbeitsbereiche» — Aufbau der Zeilen mit ungekürztem Namen und Pfad,
+  Schaltflächen unter den Angaben bei schmaler Seite, sofortige Wirkung ohne
+  Schaltflächen-Leiste, höchstens eine Seite je Fenster, keine Rückkehr mit der
+  Sitzung und der Hinweis bei ausgeschalteter Erweiterung; der Absatz zum
+  Ausschalten der Erweiterung ist darauf abgestimmt. In Englisch nennen vier
+  weitere Stellen die Seite statt des Dialogs, und die Katalog-Zeile
+  «Arbeitsbereiche» spricht in Englisch und Spanisch nicht mehr von einem
+  Dialog. Fünf Sprachen, keine neuen i18n-Schlüssel, Kürzel-Beschreibung
+  unverändert.
+- **Handbuch «Kalender-Systeme», «Ansichten und Darstellung», «Sidebar» und
+  «Markdown-Basis», Hinweis-Text und Demo-Seite** (`4T-002195`): Der Abschnitt
+  «Umrechnung über die Block-Achse» erklärt, dass Zeitrechnungen ohne Anker und
+  Skala am selben Punkt beginnen, und den Hinweis der Pflege dazu; der
+  Abschnitt «Bearbeiten» sagt, dass ein Abstecher in die Lese-Ansicht den
+  Bearbeiten-Modus nicht ändert; «Reiter-Gruppen» nennt den Umbruch der
+  Reiterleiste; «Nummerierung» sagt, dass die weiteren Zeilen eines Punkts
+  mitrücken, wenn sich die Länge seiner Nummer ändert. Der deutsche
+  Hinweis-Text sagt «Skala» wie die Feld-Beschriftungen; die Demo-Seite
+  «14 Calendar Systems» nennt Escape zum Schließen der Eingabe-Hilfe. Fünf
+  Sprachen, keine neuen i18n-Schlüssel, Funktions-Katalog unverändert.
+
+### Intern
+
+- **Ebenen-Editor der Kalender-Pflege in drei Module geschnitten** (`4T-002204`):
+  Rahmen (`settings-calendar-parts.js`), Schalt-Ebene (`settings-calendar-leap.js`)
+  und Zellen-Helfer (`settings-calendar-cells.js`), weil das Zeilen-Budget mit
+  dem neuen Feld überschritten war; die Modul-Karte der Architektur ist
+  nachgezogen.
+- **Prüffälle** (`4T-002204`, `4T-002205`, `4T-002206`): 72 neue Fälle mit
+  Rot-Probe, darunter die neue Prüfdatei `test/unit/kalender-namens-listen.test.js`
+  des Rechenkerns und `test/unit/renderer/kalender-picker-unbenannte-position.test.js`.
+- **Prüffälle der Listen-Grundfunktionen** (`4T-002209`, `4T-002302`): Die
+  Prüfdateien des Aus-Zustands der Erweiterung «Listen-Struktur» sind auf das
+  Verhalten in jedem Arbeitsmodus umgestellt, zwei Fälle am Notiz-Feld und der
+  Ablauf-Prüffall `LE-04` im Modus «Einsteiger» kommen hinzu; die neue
+  Prüfdatei `test/unit/render/listen-einrueck-breite.test.js` belegt, dass ein
+  eingerückter nummerierter Punkt in der Anzeige ein Unterpunkt ist.
+- **Ein gemeinsamer Weg zeigt die Fundstelle in der Lese-Ansicht**
+  (`4T-002217`): Das neue Blatt-Modul
+  `src/renderer/modules/search/search-fundstelle.js` öffnet vor dem Rollen jeden
+  eingeklappten Vorfahren des Treffers und rollt ihn danach in die Mitte; die
+  Dokument-Suche in «Gerendert» sowie Bereichs- und Handbuch-Suche nutzen ihn
+  statt je eines eigenen Zentrier-Aufrufs. Ein eigenes Modul ohne Importe statt
+  eines Helfers in `search-jump.js`, weil der Import von dort einen
+  Datei-Import-Zyklus über Ordner-Grenzen geschaffen hätte; die Modul-Karte der
+  Architektur ist nachgezogen.
+- **Prüffälle der Suchtreffer-Lage** (`4T-002217`): Die gemeinsame
+  Lage-Rechnung `test/e2e/helpers/treffer-lage.js` sichert «im mittleren
+  Drittel, sofern nicht am Rand» und «sichtbar laut Browser» zu; 18 neue und 15
+  umgestellte Wächter-Fälle je Such-Weg, darunter die neue Prüfdatei
+  `test/e2e/funktionen/bereichs-suche-mitte.spec.js`, dazu drei Fälle mit
+  Rot-Probe für den Treffer im eingeklappten Callout und der Unit-Fall
+  `test/unit/renderer/such-fundstelle.test.js`.
+- **Seite «Arbeitsbereiche» als eigenes Modul, Pop-up entfernt** (`4T-002227`):
+  Das neue Modul `src/renderer/modules/app/workspaces-page.js` registriert die
+  Seite beim Laden als System-Seite, nach dem Vorbild der Übersicht der
+  Datenbank-Objekte, weil `app-init.js` an seinem Zeilen-Budget steht;
+  Verschiebe-Knöpfe, Fokus-Wiederherstellung und die drei Aktionen sind aus dem
+  Pop-up übernommen, das kleine Fenster für Name und Farbe bleibt in
+  `workspaces.js`. Entfernt sind das Markup `#workspace-manager-modal`, die
+  Stil-Regeln der Verwaltungs-Liste und der Schlüssel `workspace.manager.title`;
+  die Modul-Karte der Architektur ist nachgezogen.
+- **Prüffälle der Seite «Arbeitsbereiche»** (`4T-002227`): 13 Unit-Fälle in der
+  neuen Prüfdatei `test/unit/renderer/workspaces-page.test.js`, sechs neue
+  Ablauf-Fälle `WS-09` bis `WS-14` in der neuen Prüfdatei
+  `test/e2e/funktionen/arbeitsbereiche-seite.spec.js` mit dem neuen Helfer
+  `test/e2e/helpers/arbeitsbereiche-seite.js` und vier umgestellte Fälle `WS-05`
+  bis `WS-08`, je mit Rot-Probe, dazu sieben Mutationsproben; die
+  Unit-Prüfdatei steht im Ausschnitt der Klasse Ä4 der Änderungsklassen-Karte.
+- **Die Nummerierung führt die Folgezeilen im Rechenkern mit** (`4T-002306`):
+  Der Struktur-Kern `src/shared/markdown/list-outline.js` schreibt jede Nummer
+  über `setOrderedNumber`, das die Folgezeilen über `carryContinuation` um die
+  Längen-Änderung des Markers verschiebt; für die Eingabetaste, deren
+  Fortsetzungen selbst nummerieren, vergleicht der Nummerierungs-Filter in
+  `editor-list-tools.js` (`carryEditedNumbers`) den Marker vor und nach der
+  Bearbeitung. Eine Code-Zeile erkennt der Filter am ersten Zeichen nach dem
+  Leerraum. Die Architektur ist nachgezogen.
+- **Die Folgezeilen-Mitnahme kennt den Code-Block** (`4T-002326`):
+  `carryContinuationLines` in `src/renderer/modules/editor/editor-keymaps.js`
+  erkennt eine Zaun-Zeile als Folgezeile und nimmt den Block bis zur
+  schließenden Zaun-Zeile mit, mit Halt an einem Listenpunkt links des Zauns;
+  zwölf Unit-Fälle in `test/unit/renderer/listen-zeilenumbruch.test.js` mit
+  Rot-Probe, Abdeckungs-Matrix unter `S-160`.
+- **Ein Leser für die Ziffern der Text-Schreibweise** (`4T-002191`):
+  `readDigits` im Rechen-Kern `src/shared/calendar/calendar-core.js` ersetzt
+  vier Kopien einer Fünfzehn-Ziffern-Prüfung und nimmt jede sichere ganze Zahl
+  an; der Hinweis der Pflege kommt aus `calSysAxisUnsetPeer` im Pflege-Modell
+  und dem neuen Schlüssel `settings.calendar.axisUnsetHint`. Die Architektur
+  ist nachgezogen.
+- **Ursachen-Behebungen der übrigen Restpunkte** (`4T-002189`, `4T-002190`,
+  `4T-002193`, `4T-002194`, `4T-002212`, `4T-002213`): die Suchleiste als
+  Element im Seitenaufbau vor der Statusleiste; das Merkmal
+  `data-i18n-aria-label` an allen festen Vorlese-Texten des Fenster-Gerüsts und
+  zwei neue Schlüssel `statusbar.group.commands` und `statusbar.group.views`;
+  der Stand einer offenen Jahres-Eingabe im Uhr-Panel außerhalb des Neubaus;
+  der Vermerk `bearbeitenVorLeseAnsicht` am Reiter; die Meldung `ergaenzt` von
+  `performStatusToggle`, nach der die Lese-Ansicht neu zeichnet; der Fokus nach
+  jedem Neuaufbau der Eingabe-Hilfe der Kalender-Werte; die umbrechende
+  Zeilen-Regel, auf die Inhaltsfläche der Einstellungs-Seite beschränkt, dazu
+  Seiten-Regeln für Tastenkürzel, Statusleiste, Ordner-Zeilen, Farbschemas,
+  Erinnerungen, Journale, Sidebar und Format-Toolbar und ein eigener rollender
+  Rahmen der Task-Status-Tabelle (Nachbesserung nach dem Nachgehen der
+  Prüf-Anleitung, Register-Eintrag L2.U2). Die Architektur ist nachgezogen, wo
+  ein dauerhafter Fakt entstanden ist.
+- **Prüffälle der Restpunkte** (`4T-002189`, `4T-002190`, `4T-002191`,
+  `4T-002193`, `4T-002194`, `4T-002212`, `4T-002213`, `4T-002306`), je mit
+  Rot-Probe: neue Ablauf-Prüfdateien
+  `test/e2e/funktionen/suchleiste-und-reiterleiste.spec.js` (vier Fälle),
+  `test/e2e/funktionen/sprachwechsel-gerüst.spec.js` (zwei),
+  `test/e2e/funktionen/kalender-eingabehilfe-escape.spec.js` (einer) und
+  `test/e2e/funktionen/einstellungs-zeilen-umbruch.spec.js` (drei: `EZ-01`
+  Kalender-Systeme in vier Breiten, `EZ-02` jede Seite der Navigation bei 760
+  und 640 Bildpunkten, `EZ-03` die Dialoge in gewöhnlicher Breite); neue
+  Unit-Prüfdateien `test/unit/renderer/gerüst-vorlese-texte.test.js` (Wächter,
+  drei Fälle), `test/unit/renderer/kalender-text-ziffern-grenze.test.js`
+  (acht), `test/unit/renderer/kalender-pflege-anker-hinweis.test.js` (fünf) und
+  `test/unit/renderer/kalender-picker-fokus.test.js` (zwei); dazu die
+  Ablauf-Fälle `UK-05` und `UK-06` (Uhr), `AM-05` und `AM-06` (fünf Fälle,
+  Bearbeiten-Zustand) und `AU-06` bis `AU-08` (Aufgaben), fünf Unit-Fälle zu
+  `performStatusToggle`, 18 Unit-Fälle zu den Folgezeilen in
+  `test/unit/renderer/listen-zeilenumbruch.test.js` und ein Fall in
+  `test/unit/render/listen-einrueck-breite.test.js`. Der Wächter der
+  Vorlese-Texte steht im Ausschnitt der Klasse Ä3 der Änderungsklassen-Karte;
+  die Abdeckungs-Matrix nennt die neuen Fälle unter `F-018`, `F-027`, `F-112`
+  und `F-131`.
+- **Größen-Ausnahme des Fenster-Gerüsts angehoben** (`4T-002190`): Der
+  eingefrorene Wert von `src/renderer/index.html` steigt von 2483 auf 2494
+  Code-Zeilen, mit Begründung in `scripts/datei-groessen-ausnahmen.json`; der
+  Zuwachs sind die Übersetzungs-Merkmale der dreizehn Vorlese-Texte.
+- **Rückkehr nach den Einstellungen ohne eigenen Vorgang** (`4T-002192`): Die
+  Rückkehr zum Dokument, aus dem die Einstellungen geöffnet wurden, ist ohne
+  Umsetzung verworfen, weil die allgemeinere Regel «nach dem Schließen
+  erscheint das zuvor aktive Dokument» aus `4T-002106` sie abdeckt,
+  ausgeliefert mit 1.149.1.
+- **Die Nachzügler der beiden vorigen Releases** (Sammeltask `4T-002087` des
+  Zuges `3E-000339`, Sammeltask `4T-002299` des Zuges `3E-000363`). Nach der
+  Auslieferung von 1.149.1 und von 1.150.0 hat der Abschluss des jeweiligen
+  Sammeltasks die Bildschirmfotos der Produkt-Webseite erneuert; der zweite
+  Betreff nennt zusätzlich das dabei abgeschlossene Arbeitspaket `2A-000024`
+  und den dabei angelegten Fundstellen-Task `4T-002327`, von denen keiner zu
+  diesem Zug gehört. Beide Commits liegen seither auf dem Integrationsstand
+  und stehen hier, weil sie Dateien der Webseite berühren; kein Anwendungs-Code
+  berührt, kein Anwender-Text nötig.
+
 ## [1.150.0.4122] - 2026-10-18 — Präsentations-Ansicht Stufe 3: PowerPoint-Datei und Bilder
 
 Zug 3E-000363

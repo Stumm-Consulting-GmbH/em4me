@@ -2619,7 +2619,7 @@ Eine Prüfung, die auf einer Plattform **gegenstandslos** ist, wird ausdrücklic
 | Schreibweisen-Zweitsuche (1 Fall) | prüft die case-insensitive Suche |
 | echter Browser-Lauf (2 Fälle) | braucht einen installierten Browser, den das Abbild nicht mitbringt |
 
-Dazu zwei Zusicherungen, die **auf Windows begrenzt** statt ausgenommen sind, weil sie dort eine Aussage haben und anderswo keine: der Ausbruch über den Rückwärts-Schrägstrich und der Außen-Pfad in Windows-Schreibweise. Beide haben eine Schwester-Zeile, die in Wirts-Schreibweise überall prüft.
+Dazu zwei Zusicherungen, die **auf Windows begrenzt** statt ausgenommen sind, weil sie dort eine Aussage haben und anderswo keine: der Ausbruch über den Rückwärts-Schrägstrich und der Außen-Pfad in Windows-Schreibweise. Beide haben eine Schwester-Zeile, die in Wirts-Schreibweise überall prüft. Seit dem 2026-10-21 kommt eine dritte hinzu (Vorgang 4T-002337): Der Ablauf-Fall `WS-10` sichert allein unter Windows zu, dass der lange Arbeitsbereichs-Name bei 1280 Bildpunkten Fensterbreite einzeilig in seine Zelle passt, weil die nötige Breite an der Schrift des Systems hängt; seine Schwester-Zeile, einzeilig genau dann, wenn die Zelle dafür breit genug ist, sonst umbrochen und nie gekürzt, prüft überall.
 
 **Wo die Auslassung nach außen erscheint:** Die Release-Hinweise nennen je Plattform, was geprüft wurde und was nicht (`docs/release-notes-template.md`, Abschnitt «System-Anforderungen»). Eine stillschweigende Nicht-Prüfung liest sich später wie eine vollständige Abdeckung.
 

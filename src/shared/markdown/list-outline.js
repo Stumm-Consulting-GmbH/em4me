@@ -134,10 +134,50 @@ function renumberOpts(mask, starts) {
 }
 
 // Listenpunkt an Position index, sofern die Zeile keine Code-Zeile ist.
+// 4T-002306: erst die Zeile zerlegen, dann das Code-Prädikat fragen. Der
+// Nummerierungs-Filter des Editors löst das Prädikat im Syntaxbaum auf und
+// darf es deshalb nur für Zeilen bezahlen, die wie ein Listenpunkt aussehen.
 function itemAt(lines, index, opts) {
   if (index < 0 || index >= lines.length) return null;
+  const item = parseListLine(lines[index]);
+  if (!item) return null;
   if (opts && typeof opts.isCode === 'function' && opts.isCode(index)) return null;
-  return parseListLine(lines[index]);
+  return item;
+}
+
+// 4T-002306 (Epic 3E-000353, Story-Zusage AK5 in 4S-000058): Ändert eine neue
+// Nummer die Länge des Markers (aus «9.» wird «10.», aus «1.» wieder «11.»),
+// wandert die Inhalts-Spalte des Punkts. Seine eingerückten Folgezeilen
+// wandern um dieselbe Strecke mit, sonst stünden sie danach neben dem Anfang
+// seines Textes. Folgezeile ist, was das zeilenweise Einrücken als Folgezeile
+// mitnimmt (carryContinuationLines in editor-keymaps.js): eingerückte Zeilen
+// bis zur Leerzeile, zum nächsten Listenpunkt (Kopf-Erkennung samt Trenner
+// «1)»), zur nicht eingerückten Zeile oder zur ersten Code-Zeile. Zeilen, die
+// links der alten Inhalts-Spalte beginnen, bleiben stehen; so landet keine
+// Zeile links der neuen. `opts.keep(j)` nimmt eine Zeile von der Mitnahme
+// aus, ohne die Suche zu beenden (der Nummerierungs-Filter des Editors schont
+// so Zeilen, die die Bearbeitung selbst schon verschoben hat).
+function carryContinuation(lines, index, oldColumn, newColumn, opts) {
+  const shift = newColumn - oldColumn;
+  if (shift === 0) return;
+  for (let j = index + 1; j < lines.length; j++) {
+    const text = lines[j];
+    if (isBlank(text) || parseListItemHead(text)) return;
+    const leading = leadingWhitespace(text).length;
+    if (leading === 0) return;
+    if (opts && typeof opts.isCode === 'function' && opts.isCode(j)) return;
+    if (leading < oldColumn) continue;
+    if (opts && typeof opts.keep === 'function' && opts.keep(j)) continue;
+    lines[j] = shift > 0 ? ' '.repeat(shift) + text : text.slice(-shift);
+  }
+}
+
+// Nummer eines geordneten Punkts setzen und die Folgezeilen mitführen
+// (4T-002306). `item` ist die Zerlegung der Zeile vor der Änderung.
+function setOrderedNumber(lines, index, item, value, opts) {
+  lines[index] = item.indent + value + '.' + item.gap + item.content;
+  const next = parseListLine(lines[index]);
+  carryContinuation(lines, index, item.prefixLength, next.prefixLength, opts);
 }
 
 // Grenzen des Listen-Blocks um index. Ein Block ist eine zusammenhängende
@@ -250,7 +290,7 @@ function renumberOrdered(lines, from, to, opts) {
     if (running && running.ordered === item.ordered) {
       running.value += 1;
       if (item.ordered) {
-        result[i] = item.indent + running.value + '.' + item.gap + item.content;
+        setOrderedNumber(result, i, item, running.value, opts);
       }
       continue;
     }
@@ -262,9 +302,7 @@ function renumberOrdered(lines, from, to, opts) {
     }
     seenLevels.add(item.level);
     counters.set(item.level, { ordered: item.ordered, value });
-    if (item.ordered && value !== item.number) {
-      result[i] = item.indent + value + '.' + item.gap + item.content;
-    }
+    if (item.ordered && value !== item.number) setOrderedNumber(result, i, item, value, opts);
   }
   return result;
 }
@@ -389,7 +427,7 @@ function startFollowerAtOne(lines, index, item, opts) {
   const follower = itemAt(lines, index, opts);
   if (!follower || !follower.ordered) return;
   if (follower.level !== item.level) return;
-  lines[index] = follower.indent + '1.' + follower.gap + follower.content;
+  setOrderedNumber(lines, index, follower, 1, opts);
 }
 
 // Einrückung des Teilbaums um eine Ebene ändern. delta > 0 rückt ein,
@@ -417,7 +455,7 @@ function shiftSubtree(lines, index, delta, opts) {
   }
   if (delta > 0 && item.ordered) {
     const moved = parseListLine(next[index]);
-    if (moved) next[index] = moved.indent + '1.' + moved.gap + moved.content;
+    if (moved) setOrderedNumber(next, index, moved, 1, opts);
   }
   if (delta < 0) startFollowerAtOne(next, own.to + 1, item, opts);
   const span = expandToBlocks(lines, own.from, own.to);
@@ -468,7 +506,7 @@ function shiftLineRange(lines, from, to, delta, opts) {
   // Geschwister hat.
   if (shift > 0 && item.ordered) {
     const moved = parseListLine(next[anchor]);
-    if (moved) next[anchor] = moved.indent + '1.' + moved.gap + moved.content;
+    if (moved) setOrderedNumber(next, anchor, moved, 1, opts);
   }
   if (shift < 0) startFollowerAtOne(next, end + 1, item, opts);
   const span = expandToBlocks(lines, start, end);
@@ -628,6 +666,7 @@ module.exports = {
   LIST_INDENT_STEP,
   parseListLine,
   parseListItemHead,
+  carryContinuation,
   hardBreakStart,
   prefixLength,
   scanListBlock,

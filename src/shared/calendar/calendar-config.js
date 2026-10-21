@@ -27,6 +27,7 @@ const {
   tupleToAxisUnchecked,
   axisToTuple,
   normalizeNames,
+  levelPositionCount,
   normalizeLevels,
   cycleAt,
   pluralField,
@@ -50,10 +51,24 @@ function standardCalendar() {
 }
 
 // Dreht eine Liste so, dass Position n an den Anfang rückt.
-function rotateList(list, n) {
-  const len = list.length;
+// 4T-002205 (Epic 3E-000338, A9): Gedreht wird über die Zahl der Positionen
+// (size), nicht über die Länge der Liste — sonst trüge bei zehn Monats-Namen
+// der November den Namen «Januar». Fehlende Stellen bleiben unbenannt (null),
+// Einträge über size hinaus entfallen. Ohne feste Zahl gilt die Länge der
+// Liste wie bisher.
+function rotateList(list, n, size = null) {
+  const len = size === null ? list.length : size;
   const k = ((n % len) + len) % len;
-  return list.map((_, i) => list[(i + k) % len]);
+  return Array.from({ length: len }, (_, i) => list[(i + k) % len] ?? null);
+}
+
+// 4T-002205 (Epic 3E-000338): Zahl der Gruppierungen je Instanz der Ebene
+// über ihrer Bezugs-Ebene — so viele, wie groupAt bei fester Zahl der
+// Positionen erreicht (eine angebrochene letzte Gruppe zählt mit); null, wenn
+// die Bezugs-Ebene keine feste Zahl hat.
+function groupPositionCount(levels, ofIdx, size) {
+  const count = ofIdx < 0 ? null : levelPositionCount(levels, ofIdx);
+  return count === null ? null : Math.ceil(count / size);
 }
 
 // Bezugs-Zeitrechnung einer Ableitung: der Kalender des Blocks oder die
@@ -153,7 +168,8 @@ function normalizeCycles(cal, c, raw) {
       ...pluralField(entry.namePlural),
       of: c.levels[ofIdx].id,
       length: entry.length,
-      names: normalizeNames(entry.names),
+      // 4T-002205 (Epic 3E-000338): auf die Zyklus-Länge gebracht.
+      names: normalizeNames(entry.names, entry.length),
       anchor,
       numbering,
     });
@@ -179,7 +195,9 @@ function normalizeGroups(c, raw) {
       ...pluralField(entry.namePlural),
       of: c.levels[ofIdx].id,
       size: entry.size,
-      names: normalizeNames(entry.names),
+      // 4T-002205 (Epic 3E-000338): auf die Zahl der Gruppierungen gebracht,
+      // soweit sie fest ist, sonst unverändert.
+      names: normalizeNames(entry.names, groupPositionCount(c.levels, ofIdx, entry.size)),
     });
   }
   return groups;
@@ -327,7 +345,12 @@ function deriveCalendar(base, raw) {
       section: lv.section,
       start: lv.start,
     };
-    if (lv.names) out.names = i < c.top ? rotateList(lv.names, posAt(i)) : lv.names.slice();
+    if (lv.names) {
+      out.names =
+        i < c.top
+          ? rotateList(lv.names, posAt(i), levelPositionCount(c.levels, i))
+          : lv.names.slice();
+    }
     if (lv.rel) out.rel = { ...lv.rel };
     return out;
   });
@@ -387,7 +410,7 @@ function deriveCalendar(base, raw) {
       ...pluralField(cy.namePlural),
       of: cy.of,
       length: cy.length,
-      names: cy.names ? rotateList(cy.names, at ? at.position : 0) : null,
+      names: cy.names ? rotateList(cy.names, at ? at.position : 0, cy.length) : null,
       anchor: { tuple: zeroDate.slice(), position: 0 },
       numbering: null,
     };
@@ -397,13 +420,14 @@ function deriveCalendar(base, raw) {
   // der Nullpunkt liegt.
   const groups = (base.groups || []).map((g) => {
     const idx = c.levels.findIndex((lv) => lv.id === g.of);
+    const at = idx >= 0 ? Math.floor(posAt(idx) / g.size) : 0;
     return {
       id: g.id,
       name: g.name,
       ...pluralField(g.namePlural),
       of: g.of,
       size: g.size,
-      names: g.names ? rotateList(g.names, idx >= 0 ? Math.floor(posAt(idx) / g.size) : 0) : null,
+      names: g.names ? rotateList(g.names, at, groupPositionCount(c.levels, idx, g.size)) : null,
     };
   });
 

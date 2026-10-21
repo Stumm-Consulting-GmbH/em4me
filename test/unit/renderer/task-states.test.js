@@ -145,3 +145,76 @@ describe('Wiederholung im Text: die Instanz bleibt neben der Zeile (4T-001896, A
     });
   });
 });
+
+// 4T-002194 (Epic 3E-000353): Der Übergang meldet, ob mehr als das Zeichen
+// geschrieben wurde. Nur dann zeichnet die Lese-Ansicht nach dem Klick neu;
+// beim reinen Zeichen-Wechsel setzt der Browser das Kästchen selbst. Die
+// Fälle laufen über die echte Kette samt Augmenter der Erweiterung «Aufgaben»,
+// denn erst der Augmenter entscheidet, ob ein Datum oder eine Zeile entsteht.
+const { applyExtensionsState, resetExtensionStateForTests } =
+  await import('../../../src/renderer/modules/extensions/extension-lifecycle.js');
+
+describe('performStatusToggle meldet die Ergänzung (4T-002194)', () => {
+  async function mitKette(config, aus, lauf) {
+    taskStates.applyTaskStates(taskStates.resolveStoredTaskStates(null));
+    taskStates.setStatusToggleAugmenter(tasks.taskToggleAugmenter);
+    tasks.setRecurrenceInstanceBuilder((model) =>
+      buildRecurrenceInstance(model, { completionDate: tasks.todayIsoDate(), autoCreated: false }),
+    );
+    tasks.applyTasksConfig(config);
+    if (aus) await applyExtensionsState(['tasks'], { persist: false });
+    try {
+      lauf();
+    } finally {
+      taskStates.setStatusToggleAugmenter(null);
+      tasks.applyTasksConfig(null);
+      resetExtensionStateForTests();
+    }
+  }
+
+  const OFFEN = '- [ ] Angebot abgeben 📅 2099-03-31';
+
+  it('Abhaken mit Erledigt-Automatik: Datum geschrieben, ergaenzt ist wahr', async () => {
+    await mitKette(null, false, () => {
+      const { text, toggle } = taskStates.statusToggleAufText(OFFEN, 1);
+      expect(text).toBe(`- [x] Angebot abgeben 📅 2099-03-31 ✅ ${tasks.todayIsoDate()}`);
+      expect(toggle.ergaenzt).toBe(true);
+    });
+  });
+
+  it('Zurücknehmen entfernt das Datum, ergaenzt ist wahr', async () => {
+    await mitKette(null, false, () => {
+      const erledigt = `- [x] Angebot abgeben 📅 2099-03-31 ✅ ${tasks.todayIsoDate()}`;
+      const { text, toggle } = taskStates.statusToggleAufText(erledigt, 1);
+      expect(text).toBe(OFFEN);
+      expect(toggle.ergaenzt).toBe(true);
+    });
+  });
+
+  it('Wiederholung fügt eine Zeile ein, ergaenzt ist wahr', async () => {
+    await mitKette(null, false, () => {
+      const { text, toggle } = taskStates.statusToggleAufText(
+        '- [ ] Waesche 🔁 every day 📅 2026-01-01',
+        1,
+      );
+      expect(text.split('\n')).toHaveLength(2);
+      expect(toggle.ergaenzt).toBe(true);
+    });
+  });
+
+  it('Erledigt-Automatik aus: nur das Zeichen, ergaenzt ist falsch', async () => {
+    await mitKette({ autoDone: false }, false, () => {
+      const { text, toggle } = taskStates.statusToggleAufText(OFFEN, 1);
+      expect(text).toBe('- [x] Angebot abgeben 📅 2099-03-31');
+      expect(toggle.ergaenzt).toBe(false);
+    });
+  });
+
+  it('Erweiterung «Aufgaben» aus: Marker bleiben Text, ergaenzt ist falsch', async () => {
+    await mitKette(null, true, () => {
+      const { text, toggle } = taskStates.statusToggleAufText(OFFEN, 1);
+      expect(text).toBe('- [x] Angebot abgeben 📅 2099-03-31');
+      expect(toggle.ergaenzt).toBe(false);
+    });
+  });
+});

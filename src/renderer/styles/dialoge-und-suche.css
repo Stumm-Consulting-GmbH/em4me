@@ -341,12 +341,14 @@
 }
 
 /* === Suchleiste ========================================================== */
+/* 4T-002189 (Epic 3E-000353): Die Suchleiste ist ein Glied der senkrechten
+   Flex-Spalte des Fenster-Rumpfs, zwischen Arbeitsfläche und Statusleiste.
+   Zuvor schwebte sie (position: fixed am unteren Rand, eigene Stapel-Ebene)
+   genau über der Statusleiste und verdeckte die Sprach-Auswahl. Im Fluss gibt
+   die Arbeitsfläche ihre Höhe ab; flex-shrink: 0 hält die Leiste in voller
+   Höhe, auch wenn das Fenster knapp wird. */
 .search-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1500;
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -655,6 +657,30 @@ body.focus-mode .title-line {
 .settings-input:focus {
   outline: 1px solid var(--accent);
   outline-offset: -1px;
+}
+/* 4T-002213 (Epic 3E-000353): Im schmalen Fenster bricht die Zeile um, statt
+   über den Rahmen zu laufen: Reicht der Platz neben der Beschriftung nicht für
+   das Feld (Grund-Breite 160 px, nur in der Zeile; in einer senkrechten
+   Zelle wäre es die Höhe), steht es darunter. Beschriftung und Feld
+   werden nie breiter als die Zeile, und das Feld darf unter seine Grund-Breite
+   schrumpfen; in gewöhnlicher Breite bleibt die Zeile, wie sie war.
+   Nur in der Inhaltsfläche der Einstellungs-Seite: Die Dialoge «Datum
+   umrechnen», Diagramm und Kanban-Einstellungen teilen die Zeilen-Klasse und
+   sollen aussehen wie zuvor; gemessen am 2026-10-18 rückten dort mit der
+   allgemeinen Regel Titel-Feld und Wähl-Knöpfe unter die Beschriftung.
+   :where() hält die Spezifität der ersten Fassung, damit die Seite selbst
+   genau so rechnet wie dort gemessen. */
+:where(.settings-section-content) .settings-row {
+  flex-wrap: wrap;
+}
+:where(.settings-section-content) .settings-row label {
+  max-width: 100%;
+}
+:where(.settings-section-content) .settings-row > .settings-input {
+  flex-basis: 160px;
+}
+:where(.settings-section-content) .settings-input {
+  min-width: 0;
 }
 .settings-input-size {
   flex: 0 0 90px;

@@ -17,12 +17,17 @@
 // Implementierung in markdown.js.
 //
 // Wirk-Semantik der Persistenz: der Store-Key 'extensions.disabled'
-// (EXTENSIONS_DISABLED_KEY) trägt NUR die vom Nutzer bewusst
-// deaktivierten IDs. Abhängige Erweiterungen deaktivieren sich effektiv
+// (EXTENSIONS_DISABLED_KEY) trägt die abgeschalteten IDs, gleich ob von
+// Hand, über einen Arbeitsmodus, einen eigenen Modus, den ersten Start oder
+// eine eingelesene Einrichtung gesetzt; ihre Herkunft wird nicht
+// festgehalten. Abhängige Erweiterungen deaktivieren sich effektiv
 // mit (effectiveDisabledSet), behalten aber ihren eigenen Schalter-Stand —
 // beim Wiedereinschalten der Abhängigkeit kehren sie automatisch zurück.
-// Default ist die leere Liste: alle Erweiterungen an, Verhalten identisch
-// zum Stand vor dem Erweiterungs-System.
+// Die leere Liste (alle Erweiterungen an) ist der Stand vor dem ersten Start;
+// beim ersten Start einer neuen Einrichtung schreibt die Anwendung den
+// Schalter-Satz des Einsteiger-Modus (applyStartupModeState in
+// src/main/app/settings-store.js über startupDisabledIds in
+// extensions-core.js, 4T-001881).
 //
 // Kern-Abgrenzung: was hier nicht registriert ist, ist Kern und nicht
 // abschaltbar (isExtensionId liefert false, unbekannte IDs in der

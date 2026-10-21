@@ -75,12 +75,10 @@ import {
   toggleWrapLines,
 } from '../views/views.js';
 import { insertTemplateCommand, newFileFromTemplate } from '../templates.js';
-import {
-  closeWorkspace,
-  createWorkspace,
-  saveWorkspaceAs,
-  showWorkspaceManager,
-} from './workspaces.js';
+import { closeWorkspace, createWorkspace, saveWorkspaceAs } from './workspaces.js';
+// 4T-002227 (Epic 3E-000356): «Arbeitsbereiche verwalten…» öffnet die Seite
+// «Arbeitsbereiche» statt des abgelösten Pop-ups.
+import { openWorkspacesPage } from './workspaces-page.js';
 import { insertEventsBlock } from '../events/events-editor.js';
 // 4T-001654 (Epic 3E-000287): Karte auf der Canvas-Flaeche anlegen.
 import {
@@ -311,7 +309,7 @@ export const commandHandlers = {
     closeWorkspace();
   },
   'workspace.manage': () => {
-    void showWorkspaceManager();
+    openWorkspacesPage();
   },
   'file.open': () => {
     openDialog();

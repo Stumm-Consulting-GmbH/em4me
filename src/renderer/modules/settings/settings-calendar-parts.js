@@ -1,144 +1,23 @@
-// 4T-000544 (Epic 3E-000097): Bausteine des Kalender-Formulars — Zahlen-Zelle,
-// Segment-Zeile, Ebenen-Auswahl, Ebenen-Editor und die Editoren der
-// abgeleiteten Gruppierungen.
+// 4T-000544 (Epic 3E-000097): Bausteine des Kalender-Formulars — Ebenen-Auswahl,
+// Ebenen-Editor und die Editoren der abgeleiteten Gruppierungen. Seit
+// 4T-002204 (Epic 3E-000338) stehen die beschrifteten Zellen und die
+// Segment-Zeile in settings-calendar-cells.js, die Eingaben einer Schalt-Ebene
+// in settings-calendar-leap.js.
 'use strict';
 
 import { t } from '../../i18n.js';
-import { calSysNextId, calSysTakeOverNames } from './settings-calendar-model.js';
+import {
+  buildCalSysNameCell,
+  buildCalSysNumCell,
+  buildCalSysPluralInput,
+} from './settings-calendar-cells.js';
+import { buildCalSysLeapRow, buildCalSysLeapRules } from './settings-calendar-leap.js';
+import {
+  calSysBeyondNameAt,
+  calSysNextId,
+  calSysTakeOverNames,
+} from './settings-calendar-model.js';
 import { renderActiveSection } from './settings-mount.js';
-
-// Beschriftete Zahlen-Eingabe (kompakte Inline-Zelle der Editor-Zeilen).
-export function buildCalSysNumCell(labelText, id, value, width, onInput) {
-  const wrap = document.createElement('label');
-  wrap.className = 'settings-calsys-numcell';
-  const span = document.createElement('span');
-  span.textContent = labelText;
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.inputMode = 'numeric';
-  input.id = id;
-  input.className = 'settings-input settings-calsys-num';
-  if (width) input.style.width = `${width}px`;
-  input.value = value == null ? '' : String(value);
-  input.addEventListener('input', () => onInput(input.value));
-  wrap.append(span, input);
-  return wrap;
-}
-
-// 4T-001863 (Epic 3E-000307): Beschriftete Namens-Zelle (Ebene, Zyklus,
-// Gruppierung) — die Beschriftung steht sichtbar über dem Feld, das
-// umschließende label verknüpft beide für Bildschirmleser.
-export function buildCalSysNameCell(labelKey, input) {
-  const cell = document.createElement('label');
-  cell.className = 'settings-calsys-numcell settings-calsys-level-name';
-  const label = document.createElement('span');
-  label.textContent = t(labelKey);
-  cell.append(label, input);
-  return cell;
-}
-
-// 4T-001863 (Epic 3E-000307): Eingabe der Mehrzahl eines Namens (Ebene, Zyklus,
-// Gruppierung). Der Kurzhinweis erklärt den Unterschied zur Einzahl; leer
-// bleibt die Einzahl auch bei mehreren Einheiten stehen. Beschriftet wird sie
-// über buildCalSysNameCell, an allen drei Stellen ohne Platzhalter.
-export function buildCalSysPluralInput(id, entry, onChange) {
-  const input = document.createElement('input');
-  input.type = 'text';
-  input.id = id;
-  input.className = 'settings-input';
-  input.title = t('settings.calendar.namePluralHint');
-  input.value = entry.namePlural || '';
-  input.addEventListener('input', () => {
-    entry.namePlural = input.value;
-    onChange();
-  });
-  return input;
-}
-
-// Segment-Eingaben (ein Zahlen-Feld je Ebene, beschriftet mit Ebenen-Namen).
-export function buildCalSysSegRow(container, labelKey, idBase, segs, levelsForLabels, onChange) {
-  const row = document.createElement('div');
-  row.className = 'settings-row settings-calsys-segrow';
-  const label = document.createElement('label');
-  label.textContent = t(labelKey);
-  const cells = document.createElement('div');
-  cells.className = 'settings-calsys-segcells';
-  levelsForLabels.forEach((level, i) => {
-    cells.appendChild(
-      buildCalSysNumCell(String(level.name || level.id), `${idBase}-${i}`, segs[i], 70, (v) => {
-        segs[i] = v;
-        onChange();
-      }),
-    );
-  });
-  row.append(label, cells);
-  container.appendChild(row);
-}
-
-// 4T-002001 (Epic 3E-000307): Auswahl der Form einer Schalt-Regel — nach
-// Teilbarkeit (Kette «Schaltung alle … außer alle …») oder nach Muster. Ein
-// Wechsel rendert den Bereich neu (Muster des Typ-Wechsels); die Eingaben der
-// jeweils anderen Form bleiben im Entwurf stehen.
-function buildCalSysLeapModeCell(level, calIdx, levelIdx) {
-  const select = document.createElement('select');
-  select.id = `settings-calsys-leapmode-${calIdx}-${levelIdx}`;
-  select.className = 'settings-input';
-  for (const [value, key] of [
-    ['rules', 'settings.calendar.leapModeRules'],
-    ['pattern', 'settings.calendar.leapModePattern'],
-  ]) {
-    const option = document.createElement('option');
-    option.value = value;
-    option.textContent = t(key);
-    select.appendChild(option);
-  }
-  select.value = level.leapMode === 'pattern' ? 'pattern' : 'rules';
-  select.addEventListener('change', () => {
-    level.leapMode = select.value;
-    renderActiveSection();
-  });
-  const cell = document.createElement('label');
-  cell.className = 'settings-calsys-numcell settings-calsys-level-type';
-  const label = document.createElement('span');
-  label.textContent = t('settings.calendar.leapMode');
-  cell.append(label, select);
-  return cell;
-}
-
-// 4T-002001 (Epic 3E-000307): Eingaben des Schaltjahr-Musters — Länge des
-// Zyklus und die Plätze der Schaltjahre als Text. Geprüft wird wie überall
-// allein über die Kern-Normalisierung (Hinweis-Zeile «ungültig»).
-function buildCalSysLeapPattern(box, level, calIdx, levelIdx, onChange) {
-  const row = document.createElement('div');
-  row.className = 'settings-calsys-level-rel';
-  row.append(
-    buildCalSysNumCell(
-      t('settings.calendar.leapPatternCycle'),
-      `settings-calsys-leappattern-cycle-${calIdx}-${levelIdx}`,
-      level.leapPatternCycle,
-      70,
-      (v) => {
-        level.leapPatternCycle = v;
-        onChange();
-      },
-    ),
-    buildCalSysNumCell(
-      t('settings.calendar.leapPatternYears'),
-      `settings-calsys-leappattern-years-${calIdx}-${levelIdx}`,
-      level.leapPatternYears,
-      320,
-      (v) => {
-        level.leapPatternYears = v;
-        onChange();
-      },
-    ),
-  );
-  const hint = document.createElement('p');
-  hint.className = 'settings-row-hint';
-  hint.id = `settings-calsys-leappattern-hint-${calIdx}-${levelIdx}`;
-  hint.textContent = t('settings.calendar.leapPatternHint');
-  box.append(row, hint);
-}
 
 // Ebenen-Editor eines Kalenders (kleinste zuerst, Pfeile tauschen Nachbarn).
 export function buildCalSysLevelEditor(container, calDraft, level, levelIdx, calIdx, onChange) {
@@ -284,55 +163,14 @@ export function buildCalSysLevelEditor(container, calDraft, level, levelIdx, cal
         ),
       );
     }
-    if (level.relType === 'leap') {
-      relRow.appendChild(buildCalSysLeapModeCell(level, calIdx, levelIdx));
-      const below = calDraft.levels[levelIdx - 1];
-      if (below && below.relType === 'lengths') {
-        const auto = document.createElement('span');
-        auto.className = 'settings-calsys-leap-auto';
-        auto.textContent = t('settings.calendar.leapCountAuto').replace(
-          '{count}',
-          String(below.table.length),
-        );
-        relRow.appendChild(auto);
-      } else {
-        relRow.appendChild(
-          buildCalSysNumCell(
-            t('settings.calendar.factorCount'),
-            `settings-calsys-level-${calIdx}-${levelIdx}-count`,
-            level.leapCount,
-            70,
-            (v) => {
-              level.leapCount = v;
-              onChange();
-            },
-          ),
-        );
-      }
-      relRow.append(
-        buildCalSysNumCell(
-          t('settings.calendar.leapTarget'),
-          `settings-calsys-level-${calIdx}-${levelIdx}-target`,
-          level.leapTarget,
-          60,
-          (v) => {
-            level.leapTarget = v;
-            onChange();
-          },
-        ),
-        buildCalSysNumCell(
-          t('settings.calendar.leapExtra'),
-          `settings-calsys-level-${calIdx}-${levelIdx}-extra`,
-          level.leapExtra,
-          60,
-          (v) => {
-            level.leapExtra = v;
-            onChange();
-          },
-        ),
-      );
-    }
+    // 4T-002204 (Epic 3E-000338): Die Eingaben der Schalt-Ebene stehen in
+    // settings-calendar-leap.js; die Meldung zum Schalt-Ziel kommt unter die Zeile.
+    const leapHint =
+      level.relType === 'leap'
+        ? buildCalSysLeapRow(relRow, calDraft, level, levelIdx, calIdx, onChange)
+        : null;
     box.appendChild(relRow);
+    if (leapHint) box.appendChild(leapHint);
 
     if (level.relType === 'lengths') {
       const tableBox = document.createElement('div');
@@ -380,56 +218,18 @@ export function buildCalSysLevelEditor(container, calDraft, level, levelIdx, cal
       addRow.className = 'btn settings-calsys-row-add';
       addRow.textContent = t('settings.calendar.tableRowAdd');
       addRow.addEventListener('click', () => {
-        level.table.push({ name: '', length: '' });
+        // 4T-002204 (Epic 3E-000338): Die neue Zeile belegt die nächste
+        // Position; trägt der Entwurf für sie einen Namen ohne Feld durch,
+        // übernimmt sie ihn, statt ihn zu verdecken. Die Zahl der Einheiten
+        // an der Schalt-Ebene folgt über die Durchläufe von selbst.
+        level.table.push({ name: calSysBeyondNameAt(level, level.table.length), length: '' });
         renderActiveSection();
       });
       tableBox.appendChild(addRow);
       box.appendChild(tableBox);
     }
 
-    if (level.relType === 'leap' && level.leapMode === 'pattern') {
-      buildCalSysLeapPattern(box, level, calIdx, levelIdx, onChange);
-    } else if (level.relType === 'leap') {
-      const rulesBox = document.createElement('div');
-      rulesBox.className = 'settings-calsys-table';
-      level.leapRules.forEach((cycle, ruleIdx) => {
-        const tr = document.createElement('div');
-        tr.className = 'settings-calsys-table-row';
-        tr.appendChild(
-          buildCalSysNumCell(
-            t(ruleIdx % 2 === 0 ? 'settings.calendar.leapRuleOn' : 'settings.calendar.leapRuleOff'),
-            `settings-calsys-leap-${calIdx}-${levelIdx}-${ruleIdx}`,
-            cycle,
-            70,
-            (v) => {
-              level.leapRules[ruleIdx] = v;
-              onChange();
-            },
-          ),
-        );
-        const del = document.createElement('button');
-        del.type = 'button';
-        del.className = 'btn settings-calsys-row-remove';
-        del.textContent = t('settings.calendar.rowRemove');
-        del.addEventListener('click', () => {
-          level.leapRules.splice(ruleIdx, 1);
-          renderActiveSection();
-        });
-        tr.appendChild(del);
-        rulesBox.appendChild(tr);
-      });
-      const addRule = document.createElement('button');
-      addRule.type = 'button';
-      addRule.id = `settings-calsys-leap-${calIdx}-${levelIdx}-add`;
-      addRule.className = 'btn settings-calsys-row-add';
-      addRule.textContent = t('settings.calendar.leapRuleAdd');
-      addRule.addEventListener('click', () => {
-        level.leapRules.push('');
-        renderActiveSection();
-      });
-      rulesBox.appendChild(addRule);
-      box.appendChild(rulesBox);
-    }
+    if (level.relType === 'leap') buildCalSysLeapRules(box, level, calIdx, levelIdx, onChange);
   }
   container.appendChild(box);
 }

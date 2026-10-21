@@ -92,12 +92,10 @@ import {
 } from '../views/views.js';
 import { showAbout } from '../dialogs/dialogs.js';
 import { newFileFromTemplate } from '../templates.js';
-import {
-  closeWorkspace,
-  createWorkspace,
-  saveWorkspaceAs,
-  showWorkspaceManager,
-} from './workspaces.js';
+import { closeWorkspace, createWorkspace, saveWorkspaceAs } from './workspaces.js';
+// 4T-002227 (Epic 3E-000356): «Arbeitsbereiche verwalten…» öffnet die Seite
+// «Arbeitsbereiche» statt des abgelösten Pop-ups.
+import { openWorkspacesPage } from './workspaces-page.js';
 import { refreshVisibleEventsAggregations } from '../events/events-aggregation.js';
 import { openJournalEntryForDate, openTodayJournalEntry } from '../calendar/journals.js';
 import { openHistoryPageForActiveTab } from '../views/history-page.js';
@@ -159,9 +157,7 @@ export function bindMenuEvents() {
     void createWorkspace();
   });
   api.onMenuWorkspaceClose(() => closeWorkspace());
-  api.onMenuWorkspaceManage(() => {
-    void showWorkspaceManager();
-  });
+  api.onMenuWorkspaceManage(() => openWorkspacesPage());
   api.onMenuOpenFile(() => openDialog());
   // 4T-000338 (Epic 3E-000061): 'Datei -> Neue Unterseite...'.
   api.onMenuNewSubpage(() => createSubpageForActiveFile());

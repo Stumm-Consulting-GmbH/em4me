@@ -34,6 +34,8 @@
   "statusbar.viewToggleYamlError": "Frontmatter invalide, le réglage d'affichage ne peut pas être écrit",
   "statusbar.collapse.left": "Autres éléments de la barre d'état (à gauche)",
   "statusbar.collapse.right": "Autres éléments de la barre d'état (à droite)",
+  "statusbar.group.commands": "Commandes",
+  "statusbar.group.views": "Affichage",
   "settings.statusbar.title": "Barre d'état",
   "settings.statusbar.collapseMode": "Repliement",
   "settings.statusbar.collapseMode.auto": "Automatiquement quand la place manque",

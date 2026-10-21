@@ -15,6 +15,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
+const { menuZustand } = require('../helpers/menu-zustand');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
@@ -142,6 +143,122 @@ test.describe('AM-04: die Einstellung überdauert den Neustart', () => {
       await expect(content).toHaveClass(/view-source/);
     } finally {
       await closeApp(zweit.app, userData, { force: true });
+    }
+  });
+});
+
+// 4T-002193 (Story 4S-000051, AK6): Ein Abstecher in die Lese-Ansicht ändert den
+// Bearbeiten-Zustand des Reiters nicht. Gemessen wird an allem, was der
+// Anwender sieht und tut: Stift, Menü-Häkchen und eine echte Eingabe. Jedes der
+// drei Rückweg-Ziele läuft eigens (Stabilitätsregel 16).
+const BEARBEITEN = 'Bearbeiten';
+
+// Das Häkchen «Ansicht › Bearbeiten». «Bearbeiten» heißt auch das Hauptmenü;
+// gezählt wird deshalb, ob irgendein Eintrag dieses Namens angehakt ist.
+async function bearbeitenAngehakt(app) {
+  const zustand = await menuZustand(app, '');
+  return zustand.some((e) => e.label === BEARBEITEN && e.checked);
+}
+
+// Bearbeiten in der Quellcode-Ansicht einschalten. Der Stift ist ein
+// Umschalter; sein Zustand wird vor dem Klick geprüft (Stabilitätsregel 20).
+async function bearbeitenInQuellcodeEin(page) {
+  const content = page.locator(SEL.content0);
+  const stift = page.locator(SEL.btnEdit);
+  await page.locator(SEL.viewBtn('source')).click();
+  await expect(content).toHaveClass(/view-source/);
+  await expect(stift).not.toHaveClass(/\bactive\b/);
+  await stift.click();
+  await expect(stift).toHaveClass(/\bactive\b/);
+}
+
+async function absteckerInLeseAnsicht(page) {
+  await page.locator(SEL.viewBtn('rendered')).click();
+  await expect(page.locator(SEL.content0)).toHaveClass(/view-rendered/);
+  // AK3 der Task-Datei: In der Lese-Ansicht selbst zeigt der Stift «aus».
+  await expect(page.locator(SEL.btnEdit)).not.toHaveClass(/\bactive\b/);
+}
+
+test.describe('AM-05: eingeschaltetes Bearbeiten übersteht den Abstecher in die Lese-Ansicht', () => {
+  for (const ziel of ['source', 'split', 'live']) {
+    test(`Quellcode › Gerendert › ${ziel}: Stift, Häkchen und Eingabe wieder an`, async () => {
+      const { app, page, userData } = await launchApp({ args: [BASIS] });
+      try {
+        await waitForTab(page);
+        await bearbeitenInQuellcodeEin(page);
+        await absteckerInLeseAnsicht(page);
+
+        await page.locator(SEL.viewBtn(ziel)).click();
+
+        await expect(page.locator(SEL.content0)).toHaveClass(new RegExp(`view-${ziel}`));
+        await expect(page.locator(SEL.btnEdit)).toHaveClass(/\bactive\b/);
+        await expect.poll(() => bearbeitenAngehakt(app)).toBe(true);
+        const editor = page.locator(SEL.editorContent0);
+        await expect(editor).not.toHaveAttribute('aria-readonly', 'true');
+        // Fokus statt Klick: Nach einem Klick in die Mitte des Editors ging in
+        // der Live-Ansicht der erste Tastendruck verloren (gemessen am
+        // 2026-10-17, dort liegen gerenderte Elemente wie die Tabelle). Der
+        // Gegenstand ist die Eingabe, nicht der Klick-Ort.
+        await editor.focus();
+        await expect(editor).toBeFocused();
+        await page.keyboard.type('Rueckweg2193');
+        await expect(editor).toContainText('Rueckweg2193');
+      } finally {
+        await closeApp(app, userData, { force: true });
+      }
+    });
+  }
+});
+
+test.describe('AM-06: ausgeschaltetes Bearbeiten bleibt nach dem Abstecher aus', () => {
+  test('Quellcode ohne Bearbeiten › Gerendert › Quellcode: Stift und Häkchen aus', async () => {
+    const { app, page, userData } = await launchApp({ args: [BASIS] });
+    try {
+      await waitForTab(page);
+      const content = page.locator(SEL.content0);
+      await page.locator(SEL.viewBtn('source')).click();
+      await expect(content).toHaveClass(/view-source/);
+      await expect(page.locator(SEL.btnEdit)).not.toHaveClass(/\bactive\b/);
+      await absteckerInLeseAnsicht(page);
+
+      await page.locator(SEL.viewBtn('source')).click();
+
+      await expect(content).toHaveClass(/view-source/);
+      await expect.poll(() => bearbeitenAngehakt(app)).toBe(false);
+      await expect(page.locator(SEL.btnEdit)).not.toHaveClass(/\bactive\b/);
+      await expect(page.locator(SEL.editorContent0)).toHaveAttribute('aria-readonly', 'true');
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+
+  test('ausgeschaltet per Stift nach dem Abstecher: die nächste Rückkehr holt nichts zurück', async () => {
+    // Lösungsansatz Schritt 3: Der Stift in der Lese-Ansicht schaltet ein und
+    // wechselt in eine Bearbeitungs-Ansicht; wer danach ausschaltet, hat
+    // entschieden. Ein liegengebliebener Vermerk des ersten Abstechers darf
+    // beim zweiten Rückweg nicht wieder einschalten.
+    const { app, page, userData } = await launchApp({ args: [BASIS] });
+    try {
+      await waitForTab(page);
+      const content = page.locator(SEL.content0);
+      const stift = page.locator(SEL.btnEdit);
+      await bearbeitenInQuellcodeEin(page);
+      await absteckerInLeseAnsicht(page);
+      await stift.click();
+      await expect(content).toHaveClass(/view-split/);
+      await expect(stift).toHaveClass(/\bactive\b/);
+      await stift.click();
+      await expect(stift).not.toHaveClass(/\bactive\b/);
+      await absteckerInLeseAnsicht(page);
+
+      await page.locator(SEL.viewBtn('source')).click();
+
+      await expect(content).toHaveClass(/view-source/);
+      await expect.poll(() => bearbeitenAngehakt(app)).toBe(false);
+      await expect(stift).not.toHaveClass(/\bactive\b/);
+      await expect(page.locator(SEL.editorContent0)).toHaveAttribute('aria-readonly', 'true');
+    } finally {
+      await closeApp(app, userData, { force: true });
     }
   });
 });

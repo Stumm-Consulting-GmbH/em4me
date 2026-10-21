@@ -66,16 +66,16 @@ Listas no ordenadas con `-`, `*` o `+`, ordenadas con `1.`. Un subelemento perte
 
 ### Editar la estructura
 
-En el modo de edición, el esquema se cambia con el teclado. La profundidad se deriva siempre del elemento superior, no tienes que contar espacios.
+En el modo de edición, el esquema se cambia con el teclado. La profundidad se deriva siempre del elemento superior, no tienes que contar espacios. Mover, aumentar la sangría con los subelementos y «Seleccionar la rama» pertenecen a la [extensión interna](extensions.md) «Estructura de listas» y al modo de trabajo **Avanzado**: en el modo **Principiante** está desactivada, en **Avanzado** y **Completo** activada.
 
-- `Alt+Flecha arriba` y `Alt+Flecha abajo` mueven un elemento con todos sus subelementos. El salto abarca la rama vecina completa y el nivel permanece igual. Fuera de las listas, los atajos mueven la línea individual.
-- `Tab` y `Mayús+Tab` aumentan y reducen la sangría del elemento con sus subelementos. Solo se aplica sangría donde existe un elemento superior bajo el cual pueda colocarse el actual.
+- `Alt+Flecha arriba` y `Alt+Flecha abajo` mueven un elemento con todos sus subelementos. El salto abarca la rama vecina completa y el nivel permanece igual. Fuera de las listas y sin la extensión, los atajos mueven la línea individual.
+- `Tab` y `Mayús+Tab` aumentan y reducen la sangría del elemento con sus subelementos. Solo se aplica sangría donde existe un elemento superior bajo el cual pueda colocarse el actual. Sin la extensión, ambas teclas aumentan y reducen la sangría solo del elemento con sus líneas siguientes, al aumentarla también hasta donde empieza el contenido del elemento superior; sus subelementos se quedan donde están.
 - Si hay varias líneas seleccionadas, ambas teclas actúan exactamente sobre el rango seleccionado.
 - El comando «Seleccionar la rama» marca un elemento con todo lo que cuelga de él.
 
 ### Numeración
 
-Las listas numeradas se renumeran solas en el texto fuente en cuanto trabajas en ellas. El número inicial se conserva: una lista que empieza en `3.` continúa con `4.`.
+Las listas numeradas se renumeran solas en el texto fuente en cuanto trabajas en ellas; esto vale en todos los modos de trabajo y también en el campo de nota. El número inicial se conserva: una lista que empieza en `3.` continúa con `4.`. Si un número se alarga o se acorta al hacerlo, por ejemplo de `9.` a `10.` o, al reducir la sangría, de `1.` de nuevo a `11.`, las líneas siguientes del elemento se desplazan con él y vuelven a empezar justo debajo de su texto; las líneas de un bloque de código se quedan donde están.
 
 Una línea vacía comienza una lista nueva. Si surge de tu edición, la lista siguiente empieza de nuevo en 1; si ya estaba allí, la segunda lista conserva su propio número inicial. El texto fuente y la vista muestran los mismos números.
 
@@ -101,7 +101,7 @@ La tecla Intro continúa una lista y añade una viñeta, un número consecutivo 
 - Al final de una segunda línea de un elemento (véase «Segunda línea en el mismo elemento»), la tecla Intro empieza un elemento nuevo.
 - En un subelemento vacío reduce la sangría un nivel, también en tareas numeradas; en el nivel superior termina la lista.
 
-En el campo de nota del panel «Notas», la tecla Intro actúa del mismo modo.
+La tecla Intro actúa así en todos los modos de trabajo y del mismo modo en el campo de nota del panel «Notas».
 
 ### Segunda línea en el mismo elemento
 

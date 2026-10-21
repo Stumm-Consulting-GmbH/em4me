@@ -46,7 +46,7 @@ Le correcteur orthographique est une extension activable (Paramètres → Extens
 
 ## Recherche plein texte
 
-La recherche (défaut `Ctrl+F`) trouve en direct pendant la saisie ; la zone de recherche suit la vue (texte source ou aperçu). Deux bascules la complètent : `.*` pour les expressions régulières, `Aa` pour la casse. `F3` et `Maj+F3` sautent entre les résultats, dans la barre de recherche aussi `Entrée` / `Maj+Entrée`.
+La recherche (défaut `Ctrl+F`) trouve en direct pendant la saisie ; la zone de recherche suit la vue (texte source ou aperçu). Deux bascules la complètent : `.*` pour les expressions régulières, `Aa` pour la casse. `F3` et `Maj+F3` sautent entre les résultats, dans la barre de recherche aussi `Entrée` / `Maj+Entrée`. Le résultat atteint se trouve ensuite à peu près au milieu de la zone visible, dans la mesure où le contenu peut défiler jusque-là ; cela vaut dans toutes les vues, et aussi lorsqu'il faut d'abord ouvrir un fichier, une page du manuel ou une section des paramètres. Si le résultat se trouve dans un callout replié, dans la vue « Rendu » ou sur une page du manuel, le callout se déplie quand on l'atteint et reste ouvert.
 
 Le point d'interrogation de la barre de recherche ouvre un aide-mémoire regex ; les motifs les plus importants :
 
@@ -83,7 +83,7 @@ La portée suit l’onglet dans lequel la recherche est ouverte ; les portées s
 
 La portée en vigueur s’affiche à gauche dans la barre de recherche. Dans la vue carte mentale, la recherche parcourt la carte elle-même, y compris dans une zone ouverte ; voir [Vue carte mentale](mindmap.md).
 
-Au-delà du fichier isolé, les occurrences apparaissent dans le panneau **Résultats de recherche**, groupées par fichier, page ou section, avec un décompte par groupe. Un clic ouvre la cible et met l’endroit en évidence ; `F3` franchit la limite du groupe. Dans la liste, les touches fléchées déplacent la sélection, et `Entrée` saute à l’occurrence sélectionnée. La sélection est conservée lorsque la liste se reconstruit pour une recherche inchangée ; seule une nouvelle recherche repart de la première occurrence.
+Au-delà du fichier isolé, les occurrences apparaissent dans le panneau **Résultats de recherche**, groupées par fichier, page ou section, avec un décompte par groupe. Un clic ouvre la cible et met en évidence l’endroit, qui se trouve alors à peu près au milieu, comme lors d’un saut ; `F3` franchit la limite du groupe. Dans la liste, les touches fléchées déplacent la sélection, et `Entrée` saute à l’occurrence sélectionnée. La sélection est conservée lorsque la liste se reconstruit pour une recherche inchangée ; seule une nouvelle recherche repart de la première occurrence.
 
 ### Dans une zone
 

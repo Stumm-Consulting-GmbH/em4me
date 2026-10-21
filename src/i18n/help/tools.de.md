@@ -46,7 +46,7 @@ Die Rechtschreibprüfung ist eine schaltbare Erweiterung (Einstellungen → Erwe
 
 ## Volltextsuche
 
-Die Suche (Standard `Strg+F`) findet live beim Tippen; der Suchbereich folgt der Ansicht (Quelltext oder Vorschau). Zwei Schalter ergänzen sie: `.*` für reguläre Ausdrücke, `Aa` für Groß-/Kleinschreibung. `F3` und `Umschalt+F3` springen zwischen Treffern, in der Suchleiste auch `Enter` / `Umschalt+Enter`.
+Die Suche (Standard `Strg+F`) findet live beim Tippen; der Suchbereich folgt der Ansicht (Quelltext oder Vorschau). Zwei Schalter ergänzen sie: `.*` für reguläre Ausdrücke, `Aa` für Groß-/Kleinschreibung. `F3` und `Umschalt+F3` springen zwischen Treffern, in der Suchleiste auch `Enter` / `Umschalt+Enter`. Der angesprungene Treffer steht danach ungefähr in der Mitte des sichtbaren Bereichs, soweit sich der Inhalt so weit rollen lässt; das gilt in jeder Ansicht und auch, wenn dafür erst eine Datei, eine Handbuch-Seite oder ein Einstellungs-Bereich geöffnet wird. Liegt der Treffer in der Ansicht „Gerendert" oder auf einer Handbuch-Seite in einem eingeklappten Callout, klappt der Callout beim Anspringen auf und bleibt offen.
 
 Das Fragezeichen in der Suchleiste öffnet eine Regex-Kurzreferenz; die wichtigsten Muster:
 
@@ -83,7 +83,7 @@ Der Suchbereich folgt der Ansicht, in der die Suche geöffnet wird; die Bereiche
 
 Welcher Bereich gilt, steht links in der Suchleiste. In der Mindmap-Ansicht durchsucht die Suche die Karte selbst, auch in einem geöffneten Bereich; siehe [Mindmap-Ansicht](mindmap.md).
 
-Außerhalb der einzelnen Datei erscheinen die Treffer im Sidebar-Panel **Suchergebnisse**, gruppiert nach Datei, Seite beziehungsweise Einstellungs-Bereich und mit der Trefferzahl je Gruppe. Ein Klick öffnet das Ziel und hebt die Fundstelle hervor; `F3` läuft über die Gruppen-Grenze hinweg weiter. In der Liste bewegen die Pfeiltasten die Auswahl, und `Enter` springt zum gewählten Treffer. Die Auswahl bleibt erhalten, wenn sich die Liste bei unveränderter Suche neu aufbaut; erst eine neue Suche beginnt wieder beim ersten Treffer.
+Außerhalb der einzelnen Datei erscheinen die Treffer im Sidebar-Panel **Suchergebnisse**, gruppiert nach Datei, Seite beziehungsweise Einstellungs-Bereich und mit der Trefferzahl je Gruppe. Ein Klick öffnet das Ziel und hebt die Fundstelle hervor, die danach wie beim Springen ungefähr in der Mitte steht; `F3` läuft über die Gruppen-Grenze hinweg weiter. In der Liste bewegen die Pfeiltasten die Auswahl, und `Enter` springt zum gewählten Treffer. Die Auswahl bleibt erhalten, wenn sich die Liste bei unveränderter Suche neu aufbaut; erst eine neue Suche beginnt wieder beim ersten Treffer.
 
 ### Im Bereich
 

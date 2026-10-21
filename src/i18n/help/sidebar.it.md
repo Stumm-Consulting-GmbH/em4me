@@ -41,7 +41,7 @@ Le varianti sono indipendenti dagli spazi di lavoro: uno spazio di lavoro ricord
 
 ## Gruppi di schede
 
-Più pannelli nella stessa posizione condividono lo spazio come gruppo di schede: una barra delle schede sostituisce i titoli dei pannelli e solo il pannello attivo è visibile. Mostrare un pannello raggruppato attiva la sua scheda; la scheda attiva viene ricordata.
+Più pannelli nella stessa posizione condividono lo spazio come gruppo di schede: una barra delle schede sostituisce i titoli dei pannelli e solo il pannello attivo è visibile. Mostrare un pannello raggruppato attiva la sua scheda; la scheda attiva viene ricordata. Se la barra laterale non è abbastanza larga per tutte le schede affiancate, la barra delle schede va a capo su un'altra riga e ogni scheda mostra il proprio nome per intero; con le intestazioni come simbolo resta il simbolo.
 
 ## Larghezze
 

@@ -41,7 +41,7 @@ Varianten sind von den Arbeitsbereichen unabhängig: ein Arbeitsbereich merkt si
 
 ## Reiter-Gruppen
 
-Mehrere Panels an derselben Position teilen sich den Platz als Reiter-Gruppe: eine Reiterleiste ersetzt die Panel-Titel, sichtbar ist jeweils das aktive Panel. Das Einblenden eines gruppierten Panels aktiviert dessen Reiter; der aktive Reiter wird gemerkt.
+Mehrere Panels an derselben Position teilen sich den Platz als Reiter-Gruppe: eine Reiterleiste ersetzt die Panel-Titel, sichtbar ist jeweils das aktive Panel. Das Einblenden eines gruppierten Panels aktiviert dessen Reiter; der aktive Reiter wird gemerkt. Reicht die Breite der Sidebar nicht für alle Reiter nebeneinander, bricht die Reiterleiste in eine weitere Zeile um, und jeder Reiter zeigt seinen Namen ungekürzt; mit Überschriften als Symbol bleibt es beim Symbol.
 
 ## Breiten
 

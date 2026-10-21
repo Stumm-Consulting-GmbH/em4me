@@ -16,6 +16,12 @@
 // Messung am gebauten Programm (Tests/3E-000301/Messung/00-ergebnis.md,
 // Gruppen E, F und G); die Ablauf-Fälle LE-01 ff. prüfen dieselben Eingaben in
 // Quellcode- und Live-Ansicht (test/e2e/funktionen/listen-eingabetaste.spec.js).
+//
+// 4T-002209 (Epic 3E-000334): Listen-Ausstieg und selbsttätige Nummerierung
+// gelten seither auch ohne die Erweiterung «Listen-Struktur». Die Fälle «ohne
+// Listen-Struktur» erwarten deshalb die Wirkung ihres Gegenstücks mit
+// Erweiterung; dazu kommen der Ausstieg und die Nummerierung am Tastendruck
+// in Haupt-Editor und Notiz-Feld ohne Erweiterung.
 import { describe, it, expect, afterEach, beforeEach } from 'vitest';
 import './api-stub.js';
 
@@ -50,6 +56,19 @@ function ansicht(doc, { marke, notiz = false, lesen = false } = {}) {
 function eingabe(view) {
   const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true });
   return runScopeHandlers(view, event, 'editor');
+}
+
+// 4T-002209: Rücktaste über die Tastenbelegung der Anwendung — mit einer
+// Auswahl über eine ganze Zeile samt Umbruch löscht sie diese Zeile.
+function ruecktaste(view) {
+  const event = new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true });
+  return runScopeHandlers(view, event, 'editor');
+}
+
+// 4T-002209: Zeile `zeile` (1-basiert) samt dem Umbruch davor auswählen.
+function zeileAuswaehlen(view, zeile) {
+  const doc = view.state.doc;
+  view.dispatch({ selection: { anchor: doc.line(zeile - 1).to, head: doc.line(zeile).to } });
 }
 
 const text = (view) => view.state.doc.toString();
@@ -170,12 +189,12 @@ describe('4T-001862: Fall-Tabelle (AK1 bis AK3, AK11 bis AK14)', () => {
     expect(text(view)).toBe('\n   1. b');
   });
 
-  it('4T-001862 Fall 8: leerer Punkt — ohne «Listen-Struktur» wie heute', async () => {
+  it('4T-001862 Fall 8: leerer Punkt — auch ohne «Listen-Struktur» Listen-Ausstieg (4T-002209)', async () => {
     await listenStruktur(false);
     const view = ansicht('1. [ ] \n   1. b', { marke: [1, 7] });
     expect(runListEnter(view)).toBe(false);
     eingabe(view);
-    expect(text(view)).toBe('1. [ ]\n2. \n   1. b');
+    expect(text(view)).toBe('\n   1. b');
   });
 
   it('4T-001862: Unterpunkte mit Folgezeile dazwischen zählen weiter (AK3)', () => {
@@ -381,12 +400,12 @@ describe('4T-001977 Fall 9: leerer nummerierter Aufgaben-Punkt auf einer Untereb
     expect(text(view)).toBe('1. [ ] a\n');
   });
 
-  it('oberste Ebene ohne «Listen-Struktur»: wie heute', async () => {
+  it('oberste Ebene ohne «Listen-Struktur»: Listen-Ausstieg wie mit (4T-002209)', async () => {
     await listenStruktur(false);
-    const view = ansicht('1. [ ] ');
+    const view = ansicht('1. [ ] a\n2. [ ] ');
     expect(runListEnter(view)).toBe(false);
     eingabe(view);
-    expect(text(view)).toBe('1. [ ]\n2. ');
+    expect(text(view)).toBe('1. [ ] a\n');
   });
 });
 
@@ -438,12 +457,12 @@ describe('4T-001862 und 4T-001977: wo die eigene Eingabetaste nicht greift (AK6,
     expect(text(view)).toBe('- a\n');
   });
 
-  it('leerer Punkt der obersten Ebene ohne «Listen-Struktur»: wie heute', async () => {
+  it('leerer Punkt der obersten Ebene ohne «Listen-Struktur»: Listen-Ausstieg (4T-002209)', async () => {
     await listenStruktur(false);
     const view = ansicht('- a\n- ');
     expect(runListEnter(view)).toBe(false);
     eingabe(view);
-    expect(text(view)).toBe('- a\n\n- ');
+    expect(text(view)).toBe('- a\n');
   });
 
   it('Eingabetaste in einer Code-Zeile läuft wie die eingekaufte Belegung', () => {
@@ -461,7 +480,11 @@ describe('4T-001862 und 4T-001977: ohne «Listen-Struktur» (AK15 bzw. AK11)', (
     await listenStruktur(false);
   });
 
-  it('4T-001862 Fall 1: Unterpunkt und Nummern-Nachzug ohne den Nummerierungs-Filter', () => {
+  // 4T-002209: Schutz-Fälle. Seit der Nummerierungs-Filter in jedem
+  // Arbeitsmodus läuft, zieht er die Nummern neben dem eigenen Nachzug von
+  // runListEnter nach, wie zuvor schon mit Erweiterung; beide rechnen
+  // dieselben Nummern, eine doppelte Wirkung zeigt sich nicht.
+  it('4T-001862 Fall 1: Unterpunkt und Nummern-Nachzug neben dem Nummerierungs-Filter', () => {
     const view = ansicht('1. [ ] a\n   1. [ ] b\n   2. [ ] c', { marke: [1, 8] });
     eingabe(view);
     expect(text(view)).toBe('1. [ ] a\n   1. [ ] \n   2. [ ] b\n   3. [ ] c');
@@ -471,6 +494,24 @@ describe('4T-001862 und 4T-001977: ohne «Listen-Struktur» (AK15 bzw. AK11)', (
     const view = ansicht('1. [ ] a\n2. [ ] b', { marke: [1, 8] });
     eingabe(view);
     expect(text(view)).toBe('1. [ ] a\n2. [ ] \n3. [ ] b');
+  });
+
+  // 4T-002209: Schutz-Fälle — die ganze Fall-Tabelle wirkt ohne Erweiterung
+  // wie mit ihr; der Nummerierungs-Filter ändert an keinem Ergebnis etwas.
+  for (const [name, doc, vorher, soll, nachher] of FALL_TABELLE) {
+    it(`4T-002209 ohne «Listen-Struktur» wie mit: ${name}`, () => {
+      const view = ansicht(doc, { marke: vorher });
+      expect(eingabe(view)).toBe(true);
+      expect(text(view)).toBe(soll);
+      expect(marke(view)).toEqual(nachher);
+    });
+  }
+
+  it('4T-002209: Zeile gelöscht — die Nummern zählen lückenlos weiter (AK3)', () => {
+    const view = ansicht('1. a\n2. b\n3. c\n4. d');
+    zeileAuswaehlen(view, 2);
+    expect(ruecktaste(view)).toBe(true);
+    expect(text(view)).toBe('1. a\n2. c\n3. d');
   });
 });
 
@@ -491,5 +532,20 @@ describe('4T-001862 und 4T-001977: Notiz-Feld (AK16 bzw. AK11)', () => {
     const view = ansicht('- a\n- ', { notiz: true });
     eingabe(view);
     expect(text(view)).toBe('- a\n');
+  });
+
+  it('4T-002209: Listen-Ausstieg ohne «Listen-Struktur» (AK2)', async () => {
+    await listenStruktur(false);
+    const view = ansicht('- a\n- ', { notiz: true });
+    eingabe(view);
+    expect(text(view)).toBe('- a\n');
+  });
+
+  it('4T-002209: Nummerierung ohne «Listen-Struktur» — Zeile gelöscht, lückenlos (AK3)', async () => {
+    await listenStruktur(false);
+    const view = ansicht('1. a\n2. b\n3. c', { notiz: true });
+    zeileAuswaehlen(view, 2);
+    expect(ruecktaste(view)).toBe(true);
+    expect(text(view)).toBe('1. a\n2. c');
   });
 });

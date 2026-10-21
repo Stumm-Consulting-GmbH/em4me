@@ -66,16 +66,16 @@ Elenchi non ordinati con `-`, `*` o `+`, ordinati con `1.`. Un sottoelemento app
 
 ### Modificare la struttura
 
-In modalità di modifica la struttura si cambia da tastiera. La profondità deriva sempre dall'elemento superiore, non devi contare gli spazi.
+In modalità di modifica la struttura si cambia da tastiera. La profondità deriva sempre dall'elemento superiore, non devi contare gli spazi. Lo spostamento, il rientro con i sottoelementi e «Seleziona il ramo» appartengono all'[estensione interna](extensions.md) «Struttura degli elenchi» e alla modalità di lavoro **Avanzata**: nella modalità **Principiante** è disattivata, in **Avanzata** e **Completa** è attiva.
 
-- `Alt+Freccia su` e `Alt+Freccia giù` spostano un elemento con tutti i suoi sottoelementi. Il salto attraversa l'intero ramo vicino e il livello resta uguale. Fuori dagli elenchi le scorciatoie spostano la singola riga.
-- `Tab` e `Maiusc+Tab` aumentano e riducono il rientro dell'elemento con i suoi sottoelementi. Il rientro si applica solo dove esiste un elemento superiore sotto cui collocare quello corrente.
+- `Alt+Freccia su` e `Alt+Freccia giù` spostano un elemento con tutti i suoi sottoelementi. Il salto attraversa l'intero ramo vicino e il livello resta uguale. Fuori dagli elenchi e senza l'estensione le scorciatoie spostano la singola riga.
+- `Tab` e `Maiusc+Tab` aumentano e riducono il rientro dell'elemento con i suoi sottoelementi. Il rientro si applica solo dove esiste un elemento superiore sotto cui collocare quello corrente. Senza l'estensione entrambi i tasti spostano solo l'elemento con le sue righe successive, nel rientro anche in questo caso fino a dove inizia il contenuto dell'elemento superiore; i suoi sottoelementi restano dove sono.
 - Se sono selezionate più righe, entrambi i tasti agiscono esattamente sull'intervallo selezionato.
 - Il comando «Seleziona il ramo» marca un elemento con tutto ciò che vi è appeso.
 
 ### Numerazione
 
-Gli elenchi numerati si rinumerano da soli nel testo sorgente non appena ci lavori. Il numero iniziale viene mantenuto: un elenco che inizia con `3.` prosegue con `4.`.
+Gli elenchi numerati si rinumerano da soli nel testo sorgente non appena ci lavori; questo vale in ogni modalità di lavoro e anche nel campo nota. Il numero iniziale viene mantenuto: un elenco che inizia con `3.` prosegue con `4.`. Se un numero diventa più lungo o più corto, per esempio da `9.` a `10.` oppure, riducendo il rientro, da `1.` di nuovo a `11.`, le righe successive dell'elemento si spostano con esso e ricominciano esattamente sotto il suo testo; le righe di un blocco di codice restano dove sono.
 
 Una riga vuota inizia un nuovo elenco. Se nasce dalla tua modifica, l'elenco successivo riparte da 1; se era già presente, il secondo elenco mantiene il proprio numero iniziale. Testo sorgente e visualizzazione mostrano gli stessi numeri.
 
@@ -101,7 +101,7 @@ Il tasto Invio prosegue un elenco e aggiunge un punto elenco, un numero consecut
 - Alla fine di una seconda riga di un elemento (vedi «Seconda riga nello stesso elemento») il tasto Invio inizia un nuovo elemento.
 - Su un sottoelemento vuoto riduce il rientro di un livello, anche nelle attività numerate; al livello superiore termina l'elenco.
 
-Nel campo nota del pannello «Note» il tasto Invio agisce allo stesso modo.
+Il tasto Invio agisce così in ogni modalità di lavoro e allo stesso modo nel campo nota del pannello «Note».
 
 ### Seconda riga nello stesso elemento
 

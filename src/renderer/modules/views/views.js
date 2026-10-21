@@ -78,7 +78,12 @@ import {
   stampTabTimestamps,
 } from './save-export.js';
 import { renderTabbar } from './tabbar.js';
-import { applyContentViewClass, isViewMode, zielAnsichtDesAenderungsmodus } from './view-modes.js';
+import {
+  applyContentViewClass,
+  EDIT_VIEW_MODES,
+  isViewMode,
+  zielAnsichtDesAenderungsmodus,
+} from './view-modes.js';
 // 4T-001712 (Epic 3E-000300): Der Ansichts-Wechsel entfernt das Tabellen-Widget
 // samt offenem Eingabefeld; die Eingabe wird vorher uebernommen.
 import { uebernimmOffeneZellEingabe } from '../live/live-table-zelle.js';
@@ -140,8 +145,23 @@ export function setViewMode(mode) {
   // den Bearbeiten-Button. So bleibt Live konsistent zu Source und
   // Split (alle drei zeigen den Editor read-only, bis User editieren
   // will).
+  //
+  // 4T-002193 (Story 4S-000051, AK6): Ein Abstecher in die Lese-Ansicht
+  // ändert den Bearbeiten-Zustand des Reiters nicht. Das Ausschalten bleibt,
+  // damit der Stift in «Gerendert» zur Ansicht passt; der Zustand davor wird
+  // aber vermerkt und bei der Rückkehr in eine der drei Bearbeitungs-Ansichten
+  // wiederhergestellt. Ohne den Vermerk war er nach Gerendert › Quellcode
+  // verloren, und der Anwender musste den Stift erneut drücken (Abnahme
+  // 3E-000301, Befund 2). Über Mindmap, Canvas, Tafel und Präsentation hinweg
+  // bleibt der Vermerk stehen, bis eine Bearbeitungs-Ansicht erreicht ist. Die
+  // Wiederherstellung steht vor der Verzweigung unten, weil dort Editor und
+  // Statusleiste abgeglichen werden.
   if (mode === 'rendered' && tab.editMode) {
     tab.editMode = false;
+    tab.bearbeitenVorLeseAnsicht = true;
+  } else if (tab.bearbeitenVorLeseAnsicht && EDIT_VIEW_MODES.includes(mode)) {
+    tab.editMode = true;
+    tab.bearbeitenVorLeseAnsicht = false;
   }
   const els = getPaneEls(state.activePaneIndex);
   applyContentViewClass(els.content, `view-${mode}`);
@@ -466,6 +486,10 @@ export function toggleEditMode() {
   if (!uebernimmOffeneZellEingabe()) return;
   // 4T-002053: ebenso eine offene Zell-Eingabe im Raster der Datentabelle.
   if (!uebernimmOffeneDatentabellenEingabe()) return;
+  // 4T-002193: Der ausdrückliche Griff zum Stift gilt; ein Vermerk aus einem
+  // früheren Abstecher in die Lese-Ansicht holte sonst bei der nächsten
+  // Ansichts-Wahl einen überholten Zustand zurück.
+  tab.bearbeitenVorLeseAnsicht = false;
   if (tab.viewMode === 'rendered') {
     const ziel = zielAnsichtDesAenderungsmodus(state.editViewMode);
     tab.viewMode = ziel;

@@ -15,17 +15,25 @@
 // WS-04: Loeschen entfernt nur die Ablage; ein offener Arbeitsbereich wird
 //        zur unbenannten Applikation degradiert (Fenster bleibt).
 // WS-05: Erweiterung aus — Untermenue-Block und Titel-Teil verschwinden,
-//        die Ablage bleibt; Einschalten bringt beides zurueck.
-// WS-06: Regressionstest 4T-000633 — der aus dem Verwaltungs-Dialog
-//        geoeffnete Namens-und-Farb-Dialog liegt OBEN und ist bedienbar.
+//        die Ablage bleibt; Einschalten bringt beides zurueck. Seit 4T-002227
+//        dazu: Eine offene Seite «Arbeitsbereiche» bleibt stehen und zeigt den
+//        Hinweis statt der Liste, das Kommando ist weg, und nach dem
+//        Wiedereinschalten steht die Liste ohne erneutes Öffnen da.
+// WS-06: Regressionstest 4T-000633 — der aus der Verwaltung geoeffnete
+//        Namens-und-Farb-Dialog liegt OBEN und ist bedienbar; seit 4T-002227
+//        über der Seite «Arbeitsbereiche» statt über dem Pop-up.
 // WS-07: 4T-001737 — beide Bedienorte nennen die Bereichs-Zuordnung: das
-//        Untermenue einzeilig "Name — Ordnername", der Verwaltungs-Dialog mit
-//        dem vollstaendigen Pfad; ein Arbeitsbereich ohne Bindung traegt an
-//        beiden Orten allein seinen Namen.
-// WS-08: 4T-001753 — die Reihenfolge ist im Verwaltungs-Dialog aenderbar:
-//        Verschieben wirkt in Dialog UND Untermenue, die Raender sind
-//        abgeblendet, die Bedienung laeuft auch ueber die Tastatur, und die
-//        gewaehlte Reihenfolge ueberdauert den Neustart (Muster SM-09).
+//        Untermenue einzeilig "Name — Ordnername", die Seite «Arbeitsbereiche»
+//        (bis 4T-002227 der Verwaltungs-Dialog) mit dem vollständigen Pfad;
+//        ein Arbeitsbereich ohne Bindung trägt an beiden Orten allein seinen
+//        Namen.
+// WS-08: 4T-001753 — die Reihenfolge ist auf der Seite «Arbeitsbereiche»
+//        änderbar (bis 4T-002227 im Verwaltungs-Dialog): Verschieben wirkt auf
+//        der Seite UND im Untermenue, die Ränder sind abgeblendet, die
+//        Bedienung läuft über die Tastatur, und die gewählte Reihenfolge
+//        überdauert den Neustart (Muster SM-09).
+// Die neuen Fälle der Seite (ab WS-09) stehen in arbeitsbereiche-seite.spec.js;
+// diese Datei hätte mit ihnen ihr Zeilen-Budget überschritten.
 'use strict';
 
 const fs = require('node:fs');
@@ -35,6 +43,8 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
+// 4T-002227: Der Weg zur Seite «Arbeitsbereiche» liegt im gemeinsamen Helfer.
+const { oeffneArbeitsbereicheSeite, paletteTreffer } = require('../helpers/arbeitsbereiche-seite');
 
 const BASIS = path.resolve(__dirname, '..', '..', 'fixtures', 'smoke', 'basis.md');
 
@@ -56,32 +66,6 @@ function removeDir(dir) {
   } catch {
     // Temp-Verzeichnis bleibt liegen; unkritisch.
   }
-}
-
-// 4T-001737: Verwaltungs-Dialog ueber den Menue-Kanal oeffnen. Gepollt, weil
-// Sends vor dem fertigen init() verfallen (Muster WS-06 und addDraftTabTo).
-//
-// 4T-001753: Gesendet wird an das Fenster GENAU DIESER Seite, geholt ueber
-// `app.browserWindow(page)`, und nicht an `getAllWindows()[0]`. Der Index-Weg
-// traegt nur, solange es ein Fenster gibt: WS-08 legt drei Arbeitsbereiche an,
-// jeder mit eigenem Fenster, und der Send lief dann an ein fremdes Fenster —
-// der Dialog erschien in der gepruefeten Seite nie, und die Ursache sah aus wie
-// eine kaputte Oberflaeche.
-async function openManager(app, page) {
-  const manager = page.locator('#workspace-manager-modal');
-  const fenster = await app.browserWindow(page);
-  await expect
-    .poll(
-      async () => {
-        if (!(await manager.isVisible())) {
-          await hauptSenden(fenster, (w) => w.webContents.send('menu:workspaceManage'));
-        }
-        return manager.isVisible();
-      },
-      { intervals: [500, 500, 1000, 1000] },
-    )
-    .toBe(true);
-  return manager;
 }
 
 function draftFileCount(userData) {
@@ -344,15 +328,39 @@ test.describe('WS-05: Erweiterung aus nimmt Zugaenge, laesst die Ablage (4T-0005
       await expect.poll(() => page.title()).toContain('(Arbeitsbereich Bestand)');
       await expect.poll(() => capturedMenuLabels(app)).toContain('Bestand');
 
+      // 4T-002227 (AK9): Die Seite ist offen, bevor die Erweiterung ausgeht —
+      // genau die Lage, die M4 regelt.
+      const seite = await oeffneArbeitsbereicheSeite(app, page);
+      await expect(seite.locator('.workspace-row-name')).toHaveText('Bestand');
+
       // Erweiterung aus: Menue-Block weg, Titel ohne Arbeitsbereichs-Teil.
       await page.evaluate(() => window.api.setSetting('extensions.disabled', ['workspaces']));
       await expect.poll(() => capturedMenuLabels(app)).not.toContain('Bestand');
-      await expect.poll(() => page.title()).toBe('EM4me');
+      // 4T-002227: Der Fenstertitel führt vorn den aktiven Reiter, hier die
+      // offene Seite; der Arbeitsbereichs-Teil am Ende ist weg.
+      await expect.poll(() => page.title()).toBe('Arbeitsbereiche — EM4me');
+
+      // 4T-002227 (AK9, Story AK32): Die Seite bleibt geöffnet und zeigt den
+      // Hinweis statt der Liste; keine Schaltfläche der Verwaltung ist dann
+      // bedienbar, weil keine mehr dasteht.
+      await expect(seite.locator('.workspaces-page-off')).toBeVisible();
+      await expect(seite.locator('.workspace-row')).toHaveCount(0);
+      await expect(seite.locator('button')).toHaveCount(0);
+      await expect(
+        page.locator(`${SEL.tabs0} .tab-title`, { hasText: 'Arbeitsbereiche' }),
+      ).toHaveCount(1);
+      // Das Kommando ist aus der Palette verschwunden (Story AK28).
+      await expect.poll(() => paletteTreffer(app, page, 'Arbeitsbereiche verwalten')).toBe(0);
+      await page.keyboard.press('Escape');
+      await expect(page.locator('#command-palette-modal')).toBeHidden();
 
       // Wieder einschalten: alles ohne Verlust zurueck.
       await page.evaluate(() => window.api.setSetting('extensions.disabled', []));
       await expect.poll(() => capturedMenuLabels(app)).toContain('Bestand');
       await expect.poll(() => page.title()).toContain('(Arbeitsbereich Bestand)');
+      // 4T-002227: Die Liste steht ohne erneutes Öffnen wieder auf der Seite.
+      await expect(seite.locator('.workspace-row-name')).toHaveText('Bestand');
+      await expect(seite.locator('.workspaces-page-off')).toHaveCount(0);
       const list = await page.evaluate(() => window.api.workspacesList());
       expect(list[0]).toMatchObject({ name: 'Bestand', color: 'cyan', open: true });
     } finally {
@@ -367,39 +375,37 @@ test.describe('WS-05: Erweiterung aus nimmt Zugaenge, laesst die Ablage (4T-0005
 // z-index 3000, der spaetere DOM-Knoten gewann) und war unbedienbar.
 // Playwright-Actionability (fill/click mit Hit-Test am Aktionspunkt)
 // schlaegt bei verdecktem Element fehl — genau der Befund.
-test.describe('WS-06: Umbenennen-Dialog liegt ueber dem Verwaltungs-Dialog (4T-000633)', () => {
-  test('Aus "Verwalten" geoeffneter Namens-und-Farb-Dialog ist bedienbar', async () => {
+// 4T-002227 (AK3): Seit der Ablösung des Pop-ups öffnet der Dialog über der
+// Seite «Arbeitsbereiche». Die Zusage bleibt dieselbe — er liegt oben und ist
+// bedienbar —, und der Hit-Test der Playwright-Bedienung misst sie weiterhin.
+test.describe('WS-06: Umbenennen-Dialog liegt ueber der Seite Arbeitsbereiche (4T-000633)', () => {
+  test('Von der Seite geoeffneter Namens-und-Farb-Dialog ist bedienbar', async () => {
     const { app, page, userData } = await launchApp();
     try {
       await page.evaluate(() => window.api.workspaceSaveAs({ name: 'Alpha', color: 'blue' }));
       await expect.poll(() => page.title()).toContain('(Arbeitsbereich Alpha)');
 
-      // Verwaltungs-Dialog ueber den Menue-Kanal oeffnen (4T-001737: derselbe
-      // gepollte Weg liegt seither als openManager oben, weil WS-07 ihn
-      // ebenfalls braucht).
-      const manager = await openManager(app, page);
-      await expect(manager.locator('.workspace-row-name')).toHaveText('Alpha');
+      const seite = await oeffneArbeitsbereicheSeite(app, page);
+      await expect(seite.locator('.workspace-row-name')).toHaveText('Alpha');
 
       // Zweiter Knopf der Zeile = "Umbenennen und Farbe...".
-      await manager.locator('.workspace-row .btn').nth(1).click();
+      await seite.locator('.workspace-row .btn').nth(1).click();
       const dialog = page.locator('#workspace-modal');
       await expect(dialog).toBeVisible();
 
-      // Bedienbarkeit trotz weiterhin offenem Verwaltungs-Dialog: Eingabe
-      // ins Namensfeld und Klick auf einen Farb-Swatch muessen den Dialog
-      // treffen (vor dem Fix deckte der Verwaltungs-Dialog beide ab).
+      // Bedienbarkeit über der Seite: Eingabe ins Namensfeld und Klick auf
+      // einen Farb-Swatch müssen den Dialog treffen.
       await page.fill('#workspace-name', 'Alpha umbenannt');
       await page.locator('#workspace-colors .tab-group-swatch[data-color="green"]').click();
       await page.locator('#btn-workspace-ok').click();
       await expect(dialog).toBeHidden();
 
-      // Wirkung kam an (Umbenennen + Farbe), Verwaltungs-Dialog offen.
+      // Wirkung kam an (Umbenennen + Farbe), und die offene Seite zieht nach.
       await expect.poll(() => page.title()).toContain('(Arbeitsbereich Alpha umbenannt)');
       const list = await page.evaluate(() => window.api.workspacesList());
       expect(list[0]).toMatchObject({ name: 'Alpha umbenannt', color: 'green' });
-      await expect(manager).toBeVisible();
-      await page.locator('#btn-workspace-manager-close').click();
-      await expect(manager).toBeHidden();
+      await expect(seite.locator('.workspace-row-name')).toHaveText('Alpha umbenannt');
+      await expect(seite.locator('.workspace-dot')).toHaveAttribute('style', /--tab-group-green/);
     } finally {
       await closeApp(app, userData);
     }
@@ -412,8 +418,11 @@ test.describe('WS-06: Umbenennen-Dialog liegt ueber dem Verwaltungs-Dialog (4T-0
 // vollstaendigen Pfad (E3: dort ist Platz dafuer). Der Fall prueft beides an
 // EINEM Lauf, weil beide Orte denselben Bestand lesen und ein Irrtum an der
 // gemeinsamen Ursache sonst nur halb sichtbar wuerde.
-test.describe('WS-07: Bereichs-Zuordnung im Untermenue und im Verwaltungs-Dialog (4T-001737)', () => {
-  test('gebundener Arbeitsbereich zeigt Ordnernamen im Menue und vollen Pfad im Dialog', async () => {
+// 4T-002227 (AK3): Der zweite Bedienort ist seither die Seite «Arbeitsbereiche».
+// Der volle Pfad steht dort als Text in voller Länge und bricht um; ein
+// Kurzhinweis mit demselben Pfad wäre eine zweite Ausgabe ohne Mehrwert.
+test.describe('WS-07: Bereichs-Zuordnung im Untermenue und auf der Seite (4T-001737)', () => {
+  test('gebundener Arbeitsbereich zeigt Ordnernamen im Menue und vollen Pfad auf der Seite', async () => {
     const { app, page, userData } = await launchApp();
     const dir = makeAreaDir('ws07');
     try {
@@ -440,12 +449,11 @@ test.describe('WS-07: Bereichs-Zuordnung im Untermenue und im Verwaltungs-Dialog
       // Der volle Pfad steht NICHT im Menue (E2).
       await expect.poll(() => capturedMenuLabels(app)).not.toContain(list[0].areaPath);
 
-      // AK6: Der Verwaltungs-Dialog zeigt den vollstaendigen Pfad.
-      const manager = await openManager(app, page);
+      // AK6: Die Seite zeigt den vollständigen Pfad.
+      const manager = await oeffneArbeitsbereicheSeite(app, page);
       const pfadZeile = manager.locator('.workspace-row-path');
       await expect(pfadZeile).toHaveCount(1);
       await expect(pfadZeile).toContainText(list[0].areaPath);
-      await expect(pfadZeile).toHaveAttribute('title', list[0].areaPath);
       // AK7: Farbpunkt, Name und die drei Zeilen-Aktionen bleiben unberuehrt.
       // 4T-001753: Die beiden Verschiebe-Knoepfe tragen dieselbe Klasse .btn
       // und sind hier ausdruecklich ausgenommen — geprueft wird, dass die DREI
@@ -481,8 +489,12 @@ test.describe('WS-07: Bereichs-Zuordnung im Untermenue und im Verwaltungs-Dialog
 // zusammenhaengen: die Wirkung im Dialog, der Gleichlauf mit dem Untermenue,
 // die Rand-Abblendung samt Tastatur-Bedienung und die Dauerhaftigkeit ueber
 // den Neustart.
-test.describe('WS-08: Reihenfolge der Arbeitsbereiche im Verwaltungs-Dialog (4T-001753)', () => {
-  test('Verschieben wirkt in Dialog und Menue, ist tastaturbedienbar und ueberdauert den Neustart', async () => {
+// 4T-002227 (AK4): Der Ort ist seither die Seite «Arbeitsbereiche», und der
+// Tastatur-Weg beginnt mit der Tabulatortaste statt mit einem Klick: Die Zusage
+// der Seite (M5) ist, dass ein Anwender ohne Maus hinkommt und mehrfach
+// hintereinander schiebt.
+test.describe('WS-08: Reihenfolge der Arbeitsbereiche auf der Seite (4T-001753)', () => {
+  test('Verschieben wirkt auf Seite und Menue, ist tastaturbedienbar und ueberdauert den Neustart', async () => {
     const first = await launchApp();
     const userData = first.userData;
     try {
@@ -504,7 +516,7 @@ test.describe('WS-08: Reihenfolge der Arbeitsbereiche im Verwaltungs-Dialog (4T-
         first.page.evaluate(async () => (await window.api.workspacesList()).map((w) => w.name));
       await expect.poll(namen).toEqual(['WSA', 'WSB', 'WSC']);
 
-      const manager = await openManager(first.app, first.page);
+      const manager = await oeffneArbeitsbereicheSeite(first.app, first.page);
       const zeilenNamen = () => manager.locator('.workspace-row-name').allTextContents();
       await expect.poll(zeilenNamen).toEqual(['WSA', 'WSB', 'WSC']);
 
@@ -541,25 +553,38 @@ test.describe('WS-08: Reihenfolge der Arbeitsbereiche im Verwaltungs-Dialog (4T-
       await expect.poll(namen).toEqual(['WSA', 'WSC', 'WSB']);
       await expect.poll(menuNamen).toEqual(['WSA', 'WSC', 'WSB']);
 
-      // AK2: Bedienung ueber die Tastatur, und zwar MEHRFACH hintereinander.
-      // Der Fokus steht nach der Verschiebung auf demselben Knopf des
-      // mitgewanderten Eintrags; die Leertaste schiebt ihn weiter, ohne dass
-      // man sich erneut hin-tabben muss.
-      await expect.poll(fokus).toEqual({ richtung: 'up', name: 'WSC' });
+      // AK2, 4T-002227 (M5): Bedienung über die Tastatur, und zwar MEHRFACH
+      // hintereinander. Der Weg beginnt an «Löschen» des ersten Eintrags; die
+      // Tabulatortaste überspringt sein abgeblendetes ▲ und landet auf ▼.
+      await manager
+        .locator('.workspace-row')
+        .nth(0)
+        .locator('.workspace-row-actions .btn:not(.workspace-move)')
+        .nth(2)
+        .focus();
+      await first.page.keyboard.press('Tab');
+      await expect.poll(fokus).toEqual({ richtung: 'down', name: 'WSA' });
+
+      // Eingabetaste: WSA rückt an die zweite Stelle, der Fokus wandert mit
+      // auf sein ▼, ohne dass man sich erneut hin-tabben muss.
+      await first.page.keyboard.press('Enter');
+      await expect.poll(zeilenNamen).toEqual(['WSC', 'WSA', 'WSB']);
+      await expect.poll(fokus).toEqual({ richtung: 'down', name: 'WSA' });
+
+      // Noch einmal: WSA steht an dritter und letzter Stelle; sein ▼ ist
+      // abgeblendet, deshalb übernimmt die Gegenrichtung derselben Zeile den
+      // Fokus — der Anwender bleibt an seinem Eintrag statt am Seitenanfang.
+      await first.page.keyboard.press('Enter');
+      await expect.poll(zeilenNamen).toEqual(['WSC', 'WSB', 'WSA']);
+      await expect.poll(namen).toEqual(['WSC', 'WSB', 'WSA']);
+      await expect.poll(fokus).toEqual({ richtung: 'up', name: 'WSA' });
+
+      // Und die Leertaste löst ebenso aus (Knopf-Semantik); damit ist der
+      // Ersatz-Knopf nicht nur fokussiert, sondern bedienbar.
       await first.page.keyboard.press('Space');
       await expect.poll(zeilenNamen).toEqual(['WSC', 'WSA', 'WSB']);
       await expect.poll(namen).toEqual(['WSC', 'WSA', 'WSB']);
-
-      // WSC steht jetzt oben; sein "nach oben" ist abgeblendet, deshalb
-      // uebernimmt die Gegenrichtung derselben Zeile den Fokus — der Anwender
-      // bleibt an seinem Eintrag statt am Anfang des Dialogs.
-      await expect.poll(fokus).toEqual({ richtung: 'down', name: 'WSC' });
-      // Und die Eingabetaste loest ebenso aus (Knopf-Semantik); damit ist der
-      // Ersatz-Knopf nicht nur fokussiert, sondern bedienbar.
-      await first.page.keyboard.press('Enter');
-      await expect.poll(zeilenNamen).toEqual(['WSA', 'WSC', 'WSB']);
-      await expect.poll(namen).toEqual(['WSA', 'WSC', 'WSB']);
-      await expect.poll(menuNamen).toEqual(['WSA', 'WSC', 'WSB']);
+      await expect.poll(menuNamen).toEqual(['WSC', 'WSA', 'WSB']);
 
       // AK4: SOFORT gespeichert, noch vor dem Beenden. Gemessen an der
       // Ablage-Datei und nicht am Neustart: Der Beenden-Weg persistiert
@@ -572,7 +597,7 @@ test.describe('WS-08: Reihenfolge der Arbeitsbereiche im Verwaltungs-Dialog (4T-
             (w) => w.name,
           ),
         )
-        .toEqual(['WSA', 'WSC', 'WSB']);
+        .toEqual(['WSC', 'WSA', 'WSB']);
 
       // AK6: Die Reihenfolge ueberdauert den Neustart mit demselben Profil
       // (Muster SM-09).
@@ -587,7 +612,7 @@ test.describe('WS-08: Reihenfolge der Arbeitsbereiche im Verwaltungs-Dialog (4T-
               (await window.api.workspacesList()).map((w) => w.name),
             ),
           )
-          .toEqual(['WSA', 'WSC', 'WSB']);
+          .toEqual(['WSC', 'WSA', 'WSB']);
       } finally {
         await closeApp(second.app, null, { force: true });
       }

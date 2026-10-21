@@ -116,7 +116,9 @@ function pluralOf(draftEntry) {
 // Form; ein Entwurf ohne sie (etwa eine neu angelegte Ebene) bleibt ohne Feld.
 function keptNamesOf(draftEntry) {
   const names = draftEntry.positionNames;
-  return Array.isArray(names) && names.length > 0 ? { names: names.slice() } : {};
+  // 4T-002205 (Epic 3E-000338): Eine unbenannte Position (im Modell null)
+  // geht als leerer Name zurück, wie eine leere Zeile der Längen-Tabelle.
+  return Array.isArray(names) && names.length > 0 ? { names: names.map((n) => n ?? '') } : {};
 }
 
 // 4T-002066 (Epic 3E-000307): Wechselt eine Ebene mit durchgetragenen
@@ -148,6 +150,108 @@ function calSysLeapRule(level) {
   return { pattern: { cycle: calSysInt(level.leapPatternCycle), years } };
 }
 
+// 4T-002204 (Epic 3E-000338): Durchläufe der Längen-Tabelle je Instanz als
+// Eingabe-Text. Ein Entwurf ohne die Angabe (etwa eine neu angelegte Ebene)
+// gilt als ein Durchlauf — die Vorbelegung des Feldes.
+export function calSysLeapPassesText(level) {
+  return level.leapPasses == null ? '1' : String(level.leapPasses);
+}
+
+// 4T-002204 (Epic 3E-000338): Zahl der Einheiten je Instanz einer Schalt-Ebene,
+// so wie die Ablage-Form sie schreibt. Über einer Längen-Tabelle ist sie
+// Durchläufe mal Zeilen: Der Kern verlangt ein Vielfaches der Zeilen-Zahl
+// (calendar-core.js, normalizeLevels), und eine Definition mit zwei Durchläufen
+// (etwa 24 Monate je Jahr) verlor beim Anwenden ohne Änderung bis dahin die
+// Hälfte, weil die Pflege die Zahl stets auf die Zeilen-Zahl setzte. Über
+// anderen Ebenen gilt die eingegebene Zahl. null = keine gültige Angabe.
+export function calSysLeapCount(calDraft, levelIdx) {
+  const level = calDraft.levels[levelIdx];
+  const below = calDraft.levels[levelIdx - 1];
+  if (!level) return null;
+  if (below && below.relType === 'lengths') {
+    const passes = calSysInt(calSysLeapPassesText(level));
+    if (passes === null || passes < 1) return null;
+    const count = passes * below.table.length;
+    return Number.isSafeInteger(count) ? count : null;
+  }
+  return calSysInt(level.leapCount);
+}
+
+// 4T-002204 (Epic 3E-000338): Liegt das Schalt-Ziel einer Schalt-Ebene nicht
+// innerhalb ihrer Positionen, nennt die Pflege genau diesen Grund (Kern-Regel:
+// targetIndex kleiner als count, calendar-core.js, normalizeRel). Geliefert
+// wird { target, count } oder null, wenn Ziel oder Zahl selbst keine gültige
+// Angabe sind — dann bleibt es bei der allgemeinen Meldung «ungültig».
+export function calSysLeapTargetOutside(calDraft, levelIdx) {
+  const level = calDraft.levels ? calDraft.levels[levelIdx] : null;
+  if (!level || levelIdx < 1 || level.relType !== 'leap') return null;
+  const count = calSysLeapCount(calDraft, levelIdx);
+  const target = calSysInt(level.leapTarget);
+  if (count === null || count < 1 || target === null) return null;
+  return target < 1 || target > count ? { target, count } : null;
+}
+
+// 4T-002204 (Epic 3E-000338): Erste Schalt-Ebene eines Entwurfs mit einem
+// Schalt-Ziel außerhalb der Positionen (für die Meldung beim Anwenden).
+export function calSysFirstLeapTargetOutside(calDraft) {
+  if (!calDraft || calDraft.derived || !Array.isArray(calDraft.levels)) return null;
+  for (let i = 1; i < calDraft.levels.length; i++) {
+    const outside = calSysLeapTargetOutside(calDraft, i);
+    if (outside) return outside;
+  }
+  return null;
+}
+
+// 4T-002204 (Epic 3E-000338): Zahl der Positionen einer Ebene mit
+// Längen-Tabelle — so viele Einheiten fasst eine Instanz der Ebene darüber.
+// Ohne Ebene darüber (oder ohne gültige Zahl dort) sind es die Zeilen.
+function calSysLengthsPositions(calDraft, levelIdx) {
+  const level = calDraft.levels[levelIdx];
+  const above = calDraft.levels[levelIdx + 1];
+  let positions = null;
+  if (above && above.relType === 'leap') positions = calSysLeapCount(calDraft, levelIdx + 1);
+  else if (above && above.relType === 'factor') positions = calSysInt(above.factorCount);
+  return positions === null ? level.table.length : positions;
+}
+
+// 4T-002204 (Epic 3E-000338): Namen der Positionen jenseits der Tabellen-
+// Zeilen, die beim Laden kein eigenes Feld hatten (bei 24 Monaten je Jahr die
+// Monate 13 bis 24). Sie gehören zur Position, nicht zur Zeile: Der Name an
+// Position p bleibt an Position p. Geschrieben wird ab der heutigen
+// Zeilen-Zahl bis zur heutigen Zahl der Positionen.
+// 4T-002205 (Epic 3E-000338, A7): Seit das Modell leere Namen annimmt, steht
+// an einer Position ohne durchgetragenen Namen ein leerer Eintrag, und die
+// Liste läuft dahinter weiter — nach «Zeile entfernen» bleibt die Position
+// direkt hinter der letzten Zeile leer, die übrigen behalten ihre Namen.
+// Hinter dem letzten durchgetragenen Namen endet die Liste; das Auffüllen auf
+// die Zahl der Positionen übernimmt das Modell.
+// Namen über der Zahl der Positionen werden nicht geschrieben, bleiben aber im
+// Entwurf, damit ein Zurückstellen der Durchläufe sie wieder ergibt.
+function calSysBeyondNames(calDraft, levelIdx) {
+  const level = calDraft.levels[levelIdx];
+  const beyond = level.beyondNames;
+  if (!beyond || !Array.isArray(beyond.names)) return [];
+  const positions = calSysLengthsPositions(calDraft, levelIdx);
+  const out = [];
+  let named = 0;
+  for (let p = level.table.length; p < positions; p++) {
+    const name = p < beyond.from ? '' : String(beyond.names[p - beyond.from] ?? '').trim();
+    out.push(name);
+    if (name !== '') named = out.length;
+  }
+  return out.slice(0, named);
+}
+
+// 4T-002204 (Epic 3E-000338): Durchgetragener Name einer Position, wenn eine
+// neue Zeile sie bekommt — die Zeile übernimmt ihn in ihr Namens-Feld, statt
+// ihn zu verdecken. Leer, wenn die Position keinen durchgetragenen Namen hat.
+export function calSysBeyondNameAt(level, position) {
+  const beyond = level && level.beyondNames;
+  if (!beyond || !Array.isArray(beyond.names) || position < beyond.from) return '';
+  // 4T-002205: Eine unbenannte Position führt das Modell als null.
+  return beyond.names[position - beyond.from] ?? '';
+}
+
 export function calendarToDraft(cal) {
   // 4T-000747: Eine abgeleitete Zeitrechnung trägt im Entwurf nur ihre eigenen
   // Angaben; Ebenen, Zyklen, Gruppierungen und Epochen entstehen bei der
@@ -166,7 +270,7 @@ export function calendarToDraft(cal) {
       previewInput: calSysZeroValue(calSysDateLevels(cal.levels).length),
     };
   }
-  const levels = cal.levels.map((level) => {
+  const levels = cal.levels.map((level, levelIdx) => {
     const draft = {
       id: level.id,
       name: level.name,
@@ -194,6 +298,13 @@ export function calendarToDraft(cal) {
       // Anwenden still verloren. An der Längen-Tabelle sind die Zeilen die Quelle.
       positionNames:
         level.names && !(level.rel && level.rel.type === 'lengths') ? level.names.slice() : null,
+      // 4T-002204 (Epic 3E-000338): Durchläufe der Längen-Tabelle je Instanz
+      // an der Schalt-Ebene, vorbelegt mit einem; beim Laden aus der
+      // Definition errechnet (siehe unten).
+      leapPasses: '1',
+      // 4T-002204: Namen der Positionen jenseits der Tabellen-Zeilen, ohne
+      // eigenes Feld und deshalb unverändert durchgetragen ({ from, names }).
+      beyondNames: null,
     };
     if (level.rel && level.rel.type === 'factor') draft.factorCount = String(level.rel.count);
     if (level.rel && level.rel.type === 'lengths') {
@@ -201,9 +312,23 @@ export function calendarToDraft(cal) {
         name: level.names ? level.names[i] || '' : '',
         length: String(length),
       }));
+      // 4T-002204: Bis zur Zahl der Positionen — so viele Einheiten fasst eine
+      // Instanz der Ebene darüber; eine oberste Ebene hat nur ihre Zeilen.
+      const above = cal.levels[levelIdx + 1];
+      const positions = above && above.rel ? above.rel.count : level.rel.table.length;
+      const rows = level.rel.table.length;
+      if (level.names && level.names.length > rows && positions > rows) {
+        draft.beyondNames = { from: rows, names: level.names.slice(rows, positions) };
+      }
     }
     if (level.rel && level.rel.type === 'leap') {
       draft.leapCount = String(level.rel.count);
+      // 4T-002204: Über einer Längen-Tabelle ist die Zahl ein Vielfaches der
+      // Zeilen-Zahl (Regel des Kerns); das Feld zeigt den Faktor.
+      const below = cal.levels[levelIdx - 1];
+      if (below && below.rel && below.rel.type === 'lengths') {
+        draft.leapPasses = String(level.rel.count / below.rel.table.length);
+      }
       if (level.rel.pattern) {
         draft.leapMode = 'pattern';
         draft.leapPatternCycle = String(level.rel.pattern.cycle);
@@ -226,7 +351,9 @@ export function calendarToDraft(cal) {
       namePlural: cycle.namePlural || '',
       of: cycle.of,
       length: String(cycle.length),
-      namesText: cycle.names ? cycle.names.join(', ') : '',
+      // 4T-002206 (Epic 3E-000338): ein Name je Zeile, damit ein Komma Teil
+      // des Namens sein kann; eine unbenannte Position steht als leere Zeile.
+      namesText: cycle.names ? cycle.names.map((n) => n ?? '').join('\n') : '',
       anchorSegs: cycle.anchor.tuple.map(String),
       anchorPosition: String(cycle.anchor.position + 1),
       ruleIndex: cycle.numbering ? String(cycle.numbering.ruleIndex + 1) : '',
@@ -256,6 +383,21 @@ export function calendarToDraft(cal) {
   };
 }
 
+// 4T-002206 (Epic 3E-000338): Positions-Namen eines Zyklus aus dem
+// mehrzeiligen Feld, ein Name je Zeile. Getrennt wurde früher am Komma; ein
+// Name wie «Mo, früh» zerfiel dabei in zwei, und alle folgenden Positionen
+// rückten um eine Stelle. Eine leere Zeile mitten in der Liste bleibt eine
+// unbenannte Position (das Modell führt sie als null), weil ihr Verwerfen
+// die Namen dahinter verschöbe; leere Zeilen am Ende entfallen, das Modell
+// bringt die Liste ohnehin auf die Zyklus-Länge. «\r\n» gilt wie «\n».
+function cycleNamesOf(text) {
+  const names = String(text || '')
+    .split(/\r?\n/)
+    .map((s) => s.trim());
+  while (names.length > 0 && names[names.length - 1] === '') names.pop();
+  return names;
+}
+
 // Entwurfs-Form eines Kalenders in die Persistenz-/Kern-Form bringen.
 // Ungültige Zahlen werden bewusst als ungültige Werte durchgereicht — die
 // Kern-Normalisierung lehnt den Kalender dann ab (weiche/harte Validierung
@@ -283,10 +425,24 @@ export function calendarPersistForm(calDraft) {
       section: String(level.section || '').trim(),
       start: calSysInt(level.start) ?? NaN,
     };
-    const names = level.table.map((row) => String(row.name || '').trim());
-    if (level.table.length > 0 && names.every((n) => n !== '')) {
-      out.names = names;
-    } else if (level.relType !== 'lengths') {
+    // 4T-002204 (Epic 3E-000338, A11): Ob die Zeilen die Namen tragen,
+    // entscheidet der Beziehungs-Typ, nicht die im Entwurf liegende Tabelle.
+    // Wechselt eine Ebene von der Längen-Tabelle auf einen festen Faktor,
+    // bleibt die Tabelle im Entwurf stehen (für einen Wechsel zurück); ihre
+    // Zeilen-Namen gehören dann nicht an die Faktor-Ebene.
+    if (level.relType === 'lengths') {
+      // 4T-002205 (Epic 3E-000338, A7): Die Zeilen-Namen gehen so zurück, wie
+      // sie dastehen, auch mit leeren Zeilen; früher wurde die Liste nur
+      // geschrieben, wenn jede Zeile benannt war, und ging sonst ganz
+      // verloren. Ohne jeden Namen entsteht kein Feld (Definition ohne Namen
+      // bleibt unverändert).
+      // 4T-002204: Hinter den Zeilen die durchgetragenen Namen der übrigen
+      // Positionen.
+      const names = level.table
+        .map((row) => String(row.name || '').trim())
+        .concat(calSysBeyondNames(calDraft, i));
+      if (names.some((n) => n !== '')) out.names = names;
+    } else {
       // 4T-002066 (Epic 3E-000307): Ebene ohne Längen-Tabelle — die geladenen
       // Namen gehen unverändert zurück.
       Object.assign(out, keptNamesOf(level));
@@ -297,9 +453,9 @@ export function calendarPersistForm(calDraft) {
     } else if (level.relType === 'lengths') {
       out.rel = { type: 'lengths', table: level.table.map((row) => calSysInt(row.length)) };
     } else if (level.relType === 'leap') {
-      const below = calDraft.levels[i - 1];
-      const count =
-        below && below.relType === 'lengths' ? below.table.length : calSysInt(level.leapCount);
+      // 4T-002204 (Epic 3E-000338): über einer Längen-Tabelle Durchläufe mal
+      // Zeilen, sonst die eingegebene Zahl.
+      const count = calSysLeapCount(calDraft, i);
       const target = calSysInt(level.leapTarget);
       out.rel = {
         type: 'leap',
@@ -319,10 +475,7 @@ export function calendarPersistForm(calDraft) {
     cycles: calDraft.cycles.map((cycle) => {
       const position = calSysInt(cycle.anchorPosition);
       const rule = String(cycle.ruleIndex || '').trim();
-      const names = String(cycle.namesText || '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter((s) => s !== '');
+      const names = cycleNamesOf(cycle.namesText);
       const entry = {
         id: cycle.id,
         name: String(cycle.name || '').trim(),
@@ -434,6 +587,24 @@ export function calSysDependents(block, calDraft) {
   return block.calendars
     .filter((c) => c.derived && c.derived.fromId === id)
     .map((c) => String(c.name || '').trim() || t('settings.calendar.calUntitled'));
+}
+
+// 4T-002191 (Epic 3E-000353): Name der Zeitrechnung, an deren Punkt der
+// Block-Achse ein Entwurf ohne Anker und Maßstab beginnt, sonst null. Leere
+// Felder sind der einzige Zustand, der sich sicher von einer bewussten Angabe
+// und einer eingefügten Vorlage unterscheidet: Eingelesene und eingefügte
+// Zeitrechnungen tragen den Anker ausdrücklich (calendarToDraft), auch wenn er
+// dem Ausgangswert gleicht. Genannt wird die erste andere des Blocks
+// (Entscheidung des Product Owners vom 2026-10-10, Weg A′).
+export function calSysAxisUnsetPeer(block, calDraft) {
+  if (!block || calDraft.derived) return null;
+  const empty = (v) => String(v == null ? '' : v).trim() === '';
+  const unset =
+    (calDraft.anchorSegs || []).every(empty) &&
+    empty(calDraft.scaleNum) &&
+    empty(calDraft.scaleDen);
+  const peer = unset ? block.calendars.find((c) => c !== calDraft) : null;
+  return peer ? String(peer.name || '').trim() || t('settings.calendar.calUntitled') : null;
 }
 
 export async function readCalendarFromConfig() {

@@ -41,7 +41,7 @@ Variants are independent of workspaces: a workspace remembers windows and tabs, 
 
 ## Tab groups
 
-Several panels at the same position share the space as a tab group: a tab bar replaces the panel titles, and only the active panel is visible. Showing a grouped panel activates its tab; the active tab is remembered.
+Several panels at the same position share the space as a tab group: a tab bar replaces the panel titles, and only the active panel is visible. Showing a grouped panel activates its tab; the active tab is remembered. If the sidebar is not wide enough for all tabs side by side, the tab bar wraps onto a further line, and every tab shows its name in full; with headings as icon, the icon stays.
 
 ## Widths
 

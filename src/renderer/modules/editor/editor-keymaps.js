@@ -29,6 +29,7 @@ import {
 // 4T-000599 (Epic 3E-000112): Struktur-Kern der Listen-Bearbeitung plus sein
 // Laufzeit-Backend (Nutzung nur in Funktionskörpern).
 import { LIST_INDENT_STEP, LIST_LINE_RE } from '../../../shared/markdown/list-outline.js';
+import { schliesstZaun, zaunOeffnung } from '../../../shared/markdown/fence-level.js';
 import {
   runListExit,
   runListIndentSubtree,
@@ -137,6 +138,12 @@ export function buildEditorCommandKeymap() {
 // die Nummer unveraendert. In Code-Bloecken (FencedCode / CodeBlock) greift
 // die Logik nicht, damit der Default-Tab dort erhalten bleibt.
 //
+// 4T-002302 (Epic 3E-000334, A9): Die feste Schrittweite gilt seither nur noch
+// ohne übergeordneten Punkt. Sonst rückt das zeilenweise Einrücken um die
+// Breite des übergeordneten Markers ein (unter «1. » drei Zeichen), weil die
+// Anzeige einen Unterpunkt erst an dessen Inhalts-Spalte erkennt; Umschalt+Tab
+// nimmt dieselbe Breite zurück (listParentAbove, applyListIndent).
+//
 // 4T-000599 (Epic 3E-000112): Regex und Schrittweite leben im Struktur-Kern
 // src/shared/markdown/list-outline.js (dort nutzen sie auch die reinen
 // Teilbaum-Operationen); hier bleiben sie als Re-Export fuer die Bestands-
@@ -170,18 +177,116 @@ export function selectionTouchesList(state) {
 // Leerzeile oder zur ersten Code-Zeile. `shift` ist die Strecke, um die die
 // Inhalts-Spalte des Punkts wandert (negativ beim Ausrücken). Mit der
 // Erweiterung bleibt alles wie zuvor; dort trägt die Teilbaum-Mitnahme.
+// 4T-002302: `shift` folgt seither der tatsächlichen Einrück-Breite des Punkts
+// (Marker-Breite des übergeordneten Punkts), nicht mehr der festen Schrittweite.
+// 4T-002326 (Epic 3E-000353): Beginnt unter den Folgezeilen ein eingerückter
+// Code-Block, wandert er vollständig mit: öffnende Zaun-Zeile, Inhalt samt
+// Leerzeilen und schließende Zaun-Zeile. Die Sperre `lineInsideCodeBlock`
+// bleibt für Zeilen eines Code-Blocks, den keine mitgenommene Zaun-Zeile
+// geöffnet hat; die öffnende Zaun-Zeile selbst ist am Zeilenanfang noch keine
+// Code-Zeile, ihr Inhalt dagegen schon, und dort endete die Mitnahme bisher.
 function carryContinuationLines(state, itemLine, shift, changes, seenLines) {
   if (shift === 0 || isExtensionActive('outliner')) return;
+  const carry = (line, leading) => {
+    seenLines.add(line.number);
+    if (shift > 0) changes.push({ from: line.from, insert: ' '.repeat(shift) });
+    else changes.push({ from: line.from, to: line.from + Math.min(-shift, leading) });
+  };
   for (let n = itemLine + 1; n <= state.doc.lines; n++) {
     const line = state.doc.line(n);
     if (line.text.trim() === '') return;
     if (parseListItemHead(line.text)) return;
-    const leading = /^[ \t]*/.exec(line.text)[0].length;
+    const leading = leadingWidth(line.text);
     if (leading === 0 || lineInsideCodeBlock(state, line)) return;
-    seenLines.add(n);
-    if (shift > 0) changes.push({ from: line.from, insert: ' '.repeat(shift) });
-    else changes.push({ from: line.from, to: line.from + Math.min(-shift, leading) });
+    carry(line, leading);
+    const fence = openingFence(line.text);
+    if (fence) {
+      n = carryFencedBody(state, n, fence, carry, seenLines);
+      if (n < 0) return;
+    }
   }
+}
+
+function leadingWidth(text) {
+  return /^[ \t]*/.exec(text)[0].length;
+}
+
+// 4T-002326: Zaun-Zeile nach der Zaun-Regel aus fence-level.js, gelesen am
+// Text hinter der Einrückung der Folgezeile: Die Regel erlaubt auf der
+// obersten Ebene bis drei Leerzeichen, in einem Listenpunkt zählt die
+// Einrückung zum Punkt und nicht zum Zaun. Die Einrückung bleibt am Zaun
+// vermerkt, damit die Suche nach dem Schluss einen Listenpunkt links davon
+// erkennt.
+function openingFence(text) {
+  const indent = leadingWidth(text);
+  const oeffnung = zaunOeffnung(text.slice(indent));
+  return oeffnung ? { oeffnung, indent } : null;
+}
+
+// 4T-002326: schließende Zaun-Zeile nach derselben Regel, ebenfalls hinter der
+// Einrückung gelesen.
+function closesFence(text, fence) {
+  return schliesstZaun(text.slice(leadingWidth(text)), fence.oeffnung);
+}
+
+// 4T-002326: Zeile der schließenden Zaun-Zeile oder null. Die Suche endet an
+// einer Zeile ohne Einrückung und an einem Listenpunkt links der Zaun-Zeile,
+// weil beide den Listenpunkt und damit den Block beenden; eine Zaun-Zeile
+// dahinter gehört zu einem anderen Block. Ohne schließende Zaun-Zeile gilt der
+// Block als nicht geschlossen.
+function closingFenceLine(state, open, fence) {
+  for (let n = open + 1; n <= state.doc.lines; n++) {
+    const text = state.doc.line(n).text;
+    if (closesFence(text, fence)) return n;
+    if (text.trim() === '') continue;
+    const leading = leadingWidth(text);
+    if (leading === 0 || (leading < fence.indent && parseListItemHead(text))) return null;
+  }
+  return null;
+}
+
+// 4T-002326: nimmt den Inhalt des Blocks hinter der Zaun-Zeile `open` mit.
+// Inhalts-Zeilen folgen der Strecke wie jede Folgezeile, Leerzeilen bleiben
+// unverändert. Rückgabe: die letzte Zeile des Blocks, an der die Mitnahme
+// weiterläuft, oder -1, wenn sie endet. Rand-Entscheidung des Tasks: Ein
+// Block ohne schließende Zaun-Zeile endet am Dokument-Ende oder an der Zeile,
+// an der die Mitnahme nach den bisherigen Regeln endet (Leerzeile, nächster
+// Listenpunkt, Zeile ohne Einrückung); die Code-Sperre gilt in ihm nicht.
+function carryFencedBody(state, open, fence, carry, seenLines) {
+  const close = closingFenceLine(state, open, fence);
+  for (let n = open + 1; n <= state.doc.lines; n++) {
+    const line = state.doc.line(n);
+    const leading = leadingWidth(line.text);
+    if (line.text.trim() === '') {
+      if (close === null) return -1;
+      seenLines.add(n);
+      continue;
+    }
+    if (close === null && (leading === 0 || parseListItemHead(line.text))) return -1;
+    carry(line, leading);
+    if (n === close) return n;
+  }
+  return -1;
+}
+
+// 4T-002302 (Epic 3E-000334, A9): nächster vorangehender Listenpunkt, dessen
+// Einrückung `passt` (Länge der führenden Leerraum-Zeichen). Gesucht wird im
+// Listen-Block: Eine Leerzeile oder eine Zeile ohne Einrückung, die kein Punkt
+// ist, beendet ihn (dieselbe Grenze zieht der Struktur-Kern list-outline.js).
+// Zeilen in Code-Blöcken gelten nie als Punkt. Liefert Zeilen-Nummer,
+// Einrückungs-Länge und Marker (ohne Aufgaben-Kästchen, LIST_LINE_RE) oder null.
+function listParentAbove(state, lineNo, passt) {
+  for (let n = lineNo - 1; n >= 1; n--) {
+    const line = state.doc.line(n);
+    if (line.text.trim() === '') return null;
+    const m = LIST_LINE_RE.exec(line.text);
+    if (m && !lineInsideCodeBlock(state, line)) {
+      if (passt(m[1].length)) return { number: n, leading: m[1].length, marker: m[2] };
+    } else if (!/^[ \t]/.test(line.text)) {
+      return null;
+    }
+  }
+  return null;
 }
 
 // Erzeugt eine Transaktion, die Listen-Zeilen der aktuellen Selektion ein-
@@ -200,6 +305,10 @@ export function applyListIndent(view, delta) {
   if (!selectionTouchesList(state)) return false;
   const changes = [];
   const seenLines = new Set();
+  // 4T-002302: Einrück-Breite je bereits eingerückter Zeile dieses Tastendrucks.
+  // Ist der übergeordnete Punkt selbst Teil der Auswahl, übernimmt die Zeile
+  // seine Breite, damit eine mehrzeilige Auswahl als Block wandert.
+  const indentWidths = new Map();
   for (const range of state.selection.ranges) {
     const fromLine = state.doc.lineAt(range.from).number;
     const toLine = state.doc.lineAt(range.to).number;
@@ -214,28 +323,41 @@ export function applyListIndent(view, delta) {
       const marker = m[2];
       const isOrdered = /^\d+\.\s$/.test(marker);
       if (delta > 0) {
+        // 4T-002302 (A9): Übergeordnet wird der nächste vorangehende Punkt mit
+        // gleicher oder geringerer Einrückung (ein Geschwister wird zum
+        // Elternteil); eingerückt wird um seine Marker-Breite samt Leerzeichen
+        // («1. » drei, «10. » vier, «- » zwei, ein Aufgaben-Kästchen zählt
+        // nicht mit). Ohne solchen Punkt bleibt die feste Schrittweite.
+        const parent = listParentAbove(state, n, (lead) => lead <= leading.length);
+        let width = LIST_INDENT_STEP;
+        if (parent) width = indentWidths.get(parent.number) ?? parent.marker.length;
+        indentWidths.set(n, width);
         if (isOrdered) {
-          // Marker (z.B. "2. ") inklusive Leerzeichen ersetzen durch
-          // "  1. " (Sub-Liste startet wieder bei 1).
+          // Marker (z.B. "2. ") inklusive Leerzeichen ersetzen durch die
+          // Einrückung plus "1. " (Sub-Liste startet wieder bei 1).
           changes.push({
             from: line.from,
             to: line.from + leading.length + marker.length,
-            insert: leading + ' '.repeat(LIST_INDENT_STEP) + '1. ',
+            insert: leading + ' '.repeat(width) + '1. ',
           });
         } else {
-          // 2 Leerzeichen vor dem Marker einfuegen, Marker unveraendert.
+          // Einrückung vor dem Marker einfügen, Marker unverändert.
           changes.push({
             from: line.from + leading.length,
-            insert: ' '.repeat(LIST_INDENT_STEP),
+            insert: ' '.repeat(width),
           });
         }
         // 4T-001716: Folgezeilen um dieselbe Strecke wie die Inhalts-Spalte.
-        const shift = isOrdered ? LIST_INDENT_STEP + 3 - marker.length : LIST_INDENT_STEP;
+        const shift = isOrdered ? width + 3 - marker.length : width;
         carryContinuationLines(state, n, shift, changes, seenLines);
       } else {
         if (leading.length === 0) continue; // Ebene 0 -> No-Op
-        // Bis zu LIST_INDENT_STEP fuehrende Whitespace-Zeichen entfernen.
-        const removeCount = Math.min(LIST_INDENT_STEP, leading.length);
+        // 4T-002302 (A9): spiegelbildlich zum Einrücken die Differenz zum
+        // nächsten vorangehenden Punkt mit geringerer Einrückung entfernen,
+        // höchstens die vorhandene Einrückung; ohne ihn die feste Schrittweite.
+        const parent = listParentAbove(state, n, (lead) => lead < leading.length);
+        const step = parent ? leading.length - parent.leading : LIST_INDENT_STEP;
+        const removeCount = Math.min(step, leading.length);
         changes.push({
           from: line.from,
           to: line.from + removeCount,

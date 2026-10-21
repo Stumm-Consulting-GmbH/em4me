@@ -50,8 +50,10 @@ A sub-item belongs to the item above it when it starts where that item's content
 2. Second step
 
 In editing mode you can restructure a list from the keyboard: `Alt+Arrow Up`
-and `Alt+Arrow Down` move an item with all its sub-items, `Tab` and
-`Shift+Tab` change its level, and numbered lists renumber themselves. A blank
+and `Alt+Arrow Down` move an item with all its sub-items (part of the
+**List structure** extension of the Advanced working mode; without it the
+single line moves), `Tab` and `Shift+Tab` change its level, and numbered
+lists renumber themselves. A blank
 line starts a new list.
 A second line within the same item starts with `Shift+Enter`: the line
 before ends with a backslash, and the new line is indented under the text

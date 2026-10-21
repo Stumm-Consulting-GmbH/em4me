@@ -130,6 +130,8 @@ export async function setClockMode(paneIdx, mode) {
   const next = normalizeClockMode(mode);
   if (state.clock.modeByPane[paneIdx] === next) return;
   state.clock.modeByPane[paneIdx] = next;
+  // 4T-002190: Wer den Kalender verlässt, gibt eine offene Jahres-Eingabe auf.
+  yearEditByPane[paneIdx] = null;
   rendered[paneIdx] = null;
   renderClockPanel(paneIdx);
   ensureClockTimer();
@@ -143,6 +145,14 @@ export async function setClockMode(paneIdx, mode) {
 // laeuft der Winkel monoton weiter (statt bei 60 auf 0 zurueckzuspringen),
 // sodass die CSS-Transition nicht rueckwaerts animiert.
 const rendered = [null, null];
+
+// 4T-002190: Stand einer offenen Jahres-Eingabe je Spalte ({digits, active}
+// oder null). Er steht außerhalb des Aufbaus, weil jeder Neubau des Panels
+// (Sprachwechsel, Optionen, Änderungen an Weckern, Timern und Stoppuhr, auch
+// aus einem anderen Fenster) den Panel-Körper leert; lebte er nur in
+// buildYearEditor, ginge eine laufende Eingabe samt Fokus dabei verloren
+// (Story 4S-000465, AK9; am Ablauf-Prüfstand gemessen).
+const yearEditByPane = [null, null];
 
 function svgEl(name, attrs) {
   const el = document.createElementNS(SVG_NS, name);
@@ -238,6 +248,10 @@ function buildClock(paneIdx) {
   const options = clockOptions;
   const mode = getClockMode(paneIdx);
   const body = els.clockBody;
+  // 4T-002190: Lag der Fokus in der Jahres-Eingabe, kehrt er nach dem Neubau
+  // dorthin zurück; sonst bleibt er, wo er ist (kein Fokus-Raub).
+  const yearWrap = body.querySelector('.clock-cal-year');
+  const yearFocus = !!yearWrap && yearWrap.contains(document.activeElement);
   body.innerHTML = '';
   // 4T-000679 (Epic 3E-000139): Schrift-Faktor der Groessen-Stufe am
   // Panel-Koerper. Steht vor den Modus-Verzweigungen, damit der Wert in
@@ -273,7 +287,7 @@ function buildClock(paneIdx) {
     // 4T-000752: Monatskalender zum Nachschlagen. Der angezeigte Tag wird beim
     // Takt gegen den heutigen geprueft (siehe paintCalendar), deshalb haelt
     // refs den gezeichneten Stand.
-    refs.calendar = buildCalendarView(body, paneIdx);
+    refs.calendar = buildCalendarView(body, paneIdx, yearFocus);
     rendered[paneIdx] = refs;
     return refs;
   }
@@ -375,7 +389,7 @@ function navButton(text, titleKey, onClick) {
 // Aenderung wird das Ergebnis auf den gueltigen Bereich geklemmt, sodass ein
 // ungueltiges Jahr gar nicht erst darstellbar ist (Oberflaechen-Leitlinie:
 // Fehleingaben konstruktiv unmoeglich statt abgewiesen).
-function buildYearEditor(getYear, onCommit, onCancel) {
+function buildYearEditor(getYear, onCommit, onCancel, remember) {
   const wrap = document.createElement('div');
   wrap.className = 'clock-cal-year';
   wrap.hidden = true;
@@ -391,6 +405,7 @@ function buildYearEditor(getYear, onCommit, onCancel) {
       cell.textContent = String(digits[idx]);
       cell.classList.toggle('active', idx === active);
     });
+    remember({ digits: [...digits], active });
   };
 
   const yearFromDigits = () => digits[0] * 1000 + digits[1] * 100 + digits[2] * 10 + digits[3];
@@ -466,6 +481,15 @@ function buildYearEditor(getYear, onCommit, onCancel) {
     },
     close() {
       wrap.hidden = true;
+      remember(null);
+    },
+    // 4T-002190: offene Eingabe nach einem Neubau wiederherstellen.
+    restore(saved, focus) {
+      digits = [...saved.digits];
+      active = saved.active;
+      wrap.hidden = false;
+      paint();
+      if (focus) cells[active].focus();
     },
     isOpen() {
       return !wrap.hidden;
@@ -473,7 +497,7 @@ function buildYearEditor(getYear, onCommit, onCancel) {
   };
 }
 
-function buildCalendarView(body, paneIdx) {
+function buildCalendarView(body, paneIdx, yearFocus) {
   const options = clockOptions;
   const wrap = document.createElement('div');
   wrap.className = 'clock-calendar';
@@ -517,6 +541,9 @@ function buildCalendarView(body, paneIdx) {
       view.render();
     },
     () => yearEditor.close(),
+    (saved) => {
+      yearEditByPane[paneIdx] = saved;
+    },
   );
   wrap.appendChild(yearEditor.el);
 
@@ -537,6 +564,8 @@ function buildCalendarView(body, paneIdx) {
   wrap.appendChild(today);
 
   body.appendChild(wrap);
+  // 4T-002190: erst im Dokument, sonst greift der Fokus nicht.
+  if (yearEditByPane[paneIdx]) yearEditor.restore(yearEditByPane[paneIdx], yearFocus);
 
   const view = {
     todayIso: msToIsoDate(Date.now()),

@@ -15,6 +15,7 @@ import { buildCalendarEditor } from './settings-calendar-editor.js';
 import { pruefeEpochenSchutz, sichereEpochenWerte } from './settings-calendar-epoch-guard.js';
 import {
   calSysDependents,
+  calSysFirstLeapTargetOutside,
   calSysIdFromName,
   calSysNormalizedDraft,
   calendarConfigPersistForm,
@@ -312,6 +313,16 @@ export function validateCalendarSection(draft) {
         return t('settings.calendar.error.derivedBase').replace('{name}', calName);
       }
       if (!calSysNormalizedDraft(calDraft, block)) {
+        // 4T-002204 (Epic 3E-000338): Liegt das Schalt-Ziel außerhalb der
+        // Positionen, nennt die Meldung diesen Grund statt nur «ungültig».
+        const outside = calSysFirstLeapTargetOutside(calDraft);
+        if (outside) {
+          return t('settings.calendar.error.leapTargetOutside')
+            .replace('{name}', calName)
+            .replace('{block}', blockName)
+            .replace('{target}', String(outside.target))
+            .replace('{count}', String(outside.count));
+        }
         return t('settings.calendar.error.calInvalid')
           .replace('{name}', calName)
           .replace('{block}', blockName);

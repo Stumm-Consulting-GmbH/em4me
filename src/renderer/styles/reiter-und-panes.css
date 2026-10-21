@@ -201,37 +201,63 @@
   border-color: var(--fg-muted);
 }
 
-/* 4T-000538 (Epic 3E-000098): Verwaltungs-Dialog der Arbeitsbereiche — Liste
-   mit Farbpunkt (gefuellt = offen, Ring = geschlossen), Meta-Zeile und
-   Zeilen-Aktionen. Farbe kommt pro Zeile als --workspace-color aus der
-   Acht-Farben-Palette. */
-.workspace-manager-content {
-  min-width: 480px;
+/* 4T-002227 (Epic 3E-000356): Seite «Arbeitsbereiche» — sie löst den
+   Verwaltungs-Dialog ab (4T-000538) und übernimmt seine Klassen der Zeile.
+   Gestalt nach Variante B «Zeilen» (Zeilen von My Extended Memory): Der Name
+   steht fett und ungekürzt über Pfad und Zustand, die Schaltflächen-Gruppe
+   rechts daneben. Farbe kommt pro Zeile als --workspace-color aus der
+   Acht-Farben-Palette.
+
+   **Schmale Seite ohne Medien-Abfrage.** Die Zeile ist eine umbrechende Reihe:
+   Der Kopf aus Farbpunkt und Text hat eine Grund-Breite (Text 320 Bildpunkte
+   wie im Entwurf) und wächst, die Gruppe steht mit margin-left: auto rechtsbündig. Reicht die Breite der Zeile
+   nicht für beide, rückt die Gruppe unter den Text, weiter rechtsbündig. Die
+   Regel hängt damit an der Breite der Seite, nicht des Fensters — eine
+   geöffnete Seitenleiste schmälert die Seite, nicht das Fenster. Reicht die
+   Seite nicht einmal für die Gruppe allein, bricht auch sie um, statt über den
+   Rand zu ragen. Name und Pfad brechen an beliebiger Stelle um, auch mitten in
+   einem langen Pfad-Bestandteil; nichts kürzt mit Auslassungspunkten. */
+.workspaces-page {
+  padding: 16px 20px;
+  max-width: 1080px;
+  font-size: 13px;
 }
-.workspace-manager-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-height: 50vh;
-  overflow-y: auto;
-  margin: 12px 0 4px;
+.workspaces-page-heading {
+  margin: 0;
+  font-size: 16px;
 }
-.workspace-manager-empty {
+.workspaces-page-note {
   color: var(--fg-muted);
-  padding: 8px 2px;
+  margin: 6px 0 14px;
+  max-width: 72ch;
+}
+/* Leere Liste und Aus-Zustand der Erweiterung: derselbe gestrichelte Rahmen
+   wie der Leer-Zustand von My Extended Memory. */
+.workspaces-page-placeholder,
+.workspaces-page-off {
+  margin: 18px 0 0;
+  padding: 14px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--fg-muted);
+  max-width: 68ch;
 }
 .workspace-row {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 6px;
+  padding: 8px 10px;
+  background: var(--bg-alt);
+  margin-bottom: 8px;
 }
 .workspace-dot {
   flex: 0 0 auto;
   width: 12px;
   height: 12px;
+  margin-top: 3px;
   border-radius: 50%;
   border: 3px solid var(--workspace-color);
   background: transparent;
@@ -239,19 +265,44 @@
 .workspace-dot.open {
   background: var(--workspace-color);
 }
-.workspace-row-text {
-  flex: 1;
+/* Kopf aus Farbpunkt und Text-Block; seine Grund-Breite ist die des Texts im
+   Entwurf (320 Bildpunkte) plus Punkt und Abstand. Er schrumpft bis auf die
+   Breite der Zeile, der Punkt bleibt dabei links neben dem Namen. */
+.workspace-row-head {
+  flex: 1 1 342px;
   min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.workspace-row-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 .workspace-row-name {
   font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+}
+.workspace-row-path {
+  color: var(--fg-muted);
+  overflow-wrap: anywhere;
 }
 .workspace-row-meta {
   color: var(--fg-muted);
   font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.workspace-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  max-width: 100%;
 }
 /* 4T-001753 (Epic 3E-000308): Die beiden Verschiebe-Knoepfe der Reihenfolge.
    Schmal, weil ihr Inhalt ein einzelnes Pfeil-Zeichen ist (die Beschriftung
@@ -262,16 +313,6 @@
   padding-left: 8px;
   padding-right: 8px;
   line-height: 1;
-}
-/* 4T-001737 (Epic 3E-000308): Zeile der Bereichs-Zuordnung mit dem vollen
-   Pfad. Sie darf die Zeile nicht breiter machen als der Name — deshalb
-   dieselbe Ellipsen-Behandlung; der ganze Pfad steht im title-Attribut. */
-.workspace-row-path {
-  color: var(--fg-muted);
-  font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* Drop-Indikator und Gruppen-Unterstreichung kombiniert (die spaetere
@@ -499,8 +540,14 @@
   border: 1px dashed var(--border);
   border-radius: 4px;
 }
+/* 4T-002213 (Epic 3E-000353), Nachbesserung 2026-10-18: Zeile und Knopf-Gruppe
+   brechen um, die Gruppe ist nie breiter als die Zeile. Im schmalen Fenster
+   rücken die Knöpfe unter die Beschriftung und untereinander; gemessen ragten
+   sie bei 640 px Fensterbreite in Sidebar 51 px und in Format-Toolbar 79 px
+   über. In gewöhnlicher Breite passt beides nebeneinander. */
 .sidebar-settings-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
@@ -517,8 +564,11 @@
 }
 .sidebar-settings-actions {
   display: inline-flex;
+  flex-wrap: wrap;
   gap: 4px;
   flex-shrink: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 .sidebar-settings-btn {
   min-width: 28px;

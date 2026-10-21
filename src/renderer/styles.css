@@ -412,9 +412,12 @@ body {
   width: 20px;
   flex-shrink: 0;
 }
+/* 4T-002213 (Epic 3E-000353), Nachbesserung 2026-10-18: Eine Spalte ist nie
+   breiter als die Liste; mit festen 220 px ragten die Zeilen bei 760 px
+   Fensterbreite 24 px über den Rand der Einstellungs-Seite. */
 .command-placement-hide-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
   gap: 4px 16px;
   margin: 4px 0 8px;
 }

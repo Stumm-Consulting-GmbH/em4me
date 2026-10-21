@@ -6,6 +6,7 @@ import { cycleAt, formatTuple, parseCanonical } from '../../../shared/calendar/c
 import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import {
+  calSysAxisUnsetPeer,
   calSysDateLevels,
   calSysDependents,
   calSysNextId,
@@ -13,13 +14,15 @@ import {
   calSysSyncSegs,
 } from './settings-calendar-model.js';
 import {
-  buildCalSysGroupEditors,
-  buildCalSysLevelEditor,
-  buildCalSysLevelSelect,
   buildCalSysNameCell,
   buildCalSysNumCell,
   buildCalSysPluralInput,
   buildCalSysSegRow,
+} from './settings-calendar-cells.js';
+import {
+  buildCalSysGroupEditors,
+  buildCalSysLevelEditor,
+  buildCalSysLevelSelect,
 } from './settings-calendar-parts.js';
 import { renderActiveSection } from './settings-mount.js';
 import { buildSettingsRow } from './settings-shared.js';
@@ -79,7 +82,18 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
   const previewOut = document.createElement('p');
   previewOut.className = 'settings-row-hint settings-calsys-preview';
   previewOut.id = `settings-calsys-preview-${calIdx}`;
+  // 4T-002191 (Epic 3E-000353): Hinweis unter Anker und Maßstab, solange beide
+  // leer sind und der Block eine weitere Zeitrechnung enthält (Entscheidung
+  // des Product Owners vom 2026-10-10, Weg A′). Er sagt, wo die Zeitrechnung
+  // auf der Block-Achse beginnt; die Rechnung bleibt unverändert.
+  const axisUnset = document.createElement('p');
+  axisUnset.className = 'settings-row-hint';
+  axisUnset.id = `settings-calsys-axis-unset-${calIdx}`;
   const refresh = () => {
+    const peer = calSysAxisUnsetPeer(block, calDraft);
+    axisUnset.hidden = peer === null;
+    axisUnset.textContent =
+      peer === null ? '' : t('settings.calendar.axisUnsetHint').replace('{name}', peer);
     const normalized = calSysNormalizedDraft(calDraft, block);
     hint.hidden = !!normalized;
     hint.textContent = normalized ? '' : t('settings.calendar.invalidHint');
@@ -371,16 +385,24 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
       dateLevels,
       refresh,
     );
-    const namesIn = document.createElement('input');
-    namesIn.type = 'text';
+    // 4T-002206 (Epic 3E-000338): mehrzeilig, ein Name je Zeile — ein Komma
+    // ist Teil des Namens. Die Höhe folgt der Zahl der Zeilen, damit jeder
+    // Name ohne Rollen sichtbar ist; mindestens zwei zeigen das Feld als
+    // mehrzeilig an.
+    const namesIn = document.createElement('textarea');
     namesIn.id = `settings-calsys-cycle-${calIdx}-${cycleIdx}-names`;
-    namesIn.className = 'settings-input';
+    namesIn.className = 'settings-input settings-calsys-cycle-names';
     namesIn.value = cycle.namesText;
+    const fitRows = () => (namesIn.rows = Math.max(2, namesIn.value.split('\n').length));
+    fitRows();
     namesIn.addEventListener('input', () => {
       cycle.namesText = namesIn.value;
+      fitRows();
       refresh();
     });
-    box.appendChild(buildSettingsRow('settings.calendar.cycleNames', namesIn));
+    const namesRow = buildSettingsRow('settings.calendar.cycleNames', namesIn);
+    namesRow.classList.add('settings-calsys-cycle-names-row');
+    box.appendChild(namesRow);
     group.appendChild(box);
   });
   const cycleAdd = document.createElement('button');
@@ -452,6 +474,7 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
     ),
   );
   group.appendChild(scaleRow);
+  group.appendChild(axisUnset);
 
   // Live-Vorschau (Beispiel-Wert, kanonisch eingegeben).
   const previewHeading = document.createElement('h4');

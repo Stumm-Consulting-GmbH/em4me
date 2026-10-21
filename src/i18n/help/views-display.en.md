@@ -51,7 +51,7 @@ The Slides view shows a presentation slide by slide, with a counter and paging; 
 
 ### Editing
 
-Edit mode arms the editor and works in the source, the split and the live view (default `Ctrl+E`, pencil in the status bar, View → Edit). Clicking the pencil in the pure reading view automatically switches to an editing view and activates the editor there. Which one is set by “View when switching to edit mode” (File → Settings… → Behaviour; Split, Source and Live are available, Split by default). If the view is already one of the three, it stays — there the pencil only arms the editor. What is available for formatting in edit mode is described by the pages [Editor context menu](context-menu.md) and [Format toolbar](toolbar.md).
+Edit mode arms the editor and works in the source, the split and the live view (default `Ctrl+E`, pencil in the status bar, View → Edit). Clicking the pencil in the pure reading view automatically switches to an editing view and activates the editor there. Which one is set by “View when switching to edit mode” (File → Settings… → Behaviour; Split, Source and Live are available, Split by default). If the view is already one of the three, it stays — there the pencil only arms the editor. The reading view itself shows edit mode switched off. A detour there does not change it, though: if it was on before, it is on again after returning to the source, the split or the live view; if it was off, it stays off. What is available for formatting in edit mode is described by the pages [Editor context menu](context-menu.md) and [Format toolbar](toolbar.md).
 
 ## Editor display
 

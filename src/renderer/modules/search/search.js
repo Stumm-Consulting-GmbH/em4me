@@ -33,6 +33,9 @@ import {
 // der Trefferliste. Der Import geht nur in diese Richtung — search-panel.js
 // kennt die Suchleiste nicht, sonst entstuende ein Modul-Zyklus.
 import { setzeErsetzenModus } from './search-panel.js';
+// 4T-002217 (Epic 3E-000355): Zeigen einer Fundstelle der Lese-Ansicht, ein
+// Blatt-Modul ohne Importe; search-jump.js nutzt denselben Weg.
+import { zeigeFundstelleInDerLeseAnsicht } from './search-fundstelle.js';
 // 4T-001893 (Epic 3E-000324): Suchraum der Mindmap-Ansicht. Das Modul ist ein
 // Blatt ohne Rückweg hierher; die Karte der Spalte reicht mindmap-pane.js ein.
 import {
@@ -436,7 +439,9 @@ export function setCurrentMatch(idx, scroll = true) {
   if (idx >= 0 && search.matches[idx]) {
     const m = search.matches[idx];
     m.classList.add('mdv-match-current');
-    if (scroll) m.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
+    // 4T-002217: über den gemeinsamen Weg, der einen eingeklappten Kasten um
+    // den Treffer vor dem Rollen öffnet (Begründung in search-fundstelle.js).
+    if (scroll) zeigeFundstelleInDerLeseAnsicht(m);
   }
   updateSearchCounter();
 }

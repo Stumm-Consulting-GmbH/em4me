@@ -66,16 +66,16 @@ Listes non ordonnées avec `-`, `*` ou `+`, ordonnées avec `1.`. Un sous-élém
 
 ### Modifier la structure
 
-En mode édition, le plan se modifie au clavier. La profondeur découle toujours de l'élément du dessus, vous n'avez pas à compter les espaces.
+En mode édition, le plan se modifie au clavier. La profondeur découle toujours de l'élément du dessus, vous n'avez pas à compter les espaces. Le déplacement, l'indentation avec les sous-éléments et « Sélectionner la branche » font partie de l'[extension interne](extensions.md) « Structure des listes » et du mode de travail **Avancé** : en mode **Débutant** elle est désactivée, en **Avancé** et **Complet** elle est activée.
 
-- `Alt+Flèche haut` et `Alt+Flèche bas` déplacent un élément avec tous ses sous-éléments. Le saut couvre la branche voisine entière et le niveau reste identique. Hors des listes, les raccourcis déplacent la seule ligne.
-- `Tab` et `Maj+Tab` indentent et désindentent l'élément avec ses sous-éléments. L'indentation ne fonctionne que là où un élément situé au-dessus peut accueillir l'élément courant.
+- `Alt+Flèche haut` et `Alt+Flèche bas` déplacent un élément avec tous ses sous-éléments. Le saut couvre la branche voisine entière et le niveau reste identique. Hors des listes et sans l'extension, les raccourcis déplacent la seule ligne.
+- `Tab` et `Maj+Tab` indentent et désindentent l'élément avec ses sous-éléments. L'indentation ne fonctionne que là où un élément situé au-dessus peut accueillir l'élément courant. Sans l'extension, les deux touches indentent et désindentent seulement l'élément avec ses lignes suivantes, à l'indentation là aussi jusqu'à l'endroit où commence le contenu de l'élément du dessus ; ses sous-éléments restent en place.
 - Si plusieurs lignes sont sélectionnées, les deux touches agissent exactement sur la plage sélectionnée.
 - La commande « Sélectionner la branche » marque un élément avec tout ce qui en dépend.
 
 ### Numérotation
 
-Les listes numérotées se renumérotent d'elles-mêmes dans le texte source dès que vous y travaillez. Le numéro de départ est conservé : une liste commençant à `3.` continue avec `4.`.
+Les listes numérotées se renumérotent d'elles-mêmes dans le texte source dès que vous y travaillez ; cela vaut dans chaque mode de travail et aussi dans le champ de note. Le numéro de départ est conservé : une liste commençant à `3.` continue avec `4.`. Si un numéro devient plus long ou plus court ce faisant, par exemple de `9.` à `10.` ou, en désindentant, de `1.` à nouveau à `11.`, les lignes suivantes de l'élément suivent et recommencent exactement sous son texte ; les lignes d'un bloc de code restent à leur place.
 
 Une ligne vide commence une nouvelle liste. Si elle naît de votre modification, la liste suivante repart à 1 ; si elle était déjà là, la seconde liste garde son propre numéro de départ. Le texte source et l'affichage montrent les mêmes numéros.
 
@@ -101,7 +101,7 @@ La touche Entrée poursuit une liste et ajoute une puce, un numéro consécutif 
 - À la fin d'une deuxième ligne d'un élément (voir « Deuxième ligne dans le même élément »), la touche Entrée commence un nouvel élément.
 - Sur un sous-élément vide, elle désindente d'un niveau, tâches numérotées comprises ; au niveau supérieur, elle termine la liste.
 
-Dans le champ de note du panneau « Notes », la touche Entrée agit de la même façon.
+La touche Entrée agit ainsi dans chaque mode de travail et de même dans le champ de note du panneau « Notes ».
 
 ### Deuxième ligne dans le même élément
 

@@ -192,6 +192,13 @@ export function setStatusToggleAugmenter(fn) {
 // das Folge-Symbol und liefert den Uebergang fuer Semantik-Hooks
 // (Erledigt-/Abgebrochen-Automatik und Wiederholung ab 4T-000498/4T-000499:
 // nur der Uebergang AUF einen DONE-Typ gilt als Abschluss).
+//
+// 4T-002194: Der Übergang trägt zusätzlich `ergaenzt` — wahr, sobald die
+// Transaktion mehr als das eine Status-Zeichen ändert (Automatik-Datum in
+// der Zeile, neue Zeile einer Wiederholung). Die Lese-Ansicht braucht genau
+// diese Auskunft: Das Kästchen setzt der Browser selbst, alles Übrige nur
+// ein Neuzeichnen. Die anderen Aufrufer werten allein die Wahrheit des
+// Rückgabewerts aus und bleiben unberührt.
 export function performStatusToggle(view, lineNumber) {
   if (!view || !Number.isFinite(lineNumber)) return null;
   if (lineNumber < 1 || lineNumber > view.state.doc.lines) return null;
@@ -211,13 +218,22 @@ export function performStatusToggle(view, lineNumber) {
     }
   }
   const changes = [];
+  // 4T-002194: Vergleichsmaß für `ergaenzt` ist die Zeile nach dem reinen
+  // Zeichen-Wechsel, nicht die Zeile vorher — sonst gälte schon jeder
+  // Augmenter-Rückgabewert als Ergänzung, auch einer, der nur das Zeichen
+  // tauscht.
+  const nurZeichen =
+    lineText.slice(0, toggle.offset) + toggle.toChar + lineText.slice(toggle.offset + 1);
+  let ergaenzt = false;
   if (augmented && typeof augmented.lineText === 'string' && augmented.lineText !== lineText) {
     changes.push({ from: lineObj.from, to: lineObj.to, insert: augmented.lineText });
+    ergaenzt = augmented.lineText !== nurZeichen;
   } else {
     const from = lineObj.from + toggle.offset;
     changes.push({ from, to: from + 1, insert: toggle.toChar });
   }
   if (augmented && augmented.insert && typeof augmented.insert.text === 'string') {
+    ergaenzt = true;
     if (augmented.insert.where === 'below') {
       changes.push({ from: lineObj.to, insert: `\n${augmented.insert.text}` });
     } else {
@@ -229,7 +245,7 @@ export function performStatusToggle(view, lineNumber) {
   // Ereignis (typisch dem initialen Doc-Set beim Oeffnen); ein Undo leerte
   // dann das ganze Dokument statt nur den Toggle zurueckzunehmen.
   view.dispatch({ changes, userEvent: 'input' });
-  return toggle;
+  return { ...toggle, ergaenzt };
 }
 
 // --- Derselbe Wechsel auf einem Text (4T-001850) -------------------------------------

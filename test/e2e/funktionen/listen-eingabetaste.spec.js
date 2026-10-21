@@ -10,6 +10,10 @@
 // LE-01: Fall 1 — der neue Punkt entsteht als erster Unterpunkt (4T-001862).
 // LE-02: G1 — die nummerierte Aufgabe setzt das Kästchen fort (4T-001977).
 // LE-03: Fall 1 im Notiz-Feld (4T-001862, E24).
+// LE-04: Listen-Ausstieg und selbsttätige Nummerierung im Arbeitsmodus
+//        «Einsteiger», also ohne die Erweiterung «Listen-Struktur», auch nach
+//        einem Neustart und einem Wechsel auf «Fortgeschritten» und zurück
+//        (4T-002209, AK6).
 //
 // Gelesen wird der Dokument-Text des Editors, nur lesend über das
 // Inhalts-Element (Muster `quelltext` in datentabelle.spec.js), weil die
@@ -24,6 +28,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { hauptSenden } = require('../helpers/haupt-zugriff');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 
 const FIXTURE = path.resolve(
   __dirname,
@@ -172,6 +177,126 @@ test.describe('LE-03: Eingabetaste im Notiz-Feld (4T-001862, AK16)', () => {
       await expect.poll(gespeichert).toBe(soll);
     } finally {
       await closeApp(app, userData, { force: true });
+      aufraeumen(workDir);
+    }
+  });
+});
+
+// 4T-002209 (Epic 3E-000334): Bedien-Orte des Arbeitsmodus (Muster AM-01 in
+// arbeitsmodi.spec.js).
+const SETTINGS_PAGE = `${PANE0} .pane-system .settings-page`;
+
+async function arbeitsmodusWaehlen(page, level) {
+  // Erst das Dokument: Öffnet es sich nach der Einstellungs-Seite, legt sich
+  // seine Ansicht über sie (Muster waitForTab in aenderungsmodus-ansicht.spec.js).
+  await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+  await oeffneEinstellungsSeite(page);
+  await page.locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="extensions"]`).click();
+  await expect(page.locator('#settings-extensions-list')).toBeVisible();
+  await page.locator(`#settings-extension-mode-${level}`).click();
+  await expect(page.locator(`#settings-extension-mode-${level}`)).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  // Erst mit dem Schließen der Seite ist der Stand angewandt und gespeichert.
+  await page.locator('#btn-settings-ok').click();
+  await expect(page.locator(SETTINGS_PAGE)).toBeHidden();
+}
+
+// Gespeicherter Schalter-Stand; tolerant gegen den Moment des Schreibens
+// (Muster readConfig in arbeitsmodi.spec.js).
+function ausgeschaltet(userData) {
+  try {
+    const config = JSON.parse(fs.readFileSync(path.join(userData, 'config.json'), 'utf8'));
+    return config.extensions?.disabled ?? [];
+  } catch {
+    return null;
+  }
+}
+
+// Quellcode-Ansicht, bearbeitbar. Nach dem Schließen der Einstellungs-Seite
+// kann das Dokument wieder im Lese-Zustand stehen; dann wird umgeschaltet.
+async function quellcodeBearbeitbar(app, page) {
+  await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+  await sendMenuChannel(app, 'menu:viewChange', 'source');
+  await expect(page.locator(SEL.editorContent0)).toBeVisible();
+  const huelle = page.locator(`${PANE0} .pane-source-editor`);
+  if (/read-only/.test((await huelle.getAttribute('class')) || '')) {
+    await page.locator(SEL.btnEdit).click();
+  }
+  await expect(huelle).not.toHaveClass(/read-only/);
+}
+
+const dokument = (page) => async () => (await dokText(page, SEL.editorContent0)) ?? '';
+
+// Eine Runde: Dokument leeren, Liste mit der Eingabetaste beenden, nummerierte
+// Liste schreiben, eine Zeile einfügen und wieder löschen. Gelöscht wird die
+// Zeile über eine Auswahl vom Ende der Zeile davor bis an ihr Ende und die
+// Rücktaste; die Nummern dahinter rücken nur über die selbsttätige
+// Nummerierung nach.
+async function grundfunktionenRunde(page) {
+  await page.locator(SEL.editorContent0).click();
+  await page.keyboard.press('Control+a');
+  await page.keyboard.press('Delete');
+  await expect.poll(dokument(page)).toBe('');
+
+  await page.keyboard.type('- erster Punkt');
+  await page.keyboard.press('Enter');
+  await page.keyboard.press('Enter');
+  await expect.poll(dokument(page)).toBe('- erster Punkt\n');
+
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('1. eins');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('zwei');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('drei');
+  await expect.poll(dokument(page)).toBe('- erster Punkt\n\n1. eins\n2. zwei\n3. drei');
+
+  await markeAnsEnde(page, SEL.editorContent0, 'eins');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('neu');
+  await expect.poll(dokument(page)).toBe('- erster Punkt\n\n1. eins\n2. neu\n3. zwei\n4. drei');
+
+  await markeAnsEnde(page, SEL.editorContent0, 'eins');
+  await page.keyboard.press('Shift+ArrowDown');
+  await page.keyboard.press('Backspace');
+  await expect.poll(dokument(page)).toBe('- erster Punkt\n\n1. eins\n2. zwei\n3. drei');
+}
+
+test.describe('LE-04: Grundfunktionen im Arbeitsmodus «Einsteiger» (4T-002209, AK6)', () => {
+  test('Ausstieg und Nummerierung ohne «Listen-Struktur», über Neustart und Modus-Wechsel', async () => {
+    const workDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-listen-eingabe-le04-'));
+    const workFile = path.join(workDir, 'arbeit.md');
+    fs.writeFileSync(workFile, '', 'utf8');
+    const erster = await launchApp({ args: [workFile] });
+    const userData = erster.userData;
+    try {
+      await arbeitsmodusWaehlen(erster.page, 'beginner');
+      await expect.poll(() => ausgeschaltet(userData)).toContain('outliner');
+      await quellcodeBearbeitbar(erster.app, erster.page);
+      await grundfunktionenRunde(erster.page);
+    } finally {
+      await closeApp(erster.app, null, { force: true });
+    }
+
+    // Neustart mit demselben Profil: der Modus hält, die Wirkung auch.
+    const zweiter = await launchApp({ userData, args: [workFile] });
+    try {
+      await expect.poll(() => ausgeschaltet(userData)).toContain('outliner');
+      await quellcodeBearbeitbar(zweiter.app, zweiter.page);
+      await grundfunktionenRunde(zweiter.page);
+
+      // Wechsel auf «Fortgeschritten» und zurück: der Schalter-Stand folgt
+      // allein dem Modus, die Wirkung bleibt dieselbe.
+      await arbeitsmodusWaehlen(zweiter.page, 'advanced');
+      await expect.poll(() => ausgeschaltet(userData)).not.toContain('outliner');
+      await arbeitsmodusWaehlen(zweiter.page, 'beginner');
+      await expect.poll(() => ausgeschaltet(userData)).toContain('outliner');
+      await quellcodeBearbeitbar(zweiter.app, zweiter.page);
+      await grundfunktionenRunde(zweiter.page);
+    } finally {
+      await closeApp(zweiter.app, userData, { force: true });
       aufraeumen(workDir);
     }
   });

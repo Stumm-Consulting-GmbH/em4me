@@ -20,7 +20,7 @@
   "extension.sidebar-collapse.name": "Réduire les colonnes de la barre latérale",
   "extension.sidebar-collapse.description": "Réduit la colonne gauche ou droite de la barre latérale de chaque colonne d'éditeur dans son ensemble puis la déploie à nouveau ; la visibilité de chaque panneau est conservée.",
   "extension.outliner.name": "Structure des listes",
-  "extension.outliner.description": "Déplacer les éléments de liste avec leurs sous-éléments et indenter ou désindenter des branches entières ; les listes numérotées sont ensuite renumérotées de façon continue.",
+  "extension.outliner.description": "Déplacer les éléments de liste avec leurs sous-éléments, indenter ou désindenter des branches entières et sélectionner une branche.",
   "extension.tasks.name": "Tâches",
   "extension.tasks.description": "Marqueurs de tâche pour échéances, priorité et récurrence, dates automatiques au changement de statut et filtre global.",
   "settings.extensions.title": "Extensions",

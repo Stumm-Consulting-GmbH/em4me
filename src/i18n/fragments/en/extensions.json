@@ -20,7 +20,7 @@
   "extension.sidebar-collapse.name": "Collapse sidebar columns",
   "extension.sidebar-collapse.description": "Collapses the left or right sidebar column of each editor column as a whole and expands it again; the visibility of the individual panels is preserved.",
   "extension.outliner.name": "List structure",
-  "extension.outliner.description": "Move list items together with their sub-items and indent or outdent whole branches; numbered lists are renumbered consecutively afterwards.",
+  "extension.outliner.description": "Move list items together with their sub-items, indent or outdent whole branches and select a subtree.",
   "extension.tasks.name": "Tasks",
   "extension.tasks.description": "Task markers for dates, priority and recurrence, automatic dates on status change and a global filter.",
   "settings.extensions.title": "Extensions",

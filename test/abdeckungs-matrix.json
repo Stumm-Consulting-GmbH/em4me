@@ -159,7 +159,7 @@
         "test/e2e/funktionen/bearbeitung-und-ansicht.spec.js",
         "test/e2e/funktionen/aenderungsmodus-ansicht.spec.js"
       ],
-      "hinweis": "FB-01 (Toggle via menu:toggleEdit-IPC), Klick-Weg in SM-04; AM-01 bis AM-04 (Ziel-Ansicht des Wechsels, 4T-001341)."
+      "hinweis": "FB-01 (Toggle via menu:toggleEdit-IPC), Klick-Weg in SM-04; AM-01 bis AM-04 (Ziel-Ansicht des Wechsels, 4T-001341); AM-05 und AM-06 (Bearbeiten-Zustand über einen Abstecher in die Lese-Ansicht, je Rückweg-Ziel und mit Gegenprobe, 4T-002193)."
     },
     {
       "key": "help.feature.save",
@@ -286,9 +286,10 @@
       "testart": "e2e",
       "tests": [
         "test/e2e/funktionen/einstellungen-seite.spec.js",
+        "test/e2e/funktionen/einstellungs-zeilen-umbruch.spec.js",
         "test/unit/renderer/settings-page.test.js"
       ],
-      "hinweis": "ES-01 bis ES-08 (Einstellungs-Seite: Tab, Einfach-Instanz, Guards, gruppierte Navigation ohne Bereich, Live-Vorschau, Anwenden/Abbrechen, Tab-Schliessen), ES-12 (Speicher-Status von Anwenden/OK, 4T-000554), ES-13 (Navigations-Gruppe Aktueller Bereich mit gebundenem Bereich, 4T-000555). Multi-Window-Snapshot-Merge (R5-08) bleibt manueller Pruefpfad. 4T-001885 (Epic 3E-000189): ES-13 belegt zusaetzlich, dass ein gewoehnlicher Bereich unveraendert bleibt (Block «Aktueller Bereich», acht Eintraege, kein Abschnitt der eigenen Angaben); die Unit-Faelle der Seite pruefen Block-Benennung nach geoeffnetem Buch bzw. Regal, die Stellung des neuen ersten Abschnitts und den Rueckfall beim Wegfall der Bindung."
+      "hinweis": "ES-01 bis ES-08 (Einstellungs-Seite: Tab, Einfach-Instanz, Guards, gruppierte Navigation ohne Bereich, Live-Vorschau, Anwenden/Abbrechen, Tab-Schliessen), ES-12 (Speicher-Status von Anwenden/OK, 4T-000554), ES-13 (Navigations-Gruppe Aktueller Bereich mit gebundenem Bereich, 4T-000555). Multi-Window-Snapshot-Merge (R5-08) bleibt manueller Pruefpfad. 4T-001885 (Epic 3E-000189): ES-13 belegt zusaetzlich, dass ein gewoehnlicher Bereich unveraendert bleibt (Block «Aktueller Bereich», acht Eintraege, kein Abschnitt der eigenen Angaben); die Unit-Faelle der Seite pruefen Block-Benennung nach geoeffnetem Buch bzw. Regal, die Stellung des neuen ersten Abschnitts und den Rueckfall beim Wegfall der Bindung. 4T-002213 (Epic 3E-000353): Einstellungs-Zeilen brechen im schmalen Fenster um, in Kalender-Systeme mit gregorianischer Vorlage ragt bei 900, 780, 700 und 640 px nichts über den Rand und die Inhaltsfläche rollt nicht waagrecht — EZ-01 in einstellungs-zeilen-umbruch.spec.js. Nachbesserung 2026-10-18: EZ-02 misst jede Seite der Einstellungs-Navigation bei 760 und 640 px (nichts über dem Rand, kein waagrechtes Rollen; die Tabelle der Task-Status rollt in ihrem eigenen Rahmen), EZ-03 sichert in gewöhnlicher Breite, dass Diagramm-Dialog und Kanban-Einstellungen ihre Zeilen anordnen wie vor dem Task."
     },
     {
       "key": "help.feature.focusMode",
@@ -961,8 +962,11 @@
       "key": "help.feature.customCalendars",
       "id": "F-131",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/kalender-systeme.spec.js"],
-      "hinweis": "4T-000544/4T-000545/4T-000546 (Epic 3E-000097): Einstellungs-Sektion, Picker und Wert-Syntax — KS-01 bis KS-04; 4T-000747 (Epic 3E-000138): abgeleitete Zeitrechnung anlegen, Hinweis am Bezug und Loeschsperre — KS-05; 4T-000748: Zeitspanne im Dokument, Kurzhinweis mit Bezugs-Datum und Picker in Bezugs-Notation — KS-06; Kalender-Arithmetik, Normalisierung und Badge-Darstellung zusaetzlich unit-getestet (calendar-core.test.js, Snapshot kalender-werte, extensions-aus); 4T-000943 (Epic 3E-000197): Strg-Klick-Zugang in der Zeile mit dem Cursor — KS-07; 4T-001863 (Epic 3E-000307): Mehrzahl der Einheiten-Namen im Abzeichen einer selbst definierten Zeitrechnung — KS-08; Auswahl der Form, Rückfall ohne Mehrzahl, Entwurfs-Weg und Pflege-Felder zusätzlich unit-getestet (calendar-core.test.js, renderer/kalender-namensformen.test.js).; 4T-002003 (Epic 3E-000307): Nachtragen einer Epoche — Rückfrage, Sichern der Werte beiderseits der neuen Grenze in Dokumenten und Notiz, Bericht und Lese-Ansicht mit demselben Tag — KS-09; Erkennung, neue Schreibweise je Wert, Zählung über den Bereich, Schreiben über die Ersetzen-Strecke und der Ablauf in den Einstellungen zusätzlich unit-getestet (kalender-epochen-schutz.test.js, kalender-epochen-scan.test.js, kalender-epochen-rueckfrage.test.js, renderer/kalender-epochen-schutz-pflege.test.js)."
+      "tests": [
+        "test/e2e/funktionen/kalender-systeme.spec.js",
+        "test/e2e/funktionen/kalender-eingabehilfe-escape.spec.js"
+      ],
+      "hinweis": "4T-000544/4T-000545/4T-000546 (Epic 3E-000097): Einstellungs-Sektion, Picker und Wert-Syntax — KS-01 bis KS-04; 4T-000747 (Epic 3E-000138): abgeleitete Zeitrechnung anlegen, Hinweis am Bezug und Loeschsperre — KS-05; 4T-000748: Zeitspanne im Dokument, Kurzhinweis mit Bezugs-Datum und Picker in Bezugs-Notation — KS-06; Kalender-Arithmetik, Normalisierung und Badge-Darstellung zusaetzlich unit-getestet (calendar-core.test.js, Snapshot kalender-werte, extensions-aus); 4T-000943 (Epic 3E-000197): Strg-Klick-Zugang in der Zeile mit dem Cursor — KS-07; 4T-001863 (Epic 3E-000307): Mehrzahl der Einheiten-Namen im Abzeichen einer selbst definierten Zeitrechnung — KS-08; Auswahl der Form, Rückfall ohne Mehrzahl, Entwurfs-Weg und Pflege-Felder zusätzlich unit-getestet (calendar-core.test.js, renderer/kalender-namensformen.test.js).; 4T-002003 (Epic 3E-000307): Nachtragen einer Epoche — Rückfrage, Sichern der Werte beiderseits der neuen Grenze in Dokumenten und Notiz, Bericht und Lese-Ansicht mit demselben Tag — KS-09; Erkennung, neue Schreibweise je Wert, Zählung über den Bereich, Schreiben über die Ersetzen-Strecke und der Ablauf in den Einstellungen zusätzlich unit-getestet (kalender-epochen-schutz.test.js, kalender-epochen-scan.test.js, kalender-epochen-rueckfrage.test.js, renderer/kalender-epochen-schutz-pflege.test.js). 4T-002212 (Epic 3E-000353): Escape schließt die Eingabe-Hilfe nach jedem Neuaufbau (Entsprechung, Block-, Kalender- und Epochen-Wechsel, Navigation), der Wert bleibt — KE-01 in kalender-eingabehilfe-escape.spec.js; Fokus nach dem Klick auf eine Entsprechung und im Zeit-Segment zusätzlich unit-getestet (renderer/kalender-picker-fokus.test.js). 4T-002191 (Epic 3E-000353): Die Text-Schreibweise liest jeden Teil bis zur sicheren Ganzzahl-Grenze (gewöhnlich und abgeleitet, Datum und Uhrzeit), die Vorschau der Pflege zeigt ein sechzehnstelliges Anker-Jahr, und eine neu angelegte Zeitrechnung mit leeren Anker- und Maßstab-Feldern neben einer weiteren zeigt den Hinweis auf den gemeinsamen Beginn, im Aus-Zustand der Erweiterung entfällt er — unit-getestet (renderer/kalender-text-ziffern-grenze.test.js, renderer/kalender-pflege-anker-hinweis.test.js)."
     },
     {
       "key": "help.feature.derivedCalendars",
@@ -1002,7 +1006,7 @@
       "id": "F-112",
       "testart": "e2e",
       "tests": ["test/e2e/funktionen/aufgaben.spec.js"],
-      "hinweis": "4T-000500 (Epic 3E-000090): Task-Marker fuer Termine, Prioritaet und Wiederholung sowie Automatik-Daten — AU-01/AU-02/AU-04/AU-05."
+      "hinweis": "4T-000500 (Epic 3E-000090): Task-Marker fuer Termine, Prioritaet und Wiederholung sowie Automatik-Daten — AU-01/AU-02/AU-04/AU-05; AU-06 bis AU-08: Abhaken in «Gerendert» ohne Ansichts-Wechsel zeigt Erledigt-Abzeichen und Wiederholungs-Zeile sofort, hält die Roll-Lage, Aus-Zustand der Erweiterung (4T-002194)."
     },
     {
       "key": "help.feature.taskGlobalFilter",
@@ -2071,7 +2075,7 @@
         "test/unit/render/snapshots.test.js"
       ],
       "sichtbarkeit": ["test/e2e/funktionen/zeilenumbruch.spec.js"],
-      "hinweis": "4T-001716 (Epic 3E-000301): Kommando list.lineBreak (Vorgabe Umschalt+Eingabe, umbelegbar) — Rückstrich und eingerückte Folgezeile im Listenpunkt, Kopf-Erkennung parseListItemHead und Rückstrich-Erkennung hardBreakStart im Struktur-Kern, Einzug der nummerierten Aufgabe, Aufgaben-Marker vor dem Rückstrich, Aufräumen der leer gebliebenen Folgezeile, Einrücken mit Folgezeile ohne Listen-Struktur. Die Ablauf-Fälle ZU-02 bis ZU-06 prüfen Kürzel, Lage der Folgezeile in Quellcode- und Live-Ansicht und den verborgenen Rückstrich. Dazu die gesetzte Darstellung: Umbruch und Folgezeile im selben Listenpunkt, Termin-Marker einer Aufgabe mit Folgezeile (render/snapshots.test.js)."
+      "hinweis": "4T-001716 (Epic 3E-000301): Kommando list.lineBreak (Vorgabe Umschalt+Eingabe, umbelegbar) — Rückstrich und eingerückte Folgezeile im Listenpunkt, Kopf-Erkennung parseListItemHead und Rückstrich-Erkennung hardBreakStart im Struktur-Kern, Einzug der nummerierten Aufgabe, Aufgaben-Marker vor dem Rückstrich, Aufräumen der leer gebliebenen Folgezeile, Einrücken mit Folgezeile ohne Listen-Struktur. Die Ablauf-Fälle ZU-02 bis ZU-06 prüfen Kürzel, Lage der Folgezeile in Quellcode- und Live-Ansicht und den verborgenen Rückstrich. Dazu die gesetzte Darstellung: Umbruch und Folgezeile im selben Listenpunkt, Termin-Marker einer Aufgabe mit Folgezeile (render/snapshots.test.js). 4T-002326 (Epic 3E-000353): Ohne Listen-Struktur nimmt das zeilenweise Ein- und Ausrücken einen eingerückten Code-Block des Punkts vollständig mit, samt Leerzeilen, beide Zaun-Zeichen, Block ohne schließende Zaun-Zeile und Sperre für Code oberhalb des Punkts (listen-zeilenumbruch.test.js)."
     },
     {
       "key": "help.shortcut.insertFootnote",
@@ -3255,8 +3259,11 @@
       "key": "help.shortcut.workspaceManage",
       "id": "S-089",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/arbeitsbereiche.spec.js"],
-      "hinweis": "4T-000538 (Epic 3E-000098): Kommando ohne Default-Kuerzel (Verwaltungs-Dialog auf workspace:list/rename/setColor/delete) — Ablage-Wirkung ueber WS-04/WS-05 abgedeckt."
+      "tests": [
+        "test/e2e/funktionen/arbeitsbereiche.spec.js",
+        "test/e2e/funktionen/arbeitsbereiche-seite.spec.js"
+      ],
+      "hinweis": "4T-000538 (Epic 3E-000098): Kommando ohne Default-Kuerzel — Ablage-Wirkung ueber WS-04/WS-05 abgedeckt. Seit 4T-002227 (Epic 3E-000356) öffnet es die Seite «Arbeitsbereiche» statt des Verwaltungs-Dialogs: Öffnen über Menü und Kommando, zweites Öffnen und keine Rückkehr nach dem Neustart in WS-09, Aktionen und Reihenfolge in WS-06 bis WS-08 und WS-11, Aus-Zustand bei offener Seite in WS-05; Öffner, Tor und Neuzeichnen zusätzlich unit-getestet (test/unit/renderer/workspaces-page.test.js)."
     },
     {
       "key": "help.shortcut.insertCalendarValue",

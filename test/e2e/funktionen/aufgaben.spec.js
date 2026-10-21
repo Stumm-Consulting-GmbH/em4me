@@ -4,6 +4,8 @@
 // Matrix-Eintrag folgt erst mit den help.feature-Keys in 4T-000500.
 'use strict';
 
+const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
@@ -137,6 +139,130 @@ test.describe('AU-04: Task-Marker-Badges im Live-Modus', () => {
       await page.locator(SEL.viewBtn('live')).click();
       const badge = page.locator(`${SEL.paneSource0} .cm-live-task-marker-badge`);
       await expect(badge.first()).toBeVisible({ timeout: 15000 });
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+// 4T-002194 (Epic 3E-000353): Abhaken in «Gerendert» ohne Ansichts-Wechsel.
+// AU-02 und AU-05 wechseln nach dem Klick in «Geteilt» und zeichnen damit neu;
+// genau deshalb blieb verborgen, dass die Lese-Ansicht nach dem Klick den
+// Stand von vorher zeigte (Abnahme-Bericht 3E-000301, Befund 4): Das Kästchen
+// setzt der Browser selbst, das Erledigt-Datum und die neue Zeile einer
+// Wiederholung entstehen nur im Text. Die Fälle bleiben deshalb in «Gerendert»
+// und lesen den Text über den versteckten Editor, ohne ihn zu zeigen.
+async function quelltext(page) {
+  return page.locator(SEL.editorContent0).evaluate((el) => el.textContent);
+}
+
+test.describe('AU-06: Erledigt-Abzeichen sofort in «Gerendert» (4T-002194)', () => {
+  test('Abhaken zeigt das Abzeichen ohne Ansichts-Wechsel, Zurücknehmen nimmt es weg', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    try {
+      await waitForTab(page);
+      const body = page.locator(SEL.markdownBody0);
+      const zeile = body.locator('li', { hasText: 'Offene Aufgabe' });
+      await expect(zeile.locator('.task-marker-done')).toHaveCount(0);
+      await zeile.locator('input.task-list-item-checkbox').click();
+      await expect(zeile.locator('.task-marker-done')).toBeVisible();
+      await expect(zeile.locator('.task-marker-done')).toContainText(todayIso());
+      await expect(zeile.locator('input.task-list-item-checkbox')).toBeChecked();
+      // Zurücknehmen: Die Automatik entfernt das Datum, das Abzeichen geht mit.
+      await zeile.locator('input.task-list-item-checkbox').click();
+      await expect(zeile.locator('.task-marker-done')).toHaveCount(0);
+      await expect(zeile.locator('input.task-list-item-checkbox')).not.toBeChecked();
+      await expect(zeile.locator('.task-marker-due')).toBeVisible();
+      await expect(page.locator(SEL.content0)).toHaveClass(/view-rendered/);
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+test.describe('AU-07: Wiederholung sofort in «Gerendert» (4T-002194)', () => {
+  test('Abhaken der 🔁-Zeile zeigt die neue Zeile ohne Ansichts-Wechsel', async () => {
+    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+    try {
+      await waitForTab(page);
+      const body = page.locator(SEL.markdownBody0);
+      const zeilen = body.locator('li', { hasText: 'Wiederkehrende Aufgabe' });
+      await expect(zeilen).toHaveCount(1);
+      await zeilen.first().locator('input.task-list-item-checkbox').click();
+      // Standard-Einfügeposition oberhalb: neue offene Zeile, darunter die erledigte.
+      await expect(zeilen).toHaveCount(2);
+      await expect(zeilen.nth(0)).toContainText('2099-06-08');
+      await expect(zeilen.nth(0).locator('input.task-list-item-checkbox')).not.toBeChecked();
+      await expect(zeilen.nth(1).locator('.task-marker-done')).toBeVisible();
+      await expect(zeilen.nth(1).locator('input.task-list-item-checkbox')).toBeChecked();
+    } finally {
+      await closeApp(app, userData, { force: true });
+    }
+  });
+});
+
+test.describe('AU-08: Roll-Lage und Aus-Zustand beim Abhaken in «Gerendert» (4T-002194)', () => {
+  test('das Neuzeichnen hält die Roll-Lage der Lese-Ansicht', async () => {
+    // Eigenes, langes Dokument: Die Aufgabe steht am Ende, die Lese-Ansicht
+    // muss dafür gerollt sein, und das Neuzeichnen darf sie nicht zurücksetzen.
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-4t2194-'));
+    const datei = path.join(dir, 'lang.md');
+    const fueller = Array.from({ length: 80 }, (_, i) => `Absatz ${i + 1} als Füllung.`);
+    fs.writeFileSync(
+      datei,
+      [
+        '# Lang',
+        '',
+        ...fueller.flatMap((z) => [z, '']),
+        '- [ ] Angebot abgeben 📅 2099-03-31',
+        '',
+      ].join('\n'),
+      'utf8',
+    );
+    const { app, page, userData } = await launchApp({ args: [datei] });
+    try {
+      await waitForTab(page);
+      const zeile = page.locator(SEL.markdownBody0).locator('li', { hasText: 'Angebot abgeben' });
+      await expect(zeile.locator('.task-marker-due')).toBeVisible();
+      // Ans Ende rollen und auf das scroll-Ereignis warten: Erst dessen Hörer
+      // legt die Roll-Lage ab, aus der das Neuzeichnen sie wiederherstellt.
+      const lage = await page.locator(SEL.paneRendered0).evaluate(
+        (el) =>
+          new Promise((fertig) => {
+            el.addEventListener('scroll', () => fertig(el.scrollTop), { once: true });
+            el.scrollTop = el.scrollHeight;
+          }),
+      );
+      expect(lage).toBeGreaterThan(0);
+      await zeile.locator('input.task-list-item-checkbox').click();
+      await expect(zeile.locator('.task-marker-done')).toBeVisible();
+      await expect
+        .poll(() => page.locator(SEL.paneRendered0).evaluate((el) => el.scrollTop))
+        .toBe(lage);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('im Aus-Zustand der Erweiterung «Aufgaben» bleiben die Marker Text', async () => {
+    const { app, page, userData } = await launchApp({
+      args: [FIXTURE],
+      settings: { language: 'de', extensions: { disabled: ['tasks'] } },
+    });
+    try {
+      await waitForTab(page);
+      const zeile = page.locator(SEL.markdownBody0).locator('li', { hasText: 'Offene Aufgabe' });
+      await zeile.locator('input.task-list-item-checkbox').click();
+      // Erwarteter Zustand: Kästchen im Text gesetzt, ohne Erledigt-Datum.
+      await expect
+        .poll(() => quelltext(page))
+        .toContain('- [x] Offene Aufgabe faellig 📅 2099-12-31');
+      expect(await quelltext(page)).not.toContain('✅');
+      await expect(zeile).toContainText('📅 2099-12-31');
+      await expect(zeile.locator('.task-marker-due')).toHaveCount(0);
+      await expect(zeile.locator('.task-marker-done')).toHaveCount(0);
+      await expect(zeile.locator('input.task-list-item-checkbox')).toBeChecked();
     } finally {
       await closeApp(app, userData, { force: true });
     }

@@ -262,10 +262,20 @@
 
 /* 4T-000428 (Epic 3E-000080): Einstellungs-Bereich Vorlagen — Ordner-Zeile
    (Eingabe plus Auswahl-Button) und Regel-Tabelle (Ordner → Vorlage). */
+/* 4T-002213, Nachbesserung 2026-10-18: Die Zeile bleibt in ihrem Rahmen; im
+   schmalen Fenster rückt der Knopf unter das Feld (gemessen standen
+   «Durchsuchen…» und «Wählen…» bei 760 px 13 und 5 px über). Die Grund-Breite
+   von 160 px ist dieselbe wie für ein Feld in der Einstellungs-Zeile: Ohne sie
+   blieb die Ordner-Zeile neben der Beschriftung stehen, schrumpfte dort auf den
+   Rest und der Knopf ragte über sie hinaus; mit ihr rückt sie wie ein Feld
+   unter die Beschriftung. */
 .settings-templates-folder-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  flex: 1;
+  flex: 1 1 160px;
+  min-width: 0;
+  max-width: 100%;
 }
 .settings-templates-folder {
   flex: 1;
@@ -337,8 +347,11 @@
 }
 /* 4T-000436 (Epic 3E-000081): Einstellungs-Bereich Journale — Regal-Zeilen und
    Journal-Formular-Gruppen mit Pfad-Vorschau und Schema-Warnung. */
+/* 4T-002213, Nachbesserung 2026-10-18: Die Regal-Zeile bricht um wie die Köpfe
+   der Kalender-Pflege; «Öffnen» rückt im schmalen Fenster in die nächste Zeile. */
 .settings-journals-shelf {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   margin: 0 0 6px;
@@ -643,7 +656,12 @@
 }
 .settings-calsys-cycle-head > .settings-calsys-level-name,
 .settings-calsys-group-row > .settings-calsys-level-name {
-  min-width: max-content;
+  /* 4T-002213: keine Mindest-Breite mehr, weil die Beschriftung seither
+     umbricht (Regel weiter unten) und die Zelle so ihre Nachbarin nicht mehr
+     überdecken kann; mit max-content passte die Zelle nicht in die schmalste
+     Inhaltsfläche. Die Zeile bricht weiterhin zuerst um, geschrumpft wird nur
+     eine Zelle, die allein in ihrer Zeile steht. */
+  min-width: 0;
 }
 .settings-calsys-level-title {
   font-size: 12px;
@@ -705,10 +723,64 @@
 .settings-calsys-segrow {
   align-items: flex-start;
 }
+/* 4T-002206 (Epic 3E-000338): Positions-Namen eines Zyklus mehrzeilig, ein
+   Name je Zeile. Beschriftung oben wie an der Segment-Zeile, sonst stünde sie
+   neben einem hohen Feld in dessen Mitte; die Größe nur in der Höhe
+   änderbar, damit das Feld nicht über die Zeile hinaus wächst. */
+.settings-calsys-cycle-names-row {
+  align-items: flex-start;
+}
+.settings-calsys-cycle-names {
+  resize: vertical;
+}
 .settings-calsys-segcells {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+/* 4T-002213 (Epic 3E-000353): Die Kalender-Pflege bleibt bis zur
+   Mindest-Breite des Programmfensters im Rahmen. Köpfe und Knopf-Gruppen
+   brechen um wie die Zeilen; Zellen, Datums-Felder und ihre Felder dürfen
+   unter ihre Grund-Breite schrumpfen, sobald sie allein in einer Zeile stehen,
+   und Beschriftungen und Knopf-Texte brechen dann um. Gemessen standen bei
+   900 px Fensterbreite die Datums-Zellen über, weil die Zellen selbst nicht
+   schrumpfen durften, obwohl ihr Behälter umbrechen darf. */
+.settings-journals-journal-head,
+.settings-calsys-detail-buttons,
+.settings-calsys-level-head,
+.settings-calsys-level-buttons,
+.settings-calsys-table-row {
+  flex-wrap: wrap;
+}
+.settings-journals-journal-head {
+  gap: 4px 8px;
+}
+.settings-journals-journal-title,
+.settings-calsys-level-title,
+.settings-calsys-numcell > span {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.settings-calsys-numcell,
+.settings-calsys-segcells,
+.settings-calsys-level-name {
+  min-width: 0;
+  max-width: 100%;
+}
+.settings-section-content :is(input, select, textarea) {
+  max-width: 100%;
+}
+/* Lange Wörter in Überschriften, Hinweisen und Beschriftungen brechen in der
+   schmalsten Inhaltsfläche innerhalb des Wortes um; ohne das rollte die
+   Fläche bei 640 px Fensterbreite noch um 21 px, ohne dass ein Element-Kasten
+   über den Rand ragte (gemessen 2026-10-17). */
+.settings-section-content {
+  overflow-wrap: anywhere;
+}
+.settings-section-content .btn {
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 .settings-calsys-invalid {
   color: var(--error, #c0392b);
@@ -724,9 +796,14 @@
   letter-spacing: 0.04em;
   color: var(--fg-muted);
 }
+/* 4T-002213 (Epic 3E-000353), Nachbesserung 2026-10-18: Flex mit Umbruch statt
+   Grid. In gewöhnlicher Breite dieselbe Anordnung (Beschriftung links füllend,
+   Tasten rechtsbündig mit mindestens 11em, Knöpfe rechts); im schmalen Fenster
+   rücken die Knöpfe und bei Bedarf die Tasten in die nächste Zeile. Mit den
+   festen Grid-Spalten ragten die Knöpfe bei 760 px Fensterbreite 38 px über. */
 .hotkey-row {
-  display: grid;
-  grid-template-columns: 1fr minmax(11em, auto) auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
   padding: 2px 4px;
@@ -740,14 +817,20 @@
   background: var(--bg-alt);
 }
 .hotkey-label {
+  flex: 1 1 0;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+/* Die Tasten-Kombination bricht zwischen den Tasten um, nie in einer Taste
+   (die kbd-Elemente behalten nowrap). */
 .hotkey-binding {
+  flex: 0 1 auto;
+  min-width: min(11em, 100%);
   font-family: var(--font-mono);
   font-size: 0.92em;
-  white-space: nowrap;
+  white-space: normal;
   text-align: right;
 }
 .hotkey-binding kbd {
@@ -763,7 +846,13 @@
   color: var(--accent);
   font-style: italic;
 }
+/* Die Knöpfe dürfen schrumpfen und untereinander rücken, wenn die Zeile
+   schmaler ist als beide nebeneinander (Inhaltsfläche 92 px bei 640 px
+   Fensterbreite); in gewöhnlicher Breite füllt die Beschriftung den Platz. */
 .hotkey-actions {
+  flex: 0 1 auto;
+  min-width: 0;
+  flex-wrap: wrap;
   display: flex;
   gap: 4px;
   justify-content: flex-end;
@@ -774,9 +863,9 @@
 .hotkey-reset[disabled] {
   opacity: 0.4;
 }
-/* Konflikt-/Hinweis-Box unterhalb der Zeile (volle Breite im Grid). */
+/* Konflikt-/Hinweis-Box unterhalb der Zeile (volle Breite der Zeile). */
 .hotkey-conflict {
-  grid-column: 1 / -1;
+  flex-basis: 100%;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;

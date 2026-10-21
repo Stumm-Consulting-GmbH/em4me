@@ -66,16 +66,16 @@ Ungeordnete Listen mit `-`, `*` oder `+`, geordnete mit `1.`. Ein Unterpunkt geh
 
 ### Struktur bearbeiten
 
-Im Bearbeitungs-Modus lässt sich die Gliederung mit der Tastatur ändern. Die Tiefe ergibt sich dabei immer aus dem Punkt darüber, du musst sie nicht selbst abzählen.
+Im Bearbeitungs-Modus lässt sich die Gliederung mit der Tastatur ändern. Die Tiefe ergibt sich dabei immer aus dem Punkt darüber, du musst sie nicht selbst abzählen. Verschieben, das Einrücken samt Unterpunkten und „Teilbaum auswählen“ gehören zur [internen Erweiterung](extensions.md) „Listen-Struktur“ und zum Arbeitsmodus **Fortgeschritten**: Im Modus **Einsteiger** ist sie aus, in **Fortgeschritten** und **Voll** an.
 
-- `Alt+Pfeil auf` und `Alt+Pfeil ab` verschieben einen Punkt samt aller Unterpunkte. Der Sprung geht über den ganzen Nachbar-Ast, die Ebene bleibt gleich. Außerhalb von Listen bewegen die Kürzel die einzelne Zeile.
-- `Tab` und `Umschalt+Tab` rücken den Punkt samt Unterpunkten ein und aus. Eingerückt wird nur dort, wo ein Punkt darüber steht, unter den der eigene rutschen kann.
+- `Alt+Pfeil auf` und `Alt+Pfeil ab` verschieben einen Punkt samt aller Unterpunkte. Der Sprung geht über den ganzen Nachbar-Ast, die Ebene bleibt gleich. Außerhalb von Listen und ohne die Erweiterung bewegen die Kürzel die einzelne Zeile.
+- `Tab` und `Umschalt+Tab` rücken den Punkt samt Unterpunkten ein und aus. Eingerückt wird nur dort, wo ein Punkt darüber steht, unter den der eigene rutschen kann. Ohne die Erweiterung rücken beide Tasten allein den Punkt mit seinen weiteren Zeilen ein und aus, beim Einrücken ebenfalls bis dorthin, wo der Inhalt des Punkts darüber beginnt; seine Unterpunkte bleiben, wo sie sind.
 - Sind mehrere Zeilen markiert, wirken beide Tasten auf genau den markierten Bereich.
 - Das Kommando „Teilbaum auswählen" markiert einen Punkt mit allem, was darunter hängt.
 
 ### Nummerierung
 
-Nummerierte Listen zählen im Quelltext von selbst durch, sobald du in ihnen arbeitest. Die Startnummer bleibt erhalten: Eine bei `3.` beginnende Liste zählt mit `4.` weiter.
+Nummerierte Listen zählen im Quelltext von selbst durch, sobald du in ihnen arbeitest; das gilt in jedem Arbeitsmodus und auch im Notiz-Feld. Die Startnummer bleibt erhalten: Eine bei `3.` beginnende Liste zählt mit `4.` weiter. Wird eine Nummer dabei länger oder kürzer, etwa von `9.` zu `10.` oder beim Ausrücken von `1.` zurück zu `11.`, rücken die weiteren Zeilen des Punkts mit und beginnen wieder genau unter seinem Text; Zeilen eines Code-Blocks bleiben, wo sie sind.
 
 Eine Leerzeile beginnt eine neue Liste. Entsteht sie durch deine Bearbeitung, zählt die Liste dahinter wieder ab 1; war sie schon vorher da, behält die zweite Liste ihre eigene Startnummer. Quelltext und Anzeige zeigen dieselben Nummern.
 
@@ -101,7 +101,7 @@ Die Eingabetaste setzt eine Liste fort und ergänzt Aufzählungszeichen, fortlau
 - Am Ende einer zweiten Zeile im Punkt (siehe „Zweite Zeile im selben Punkt“) beginnt die Eingabetaste einen neuen Punkt.
 - Auf einem leeren Unterpunkt rückt sie eine Ebene aus, auch bei nummerierten Aufgaben; auf der obersten Ebene beendet sie die Liste.
 
-Im Notiz-Feld des Seitenbereichs „Notizen“ wirkt die Eingabetaste ebenso.
+Die Eingabetaste wirkt so in jedem Arbeitsmodus und ebenso im Notiz-Feld des Seitenbereichs „Notizen“.
 
 ### Zweite Zeile im selben Punkt
 

@@ -20,7 +20,7 @@
   "extension.sidebar-collapse.name": "Sidebar-Spalten einklappen",
   "extension.sidebar-collapse.description": "Klappt die linke oder rechte Sidebar-Spalte je Editor-Spalte als Ganzes ein und wieder aus; die Sichtbarkeit der einzelnen Panels bleibt dabei erhalten.",
   "extension.outliner.name": "Listen-Struktur",
-  "extension.outliner.description": "Listenpunkte samt Unterpunkten verschieben sowie ganze Äste ein- und ausrücken; nummerierte Listen werden danach fortlaufend neu nummeriert.",
+  "extension.outliner.description": "Listenpunkte samt Unterpunkten verschieben, ganze Äste ein- und ausrücken und einen Teilbaum auswählen.",
   "extension.tasks.name": "Aufgaben",
   "extension.tasks.description": "Task-Marker für Termine, Priorität und Wiederholung, Automatik-Daten beim Statuswechsel und Global Filter.",
   "settings.extensions.title": "Erweiterungen",

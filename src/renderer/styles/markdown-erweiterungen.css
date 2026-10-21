@@ -442,6 +442,20 @@
   align-items: center;
   margin: 4px 0;
 }
+/* 4T-002213 (Epic 3E-000353), Nachbesserung 2026-10-18: Die Tabelle rollt im
+   schmalen Fenster in ihrem eigenen Rahmen; Kopf und Zeilen rechnen bei jeder
+   Breite mit derselben Mindest-Breite, damit ihre Spalten übereinander stehen.
+   In rem statt em, weil der Kopf eine kleinere Schrift hat und em dort eine
+   schmalere Zeile ergäbe; 40rem sind bei der Grundschrift von 14 px 560 px.
+   Gemessen ragten bei 760 px Fensterbreite Kopf, Felder und Knopf 237 px über. */
+.task-states-table {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.task-states-head,
+.task-state-row {
+  min-width: 40rem;
+}
 .task-states-head {
   font-size: 12px;
   color: var(--fg-muted);

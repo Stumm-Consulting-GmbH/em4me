@@ -34,6 +34,8 @@
   "statusbar.viewToggleYamlError": "Frontmatter is invalid, view switch cannot be written",
   "statusbar.collapse.left": "More status bar items (left)",
   "statusbar.collapse.right": "More status bar items (right)",
+  "statusbar.group.commands": "Commands",
+  "statusbar.group.views": "View",
   "settings.statusbar.title": "Status bar",
   "settings.statusbar.collapseMode": "Collapsing",
   "settings.statusbar.collapseMode.auto": "Automatically when space is tight",

@@ -124,6 +124,9 @@ function headingNumbersPlugin(mdInstance, options) {
 // fort, die Anzeige zählt über sie hinweg durch. Hier soll sie trennen, damit
 // Quelltext und Anzeige dieselbe Nummer zeigen — der Editor behandelt die
 // Leerzeile beim Verschieben und Nummerieren ebenfalls als Listen-Grenze.
+// Seit 4T-002209 (Epic 3E-000334) registriert die Pipeline das Plugin in
+// jedem Arbeitsmodus, weil die Nummerierung im Editor nicht mehr an der
+// Erweiterung «Listen-Struktur» hängt.
 //
 // Umgesetzt über das HTML-Attribut `value` am ersten Punkt nach einer
 // Leerzeile: Die Liste bleibt ein einziges `ol`, die Zählung beginnt dort

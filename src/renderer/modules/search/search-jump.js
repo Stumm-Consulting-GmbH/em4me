@@ -15,6 +15,7 @@ import { activeTab, getPaneEls, state } from '../app/app-state.js';
 import { openManualPage } from '../manual.js';
 import { buildRegex, clearSearchHighlights, highlightInContainer, search } from './search.js';
 import { aktuellerRaumTreffer, indexInGruppe, raumIndex } from './search-run.js';
+import { zeigeFundstelleInDerLeseAnsicht } from './search-fundstelle.js';
 
 // Wartet, bis der gerenderte Inhalt der ZIEL-Seite im DOM steht. Das Öffnen
 // eines Handbuch-Reiters stößt das Rendern an, ohne es abzuwarten.
@@ -65,9 +66,13 @@ function hebeHervorUndScrolle(els, nummerInGruppe, regex) {
 // zeigen. Gemessen auf jeder Handbuch-Seite (mitgeliefert und erzeugt, offen
 // oder nicht) und beim Sprung in eine Bereichs-Datei in der Ansicht
 // «Gerendert»; aufgefallen war es auf der langen Seite «Funktionen».
+//
+// 4T-002217: Das Rollen selbst läuft über den gemeinsamen Weg der Dokument-
+// Suche, der einen eingeklappten Kasten um die Fundstelle vorher öffnet
+// (search-fundstelle.js) — ein Weg für alle Such-Wege der Lese-Ansicht.
 export function rolleZurFundstelleInDerLeseAnsicht(ziel) {
   if (!ziel || typeof ziel.scrollIntoView !== 'function') return;
-  ziel.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
+  zeigeFundstelleInDerLeseAnsicht(ziel);
   const els = getPaneEls(state.activePaneIndex);
   const tab = activeTab();
   if (tab && els && els.renderedEl && els.renderedEl.contains(ziel)) {

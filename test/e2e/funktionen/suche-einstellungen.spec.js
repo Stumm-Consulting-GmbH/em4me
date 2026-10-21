@@ -3,7 +3,8 @@
 // Kern der Zusage: Wer den Namen einer Einstellung kennt, findet ihren
 // Bereich — auch wenn dieser Bereich in dieser Sitzung nie geöffnet war.
 // Geprüft werden Trefferraum, Bereichs-Sprung und die Unversehrtheit eines
-// laufenden Entwurfs.
+// laufenden Entwurfs; seit 4T-002217 zusätzlich die Lage der hervorgehobenen
+// Zeile im Bereich (SE-07, Lage-Rechnung in `helpers/treffer-lage.js`).
 'use strict';
 
 const fs = require('node:fs');
@@ -13,6 +14,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { warteAufTrefferliste } = require('../helpers/suche');
+const { erwarteTrefferInDerMitte } = require('../helpers/treffer-lage');
 
 const PANEL = '.pane-group[data-pane="0"] .sidebar-searchresults';
 const SETTINGS_PAGE = '.pane-group[data-pane="0"] .pane-system';
@@ -225,4 +227,91 @@ test.describe('SE-06: Sprung während des Suchlaufs (4T-002129)', () => {
       }
     });
   }
+});
+
+// 4T-002217 (Epic 3E-000355): Lage der hervorgehobenen Zeile nach dem Sprung.
+//
+// ZUSICHERUNG, keine Behebung: am Stand der Anlage grün. Gemessen am
+// 2026-10-10: «Bücher» im nie geöffneten Bereich «Erweiterungen» steht in der
+// Mitte (Abstand 0 Bildpunkte, der Bereich rollt); «Schrift» im Bereich
+// «Darstellung», der nicht rollt, steht oben und vollständig sichtbar. Die
+// Hervorhebung verschwindet nach 1,6 Sekunden; vor dem nächsten Sprung wird
+// darauf gewartet, damit jede Messung genau eine hervorgehobene Zeile sieht.
+const BEREICHS_UEBERSCHRIFT = `${SETTINGS_PAGE} .settings-section-heading`;
+
+// Ein Stück der Beschriftung des Eintrags `nr` (1-basiert) der Trefferliste —
+// Text, den die hervorgehobene Zeile tragen muss. Die Liste kürzt lange Zeilen
+// vorn und hinten mit «…» (gemessen an «Bücher»: «…zentrale Seite über alle
+// eingetragenen …»); verglichen wird deshalb ein Ausschnitt ohne Auslassung.
+async function eintragsText(page, nr) {
+  const eintrag = page.locator(`${PANEL} .search-results-item[data-index="${nr - 1}"]`);
+  const text = (await eintrag.innerText()).split('\n')[0].replace(/…/g, ' ');
+  return text.replace(/\s+/g, ' ').trim().slice(0, 40).trim();
+}
+
+test.describe('SE-07: Hervorgehobene Zeile im mittleren Drittel (4T-002217)', () => {
+  test('4T-002217: «Bücher» — Klick in der Trefferliste springt in den nie geöffneten Bereich «Erweiterungen», die Zeile steht in der Mitte', async () => {
+    test.setTimeout(120000);
+    const { app, page, userData } = await launchApp({ args: [makeWorkFile()] });
+    try {
+      await oeffneEinstellungen(page);
+      const start = await page.locator(BEREICHS_UEBERSCHRIFT).innerText();
+      await sucheOeffnen(page, 'Bücher');
+      await warteAufTrefferliste(page, { panel: PANEL });
+      const text = await eintragsText(page, 1);
+      await page.locator(`${PANEL} .search-results-item`).first().click();
+      await expect(
+        page.locator(`${SETTINGS_PAGE} .settings-nav-entry[data-section-id="extensions"]`),
+      ).toHaveClass(/active/);
+      expect(await page.locator(BEREICHS_UEBERSCHRIFT).innerText()).not.toBe(start);
+      // Der Bereich rollt (gemessen `scrollMax` über 0), die Mitte ist also
+      // erreichbar und wird verlangt.
+      await erwarteTrefferInDerMitte(page, {
+        art: 'einstellungen',
+        zeileEnthaelt: text,
+        rand: 'nein',
+      });
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
+
+  test('4T-002217: «Schrift» — Eingabetaste über die Bereichs-Grenze vor und zurück, vom ersten zum letzten Treffer; jede Zeile in der Mitte oder, wo der Bereich nicht rollt, vollständig sichtbar', async () => {
+    test.setTimeout(180000);
+    const { app, page, userData } = await launchApp({ args: [makeWorkFile()] });
+    try {
+      await oeffneEinstellungen(page);
+      await sucheOeffnen(page, 'Schrift');
+      const gesamt = await warteAufTrefferliste(page, { mindestens: 3, panel: PANEL });
+      const gruppen = await page
+        .locator(`${PANEL} .search-results-group .search-results-group-title`)
+        .allInnerTexts();
+      const anzahlen = await page
+        .locator(`${PANEL} .search-results-group .search-results-group-count`)
+        .allInnerTexts();
+      expect(gruppen.length).toBeGreaterThan(1);
+      const n1 = Number(anzahlen[0]);
+      const hervorgehoben = page.locator(`${SETTINGS_PAGE} .settings-row-hervorgehoben`);
+      const schritt = async (taste, nr, bereich) => {
+        await expect(hervorgehoben).toHaveCount(0);
+        const text = await eintragsText(page, nr);
+        await page.keyboard.press(taste);
+        await expect(page.locator('#search-count')).toHaveText(`${nr} / ${gesamt}`);
+        await expect(page.locator(BEREICHS_UEBERSCHRIFT)).toHaveText(bereich);
+        await erwarteTrefferInDerMitte(page, {
+          art: 'einstellungen',
+          zeileEnthaelt: text,
+          schritt: `${taste} -> ${nr} / ${gesamt} in «${bereich}»`,
+        });
+      };
+      for (let nr = 1; nr <= n1; nr++) await schritt('Enter', nr, gruppen[0]);
+      await schritt('Enter', n1 + 1, gruppen[1]);
+      await schritt('Shift+Enter', n1, gruppen[0]);
+      for (let nr = n1 - 1; nr >= 1; nr--) await schritt('Shift+Enter', nr, gruppen[0]);
+      await schritt('Shift+Enter', gesamt, gruppen[gruppen.length - 1]);
+      await schritt('Enter', 1, gruppen[0]);
+    } finally {
+      await closeApp(app, userData);
+    }
+  });
 });

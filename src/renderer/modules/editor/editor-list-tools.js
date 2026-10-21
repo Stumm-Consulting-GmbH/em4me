@@ -32,12 +32,24 @@ import {
   shiftLineRange,
   subtreeRange,
   parseListLine,
+  parseListItemHead,
   renumberOrdered,
+  carryContinuation,
 } from '../../../shared/markdown/list-outline.js';
 // 4T-001002 (Epic 3E-000196): der Code-Block-Test lag seit dem Schnitt in
 // editor-keymaps.js; seit 4T-001716 liegt er im Blatt-Modul editor-code-zeile.js.
 import { lineInsideCodeBlock } from './editor-code-zeile.js';
-import { isExtensionActive } from '../extensions/extension-lifecycle.js';
+
+// 4T-002306 (Epic 3E-000353): Code-Zeile auch dann erkennen, wenn sie
+// eingerückt ist. Am Zeilenanfang einer eingerückten Zaun-Zeile (drei
+// Backticks unter einem Listenpunkt) löst der Syntaxbaum noch den Listenpunkt auf, nicht
+// den Code-Block; erst ab dem ersten Zeichen nach dem Leerraum gehört sie zu
+// ihm. Die Mitnahme der Folgezeilen beim Nummerieren hielte die Zaun-Zeile
+// sonst für eine Folgezeile und risse sie vom Code-Block los.
+function codeLine(state, line) {
+  const lead = /^[ \t]*/.exec(line.text)[0].length;
+  return lineInsideCodeBlock(state, { from: line.from + lead });
+}
 
 // Zeilen-Ausschnitt um den betroffenen Bereich samt Code-Maske. first/last
 // sind 1-basierte CodeMirror-Zeilennummern.
@@ -51,7 +63,7 @@ function contextFor(state, first, last) {
   for (let n = from; n <= to; n++) {
     const line = state.doc.line(n);
     lines.push(line.text);
-    code.push(lineInsideCodeBlock(state, line));
+    code.push(codeLine(state, line));
   }
   return { from, to, lines, opts: { isCode: (i) => !!code[i] } };
 }
@@ -146,13 +158,20 @@ export function runListMove(view, direction) {
 // wäre die Korrektur nicht zurücknehmbar) sowie alle Transaktionen ohne
 // Nutzer-Ereignis, insbesondere das Laden einer Datei — sonst würde ein
 // bloßes Öffnen fremde Dokumente umschreiben und als geändert markieren.
+//
+// 4T-002209 (Epic 3E-000334): Der Filter gilt in jedem Arbeitsmodus und hängt
+// nicht mehr an der Erweiterung «Listen-Struktur» (Entscheidung des Product
+// Owners, A1 und A3 des Epics); mit ihm wandert der Neustart der Anzeige-
+// Zählung in der Render-Pipeline, damit Quelltext und Anzeige auch ohne
+// Erweiterung dieselbe Listen-Grenze kennen.
 const RENUMBER_USER_EVENTS = ['input', 'delete', 'move'];
 
 // Grenzen des Listen-Blocks um eine Zeile im übergebenen Text-Objekt.
 // Blockgrenze ist die Leerzeile (Festlegung des Product Owners): Sie beginnt
 // eine neue Liste, die wieder bei ihrer eigenen Startnummer zählt. Damit die
 // Anzeige dasselbe zeigt, setzt die Render-Pipeline die Nummer am ersten
-// Punkt nach einer Leerzeile zurück (4T-000660).
+// Punkt nach einer Leerzeile zurück (4T-000660) — seit 4T-002209 wie dieser
+// Filter in jedem Arbeitsmodus, weil beide dieselbe Grenze voraussetzen.
 function blockBounds(doc, lineNumber) {
   let first = lineNumber;
   while (first > 1 && doc.line(first - 1).text.trim() !== '') first--;
@@ -168,18 +187,20 @@ function blockBounds(doc, lineNumber) {
 // als Näherung genügt.
 //
 // Der Filter läuft bei jedem Tastendruck, deshalb wird der teure Teil (das
-// Auflösen im Syntaxbaum) nur für die Zeilen berechnet, die überhaupt wie ein
-// Listenpunkt aussehen. Alle übrigen sind für die Neu-Nummerierung ohnehin
-// bedeutungslos.
-function codeMaskFor(tr, back, doc, first, lines) {
-  const mask = new Array(lines.length).fill(false);
-  for (let i = 0; i < lines.length; i++) {
-    if (!parseListLine(lines[i])) continue;
-    const posB = doc.line(first + i).from;
-    const posA = Math.max(0, Math.min(tr.startState.doc.length, back.mapPos(posB)));
-    mask[i] = lineInsideCodeBlock(tr.startState, tr.startState.doc.lineAt(posA));
-  }
-  return mask;
+// Auflösen im Syntaxbaum) nur für die Zeilen berechnet, nach denen die
+// Neu-Nummerierung fragt: Zeilen, die wie ein Listenpunkt aussehen, und seit
+// 4T-002306 die Folgezeilen eines Punkts, dessen Marker die Länge ändert.
+// Deshalb ein Prädikat mit Merker statt einer im Voraus gefüllten Maske.
+function codeMaskFor(tr, back, doc, first) {
+  const known = new Map();
+  return (i) => {
+    if (!known.has(i)) {
+      const posB = doc.line(first + i).from;
+      const posA = Math.max(0, Math.min(tr.startState.doc.length, back.mapPos(posB)));
+      known.set(i, codeLine(tr.startState, tr.startState.doc.lineAt(posA)));
+    }
+    return known.get(i);
+  };
 }
 
 // Zeile, die durch DIESE Bearbeitung leer geworden ist. Sie trennt die Liste
@@ -209,14 +230,22 @@ function restartNumbers(lines) {
 
 // Minimale Änderungen: nur der Marker wird ersetzt, nicht die ganze Zeile.
 // Sonst wanderte der Cursor beim Tippen an den Zeilenrand.
+// 4T-002306: Folgezeilen, die die Neu-Nummerierung mit der Inhalts-Spalte
+// ihres Punkts verschoben hat, ändern allein ihren führenden Leerraum.
 function markerChanges(doc, first, before, after) {
   const changes = [];
   for (let i = 0; i < before.length; i++) {
     if (before[i] === after[i]) continue;
     const oldItem = parseListLine(before[i]);
     const newItem = parseListLine(after[i]);
-    if (!oldItem || !newItem) continue;
     const lineFrom = doc.line(first + i).from;
+    if (!oldItem && !newItem) {
+      const oldLead = /^[ \t]*/.exec(before[i])[0];
+      const newLead = /^[ \t]*/.exec(after[i])[0];
+      changes.push({ from: lineFrom, to: lineFrom + oldLead.length, insert: newLead });
+      continue;
+    }
+    if (!oldItem || !newItem) continue;
     changes.push({
       from: lineFrom + oldItem.indent.length,
       to: lineFrom + oldItem.prefixLength,
@@ -226,17 +255,57 @@ function markerChanges(doc, first, before, after) {
   return changes;
 }
 
+// 4T-002306 (Epic 3E-000353): Hat die Bearbeitung selbst eine Nummer neu
+// gesetzt, ändert sich die Länge des Markers, ohne dass die Neu-Nummerierung
+// unten davon erfährt — sie findet die Nummern schon richtig vor. So
+// nummerieren die übernommene Listen-Fortsetzung des Editor-Pakets und die
+// eigene Eingabetaste (renumberSiblings in list-outline.js) beim Anlegen eines
+// Punkts. Deshalb vergleicht der Filter je nummerierter Zeile den Marker vor
+// der Bearbeitung mit dem danach und führt die Folgezeilen mit, die die
+// Bearbeitung nicht selbst angefasst hat. Eine Stelle deckt damit jeden Weg,
+// der Nummern setzt, statt jeden Aufrufer einzeln. Erfasst wird allein eine
+// geänderte Nummer an derselben Zeile bei gleicher Einrückung, gleichem
+// Trenner und gleichem Abstand; eine neu eingefügte Zeile und eine geänderte
+// Einrückung (Ein- und Ausrücken nehmen ihre Folgezeilen selbst mit) bleiben
+// außen vor. `changedB` sind die geänderten Bereiche im neuen Dokument.
+function carryEditedNumbers(tr, back, doc, first, lines, isCode, changedB) {
+  const result = lines.slice();
+  const keep = (j) => {
+    const line = doc.line(first + j);
+    return changedB.some(([from, to]) => from <= line.to && to >= line.from);
+  };
+  for (let i = 0; i < lines.length; i++) {
+    const head = parseListItemHead(lines[i]);
+    if (!head || !head.ordered || isCode(i)) continue;
+    const posB = doc.line(first + i).from;
+    const posA = Math.max(0, Math.min(tr.startState.doc.length, back.mapPos(posB)));
+    const oldLine = tr.startState.doc.lineAt(posA);
+    if (oldLine.from !== posA) continue;
+    const old = parseListItemHead(oldLine.text);
+    if (!old || !old.ordered || old.marker === head.marker) continue;
+    if (old.indent !== head.indent || old.delimiter !== head.delimiter || old.gap !== head.gap)
+      continue;
+    const column = head.indent.length + head.gap.length;
+    carryContinuation(result, i, column + old.marker.length, column + head.marker.length, {
+      isCode,
+      keep,
+    });
+  }
+  return result;
+}
+
 // Transaktions-Filter: hängt die Nummern-Korrektur der berührten Listen-
 // Blöcke an die laufende Transaktion an. Liefert die Transaktion unverändert
 // zurück, wenn nichts zu korrigieren ist.
 export function listRenumberFilter(tr) {
   if (!tr.docChanged || tr.startState.readOnly) return tr;
   if (!RENUMBER_USER_EVENTS.some((event) => tr.isUserEvent(event))) return tr;
-  if (!isExtensionActive('outliner')) return tr;
   const doc = tr.newDoc;
   const back = tr.changes.invert(tr.startState.doc);
   const seen = new Set();
   const changes = [];
+  const changedB = [];
+  tr.changes.iterChangedRanges((fromA, toA, fromB, toB) => changedB.push([fromB, toB]));
   tr.changes.iterChangedRanges((fromA, toA, fromB, toB) => {
     const from = doc.lineAt(Math.min(fromB, doc.length)).number;
     const to = doc.lineAt(Math.min(toB, doc.length)).number;
@@ -250,15 +319,17 @@ export function listRenumberFilter(tr) {
         const text = doc.line(b).text;
         lines.push(text);
         if (!hasOrdered) {
-          const item = parseListLine(text);
+          // 4T-002306: auch der Trenner «1)» zählt, weil die eigene
+          // Eingabetaste ihn nummeriert (carryEditedNumbers).
+          const item = parseListItemHead(text);
           if (item && item.ordered) hasOrdered = true;
         }
       }
       // Ohne geordneten Punkt gibt es nichts zu nummerieren; der teure Teil
       // (Syntaxbaum auflösen) entfällt dann.
       if (!hasOrdered) continue;
-      const mask = codeMaskFor(tr, back, doc, bounds.first, lines);
-      const opts = { isCode: (i) => !!mask[i] };
+      const opts = { isCode: codeMaskFor(tr, back, doc, bounds.first) };
+      const carried = carryEditedNumbers(tr, back, doc, bounds.first, lines, opts.isCode, changedB);
       // Ist in diesem Bereich eben erst eine Zeile leer geworden, trennt sie
       // die Liste neu: Der Teil davor behält seine Zählung, der Teil dahinter
       // ist eine frische Liste und beginnt wieder bei 1.
@@ -268,13 +339,13 @@ export function listRenumberFilter(tr) {
       }
       let next;
       if (split >= 0) {
-        next = renumberOrdered(lines, 0, split - 1, opts);
+        next = renumberOrdered(carried, 0, split - 1, opts);
         next = renumberOrdered(next, split + 1, lines.length - 1, {
           isCode: opts.isCode,
           startNumbers: restartNumbers(lines.slice(split + 1)),
         });
       } else {
-        next = renumberOrdered(lines, 0, lines.length - 1, opts);
+        next = renumberOrdered(carried, 0, lines.length - 1, opts);
       }
       changes.push(...markerChanges(doc, bounds.first, lines, next));
     }
@@ -321,9 +392,13 @@ export function runListSelectSubtree(view) {
 // Dieser Handler greift genau in diesem einen Fall und lässt sonst die
 // eingekaufte Belegung unverändert arbeiten; nachgebaut wird nichts, was
 // bereits funktioniert.
+//
+// 4T-002209 (Epic 3E-000334): Der Ausstieg gilt in jedem Arbeitsmodus, im
+// Haupt-Editor wie im Notiz-Feld; er hing bis dahin an der Erweiterung
+// «Listen-Struktur», ohne sie fiel die Taste an die eingekaufte Fortsetzung
+// mit dem oben beschriebenen Fehlverhalten.
 export function runListExit(view) {
   if (!view || view.state.readOnly) return false;
-  if (!isExtensionActive('outliner')) return false;
   const state = view.state;
   const range = state.selection.main;
   if (state.selection.ranges.length !== 1 || !range.empty) return false;

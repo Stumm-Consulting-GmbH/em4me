@@ -42,8 +42,14 @@
 // - Leerer nummerierter Aufgaben-Punkt auf einer Unterebene (Fall 9, E22):
 //   rückt eine Ebene aus.
 // Alle Fälle gelten in jedem Arbeitsmodus, ohne Bindung an die Erweiterung
-// «Listen-Struktur» (E23); die Nummern ziehen sie deshalb selbst nach, weil der
-// Nummerierungs-Filter an der Erweiterung hängt. Die Rechnungen liegen rein in
+// «Listen-Struktur» (E23); die Nummern ziehen sie selbst nach. Das war nötig,
+// solange der Nummerierungs-Filter an der Erweiterung hing. Seit 4T-002209
+// (Epic 3E-000334) läuft der Filter in jedem Arbeitsmodus und rechnet über
+// dieselbe Transaktion (Ereignis «input») dieselben Nummern nach; der eigene
+// Nachzug bleibt, weil er die Nummern schon in der Transaktion selbst richtig
+// setzt und der Filter dann nichts mehr ändert. Geprüft ist das an der ganzen
+// Fall-Tabelle ohne Erweiterung (test/unit/renderer/listen-eingabetaste.test.js),
+// die dieselben Ergebnisse liefert wie mit ihr. Die Rechnungen liegen rein in
 // src/shared/markdown/list-outline.js.
 //
 // **Festlegungen dieser Umsetzung** (technische Feinheiten im Rahmen von E10):

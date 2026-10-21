@@ -20,7 +20,7 @@
   "extension.sidebar-collapse.name": "Comprimi le colonne della barra laterale",
   "extension.sidebar-collapse.description": "Comprime la colonna sinistra o destra della barra laterale di ogni colonna dell'editor nel suo insieme e la riespande; la visibilità dei singoli pannelli viene mantenuta.",
   "extension.outliner.name": "Struttura degli elenchi",
-  "extension.outliner.description": "Sposta gli elementi dell'elenco insieme ai loro sottoelementi e aumenta o riduce il rientro di rami interi; gli elenchi numerati vengono poi rinumerati in modo continuo.",
+  "extension.outliner.description": "Sposta gli elementi dell'elenco insieme ai loro sottoelementi, aumenta o riduce il rientro di rami interi e seleziona un ramo.",
   "extension.tasks.name": "Attività",
   "extension.tasks.description": "Marcatori di attività per scadenze, priorità e ricorrenza, date automatiche al cambio di stato e filtro globale.",
   "settings.extensions.title": "Estensioni",

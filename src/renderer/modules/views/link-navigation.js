@@ -429,7 +429,12 @@ export function toggleTaskFromRendered(paneIdx, checkboxEl) {
   // anders als beim nativen Checkbox-Visual (K-11) muss das Reading-Pane
   // dann neu rendern. renderPaneContent stellt die Scroll-Position aus
   // tab.scrollRen wieder her.
-  if (!isBasicTaskChar(toggle.fromChar) || !isBasicTaskChar(toggle.toChar)) {
+  // 4T-002194: Ebenso, sobald der Wechsel mehr als das Zeichen geschrieben
+  // hat (`ergaenzt`: Erledigt- oder Abgebrochen-Datum, neue Zeile einer
+  // Wiederholung). Das native Kästchen deckt nur das Zeichen; ohne
+  // Neuzeichnen fehlte das Abzeichen des Erledigt-Datums bis zum nächsten
+  // Ansichts-Wechsel, und die neue Zeile einer Wiederholung blieb unsichtbar.
+  if (toggle.ergaenzt || !isBasicTaskChar(toggle.fromChar) || !isBasicTaskChar(toggle.toChar)) {
     renderPaneContent(paneIdx);
   }
 }

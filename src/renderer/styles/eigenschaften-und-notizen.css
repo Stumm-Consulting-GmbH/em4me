@@ -35,9 +35,12 @@
   margin-top: 10px;
   flex-wrap: wrap;
 }
+/* 4T-002213 (Epic 3E-000353), Nachbesserung 2026-10-18: Die Mindest-Breite
+   ist nie größer als die Zeile; mit festen 12em ragte die Auswahl der Vorlage
+   bei 640 px Fensterbreite 77 px über. In gewöhnlicher Breite bleibt es 12em. */
 .color-scheme-actions .settings-input {
   flex: 0 0 auto;
-  min-width: 12em;
+  min-width: min(12em, 100%);
 }
 .color-scheme-group-head {
   margin: 14px 0 4px;

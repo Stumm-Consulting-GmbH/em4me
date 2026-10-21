@@ -7,6 +7,11 @@
 // der Sprung in eine fremde Datei, der Durchlauf ueber die Datei-Grenze und
 // das unveraenderte Verhalten ohne Bereich.
 //
+// 4T-002217: Die Prüfungen «Fundstelle im sichtbaren Bereich» (BS-08 bis
+// BS-11) verlangen seither das mittlere Drittel, am Anfang und Ende des
+// Inhalts den Rand (gemeinsame Lage-Rechnung `helpers/treffer-lage.js`); die
+// Fälle je Ansicht und Ziel-Zustand stehen in `bereichs-suche-mitte.spec.js`.
+//
 // Der Bereich wird ueber den Pfad-Einstieg window.api.openAreaPath gebunden
 // (Muster bereiche.spec.js und bereichs-lesezeichen.spec.js).
 'use strict';
@@ -18,6 +23,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp, oeffneDokumentImFenster } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { pressNachfassend } = require('../helpers/eingabe');
+const { erwarteTrefferInDerMitte, pruefeTrefferInDerMitte } = require('../helpers/treffer-lage');
 
 const PANE = '.pane-group[data-pane="0"]';
 const PANEL = `${PANE} .sidebar-searchresults`;
@@ -391,19 +397,13 @@ test.describe('BS-08: Sprung rollt zur Fundstelle (4T-002099)', () => {
       await expect.poll(() => page.title()).toContain('lang');
       const aktuell = page.locator(`${PANE} .pane-rendered mark.mdv-match-current`);
       await expect(aktuell).toHaveCount(1);
-      const sichtbar = () =>
-        page.evaluate((pane) => {
-          const roll = document.querySelector(`${pane} .pane-rendered`);
-          const mark = roll && roll.querySelector('mark.mdv-match-current');
-          if (!mark) return false;
-          const r = mark.getBoundingClientRect();
-          const c = roll.getBoundingClientRect();
-          return r.top >= c.top && r.bottom <= c.bottom;
-        }, PANE);
-      await expect.poll(sichtbar).toBe(true);
+      // 4T-002217: Die Fundstelle steht am Ende der Datei, die Roll-Lage also
+      // am Ende; verlangt ist dort «vollständig sichtbar».
+      const lage = { art: 'gerendert', zeileEnthaelt: 'Ganz unten', rand: 'Ende' };
+      await erwarteTrefferInDerMitte(page, lage);
       // Auch nach dem abgeschlossenen Render-Zyklus des Ziel-Reiters.
       await page.waitForTimeout(500);
-      expect(await sichtbar()).toBe(true);
+      await pruefeTrefferInDerMitte(page, lage);
       await expect(page.locator('#search-count')).toHaveText('1 / 1');
     } finally {
       await closeApp(app, userData);
@@ -460,23 +460,13 @@ test.describe('BS-09: Die erste Eingabetaste zeigt den ersten Treffer (4T-002107
       expect(vorher.absatz).toContain('Erster');
 
       await page.keyboard.press('Enter');
-      await expect
-        .poll(async () => {
-          const l = await lage();
-          return l.sichtbar && l.absatz.startsWith('Erster');
-        })
-        .toBe(true);
+      await erwarteTrefferInDerMitte(page, { art: 'gerendert', zeileEnthaelt: 'Erster' });
       await expect(zaehler).toHaveText('1 / 6');
       expect(await page.title()).toContain('start');
 
       await page.keyboard.press('Enter');
       await expect(zaehler).toHaveText('2 / 6');
-      await expect
-        .poll(async () => {
-          const l = await lage();
-          return l.sichtbar && l.absatz.startsWith('Zweiter');
-        })
-        .toBe(true);
+      await erwarteTrefferInDerMitte(page, { art: 'gerendert', zeileEnthaelt: 'Zweiter' });
     } finally {
       await closeApp(app, userData);
       removeDir(dir);
@@ -542,27 +532,15 @@ test.describe('BS-10: Tippen bei offener Bereichs-Suche schreibt an der Schreibm
         // zurückgesetzt (Schreibmarke auf dem Treffer, Ansicht oben).
         await page.keyboard.press('Control+f');
         const zaehler = page.locator('#search-count');
-        const aktuellSichtbar = (anfang) =>
-          page.evaluate(
-            ({ pane, text: t }) => {
-              const roll = document.querySelector(`${pane} .pane-source .cm-scroller`);
-              const m = roll && roll.querySelector('.cm-search-match-current');
-              const zeile = m && m.closest('.cm-line');
-              if (!zeile) return false;
-              const r = m.getBoundingClientRect();
-              const c = roll.getBoundingClientRect();
-              return r.top >= c.top && r.bottom <= c.bottom && zeile.textContent.startsWith(t);
-            },
-            { pane: PANE, text: anfang },
-          );
         await page.keyboard.press('Enter');
-        await expect.poll(() => aktuellSichtbar('Hier steht')).toBe(true);
+        await erwarteTrefferInDerMitte(page, { art: 'editor', zeileEnthaelt: 'Hier steht' });
         await expect(zaehler).toHaveText('1 / 5');
         await page.keyboard.press('Enter');
         await expect(zaehler).toHaveText('2 / 5');
-        await expect.poll(() => aktuellSichtbar('Noch einmal')).toBe(true);
+        const zweiter = { art: 'editor', zeileEnthaelt: 'Noch einmal' };
+        await erwarteTrefferInDerMitte(page, zweiter);
         await page.waitForTimeout(300);
-        expect(await aktuellSichtbar('Noch einmal')).toBe(true);
+        await pruefeTrefferInDerMitte(page, zweiter);
       } finally {
         await closeApp(app, userData, { force: true });
         removeDir(dir);
@@ -597,9 +575,9 @@ function makeDatenDir() {
   return dir;
 }
 
-// Der aktuelle Treffer der Lese-Ansicht: wie viele Marken die Klasse tragen,
-// ob die eine sichtbar ist, in welchem Absatz sie steht und ob ihre Farbe sich
-// von der jeder übrigen Marke unterscheidet.
+// Der aktuelle Treffer der Lese-Ansicht: wie viele Marken die Klasse tragen
+// und ob ihre Farbe sich von der jeder übrigen Marke unterscheidet. Lage und
+// Absatz prüft seit 4T-002217 die gemeinsame Lage-Rechnung.
 function aktuellerTrefferGerendert(page) {
   return page.evaluate((pane) => {
     const roll = document.querySelector(`${pane} .pane-rendered`);
@@ -607,13 +585,9 @@ function aktuellerTrefferGerendert(page) {
     const aktuelle = marken.filter((m) => m.classList.contains('mdv-match-current'));
     const farbe = (m) => getComputedStyle(m).backgroundColor;
     const m = aktuelle[0];
-    const r = m && m.getBoundingClientRect();
-    const c = roll.getBoundingClientRect();
     const uebrige = marken.filter((x) => x !== m).map(farbe);
     return {
       anzahl: aktuelle.length,
-      sichtbar: !!m && r.top >= c.top && r.bottom <= c.bottom,
-      absatz: m ? (m.closest('p') || m).textContent : '',
       abgehoben: !!m && uebrige.length > 0 && uebrige.every((f) => f !== farbe(m)),
     };
   }, PANE);
@@ -660,17 +634,13 @@ test.describe('BS-11: Sprung in ein anderes Dokument zeigt den aktuellen Treffer
         await expect.poll(() => page.title()).toContain('daten');
         await expect(zaehler).toHaveText(fall.zaehler);
         await expect.poll(() => aktiveAnsicht(page)).toBe('rendered');
-        await expect
-          .poll(async () => {
-            const a = await aktuellerTrefferGerendert(page);
-            return a.anzahl === 1 && a.sichtbar && a.absatz.startsWith(fall.absatz);
-          })
-          .toBe(true);
+        const lage = { art: 'gerendert', zeileEnthaelt: fall.absatz };
+        await erwarteTrefferInDerMitte(page, lage);
         // Auch nach dem abgeschlossenen Render-Zyklus des Ziel-Reiters.
         await page.waitForTimeout(500);
+        await pruefeTrefferInDerMitte(page, lage);
         const a = await aktuellerTrefferGerendert(page);
         expect(a.anzahl).toBe(1);
-        expect(a.sichtbar).toBe(true);
         expect(a.abgehoben).toBe(true);
       } finally {
         await closeApp(app, userData);
@@ -696,25 +666,8 @@ test.describe('BS-11: Sprung in ein anderes Dokument zeigt den aktuellen Treffer
       await expect.poll(() => page.title()).toContain('daten');
       await expect(page.locator('#search-count')).toHaveText('5 / 5');
       await expect.poll(() => aktiveAnsicht(page)).toBe('source');
-      const aktuell = () =>
-        page.evaluate((pane) => {
-          const roll = document.querySelector(`${pane} .pane-source .cm-scroller`);
-          const alle = [...roll.querySelectorAll('.cm-search-match-current')];
-          const r = alle[0] && alle[0].getBoundingClientRect();
-          const c = roll.getBoundingClientRect();
-          const zeile = alle[0] && alle[0].closest('.cm-line');
-          return {
-            anzahl: alle.length,
-            sichtbar: !!r && r.top >= c.top && r.bottom <= c.bottom,
-            zeile: zeile ? zeile.textContent : '',
-          };
-        }, PANE);
-      await expect
-        .poll(async () => {
-          const a = await aktuell();
-          return a.anzahl === 1 && a.sichtbar && a.zeile.startsWith('Dritter');
-        })
-        .toBe(true);
+      // Genau ein aktueller Treffer, in der Zeile «Dritter …», gezeigt.
+      await erwarteTrefferInDerMitte(page, { art: 'editor', zeileEnthaelt: 'Dritter' });
     } finally {
       await closeApp(app, userData);
       removeDir(dir);

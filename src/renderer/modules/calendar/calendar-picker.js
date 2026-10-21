@@ -81,6 +81,9 @@ function ensurePopup() {
   popupEl.className = 'date-picker-popup calendar-picker-popup';
   popupEl.setAttribute('role', 'dialog');
   popupEl.hidden = true;
+  // 4T-002212: fokussierbar ohne Tab-Halt, damit der Fokus nach einem
+  // Neuaufbau ohne gewählten Tag im Fenster bleibt (Rückfall in renderSession).
+  popupEl.tabIndex = -1;
   document.body.appendChild(popupEl);
   popupEl.addEventListener('keydown', onPopupKeydown, true);
 }
@@ -331,7 +334,6 @@ function renderGrid(container) {
   const selectDayTuple = (dayTuple) => {
     session.tuple = dayTuple;
     renderSession();
-    focusSelectedDay();
   };
   const dayButton = (dayTuple, inUnit) => {
     const btn = document.createElement('button');
@@ -361,7 +363,11 @@ function renderGrid(container) {
     for (let p = 0; p < cycle.length; p++) {
       const head = document.createElement('span');
       head.className = 'calendar-cell calendar-head';
-      head.textContent = cycle.names ? cycle.names[p] : String(p + 1);
+      // 4T-002205: Seit dort steht eine unbenannte Position mitten in der Liste
+      // als null im Modell; sie zeigt ihre Zahl wie bei den Ebenen (labelFor),
+      // statt einen leeren Spalten-Kopf zu hinterlassen.
+      const name = cycle.names ? cycle.names[p] : null;
+      head.textContent = name != null ? name : String(p + 1);
       grid.appendChild(head);
     }
     const baseAxis = tupleToAxis(cal, base);
@@ -484,7 +490,7 @@ function renderConversions(container) {
 
 function focusSelectedDay() {
   const btn = popupEl.querySelector('.calendar-picker-day.selected');
-  if (btn) btn.focus();
+  (btn || popupEl).focus();
 }
 
 function focusTimeSeg(k) {
@@ -623,7 +629,6 @@ function renderSession() {
       ? zeroTupleInBase(session.target, session.cal) || session.cal.blockAnchor.slice()
       : session.cal.blockAnchor.slice();
     renderSession();
-    focusSelectedDay();
   });
   popupEl.appendChild(refBtn);
 
@@ -645,6 +650,13 @@ function renderSession() {
   okBtn.addEventListener('click', () => accept());
   buttons.append(cancelBtn, okBtn);
   popupEl.appendChild(buttons);
+
+  // 4T-002212: Der Neuaufbau entfernt das Bedienelement, das ihn ausgelöst
+  // hat (Entsprechung, Auswahlfeld, Navigations-Knopf); ohne neuen Fokus fiel
+  // er auf den Seitenkörper, und Escape und Enter erreichten den Tasten-
+  // Rückruf des Fensters nicht mehr. Deshalb setzt der Neuaufbau den Fokus
+  // selbst, für alle Aufrufer zugleich; die Zeit-Segmente setzen ihren danach.
+  focusSelectedDay();
 }
 
 function onPopupKeydown(e) {
@@ -696,7 +708,6 @@ function onPopupKeydown(e) {
     e.stopPropagation();
     session.tuple = shiftDays(session.cal, session.tuple, delta);
     renderSession();
-    focusSelectedDay();
     return;
   }
   if (e.key === 'PageUp' || e.key === 'PageDown') {
@@ -704,7 +715,6 @@ function onPopupKeydown(e) {
     e.stopPropagation();
     session.tuple = shiftUnit(session.cal, session.tuple, e.key === 'PageUp' ? -1 : 1);
     renderSession();
-    focusSelectedDay();
   }
 }
 

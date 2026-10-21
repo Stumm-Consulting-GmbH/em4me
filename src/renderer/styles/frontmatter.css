@@ -627,8 +627,17 @@
 }
 /* 4T-000528 (Epic 3E-000095): Snooze-Options-Liste des Einstellungs-Bereichs
    Erinnerungen (Zahl plus Einheiten-Auswahl pro Zeile). */
+/* 4T-002213 (Epic 3E-000353), Nachbesserung 2026-10-18: Die Liste ist ein
+   Glied der Einstellungs-Zeile und darf unter ihre Inhalts-Breite schrumpfen;
+   ihre Zeilen brechen um. Ohne das ragte sie bei 640 px Fensterbreite 101 px
+   über. */
+#settings-reminders-snooze-list {
+  min-width: 0;
+  max-width: 100%;
+}
 .settings-reminders-snooze-row {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   margin-bottom: 4px;
 }

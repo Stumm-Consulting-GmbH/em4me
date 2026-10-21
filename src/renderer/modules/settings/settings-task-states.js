@@ -75,6 +75,13 @@ function updateTaskStatesWarning(warningEl, draft) {
   }
 }
 
+// 4T-002213 (Epic 3E-000353): Die Warnung steht neben dem Tabellen-Rahmen, nicht
+// in ihm; ohne Rahmen neben der Liste selbst.
+function warningElFor(listEl) {
+  const rahmen = listEl.closest('.task-states-table') || listEl;
+  return rahmen.parentElement && rahmen.parentElement.querySelector('.task-states-warning');
+}
+
 function renderTaskStatesEditor(listEl, draft) {
   listEl.innerHTML = '';
   draft.taskStates.forEach((s, idx) => {
@@ -100,10 +107,7 @@ function renderTaskStatesEditor(listEl, draft) {
       charInput.addEventListener('input', () => {
         s.char = charInput.value;
         // 4T-000497: Duplikat-Warnung folgt jeder Zeichen-Aenderung live.
-        updateTaskStatesWarning(
-          listEl.parentElement && listEl.parentElement.querySelector('.task-states-warning'),
-          draft,
-        );
+        updateTaskStatesWarning(warningElFor(listEl), draft);
       });
 
     const labelInput = document.createElement('input');
@@ -166,10 +170,7 @@ function renderTaskStatesEditor(listEl, draft) {
     listEl.appendChild(row);
   });
   // 4T-000497: Warnung nach jedem Neuaufbau der Liste aktualisieren.
-  updateTaskStatesWarning(
-    listEl.parentElement && listEl.parentElement.querySelector('.task-states-warning'),
-    draft,
-  );
+  updateTaskStatesWarning(warningElFor(listEl), draft);
 }
 
 export function renderTaskStatesSection(container, draft) {
@@ -188,12 +189,19 @@ export function renderTaskStatesSection(container, draft) {
     head.appendChild(span);
   }
   head.appendChild(document.createElement('span'));
-  container.appendChild(head);
 
   const list = document.createElement('div');
   list.id = 'settings-task-states-list';
   list.className = 'task-states-list';
-  container.appendChild(list);
+
+  // 4T-002213 (Epic 3E-000353), Nachbesserung 2026-10-18: Kopf und Liste in
+  // einem eigenen Rahmen, der im schmalen Fenster waagrecht rollt, statt die
+  // ganze Inhaltsfläche rollen zu lassen (Standard-Muster für Daten-Tabellen in
+  // schmalen Layouts). Die Warnung bleibt außerhalb, unter dem Rahmen.
+  const table = document.createElement('div');
+  table.className = 'task-states-table';
+  table.append(head, list);
+  container.appendChild(table);
 
   // 4T-000497: Duplikat-Warnung unter der Liste (vor dem Editor-Lauf anlegen,
   // damit renderTaskStatesEditor sie beim ersten Aufbau schon findet).

@@ -142,8 +142,14 @@
 /* 4T-000288: Reiterleiste eines Gruppen-Slots — gestaltet wie ein Sektions-
    Header; sie ersetzt die (per .in-tab-group ausgeblendeten) Header der
    gruppierten Sektionen. */
+/* 4T-002189 (Epic 3E-000353): Reicht die Breite nicht für alle Reiter
+   nebeneinander, bricht die Leiste in eine weitere Zeile um, statt Reiter zu
+   kürzen (Story 4S-000402, AK11). Zuvor war sie einzeilig, und jeder Reiter
+   kürzte seinen Namen mit Auslassungspunkten; in der Standard-Anordnung traf
+   das «Suchergebnisse» neben «Inhaltsverzeichnis». */
 .sidebar-slot-tabs {
   display: flex;
+  flex-wrap: wrap;
   align-items: stretch;
   gap: 2px;
   padding: 4px 6px 0;
@@ -163,9 +169,15 @@
   padding: 3px 8px 5px;
   border-radius: 4px 4px 0 0;
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* 4T-002189: Ein Reiter steht für sich in einer Zeile, solange er passt
+     (der Umbruch der Leiste misst die ungebrochene Breite). Ist sein Name
+     allein breiter als die Leiste, etwa ein langer Name in Großbuchstaben
+     bei Mindest-Breite, bricht der Name an Wortgrenzen, notfalls im Wort, statt
+     abgeschnitten zu werden; min-width: 0 lässt ihn dafür schmaler werden. */
+  white-space: normal;
+  overflow-wrap: break-word;
+  min-width: 0;
+  text-align: left;
 }
 .sidebar-slot-tab:hover {
   color: var(--fg);

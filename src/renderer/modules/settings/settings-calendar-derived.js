@@ -29,7 +29,7 @@ import {
   calSysZeroValue,
   calendarPersistForm,
 } from './settings-calendar-model.js';
-import { buildCalSysSegRow } from './settings-calendar-parts.js';
+import { buildCalSysSegRow } from './settings-calendar-cells.js';
 import { renderActiveSection } from './settings-mount.js';
 import { buildSettingsRow } from './settings-shared.js';
 

@@ -29,7 +29,7 @@ The Japanese calendar counts its years within an era and always writes the era a
 
 ## The same day in the other calendar
 
-Switch to the live view with `Ctrl+4` and turn on edit mode with `Ctrl+E`, then click one of the values above — on the line with the cursor, hold `Ctrl` while clicking. The calendar picker opens on that day. Further down in the picker, under **Equivalents in the block**, it shows the same day in the other calendar: the first Gregorian value appears there as `Japanese calendar: 8-09-30 Reiwa`, the Japanese one next to it as `Gregorian calendar: 2026-09-30`. A click on that line moves the picker into the other calendar; **Cancel** closes it and leaves the value as it is.
+Switch to the live view with `Ctrl+4` and turn on edit mode with `Ctrl+E`, then click one of the values above — on the line with the cursor, hold `Ctrl` while clicking. The calendar picker opens on that day. Further down in the picker, under **Equivalents in the block**, it shows the same day in the other calendar: the first Gregorian value appears there as `Japanese calendar: 8-09-30 Reiwa`, the Japanese one next to it as `Gregorian calendar: 2026-09-30`. A click on that line moves the picker into the other calendar; `Escape` or **Cancel** closes it and leaves the value as it is.
 
 Without the picker, **Convert date** from the command palette or the right-click menu shows a date in every other calendar of the block — the value at the cursor or a selected date. **Copy** puts an equivalent on the clipboard; **Insert** writes it into the page, in place of a selected date.
 

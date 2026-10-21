@@ -141,6 +141,16 @@ function toSafeNumber(v) {
   return Number.isSafeInteger(n) ? n : null;
 }
 
+// 4T-002191 (Epic 3E-000353): Ein Teil der Text-Schreibweise ist jede
+// Ziffernfolge, deren Wert eine sichere ganze Zahl ist, dieselbe Grenze wie
+// im Modell (isInt) und in der Pflege. Bis dahin las das Einlesen höchstens
+// fünfzehn Ziffern, schrieb aber sechzehnstellige Werte, die es dann nicht
+// wieder las. Darüber bleibt der Teil ungültig (null), weil er nicht mehr
+// genau darstellbar wäre.
+function readDigits(text) {
+  return /^\d+$/.test(text) ? toSafeNumber(text) : null;
+}
+
 // --- Normalisierung ----------------------------------------------------------------
 
 function normalizeRel(raw) {
@@ -172,12 +182,34 @@ function normalizeRel(raw) {
   return null;
 }
 
-// Namens-Listen sind weich: nur vollständig nicht-leere String-Listen werden
-// übernommen, sonst null (Lookup liefert dann null statt Namen).
-function normalizeNames(raw) {
+// 4T-002205 (Epic 3E-000338, A7): Jeder Eintrag einer Namens-Liste steht für
+// sich — ein leerer (oder kein Text) heißt «unbenannt» und wird als null
+// geführt, damit jede Anzeige wie bei einer fehlenden Stelle auf die Zahl
+// zurückfällt; früher verwarf ein einziger leerer Eintrag die ganze Liste. Mit
+// count wird die Liste auf die Zahl der Positionen gebracht (aufgefüllt oder
+// beschnitten; Namen darüber entfallen als Regel des Modells). Eine Liste ohne
+// jeden Namen bleibt keine Liste, damit eine Definition ohne Namen Zeichen für
+// Zeichen unverändert bleibt.
+function normalizeNames(raw, count = null) {
   if (!Array.isArray(raw) || raw.length === 0) return null;
-  const names = raw.map((n) => cleanString(n));
-  return names.every((n) => n !== '') ? names : null;
+  const names = raw.map((n) => cleanString(n) || null);
+  if (count !== null) names.length = count;
+  const out = Array.from(names, (n) => n ?? null);
+  return out.some((n) => n !== null) ? out : null;
+}
+
+// 4T-002205 (Epic 3E-000338): Zahl der Positionen einer Ebene je Instanz der
+// Ebene darüber, sofern sie fest ist — der count einer Faktor- oder
+// Schalt-Ebene (über einer Längen-Tabelle also Durchläufe mal Zeilen). Keine
+// feste Zahl (null) hat die oberste Ebene, eine Ebene unter einer
+// Längen-Tabelle und eine Ebene, deren Einheit eine Schalt-Verlängerung trägt
+// (Enkel der Schalt-Ebene, Muster positionCount).
+function levelPositionCount(levels, i) {
+  const parent = levels[i + 1];
+  if (!parent || !parent.rel || parent.rel.type === 'lengths') return null;
+  const grand = levels[i + 2];
+  if (grand && grand.rel && grand.rel.type === 'leap') return null;
+  return parent.rel.count;
 }
 
 // 4T-001863 (Epic 3E-000307): Mehrzahl eines Einheiten-Namens (Ebene, Zyklus,
@@ -250,6 +282,13 @@ function normalizeLevels(raw) {
   while (prefixLen < levels.length && levels[prefixLen].section === sec0) prefixLen++;
   for (let i = prefixLen; i < levels.length; i++) {
     if (levels[i].section === sec0) return null;
+  }
+  // 4T-002205 (Epic 3E-000338, A7): Namens-Listen erst hier auf die Zahl der
+  // Positionen bringen, weil sie an der Beziehung der Ebene darüber hängt;
+  // ohne feste Zahl bleibt die Liste, wie sie ist.
+  for (let i = 0; i < levels.length; i++) {
+    const count = levelPositionCount(levels, i);
+    if (levels[i].names && count !== null) levels[i].names = normalizeNames(levels[i].names, count);
   }
   return levels;
 }
@@ -812,8 +851,9 @@ function parseCanonical(cal, text, opts = {}) {
   if (dateParts.length !== c.dateCount) return { ok: false, code: 'malformed' };
   const dateSegs = [];
   for (const p of dateParts) {
-    if (!/^\d{1,15}$/.test(p)) return { ok: false, code: 'malformed' };
-    dateSegs.push(Number(p));
+    const n = readDigits(p);
+    if (n === null) return { ok: false, code: 'malformed' };
+    dateSegs.push(n);
   }
   // Epochen-Label: längste Übereinstimmung über Kürzel, Namen und die
   // technische #N-Ersatzform (Labels dürfen Leerzeichen enthalten).
@@ -842,8 +882,8 @@ function parseCanonical(cal, text, opts = {}) {
     const timeParts = rest.split(':');
     if (timeParts.length > c.timeCount) return { ok: false, code: 'malformed' };
     for (let j = 0; j < timeParts.length; j++) {
-      if (!/^\d{1,15}$/.test(timeParts[j])) return { ok: false, code: 'malformed' };
-      timeSegs[j] = Number(timeParts[j]);
+      timeSegs[j] = readDigits(timeParts[j]);
+      if (timeSegs[j] === null) return { ok: false, code: 'malformed' };
     }
   }
   if (dateSegs[0] < 1) return { ok: false, code: 'yearZero' };
@@ -1146,8 +1186,9 @@ function parseDerived(cal, c, text) {
   if (dateParts.length !== c.dateCount) return { ok: false, code: 'malformed' };
   const nums = [];
   for (const p of dateParts) {
-    if (!/^\d{1,15}$/.test(p)) return { ok: false, code: 'malformed' };
-    nums.push(Number(p));
+    const n = readDigits(p);
+    if (n === null) return { ok: false, code: 'malformed' };
+    nums.push(n);
   }
   // Richtungs-Kürzel: nur das der Vergangenheits-Richtung ist zulässig;
   // ohne Kürzel zählt vorwärts.
@@ -1174,8 +1215,8 @@ function parseDerived(cal, c, text) {
     const timeParts = rest.split(':');
     if (timeParts.length > c.timeCount) return { ok: false, code: 'malformed' };
     for (let j = 0; j < timeParts.length; j++) {
-      if (!/^\d{1,15}$/.test(timeParts[j])) return { ok: false, code: 'malformed' };
-      timeSegs[j] = Number(timeParts[j]);
+      timeSegs[j] = readDigits(timeParts[j]);
+      if (timeSegs[j] === null) return { ok: false, code: 'malformed' };
     }
   }
   const ord = nums[nums.length - 1];
@@ -1282,6 +1323,9 @@ module.exports = {
   timeStartSegs,
   tupleToAxisUnchecked,
   normalizeNames,
+  // 4T-002205 (Epic 3E-000338): Zahl der Positionen für Gruppierungen und
+  // die Drehung der Ableitung im Konfigurations-Rand.
+  levelPositionCount,
   normalizeLevels,
   pluralField,
 };

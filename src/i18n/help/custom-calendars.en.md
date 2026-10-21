@@ -13,10 +13,12 @@ A block is a self-contained time world with a name and any number of calendars. 
 A calendar consists of an ordered list of levels, smallest first (for example second → minute → hour → day → month → year), grouped into named level groups (in the standard template "Time" and "Date"). Each level describes its relationship to the next-smaller one with one of five relation types:
 
 - **Fixed factor** — a fixed number of smaller units, for example 60 seconds per minute.
-- **Length table** — units with individual lengths, for example three months with 30, 30 and 35 days; the row names of the table are at the same time the position names (month names).
+- **Length table** — units with individual lengths, for example three months with 30, 30 and 35 days; the row names of the table are at the same time the position names (month names). A leap rule above it can run through the table several times per instance: two passes over twelve rows give a year with 24 months.
 - **Leap rule** — determines the leap years either **by divisibility**, with cycle rules along the pattern "leap every 4, except every 100, except every 400", or **by pattern**: a cycle length in years and the positions of the leap years within it, counted from 1 — for example 2, 5, 7, 10, 13, 16, 18, 21, 24, 26, 29 in a cycle of 30 years. In both cases the extended unit and the extension belong to it.
 - **Independent cycle** — the week pattern: a cycle of fixed length runs across month and year boundaries, anchored to a reference date, optionally with a numbering rule (the cycle number follows the year in which the decisive day of the cycle falls).
 - **Grouping** — a purely computational aggregation, for example quarters of three months each.
+
+Position names apply position by position, at a level as well as at a cycle or a grouping. Where the number of positions is fixed, for example twelve months per year, seven days per week or four quarters, the program takes exactly that many names: surplus names are dropped when the definition is read in, missing ones leave the positions after them unnamed. An empty name is allowed too and leaves only its own position unnamed. An unnamed position of a level shows its number in the value, for example 05 for the fifth month.
 
 ### Epochs
 
@@ -26,6 +28,8 @@ Every calendar has exactly one open past epoch (it counts backwards), any number
 
 Every block has a neutral time axis. Every calendar is mapped onto this axis via an anchor (the calendar point in time that lies on the axis zero point) and a scale (the duration of its smallest unit in axis units, as a fraction of numerator and denominator). Conversions between calendars always run via the block axis and round deterministically down to the smallest level of the target calendar; the command «Convert date» shows the result (section of the same name).
 
+Two time reckonings of a block for which neither anchor nor scale is given start at the same point on the block axis; conversions between them are then only correct if that is what you intend. So that this does not go unnoticed when creating one, the settings show a note in the group «Block axis (conversion)» below the scale fields as long as the anchor point in time, numerator and denominator of a time reckoning are empty and the block contains another time reckoning; the note names the first other time reckoning of the block. It disappears as soon as one of the fields is filled in. If you mean a different position, set the anchor. A time reckoning inserted from a template shows no note, because the template brings its position on the axis with it.
+
 ## Maintenance in the settings
 
 The settings section "Calendar systems" shows the blocks of the open area in two stages: the overview manages the blocks (add, rename, open, remove), the detail view of a block shows its calendars as forms with editors for levels, epochs, cycles, groupings and the block axis.
@@ -33,10 +37,12 @@ The settings section "Calendar systems" shows the blocks of the open area in two
 - The drop-down menu **«Insert template …»** creates a fully filled-in time reckoning from the bundled templates (section «Bundled templates»). To start without a template, **«Add calendar»** creates an empty time reckoning.
 - **Plural:** next to the name of every level there is the field «Plural», likewise at the cycle («Cycle name (plural)») and at every grouping («Grouping name (plural)»). A span shows the singular for exactly one unit and the plural otherwise, for example «1 month, 2 weeks, 4 days»; without a plural the singular always applies.
 - **«Always write the epoch abbreviation»:** the checkbox at the end of the «Epochs» group writes the abbreviation into the value in the latest epoch as well. This is useful if further epochs are added later: values already saved then keep their meaning. A value of the latest epoch means the same day with and without the abbreviation. What happens to values without an abbreviation when an epoch is added later is described in the section «Adding an epoch later».
+- **«Passes of the length table per instance»:** if a length table lies below a leap rule, this field at the leap rule determines how often the table is run through in one instance; the default is 1. The note next to it gives the units per instance, that is passes times rows. Adding or removing a row keeps the passes, and the number of units follows. The names of positions beyond the rows (with two passes over twelve rows, months 13 to 24) are not shown in the table; they are kept from the saved definition, and a row created with «Add entry» takes over the name of its position. An empty name field leaves the position unnamed.
+- **Position names of a cycle:** the field takes one name per line; a comma is part of the name, as in «Mon, early». An empty line in the middle of the list leaves the position at that point unnamed; the names after it keep their positions. In the picker grid, an unnamed position shows its number as the column header, as an unnamed position of a level does.
 - The **live preview** shows a freely chosen example value canonically and with names; as long as a definition is incomplete, the editor reports it as a hint (soft validation), only applying checks strictly.
 - The definitions are stored in the area file (file `Area_Settings.mdda`) and apply to all windows of the area.
 
-Editing is deliberately never locked: structural changes to calendars already in use are allowed. Values in the document that become invalid as a result are preserved unchanged and are visibly marked.
+Editing is deliberately never locked: structural changes to calendars already in use are allowed. Values in the document that become invalid as a result are preserved unchanged and are visibly marked. Only saving an invalid definition is blocked: when applying, a message appears and nothing is saved. If, for example, the extended unit of a leap rule is not within the units per instance, the leap rule reports this while you type and names the permitted positions.
 
 ### Adding an epoch later
 

@@ -314,7 +314,8 @@ describe('Rückfrage zu den Ableitungen nur bei wirksamer Änderung (4T-002065)'
     ],
     [
       'Positions-Namen eines Zyklus (Wochentags-Namen)',
-      (b) => (b.cycles[0].namesText = 'Ruhe, Saat, Mühe, Markt, Fest'),
+      // 4T-002206: ein Name je Zeile statt durch Komma getrennt
+      (b) => (b.cycles[0].namesText = 'Ruhe\nSaat\nMühe\nMarkt\nFest'),
       (g) => expect(g.cycles[0].names).toEqual(['Ruhe', 'Saat', 'Mühe', 'Markt', 'Fest']),
     ],
     [

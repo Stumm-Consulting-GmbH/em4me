@@ -5,6 +5,10 @@
 // Liste nur weitlaeufig fort und die Anzeige zaehlt ueber sie hinweg durch,
 // waehrend der Quelltext wieder bei 1 beginnt. Genau diese Abweichung
 // zwischen Quell- und Renderansicht meldete der Product Owner als Fehler.
+//
+// 4T-002209 (Epic 3E-000334): Der Neustart gilt seither in jedem
+// Arbeitsmodus, auch bei abgeschalteter Erweiterung «Listen-Struktur», weil
+// die selbsttätige Nummerierung im Editor dort ebenfalls wirkt.
 import { describe, it, expect, afterEach } from 'vitest';
 import {
   renderMarkdown,
@@ -56,9 +60,10 @@ describe('Listen-Neustart nach Leerzeile (4T-000660)', () => {
     expect(exported).toContain('1. Zweite A');
   });
 
-  it('faellt bei abgeschalteter Erweiterung auf das Standard-Verhalten zurueck', () => {
+  it('beginnt auch bei abgeschalteter Erweiterung «Listen-Struktur» neu (4T-002209)', () => {
     configureExtensions(['outliner']);
     const html = renderMarkdown(ZWEI_LISTEN, 'de');
-    expect(html).not.toContain('<li value=');
+    expect(html).toContain('<li value="1"');
+    expect(html.match(/<li value=/g)).toHaveLength(1);
   });
 });

@@ -46,7 +46,7 @@ Spell checking is a switchable extension (Settings → Extensions). When off, ma
 
 ## Full-text search
 
-The search (default `Ctrl+F`) finds live while typing; the search scope follows the view (source text or preview). Two toggles extend it: `.*` for regular expressions, `Aa` for case sensitivity. `F3` and `Shift+F3` jump between matches, in the search bar also `Enter` / `Shift+Enter`.
+The search (default `Ctrl+F`) finds live while typing; the search scope follows the view (source text or preview). Two toggles extend it: `.*` for regular expressions, `Aa` for case sensitivity. `F3` and `Shift+F3` jump between matches, in the search bar also `Enter` / `Shift+Enter`. The match jumped to then sits roughly in the middle of the visible area, as far as the content can scroll that far; this holds in every view and also when a file, a manual page or a settings section has to be opened first. If the match lies in a collapsed callout in the “Rendered” view or on a manual page, the callout unfolds when the match is reached and stays open.
 
 The question mark in the search bar opens a regex quick reference; the most important patterns:
 
@@ -83,7 +83,7 @@ The search scope follows the tab the search is opened in; the scopes exclude one
 
 The scope in effect is shown at the left of the search bar. In the mind map view the search looks through the map itself, also in an open area; see [Mind map view](mindmap.md).
 
-Beyond the single file, matches appear in the sidebar panel **Search results**, grouped by file, page or settings section and with a count per group. A click opens the target and highlights the location; `F3` continues across the group boundary. In the list the arrow keys move the selection, and `Enter` jumps to the selected match. The selection is kept when the list is rebuilt for an unchanged search; only a new search starts again at the first match.
+Beyond the single file, matches appear in the sidebar panel **Search results**, grouped by file, page or settings section and with a count per group. A click opens the target and highlights the location, which then sits roughly in the middle, as when jumping; `F3` continues across the group boundary. In the list the arrow keys move the selection, and `Enter` jumps to the selected match. The selection is kept when the list is rebuilt for an unchanged search; only a new search starts again at the first match.
 
 ### Within an area
 

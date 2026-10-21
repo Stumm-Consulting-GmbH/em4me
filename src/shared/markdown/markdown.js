@@ -323,12 +323,12 @@ function registerMarkdownExtensions(mdInstance, opts = {}) {
   }
   // 4T-000660 (Epic 3E-000112): Leerzeile beginnt eine neue nummerierte Liste
   // (bewusste Abweichung von der Standard-Interpretation, PO-Festlegung vom
-  // 2026-07-21). Haengt an derselben Erweiterung wie die Struktur-Kommandos,
-  // weil beide dieselbe Listen-Grenze voraussetzen: deaktiviert zaehlt die
-  // Anzeige wieder standardkonform ueber die Leerzeile hinweg durch.
-  if (enabled('outliner')) {
-    mdInstance.use(listRestartPlugin);
-  }
+  // 2026-07-21). Seit 4T-002209 (Epic 3E-000334) Kern ohne Schalter: Die
+  // selbsttätige Nummerierung im Editor gilt in jedem Arbeitsmodus und setzt
+  // dieselbe Listen-Grenze voraus. Hinge der Neustart weiter an der
+  // Erweiterung «Listen-Struktur», zählte ohne sie der Quelltext nach einer
+  // neu entstandenen Leerzeile ab 1, die Anzeige aber über sie hinweg weiter.
+  mdInstance.use(listRestartPlugin);
 }
 
 // --- Pipeline-Aufbau (4T-000292) -----------------------------------------------------

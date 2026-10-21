@@ -46,7 +46,7 @@ La correzione ortografica è un'estensione commutabile (Impostazioni → Estensi
 
 ## Ricerca testuale
 
-La ricerca (predefinito `Ctrl+F`) trova in tempo reale durante la digitazione; l'ambito di ricerca segue la vista (testo sorgente o anteprima). Due interruttori la estendono: `.*` per le espressioni regolari, `Aa` per maiuscole/minuscole. `F3` e `Maiusc+F3` saltano tra i risultati, nella barra di ricerca anche `Invio` / `Maiusc+Invio`.
+La ricerca (predefinito `Ctrl+F`) trova in tempo reale durante la digitazione; l'ambito di ricerca segue la vista (testo sorgente o anteprima). Due interruttori la estendono: `.*` per le espressioni regolari, `Aa` per maiuscole/minuscole. `F3` e `Maiusc+F3` saltano tra i risultati, nella barra di ricerca anche `Invio` / `Maiusc+Invio`. Il risultato raggiunto si trova poi all'incirca al centro dell'area visibile, nella misura in cui il contenuto può scorrere fin lì; questo vale in ogni vista e anche quando occorre prima aprire un file, una pagina del manuale o una sezione delle impostazioni. Se il risultato si trova in un callout compresso, nella vista «Renderizzato» o in una pagina del manuale, il callout si riapre quando lo si raggiunge e resta aperto.
 
 Il punto interrogativo nella barra apre un riferimento rapido regex; i pattern più importanti:
 
@@ -83,7 +83,7 @@ L'ambito segue la scheda in cui la ricerca viene aperta; gli ambiti si escludono
 
 L'ambito in vigore è mostrato a sinistra nella barra di ricerca. Nella vista mappa mentale la ricerca percorre la mappa stessa, anche in un'area aperta; vedi [Vista mappa mentale](mindmap.md).
 
-Oltre il singolo file, le corrispondenze compaiono nel pannello **Risultati della ricerca**, raggruppate per file, pagina o sezione e con un conteggio per gruppo. Un clic apre la destinazione ed evidenzia il punto; `F3` supera il confine del gruppo. Nell'elenco i tasti freccia spostano la selezione e `Invio` salta alla corrispondenza selezionata. La selezione resta quando l'elenco si ricostruisce con la ricerca invariata; solo una nuova ricerca riparte dalla prima corrispondenza.
+Oltre il singolo file, le corrispondenze compaiono nel pannello **Risultati della ricerca**, raggruppate per file, pagina o sezione e con un conteggio per gruppo. Un clic apre la destinazione ed evidenzia il punto, che si trova poi all'incirca al centro, come con un salto; `F3` supera il confine del gruppo. Nell'elenco i tasti freccia spostano la selezione e `Invio` salta alla corrispondenza selezionata. La selezione resta quando l'elenco si ricostruisce con la ricerca invariata; solo una nuova ricerca riparte dalla prima corrispondenza.
 
 ### In un'area
 
