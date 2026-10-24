@@ -261,11 +261,11 @@ In modalità live la griglia della tabella dati non è raggiungibile con la tast
 
 I grafici fanno parte delle [estensioni interne](extensions.md) e sono attivi nella modalità di lavoro **Completa**. Se l’estensione è disattivata, il blocco compare come un normale blocco di codice, anche nella stampa, nel PDF e nell’esportazione portabile; il documento resta invariato e, dopo la riattivazione, il grafico ricompare. I due comandi allora non ci sono, né nel menu, né nella palette dei comandi, né in un menu contestuale.
 
-I grafici si basano sull’estensione **Perspective Datatable**: finché sono attivi, la tabella dati non si può disattivare. Se la tabella dati è disattivata, lo sono anche i grafici.
+I grafici si basano sull’estensione **Perspective Datatable**: finché sono attivi, la tabella dati non si può disattivare. Se la tabella dati è disattivata, lo sono anche i grafici. Il grafico di una query ha un proprio interruttore, «Grafico di una query», attivo a partire dalla modalità di lavoro **Avanzata** e indipendente dalla tabella dati.
 
 ## Limiti
 
-- **L’unica fonte è la tabella dati.** Una normale tabella Markdown, una Perspective Table, i risultati di una query e i record del database non sono fonte di un grafico.
+- **L’unica fonte è la tabella dati.** Una normale tabella Markdown, una Perspective Table, i risultati di una query e i record del database non sono fonte di un grafico. Una query può però mostrare da sé il proprio risultato a barre o a linee, con `DISPLAY bar` o `DISPLAY line` (pagina [Query Perspective](frontmatter-query.md), sezione «Forma di presentazione»).
 - **Si modifica la tabella, non il grafico.** Il grafico è un’immagine; su di esso i valori non si possono né modificare né mostrare al passaggio del puntatore. Del grafico si modificano soltanto le indicazioni, con «Modifica grafico» o nel sorgente.
 - **Nessun calcolo proprio.** Il grafico non forma somme né medie tra le serie; per mostrarle, le si calcola in una colonna calcolata della tabella.
 - **Quattro tipi.** Grafici ad area, barre impilate e altri tipi non esistono.

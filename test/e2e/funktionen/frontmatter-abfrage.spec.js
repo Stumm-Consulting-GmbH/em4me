@@ -363,3 +363,378 @@ test.describe('FQ-02: Frontmatter-Abfrage — Parität im Live-Modus', () => {
     }
   });
 });
+
+// --- 4T-002173 (Epic 3E-000337): Diagramm-Darstellung einer Tabellen-Abfrage ---
+// `DISPLAY bar` und `DISPLAY line` zeigen eine Tabellen-Abfrage als Balken- und
+// Linien-Diagramm. Gemessen wird am sichtbaren Bild: Art am Container, Vorlese-
+// Beschreibung der Grafik (Zahl der Reihen und Rubriken), Treffer-Namen als
+// Beschriftung, Zeilen unter dem Bild, Hinweis über der Ausgabe und Farben im
+// PDF. Die Abfrage-Datei trägt ihren eigenen Bereich «Index», damit nur die drei
+// Bücher Treffer sind; sortiert nach Seiten: Gamma (80), Alpha (120), Beta (300).
+const zlib = require('node:zlib');
+const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
+const { BASE_DEFAULTS } = require('../../../src/shared/color-schemes.js');
+const { hauptLesen, hauptSenden } = require('../helpers/haupt-zugriff');
+
+const abfrage = (...zeilen) => ['```perspective-query', ...zeilen, '```'].join('\n');
+const BUCH_ABFRAGE = (form) =>
+  abfrage(
+    'TABLE seiten AS "Seiten", preis AS "Preis", titel AS "Titel" WHERE bereich = "Buch" SORT seiten ASC',
+    `DISPLAY ${form}`,
+  );
+const GRUPPEN_ABFRAGE = abfrage(
+  'TABLE count() AS "Bücher", sum(seiten) AS "Seiten" WHERE bereich = "Buch" GROUP BY autor',
+  'DISPLAY bar',
+);
+const LISTEN_ABFRAGE = abfrage('LIST WHERE bereich = "Buch"', 'DISPLAY bar');
+const TEXT_ABFRAGE = abfrage('TABLE titel AS "Titel" WHERE bereich = "Buch"', 'DISPLAY bar');
+
+function makeBuchFixtureDir(...bloecke) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-fmchart-'));
+  const text = `---\nBereich: Index\n---\n# Uebersicht\n\n${bloecke.join('\n\n')}\n`;
+  fs.writeFileSync(path.join(dir, 'Uebersicht.md'), text, 'utf8');
+  const buch = (name, kopf) =>
+    fs.writeFileSync(
+      path.join(dir, `${name}.md`),
+      `---\nBereich: Buch\n${kopf}---\n# ${name}\n`,
+      'utf8',
+    );
+  buch('Alpha', 'seiten: 120\npreis: 10\nautor: Ada\ntitel: Erstes\n');
+  buch('Beta', 'seiten: 300\npreis: 20\nautor: Ada\ntitel: Zweites\n');
+  // Gamma ohne Preis: ein ausgelassener Wert in der Reihe «Preis».
+  buch('Gamma', 'seiten: 80\nautor: Bo\ntitel: Drittes\n');
+  return { dir, datei: path.join(dir, 'Uebersicht.md'), text };
+}
+
+// Das Bild eines Abfrage-Diagramms unter einem Wurzel-Selektor.
+async function diagrammBild(page, root, nr = 0) {
+  const bild = page.locator(`${root} .perspective-query-chart`).nth(nr);
+  await expect(bild.locator('svg')).toBeVisible({ timeout: 15000 });
+  return {
+    art: await bild.getAttribute('data-query-chart'),
+    beschreibung: await bild.locator('svg desc').textContent(),
+    zeilen: await bild.locator('.perspective-chart-omitted').allTextContents(),
+  };
+}
+
+const BUCH_ZEILEN = [
+  DE['query.chart.skipped.one'].replace('{columns}', "'Titel'"),
+  DE['query.chart.omitted.one'],
+];
+
+test.describe('FQ-07: Perspective-Abfrage — Balken und Linie in Lese-, geteilter und Live-Ansicht', () => {
+  test('Balken je Treffer in drei Ansichten, ungespeichert auf Linie umgestellt folgt die Live-Ansicht', async () => {
+    const { dir, datei, text } = makeBuchFixtureDir(BUCH_ABFRAGE('bar'));
+    const balken = {
+      art: 'bar',
+      beschreibung: 'Balkendiagramm mit 2 Datenreihen und 3 Rubriken',
+      zeilen: BUCH_ZEILEN,
+    };
+    const { app, page, userData } = await launchApp({ args: [datei] });
+    try {
+      await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+
+      // Lese-Ansicht: das Diagramm statt der Tabelle, Treffer-Namen als Beschriftung.
+      expect(await diagrammBild(page, SEL.markdownBody0)).toEqual(balken);
+      const svg = page.locator(`${SEL.markdownBody0} .perspective-query-chart svg`);
+      for (const name of ['Gamma', 'Alpha', 'Beta']) await expect(svg).toContainText(name);
+      await expect(page.locator(`${SEL.markdownBody0} table.perspective-query-table`)).toHaveCount(
+        0,
+      );
+      await expect(page.locator(`${SEL.markdownBody0} .perspective-query-hint`)).toHaveCount(0);
+      // Kein Klick-Ziel im Bild (F3).
+      await expect(
+        page.locator(`${SEL.markdownBody0} .perspective-query-chart [data-fm-path]`),
+      ).toHaveCount(0);
+
+      // Geteilte Ansicht: dieselbe Grafik in der Vorschau.
+      await page.locator(SEL.viewBtn('split')).click();
+      await expect(page.locator(SEL.editorContent0)).toBeVisible();
+      expect(await diagrammBild(page, SEL.markdownBody0)).toEqual(balken);
+
+      // Live-Ansicht: dasselbe Bild im Block-Widget.
+      await page.locator(SEL.viewBtn('live')).click();
+      expect(await diagrammBild(page, SEL.editorContent0)).toEqual(balken);
+
+      // Die Angabe im Quelltext auf «line» ändern und NICHT speichern.
+      await page.locator(SEL.viewBtn('source')).click();
+      await page.locator(SEL.btnEdit).click();
+      await expect(page.locator(SEL.editorContent0)).toHaveAttribute('contenteditable', 'true');
+      await page.locator(`${SEL.editorContent0} .cm-line`, { hasText: /^DISPLAY bar$/ }).click();
+      await page.keyboard.press('End');
+      await page.keyboard.press('Shift+Home');
+      await page.keyboard.type('DISPLAY line');
+      await expect(page.locator(SEL.dirtyTab0).first()).toBeVisible();
+      // Den Cursor aus dem Block nehmen, damit die Live-Ansicht ihn als Widget zeigt.
+      await page.keyboard.press('Control+Home');
+
+      await page.locator(SEL.viewBtn('live')).click();
+      const live = page.locator(`${SEL.editorContent0} .perspective-query-chart`);
+      await expect(live).toHaveAttribute('data-query-chart', 'line', { timeout: 15000 });
+      expect(await diagrammBild(page, SEL.editorContent0)).toEqual({
+        ...balken,
+        art: 'line',
+        beschreibung: 'Liniendiagramm mit 2 Datenreihen und 3 Rubriken',
+      });
+      expect(fs.readFileSync(datei, 'utf8')).toBe(text);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+});
+
+test.describe('FQ-08: Perspective-Abfrage — gruppiertes Diagramm, Hinweis-Zeilen und Rückfall mit Grund', () => {
+  test('je Gruppe eine Rubrik, Zeilen unter dem Bild, Liste und Tabelle ohne Zahl mit Hinweis', async () => {
+    const { dir, datei } = makeBuchFixtureDir(
+      GRUPPEN_ABFRAGE,
+      BUCH_ABFRAGE('bar'),
+      LISTEN_ABFRAGE,
+      TEXT_ABFRAGE,
+    );
+    const { app, page, userData } = await launchApp({ args: [datei] });
+    const bloecke = page.locator(`${SEL.markdownBody0} .perspective-query`);
+    try {
+      await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+      await expect(bloecke).toHaveCount(4, { timeout: 15000 });
+
+      // Gruppiert: je Autor eine Rubrik, Anzahl und Seiten-Summe als Reihen, keine Zeile.
+      expect(await diagrammBild(page, SEL.markdownBody0, 0)).toEqual({
+        art: 'bar',
+        beschreibung: 'Balkendiagramm mit 2 Datenreihen und 2 Rubriken',
+        zeilen: [],
+      });
+      const gruppen = bloecke.nth(0).locator('svg');
+      for (const name of ['Ada', 'Bo']) await expect(gruppen).toContainText(name);
+
+      // Ungruppiert: übergangene Spalte und ausgelassener Wert, je eine Zeile unter dem Bild.
+      expect((await diagrammBild(page, SEL.markdownBody0, 1)).zeilen).toEqual(BUCH_ZEILEN);
+
+      // Liste: die gewohnte Liste mit dem Hinweis, dass ein Diagramm eine Tabelle braucht.
+      await expect(bloecke.nth(2).locator('.perspective-query-hint')).toHaveText(
+        DE['query.hint.displayFormChartNotTable'].replace('{name}', 'bar'),
+      );
+      await expect(bloecke.nth(2).locator('a.perspective-query-item')).toHaveCount(3);
+      // Ohne Zahl-Spalte: die gewohnte Tabelle mit dem Hinweis auf die fehlende Zahl.
+      await expect(bloecke.nth(3).locator('.perspective-query-hint')).toHaveText(
+        DE['query.hint.displayFormChartNoNumbers'].replace('{name}', 'bar'),
+      );
+      await expect(bloecke.nth(3).locator('table.perspective-query-table')).toBeVisible();
+      await expect(page.locator(`${SEL.markdownBody0} .perspective-query-chart`)).toHaveCount(2);
+      await expect(page.locator(`${SEL.markdownBody0} .perspective-query-error`)).toHaveCount(0);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+});
+
+const EINSTELLUNGEN = '.pane-group[data-pane="0"] .pane-system .settings-page';
+
+// Den Schalter «Diagramm einer Abfrage» unter Einstellungen → Erweiterungen
+// bedienen und mit OK bestätigen (Weg des Anwenders, Muster EW-01).
+async function schalteAbfrageDiagramm(page, an) {
+  await oeffneEinstellungsSeite(page);
+  await page.locator(`${EINSTELLUNGEN} .settings-nav-entry[data-section-id="extensions"]`).click();
+  await expect(page.locator('#settings-extensions-list')).toBeVisible();
+  const schalter = page.locator('#settings-extension-query-chart');
+  if (an) await schalter.check();
+  else await schalter.uncheck();
+  await page.locator('#btn-settings-ok').click();
+  await expect(page.locator(EINSTELLUNGEN)).toBeHidden();
+}
+
+test.describe('FQ-09: Perspective-Abfrage — Diagramm-Darstellung ausgeschaltet und wieder an', () => {
+  test('aus: die Tabelle mit dem Hinweis «ausgeschaltet»; wieder an: das Diagramm', async () => {
+    const { dir, datei } = makeBuchFixtureDir(BUCH_ABFRAGE('bar'));
+    const { app, page, userData } = await launchApp({ args: [datei] });
+    const bild = page.locator(`${SEL.markdownBody0} .perspective-query-chart`);
+    const tabelle = page.locator(`${SEL.markdownBody0} table.perspective-query-table`);
+    const hinweis = page.locator(`${SEL.markdownBody0} .perspective-query-hint`);
+    try {
+      await expect(page.locator(SEL.tabs0).first()).toBeVisible();
+      await expect(bild.locator('svg')).toBeVisible({ timeout: 15000 });
+
+      await schalteAbfrageDiagramm(page, false);
+      await expect(tabelle).toBeVisible({ timeout: 15000 });
+      await expect(hinweis).toHaveText(DE['query.hint.displayFormOff'].replace('{name}', 'bar'));
+      await expect(bild).toHaveCount(0);
+      await expect(tabelle.locator('tbody a.perspective-query-item')).toHaveText([
+        'Gamma',
+        'Alpha',
+        'Beta',
+      ]);
+
+      await schalteAbfrageDiagramm(page, true);
+      await expect(bild.locator('svg')).toBeVisible({ timeout: 15000 });
+      await expect(tabelle).toHaveCount(0);
+      await expect(hinweis).toHaveCount(0);
+    } finally {
+      await closeApp(app, userData);
+      cleanupDir(dir);
+    }
+  });
+});
+
+// --- FQ-10: Druck und PDF hell bei dunklem Farbschema --------------------------
+// Muster DD-01 in diagramme-druck.spec.js: im PDF an den Füllfarben der
+// entpackten Seiten-Inhalte, beim Druck am Zustand der Seite im Augenblick des
+// Druck-Aufrufs (ersetztes `webContents.print`). Die Farbwerte kommen aus den
+// Schema-Daten mit den mitgelieferten Standard-Schemata. Zwei Reihen ergeben
+// die ersten beiden Reihen-Farben.
+const HELL = [1, 2].map((i) => BASE_DEFAULTS.light[`chart${i}`]);
+const DUNKEL = [1, 2, 3, 4].map((i) => BASE_DEFAULTS.dark[`chart${i}`]);
+const STANDARD_SCHEMATA = {
+  language: 'de',
+  colorSchemes: { custom: [], activeLight: 'standard-light', activeDark: 'standard-dark' },
+};
+
+// Füll- und Strichfarben des PDFs als Hex-Werte, aus allen entpackten
+// FlateDecode-Streams (Muster pdf-export.spec.js).
+function pdfFarben(buffer) {
+  const raw = buffer.toString('latin1');
+  const teile = [];
+  const re = /stream\r?\n/g;
+  let m;
+  while ((m = re.exec(raw)) !== null) {
+    const start = m.index + m[0].length;
+    const ende = raw.indexOf('endstream', start);
+    if (ende < 0) continue;
+    try {
+      teile.push(zlib.inflateSync(buffer.subarray(start, ende)).toString('latin1'));
+    } catch {
+      // Nicht-Flate-Stream (Schriften, Bilder) — für die Farben ohne Belang.
+    }
+  }
+  const kanal = (v) =>
+    Math.round(parseFloat(v) * 255)
+      .toString(16)
+      .padStart(2, '0');
+  const farben = new Set();
+  const farbe = /(-?[\d.]+)\s+(-?[\d.]+)\s+(-?[\d.]+)\s+(?:rg|RG)\b/g;
+  const inhalt = teile.join('\n');
+  while ((m = farbe.exec(inhalt)) !== null) {
+    farben.add(`#${kanal(m[1])}${kanal(m[2])}${kanal(m[3])}`);
+  }
+  return farben;
+}
+
+// PDF-Ausgabe über das Menü, Zielpfad-Dialog gestellt (Muster EB-08).
+async function exportierePdf(app, page, ziel) {
+  await hauptSenden(
+    app,
+    ({ dialog }, z) => {
+      dialog.showSaveDialog = async () => ({ canceled: false, filePath: z });
+    },
+    ziel,
+  );
+  await hauptSenden(app, ({ BrowserWindow }) => {
+    BrowserWindow.getAllWindows()[0].webContents.send('menu:exportPdf');
+  });
+  await expect.poll(() => fs.existsSync(ziel), { timeout: 60000 }).toBe(true);
+  await expect(page.locator('body.printing')).toHaveCount(0);
+  const buffer = fs.readFileSync(ziel);
+  expect(buffer.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+  return pdfFarben(buffer);
+}
+
+// Füllfarben der Abfrage-Diagramme der gerenderten Ansicht der ersten Spalte,
+// wie der Druck sie rastert (ein Live-Widget im Editor gehört nicht dazu).
+const ERFASSE_ABFRAGE = `(() => ({
+  theme: document.documentElement.getAttribute('data-theme'),
+  fuellungen: [...new Set(Array.from(document.querySelectorAll(
+    '.pane-group[data-pane="0"] .markdown-body .perspective-query-chart path[fill]'))
+    .filter((p) => !p.closest('.cm-editor'))
+    .map((p) => (p.getAttribute('fill') || '').toLowerCase())
+    .filter((f) => f.startsWith('#')))],
+}))()`;
+
+async function druckeMitStub(app, page) {
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, erfasse) => {
+      globalThis.__fqDruck = [];
+      for (const win of BrowserWindow.getAllWindows()) {
+        win.webContents.print = (options, callback) => {
+          win.webContents.executeJavaScript(erfasse).then(
+            (stand) => {
+              globalThis.__fqDruck.push(stand);
+              callback(true, '');
+            },
+            (err) => {
+              globalThis.__fqDruck.push({ fehler: String(err) });
+              callback(true, '');
+            },
+          );
+        };
+      }
+    },
+    ERFASSE_ABFRAGE,
+  );
+  await hauptSenden(app, ({ BrowserWindow }) => {
+    BrowserWindow.getAllWindows()[0].webContents.send('menu:print');
+  });
+  await expect
+    .poll(() => hauptLesen(app, () => globalThis.__fqDruck.length), { timeout: 30000 })
+    .toBe(1);
+  await expect(page.locator('body.printing')).toHaveCount(0);
+  return hauptLesen(app, () => globalThis.__fqDruck[0]);
+}
+
+// Erste Füllfarbe des Abfrage-Diagramms in einer Ansicht; Pfade ohne Füllung
+// ('none', Achsen und Gitter) zählen nicht, wie in DD-01.
+async function ersteFarbe(page, root) {
+  const fuellungen = await page
+    .locator(`${root} .perspective-query-chart path[fill]`)
+    .evaluateAll((pfade) => pfade.map((p) => (p.getAttribute('fill') || '').toLowerCase()));
+  return fuellungen.find((f) => f.startsWith('#')) || '-';
+}
+
+test.describe('FQ-10: Perspective-Abfrage — Diagramm in Druck und PDF hell bei dunklem Farbschema', () => {
+  test('hell in Druck und PDF aus Lese- und Live-Ansicht, danach wieder dunkel', async () => {
+    const { dir, datei } = makeBuchFixtureDir(BUCH_ABFRAGE('bar'));
+    const { app, page, userData } = await launchApp({
+      args: [datei],
+      settings: STANDARD_SCHEMATA,
+    });
+    try {
+      await expect(page.locator(`${SEL.markdownBody0} .perspective-query-chart svg`)).toBeVisible({
+        timeout: 20000,
+      });
+      await page.evaluate(() => window.api.setThemePref('dark'));
+      await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+      await expect.poll(() => ersteFarbe(page, SEL.markdownBody0)).toBe(DUNKEL[0]);
+
+      for (const ansicht of ['rendered', 'live']) {
+        if (ansicht === 'live') await page.locator(SEL.viewBtn('live')).click();
+        const druck = await druckeMitStub(app, page);
+        expect(druck.theme, ansicht).toBe('light');
+        expect(
+          HELL.filter((f) => druck.fuellungen.includes(f)),
+          ansicht,
+        ).toEqual(HELL);
+        expect(
+          DUNKEL.filter((f) => druck.fuellungen.includes(f)),
+          ansicht,
+        ).toEqual([]);
+
+        const farben = await exportierePdf(app, page, path.join(dir, `${ansicht}.pdf`));
+        expect(
+          HELL.filter((f) => farben.has(f)),
+          ansicht,
+        ).toEqual(HELL);
+        expect(
+          DUNKEL.filter((f) => farben.has(f)),
+          ansicht,
+        ).toEqual([]);
+
+        // Danach zeichnet die Anzeige wieder dunkel, im Live-Modus das Widget.
+        const root = ansicht === 'live' ? SEL.editorContent0 : SEL.markdownBody0;
+        await expect.poll(() => ersteFarbe(page, root)).toBe(DUNKEL[0]);
+      }
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+});

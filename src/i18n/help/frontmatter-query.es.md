@@ -128,7 +128,8 @@ SORT autor
 - **Tablas**: `TABLE RECORDS …` muestra el resultado en la primera columna «Registro»; `WITHOUT ID` va tras `RECORDS`. El título de una columna es el alias, si no la etiqueta del campo en el idioma del programa elegido según la cadena de respaldo de la página [Base de datos](database.md), y si no la propia expresión, por ejemplo en una ruta.
 - **Valores de enlace**: un campo de referencia muestra la forma de visualización de su destino, si no la tiene su identificador, y un clic abre el formulario del destino. Un enlace vacío y uno que no lleva a ninguna parte quedan como celda vacía.
 - **Orden**: sin `SORT`, los resultados siguen su forma de visualización sin distinguir mayúsculas y minúsculas, con igual forma de visualización el identificador, y los registros sin forma de visualización van al final.
-- **Dos destinos de clic**: un registro en el resultado de una consulta abre el formulario, mientras que un enlace en el texto corrido como `[[Libros#^r-00042]]` abre el archivo de tabla en la fila del registro. El formulario muestra el estado guardado.
+- **Un solo destino de clic**: un registro en el resultado de una consulta abre el formulario, igual que un enlace en el texto corrido como `[[Libros#^r-00042]]`; a la fila lleva la acción «Mostrar en el documento de tabla» del formulario. El formulario muestra el estado guardado.
+- **Formulario de lista**: si un archivo de consulta lleva la indicación `editable: true` en su contenedor `db-query`, su resultado aparece como cuadrícula en la que los registros se abren, modifican, crean y eliminan, 50 filas por página; la página [Base de datos](database.md) lo describe en la sección «Formulario de lista».
 - **Estado sin guardar**: los cambios de una tabla abierta se incluyen de inmediato en el resultado, sin guardar.
 - **No en este nivel**: `bold()` en una columna o en una expresión de `GROUP BY` produce un mensaje de error, porque un valor de base de datos no lleva formato; en la condición y la ordenación sigue estando permitido. `HIDE`, `SHOW` y `SHORT` solo valen para `LIST TASKS` y se señalan aquí como en los niveles de archivo y de bloque.
 - **Resultado vacío y base de datos desactivada**: sin resultados aparece «Ningún registro coincide con esta consulta». Si la extensión «Base de datos» está desactivada, la lista queda vacía, encima aparece una nota y no se muestra ningún mensaje de error.
@@ -386,7 +387,7 @@ LIST RECORDS FROM "Equipo" DISPLAY tree BY jefe
 ```
 ````
 
-La forma disponible es el **árbol** (`DISPLAY tree BY campo`). Muestra los registros de una consulta de registros sangrados a lo largo del campo de referencia nombrado:
+Las formas disponibles son el **árbol** y dos **gráficos**. El árbol (`DISPLAY tree BY campo`) muestra los registros de una consulta de registros sangrados a lo largo del campo de referencia nombrado:
 
 - Un registro cuelga del registro al que apunta su campo, si este está en el resultado. Si no, es una **raíz** y queda en el extremo izquierdo: sin enlace, con un enlace que no lleva a ninguna parte o a un registro que la condición filtra. Con `descendants(…)` las raíces son por tanto los registros situados directamente bajo el destino, porque el destino mismo no forma parte del resultado.
 - Las raíces y los hermanos siguen el orden del resultado, que determina `SORT`.
@@ -395,7 +396,25 @@ La forma disponible es el **árbol** (`DISPLAY tree BY campo`). Muestra los regi
 - Un nodo muestra la forma de visualización como una entrada de lista, con `LIST` seguida del campo adicional; con `TABLE` el árbol no muestra columnas. Un clic abre el formulario.
 - Más allá de 32 niveles ya no se sangra más; los nodos más profundos aparecen completos en el nivel 32.
 
-**Respaldo**: si una forma es desconocida o no se ajusta a la consulta, el resultado aparece sin ella, es decir, como lista o tabla, con encima una nota que nombra la forma y sin mensaje de error. El árbol solo se ajusta en el nivel de registro y solo con un campo tras `BY` que sea un campo de referencia en al menos una tabla del resultado. Nunca se ajusta a una consulta agrupada; aparece entonces la salida agrupada con la nota. Un resultado vacío muestra su nota de resultado vacío y ninguna forma. Si falta el nombre de la forma tras `DISPLAY` o el campo tras `BY`, la consulta no es válida.
+Los **gráficos** `DISPLAY bar` y `DISPLAY line` muestran el resultado de una consulta de tabla como gráfico de barras o de líneas. Leen la tabla tal como aparecería sin `DISPLAY`:
+
+````markdown
+```perspective-query
+TABLE paginas AS "Páginas", precio AS "Precio"
+FROM "Libros"
+SORT paginas
+DISPLAY bar
+```
+````
+
+- **Etiquetas**: cada fila de la tabla se convierte en una categoría y lleva como etiqueta lo que la tabla muestra delante: el nombre del resultado y, con `WITHOUT ID`, el valor de la primera columna nombrada. En una tabla agrupada, cada grupo es una categoría con su valor de grupo; con varios escalones, los valores de todos los escalones se unen con « › », y el grupo sin valor se llama «(sin valor)» como en la tabla.
+- **Series**: cada columna adicional con al menos un número se convierte en una serie y lleva como nombre el encabezado de la columna. También cuenta como número un texto que consta solo de un número, como suelen tenerlo las propiedades del frontmatter, por ejemplo `paginas: 120`. Las fechas, las duraciones, los valores booleanos y los demás textos no son números.
+- **Huecos y columnas omitidas**: si en una serie falta un valor o no es un número, se dibuja sin él. Debajo del gráfico, una línea nombra entonces las columnas que no contienen ningún número y por eso se omiten, y otra el número de valores omitidos.
+- **Orden**: las categorías siguen el orden de la tabla, que determina `SORT`, a intervalos iguales. Una fecha como etiqueta es un texto como cualquier otro; no hay un eje temporal cuyos intervalos sigan el tiempo transcurrido. Muchos resultados se pueden limitar con `LIMIT`.
+- **Imagen**: el gráfico es una imagen sin controles; un clic no abre ningún resultado. Las series llevan los colores de gráfico del [esquema de color](color-schemes.md) activo, como los [gráficos de tablas](charts.md), y siguen de inmediato un cambio del esquema de color o entre claro y oscuro.
+- **Extensión**: los gráficos dependen de la [extensión interna](extensions.md) «Gráfico de una consulta», que está activada a partir del modo de trabajo **Avanzado** y no depende de ninguna otra extensión. Si está desactivada, aparece la tabla con la nota de que la visualización en gráfico está desactivada; el documento no cambia, y al volver a activarla el gráfico reaparece.
+
+**Respaldo**: si una forma es desconocida o no se ajusta a la consulta, el resultado aparece sin ella, es decir, como lista o tabla, con encima una nota que nombra la forma y sin mensaje de error. El árbol solo se ajusta en el nivel de registro y solo con un campo tras `BY` que sea un campo de referencia en al menos una tabla del resultado. Nunca se ajusta a una consulta agrupada; aparece entonces la salida agrupada con la nota. Los gráficos solo se ajustan a una tabla (`TABLE`, no `LIST`) con al menos una columna además de la etiqueta, de las que una contenga números; si no, la nota indica el motivo. Un resultado vacío muestra su nota de resultado vacío y ninguna forma. Si falta el nombre de la forma tras `DISPLAY` o el campo tras `BY`, la consulta no es válida.
 
 ## Visualización e interacción
 
@@ -417,7 +436,7 @@ Los archivos fuera del ámbito de búsqueda no aparecen en el resultado, como ta
 
 ## Exportación
 
-- **Exportación a PDF**: el resultado se imprime como estado estático del momento del renderizado, incluida la disposición en tabla y columnas. Las entradas aparecen como texto; en el PDF no son cliqueables.
-- **Markdown portable**: la exportación deja el bloque `perspective-query` sin cambios como código fuente. Al reabrirlo en este programa se evalúa de nuevo dinámicamente; otros programas de Markdown lo muestran como bloque de código.
+- **Exportación a PDF**: el resultado se imprime como estado estático del momento del renderizado, incluida la disposición en tabla y columnas. Las entradas aparecen como texto; en el PDF no son cliqueables. Un gráfico de la consulta aparece claro al imprimir y en la exportación a PDF, con los colores de gráfico del esquema de color claro, aunque la aplicación funcione en modo oscuro.
+- **Markdown portable**: la exportación deja el bloque `perspective-query` sin cambios como código fuente. Al reabrirlo en este programa se evalúa de nuevo dinámicamente; otros programas de Markdown lo muestran como bloque de código. Esto vale también con `DISPLAY bar` o `DISPLAY line`: a diferencia de un [gráfico de tabla](charts.md), el gráfico de una consulta no se exporta como imagen.
 
 Para evaluaciones libres más allá del lenguaje de cláusulas — por ejemplo estructuras recursivas o resúmenes calculados — están disponibles los [bloques de script](scripts.md); su API pq usa el mismo modelo de campos y bloques que la consulta.

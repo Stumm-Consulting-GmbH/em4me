@@ -45,6 +45,11 @@ const { setPlatformForTests } = require_('../../src/shared/platform.js');
 // Sichten benutzen — ueber dieselbe Modul-Instanz wie oben.
 const { indexes } = require_('../../src/main/index/store.js');
 const { displayName } = require_('../../src/shared/query/result-display.js');
+// 4T-002047: die überlagerte Sicht selbst und die realen Werkzeuge der Teilung,
+// mit denen das geteilte Dokument entsteht (Speichern) und gelesen wird (Öffnen).
+const { entryWithOverlay, overlaysUnder } = require_('../../src/main/index/overlay.js');
+const { planeZerlegung } = require_('../../src/shared/document-split.js');
+const { assembleParts } = require_('../../src/shared/document-assembly.js');
 
 const openRoots = new Set();
 let tmpDirs = [];
@@ -470,5 +475,194 @@ describe('Puffer-Overlay: Reichweite der Freischaltung', () => {
     // Ein Puffer, der die Zieldatei leert, nimmt ihr nicht die Existenz.
     setBufferOverlay(path.join(root, 'Ziel.md'), '');
     expect(existingWikiTargets(start, ['Ziel'], null).existing).toContain('Ziel');
+  });
+});
+
+// 4T-002047 (Epic 3E-000345, Nebenbefund aus 4T-002046): Ein Dokument jenseits
+// der Teilungs-Schwelle liegt in mehreren Teil-Dateien; geöffnet meldet der
+// Editor es zusammengesetzt unter dem Pfad der Kopf-Datei. Die überlagerte
+// Sicht führte daneben die Folge-Dateien der Platte und damit jeden Eintrag
+// eines Folgeteils doppelt, in allen acht Beständen. Das Dokument entsteht hier
+// über den Teiler des Speicherns und der Puffer über das Zusammensetzen wie
+// beim Öffnen, also in der realen Form und nicht in einer erfundenen.
+describe('Puffer-Overlay: geöffnetes geteiltes Dokument (4T-002047)', () => {
+  const ANZAHL = 40;
+
+  function grossesDokument() {
+    const zeilen = ['---', 'aliases: [Gross]', 'status: offen', '---', ''];
+    for (let i = 1; i <= ANZAHL; i++) {
+      zeilen.push(
+        `## Abschnitt ${i}`,
+        '',
+        `- [ ] Aufgabe ${i} #thema${i} [[Ziel${i}]] ^blk${i}`,
+        '',
+        'x'.repeat(60),
+        '',
+      );
+    }
+    return zeilen.join('\n');
+  }
+
+  function schreibeGeteilt(root) {
+    const plan = planeZerlegung({ text: grossesDokument(), base: 'Gross', schwelle: 1500 });
+    expect(plan.geteilt).toBe(true);
+    expect(plan.teile.length).toBeGreaterThanOrEqual(3);
+    const dateien = plan.teile.map((teil) => write(root, `${teil.basename}.md`, teil.text));
+    const dokument = assembleParts(
+      plan.teile.map((teil) => ({ index: teil.index, content: teil.text })),
+    ).text;
+    return { kopf: dateien[0], folgen: dateien.slice(1), dokument };
+  }
+
+  const sicht = (root) => entryWithOverlay(indexes.get(root), overlaysUnder(root));
+  const summe = (bestand, mass) => [...bestand].reduce((n, [, wert]) => n + mass(wert), 0);
+  const dateienMit = (bestand, pruefe) => [...bestand].filter(([, wert]) => pruefe(wert)).length;
+  const taskEnv = { enabled: true, globalFilter: '', globalQuery: '', statusTypeOf: () => null };
+  const aufgabenZeilen = (start) =>
+    frontmatterQueryFor(start, 'LIST TASKS', null, taskEnv).resultSet.rows;
+
+  it('führt jeden Eintrag genau einmal, unter dem Pfad des ersten Teils', async () => {
+    const root = makeRoot();
+    const start = write(root, 'Start.md', '# Start\n');
+    const { kopf, folgen, dokument } = schreibeGeteilt(root);
+    await indexFor(start);
+    // Vor dem Öffnen: die Platte, jede Aufgabe einmal, verteilt auf die Teile.
+    expect(summe(sicht(root).tasksPerFile, (l) => l.length)).toBe(ANZAHL);
+    expect(aufgabenZeilen(start)).toHaveLength(ANZAHL);
+
+    setBufferOverlay(kopf, dokument);
+    const s = sicht(root);
+    // Aufgaben, Treffer, Tags, Anker: je Eintrag genau einer, alle unter dem Kopf.
+    expect(summe(s.tasksPerFile, (l) => l.length)).toBe(ANZAHL);
+    expect(s.tasksPerFile.get(kopf)).toHaveLength(ANZAHL);
+    expect(summe(s.files, (l) => l.length)).toBe(ANZAHL);
+    expect(dateienMit(s.tagsPerFile, (l) => l.includes('thema40'))).toBe(1);
+    expect(summe(s.tagsPerFile, (l) => l.length)).toBe(ANZAHL);
+    // Die Überschrift von Start.md kommt hinzu.
+    expect(summe(s.anchorsPerFile, (a) => a.headings.size)).toBe(ANZAHL + 1);
+    expect(summe(s.anchorsPerFile, (a) => a.blockIds.size)).toBe(ANZAHL);
+    // Eigenschaften und Aliase: Jeder Teil trägt die Zuordnungs-Zeile im
+    // Frontmatter; das geöffnete Dokument ist trotzdem genau eine Datei.
+    expect(dateienMit(s.propertiesPerFile, (p) => 'doc-part' in p)).toBe(1);
+    expect(dateienMit(s.aliasesPerFile, (l) => l.includes('Gross'))).toBe(1);
+    // Die Folge-Dateien führen keine Einträge, ihr Schlüssel bleibt stehen.
+    for (const folge of folgen) {
+      expect(s.files.has(folge), folge).toBe(true);
+      expect(s.files.get(folge), folge).toEqual([]);
+      expect(s.tasksPerFile.get(folge), folge).toEqual([]);
+      expect(s.propertiesPerFile.get(folge), folge).toEqual({});
+    }
+    expect([...s.files.keys()]).toEqual(expect.arrayContaining(folgen));
+    // Bei den Verbrauchern: die Aufgaben-Abfrage und das Tag-Panel.
+    expect(aufgabenZeilen(start)).toHaveLength(ANZAHL);
+    expect(tagsFor(start, 'thema40', null).files || []).toHaveLength(1);
+  });
+
+  it('ein im Puffer gelöschter Eintrag eines Folgeteils ist nicht mehr sichtbar, danach gilt die Platte', async () => {
+    const root = makeRoot();
+    const start = write(root, 'Start.md', '# Start\n');
+    const { kopf, folgen, dokument } = schreibeGeteilt(root);
+    await indexFor(start);
+    const zeile = '- [ ] Aufgabe 40 #thema40 [[Ziel40]] ^blk40\n';
+    expect(dokument).toContain(zeile);
+    setBufferOverlay(kopf, dokument.replace(zeile, ''));
+
+    const s = sicht(root);
+    expect(summe(s.tasksPerFile, (l) => l.length)).toBe(ANZAHL - 1);
+    expect(JSON.stringify([...s.tasksPerFile])).not.toContain('Aufgabe 40 ');
+    expect(dateienMit(s.tagsPerFile, (l) => l.includes('thema40'))).toBe(0);
+    expect(dateienMit(s.anchorsPerFile, (a) => a.blockIds.has('blk40'))).toBe(0);
+    expect(summe(s.files, (l) => l.length)).toBe(ANZAHL - 1);
+    expect(aufgabenZeilen(start)).toHaveLength(ANZAHL - 1);
+    expect(tagsFor(start, 'thema40', null).files || []).toHaveLength(0);
+
+    // Nach dem Schließen gilt wieder die Platte samt Folge-Dateien.
+    clearAllBufferOverlays();
+    const platte = sicht(root);
+    const letzte = folgen[folgen.length - 1];
+    expect(summe(platte.tasksPerFile, (l) => l.length)).toBe(ANZAHL);
+    expect(JSON.stringify(platte.tasksPerFile.get(letzte))).toContain('Aufgabe 40 ');
+    expect(tagsFor(start, 'thema40', null).files || []).toHaveLength(1);
+  });
+
+  it('Gegenprobe: ohne Puffer des Dokuments bleibt die Sicht die der Platte', async () => {
+    const root = makeRoot();
+    const start = write(root, 'Start.md', '# Start\n');
+    const { folgen } = schreibeGeteilt(root);
+    await indexFor(start);
+    const eintrag = indexes.get(root);
+    // Ganz ohne Puffer ist die Sicht der Eintrag selbst.
+    expect(entryWithOverlay(eintrag, overlaysUnder(root))).toBe(eintrag);
+    // Der Puffer eines anderen Dokuments verdeckt keine Folge-Datei.
+    setBufferOverlay(start, '# Start\n\nungespeichert\n');
+    const s = sicht(root);
+    expect(summe(s.tasksPerFile, (l) => l.length)).toBe(ANZAHL);
+    for (const folge of folgen) {
+      expect(s.tasksPerFile.get(folge), folge).toBe(eintrag.tasksPerFile.get(folge));
+      expect(s.propertiesPerFile.get(folge), folge).toBe(eintrag.propertiesPerFile.get(folge));
+    }
+  });
+
+  // Alle acht Bestände an einem Eintrag, dessen Folge-Datei in jedem Bestand
+  // etwas führt. Am realen Dokument trägt ein Folgeteil keine Datenbank-Marke
+  // und außerhalb einer Tabelle keine Datensätze; die Einbindung beider
+  // Bestände wird deshalb hier an der Sicht selbst geprüft.
+  it('wendet die Regel auf alle acht Bestände an, mit der leeren Form je Bestand', () => {
+    const dir = path.join(os.tmpdir(), 'bereich');
+    const kopf = path.join(dir, 'Gross.md');
+    const folge = path.join(dir, 'Gross•part-00002.md');
+    const fremd = path.join(dir, 'Andere•part-00002.md');
+    const anker = (h) => ({ headings: new Set([h]), blockIds: new Set([h]) });
+    const bestand = (wert) =>
+      new Map([
+        [kopf, wert('k')],
+        [folge, wert('f')],
+        [fremd, wert('a')],
+      ]);
+    const eintrag = {
+      files: bestand((x) => [{ target: x }]),
+      propertiesPerFile: bestand((x) => ({ x })),
+      tasksPerFile: bestand((x) => [{ text: x }]),
+      dbKindsPerFile: bestand(() => ['table']),
+      recordsPerFile: bestand((x) => [{ id: x }]),
+      tagsPerFile: bestand((x) => [x]),
+      aliasesPerFile: bestand((x) => [x]),
+      anchorsPerFile: bestand(anker),
+    };
+    const puffer = {
+      hits: [{ target: 'p' }],
+      properties: { x: 'p' },
+      tasks: [{ text: 'p' }],
+      dbKinds: ['table'],
+      records: [{ id: 'p' }],
+      tags: ['p'],
+      aliases: ['p'],
+      headings: ['p'],
+      blockIds: ['p'],
+    };
+    const s = entryWithOverlay(eintrag, new Map([[kopf, puffer]]));
+    const leer = {
+      files: [],
+      propertiesPerFile: {},
+      tasksPerFile: [],
+      dbKindsPerFile: [],
+      recordsPerFile: [],
+      tagsPerFile: [],
+      aliasesPerFile: [],
+      anchorsPerFile: { headings: new Set(), blockIds: new Set() },
+    };
+    for (const [feld, leerWert] of Object.entries(leer)) {
+      const sichtFeld = s[feld];
+      expect(sichtFeld.get(folge), feld).toEqual(leerWert);
+      expect(new Map([...sichtFeld]).get(folge), feld).toEqual(leerWert);
+      expect(sichtFeld.has(folge), feld).toBe(true);
+      expect(sichtFeld.size, feld).toBe(3);
+      expect(sichtFeld.get(fremd), feld).toBe(eintrag[feld].get(fremd));
+      expect(sichtFeld.get(kopf), feld).not.toBe(eintrag[feld].get(kopf));
+      // Je Zugriff ein neuer leerer Wert: Kein Verbraucher teilt ihn.
+      expect(sichtFeld.get(folge), feld).not.toBe(sichtFeld.get(folge));
+    }
+    // Ein Schlüssel, den der Bestand nicht führt, bleibt abwesend.
+    expect(s.tasksPerFile.get(path.join(dir, 'Gross•part-00003.md'))).toBeUndefined();
   });
 });

@@ -42,8 +42,11 @@
 const path = require('node:path');
 const { indexes, indexStand, resolveRootInfo } = require('./store.js');
 const { entryWithOverlay, overlaysUnder, overlayStand } = require('./overlay.js');
-const { kopfDateiFuer } = require('./datensatz-erfassung.js');
+const { kopfDateiFuer } = require('./part-files.js');
 const { schluesselKey } = require('../../shared/database/record-schluessel.js');
+// 4T-002333 (Epic 3E-000264): Kennung lang und kurz über dieselben Bausteine wie
+// die Datensatz-Liste.
+const { kennungFuer, nummerAus } = require('../../shared/database/record-identity.js');
 
 // Obergrenze des Zwischenspeichers. Er wächst mit der Zahl gleichzeitig
 // benutzter **Wurzeln** und nicht mit der Bestandsgröße; ein Fenster arbeitet
@@ -101,6 +104,15 @@ function tabellenNameVon(absPath) {
 // Bei der Kennung genügt der Einzel-Wert, denn eine doppelte Kennung ist nach
 // `4S-000887` ausgeschlossen und wäre ein Fall für die Konsistenz-Prüfung aus
 // T13, nicht für den Zugriff.
+//
+// 4T-002333 (Epic 3E-000264, T2): Eine dritte Zuordnung kommt hinzu, von der
+// Anzeige-Form auf die **Liste** der Kennungen, aus demselben Grund wie beim
+// Schlüssel: Zwei Datensätze dürfen dieselbe Anzeige-Form tragen, und der
+// Verweis über den Namen muss das als mehrdeutig erkennen. Sie entsteht im
+// selben Durchlauf und im selben Zwischenspeicher, damit die Auflösung des
+// Verweises keinen zweiten Bau braucht. Aufgenommen wird nur ein Datensatz mit
+// Kennung, weil ein Verweis ohne Kennung kein Ziel hätte; verglichen wird der
+// getrimmte Text, Groß- und Kleinschreibung bleiben, wie sie dastehen.
 function baueZuordnung(sicht) {
   bauvorgaenge += 1;
   const tabellen = new Map();
@@ -109,12 +121,13 @@ function baueZuordnung(sicht) {
     const name = tabellenNameVon(absPath).toLowerCase();
     let tabelle = tabellen.get(name);
     if (!tabelle) {
-      tabelle = { nachKennung: new Map(), nachSchluessel: new Map() };
+      tabelle = { nachKennung: new Map(), nachSchluessel: new Map(), nachAnzeige: new Map() };
       tabellen.set(name, tabelle);
     }
     for (const record of records) {
       const fundort = { datei: absPath, zeile: record.zeile, id: record.id || null };
       if (record.id) tabelle.nachKennung.set(record.id, fundort);
+      if (record.id) merkeAnzeige(tabelle.nachAnzeige, record.display, record.id);
       const key = schluesselKey(record.key);
       if (key === null) continue;
       const liste = tabelle.nachSchluessel.get(key);
@@ -123,6 +136,16 @@ function baueZuordnung(sicht) {
     }
   }
   return tabellen;
+}
+
+// 4T-002333: Eine Anzeige-Form in die Zuordnung eintragen; ein leerer Name
+// benennt keinen Datensatz und bleibt draußen.
+function merkeAnzeige(nachAnzeige, anzeige, kennung) {
+  const name = typeof anzeige === 'string' ? anzeige.trim() : '';
+  if (!name) return;
+  const liste = nachAnzeige.get(name);
+  if (liste) liste.push(kennung);
+  else nachAnzeige.set(name, [kennung]);
 }
 
 // Die Zuordnung einer Wurzel, gebaut oder aus dem Zwischenspeicher.
@@ -192,8 +215,9 @@ function tabelleAus(filePath, areaRoot, tabelle) {
 function datensatzNachKennung(filePath, areaRoot, tabelle, kennung) {
   const { status, tabelle: eintrag } = tabelleAus(filePath, areaRoot, tabelle);
   if (status !== 'ready' || !eintrag) return { status, treffer: null };
-  const gesucht = String(kennung == null ? '' : kennung).trim();
-  return { status, treffer: eintrag.nachKennung.get(gesucht) || null };
+  // 4T-002333: lang oder kurz, verglichen über die aufgefüllte Form.
+  const gesucht = kennungFuer(nummerAus(String(kennung == null ? '' : kennung)));
+  return { status, treffer: (gesucht && eintrag.nachKennung.get(gesucht)) || null };
 }
 
 /**
@@ -220,6 +244,26 @@ function datensatzNachSchluessel(filePath, areaRoot, tabelle, schluessel) {
 }
 
 /**
+ * Die Zuordnung der Tabelle, zu der eine Datei gehört, am Platten-Stand.
+ *
+ * 4T-002333 (Epic 3E-000264, T2): für die Auflösung eines Datensatz-Verweises
+ * (`datensatz-verweis-aufloesung.js`). Sie liest dieselbe Zuordnung und denselben
+ * Zwischenspeicher wie `kennungInTabelle`, damit Gültigkeit und Klick nie aus
+ * zwei Bauvorgängen antworten.
+ *
+ * @param {object} entry Index-Eintrag (Platten-Sicht).
+ * @param {string} kopfPfad Kopf-Datei oder Folge-Segment der Tabelle.
+ * @returns {{nachKennung: Map, nachSchluessel: Map, nachAnzeige: Map}|null}
+ *   null ohne Index-Eintrag oder ohne Datensätze dieser Tabelle.
+ */
+function tabelleDerPlatte(entry, kopfPfad) {
+  if (!entry || !entry.wurzel || !entry.recordsPerFile) return null;
+  if (typeof kopfPfad !== 'string' || !kopfPfad) return null;
+  const tabellen = zuordnungFuer(entry.wurzel, entry, SICHT_PLATTE);
+  return tabellen.get(tabellenNameVon(kopfPfad).toLowerCase()) || null;
+}
+
+/**
  * Trägt die Tabelle dieser Kopf-Datei eine Datensatz-Kennung?
  *
  * Für die Anker-Prüfung der Ziel-Auflösung (`4T-001612`). Sie arbeitet gegen den
@@ -232,21 +276,25 @@ function datensatzNachSchluessel(filePath, areaRoot, tabelle, schluessel) {
  *
  * @param {object} entry Index-Eintrag (Platten-Sicht).
  * @param {string} kopfPfad Datei, auf die der Verweis aufgelöst hat.
+ * 4T-002333 (Epic 3E-000264, T2): Die Kennung darf lang (`r-00042`) oder kurz
+ * (`r-42`) dastehen; verglichen wird über die aufgefüllte Form, in der der
+ * Index jede Kennung führt. Der Vergleich wie geschrieben ließ die Kurzform
+ * als gebrochen gelten, obwohl die Ablage sie als gleichwertig zusagt.
+ *
  * @param {string} kennung Interne Kennung ohne das `^` des Ankers.
  */
 function kennungInTabelle(entry, kopfPfad, kennung) {
-  if (!entry || !entry.wurzel || !entry.recordsPerFile) return false;
-  const gesucht = String(kennung == null ? '' : kennung).trim();
-  if (!gesucht) return false;
-  const tabellen = zuordnungFuer(entry.wurzel, entry, SICHT_PLATTE);
-  const tabelle = tabellen.get(tabellenNameVon(kopfPfad).toLowerCase());
-  return Boolean(tabelle && tabelle.nachKennung.has(gesucht));
+  const lang = kennungFuer(nummerAus(String(kennung == null ? '' : kennung)));
+  if (!lang) return false;
+  const tabelle = tabelleDerPlatte(entry, kopfPfad);
+  return Boolean(tabelle && tabelle.nachKennung.has(lang));
 }
 
 module.exports = {
   datensatzNachKennung,
   datensatzNachSchluessel,
   kennungInTabelle,
+  tabelleDerPlatte,
   tabellenNameVon,
   bauZaehler,
   zwischenspeicherLeeren,

@@ -126,7 +126,7 @@ query: WHERE event-category = 'geburtstag'
 ```
 ````
 
-El texto de consulta usa el lenguaje de cláusulas de la [Consulta Perspective](frontmatter-query.md) (`FROM`, `WHERE`, comparaciones, funciones); una consulta vacía recopila todos los archivos con el perfil `Ereignis`. Los valores de texto van entre comillas (`'geburtstag'`): una palabra desnuda sería una referencia de campo.
+El texto de consulta usa el lenguaje de cláusulas de la [Consulta Perspective](frontmatter-query.md) (`FROM`, `WHERE`, comparaciones, funciones); una consulta vacía recopila todos los archivos con el perfil `Ereignis`. Quedan excluidos los archivos de la [carpeta de plantillas](templates.md); la agregación solo los recopila si `FROM` nombra la carpeta expresamente, por ejemplo `FROM "Plantillas"`. Los valores de texto van entre comillas (`'geburtstag'`): una palabra desnuda sería una referencia de campo.
 
 - **Clic en una fila** abre el archivo de origen; la procedencia de cada entrada permanece visible.
 - **La edición escribe de vuelta**: las modificaciones en la tabla agregada llegan al frontmatter del archivo de origen, aunque no esté abierto. Si el archivo de origen está abierto con cambios sin guardar, un aviso remite allí; si se modificó entre tanto en el disco, no se escribe nada (aviso de conflicto).

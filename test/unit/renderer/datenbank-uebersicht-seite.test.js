@@ -150,10 +150,133 @@ describe('Übersichts-Seite der Datenbank: Steckbrief und Tabellen (4T-001759)',
     expect(punkt.querySelector('.db-overview-issue-text').textContent).toContain('«Kunden»');
   });
 
+  // 4T-002184 (Epic 3E-000261, Story-AK4): die Standard-Maske und die Zahl der
+  // weiteren Masken-Dateien; der Befund einer Angabe `form` steht als Satz unter
+  // den Fehlerlagen, benannt nach der Tabelle.
+  it('nennt je Tabelle Standard-Maske und Zahl der weiteren Masken (4T-002184)', async () => {
+    antwort = auskunft({
+      tabellen: [
+        {
+          name: 'Personen',
+          felder: 4,
+          hints: [],
+          maske: '/db/Personen Kurz.md',
+          maskenPfade: ['/db/Personen Form.md', '/db/Personen Kurz.md', '/db/Personen Voll.md'],
+        },
+        {
+          name: 'Firmen',
+          felder: 2,
+          hints: [
+            { code: 'formDateiFremd', index: -1, name: 'Personen Kurz', expected: 'Personen' },
+          ],
+          maske: '/db/Firmen Form.md',
+          maskenPfade: ['/db/Firmen Form.md'],
+        },
+        { name: 'Orte', felder: 1, hints: [], maske: null, maskenPfade: [] },
+      ],
+      masken: [],
+    });
+    const container = await baue();
+    const zellen = [...container.querySelectorAll('.db-overview-table-form')];
+    expect(zellen.map((e) => e.textContent)).toEqual([
+      'Personen Kurz.md+2 weitere',
+      'Firmen Form.md',
+      '',
+    ]);
+    expect(zellen[0].querySelector('.db-overview-form-more').textContent).toBe('+2 weitere');
+    expect(zellen[1].querySelector('.db-overview-form-more')).toBeNull();
+    const punkt = container.querySelector('.db-overview-issue');
+    expect(punkt.querySelector('.db-overview-issue-source').textContent).toBe('Firmen');
+    expect(punkt.querySelector('.db-overview-issue-text').textContent).toBe(
+      'form nennt die Masken-Datei «Personen Kurz», die zur Tabelle «Personen» gehört. ' +
+        'Es gilt die erste Masken-Datei dieser Tabelle nach Pfad, sonst die erzeugte Maske.',
+    );
+  });
+
   it('sagt es, wenn die Datenbank noch keine Tabelle führt (AK2)', async () => {
     antwort = auskunft({ tabellen: [] });
     const container = await baue();
     expect(container.textContent).toContain('Diese Datenbank führt noch keine Tabelle.');
+  });
+});
+
+// 4T-002307 (Epic 3E-000263, Story-AK1, AK3): Die Rollen des Steckbriefs, eine
+// Zeile je Rolle unter Name und Beschreibung; ohne Rollen kein Abschnitt; eine
+// Rolle mit Hinweis steht nicht dort, sondern unter den Fehlerlagen.
+describe('Übersichts-Seite der Datenbank: Rollen im Steckbrief (4T-002307)', () => {
+  function rollenZeilen(container) {
+    const titel = [...container.querySelectorAll('.db-overview-section-title')].find(
+      (e) => e.textContent === 'Rollen',
+    );
+    if (!titel) return null;
+    return [...titel.parentElement.querySelectorAll('.db-overview-row')].map((z) => [
+      z.querySelector('.db-overview-row-label').textContent,
+      z.querySelector('.db-overview-row-value').textContent,
+    ]);
+  }
+
+  it('zeigt je Rolle ihre Erlaubnisse je Tabelle im Steckbrief-Block (AK1)', async () => {
+    antwort = auskunft({
+      steckbrief: {
+        name: 'Mini-CRM',
+        rollen: {
+          librarian: { alle: true, operationen: {}, alleTabellen: null },
+          assistant: {
+            alle: false,
+            operationen: { Library: ['update'], Loans: ['create', 'update', 'delete'] },
+            alleTabellen: null,
+          },
+          pfleger: { alle: false, operationen: { Loans: ['define'] }, alleTabellen: ['update'] },
+          gast: { alle: false, operationen: {}, alleTabellen: null },
+        },
+      },
+    });
+    const container = await baue();
+    expect(rollenZeilen(container)).toEqual([
+      ['librarian', 'alles'],
+      ['assistant', 'Library: ändern; Loans: anlegen, ändern, löschen'],
+      ['pfleger', 'alle Tabellen: ändern; Loans: Definition ändern'],
+      ['gast', 'keine Erlaubnis'],
+    ]);
+    // Der Abschnitt steht im Steckbrief-Block, unter Name und Beschreibung.
+    const steckbrief = container.querySelector('.db-overview-section');
+    expect(steckbrief.querySelector('.db-overview-section .db-overview-section')).not.toBeNull();
+  });
+
+  it('zeigt ohne Rollen keinen Abschnitt (AK1)', async () => {
+    for (const steckbrief of [{ name: 'Mini-CRM' }, { name: 'Mini-CRM', rollen: {} }]) {
+      helfer.verwirfDatenbankAuskunft({ bereichsWechsel: true });
+      antwort = auskunft({ steckbrief });
+      const container = await baue();
+      expect(rollenZeilen(container)).toBeNull();
+    }
+  });
+
+  it('führt die Hinweise einer Rolle unter den Fehlerlagen im Klartext (AK2)', async () => {
+    antwort = auskunft({
+      steckbrief: { name: 'Mini-CRM', rollen: {} },
+      hints: [
+        {
+          code: 'roleOperation',
+          index: -1,
+          name: 'assistant',
+          key: 'Loans',
+          wert: 'archive',
+          expected: ['create', 'update', 'delete', 'define'],
+        },
+        { code: 'roleTable', index: -1, name: 'assistant', key: 'Shelves', expected: ['Loans'] },
+      ],
+    });
+    const container = await baue();
+    const zeilen = [...container.querySelectorAll('.db-overview-issue-text')].map(
+      (e) => e.textContent,
+    );
+    expect(zeilen).toEqual([
+      'Die Rolle «assistant» nennt an der Tabelle «Loans» die unbekannte Operation «archive»; ' +
+        'vorgesehen sind create, update, delete, define oder all. Die Rolle gilt als nicht gesetzt.',
+      'Die Rolle «assistant» nennt die Tabelle «Shelves», die es in dieser Datenbank nicht gibt. ' +
+        'Die Rolle gilt als nicht gesetzt.',
+    ]);
   });
 });
 
@@ -545,5 +668,234 @@ describe('Übersichts-Seite der Datenbank: Abfragen (4T-002081)', () => {
           await closeTab(p, i, { skipDirtyCheck: true });
       lebenszyklus.resetExtensionStateForTests();
     }
+  });
+});
+
+// 4T-002248 (Epic 3E-000262, F1 A; AK2, AK3): Die Spalte «Art» im Abschnitt
+// «Abfragen» kennzeichnet eine Listen-Maske mit ihren erlaubten Handgriffen;
+// die Hinweise ihrer Angaben stehen unter den Fehlerlagen, benannt nach der
+// Datei, und ein Befund der Konsistenz-Prüfung an ihr nennt die Datei als Quelle.
+describe('Übersichts-Seite der Datenbank: Listen-Maske (4T-002248)', () => {
+  const WURZEL = '/bereich';
+  window.api.relative = (von, nach) => pfad.posix.relative(von, nach);
+  window.api.dirname = (p) => pfad.posix.dirname(p);
+
+  function eintrag(name, angaben, hints = []) {
+    return {
+      name,
+      path: `${WURZEL}/${name}.md`,
+      bloecke: 1,
+      editable: false,
+      form: null,
+      allow: [],
+      hints,
+      ...angaben,
+    };
+  }
+
+  function arten(container) {
+    return [...container.querySelectorAll('.db-overview-query-kind')].map((e) => e.textContent);
+  }
+
+  it('nennt in der Spalte «Art» Listen-Maske mit Handgriffen und gewöhnliche Abfrage', async () => {
+    antwort = auskunft({
+      meta: { wurzel: WURZEL },
+      abfragen: [
+        eintrag('Ausleihen', { editable: true, allow: ['create', 'update', 'delete'] }),
+        eintrag('Nur ändern', { editable: true, allow: ['update'] }),
+        eintrag('Nur lesen', { editable: true, allow: [] }),
+        eintrag('Lange Bücher', {}),
+      ],
+    });
+    const container = await baue();
+    const kopf = [...container.querySelectorAll('.db-overview-queries th')].map(
+      (e) => e.textContent,
+    );
+    expect(kopf.slice(0, 3)).toEqual(['Abfrage', 'Art', 'Ort']);
+    expect(arten(container)).toEqual([
+      'Listen-Maske: anlegen, ändern, löschen',
+      'Listen-Maske: ändern',
+      'Listen-Maske, nur lesen',
+      'Abfrage',
+    ]);
+  });
+
+  it('nennt eine Abfrage-Datei aus einem älteren Stand ohne Angaben als Abfrage', async () => {
+    antwort = auskunft({
+      meta: { wurzel: WURZEL },
+      abfragen: [{ name: 'Alt', path: `${WURZEL}/Alt.md`, bloecke: 1, hints: [] }],
+    });
+    const container = await baue();
+    expect(arten(container)).toEqual(['Abfrage']);
+  });
+
+  it('meldet unbekannten Handgriff und unbekannte Maske im Klartext, benannt nach der Datei', async () => {
+    antwort = auskunft({
+      meta: { wurzel: WURZEL },
+      abfragen: [
+        eintrag('Ausleihen', { editable: true, allow: ['update'], form: 'Fehlt' }, [
+          {
+            code: 'listAllowUnbekannt',
+            index: -1,
+            name: 'archive',
+            key: 'allow',
+            expected: ['create', 'update', 'delete'],
+          },
+          { code: 'listFormDateiUnbekannt', index: -1, name: 'Fehlt', key: 'form', expected: null },
+        ]),
+      ],
+    });
+    const container = await baue();
+    const punkte = [...container.querySelectorAll('.db-overview-issue')].map((p) => [
+      p.querySelector('.db-overview-issue-source').textContent,
+      p.querySelector('.db-overview-issue-text').textContent,
+    ]);
+    expect(punkte).toEqual([
+      [
+        'Ausleihen.md',
+        'allow nennt den unbekannten Handgriff «archive»; vorgesehen sind create, update, delete. Der Eintrag entfällt, die übrigen gelten.',
+      ],
+      [
+        'Ausleihen.md',
+        'form nennt die Masken-Datei «Fehlt», die es in dieser Datenbank nicht gibt. Ein Klick auf eine Zeile öffnet die Standard-Maske der Tabelle.',
+      ],
+    ]);
+  });
+
+  it('nennt bei einem Befund der Konsistenz-Prüfung ohne Tabelle die Abfrage-Datei als Quelle', async () => {
+    const leer = {
+      tabelle: null,
+      pfad: null,
+      zeile: null,
+      id: null,
+      anzeige: null,
+      feld: null,
+      felder: null,
+      zieltabelle: null,
+      grund: null,
+      kennungen: null,
+      regel: null,
+      meldung: null,
+      anzahl: null,
+    };
+    window.api.databaseKonsistenz = async () => ({
+      status: 'ready',
+      dauerMs: 1,
+      tabellen: [],
+      befunde: [
+        {
+          ...leer,
+          code: KONSISTENZ_BEFUNDE.listeHandgriffUnbekannt,
+          datei: `${WURZEL}/Ausleihen.md`,
+          wert: 'archive',
+        },
+        {
+          ...leer,
+          code: KONSISTENZ_BEFUNDE.listeMaskeUnbekannt,
+          datei: `${WURZEL}/Ausleihen.md`,
+          wert: 'Fehlt',
+        },
+      ],
+    });
+    antwort = auskunft({ meta: { wurzel: WURZEL }, abfragen: [] });
+    const container = await baue();
+    container.querySelector('.db-overview-check').click();
+    for (let i = 0; i < 5; i++) await Promise.resolve();
+    const zeilen = [...container.querySelectorAll('.db-consistency-finding')].map((z) => [
+      z.querySelector('.db-consistency-source').textContent,
+      z.querySelector('.db-consistency-text').textContent,
+    ]);
+    expect(zeilen).toEqual([
+      [
+        'Ausleihen.md',
+        'Die Abfrage-Datei nennt in allow den unbekannten Handgriff «archive»; er entfällt, die übrigen gelten.',
+      ],
+      [
+        'Ausleihen.md',
+        'Die Abfrage-Datei nennt mit form die Masken-Datei «Fehlt», die es in dieser Datenbank nicht gibt; ein Klick auf eine Zeile öffnet die Standard-Maske der Tabelle.',
+      ],
+    ]);
+  });
+});
+
+// 4T-002308 (Epic 3E-000263, Story-AK1; AK3): Die eigene Rolle samt
+// Anmeldenamen, wörtlich, unmittelbar vor den Rollen, in den drei Lagen
+// Zuordnung, Vorgabe-Rolle und «alles erlaubt».
+describe('Übersichts-Seite der Datenbank: eigene Rolle (4T-002308)', () => {
+  async function eigeneRolleZeile(eigeneRolle) {
+    helfer.verwirfDatenbankAuskunft({ bereichsWechsel: true });
+    antwort = auskunft({ eigeneRolle });
+    const container = await baue();
+    const zeile = [...container.querySelectorAll('.db-overview-row')].find(
+      (z) => z.querySelector('.db-overview-row-label').textContent === 'Eigene Rolle',
+    );
+    return zeile ? zeile.querySelector('.db-overview-row-value').textContent : null;
+  }
+
+  it('zeigt die zugeordnete Rolle mit dem Anmeldenamen wörtlich (4T-002308)', async () => {
+    const eigene = { rolle: 'librarian', anmeldename: 'MStumm$&', quelle: 'zuordnung' };
+    expect(await eigeneRolleZeile(eigene)).toBe('librarian (Anmeldename MStumm$&)');
+  });
+
+  it('kennzeichnet die Vorgabe-Rolle (4T-002308)', async () => {
+    const eigene = { rolle: 'assistant', anmeldename: 'gast', quelle: 'vorgabe' };
+    expect(await eigeneRolleZeile(eigene)).toBe('assistant, Vorgabe-Rolle (Anmeldename gast)');
+  });
+
+  it('sagt ohne Zuordnung «alles erlaubt», ohne Auskunft keine Zeile (4T-002308)', async () => {
+    const eigene = { rolle: null, anmeldename: 'gast', quelle: 'alles' };
+    expect(await eigeneRolleZeile(eigene)).toBe(
+      'alles erlaubt (keine Zuordnung), Anmeldename gast',
+    );
+    expect(await eigeneRolleZeile({ rolle: null, anmeldename: null, quelle: 'alles' })).toBe(
+      'alles erlaubt (keine Zuordnung), Anmeldename —',
+    );
+    expect(await eigeneRolleZeile(undefined)).toBeNull();
+  });
+});
+
+// 4T-002311 (Epic 3E-000263, E12.4): Je Tabelle die Erlaubnisse der eigenen
+// Rolle, nur bei einer Datenbank mit Rollen; ohne `create` kein «Neuer
+// Datensatz». Ohne Erlaubnis-Menge keine Zeile und der Knopf wie bisher.
+describe('Übersichts-Seite der Datenbank: Erlaubnisse je Tabelle (4T-002311)', () => {
+  const R = (create, update, del, define) => ({ create, update, delete: del, define });
+  const ROLLEN = { assistant: { alle: false, operationen: {}, alleTabellen: null } };
+  const tabelle = (name, rechte) => ({
+    name,
+    path: `/db/${name}.md`,
+    felder: 1,
+    hints: [],
+    rechte,
+  });
+  async function zeilen(rollen, tabellen) {
+    antwort = auskunft({ steckbrief: { name: 'Mini-CRM', rollen }, tabellen });
+    const container = await baue();
+    return [...container.querySelectorAll('.db-overview-table tbody tr')].map((tr) => [
+      tr.querySelector('.db-overview-table-name').firstChild.textContent,
+      (tr.querySelector('.db-overview-table-rights') || {}).textContent || null,
+      !!tr.querySelector('.db-overview-new-record'),
+    ]);
+  }
+
+  it('nennt je Tabelle die erlaubten Operationen und blendet ohne create die Neuanlage aus', async () => {
+    const tabellen = [
+      tabelle('Library', R(true, true, false, false)),
+      tabelle('Loans', R(false, true, false, false)),
+      tabelle('Staff', R(true, true, true, true)),
+      tabelle('Archiv', R(false, false, false, false)),
+      tabelle('Ohne', null),
+    ];
+    expect(await zeilen(ROLLEN, tabellen)).toEqual([
+      ['Library', 'Erlaubnisse: anlegen, ändern', true],
+      ['Loans', 'Erlaubnisse: ändern', false],
+      ['Staff', 'Erlaubnisse: alles', true],
+      ['Archiv', 'Erlaubnisse: keine Erlaubnis', false],
+      ['Ohne', null, true],
+    ]);
+  });
+
+  it('zeigt ohne Rollen keine Erlaubnis-Zeile (4T-002311)', async () => {
+    const tabellen = [tabelle('Library', R(true, true, true, true))];
+    expect(await zeilen({}, tabellen)).toEqual([['Library', null, true]]);
   });
 });

@@ -148,6 +148,14 @@ const HINWEIS_META = {
   editableExpr: { key: 'editable', expected: 'expression' },
   editableUnknownField: { key: 'editable', expected: null }, // expected: die vorhandenen Feld-Namen
   editableMessage: { key: 'message', expected: 'text-or-locale-map' },
+  // 4T-002312 (Epic 3E-000263, F4 A): dieselbe Bedingung am Feld. Sie hängt an
+  // ihrem Definitions-Eintrag und trägt dessen Stelle und Feld-Namen wie eine
+  // Feld-Regel; eigene Codes, weil die Folge eine andere ist: Das Feld bleibt
+  // bearbeitbar, nicht die Tabelle.
+  fieldEditable: { key: 'editable', expected: 'rule-text-object-or-boolean' },
+  fieldEditableExpr: { key: 'editable', expected: 'expression' },
+  fieldEditableUnknownField: { key: 'editable', expected: null }, // expected: die vorhandenen Feld-Namen
+  fieldEditableMessage: { key: 'message', expected: 'text-or-locale-map' },
   // 4T-001938 (Epic 3E-000257, B5): Die Einzel-Maske. `formTable` hängt am
   // Behälter der Masken-Datei und trägt den Schlüssel seiner einen Angabe. Die
   // beiden Befunde am Körper hängen an keinem Frontmatter-Schlüssel, weil ihr
@@ -157,13 +165,36 @@ const HINWEIS_META = {
   formTable: { key: 'table', expected: 'text' },
   formPlatzhalterUnbekannt: { key: null, expected: null }, // name: der Inhalt der Klammern
   formFeldUnbekannt: { key: null, expected: null }, // name: der geschriebene Feld-Name
-  // 4T-001943 (Epic 3E-000257, B2): Befunde des Katalogs an Masken-Dateien. Sie
-  // entstehen erst im Blick über alle Dateien, wie `duplicateTable`. Die
-  // unbekannte Tabelle trägt den Schlüssel der Angabe, die sie nennt; die
-  // weitere Masken-Datei derselben Tabelle hängt an keinem Schlüssel, weil an
-  // ihr nichts falsch ist, sondern eine andere Datei vor ihr gilt.
+  // 4T-002183 (Epic 3E-000261, S5): ein Wert-Platzhalter, dessen Ausdruck sich
+  // nicht lesen lässt. Ortsbezug wie bei den beiden Befunden darüber die Zeile.
+  formAusdruckUngueltig: { key: null, expected: null }, // name: der Ausdruck
+  // 4T-002186 (Epic 3E-000261, E7.8, S5): die drei Fehlerbilder der bedingten
+  // Bereiche, Ortsbezug wie oben die Zeile im Körper; `name` ist beim offenen
+  // Bereich und bei der ungültigen Bedingung der Text der Bedingung, beim `end`
+  // ohne Bereich leer.
+  formEndOhneWhen: { key: null, expected: null },
+  formWhenOhneEnd: { key: null, expected: null }, // name: die Bedingung
+  formBedingungUngueltig: { key: null, expected: null }, // name: die Bedingung
+  // 4T-002252 (Epic 3E-000262, F6 A): ein Punkt-Name in Wert oder Bedingung,
+  // dessen Kopf kein Feld der Definition ist; auch die Maske meldet so ein
+  // Ziel-Feld, das die Ziel-Tabelle nicht führt. Ortsbezug die Zeile.
+  formPfadUnbekannt: { key: null, expected: null }, // name: der Pfad
+  // 4T-001943 (Epic 3E-000257, B2): Befund des Katalogs an einer Masken-Datei. Er
+  // entsteht erst im Blick über alle Dateien, wie `duplicateTable`, und trägt
+  // den Schlüssel der Angabe, die die unbekannte Tabelle nennt. Der frühere
+  // Befund «mehrere Masken-Dateien» ist mit 4T-002184 entfallen: Mehrere Masken
+  // je Tabelle sind seither erlaubt (F2 A).
   formTabelleUnbekannt: { key: 'table', expected: null }, // name: die genannte Tabelle
-  formMehrereDateien: { key: null, expected: null }, // name: die Tabelle der Maske
+  // 4T-002184 (Epic 3E-000261, F1 A, F2 A): Die Angabe `form` der
+  // Tabellen-Definition, die die Standard-Maske nennt. Alle drei hängen am
+  // Behälter der Tabelle (`index` -1) und tragen den Schlüssel ihrer Angabe.
+  // `form` entsteht beim Lesen der Definition (kein brauchbarer Name), die
+  // beiden übrigen erst im Katalog, weil nur er alle Masken-Dateien kennt. In
+  // allen drei Fällen gilt die Regel «ohne Angabe»: die erste Masken-Datei der
+  // Tabelle nach Pfad, sonst die erzeugte Maske.
+  form: { key: 'form', expected: 'form-file-name' },
+  formDateiUnbekannt: { key: 'form', expected: null }, // name: die Angabe
+  formDateiFremd: { key: 'form', expected: null }, // name: die Angabe, expected: deren Tabelle
   // 4T-002081 (Epic 3E-000259, Festlegungen 13 und 14): Befunde des Katalogs an
   // Abfrage-Dateien. Ihr Gegenstand ist der Text der Datei, nicht der Behälter
   // `db-query`, der nichts trägt; sie hängen deshalb an keinem Schlüssel. Die
@@ -173,6 +204,63 @@ const HINWEIS_META = {
   // jeden Sprach-Schlüssel mit ihr als Text zur Sperre läse.
   queryOhneFence: { key: null, expected: null },
   queryMehrereFences: { key: null, expected: null }, // name: die Zahl der Abfrage-Blöcke
+  // 4T-002248 (Epic 3E-000262, F1 A): Die Angaben der Listen-Maske im Behälter
+  // `db-query` (`list-angaben.js`). Alle hängen am Behälter (`index` -1) und
+  // tragen den Schlüssel ihrer Angabe, damit die Meldung den Autor an die eine
+  // Zeile führt. Die Folge ist in jedem Fall benannt: Eine unbrauchbare Angabe
+  // entfällt, und die Datei bleibt eine lesbare Abfrage-Datei. Der Schlüssel
+  // einer unbekannten Angabe ist die Angabe selbst; der Katalog kann ihn
+  // deshalb nicht vorgeben, und der Hinweis trägt ihn einzeln.
+  listEditable: { key: 'editable', expected: 'boolean' },
+  listForm: { key: 'form', expected: 'form-file-name' },
+  listAllow: { key: 'allow', expected: 'list-of-operations' },
+  listAllowUnbekannt: { key: 'allow', expected: null }, // name: das Wort, expected: die Handgriffe
+  listOhneEditable: { key: 'editable', expected: null },
+  listAngabeUnbekannt: { key: null, expected: null }, // name und key: der Schlüssel
+  // Befund des Katalogs wie `formDateiUnbekannt`: Erst er kennt alle
+  // Masken-Dateien. Ob die Maske zur Tabelle der Abfrage gehört, ist hier noch
+  // nicht prüfbar, weil die Tabelle erst aus `FROM` folgt.
+  listFormDateiUnbekannt: { key: 'form', expected: null }, // name: die Angabe
+  // 4T-002249 (S1): Befund der Listen-Auskunft, die als erste die Tabelle aus
+  // `FROM` kennt: `form` trifft eine Masken-Datei, aber die einer anderen
+  // Tabelle. Gestalt wie `formDateiFremd` der Tabellen-Definition.
+  listFormDateiFremd: { key: 'form', expected: null }, // name: die Angabe, expected: deren Tabelle
+  // 4T-002253 (Epic 3E-000262, F5 A, S6): Befunde des Positions-Bereichs
+  // `{{list:…}}` einer Masken-Datei, gestellt von der Auskunft
+  // (`positions-auskunft.js`), die als einzige Abfrage-Dateien und Definitionen
+  // kennt. Ortsbezug wie bei den Befunden am Körper die Zeile; `name` ist die
+  // Angabe des Platzhalters. Die übrige Maske bleibt in jedem Fall bedienbar.
+  listDateiUnbekannt: { key: null, expected: null }, // name: die Abfrage-Datei
+  listNichtBearbeitbar: { key: null, expected: null }, // name: die Abfrage-Datei
+  listBeziehungFehlt: { key: null, expected: null }, // name: die Abfrage-Datei
+  listBeziehungMehrdeutig: { key: null, expected: null }, // name: die Abfrage-Datei
+  listAbfrageUngueltig: { key: null, expected: null }, // name: die Abfrage-Datei
+  // 4T-002307 (Epic 3E-000263, S3, S6): Die Rollen im Steckbrief
+  // (`rollen-angaben.js`). Alle hängen am Behälter `db-database` (`index` -1),
+  // `name` ist die Rolle. Bei den drei Hinweisen an einer Tabelle trägt der
+  // Hinweis den Tabellen-Namen einzeln in `key`, weil er der Schlüssel ist, unter
+  // dem die unbrauchbare Angabe steht (Muster `listAngabeUnbekannt`), und die
+  // unbekannte Operation in `wert`. Die Folge ist in jedem Fall benannt: Die
+  // betroffene Rolle gilt als nicht gesetzt, bei `roles` jede. `roleTable`
+  // entsteht nicht beim Lesen, sondern im Katalog, der als einziger die
+  // Tabellen kennt.
+  roles: { key: 'roles', expected: 'object' },
+  roleShape: { key: 'roles', expected: 'all-or-object' },
+  roleTableShape: { key: 'roles', expected: 'all-or-list-of-operations' },
+  roleOperation: { key: 'roles', expected: null }, // expected: die Operationen
+  roleTable: { key: 'roles', expected: null }, // expected: die vorhandenen Tabellen-Namen
+  // 4T-002308 (Epic 3E-000263, F2 A, S3): Zuordnung `users` und Vorgabe-Rolle
+  // `defaultRole` im Steckbrief (`rollen-angaben.js`), am Behälter (`index` -1).
+  // Die betroffene Angabe gilt als nicht gesetzt: bei `users` jede Zuordnung,
+  // bei `userShape` und `userRoleUnknown` die eine (`name` der Anmeldename,
+  // `wert` die genannte Rolle), bei den beiden übrigen die Vorgabe-Rolle.
+  // `defaultRoleUnknown` und `userRoleUnknown` entstehen erst nach dem Abgleich
+  // gegen die Tabellen, wenn die Rollen endgültig sind.
+  users: { key: 'users', expected: 'object' },
+  userShape: { key: 'users', expected: 'role-name' },
+  defaultRoleShape: { key: 'defaultRole', expected: 'role-name' },
+  defaultRoleUnknown: { key: 'defaultRole', expected: null }, // name: die Rolle, expected: die Rollen
+  userRoleUnknown: { key: 'users', expected: null }, // name: der Anmeldename, wert: die Rolle
 };
 
 // Baut einen Hinweis in der einheitlichen Gestalt.
@@ -253,7 +341,10 @@ function satzVorlage(code, hinweis, hatPosition, uebersetze) {
  * Definitions-Liste, `{position}` für die des Datensatzes im Block, `{zeile}`
  * für die Zeile im Körper einer Maske (4T-001938), `{name}`
  * für den benannten Gegenstand und `{expected}` für die Erwartung aus dem
- * Katalog. Ein Code ohne eigenen Satz fällt auf einen Rückfall-Satz mit seiner
+ * Katalog. Seit 4T-002307 dazu `{key}` für den Schlüssel, den der Hinweis
+ * einzeln trägt, und `{wert}` für einen geschriebenen Wert; beide nur dort, wo
+ * ein Satz sie nennt (die Rollen im Steckbrief nennen Rolle, Tabelle und
+ * Operation zugleich). Ein Code ohne eigenen Satz fällt auf einen Rückfall-Satz mit seiner
  * Kennung zurück, statt einen leeren Punkt zu erzeugen; kennt auch der Aufrufer
  * ihn nicht, bleibt der Code selbst stehen.
  *
@@ -276,6 +367,8 @@ function hinweisSatz(hinweis, uebersetze) {
   // 4T-001938: Ein Befund am Masken-Körper nennt seine Zeile, gezählt ab 1.
   if (typeof h.zeile === 'number') text = text.replace('{zeile}', String(h.zeile));
   text = text.replace('{name}', h.name || '—');
+  if (text.includes('{key}')) text = text.replace('{key}', h.key || '—');
+  if (text.includes('{wert}')) text = text.replace('{wert}', h.wert || '—');
   if (text.includes('{expected}')) text = text.replace('{expected}', erwartungText(h.expected));
   return text;
 }

@@ -19,7 +19,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, oeffneDokumentImFenster } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 
 const FIXTURE = path.resolve(
@@ -122,6 +122,13 @@ test.describe('DB-02: Änderungs-Modus zeigt dieselbe Tabelle', () => {
 });
 
 // --- DB-03: Sprung aus einem Datensatz-Verweis (4T-001986) ----------------------
+//
+// 4T-002333 (Epic 3E-000264, F2 A): Seither öffnet der Verweis die Maske des
+// Datensatzes, und die Zeile erreicht der Handgriff «Im Tabellen-Dokument
+// zeigen» der Maske. Der Fall prüft denselben Sprung wie vorher, nur über den
+// Handgriff; den Klick in die Maske prüfen DB-VER-01 und DB-VER-02
+// (`datenbank-verweis.spec.js`). Weil die Auskunft über das Ziel eines Verweises
+// den Bereich braucht, wird der Wegwerf-Ordner als Bereich gebunden.
 
 // Eine geteilte Tabelle im Wegwerf-Ordner: 60 Datensätze in der Kopf-Datei,
 // damit das Ziel unter dem ersten Bildschirm liegt, und ein Datensatz im
@@ -192,6 +199,18 @@ function raeumeAuf(dir) {
 }
 
 const reiter = (page, name) => page.locator(SEL.tabs0, { hasText: name }).first();
+const MASKE = '.pane-group[data-pane="0"] .pane-system .db-form-page';
+
+// Den Wegwerf-Ordner als Bereich binden (Muster `datenbank-maske-navigation.spec.js`).
+async function bindeBereich(page, wurzel) {
+  await expect
+    .poll(async () => {
+      const ergebnis = await page.evaluate((p) => window.api.openAreaPath(p), wurzel);
+      return !!(ergebnis && ergebnis.ok !== false);
+    })
+    .toBe(true);
+  await expect.poll(() => page.title()).toContain('(Bereich');
+}
 
 // Der Text der Zeile, auf der die Schreibmarke des Editors der Spalte steht
 // (Zugang zum Editor wie `quelltext` in `tabellen-zell-vorschlaege.spec.js`).
@@ -208,22 +227,46 @@ async function schreibmarkenZeile(page) {
 }
 
 // Reiter «Notiz» nach vorn und den Verweis auf `ziel` in seiner Lese-Ansicht
-// klicken; danach ist der Reiter «Kunden» wieder vorn.
+// klicken: Die Maske des Datensatzes öffnet (4T-002333). Dort «Im
+// Tabellen-Dokument zeigen» wählen; danach ist der Reiter «Kunden» wieder vorn,
+// in der Ansicht, die er vorher hatte.
 async function klickeVerweis(page, ziel) {
   await reiter(page, 'Notiz').click();
   // Der Block-Anker steht im Ziel ohne `^` (`wikiAnchorPart` in `wiki.js`).
   const verweis = page.locator(`${SEL.markdownBody0} a.wikilink[href="Kunden.md#${ziel}"]`);
   await expect(verweis).toBeVisible();
   await verweis.click();
+  const maske = page.locator(MASKE);
+  await expect(maske).toBeVisible({ timeout: 20000 });
+  await expect(maske.locator('.db-form-record')).toContainText(ziel);
+  await maske.locator('.db-form-show-in-document').click();
+  await expect(maske).not.toBeVisible();
   await expect(page.locator(SEL.activeTab0)).toContainText('Kunden');
 }
 
-test.describe('DB-03: Datensatz-Verweis springt zur Datensatz-Zeile (4T-001986)', () => {
+test.describe('DB-03: Handgriff der Maske springt zur Datensatz-Zeile (4T-001986, 4T-002333)', () => {
   test('Lese-, Live- und Quellcode-Ansicht bringen die Zeile in den Blick, auch aus dem Folge-Teil', async () => {
+    test.setTimeout(180000);
     const { dir, kunden, notiz } = baueGeteilteTabelle();
-    const { app, page, userData } = await launchApp({ args: [kunden, notiz] });
+    const { app, page, userData } = await launchApp();
     try {
+      await bindeBereich(page, dir);
+      await oeffneDokumentImFenster(app, page, [kunden, notiz]);
       await expect(page.locator(SEL.tabs0)).toHaveCount(2);
+      // Aufbau: Der Index des frisch gebundenen Bereichs entsteht nebenläufig;
+      // vor dem ersten Klick muss die Auskunft über beide Verweis-Ziele stehen.
+      for (const id of [KOPF_KENNUNG, FOLGE_KENNUNG]) {
+        await expect
+          .poll(
+            () =>
+              page.evaluate(
+                (a) => window.api.databaseVerweisZiel(a).then((z) => (z ? z.kennung : null)),
+                { zielPfad: kunden, anker: id },
+              ),
+            { timeout: 60000 },
+          )
+          .toBe(id);
+      }
 
       // Lese-Ansicht. Das Ziel liegt vor dem Klick außerhalb des Blicks; die
       // Reihenfolge (erst der hintere, dann der vordere Datensatz) sorgt dafür,

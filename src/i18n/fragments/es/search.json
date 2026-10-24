@@ -61,6 +61,8 @@
   "areaReplace.reason.keinBereich": "Ningún área abierta",
   "areaReplace.reason.kanal": "La ejecución no llegó al proceso principal",
   "areaReplace.reason.frontmatter": "No se pudo escribir el campo de etiquetas",
+  "areaReplace.reason.defineNichtErlaubt": "Rol propio sin permiso «cambiar la definición»; definición sin cambios",
+  "areaReplace.reason.defineRechteNichtBestimmbar": "Permisos de la base de datos no determinables; definición sin cambios",
   "search.replaceCountOne": "1 reemplazo",
   "search.replaceCountMany": "{n} reemplazos",
   "searchResults.title": "Resultados de búsqueda",

@@ -3,8 +3,9 @@
 //
 // Die tragende Zusage ist der Gleichlauf mit der Gültigkeit: Gesprungen wird
 // nur dorthin, wo der Verweis auch als gültig gilt. Deshalb prüft diese Datei
-// die Gegenrichtungen (Code-Beispiel, fremder Zaun, maskierte Zeile, Kurzform)
-// ebenso ausführlich wie den Treffer.
+// die Gegenrichtungen (Code-Beispiel, fremder Zaun, maskierte Zeile) ebenso
+// ausführlich wie den Treffer. Die Kurzform der Kennung trifft seit 4T-002333,
+// wie bei der Gültigkeit.
 import { describe, it, expect } from 'vitest';
 import { createRequire } from 'node:module';
 
@@ -134,12 +135,15 @@ describe('findeDatensatzZeile — kein Ziel (AK4)', () => {
     expect(findeDatensatzZeile(text, 'r-00042')).toBe(0);
   });
 
-  it('eine unbekannte Kennung und die Kurzform liefern 0', () => {
+  it('eine unbekannte Kennung liefert 0, die Kurzform trifft (4T-002333)', () => {
     const text = tabelle(SAETZE);
     expect(findeDatensatzZeile(text, 'r-09999')).toBe(0);
-    // Derselbe Vergleich wie bei der Gültigkeit: Die Kurzform gilt dort heute
-    // nicht, und der Sprung folgt ihr (Befund im Epic, nicht hier zu lösen).
-    expect(findeDatensatzZeile(text, 'r-42')).toBe(0);
+    expect(findeDatensatzZeile(text, 'r-9999')).toBe(0);
+    // Derselbe Vergleich wie bei der Gültigkeit: Seit 4T-002333 gilt die
+    // Kurzform dort, und der Sprung folgt ihr über die aufgefüllte Form.
+    expect(findeDatensatzZeile(text, 'r-42')).toBe(zeileVon(text, '|- id="r-00042"'));
+    // Eine Anzeige-Form ist keine Kennung; sie löst allein der Haupt-Prozess auf.
+    expect(findeDatensatzZeile(text, 'Bert')).toBe(0);
   });
 
   it('bleibt bei leeren und fremden Eingaben ohne Ausnahme bei 0', () => {

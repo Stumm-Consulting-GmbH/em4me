@@ -107,9 +107,9 @@ Una cartella di file Markdown può essere al tempo stesso una banca dati, e non 
 - **L'area diventa una banca dati** non appena un documento la descrive, e riceve la propria panoramica, da cui create record e verificate i dati.
 - **La tabella risiede nel suo file**: i campi nell'intestazione, i record nel corpo. Rinominare e spostare non cambiano nulla, neppure fuori dall'applicazione.
 - **Otto tipi di colonna**, con etichette che possono esistere in più lingue.
-- **Il collegamento a un singolo record** si scrive come un'ancora e si comporta come ogni altro collegamento: il linter Markdown indica se vale, e un clic porta alla riga del record.
+- **Il collegamento a un singolo record** si scrive come un'ancora e si comporta come ogni altro collegamento: il linter Markdown indica se vale, e un clic apre la maschera del record.
 - **I grandi insiemi restano una sola tabella**: da circa 0,7 MB in poi l'applicazione distribuisce i record al salvataggio su più file affiancati, senza che alcun collegamento ne risenta.
-- **Curare i record nella maschera**: creare, modificare ed eliminare in una maschera generata dalla definizione, con blocco, giustificativo di modifica e le regole della tabella; verifica di coerenza e vista degli utilizzi per la diagnosi.
+- **Curare i record nella maschera**: creare, modificare ed eliminare in una maschera generata dalla definizione o impaginata da sé, con valori calcolati, sezioni condizionali e collegamenti tra maschere, uno per uno o in un elenco modificabile, intestazione e posizioni insieme; con blocco, giustificativo di modifica e le regole della tabella, a richiesta con ruoli che separano la cura dei dati dalla modifica della definizione; verifica di coerenza e vista degli utilizzi per la diagnosi.
 - **Valutare i record**: elenchi e tabelle su una tabella, con percorsi attraverso i riferimenti e gerarchie su un numero qualsiasi di livelli, in forma di albero se lo desideri, e panoramiche con una riga per gruppo, ad esempio libri e pagine per autore.
 
 In dettaglio: [Banca dati](database.md).
@@ -164,7 +164,7 @@ In dettaglio: [Profili di proprietà](property-profiles.md).
 
 ## Elenchi che si mantengono aggiornati
 
-Chi gestisce molti file mantiene altrimenti le panoramiche a mano, e invecchiano il giorno stesso. Una query Perspective descrive invece **che cosa** si cerca, e il risultato compare lì nel documento: un elenco o una tabella cliccabile sull'intero insieme, filtrata per proprietà, etichette e campi del file, fino ai singoli blocchi di testo e alle attività. Se lo desideri, la query riunisce i risultati in gruppi, con una riga per gruppo che ne indica il numero, la somma o la media. Se l'insieme cambia, cambia l'output, senza che nessuno aggiorni nulla.
+Chi gestisce molti file mantiene altrimenti le panoramiche a mano, e invecchiano il giorno stesso. Una query Perspective descrive invece **che cosa** si cerca, e il risultato compare lì nel documento: un elenco o una tabella cliccabile sull'intero insieme, filtrata per proprietà, etichette e campi del file, fino ai singoli blocchi di testo e alle attività. Se lo desideri, la query riunisce i risultati in gruppi, con una riga per gruppo che ne indica il numero, la somma o la media. Se lo desideri, mostra il risultato anche come grafico a barre o a linee, che cambia con l'insieme. Se l'insieme cambia, cambia l'output, senza che nessuno aggiorni nulla.
 
 - **Pagine tematiche** che elencano da sé i file collegati.
 - **Filtri e gruppi** su proprietà del frontmatter, etichette e campi del file, con il numero e le somme per gruppo.

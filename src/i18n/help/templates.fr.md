@@ -2,7 +2,7 @@
 
 Les modèles sont des fichiers Markdown ordinaires dans un **dossier de modèles** configurable. Lors de l'application, l'application évalue des **espaces réservés** choisis : date et heure avec décalage et format, titre et dossier du fichier cible, dialogues de saisie et de sélection, presse-papiers et une position cible du curseur. Les modèles créent de nouveaux fichiers avec une structure prête, ou insèrent des blocs récurrents à la position du curseur ; les **règles de dossier** remplissent automatiquement les nouveaux fichiers.
 
-La fonctionnalité est commutable comme extension « Modèles » (Paramètres → Extensions) ; désactivée, les commandes, la section des paramètres, les règles de dossier et l'exclusion des modèles hors des requêtes disparaissent.
+La fonctionnalité est commutable comme extension « Modèles » (Paramètres → Extensions) ; désactivée, les commandes, la section des paramètres, les règles de dossier et l'exclusion des modèles hors des requêtes, des événements agrégés et des listes de pages et de blocs des blocs de script disparaissent.
 
 ## Dossier de modèles
 
@@ -13,7 +13,7 @@ Le dossier de modèles se configure dans les paramètres (Paramètres → Modèl
 
 Chaque fichier Markdown du dossier (sous-dossiers compris) est un modèle. Les sous-dossiers apparaissent comme groupes dans le popup de sélection. Les changements de configuration prennent effet immédiatement, sans redémarrage.
 
-**Les modèles dans les requêtes.** Ce qui se trouve dans le dossier de modèles, sous-dossiers compris, n'est un résultat dans aucune [Requête Perspective](frontmatter-query.md), à aucun de ses niveaux, et ne fournit pas non plus de valeurs aux réservoirs de valeurs et aux champs collecte des [Profils de propriétés](property-profiles.md). Ainsi le contenu d'un modèle, par exemple une tâche type, n'apparaît dans aucune vue d'ensemble. Pour interroger les modèles, on nomme expressément le dossier dans `FROM`, par exemple `FROM "Modèles"`. Ce qui compte, c'est le dossier qui détermine aussi la sélection des modèles, donc la configuration de la zone avant la configuration globale ; le dossier de modèles d'une zone liée ne compte pas.
+**Les modèles dans les requêtes.** Ce qui se trouve dans le dossier de modèles, sous-dossiers compris, n'est un résultat dans aucune [Requête Perspective](frontmatter-query.md), à aucun de ses niveaux, et ne fournit pas non plus de valeurs aux réservoirs de valeurs et aux champs collecte des [Profils de propriétés](property-profiles.md). Ainsi le contenu d'un modèle, par exemple une tâche type, n'apparaît dans aucune vue d'ensemble. Pour interroger les modèles, on nomme expressément le dossier dans `FROM`, par exemple `FROM "Modèles"`. Ce qui compte, c'est le dossier qui détermine aussi la sélection des modèles, donc la configuration de la zone avant la configuration globale ; le dossier de modèles d'une zone liée ne compte pas. La même règle vaut pour l'agrégation des [Événements](events.md) et pour les listes de pages et de blocs des [Blocs de script](scripts.md) : on y nomme le dossier dans le `FROM` de la requête d'événements ou comme source de `pq.pages` ou `pq.blocks`, par exemple `pq.pages('Modèles')`.
 
 ## Appliquer des modèles
 
@@ -56,6 +56,8 @@ Priorité : {{select:Priorité:Haute,Moyenne,Basse}}
 ````
 
 Les espaces réservés inconnus ou les paramètres défectueux interrompent l'application avec un message dans la barre d'état ; aucun fichier à moitié rempli n'est créé.
+
+**Les fichiers de formulaire ne sont pas des modèles.** Un fichier de formulaire de la [base de données](database.md) écrit lui aussi ses espaces réservés entre doubles accolades, par exemple `{{field:Name}}` ou `{{value:quantite * prix}}`, et ressemble donc à un modèle. Il n'est cependant jamais appliqué : le formulaire d'un enregistrement résout ses espaces réservés à chaque affichage d'après l'enregistrement affiché, et le fichier les garde. Un fichier de formulaire a donc sa place à côté de sa table et non dans le dossier de modèles ; il y apparaîtrait dans la sélection des modèles, et son application s'interromprait aux espaces réservés inconnus `field` et `value`.
 
 ## Règles de dossier
 

@@ -59,6 +59,9 @@ let umgebung = null;
  *   Öffnet die Einzel-Maske des Datensatzes (4T-001939); ihr Tor liegt dort.
  * @param {Function} [zugang.neuerDatensatz] (tabellenPfad) => void. Eröffnet
  *   eine Neuanlage und öffnet die Maske mit der gezogenen Kennung (4T-001939).
+ * @param {Function} [zugang.neuanlageErlaubt] (tabellenPfad) => Promise<boolean>.
+ *   Darf die eigene Rolle in der Tabelle anlegen? (4T-002311) Ohne sie bleibt
+ *   «Neuer Datensatz» stehen wie bisher.
  */
 export function initRecordRowAccess(zugang) {
   umgebung = zugang || null;
@@ -238,6 +241,24 @@ function loeseAus(block, knopf) {
   if (typeof umgebung.oeffneBelege === 'function') umgebung.oeffneBelege(pfad, kennung);
 }
 
+// 4T-002311 (E12.4): Ohne `create` der eigenen Rolle fehlt «Neuer Datensatz».
+// Gefragt wird bei jedem Anwenden, weil ein Cache-Klon den Fuß sichtbar
+// mitbringt; bis zur Antwort bleibt er, wie er ist, und eine fehlende Antwort
+// blendet nichts aus (geschützt wird an der Schreib-Schnittstelle). Das Attribut
+// `hidden` genügt, weil das Stilblatt für den Fuß keine Anzeige-Art setzt.
+function pruefeNeuanlage(block) {
+  const fuss = block.querySelector('.prc-foot');
+  if (!fuss || !umgebung || typeof umgebung.neuanlageErlaubt !== 'function') return;
+  const pfad = tabellenPfadZu(block);
+  if (!pfad) return;
+  Promise.resolve(umgebung.neuanlageErlaubt(pfad)).then(
+    (erlaubt) => {
+      fuss.hidden = erlaubt === false;
+    },
+    () => {},
+  );
+}
+
 function binde(block) {
   // **Der Klick-Weg.** Ein Zuhörer am Block statt einer je Schaltfläche: Die
   // Tabelle kann zweitausend Zeilen tragen, und die Delegation kostet einen
@@ -326,6 +347,7 @@ export function applyRecordRowAccess(container, versuche = 3) {
       knoepfe,
       knoepfe.find((knopf) => knopf.getAttribute('tabindex') === '0') || vorgabeStopp(knoepfe),
     );
+    pruefeNeuanlage(block);
     if (block.dataset.recAccessGebunden === '1') continue;
     block.dataset.recAccessGebunden = '1';
     binde(block);

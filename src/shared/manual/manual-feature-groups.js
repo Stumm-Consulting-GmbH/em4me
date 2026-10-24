@@ -250,6 +250,9 @@ const HELP_FEATURE_GROUPS = [
       // jeder Ebene gilt; die Zeilen der Datensatz-Ebene stehen in der Gruppe
       // «Datenbank».
       'help.feature.queryDisplayForm',
+      // 4T-002173 (Epic 3E-000337): das Diagramm einer Abfrage unmittelbar hinter
+      // der Wahl der Darstellungsform, deren erste Formen der Abfrage es sind.
+      'help.feature.queryChart',
       // 4T-002083 (Epic 3E-000259): Gruppierung und Aggregation hinter der
       // Darstellungsform, am Ende des Abfrage-Clusters, weil sie zur
       // Abfrage-Sprache gehört und auf jeder Ebene gilt.
@@ -377,6 +380,9 @@ const HELP_FEATURE_GROUPS = [
       // Datensätzen, deren Werte und Änderungen sie betreffen.
       'help.feature.databaseChecks',
       'help.feature.databaseEditable',
+      // 4T-002313 (Epic 3E-000263): die Sperre am Feld unmittelbar hinter der
+      // Bedingung der Tabelle, deren Grammatik sie teilt.
+      'help.feature.databaseFieldEditable',
       'help.feature.databaseRecordsView',
       // 4T-001946 (Epic 3E-000257): die Maske und ihre Sperre hinter der Anzeige,
       // von der aus der Anwender die Maske öffnet; die Masken-Datei dahinter,
@@ -384,6 +390,23 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.databaseForm',
       'help.feature.databaseLock',
       'help.feature.databaseFormFile',
+      // 4T-002187 (Epic 3E-000261): Wert-Platzhalter, Standard-Maske,
+      // Navigation und bedingte Bereiche hinter der Masken-Datei, weil alle
+      // vier sie voraussetzen.
+      'help.feature.databaseFormValue',
+      'help.feature.databaseFormDefault',
+      'help.feature.databaseFormNavigation',
+      // 4T-002336 (Epic 3E-000264): die Rückkehr des Masken-Dokuments nach dem
+      // Neustart hinter der Navigation, weil beide beschreiben, wie die Maske
+      // zu einem Datensatz kommt und wo sie danach steht.
+      'help.feature.databaseFormRestore',
+      'help.feature.databaseFormCondition',
+      // 4T-002254 (Epic 3E-000262): Verweis-Pfade und Positions-Bereich hinter den
+      // bedingten Bereichen, weil beide die Masken-Datei voraussetzen; erst der
+      // Pfad in Wert und Bedingung, dann der Bereich, der eine Listen-Maske
+      // einbettet.
+      'help.feature.databaseFormValuePath',
+      'help.feature.databaseFormList',
       'help.feature.databaseSegments',
       // 4T-001613 (Epic 3E-000252): am Ende der Gruppe, weil beide Zeilen die
       // Tabelle von aussen betreffen — wie man ihre Daten findet und wie man
@@ -392,7 +415,12 @@ const HELP_FEATURE_GROUPS = [
       // begegnet: erst die Suche, die er ohnehin benutzt, dann der Verweis,
       // den er selbst schreibt.
       'help.feature.databaseSearchScope',
+      // 4T-002336 (Epic 3E-000264): die Datensatz-Treffer unmittelbar hinter dem
+      // Schnitt des Suchraums, den sie ergänzen; die Schreibweisen und der Klick
+      // in die Maske unmittelbar hinter dem Verweis, den sie erweitern.
+      'help.feature.databaseSearchHit',
       'help.feature.databaseRecordLink',
+      'help.feature.databaseRecordLinkOpen',
       // 4T-002045 (Epic 3E-000258): die vier Zeilen der Datensatz-Abfrage hinter
       // Suche und Verweis, weil auch sie die Tabelle von außen betreffen: wie
       // man ihre Datensätze auswertet. Erst die Ebene selbst, dann die
@@ -405,6 +433,11 @@ const HELP_FEATURE_GROUPS = [
       // Datensatz-Abfrage, weil sie eine solche Auswertung unter einem Namen
       // ablegt; die Übersicht, die sie nennt, folgt weiter unten.
       'help.feature.databaseQueryFile',
+      // 4T-002254 (Epic 3E-000262): die Listen-Maske hinter der Abfrage-Datei, weil
+      // sie eine Abfrage-Datei mit Angaben ist; erst die Liste selbst, dann ihre
+      // Pflege.
+      'help.feature.databaseListForm',
+      'help.feature.databaseListEdit',
       // 4T-001793 (Epic 3E-000255): die beiden Zeilen der Änderungsbelege hinter
       // den Zeilen der Datensätze und vor denen des Bereichs — erst die Belege
       // selbst, die neben der Tabellen-Datei entstehen, dann die Ansicht, über
@@ -423,6 +456,14 @@ const HELP_FEATURE_GROUPS = [
       // hinter der Übersicht, deren Aktionen sie sind.
       'help.feature.databaseConsistency',
       'help.feature.databaseUsage',
+      // 4T-002313 (Epic 3E-000263): die Berechtigung hinter den Zeilen des
+      // Bereichs und vor dem Schalter, weil sie für die ganze Datenbank gilt und
+      // im Steckbrief steht: erst die Rollen, dann wer welche hat, dann die
+      // Prüfung beim Schreiben und zuletzt ihre Wirkung in Masken und Übersicht.
+      'help.feature.databaseRoles',
+      'help.feature.databaseRoleAssignment',
+      'help.feature.databasePermissionCheck',
+      'help.feature.databasePermissionForms',
       'help.feature.databaseExtension',
     ],
   },

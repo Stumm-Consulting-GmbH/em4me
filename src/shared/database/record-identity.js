@@ -104,6 +104,45 @@ function naechsteKennung(hochwasserstand) {
   return { kennung: kennungFuer(nummer), nummer, hochwasserstand: nummer };
 }
 
+// 4T-002288: Kennungen nach ihrer Nummer; `r-100000` steht hinter `r-99999`.
+// Eine ungültige Kennung zählt als 0. Aus der Konsistenz-Prüfung hierher
+// verlegt, weil sie eine reine Funktion über Kennungen ist.
+function nachNummer(a, b) {
+  return (nummerAus(a) || 0) - (nummerAus(b) || 0);
+}
+
+// 4T-002288: Die höchste vorhandene Kennung unter den übergebenen, oder null.
+// Nimmt jede iterierbare Menge an; ungültige Kennungen zählen nicht.
+function hoechsteKennung(kennungen) {
+  let hoechste = null;
+  for (const kennung of kennungen || []) {
+    const nummer = nummerAus(kennung);
+    if (nummer !== null && (hoechste === null || nummer > nummerAus(hoechste))) hoechste = kennung;
+  }
+  return hoechste;
+}
+
+// 4T-002288: Der Stand, von dem eine Neuanlage zieht. Maßgeblich ist der
+// Hochwasserstand der Definition; trägt die Tabelle aber eine Kennung darüber
+// (von Hand geschrieben, eingespielt oder aus einer Fassung ohne
+// Hochwasserstand), gilt deren Nummer. Sonst vergäbe die Neuanlage eine
+// vorhandene Kennung ein zweites Mal, was E5.1 ausschließt. Ein Hochwasserstand
+// über der höchsten Kennung bleibt stehen: Die Lücke ist gewollt.
+function wirksamerHochwasserstand(hochwasserstand, kennungen) {
+  const stand = normalisiereHochwasserstand(hochwasserstand) || 0;
+  return Math.max(stand, nummerAus(hoechsteKennung(kennungen)) || 0);
+}
+
+// 4T-002288: Die höchste vorhandene Kennung, wenn sie über dem Hochwasserstand
+// liegt, sonst null. Für den Hinweis der Konsistenz-Prüfung: Der Zustand ist
+// nach der Behebung unschädlich, weil die Neuanlage ihn ausgleicht, aber
+// unsauber.
+function kennungUeberStand(hochwasserstand, kennungen) {
+  const hoechste = hoechsteKennung(kennungen);
+  const stand = normalisiereHochwasserstand(hochwasserstand) || 0;
+  return hoechste !== null && nummerAus(hoechste) > stand ? hoechste : null;
+}
+
 // --- Fachlicher Schlüssel und Anzeige-Form -----------------------------------------
 
 function alsText(wert) {
@@ -178,13 +217,29 @@ function anzeigeSpalte(definition) {
   return null;
 }
 
+// 4T-002333 (Epic 3E-000264, Entscheidung T1): Die Zeichen eines Ankers hinter
+// '^' in einem Verweis, wenn er die Anzeige-Form eines Datensatzes nennt
+// (`[[Personen#^Max Müller]]`): Buchstaben, Ziffern, Leerzeichen und
+// `_ - . ' , ( )`. Ein Block-Anker trägt nach seiner Regel
+// (`src/shared/block-anchors.js`) nie ein Leerzeichen; ein Anker mit
+// Leerzeichen ist damit eindeutig eine Anzeige-Form. **Beide Prozesse nutzen
+// diese eine Konstante:** der Verweis-Bau der Anzeige (`markdown/plugins/wiki.js`
+// und die Live-Ansicht) und die Auflösung im Haupt-Prozess; zwei Literale
+// liefen sonst auseinander, und ein Verweis gälte, den der Klick nicht findet.
+const ANZEIGE_ANKER_MUSTER = /^[\p{L}\p{N}_\-. ',()]+$/u;
+
 module.exports = {
+  ANZEIGE_ANKER_MUSTER,
   RECORD_ID_PREFIX,
   RECORD_ID_MIN_DIGITS,
   kennungFuer,
   nummerAus,
   normalisiereHochwasserstand,
   naechsteKennung,
+  nachNummer,
+  hoechsteKennung,
+  wirksamerHochwasserstand,
+  kennungUeberStand,
   normalisiereSchluessel,
   normalisiereAnzeigeForm,
   anzeigeSpalte,

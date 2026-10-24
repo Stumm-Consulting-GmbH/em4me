@@ -126,7 +126,7 @@ query: WHERE event-category = 'geburtstag'
 ```
 ````
 
-Il testo della query usa il linguaggio a clausole della [Query Perspective](frontmatter-query.md) (`FROM`, `WHERE`, confronti, funzioni); una query vuota raccoglie tutti i file con il profilo `Ereignis`. I valori di testo vanno tra virgolette (`'geburtstag'`): una parola nuda sarebbe un riferimento a un campo.
+Il testo della query usa il linguaggio a clausole della [Query Perspective](frontmatter-query.md) (`FROM`, `WHERE`, confronti, funzioni); una query vuota raccoglie tutti i file con il profilo `Ereignis`. Ne sono esclusi i file della [cartella dei modelli](templates.md); l'aggregazione li raccoglie solo se `FROM` indica espressamente la cartella, ad esempio `FROM "Modelli"`. I valori di testo vanno tra virgolette (`'geburtstag'`): una parola nuda sarebbe un riferimento a un campo.
 
 - **Clic sulla riga** apre il file di origine; la provenienza di ogni voce resta visibile.
 - **La modifica riscrive**: le modifiche nella tabella aggregata finiscono nel frontmatter del file di origine, anche se non è aperto. Se il file di origine è aperto con modifiche non salvate, un avviso vi rimanda; se è stato modificato nel frattempo sul disco, non viene scritto nulla (avviso di conflitto).

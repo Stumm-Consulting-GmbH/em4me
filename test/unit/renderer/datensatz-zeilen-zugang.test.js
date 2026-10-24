@@ -445,6 +445,60 @@ describe('4T-001939: der Zugang zur Einzel-Maske', () => {
   });
 });
 
+// 4T-002311 (Epic 3E-000263, E12.4, Story AK2): Ohne `create` der eigenen Rolle
+// fehlt «Neuer Datensatz» unter der Tabelle. Gefragt wird mit dem Pfad der
+// Tabelle der Spalte; ohne Antwort oder ohne Frage bleibt der Fuß stehen.
+describe('4T-002311: «Neuer Datensatz» nach der Rolle', () => {
+  const warte = async () => {
+    for (let i = 0; i < 3; i++) await Promise.resolve();
+  };
+  function mitFrage(antwort) {
+    const gefragt = [];
+    initRecordRowAccess({
+      aktivesDokument: (paneIdx) => reiter[paneIdx] || null,
+      neuerDatensatz: (pfad) => neuanlagen.push([pfad]),
+      neuanlageErlaubt: async (pfad) => {
+        gefragt.push(pfad);
+        if (antwort instanceof Error) throw antwort;
+        return antwort;
+      },
+    });
+    return gefragt;
+  }
+
+  it('blendet den Fuß ohne create aus, in Lese- und Live-Ansicht (4T-002311)', async () => {
+    for (const ort of ['lese', 'live']) {
+      document.body.innerHTML = '';
+      const gefragt = mitFrage(false);
+      const container = baueSpalte(ort);
+      applyRecordRowAccess(container);
+      await warte();
+      expect(gefragt).toEqual([PFAD]);
+      expect(fussIn(container).closest('.prc-foot').hidden).toBe(true);
+    }
+  });
+
+  it('lässt den Fuß mit create, bei Fehler und ohne Frage stehen (4T-002311)', async () => {
+    for (const antwort of [true, new Error('Kanal'), undefined]) {
+      document.body.innerHTML = '';
+      if (antwort === undefined) setzeUmgebung();
+      else mitFrage(antwort);
+      const container = baueSpalte('lese');
+      applyRecordRowAccess(container);
+      await warte();
+      expect(fussIn(container).closest('.prc-foot').hidden).toBe(false);
+    }
+  });
+
+  it('fragt in einer passiven Hülle nicht (4T-002311)', async () => {
+    const gefragt = mitFrage(false);
+    const container = baueSpalte('einbettung');
+    applyRecordRowAccess(container);
+    await warte();
+    expect(gefragt).toEqual([]);
+  });
+});
+
 describe('4T-001939: der Tastatur-Weg mit zwei Schaltflächen je Zeile', () => {
   it('hält genau EINEN Tabulator-Stopp über beide Arten, auf der ersten Beleg-Schaltfläche', () => {
     const container = baueSpalte('lese');

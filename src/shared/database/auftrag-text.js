@@ -137,6 +137,13 @@ function platzhalterWert(u, name, angaben) {
       const key = `database.form.grund.${roh}`;
       return GRUENDE.has(roh) && u.hat(key) ? u.t(key) : roh;
     }
+    case 'operation': {
+      // 4T-002309: das Wort der Oberfläche, wie in der Übersicht der Rollen
+      // (`database.overview.allow.<wort>`); ein unbekanntes Wort roh.
+      if (!istText(roh)) return null;
+      const key = `database.overview.allow.${roh}`;
+      return u.hat(key) ? u.t(key) : roh;
+    }
     case 'wert':
       // Ein leerer Wert ist eine Angabe und wird gezeigt.
       return typeof roh === 'string' ? roh : null;

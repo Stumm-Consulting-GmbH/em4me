@@ -225,6 +225,134 @@ describe('Die beiden bestehenden Anker-Herkünfte (4T-001612, AK5, AK6)', () => 
   });
 });
 
+// --- 4T-002333: Kurzform, Anzeige-Form und mehrdeutiger Name ---------------
+
+// Eine Tabelle mit eigener Anzeige-Form `Titel`; «Anna» tragen zwei Datensätze.
+function mitAnzeige(extra = []) {
+  return [
+    '---',
+    'db-table:',
+    '  fields:',
+    '    - name: Kürzel',
+    '    - name: Titel',
+    '  key: Kürzel',
+    '  display: Titel',
+    '---',
+    '',
+    '# Personen',
+    ...extra,
+    '',
+    '```perspective-records',
+    '|- id="r-00001"',
+    '| P-1',
+    '| Max Müller',
+    '|- id="r-00002"',
+    '| P-2',
+    '| Anna',
+    '|- id="r-00003"',
+    '| P-3',
+    '| Anna',
+    '```',
+    '',
+  ].join('\n');
+}
+
+describe('Schreibweisen des Datensatz-Verweises (4T-002333, AK3, AK4)', () => {
+  it('die Kurzform der Kennung gilt als bestehend', async () => {
+    const root = makeRoot();
+    write(root, 'Kunden.md', tabelle());
+    const quelle = write(root, 'Notiz.md', 'Siehe [[Kunden#^r-2]].');
+    await indexFor(quelle);
+    expect(urteil(quelle, 'Kunden#^r-2')).toBe('gültig');
+    expect(urteil(quelle, 'Kunden#^r-9999')).toBe('gebrochener Anker');
+  });
+
+  it('die Anzeige-Form gilt als bestehend, auch mit Leerzeichen', async () => {
+    const root = makeRoot();
+    write(root, 'Personen.md', mitAnzeige());
+    const quelle = write(root, 'Notiz.md', 'Siehe [[Personen#^Max Müller]].');
+    await indexFor(quelle);
+    expect(urteil(quelle, 'Personen#^Max Müller')).toBe('gültig');
+    expect(urteil(quelle, 'Personen#^Niemand')).toBe('gebrochener Anker');
+    const r = existingWikiTargets(quelle, ['Personen#^Max Müller']);
+    expect(r.ambiguousRecord).toEqual([]);
+  });
+
+  it('ein mehrdeutiger Name gilt und steht zusätzlich in ambiguousRecord', async () => {
+    const root = makeRoot();
+    write(root, 'Personen.md', mitAnzeige());
+    const quelle = write(root, 'Notiz.md', 'Siehe [[Personen#^Anna]].');
+    await indexFor(quelle);
+    const r = existingWikiTargets(quelle, ['Personen#^Anna', 'Personen#^r-00002']);
+    expect(r.status).toBe('ready');
+    expect(r.existing).toEqual(['Personen#^Anna', 'Personen#^r-00002']);
+    expect(r.ambiguousRecord).toEqual(['Personen#^Anna']);
+    expect(r.brokenAnchor).toEqual([]);
+    expect(r.ambiguous).toEqual([]);
+  });
+
+  it('meldet den mehrdeutigen Namen auch als reinen Anker in der Tabelle selbst', async () => {
+    const root = makeRoot();
+    const personen = write(root, 'Personen.md', mitAnzeige());
+    await indexFor(personen);
+    const r = existingWikiTargets(personen, ['#^Anna']);
+    expect(r.existing).toEqual(['#^Anna']);
+    expect(r.ambiguousRecord).toEqual(['#^Anna']);
+  });
+
+  it('ein Block-Anker gleichen Namens gewinnt weiterhin, ohne Hinweis auf Mehrdeutigkeit', async () => {
+    const root = makeRoot();
+    write(root, 'Personen.md', mitAnzeige(['', 'Ein Absatz über Anna. ^Anna']));
+    const quelle = write(root, 'Notiz.md', 'Siehe [[Personen#^Anna]].');
+    await indexFor(quelle);
+    const r = existingWikiTargets(quelle, ['Personen#^Anna']);
+    expect(r.existing).toEqual(['Personen#^Anna']);
+    expect(r.ambiguousRecord).toEqual([]);
+    // Der Name trifft zwei Datensätze und damit keinen eindeutig: nichts verdeckt.
+    expect(r.shadowedRecord).toEqual([]);
+  });
+
+  it('ein Block-Anker, der einen Datensatz verdeckt, steht in shadowedRecord (E5.2)', async () => {
+    const root = makeRoot();
+    write(
+      root,
+      'Personen.md',
+      mitAnzeige(['', 'Über Max. ^r-00001', '', 'Ein Satz. ^Solaris', '', 'Ein Absatz. ^frei']),
+    );
+    const quelle = write(root, 'Notiz.md', 'x');
+    await indexFor(quelle);
+    const ziele = ['Personen#^r-00001', 'Personen#^r-1', 'Personen#^frei', 'Personen#^Solaris'];
+    const r = existingWikiTargets(quelle, ziele);
+    // Alle bestehen; verdeckt ist nur der Block-Anker, dessen Text eine Kennung
+    // der Tabelle ist. `^r-1` ist kein Block-Anker und trifft den Datensatz direkt.
+    expect(r.existing).toEqual(ziele);
+    expect(r.shadowedRecord).toEqual(['Personen#^r-00001']);
+    expect(r.ambiguousRecord).toEqual([]);
+  });
+
+  it('ein Block-Anker mit dem eindeutigen Namen eines Datensatzes verdeckt ihn ebenso', async () => {
+    const root = makeRoot();
+    write(root, 'Personen.md', mitAnzeige(['', 'Ein Satz. ^Bert']));
+    write(
+      root,
+      'Kunden.md',
+      tabelle(['|- id="r-00001"', '| Bert', '| Anna'], ['', 'Ein Satz. ^Bert']),
+    );
+    const quelle = write(root, 'Notiz.md', 'x');
+    await indexFor(quelle);
+    // In Kunden ist «Bert» der einteilige Schlüssel und damit die Anzeige-Form.
+    const r = existingWikiTargets(quelle, ['Kunden#^Bert', 'Personen#^Bert']);
+    expect(r.existing).toEqual(['Kunden#^Bert', 'Personen#^Bert']);
+    expect(r.shadowedRecord).toEqual(['Kunden#^Bert']);
+  });
+
+  it('jede Antwort trägt die Listen ambiguousRecord und shadowedRecord, auch die nicht bereite', () => {
+    const r = existingWikiTargets(null, ['x']);
+    expect(r.ambiguousRecord).toEqual([]);
+    expect(r.shadowedRecord).toEqual([]);
+  });
+});
+
 // --- AK7: Rückverweise ------------------------------------------------------
 
 describe('Rückverweise (4T-001612, AK7)', () => {

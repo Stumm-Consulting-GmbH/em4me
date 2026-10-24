@@ -193,6 +193,19 @@ describe('Lesend und bearbeitend (Bauplan B5 und B6)', () => {
     expect(bearbeitend.dataset.formMode).toBe('bearbeiten');
   });
 
+  // 4T-002311 (E12.4, AK1): Verwehrt die Rolle das Ändern, bleibt die Maske im
+  // Modus «lesen» (`istBearbeitbar` in `masken-koerper.js`); in ihm hat kein
+  // Feld-Typ ein Steuerelement, auch die mit eigener Wahl nicht.
+  it('hat im Modus lesen bei keinem Feld-Typ ein Steuerelement (4T-002311)', () => {
+    const typen = ['string', 'multiline', 'number', 'boolean', 'date', 'time', 'record'];
+    for (const type of typen) {
+      const feld = { name: 'f', type };
+      const element = baueFeldElement({ feld, zelle: zelle(feld, ''), modus: MODUS_LESEN });
+      expect(element.querySelectorAll('input, textarea, select, button'), type).toHaveLength(0);
+      expect(element.dataset.formMode).toBe(MODUS_LESEN);
+    }
+  });
+
   it('nimmt bearbeitend den Text des Entwurfs statt des gelesenen', () => {
     const feld = { name: 'Name', type: 'string' };
     const element = baueFeldElement({
@@ -587,6 +600,69 @@ describe('Wertehilfe: lesende Darstellung (4T-001942, B2, AK4)', () => {
   });
 });
 
+// 4T-002185 (Epic 3E-000261, F4 A, Ziel 3, Story AK2 und AK6): Mit dem
+// Klick-Weg der Seite wird ein gefüllter Verweis im Lesen eine Schaltfläche zum
+// verwiesenen Datensatz; Text und Klasse `db-form-value` bleiben dieselben.
+describe('Verweis-Feld im Lesen anklickbar (4T-002185)', () => {
+  function mitKlick(text, modus = MODUS_LESEN, ziele = KUNDEN) {
+    const gemeldet = [];
+    const element = baueFeldElement({
+      feld: VERWEIS,
+      zelle: zelle(VERWEIS, text),
+      modus,
+      ziele,
+      ladeZiele: vi.fn(async () => ziele),
+      beiVerweisKlick: (ziel) => gemeldet.push(ziel),
+    });
+    return { element, gemeldet };
+  }
+
+  it('öffnet über den Klick den verwiesenen Datensatz seiner Ziel-Tabelle', () => {
+    const { element, gemeldet } = mitKlick('r-1');
+    const wert = element.querySelector('.db-form-value');
+    expect(wert.tagName).toBe('BUTTON');
+    expect(wert.type).toBe('button');
+    expect(wert.classList.contains('db-form-ref-link')).toBe(true);
+    expect(wert.textContent).toBe('Anna Muster (r-00001)');
+    expect(wert.title).toBe(i18n.t('database.form.refOpen'));
+    wert.click();
+    expect(gemeldet).toEqual([
+      { tabelle: '/bereich/Kunden.md', tabellenName: 'Kunden', kennung: 'r-00001', wert: 'r-1' },
+    ]);
+  });
+
+  it('ein Wert ohne Treffer bleibt gekennzeichnet und meldet sich mit kennung null', () => {
+    const { element, gemeldet } = mitKlick('Niemand');
+    const wert = element.querySelector('.db-form-value');
+    expect(wert.tagName).toBe('BUTTON');
+    expect(wert.classList.contains('db-form-unresolved')).toBe(true);
+    expect(wert.title).toBe(i18n.t('database.form.refUnresolved'));
+    wert.click();
+    expect(gemeldet).toEqual([
+      { tabelle: '/bereich/Kunden.md', tabellenName: 'Kunden', kennung: null, wert: 'Niemand' },
+    ]);
+  });
+
+  it('ein leerer Verweis ist nicht anklickbar', () => {
+    const { element } = mitKlick('');
+    expect(element.querySelector('button')).toBe(null);
+    expect(element.querySelector('.db-form-value').textContent).toBe('');
+  });
+
+  it('im Bearbeiten bleibt es die Eingabe mit Vorschlagsliste, ohne Schaltfläche', () => {
+    const { element } = mitKlick('r-00001', MODUS_BEARBEITEN);
+    expect(element.querySelector('.db-form-ref-link')).toBe(null);
+    expect(steuerIn(element).value).toBe('r-00001');
+    expect(element.querySelector('.db-form-suggest')).not.toBe(null);
+  });
+
+  it('ohne vorliegende Liste und ohne Ziel-Tabelle gibt es keinen Klick-Weg', () => {
+    expect(mitKlick('r-00001', MODUS_LESEN, null).element.querySelector('button')).toBe(null);
+    const unbekannt = { status: 'error', code: 'auftragTabelleUnbekannt' };
+    expect(mitKlick('r-00001', MODUS_LESEN, unbekannt).element.querySelector('button')).toBe(null);
+  });
+});
+
 describe('Ziel-Listen der Seite (4T-001942, B3)', () => {
   const daten = {
     fields: [
@@ -629,5 +705,47 @@ describe('Ziel-Listen der Seite (4T-001942, B3)', () => {
     await expect(hilfe.aufloesen(daten)).resolves.toBeUndefined();
     expect(hilfe.optionen(VERWEIS).ziele).toEqual({ status: 'unavailable' });
     expect(verweisLage(VERWEIS, hilfe.optionen(VERWEIS).ziele)).toBe('offen');
+  });
+});
+
+// --- 4T-002312: das gesperrte Feld -----------------------------------------------------------
+
+describe('Gesperrtes Feld (4T-002312, AK1)', () => {
+  const feld = { name: 'betrag', type: 'number', options: { decimals: 2 } };
+
+  it('4T-002312: steht im Bearbeiten lesend, als Text wie im Lesen, mit Titel', () => {
+    const beiAenderung = vi.fn();
+    const element = baueFeldElement({
+      feld,
+      zelle: zelle(feld, '12.5'),
+      modus: MODUS_BEARBEITEN,
+      text: '12.5',
+      beiAenderung,
+      gesperrt: true,
+    });
+    expect(steuerIn(element)).toBeNull();
+    expect(element.querySelector('.db-form-value').textContent).toBe('12.50');
+    expect(element.classList.contains('db-form-locked')).toBe(true);
+    expect(element.dataset.formLocked).toBe('true');
+    expect(element.dataset.formMode).toBe(MODUS_BEARBEITEN);
+    expect(element.title).toBe(
+      'Dieses Feld ist nach der Bedingung der Definition zurzeit nicht änderbar.',
+    );
+    expect(beiAenderung).not.toHaveBeenCalled();
+  });
+
+  it('4T-002312: ohne Sperre und im Lesen bleibt alles wie zuvor', () => {
+    const frei = baueFeldElement({ feld, zelle: zelle(feld, '3'), modus: MODUS_BEARBEITEN });
+    expect(steuerIn(frei)).not.toBeNull();
+    expect(frei.title).toBe('');
+    const lesend = baueFeldElement({
+      feld,
+      zelle: zelle(feld, '3'),
+      modus: MODUS_LESEN,
+      gesperrt: true,
+    });
+    expect(lesend.classList.contains('db-form-locked')).toBe(false);
+    expect(lesend.title).toBe('');
+    expect(lesend.querySelector('.db-form-value').textContent).toBe('3.00');
   });
 });

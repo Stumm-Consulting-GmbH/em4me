@@ -128,7 +128,8 @@ SORT auteur
 - **Tableaux** : `TABLE RECORDS …` affiche le résultat dans la première colonne « Enregistrement » ; `WITHOUT ID` vient après `RECORDS`. Le titre d'une colonne est l'alias, sinon l'étiquette du champ dans la langue du programme choisie, selon la chaîne de repli de la page [Base de données](database.md), sinon l'expression elle-même, par exemple pour un chemin.
 - **Valeurs de lien** : un champ de référence affiche la forme d'affichage de sa cible, à défaut son identifiant, et un clic ouvre le formulaire de la cible. Un lien vide et un lien qui ne mène nulle part restent une cellule vide.
 - **Ordre** : sans `SORT`, les résultats suivent leur forme d'affichage sans tenir compte de la casse, à forme d'affichage égale l'identifiant, et les enregistrements sans forme d'affichage viennent à la fin.
-- **Deux cibles de clic** : un enregistrement dans le résultat d'une requête ouvre le formulaire, tandis qu'un lien dans le texte courant comme `[[Livres#^r-00042]]` ouvre le fichier de table à la ligne de l'enregistrement. Le formulaire montre l'état enregistré.
+- **Une seule cible de clic** : un enregistrement dans le résultat d'une requête ouvre le formulaire, de même qu'un lien dans le texte courant comme `[[Livres#^r-00042]]` ; l'action « Afficher dans le document de table » du formulaire mène à la ligne. Le formulaire montre l'état enregistré.
+- **Formulaire de liste** : si un fichier de requête porte l'indication `editable: true` dans son conteneur `db-query`, son résultat apparaît sous forme de grille dans laquelle les enregistrements s'ouvrent, se modifient, se créent et se suppriment, 50 lignes par page ; la page [Base de données](database.md) le décrit dans la section « Formulaire de liste ».
 - **État non enregistré** : les modifications d'une table ouverte sont prises en compte immédiatement dans le résultat, sans enregistrer.
 - **Pas à ce niveau** : `bold()` dans une colonne ou dans une expression de `GROUP BY` produit un message d'erreur, car une valeur de base de données ne porte aucune mise en forme ; dans la condition et le tri, il reste permis. `HIDE`, `SHOW` et `SHORT` ne valent que pour `LIST TASKS` et se signalent ici comme aux niveaux fichier et bloc.
 - **Résultat vide et base de données désactivée** : sans résultat, « Aucun enregistrement ne correspond à cette requête » apparaît. Si l'extension « Base de données » est désactivée, la liste reste vide, une remarque s'affiche au-dessus, et aucun message d'erreur n'apparaît.
@@ -386,7 +387,7 @@ LIST RECORDS FROM "Équipe" DISPLAY tree BY chef
 ```
 ````
 
-La forme disponible est l'**arbre** (`DISPLAY tree BY champ`). Il affiche les enregistrements d'une requête d'enregistrements en retrait le long du champ de référence nommé :
+Les formes disponibles sont l'**arbre** et deux **graphiques**. L'arbre (`DISPLAY tree BY champ`) affiche les enregistrements d'une requête d'enregistrements en retrait le long du champ de référence nommé :
 
 - Un enregistrement se place sous l'enregistrement vers lequel pointe son champ, si celui-ci figure dans le résultat. Sinon, c'est une **racine**, tout à gauche : sans lien, avec un lien qui ne mène nulle part ou vers un enregistrement que la condition écarte. Avec `descendants(…)`, les racines sont donc les enregistrements placés directement sous la cible, car la cible elle-même ne fait pas partie du résultat.
 - Les racines et les éléments frères suivent l'ordre du résultat, que `SORT` détermine.
@@ -395,7 +396,25 @@ La forme disponible est l'**arbre** (`DISPLAY tree BY champ`). Il affiche les en
 - Un nœud affiche la forme d'affichage comme une entrée de liste, avec `LIST` suivie du champ supplémentaire ; avec `TABLE`, l'arbre n'affiche pas de colonnes. Un clic ouvre le formulaire.
 - Au-delà de 32 niveaux, le retrait n'augmente plus ; les nœuds plus profonds figurent au complet au 32e niveau.
 
-**Repli** : si une forme est inconnue ou ne convient pas à la requête, le résultat apparaît sans elle, donc comme liste ou tableau, avec au-dessus une remarque nommant la forme et sans message d'erreur. L'arbre ne convient qu'au niveau enregistrement et seulement avec un champ après `BY` qui est un champ de référence dans au moins une table du résultat. Il ne convient jamais à une requête regroupée ; la sortie regroupée apparaît alors avec la remarque. Un résultat vide affiche son avis de résultat vide et aucune forme. S'il manque le nom de la forme après `DISPLAY` ou le champ après `BY`, la requête est invalide.
+Les **graphiques** `DISPLAY bar` et `DISPLAY line` affichent le résultat d'une requête en tableau sous forme de graphique en barres ou en courbes. Ils lisent le tableau tel qu'il apparaîtrait sans `DISPLAY` :
+
+````markdown
+```perspective-query
+TABLE pages AS "Pages", prix AS "Prix"
+FROM "Livres"
+SORT pages
+DISPLAY bar
+```
+````
+
+- **Libellés** : chaque ligne du tableau devient une catégorie et porte comme libellé ce que le tableau affiche en tête : le nom du résultat, avec `WITHOUT ID` la valeur de la première colonne nommée. Dans un tableau regroupé, chaque groupe est une catégorie avec sa valeur de groupe ; avec plusieurs paliers, les valeurs de tous les paliers sont reliées par « › », et le groupe sans valeur s'appelle « (sans valeur) » comme dans le tableau.
+- **Séries** : chaque autre colonne contenant au moins un nombre devient une série et porte l'en-tête de la colonne comme nom. Compte aussi comme nombre un texte composé uniquement d'un nombre, comme en contiennent souvent les propriétés du frontmatter, par exemple `pages: 120`. Les dates, les durées, les valeurs booléennes et les autres textes ne sont pas des nombres.
+- **Lacunes et colonnes ignorées** : si une valeur d'une série manque ou n'est pas un nombre, le graphique est dessiné sans elle. Sous le graphique, une ligne nomme alors les colonnes qui ne contiennent aucun nombre et sont donc ignorées, et une autre le nombre de valeurs omises.
+- **Ordre** : les catégories suivent l'ordre du tableau, que `SORT` détermine, à intervalles égaux. Une date comme libellé est un texte comme un autre ; il n'existe pas d'axe temporel dont les intervalles suivraient le temps écoulé. `LIMIT` permet de limiter un grand nombre de résultats.
+- **Image** : le graphique est une image sans commande ; un clic n'ouvre aucun résultat. Les séries portent les couleurs de graphique du [jeu de couleurs](color-schemes.md) actif, comme les [graphiques de tables](charts.md), et suivent immédiatement un changement de jeu de couleurs ou entre clair et sombre.
+- **Extension** : les graphiques dépendent de l'[extension interne](extensions.md) « Graphique d'une requête », activée à partir du mode de travail **Avancé** et indépendante de toute autre extension. Si elle est désactivée, le tableau apparaît avec la remarque que l'affichage en graphique est désactivé ; le document reste inchangé, et après la réactivation le graphique réapparaît.
+
+**Repli** : si une forme est inconnue ou ne convient pas à la requête, le résultat apparaît sans elle, donc comme liste ou tableau, avec au-dessus une remarque nommant la forme et sans message d'erreur. L'arbre ne convient qu'au niveau enregistrement et seulement avec un champ après `BY` qui est un champ de référence dans au moins une table du résultat. Il ne convient jamais à une requête regroupée ; la sortie regroupée apparaît alors avec la remarque. Les graphiques ne conviennent qu'à un tableau (`TABLE`, non `LIST`) ayant au moins une colonne en plus du libellé, dont une contient des nombres ; sinon, la remarque en indique la raison. Un résultat vide affiche son avis de résultat vide et aucune forme. S'il manque le nom de la forme après `DISPLAY` ou le champ après `BY`, la requête est invalide.
 
 ## Affichage et interaction
 
@@ -417,7 +436,7 @@ Les fichiers hors du périmètre n'apparaissent pas dans le résultat, pas plus 
 
 ## Export
 
-- **Export PDF** : le résultat est imprimé comme un état statique du moment du rendu, y compris la disposition en tableau et en colonnes. Les entrées apparaissent comme du texte ; elles ne sont pas cliquables dans le PDF.
-- **Markdown portable** : l'export laisse le bloc `perspective-query` inchangé comme source. À la réouverture dans ce programme, il est de nouveau évalué dynamiquement ; les autres programmes Markdown l'affichent comme bloc de code.
+- **Export PDF** : le résultat est imprimé comme un état statique du moment du rendu, y compris la disposition en tableau et en colonnes. Les entrées apparaissent comme du texte ; elles ne sont pas cliquables dans le PDF. Un graphique de la requête apparaît en clair à l'impression et dans l'export PDF, avec les couleurs de graphique du jeu de couleurs clair, même si l'application fonctionne en mode sombre.
+- **Markdown portable** : l'export laisse le bloc `perspective-query` inchangé comme source. À la réouverture dans ce programme, il est de nouveau évalué dynamiquement ; les autres programmes Markdown l'affichent comme bloc de code. Cela vaut aussi avec `DISPLAY bar` ou `DISPLAY line` : contrairement à un [graphique de table](charts.md), le graphique d'une requête n'est pas exporté comme image.
 
 Pour des évaluations libres au-delà du langage à clauses — par exemple des structures récursives ou des synthèses calculées — les [blocs de script](scripts.md) sont disponibles ; leur API pq utilise le même modèle de champs et de blocs que la requête.

@@ -80,6 +80,22 @@
   color: var(--fg-muted);
   font-variant-numeric: tabular-nums;
 }
+/* 4T-002332 (Epic 3E-000264): Art einer Datensatz-Gruppe hinter dem
+   Tabellen-Namen. Gedämpft wie die Zahl, weil sie Auskunft ist und nicht der
+   Name; ohne sie sähe die Gruppe «Library» aus wie ein Dokument dieses Namens. */
+.search-results-group-kind {
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+/* Anzeige-Form und Feld eines Datensatz-Treffers vor dem Ausschnitt. Gedämpft
+   wie das Ziel einer Umbenennung, in der gewählten Zeile in deren Farbe. */
+.search-results-record-meta {
+  color: var(--fg-muted);
+  white-space: nowrap;
+}
+.search-results-item.selected .search-results-record-meta {
+  color: inherit;
+}
 .search-results-item {
   display: block;
   width: 100%;

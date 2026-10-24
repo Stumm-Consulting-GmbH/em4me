@@ -49,6 +49,12 @@ const { schluesselRegel } = require('../database/record-regel-schluessel');
 const { loeschschutzRegel } = require('../database/record-regel-loeschschutz');
 const { pruefregelnRegel } = require('../database/record-regel-pruefregeln');
 const { bearbeitbarRegel } = require('../database/record-regel-bearbeitbar');
+// 4T-002309 (Epic 3E-000263): die Berechtigung als erste Regel und die
+// Erlaubnis-Menge aus derselben Auflösung wie Übersicht und Lese-Kanäle.
+const { berechtigungRegel, erzeugeRechteFuer } = require('../database/record-regel-berechtigung');
+// 4T-002310 (Epic 3E-000263): der Schutz der Definition für Speichern und Ersetzen.
+const { erzeugeDefinitionsSchutz } = require('../database/definitions-schutz');
+const { frischerDateizugriff } = require('../documents/frisch-lesen');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 const { createBookApps } = require('../books/book-apps');
 const { createShelfApps } = require('../books/shelf-apps');
@@ -171,19 +177,58 @@ function createMainWiring(deps) {
   // nach Bereichs-Wurzel), damit Regeln und Katalog dieselben Tabellen sehen.
   // Die Regel-Module laufen in der Reihenfolge der Liste; ein Modul sieht die
   // Ersetzungen der vor ihm laufenden.
+  //
+  // 4T-002309 (Epic 3E-000263): Geltende Rolle und Erlaubnis-Menge je Tabelle,
+  // einmal je Auftrag und je Neuanlage gefragt, aus derselben Auflösung wie die
+  // Lese-Kanäle; gelesen wird der gespeicherte Steckbrief, der Anmeldename kommt
+  // aus der Herkunft des Prozesses. Ohne bereite Sicht oder ohne lesbaren
+  // Steckbrief ist sie nicht bestimmbar, und es wird abgewiesen (E12.6).
+  //
+  // 4T-002310 (Entscheidung der Sitzung vom 2026-10-18): Die Sicht ist die des
+  // gespeicherten Stands, ohne die Puffer offener Reiter. Ein ungespeichert
+  // unlesbarer Steckbrief verlöre im Puffer seine Marke, und die Datenbank
+  // erschiene dann ohne Rollen; das wäre ein Weg an der Prüfung vorbei. Dieselbe
+  // Rechte-Funktion fragt der Schutz der Definition weiter unten.
+  const gespeicherteSicht = (pfad, bereichsWurzel) =>
+    backlinks.datenbankSicht(pfad, bereichsWurzel, { ohnePuffer: true });
+  const rechteFuer = erzeugeRechteFuer({
+    tabellenSicht: (bereichsWurzel) => gespeicherteSicht(null, bereichsWurzel),
+    fsp: frischerDateizugriff,
+  });
   const pruefNaht = erzeugePruefNaht({
-    // 4T-001928: Die Verweis-Regel läuft als Erste, weil sie Schlüssel-Werte durch
-    // Kennungen ersetzt und die folgenden Regeln (Schlüssel, Lösch-Schutz) auf
-    // dem ersetzten Wert arbeiten sollen.
-    regeln: [verweisRegel, schluesselRegel, loeschschutzRegel, pruefregelnRegel, bearbeitbarRegel],
+    // 4T-002309 (S12): Die Berechtigung läuft als Erste, weil eine verbotene
+    // Operation keine weitere Prüfung braucht; sie liest allein Tabelle und
+    // Operation und braucht keine Ersetzung. 4T-001928: Die Verweis-Regel ist
+    // die erste, die Ersetzungen liefert (Schlüssel-Werte durch Kennungen), und
+    // die folgenden Regeln (Schlüssel, Lösch-Schutz) arbeiten auf dem ersetzten Wert.
+    regeln: [
+      berechtigungRegel,
+      verweisRegel,
+      schluesselRegel,
+      loeschschutzRegel,
+      pruefregelnRegel,
+      bearbeitbarRegel,
+    ],
     tabellenSicht: (bereichsWurzel) => backlinks.datenbankSicht(null, bereichsWurzel),
+    rechteFuer,
   });
   const schreibSchnittstelle = erzeugeSchreibSchnittstelle({
     sperrVerwaltung,
     absichtsProtokoll,
     wiederanlauf,
     erweiterungAktiv: datenbankAktiv,
+    rechteFuer,
     pruefNaht,
+  });
+  // 4T-002310 (Epic 3E-000263, F3 A): Der Schutz der Definition für die
+  // Schreibwege, die eine ganze Datei als Text neu schreiben (`file:save`,
+  // `file:saveAs`, `areaReplace:run`), mit derselben Rechte-Funktion wie die
+  // Schnittstelle; die Wurzel bestimmt die Datei, auch außerhalb eines
+  // gebundenen Bereichs.
+  const definitionsSchutz = erzeugeDefinitionsSchutz({
+    tabellenSicht: gespeicherteSicht,
+    rechteFuer,
+    erweiterungAktiv: datenbankAktiv,
   });
 
   const mddHistory = createMddHistory({
@@ -558,6 +603,7 @@ function createMainWiring(deps) {
     // 4T-001938 (Epic 3E-000257): Das Tor als dritter Verbraucher für den
     // lesenden Datensatz-Kanal; EINE Funktion, damit kein Kanal es nachbaut.
     datenbankAktiv,
+    definitionsSchutz,
     ...areaConfig,
     ...mddHistory,
     ...blockData,

@@ -564,3 +564,47 @@ describe('Masken-Datei: Behälter und Marke (4T-001938)', () => {
     expect(datenbankMarken({ title: 'Notiz' })).toEqual([]);
   });
 });
+
+// 4T-002184 (Epic 3E-000261, F1 A): Die Angabe `form` nennt die Standard-Maske
+// der Tabelle. Hier wird allein ihre Form gelesen; ob die Datei existiert und zur
+// Tabelle gehört, prüft der Katalog (`db-katalog.test.js`).
+describe('Tabellen-Definition: Standard-Maske (4T-002184)', () => {
+  function behaelter(form) {
+    return { [DB_TABLE_KEY]: { [DB_FIELDS_KEY]: [{ name: 'Ort' }], form } };
+  }
+
+  it('erscheint am Ergebnis nur, wenn die Datei sie trägt', () => {
+    const ohne = parseTableDefinition({ [DB_TABLE_KEY]: { [DB_FIELDS_KEY]: [{ name: 'Ort' }] } });
+    expect('form' in ohne).toBe(false);
+    const leer = parseTableDefinition(behaelter(null));
+    expect('form' in leer).toBe(false);
+    expect(leer.hints).toEqual([]);
+  });
+
+  it('liest den Namen der Masken-Datei ohne Endung, auch mit Ordner', () => {
+    expect(parseTableDefinition(behaelter('Library Kurz Form')).form).toBe('Library Kurz Form');
+    expect(parseTableDefinition(behaelter('  Library Kurz Form.md ')).form).toBe(
+      'Library Kurz Form',
+    );
+    expect(parseTableDefinition(behaelter('Masken\\Kurz')).form).toBe('Masken/Kurz');
+    expect(parseTableDefinition(behaelter('Library Kurz Form')).hints).toEqual([]);
+  });
+
+  it('meldet einen leeren oder unbrauchbaren Wert und lässt die Angabe entfallen', () => {
+    for (const wert of ['', '   ', '.md', 42, true, ['Kurz'], { name: 'Kurz' }]) {
+      const ergebnis = parseTableDefinition(behaelter(wert));
+      expect('form' in ergebnis, JSON.stringify(wert)).toBe(false);
+      expect(ergebnis.hints, JSON.stringify(wert)).toEqual([
+        { code: 'form', index: -1, name: null, key: 'form', expected: 'form-file-name' },
+      ]);
+      // Die übrige Definition bleibt wirksam.
+      expect(ergebnis.fields.map((f) => f.name)).toEqual(['Ort']);
+    }
+  });
+
+  it('führt die drei Codes der Angabe im Hinweis-Katalog mit ihrem Schlüssel', () => {
+    for (const code of ['form', 'formDateiUnbekannt', 'formDateiFremd'])
+      expect(HINWEIS_META[code].key, code).toBe('form');
+    expect(HINWEIS_META.formMehrereDateien).toBeUndefined();
+  });
+});

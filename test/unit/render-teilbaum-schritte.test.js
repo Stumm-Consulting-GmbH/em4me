@@ -79,8 +79,10 @@ const TEILBAUM = [
   // Klasse, gefunden von diesem Wächter im Gate-Lauf nach dem Rebase-Lauf 4
   // des Zuges 3E-000314 (2026-09-25): Die Seite rief zunächst die volle
   // Pipeline samt Bearbeitbarkeit, obwohl die Blöcke nicht das offene Dokument
-  // sind; seither der Teilbaum-Schritt-Satz.
-  'modules/database/masken-seite.js',
+  // sind; seither der Teilbaum-Schritt-Satz. 4T-002182 (Epic 3E-000261): Das
+  // Zeichnen des Körpers ist ohne Verhaltensänderung aus der Masken-Seite in
+  // `masken-koerper.js` gezogen; die Fundstelle folgt ihm.
+  'modules/database/masken-koerper.js',
 ];
 
 // Klasse 3: Widget-Extraktion im Editor. Rendert ein EINZELNES Konstrukt in

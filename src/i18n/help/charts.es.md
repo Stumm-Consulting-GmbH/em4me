@@ -261,11 +261,11 @@ En el modo en vivo, la cuadrícula de la tabla de datos no es accesible con el t
 
 Los gráficos forman parte de las [extensiones internas](extensions.md) y están activados en el modo de trabajo **Completo**. Si la extensión está desactivada, el bloque aparece como un bloque de código corriente, también en la impresión, en PDF y en la exportación portable; el documento no cambia, y al volver a activarla el gráfico reaparece. Los dos comandos no existen entonces, ni en el menú, ni en la paleta de comandos, ni en ningún menú contextual.
 
-Los gráficos se basan en la extensión **Perspective Datatable**: mientras están activados, la tabla de datos no se puede desactivar. Si la tabla de datos está desactivada, los gráficos también lo están.
+Los gráficos se basan en la extensión **Perspective Datatable**: mientras están activados, la tabla de datos no se puede desactivar. Si la tabla de datos está desactivada, los gráficos también lo están. El gráfico de una consulta tiene su propio interruptor, «Gráfico de una consulta», que está activado a partir del modo de trabajo **Avanzado** y no depende de la tabla de datos.
 
 ## Límites
 
-- **La única fuente es la tabla de datos.** Una tabla Markdown corriente, una Perspective Table, los resultados de una consulta y los registros de la base de datos no son fuente de un gráfico.
+- **La única fuente es la tabla de datos.** Una tabla Markdown corriente, una Perspective Table, los resultados de una consulta y los registros de la base de datos no son fuente de un gráfico. Una consulta sí puede mostrar ella misma su resultado en barras o líneas, con `DISPLAY bar` o `DISPLAY line` (página [Consulta Perspective](frontmatter-query.md), sección «Forma de presentación»).
 - **Se edita la tabla, no el gráfico.** El gráfico es una imagen; en él no se pueden cambiar valores ni mostrarlos al pasar el puntero. En el gráfico solo se modifican sus indicaciones, con «Editar gráfico» o en el código fuente.
 - **Sin cálculos propios.** El gráfico no forma sumas ni promedios entre series; para mostrarlos, se calculan en una columna calculada de la tabla.
 - **Cuatro tipos.** No existen gráficos de áreas, barras apiladas ni otros tipos.

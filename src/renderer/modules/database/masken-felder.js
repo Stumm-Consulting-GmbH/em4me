@@ -252,6 +252,12 @@ function baueSteuerelement(feld, text, beschriftung) {
  *   Kanals `database:datensaetze`, für die Vorschlagsliste im Bearbeiten.
  * @param {object} [p.ziele] Nur `record`: die bereits geholte Antwort desselben
  *   Kanals für die lesende Darstellung; fehlt sie, zeigt das Element den Rohtext.
+ * @param {Function} [p.beiVerweisKlick] Nur `record`, nur lesend (4T-002185):
+ *   ({tabelle, tabellenName, kennung, wert}) => void. Mit ihr wird ein gefüllter
+ *   Verweis anklickbar; `kennung` ist null, wenn der Wert keinen Datensatz trifft.
+ * @param {boolean} [p.gesperrt] 4T-002312: Das Feld ist nach seiner
+ *   Bearbeitbarkeits-Bedingung gesperrt (`gesperrteFelder` der Antwort); im
+ *   Bearbeiten steht es dann lesend, mit Titel, und meldet keine Änderung.
  * @returns {HTMLElement} Das Element `.db-form-field`.
  */
 export function baueFeldElement({
@@ -264,6 +270,8 @@ export function baueFeldElement({
   beiAenderung = null,
   ladeZiele = null,
   ziele,
+  beiVerweisKlick = null,
+  gesperrt = false,
 }) {
   const name = String((feld && feld.name) || '');
   const typ = typVon(feld);
@@ -272,6 +280,15 @@ export function baueFeldElement({
   wurzel.dataset.field = name;
   wurzel.dataset.formMode = modus;
   wurzel.setAttribute('aria-label', beschriftung);
+  // 4T-002312 (F4 A): Ein gesperrtes Feld bekommt im Bearbeiten kein
+  // Steuerelement; sein Wert steht als Text wie im Lesen und reist im Entwurf
+  // unverändert mit, geprüft wird an der Schreib-Schnittstelle.
+  const sperre = modus === MODUS_BEARBEITEN && gesperrt === true;
+  if (sperre) {
+    wurzel.classList.add('db-form-locked');
+    wurzel.dataset.formLocked = 'true';
+    wurzel.title = t('database.form.feldNichtAenderbar');
+  }
 
   if (feld && feld.required === true) {
     wurzel.classList.add('db-form-required');
@@ -296,7 +313,7 @@ export function baueFeldElement({
     wurzel.classList.add('db-form-ref-notable');
     wurzel.appendChild(el('div', 'db-form-value', zellText));
     wurzel.appendChild(el('div', 'db-form-ref-hint', t('database.form.refNoTable')));
-  } else if (modus === MODUS_BEARBEITEN) {
+  } else if (modus === MODUS_BEARBEITEN && !sperre) {
     const steuer = baueSteuerelement(feld || { name }, zellText, beschriftung);
     if (typeof beiAenderung === 'function') {
       const melde = () => beiAenderung(name, zellTextAusEingabe(feld, steuer));
@@ -308,7 +325,7 @@ export function baueFeldElement({
       haengeWertehilfeAn(wurzel, steuer, () => ladeZiele(feld));
     }
   } else if (verweis === 'bereit') {
-    wurzel.appendChild(verweisAnzeige(zellText, ziele));
+    wurzel.appendChild(verweisAnzeige(zellText, ziele, beiVerweisKlick));
   } else {
     // Lesend: der Wert als Text, über `textContent` und nie als Auszeichnung —
     // der Inhalt einer Zelle ist Text des Anwenders.
@@ -396,13 +413,38 @@ export function filtereZiele(datensaetze, suchtext) {
 }
 
 // Lesend: aufgelöst «Anzeige-Form (Kennung)», sonst der Rohtext gekennzeichnet.
-function verweisAnzeige(zellText, ziele) {
+//
+// 4T-002185 (Epic 3E-000261, F4 A, Ziel 3): Mit `beiKlick` wird ein gefüllter
+// Verweis eine Schaltfläche, die den verwiesenen Datensatz öffnet; ein Wert, der
+// keinen Datensatz trifft, bleibt anklickbar, damit der Klick das meldet,
+// statt still nichts zu tun. Ein leerer Verweis ist nie anklickbar. Die Klasse
+// `db-form-value` und der Text bleiben dieselben wie ohne Klick-Weg.
+function verweisAnzeige(zellText, ziele, beiKlick) {
   if (zellText.trim() === '') return el('div', 'db-form-value', '');
   const eintrag = loeseVerweisAuf(zellText, ziele);
-  if (eintrag) return el('div', 'db-form-value', verweisText(eintrag));
-  const roh = el('div', 'db-form-value db-form-unresolved', zellText);
-  roh.title = t('database.form.refUnresolved');
-  return roh;
+  const klickbar = typeof beiKlick === 'function';
+  const knoten = el(klickbar ? 'button' : 'div', 'db-form-value');
+  knoten.textContent = eintrag ? verweisText(eintrag) : zellText;
+  if (!eintrag) {
+    knoten.classList.add('db-form-unresolved');
+    knoten.title = t('database.form.refUnresolved');
+  }
+  if (!klickbar) return knoten;
+  knoten.type = 'button';
+  knoten.classList.add('db-form-ref-link');
+  if (eintrag) {
+    knoten.dataset.kennung = eintrag.kennung;
+    knoten.title = t('database.form.refOpen');
+  }
+  knoten.addEventListener('click', () =>
+    beiKlick({
+      tabelle: ziele.pfad,
+      tabellenName: ziele.tabelle,
+      kennung: eintrag ? eintrag.kennung : null,
+      wert: zellText,
+    }),
+  );
+  return knoten;
 }
 
 let listenZaehler = 0;

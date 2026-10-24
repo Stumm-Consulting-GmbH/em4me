@@ -133,15 +133,23 @@ describe('database:konsistenz: Registrierung und Brücke (4T-001944, B3)', () =>
   it('registriert den Kanal neben den neun bestehenden', () => {
     expect([...registriere().kanaele.keys()].sort()).toEqual([
       'database:auftrag',
+      // 4T-002252 (Epic 3E-000262): die Pfad-Ausdrücke der Einzel-Maske.
+      'database:ausdruecke',
       'database:changeLog',
       'database:datensaetze',
       'database:datensatz',
       'database:konsistenz',
+      // 4T-002249 (Epic 3E-000262): die Auskunft über eine Listen-Maske.
+      'database:liste',
       'database:maskeSchreiben',
       'database:neuanlage',
       'database:overview',
+      // 4T-002253 (Epic 3E-000262): der Positions-Bereich der Einzel-Maske.
+      'database:positionsliste',
       'database:sperre',
       'database:table',
+      // 4T-002333 (Epic 3E-000264): das Ziel eines Datensatz-Verweises.
+      'database:verweisZiel',
       // 4T-001945 (Epic 3E-000257): der Verwendungsnachweis.
       'database:verwendung',
     ]);
@@ -193,6 +201,38 @@ describe('database:konsistenz: eine und alle Tabellen (AK1)', () => {
       ).toEqual([kunden]);
       expect(antwort.befunde, angabe).toHaveLength(2);
     }
+  });
+
+  // 4T-002288: Datensätze über dem Hochwasserstand der Definition, oder ohne
+  // ihn, sind ein Hinweis der Tabelle mit der höchsten vorhandenen Kennung.
+  it('weist auf Datensätze über dem Hochwasserstand hin (4T-002288)', async () => {
+    const wurzel = neueWurzel();
+    const tabelle = (stand) => [
+      '---',
+      'db-table:',
+      '  fields:',
+      '    - name: name',
+      ...stand,
+      '---',
+      '',
+      '```perspective-records',
+      '|- id="r-00001"',
+      '| Anna',
+      '|- id="r-00003"',
+      '| Cara',
+      '```',
+      '',
+    ];
+    const ohne = lege(wurzel, 'Ohne.md', tabelle([]));
+    const niedrig = lege(wurzel, 'Niedrig.md', tabelle(['  lastId: 2']));
+    const hoch = lege(wurzel, 'Hoch.md', tabelle(['  lastId: 7']));
+    const antwort = await kanal({ sicht: sichtFuer(ohne, niedrig, hoch) })(ereignis(wurzel), {
+      tabelle: null,
+    });
+    expect(antwort.befunde.map((b) => [b.code, b.tabelle, b.kennungen, b.datei])).toEqual([
+      [KONSISTENZ_BEFUNDE.hochwasserstandZuNiedrig, 'Niedrig', ['r-00003'], niedrig],
+      [KONSISTENZ_BEFUNDE.hochwasserstandZuNiedrig, 'Ohne', ['r-00003'], ohne],
+    ]);
   });
 
   it('meldet eine unbekannte Tabelle als Fehlerlage', async () => {

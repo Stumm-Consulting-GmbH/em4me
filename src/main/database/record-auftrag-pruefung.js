@@ -103,6 +103,17 @@ const LAGEN = Object.freeze({
   // (`tabellen`, wurzel-relativ), die Vorgangs-Kennung (`vorgang`), den Pfad des
   // Protokolls (`protokoll`) und die Lage des Wiederanlaufs (`lage`).
   haengt: 'auftragHaengt',
+  // 4T-002309 (Epic 3E-000263): Die eigene Rolle hat an der Tabelle keine
+  // Erlaubnis `create`; die Neuanlage wird eröffnet, bevor eine Kennung gezogen
+  // ist. Die Lage nennt `tabelle`, `operation` ('create') und `rolle`. Ein
+  // Auftrag mit verbotener Anweisung meldet dagegen den Regel-Befund
+  // `regelNichtErlaubt` unter `auftragPruefBefund`.
+  nichtErlaubt: 'auftragNichtErlaubt',
+  // 4T-002309 (Entscheidung der Sitzung vom 2026-10-18): Die Erlaubnis-Menge
+  // ist beim Eröffnen einer Neuanlage nicht bestimmbar (Sicht nicht bereit,
+  // Steckbrief nicht lesbar oder fehlerhaft). Die Lage nennt `tabelle` und den
+  // Grund (`grund`); abgewiesen wird, nichts wird gezogen.
+  rechteNichtBestimmbar: 'auftragRechteNichtBestimmbar',
   // Ein Bruch, den keine der benannten Lagen beschreibt. Er bekommt einen
   // eigenen Code, statt als Sperr-Konflikt oder als Schreibfehler zu erscheinen:
   // Eine falsch benannte Lage führt die Fehlersuche in die falsche Richtung, und
@@ -139,6 +150,8 @@ const LAGE_TEXTE = Object.freeze({
   // 4T-001824: Entwickler-Text; der Anwender-Text entsteht mit Kanal und Brücke.
   [LAGEN.haengt]:
     'Ein früherer Auftrag ist unterbrochen worden und wird beim nächsten Versuch zu Ende geschrieben; bis dahin nehmen die betroffenen Tabellen keine neuen Aufträge an.',
+  [LAGEN.nichtErlaubt]: 'Die eigene Rolle darf in dieser Tabelle nichts anlegen.',
+  [LAGEN.rechteNichtBestimmbar]: 'Die Erlaubnis-Menge der eigenen Rolle ist nicht bestimmbar.',
   [LAGEN.unerwartet]: 'Der Auftrag ist an einer unerwarteten Stelle gescheitert.',
 });
 

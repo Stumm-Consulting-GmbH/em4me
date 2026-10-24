@@ -283,7 +283,8 @@ function recordContext(table, r) {
   };
 }
 
-// Der Navigator eines Laufs (Vertrag in `query-record-fields.js`). Eine
+// Der Navigator eines Laufs (Vertrag in `query-record-fields.js`). Seit
+// 4T-002252 auch für die Verweis-Pfade der Einzel-Maske exportiert. Eine
 // Ziel-Tabelle wird beim ersten Pfad gelesen, der sie erreicht, und für den
 // Lauf behalten; ein Verweis-Wert trägt den Pfad seiner Tabelle, und der
 // Tabellen-Bestand nimmt ihn als Angabe. Ein Ziel, das es in diesem Stand nicht
@@ -425,6 +426,9 @@ function recordsQueryFor({ filePath, ast, root, entry, locale, templatesFolder }
 module.exports = {
   recordsQueryFor,
   checkRecordsQuery,
+  // 4T-002252: derselbe Navigator für die Verweis-Pfade der Einzel-Maske
+  // (`ausdruecke-auskunft.js`), damit Maske und Abfrage gleich auflösen.
+  recordNavigator,
   HINT_DATABASE_OFF,
   HINT_REF_AMBIGUOUS,
   HINT_HULL_CYCLE,

@@ -4,7 +4,7 @@ Dodici aiutanti per il lavoro quotidiano sul testo: linter, correzione ortografi
 
 ## Linter Markdown
 
-Il linter segnala con discrezione sette difetti tipici nell'editor (viste Sorgente, Divisa e Live); passare il mouse su una segnalazione mostra la spiegazione. Gli esempi stanno in blocchi di codice perché questa pagina resti essa stessa senza segnalazioni.
+Il linter segnala con discrezione nove difetti tipici nell'editor (viste Sorgente, Divisa e Live); passare il mouse su una segnalazione mostra la spiegazione. Gli esempi stanno in blocchi di codice perché questa pagina resti essa stessa senza segnalazioni.
 
 | Regola | Violazione | Correzione |
 |---|---|---|
@@ -13,6 +13,8 @@ Il linter segnala con discrezione sette difetti tipici nell'editor (viste Sorgen
 | Testo alternativo mancante | `![](immagine.png)` | `![Schizzo dell'architettura](immagine.png)` |
 | Wiki link senza destinazione | `[[Nome-errato]]` | `[[Piano di progetto]]` (file esistente) |
 | Ancora wiki rotta | `[[Piano di progetto#Manca]]` | `[[Piano di progetto#Milestone]]` (ancora esistente) |
+| Nome di record ambiguo | `[[Personen#^Anna Muster]]` (due record con questa forma di visualizzazione) | `[[Personen#^r-00042]]` (identificatore del record inteso) |
+| Un'ancora di blocco nasconde un record | `[[Personen#^Bert]]` (ancora di blocco `^Bert` nel file di tabella) | `[[Personen#^r-00002]]` (identificatore del record) |
 | Tipo di callout sconosciuto | `> [!importante] Titolo` | `> [!warning] Titolo` (tipo dalla lista bianca) |
 | Marcatore di commento spaiato | `Testo %% senza chiusura` | `Testo %%privato%% continua` oppure `\%%` per un `%%` letterale |
 
@@ -89,7 +91,7 @@ Oltre il singolo file, le corrispondenze compaiono nel pannello **Risultati dell
 
 Il **file aperto viene per primo**, e con il suo stato non salvato: ciò che si trova nell'editor viene trovato, anche prima del salvataggio. Le sue corrispondenze restano evidenziate nel testo come sempre, l'elenco si aggiunge. Per gli altri file vale lo stato salvato su disco.
 
-La ricerca copre i file Markdown dell'area. Gli altri file e i file di accompagnamento dell'applicazione restano fuori. Un **file di tabella della [banca dati](database.md)** vi entra senza il contenuto del suo blocco di record: il suo testo esplicativo resta consultabile, i suoi record non vengono trovati per questa via. Chi apre il file e vi cerca dentro li ritrova immutati.
+La ricerca copre i file Markdown dell'area. Gli altri file e i file di accompagnamento dell'applicazione restano fuori. Un **file di tabella della [banca dati](database.md)** entra nel testo completo senza il contenuto del suo blocco di record; il suo testo esplicativo resta consultabile. I suoi record compaiono invece come risultati propri: dopo i gruppi dei documenti, un gruppo per tabella con l'aggiunta «Record», ogni riga con la forma di visualizzazione del record, il campo e il suo valore con la corrispondenza evidenziata, per una tabella aperta anche dal suo stato non salvato. Un clic apre il record nella sua maschera. Con la riga di sostituzione aperta questi gruppi vengono omessi, perché la sostituzione non scrive nei record. I dettagli si trovano nella pagina «Banca dati», sezione «Reperibilità: ricerca e collegamenti»; chi apre il file di tabella e vi cerca dentro ne ritrova i record immutati.
 
 Se **non è aperta alcuna scheda**, l'area vale comunque: cercare e sostituire raggiungono i suoi file senza che occorra prima aprire un documento. Due cose vengono meno, perché senza file aperto non esistono: l'elenco è ordinato in modo puramente alfabetico invece di anteporre un file, e nel testo non è evidenziato nulla.
 

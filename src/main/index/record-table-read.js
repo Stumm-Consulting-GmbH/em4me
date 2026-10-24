@@ -47,6 +47,13 @@
 //
 // Die zurückgegebenen Objekte sind Einträge des Zwischenspeichers und werden
 // von Aufrufern nur gelesen, nie verändert.
+//
+// **Der Entwurfs-Datensatz der Einzel-Maske** (4T-002252, Festlegung 3):
+// `entwurfAlsDatensatz` legt die Zell-Texte eines Entwurfs nach denselben
+// Regeln aus wie das Lesen einer Zeile (`typedValue`, `linkValue`, `recordRef`
+// mit `targetOf`), über dem gespeicherten Datensatz als Grundlage. Eine eigene
+// Auslegung im Haupt-Prozess der Maske rechnete sonst anders als die Abfrage.
+// Der Entwurf geht in keinen Zwischenspeicher ein.
 'use strict';
 
 const fs = require('node:fs');
@@ -67,7 +74,8 @@ const { parseIsoLocalMs } = require('../../shared/query/query-format.js');
 // Dieselbe Auflösung einer Tabellen-Angabe wie die Wertehilfe der Verweis-Felder
 // (Name oder Pfad relativ zur Bereichs-Wurzel, gegen die Tabellen-Sicht), damit
 // eine Abfrage und eine Verweis-Spalte mit derselben Angabe dieselbe Tabelle
-// meinen. Kein Datei-Zyklus: Nichts unter `database/` lädt dieses Modul.
+// meinen. Kein Datei-Zyklus: Unter `database/` lädt dieses Modul allein
+// `ausdruecke-auskunft.js` (4T-002252), und das lädt keines der Module hier.
 const { findeZielTabelle } = require('../database/datensatz-liste.js');
 const { VERWEIS_TYP, zielAngabe } = require('../database/record-regel-hilfen.js');
 const { tabellenName } = require('../database/table-catalog.js');
@@ -534,4 +542,60 @@ function readRecordTable(root, tableRef) {
   return table;
 }
 
-module.exports = { readRecordTable, readCount, clearCaches };
+/**
+ * Der Datensatz eines Entwurfs der Einzel-Maske, in der Gestalt des Kontexts
+ * der Feld-Auflösung (4T-002252).
+ *
+ * @param {string} root Wurzel des Bereichs-Index.
+ * @param {string} tableRef Die Tabelle beim Namen oder als Pfad.
+ * @param {string|null} kennung Kennung des gespeicherten Datensatzes, oder null.
+ * @param {Object<string, string>|null} entwurf Feld-Name auf Zell-Text; ein
+ *   Feld ohne Eintrag behält den gespeicherten Wert.
+ * @returns {{table: object, record: {table: string, id: string|null, path: string,
+ *   display: string|null, values: Map, refs: Map}}|null} `null` wie bei
+ *   `readRecordTable`.
+ */
+function entwurfAlsDatensatz(root, tableRef, kennung, entwurf) {
+  const table = readRecordTable(root, tableRef);
+  if (table === null) return null;
+  const entry = indexes.get(root);
+  const stand = { index: indexStand(root), overlay: overlayStand() };
+  const gespeichert = typeof kennung === 'string' ? table.byId.get(kennung) || null : null;
+  const values = new Map(gespeichert ? gespeichert.values : []);
+  const refs = new Map(gespeichert ? gespeichert.refs : []);
+  const texte = entwurf && typeof entwurf === 'object' ? entwurf : {};
+  const deps = new Map();
+  for (const field of table.definition.fields) {
+    const name = field.name.toLowerCase();
+    const text = texte[field.name];
+    if (typeof text !== 'string') {
+      if (!values.has(name)) values.set(name, null);
+      continue;
+    }
+    if (field.type === LINK_TYPE) values.set(name, linkValue(entry, text));
+    else if (field.type === VERWEIS_TYP) {
+      const resolved = recordRef(targetOf(root, entry, field, stand, deps), text);
+      values.set(name, resolved.value);
+      refs.set(name, resolved.ref);
+    } else values.set(name, typedValue(field.type, text));
+  }
+  const spalte = table.definition.display;
+  const anzeige = spalte ? values.get(spalte.toLowerCase()) : null;
+  const display =
+    typeof anzeige === 'string' && anzeige.trim() !== ''
+      ? anzeige.trim()
+      : gespeichert
+        ? gespeichert.display
+        : null;
+  const record = {
+    table: table.table,
+    id: gespeichert ? gespeichert.id : typeof kennung === 'string' ? kennung : null,
+    path: table.path,
+    display,
+    values,
+    refs,
+  };
+  return { table, record };
+}
+
+module.exports = { readRecordTable, entwurfAlsDatensatz, readCount, clearCaches };

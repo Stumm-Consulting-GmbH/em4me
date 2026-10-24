@@ -261,11 +261,11 @@ Im Live-Modus ist das Grid der Datentabelle mit der Tastatur nicht erreichbar. D
 
 Die Diagramme gehören zu den [internen Erweiterungen](extensions.md) und sind im Arbeitsmodus **Voll** eingeschaltet. Ist die Erweiterung aus, erscheint der Block als gewöhnlicher Code-Block, auch in Druck, PDF und portablem Export; das Dokument bleibt unverändert, und nach dem Einschalten erscheint das Diagramm wieder. Die beiden Kommandos gibt es dann nicht, weder im Menü noch in der Kommando-Palette noch in einem Kontextmenü.
 
-Die Diagramme bauen auf der Erweiterung **Perspective Datatable** auf: Solange sie eingeschaltet sind, lässt sich die Datentabelle nicht abschalten. Ist die Datentabelle aus, sind die Diagramme es ebenfalls.
+Die Diagramme bauen auf der Erweiterung **Perspective Datatable** auf: Solange sie eingeschaltet sind, lässt sich die Datentabelle nicht abschalten. Ist die Datentabelle aus, sind die Diagramme es ebenfalls. Das Diagramm einer Abfrage hat seinen eigenen Schalter, «Diagramm einer Abfrage», der ab dem Arbeitsmodus **Fortgeschritten** eingeschaltet ist und von der Datentabelle nicht abhängt.
 
 ## Grenzen
 
-- **Quelle ist ausschließlich die Datentabelle.** Eine gewöhnliche Markdown-Tabelle, eine Perspective Table, Ergebnisse einer Abfrage und Datensätze der Datenbank sind keine Quelle eines Diagramms.
+- **Quelle ist ausschließlich die Datentabelle.** Eine gewöhnliche Markdown-Tabelle, eine Perspective Table, Ergebnisse einer Abfrage und Datensätze der Datenbank sind keine Quelle eines Diagramms. Eine Abfrage kann ihr Ergebnis jedoch selbst als Balken oder Linie zeigen, mit `DISPLAY bar` oder `DISPLAY line` (Seite [Perspective-Abfrage](frontmatter-query.md), Abschnitt «Darstellungsform»).
 - **Bearbeitet wird die Tabelle, nicht das Diagramm.** Das Diagramm ist eine Grafik; Werte lassen sich an ihm weder ändern noch beim Überfahren anzeigen. Ändern lassen sich am Diagramm allein seine Angaben, mit «Diagramm bearbeiten» oder im Quelltext.
 - **Keine eigenen Rechnungen.** Das Diagramm bildet keine Summen oder Durchschnitte über Reihen; wer sie zeigen will, rechnet sie in einer berechneten Spalte der Tabelle.
 - **Vier Arten.** Flächen, gestapelte Balken und weitere Arten gibt es nicht.

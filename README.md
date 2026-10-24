@@ -89,8 +89,10 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   that it is a table: which fields it has, of what type, with labels in
   several languages and a key of your choosing. The records live in the body
   of that same file, one line per record, and are shown as a typed table while
-  you read and while you write. A link can point at a single record and takes
-  you to its row, and a table that grows large is spread over several files at
+  you read and while you write. A link can point at a single record and opens
+  its form; an action in the form's header, Show in table document, takes you
+  to its row,
+  and a table that grows large is spread over several files at
   the record boundary,
   never inside a record. Because the description travels with the data, a
   table stays complete when you rename it, move it or hand it on, and it stays
@@ -123,10 +125,11 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   result list doubles as the preview: a checkbox in front of every match
   decides what is exchanged before anything is written. Each file that
   changes keeps its previous version in the document history, even when
-  history is switched off, so an entire run can be taken back. The records
-  inside a database table stay out of that search, so that a few large tables
-  cannot slow down every other search of the area; open the table itself and
-  you find them as before.
+  history is switched off, so an entire run can be taken back. The search
+  also finds the records of database tables, as matches of their own in one
+  group per table; a click opens the record in its form. The record block of
+  a table stays out of the full-text search, so that a few large tables cannot
+  slow down every other search of the area.
 - **No size limit on a document** — a document that grows beyond about a
   megabyte is split across several files when saving and joined back into
   one when opening: one continuous text, one undo history, one search hit.

@@ -2,7 +2,7 @@
 
 Templates are ordinary Markdown files in a configurable **templates folder**. When applied, the app evaluates curated **placeholders**: date and time with offset and format, title and folder of the target file, input and selection dialogs, the clipboard, and a cursor target position. Templates create new files with a ready-made structure or insert recurring building blocks at the cursor position; **folder rules** fill new files automatically.
 
-The functionality can be toggled as the "Templates" extension (Settings → Extensions); when off, the commands, the settings section, the folder rules, and the exclusion of templates from queries disappear.
+The functionality can be toggled as the "Templates" extension (Settings → Extensions); when off, the commands, the settings section, the folder rules, and the exclusion of templates from queries, from collected events, and from the page and block lists of script blocks disappear.
 
 ## Templates folder
 
@@ -13,7 +13,7 @@ The templates folder is configured in the settings (Settings → Templates):
 
 Every Markdown file in the folder (including subfolders) is a template. Subfolders appear as groups in the picker popup. Configuration changes take effect immediately, without a restart.
 
-**Templates in queries.** Whatever lies in the templates folder, subfolders included, is a hit in no [Perspective Query](frontmatter-query.md), at none of its levels, and supplies no values for value sets and collection fields of the [Property Profiles](property-profiles.md) either. So the content of a template, such as a sample task, appears in no overview. To query templates, name the folder explicitly in `FROM`, for instance `FROM "Templates"`. What counts is the folder that also determines the template picker, that is the area configuration before the global one; the templates folder of a linked area does not count.
+**Templates in queries.** Whatever lies in the templates folder, subfolders included, is a hit in no [Perspective Query](frontmatter-query.md), at none of its levels, and supplies no values for value sets and collection fields of the [Property Profiles](property-profiles.md) either. So the content of a template, such as a sample task, appears in no overview. To query templates, name the folder explicitly in `FROM`, for instance `FROM "Templates"`. What counts is the folder that also determines the template picker, that is the area configuration before the global one; the templates folder of a linked area does not count. The same rule applies to the aggregation of [Events](events.md) and to the page and block lists of [Script blocks](scripts.md): there you name the folder in the `FROM` of the event query or as the source of `pq.pages` or `pq.blocks`, for instance `pq.pages('Templates')`.
 
 ## Applying templates
 
@@ -56,6 +56,8 @@ Priority: {{select:Priority:High,Medium,Low}}
 ````
 
 Unknown placeholders or broken parameters abort the application with a status bar message; no half-filled file is created.
+
+**Form files are not templates.** A form file of the [database](database.md) also writes its placeholders in double curly braces, such as `{{field:Name}}` or `{{value:quantity * price}}`, and therefore looks like a template. It is never applied, though: the form of a record resolves its placeholders against the record shown every time it is displayed, and the file keeps them. A form file therefore belongs next to its table and not in the templates folder; there it would appear in the template selection, and applying it would abort at the unknown placeholders `field` and `value`.
 
 ## Folder rules
 

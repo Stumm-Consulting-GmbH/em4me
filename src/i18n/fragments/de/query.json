@@ -63,5 +63,13 @@
   "query.hint.recordRefAmbiguous": "Hinweis: Mindestens ein Verweis passt auf mehrere Datensätze und bleibt deshalb leer; die Konsistenz-Prüfung der Datenbank nennt ihn",
   "query.hint.recordHullCycle": "Hinweis: Die Verweise dieser Hierarchie bilden einen Kreis; jeder erreichbare Datensatz steht trotzdem genau einmal im Ergebnis",
   "query.hint.displayFormUnknown": "Hinweis: Die Darstellungsform '{name}' ist unbekannt; das Ergebnis erscheint deshalb ohne sie",
-  "query.hint.displayFormUnsuitable": "Hinweis: Die Darstellungsform '{name}' passt nicht zu dieser Abfrage; das Ergebnis erscheint deshalb ohne sie"
+  "query.hint.displayFormUnsuitable": "Hinweis: Die Darstellungsform '{name}' passt nicht zu dieser Abfrage; das Ergebnis erscheint deshalb ohne sie",
+  "query.hint.displayFormOff": "Hinweis: Die Diagramm-Darstellung ist ausgeschaltet; das Ergebnis erscheint deshalb ohne die Darstellungsform '{name}'",
+  "query.hint.displayFormChartNotTable": "Hinweis: Die Darstellungsform '{name}' braucht eine Tabellen-Abfrage (TABLE); das Ergebnis erscheint deshalb ohne sie",
+  "query.hint.displayFormChartSingleColumn": "Hinweis: Die Darstellungsform '{name}' braucht neben der Beschriftung mindestens eine weitere Spalte; das Ergebnis erscheint deshalb ohne sie",
+  "query.hint.displayFormChartNoNumbers": "Hinweis: Die Darstellungsform '{name}' braucht eine Spalte mit Zahlen, und diese Abfrage hat keine; das Ergebnis erscheint deshalb ohne sie",
+  "query.chart.skipped.one": "Übergangen: Spalte {columns}, weil sie keine Zahl enthält.",
+  "query.chart.skipped.other": "Übergangen: Spalten {columns}, weil sie keine Zahl enthalten.",
+  "query.chart.omitted.one": "1 Wert wurde ausgelassen, weil er fehlt oder keine Zahl ist.",
+  "query.chart.omitted.other": "{n} Werte wurden ausgelassen, weil sie fehlen oder keine Zahl sind."
 }

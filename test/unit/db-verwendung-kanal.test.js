@@ -145,15 +145,23 @@ describe('database:verwendung: Registrierung und Brücke (4T-001945, B2)', () =>
   it('registriert den Kanal neben den zehn bestehenden', () => {
     expect([...registriere().kanaele.keys()].sort()).toEqual([
       'database:auftrag',
+      // 4T-002252 (Epic 3E-000262): die Pfad-Ausdrücke der Einzel-Maske.
+      'database:ausdruecke',
       'database:changeLog',
       'database:datensaetze',
       'database:datensatz',
       'database:konsistenz',
+      // 4T-002249 (Epic 3E-000262): die Auskunft über eine Listen-Maske.
+      'database:liste',
       'database:maskeSchreiben',
       'database:neuanlage',
       'database:overview',
+      // 4T-002253 (Epic 3E-000262): der Positions-Bereich der Einzel-Maske.
+      'database:positionsliste',
       'database:sperre',
       'database:table',
+      // 4T-002333 (Epic 3E-000264): das Ziel eines Datensatz-Verweises.
+      'database:verweisZiel',
       'database:verwendung',
     ]);
   });

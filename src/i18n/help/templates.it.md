@@ -2,7 +2,7 @@
 
 I modelli sono normali file Markdown in una **cartella dei modelli** configurabile. All'applicazione l'app valuta **segnaposto** selezionati: data e ora con offset e formato, titolo e cartella del file di destinazione, dialoghi di input e selezione, gli appunti e una posizione di destinazione del cursore. I modelli creano nuovi file con struttura pronta oppure inseriscono blocchi ricorrenti alla posizione del cursore; le **regole di cartella** riempiono automaticamente i nuovi file.
 
-La funzionalità è commutabile come estensione «Modelli» (Impostazioni → Estensioni); da spenta scompaiono i comandi, la sezione delle impostazioni, le regole di cartella e l'esclusione dei modelli dalle query.
+La funzionalità è commutabile come estensione «Modelli» (Impostazioni → Estensioni); da spenta scompaiono i comandi, la sezione delle impostazioni, le regole di cartella e l'esclusione dei modelli dalle query, dagli eventi aggregati e dagli elenchi di pagine e di blocchi dei blocchi di script.
 
 ## Cartella dei modelli
 
@@ -13,7 +13,7 @@ La cartella dei modelli si configura nelle impostazioni (Impostazioni → Modell
 
 Ogni file Markdown nella cartella (sottocartelle comprese) è un modello. Le sottocartelle appaiono come gruppi nel popup di selezione. Le modifiche alla configurazione hanno effetto immediato, senza riavvio.
 
-**I modelli nelle query.** Ciò che si trova nella cartella dei modelli, sottocartelle comprese, non è un risultato in nessuna [Query Perspective](frontmatter-query.md), a nessuno dei suoi livelli, e non fornisce nemmeno valori ai repertori di valori e ai campi raccolta dei [Profili di proprietà](property-profiles.md). Così il contenuto di un modello, ad esempio un'attività di esempio, non compare in alcuna panoramica. Chi vuole interrogare i modelli indica espressamente la cartella in `FROM`, ad esempio `FROM "Modelli"`. Conta la cartella che determina anche la selezione dei modelli, cioè la configurazione dell'area prima di quella globale; la cartella dei modelli di un'area collegata non conta.
+**I modelli nelle query.** Ciò che si trova nella cartella dei modelli, sottocartelle comprese, non è un risultato in nessuna [Query Perspective](frontmatter-query.md), a nessuno dei suoi livelli, e non fornisce nemmeno valori ai repertori di valori e ai campi raccolta dei [Profili di proprietà](property-profiles.md). Così il contenuto di un modello, ad esempio un'attività di esempio, non compare in alcuna panoramica. Chi vuole interrogare i modelli indica espressamente la cartella in `FROM`, ad esempio `FROM "Modelli"`. Conta la cartella che determina anche la selezione dei modelli, cioè la configurazione dell'area prima di quella globale; la cartella dei modelli di un'area collegata non conta. La stessa regola vale per l'aggregazione degli [Eventi](events.md) e per gli elenchi di pagine e di blocchi dei [Blocchi di script](scripts.md): lì si indica la cartella nel `FROM` della query degli eventi oppure come fonte di `pq.pages` o `pq.blocks`, ad esempio `pq.pages('Modelli')`.
 
 ## Applicare i modelli
 
@@ -56,6 +56,8 @@ Priorità: {{select:Priorità:Alta,Media,Bassa}}
 ````
 
 Segnaposto sconosciuti o parametri difettosi interrompono l'applicazione con un messaggio nella barra di stato; non nasce nessun file compilato a metà.
+
+**I file di maschera non sono modelli.** Un file di maschera della [banca dati](database.md) scrive anch'esso i suoi segnaposto tra doppie parentesi graffe, per esempio `{{field:Name}}` o `{{value:quantita * prezzo}}`, e perciò sembra un modello. Non viene però mai applicato: la maschera di un record risolve i suoi segnaposto a ogni visualizzazione in base al record mostrato, e il file li conserva. Un file di maschera va quindi accanto alla sua tabella e non nella cartella dei modelli; lì comparirebbe nella scelta dei modelli, e la sua applicazione si interromperebbe ai segnaposto sconosciuti `field` e `value`.
 
 ## Regole di cartella
 

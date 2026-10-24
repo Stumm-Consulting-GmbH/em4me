@@ -63,5 +63,13 @@
   "query.hint.recordRefAmbiguous": "Nota: almeno un riferimento corrisponde a più record e resta quindi vuoto; la verifica di coerenza della banca dati lo segnala",
   "query.hint.recordHullCycle": "Nota: i riferimenti di questa gerarchia formano un ciclo; ogni record raggiungibile compare comunque esattamente una volta nel risultato",
   "query.hint.displayFormUnknown": "Nota: la forma di presentazione '{name}' è sconosciuta, quindi il risultato viene mostrato senza di essa",
-  "query.hint.displayFormUnsuitable": "Nota: la forma di presentazione '{name}' non è adatta a questa query, quindi il risultato viene mostrato senza di essa"
+  "query.hint.displayFormUnsuitable": "Nota: la forma di presentazione '{name}' non è adatta a questa query, quindi il risultato viene mostrato senza di essa",
+  "query.hint.displayFormOff": "Nota: la visualizzazione a grafico è disattivata, quindi il risultato viene mostrato senza la forma di presentazione '{name}'",
+  "query.hint.displayFormChartNotTable": "Nota: la forma di presentazione '{name}' richiede una query a tabella (TABLE), quindi il risultato viene mostrato senza di essa",
+  "query.hint.displayFormChartSingleColumn": "Nota: la forma di presentazione '{name}' richiede almeno un'altra colonna oltre all'etichetta, quindi il risultato viene mostrato senza di essa",
+  "query.hint.displayFormChartNoNumbers": "Nota: la forma di presentazione '{name}' richiede una colonna con numeri e questa query non ne ha, quindi il risultato viene mostrato senza di essa",
+  "query.chart.skipped.one": "Ignorata: colonna {columns}, perché non contiene alcun numero.",
+  "query.chart.skipped.other": "Ignorate: colonne {columns}, perché non contengono alcun numero.",
+  "query.chart.omitted.one": "1 valore è stato omesso perché manca o non è un numero.",
+  "query.chart.omitted.other": "{n} valori sono stati omessi perché mancano o non sono numeri."
 }

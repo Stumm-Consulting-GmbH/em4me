@@ -34,7 +34,7 @@ pq.out('Résultat : ' + (6 * 7));
 
 Toutes les fonctions de données sont en lecture seule et travaillent sur un instantané de l'index pris au démarrage de l'exécution. Si l'ensemble des fichiers change, le bloc se relance automatiquement.
 
-- `pq.pages([source])` — tous les fichiers de l'espace de recherche comme objets de page, éventuellement filtrés par une source.
+- `pq.pages([source])` — tous les fichiers de l'espace de recherche comme objets de page, éventuellement filtrés par une source ; les modèles en sont absents, sauf si la source nomme leur dossier (voir Sources).
 - `pq.current()` — l'objet de page du document courant (ou `null`).
 - `pq.file(ref)` — une page par chemin absolu, chemin relatif à la racine ou nom logique (insensible à la casse) ; `null` si rien ne correspond.
 - `pq.blocks([source])` — les propriétés de bloc de l'espace de recherche (voir [Propriétés de bloc](block-properties.md)) ; seules les ancres actives comptent.
@@ -65,6 +65,8 @@ Le paramètre facultatif `source` filtre comme la sélection de sources de la re
 - `'#tag'` — fichiers portant le tag, hiérarchie incluse (`#projet` couvre aussi `projet/alpha`).
 - `'[[Nom]]'` — fichiers qui référencent la cible (lien sortant).
 - `'Dossier'` ou `'Dossier/Sous-dossier'` — fichiers sous le chemin du dossier.
+
+**Les modèles**, c'est-à-dire les fichiers du [dossier de modèles](templates.md), ne sont pas renvoyés par `pq.pages` et `pq.blocks`, selon la même règle que la requête : sans source et avec une source de tag, de référence ou de dossier parent, ils sont absents ; une source de dossier qui désigne le dossier de modèles ou l'un de ses sous-dossiers, par exemple `pq.pages('Modèles')`, renvoie exactement leur contenu. `pq.file` et `pq.current` trouvent toujours un modèle.
 
 ### Propriétés de bloc
 

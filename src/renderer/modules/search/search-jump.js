@@ -15,6 +15,7 @@ import { activeTab, getPaneEls, state } from '../app/app-state.js';
 import { openManualPage } from '../manual.js';
 import { buildRegex, clearSearchHighlights, highlightInContainer, search } from './search.js';
 import { aktuellerRaumTreffer, indexInGruppe, raumIndex } from './search-run.js';
+import { springeZuDatensatz } from './search-records.js';
 import { zeigeFundstelleInDerLeseAnsicht } from './search-fundstelle.js';
 
 // Wartet, bis der gerenderte Inhalt der ZIEL-Seite im DOM steht. Das Öffnen
@@ -118,6 +119,12 @@ async function springeZuHandbuchSeite(treffer) {
 }
 
 registriereSprungWeg('manual', springeZuHandbuchSeite);
+// 4T-002332 (Epic 3E-000264): Datensatz-Treffer öffnen ihre Maske; vorher gehen
+// die Markierungen weg wie beim Handbuch-Sprung oben.
+registriereSprungWeg('record', (treffer) => {
+  clearSearchHighlights();
+  springeZuDatensatz(treffer);
+});
 
 // Markier-Weg je Raum. Wie bei den Sprung-Wegen trägt sich jede Quelle selbst
 // ein; der Bereich tut das in search-area.js (4T-000616). Registrierung statt

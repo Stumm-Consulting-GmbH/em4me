@@ -64,9 +64,10 @@ function mddWith(blockData) {
 }
 
 let start;
+let root;
 
 beforeEach(async () => {
-  const root = makeRoot();
+  root = makeRoot();
   start = write(root, 'Start.md', '# Start\nSiehe [[Alpha]].\n');
   write(
     root,
@@ -129,5 +130,36 @@ describe('scriptDataFor — Daten-Snapshot der Skript-Blöcke (4T-000413)', () =
     expect(scriptDataFor(null, null)).toEqual({ status: 'unavailable' });
     const fremd = path.join(os.tmpdir(), 'scg-md-scriptdata-fremd', 'Nie-indexiert.md');
     expect(scriptDataFor(fremd, null).status).toBe('unavailable');
+  });
+});
+
+// 4T-002126 (Epic 3E-000345): Der Abzug trägt den Vorlagen-Ordner in der
+// Schreibweise von file.folder; die Vorlagen selbst bleiben im Abzug, weil erst
+// die Ausführungs-Umgebung die Quelle des Skripts kennt (Story 4S-000327).
+describe('scriptDataFor — Vorlagen-Ordner im Abzug (4T-002126)', () => {
+  it('trägt den Ordner wurzel-relativ und lässt die Vorlagen im Abzug', () => {
+    const snap = scriptDataFor(start, null, path.join(root, 'Projekte'));
+    expect(snap.templatesFolder).toBe('Projekte');
+    expect(snap.pages.map((p) => p.file.name).sort()).toEqual(['Alpha', 'Start']);
+    expect(snap.blocks).toHaveLength(1);
+    expect(() => structuredClone(snap)).not.toThrow();
+  });
+
+  it('Unterordner mit Schrägstrich, die Wurzel selbst als leerer Ordner', () => {
+    expect(scriptDataFor(start, null, path.join(root, 'Projekte', 'Unter')).templatesFolder).toBe(
+      'Projekte/Unter',
+    );
+    expect(scriptDataFor(start, null, root).templatesFolder).toBe('');
+  });
+
+  it('außerhalb des Suchraums und als Präfix-Nachbar der Wurzel: kein Ordner', () => {
+    const fremd = path.join(os.tmpdir(), 'scg-md-scriptdata-fremd-vorlagen');
+    expect(scriptDataFor(start, null, fremd).templatesFolder).toBeNull();
+    expect(scriptDataFor(start, null, `${root}2`).templatesFolder).toBeNull();
+  });
+
+  it('ohne gewählten Ordner oder im Aus-Zustand der Erweiterung: kein Ordner', () => {
+    expect(scriptDataFor(start, null, null).templatesFolder).toBeNull();
+    expect(scriptDataFor(start, null).templatesFolder).toBeNull();
   });
 });

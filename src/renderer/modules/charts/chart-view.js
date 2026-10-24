@@ -154,9 +154,25 @@ function wirksameSchrift(stil) {
 // zehn Variablen `--chart-1` bis `--chart-10`; das Farbschema ist ihre
 // einzige Quelle. Die Grundpalette des Modus dient nur als Rückfall je Platz,
 // wie bei Text- und Achsen-Farbe.
-function angabenDerAnsicht(block, kennung) {
+//
+// 4T-002173 (Epic 3E-000337): ausgelagert und ausgeführt, weil das Diagramm
+// einer Abfrage dieselben Angaben braucht (frontmatter-query-view.js); so
+// zeichnen beide Diagramm-Arten mit denselben Farben und derselben Schrift.
+/**
+ * Angaben der Ansicht an den Zeichner der Brücke: Farben, Schrift, Kennungs-
+ * Präfix und Vorlese-Texte.
+ *
+ * @param {Element} element Ort der Grafik; nicht eingehängt gilt das
+ *   Wurzel-Element.
+ * @param {string} idPrefix Präfix der Kennungen in der Grafik, eindeutig im
+ *   Dokument.
+ * @returns {{colors: object, fontFamily: (string|undefined), idPrefix: string,
+ *   descriptionTexts: object}}
+ */
+export function zeichenAngabenDerAnsicht(element, idPrefix) {
   const basis = BASE_DEFAULTS[modus()];
-  const stil = getComputedStyle(block.isConnected ? block : document.documentElement);
+  const ort = element && element.isConnected ? element : document.documentElement;
+  const stil = getComputedStyle(ort);
   return {
     colors: {
       text: variable(stil, '--fg') || basis.text,
@@ -165,9 +181,13 @@ function angabenDerAnsicht(block, kennung) {
       palette: REIHEN_PLAETZE.map((slot) => variable(stil, slot.vars[0]) || basis[slot.id]),
     },
     fontFamily: wirksameSchrift(stil),
-    idPrefix: `ch-${kennung}-${Number(block.dataset.chartIndex) || 0}`,
+    idPrefix,
     descriptionTexts: chartDescriptionTexts(t),
   };
+}
+
+function angabenDerAnsicht(block, kennung) {
+  return zeichenAngabenDerAnsicht(block, `ch-${kennung}-${Number(block.dataset.chartIndex) || 0}`);
 }
 
 // 4T-002048: Trägt der Block die Kennung einer Anker-Zeile darunter, hängt an
@@ -500,6 +520,27 @@ let beobachter = null;
 let geplant = null;
 let nurStil = true;
 
+// 4T-002173 (Epic 3E-000337, Entscheidung S4): weitere Diagramme, die nicht aus
+// einem Diagramm-Block entstehen, sondern aus einer Abfrage. Ihr Neu-Zeichnen
+// meldet die Befüllung der Abfrage an (`meldeWeitereDiagramme`); es läuft in
+// jedem Durchgang dieses Moduls mit, beim Farb- und Sprachwechsel und beim
+// hellen Zeichnen für Druck und PDF. Es ist synchron, weil es die zuletzt
+// erhaltene Ergebnismenge neu zeichnet, statt die Abfrage neu zu stellen.
+const WEITERE_NEU_ZEICHNER = new Set();
+
+/**
+ * Meldet eine Funktion an, die unter einer Wurzel weitere Diagramme neu
+ * zeichnet, und richtet den Farb-Beobachter ein, falls er noch fehlt.
+ * Mehrfaches Melden derselben Funktion zählt einmal.
+ *
+ * @param {function(ParentNode): void} zeichner
+ */
+export function meldeWeitereDiagramme(zeichner) {
+  if (typeof zeichner !== 'function') return;
+  WEITERE_NEU_ZEICHNER.add(zeichner);
+  richteBeobachterEin();
+}
+
 // Zeichnet die Diagramme unter `wurzel` neu und liefert die Lesungen, die
 // dabei beginnen.
 function zeichneNeu(wurzel) {
@@ -513,6 +554,14 @@ function zeichneNeu(wurzel) {
     if (!lauf || istLiveWidget(lauf)) continue;
     const lesung = zeichne(block, lauf);
     if (lesung) lesungen.push(lesung);
+  }
+  for (const zeichner of WEITERE_NEU_ZEICHNER) {
+    try {
+      zeichner(wurzel);
+    } catch (err) {
+      // Ein Fehler in einem Diagramm darf die Ansicht nicht abbrechen.
+      console.warn('perspective-chart: Neu-Zeichnen weiterer Diagramme fehlgeschlagen:', err);
+    }
   }
   return lesungen;
 }

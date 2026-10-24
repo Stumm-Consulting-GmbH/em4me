@@ -33,6 +33,8 @@ import { syncToolbarToActiveTab, updateActivePaneClasses } from '../tabs/tabs.js
 import { noteBookmarkFileExistence } from '../bookmarks/bookmarks-tree.js';
 import { renderProperties } from '../properties/properties-fields.js';
 import { renderTags } from '../editor/autocomplete-help.js';
+// 4T-002251: Freigabe verwaister Sperren der Listen-Maske beim Neuzeichnen.
+import { raeumeListenAuf } from '../query/frontmatter-query-view.js';
 
 import { renderTabbar } from './tabbar.js';
 // 4T-000989: Laufzeit-Zyklus pane-render <-> views (Kern). applyAllLayouts ruft
@@ -85,6 +87,13 @@ export function renderPaneContent(paneIdx) {
   // 4T-002162 (Befund der zweiten Abnahme vom 2026-10-10): Zeigt die Spalte
   // keine Praesentation mehr, wird deren Flaeche geleert.
   raeumePraesentationAuf(paneIdx);
+  // 4T-002251 (Epic 3E-000262, Festlegung 5): Hat eine Listen-Zeile mit
+  // gehaltener Sperre den Baum verlassen, etwa beim Schließen ihres Reiters
+  // oder beim Wechsel der Ansicht, wird ihre Sperre frei. Den alten Inhalt
+  // tauscht erst der Rest dieser Funktion aus; deshalb zusätzlich nach ihrem
+  // Ende, über jeden ihrer Rückkehr-Wege.
+  raeumeListenAuf();
+  setTimeout(raeumeListenAuf, 0);
 
   if (!pane || pane.activeIndex < 0) {
     syncEditorForPane(paneIdx);

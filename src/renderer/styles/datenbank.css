@@ -291,6 +291,12 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/* 4T-002184: die Zahl der weiteren Masken hinter der Standard-Maske. */
+.db-overview-form-more {
+  color: var(--fg-muted);
+  margin-left: 0.5em;
+  white-space: nowrap;
+}
 /* 4T-001939 (Bauplan B8): die Aktion «Neuer Datensatz» je Tabelle. */
 .db-overview-table-action {
   text-align: right;
@@ -609,7 +615,21 @@
   padding-left: 1.4em;
 }
 /* Der Körper stapelt Markdown-Blöcke und Felder; die Blöcke tragen
- * `markdown-body`, damit der Masken-Körper wie ein Dokument aussieht. */
+ * `markdown-body`, damit der Masken-Körper wie ein Dokument aussieht.
+ * 4T-002220 (Entscheidung des Product Owners vom 2026-10-10): Der Körper
+ * selbst trägt die Inhalts-Breite und die Zentrierung des Dokuments, die
+ * Blöcke nur noch ihren Innenabstand; Felder und Wert-Stellen bekommen den
+ * linken Innenabstand des Dokuments (32px) plus eine kleine Einrückung, damit
+ * der Inhalt eines Feldes ein wenig rechts von seiner Beschriftung steht
+ * statt links davon. */
+.db-form-body {
+  max-width: var(--content-width, 80%);
+  margin: 0 auto;
+}
+.db-form-body .db-form-md {
+  max-width: none;
+  margin: 0;
+}
 .db-form-body .db-form-md > :first-child {
   margin-top: 0.4em;
 }
@@ -618,7 +638,7 @@
 }
 .db-form-field {
   position: relative;
-  margin: 0 0 8px;
+  margin: 0 0 8px calc(32px + 0.4em);
   padding-left: 12px;
   border-left: 2px solid transparent;
 }
@@ -633,6 +653,43 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   min-height: 1.4em;
+}
+/* 4T-002183: Die Stelle eines Wert-Platzhalters, nur lesbar und kein Feld.
+ * Ohne Wert bleibt sie leer und trägt eine gestrichelte Markierung. */
+.db-form-computed {
+  margin: 0 0 8px calc(32px + 0.4em);
+  padding-left: 12px;
+  border-left: 2px solid transparent;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  min-height: 1.4em;
+}
+.db-form-computed-empty {
+  border-left: 2px dashed var(--fg-muted);
+}
+.db-form-computed-empty::before {
+  content: '–';
+  color: var(--fg-muted);
+}
+/* 4T-002186: Ein Wert-Platzhalter innerhalb einer Textzeile steht im Satz
+ * (Entscheidung des Product Owners vom 2026-10-10): keine eigene Zeile, kein
+ * linker Rand; ohne Wert trägt er die Markierung als gestrichelte Unterkante. */
+.db-form-computed-inline {
+  display: inline;
+  margin: 0;
+  padding: 0;
+  border-left: 0;
+  min-height: 0;
+}
+.db-form-computed-inline.db-form-computed-empty {
+  border-left: 0;
+  border-bottom: 1px dashed var(--fg-muted);
+}
+/* 4T-002186: Ein bedingter Bereich (E7.8). Verborgen wird er über das
+ * Attribut `hidden`; seine Felder bleiben im Dokument und behalten Eingabe und
+ * Wert, die Bedingung wirkt allein auf die Anzeige. */
+.db-form-section[hidden] {
+  display: none;
 }
 .db-form-input {
   font: inherit;
@@ -750,6 +807,37 @@ textarea.db-form-input {
 }
 [data-theme='dark'] .db-form-unresolved {
   text-decoration-color: #ff8a80;
+}
+/* 4T-002185 (Epic 3E-000261, F4 A): Ein Verweis-Feld im Lesen ist eine
+ * Schaltfläche zum verwiesenen Datensatz, gezeichnet wie ein Link; ein Wert,
+ * der keinen Datensatz trifft, behält seine Kennzeichnung. «Zurück» steht über
+ * der Überschrift im Kopf, die Meldung der Navigation unter ihm. */
+.db-form-ref-link {
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  color: var(--accent);
+  cursor: pointer;
+}
+.db-form-ref-link:hover {
+  text-decoration: underline;
+}
+.db-form-ref-link.db-form-unresolved {
+  color: inherit;
+  text-decoration: underline wavy #b71c1c;
+}
+[data-theme='dark'] .db-form-ref-link.db-form-unresolved {
+  text-decoration-color: #ff8a80;
+}
+.db-form-back {
+  margin-bottom: 6px;
+}
+.db-form-nav-note {
+  border-left: 2px solid var(--accent);
+  padding-left: 8px;
 }
 /* 4T-001945 (Bauplan B3): Verwendungsnachweis — die Aktion je Tabelle in der
  * Übersicht und die Liste der verweisenden Datensätze unter dem Kopf der Maske. */

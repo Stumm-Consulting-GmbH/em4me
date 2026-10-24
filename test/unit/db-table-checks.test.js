@@ -30,6 +30,7 @@ import {
   leseFeldRegeln,
   leseDatensatzRegeln,
   leseBearbeitbarkeit,
+  leseFeldBearbeitbarkeit,
 } from '../../src/shared/database/table-checks.js';
 
 // --- Bestands-Lesung, Modulkopf ------------------------------------------------------
@@ -684,6 +685,138 @@ describe('Bearbeitbarkeit: der Leser einzeln und die Anwender-Texte (4T-001932)'
       const unbekannt = DATENBANK_TEXTE[sprache]['database.hint.editableUnknownField'];
       expect(unbekannt, sprache).toContain('{expected}');
     }
+    expect(fehlend).toEqual([]);
+  });
+});
+
+// --- 4T-002312: die Bearbeitbarkeits-Bedingung am Feld ----------------------------------
+
+// Die Codes der Feld-Bedingung, ausdrücklich wie die der Tabelle.
+const FELD_BEARBEITBAR_CODES = [
+  'fieldEditable',
+  'fieldEditableExpr',
+  'fieldEditableUnknownField',
+  'fieldEditableMessage',
+];
+
+describe('Bearbeitbarkeit am Feld: Auslegung (4T-002312, AK1, AK4)', () => {
+  // Zwei Felder; das zweite trägt die Angabe. Die Bedingung darf auch ein später
+  // definiertes Feld nennen, darum steht `gebucht` hinter `betrag`.
+  function lies(editable) {
+    return parseTableDefinition(
+      tabelle([
+        { name: 'nummer' },
+        { name: 'betrag', type: 'number', editable },
+        { name: 'gebucht', type: 'boolean' },
+      ]),
+    );
+  }
+
+  it('4T-002312: liest einen gültigen Ausdruck über die Felder der Definition', () => {
+    const ergebnis = lies('NOT gebucht');
+    expect(ergebnis.hints).toEqual([]);
+    expect(ergebnis.fields[1].editable).toMatchObject({
+      art: 'expr',
+      quelle: 'NOT gebucht',
+      message: null,
+    });
+    expect(ergebnis.fields[1].editable.ast).toBeTruthy();
+    expect('editable' in ergebnis.fields[0]).toBe(false);
+    expect('editable' in ergebnis).toBe(false);
+  });
+
+  it('4T-002312: liest die Form mit Meldung wie an der Tabelle', () => {
+    const ergebnis = lies({ rule: 'betrag < 100', message: { de: 'Zu hoch.', en: 'Too high.' } });
+    expect(ergebnis.hints).toEqual([]);
+    expect(ergebnis.fields[1].editable).toMatchObject({
+      quelle: 'betrag < 100',
+      message: { de: 'Zu hoch.', en: 'Too high.' },
+    });
+  });
+
+  it('4T-002312: false ist die feste Sperre, true ausdrücklich frei, beide ohne Hinweis', () => {
+    const fest = lies(false);
+    expect(fest.hints).toEqual([]);
+    expect(fest.fields[1].editable).toEqual({ art: 'fest', quelle: 'false', message: null });
+    const frei = lies(true);
+    expect(frei.hints).toEqual([]);
+    expect('editable' in frei.fields[1]).toBe(false);
+  });
+
+  const FAELLE = [
+    ['fieldEditable', 5],
+    ['fieldEditable', ['NOT gebucht']],
+    ['fieldEditable', { message: 'ohne Regel' }],
+    ['fieldEditableExpr', 'betrag <'],
+    ['fieldEditableExpr', '/^offen$/'],
+    ['fieldEditableUnknownField', 'NOT gebuchtt'],
+    ['fieldEditableUnknownField', 'value > 0'],
+  ];
+
+  for (const [code, roh] of FAELLE) {
+    it(`4T-002312: ${code} bei ${JSON.stringify(roh)} nennt das Feld, das Feld bleibt bearbeitbar`, () => {
+      const ergebnis = lies(roh);
+      expect(ergebnis.hints).toHaveLength(1);
+      expect(ergebnis.hints[0]).toMatchObject({ code, index: 1, name: 'betrag', key: 'editable' });
+      expect(ergebnis.fields[1]).toEqual({ name: 'betrag', type: 'number' });
+    });
+  }
+
+  it('4T-002312: das unbekannte Feld nennt die vorhandenen, die Meldung entfällt allein', () => {
+    expect(lies('NOT gebuchtt').hints[0].expected).toEqual(['nummer', 'betrag', 'gebucht']);
+    const ergebnis = lies({ rule: 'NOT gebucht', message: 42 });
+    expect(ergebnis.hints.map((h) => [h.code, h.index, h.name, h.key])).toEqual([
+      ['fieldEditableMessage', 1, 'betrag', 'message'],
+    ]);
+    expect(ergebnis.fields[1].editable.quelle).toBe('NOT gebucht');
+    expect(ergebnis.fields[1].editable.message).toBeNull();
+  });
+
+  it('4T-002312: ein entfallenes Feld trägt keine Bedingung und ist kein Bezug', () => {
+    const ergebnis = parseTableDefinition(
+      tabelle([
+        { name: 'nummer', editable: 'NOT gebucht' },
+        { name: 'gebucht', type: 'object' },
+      ]),
+    );
+    expect(ergebnis.hints.map((h) => h.code)).toEqual([
+      'typeStructured',
+      'fieldEditableUnknownField',
+    ]);
+    expect(ergebnis.fields).toEqual([{ name: 'nummer', type: 'string' }]);
+  });
+
+  it('4T-002312: leseFeldBearbeitbarkeit nutzt den Leser der Tabelle mit eigenen Codes', () => {
+    const felder = [{ name: 'A' }];
+    expect(leseFeldBearbeitbarkeit(undefined, felder)).toEqual({ editable: null, hints: [] });
+    expect(leseFeldBearbeitbarkeit('b > 0', felder)).toEqual({
+      editable: null,
+      hints: [{ code: 'fieldEditableUnknownField', name: 'b > 0', expected: ['A'] }],
+    });
+    // Die Tabelle kennt die Wahrheitswerte nicht; dort bleibt es beim Hinweis.
+    expect(leseBearbeitbarkeit(false, felder).hints).toEqual([{ code: 'editable' }]);
+  });
+
+  it('4T-002312: Katalog und Texte in allen fünf Fragmenten, mit Ort statt Bedingungs-Text', () => {
+    const fehlend = [];
+    for (const code of FELD_BEARBEITBAR_CODES) {
+      expect(HINWEIS_META[code], code).toBeTruthy();
+      const erwartet = code === 'fieldEditableMessage' ? 'message' : DB_EDITABLE_KEY;
+      expect(HINWEIS_META[code].key, code).toBe(erwartet);
+      for (const sprache of SPRACHEN) {
+        const text = DATENBANK_TEXTE[sprache][`database.hint.${code}`];
+        if (typeof text !== 'string' || text.trim() === '') {
+          fehlend.push(`${sprache}: ${code}`);
+          continue;
+        }
+        expect(text.includes('{ort}'), `${sprache}: ${code}`).toBe(true);
+        expect(text.includes('"'), `${sprache}: ${code}`).toBe(false);
+      }
+    }
+    for (const sprache of SPRACHEN)
+      expect(DATENBANK_TEXTE[sprache]['database.hint.fieldEditableUnknownField']).toContain(
+        '{expected}',
+      );
     expect(fehlend).toEqual([]);
   });
 });

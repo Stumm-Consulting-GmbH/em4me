@@ -8,6 +8,14 @@
 // nach der Beschriftungen aufgelöst werden, wenn die Sprache des Anwenders
 // nicht gepflegt ist (E21.4).
 //
+// Seit 4T-002307 (Epic 3E-000263, F1 A) kommt als fünfte Angabe `roles` hinzu,
+// die Rollen der Berechtigung. Ihre Auslegung steht im eigenen Modul
+// `rollen-angaben.js`, weil sie eine eigene Gestalt mit eigenem Wortschatz hat
+// und weil der Abgleich ihrer Tabellen-Namen dem Katalog gehört, der die
+// Tabellen kennt; dieses Modul ruft die Auslegung nur auf. Der Ort folgt aus
+// demselben Weg durch die sechs Fragen wie unten: Die Rollen sind eine Aussage
+// über die Datenbank als Ganzes und gehören dem Autor der Definition.
+//
 // --- Der Ablage-Ort und wie er zustande kam ----------------------------------------
 //
 // **Entscheidung des Product Owners vom 2026-09-06**, auf Vorlage: Der
@@ -72,8 +80,9 @@
 // Erwägung steht hier, damit die Abweichung vom Nachbar-Modul sichtbar ist und
 // nicht als Vergesslichkeit gelesen wird.
 //
-// Blatt-Modul innerhalb der Datenbank: Es lädt allein `beschriftung.js` und
-// `table-hinweise.js`, beides Blätter; die Definitions-Seite kennt es nicht.
+// Blatt-Modul innerhalb der Datenbank: Es lädt allein `beschriftung.js`,
+// `table-hinweise.js` und seit 4T-002307 `rollen-angaben.js`, alles Blätter;
+// die Definitions-Seite kennt es nicht.
 //
 // Prozess-neutral (kein Electron, kein DOM).
 'use strict';
@@ -85,6 +94,8 @@ const {
   ersteSprache,
 } = require('./beschriftung.js');
 const { baueHinweis } = require('./table-hinweise.js');
+// 4T-002307: die Rollen der Berechtigung (`roles`).
+const { legeRollenAus } = require('./rollen-angaben.js');
 
 // --- Der Behälter ------------------------------------------------------------------
 
@@ -167,6 +178,15 @@ function istSteckbriefDokument(data) {
 //   databaseDescription  Beschreibung weder Text noch Sprach-Zuordnung (entfällt)
 //   schemaVersion        Schema-Version ist kein Text (entfällt)
 //   fallbackLocale       Rückfall-Sprache ist keine Sprach-Kennung (entfällt)
+//   roles, role…         die Rollen, siehe `rollen-angaben.js` (Rolle entfällt)
+//
+// Seit 4T-002307 trägt das Ergebnis `rollen`, sobald die Datei `roles` trägt,
+// nach derselben Regel; ohne `roles` fehlt es, und eine Datenbank ohne Rollen
+// verhält sich wie bisher. Ob die genannten Tabellen existieren, prüft der
+// Katalog (`pruefeRollenGegenTabellen`), nicht dieses Modul. Seit 4T-002308
+// ebenso `defaultRole` (die Vorgabe-Rolle, ein Text) und `users` (die
+// Zuordnung Anmeldename -> Rolle), jedes nur, wenn die Datei es trägt; ob die
+// genannte Rolle existiert, prüft der Katalog nach dem Abgleich (`pruefeZuordnung`).
 //
 // **Ein fehlender oder unvollständiger Steckbrief macht die Datenbank nie
 // unbrauchbar.** Jede Angabe fehlt für sich: Ohne Namen hat die Datenbank
@@ -204,6 +224,12 @@ function parseSteckbrief(data) {
     if (wert === null) hints.push(baueHinweis(HINWEIS_CODE[schluessel], -1, null));
     else ergebnis[schluessel] = wert;
   }
+  const gesetzt = (wert) => wert !== undefined && wert !== null && wert !== '';
+  const ausgelegt = legeRollenAus(behaelter, hints);
+  if (gesetzt(behaelter.roles)) ergebnis.rollen = ausgelegt.rollen;
+  // 4T-002308: Vorgabe-Rolle und Zuordnung nach derselben Regel.
+  if (ausgelegt.defaultRole !== null) ergebnis.defaultRole = ausgelegt.defaultRole;
+  if (istEinfachesObjekt(behaelter.users)) ergebnis.users = ausgelegt.users;
   return ergebnis;
 }
 

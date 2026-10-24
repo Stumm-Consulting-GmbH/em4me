@@ -61,6 +61,8 @@
   "areaReplace.reason.keinBereich": "Aucune zone ouverte",
   "areaReplace.reason.kanal": "L’exécution n’a pas atteint le processus principal",
   "areaReplace.reason.frontmatter": "Le champ de tags n’a pas pu être écrit",
+  "areaReplace.reason.defineNichtErlaubt": "Rôle propre sans autorisation «modifier la définition» ; définition non modifiée",
+  "areaReplace.reason.defineRechteNichtBestimmbar": "Autorisations de la base de données non déterminables ; définition non modifiée",
   "search.replaceCountOne": "1 remplacement",
   "search.replaceCountMany": "{n} remplacements",
   "searchResults.title": "Résultats de recherche",

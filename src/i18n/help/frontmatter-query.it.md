@@ -128,7 +128,8 @@ SORT autore
 - **Tabelle**: `TABLE RECORDS …` mostra il risultato nella prima colonna «Record»; `WITHOUT ID` viene dopo `RECORDS`. Il titolo di una colonna è l'alias, altrimenti l'etichetta del campo nella lingua del programma impostata secondo la catena di ripiego della pagina [Banca dati](database.md), altrimenti l'espressione stessa, ad esempio per un percorso.
 - **Valori di collegamento**: un campo di riferimento mostra la forma di visualizzazione del record di destinazione, in mancanza il suo identificatore, e un clic apre la maschera del record di destinazione. Un collegamento vuoto e uno che non porta da nessuna parte restano una cella vuota.
 - **Ordine**: senza `SORT` i risultati seguono la loro forma di visualizzazione senza distinzione tra maiuscole e minuscole, a parità di forma di visualizzazione l'identificatore, e i record senza forma di visualizzazione vanno in fondo.
-- **Due destinazioni del clic**: un record nel risultato di una query apre la maschera, mentre un collegamento nel testo corrente come `[[Libri#^r-00042]]` apre il file di tabella alla riga del record. La maschera mostra lo stato salvato.
+- **Una sola destinazione del clic**: un record nel risultato di una query apre la maschera, come pure un collegamento nel testo corrente come `[[Libri#^r-00042]]`; alla riga porta l'azione «Mostra nel documento di tabella» della maschera. La maschera mostra lo stato salvato.
+- **Maschera elenco**: se un file di query porta l'indicazione `editable: true` nel suo contenitore `db-query`, il suo risultato compare come griglia in cui i record si aprono, si modificano, si creano e si eliminano, 50 righe per pagina; la pagina [Banca dati](database.md) la descrive nella sezione «Maschera elenco».
 - **Stato non salvato**: le modifiche di una tabella aperta entrano subito nel risultato, senza salvare.
 - **Non a questo livello**: `bold()` in una colonna o in un'espressione di `GROUP BY` produce un messaggio di errore, perché un valore della banca dati non porta formattazione; nella condizione e nell'ordinamento resta consentito. `HIDE`, `SHOW` e `SHORT` valgono solo per `LIST TASKS` e si segnalano qui come ai livelli di file e di blocco.
 - **Risultato vuoto e banca dati disattivata**: senza risultati compare «Nessun record corrisponde a questa query». Se l'estensione «Banca dati» è disattivata, l'elenco resta vuoto, sopra compare una nota e non appare alcun messaggio di errore.
@@ -386,7 +387,7 @@ LIST RECORDS FROM "Team" DISPLAY tree BY capo
 ```
 ````
 
-La forma disponibile è l'**albero** (`DISPLAY tree BY campo`). Mostra i record di una query sui record rientrati lungo il campo di riferimento indicato:
+Le forme disponibili sono l'**albero** e due **grafici**. L'albero (`DISPLAY tree BY campo`) mostra i record di una query sui record rientrati lungo il campo di riferimento indicato:
 
 - Un record sta sotto il record a cui punta il suo campo, se questo è nel risultato. Altrimenti è una **radice** e sta all'estrema sinistra: senza collegamento, con un collegamento che non porta da nessuna parte o a un record che la condizione esclude. Con `descendants(…)` le radici sono quindi i record posti direttamente sotto la destinazione, perché la destinazione stessa non fa parte del risultato.
 - Radici e fratelli seguono l'ordine del risultato, che `SORT` determina.
@@ -395,7 +396,25 @@ La forma disponibile è l'**albero** (`DISPLAY tree BY campo`). Mostra i record 
 - Un nodo mostra la forma di visualizzazione come una voce di elenco, con `LIST` seguita dal campo aggiuntivo; con `TABLE` l'albero non mostra colonne. Un clic apre la maschera.
 - Oltre i 32 livelli il rientro non aumenta più; i nodi più profondi stanno al completo al 32° livello.
 
-**Ripiego**: se una forma è sconosciuta o non adatta alla query, il risultato appare senza di essa, cioè come elenco o tabella, con sopra una nota che indica la forma e senza messaggio di errore. L'albero è adatto solo al livello di record e solo con un campo dopo `BY` che sia un campo di riferimento in almeno una tabella del risultato. Non è mai adatto a una query raggruppata; appare allora l'output raggruppato con la nota. Un risultato vuoto mostra la sua nota di risultato vuoto e nessuna forma. Se manca il nome della forma dopo `DISPLAY` o il campo dopo `BY`, la query non è valida.
+I **grafici** `DISPLAY bar` e `DISPLAY line` mostrano il risultato di una query a tabella come grafico a barre o a linee. Leggono la tabella così come apparirebbe senza `DISPLAY`:
+
+````markdown
+```perspective-query
+TABLE pagine AS "Pagine", prezzo AS "Prezzo"
+FROM "Libri"
+SORT pagine
+DISPLAY bar
+```
+````
+
+- **Etichette**: ogni riga della tabella diventa una categoria e porta come etichetta ciò che la tabella mostra in testa: il nome del risultato, con `WITHOUT ID` il valore della prima colonna indicata. In una tabella raggruppata ogni gruppo è una categoria con il suo valore di gruppo; con più gradini i valori di tutti i gradini sono uniti da « › », e il gruppo senza valore si chiama «(senza valore)» come nella tabella.
+- **Serie**: ogni ulteriore colonna con almeno un numero diventa una serie e porta come nome l'intestazione della colonna. Conta come numero anche un testo composto solo da un numero, come spesso lo contengono le proprietà del frontmatter, per esempio `pagine: 120`. Date, durate, valori booleani e altri testi non sono numeri.
+- **Lacune e colonne ignorate**: se in una serie un valore manca o non è un numero, si disegna senza di esso. Sotto il grafico una riga indica allora le colonne che non contengono alcun numero e sono perciò ignorate, e un'altra il numero di valori omessi.
+- **Ordine**: le categorie seguono l'ordine della tabella, stabilito da `SORT`, a intervalli uguali. Una data come etichetta è un testo come un altro; non esiste un asse temporale i cui intervalli seguano il tempo trascorso. Molti risultati si possono limitare con `LIMIT`.
+- **Immagine**: il grafico è un'immagine senza comandi; un clic non apre alcun risultato. Le serie portano i colori dei grafici della [combinazione di colori](color-schemes.md) attiva, come i [grafici di tabelle](charts.md), e seguono subito un cambio della combinazione di colori o tra chiaro e scuro.
+- **Estensione**: i grafici dipendono dall'[estensione interna](extensions.md) «Grafico di una query», attiva a partire dalla modalità di lavoro **Avanzata** e indipendente da ogni altra estensione. Se è disattivata, appare la tabella con la nota che la visualizzazione a grafico è disattivata; il documento resta invariato e, dopo la riattivazione, il grafico ricompare.
+
+**Ripiego**: se una forma è sconosciuta o non adatta alla query, il risultato appare senza di essa, cioè come elenco o tabella, con sopra una nota che indica la forma e senza messaggio di errore. L'albero è adatto solo al livello di record e solo con un campo dopo `BY` che sia un campo di riferimento in almeno una tabella del risultato. Non è mai adatto a una query raggruppata; appare allora l'output raggruppato con la nota. I grafici sono adatti solo a una tabella (`TABLE`, non `LIST`) con almeno una colonna oltre all'etichetta, di cui una contenga numeri; altrimenti la nota ne indica il motivo. Un risultato vuoto mostra la sua nota di risultato vuoto e nessuna forma. Se manca il nome della forma dopo `DISPLAY` o il campo dopo `BY`, la query non è valida.
 
 ## Visualizzazione e interazione
 
@@ -417,7 +436,7 @@ I file fuori dall'ambito di ricerca non compaiono nel risultato, e nemmeno ciò 
 
 ## Esportazione
 
-- **Esportazione PDF**: il risultato viene stampato come stato statico del momento del rendering, compresa la disposizione a tabella e a colonne. Le voci appaiono come testo; nel PDF non sono cliccabili.
-- **Markdown portabile**: l'esportazione lascia il blocco `perspective-query` invariato come sorgente. Alla riapertura in questo programma viene di nuovo valutato dinamicamente; altri programmi Markdown lo mostrano come blocco di codice.
+- **Esportazione PDF**: il risultato viene stampato come stato statico del momento del rendering, compresa la disposizione a tabella e a colonne. Le voci appaiono come testo; nel PDF non sono cliccabili. Un grafico della query appare chiaro nella stampa e nell'esportazione PDF, con i colori dei grafici della combinazione di colori chiara, anche se l'applicazione funziona in modalità scura.
+- **Markdown portabile**: l'esportazione lascia il blocco `perspective-query` invariato come sorgente. Alla riapertura in questo programma viene di nuovo valutato dinamicamente; altri programmi Markdown lo mostrano come blocco di codice. Questo vale anche con `DISPLAY bar` o `DISPLAY line`: a differenza di un [grafico di tabella](charts.md), il grafico di una query non viene esportato come immagine.
 
 Per valutazioni libere oltre il linguaggio a clausole — ad esempio strutture ricorsive o riepiloghi calcolati — sono disponibili i [blocchi di script](scripts.md); la loro API pq usa lo stesso modello di campi e blocchi della query.

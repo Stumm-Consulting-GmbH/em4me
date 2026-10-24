@@ -110,6 +110,8 @@ describe('database:auftrag und database:neuanlage: Registrierung und Brücke (4T
     const kanaele = registriere(attrappe());
     expect([...kanaele.keys()].sort()).toEqual([
       'database:auftrag',
+      // 4T-002252 (Epic 3E-000262): die Pfad-Ausdrücke der Einzel-Maske.
+      'database:ausdruecke',
       'database:changeLog',
       // 4T-001942 (Epic 3E-000257): die Wertehilfe der Verweis-Felder.
       'database:datensaetze',
@@ -117,13 +119,19 @@ describe('database:auftrag und database:neuanlage: Registrierung und Brücke (4T
       'database:datensatz',
       // 4T-001944 (Epic 3E-000257): die Konsistenz-Prüfung über den Bestand.
       'database:konsistenz',
+      // 4T-002249 (Epic 3E-000262): die Auskunft über eine Listen-Maske.
+      'database:liste',
       // 4T-001943 (Epic 3E-000257): die Masken-Datei herausschreiben.
       'database:maskeSchreiben',
       'database:neuanlage',
       'database:overview',
+      // 4T-002253 (Epic 3E-000262): der Positions-Bereich der Einzel-Maske.
+      'database:positionsliste',
       // 4T-001941 (Epic 3E-000257): die Sperre der Einzel-Maske.
       'database:sperre',
       'database:table',
+      // 4T-002333 (Epic 3E-000264): das Ziel eines Datensatz-Verweises.
+      'database:verweisZiel',
       // 4T-001945 (Epic 3E-000257): der Verwendungsnachweis.
       'database:verwendung',
     ]);
@@ -553,7 +561,17 @@ function pruefeLageSchluessel(codes, fragmente) {
 // 4T-001940 (Epic 3E-000257, B3): Die Position steht in keinem Text mehr; der
 // Bedienort setzt sie bei mehreren Anweisungen selbst voran
 // (`src/shared/database/auftrag-text.js`).
-const PLATZHALTER = new Set(['tabelle', 'id', 'feld', 'tabellen', 'vorgang', 'grund']);
+// 4T-002309: `operation` und `rolle` für die Neuanlage ohne `create`.
+const PLATZHALTER = new Set([
+  'tabelle',
+  'id',
+  'feld',
+  'tabellen',
+  'vorgang',
+  'grund',
+  'operation',
+  'rolle',
+]);
 
 // 4T-001926 (Epic 3E-000256, B6): Ein Text einer Regel-Lage setzt die Angaben
 // des Regel-Befunds ein, der unter `naht` der Hülle reist; sein Vorrat an
@@ -573,6 +591,9 @@ const REGEL_PLATZHALTER = new Set([
   'zieltabelle',
   'anzahl',
   'grund',
+  // 4T-002309: die Berechtigung.
+  'operation',
+  'rolle',
 ]);
 // 4T-001940 (Epic 3E-000257, B3): die zweiten Fassungen zweier Regel-Texte, die
 // der Bedienort nach den Angaben des Befunds wählt (Einzahl beim Lösch-Schutz,

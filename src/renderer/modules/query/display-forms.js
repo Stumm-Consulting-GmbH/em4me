@@ -13,6 +13,16 @@
 // Der Kontext trägt `translate` (die i18n-Funktion der Befüllung). Was eine Form
 // an Wünschen nicht kennt, übergeht sie ohne Hinweis (E8.3).
 //
+// 4T-002173 (Epic 3E-000337): Zwei Angaben einer Form sind wahlfrei.
+// `unsuitableReason(resultSet)` nennt bei fehlender Eignung einen Grund-Code,
+// den der Verteiler als `reason` weiterreicht, damit der Hinweis den Grund
+// nennt. `extension` ist die Kennung einer Erweiterung, an der die Form hängt;
+// ist sie aus (Kontext-Funktion `isExtensionActive`), zeichnet die Form nicht,
+// und der Verteiler nennt den eigenen Hinweis-Code `displayFormOff` statt «passt
+// nicht» (Entscheidung S3). Der Kontext trägt dazu `isExtensionActive` und für
+// die Diagramme die Zeichen-Funktion `drawChart` (Entscheidung S2); beide reicht
+// die Befüllung, damit dieses Modul ohne Brücken-Bezug bleibt.
+//
 // **Der Verteiler** (`drawDisplayForm`) sitzt am Einstieg der Befüllung
 // (`frontmatter-query-view.js`) hinter Zustand, Abfrage-Fehler und Leer-Fall.
 // Ohne Angabe liefert er nichts, und die Ausgabe bleibt byte-gleich wie zuvor.
@@ -24,8 +34,8 @@
 //
 // **Wer einträgt:** Die eingebauten Formen trägt dieses Modul unten selbst ein,
 // damit keine Lade-Reihenfolge entscheidet, ob es sie gibt; seit 4T-002044 der
-// Baum, später die Diagramme (3E-000337). Jede andere Angabe zeigt den Rückfall
-// mit Hinweis. Formen aus Add-ons sind nicht vorgesehen, bevor die
+// Baum, seit 4T-002173 die Diagramme `bar` und `line`. Jede andere Angabe zeigt
+// den Rückfall mit Hinweis. Formen aus Add-ons sind nicht vorgesehen, bevor die
 // Add-on-Paketierung sie zusagt.
 //
 // Bewusst ohne Preload-Bezug, damit der jsdom-Unit-Test der Befüllung ohne
@@ -34,12 +44,25 @@
 
 // 4T-002044: der Baum, eingetragen unten im Abschnitt «Eingebaute Formen».
 import { treeForm } from './display-tree.js';
+// 4T-002173: die Diagramme, eingetragen unten im Abschnitt «Eingebaute Formen».
+import { barForm, lineForm } from './display-chart.js';
+
+/**
+ * @typedef {object} DisplayContext
+ * @property {(key: string) => string} translate  i18n-Funktion der Befüllung
+ * @property {(id: string) => boolean} [isExtensionActive]  Schalt-Zustand; ohne
+ *   Angabe gilt jede Erweiterung als an
+ * @property {(input: object) => object} [drawChart]  Zeichen-Funktion der Diagramme
+ */
 
 /**
  * @typedef {object} DisplayForm
  * @property {(resultSet: object) => boolean} isSuitable  Passt die Form zu dieser Menge?
- * @property {(resultSet: object, context: { translate: (key: string) => string }) => Node} render
+ * @property {(resultSet: object, context: DisplayContext) => Node} render
  *   Das DOM der Form; der Aufrufer hängt es unter den Hinweis des Zustands.
+ * @property {(resultSet: object) => (string|null)} [unsuitableReason]  Grund-Code
+ *   der fehlenden Eignung
+ * @property {string} [extension]  Kennung der Erweiterung, an der die Form hängt
  */
 
 // Name der Form (klein geschrieben, wie der Parser das Wort liefert) -> Form.
@@ -68,10 +91,13 @@ export function registerDisplayForm(name, form) {
 /**
  * Verteiler: zeichnet die gewählte Form oder nennt den Grund des Rückfalls.
  * @param {object} resultSet  Ergebnismenge im Zustand `ready` mit mindestens einer Zeile
- * @param {{ translate: (key: string) => string }} context
- * @returns {{ node: Node|null, hint: 'displayFormUnknown'|'displayFormUnsuitable'|null, name: string|null }}
+ * @param {DisplayContext} context
+ * @returns {{ node: Node|null,
+ *     hint: 'displayFormUnknown'|'displayFormUnsuitable'|'displayFormOff'|null,
+ *     name: string|null, reason?: string }}
  *   `node` gesetzt: die Form ist gezeichnet. Sonst zeigt der Aufrufer die Ausgabe
- *   ohne Angabe und bei gesetztem `hint` den Hinweis mit `name`.
+ *   ohne Angabe und bei gesetztem `hint` den Hinweis mit `name`; `reason` nennt
+ *   bei «passt nicht» den Grund-Code der Form, sofern sie einen kennt.
  */
 export function drawDisplayForm(resultSet, context) {
   const wish = resultSet && resultSet.wishes ? resultSet.wishes.display : null;
@@ -79,11 +105,24 @@ export function drawDisplayForm(resultSet, context) {
     return { node: null, hint: null, name: null };
   }
   const name = wish.form;
-  const fallback = (hint) => ({ node: null, hint, name });
+  const fallback = (hint, reason) =>
+    typeof reason === 'string' && reason !== ''
+      ? { node: null, hint, name, reason }
+      : { node: null, hint, name };
   const form = forms.get(name.toLowerCase());
   if (!form) return fallback('displayFormUnknown');
   try {
-    if (!form.isSuitable(resultSet)) return fallback('displayFormUnsuitable');
+    // 4T-002173 (S3): Eine ausgeschaltete Form zeichnet nicht und sagt das,
+    // vor jeder Eignungs-Prüfung.
+    const aktiv = context && context.isExtensionActive;
+    if (form.extension && typeof aktiv === 'function' && !aktiv(form.extension)) {
+      return fallback('displayFormOff');
+    }
+    if (!form.isSuitable(resultSet)) {
+      const reason =
+        typeof form.unsuitableReason === 'function' ? form.unsuitableReason(resultSet) : null;
+      return fallback('displayFormUnsuitable', reason);
+    }
     const node = form.render(resultSet, context);
     if (!node || typeof node.nodeType !== 'number') throw new TypeError('kein DOM-Knoten');
     return { node, hint: null, name };
@@ -97,6 +136,8 @@ export function drawDisplayForm(resultSet, context) {
 }
 
 // --- Eingebaute Formen ---------------------------------------------------------
-// Der Baum aus 4T-002044 (`DISPLAY tree BY <Verweis-Feld>`); 3E-000337 trägt
-// später `bar` und `line` ein.
+// Der Baum aus 4T-002044 (`DISPLAY tree BY <Verweis-Feld>`); seit 4T-002173 die
+// Diagramme `bar` und `line` (Epic 3E-000337).
 registerDisplayForm('tree', treeForm);
+registerDisplayForm('bar', barForm);
+registerDisplayForm('line', lineForm);

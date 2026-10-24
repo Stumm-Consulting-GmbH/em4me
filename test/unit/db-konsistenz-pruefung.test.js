@@ -9,6 +9,9 @@
 // Menge der Tabellen und Masken-Dateien festlegt und der Index hier nicht der
 // Gegenstand ist. Der Dateizugriff der Prüfung trägt allein `readFile`: Eine
 // Prüfung, die zu schreiben versuchte, bräche daran.
+//
+// 4T-002186 (Epic 3E-000261, E7.8, S5): Die Fehlerbilder der bedingten Bereiche
+// einer Masken-Datei als eigene Befunde, mit der Zeile ab dem Datei-Anfang.
 import { describe, it, expect, afterEach } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -483,7 +486,9 @@ describe('Konsistenz-Prüfung: Medien-Ausleihe mit Zwischentabelle (AK2)', () =>
     expect(nurCode(ergebnis, KONSISTENZ_BEFUNDE.schluesselDoppelt)).toHaveLength(2);
     // Die Verweis-Spalte ohne Ziel-Angabe: Tabelle unbekannt ohne Ziel.
     const ohneZiel = ausleihe({
-      ausleiheFelder: ['db-table:', '  fields:', '    - name: medium', '      type: record'],
+      // 4T-002288: mit Hochwasserstand, sonst käme dessen Hinweis hinzu; die
+      // Felder in Fluss-Schreibweise, damit die Prüfdatei ihr Budget hält.
+      ausleiheFelder: ['db-table:', '  fields: [{ name: medium, type: record }]', '  lastId: 1'],
       ausleihen: [datensatz('r-00001', 'M-1')],
     });
     const b = await pruefe(ohneZiel.wurzel, sicht({ tabellen: ohneZiel.tabellen }), 'Ausleihe');
@@ -496,7 +501,10 @@ describe('Konsistenz-Prüfung: Medien-Ausleihe mit Zwischentabelle (AK2)', () =>
     ]);
   });
 
-  it('findet die Masken-Fälle: unbekanntes Feld, unbekannter Platzhalter, unbekannte Tabelle', async () => {
+  // 4T-002183: Der fremde Platzhalter ist seit 4T-002253 nicht mehr `list:`;
+  // dazu der ungültige Ausdruck eines Wert-Platzhalters als eigener Befund,
+  // während ein gültiger Ausdruck über ein unbekanntes Feld keiner ist.
+  it('findet die Masken-Fälle: unbekanntes Feld, unbekannter Platzhalter, ungültiger Ausdruck, unbekannte Tabelle', async () => {
     const { wurzel, medium, tabellen } = ausleihe();
     const maske = lege(wurzel, 'Medium Form.md', [
       '---',
@@ -507,7 +515,8 @@ describe('Konsistenz-Prüfung: Medien-Ausleihe mit Zwischentabelle (AK2)', () =>
       '# Medium',
       '**Titel:** {{field:titel}}',
       '**Autor:** {{field:autor}}',
-      '{{value:signatur}}',
+      '{{liste:signatur}}',
+      '{{value:titel +}} {{value:signatur}} {{value: upper(titel)}}',
       '',
     ]);
     const fremd = lege(wurzel, 'Lager Form.md', ['---', 'db-form:', '  table: Lager', '---', '']);
@@ -533,13 +542,232 @@ describe('Konsistenz-Prüfung: Medien-Ausleihe mit Zwischentabelle (AK2)', () =>
         code: KONSISTENZ_BEFUNDE.maskePlatzhalterUnbekannt,
         datei: maske,
         zeile: 9,
-        wert: 'value:signatur',
+        wert: 'liste:signatur',
+      }),
+      expect.objectContaining({
+        code: KONSISTENZ_BEFUNDE.maskeAusdruckUngueltig,
+        tabelle: 'Medium',
+        pfad: medium,
+        datei: maske,
+        zeile: 10,
+        wert: 'titel +',
       }),
     ]);
-    expect(ergebnis.tabellen.find((t) => t.name === 'Medium').befunde).toBe(2);
+    expect(ergebnis.tabellen.find((t) => t.name === 'Medium').befunde).toBe(3);
     // Die Prüfung EINER Tabelle nimmt nur deren Masken mit.
     const eine = await pruefe(wurzel, s, 'Ausleihe');
     expect(eine.befunde).toEqual([]);
+  });
+
+  // 4T-002184 (Epic 3E-000261, AK3): Die Angabe `form` einer Definition trifft
+  // keine Masken-Datei ihrer Tabelle (Befund «unbekannt») oder nennt die einer
+  // anderen Tabelle (Befund «fremd»); eine treffende Angabe ist kein Befund.
+  // Mehrere Masken-Dateien einer Tabelle sind ebenso kein Befund.
+  it('findet die Angabe form auf eine fehlende und auf eine fremde Masken-Datei', async () => {
+    const { wurzel, medium, person, tabellen } = ausleihe();
+    const setze = (pfad, alt, neu) =>
+      fs.writeFileSync(pfad, fs.readFileSync(pfad, 'utf8').replace(alt, neu), 'utf8');
+    const maske = (name) =>
+      lege(wurzel, `${name}.md`, ['---', 'db-form:', '  table: Medium', '---', '# Medium', '']);
+    const lang = maske('Medium Form');
+    const kurz = maske('Medium Kurz');
+    setze(medium, '  lastId: 2', '  lastId: 2\n  form: Medium Kurz');
+    const s = sicht({ tabellen, masken: [lang, kurz] });
+    expect((await pruefe(wurzel, s)).befunde).toEqual([]);
+
+    setze(medium, '  form: Medium Kurz', '  form: Gibt Es Nicht');
+    setze(person, '  lastId: 1', '  lastId: 1\n  form: Medium Kurz');
+    const ergebnis = await pruefe(wurzel, s);
+    expect(ergebnis.befunde).toEqual([
+      expect.objectContaining({
+        code: KONSISTENZ_BEFUNDE.maskeAngabeUnbekannt,
+        tabelle: 'Medium',
+        pfad: medium,
+        datei: medium,
+        wert: 'Gibt Es Nicht',
+      }),
+      expect.objectContaining({
+        code: KONSISTENZ_BEFUNDE.maskeAngabeFremd,
+        tabelle: 'Person',
+        pfad: person,
+        datei: person,
+        wert: 'Medium Kurz',
+        zieltabelle: 'Medium',
+      }),
+    ]);
+    expect(ergebnis.tabellen.find((t) => t.name === 'Medium').befunde).toBe(1);
+    expect(ergebnis.tabellen.find((t) => t.name === 'Person').befunde).toBe(1);
+    // Die Prüfung EINER Tabelle sieht die fremde Masken-Datei trotzdem.
+    expect(codes(await pruefe(wurzel, s, 'Person'))).toEqual([KONSISTENZ_BEFUNDE.maskeAngabeFremd]);
+  });
+
+  // 4T-002186 (Epic 3E-000261, E7.8, S5): Die drei Fehlerbilder der bedingten
+  // Bereiche sind je ein eigener Befund mit der Zeile ab dem Datei-Anfang; ein
+  // korrekt geschlossener Bereich mit gültiger Bedingung ist keiner.
+  it('findet die Bereichs-Fälle: end ohne when, nicht geschlossener Bereich, ungültige Bedingung', async () => {
+    const { wurzel, medium, tabellen } = ausleihe();
+    const maske = lege(wurzel, 'Medium Form.md', [
+      '---',
+      'title: Medium',
+      'db-form:',
+      '  table: Medium',
+      '---',
+      '# Medium',
+      '{{when:titel}}',
+      '**Titel:** {{field:titel}}',
+      '{{end}}',
+      '{{end}}',
+      '{{when:titel +}}',
+      'Kaputt',
+      '{{end}}',
+      '{{when:signatur = "M-1"}}',
+      'Offen {{field:signatur}}',
+      '',
+    ]);
+    const s = sicht({ tabellen, masken: [maske] });
+    const ergebnis = await pruefe(wurzel, s);
+    const stelle = { tabelle: 'Medium', pfad: medium, datei: maske };
+    expect(ergebnis.befunde).toEqual([
+      expect.objectContaining({
+        code: KONSISTENZ_BEFUNDE.maskeEndOhneWhen,
+        ...stelle,
+        zeile: 10,
+        wert: '',
+      }),
+      expect.objectContaining({
+        code: KONSISTENZ_BEFUNDE.maskeBedingungUngueltig,
+        ...stelle,
+        zeile: 11,
+        wert: 'titel +',
+      }),
+      expect.objectContaining({
+        code: KONSISTENZ_BEFUNDE.maskeWhenOhneEnd,
+        ...stelle,
+        zeile: 14,
+        wert: 'signatur = "M-1"',
+      }),
+    ]);
+    expect(KONSISTENZ_BEFUNDE.maskeEndOhneWhen).toBe('konsistenzMaskeEndOhneWhen');
+    expect(KONSISTENZ_BEFUNDE.maskeWhenOhneEnd).toBe('konsistenzMaskeWhenOhneEnd');
+    expect(KONSISTENZ_BEFUNDE.maskeBedingungUngueltig).toBe('konsistenzMaskeBedingungUngueltig');
+    // Die Zeile zählt ab dem Datei-Anfang, also samt Frontmatter.
+    const zeilen = fs.readFileSync(maske, 'utf8').split('\n');
+    expect(ergebnis.befunde.map((b) => zeilen[b.zeile - 1])).toEqual([
+      '{{end}}',
+      '{{when:titel +}}',
+      '{{when:signatur = "M-1"}}',
+    ]);
+    expect(ergebnis.tabellen.find((t) => t.name === 'Medium').befunde).toBe(3);
+
+    // Gegenprobe: korrekt geschlossene, auch verschachtelte Bereiche mit
+    // gültiger Bedingung tragen keinen Befund.
+    fs.writeFileSync(
+      maske,
+      [
+        '---',
+        'db-form:',
+        '  table: Medium',
+        '---',
+        '{{when:titel}}',
+        '{{field:titel}}',
+        '{{when:signatur = "M-1"}}',
+        '{{value:upper(titel)}}',
+        '{{end}}',
+        '{{end}}',
+        '',
+      ].join('\n'),
+      'utf8',
+    );
+    const sauber = await pruefe(wurzel, s);
+    expect(sauber.befunde).toEqual([]);
+    expect(sauber.tabellen.find((t) => t.name === 'Medium').befunde).toBe(0);
+  });
+});
+
+// --- Abfrage-Dateien mit den Angaben der Listen-Maske (4T-002248) ------------------------------
+
+// 4T-002248 (Epic 3E-000262, F1 A; AK2): Die Angaben der Listen-Maske einer
+// Abfrage-Datei als Befunde der Datei, ohne Tabelle; nach derselben Auslegung
+// wie der Katalog. Die Prüfung EINER Tabelle übergeht die Abfrage-Dateien, weil
+// ihre Tabelle erst aus der Abfrage folgt.
+describe('Konsistenz-Prüfung: Abfrage-Datei mit Listen-Angaben (4T-002248)', () => {
+  function mitAbfragen(s, abfragen) {
+    for (const p of abfragen) s.dbKindsPerFile.set(p, ['query']);
+    return s;
+  }
+  function abfrageDatei(wurzel, name, behaelter) {
+    return lege(wurzel, name, [
+      '---',
+      `db-query: ${behaelter}`,
+      '---',
+      '',
+      '```perspective-query',
+      'TABLE titel FROM "Medium"',
+      '```',
+      '',
+    ]);
+  }
+
+  it('findet den unbekannten Handgriff und die unbekannte Maske an der Datei', async () => {
+    const { wurzel, tabellen } = ausleihe();
+    const maske = lege(wurzel, 'Medium Form.md', ['---', 'db-form:', '  table: Medium', '---', '']);
+    const liste = abfrageDatei(
+      wurzel,
+      'Medien-Liste.md',
+      '{ editable: true, form: Gibt Es Nicht, allow: [update, archive] }',
+    );
+    const s = mitAbfragen(sicht({ tabellen, masken: [maske] }), [liste]);
+    const ergebnis = await pruefe(wurzel, s);
+    expect(ergebnis.befunde).toEqual([
+      expect.objectContaining({
+        code: KONSISTENZ_BEFUNDE.listeHandgriffUnbekannt,
+        tabelle: null,
+        pfad: null,
+        datei: liste,
+        wert: 'archive',
+      }),
+      expect.objectContaining({
+        code: KONSISTENZ_BEFUNDE.listeMaskeUnbekannt,
+        tabelle: null,
+        pfad: null,
+        datei: liste,
+        wert: 'Gibt Es Nicht',
+      }),
+    ]);
+    // Die Befunde zählen an keiner Tabelle.
+    expect(ergebnis.tabellen.every((t) => t.befunde === 0)).toBe(true);
+    expect(KONSISTENZ_BEFUNDE.listeHandgriffUnbekannt).toBe('konsistenzListeHandgriffUnbekannt');
+    expect(KONSISTENZ_BEFUNDE.listeMaskeUnbekannt).toBe('konsistenzListeMaskeUnbekannt');
+  });
+
+  it('meldet eine unbrauchbare Angabe mit ihrem Schlüssel und eine treffende Maske nicht', async () => {
+    const { wurzel, tabellen } = ausleihe();
+    const maske = lege(wurzel, 'Medium Form.md', ['---', 'db-form:', '  table: Medium', '---', '']);
+    const liste = abfrageDatei(wurzel, 'Medien-Liste.md', '{ editable: ja, form: Medium Form }');
+    const sauber = abfrageDatei(
+      wurzel,
+      'Saubere Liste.md',
+      '{ editable: true, form: Medium Form, allow: [create, update, delete] }',
+    );
+    const gewoehnlich = abfrageDatei(wurzel, 'Gewöhnlich.md', '');
+    const s = mitAbfragen(sicht({ tabellen, masken: [maske] }), [liste, sauber, gewoehnlich]);
+    const ergebnis = await pruefe(wurzel, s);
+    expect(ergebnis.befunde).toEqual([
+      expect.objectContaining({
+        code: KONSISTENZ_BEFUNDE.listeAngabeUnbrauchbar,
+        datei: liste,
+        wert: 'editable',
+      }),
+    ]);
+    expect(KONSISTENZ_BEFUNDE.listeAngabeUnbrauchbar).toBe('konsistenzListeAngabeUnbrauchbar');
+  });
+
+  it('übergeht die Abfrage-Dateien bei der Prüfung einer einzelnen Tabelle', async () => {
+    const { wurzel, tabellen } = ausleihe();
+    const liste = abfrageDatei(wurzel, 'Medien-Liste.md', '{ editable: true, allow: [archive] }');
+    const s = mitAbfragen(sicht({ tabellen }), [liste]);
+    expect(codes(await pruefe(wurzel, s))).toEqual([KONSISTENZ_BEFUNDE.listeHandgriffUnbekannt]);
+    expect((await pruefe(wurzel, s, 'Medium')).befunde).toEqual([]);
   });
 });
 

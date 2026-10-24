@@ -23,6 +23,8 @@ const bookmarks = await import('../../../src/renderer/modules/bookmarks/bookmark
 const search = await import('../../../src/renderer/modules/search/search.js');
 const ach = await import('../../../src/renderer/modules/editor/autocomplete-help.js');
 const appState = await import('../../../src/renderer/modules/app/app-state.js');
+// 4T-002334 (Epic 3E-000264): Register der Sitzungs-Einträge von System-Seiten.
+const sitzungsMaske = await import('../../../src/renderer/modules/app/sitzungs-maske.js');
 
 function mdState(doc) {
   const state = EditorState.create({ doc, extensions: [markdown({ extensions: [LezerTable] })] });
@@ -272,6 +274,38 @@ describe('Navigation und Persistenz-Logik (views/)', () => {
     const snap = views.buildPanesSnapshot();
     expect(snap[0].paths).toEqual(['C:/a.md', 'C:/b.md']);
     expect(snap[0].activeIndex).toBe(1);
+  });
+
+  // 4T-002334 (Epic 3E-000264, T1): Eine System-Seite mit Sitzungs-Eintrag geht
+  // als systemTabs der Spalte in den Schnappschuss; ohne Eintrag fehlt das Feld.
+  it('buildPanesSnapshot trägt systemTabs nur bei angemeldeter Seite mit Eintrag (4T-002334)', () => {
+    const tab = (path) => ({ path, viewMode: 'rendered', scrollSyncEnabled: false });
+    const seite = { path: null, viewMode: 'rendered', systemPage: 'test-snapshot-seite' };
+    let gegenstand = null;
+    appState.state.panes = [{ tabs: [tab('C:/a.md'), seite, tab('C:/b.md')], activeIndex: 1 }];
+    // Nicht angemeldet: das Schema bleibt das bisherige.
+    expect('systemTabs' in views.buildPanesSnapshot()[0]).toBe(false);
+    sitzungsMaske.registriereSystemSeite('test-snapshot-seite', {
+      eintrag: () => gegenstand,
+      oeffne: async () => {},
+    });
+    // Angemeldet, aber ohne Eintrag (etwa eine Neuanlage): kein Feld.
+    expect('systemTabs' in views.buildPanesSnapshot()[0]).toBe(false);
+    gegenstand = { tabelle: 'C:/Library.md', kennung: 'r-00003', maske: null };
+    const snap = views.buildPanesSnapshot();
+    expect(snap[0].paths).toEqual(['C:/a.md', 'C:/b.md']);
+    // Die aktive Seite wird wie bisher auf den ersten Datei-Reiter abgebildet.
+    expect(snap[0].activeIndex).toBe(0);
+    expect(snap[0].systemTabs).toEqual([
+      {
+        page: 'test-snapshot-seite',
+        position: 1,
+        aktiv: true,
+        tabelle: 'C:/Library.md',
+        kennung: 'r-00003',
+        maske: null,
+      },
+    ]);
   });
 });
 

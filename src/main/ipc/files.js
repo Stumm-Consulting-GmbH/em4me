@@ -28,6 +28,8 @@ const { planeZerlegung, ueberSchwelle } = require('../../shared/document-split')
 // 4T-001550: Schwelle, Lese-Hilfe und Ankuendigung je nach Art der Datei.
 const { teilungsOptionen } = require('../documents/teilungs-optionen');
 const { assembleParts } = require('../../shared/document-assembly');
+// 4T-002310 (Epic 3E-000263): Satz einer Abweisung des Definitions-Schutzes.
+const { abweisungsText } = require('../database/definitions-schutz');
 
 // 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
@@ -85,6 +87,7 @@ const DATEI_ARTEN = Object.freeze({
  * @param {(filePath: string) => void} deps.pushRecent Eintrag in die Zuletzt-Liste.
  * @param {Function} deps.readAreaLinks Leser der Verknuepfungen eines Bereichs.
  * @param {() => object|null} deps.getStore Einstellungs-Speicher (Schalter der Erweiterungen).
+ * @param {Function} [deps.definitionsSchutz] Schutz der Definition (4T-002310).
  */
 function registerFilesIpc(handle, deps) {
   const {
@@ -107,6 +110,7 @@ function registerFilesIpc(handle, deps) {
     readAreaLinks,
     // 4T-002069: Einstellungs-Speicher fuer den Schalter der Erweiterung.
     getStore,
+    definitionsSchutz,
   } = deps;
 
   // 4T-002069: Die Ausnahme der verknuepften Bereiche gilt nur bei
@@ -342,6 +346,12 @@ function registerFilesIpc(handle, deps) {
       if (saveGuard.istKonflikt(previousText, expected)) {
         return { ok: false, reason: 'conflict' };
       }
+      // 4T-002310 (Epic 3E-000263, F3 A): Aendert das Speichern die Definition
+      // einer Tabelle oder den Steckbrief, verlangt es `define` der eigenen
+      // Rolle. Eine Abweisung geht den Weg jedes Schreibfehlers: Nichts wird
+      // geschrieben, der Editor meldet den Satz, und der Text bleibt ungespeichert.
+      const abweisung = await pruefeDefinition(owner, absolute, previousText, normalized);
+      if (abweisung) return abweisung;
       const zielPfad = stand.ok && stand.headPath ? stand.headPath : absolute;
       const teilung = teilungsOptionen(normalized); // 4T-001550: dreifach gebraucht
       const plan = planeZerlegung({
@@ -467,6 +477,22 @@ function registerFilesIpc(handle, deps) {
     return rejoinDocument(absolute, { markSelfWriting });
   });
 
+  // 4T-002310 (Epic 3E-000263): Der Schutz der Definition fuer beide
+  // Schreibwege dieser Gruppe. Liefert die Antwort einer Abweisung oder null.
+  async function pruefeDefinition(owner, absolute, alterText, neuerText) {
+    if (typeof definitionsSchutz !== 'function') return null;
+    const bereich = areaOfWindow(owner);
+    const urteil = await definitionsSchutz({
+      pfad: absolute,
+      bereichsWurzel: bereich ? bereich.rootPath : null,
+      alterText,
+      neuerText,
+    });
+    if (!urteil.abgewiesen) return null;
+    const text = abweisungsText(urteil, (k) => tForWindow(owner, k));
+    return { ok: false, error: text, code: urteil.code };
+  }
+
   // Ankuendigung des ersten Teilens (4T-001291, Auflage aus dem Epic).
   // Liefert 'split' oder 'readOnly'; Abbruch und Escape fallen bewusst auf
   // 'readOnly', weil die zurueckhaltende Antwort keine Dateien anlegt.
@@ -544,6 +570,14 @@ function registerFilesIpc(handle, deps) {
       }
       try {
         const normalized = String(content || '').replace(/\r\n/g, '\n');
+        // 4T-002310 (Epic 3E-000263): Dieselbe Pruefung wie beim Speichern. Ist
+        // das Ziel eine bestehende Datei, gilt ihr gespeicherter Stand als alter
+        // Stand; eine neue Datei hat keinen, und eine neue Definition darin
+        // verlangt `define`.
+        const ziel = await readStateForSave(absolute);
+        const alterText = ziel.ok ? ziel.text : null;
+        const abweisung = await pruefeDefinition(owner, absolute, alterText, normalized);
+        if (abweisung) return abweisung;
         // 4T-000331 (Epic 3E-000060): Protokoll-Basis vor dem Ueberschreiben.
         // 4T-001805: Ein Austausch-Erzeugnis bekommt beides nicht — die
         // Begleitdatei der Historie waere ein zweites Erzeugnis neben einer

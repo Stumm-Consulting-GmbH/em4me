@@ -7,11 +7,21 @@
 //
 //   data-fm-record-table  absoluter Pfad der Kopf-Datei der Tabelle
 //   data-fm-record-id     Kennung des Datensatzes, etwa `r-00001`
+//   data-fm-record-maske  (optional) Pfad der Maske, die der Klick öffnet
+//
+// 4T-002249 (Epic 3E-000262, F1 A): Die Zeile einer Listen-Maske trägt die
+// dritte Angabe, wenn die Abfrage-Datei mit `form` eine Maske nennt
+// (`database/listen-maske.js`); ohne sie öffnet der Klick wie bisher die
+// Standard-Maske. Weil dort die ganze Zeile der Treffer ist, geht ein
+// Datei-Link in einer ihrer Zellen dem Klick der Zeile vor.
 //
 // Bewusst **kein** `data-fm-path`: Der zentrale Treffer-Klick öffnete sonst das
-// Tabellen-Dokument, und das ist nach F1 technische Ablage. Ein Verweis im
-// Fließtext springt dagegen weiterhin zur Zeile; ein Datensatz hat damit je
-// nach Ort zwei Klick-Ziele.
+// Tabellen-Dokument, und das ist nach F1 technische Ablage. Seit 4T-002333
+// (Epic 3E-000264, F2 A) führt auch ein Verweis im Fließtext über `openRecordHit`
+// in die Maske (`views/link-navigation.js`, `activateLink`); ein Datensatz hat
+// damit überall dasselbe Klick-Ziel, und die Zeile in der Tabellen-Datei
+// erreicht der Handgriff «Im Tabellen-Dokument zeigen» der Maske
+// (`database/masken-fehlt.js`).
 //
 // **Warum ein Dokument-Ereignis statt eines Imports** (Muster
 // `datensatz-zeilen-zugang.js`): Die beiden Klick-Handler, die dieses Modul
@@ -29,20 +39,29 @@
 'use strict';
 
 const RECORD_HIT = '[data-fm-record-id]';
+const FILE_HIT = '[data-fm-path]';
 
 /**
  * Der Datensatz unter dem Ziel eines Klicks, oder null, wenn der Klick keinen
  * Datensatz der Abfrage-Ausgabe getroffen hat.
  *
  * @param {EventTarget|null} target
- * @returns {{ path: string, id: string }|null} Tabellen-Pfad und Kennung; beide
- *   leer, wenn das getroffene Element sie nicht vollständig trägt.
+ * @returns {{ path: string, id: string, maske: string|null }|null} Tabellen-Pfad
+ *   und Kennung, beide leer, wenn das getroffene Element sie nicht vollständig
+ *   trägt; dazu die genannte Maske oder null (4T-002249).
  */
 export function recordHitOf(target) {
   if (!target || typeof target.closest !== 'function') return null;
   const el = target.closest(RECORD_HIT);
   if (!el) return null;
-  return { path: el.dataset.fmRecordTable || '', id: el.dataset.fmRecordId || '' };
+  // 4T-002249: Ein Datei-Link innerhalb des Treffers ist ein eigener Treffer.
+  const datei = target.closest(FILE_HIT);
+  if (datei && datei !== el && el.contains(datei)) return null;
+  return {
+    path: el.dataset.fmRecordTable || '',
+    id: el.dataset.fmRecordId || '',
+    maske: el.dataset.fmRecordMaske || null,
+  };
 }
 
 /**
@@ -50,14 +69,19 @@ export function recordHitOf(target) {
  * Kennung geschieht nichts; ohne Kennung öffnete die Masken-Seite sonst eine
  * Neuanlage.
  *
- * @param {{ path: string, id: string }|null} hit Ergebnis von `recordHitOf`.
+ * 4T-002249: Nennt der Treffer eine Maske, reist sie als `maske` mit; die
+ * Masken-Seite nimmt Pfad oder Namen einer Masken-Datei der Tabelle. Ohne sie
+ * bleibt das Ereignis, wie es war.
+ *
+ * @param {{ path: string, id: string, maske?: string|null }|null} hit Ergebnis von
+ *   `recordHitOf`.
  * @returns {boolean} true, wenn die Maske angefordert wurde.
  */
 export function openRecordHit(hit) {
   if (!hit || !hit.path || !hit.id) return false;
-  document.dispatchEvent(
-    new CustomEvent('scg:open-form', { detail: { filePath: hit.path, recordId: hit.id } }),
-  );
+  const detail = { filePath: hit.path, recordId: hit.id };
+  if (typeof hit.maske === 'string' && hit.maske) detail.maske = hit.maske;
+  document.dispatchEvent(new CustomEvent('scg:open-form', { detail }));
   return true;
 }
 

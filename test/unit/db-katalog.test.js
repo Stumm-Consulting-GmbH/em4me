@@ -9,9 +9,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   createDatabaseCatalogCache,
+  geltendeMaske,
   katalogUeberblick,
+  maskenDerTabelle,
   tabellenDefinition,
   tabellenName,
+  trifftMaskenAngabe,
   zaehleAbfrageBloecke,
 } from '../../src/main/database/table-catalog.js';
 import {
@@ -25,6 +28,11 @@ import { DB_TABLE_KEY, DB_FORM_KEY } from '../../src/shared/database/table-defin
 import { DB_DATABASE_KEY } from '../../src/shared/database/database-steckbrief.js';
 // 4T-002081: die vierte Marke, die Abfrage-Datei.
 import { DB_QUERY_KEY } from '../../src/shared/database/behaelter.js';
+// 4T-002307: Die Konsistenz-Prüfung führt die Hinweise der Rollen als Befund.
+import {
+  KONSISTENZ_BEFUNDE,
+  pruefeKonsistenz,
+} from '../../src/main/database/konsistenz-pruefung.js';
 
 // --- Nachgestellter Dateizugriff ----------------------------------------------------
 
@@ -369,15 +377,19 @@ describe('Katalog: Masken-Dateien (4T-001943, B2)', () => {
     expect(u.hints).toEqual([]);
   });
 
-  it('lässt die erste Maske nach Pfad gelten und meldet die weitere', async () => {
+  // 4T-002184 (F2 A, AK2): Mehrere Masken je Tabelle sind erlaubt; ohne
+  // Angabe gilt die erste nach Pfad, und keine der beiden trägt einen Hinweis.
+  it('lässt ohne Angabe die erste Maske nach Pfad gelten und meldet die weitere nicht', async () => {
     const u = await ueberblick({
       dateien: { [MASKE_B]: maske('Personen'), [MASKE_A]: maske('Personen') },
       marken: { [MASKE_B]: ['form'], [MASKE_A]: ['form'] },
     });
-    expect(u.tabellen.find((t) => t.name === 'Personen').maske).toBe(MASKE_A);
-    const zweite = u.masken.find((m) => m.path === MASKE_B);
-    expect(zweite.hints.map((h) => [h.code, h.name])).toEqual([['formMehrereDateien', 'Personen']]);
-    expect(u.masken.find((m) => m.path === MASKE_A).hints).toEqual([]);
+    const personen = u.tabellen.find((t) => t.name === 'Personen');
+    expect(personen.maske).toBe(MASKE_A);
+    expect(personen.maskenPfade).toEqual([MASKE_A, MASKE_B]);
+    expect(personen.hints).toEqual([]);
+    expect(u.masken.every((m) => m.hints.length === 0)).toBe(true);
+    expect(u.tabellen.find((t) => t.name === 'Firmen').maskenPfade).toEqual([]);
   });
 
   it('meldet eine Maske zu einer unbekannten Tabelle und eine ohne Tabelle', async () => {
@@ -402,6 +414,123 @@ describe('Katalog: Masken-Dateien (4T-001943, B2)', () => {
     const { fsp } = fakeFs(DATEIEN);
     const u = await katalogUeberblick({ sicht: SICHT, status: 'ready', fsp, cache });
     expect(u.masken).toEqual([]);
+  });
+});
+
+// 4T-002184 (Epic 3E-000261, F1 A, F2 A; AK1 bis AK3): Die Angabe `form` der
+// Tabellen-Definition wählt die Standard-Maske; eine Angabe, die keine eigene
+// Masken-Datei trifft, ist ein Befund der Definition, und es gilt die Regel
+// «ohne Angabe».
+describe('Katalog: Standard-Maske über die Angabe form (4T-002184)', () => {
+  function maske(tabelle) {
+    return `---\n${DB_FORM_KEY}:\n  table: ${tabelle}\n---\n\n{{field:nachname}}\n`;
+  }
+  const MASKE_A = '/db/Personen Form.md';
+  const MASKE_KURZ = '/db/masken/Personen Kurz.md';
+  const MASKE_FIRMEN = '/db/Firmen Form.md';
+
+  function personenMitForm(angabe) {
+    return tabellenDatei(
+      [
+        { name: 'nachname', type: 'string' },
+        { name: 'alter', type: 'number' },
+      ],
+      `  form: ${angabe}\n`,
+    );
+  }
+
+  function bestand(angabe) {
+    const { fsp } = fakeFs({
+      ...DATEIEN,
+      ...(angabe === null ? {} : { [PERSONEN]: personenMitForm(angabe) }),
+      [MASKE_A]: maske('Personen'),
+      [MASKE_KURZ]: maske('Personen'),
+      [MASKE_FIRMEN]: maske('Firmen'),
+    });
+    const sicht = sichtMit({
+      [PERSONEN]: ['table'],
+      [FIRMEN]: ['table'],
+      [STECKBRIEF]: ['database'],
+      [MASKE_A]: ['form'],
+      [MASKE_KURZ]: ['form'],
+      [MASKE_FIRMEN]: ['form'],
+    });
+    return { fsp, sicht };
+  }
+
+  async function personen(angabe) {
+    const { fsp, sicht } = bestand(angabe);
+    const u = await katalogUeberblick({ sicht, status: 'ready', fsp, cache });
+    return u.tabellen.find((t) => t.name === 'Personen');
+  }
+
+  it('macht die genannte Masken-Datei zur Standard-Maske (AK1)', async () => {
+    const eintrag = await personen('Personen Kurz');
+    expect(eintrag.maske).toBe(MASKE_KURZ);
+    expect(eintrag.maskenPfade).toEqual([MASKE_A, MASKE_KURZ]);
+    expect(eintrag.hints).toEqual([]);
+  });
+
+  it('nimmt den Namen ohne Rücksicht auf die Schreibung, mit Ordner und mit Endung', async () => {
+    for (const angabe of ['personen kurz', 'masken/Personen Kurz', 'Personen Kurz.md']) {
+      cache = createDatabaseCatalogCache();
+      expect((await personen(angabe)).maske, angabe).toBe(MASKE_KURZ);
+    }
+  });
+
+  it('bleibt ohne Angabe bei der ersten Masken-Datei nach Pfad (AK2)', async () => {
+    const eintrag = await personen(null);
+    expect(eintrag.maske).toBe(MASKE_A);
+    expect(eintrag.hints).toEqual([]);
+  });
+
+  it('meldet eine fehlende Masken-Datei an der Definition und fällt zurück (AK3)', async () => {
+    const eintrag = await personen('Gibt Es Nicht');
+    expect(eintrag.maske).toBe(MASKE_A);
+    expect(eintrag.hints).toEqual([
+      { code: 'formDateiUnbekannt', index: -1, name: 'Gibt Es Nicht', key: 'form', expected: null },
+    ]);
+  });
+
+  it('meldet die Masken-Datei einer anderen Tabelle und fällt zurück (AK3)', async () => {
+    const eintrag = await personen('Firmen Form');
+    expect(eintrag.maske).toBe(MASKE_A);
+    expect(eintrag.hints.map((h) => [h.code, h.name, h.key, h.expected])).toEqual([
+      ['formDateiFremd', 'Firmen Form', 'form', 'Firmen'],
+    ]);
+  });
+
+  it('fällt ohne eigene Masken-Datei auf die erzeugte Maske zurück und meldet die Angabe', async () => {
+    const { fsp } = fakeFs({ ...DATEIEN, [PERSONEN]: personenMitForm('Personen Kurz') });
+    const sicht = sichtMit({ [PERSONEN]: ['table'], [FIRMEN]: ['table'] });
+    const u = await katalogUeberblick({ sicht, status: 'ready', fsp, cache });
+    const eintrag = u.tabellen.find((t) => t.name === 'Personen');
+    expect(eintrag.maske).toBeNull();
+    expect(eintrag.hints.map((h) => h.code)).toEqual(['formDateiUnbekannt']);
+  });
+
+  it('gibt dieselbe Antwort über die Auskunft je Tabelle wie im Überblick', async () => {
+    const { fsp, sicht } = bestand('Firmen Form');
+    const masken = await maskenDerTabelle({ sicht, fsp, cache, tabellenPfad: PERSONEN });
+    expect(masken.masken).toEqual([MASKE_A, MASKE_KURZ]);
+    expect(masken.standard).toBe(MASKE_A);
+    expect(masken.hinweis.code).toBe('formDateiFremd');
+    const kurz = bestand('Personen Kurz');
+    expect(await geltendeMaske({ sicht: kurz.sicht, fsp: kurz.fsp, tabellenPfad: PERSONEN })).toBe(
+      MASKE_KURZ,
+    );
+    expect(await geltendeMaske({ sicht: kurz.sicht, fsp: kurz.fsp, tabellenPfad: FIRMEN })).toBe(
+      MASKE_FIRMEN,
+    );
+  });
+
+  it('vergleicht einen Masken-Namen wie ein Wiki-Link-Ziel', () => {
+    expect(trifftMaskenAngabe(MASKE_KURZ, 'Personen Kurz')).toBe(true);
+    expect(trifftMaskenAngabe(MASKE_KURZ, 'masken\\Personen Kurz')).toBe(true);
+    expect(trifftMaskenAngabe(MASKE_KURZ, MASKE_KURZ)).toBe(true);
+    expect(trifftMaskenAngabe(MASKE_KURZ, 'Kurz')).toBe(false);
+    expect(trifftMaskenAngabe(MASKE_KURZ, 'andere/Personen Kurz')).toBe(false);
+    expect(trifftMaskenAngabe(MASKE_KURZ, '')).toBe(false);
   });
 });
 
@@ -614,5 +743,188 @@ describe('Abfrage-Datei: Marke und Katalog (4T-002081)', () => {
       cache,
     });
     expect(u.abfragen).toEqual([]);
+  });
+});
+
+// 4T-002248 (Epic 3E-000262, F1 A; AK2, AK3): Die Angaben der Listen-Maske im
+// Behälter der Abfrage-Datei. Der Katalog legt sie aus, reicht sie mit dem
+// Eintrag weiter und prüft die Angabe `form` gegen alle Masken-Dateien der
+// Sicht; eine Angabe, die keine trifft, ist ein Befund der Abfrage-Datei.
+describe('Abfrage-Datei: Angaben der Listen-Maske (4T-002248)', () => {
+  const ZAUN = '```';
+  const LISTE = '/db/Abfragen/Personen-Liste.md';
+  const MASKE = '/db/Masken/Personen Form.md';
+  function listenDatei(behaelter) {
+    return [
+      '---',
+      `${DB_QUERY_KEY}: ${behaelter}`,
+      '---',
+      '',
+      `${ZAUN}perspective-query`,
+      'TABLE nachname FROM "Personen"',
+      ZAUN,
+      '',
+    ].join('\n');
+  }
+  const MASKEN_DATEI = `---\n${DB_FORM_KEY}:\n  table: Personen\n---\n\n{{field:nachname}}\n`;
+
+  async function ueberblick(behaelter, { mitMaske = false } = {}) {
+    const dateien = { ...DATEIEN, [LISTE]: listenDatei(behaelter) };
+    const marken = { [PERSONEN]: ['table'], [STECKBRIEF]: ['database'], [LISTE]: ['query'] };
+    if (mitMaske) {
+      dateien[MASKE] = MASKEN_DATEI;
+      marken[MASKE] = ['form'];
+    }
+    const { fsp } = fakeFs(dateien);
+    return katalogUeberblick({ sicht: sichtMit(marken), status: 'ready', fsp, cache });
+  }
+
+  it('trägt editable, form und allow im Eintrag einer Listen-Maske', async () => {
+    const u = await ueberblick('{ editable: true, form: Personen Form, allow: [create, update] }', {
+      mitMaske: true,
+    });
+    const [liste] = u.abfragen;
+    expect(liste).toMatchObject({
+      name: 'Personen-Liste',
+      path: LISTE,
+      bloecke: 1,
+      editable: true,
+      form: 'Personen Form',
+      allow: ['create', 'update'],
+      hints: [],
+    });
+  });
+
+  it('lässt ohne allow allein update gelten und eine gewöhnliche Abfrage-Datei ohne Angaben', async () => {
+    const mit = await ueberblick('{ editable: true }');
+    expect(mit.abfragen[0]).toMatchObject({ editable: true, form: null, allow: ['update'] });
+    expect(mit.abfragen[0].hints).toEqual([]);
+    const ohne = await ueberblick('');
+    expect(ohne.abfragen[0]).toMatchObject({ editable: false, form: null, allow: [], hints: [] });
+  });
+
+  it('meldet listFormDateiUnbekannt, wenn form keine Masken-Datei trifft', async () => {
+    const u = await ueberblick('{ editable: true, form: Gibt Es Nicht }', { mitMaske: true });
+    const [liste] = u.abfragen;
+    // Die Angabe bleibt stehen; welche Maske dann öffnet, entscheidet die Liste.
+    expect(liste.form).toBe('Gibt Es Nicht');
+    expect(liste.hints.map((h) => [h.code, h.key, h.name])).toEqual([
+      ['listFormDateiUnbekannt', 'form', 'Gibt Es Nicht'],
+    ]);
+    // Der Befund hängt an der Abfrage-Datei und berührt weder Tabellen noch Masken.
+    expect(u.tabellen.every((t) => t.hints.length === 0)).toBe(true);
+    expect(u.masken.every((m) => m.hints.length === 0)).toBe(true);
+  });
+
+  it('nimmt eine bekannte Masken-Datei ohne Hinweis, auch mit Ordner und Endung', async () => {
+    for (const angabe of ['Personen Form', 'personen form', 'Masken/Personen Form.md']) {
+      const u = await ueberblick(`{ editable: true, form: ${angabe} }`, { mitMaske: true });
+      expect(u.abfragen[0].hints, angabe).toEqual([]);
+    }
+  });
+
+  it('reicht die Hinweise der Auslegung an den Eintrag weiter', async () => {
+    const u = await ueberblick('{ editable: true, allow: [update, archive], table: Personen }');
+    expect(u.abfragen[0].allow).toEqual(['update']);
+    expect(u.abfragen[0].hints.map((h) => [h.code, h.name])).toEqual([
+      ['listAllowUnbekannt', 'archive'],
+      ['listAngabeUnbekannt', 'table'],
+    ]);
+  });
+});
+
+// 4T-002307 (Epic 3E-000263, S3; AK2, AK3): Die Rollen des Steckbriefs im
+// Überblick. Erst der Katalog kennt die Tabellen und hält die Rollen gegen sie;
+// die Hinweise gehen denselben Weg wie die übrigen Hinweise des Steckbriefs.
+// Die Konsistenz-Prüfung liest dieselbe Datei über `readFile` und muss
+// dieselben Fälle melden, deshalb steht ihr Fall hier neben dem des Überblicks.
+describe('Katalog: Rollen im Steckbrief (4T-002307)', () => {
+  // Der Steckbrief mit den übergebenen Zeilen unter `roles`.
+  function mitRollen(rollenZeilen) {
+    const kopf = ['---', `${DB_DATABASE_KEY}:`, '  name: Mini-CRM', '  roles:'];
+    return { ...DATEIEN, [STECKBRIEF]: [...kopf, ...rollenZeilen, '---', ''].join('\n') };
+  }
+
+  it('reicht die gegen die Tabellen geprüften Rollen im Steckbrief weiter (AK3)', async () => {
+    const zeilen = [
+      '    vertrieb:',
+      '      personen: [update]',
+      '      Firmen: [create, update]',
+      '    admin: all',
+    ];
+    const { fsp } = fakeFs(mitRollen(zeilen));
+    const u = await katalogUeberblick({ sicht: SICHT, status: 'ready', fsp, cache });
+    expect(u.hints).toEqual([]);
+    expect(u.steckbrief.rollen).toEqual({
+      vertrieb: {
+        alle: false,
+        operationen: { personen: ['update'], Firmen: ['create', 'update'] },
+        alleTabellen: null,
+      },
+      admin: { alle: true, operationen: {}, alleTabellen: null },
+    });
+  });
+
+  it('führt ohne roles kein Feld rollen im Steckbrief', async () => {
+    const { fsp } = fakeFs(DATEIEN);
+    const u = await katalogUeberblick({ sicht: SICHT, status: 'ready', fsp, cache });
+    expect(u.steckbrief).not.toHaveProperty('rollen');
+  });
+
+  it('meldet unbekannte Tabelle und Operation; die Rolle gilt als nicht gesetzt (AK2)', async () => {
+    const zeilen = [
+      '    vertrieb:',
+      '      Firmen: [create, archive]',
+      '      Orte: [update]',
+      '    admin: all',
+    ];
+    const { fsp } = fakeFs(mitRollen(zeilen));
+    const u = await katalogUeberblick({ sicht: SICHT, status: 'ready', fsp, cache });
+    expect(Object.keys(u.steckbrief.rollen)).toEqual(['admin']);
+    const kurz = (h) => [h.code, h.name, h.key, h.wert || null];
+    expect(u.hints.map(kurz)).toEqual([
+      ['roleOperation', 'vertrieb', 'Firmen', 'archive'],
+      ['roleTable', 'vertrieb', 'Orte', null],
+    ]);
+    expect(u.steckbrief.hints.map(kurz)).toEqual(u.hints.map(kurz));
+    expect(u.hints[1].expected).toEqual(['Firmen', 'Personen']);
+
+    // Dieselben Fälle als Befund der Konsistenz-Prüfung, über readFile allein.
+    const nurLesen = { readFile: fsp.readFile };
+    const ergebnis = await pruefeKonsistenz({ fsp: nurLesen, wurzel: '/db', sicht: SICHT });
+    const rollen = ergebnis.befunde.filter((b) => b.code === KONSISTENZ_BEFUNDE.steckbriefRollen);
+    expect(KONSISTENZ_BEFUNDE.steckbriefRollen).toBe('konsistenzSteckbriefRollen');
+    expect(rollen.map((b) => [b.datei, b.wert, b.zieltabelle, b.tabelle])).toEqual([
+      [STECKBRIEF, 'vertrieb', 'Firmen', null],
+      [STECKBRIEF, 'vertrieb', 'Orte', null],
+    ]);
+    // Die Prüfung einer einzelnen Tabelle führt die Rollen nicht.
+    const einzeln = await pruefeKonsistenz({
+      fsp: nurLesen,
+      wurzel: '/db',
+      sicht: SICHT,
+      tabelle: 'Firmen',
+    });
+    expect(einzeln.befunde.some((b) => b.code === KONSISTENZ_BEFUNDE.steckbriefRollen)).toBe(false);
+  });
+});
+
+// 4T-002308 (S3, S4; AK2, AK3): eigene Rolle, Rechte je Tabelle und die
+// Zuordnung auf eine unbekannte Rolle; weitere Fälle in `db-rechte.test.js`.
+describe('Katalog: eigene Rolle und Rechte (4T-002308)', () => {
+  it('trägt eigeneRolle und je Tabelle rechte, Herkunft als Naht (4T-002308)', async () => {
+    const zeilen = ['  roles:', '    admin: all', '    leser:', '      Firmen: [update]'];
+    zeilen.push('  defaultRole: leser', '  users:', '    mstumm: admin', '    gast: editor');
+    const text = ['---', `${DB_DATABASE_KEY}:`, ...zeilen, '---', ''].join('\n');
+    const { fsp } = fakeFs({ ...DATEIEN, [STECKBRIEF]: text });
+    const herkunft = () => ({ benutzer: 'gast', rechner: 'pc' });
+    const u = await katalogUeberblick({ sicht: SICHT, status: 'ready', fsp, cache, herkunft });
+    expect(u.eigeneRolle).toEqual({ rolle: 'leser', anmeldename: 'gast', quelle: 'vorgabe' });
+    const rechte = Object.fromEntries(u.tabellen.map((t) => [t.name, t.rechte.update]));
+    expect(rechte).toEqual({ Firmen: true, Personen: false });
+    expect(u.hints.map((h) => [h.code, h.name, h.wert])).toEqual([
+      ['userRoleUnknown', 'gast', 'editor'],
+    ]);
+    expect(u.steckbrief).toMatchObject({ defaultRole: 'leser', users: { mstumm: 'admin' } });
   });
 });

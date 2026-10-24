@@ -41,7 +41,28 @@ import { validateResultSet } from '../../src/shared/query/result-set.js';
 // dieselben Leser wie der Katalog der Übersicht.
 import { datenbankMarken } from '../../src/shared/database/behaelter.js';
 import { extractFrontmatter } from '../../src/shared/markdown/frontmatter.js';
-import { zaehleAbfrageBloecke } from '../../src/main/database/table-catalog.js';
+import {
+  zaehleAbfrageBloecke,
+  trifftMaskenAngabe,
+  waehleStandardMaske,
+} from '../../src/main/database/table-catalog.js';
+import { parseTableDefinition } from '../../src/shared/database/table-definition.js';
+import { zerlegeMaskenKoerper, felderDesKoerpers } from '../../src/shared/database/form-body.js';
+import { parseListAngaben } from '../../src/shared/database/list-angaben.js';
+// 4T-002313 (Epic 3E-000263): Prüfung und Auflösung der Rollen, über dieselben
+// Funktionen wie Katalog und Schreib-Schnittstelle.
+import { pruefeSteckbriefRollen } from '../../src/shared/database/rollen-angaben.js';
+import { loeseRechte } from '../../src/shared/database/rechte.js';
+// 4T-002174 (Epic 3E-000337): die Datenregel des Abfrage-Diagramms, für die
+// beiden Diagramm-Blöcke von „08 Queries.md".
+import {
+  queryChartSuitability,
+  buildQueryChartInput,
+} from '../../src/shared/query/result-chart.js';
+
+// Ein Block mit einer Diagramm-Form; die beiden älteren Fälle der Seite
+// lassen ihn aus, der Fall 4T-002174 prüft ihn.
+const DIAGRAMM_FORM = /\bDISPLAY\s+(bar|line)\b/i;
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const DEMO_DIR = path.resolve(HERE, '..', '..', 'src', 'demo');
@@ -220,6 +241,23 @@ const EXPECTED_FILES = [
   // ein Ergebnis liefert und sich auf die Datei selbst bezieht, hält der Fall
   // «gruppierte Abfragen und Abfrage-Datei …» am Ende dieser Datei fest.
   'Long Books.md',
+  // 4T-002187 (Epic 3E-000261, Demo-Area-Prüfschritt): die beiden Masken-Dateien
+  // der Bibliothek. «Library Form» ist die Standard-Maske, die «Library.md» mit
+  // `form` nennt, und zeigt Feld- und Wert-Platzhalter samt Link auf die zweite;
+  // «Library Short Form» ist die knappe zweite Maske derselben Tabelle. Ohne
+  // Schlagwörter, wie die erzeugte Fassung einer Masken-Datei, damit die
+  // Abfragen über #demo unverändert bleiben. Dass beide ohne Hinweis zerlegen,
+  // hält der Block «Masken-Dateien der Bibliothek» am Ende dieser Datei fest.
+  'Library Form.md',
+  'Library Short Form.md',
+  // 4T-002254 (Epic 3E-000262, Demo-Area-Prüfschritt): die Listen-Maske über
+  // «Loans» und die Masken-Datei, die sie mit `form` nennt und die «Loans.md» als
+  // Standard-Maske führt. «Loans List» trägt wie «Long Books» die Schlagwörter
+  // demo und data, «Loans Form» wie die Masken der Bibliothek keine; «Library
+  // Form» bettet die Liste als Positions-Bereich ein. Dass alle drei wohlgeformt
+  // sind, hält der Block «Listen-Maske der Ausleihen» am Ende dieser Datei fest.
+  'Loans List.md',
+  'Loans Form.md',
   'Light Speed.md',
   'Milky Way.md',
   'Milky Way∕Proxima Centauri.md',
@@ -539,7 +577,9 @@ describe('Demo-Area: Datensatz-Abfragen von «08 Queries» liefern Ergebnisse (4
     // «Records of the library database».
     const bloecke = [...text.matchAll(/```perspective-query\r?\n([\s\S]*?)\r?\n```/g)]
       .map((m) => m[1])
-      .filter((abfrage) => /\bRECORDS\b/.test(abfrage) && !/\bGROUP BY\b/.test(abfrage));
+      .filter((abfrage) => /\bRECORDS\b/.test(abfrage) && !/\bGROUP BY\b/.test(abfrage))
+      // 4T-002174: Die Diagramm-Blöcke prüft der eigene Fall unten.
+      .filter((abfrage) => !DIAGRAMM_FORM.test(abfrage));
     expect(bloecke).toHaveLength(8);
     const mengen = bloecke.map((abfrage) => {
       const rs = frontmatterQueryFor(seite, abfrage, undefined, undefined, 'en-US').resultSet;
@@ -618,7 +658,9 @@ describe('Demo-Area: Datensatz-Abfragen von «08 Queries» liefern Ergebnisse (4
       return rs;
     };
     const seitenText = fs.readFileSync(seite, 'utf8');
-    const gruppiert = bloeckeVon(seitenText).filter((abfrage) => /\bGROUP BY\b/.test(abfrage));
+    const gruppiert = bloeckeVon(seitenText).filter(
+      (abfrage) => /\bGROUP BY\b/.test(abfrage) && !DIAGRAMM_FORM.test(abfrage),
+    );
     expect(gruppiert).toHaveLength(3);
     const [jeAutor, jeBuch, jeThema] = gruppiert.map((abfrage) => auswerten(seite, abfrage));
 
@@ -694,5 +736,208 @@ describe('Demo-Area: Datensatz-Abfragen von «08 Queries» liefern Ergebnisse (4
     // Gegenprobe: Mit der Seite als Träger fehlt `minpages`, und nichts bleibt;
     // die Treffer oben kommen also aus dem Frontmatter der Abfrage-Datei.
     expect(auswerten(seite, eigeneAbfrage).rows).toEqual([]);
+  });
+
+  // 4T-002174 (Epic 3E-000337, Demo-Area-Prüfschritt): die beiden Blöcke des
+  // Abschnitts «A query as a chart». Geprüft wird über die echte Auswertung und
+  // dieselbe Datenregel, aus der die Anzeige das Bild baut: Eignung, Art,
+  // Beschriftungen und Werte, wie der Erklär-Text sie ankündigt.
+  it('die Diagramm-Abfragen zeigen Balken je Autor und eine Linie je Buch (4T-002174)', async () => {
+    const dest = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-demo-diagramme-'));
+    temps.push(dest);
+    expect(await createDemoAreaAt(dest)).toEqual({ ok: true });
+    const seite = path.join(dest, '08 Queries.md');
+    await indexiere(seite);
+
+    const text = fs.readFileSync(seite, 'utf8');
+    expect(text).toContain('## A query as a chart');
+    const bloecke = [...text.matchAll(/```perspective-query\r?\n([\s\S]*?)\r?\n```/g)]
+      .map((m) => m[1])
+      .filter((abfrage) => DIAGRAMM_FORM.test(abfrage));
+    expect(bloecke).toHaveLength(2);
+    const [balken, linie] = bloecke.map((abfrage) => {
+      const rs = frontmatterQueryFor(seite, abfrage, undefined, undefined, 'en-US').resultSet;
+      expect(validateResultSet(rs), abfrage).toEqual([]);
+      expect(rs.state.queryError, abfrage).toBeFalsy();
+      expect(queryChartSuitability(rs), abfrage).toEqual({ suitable: true, reason: null });
+      return rs;
+    });
+
+    // Balken: je Autor mit mehr als einem Buch eine Rubrik, die meisten Seiten zuerst.
+    expect(balken.wishes.display).toEqual({ form: 'bar', by: null });
+    const bild1 = buildQueryChartInput(balken, { type: 'bar', title: null, noneLabel: '(none)' });
+    expect(bild1.drawable).toBe(true);
+    expect(bild1.categories).toEqual([
+      'Umberto Eco',
+      'Ursula K. Le Guin',
+      'Hermann Hesse',
+      'W. G. Sebald',
+      'Stanisław Lem',
+      'Italo Calvino',
+      'Jorge Luis Borges',
+    ]);
+    expect(bild1.series).toEqual([{ name: 'Pages', values: [1520, 828, 795, 594, 519, 425, 416] }]);
+    expect(bild1.skippedColumns).toEqual([]);
+    expect(bild1.omitted).toBe(0);
+
+    // Linie: die ersten acht Bücher nach Eingang, beschriftet mit dem Titel.
+    expect(linie.wishes.display).toEqual({ form: 'line', by: null });
+    const bild2 = buildQueryChartInput(linie, { type: 'line', title: null, noneLabel: '(none)' });
+    expect(bild2.drawable).toBe(true);
+    expect(bild2.type).toBe('line');
+    // Bücher vom selben Tag ordnet der Titel, die zweite Angabe von SORT.
+    expect(bild2.categories).toEqual([
+      "Foucault's Pendulum",
+      'The Name of the Rose',
+      'Solaris',
+      'The Cyberiad',
+      'A Wizard of Earthsea',
+      'The Dispossessed',
+      "If on a Winter's Night a Traveler",
+      'Invisible Cities',
+    ]);
+    expect(bild2.series).toEqual([
+      { name: 'Pages', values: [880, 640, 224, 295, 183, 341, 260, 165] },
+    ]);
+    expect(bild2.omitted).toBe(0);
+  });
+});
+
+// 4T-002187 (Epic 3E-000261, Demo-Area-Prüfschritt): Die Masken-Dateien der
+// Bibliothek sind wohlgeformt. «Library.md» nennt mit `form` die Standard-Maske,
+// die Auswahl-Regel des Katalogs findet sie unter beiden Masken-Dateien, und
+// beide Körper zerlegen sich gegen die echte Definition ohne Hinweis; der
+// Wert-Platzhalter ist ein gültiger Ausdruck, und die Links führen wechselseitig
+// auf die andere Maske derselben Tabelle.
+describe('Demo-Area: Masken-Dateien der Bibliothek (4T-002187)', () => {
+  const lies = (name) => fs.readFileSync(path.join(DEMO_DIR, name), 'utf8');
+  const LIBRARY = parseTableDefinition(extractFrontmatter(lies('Library.md')).data);
+
+  it('Library.md nennt «Library Form» als Standard-Maske, und die Auswahl-Regel trifft sie', () => {
+    expect(LIBRARY.hints).toEqual([]);
+    expect(LIBRARY.form).toBe('Library Form');
+    // Pfade wie im Katalog, nach Pfad sortiert: Die Angabe muss die Wahl tragen,
+    // auch wenn die Reihenfolge nach Pfad eine andere Datei vorn sähe.
+    const eigene = ['Library Short Form.md', 'Library Form.md'];
+    const wahl = waehleStandardMaske({ eigene, zugeordnet: [], angabe: LIBRARY.form });
+    expect(wahl).toEqual({ pfad: 'Library Form.md', hinweis: null });
+    expect(trifftMaskenAngabe('Library Short Form.md', LIBRARY.form)).toBe(false);
+  });
+
+  it('beide Masken-Dateien nennen die Tabelle Library und zerlegen ohne Hinweis', () => {
+    for (const name of ['Library Form.md', 'Library Short Form.md']) {
+      const kopf = extractFrontmatter(lies(name));
+      expect(datenbankMarken(kopf.data), name).toEqual(['form']);
+      expect(kopf.data['db-form']).toEqual({ table: 'Library' });
+      const { hints } = zerlegeMaskenKoerper(kopf.body, LIBRARY.fields);
+      expect(hints, name).toEqual([]);
+    }
+  });
+
+  it('die Standard-Maske trägt Felder, einen gültigen Wert-Platzhalter und den Link auf die zweite', () => {
+    const kopf = extractFrontmatter(lies('Library Form.md'));
+    const { segmente } = zerlegeMaskenKoerper(kopf.body, LIBRARY.fields);
+    expect(felderDesKoerpers(segmente)).toEqual(LIBRARY.fields.map((feld) => feld.name));
+    const werte = segmente.filter((s) => s.art === 'wert');
+    expect(werte.map((s) => s.ausdruck)).toEqual(['pages / 40']);
+    expect(werte[0].ast).not.toBeNull();
+    expect(kopf.body).toContain('[[Library Short Form]]');
+    expect(extractFrontmatter(lies('Library Short Form.md')).body).toContain('[[Library Form]]');
+  });
+});
+
+// 4T-002254 (Epic 3E-000262, Demo-Area-Prüfschritt): Listen-Maske, Masken-Datei
+// und Positions-Bereich der Ausleihen sind wohlgeformt. «Loans List» ist eine
+// Listen-Maske mit allen drei Handgriffen und nennt «Loans Form», die
+// «Loans.md» als Standard-Maske führt; deren Körper liest Wert und Bereich über
+// das Verweis-Feld «book», und «Library Form» bettet die Liste ohne BY ein,
+// weil «Loans» genau ein Verweis-Feld auf «Library» hat.
+describe('Demo-Area: Listen-Maske der Ausleihen (4T-002254)', () => {
+  const lies = (name) => fs.readFileSync(path.join(DEMO_DIR, name), 'utf8');
+  const LOANS = parseTableDefinition(extractFrontmatter(lies('Loans.md')).data);
+
+  it('Loans List ist eine Listen-Maske mit drei Handgriffen und genau einem Abfrage-Block', () => {
+    const kopf = extractFrontmatter(lies('Loans List.md'));
+    expect(datenbankMarken(kopf.data)).toEqual(['query']);
+    expect(zaehleAbfrageBloecke(kopf.body)).toBe(1);
+    const angaben = parseListAngaben(kopf.data);
+    expect(angaben.hints).toEqual([]);
+    expect(angaben.istListe).toBe(true);
+    expect(angaben.form).toBe('Loans Form');
+    expect(angaben.allow).toEqual(['create', 'update', 'delete']);
+  });
+
+  it('Loans.md nennt «Loans Form», und deren Körper liest Wert und Bereich über book', () => {
+    expect(LOANS.hints).toEqual([]);
+    expect(LOANS.form).toBe('Loans Form');
+    const kopf = extractFrontmatter(lies('Loans Form.md'));
+    expect(kopf.data['db-form']).toEqual({ table: 'Loans' });
+    const { segmente, hints } = zerlegeMaskenKoerper(kopf.body, LOANS.fields);
+    expect(hints).toEqual([]);
+    expect(felderDesKoerpers(segmente)).toEqual(LOANS.fields.map((feld) => feld.name));
+    const wert = segmente.find((s) => s.art === 'wert');
+    expect([wert.ausdruck, wert.pfad]).toEqual(['book.title', true]);
+    const bereich = segmente.find((s) => s.art === 'bereich');
+    expect([bereich.bedingung, bereich.pfad]).toEqual(['book.onloan', true]);
+  });
+
+  it('Library Form bettet Loans List als Positions-Bereich ohne BY ein', () => {
+    const LIBRARY = parseTableDefinition(extractFrontmatter(lies('Library.md')).data);
+    const kopf = extractFrontmatter(lies('Library Form.md'));
+    const { segmente } = zerlegeMaskenKoerper(kopf.body, LIBRARY.fields);
+    const listen = segmente.filter((s) => s.art === 'liste');
+    expect(listen.map((s) => [s.datei, s.by])).toEqual([['Loans List', null]]);
+    const verweise = LOANS.fields.filter((f) => f.type === 'record');
+    expect(verweise.map((f) => [f.name, f.options.table])).toEqual([['book', 'Library']]);
+  });
+});
+
+// 4T-002313 (Epic 3E-000263, Demo-Area-Prüfschritt): Rollen und Feld-Sperre der
+// Bibliothek sind wohlgeformt. Der Steckbrief führt «librarian» mit `all` und
+// «assistant» mit Erlaubnissen an allen drei Tabellen, ohne Hinweis; die
+// Vorgabe-Rolle «librarian» lässt jeden Anwender der Demo uneingeschränkt, weil
+// keine Zuordnung `users` mitgeliefert wird (die Demo-Belege tragen den Benutzer
+// «demo», 4T-002308). Mit «assistant» als Vorgabe gilt, was der Erklär-Text
+// der Seite zusagt. Das Feld `book` der Ausleihen ist fest gesperrt.
+describe('Demo-Area: Rollen und Feld-Sperre der Bibliothek (4T-002313)', () => {
+  const lies = (name) => fs.readFileSync(path.join(DEMO_DIR, name), 'utf8');
+  const TABELLEN = ['Library', 'Loans', 'Staff'];
+  const STECKBRIEF = extractFrontmatter(lies('Library Database.md')).data;
+
+  it('der Steckbrief trägt zwei Rollen und die Vorgabe-Rolle librarian, ohne Hinweis und ohne users', () => {
+    const geprueft = pruefeSteckbriefRollen(STECKBRIEF, TABELLEN);
+    expect(geprueft.leseHinweise).toEqual([]);
+    expect(geprueft.pruefHinweise).toEqual([]);
+    expect(Object.keys(geprueft.rollen)).toEqual(['librarian', 'assistant']);
+    expect(geprueft.defaultRole).toBe('librarian');
+    expect(STECKBRIEF['db-database'].users).toBeUndefined();
+    const { rolle, quelle, rechte } = loeseRechte({
+      ...geprueft,
+      anmeldename: 'jemand',
+      tabellenNamen: TABELLEN,
+    });
+    expect([rolle, quelle]).toEqual(['librarian', 'vorgabe']);
+    for (const name of TABELLEN)
+      expect(rechte[name]).toEqual({ create: true, update: true, delete: true, define: true });
+  });
+
+  it('mit assistant als Vorgabe-Rolle gelten die Einschränkungen des Erklär-Texts', () => {
+    const geprueft = pruefeSteckbriefRollen(STECKBRIEF, TABELLEN);
+    const { rechte } = loeseRechte({
+      ...geprueft,
+      defaultRole: 'assistant',
+      anmeldename: 'jemand',
+      tabellenNamen: TABELLEN,
+    });
+    expect(rechte.Library).toEqual({ create: false, update: true, delete: false, define: false });
+    expect(rechte.Loans).toEqual({ create: true, update: true, delete: true, define: false });
+    expect(rechte.Staff).toEqual({ create: false, update: false, delete: false, define: false });
+  });
+
+  it('Loans.md sperrt das Feld book fest und lässt die übrigen Felder ohne Bedingung', () => {
+    const LOANS = parseTableDefinition(extractFrontmatter(lies('Loans.md')).data);
+    expect(LOANS.hints).toEqual([]);
+    const gesperrt = LOANS.fields.filter((f) => f.editable);
+    expect(gesperrt.map((f) => [f.name, f.editable.art])).toEqual([['book', 'fest']]);
   });
 });

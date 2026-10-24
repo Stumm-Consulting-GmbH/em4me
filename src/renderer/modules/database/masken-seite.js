@@ -42,9 +42,37 @@
 // **Verwendet von** (4T-001945, Bauplan B3): Aktion und Liste der verweisenden
 // Datensätze stehen in `masken-verwendung.js`; die Seite ruft sein Zeichnen beim
 // Aufbau des Kopfs und verwirft beim Umbinden.
+//
+// **Der Inhalt unter dem Kopf** (4T-002182, Epic 3E-000261): Den Satz «nicht
+// bearbeitbar», die Hinweise, den Körper und den Nachlauf der Teilbaum-Schritte
+// zeichnet `masken-koerper.js`; die Seite behält Zustand, Ablauf und Kopf.
+//
+// **Die Navigation zwischen Masken** (4T-002185, F4 A): Ziel-Klärung, Verlauf
+// und «Zurück» stehen in `masken-navigation.js`; die Seite reicht ihr Öffnen,
+// den Katalog und den Link-Weg der Anwendung (`activateLink`) herein und ruft
+// sie beim Umbinden, Zeichnen und Schließen.
+//
+// **Der Positions-Bereich** (4T-002253, S1, S7): Zeichnen und Sammeln stehen in
+// `masken-positionen.js`; die Seite hält die gesammelten Anweisungen
+// (`seite.positionen`), reicht sie dem Speichern und gibt mit dem Ende jeder
+// Bearbeitung die Sperren der Positionen frei.
+//
+// **Die Berechtigung** (4T-002311, E12.4): «Bearbeiten» und «Löschen» folgen
+// Bedingung und Rolle (`istBearbeitbar`, `istLoeschbar` in `masken-koerper.js`);
+// `neuanlageErlaubt` sagt dem Datensatz-Block, ob er «Neuer Datensatz» anbietet.
+//
+// **Der Weg zur Ablage** (4T-002333, F2 A): Den Handgriff «Im Tabellen-Dokument
+// zeigen» trägt `masken-fehlt.js`; die Seite reicht Reiter-Weg, Sprung und
+// Fenster-Zustand herein und ruft sein Zeichnen in der Aktions-Leiste.
+//
+// **Die Sitzung** (4T-002334, E29.1, S4): Die Seite meldet sich beim Laden beim
+// Register der Sitzung (`app/sitzungs-maske.js`) an; Eintrag und Öffner bildet
+// `masken-fehlt.js` aus dem Seiten-Zustand. Den Zustand «Datensatz fehlt» samt
+// «Tabelle öffnen» zeichnet ebenfalls `masken-fehlt.js`; die Seite ruft ihn in
+// der Lage und in der Aktions-Leiste.
 'use strict';
 
-import { currentDictionary, t } from '../../i18n.js';
+import { currentDictionary, intlLocale, t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { state } from '../app/app-state.js';
 import {
@@ -54,19 +82,31 @@ import {
 } from '../app/system-pages.js';
 import { showStatusbarHint } from '../views/views.js';
 import { renderTabbar } from '../views/tabbar.js';
-import { applyTeilbaumSchritte } from '../render-mermaid.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { oeffneBelegAnsicht } from './beleg-ansicht-seite.js';
-import { baueFeldElement, MODUS_BEARBEITEN, MODUS_LESEN } from './masken-felder.js';
-import { closeTab } from '../tabs/tabs.js';
-import { ART_LOESCHEN, erzeugeSpeicherAblauf, markiereFeld } from './masken-speichern.js';
-import { loeseBeschriftung } from '../../../shared/database/beschriftung.js';
-import { hinweisSatz } from '../../../shared/database/table-hinweise.js';
+import { MODUS_BEARBEITEN, MODUS_LESEN } from './masken-felder.js';
+import { closeTab, openInPane } from '../tabs/tabs.js';
+import { ART_LOESCHEN, erzeugeSpeicherAblauf } from './masken-speichern.js';
+import {
+  istBearbeitbar,
+  istLoeschbar,
+  rolleErlaubt,
+  zeichneInhalt,
+  zeichneNachlauf,
+} from './masken-koerper.js';
 import { localTimestamp } from '../time-format.js';
 import { erzeugeSperrAblauf, ZWECK_BEARBEITEN, ZWECK_LOESCHEN } from './masken-sperre.js';
 import { erzeugeVerweisHilfe } from './masken-verweise.js';
 import { dateiName, koerperStand, zeichneQuelle } from './masken-datei.js';
+import { setzeTextEin } from '../../../shared/database/auftrag-text.js';
 import { erzeugeVerwendungsHilfe } from './masken-verwendung.js';
+import { erzeugeNavigation } from './masken-navigation.js';
+import { erzeugePfadAuswertung } from './masken-pfade.js';
+import { positionsBereichAusApi } from './masken-positionen.js';
+import { activateLink } from '../views/link-navigation.js';
+import { scrollToAnchorAfterOpen } from '../views/anchor-navigation.js';
+import { erzeugeDokumentHandgriff, maskenSitzung } from './masken-fehlt.js';
+import { registriereSystemSeite } from '../app/sitzungs-maske.js';
 
 export const MASKEN_PAGE_ID = 'database-form';
 
@@ -79,6 +119,9 @@ const seite = {
   tabellenPfad: null,
   kennung: null,
   neu: false,
+  // 4T-002184: die angeforderte Masken-Datei der Tabelle, oder null für ihre
+  // Standard-Maske; gebunden wie Tabelle und Kennung.
+  maske: null,
   daten: null,
   laden: false,
   modus: MODUS_LESEN,
@@ -99,6 +142,8 @@ const seite = {
   // angezeigte Konflikt (Antwort, Zweck, Grund).
   sperre: null,
   sperrKonflikt: null,
+  // 4T-002253: die gesammelten Anweisungen der Positions-Bereiche.
+  positionen: [],
 };
 
 // Anfrage-Zähler und Gegenstand der laufenden Anfrage (Muster der
@@ -107,8 +152,27 @@ let anfrage = 0;
 let laufendFuer = null;
 // 4T-001942: die Ziel-Listen der Verweis-Felder, verworfen mit jedem Lesen.
 const verweise = erzeugeVerweisHilfe((tabelle) => api.databaseDatensaetze({ tabelle }));
+// 4T-002252: Werte und Bedingungen über Verweis-Pfade, im Haupt-Prozess.
+const pfade = erzeugePfadAuswertung({ kanal: (p) => api.databaseAusdruecke(p) });
+// 4T-002253: der Positions-Bereich, gesammelt bis zum Speichern der Maske.
+const hinweis3s = (key) => showStatusbarHint(key, { duration: 3000 });
+const ausApi = { api, t, hat: hatSchluessel, state, locale: intlLocale, zeitpunkt: localTimestamp };
+const positionen = positionsBereichAusApi({ ...ausApi, hinweis: hinweis3s });
 // 4T-001945: «Verwendet von», auf Anforderung gelesen.
 const verwendung = erzeugeVerwendungsHilfe({ oeffne: oeffneMaske, zeichneNeu: () => zeichne() });
+// 4T-002185: Links im Körper, Verweis-Felder und «Zurück», im Fenster der Seite.
+const navigation = erzeugeNavigation({
+  seite,
+  oeffne: oeffneMaske,
+  ladeUeberblick: () => api.databaseOverview({ filePath: seite.tabellenPfad }),
+  aktiviereLink: (href, wiki, basis, optionen) => {
+    const ort = findSystemTabAcrossPanes(MASKEN_PAGE_ID);
+    return ort ? activateLink(ort.paneIdx, href, wiki, basis, optionen) : undefined;
+  },
+  zeichne: () => zeichne(),
+});
+// 4T-002333 (F2 A): «Im Tabellen-Dokument zeigen», der Weg zur Zeile der Ablage.
+const dokument = erzeugeDokumentHandgriff({ openInPane, scrollToAnchorAfterOpen, state });
 
 // --- Zugang ------------------------------------------------------------------
 
@@ -122,29 +186,42 @@ const verwendung = erzeugeVerwendungsHilfe({ oeffne: oeffneMaske, zeichneNeu: ()
  * @param {string} tabellenPfad Pfad der Tabellen-Datei.
  * @param {string|null} kennung Interne Kennung, oder null für den leeren
  *   Datensatz einer Neuanlage ohne gezogene Kennung.
- * @param {{neu?: boolean}} [optionen] `neu: true` für eine eben eröffnete
- *   Neuanlage mit gezogener Kennung, deren Datensatz noch nicht existiert.
+ * @param {{neu?: boolean, maske?: string|null, verlauf?: string}} [optionen] `neu: true`
+ *   für eine eben eröffnete Neuanlage mit gezogener Kennung, deren Datensatz noch
+ *   nicht existiert; `maske` (4T-002184) nennt eine bestimmte Masken-Datei der
+ *   Tabelle, ohne sie zeigt die Seite die Standard-Maske; `verlauf` (4T-002185)
+ *   kennzeichnet einen Wechsel über die Navigation, ohne ihn beginnt ein neuer
+ *   Verlauf.
  */
 export function oeffneMaske(tabellenPfad, kennung, optionen = {}) {
   if (!isExtensionActive('database')) return;
   if (typeof tabellenPfad !== 'string' || tabellenPfad === '') return;
   if (kennung !== null && (typeof kennung !== 'string' || kennung === '')) return;
   const neu = kennung === null || !!(optionen && optionen.neu === true);
+  const maske =
+    optionen && typeof optionen.maske === 'string' && optionen.maske ? optionen.maske : null;
+  const verlauf = (optionen && optionen.verlauf) || null;
   const anderer =
-    seite.tabellenPfad !== tabellenPfad || seite.kennung !== kennung || seite.neu !== neu;
+    seite.tabellenPfad !== tabellenPfad ||
+    seite.kennung !== kennung ||
+    seite.neu !== neu ||
+    seite.maske !== maske;
   if (anderer && hatUngespeicherteBearbeitung()) {
-    seite.ausstehend = { tabellenPfad, kennung, neu };
+    seite.ausstehend = { tabellenPfad, kennung, neu, maske, verlauf };
     openSystemPage(MASKEN_PAGE_ID, { nextToPath: seite.tabellenPfad });
     zeichne();
     return;
   }
-  binde(tabellenPfad, kennung, neu, anderer);
+  binde({ tabellenPfad, kennung, neu, maske, verlauf }, anderer);
 }
 
-function binde(tabellenPfad, kennung, neu, anderer) {
+function binde({ tabellenPfad, kennung, neu, maske = null, verlauf = null }, anderer) {
+  // 4T-002185: Der Verlauf sieht den alten Gegenstand, bevor er ersetzt wird.
+  navigation.beimBinden(verlauf, anderer);
   seite.tabellenPfad = tabellenPfad;
   seite.kennung = kennung;
   seite.neu = neu;
+  seite.maske = maske;
   seite.ausstehend = null;
   if (anderer) {
     seite.daten = null;
@@ -152,6 +229,7 @@ function binde(tabellenPfad, kennung, neu, anderer) {
     seite.entwurf = null;
     ablauf.vergiss();
     verwendung.verwirf();
+    verwirfPositionen();
     // 4T-001941 (B2): Wer umbindet, verlässt die Bearbeitung des alten Gegenstands.
     void sperrAblauf.freigeben();
     sperrAblauf.vergiss();
@@ -186,13 +264,34 @@ export async function neuerDatensatz(tabellenPfad) {
     return ergebnis.kennung;
   }
   const lage = ergebnis && Array.isArray(ergebnis.lagen) ? ergebnis.lagen[0] : null;
-  const text = lageSatz(
-    ergebnis && ergebnis.code,
-    { ...(lage || {}), tabelle: tabellenName(tabellenPfad) },
-    'database.form.newFailed',
-  );
+  const werte = { ...(lage || {}), tabelle: tabellenName(tabellenPfad) };
+  // 4T-002309: das Operations-Wort der Oberfläche, nach der Regel von `auftrag-text.js`.
+  if (lage && typeof lage.operation === 'string')
+    werte.operation = setzeTextEin('{operation}', lage, { t, hat: hatSchluessel });
+  const text = lageSatz(ergebnis && ergebnis.code, werte, 'database.form.newFailed');
   showStatusbarHint('database.form.newFailed', { text, duration: 4000, error: true });
   return null;
+}
+
+/**
+ * Darf die eigene Rolle in dieser Tabelle anlegen? (4T-002311, E12.4) Für den
+ * Fuß «Neuer Datensatz» des Datensatz-Blocks, gefragt über `database:table`.
+ * Ohne Erlaubnis-Menge in der Antwort gilt wie ohne Rollen «ja»; geschützt wird
+ * an der Schreib-Schnittstelle.
+ *
+ * @param {string} tabellenPfad Pfad der Tabellen-Datei.
+ * @returns {Promise<boolean>}
+ */
+export async function neuanlageErlaubt(tabellenPfad) {
+  if (typeof tabellenPfad !== 'string' || tabellenPfad === '') return true;
+  try {
+    return rolleErlaubt(
+      await api.databaseTable({ filePath: tabellenPfad, tabelle: tabellenPfad }),
+      'create',
+    );
+  } catch {
+    return true;
+  }
 }
 
 /**
@@ -238,11 +337,12 @@ export function maskeOffen() {
 // `scg:open-change-log`), für die End-zu-End-Suite. `recordId: null` öffnet
 // den leeren Datensatz einer Neuanlage ohne gezogene Kennung. Seit 4T-002040
 // auch der Weg des Klicks auf einen Datensatz im Abfrage-Ergebnis
-// (`query/record-hit-click.js`), der stets eine Kennung mitgibt.
+// (`query/record-hit-click.js`), der stets eine Kennung mitgibt. Seit 4T-002184
+// nennt `maske` auf Wunsch eine bestimmte Masken-Datei der Tabelle.
 document.addEventListener('scg:open-form', (ev) => {
   const detail = (ev && ev.detail) || {};
   const kennung = typeof detail.recordId === 'string' ? detail.recordId : null;
-  oeffneMaske(detail.filePath, kennung);
+  oeffneMaske(detail.filePath, kennung, { maske: detail.maske });
 });
 
 // --- Daten ---------------------------------------------------------------------
@@ -258,7 +358,7 @@ function alsStand(antwort) {
 }
 
 function gegenstandSchluessel() {
-  return `${seite.tabellenPfad}\n${seite.kennung}\n${seite.neu}`;
+  return `${seite.tabellenPfad}\n${seite.kennung}\n${seite.neu}\n${seite.maske}`;
 }
 
 async function holeUndZeichne() {
@@ -276,6 +376,8 @@ async function holeUndZeichne() {
       tabelle: pfad,
       kennung: seite.neu ? null : seite.kennung,
       sprache: state.language || null,
+      // 4T-002184: nur bei einer bestimmten Maske, sonst unverändert.
+      ...(seite.maske ? { maske: seite.maske } : {}),
     });
   } catch {
     antwort = null;
@@ -353,24 +455,15 @@ function lageSatz(code, werte, rueckfallKey) {
   return t(rueckfallKey);
 }
 
-function istBearbeitbar(daten) {
-  return !(daten && daten.editable && daten.editable.erfuellt === false);
-}
-
-// Die Aussage «nicht bearbeitbar» mit dem Meldungstext der Bedingung in der
-// Sprache des Anwenders, sonst dem Grund der Auswertung.
-function nichtBearbeitbarText(editable) {
-  const meldung = loeseBeschriftung(editable.meldung, state.language || null);
-  let grund = meldung;
-  if (!grund) {
-    const key = `database.form.notEditableReason.${editable.grund}`;
-    grund = hatSchluessel(key) ? t(key) : t('database.form.notEditableReason.default');
-  }
-  return t('database.form.notEditable').replace('{reason}', grund);
+// 4T-002253: Gesammelte Positionen und ihre Sperren verwerfen.
+function verwirfPositionen() {
+  seite.positionen = [];
+  positionen.gebeSperrenFrei();
 }
 
 function hatUngespeicherteBearbeitung() {
   if (seite.modus !== MODUS_BEARBEITEN || !seite.entwurf) return false;
+  if (seite.positionen.length > 0) return true;
   const daten = seite.daten;
   if (!daten || daten.status !== 'ready') return false;
   return daten.zellen.some((zelle) => {
@@ -397,6 +490,7 @@ const ablauf = erzeugeSpeicherAblauf({
   gelungen,
   neuLaden,
   loeschenAbgebrochen: () => void sperrAblauf.freigeben(),
+  positionen: () => seite.positionen,
 });
 
 // 4T-001941 (Bauplan B2 bis B4): Der Sperr-Ablauf; nach gehaltener Sperre geht
@@ -418,6 +512,9 @@ const sperrAblauf = erzeugeSperrAblauf({
 function gelungen(art) {
   seite.entwurf = null;
   seite.modus = MODUS_LESEN;
+  // 4T-002253: Ein Auftrag allein aus Positionen gibt die Sperre des Kopfes nicht frei.
+  verwirfPositionen();
+  void sperrAblauf.freigeben();
   if (art === ART_LOESCHEN) {
     showStatusbarHint('database.form.deleted', { duration: 3000 });
     const ort = findSystemTabAcrossPanes(MASKEN_PAGE_ID);
@@ -433,6 +530,7 @@ function gelungen(art) {
 function neuLaden() {
   seite.entwurf = null;
   seite.modus = MODUS_LESEN;
+  verwirfPositionen();
   void sperrAblauf.freigeben();
   void holeUndZeichne();
 }
@@ -440,27 +538,41 @@ function neuLaden() {
 // --- Modus-Wechsel ---------------------------------------------------------------
 
 // «Bearbeiten» nimmt zuerst die Sperre (B2); erst danach werden die Felder frei.
+// 4T-002311: Bedingung und Rolle (ändern, bei der Neuanlage anlegen).
+function bearbeitbar(daten) {
+  return !!daten && daten.status === 'ready' && istBearbeitbar(daten, { neu: seite.neu });
+}
+
 function bearbeiten() {
-  const daten = seite.daten;
-  if (!daten || daten.status !== 'ready' || !istBearbeitbar(daten)) return;
-  void sperrAblauf.nehmen(ZWECK_BEARBEITEN);
+  if (bearbeitbar(seite.daten)) void sperrAblauf.nehmen(ZWECK_BEARBEITEN);
 }
 
 function beginneBearbeiten() {
   const daten = seite.daten;
-  if (!daten || daten.status !== 'ready' || !istBearbeitbar(daten)) return;
+  if (!bearbeitbar(daten)) return;
   seite.entwurf = {};
   for (const zelle of daten.zellen) seite.entwurf[zelle.name] = String(zelle.text || '');
   seite.modus = MODUS_BEARBEITEN;
   ablauf.vergiss();
   zeichne();
-  const erstes = seite.container && seite.container.querySelector('.db-form-input');
+  // 4T-002186: Das erste Feld, das nicht in einem verborgenen Bereich steht.
+  const erstes = [
+    ...(seite.container ? seite.container.querySelectorAll('.db-form-input') : []),
+  ].find((eingabe) => !eingabe.closest('.db-form-section[hidden]'));
   if (erstes && typeof erstes.focus === 'function') erstes.focus();
+}
+
+// 4T-002253 (Nachtrag): Eine offen bearbeitete Position wird zuerst vorgemerkt;
+// bleibt sie abgewiesen, unterbleibt der Auftrag, der Befund steht an der Zelle.
+async function speichernMitPositionen() {
+  if (await positionen.uebernimmOffene()) return ablauf.speichern();
+  showStatusbarHint('database.form.positionOffen', { duration: 4000, error: true });
 }
 
 function verwerfen() {
   seite.entwurf = null;
   seite.modus = MODUS_LESEN;
+  verwirfPositionen();
   ablauf.vergiss();
   void sperrAblauf.freigeben();
   zeichne();
@@ -479,18 +591,21 @@ function kopfZeile(daten) {
 }
 
 function zeichneAktionen(kopf, daten) {
-  if (!daten || daten.status !== 'ready') return;
+  // 4T-002334 (T5): Fehlt der Datensatz, bleibt allein «Tabelle öffnen».
+  if (!daten || daten.status !== 'ready') return dokument.zeichneFehlt(kopf, daten, seite);
   const leiste = el('div', 'db-form-actions');
-  const bearbeitbar = istBearbeitbar(daten);
   if (seite.modus === MODUS_BEARBEITEN) {
     leiste.appendChild(
-      knopf('db-form-save', 'database.form.action.save', ablauf.speichern, { aus: seite.sendet }),
+      knopf('db-form-save', 'database.form.action.save', speichernMitPositionen, {
+        aus: seite.sendet,
+      }),
     );
     leiste.appendChild(knopf('db-form-discard', 'database.form.action.discard', verwerfen));
   } else {
-    if (bearbeitbar)
+    if (bearbeitbar(daten))
       leiste.appendChild(knopf('db-form-edit', 'database.form.action.edit', bearbeiten));
-    if (bearbeitbar && !seite.neu) {
+    // 4T-002311: Löschen nach Bedingung und Rolle, unabhängig vom Ändern.
+    if (istLoeschbar(daten) && !seite.neu) {
       // Löschen fragt in der Seite zurück (B6).
       leiste.appendChild(
         knopf(
@@ -508,6 +623,7 @@ function zeichneAktionen(kopf, daten) {
         ),
       );
     }
+    dokument.zeichne(leiste, seite);
   }
   kopf.appendChild(leiste);
 }
@@ -523,7 +639,7 @@ function zeichneBestaetigung(wurzel) {
       const ziel = seite.ausstehend;
       seite.entwurf = null;
       seite.modus = MODUS_LESEN;
-      if (ziel) binde(ziel.tabellenPfad, ziel.kennung, ziel.neu, true);
+      if (ziel) binde(ziel, true);
     }),
   );
   leiste.appendChild(
@@ -541,67 +657,13 @@ function zeichneBestaetigung(wurzel) {
 function lageText(daten) {
   if (daten.status === 'ready') return null;
   if (daten.status === 'unavailable') return t('database.form.noAccess');
+  // 4T-002334 (T5): eigener Hinweis, wenn Datensatz oder Tabelle fehlen.
+  if (dokument.fehltText(daten, seite)) return dokument.fehltText(daten, seite);
   return lageSatz(
     daten.code,
     { tabelle: tabellenName(seite.tabellenPfad), id: seite.kennung },
     'database.form.readError',
   );
-}
-
-function zeichneHinweise(wurzel, hints) {
-  if (hints.length === 0) return;
-  const block = el('div', 'db-form-hints');
-  block.appendChild(el('span', 'db-form-hints-title', t('database.form.hints')));
-  const liste = el('ul', 'db-form-hints-list');
-  for (const hinweis of hints) {
-    const punkt = el('li', 'db-form-hint', hinweisSatz(hinweis, t));
-    punkt.dataset.formCode = String(hinweis.code || '');
-    liste.appendChild(punkt);
-  }
-  block.appendChild(liste);
-  wurzel.appendChild(block);
-}
-
-// Der Körper: Markdown-Segmente als erzeugte Teilbäume (Klasse «erzeugter
-// Teilbaum» des Wächters render-teilbaum-schritte: Darstellung und Befüllung
-// ohne Bearbeitbarkeit, denn die Blöcke sind nicht das offene Dokument, sondern
-// aus der Definition oder der Masken-Datei erzeugt), Feld-Segmente als
-// Feld-Elemente. Die Nachbehandlung läuft erst, wenn die Blöcke im Dokument
-// hängen.
-function zeichneKoerper(wurzel, daten) {
-  const koerper = el('div', 'db-form-body');
-  const bloecke = [];
-  const felder = new Map(daten.fields.map((feld) => [feld.name, feld]));
-  const zellen = new Map(daten.zellen.map((zelle) => [zelle.name, zelle]));
-  for (const segment of daten.koerper.segmente) {
-    if (segment && segment.art === 'markdown') {
-      if (String(segment.text || '').trim() === '') continue;
-      const block = el('div', 'db-form-md markdown-body');
-      block.innerHTML = api.renderMarkdown(String(segment.text), seite.tabellenPfad);
-      koerper.appendChild(block);
-      // 4T-002021: Der Text des Segments ist das Dokument seiner Diagramme.
-      bloecke.push({ knoten: block, text: String(segment.text) });
-    } else if (segment && segment.art === 'feld') {
-      const feld = felder.get(segment.name) || { name: segment.name, type: 'string' };
-      const entwurf = seite.entwurf ? seite.entwurf[segment.name] : undefined;
-      const element = koerper.appendChild(
-        baueFeldElement({
-          feld,
-          zelle: zellen.get(segment.name) || null,
-          modus: seite.modus,
-          text: typeof entwurf === 'string' ? entwurf : undefined,
-          sprache: state.language || null,
-          ...verweise.optionen(feld),
-          beiAenderung: (name, text) => {
-            if (seite.entwurf) seite.entwurf[name] = text;
-          },
-        }),
-      );
-      markiereFeld(element, seite.befunde);
-    }
-  }
-  wurzel.appendChild(koerper);
-  return bloecke;
 }
 
 function zeichne() {
@@ -619,40 +681,28 @@ function zeichne() {
   zeichneQuelle(titel, seite);
   kopf.appendChild(titel);
   zeichneAktionen(kopf, daten);
+  navigation.zeichneZurueck(kopf);
   wurzel.appendChild(kopf);
   verwendung.zeichne(kopf, wurzel, seite);
+  navigation.zeichneMeldung(wurzel);
 
   zeichneBestaetigung(wurzel);
   sperrAblauf.zeichneKonflikt(wurzel);
   ablauf.zeichneLage(wurzel);
   if (seite.laden) wurzel.appendChild(el('p', 'db-form-note', t('database.form.loading')));
 
+  // Eine Lage ersetzt den Inhalt; ein bereiter Stand zeigt ihn (masken-koerper.js).
   let bloecke = [];
-  if (daten) {
-    const lage = lageText(daten);
-    if (lage) {
-      wurzel.appendChild(el('p', 'db-form-note db-form-lage', lage));
-    } else {
-      if (!istBearbeitbar(daten)) {
-        wurzel.appendChild(el('p', 'db-form-not-editable', nichtBearbeitbarText(daten.editable)));
-      }
-      zeichneHinweise(wurzel, daten.koerper.hints);
-      bloecke = zeichneKoerper(wurzel, daten);
-    }
+  const lage = daten ? lageText(daten) : null;
+  if (lage) wurzel.appendChild(el('p', 'db-form-note db-form-lage', lage));
+  else if (daten) {
+    const sprache = state.language || null;
+    const umgebung = { seite, verweise, sprache, navigation, pfade, positionen };
+    bloecke = zeichneInhalt(wurzel, daten, umgebung);
   }
   container.appendChild(wurzel);
-  for (const { knoten, text } of bloecke) {
-    applyTeilbaumSchritte(knoten, seite.tabellenPfad, { dokumentText: text });
-  }
-  // Das erste betroffene Feld eines abgewiesenen Auftrags bekommt einmal den
-  // Fokus (B5).
-  const fokus = seite.fokus;
-  seite.fokus = null;
-  const ziel = fokus
-    ? [...wurzel.querySelectorAll('.db-form-field')].find((f) => f.dataset.field === fokus)
-    : null;
-  const eingabe = ziel && ziel.querySelector('.db-form-input');
-  if (eingabe && typeof eingabe.focus === 'function') eingabe.focus();
+  // Teilbaum-Schritte und Fokus erst, wenn die Wurzel im Dokument hängt.
+  zeichneNachlauf(wurzel, bloecke, seite);
 }
 
 // --- Registrierung -------------------------------------------------------------
@@ -680,6 +730,7 @@ registerSystemPage({
     ablauf.vergiss();
     sperrAblauf.vergiss();
     seite.sendet = false;
+    verwirfPositionen();
   },
   mount(container) {
     seite.container = container;
@@ -688,11 +739,17 @@ registerSystemPage({
   },
   onClose() {
     seite.container = null;
+    // 4T-002185: Der Verlauf endet mit dem Schließen der Seite.
+    navigation.beimSchliessen();
     // 4T-001941 (B2): Wer den Reiter schließt, beendet die Bearbeitung.
     void sperrAblauf.freigeben();
     sperrAblauf.vergiss();
+    verwirfPositionen();
   },
 });
+
+// 4T-002334 (T1): Eintrag und Öffner für die Sitzungs-Wiederherstellung.
+registriereSystemSeite(MASKEN_PAGE_ID, maskenSitzung(seite, oeffneMaske));
 
 // 4T-001941 (B2): Schließen oder Neuladen des Fensters gibt die Sperre frei
 // (Muster der Notiz- und Eigenschafts-Panels). Der Kanal-Aufruf ist abgeschickt,
@@ -701,4 +758,5 @@ registerSystemPage({
 // Absturz-Rest.
 window.addEventListener('beforeunload', () => {
   void sperrAblauf.freigeben();
+  positionen.gebeSperrenFrei();
 });

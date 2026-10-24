@@ -418,3 +418,124 @@ describe('script-sandbox Laufzeit — pq-Knoten-Details', () => {
     ]);
   });
 });
+
+// 4T-002126 (Epic 3E-000345): Vorlagen-Ausschluss in pq.pages und pq.blocks mit
+// derselben Regel wie die Abfrage (Story 4S-000327). Der Abzug trägt den
+// Vorlagen-Ordner wurzel-relativ (templatesFolder, Form wie scriptDataFor); er
+// liegt eine Ebene tief, damit «übergeordneter Ordner» ein eigener Fall ist.
+describe('script-sandbox Laufzeit — Vorlagen-Ausschluss (4T-002126)', () => {
+  function page(name, folder, tags, outlinks) {
+    const rel = folder ? `${folder}/${name}.md` : `${name}.md`;
+    return {
+      props: {},
+      file: {
+        name,
+        folder,
+        path: rel,
+        absPath: `C:/raum/${rel}`,
+        tags,
+        aliases: [],
+        inlinks: [],
+        outlinks,
+      },
+    };
+  }
+  function block(name, folder, anchor) {
+    const rel = folder ? `${folder}/${name}.md` : `${name}.md`;
+    return {
+      file: { path: rel, absPath: `C:/raum/${rel}`, name },
+      anchor,
+      values: {},
+      updatedMs: 1,
+    };
+  }
+  const zuAlpha = [{ path: 'C:/raum/Alpha.md', name: 'Alpha' }];
+  const snapshotMit = (templatesFolder, current) => ({
+    status: 'ready',
+    current: current || 'C:/raum/Start.md',
+    templatesFolder,
+    pages: [
+      page('Start', '', ['projekt'], zuAlpha),
+      page('Alpha', '', [], []),
+      page('Vorlage', 'Meta/Vorlagen', ['projekt'], zuAlpha),
+      page('Tief', 'Meta/Vorlagen/Unter', [], []),
+      page('Nachbar', 'Meta/Vorlagen2', [], []),
+    ],
+    blocks: [
+      block('Vorlage', 'Meta/Vorlagen', 'v1'),
+      block('Tief', 'Meta/Vorlagen/Unter', 't1'),
+      block('Nachbar', 'Meta/Vorlagen2', 'n1'),
+    ],
+  });
+
+  async function run(script, data) {
+    const { deliver, port, received } = createRuntime();
+    deliver({ type: 'pm-script-run', script, data }, [port]);
+    await settle();
+    expect(received.length).toBe(1);
+    expect(received[0].type).toBe('result');
+    return received[0].output.map((n) => n.text);
+  }
+  // Namen der Seiten (bzw. Anker der Blöcke) je Aufruf, als ein Text-Knoten.
+  const seiten = (arg) =>
+    `pq.out(pq.pages(${arg}).map(function (p) { return p.file.name; }).join(","));`;
+  const anker = (arg) =>
+    `pq.out(pq.blocks(${arg}).map(function (b) { return b.anchor; }).join(","));`;
+  const MIT = snapshotMit('Meta/Vorlagen');
+
+  it('pq.pages und pq.blocks ohne Quelle liefern keine Vorlagen, samt Unterordner (AK3)', async () => {
+    expect(await run(seiten('') + anker(''), MIT)).toEqual(['Start,Alpha,Nachbar', 'n1']);
+  });
+
+  it('Schlagwort-, Verweis- und übergeordnete Ordner-Quelle geben nichts frei (AK3)', async () => {
+    expect(
+      await run(
+        seiten('"#projekt"') + seiten('"[[Alpha]]"') + seiten('"Meta"') + anker('"Meta"'),
+        MIT,
+      ),
+    ).toEqual(['Start', 'Start', 'Nachbar', 'n1']);
+    // Gegenprobe ohne Ordner: dieselben Quellen träfen die Vorlage.
+    expect(await run(seiten('"#projekt"') + seiten('"Meta"'), snapshotMit(null))).toEqual([
+      'Start,Vorlage',
+      'Vorlage,Tief,Nachbar',
+    ]);
+  });
+
+  it('Präfix-Nachbar ist keine Vorlage und nennt den Vorlagen-Ordner nicht (AK3)', async () => {
+    expect(await run(seiten('"Meta/Vorlagen2"'), MIT)).toEqual(['Nachbar']);
+  });
+
+  it('Ordner-Quelle auf den Vorlagen-Ordner oder einen Unterordner liefert genau deren Inhalt (AK3)', async () => {
+    const script =
+      seiten('"Meta/Vorlagen"') +
+      seiten('"Meta/Vorlagen/Unter"') +
+      seiten('"/meta/vorlagen/"') +
+      anker('"Meta/Vorlagen"') +
+      anker('"Meta/Vorlagen/Unter"');
+    expect(await run(script, MIT)).toEqual(['Vorlage,Tief', 'Tief', 'Vorlage,Tief', 'v1,t1', 't1']);
+  });
+
+  it('pq.file, pq.current und pq.link finden eine Vorlage beim Namen (AK3)', async () => {
+    const data = snapshotMit('Meta/Vorlagen', 'C:/raum/Meta/Vorlagen/Vorlage.md');
+    const output = await run(
+      'pq.out(pq.file("Vorlage").file.name, pq.current().file.name, pq.link("Tief").path);',
+      data,
+    );
+    expect(output).toEqual(['Vorlage', 'Vorlage', 'C:/raum/Meta/Vorlagen/Unter/Tief.md']);
+  });
+
+  it('ohne Vorlagen-Ordner (Erweiterung aus, keiner gewählt) wird nichts ausgeschlossen (AK4)', async () => {
+    const alle = ['Start,Alpha,Vorlage,Tief,Nachbar', 'v1,t1,n1'];
+    expect(await run(seiten('') + anker(''), snapshotMit(null))).toEqual(alle);
+    const ohneFeld = snapshotMit(null);
+    delete ohneFeld.templatesFolder;
+    expect(await run(seiten('') + anker(''), ohneFeld)).toEqual(alle);
+  });
+
+  it('Vorlagen-Ordner gleich der Wurzel: ohne Quelle nichts, eine Ordner-Quelle gibt frei', async () => {
+    expect(await run(seiten('') + seiten('"Meta/Vorlagen"'), snapshotMit(''))).toEqual([
+      '',
+      'Vorlage,Tief',
+    ]);
+  });
+});

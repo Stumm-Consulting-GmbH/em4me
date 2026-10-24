@@ -141,7 +141,7 @@ Drei Angaben der Definition gehören dazu:
 
 | Angabe | Bedeutung |
 | --- | --- |
-| `lastId` | Hochwasserstand: die höchste je vergebene Nummer der Tabelle. Die nächste Kennung entsteht aus ihm und nicht aus dem Bestand, damit die Nummer eines gelöschten Datensatzes kein zweites Mal vergeben wird |
+| `lastId` | Hochwasserstand: die höchste je vergebene Nummer der Tabelle. Die nächste Kennung liegt über ihm und über der höchsten Kennung im Bestand, damit die Nummer eines gelöschten Datensatzes kein zweites Mal vergeben wird und auch ohne oder mit zu niedrigem Hochwasserstand keine Kennung doppelt |
 | `key` | der fachliche Schlüssel: ein Feld-Name oder eine Liste von Feld-Namen. Optional, weil eine Bewegungs- oder Messwert-Tabelle keinen sinnvollen menschenlesbaren Schlüssel hat |
 | `display` | das Feld, mit dem ein Datensatz bezeichnet wird. Ohne Angabe gilt ein einteiliger fachlicher Schlüssel, ohne beides die interne Kennung |
 
@@ -253,6 +253,29 @@ Beim Speichern durch die Anwendung gilt:
 
 Ohne die Angabe ist jeder Datensatz bearbeitbar.
 
+**Dieselbe Angabe am Feld.** Ein einzelnes Feld trägt `editable` in seinem eigenen Eintrag und ist dann nur unter dieser Bedingung änderbar; der Datensatz bleibt sichtbar und in seinen übrigen Feldern bearbeitbar:
+
+```yaml
+db-table:
+  fields:
+    - name: buch
+      type: record
+      editable: false
+    - name: frist
+      type: date
+      editable: NOT erledigt
+    - name: erledigt
+      type: boolean
+```
+
+- Die Bedingung hat dieselbe Form wie an der Tabelle, als Text oder als Objekt `{ rule, message }`, und darf jedes Feld der Tabelle nennen. `false` sperrt das Feld fest, `true` gibt es ausdrücklich frei; beide Wörter gelten nur am Feld, nicht an der Tabelle.
+- Sie gilt allein für das **Ändern**. Beim Anlegen ist jedes Feld frei, und das Löschen berührt sie nicht. Gemessen wird wie an der Tabelle am gespeicherten Stand vor der Änderung.
+- Ändert ein Speichern den Wert eines gesperrten Feldes, wird es abgewiesen; die Meldung nennt Feld, Datensatz und Regel, bei der festen Sperre die Regel «false». Ein unveränderter Wert in einem gesperrten Feld ist kein Fehler. Ist schon der Datensatz nach der Bedingung der Tabelle gesperrt, steht allein dessen Meldung.
+- Beim Bearbeiten in der Maske und in einer Zeile der Listen-Maske bleibt ein gesperrtes Feld lesend, und ein Tooltip sagt, dass es nach der Bedingung der Definition zurzeit nicht änderbar ist. Ist die Bedingung nach einem Speichern erfüllt, ist das Feld beim nächsten Bearbeiten frei.
+- Eine unbrauchbare Bedingung entfällt mit einem Hinweis, und das Feld bleibt bearbeitbar.
+
+Bearbeitbarkeit und Berechtigung wirken zusammen und sind doch zweierlei: `editable` hängt am Datensatz und gilt für jeden, die Berechtigung hängt an der Rolle (Abschnitt «Berechtigungen»).
+
 ## Anzeige der Datensätze
 
 In der Lese-Ansicht und im Änderungs-Modus erscheint der Block als Tabelle mit den Spalten der Definition. Jeder Wert wird nach dem Typ seiner Spalte dargestellt: Zahlen rechtsbündig und mit den erklärten Nachkommastellen, Wahrheitswerte als Haken, mehrzeilige Werte mit ihren Umbrüchen. Passt ein Wert nicht zu seinem Typ, zeigt die Zelle ihren ursprünglichen Text und wird farblich gekennzeichnet, statt ersetzt zu werden.
@@ -271,7 +294,7 @@ Jeder Datensatz hat eine **Maske**: eine eigene Seite, die seine Felder in der R
 
 Einen bestehenden Datensatz öffnet die Schaltfläche **«Datensatz öffnen»** am Anfang seiner Zeile, vor der Schaltfläche der Änderungsbelege, in der Lese-Ansicht wie in der Live-Ansicht. Mit der Tastatur führt die Pfeiltaste nach links von der Beleg-Schaltfläche zu ihr.
 
-Aus dem Ergebnis einer Datensatz-Abfrage öffnet ein Klick auf einen Datensatz oder auf einen Verweis die Maske ebenso (Seite [Perspective-Abfrage](frontmatter-query.md)). Sie zeigt dabei den gespeicherten Stand, auch wenn die Abfrage einen ungespeicherten anzeigt.
+Aus dem Ergebnis einer Datensatz-Abfrage öffnet ein Klick auf einen Datensatz oder auf einen Verweis die Maske ebenso (Seite [Perspective-Abfrage](frontmatter-query.md)). Sie zeigt dabei den gespeicherten Stand, auch wenn die Abfrage einen ungespeicherten anzeigt. In einer Listen-Maske öffnet der Klick die Maske, die sie nennt (Abschnitt «Listen-Maske»). Ebenso öffnen ein Verweis auf einen Datensatz im Text eines Dokuments (Abschnitt «Verweis auf einen einzelnen Datensatz») und ein Datensatz-Treffer der Suche über den Bereich (Abschnitt «Auffindbarkeit: Suche und Verweise») die Maske.
 
 Einen neuen Datensatz legen drei Wege an:
 
@@ -287,6 +310,8 @@ Ein neuer Datensatz bekommt seine interne Kennung schon beim Öffnen der Maske: 
 
 Die Maske öffnet **lesend**. Die Werte stehen als Text da, ein Wahrheitswert als Haken, und ein Pflichtfeld ist als solches gekennzeichnet. Im Kopf stehen die Aktionen **«Bearbeiten»**, **«Löschen»** und **«Belege»**; die letzte öffnet die Änderungsbelege des Datensatzes.
 
+Dahinter steht der Handgriff **«Im Tabellen-Dokument zeigen»**. Er öffnet die Tabellen-Datei und bringt die Zeile des Datensatzes in den Blick, auch wenn er in einer Folge-Datei steht: In der Lese-Ansicht rollt die Anzeige zu seiner Zeile, sofern er unter den 2000 Datensätzen ist, die sie zeigt; in der Live- und der Quellcode-Ansicht steht die Schreibmarke auf ihr. Bei einer Neuanlage fehlt der Handgriff, weil der Datensatz noch nicht in der Datei steht.
+
 **«Bearbeiten»** macht aus jedem Feld eine Eingabe in der Form seines Typs:
 
 | Typ | Eingabe |
@@ -300,7 +325,7 @@ Ein Wert, der nicht zu seinem Typ passt, bekommt stattdessen die einfache Textei
 
 **«Speichern»** schreibt die Änderung und kehrt ins Lesen zurück, **«Verwerfen»** kehrt ohne zu schreiben zum gelesenen Stand zurück. Geschrieben werden allein die Felder, die Sie geändert haben. Haben Sie nichts geändert, gibt es nichts zu speichern, und die Statuszeile sagt das.
 
-Ist ein Datensatz nach der Bedingung seiner Tabelle nicht bearbeitbar, fehlen **«Bearbeiten»** und **«Löschen»**, und ein Satz in der Maske nennt den Grund, mit dem Meldungstext der Bedingung, wenn sie einen hat.
+Ist ein Datensatz nach der Bedingung seiner Tabelle nicht bearbeitbar, fehlen **«Bearbeiten»** und **«Löschen»**, und ein Satz in der Maske nennt den Grund, mit dem Meldungstext der Bedingung, wenn sie einen hat. Erlaubt Ihre Rolle das Ändern nicht, fehlt «Bearbeiten», und der Satz nennt die Rolle; erlaubt sie das Löschen nicht, fehlt «Löschen» (Abschnitt «Berechtigungen»).
 
 ### Verweis-Felder und Wertehilfe
 
@@ -347,9 +372,74 @@ db-form:
 
 Der Behälter `db-form` nennt die Tabelle, und je Feld steht ein **Feld-Platzhalter** `{{field:<Name>}}` im Text. Um die Platzhalter herum ist alles gewöhnliches Markdown: Eine Überschrift zwischen zwei Feldern oder ein erklärender Satz erscheint in der Maske so, wie er in der Datei steht. Ein Rückstrich vor den geschweiften Klammern macht einen Platzhalter zu gewöhnlichem Text.
 
+**Zwei Bedeutungen von `table`.** Im Frontmatter der Datenbank, im Behälter `db-form` wie in der Angabe `options.table` einer Verweis-Spalte, nennt `table` eine Datenbank-Tabelle. In einem Block der [Perspective Datatable](datatable.md) gibt die Zeile `table:` dagegen dieser Datentabelle selbst einen Namen, unter dem Diagramme und Verweise sie erreichen. Gleich ist allein das Wort: Eine Datentabelle ist keine Datenbank-Tabelle.
+
 Beim nächsten Öffnen zeigt die Maske den Text der Datei. Im Kopf steht dann, aus welcher Datei die Maske stammt, und der Handgriff entfällt; die Übersicht der Datenbank nennt die Datei in der Spalte **«Maske»**. Wird die Datei gelöscht, zeigt die Maske wieder die erzeugte Fassung.
 
-**Gelesen wird allein der Feld-Platzhalter.** Ein Feld, das die Datei nicht nennt, zeigt die Maske nicht, und beim Speichern bleibt es unberührt; eine Neuanlage füllt nur die genannten Felder. Ein anderer Platzhalter und ein Feld-Name, den die Tabelle nicht kennt, bleiben als Text stehen und werden gemeldet, wie im Abschnitt «Fehlerhafte Angaben» beschrieben.
+**Gezeigt wird, was die Datei nennt.** Ein Feld, das die Datei nicht nennt, zeigt die Maske nicht, und beim Speichern bleibt es unberührt; eine Neuanlage füllt nur die genannten Felder. Ein Platzhalter, der weder Feld- noch Wert-Platzhalter ist, und ein Feld-Name, den die Tabelle nicht kennt, bleiben als Text stehen und werden gemeldet, wie im Abschnitt «Fehlerhafte Angaben» beschrieben.
+
+Der **Wert-Platzhalter** `{{value:<Ausdruck>}}` zeigt einen Wert, den die Maske aus den Feldern des gezeigten Datensatzes rechnet, etwa `{{value:menge * preis}}` für den Betrag einer Position oder `{{value:lent + dur(14 days)}}` für das Datum vierzehn Tage nach dem Feld `lent`. Der Ausdruck ist einer der [Abfrage-Sprache](frontmatter-query.md), wie in einer Prüfregel: Felder nennt er mit ihrem Namen, ein Datums-Feld rechnet als Datum, und es gelten dieselben Rechenarten und Funktionen. Der Wert erscheint wie in einer Tabellen-Abfrage, eine Zahl etwa als `7.5`, ein Datum als `2026-10-15`, eine Dauer als `10d` und ein Wahrheitswert als `true` oder `false`. Beim Bearbeiten rechnet die Maske ihn mit jeder Eingabe neu, ohne dass gespeichert wird. Gespeichert wird der Wert selbst nie; er ist kein Feld des Datensatzes.
+
+Ergibt der Ausdruck für einen Datensatz keinen Wert, etwa weil ein Feld leer ist, bleibt die Stelle leer und ist markiert; ein Tooltip sagt das, und gemeldet wird nichts. Ein ungültiger Ausdruck, etwa mit einem Tippfehler, lässt die Stelle ebenso leer und wird mit seiner Zeile im Kopf der Maske gemeldet; die übrige Maske bleibt bedienbar.
+
+**Der Wert steht im Satz**, wenn der Platzhalter innerhalb einer Textzeile steht: `Fällig am {{value:lent + dur(14 days)}}` zeigt «Fällig am 2026-10-15» in einer Zeile. Steht der Platzhalter allein auf seiner Zeile, bekommt der Wert eine eigene Zeile. Ein Feld-Platzhalter steht immer auf eigener Zeile.
+
+**Bedingte Bereiche.** Ein Abschnitt zwischen den Markern `{{when:<Bedingung>}}` und `{{end}}` erscheint nur, wenn die Bedingung zutrifft. Beide Marker stehen allein auf ihrer Zeile; ein Bereich umfasst damit ganze Absätze, Überschriften, Tabellen, Listen und die Platzhalter darin, nie halbe Zeilen. Die Bedingung ist ein Ausdruck der [Abfrage-Sprache](frontmatter-query.md) über die Felder des gezeigten Datensatzes, wie eine Prüfregel: `{{when:onloan}}` zeigt den Abschnitt bei einem verliehenen Buch, `{{when:pages > 500}}` bei einem dicken. Bereiche dürfen ineinander liegen; ein innerer erscheint nur, wenn auch der äußere erscheint. Beim Bearbeiten erscheint und verschwindet ein Bereich mit jeder Eingabe, ohne Speichern; im Lesen gilt der gespeicherte Stand.
+
+```markdown
+**On loan:** {{field:onLoan}}
+
+{{when:onloan}}
+## Out on loan
+
+**Loan note:** {{field:loanNote}}
+{{end}}
+```
+
+**Die Bedingung wirkt allein auf die Anzeige, nie auf den Wert.** Ein Feld in einem verborgenen Bereich behält seinen Inhalt und wird mitgespeichert; die Bedingung nimmt es weder vom Speichern noch von den Prüfregeln aus. Weist eine Regel ein solches Feld ab, steht die Meldung im Kopf der Maske und nennt das Feld; der Bereich bleibt verborgen. Einen Sonst-Zweig und Schleifen gibt es nicht: Ein Gegenfall entsteht als zweiter Bereich mit der verneinten Bedingung, etwa `{{when:NOT onloan}}`. Ein Rückstrich vor den Klammern macht auch einen Marker zu gewöhnlichem Text.
+
+**Verweis-Pfade.** Wert-Platzhalter und Bedingung lesen über ein Verweis-Feld auch die Felder des verwiesenen Datensatzes: In einer Maske der Ausleihen zeigt `{{value:book.title}}` den Titel des ausgeliehenen Buchs, und `{{when:book.onloan}}` zeigt einen Abschnitt, solange das Buch als verliehen markiert ist. Vor dem Punkt steht das Verweis-Feld, dahinter ein Feld der Ziel-Tabelle. Einen solchen Pfad rechnet die Anwendung nach einer kurzen Verzögerung, und bis zur Antwort bleibt der vorige Wert stehen; beim Bearbeiten folgt er jeder Eingabe, auch der Wahl eines anderen Verweises, ohne Speichern. Ist der Verweis leer oder trifft er keinen Datensatz, bleibt die Stelle leer und markiert, ohne Meldung, und ein Bereich bleibt verborgen. Nennt der Pfad kein Verweis-Feld der Tabelle oder kein Feld der Ziel-Tabelle, bleibt die Stelle ebenso leer, und die Maske meldet ihn mit seiner Zeile im Kopf.
+
+**Positionen.** Der Platzhalter `{{list:<Abfrage-Datei>}}` zeigt in der Maske die Datensätze einer anderen Tabelle, die auf den gezeigten verweisen, und speichert sie mit ihm zusammen; der Abschnitt «Positionen in der Maske» beschreibt ihn.
+
+**Masken-Datei und Vorlage.** Eine Masken-Datei sieht aus wie eine [Vorlage](templates.md), weil beide ihre Platzhalter in doppelten geschweiften Klammern schreiben, und tut doch etwas anderes. Eine Vorlage wird einmal angewendet: `{{date}}` wird beim Anlegen einer Datei durch das Datum ersetzt, danach steht dort Text. Eine Masken-Datei wird nie angewendet: `{{field:Name}}` und `{{value:menge * preis}}` löst die Maske bei jeder Anzeige gegen den gezeigten Datensatz auf, und die Datei behält ihre Platzhalter. Eine Masken-Datei gehört deshalb neben ihre Tabelle und nicht in den Vorlagen-Ordner.
+
+### Nach dem Neustart
+
+Ist die Sitzungs-Wiederherstellung eingeschaltet (Hilfe → Sitzung wiederherstellen) und die Maske beim Beenden geöffnet, kehrt sie beim nächsten Start zurück: an ihre Stelle unter den geöffneten Dokumenten ihrer Spalte, mit demselben Datensatz in derselben Masken-Datei. War sie in ihrer Spalte das gezeigte Dokument, ist sie es wieder. Eine noch nicht gespeicherte Neuanlage kehrt nicht zurück. Der Weg für «Zurück» beginnt nach dem Neustart neu.
+
+**Fehlt der Datensatz inzwischen**, etwa weil er zwischen Beenden und Neustart gelöscht wurde, verschwindet die Maske nicht. Sie zeigt den Hinweis, dass der Datensatz in seiner Tabelle nicht mehr vorhanden ist und die Maske geöffnet bleibt, bis Sie sie schließen, und trägt im Kopf den Handgriff **«Tabelle öffnen»**, der die Tabellen-Datei öffnet.
+
+**Ist die Datenbank beim Start abgeschaltet**, kehrt die Maske nicht zurück, ihr Eintrag geht aber nicht verloren: Er ruht und bleibt auch über weitere Neustarts erhalten. Nach dem Einschalten kehrt die Maske mit dem nächsten Start an ihre Stelle zurück. Trug ihre Spalte nichts als die Maske, kehrt sie in die verbleibende Spalte zurück, hinter deren Dokumente.
+
+### Mehrere Masken und die Standard-Maske
+
+Eine Tabelle kann mehrere Masken-Dateien haben, etwa eine ausführliche und eine knappe. Welche beim Öffnen eines Datensatzes erscheint, die **Standard-Maske**, legt die Angabe `form` in der Tabellen-Definition fest, mit dem Namen der Masken-Datei ohne Endung, wie das Ziel eines Wiki-Links:
+
+```yaml
+db-table:
+  form: Kunden Form
+  fields:
+    - name: Name
+      type: string
+```
+
+Ohne die Angabe gilt die erste Masken-Datei der Tabelle nach Pfad, und gibt es keine, die erzeugte Maske; eine einzelne Masken-Datei wirkt also ohne jede Angabe. Die übrigen Masken-Dateien bleiben Masken der Tabelle: Ein Link aus einer Maske führt in sie, wie der nächste Abschnitt beschreibt.
+
+In der Übersicht der Datenbank nennt die Spalte **«Maske»** die Standard-Maske jeder Tabelle und dahinter die Zahl der weiteren Masken-Dateien, etwa «+1 weitere». Wird die Standard-Maske gelöscht oder umbenannt, ohne dass die Angabe nachgezogen wird, meldet die Übersicht das, und es gilt wieder die Regel ohne Angabe.
+
+### Zwischen Masken wechseln
+
+Ein Link im Text einer Masken-Datei, als Wiki-Link wie `[[Kunden Kurz]]` oder als Markdown-Link, wirkt in der Maske nach seinem Ziel:
+
+- Ist das Ziel eine **andere Masken-Datei derselben Tabelle**, zeigt die Maske denselben Datensatz in dieser Maske.
+- Ist das Ziel die **Masken-Datei einer anderen Tabelle**, sagt ein Satz unter dem Kopf, dass dafür ein Datensatz fehlt; geöffnet und angelegt wird nichts.
+- Ist das Ziel ein **Datensatz**, als Wiki-Link wie `[[Kunden#^r-00002]]`, zeigt die Maske diesen Datensatz in der Standard-Maske seiner Tabelle. Trifft der Verweis keinen Datensatz eindeutig, öffnet er die Tabellen-Datei; ein Markdown-Link auf eine Tabellen-Datei öffnet sie als Dokument.
+- **Jeder andere Link** öffnet sein Dokument, wie überall in der Anwendung.
+
+Ein gefülltes **Verweis-Feld** ist im Lesen anklickbar: Ein Klick öffnet den verwiesenen Datensatz in der Standard-Maske seiner Tabelle. Trifft der Wert keinen Datensatz, sagt das ein Satz unter dem Kopf, und die Maske bleibt, wo sie ist. Ein leeres Verweis-Feld ist nicht anklickbar, und im Bearbeiten bleibt das Feld die Eingabe mit Wertehilfe.
+
+Jeder Wechsel über einen Link, ein Verweis-Feld, einen Datensatz-Verweis im Text oder «Verwendet von» merkt sich den Datensatz, von dem er kam. **«Zurück»** über der Überschrift im Kopf führt zu ihm in seiner Maske zurück, auch über mehrere Schritte; ohne vorigen Schritt erscheint die Schaltfläche nicht. Öffnen Sie einen Datensatz von außen, etwa aus seiner Zeile oder aus der Übersicht, beginnt der Weg neu, und das Schließen der Maske beendet ihn. Ist die Bearbeitung nicht gespeichert, fragt die Maske vor jedem Wechsel, auch vor «Zurück»: **«Verwerfen»** wechselt, **«Weiter bearbeiten»** bleibt mit allen Eingaben stehen.
 
 ## Speichern durch die Anwendung
 
@@ -359,10 +449,12 @@ Jede Änderung läuft durch einen Weg, der sie vor dem Schreiben prüft. Ein Wer
 
 Dazu kommen die Regeln aus der Definition der Tabelle, die in den Abschnitten oben beschrieben sind. Eine Änderung wird auch abgewiesen, wenn
 
+- die eigene **Rolle** die Operation an der Tabelle nicht erlaubt (Abschnitt «Berechtigungen»),
 - danach ein **fachlicher Schlüssel** doppelt vergeben wäre,
 - ein **Verweis** keinen oder mehr als einen Datensatz trifft oder seine Ziel-Tabelle fehlt,
 - ein Datensatz gelöscht werden soll, auf den noch **verwiesen** wird,
 - ein Wert oder ein Datensatz eine **Prüfregel** verletzt,
+- ein **Feld** geändert wird, das nach seiner eigenen Bedingung gesperrt ist,
 - ein Datensatz nach der Bedingung seiner Tabelle **nicht bearbeitbar** ist oder
 - die Tabellen des Bereichs **noch nicht vollständig eingelesen** sind und die Änderung einen Verweis setzt oder einen Datensatz löscht.
 
@@ -434,6 +526,8 @@ Eine Änderung, die Sie von Hand im Editor an der Tabellen-Datei vornehmen, erze
 
 Was sie stattdessen tut: Beim nächsten eigenen Schreibvorgang vergleicht sie den vorgefundenen Stand mit dem erwarteten. Weicht er ab, speichert sie die neue Änderung zunächst nicht, damit die aktuelle Fassung angesehen werden kann; wird sie danach dennoch gespeichert, hält ein Beleg der Art **Von außen geändert** den Unterschied fest. Nichts verschwindet damit unbemerkt. Zeitpunkt und Urheber dieser Änderung nennt der Beleg jedoch nicht, weil beides nicht bekannt ist.
 
+**Die Berechtigung schützt auf diesem Weg allein die Definition.** Speichern Sie im Editor der Anwendung eine geänderte Definition, prüft die Anwendung Ihre Rolle (Abschnitt «Berechtigungen»). Eine Änderung am Datensatz-Block prüft sie dort dagegen weder gegen die Rolle noch gegen die Regeln der Tabelle, und mit einem anderen Editor greift keine der beiden Prüfungen.
+
 ## Sperren
 
 Eine Sperre sorgt dafür, dass ein Datensatz nicht an zwei Stellen zugleich bearbeitet wird, etwa in zwei Fenstern der Anwendung. Sperren und Änderungsbelege sind so angelegt, dass sie den gemeinsamen Zugriff mehrerer Personen vorbereiten; dieser kommt mit EM4us, der künftigen Server-Komponente. EM4me selbst ist ein Werkzeug für eine Person, die allein und lokal arbeitet. Der Betrieb mehrerer Rechner in einem Bereich auf einem Netzlaufwerk ist nicht zugesichert.
@@ -442,7 +536,7 @@ Eine Sperre sorgt dafür, dass ein Datensatz nicht an zwei Stellen zugleich bear
 
 Gesperrt wird der einzelne **Datensatz**, und zwar in dem Augenblick, in dem seine Bearbeitung beginnt. Freigegeben wird er, sobald die Bearbeitung endet, beim Speichern ebenso wie beim Verwerfen. Das bloße Ansehen sperrt nichts: Eine Liste mit hunderten Datensätzen sperrte sonst mit jedem Blick alle auf einmal.
 
-In der Maske beginnt die Bearbeitung mit **«Bearbeiten»** oder mit **«Löschen»**, das die Sperre schon vor seiner Rückfrage nimmt. Sie endet mit dem Speichern, mit **«Verwerfen»**, mit **«Neu laden»**, mit dem Abbruch der Lösch-Rückfrage, beim Wechsel zu einem anderen Datensatz und beim Schließen der Maske. Weist die Anwendung ein Speichern ab, bleibt die Sperre bestehen, weil die Bearbeitung weiterläuft. Das Öffnen der Maske und eine Neuanlage sperren nichts.
+In der Maske beginnt die Bearbeitung mit **«Bearbeiten»** oder mit **«Löschen»**, das die Sperre schon vor seiner Rückfrage nimmt. Sie endet mit dem Speichern, mit **«Verwerfen»**, mit **«Neu laden»**, mit dem Abbruch der Lösch-Rückfrage, beim Wechsel zu einem anderen Datensatz und beim Schließen der Maske. Weist die Anwendung ein Speichern ab, bleibt die Sperre bestehen, weil die Bearbeitung weiterläuft. Das Öffnen der Maske und eine Neuanlage sperren nichts. In einer Listen-Maske beginnt die Bearbeitung einer Zeile mit «Bearbeiten», dem Doppelklick oder «Löschen» und endet mit «Speichern», «Abbrechen», der Antwort auf die Lösch-Rückfrage und spätestens, wenn das Dokument geschlossen, die Ansicht gewechselt oder ein anderes geöffnetes Dokument gezeigt wird; eine neue Zeile sperrt nichts. Eine Zeile im Positions-Bereich einer Maske hält ihre Sperre bis zum Speichern oder Verwerfen der Maske.
 
 Wird die **Definition einer Tabelle** geändert, ist für diese Zeit die Definition gesperrt, weil eine Änderung an den Spalten alle Datensätze der Tabelle berührt.
 
@@ -476,6 +570,84 @@ Den **Namen des Ordners** ändern Sie unter **Datei → Einstellungen… → Akt
 - Der Name **muss mit einem Punkt beginnen**, weil die Anwendung genau daran erkennt, dass ein Ordner nicht in Index, Suche und Statistik gehört. Unzulässig sind außerdem Pfad-Trenner, unter Windows verbotene Zeichen und reservierte Gerätenamen wie `CON`, und unter dem Namen darf in der Bereichs-Wurzel noch nichts anderes liegen.
 - Die Änderung benennt den bestehenden Ordner um, statt einen zweiten anzulegen. Sie gelingt nur, **solange niemand einen Datensatz in Bearbeitung hat**. Andernfalls nennt die Meldung, wer gerade arbeitet, und es bleibt alles, wie es war.
 
+## Berechtigungen
+
+**Die Berechtigung verhindert Fehlbedienung, nicht Missbrauch.** Sie ist eine Arbeits-Vereinbarung wie die Sperre und keine Zusicherung von Vertraulichkeit. Ein Leserecht gibt es nicht: Wer die Dateien des Bereichs lesen kann, liest sie mit jedem Editor und kann sie dort auch ändern, ohne dass eine Rolle gefragt wird. Durchsetzen lässt sich allein die Grenze des Betriebssystems, also wer auf den Ordner zugreifen darf.
+
+Innerhalb der Anwendung legt die Berechtigung fest, wer was ändern darf. Der Steckbrief führt dafür benannte **Rollen**, und jede Rolle sagt je Tabelle, welche Handgriffe erlaubt sind. Die wichtigste Trennung ist die zwischen dem Pflegen der Daten und dem Ändern der Definition: Wer eine gelieferte Datenbank als Daten-Pfleger bedient, soll ihr Schema nicht versehentlich ändern. Das hilft schon, wenn nur eine Person mit der Datenbank arbeitet.
+
+### Rollen im Steckbrief
+
+Die Rollen stehen unter `roles` im Behälter `db-database`, daneben die Vorgabe-Rolle und die Zuordnung von Anmeldenamen:
+
+```yaml
+db-database:
+  name: Bibliothek
+  roles:
+    bibliothekar: all
+    aushilfe:
+      Bücher: [update]
+      Ausleihen: [create, update, delete]
+  defaultRole: aushilfe
+  users:
+    mstumm: bibliothekar
+```
+
+Je Rolle steht entweder das Wort `all` oder eine Zuordnung von Tabellen-Namen zu einer Liste der erlaubten Operationen:
+
+| Operation | Bedeutung |
+| --- | --- |
+| `create` | Datensätze anlegen |
+| `update` | Datensätze ändern |
+| `delete` | Datensätze löschen |
+| `define` | die Definition der Tabelle ändern |
+
+Das Wort `all` gilt in drei Lagen: als Wert einer Rolle für alle vier Operationen an allen Tabellen, als Tabellen-Name für alle Tabellen und als Eintrag einer Liste für alle vier Operationen. Eine Tabelle, die eine Rolle nicht nennt, erlaubt ihr nichts, ebenso eine leere Liste. Operationen und Tabellen-Namen gelten ohne Rücksicht auf Groß- und Kleinschreibung, Rollen-Namen so, wie sie geschrieben sind.
+
+**Ohne `roles` ist alles erlaubt**, wie in einer Datenbank ohne Berechtigung. Die Übersicht der Datenbank zeigt im Steckbrief-Block den Abschnitt **«Rollen»** mit einer Zeile je Rolle und ihren Erlaubnissen je Tabelle. Nennt eine Rolle eine Tabelle, die es nicht gibt, oder eine unbekannte Operation, gilt die ganze Rolle als nicht gesetzt; die Übersicht nennt jeden ihrer Fehler unter den Fehlerlagen.
+
+### Welche Rolle gilt
+
+Unter `users` ordnet der Steckbrief Anmeldenamen eine Rolle zu, und `defaultRole` nennt die **Vorgabe-Rolle** für alle übrigen. Maßgeblich ist der Anmeldename, unter dem Sie am Betriebssystem angemeldet sind, derselbe, den die Änderungsbelege als Benutzer nennen. Er wird Zeichen für Zeichen verglichen: `MStumm` und `mstumm` sind zwei Namen. Eine Pflege-Oberfläche gibt es nicht; die Zuordnung wird von Hand im Steckbrief gepflegt wie die Definition.
+
+Es gilt die erste zutreffende Regel:
+
+1. Ohne Rollen ist alles erlaubt.
+2. Steht Ihr Anmeldename unter `users`, gilt die ihm zugeordnete Rolle.
+3. Sonst gilt die Vorgabe-Rolle.
+4. Ohne Vorgabe-Rolle ist alles erlaubt.
+
+Welche Rolle für Sie gilt, zeigt die Übersicht in der Zeile **«Eigene Rolle»**, mit dem Anmeldenamen wörtlich: die zugeordnete Rolle, die Vorgabe-Rolle oder «alles erlaubt (keine Zuordnung)». Wer eine Zuordnung einträgt, übernimmt den Namen am sichersten von dort. Nennt `users` oder `defaultRole` eine Rolle, die es nicht gibt, gilt diese Angabe als nicht gesetzt und wird ebenfalls gemeldet.
+
+### Geprüft beim Schreiben
+
+Jede Änderung an Datensätzen läuft durch den Weg, den der Abschnitt «Speichern durch die Anwendung» beschreibt, und dort prüft die Anwendung zuerst die Rolle, je Datensatz mit Tabelle und Operation. Fehlt die Erlaubnis, wird der ganze Vorgang abgewiesen, und die Meldung nennt Rolle, Tabelle und Handgriff. Auch das Beginnen eines neuen Datensatzes verlangt `create`: Ohne diese Erlaubnis weist die Anwendung die Neuanlage ab, etwa beim Kommando «Neuer Datensatz in der aktiven Tabelle», und die Statuszeile nennt den Grund. Lassen sich die Berechtigungen nicht feststellen, weil die Tabellen des Bereichs noch nicht vollständig eingelesen sind oder der Steckbrief nicht lesbar ist, wird ebenfalls nichts geschrieben, und die Meldung bittet, es gleich noch einmal zu versuchen.
+
+### Geprüft beim Speichern der Definition
+
+Die Definition ist der Behälter `db-table` einer Tabellen-Datei und der Steckbrief `db-database`. Ändert das Speichern einer Datei ihre Definition, verlangt die Anwendung `define`: an dieser Tabelle für eine Tabellen-Datei, an allen Tabellen für den Steckbrief. Das gilt beim Speichern im Editor, bei **«Speichern unter…»** auf eine bestehende oder eine neue Datei und beim bereichsweiten Ersetzen. Fehlt die Erlaubnis, wird nichts geschrieben. Beim Speichern erscheint der Fehler-Dialog **«Schreibfehler»** mit einem Satz, der Rolle und Tabelle nennt, und der Text bleibt ungespeichert im Editor; das bereichsweite Ersetzen führt die Datei im Bericht unter **«Nicht ersetzt»**.
+
+Frei bleibt, was die Definition nicht berührt: der Datensatz-Block und der übrige Text der Datei, ebenso Masken- und Abfrage-Dateien. Eine andere Einrückung oder eine andere Reihenfolge der Angaben zählt nicht als Änderung, die Reihenfolge der Felder dagegen schon, weil sie die Spalten bestimmt. Den Hochwasserstand `lastId` schreibt die Anwendung selbst fort; er zählt nie als Änderung.
+
+### In Masken und Übersicht
+
+Die Masken bieten nur an, was Ihre Rolle erlaubt; wer eine Maske gestaltet, schreibt dafür nichts in sie hinein.
+
+- In der **Einzel-Maske** fehlt ohne `update` die Aktion «Bearbeiten», die Felder bleiben lesend, und ein Satz nennt die Rolle, die Datensätze dieser Tabelle nicht ändern darf. Ohne `delete` fehlt «Löschen».
+- Ohne `create` fehlt die Schaltfläche **«Neuer Datensatz»** unter der Tabelle und in der Zeile der Tabelle in der Übersicht.
+- Eine **Listen-Maske** und ein Positions-Bereich bieten nur die Handgriffe an, die `allow` und die Rolle gemeinsam erlauben. Erlaubt `allow` das Ändern und die Rolle nicht, nennt ein Tooltip der Zeile die Rolle; eine Zeile, der kein Handgriff bleibt, erscheint gedämpft.
+- Die **Übersicht** nennt unter jeder Tabelle die Erlaubnisse Ihrer Rolle, etwa «Erlaubnisse: anlegen, ändern», sofern der Steckbrief Rollen trägt.
+
+Die Masken zeigen, entschieden wird beim Schreiben: Wer einen Handgriff auf anderem Weg auslöst, wird an der Prüfung oben abgewiesen.
+
+### Sich nicht selbst aussperren
+
+Wer den Steckbrief so ändert, dass die eigene Rolle nicht an allen Tabellen `define` hat, kann ihn danach in der Anwendung nicht mehr ändern, auch nicht zurück. Das ist die beabsichtigte Trennung, trifft aber im Einbenutzer-Betrieb Sie selbst. Drei Wege führen zurück: Sie öffnen die Datei des Steckbriefs mit einem anderen Editor und entfernen oder berichtigen dort die Rollen-Angaben. Sie schalten die Erweiterung «Datenbank» ab, berichtigen den Steckbrief in der Anwendung und schalten sie wieder ein; abgeschaltet prüft das Speichern keine Rolle (Abschnitt «Die Datenbank abschalten»). Oder Sie ordnen, bevor Sie Rollen einschränken, Ihren eigenen Anmeldenamen unter `users` einer Rolle mit `define` an allen Tabellen zu, etwa einer Rolle mit `all`.
+
+### Weitergabe und Anmeldenamen in der Datei
+
+Die Rollen sind Teil der Definition und reisen mit dem Steckbrief. Die Zuordnung unter `users` steht in derselben Datei: Die Anmeldenamen sind dort für jeden lesbar, der die Datei öffnen kann, und eine Kopie des Ordners nimmt sie mit. Eine Weitergabe, die die Zuordnung auslässt, bietet die Anwendung nicht; wer einen Bereich weitergibt, entfernt die Zuordnung vorher, wenn sie nicht mitgehen soll. Beim Empfänger trifft eine Zuordnung nur, wenn sein Anmeldename wörtlich übereinstimmt; sonst gilt für ihn die Vorgabe-Rolle oder, ohne sie, alles erlaubt.
+
 ## Konsistenz-Prüfung
 
 Beim Speichern durch die Anwendung wird jede Änderung geprüft. Was auf anderem Weg in die Dateien kommt, etwa von Hand im Editor, prüft dabei niemand, und manche Regeln wirken beim Lesen gar nicht. Die **Konsistenz-Prüfung** sieht deshalb den ganzen Bestand durch und sagt, wo er den Regeln der Datenbank widerspricht.
@@ -490,7 +662,11 @@ Gefunden werden:
 - ein Verweis, der keinen Datensatz trifft, der mehrere trifft oder der über einen Schlüssel-Wert auf eine Tabelle mit mehrteiligem Schlüssel zeigt, und eine Verweis-Spalte, deren Ziel-Tabelle fehlt oder nicht angegeben ist;
 - ein Wert, der nicht zu seinem Typ passt, eine Feld-Regel verletzt oder als Pflichtwert fehlt, und ein Datensatz, der eine Regel unter `checks` verletzt;
 - ein Datensatz mit mehr oder weniger Zellen, als die Tabelle Felder hat;
-- in einer Masken-Datei ein unbekanntes Feld, ein unbekannter Platzhalter oder eine unbekannte Tabelle;
+- in einer Masken-Datei ein unbekanntes Feld, ein unbekannter Platzhalter, ein ungültiger Ausdruck eines Wert-Platzhalters, ein Marker eines bedingten Bereichs ohne Gegenstück, eine ungültige Bedingung oder eine unbekannte Tabelle, und in einer Tabellen-Definition eine Angabe `form`, die keine Masken-Datei dieser Tabelle nennt;
+- in einer Masken-Datei außerdem ein Pfad, der kein Verweis-Feld oder kein Feld der Ziel-Tabelle nennt, und ein Positions-Bereich, dessen Abfrage-Datei fehlt oder nicht `editable: true` trägt, dessen Positionen kein oder kein eindeutiges Verweis-Feld auf die Tabelle der Maske haben oder dessen Abfrage sich nicht um die Beziehung ergänzen lässt;
+- in einer Abfrage-Datei eine unbrauchbare Angabe im Behälter `db-query`, ein unbekannter Handgriff in `allow` und eine Angabe `form`, die keine Masken-Datei der Datenbank nennt; ein solcher Befund nennt in der Spalte «Quelle» die Datei statt einer Tabelle;
+- bei der Prüfung aller Tabellen im Steckbrief eine unbrauchbare Angabe unter `roles`, `defaultRole` oder `users`, etwa eine Rolle mit unbekannter Tabelle oder Operation oder eine Zuordnung auf eine Rolle, die es nicht gibt; den Grund nennt die Übersicht unter den Fehlerlagen;
+- als Hinweis eine Tabelle, die Datensätze trägt, aber keinen oder einen zu niedrigen Hochwasserstand `lastId`; die nächste Neuanlage zieht dann über die höchste vorhandene Kennung und hebt ihn an;
 - eine Tabelle, deren Definition sich nicht lesen lässt; ihre Datensätze bleiben dann ungeprüft, und die Prüfung geht bei den übrigen Tabellen weiter.
 
 **Die Prüfung ändert nichts.** Sie liest nur, und eine Funktion, die Befunde von selbst aufräumt, gibt es bewusst nicht: Welcher von zwei Datensätzen mit demselben Schlüssel der richtige ist, entscheiden Sie in der Maske. Das Ergebnis bleibt stehen, solange die Übersicht offen ist; nach einer Berichtigung prüfen Sie erneut.
@@ -503,17 +679,17 @@ Der **Verwendungsnachweis** sagt, wer eine Tabelle oder einen Datensatz benutzt.
 
 **Für eine Tabelle** steht in ihrer Zeile der Übersicht die Aktion **«Verwendung»**. Sie nennt unter «Verwendet von» die Tabellen, die mit einer Verweis-Spalte auf diese Tabelle zeigen, je mit den Namen dieser Spalten, und die Masken-Dateien der Tabelle. Benutzt sie niemand, steht dort «Nicht verwendet».
 
-**Für einen Datensatz** steht im Kopf seiner Maske, solange sie liest, die Aktion **«Verwendet von»**. Sie listet die Datensätze, die auf ihn verweisen, je mit Tabelle, Feld, Anzeige-Form und Kennung; ein Klick öffnet die Maske des verweisenden Datensatzes. Bei einer Neuanlage fehlt die Aktion, weil auf einen noch nicht gespeicherten Datensatz niemand verweisen kann.
+**Für einen Datensatz** steht im Kopf seiner Maske, solange sie liest, die Aktion **«Verwendet von»**. Sie listet die Datensätze, die auf ihn verweisen, je mit Tabelle, Feld, Anzeige-Form und Kennung; ein Klick öffnet die Maske des verweisenden Datensatzes, und «Zurück» führt zum gezeigten Datensatz zurück. Bei einer Neuanlage fehlt die Aktion, weil auf einen noch nicht gespeicherten Datensatz niemand verweisen kann.
 
 **Die Liste am Datensatz ist die Vorschau des Lösch-Schutzes.** Sie sucht genau so wie die Prüfung beim Löschen, auch über die Kurzform der Kennung, über den Wert eines einteiligen Schlüssels und in den Folge-Dateien einer Tabelle. Steht ein Datensatz darin, lässt sich der gezeigte nicht löschen. Ein Datensatz, der auf sich selbst verweist, erscheint nicht, weil er sein eigenes Löschen nicht verhindert. Wie beim Lösch-Schutz zählt allein die Verweis-Spalte; ein Verweis im Fließtext, etwa `[[Kunden#^r-00001]]`, ist keine Verwendung.
 
 ## Auffindbarkeit: Suche und Verweise
 
-Die Suche über den **Bereich** nimmt ein Tabellen-Dokument ohne seine Datensätze auf. Der erklärende Text über dem Datenblock bleibt durchsuchbar, ein Treffer dahinter führt weiterhin an die richtige Stelle, und die Datensätze selbst werden über diesen Weg nicht gefunden.
+Die Suche über den **Bereich** findet Datensätze als eigene Treffer. Im Panel «Suchergebnisse» steht hinter den Gruppen der Dokumente je Tabelle eine eigene Gruppe mit dem Namen der Tabelle und dem Zusatz «Datensätze». Jede Zeile nennt den Datensatz mit seiner Anzeige-Form und das Feld, in dem der Suchbegriff steht, und zeigt dessen Wert mit markiertem Fund. Ein Klick öffnet den Datensatz in der Standard-Maske seiner Tabelle. Durchsucht werden die Feld-Werte aller Dateien einer Tabelle, auch ihrer Folge-Dateien, und bei einer geöffneten Tabelle ihr noch nicht gespeicherter Stand. Die Zahl über der Liste zählt Dokument- und Datensatz-Treffer zusammen. Ist die Ersetzen-Zeile geöffnet, entfallen die Datensatz-Gruppen, weil das Ersetzen über den Bereich nicht in Datensätze schreibt.
 
-Der Grund liegt nicht in der Tabelle, sondern im Bereich: Der Suchraum hält die Texte aller Markdown-Dateien im Speicher und trägt dafür eine Obergrenze über den **ganzen** Bereich. Schon ein paar Tabellen mit einigen Megabyte reißen sie, und von da an liest jede Suche wieder von der Platte, auch die über jedes gewöhnliche Dokument. Die Datensätze im Suchraum kosteten also nicht sich selbst, sondern den ganzen Bereich seine Geschwindigkeit.
+Der Datensatz-Block selbst liegt dagegen nicht im Volltext-Suchraum: Ein Suchbegriff, der nur in den Datensätzen einer Tabellen-Datei steht, liefert keinen Treffer bei diesem Dokument, sondern allein die Datensatz-Treffer. Der erklärende Text über dem Datenblock bleibt als Dokument durchsuchbar, und ein Treffer dahinter führt weiterhin an die richtige Stelle. Der Grund liegt nicht in der Tabelle, sondern im Bereich: Der Suchraum hält die Texte aller Markdown-Dateien im Speicher und trägt dafür eine Obergrenze über den **ganzen** Bereich. Schon ein paar Tabellen mit einigen Megabyte reißen sie, und von da an liest jede Suche wieder von der Platte, auch die über jedes gewöhnliche Dokument. Die Datensätze im Suchraum kosteten also nicht sich selbst, sondern den ganzen Bereich seine Geschwindigkeit.
 
-**Das ist ein Zwischenstand.** Bis Datensätze eine eigene Treffer-Art bekommen, sind sie über die Bereichs-Suche nicht auffindbar. Drei Wege führen trotzdem zu ihnen:
+Daneben führen drei Wege zu Datensätzen:
 
 - **Im geöffneten Dokument suchen.** Wer die Tabellen-Datei vor sich hat und darin sucht (Standard `Strg+F`), sucht im Text vor sich und findet seine Datensätze unverändert. Die Grenze oben betrifft allein die Suche über den Bereich.
 - **Eine Datensatz-Abfrage stellen.** Ein Block `perspective-query` mit `LIST RECORDS` oder `TABLE RECORDS` findet Datensätze nach ihren Feldern, etwa alle Bücher eines Autors; die Seite [Perspective-Abfrage](frontmatter-query.md) beschreibt sie. Eine Abfrage, die man öfter braucht, lässt sich als Abfrage-Datei ablegen (Abschnitt «Abfrage-Dateien»).
@@ -527,13 +703,21 @@ Ein Verweis nennt die Tabelle und die interne Kennung, geschrieben wie ein Block
 [[Personen#^r-00042]]
 ```
 
+**Zwei weitere Schreibweisen** gelten ebenso: die Kurzform der Kennung, `[[Personen#^r-42]]`, und die Anzeige-Form des Datensatzes, `[[Personen#^Anna Muster]]`. Eine Anzeige-Form im Verweis besteht aus Buchstaben, Ziffern, Leerzeichen und den Zeichen Unterstrich, Bindestrich, Punkt, Apostroph, Komma und runde Klammern; mit einem anderen Zeichen, etwa `&`, löst sie nicht auf. Verglichen wird ohne führende und folgende Leerzeichen, aber mit Rücksicht auf Groß- und Kleinschreibung. Die Anwendung schreibt den Verweis nicht um: Gespeichert wird, was geschrieben steht.
+
+**Aufgelöst wird in einer festen Reihenfolge.** Trägt die Tabellen-Datei einen Block-Anker mit genau diesem Namen, gilt der Verweis ihm, und der Linter weist darauf hin, dass der Block-Anker einen Datensatz verdeckt; ebenso führt der Klick zu einer Überschrift gleichen Namens. Sonst gilt zuerst die Kennung, lang oder kurz, danach die Anzeige-Form. Tragen mehrere Datensätze dieselbe Anzeige-Form, gilt der Verweis trotzdem, der Linter markiert ihn als mehrdeutigen Datensatz-Namen, und der Klick öffnet die Tabellen-Datei; eindeutig wird er über die Kennung.
+
+**Die Vorschlagsliste hilft beim Schreiben.** Nach `[[Tabelle#^` bietet sie hinter den Block-Ankern der Datei die Datensätze der Tabelle an, je mit ihrer Anzeige-Form und dem Zusatz «Datensatz», zusammen höchstens 30 Einträge. Tippen grenzt die Liste über Anzeige-Form und Kennung ein, und die Auswahl schreibt die lange Kennung, etwa `[[Personen#^r-00042]]`.
+
 Der Verweis **gilt**, wenn die genannte Tabelle diesen Datensatz führt, und er ist gebrochen, wenn sie ihn nicht führt. Er verhält sich damit wie jeder andere Verweis der Anwendung. Er gilt auch dann, wenn der Datensatz nicht in der ersten Datei der Tabelle steht, sondern in einer ihrer Folge-Dateien: Für den Schreibenden ist die Tabelle eine, und ihre Verteilung auf Dateien geht ihn nichts an.
 
-Geprüft wird gegen den **gespeicherten** Stand der Tabelle, wie bei jedem anderen Anker auch. Ein Verweis auf einen Datensatz, der eben angelegt und noch nicht gespeichert wurde, gilt deshalb noch nicht.
+Geprüft wird gegen den **gespeicherten** Stand der Tabelle, wie bei jedem anderen Anker auch. Ein Verweis auf einen Datensatz, der eben angelegt und noch nicht gespeichert wurde, gilt deshalb noch nicht, und eine geänderte Anzeige-Form löst erst nach dem Speichern auf.
 
 Ob ein Verweis gilt, zeigt der [Markdown-Linter](tools.md): Ein gebrochenes Ziel bekommt im Editor, also in der Quellcode-, der geteilten und der Live-Ansicht, eine gewellte Unterstreichung. Die reine Lese-Ansicht stellt Gültigkeit nicht dar; dort sehen gültige und gebrochene Verweise gleich aus.
 
-Ein Klick öffnet die Tabelle und bringt die Zeile des Datensatzes in den Blick, auch wenn er in einer Folge-Datei steht. In der Lese-Ansicht rollt die Anzeige zu seiner Zeile, sofern er unter den 2000 Datensätzen ist, die sie zeigt; in der Live- und der Quellcode-Ansicht steht die Schreibmarke auf ihr. Im Ergebnis einer Datensatz-Abfrage öffnet ein Klick auf einen Datensatz dagegen dessen Maske.
+**Ein Klick öffnet die Maske des Datensatzes**, in der Standard-Maske seiner Tabelle. Zur Zeile in der Tabellen-Datei führt der Handgriff **«Im Tabellen-Dokument zeigen»** im Kopf der Maske (Abschnitt «Lesen und bearbeiten»). Trifft ein Verweis keinen Datensatz eindeutig, öffnet der Klick die Tabellen-Datei. Außerhalb eines geöffneten Bereichs öffnet der Klick die Tabellen-Datei und bringt die Zeile des Datensatzes in den Blick. Im Ergebnis einer Datensatz-Abfrage öffnet ein Klick auf einen Datensatz ebenso dessen Maske.
+
+**Ein Verweis im Text hält den Datensatz nicht fest.** Wird der Datensatz gelöscht, bricht der Verweis wie jeder andere Verweis der Anwendung, und der Linter zeigt es. Den Lösch-Schutz trägt allein die Verweis-Spalte (Abschnitt «Verwendungsnachweis»).
 
 ## Abfrage-Dateien
 
@@ -554,11 +738,90 @@ TABLE RECORDS autor, seiten FROM "Bücher" WHERE seiten > this.mindestseiten SOR
 ```
 ````
 
-- **Die Marke trägt keine Angaben.** Erkannt wird die Datei an der Marke allein, `db-query:` ohne Wert genügt; ihre Tabelle nennt die Abfrage selbst in `FROM`. Die Abfrage darf jede Ebene ansprechen, Dateien ebenso wie Datensätze.
+- **Die Marke genügt.** Erkannt wird die Datei an der Marke allein, `db-query:` ohne Wert genügt; ihre Tabelle nennt die Abfrage selbst in `FROM`. Die Abfrage darf jede Ebene ansprechen, Dateien ebenso wie Datensätze. Mit den Angaben `editable`, `form` und `allow` im Behälter wird die Datei zur Listen-Maske, die der nächste Abschnitt beschreibt.
 - **Öffnen und Einbetten.** Geöffnet zeigt die Datei ihr Ergebnis wie jedes Dokument mit einem Abfrage-Block. Ein anderes Dokument bettet sie mit `![[Dicke Bücher]]` ein und zeigt dasselbe Ergebnis, denn `this.` meint dabei die Abfrage-Datei und nicht das einbettende Dokument. Eine Abfrage, die Werte des einbettenden Dokuments liest, gibt es deshalb nicht.
 - **Anlegen.** Ein eigenes Kommando gibt es dafür nicht: Eine Abfrage-Datei entsteht von Hand oder aus einer eigenen [Vorlage](templates.md).
 - **Ohne die Marke** bleibt ein Dokument mit Abfrage-Block eine Abfrage im Fließtext und erscheint nicht in der Übersicht.
 - **In der Übersicht** der Datenbank steht jede Abfrage-Datei im Abschnitt «Abfragen» (Abschnitt «Der Bereich als Datenbank»); keinen oder mehrere Abfrage-Blöcke meldet sie unter den Fehlerlagen (Abschnitt «Fehlerhafte Angaben»).
+
+**Zwei Bedeutungen von `editable`.** In der Definition einer Tabelle, im Behälter `db-table`, ist `editable` eine Bedingung, die für jeden Datensatz einzeln sagt, ob er noch bearbeitet werden darf (Abschnitt «Bedingte Bearbeitbarkeit»). Im Behälter `db-query` einer Abfrage-Datei ist `editable` ein Ja oder Nein und macht die Datei zur Listen-Maske. Beide wirken zusammen: Eine Listen-Maske bietet die Bearbeitung nur für die Zeilen an, deren Datensatz die Bedingung seiner Tabelle erfüllt.
+
+## Listen-Maske
+
+Eine Abfrage-Datei wird zur **Listen-Maske**, wenn ihr Behälter `db-query` die Angabe `editable: true` trägt. Sie zeigt ihre Datensätze dann als Gitter, in dem sich Zeilen öffnen, ändern, anlegen und löschen lassen; der übrige Text der Datei beschreibt die Liste wie bei jeder Abfrage-Datei.
+
+````markdown
+---
+db-query:
+  editable: true
+  form: Ausleihen Form
+  allow: [create, update, delete]
+---
+
+# Offene Ausleihen
+
+```perspective-query
+TABLE RECORDS buch, leser, ausgeliehen, frist FROM "Ausleihen" WHERE NOT erledigt SORT frist
+```
+````
+
+| Angabe | Bedeutung |
+| --- | --- |
+| `editable` | `true` macht die Abfrage-Datei zur Listen-Maske. Ohne die Angabe oder mit `false` bleibt sie eine gewöhnliche Abfrage-Datei |
+| `form` | der Name der Masken-Datei ohne Endung, die ein Klick auf eine Zeile öffnet. Ohne die Angabe gilt die Standard-Maske der Tabelle |
+| `allow` | die erlaubten Handgriffe als Liste aus `create` (anlegen), `update` (ändern) und `delete` (löschen). Ohne die Angabe gilt allein `update`, eine leere Liste erlaubt keinen |
+
+`form` und `allow` wirken nur zusammen mit `editable: true`.
+
+### Ansehen und öffnen
+
+In jeder Ansicht, die das Ergebnis zeigt, also in der Lese-, der geteilten und der Live-Ansicht, steht das Gitter an der Stelle der Ergebnis-Tabelle: dieselben Spalten, vorn die Spalte «Datensatz», darüber eine Zähl-Zeile wie «Zeilen 1 bis 50 von 120». Eine Seite zeigt fest 50 Zeilen; bei mehr Zeilen blättern **«Vor»** und **«Zurück»**.
+
+Ein Klick auf eine Zeile öffnet ihren Datensatz in der Maske, die `form` nennt, sonst in der Standard-Maske seiner Tabelle. Nennt `form` eine Masken-Datei, die es nicht gibt oder die zu einer anderen Tabelle gehört, öffnet der Klick ebenfalls die Standard-Maske, und in der Übersicht steht ein Hinweis unter den Fehlerlagen der Abfrage-Datei. In einer Zeile, die sich bearbeiten lässt, öffnet der einfache Klick auf eine bearbeitbare Zelle die Maske nicht, weil dort der Doppelklick die Bearbeitung beginnt; die Maske öffnen dann die Spalte «Datensatz» und die lesenden Zellen. Trägt die Abfrage `WITHOUT ID`, fehlt die Spalte «Datensatz», und in einer solchen Zeile öffnet nur eine lesende Zelle die Maske. Ein Verweis in einer Zelle öffnet wie überall die Maske seines Ziels.
+
+**Das Ansehen sperrt nichts.** Eine Liste mit hunderten Datensätzen sperrte sonst mit jedem Blick alle; gesperrt wird erst die Zeile, deren Bearbeitung beginnt.
+
+Eine Listen-Maske liest genau eine Tabelle. Bearbeitbar sind allein die Spalten, die genau ein Feld dieser Tabelle nennen; eine gerechnete Spalte, ein Pfad über ein Verweis-Feld und `record.id` bleiben lesend. Lesend bleibt die ganze Liste, wenn sie gruppiert ist oder mit `DISPLAY` eine Darstellungsform wählt: Ein Satz sagt das, und darunter steht die Ausgabe wie in jeder Abfrage. Eine Abfrage über Dateien, Blöcke oder Aufgaben statt über Datensätze und eine Abfrage, deren Treffer aus mehreren Tabellen stammen, zeigen die gewöhnliche Ergebnis-Tabelle.
+
+### Zeilen bearbeiten
+
+Erlaubt `allow` das Ändern, trägt das Gitter am Zeilen-Ende die Spalte **«Aktionen»**. **«Bearbeiten»** dort oder ein Doppelklick in die Zeile beginnt die Bearbeitung: Die Anwendung sperrt den Datensatz, liest seinen frischen Stand aus der Datei und macht aus den bearbeitbaren Zellen Eingaben in der Form ihres Typs, wie in der Maske. **«Speichern»** oder die Eingabetaste schreibt, in einem mehrzeiligen Feld macht Umschalt+Eingabetaste einen Zeilenumbruch; **«Abbrechen»** oder die Escape-Taste verwirft. Wer die Zeile nur verlässt, speichert nicht. Geschrieben wird über denselben Weg wie in der Maske, mit allen Regeln der Tabelle.
+
+Bearbeitet wird eine Zeile zur Zeit: Solange sie offen ist, sind das Blättern und die Handgriffe der übrigen Zeilen gesperrt. Wird das Dokument geschlossen, die Ansicht gewechselt oder ein anderes geöffnetes Dokument gezeigt, endet die Bearbeitung ohne Speichern, und die Sperre wird frei.
+
+Weist die Anwendung die Änderung ab, bleibt die Zeile in Bearbeitung. Betrifft die Meldung ein Feld, steht sie an seiner Zelle; eine Regel über mehrere Felder steht in der Spalte «Aktionen». Hat jemand den Datensatz geändert, seit die Zeile ihn gelesen hat, erscheint unter der Zeile derselbe Block wie in der Maske, mit **«Neu laden»** und **«Trotzdem speichern»**. Hält eine andere Stelle den Datensatz gesperrt, erscheint unter der Zeile der Bescheid aus dem Abschnitt «Sperren». Haben Sie nichts geändert, gibt es nichts zu speichern, und die Zeile kehrt ins Lesen zurück.
+
+Ob ein Datensatz geändert werden darf, sagt die Angabe `editable` seiner Tabelle **je Zeile**: Eine Zeile, deren Datensatz nach dieser Bedingung nicht änderbar ist, erscheint gedämpft, ohne «Bearbeiten» und ohne «Löschen», und ein Tooltip nennt den Grund.
+
+### Anlegen und löschen
+
+Mit `create` in `allow` steht neben der Zähl-Zeile die Schaltfläche **«Neue Zeile»**. Sie setzt oben auf die gezeigte Seite eine leere Zeile, die in der Spalte «Datensatz» «Neu» zeigt, und beginnt dort die Bearbeitung. Der neue Datensatz bekommt seine Kennung wie in der Maske schon jetzt; in die Datei kommt er erst mit **«Speichern»**, und danach steht er dort, wo die Sortierung der Abfrage ihn einordnet, unter Umständen auf einer anderen Seite. **«Abbrechen»** entfernt die Zeile wieder.
+
+Mit `delete` in `allow` trägt jede änderbare Zeile **«Löschen»**. Die Anwendung sperrt den Datensatz und fragt unter der Zeile zurück wie die Maske: **«Ja, löschen»** löscht, und die Liste zeigt danach den Bestand ohne ihn; **«Nein»** lässt alles stehen. Ein Datensatz, auf den noch eine Verweis-Spalte zeigt, lässt sich auch hier nicht löschen: Die Meldung steht unter der Zeile, und die Zeile bleibt.
+
+Ohne `update` fehlen «Bearbeiten» und der Doppelklick, und ein Klick auf jede Zelle öffnet die Maske; «Neue Zeile» und «Löschen» bleiben, soweit `allow` sie erlaubt.
+
+## Positionen in der Maske
+
+Eine Maske kann neben den Feldern ihres Datensatzes die Datensätze einer anderen Tabelle zeigen, die auf ihn verweisen, etwa zu einer Rechnung ihre Positionen oder zu einem Buch seine Ausleihen. Dafür steht in der Masken-Datei der Platzhalter `{{list:<Abfrage-Datei>}}` allein auf seiner Zeile, mit dem Namen einer Listen-Maske ohne Endung:
+
+```markdown
+**Titel:** {{field:titel}}
+
+## Ausleihen
+
+{{list:Offene Ausleihen}}
+```
+
+Der **Positions-Bereich** zeigt das Gitter dieser Listen-Maske, eingeschränkt auf die Datensätze, deren Verweis-Feld auf den gezeigten Datensatz zeigt. Die Anwendung ergänzt die Abfrage dazu um diese Bedingung; Spalten, Sortierung und übrige Bedingungen der Abfrage-Datei gelten weiter. Hat die Tabelle der Positionen genau ein Verweis-Feld auf die Tabelle der Maske, ist es gemeint; hat sie mehrere, nennt `{{list:<Abfrage-Datei> BY <Verweis-Feld>}}` das gemeinte. Mitten in einer Textzeile bleibt der Platzhalter Text und wird gemeldet.
+
+**Im Lesen der Maske ist der Bereich lesend:** Ein Klick auf eine Zeile öffnet die Position in ihrer Maske. **Im Bearbeiten** bietet der Bereich die Handgriffe, die `allow` der Abfrage-Datei erlaubt, wie die eigenständige Liste. Eine gespeicherte Zeile wird aber nur **vorgemerkt**: Sie zeigt ihren neuen Stand, ein Tooltip sagt «Vorgemerkt; wird mit der Maske gespeichert.», und ihre Sperre bleibt bestehen; eine zum Löschen vorgemerkte Zeile bleibt gekennzeichnet stehen. Eine neue Position bekommt den Verweis auf den gezeigten Datensatz ohne Eingabe, auch wenn dieser selbst gerade neu angelegt wird.
+
+**Gespeichert wird mit der Maske, ganz oder gar nicht.** **«Speichern»** der Maske schreibt den Kopf und alle vorgemerkten Positionen in einem Vorgang. Ist eine Zeile des Bereichs noch in Bearbeitung, wird sie zuerst vorgemerkt; wird sie dabei abgewiesen, speichert die Maske nicht und sagt das. Weist die Anwendung den Vorgang ab, wird nichts geschrieben, und alles bleibt stehen; die Meldung zu einer Position steht im Kopf der Maske und beginnt mit «Position» und ihrer Nummer unter den vorgemerkten Zeilen. Nach dem Speichern sind alle Sperren frei.
+
+**«Verwerfen»** verwirft Kopf und Positionen zusammen und gibt alle Sperren frei. Eine vorgemerkte neue Zeile lässt sich erneut bearbeiten, aber nicht einzeln zurücknehmen; zurück geht sie allein mit «Verwerfen». Vorgemerkte Positionen zählen als ungespeicherte Bearbeitung: Vor einem Wechsel zu einem anderen Datensatz fragt die Maske zurück.
+
+Lässt sich der Bereich nicht aufbauen, steht an seiner Stelle ein Hinweis mit der Zeile der Masken-Datei; die Lagen nennt der Abschnitt «Fehlerhafte Angaben».
 
 ## Aufteilung großer Datenbestände
 
@@ -590,6 +853,7 @@ db-database:
 - **`name`** und **`description`** sind Beschriftungen und deshalb ebenfalls als Zuordnung von Sprache zu Text möglich.
 - **`schemaVersion`** ist Text und steht in Anführungszeichen. Ohne sie läse YAML `1.0` als Zahl, und aus der Version `1.0` würde beim Lesen die Version `1`.
 - **`fallbackLocale`** ist die Sprache, auf die eine Beschriftung zurückfällt, wenn sie die Sprache der Oberfläche nicht führt. Ohne Angabe gilt die erste Sprache, die im Steckbrief selbst vorkommt.
+- **`roles`**, **`defaultRole`** und **`users`** führen die Rollen der Datenbank, die Vorgabe-Rolle und die Zuordnung von Anmeldenamen; der Abschnitt «Berechtigungen» beschreibt sie. Ohne sie ist in der Datenbank alles erlaubt.
 
 Jede dieser Angaben fehlt für sich, und keine ist Voraussetzung für die Tabellen: Jede Tabelle trägt ihre Definition selbst und bleibt auch ohne Steckbrief vollständig deutbar.
 
@@ -607,7 +871,7 @@ Ein Datenbank-Bereich bekommt zwei Dinge, die ein gewöhnlicher Bereich nicht ha
 
 In einem Bereich ohne Datenbank wird keiner dieser Wege angeboten.
 
-In der Tabellen-Liste nennt die Spalte **«Maske»** die Masken-Datei einer Tabelle und bleibt bei der erzeugten Maske leer. Dazu trägt die Übersicht vier Aktionen: **«Konsistenz prüfen»** im Kopf für alle Tabellen und in der Zeile jeder Tabelle **«Neuer Datensatz»**, **«Prüfen»** und **«Verwendung»**. Was sie tun, beschreiben die Abschnitte «Datensätze in der Maske bearbeiten», «Konsistenz-Prüfung» und «Verwendungsnachweis». Der Abschnitt **«Abfragen»** nennt jede Abfrage-Datei mit ihrem Namen und ihrem Ort, dem Ordner relativ zur Wurzel des Bereichs, und **«Öffnen»** öffnet sie wie jedes Dokument; führt der Bereich keine, steht dort ein erklärender Satz. Unter den Fehlerlagen stehen auch die Hinweise zu Masken- und Abfrage-Dateien, benannt nach der Datei.
+In der Tabellen-Liste nennt die Spalte **«Maske»** die Masken-Datei einer Tabelle und bleibt bei der erzeugten Maske leer. Dazu trägt die Übersicht vier Aktionen: **«Konsistenz prüfen»** im Kopf für alle Tabellen und in der Zeile jeder Tabelle **«Neuer Datensatz»**, **«Prüfen»** und **«Verwendung»**. Was sie tun, beschreiben die Abschnitte «Datensätze in der Maske bearbeiten», «Konsistenz-Prüfung» und «Verwendungsnachweis». Der Abschnitt **«Abfragen»** nennt jede Abfrage-Datei mit ihrem Namen und ihrem Ort, dem Ordner relativ zur Wurzel des Bereichs, und **«Öffnen»** öffnet sie wie jedes Dokument; führt der Bereich keine, steht dort ein erklärender Satz. Unter den Fehlerlagen stehen auch die Hinweise zu Masken- und Abfrage-Dateien, benannt nach der Datei. Die Spalte **«Art»** des Abschnitts «Abfragen» unterscheidet eine gewöhnliche «Abfrage» von einer «Listen-Maske» und nennt bei dieser die erlaubten Handgriffe; erlaubt sie keinen, steht dort «Listen-Maske, nur lesen». Im Steckbrief-Block nennt die Übersicht außerdem die eigene Rolle, und trägt der Steckbrief Rollen, auch diese mit ihren Erlaubnissen und unter jeder Tabelle die Erlaubnisse der eigenen Rolle (Abschnitt «Berechtigungen»).
 
 **Der Einstellungs-Abschnitt «Datenbank»** steht in der Navigations-Gruppe «Aktueller Bereich» (Datei → Einstellungen… → Aktueller Bereich → Datenbank; bei geöffnetem Buch heißt die Gruppe **Aktuelles Buch**, bei geöffnetem Bücherregal **Aktuelles Bücherregal**). Er zeigt dieselbe Auskunft in Kurzform, also Name und Beschreibung der Datenbank, die Zahl ihrer Tabellen und die Zahl der Fehlerlagen, und trägt eine Option: **«Übersicht beim Öffnen des Bereichs zeigen»**. Ist sie gesetzt, öffnet sich die Übersicht von selbst, sobald der Bereich gebunden wird. Die Option liegt in der Bereichsdatei und reist mit dem Bereichs-Ordner. Dazu kommt das Feld **«Name des Sperr-Ordners»**; es ist im Abschnitt «Sperren» beschrieben.
 
@@ -623,11 +887,15 @@ Eine Angabe, welche die Anwendung nicht kennt, entfällt einzeln mit einem Hinwe
 
 Für die Angabe `changeLog` der Änderungsbelege gelten drei eigene Fehlerlagen. Ist `changeLog` selbst kein Objekt, entfallen die eigenen Grenzen dieser Tabelle, und es gelten die Vorgaben der Anwendung. Ist `maxBytes` oder `maxPerRecord` weder eine ganze Zahl über null noch das Wort `unlimited`, entfällt die einzelne Angabe, und ihre Vorgabe gilt. Gemeldet wird jede dieser Lagen; still übergangen wird keine.
 
-Für die Prüfregeln und die Bedingung der Bearbeitbarkeit gilt dieselbe weiche Linie, Regel für Regel. Eine unbrauchbare Regel unter `check` oder `checks` entfällt einzeln, und die übrigen Regeln, das Feld und die Tabelle bleiben; gemeldet werden ein Eintrag, der weder Text noch ein Objekt mit `rule` ist, ein ungültiger regulärer Ausdruck, ein ungültiger Ausdruck, eine Feld-Regel mit einem anderen Bezug als `value`, ein unbekannter Regel-Name und eine Regel unter `checks`, die ein unbekanntes Feld nennt. Ist `checks` keine Liste, entfallen alle Regeln unter `checks`. Eine unbrauchbare Angabe `editable` entfällt ebenso, und die Tabelle bleibt bearbeitbar. Ein Meldungstext, der sich nicht auslegen lässt, entfällt für sich allein; seine Regel oder Bedingung prüft weiter.
+Für die Prüfregeln und die Bedingung der Bearbeitbarkeit gilt dieselbe weiche Linie, Regel für Regel. Eine unbrauchbare Regel unter `check` oder `checks` entfällt einzeln, und die übrigen Regeln, das Feld und die Tabelle bleiben; gemeldet werden ein Eintrag, der weder Text noch ein Objekt mit `rule` ist, ein ungültiger regulärer Ausdruck, ein ungültiger Ausdruck, eine Feld-Regel mit einem anderen Bezug als `value`, ein unbekannter Regel-Name und eine Regel unter `checks`, die ein unbekanntes Feld nennt. Ist `checks` keine Liste, entfallen alle Regeln unter `checks`. Eine unbrauchbare Angabe `editable` entfällt ebenso, und die Tabelle bleibt bearbeitbar. Ein Meldungstext, der sich nicht auslegen lässt, entfällt für sich allein; seine Regel oder Bedingung prüft weiter. Eine unbrauchbare Angabe `editable` an einem Feld entfällt ebenso, und das Feld bleibt bearbeitbar.
 
-Für Masken-Dateien gilt dieselbe weiche Linie. Nennt der Behälter `db-form` keine Tabelle oder eine, die es in der Datenbank nicht gibt, bleibt die Datei ein gewöhnliches Dokument. Gibt es für eine Tabelle mehrere Masken-Dateien, gilt die erste nach Pfad, und die übrigen werden nicht verwendet. Diese drei Lagen stehen unter den Fehlerlagen der Übersicht. Ein Platzhalter, der kein Feld-Platzhalter ist, und ein Feld-Name, den die Tabelle nicht kennt, bleiben als Text stehen; sie meldet die Maske mit ihrer Zeile in ihrem Kopf, und die Konsistenz-Prüfung führt sie als Befund.
+Für Masken-Dateien gilt dieselbe weiche Linie. Nennt der Behälter `db-form` keine Tabelle oder eine, die es in der Datenbank nicht gibt, bleibt die Datei ein gewöhnliches Dokument. Beide Lagen stehen unter den Fehlerlagen der Übersicht; mehrere Masken-Dateien einer Tabelle sind dagegen keine Fehlerlage, sondern der Fall des Abschnitts «Mehrere Masken und die Standard-Maske». Ein Platzhalter, der weder Feld- noch Wert-Platzhalter ist, und ein Feld-Name, den die Tabelle nicht kennt, bleiben als Text stehen, und ein Wert-Platzhalter mit ungültigem Ausdruck lässt seine Stelle leer; alle drei meldet die Maske mit ihrer Zeile in ihrem Kopf, und die Konsistenz-Prüfung führt sie als Befund. Ein Marker `{{end}}` ohne offenen Bereich wird übergangen, ein Bereich ohne `{{end}}` zeigt seinen Inhalt wie außerhalb des Bereichs, und ein Bereich mit ungültiger Bedingung bleibt verborgen; auch diese drei meldet die Maske mit ihrer Zeile in ihrem Kopf, und die Konsistenz-Prüfung führt sie als Befund. Ein Marker, der nicht allein auf seiner Zeile steht, ist kein Marker und bleibt als unbekannter Platzhalter Text. Nennt die Angabe `form` der Tabellen-Definition keine Masken-Datei, eine, die es für diese Tabelle nicht gibt, oder die Masken-Datei einer anderen Tabelle, steht ein Hinweis unter den Fehlerlagen der Übersicht, und es gilt die Standard-Maske ohne Angabe; die beiden letzten Lagen führt die Konsistenz-Prüfung zusätzlich als Befund an der Tabelle. Ein Pfad, der kein Verweis-Feld der Tabelle oder kein Feld der Ziel-Tabelle nennt, lässt seine Stelle leer und wird ebenso mit seiner Zeile gemeldet. Für den Positions-Bereich gibt es fünf Lagen: Die genannte Abfrage-Datei gibt es nicht; sie trägt nicht `editable: true`; die Positionen haben kein Verweis-Feld auf die Tabelle der Maske; sie haben mehrere, und `BY` nennt keines davon; oder die Abfrage nennt keine einzelne Tabelle oder lässt sich nicht um die Beziehung ergänzen. Im zweiten Fall bleibt der Bereich lesend, sonst leer; jede Lage steht als Hinweis mit Zeile an der Stelle des Bereichs, und die Konsistenz-Prüfung führt sie als Befund der Masken-Datei.
 
-Für Abfrage-Dateien gilt dieselbe weiche Linie. Trägt ein Dokument mit der Marke `db-query` keinen Abfrage-Block oder mehrere, bleibt es ein gewöhnliches Dokument, und jeder Block darin wird ausgewertet. Die Übersicht führt es trotzdem im Abschnitt «Abfragen» und nennt die Lage unter den Fehlerlagen, benannt nach der Datei.
+Für Abfrage-Dateien gilt dieselbe weiche Linie. Trägt ein Dokument mit der Marke `db-query` keinen Abfrage-Block oder mehrere, bleibt es ein gewöhnliches Dokument, und jeder Block darin wird ausgewertet. Die Übersicht führt es trotzdem im Abschnitt «Abfragen» und nennt die Lage unter den Fehlerlagen, benannt nach der Datei. Für die Angaben einer Listen-Maske gilt dieselbe Linie, Angabe für Angabe: Ein `editable`, das kein Wahrheitswert ist, gilt als `false`; ein `form`, das keinen Namen nennt, entfällt; ein `allow`, das weder Handgriff noch Liste ist, fällt auf `update` zurück, und ein unbekanntes Wort darin entfällt allein. `form` oder `allow` ohne `editable: true` wirken nicht, und jede andere Angabe im Behälter wird übergangen. Nennt `form` eine Masken-Datei, die es in der Datenbank nicht gibt oder die zu einer anderen Tabelle als der der Abfrage gehört, öffnet ein Klick auf eine Zeile die Standard-Maske der Tabelle. Jede dieser Lagen steht als Hinweis unter den Fehlerlagen der Übersicht.
+
+Für Rollen, Vorgabe-Rolle und Zuordnung im Steckbrief gilt dieselbe weiche Linie. Eine Rolle mit einer unbekannten Tabelle, einer unbekannten Operation oder einer Angabe an einer Tabelle, die weder `all` noch eine Liste ist, gilt als nicht gesetzt, und jeder ihrer Fehler wird gemeldet. Eine Vorgabe-Rolle oder eine Zuordnung, die keine vorhandene Rolle nennt, gilt ebenso als nicht gesetzt, und es gilt die nächste Regel des Abschnitts «Berechtigungen». Alle diese Lagen stehen unter den Fehlerlagen der Übersicht.
+
+Trägt eine Tabelle Datensätze, aber keinen oder einen zu niedrigen Hochwasserstand `lastId`, vergibt die Anwendung trotzdem keine Kennung doppelt: Eine Neuanlage zieht die nächste Nummer über der höchsten vorhandenen Kennung und schreibt danach den Hochwasserstand fort. Die Konsistenz-Prüfung nennt die Lage als Hinweis.
 
 ## Die Datenbank abschalten
 
@@ -639,9 +907,11 @@ Im Aus-Zustand gilt:
 - **Übersicht und Einstellungs-Abschnitt entfallen**, samt den Zugängen im Ansichtsmenü, im Kontextmenü des Bereichs-Panels und in der Kommando-Palette. Eine bereits geöffnete Übersicht bleibt stehen, bis Sie sie schließen, wie jede andere System-Seite.
 - Mit dem Datensatz-Block entfallen seine Schaltflächen **«Datensatz öffnen»** und **«Neuer Datensatz»**, mit der Übersicht ihre Aktionen **«Konsistenz prüfen»**, **«Prüfen»** und **«Verwendung»**, und die Kommandos **«Neuer Datensatz in der aktiven Tabelle»** und **«Konsistenz der Datenbank prüfen»** verschwinden aus der Kommando-Palette. Damit ist auch die **Maske** nicht mehr erreichbar, und die Anwendung liefert ihr, der Konsistenz-Prüfung und dem Verwendungsnachweis keine Daten mehr.
 - Eine **Datensatz-Abfrage** liest keine Tabelle mehr: Sie zeigt eine leere Liste mit dem Hinweis, dass die Erweiterung ausgeschaltet ist, und keine Fehlermeldung. Das gilt auch für Pfade über Verweis-Felder, für Hierarchien und für den Baum.
-- Eine **Abfrage-Datei** bleibt ein gewöhnliches Dokument: Ihr Abfrage-Block wird weiter ausgewertet, über Datensätze mit der leeren Liste und dem Hinweis wie eben beschrieben, und mit der Übersicht entfällt ihr Abschnitt «Abfragen».
-- Ein **Verweis auf einen einzelnen Datensatz** wird nicht mehr als gebrochen markiert. Ohne Definitionen gibt es nichts, wogegen er zu prüfen wäre, und eine Warnung ohne Prüfung wäre eine Behauptung.
-- Die **Suche über den Bereich bleibt unverändert**. Datensätze bleiben aus dem Volltext ausgenommen, weil diese Grenze an der Tabellen-Datei hängt und nicht am Schalter; der Abschnitt «Auffindbarkeit» oben gilt also weiter.
+- Eine **Abfrage-Datei** bleibt ein gewöhnliches Dokument: Ihr Abfrage-Block wird weiter ausgewertet, über Datensätze mit der leeren Liste und dem Hinweis wie eben beschrieben, und mit der Übersicht entfällt ihr Abschnitt «Abfragen». Eine Listen-Maske zeigt dabei kein Gitter und bietet keinen Handgriff.
+- Ein **Verweis auf einen einzelnen Datensatz** wird nicht mehr als gebrochen markiert. Ohne Definitionen gibt es nichts, wogegen er zu prüfen wäre, und eine Warnung ohne Prüfung wäre eine Behauptung. Ein Klick öffnet die Tabellen-Datei ohne Sprung zur Zeile statt der Maske, und die Vorschlagsliste bietet keine Datensätze an.
+- Die **Suche über den Bereich liefert keine Datensatz-Treffer**. Der Datensatz-Block bleibt aus dem Volltext ausgenommen, weil diese Grenze an der Tabellen-Datei hängt und nicht am Schalter; über den Bereich sind Datensätze dann nicht auffindbar.
+- Eine beim Beenden geöffnete **Maske** kehrt beim Start nicht zurück. Ihr Eintrag in der Sitzung ruht und bringt sie nach dem Einschalten mit dem nächsten Start zurück (Abschnitt «Nach dem Neustart»).
+- **Rollen, Vorgabe-Rolle und Zuordnung** bleiben bloßes Frontmatter des Steckbriefs, ebenso eine Angabe `editable` an einem Feld: Es gibt keine Auflösung und keine Prüfung, auch nicht beim Speichern einer geänderten Definition.
 - **Geschrieben wird nicht.** Die Anwendung legt keine Datensätze an, ändert und löscht keine, nimmt keine Sperre und erzeugt keinen Änderungsbeleg; auch einen liegengebliebenen Speichervorgang schreibt sie in diesem Zustand nicht zu Ende.
 
 **Die Dateien bleiben unangetastet.** Das Abschalten nimmt die Auslegung, nicht die Daten: Kein Zeichen wird geändert, und das Einschalten bringt alles zurück. Der Bereichs-Index wird dabei einmal neu aufgebaut; in großen Beständen dauert das einen Moment.

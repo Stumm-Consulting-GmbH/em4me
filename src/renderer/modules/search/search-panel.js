@@ -31,6 +31,14 @@ import { api } from '../app/api.js';
 // 4T-001525 (Epic 3E-000169): Die Auswahl je Fundstelle liegt in einem
 // eigenen Modul; hier bleibt das Anzeigen und Anwaehlen.
 import * as auswahl from './search-auswahl.js';
+// 4T-002332 (Epic 3E-000264): Zeichnung der Datensatz-Treffer und ihr Filter im
+// Ersetzen-Modus. Das Wissen über diese Herkunft liegt dort, hier stehen nur
+// die Aufrufe.
+import {
+  schmueckeGruppenKopf,
+  schmueckeTrefferZeile,
+  sichtbareGruppenUndTreffer,
+} from './search-records.js';
 
 // Laufender Trefferbestand. Bewusst Modul-Zustand und nicht in state: Er
 // gehört zum laufenden Suchlauf, überlebt keinen Neustart und wird nie
@@ -278,13 +286,19 @@ export function setzeErsetzenModus(an) {
  */
 export function ausgewaehlteFundstellen() {
   if (bestand.raum !== 'area') return [];
-  return auswahl.ausgewaehlteFundstellen(bestand.treffer);
+  return auswahl.ausgewaehlteFundstellen(ersetzbareTreffer());
 }
 
 // Nur für Prüffälle und für den Nachlauf des Ersetzens: die Zahl der
 // ausgewählten Fundstellen, ohne die Bündelung zu bauen.
 export function anzahlAusgewaehlt() {
-  return auswahl.anzahlAusgewaehlt(bestand.treffer);
+  return auswahl.anzahlAusgewaehlt(ersetzbareTreffer());
+}
+
+// 4T-002332: Zur Auswahl zählen nur die Treffer, die der Ersetzen-Modus zeichnet.
+// Ein Datensatz-Treffer ist nie darunter; seine Sprung-Kennung ist keine Datei.
+function ersetzbareTreffer() {
+  return sichtbareGruppenUndTreffer(bestand, true).treffer;
 }
 
 // Nach dem Neuzeichnen liegt der Tastatur-Fokus sonst wieder am Anfang: Das
@@ -408,6 +422,7 @@ function baueGruppenKopf(gruppe, offen) {
   anzahl.textContent = String(gruppe.anzahl);
 
   kopf.append(caret, titel, anzahl);
+  schmueckeGruppenKopf(kopf, gruppe);
   kopf.addEventListener('click', () => {
     if (zugeklappt.has(gruppe.gruppe)) zugeklappt.delete(gruppe.gruppe);
     else zugeklappt.add(gruppe.gruppe);
@@ -428,6 +443,8 @@ function baueTrefferZeile(treffer, index) {
   // Fokus; der Index taete es nicht, weil er sich mit jedem Lauf verschiebt.
   zeile.dataset.schluessel = zeilenSchluessel(treffer);
   if (index === bestand.auswahl) zeile.classList.add('selected');
+  // 4T-002332: Anzeige-Form und Feld eines Datensatz-Treffers vor dem Ausschnitt.
+  schmueckeTrefferZeile(zeile, treffer);
 
   const vor = treffer.ausschnitt.slice(0, treffer.von);
   const fund = treffer.ausschnitt.slice(treffer.von, treffer.bis);
@@ -489,7 +506,7 @@ function zeichneUmbenennung(els) {
   satz.className = 'search-results-rename-text';
   // 4T-002107: Eine einzelne Fundstelle in der Einzahl; der Bestands-Schlüssel
   // bleibt die Mehrzahl (Begründung an zaehlSchluessel).
-  const gewaehlt = auswahl.anzahlAusgewaehlt(bestand.treffer);
+  const gewaehlt = auswahl.anzahlAusgewaehlt(ersetzbareTreffer());
   satz.textContent = t(gewaehlt === 1 ? 'tagRename.barOne' : 'tagRename.bar')
     .replace('{alt}', umbenennung.alt)
     .replace('{neu}', umbenennung.neu)
@@ -509,7 +526,7 @@ function zeichneUmbenennung(els) {
   ok.type = 'button';
   ok.className = 'search-results-rename-ok';
   ok.textContent = t('tagRename.run');
-  ok.disabled = auswahl.anzahlAusgewaehlt(bestand.treffer) === 0;
+  ok.disabled = auswahl.anzahlAusgewaehlt(ersetzbareTreffer()) === 0;
   ok.addEventListener('click', () => {
     const lauf = umbenennung && umbenennung.ausfuehren;
     if (lauf) void lauf();
@@ -552,9 +569,11 @@ function zeichne(paneIdx) {
 
   // Die Treffer liegen in Gruppen-Reihenfolge; ein einziger Durchlauf
   // genuegt, um sie den Gruppen zuzuordnen.
-  let index = 0;
-  for (let g = 0; g < bestand.gruppen.length; g++) {
-    const gruppe = bestand.gruppen[g];
+  // 4T-002332: Im Ersetzen-Modus entfallen die Datensatz-Gruppen; jede Zeile
+  // behält ihren Index im Bestand, weil Auswahl und Sprung an ihm hängen.
+  const sichtbar = sichtbareGruppenUndTreffer(bestand, ersetzenModus).gruppen;
+  for (const { gruppe, gruppenIndex: g, start } of sichtbar) {
+    let index = start;
     const offen = !zugeklappt.has(gruppe.gruppe);
     if (zeigeAuswahl) {
       const gruppenTreffer = trefferDerGruppe(g);

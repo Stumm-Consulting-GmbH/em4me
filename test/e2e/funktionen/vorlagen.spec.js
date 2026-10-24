@@ -600,3 +600,136 @@ test.describe('VL-11: Vorlagen-Ausschluss der Abfrage — Aufgabe einer Vorlage 
     }
   });
 });
+
+// 4T-002126 (Epic 3E-000345): VL-12 und VL-13 prüfen denselben Vorlagen-Ausschluss
+// für die beiden Leser außerhalb des Abfrage-Erzeugers, Ende zu Ende über ihre
+// Kanäle. Muster VL-11: Der globale Vorlagen-Ordner liegt im Suchraum; der
+// Eintrag der Vorlage fehlt im ersten Block, erscheint in einem zweiten Block, der
+// den Vorlagen-Ordner ausdrücklich nennt, und kehrt in den ersten zurück, sobald
+// die Erweiterung «Vorlagen» aus ist. Termine im Jahr 2099 (Stabilitätsregel 9).
+
+// Ereignis-Datei mit Zuordnung zum internen Profil «Ereignis» (Vorgabe-Feld
+// `class`, Muster ereignisse.spec.js EV-11).
+function ereignisDatei(text) {
+  return [
+    '---',
+    'class: Ereignis',
+    'event-date: 2099-01-01',
+    `event-text: ${text}`,
+    '---',
+    '',
+  ].join('\n');
+}
+
+test.describe('VL-12: Vorlagen-Ausschluss der Ereignis-Aggregation (F-090)', () => {
+  test('Ereignis einer Vorlage fehlt, erscheint mit FROM und bei ausgeschalteter Erweiterung', async () => {
+    const areaDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-templates-events-'));
+    const templatesDir = path.join(areaDir, 'Vorlagen');
+    fs.mkdirSync(templatesDir);
+    fs.writeFileSync(
+      path.join(templatesDir, 'Besprechung.md'),
+      ereignisDatei('Vorlagen-Termin'),
+      'utf8',
+    );
+    fs.writeFileSync(path.join(areaDir, 'Echt.md'), ereignisDatei('Echter Termin'), 'utf8');
+    const uebersicht = path.join(areaDir, 'Uebersicht.md');
+    fs.writeFileSync(
+      uebersicht,
+      [
+        '# Uebersicht',
+        '',
+        '```perspective-events',
+        'query:',
+        '```',
+        '',
+        '```perspective-events',
+        'query: FROM "Vorlagen"',
+        '```',
+        '',
+      ].join('\n'),
+      'utf8',
+    );
+    const userData = makeUserData(templatesDir);
+    const { app, page } = await launchApp({ userData });
+    const bloecke = page.locator(`${SEL.markdownBody0} .perspective-events`);
+    const alle = bloecke.nth(0).locator('tr.pev-agg-row');
+    const ausVorlagen = bloecke.nth(1).locator('tr.pev-agg-row');
+    try {
+      // Die Aggregation braucht einen geöffneten Bereich (Muster EV-11).
+      await page.evaluate((p) => window.api.openAreaPath(p), areaDir);
+      await expect.poll(() => page.title()).toContain(`(Bereich ${path.basename(areaDir)})`);
+      await hauptSenden(
+        app,
+        ({ BrowserWindow }, p) => {
+          BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
+        },
+        uebersicht,
+      );
+      await expect(page.locator(SEL.markdownBody0)).toBeVisible();
+      // Ohne FROM: allein das echte Ereignis.
+      await expect(alle).toHaveCount(1, { timeout: 20000 });
+      await expect(alle.first()).toContainText('Echter Termin');
+      // Mit FROM auf den Vorlagen-Ordner: das Ereignis der Vorlage.
+      await expect(ausVorlagen).toHaveCount(1, { timeout: 20000 });
+      await expect(ausVorlagen.first()).toContainText('Vorlagen-Termin');
+
+      // Erweiterung «Vorlagen» aus: kein Ausschluss, der erste Block zeigt beide.
+      await page.evaluate(() => window.api.setSetting('extensions.disabled', ['templates']));
+      await expect.poll(async () => alle.count(), { timeout: 20000 }).toBe(2);
+      await expect(alle).toContainText(['Echter Termin', 'Vorlagen-Termin']);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(areaDir);
+    }
+  });
+});
+
+test.describe('VL-13: Vorlagen-Ausschluss der Skript-Blöcke (F-090)', () => {
+  test('pq.pages ohne Quelle ohne Vorlage, mit Ordner-Quelle und bei ausgeschalteter Erweiterung mit', async () => {
+    const docsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-templates-script-'));
+    const templatesDir = path.join(docsDir, 'Vorlagen');
+    fs.mkdirSync(templatesDir);
+    fs.writeFileSync(path.join(templatesDir, 'Besprechung.md'), '# Besprechung\n', 'utf8');
+    fs.writeFileSync(path.join(docsDir, 'Echt.md'), '# Echt\n', 'utf8');
+    // Die Namen sortiert und mit festem Vorsatz, damit die Erwartung den
+    // ganzen Bestand eines Laufs prüft und nicht nur einen Teil davon.
+    const namen = (vorsatz, quelle) =>
+      [
+        '```perspective-script',
+        `pq.out('${vorsatz}: ' + pq.pages(${quelle}).map(function (p) { return p.file.name; }).sort().join(','));`,
+        '```',
+      ].join('\n');
+    const skript = path.join(docsDir, 'Skript.md');
+    fs.writeFileSync(
+      skript,
+      ['# Skript', '', namen('Alle', ''), '', namen('Vorlagen', "'Vorlagen'"), ''].join('\n'),
+      'utf8',
+    );
+    // Profil mit Vorlagen-Ordner und eingeschalteter Skript-Ausführung (Muster
+    // skript-bloecke.spec.js; ohne den Seed bleibt die Ausführung aus).
+    const userData = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-templates-script-profile-'));
+    fs.writeFileSync(
+      path.join(userData, 'config.json'),
+      JSON.stringify({ templates: { folder: templatesDir }, scripts: { run: true } }),
+    );
+    const { app, page } = await launchApp({ args: [skript], userData });
+    const bloecke = page.locator(`${SEL.markdownBody0} .perspective-script`);
+    try {
+      await expect(page.locator(SEL.markdownBody0)).toBeVisible();
+      await expect(bloecke).toHaveCount(2);
+      // Ohne Quelle: die Vorlage fehlt.
+      await expect(bloecke.nth(0)).toContainText('Alle: Echt,Skript', { timeout: 15000 });
+      // Ordner-Quelle auf den Vorlagen-Ordner: genau sein Inhalt.
+      await expect(bloecke.nth(1)).toContainText('Vorlagen: Besprechung', { timeout: 15000 });
+
+      // Erweiterung «Vorlagen» aus: kein Ausschluss, der erste Block nennt sie.
+      await page.evaluate(() => window.api.setSetting('extensions.disabled', ['templates']));
+      await expect(bloecke.nth(0)).toContainText('Alle: Besprechung,Echt,Skript', {
+        timeout: 15000,
+      });
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanupDir(docsDir);
+    }
+  });
+});

@@ -34,12 +34,27 @@
 // prozess-neutralen `record-check-eval.js`, das die Maske beim Öffnen ebenso
 // nutzen kann (E12.4, Übergabe an das vierte Mitglied des Zuges). Das Modul
 // läuft als letztes im Regel-Werk; die Reihenfolge legt die Verdrahtung fest.
+//
+// 4T-002312 (Epic 3E-000263, F4 A): **Dieselbe Bedingung am Feld.** Bei einer
+// Anweisung der Art Ändern prüft die Regel zusätzlich jedes Feld mit eigener
+// Bedingung: Ändert die Anweisung seinen Wert gegenüber dem vorgefundenen
+// Datensatz und ist die Bedingung dort nicht erfüllt, entsteht je Feld der
+// Befund `regelFeldNichtBearbeitbar`. Ein unveränderter Wert in einem
+// gesperrten Feld ist kein Befund, weil die Masken jedes Feld unverändert
+// mitschicken dürfen. Anlegen und Löschen bleiben unberührt (Entscheidung der
+// Sitzung vom 2026-10-17): Beim Anlegen gibt es keinen vorgefundenen Datensatz,
+// und das Löschen ändert kein Feld. Ist schon der Datensatz gesperrt, genügt
+// dessen Befund. Ausgewertet wird über `feldSperren` aus demselben Auswerter.
 'use strict';
 
 const { extractFrontmatter } = require('../../shared/markdown/frontmatter.js');
 const { parseTableDefinition } = require('../../shared/database/table-definition.js');
 const { anzeigeSpalte } = require('../../shared/database/record-identity.js');
-const { baueRegelKontext, wertePruefregel } = require('../../shared/database/record-check-eval.js');
+const {
+  baueRegelKontext,
+  wertePruefregel,
+  feldSperren,
+} = require('../../shared/database/record-check-eval.js');
 const { ART_AENDERN, ART_LOESCHEN } = require('./record-auftrag-pruefung.js');
 const { werteDes, datensatzVon, erwarteteTexte } = require('./record-auftrag-plan.js');
 const { REGEL_LAGEN, regelBefund } = require('./record-regeln.js');
@@ -70,6 +85,8 @@ function tabellenAngaben(bestand, zwischenspeicher) {
     const anzeige = anzeigeName === null ? undefined : bestand.karte.get(anzeigeName.toLowerCase());
     zwischenspeicher.set(bestand, {
       editable: definition.editable || null,
+      // 4T-002312: die Felder mit eigener Bedingung.
+      feldBedingt: definition.fields.filter((feld) => !!feld.editable),
       anzeigeIndex: anzeige === undefined ? null : anzeige.index,
     });
   }
@@ -89,8 +106,42 @@ function anzeigeVon(angaben, texte, id) {
 // Ohne eigenen Meldungstext bleibt die Meldung leer; der Anwender-Text nennt die
 // Bedingung bereits über `{regel}`. Eine Meldung in mehreren Sprachen reist
 // unaufgelöst als Zuordnung; die Sprache kennt erst der Bedienort.
+// 4T-002312: ebenso für eine Feld-Sperre aus `feldSperren`.
 function meldungVon(geprueft) {
   return geprueft.message === null || geprueft.message === undefined ? '' : geprueft.message;
+}
+
+// 4T-002312: Ändert die Anweisung den Wert des Feldes gegenüber dem
+// vorgefundenen Text? Ein geleertes Feld reist als null und heißt leer; der
+// Name wird ohne Groß- und Kleinschreibung verglichen wie in der Feld-Karte.
+function aendertFeld(anweisung, karte, texte, feldName) {
+  const werte = anweisung.werte || {};
+  const name = Object.keys(werte).find((n) => n.toLowerCase() === feldName.toLowerCase());
+  if (name === undefined) return false;
+  const treffer = karte.get(feldName.toLowerCase());
+  if (!treffer) return false;
+  const neu = werte[name] === null || werte[name] === undefined ? '' : String(werte[name]);
+  return neu !== texte[treffer.index];
+}
+
+// 4T-002312: die Befunde der gesperrten Felder, die die Anweisung ändert.
+function feldBefunde(schritt, angaben, texte, kontext) {
+  const { anweisung, bestand } = schritt;
+  if (anweisung.art !== ART_AENDERN || angaben.feldBedingt.length === 0) return [];
+  return feldSperren(angaben.feldBedingt, kontext)
+    .filter((sperre) => aendertFeld(anweisung, bestand.karte, texte, sperre.feld))
+    .map((sperre) =>
+      regelBefund(REGEL_LAGEN.feldNichtBearbeitbar, {
+        position: anweisung.position,
+        tabelle: anweisung.tabelle,
+        id: schritt.id,
+        anzeige: anzeigeVon(angaben, texte, schritt.id),
+        feld: sperre.feld,
+        regel: sperre.quelle,
+        meldung: meldungVon(sperre),
+        grund: sperre.grund,
+      }),
+    );
 }
 
 // --- Die Regel -----------------------------------------------------------------------
@@ -114,12 +165,16 @@ function pruefe({ schritte }) {
     const { anweisung, bestand } = schritt;
     if (anweisung.art !== ART_AENDERN && anweisung.art !== ART_LOESCHEN) continue;
     const angaben = tabellenAngaben(bestand, angabenJeTabelle);
-    if (angaben.editable === null) continue;
+    if (angaben.editable === null && angaben.feldBedingt.length === 0) continue;
 
     const texte = vorgefundeneTexte(schritt);
     const kontext = baueRegelKontext(bestand.fields, texte);
-    const geprueft = wertePruefregel(angaben.editable, { kontext });
-    if (geprueft.erfuellt) continue;
+    const geprueft =
+      angaben.editable === null ? null : wertePruefregel(angaben.editable, { kontext });
+    if (geprueft === null || geprueft.erfuellt) {
+      befunde.push(...feldBefunde(schritt, angaben, texte, kontext));
+      continue;
+    }
     befunde.push(
       regelBefund(REGEL_LAGEN.nichtBearbeitbar, {
         position: anweisung.position,

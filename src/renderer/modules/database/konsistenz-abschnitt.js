@@ -21,6 +21,7 @@ import { currentDictionary, t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { setzeTextEin } from '../../../shared/database/auftrag-text.js';
 import { oeffneMaske } from './masken-seite.js';
+import { dateiName } from './masken-datei.js';
 
 // Höchstens so viele Befunde stehen in der Liste; darüber sagt ein Hinweis,
 // wie viele es sind (Muster der Beleg-Ansicht). Kein stilles Abschneiden.
@@ -176,10 +177,23 @@ function datensatzZelle(befund) {
   return zelle;
 }
 
+// 4T-002248 (Epic 3E-000262): Die Quelle eines Befunds in der ersten Spalte —
+// die Tabelle, oder bei einem Befund ohne Tabelle die Datei, an der er hängt
+// (die Abfrage-Datei einer Listen-Maske). So nennt die Prüfung die Datei wie
+// die Fehlerlagen der Übersicht, statt eine leere Zelle zu zeigen.
+export function quelleText(befund) {
+  if (!befund) return '';
+  if (befund.tabelle) return befund.tabelle;
+  return typeof befund.datei === 'string' && befund.datei !== '' ? dateiName(befund.datei) : '';
+}
+
 function befundListe(befunde, umgebung) {
   const tabelle = el('table', 'db-overview-table db-consistency-findings');
   const kopf = document.createElement('tr');
-  for (const key of ['col.table', 'col.record', 'col.field', 'col.text'])
+  // 4T-002254: «Quelle» statt «Tabelle», weil die Spalte seit 4T-002248 auch
+  // Abfrage-Dateien nennt (quelleText); die Übersicht je Tabelle oben bleibt bei
+  // «Tabelle».
+  for (const key of ['spalteQuelle', 'col.record', 'col.field', 'col.text'])
     kopf.appendChild(el('th', null, t(PRAEFIX + key)));
   const thead = document.createElement('thead');
   thead.appendChild(kopf);
@@ -188,7 +202,7 @@ function befundListe(befunde, umgebung) {
   for (const befund of befunde.slice(0, MAX_BEFUNDE)) {
     const zeile = el('tr', 'db-consistency-finding');
     zeile.dataset.code = befund.code;
-    zeile.appendChild(el('td', null, befund.tabelle || ''));
+    zeile.appendChild(el('td', 'db-consistency-source', quelleText(befund)));
     zeile.appendChild(datensatzZelle(befund));
     const feld = befund.feld || (Array.isArray(befund.felder) ? befund.felder.join(', ') : '');
     zeile.appendChild(el('td', null, feld));

@@ -11,6 +11,7 @@ import {
   eventsForQuery,
   releaseRoot,
   rootForActiveFile,
+  scriptDataFor,
 } from '../../src/main/backlinks.js';
 
 const openRoots = new Set();
@@ -135,5 +136,81 @@ describe('events-aggregation — Grundmenge und Verfeinerung (4T-000515)', () =>
     expect(broken.events).toEqual([]);
     const tasks = eventsForQuery(start, 'LIST TASKS', root, OPTS);
     expect(tasks.queryError && tasks.queryError.code).toBe('eventsFilesOnly');
+  });
+});
+
+// 4T-002126 (Epic 3E-000345): Vorlagen-Ausschluss der Ereignis-Aggregation mit
+// derselben Regel wie die Abfrage (Story 4S-000376). Der Vorlagen-Ordner liegt
+// eine Ebene tief, damit «übergeordneter Ordner» und «Wurzel» getrennte Fälle
+// sind; der Präfix-Nachbar trägt ebenfalls ein Ereignis-Profil.
+describe('events-aggregation — Vorlagen-Ausschluss (4T-002126)', () => {
+  const ereignis = (rest) =>
+    ['---', 'class: Ereignis', 'event-date: 2026-10-10', 'event-text: Termin', '---', rest].join(
+      '\n',
+    );
+
+  async function makeTemplateFixture() {
+    const root = makeRoot();
+    const start = write(root, 'Start.md', '# Start\n');
+    write(root, 'Anna.md', ereignis('# Anna\n'));
+    // Schlagwort und Verweis auf Start, damit beide Quellen-Formen die Vorlage
+    // ohne Ausschluss träfen.
+    write(root, 'Meta/Vorlagen/Vorlage.md', ereignis('#vorlage\nSiehe [[Start]].\n'));
+    write(root, 'Meta/Vorlagen/Unter/Tief.md', ereignis('# Tief\n'));
+    write(root, 'Meta/Vorlagen2/Nachbar.md', ereignis('# Nachbar\n'));
+    // Als Bereich indexiert: Eine Ordner-Wurzel hat eine Tiefen-Grenze von zwei
+    // Ebenen (SCAN_DEPTH in src/main/index/scan.js), der Unterordner der
+    // Vorlagen liegt eine Ebene tiefer.
+    let result = backlinksFor(start, 'ev-tpl', root);
+    openRoots.add(rootForActiveFile(start, root));
+    for (let i = 0; i < 500 && result.status === 'indexing'; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      result = backlinksFor(start, 'ev-tpl', root);
+    }
+    // Die Aggregation baut den Link-Graph nicht selbst, sie nutzt den eines
+    // anderen Verbrauchers; der Skript-Abzug baut ihn hier für die Verweis-Quelle.
+    scriptDataFor(start, root);
+    const templatesFolder = path.join(root, 'Meta', 'Vorlagen');
+    const namen = (query, folder) =>
+      eventsForQuery(start, query, root, { ...OPTS, templatesFolder: folder })
+        .events.map((e) => e.name)
+        .sort();
+    return { templatesFolder, namen };
+  }
+
+  it('sammelt keine Vorlage ein, samt Unterordner, bei leerer Abfrage wie mit WHERE (AK1)', async () => {
+    const { templatesFolder, namen } = await makeTemplateFixture();
+    expect(namen('', templatesFolder)).toEqual(['Anna', 'Nachbar']);
+    expect(namen("WHERE event-text = 'Termin'", templatesFolder)).toEqual(['Anna', 'Nachbar']);
+  });
+
+  it('FROM auf den Vorlagen-Ordner oder einen Unterordner gibt genau dessen Inhalt frei (AK2)', async () => {
+    const { templatesFolder, namen } = await makeTemplateFixture();
+    expect(namen('FROM "Meta/Vorlagen"', templatesFolder)).toEqual(['Tief', 'Vorlage']);
+    expect(namen('FROM "Meta/Vorlagen/Unter"', templatesFolder)).toEqual(['Tief']);
+    expect(namen('FROM "Meta/Vorlagen/Unter" OR "Anna.md"', templatesFolder)).toEqual(['Tief']);
+    expect(namen('FROM "Meta/Vorlagen" WHERE event-text = \'Termin\'', templatesFolder)).toEqual([
+      'Tief',
+      'Vorlage',
+    ]);
+  });
+
+  it('Wurzel, übergeordneter Ordner, Verneinung, Schlagwort und Verweis geben nichts frei (AK2)', async () => {
+    const { templatesFolder, namen } = await makeTemplateFixture();
+    expect(namen('FROM ""', templatesFolder)).toEqual(['Anna', 'Nachbar']);
+    expect(namen('FROM "Meta"', templatesFolder)).toEqual(['Nachbar']);
+    expect(namen('FROM -"Meta/Vorlagen"', templatesFolder)).toEqual(['Anna', 'Nachbar']);
+    expect(namen('FROM #vorlage', templatesFolder)).toEqual([]);
+    expect(namen('FROM [[Start]]', templatesFolder)).toEqual([]);
+    // Gegenprobe ohne Ordner: Schlagwort und Verweis träfen die Vorlage.
+    expect(namen('FROM #vorlage', null)).toEqual(['Vorlage']);
+    expect(namen('FROM [[Start]]', null)).toEqual(['Vorlage']);
+  });
+
+  it('ohne Vorlagen-Ordner (Erweiterung aus, keiner gewählt) wird nichts ausgeschlossen (AK4)', async () => {
+    const { namen } = await makeTemplateFixture();
+    const alle = ['Anna', 'Nachbar', 'Tief', 'Vorlage'];
+    expect(namen('', null)).toEqual(alle);
+    expect(namen('', undefined)).toEqual(alle);
   });
 });

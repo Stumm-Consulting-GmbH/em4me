@@ -261,11 +261,11 @@ In live mode the grid of the data table cannot be reached with the keyboard. The
 
 Charts belong to the [internal extensions](extensions.md) and are switched on in the working mode **Full**. When the extension is off, the block appears as an ordinary code block, in printing, PDF and portable export as well; the document stays unchanged, and after switching it back on the chart appears again. The two commands are then not available, neither in the menu nor in the command palette nor in any context menu.
 
-Charts build on the extension **Perspective Datatable**: as long as they are switched on, the data table cannot be switched off. If the data table is off, the charts are off too.
+Charts build on the extension **Perspective Datatable**: as long as they are switched on, the data table cannot be switched off. If the data table is off, the charts are off too. The chart of a query has a switch of its own, «Chart of a query», which is on from the working mode **Advanced** and does not depend on the data table.
 
 ## Limits
 
-- **The only source is the data table.** An ordinary Markdown table, a Perspective Table, query results and records of the database are not a source for a chart.
+- **The only source is the data table.** An ordinary Markdown table, a Perspective Table, query results and records of the database are not a source for a chart. A query can, however, show its result itself as bars or a line, with `DISPLAY bar` or `DISPLAY line` (page [Perspective Query](frontmatter-query.md), section «Presentation form»).
 - **You edit the table, not the chart.** The chart is a graphic; values can neither be changed on it nor shown on hover. The only thing that can be changed on the chart is its entries, with “Edit chart” or in the source.
 - **No calculations of its own.** The chart forms no sums or averages across series; to show them, calculate them in a computed column of the table.
 - **Four types.** Area charts, stacked bars and other types do not exist.

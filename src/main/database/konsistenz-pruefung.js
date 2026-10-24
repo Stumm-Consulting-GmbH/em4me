@@ -45,7 +45,9 @@ const {
 const { CELL_ERRORS } = require('../../shared/database/record-values.js');
 const { VERWEIS_ARTEN, legeVerweisZelleAus } = require('../../shared/database/record-verweis.js');
 const { schluesselKey } = require('../../shared/database/record-schluessel.js');
-const { anzeigeSpalte, nummerAus } = require('../../shared/database/record-identity.js');
+// 4T-002288: als Ganzes geholt, weil die Liste der Namen sonst über die
+// Zeilenbreite wüchse.
+const identitaet = require('../../shared/database/record-identity.js');
 const { datensatzRumpf } = require('../../shared/database/record-segment.js');
 const { pathCompareKey } = require('../../shared/platform.js');
 const { LAGEN } = require('./record-auftrag-pruefung.js');
@@ -60,13 +62,22 @@ const {
   bestandFuer,
 } = require('./record-regel-hilfen.js');
 const { findeZielTabelle } = require('./datensatz-liste.js');
-const { tabellenName } = require('./table-catalog.js');
+// 4T-002307: als Ganzes geholt wie `record-identity.js` oben, damit der Befund
+// der Rollen die Datei nur um seinen Aufruf wachsen lässt.
+const katalog = require('./table-catalog.js');
+// 4T-002248 (Epic 3E-000262, F1 A): die Angaben der Listen-Maske einer Abfrage-Datei.
+const { parseListAngaben } = require('../../shared/database/list-angaben.js');
+// 4T-002253 (Epic 3E-000262, S6): der Positions-Bereich einer Masken-Datei.
+const { POSITIONS_HINWEISE, pruefePositionsBereich } = require('./positions-auskunft.js');
 
 // Der geschlossene Katalog der Befunde, wie der Lage-Katalog des Regel-Werks.
 // Jeder Code hat einen Anwender-Text unter `database.konsistenz.<code>`.
 const KONSISTENZ_BEFUNDE = Object.freeze({
   schluesselDoppelt: 'konsistenzSchluesselDoppelt',
   kennungDoppelt: 'konsistenzKennungDoppelt',
+  // 4T-002288: Datensätze mit einer Kennung über dem Hochwasserstand der
+  // Definition, oder ohne ihn; `kennungen` nennt die höchste vorhandene.
+  hochwasserstandZuNiedrig: 'konsistenzHochwasserstandZuNiedrig',
   verweisTabelleUnbekannt: 'konsistenzVerweisTabelleUnbekannt',
   verweisZielFehlt: 'konsistenzVerweisZielFehlt',
   verweisMehrdeutig: 'konsistenzVerweisMehrdeutig',
@@ -78,8 +89,36 @@ const KONSISTENZ_BEFUNDE = Object.freeze({
   zellenZahl: 'konsistenzZellenZahl',
   maskeFeldUnbekannt: 'konsistenzMaskeFeldUnbekannt',
   maskePlatzhalterUnbekannt: 'konsistenzMaskePlatzhalterUnbekannt',
+  // 4T-002183: ein Wert-Platzhalter, dessen Ausdruck sich nicht lesen lässt.
+  maskeAusdruckUngueltig: 'konsistenzMaskeAusdruckUngueltig',
+  // 4T-002186: die drei Fehlerbilder der bedingten Bereiche einer Masken-Datei.
+  maskeEndOhneWhen: 'konsistenzMaskeEndOhneWhen',
+  maskeWhenOhneEnd: 'konsistenzMaskeWhenOhneEnd',
+  maskeBedingungUngueltig: 'konsistenzMaskeBedingungUngueltig',
+  // 4T-002252: ein Punkt-Name in Wert oder Bedingung mit unbekanntem Kopf.
+  maskePfadUnbekannt: 'konsistenzMaskePfadUnbekannt',
   maskeTabelleUnbekannt: 'konsistenzMaskeTabelleUnbekannt',
+  // 4T-002184: die Angabe `form` der Definition trifft keine Masken-Datei der
+  // Tabelle, oder sie nennt die einer anderen Tabelle.
+  maskeAngabeUnbekannt: 'konsistenzMaskeAngabeUnbekannt',
+  maskeAngabeFremd: 'konsistenzMaskeAngabeFremd',
   definitionUnlesbar: 'konsistenzDefinitionUnlesbar',
+  // 4T-002248 (Epic 3E-000262, F1 A): Befunde an einer Abfrage-Datei mit den
+  // Angaben der Listen-Maske. `wert` ist der Schlüssel der unbrauchbaren
+  // Angabe, das unbekannte Wort in `allow` oder die Angabe `form`.
+  listeAngabeUnbrauchbar: 'konsistenzListeAngabeUnbrauchbar',
+  listeHandgriffUnbekannt: 'konsistenzListeHandgriffUnbekannt',
+  listeMaskeUnbekannt: 'konsistenzListeMaskeUnbekannt',
+  // 4T-002253 (Epic 3E-000262, S6): Befunde am Positions-Bereich `{{list:…}}`
+  // einer Masken-Datei; `wert` ist die Angabe des Platzhalters.
+  maskeListeDateiUnbekannt: 'konsistenzMaskeListeDateiUnbekannt',
+  maskeListeNichtBearbeitbar: 'konsistenzMaskeListeNichtBearbeitbar',
+  maskeListeBeziehungFehlt: 'konsistenzMaskeListeBeziehungFehlt',
+  maskeListeBeziehungMehrdeutig: 'konsistenzMaskeListeBeziehungMehrdeutig',
+  maskeListeAbfrageUngueltig: 'konsistenzMaskeListeAbfrageUngueltig',
+  // 4T-002307 (Epic 3E-000263, S3): eine unbrauchbare Rolle im Steckbrief;
+  // `wert` ist die Rolle, `zieltabelle` die Tabelle, an der sie scheitert.
+  steckbriefRollen: 'konsistenzSteckbriefRollen',
 });
 
 // Die Zell-Befunde des Typs, wie `zellWert` sie vergibt. `required` und `check`
@@ -118,11 +157,6 @@ function befund(code, angaben) {
     anzahl: null,
     ...angaben,
   };
-}
-
-// Kennungen nach ihrer Nummer; `r-100000` steht hinter `r-99999`.
-function nachNummer(a, b) {
-  return (nummerAus(a) || 0) - (nummerAus(b) || 0);
 }
 
 // Der Index einer Spalte nach Namen, ohne Rücksicht auf die Schreibung.
@@ -209,7 +243,7 @@ async function pruefeVerweis({ lauf, sicht, karten, feld, text, stelle }) {
     return befund(KONSISTENZ_BEFUNDE.verweisMehrdeutig, {
       ...mitZiel,
       anzahl: treffer.length,
-      kennungen: [...treffer].sort(nachNummer),
+      kennungen: [...treffer].sort(identitaet.nachNummer),
     });
   return null;
 }
@@ -307,7 +341,7 @@ function schluesselDubletten(bestand, key, eintraege, stellen) {
   });
   for (const { teile, positionen } of gruppen.values()) {
     if (positionen.length < 2) continue;
-    const kennungen = positionen.map((n) => eintraege[n].id).sort(nachNummer);
+    const kennungen = positionen.map((n) => eintraege[n].id).sort(identitaet.nachNummer);
     for (const n of positionen)
       befunde.set(
         n,
@@ -344,11 +378,12 @@ function alsGrund(ziel) {
 }
 
 async function pruefeTabelle(lauf, sicht, karten, kopf) {
-  const name = tabellenName(kopf);
+  const name = katalog.tabellenName(kopf);
   const kopfStelle = { tabelle: name, pfad: kopf };
   const ziel = await bestandFuer(lauf, kopf);
   if (!ziel.ok)
     return {
+      form: undefined,
       datensaetze: 0,
       befunde: [
         befund(KONSISTENZ_BEFUNDE.definitionUnlesbar, {
@@ -361,7 +396,7 @@ async function pruefeTabelle(lauf, sicht, karten, kopf) {
 
   const { bestand, definition } = ziel;
   const { liste, dateienJeKennung } = datensaetzeDer(bestand);
-  const anzeigeIndex = spaltenIndex(bestand.fields, anzeigeSpalte(definition));
+  const anzeigeIndex = spaltenIndex(bestand.fields, identitaet.anzeigeSpalte(definition));
   const stellen = liste.map((eintrag) => ({
     ...kopfStelle,
     datei: eintrag.datei,
@@ -379,15 +414,21 @@ async function pruefeTabelle(lauf, sicht, karten, kopf) {
   }
   const stelleVon = (id) => stellen[liste.findIndex((eintrag) => eintrag.id === id)];
   befunde.push(...kennungsDubletten(bestand, dateienJeKennung, stelleVon));
-  return { datensaetze: liste.length, befunde };
+  // 4T-002288: Hinweis, kein Schaden; die nächste Neuanlage hebt den Stand an.
+  const ueber = identitaet.kennungUeberStand(bestand.lastId, dateienJeKennung.keys());
+  const standStelle = { ...kopfStelle, datei: kopf, kennungen: [ueber] };
+  if (ueber) befunde.push(befund(KONSISTENZ_BEFUNDE.hochwasserstandZuNiedrig, standStelle));
+  return { form: definition.form, datensaetze: liste.length, befunde };
 }
 
 // --- Masken-Dateien ------------------------------------------------------------------------
 
-function maskenDateien(sicht) {
+// Die Dateien der Sicht mit einer Marke, nach Pfad; seit 4T-002248 für die
+// Masken-Dateien (`form`) und die Abfrage-Dateien (`query`).
+function dateienMit(sicht, marke) {
   const pfade = [];
   for (const [absPath, marken] of sicht.dbKindsPerFile || new Map()) {
-    if (Array.isArray(marken) && marken.includes('form')) pfade.push(absPath);
+    if (Array.isArray(marken) && marken.includes(marke)) pfade.push(absPath);
   }
   return pfade.sort();
 }
@@ -395,8 +436,10 @@ function maskenDateien(sicht) {
 // Eine Masken-Datei gegen ihre Tabelle: die unbekannte Tabelle und die Hinweise
 // der Zerlegung, die Zeile ab dem Anfang der Datei (Muster der
 // Datensatz-Auskunft). Eine Datei ohne brauchbaren Behälter meldet bereits die
-// Übersicht; eine nicht lesbare wird übergangen.
-async function pruefeMaske({ lauf, sicht, fsp, pfad, nurKopf }) {
+// Übersicht; eine nicht lesbare wird übergangen. Seit 4T-002184 kommt jede
+// Datei, die eine Maske ist, als `zuordnung` zurück, auch wenn ihre Befunde nicht
+// gefragt sind, weil die Prüfung der Angabe `form` alle Masken-Dateien braucht.
+async function pruefeMaske({ lauf, sicht, fsp, pfad, nurKopf, wurzel, cache }) {
   let roh;
   try {
     roh = String(await fsp.readFile(pfad, 'utf8'));
@@ -407,10 +450,12 @@ async function pruefeMaske({ lauf, sicht, fsp, pfad, nurKopf }) {
   const form = parseFormDefinition(fm.data);
   if (!form.istMaske) return { kopf: null, befunde: [] };
   const kopf = findeKopfDatei(sicht, form.table);
+  const zuordnung = { path: pfad, table: form.table, kopf };
   if (kopf === null) {
-    if (nurKopf !== null) return { kopf: null, befunde: [] };
+    if (nurKopf !== null) return { kopf: null, zuordnung, befunde: [] };
     return {
       kopf: null,
+      zuordnung,
       befunde: [
         befund(KONSISTENZ_BEFUNDE.maskeTabelleUnbekannt, {
           tabelle: form.table,
@@ -421,22 +466,121 @@ async function pruefeMaske({ lauf, sicht, fsp, pfad, nurKopf }) {
     };
   }
   if (nurKopf !== null && pathCompareKey(kopf) !== pathCompareKey(nurKopf))
-    return { kopf: null, befunde: [] };
+    return { kopf: null, zuordnung, befunde: [] };
   const ziel = await bestandFuer(lauf, kopf);
-  if (!ziel.ok) return { kopf, befunde: [] };
+  if (!ziel.ok) return { kopf, zuordnung, befunde: [] };
   const versatz = fm.raw === null ? 0 : fm.raw.split('\n').length - 1;
-  const stelle = { tabelle: tabellenName(kopf), pfad: kopf, datei: pfad };
-  const befunde = zerlegeMaskenKoerper(fm.body, ziel.bestand.fields).hints.map((hint) => {
+  const stelle = { tabelle: katalog.tabellenName(kopf), pfad: kopf, datei: pfad };
+  const zerlegt = zerlegeMaskenKoerper(fm.body, ziel.bestand.fields);
+  const befunde = zerlegt.hints.map((hint) => {
     const zeile = hint.zeile + versatz;
     if (hint.code === FORM_HINWEISE.feldUnbekannt)
       return befund(KONSISTENZ_BEFUNDE.maskeFeldUnbekannt, { ...stelle, zeile, feld: hint.name });
+    if (hint.code === FORM_HINWEISE.ausdruckUngueltig)
+      return befund(KONSISTENZ_BEFUNDE.maskeAusdruckUngueltig, {
+        ...stelle,
+        zeile,
+        wert: hint.name,
+      });
+    // 4T-002186: die Fehlerbilder der bedingten Bereiche, je ein eigener Befund.
+    const bereich = BEREICHS_BEFUNDE[hint.code];
+    if (bereich) return befund(bereich, { ...stelle, zeile, wert: hint.name });
     return befund(KONSISTENZ_BEFUNDE.maskePlatzhalterUnbekannt, {
       ...stelle,
       zeile,
       wert: hint.name,
     });
   });
-  return { kopf, befunde };
+  // 4T-002253: je Positions-Bereich dieselbe Auflösung wie in der Maske.
+  for (const segment of listenSegmente(zerlegt.segmente)) {
+    const p = { fsp, wurzel, sicht, cache, datei: segment.datei, by: segment.by, kopfPfad: kopf };
+    const code = LISTEN_BEFUNDE[await pruefePositionsBereich(p)];
+    if (code)
+      befunde.push(
+        befund(code, { ...stelle, zeile: segment.zeile + versatz, wert: segment.datei }),
+      );
+  }
+  return { kopf, zuordnung, befunde };
+}
+
+// 4T-002253: Die Segmente `liste` eines Körpers, auch in Bereichen.
+function listenSegmente(segmente) {
+  const gefunden = [];
+  for (const segment of Array.isArray(segmente) ? segmente : []) {
+    if (segment && segment.art === 'liste') gefunden.push(segment);
+    if (segment && Array.isArray(segment.kinder)) gefunden.push(...listenSegmente(segment.kinder));
+  }
+  return gefunden;
+}
+
+// 4T-002253: Hinweis-Code der Positions-Auskunft auf den Befund-Code.
+const LISTEN_BEFUNDE = Object.freeze({
+  [POSITIONS_HINWEISE.dateiUnbekannt]: KONSISTENZ_BEFUNDE.maskeListeDateiUnbekannt,
+  [POSITIONS_HINWEISE.nichtBearbeitbar]: KONSISTENZ_BEFUNDE.maskeListeNichtBearbeitbar,
+  [POSITIONS_HINWEISE.beziehungFehlt]: KONSISTENZ_BEFUNDE.maskeListeBeziehungFehlt,
+  [POSITIONS_HINWEISE.beziehungMehrdeutig]: KONSISTENZ_BEFUNDE.maskeListeBeziehungMehrdeutig,
+  [POSITIONS_HINWEISE.abfrageUngueltig]: KONSISTENZ_BEFUNDE.maskeListeAbfrageUngueltig,
+});
+
+// 4T-002186 (Epic 3E-000261, E7.8, S5): Hinweis-Code des Körpers auf den
+// Befund-Code der bedingten Bereiche; der Text der Bedingung reist in `wert`.
+const BEREICHS_BEFUNDE = Object.freeze({
+  [FORM_HINWEISE.endOhneWhen]: KONSISTENZ_BEFUNDE.maskeEndOhneWhen,
+  [FORM_HINWEISE.whenOhneEnd]: KONSISTENZ_BEFUNDE.maskeWhenOhneEnd,
+  [FORM_HINWEISE.bedingungUngueltig]: KONSISTENZ_BEFUNDE.maskeBedingungUngueltig,
+  // 4T-002252: der Pfad reist ebenso in `wert`.
+  [FORM_HINWEISE.pfadUnbekannt]: KONSISTENZ_BEFUNDE.maskePfadUnbekannt,
+});
+
+// 4T-002184 (Epic 3E-000261, F2 A): Die Angabe `form` einer Definition gegen die
+// Masken-Dateien, nach derselben Regel wie der Katalog (`waehleStandardMaske`),
+// damit Übersicht und Prüfung auf dieselbe Frage dieselbe Antwort geben. Der
+// Befund hängt an der Tabelle, weil die Angabe in ihrer Definition steht.
+function standardMaskenBefund(kopf, angabe, zuordnungen) {
+  const eigene = zuordnungen
+    .filter((z) => z.kopf !== null && pathCompareKey(z.kopf) === pathCompareKey(kopf))
+    .map((z) => z.path);
+  const { hinweis } = katalog.waehleStandardMaske({ eigene, zugeordnet: zuordnungen, angabe });
+  if (hinweis === null) return null;
+  const stelle = { tabelle: katalog.tabellenName(kopf), pfad: kopf, datei: kopf, wert: angabe };
+  if (hinweis.code === 'formDateiFremd')
+    return befund(KONSISTENZ_BEFUNDE.maskeAngabeFremd, {
+      ...stelle,
+      zieltabelle: hinweis.expected,
+    });
+  return befund(KONSISTENZ_BEFUNDE.maskeAngabeUnbekannt, stelle);
+}
+
+// --- Abfrage-Dateien (4T-002248) ------------------------------------------------------------
+
+// Eine Abfrage-Datei gegen die Angaben der Listen-Maske, nach derselben
+// Auslegung wie der Katalog (`parseListAngaben`) und derselben Vergleichs-Regel
+// für `form` (`trifftMaskenAngabe` gegen alle Masken-Dateien des Laufs), damit
+// Übersicht und Prüfung auf dieselbe Frage dieselbe Antwort geben. Der Befund
+// hängt an der Datei und an keiner Tabelle: Die Tabelle folgt erst aus `FROM`,
+// und eine Abfrage-Datei ist kein Teil einer Tabelle. Eine nicht lesbare Datei
+// wird übergangen wie eine nicht lesbare Masken-Datei.
+async function pruefeAbfrage({ fsp, pfad, zuordnungen }) {
+  let roh;
+  try {
+    roh = String(await fsp.readFile(pfad, 'utf8'));
+  } catch {
+    return [];
+  }
+  const fm = extractFrontmatter(roh.charCodeAt(0) === 0xfeff ? roh.slice(1) : roh);
+  const angaben = parseListAngaben(fm.data);
+  const stelle = { datei: pfad };
+  const befunde = angaben.hints.map((hint) =>
+    hint.code === 'listAllowUnbekannt'
+      ? befund(KONSISTENZ_BEFUNDE.listeHandgriffUnbekannt, { ...stelle, wert: hint.name || '' })
+      : befund(KONSISTENZ_BEFUNDE.listeAngabeUnbrauchbar, { ...stelle, wert: hint.key }),
+  );
+  if (
+    angaben.form !== null &&
+    !zuordnungen.some((z) => katalog.trifftMaskenAngabe(z.path, angaben.form))
+  )
+    befunde.push(befund(KONSISTENZ_BEFUNDE.listeMaskeUnbekannt, { ...stelle, wert: angaben.form }));
+  return befunde;
 }
 
 // --- Die Prüfung ---------------------------------------------------------------------------
@@ -480,10 +624,12 @@ async function pruefeKonsistenz({ fsp, wurzel, sicht, tabelle = null }) {
   const befunde = [];
   const tabellen = [];
   const zeileJeKopf = new Map();
+  const formJeKopf = new Map();
   for (const kopf of kopfe) {
     const ergebnis = await pruefeTabelle(lauf, sicht, karten, kopf);
+    formJeKopf.set(kopf, ergebnis.form);
     const zeile = {
-      name: tabellenName(kopf),
+      name: katalog.tabellenName(kopf),
       pfad: kopf,
       datensaetze: ergebnis.datensaetze,
       befunde: ergebnis.befunde.length,
@@ -493,12 +639,33 @@ async function pruefeKonsistenz({ fsp, wurzel, sicht, tabelle = null }) {
     befunde.push(...ergebnis.befunde);
   }
 
-  for (const pfad of maskenDateien(sicht)) {
-    const maske = await pruefeMaske({ lauf, sicht, fsp, pfad, nurKopf });
+  const zuordnungen = [];
+  const cache = katalog.createDatabaseCatalogCache();
+  for (const pfad of dateienMit(sicht, 'form')) {
+    const maske = await pruefeMaske({ lauf, sicht, fsp, pfad, nurKopf, wurzel, cache });
+    if (maske.zuordnung) zuordnungen.push(maske.zuordnung);
     const zeile = maske.kopf === null ? null : zeileJeKopf.get(pathCompareKey(maske.kopf));
     if (zeile) zeile.befunde += maske.befunde.length;
     befunde.push(...maske.befunde);
   }
+
+  // 4T-002184: die Angabe `form` je geprüfter Tabelle, gezählt an ihrer Zeile.
+  for (const [kopf, angabe] of formJeKopf) {
+    const gefunden = standardMaskenBefund(kopf, angabe, zuordnungen);
+    if (gefunden === null) continue;
+    zeileJeKopf.get(pathCompareKey(kopf)).befunde += 1;
+    befunde.push(gefunden);
+  }
+
+  // 4T-002248: die Abfrage-Dateien, nur bei der Prüfung aller Tabellen, weil
+  // ihre Tabelle erst aus der Abfrage folgt und keiner Einzel-Prüfung gehört.
+  if (nurKopf === null)
+    for (const pfad of dateienMit(sicht, 'query'))
+      befunde.push(...(await pruefeAbfrage({ fsp, pfad, zuordnungen })));
+  // 4T-002307: die Rollen des Steckbriefs, wie die Abfrage-Dateien nur bei allen.
+  if (nurKopf === null)
+    for (const angaben of await katalog.rollenBefundeDerSicht({ sicht, fsp }))
+      befunde.push(befund(KONSISTENZ_BEFUNDE.steckbriefRollen, angaben));
 
   return {
     status: 'ready',

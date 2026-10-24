@@ -126,7 +126,7 @@ query: WHERE event-category = 'geburtstag'
 ```
 ````
 
-Der Abfrage-Text nutzt die Klausel-Sprache der [Perspective-Abfrage](frontmatter-query.md) (`FROM`, `WHERE`, Vergleiche, Funktionen); eine leere Abfrage sammelt alle Dateien mit Ereignis-Profil. Text-Werte stehen in Quotes (`'geburtstag'`) — ein nacktes Wort wäre eine Feld-Referenz.
+Der Abfrage-Text nutzt die Klausel-Sprache der [Perspective-Abfrage](frontmatter-query.md) (`FROM`, `WHERE`, Vergleiche, Funktionen); eine leere Abfrage sammelt alle Dateien mit Ereignis-Profil. Ausgenommen sind Dateien im [Vorlagen-Ordner](templates.md); sie sammelt die Aggregation nur ein, wenn `FROM` den Ordner ausdrücklich nennt, etwa `FROM "Vorlagen"`. Text-Werte stehen in Quotes (`'geburtstag'`) — ein nacktes Wort wäre eine Feld-Referenz.
 
 - **Zeilen-Klick** öffnet die Quell-Datei; die Herkunft jedes Eintrags bleibt sichtbar.
 - **Pflege schreibt zurück**: Bearbeitungen in der aggregierten Tabelle landen im Frontmatter der Quell-Datei, auch wenn sie nicht geöffnet ist. Ist die Quell-Datei mit ungespeicherten Änderungen geöffnet, verweist ein Hinweis dorthin; wurde sie zwischenzeitlich auf der Platte geändert, wird nichts geschrieben (Konflikt-Hinweis).

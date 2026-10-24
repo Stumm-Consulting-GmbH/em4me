@@ -217,3 +217,46 @@ describe('4T-001743: Kennung der App in der Sitzungs-Ablage', () => {
     expect('appKey' in result[2]).toBe(false);
   });
 });
+
+// 4T-002334 (Epic 3E-000264, T2): Der Sitzungs-Eintrag des Masken-Dokuments
+// steht je Spalte im optionalen Feld systemTabs. Spalten reicht das Schema
+// unverändert durch; der Fall hält fest, dass das Feld das Normalisieren beider
+// Ablagen übersteht und eine Spalte ohne das Feld unverändert bleibt.
+describe('4T-002334: systemTabs einer Spalte in der Sitzungs-Ablage', () => {
+  const MIT = {
+    paths: ['C:\\Notizen\\a.md'],
+    activeIndex: 0,
+    tabSettings: [{ viewMode: 'rendered' }],
+    systemTabs: [
+      {
+        page: 'database-form',
+        position: 1,
+        aktiv: false,
+        tabelle: 'C:\\Notizen\\Library.md',
+        kennung: 'r-00003',
+        maske: null,
+      },
+    ],
+  };
+  const OHNE = { paths: ['C:\\Notizen\\b.md'], activeIndex: 0, tabSettings: [{}] };
+  const FENSTER = { ...WIN, panes: [MIT, OHNE] };
+
+  it('normalizeSavedApps behält systemTabs und lässt alte Spalten unverändert', () => {
+    const [app] = normalizeSavedApps([{ area: { rootPath: 'C:\\Notizen' }, windows: [FENSTER] }]);
+    expect(app.windows[0].panes).toEqual([MIT, OHNE]);
+    expect('systemTabs' in app.windows[0].panes[1]).toBe(false);
+  });
+
+  it('normalizeSavedWorkspaces behält systemTabs im Fenster des Arbeitsbereichs', () => {
+    const [ws] = normalizeSavedWorkspaces([
+      {
+        id: 'ws-1',
+        name: 'Alpha',
+        color: 'green',
+        open: true,
+        app: { area: { rootPath: 'C:\\Notizen' }, windows: [FENSTER] },
+      },
+    ]);
+    expect(ws.app.windows[0].panes[0].systemTabs).toEqual(MIT.systemTabs);
+  });
+});

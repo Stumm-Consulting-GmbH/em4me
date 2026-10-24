@@ -37,6 +37,7 @@ import { showAliasDialog } from '../dialogs/dialogs.js';
 // 4T-001641 (Epic 3E-000297): der eine Weg ins Panel.
 import { oeffnePanel } from '../sidebar-layout.js';
 import { renderTags } from '../editor/autocomplete-help.js';
+import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 
 import {
   navigateToAnchorInPane,
@@ -60,8 +61,35 @@ import {
 // (relevant nur bei Wiki-Links, deren direkter Datei-Pfad nicht aufloesbar
 // ist). Wird sowohl vom Render-Pane-Klick auf <a>-Elementen als auch vom
 // Live-Modus-Klick auf cm-live-link/cm-live-wikilink-Decorations aufgerufen.
-export async function activateLink(paneIdx, href, isWikilink, baseOverride) {
+//
+// 4T-002185 (Epic 3E-000261, F4 A): Seit der Navigation zwischen Masken ruft
+// auch der Körper der Einzel-Maske hierher, mit `optionen.abfangen`. Das ist
+// eine Funktion (Pfad) => Promise<boolean>, die jedes aufgelöste
+// Markdown-Ziel unmittelbar vor dem Öffnen sieht; gibt sie true zurück, hat sie
+// den Klick übernommen und es wird nichts geöffnet. Die Auflösung selbst
+// (dokument-relativ, Unterseite, Index, Alias) bleibt damit die eine, die jeder
+// Link der Anwendung nimmt, und wird für die Maske nicht nachgebaut.
+// Seit 4T-002335 (Epic 3E-000264) reist als zweites Argument eine Hilfe
+// `{ anker, datensatz }` mit, damit der Masken-Körper einen Datensatz-Verweis
+// selbst in den Verlauf einreihen kann; `datensatz` fragt den Kanal erst beim
+// Aufruf, und das Tor des Aus-Zustands bleibt in `datensatzZiel`.
+//
+// 4T-002333 (Epic 3E-000264, F2 A, T3): Ein Wiki-Verweis mit Anker auf einen
+// Datensatz öffnet die Maske des Datensatzes statt der Tabellen-Datei; die
+// Zeile erreicht der Handgriff der Maske (`database/masken-fehlt.js`).
+export async function activateLink(paneIdx, href, isWikilink, baseOverride, optionen = {}) {
   if (!href) return;
+  const abfangen = optionen && typeof optionen.abfangen === 'function' ? optionen.abfangen : null;
+  // Öffnet ein aufgelöstes Markdown-Ziel, sofern der Aufrufer es nicht übernimmt.
+  const oeffneZiel = async (ziel, anker) => {
+    // Die Hilfe trägt die Datensatz-Auflösung nur für Wiki-Verweise, wie der
+    // Weg darunter: Ein Markdown-Link mit Anker bleibt überall ein Dokument.
+    const hilfe = { anker, datensatz: isWikilink ? () => datensatzZiel(ziel, anker) : null };
+    if (abfangen && (await abfangen(ziel, hilfe))) return;
+    if (isWikilink && anker && openRecordHit(await datensatzZiel(ziel, anker))) return;
+    const realPane = await openInPane(paneIdx, [ziel], { inheritGroup: true });
+    if (anker) scrollToAnchorAfterOpen(realPane, anker);
+  };
   activatePane(paneIdx);
 
   if (/^https?:\/\//i.test(href)) {
@@ -171,9 +199,9 @@ export async function activateLink(paneIdx, href, isWikilink, baseOverride) {
           // 4T-000631 (Epic 3E-000102): Link-Klicks im Dokument-Inhalt erben die
           // Tab-Gruppe des Quell-Tabs (gilt fuer alle openInPane-Aufrufe der
           // Link-Aufloesung hier; activateLink wird nur von den Klick-Pfaden
-          // des Render-Panes und des Live-Modus gerufen).
-          const realPane = await openInPane(paneIdx, [cand], { inheritGroup: true });
-          if (anchorPart) scrollToAnchorAfterOpen(realPane, anchorPart);
+          // des Render-Panes, des Live-Modus und, seit 4T-002185, des
+          // Masken-Körpers gerufen). Geöffnet wird über `oeffneZiel`.
+          await oeffneZiel(cand, anchorPart);
           return;
         }
       }
@@ -198,8 +226,7 @@ export async function activateLink(paneIdx, href, isWikilink, baseOverride) {
           if (target) {
             // R4-09 (4T-000186): tatsaechliche Ziel-Pane verwenden — die
             // Datei kann in der anderen Spalte bereits offen sein.
-            const realPane = await openInPane(paneIdx, [target], { inheritGroup: true });
-            if (anchorPart) scrollToAnchorAfterOpen(realPane, anchorPart);
+            await oeffneZiel(target, anchorPart);
           }
           return;
         }
@@ -209,10 +236,7 @@ export async function activateLink(paneIdx, href, isWikilink, baseOverride) {
       // 4T-000050 (Epic 3E-000010): Alias-Fallback. Eindeutiger Treffer oeffnet
       // direkt; mehrdeutiger Treffer zeigt den Disambiguation-Dialog.
       const aliasTarget = await tryResolveByAlias(basePath, resolved);
-      if (aliasTarget) {
-        const realPane = await openInPane(paneIdx, [aliasTarget], { inheritGroup: true });
-        if (anchorPart) scrollToAnchorAfterOpen(realPane, anchorPart);
-      }
+      if (aliasTarget) await oeffneZiel(aliasTarget, anchorPart);
     }
     return;
   }
@@ -226,9 +250,25 @@ export async function activateLink(paneIdx, href, isWikilink, baseOverride) {
     await oeffneAnlage(paneIdx, resolved);
     return;
   }
-  // R4-09 (4T-000186): tatsaechliche Ziel-Pane verwenden.
-  const realPane = await openInPane(paneIdx, [resolved], { inheritGroup: true });
-  if (anchorPart) scrollToAnchorAfterOpen(realPane, anchorPart);
+  // R4-09 (4T-000186): tatsaechliche Ziel-Pane verwenden (in `oeffneZiel`).
+  await oeffneZiel(resolved, anchorPart);
+}
+
+// 4T-002333 (Epic 3E-000264, T3): Ob ein aufgelöstes Ziel mit Anker ein
+// Datensatz ist, sagt der Haupt-Prozess (`database:verweisZiel`, dort auch das
+// Tor des Aus-Zustands); die Anzeige fragt nur bei eingeschalteter Erweiterung.
+// Fehlt die Brücke, wirft der Kanal oder antwortet er ohne Tabelle und
+// Kennung, bleibt es beim Öffnen der Datei. Liefert die Angaben für
+// `openRecordHit` oder null.
+async function datensatzZiel(zielPfad, anker) {
+  if (!isExtensionActive('database') || typeof api.databaseVerweisZiel !== 'function') return null;
+  try {
+    const antwort = await api.databaseVerweisZiel({ zielPfad, anker });
+    if (!antwort || !antwort.tabelle || !antwort.kennung) return null;
+    return { path: antwort.tabelle, id: antwort.kennung };
+  } catch {
+    return null;
+  }
 }
 
 // 4T-000790 (Epic 3E-000125): Bild-Quelle aus dem Dokument (relativer Pfad) gegen

@@ -308,3 +308,56 @@ describe('Steckbrief: Hinweis-Katalog', () => {
     expect(HINWEIS_META.databaseContainer.key).toBe(DB_DATABASE_KEY);
   });
 });
+
+// 4T-002307 (Epic 3E-000263, F1 A; AK1): Die fünfte Angabe `roles`. Ihre
+// Auslegung steht in `rollen-angaben.js` und hat dort ihre Fälle; hier steht,
+// dass der Steckbrief sie aufruft und ohne `roles` unverändert bleibt.
+describe('Steckbrief: Rollen (4T-002307)', () => {
+  it('legt roles aus und führt die Rollen neben den vier Angaben', () => {
+    const ergebnis = lies({
+      ...VOLLSTAENDIG,
+      roles: { librarian: 'all', assistant: { Loans: ['update'] } },
+    });
+    expect(ergebnis.hints).toEqual([]);
+    expect(ergebnis.name).toBe('Mini-CRM');
+    expect(ergebnis.rollen).toEqual({
+      librarian: { alle: true, operationen: {}, alleTabellen: null },
+      assistant: { alle: false, operationen: { Loans: ['update'] }, alleTabellen: null },
+    });
+  });
+
+  it('bleibt ohne roles, wie er war, und führt kein Feld rollen', () => {
+    for (const roles of [undefined, null, '']) {
+      const ergebnis = lies({ ...VOLLSTAENDIG, roles });
+      expect(ergebnis.hints).toEqual([]);
+      expect(ergebnis).not.toHaveProperty('rollen');
+    }
+  });
+
+  it('meldet eine unbrauchbare Rolle unter seinen Hinweisen und lässt sie entfallen', () => {
+    const ergebnis = lies({
+      ...VOLLSTAENDIG,
+      roles: { assistant: { Loans: ['archive'] }, librarian: 'all' },
+    });
+    expect(codes(ergebnis)).toEqual(['roleOperation']);
+    expect(Object.keys(ergebnis.rollen)).toEqual(['librarian']);
+  });
+
+  // 4T-002308: Seit der Auflösung der eigenen Rolle legt der Steckbrief
+  // defaultRole und users aus; ob die Rolle existiert, prüft der Katalog.
+  it('führt defaultRole und users, sobald die Datei sie trägt (4T-002308)', () => {
+    const ergebnis = lies({ ...VOLLSTAENDIG, defaultRole: 'gast', users: { mstumm: 'gast' } });
+    expect(ergebnis.hints).toEqual([]);
+    expect(ergebnis.defaultRole).toBe('gast');
+    expect(ergebnis.users).toEqual({ mstumm: 'gast' });
+    expect(lies(VOLLSTAENDIG)).not.toHaveProperty('defaultRole');
+    expect(lies(VOLLSTAENDIG)).not.toHaveProperty('users');
+  });
+
+  it('meldet defaultRole und users in falscher Form unter seinen Hinweisen (4T-002308)', () => {
+    const ergebnis = lies({ ...VOLLSTAENDIG, defaultRole: ['gast'], users: 'mstumm' });
+    expect(codes(ergebnis)).toEqual(['defaultRoleShape', 'users']);
+    expect(ergebnis).not.toHaveProperty('defaultRole');
+    expect(ergebnis).not.toHaveProperty('users');
+  });
+});

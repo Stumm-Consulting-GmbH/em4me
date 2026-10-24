@@ -21,7 +21,12 @@ import { PROZESS_ZEITLIMIT } from '../zeitlimits.js';
 import { backlinksFor, releaseRoot, rootForActiveFile } from '../../src/main/backlinks.js';
 // Statisch importiert: So steht das Modul samt seinen Importen in der
 // Import-Kette, über die die Auswahl des Prüf-Ausschnitts diese Datei findet.
-import { readRecordTable, readCount, clearCaches } from '../../src/main/index/record-table-read.js';
+import {
+  readRecordTable,
+  readCount,
+  clearCaches,
+  entwurfAlsDatensatz,
+} from '../../src/main/index/record-table-read.js';
 
 const require_ = createRequire(import.meta.url);
 const { setBufferOverlay, clearAllBufferOverlays } = require_('../../src/main/index/overlay.js');
@@ -630,4 +635,59 @@ describe.skipIf(!process.env.EM4ME_MESSLAUF)('Messlauf Tabellen-Bestand (4T-0020
     },
     PROZESS_ZEITLIMIT,
   );
+});
+
+// --- 4T-002252: der Entwurfs-Datensatz der Einzel-Maske -------------------------------
+
+describe('entwurfAlsDatensatz (4T-002252, Festlegung 3)', () => {
+  it('legt die Texte eines Entwurfs nach denselben Regeln aus wie das Lesen einer Zeile', async () => {
+    const { root } = await itemsRoot();
+    const table = readRecordTable(root, 'Items');
+    const beta = table.byId.get('r-00002');
+    const entwurf = Object.fromEntries(
+      table.definition.fields.map((field, i) => [field.name, beta.texts[i] || '']),
+    );
+    // Die Texte von «Beta» über dem gespeicherten «Alpha» ergeben die Werte von «Beta».
+    const { record } = entwurfAlsDatensatz(root, 'Items', 'r-00001', entwurf);
+    expect(record.values).toEqual(beta.values);
+    expect(record.refs).toEqual(beta.refs);
+    expect(record).toMatchObject({ table: 'Items', id: 'r-00001', path: table.path });
+    expect(record.display).toBe('Beta');
+  });
+
+  it('ein Feld ohne Entwurf behält den gespeicherten Wert; der Bestand bleibt unberührt', async () => {
+    const { root } = await itemsRoot();
+    const vorher = readRecordTable(root, 'Items').byId.get('r-00001');
+    const gespeichert = new Map(vorher.values);
+    const { record } = entwurfAlsDatensatz(root, 'Items', 'r-00001', {
+      category: 'SF',
+      pages: '42',
+    });
+    expect(record.values.get('title')).toBe('Alpha');
+    expect(record.values.get('pages')).toBe(42);
+    expect(record.values.get('category')).toMatchObject({
+      kind: 'record',
+      table: 'Categories',
+      id: 'r-00002',
+      display: 'Science-Fiction',
+    });
+    expect(record.refs.get('category').status).toBe('ok');
+    expect(readRecordTable(root, 'Items').byId.get('r-00001').values).toEqual(gespeichert);
+  });
+
+  it('die Neuanlage rechnet allein über den Entwurf; ein leerer Verweis ist «fehlend»', async () => {
+    const { root } = await itemsRoot();
+    const { record } = entwurfAlsDatensatz(root, 'Items', null, { title: 'Neu', category: '' });
+    expect(record.id).toBeNull();
+    expect(record.display).toBe('Neu');
+    expect(record.values.get('title')).toBe('Neu');
+    expect(record.values.get('pages')).toBeNull();
+    expect(record.values.get('category')).toBeNull();
+    expect(record.refs.get('category').status).toBe('empty');
+  });
+
+  it('eine unbekannte Tabelle ergibt null wie beim Lesen', async () => {
+    const { root } = await itemsRoot();
+    expect(entwurfAlsDatensatz(root, 'Nirgends', null, {})).toBeNull();
+  });
 });

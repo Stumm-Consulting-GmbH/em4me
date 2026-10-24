@@ -63,5 +63,13 @@
   "query.hint.recordRefAmbiguous": "Note: At least one reference matches several records and is therefore left empty; the consistency check of the database lists it",
   "query.hint.recordHullCycle": "Note: The references of this hierarchy form a cycle; every reachable record still appears exactly once in the result",
   "query.hint.displayFormUnknown": "Note: The presentation form '{name}' is unknown, so the result is shown without it",
-  "query.hint.displayFormUnsuitable": "Note: The presentation form '{name}' does not fit this query, so the result is shown without it"
+  "query.hint.displayFormUnsuitable": "Note: The presentation form '{name}' does not fit this query, so the result is shown without it",
+  "query.hint.displayFormOff": "Note: Chart display is turned off, so the result is shown without the presentation form '{name}'",
+  "query.hint.displayFormChartNotTable": "Note: The presentation form '{name}' needs a table query (TABLE), so the result is shown without it",
+  "query.hint.displayFormChartSingleColumn": "Note: The presentation form '{name}' needs at least one more column besides the label, so the result is shown without it",
+  "query.hint.displayFormChartNoNumbers": "Note: The presentation form '{name}' needs a column with numbers and this query has none, so the result is shown without it",
+  "query.chart.skipped.one": "Skipped: column {columns}, because it contains no number.",
+  "query.chart.skipped.other": "Skipped: columns {columns}, because they contain no number.",
+  "query.chart.omitted.one": "1 value was left out because it is missing or not a number.",
+  "query.chart.omitted.other": "{n} values were left out because they are missing or not numbers."
 }

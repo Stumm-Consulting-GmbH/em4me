@@ -24,6 +24,12 @@
 // Trefferliste flutet und die übrigen Gruppen aus der Anzeige drängt.
 const MAX_TREFFER_GESAMT = 5000;
 const MAX_TREFFER_JE_GRUPPE = 200;
+// 4T-002332 (Epic 3E-000264): Suffix der Gruppen-Kennung einer Datensatz-Gruppe.
+// Dieselbe Tabellen-Datei liefert zwei Gruppen, ihre Prosa als Dokument-Gruppe
+// und ihre Datensätze als eigene; das Suffix hält beide auseinander. Es steht
+// hier, weil Haupt-Prozess (Treffer-Bau) und Anzeige-Prozess (Zeichnung) es
+// beide brauchen und ein Prozess den anderen nicht importieren darf.
+const DATENSATZ_GRUPPEN_SUFFIX = '#datensaetze';
 
 // Zeichen links und rechts des Treffers im Kontext-Ausschnitt.
 const KONTEXT_ZEICHEN = 60;
@@ -241,6 +247,7 @@ function sucheInTexten(eintraege, regex, grenzen) {
 module.exports = {
   MAX_TREFFER_GESAMT,
   MAX_TREFFER_JE_GRUPPE,
+  DATENSATZ_GRUPPEN_SUFFIX,
   KONTEXT_ZEICHEN,
   sucheInTexten,
   // 4T-001531 (Epic 3E-000175): der zweite Zugang — Treffer aus bekannten

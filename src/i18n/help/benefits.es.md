@@ -107,9 +107,9 @@ Una carpeta de archivos Markdown puede ser al mismo tiempo una base de datos, y 
 - **El área se convierte en base de datos** en cuanto un documento la describe, y recibe su propio resumen, desde el que crea registros y comprueba los datos.
 - **La tabla reside en su archivo**: los campos en el encabezado, los registros en el cuerpo. Renombrar y mover no cambian nada de eso, tampoco fuera de la aplicación.
 - **Ocho tipos de columna**, con etiquetas que pueden existir en varios idiomas.
-- **El enlace a un registro concreto** se escribe como un ancla y se comporta como cualquier otro enlace: el linter de Markdown indica si vale, y un clic lleva a la fila del registro.
+- **El enlace a un registro concreto** se escribe como un ancla y se comporta como cualquier otro enlace: el linter de Markdown indica si vale, y un clic abre el formulario del registro.
 - **Los grandes conjuntos siguen siendo una sola tabla**: a partir de unos 0,7 MB, la aplicación reparte los registros al guardar entre varios archivos contiguos, sin que ningún enlace se vea afectado.
-- **Cuidar los registros en el formulario**: crear, modificar y eliminar en un formulario generado a partir de la definición, con bloqueo, justificante de cambio y las reglas de la tabla; comprobación de coherencia y vista de usos para el diagnóstico.
+- **Cuidar los registros en el formulario**: crear, modificar y eliminar en un formulario generado a partir de la definición o diseñado por uno mismo, con valores calculados, secciones condicionales y enlaces entre formularios, uno a uno o en una lista editable, cabecera y posiciones juntas; con bloqueo, justificante de cambio y las reglas de la tabla, si se desea con roles que separan el cuidado de los datos de la modificación de la definición; comprobación de coherencia y vista de usos para el diagnóstico.
 - **Evaluar los registros**: listas y tablas sobre una tabla, con rutas a través de referencias y jerarquías a lo largo de cualquier número de niveles, en forma de árbol si lo deseas, y vistas de conjunto con una fila por grupo, por ejemplo libros y páginas por autor.
 
 En detalle: [Base de datos](database.md).
@@ -164,7 +164,7 @@ En detalle: [Perfiles de propiedades](property-profiles.md).
 
 ## Listas que se mantienen al día
 
-Quien lleva muchos archivos mantiene si no las vistas de conjunto a mano, y envejecen el mismo día. Una consulta Perspective describe en cambio **qué** se busca, y el resultado aparece allí mismo en el documento: una lista o tabla en la que se puede hacer clic sobre todo el conjunto, filtrada por propiedades, etiquetas y campos de archivo, hasta los bloques de texto y las tareas. Si lo deseas, la consulta reúne los resultados en grupos, con una fila por grupo que indica el número, la suma o la media. Si cambia el conjunto, cambia la salida, sin que nadie actualice nada.
+Quien lleva muchos archivos mantiene si no las vistas de conjunto a mano, y envejecen el mismo día. Una consulta Perspective describe en cambio **qué** se busca, y el resultado aparece allí mismo en el documento: una lista o tabla en la que se puede hacer clic sobre todo el conjunto, filtrada por propiedades, etiquetas y campos de archivo, hasta los bloques de texto y las tareas. Si lo deseas, la consulta reúne los resultados en grupos, con una fila por grupo que indica el número, la suma o la media. Si lo deseas, muestra también el resultado como gráfico de barras o de líneas, que cambia con el conjunto. Si cambia el conjunto, cambia la salida, sin que nadie actualice nada.
 
 - **Páginas temáticas** que listan por sí solas sus archivos asociados.
 - **Filtros y grupos** por propiedades del frontmatter, etiquetas y campos de archivo, con el número y las sumas por grupo.

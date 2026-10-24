@@ -159,6 +159,44 @@
             };
           }
 
+          // 4T-002126 (Epic 3E-000345): Vorlagen-Ausschluss mit derselben Regel
+          // wie die Abfrage (Konzept-Entscheidung E6.7). Der Abzug trägt den
+          // Vorlagen-Ordner wurzel-relativ in der Schreibweise von file.folder
+          // (templatesFolder, null ohne Ordner, im Aus-Zustand der Erweiterung
+          // «Vorlagen» und außerhalb des Suchraums). Die Ordner-Erkennung der
+          // Quelle folgt sourceMatcher, dessen Quellen-Formen unverändert bleiben.
+          function sourceFolder(quelle) {
+            if (quelle === undefined || quelle === null || quelle === '') return null;
+            var q = String(quelle).trim();
+            if (q.charAt(0) === '#') return null;
+            if (/^\[\[(.*)\]\]$/.test(q)) return null;
+            return norm(q.replace(/\\/g, '/').replace(/^\/+|\/+$/g, ''));
+          }
+
+          // Liegt der Ordner f im Ordner folder (der Ordner selbst zählt mit)?
+          // Präfix-Nachbarn (Vorlagen2 neben Vorlagen) zählen nicht; die Wurzel
+          // '' enthält jeden Ordner.
+          function folderInside(folder, f) {
+            return folder === '' || f === folder || f.indexOf(folder + '/') === 0;
+          }
+
+          // Prädikat «fällt als Vorlage heraus» für einen Aufruf von pq.pages
+          // oder pq.blocks, oder null, wenn nichts auszuschließen ist. Die
+          // Ausnahme: Eine Ordner-Quelle, die auf den Vorlagen-Ordner oder einen
+          // seiner Unterordner zeigt, nennt ihn ausdrücklich und gibt ihren
+          // Inhalt frei; weil pq.pages ohnehin nur diesen Inhalt liefert, entfällt
+          // der Ausschluss dann ganz. Ohne Quelle, mit Schlagwort, Verweis-Ziel
+          // oder einem Ordner oberhalb oder daneben bleibt er bestehen.
+          function templateExclusion(templatesFolder, quelle) {
+            if (typeof templatesFolder !== 'string') return null;
+            var tpl = norm(templatesFolder.replace(/\\/g, '/').replace(/^\/+|\/+$/g, ''));
+            var named = sourceFolder(quelle);
+            if (named !== null && folderInside(tpl, named)) return null;
+            return function (page) {
+              return folderInside(tpl, norm(page && page.file ? page.file.folder : ''));
+            };
+          }
+
           // Datums-Parsing kompatibel zum Typ-System der Abfrage-Sprache:
           // ISO-artige Strings (JJJJ-MM-TT, optional Uhrzeit mit T oder
           // Leerzeichen) werden LOKAL interpretiert, wie in der Abfrage.
@@ -283,6 +321,23 @@
             var blocks = snapshot && Array.isArray(snapshot.blocks) ? snapshot.blocks : [];
             var currentPath =
               snapshot && typeof snapshot.current === 'string' ? snapshot.current : '';
+            // 4T-002126: Vorlagen-Ordner des Abzugs (siehe templateExclusion).
+            var templatesFolder =
+              snapshot && typeof snapshot.templatesFolder === 'string'
+                ? snapshot.templatesFolder
+                : null;
+            // Quellen-Filter samt Vorlagen-Ausschluss; nur pq.pages und
+            // pq.blocks bilden eine Kandidaten-Menge. pq.file, pq.current und
+            // die Ziel-Auflösung von pq.link nennen eine Seite beim Namen und
+            // finden auch eine Vorlage.
+            function candidateMatcher(quelle) {
+              var match = sourceMatcher(quelle);
+              var excluded = templateExclusion(templatesFolder, quelle);
+              if (excluded === null) return match;
+              return function (page) {
+                return match(page) && !excluded(page);
+              };
+            }
 
             // Seiten-Auflösung für pq.file und die Link-Zielauflösung: absoluter
             // Pfad, Wurzel-relativer Pfad oder logischer Name (case-insensitiv).
@@ -330,7 +385,7 @@
 
             // --- Daten (lesend) ---
             pq.pages = function (quelle) {
-              return pages.filter(sourceMatcher(quelle));
+              return pages.filter(candidateMatcher(quelle));
             };
             pq.current = function () {
               if (!currentPath) return null;
@@ -344,7 +399,7 @@
               return findPage(ref);
             };
             pq.blocks = function (quelle) {
-              var match = sourceMatcher(quelle);
+              var match = candidateMatcher(quelle);
               return blocks.filter(function (block) {
                 if (!block || !block.file) return false;
                 var page = findPage(block.file.absPath);

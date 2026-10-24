@@ -61,6 +61,8 @@
   "areaReplace.reason.keinBereich": "Nessuna area aperta",
   "areaReplace.reason.kanal": "L'esecuzione non ha raggiunto il processo principale",
   "areaReplace.reason.frontmatter": "Non è stato possibile scrivere il campo dei tag",
+  "areaReplace.reason.defineNichtErlaubt": "Ruolo proprio senza autorizzazione «modificare la definizione»; definizione non modificata",
+  "areaReplace.reason.defineRechteNichtBestimmbar": "Autorizzazioni della banca dati non determinabili; definizione non modificata",
   "search.replaceCountOne": "1 sostituzione",
   "search.replaceCountMany": "{n} sostituzioni",
   "searchResults.title": "Risultati della ricerca",

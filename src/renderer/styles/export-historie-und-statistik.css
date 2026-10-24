@@ -129,6 +129,8 @@ body.printing .markdown-body .canvas-block,
    Auslass-Zeile. Die Grafik selbst schiebt Chromium als Ganzes weiter
    (gemessen); die Regel hält den ganzen Container zusammen. */
 body.printing .markdown-body .perspective-chart,
+/* 4T-002173 (Epic 3E-000337): ebenso das Diagramm einer Abfrage samt Zeilen. */
+body.printing .markdown-body .perspective-query-chart,
 body.printing .markdown-body blockquote,
 body.printing .markdown-body img {
   page-break-inside: avoid;

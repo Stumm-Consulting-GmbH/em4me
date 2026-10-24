@@ -248,6 +248,55 @@ describe('Regel-Werk: die Prüf-Naht sammelt in fester Reihenfolge (4T-001926, A
     expect(kontext.bestaende.has('Kunden.md')).toBe(true);
     expect(kontext.ersetzungen).toEqual([]);
   });
+
+  it('4T-002309 bestimmt die Erlaubnis-Menge einmal je Auftrag und reicht sie jedem Modul', async () => {
+    const wurzel = bereich();
+    lege(wurzel, tabelle([ANNA], 1));
+    const rechte = { Kunden: { create: false, update: true, delete: false, define: false } };
+    const gefragt = [];
+    const erste = fakeRegel('erste', {});
+    const zweite = fakeRegel('zweite', {});
+
+    await schnittstelle({
+      pruefNaht: erzeugePruefNaht({
+        regeln: [erste, zweite],
+        rechteFuer: async (bereichsWurzel) => {
+          gefragt.push(bereichsWurzel);
+          return { status: 'ready', rolle: 'assistant', rechte };
+        },
+      }),
+    }).fuehreAuftragAus(wurzel, {
+      anweisungen: [aendere('r-00001', gezeigt(ANNA), { Ort: 'Chur' })],
+    });
+
+    expect(gefragt).toEqual([wurzel]);
+    for (const regel of [erste, zweite]) {
+      expect(regel.gesehen[0].rechte).toBe(rechte);
+      expect(regel.gesehen[0].rolle).toBe('assistant');
+      expect(regel.gesehen[0].rechteFehler).toBeUndefined();
+      expect(regel.gesehen[0].rechteNichtBestimmbar).toBeUndefined();
+    }
+    // Nicht bestimmbar (Entscheidung der Sitzung vom 2026-10-18): Der Grund
+    // reist im Kontext, die Menge ist leer.
+    const spaeter = fakeRegel('spaeter', {});
+    await erzeugePruefNaht({ regeln: [spaeter], rechteFuer: async () => ({ status: 'indexing' }) })(
+      { anweisungen: [], schritte: [], bestaende: new Map() },
+    );
+    expect(spaeter.gesehen[0]).toMatchObject({
+      rechte: null,
+      rolle: null,
+      rechteNichtBestimmbar: 'indexing',
+    });
+    // Ohne `rechteFuer` bleibt der Kanal undefiniert; eine falsche Naht bricht laut.
+    const ohne = fakeRegel('ohne', {});
+    await erzeugePruefNaht({ regeln: [ohne] })({
+      anweisungen: [],
+      schritte: [],
+      bestaende: new Map(),
+    });
+    expect(ohne.gesehen[0].rechte).toBeUndefined();
+    expect(() => erzeugePruefNaht({ rechteFuer: 'nein' })).toThrow(TypeError);
+  });
 });
 
 // --- B2: ein defektes Regel-Modul lässt nie still durch -------------------------------------
@@ -410,9 +459,12 @@ describe('Regel-Werk: Ersetzungen wirken auf die geschriebenen Werte (4T-001926,
 // --- AK3: die Anwender-Texte ---------------------------------------------------------------
 
 describe('Regel-Werk: je Regel-Lage ein Text in allen fünf Sprachen (4T-001926, AK3)', () => {
-  it('AK3 führt für jeden der zwölf Codes einen nicht leeren Text in jedem Fragment', () => {
+  // 4T-002309: fünfzehn Codes, seit `regelNichtErlaubt` und
+  // `regelRechteNichtBestimmbar` der Berechtigung; 4T-002312: sechzehn, seit
+  // `regelFeldNichtBearbeitbar`.
+  it('AK3 führt für jeden Code einen nicht leeren Text in jedem Fragment', () => {
     const codes = Object.values(REGEL_LAGEN);
-    expect(codes).toHaveLength(13);
+    expect(codes).toHaveLength(16);
     const fehlend = [];
     for (const { code: sprache, werte } of FRAGMENTE) {
       for (const code of codes) {
@@ -464,5 +516,36 @@ describe('Regel-Werk: die Verdrahtung reicht die Naht genau einmal herein (4T-00
       'tabellenSicht: (bereichsWurzel) => backlinks.datenbankSicht(null, bereichsWurzel)',
     );
     expect(VERDRAHTUNG.length).toBeGreaterThan(1000);
+  });
+
+  it('4T-002309 stellt die Berechtigung als erste Regel und reicht dieselbe Rechte-Funktion an Naht und Schnittstelle', () => {
+    const liste = VERDRAHTUNG.match(/regeln: \[([^\]]*)\]/);
+    expect(liste).not.toBeNull();
+    expect(
+      liste[1]
+        .split(',')
+        .map((name) => name.trim())
+        .filter(Boolean),
+    ).toEqual([
+      'berechtigungRegel',
+      'verweisRegel',
+      'schluesselRegel',
+      'loeschschutzRegel',
+      'pruefregelnRegel',
+      'bearbeitbarRegel',
+    ]);
+    // Die Erlaubnis-Menge aus derselben Auflösung wie die Lese-Kanäle.
+    expect(VERDRAHTUNG.match(/const rechteFuer = /g)).toHaveLength(1);
+    expect(VERDRAHTUNG).toMatch(/const rechteFuer = erzeugeRechteFuer\(\{\n\s*tabellenSicht: /);
+    expect(VERDRAHTUNG).toContain('fsp: frischerDateizugriff,');
+    // 4T-002310: dieselbe Rechte-Funktion an Naht, Schnittstelle und Schutz der
+    // Definition, über die Sicht des gespeicherten Stands ohne Puffer.
+    expect(VERDRAHTUNG.match(/^\s*rechteFuer,$/gm)).toHaveLength(3);
+    expect(VERDRAHTUNG).toContain(
+      'tabellenSicht: (bereichsWurzel) => gespeicherteSicht(null, bereichsWurzel),',
+    );
+    expect(VERDRAHTUNG).toContain(
+      'backlinks.datenbankSicht(pfad, bereichsWurzel, { ohnePuffer: true })',
+    );
   });
 });

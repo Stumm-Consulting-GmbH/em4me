@@ -61,6 +61,8 @@
   "areaReplace.reason.keinBereich": "No area open",
   "areaReplace.reason.kanal": "The run did not reach the main process",
   "areaReplace.reason.frontmatter": "Tag field could not be written",
+  "areaReplace.reason.defineNichtErlaubt": "Own role lacks permission to «change definition»; definition not changed",
+  "areaReplace.reason.defineRechteNichtBestimmbar": "Permissions of the database could not be determined; definition not changed",
   "search.replaceCountOne": "1 replacement",
   "search.replaceCountMany": "{n} replacements",
   "searchResults.title": "Search results",

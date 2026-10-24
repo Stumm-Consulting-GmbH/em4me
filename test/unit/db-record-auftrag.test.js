@@ -32,6 +32,9 @@ import { erzeugeWiederanlauf } from '../../src/main/database/intent-recovery.js'
 import { belegeDesDatensatzes, belegPfadFuer } from '../../src/main/database/change-log.js';
 import { ART_DELETE, ART_CREATE, ART_UPDATE } from '../../src/shared/database/change-record.js';
 import { ARTEN } from '../../src/shared/database/record-write.js';
+// 4T-002309 (Epic 3E-000263): die Berechtigung an der echten Naht.
+import { erzeugePruefNaht } from '../../src/main/database/record-regeln.js';
+import { berechtigungRegel } from '../../src/main/database/record-regel-berechtigung.js';
 
 // --- Bestands-Lesungen im Modulkopf (test/README) --------------------------------------
 
@@ -426,6 +429,64 @@ describe('Schreib-Schnittstelle: Neuanlage eröffnen (4T-001821, AK2)', () => {
     expect(lies(pfad)).toContain('lastId: 2');
   });
 
+  // 4T-002288: Der Stand vor dem Ziehen ist das Maximum aus dem Hochwasserstand
+  // der Definition und der höchsten vorhandenen Kennung über alle Segmente.
+  // Ohne das zog eine Tabelle ohne `lastId` mit Datensätzen `r-00001` ein
+  // zweites Mal.
+  it('4T-002288 zieht über der höchsten vorhandenen Kennung, wenn lastId fehlt', async () => {
+    const wurzel = bereich();
+    const cara = { ...BERT, id: 'r-00003', name: 'Cara' };
+    const pfad = lege(wurzel, 'Kunden.md', tabelle([ANNA, cara], { lastId: null }));
+
+    const ergebnis = await schnittstelle().eroeffneNeuanlage(wurzel, 'Kunden.md');
+
+    expect(ergebnis).toMatchObject({ ok: true, kennung: 'r-00004', hochwasserstand: 4 });
+    expect(lies(pfad)).toContain('lastId: 4');
+  });
+
+  it('4T-002288 lässt einen höheren Hochwasserstand gelten (keine Wiederverwendung)', async () => {
+    const wurzel = bereich();
+    const cara = { ...BERT, id: 'r-00003', name: 'Cara' };
+    const pfad = lege(wurzel, 'Kunden.md', tabelle([ANNA, cara], { lastId: 7 }));
+
+    const ergebnis = await schnittstelle().eroeffneNeuanlage(wurzel, 'Kunden.md');
+
+    expect(ergebnis).toMatchObject({ ok: true, kennung: 'r-00008', hochwasserstand: 8 });
+    expect(lies(pfad)).toContain('lastId: 8');
+  });
+
+  it('4T-002288 zählt eine Kennung im Folge-Segment mit', async () => {
+    const wurzel = bereich();
+    const { kopf, segment } = geteilteTabelle(wurzel);
+    fs.writeFileSync(kopf, lies(kopf).replace('  lastId: 2\n', ''), 'utf8');
+    fs.writeFileSync(segment, lies(segment).replace('r-00002', 'r-00005'), 'utf8');
+
+    const ergebnis = await schnittstelle().eroeffneNeuanlage(wurzel, 'Gross.md');
+
+    expect(ergebnis).toMatchObject({ ok: true, kennung: 'r-00006', hochwasserstand: 6 });
+    expect(lies(kopf)).toContain('lastId: 6');
+  });
+
+  // 4T-002288: Derselbe Fehler auf dem zweiten Weg, dem Anlegen ohne
+  // mitgebrachte Kennung im Auftrag; zwei Anlegen zählen fortlaufend hoch.
+  it('4T-002288 zieht im Auftrag über der höchsten vorhandenen Kennung', async () => {
+    const wurzel = bereich();
+    const cara = { ...BERT, id: 'r-00003', name: 'Cara' };
+    const pfad = lege(wurzel, 'Kunden.md', tabelle([ANNA, cara], { lastId: null }));
+
+    const ergebnis = await schnittstelle().fuehreAuftragAus(wurzel, {
+      anweisungen: [
+        { tabelle: 'Kunden.md', art: 'create', werte: { Name: 'Dora' } },
+        { tabelle: 'Kunden.md', art: 'create', werte: { Name: 'Emil' } },
+      ],
+    });
+
+    expect(ergebnis.ok).toBe(true);
+    expect(ergebnis.ergebnisse.map((e) => e.id)).toEqual(['r-00004', 'r-00005']);
+    expect(lies(pfad)).toContain('|- id="r-00004"');
+    expect(lies(pfad)).toContain('lastId: 5');
+  });
+
   it('AK2 zieht die Kennung selbst, wenn das Anlegen keine mitbringt', async () => {
     const wurzel = bereich();
     lege(wurzel, 'Kunden.md', tabelle([], { lastId: null }));
@@ -629,6 +690,80 @@ describe('Schreib-Schnittstelle: die Prüf-Naht (4T-001821, AK4)', () => {
     });
 
     expect(ergebnis.ok).toBe(true);
+  });
+});
+
+// --- 4T-002309: die Berechtigung an Auftrag und Neuanlage --------------------------------------
+
+// Die Rolle «assistant» darf an «Kunden» allein ändern.
+const NUR_AENDERN = { create: false, update: true, delete: false, define: false };
+const RECHTE = { Kunden: NUR_AENDERN };
+const nurAendern = async () => ({ status: 'ready', rolle: 'assistant', rechte: RECHTE });
+
+function neu(wurzel, rechteFuer) {
+  return schnittstelle({ rechteFuer }).eroeffneNeuanlage(wurzel, 'Kunden.md');
+}
+
+describe('Schreib-Schnittstelle: die Berechtigung (4T-002309, AK1, AK2)', () => {
+  it('4T-002309 weist eine Neuanlage ohne create ab, bevor eine Kennung gezogen ist', async () => {
+    const wurzel = bereich();
+    const pfad = lege(wurzel, 'Kunden.md', tabelle([ANNA], { lastId: 1 }));
+    const vorher = lies(pfad);
+
+    const ergebnis = await neu(wurzel, nurAendern);
+
+    expect(ergebnis).toMatchObject({ ok: false, code: LAGEN.nichtErlaubt });
+    expect(ergebnis.lagen[0]).toMatchObject({
+      tabelle: 'Kunden.md',
+      operation: 'create',
+      rolle: 'assistant',
+    });
+    expect(lies(pfad)).toBe(vorher);
+    expect(fs.existsSync(belegPfadFuer(pfad))).toBe(false);
+  });
+
+  it('4T-002309 eröffnet mit create wie bisher und weist bei einem Fehler der Rechte ab', async () => {
+    const wurzel = bereich();
+    const pfad = lege(wurzel, 'Kunden.md', tabelle([ANNA], { lastId: 1 }));
+    const alles = async () => ({
+      status: 'ready',
+      rolle: 'x',
+      rechte: { kunden: { create: true } },
+    });
+
+    expect(await neu(wurzel, alles)).toMatchObject({ ok: true, kennung: 'r-00002' });
+
+    const vorher = lies(pfad);
+    const kaputt = async () => {
+      throw new Error('Steckbrief nicht lesbar');
+    };
+    expect(await neu(wurzel, kaputt)).toMatchObject({ ok: false, code: LAGEN.unerwartet });
+    // Entscheidung der Sitzung vom 2026-10-18: nicht bestimmbar weist ab.
+    const offen = await neu(wurzel, async () => ({ status: 'indexing' }));
+    expect(offen).toMatchObject({ ok: false, code: LAGEN.rechteNichtBestimmbar });
+    expect(offen.lagen[0]).toMatchObject({ tabelle: 'Kunden.md', grund: 'indexing' });
+    expect(lies(pfad)).toBe(vorher);
+  });
+
+  it('4T-002309 schreibt einen Auftrag mit verbotener Anweisung nicht und hinterlässt keinen Beleg', async () => {
+    const wurzel = bereich();
+    const pfad = lege(wurzel, 'Kunden.md', tabelle([ANNA, BERT], { lastId: 2 }));
+    const vorher = lies(pfad);
+    const rechteFuer = nurAendern;
+    const pruefNaht = erzeugePruefNaht({ regeln: [berechtigungRegel], rechteFuer });
+
+    const ergebnis = await schnittstelle({ pruefNaht, rechteFuer }).fuehreAuftragAus(wurzel, {
+      anweisungen: [
+        aendere('Kunden.md', 'r-00001', gezeigt(ANNA), { Ort: 'Chur' }),
+        loesche('Kunden.md', 'r-00002', gezeigt(BERT)),
+      ],
+    });
+
+    expect(ergebnis).toMatchObject({ ok: false, code: LAGEN.pruefBefund });
+    expect(ergebnis.lagen.map((lage) => lage.naht.code)).toEqual(['regelNichtErlaubt']);
+    expect(ergebnis.lagen[0].naht).toMatchObject({ position: 1, operation: 'delete' });
+    expect(lies(pfad)).toBe(vorher);
+    expect(fs.existsSync(belegPfadFuer(pfad))).toBe(false);
   });
 });
 

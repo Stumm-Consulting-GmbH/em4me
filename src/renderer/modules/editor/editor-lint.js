@@ -115,6 +115,13 @@ export const LINT_RULES = {
   // brokenWikiLink (visuell identisch), eigener Regel-Identifier fuer den
   // Tooltip.
   ambiguousWikiTarget: { className: 'cm-linter-mark cm-linter-broken-wiki-link' },
+  // 4T-002333 (Epic 3E-000264, S7): Die Anzeige-Form hinter '^' trifft mehrere
+  // Datensätze der Tabelle. Der Verweis gilt, der Hinweis sagt, dass er nicht
+  // eindeutig ist. Selbe Klasse wie ambiguousWikiTarget, eigener Identifier.
+  ambiguousRecordName: { className: 'cm-linter-mark cm-linter-broken-wiki-link' },
+  // 4T-002333 (E5.2): Ein Block-Anker trägt denselben Namen wie ein Datensatz
+  // der Tabelle und gewinnt; der Verweis gilt, der Hinweis sagt, wohin er führt.
+  blockAnchorShadowsRecord: { className: 'cm-linter-mark cm-linter-broken-wiki-link' },
   // 4T-000061 (Epic 3E-000012): Unbekannter Callout-Typ ausserhalb der Whitelist.
   unknownCalloutType: { className: 'cm-linter-mark cm-linter-unknown-callout-type' },
   // 4T-000324 (Epic 3E-000058): Link-Ziel ausserhalb des aktiven Bereichs.
@@ -362,10 +369,23 @@ export async function runLint(view) {
         // 4T-000336 (Epic 3E-000061): mehrdeutige Ziele (Ordner-Pfad- und
         // Unterseiten-Form treffen verschiedene Dateien).
         const ambiguousSet = new Set(result.ambiguous || []);
+        // 4T-002333 (Epic 3E-000264, S7): mehrdeutige Anzeige-Form eines
+        // Datensatzes; fehlt die Liste (älterer Haupt-Prozess), ist sie leer.
+        const ambiguousRecordSet = new Set(result.ambiguousRecord || []);
+        // 4T-002333 (E5.2): Block-Anker verdeckt einen gleichnamigen Datensatz.
+        const shadowedRecordSet = new Set(result.shadowedRecord || []);
         for (const w of lokaleMatches) {
           if (outsideWikiSpans.has(w.from)) continue;
           if (ambiguousSet.has(w.target)) {
             pushRange(w.from, w.to, 'ambiguousWikiTarget');
+            continue;
+          }
+          if (ambiguousRecordSet.has(w.target)) {
+            pushRange(w.from, w.to, 'ambiguousRecordName');
+            continue;
+          }
+          if (shadowedRecordSet.has(w.target)) {
+            pushRange(w.from, w.to, 'blockAnchorShadowsRecord');
             continue;
           }
           if (existingSet.has(w.target)) continue;
@@ -485,6 +505,14 @@ export function buildLintTooltipDom(ruleId, target, detail) {
       .split('|')[0]
       .trim();
     text = text.replace('{target}', cleaned);
+  } else if (ruleId === 'ambiguousRecordName' || ruleId === 'blockAnchorShadowsRecord') {
+    // 4T-002333: der Name hinter '#^', nicht das ganze Ziel.
+    const cleaned = target
+      .replace(/^\[\[|\]\]$/g, '')
+      .split('|')[0]
+      .trim();
+    const stelle = cleaned.indexOf('#^');
+    text = text.replace('{target}', stelle >= 0 ? cleaned.slice(stelle + 2).trim() : cleaned);
   } else if (ruleId === 'unknownCalloutType') {
     text = text.replace('{type}', target);
   } else if (ruleId === 'outsideAreaLink') {

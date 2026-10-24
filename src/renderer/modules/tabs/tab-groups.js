@@ -246,6 +246,23 @@ export function moveTabNextTo(pane, tabIdx, refIdx) {
   return target;
 }
 
+// 4T-002334 (Epic 3E-000264): Bestehenden Reiter an einen Index verschieben,
+// ohne den aktiven Reiter zu wechseln (Wiederherstellung des Masken-Dokuments
+// an seiner gesicherten Stelle). `toIdx` gilt im Koordinatensystem nach dem
+// Entfernen an der Quelle und wird auf den Streifen begrenzt. Die Gruppe folgt
+// der Einfüge-Regel des Ziehens (groupIdForInsertion), eine leer gewordene
+// Herkunfts-Gruppe entfällt. Liefert den neuen Index; -1 ohne Reiter.
+export function moveTabToIndexKeepActive(pane, fromIdx, toIdx) {
+  const tab = pane.tabs[fromIdx];
+  if (!tab) return -1;
+  const rest = pane.tabs.filter((_, i) => i !== fromIdx);
+  const ziel = Math.max(0, Math.min(Number.isInteger(toIdx) ? toIdx : rest.length, rest.length));
+  tab.groupId = groupIdForInsertion(rest, ziel, tab.groupId || null);
+  if (ziel !== fromIdx) moveTabKeepActive(pane, fromIdx, ziel);
+  pruneEmptyGroups(pane);
+  return ziel;
+}
+
 // Tab aus seiner Gruppe entfernen: er verlaesst den Block und steht
 // unmittelbar dahinter (Browser-Muster). Liefert true bei Erfolg.
 export function removeTabFromGroup(pane, tabIdx) {

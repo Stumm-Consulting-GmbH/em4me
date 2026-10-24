@@ -107,7 +107,7 @@ const GESTALTET = [
   '',
   '{{field:ort}}',
   '',
-  '{{value:summe}} {{field:telefon}}',
+  '{{list:summe}} {{field:telefon}}',
   '',
 ].join('\n');
 
@@ -284,12 +284,12 @@ describe('Der Datensatz-Kanal liest den Körper aus der Masken-Datei (B3, AK3, A
     expect(koerper.segmente[2].text).toContain('## Wohnort');
     // Fremder Platzhalter und unbekanntes Feld bleiben Text und tragen die
     // Zeile der DATEI.
-    const zeile = GESTALTET.split('\n').indexOf('{{value:summe}} {{field:telefon}}') + 1;
+    const zeile = GESTALTET.split('\n').indexOf('{{list:summe}} {{field:telefon}}') + 1;
     expect(koerper.hints).toEqual([
-      { code: 'formPlatzhalterUnbekannt', name: 'value:summe', zeile },
+      { code: 'formPlatzhalterUnbekannt', name: 'list:summe', zeile },
       { code: 'formFeldUnbekannt', name: 'telefon', zeile },
     ]);
-    expect(koerper.segmente[4].text).toContain('{{value:summe}} {{field:telefon}}');
+    expect(koerper.segmente[4].text).toContain('{{list:summe}} {{field:telefon}}');
   });
 
   it('liest eine geänderte Datei frisch und kehrt nach dem Löschen zur erzeugten Maske zurück', async () => {
@@ -342,9 +342,97 @@ describe('Der Datensatz-Kanal liest den Körper aus der Masken-Datei (B3, AK3, A
     expect(antwort.koerper.quelle).toBe('erzeugt');
   });
 
-  it('führt die beiden Codes des Katalogs im Hinweis-Katalog', () => {
+  // 4T-002184: Der Hinweis «mehrere Masken-Dateien» ist entfallen (F2 A), die
+  // drei Codes der Angabe `form` sind hinzugekommen.
+  it('führt die Codes des Katalogs im Hinweis-Katalog', () => {
     expect(HINWEIS_META.formTabelleUnbekannt).toBeDefined();
-    expect(HINWEIS_META.formMehrereDateien).toBeDefined();
+    expect(HINWEIS_META.formMehrereDateien).toBeUndefined();
+    for (const code of ['form', 'formDateiUnbekannt', 'formDateiFremd'])
+      expect(HINWEIS_META[code], code).toMatchObject({ key: 'form' });
+  });
+});
+
+// --- 4T-002184: mehrere Masken je Tabelle und die Standard-Maske ----------------------------
+
+describe('Mehrere Masken je Tabelle und die Standard-Maske (4T-002184, AK1 bis AK3)', () => {
+  // Zwei Masken-Dateien derselben Tabelle; «Kunden Form» steht nach Pfad vor
+  // «Kunden Kurz». Die Kurz-Maske trägt eine eigene Überschrift.
+  const KURZ = GESTALTET.replace('# Kunden', '# Kurz');
+
+  function bestand(angabe) {
+    const wurzel = neueWurzel();
+    const definition =
+      angabe === null ? TABELLE : TABELLE.replace('  lastId: 2', `  lastId: 2\n  form: ${angabe}`);
+    const kopf = lege(wurzel, 'Kunden.md', definition);
+    const lang = lege(wurzel, 'Kunden Form.md', GESTALTET);
+    const kurz = lege(wurzel, 'Kunden Kurz.md', KURZ);
+    const sicht = sichtMit({ [kopf]: ['table'], [lang]: ['form'], [kurz]: ['form'] });
+    return { wurzel, kopf, lang, kurz, sicht };
+  }
+
+  async function koerper({ wurzel, sicht }) {
+    const antwort = await liesDatensatz({
+      fsp: fs.promises,
+      wurzel,
+      tabelle: 'Kunden.md',
+      kennung: 'r-00001',
+      sicht,
+    });
+    return antwort.koerper;
+  }
+
+  it('zeigt ohne Angabe die erste Masken-Datei nach Pfad (AK2)', async () => {
+    const b = bestand(null);
+    const k = await koerper(b);
+    expect(k.pfad).toBe(b.lang);
+    expect(k.text).toContain('# Kunden');
+  });
+
+  it('zeigt mit Angabe die genannte Masken-Datei (AK1)', async () => {
+    const b = bestand('Kunden Kurz');
+    const k = await koerper(b);
+    expect(k.quelle).toBe('datei');
+    expect(k.pfad).toBe(b.kurz);
+    expect(k.text).toContain('# Kurz');
+  });
+
+  it('fällt bei einer fehlenden Datei zurück und nach dem Löschen der Standard-Maske ebenso (AK3)', async () => {
+    const fehlt = bestand('Gibt Es Nicht');
+    expect((await koerper(fehlt)).pfad).toBe(fehlt.lang);
+
+    const b = bestand('Kunden Kurz');
+    fs.rmSync(b.kurz);
+    const sicht = sichtMit({ [b.kopf]: ['table'], [b.lang]: ['form'] });
+    expect((await koerper({ wurzel: b.wurzel, sicht })).pfad).toBe(b.lang);
+  });
+
+  it('fällt bei der Masken-Datei einer anderen Tabelle zurück (AK3)', async () => {
+    const b = bestand('Andere Form');
+    const andere = lege(b.wurzel, 'Andere.md', '---\ndb-table:\n  fields:\n    - name: x\n---\n');
+    const fremd = lege(
+      b.wurzel,
+      'Andere Form.md',
+      GESTALTET.replace('table: Kunden', 'table: Andere'),
+    );
+    const sicht = sichtMit({
+      [b.kopf]: ['table'],
+      [andere]: ['table'],
+      [b.lang]: ['form'],
+      [b.kurz]: ['form'],
+      [fremd]: ['form'],
+    });
+    expect((await koerper({ wurzel: b.wurzel, sicht })).pfad).toBe(b.lang);
+  });
+
+  it('lässt eine einzelne Masken-Datei ohne Angabe unverändert wirken (AK2)', async () => {
+    const wurzel = neueWurzel();
+    const kopf = lege(wurzel, 'Kunden.md', TABELLE);
+    const maske = lege(wurzel, 'Kunden Form.md', GESTALTET);
+    const k = await koerper({ wurzel, sicht: sichtMit({ [kopf]: ['table'], [maske]: ['form'] }) });
+    expect(k.pfad).toBe(maske);
+    // Das unbekannte Feld `telefon` bleibt Text, wie vor 4T-002184.
+    expect(k.segmente.filter((s) => s.art === 'feld').map((s) => s.name)).toEqual(['name', 'ort']);
+    expect(k.hints.map((h) => h.code)).toEqual(['formPlatzhalterUnbekannt', 'formFeldUnbekannt']);
   });
 });
 

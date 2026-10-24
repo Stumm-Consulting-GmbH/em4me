@@ -61,6 +61,8 @@ import {
 } from './vervollstaendigung.js';
 // 4T-002129: Roll-Lage des Tags-Panels über den asynchronen Neuaufbau.
 import { halteRollLage } from '../panels/panel-rolllage.js';
+// 4T-002333 (Epic 3E-000264, T5): Anker-Modus samt Datensätzen.
+import { ankerVorschlaege } from './autocomplete-anker.js';
 
 // --- Autocomplete-Quellen (4T-000057, Epic 3E-000011) ---------------------------
 // Zwei Completion-Sources fuer CodeMirror: Wiki-Link (`[[…`) und Tag (`#…`).
@@ -107,41 +109,9 @@ export async function wikiLinkCompletionSource(context) {
 
   const hashIdx = inner.indexOf('#');
 
-  // Anker-Modus: [[Datei#... oder [[Datei#^...
-  if (hashIdx >= 0) {
-    const basename = inner.slice(0, hashIdx).trim();
-    const anchorSofar = inner.slice(hashIdx + 1);
-    const isBlock = anchorSofar.startsWith('^');
-    const anchorType = isBlock ? 'block' : 'heading';
-    const anchorQuery = isBlock ? anchorSofar.slice(1) : anchorSofar;
-    let result;
-    try {
-      result = await api.autocompleteAnchors(activeFile, basename, anchorType);
-    } catch {
-      return null;
-    }
-    if (!result || result.status !== 'ready') return null;
-    const queryLower = anchorQuery.toLowerCase();
-    const items = (result.suggestions || [])
-      .filter((s) => !queryLower || s.toLowerCase().includes(queryLower))
-      .sort((a, b) => {
-        const aPrefix = a.toLowerCase().startsWith(queryLower) ? 0 : 1;
-        const bPrefix = b.toLowerCase().startsWith(queryLower) ? 0 : 1;
-        if (aPrefix !== bPrefix) return aPrefix - bPrefix;
-        return a.localeCompare(b);
-      })
-      .slice(0, AUTOCOMPLETE_RENDER_LIMIT)
-      .map((s) => ({
-        label: isBlock ? '^' + s : s,
-        type: 'variable',
-        detail: isBlock ? t('autocomplete.detail.blockId') : t('autocomplete.detail.heading'),
-      }));
-    return {
-      from: context.pos - anchorQuery.length,
-      options: items,
-      validFor: /^[\p{L}\p{N}_^/-]*$/u,
-    };
-  }
+  // Anker-Modus: [[Datei#... oder [[Datei#^... — seit 4T-002333 (Epic 3E-000264,
+  // T5) samt den Datensätzen einer Tabelle in autocomplete-anker.js.
+  if (hashIdx >= 0) return ankerVorschlaege(context, activeFile, inner, hashIdx);
 
   // 4T-000337 (Epic 3E-000061): '[[/' — Unterseiten der aktiven Datei
   // vorschlagen (relative Schreibweise). Kandidaten sind alle Dateien,

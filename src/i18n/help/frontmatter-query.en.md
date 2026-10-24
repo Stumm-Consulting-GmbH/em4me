@@ -128,7 +128,8 @@ SORT author
 - **Tables**: `TABLE RECORDS …` shows the hit in the first column «Record»; `WITHOUT ID` comes after `RECORDS`. A column title is the alias, otherwise the label of the field in the selected program language following the fallback chain of the [Database](database.md) page, otherwise the expression itself, for instance with a path.
 - **Reference values**: A reference field shows the display form of its target, without one its identifier, and a click opens the form of the target. An empty reference and one pointing nowhere remain an empty cell.
 - **Order**: Without `SORT` the hits are ordered by their display form regardless of case, with equal display forms by identifier, and records without a display form come last.
-- **Two click targets**: A record in the result of a query opens the form, whereas a reference in running text such as `[[Books#^r-00042]]` opens the table file at the row of the record. The form shows the saved state.
+- **One click target**: A record in the result of a query opens the form, as does a reference in running text such as `[[Books#^r-00042]]`; the action «Show in table document» of the form leads to the row. The form shows the saved state.
+- **List form**: If a query file carries the setting `editable: true` in its container `db-query`, its result appears as a grid in which the records can be opened, changed, created and deleted, 50 rows per page; the page [Database](database.md) describes it in the section «List form».
 - **Unsaved state**: Changes to an open table are included in the result right away, without saving.
 - **Not at this level**: `bold()` in a column or in an expression of `GROUP BY` produces an error message, because a database value carries no markup; in condition and sorting it remains allowed. `HIDE`, `SHOW` and `SHORT` apply only to `LIST TASKS` and report themselves here as on the file and block level.
 - **Empty result and database switched off**: Without hits, «No record matches this query» appears. If the «Database» extension is switched off, the list stays empty, a note appears above it, and no error message is shown.
@@ -386,7 +387,7 @@ LIST RECORDS FROM "Team" DISPLAY tree BY manager
 ```
 ````
 
-The form to choose is the **tree** (`DISPLAY tree BY field`). It shows the records of a record query indented along the named reference field:
+The forms to choose are the **tree** and two **charts**. The tree (`DISPLAY tree BY field`) shows the records of a record query indented along the named reference field:
 
 - A record hangs below the record its field points at if that one is in the result. Otherwise it is a **root** and stands on the far left: without a reference, with a reference pointing nowhere or at a record the condition filters out. With `descendants(…)` the records directly below the target are therefore the roots, because the target itself is not part of the result.
 - Roots and siblings stand in the order of the result, which `SORT` determines.
@@ -395,7 +396,25 @@ The form to choose is the **tree** (`DISPLAY tree BY field`). It shows the recor
 - A node shows the display form like a list entry, with `LIST` followed by the additional field; with `TABLE` the tree shows no columns. A click opens the form.
 - Nothing is indented deeper than 32 levels; deeper nodes stand in full on the 32nd level.
 
-**Fallback**: If a form is unknown or does not fit the query, the result appears without it, that is, as a list or a table, with a note naming the form above it and no error message. The tree fits only at the record level and only with a field after `BY` that is a reference field in at least one table of the result. It never fits a grouped query; the grouped output then appears with the note. An empty result shows its empty notice and no form. If the name of the form is missing after `DISPLAY` or the field after `BY`, the query is invalid.
+The **charts** `DISPLAY bar` and `DISPLAY line` show the result of a table query as a bar or a line chart. They read the table as it would appear without `DISPLAY`:
+
+````markdown
+```perspective-query
+TABLE pages AS "Pages", price AS "Price"
+FROM "Books"
+SORT pages
+DISPLAY bar
+```
+````
+
+- **Labels**: every row of the table becomes a category and is labeled with what the table shows at the front: the name of the hit, with `WITHOUT ID` the value of the first named column. In a grouped table every group is a category with its group value; with several levels the values of all levels are joined with « › », and the group without a value is called «(no value)» as in the table.
+- **Series**: every further column with at least one number becomes a series and carries the column heading as its name. A text that consists of a number only also counts as a number, as frontmatter properties often hold it, for instance `pages: 120`. Dates, durations, truth values and other text are not numbers.
+- **Gaps and skipped columns**: if a value in a series is missing or is not a number, the chart is drawn without it. Below the chart, one line then names the columns that contain no number at all and are therefore skipped, and another one the number of left-out values.
+- **Order**: the categories stand in the order of the table, which `SORT` determines, at equal distances. A date as a label is a text like any other; there is no time axis whose distances follow the elapsed time. Many hits can be limited with `LIMIT`.
+- **Image**: the chart is a graphic without controls; a click opens no hit. The series carry the chart colors of the active [color scheme](color-schemes.md), like the [charts for tables](charts.md), and follow a change of the color scheme or between light and dark immediately.
+- **Extension**: the charts depend on the [internal extension](extensions.md) «Chart of a query», which is switched on from the working mode **Advanced** and depends on no other extension. When it is off, the table appears with the note that chart display is turned off; the document stays unchanged, and after switching it back on the chart appears again.
+
+**Fallback**: If a form is unknown or does not fit the query, the result appears without it, that is, as a list or a table, with a note naming the form above it and no error message. The tree fits only at the record level and only with a field after `BY` that is a reference field in at least one table of the result. It never fits a grouped query; the grouped output then appears with the note. The charts fit only a table (`TABLE`, not `LIST`) with at least one column besides the label, one of which contains numbers; otherwise the note names the reason. An empty result shows its empty notice and no form. If the name of the form is missing after `DISPLAY` or the field after `BY`, the query is invalid.
 
 ## Display and interaction
 
@@ -417,7 +436,7 @@ Files outside the search scope do not appear in the result, nor does whatever li
 
 ## Export
 
-- **PDF export**: the result is printed as a static snapshot of render time, including table and column layout. Entries appear as text; they are not clickable in the PDF.
-- **Portable Markdown**: the export leaves the `perspective-query` block unchanged as source. When reopened in this program it is evaluated dynamically again; other Markdown programs show it as a code block.
+- **PDF export**: the result is printed as a static snapshot of render time, including table and column layout. Entries appear as text; they are not clickable in the PDF. A chart of the query appears light in printing and in the PDF export, with the chart colors of the light color scheme, even when the application runs dark.
+- **Portable Markdown**: the export leaves the `perspective-query` block unchanged as source. When reopened in this program it is evaluated dynamically again; other Markdown programs show it as a code block. This also holds with `DISPLAY bar` or `DISPLAY line`: unlike a [chart for a table](charts.md), the chart of a query is not exported as an image.
 
 For free evaluations beyond the clause language — such as recursive structures or computed overviews — the [script blocks](scripts.md) are available; their pq API uses the same field and block model as the query.

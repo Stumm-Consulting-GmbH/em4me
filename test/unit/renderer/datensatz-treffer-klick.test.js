@@ -248,6 +248,96 @@ describe('Live-Ansicht (bindFrontmatterQueryClicks)', () => {
   });
 });
 
+// 4T-002249 (Epic 3E-000262, F1 A, AK4): Die Zeile einer Listen-Maske ist der
+// Treffer; nennt die Abfrage-Datei mit `form` eine Maske, reist ihr Pfad im
+// Ereignis mit, und die Seite fragt den Datensatz in dieser Maske an. Ohne
+// Angabe bleibt das Ereignis das bisherige. Der Verweis in einer Zelle bleibt
+// sein eigener Treffer und öffnet die Standard-Maske seines Ziels.
+describe('Listen-Maske: Klick auf die Zeile (4T-002249)', () => {
+  const LOANS_KURZ = '/raum/Loans Short Form.md';
+
+  function liste(maske) {
+    const resultSet = rs.makeResultSet({
+      scope: 'records',
+      type: 'table',
+      columns: [rs.makeColumn({ name: 'book', label: 'Buch', source: 'book' })],
+      rows: [
+        rs.makeRow(
+          [
+            {
+              kind: 'record',
+              table: 'Library',
+              id: 'r-00001',
+              display: 'Zauberberg',
+              path: LIBRARY,
+            },
+          ],
+          { ...rs.recordOrigin('Loans', 'r-00007'), path: LOANS, display: 'Clara' },
+        ),
+      ],
+      wishes: rs.makeWishes(),
+      state: rs.makeState('ready', { area: { root: '/raum', fileCount: 2 } }),
+    });
+    const auskunft = {
+      istListe: true,
+      angaben: { editable: true, form: maske ? 'Loans Short Form' : null, allow: ['update'] },
+      tabelle: { path: LOANS, name: 'Loans' },
+      maske,
+      spalten: [{ index: 0, feld: 'book' }],
+      hinweise: [],
+    };
+    return buildQueryListDom({ resultSet, liste: auskunft }, i18n.t);
+  }
+
+  function mitEreignissen(fn) {
+    const details = [];
+    const merke = (e) => details.push(e.detail);
+    document.addEventListener('scg:open-form', merke);
+    try {
+      fn();
+    } finally {
+      document.removeEventListener('scg:open-form', merke);
+    }
+    return details;
+  }
+
+  it('Lese-Ansicht: die Zeile öffnet die benannte Maske', () => {
+    const root = leseAnsicht(liste(LOANS_KURZ));
+    const details = mitEreignissen(() => {
+      expect(klick(root.querySelector('tr.db-list-row td:first-child')).defaultPrevented).toBe(
+        true,
+      );
+    });
+    expect(details).toEqual([{ filePath: LOANS, recordId: 'r-00007', maske: LOANS_KURZ }]);
+    expect(maskeOffen()).toBe(true);
+    expect(anfragen[0]).toMatchObject({ tabelle: LOANS, kennung: 'r-00007', maske: LOANS_KURZ });
+    expect(geoeffnet).toEqual([]);
+  });
+
+  it('Live-Ansicht: derselbe Weg über den Maus-Druck, der Block bleibt geschlossen', () => {
+    const behaelter = liveAnsicht(liste(LOANS_KURZ));
+    const details = mitEreignissen(() => {
+      const druck = mausDruck(behaelter.querySelector('tr.db-list-row td:first-child'));
+      expect(druck.defaultPrevented).toBe(true);
+    });
+    expect(details).toEqual([{ filePath: LOANS, recordId: 'r-00007', maske: LOANS_KURZ }]);
+    expect(anfragen[0]).toMatchObject({ maske: LOANS_KURZ });
+  });
+
+  it('ohne Maske bleibt das Ereignis das bisherige, der Verweis öffnet sein Ziel', () => {
+    // Je Klick frisch gezeichnet: Das Öffnen der Maske ersetzt die Anzeige-Fläche.
+    const details = mitEreignissen(() => {
+      klick(leseAnsicht(liste(null)).querySelector('tr.db-list-row td:first-child'));
+      klick(leseAnsicht(liste(null)).querySelector('tr.db-list-row td:last-child a'));
+    });
+    expect(details).toEqual([
+      { filePath: LOANS, recordId: 'r-00007' },
+      { filePath: LIBRARY, recordId: 'r-00001' },
+    ]);
+    expect(Object.keys(anfragen[0]).sort()).toEqual(['kennung', 'sprache', 'tabelle']);
+  });
+});
+
 describe('Aus-Zustand der Erweiterung «Datenbank»', () => {
   it('kein Klick-Weg und kein Fehler: weder Maske noch Datei', async () => {
     await lebenszyklus.applyExtensionsState(['database'], { persist: false });
@@ -258,5 +348,319 @@ describe('Aus-Zustand der Erweiterung «Datenbank»', () => {
     expect(maskeOffen()).toBe(false);
     expect(anfragen).toEqual([]);
     expect(geoeffnet).toEqual([]);
+  });
+});
+
+// 4T-002184 (Epic 3E-000261, AK4): Die Verdrahtungs-Schnittstelle nimmt auf
+// Wunsch eine bestimmte Masken-Datei mit; die Seite fragt sie am Lese-Kanal an
+// und bindet sie neben Tabelle und Kennung. Ohne Angabe bleibt die Anfrage
+// Zeichen für Zeichen die bisherige, also die Standard-Maske.
+describe('Verdrahtungs-Schnittstelle: bestimmte Maske (4T-002184)', () => {
+  function oeffne(detail) {
+    document.dispatchEvent(new CustomEvent('scg:open-form', { detail }));
+  }
+
+  it('fragt ohne Angabe ohne maske an und mit Angabe mit ihr', async () => {
+    oeffne({ filePath: LOANS, recordId: 'r-00007' });
+    await Promise.resolve();
+    expect(Object.keys(anfragen[0]).sort()).toEqual(['kennung', 'sprache', 'tabelle']);
+
+    oeffne({ filePath: LOANS, recordId: 'r-00007', maske: 'Loans Kurz' });
+    await Promise.resolve();
+    expect(anfragen).toHaveLength(2);
+    expect(anfragen[1]).toMatchObject({ tabelle: LOANS, kennung: 'r-00007', maske: 'Loans Kurz' });
+  });
+});
+
+// 4T-002185 (Epic 3E-000261, F4 A): Die Navigation zwischen Masken an der echten
+// Seite — echter Klick-Hörer am Körper, echter Link-Weg der Anwendung
+// (`activateLink`), echte Rückfrage bei ungespeicherter Bearbeitung. Ersetzt
+// sind wie oben das Öffnen einer Datei und die Kanäle: Datensatz-Abruf,
+// Katalog, Ziel-Liste des Verweis-Feldes, Auflösung des Link-Ziels und Sperre.
+describe('Navigation zwischen Masken (4T-002185)', () => {
+  const LOANS_FORM = '/raum/Loans Form.md';
+  const LOANS_KURZ = '/raum/Loans Kurz.md';
+  const LIBRARY_FORM = '/raum/Library Form.md';
+  // Der Körper einer Ausleih-Maske: vier Links und das Verweis-Feld zum Buch.
+  // Der Stub der Darstellung reicht den Text als HTML durch.
+  const LINKS =
+    '<p><a class="wikilink" href="Loans Kurz.md">Kurz</a> ' +
+    '<a class="wikilink" href="Loans Form.md">Lang</a> ' +
+    '<a class="wikilink" href="Library Form.md">Buch-Maske</a> ' +
+    '<a class="wikilink" href="Notiz.md">Notiz</a></p>';
+  const UEBERBLICK = {
+    status: 'ready',
+    tabellen: [
+      { name: 'Loans', path: LOANS, maske: LOANS_FORM, maskenPfade: [LOANS_FORM, LOANS_KURZ] },
+      { name: 'Library', path: LIBRARY, maske: LIBRARY_FORM, maskenPfade: [LIBRARY_FORM] },
+    ],
+  };
+
+  function antwortFuer(params) {
+    if (params.tabelle === LIBRARY) {
+      return {
+        status: 'ready',
+        anzeige: 'Zauberberg',
+        fields: [{ name: 'Title', type: 'string' }],
+        zellen: [{ name: 'Title', text: 'Zauberberg', value: 'Zauberberg', error: null }],
+        koerper: {
+          quelle: 'datei',
+          pfad: LIBRARY_FORM,
+          segmente: [{ art: 'feld', name: 'Title' }],
+        },
+      };
+    }
+    return {
+      status: 'ready',
+      anzeige: 'Clara',
+      fields: [{ name: 'Book', type: 'record', options: { table: 'Library' } }],
+      zellen: [{ name: 'Book', text: 'r-1', value: 'r-1', error: null }],
+      koerper: {
+        quelle: 'datei',
+        pfad: params.maske || LOANS_FORM,
+        segmente: [
+          { art: 'markdown', text: LINKS },
+          { art: 'feld', name: 'Book' },
+        ],
+      },
+    };
+  }
+
+  const ersetzt = {
+    databaseDatensatz: async (params) => {
+      anfragen.push(params);
+      return antwortFuer(params);
+    },
+    databaseOverview: async () => UEBERBLICK,
+    databaseDatensaetze: async () => ({
+      status: 'ready',
+      tabelle: 'Library',
+      pfad: LIBRARY,
+      keyEinteilig: false,
+      datensaetze: [{ kennung: 'r-00001', anzeige: 'Zauberberg', schluessel: null }],
+    }),
+    renderMarkdown: (text) => text,
+    resolveLink: async (basis, ziel) => basis.replace(/[^/]*$/, '') + ziel,
+    fileExists: async () => true,
+    isMarkdownPath: async (pfad) => /\.md$/.test(pfad),
+    databaseSperre: async (p) =>
+      p.aktion === 'nehmen' ? { status: 'ready', gehalten: true, stand: 's1' } : { ok: true },
+  };
+  const vorher = {};
+
+  beforeEach(() => {
+    for (const [name, fn] of Object.entries(ersetzt)) {
+      vorher[name] = window.api[name];
+      window.api[name] = fn;
+    }
+  });
+  afterEach(() => {
+    for (const name of Object.keys(ersetzt)) window.api[name] = vorher[name];
+  });
+
+  const maske = () =>
+    document.querySelector('.pane-group[data-pane="0"] .pane-system .db-form-page');
+  const link = (href) => maske().querySelector(`.db-form-body a[href="${href}"]`);
+  const zuletzt = () => anfragen[anfragen.length - 1];
+
+  async function oeffneAusleihe() {
+    document.dispatchEvent(
+      new CustomEvent('scg:open-form', { detail: { filePath: LOANS, recordId: 'r-00007' } }),
+    );
+    await vi.waitFor(() => expect(maske().querySelector('.db-form-ref-link')).not.toBe(null));
+  }
+
+  it('drei Ziele, Rückweg über «Zurück», jeder andere Link öffnet sein Dokument', async () => {
+    await oeffneAusleihe();
+    // Ohne vorigen Datensatz kein «Zurück» (Story AK6).
+    expect(maske().querySelector('.db-form-back')).toBe(null);
+
+    // Ziel 1: dieselbe Ausleihe in der kurzen Maske, keine Datei geöffnet.
+    klick(link('Loans Kurz.md'));
+    await vi.waitFor(() => expect(zuletzt().maske).toBe(LOANS_KURZ));
+    expect(zuletzt()).toMatchObject({ tabelle: LOANS, kennung: 'r-00007' });
+    await vi.waitFor(() => expect(maske().querySelector('.db-form-back')).not.toBe(null));
+
+    // Ziel 2: Maske einer anderen Tabelle meldet, ohne Abruf und ohne Neuanlage.
+    const bisher = anfragen.length;
+    klick(link('Library Form.md'));
+    await vi.waitFor(() => expect(maske().querySelector('.db-form-nav-note')).not.toBe(null));
+    expect(maske().querySelector('.db-form-nav-note').textContent).toContain('«Library»');
+    expect(anfragen).toHaveLength(bisher);
+
+    // Jeder andere Link öffnet sein Dokument.
+    klick(link('Notiz.md'));
+    await vi.waitFor(() => expect(geoeffnet).toEqual([['/raum/Notiz.md']]));
+    expect(anfragen).toHaveLength(bisher);
+
+    // Ziel 3: das Verweis-Feld öffnet das Buch in der Standard-Maske seiner Tabelle.
+    klick(maske().querySelector('.db-form-ref-link'));
+    await vi.waitFor(() => expect(zuletzt().tabelle).toBe(LIBRARY));
+    expect(zuletzt()).not.toHaveProperty('maske');
+    expect(zuletzt().kennung).toBe('r-00001');
+
+    // «Zurück» führt zur Ausleihe in der kurzen Maske.
+    await vi.waitFor(() => expect(maske().querySelector('.db-form-back')).not.toBe(null));
+    klick(maske().querySelector('.db-form-back'));
+    await vi.waitFor(() => expect(zuletzt().tabelle).toBe(LOANS));
+    expect(zuletzt()).toMatchObject({ kennung: 'r-00007', maske: LOANS_KURZ });
+    // Ein Eintrag bleibt: die Ausleihe in der Standard-Maske.
+    await vi.waitFor(() => expect(maske().querySelector('.db-form-back')).not.toBe(null));
+    expect(geoeffnet).toEqual([['/raum/Notiz.md']]);
+  });
+
+  it('bei ungespeicherter Bearbeitung fragt die Maske vor Link und «Zurück» nach', async () => {
+    await oeffneAusleihe();
+    klick(link('Loans Kurz.md'));
+    await vi.waitFor(() => expect(maske().querySelector('.db-form-back')).not.toBe(null));
+    await vi.waitFor(() => expect(maske().querySelector('.db-form-edit')).not.toBe(null));
+    klick(maske().querySelector('.db-form-edit'));
+    await vi.waitFor(() => expect(maske().querySelector('.db-form-input')).not.toBe(null));
+    // Im Bearbeiten ist das Verweis-Feld die Eingabe, keine Schaltfläche.
+    expect(maske().querySelector('.db-form-ref-link')).toBe(null);
+    const eingabe = maske().querySelector('.db-form-input');
+    eingabe.value = 'r-2';
+    eingabe.dispatchEvent(new Event('input', { bubbles: true }));
+    const bisher = anfragen.length;
+
+    // Link: Rückfrage; «Weiter bearbeiten» bleibt in der Bearbeitung. Der Satz
+    // nennt beide Fälle, Datensatz und Maske, und der Knopf heißt nicht wie
+    // «Zurück» im Kopf (Entscheidung vom 2026-10-09).
+    klick(link('Loans Form.md'));
+    await vi.waitFor(() => expect(maske().querySelector('.db-form-confirm')).not.toBe(null));
+    expect(anfragen).toHaveLength(bisher);
+    expect(maske().querySelector('.db-form-confirm-text').textContent).toContain('Maske');
+    expect(maske().querySelector('.db-form-confirm-back').textContent).toBe('Weiter bearbeiten');
+    klick(maske().querySelector('.db-form-confirm-back'));
+    expect(maske().querySelector('.db-form-confirm')).toBe(null);
+    expect(maske().querySelector('.db-form-input').value).toBe('r-2');
+
+    // «Zurück» der Maske: ebenso Rückfrage, ebenso bleibt die Bearbeitung.
+    klick(maske().querySelector('.db-form-back'));
+    await vi.waitFor(() => expect(maske().querySelector('.db-form-confirm')).not.toBe(null));
+    expect(anfragen).toHaveLength(bisher);
+    klick(maske().querySelector('.db-form-confirm-back'));
+    expect(maske().querySelector('.db-form-input').value).toBe('r-2');
+
+    // Verwerfen in der Rückfrage eines Links wechselt und merkt den Wechsel im
+    // Verlauf, wie ohne Rückfrage.
+    klick(link('Loans Form.md'));
+    await vi.waitFor(() => expect(maske().querySelector('.db-form-confirm')).not.toBe(null));
+    klick(maske().querySelector('.db-form-confirm-discard'));
+    await vi.waitFor(() => expect(anfragen.length).toBe(bisher + 1));
+    expect(zuletzt()).toMatchObject({ tabelle: LOANS, kennung: 'r-00007', maske: LOANS_FORM });
+    await vi.waitFor(() => expect(maske().querySelector('.db-form-ref-link')).not.toBe(null));
+
+    // Zwei Einträge: zuerst die kurze Maske, danach die Standard-Maske; dann
+    // ist der Verlauf abgebaut.
+    klick(maske().querySelector('.db-form-back'));
+    await vi.waitFor(() => expect(zuletzt().maske).toBe(LOANS_KURZ));
+    await vi.waitFor(() => expect(maske().querySelector('.db-form-back')).not.toBe(null));
+    klick(maske().querySelector('.db-form-back'));
+    await vi.waitFor(() => expect(anfragen.length).toBe(bisher + 3));
+    expect(Object.keys(zuletzt()).sort()).toEqual(['kennung', 'sprache', 'tabelle']);
+    await vi.waitFor(() => expect(maske().querySelector('.db-form-ref-link')).not.toBe(null));
+    expect(maske().querySelector('.db-form-back')).toBe(null);
+  });
+
+  it('ein Öffnen von außen beginnt einen neuen Verlauf', async () => {
+    await oeffneAusleihe();
+    klick(maske().querySelector('.db-form-ref-link'));
+    await vi.waitFor(() => expect(maske().querySelector('.db-form-back')).not.toBe(null));
+    await oeffneAusleihe();
+    expect(maske().querySelector('.db-form-back')).toBe(null);
+  });
+});
+
+// 4T-002333 (Epic 3E-000264, F2 A, T3): Ein Wiki-Verweis mit Anker auf einen
+// Datensatz öffnet die Maske statt der Tabellen-Datei. Ob das Ziel ein
+// Datensatz ist, sagt der Haupt-Prozess (`databaseVerweisZiel`, hier ersetzt);
+// ohne Antwort bleibt es beim bisherigen Weg, Datei öffnen und springen. Am
+// gebauten Programm prüfen das die Ablauf-Fälle DB-VER-01 und DB-VER-02.
+describe('Wiki-Verweis auf einen Datensatz (activateLink, 4T-002333)', () => {
+  let activateLink;
+  let ziele;
+  let verweisZiel;
+  const vorher = {};
+  const ersetzt = {
+    resolveLink: async (basis, ziel) => basis.replace(/[^/]*$/, '') + ziel,
+    fileExists: async () => true,
+    isMarkdownPath: async (pfad) => /\.md$/.test(pfad),
+    databaseVerweisZiel: async (params) => {
+      ziele.push(params);
+      return verweisZiel(params);
+    },
+  };
+
+  beforeEach(async () => {
+    ({ activateLink } = await import('../../../src/renderer/modules/views/link-navigation.js'));
+    ziele = [];
+    verweisZiel = () => null;
+    for (const [name, fn] of Object.entries(ersetzt)) {
+      vorher[name] = window.api[name];
+      window.api[name] = fn;
+    }
+    state.panes[0].tabs = [{ path: '/raum/Notiz.md', viewMode: 'rendered' }];
+    state.panes[0].activeIndex = 0;
+  });
+  afterEach(() => {
+    for (const name of Object.keys(ersetzt)) window.api[name] = vorher[name];
+    state.panes[0].tabs = [];
+    state.panes[0].activeIndex = -1;
+  });
+
+  function mitEreignissen(fn) {
+    const details = [];
+    const merke = (e) => details.push(e.detail);
+    document.addEventListener('scg:open-form', merke);
+    return Promise.resolve(fn())
+      .then(() => details)
+      .finally(() => document.removeEventListener('scg:open-form', merke));
+  }
+
+  it('Antwort mit Tabelle und Kennung: die Maske öffnet, keine Datei', async () => {
+    verweisZiel = () => ({ tabelle: LIBRARY, kennung: 'r-00001' });
+    const details = await mitEreignissen(() => activateLink(0, 'Library.md#r-1', true));
+    expect(ziele).toEqual([{ zielPfad: LIBRARY, anker: 'r-1' }]);
+    expect(details).toEqual([{ filePath: LIBRARY, recordId: 'r-00001' }]);
+    expect(geoeffnet).toEqual([]);
+  });
+
+  it('die Anzeige-Form mit Leerzeichen geht unverändert an den Haupt-Prozess', async () => {
+    verweisZiel = () => ({ tabelle: LIBRARY, kennung: 'r-00003' });
+    await mitEreignissen(() => activateLink(0, 'Library.md#Max Müller', true));
+    expect(ziele).toEqual([{ zielPfad: LIBRARY, anker: 'Max Müller' }]);
+  });
+
+  it('Antwort null: der bisherige Weg, die Datei öffnet', async () => {
+    const details = await mitEreignissen(() => activateLink(0, 'Library.md#r-00001', true));
+    expect(ziele).toHaveLength(1);
+    expect(details).toEqual([]);
+    expect(geoeffnet).toEqual([[LIBRARY]]);
+  });
+
+  it('der Kanal wirft: der bisherige Weg, die Datei öffnet', async () => {
+    verweisZiel = () => {
+      throw new Error('Kanal weg');
+    };
+    const details = await mitEreignissen(() => activateLink(0, 'Library.md#r-00001', true));
+    expect(details).toEqual([]);
+    expect(geoeffnet).toEqual([[LIBRARY]]);
+  });
+
+  it('ohne Anker oder ohne Wiki-Verweis keine Anfrage', async () => {
+    await activateLink(0, 'Library.md', true);
+    await activateLink(0, 'Library.md#r-00001', false);
+    expect(ziele).toEqual([]);
+    expect(geoeffnet).toEqual([[LIBRARY], [LIBRARY]]);
+  });
+
+  it('Aus-Zustand der Erweiterung «Datenbank»: keine Anfrage, die Datei öffnet', async () => {
+    await lebenszyklus.applyExtensionsState(['database'], { persist: false });
+    verweisZiel = () => ({ tabelle: LIBRARY, kennung: 'r-00001' });
+    const details = await mitEreignissen(() => activateLink(0, 'Library.md#r-00001', true));
+    expect(ziele).toEqual([]);
+    expect(details).toEqual([]);
+    expect(geoeffnet).toEqual([[LIBRARY]]);
   });
 });

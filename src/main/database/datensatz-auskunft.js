@@ -36,7 +36,11 @@ const {
   kennungFuer,
   nummerAus,
 } = require('../../shared/database/record-identity.js');
-const { baueRegelKontext, wertePruefregel } = require('../../shared/database/record-check-eval.js');
+const {
+  baueRegelKontext,
+  wertePruefregel,
+  gesperrteFelder,
+} = require('../../shared/database/record-check-eval.js');
 const { datensatzRumpf } = require('../../shared/database/record-segment.js');
 const {
   erzeugeMaskenKoerper,
@@ -49,13 +53,26 @@ const {
   leseTabellenBestand,
   dateiFuerKennung,
 } = require('./record-auftrag-bestand.js');
-const { tabellenName, geltendeMaske } = require('./table-catalog.js');
+const {
+  tabellenName,
+  maskenDerTabelle,
+  rolleUndRechteDerTabelle,
+  trifftMaskenAngabe,
+} = require('./table-catalog.js');
 // 4T-001943: Der Körper einer Masken-Datei ohne ihr Frontmatter.
 const { extractFrontmatter } = require('../../shared/markdown/frontmatter.js');
 
 function fehler(code) {
   return { status: 'error', code };
 }
+
+// 4T-002184 (Epic 3E-000261, AK4): Die Lage einer angeforderten Maske, die keine
+// Masken-Datei dieser Tabelle ist, sei es die einer anderen Tabelle, ein
+// gewöhnliches Dokument oder ein Name, den es nicht gibt. Eigener Code und kein
+// Eintrag im Lage-Katalog der Schreib-Schnittstelle, weil die Lage allein beim
+// Lesen für die Maske entsteht; der Anwender-Text steht unter
+// `database.form.error.<code>`.
+const MASKE_NICHT_DER_TABELLE = 'formMaskeNichtDerTabelle';
 
 // Die Zell-Texte des Datensatzes in Feld-Reihenfolge; eine fehlende Zelle ist
 // leer (dieselbe Regel wie `vorgefundeneTexte` im Regel-Werk).
@@ -99,6 +116,15 @@ function bearbeitbarkeit(definition, fields, texte) {
   return { erfuellt: geprueft.erfuellt, grund: geprueft.grund, meldung };
 }
 
+// 4T-002312 (Epic 3E-000263, F4 A): die Felder, deren Bedingung am gelesenen
+// Datensatz nicht erfüllt ist, bei fester Sperre immer; dieselbe Auswertung wie
+// an der Schreib-Schnittstelle (`gesperrteFelder` aus dem Auswerter). Sie reist
+// im selben Takt wie `editable`: mit jeder Antwort dieses Kanals.
+function feldSperrenDes(fields, texte) {
+  if (!fields.some((feld) => feld && feld.editable)) return [];
+  return gesperrteFelder(fields, baueRegelKontext(fields, texte));
+}
+
 // Die Zeile der Datei, an der der Datensatz beginnt, gezählt ab 1. Der
 // Datensatz-Block kennt nur die Zeile innerhalb seines Rumpfs; der Abstand des
 // Rumpfs vom Datei-Anfang kommt aus derselben Rumpf-Erkennung, die der Bestand
@@ -120,14 +146,29 @@ function erwartungAus(fields, texte) {
   return erwartet;
 }
 
-// 4T-001943 (Bauplan B3): Der Körper der Maske — aus der geltenden
+// 4T-002184 (Epic 3E-000261, F2 A, AK4): Welche Masken-Datei zeigt die Maske?
+// Ohne Anforderung die Standard-Maske der Tabelle (Angabe `form`, sonst die
+// erste nach Pfad, sonst keine und damit die erzeugte); mit Anforderung die
+// genannte, sofern sie eine Masken-Datei DIESER Tabelle ist. Aufgelöst wird
+// allein gegen die Masken-Dateien, die der Katalog der Tabelle zuordnet; ein
+// Name kann damit nie eine beliebige Datei des Bereichs zum Lesen öffnen. Ohne
+// Sicht gibt es keine Masken-Datei, und eine Anforderung wird abgewiesen, weil
+// sie sich nicht prüfen lässt.
+async function waehleMaske({ fsp, sicht, cache, tabellenPfad, maske }) {
+  if (!sicht) return maske === null ? { ok: true, pfad: null } : { ok: false };
+  const zuordnung = await maskenDerTabelle({ sicht, fsp, cache, tabellenPfad });
+  if (maske === null) return { ok: true, pfad: zuordnung.standard };
+  const pfad = zuordnung.masken.find((p) => trifftMaskenAngabe(p, maske));
+  return pfad ? { ok: true, pfad } : { ok: false };
+}
+
+// 4T-001943 (Bauplan B3): Der Körper der Maske — aus der gewählten
 // Masken-Datei, sonst der erzeugte. Die Datei wird frisch gelesen, damit eine
-// Änderung beim nächsten Öffnen wirkt; welche Datei gilt, sagt der Katalog.
+// Änderung beim nächsten Öffnen wirkt; welche Datei gilt, sagt `waehleMaske`.
 // Lässt sie sich nicht lesen (eben gelöscht, gesperrt), gilt wieder die
 // erzeugte Maske, statt dass die Maske ausfiele. Die Zeile eines Hinweises
 // zählt ab dem Anfang der DATEI, weil der Anwender sie dort sucht.
-async function koerperDer({ fsp, sicht, cache, tabellenPfad, fields, erzeugt }) {
-  const maske = sicht ? await geltendeMaske({ sicht, fsp, cache, tabellenPfad }) : null;
+async function koerperDer({ fsp, maske, fields, erzeugt }) {
   if (maske !== null) {
     let roh;
     try {
@@ -140,7 +181,16 @@ async function koerperDer({ fsp, sicht, cache, tabellenPfad, fields, erzeugt }) 
       const versatz = fm.raw === null ? 0 : fm.raw.split('\n').length - 1;
       const zerlegt = zerlegeMaskenKoerper(fm.body, fields);
       const hints = zerlegt.hints.map((h) => ({ ...h, zeile: h.zeile + versatz }));
-      return { quelle: 'datei', pfad: maske, text: fm.body, segmente: zerlegt.segmente, hints };
+      // 4T-002252: `zeilenVersatz` rechnet die Zeile eines Segments auf die
+      // Datei um, für einen Hinweis, der erst aus der Auswertung entsteht.
+      return {
+        quelle: 'datei',
+        pfad: maske,
+        text: fm.body,
+        segmente: zerlegt.segmente,
+        hints,
+        zeilenVersatz: versatz,
+      };
     }
   }
   return { quelle: 'erzeugt', pfad: null, text: erzeugt, ...zerlegeMaskenKoerper(erzeugt, fields) };
@@ -160,10 +210,18 @@ async function koerperDer({ fsp, sicht, cache, tabellenPfad, fields, erzeugt }) 
  * @param {object|null} [p.sicht] Index-Sicht des Bereichs (4T-001943); ohne sie
  *   gibt es keine Masken-Datei, und der Körper ist der erzeugte.
  * @param {Map} [p.cache] Zwischenspeicher des Katalogs für die Masken-Zuordnung.
+ * @param {string|null} [p.maske] Name (ohne Endung, wie ein Wiki-Link-Ziel) oder
+ *   Pfad einer bestimmten Masken-Datei der Tabelle (4T-002184); ohne sie gilt die
+ *   Standard-Maske. Ist sie keine Masken-Datei dieser Tabelle, lautet die Antwort
+ *   `{status: 'error', code: 'formMaskeNichtDerTabelle'}`.
+ * @param {Function} [p.herkunft] Naht für den Anmeldenamen (4T-002308).
  * @returns {Promise<object>} `{status: 'ready', tabelle, pfad, kennung, datei, zeile,
- *   fields, key, display, anzeigeSpalte, anzeige, editable, zellen, erwartet, koerper}`
- *   bzw. `{status: 'error', code}` mit einem Code aus `LAGEN`. `koerper` ist
- *   `{quelle: 'erzeugt'|'datei', pfad, text, segmente, hints}` (4T-001943).
+ *   fields, key, display, anzeigeSpalte, anzeige, editable, gesperrteFelder, zellen,
+ *   erwartet, koerper, rechte, rolle}` bzw. `{status: 'error', code}` mit einem Code aus `LAGEN`. `koerper` ist
+ *   `{quelle: 'erzeugt'|'datei', pfad, text, segmente, hints}` (4T-001943); `rechte`
+ *   die Erlaubnis-Menge der Tabelle `{create, update, delete, define}` oder ohne
+ *   Sicht null (4T-002308, S4); `rolle` die geltende Rolle oder null (4T-002311);
+ *   `gesperrteFelder` die Namen der nach ihrer Bedingung gesperrten Felder (4T-002312).
  */
 async function liesDatensatz({
   fsp,
@@ -174,6 +232,8 @@ async function liesDatensatz({
   rueckfallSprache = null,
   sicht = null,
   cache,
+  maske = null,
+  herkunft = null,
 }) {
   if (!fsp || typeof fsp.readFile !== 'function')
     throw new TypeError('liesDatensatz: fsp ist Pflicht und muss readFile tragen');
@@ -185,6 +245,14 @@ async function liesDatensatz({
     if (!bestand.ok) return fehler(bestand.lage.code);
 
     const { definition, fields } = bestand;
+    const gewaehlt = await waehleMaske({
+      fsp,
+      sicht,
+      cache,
+      tabellenPfad: aufgeloest.pfad,
+      maske: typeof maske === 'string' && maske !== '' ? maske : null,
+    });
+    if (!gewaehlt.ok) return fehler(MASKE_NICHT_DER_TABELLE);
     const spalte = anzeigeSpalte(definition);
     const koerperText = erzeugeMaskenKoerper(definition, {
       tabellenName: tabellenName(aufgeloest.pfad),
@@ -199,14 +267,16 @@ async function liesDatensatz({
       key: definition.key || null,
       display: definition.display || null,
       anzeigeSpalte: spalte,
-      koerper: await koerperDer({
-        fsp,
+      koerper: await koerperDer({ fsp, maske: gewaehlt.pfad, fields, erzeugt: koerperText }),
+      // 4T-002308 (S4): die Erlaubnis-Menge der Tabelle, kein eigener Kanal;
+      // 4T-002311: dazu die geltende Rolle für den Hinweis-Text der Masken.
+      ...(await rolleUndRechteDerTabelle({
         sicht,
+        fsp,
         cache,
+        herkunft,
         tabellenPfad: aufgeloest.pfad,
-        fields,
-        erzeugt: koerperText,
-      }),
+      })),
     };
 
     // Die Neuanlage: Es gibt keinen vorgefundenen Zustand, also weder eine
@@ -221,6 +291,8 @@ async function liesDatensatz({
         zeile: null,
         anzeige: null,
         editable: null,
+        // 4T-002312: Beim Anlegen ist jedes Feld frei (Entscheidung im Task).
+        gesperrteFelder: [],
         zellen: zellenNachFeldern(null, fields).map((zelle) => ({ ...zelle, fehlt: false })),
         erwartet: {},
       };
@@ -240,6 +312,7 @@ async function liesDatensatz({
       zeile: zeileIn(datei, record),
       anzeige: anzeigeVon(fields, spalte, texte, id),
       editable: bearbeitbarkeit(definition, fields, texte),
+      gesperrteFelder: feldSperrenDes(fields, texte),
       zellen: zellenDes(record, fields, texte),
       erwartet: erwartungAus(fields, texte),
     };
@@ -250,4 +323,4 @@ async function liesDatensatz({
   }
 }
 
-module.exports = { liesDatensatz };
+module.exports = { MASKE_NICHT_DER_TABELLE, liesDatensatz };

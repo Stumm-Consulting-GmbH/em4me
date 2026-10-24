@@ -42,8 +42,14 @@ function datenbankBruecke(ipcRenderer) {
     // 4T-001938 (Epic 3E-000257, B4): EIN Datensatz für die Einzel-Maske, frisch
     // gelesen, mit Zellen, Erwartung, Bearbeitbarkeit und erzeugtem Körper.
     // Parameter `{ tabelle, kennung, sprache }`, `kennung: null` für die
-    // Neuanlage; der Kanal prüft selbst und fail-closed.
+    // Neuanlage; der Kanal prüft selbst und fail-closed. Seit 4T-002184
+    // optional `maske`, der Name einer bestimmten Masken-Datei der Tabelle.
     databaseDatensatz: (params) => ipcRenderer.invoke('database:datensatz', params),
+    // 4T-002252 (Epic 3E-000262, S1): Die Ausdrücke einer Einzel-Maske mit einem
+    // Pfad über ein Verweis-Feld, ausgewertet gegen den Entwurf. Parameter
+    // `{ tabelle, kennung, entwurf, ausdruecke }`; der Kanal prüft selbst und
+    // fail-closed.
+    databaseAusdruecke: (params) => ipcRenderer.invoke('database:ausdruecke', params),
     // 4T-001941 (Epic 3E-000257, B1): Die Sperre EINES Datensatzes für die
     // Einzel-Maske. Parameter `{ aktion, tabelle, kennung, stand }` mit den
     // Aktionen nehmen, freigeben, brechen und auskunft; der Kanal prüft selbst
@@ -53,6 +59,11 @@ function datenbankBruecke(ipcRenderer) {
     // Wertehilfe der Verweis-Felder. Parameter `{ tabelle }` als Name oder Pfad;
     // der Kanal prüft selbst und fail-closed.
     databaseDatensaetze: (params) => ipcRenderer.invoke('database:datensaetze', params),
+    // 4T-002333 (Epic 3E-000264, T3): Führt ein Verweis `[[Tabelle#^…]]` auf
+    // einen Datensatz? Parameter `{ zielPfad, anker }` mit dem aufgelösten
+    // absoluten Pfad und dem Anker ohne `^`; Antwort `{ tabelle, kennung }` oder
+    // `null` für den bisherigen Weg. Der Kanal prüft selbst und fail-closed.
+    databaseVerweisZiel: (params) => ipcRenderer.invoke('database:verweisZiel', params),
     // 4T-001943 (Epic 3E-000257, B1): Die erzeugte Maske EINER Tabelle als
     // Datei neben die Tabelle schreiben. Parameter `{ tabelle, sprache }`; der
     // Kanal prüft selbst und fail-closed und überschreibt nie eine vorhandene
@@ -67,6 +78,16 @@ function datenbankBruecke(ipcRenderer) {
     // interne Kennung oder `null` für die Tabellen-Ebene; der Kanal prüft selbst
     // und fail-closed und schreibt nichts.
     databaseVerwendung: (params) => ipcRenderer.invoke('database:verwendung', params),
+    // 4T-002249 (Epic 3E-000262, S1): Die Auskunft über eine Listen-Maske.
+    // Parameter `{ pfad, query, spalten, tabelle }`; der Kanal prüft selbst und
+    // fail-closed und liefert `{ istListe: false }` oder Angaben, Quell-Tabelle,
+    // Feld je Spalte und Maske.
+    databaseListe: (params) => ipcRenderer.invoke('database:liste', params),
+    // 4T-002253 (Epic 3E-000262, S6): Der Positions-Bereich einer Einzel-Maske.
+    // Parameter `{ datei, by, kopf: { tabelle, kennung } }`; der Kanal prüft
+    // selbst und fail-closed und liefert `{ istListe: false, hinweis }` oder
+    // Abfrage-Datei, ergänzte Abfrage, Verweis-Feld und Positions-Tabelle.
+    databasePositionsliste: (params) => ipcRenderer.invoke('database:positionsliste', params),
     // 4T-001758 (Epic 3E-000253): Anzeige-Einstellung der Datenbank im Bereich
     // (Muster der Start-Seite: ein Lese- und ein Schreib-Kanal).
     getAreaDatabaseConfig: () => ipcRenderer.invoke('area:getDatabaseConfig'),

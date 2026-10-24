@@ -2,7 +2,7 @@
 
 Vorlagen sind gewöhnliche Markdown-Dateien in einem konfigurierbaren **Vorlagen-Ordner**. Beim Anwenden wertet die App kuratierte **Platzhalter** aus: Datum und Zeit mit Offset und Format, Titel und Ordner der Zieldatei, Eingabe- und Auswahl-Dialoge, die Zwischenablage und eine Cursor-Zielposition. Vorlagen erzeugen neue Dateien mit fertiger Struktur oder fügen wiederkehrende Bausteine an der Cursor-Position ein; **Ordner-Regeln** füllen neue Dateien automatisch.
 
-Die Funktionalität ist als Erweiterung «Vorlagen» schaltbar (Einstellungen → Erweiterungen); im Aus-Zustand entfallen die Kommandos, der Einstellungs-Bereich, die Ordner-Regeln und der Ausschluss der Vorlagen aus Abfragen.
+Die Funktionalität ist als Erweiterung «Vorlagen» schaltbar (Einstellungen → Erweiterungen); im Aus-Zustand entfallen die Kommandos, der Einstellungs-Bereich, die Ordner-Regeln und der Ausschluss der Vorlagen aus Abfragen, aus gesammelten Ereignissen und aus den Seiten- und Block-Listen der Skript-Blöcke.
 
 ## Vorlagen-Ordner
 
@@ -13,7 +13,7 @@ Der Vorlagen-Ordner wird in den Einstellungen konfiguriert (Einstellungen → Vo
 
 Jede Markdown-Datei im Ordner (inklusive Unterordnern) ist eine Vorlage. Unterordner erscheinen im Auswahl-Popup als Gruppen. Änderungen an der Konfiguration wirken sofort, ohne Neustart.
 
-**Vorlagen in Abfragen.** Was im Vorlagen-Ordner liegt, samt Unterordnern, ist in keiner [Perspective-Abfrage](frontmatter-query.md) ein Treffer, auf keiner ihrer Ebenen, und liefert auch keine Werte für Wertevorräte und Sammel-Felder der [Eigenschafts-Profile](property-profiles.md). So erscheint der Inhalt einer Vorlage, etwa eine Muster-Aufgabe, in keiner Übersicht. Wer Vorlagen abfragen will, nennt den Ordner in `FROM` ausdrücklich, etwa `FROM "Vorlagen"`. Maßgeblich ist der Ordner, der auch die Vorlagen-Auswahl bestimmt, also die Bereichs-Konfiguration vor der globalen; der Vorlagen-Ordner eines verknüpften Bereichs zählt nicht.
+**Vorlagen in Abfragen.** Was im Vorlagen-Ordner liegt, samt Unterordnern, ist in keiner [Perspective-Abfrage](frontmatter-query.md) ein Treffer, auf keiner ihrer Ebenen, und liefert auch keine Werte für Wertevorräte und Sammel-Felder der [Eigenschafts-Profile](property-profiles.md). So erscheint der Inhalt einer Vorlage, etwa eine Muster-Aufgabe, in keiner Übersicht. Wer Vorlagen abfragen will, nennt den Ordner in `FROM` ausdrücklich, etwa `FROM "Vorlagen"`. Maßgeblich ist der Ordner, der auch die Vorlagen-Auswahl bestimmt, also die Bereichs-Konfiguration vor der globalen; der Vorlagen-Ordner eines verknüpften Bereichs zählt nicht. Dieselbe Regel gilt für die Aggregation der [Ereignisse](events.md) und für die Seiten- und Block-Listen der [Skript-Blöcke](scripts.md): Dort nennt man den Ordner im `FROM` der Ereignis-Abfrage beziehungsweise als Quelle von `pq.pages` oder `pq.blocks`, etwa `pq.pages('Vorlagen')`.
 
 ## Vorlagen anwenden
 
@@ -56,6 +56,8 @@ Priorität: {{select:Priorität:Hoch,Mittel,Niedrig}}
 ````
 
 Unbekannte Platzhalter oder defekte Parameter brechen das Anwenden mit einer Meldung in der Statusleiste ab; es entsteht keine halb gefüllte Datei.
+
+**Masken-Dateien sind keine Vorlagen.** Eine Masken-Datei der [Datenbank](database.md) schreibt ihre Platzhalter ebenfalls in doppelten geschweiften Klammern, etwa `{{field:Name}}` oder `{{value:menge * preis}}`, und sieht deshalb aus wie eine Vorlage. Sie wird aber nie angewendet: Die Maske eines Datensatzes löst ihre Platzhalter bei jeder Anzeige gegen den gezeigten Datensatz auf, und die Datei behält sie. Eine Masken-Datei gehört deshalb neben ihre Tabelle und nicht in den Vorlagen-Ordner; dort erschiene sie in der Vorlagen-Auswahl, und ihr Anwenden bräche an den unbekannten Platzhaltern `field` und `value` ab.
 
 ## Ordner-Regeln
 

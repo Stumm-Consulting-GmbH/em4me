@@ -282,13 +282,126 @@ describe('Verzeichnis der Formen', () => {
     });
   });
 
-  // Die Ausgaben ohne Angabe sind keine Formen des Verzeichnisses, die Diagramme
-  // kommen erst mit 3E-000337; bis dahin zeigen sie den Rückfall mit Hinweis.
-  it('Diagramme, Tabelle und Liste sind (noch) keine wählbaren Formen', () => {
-    for (const form of ['bar', 'line', 'table', 'list']) {
+  // Die Ausgaben ohne Angabe sind keine Formen des Verzeichnisses; sie zeigen den
+  // Rückfall mit Hinweis.
+  it('Tabelle und Liste sind keine wählbaren Formen', () => {
+    for (const form of ['table', 'list']) {
       const rs = menge({ ...FAELLE.datensaetze(), wishes: { display: { form } } });
       expect(drawDisplayForm(rs, { translate: tStub }).hint, form).toBe('displayFormUnknown');
     }
+  });
+
+  // 4T-002173 (Epic 3E-000337): Die Diagramme sind eingetragen. Ein zweiter
+  // Eintrag unter ihrem Namen wirft; eine Liste passt nicht und nennt den Grund.
+  it('bar und line sind eingetragen, in jeder Schreibung', () => {
+    const probe = { isSuitable: () => true, render: () => document.createElement('div') };
+    for (const form of ['bar', 'line']) {
+      expect(() => registerDisplayForm(form, probe), form).toThrow(/schon eingetragen/);
+      const rs = menge({ ...FAELLE.liste(), wishes: { display: { form: form.toUpperCase() } } });
+      expect(drawDisplayForm(rs, { translate: tStub }), form).toEqual({
+        node: null,
+        hint: 'displayFormUnsuitable',
+        name: form.toUpperCase(),
+        reason: 'not-table',
+      });
+    }
+  });
+});
+
+// 4T-002173 (Epic 3E-000337): die beiden wahlfreien Angaben einer Form, Grund
+// der fehlenden Eignung und Erweiterung, am Verteiler und in der Ausgabe.
+describe('Grund und Schalter einer Form (4T-002173)', () => {
+  const tabelle = (form) => menge({ ...FAELLE.tabelle(), wishes: { display: { form } } });
+
+  it('eine unpassende Form mit Grund-Code reicht ihn weiter; ohne Code bleibt es beim Hinweis', () => {
+    eintragen('mitgrund', {
+      isSuitable: () => false,
+      unsuitableReason: () => 'no-numbers',
+      render: vi.fn(),
+    });
+    eintragen('ohnegrund', {
+      isSuitable: () => false,
+      unsuitableReason: () => null,
+      render: vi.fn(),
+    });
+    expect(drawDisplayForm(tabelle('mitgrund'), { translate: tStub }).reason).toBe('no-numbers');
+    const ohne = drawDisplayForm(tabelle('ohnegrund'), { translate: tStub });
+    expect(Object.hasOwn(ohne, 'reason')).toBe(false);
+    // In der Ausgabe nennt der Hinweis den Grund; ein unbekannter Code den allgemeinen Text.
+    expect(hinweis(html(tabelle('mitgrund'))).textContent).toBe(
+      de['query.hint.displayFormChartNoNumbers'].replace('{name}', 'mitgrund'),
+    );
+    eintragen('fremdgrund', {
+      isSuitable: () => false,
+      unsuitableReason: () => 'x',
+      render: vi.fn(),
+    });
+    expect(hinweis(html(tabelle('fremdgrund'))).textContent).toBe(
+      de['query.hint.displayFormUnsuitable'].replace('{name}', 'fremdgrund'),
+    );
+  });
+
+  it('jeder Grund-Code der Diagramme hat seinen eigenen Hinweis', () => {
+    for (const [code, key] of [
+      ['not-table', 'query.hint.displayFormChartNotTable'],
+      ['single-column', 'query.hint.displayFormChartSingleColumn'],
+      ['no-numbers', 'query.hint.displayFormChartNoNumbers'],
+    ]) {
+      const ab = registerDisplayForm('grund', {
+        isSuitable: () => false,
+        unsuitableReason: () => code,
+        render: vi.fn(),
+      });
+      const host = html(tabelle('grund'));
+      expect(hinweis(host).textContent, code).toBe(de[key].replace('{name}', 'grund'));
+      expect(host.querySelector('table.perspective-query-table'), code).not.toBeNull();
+      ab();
+    }
+  });
+
+  it('ausgeschaltet: nichts gezeichnet, eigener Hinweis-Code vor jeder Eignung (S3)', () => {
+    const render = vi.fn(() => document.createElement('div'));
+    const isSuitable = vi.fn(() => true);
+    eintragen('geschaltet', { extension: 'probe-aus', isSuitable, render });
+    const aus = (id) => id !== 'probe-aus';
+    const rs = tabelle('geschaltet');
+    expect(drawDisplayForm(rs, { translate: tStub, isExtensionActive: aus })).toEqual({
+      node: null,
+      hint: 'displayFormOff',
+      name: 'geschaltet',
+    });
+    expect(isSuitable).not.toHaveBeenCalled();
+    const host = document.createElement('div');
+    host.appendChild(buildQueryListDom({ resultSet: rs }, tStub, { isExtensionActive: aus }));
+    expect(hinweis(host).textContent).toBe(
+      de['query.hint.displayFormOff'].replace('{name}', 'geschaltet'),
+    );
+    expect(ohneHinweis(host)).toBe(html(menge(FAELLE.tabelle())).innerHTML);
+    expect(render).not.toHaveBeenCalled();
+    // Eingeschaltet zeichnet dieselbe Form; ohne Angabe gilt sie als an.
+    expect(
+      drawDisplayForm(rs, { translate: tStub, isExtensionActive: () => true }).node,
+    ).not.toBeNull();
+    expect(drawDisplayForm(rs, { translate: tStub }).node).not.toBeNull();
+  });
+
+  it('der Kontext der Form trägt Schalt-Zustand und Zeichen-Funktion der Befüllung', () => {
+    const render = vi.fn(() => document.createElement('div'));
+    eintragen('kontext', { isSuitable: () => true, render });
+    const drawChart = vi.fn();
+    const isExtensionActive = vi.fn(() => true);
+    const host = document.createElement('div');
+    const rs = tabelle('kontext');
+    host.appendChild(buildQueryListDom({ resultSet: rs }, tStub, { drawChart, isExtensionActive }));
+    const kontext = render.mock.calls[0][1];
+    expect(kontext.translate).toBe(tStub);
+    expect(kontext.drawChart).toBe(drawChart);
+    expect(kontext.isExtensionActive).toBe(isExtensionActive);
+    // Ohne eigene Angaben gelten die des Fensters.
+    html(rs);
+    const vorgabe = render.mock.calls[1][1];
+    expect(typeof vorgabe.drawChart).toBe('function');
+    expect(typeof vorgabe.isExtensionActive).toBe('function');
   });
 });
 

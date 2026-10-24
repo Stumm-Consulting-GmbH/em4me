@@ -33,6 +33,8 @@ const {
   schliesstZaun,
 } = require('./record-block.js');
 const { istTabellenDatei } = require('../document-split-punkte.js');
+// 4T-002333 (Epic 3E-000264, T2): Kennung lang und kurz, wie bei der Gültigkeit.
+const { kennungFuer, nummerAus } = require('./record-identity.js');
 
 /**
  * Die 1-basierte Nummer der Zeile, mit der der Datensatz `kennung` beginnt.
@@ -47,10 +49,13 @@ const { istTabellenDatei } = require('../document-split-punkte.js');
  *      je Tabelle genau einen Datensatz-Block vor, und die Kennung eines zweiten,
  *      von Hand erzeugten Blocks gilt auch für die Gültigkeit nicht. Ein nicht
  *      geschlossener Zaun reicht bis zum Textende.
- *   3. Die Kennung wird so verglichen, wie sie im Verweis steht, mit der
- *      aufgefüllten aus `leseAngaben` (derselbe Vergleich wie `kennungInTabelle`
- *      in `src/main/index/datensatz-zugriff.js`). Eine maskierte Zeile beginnt
- *      mit einem Rückstrich und ist damit von selbst keine Datensatz-Zeile.
+ *   3. Die Kennung darf lang (`r-00042`) oder kurz (`r-42`) im Verweis stehen;
+ *      verglichen wird ihre aufgefüllte Form mit der aufgefüllten aus
+ *      `leseAngaben` (derselbe Vergleich wie `kennungInTabelle` in
+ *      `src/main/index/datensatz-zugriff.js`, seit 4T-002333). Eine maskierte
+ *      Zeile beginnt mit einem Rückstrich und ist damit von selbst keine
+ *      Datensatz-Zeile. Die Anzeige-Form löst dieses Modul nicht auf; das tut
+ *      der Haupt-Prozess, der den Datensatz-Bestand kennt.
  *
  * @param {string} text Der Text des Dokuments.
  * @param {string} kennung Die Kennung ohne das `^` des Ankers.
@@ -58,7 +63,7 @@ const { istTabellenDatei } = require('../document-split-punkte.js');
  */
 function findeDatensatzZeile(text, kennung) {
   const s = typeof text === 'string' ? text : '';
-  const gesucht = String(kennung == null ? '' : kennung).trim();
+  const gesucht = kennungFuer(nummerAus(String(kennung == null ? '' : kennung)));
   // Billige Vorprüfung zuerst: Der Regelfall ist ein Anker, der keine
   // Datensatz-Kennung ist, in einer Datei ohne Datensatz-Block.
   if (!s || !gesucht || !s.includes(RECORD_FENCE)) return 0;

@@ -506,3 +506,174 @@ describe('Bearbeitbarkeit: von Hand gelöscht, erzwungen wieder angelegt (4T-001
     expect(lies(pfad)).toContain('|- id="r-00001"\n| B-1\n| gebucht');
   });
 });
+
+// --- 4T-002312: die Bedingung am Feld --------------------------------------------------------
+
+// Der Beleg-Kopf mit Bedingungen am Feld (Epic 3E-000263, F4 A): `betrag` ist
+// nur änderbar, solange der Beleg nicht gebucht ist, `nummer` ist fest gesperrt.
+// `tabellenBedingung` sind optional die Zeilen der Angabe am Behälter.
+function feldDefinition(tabellenBedingung = []) {
+  return [
+    'db-table:',
+    '  fields:',
+    '    - name: nummer',
+    '      editable: false',
+    '    - name: status',
+    '    - name: betrag',
+    `      editable: 'status != "gebucht"'`,
+    '  key: nummer',
+    ...tabellenBedingung,
+    '  lastId: 3',
+  ];
+}
+
+const F_OFFEN = ['r-00001', 'B-1', 'offen', '10'];
+const F_GEBUCHT = ['r-00002', 'B-2', 'gebucht', '20'];
+const F_ZU = ['r-00003', 'B-3', 'zu', '30'];
+
+function feldGelesen([, nummer, status, betrag]) {
+  return { nummer, status, betrag };
+}
+
+function feldBelege(tabellenBedingung = []) {
+  const wurzel = bereich();
+  const pfad = lege(
+    wurzel,
+    'Beleg.md',
+    tabelle(feldDefinition(tabellenBedingung), [F_OFFEN, F_GEBUCHT, F_ZU]),
+  );
+  const pruefNaht = erzeugePruefNaht({
+    regeln: [bearbeitbarRegel],
+    tabellenSicht: sichtMit(pfad),
+    fsp,
+  });
+  return { wurzel, pfad, s: schnittstelle({ pruefNaht }) };
+}
+
+// Der erwartete Befund eines gesperrten Feldes an Position 0.
+function feldNichtAenderbar(id, anzeige, feld, regel, mehr = {}) {
+  return {
+    code: REGEL_LAGEN.feldNichtBearbeitbar,
+    position: 0,
+    tabelle: 'Beleg.md',
+    id,
+    anzeige,
+    feld,
+    regel,
+    meldung: '',
+    grund: 'ausdruck',
+    ...mehr,
+  };
+}
+
+describe('Bearbeitbarkeit am Feld: die Schreib-Schnittstelle (4T-002312, AK2)', () => {
+  it('4T-002312: ein geändertes gesperrtes Feld wird abgewiesen, nichts geschrieben', async () => {
+    const { wurzel, pfad, s } = feldBelege();
+    const vorher = lies(pfad);
+
+    const ergebnis = await s.fuehreAuftragAus(wurzel, {
+      anweisungen: [aendere('r-00002', feldGelesen(F_GEBUCHT), { betrag: '25' })],
+    });
+
+    expect(ergebnis.ok).toBe(false);
+    expect(ergebnis.lagen.map((lage) => lage.code)).toEqual([LAGEN.pruefBefund]);
+    expect(nahte(ergebnis)).toEqual([
+      feldNichtAenderbar('r-00002', 'r-00002 (B-2)', 'betrag', 'status != "gebucht"'),
+    ]);
+    expect(lies(pfad)).toBe(vorher);
+    expect(fs.existsSync(belegPfadFuer(pfad))).toBe(false);
+  });
+
+  it('4T-002312: ein geleertes gesperrtes Feld ist eine Änderung', async () => {
+    const { wurzel, s } = feldBelege();
+
+    const ergebnis = await s.fuehreAuftragAus(wurzel, {
+      anweisungen: [aendere('r-00002', feldGelesen(F_GEBUCHT), { betrag: null })],
+    });
+
+    expect(nahte(ergebnis).map((n) => n.feld)).toEqual(['betrag']);
+  });
+
+  it('4T-002312: ein unverändert mitgeschickter Wert ist kein Befund', async () => {
+    const { wurzel, pfad, s } = feldBelege();
+
+    const ergebnis = await s.fuehreAuftragAus(wurzel, {
+      anweisungen: [
+        aendere('r-00002', feldGelesen(F_GEBUCHT), {
+          nummer: 'B-2',
+          betrag: '20',
+          status: 'offen',
+        }),
+      ],
+    });
+
+    expect(ergebnis.ok, JSON.stringify(ergebnis.lagen)).toBe(true);
+    expect(lies(pfad)).toContain('|- id="r-00002"\n| B-2\n| offen\n| 20');
+  });
+
+  it('4T-002312: bei erfüllter Bedingung ist das Feld frei', async () => {
+    const { wurzel, pfad, s } = feldBelege();
+
+    const ergebnis = await s.fuehreAuftragAus(wurzel, {
+      anweisungen: [aendere('r-00001', feldGelesen(F_OFFEN), { betrag: '15' })],
+    });
+
+    expect(ergebnis.ok, JSON.stringify(ergebnis.lagen)).toBe(true);
+    expect(lies(pfad)).toContain('|- id="r-00001"\n| B-1\n| offen\n| 15');
+  });
+
+  it('4T-002312: die feste Sperre weist jede Änderung ab und nennt «false»', async () => {
+    const { wurzel, s } = feldBelege();
+
+    const ergebnis = await s.fuehreAuftragAus(wurzel, {
+      anweisungen: [aendere('r-00001', feldGelesen(F_OFFEN), { nummer: 'B-1a' })],
+    });
+
+    expect(nahte(ergebnis)).toEqual([
+      feldNichtAenderbar('r-00001', 'r-00001 (B-1)', 'nummer', 'false'),
+    ]);
+  });
+
+  it('4T-002312: mehrere gesperrte Felder ergeben je einen Befund in Definitions-Reihenfolge', async () => {
+    const { wurzel, s } = feldBelege();
+
+    const ergebnis = await s.fuehreAuftragAus(wurzel, {
+      anweisungen: [
+        aendere('r-00002', feldGelesen(F_GEBUCHT), { betrag: '1', nummer: 'B-2a', status: 'zu' }),
+      ],
+    });
+
+    expect(nahte(ergebnis)).toEqual([
+      feldNichtAenderbar('r-00002', 'r-00002 (B-2)', 'nummer', 'false'),
+      feldNichtAenderbar('r-00002', 'r-00002 (B-2)', 'betrag', 'status != "gebucht"'),
+    ]);
+  });
+
+  it('4T-002312: Anlegen und Löschen bleiben frei (Entscheidung im Task)', async () => {
+    const { wurzel, pfad, s } = feldBelege();
+
+    const ergebnis = await s.fuehreAuftragAus(wurzel, {
+      anweisungen: [
+        neu({ nummer: 'B-4', status: 'gebucht', betrag: '40' }),
+        loesche('r-00002', feldGelesen(F_GEBUCHT)),
+      ],
+    });
+
+    expect(ergebnis.ok, JSON.stringify(ergebnis.lagen)).toBe(true);
+    const nachher = lies(pfad);
+    expect(nachher).toContain('| B-4\n| gebucht\n| 40');
+    expect(nachher).not.toContain('r-00002');
+  });
+
+  it('4T-002312: ist schon der Datensatz gesperrt, steht allein dessen Befund', async () => {
+    const { wurzel, s } = feldBelege([`  editable: 'status != "zu"'`]);
+
+    const ergebnis = await s.fuehreAuftragAus(wurzel, {
+      anweisungen: [aendere('r-00003', feldGelesen(F_ZU), { nummer: 'B-3a' })],
+    });
+
+    expect(nahte(ergebnis).map((n) => [n.code, n.id])).toEqual([
+      [REGEL_LAGEN.nichtBearbeitbar, 'r-00003'],
+    ]);
+  });
+});

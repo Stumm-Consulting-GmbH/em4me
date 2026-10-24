@@ -2171,10 +2171,13 @@
         "test/unit/perspective-query-index.test.js",
         "test/unit/perspective-query-eval.test.js",
         "test/unit/perspective-query-templates.test.js",
+        "test/unit/events-aggregation.test.js",
+        "test/unit/perspective-script-data.test.js",
+        "test/unit/script-sandbox-runtime.test.js",
         "test/e2e/funktionen/vorlagen.spec.js"
       ],
       "sichtbarkeit": "entfällt: Abfrage-Sprache ohne eigenes Bedienelement; die Ergebnis-Ausgabe ist als Ganzes in frontmatter-abfrage.spec.js gedeckt",
-      "hinweis": "4T-000402/4T-000406 (Epic 3E-000076): FROM-Quellen (Ordner, Tags hierarchisch, Link-Bezuege ueber den Link-Graphen, Kombination/Negation) unit- und index-integriert getestet. 4T-002082 (Epic 3E-000259) ergänzt den Ausschluss der Vorlagen an der Quellen-Ebene: perspective-query-templates.test.js trägt die vier Ebenen, Unterordner, die Ausnahme über die ausdrückliche Nennung in FROM, die Datensatz-Ebene über Pfad und Namen, Lookup-Feld und Wertevorrat sowie den Aus-Zustand der Erweiterung «Vorlagen»; VL-11 in vorlagen.spec.js zeigt an der gestarteten Anwendung, dass die Aufgabe einer Vorlage aus der Aufgaben-Liste fällt, mit FROM auf den Vorlagen-Ordner erscheint und bei ausgeschalteter Erweiterung zurückkehrt. Nachgetragen im Hilfe- und Handbuch-Task 4T-002083."
+      "hinweis": "4T-000402/4T-000406 (Epic 3E-000076): FROM-Quellen (Ordner, Tags hierarchisch, Link-Bezuege ueber den Link-Graphen, Kombination/Negation) unit- und index-integriert getestet. 4T-002082 (Epic 3E-000259) ergänzt den Ausschluss der Vorlagen an der Quellen-Ebene: perspective-query-templates.test.js trägt die vier Ebenen, Unterordner, die Ausnahme über die ausdrückliche Nennung in FROM, die Datensatz-Ebene über Pfad und Namen, Lookup-Feld und Wertevorrat sowie den Aus-Zustand der Erweiterung «Vorlagen»; VL-11 in vorlagen.spec.js zeigt an der gestarteten Anwendung, dass die Aufgabe einer Vorlage aus der Aufgaben-Liste fällt, mit FROM auf den Vorlagen-Ordner erscheint und bei ausgeschalteter Erweiterung zurückkehrt. Nachgetragen im Hilfe- und Handbuch-Task 4T-002083. 4T-002126 (Epic 3E-000345) dehnt dieselbe Regel auf die Ereignis-Aggregation und die Skript-Blöcke aus: events-aggregation.test.js trägt Ausschluss samt Unterordner, die Ausnahme über FROM, die Fälle ohne Freigabe (Wurzel, übergeordneter Ordner, Verneinung, Schlagwort, Verweis) und den Fall ohne Ordner; perspective-script-data.test.js den Vorlagen-Ordner im Abzug; script-sandbox-runtime.test.js pq.pages und pq.blocks mit allen Quellen-Formen, pq.file und pq.current unberührt und den Aus-Zustand; VL-12 und VL-13 in vorlagen.spec.js zeigen beide Leser an der gestarteten Anwendung (Eintrag der Vorlage fehlt, erscheint über den ausdrücklich genannten Ordner und bei ausgeschalteter Erweiterung)."
     },
     {
       "key": "help.feature.queryTable",
@@ -2241,7 +2244,24 @@
         "test/unit/ergebnismenge.test.js"
       ],
       "sichtbarkeit": "sichtbar als Hinweis über dem Ergebnis eines Abfrage-Blocks, sobald eine unbekannte oder unpassende Form gewählt ist, und als gezeichnete Form statt Liste oder Tabelle",
-      "hinweis": "4T-002043 (Epic 3E-000258): die Wahl der Darstellungsform mit DISPLAY. FQ-05 zeigt den Rückfall mit Hinweis bei unbekannter Form in Lese- und Live-Ansicht und die Wirkung einer Änderung ohne Speichern; renderer/display-forms.test.js trägt Verzeichnis und Verteiler (ohne Angabe byte-gleich, unbekannte und unpassende Form mit Hinweis in fünf Sprachen auf allen vier Ebenen, scheiternde Form, Leer-Fall ohne Form, Liste und Tabelle als keine wählbaren Formen), perspective-query.test.js das Lesen der Angabe samt Syntax-Fehlern und ergebnismenge.test.js den Wunsch display im Format-Vertrag. Testart e2e, weil der Hinweis ein sichtbares Element der Abfrage-Ausgabe ist und FQ-05 ihn in der laufenden Anwendung zeigt. Kern-Zeile ohne Erweiterung, weil die Angabe zur Abfrage-Sprache gehört. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002045 entstanden und nennt die bereits vorliegenden Prüffälle."
+      "hinweis": "4T-002043 (Epic 3E-000258): die Wahl der Darstellungsform mit DISPLAY. FQ-05 zeigt den Rückfall mit Hinweis bei unbekannter Form in Lese- und Live-Ansicht und die Wirkung einer Änderung ohne Speichern; renderer/display-forms.test.js trägt Verzeichnis und Verteiler (ohne Angabe byte-gleich, unbekannte und unpassende Form mit Hinweis in fünf Sprachen auf allen vier Ebenen, scheiternde Form, Leer-Fall ohne Form, Tabelle und Liste als keine wählbaren Formen, bar und line eingetragen), perspective-query.test.js das Lesen der Angabe samt Syntax-Fehlern und ergebnismenge.test.js den Wunsch display im Format-Vertrag. Testart e2e, weil der Hinweis ein sichtbares Element der Abfrage-Ausgabe ist und FQ-05 ihn in der laufenden Anwendung zeigt. Kern-Zeile ohne Erweiterung, weil die Angabe zur Abfrage-Sprache gehört. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002045 entstanden und nennt die bereits vorliegenden Prüffälle; seit 4T-002174 nennt ihr Text neben dem Baum die Diagramme, deren Prüffälle unter F-346 stehen."
+    },
+    {
+      "key": "help.feature.queryChart",
+      "id": "F-346",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/frontmatter-abfrage.spec.js",
+        "test/unit/renderer/display-chart.test.js",
+        "test/unit/renderer/display-forms.test.js",
+        "test/unit/renderer/extensions-aus-abfrage-diagramm.test.js",
+        "test/unit/ergebnis-diagramm.test.js",
+        "test/unit/preload-diagramme.test.js",
+        "test/unit/extensions.test.js",
+        "test/unit/demo-area.test.js"
+      ],
+      "sichtbarkeit": "sichtbar als Balken- oder Linien-Diagramm statt der Tabelle eines Abfrage-Blocks mit DISPLAY bar oder DISPLAY line, als Hinweis über der Tabelle bei Rückfall oder ausgeschalteter Erweiterung und als Zeile unter Einstellungen → Erweiterungen",
+      "hinweis": "4T-002173 (Epic 3E-000337): Diagramm einer Abfrage. FQ-07 zeigt Balken und Linie in Lese-, geteilter und Live-Ansicht samt Umstellung ohne Speichern, FQ-08 das gruppierte Diagramm, die Zeilen unter dem Bild und den Rückfall mit Grund, FQ-09 den Schalter unter Einstellungen → Erweiterungen, FQ-10 Druck und PDF hell bei dunklem Farbschema; renderer/display-chart.test.js trägt Form, Hinweis-Zeilen, Rückfall und Neu-Zeichnen, renderer/display-forms.test.js Grund und Schalter am Verteiler, renderer/extensions-aus-abfrage-diagramm.test.js den Aus-Zustand, ergebnis-diagramm.test.js die Datenregel samt Zahl-Text aus dem Kopf einer Datei, preload-diagramme.test.js die Brücke, extensions.test.js Eintrag und Modus-Stufe. Testart e2e, weil das Diagramm ein sichtbares Element der Abfrage-Ausgabe ist. Die Katalog-Zeile ist in 4T-002173 vorgezogen entstanden, weil die Einstellungs-Zeile der Erweiterung ihren Namen braucht; Handbuch und Demo hat 4T-002174 nachgezogen; demo-area.test.js wertet die beiden Diagramm-Blöcke des Demo-Dokuments «08 Queries» über die echte Abfrage und dieselbe Datenregel aus (Beschriftungen, Reihen, Art)."
     },
     {
       "key": "help.feature.scriptBlocks",
@@ -4168,6 +4188,230 @@
       "tests": ["test/e2e/funktionen/datenbank-maske.spec.js", "test/unit/db-masken-datei.test.js"],
       "sichtbarkeit": "sichtbar im Kopf der Einzel-Maske als Handgriff «Maske als Datei speichern» und nach dem Herausschreiben als Quellen-Angabe",
       "hinweis": "4T-001943 (Epic 3E-000257): die Maske als Datei. DB-MAS-06 schreibt die erzeugte Maske über den Handgriff im Kopf als Datei neben die Tabelle, mit Titel, Behälter db-form und Feld-Platzhaltern, zeigt, dass ein zweiter Klick nichts überschreibt, dass die Maske beim nächsten Öffnen eine von außen ergänzte Überschrift zwischen den Feldern und die Quelle im Kopf zeigt und nach dem Löschen der Datei wieder die erzeugte Fassung. Testart e2e statt der im Skelett erwogenen unit, weil DB-MAS-06 den Bedienweg zeigt; db-masken-datei.test.js trägt das Unberührt-Bleiben eines nicht genannten Feldes beim Speichern, die Neuanlage mit den genannten Feldern und die Hinweise zu unbekannter Tabelle und mehreren Masken-Dateien. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-001946 entstanden."
+    },
+    {
+      "key": "help.feature.databaseFormValue",
+      "id": "F-351",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-maske.spec.js",
+        "test/unit/db-form-body.test.js",
+        "test/unit/db-masken-koerper.test.js",
+        "test/unit/db-konsistenz-pruefung.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in der Einzel-Maske an der Stelle des Wert-Platzhalters einer Masken-Datei, im Lesen wie im Bearbeiten, und bei ungültigem Ausdruck als Hinweis im Kopf",
+      "hinweis": "4T-002183 (Epic 3E-000261): der Wert-Platzhalter {{value:…}} in der gestalteten Maske. DB-MAS-07 zeigt im Lesen den gerechneten Wert, den Hinweis eines ungültigen Ausdrucks mit Zeile in allen fünf Sprachfassungen und die leere markierte Stelle, im Bearbeiten das Mitrechnen je Eingabe bei erhaltenem Fokus und die unveränderte Tabellen-Datei; db-form-body.test.js trägt Grammatik, Escape, Rückwärts-Gleichheit und die Auswertung gegen Stand und Entwurf mit Datum, Dauer, Zahl und Wahrheitswert, db-masken-koerper.test.js das Zeichnen und Neu-Rechnen der Stelle, db-konsistenz-pruefung.test.js den Befund des ungültigen Ausdrucks. Testart e2e, weil die Kette von der Masken-Datei über den Datensatz-Kanal bis in das DOM der Maske erst in der laufenden Anwendung besteht. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002187 entstanden und nennt die bereits vorliegenden Prüffälle."
+    },
+    {
+      "key": "help.feature.databaseFormDefault",
+      "id": "F-352",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-maske.spec.js",
+        "test/unit/db-masken-datei.test.js",
+        "test/unit/db-table-definition.test.js",
+        "test/unit/db-katalog.test.js",
+        "test/unit/db-datensatz-kanal.test.js"
+      ],
+      "sichtbarkeit": "sichtbar beim Öffnen eines Datensatzes als gezeigte Masken-Datei im Kopf der Maske und in der Übersicht der Datenbank als Spalte «Maske» mit der Zahl der weiteren Masken",
+      "hinweis": "4T-002184 (Epic 3E-000261): die Standard-Maske über die Angabe form der Tabellen-Definition und mehrere Masken je Tabelle. DB-MAS-08 zeigt zwei Masken-Dateien derselben Tabelle, ohne Angabe die erste nach Pfad, mit Angabe die genannte, und die Spalte der Übersicht; db-table-definition.test.js trägt das Lesen der Angabe samt Hinweis, db-katalog.test.js und db-masken-datei.test.js die Auswahl-Regel mit Rückfall bei fehlender und fremder Datei, db-datensatz-kanal.test.js den Abruf mit bestimmter Maske und die Abweisung einer Maske einer anderen Tabelle. Testart e2e, weil Auswahl und Übersicht erst am gebundenen Bereich der laufenden Anwendung zusammenwirken. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002187 entstanden."
+    },
+    {
+      "key": "help.feature.databaseFormNavigation",
+      "id": "F-353",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-maske-navigation.spec.js",
+        "test/unit/db-masken-navigation.test.js",
+        "test/unit/renderer/datensatz-treffer-klick.test.js",
+        "test/unit/db-masken-felder.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in der Einzel-Maske als anklickbare Links im Masken-Text, als anklickbares Verweis-Feld im Lesen, als Schaltfläche «Zurück» im Kopf und als Rückfrage bei ungespeicherter Bearbeitung",
+      "hinweis": "4T-002185 (Epic 3E-000261): die Navigation zwischen Masken. DB-MAS-09 zeigt den Link auf die Maske einer anderen Tabelle mit Meldung, das Verweis-Feld in die Standard-Maske der Ziel-Tabelle, den Link auf eine zweite Maske derselben Tabelle, zweimal «Zurück» bis zum Ausgang, die Rückfrage vor «Zurück» und vor einem Link und den Link auf ein gewöhnliches Dokument; db-masken-navigation.test.js trägt Ziel-Klärung und Verlauf, datensatz-treffer-klick.test.js die drei Ziele an der echten Seite, db-masken-felder.test.js das anklickbare Verweis-Feld im Lesen. Testart e2e, weil die Bedienwege neu eingeführte Bedienelemente der laufenden Maske sind. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002187 entstanden."
+    },
+    {
+      "key": "help.feature.databaseFormCondition",
+      "id": "F-354",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-maske-bereiche.spec.js",
+        "test/unit/db-form-body.test.js",
+        "test/unit/db-masken-koerper.test.js",
+        "test/unit/db-masken-speichern.test.js",
+        "test/unit/db-konsistenz-pruefung.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in der Einzel-Maske als Abschnitt, der mit dem Wert eines Feldes erscheint und verschwindet, als Meldung im Kopf zu einem Feld in einem verborgenen Bereich und als Hinweis mit Zeile bei unpaarigen Markern oder ungültiger Bedingung",
+      "hinweis": "4T-002186 (Epic 3E-000261): die bedingten Bereiche der Maske samt Wert im Satz. DB-MAS-10 zeigt am laufenden Programm den Bereich im Lesen, sein Erscheinen und Verschwinden im Bearbeiten ohne Speichern, den inneren Bereich, den Wert-Erhalt eines verborgenen Feldes in der Tabellen-Datei, die Meldung im Kopf zu einem verborgenen Feld, die Hinweise mit Zeile und den Wert im Satz; db-form-body.test.js trägt Grammatik, Verschachtelung, Fehlerbilder und die Bedingungs-Auswertung, db-masken-koerper.test.js das Zeichnen und Verbergen samt Wert im Satz, db-masken-speichern.test.js die Meldung zum verborgenen Feld, db-konsistenz-pruefung.test.js die drei Befunde. Testart e2e, weil der Bereich ein Bedienelement der laufenden Maske ist. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002187 (Teil B) entstanden."
+    },
+    {
+      "key": "help.feature.databaseListForm",
+      "id": "F-355",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-liste.spec.js",
+        "test/unit/db-list-angaben.test.js",
+        "test/unit/db-liste-kanal.test.js",
+        "test/unit/renderer/db-listen-maske.test.js",
+        "test/unit/db-katalog.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in einer Abfrage-Datei mit editable: true als Gitter mit Zähl-Zeile und Blättern an der Stelle der Ergebnis-Tabelle, beim Klick auf eine Zeile als geöffnete Maske und in der Übersicht der Datenbank als Art «Listen-Maske» im Abschnitt «Abfragen»",
+      "hinweis": "4T-002248 und 4T-002249 (Epic 3E-000262): die Listen-Maske als Abfrage-Datei mit den Angaben editable, form und allow. DB-LIS-01 zeigt das Gitter mit Zähl-Zeile an der Stelle der Ergebnis-Tabelle in Lese- und Live-Ansicht und ohne editable die Ergebnis-Tabelle, DB-LIS-02 das Öffnen der mit form benannten Maske und das Blättern über 120 Datensätze in Seiten zu 50; db-list-angaben.test.js trägt die Auslegung der drei Angaben samt Hinweisen, db-liste-kanal.test.js den Kanal mit Tabelle, Maske und Feld je Spalte, db-listen-maske.test.js das Zeichnen samt lesenden Fällen, db-katalog.test.js die Prüfung der Angabe form im Katalog. Testart e2e, weil Gitter, Blättern und Öffnen erst in der laufenden Anwendung zusammenwirken. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002254 entstanden."
+    },
+    {
+      "key": "help.feature.databaseListEdit",
+      "id": "F-356",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-liste.spec.js",
+        "test/unit/renderer/db-listen-zeile.test.js",
+        "test/unit/renderer/db-listen-anlegen-loeschen.test.js",
+        "test/unit/db-liste-kanal.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in einer Listen-Maske als Spalte «Aktionen» mit «Bearbeiten» und «Löschen», als Eingaben in den Zellen einer bearbeiteten Zeile, als Schaltfläche «Neue Zeile» neben der Zähl-Zeile und als Meldung oder Rückfrage unter der Zeile",
+      "hinweis": "4T-002250 und 4T-002251 (Epic 3E-000262): die Pflege in der Listen-Maske. DB-LIS-03 zeigt das Ändern einer Zeile über Doppelklick und Eingabetaste, die Abweisung einer Prüfregel an der Zelle und die lesende Zeile, DB-LIS-04 die Fremd-Änderung mit der Wahl unter der Zeile und «Neu laden», DB-LIS-05 Anlegen und Löschen in der Lese-Ansicht, Anlegen in der Live-Ansicht mit der Eingabetaste und den Lösch-Schutz; db-listen-zeile.test.js trägt den Ablauf der Zeilen-Bearbeitung, db-listen-anlegen-loeschen.test.js Neuanlage, Löschen und die Freigabe verwaister Sperren, db-liste-kanal.test.js die Änderbarkeit je Zeile. Testart e2e, weil die Bedienwege neu eingeführte Bedienelemente der laufenden Liste sind. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002254 entstanden."
+    },
+    {
+      "key": "help.feature.databaseFormList",
+      "id": "F-357",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-maske-positionen.spec.js",
+        "test/unit/query-bedingung.test.js",
+        "test/unit/db-positionsliste-kanal.test.js",
+        "test/unit/renderer/db-masken-positionen.test.js",
+        "test/unit/db-form-body.test.js",
+        "test/unit/db-masken-speichern.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in der Einzel-Maske als eingebettete Listen-Maske an der Stelle des Platzhalters {{list:…}}, im Bearbeiten mit vorgemerkten Zeilen, nach dem Speichern der Maske in beiden Tabellen-Dateien und bei einer Abweisung als Meldung «Position N» im Kopf",
+      "hinweis": "4T-002253 (Epic 3E-000262): der Positions-Bereich der Einzel-Maske mit gemeinsamem Speichern. DB-MAS-12 zeigt die Positionen eines Buchs, eine neue Position mit gesetztem Verweis in einem Auftrag, einen neuen Kopf mit Position in einem Speichern, das Scheitern einer Position ohne Teil-Speichern und das Verwerfen; query-bedingung.test.js trägt die Beziehungs-Bedingung an der Abfrage, db-positionsliste-kanal.test.js den Kanal samt fünf Hinweisen und Konsistenz-Befunden, db-masken-positionen.test.js den sammelnden Modus, db-form-body.test.js die Grammatik des Platzhalters, db-masken-speichern.test.js den gemeinsamen Auftrag und die Meldung mit Position. Testart e2e, weil Kopf und Positionen erst in der laufenden Maske zusammen gespeichert werden. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002254 entstanden."
+    },
+    {
+      "key": "help.feature.databaseFormValuePath",
+      "id": "F-358",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-maske-pfade.spec.js",
+        "test/unit/db-ausdruecke-kanal.test.js",
+        "test/unit/db-form-body.test.js",
+        "test/unit/db-masken-koerper.test.js",
+        "test/unit/record-table-read.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in der Einzel-Maske an der Stelle eines Wert-Platzhalters oder Bereichs mit einem Pfad über ein Verweis-Feld, im Lesen wie im Bearbeiten, und bei unbekanntem Pfad als Hinweis mit Zeile im Kopf",
+      "hinweis": "4T-002252 (Epic 3E-000262): Werte und Bedingungen über Verweis-Pfade. DB-MAS-11 zeigt Wert und Bereich über einen Verweis-Pfad im Lesen, ihr Folgen auf die Wahl eines anderen Verweises im Bearbeiten ohne Speichern und die leere, markierte Stelle bei leerem Verweis; db-ausdruecke-kanal.test.js trägt den Kanal am echten Handler, db-form-body.test.js die Weiche und den Hinweis eines unbekannten Pfads, db-masken-koerper.test.js das gebündelte Einsetzen der Antwort, record-table-read.test.js den Entwurfs-Datensatz. Testart e2e, weil die Auswertung im Haupt-Prozess erst mit der laufenden Maske zusammenwirkt. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002254 entstanden."
+    },
+    {
+      "key": "help.feature.databaseRoles",
+      "id": "F-365",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-berechtigung.spec.js",
+        "test/unit/db-rollen-angaben.test.js",
+        "test/unit/db-steckbrief.test.js",
+        "test/unit/db-katalog.test.js",
+        "test/unit/renderer/datenbank-uebersicht-seite.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in der Übersicht der Datenbank als Abschnitt «Rollen» im Steckbrief-Block, eine Zeile je Rolle mit ihren Erlaubnissen je Tabelle, und bei einer unbrauchbaren Rolle als Hinweis unter den Fehlerlagen",
+      "hinweis": "4T-002307 (Epic 3E-000263): Rollen und Erlaubnisse im Steckbrief, die Angabe roles mit den vier Operationen und dem Wort all. DB-ROL-01 bindet einen Bereich mit Rollen im Steckbrief und zeigt die Übersicht samt eigener Rolle; db-rollen-angaben.test.js trägt die Auslegung samt den fünf Hinweisen, db-steckbrief.test.js die Aufnahme in den Steckbrief, db-katalog.test.js den Abgleich gegen die Tabellen in Übersicht und Konsistenz-Prüfung, datenbank-uebersicht-seite.test.js den Abschnitt «Rollen». Testart e2e, weil Rollen und Anmeldename erst in der laufenden Anwendung aus Steckbrief und System zusammenkommen. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002313 entstanden."
+    },
+    {
+      "key": "help.feature.databaseRoleAssignment",
+      "id": "F-366",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-berechtigung.spec.js",
+        "test/unit/db-rechte.test.js",
+        "test/unit/db-rollen-angaben.test.js",
+        "test/unit/db-katalog.test.js",
+        "test/unit/renderer/datenbank-uebersicht-seite.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in der Übersicht der Datenbank als Zeile «Eigene Rolle» im Steckbrief-Block, mit zugeordneter Rolle, Vorgabe-Rolle oder «alles erlaubt (keine Zuordnung)» und dem Anmeldenamen wörtlich",
+      "hinweis": "4T-002308 (Epic 3E-000263): Zuordnung users und Vorgabe-Rolle defaultRole, Auflösung des Anmeldenamens zur Erlaubnis-Menge. DB-ROL-01 zeigt, dass der echte Anmeldename des Systems die Zuordnung im Steckbrief trifft und wörtlich in der Übersicht steht; db-rechte.test.js trägt die Auflösung in vier Stufen und den Gleichlauf mit dem Katalog, db-rollen-angaben.test.js Auslegung und Prüfung der Zuordnung, db-katalog.test.js die eigene Rolle im Überblick, datenbank-uebersicht-seite.test.js die Zeile in drei Lagen. Testart e2e, weil der Anmeldename im gebauten Ablauf aus der Herkunft des Haupt-Prozesses kommt. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002313 entstanden."
+    },
+    {
+      "key": "help.feature.databasePermissionCheck",
+      "id": "F-367",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-berechtigung.spec.js",
+        "test/unit/db-regel-berechtigung.test.js",
+        "test/unit/db-regelwerk-naht.test.js",
+        "test/unit/db-record-auftrag.test.js",
+        "test/unit/db-auftrag-text.test.js",
+        "test/unit/db-definitions-schutz.test.js",
+        "test/unit/area-replace.test.js"
+      ],
+      "sichtbarkeit": "sichtbar als Abweisung mit Rolle, Tabelle und Handgriff beim Speichern eines Datensatzes und beim Beginnen einer Neuanlage, als Fehler-Dialog des Speicherns bei einer geänderten Definition ohne Erlaubnis und im Bericht des bereichsweiten Ersetzens unter «Nicht ersetzt»",
+      "hinweis": "4T-002309 und 4T-002310 (Epic 3E-000263): die Prüfung der Berechtigung an der Schreib-Schnittstelle und der Schutz der Definition beim Speichern. DB-ROL-02 weist Neuanlage ohne create und Löschen ohne delete an der Schnittstelle ab, DB-ROL-03 eine geänderte Beschriftung ohne define beim Speichern im Editor und lässt eine Änderung im Prosa-Teil durch; db-regel-berechtigung.test.js trägt Regel, Rechte-Funktion und die nicht bestimmbare Erlaubnis-Menge, db-regelwerk-naht.test.js die Verdrahtung, db-record-auftrag.test.js die Neuanlage, db-auftrag-text.test.js die Sätze in fünf Sprachen, db-definitions-schutz.test.js Vergleich und Kanal des Speicherns samt «Speichern unter», area-replace.test.js das bereichsweite Ersetzen. Testart e2e, weil die Erlaubnis-Menge im gebauten Ablauf aus dem echten Index und dem gespeicherten Steckbrief entsteht. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002313 entstanden."
+    },
+    {
+      "key": "help.feature.databasePermissionForms",
+      "id": "F-368",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-berechtigung.spec.js",
+        "test/e2e/funktionen/datenbank-liste.spec.js",
+        "test/unit/db-masken-koerper.test.js",
+        "test/unit/renderer/db-listen-maske.test.js",
+        "test/unit/renderer/db-masken-positionen.test.js",
+        "test/unit/renderer/datensatz-zeilen-zugang.test.js",
+        "test/unit/renderer/datenbank-uebersicht-seite.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in der Einzel-Maske als lesende Felder mit dem Satz der Rolle und ohne «Bearbeiten», «Löschen» oder Neuanlage, in Listen-Maske und Positions-Bereich als fehlende Handgriffe und Tooltip der Zeile, unter der Tabelle als fehlende Schaltfläche «Neuer Datensatz» und in der Übersicht als Zeile «Erlaubnisse» je Tabelle",
+      "hinweis": "4T-002311 (Epic 3E-000263): die Wirkung der Berechtigung in Einzel-Maske, Listen-Maske und Übersicht. DB-MAS-13 zeigt die Felder lesend, den Satz der Rolle und das Fehlen von Bearbeiten, Löschen und Neuanlage, DB-LIS-06 den Schnitt aus allow und Rolle in der Listen-Maske; db-masken-koerper.test.js trägt Bearbeitbarkeit und Löschbarkeit der Maske, db-listen-maske.test.js die Handgriffe der Liste, db-masken-positionen.test.js den Positions-Bereich, datensatz-zeilen-zugang.test.js den Fuß «Neuer Datensatz», datenbank-uebersicht-seite.test.js die Erlaubnisse je Tabelle. Testart e2e, weil die Bedienelemente erst mit der laufenden Maske und der echten Erlaubnis-Menge entstehen. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002313 entstanden."
+    },
+    {
+      "key": "help.feature.databaseFieldEditable",
+      "id": "F-369",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-feldsperre.spec.js",
+        "test/unit/db-table-checks.test.js",
+        "test/unit/db-regel-bearbeitbar.test.js",
+        "test/unit/db-feld-sperre.test.js",
+        "test/unit/db-datensatz-kanal.test.js",
+        "test/unit/db-liste-kanal.test.js",
+        "test/unit/db-masken-felder.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in Einzel-Maske und Zeile der Listen-Maske als lesend gezeigtes Feld mit Tooltip beim Bearbeiten und als Abweisung mit Feld, Datensatz und Regel beim Speichern",
+      "hinweis": "4T-002312 (Epic 3E-000263): die Angabe editable am Feld mit Bedingung, fester Sperre false und ausdrücklicher Freigabe true. DB-MAS-14 zeigt ein fest und ein bedingt gesperrtes Feld lesend im Bearbeiten und die Freigabe, sobald die Bedingung nach dem Speichern erfüllt ist; db-table-checks.test.js trägt die Auslegung samt Hinweisen, db-regel-bearbeitbar.test.js die Regel an der Schnittstelle, db-feld-sperre.test.js die Auswertung, db-datensatz-kanal.test.js und db-liste-kanal.test.js die gesperrten Felder in den Antworten, db-masken-felder.test.js die lesende Anzeige. Testart e2e, weil die Sperre erst mit der laufenden Maske und dem gespeicherten Stand sichtbar wird. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002313 entstanden."
+    },
+    {
+      "key": "help.feature.databaseSearchHit",
+      "id": "F-370",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-suche.spec.js",
+        "test/unit/area-search-records.test.js",
+        "test/unit/renderer/such-datensaetze.test.js"
+      ],
+      "sichtbarkeit": "sichtbar im Panel «Suchergebnisse» als Gruppe je Tabelle hinter den Dokument-Gruppen, mit Tabellen-Name, Zusatz «Datensätze» und Zahl, je Zeile Anzeige-Form, Feld und Wert mit markiertem Fund; der Klick öffnet die Maske; bei geöffneter Ersetzen-Zeile ohne Datensatz-Gruppen",
+      "hinweis": "4T-002331 und 4T-002332 (Epic 3E-000264): die Datensätze als eigene Treffer-Art der Bereichs-Suche. DB-SUC-01 zeigt die Gruppe «Library» mit Anzeige-Form, Feld und markiertem Fund, DB-SUC-02 den Klick in die Maske, DB-SUC-03 das Ausblenden bei geöffneter Ersetzen-Zeile; area-search-records.test.js trägt Treffer, Gruppen-Kennung, Deckel, Folge-Dateien, ungespeicherten Stand und Aus-Zustand im Haupt-Prozess, such-datensaetze.test.js Gruppen-Kopf, Treffer-Zeile, Ersetzen-Modus und Sprung im Anzeige-Prozess. Testart e2e, weil Treffer und Klick erst mit dem laufenden Bereich und der Maske zusammenwirken. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002336 entstanden."
+    },
+    {
+      "key": "help.feature.databaseRecordLinkOpen",
+      "id": "F-371",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-verweis.spec.js",
+        "test/unit/datensatz-verweis-aufloesung.test.js",
+        "test/unit/db-verweisziel-kanal.test.js",
+        "test/unit/renderer/autocomplete-anker.test.js",
+        "test/unit/renderer/masken-fehlt.test.js",
+        "test/unit/renderer/editor-lint-datensatz.test.js"
+      ],
+      "sichtbarkeit": "sichtbar beim Klick auf einen Datensatz-Verweis im Text als geöffnete Maske, im Kopf der Maske als Handgriff «Im Tabellen-Dokument zeigen», in der Vorschlagsliste nach [[Tabelle#^ als Einträge mit der Anzeige-Form und im Editor als Linter-Hinweis bei mehrdeutigem Namen oder verdeckendem Block-Anker",
+      "hinweis": "4T-002333 (Epic 3E-000264): Klick in die Maske, Kurzform und Anzeige-Form als Schreibweisen, Vorschlagsliste und Handgriff zur Zeile. DB-VER-01 öffnet die Maske über die lange Kennung, DB-VER-02 zeigt die Gültigkeit von Kurzform und Anzeige-Form und den Klick auf beide, DB-VER-03 die Vorschlagsliste, die die Kennung schreibt; datensatz-verweis-aufloesung.test.js trägt die Auflösung samt Mehrdeutigkeit, Block-Anker-Vorrang und Aus-Zustand, db-verweisziel-kanal.test.js den Kanal des Klicks, autocomplete-anker.test.js die Vorschläge, masken-fehlt.test.js den Handgriff, editor-lint-datensatz.test.js die beiden Linter-Regeln. Testart e2e, weil Klick, Maske und Vorschlagsliste erst in der laufenden Anwendung zusammenwirken. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002336 entstanden."
+    },
+    {
+      "key": "help.feature.databaseFormRestore",
+      "id": "F-372",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-sitzung.spec.js",
+        "test/unit/renderer/sitzungs-maske.test.js"
+      ],
+      "sichtbarkeit": "sichtbar nach dem Neustart als Masken-Dokument an seiner Stelle unter den geöffneten Dokumenten der Spalte, bei fehlendem Datensatz mit Hinweis und Handgriff «Tabelle öffnen»; bei abgeschalteter Datenbank ohne Masken-Dokument, nach dem Einschalten mit dem nächsten Start zurück",
+      "hinweis": "4T-002334 (Epic 3E-000264): Sicherung und Wiederherstellung des Masken-Dokuments mit der Sitzung. DB-SIT-01 zeigt dasselbe Buch an derselben Stelle nach dem Neustart, DB-SIT-02 den Hinweis und «Tabelle öffnen» bei gelöschtem Datensatz, DB-SIT-03 den ruhenden Eintrag bei abgeschalteter Datenbank und seine Rückkehr; sitzungs-maske.test.js trägt Eintrag, Position, aktiven Reiter, Neuanlage, ruhenden Eintrag und Übergabe beim Zusammenlegen. Testart e2e, weil die Wiederherstellung erst über einen echten Neustart sichtbar wird. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002336 entstanden."
     },
     {
       "key": "help.feature.databaseConsistency",

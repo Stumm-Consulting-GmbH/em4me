@@ -3,7 +3,9 @@
 // Verallgemeinerung des Handbuch-Musters (tab.manualPage) auf interaktive
 // Seiten mit eigenem DOM: eine System-Seite läuft als pfadloser Tab
 // (tab.systemPage = Seiten-ID), maximal eine Instanz pro Fenster, ohne
-// Session-Persistenz (buildPanesSnapshot filtert pfadlose Tabs), ohne
+// Session-Persistenz (buildPanesSnapshot filtert pfadlose Tabs; seit
+// 4T-002334 sichert eine Seite mit Eintrag im Register von
+// sitzungs-maske.js ihren Gegenstand, heute das Masken-Dokument), ohne
 // Edit-Modus und ohne Speichern (Guards in views.js/tabs.js). Anders als
 // Handbuch-Tabs rendert eine System-Seite kein Markdown, sondern montiert
 // ihr Formular-DOM in den .pane-system-Container der Pane; die

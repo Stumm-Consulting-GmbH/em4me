@@ -61,6 +61,8 @@
   "areaReplace.reason.keinBereich": "Kein Bereich geöffnet",
   "areaReplace.reason.kanal": "Der Lauf hat den Hauptprozess nicht erreicht",
   "areaReplace.reason.frontmatter": "Schlagwort-Feld ließ sich nicht schreiben",
+  "areaReplace.reason.defineNichtErlaubt": "Eigene Rolle ohne Erlaubnis «Definition ändern»; Definition nicht geändert",
+  "areaReplace.reason.defineRechteNichtBestimmbar": "Berechtigungen der Datenbank nicht feststellbar; Definition nicht geändert",
   "search.replaceCountOne": "1 Ersetzung",
   "search.replaceCountMany": "{n} Ersetzungen",
   "searchResults.title": "Suchergebnisse",

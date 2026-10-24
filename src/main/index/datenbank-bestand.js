@@ -29,12 +29,18 @@ const { entryWithOverlay, overlaysUnder } = require('./overlay.js');
  * keine Datei da ist, und `ensureIndexForDemand` baut ihn dann auch auf; allein
  * die Vorprüfung hier stand davor. Ohne BEIDES bleibt es bei `unavailable`.
  *
+ * 4T-002310 (Epic 3E-000263): `ohnePuffer` liefert die Sicht des gespeicherten
+ * Stands. Der Schutz der Definition fragt die Rechte so, weil ein
+ * ungespeicherter, gerade unlesbarer Steckbrief im Puffer seine Marke verlöre
+ * und die Datenbank dann ohne Rollen erschiene.
+ *
  * @param {string|null} filePath Datei, über die die Wurzel bestimmt wird.
  * @param {string|null} areaRoot Bereichs-Wurzel des Fensters, falls vorhanden.
+ * @param {{ohnePuffer?: boolean}} [optionen] Sicht ohne Puffer-Overlay.
  * @returns {object} { status, meta, sicht } — `sicht` ist null, solange der
  *   Index nicht bereit ist; der Status sagt dann, warum.
  */
-function datenbankSicht(filePath, areaRoot) {
+function datenbankSicht(filePath, areaRoot, { ohnePuffer = false } = {}) {
   if (!filePath && !areaRoot) return { status: 'unavailable', meta: null, sicht: null };
   const { root } = resolveRootInfo(filePath, areaRoot);
   if (!root) return { status: 'unavailable', meta: null, sicht: null };
@@ -50,6 +56,7 @@ function datenbankSicht(filePath, areaRoot) {
   }
   if (entry.status === 'indexing') return { status: 'indexing', meta, sicht: null };
   if (entry.status === 'error') return { status: 'error', meta, sicht: null };
+  if (ohnePuffer) return { status: 'ready', meta, sicht: entry };
   // 4T-001510: Die Sicht mit Overlay, damit eine offene, noch nicht
   // gespeicherte Tabelle im Katalog erscheint (E25).
   return { status: 'ready', meta, sicht: entryWithOverlay(entry, overlaysUnder(root)) };

@@ -350,6 +350,10 @@
 .markdown-body .perspective-chart {
   margin: 0.5em 0;
 }
+/* 4T-002173 (Epic 3E-000337): Das Diagramm einer Abfrage hat dieselbe Größe wie
+   das Diagramm zu einer Datentabelle (Entscheidung S8); seine Hinweis-Zeilen
+   tragen die Klasse der Zeile ausgelassener Werte. */
+.markdown-body .perspective-query-chart svg,
 .markdown-body .perspective-chart svg {
   display: block;
   width: 100%;

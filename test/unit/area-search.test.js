@@ -207,6 +207,21 @@ describe('Bereichs-Suchraum', () => {
     expect(neuRes.treffer).toHaveLength(4);
   });
 
+  // 4T-002331 (Epic 3E-000264): Ohne Tabellen bleibt die Antwort, wie sie war;
+  // hinzu kommt allein der Umfang des Datensatz-Vorrats, hier null.
+  it('liefert ohne Tabellen dieselbe Antwort wie bisher, erweitert um datensatzBytes 0', async () => {
+    const root = fixture();
+    const res = await suche(root);
+    expect(Object.keys(res).sort()).toEqual(
+      ['abgeschnitten', 'datensatzBytes', 'generation', 'gruppen', 'treffer', 'vorratModus'].sort(),
+    );
+    expect(res.datensatzBytes).toBe(0);
+    expect(res.abgeschnitten).toBe(false);
+    expect(res.vorratModus).toBe('vorrat');
+    expect(res.treffer.every((t) => t.quelle === 'area')).toBe(true);
+    expect(res.gruppen.map((g) => g.gruppe)).toEqual(['alpha.md', 'unter/beta.md', 'zeta.md']);
+  });
+
   it('beachtet Gross- und Kleinschreibung ueber die uebergebenen Flags', async () => {
     const root = makeRoot();
     write(root, 'a.md', 'Treffer und treffer');

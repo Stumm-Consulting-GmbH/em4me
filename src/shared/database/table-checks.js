@@ -2,7 +2,8 @@
 // Feld-Regeln am Definitions-Eintrag (`check`) und Datensatz-Regeln auf der
 // oberen Ebene des Behälters (`checks`), gelesen und normalisiert. Seit
 // 4T-001932 (E22.7) auch die Bearbeitbarkeits-Bedingung (`editable`) am
-// Behälter, mit derselben Normalisierung wie eine Datensatz-Regel.
+// Behälter, mit derselben Normalisierung wie eine Datensatz-Regel; seit
+// 4T-002312 (F4 A) dieselbe Bedingung am Definitions-Eintrag eines Feldes.
 //
 // **Warum es die Regel gibt.** Die Datenbank vergibt keine Typen für Formate;
 // eine E-Mail-Adresse ist ein Text wie jeder andere. Was sonst ein Typ getragen
@@ -231,9 +232,26 @@ function leseFeldRegeln(roh) {
 // Satz einer Datensatz-Regel den Autor an die falsche Angabe seiner Datei.
 const DATENSATZ_CODES = Object.freeze({ expr: 'checksExpr', unbekannt: 'checkUnknownField' });
 const BEARBEITBAR_CODES = Object.freeze({
+  form: 'editable',
   expr: 'editableExpr',
   unbekannt: 'editableUnknownField',
+  meldung: 'editableMessage',
 });
+// 4T-002312 (Epic 3E-000263, F4 A): dieselbe Bedingung am Feld, mit eigenen
+// Codes nach derselben Regel: Der Satz nennt die Stelle des Feldes und die
+// Folge «das Feld bleibt bearbeitbar», nicht die Tabelle.
+const FELD_BEARBEITBAR_CODES = Object.freeze({
+  form: 'fieldEditable',
+  expr: 'fieldEditableExpr',
+  unbekannt: 'fieldEditableUnknownField',
+  meldung: 'fieldEditableMessage',
+});
+
+// 4T-002312: Die feste Sperre am Feld (`editable: false`). Kein Ausdruck, weil
+// die Abfrage-Sprache keine Wahrheitswert-Literale kennt (`false` wäre ein
+// Bezug auf ein Feld dieses Namens); der Auswerter kennt die Art `fest` und
+// beantwortet sie immer mit «nicht erfüllt» (`record-check-eval.js`).
+const FESTE_SPERRE = Object.freeze({ art: 'fest', quelle: 'false', message: null });
 
 // Eine Datensatz-Regel aus ihrem Text. `bekannt` sind die kleingeschriebenen
 // Namen der gültigen Felder, `codes` die Codes ihres Gegenstands. Liefert
@@ -322,28 +340,52 @@ function leseDatensatzRegeln(roh, fields) {
  *
  * @param {*} roh Der rohe Wert unter `editable`.
  * @param {Array<{name: string}>} fields Die gültigen Felder der Definition.
+ * @param {object} [codes] Die Codes des Gegenstands; ohne Angabe die der
+ *   Tabelle (4T-002312: am Feld `FELD_BEARBEITBAR_CODES`).
  * @returns {{ editable: object|null, hints: Array<{code: string, name?: string, expected?: *}> }}
  *   `editable` ist die gültige Regel `{ art: 'expr', quelle, ast, message }`
  *   oder null (keine oder keine brauchbare Angabe); `name` eines Hinweises ist
  *   der Text der Bedingung, wie bei einer Datensatz-Regel.
  */
-function leseBearbeitbarkeit(roh, fields) {
+function leseBearbeitbarkeit(roh, fields, codes = BEARBEITBAR_CODES) {
   const hints = [];
   if (roh === undefined || roh === null) return { editable: null, hints };
   const teile = zerlegeEintrag(roh);
   if (teile === null) {
-    hints.push({ code: 'editable' });
+    hints.push({ code: codes.form });
     return { editable: null, hints };
   }
   const { feldNamen, bekannt } = feldBezuege(fields);
-  const gelesen = datensatzRegel(teile.quelle, bekannt, feldNamen, BEARBEITBAR_CODES);
+  const gelesen = datensatzRegel(teile.quelle, bekannt, feldNamen, codes);
   if (gelesen.code) {
     hints.push({ code: gelesen.code, name: teile.quelle, expected: gelesen.expected });
     return { editable: null, hints };
   }
   const meldung = leseMeldung(teile.meldung);
-  if (meldung.unbrauchbar) hints.push({ code: 'editableMessage', name: teile.quelle });
+  if (meldung.unbrauchbar) hints.push({ code: codes.meldung, name: teile.quelle });
   return { editable: { ...gelesen.regel, message: meldung.message }, hints };
+}
+
+/**
+ * Liest die Bearbeitbarkeits-Bedingung eines Feldes (4T-002312, F4 A): dieselbe
+ * Grammatik wie `editable` der Tabelle und derselbe Leser, dazu `false` als
+ * feste Sperre und `true` als ausdrücklich frei. Die Bezüge sind die Felder der
+ * Definition, das eigene eingeschlossen; `value` gibt es hier nicht, weil die
+ * Bedingung wie die der Tabelle den vorgefundenen Datensatz befragt.
+ *
+ * **Eine unbrauchbare Bedingung entfällt, und das Feld bleibt bearbeitbar**,
+ * nach derselben Entscheidung wie an der Tabelle (Story AK4).
+ *
+ * @param {*} roh Der rohe Wert unter `editable` am Definitions-Eintrag.
+ * @param {Array<{name: string}>} fields Die gültigen Felder der Definition.
+ * @returns {{ editable: object|null, hints: Array<{code: string, name?: string, expected?: *}> }}
+ *   `editable` ist die Regel, bei `false` die feste Sperre `{ art: 'fest' }`;
+ *   die Definition hängt Stelle und Feld-Namen an die Hinweise.
+ */
+function leseFeldBearbeitbarkeit(roh, fields) {
+  if (roh === true) return { editable: null, hints: [] };
+  if (roh === false) return { editable: { ...FESTE_SPERRE }, hints: [] };
+  return leseBearbeitbarkeit(roh, fields, FELD_BEARBEITBAR_CODES);
 }
 
 module.exports = {
@@ -354,4 +396,5 @@ module.exports = {
   leseFeldRegeln,
   leseDatensatzRegeln,
   leseBearbeitbarkeit,
+  leseFeldBearbeitbarkeit,
 };

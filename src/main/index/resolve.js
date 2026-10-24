@@ -23,7 +23,9 @@ const { ensureIndex } = require('./lifecycle.js');
 // 4T-000952 (Epic 3E-000198, Befund E-04): Puffer-Overlay der Rueckverweise.
 const { entryWithOverlay, overlaysUnder } = require('./overlay.js');
 // 4T-001612 (Epic 3E-000252): die dritte Anker-Herkunft, die Datensatz-Kennung.
-const { kennungInTabelle } = require('./datensatz-zugriff.js');
+// 4T-002333 (Epic 3E-000264, T2): seither über die eine Auflösungs-Ordnung,
+// Kennung lang und kurz, danach Anzeige-Form.
+const { istTabellenDatei, loeseDatensatzVerweis } = require('./datensatz-verweis-aufloesung.js');
 // 4T-001761 (Epic 3E-000253): Der Schalter, mit dem der Datensatz-Bestand ruht.
 const { datensatzErfassungAktiv } = require('./index-schalter.js');
 
@@ -278,27 +280,49 @@ function backlinksFor(filePath, ownerKey, areaRoot) {
 // B-18 (4T-000187): Der Index-AUFBAU wird nicht mehr hier, sondern im IPC-
 // Handler ueber ensureIndexForDemand angestossen (Owner-Modell macht das
 // seit 4T-000175 leak-frei); diese Funktion bleibt ein reiner Read-Pfad.
+// 4T-002333 (Epic 3E-000264, T2): Die Antwort trägt eine vierte Liste,
+// `ambiguousRecord`, mit den Zielen, deren Anker die Anzeige-Form MEHRERER
+// Datensätze ist. Ein solches Ziel steht zugleich in `existing`, weil ein
+// mehrdeutiger Name als bestehend gilt (S7); die eigene Liste trägt allein den
+// Hinweis. Eine fünfte Liste, `shadowedRecord`, nennt die Ziele, deren Anker
+// ein Block-Anker trägt und zugleich einen Datensatz eindeutig träfe: Der
+// Block-Anker gewinnt, der Datensatz ist verdeckt (E5.2), und auch dieses Ziel
+// steht in `existing`. Die leere Antwort als Funktion, damit jede Rückgabe
+// frische Listen hat.
+function ohneZiele(status) {
+  return {
+    status,
+    existing: [],
+    brokenAnchor: [],
+    ambiguous: [],
+    ambiguousRecord: [],
+    shadowedRecord: [],
+  };
+}
+
 function existingWikiTargets(filePath, targets, areaRoot) {
-  if (!filePath || !Array.isArray(targets)) {
-    return { status: 'unavailable', existing: [], brokenAnchor: [], ambiguous: [] };
-  }
+  if (!filePath || !Array.isArray(targets)) return ohneZiele('unavailable');
   const { root } = resolveRootInfo(filePath, areaRoot);
-  if (!root) return { status: 'unavailable', existing: [], brokenAnchor: [], ambiguous: [] };
+  if (!root) return ohneZiele('unavailable');
   const entry = indexes.get(root);
-  if (!entry) return { status: 'unavailable', existing: [], brokenAnchor: [], ambiguous: [] };
-  if (entry.status === 'oversized')
-    return { status: 'unavailable', existing: [], brokenAnchor: [], ambiguous: [] };
-  if (entry.status === 'indexing')
-    return { status: 'indexing', existing: [], brokenAnchor: [], ambiguous: [] };
+  if (!entry) return ohneZiele('unavailable');
+  if (entry.status === 'oversized') return ohneZiele('unavailable');
+  if (entry.status === 'indexing') return ohneZiele('indexing');
   // W-07 (4T-000309): Fehler-Status wie unavailable — sonst markiert der Linter
   // gegen den Stale-Index neue Dateien faelschlich als broken.
-  if (entry.status === 'error')
-    return { status: 'unavailable', existing: [], brokenAnchor: [], ambiguous: [] };
+  if (entry.status === 'error') return ohneZiele('unavailable');
   const existing = [];
   const brokenAnchor = [];
   // 4T-000336 (Epic 3E-000061): Ziele, bei denen Ordner-Pfad-Form und
   // Unterseiten-Form auf verschiedene Dateien zeigen (Linter-Hinweis).
   const ambiguous = [];
+  const ambiguousRecord = [];
+  const shadowedRecord = [];
+  // 4T-002333: Die beiden Hinweis-Listen nach dem Urteil der Anker-Prüfung.
+  const vermerke = (target, urteil) => {
+    if (urteil === MEHRDEUTIG) ambiguousRecord.push(target);
+    if (urteil === VERDECKT) shadowedRecord.push(target);
+  };
   const activeFileAbs = path.resolve(filePath);
 
   for (const target of targets) {
@@ -315,11 +339,10 @@ function existingWikiTargets(filePath, targets, areaRoot) {
 
     // Reiner Anker: prueft gegen die aktive Datei.
     if (!basename) {
-      if (anchor && anchorExistsInFile(entry, activeFileAbs, anchor)) {
-        existing.push(target);
-      } else if (anchor) {
-        brokenAnchor.push(target);
-      }
+      const urteil = anchor ? anchorExistsInFile(entry, activeFileAbs, anchor) : false;
+      if (urteil) existing.push(target);
+      else if (anchor) brokenAnchor.push(target);
+      vermerke(target, urteil);
       // Falls weder basename noch anchor: stiller Skip.
       continue;
     }
@@ -362,17 +385,23 @@ function existingWikiTargets(filePath, targets, areaRoot) {
     }
 
     // 4T-000054: Anker pruefen. Es reicht, wenn EIN Kandidat den Anker fuehrt.
-    let anchorOk = false;
+    // 4T-002333: Ein Treffer ohne Hinweis bei irgendeinem Kandidaten geht einem
+    // mehrdeutigen oder verdeckten vor; erst wenn keiner ohne Hinweis besteht,
+    // trägt der Hinweis.
+    let urteil = false;
     for (const candPath of candidates) {
-      if (anchorExistsInFile(entry, candPath, anchor)) {
-        anchorOk = true;
+      const einzel = anchorExistsInFile(entry, candPath, anchor);
+      if (einzel === true) {
+        urteil = true;
         break;
       }
+      if (einzel) urteil = einzel;
     }
-    if (anchorOk) existing.push(target);
+    if (urteil) existing.push(target);
     else brokenAnchor.push(target);
+    vermerke(target, urteil);
   }
-  return { status: 'ready', existing, brokenAnchor, ambiguous };
+  return { status: 'ready', existing, brokenAnchor, ambiguous, ambiguousRecord, shadowedRecord };
 }
 
 // 4T-000054: Prueft, ob die Datei einen Heading-Slug oder eine Block-ID
@@ -397,18 +426,43 @@ function existingWikiTargets(filePath, targets, areaRoot) {
 // Block-Anker die Zusicherung tragen, dass Anker in Code-Beispielen nicht
 // zaehlen. Sie fuer einen Sonderfall aufzuweichen aenderte das Verhalten jedes
 // Dokuments mit einem Code-Beispiel.
+//
+// 4T-002333 (Epic 3E-000264, T2): Die dritte Herkunft fragt seither die eine
+// Auflösungs-Ordnung (`datensatz-verweis-aufloesung.js`): Kennung lang und
+// kurz, danach Anzeige-Form. Das Urteil ist dreiwertig, damit die Ziel-Prüfung
+// den mehrdeutigen Namen melden kann: `true` (Anker besteht), MEHRDEUTIG (Name
+// mehrerer Datensätze, gilt als bestehend, S7) oder `false`. Der Block-Anker
+// geht weiterhin vor (E5.2). Ein Folge-Segment gilt über seine Kopf-Datei als
+// Tabellen-Datei.
+//
+// Ein vierter Wert, VERDECKT, steht für den Fall aus E5.2, dass ein Block-Anker
+// gewinnt, obwohl derselbe Anker auch einen Datensatz eindeutig träfe (Kennung
+// oder Anzeige-Form): Der Verweis besteht, der Datensatz ist verdeckt, und der
+// Fall erscheint als Hinweis. Auch VERDECKT ist wahrheitswertig.
+const MEHRDEUTIG = 'mehrdeutig';
+const VERDECKT = 'verdeckt';
+
+// 4T-002333: Träfe der Anker eines Block-Ankers zugleich einen Datensatz?
+// Im Aus-Zustand liefert die Auflösung `keiner`, und es gibt keinen Hinweis.
+function datensatzVerdeckt(entry, filePath, id) {
+  if (!istTabellenDatei(entry, filePath)) return false;
+  const { status } = loeseDatensatzVerweis(entry, filePath, id);
+  return status === 'kennung' || status === 'anzeige';
+}
+
 function anchorExistsInFile(entry, filePath, anchor) {
   if (!entry || !entry.anchorsPerFile) return false;
   if (typeof anchor !== 'string' || !anchor) return false;
   const meta = entry.anchorsPerFile.get(filePath);
   if (anchor.startsWith('^')) {
     const id = anchor.slice(1);
-    if (meta && meta.blockIds.has(id)) return true;
+    if (meta && meta.blockIds.has(id)) {
+      return datensatzVerdeckt(entry, filePath, id) ? VERDECKT : true;
+    }
     // Eine Tabellen-Datei traegt ihre Kennungen im Datensatz-Block. Die Marke
     // entscheidet, nicht der Aufrufer, und die Frage geht ueber die TABELLE:
     // Ein Datensatz in einem Folge-Segment ist damit ohne eigene Regel erfasst.
-    const marken = entry.dbKindsPerFile && entry.dbKindsPerFile.get(filePath);
-    if (Array.isArray(marken) && marken.includes('table')) {
+    if (istTabellenDatei(entry, filePath)) {
       // 4T-001761 (Epic 3E-000253, Entscheidung E-B): Im Aus-Zustand der
       // Erweiterung «Datenbank» ruht der Datensatz-Bestand — und damit ist die
       // Datensatz-Kennung keine geprüfte Anker-Herkunft mehr. Der Verweis gilt
@@ -422,7 +476,9 @@ function anchorExistsInFile(entry, filePath, anchor) {
       // den allein ein Anzeige-Schalter ausgelöst hat. Das Wiedereinschalten
       // baut den Bestand neu auf und stellt die genaue Prüfung her.
       if (!datensatzErfassungAktiv()) return true;
-      return kennungInTabelle(entry, filePath, id);
+      const { status } = loeseDatensatzVerweis(entry, filePath, id);
+      if (status === MEHRDEUTIG) return MEHRDEUTIG;
+      return status !== 'keiner';
     }
     return false;
   }

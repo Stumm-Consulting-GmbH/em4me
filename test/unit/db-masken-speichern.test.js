@@ -10,6 +10,10 @@
 //
 // **Der deutsche Katalog wird geladen** (Muster `db-masken-felder.test.js`),
 // weil die Meldung am Feld ein Satz sein soll und kein Schlüssel-Name.
+//
+// 4T-002186 (Epic 3E-000261, E7.8, S6): dazu die Abweisung an einem Feld in
+// einem verborgenen Bereich — sie steht im Kopf und nennt das Feld, der Fokus
+// übergeht es, und der Ablauf reicht die verborgenen Felder der Seite durch.
 import { describe, it, expect, vi } from 'vitest';
 import de from '../../src/i18n/de.json';
 
@@ -24,6 +28,7 @@ const {
   ART_LOESCHEN,
   LAGE_FREMD,
   baueAuftrag,
+  baueSammelAuftrag,
   erzwungen,
   verarbeiteErgebnis,
   markiereFeld,
@@ -242,6 +247,74 @@ describe('Zuordnung der Lagen zu Feld und Kopf (B5)', () => {
       'Anweisung 2: Das Feld «Name» muss ausgefüllt sein.',
     ]);
   });
+
+  // 4T-002186 (S6): Ein Feld in einem verborgenen Bereich zeigt seine Abweisung
+  // im Kopf, weil niemand das Feld sieht.
+  const ABWEISUNG = {
+    ok: false,
+    lagen: [
+      { code: 'auftragTypVerletzt', position: 0, feld: 'menge' },
+      { code: 'auftragPflichtAngabeFehlt', position: 0, feld: 'Name' },
+    ],
+  };
+  const imKopf = (feld, text) =>
+    de['database.form.hiddenFieldRejected'].replace('{feld}', feld).replace('{text}', text);
+
+  it('eine Lage an einem verborgenen Feld steht im Kopf und nennt das Feld, nicht am Feld', () => {
+    const ohne = verarbeiteErgebnis(ABWEISUNG, UMGEBUNG);
+    const text = ohne.amFeld.Menge[0];
+    const befunde = verarbeiteErgebnis(ABWEISUNG, { ...UMGEBUNG, verborgen: ['Menge'] });
+    expect(befunde.amFeld).toEqual({ Name: ohne.amFeld.Name });
+    expect(befunde.kopf).toEqual([imKopf('Menge', text)]);
+    expect(befunde.kopf[0]).toContain('verborgenen Bereich');
+    expect(befunde.markiert).toEqual([]);
+    expect(befunde.fokus).toBe('Name');
+  });
+
+  it('die Schreibung des verborgenen Feld-Namens spielt keine Rolle; der Kopf nennt den kanonischen', () => {
+    const ergebnis = {
+      ok: false,
+      lagen: [{ code: 'auftragTypVerletzt', position: 0, feld: 'Menge' }],
+    };
+    const befunde = verarbeiteErgebnis(ergebnis, { ...UMGEBUNG, verborgen: ['mEnGe'] });
+    expect(befunde.amFeld).toEqual({});
+    expect(befunde.kopf).toHaveLength(1);
+    expect(befunde.kopf[0].startsWith(imKopf('Menge', ''))).toBe(true);
+    // Allein ein verborgenes Feld betroffen: kein Fokus.
+    expect(befunde.fokus).toBeNull();
+  });
+
+  it('der Fokus übergeht ein verborgenes Feld und nimmt das nächste sichtbare', () => {
+    const regel = {
+      ok: false,
+      lagen: [
+        {
+          code: 'auftragPruefBefund',
+          position: 0,
+          naht: {
+            code: 'regelDatensatzregelVerletzt',
+            id: 'r-00001',
+            tabelle: TAB,
+            felder: ['Menge', 'Aktiv'],
+            regel: 'r',
+            meldung: '',
+          },
+        },
+      ],
+    };
+    expect(verarbeiteErgebnis(regel, { ...UMGEBUNG, verborgen: ['Menge'] }).fokus).toBe('Aktiv');
+    expect(verarbeiteErgebnis(regel, { ...UMGEBUNG, verborgen: ['Menge', 'Aktiv'] }).fokus).toBe(
+      null,
+    );
+  });
+
+  it('ohne verborgene Felder bleibt die Zuordnung, wie sie war', () => {
+    const ohne = verarbeiteErgebnis(ABWEISUNG, UMGEBUNG);
+    expect(verarbeiteErgebnis(ABWEISUNG, { ...UMGEBUNG, verborgen: [] })).toEqual(ohne);
+    expect(verarbeiteErgebnis(ABWEISUNG, { ...UMGEBUNG, verborgen: 'Menge' })).toEqual(ohne);
+    expect(ohne.amFeld.Menge).toHaveLength(1);
+    expect(ohne.kopf).toEqual([]);
+  });
 });
 
 describe('DOM-Bausteine (B5, B6)', () => {
@@ -406,6 +479,33 @@ describe('Der Ablauf auf dem Zustands-Objekt (B4 bis B6)', () => {
     expect(n.gelungen).not.toHaveBeenCalled();
   });
 
+  it('die verborgenen Felder der Seite reisen mit: die Abweisung steht im Kopf, kein Fokus', async () => {
+    const { seite, ablauf } = aufbau(
+      {
+        ok: false,
+        lagen: [{ code: 'auftragTypVerletzt', position: 0, feld: 'Menge' }],
+      },
+      { verborgen: ['Menge'] },
+    );
+    seite.entwurf.Menge = '-1';
+    ablauf.speichern();
+    await vi.waitFor(() => expect(seite.befunde).not.toBeNull());
+    expect(seite.befunde.amFeld).toEqual({});
+    expect(seite.befunde.kopf).toHaveLength(1);
+    expect(
+      seite.befunde.kopf[0].startsWith(
+        de['database.form.hiddenFieldRejected'].replace('{feld}', 'Menge').replace('{text}', ''),
+      ),
+    ).toBe(true);
+    expect(seite.fokus).toBeNull();
+    expect(seite.entwurf.Menge).toBe('-1');
+    const wurzel = document.createElement('div');
+    ablauf.zeichneLage(wurzel);
+    expect(wurzel.querySelector('.db-form-errors .db-form-error').textContent).toBe(
+      seite.befunde.kopf[0],
+    );
+  });
+
   it('ein Ergebnis nach dem Umbinden auf einen anderen Datensatz wird verworfen', async () => {
     const { seite, n, ablauf } = aufbau({ ok: false, lagen: [{ code: 'auftragLeer' }] });
     n.schluessel.mockReturnValueOnce('vorher').mockReturnValue('nachher');
@@ -463,5 +563,92 @@ describe('Der Ablauf auf dem Zustands-Objekt (B4 bis B6)', () => {
     expect(n.neuLaden).toHaveBeenCalledTimes(1);
     expect(seite.befunde).toBeNull();
     expect(seite.auftrag).toBeNull();
+  });
+});
+
+// 4T-002253 (Epic 3E-000262, F5 A, S7; AK3, AK4): Kopf und Positionen in einem
+// Auftrag, Kopf zuerst; eine abgewiesene Position nennt ihre Stelle, und nichts
+// gilt als gespeichert.
+describe('Kopf und Positionen in einem Auftrag (4T-002253)', () => {
+  const LOANS = 'C:/Bereich/Loans.md';
+  const POS = [
+    { tabelle: LOANS, art: 'create', id: 'r-00009', werte: { borrower: 'Ina', book: 'r-00001' } },
+    { tabelle: LOANS, art: 'delete', id: 'r-00002', erwartet: { borrower: 'Bo' } },
+  ];
+  const kopf = {
+    anweisungen: [{ tabelle: TAB, art: 'update', id: 'r-00001', werte: { Name: 'B' } }],
+  };
+
+  it('baueSammelAuftrag: Kopf zuerst, allein Positionen, ohne beides null', () => {
+    expect(baueSammelAuftrag(kopf, POS).anweisungen.map((a) => a.id)).toEqual([
+      'r-00001',
+      'r-00009',
+      'r-00002',
+    ]);
+    expect(baueSammelAuftrag(null, POS)).toEqual({ anweisungen: POS });
+    expect(baueSammelAuftrag(kopf, [])).toEqual(kopf);
+    expect(baueSammelAuftrag(null, [])).toBeNull();
+    expect(baueSammelAuftrag(null)).toBeNull();
+  });
+
+  function aufbau(antwort, positionen, entwurf = { ...ERWARTET }) {
+    const seite = {
+      tabellenPfad: TAB,
+      kennung: 'r-00001',
+      neu: false,
+      entwurf,
+      daten: { fields: FELDER.map((name) => ({ name })), erwartet: ERWARTET },
+      befunde: null,
+      sendet: false,
+    };
+    const n = {
+      seite,
+      sende: vi.fn(async () => antwort),
+      t: i18n.t,
+      hat,
+      sprache: () => 'de',
+      schluessel: () => 'gegenstand',
+      zeichne: vi.fn(),
+      hinweis: vi.fn(),
+      gelungen: vi.fn(),
+      neuLaden: vi.fn(),
+      positionen: () => positionen,
+    };
+    return { seite, n, ablauf: erzeugeSpeicherAblauf(n) };
+  }
+
+  it('schickt ohne Kopf-Änderung allein die Positionen und meldet Ändern, nie Löschen', async () => {
+    const { n, ablauf } = aufbau({ ok: true }, POS);
+    ablauf.speichern();
+    await vi.waitFor(() => expect(n.gelungen).toHaveBeenCalledWith('update'));
+    expect(n.sende.mock.calls[0][0]).toEqual({ anweisungen: POS });
+  });
+
+  it('schickt die Kopf-Änderung vor den Positionen; ohne beides den Hinweis', async () => {
+    const mit = aufbau({ ok: true }, POS, { ...ERWARTET, Name: 'Anna B.' });
+    mit.ablauf.speichern();
+    await vi.waitFor(() => expect(mit.n.gelungen).toHaveBeenCalledWith('update'));
+    const arten = mit.n.sende.mock.calls[0][0].anweisungen.map((a) => `${a.art}:${a.id}`);
+    expect(arten).toEqual(['update:r-00001', 'create:r-00009', 'delete:r-00002']);
+    const ohne = aufbau({ ok: true }, []);
+    ohne.ablauf.speichern();
+    expect(ohne.n.sende).not.toHaveBeenCalled();
+    expect(ohne.n.hinweis).toHaveBeenCalledWith('database.form.nothingChanged');
+  });
+
+  it('eine abgewiesene Position steht im Kopf mit ihrer Stelle, nichts gilt als gespeichert', async () => {
+    const lage = { code: 'auftragPflichtAngabeFehlt', position: 2, feld: 'Name' };
+    const { seite, n, ablauf } = aufbau({ ok: false, code: lage.code, lagen: [lage] }, POS, {
+      ...ERWARTET,
+      Name: 'Anna B.',
+    });
+    ablauf.speichern();
+    await vi.waitFor(() => expect(seite.befunde).not.toBeNull());
+    expect(n.gelungen).not.toHaveBeenCalled();
+    // Kopf an Stelle 0, die Positionen ab Stelle 1: Stelle 2 ist Position 2.
+    expect(seite.befunde.kopf).toEqual(['Position 2: Das Feld «Name» muss ausgefüllt sein.']);
+    expect(seite.befunde.amFeld).toEqual({});
+    expect(seite.befunde.markiert).toEqual([]);
+    expect(seite.entwurf.Name).toBe('Anna B.');
   });
 });

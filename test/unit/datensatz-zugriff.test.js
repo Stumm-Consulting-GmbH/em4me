@@ -26,9 +26,9 @@ import {
 
 const require_ = createRequire(import.meta.url);
 const { setBufferOverlay, clearAllBufferOverlays } = require_('../../src/main/index/overlay.js');
-const { vergissAlleDefinitionen, ohneVerdeckteFolgeteile } = require_(
-  '../../src/main/index/datensatz-erfassung.js',
-);
+const { vergissAlleDefinitionen } = require_('../../src/main/index/datensatz-erfassung.js');
+// 4T-002047: Die Regel gilt für jeden Bestand und wohnt im Modul der Teil-Dateien.
+const { ohneVerdeckteFolgeteile } = require_('../../src/main/index/part-files.js');
 const { isFilesystemCaseInsensitive } = require_('../../src/shared/platform.js');
 const { bauZaehler, zwischenspeicherLeeren, tabellenNameVon } = require_(
   '../../src/main/index/datensatz-zugriff.js',
@@ -142,6 +142,19 @@ describe('Zugriff über Kennung und Schlüssel (4T-001611, AK1 bis AK4)', () => 
     expect(treffer.id).toBe('r-00002');
     // Der Fundort zeigt auf die Marker-Zeile des Datensatzes in der Datei.
     expect(tabelle(ZWEI).split('\n')[treffer.zeile]).toBe('|- id="r-00002"');
+  });
+
+  it('nimmt die Kurzform der Kennung an und bleibt bei Nicht-Kennungen leer (4T-002333)', async () => {
+    const root = makeRoot();
+    const datei = write(root, 'Kunden.md', tabelle(ZWEI));
+    await indexFor(datei);
+    expect(datensatzNachKennung(datei, null, 'Kunden', 'r-2').treffer.id).toBe('r-00002');
+    expect(datensatzNachKennung(datei, null, 'Kunden', ' r-00002 ').treffer.id).toBe('r-00002');
+    for (const kennung of ['r-9', 'K-2', '', null]) {
+      expect(datensatzNachKennung(datei, null, 'Kunden', kennung).treffer, String(kennung)).toBe(
+        null,
+      );
+    }
   });
 
   it('findet ihn ebenso über seinen fachlichen Schlüssel', async () => {

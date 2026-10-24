@@ -11,6 +11,10 @@ import {
   kennungFuer,
   nummerAus,
   naechsteKennung,
+  nachNummer,
+  hoechsteKennung,
+  wirksamerHochwasserstand,
+  kennungUeberStand,
   anzeigeSpalte,
 } from '../../src/shared/database/record-identity.js';
 import {
@@ -137,6 +141,35 @@ describe('Datensatz-Kennung: der Hochwasserstand (AK1, AK3)', () => {
     }
     expect(vergeben).toEqual(['r-00001', 'r-00002', 'r-00003', 'r-00004', 'r-00005']);
     expect(new Set(vergeben).size).toBe(vergeben.length);
+  });
+});
+
+// 4T-002288: Der Stand vor dem Ziehen kennt auch die vorhandenen Kennungen.
+describe('Datensatz-Kennung: der wirksame Hochwasserstand (4T-002288)', () => {
+  const VORHANDEN = ['r-00001', 'r-3', 'kein-wert', 'r-00002'];
+
+  it('findet die höchste gültige Kennung nach ihrer Nummer', () => {
+    expect(hoechsteKennung(VORHANDEN)).toBe('r-3');
+    expect(hoechsteKennung(new Set(['r-99999', 'r-100000']))).toBe('r-100000');
+    expect(hoechsteKennung([])).toBeNull();
+    expect(['r-100000', 'r-00002', 'r-99999'].sort(nachNummer)).toEqual([
+      'r-00002',
+      'r-99999',
+      'r-100000',
+    ]);
+  });
+
+  it('nimmt das Maximum aus Hochwasserstand und höchster Kennung', () => {
+    expect(wirksamerHochwasserstand(null, VORHANDEN)).toBe(3);
+    expect(wirksamerHochwasserstand(2, VORHANDEN)).toBe(3);
+    expect(wirksamerHochwasserstand(7, VORHANDEN)).toBe(7);
+    expect(wirksamerHochwasserstand(null, [])).toBe(0);
+  });
+
+  it('nennt die Kennung über dem Stand, sonst null', () => {
+    expect(kennungUeberStand(null, VORHANDEN)).toBe('r-3');
+    expect(kennungUeberStand(3, VORHANDEN)).toBeNull();
+    expect(kennungUeberStand(null, [])).toBeNull();
   });
 });
 

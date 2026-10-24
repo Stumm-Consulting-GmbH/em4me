@@ -18,6 +18,11 @@ import path from 'node:path';
 import { registerDatabaseIpc } from '../../src/main/ipc/database.js';
 import { datenbankBruecke } from '../../src/main/preload-datenbank.js';
 import { LAGEN } from '../../src/main/database/record-auftrag-pruefung.js';
+// 4T-002184: der Code der abgewiesenen Masken-Anforderung.
+import {
+  MASKE_NICHT_DER_TABELLE,
+  liesDatensatz,
+} from '../../src/main/database/datensatz-auskunft.js';
 import { erzeugeSchreibSchnittstelle } from '../../src/main/database/record-auftrag.js';
 import { erzeugeSperrVerwaltung } from '../../src/main/database/lock-lifecycle.js';
 import { erzeugeAbsichtsProtokoll } from '../../src/main/database/intent-log.js';
@@ -176,19 +181,27 @@ describe('database:datensatz: Registrierung und Brücke (4T-001938, B4)', () => 
   it('registriert den Kanal neben den fünf bestehenden', () => {
     expect([...registriere().keys()].sort()).toEqual([
       'database:auftrag',
+      // 4T-002252 (Epic 3E-000262): die Pfad-Ausdrücke der Einzel-Maske.
+      'database:ausdruecke',
       'database:changeLog',
       // 4T-001942 (Epic 3E-000257): die Wertehilfe der Verweis-Felder.
       'database:datensaetze',
       'database:datensatz',
       // 4T-001944 (Epic 3E-000257): die Konsistenz-Prüfung über den Bestand.
       'database:konsistenz',
+      // 4T-002249 (Epic 3E-000262): die Auskunft über eine Listen-Maske.
+      'database:liste',
       // 4T-001943 (Epic 3E-000257): die Masken-Datei herausschreiben.
       'database:maskeSchreiben',
       'database:neuanlage',
       'database:overview',
+      // 4T-002253 (Epic 3E-000262): der Positions-Bereich der Einzel-Maske.
+      'database:positionsliste',
       // 4T-001941 (Epic 3E-000257): die Sperre der Einzel-Maske.
       'database:sperre',
       'database:table',
+      // 4T-002333 (Epic 3E-000264): das Ziel eines Datensatz-Verweises.
+      'database:verweisZiel',
       // 4T-001945 (Epic 3E-000257): der Verwendungsnachweis.
       'database:verwendung',
     ]);
@@ -558,5 +571,230 @@ describe('database:datensatz: fail-closed vor jedem Dateizugriff (4T-001938, AK4
     expect((await lesen(ereignis(wurzel), params)).status).toBe('unavailable');
     aktiv = true;
     expect((await lesen(ereignis(wurzel), params)).status).toBe('ready');
+  });
+});
+
+// --- 4T-002184: eine bestimmte Maske derselben Tabelle -------------------------------------
+
+// Epic 3E-000261, AK4: Der Kanal nimmt optional `maske`, den Namen einer
+// Masken-Datei der Tabelle, und liefert deren Körper; ohne Angabe die
+// Standard-Maske wie bisher. Eine Masken-Datei einer anderen Tabelle, ein
+// gewöhnliches Dokument und ein unbekannter Name werden mit eigenem Code
+// abgewiesen; eine Angabe in falscher Form endet ohne Zugriff.
+describe('database:datensatz: bestimmte Maske derselben Tabelle (4T-002184, AK4)', () => {
+  function maskenDatei(tabelle, titel) {
+    return ['---', 'db-form:', `  table: ${tabelle}`, '---', '', `# ${titel}`, ''].join('\n');
+  }
+
+  function bestand() {
+    const wurzel = neueWurzel();
+    const { kopf } = tabelle(wurzel);
+    const andere = lege(
+      wurzel,
+      'Lieferanten.md',
+      '---\ndb-table:\n  fields:\n    - name: firma\n---\n',
+    );
+    const lang = lege(wurzel, 'Kunden Form.md', maskenDatei('Kunden', 'Lang'));
+    const kurz = lege(wurzel, 'Kunden Kurz.md', maskenDatei('Kunden', 'Kurz'));
+    const fremd = lege(wurzel, 'Lieferanten Form.md', maskenDatei('Lieferanten', 'Fremd'));
+    const notiz = lege(wurzel, 'Notiz.md', '# Notiz\n');
+    const sicht = {
+      dbKindsPerFile: new Map([
+        [kopf, ['table']],
+        [andere, ['table']],
+        [lang, ['form']],
+        [kurz, ['form']],
+        [fremd, ['form']],
+      ]),
+    };
+    return { wurzel, sicht, lang, kurz, notiz };
+  }
+
+  it('liefert ohne Angabe die Standard-Maske und mit Angabe die genannte', async () => {
+    const { wurzel, sicht, lang, kurz } = bestand();
+    const lesen = kanal({ sicht });
+    const basis = { tabelle: 'Kunden.md', kennung: 'r-00001', sprache: 'de' };
+    const standard = await lesen(ereignis(wurzel), basis);
+    expect(standard.status).toBe('ready');
+    expect(standard.koerper.pfad).toBe(lang);
+    expect((await lesen(ereignis(wurzel), { ...basis, maske: null })).koerper.pfad).toBe(lang);
+    for (const maske of ['Kunden Kurz', 'kunden kurz', 'Kunden Kurz.md', kurz]) {
+      const antwort = await lesen(ereignis(wurzel), { ...basis, maske });
+      expect(antwort.status, maske).toBe('ready');
+      expect(antwort.koerper.quelle).toBe('datei');
+      expect(antwort.koerper.pfad).toBe(kurz);
+      expect(antwort.koerper.text).toContain('# Kurz');
+      expect(antwort.kennung).toBe('r-00001');
+    }
+    // Auch die Neuanlage zeigt die genannte Maske.
+    const neu = await lesen(ereignis(wurzel), { ...basis, kennung: null, maske: 'Kunden Kurz' });
+    expect(neu.koerper.pfad).toBe(kurz);
+  });
+
+  it('weist eine fremde Maske, ein Dokument und einen unbekannten Namen mit eigenem Code ab', async () => {
+    const { wurzel, sicht, notiz } = bestand();
+    const lesen = kanal({ sicht });
+    const basis = { tabelle: 'Kunden.md', kennung: 'r-00001', sprache: 'de' };
+    for (const maske of ['Lieferanten Form', 'Notiz', notiz, 'Gibt Es Nicht']) {
+      expect(await lesen(ereignis(wurzel), { ...basis, maske }), maske).toEqual({
+        status: 'error',
+        code: MASKE_NICHT_DER_TABELLE,
+      });
+    }
+    // Ohne Sicht lässt sich eine Anforderung nicht prüfen und wird abgewiesen.
+    expect(await kanal({})(ereignis(wurzel), { ...basis, maske: 'Kunden Kurz' })).toEqual({
+      status: 'error',
+      code: MASKE_NICHT_DER_TABELLE,
+    });
+  });
+
+  it('weist eine Angabe in falscher Form ohne Zugriff ab', async () => {
+    const { wurzel, sicht } = bestand();
+    const referenz = await gestaltOhneZugriff();
+    const lesen = kanal({ sicht });
+    for (const maske of ['', 42, ['Kunden Kurz'], { name: 'Kunden Kurz' }]) {
+      const params = { tabelle: 'Kunden.md', kennung: 'r-00001', maske };
+      expect(await lesen(ereignis(wurzel), params), JSON.stringify(maske)).toEqual(referenz);
+    }
+  });
+
+  it('reicht die Angabe über die Brücke unverändert', async () => {
+    const invoke = vi.fn(async (name) => ({ name }));
+    const bruecke = datenbankBruecke({ invoke, on: vi.fn() });
+    const params = {
+      tabelle: 'Kunden.md',
+      kennung: 'r-00001',
+      sprache: 'de',
+      maske: 'Kunden Kurz',
+    };
+    await bruecke.databaseDatensatz(params);
+    expect(invoke.mock.calls[0][1]).toBe(params);
+  });
+});
+
+// 4T-002308 (Epic 3E-000263, S4; AK3): Die Antwort trägt die Erlaubnis-Menge
+// der Tabelle aus derselben Auflösung wie die Übersicht. Ohne bereite Sicht ist
+// sie unbekannt (null), nie «alles erlaubt».
+describe('database:datensatz: Feld rechte (4T-002308, AK3)', () => {
+  function bestand(rollenZeilen) {
+    const wurzel = neueWurzel();
+    const { kopf } = tabelle(wurzel);
+    const eintraege = [[kopf, ['table']]];
+    if (rollenZeilen) {
+      const text = ['---', 'db-database:', ...rollenZeilen, '---', ''].join('\n');
+      eintraege.push([lege(wurzel, 'Datenbank.md', text), ['database']]);
+    }
+    return { wurzel, sicht: { dbKindsPerFile: new Map(eintraege) } };
+  }
+  const ALLES = { create: true, update: true, delete: true, define: true };
+
+  it('trägt ohne Rollen alles und ohne Sicht null (4T-002308)', async () => {
+    const { wurzel, sicht } = bestand(null);
+    const params = { tabelle: 'Kunden.md', kennung: 'r-00001', sprache: 'de' };
+    expect((await kanal({ sicht })(ereignis(wurzel), params)).rechte).toEqual(ALLES);
+    expect((await kanal()(ereignis(wurzel), params)).rechte).toBeNull();
+    const neu = await kanal({ sicht })(ereignis(wurzel), { ...params, kennung: null });
+    expect(neu.rechte).toEqual(ALLES);
+  });
+
+  it('trägt die Rechte der eigenen Rolle, Anmeldename über die Naht (4T-002308)', async () => {
+    const zeilen = ['  roles:', '    pflege:', '      kunden: [update]', '  defaultRole: pflege'];
+    const { wurzel, sicht } = bestand(zeilen);
+    const antwort = await liesDatensatz({
+      fsp: fs.promises,
+      wurzel,
+      tabelle: 'Kunden.md',
+      kennung: 'r-00001',
+      sicht,
+      herkunft: () => ({ benutzer: 'gast', rechner: 'pc' }),
+    });
+    expect(antwort.status).toBe('ready');
+    expect(antwort.rechte).toEqual({ create: false, update: true, delete: false, define: false });
+    // 4T-002311: dazu die geltende Rolle für den Hinweis-Text der Maske.
+    expect(antwort.rolle).toBe('pflege');
+  });
+
+  // 4T-002311 (E12.4): Die Tabellen-Definition trägt Rolle und Rechte aus
+  // derselben Auflösung; der Datensatz-Block fragt danach, ob er anlegen darf.
+  it('trägt in database:table Rolle und Rechte, ohne Sicht und ohne Treffer nicht (4T-002311)', async () => {
+    const { wurzel, sicht } = bestand(null);
+    const table = (opt, tabelle) =>
+      registriere(opt).get('database:table')(ereignis(wurzel), { filePath: wurzel, tabelle });
+    const antwort = await table({ sicht }, 'Kunden');
+    expect([antwort.gefunden, antwort.rolle, antwort.rechte]).toEqual([true, null, ALLES]);
+    expect(await table({ sicht }, 'Fremd')).not.toHaveProperty('rechte');
+    expect(await table({}, 'Kunden')).not.toHaveProperty('rechte');
+  });
+});
+
+// --- 4T-002312: gesperrte Felder -------------------------------------------------------------
+
+describe('database:datensatz: Feld gesperrteFelder (4T-002312, AK1, AK3)', () => {
+  // `betrag` ist änderbar, solange `gebucht` nicht gesetzt ist; `nummer` fest gesperrt.
+  function belege(wurzel, gebuchtZweiter = 'x') {
+    return lege(
+      wurzel,
+      'Belege.md',
+      [
+        '---',
+        'db-table:',
+        '  fields:',
+        '    - name: nummer',
+        '      editable: false',
+        '    - name: betrag',
+        '      type: number',
+        '      editable: NOT gebucht',
+        '    - name: gebucht',
+        '      type: boolean',
+        '---',
+        '',
+        '```perspective-records',
+        '|- id="r-00001"',
+        '| B-1',
+        '| 10',
+        '|',
+        '|- id="r-00002"',
+        '| B-2',
+        '| 20',
+        gebuchtZweiter === '' ? '|' : `| ${gebuchtZweiter}`,
+        '```',
+        '',
+      ].join('\n'),
+    );
+  }
+
+  it('4T-002312: nennt die nach ihrer Bedingung gesperrten Felder am gelesenen Datensatz', async () => {
+    const wurzel = neueWurzel();
+    belege(wurzel);
+    const lesen = kanal();
+    const offen = await lesen(ereignis(wurzel), { tabelle: 'Belege.md', kennung: 'r-00001' });
+    const gebucht = await lesen(ereignis(wurzel), { tabelle: 'Belege.md', kennung: 'r-00002' });
+    expect(offen).toMatchObject({ status: 'ready', editable: null, gesperrteFelder: ['nummer'] });
+    expect(gebucht.gesperrteFelder).toEqual(['nummer', 'betrag']);
+  });
+
+  it('4T-002312: die Sperre wechselt mit dem Datensatz (nächste Antwort)', async () => {
+    const wurzel = neueWurzel();
+    const pfad = belege(wurzel);
+    const lesen = kanal();
+    expect(
+      (await lesen(ereignis(wurzel), { tabelle: 'Belege.md', kennung: 'r-00002' })).gesperrteFelder,
+    ).toEqual(['nummer', 'betrag']);
+    fs.writeFileSync(pfad, fs.readFileSync(pfad, 'utf8').replace('| 20\n| x', '| 20\n|'), 'utf8');
+    expect(
+      (await lesen(ereignis(wurzel), { tabelle: 'Belege.md', kennung: 'r-00002' })).gesperrteFelder,
+    ).toEqual(['nummer']);
+  });
+
+  it('4T-002312: die Neuanlage und eine Tabelle ohne Feld-Bedingung liefern eine leere Liste', async () => {
+    const wurzel = neueWurzel();
+    belege(wurzel);
+    tabelle(wurzel);
+    const lesen = kanal();
+    const neu = await lesen(ereignis(wurzel), { tabelle: 'Belege.md', kennung: null });
+    expect(neu).toMatchObject({ status: 'ready', kennung: null, gesperrteFelder: [] });
+    const kunden = await lesen(ereignis(wurzel), { tabelle: 'Kunden.md', kennung: 'r-00003' });
+    expect(kunden.editable.erfuellt).toBe(false);
+    expect(kunden.gesperrteFelder).toEqual([]);
   });
 });

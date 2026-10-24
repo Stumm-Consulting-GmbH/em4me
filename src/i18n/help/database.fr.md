@@ -141,7 +141,7 @@ Trois indications de la définition s'y rattachent :
 
 | Indication | Signification |
 | --- | --- |
-| `lastId` | niveau de crue : le plus grand numéro jamais attribué par la table. L'identifiant suivant en découle et non de l'existant, afin que le numéro d'un enregistrement supprimé ne soit jamais attribué une seconde fois |
+| `lastId` | niveau de crue : le plus grand numéro jamais attribué par la table. L'identifiant suivant se situe au-dessus de lui et au-dessus du plus grand identifiant de l'existant, afin que le numéro d'un enregistrement supprimé ne soit jamais attribué une seconde fois et qu'aucun identifiant ne soit attribué deux fois, même sans niveau de crue ou avec un niveau trop bas |
 | `key` | la clé fonctionnelle : un nom de champ ou une liste de noms de champs. Facultative, car une table de mouvements ou de mesures n'a pas de clé lisible par l'humain qui ait du sens |
 | `display` | le champ par lequel un enregistrement est désigné. Sans indication, une clé fonctionnelle à un seul élément s'applique, sans l'une ni l'autre, l'identifiant interne |
 
@@ -253,6 +253,29 @@ Lors de la sauvegarde par l'application, les points suivants s'appliquent :
 
 Sans cette indication, tout enregistrement est modifiable.
 
+**La même indication sur un champ.** Un champ isolé porte `editable` dans sa propre entrée et n'est alors modifiable qu'à cette condition ; l'enregistrement reste visible et modifiable dans ses autres champs :
+
+```yaml
+db-table:
+  fields:
+    - name: livre
+      type: record
+      editable: false
+    - name: retour
+      type: date
+      editable: NOT rendu
+    - name: rendu
+      type: boolean
+```
+
+- La condition a la même forme que sur la table, sous forme de texte ou d'objet `{ rule, message }`, et peut nommer n'importe quel champ de la table. `false` bloque le champ durablement, `true` le libère expressément ; ces deux mots ne valent que sur un champ, non sur la table.
+- Elle ne vaut que pour la **modification**. À la création, chaque champ est libre, et la suppression n'est pas concernée. Comme sur la table, elle se mesure à l'état enregistré avant la modification.
+- Si une sauvegarde modifie la valeur d'un champ bloqué, elle est refusée ; le message nomme le champ, l'enregistrement et la règle, pour le blocage durable la règle « false ». Une valeur inchangée dans un champ bloqué n'est pas une erreur. Si l'enregistrement est déjà bloqué selon la condition de sa table, seul son message figure.
+- Pendant la modification dans le formulaire et dans une ligne du formulaire de liste, un champ bloqué reste en lecture, et une infobulle indique qu'il n'est pas modifiable pour l'instant selon la condition de la définition. Dès que la condition est remplie après une sauvegarde, le champ est libre à la modification suivante.
+- Une condition inutilisable disparaît avec une remarque, et le champ reste modifiable.
+
+Modification sous condition et autorisations agissent ensemble et restent pourtant deux choses distinctes : `editable` dépend de l'enregistrement et vaut pour tous, les autorisations dépendent du rôle (section « Autorisations »).
+
 ## Affichage des enregistrements
 
 En mode lecture et en mode édition, le bloc apparaît sous forme de tableau avec les colonnes de la définition. Chaque valeur est affichée selon le type de sa colonne : nombres alignés à droite et avec les décimales déclarées, valeurs booléennes sous forme de coche, valeurs multilignes avec leurs retours à la ligne. Si une valeur ne correspond pas à son type, la cellule affiche son texte d'origine et est signalée par une couleur au lieu d'être remplacée.
@@ -271,7 +294,7 @@ Chaque enregistrement a un **formulaire** : une page propre qui montre ses champ
 
 Un enregistrement existant s'ouvre par le bouton **« Ouvrir l’enregistrement »** au début de sa ligne, devant le bouton des justificatifs de modification, en mode lecture comme en mode Direct. Au clavier, la flèche gauche y mène depuis le bouton des justificatifs.
 
-Depuis le résultat d'une requête d'enregistrements, un clic sur un enregistrement ou sur un lien ouvre de même le formulaire (page [Requête Perspective](frontmatter-query.md)). Celui-ci montre alors l'état enregistré, même si la requête affiche un état non enregistré.
+Depuis le résultat d'une requête d'enregistrements, un clic sur un enregistrement ou sur un lien ouvre de même le formulaire (page [Requête Perspective](frontmatter-query.md)). Celui-ci montre alors l'état enregistré, même si la requête affiche un état non enregistré. Dans un formulaire de liste, le clic ouvre le formulaire que la liste nomme (section « Formulaire de liste »). Un lien vers un enregistrement dans le texte d'un document (section « Lien vers un enregistrement isolé ») et un résultat d'enregistrement de la recherche portant sur la zone (section « Trouvabilité : recherche et liens ») ouvrent de même le formulaire.
 
 Trois chemins créent un nouvel enregistrement :
 
@@ -287,6 +310,8 @@ Un nouvel enregistrement reçoit son identifiant interne dès l'ouverture du for
 
 Le formulaire s'ouvre **en lecture**. Les valeurs y figurent sous forme de texte, une valeur booléenne sous forme de coche, et un champ obligatoire est signalé comme tel. L'en-tête porte les actions **« Modifier »**, **« Supprimer »** et **« Justificatifs »** ; la dernière ouvre les justificatifs de modification de l'enregistrement.
 
+Derrière elles figure l'action **« Afficher dans le document de table »**. Elle ouvre le fichier de table et amène la ligne de l'enregistrement sous vos yeux, même lorsque celui-ci se trouve dans un fichier suivant : en mode lecture, l'affichage défile jusqu'à sa ligne, pourvu qu'il figure parmi les 2000 enregistrements affichés ; dans les vues Direct et Source, le curseur se place sur cette ligne. Pour un nouvel enregistrement, l'action manque, car l'enregistrement ne figure pas encore dans le fichier.
+
 **« Modifier »** fait de chaque champ une saisie sous la forme de son type :
 
 | Type | Saisie |
@@ -300,7 +325,7 @@ Une valeur qui ne correspond pas à son type reçoit à la place la simple saisi
 
 **« Enregistrer »** écrit la modification et revient à la lecture, **« Abandonner »** revient sans rien écrire à l'état lu. Seuls les champs que vous avez modifiés sont écrits. Si vous n'avez rien modifié, il n'y a rien à enregistrer, et la barre d'état le signale.
 
-Si un enregistrement n'est pas modifiable selon la condition de sa table, **« Modifier »** et **« Supprimer »** manquent, et une phrase dans le formulaire en donne la raison, avec le message de la condition si elle en a un.
+Si un enregistrement n'est pas modifiable selon la condition de sa table, **« Modifier »** et **« Supprimer »** manquent, et une phrase dans le formulaire en donne la raison, avec le message de la condition si elle en a un. Si votre rôle ne permet pas la modification, « Modifier » manque et la phrase nomme le rôle ; s'il ne permet pas la suppression, « Supprimer » manque (section « Autorisations »).
 
 ### Champs de référence et aide à la saisie
 
@@ -347,9 +372,74 @@ db-form:
 
 Le conteneur `db-form` nomme la table, et pour chaque champ un **espace réservé de champ** `{{field:<nom>}}` figure dans le texte. Autour des espaces réservés, tout est du Markdown ordinaire : un titre entre deux champs ou une phrase explicative apparaît dans le formulaire tel qu'il figure dans le fichier. Une barre oblique inverse devant les accolades fait d'un espace réservé du texte ordinaire.
 
+**Deux sens de `table`.** Dans le frontmatter de la base de données, dans le conteneur `db-form` comme dans l'indication `options.table` d'une colonne de référence, `table` nomme une table de base de données. Dans un bloc de la [Perspective Datatable](datatable.md), la ligne `table:` donne en revanche un nom à cette datatable elle-même, sous lequel les diagrammes et les liens l'atteignent. Seul le mot est le même : une datatable n'est pas une table de base de données.
+
 À l'ouverture suivante, le formulaire affiche le texte du fichier. L'en-tête indique alors de quel fichier provient le formulaire, et la commande n'est plus proposée ; la vue d'ensemble de la base de données nomme le fichier dans la colonne **« Formulaire »**. Si le fichier est supprimé, le formulaire affiche de nouveau la version générée.
 
-**Seul l'espace réservé de champ est lu.** Un champ que le fichier ne nomme pas n'est pas affiché par le formulaire, et il reste intact à l'enregistrement ; un nouvel enregistrement ne remplit que les champs nommés. Tout autre espace réservé et un nom de champ que la table ne connaît pas restent du texte et sont signalés, comme le décrit la section « Indications fautives ».
+**Ce que le fichier nomme est affiché.** Un champ que le fichier ne nomme pas n'est pas affiché par le formulaire, et il reste intact à l'enregistrement ; un nouvel enregistrement ne remplit que les champs nommés. Un espace réservé qui n'est ni de champ ni de valeur et un nom de champ que la table ne connaît pas restent du texte et sont signalés, comme le décrit la section « Indications fautives ».
+
+L'**espace réservé de valeur** `{{value:<expression>}}` affiche une valeur que le formulaire calcule à partir des champs de l'enregistrement affiché, par exemple `{{value:quantite * prix}}` pour le montant d'une position ou `{{value:lent + dur(14 days)}}` pour la date quatorze jours après le champ `lent`. L'expression relève du [langage de requête](frontmatter-query.md), comme dans une règle de contrôle : elle nomme les champs par leur nom, un champ de date compte comme une date, et les mêmes opérations et fonctions s'appliquent. La valeur s'affiche comme dans une requête de table, un nombre par exemple sous la forme `7.5`, une date sous la forme `2026-10-15`, une durée sous la forme `10d` et une valeur booléenne sous la forme `true` ou `false`. En modification, le formulaire la recalcule à chaque saisie, sans enregistrer. La valeur elle-même n'est jamais enregistrée ; ce n'est pas un champ de l'enregistrement.
+
+Si l'expression ne donne aucune valeur pour un enregistrement, par exemple parce qu'un champ est vide, l'emplacement reste vide et marqué ; une infobulle l'indique, et rien n'est signalé. Une expression invalide, par exemple avec une faute de frappe, laisse elle aussi l'emplacement vide et est signalée avec sa ligne dans l'en-tête du formulaire ; le reste du formulaire reste utilisable.
+
+**La valeur s'insère dans la phrase** lorsque l'espace réservé se trouve à l'intérieur d'une ligne de texte : `Échéance le {{value:lent + dur(14 days)}}` affiche « Échéance le 2026-10-15 » sur une seule ligne. Si l'espace réservé est seul sur sa ligne, la valeur reçoit une ligne propre. Un espace réservé de champ se trouve toujours sur une ligne propre.
+
+**Sections conditionnelles.** Une section entre les marqueurs `{{when:<condition>}}` et `{{end}}` n'apparaît que si la condition est remplie. Les deux marqueurs sont seuls sur leur ligne ; une section englobe donc des paragraphes entiers, des titres, des tableaux, des listes et les espaces réservés qu'ils contiennent, jamais des moitiés de ligne. La condition est une expression du [langage de requête](frontmatter-query.md) portant sur les champs de l'enregistrement affiché, comme dans une règle de contrôle : `{{when:onloan}}` affiche la section pour un livre prêté, `{{when:pages > 500}}` pour un livre épais. Les sections peuvent être imbriquées ; une section intérieure n'apparaît que si la section extérieure apparaît aussi. En modification, une section apparaît et disparaît à chaque saisie, sans enregistrer ; en lecture, l'état enregistré s'applique.
+
+```markdown
+**On loan:** {{field:onLoan}}
+
+{{when:onloan}}
+## Out on loan
+
+**Loan note:** {{field:loanNote}}
+{{end}}
+```
+
+**La condition n'agit que sur l'affichage, jamais sur la valeur.** Un champ d'une section masquée conserve son contenu et est enregistré avec le reste ; la condition ne le soustrait ni à l'enregistrement ni aux règles de contrôle. Si une règle refuse un tel champ, le message figure dans l'en-tête du formulaire et nomme le champ ; la section reste masquée. Il n'existe ni branche « sinon » ni boucles : un cas contraire s'écrit comme une deuxième section avec la condition niée, par exemple `{{when:NOT onloan}}`. Une barre oblique inverse devant les accolades fait aussi d'un marqueur du texte ordinaire.
+
+**Chemins de référence.** Les espaces réservés de valeur et les conditions lisent aussi, par un champ de référence, les champs de l'enregistrement référencé : dans un formulaire des prêts, `{{value:book.title}}` montre le titre du livre prêté, et `{{when:book.onloan}}` montre une section tant que le livre est marqué comme prêté. Avant le point se trouve le champ de référence, après lui un champ de la table cible. L'application calcule un tel chemin après un court délai, et jusqu'à la réponse la valeur précédente reste affichée ; en modification, le chemin suit chaque saisie, y compris le choix d'une autre référence, sans enregistrer. Si la référence est vide ou ne désigne aucun enregistrement, l'emplacement reste vide et marqué, sans message, et une section reste masquée. Si le chemin ne nomme aucun champ de référence de la table ou aucun champ de la table cible, l'emplacement reste vide lui aussi, et le formulaire le signale avec sa ligne dans l'en-tête.
+
+**Positions.** L'espace réservé `{{list:<fichier de requête>}}` montre dans le formulaire les enregistrements d'une autre table qui pointent vers l'enregistrement affiché, et les enregistre avec lui ; la section « Positions dans le formulaire » le décrit.
+
+**Fichier de formulaire et modèle.** Un fichier de formulaire ressemble à un [modèle](templates.md), parce que tous deux écrivent leurs espaces réservés entre doubles accolades, et pourtant il fait autre chose. Un modèle est appliqué une fois : `{{date}}` est remplacé par la date à la création d'un fichier, et ensuite du texte figure à cet endroit. Un fichier de formulaire n'est jamais appliqué : le formulaire résout `{{field:Name}}` et `{{value:quantite * prix}}` à chaque affichage d'après l'enregistrement affiché, et le fichier garde ses espaces réservés. Un fichier de formulaire a donc sa place à côté de sa table et non dans le dossier de modèles.
+
+### Après le redémarrage
+
+Si la restauration de session est activée (Aide → Restaurer la session) et que le formulaire est ouvert à la fermeture, il revient au démarrage suivant : à sa place parmi les documents ouverts de sa colonne, avec le même enregistrement dans le même fichier de formulaire. S'il était le document affiché dans sa colonne, il le redevient. Un nouvel enregistrement pas encore sauvegardé ne revient pas. Le parcours de « Retour » recommence après le redémarrage.
+
+**Si l'enregistrement n'existe plus**, par exemple parce qu'il a été supprimé entre la fermeture et le redémarrage, le formulaire ne disparaît pas. Il affiche la remarque que l'enregistrement n'existe plus dans sa table et que le formulaire reste ouvert jusqu'à ce que vous le fermiez, et porte dans son en-tête l'action **« Ouvrir la table »**, qui ouvre le fichier de table.
+
+**Si la base de données est désactivée au démarrage**, le formulaire ne revient pas, mais son entrée n'est pas perdue : elle reste en attente et se conserve aussi au fil d'autres redémarrages. Après la réactivation, le formulaire revient à sa place au démarrage suivant. Si sa colonne ne contenait que le formulaire, il revient dans la colonne restante, derrière ses documents.
+
+### Plusieurs formulaires et le formulaire par défaut
+
+Une table peut avoir plusieurs fichiers de formulaire, par exemple un détaillé et un succinct. Celui qui s'affiche à l'ouverture d'un enregistrement, le **formulaire par défaut**, est fixé par l'indication `form` dans la définition de la table, avec le nom du fichier de formulaire sans extension, comme la cible d'un lien wiki :
+
+```yaml
+db-table:
+  form: Clients Form
+  fields:
+    - name: Nom
+      type: string
+```
+
+Sans cette indication, le premier fichier de formulaire de la table selon le chemin s'applique, et s'il n'y en a pas, le formulaire généré ; un fichier de formulaire unique fonctionne donc sans aucune indication. Les autres fichiers de formulaire restent des formulaires de la table : un lien depuis un formulaire y mène, comme le décrit la section suivante.
+
+Dans la vue d'ensemble de la base de données, la colonne **« Formulaire »** nomme le formulaire par défaut de chaque table et ensuite le nombre des autres fichiers de formulaire, par exemple « +1 autre(s) ». Si le formulaire par défaut est supprimé ou renommé sans que l'indication soit mise à jour, la vue d'ensemble le signale, et la règle sans indication s'applique de nouveau.
+
+### Passer d’un formulaire à l’autre
+
+Un lien dans le texte d'un fichier de formulaire, comme lien wiki tel que `[[Clients Court]]` ou comme lien Markdown, agit dans le formulaire selon sa cible :
+
+- Si la cible est **un autre fichier de formulaire de la même table**, le formulaire affiche le même enregistrement dans ce formulaire.
+- Si la cible est **le fichier de formulaire d'une autre table**, une phrase sous l'en-tête indique qu'il manque pour cela un enregistrement ; rien n'est ouvert ni créé.
+- Si la cible est **un enregistrement**, comme lien wiki tel que `[[Clients#^r-00002]]`, le formulaire affiche cet enregistrement dans le formulaire par défaut de sa table. Si le lien ne correspond à aucun enregistrement de façon univoque, il ouvre le fichier de table ; un lien Markdown vers un fichier de table l'ouvre comme document.
+- **Tout autre lien** ouvre son document, comme partout dans l'application.
+
+Un **champ de référence** rempli est cliquable en lecture : un clic ouvre l'enregistrement référencé dans le formulaire par défaut de sa table. Si la valeur ne correspond à aucun enregistrement, une phrase sous l'en-tête l'indique, et le formulaire reste où il est. Un champ de référence vide n'est pas cliquable, et en modification le champ reste la saisie avec aide à la saisie.
+
+Chaque changement par un lien, un champ de référence, un lien vers un enregistrement dans le texte ou « Utilisé par » retient l'enregistrement d'où il vient. **« Retour »** au-dessus du titre dans l'en-tête y ramène, dans son formulaire, aussi sur plusieurs étapes ; sans étape précédente, le bouton n'apparaît pas. Si vous ouvrez un enregistrement depuis l'extérieur, par exemple depuis sa ligne ou depuis la vue d'ensemble, le parcours recommence, et la fermeture du formulaire y met fin. Si la modification n'est pas enregistrée, le formulaire demande avant chaque changement, aussi avant « Retour » : **« Abandonner »** change, **« Continuer la modification »** reste avec toutes les saisies.
 
 ## Sauvegarde par l'application
 
@@ -359,10 +449,12 @@ Toute modification passe par un chemin qui la vérifie avant l'écriture. Une va
 
 À cela s'ajoutent les règles issues de la définition de la table, décrites dans les sections ci-dessus. Une modification est également refusée si
 
+- le **rôle** propre ne permet pas l'opération sur la table (section « Autorisations »),
 - une **clé fonctionnelle** serait ensuite attribuée deux fois,
 - un **lien** ne touche aucun enregistrement ou plus d'un, ou si sa table cible manque,
 - un enregistrement doit être supprimé alors qu'un **lien** pointe encore vers lui,
 - une valeur ou un enregistrement enfreint une **règle de contrôle**,
+- un **champ** est modifié alors qu'il est bloqué selon sa propre condition,
 - un enregistrement n'est **pas modifiable** selon la condition de sa table, ou
 - les tables de la zone ne sont **pas encore entièrement lues** et la modification pose un lien ou supprime un enregistrement.
 
@@ -434,6 +526,8 @@ Une modification que vous faites à la main dans un éditeur sur le fichier de t
 
 Ce qu'elle fait à la place : lors de sa propre écriture suivante, elle compare l'état trouvé à l'état attendu. S'ils diffèrent, elle ne sauvegarde pas encore la nouvelle modification, afin que la version actuelle puisse être consultée ; si la modification est tout de même sauvegardée ensuite, un justificatif de la nature **Modifié de l'extérieur** retient la différence. Ainsi, rien ne disparaît sans être remarqué. Le justificatif n'indique cependant ni le moment ni l'auteur de cette modification, car ni l'un ni l'autre n'est connu.
 
+**Par cette voie, les autorisations ne protègent que la définition.** Si vous sauvegardez une définition modifiée dans l'éditeur de l'application, celle-ci contrôle votre rôle (section « Autorisations »). Une modification du bloc d'enregistrements, en revanche, elle ne la contrôle là ni par rapport au rôle ni par rapport aux règles de la table, et avec un autre éditeur aucun des deux contrôles ne s'applique.
+
 ## Verrous
 
 Un verrou veille à ce qu'un enregistrement ne soit pas modifié à deux endroits en même temps, par exemple dans deux fenêtres de l'application. Les verrous et les justificatifs de modification sont conçus pour préparer l'accès partagé de plusieurs personnes ; cet accès viendra avec EM4us, le futur composant serveur. EM4me lui-même est un outil pour une personne qui travaille seule et en local. L'utilisation de plusieurs ordinateurs dans une même zone sur un lecteur réseau n'est pas garantie.
@@ -442,7 +536,7 @@ Un verrou veille à ce qu'un enregistrement ne soit pas modifié à deux endroit
 
 Ce qui est verrouillé, c'est l'**enregistrement** isolé, et cela au moment même où sa modification commence. Il est libéré dès que la modification s'achève, lors de la sauvegarde comme lors de l'abandon. La simple consultation ne verrouille rien : sinon, une liste de centaines d'enregistrements les verrouillerait tous d'un coup à chaque regard.
 
-Dans le formulaire, la modification commence avec **« Modifier »** ou avec **« Supprimer »**, qui prend le verrou dès avant sa question de confirmation. Elle s'achève à l'enregistrement, avec **« Abandonner »**, avec **« Recharger »**, à l'annulation de la question de suppression, au passage à un autre enregistrement et à la fermeture de l'onglet du formulaire. Si l'application refuse un enregistrement, le verrou demeure, car la modification continue. L'ouverture du formulaire et la création d'un nouvel enregistrement ne verrouillent rien.
+Dans le formulaire, la modification commence avec **« Modifier »** ou avec **« Supprimer »**, qui prend le verrou dès avant sa question de confirmation. Elle s'achève à l'enregistrement, avec **« Abandonner »**, avec **« Recharger »**, à l'annulation de la question de suppression, au passage à un autre enregistrement et à la fermeture de l'onglet du formulaire. Si l'application refuse un enregistrement, le verrou demeure, car la modification continue. L'ouverture du formulaire et la création d'un nouvel enregistrement ne verrouillent rien. Dans un formulaire de liste, la modification d'une ligne commence avec « Modifier », le double-clic ou « Supprimer » et s'achève avec « Enregistrer », « Annuler », la réponse à la question de suppression et au plus tard quand le document est fermé, que la vue change ou qu'un autre document ouvert est affiché ; une nouvelle ligne ne verrouille rien. Une ligne de la section des positions d'un formulaire garde son verrou jusqu'à l'enregistrement ou l'abandon du formulaire.
 
 Lorsque la **définition d'une table** est modifiée, la définition est verrouillée pendant ce temps, car une modification des colonnes touche tous les enregistrements de la table.
 
@@ -476,6 +570,84 @@ Vous modifiez le **nom du dossier** sous **Fichier → Paramètres… → Zone a
 - Le nom **doit commencer par un point**, car c'est précisément à cela que l'application reconnaît qu'un dossier n'a sa place ni dans l'index, ni dans la recherche, ni dans les statistiques. Sont en outre interdits les séparateurs de chemin, les caractères interdits sous Windows et les noms de périphériques réservés comme `CON`, et rien d'autre ne doit encore se trouver sous ce nom à la racine de la zone.
 - La modification renomme le dossier existant au lieu d'en créer un second. Elle n'aboutit que **tant que personne n'a d'enregistrement en cours de modification**. Sinon, le message indique qui travaille en ce moment, et tout reste en l'état.
 
+## Autorisations
+
+**Les autorisations empêchent les erreurs de manipulation, non les abus.** Elles sont une convention de travail comme le verrou et non une garantie de confidentialité. Il n'existe pas de droit de lecture : qui peut lire les fichiers de la zone les lit avec n'importe quel éditeur et peut aussi les y modifier, sans qu'aucun rôle soit consulté. Seule la limite du système d'exploitation peut être imposée, c'est-à-dire qui a le droit d'accéder au dossier.
+
+Au sein de l'application, les autorisations fixent qui peut modifier quoi. La fiche d'identité porte pour cela des **rôles** nommés, et chaque rôle indique par table quelles actions sont permises. La séparation la plus importante est celle entre l'entretien des données et la modification de la définition : qui utilise une base de données livrée pour en saisir les données ne doit pas modifier son schéma par mégarde. Cela aide déjà lorsqu'une seule personne travaille avec la base de données.
+
+### Rôles dans la fiche d'identité
+
+Les rôles figurent sous `roles` dans le conteneur `db-database`, à côté le rôle par défaut et l'attribution des noms de connexion :
+
+```yaml
+db-database:
+  name: Bibliothèque
+  roles:
+    bibliothecaire: all
+    auxiliaire:
+      Livres: [update]
+      Prêts: [create, update, delete]
+  defaultRole: auxiliaire
+  users:
+    mstumm: bibliothecaire
+```
+
+Chaque rôle porte soit le mot `all`, soit une correspondance de noms de table à une liste des opérations permises :
+
+| Opération | Signification |
+| --- | --- |
+| `create` | créer des enregistrements |
+| `update` | modifier des enregistrements |
+| `delete` | supprimer des enregistrements |
+| `define` | modifier la définition de la table |
+
+Le mot `all` vaut à trois endroits : comme valeur d'un rôle pour les quatre opérations sur toutes les tables, comme nom de table pour toutes les tables et comme entrée d'une liste pour les quatre opérations. Une table qu'un rôle ne nomme pas ne lui permet rien, de même qu'une liste vide. Les opérations et les noms de table valent sans égard aux majuscules et minuscules, les noms de rôle tels qu'ils sont écrits.
+
+**Sans `roles`, tout est permis**, comme dans une base de données sans autorisations. La vue d'ensemble de la base de données montre dans le bloc de la fiche d'identité la section **« Rôles »**, avec une ligne par rôle et ses autorisations par table. Si un rôle nomme une table qui n'existe pas ou une opération inconnue, le rôle entier est considéré comme non défini ; la vue d'ensemble nomme chacune de ses erreurs parmi les anomalies.
+
+### Quel rôle s'applique
+
+Sous `users`, la fiche d'identité attribue un rôle à des noms de connexion, et `defaultRole` nomme le **rôle par défaut** pour tous les autres. Ce qui compte est le nom de connexion sous lequel vous êtes connecté au système d'exploitation, le même que les justificatifs de modification indiquent comme utilisateur. Il est comparé caractère par caractère : `MStumm` et `mstumm` sont deux noms. Il n'existe pas d'interface de saisie ; l'attribution s'entretient à la main dans la fiche d'identité, comme la définition.
+
+La première règle qui s'applique l'emporte :
+
+1. Sans rôles, tout est permis.
+2. Si votre nom de connexion figure sous `users`, le rôle qui lui est attribué s'applique.
+3. Sinon, le rôle par défaut s'applique.
+4. Sans rôle par défaut, tout est permis.
+
+Le rôle qui s'applique à vous est indiqué par la vue d'ensemble dans la ligne **« Rôle propre »**, avec le nom de connexion tel quel : le rôle attribué, le rôle par défaut ou « tout est permis (aucune attribution) ». Qui saisit une attribution reprend le nom le plus sûrement depuis cet endroit. Si `users` ou `defaultRole` nomme un rôle qui n'existe pas, cette indication est considérée comme non définie et elle est également signalée.
+
+### Contrôle à l'écriture
+
+Toute modification d'enregistrements passe par la voie que décrit la section « Sauvegarde par l'application », et l'application y contrôle d'abord le rôle, pour chaque enregistrement avec la table et l'opération. Si l'autorisation manque, toute l'opération est refusée, et le message nomme le rôle, la table et l'action. Le début d'un nouvel enregistrement exige lui aussi `create` : sans cette autorisation, l'application refuse la création, par exemple avec la commande « Nouvel enregistrement dans la table active », et la barre d'état en indique la raison. Si les autorisations ne peuvent pas être déterminées, parce que les tables de la zone ne sont pas encore entièrement lues ou que la fiche d'identité n'est pas lisible, rien n'est écrit non plus, et le message invite à réessayer dans un instant.
+
+### Contrôle à la sauvegarde de la définition
+
+La définition est le conteneur `db-table` d'un fichier de table et la fiche d'identité `db-database`. Si la sauvegarde d'un fichier modifie sa définition, l'application exige `define` : sur cette table pour un fichier de table, sur toutes les tables pour la fiche d'identité. Cela vaut pour la sauvegarde dans l'éditeur, pour **« Enregistrer sous… »** vers un fichier existant ou nouveau et pour le remplacement dans toute la zone. Si l'autorisation manque, rien n'est écrit. À la sauvegarde apparaît la boîte de dialogue d'erreur **« Erreur d'écriture »** avec une phrase qui nomme le rôle et la table, et le texte reste non enregistré dans l'éditeur ; le remplacement dans toute la zone mentionne le fichier dans son rapport sous **« Non remplacés »**.
+
+Ce qui ne touche pas la définition reste libre : le bloc d'enregistrements et le reste du texte du fichier, ainsi que les fichiers de formulaire et de requête. Une autre indentation ou un autre ordre des indications ne compte pas comme modification, l'ordre des champs en revanche oui, car il détermine les colonnes. Le niveau de crue `lastId` est tenu à jour par l'application elle-même ; il ne compte jamais comme modification.
+
+### Dans les formulaires et la vue d'ensemble
+
+Les formulaires ne proposent que ce que votre rôle permet ; qui conçoit un formulaire n'y écrit rien pour cela.
+
+- Dans le **formulaire**, sans `update`, l'action « Modifier » manque, les champs restent en lecture, et une phrase nomme le rôle qui ne peut pas modifier les enregistrements de cette table. Sans `delete`, « Supprimer » manque.
+- Sans `create`, le bouton **« Nouvel enregistrement »** manque sous la table et dans la ligne de la table de la vue d'ensemble.
+- Un **formulaire de liste** et une section des positions ne proposent que les actions que `allow` et le rôle permettent ensemble. Si `allow` permet la modification et le rôle non, une infobulle de la ligne nomme le rôle ; une ligne à laquelle il ne reste aucune action apparaît atténuée.
+- La **vue d'ensemble** indique sous chaque table les autorisations de votre rôle, par exemple « Autorisations : créer, modifier », pour autant que la fiche d'identité porte des rôles.
+
+Les formulaires montrent, la décision tombe à l'écriture : qui déclenche une action par une autre voie est refusé par le contrôle ci-dessus.
+
+### Ne pas s'exclure soi-même
+
+Qui modifie la fiche d'identité de sorte que le rôle propre n'a pas `define` sur toutes les tables ne peut plus la modifier ensuite dans l'application, pas même pour revenir en arrière. C'est la séparation voulue, mais en utilisation par une seule personne, elle vous touche vous-même. Trois voies ramènent en arrière : vous ouvrez le fichier de la fiche d'identité avec un autre éditeur et y supprimez ou corrigez les indications de rôle. Vous désactivez l'extension « Base de données », corrigez la fiche d'identité dans l'application et la réactivez ; tant qu'elle est désactivée, la sauvegarde ne contrôle aucun rôle (section « Désactiver la base de données »). Ou bien, avant de restreindre des rôles, vous attribuez sous `users` votre propre nom de connexion à un rôle ayant `define` sur toutes les tables, par exemple un rôle avec `all`.
+
+### Transmission et noms de connexion dans le fichier
+
+Les rôles font partie de la définition et voyagent avec la fiche d'identité. L'attribution sous `users` figure dans le même fichier : les noms de connexion y sont lisibles par quiconque peut ouvrir le fichier, et une copie du dossier les emporte. L'application ne propose pas de transmission qui laisse l'attribution de côté ; qui transmet une zone en retire l'attribution au préalable si elle ne doit pas suivre. Chez le destinataire, une attribution ne s'applique que si son nom de connexion correspond exactement ; sinon, le rôle par défaut s'applique à lui ou, à défaut, tout est permis.
+
 ## Contrôle de cohérence
 
 Lors de la sauvegarde par l'application, chaque modification est vérifiée. Ce qui parvient aux fichiers par un autre chemin, par exemple à la main dans un éditeur, personne ne le vérifie au passage, et certaines règles n'agissent pas du tout à la lecture. Le **contrôle de cohérence** parcourt donc l'ensemble des données et indique où elles contredisent les règles de la base de données.
@@ -490,7 +662,11 @@ Sont trouvés :
 - un lien qui ne touche aucun enregistrement, qui en touche plusieurs ou qui pointe par une valeur de clé vers une table à clé à plusieurs éléments, et une colonne de lien dont la table cible manque ou n'est pas indiquée ;
 - une valeur qui ne correspond pas à son type, qui enfreint une règle de champ ou qui manque alors qu'elle est obligatoire, et un enregistrement qui enfreint une règle sous `checks` ;
 - un enregistrement avec plus ou moins de cellules que la table n'a de champs ;
-- dans un fichier de formulaire, un champ inconnu, un espace réservé inconnu ou une table inconnue ;
+- dans un fichier de formulaire, un champ inconnu, un espace réservé inconnu, une expression invalide d'un espace réservé de valeur, un marqueur de section conditionnelle sans pendant, une condition invalide ou une table inconnue, et dans une définition de table une indication `form` qui ne nomme aucun fichier de formulaire de cette table ;
+- dans un fichier de formulaire, en outre, un chemin qui ne nomme aucun champ de référence ou aucun champ de la table cible, et une section des positions dont le fichier de requête manque ou ne porte pas `editable: true`, dont les positions n'ont aucun champ de référence ou aucun champ univoque vers la table du formulaire, ou dont la requête ne peut pas être complétée par la relation ;
+- dans un fichier de requête, une indication inutilisable dans le conteneur `db-query`, une action inconnue dans `allow` et une indication `form` qui ne nomme aucun fichier de formulaire de la base de données ; un tel constat nomme le fichier au lieu d'une table dans la colonne « Source » ;
+- lors du contrôle de toutes les tables, une indication inutilisable dans la fiche d'identité sous `roles`, `defaultRole` ou `users`, par exemple un rôle avec une table ou une opération inconnue ou une attribution à un rôle qui n'existe pas ; la vue d'ensemble en nomme la raison parmi les anomalies ;
+- comme remarque, une table qui porte des enregistrements mais aucun niveau de crue `lastId` ou un niveau trop bas ; la prochaine création se place alors au-dessus du plus grand identifiant existant et le relève ;
 - une table dont la définition est illisible ; ses enregistrements restent alors non contrôlés, et le contrôle se poursuit avec les autres tables.
 
 **Le contrôle ne modifie rien.** Il ne fait que lire, et une fonction qui nettoie les constats d'elle-même n'existe volontairement pas : lequel de deux enregistrements ayant la même clé est le bon, c'est vous qui le décidez dans le formulaire. Le résultat reste affiché tant que la vue d'ensemble est ouverte ; après une correction, vous contrôlez de nouveau.
@@ -503,17 +679,17 @@ L'**utilisation** indique qui se sert d'une table ou d'un enregistrement. Elle n
 
 **Pour une table**, l'action **« Utilisation »** figure dans sa ligne de la vue d'ensemble. Sous « Utilisé par », elle nomme les tables qui pointent vers cette table par une colonne de lien, chacune avec les noms de ces colonnes, ainsi que les fichiers de formulaire de la table. Si personne ne s'en sert, elle indique « Non utilisé ».
 
-**Pour un enregistrement**, l'action **« Utilisé par »** figure dans l'en-tête de son formulaire tant que celui-ci est en lecture. Elle liste les enregistrements qui renvoient à lui, chacun avec la table, le champ, la forme d'affichage et l'identifiant ; un clic ouvre le formulaire de l'enregistrement qui renvoie. Pour un nouvel enregistrement, l'action manque, car personne ne peut renvoyer à un enregistrement pas encore enregistré.
+**Pour un enregistrement**, l'action **« Utilisé par »** figure dans l'en-tête de son formulaire tant que celui-ci est en lecture. Elle liste les enregistrements qui renvoient à lui, chacun avec la table, le champ, la forme d'affichage et l'identifiant ; un clic ouvre le formulaire de l'enregistrement qui renvoie, et « Retour » ramène à l'enregistrement affiché. Pour un nouvel enregistrement, l'action manque, car personne ne peut renvoyer à un enregistrement pas encore enregistré.
 
 **La liste de l'enregistrement est l'aperçu de la protection contre la suppression.** Elle cherche exactement comme le contrôle lors de la suppression, y compris par la forme courte de l'identifiant, par la valeur d'une clé à un seul élément et dans les fichiers suivants d'une table. Si un enregistrement y figure, celui qui est affiché ne peut pas être supprimé. Un enregistrement qui renvoie à lui-même n'apparaît pas, car il n'empêche pas sa propre suppression. Comme pour la protection contre la suppression, seule la colonne de lien compte ; un lien dans le texte courant, par exemple `[[Clients#^r-00001]]`, n'est pas une utilisation.
 
 ## Trouvabilité : recherche et liens
 
-Une recherche portant sur la **zone** prend un document de table sans ses enregistrements. Le texte explicatif situé au-dessus du bloc de données reste consultable, une occurrence située après lui mène toujours au bon endroit, et les enregistrements eux-mêmes ne sont pas trouvés par cette voie.
+Une recherche portant sur la **zone** trouve les enregistrements comme résultats propres. Dans le panneau « Résultats de recherche », après les groupes des documents, chaque table a son propre groupe, avec le nom de la table et la mention « Enregistrements ». Chaque ligne nomme l'enregistrement par sa forme d'affichage et le champ qui contient le terme cherché, et montre sa valeur avec l'occurrence mise en évidence. Un clic ouvre l'enregistrement dans le formulaire par défaut de sa table. La recherche porte sur les valeurs des champs dans tous les fichiers d'une table, y compris ses fichiers suivants, et, pour une table ouverte, sur son état non enregistré. Le décompte au-dessus de la liste compte ensemble les occurrences des documents et des enregistrements. Lorsque la ligne de remplacement est ouverte, les groupes d'enregistrements sont omis, car le remplacement dans la zone n'écrit pas dans les enregistrements.
 
-La raison tient à la zone et non à la table : l'espace de recherche conserve en mémoire les textes de tous les fichiers Markdown et porte pour cela un plafond sur la zone **entière**. Quelques tables de quelques mégaoctets suffisent à le faire sauter, et dès lors chaque recherche relit le disque, y compris celle qui porte sur un document ordinaire. Les enregistrements dans l'espace de recherche coûteraient donc sa vitesse non pas à eux-mêmes, mais à la zone entière.
+Le bloc d'enregistrements lui-même ne fait en revanche pas partie de l'espace de recherche en texte intégral : un terme qui ne figure que dans les enregistrements d'un fichier de table ne donne aucune occurrence pour ce document, mais seulement les résultats d'enregistrement. Le texte explicatif situé au-dessus du bloc de données reste consultable comme document, et une occurrence située après lui mène toujours au bon endroit. La raison tient à la zone et non à la table : l'espace de recherche conserve en mémoire les textes de tous les fichiers Markdown et porte pour cela un plafond sur la zone **entière**. Quelques tables de quelques mégaoctets suffisent à le faire sauter, et dès lors chaque recherche relit le disque, y compris celle qui porte sur un document ordinaire. Les enregistrements dans l'espace de recherche coûteraient donc sa vitesse non pas à eux-mêmes, mais à la zone entière.
 
-**C'est un état intermédiaire.** Tant que les enregistrements n'ont pas leur propre type d'occurrence, ils restent introuvables par la recherche de zone. Trois chemins y mènent malgré tout :
+Par ailleurs, trois chemins mènent aux enregistrements :
 
 - **Chercher dans le document ouvert.** Qui a le fichier de table devant lui et y cherche (par défaut `Ctrl+F`) cherche dans le texte qu'il a sous les yeux et retrouve ses enregistrements inchangés. La limite ci-dessus ne concerne que la recherche portant sur la zone.
 - **Poser une requête d'enregistrements.** Un bloc `perspective-query` avec `LIST RECORDS` ou `TABLE RECORDS` trouve des enregistrements d'après leurs champs, par exemple tous les livres d'un auteur ; la page [Requête Perspective](frontmatter-query.md) la décrit. Une requête dont on a souvent besoin peut être rangée dans un fichier de requête (section « Fichiers de requête »).
@@ -527,13 +703,21 @@ Un lien nomme la table et l'identifiant interne, écrit comme une ancre de bloc 
 [[Personen#^r-00042]]
 ```
 
+**Deux autres graphies** valent également : la forme courte de l'identifiant, `[[Personen#^r-42]]`, et la forme d'affichage de l'enregistrement, `[[Personen#^Anna Muster]]`. Une forme d'affichage dans un lien se compose de lettres, de chiffres, d'espaces et des caractères tiret bas, trait d'union, point, apostrophe, virgule et parenthèses rondes ; avec un autre caractère, par exemple `&`, elle ne se résout pas. La comparaison se fait sans les espaces de début et de fin, mais en tenant compte des majuscules et minuscules. L'application ne réécrit pas le lien : ce qui est écrit est enregistré tel quel.
+
+**La résolution suit un ordre fixe.** Si le fichier de table porte une ancre de bloc portant exactement ce nom, le lien vaut pour elle, et le linter signale que l'ancre de bloc masque un enregistrement ; de même, le clic mène à un titre du même nom. Sinon vient d'abord l'identifiant, long ou court, puis la forme d'affichage. Si plusieurs enregistrements portent la même forme d'affichage, le lien vaut tout de même, le linter le marque comme nom d'enregistrement ambigu, et le clic ouvre le fichier de table ; l'identifiant le rend univoque.
+
+**La liste de suggestions aide à l'écriture.** Après `[[Table#^`, elle propose, après les ancres de bloc du fichier, les enregistrements de la table, chacun avec sa forme d'affichage et la mention « Enregistrement », au plus 30 entrées en tout. La saisie restreint la liste par forme d'affichage et identifiant, et la sélection écrit l'identifiant long, par exemple `[[Personen#^r-00042]]`.
+
 Le lien **vaut** si la table nommée porte cet enregistrement, et il est rompu si elle ne le porte pas. Il se comporte ainsi comme tout autre lien de l'application. Il vaut également lorsque l'enregistrement ne se trouve pas dans le premier fichier de la table mais dans l'un de ses fichiers suivants : pour qui l'écrit, la table est une, et sa répartition sur plusieurs fichiers ne le regarde pas.
 
-La vérification porte sur l'état **enregistré** de la table, comme pour toute autre ancre. Un lien vers un enregistrement qui vient d'être créé et n'a pas encore été sauvegardé ne vaut donc pas encore.
+La vérification porte sur l'état **enregistré** de la table, comme pour toute autre ancre. Un lien vers un enregistrement qui vient d'être créé et n'a pas encore été sauvegardé ne vaut donc pas encore, et une forme d'affichage modifiée ne se résout qu'après l'enregistrement.
 
 Le [linter Markdown](tools.md) montre si un lien vaut : une cible rompue reçoit un soulignement ondulé dans l'éditeur, c'est-à-dire dans les vues Source, Scindée et Direct. La vue lecture seule ne représente pas la validité ; les liens valides et rompus y ont la même apparence.
 
-Un clic ouvre la table et amène la ligne de l'enregistrement sous vos yeux, même lorsque celui-ci se trouve dans un fichier suivant. En mode lecture, l'affichage défile jusqu'à sa ligne, pourvu qu'il figure parmi les 2000 enregistrements affichés ; dans les vues Direct et Source, le curseur se place sur cette ligne. Dans le résultat d'une requête d'enregistrements, un clic sur un enregistrement ouvre en revanche son formulaire.
+**Un clic ouvre le formulaire de l'enregistrement**, dans le formulaire par défaut de sa table. L'action **« Afficher dans le document de table »** dans l'en-tête du formulaire mène à la ligne dans le fichier de table (section « Consulter et modifier »). Si un lien ne correspond à aucun enregistrement de façon univoque, le clic ouvre le fichier de table. En dehors d'une zone ouverte, le clic ouvre le fichier de table et amène la ligne de l'enregistrement sous vos yeux. Dans le résultat d'une requête d'enregistrements, un clic sur un enregistrement ouvre de même son formulaire.
+
+**Un lien dans le texte ne retient pas l'enregistrement.** Si l'enregistrement est supprimé, le lien se rompt comme tout autre lien de l'application, et le linter le montre. La protection contre la suppression repose sur la seule colonne de lien (section « Utilisation des tables et des enregistrements »).
 
 ## Fichiers de requête
 
@@ -554,11 +738,90 @@ TABLE RECORDS auteur, pages FROM "Livres" WHERE pages > this.pagesmin SORT pages
 ```
 ````
 
-- **La marque ne porte aucune indication.** Le fichier est reconnu à la seule marque, `db-query:` sans valeur suffit ; la requête nomme elle-même sa table dans `FROM`. La requête peut s'adresser à n'importe quel niveau, aux fichiers comme aux enregistrements.
+- **La marque suffit.** Le fichier est reconnu à la seule marque, `db-query:` sans valeur suffit ; la requête nomme elle-même sa table dans `FROM`. La requête peut s'adresser à n'importe quel niveau, aux fichiers comme aux enregistrements. Avec les indications `editable`, `form` et `allow` dans le conteneur, le fichier devient un formulaire de liste, que la section suivante décrit.
 - **Ouvrir et intégrer.** Ouvert, le fichier montre son résultat comme tout document doté d'un bloc de requête. Un autre document l'intègre avec `![[Gros livres]]` et montre le même résultat, car `this.` désigne alors le fichier de requête et non le document qui l'intègre. Une requête qui lit des valeurs du document qui l'intègre n'existe donc pas.
 - **Créer.** Il n'existe pas de commande dédiée : un fichier de requête s'écrit à la main ou à partir d'un [modèle](templates.md) personnel.
 - **Sans la marque**, un document doté d'un bloc de requête reste une requête dans le texte courant et n'apparaît pas dans la vue d'ensemble.
 - **Dans la vue d'ensemble** de la base de données, chaque fichier de requête figure dans la section « Requêtes » (section « La zone en tant que base de données ») ; aucun bloc de requête ou plusieurs sont signalés parmi les anomalies (section « Indications fautives »).
+
+**Deux significations de `editable`.** Dans la définition d'une table, dans le conteneur `db-table`, `editable` est une condition qui dit pour chaque enregistrement séparément s'il peut encore être modifié (section « Modification sous condition »). Dans le conteneur `db-query` d'un fichier de requête, `editable` est un oui ou un non et fait du fichier un formulaire de liste. Les deux agissent ensemble : un formulaire de liste ne propose la modification que pour les lignes dont l'enregistrement remplit la condition de sa table.
+
+## Formulaire de liste
+
+Un fichier de requête devient un **formulaire de liste** quand son conteneur `db-query` porte l'indication `editable: true`. Il montre alors ses enregistrements sous forme de grille, dans laquelle on ouvre, modifie, crée et supprime des lignes ; le reste du texte du fichier décrit la liste comme dans tout fichier de requête.
+
+````markdown
+---
+db-query:
+  editable: true
+  form: Prêts Form
+  allow: [create, update, delete]
+---
+
+# Prêts en cours
+
+```perspective-query
+TABLE RECORDS livre, lecteur, sortie, retour FROM "Prêts" WHERE NOT rendu SORT retour
+```
+````
+
+| Indication | Signification |
+| --- | --- |
+| `editable` | `true` fait du fichier de requête un formulaire de liste. Sans l'indication ou avec `false`, il reste un fichier de requête ordinaire |
+| `form` | le nom du fichier de formulaire sans extension qu'ouvre un clic sur une ligne. Sans l'indication, le formulaire par défaut de la table s'applique |
+| `allow` | les actions permises sous forme de liste de `create` (créer), `update` (modifier) et `delete` (supprimer). Sans l'indication, seul `update` s'applique ; une liste vide n'en permet aucune |
+
+`form` et `allow` n'agissent qu'avec `editable: true`.
+
+### Consulter et ouvrir
+
+Dans chaque vue qui montre le résultat, c'est-à-dire dans les vues Rendu, Partagé et Direct, la grille se trouve à la place du tableau de résultats : les mêmes colonnes, devant la colonne « Enregistrement », au-dessus une ligne de décompte comme « Lignes 1 à 50 sur 120 ». Une page montre 50 lignes fixes ; s'il y a plus de lignes, **« Suivant »** et **« Précédent »** tournent les pages.
+
+Un clic sur une ligne ouvre son enregistrement dans le formulaire que nomme `form`, sinon dans le formulaire par défaut de sa table. Si `form` nomme un fichier de formulaire qui n'existe pas ou qui appartient à une autre table, le clic ouvre lui aussi le formulaire par défaut, et la vue d'ensemble affiche une remarque parmi les anomalies du fichier de requête. Dans une ligne modifiable, un simple clic sur une cellule modifiable n'ouvre pas le formulaire, car le double-clic y commence la modification ; le formulaire s'ouvre alors par la colonne « Enregistrement » et par les cellules en lecture. Si la requête porte `WITHOUT ID`, la colonne « Enregistrement » manque, et dans une telle ligne seule une cellule en lecture ouvre le formulaire. Un lien dans une cellule ouvre, comme partout, le formulaire de sa cible.
+
+**Consulter ne verrouille rien.** Sinon, une liste de centaines d'enregistrements les verrouillerait tous à chaque coup d'œil ; seule est verrouillée la ligne dont la modification commence.
+
+Un formulaire de liste lit exactement une table. Seules les colonnes qui nomment exactement un champ de cette table sont modifiables ; une colonne calculée, un chemin par un champ de référence et `record.id` restent en lecture. Toute la liste reste en lecture si elle est groupée ou choisit une forme d'affichage avec `DISPLAY` : une phrase le dit, et en dessous le résultat apparaît comme dans toute requête. Une requête sur des fichiers, des blocs ou des tâches au lieu d'enregistrements et une requête dont les résultats viennent de plusieurs tables montrent le tableau de résultats ordinaire.
+
+### Modifier des lignes
+
+Si `allow` permet la modification, la grille porte en fin de ligne la colonne **« Actions »**. **« Modifier »** à cet endroit ou un double-clic dans la ligne commence la modification : l'application verrouille l'enregistrement, lit son état actuel dans le fichier et fait des cellules modifiables des saisies dans la forme de leur type, comme dans le formulaire. **« Enregistrer »** ou la touche Entrée écrit, dans un champ multiligne Maj+Entrée fait un saut de ligne ; **« Annuler »** ou la touche Échap abandonne. Quitter simplement la ligne n'enregistre pas. L'écriture suit le même chemin que dans le formulaire, avec toutes les règles de la table.
+
+Une seule ligne se modifie à la fois : tant qu'elle est ouverte, le changement de page et les actions des autres lignes sont bloqués. Si le document est fermé, que la vue change ou qu'un autre document ouvert est affiché, la modification s'achève sans enregistrer, et le verrou est libéré.
+
+Si l'application refuse la modification, la ligne reste en modification. Si le message concerne un champ, il figure à sa cellule ; une règle portant sur plusieurs champs figure dans la colonne « Actions ». Si quelqu'un a modifié l'enregistrement depuis que la ligne l'a lu, le même bloc que dans le formulaire apparaît sous la ligne, avec **« Recharger »** et **« Enregistrer quand même »**. Si un autre endroit tient l'enregistrement verrouillé, l'avis de la section « Verrous » apparaît sous la ligne. Si vous n'avez rien modifié, il n'y a rien à enregistrer, et la ligne revient en lecture.
+
+Si un enregistrement peut être modifié, c'est l'indication `editable` de sa table qui le dit **pour chaque ligne** : une ligne dont l'enregistrement n'est pas modifiable selon cette condition apparaît atténuée, sans « Modifier » et sans « Supprimer », et une info-bulle en nomme la raison.
+
+### Créer et supprimer
+
+Avec `create` dans `allow`, le bouton **« Nouvelle ligne »** se trouve à côté de la ligne de décompte. Il place une ligne vide en haut de la page affichée, qui montre « Nouveau » dans la colonne « Enregistrement », et y commence la modification. Le nouvel enregistrement reçoit son identifiant dès maintenant, comme dans le formulaire ; il n'entre dans le fichier qu'avec **« Enregistrer »**, et ensuite il se trouve là où le tri de la requête le range, éventuellement sur une autre page. **« Annuler »** retire la ligne.
+
+Avec `delete` dans `allow`, chaque ligne modifiable porte **« Supprimer »**. L'application verrouille l'enregistrement et pose la question sous la ligne, comme le formulaire : **« Oui, supprimer »** supprime, et la liste montre ensuite l'existant sans lui ; **« Non »** laisse tout en l'état. Un enregistrement vers lequel une colonne de référence pointe encore ne peut pas être supprimé ici non plus : le message figure sous la ligne, et la ligne reste.
+
+Sans `update`, « Modifier » et le double-clic manquent, et un clic sur n'importe quelle cellule ouvre le formulaire ; « Nouvelle ligne » et « Supprimer » restent dans la mesure où `allow` les permet.
+
+## Positions dans le formulaire
+
+Outre les champs de son enregistrement, un formulaire peut montrer les enregistrements d'une autre table qui pointent vers lui, par exemple les positions d'une facture ou les prêts d'un livre. Pour cela, le fichier de formulaire porte l'espace réservé `{{list:<fichier de requête>}}` seul sur sa ligne, avec le nom d'un formulaire de liste sans extension :
+
+```markdown
+**Titre :** {{field:titre}}
+
+## Prêts
+
+{{list:Prêts en cours}}
+```
+
+La **section des positions** montre la grille de ce formulaire de liste, restreinte aux enregistrements dont le champ de référence pointe vers l'enregistrement affiché. Pour cela, l'application complète la requête par cette condition ; les colonnes, le tri et les autres conditions du fichier de requête continuent de s'appliquer. Si la table des positions a exactement un champ de référence vers la table du formulaire, c'est lui qui est visé ; si elle en a plusieurs, `{{list:<fichier de requête> BY <champ de référence>}}` nomme celui qui est visé. Au milieu d'une ligne de texte, l'espace réservé reste du texte et est signalé.
+
+**Quand le formulaire est en lecture, la section l'est aussi :** un clic sur une ligne ouvre la position dans son formulaire. **En modification**, la section propose les actions que permet `allow` du fichier de requête, comme la liste autonome. Une ligne enregistrée n'est toutefois que **marquée** : elle montre son nouvel état, une info-bulle dit « Marqué ; sera enregistré avec le formulaire. », et son verrou demeure ; une ligne marquée pour la suppression reste en place, signalée. Une nouvelle position reçoit la référence à l'enregistrement affiché sans saisie, même si celui-ci est lui-même en cours de création.
+
+**L'enregistrement se fait avec le formulaire, tout ou rien.** **« Enregistrer »** du formulaire écrit l'en-tête et toutes les positions marquées en une seule opération. Si une ligne de la section est encore en modification, elle est d'abord marquée ; si elle est alors refusée, le formulaire n'enregistre pas et le dit. Si l'application refuse l'opération, rien n'est écrit, et tout reste en place ; le message concernant une position figure dans l'en-tête du formulaire et commence par « Position » et son numéro parmi les lignes marquées. Après l'enregistrement, tous les verrous sont libérés.
+
+**« Abandonner »** abandonne en-tête et positions ensemble et libère tous les verrous. Une nouvelle ligne marquée peut être modifiée à nouveau, mais pas retirée seule ; elle ne disparaît qu'avec « Abandonner ». Les positions marquées comptent comme une modification non enregistrée : avant le passage à un autre enregistrement, le formulaire pose la question.
+
+Si la section ne peut pas être construite, une remarque avec la ligne du fichier de formulaire figure à sa place ; la section « Indications fautives » nomme les cas.
 
 ## Répartition des grands ensembles de données
 
@@ -590,6 +853,7 @@ db-database:
 - **`name`** et **`description`** sont des étiquettes et sont donc elles aussi possibles comme correspondance de langue à texte.
 - **`schemaVersion`** est du texte et figure entre guillemets. Sans eux, YAML lirait `1.0` comme un nombre, et la version `1.0` deviendrait la version `1` à la lecture.
 - **`fallbackLocale`** est la langue vers laquelle une étiquette se rabat lorsqu'elle ne porte pas la langue de l'interface. Sans indication, la première langue qui figure dans la fiche d'identité elle-même s'applique.
+- **`roles`**, **`defaultRole`** et **`users`** portent les rôles de la base de données, le rôle par défaut et l'attribution des noms de connexion ; la section « Autorisations » les décrit. Sans eux, tout est permis dans la base de données.
 
 Chacune de ces indications peut manquer isolément, et aucune n'est une condition pour les tables : chaque table porte sa définition elle-même et reste entièrement interprétable même sans fiche d'identité.
 
@@ -607,7 +871,7 @@ Une zone de base de données reçoit deux choses qu'une zone ordinaire n'a pas.
 
 Dans une zone sans base de données, aucun de ces chemins n'est proposé.
 
-Dans la liste des tables, la colonne **« Formulaire »** nomme le fichier de formulaire d'une table et reste vide pour le formulaire généré. La vue d'ensemble porte en outre quatre actions : **« Contrôler la cohérence »** dans l'en-tête pour toutes les tables, et dans la ligne de chaque table **« Nouvel enregistrement »**, **« Contrôler »** et **« Utilisation »**. Ce qu'elles font est décrit dans les sections « Modifier les enregistrements dans le formulaire », « Contrôle de cohérence » et « Utilisation des tables et des enregistrements ». La section **« Requêtes »** nomme chaque fichier de requête avec son nom et son emplacement, le dossier relatif à la racine de la zone, et **« Ouvrir »** l'ouvre comme tout document ; si la zone n'en contient aucun, une phrase explicative y figure. Parmi les anomalies figurent aussi les remarques sur les fichiers de formulaire et de requête, nommées d'après le fichier.
+Dans la liste des tables, la colonne **« Formulaire »** nomme le fichier de formulaire d'une table et reste vide pour le formulaire généré. La vue d'ensemble porte en outre quatre actions : **« Contrôler la cohérence »** dans l'en-tête pour toutes les tables, et dans la ligne de chaque table **« Nouvel enregistrement »**, **« Contrôler »** et **« Utilisation »**. Ce qu'elles font est décrit dans les sections « Modifier les enregistrements dans le formulaire », « Contrôle de cohérence » et « Utilisation des tables et des enregistrements ». La section **« Requêtes »** nomme chaque fichier de requête avec son nom et son emplacement, le dossier relatif à la racine de la zone, et **« Ouvrir »** l'ouvre comme tout document ; si la zone n'en contient aucun, une phrase explicative y figure. Parmi les anomalies figurent aussi les remarques sur les fichiers de formulaire et de requête, nommées d'après le fichier. La colonne **« Type »** de la section « Requêtes » distingue une « Requête » ordinaire d'un « Formulaire de liste » et nomme pour celui-ci les actions permises ; s'il n'en permet aucune, on y lit « Formulaire de liste, lecture seule ». Dans le bloc de la fiche d'identité, la vue d'ensemble nomme en outre le rôle propre et, si la fiche d'identité porte des rôles, ceux-ci avec leurs autorisations, et sous chaque table les autorisations du rôle propre (section « Autorisations »).
 
 **La section de paramètres « Base de données »** se trouve dans le groupe de navigation « Zone actuelle » (Fichier → Paramètres… → Zone actuelle → Base de données ; lorsqu'un livre est ouvert, le groupe s'appelle **Livre actuel**, lorsqu'une bibliothèque est ouverte **Bibliothèque actuelle**). Elle montre la même information sous forme brève, à savoir le nom et la description de la base de données, le nombre de ses tables et le nombre d'anomalies, et porte une option : **« Afficher la vue d'ensemble à l'ouverture de la zone »**. Si elle est cochée, la vue d'ensemble s'ouvre d'elle-même dès que la zone est liée. L'option réside dans le fichier de la zone et voyage avec le dossier de la zone. Vient s'y ajouter le champ **« Nom du dossier de verrous »** ; il est décrit dans la section « Verrous ».
 
@@ -623,11 +887,15 @@ Une indication que l'application ne connaît pas disparaît isolément avec une 
 
 Pour l'indication `changeLog` des justificatifs de modification, trois anomalies propres existent. Si `changeLog` n'est pas lui-même un objet, cette table ne conserve pas de limites propres, et les valeurs par défaut de l'application s'appliquent. Si `maxBytes` ou `maxPerRecord` n'est ni un nombre entier supérieur à zéro ni le mot `unlimited`, l'indication concernée est ignorée, et sa valeur par défaut s'applique. Chacune de ces anomalies est signalée ; aucune n'est passée sous silence.
 
-La même souplesse vaut pour les règles de contrôle et pour la condition de modification, règle par règle. Une règle inutilisable sous `check` ou `checks` disparaît isolément, et les autres règles, le champ et la table restent ; sont signalés une entrée qui n'est ni du texte ni un objet avec `rule`, une expression régulière invalide, une expression invalide, une règle de champ avec une référence autre que `value`, un nom de règle inconnu et une règle sous `checks` qui nomme un champ inconnu. Si `checks` n'est pas une liste, toutes les règles sous `checks` disparaissent. Une indication `editable` inutilisable disparaît de même, et la table reste modifiable. Un message qui ne peut pas être interprété disparaît à lui seul ; sa règle ou sa condition continue de vérifier.
+La même souplesse vaut pour les règles de contrôle et pour la condition de modification, règle par règle. Une règle inutilisable sous `check` ou `checks` disparaît isolément, et les autres règles, le champ et la table restent ; sont signalés une entrée qui n'est ni du texte ni un objet avec `rule`, une expression régulière invalide, une expression invalide, une règle de champ avec une référence autre que `value`, un nom de règle inconnu et une règle sous `checks` qui nomme un champ inconnu. Si `checks` n'est pas une liste, toutes les règles sous `checks` disparaissent. Une indication `editable` inutilisable disparaît de même, et la table reste modifiable. Un message qui ne peut pas être interprété disparaît à lui seul ; sa règle ou sa condition continue de vérifier. Une indication `editable` inutilisable sur un champ disparaît de même, et le champ reste modifiable.
 
-La même souplesse vaut pour les fichiers de formulaire. Si le conteneur `db-form` ne nomme aucune table, ou une table qui n'existe pas dans la base de données, le fichier reste un document ordinaire. Si une table a plusieurs fichiers de formulaire, le premier selon le chemin s'applique, et les autres ne sont pas utilisés. Ces trois cas figurent parmi les anomalies de la vue d'ensemble. Un espace réservé qui n'est pas un espace réservé de champ et un nom de champ que la table ne connaît pas restent du texte ; le formulaire les signale avec leur ligne dans son en-tête, et le contrôle de cohérence les liste comme constats.
+La même souplesse vaut pour les fichiers de formulaire. Si le conteneur `db-form` ne nomme aucune table, ou une table qui n'existe pas dans la base de données, le fichier reste un document ordinaire. Ces deux cas figurent parmi les anomalies de la vue d'ensemble ; plusieurs fichiers de formulaire d'une table ne sont en revanche pas une anomalie, mais le cas de la section « Plusieurs formulaires et le formulaire par défaut ». Un espace réservé qui n'est ni de champ ni de valeur et un nom de champ que la table ne connaît pas restent du texte, et un espace réservé de valeur avec une expression invalide laisse son emplacement vide ; le formulaire signale les trois avec leur ligne dans son en-tête, et le contrôle de cohérence les liste comme constats. Un marqueur `{{end}}` sans section ouverte est ignoré, une section sans `{{end}}` affiche son contenu comme en dehors de la section, et une section avec une condition invalide reste masquée ; ces trois cas aussi, le formulaire les signale avec leur ligne dans son en-tête, et le contrôle de cohérence les liste comme constats. Un marqueur qui n'est pas seul sur sa ligne n'est pas un marqueur et reste du texte en tant qu'espace réservé inconnu. Si l'indication `form` de la définition de table ne nomme aucun fichier de formulaire, un fichier qui n'existe pas pour cette table ou le fichier de formulaire d'une autre table, un avertissement figure parmi les anomalies de la vue d'ensemble, et le formulaire par défaut sans indication s'applique ; le contrôle de cohérence liste en outre les deux derniers cas comme constats à la table. Un chemin qui ne nomme aucun champ de référence de la table ou aucun champ de la table cible laisse son emplacement vide et est signalé de même avec sa ligne. Pour la section des positions, il existe cinq cas : le fichier de requête nommé n'existe pas ; il ne porte pas `editable: true` ; les positions n'ont aucun champ de référence vers la table du formulaire ; elles en ont plusieurs, et `BY` n'en nomme aucun ; ou la requête ne nomme pas une table unique ou ne peut pas être complétée par la relation. Dans le deuxième cas, la section reste en lecture, sinon vide ; chaque cas figure comme remarque avec sa ligne à la place de la section, et le contrôle de cohérence le mentionne comme constat du fichier de formulaire.
 
-La même souplesse vaut pour les fichiers de requête. Si un document portant la marque `db-query` ne contient aucun bloc de requête ou en contient plusieurs, il reste un document ordinaire, et chaque bloc qu'il contient est évalué. La vue d'ensemble le cite malgré tout dans la section « Requêtes » et nomme le cas parmi les anomalies, d'après le fichier.
+La même souplesse vaut pour les fichiers de requête. Si un document portant la marque `db-query` ne contient aucun bloc de requête ou en contient plusieurs, il reste un document ordinaire, et chaque bloc qu'il contient est évalué. La vue d'ensemble le cite malgré tout dans la section « Requêtes » et nomme le cas parmi les anomalies, d'après le fichier. La même ligne vaut pour les indications d'un formulaire de liste, indication par indication : un `editable` qui n'est pas une valeur de vérité compte comme `false` ; un `form` qui ne nomme aucun nom est abandonné ; un `allow` qui n'est ni une action ni une liste revient à `update`, et un mot inconnu qu'il contient est abandonné seul. `form` ou `allow` sans `editable: true` n'ont pas d'effet, et toute autre indication dans le conteneur est ignorée. Si `form` nomme un fichier de formulaire qui n'existe pas dans la base de données ou qui appartient à une autre table que celle de la requête, un clic sur une ligne ouvre le formulaire par défaut de la table. Chacun de ces cas figure comme remarque parmi les anomalies de la vue d'ensemble.
+
+La même ligne souple vaut pour les rôles, le rôle par défaut et l'attribution dans la fiche d'identité. Un rôle avec une table inconnue, une opération inconnue ou une indication sur une table qui n'est ni `all` ni une liste est considéré comme non défini, et chacune de ses erreurs est signalée. Un rôle par défaut ou une attribution qui ne nomme aucun rôle existant est de même considéré comme non défini, et la règle suivante de la section « Autorisations » s'applique. Tous ces cas figurent parmi les anomalies de la vue d'ensemble.
+
+Si une table porte des enregistrements mais aucun niveau de crue `lastId` ou un niveau trop bas, l'application n'attribue pourtant aucun identifiant deux fois : une création prend le numéro suivant au-dessus du plus grand identifiant existant et met ensuite à jour le niveau de crue. Le contrôle de cohérence signale le cas comme remarque.
 
 ## Désactiver la base de données
 
@@ -639,9 +907,11 @@ L'ensemble de la base de données est une [extension interne](extensions.md) nom
 - **La vue d'ensemble et la section de paramètres disparaissent**, ainsi que les accès dans le menu Affichage, dans le menu contextuel du panneau de zone et dans la palette de commandes. Une vue d'ensemble déjà ouverte reste en place jusqu'à ce que vous la fermiez, comme toute autre page système.
 - Avec le bloc d'enregistrements disparaissent ses boutons **« Ouvrir l’enregistrement »** et **« Nouvel enregistrement »**, avec la vue d'ensemble ses actions **« Contrôler la cohérence »**, **« Contrôler »** et **« Utilisation »**, et les commandes **« Nouvel enregistrement dans la table active »** et **« Contrôler la cohérence de la base de données »** quittent la palette de commandes. Le **formulaire** n'est donc plus accessible non plus, et l'application ne fournit plus de données ni à lui, ni au contrôle de cohérence, ni à l'utilisation.
 - Une **requête d'enregistrements** ne lit plus aucune table : elle affiche une liste vide avec la remarque que l'extension est désactivée, et aucun message d'erreur. Cela vaut aussi pour les chemins passant par des champs de référence, pour les hiérarchies et pour l'arbre.
-- Un **fichier de requête** reste un document ordinaire : son bloc de requête continue d'être évalué, sur les enregistrements avec la liste vide et la remarque décrites ci-dessus, et sa section « Requêtes » disparaît avec la vue d'ensemble.
-- Un **lien vers un enregistrement isolé** n'est plus signalé comme rompu. Sans définitions, il n'y a rien à quoi le confronter, et un avertissement sans vérification ne serait qu'une affirmation.
-- La **recherche portant sur la zone reste inchangée**. Les enregistrements restent exclus du texte intégral, car cette limite tient au fichier de table et non à l'interrupteur ; la section « Trouvabilité » ci-dessus reste donc valable.
+- Un **fichier de requête** reste un document ordinaire : son bloc de requête continue d'être évalué, sur les enregistrements avec la liste vide et la remarque décrites ci-dessus, et sa section « Requêtes » disparaît avec la vue d'ensemble. Un formulaire de liste ne montre alors aucune grille et ne propose aucune action.
+- Un **lien vers un enregistrement isolé** n'est plus signalé comme rompu. Sans définitions, il n'y a rien à quoi le confronter, et un avertissement sans vérification ne serait qu'une affirmation. Un clic ouvre le fichier de table sans saut vers la ligne au lieu du formulaire, et la liste de suggestions ne propose aucun enregistrement.
+- La **recherche portant sur la zone ne donne aucun résultat d'enregistrement**. Les enregistrements restent exclus du texte intégral, car cette limite tient au fichier de table et non à l'interrupteur ; par la zone, les enregistrements sont alors introuvables.
+- Un **formulaire** ouvert à la fermeture ne revient pas au démarrage. Son entrée dans la session reste en attente et le ramène au démarrage suivant après la réactivation (section « Après le redémarrage »).
+- **Rôles, rôle par défaut et attribution** restent un simple frontmatter de la fiche d'identité, de même qu'une indication `editable` sur un champ : il n'y a ni résolution ni contrôle, pas même à la sauvegarde d'une définition modifiée.
 - **Rien n'est écrit.** L'application ne crée, ne modifie ni ne supprime aucun enregistrement, ne prend aucun verrou et ne produit aucun justificatif de modification ; elle ne mène pas non plus à son terme une sauvegarde restée inachevée tant qu'elle est désactivée.
 
 **Les fichiers demeurent intacts.** La désactivation retire l'interprétation, non les données : pas un caractère n'est modifié, et la réactivation ramène tout. L'index de la zone est alors reconstruit une fois ; dans un grand fonds, cela prend un instant.

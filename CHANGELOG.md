@@ -14,6 +14,1113 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.152.0.4368] - 2026-10-24 — Stufe 4 der Datenbank: Abfrage-Diagramm, gestaltete Masken, Listen-Maske, Berechtigungen und Datensätze in Suche und Sitzung
+
+Zug 3E-000346,
+die vierte Ausbaustufe der Datenbank-Funktionalität aus sechs Mitglieds-Epics:
+3E-000345,
+3E-000337,
+3E-000261,
+3E-000262,
+3E-000263
+und
+3E-000264.
+Mitglied 1:
+3E-000345,
+zwei Nacharbeiten an Ausgeliefertem der Stufe 3: der Vorlagen-Ausschluss auch in
+der Ereignis-Aggregation und in den Seiten- und Block-Listen der Skript-Blöcke,
+und die Sicht des Index auf ein geöffnetes, geteiltes Dokument, die jeden
+Eintrag genau einmal führt (Abschluss-Anteil in
+4T-002145).
+Mitglied 2:
+3E-000337,
+die Diagramm-Darstellung einer Abfrage: Eine Tabellen-Abfrage erscheint mit
+`DISPLAY bar` als Balken- und mit `DISPLAY line` als Linien-Diagramm, gezeichnet
+über den gemeinsamen Zeichen-Baustein aus `1.146.0` (Abschluss-Anteil in
+4T-002156).
+Mitglied 3:
+3E-000261,
+die gestaltete Einzel-Maske: der Wert-Platzhalter, bedingte Bereiche, mehrere
+Masken je Tabelle mit einer Standard-Maske und die Navigation zwischen Masken
+(Abschluss-Anteil in
+4T-002146).
+Mitglied 4:
+3E-000262,
+die Listen-Maske und die Kopf-Positionen-Erfassung: eine Abfrage-Datei als
+bearbeitbare Liste mit Blättern, Bearbeiten, Anlegen und Löschen, der
+Positions-Bereich in der Maske mit gemeinsamem Speichern von Kopf und Positionen
+und Verweis-Pfade in Wert-Platzhalter und Bedingung (Abschluss-Anteil in
+4T-002147).
+Mitglied 5:
+3E-000263,
+die Berechtigungen der Datenbank: Rollen im Steckbrief mit vier Operationen je
+Tabelle, die Zuordnung von Anmeldenamen samt Vorgabe-Rolle, die Prüfung an der
+Schreib-Schnittstelle und beim Speichern der Definition, die Wirkung in Masken
+und Übersicht und die Sperre eines einzelnen Feldes (Abschluss-Anteil in
+4T-002148).
+Mitglied 6:
+3E-000264,
+der Anschluss der Datensätze an Suche, Verweise und Sitzung: Datensätze als
+eigene Treffer der Bereichs-Suche mit dem Sprung in die Maske, der Verweis in
+die Maske mit Kurzform, Anzeige-Form und Vorschlagsliste, die Rückkehr des
+Masken-Dokuments nach dem Neustart und der Verlauf aus «Verwendet von» und aus
+Datensatz-Verweisen im Text der Maske (Abschluss-Anteil in
+4T-002149).
+
+**Was das erste Mitglied für sich genommen zeigt:** Was im Vorlagen-Ordner
+liegt, erscheint jetzt auch nicht mehr in gesammelten Ereignissen und in den
+Seiten- und Block-Listen eines Skript-Blocks, mit derselben Ausnahme wie in der
+Abfrage: Wer den Ordner ausdrücklich nennt, bekommt seinen Inhalt. Und eine
+Aufgaben-Abfrage, das Tag-Panel und jeder andere Leser des Index zählen die
+Einträge eines großen, in Teil-Dateien geführten Dokuments auch dann einmal,
+wenn es geöffnet ist. Die gestalteten Bedienwege der Stufe 4 bringen die
+folgenden Mitglieder.
+
+**Was das zweite Mitglied für sich genommen zeigt:** Das Ergebnis einer
+Abfrage lässt sich nicht nur lesen, sondern auch sehen. Wer hinter eine
+Tabellen-Abfrage `DISPLAY bar` oder `DISPLAY line` schreibt, bekommt statt der
+Tabelle ein Diagramm, das die Tabelle so liest, wie sie ohne die Angabe
+erschiene, auch über Gruppen und Summen. Damit schließt die Stufe 3 der
+Datenbank inhaltlich ab: Sie hatte die Wahl der Darstellungsform gebracht, das
+Diagramm war die zugesagte zweite Form.
+
+**Was das dritte Mitglied für sich genommen zeigt:** Die Maske eines Datensatzes
+ist nicht mehr nur eine Liste seiner Felder, sondern ein Dokument, das sich
+gestalten lässt. Eine Masken-Datei zeigt gerechnete Werte mitten im Satz, blendet
+Abschnitte ein und aus, je nachdem, was in den Feldern steht, und verliert dabei
+nie einen Wert; eine Tabelle darf mehrere Masken haben und nennt ihre
+Standard-Maske, und ein Link führt von einer Maske in die andere und wieder
+zurück. Das ist die Grundlage, auf der die drei folgenden Mitglieder aufsetzen.
+
+**Was das vierte Mitglied für sich genommen zeigt:** Eine Abfrage wird zur
+Arbeitsfläche. Trägt eine Abfrage-Datei die Angabe `editable: true`, zeigt sie
+ihre Datensätze als Liste, in der man blättert, Zeilen an Ort und Stelle ändert,
+neue anlegt und alte löscht, mit denselben Regeln, Sperren und Rückfragen wie in
+der Maske. Und die Maske eines Datensatzes zeigt seine Positionen: Die
+Ausleihen eines Buches stehen als Liste unter seinen Feldern, werden dort
+gepflegt und mit dem Buch in einem Zug gespeichert, ganz oder gar nicht. Werte
+und Bedingungen der Maske greifen dabei über ein Verweis-Feld auf den
+verwiesenen Datensatz durch, etwa auf den Titel des ausgeliehenen Buches.
+
+**Was das fünfte Mitglied für sich genommen zeigt:** Eine Datenbank sagt jetzt,
+wer was ändern darf. Ihr Steckbrief benennt Rollen, und jede Rolle legt je
+Tabelle fest, ob sie Datensätze anlegen, ändern und löschen und ob sie die
+Definition ändern darf. Die wichtigste Trennung ist die zwischen dem Pflegen der
+Daten und dem Ändern der Definition: Wer eine gelieferte Datenbank nur pflegt,
+ändert ihr Schema nicht versehentlich, und das hilft schon, wenn eine Person
+allein mit ihr arbeitet. Masken, Listen und Übersicht bieten nur an, was die
+eigene Rolle erlaubt, und eine geänderte Tabellen-Definition lässt sich ohne
+diese Erlaubnis nicht speichern; entschieden wird beim Schreiben, nicht in der
+Oberfläche. Ohne Rollen bleibt alles, wie es war. Die Berechtigung verhindert
+Fehlbedienung, nicht Missbrauch: Ein Leserecht gibt es nicht, und wer die
+Dateien mit einem anderen Editor öffnet, wird von keiner Rolle gefragt. Dazu
+kann die Definition einzelne Felder sperren, die in der Maske sichtbar bleiben,
+aber nicht änderbar sind, etwa das Buch einer bestehenden Ausleihe.
+
+**Was das sechste Mitglied für sich genommen zeigt:** Ein Datensatz ist jetzt
+überall erreichbar, wo ein Dokument erreichbar ist: über die Suche im Bereich,
+über einen Verweis aus jedem Dokument und nach einem Neustart. Der
+Datensatz-Block steht seit der ersten Stufe nicht im Volltext der Suche, damit
+große Tabellen die Suche über den ganzen Bereich nicht verlangsamen; dieser
+Preis ist jetzt bezahlt, denn die Suche findet Datensätze als eigene Treffer mit
+Namen, Tabelle und Feld. Ein Verweis auf einen Datensatz führt in seine Maske
+statt in die Tabellen-Datei, die damit die Ablage bleibt; zur Zeile in der Datei
+ist es ein Handgriff. Und eine Maske, die beim Beenden offen war, steht beim
+nächsten Start wieder an ihrer Stelle, sofern die Sitzung wiederhergestellt
+wird; fehlt ihr Datensatz inzwischen, sagt sie das, statt zu verschwinden, und
+war die Datenbank beim Start abgeschaltet, kehrt sie nach dem Einschalten mit
+dem nächsten Start zurück.
+
+### Neu
+
+- **Diagramm einer Abfrage** (`4T-002172`, `4T-002173`). Die Angabe
+  `DISPLAY bar` beziehungsweise `DISPLAY line` hinter einer Tabellen-Abfrage
+  (`perspective-query`) zeigt deren Ergebnis als Balken- beziehungsweise
+  Linien-Diagramm, in Lese-Ansicht, geteilter Ansicht und Live-Modus gleich; eine
+  ungespeicherte Änderung der Abfrage wirkt sofort. Das Diagramm liest die
+  Tabelle, wie sie ohne `DISPLAY` erschiene: Jede Zeile wird eine Rubrik mit dem
+  Namen des Treffers als Beschriftung, mit `WITHOUT ID` mit dem Wert der ersten
+  genannten Spalte; jede weitere Spalte mit mindestens einer Zahl wird eine
+  Reihe mit ihrer Überschrift als Namen. Als Zahl zählt auch ein Text, der nur
+  aus einer Zahl besteht, wie ihn Eigenschaften im Kopf einer Datei tragen;
+  Datum, Dauer, Wahrheitswert und anderer Text zählen nicht. Eine gruppierte
+  Tabelle ergibt je Gruppe eine Rubrik mit dem Gruppen-Wert und den Werten über
+  der Gruppe, bei mehreren Stufen mit « › » verbunden. Die Rubriken stehen in der
+  Reihenfolge, die `SORT` bestimmt, in gleichen Abständen; ein Datum ist eine
+  Beschriftung, eine Zeit-Achse gibt es nicht. Unter dem Diagramm nennt je
+  höchstens eine Zeile die übergangenen Spalten ohne Zahl («Übergangen: Spalte
+  'Titel', weil sie keine Zahl enthält.») und die ausgelassenen Werte («2 Werte
+  wurden ausgelassen, weil sie fehlen oder keine Zahl sind.»). Passt die Abfrage
+  nicht, weil sie eine Liste ist, neben der Beschriftung keine Spalte hat oder
+  keine Spalte mit Zahlen, erscheint die gewohnte Ausgabe mit einem Hinweis, der
+  den Grund nennt; ein leeres Ergebnis zeigt seinen Leer-Hinweis. Das Diagramm
+  ist ein Bild ohne Bedienung, trägt die Diagramm-Farben des Farbschemas und
+  zeichnet bei einem Wechsel des Farbschemas oder zwischen Hell und Dunkel neu,
+  ohne die Abfrage neu zu stellen. Druck und PDF zeichnen es hell, auch aus dem
+  dunklen Modus; der portable Export lässt den Abfrage-Block wie jede Abfrage als
+  Quelltext stehen. Die Funktion ist die schaltbare Erweiterung «Diagramm einer
+  Abfrage» ab dem Arbeitsmodus «Fortgeschritten», ohne Abhängigkeit von der
+  Datentabelle; ausgeschaltet erscheint die Tabelle mit dem Hinweis, dass die
+  Diagramm-Darstellung ausgeschaltet ist, und das Dokument bleibt unverändert.
+
+- **Wert-Platzhalter in der gestalteten Maske** (`4T-002183`, `4T-002186`;
+  Entscheidungen des Product Owners vom 2026-10-09 und 2026-10-10). In einer
+  Masken-Datei rechnet `{{value:<Ausdruck>}}` aus den Feldern des gezeigten
+  Datensatzes einen Wert, etwa `{{value:menge * preis}}` oder
+  `{{value:lent + dur(14 days)}}`. Der Ausdruck folgt der Abfrage-Sprache wie
+  eine Prüfregel, Felder unter ihrem Namen ohne Rücksicht auf die Schreibung,
+  ein Datums-Feld rechnet als Datum; der Wert erscheint mit der Zell-Formatierung
+  einer Tabellen-Abfrage (Zahl, Datum, Dauer, Wahrheitswert) und wird beim
+  Bearbeiten mit jeder Eingabe neu gerechnet, ohne Speichern und ohne dass Fokus
+  oder Eingabe verloren gehen; gespeichert wird er nie. Steht der Platzhalter
+  innerhalb einer Textzeile, erscheint der Wert im Satz («Fällig am 2026-10-15»);
+  allein auf seiner Zeile bekommt er eine eigene. Ohne Wert bleibt die Stelle
+  leer und markiert, mit einem Tooltip; ein ungültiger Ausdruck wird mit seiner
+  Zeile im Kopf der Maske gemeldet, und die Konsistenz-Prüfung führt ihn als
+  Befund der Masken-Datei. Ein Rückstrich vor den Klammern macht den Platzhalter
+  zu Text, wie bei Vorlagen.
+- **Bedingte Bereiche der Maske** (`4T-002186`; Entscheidung des Product
+  Owners vom 2026-10-09, Grundsatz vom 2026-08-26). Ein Abschnitt zwischen den
+  Markern `{{when:<Bedingung>}}` und `{{end}}`, beide allein auf ihrer Zeile,
+  erscheint nur, wenn die Bedingung zutrifft; die Bedingung ist ein Ausdruck der
+  Abfrage-Sprache über die Felder des Datensatzes, mit der Wahrheits-Lesart der
+  Prüfregeln. Bereiche dürfen ineinander liegen, ein innerer erscheint nur mit
+  dem äußeren. Beim Bearbeiten erscheint und verschwindet ein Bereich mit jeder
+  Eingabe, ohne Speichern; im Lesen gilt der gespeicherte Stand. Die Bedingung
+  wirkt allein auf die Anzeige: Ein Feld in einem verborgenen Bereich behält
+  seinen Wert und wird mitgespeichert, und weist eine Regel es ab, steht die
+  Meldung im Kopf der Maske und nennt das Feld. Kein Sonst-Zweig, keine
+  Schleife; ein Marker mitten in einer Zeile ist kein Marker. Ein `{{end}}` ohne
+  Bereich wird übergangen, ein Bereich ohne `{{end}}` zeigt seinen Inhalt wie
+  außerhalb, und eine ungültige Bedingung verbirgt den Bereich; alle drei werden
+  mit ihrer Zeile im Kopf gemeldet und von der Konsistenz-Prüfung als Befund
+  geführt.
+- **Mehrere Masken je Tabelle und die Standard-Maske** (`4T-002184`;
+  Entscheidungen des Product Owners vom 2026-10-09). Eine Tabelle darf mehrere
+  Masken-Dateien haben. Die Angabe `form: <Name der Masken-Datei>` in der
+  Tabellen-Definition nennt die Standard-Maske, die beim Öffnen eines
+  Datensatzes erscheint; ohne Angabe gilt wie bisher die erste Masken-Datei der
+  Tabelle nach Pfad, ohne Masken-Datei die erzeugte Maske. Nennt `form` keine
+  oder eine fehlende oder fremde Masken-Datei, steht ein Hinweis unter den
+  Fehlerlagen der Übersicht, und es gilt der Rückfall; die beiden letzten Lagen
+  führt die Konsistenz-Prüfung als Befund an der Tabelle. Die Übersicht der
+  Datenbank nennt in der Spalte «Maske» die Standard-Maske und die Zahl der
+  weiteren.
+- **Navigation zwischen Masken** (`4T-002185`; Entscheidung des Product Owners
+  vom 2026-10-09). Ein Link im Text einer Masken-Datei hat drei Ziele: Eine
+  andere Maske derselben Tabelle zeigt denselben Datensatz dort; die Maske einer
+  anderen Tabelle meldet unter dem Kopf, dass dafür ein Datensatz fehlt, ohne
+  Neuanlage; jeder andere Link öffnet sein Dokument. Ein gefülltes Verweis-Feld
+  ist im Lesen anklickbar und öffnet den verwiesenen Datensatz in der
+  Standard-Maske seiner Tabelle; ein Verweis ins Leere meldet das. «Zurück» im
+  Kopf führt zum zuvor gezeigten Datensatz in seiner Maske, über einen
+  flüchtigen Verlauf je Fenster, der mit jedem Öffnen von außen neu beginnt;
+  bei ungespeicherter Bearbeitung fragt die Maske vor jedem Wechsel nach.
+- **Listen-Maske** (`4T-002248`, `4T-002249`; Entscheidungen des Product Owners
+  vom 2026-10-11). Eine Abfrage-Datei wird mit drei Angaben im Behälter
+  `db-query` zur Listen-Maske: `editable: true` macht ihre Treffer bearbeitbar,
+  `form: <Name der Masken-Datei>` nennt die Maske, die ein Klick auf eine Zeile
+  öffnet (ohne Angabe die Standard-Maske der Tabelle), und `allow` zählt die
+  erlaubten Handgriffe `create`, `update` und `delete` auf, ohne Angabe gilt
+  allein `update`. An der Stelle der Ergebnis-Tabelle steht in Lese-Ansicht,
+  geteilter Ansicht und Live-Modus ein Gitter mit Zähl-Zeile («Zeilen 1 bis 50
+  von 120»), in festen Seiten von 50 Zeilen mit «Vor» und «Zurück» über die
+  ganze Ergebnismenge; die Seite bleibt stehen, wenn sich der Bestand ändert.
+  Ein Klick auf die Spalte «Datensatz» öffnet die benannte Maske; nennt `form`
+  eine unbekannte oder eine Masken-Datei einer anderen Tabelle, gilt die
+  Standard-Maske. Lesend bleibt die Liste, wenn die Abfrage gruppiert, mit
+  `DISPLAY` eine Darstellungsform wählt oder keine Datensätze liefert, mit einem
+  Hinweis über dem Gitter. Die Übersicht der Datenbank nennt im Abschnitt
+  «Abfragen» in der neuen Spalte «Art», ob eine Datei eine Abfrage oder eine
+  Listen-Maske ist, samt den erlaubten Handgriffen; fehlerhafte Angaben
+  erscheinen als Hinweis unter den Fehlerlagen der Übersicht und als Befund der
+  Konsistenz-Prüfung. Die Listen-Maske hat keinen eigenen Schalter, sie gehört
+  zur Erweiterung «Datenbank» auf der Stufe «Voll».
+- **Pflege in der Liste** (`4T-002250`, `4T-002251`; Entscheidungen des Product
+  Owners vom 2026-10-11). Eine Zeile wird als Ganzes bearbeitet: «Bearbeiten» in
+  der Spalte «Aktionen» oder ein Doppelklick nimmt die Sperre des Datensatzes,
+  liest seinen frischen Stand und setzt die Eingabe-Felder der Maske in die
+  Zellen; bearbeitbar sind nur Spalten, die genau ein Feld der Tabelle zeigen.
+  «Speichern» oder die Eingabetaste schreibt die Zeile als einen Auftrag,
+  «Abbrechen» oder Escape verwirft, ein Fokus-Verlust speichert nicht. Eine
+  Abweisung steht an der Zelle des Feldes, eine Regel über mehrere Felder in der
+  Zeile; hat jemand den Datensatz inzwischen geändert, bietet die Zeile «Neu
+  laden» und «Trotzdem speichern». Eine Zeile, die nach der Angabe `editable`
+  ihrer Tabelle nicht änderbar ist, bleibt lesend. In einer Zeile, die
+  «Bearbeiten» anbietet, öffnet der einfache Klick in eine bearbeitbare Zelle die
+  Maske nicht mehr, damit der Doppelklick sie bearbeiten kann; die Spalte
+  «Datensatz», lesende Zellen und Verweise öffnen weiter. Mit `create` setzt
+  «Neue Zeile» neben der Zähl-Zeile eine leere Zeile oben in die gezeigte Seite,
+  mit `delete` entfernt «Löschen» einen Datensatz nach einer Rückfrage; ein
+  Lösch-Schutz steht als Befund unter der Zeile. Bearbeitet wird eine Zeile zur
+  Zeit, und das Schließen des Dokuments sowie der Wechsel der Ansicht oder des
+  Dokuments geben eine gehaltene Sperre frei.
+- **Positionen in der Maske** (`4T-002253`; Entscheidung des Product Owners vom
+  2026-10-11). Der Platzhalter `{{list:<Abfrage-Datei>}}`, allein auf seiner
+  Zeile, zeigt in einer Masken-Datei die Listen-Maske einer anderen Tabelle,
+  beschränkt auf die Positionen des gezeigten Kopfes, etwa die Ausleihen eines
+  Buches; hat die Positions-Tabelle mehrere Verweis-Felder auf die Kopf-Tabelle,
+  nennt `BY <Verweis-Feld>` das gemeinte. Im Lesen ist der Bereich lesend, ein
+  Klick öffnet die Maske der Position. Im Bearbeiten der Maske werden Zeilen
+  angelegt, geändert und gelöscht, aber nur vorgemerkt; «Speichern» der Maske
+  schreibt Kopf und Positionen in einem Auftrag, ganz oder gar nicht, und eine
+  neue Position trägt den Verweis auf den Kopf auch bei einem neuen Kopf. Weist
+  eine Position den Auftrag ab, bleibt alles stehen, und der Befund steht im
+  Kopf der Maske mit «Position N»; «Verwerfen» verwirft Kopf und Positionen.
+  Fünf Lagen melden sich mit Zeile im Kopf der Maske und als Befund der
+  Konsistenz-Prüfung: unbekannte Abfrage-Datei, Abfrage-Datei ohne
+  `editable: true` (der Bereich bleibt lesend), kein oder kein eindeutiges
+  Verweis-Feld auf den Kopf und eine Abfrage, die sich nicht um die Beziehung
+  ergänzen lässt.
+- **Verweis-Pfade in Wert und Bedingung** (`4T-002252`; Entscheidung des
+  Product Owners vom 2026-10-11). Wert-Platzhalter und bedingte Bereiche lesen
+  über ein Verweis-Feld die Felder des verwiesenen Datensatzes, etwa
+  `{{value:book.title}}` oder `{{when:book.onloan}}`. Ausgewertet wird im
+  Haupt-Prozess, mit einer kurzen Verzögerung nach dem Öffnen und nach jeder
+  Eingabe; im Bearbeiten folgt der Wert der Wahl eines anderen Verweises, ohne
+  Speichern. Ein leerer oder ins Leere zeigender Verweis lässt die Stelle leer.
+  Ein Pfad, der kein Verweis-Feld oder kein Feld der Ziel-Tabelle nennt, wird
+  mit seiner Zeile im Kopf der Maske gemeldet und von der Konsistenz-Prüfung als
+  Befund der Masken-Datei geführt. Ausdrücke ohne Pfad rechnen wie bisher sofort.
+- **Rollen und Erlaubnisse im Steckbrief** (`4T-002307`; Plan-Freigabe des
+  Product Owners vom 2026-10-17). Im Behälter `db-database` des Steckbriefs
+  nennt die Angabe `roles` benannte Rollen. Je Rolle steht das Wort `all` oder
+  eine Zuordnung von Tabellen-Namen zu einer Liste der erlaubten Operationen:
+  `create` (anlegen), `update` (ändern), `delete` (löschen) und `define`
+  (Definition ändern). `all` gilt als Wert einer Rolle für alle vier
+  Operationen an allen Tabellen, als Tabellen-Name für alle Tabellen und als
+  Eintrag einer Liste für alle vier Operationen; eine Tabelle, die eine Rolle
+  nicht nennt, und eine leere Liste erlauben nichts. Operationen und
+  Tabellen-Namen gelten ohne Rücksicht auf die Schreibung, Rollen-Namen wie
+  geschrieben. Ohne `roles` ist alles erlaubt. Die Übersicht der Datenbank zeigt
+  im Steckbrief-Block den Abschnitt «Rollen» mit einer Zeile je Rolle und ihren
+  Erlaubnissen je Tabelle. Eine Rolle mit unbekannter Tabelle, unbekannter
+  Operation oder unbrauchbarer Form gilt als nicht gesetzt; jeder ihrer Fehler
+  steht als Hinweis unter den Fehlerlagen der Übersicht. Die Rollen sind
+  Angaben des bestehenden Steckbriefs, keine neue Datei-Art, und reisen mit ihm.
+- **Zuordnung von Anmeldenamen und Vorgabe-Rolle** (`4T-002308`; Plan-Freigabe
+  des Product Owners vom 2026-10-17). Unter `users` ordnet der Steckbrief
+  Anmeldenamen eine Rolle zu, `defaultRole` nennt die Vorgabe-Rolle für alle
+  übrigen. Maßgeblich ist der Anmeldename des Betriebssystems, derselbe, den die
+  Änderungsbelege als Benutzer führen, Zeichen für Zeichen verglichen. Es gilt
+  die erste zutreffende Regel: ohne Rollen alles erlaubt, sonst die zugeordnete
+  Rolle, sonst die Vorgabe-Rolle, ohne Vorgabe-Rolle alles erlaubt. Die
+  Übersicht zeigt im Steckbrief-Block die Zeile «Eigene Rolle» mit dem
+  Anmeldenamen wörtlich: die zugeordnete Rolle, die Vorgabe-Rolle oder «alles
+  erlaubt (keine Zuordnung)». Eine Angabe in falscher Form und eine Zuordnung
+  oder Vorgabe-Rolle auf eine Rolle, die es nicht gibt, gelten als nicht gesetzt
+  und werden gemeldet. Eine Pflege-Oberfläche gibt es nicht; die Zuordnung
+  steht lesbar in der Datei, und eine Weitergabe ohne sie bietet die Anwendung
+  nicht.
+- **Prüfung der Berechtigung beim Schreiben** (`4T-002309`; Plan-Freigabe des
+  Product Owners vom 2026-10-17). Jede Änderung an Datensätzen prüft an der
+  geprüften Schreib-Schnittstelle zuerst die Rolle, je Anweisung mit Tabelle und
+  Operation, vor Verweis, Schlüssel, Lösch-Schutz, Prüfregeln und
+  Bearbeitbarkeit. Fehlt die Erlaubnis, wird der ganze Auftrag abgewiesen, und
+  die Meldung nennt Rolle, Tabelle und Handgriff. Auch das Beginnen eines neuen
+  Datensatzes verlangt `create`, geprüft vor dem Ziehen der Kennung; die
+  Statuszeile nennt dann den Grund. Lässt sich die Erlaubnis nicht feststellen,
+  weil die Tabellen des Bereichs noch nicht vollständig eingelesen sind oder der
+  Steckbrief nicht lesbar ist, wird ebenfalls nichts geschrieben, und die
+  Meldung bittet um einen neuen Versuch. Maßgeblich ist der gespeicherte Stand
+  des Steckbriefs, nicht ein ungespeicherter in einem geöffneten Dokument.
+- **Schutz der Definition beim Speichern** (`4T-002310`; Plan-Freigabe des
+  Product Owners vom 2026-10-17). Ändert das Speichern einer Datei den Behälter
+  `db-table` einer Tabellen-Datei oder den Steckbrief `db-database`, verlangt
+  die Anwendung `define`: an dieser Tabelle, beim Steckbrief an allen Tabellen.
+  Das gilt beim Speichern im Editor, bei «Speichern unter…» auf eine bestehende
+  oder eine neue Datei und beim Suchen und Ersetzen im Bereich. Fehlt die
+  Erlaubnis, wird nichts geschrieben: Beim Speichern erscheint der Fehler-Dialog
+  «Schreibfehler» mit einem Satz, der Rolle und Tabelle nennt, und der Text
+  bleibt ungespeichert im Editor; das Ersetzen führt die Datei unter «Nicht
+  ersetzt». Frei bleiben Datensatz-Block und übriger Text der Datei sowie
+  Masken- und Abfrage-Dateien. Einrückung und Reihenfolge der Angaben zählen
+  nicht als Änderung, die Reihenfolge der Felder schon, der Hochwasserstand
+  `lastId` nie; das Entfernen der Marke und ein unlesbares Frontmatter zählen
+  als Änderung.
+- **Berechtigung in Einzel-Maske, Listen-Maske und Übersicht** (`4T-002311`;
+  Plan-Freigabe des Product Owners vom 2026-10-17). Die Masken bieten nur an,
+  was Masken-Angabe und Rolle gemeinsam erlauben, ohne dass der Autor einer
+  Maske etwas dazu schreibt. In der Einzel-Maske fehlt ohne `update`
+  «Bearbeiten», die Felder bleiben lesend, und ein Satz über den Feldern nennt
+  Rolle und Tabelle; ohne `delete` fehlt «Löschen», das nicht mehr am Ändern
+  hängt; ohne `create` bleibt eine begonnene Neuanlage lesend. «Neuer
+  Datensatz» fehlt ohne `create` unter dem Datensatz-Block und in der
+  Übersicht. Listen-Maske und Positions-Bereich bieten den Schnitt aus `allow`
+  und Rolle an; erlaubt `allow` das Ändern und die Rolle nicht, nennt der
+  Tooltip der Zeile die Rolle, und eine Zeile ohne Handgriff erscheint gedämpft.
+  Die Übersicht nennt unter jeder Tabelle die Erlaubnisse der eigenen Rolle
+  («Erlaubnisse: anlegen, ändern»), sofern der Steckbrief Rollen trägt.
+- **Feld sichtbar, aber gesperrt** (`4T-002312`; Plan-Freigabe des Product
+  Owners vom 2026-10-17, aus der Plan-Freigabe vom 2026-10-09 in dieses Epic
+  verlegt). Ein Feld-Eintrag der Tabellen-Definition trägt die Angabe `editable`
+  in derselben Grammatik wie die Tabelle: eine Bedingung der Abfrage-Sprache
+  über den vorgefundenen Datensatz, allein am Feld dazu `false` als feste Sperre
+  und `true` als ausdrücklich frei. Trifft die Bedingung nicht zu, weist die
+  Schreib-Schnittstelle eine Änderung des Feldes ab, und die Meldung nennt Feld,
+  Datensatz, Tabelle und Regel. Ein unveränderter Wert ist kein Befund, Anlegen
+  und Löschen sind unberührt, und ist der ganze Datensatz gesperrt, steht allein
+  dessen Befund. Einzel-Maske und Zeile der Listen-Maske zeigen ein gesperrtes
+  Feld beim Bearbeiten lesend mit Tooltip; nach dem Speichern gilt der neue
+  Stand. Eine unbrauchbare Bedingung meldet sich als Hinweis der Definition, und
+  das Feld bleibt bearbeitbar.
+- **Datensätze als Treffer der Bereichs-Suche** (`4T-002331`, `4T-002332`;
+  Plan-Freigabe des Product Owners vom 2026-10-20). Die Suche über den Bereich
+  findet die Datensätze der Datenbank-Tabellen als eigene Treffer-Art. Hinter
+  den Gruppen der Dokumente steht je Tabelle eine Gruppe mit dem Tabellen-Namen
+  und dem Zusatz «Datensätze»; jede Zeile nennt den Datensatz mit seiner
+  Anzeige-Form und das Feld, in dem der Suchbegriff steht, und zeigt dessen Wert
+  mit markiertem Fund. Ein Klick öffnet den Datensatz in der Standard-Maske
+  seiner Tabelle. Durchsucht werden die Feld-Werte aller Dateien einer Tabelle
+  samt Folge-Dateien, bei einer geöffneten Tabelle ihr ungespeicherter Stand,
+  mit demselben Muster und denselben Optionen wie der Text. Die Deckel der Liste
+  gelten gemeinsam mit den Dokument-Treffern, 200 je Gruppe und 5000 insgesamt,
+  und die Zahl über der Liste zählt beide. Die Prosa einer Tabellen-Datei bleibt
+  Dokument-Treffer, ihr Datensatz-Block bleibt aus dem Volltext. Ist die
+  Ersetzen-Zeile geöffnet, entfallen die Datensatz-Gruppen, weil das Ersetzen
+  über den Bereich nicht in Datensätze schreibt. Im Handbuch- und im
+  Einstellungs-Suchraum gibt es keine Datensatz-Treffer. Gesucht wird in einem
+  Vorrat je Tabelle im Speicher, ohne zweiten Index; gemessen an 10 000
+  Datensätzen in drei Folge-Dateien: 38,7 ms für den ersten Lauf samt Lesen und
+  Aufbau, 3,2 ms für jeden weiteren.
+- **Verweis auf einen Datensatz: Klick in die Maske, Kurzform, Anzeige-Form
+  und Vorschlagsliste** (`4T-002333`; Plan-Freigabe des Product Owners vom
+  2026-10-20). Ein Verweis `[[Tabelle#^r-00042]]` aus einem Dokument öffnet beim
+  Klick die Standard-Maske des Datensatzes; der Handgriff «Im Tabellen-Dokument
+  zeigen» im Kopf der Maske bringt seine Zeile in der Tabellen-Datei in den
+  Blick, in Lese-, Live- und Quellcode-Ansicht, auch in einer Folge-Datei. Neben
+  der langen Kennung gelten die Kurzform `[[Tabelle#^r-42]]`, bisher als
+  gebrochen markiert, und die Anzeige-Form `[[Tabelle#^Anna Muster]]` aus
+  Buchstaben, Ziffern, Leerzeichen, Unterstrich, Bindestrich, Punkt, Apostroph,
+  Komma und runden Klammern, ohne führende und folgende Leerzeichen und mit
+  Rücksicht auf die Schreibung verglichen. Aufgelöst wird in fester Reihenfolge:
+  Ein Block-Anker gleichen Namens geht vor, und der Linter meldet «Block-Anker
+  verdeckt einen Datensatz»; beim Klick geht ebenso eine Überschrift gleicher
+  Anker-Form vor; dann gilt die Kennung, lang oder kurz, danach die
+  Anzeige-Form. Tragen mehrere Datensätze dieselbe Anzeige-Form, gilt der
+  Verweis, der Linter meldet «Mehrdeutiger Datensatz-Name», und der Klick öffnet
+  die Tabellen-Datei. Geprüft und aufgelöst wird gegen den gespeicherten Stand
+  der Tabelle; ein Verweis auf eine Folge-Datei gilt ebenso (siehe Geändert).
+  Nach
+  `[[Tabelle#^` bietet die Vorschlagsliste hinter den Block-Ankern die
+  Datensätze mit ihrer Anzeige-Form und dem Zusatz «Datensatz» an, zusammen
+  höchstens 30 Einträge, gefiltert über Anzeige-Form und Kennung; die Auswahl
+  schreibt die lange Kennung. Außerhalb eines geöffneten Bereichs öffnet der
+  Klick wie bisher die Tabellen-Datei an der Zeile. Der Anker hinter `^` darf
+  dafür auch Leerzeichen tragen (siehe Geändert).
+- **Masken-Dokument nach dem Neustart** (`4T-002334`; Plan-Freigabe des Product
+  Owners vom 2026-10-20). Ist die Sitzungs-Wiederherstellung eingeschaltet,
+  kehrt eine beim Beenden geöffnete Maske beim nächsten Start zurück: an ihre
+  Stelle unter den geöffneten Dokumenten ihrer Spalte, mit demselben Datensatz in
+  derselben Masken-Datei; war sie das gezeigte Dokument ihrer Spalte, ist sie es
+  wieder. Eine ungespeicherte Neuanlage wird nicht gesichert, und der Weg für
+  «Zurück» beginnt neu. Fehlt der Datensatz oder seine Tabellen-Datei
+  inzwischen, zeigt die Maske den Zustand «Datensatz fehlt» mit dem Hinweis,
+  dass der Datensatz in seiner Tabelle nicht mehr vorhanden ist, und dem
+  Handgriff «Tabelle öffnen», statt zu verschwinden. Ist die Datenbank beim
+  Start abgeschaltet, ruht der Eintrag über weitere Neustarts und bringt die
+  Maske nach dem Einschalten mit dem nächsten Start zurück; trug ihre Spalte nur
+  die Maske, kehrt sie in die verbleibende Spalte hinter deren Dokumente zurück.
+  Gewöhnliche Dokumente, Buch und Regal werden unverändert wiederhergestellt, und
+  eine Sitzung ohne Masken-Eintrag liest sich wie bisher.
+- **«Verwendet von» und Datensatz-Verweise im Text der Maske im Verlauf**
+  (`4T-002335`; Plan-Freigabe des Product Owners vom 2026-10-20). Der Sprung aus
+  «Verwendet von» in die Maske eines verweisenden Datensatzes und der Klick auf
+  einen Datensatz-Verweis wie `[[Kunden#^r-00002]]` im Text einer Masken-Datei
+  gehen in den Verlauf der Maske ein; «Zurück» führt zur Ausgangs-Maske. Der
+  Datensatz-Verweis im Text zeigt den Datensatz in der Standard-Maske seiner
+  Tabelle; trifft er keinen Datensatz eindeutig, öffnet er die Tabellen-Datei,
+  und ein Markdown-Link auf eine Tabellen-Datei bleibt ein Dokument. Die übrigen
+  Wege des Verlaufs sind unverändert.
+
+### Geändert
+
+- **Vorlagen fallen auch aus der Ereignis-Aggregation und aus den Seiten- und
+  Block-Listen der Skript-Blöcke** (`4T-002126`; Entscheidung des Product
+  Owners vom 2026-10-03). Es gilt dieselbe Regel wie in der Abfrage seit
+  `1.145.0`: Was im wirksamen Vorlagen-Ordner oder einem seiner Unterordner
+  liegt, ist kein Kandidat. Ein Ereignis-Block mit `query:` sammelt eine Vorlage
+  mit Ereignis-Profil nicht mehr ein, außer `FROM` nennt den Vorlagen-Ordner oder
+  einen seiner Unterordner positiv; die Wurzel, ein übergeordneter Ordner, eine
+  Verneinung, ein Schlagwort und ein Verweis-Bezug geben nichts frei.
+  `pq.pages` und `pq.blocks` liefern ohne Quelle und mit Schlagwort-, Verweis-
+  oder übergeordneter Ordner-Quelle keine Vorlage mehr; eine Ordner-Quelle auf
+  den Vorlagen-Ordner oder einen seiner Unterordner, etwa `pq.pages('Vorlagen')`,
+  liefert genau deren Inhalt. `pq.file`, `pq.current` und `pq.link` finden eine
+  Vorlage weiter beim Namen. Im Aus-Zustand der Erweiterung «Vorlagen» und ohne
+  gewählten Vorlagen-Ordner wird nichts ausgeschlossen. Maßgeblich ist der
+  Ordner der Vorlagen-Auswahl, die Bereichs-Konfiguration vor der globalen,
+  ohne die Vorlagen-Ordner verknüpfter Bereiche. Gesammelte Ereignisse und
+  Skript-Ausgaben, die bisher Einträge aus dem Vorlagen-Ordner zeigten,
+  verlieren sie.
+
+- **Mehrere Masken-Dateien einer Tabelle sind keine Fehlerlage mehr**
+  (`4T-002184`). Bis `1.146.2` galt die erste Masken-Datei nach Pfad, und jede
+  weitere blieb mit dem Hinweis «mehrere Masken-Dateien» ein gewöhnliches
+  Dokument; der Hinweis ist entfallen, jede Masken-Datei ist eine Maske ihrer
+  Tabelle. Eine bestehende einzelne Masken-Datei wirkt unverändert weiter. Die
+  Funktions-Texte «Einzel-Maske» und «Maske als Datei» nennen die neuen
+  Platzhalter, die Bereiche und die Links auf weitere Masken.
+- **Befund-Liste der Konsistenz-Prüfung mit Spaltenkopf «Quelle»**
+  (`4T-002254`). Die erste Spalte der Befund-Liste heißt «Quelle» statt
+  «Tabelle», weil sie seit der Listen-Maske auch den Namen einer Abfrage-Datei
+  zeigt; die Zusammenfassung je Tabelle darüber heißt weiter «Tabelle».
+- **Hinweis «fremde Maske» in der Übersicht** (`4T-002254`). Nennt die Angabe
+  `form` einer Listen-Maske eine Masken-Datei, die zu einer anderen Tabelle
+  gehört als die Abfrage, steht das jetzt auch in der Übersicht der Datenbank
+  unter den Fehlerlagen der Abfrage-Datei, neben dem Fall der unbekannten
+  Masken-Datei; ein Klick auf eine Zeile öffnet dann die Standard-Maske.
+- **Katalog-Texte zur Maske und zum Wert-Platzhalter** (`4T-002254`). Die
+  Funktions-Texte «Einzel-Maske für Datensätze» und «Wert-Platzhalter in der
+  Maske» sind um je einen Satz ergänzt, zum Positions-Bereich und zum Lesen über
+  ein Verweis-Feld; der Text «Abfrage-Datei» nennt die drei Angaben der
+  Listen-Maske (`4T-002248`).
+- **Antworten der Lese-Kanäle mit Rolle und Rechten** (`4T-002308`,
+  `4T-002311`, `4T-002312`). Die Antworten von Datensatz, Liste und
+  Positionsliste tragen die Erlaubnis-Menge ihrer Tabelle (`rechte`) und die
+  geltende Rolle (`rolle`), bei der Positionsliste die der Positions-Tabelle;
+  Datensatz und Liste tragen dazu die gesperrten Felder (`gesperrteFelder`). Die
+  Übersicht trägt die eigene Rolle samt Anmeldenamen und die Rechte je Tabelle,
+  die Tabellen-Definition Rolle und Rechte. Ohne bereite Sicht ist `rechte` im
+  Datensatz-Kanal leer und nicht «alles erlaubt».
+- **Übersicht der Datenbank mit Rollen** (`4T-002307`, `4T-002308`,
+  `4T-002311`). Der Steckbrief-Block hat die Zeile «Eigene Rolle» und den
+  Abschnitt «Rollen», jede Tabelle eine Zeile mit den Erlaubnissen der eigenen
+  Rolle, sofern der Steckbrief Rollen trägt; die Fehlerlagen nennen die
+  Hinweise zu `roles`, `defaultRole` und `users`.
+- **Konsistenz-Prüfung mit Befund zu den Rollen** (`4T-002307`, `4T-002308`).
+  Bei der Prüfung aller Tabellen meldet der neue Befund jeden Fehler in `roles`,
+  `defaultRole` und `users` mit Rolle, Tabelle und Steckbrief, nach derselben
+  Auslegung wie die Übersicht.
+- **Katalog-Texte ergänzt** (`4T-002313`). Der Funktions-Text «Bedingte
+  Bearbeitbarkeit» nennt die Bedingung am Feld, der Text «Steckbrief der
+  Datenbank» die Angaben `roles`, `defaultRole` und `users`.
+- **Demo mit Rollen und Feld-Sperre** (`4T-002313`). Der Steckbrief «Library
+  Database» führt die Rollen `librarian` (alles) und `assistant` (Bücher
+  ändern, Ausleihen anlegen, ändern und löschen, an «Staff» nichts) und
+  `defaultRole: librarian`, ohne `users`, weil kein Anmeldename eines Anwenders
+  «demo» lautet; ein Absatz erklärt den Wechsel auf `assistant` und den Rückweg.
+  Die Tabelle «Loans» sperrt das Feld `book` fest; zwei Sätze der Erklär-Texte
+  von «Loans» und «Loans Form», die mit der Sperre falsch geworden wären, sind
+  auf die Neuanlage berichtigt. Die Änderungen erscheinen nur in einem neu
+  angelegten Demo-Bereich.
+- **Übersicht und Tabellen-Definition ohne Berechtigungen bei ausgeschalteter
+  Datenbank** (`4T-002308`, Nachbesserung aus `4T-002148`). Die Kanäle der
+  Übersicht und der Tabellen-Definition fragen das Tor der Erweiterung
+  «Datenbank». Abgeschaltet antworten sie weiter, weil die Einstellungs-Seite
+  die Bereichs-Art auch dann liest, aber ohne eigene Rolle, ohne Rechte, ohne
+  ausgelegte Rollen, Vorgabe-Rolle und Zuordnung und ohne Rollen-Hinweise; der
+  Anmeldename wird nicht gelesen. Für den Anwender war zuvor nichts sichtbar.
+- **Ein Datensatz-Verweis im Text öffnet die Maske statt der Zeile**
+  (`4T-002333`; Entscheidung F2, Option A, des Product Owners vom 2026-10-20,
+  Empfehlung pauschal übernommen). Seit `1.145.0` öffnete der Klick auf einen
+  Verweis `[[Tabelle#^r-00042]]` die Tabellen-Datei an der Zeile des
+  Datensatzes. Jetzt öffnet er die Standard-Maske des Datensatzes, wie ein
+  Datensatz-Treffer der Suche, ein Datensatz im Abfrage-Ergebnis und eine Zeile
+  der Listen-Maske; ein Datensatz hat damit überall dasselbe Klick-Ziel. Zur
+  Zeile führt der Handgriff «Im Tabellen-Dokument zeigen» im Kopf der Maske, der
+  denselben Sprung wie bisher nutzt. Außerhalb eines geöffneten Bereichs bleibt
+  es beim Öffnen der Datei an der Zeile, und im Aus-Zustand der Datenbank öffnet
+  der Klick wie bisher die Tabellen-Datei ohne Sprung.
+- **Anker mit Leerzeichen bleiben Verweise, Verweise auf eine Folge-Datei
+  gelten** (`4T-002333`). Der Anker eines Verweises hinter `^` darf jetzt
+  Leerzeichen, Punkt, Apostroph, Komma und Klammern tragen; `[[Ziel#^a b]]`
+  bleibt damit in der Anzeige ein Verweis mit Anker, statt zum Datei-Verweis zu
+  werden. Ein Datensatz-Verweis, der auf eine Folge-Datei der Tabelle auflöst,
+  gilt jetzt; bisher war er als gebrochen markiert.
+
+### Behoben
+
+- **Ein geöffnetes, geteiltes Dokument zählt in Abfragen, Tag-Panel und
+  Eigenschaften nicht mehr doppelt** (`4T-002047`). Ein Dokument über 1 MB
+  liegt in mehreren Teil-Dateien und wird als eines geöffnet. Solange es offen war, führte die Sicht des Index auf den
+  geschriebenen Stand jeden Eintrag aus einem hinteren Teil zweimal: einmal aus
+  dem geöffneten Dokument, einmal aus der gespeicherten Teil-Datei. Eine
+  Aufgaben-Abfrage zählte diese Aufgaben doppelt, das Tag-Panel ihre Tags, und
+  dasselbe galt für Eigenschaften, Aliase, Anker und Treffer; ein im
+  ungespeicherten Text gelöschter Eintrag eines hinteren Teils blieb über die
+  Platte sichtbar. Jetzt ist der geöffnete Stand das ganze Dokument, und die
+  Teil-Dateien führen in der Sicht keine Einträge; nach dem Schließen gilt
+  wieder der gespeicherte Stand. Betroffen war jedes geteilte Dokument seit
+  `1.126.0`; für die Datensätze einer geteilten Tabelle war der Fehler mit
+  `1.145.0` behoben.
+- **Der Inhalt eines Feldes steht in der Maske rechts vom Beginn seiner
+  Beschriftung** (`4T-002220`; Anordnung des Product Owners vom 2026-10-10). In
+  jeder Maske, erzeugt oder gestaltet, stand der Inhalt eines Feldes und einer
+  Wert-Stelle auf eigener Zeile rund 32 Pixel links vom Beginn seiner
+  Beschriftung, weil die Beschriftung den Rand des gerenderten Dokuments trug
+  und das Feld nicht. Jetzt übernimmt der Masken-Körper Inhalts-Breite und
+  Zentrierung des Dokuments, und Felder und Wert-Stellen stehen ein kleines
+  Stück rechts vom Beginn ihrer Beschriftung, lesend wie bearbeitend und in
+  Bereichen ebenso; ein Wert im Satz ist unverändert. Der Fehler bestand seit
+  der ersten Maske in `1.142.0`.
+- **Die Neuanlage vergibt keine schon vorhandene Kennung mehr** (`4T-002288`).
+  In einer Tabelle, deren Definition keinen Hochwasserstand (`lastId`) oder einen
+  zu niedrigen trägt, zog das Eröffnen einer Neuanlage eine Kennung, die ein
+  vorhandener Datensatz schon führte; ebenso ein Auftrag «Anlegen» ohne
+  mitgebrachte Kennung. Beide Wege ziehen jetzt über dem Maximum aus
+  Hochwasserstand und höchster vorhandener Kennung, gezählt über alle Teil-Dateien
+  der Tabelle, und tragen danach den neuen Hochwasserstand ein. Die
+  Konsistenz-Prüfung meldet einen fehlenden oder zu niedrigen Hochwasserstand
+  mit der höchsten vorhandenen Kennung.
+- **Die Listen-Maske behält den Befund unter einer Zeile** (`4T-002325`). Nach
+  «Ja, löschen» an einem Datensatz, auf den noch andere verweisen, erschien die
+  Meldung des Lösch-Schutzes unter der Zeile und war nach rund 100 bis 250 ms
+  wieder verschwunden; ebenso der Hinweis auf eine fremde Sperre. Ursache war
+  die Neu-Befüllung der Abfrage nach der Index-Aktualisierung, die die lesende
+  Zeile samt Befund neu zeichnete; geschützt war allein eine Zeile in
+  Bearbeitung. Jetzt hält die Neu-Befüllung auch an, solange eine Zeile einen
+  solchen Befund zeigt, und wird nachgeholt, sobald er endet, mit «Nur lesen»
+  oder dem Ende der nächsten Handlung. Der Fehler stammt aus dem vierten
+  Mitglied dieses Zuges und war in keinem Release enthalten.
+- **Die Vorschlagsliste schreibt einen Block-Anker mit einem Zirkumflex**
+  (`4T-002333`). Die Übernahme eines Block-Ankers aus der Vorschlagsliste nach
+  `[[Datei#^` schrieb den Zirkumflex doppelt (`#^^`): Die ersetzte Stelle begann
+  hinter dem Zirkumflex, die Beschriftung trug ihn aber mit. Jetzt beginnt die
+  ersetzte Stelle am Zirkumflex, und er steht einmal. Der
+  Fehler war ausgeliefertes Verhalten seit dem Anker-Modus der Vorschlagsliste;
+  der Ablauf-Fall `DB-VER-03` prüft, dass kein `#^^` mehr entsteht.
+
+### Dokumentation
+
+- **Handbuch und Funktions-Katalog zum Vorlagen-Ausschluss der beiden Leser**
+  (`4T-002126`). Die Seite «Vorlagen» nennt im Absatz «Vorlagen in Abfragen»
+  Ereignis-Aggregation und Skript-Blöcke samt dem Weg der Ausnahme und im Satz
+  zum Aus-Zustand alle drei Leser; die Seite «Ereignisse» nennt im Abschnitt
+  «Aggregation über Frontmatter» die Ausnahme über `FROM`; die Seite
+  «Skript-Blöcke» nennt sie im Abschnitt «Daten lesen» bei `pq.pages` und mit
+  einem Absatz «Vorlagen» im Abschnitt «Quellen». Die Katalog-Einträge
+  «Ereignis-Aggregation» und «Abfrage-Quellen» sind entsprechend gefasst. Eine
+  neue Handbuch-Seite und neue Katalog-Einträge sind nicht entstanden.
+- **Handbuch, Funktions-Katalog und Demo zum Diagramm einer Abfrage**
+  (`4T-002174`, Katalog-Texte vorgezogen in `4T-002173`). Die Seite
+  «Perspective-Abfrage» beschreibt im Abschnitt «Darstellungsform (`DISPLAY`)»
+  die beiden Diagramme mit einem Beispiel, Beschriftung, Reihen, Lücken und
+  übergangenen Spalten, Reihenfolge ohne Zeit-Achse, dem Bild ohne Bedienung und
+  der Erweiterung, im Absatz «Rückfall» ihre Gründe und im Abschnitt «Export»
+  Druck, PDF und portablen Export. Die Seite «Diagramme zu Tabellen» nennt den
+  eigenen Schalter und verweist auf `DISPLAY bar` und `DISPLAY line`, die Seite
+  «Erweiterungen» führt das Diagramm einer Abfrage unter dem Arbeitsmodus
+  «Fortgeschritten», die Überblicksseite nennt die Diagramme in der Inhaltsangabe
+  der Abfrage-Seite. Der Funktions-Katalog hat die neue Zeile «Diagramm einer
+  Abfrage», der Eintrag «Darstellungsform» nennt die Diagramme. Die Demo-Seite
+  «08 Queries» hat den neuen Abschnitt «A query as a chart» mit einem
+  Balken-Diagramm der Seiten je Autor und einem Linien-Diagramm der ersten acht
+  Bücher in der Reihenfolge ihres Eingangs. Keine neue Handbuch-Seite und keine
+  neue Überschrift.
+
+- **Handbuch, Funktions-Katalog und Demo zur gestalteten Maske**
+  (`4T-002187`). Die Seite «Datenbank» beschreibt im Abschnitt «Die Maske als
+  Datei» den Wert-Platzhalter samt Wert im Satz, die bedingten Bereiche mit
+  Beispiel und der Regel «nie auf den Wert», die zwei Bedeutungen von `table` und
+  den Unterschied zwischen Masken-Datei und Vorlage; neu sind die Unterabschnitte
+  «Mehrere Masken und die Standard-Maske» und «Zwischen Masken wechseln»; die
+  Listen der Konsistenz-Prüfung und der Fehlerlagen nennen die neuen Befunde.
+  Die Seite «Vorlagen» sagt im Abschnitt «Platzhalter-Referenz», dass eine
+  Masken-Datei keine Vorlage ist. Der Funktions-Katalog hat die vier Zeilen
+  «Wert-Platzhalter in der Maske», «Bedingte Bereiche der Maske», «Standard-Maske
+  und mehrere Masken je Tabelle» und «Navigation zwischen Masken». Die Demo hat
+  die Masken-Dateien «Library Form» (Standard-Maske mit Lesezeit, Bereich «Out on
+  loan» am Feld «On loan» und Link auf die zweite Maske) und «Library Short Form»;
+  die Tabelle «Library» nennt ihre Standard-Maske und hat das neue Feld «Loan
+  note». Keine neue Handbuch-Seite.
+- **Handbuch, Funktions-Katalog und Demo zur Listen-Maske** (`4T-002254`). Die
+  Seite «Datenbank» hat die neuen Abschnitte «Listen-Maske» (mit «Ansehen und
+  öffnen», «Zeilen bearbeiten» und «Anlegen und löschen») und «Positionen in der
+  Maske», den Absatz «Zwei Bedeutungen von `editable`» (die Bedingung der Tabelle
+  im Behälter `db-table`, der Schalter der Listen-Maske im Behälter `db-query`)
+  und im Abschnitt «Die Maske als Datei» die Absätze «Verweis-Pfade» und
+  «Positionen»; ergänzt sind Sperren, Konsistenz-Prüfung, die Spalte «Art» der
+  Übersicht, die Fehlerlagen (Angaben der Listen-Maske, fünf Lagen des
+  Positions-Bereichs, unbekannter Pfad, zu niedriger Hochwasserstand) und das
+  Abschalten der Datenbank, in fünf Sprachen. Die Seite «Perspective-Abfrage»
+  nennt im Abschnitt «Datensatz-Ebene» die Listen-Maske mit Verweis auf die
+  Datenbank-Seite. Der Funktions-Katalog hat die vier Zeilen «Listen-Maske»,
+  «Pflege in der Listen-Maske», «Verweis-Pfade in Wert und Bedingung» und
+  «Positions-Bereich in der Maske». Die Demo hat die Listen-Maske «Loans List»
+  über die Ausleihen und die Masken-Datei «Loans Form» mit `{{value:book.title}}`
+  und `{{when:book.onloan}}`; «Library Form» zeigt die Ausleihen des Buches als
+  Positions-Bereich, und die Tabelle «Loans» nennt «Loans Form» als
+  Standard-Maske. Keine neue Handbuch-Seite.
+- **Handbuch und Funktions-Katalog zur Berechtigung** (`4T-002313`). Die Seite
+  «Datenbank» hat zwischen «Sperren» und «Konsistenz-Prüfung» den neuen
+  Abschnitt «Berechtigungen», dessen erster Absatz die Grenze nennt
+  (Fehlbedienung, nicht Missbrauch; kein Leserecht; jeder Editor liest und
+  ändert die Dateien), mit sieben Unterabschnitten: «Rollen im Steckbrief»,
+  «Welche Rolle gilt», «Geprüft beim Schreiben», «Geprüft beim Speichern der
+  Definition», «In Masken und Übersicht», «Sich nicht selbst aussperren» (drei
+  Rückwege, darunter das Abschalten der Datenbank) und «Weitergabe und
+  Anmeldenamen in der Datei». Der Abschnitt «Bedingte Bearbeitbarkeit» hat den
+  Absatz «Dieselbe Angabe am Feld»; ergänzt sind «Steckbrief der Datenbank»,
+  «Lesen und bearbeiten», «Speichern durch die Anwendung», «Konsistenz-Prüfung»,
+  «Der Bereich als Datenbank», «Fehlerhafte Angaben», «Die Grenze, ehrlich
+  benannt» und «Die Datenbank abschalten», in fünf Sprachen. Die
+  Überblicks-Seite des Handbuchs nennt bei der Seite «Datenbank» jetzt die
+  Listen-Maske und die Berechtigungen. Der Funktions-Katalog hat die fünf Zeilen
+  «Rollen und Erlaubnisse im Steckbrief», «Zuordnung von Anmeldenamen und
+  Vorgabe-Rolle», «Prüfung der Berechtigung beim Schreiben», «Berechtigung in
+  Masken und Übersicht» und «Feld sichtbar, aber gesperrt» in der Gruppe
+  «Datenbank». Keine neue Handbuch-Seite.
+- **Konzept und Architektur** (`4T-002148`, Modul-Karte in `4T-002307`,
+  `4T-002308`, `4T-002309` und `4T-002310`). Das Konzept «Datenbank-Anwendungen
+  als Markdown» hat Nachträge aus der Umsetzung an den Blöcken zu E7.8, E12 und
+  E28; «Erkenntnisse und Entscheidungen» hat den Eintrag zu den bindenden
+  Entscheidungen der Berechtigung (Rolle als Träger, vier Operationen je
+  Tabelle, Prüfung an den Schreibwegen, keine Zusicherung gegen Missbrauch). Die
+  Architektur führt die Designentscheidung zur Berechtigung, das Regel-Werk der
+  Schreib-Schnittstelle mit sechs Modulen und sechzehn Lagen, die vier neuen
+  Module in der Modul-Karte, den Durchlauf der Ablage-Regel für Rollen,
+  Vorgabe-Rolle und Zuordnung ohne neuen Ort und die Glossar-Einträge «Rolle»
+  und «Erlaubnis».
+- **Handbuch, Funktions-Katalog und Demo zum Anschluss der Datensätze**
+  (`4T-002336`). Die Seite «Datenbank» hat den neu gefassten Abschnitt
+  «Auffindbarkeit: Suche und Verweise» mit den Datensatz-Treffern als erstem
+  Absatz; der Absatz zum Zwischenstand ist entfallen. Der Abschnitt «Verweis auf
+  einen einzelnen Datensatz» beschreibt Schreibweisen, Auflösungs-Ordnung,
+  Vorschlagsliste und den Klick in die Maske und sagt, dass ein Verweis im Text
+  den Datensatz nicht festhält; neu ist der Unterabschnitt «Nach dem Neustart»;
+  ergänzt sind «Öffnen und neu anlegen», «Lesen und bearbeiten» (der Handgriff
+  «Im Tabellen-Dokument zeigen»), «Zwischen Masken wechseln»,
+  «Verwendungsnachweis» und «Die Datenbank abschalten», in fünf Sprachen. Die
+  Seite «Werkzeuge» beschreibt unter «Im Bereich» die Datensatz-Treffer, und
+  ihre Linter-Tabelle hat die Zeilen «Mehrdeutiger Datensatz-Name» und
+  «Block-Anker verdeckt einen Datensatz». Berichtigt sind zwei Aussagen, die mit
+  dem Klick in die Maske falsch geworden waren: auf der Seite
+  «Perspective-Abfrage» der Punkt «Zwei Klick-Ziele», jetzt «Ein Klick-Ziel»,
+  und auf der Nutzen-Seite des Handbuchs und der Webseite der Satz, ein Klick
+  führe zur Zeile des Datensatzes. Der Funktions-Katalog hat die drei Zeilen
+  «Datensätze als Treffer der Bereichs-Suche», «Verweis in die Maske mit
+  Kurzform, Anzeige-Form und Vorschlagsliste» und «Masken-Dokument nach dem
+  Neustart» in der Gruppe «Datenbank»; nachgezogen sind die Texte
+  «Bereichs-Suche», «Autocomplete», «Datensätze und die Suche im Bereich»,
+  «Verweis auf einen einzelnen Datensatz», «Navigation zwischen Masken»,
+  «Verwendungsnachweis» und «Datenbank als schaltbare Erweiterung». In der Demo
+  verweist der Steckbrief «Library Database» in «See also» auf ein Buch, und der
+  Erklär-Text der Maske «Library Form» trägt einen Datensatz-Verweis auf ein
+  zweites Buch. Die Nachbar-Story zu Datensatz-Treffern und Datensatz-Verweisen
+  in der Abfrage-Ausgabe trägt einen Nachtrag zum neuen Klick-Ziel. Keine neue
+  Handbuch-Seite.
+- **Konzept und Architektur** (`4T-002149`, Modul-Karte in `4T-002331` bis
+  `4T-002334`). Das Konzept «Datenbank-Anwendungen als Markdown» hat Nachträge
+  aus der Umsetzung an den Blöcken zu E16 und E29; «Erkenntnisse und
+  Entscheidungen» hat die Einträge zum Klick-Ziel des Datensatz-Verweises und
+  zum Datensatz-Vorrat der Suche. Die Architektur führt im Abschnitt «Suche» die
+  zweite Treffer-Art, die Designentscheidungen zum Datensatz-Verweis samt
+  Auflösungs-Ordnung und Kanal, zum Handgriff «Im Tabellen-Dokument zeigen» und
+  zum Sitzungs-Eintrag des Masken-Dokuments mit dem Durchlauf der Ablage-Regel
+  ohne neuen Ort, die neuen Module in der Modul-Karte und die Glossar-Einträge
+  «Datensatz-Treffer» und «Masken-Dokument (Sitzungs-Eintrag)».
+- **Nutzen-Darstellung in Handbuch und Webseite, beide READMEs** (`4T-002144`,
+  Zug-Clone-Schritte des Sammeltasks). Die Nutzen-Seite des Handbuchs nennt im
+  Punkt zur Pflege von Datensätzen in der Maske jetzt die gestalteten Masken mit
+  gerechneten Werten und bedingten Abschnitten, die Links zwischen Masken, die
+  bearbeitbare Liste mit Kopf und Positionen und die Rollen, und im Absatz zur
+  Abfrage das Diagramm, in allen fünf Sprachen; die Nutzen-Seite der Webseite
+  ebenso. Die README trägt den Status-Eintrag der Version und den
+  fortgeschriebenen Funktionsumfang, die öffentliche README ist an zwei
+  Aussagen zum Datensatz-Verweis und zur Bereichs-Suche berichtigt.
+
+### i18n
+
+- Keine neuen Schlüssel aus dem ersten Mitglied. Geändert sind in allen fünf
+  Sprachfassungen die Katalog-Texte `help.feature.eventsAggregation` und
+  `help.feature.querySources` und die Handbuch-Seiten «Vorlagen», «Ereignisse»
+  und «Skript-Blöcke» (`4T-002126`).
+- Elf neue Schlüssel je Sprache in allen fünf Sprachfassungen für das Diagramm
+  einer Abfrage (`4T-002173`, `4T-002174`): im Fragment `query` der Hinweis des
+  Aus-Zustands `query.hint.displayFormOff`, die drei Gründe
+  `query.hint.displayFormChartNotTable`, `…SingleColumn` und `…NoNumbers` und die
+  Zeilen unter dem Bild `query.chart.skipped.*` und `query.chart.omitted.*`; im
+  Funktions-Katalog die Zeile `queryChart` mit ihren drei Schlüsseln. Geändert
+  ist der Katalog-Text `help.feature.queryDisplayForm`; in Französisch, Spanisch
+  und Italienisch heißt das Diagramm einer Abfrage mit dem Wort der Diagramme zu
+  Tabellen («graphique», «gráfico», «grafico»), nicht mit dem der
+  Ablauf-Diagramme.
+
+- Fünfunddreißig neue Schlüssel je Sprache in allen fünf Sprachfassungen für
+  die gestaltete Maske (`4T-002183` bis `4T-002187`): im Fragment `database`
+  dreiundzwanzig (Hinweise `database.hint.form*` zu Ausdruck, Markern, Bedingung
+  und der Angabe `form`, die Sätze der leeren Stelle und des verborgenen Feldes
+  `database.form.computed*` und `hiddenFieldRejected`, «Zurück», Verweis-Tooltip
+  und die zwei Meldungen der Navigation `database.form.nav.*`, die Spalte der
+  Übersicht `database.overview.formMore` und sechs Befunde
+  `database.konsistenz.konsistenzMaske*`); im Funktions-Katalog die vier Zeilen
+  mit je drei Schlüsseln. Geändert sind `database.hint.formPlatzhalterUnbekannt`,
+  die beiden Rückfrage-Texte `database.form.confirm.*` und die Katalog-Texte
+  `help.feature.databaseForm` und `databaseFormFile`; entfallen ist
+  `database.hint.formMehrereDateien`.
+
+- Dreiundsechzig neue Schlüssel je Sprache in allen fünf Sprachfassungen für
+  die Listen-Maske und die Kopf-Positionen-Erfassung (`4T-002248` bis
+  `4T-002254`, `4T-002288`): im Fragment `database` einundfünfzig, nämlich
+  siebzehn für Gitter, Zeilen-Handgriffe und Vormerkungen `database.list.*`,
+  sieben für die Spalte «Art» der Übersicht `database.overview.col.queryKind`,
+  `database.overview.query*` und `database.overview.allow.*`, dreizehn Hinweise
+  zu den Angaben der Listen-Maske und zum Positions-Bereich
+  `database.hint.list*`, der Hinweis `database.hint.formPfadUnbekannt`, die zwei
+  Meldungen `database.form.positionRow` und `positionOffen` und elf Texte der
+  Konsistenz-Prüfung (`database.konsistenz.konsistenzListe*`,
+  `konsistenzMaskeListe*`, `konsistenzMaskePfadUnbekannt`,
+  `konsistenzHochwasserstandZuNiedrig` und der Spaltenkopf `spalteQuelle`); im
+  Funktions-Katalog die vier Zeilen `databaseListForm`, `databaseListEdit`,
+  `databaseFormValuePath` und `databaseFormList` mit je drei Schlüsseln.
+  Geändert sind die Katalog-Texte `help.feature.databaseQueryFile`,
+  `databaseForm` und `databaseFormValue`; entfallen ist kein Schlüssel. Die
+  Handbuch-Seite «Datenbank» wächst je Sprache von 699 auf 787 Zeilen, die Seite
+  «Perspective-Abfrage» um einen Punkt.
+
+- Dreiundfünfzig neue Schlüssel je Sprache in allen fünf Sprachfassungen für
+  die Berechtigungen der Datenbank (`4T-002307`, `4T-002308`, `4T-002309`,
+  `4T-002310`, `4T-002311`, `4T-002312`, `4T-002313`): im Fragment `database`
+  sechsunddreißig, nämlich vierzehn Hinweise der Definition `database.hint.*`
+  (fünf zu `roles`, fünf zu `users` und `defaultRole`, vier zu `editable` am
+  Feld), zehn Texte der Übersicht (`database.overview.rolesTitle`, `rolesAll`,
+  `rolesAllTables`, `rolesNone`, `ownRole`, `ownRoleValue`, `ownRoleDefault`,
+  `ownRoleAll`, `tableRights` und `allow.define`), fünf Lagen der
+  Schreib-Schnittstelle `database.auftrag.regelNichtErlaubt`,
+  `auftragNichtErlaubt`, `regelRechteNichtBestimmbar`,
+  `auftragRechteNichtBestimmbar` und `regelFeldNichtBearbeitbar`, drei Sätze des
+  Schutzes der Definition `database.schutz.*`, die Sätze der Rolle in Maske und
+  Liste `database.form.rolleKeinUpdate` und `database.list.rolleKeinUpdate`, der
+  Tooltip `database.form.feldNichtAenderbar` und der Befund-Text
+  `database.konsistenz.konsistenzSteckbriefRollen`; im Fragment `search` die
+  zwei Gründe `areaReplace.reason.defineNichtErlaubt` und
+  `defineRechteNichtBestimmbar` von Suchen und Ersetzen; im Funktions-Katalog
+  die fünf Zeilen `databaseRoles`, `databaseRoleAssignment`,
+  `databasePermissionCheck`, `databasePermissionForms` und
+  `databaseFieldEditable` mit je drei Schlüsseln. Geändert sind die
+  Katalog-Texte `help.feature.databaseEditable` und `databaseInfo`; entfallen
+  ist kein Schlüssel. Die Handbuch-Seite «Datenbank» wächst je Sprache von 787
+  auf 897 Zeilen, die Überblicks-Seite ändert je Sprache eine Zeile.
+
+- Neunzehn neue Schlüssel je Sprache in allen fünf Sprachfassungen für den
+  Anschluss der Datensätze (`4T-002332`, `4T-002333`, `4T-002334`,
+  `4T-002336`): im Fragment `database` fünf, nämlich Gruppen-Zusatz und Tooltip
+  der Datensatz-Treffer `database.search.groupSuffix` und `openForm`, die
+  Handgriffe `database.form.action.showInDocument` und `openTable` und der
+  Hinweis `database.form.missingRecord`; im Fragment `editor` fünf, der Zusatz
+  `autocomplete.detail.record` der Vorschlagsliste und die zwei Linter-Hinweise
+  `linter.ambiguousRecordName.*` und `linter.blockAnchorShadowsRecord.*` mit
+  Kurztext und Tooltip; im Funktions-Katalog die drei Zeilen
+  `databaseSearchHit`, `databaseRecordLinkOpen` und `databaseFormRestore` mit je
+  drei Schlüsseln. Geändert sind die Katalog-Texte `help.feature.areaSearch`,
+  `autocomplete`, `databaseSearchScope`, `databaseRecordLink`,
+  `databaseFormNavigation`, `databaseUsage` und `databaseExtension` sowie die
+  Zugangs-Texte von `databaseRecordLink`, `databaseFormNavigation` und
+  `databaseUsage`; entfallen ist kein Schlüssel. Je Sprache wächst der Bestand
+  während des Mitglieds von 4638 auf 4665 Schlüssel, um diese neunzehn und um
+  acht aus dem Nachzug des Releases `1.151.0` auf den Zug-Zweig. Die
+  Handbuch-Seite «Datenbank» wächst je Sprache von 897 auf 917
+  Zeilen, die Seite «Werkzeuge» von 241 auf 243; auf den Seiten
+  «Perspective-Abfrage» und «Nutzen» ändert je Sprache eine Zeile.
+
+### Intern
+
+- **Der Kanal der Skript-Daten ist asynchron** (`4T-002126`). Er löst den
+  Vorlagen-Ordner je Lauf auf wie der Abfrage-Kanal und reicht ihn als
+  `templatesFolder` relativ zur Wurzel an die Ausführungs-Umgebung durch; die
+  Vorlagen bleiben im Daten-Abzug, weil die Quelle eines Skripts erst dort
+  bekannt ist. Die Ereignis-Aggregation schließt im Hauptprozess über das Modul
+  `query-templates` aus.
+- **Neues Modul** `src/main/index/part-files.js` (`4T-002047`): die Teil-Dateien
+  eines geteilten Dokuments im Index, also welche Folge-Datei zu welcher
+  Kopf-Datei gehört und dass der Puffer der Kopf-Datei in der überlagerten Sicht
+  das ganze Dokument ist. Die Regel stand bis dahin allein für die Datensätze in
+  der Datensatz-Erfassung und gilt jetzt für alle acht Bestände der Sicht.
+  Datensatz-Erfassung, Index-Aufbau und Datensatz-Zugriff lesen die Zuordnung
+  von dort. Die Architektur ist in der Modul-Karte, im Abschnitt «Teilung großer
+  Dokumente» und im Punkt «Vorlagen-Ausschluss an der Quellen-Ebene»
+  fortgeschrieben.
+- **Neues Modul** `src/shared/query/result-chart.js` (`4T-002172`): die
+  Datenregel des Abfrage-Diagramms, prozess-neutral und ohne Zeichen-Bibliothek.
+  Es bildet aus einer Ergebnismenge die zeichenbare Form und beantwortet mit
+  derselben Regel die Eignung samt Grund (`not-table`, `empty`,
+  `single-column`, `no-numbers`), damit Eignung und Bild nie auseinanderlaufen.
+  Zahl-Text liest es mit derselben Lesart wie die Abfrage selbst, Wahrheitswerte
+  ausgenommen.
+- **Zweite Funktion der Diagramm-Brücke** `buildChartFromInput` in
+  `src/main/preload-diagramme.js` (`4T-002172`): Sie zeichnet eine fertige
+  zeichenbare Form über den gemeinsamen Zeichner, ohne Bezug auf `table:` und
+  ohne einen Block zu lesen, und antwortet in derselben Gestalt wie `buildChart`.
+- **Neues Modul** `src/renderer/modules/query/display-chart.js` (`4T-002173`):
+  die Formen `bar` und `line` im Verzeichnis der Darstellungsformen. Das
+  Verzeichnis bleibt ohne Brücken-Bezug; die Befüllung der Abfrage reicht die
+  Zeichen-Funktion und den Schalt-Zustand im Kontext der Form mit. Eine Form kann
+  einen Grund für die fehlende Eignung und eine Erweiterung nennen, an der sie
+  hängt; im Aus-Zustand nennt der Verteiler den eigenen Hinweis-Code
+  `displayFormOff`. Farbwechsel, Sprachwechsel, Druck und PDF zeichnen das
+  Abfrage-Diagramm über das vorhandene Neu-Zeichnen der Tabellen-Diagramme
+  (`chart-view.js`), aus der zuletzt erhaltenen Antwort; Farben und Schrift der
+  Ansicht liest es über dieselbe, jetzt exportierte Funktion
+  `zeichenAngabenDerAnsicht`. Die
+  Erweiterung `query-chart` (Stufe `advanced`, ohne Abhängigkeit) steht in der
+  Registry hinter `perspective-chart`.
+- **Prüffälle** (`4T-002172`, `4T-002173`, `4T-002174`): neu
+  `test/unit/ergebnis-diagramm.test.js`,
+  `test/unit/renderer/display-chart.test.js` und der Aus-Zustand in
+  `test/unit/renderer/extensions-aus-abfrage-diagramm.test.js`, ergänzt die
+  Prüfdateien der Brücke, des Verzeichnisses der Formen, der Erweiterungen und
+  der Demo; die Ablauf-Fälle `FQ-07` bis `FQ-10` in
+  `test/e2e/funktionen/frontmatter-abfrage.spec.js` prüfen Balken und Linie in
+  allen drei Ansichten, das gruppierte Diagramm mit Hinweis-Zeilen und Rückfall,
+  den Aus-Zustand und Druck und PDF hell aus dem dunklen Modus. Zwei
+  Zeitlimit-Flakes außerhalb des Vorhabens stehen in der Quarantäne.
+
+- **Der Masken-Körper ist ein Baum** (`4T-002183`, `4T-002186`): Die Zerlegung
+  in `src/shared/database/form-body.js` liefert neben Markdown- und
+  Feld-Segmenten die Arten `wert` (Ausdruck, gelesener Baum, Zeile, Lage im
+  Satz) und `bereich` (Bedingung, Baum, Zeile, Kinder); ein Körper ohne neue
+  Platzhalter ergibt dieselbe Liste wie zuvor. Gelesen wird einmal beim Zerlegen
+  im Haupt-Prozess, damit Maske und Konsistenz-Prüfung denselben Befund sehen.
+  Neues Modul `src/shared/database/form-wert.js`: Lesen und Auswerten von Wert
+  und Bedingung über die Regel-Auswertung der Abfrage-Sprache, ohne eigenen
+  Auswerter, mit der Datums-Lesart der Datensatz-Abfrage.
+- **Die Masken-Seite ist geteilt** (`4T-002182`): Zeichnen von Körper, Hinweisen
+  und Nachlauf in `src/renderer/modules/database/masken-koerper.js`, ohne
+  Verhaltensänderung; die Seite steht bei 446 von 500 Code-Zeilen. Dort stehen
+  seither die Wert-Stellen, die Bereiche als `div.db-form-section[hidden]` und
+  der Wert im Satz, der als Text-Marke durch den Markdown-Renderer reist und
+  danach im Text-Knoten durch die Stelle ersetzt wird; die Liste der verborgenen
+  Felder geht an das Speichern, das eine Abweisung daran in den Kopf stellt.
+- **Neues Modul** `src/renderer/modules/database/masken-navigation.js`
+  (`4T-002185`): Ziel-Klärung am Katalog, Verlauf je Fenster und die Navigation
+  einer Seite; `activateLink` nimmt eine Abfang-Funktion, der Katalog-Kanal
+  liefert je Tabelle ihre Masken-Pfade, der Datensatz-Kanal nimmt eine bestimmte
+  Maske (`4T-002184`). Die Tabellen-Definition kennt die Angabe `form`.
+- **Prüffälle** (`4T-002182` bis `4T-002187`): neu
+  `test/unit/db-masken-koerper.test.js`, `test/unit/db-masken-navigation.test.js`
+  und die Ablauf-Dateien `test/e2e/funktionen/datenbank-maske-navigation.spec.js`
+  (`DB-MAS-09`) und `datenbank-maske-bereiche.spec.js` (`DB-MAS-10`); ergänzt
+  die Prüfdateien des Körpers, der Felder, des Speicherns, der Konsistenz-Prüfung,
+  des Katalogs, der Kanäle und der Demo; `DB-MAS-07` und `DB-MAS-08` in
+  `datenbank-maske.spec.js`. Vier Zeitlimit-Flakes außerhalb des Vorhabens
+  stehen in der Quarantäne, zwei davon mit zweiter Beobachtung.
+
+- **Neue Module der Listen-Maske** (`4T-002248` bis `4T-002251`):
+  `src/shared/database/list-angaben.js` legt die drei Angaben des Behälters
+  `db-query` prozess-neutral aus; `src/main/database/listen-auskunft.js` liefert
+  zu einer gelesenen Ergebnismenge Angaben, Quell-Tabelle, Feld je Spalte, Maske
+  und die nach `editable` nicht änderbaren Zeilen. Im Anzeige-Prozess unter
+  `src/renderer/modules/database/`: `listen-maske.js` (Gitter, Zähl-Zeile,
+  Blättern, Handgriffe aus `allow`), `listen-zeile.js` (Bearbeiten und Löschen
+  einer Zeile über den Sperr-Ablauf und `baueAuftrag` der Maske),
+  `listen-neu.js` (Zeile der Neuanlage) und `listen-zellen.js` (Zellen, Fokus,
+  Treffer-Fragen, aus dem Zeilen-Modul ausgezogen). Die Regeln der Liste stehen
+  in der neuen Stil-Scheibe `datenbank-liste.css`, aus `datenbank.css`
+  byte-gleich verschoben. Die Index-Aktualisierung befüllt einen Block während
+  einer Zeilen-Bearbeitung nicht neu und holt das danach nach; beim Neuzeichnen
+  der Spalte gibt `raeumeListenAuf()` die Sperre jeder Zeile frei, deren Element
+  den Baum verlassen hat.
+- **Neue Module der Maske** (`4T-002252`, `4T-002253`):
+  `src/main/database/ausdruecke-auskunft.js` wertet Pfad-Ausdrücke über einen
+  Entwurfs-Datensatz (`entwurfAlsDatensatz` im Index-Leser) und den
+  exportierten Navigator `recordNavigator` aus, ohne zweiten Auswerter;
+  `src/main/database/positions-auskunft.js` löst die Abfrage-Datei eines
+  Positions-Bereichs über den Katalog auf und bestimmt das Verweis-Feld auf den
+  Kopf; `src/shared/query/query-bedingung.js` ergänzt eine Abfrage um die
+  Beziehungs-Bedingung `WHERE <feld> = "<Kennung>"` oder hängt sie mit `AND` an.
+  Im Anzeige-Prozess bündelt `masken-pfade.js` die Pfad-Stellen einer Maske zu
+  einem Aufruf und übernimmt nur die jüngste Antwort, `masken-positionen.js`
+  zeichnet den Positions-Bereich, und `listen-sammeln.js` trägt den sammelnden
+  Zeilen-Modus, der Anweisungen vormerkt statt schreibt. Die Zerlegung des
+  Masken-Körpers (`form-body.js`) kennt das Segment `liste` und vermerkt
+  Pfad-Ausdrücke am Segment;
+  `baueSammelAuftrag` in `masken-speichern.js` hängt die Positions-Anweisungen
+  hinter die Kopf-Anweisung.
+- **Drei neue Kanäle** mit Form-Prüfung, Tor der Erweiterung und
+  Bereichs-Wurzel nach dem Muster der Datenbank-Kanäle: `database:liste`
+  (Listen-Auskunft), `database:ausdruecke` (höchstens 200 Ausdrücke je Aufruf)
+  und `database:positionsliste` (Abfrage und Beziehung eines Positions-Bereichs),
+  im Preload als `databaseListe`, `databaseAusdruecke` und
+  `databasePositionsliste`.
+- **Kennungs-Vergabe** (`4T-002288`): `wirksamerHochwasserstand`,
+  `hoechsteKennung` und `kennungUeberStand` in `record-identity.js`, dorthin auch
+  `nachNummer` aus der Konsistenz-Prüfung verlegt; `eroeffneNeuanlage` und
+  `loeseSchritte` ziehen über diesen Stand.
+- **Ratschen und Budgets:** Die Ratsche der Erweiterungs-Registry steigt von
+  821 auf 825 Zeilen (vier Katalog-Zeilen in `featureKeys` der Erweiterung
+  `database`, jetzt 34 Schlüssel), die von `src/renderer/index.html` von 2482
+  auf 2483 (Einbindung der Stil-Scheibe), beide mit Begründung in der
+  Ausnahmeliste. Die Prüfdatei `test/unit/render/extensions-aus.test.js` ist an
+  ihrem Budget geschnitten: Der Block der Kanban-Tafel steht byte-gleich in
+  `extensions-aus-kanban.test.js`.
+- **Prüffälle** (`4T-002248` bis `4T-002254`, `4T-002288`): neu
+  `test/unit/db-list-angaben.test.js`, `db-liste-kanal.test.js`,
+  `db-ausdruecke-kanal.test.js`, `db-positionsliste-kanal.test.js`,
+  `query-bedingung.test.js` und unter `test/unit/renderer/`
+  `db-listen-maske.test.js`, `db-listen-zeile.test.js`,
+  `db-listen-anlegen-loeschen.test.js` und `db-masken-positionen.test.js`;
+  ergänzt die Prüfdateien von Katalog, Übersicht, Konsistenz-Prüfung,
+  Masken-Körper, Speichern, Treffer-Klick, Index-Leser, Kennungs-Vergabe, der
+  sechs Kanal-Listen und der Demo. Drei neue Ablauf-Prüfdateien:
+  `test/e2e/funktionen/datenbank-liste.spec.js` mit `DB-LIS-01` bis `DB-LIS-05`
+  (Gitter und Blättern, Öffnen der benannten Maske, Bearbeiten, Fremd-Änderung,
+  Anlegen und Löschen samt Live-Ansicht), `datenbank-maske-pfade.spec.js` mit
+  `DB-MAS-11` und `datenbank-maske-positionen.spec.js` mit `DB-MAS-12`
+  (Positionen eines Buches, gemeinsames Speichern, Scheitern ohne Teil-Speichern,
+  Verwerfen). Die Abdeckungs-Matrix führt `F-355` bis `F-358`. In der
+  Flake-Quarantäne hat ein Fall der gleichzeitigen Aufträge seine zweite
+  Beobachtung, ein Zeitlimit-Fall der i18n-Zerlegung ist neu eingetragen, beide
+  außerhalb des Vorhabens.
+
+- **Neue Module der Berechtigung** (`4T-002307`, `4T-002308`, `4T-002309`,
+  `4T-002310`): `src/shared/database/rollen-angaben.js` legt `roles`,
+  `defaultRole` und `users` des Steckbriefs prozess-neutral aus, gleicht die
+  Rollen gegen die Tabellen ab und prüft die Zuordnung, mit einer Stelle
+  `pruefeSteckbriefRollen` für Übersicht und Konsistenz-Prüfung;
+  `src/shared/database/rechte.js` löst als reine Funktion Anmeldename, Rolle und
+  Erlaubnis-Menge je Tabelle auf. Im Haupt-Prozess ist
+  `src/main/database/record-regel-berechtigung.js` die Regel der Prüf-Naht samt
+  der gemeinsamen Antwort für die Neuanlage, und
+  `src/main/database/definitions-schutz.js` vergleicht den Definitions-Anteil
+  beider Stände in stabiler Form ohne `lastId`, eingebaut in `file:save`,
+  `file:saveAs` und Suchen und Ersetzen im Bereich. Der Katalog liefert die
+  Rechte für Lese-Kanäle, Tabellen-Definition und Schreibwege; die Auskunft für
+  die Schreibwege trägt einen Status, damit eine nicht bestimmbare
+  Erlaubnis-Menge abweist. Eine Rechte-Funktion in `src/main/app/wiring.js`
+  bedient Prüf-Naht, Neuanlage und Schutz auf der Sicht des gespeicherten Stands
+  (`datenbankSicht` mit der Option `ohnePuffer`). Im Anzeige-Prozess entsteht
+  kein Modul; Einzel-Maske, Listen-Maske, Datensatz-Block und Übersicht lesen
+  `rechte` und `rolle` aus den Antworten.
+- **Regel-Lagen** (`4T-002309`, `4T-002312`): Das Regel-Werk der
+  Schreib-Schnittstelle führt sechs Module, die Berechtigung als erstes, und
+  sechzehn Lagen, neu `regelNichtErlaubt`, `regelRechteNichtBestimmbar` und
+  `regelFeldNichtBearbeitbar`; die Neuanlage kennt die Lagen
+  `auftragNichtErlaubt` und `auftragRechteNichtBestimmbar`. Die Feld-Sperre
+  liest `leseFeldBearbeitbarkeit` in `table-checks.js` mit der eigenen Art
+  `fest` für `false`; `feldSperren` und `gesperrteFelder` in
+  `record-check-eval.js` dienen Regel, Datensatz- und Listen-Antwort gemeinsam,
+  und `record-regel-bearbeitbar.js` prüft die Felder mit Bedingung beim Ändern.
+- **Tor der Erweiterung vor Übersicht und Tabellen-Definition** (`4T-002308`,
+  Nachbesserung aus `4T-002148`): In `src/main/ipc/database.js` steht
+  `torOffen` vor beiden Kanälen; bei geschlossenem Tor ruft die Übersicht den
+  Katalog mit einer Herkunft ohne Benutzer, und die Hilfsfunktion `ohneRollen`
+  nimmt die Angaben der Berechtigung aus der Antwort.
+- **Neu-Befüllung der Listen-Maske** (`4T-002325`): `bearbeitungHaeltAn` in
+  `frontmatter-query-view.js` hält auch an, solange `zeigtBlock()` wahr meldet,
+  nachgeholt über die bestehende Naht `blaetternSperren(false)`; `abschirmen` ist
+  nach `listen-zellen.js` verlegt, damit `listen-zeile.js` im Budget bleibt.
+- **Ratschen und Budgets:** Die Ratsche der Erweiterungs-Registry steigt von 834
+  auf 839 Zeilen (fünf Katalog-Zeilen in `featureKeys` der Erweiterung
+  `database`, jetzt 39 Schlüssel), mit Begründung in der Ausnahmeliste; die
+  Pin-Liste in `test/unit/render/extensions-aus.test.js` ist nachgezogen. Der
+  Eintrag von `src/renderer/modules/app-init.js` bleibt bei 531, obwohl die
+  Datei jetzt 529 misst, damit die Zusammenführung mit dem Integrationsstand
+  nicht an diesem Wert scheitert.
+- **Prüffälle** (`4T-002307`, `4T-002308`, `4T-002309`, `4T-002310`,
+  `4T-002311`, `4T-002312`, `4T-002313`, `4T-002325`, `4T-002148`): neu
+  `test/unit/db-rollen-angaben.test.js`, `db-rechte.test.js`,
+  `db-regel-berechtigung.test.js`, `db-definitions-schutz.test.js`,
+  `db-feld-sperre.test.js` und der Aus-Zustand in
+  `db-berechtigung-aus-zustand.test.js` (17 Fälle: die vier Zusagen ohne
+  Prüfung beim Speichern einer Definition, ohne Auflösung des Anmeldenamens,
+  Rollen als bloßes Frontmatter und Lese-Kanäle ohne Rechte-Angabe, je mit
+  Gegenprobe im eingeschalteten Zustand, dazu Übersicht und Tabellen-Definition
+  ohne Berechtigungen); ergänzt die Prüfdateien von Steckbrief, Katalog,
+  Übersicht, Datensatz-Block, Lese-Kanälen, Schreib-Schnittstelle, Regel-Werk,
+  Auftrags-Texten, Bearbeitbarkeit, Masken, Listen-Maske, Suchen und Ersetzen,
+  Demo und Klassen-Auswahl. Zwei neue Ablauf-Prüfdateien:
+  `test/e2e/funktionen/datenbank-berechtigung.spec.js` mit `DB-ROL-01` bis
+  `DB-ROL-03` (Rollen und eigene Rolle in der Übersicht, Abweisung an der
+  Schnittstelle, Schutz der Definition) und `DB-MAS-13` (Maske ohne Ändern) und
+  `datenbank-feldsperre.spec.js` mit `DB-MAS-14`; `DB-LIS-06` in
+  `datenbank-liste.spec.js`. Zusammen 199 neue Unit-Fälle und sechs neue
+  Ablauf-Fälle. Die Abdeckungs-Matrix führt `F-365` bis `F-369`; die neuen
+  Prüfdateien stehen in der Änderungsklassen-Karte, die Erwartungsliste der
+  Klasse Ä5 ist nachgezogen.
+
+- **Neues Modul** `src/main/area/area-search-records.js` (`4T-002331`): die
+  Datensatz-Suche je Tabelle mit Treffer-Bau und Deckeln. Den Vorrat bildet je
+  Tabelle eine Liste aus Kennung, Anzeige-Form und den nicht-leeren
+  Feld-Texten, gehalten in einer `WeakMap` am Ergebnis-Objekt von
+  `readRecordTable`; sie entsteht neu, wenn der Leser ein neues Objekt liefert,
+  also bei geänderter Datei, geändertem Index- oder Overlay-Stand, ohne eigene
+  Stempel-Logik, und zählt gegen den Deckel des Text-Vorrats von 50 MB.
+  `sucheImBereich` hängt Datensatz-Treffer und -Gruppen hinter die
+  Dokument-Treffer, mit Rest-Budget, Gruppen-Deckel und der Generations-Frage
+  der Text-Suche, und meldet `datensatzBytes`; der Kanal `areaSearch:run` ist
+  unverändert. Die Treffer tragen `quelle: 'record'`, die Gruppen-Kennungen das
+  Suffix `#datensaetze` (`DATENSATZ_GRUPPEN_SUFFIX` in
+  `src/shared/search-scope.js`, weil beide Prozesse es brauchen). Im Aus-Zustand
+  kehrt die Suche vor jedem Zugriff zurück, über den Schalter
+  `datensatzErfassungAktiv`.
+- **Neues Modul** `src/renderer/modules/search/search-records.js` (`4T-002332`):
+  Gruppen-Kopf, Treffer-Zeile und Sprung der Datensatz-Treffer. Der Sprung-Weg
+  der Herkunft `record` ist in `search-jump.js` registriert, ohne Import-Kreis
+  über Ordner-Grenzen; das Panel zeichnet über `sichtbareGruppenUndTreffer` und
+  lässt Datensatz-Treffer bei geöffneter Ersetzen-Zeile aus Liste und Auswahl,
+  und `search-auswahl.js` bildet den Schlüssel eines Datensatz-Treffers mit
+  Kennung und Feld.
+- **Auflösung des Datensatz-Verweises** (`4T-002333`): neues Modul
+  `src/main/index/datensatz-verweis-aufloesung.js` mit `loeseDatensatzVerweis`
+  (Status `kennung`, `anzeige`, `mehrdeutig` oder `keiner`),
+  `istTabellenDatei` und `verweisZiel`. `datensatz-zugriff.js` baut die
+  Zuordnung `nachAnzeige` im selben Durchlauf und liefert `tabelleDerPlatte`;
+  `anchorExistsInFile` urteilt bei Tabellen-Dateien dreiwertig, und
+  `existingWikiTargets` trägt die Listen `ambiguousRecord` und
+  `shadowedRecord`. Das gemeinsame Namens-Muster `ANZEIGE_ANKER_MUSTER` steht in
+  `src/shared/database/record-identity.js`, `verweisAnkerKennung` in
+  `src/shared/markdown/plugins/wiki.js`. Der neue Kanal `database:verweisZiel`
+  prüft Form, Tor, Bereichs-Wurzel des Fensters und Ort im Bereich, stößt den
+  Index an und antwortet am gespeicherten Stand; die Brücke heißt
+  `databaseVerweisZiel`, und `activateLink` fragt ihn hinter dem Abfang der
+  Maske. Neue Module im Anzeige-Prozess: `editor/autocomplete-anker.js` für den
+  Anker-Modus der Vorschlagsliste und `database/masken-fehlt.js` für den
+  Handgriff der Maske; `editor-lint.js` hat die Regeln `ambiguousRecordName`
+  und `blockAnchorShadowsRecord`.
+- **Sitzungs-Eintrag des Masken-Dokuments** (`4T-002334`): neues Modul
+  `src/renderer/modules/app/sitzungs-maske.js`, ein Register, bei dem sich die
+  Masken-Seite mit Eintrag und Öffner anmeldet. `buildPanesSnapshot` ergänzt je
+  Spalte das Feld `systemTabs` mit `page`, `position`, `aktiv`, `tabelle`,
+  `kennung` und `maske`; `restorePanes` stellt die Einträge nach allen Spalten
+  und vor dem Zusammenlegen wieder her, mit der neuen Verschiebung
+  `moveTabToIndexKeepActive` in `tabs/tab-groups.js`. Ruhende Einträge hängen
+  in einer `WeakMap` an der Spalte und wandern beim Zusammenlegen mit
+  `uebergibRuhende`. `masken-fehlt.js` trägt dazu den Zustand «Datensatz fehlt»
+  und den Eintrag samt Öffner der Seite. Das Sitzungs-Schema ist unverändert,
+  weil es Spalten durchreicht.
+- **Hilfe des Abfangs im Link-Weg** (`4T-002335`): `activateLink` reicht dem
+  Abfang der Maske als zweites Argument `{ anker, datensatz }`, die
+  Datensatz-Auflösung nur bei einem Wiki-Verweis und erst beim Aufruf;
+  `abfangen` in `masken-navigation.js` öffnet einen gefundenen Datensatz mit
+  `VERLAUF_MERKEN`, ebenso der Sprung aus `masken-verwendung.js`.
+- **Ratschen und Budgets:** Die Ratsche der Erweiterungs-Registry steigt von 843
+  auf 846 Zeilen (drei Katalog-Zeilen in `featureKeys` der Erweiterung
+  `database`, jetzt 42 Schlüssel), mit Begründung in der Ausnahmeliste; die
+  Pin-Liste in `test/unit/render/extensions-aus.test.js` ist nachgezogen. Der
+  eingefrorene Wert von `autocomplete-help.js` sinkt von 586 auf 581, weil der
+  Anker-Modus ausgelagert ist (553 Code-Zeilen).
+- **Prüffälle** (`4T-002331`, `4T-002332`, `4T-002333`, `4T-002334`,
+  `4T-002335`, `4T-002336`, `4T-002149`): neu
+  `test/unit/area-search-records.test.js` samt Messlauf auf Zuruf,
+  `datensatz-verweis-aufloesung.test.js`, `db-verweisziel-kanal.test.js`,
+  `db-masken-verwendung.test.js` und der Aus-Zustand in
+  `db-anschluss-aus-zustand.test.js` (fünf Fälle: keine Datensatz-Treffer,
+  Auflösung und Kanal ohne Ziel, Klick ohne Anfrage, Vorschlagsliste ohne
+  Datensätze, ruhender Sitzungs-Eintrag an der echten Masken-Seite, je mit
+  Gegenprobe im eingeschalteten Zustand), unter `test/unit/renderer/`
+  `such-datensaetze.test.js`, `autocomplete-anker.test.js`,
+  `masken-fehlt.test.js`, `editor-lint-datensatz.test.js` und
+  `sitzungs-maske.test.js`; ergänzt die Prüfdateien der Bereichs-Suche, der
+  Verweis-Gültigkeit, des Datensatz-Zugriffs, des Zeilen-Sprungs, der sechs
+  Kanal-Listen, des Treffer-Klicks, der Anker-Grammatik, der Masken-Navigation,
+  des Schnappschusses und des Sitzungs-Schemas. Drei neue Ablauf-Prüfdateien:
+  `test/e2e/funktionen/datenbank-suche.spec.js` mit `DB-SUC-01` bis
+  `DB-SUC-03`, `datenbank-verweis.spec.js` mit `DB-VER-01` bis `DB-VER-03` und
+  `datenbank-sitzung.spec.js` mit `DB-SIT-01` bis `DB-SIT-03` (Neustart mit
+  demselben Profil); `DB-MAS-15` und `DB-MAS-16` in
+  `datenbank-maske-navigation.spec.js`, und `DB-03` in
+  `datenbank-tabelle.spec.js` ist auf den Klick in die Maske mit gebundenem
+  Bereich umgebaut. Die Abdeckungs-Matrix führt `F-370` bis `F-372`; die neuen
+  Prüfdateien stehen in der Änderungsklassen-Karte. In der Flake-Quarantäne hat
+  ein Fall der Schreib-Schnittstelle mit zwei Aufträgen an derselben Tabelle
+  seine dritte Beobachtung, außerhalb des Vorhabens.
+- **Der Nachzügler des vorigen Releases** (Sammeltask `4T-002203` des Zuges
+  `3E-000354`). Nach der Auslieferung von 1.151.0 hat der Abschluss des
+  Sammeltasks die Bildschirmfotos der Produkt-Webseite erneuert. Der Commit
+  liegt seither auf dem Integrationsstand und steht hier, weil er Dateien der
+  Webseite berührt; kein Anwendungs-Code berührt, kein Anwender-Text nötig.
+
 ## [1.151.0.4205] - 2026-10-21 — Kalender-Pflege ohne stille Änderung, Listen-Grundfunktionen in jedem Arbeitsmodus, Suchtreffer in der Mitte des sichtbaren Bereichs, Arbeitsbereiche als Seite, Restpunkte aus Zug 3
 
 Zug

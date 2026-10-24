@@ -31,13 +31,14 @@ const { cacheRelPath, loadAreaCache, scheduleCacheWrite } = require('./cache.js'
 // ihn koennte ein Folge-Segment, das vor seiner Kopf-Datei an die Reihe kommt,
 // seine Zellen nicht zuordnen (Begruendung im Erfassungs-Modul).
 const {
-  kopfDateiFuer,
   vergissDefinition,
   definitionFuerSegment,
   holeDefinitionenVorab,
   erfasseAusDatei,
   merkeDefinitionAusDatei,
 } = require('./datensatz-erfassung.js');
+// 4T-002047: Zuordnung eines Folgeteils zu seiner Kopf-Datei, für jedes geteilte Dokument.
+const { kopfDateiFuer } = require('./part-files.js');
 
 // B-21 (4T-000187): Wartezeit nach einem Watcher-Fehler, bevor ein neuer
 // Bedarf den Index wieder aufbauen darf.

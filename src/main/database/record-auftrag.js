@@ -52,12 +52,21 @@ const { ersetzeDatei } = require('../documents/atomic-write.js');
 const { herkunftsFelder } = require('../documents/mdd-herkunft.js');
 const { ermittleHerkunft } = require('../herkunft.js');
 const { zeitpunktAus } = require('../../shared/database/change-record.js');
-const { naechsteKennung } = require('../../shared/database/record-identity.js');
+const {
+  naechsteKennung,
+  wirksamerHochwasserstand,
+} = require('../../shared/database/record-identity.js');
 const { schreibeHochwasserstand } = require('../../shared/database/record-write.js');
 const { ART_DATENSATZ, ART_CHANGE_LOG, loeseGegenstand } = require('./lock-store.js');
 const { belegPfadFuer, verdichteBeiBedarf } = require('./change-log.js');
 const { zieheVorgang } = require('./vorgangs-kennung.js');
-const { LAGEN, befund, pruefeAuftragForm, pruefeWerte } = require('./record-auftrag-pruefung.js');
+const {
+  LAGEN,
+  ART_ANLEGEN,
+  befund,
+  pruefeAuftragForm,
+  pruefeWerte,
+} = require('./record-auftrag-pruefung.js');
 const {
   loeseTabelle,
   leseDefinition,
@@ -75,7 +84,9 @@ const { haengtNoch } = require('./intent-recovery.js');
 // 4T-001924 (Epic 3E-000254, B2): die Teilung einer wachsenden Tabelle.
 const { teileWachsendeTabellen } = require('./record-auftrag-teilung.js');
 // 4T-001926 (Epic 3E-000256, B3): die Ersetzungen der Prüf-Naht anwenden.
-const { wendeErsetzungenAn } = require('./record-regeln.js');
+const { wendeErsetzungenAn, leseRechteAntwort } = require('./record-regeln.js');
+// 4T-002309 (Epic 3E-000263): dieselbe Antwort auf «erlaubt?» wie die Regel der Naht.
+const { istErlaubt, nameDerAngabe } = require('./record-regel-berechtigung.js');
 
 // 4T-001821 (Entscheidung des Product Owners vom 2026-09-20, nach dem
 // Zweirechner-Lauf desselben Tages): Die Warte-Auslegung für eine belegte
@@ -133,9 +144,13 @@ function abgewiesenMit(code, mehr) {
  *   Erweiterung «database», bei JEDEM Auftrag frisch gefragt. **Fail-closed:**
  *   Fehlt die Naht, gilt die Erweiterung als ausgeschaltet.
  * @param {(kontext: object) => {befunde: Array<object>, ersetzungen?: Array<object>}}
- *   [deps.pruefNaht] Die Einhänge-Stelle für Schlüssel, Beziehungen, Lösch-Schutz,
- *   Prüfregeln und später die Berechtigung (B2); gebaut von `erzeugePruefNaht`
- *   in `record-regeln.js` (4T-001926). Ohne sie läuft jeder Auftrag durch.
+ *   [deps.pruefNaht] Die Einhänge-Stelle für Berechtigung, Schlüssel, Beziehungen,
+ *   Lösch-Schutz und Prüfregeln (B2); gebaut von `erzeugePruefNaht` in
+ *   `record-regeln.js` (4T-001926). Ohne sie läuft jeder Auftrag durch.
+ * @param {(bereichsWurzel: string) => object} [deps.rechteFuer] 4T-002309:
+ *   Geltende Rolle und Erlaubnis-Menge je Tabelle, dieselbe Funktion wie in der
+ *   Prüf-Naht; mit ihr prüft das Eröffnen einer Neuanlage `create`. Ohne sie
+ *   prüft es keine Berechtigung, wie ein Auftrag ohne Prüf-Naht.
  * @param {object} [deps.fsp] Dateizugriff.
  * @param {Function} [deps.ersetzen] Der atomare Schreibweg.
  * @param {() => string} [deps.jetzt] Zeitpunkt der Belege, UTC und sekundengenau.
@@ -183,6 +198,7 @@ function erzeugeSchreibSchnittstelle(deps) {
   // zwar auf «aus»: Der Rückfall verweigert, statt plausibel weiterzulaufen.
   const tor = typeof d.erweiterungAktiv === 'function' ? d.erweiterungAktiv : () => false;
   const pruefNaht = typeof d.pruefNaht === 'function' ? d.pruefNaht : null;
+  const rechteFuer = typeof d.rechteFuer === 'function' ? d.rechteFuer : null;
   const fsp = d.fsp || frischerDateizugriff;
   const ersetzen = typeof d.ersetzen === 'function' ? d.ersetzen : ersetzeDatei;
   const jetzt = typeof d.jetzt === 'function' ? d.jetzt : () => zeitpunktAus(new Date());
@@ -689,6 +705,27 @@ function erzeugeSchreibSchnittstelle(deps) {
 
   // --- Neuanlage eröffnen (AK2, E5.1, B4) ------------------------------------------------
 
+  // 4T-002309 (Story AK2): Darf die eigene Rolle an der Tabelle anlegen? Ein
+  // Wurf beim Bestimmen der Erlaubnis-Menge und eine nicht bestimmbare Menge
+  // (Entscheidung der Sitzung vom 2026-10-18) weisen ab, statt durchzulassen.
+  async function pruefeAnlegen(bereichsWurzel, tabelle) {
+    if (rechteFuer === null) return null;
+    let gelesen;
+    try {
+      gelesen = leseRechteAntwort(await rechteFuer(bereichsWurzel));
+    } catch (err) {
+      return abgewiesenMit(LAGEN.unerwartet, { grund: alsText(err) });
+    }
+    if (!gelesen.bestimmt)
+      return abgewiesenMit(LAGEN.rechteNichtBestimmbar, { tabelle, grund: gelesen.grund });
+    if (istErlaubt(gelesen, nameDerAngabe(bereichsWurzel, tabelle), ART_ANLEGEN)) return null;
+    return abgewiesenMit(LAGEN.nichtErlaubt, {
+      tabelle,
+      operation: ART_ANLEGEN,
+      rolle: gelesen.rolle,
+    });
+  }
+
   /**
    * Eröffnet eine Neuanlage: zieht die interne Kennung und schreibt den
    * Hochwasserstand fort — **ohne Beleg**, weil noch kein Datensatz entstanden
@@ -717,6 +754,11 @@ function erzeugeSchreibSchnittstelle(deps) {
       return abgewiesenMit(LAGEN.form, { tabelle });
     const aufgeloest = loeseTabelle(bereichsWurzel, tabelle.trim());
     if (!aufgeloest.ok) return abgewiesen([aufgeloest.lage]);
+    // 4T-002309: vor dem Blick auf hängende Aufträge und vor dem Ziehen der
+    // Kennung; eine Rolle ohne `create` zöge sonst eine Kennung für eine
+    // Eingabe, die nie gespeichert werden kann.
+    const verboten = await pruefeAnlegen(bereichsWurzel, tabelle.trim());
+    if (verboten !== null) return verboten;
     // 4T-001824 (Nachschärfung, Befund 4): Das Eröffnen ist ein Aufruf dieser
     // Schnittstelle und sieht deshalb wie jeder Auftrag nach einem hängenden
     // Auftrag, bevor es seine Sperre nimmt. Ohne das übernähme es nach einem
@@ -731,10 +773,16 @@ function erzeugeSchreibSchnittstelle(deps) {
     const arbeit = async () => {
       {
         try {
-          const gelesen = await leseDefinition(fsp, aufgeloest.pfad, tabelle.trim());
+          // 4T-002288: Gelesen wird der ganze Bestand samt Folge-Segmenten, weil
+          // der Stand vor dem Ziehen auch die vorhandenen Kennungen kennt. Eine
+          // Tabelle ohne oder mit zu niedrigem Hochwasserstand, aber mit
+          // Datensätzen, vergäbe sonst eine vorhandene Kennung ein zweites Mal.
+          const gelesen = await leseTabellenBestand(fsp, aufgeloest.pfad, tabelle.trim());
           if (!gelesen.ok) return abgewiesen([gelesen.lage]);
-          const gezogen = naechsteKennung(gelesen.lastId);
-          const geschrieben = schreibeHochwasserstand(gelesen.text, gezogen.hochwasserstand);
+          const kopfText = gelesen.dateien[0].text;
+          const kennungen = gelesen.dateien.flatMap((datei) => [...datei.records.keys()]);
+          const gezogen = naechsteKennung(wirksamerHochwasserstand(gelesen.lastId, kennungen));
+          const geschrieben = schreibeHochwasserstand(kopfText, gezogen.hochwasserstand);
           if (!geschrieben.ok)
             return abgewiesenMit(LAGEN.schreibenFehlgeschlagen, {
               tabelle: tabelle.trim(),
@@ -742,7 +790,7 @@ function erzeugeSchreibSchnittstelle(deps) {
               grund: geschrieben.code,
             });
           const ersetzt = await ersetzen(aufgeloest.pfad, geschrieben.text, {
-            expected: gelesen.text,
+            expected: kopfText,
           });
           if (!ersetzt || ersetzt.ok !== true)
             return abgewiesenMit(LAGEN.schreibenFehlgeschlagen, {

@@ -19,11 +19,28 @@
 // Übersetzung kommt als Umgebung herein, damit das Modul in jsdom prüfbar
 // bleibt; die DOM-Bausteine dieser Datei nehmen ihre Handlungen als Rückrufe.
 //
+// **Ein Feld in einem verborgenen Bereich** (4T-002186, E7.8, S6): Die Bedingung
+// eines Bereichs wirkt allein auf die Anzeige, das Feld bleibt im Auftrag und
+// in den Regeln. Weist die Schnittstelle es ab, stünde die Meldung an einem
+// Feld, das niemand sieht; sie steht deshalb im Kopf und nennt das Feld, der
+// Bereich bleibt verborgen, und den Fokus bekommt ein solches Feld nicht. Welche
+// Felder gerade verborgen sind, sagt der Körper (`seite.verborgen`).
+//
 // **Der Ablauf steht ebenfalls hier** (`erzeugeSpeicherAblauf`): Senden,
 // Zuordnen, Rückfrage und Wahl arbeiten auf dem Zustands-Objekt der Seite, das
 // sie hereingereicht bekommen, mit Kanal, Zeichnen und Statuszeile als
 // Rückrufen. Die Seite bleibt damit in ihrem Größen-Budget und behält allein,
 // was nach dem Ergebnis ihren Zustand setzt.
+//
+// 4T-002253 (Epic 3E-000262, F5 A, S7): **Kopf und Positionen in einem
+// Auftrag.** Die Positions-Bereiche der Maske sammeln ihre Anweisungen im
+// Zustand der Seite (`seite.positionen`, Naht `positionen`); das Speichern
+// hängt sie hinter die Anweisung des Kopfes (`baueSammelAuftrag`), und die
+// Schnittstelle schreibt alles ganz oder gar nicht (E11). Gibt es nur
+// Positionen, besteht der Auftrag allein aus ihnen. Weist die Schnittstelle
+// eine Position ab, steht die Meldung im Kopf und nennt die Position in der
+// Reihenfolge der gesammelten Anweisungen (`positionAb`), auch wenn die Lage
+// ein Feld nennt, denn die Felder der Maske sind die des Kopfes.
 'use strict';
 
 import { loeseErgebnisAuf } from '../../../shared/database/auftrag-text.js';
@@ -98,6 +115,24 @@ export function baueAuftrag({
 }
 
 /**
+ * Hängt die gesammelten Anweisungen der Positions-Bereiche hinter die des
+ * Kopfes (4T-002253, S7): Kopf zuerst, ohne Kopf-Änderung allein die
+ * Positionen, ohne beides null.
+ *
+ * @param {{anweisungen: Array<object>}|null} kopfAuftrag Ergebnis von `baueAuftrag`.
+ * @param {Array<object>} [positionen] Die gesammelten Anweisungen.
+ * @returns {{anweisungen: Array<object>}|null}
+ */
+export function baueSammelAuftrag(kopfAuftrag, positionen = []) {
+  const kopf = kopfAuftrag && Array.isArray(kopfAuftrag.anweisungen) ? kopfAuftrag.anweisungen : [];
+  const dazu = Array.isArray(positionen)
+    ? positionen.filter((a) => a && typeof a === 'object')
+    : [];
+  if (kopf.length === 0 && dazu.length === 0) return null;
+  return { anweisungen: [...kopf, ...dazu.map((a) => ({ ...a }))] };
+}
+
+/**
  * Derselbe Auftrag mit `erzwingen: true` an jeder Anweisung (B5).
  *
  * @param {{anweisungen: Array<object>}} auftrag
@@ -112,8 +147,11 @@ export function erzwungen(auftrag) {
  * Ordnet ein Ergebnis der Schnittstelle den Stellen der Maske zu (B5).
  *
  * @param {object} ergebnis Das Ergebnis des Kanals `database:auftrag`.
- * @param {object} umgebung `{ t, hat, sprache, rueckfallSprache, felder }`;
- *   `felder` sind die Feld-Namen der Maske in ihrer Reihenfolge.
+ * @param {object} umgebung `{ t, hat, sprache, rueckfallSprache, felder, verborgen,
+ *   positionAb }`; `felder` sind die Feld-Namen der Maske in ihrer Reihenfolge,
+ *   `verborgen` die Namen der Felder, die gerade in einem verborgenen Bereich
+ *   stehen, `positionAb` (4T-002253) die Stelle der ersten Positions-Anweisung
+ *   im Auftrag, wenn er Positionen trägt.
  * @returns {{ok: boolean, amFeld: Object<string, Array<string>>,
  *   markiert: Array<string>, kopf: Array<string>, fremd: string|null,
  *   fokus: string|null}} `fremd` ist der Satz der Fremd-Änderung, wenn die
@@ -129,24 +167,58 @@ export function verarbeiteErgebnis(ergebnis, umgebung = {}) {
 
   const felder = Array.isArray(umgebung.felder) ? umgebung.felder : [];
   const bekannt = new Map(felder.map((name) => [name.toLowerCase(), name]));
+  const verborgen = new Set(
+    (Array.isArray(umgebung.verborgen) ? umgebung.verborgen : []).map((n) =>
+      String(n).toLowerCase(),
+    ),
+  );
+  const istVerborgen = (name) => verborgen.has(String(name).toLowerCase());
   const anweisungen = ergebnis && Array.isArray(ergebnis.lagen) ? ergebnis.lagen : [];
   const positionen = new Set(anweisungen.map((l) => l && l.position).filter(Number.isInteger));
+  // 4T-002253: Mit Positionen nennt der eigene Satz die Position, nicht die Anweisung.
+  const ab = Number.isInteger(umgebung.positionAb) ? umgebung.positionAb : null;
   const aufgeloest = loeseErgebnisAuf(ergebnis, {
     ...umgebung,
     t,
-    mehrereAnweisungen: positionen.size > 1,
+    mehrereAnweisungen: ab === null && positionen.size > 1,
   });
+  const ausPosition = (i) => {
+    const lage = anweisungen[i];
+    return ab !== null && lage && Number.isInteger(lage.position) && lage.position >= ab
+      ? lage.position - ab + 1
+      : null;
+  };
 
   const amFeld = {};
   const markiert = new Set();
   const kopf = [];
   let fremd = null;
-  for (const lage of aufgeloest) {
+  for (const [i, gelesen] of aufgeloest.entries()) {
+    const nummer = ausPosition(i);
+    const lage =
+      nummer === null
+        ? gelesen
+        : {
+            ...gelesen,
+            feld: null,
+            felder: null,
+            text: t('database.form.positionRow')
+              .replace('{n}', String(nummer))
+              .replace('{text}', gelesen.text),
+          };
     if (lage.code === LAGE_FREMD) {
       fremd = fremd === null ? lage.text : `${fremd} ${lage.text}`;
       continue;
     }
     const feld = lage.feld ? bekannt.get(lage.feld.toLowerCase()) : undefined;
+    if (feld && istVerborgen(feld)) {
+      // 4T-002186 (S6): Die Meldung zu einem verborgenen Feld steht im Kopf und
+      // nennt das Feld; der Bereich bleibt verborgen.
+      kopf.push(
+        t('database.form.hiddenFieldRejected').replace('{feld}', feld).replace('{text}', lage.text),
+      );
+      continue;
+    }
     if (feld) {
       (amFeld[feld] = amFeld[feld] || []).push(lage.text);
       continue;
@@ -158,7 +230,9 @@ export function verarbeiteErgebnis(ergebnis, umgebung = {}) {
     kopf.push(lage.text);
   }
   const fokus =
-    felder.find((name) => amFeld[name]) || felder.find((name) => markiert.has(name)) || null;
+    felder.find((name) => amFeld[name]) ||
+    felder.find((name) => markiert.has(name) && !istVerborgen(name)) ||
+    null;
   return { ok: false, amFeld, markiert: [...markiert], kopf, fremd, fokus };
 }
 
@@ -279,6 +353,8 @@ export function baueLoeschFrage({ t, ja, nein }) {
  * @param {Function} n.neuLaden «Neu laden» bei einer Fremd-Änderung.
  * @param {Function} [n.loeschenAbgebrochen] «Nein» in der Lösch-Rückfrage
  *   (4T-001941: gibt die Sperre des Löschens frei).
+ * @param {() => Array<object>} [n.positionen] Die gesammelten Anweisungen der
+ *   Positions-Bereiche (4T-002253).
  * @returns {{vergiss: Function, speichern: Function, fragLoeschen: Function,
  *   zeichneLage: Function, sende: Function}}
  */
@@ -302,7 +378,7 @@ export function erzeugeSpeicherAblauf(n) {
   }
 
   function auftragFuer(art) {
-    return baueAuftrag({
+    const kopf = baueAuftrag({
       art,
       tabellenPfad: seite.tabellenPfad,
       kennung: seite.kennung,
@@ -310,7 +386,16 @@ export function erzeugeSpeicherAblauf(n) {
       erwartet: (seite.daten && seite.daten.erwartet) || {},
       felderDesKoerpers: felder(),
     });
+    // 4T-002253 (S7): die gesammelten Positionen hinter den Kopf; Löschen nie.
+    if (art === ART_LOESCHEN) return kopf;
+    return baueSammelAuftrag(kopf, typeof n.positionen === 'function' ? n.positionen() : []);
   }
+
+  // 4T-002253: Trägt der Auftrag vorn die Anweisung des Kopfes? Dann 1, sonst 0.
+  const kopfAnteil = (auftrag) => {
+    const erste = auftrag.anweisungen[0];
+    return erste && erste.tabelle === seite.tabellenPfad && erste.id === seite.kennung ? 1 : 0;
+  };
 
   async function sende(auftrag) {
     if (seite.sendet) return;
@@ -327,9 +412,10 @@ export function erzeugeSpeicherAblauf(n) {
     seite.sendet = false;
     // Inzwischen umgebunden: Das Ergebnis gehört nicht mehr zu dieser Anzeige.
     if (gegenstand !== n.schluessel()) return;
+    const ab = kopfAnteil(auftrag);
     if (ergebnis && ergebnis.ok === true) {
       vergiss();
-      n.gelungen(auftrag.anweisungen[0].art);
+      n.gelungen(ab === 1 ? auftrag.anweisungen[0].art : ART_AENDERN);
       return;
     }
     // Die Eingabe bleibt stehen, der Modus auch (B5).
@@ -339,6 +425,8 @@ export function erzeugeSpeicherAblauf(n) {
       hat: n.hat,
       sprache: typeof n.sprache === 'function' ? n.sprache() : null,
       felder: felder(),
+      verborgen: Array.isArray(seite.verborgen) ? seite.verborgen : [],
+      positionAb: auftrag.anweisungen.length > ab ? ab : undefined,
     });
     seite.fokus = seite.befunde.fokus;
     n.zeichne();

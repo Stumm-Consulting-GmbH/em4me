@@ -34,7 +34,7 @@ pq.out('Risultato: ' + (6 * 7));
 
 Tutte le funzioni dati sono in sola lettura e lavorano su un'istantanea dell'indice presa all'avvio dell'esecuzione. Se l'insieme dei file cambia, il blocco viene rieseguito automaticamente.
 
-- `pq.pages([fonte])` — tutti i file dell'ambito di ricerca come oggetti pagina, eventualmente filtrati per una fonte.
+- `pq.pages([fonte])` — tutti i file dell'ambito di ricerca come oggetti pagina, eventualmente filtrati per una fonte; i modelli mancano, a meno che la fonte non indichi la loro cartella (vedi Fonti).
 - `pq.current()` — l'oggetto pagina del documento corrente (o `null`).
 - `pq.file(rif)` — una pagina per percorso assoluto, percorso relativo alla radice o nome logico (senza distinzione tra maiuscole e minuscole); `null` se nulla corrisponde.
 - `pq.blocks([fonte])` — le proprietà dei blocchi dell'ambito di ricerca (vedi [Proprietà dei blocchi](block-properties.md)); contano solo le ancore attive.
@@ -65,6 +65,8 @@ Il parametro opzionale `fonte` filtra come la selezione delle fonti della query,
 - `'#tag'` — file con il tag, gerarchia inclusa (`#progetto` copre anche `progetto/alpha`).
 - `'[[Nome]]'` — file che fanno riferimento alla destinazione (link in uscita).
 - `'Cartella'` o `'Cartella/Sottocartella'` — file sotto il percorso della cartella.
+
+**I modelli**, cioè i file della [cartella dei modelli](templates.md), non vengono restituiti da `pq.pages` e `pq.blocks`, secondo la stessa regola della query: senza fonte e con una fonte di tag, di riferimento o di cartella superiore mancano; una fonte di cartella che punta alla cartella dei modelli o a una delle sue sottocartelle, ad esempio `pq.pages('Modelli')`, restituisce esattamente il loro contenuto. `pq.file` e `pq.current` trovano ancora un modello.
 
 ### Proprietà dei blocchi
 

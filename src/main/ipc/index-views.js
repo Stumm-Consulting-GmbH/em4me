@@ -65,6 +65,7 @@ const { istFeldKonflikt } = require('../documents/save-guard.js');
  * @param {Function} deps.recordMddOnSave Historien-Paket beim Speichern schreiben.
  * @param {Function} deps.resolveQueryTemplatesFolder Vorlagen-Ordner, den eine Abfrage ausschließt.
  * @param {(p: string) => string} deps.mddPathFor Pfad der Begleitdatei.
+ * @param {Function} [deps.definitionsSchutz] Schutz der Definition (4T-002310).
  */
 function registerIndexViewsIpc(handle, deps) {
   const {
@@ -104,7 +105,12 @@ function registerIndexViewsIpc(handle, deps) {
   // 4T-001524 (Epic 3E-000169): Die Ersetzen-Strecke braucht die Historie und
   // steht deshalb hier statt als freie Funktion. Gebaut wird sie einmal bei der
   // Registrierung, weil ihre Abhaengigkeiten dann bereits feststehen.
-  const { ersetzeImBereich } = createAreaReplace({ resolveHistoryFor, recordMddOnSave });
+  // 4T-002310 (Epic 3E-000263): mit dem Schutz der Definition aus der Verdrahtung.
+  const { ersetzeImBereich } = createAreaReplace({
+    resolveHistoryFor,
+    recordMddOnSave,
+    definitionsSchutz: deps.definitionsSchutz,
+  });
   // 4T-002003: Der Ermittler liest die Notizen über dieselbe Pfad-Bildung wie
   // `note:read` und steht deshalb ebenfalls hier. Gebaut wird er beim ersten
   // Aufruf, nicht bei der Registrierung: Sein Wächter auf `mddPathFor` soll
@@ -311,9 +317,14 @@ function registerIndexViewsIpc(handle, deps) {
     }
     const config = normalizeProfilesConfig(await readAreaProfilesConfig(area.rootPath));
     const assignField = (config && config.assignField) || DEFAULT_ASSIGN_FIELD;
+    // 4T-002126 (Epic 3E-000345): der Vorlagen-Ordner des Fensters, je Lauf
+    // frisch aufgelöst wie im Abfrage-Kanal; was darin liegt, wird nicht
+    // eingesammelt, außer FROM nennt ihn ausdrücklich.
+    const templatesFolder = await resolveQueryTemplatesFolder(senderWindow(event));
     return backlinks.eventsForQuery(area.rootPath, query, area.rootPath, {
       assignField,
       profileName: EVENT_PROFILE_NAME,
+      templatesFolder,
     });
   });
 
@@ -562,11 +573,15 @@ function registerIndexViewsIpc(handle, deps) {
   // (perspective-script). Read-only-View wie frontmatterQuery:run; die
   // Auswertung uebernimmt das Skript in der Renderer-Sandbox, der Main
   // liefert nur den Suchraum (pages/blocks) als Snapshot.
-  handle('perspectiveScript:data', (event, params) => {
+  // 4T-002126 (Epic 3E-000345): asynchron, weil der Vorlagen-Ordner je Lauf
+  // frisch aufgelöst wird; der Abzug trägt ihn mit, und die Ausführungs-
+  // Umgebung wendet den Ausschluss an (die Quelle des Skripts kennt nur sie).
+  handle('perspectiveScript:data', async (event, params) => {
     const filePath = params && params.filePath;
     const areaRoot = areaRootForEvent(event);
     backlinks.ensureIndexForDemand(filePath, `${event.sender.id}:demand`, areaRoot);
-    return backlinks.scriptDataFor(filePath, areaRoot);
+    const templatesFolder = await resolveQueryTemplatesFolder(senderWindow(event));
+    return backlinks.scriptDataFor(filePath, areaRoot, templatesFolder);
   });
 
   // 4T-000057 (Epic 3E-000011): Autocomplete-Suggestions fuer drei Quellen:

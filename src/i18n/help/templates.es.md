@@ -2,7 +2,7 @@
 
 Las plantillas son archivos Markdown corrientes en una **carpeta de plantillas** configurable. Al aplicarlas, la aplicación evalúa **marcadores** seleccionados: fecha y hora con desplazamiento y formato, título y carpeta del archivo de destino, diálogos de entrada y selección, el portapapeles y una posición de destino del cursor. Las plantillas crean archivos nuevos con estructura lista o insertan bloques recurrentes en la posición del cursor; las **reglas de carpeta** rellenan los archivos nuevos automáticamente.
 
-La funcionalidad se puede conmutar como extensión «Plantillas» (Configuración → Extensiones); desactivada, desaparecen los comandos, la sección de configuración, las reglas de carpeta y la exclusión de las plantillas de las consultas.
+La funcionalidad se puede conmutar como extensión «Plantillas» (Configuración → Extensiones); desactivada, desaparecen los comandos, la sección de configuración, las reglas de carpeta y la exclusión de las plantillas de las consultas, de los eventos agregados y de las listas de páginas y de bloques de los bloques de script.
 
 ## Carpeta de plantillas
 
@@ -13,7 +13,7 @@ La carpeta de plantillas se configura en los ajustes (Configuración → Plantil
 
 Cada archivo Markdown de la carpeta (incluidas las subcarpetas) es una plantilla. Las subcarpetas aparecen como grupos en el popup de selección. Los cambios de configuración surten efecto de inmediato, sin reiniciar.
 
-**Las plantillas en las consultas.** Lo que está en la carpeta de plantillas, subcarpetas incluidas, no es un resultado en ninguna [Consulta Perspective](frontmatter-query.md), en ninguno de sus niveles, y tampoco aporta valores a los repertorios de valores ni a los campos de recopilación de los [Perfiles de propiedades](property-profiles.md). Así, el contenido de una plantilla, por ejemplo una tarea de muestra, no aparece en ningún resumen. Quien quiera consultar plantillas nombra la carpeta expresamente en `FROM`, por ejemplo `FROM "Plantillas"`. Cuenta la carpeta que también determina la selección de plantillas, es decir, la configuración del área antes de la global; la carpeta de plantillas de un área vinculada no cuenta.
+**Las plantillas en las consultas.** Lo que está en la carpeta de plantillas, subcarpetas incluidas, no es un resultado en ninguna [Consulta Perspective](frontmatter-query.md), en ninguno de sus niveles, y tampoco aporta valores a los repertorios de valores ni a los campos de recopilación de los [Perfiles de propiedades](property-profiles.md). Así, el contenido de una plantilla, por ejemplo una tarea de muestra, no aparece en ningún resumen. Quien quiera consultar plantillas nombra la carpeta expresamente en `FROM`, por ejemplo `FROM "Plantillas"`. Cuenta la carpeta que también determina la selección de plantillas, es decir, la configuración del área antes de la global; la carpeta de plantillas de un área vinculada no cuenta. La misma regla vale para la agregación de [Eventos](events.md) y para las listas de páginas y de bloques de los [Bloques de script](scripts.md): allí se nombra la carpeta en el `FROM` de la consulta de eventos o como fuente de `pq.pages` o `pq.blocks`, por ejemplo `pq.pages('Plantillas')`.
 
 ## Aplicar plantillas
 
@@ -56,6 +56,8 @@ Prioridad: {{select:Prioridad:Alta,Media,Baja}}
 ````
 
 Los marcadores desconocidos o los parámetros defectuosos interrumpen la aplicación con un mensaje en la barra de estado; no se crea ningún archivo a medio rellenar.
+
+**Los archivos de formulario no son plantillas.** Un archivo de formulario de la [base de datos](database.md) escribe también sus marcadores entre llaves dobles, por ejemplo `{{field:Name}}` o `{{value:cantidad * precio}}`, y por eso parece una plantilla. Sin embargo, nunca se aplica: el formulario de un registro resuelve sus marcadores en cada visualización según el registro mostrado, y el archivo los conserva. Por eso un archivo de formulario va junto a su tabla y no en la carpeta de plantillas; allí aparecería en la selección de plantillas, y su aplicación se interrumpiría en los marcadores desconocidos `field` y `value`.
 
 ## Reglas de carpeta
 

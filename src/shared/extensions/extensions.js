@@ -348,6 +348,19 @@ const INTERNAL_EXTENSIONS = [
     // Dialog) trägt im Aus-Zustand dieselbe Kennzeichnung auf der Funktions-Seite.
     featureKeys: ['help.feature.chartInsertEdit'],
   },
+  // 4T-002173 (Epic 3E-000337): Diagramm einer Abfrage, `DISPLAY bar` und
+  // `DISPLAY line`. Eigene Erweiterung ohne Abhängigkeit, weil die Abfrage Kern
+  // ist und nichts mit der Datentabelle zu tun hat (F1 Option A); an ab
+  // «Fortgeschritten» wie die Ablauf- und Formel-Diagramme (F2 Option A).
+  // Aus-Zustand: Die Abfrage zeigt die Ausgabe ohne Angabe mit dem Hinweis, dass
+  // die Diagramm-Darstellung ausgeschaltet ist (display-forms.js, S3).
+  {
+    id: 'query-chart',
+    category: 'render',
+    modeLevel: 'advanced',
+    nameKey: 'help.featureName.queryChart',
+    descKey: 'help.feature.queryChart',
+  },
   {
     id: 'katex',
     category: 'render',
@@ -1155,7 +1168,17 @@ const INTERNAL_EXTENSIONS = [
       'help.feature.databaseRecords',
       'help.feature.databaseRecordsView',
       'help.feature.databaseSegments',
+      // 4T-002336 (Epic 3E-000264, F6 A): Zweiundvierzig mit den Datensatz-Treffern
+      // der Bereichs-Suche, dem Verweis in die Maske samt Kurzform, Anzeige-Form und
+      // Vorschlagsliste und der Rückkehr des Masken-Dokuments nach dem Neustart,
+      // ohne eigenen Schalter; im Aus-Zustand liefert die Suche keine
+      // Datensatz-Treffer, der Klick öffnet die Datei, die Vorschlagsliste bietet
+      // keine Datensätze, und der Sitzungs-Eintrag ruht. Die Zeile zum Suchraum-
+      // Schnitt bleibt Kern (4T-001761); die Treffer-Zeile steht deshalb hier vor
+      // dem Verweis, in der Reihenfolge der Gruppe «Datenbank».
+      'help.feature.databaseSearchHit',
       'help.feature.databaseRecordLink',
+      'help.feature.databaseRecordLinkOpen',
       'help.feature.databaseArea',
       'help.feature.databaseOverview',
       'help.feature.databaseChangeLog',
@@ -1174,6 +1197,11 @@ const INTERNAL_EXTENSIONS = [
       'help.feature.databaseForm',
       'help.feature.databaseLock',
       'help.feature.databaseFormFile',
+      'help.feature.databaseFormValue',
+      'help.feature.databaseFormDefault',
+      'help.feature.databaseFormNavigation',
+      'help.feature.databaseFormRestore',
+      'help.feature.databaseFormCondition',
       'help.feature.databaseConsistency',
       'help.feature.databaseUsage',
       // 4T-002045 (Epic 3E-000258): Fünfundzwanzig statt einundzwanzig mit der
@@ -1187,6 +1215,23 @@ const INTERNAL_EXTENSIONS = [
       // 4T-002083 (Epic 3E-000259): Sechsundzwanzig mit der Abfrage-Datei; ihre
       // Marke wirkt nur für die Übersicht. Gruppierung bleibt Kern.
       'help.feature.databaseQueryFile',
+      // 4T-002254 (Epic 3E-000262, F7 A): Vierunddreißig mit Listen-Maske, Pflege in der
+      // Liste, Positions-Bereich und Verweis-Pfaden, ohne eigenen Schalter; im
+      // Aus-Zustand zeigt die Abfrage-Datei die gewöhnliche Ergebnis-Tabelle, und
+      // die Maske ist nicht erreichbar.
+      'help.feature.databaseListForm',
+      'help.feature.databaseListEdit',
+      'help.feature.databaseFormList',
+      'help.feature.databaseFormValuePath',
+      // 4T-002313 (Epic 3E-000263, F5 A): Neununddreißig mit Rollen, Zuordnung,
+      // Prüfung beim Schreiben, Wirkung in Masken und Übersicht und der Sperre am
+      // Feld, ohne eigenen Schalter; im Aus-Zustand bleiben die Angaben bloßes
+      // Frontmatter, und es gibt weder Auflösung noch Prüfung.
+      'help.feature.databaseRoles',
+      'help.feature.databaseRoleAssignment',
+      'help.feature.databasePermissionCheck',
+      'help.feature.databasePermissionForms',
+      'help.feature.databaseFieldEditable',
     ],
     dependencies: ['property-profiles'],
     // 4T-001759 (Epic 3E-000253): die Übersichts-Seite des Datenbank-Bereichs;

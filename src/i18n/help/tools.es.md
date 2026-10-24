@@ -4,7 +4,7 @@ Doce ayudantes para el trabajo diario con el texto: linter, corrección ortográ
 
 ## Linter Markdown
 
-El linter marca discretamente siete defectos típicos en el editor (vistas Código, Dividida y En vivo); pasar el ratón sobre una marca muestra la explicación. Los ejemplos están en bloques de código para que esta página quede libre de marcas.
+El linter marca discretamente nueve defectos típicos en el editor (vistas Código, Dividida y En vivo); pasar el ratón sobre una marca muestra la explicación. Los ejemplos están en bloques de código para que esta página quede libre de marcas.
 
 | Regla | Infracción | Corrección |
 |---|---|---|
@@ -13,6 +13,8 @@ El linter marca discretamente siete defectos típicos en el editor (vistas Códi
 | Texto alternativo ausente | `![](imagen.png)` | `![Boceto de arquitectura](imagen.png)` |
 | Enlace wiki sin destino | `[[Nombre-erróneo]]` | `[[Plan de proyecto]]` (archivo existente) |
 | Ancla wiki rota | `[[Plan de proyecto#Falta]]` | `[[Plan de proyecto#Hitos]]` (ancla existente) |
+| Nombre de registro ambiguo | `[[Personen#^Anna Muster]]` (dos registros con esta forma de visualización) | `[[Personen#^r-00042]]` (identificador del registro buscado) |
+| Un ancla de bloque oculta un registro | `[[Personen#^Bert]]` (ancla de bloque `^Bert` en el archivo de tabla) | `[[Personen#^r-00002]]` (identificador del registro) |
 | Tipo de callout desconocido | `> [!importante] Título` | `> [!warning] Título` (tipo de la lista blanca) |
 | Marcador de comentario sin pareja | `Texto %% sin cierre` | `Texto %%privado%% sigue` o `\%%` para un `%%` literal |
 
@@ -89,7 +91,7 @@ Más allá del archivo suelto, las coincidencias aparecen en el panel **Resultad
 
 El **archivo abierto va en primer lugar**, y con su estado sin guardar: lo que está en el editor se encuentra, incluso antes de guardarlo. Sus coincidencias siguen resaltadas en el texto como siempre, la lista se añade. Para los demás archivos vale el estado guardado en el disco.
 
-La búsqueda abarca los archivos Markdown del área. Otros archivos y los archivos de acompañamiento de la aplicación quedan fuera. Un **archivo de tabla de la [base de datos](database.md)** entra sin el contenido de su bloque de registros: su texto explicativo sigue siendo consultable, sus registros no se encuentran por esta vía. Quien abre el archivo y busca dentro de él los encuentra sin cambio alguno.
+La búsqueda abarca los archivos Markdown del área. Otros archivos y los archivos de acompañamiento de la aplicación quedan fuera. Un **archivo de tabla de la [base de datos](database.md)** entra en el texto completo sin el contenido de su bloque de registros; su texto explicativo sigue siendo consultable. Sus registros aparecen en cambio como resultados propios: detrás de los grupos de los documentos, un grupo por tabla con el añadido «Registros», cada fila con la forma de visualización del registro, el campo y su valor con la coincidencia resaltada, en una tabla abierta también a partir de su estado sin guardar. Un clic abre el registro en su formulario. Con la fila de reemplazo abierta se omiten estos grupos, porque el reemplazo no escribe en los registros. Los detalles están en la página «Base de datos», sección «Localizabilidad: búsqueda y enlaces»; quien abre el archivo de tabla y busca dentro de él encuentra sus registros sin cambio alguno.
 
 Si **no hay ninguna pestaña abierta**, el área cuenta igualmente: buscar y sustituir alcanzan sus archivos sin que haya que abrir antes un documento. Dos cosas desaparecen entonces, porque sin archivo abierto no existen: la lista se ordena de forma puramente alfabética en lugar de anteponer un archivo, y no hay nada resaltado en ningún texto.
 

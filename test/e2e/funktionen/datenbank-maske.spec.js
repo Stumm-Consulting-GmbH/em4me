@@ -33,7 +33,14 @@
 // zweiten Tabelle, die auf «Kunden» verweist. DB-MAS-06 (4T-001943) schreibt die
 // erzeugte Maske als Datei heraus, ergänzt die Datei von außen um eine
 // Überschrift und prüft, dass die Maske sie beim nächsten Öffnen zeigt und nach
-// dem Löschen der Datei wieder die erzeugte.
+// dem Löschen der Datei wieder die erzeugte. DB-MAS-07 (4T-002183) prüft den
+// Wert-Platzhalter einer Masken-Datei: gerechnet im Lesen, im Bearbeiten jeder
+// Eingabe folgend ohne Speichern, ein ungültiger Ausdruck als Hinweis mit Zeile.
+// DB-MAS-08 (4T-002184) prüft zwei Masken-Dateien derselben Tabelle: ohne
+// Angabe gilt die erste nach Pfad, die Angabe form wählt die zweite, und die
+// Übersicht nennt die Standard-Maske und die Zahl der weiteren.
+// DB-MAS-09 (4T-002185, Navigation zwischen Masken) steht wegen des
+// Zeilen-Budgets in der Nachbar-Datei datenbank-maske-navigation.spec.js.
 'use strict';
 
 const fs = require('node:fs');
@@ -794,6 +801,211 @@ test.describe('DB-MAS-06: Maske als Datei herausschreiben und die Masken-Datei l
         'feld:Aktiv',
       ]);
       await expect(maske.locator('.db-form-write-file')).toHaveCount(1);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      removeDir(wurzel);
+    }
+  });
+});
+
+// --- 4T-002183: Wert-Platzhalter ---------------------------------------------------------
+
+// Eine Masken-Datei mit einem gültigen und einem ungültigen Wert-Platzhalter;
+// die Zeilen zählen ab dem Anfang der Datei, wie der Hinweis sie nennt.
+const MASKE_MIT_WERT = [
+  '---',
+  'db-form:',
+  '  table: Kunden',
+  '---',
+  '',
+  '# Kunden',
+  '',
+  '**Menge:** {{field:Menge}}',
+  '',
+  'Doppelt: {{value:menge * 2}}',
+  '',
+  'Fehler: {{value:menge *}}',
+  '',
+  '**Name:** {{field:Name}}',
+  '',
+];
+
+test.describe('DB-MAS-07: Wert-Platzhalter folgt der Eingabe, ungültiger Ausdruck als Hinweis (4T-002183)', () => {
+  test('rechnet im Lesen, folgt im Bearbeiten ohne Speichern und meldet den ungültigen Ausdruck', async () => {
+    const { wurzel, tabelle } = baueBereich();
+    fs.writeFileSync(path.join(wurzel, 'Kunden Form.md'), MASKE_MIT_WERT.join('\n'), 'utf8');
+    const tabellenText = fs.readFileSync(tabelle, 'utf8');
+    const { app, page, userData } = await launchApp();
+    try {
+      await bindeBereich(page, wurzel);
+      await oeffneTabelle(app, page, tabelle);
+      await expect(page.locator(`${BLOCK_LESE} table.prc-table`)).toBeVisible({ timeout: 20000 });
+
+      // Die Maske zeigt den Körper der Datei, sobald der Katalog sie kennt.
+      const maske = page.locator(MASKE);
+      await expect(async () => {
+        await oeffneMaskeFuer(page, tabelle, KENNUNG);
+        await expect(maske.locator('.db-form-source')).toHaveCount(1, { timeout: 1000 });
+      }).toPass({ timeout: 20000 });
+
+      // AK2 (Lesen): Der Wert steht als nicht bearbeitbare Stelle im Körper,
+      // gerechnet aus dem gespeicherten Stand (Menge 12).
+      const werte = maske.locator('.db-form-body .db-form-computed');
+      await expect(werte).toHaveCount(2);
+      await expect(werte.nth(0)).toHaveText('24');
+      await expect(werte.nth(0)).not.toHaveClass(/db-form-computed-empty/);
+      await expect(
+        maske.locator('.db-form-computed input, .db-form-computed textarea'),
+      ).toHaveCount(0);
+
+      // AK4: Der ungültige Ausdruck steht mit seiner Zeile im Kopf, die Stelle
+      // bleibt leer und markiert.
+      const zeile = MASKE_MIT_WERT.indexOf('Fehler: {{value:menge *}}') + 1;
+      const hinweis = maske.locator('.db-form-hint[data-form-code="formAusdruckUngueltig"]');
+      await expect(hinweis).toHaveCount(1);
+      expect(
+        saetze('database.hint.formAusdruckUngueltig', { zeile: String(zeile), name: 'menge *' }),
+      ).toContain(await hinweis.textContent());
+      await expect(werte.nth(1)).toHaveText('');
+      await expect(werte.nth(1)).toHaveClass(/db-form-computed-empty/);
+
+      // AK2 (Bearbeiten): Der Wert folgt jeder Eingabe ohne Speichern; Fokus und
+      // Eingabe bleiben, und nur die Felder sind Eingabe-Elemente.
+      await maske.locator('.db-form-edit').click();
+      await expect(maske.locator('.db-form-input')).toHaveCount(2);
+      const menge = feldIn(maske, 'Menge').locator('.db-form-input');
+      await menge.fill('5');
+      await expect(werte.nth(0)).toHaveText('10');
+      await menge.press('End');
+      await menge.pressSequentially('0');
+      await expect(werte.nth(0)).toHaveText('100');
+      await expect(menge).toBeFocused();
+      await expect(menge).toHaveValue('50');
+      await menge.fill('');
+      await expect(werte.nth(0)).toHaveText('');
+      await expect(werte.nth(0)).toHaveClass(/db-form-computed-empty/);
+
+      // AK4: Die Maske bleibt bedienbar: ein anderes Feld nimmt Eingaben an.
+      const name = feldIn(maske, 'Name').locator('.db-form-input');
+      await name.fill('Anna Probe');
+      await expect(name).toHaveValue('Anna Probe');
+
+      // Nichts ist gespeichert worden; Verwerfen kehrt zum gespeicherten Stand zurück.
+      expect(fs.readFileSync(tabelle, 'utf8')).toBe(tabellenText);
+      await maske.locator('.db-form-discard').click();
+      await expect(maske.locator('input, textarea')).toHaveCount(0, { timeout: 20000 });
+      await expect(werte.nth(0)).toHaveText('24');
+      expect(fs.readFileSync(tabelle, 'utf8')).toBe(tabellenText);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      removeDir(wurzel);
+    }
+  });
+});
+
+// --- 4T-002184: Standard-Maske und mehrere Masken je Tabelle ---------------------------------
+
+// Zwei Masken-Dateien derselben Tabelle; «Kunden Form» steht nach Pfad vor
+// «Kunden Kurz». Die Überschrift unterscheidet sie im Körper der Maske.
+function maskenDateiMit(titel, felder) {
+  return [
+    '---',
+    'db-form:',
+    '  table: Kunden',
+    '---',
+    '',
+    `# ${titel}`,
+    '',
+    ...felder.map((feld) => `{{field:${feld}}}\n`),
+  ].join('\n');
+}
+
+// Die Zelle «Maske» der Tabelle «Kunden» in der Übersicht.
+async function maskenZelle(page) {
+  const zeile = page
+    .locator(`${UEBERSICHT} .db-overview-table tbody tr`)
+    .filter({ has: page.locator('.db-overview-table-name', { hasText: 'Kunden' }) });
+  return zeile.locator('.db-overview-table-form');
+}
+
+// Überschrift und Felder des gezeigten Masken-Körpers.
+async function erwarteKoerper(maske, titel, felder) {
+  await expect(maske.locator('.db-form-body h1')).toHaveText(titel);
+  const namen = await maske
+    .locator('.db-form-body .db-form-field')
+    .evaluateAll((liste) => liste.map((e) => e.dataset.field));
+  expect(namen).toEqual(felder);
+}
+
+// Öffnet die Übersicht über den Menü-Weg «Ansicht → Übersicht der Datenbank»,
+// wie der Anwender es tut. Der Weg liest die Auskunft neu, sobald der Index eine
+// Änderung gemeldet hat; das bloße Aktivieren eines schon offenen Reiters
+// (`scg:open-system-page`) zeigt dagegen den gehaltenen Stand der Seite.
+async function oeffneUebersicht(app, page) {
+  await hauptSenden(app, ({ BrowserWindow }) => {
+    BrowserWindow.getAllWindows()[0].webContents.send('menu:openDatabaseOverview');
+  });
+  await expect(page.locator(UEBERSICHT)).toBeVisible({ timeout: 20000 });
+}
+
+test.describe('DB-MAS-08: Standard-Maske über form, ohne Angabe die erste nach Pfad (4T-002184)', () => {
+  test('form wählt die zweite Masken-Datei, ohne Angabe gilt die erste, die Übersicht nennt beide', async () => {
+    const { wurzel, tabelle } = baueBereich();
+    fs.writeFileSync(path.join(wurzel, 'Kunden Form.md'), maskenDateiMit('Lang', FELDER), 'utf8');
+    fs.writeFileSync(path.join(wurzel, 'Kunden Kurz.md'), maskenDateiMit('Kurz', ['Name']), 'utf8');
+    const { app, page, userData } = await launchApp();
+    try {
+      await bindeBereich(page, wurzel);
+      await oeffneTabelle(app, page, tabelle);
+      await expect(page.locator(`${BLOCK_LESE} table.prc-table`)).toBeVisible({ timeout: 20000 });
+      const maske = page.locator(MASKE);
+
+      // AK2: Ohne Angabe gilt die erste Masken-Datei nach Pfad; die zweite ist
+      // kein Befund mehr.
+      await expect(async () => {
+        await oeffneMaskeFuer(page, tabelle, KENNUNG);
+        await expect(maske.locator('.db-form-source')).toContainText('Kunden Form.md', {
+          timeout: 1000,
+        });
+      }).toPass({ timeout: 20000 });
+      await erwarteKoerper(maske, 'Lang', FELDER);
+
+      // AK5 (Übersicht): die Standard-Maske und die Zahl der weiteren.
+      await oeffneUebersicht(app, page);
+      const zelle = await maskenZelle(page);
+      await expect(zelle).toContainText('Kunden Form.md', { timeout: 20000 });
+      expect(saetze('database.overview.formMore', { count: '1' })).toContain(
+        await zelle.locator('.db-overview-form-more').textContent(),
+      );
+      await expect(
+        page.locator(`${UEBERSICHT} .db-overview-issue-source`, { hasText: 'Kunden Kurz.md' }),
+      ).toHaveCount(0);
+
+      // AK1: Die Angabe form in der Definition macht die zweite Datei zur
+      // Standard-Maske jedes Öffnens.
+      aendereVonAussen(tabelle, '  lastId: 2', '  lastId: 2\n  form: Kunden Kurz');
+      await expect(async () => {
+        await oeffneMaskeFuer(page, tabelle, KENNUNG);
+        await expect(maske.locator('.db-form-source')).toContainText('Kunden Kurz.md', {
+          timeout: 1000,
+        });
+      }).toPass({ timeout: 20000 });
+      await erwarteKoerper(maske, 'Kurz', ['Name']);
+      // Die Übersicht liest neu, sobald der Index die Änderung gemeldet hat.
+      await expect(async () => {
+        await oeffneUebersicht(app, page);
+        await expect(await maskenZelle(page)).toContainText('Kunden Kurz.md', { timeout: 1000 });
+      }).toPass({ timeout: 20000 });
+
+      // AK2 (Lebenszyklus): Ohne die Angabe gilt wieder die erste nach Pfad.
+      aendereVonAussen(tabelle, '  lastId: 2\n  form: Kunden Kurz', '  lastId: 2');
+      await expect(async () => {
+        await oeffneMaskeFuer(page, tabelle, KENNUNG);
+        await expect(maske.locator('.db-form-source')).toContainText('Kunden Form.md', {
+          timeout: 1000,
+        });
+      }).toPass({ timeout: 20000 });
+      await erwarteKoerper(maske, 'Lang', FELDER);
     } finally {
       await closeApp(app, userData, { force: true });
       removeDir(wurzel);

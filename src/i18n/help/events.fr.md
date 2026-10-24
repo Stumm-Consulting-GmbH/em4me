@@ -126,7 +126,7 @@ query: WHERE event-category = 'geburtstag'
 ```
 ````
 
-Le texte de requête utilise le langage à clauses de la [Requête Perspective](frontmatter-query.md) (`FROM`, `WHERE`, comparaisons, fonctions) ; une requête vide collecte tous les fichiers avec le profil `Ereignis`. Les valeurs de texte sont entre guillemets (`'geburtstag'`) — un mot nu serait une référence de champ.
+Le texte de requête utilise le langage à clauses de la [Requête Perspective](frontmatter-query.md) (`FROM`, `WHERE`, comparaisons, fonctions) ; une requête vide collecte tous les fichiers avec le profil `Ereignis`. Les fichiers du [dossier de modèles](templates.md) en sont exclus ; l'agrégation ne les collecte que si `FROM` nomme expressément le dossier, par exemple `FROM "Modèles"`. Les valeurs de texte sont entre guillemets (`'geburtstag'`) — un mot nu serait une référence de champ.
 
 - **Clic sur une ligne** ouvre le fichier source ; l'origine de chaque entrée reste visible.
 - **La maintenance réécrit** : les modifications dans le tableau agrégé arrivent dans le frontmatter du fichier source, même s'il n'est pas ouvert. Si le fichier source est ouvert avec des modifications non enregistrées, une indication y renvoie ; s'il a été modifié entre-temps sur le disque, rien n'est écrit (indication de conflit).

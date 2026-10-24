@@ -150,6 +150,9 @@ function wertePruefregel(regel, { kontext, text, wert } = {}) {
       if (wahr === null) return ergebnis(regel, false, GRUENDE.nichtAuswertbar);
       return ergebnis(regel, wahr, GRUENDE.ausdruck);
     }
+    // 4T-002312: die feste Sperre eines Feldes (`editable: false`) ist nie
+    // erfüllt; der Grund ist der einer ausgewerteten Bedingung.
+    if (regel.art === 'fest') return ergebnis(regel, false, GRUENDE.ausdruck);
     // Ein Regel-Name (`art: 'name'`) erreicht diese Stelle heute nicht, weil
     // der Katalog leer ist und das Lesen einen unbekannten Namen verwirft. Der
     // Katalog trägt aber keine Prüfung, nur Namen; ein Name ohne Prüfung und
@@ -245,10 +248,54 @@ function pruefeDatensatzRegeln(checks, kontext, fields) {
   return verletzungen;
 }
 
+// --- Gesperrte Felder (4T-002312) ----------------------------------------------------
+
+/**
+ * Die Felder, deren Bearbeitbarkeits-Bedingung am vorgefundenen Datensatz nicht
+ * erfüllt ist (Epic 3E-000263, F4 A). Die eine Stelle für die Schreib-Schnittstelle
+ * (`record-regel-bearbeitbar.js`) und die Antworten von Datensatz und Liste;
+ * ausgewertet wird jede Bedingung über `wertePruefregel` wie die der Tabelle,
+ * fail-closed: Eine nicht auswertbare Bedingung sperrt.
+ *
+ * @param {Array<{name: string, editable?: object}>} fields Die Felder der Definition.
+ * @param {object} kontext Ergebnis von `baueRegelKontext` über den vorgefundenen Datensatz.
+ * @returns {Array<{feld: string, quelle: string, message: *, grund: string}>}
+ *   Die gesperrten Felder in der Reihenfolge der Definition.
+ */
+function feldSperren(fields, kontext) {
+  const sperren = [];
+  for (const feld of Array.isArray(fields) ? fields : []) {
+    if (!feld || !feld.editable) continue;
+    const geprueft = wertePruefregel(feld.editable, { kontext });
+    if (geprueft.erfuellt) continue;
+    sperren.push({
+      feld: feld.name,
+      quelle: geprueft.quelle,
+      message: geprueft.message,
+      grund: geprueft.grund,
+    });
+  }
+  return sperren;
+}
+
+/**
+ * Die Namen der gesperrten Felder (`feldSperren`), für die Antworten der
+ * Lese-Kanäle.
+ *
+ * @param {Array<object>} fields Die Felder der Definition.
+ * @param {object} kontext Ergebnis von `baueRegelKontext`.
+ * @returns {string[]}
+ */
+function gesperrteFelder(fields, kontext) {
+  return feldSperren(fields, kontext).map((sperre) => sperre.feld);
+}
+
 module.exports = {
   GRUENDE,
   baueRegelKontext,
   wertePruefregel,
+  feldSperren,
+  gesperrteFelder,
   pruefeFeldRegeln,
   pruefeDatensatzRegeln,
 };

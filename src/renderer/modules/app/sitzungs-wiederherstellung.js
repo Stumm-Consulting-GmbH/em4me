@@ -28,6 +28,8 @@ import { MAX_PANES, createEmptyPane, createTab, state } from './app-state.js';
 // unveraendert).
 import { restoreGroupsIntoPane } from '../tabs/tab-groups.js';
 import { showStatusbarHint } from '../views/views.js';
+// 4T-002334 (Epic 3E-000264): Sitzungs-Eintrag des Masken-Dokuments.
+import { stelleMaskenWieder, uebergibRuhende } from './sitzungs-maske.js';
 
 export async function restorePanes(saved) {
   // saved = [{paths, activeIndex, viewMode (legacy)?, tabSettings?}, ...]
@@ -96,14 +98,27 @@ export async function restorePanes(saved) {
     );
   }
 
+  // 4T-002334 (Epic 3E-000264, T3): System-Seiten mit Sitzungs-Eintrag (das
+  // Masken-Dokument) kommen nach den Datei-Reitern ALLER Spalten und vor dem
+  // Zusammenlegen zurück: vorher, damit eine Spalte, die nur die Maske trug,
+  // nicht als leer entfällt; nach allen Spalten, damit das Persistieren beim
+  // Öffnen der Seite keinen halb geladenen Stand meldet. Was sich nicht öffnen
+  // lässt, ruht in seiner Spalte; die Datei-Reiter bleiben unberührt.
+  for (let i = 0; i < state.panes.length; i++)
+    await stelleMaskenWieder(i, saved[i] && saved[i].systemTabs, state);
+
   // Wenn linke Pane leer und rechte gefüllt: rechte hochziehen.
+  // 4T-002334: Die ruhenden Einträge der entfallenden Spalte wandern in die
+  // verbleibende (Entscheidung zum Randfall der Spalte, die nur die Maske trug).
   if (
     state.panes.length === 2 &&
     state.panes[0].tabs.length === 0 &&
     state.panes[1].tabs.length > 0
   ) {
+    uebergibRuhende(state.panes[0], state.panes[1]);
     state.panes = [state.panes[1]];
   } else if (state.panes.length === 2 && state.panes[1].tabs.length === 0) {
+    uebergibRuhende(state.panes[1], state.panes[0]);
     state.panes.pop();
   }
   state.activePaneIndex = 0;

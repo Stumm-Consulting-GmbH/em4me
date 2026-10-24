@@ -4,7 +4,7 @@ Twelve helpers for daily text work: linter, spell checking, search, search and r
 
 ## Markdown linter
 
-The linter subtly marks seven typical issues in the editor (Source, Split and Live view); hovering over a mark shows the explanation. The examples sit in code blocks so this page itself stays mark-free.
+The linter subtly marks nine typical issues in the editor (Source, Split and Live view); hovering over a mark shows the explanation. The examples sit in code blocks so this page itself stays mark-free.
 
 | Rule | Violation | Fix |
 |---|---|---|
@@ -13,6 +13,8 @@ The linter subtly marks seven typical issues in the editor (Source, Split and Li
 | Missing alt text | `![](image.png)` | `![Architecture sketch](image.png)` |
 | Wiki link without target | `[[Typo-name]]` | `[[Project plan]]` (existing file) |
 | Broken wiki anchor | `[[Project plan#Missing]]` | `[[Project plan#Milestones]]` (existing anchor) |
+| Ambiguous record name | `[[Personen#^Anna Muster]]` (two records with this display form) | `[[Personen#^r-00042]]` (identifier of the intended record) |
+| Block anchor hides a record | `[[Personen#^Bert]]` (block anchor `^Bert` in the table file) | `[[Personen#^r-00002]]` (identifier of the record) |
 | Unknown callout type | `> [!importantly] Title` | `> [!warning] Title` (type from the whitelist) |
 | Unpaired comment marker | `Text %% without closing` | `Text %%private%% more` or `\%%` for a literal `%%` |
 
@@ -89,7 +91,7 @@ Beyond the single file, matches appear in the sidebar panel **Search results**, 
 
 The **open file comes first** in the list, and with its unsaved state: whatever is in the editor right now is found, even before it is saved. Its matches are highlighted in the text as usual, the list comes in addition. For all other files the saved state on disk applies.
 
-The search covers the Markdown files of the area. Other files and the application's companion files stay out. A **table file of the [database](database.md)** goes in without the contents of its record block: its explanatory text stays searchable, its records are not found this way. Anyone who opens the file and searches inside it finds them unchanged.
+The search covers the Markdown files of the area. Other files and the application's companion files stay out. A **table file of the [database](database.md)** goes into the full text without the contents of its record block; its explanatory text stays searchable. Its records appear instead as matches of their own: behind the groups of the documents, one group per table with the addition «Records», each row with the display form of the record, the field and its value with the match highlighted, for an open table also from its unsaved state. A click opens the record in its form. While the replace row is open, these groups are left out, because replacing does not write into records. Details are on the «Database» page in the section «Findability: search and links»; anyone who opens the table file and searches inside it finds its records unchanged.
 
 With **no tab open** the area still counts: search and replace reach its files without a document having to be opened first. Two things fall away because they do not exist without an open file — the list is ordered purely alphabetically instead of putting one file first, and nothing is highlighted in any text.
 

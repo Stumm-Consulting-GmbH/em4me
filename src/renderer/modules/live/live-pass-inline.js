@@ -27,8 +27,12 @@ import {
 } from './live-scans.js';
 import { positionInsideCode } from './live-shared.js';
 // 4T-002057 (Epic 3E-000360): Ob eine Block-Kennung gültig ist, sagt die Heimat
-// der Anker-Erkennung — dieselbe Regel wie im Render-Pfad (wiki.js).
-import { isValidBlockAnchorId } from '../../../shared/block-anchors.js';
+// der Anker-Erkennung — dieselbe Regel wie im Render-Pfad (wiki.js). Seit
+// 4T-002333 (T1) kommt die Regel samt der Anzeige-Form eines Datensatzes aus
+// dem Render-Pfad selbst; deren Zeichen-Muster ist die gemeinsame Konstante
+// `ANZEIGE_ANKER_MUSTER` (`src/shared/database/record-identity.js`), hier ohne
+// eigenes Literal.
+import { verweisAnkerKennung } from '../../../shared/markdown/plugins/wiki.js';
 
 // 4T-000996: Erster Inline-Block eines Sichtbereichs. Die Reihenfolge der
 // Pässe ist semantiktragend und unverändert.
@@ -152,8 +156,8 @@ export function runInlinePasses(ctx) {
       let anchorPart = '';
       if (anchorRaw) {
         if (anchorRaw.startsWith('^')) {
-          const id = anchorRaw.slice(1).trim();
-          if (isValidBlockAnchorId(id)) anchorPart = '#' + id;
+          const id = verweisAnkerKennung(anchorRaw.slice(1));
+          if (id) anchorPart = '#' + id;
         } else {
           const slug = githubLikeSlug(anchorRaw);
           if (slug) anchorPart = '#' + slug;

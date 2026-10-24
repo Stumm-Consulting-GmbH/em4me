@@ -7,7 +7,11 @@
 // Zeichen-Bibliothek (scripts/build-echarts.js) und steht deshalb im Ausschnitt
 // von Ä5 wie der Prüffall des Zeichners.
 import { describe, it, expect } from 'vitest';
-import { buildChart, diagrammeBruecke } from '../../src/main/preload-diagramme.js';
+import {
+  buildChart,
+  buildChartFromInput,
+  diagrammeBruecke,
+} from '../../src/main/preload-diagramme.js';
 import {
   DARK_CHART_PALETTE,
   LIGHT_CHART_PALETTE,
@@ -49,9 +53,10 @@ function chart(body) {
 describe('Brücke der Diagramme: Ergebnis-Arten (4T-002021, D2)', () => {
   // 4T-002024: dazu die beiden Hörer der Einträge im Untermenü «Ansicht →
   // Diagramm»; ihr Kanal ist in test/unit/diagramm-menue-ort.test.js geprüft.
-  it('die Brücke bietet buildChart, seit 4T-002023 das Lesen des anderen Dokuments und seit 4T-002024 die beiden Menü-Hörer', () => {
+  it('die Brücke bietet buildChart, seit 4T-002172 buildChartFromInput, seit 4T-002023 das Lesen des anderen Dokuments und seit 4T-002024 die beiden Menü-Hörer', () => {
     expect(Object.keys(diagrammeBruecke({ invoke: () => {} }))).toEqual([
       'buildChart',
+      'buildChartFromInput',
       'readChartTableDocument',
       'onMenuChartInsert',
       'onMenuChartEdit',
@@ -270,5 +275,89 @@ describe('Brücke der Diagramme: Angaben der Ansicht (4T-002021, D6)', () => {
       status: 'undrawable',
       reason: 'table-missing',
     });
+  });
+});
+
+// 4T-002172 (Epic 3E-000337): Die zweite Funktion der Brücke zeichnet eine
+// fertige zeichenbare Form, etwa die einer Abfrage, und kennt weder Block noch
+// Tabelle.
+describe('Brücke der Diagramme: fertige Form zeichnen (4T-002172)', () => {
+  const FORM = {
+    drawable: true,
+    type: 'bar',
+    title: null,
+    categories: ['Januar', 'Februar', 'März'],
+    series: [
+      { name: 'Einnahmen', values: [100, 90, null] },
+      { name: 'Ausgaben', values: [80, 95, 70] },
+    ],
+    omitted: 1,
+    skippedColumns: [],
+  };
+
+  it('zeichnet die Form: Grafik, Art, Zahl der Reihen und Rubriken, ausgelassene Werte', () => {
+    const erg = buildChartFromInput(FORM, { idPrefix: 'q-0', descriptionTexts: TEXTE });
+    expect(erg).toMatchObject({
+      status: 'drawn',
+      type: 'bar',
+      seriesCount: 2,
+      categoryCount: 3,
+      omitted: 1,
+    });
+    expect(erg.svg.startsWith('<svg')).toBe(true);
+    expect(erg.svg).toContain('Balkendiagramm mit 2 Datenreihen und 3 Rubriken');
+  });
+
+  it('dasselbe Bild wie der Weg über den Block, wenn die Daten gleich sind', () => {
+    const block = buildChart(dokument(TABELLE, chart(BAR)), BAR, {
+      idPrefix: 'a',
+      descriptionTexts: TEXTE,
+    });
+    const form = buildChartFromInput(FORM, { idPrefix: 'a', descriptionTexts: TEXTE });
+    expect(form.svg).toBe(block.svg);
+  });
+
+  it('die Linie und die Farben der Ansicht gehen an den Zeichner', () => {
+    const erg = buildChartFromInput(
+      { ...FORM, type: 'line' },
+      {
+        descriptionTexts: TEXTE,
+        colors: {
+          text: '#e6e6e6',
+          muted: '#9d9d9d',
+          background: 'transparent',
+          palette: [...DARK_CHART_PALETTE],
+        },
+      },
+    );
+    expect(erg.type).toBe('line');
+    expect(erg.svg).toContain('Liniendiagramm mit 2 Datenreihen und 3 Rubriken');
+    expect(erg.svg).toContain(DARK_CHART_PALETTE[0]);
+    expect(erg.svg).not.toContain(LIGHT_CHART_PALETTE[0]);
+  });
+
+  it('kennt kein table: und liest keinen Block', () => {
+    // Eine Form, die eine Block-Angabe trägt, wird nicht aufgelöst: Gezeichnet
+    // werden allein Rubriken und Reihen der Form.
+    const mitAngabe = { ...FORM, table: '^fehlt', body: 'table: ^fehlt' };
+    const erg = buildChartFromInput(mitAngabe, { idPrefix: 'a', descriptionTexts: TEXTE });
+    expect(erg.status).toBe('drawn');
+    expect(erg.svg).toBe(buildChartFromInput(FORM, { idPrefix: 'a', descriptionTexts: TEXTE }).svg);
+    expect(buildChartFromInput.length).toBe(2);
+    // Und der Rumpf ruft keine Auflösung des Format-Kerns der Datentabellen-Diagramme.
+    expect(String(buildChartFromInput)).not.toMatch(/parseChartSpec|buildChartInput|parseTableRef/);
+  });
+
+  it('eine nicht zeichenbare Form ergibt den Grund und keine Grafik', () => {
+    expect(buildChartFromInput({ drawable: false, reason: 'no-numbers' })).toEqual({
+      status: 'undrawable',
+      reason: 'no-numbers',
+    });
+  });
+
+  it('eine formal unbrauchbare Form ist ein Programmier-Fehler und wirft', () => {
+    expect(() => buildChartFromInput(null)).toThrow(TypeError);
+    expect(() => buildChartFromInput({ ...FORM, series: undefined })).toThrow(TypeError);
+    expect(() => buildChartFromInput({ ...FORM, type: 'radar' })).toThrow(TypeError);
   });
 });

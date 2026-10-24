@@ -41,7 +41,10 @@ const { parseContent } = require('./parse.js');
 // zuordnen. Die Ablage haelt sie bereits, weil der Index-Aufbau sie geholt hat;
 // nur ein Segment, das VOR seiner Kopf-Datei geoeffnet wird, kostet einmalig
 // das Lesen eines Datei-Kopfes.
-const { definitionFuerSegment, ohneVerdeckteFolgeteile } = require('./datensatz-erfassung.js');
+const { definitionFuerSegment } = require('./datensatz-erfassung.js');
+// 4T-002047: Der Puffer einer Kopf-Datei ist das ganze geteilte Dokument; die
+// Regel dazu gilt für jeden Bestand der Sicht (Begründung im Modul).
+const { ohneVerdeckteFolgeteile } = require('./part-files.js');
 
 // 4T-000952 (Epic 3E-000198): Aenderungs-Stand der Overlay-Schicht, nach dem
 // Muster von indexStand in store.js. Eine Zahl, die bei jeder Aenderung der
@@ -202,35 +205,57 @@ function overlayView(base, patch) {
 // unangetastet, damit der Satz oben fuer die Abfrage-Verbraucher wahr bleibt.
 function entryWithOverlay(entry, overlays) {
   if (!overlays || overlays.size === 0) return entry;
-  const patchOf = (feld, wandeln) => {
+  // 4T-002046 für die Datensätze, 4T-002047 für alle acht Bestände: Der Puffer
+  // eines geteilten Dokuments ist das ganze Dokument; seine Folge-Dateien der
+  // Platte führen daneben keine Einträge, sonst stünde jeder Eintrag eines
+  // Folgeteils doppelt in der Sicht. `leer` ist die Form, die der Bestand für
+  // eine Datei ohne Einträge führt, dieselbe wie bei `wandeln` darunter.
+  const pufferPfade = [...overlays.keys()];
+  const patchOf = (feld, wandeln, leer) => {
     const m = new Map();
     for (const [absPath, parsed] of overlays) m.set(absPath, wandeln(parsed));
-    return overlayView(entry[feld], m);
+    return ohneVerdeckteFolgeteile(overlayView(entry[feld], m), pufferPfade, leer);
   };
+  const leereListe = () => [];
   return {
     ...entry,
-    files: patchOf('files', (p) => p.hits),
-    propertiesPerFile: patchOf('propertiesPerFile', (p) => p.properties || {}),
-    tasksPerFile: patchOf('tasksPerFile', (p) => (Array.isArray(p.tasks) ? p.tasks : [])),
+    files: patchOf('files', (p) => p.hits, leereListe),
+    propertiesPerFile: patchOf(
+      'propertiesPerFile',
+      (p) => p.properties || {},
+      () => ({}),
+    ),
+    tasksPerFile: patchOf(
+      'tasksPerFile',
+      (p) => (Array.isArray(p.tasks) ? p.tasks : []),
+      leereListe,
+    ),
     // 4T-001510 (Epic 3E-000250): Die Datenbank-Marken folgen dem geschriebenen
     // Stand, damit eine gerade angelegte, noch nicht gespeicherte Tabelle im
     // Katalog erscheint (Puffer-Overlay-Zusicherung, E25).
-    dbKindsPerFile: patchOf('dbKindsPerFile', (p) => (Array.isArray(p.dbKinds) ? p.dbKinds : [])),
+    dbKindsPerFile: patchOf(
+      'dbKindsPerFile',
+      (p) => (Array.isArray(p.dbKinds) ? p.dbKinds : []),
+      leereListe,
+    ),
     // 4T-001610 (Epic 3E-000252): Der Datensatz-Bestand folgt dem geschriebenen
     // Stand, aus demselben Grund und mit derselben Zusicherung (E25): Ein
     // gerade angelegter, noch nicht gespeicherter Datensatz ist auffindbar.
-    // 4T-002046: Der Puffer einer geteilten Tabelle ist das ganze Dokument; ihre
-    // Folge-Dateien der Platte führen daneben keine Datensätze.
-    recordsPerFile: ohneVerdeckteFolgeteile(
-      patchOf('recordsPerFile', (p) => (Array.isArray(p.records) ? p.records : [])),
-      overlays.keys(),
+    recordsPerFile: patchOf(
+      'recordsPerFile',
+      (p) => (Array.isArray(p.records) ? p.records : []),
+      leereListe,
     ),
-    tagsPerFile: patchOf('tagsPerFile', (p) => p.tags || []),
-    aliasesPerFile: patchOf('aliasesPerFile', (p) => p.aliases || []),
-    anchorsPerFile: patchOf('anchorsPerFile', (p) => ({
-      headings: new Set(p.headings || []),
-      blockIds: new Set(p.blockIds || []),
-    })),
+    tagsPerFile: patchOf('tagsPerFile', (p) => p.tags || [], leereListe),
+    aliasesPerFile: patchOf('aliasesPerFile', (p) => p.aliases || [], leereListe),
+    anchorsPerFile: patchOf(
+      'anchorsPerFile',
+      (p) => ({
+        headings: new Set(p.headings || []),
+        blockIds: new Set(p.blockIds || []),
+      }),
+      () => ({ headings: new Set(), blockIds: new Set() }),
+    ),
   };
 }
 

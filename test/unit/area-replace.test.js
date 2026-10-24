@@ -569,3 +569,72 @@ describe('Bereichsweites Ersetzen: Text je Fundstelle (4T-002003)', () => {
     expect(lies(gamma)).toBe('C @{K: drei}\n');
   });
 });
+
+// 4T-002310 (Epic 3E-000263): Der Schutz der Definition je Datei. Eine Datei,
+// deren Ersetzung die Definition einer Tabelle ändern würde, wird übersprungen
+// und mit Grund gemeldet; die übrigen Dateien des Laufs werden geschrieben.
+describe('Bereichsweites Ersetzen: Schutz der Definition (4T-002310)', () => {
+  const tabelle = (label) =>
+    `---\ndb-table:\n  fields:\n    - name: titel\n      label: ${label}\n---\n\n# Bücher\n\nNotiz im Text.\n`;
+
+  function streckeMitSchutz(root, rolleDarf) {
+    const { erzeugeDefinitionsSchutz } = require('../../src/main/database/definitions-schutz.js');
+    const aufrufe = [];
+    const definitionsSchutz = erzeugeDefinitionsSchutz({
+      tabellenSicht: () => ({ status: 'ready', meta: { wurzel: root } }),
+      rechteFuer: async (wurzel, optionen) => {
+        aufrufe.push({ wurzel, optionen });
+        const satz = { create: true, update: true, delete: true, define: rolleDarf };
+        return { status: 'ready', rolle: 'assistant', rechte: { Bücher: satz } };
+      },
+      erweiterungAktiv: () => true,
+    });
+    const historie = historieFuer(root, false);
+    const { ersetzeImBereich } = createAreaReplace({
+      resolveHistoryFor: historie.resolveHistoryFor,
+      recordMddOnSave: historie.recordMddOnSave,
+      definitionsSchutz,
+    });
+    return { ersetzeImBereich, aufrufe };
+  }
+
+  it('überspringt eine Tabellen-Datei, deren Definition sich ändern würde, und meldet sie (4T-002310)', async () => {
+    const root = makeRoot();
+    const buecher = write(root, 'Bücher.md', tabelle('Notiz'));
+    const notiz = write(root, 'notiz.md', 'Eine Notiz\n');
+    const gefunden = await auswahl(root);
+
+    const { ersetzeImBereich, aufrufe } = streckeMitSchutz(root, false);
+    const ergebnis = await ersetzeImBereich(root, auftrag({ dateien: [...gefunden.values()] }));
+
+    expect(ergebnis.fehlgeschlagen).toEqual([{ pfad: buecher, grund: 'defineNichtErlaubt' }]);
+    expect(ergebnis.geaendert).toEqual([{ pfad: notiz, anzahl: 1 }]);
+    expect(lies(buecher)).toBe(tabelle('Notiz'));
+    expect(fs.existsSync(mddPfad(buecher))).toBe(false);
+    expect(lies(notiz)).toBe('Eine Merk\n');
+    expect(aufrufe).toHaveLength(1);
+  });
+
+  it('ersetzt im Prosa-Teil einer Tabellen-Datei und mit define auch in der Definition (4T-002310)', async () => {
+    const root = makeRoot();
+    const buecher = write(root, 'Bücher.md', tabelle('Titel'));
+    const gefunden = await auswahl(root);
+    const ohne = streckeMitSchutz(root, false);
+    const ergebnis = await ohne.ersetzeImBereich(
+      root,
+      auftrag({ dateien: [...gefunden.values()] }),
+    );
+    expect(ergebnis.geaendert).toEqual([{ pfad: buecher, anzahl: 1 }]);
+    expect(lies(buecher)).toBe(tabelle('Titel').replace('Notiz im', 'Merk im'));
+    expect(ohne.aufrufe).toHaveLength(0);
+
+    const root2 = makeRoot();
+    const zweite = write(root2, 'Bücher.md', tabelle('Notiz'));
+    const mit = streckeMitSchutz(root2, true);
+    const lauf2 = await mit.ersetzeImBereich(
+      root2,
+      auftrag({ dateien: [...(await auswahl(root2)).values()] }),
+    );
+    expect(lauf2.geaendert).toEqual([{ pfad: zweite, anzahl: 2 }]);
+  });
+});

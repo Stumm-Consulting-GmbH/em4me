@@ -261,11 +261,11 @@ En mode direct, la grille de la table de données n’est pas accessible au clav
 
 Les graphiques font partie des [extensions internes](extensions.md) et sont activés dans le mode de travail **Complet**. Si l’extension est désactivée, le bloc apparaît comme un bloc de code ordinaire, y compris à l’impression, en PDF et dans l’export portable ; le document reste inchangé, et après la réactivation le graphique réapparaît. Les deux commandes n’existent alors pas, ni dans le menu, ni dans la palette de commandes, ni dans un menu contextuel.
 
-Les graphiques reposent sur l’extension **Perspective Datatable** : tant qu’ils sont activés, la table de données ne peut pas être désactivée. Si la table de données est désactivée, les graphiques le sont aussi.
+Les graphiques reposent sur l’extension **Perspective Datatable** : tant qu’ils sont activés, la table de données ne peut pas être désactivée. Si la table de données est désactivée, les graphiques le sont aussi. Le graphique d’une requête a son propre interrupteur, « Graphique d'une requête », activé à partir du mode de travail **Avancé** et indépendant de la table de données.
 
 ## Limites
 
-- **La seule source est la table de données.** Un tableau Markdown ordinaire, une Perspective Table, les résultats d’une requête et les enregistrements de la base de données ne sont pas une source de graphique.
+- **La seule source est la table de données.** Un tableau Markdown ordinaire, une Perspective Table, les résultats d’une requête et les enregistrements de la base de données ne sont pas une source de graphique. Une requête peut toutefois afficher elle-même son résultat en barres ou en courbes, avec `DISPLAY bar` ou `DISPLAY line` (page [Requête Perspective](frontmatter-query.md), section « Forme de présentation »).
 - **On modifie la table, pas le graphique.** Le graphique est une image ; on ne peut ni y modifier des valeurs ni les afficher au survol. Seules ses indications se modifient, avec « Modifier le graphique » ou dans la source.
 - **Aucun calcul propre.** Le graphique ne forme ni sommes ni moyennes sur les séries ; pour les afficher, on les calcule dans une colonne calculée de la table.
 - **Quatre types.** Les graphiques en aires, les barres empilées et d’autres types n’existent pas.

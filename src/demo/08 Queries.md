@@ -181,4 +181,33 @@ SORT file.name
 
 ![[Long Books]]
 
+## A query as a chart
+
+`DISPLAY bar` and `DISPLAY line` draw the result of a table query instead of listing it. Every row of the table becomes a category, labelled with what the table shows at the front, and every column with numbers becomes a series.
+
+### Pages per author, as bars
+
+Grouped by `author`, each group is one bar, labelled with the author. The authors with more than one book in [[Library]], the most pages first:
+
+```perspective-query
+TABLE RECORDS sum(pages) AS "Pages"
+FROM "Library"
+GROUP BY author
+HAVING count() > 1
+SORT sum(pages) DESC
+DISPLAY bar
+```
+
+### The first books of the library, as a line
+
+Without grouping, every book is one point, labelled with its title. `SORT acquired, title` puts the books in the order they arrived, evenly spaced: a date orders the chart but gives it no time axis.
+
+```perspective-query
+TABLE RECORDS pages AS "Pages"
+FROM "Library"
+SORT acquired, title
+LIMIT 8
+DISPLAY line
+```
+
 Queries keep themselves current: edit a tag or tick a task and watch a result change. Visuals come next in [[09 Diagrams and Formulas]].

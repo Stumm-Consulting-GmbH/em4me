@@ -93,6 +93,7 @@ function relPfad(absPfad, wurzel) {
  * @param {object} deps Abhängigkeiten aus der Verdrahtung.
  * @param {Function} deps.resolveHistoryFor Auflösung der Historisierungs-Schaltung.
  * @param {Function} deps.recordMddOnSave Protokollierung einer Speicherung.
+ * @param {Function} [deps.definitionsSchutz] Schutz der Definition (4T-002310).
  * @returns {{ersetzeImBereich: Function}} Der Lauf über einen Bereich.
  */
 // 4T-001671: Ist der frisch gelesene Text derselbe Stand, auf dem die
@@ -123,7 +124,7 @@ function gleicheKarte(a, b) {
 }
 
 function createAreaReplace(deps) {
-  const { resolveHistoryFor, recordMddOnSave } = deps;
+  const { resolveHistoryFor, recordMddOnSave, definitionsSchutz } = deps;
 
   // Ein Ziel. Liefert die Zeile, die im Ergebnis erscheint:
   //   { art: 'geaendert', anzahl }  geschrieben
@@ -215,6 +216,20 @@ function createAreaReplace(deps) {
 
     const vorStand = normalisiere(roh);
     const neuStand = normalisiere(neu);
+
+    // 4T-002310 (Epic 3E-000263): Ändert das Ersetzen die Definition einer
+    // Tabelle oder den Steckbrief, verlangt es `define` der eigenen Rolle wie
+    // das Speichern im Editor. Eine abgewiesene Datei wird weder gesichert noch
+    // geschrieben und erscheint mit ihrem Grund im Bericht.
+    if (typeof definitionsSchutz === 'function') {
+      const urteil = await definitionsSchutz({
+        pfad: abs,
+        bereichsWurzel: wurzel,
+        alterText: vorStand,
+        neuerText: neuStand,
+      });
+      if (urteil.abgewiesen) return { art: 'fehler', grund: urteil.code };
+    }
 
     // AK4 und AK5, die Zwangs-Sicherung (E3). Sie läuft VOR dem Schreiben und
     // unabhängig von der Historisierungs-Einstellung; erst ihr Gelingen gibt

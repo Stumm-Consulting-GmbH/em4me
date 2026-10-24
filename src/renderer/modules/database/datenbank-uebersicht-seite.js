@@ -360,9 +360,15 @@ function zeichneAbschnitte(wurzel, daten) {
     'database.overview.description',
     texte.beschreibung || t('database.overview.noDescription'),
   );
+  // 4T-002308 (Epic 3E-000263, Story-AK1): die eigene Rolle samt Anmeldename,
+  // unmittelbar vor den Rollen; ohne Auskunft dazu keine Zeile.
+  if (daten.eigeneRolle)
+    auskunftsZeile(steckbrief, 'database.overview.ownRole', eigeneRolleText(daten.eigeneRolle));
+  // 4T-002307 (Epic 3E-000263, Story-AK1): die Rollen unter Name und Beschreibung.
+  zeichneRollen(steckbrief, daten.steckbrief);
 
   const tabellen = abschnitt(wurzel, 'database.overview.section.tables');
-  zeichneTabellen(tabellen, daten.tabellen || []);
+  zeichneTabellen(tabellen, daten.tabellen || [], hatRollen(daten.steckbrief));
   // 4T-001945 (Bauplan B3): die Verwendung einer Tabelle unter der Tabellen-Liste.
   zeichneVerwendung(wurzel);
 
@@ -382,7 +388,81 @@ function zeichneAbschnitte(wurzel, daten) {
   });
 }
 
-function zeichneTabellen(block, liste) {
+// 4T-002308 (Epic 3E-000263, Story-AK1, S3): Die eigene Rolle in Worten, mit
+// dem Anmeldenamen wörtlich, unter dem sie ermittelt wurde: Er ist der Schlüssel
+// der Zuordnung, und nur wer ihn genau sieht, kann ihn genau eintragen. Ohne
+// Rollen oder ohne Zuordnung und Vorgabe-Rolle ist alles erlaubt; die
+// Vorgabe-Rolle sagt, dass sie eine ist. Ersetzt wird über eine Funktion, damit
+// ein `$` im Namen nicht als Ersetzungs-Muster gilt.
+function eigeneRolleText(eigene) {
+  const name =
+    typeof eigene.anmeldename === 'string' && eigene.anmeldename !== '' ? eigene.anmeldename : '—';
+  if (typeof eigene.rolle !== 'string' || eigene.quelle === 'alles')
+    return t('database.overview.ownRoleAll').replace('{name}', () => name);
+  const schluessel =
+    eigene.quelle === 'vorgabe'
+      ? 'database.overview.ownRoleDefault'
+      : 'database.overview.ownRoleValue';
+  return t(schluessel)
+    .replace('{rolle}', () => eigene.rolle)
+    .replace('{name}', () => name);
+}
+
+// 4T-002307 (Epic 3E-000263, Story-AK1, S3): Die Rollen des Steckbriefs, eine
+// Zeile je Rolle in der Form der Angaben darüber: der Rollen-Name, dann je
+// Tabelle die erlaubten Operationen. Die Operationen heißen wie die Handgriffe
+// der Listen-Maske (`abfrageArt`), dazu «Definition ändern» für `define`.
+// Eine Rolle mit Hinweis kommt hier nicht an: Sie gilt als nicht gesetzt und
+// steht mit ihrem Hinweis unter den Fehlerlagen. Ohne Rollen kein Abschnitt,
+// denn eine Datenbank ohne Rollen verhält sich wie bisher.
+function zeichneRollen(block, steckbrief) {
+  const rollen = steckbrief && steckbrief.rollen;
+  const namen = rollen && typeof rollen === 'object' ? Object.keys(rollen) : [];
+  if (namen.length === 0) return;
+  const liste = abschnitt(block, 'database.overview.rolesTitle');
+  for (const name of namen) {
+    const zeile = el('div', 'db-overview-row');
+    zeile.appendChild(el('span', 'db-overview-row-label', name));
+    zeile.appendChild(el('span', 'db-overview-row-value', erlaubnisText(rollen[name])));
+    liste.appendChild(zeile);
+  }
+}
+
+// Die Erlaubnisse einer Rolle in Worten: `alle` als ein Wort, sonst je Tabelle
+// ihre Operationen, «alle Tabellen» zuerst; eine Rolle ohne Erlaubnis sagt es.
+function erlaubnisText(rolle) {
+  if (rolle && rolle.alle === true) return t('database.overview.rolesAll');
+  const teile = [];
+  if (rolle && Array.isArray(rolle.alleTabellen))
+    teile.push(`${t('database.overview.rolesAllTables')}: ${operationenText(rolle.alleTabellen)}`);
+  for (const [tabelle, ops] of Object.entries((rolle && rolle.operationen) || {}))
+    teile.push(`${tabelle}: ${operationenText(ops)}`);
+  return teile.length > 0 ? teile.join('; ') : t('database.overview.rolesNone');
+}
+
+function operationenText(ops) {
+  if (!Array.isArray(ops) || ops.length === 0) return t('database.overview.rolesNone');
+  return ops.map((op) => t(`database.overview.allow.${op}`)).join(', ');
+}
+
+function hatRollen(steckbrief) {
+  const rollen = steckbrief && steckbrief.rollen;
+  return !!rollen && typeof rollen === 'object' && Object.keys(rollen).length > 0;
+}
+
+// 4T-002311 (E12.4): Die Erlaubnisse der eigenen Rolle an einer Tabelle in
+// Worten, in der Reihenfolge der Operationen; alle vier als «alles», keine als
+// «keine Erlaubnis». Ohne Erlaubnis-Menge null, dann keine Zeile.
+const OPERATIONEN = ['create', 'update', 'delete', 'define'];
+function tabellenRechteText(rechte) {
+  if (!rechte || typeof rechte !== 'object') return null;
+  const erlaubt = OPERATIONEN.filter((op) => rechte[op] === true);
+  let werte = operationenText(erlaubt);
+  if (erlaubt.length === OPERATIONEN.length) werte = t('database.overview.rolesAll');
+  return t('database.overview.tableRights').replace('{erlaubnisse}', () => werte);
+}
+
+function zeichneTabellen(block, liste, mitRechten = false) {
   if (liste.length === 0) {
     block.appendChild(el('p', 'db-overview-empty', t('database.overview.noTables')));
     return;
@@ -393,7 +473,7 @@ function zeichneTabellen(block, liste) {
   kopfZeile.appendChild(el('th', null, t('database.overview.col.table')));
   kopfZeile.appendChild(el('th', null, t('database.overview.col.fields')));
   // 4T-001943 (Bauplan B2): die geltende Masken-Datei der Tabelle, leer bei der
-  // erzeugten Maske.
+  // erzeugten Maske. Seit 4T-002184 die Standard-Maske und die Zahl der weiteren.
   kopfZeile.appendChild(el('th', null, t('database.overview.col.form')));
   // 4T-001939 (Bauplan B8): Die Spalte der Aktion bleibt ohne Überschrift, wie
   // die Aktions-Spalte des Datensatz-Blocks; ein erfundenes Wort wäre Lärm.
@@ -405,15 +485,32 @@ function zeichneTabellen(block, liste) {
   const koerper = document.createElement('tbody');
   for (const eintrag of liste) {
     const zeile = document.createElement('tr');
-    zeile.appendChild(el('td', 'db-overview-table-name', eintrag.name));
+    const name = zeile.appendChild(el('td', 'db-overview-table-name', eintrag.name));
+    // 4T-002311: die Erlaubnisse der eigenen Rolle, nur bei einer Datenbank mit Rollen.
+    const rechteText = mitRechten ? tabellenRechteText(eintrag.rechte) : null;
+    if (rechteText) name.appendChild(el('div', 'db-overview-table-rights', rechteText));
     zeile.appendChild(el('td', 'db-overview-table-fields', String(eintrag.felder || 0)));
-    const maske = typeof eintrag.maske === 'string' ? dateiName(eintrag.maske) : '';
-    zeile.appendChild(el('td', 'db-overview-table-form', maske));
+    zeile.appendChild(maskenZelle(eintrag));
     zeile.appendChild(neuZelle(eintrag));
     koerper.appendChild(zeile);
   }
   tabelle.appendChild(koerper);
   block.appendChild(tabelle);
+}
+
+// 4T-002184 (Epic 3E-000261, Story-AK4): Die Standard-Maske der Tabelle beim
+// Datei-Namen, dahinter die Zahl ihrer weiteren Masken-Dateien, sofern es welche
+// gibt. Leer bei der erzeugten Maske, wie bis dahin.
+function maskenZelle(eintrag) {
+  const zelle = el('td', 'db-overview-table-form');
+  if (typeof eintrag.maske !== 'string') return zelle;
+  zelle.appendChild(document.createTextNode(dateiName(eintrag.maske)));
+  const alle = Array.isArray(eintrag.maskenPfade) ? eintrag.maskenPfade.length : 1;
+  if (alle > 1) {
+    const text = t('database.overview.formMore').replace('{count}', String(alle - 1));
+    zelle.appendChild(el('span', 'db-overview-form-more', text));
+  }
+  return zelle;
 }
 
 // 4T-001939 (Epic 3E-000257, Bauplan B8): Die Aktion «Neuer Datensatz» je
@@ -422,10 +519,14 @@ function zeichneTabellen(block, liste) {
 function neuZelle(eintrag) {
   const zelle = el('td', 'db-overview-table-action');
   if (!eintrag || typeof eintrag.path !== 'string' || eintrag.path === '') return zelle;
-  const knopf = el('button', 'db-overview-new-record', t('records.newButton'));
-  knopf.type = 'button';
-  knopf.addEventListener('click', () => void neuerDatensatz(eintrag.path));
-  zelle.appendChild(knopf);
+  // 4T-002311 (E12.4): ohne `create` der eigenen Rolle kein «Neuer Datensatz»;
+  // ohne Erlaubnis-Menge wie ohne Rollen.
+  if (!(eintrag.rechte && eintrag.rechte.create === false)) {
+    const knopf = el('button', 'db-overview-new-record', t('records.newButton'));
+    knopf.type = 'button';
+    knopf.addEventListener('click', () => void neuerDatensatz(eintrag.path));
+    zelle.appendChild(knopf);
+  }
   // 4T-001944 (Bauplan B4): die Prüfung dieser einen Tabelle.
   zelle.appendChild(
     konsistenzKnopf({
@@ -455,6 +556,8 @@ function zeichneAbfragen(block, liste, wurzelPfad) {
   const kopf = document.createElement('thead');
   const kopfZeile = document.createElement('tr');
   kopfZeile.appendChild(el('th', null, t('database.overview.col.query')));
+  // 4T-002248 (Epic 3E-000262, F1 A): die Art der Abfrage-Datei.
+  kopfZeile.appendChild(el('th', null, t('database.overview.col.queryKind')));
   kopfZeile.appendChild(el('th', null, t('database.overview.col.location')));
   const aktionKopf = el('th', 'db-overview-table-action-head');
   aktionKopf.setAttribute('aria-hidden', 'true');
@@ -465,6 +568,7 @@ function zeichneAbfragen(block, liste, wurzelPfad) {
   for (const eintrag of liste) {
     const zeile = document.createElement('tr');
     zeile.appendChild(el('td', 'db-overview-query-name', eintrag.name));
+    zeile.appendChild(el('td', 'db-overview-query-kind', abfrageArt(eintrag)));
     const ordner = relativeDirFromRoot(wurzelPfad, eintrag.path);
     const ort = ordner || t('database.overview.queryRoot');
     zeile.appendChild(el('td', 'db-overview-query-location', ort));
@@ -479,6 +583,20 @@ function zeichneAbfragen(block, liste, wurzelPfad) {
   }
   tabelle.appendChild(koerper);
   block.appendChild(tabelle);
+}
+
+// 4T-002248 (Epic 3E-000262, F1 A; AK3): Die Art einer Abfrage-Datei in
+// Worten. Eine Listen-Maske nennt ihre erlaubten Handgriffe in der Reihenfolge
+// der Datei, weil der Autor sie so liest; eine bearbeitbar erklärte Datei ohne
+// Handgriff sagt ausdrücklich «nur lesen», statt eine leere Aufzählung zu
+// zeigen. Ein Handgriff, den der Katalog nicht kennt, kommt hier nicht an: Er
+// ist mit Hinweis entfallen und steht unter den Fehlerlagen.
+function abfrageArt(eintrag) {
+  if (!eintrag || eintrag.editable !== true) return t('database.overview.queryPlain');
+  const allow = Array.isArray(eintrag.allow) ? eintrag.allow : [];
+  if (allow.length === 0) return t('database.overview.queryListLesend');
+  const worte = allow.map((wort) => t(`database.overview.allow.${wort}`)).join(', ');
+  return `${t('database.overview.queryList')}: ${worte}`;
 }
 
 function zeichneFehler(block, zeilen) {

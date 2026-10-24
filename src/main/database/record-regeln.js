@@ -1,6 +1,7 @@
 // 4T-001926 (Epic 3E-000256, E12.6, E22.3): Das Regel-Werk der
 // Schreib-Schnittstelle — die eine Prüf-Naht, an der Schlüssel, Verweise,
-// Lösch-Schutz, Prüfregeln und bedingte Bearbeitbarkeit hängen.
+// Lösch-Schutz, Prüfregeln und bedingte Bearbeitbarkeit hängen, seit 4T-002309
+// davor die Berechtigung.
 //
 // **Eine Stelle für alle Regel-Arten** (Bauplan B1). Die Schnittstelle kennt
 // genau eine Einhänge-Stelle, `pruefNaht`; welche Regeln dort laufen und in
@@ -34,6 +35,13 @@
 // Regel die Sicht des Index braucht und was eine noch nicht bereite Sicht für
 // sie heißt (`regelKatalogNichtBereit`, fail-closed), entscheidet das Modul,
 // das sie braucht.
+//
+// **Die Erlaubnis-Menge der eigenen Rolle** (4T-002309, Epic 3E-000263). Die
+// Naht bestimmt sie einmal je Auftrag über `rechteFuer` und reicht sie als
+// `rechte` (je Tabellen-Name) samt `rolle` herein. Ist sie nicht bestimmbar
+// (Antwort ohne Status `ready`), reist der Grund als `rechteNichtBestimmbar`;
+// ein Wurf beim Bestimmen reist als `rechteFehler`. Beides macht die Regel, die
+// die Menge braucht, zum Befund. Ohne `rechteFuer` bleibt `rechte` undefiniert.
 //
 // **Nicht hier:** die Anwender-Texte. Der Befund ist sprachneutral; die Texte
 // stehen je Code unter `database.auftrag.<code>` in den fünf Sprach-Fragmenten,
@@ -74,6 +82,16 @@ const REGEL_LAGEN = Object.freeze({
   datensatzregelVerletzt: 'regelDatensatzregelVerletzt',
   // Der Datensatz ist nach seiner Bearbeitbarkeits-Bedingung gesperrt.
   nichtBearbeitbar: 'regelNichtBearbeitbar',
+  // 4T-002312 (Epic 3E-000263, F4 A): Die Anweisung ändert ein Feld, dessen
+  // Bearbeitbarkeits-Bedingung am vorgefundenen Datensatz nicht erfüllt ist.
+  feldNichtBearbeitbar: 'regelFeldNichtBearbeitbar',
+  // 4T-002309 (Epic 3E-000263, S6): Die eigene Rolle hat an der Tabelle keine
+  // Erlaubnis für die Operation der Anweisung.
+  nichtErlaubt: 'regelNichtErlaubt',
+  // 4T-002309 (Entscheidung der Sitzung vom 2026-10-18): Die Erlaubnis-Menge ist
+  // nicht bestimmbar (Sicht nicht bereit, Steckbrief nicht lesbar oder
+  // fehlerhaft); abgewiesen wird wie beim Lösch-Schutz ohne Sicht.
+  rechteNichtBestimmbar: 'regelRechteNichtBestimmbar',
   // Die Sicht auf die Tabellen des Bereichs ist noch nicht bereit (B5).
   katalogNichtBereit: 'regelKatalogNichtBereit',
   // Ein Regel-Modul ist gescheitert oder hat eine unbrauchbare Antwort geliefert.
@@ -106,6 +124,29 @@ function regelBefund(code, angaben) {
   if (!BEKANNTE_CODES.has(code))
     throw new TypeError(`regelBefund: unbekannter Code ${String(code)}`);
   return { code, position: null, tabelle: null, id: null, ...(angaben || {}) };
+}
+
+// --- Die Antwort der Rechte-Funktion lesen (4T-002309) -----------------------------------
+
+/**
+ * Liest die Antwort von `rechteFuer`. Bestimmt ist die Erlaubnis-Menge allein
+ * mit Status `ready` und einer Menge je Tabelle; alles andere ist «nicht
+ * bestimmbar» mit Grund und wird abgewiesen (Entscheidung der Sitzung vom
+ * 2026-10-18). Gemeinsame Stelle für die Naht und die Neuanlage.
+ *
+ * @param {*} antwort Die Antwort von `rechteFuer`.
+ * @returns {{bestimmt: true, rolle: string|null, rechte: Object<string, object>}
+ *   |{bestimmt: false, grund: string}}
+ */
+function leseRechteAntwort(antwort) {
+  if (!istEinfachesObjekt(antwort)) return { bestimmt: false, grund: 'antwortUngueltig' };
+  if (antwort.status !== 'ready') {
+    const grund = typeof antwort.status === 'string' ? antwort.status : 'antwortUngueltig';
+    return { bestimmt: false, grund };
+  }
+  if (!istEinfachesObjekt(antwort.rechte)) return { bestimmt: false, grund: 'antwortUngueltig' };
+  const rolle = typeof antwort.rolle === 'string' ? antwort.rolle : null;
+  return { bestimmt: true, rolle, rechte: antwort.rechte };
 }
 
 // --- Die Antwort eines Regel-Moduls lesen (B2) -------------------------------------------
@@ -168,11 +209,14 @@ function leseAntwort(name, antwort) {
  *   [deps.tabellenSicht] Die Sicht des Index auf die Tabellen des Bereichs;
  *   ohne sie bekommen die Module `null`.
  * @param {object} [deps.fsp] Dateizugriff der Regel-Module.
+ * @param {(bereichsWurzel: string) => Promise<object>} [deps.rechteFuer]
+ *   4T-002309: `{ status: 'ready', rolle, rechte }` mit der Erlaubnis-Menge je
+ *   Tabellen-Name, sonst `{ status: <Grund> }`; einmal je Auftrag gefragt.
  * @returns {(kontext: object) => Promise<{befunde: Array<object>,
  *   ersetzungen: Array<object>}>} Die Naht, die die Schnittstelle als
  *   `pruefNaht` ruft.
  */
-function erzeugePruefNaht({ regeln = [], tabellenSicht, fsp } = {}) {
+function erzeugePruefNaht({ regeln = [], tabellenSicht, fsp, rechteFuer } = {}) {
   // Einmal geprüfte Verträge, die laut brechen: Ein Regel-Modul ohne `pruefe`
   // wird nicht geladen, statt bei jedem Auftrag still zu schweigen.
   if (!Array.isArray(regeln))
@@ -185,13 +229,31 @@ function erzeugePruefNaht({ regeln = [], tabellenSicht, fsp } = {}) {
   });
   if (tabellenSicht !== undefined && typeof tabellenSicht !== 'function')
     throw new TypeError('erzeugePruefNaht: tabellenSicht muss eine Funktion sein');
+  if (rechteFuer !== undefined && typeof rechteFuer !== 'function')
+    throw new TypeError('erzeugePruefNaht: rechteFuer muss eine Funktion sein');
   const reihe = [...regeln];
   const sicht = tabellenSicht || null;
   const dateizugriff = fsp || fsPromises;
 
+  // 4T-002309: einmal je Auftrag und nicht je Regel oder Anweisung. Ein Wurf
+  // wird nicht hier zum Befund, sondern reist zur Regel, die die Menge braucht;
+  // eine Naht ohne diese Regel bleibt davon unberührt.
+  async function berechtigungVon(bereichsWurzel) {
+    if (rechteFuer === undefined) return { rechte: undefined, rolle: null };
+    try {
+      const gelesen = leseRechteAntwort(await rechteFuer(bereichsWurzel));
+      if (!gelesen.bestimmt)
+        return { rechte: null, rolle: null, rechteNichtBestimmbar: gelesen.grund };
+      return { rechte: gelesen.rechte, rolle: gelesen.rolle };
+    } catch (err) {
+      return { rechte: null, rolle: null, rechteFehler: alsText(err) };
+    }
+  }
+
   return async function pruefNaht({ bereichsWurzel, anweisungen, schritte, bestaende }) {
     const befunde = [];
     const ersetzungen = [];
+    const berechtigung = await berechtigungVon(bereichsWurzel);
     for (const modul of reihe) {
       let antwort;
       try {
@@ -205,6 +267,7 @@ function erzeugePruefNaht({ regeln = [], tabellenSicht, fsp } = {}) {
           ersetzungen: [...ersetzungen],
           tabellenSicht: sicht,
           fsp: dateizugriff,
+          ...berechtigung,
         });
       } catch (err) {
         befunde.push(
@@ -281,4 +344,10 @@ function wendeErsetzungenAn(anweisungen, ersetzungen) {
   return [];
 }
 
-module.exports = { REGEL_LAGEN, regelBefund, erzeugePruefNaht, wendeErsetzungenAn };
+module.exports = {
+  REGEL_LAGEN,
+  regelBefund,
+  erzeugePruefNaht,
+  wendeErsetzungenAn,
+  leseRechteAntwort,
+};

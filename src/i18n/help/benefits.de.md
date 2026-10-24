@@ -107,9 +107,9 @@ Ein Ordner mit Markdown-Dateien kann zugleich eine Datenbank sein, und Sie erkl�
 - **Der Bereich wird zur Datenbank**, sobald ein Dokument sie beschreibt, und bekommt seine eigene Übersicht, aus der heraus Sie Datensätze anlegen und den Bestand prüfen.
 - **Die Tabelle steht in ihrer Datei**: Felder im Kopf, Datensätze im Körper. Umbenennen und Verschieben ändern daran nichts, auch außerhalb der Anwendung.
 - **Acht Spalten-Typen** mit Beschriftungen, die in mehreren Sprachen vorliegen dürfen.
-- **Der Verweis auf einen einzelnen Datensatz** wird wie ein Anker geschrieben und verhält sich wie jeder andere Verweis: Der Linter zeigt an, ob er gilt, und ein Klick führt zur Zeile des Datensatzes.
+- **Der Verweis auf einen einzelnen Datensatz** wird wie ein Anker geschrieben und verhält sich wie jeder andere Verweis: Der Linter zeigt an, ob er gilt, und ein Klick öffnet die Maske des Datensatzes.
 - **Große Bestände bleiben eine Tabelle**: Ab etwa 0,7 MB verteilt die Anwendung die Datensätze beim Speichern auf mehrere Dateien nebeneinander, ohne dass ein Verweis davon berührt wird.
-- **Datensätze in der Maske pflegen**: anlegen, ändern und löschen in einer aus der Definition erzeugten Maske, mit Sperre, Änderungsbeleg und den Regeln der Tabelle; Konsistenz-Prüfung und Verwendungsnachweis als Diagnose.
+- **Datensätze in der Maske pflegen**: anlegen, ändern und löschen in einer aus der Definition erzeugten oder selbst gestalteten Maske mit gerechneten Werten, bedingten Abschnitten und Links zwischen Masken, einzeln oder in einer bearbeitbaren Liste, Kopf und Positionen zusammen; mit Sperre, Änderungsbeleg und den Regeln der Tabelle, auf Wunsch mit Rollen, die das Pflegen der Daten vom Ändern der Definition trennen; Konsistenz-Prüfung und Verwendungsnachweis als Diagnose.
 - **Datensätze auswerten**: Listen und Tabellen über eine Tabelle, mit Pfaden über Verweise und Hierarchien über beliebig viele Stufen, auf Wunsch als Baum, und Übersichten mit einer Zeile je Gruppe, etwa Bücher und Seiten je Autor.
 
 Ausführlich: [Datenbank](database.md).
@@ -164,7 +164,7 @@ Ausführlich: [Eigenschafts-Profile](property-profiles.md).
 
 ## Listen, die sich selbst aktuell halten
 
-Wer viele Dateien führt, pflegt sonst Übersichten von Hand, und sie veralten am Tag ihrer Erstellung. Eine Perspective-Abfrage beschreibt stattdessen, **was** gesucht ist, und das Ergebnis erscheint an Ort und Stelle im Dokument: eine klickbare Liste oder Tabelle über den Bestand, gefiltert nach Eigenschaften, Schlagwörtern, Datei-Feldern, bis hinunter auf einzelne Textblöcke und Aufgaben. Auf Wunsch fasst sie die Treffer zusammen, mit einer Zeile je Gruppe und deren Anzahl, Summe oder Durchschnitt. Ändert sich der Bestand, ändert sich die Ausgabe, ohne dass jemand nachträgt.
+Wer viele Dateien führt, pflegt sonst Übersichten von Hand, und sie veralten am Tag ihrer Erstellung. Eine Perspective-Abfrage beschreibt stattdessen, **was** gesucht ist, und das Ergebnis erscheint an Ort und Stelle im Dokument: eine klickbare Liste oder Tabelle über den Bestand, gefiltert nach Eigenschaften, Schlagwörtern, Datei-Feldern, bis hinunter auf einzelne Textblöcke und Aufgaben. Auf Wunsch fasst sie die Treffer zusammen, mit einer Zeile je Gruppe und deren Anzahl, Summe oder Durchschnitt. Auf Wunsch zeigt sie das Ergebnis auch als Balken- oder Linien-Diagramm, das sich mit dem Bestand ändert. Ändert sich der Bestand, ändert sich die Ausgabe, ohne dass jemand nachträgt.
 
 - **Themen-Seiten**, die ihre zugehörigen Dateien selbst auflisten.
 - **Filter und Gruppen** über Frontmatter-Eigenschaften, Schlagwörter und Datei-Felder, mit Anzahl und Summen je Gruppe.

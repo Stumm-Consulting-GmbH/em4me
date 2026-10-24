@@ -34,7 +34,7 @@ pq.out('Result: ' + (6 * 7));
 
 All data functions are read-only and work on a snapshot of the index taken at the start of the run. If the file set changes, the block re-runs automatically.
 
-- `pq.pages([source])` — all files of the search space as page objects, optionally filtered by a source.
+- `pq.pages([source])` — all files of the search space as page objects, optionally filtered by a source; templates are left out unless the source names their folder (see Sources).
 - `pq.current()` — the page object of the own document (or `null`).
 - `pq.file(ref)` — a page by absolute path, root-relative path, or logical name (case-insensitive); `null` if nothing matches.
 - `pq.blocks([source])` — the block properties of the search space (see [Block properties](block-properties.md)); only active anchors count.
@@ -65,6 +65,8 @@ The optional `source` parameter filters like the query's source selection, in a 
 - `'#tag'` — files with the tag, including hierarchy (`#project` also matches `project/alpha`).
 - `'[[Name]]'` — files that reference the target (outgoing link).
 - `'Folder'` or `'Folder/Subfolder'` — files below the folder path.
+
+**Templates**, that is files in the [templates folder](templates.md), are not returned by `pq.pages` and `pq.blocks`, following the same rule as the query: without a source and with a tag, reference, or parent folder source they are missing; a folder source pointing to the templates folder or one of its subfolders, for instance `pq.pages('Templates')`, returns exactly their content. `pq.file` and `pq.current` still find a template.
 
 ### Block properties
 

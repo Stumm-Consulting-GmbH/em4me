@@ -117,6 +117,55 @@ function buildChart(documentText, chartBody, options, tableDocument) {
 }
 
 /**
+ * 4T-002172 (Epic 3E-000337): Zeichnet eine fertige zeichenbare Form, etwa die
+ * einer Abfrage (src/shared/query/result-chart.js). Die zweite Funktion der
+ * Brücke neben `buildChart`, weil jene einen Diagramm-Block mit `table:`-Angabe
+ * auflöst; diese kennt weder Block noch Tabelle und reicht die Form allein an
+ * den Zeichner. Größe ist die Vorgabe des Zeichners (Entscheidung S8), die
+ * Vorlese-Beschreibung entsteht aus den vorhandenen Texten (S9).
+ *
+ * @param {{drawable?: boolean, reason?: string, type: string, title: (string|null),
+ *   categories: string[], series: Array<{name: string, values: Array<number|null>}>,
+ *   omitted?: number}} input Die zeichenbare Form; trägt sie `drawable: false`,
+ *   wird nicht gezeichnet und der Grund kommt zurück.
+ * @param {{colors?: object, fontFamily?: string, idPrefix?: string,
+ *   descriptionTexts?: object}} [options] Angaben der Ansicht wie bei `buildChart`.
+ * @returns {{status: 'drawn', svg: string, omitted: number, type: string,
+ *   seriesCount: number, categoryCount: number}
+ *   | {status: 'undrawable', reason: string}} Dieselbe Gestalt wie bei
+ *   `buildChart`, damit die Ansicht beide Ergebnisse gleich behandelt.
+ * @throws {TypeError} bei einer formal unbrauchbaren Form oder Angabe (Zeichner)
+ */
+function buildChartFromInput(input, options) {
+  if (!input || typeof input !== 'object') {
+    throw new TypeError('buildChartFromInput: input ist kein Objekt');
+  }
+  if (input.drawable === false) {
+    return { status: 'undrawable', reason: String(input.reason == null ? '' : input.reason) };
+  }
+  const opts = options && typeof options === 'object' ? options : {};
+  const svg = drawChart(input, {
+    colors: opts.colors,
+    fontFamily: opts.fontFamily,
+    idPrefix: opts.idPrefix,
+    description: chartDescription(
+      opts.descriptionTexts,
+      input.type,
+      input.series.length,
+      input.categories.length,
+    ),
+  });
+  return {
+    status: 'drawn',
+    svg,
+    omitted: Number.isInteger(input.omitted) && input.omitted > 0 ? input.omitted : 0,
+    type: input.type,
+    seriesCount: input.series.length,
+    categoryCount: input.categories.length,
+  };
+}
+
+/**
  * Die Einträge der Brücke rund um Diagramme.
  *
  * @param {object} ipcRenderer Electron-IPC des Anzeige-Prozesses; als Parameter
@@ -127,6 +176,8 @@ function buildChart(documentText, chartBody, options, tableDocument) {
 function diagrammeBruecke(ipcRenderer) {
   return {
     buildChart,
+    // 4T-002172: die fertige Form, etwa einer Abfrage, ohne Block und Tabelle.
+    buildChartFromInput,
     // 4T-002023: Der ganze Text des anderen Dokuments, Puffer vor Platte.
     // Antwort { ok, path, content, quelle } oder { ok: false, error, path?,
     // indexBereit? }; die Begründung des Kanals steht in src/main/ipc/embeds.js.
@@ -138,4 +189,4 @@ function diagrammeBruecke(ipcRenderer) {
   };
 }
 
-module.exports = { diagrammeBruecke, buildChart };
+module.exports = { diagrammeBruecke, buildChart, buildChartFromInput };

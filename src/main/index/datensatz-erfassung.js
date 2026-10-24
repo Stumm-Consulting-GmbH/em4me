@@ -51,7 +51,6 @@
 
 'use strict';
 
-const path = require('node:path');
 const fs = require('node:fs');
 const { extractFrontmatter } = require('../../shared/markdown/frontmatter.js');
 const { parseTableDefinition } = require('../../shared/database/table-definition.js');
@@ -63,8 +62,9 @@ const {
   kommtUeberhauptInFrage,
   datensatzRumpf,
 } = require('../../shared/database/record-segment.js');
-const { isPartBasename, baseBasenameOf } = require('../../shared/document-parts.js');
-const { pathCompareKey } = require('../../shared/platform.js');
+// 4T-002047: Die Zuordnung eines Folgeteils zu seiner Kopf-Datei gilt für jedes
+// geteilte Dokument und wohnt deshalb im neutralen Modul der Teil-Dateien.
+const { kopfDateiFuer } = require('./part-files.js');
 
 // Nur der Kopf einer Datei wird gelesen, wenn allein die Definition gebraucht
 // wird. Das Frontmatter einer Tabellen-Datei ist klein; der Datensatz-Block
@@ -80,22 +80,6 @@ const TRENNER = '\u0000';
 
 // Pfad der Kopf-Datei -> { definition, signatur }. Siehe Kopf-Kommentar.
 const definitionen = new Map();
-
-/**
- * Pfad der Kopf-Datei zu einem Folge-Segment, allein aus dem Dateinamen.
- *
- * Ohne Datei-Zugriff und ohne Frontmatter — das ist der Zweck des eigenen
- * Trennzeichens der Namensform. Liefert `null` für jede Datei, die kein
- * Folgeteil ist.
- */
-function kopfDateiFuer(filePath) {
-  if (typeof filePath !== 'string' || !filePath) return null;
-  // Die Namensform kennt keine Endung (`parsePartBasename` prüft die fünf
-  // Ziffern bis zum Namens-Ende); zerlegt wird deshalb wie in `rename.js`.
-  const teile = path.parse(filePath);
-  if (!isPartBasename(teile.name)) return null;
-  return path.join(teile.dir, baseBasenameOf(teile.name) + teile.ext);
-}
 
 /**
  * Die Signatur einer Definition: woran sich eine Zuordnung ändert.
@@ -361,60 +345,7 @@ function merkeDefinitionAusDatei(kopfPfad) {
   return merkeDefinition(kopfPfad, text);
 }
 
-// Vergleichs-Schlüssel eines Pfades: Trenner vereinheitlicht, NFC wie die
-// Datei-Schlüssel des Index, Schreibung nach dem Dateisystem.
-function pfadSchluessel(p) {
-  return pathCompareKey(path.normalize(String(p).normalize('NFC')));
-}
-
-/**
- * Der Datensatz-Bestand der überlagerten Sicht ohne die verdeckten Folge-Dateien.
- *
- * 4T-002046 (Epic 3E-000258, Nebenbefund aus 4T-002038): Eine geöffnete
- * geteilte Tabelle liegt in der Puffer-Schicht als **ein** zusammengesetzter
- * Text unter dem Pfad der Kopf-Datei; eine Folge-Datei hat nie einen eigenen
- * Puffer. Dieser Text trägt die Datensätze aller Teile. Die Folge-Dateien der
- * Platte stehen in der Sicht trotzdem daneben, und ohne diese Hülle führte die
- * Sicht jeden Datensatz eines Folgeteils doppelt: Die Schlüssel-Auskunft wurde
- * «uneindeutig», die Kennungs-Auskunft nahm still den zuletzt eingetragenen
- * Fundort, und ein im Puffer gelöschter Datensatz blieb über die Platte
- * auffindbar.
- *
- * Regel: Liegt für eine Kopf-Datei ein Puffer vor, ist er das ganze Dokument,
- * und ihre Folge-Dateien führen in der überlagerten Sicht keine Datensätze. Der
- * Schlüssel bleibt stehen, nur sein Bestand ist leer; die Platten-Schicht selbst
- * bleibt unberührt. Gerechnet wird erst beim Zugriff, damit eine Sicht, deren
- * Datensatz-Bestand niemand liest, nichts kostet.
- *
- * @param {object} bestand Map-artige Sicht `recordsPerFile` (Platte mit Puffer).
- * @param {Iterable<string>} pufferPfade Pfade mit ungespeichertem Stand.
- * @returns {object} Map-artige Sicht mit `get`, `has`, `size`, `keys` und Iterator.
- */
-function ohneVerdeckteFolgeteile(bestand, pufferPfade) {
-  const koepfe = new Set();
-  for (const p of pufferPfade || []) {
-    if (typeof p === 'string' && p && !kopfDateiFuer(p)) koepfe.add(pfadSchluessel(p));
-  }
-  if (koepfe.size === 0) return bestand;
-  const verdeckt = (p) => {
-    const kopf = kopfDateiFuer(p);
-    return kopf !== null && koepfe.has(pfadSchluessel(kopf));
-  };
-  return {
-    get: (k) => (verdeckt(k) ? [] : bestand.get(k)),
-    has: (k) => bestand.has(k),
-    get size() {
-      return bestand.size;
-    },
-    keys: () => bestand.keys(),
-    *[Symbol.iterator]() {
-      for (const [k, v] of bestand) yield [k, verdeckt(k) ? [] : v];
-    },
-  };
-}
-
 module.exports = {
-  kopfDateiFuer,
   definitionsSignatur,
   definitionAusText,
   // 4T-002042: Die Hülle `descendants` liest damit die Definitionen der Tabellen.
@@ -427,5 +358,4 @@ module.exports = {
   erfasseDatensaetze,
   erfasseAusDatei,
   merkeDefinitionAusDatei,
-  ohneVerdeckteFolgeteile,
 };

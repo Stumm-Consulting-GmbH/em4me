@@ -42,6 +42,7 @@ function leereAuskunft(status = 'unavailable') {
     abfragen: [],
     wurzel: null,
     hints: [],
+    eigeneRolle: null,
   };
 }
 
@@ -62,7 +63,7 @@ function leereAuskunft(status = 'unavailable') {
  * deshalb durchgereicht und nicht gehalten; der nächste Aufruf fragt neu.
  *
  * @returns {Promise<object>} { status, istDatenbankBereich, steckbrief, tabellen, masken,
- *   abfragen, wurzel, hints }
+ *   abfragen, wurzel, hints, eigeneRolle }; `eigeneRolle` seit 4T-002308.
  */
 export async function datenbankAuskunft() {
   if (auskunft) return auskunft;
@@ -88,6 +89,9 @@ export async function datenbankAuskunft() {
       abfragen: Array.isArray(antwort.abfragen) ? antwort.abfragen : [],
       wurzel: antwort.meta && typeof antwort.meta.wurzel === 'string' ? antwort.meta.wurzel : null,
       hints: Array.isArray(antwort.hints) ? antwort.hints : [],
+      // 4T-002308: die eigene Rolle samt Anmeldename, ohne Auskunft null.
+      eigeneRolle:
+        antwort.eigeneRolle && typeof antwort.eigeneRolle === 'object' ? antwort.eigeneRolle : null,
     };
     if (stand.status === 'ready') {
       auskunft = stand;

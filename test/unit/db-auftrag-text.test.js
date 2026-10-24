@@ -181,6 +181,18 @@ const SCHNITTSTELLE = [
     { tabellen: ['Daten/Kunden.md', 'Daten/Orte.md'], vorgang: 'v-1' },
     'Eine frühere Änderung wurde unterbrochen und wird beim nächsten Versuch zu Ende geschrieben; bis dahin nehmen die Tabellen «Kunden» und «Orte» keine Änderungen an.',
   ],
+  // 4T-002309: die Neuanlage ohne `create`.
+  [
+    LAGEN.nichtErlaubt,
+    { tabelle: TAB, operation: 'create', rolle: 'assistant' },
+    'Die Rolle «assistant» hat in der Tabelle «Kunden» keine Erlaubnis für «anlegen»; ein neuer Datensatz lässt sich deshalb nicht beginnen.',
+  ],
+  // 4T-002309 (Entscheidung der Sitzung vom 2026-10-18): Rechte nicht bestimmbar.
+  [
+    LAGEN.rechteNichtBestimmbar,
+    { tabelle: TAB, grund: 'indexing' },
+    'Die Berechtigungen der Datenbank ließen sich nicht feststellen, weil die Tabellen des Bereichs noch nicht vollständig eingelesen sind oder der Steckbrief nicht lesbar ist; ein neuer Datensatz in der Tabelle «Kunden» lässt sich deshalb nicht beginnen. Bitte gleich noch einmal versuchen oder den Steckbrief prüfen.',
+  ],
   [
     LAGEN.unerwartet,
     { grund: 'boom' },
@@ -262,6 +274,30 @@ const REGELWERK = [
     REGEL_LAGEN.nichtBearbeitbar,
     { anzeige: 'r-00007 (Anna)', regel: 'Status != "zu"', meldung: '', grund: 'ausdruck' },
     'Der Datensatz r-00007 (Anna) in der Tabelle «Kunden» ist nach der Regel «Status != "zu"» derzeit nicht bearbeitbar.',
+  ],
+  // 4T-002312: die Bearbeitbarkeits-Bedingung am Feld.
+  [
+    REGEL_LAGEN.feldNichtBearbeitbar,
+    {
+      anzeige: 'r-00007 (Anna)',
+      feld: 'Rabatt',
+      regel: 'NOT gebucht',
+      meldung: 'Nur offen.',
+      grund: 'ausdruck',
+    },
+    'Das Feld «Rabatt» des Datensatzes r-00007 (Anna) in der Tabelle «Kunden» ist nach der Regel «NOT gebucht» derzeit nicht änderbar. Nur offen.',
+  ],
+  // 4T-002309: die Berechtigung, erste Regel der Naht.
+  [
+    REGEL_LAGEN.nichtErlaubt,
+    { operation: 'delete', rolle: 'assistant' },
+    'Die Rolle «assistant» hat in der Tabelle «Kunden» keine Erlaubnis für «löschen»; die Änderung wurde nicht gespeichert.',
+  ],
+  // 4T-002309 (Entscheidung der Sitzung vom 2026-10-18): Rechte nicht bestimmbar.
+  [
+    REGEL_LAGEN.rechteNichtBestimmbar,
+    { grund: 'oversized' },
+    'Die Berechtigungen der Datenbank ließen sich nicht feststellen, weil die Tabellen des Bereichs noch nicht vollständig eingelesen sind oder der Steckbrief nicht lesbar ist; die Änderung an der Tabelle «Kunden» wurde deshalb nicht gespeichert. Bitte gleich noch einmal versuchen oder den Steckbrief prüfen.',
   ],
   [
     REGEL_LAGEN.katalogNichtBereit,
@@ -464,5 +500,56 @@ describe('Wächter: kein Text unter database.auftrag.* trägt die Position (B3)'
     for (const code of SPRACHEN) {
       expect(FRAGMENTE[code]['database.form.positionPrefix']).toContain('{n}');
     }
+  });
+});
+
+describe('Berechtigung: Tabelle, Operation und Rolle im Satz (4T-002309, AK1, AK4)', () => {
+  it('nennt in allen fünf Sprachen Tabelle, Rolle und das übersetzte Operations-Wort (4T-002309)', () => {
+    for (const code of SPRACHEN) {
+      const u = umgebung(code);
+      for (const operation of ['create', 'update', 'delete']) {
+        const wort = FRAGMENTE[code][`database.overview.allow.${operation}`];
+        const satz = loeseLageAuf(
+          regel(REGEL_LAGEN.nichtErlaubt, { operation, rolle: 'assistant' }),
+          u,
+        ).text;
+        expect(satz, `${code} ${operation}`).toContain('«Kunden»');
+        expect(satz, `${code} ${operation}`).toContain('«assistant»');
+        expect(satz, `${code} ${operation}`).toContain(`«${wort}»`);
+        expect(satz, `${code} ${operation}`).not.toMatch(/\{[a-zA-Z]+\}/);
+      }
+      const neu = loeseLageAuf(
+        { code: LAGEN.nichtErlaubt, tabelle: TAB, operation: 'create', rolle: 'assistant' },
+        u,
+      ).text;
+      expect(neu, code).toContain(`«${FRAGMENTE[code]['database.overview.allow.create']}»`);
+    }
+  });
+
+  it('nennt bei nicht bestimmbaren Rechten die Tabelle in allen fünf Sprachen (4T-002309)', () => {
+    for (const code of SPRACHEN) {
+      const u = umgebung(code);
+      const regelSatz = loeseLageAuf(
+        regel(REGEL_LAGEN.rechteNichtBestimmbar, { grund: 'indexing' }),
+        u,
+      ).text;
+      const neuSatz = loeseLageAuf(
+        { code: LAGEN.rechteNichtBestimmbar, tabelle: TAB, grund: 'indexing' },
+        u,
+      ).text;
+      for (const satz of [regelSatz, neuSatz]) {
+        expect(satz, code).toContain('«Kunden»');
+        expect(satz, code).not.toMatch(/[{}]/);
+      }
+      expect(regelSatz, code).not.toBe(neuSatz);
+    }
+  });
+
+  it('zeigt ein unbekanntes Operations-Wort roh (4T-002309)', () => {
+    const satz = loeseLageAuf(
+      regel(REGEL_LAGEN.nichtErlaubt, { operation: 'archive', rolle: 'assistant' }),
+      DE,
+    ).text;
+    expect(satz).toContain('«archive»');
   });
 });

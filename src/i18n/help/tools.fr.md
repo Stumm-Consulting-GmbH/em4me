@@ -4,7 +4,7 @@ Douze assistants pour le travail quotidien sur le texte : linter, correcteur ort
 
 ## Linter Markdown
 
-Le linter marque discrètement sept défauts typiques dans l'éditeur (vues Source, Scindée et Direct) ; survoler une marque affiche l'explication. Les exemples sont en blocs de code pour que cette page reste elle-même sans marque.
+Le linter marque discrètement neuf défauts typiques dans l'éditeur (vues Source, Scindée et Direct) ; survoler une marque affiche l'explication. Les exemples sont en blocs de code pour que cette page reste elle-même sans marque.
 
 | Règle | Infraction | Correction |
 |---|---|---|
@@ -13,6 +13,8 @@ Le linter marque discrètement sept défauts typiques dans l'éditeur (vues Sour
 | Texte alternatif manquant | `![](image.png)` | `![Croquis d'architecture](image.png)` |
 | Lien wiki sans cible | `[[Nom-erroné]]` | `[[Plan projet]]` (fichier existant) |
 | Ancre wiki cassée | `[[Plan projet#Absent]]` | `[[Plan projet#Jalons]]` (ancre existante) |
+| Nom d'enregistrement ambigu | `[[Personen#^Anna Muster]]` (deux enregistrements avec cette forme d'affichage) | `[[Personen#^r-00042]]` (identifiant de l'enregistrement visé) |
+| Une ancre de bloc masque un enregistrement | `[[Personen#^Bert]]` (ancre de bloc `^Bert` dans le fichier de table) | `[[Personen#^r-00002]]` (identifiant de l'enregistrement) |
 | Type de callout inconnu | `> [!important] Titre` | `> [!warning] Titre` (type de la liste blanche) |
 | Marqueur de commentaire non apparié | `Texte %% sans fermeture` | `Texte %%privé%% suite` ou `\%%` pour un `%%` littéral |
 
@@ -89,7 +91,7 @@ Au-delà du fichier isolé, les occurrences apparaissent dans le panneau **Résu
 
 Le **fichier ouvert vient en premier**, et avec son état non enregistré : ce qui se trouve dans l’éditeur est trouvé, même avant l’enregistrement. Ses occurrences restent mises en évidence dans le texte comme d’habitude, la liste s’y ajoute. Pour les autres fichiers, c’est l’état enregistré sur le disque qui compte.
 
-La recherche porte sur les fichiers Markdown de la zone. Les autres fichiers et les fichiers d’accompagnement de l’application restent à l’écart. Un **fichier de table de la [base de données](database.md)** y entre sans le contenu de son bloc d’enregistrements : son texte explicatif reste consultable, ses enregistrements ne sont pas trouvés par cette voie. Qui ouvre le fichier et y cherche les retrouve inchangés.
+La recherche porte sur les fichiers Markdown de la zone. Les autres fichiers et les fichiers d’accompagnement de l’application restent à l’écart. Un **fichier de table de la [base de données](database.md)** entre dans le texte intégral sans le contenu de son bloc d’enregistrements ; son texte explicatif reste consultable. Ses enregistrements apparaissent en revanche comme résultats propres : après les groupes des documents, un groupe par table avec la mention « Enregistrements », chaque ligne avec la forme d’affichage de l’enregistrement, le champ et sa valeur avec l’occurrence mise en évidence, pour une table ouverte aussi à partir de son état non enregistré. Un clic ouvre l’enregistrement dans son formulaire. Lorsque la ligne de remplacement est ouverte, ces groupes sont omis, car le remplacement n’écrit pas dans les enregistrements. Les détails figurent sur la page « Base de données », section « Trouvabilité : recherche et liens » ; qui ouvre le fichier de table et y cherche retrouve ses enregistrements inchangés.
 
 Si **aucun onglet n’est ouvert**, la zone compte tout de même : rechercher et remplacer atteignent ses fichiers sans qu’un document doive être ouvert au préalable. Deux choses disparaissent alors, faute de fichier ouvert — la liste est classée purement par ordre alphabétique au lieu de placer un fichier en tête, et rien n’est mis en évidence dans un texte.
 

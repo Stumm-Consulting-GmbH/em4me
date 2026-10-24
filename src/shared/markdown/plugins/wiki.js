@@ -19,6 +19,35 @@ const { BILD_ENDUNGEN } = require('../../bild-endungen.js');
 // 4T-002057 (Epic 3E-000360): Ob eine Block-Kennung gültig ist, sagt die Heimat
 // der Anker-Erkennung (wie in ./block-anker.js).
 const { isValidBlockAnchorId } = require('../../block-anchors.js');
+// 4T-002333 (Epic 3E-000264, T1): die Zeichen der Anzeige-Form hinter '^', eine
+// Konstante für Anzeige und Haupt-Prozess.
+const { ANZEIGE_ANKER_MUSTER } = require('../../database/record-identity.js');
+
+// 4T-002333 (Epic 3E-000264, Entscheidung T1): Hinter '^' darf der Anker eines
+// Verweises auch die Anzeige-Form eines Datensatzes sein, etwa
+// `[[Personen#^Max Müller]]` (E5.3: die Anzeige-Form löst das Trenner-Problem
+// mehrteiliger Schlüssel). Erlaubt sind Buchstaben, Ziffern, Leerzeichen und
+// die Zeichen `_ - . ' , ( )`. Ein Block-Anker trägt nach seiner Regel
+// (`src/shared/block-anchors.js`, die unverändert bleibt) nie ein Leerzeichen;
+// ein Anker mit Leerzeichen hinter '^' ist damit eindeutig eine Anzeige-Form.
+// Die Lockerung gilt allein der Anker-Form des Verweises. Das Zeichen-Muster
+// ist dieselbe Konstante, mit der der Haupt-Prozess den Verweis auflöst
+// (`ANZEIGE_ANKER_MUSTER`, Import oben).
+
+/**
+ * Der Anker hinter '^' eines Wiki-Verweises, wie er ins Fragment der Adresse
+ * geht: eine gültige Block-Kennung oder die Anzeige-Form eines Datensatzes,
+ * getrimmt; sonst leer, und der Verweis zeigt allein auf die Datei. Geteilt mit
+ * der Live-Ansicht (`live-pass-inline.js`), damit beide Ansichten dieselbe
+ * Adresse bilden.
+ *
+ * @param {string} rohNachZirkumflex Text hinter dem '^'.
+ * @returns {string}
+ */
+function verweisAnkerKennung(rohNachZirkumflex) {
+  const id = String(rohNachZirkumflex || '').trim();
+  return isValidBlockAnchorId(id) || ANZEIGE_ANKER_MUSTER.test(id) ? id : '';
+}
 
 // 4T-000891 (Epic 3E-000168): Anker-Teil eines Wiki-Ziels als href-Fragment.
 // Ein '^'-Prefix bezeichnet einen Block-Anker (ID unveraendert uebernommen,
@@ -29,11 +58,12 @@ function wikiAnchorPart(anchorRaw) {
   const raw = String(anchorRaw || '');
   if (!raw) return '';
   if (raw.startsWith('^')) {
-    const id = raw.slice(1).trim();
-    // Bei ungueltiger Block-ID: Anker faellt weg, Link zeigt nur auf Datei.
+    // Bei ungueltiger Kennung: Anker faellt weg, Link zeigt nur auf Datei.
     // 4T-002057 (Epic 3E-000360): die Kennungs-Regel aus ihrer Heimat statt
-    // eines eigenen Ausdrucks.
-    return isValidBlockAnchorId(id) ? '#' + id : '';
+    // eines eigenen Ausdrucks; seit 4T-002333 zusätzlich die Anzeige-Form
+    // eines Datensatzes (verweisAnkerKennung oben).
+    const id = verweisAnkerKennung(raw.slice(1));
+    return id ? '#' + id : '';
   }
   // P-05 (4T-000183): beide Zweige der frueheren Verzweigung waren
   // identisch — auf eine Zuweisung reduziert.
@@ -55,8 +85,9 @@ function wikiAnchorPart(anchorRaw) {
 //   [[#^block-id]]           — selbes Dokument, scrollt zum Block
 // Anker hinter '#' werden:
 //   - mit '^' am Anfang  -> Block-Anker, ID wird direkt verwendet
-//     (Slug-Validierung: \p{L}\p{N}_- inkl. Umlaute).
-//   - sonst              -> Heading-Anker, ueber githubLikeSlug normalisiert.
+//     (Slug-Validierung: \p{L}\p{N}_- inkl. Umlaute; seit 4T-002333 auch
+//     die Anzeige-Form eines Datensatzes, siehe verweisAnkerKennung).
+//   - sonst             -> Heading-Anker, ueber githubLikeSlug normalisiert.
 function wikiLinksPlugin(mdInstance, options) {
   // 4T-001457 (Epic 3E-000190): Im Aus-Zustand der Erweiterung area-links wird
   // das Kuerzel nicht abgetrennt; der Link bleibt ein gewoehnlicher Wiki-Link.
@@ -425,6 +456,7 @@ function tagsPlugin(mdInstance) {
 }
 
 module.exports = {
+  verweisAnkerKennung,
   wikiLinksPlugin,
   wikiEmbedsPlugin,
   tagsPlugin,

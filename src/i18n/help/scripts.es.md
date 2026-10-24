@@ -34,7 +34,7 @@ pq.out('Resultado: ' + (6 * 7));
 
 Todas las funciones de datos son de solo lectura y trabajan sobre una instantánea del índice tomada al inicio de la ejecución. Si cambia el conjunto de archivos, el bloque se vuelve a ejecutar automáticamente.
 
-- `pq.pages([fuente])` — todos los archivos del ámbito de búsqueda como objetos de página, opcionalmente filtrados por una fuente.
+- `pq.pages([fuente])` — todos los archivos del ámbito de búsqueda como objetos de página, opcionalmente filtrados por una fuente; las plantillas no aparecen, salvo que la fuente nombre su carpeta (véase Fuentes).
 - `pq.current()` — el objeto de página del documento propio (o `null`).
 - `pq.file(ref)` — una página por ruta absoluta, ruta relativa a la raíz o nombre lógico (sin distinción de mayúsculas); `null` si nada coincide.
 - `pq.blocks([fuente])` — las propiedades de bloque del ámbito de búsqueda (véase [Propiedades de bloque](block-properties.md)); solo cuentan las anclas activas.
@@ -65,6 +65,8 @@ El parámetro opcional `fuente` filtra como la selección de fuentes de la consu
 - `'#tag'` — archivos con el tag, jerarquía incluida (`#proyecto` también cubre `proyecto/alpha`).
 - `'[[Nombre]]'` — archivos que referencian el destino (enlace saliente).
 - `'Carpeta'` o `'Carpeta/Subcarpeta'` — archivos bajo la ruta de la carpeta.
+
+**Las plantillas**, es decir, los archivos de la [carpeta de plantillas](templates.md), no las devuelven `pq.pages` ni `pq.blocks`, según la misma regla que la consulta: sin fuente y con una fuente de tag, de referencia o de carpeta superior faltan; una fuente de carpeta que apunta a la carpeta de plantillas o a una de sus subcarpetas, por ejemplo `pq.pages('Plantillas')`, devuelve exactamente su contenido. `pq.file` y `pq.current` siguen encontrando una plantilla.
 
 ### Propiedades de bloque
 

@@ -44,7 +44,11 @@ const {
   schreibeHochwasserstand,
   zellTexte,
 } = require('../../shared/database/record-write.js');
-const { naechsteKennung, nummerAus } = require('../../shared/database/record-identity.js');
+const {
+  naechsteKennung,
+  nummerAus,
+  wirksamerHochwasserstand,
+} = require('../../shared/database/record-identity.js');
 const {
   ART_CREATE,
   ART_UPDATE,
@@ -131,7 +135,14 @@ function loeseSchritte(anweisungen, bestaende) {
     let id = anweisung.id;
     if (anweisung.art === ART_ANLEGEN) {
       if (id === null) {
-        const gezogen = naechsteKennung(staende.get(anweisung.tabelle));
+        // 4T-002288: Der Stand vor dem Ziehen kennt auch die vorhandenen
+        // Kennungen aller Segmente. Eine Tabelle ohne oder mit zu niedrigem
+        // Hochwasserstand vergäbe sonst eine vorhandene Kennung ein zweites Mal
+        // (E5.1). Erst hier und nicht beim ersten Lesen des Standes, damit ein
+        // Auftrag ohne Anlegen den Hochwasserstand nicht nebenbei schreibt.
+        const kennungen = bestand.dateien.flatMap((datei) => [...datei.records.keys()]);
+        const stand = wirksamerHochwasserstand(staende.get(anweisung.tabelle), kennungen);
+        const gezogen = naechsteKennung(stand);
         id = gezogen.kennung;
         staende.set(anweisung.tabelle, gezogen.hochwasserstand);
       }

@@ -6,6 +6,7 @@
 
 'use strict';
 
+const path = require('node:path');
 // 4T-000987 (Epic 3E-000196): im Feature-Ordner src/shared/query/.
 const { parseQuery } = require('../../shared/query/perspective-query.js');
 const { matchesQuery } = require('../../shared/query/perspective-query-eval.js');
@@ -16,6 +17,10 @@ const { validateQuery, queryUsesLinks } = require('../../shared/query/query-func
 const { assignedProfileNames } = require('../../shared/property-profiles.js');
 const { indexes, resolveRootInfo } = require('./store.js');
 const { entryWithOverlay, overlaysUnder } = require('./overlay.js');
+// 4T-002126 (Epic 3E-000345): Vorlagen-Ausschluss mit derselben Regel wie die
+// Abfrage (Konzept-Entscheidung E6.7).
+const { createTemplateExclusion } = require('./query-templates.js');
+const { isInsideArea } = require('../area/area-path.js');
 const {
   buildLinkGraph,
   createTargetResolver,
@@ -31,6 +36,11 @@ const {
 // Felder (roh, Abbildung uebernimmt der Renderer), den logischen Namen
 // (Titel-Fallback) und mtimeMs (Konflikt-Erkennung des Rueckschreibens).
 // Status-Semantik identisch zu frontmatterQueryFor.
+// 4T-002126 (Epic 3E-000345): opts.templatesFolder ist der wirksame
+// Vorlagen-Ordner (absolut, oder nichts im Aus-Zustand der Erweiterung
+// «Vorlagen» und ohne gewählten Ordner), vom Kanal einmal je Lauf aufgelöst.
+// Was darin liegt, wird nicht eingesammelt, außer das FROM der Abfrage nennt
+// den Ordner ausdrücklich (Regel in query-templates.js).
 function eventsForQuery(filePath, queryText, areaRoot, opts) {
   if (!filePath) return { status: 'unavailable' };
   const { root } = resolveRootInfo(filePath, areaRoot);
@@ -74,9 +84,18 @@ function eventsForQuery(filePath, queryText, areaRoot, opts) {
   const linkGraph = ast && queryUsesLinks(ast) ? entry.linkGraph : null;
   const profileName = String((opts && opts.profileName) || '').toLowerCase();
   const events = [];
+  // 4T-002126: einmal je Lauf über die Quelle der Abfrage gebildet; ohne
+  // Abfrage gibt es keine Quelle und damit keine ausdrückliche Nennung.
+  const templates = createTemplateExclusion({
+    root,
+    templatesFolder: opts && opts.templatesFolder,
+    source: ast ? ast.source : null,
+  });
   // 4T-000935: Puffer-Overlay freigeschaltet (Verbraucher der gerenderten Ansicht).
   const sicht = entryWithOverlay(entry, overlaysUnder(root));
   for (const [absPath, props] of sicht.propertiesPerFile) {
+    // 4T-002126: Eine Vorlage ist kein Kandidat, vor dem Zuordnungs-Feld geprüft.
+    if (templates !== null && templates.excludes(absPath)) continue;
     const assigned = assignedProfileNames(props, opts && opts.assignField);
     if (!assigned.some((n) => n.toLowerCase() === profileName)) continue;
     if (ast) {
@@ -113,7 +132,13 @@ function eventsForQuery(filePath, queryText, areaRoot, opts) {
 // der Referenz-Fall des PO ist ein rekursiver outlinks-Baum). Kein Live-
 // Kanal: die Sandbox erhaelt den Snapshot mit dem Run-Auftrag; Aktualitaet
 // sichert die Index-Invalidierung ueber den Neustart des Blocks.
-function scriptDataFor(filePath, areaRoot) {
+// 4T-002126 (Epic 3E-000345): templatesFolder ist der wirksame Vorlagen-Ordner
+// (absolut oder nichts). Die Vorlagen bleiben im Abzug, weil die Quelle eines
+// Skripts erst in der Ausführungs-Umgebung bekannt ist und die Ausnahme über
+// eine ausdrückliche Ordner-Quelle nur dort entschieden werden kann; der Abzug
+// trägt den Ordner deshalb mit (templatesFolderOf), und pq.pages und pq.blocks
+// wenden die Regel an (src/renderer/script-sandbox.html).
+function scriptDataFor(filePath, areaRoot, templatesFolder) {
   if (!filePath) return { status: 'unavailable' };
   const { root } = resolveRootInfo(filePath, areaRoot);
   if (!root) return { status: 'unavailable' };
@@ -151,7 +176,25 @@ function scriptDataFor(filePath, areaRoot) {
       });
     }
   }
-  return { status: 'ready', current: filePath, pages, blocks };
+  return {
+    status: 'ready',
+    current: filePath,
+    pages,
+    blocks,
+    templatesFolder: templatesFolderOf(root, templatesFolder),
+  };
+}
+
+// 4T-002126 (Epic 3E-000345): der Vorlagen-Ordner in der Schreibweise von
+// file.folder, also wurzel-relativ mit '/' und ohne Trenner am Rand (die
+// Wurzel selbst ist ''). Ohne Ordner und für einen Ordner außerhalb des
+// Suchraums null: Eine Seite des Abzugs kann dort nicht liegen, es gibt also
+// nichts auszuschließen. Die Lage prüft isInsideArea mit demselben
+// Pfad-Vergleich wie der Ausschluss der Abfrage (normalizeForCompare).
+function templatesFolderOf(root, templatesFolder) {
+  if (typeof templatesFolder !== 'string' || templatesFolder === '') return null;
+  if (!isInsideArea(root, templatesFolder)) return null;
+  return path.relative(root, path.resolve(templatesFolder)).split(path.sep).join('/');
 }
 
 module.exports = {

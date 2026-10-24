@@ -34,7 +34,7 @@ pq.out('Ergebnis: ' + (6 * 7));
 
 Alle Daten-Funktionen sind rein lesend und arbeiten auf einem Schnappschuss des Index zum Start des Laufs. Ändert sich der Datei-Bestand, läuft der Block automatisch neu.
 
-- `pq.pages([quelle])` — alle Dateien des Suchraums als Seiten-Objekte, optional gefiltert über eine Quelle.
+- `pq.pages([quelle])` — alle Dateien des Suchraums als Seiten-Objekte, optional gefiltert über eine Quelle; Vorlagen fehlen, außer die Quelle nennt ihren Ordner (siehe Quellen).
 - `pq.current()` — das Seiten-Objekt des eigenen Dokuments (oder `null`).
 - `pq.file(ref)` — eine Seite über absoluten Pfad, wurzel-relativen Pfad oder logischen Namen (unabhängig von Groß-/Kleinschreibung); `null`, wenn nichts passt.
 - `pq.blocks([quelle])` — die Block-Eigenschaften des Suchraums (siehe [Block-Eigenschaften](block-properties.md)); nur aktive Anker zählen.
@@ -65,6 +65,8 @@ Der optionale Parameter `quelle` filtert wie die Quellen-Auswahl der Abfrage, in
 - `'#tag'` — Dateien mit dem Tag, inklusive Hierarchie (`#projekt` trifft auch `projekt/alpha`).
 - `'[[Name]]'` — Dateien, die auf das Ziel verweisen (ausgehender Link).
 - `'Ordner'` bzw. `'Ordner/Unterordner'` — Dateien unterhalb des Ordner-Pfads.
+
+**Vorlagen**, also Dateien im [Vorlagen-Ordner](templates.md), liefern `pq.pages` und `pq.blocks` nach derselben Regel wie die Abfrage nicht: Ohne Quelle und mit Tag-, Verweis- oder übergeordneter Ordner-Quelle fehlen sie; eine Ordner-Quelle auf den Vorlagen-Ordner oder einen seiner Unterordner, etwa `pq.pages('Vorlagen')`, liefert genau deren Inhalt. `pq.file` und `pq.current` finden eine Vorlage weiterhin.
 
 ### Block-Eigenschaften
 

@@ -39,7 +39,11 @@ const path = require('node:path');
 const { stripMarkdownExtension } = require('../../shared/subpages.js');
 
 const backlinks = require('../backlinks.js');
-const { sucheInTexten } = require('../../shared/search-scope.js');
+const {
+  sucheInTexten,
+  MAX_TREFFER_GESAMT,
+  MAX_TREFFER_JE_GRUPPE,
+} = require('../../shared/search-scope.js');
 // 4T-001293 (Epic 3E-000224): Volltext-Cache und Zusammenfuehrung geteilter
 // Dokumente liegen in eigenen Modulen; hier bleibt die Suche selbst.
 const { konfiguriereCache, CACHE_SCHEMA_VERSION } = require('./area-search-cache.js');
@@ -58,6 +62,9 @@ const {
   bereinigeTextMap,
   mitDateiOffset,
 } = require('./area-search-datensaetze.js');
+// 4T-002331 (Epic 3E-000264): Die Datensätze kommen als eigene Treffer-Art
+// zurück, gesucht über den Tabellen-Leser; die Fachlichkeit steht daneben.
+const { datensatzTreffer } = require('./area-search-records.js');
 
 // Vorraete je Bereichs-Wurzel: wurzel -> {
 //   dateien: Map<relPfad, { text, mtimeMs, size }>, bytes, modus
@@ -345,11 +352,27 @@ async function sucheImBereich(wurzel, optionen = {}) {
       : sucheInTexten(eintraegeAusVorrat(zustand, wurzel, opt, grosseTexte, karten), regex);
   if (!ergebnis) return { ...leer, generation, vorratModus: 'ueberholt' };
 
+  // 4T-002331: Die Datensatz-Treffer stehen hinter den Dokument-Treffern und
+  // teilen mit ihnen die Deckel. Die Rücknahme-Karten gelten nur für die
+  // Dokument-Treffer, denn der Offset eines Datensatz-Treffers liegt im
+  // Feld-Text und nicht in der Datei.
+  const datensaetze = datensatzTreffer(wurzel, muster, optionen.flags, {
+    restBudget: MAX_TREFFER_GESAMT - ergebnis.treffer.length,
+    jeGruppe: MAX_TREFFER_JE_GRUPPE,
+    istUeberholt: () => generationen.get(wurzel) !== generation,
+    deckelBytes: deckel ?? MAX_VORRAT_BYTES,
+    vorratBytes: zustand.bytes || 0,
+  });
+  if (!datensaetze) return { ...leer, generation, vorratModus: 'ueberholt' };
+
   return {
     ...ergebnis,
-    treffer: mitDateiOffset(ergebnis.treffer, karten),
+    treffer: [...mitDateiOffset(ergebnis.treffer, karten), ...datensaetze.treffer],
+    gruppen: [...ergebnis.gruppen, ...datensaetze.gruppen],
+    abgeschnitten: ergebnis.abgeschnitten || datensaetze.abgeschnitten,
     generation,
     vorratModus: zustand.modus,
+    datensatzBytes: datensaetze.bytes,
   };
 }
 

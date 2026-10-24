@@ -123,6 +123,7 @@ const {
   leseFeldRegeln,
   leseDatensatzRegeln,
   leseBearbeitbarkeit,
+  leseFeldBearbeitbarkeit,
 } = require('./table-checks.js');
 
 // --- Das interne Profil ------------------------------------------------------------
@@ -231,7 +232,10 @@ function erwartungFuer(profilFeld) {
 // --- Der Parser --------------------------------------------------------------------
 
 // Eine Liste von Definitions-Einträgen mit Fehler-Isolation je Eintrag.
-function parseDefinitionsListe(rohListe, hinweise) {
+// 4T-002312: `feldBedingungen` sammelt die rohe Angabe `editable` je gültigem
+// Feld samt Stelle; gelesen wird sie erst gegen die vollständige Feld-Liste
+// (`leseFeldBedingungen`), weil sie auch ein später definiertes Feld nennen darf.
+function parseDefinitionsListe(rohListe, hinweise, feldBedingungen = []) {
   const fields = [];
   const gesehen = new Set();
   rohListe.forEach((eintrag, index) => {
@@ -327,6 +331,8 @@ function parseDefinitionsListe(rohListe, hinweise) {
     const feldRegeln = leseFeldRegeln(eintrag[DB_CHECK_KEY]);
     for (const hinweis of feldRegeln.hints) melde(hinweis.code, name, hinweis.expected);
     if (feldRegeln.checks.length > 0) definition.checks = feldRegeln.checks;
+    if (eintrag[DB_EDITABLE_KEY] !== undefined && eintrag[DB_EDITABLE_KEY] !== null)
+      feldBedingungen.push({ definition, index, roh: eintrag[DB_EDITABLE_KEY] });
 
     gesehen.add(name.toLowerCase());
     fields.push(definition);
@@ -347,13 +353,15 @@ function istTabellenDokument(data) {
 // Liest den Definitions-Behälter aus dem Frontmatter-Objekt eines Dokuments.
 //
 // Liefert { istTabelle, fields, hints } plus — nur wenn die Datei sie trägt —
-// { lastId, key, display, changeLog, checks, editable }: `fields` sind die gültigen,
+// { lastId, key, display, changeLog, checks, editable, form }: `fields` sind die gültigen,
 // normalisierten Definitionen { name, type } samt ihren optionalen Angaben (seit
-// 4T-001930 auch `checks`, die gültigen Feld-Regeln), `hints` die gesammelten
+// 4T-001930 auch `checks`, die gültigen Feld-Regeln, seit 4T-002312 `editable`,
+// die gültige Bearbeitbarkeits-Bedingung des Feldes), `hints` die gesammelten
 // Hinweise in der Gestalt oben. Eine Regel hat die Gestalt { art: 'regex' |
 // 'expr' | 'name', quelle, regex?, ast?, name?, message } (`table-checks.js`);
 // `checks` am Ergebnis sind die gültigen Datensatz-Regeln, `editable` die gültige
-// Bearbeitbarkeits-Bedingung als eine solche Regel (4T-001932). Fehler-Codes:
+// Bearbeitbarkeits-Bedingung als eine solche Regel (4T-001932), `form` der Name
+// der Standard-Maske ohne Endung (4T-002184). Fehler-Codes:
 //   container            Behälter ist kein einfaches Objekt (keine Definitionen)
 //   fieldsNotList        `fields` im Behälter ist keine Liste
 //   entry                Definitions-Eintrag ist kein Objekt
@@ -395,6 +403,12 @@ function istTabellenDokument(data) {
 //   editableExpr         Bedingung: Ausdruck ungültig (entfällt, Tabelle bearbeitbar)
 //   editableUnknownField Bedingung nennt ein unbekanntes Feld (entfällt, Tabelle bearbeitbar)
 //   editableMessage      Meldung der Bedingung nicht auslegbar (entfällt, Bedingung bleibt)
+//   fieldEditable        Feld-Bedingung weder Text, Objekt mit rule noch true/false
+//                        (entfällt, Feld bearbeitbar; 4T-002312)
+//   fieldEditableExpr    Feld-Bedingung: Ausdruck ungültig (entfällt, Feld bearbeitbar)
+//   fieldEditableUnknownField Feld-Bedingung nennt ein unbekanntes Feld (entfällt, Feld bearbeitbar)
+//   fieldEditableMessage Meldung der Feld-Bedingung nicht auslegbar (entfällt, Bedingung bleibt)
+//   form                Standard-Maske ist kein brauchbarer Datei-Name (entfällt)
 //
 // Angaben, die dieses Modul (noch) nicht beschreibt, bleiben unangetastet und
 // hinweisfrei — dieselbe Zusage, die das Feld-Format der Eigenschafts-Profile
@@ -418,14 +432,47 @@ function parseTableDefinition(data) {
   let fields = [];
   if (roh !== undefined && roh !== null) {
     if (!Array.isArray(roh)) hints.push(baueHinweis('fieldsNotList', -1, null));
-    else fields = parseDefinitionsListe(roh, hints);
+    else {
+      const feldBedingungen = [];
+      fields = parseDefinitionsListe(roh, hints, feldBedingungen);
+      leseFeldBedingungen(feldBedingungen, fields, hints);
+    }
   }
 
   const ergebnis = { istTabelle: true, fields, hints };
   leseIdentitaet(behaelter, fields, ergebnis, hints);
   leseBelegGrenzen(behaelter, ergebnis, hints);
   leseRegeln(behaelter, fields, ergebnis, hints);
+  leseStandardMaske(behaelter, ergebnis, hints);
   return ergebnis;
+}
+
+// 4T-002184 (Epic 3E-000261, F1 A): Die Standard-Maske der Tabelle, der Name
+// ihrer Masken-Datei ohne Endung wie ein Wiki-Link-Ziel (`form: Library Kurz
+// Form`), auch mit Ordner davor. Sie steht auf der oberen Ebene des Behälters,
+// weil sie die Tabelle als Ganzes betrifft, und erscheint am Ergebnis nur, wenn
+// sie brauchbar ist, nach derselben Regel wie Identität und Beleg-Grenzen.
+//
+// **Hier wird nur die Form gelesen**, nicht aufgelöst: Ob eine Masken-Datei
+// dieses Namens existiert und zu dieser Tabelle gehört, weiß allein der
+// Katalog, der alle Masken-Dateien kennt (`table-catalog.js`). Eine angehängte
+// Endung `.md` und ein Rückstrich als Ordner-Trenner werden geduldet und
+// abgelegt, damit der Name in der Gestalt ankommt, die der Katalog vergleicht.
+const DB_FORM_ANGABE = 'form';
+
+function normalisiereMaskenName(roh) {
+  const text = alsText(roh);
+  if (text === null) return null;
+  const name = text.split('\\').join('/').replace(/\.md$/i, '').trim();
+  return name === '' ? null : name;
+}
+
+function leseStandardMaske(behaelter, ergebnis, hints) {
+  const roh = behaelter[DB_FORM_ANGABE];
+  if (roh === undefined || roh === null) return;
+  const name = normalisiereMaskenName(roh);
+  if (name === null) hints.push(baueHinweis('form', -1, null));
+  else ergebnis.form = name;
 }
 
 // 4T-001930 (E22): Die Datensatz-Regeln stehen auf der oberen Ebene des
@@ -445,6 +492,19 @@ function leseRegeln(behaelter, fields, ergebnis, hints) {
   for (const hinweis of bedingung.hints)
     hints.push(baueHinweis(hinweis.code, -1, hinweis.name, hinweis.expected));
   if (bedingung.editable !== null) ergebnis.editable = bedingung.editable;
+}
+
+// 4T-002312 (Epic 3E-000263, F4 A): Die Bearbeitbarkeits-Bedingung am Feld,
+// gelesen gegen die GÜLTIGEN Felder wie die der Tabelle. Sie erscheint am Feld
+// nur, wenn sie brauchbar ist; eine unbrauchbare entfällt mit einem Hinweis an
+// der Stelle des Feldes, und das Feld bleibt bearbeitbar (Story AK4).
+function leseFeldBedingungen(feldBedingungen, fields, hints) {
+  for (const { definition, index, roh } of feldBedingungen) {
+    const bedingung = leseFeldBearbeitbarkeit(roh, fields);
+    for (const hinweis of bedingung.hints)
+      hints.push(baueHinweis(hinweis.code, index, definition.name, hinweis.expected));
+    if (bedingung.editable !== null) definition.editable = bedingung.editable;
+  }
 }
 
 // 4T-001791 (E10.11): Die Übersteuerung der Wachstums-Grenze der

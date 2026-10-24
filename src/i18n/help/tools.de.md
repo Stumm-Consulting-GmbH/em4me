@@ -4,7 +4,7 @@ Zwölf Helfer für die tägliche Arbeit am Text: Linter, Rechtschreibprüfung, S
 
 ## Markdown-Linter
 
-Der Linter markiert sieben typische Mängel dezent im Editor (Quellcode-, Geteilt- und Live-Ansicht); die Maus über einer Markierung zeigt die Erklärung. Die Beispiele stehen in Code-Blöcken, damit diese Seite selbst markierungsfrei bleibt.
+Der Linter markiert neun typische Mängel dezent im Editor (Quellcode-, Geteilt- und Live-Ansicht); die Maus über einer Markierung zeigt die Erklärung. Die Beispiele stehen in Code-Blöcken, damit diese Seite selbst markierungsfrei bleibt.
 
 | Regel | Verstoß | Korrektur |
 |---|---|---|
@@ -13,6 +13,8 @@ Der Linter markiert sieben typische Mängel dezent im Editor (Quellcode-, Geteil
 | Fehlender Alt-Text | `![](bild.png)` | `![Architektur-Skizze](bild.png)` |
 | Wiki-Link ohne Ziel | `[[Tippfehler-Name]]` | `[[Projektplan]]` (existierende Datei) |
 | Defekter Wiki-Anker | `[[Projektplan#Fehlt]]` | `[[Projektplan#Meilensteine]]` (existierender Anker) |
+| Mehrdeutiger Datensatz-Name | `[[Personen#^Anna Muster]]` (zwei Datensätze mit dieser Anzeige-Form) | `[[Personen#^r-00042]]` (Kennung des gemeinten Datensatzes) |
+| Block-Anker verdeckt einen Datensatz | `[[Personen#^Bert]]` (Block-Anker `^Bert` in der Tabellen-Datei) | `[[Personen#^r-00002]]` (Kennung des Datensatzes) |
 | Unbekannter Callout-Typ | `> [!wichtig] Titel` | `> [!warning] Titel` (Typ aus der Whitelist) |
 | Unpaariger Kommentar-Marker | `Text %% ohne Schließung` | `Text %%privat%% weiter` oder `\%%` für ein wörtliches `%%` |
 
@@ -89,7 +91,7 @@ Außerhalb der einzelnen Datei erscheinen die Treffer im Sidebar-Panel **Sucherg
 
 Die **offene Datei steht an erster Stelle** der Liste, und zwar mit ihrem ungespeicherten Stand: Was gerade im Editor steht, wird gefunden, auch wenn es noch nicht gespeichert ist. Ihre Treffer sind wie gewohnt direkt im Text markiert, die Liste kommt hinzu. Für alle übrigen Dateien gilt der gespeicherte Stand auf der Festplatte.
 
-Gesucht wird in den Markdown-Dateien des Bereichs. Andere Dateien und die Begleitdateien der Anwendung bleiben außen vor. Eine **Tabellen-Datei der [Datenbank](database.md)** geht ohne den Inhalt ihres Datensatz-Blocks ein: Ihr erklärender Text bleibt durchsuchbar, ihre Datensätze werden über diesen Weg nicht gefunden. Wer die Datei öffnet und darin sucht, findet sie unverändert.
+Gesucht wird in den Markdown-Dateien des Bereichs. Andere Dateien und die Begleitdateien der Anwendung bleiben außen vor. Eine **Tabellen-Datei der [Datenbank](database.md)** geht ohne den Inhalt ihres Datensatz-Blocks in den Volltext ein; ihr erklärender Text bleibt durchsuchbar. Ihre Datensätze erscheinen dafür als eigene Treffer: hinter den Gruppen der Dokumente je Tabelle eine Gruppe mit dem Zusatz «Datensätze», je Zeile die Anzeige-Form des Datensatzes, das Feld und sein Wert mit markiertem Fund, bei einer geöffneten Tabelle auch aus ihrem noch nicht gespeicherten Stand. Ein Klick öffnet den Datensatz in seiner Maske. Ist die Ersetzen-Zeile geöffnet, entfallen diese Gruppen, weil das Ersetzen nicht in Datensätze schreibt. Einzelheiten nennt die Seite «Datenbank» im Abschnitt «Auffindbarkeit: Suche und Verweise»; wer die Tabellen-Datei öffnet und darin sucht, findet ihre Datensätze unverändert.
 
 Ist **nichts geöffnet**, gilt der Bereich trotzdem: Suchen und Ersetzen erreichen seinen Bestand, ohne dass erst eine Datei geöffnet werden müsste. Zwei Dinge entfallen dann, weil es sie ohne offene Datei nicht gibt — die Liste wird rein alphabetisch geordnet, statt eine Datei voranzustellen, und im Text ist nichts markiert.
 

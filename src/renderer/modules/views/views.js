@@ -30,6 +30,8 @@ import { paneEditors, syncEditorForPane, updateWindowTitle } from '../editor/edi
 import { reportMenuStateNow, syncToolbarToActiveTab } from '../tabs/tabs.js';
 // 4T-000459 (Epic 3E-000085): Gruppen-Anteil des Panes-Snapshots (reiner Helfer).
 import { buildGroupsSnapshot } from '../tabs/tab-groups.js';
+// 4T-002334 (Epic 3E-000264): Sitzungs-Einträge der System-Seiten (Masken-Dokument).
+import { systemTabsFuer } from '../app/sitzungs-maske.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 // 4T-000991 (Epic 3E-000196): bookmarks.js ist in den Feature-Ordner bookmarks/
 // geteilt.
@@ -618,6 +620,10 @@ export function buildPanesSnapshot() {
     // pfadlos sind, entfallen). Gruppen-freie Sitzungen erzeugen exakt
     // das bisherige Schema (kein groups-Feld, kein group-Eintrag).
     const { groups, groupOf } = buildGroupsSnapshot(p, indices);
+    // 4T-002334 (Epic 3E-000264, T1): System-Seiten ohne Pfad, deren Seite
+    // einen Sitzungs-Eintrag meldet (das Masken-Dokument), samt den ruhenden
+    // Einträgen der Spalte; ohne Eintrag fehlt das Feld wie bisher.
+    const systemTabs = systemTabsFuer(p);
     return {
       paths: indices.map((i) => p.tabs[i].path),
       activeIndex,
@@ -631,6 +637,7 @@ export function buildPanesSnapshot() {
         ...(groupOf[j] >= 0 ? { group: groupOf[j] } : {}),
       })),
       ...(groups.length > 0 ? { groups } : {}),
+      ...(systemTabs.length > 0 ? { systemTabs } : {}),
     };
   });
 }

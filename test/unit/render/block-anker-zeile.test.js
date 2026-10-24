@@ -454,9 +454,35 @@ describe('Wiki-Verweis mit Block-Anker: Kennung im Ziel (4T-002057, Charakterisi
     expect(href('[[Ziel#^ umsatz ]]')).toBe('Ziel.md#umsatz');
   });
 
+  // 4T-002333 (Epic 3E-000264, T1): `a b` und `a.b` fielen bis dahin weg; sie
+  // sind seither die Anzeige-Form eines Datensatzes und bleiben (Fall unten).
   it('eine ungültige Kennung fällt weg, der Verweis zeigt auf die Datei', () => {
-    for (const ziel of ['[[Ziel#^a b]]', '[[Ziel#^a.b]]', '[[Ziel#^]]', '[[Ziel#^a/b]]']) {
+    for (const ziel of ['[[Ziel#^]]', '[[Ziel#^a/b]]', '[[Ziel#^a;b]]', '[[Ziel#^a"b]]']) {
       expect(href(ziel), ziel).toBe('Ziel.md');
     }
+  });
+});
+
+// 4T-002333 (Epic 3E-000264, Entscheidung T1): Hinter '^' bleibt auch die
+// Anzeige-Form eines Datensatzes als Anker erhalten, mit Leerzeichen und den
+// Zeichen eines Namens. Ohne '^' gilt die Überschriften-Regel unverändert.
+describe('Wiki-Verweis mit Anzeige-Form hinter dem Zirkumflex (4T-002333, T1)', () => {
+  const href = (quelle) => {
+    const m = /<a [^>]*href="([^"]*)"/.exec(render(quelle));
+    return m ? m[1] : null;
+  };
+
+  it('der Anker mit Leerzeichen bleibt erhalten, getrimmt', () => {
+    expect(href('[[Personen#^Max Müller]]')).toBe('Personen.md#Max Müller');
+    expect(href('[[Personen#^ Max Müller ]]')).toBe('Personen.md#Max Müller');
+  });
+
+  it('Punkt, Apostroph, Komma und runde Klammern gehören zum Namen', () => {
+    expect(href("[[Orte#^St. Gallen (SG), O'Brien]]")).toBe("Orte.md#St. Gallen (SG), O'Brien");
+    expect(href('[[Ziel#^a.b]]')).toBe('Ziel.md#a.b');
+  });
+
+  it('ohne Zirkumflex bleibt es beim Überschriften-Slug', () => {
+    expect(href('[[Datei#foo bar]]')).toBe('Datei.md#foo-bar');
   });
 });

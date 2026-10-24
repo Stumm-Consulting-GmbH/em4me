@@ -107,9 +107,9 @@ Un dossier de fichiers Markdown peut être en même temps une base de données, 
 - **La zone devient une base de données** dès qu'un document en décrit une, et reçoit sa propre vue d'ensemble, à partir de laquelle vous créez des enregistrements et contrôlez les données.
 - **La table réside dans son fichier** : les champs dans l'en-tête, les enregistrements dans le corps. Le renommage et le déplacement n'y changent rien, y compris hors de l'application.
 - **Huit types de colonne**, avec des étiquettes qui peuvent exister en plusieurs langues.
-- **Le lien vers un enregistrement isolé** s'écrit comme une ancre et se comporte comme tout autre lien : le linter Markdown indique s'il vaut, et un clic mène à la ligne de l'enregistrement.
+- **Le lien vers un enregistrement isolé** s'écrit comme une ancre et se comporte comme tout autre lien : le linter Markdown indique s'il vaut, et un clic ouvre le formulaire de l'enregistrement.
 - **Les grands ensembles restent une seule table** : à partir d'environ 0,7 Mo, l'application répartit les enregistrements sur plusieurs fichiers voisins au moment de la sauvegarde, sans qu'aucun lien en soit affecté.
-- **Tenir les enregistrements dans le formulaire** : créer, modifier et supprimer dans un formulaire issu de la définition, avec verrou, justificatif de modification et les règles de la table ; contrôle de cohérence et vue des utilisations pour le diagnostic.
+- **Tenir les enregistrements dans le formulaire** : créer, modifier et supprimer dans un formulaire issu de la définition ou mis en forme par vous-même, avec des valeurs calculées, des sections conditionnelles et des liens entre formulaires, un par un ou dans une liste modifiable, en-tête et positions ensemble ; avec verrou, justificatif de modification et les règles de la table, au besoin avec des rôles qui séparent la tenue des données de la modification de la définition ; contrôle de cohérence et vue des utilisations pour le diagnostic.
 - **Évaluer les enregistrements** : listes et tableaux sur une table, avec des chemins passant par les références et des hiérarchies sur un nombre quelconque de niveaux, sous forme d'arbre si vous le souhaitez, et des vues d'ensemble avec une ligne par groupe, par exemple livres et pages par auteur.
 
 En détail : [Base de données](database.md).
@@ -164,7 +164,7 @@ En détail : [Profils de propriétés](property-profiles.md).
 
 ## Des listes qui se tiennent à jour
 
-Qui gère beaucoup de fichiers entretient sinon des vues d'ensemble à la main, et elles vieillissent le jour même. Une requête Perspective décrit au contraire **ce qui** est cherché, et le résultat apparaît sur place dans le document : une liste ou un tableau cliquable sur l'ensemble, filtré par propriétés, mots-clés et champs de fichier, jusqu'aux blocs de texte et aux tâches. Si vous le souhaitez, la requête réunit les résultats en groupes, avec une ligne par groupe indiquant le nombre, la somme ou la moyenne. Si l'ensemble change, la sortie change, sans que personne ne mette à jour.
+Qui gère beaucoup de fichiers entretient sinon des vues d'ensemble à la main, et elles vieillissent le jour même. Une requête Perspective décrit au contraire **ce qui** est cherché, et le résultat apparaît sur place dans le document : une liste ou un tableau cliquable sur l'ensemble, filtré par propriétés, mots-clés et champs de fichier, jusqu'aux blocs de texte et aux tâches. Si vous le souhaitez, la requête réunit les résultats en groupes, avec une ligne par groupe indiquant le nombre, la somme ou la moyenne. Si vous le souhaitez, elle montre aussi le résultat sous forme de graphique en barres ou en courbes, qui change avec l'ensemble. Si l'ensemble change, la sortie change, sans que personne ne mette à jour.
 
 - **Pages thématiques** qui listent d'elles-mêmes les fichiers associés.
 - **Filtres et groupes** sur les propriétés du frontmatter, les mots-clés et les champs de fichier, avec le nombre et les sommes par groupe.

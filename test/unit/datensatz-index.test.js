@@ -25,12 +25,13 @@ const { indexes } = require_('../../src/main/index/store.js');
 const { setBufferOverlay, clearAllBufferOverlays } = require_('../../src/main/index/overlay.js');
 const {
   erfasseDatensaetze,
-  kopfDateiFuer,
   definitionAusText,
   definitionsSignatur,
   holeDefinitionenVorab,
   vergissAlleDefinitionen,
 } = require_('../../src/main/index/datensatz-erfassung.js');
+// 4T-002047: Die Zuordnung zur Kopf-Datei wohnt im Modul der Teil-Dateien.
+const { kopfDateiFuer } = require_('../../src/main/index/part-files.js');
 const { datensatzRumpf, rolleVon } = require_('../../src/shared/database/record-segment.js');
 const { MDDA_CACHE_SCHEMA_VERSION } = require_('../../src/main/documents/mdd-store.js');
 

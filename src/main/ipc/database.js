@@ -86,6 +86,34 @@
 // Er prüft wie `database:konsistenz` selbst und fail-closed und reicht an
 // `verwendungsnachweis.js` durch; die Logik liegt dort.
 //
+// 4T-002249 (Epic 3E-000262, S1, S2): Ein zwölfter Kanal gibt die Auskunft über
+// eine Listen-Maske:
+//
+//   database:liste  Angaben, Quell-Tabelle, Feld je Spalte und Maske EINER Abfrage-Datei
+//
+// Er prüft wie `database:datensaetze` selbst und fail-closed und reicht an
+// `listen-auskunft.js` durch; die Logik liegt dort. Die Zeilen liefert er nicht,
+// weil die Ergebnismenge der Abfrage im Anzeige-Prozess bereits vorliegt.
+// 4T-002250 (S3): Mit den Kennungen der gelieferten Zeilen nennt er dazu die
+// Zeilen, deren Datensatz nach `editable` der Definition nicht änderbar ist.
+//
+// 4T-002252 (Epic 3E-000262, S1, S8): Ein dreizehnter Kanal wertet die Ausdrücke
+// einer Einzel-Maske aus, die einen Pfad über ein Verweis-Feld nennen:
+//
+//   database:ausdruecke  Werte und Bedingungen EINES Datensatz-Entwurfs
+//
+// Er prüft wie `database:datensatz` selbst und fail-closed und reicht an
+// `ausdruecke-auskunft.js` durch; die Logik liegt dort.
+//
+// 4T-002333 (Epic 3E-000264, T3): Ein vierzehnter Kanal sagt dem Klick auf einen
+// Verweis `[[Tabelle#^…]]`, ob er in die Maske führt:
+//
+//   database:verweisZiel  Kopf-Datei und Kennung des Datensatzes zu Ziel und Anker
+//
+// Er prüft wie `database:datensaetze` selbst und fail-closed und fragt die eine
+// Auflösungs-Ordnung in `datensatz-verweis-aufloesung.js`, aus der auch die
+// Gültigkeit des Verweises antwortet. Er liest nur und schreibt nie.
+//
 // **Warum die Oberfläche kein Frontmatter selbst liest** (E4): Der Katalog
 // braucht den Bestand über die einzelne Datei hinaus und liegt deshalb im
 // Haupt-Prozess; Maßstab ist die Reichweite des Zugriffs und nicht die
@@ -105,6 +133,7 @@ const path = require('node:path');
 const {
   createDatabaseCatalogCache,
   katalogUeberblick,
+  rolleUndRechteDerTabelle,
   tabellenDefinition,
 } = require('../database/table-catalog.js');
 // 4T-001792 (Epic 3E-000255): Die harte Bereichs-Grenze der Anwendung und der
@@ -116,6 +145,8 @@ const { belegeDesDatensatzes } = require('../database/change-log.js');
 // der Datenbank, aus der die Beschriftungen der erzeugten Maske aufgelöst werden.
 const { liesDatensatz } = require('../database/datensatz-auskunft.js');
 const { wirksameRueckfallSprache } = require('../../shared/database/database-steckbrief.js');
+// 4T-002148: die Codes der Rollen-Hinweise für die Antwort bei geschlossenem Tor.
+const { ROLLEN_HINWEISE, ZUORDNUNG_HINWEISE } = require('../../shared/database/rollen-angaben.js');
 // 4T-001941: Die Bedienung der Datensatz-Sperre über die eine Sperr-Verwaltung.
 const { AKTIONEN: SPERR_AKTIONEN, bediene } = require('../database/sperre-bedienung.js');
 // 4T-001942: Die Liste der Datensätze einer Tabelle für die Wertehilfe.
@@ -129,12 +160,60 @@ const {
   verwendungDerTabelle,
   verwendungDesDatensatzes,
 } = require('../database/verwendungsnachweis.js');
+// 4T-002249: Die Auskunft über eine Listen-Maske.
+const { fremdeMaskenDerAbfragen, liesListe } = require('../database/listen-auskunft.js');
+// 4T-002253 (Epic 3E-000262): der Positions-Bereich einer Einzel-Maske.
+const { liesPositionsListe } = require('../database/positions-auskunft.js');
+// 4T-002252: Die Pfad-Ausdrücke der Einzel-Maske.
+const { werteAusdrueckeAus } = require('../database/ausdruecke-auskunft.js');
+// 4T-002333: Das Ziel eines Datensatz-Verweises für den Klick in die Maske.
+const { verweisZiel } = require('../index/datensatz-verweis-aufloesung.js');
+
+// 4T-002252: Höchstzahl der Ausdrücke je Anfrage; eine Maske mit mehr
+// Pfad-Stellen ist kein Anwendungsfall, sondern eine Anfrage in falscher Form.
+const MAX_AUSDRUECKE = 200;
+
+// 4T-002252: Der Entwurf ist ein Objekt aus Text-Werten, jeder Ausdruck ein
+// Paar aus Text-Kennung und Text-Quelle.
+function ausdrueckeInForm(params) {
+  if (!istObjekt(params) || !istText(params.tabelle)) return false;
+  if (params.kennung !== null && !istText(params.kennung)) return false;
+  if (!istObjekt(params.entwurf)) return false;
+  if (!Object.values(params.entwurf).every((wert) => typeof wert === 'string')) return false;
+  const liste = params.ausdruecke;
+  if (!Array.isArray(liste) || liste.length > MAX_AUSDRUECKE) return false;
+  return liste.every((e) => istObjekt(e) && istText(e.id) && typeof e.quelle === 'string');
+}
 
 // 4T-001792: Die Antwort, wenn eine der Vorbedingungen nicht erfüllt ist. Sie
 // ist als Funktion und nicht als geteilte Konstante geschrieben, damit kein
 // Aufrufer die Listen einer fremden Antwort in der Hand hält.
 function ohneZugriff() {
   return { status: 'unavailable', belege: [], befunde: [], verkettung: null };
+}
+
+// 4T-002148 (Epic 3E-000263, S11): Die Hinweise der Rollen, der Vorgabe-Rolle
+// und der Zuordnung, wie sie Steckbrief und Katalog melden.
+const ROLLEN_CODES = new Set([...ROLLEN_HINWEISE, ...ZUORDNUNG_HINWEISE]);
+const keinRollenHinweis = (hinweis) => !(hinweis && ROLLEN_CODES.has(hinweis.code));
+
+// 4T-002148 (S11): Ein Überblick ohne Berechtigungen, für das geschlossene Tor.
+// Im Aus-Zustand bleiben Rollen, Zuordnung und Vorgabe-Rolle bloßes Frontmatter:
+// keine eigene Rolle, keine Erlaubnis-Menge je Tabelle, keine ausgelegten Rollen
+// im Steckbrief und keine Rollen-Hinweise unter den Fehlerlagen. Alle übrigen
+// Angaben bleiben, wie der Katalog sie liefert. Der Überblick ist frisch
+// gebildet; ersetzt werden seine Felder, nicht die Listen des Katalogs.
+function ohneRollen(ueberblick) {
+  delete ueberblick.eigeneRolle;
+  ueberblick.hints = ueberblick.hints.filter(keinRollenHinweis);
+  ueberblick.tabellen = ueberblick.tabellen.map(({ rechte: _rechte, ...eintrag }) => eintrag);
+  if (ueberblick.steckbrief) {
+    const { rollen: _r, defaultRole: _d, users: _u, ...steckbrief } = ueberblick.steckbrief;
+    if (Array.isArray(steckbrief.hints))
+      steckbrief.hints = steckbrief.hints.filter(keinRollenHinweis);
+    ueberblick.steckbrief = steckbrief;
+  }
+  return ueberblick;
 }
 
 // 4T-001792: Der Beleg in der Gestalt, die die Ansicht braucht.
@@ -245,6 +324,13 @@ function registerDatabaseIpc(handle, deps) {
     return backlinks.datenbankSicht(filePath, areaRoot);
   }
 
+  // 4T-001938: Das Tor der Erweiterung, bei jeder Anfrage frisch gefragt, weil
+  // der Anwender die Erweiterung im laufenden Programm ausschalten darf. Wie in
+  // der Schreib-Schnittstelle fällt es als einzige Naht ohne Wurf zurück, und
+  // zwar auf «aus»: Ein fehlendes Tor verweigert, statt Datensätze zu zeigen.
+  // 4T-002148: vor die beiden offenen Kanäle verlegt, die es seither ebenfalls fragen.
+  const torOffen = () => typeof datenbankAktiv === 'function' && datenbankAktiv() === true;
+
   handle('database:overview', async (event, params) => {
     const { status, meta, sicht } = lage(event, params && params.filePath);
     // Ohne bereite Sicht wird der Status durchgereicht statt einer leeren
@@ -262,9 +348,25 @@ function registerDatabaseIpc(handle, deps) {
         abfragen: [],
         hints: [],
       };
+    // 4T-002148 (S11): Der Kanal bleibt bei geschlossenem Tor offen, weil die
+    // Einstellungs-Seite ihn nach der Bereichs-Art fragt; die Antwort trägt dann
+    // aber keine Berechtigungen. Die Herkunft ohne Benutzer liest den
+    // Anmeldenamen gar nicht erst, und `ohneRollen` nimmt das Übrige heraus.
+    const offen = torOffen();
     const ueberblick = await katalogUeberblick({
       sicht,
       status,
+      fsp,
+      cache,
+      bufferTextFor: backlinks.bufferTextFor,
+      ...(offen ? {} : { herkunft: () => ({}) }),
+    });
+    if (!offen) ohneRollen(ueberblick);
+    // 4T-002254: der Hinweis «fremde Maske» je Abfrage-Datei, wie ihn die Liste kennt.
+    await fremdeMaskenDerAbfragen({
+      abfragen: ueberblick.abfragen,
+      wurzel: areaRootForEvent(event),
+      sicht,
       fsp,
       cache,
       bufferTextFor: backlinks.bufferTextFor,
@@ -283,7 +385,21 @@ function registerDatabaseIpc(handle, deps) {
       cache,
       bufferTextFor: backlinks.bufferTextFor,
     });
-    return { ...definition, meta };
+    // 4T-002311 (E12.4): Rolle und Erlaubnis-Menge der Tabelle, aus derselben
+    // Auflösung wie die übrigen Lese-Kanäle; der Datensatz-Block fragt danach,
+    // ob er «Neuer Datensatz» anbietet.
+    // 4T-002148 (S11): bei geschlossenem Tor keine Auflösung.
+    const berechtigung =
+      definition.gefunden && torOffen()
+        ? await rolleUndRechteDerTabelle({
+            sicht,
+            fsp,
+            cache,
+            bufferTextFor: backlinks.bufferTextFor,
+            tabellenPfad: definition.path,
+          })
+        : {};
+    return { ...definition, ...berechtigung, meta };
   });
 
   // 4T-001792 (Epic 3E-000255, E10.14, Bauplan S1): Die Änderungsbelege eines
@@ -377,12 +493,6 @@ function registerDatabaseIpc(handle, deps) {
     return schreibSchnittstelle.eroeffneNeuanlage(bereichsWurzel, tabelle);
   });
 
-  // 4T-001938: Das Tor der Erweiterung, bei jeder Anfrage frisch gefragt, weil
-  // der Anwender die Erweiterung im laufenden Programm ausschalten darf. Wie in
-  // der Schreib-Schnittstelle fällt es als einzige Naht ohne Wurf zurück, und
-  // zwar auf «aus»: Ein fehlendes Tor verweigert, statt Datensätze zu zeigen.
-  const torOffen = () => typeof datenbankAktiv === 'function' && datenbankAktiv() === true;
-
   // 4T-001938: Die Rückfall-Sprache der Datenbank aus ihrem Steckbrief, über den
   // Katalog wie auf der Übersichts-Seite; ohne bereite Sicht gibt es keine.
   async function rueckfallSpracheFuer(event) {
@@ -403,10 +513,21 @@ function registerDatabaseIpc(handle, deps) {
   // ausdrücklich dastehen, damit eine vergessene Kennung nicht still zur leeren
   // Maske wird. Dieselben vier Stufen wie `database:neuanlage`, davor das Tor;
   // jede nicht bestandene Stufe endet ohne Dateizugriff.
+  //
+  // 4T-002184 (Epic 3E-000261, AK4): Optional `maske`, der Name (ohne Endung,
+  // wie ein Wiki-Link-Ziel) oder Pfad einer bestimmten Masken-Datei derselben
+  // Tabelle; ohne sie zeigt die Antwort die Standard-Maske, und bestehende
+  // Aufrufer bleiben unverändert. Eine Angabe in falscher Form endet wie die
+  // übrigen ohne Zugriff; eine, die keine Masken-Datei dieser Tabelle nennt,
+  // weist `datensatz-auskunft.js` mit eigenem Code ab. Die Lage-Prüfung des
+  // Pfads braucht sie nicht, weil sie allein gegen die Masken-Dateien
+  // aufgelöst wird, die der Katalog dieser Tabelle zuordnet.
   handle('database:datensatz', async (event, params) => {
     if (!istObjekt(params) || !istText(params.tabelle)) return ohneZugriff();
     const { tabelle, kennung } = params;
     if (kennung !== null && !istText(kennung)) return ohneZugriff();
+    const maske = params.maske === undefined || params.maske === null ? null : params.maske;
+    if (maske !== null && !istText(maske)) return ohneZugriff();
     if (!torOffen()) return ohneZugriff();
     const bereichsWurzel = areaRootForEvent(event);
     if (!bereichsWurzel) return ohneZugriff();
@@ -423,6 +544,28 @@ function registerDatabaseIpc(handle, deps) {
       rueckfallSprache: await rueckfallSpracheFuer(event),
       sicht,
       cache,
+      maske,
+    });
+  });
+
+  // 4T-002252 (S1, S8): Die Pfad-Ausdrücke einer Einzel-Maske, Parameter
+  // `{ tabelle, kennung, entwurf, ausdruecke, sprache }`; `kennung: null` heißt
+  // Neuanlage. Dieselben Stufen wie `database:datensatz`: Form, Tor, Bereich,
+  // Lage und Endung; jede nicht bestandene Stufe endet ohne Dateizugriff. Die
+  // Lage-Abfrage stößt den Index des Bereichs an, aus dem gelesen wird.
+  handle('database:ausdruecke', async (event, params) => {
+    if (!ausdrueckeInForm(params)) return ohneZugriff();
+    if (!torOffen()) return ohneZugriff();
+    const bereichsWurzel = areaRootForEvent(event);
+    if (!bereichsWurzel) return ohneZugriff();
+    if (!tabelleZulaessig(bereichsWurzel, params.tabelle, isMarkdownPath)) return ohneZugriff();
+    lage(event, null);
+    return werteAusdrueckeAus({
+      root: bereichsWurzel,
+      tabelle: params.tabelle,
+      kennung: params.kennung,
+      entwurf: params.entwurf,
+      ausdruecke: params.ausdruecke,
     });
   });
 
@@ -495,6 +638,28 @@ function registerDatabaseIpc(handle, deps) {
     return liesDatensatzListe({ fsp, wurzel: bereichsWurzel, sicht, tabelle });
   });
 
+  // 4T-002333 (T3): Das Ziel eines Datensatz-Verweises, Parameter
+  // `{ zielPfad, anker }` mit dem absoluten Pfad, auf den der Klick den Verweis
+  // aufgelöst hat, und dem Anker ohne `^`. Antwort `{ tabelle, kennung }` oder
+  // `null`; `null` heißt für den Klick «bisheriger Weg» und steht deshalb für
+  // jede Lage ohne eindeutigen Datensatz: Form, Tor, Bereich, Index nicht
+  // bereit, keine Tabelle, Block-Anker gleichen Namens, mehrdeutiger Name.
+  // Die Bereichs-Wurzel kommt wie bei den Nachbarn aus dem sendenden Fenster.
+  // Gerechnet wird am Platten-Stand (`ohnePuffer`), wie die Gültigkeit.
+  handle('database:verweisZiel', async (event, params) => {
+    if (!istObjekt(params) || !istText(params.zielPfad) || !istText(params.anker)) return null;
+    if (!torOffen()) return null;
+    const bereichsWurzel = areaRootForEvent(event);
+    if (!bereichsWurzel || !tabelleZulaessig(bereichsWurzel, params.zielPfad, isMarkdownPath)) {
+      return null;
+    }
+    const zielPfad = path.resolve(bereichsWurzel, params.zielPfad);
+    backlinks.ensureIndexForDemand(zielPfad, `${event.sender.id}:database`, bereichsWurzel);
+    const { sicht } = backlinks.datenbankSicht(zielPfad, bereichsWurzel, { ohnePuffer: true });
+    if (!sicht) return null;
+    return verweisZiel(sicht, zielPfad, params.anker);
+  });
+
   // 4T-001944 (Bauplan B3): Die Konsistenz-Prüfung, Parameter `{ tabelle }` als
   // Name oder Pfad EINER Tabelle oder `null` für alle; `tabelle` muss ausdrücklich
   // dastehen. Form, Tor und Bereich wie `database:datensaetze`, danach die Sicht
@@ -542,6 +707,83 @@ function registerDatabaseIpc(handle, deps) {
     const auftrag = { fsp, wurzel: bereichsWurzel, sicht, tabelle };
     if (kennung === null) return verwendungDerTabelle(auftrag);
     return verwendungDesDatensatzes({ ...auftrag, kennung });
+  });
+
+  // 4T-002249 (S1, S2): Die Auskunft über eine Listen-Maske, Parameter
+  // `{ pfad, query, spalten, tabelle }`: `pfad` die Abfrage-Datei (absolut),
+  // `query` der Text ihrer Abfrage, `spalten` die Quelltexte der Spalten der
+  // Ergebnismenge, `tabelle` die Kopf-Datei aus der Herkunft der Zeilen oder
+  // `null`. Form, Tor und Bereich wie `database:datensaetze`; die Abfrage-Datei
+  // und eine genannte Tabelle werden gegen Lage und Endung geprüft, bevor eine
+  // Datei gelesen wird. Jede nicht bestandene Stufe ergibt dieselbe Antwort wie
+  // eine Datei ohne Listen-Maske, `{ istListe: false }`: Für die Anzeige heißt
+  // beides «Ergebnis-Tabelle wie bisher», und eine zweite Gestalt brauchte
+  // niemand.
+  handle('database:liste', async (event, params) => {
+    const keineListe = { istListe: false };
+    if (!istObjekt(params) || !istText(params.pfad) || typeof params.query !== 'string') {
+      return keineListe;
+    }
+    const { pfad, query, spalten } = params;
+    const tabelle = params.tabelle === undefined ? null : params.tabelle;
+    if (!Array.isArray(spalten) || !spalten.every((s) => typeof s === 'string')) return keineListe;
+    if (tabelle !== null && !istText(tabelle)) return keineListe;
+    // 4T-002250 (S3): die Kennungen der gelieferten Zeilen für `nichtAenderbar`.
+    const kennungen = params.kennungen === undefined ? [] : params.kennungen;
+    if (!Array.isArray(kennungen) || !kennungen.every(istText)) return keineListe;
+    if (!torOffen()) return keineListe;
+    const bereichsWurzel = areaRootForEvent(event);
+    if (!bereichsWurzel) return keineListe;
+    if (!tabelleZulaessig(bereichsWurzel, pfad, isMarkdownPath)) return keineListe;
+    if (tabelle !== null && !tabelleZulaessig(bereichsWurzel, tabelle, isMarkdownPath)) {
+      return keineListe;
+    }
+    const { sicht } = lage(event, null);
+    if (!sicht) return keineListe;
+    return liesListe({
+      fsp,
+      wurzel: bereichsWurzel,
+      sicht,
+      cache,
+      bufferTextFor: backlinks.bufferTextFor,
+      pfad,
+      query,
+      spalten,
+      tabelle,
+      kennungen,
+    });
+  });
+
+  // 4T-002253 (F5 A, S6): Die Auskunft über einen Positions-Bereich, Parameter
+  // `{ datei, by, kopf: { tabelle, kennung } }`: `datei` die Angabe des
+  // Platzhalters `{{list:…}}`, `by` das Verweis-Feld hinter `BY` oder `null`,
+  // `kopf` Kopf-Datei und Kennung des gezeigten Datensatzes. Form, Tor und
+  // Bereich wie `database:liste`; die Kopf-Tabelle wird gegen Lage und Endung
+  // geprüft, bevor eine Datei gelesen wird. Jede nicht bestandene Stufe ergibt
+  // `{ istListe: false }`.
+  handle('database:positionsliste', async (event, params) => {
+    const keineListe = { istListe: false };
+    if (!istObjekt(params) || !istText(params.datei) || !istObjekt(params.kopf)) return keineListe;
+    const { datei, kopf } = params;
+    const by = params.by === undefined ? null : params.by;
+    if (by !== null && !istText(by)) return keineListe;
+    if (!istText(kopf.tabelle) || !istText(kopf.kennung)) return keineListe;
+    if (!torOffen()) return keineListe;
+    const bereichsWurzel = areaRootForEvent(event);
+    if (!bereichsWurzel) return keineListe;
+    if (!tabelleZulaessig(bereichsWurzel, kopf.tabelle, isMarkdownPath)) return keineListe;
+    const { sicht } = lage(event, null);
+    if (!sicht) return keineListe;
+    return liesPositionsListe({
+      fsp,
+      wurzel: bereichsWurzel,
+      sicht,
+      cache,
+      bufferTextFor: backlinks.bufferTextFor,
+      datei,
+      by,
+      kopf: { tabelle: kopf.tabelle, kennung: kopf.kennung },
+    });
   });
 }
 

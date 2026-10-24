@@ -16,11 +16,15 @@
 // Datensatz zeigt die Maske es nicht, auch bevor es verworfen ist. Bei der
 // Neuanlage fehlt die Aktion, weil auf einen ungespeicherten Datensatz niemand
 // verweisen kann.
+//
+// 4T-002335 (Epic 3E-000264, F5 A): Der Sprung reiht sich in den Verlauf der
+// Maske ein wie ein Verweis-Feld; «Zurück» führt zur Ausgangs-Maske.
 'use strict';
 
 import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { MODUS_LESEN } from './masken-felder.js';
+import { VERLAUF_MERKEN } from './masken-navigation.js';
 
 const PRAEFIX = 'database.usage.';
 
@@ -40,8 +44,9 @@ function datensatzText(eintrag) {
 /**
  * Erzeugt die Verwendungs-Hilfe der Masken-Seite.
  *
- * @param {{oeffne: (pfad: string, kennung: string) => void, zeichneNeu: Function}} p
- *   `oeffne` öffnet die Maske eines Datensatzes, `zeichneNeu` zeichnet die Seite.
+ * @param {{oeffne: (pfad: string, kennung: string, optionen: object) => void, zeichneNeu: Function}} p
+ *   `oeffne` öffnet die Maske eines Datensatzes, `optionen.verlauf` reiht den
+ *   Sprung in den Verlauf ein; `zeichneNeu` zeichnet die Seite.
  * @returns {{zeichne: Function, verwirf: Function}}
  */
 export function erzeugeVerwendungsHilfe({ oeffne, zeichneNeu }) {
@@ -93,7 +98,9 @@ export function erzeugeVerwendungsHilfe({ oeffne, zeichneNeu }) {
     const knopf = el('button', 'db-form-usage-open', datensatzText(eintrag));
     knopf.type = 'button';
     knopf.title = t(PRAEFIX + 'open');
-    knopf.addEventListener('click', () => oeffne(eintrag.pfad, eintrag.kennung));
+    knopf.addEventListener('click', () =>
+      oeffne(eintrag.pfad, eintrag.kennung, { verlauf: VERLAUF_MERKEN }),
+    );
     zelle.appendChild(knopf);
     zeile.appendChild(zelle);
     return zeile;

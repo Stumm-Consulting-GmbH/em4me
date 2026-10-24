@@ -7,8 +7,9 @@
 // `koerperStand` beim Übernehmen der Antwort; alles Übrige zur Datei steht hier.
 //
 // **Der Handgriff erscheint nur im Lesen und nur bei der erzeugten Maske.** Gilt
-// eine Masken-Datei, nennt der Kopf ihren Namen; eine zweite Datei zu schreiben
-// wäre dann eine, die nicht gilt. Nach dem Schreiben öffnet die Maske die Datei
+// eine Masken-Datei, nennt der Kopf ihren Namen; weitere Masken-Dateien derselben
+// Tabelle sind seit 3E-000261 erlaubt (Standard über `form`), entstehen aber von
+// Hand und nicht über diesen Handgriff. Nach dem Schreiben öffnet die Maske die Datei
 // nicht von selbst und liest auch nicht neu: Der Katalog kennt die Datei erst,
 // wenn der Index sie gesehen hat, und das nächste Öffnen der Maske zeigt sie.
 // Ein zweiter Klick überschreibt nichts, der Kanal meldet die vorhandene Datei.

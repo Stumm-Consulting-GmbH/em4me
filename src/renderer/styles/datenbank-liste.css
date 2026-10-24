@@ -1,0 +1,155 @@
+/* 4T-002251 (Epic 3E-000262): Stilblatt der Listen-Maske. Die Regeln der
+ * Liste (.db-list*) stehen hier, seit datenbank.css sein Budget ausgeschöpft
+ * hat; sie sind unverändert aus jener Datei hierher gezogen (4T-002249,
+ * 4T-002250). Eingebunden direkt nach datenbank.css, weil die Liste auf deren
+ * Bausteinen der Maske (.db-form-*) aufsetzt. */
+
+/* 4T-002249 (Epic 3E-000262, F2 A, F3 A): Die Listen-Maske an der Stelle der
+ * Ergebnis-Tabelle einer Abfrage-Datei. Das Gitter erbt die Tabelle der
+ * Übersicht; die Zeile ist der Treffer und zeigt das mit dem Zeiger. Lesende
+ * Spalten sind gedämpft, damit die bearbeitbaren auffallen, sobald sie es
+ * werden. */
+.db-list {
+  margin: 0.35em 0;
+}
+.db-list-count,
+.db-list-hint {
+  color: var(--fg-muted);
+  font-size: 0.9em;
+  margin: 0 0 0.25em;
+}
+.db-list-row {
+  cursor: pointer;
+}
+.db-list-row:hover {
+  background: var(--hover);
+}
+.db-list-col-readonly {
+  color: var(--fg-muted);
+}
+.db-list-nav {
+  display: flex;
+  gap: 6px;
+  margin: 0.35em 0 0;
+}
+.db-list-nav button {
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 10px;
+  font: inherit;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+.db-list-nav button:hover:not(:disabled) {
+  background: var(--hover);
+}
+.db-list-nav button:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+/* 4T-002250 (Epic 3E-000262, F4 A, S3, S5): Zeilen ändern. Die Aktions-Zelle
+ * am Zeilen-Ende trägt «Bearbeiten», in der Bearbeitung «Speichern» und
+ * «Abbrechen» samt Befunden ohne Feld; die Zeile in Bearbeitung und der Block
+ * unter ihr (Konflikt der Sperre, Fremd-Änderung) heben sich ab und zeigen
+ * keinen Treffer-Zeiger. Eine nicht änderbare Zeile ist gedämpft. */
+.db-list-actions {
+  white-space: nowrap;
+}
+.db-list-actions .db-form-btn {
+  font-size: 0.9em;
+  padding: 1px 8px;
+  margin-right: 4px;
+}
+.db-list-actions .db-form-errors,
+.db-list-row-note {
+  white-space: normal;
+  font-size: 0.9em;
+  margin: 0.25em 0 0;
+}
+.db-list-row-editing,
+.db-list-row-editing:hover,
+.db-list-row-block,
+.db-list-row-block:hover {
+  background: var(--bg-alt);
+  cursor: default;
+}
+.db-list-row-editing .db-form-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+.db-list-row-busy,
+.db-list-row-readonly td {
+  opacity: 0.7;
+}
+
+/* 4T-002251 (Epic 3E-000262, F1 A, F4 A): Anlegen und Löschen. «Neue Zeile»
+ * steht rechts neben der Zähl-Zeile und gleicht den Schaltflächen des
+ * Blätterns; die Zeile einer Neuanlage hebt sich wie eine Zeile in Bearbeitung
+ * ab. Die Lösch-Rückfrage und die Befunde eines abgewiesenen Löschens stehen im
+ * Block unter der Zeile mit den Bausteinen der Maske. */
+.db-list-countbar {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 0.25em;
+}
+.db-list-countbar .db-list-count {
+  margin: 0;
+}
+.db-list-new {
+  background: var(--bg-alt);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 10px;
+  font: inherit;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+.db-list-new:hover:not(:disabled) {
+  background: var(--hover);
+}
+.db-list-new:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+.db-list-row-new,
+.db-list-row-new:hover {
+  background: var(--bg-alt);
+  cursor: default;
+}
+.db-list-row-new .db-list-col-record {
+  font-style: italic;
+}
+.db-list-block .db-form-confirm-delete,
+.db-list-block .db-form-errors {
+  margin: 0.25em 0;
+  white-space: normal;
+}
+
+/* 4T-002253 (Epic 3E-000262, F5 A, S7): Der Positions-Bereich einer
+ * Einzel-Maske. Eine im Bearbeiten gespeicherte Zeile ist bis zum Speichern der
+ * Maske vorgemerkt: links markiert, eine zum Löschen vorgemerkte zusätzlich
+ * durchgestrichen und gedämpft; die Zellen bleiben lesbar. */
+.db-form-positions {
+  margin: 0.5em 0;
+}
+.db-form-positions-hint {
+  color: var(--fg-muted);
+  font-size: 0.9em;
+  margin: 0 0 0.25em;
+}
+.db-list-row-pending td:first-child,
+.db-list-row-deleted td:first-child {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.db-list-row-pending td {
+  font-style: italic;
+}
+.db-list-row-deleted td {
+  text-decoration: line-through;
+  opacity: 0.6;
+}

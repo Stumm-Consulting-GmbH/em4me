@@ -128,7 +128,8 @@ SORT autor
 - **Tabellen**: `TABLE RECORDS …` zeigt den Treffer in der ersten Spalte «Datensatz»; `WITHOUT ID` steht nach `RECORDS`. Spalten-Titel ist der Alias, sonst die Beschriftung des Feldes in der eingestellten Programmsprache nach der Rückfall-Kette der Seite [Datenbank](database.md), sonst der Ausdruck selbst, etwa bei einem Pfad.
 - **Verweis-Werte**: Ein Verweis-Feld zeigt die Anzeige-Form seines Ziels, ohne sie dessen Kennung, und ein Klick öffnet die Maske des Ziels. Ein leerer Verweis und einer ins Leere bleiben eine leere Zelle.
 - **Ordnung**: Ohne `SORT` stehen die Treffer nach ihrer Anzeige-Form ohne Rücksicht auf die Schreibung, bei gleicher Anzeige-Form nach der Kennung und Datensätze ohne Anzeige-Form am Ende.
-- **Zwei Klick-Ziele**: Ein Datensatz im Ergebnis einer Abfrage öffnet die Maske, ein Verweis im Fließtext wie `[[Bücher#^r-00042]]` dagegen die Tabellen-Datei an der Zeile des Datensatzes. Die Maske zeigt den gespeicherten Stand.
+- **Ein Klick-Ziel**: Ein Datensatz im Ergebnis einer Abfrage öffnet die Maske, ebenso ein Verweis im Fließtext wie `[[Bücher#^r-00042]]`; zur Zeile führt der Handgriff «Im Tabellen-Dokument zeigen» der Maske. Die Maske zeigt den gespeicherten Stand.
+- **Listen-Maske**: Trägt eine Abfrage-Datei im Behälter `db-query` die Angabe `editable: true`, erscheint ihr Ergebnis als Gitter, in dem sich die Datensätze öffnen, ändern, anlegen und löschen lassen, 50 Zeilen je Seite; die Seite [Datenbank](database.md) beschreibt sie im Abschnitt «Listen-Maske».
 - **Ungespeicherter Stand**: Änderungen an einer geöffneten Tabelle gehen sofort in das Ergebnis ein, ohne Speichern.
 - **Nicht auf dieser Ebene**: `bold()` in einer Spalte oder in einem Ausdruck von `GROUP BY` ergibt eine Fehlermeldung, weil ein Datenbank-Wert keine Auszeichnung trägt; in Bedingung und Sortierung bleibt es erlaubt. `HIDE`, `SHOW` und `SHORT` gelten nur für `LIST TASKS` und melden sich hier wie auf der Datei- und der Block-Ebene.
 - **Leeres Ergebnis und abgeschaltete Datenbank**: Ohne Treffer steht «Kein Datensatz entspricht dieser Abfrage». Ist die Erweiterung «Datenbank» ausgeschaltet, bleibt die Liste leer, darüber steht ein Hinweis, und eine Fehlermeldung erscheint nicht.
@@ -386,7 +387,7 @@ LIST RECORDS FROM "Team" DISPLAY tree BY chef
 ```
 ````
 
-Wählbar ist der **Baum** (`DISPLAY tree BY feld`). Er zeigt die Datensätze einer Datensatz-Abfrage eingerückt entlang des genannten Verweis-Feldes:
+Wählbar sind der **Baum** und zwei **Diagramme**. Der Baum (`DISPLAY tree BY feld`) zeigt die Datensätze einer Datensatz-Abfrage eingerückt entlang des genannten Verweis-Feldes:
 
 - Ein Datensatz hängt unter dem Datensatz, auf den sein Feld zeigt, wenn dieser im Ergebnis steht. Sonst ist er eine **Wurzel** und steht ganz links: ohne Verweis, mit einem Verweis ins Leere oder auf einen Datensatz, den die Bedingung herausfiltert. Bei `descendants(…)` sind deshalb die dem Ziel direkt unterstellten Datensätze die Wurzeln, weil das Ziel selbst nicht zum Ergebnis gehört.
 - Wurzeln und Geschwister stehen in der Reihenfolge des Ergebnisses, die `SORT` bestimmt.
@@ -395,7 +396,25 @@ Wählbar ist der **Baum** (`DISPLAY tree BY feld`). Er zeigt die Datensätze ein
 - Ein Knoten zeigt die Anzeige-Form wie ein Listen-Eintrag, bei `LIST` mit dem Zusatzfeld dahinter; bei `TABLE` zeigt der Baum keine Spalten. Ein Klick öffnet die Maske.
 - Tiefer als 32 Ebenen wird nicht weiter eingerückt; tiefere Knoten stehen vollständig auf der 32. Ebene.
 
-**Rückfall**: Ist eine Form unbekannt oder passt sie nicht zur Abfrage, erscheint das Ergebnis ohne sie, also als Liste oder Tabelle, darüber ein Hinweis mit dem Namen der Form und keine Fehlermeldung. Der Baum passt nur auf der Datensatz-Ebene und nur mit einem Feld nach `BY`, das bei mindestens einer Tabelle des Ergebnisses ein Verweis-Feld ist. Zu einer gruppierten Abfrage passt er nie; dann erscheint die gruppierte Ausgabe mit dem Hinweis. Ein leeres Ergebnis zeigt seinen Leer-Hinweis und keine Form. Fehlt nach `DISPLAY` der Name der Form oder nach `BY` das Feld, ist die Abfrage ungültig.
+Die **Diagramme** `DISPLAY bar` und `DISPLAY line` zeigen das Ergebnis einer Tabellen-Abfrage als Balken- beziehungsweise Linien-Diagramm. Sie lesen die Tabelle so, wie sie ohne `DISPLAY` erschiene:
+
+````markdown
+```perspective-query
+TABLE seiten AS "Seiten", preis AS "Preis"
+FROM "Bücher"
+SORT seiten
+DISPLAY bar
+```
+````
+
+- **Beschriftung**: Jede Zeile der Tabelle wird eine Rubrik und trägt als Beschriftung, was die Tabelle vorn zeigt: den Namen des Treffers, mit `WITHOUT ID` den Wert der ersten genannten Spalte. In einer gruppierten Tabelle ist jede Gruppe eine Rubrik mit ihrem Gruppen-Wert; bei mehreren Stufen stehen die Werte aller Stufen mit « › » verbunden, und die Gruppe ohne Wert heißt wie in der Tabelle «(ohne Wert)».
+- **Reihen**: Jede weitere Spalte mit mindestens einer Zahl wird eine Reihe und trägt die Spalten-Überschrift als Namen. Als Zahl zählt auch ein Text, der nur aus einer Zahl besteht, wie ihn Frontmatter-Eigenschaften oft tragen, etwa `seiten: 120`. Datum, Dauer, Wahrheitswert und anderer Text sind keine Zahl.
+- **Lücken und übergangene Spalten**: Fehlt in einer Reihe ein Wert oder ist er keine Zahl, wird ohne ihn gezeichnet. Unter dem Diagramm nennt dann eine Zeile die Spalten, die gar keine Zahl enthalten und deshalb übergangen sind, und eine weitere die Zahl der ausgelassenen Werte.
+- **Reihenfolge**: Die Rubriken stehen in der Reihenfolge der Tabelle, die `SORT` bestimmt, in gleichen Abständen. Ein Datum als Beschriftung ist ein Text wie jeder andere; eine Zeit-Achse, deren Abstände der verstrichenen Zeit folgen, gibt es nicht. Viele Treffer lassen sich mit `LIMIT` begrenzen.
+- **Bild**: Das Diagramm ist eine Grafik ohne Bedienung; ein Klick öffnet keinen Treffer. Die Reihen tragen die Diagramm-Farben des aktiven [Farbschemas](color-schemes.md) wie die [Diagramme zu Tabellen](charts.md) und folgen einem Wechsel des Farbschemas oder zwischen Hell und Dunkel sofort.
+- **Erweiterung**: Die Diagramme hängen an der [internen Erweiterung](extensions.md) «Diagramm einer Abfrage», die ab dem Arbeitsmodus **Fortgeschritten** eingeschaltet ist und von keiner anderen Erweiterung abhängt. Ist sie aus, erscheint die Tabelle mit dem Hinweis, dass die Diagramm-Darstellung ausgeschaltet ist; das Dokument bleibt unverändert, und nach dem Einschalten erscheint das Diagramm wieder.
+
+**Rückfall**: Ist eine Form unbekannt oder passt sie nicht zur Abfrage, erscheint das Ergebnis ohne sie, also als Liste oder Tabelle, darüber ein Hinweis mit dem Namen der Form und keine Fehlermeldung. Der Baum passt nur auf der Datensatz-Ebene und nur mit einem Feld nach `BY`, das bei mindestens einer Tabelle des Ergebnisses ein Verweis-Feld ist. Zu einer gruppierten Abfrage passt er nie; dann erscheint die gruppierte Ausgabe mit dem Hinweis. Die Diagramme passen nur zu einer Tabelle (`TABLE`, nicht `LIST`) mit mindestens einer Spalte neben der Beschriftung, von denen eine Zahlen enthält; sonst nennt der Hinweis den Grund. Ein leeres Ergebnis zeigt seinen Leer-Hinweis und keine Form. Fehlt nach `DISPLAY` der Name der Form oder nach `BY` das Feld, ist die Abfrage ungültig.
 
 ## Anzeige und Interaktion
 
@@ -417,7 +436,7 @@ Dateien außerhalb des Suchraums erscheinen nicht im Ergebnis, ebenso wenig, was
 
 ## Export
 
-- **PDF-Export**: Das Ergebnis wird als statischer Stand des Render-Zeitpunkts gedruckt, einschließlich Tabellen- und Spalten-Layout. Die Einträge erscheinen als Text; anklickbar sind sie im PDF nicht.
-- **Portables Markdown**: Der Export lässt den `perspective-query`-Block unverändert als Quelltext stehen. Beim erneuten Öffnen in diesem Programm wird er wieder dynamisch ausgewertet; andere Markdown-Programme zeigen ihn als Code-Block.
+- **PDF-Export**: Das Ergebnis wird als statischer Stand des Render-Zeitpunkts gedruckt, einschließlich Tabellen- und Spalten-Layout. Die Einträge erscheinen als Text; anklickbar sind sie im PDF nicht. Ein Diagramm der Abfrage erscheint beim Drucken und im PDF-Export hell, mit den Diagramm-Farben des hellen Farbschemas, auch wenn die Anwendung dunkel läuft.
+- **Portables Markdown**: Der Export lässt den `perspective-query`-Block unverändert als Quelltext stehen. Beim erneuten Öffnen in diesem Programm wird er wieder dynamisch ausgewertet; andere Markdown-Programme zeigen ihn als Code-Block. Das gilt auch mit `DISPLAY bar` oder `DISPLAY line`: Anders als ein [Diagramm zu einer Tabelle](charts.md) wird das Diagramm einer Abfrage nicht als Bild exportiert.
 
 Für freie Auswertungen jenseits der Klausel-Sprache — etwa rekursive Strukturen oder berechnete Übersichten — stehen die [Skript-Blöcke](scripts.md) bereit; ihre pq-API nutzt dasselbe Feld- und Block-Modell wie die Abfrage.

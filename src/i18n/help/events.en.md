@@ -126,7 +126,7 @@ query: WHERE event-category = 'geburtstag'
 ```
 ````
 
-The query text uses the clause language of the [Perspective Query](frontmatter-query.md) (`FROM`, `WHERE`, comparisons, functions); an empty query collects all files with the `Ereignis` profile. Text values are in quotes (`'geburtstag'`) — a bare word would be a field reference.
+The query text uses the clause language of the [Perspective Query](frontmatter-query.md) (`FROM`, `WHERE`, comparisons, functions); an empty query collects all files with the `Ereignis` profile. Files in the [templates folder](templates.md) are excluded; the aggregation collects them only if `FROM` names the folder explicitly, for instance `FROM "Templates"`. Text values are in quotes (`'geburtstag'`) — a bare word would be a field reference.
 
 - **Row click** opens the source file; the origin of each entry stays visible.
 - **Editing writes back**: edits in the aggregated table land in the frontmatter of the source file, even if it is not open. If the source file is open with unsaved changes, a hint points there; if it was changed on disk in the meantime, nothing is written (conflict hint).

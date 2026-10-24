@@ -141,7 +141,7 @@ Three settings of the definition belong to this:
 
 | Setting | Meaning |
 | --- | --- |
-| `lastId` | high-water mark: the highest number ever issued by the table. The next identifier arises from it and not from the existing records, so that the number of a deleted record is never issued a second time |
+| `lastId` | high-water mark: the highest number ever issued by the table. The next identifier lies above it and above the highest identifier among the existing records, so that the number of a deleted record is never issued a second time and no identifier is issued twice even without a high-water mark or with one that is too low |
 | `key` | the business key: a field name or a list of field names. Optional, because a transaction or measurement table has no meaningful human-readable key |
 | `display` | the field a record is designated by. Without it a single-part business key applies, without either the internal identifier |
 
@@ -253,6 +253,29 @@ When the application saves, the following holds:
 
 Without the setting every record is editable.
 
+**The same setting on a field.** A single field carries `editable` in its own entry and can then be changed only under this condition; the record stays visible and editable in its other fields:
+
+```yaml
+db-table:
+  fields:
+    - name: book
+      type: record
+      editable: false
+    - name: due
+      type: date
+      editable: NOT returned
+    - name: returned
+      type: boolean
+```
+
+- The condition has the same form as on the table, as text or as an object `{ rule, message }`, and may name any field of the table. `false` locks the field permanently, `true` releases it explicitly; both words apply only on a field, not on the table.
+- It applies only to **changing**. When a record is created every field is free, and deleting is not affected. As on the table, it is measured against the saved state before the change.
+- If a save changes the value of a locked field, it is rejected; the message names field, record and rule, for the permanent lock the rule «false». An unchanged value in a locked field is not an error. If the record is already locked under the condition of its table, only that message appears.
+- While editing in the form and in a row of the list form, a locked field stays read-only, and a tooltip says that it cannot be changed at the moment according to the condition of the definition. Once the condition is satisfied after a save, the field is free the next time you edit.
+- An unusable condition is dropped with a hint, and the field stays editable.
+
+Editability and permissions work together and are still two different things: `editable` depends on the record and applies to everyone, permissions depend on the role (section «Permissions»).
+
 ## Display of the records
 
 In reading view and in edit mode the block appears as a table with the columns of the definition. Every value is rendered according to the type of its column: numbers right-aligned and with the declared decimals, boolean values as a check mark, multi-line values with their line breaks. If a value does not match its type, the cell shows its original text and is marked in colour instead of being replaced.
@@ -271,7 +294,7 @@ Every record has a **form**: a page of its own that shows its fields one below t
 
 An existing record is opened by the button **«Open record»** at the start of its row, in front of the button for the change records, in reading view as well as in Live mode. With the keyboard, the left arrow key leads to it from the change-record button.
 
-From the result of a record query, a click on a record or on a reference opens the form as well (page [Perspective Query](frontmatter-query.md)). It shows the saved state, even if the query displays an unsaved one.
+From the result of a record query, a click on a record or on a reference opens the form as well (page [Perspective Query](frontmatter-query.md)). It shows the saved state, even if the query displays an unsaved one. In a list form, the click opens the form the list names (section «List form»). A reference to a record in the text of a document (section «Reference to a single record») and a record match of the search across the area (section «Findability: search and links») open the form as well.
 
 Three ways create a new record:
 
@@ -287,6 +310,8 @@ A new record receives its internal identifier as soon as the form opens: it stan
 
 The form opens **for reading**. The values stand there as text, a boolean value as a check mark, and a required field is marked as such. The header carries the actions **«Edit»**, **«Delete»** and **«Change records»**; the last one opens the change records of the record.
 
+Behind them stands the action **«Show in table document»**. It opens the table file and brings the row of the record into view, even when the record is in a follow-up file: in reading view the display scrolls to its row, provided it is among the 2000 records the view shows; in the Live and Source view the cursor is placed on that row. For a new record the action is missing, because the record is not yet in the file.
+
 **«Edit»** turns every field into an input in the form of its type:
 
 | Type | Input |
@@ -300,7 +325,7 @@ A value that does not match its type gets the plain text input instead, so that 
 
 **«Save»** writes the change and returns to reading, **«Discard»** returns to the state that was read without writing anything. Only the fields you have changed are written. If you have changed nothing, there is nothing to save, and the status bar says so.
 
-If a record cannot be edited under the condition of its table, **«Edit»** and **«Delete»** are missing, and a sentence in the form names the reason, with the message text of the condition if it has one.
+If a record cannot be edited under the condition of its table, **«Edit»** and **«Delete»** are missing, and a sentence in the form names the reason, with the message text of the condition if it has one. If your role does not allow changing, «Edit» is missing and the sentence names the role; if it does not allow deleting, «Delete» is missing (section «Permissions»).
 
 ### Reference fields and value help
 
@@ -347,9 +372,74 @@ db-form:
 
 The container `db-form` names the table, and for every field a **field placeholder** `{{field:<name>}}` stands in the text. Around the placeholders everything is ordinary Markdown: a heading between two fields or an explanatory sentence appears in the form just as it stands in the file. A backslash in front of the curly braces turns a placeholder into ordinary text.
 
+**Two meanings of `table`.** In the frontmatter of the database, in the container `db-form` as in the setting `options.table` of a reference column, `table` names a database table. In a block of the [Perspective Datatable](datatable.md), on the other hand, the line `table:` gives that datatable itself a name by which charts and links reach it. Only the word is the same: a datatable is not a database table.
+
 The next time it opens, the form shows the text of the file. The header then says which file the form comes from, and the command is no longer offered; the database overview names the file in the column **«Form»**. If the file is deleted, the form shows the generated version again.
 
-**Only the field placeholder is read.** A field the file does not name is not shown by the form, and on saving it stays untouched; a new record fills only the fields that are named. Any other placeholder and a field name the table does not know stay as text and are reported, as described in the section «Faulty settings».
+**What the file names is shown.** A field the file does not name is not shown by the form, and on saving it stays untouched; a new record fills only the fields that are named. A placeholder that is neither a field nor a value placeholder and a field name the table does not know stay as text and are reported, as described in the section «Faulty settings».
+
+The **value placeholder** `{{value:<expression>}}` shows a value that the form computes from the fields of the record shown, such as `{{value:quantity * price}}` for the amount of an item or `{{value:lent + dur(14 days)}}` for the date fourteen days after the field `lent`. The expression is one of the [query language](frontmatter-query.md), as in a validation rule: it names fields by their name, a date field computes as a date, and the same operators and functions apply. The value appears as in a table query, a number for example as `7.5`, a date as `2026-10-15`, a duration as `10d` and a boolean as `true` or `false`. While editing, the form recomputes it with every input, without saving. The value itself is never saved; it is not a field of the record.
+
+If the expression yields no value for a record, for example because a field is empty, the spot stays empty and is marked; a tooltip says so, and nothing is reported. An invalid expression, for example with a typo, leaves the spot empty as well and is reported with its line in the header of the form; the rest of the form stays usable.
+
+**The value stands in the sentence** when the placeholder stands within a line of text: `Due on {{value:lent + dur(14 days)}}` shows «Due on 2026-10-15» in one line. If the placeholder stands alone on its line, the value gets a line of its own. A field placeholder always stands on a line of its own.
+
+**Conditional sections.** A section between the markers `{{when:<condition>}}` and `{{end}}` appears only if the condition holds. Both markers stand alone on their line; a section therefore spans whole paragraphs, headings, tables, lists and the placeholders in them, never half lines. The condition is an expression of the [query language](frontmatter-query.md) over the fields of the record shown, as in a validation rule: `{{when:onloan}}` shows the section for a book on loan, `{{when:pages > 500}}` for a thick one. Sections may lie inside one another; an inner one appears only if the outer one appears as well. While editing, a section appears and disappears with every input, without saving; when reading, the saved state applies.
+
+```markdown
+**On loan:** {{field:onLoan}}
+
+{{when:onloan}}
+## Out on loan
+
+**Loan note:** {{field:loanNote}}
+{{end}}
+```
+
+**The condition affects only the display, never the value.** A field in a hidden section keeps its content and is saved along with the rest; the condition exempts it neither from saving nor from the validation rules. If a rule rejects such a field, the message stands in the header of the form and names the field; the section stays hidden. There is no else branch and there are no loops: an opposite case is written as a second section with the negated condition, such as `{{when:NOT onloan}}`. A backslash in front of the braces turns a marker into ordinary text as well.
+
+**Reference paths.** Value placeholders and conditions also read the fields of the referenced record through a reference field: in a form for loans, `{{value:book.title}}` shows the title of the lent book, and `{{when:book.onloan}}` shows a section as long as the book is marked as on loan. Before the dot stands the reference field, after it a field of the target table. The application computes such a path after a short delay, and until the answer arrives, the previous value stays; while editing, the path follows every input, including the choice of another reference, without saving. If the reference is empty or matches no record, the spot stays empty and marked, without a message, and a section stays hidden. If the path names no reference field of the table or no field of the target table, the spot stays empty as well, and the form reports it with its line in the header.
+
+**Line items.** The placeholder `{{list:<query file>}}` shows in the form the records of another table that point at the record shown, and saves them together with it; the section «Line items in the form» describes it.
+
+**Form file and template.** A form file looks like a [template](templates.md), because both write their placeholders in double curly braces, and yet it does something else. A template is applied once: `{{date}}` is replaced by the date when a file is created, and afterwards text stands there. A form file is never applied: the form resolves `{{field:Name}}` and `{{value:quantity * price}}` against the record shown every time it is displayed, and the file keeps its placeholders. A form file therefore belongs next to its table and not in the templates folder.
+
+### After a restart
+
+If session restore is switched on (Help → Restore Session) and the form is open on exit, it returns at the next start: to its place among the open documents of its column, with the same record in the same form file. If it was the document shown in its column, it is again. A new record that has not yet been saved does not return. The path for «Back» starts anew after the restart.
+
+**If the record no longer exists**, for instance because it was deleted between exit and restart, the form does not disappear. It shows the note that the record no longer exists in its table and that the form stays open until you close it, and carries the action **«Open table»** in its header, which opens the table file.
+
+**If the database is switched off at start**, the form does not return, but its entry is not lost: it rests and is kept across further restarts as well. After switching the database on, the form returns to its place with the next start. If its column held nothing but the form, it returns in the remaining column, behind its documents.
+
+### Several forms and the default form
+
+A table can have several form files, for example a detailed one and a short one. Which one appears when a record is opened, the **default form**, is set by `form` in the table definition, with the name of the form file without extension, like the target of a wiki link:
+
+```yaml
+db-table:
+  form: Customers Form
+  fields:
+    - name: Name
+      type: string
+```
+
+Without the setting, the first form file of the table by path applies, and if there is none, the generated form; a single form file therefore works without any setting. The other form files remain forms of the table: a link from a form leads into them, as the next section describes.
+
+In the database overview, the column **«Form»** names the default form of each table and after it the number of further form files, such as «+1 more». If the default form is deleted or renamed without the setting being updated, the overview reports it, and the rule without the setting applies again.
+
+### Switching between forms
+
+A link in the text of a form file, as a wiki link such as `[[Customers Short]]` or as a Markdown link, acts in the form according to its target:
+
+- If the target is **another form file of the same table**, the form shows the same record in that form.
+- If the target is the **form file of another table**, a sentence below the header says that a record is missing for it; nothing is opened or created.
+- If the target is a **record**, as a wiki link such as `[[Customers#^r-00002]]`, the form shows that record in the default form of its table. If the reference matches no record unambiguously, it opens the table file; a Markdown link to a table file opens it as a document.
+- **Any other link** opens its document, as everywhere in the application.
+
+A filled **reference field** can be clicked when reading: a click opens the referenced record in the default form of its table. If the value matches no record, a sentence below the header says so, and the form stays where it is. An empty reference field cannot be clicked, and when editing, the field remains the input with value help.
+
+Every change via a link, a reference field, a record reference in the text or «Used by» remembers the record it came from. **«Back»** above the heading in the header returns to it in its form, also over several steps; without a previous step the button does not appear. If you open a record from outside, for example from its row or from the overview, the path starts anew, and closing the form ends it. If the editing is not saved, the form asks before every change, also before «Back»: **«Discard»** changes, **«Keep editing»** stays with all inputs.
 
 ## Saving by the application
 
@@ -359,10 +449,12 @@ Every change passes through a path that checks it before writing. A value that d
 
 On top of that come the rules from the definition of the table that are described in the sections above. A change is also rejected if
 
+- the own **role** does not allow the operation on the table (section «Permissions»),
 - a **business key** would afterwards be assigned twice,
 - a **reference** hits no record or more than one, or its target table is missing,
 - a record is to be deleted that is still **referred to**,
 - a value or a record violates a **validation rule**,
+- a **field** is changed that is locked under its own condition,
 - a record is **not editable** according to the condition of its table, or
 - the tables of the area have **not been fully read yet** and the change sets a reference or deletes a record.
 
@@ -434,6 +526,8 @@ A change that you make by hand in an editor on the table file produces **no** ch
 
 What it does instead: at its next own write it compares the state it finds with the state it expected. If they differ, it does not save the new change for the time being, so that the current version can be looked at; if the change is saved after all, a record of the kind **Changed outside** holds the difference. Nothing disappears unnoticed that way. The point in time and the author of that change, however, the record does not name, because neither of the two is known.
 
+**On this route, permissions protect only the definition.** If you save a changed definition in the editor of the application, the application checks your role (section «Permissions»). A change to the record block, by contrast, it checks there neither against the role nor against the rules of the table, and with another editor neither of the two checks applies.
+
 ## Locks
 
 A lock makes sure that a record is not edited in two places at the same time, for instance in two windows of the application. Locks and change records are designed to prepare for shared access by several people; that access will come with EM4us, the future server component. EM4me itself is a tool for one person working alone and locally. Using several computers in the same area on a network drive is not supported.
@@ -442,7 +536,7 @@ A lock makes sure that a record is not edited in two places at the same time, fo
 
 What is locked is the individual **record**, at the very moment its editing begins. It is released as soon as the editing ends, on saving just as on discarding. Mere viewing locks nothing: otherwise a list of hundreds of records would lock all of them at once with every glance.
 
-In the form, editing begins with **«Edit»** or with **«Delete»**, which takes the lock before its confirmation question. It ends on saving, with **«Discard»**, with **«Reload»**, when the deletion question is cancelled, when switching to another record and when the tab of the form is closed. If the application rejects a save, the lock stays, because the editing continues. Opening the form and creating a new record lock nothing.
+In the form, editing begins with **«Edit»** or with **«Delete»**, which takes the lock before its confirmation question. It ends on saving, with **«Discard»**, with **«Reload»**, when the deletion question is cancelled, when switching to another record and when the tab of the form is closed. If the application rejects a save, the lock stays, because the editing continues. Opening the form and creating a new record lock nothing. In a list form, the editing of a row begins with «Edit», the double click or «Delete» and ends with «Save», «Cancel», the answer to the deletion question and at the latest when the document is closed, the view is switched or another open document is shown; a new row locks nothing. A row in the line items section of a form keeps its lock until the form is saved or discarded.
 
 When the **definition of a table** is changed, the definition is locked for that time, because a change to the columns touches every record of the table.
 
@@ -476,6 +570,84 @@ You change the **name of the folder** under **File → Settings… → Current a
 - The name **has to start with a dot**, because that is exactly how the application recognises that a folder does not belong in the index, the search and the statistics. Also inadmissible are path separators, characters forbidden on Windows and reserved device names such as `CON`, and nothing else may yet lie under that name in the root of the area.
 - The change renames the existing folder instead of creating a second one. It succeeds only **as long as nobody is editing a record**. Otherwise the message names who is working right now, and everything stays as it was.
 
+## Permissions
+
+**Permissions prevent mistakes in operation, not misuse.** They are a working agreement like the lock and no promise of confidentiality. There is no read permission: anyone who can read the files of the area reads them with any editor and can change them there as well, without any role being asked. The only boundary that can be enforced is that of the operating system, that is, who may access the folder.
+
+Within the application, permissions determine who may change what. For this the fact sheet carries named **roles**, and each role says per table which actions are allowed. The most important separation is the one between maintaining the data and changing the definition: whoever operates a delivered database as a data maintainer should not change its schema by accident. This helps even when only one person works with the database.
+
+### Roles in the fact sheet
+
+The roles stand under `roles` in the container `db-database`, next to them the default role and the assignment of login names:
+
+```yaml
+db-database:
+  name: Library
+  roles:
+    librarian: all
+    assistant:
+      Books: [update]
+      Loans: [create, update, delete]
+  defaultRole: assistant
+  users:
+    mstumm: librarian
+```
+
+Each role carries either the word `all` or a mapping from table names to a list of the permitted operations:
+
+| Operation | Meaning |
+| --- | --- |
+| `create` | create records |
+| `update` | change records |
+| `delete` | delete records |
+| `define` | change the definition of the table |
+
+The word `all` applies in three places: as the value of a role for all four operations on all tables, as a table name for all tables and as an entry of a list for all four operations. A table that a role does not name allows it nothing, and so does an empty list. Operations and table names apply regardless of upper and lower case, role names exactly as they are written.
+
+**Without `roles` everything is allowed**, as in a database without permissions. The database overview shows the section **«Roles»** in the fact sheet block, with one line per role and its permissions per table. If a role names a table that does not exist or an unknown operation, the whole role counts as not set; the overview names each of its errors among the issues.
+
+### Which role applies
+
+Under `users` the fact sheet assigns a role to login names, and `defaultRole` names the **default role** for everyone else. What counts is the login name under which you are signed in to the operating system, the same one the change records name as the user. It is compared character by character: `MStumm` and `mstumm` are two names. There is no maintenance interface; the assignment is maintained by hand in the fact sheet, like the definition.
+
+The first rule that matches applies:
+
+1. Without roles everything is allowed.
+2. If your login name stands under `users`, the role assigned to it applies.
+3. Otherwise the default role applies.
+4. Without a default role everything is allowed.
+
+Which role applies to you is shown by the overview in the line **«Own role»**, with the login name verbatim: the assigned role, the default role or «everything allowed (no assignment)». Anyone entering an assignment is safest copying the name from there. If `users` or `defaultRole` names a role that does not exist, that setting counts as not set and is reported as well.
+
+### Checked when writing
+
+Every change to records runs through the path described in the section «Saving by the application», and there the application checks the role first, per record with table and operation. If the permission is missing, the whole operation is rejected, and the message names role, table and action. Starting a new record also requires `create`: without this permission the application rejects the new record, for instance with the command «New record in the active table», and the status bar names the reason. If the permissions cannot be determined, because the tables of the area have not been fully read yet or the fact sheet cannot be read, nothing is written either, and the message asks you to try again in a moment.
+
+### Checked when saving the definition
+
+The definition is the container `db-table` of a table file and the fact sheet `db-database`. If saving a file changes its definition, the application requires `define`: on that table for a table file, on all tables for the fact sheet. This applies when saving in the editor, to **«Save As…»** onto an existing or a new file and to area-wide replace. If the permission is missing, nothing is written. When saving, the error dialog **«Write error»** appears with a sentence that names role and table, and the text stays unsaved in the editor; area-wide replace lists the file in its report under **«Not replaced»**.
+
+What does not touch the definition stays free: the record block and the rest of the text of the file, as well as form and query files. A different indentation or a different order of the settings does not count as a change, whereas the order of the fields does, because it determines the columns. The high-water mark `lastId` is kept up to date by the application itself; it never counts as a change.
+
+### In forms and overview
+
+The forms offer only what your role allows; whoever designs a form writes nothing into it for this.
+
+- In the **form**, without `update` the action «Edit» is missing, the fields stay read-only, and a sentence names the role that may not change records of this table. Without `delete` «Delete» is missing.
+- Without `create` the button **«New record»** is missing below the table and in the row of the table in the overview.
+- A **list form** and a line items section offer only the actions that `allow` and the role permit together. If `allow` permits changing and the role does not, a tooltip of the row names the role; a row left without any action appears dimmed.
+- The **overview** names the permissions of your role below each table, for instance «Permissions: create, change», provided the fact sheet carries roles.
+
+The forms show, the decision is made when writing: whoever triggers an action by another route is rejected by the check above.
+
+### Not locking yourself out
+
+Whoever changes the fact sheet so that the own role does not have `define` on all tables can no longer change it in the application afterwards, not even back. That is the intended separation, but in single-user operation it hits you yourself. Three routes lead back: you open the file of the fact sheet with another editor and remove or correct the role settings there. You switch off the extension «Database», correct the fact sheet in the application and switch it on again; while it is switched off, saving checks no role (section «Switching the database off»). Or, before restricting roles, you assign your own login name under `users` to a role with `define` on all tables, for instance a role with `all`.
+
+### Passing on and login names in the file
+
+The roles are part of the definition and travel with the fact sheet. The assignment under `users` stands in the same file: the login names there are readable by anyone who can open the file, and a copy of the folder takes them along. The application offers no way of passing on that leaves the assignment out; whoever passes on an area removes the assignment beforehand if it is not to go along. At the recipient an assignment matches only if their login name is exactly the same; otherwise the default role applies to them or, without one, everything is allowed.
+
 ## Consistency check
 
 When the application saves, every change is checked. Whatever reaches the files by another route, for instance by hand in an editor, nobody checks along the way, and some rules do not act on reading at all. The **consistency check** therefore goes through the whole stock and says where it contradicts the rules of the database.
@@ -490,7 +662,11 @@ What is found:
 - a reference that hits no record, that hits several or that points via a key value to a table with a multi-part key, and a reference column whose target table is missing or not given;
 - a value that does not match its type, violates a field rule or is missing as a required value, and a record that violates a rule under `checks`;
 - a record with more or fewer cells than the table has fields;
-- in a form file, an unknown field, an unknown placeholder or an unknown table;
+- in a form file, an unknown field, an unknown placeholder, an invalid expression of a value placeholder, a marker of a conditional section without its counterpart, an invalid condition or an unknown table, and in a table definition a setting `form` that names no form file of this table;
+- in a form file, in addition, a path that names no reference field or no field of the target table, and a line items section whose query file is missing or does not carry `editable: true`, whose line items have no reference field or no unambiguous one to the table of the form, or whose query cannot be extended by the relation;
+- in a query file, an unusable setting in the container `db-query`, an unknown action in `allow` and a setting `form` that names no form file of the database; such a finding names the file instead of a table in the column «Source»;
+- when all tables are checked, an unusable setting in the fact sheet under `roles`, `defaultRole` or `users`, for instance a role with an unknown table or operation or an assignment to a role that does not exist; the overview names the reason among the issues;
+- as a hint, a table that holds records but no high-water mark `lastId` or one that is too low; the next new record then draws above the highest existing identifier and raises it;
 - a table whose definition cannot be read; its records then stay unchecked, and the check goes on with the remaining tables.
 
 **The check changes nothing.** It only reads, and a function that tidies up findings by itself deliberately does not exist: which of two records with the same key is the right one, you decide in the form. The result stays in place as long as the overview is open; after a correction you check again.
@@ -503,17 +679,17 @@ The **usage** says who uses a table or a record. It is read only when you ask fo
 
 **For a table** the action **«Usage»** stands in its row of the overview. Under «Used by» it names the tables that point to this table with a reference column, each with the names of those columns, and the form files of the table. If nobody uses it, it says «Not used».
 
-**For a record** the action **«Used by»** stands in the header of its form while the form is reading. It lists the records that refer to it, each with table, field, display form and identifier; a click opens the form of the referring record. For a new record the action is missing, because nobody can refer to a record that has not been saved yet.
+**For a record** the action **«Used by»** stands in the header of its form while the form is reading. It lists the records that refer to it, each with table, field, display form and identifier; a click opens the form of the referring record, and «Back» returns to the record shown. For a new record the action is missing, because nobody can refer to a record that has not been saved yet.
 
 **The list at the record is the preview of the deletion protection.** It searches exactly like the check on deleting, including via the short form of the identifier, via the value of a single-part key and in the continuation files of a table. If a record stands in it, the one shown cannot be deleted. A record that refers to itself does not appear, because it does not prevent its own deletion. As with the deletion protection, only the reference column counts; a reference in running text, such as `[[Customers#^r-00001]]`, is not a usage.
 
 ## Findability: search and links
 
-A search across the **area** takes in a table document without its records. The explanatory text above the data block stays searchable, a match behind it still leads to the right place, and the records themselves are not found this way.
+A search across the **area** finds records as matches of their own. In the «Search results» panel, behind the groups of the documents, each table has a group of its own with the name of the table and the addition «Records». Each row names the record with its display form and the field in which the search term stands, and shows its value with the match highlighted. A click opens the record in the default form of its table. The search covers the field values in all files of a table, including its follow-up files, and for an open table its unsaved state. The count above the list counts document and record matches together. While the replace row is open, the record groups are left out, because replacing across the area does not write into records.
 
-The reason lies with the area and not with the table: the search space keeps the texts of all Markdown files in memory and carries an upper limit across the **whole** area for that. Even a few tables of a few megabytes break it, and from then on every search reads from disk again, including every search across an ordinary document. The records in the search space would therefore cost not themselves but the whole area its speed.
+The record block itself, by contrast, is not part of the full-text search space: a search term that stands only in the records of a table file yields no match for that document, only the record matches. The explanatory text above the data block stays searchable as a document, and a match behind it still leads to the right place. The reason lies with the area and not with the table: the search space keeps the texts of all Markdown files in memory and carries an upper limit across the **whole** area for that. Even a few tables of a few megabytes break it, and from then on every search reads from disk again, including every search across an ordinary document. The records in the search space would therefore cost not themselves but the whole area its speed.
 
-**This is an interim state.** Until records get a match type of their own, they cannot be found through the area search. Three ways still lead to them:
+Besides, three ways lead to records:
 
 - **Search inside the open document.** Anyone who has the table file in front of them and searches inside it (default `Ctrl+F`) searches the text in front of them and finds its records unchanged. The limit above concerns the search across the area alone.
 - **Run a record query.** A `perspective-query` block with `LIST RECORDS` or `TABLE RECORDS` finds records by their fields, for instance all books by one author; the [Perspective Query](frontmatter-query.md) page describes it. A query needed more often can be kept as a query file (section «Query files»).
@@ -527,13 +703,21 @@ A reference names the table and the internal identifier, written like a block an
 [[Personen#^r-00042]]
 ```
 
+**Two further spellings** hold as well: the short form of the identifier, `[[Personen#^r-42]]`, and the display form of the record, `[[Personen#^Anna Muster]]`. A display form in a reference consists of letters, digits, spaces and the characters underscore, hyphen, full stop, apostrophe, comma and round brackets; with any other character, such as `&`, it does not resolve. It is compared without leading and trailing spaces, but with regard to upper and lower case. The application does not rewrite the reference: what is written is what is saved.
+
+**Resolution follows a fixed order.** If the table file carries a block anchor with exactly this name, the reference goes to it, and the linter points out that the block anchor hides a record; likewise the click leads to a heading of the same name. Otherwise the identifier comes first, long or short, then the display form. If several records carry the same display form, the reference still holds, the linter marks it as an ambiguous record name, and the click opens the table file; the identifier makes it unique.
+
+**The suggestion list helps with writing.** After `[[Table#^` it offers, behind the block anchors of the file, the records of the table, each with its display form and the addition «Record», at most 30 entries together. Typing narrows the list by display form and identifier, and the selection writes the long identifier, for instance `[[Personen#^r-00042]]`.
+
 The reference **holds** if the table named carries that record, and it is broken if it does not. It thus behaves like every other reference in the application. It also holds when the record is not in the first file of the table but in one of its follow-up files: for whoever writes it, the table is one, and how it is spread across files is none of their concern.
 
-Checking is done against the **saved** state of the table, as with every other anchor. A reference to a record that has just been created and not yet saved therefore does not hold yet.
+Checking is done against the **saved** state of the table, as with every other anchor. A reference to a record that has just been created and not yet saved therefore does not hold yet, and a changed display form only resolves after saving.
 
 Whether a reference holds is shown by the [Markdown linter](tools.md): a broken target gets a wavy underline in the editor, that is in the Source, Split and Live view. The plain reading view does not depict validity; there, valid and broken references look alike.
 
-A click opens the table and brings the row of the record into view, even when the record is in a follow-up file. In reading view the display scrolls to its row, provided it is among the 2000 records the view shows; in the Live and Source view the cursor is placed on that row. In the result of a record query, by contrast, a click on a record opens its form.
+**A click opens the form of the record**, in the default form of its table. The action **«Show in table document»** in the header of the form leads to the row in the table file (section «Reading and editing»). If a reference matches no record unambiguously, the click opens the table file. Outside an open area, the click opens the table file and brings the row of the record into view. In the result of a record query, a click on a record likewise opens its form.
+
+**A reference in the text does not hold on to the record.** If the record is deleted, the reference breaks like every other reference in the application, and the linter shows it. The deletion protection is carried by the reference column alone (section «Usage of tables and records»).
 
 ## Query files
 
@@ -554,11 +738,90 @@ TABLE RECORDS author, pages FROM "Books" WHERE pages > this.minpages SORT pages 
 ```
 ````
 
-- **The mark carries no settings.** The file is recognised by the mark alone, `db-query:` without a value is enough; the query names its table itself in `FROM`. The query may address any level, files as well as records.
+- **The mark is enough.** The file is recognised by the mark alone, `db-query:` without a value is enough; the query names its table itself in `FROM`. The query may address any level, files as well as records. With the settings `editable`, `form` and `allow` in the container, the file becomes a list form, which the next section describes.
 - **Opening and embedding.** Opened, the file shows its result like any document with a query block. Another document embeds it with `![[Long books]]` and shows the same result, because `this.` then means the query file and not the embedding document. A query that reads values of the embedding document therefore does not exist.
 - **Creating.** There is no command of its own for it: a query file is written by hand or from a [template](templates.md) of your own.
 - **Without the mark**, a document with a query block stays a query in running text and does not appear in the overview.
 - **In the overview** of the database, every query file stands in the section «Queries» (section «The area as a database»); no query block or several are reported among the issues (section «Faulty settings»).
+
+**Two meanings of `editable`.** In the definition of a table, in the container `db-table`, `editable` is a condition that says for each record separately whether it may still be edited (section «Conditional editability»). In the container `db-query` of a query file, `editable` is a yes or no and turns the file into a list form. Both work together: a list form offers editing only for the rows whose record meets the condition of its table.
+
+## List form
+
+A query file becomes a **list form** when its container `db-query` carries the setting `editable: true`. It then shows its records as a grid in which rows can be opened, changed, created and deleted; the rest of the file's text describes the list as in any query file.
+
+````markdown
+---
+db-query:
+  editable: true
+  form: Loans Form
+  allow: [create, update, delete]
+---
+
+# Open loans
+
+```perspective-query
+TABLE RECORDS book, borrower, lent, due FROM "Loans" WHERE NOT returned SORT due
+```
+````
+
+| Setting | Meaning |
+| --- | --- |
+| `editable` | `true` turns the query file into a list form. Without the setting or with `false` it stays an ordinary query file |
+| `form` | the name of the form file without extension that a click on a row opens. Without the setting, the default form of the table applies |
+| `allow` | the permitted actions as a list of `create`, `update` (change) and `delete`. Without the setting only `update` applies, an empty list permits none |
+
+`form` and `allow` only take effect together with `editable: true`.
+
+### Viewing and opening
+
+In every view that shows the result, that is in the Rendered, Split and Live views, the grid stands in place of the result table: the same columns, the column «Record» in front, above it a count line such as «Rows 1 to 50 of 120». A page shows a fixed 50 rows; with more rows, **«Next»** and **«Back»** turn the pages.
+
+A click on a row opens its record in the form that `form` names, otherwise in the default form of its table. If `form` names a form file that does not exist or that belongs to another table, the click also opens the default form, and the overview shows a hint among the issues of the query file. In a row that can be edited, a single click on an editable cell does not open the form, because there the double click begins the editing; the form is then opened by the column «Record» and by the read-only cells. If the query carries `WITHOUT ID`, the column «Record» is missing, and in such a row only a read-only cell opens the form. A reference in a cell opens the form of its target, as everywhere.
+
+**Viewing locks nothing.** Otherwise a list with hundreds of records would lock them all with every glance; only the row whose editing begins is locked.
+
+A list form reads exactly one table. Only the columns that name exactly one field of this table can be edited; a computed column, a path through a reference field and `record.id` stay read-only. The whole list stays read-only if it is grouped or chooses a display form with `DISPLAY`: a sentence says so, and below it the output appears as in any query. A query over files, blocks or tasks instead of records and a query whose hits come from several tables show the ordinary result table.
+
+### Editing rows
+
+If `allow` permits changing, the grid carries the column **«Actions»** at the end of the row. **«Edit»** there or a double click in the row begins the editing: the application locks the record, reads its current state from the file and turns the editable cells into inputs in the form of their type, as in the form. **«Save»** or the Enter key writes, in a multi-line field Shift+Enter makes a line break; **«Cancel»** or the Escape key discards. Merely leaving the row does not save. Writing takes the same path as in the form, with all rules of the table.
+
+One row is edited at a time: as long as it is open, paging and the actions of the other rows are blocked. If the document is closed, the view is switched or another open document is shown, the editing ends without saving, and the lock is released.
+
+If the application rejects the change, the row stays in editing. If the message concerns a field, it stands at its cell; a rule over several fields stands in the column «Actions». If someone has changed the record since the row read it, the same block as in the form appears below the row, with **«Reload»** and **«Save anyway»**. If another place holds the record locked, the notice from the section «Locks» appears below the row. If you have changed nothing, there is nothing to save, and the row returns to reading.
+
+Whether a record may be changed is decided by the setting `editable` of its table **for each row**: a row whose record cannot be changed under this condition appears dimmed, without «Edit» and without «Delete», and a tooltip names the reason.
+
+### Creating and deleting
+
+With `create` in `allow`, the button **«New row»** stands next to the count line. It places an empty row at the top of the page shown, which shows «New» in the column «Record», and begins the editing there. The new record receives its identifier right away, as in the form; it reaches the file only with **«Save»**, and afterwards it stands where the sorting of the query places it, possibly on another page. **«Cancel»** removes the row again.
+
+With `delete` in `allow`, every row that can be changed carries **«Delete»**. The application locks the record and asks below the row, like the form: **«Yes, delete»** deletes, and the list then shows the records without it; **«No»** leaves everything as it is. A record that a reference column still points to cannot be deleted here either: the message stands below the row, and the row stays.
+
+Without `update`, «Edit» and the double click are missing, and a click on any cell opens the form; «New row» and «Delete» remain as far as `allow` permits them.
+
+## Line items in the form
+
+Besides the fields of its record, a form can show the records of another table that point at it, such as the line items of an invoice or the loans of a book. For this the form file carries the placeholder `{{list:<query file>}}` alone on its line, with the name of a list form without extension:
+
+```markdown
+**Title:** {{field:title}}
+
+## Loans
+
+{{list:Open loans}}
+```
+
+The **line items section** shows the grid of this list form, restricted to the records whose reference field points at the record shown. For this the application extends the query by that condition; columns, sorting and the other conditions of the query file still apply. If the table of the line items has exactly one reference field to the table of the form, that one is meant; if it has several, `{{list:<query file> BY <reference field>}}` names the one meant. In the middle of a line of text the placeholder stays text and is reported.
+
+**While the form is reading, the section is read-only:** a click on a row opens the line item in its form. **While editing**, the section offers the actions that `allow` of the query file permits, like the standalone list. A saved row, however, is only **marked**: it shows its new state, a tooltip says «Marked; will be saved with the form.», and its lock stays; a row marked for deletion stays in place, flagged. A new line item gets the reference to the record shown without any input, even if that record is itself being created right now.
+
+**It is saved with the form, all or nothing.** **«Save»** of the form writes the header and all marked line items in one operation. If a row of the section is still being edited, it is marked first; if it is rejected in doing so, the form does not save and says so. If the application rejects the operation, nothing is written, and everything stays; the message about a line item stands in the header of the form and begins with «Line item» and its number among the marked rows. After saving, all locks are released.
+
+**«Discard»** discards header and line items together and releases all locks. A marked new row can be edited again, but not withdrawn on its own; it goes back only with «Discard». Marked line items count as unsaved editing: before switching to another record, the form asks.
+
+If the section cannot be built, a hint with the line of the form file stands in its place; the section «Faulty settings» names the cases.
 
 ## Splitting large data sets
 
@@ -590,6 +853,7 @@ db-database:
 - **`name`** and **`description`** are labels and therefore likewise possible as a mapping from language to text.
 - **`schemaVersion`** is text and stands in quotation marks. Without them YAML would read `1.0` as a number, and the version `1.0` would become the version `1` on reading.
 - **`fallbackLocale`** is the language a label falls back to when it does not carry the language of the interface. Without it the first language occurring in the fact sheet itself applies.
+- **`roles`**, **`defaultRole`** and **`users`** carry the roles of the database, the default role and the assignment of login names; the section «Permissions» describes them. Without them everything is allowed in the database.
 
 Each of these settings can be missing on its own, and none is a prerequisite for the tables: every table carries its definition itself and stays fully interpretable even without a fact sheet.
 
@@ -607,7 +871,7 @@ A database area gets two things an ordinary area does not have.
 
 In an area without a database none of these ways is offered.
 
-In the list of tables, the column **«Form»** names the form file of a table and stays empty for the generated form. In addition the overview carries four actions: **«Check consistency»** in the header for all tables, and in the row of every table **«New record»**, **«Check»** and **«Usage»**. What they do is described in the sections «Editing records in the form», «Consistency check» and «Usage of tables and records». The section **«Queries»** names every query file with its name and its location, the folder relative to the root of the area, and **«Open»** opens it like any document; if the area holds none, an explanatory sentence stands there. The issues also include the hints on form and query files, named after the file.
+In the list of tables, the column **«Form»** names the form file of a table and stays empty for the generated form. In addition the overview carries four actions: **«Check consistency»** in the header for all tables, and in the row of every table **«New record»**, **«Check»** and **«Usage»**. What they do is described in the sections «Editing records in the form», «Consistency check» and «Usage of tables and records». The section **«Queries»** names every query file with its name and its location, the folder relative to the root of the area, and **«Open»** opens it like any document; if the area holds none, an explanatory sentence stands there. The issues also include the hints on form and query files, named after the file. The column **«Kind»** of the section «Queries» tells an ordinary «Query» from a «List form» and names the permitted actions for the latter; if it permits none, it reads «List form, read only». In the fact sheet block the overview also names the own role and, if the fact sheet carries roles, these too with their permissions, and below each table the permissions of the own role (section «Permissions»).
 
 **The settings section «Database»** sits in the navigation group «Current area» (File → Settings… → Current area → Database; with a book open the group is called **Current book**, with a bookshelf open **Current bookshelf**). It shows the same information in short form, that is name and description of the database, the number of its tables and the number of issues, and it carries one option: **«Show the overview when the area is opened»**. If it is set, the overview opens by itself as soon as the area is bound. The option lives in the area file and travels with the area folder. In addition there is the field **«Name of the lock folder»**; it is described in the section «Locks».
 
@@ -623,11 +887,15 @@ A setting the application does not know is dropped individually with a hint and 
 
 For the entry `changeLog` of the change records three faults of its own apply. If `changeLog` itself is not an object, this table keeps no limits of its own, and the application defaults apply. If `maxBytes` or `maxPerRecord` is neither a whole number above zero nor the word `unlimited`, that single entry is dropped, and its default applies. Each of these is reported; none is passed over silently.
 
-The same lenient line applies to the validation rules and to the editability condition, rule by rule. An unusable rule under `check` or `checks` is dropped individually, and the other rules, the field and the table remain; reported are an entry that is neither text nor an object with `rule`, an invalid regular expression, an invalid expression, a field rule with a reference other than `value`, an unknown rule name and a rule under `checks` that names an unknown field. If `checks` is not a list, all rules under `checks` are dropped. An unusable setting `editable` is dropped as well, and the table stays editable. A message text that cannot be interpreted is dropped on its own; its rule or condition goes on checking.
+The same lenient line applies to the validation rules and to the editability condition, rule by rule. An unusable rule under `check` or `checks` is dropped individually, and the other rules, the field and the table remain; reported are an entry that is neither text nor an object with `rule`, an invalid regular expression, an invalid expression, a field rule with a reference other than `value`, an unknown rule name and a rule under `checks` that names an unknown field. If `checks` is not a list, all rules under `checks` are dropped. An unusable setting `editable` is dropped as well, and the table stays editable. A message text that cannot be interpreted is dropped on its own; its rule or condition goes on checking. An unusable setting `editable` on a field is dropped as well, and the field stays editable.
 
-The same lenient line applies to form files. If the container `db-form` names no table, or one that does not exist in the database, the file stays an ordinary document. If a table has several form files, the first by path applies, and the others are not used. These three cases stand among the issues of the overview. A placeholder that is not a field placeholder and a field name the table does not know stay as text; the form reports them with their line in its header, and the consistency check lists them as findings.
+The same lenient line applies to form files. If the container `db-form` names no table, or one that does not exist in the database, the file stays an ordinary document. Both cases stand among the issues of the overview; several form files of one table, by contrast, are not an issue but the case of the section «Several forms and the default form». A placeholder that is neither a field nor a value placeholder and a field name the table does not know stay as text, and a value placeholder with an invalid expression leaves its spot empty; the form reports all three with their line in its header, and the consistency check lists them as findings. A marker `{{end}}` without an open section is skipped, a section without `{{end}}` shows its content as if it were outside the section, and a section with an invalid condition stays hidden; the form reports these three, too, with their line in its header, and the consistency check lists them as findings. A marker that does not stand alone on its line is no marker and stays text as an unknown placeholder. If the setting `form` of the table definition names no form file, one that does not exist for this table, or the form file of another table, a notice stands among the issues of the overview, and the default form without the setting applies; the consistency check additionally lists the last two cases as findings at the table. A path that names no reference field of the table or no field of the target table leaves its spot empty and is reported with its line in the same way. For the line items section there are five cases: the named query file does not exist; it does not carry `editable: true`; the line items have no reference field to the table of the form; they have several, and `BY` names none of them; or the query names no single table or cannot be extended by the relation. In the second case the section stays read-only, otherwise empty; each case stands as a hint with its line in the place of the section, and the consistency check lists it as a finding of the form file.
 
-The same lenient line applies to query files. If a document with the mark `db-query` carries no query block or several, it stays an ordinary document, and every block in it is evaluated. The overview still lists it in the section «Queries» and names the case among the issues, named after the file.
+The same lenient line applies to query files. If a document with the mark `db-query` carries no query block or several, it stays an ordinary document, and every block in it is evaluated. The overview still lists it in the section «Queries» and names the case among the issues, named after the file. The same line applies to the settings of a list form, setting by setting: an `editable` that is not a truth value counts as `false`; a `form` that names no name is dropped; an `allow` that is neither an action nor a list falls back to `update`, and an unknown word in it is dropped on its own. `form` or `allow` without `editable: true` have no effect, and any other setting in the container is passed over. If `form` names a form file that does not exist in the database or that belongs to a table other than the one of the query, a click on a row opens the default form of the table. Each of these cases stands as a hint among the issues of the overview.
+
+The same soft line applies to roles, default role and assignment in the fact sheet. A role with an unknown table, an unknown operation or a setting on a table that is neither `all` nor a list counts as not set, and each of its errors is reported. A default role or an assignment that names no existing role likewise counts as not set, and the next rule of the section «Permissions» applies. All of these cases stand among the issues of the overview.
+
+If a table holds records but no high-water mark `lastId` or one that is too low, the application still issues no identifier twice: a new record draws the next number above the highest existing identifier and then updates the high-water mark. The consistency check names the case as a hint.
 
 ## Switching the database off
 
@@ -639,9 +907,11 @@ When switched off, the following applies:
 - **Overview and settings section are dropped**, together with the access points in the view menu, in the context menu of the area panel and in the command palette. An overview that is already open stays until you close it, like any other system page.
 - With the record block, its buttons **«Open record»** and **«New record»** are dropped, with the overview its actions **«Check consistency»**, **«Check»** and **«Usage»**, and the commands **«New record in the active table»** and **«Check database consistency»** disappear from the command palette. The **form** can thus no longer be reached either, and the application no longer supplies data to it, to the consistency check or to the usage.
 - A **record query** no longer reads any table: it shows an empty list with the note that the extension is switched off, and no error message. The same applies to paths through reference fields, to hierarchies and to the tree.
-- A **query file** stays an ordinary document: its query block is still evaluated, over records with the empty list and the note just described, and its section «Queries» goes away with the overview.
-- A **reference to a single record** is no longer marked as broken. Without definitions there is nothing to check it against, and a warning without a check would be a mere claim.
-- The **search across the area stays unchanged**. Records stay excluded from the full text, because that boundary belongs to the table file and not to the switch; the section «Findability» above therefore continues to apply.
+- A **query file** stays an ordinary document: its query block is still evaluated, over records with the empty list and the note just described, and its section «Queries» goes away with the overview. A list form then shows no grid and offers no action.
+- A **reference to a single record** is no longer marked as broken. Without definitions there is nothing to check it against, and a warning without a check would be a mere claim. A click opens the table file without jumping to the row instead of the form, and the suggestion list offers no records.
+- The **search across the area yields no record matches**. Records stay excluded from the full text, because that boundary belongs to the table file and not to the switch; across the area, records then cannot be found.
+- A **form** that was open on exit does not return at start. Its entry in the session rests and brings it back with the next start after switching on (section «After a restart»).
+- **Roles, default role and assignment** stay mere frontmatter of the fact sheet, as does a setting `editable` on a field: there is no resolution and no check, not even when a changed definition is saved.
 - **Nothing is written.** The application creates, changes and deletes no records, takes no lock and produces no change record; nor does it complete a save operation left unfinished while it is switched off.
 
 **The files remain untouched.** Switching off takes away the interpretation, not the data: not a single character is changed, and switching it on brings everything back. The area index is rebuilt once in the process; in large holdings that takes a moment.

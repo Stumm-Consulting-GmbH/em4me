@@ -31,9 +31,18 @@ let letzteAnfrage = null;
 // Suchraum-Kern und beschreiben die STELLE, nicht ihren Platz in der Liste —
 // nur deshalb findet ein zweiter Lauf über dasselbe Muster dieselbe Auswahl
 // wieder, auch wenn die laufenden Nummern sich verschoben haben.
+//
+// 4T-002332 (Epic 3E-000264): Ein Datensatz-Treffer trägt dazu Kennung und Feld.
+// Sein Offset liegt im Feld-Wert und nicht in einer Datei; zwei Datensätze
+// derselben Tabelle mit dem Fund an derselben Stelle ihres Werts («Umberto Eco»
+// in zwei Büchern) hätten sonst denselben Schlüssel, und die Liste hielte
+// Auswahl und Fokus an der falschen Zeile.
 export function schluessel(treffer) {
   const offset = treffer && treffer.sprung ? treffer.sprung.offset : '';
-  return `${treffer.gruppe}\u0000${offset}`;
+  const basis = `${treffer.gruppe}\u0000${offset}`;
+  if (treffer.quelle !== 'record') return basis;
+  const kennung = treffer.sprung ? treffer.sprung.kennung : '';
+  return `${basis}\u0000${kennung}\u0000${treffer.feld || ''}`;
 }
 
 export function istGewaehlt(treffer) {

@@ -169,7 +169,7 @@ import { oeffneBelegAnsicht } from './database/beleg-ansicht-seite.js';
 // 4T-001939 (Epic 3E-000257): Die Einzel-Maske registriert sich ebenso beim
 // Laden ihres Moduls; ihre beiden Einstiege reicht dieses Modul an den
 // Zeilen-Zugang weiter, aus demselben Grund wie den der Beleg-Ansicht.
-import { oeffneMaske, neuerDatensatz } from './database/masken-seite.js';
+import { oeffneMaske, neuerDatensatz, neuanlageErlaubt } from './database/masken-seite.js';
 // 4T-001792 (Epic 3E-000255, Bauplan Z2): Die Bedienung der Zeilen-Schaltfläche
 // des Datensatz-Blocks, gebunden für Lese-Ansicht und Änderungs-Modus.
 import { initRecordRowAccess } from './database/datensatz-zeilen-zugang.js';
@@ -891,14 +891,15 @@ async function init() {
   // Beleg-Seite in jenem Modul zöge beide in den eingefrorenen Datei-Zyklus des
   // Anzeige-Prozesses, was der Ordner-Import-Wächter als Befund meldet.
   initRecordRowAccess({
-    aktivesDokument: (paneIdx) => {
-      const pane = state.panes[paneIdx];
-      return pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
-    },
+    // 4T-002311: über den gemeinsamen Helfer wie die Verdrahtungen darüber.
+    aktivesDokument: (paneIdx) => activeTabOfPane(state.panes, paneIdx),
     oeffneBelege: (tabellenPfad, kennung) => oeffneBelegAnsicht(tabellenPfad, kennung),
-    // 4T-001939 (Bauplan B7): die Maske an der Zeile und die Neuanlage im Fuß.
-    oeffneMaske: (tabellenPfad, kennung) => oeffneMaske(tabellenPfad, kennung),
+    // 4T-001939 (Bauplan B7): die Maske an der Zeile und die Neuanlage im Fuß;
+    // der Zugang ruft die Maske mit genau zwei Angaben. 4T-002311: dazu die
+    // Frage, ob die eigene Rolle anlegen darf.
+    oeffneMaske,
     neuerDatensatz: (tabellenPfad) => void neuerDatensatz(tabellenPfad),
+    neuanlageErlaubt,
   });
   initMacros({
     registerHandler: (commandId, fn) => {

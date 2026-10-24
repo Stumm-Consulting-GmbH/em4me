@@ -453,4 +453,12 @@ describe('4T-002113: Bericht je Aufrufer', () => {
     // Ein Grund ohne eigenen Wortlaut der Umbenennung kommt aus dem Ersetzen.
     expect(grundText('lesen', 'tagRename.reason.')).toBe(de['areaReplace.reason.lesen']);
   });
+
+  it('4T-002310: die Gründe des Definitions-Schutzes haben einen Satz', () => {
+    for (const grund of ['defineNichtErlaubt', 'defineRechteNichtBestimmbar']) {
+      expect(de[`areaReplace.reason.${grund}`]).toBeTruthy();
+      expect(grundText(grund)).toBe(de[`areaReplace.reason.${grund}`]);
+      expect(grundText(grund, 'tagRename.reason.')).toBe(de[`areaReplace.reason.${grund}`]);
+    }
+  });
 });
