@@ -248,6 +248,18 @@ test.describe('SD-03: Wert «ausblenden» — weg, solange es nicht geht', () =>
       // Ansichts-Schalter bleiben, und die übrigen Elemente behalten ihre
       // Reihenfolge.
       await warteAufVersteckt(page, 'btn-wrap', true);
+      // 4T-002402: Die Faltung rechnet nach dem Start und nach jeder Änderung
+      // der Leiste erst im nächsten Bild neu; bis dahin kann ein Element noch
+      // aus einem schmaleren Stand eingeklappt sein (im Linux-Container
+      // gemessen). Deshalb erst warten, bis die Schalter sichtbar sind, die es
+      // sein müssen, dann die Lage festhalten.
+      const rechtsSichtbar = [...RECHTS, ...UNBETEILIGT];
+      await expect
+        .poll(async () => {
+          const m = await messe(page, rechtsSichtbar);
+          return rechtsSichtbar.filter((k) => !m.schalter[k].sichtbar);
+        })
+        .toEqual([]);
       const leseansicht = await messe(page);
       for (const k of MITTE_EDITOR) {
         expect(leseansicht.schalter[k].versteckt, k).toBe(true);
@@ -372,6 +384,13 @@ test.describe('SD-05: Vorrang der Ausblend-Liste, Erweiterungen unberührt', () 
       await warteAufReiter(page);
       // Wert «blass anzeigen» (Vorgabe): Der Stift ist am offenen Dokument
       // aktivierbar und trotzdem weg — die Ausblend-Liste wirkt vor der Wahl.
+      // 4T-002402: Warten statt Lesen, aus demselben Grund wie in SD-03: Die
+      // Faltung kann zum ersten Messzeitpunkt noch den Stand eines schmaleren
+      // Fensters tragen (im Linux-Container gemessen: sechs Elemente
+      // eingeklappt, eine Sekunde später keines).
+      await expect
+        .poll(async () => (await messe(page, ['btn-history'])).schalter['btn-history'].sichtbar)
+        .toBe(true);
       const blass = await messe(page, ['btn-edit', 'btn-history']);
       expect(blass.schalter['btn-edit'].da).toBe(true);
       expect(blass.schalter['btn-edit'].nutzerVersteckt).toBe(true);

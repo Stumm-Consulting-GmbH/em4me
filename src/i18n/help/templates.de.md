@@ -26,7 +26,7 @@ Mehrere Eingabe- und Auswahl-Platzhalter erscheinen **nacheinander** in der Reih
 
 ## Platzhalter-Referenz
 
-Platzhalter stehen in doppelten geschweiften Klammern. `\{{` schreibt ein literales `{{` in die Vorlage.
+Platzhalter stehen in doppelten geschweiften Klammern. `\{{` schreibt ein literales `{{` in die Vorlage. Vorlagen und [Workflows](workflows.md) teilen denselben Satz von Platzhaltern; welche davon in einer Befehls-Zeile gelten, beschreibt die Seite der Workflows.
 
 | Platzhalter | Wirkung |
 | --- | --- |
@@ -36,6 +36,8 @@ Platzhalter stehen in doppelten geschweiften Klammern. `\{{` schreibt ein litera
 | `{{time:-30min:HH:mm:ss}}` | auch die Zeit nimmt Offset und Format |
 | `{{title}}` | Titel der Zieldatei (bei Unterseiten die logische Form mit `/`) |
 | `{{folder}}` | Ordner der Zieldatei (im Bereich wurzel-relativ) |
+| `{{file}}` | Pfad des aktiven Dokuments (im Bereich wurzel-relativ); ohne aktives Dokument leer |
+| `{{area}}` | Name des geöffneten Bereichs; ohne Bereich leer |
 | `{{prompt:Frage}}` | Eingabe-Dialog; optionaler Vorgabe-Wert: `{{prompt:Frage:Vorgabe}}` |
 | `{{select:Frage:a,b,c}}` | Auswahl-Dialog mit den Optionen `a`, `b`, `c` |
 | `{{clipboard}}` | aktueller Text der Zwischenablage |

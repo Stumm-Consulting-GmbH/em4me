@@ -71,6 +71,7 @@ Welcome to the EM4me manual. This overview page is the entry point; each section
 - [Color schemes](color-schemes.md) — colors via named slots: mode assignment, own schemes as copies, live preview, limits.
 - [Tools](tools.md) — Markdown linter, search with regex, search and replace, table editor.
 - [Command placement](command-placement.md) — commands as permanent custom access points: status bar buttons, hide list, context menu entries, macros.
+- [Workflows](workflows.md) — recurring steps as a Markdown file with fixed commands: structure and command lines, checking before running, the commands for files, content and the app, sources and placeholders, ways to start, workflows folder and menu, run state and the Workflow runs page, limits.
 - [Extensions](extensions.md) — enable or disable features individually: categories, working modes including custom ones, dependencies, effect of the disabled state.
 - [Exporting and importing settings](setup-exchange.md) — take your own setup with you: choice of data kinds down to individual calendar blocks, structure of the exchange file, preview before applying, merging with existing values, version compatibility.
 - [Your own interface language](custom-locale.md) — translate the interface yourself: download the template, translate it in your own editor, load and check it, select it, fallback to English, updating and removing, storage of the language file.

@@ -121,7 +121,9 @@
    die Inhalts-Regeln der Anwendung lesen (Erhebung ueber die Regeln mit
    .markdown-body: Tabellen-Kopf --bg-alt, Rahmen und Linien --border, Zitat
    --border-strong und --fg-muted, Code --code-bg, Verweise --accent, Schlag-
-   wort-Verweise --syntax-link, Flaechen --bg-muted und --hover). Fehlt eine,
+   wort-Verweise --syntax-link, Flaechen --bg-muted und --hover, seit 4T-002351
+   die Farben des workflow-Blocks --syntax-keyword, --syntax-string und
+   --syntax-list aus dem Code-Farbsatz). Fehlt eine,
    nimmt der Inhalt sie aus dem Farbschema der Anwendung (Ansicht) oder aus
    dem erzwungenen hellen Schema (PDF, HTML-Seiten). Abgeleitete Flaechen
    mischen die Textfarbe in den Hintergrund (color-mix, Chromium ab 111). */
@@ -148,6 +150,11 @@
   --code-bg: color-mix(in srgb, var(--slide-text) 11%, var(--slide-background));
   --slide-code-inline-bg: color-mix(in srgb, var(--slide-text) 8%, var(--slide-background));
   --syntax-link: var(--slide-accent);
+  /* 4T-002351: Schluesselwort, Text und Platzhalter des workflow-Blocks aus
+     dem Code-Farbsatz der Folie (unten je hell und dunkel festgelegt). */
+  --syntax-keyword: var(--slide-hl-keyword);
+  --syntax-string: var(--slide-hl-string);
+  --syntax-list: var(--slide-hl-name);
   --render-font-family: var(--slide-font);
   /* Grundschrift in Folien-Einheiten: 28px bei 720px Hoehe. */
   --render-font-size: 28px;

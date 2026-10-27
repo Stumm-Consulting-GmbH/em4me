@@ -44,6 +44,8 @@ const markSelfWriting = selbstSchreib.merke;
  * @param {(channel: string, ...args: any[]) => void} deps.broadcast Meldung an alle Fenster.
  * @param {object} deps.books Datei-Ebene des Buches (Nachtrag im Kapitel-Baum).
  * @param {(oldPath: string, newPath: string) => Promise<void>} deps.followAreaStartPage Nachtrag der Start-Seite.
+ * @param {(oldPath: string, newPath: string) => Promise<*>} [deps.followWorkflowBindings]
+ *   Nachtrag der Belegungen eines Workflows (Tastenkürzel und Plätze).
  * @returns {object} Scan-, Vorschau-, Anwendungs- und Umbenennen-Funktionen.
  */
 function createLinkUpdate(deps) {
@@ -63,6 +65,8 @@ function createLinkUpdate(deps) {
     books,
     // 4T-001364 (Epic 3E-000171): Nachtrag der Start-Seiten-Festlegung.
     followAreaStartPage,
+    // 4T-002364 (Epic 3E-000184): Nachtrag der Belegungen eines Workflows.
+    followWorkflowBindings,
   } = deps;
 
   // 4T-000345 (Epic 3E-000062): Suchraum fuer das Link-Update beim Umbenennen. In
@@ -299,6 +303,18 @@ function createLinkUpdate(deps) {
     } catch (err) {
       console.error(
         '[start-page] Nachtrag der Start-Seiten-Festlegung fehlgeschlagen:',
+        err && err.message ? err.message : err,
+      );
+    }
+    // 4T-002364 (Epic 3E-000184): Ist die bewegte Datei ein Workflow des
+    // Workflow-Ordners, ziehen sein Tastenkürzel und seine Plätze unter die neue
+    // Kommando-Kennung mit (workflows/workflow-binding-follow.js). Gleiches
+    // Best-Effort-Muster: Die Bewegung ist geschehen und scheitert hieran nicht.
+    try {
+      if (followWorkflowBindings) await followWorkflowBindings(absolute, newPath);
+    } catch (err) {
+      console.error(
+        '[workflow-belegung] Nachtrag der Belegungen fehlgeschlagen:',
         err && err.message ? err.message : err,
       );
     }

@@ -536,6 +536,48 @@ function renameBlockAnchor(container, fromId, toId, nowMs) {
   return container;
 }
 
+// --- 4T-002348 (Epic 3E-000184): Lauf-Stand eines Workflows -----------------------
+
+// Optionale `workflow`-Sektion in der Begleitdatei einer Workflow-Datei: Zähler
+// der Läufe und der letzte Lauf (Story 4S-001106, Entscheidung 2d der
+// Konzept-Stufe). Schema:
+//   workflow: { runs, lastRun: { at, status, line?, code? } }
+// `at` in UTC ISO-8601 sekundengenau wie die übrigen Zeitstempel; `line` und
+// `code` nur, wo der Status sie trägt. Fehler-Isolation nach dem
+// `notes`-Muster: `parseContainer` validiert die Sektion nicht, eine defekte
+// Sektion setzt nur den Lauf-Stand aus. Weitere Felder der Sektion (ab Stufe 2
+// der Scharf-Zustand) bleiben beim Schreiben erhalten. Beim Kopieren reist die
+// Sektion bewusst nicht mit (Auswahl in src/main/ipc/area-copy.js).
+
+// Liefert { runs, lastRun } oder null, wenn kein wohlgeformter Stand vorliegt.
+function getWorkflowRun(container) {
+  const section = container && container.workflow;
+  if (!isPlainObject(section)) return null;
+  const runs = Number.isInteger(section.runs) && section.runs >= 0 ? section.runs : 0;
+  const last = section.lastRun;
+  if (!isPlainObject(last) || typeof last.at !== 'string' || typeof last.status !== 'string') {
+    return runs > 0 ? { runs, lastRun: null } : null;
+  }
+  const lastRun = { at: last.at, status: last.status };
+  if (Number.isInteger(last.line)) lastRun.line = last.line;
+  if (typeof last.code === 'string') lastRun.code = last.code;
+  return { runs, lastRun };
+}
+
+// Zählt einen Lauf und ersetzt den letzten Lauf. `run` ist bereits geprüft
+// ({ status, line?, code?, startedAt? }); `at` ist der Beginn des Laufs, ohne
+// Angabe der Zeitpunkt des Schreibens. Gibt den Container zurück.
+function recordWorkflowRun(container, run, nowMs) {
+  const bisher = getWorkflowRun(container);
+  const section = isPlainObject(container.workflow) ? container.workflow : {};
+  const at = Number.isFinite(run.startedAt) ? run.startedAt : nowMs;
+  const lastRun = { at: isoSeconds(at), status: run.status };
+  if (Number.isInteger(run.line)) lastRun.line = run.line;
+  if (typeof run.code === 'string') lastRun.code = run.code;
+  container.workflow = { ...section, runs: (bisher ? bisher.runs : 0) + 1, lastRun };
+  return container;
+}
+
 module.exports = {
   MDD_SCHEMA_VERSION,
   MDDA_CACHE_SCHEMA_VERSION,
@@ -559,6 +601,9 @@ module.exports = {
   blockAnchorIdsWithData,
   setBlockData,
   renameBlockAnchor,
+  // 4T-002348 (Epic 3E-000184): Lauf-Stand eines Workflows.
+  getWorkflowRun,
+  recordWorkflowRun,
   MDDA_FILENAME,
   LEGACY_MDDB_FILENAME,
   emptySettingsContainer,

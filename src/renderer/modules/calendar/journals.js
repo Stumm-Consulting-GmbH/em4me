@@ -30,6 +30,7 @@ import {
   jumpToOffsetInActiveTab,
   showTemplateError,
   showTemplateSelectDialog,
+  templateDocumentContext,
 } from '../templates.js';
 import { analyzeTemplate, fillTemplate } from '../../../shared/template-engine.js';
 // 4T-001407 (Epic 3E-000244): Zuordnung des Datei-Bestands zu den Perioden.
@@ -120,6 +121,8 @@ async function buildEntryContent(journal, period, relPath) {
     if (answers === null) return null; // Dialog-Abbruch: keine Datei
     const slash = relPath.lastIndexOf('/');
     const filled = fillTemplate(analysis, {
+      // 4T-002347: {{file}} und {{area}} wie in jeder Vorlage.
+      ...templateDocumentContext(),
       title: relPath.slice(slash + 1).replace(/\.md$/i, ''),
       folder: slash >= 0 ? relPath.slice(0, slash) : '',
       nowMs: period.startMs,

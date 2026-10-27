@@ -146,6 +146,9 @@ function normalizeMenuState(base, stored) {
     // 4T-000294: Kommandos effektiv deaktivierter Erweiterungen (Menü-
     // Einträge dazu entfallen in der Menü-Factory).
     disabledCommands: Array.isArray(s.disabledCommands) ? s.disabledCommands : [],
+    // 4T-002355 (Epic 3E-000184): Liste des Workflow-Ordners für das Untermenü
+    // «Datei → Workflows» (Form des Kanals workflow:folderList) oder null.
+    workflows: s.workflows && typeof s.workflows === 'object' ? s.workflows : null,
   };
 }
 

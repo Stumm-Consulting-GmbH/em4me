@@ -291,5 +291,10 @@
   "help.featureAccess.databaseRoleAssignment": "Frontmatter of the fact sheet, settings `users` and `defaultRole` in the container `db-database`; database overview, line «Own role»",
   "help.featureAccess.databasePermissionCheck": "Takes effect when the application saves and when a table file or the fact sheet is saved",
   "help.featureAccess.databasePermissionForms": "Form, list form, line items section, button «New record» below the table; database overview, line «Permissions» per table",
-  "help.featureAccess.databaseExtension": "Settings → Extensions → Database"
+  "help.featureAccess.databaseExtension": "Settings → Extensions → Database",
+  "help.featureAccess.workflows": "Marker `workflow: true` in the front matter and code block `workflow`; File → Workflows; button ‘Run’ above the block in the live, rendered and split view; File → Settings… → Extensions → Workflows",
+  "help.featureAccess.workflowStart": "File → Workflows → ‘name of the workflow’; command palette → ‘name of the workflow’; button ‘Run’ above the block in the live, rendered and split view; context menu of a workflow file in the area panel → Run; File → Settings… → Keyboard shortcuts",
+  "help.featureAccess.workflowRuns": "View → Show workflow runs; File → Workflows → Show workflow runs; command palette → ‘Show workflow runs’",
+  "help.featureAccess.workflowEditor": "Code block `workflow`; check display above the block in the live, rendered and split view",
+  "help.featureAccess.workflowFolder": "File → Workflows; File → Workflows → New Workflow… and Set Workflows Folder…; File → Settings… → Extensions (internal) → Workflows and Current area → Workflows; command palette → ‘New Workflow…’"
 }

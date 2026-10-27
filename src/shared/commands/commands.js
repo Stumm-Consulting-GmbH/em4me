@@ -2607,9 +2607,12 @@ const COMMANDS = [
 // die Makros der Kommando-Platzierung (Registrierung in macros.js) — der
 // Registrierungs-Kniff macht Makros ohne Sonderpfad kuerzel-, paletten-
 // und platzierbar.
+// 4T-002349 (Epic 3E-000184): dritter Namensraum 'workflow.<Pfad-Kennung>' fuer
+// die Workflows des Workflow-Ordners (Registrierung in workflows/workflow-commands.js);
+// die Liste steht in der Zeile, weil die Datei auf ihrem eingefrorenen Wert steht.
 function registerDynamicCommand(def) {
   if (!def || typeof def.id !== 'string') return false;
-  if (!def.id.startsWith('ext.') && !def.id.startsWith('macro.')) return false;
+  if (!['ext.', 'macro.', 'workflow.'].some((p) => def.id.startsWith(p))) return false;
   if (typeof def.labelKey !== 'string' || def.labelKey === '') return false;
   const defaults = Array.isArray(def.defaultBindings)
     ? def.defaultBindings.filter((b) => typeof b === 'string' && normalizeBinding(b) !== null)

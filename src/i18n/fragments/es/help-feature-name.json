@@ -291,5 +291,10 @@
   "help.featureName.databaseRoleAssignment": "Asignación de nombres de inicio de sesión y rol por defecto",
   "help.featureName.databasePermissionCheck": "Comprobación de permisos al escribir",
   "help.featureName.databasePermissionForms": "Permisos en formularios y resumen",
-  "help.featureName.databaseExtension": "Base de datos como extensión activable"
+  "help.featureName.databaseExtension": "Base de datos como extensión activable",
+  "help.featureName.workflows": "Workflows",
+  "help.featureName.workflowStart": "Iniciar un workflow a mano",
+  "help.featureName.workflowRuns": "Ejecuciones de workflows",
+  "help.featureName.workflowEditor": "Bloques de workflow en el editor",
+  "help.featureName.workflowFolder": "Carpeta de workflows y menú"
 }

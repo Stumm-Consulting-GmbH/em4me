@@ -162,6 +162,7 @@
     {
       "name": "help-shortcut",
       "praefixe": ["help.shortcut", "help.key", "help.group", "help.shortcutsConfigurableNote"]
-    }
+    },
+    { "name": "workflows", "praefixe": ["workflow", "settings.workflows"] }
   ]
 }

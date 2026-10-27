@@ -22,6 +22,7 @@ const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp, oeffneDokumentImFenster } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { hauptSenden } = require('../helpers/haupt-zugriff');
+const { bedieneBis } = require('../helpers/eingabe');
 
 // Menü-Klicks simulieren (Muster smoke.spec.js).
 async function sendMenuChannel(app, channel, ...args) {
@@ -93,6 +94,20 @@ const STATS_PAGE = '.pane-group[data-pane="0"] .area-stats-page';
 // ein später geöffnetes Start-Dokument holte seinen Eintrag nach vorn). So
 // meldet sich ein solches Rennen hier mit dem aktiven Eintrag als Befund statt
 // nach 15 s als unsichtbares Element.
+//
+// 4T-002181: Die geöffnete Seite ist nur der Vorbote der erhobenen Zahlen
+// (Stabilitätsregel 12). Steht der Bereichs-Index beim Öffnen noch im Aufbau,
+// zeigt sie «Der Bereichs-Index wird aufgebaut …» und zieht danach nicht von
+// selbst nach (erhebeUndZeichne in area-stats-page.js läuft beim Öffnen und auf
+// «Aktualisieren», sonst nicht). Dass es bisher gutging, liegt naheliegend
+// daran, dass der erste Menü-Befehl vor dem Binden des Empfängers verpuffte und
+// der Poll ihn erst später wiederholte; diese Verzögerung gab dem Index die
+// Zeit (Vermutung, nicht gemessen). Seit launchApp auf das Bereit-Zeichen
+// wartet (4T-002062), stand die Seite am 2026-10-25 im Aufbau-Hinweis fest:
+// BS-01, BS-05 und BS-08 in vier von vier Läufen der Prüfdatei rot, BS-02/03
+// in drei von vier, jeweils nach 15 s ohne Stand-Zeitstempel. Bedient wird
+// deshalb der Knopf «Aktualisieren», bis der Stand-Zeitstempel steht; ist er
+// schon beim Öffnen da, entfällt der Klick.
 async function openStatsAndWait(app, page) {
   await expect
     .poll(async () => {
@@ -103,7 +118,10 @@ async function openStatsAndWait(app, page) {
     })
     .toBe(1);
   await expect(page.locator(`${SEL.tabs0}.active .tab-title`)).toContainText('Bereichs-Statistik:');
-  await expect(page.locator(`${STATS_PAGE} .area-stats-stand`)).toBeVisible({ timeout: 15000 });
+  const stand = page.locator(`${STATS_PAGE} .area-stats-stand`);
+  await bedieneBis(page.locator(`${STATS_PAGE} .area-stats-refresh`), () => stand.isVisible(), {
+    zugriffsFristMs: 1000,
+  });
 }
 
 // Wert einer Kennzahlen-Zeile über ihre Beschriftung.

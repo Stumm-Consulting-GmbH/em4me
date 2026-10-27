@@ -7,23 +7,18 @@
 //
 // Eigener Zustand: keiner. Die physische Umbenennung einer einzelnen Datei
 // liegt als renameSingleFile in documents/link-update.js, weil die
-// Buch-Handler sie ebenfalls brauchen.
+// Buch-Handler sie ebenfalls brauchen; die Kaskade darueber seit 4T-002348
+// in documents/rename-cascade.js.
 'use strict';
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
-// 4T-001292 (Epic 3E-000224): Die Teile eines geteilten Dokuments ziehen beim
-// Umbenennen mit, und ihre Zuordnungs-Zeile wird nachgezogen.
-const { scanOwnParts, rewritePartBase } = require('../documents/document-parts-io');
-const { isPartBasename, baseBasenameOf } = require('../../shared/document-parts');
-// 4T-001789 (Epic 3E-000255): Die Fehlschlag-Kennungen des Mitziehens werden
-// durchgereicht statt mit 'partial' ueberschrieben.
-const { BEGLEIT_CODES } = require('../documents/companion-files');
-const selbstSchreib = require('../documents/self-write');
-
-// 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
-// Require-Cache), wie in ipc/files.js.
-const markSelfWriting = selbstSchreib.merke;
+const { isPartBasename } = require('../../shared/document-parts');
+// 4T-002348 (Epic 3E-000184): Die Kaskade (Unterseiten, Teile eines geteilten
+// Dokuments, Kollisions-Pruefung, Zuordnungs-Zeilen, Verweis-Nachzug) liegt
+// als Funktion in documents/rename-cascade.js, weil der Workflow-Befehl
+// `rename` und `move` sie ebenfalls brauchen.
+const { createRenameCascade } = require('../documents/rename-cascade');
 
 /**
  * Registriert die Umbenennen- und Unterseiten-Kanaele.
@@ -52,6 +47,15 @@ function registerRenameIpc(handle, deps) {
     computeLinkUpdatePreview,
     broadcast,
   } = deps;
+  const kaskade = createRenameCascade({
+    subpages,
+    isMarkdownPath,
+    renameSingleFile,
+    sendBookStateForDirs,
+    renamesFromPairs,
+    applyLinkUpdatesForRename,
+    broadcast,
+  });
 
   // --- 4T-000339/4T-000340 (Epic 3E-000061): Datei umbenennen ------------------------
   // Benennt eine Markdown-Datei im selben Ordner um und kaskadiert ueber
@@ -65,46 +69,11 @@ function registerRenameIpc(handle, deps) {
   // Umbenennung (reine Case-Aenderung auf NTFS bleibt erlaubt); ein
   // Teilfehler stoppt die Kaskade und wird als 'partial' gemeldet.
 
-  // 4T-000340: Nachfahren einer Seite im Suchraum finden — alle Markdown-
-  // Dateien, deren Basename mit '<Name>∕' beginnt. Suchraum und Ignore-
-  // Regeln wie der Backlinks-Index (Ordner der Datei plus zwei Unterordner-
-  // Ebenen; node_modules und Punkt-Ordner bleiben draussen); Vergleich
-  // NFC-normalisiert und case-insensitiv wie die Wiki-Aufloesung.
-  async function scanSubpageDescendants(absolute) {
-    const rootDir = path.dirname(absolute);
-    const prefixKey = subpages
-      .childPrefix(path.parse(absolute).name)
-      .normalize('NFC')
-      .toLowerCase();
-    const out = [];
-    const queue = [{ dir: rootDir, depth: 0 }];
-    while (queue.length > 0) {
-      const { dir, depth } = queue.shift();
-      let entries;
-      try {
-        entries = await fs.readdir(dir, { withFileTypes: true });
-      } catch {
-        continue;
-      }
-      for (const entry of entries) {
-        const full = path.join(dir, entry.name);
-        if (entry.isDirectory()) {
-          if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
-          if (depth < 2) queue.push({ dir: full, depth: depth + 1 });
-        } else if (entry.isFile() && isMarkdownPath(entry.name)) {
-          const nameKey = path.parse(entry.name).name.normalize('NFC').toLowerCase();
-          if (nameKey.startsWith(prefixKey)) out.push(full);
-        }
-      }
-    }
-    return out;
-  }
-
   // 4T-000340: Nachfahren-Liste fuer den Dialog-Hinweis des Renderers.
   handle('subpage:descendants', async (_event, filePath) => {
     if (typeof filePath !== 'string' || !filePath) return { ok: false, files: [] };
     try {
-      const files = await scanSubpageDescendants(path.resolve(filePath));
+      const files = await kaskade.scanSubpageDescendants(path.resolve(filePath));
       // 4T-001292 (Epic 3E-000224, Auflage des Epics): Teil-Dateien erscheinen
       // NICHT in der Unterseiten-Sektion. Sie sind keine eigenen Dokumente,
       // sondern Bruchstuecke eines einzigen.
@@ -134,105 +103,18 @@ function registerRenameIpc(handle, deps) {
     const ext = parsed.ext || '.md';
     const newPath = path.join(parsed.dir, newBasename + ext);
     if (newPath === absolute) return { ok: true, path: absolute, unchanged: true };
-    // 4T-000340: Unterseiten-Baum ermitteln und Ziel-Paare bilden
-    // (Praefix-Ersetzung des geaenderten Namens-Anteils).
-    const oldBase = parsed.name;
-    const pairs = [{ from: absolute, to: newPath }];
-    for (const d of await scanSubpageDescendants(absolute)) {
-      const dParsed = path.parse(d);
-      const rest = dParsed.name.slice(oldBase.length); // beginnt mit U+2215
-      pairs.push({ from: d, to: path.join(dParsed.dir, newBasename + rest + dParsed.ext) });
-    }
-    // 4T-001292 (Epic 3E-000224): Die eigenen Teile eines geteilten Dokuments
-    // ziehen mit. Sie tragen ein anderes Trennzeichen als die Unterseiten und
-    // fallen deshalb NICHT in die Nachkommen-Suche oben — ohne diesen Zusatz
-    // bliebe 'Notizen•part-00002.md' liegen, waehrend seine Kopf-Datei
-    // 'Merkzettel.md' hiesse, und beide fänden nie wieder zueinander.
-    for (const teil of await scanOwnParts(absolute)) {
-      const tParsed = path.parse(teil);
-      const rest = tParsed.name.slice(oldBase.length); // beginnt mit U+2022
-      pairs.push({ from: teil, to: path.join(tParsed.dir, newBasename + rest + tParsed.ext) });
-    }
-    // Kollisions-Pruefung ueber alle Ziele VOR der ersten Umbenennung.
-    for (const pair of pairs) {
-      if (pair.to.toLowerCase() === pair.from.toLowerCase()) continue;
-      try {
-        await fs.access(pair.to);
-        return { ok: false, error: 'exists', code: 'exists', conflictPath: pair.to };
-      } catch {
-        /* Ziel frei */
-      }
-    }
-    let renamedCount = 0;
-    // 4T-000847: Buch-Ordner, deren Begleitdatei mitgezogen wurde; ihr
-    // Zustands-Broadcast läuft einmal am Ende statt je Datei der Kaskade.
-    const bookDirs = [];
-    for (const pair of pairs) {
-      const res = await renameSingleFile(pair.from, pair.to);
-      if (!res.ok) {
-        // Teilfehler: Kaskade stoppt; bereits umbenannte Dateien sind per
-        // Broadcast konsistent nachgezogen, der Renderer meldet den Stand.
-        await sendBookStateForDirs(bookDirs);
-        // 4T-001789 (Epic 3E-000255): Scheitert das Mitziehen einer
-        // Begleit-Datei, traegt der Fehlschlag seinen eigenen Grund. Die
-        // bisherige Pauschal-Kennung 'partial' fuehrte zur Meldung «0 von 1
-        // Dateien umbenannt» und verschwieg genau den Grund, der den Anwender
-        // handeln laesst.
-        const begleit = BEGLEIT_CODES.includes(res.code);
-        return {
-          ok: false,
-          error: res.error,
-          code: begleit ? res.code : 'partial',
-          renamedCount,
-          totalCount: pairs.length,
-          failedPath: pair.from,
-          ...(res.companionPath ? { companionPath: res.companionPath } : {}),
-          ...(res.from ? { from: res.from, to: res.to } : {}),
-        };
-      }
-      if (res.bookDir) bookDirs.push(res.bookDir);
-      renamedCount++;
-    }
-    await sendBookStateForDirs(bookDirs);
-    // 4T-001292 (Epic 3E-000224): Die Zuordnungs-Zeile traegt den Grundnamen und
-    // wird jetzt nachgezogen — in der Kopf-Datei wie in jedem Teil. Sie ist die
-    // Wahrheit (F2), der Dateiname allein genuegt nicht: Ohne den Nachzug
-    // zeigten die Teile auf ein Dokument, das es unter diesem Namen nicht mehr
-    // gibt, und der Lese-Weg fuegte sie nicht mehr zusammen.
-    //
-    // Erfasst werden alle umbenannten Dateien; wer keine Zuordnungs-Zeile
-    // traegt, wird uebergangen. Damit sind auch die Teile einer geteilten
-    // UNTERSEITE abgedeckt, deren Grundname sich ebenfalls geaendert hat — ihr
-    // neuer Grundname steht in ihrem eigenen neuen Dateinamen.
-    for (const pair of pairs) {
-      // baseBasenameOf liefert bei einem Teil seinen Grundnamen und sonst den
-      // Namen selbst — fuer die Kopf-Datei ist das ihr neuer Name, fuer einen
-      // Teil der neue Name seiner Kopf-Datei.
-      const neuerBase = baseBasenameOf(path.parse(pair.to).name);
-      const res = await rewritePartBase([pair.to], neuerBase, { markSelfWriting });
-      if (!res.ok) {
-        console.error('[teile] Zuordnungs-Zeile nicht nachgezogen:', res.pfad, res.error);
-      }
-    }
-    // 4T-000345 (Epic 3E-000062): eingehende Links auf die umbenannten Dateien
-    // anpassen (Standard aktiv; der Dialog aus 4T-000346 schaltet updateLinks um).
-    // Best-Effort nach vollzogener Umbenennung: ein Fehler hier laesst das
-    // Rename-Ergebnis nicht scheitern.
+    // 4T-002348 (Epic 3E-000184): Paare, Kollisions-Pruefung, Bewegung,
+    // Zuordnungs-Zeilen und Verweis-Nachzug liegen in der ausgezogenen Kaskade;
+    // der Workflow-Befehl `rename` nutzt dieselbe.
+    const pairs = await kaskade.cascadePairs(absolute, newPath);
+    // 4T-000345 (Epic 3E-000062): Standard aktiv; der Dialog aus 4T-000346
+    // schaltet updateLinks um.
     const updateLinks = !(params && params.updateLinks === false);
-    let linkUpdate = null;
-    if (updateLinks) {
-      try {
-        const owner = senderWindow(event);
-        linkUpdate = await applyLinkUpdatesForRename(owner, pairs, newPath);
-        broadcast('linkUpdate:applied', {
-          renames: renamesFromPairs(pairs),
-          updated: linkUpdate.updated,
-          failed: linkUpdate.failed,
-        });
-      } catch (err) {
-        console.error('[link-update] fehlgeschlagen:', err && err.message ? err.message : err);
-      }
-    }
+    const res = await kaskade.runCascade(senderWindow(event), pairs, {
+      updateLinks,
+      anchorNew: newPath,
+    });
+    if (!res.ok) return res;
     // 4T-000346 (Epic 3E-000062): linkUpdate im Ergebnis, damit der ausloesende
     // Renderer den Bericht ohne den (an alle Fenster gehenden) Broadcast bauen
     // kann; { updated:[{path,count}], failed:[{path,error}] } oder null. `renamed`
@@ -240,9 +122,9 @@ function registerRenameIpc(handle, deps) {
     return {
       ok: true,
       path: newPath,
-      renamedCount,
-      renamed: pairs.map((p) => p.to),
-      linkUpdate,
+      renamedCount: res.renamedCount,
+      renamed: res.renamed,
+      linkUpdate: res.linkUpdate,
     };
   });
 
@@ -263,7 +145,7 @@ function registerRenameIpc(handle, deps) {
     const newPath = path.join(parsed.dir, newBasename + ext);
     const oldBase = parsed.name;
     const pairs = [{ from: absolute, to: newPath }];
-    for (const d of await scanSubpageDescendants(absolute)) {
+    for (const d of await kaskade.scanSubpageDescendants(absolute)) {
       const dParsed = path.parse(d);
       const rest = dParsed.name.slice(oldBase.length);
       pairs.push({ from: d, to: path.join(dParsed.dir, newBasename + rest + dParsed.ext) });

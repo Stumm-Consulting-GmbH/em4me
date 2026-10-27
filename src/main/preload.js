@@ -47,8 +47,11 @@ const { datenbankBruecke } = require('./preload-datenbank.js');
 const { buecherBruecke } = require('./preload-buecher.js');
 // 4T-002021 (Epic 3E-000192): Aufloesen und Zeichnen der Diagramme.
 const { diagrammeBruecke } = require('./preload-diagramme.js');
-// 4T-002023 (Epic 3E-000192): Puffer-Overlay samt Meldung an alle Fenster.
-const { bufferOverlayBridge } = require('./preload-buffer-overlay.js');
+// 4T-002023 (Epic 3E-000192): Puffer-Overlay samt Meldung an alle Fenster; seit
+// 4T-002348 dort auch die Aufträge an das Fenster des ungespeicherten Stands.
+const { bufferOverlayBridge, bufferEditBridge } = require('./preload-buffer-overlay.js');
+// 4T-002348 (Epic 3E-000184): Kanal-Bindungen der Workflow-Ausführung.
+const { workflowsBridge } = require('./preload-workflows.js');
 // 4T-002068 (Epic 3E-000344): Bild-Umwandlung der Anzeige; Grenze und
 // Begründung im Kopf des Moduls.
 const { resolveImagesForBase, mindmapBilderAufloesen } = require('./preload-images.js');
@@ -290,9 +293,6 @@ contextBridge.exposeInMainWorld('api', {
   // Datei-Link: oeffnet im Fenster des Herkunfts-Bereichs (Anfrage und Auftrag).
   remindersOpenSource: (ziel) => ipcRenderer.invoke('reminders:openSource', ziel),
   onRemindersOpenSource: (cb) => ipcRenderer.on('reminders:openSource', (_e, ziel) => cb(ziel)),
-  // Bearbeitung im Fenster, dessen ungespeicherter Stand gilt (Anfrage und Auftrag).
-  remindersEdit: (auftrag) => ipcRenderer.invoke('reminders:edit', auftrag),
-  onRemindersEdit: (cb) => ipcRenderer.on('reminders:edit', (_e, auftrag) => cb(auftrag)),
   // 4T-000528 (Epic 3E-000095): Multi-Window-Broadcast bei remindersConfig-Aenderung.
   onRemindersConfigChanged: (cb) => ipcRenderer.on('remindersConfig:changed', (_e, cfg) => cb(cfg)),
 
@@ -553,14 +553,15 @@ contextBridge.exposeInMainWorld('api', {
   // 4T-000935 (Befund B-08): Puffer-Overlay des Index — Melden, Zuruecknehmen
   // und seit 4T-002023 die Meldung an alle Fenster (eigenes Modul).
   ...bufferOverlayBridge(ipcRenderer),
+  // 4T-002348 (Epic 3E-000184): Aufträge an das Fenster des ungespeicherten
+  // Stands (reminders:edit, taskQuery:edit), Namen unverändert, im Modul der
+  // Puffer-Schicht; daneben die Kanäle der Workflow-Ausführung.
+  ...bufferEditBridge(ipcRenderer),
+  ...workflowsBridge(ipcRenderer),
   // 4T-000504 (Epic 3E-000096): Rueckschreiben aus der Abfrage-Ansicht — zeilen-
   // genaue Ersetzung in einer nicht im Fenster geoeffneten Quelldatei
   // (Konflikt-Antwort { ok:false, reason } statt Blind-Schreiben).
   applyTaskLineEdit: (params) => ipcRenderer.invoke('task:applyLineEdit', params),
-  // 4T-001978 (Epic 3E-000330): Handgriff am Treffer im Fenster, dessen
-  // ungespeicherter Stand gilt (Anfrage und Auftrag, Bauart reminders:edit).
-  taskQueryEdit: (auftrag) => ipcRenderer.invoke('taskQuery:edit', auftrag),
-  onTaskQueryEdit: (cb) => ipcRenderer.on('taskQuery:edit', (_e, auftrag) => cb(auftrag)),
   // 4T-000413 (Epic 3E-000078): Daten-Snapshot fuer Skript-Bloecke — der
   // Renderer reicht ihn mit dem Run-Auftrag in die Sandbox (kein Live-Kanal).
   getPerspectiveScriptData: (filePath) =>

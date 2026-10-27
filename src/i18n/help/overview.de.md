@@ -71,6 +71,7 @@ Willkommen im Handbuch von EM4me. Diese Überblicksseite ist der Einstieg; jeder
 - [Farbschemas](color-schemes.md) — Farben über benannte Slots: Modus-Zuordnung, eigene Schemas als Kopie, Live-Vorschau, Grenzen.
 - [Werkzeuge](tools.md) — Markdown-Linter, Suche mit Regex, Suchen und Ersetzen, Tabellen-Editor.
 - [Kommando-Platzierung](command-placement.md) — Kommandos als dauerhafte eigene Zugänge: Statusbar-Buttons, Ausblende-Liste, Kontextmenü-Einträge, Makros.
+- [Workflows](workflows.md) — wiederkehrende Handgriffe als Markdown-Datei mit festen Befehlen: Aufbau und Befehls-Zeilen, Prüfen vor dem Laufen, die Befehle für Dateien, Inhalte und Anwendung, Quellen und Platzhalter, Start-Wege, Workflow-Ordner und Menü, Lauf-Stand und die Seite Workflow-Läufe, Grenzen.
 - [Erweiterungen](extensions.md) — Funktionen einzeln ein- und ausschalten: Kategorien, Arbeitsmodi samt eigenen Modi, Abhängigkeiten, Wirkung des Aus-Zustands.
 - [Einstellungen exportieren und importieren](setup-exchange.md) — die eigene Einrichtung mitnehmen: Auswahl der Datenarten samt einzelner Kalender-Blöcke, Aufbau der Austausch-Datei, Vorschau vor der Übernahme, Zusammenführung mit vorhandenen Werten, Fassungs-Verträglichkeit.
 - [Eigene Oberflächen-Sprache](custom-locale.md) — die Oberfläche selbst übersetzen: Vorlage herunterladen, im eigenen Editor übersetzen, einspielen und prüfen, auswählen, Rückfall auf Englisch, Aktualisieren und Entfernen, Ablage der Sprachdatei.

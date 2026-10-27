@@ -108,7 +108,11 @@ body.printing .canvas-block-aktionen,
    verschöbe sich die Kopfzeile gegen die Datenzeilen. */
 body.printing .prc-action,
 body.printing .prc-action-head,
-body.printing .block-meta-indicator {
+body.printing .block-meta-indicator,
+/* 4T-002351 (Epic 3E-000184): Kopfzeile des workflow-Blocks mit Prüf-Ergebnis
+   und Knopf «Starten» (Entscheidung des Product Owners vom 2026-10-23: Druck
+   ohne Kopfzeile). Der Block selbst erscheint im Druck. */
+body.printing .cm-wf-kopf {
   display: none !important;
 }
 

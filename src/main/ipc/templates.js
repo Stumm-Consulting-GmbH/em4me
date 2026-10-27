@@ -240,6 +240,8 @@ function registerTemplatesIpc(handle, deps) {
     const TITEL_JE_ZWECK = {
       target: 'templates.newFile.chooseTargetTitle',
       areaLink: 'settings.areaLinks.chooseFolderTitle',
+      // 4T-002355 (Epic 3E-000184): der Workflow-Ordner der Einstellungen.
+      workflows: 'settings.workflows.chooseFolderTitle',
     };
     const titleKey =
       TITEL_JE_ZWECK[params && params.purpose] || 'settings.templates.chooseFolderTitle';

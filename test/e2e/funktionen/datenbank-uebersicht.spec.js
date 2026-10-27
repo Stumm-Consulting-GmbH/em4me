@@ -185,6 +185,14 @@ test.describe('DB-UEB-01: Übersichts-Seite der Datenbank (4T-001759)', () => {
       // großzügige Zeitlimit.
       const section = page.locator(AREA_SECTION);
       await expect(section).toBeVisible();
+      // 4T-002181 (DB-UEB-01): Die sichtbare Sektion ist nur der Vorbote der
+      // Überschrift (Stabilitätsregel 12). Der Titel steht im Markup als leerer
+      // Span (index.html) und bekommt seinen Text erst beim Zeichnen des
+      // Bereichs; bis dahin hat er keine Fläche, und der Rechtsklick scheiterte
+      // am 2026-10-11 nach 1,4 s mit «Element is not visible», auch mit force.
+      // Gewartet wird deshalb auf den sichtbaren Titel selbst.
+      const titel = section.locator('.area-files-title');
+      await expect(titel).toBeVisible();
       // `force` und der Escape davor sind kein Kunstgriff, sondern die Folge
       // des wiederholten Versuchs: Das offene Menü liegt nach dem ersten
       // Rechtsklick über der Überschrift, und ein zweiter Klick scheiterte
@@ -193,7 +201,7 @@ test.describe('DB-UEB-01: Übersichts-Seite der Datenbank (4T-001759)', () => {
         .poll(
           async () => {
             await page.keyboard.press('Escape');
-            await section.locator('.area-files-title').click({ button: 'right', force: true });
+            await titel.click({ button: 'right', force: true });
             return page.locator(MENU_EINTRAG).count();
           },
           { timeout: 20000 },

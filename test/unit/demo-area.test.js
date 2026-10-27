@@ -185,6 +185,11 @@ const EXPECTED_FILES = [
   // Release 1.147.0 am 2026-10-11 von 14 auf 15 umnummeriert, hinter
   // "14 Calendar Systems", das ihr nun die Weiterleitung gibt.
   '15 Presentation.md',
+  // 4T-002353 (Epic 3E-000184): die Workflow-Station der Fuehrung, jetzt ihre
+  // letzte Seite, mit dem Log-Abschnitt am Dateiende, an den der Beispiel-
+  // Workflow «Add Log Entry» anhaengt. Sie traegt die vorhandenen Schlagworte
+  // #demo und #authoring, damit die Tag-Menge der Demo-Area gleich bleibt.
+  '16 Workflows.md',
   // 4T-000645 (Epic 3E-000127): astronomischer Themenbereich als vierstufige
   // Unterseiten-Hierarchie (Galaxie, Stern, Planet, Mond) plus drei
   // ergaenzende Themenseiten. Traeger der Hierarchie ist der Dateiname mit
@@ -287,6 +292,14 @@ const EXPECTED_FILES = [
   'Bookshelf/Field Notes/Field Notes.md',
   'Bookshelf/Field Notes/cover.png',
   'Templates/Meeting Note.md',
+  // 4T-002353 (Epic 3E-000184): der Workflow-Ordner der Demo-Area, festgelegt in
+  // ihrer Bereichsdatei (Sektion workflows), mit drei Beispiel-Workflows:
+  // Datei aus der Vorlage «Meeting Note» anlegen, einen Abschnitt an die
+  // Workflow-Station anhaengen, ein Kommando ausfuehren. Ohne Schlagworte, damit
+  // die Tag-Menge gleich bleibt.
+  'Workflows/Add Log Entry.md',
+  'Workflows/New Meeting Note.md',
+  'Workflows/Side by Side.md',
   'attachments/demo-document.pdf',
   'attachments/demo-image.png',
 ];

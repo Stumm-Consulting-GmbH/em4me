@@ -33,6 +33,11 @@ import {
 import { runMacroSequence } from '../../shared/macro-runner.js';
 import { executeCommandById } from './command-palette.js';
 import { getCommandPlacement, renderCommandButtons } from './command-placement.js';
+// 4T-002351 (Epic 3E-000184): Die Prüfung der Workflows fragt hier, ob ein Makro
+// dieses Namens existiert (Rückfrage statt Import, Kopf von workflow-pruefung.js).
+import { registriereRueckfragen } from './workflows/workflow-pruefung.js';
+// 4T-002349: Die Workflow-Kommandos hängen an derselben Handler-Verdrahtung.
+import { initWorkflowCommands } from './workflows/workflow-commands.js';
 import { isExtensionActive } from './extensions/extension-lifecycle.js';
 import { showStatusbarHint } from './views/views.js';
 
@@ -58,6 +63,15 @@ function notifyAbort(result) {
   showStatusbarHint(key, { error: true, duration: 3000, text });
 }
 
+// Die Wirkungen des Makro-Ablaufs; Sub-Makros lösen gegen dieselbe Liste auf.
+function runnerDeps(list) {
+  return {
+    executeCommand: (commandId) => executeCommandById(commandId),
+    sleep,
+    resolveMacro: (macroId) => list.find((m) => m.id === macroId) || null,
+  };
+}
+
 // Führt ein Makro aus. macroOrId: Makro-Objekt oder Makro-ID; opts.macros
 // erlaubt eine abweichende Makro-Liste (Testlauf des Einstellungs-
 // Entwurfs — auch Sub-Makro-Schritte lösen dann gegen den Entwurf auf).
@@ -67,13 +81,21 @@ export async function runMacro(macroOrId, opts = {}) {
   const macro =
     typeof macroOrId === 'string' ? list.find((m) => m.id === macroOrId) || null : macroOrId;
   if (!macro) return false;
-  const result = await runMacroSequence(macro, {
-    executeCommand: (commandId) => executeCommandById(commandId),
-    sleep,
-    resolveMacro: (macroId) => list.find((m) => m.id === macroId) || null,
-  });
+  const result = await runMacroSequence(macro, runnerDeps(list));
   if (!result.ok) notifyAbort(result);
   return result.ok;
+}
+
+// 4T-002349 (Epic 3E-000184): ein Makro als Schritt eines Workflows. Gesucht
+// wird über den Namen (Befehl `macro "Name"`); die Ebene des Workflows geht an
+// den Tiefen-Zähler der Makros (A4), und den Hinweis beim Abbruch gibt der
+// Workflow selbst. Rückgabe wie runMacroSequence, mit reason 'unknown' oder
+// 'ambiguous', wenn der Name keinem oder mehreren Makros gehört.
+export async function runMacroStep(name, depth) {
+  const list = getCommandPlacement().macros;
+  const treffer = list.filter((m) => m.name === name);
+  if (treffer.length !== 1) return { ok: false, reason: treffer.length ? 'ambiguous' : 'unknown' };
+  return runMacroSequence(treffer[0], runnerDeps(list), depth);
 }
 
 // Gleicht die dynamischen macro.-Kommandos mit der Konfiguration ab:
@@ -108,6 +130,12 @@ export function syncMacroCommands() {
 
 export function initMacros(w) {
   wiring = w;
+  registriereRueckfragen({
+    // 4T-002349: die Zahl der Treffer, damit zwei gleichnamige Makros als
+    // mehrdeutig gelten (E1).
+    isKnownMacro: (name) => getCommandPlacement().macros.filter((m) => m.name === name).length,
+  });
+  initWorkflowCommands({ ...w, executeCommand: executeCommandById, runMacro: runMacroStep });
   document.addEventListener('scg:command-placement-changed', () => {
     syncMacroCommands();
     // Statusbar-Buttons auf macro.-Kommandos brauchen den frischen

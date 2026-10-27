@@ -32,6 +32,10 @@ const { createWorkspacesSubmenuBuilder } = require('./menu-workspaces');
 // Fenster» vor «Neue Applikation») liegt in menu-fenster.js, weil seine
 // Reihenfolge eine Entscheidung ist und dort gegenstaendlich pruefbar bleibt.
 const { windowMenuItems } = require('./menu-fenster');
+// 4T-002355 (Epic 3E-000184): Untermenü «Datei → Workflows» nach dem Mockup des
+// Entscheidungs-Pakets 3 und der Eintrag «Workflow-Läufe anzeigen» im Menü
+// «Ansicht»; Aufbau in menu-workflows.js, die Liste kommt im Menü-Zustand.
+const { buildWorkflowRunsViewItem, buildWorkflowsSubmenu } = require('./menu-workflows');
 // 4T-000568 (Epic 3E-000104): Panel-Zugangs-Modell — Label-Key, Toggle-Kommando
 // (Accelerator) und Fallback-Reihenfolge des Panel-Untermenues.
 const { PANEL_ACCESS, panelAccessById } = require('../../shared/panel-access');
@@ -89,12 +93,11 @@ function buildMenu(win, state, actions) {
     };
 
   const viewMode = state && state.viewMode ? state.viewMode : 'rendered';
-  const recentFiles = Array.isArray(state && state.recentFiles) ? state.recentFiles : [];
-  // 4T-000325 (Epic 3E-000058): zuletzt geoeffnete Bereiche.
-  const recentAreas = Array.isArray(state && state.recentAreas) ? state.recentAreas : [];
-  // 4T-000888 (Epic 3E-000168): dieselben Listen fuer Buecher und Buecherregale.
-  const recentBooks = Array.isArray(state && state.recentBooks) ? state.recentBooks : [];
-  const recentShelves = Array.isArray(state && state.recentShelves) ? state.recentShelves : [];
+  // Die vier «Zuletzt geöffnet»-Listen: Dateien, seit 4T-000325 (Epic 3E-000058)
+  // die Bereiche, seit 4T-000888 (Epic 3E-000168) Bücher und Bücherregale.
+  // 4T-002355: ein Zugriff statt vier gleich gebauter Zeilen — der Ausgleich für
+  // die Workflow-Einträge, weil diese Datei auf ihrem eingefrorenen Wert steht.
+  const recentListe = (k) => (Array.isArray(state && state[k]) ? state[k] : []);
   // 4T-000277: System-Seiten (Einstellungen) kennen keine View-Modi, kein
   // Bearbeiten/Speichern und keinen Export — betroffene Eintraege sind
   // deaktiviert (Muster manualTab der Handbuch-Tabs).
@@ -383,7 +386,7 @@ function buildMenu(win, state, actions) {
           {
             label: t('menu.file.recent'),
             submenu: buildRecentList(
-              recentFiles,
+              recentListe('recentFiles'),
               'menu.file.recentEmpty',
               'openRecent',
               'clearRecent',
@@ -587,7 +590,7 @@ function buildMenu(win, state, actions) {
             // 4T-000325 (Epic 3E-000058): schneller Wiedereinstieg in Bereiche.
             label: t('menu.file.recentAreas'),
             submenu: buildRecentList(
-              recentAreas,
+              recentListe('recentAreas'),
               'menu.file.recentAreasEmpty',
               'openRecentArea',
               'clearRecentAreas',
@@ -604,6 +607,8 @@ function buildMenu(win, state, actions) {
             click: send('menu:createDemoArea'),
           }),
         ]),
+        // 4T-002355: «Workflows» unmittelbar nach «Bereich» (Entscheidung 3a).
+        buildWorkflowsSubmenu({ t, send, liste: state && state.workflows }),
         // 4T-000843 (Epic 3E-000147): Buecher sind ein eigener Kontext auf
         // derselben Ebene wie Bereich und Arbeitsbereich. Oeffnen, Anlegen und
         // Schliessen fuehrt der Main direkt aus (Ordner-Dialog, Anlage,
@@ -656,7 +661,7 @@ function buildMenu(win, state, actions) {
           unless('book.open', {
             label: t('menu.file.recentBooks'),
             submenu: buildRecentList(
-              recentBooks,
+              recentListe('recentBooks'),
               'menu.file.recentBooksEmpty',
               'openRecentBook',
               'clearRecentBooks',
@@ -695,7 +700,7 @@ function buildMenu(win, state, actions) {
           unless('shelf.open', {
             label: t('menu.file.recentShelves'),
             submenu: buildRecentList(
-              recentShelves,
+              recentListe('recentShelves'),
               'menu.file.recentShelvesEmpty',
               'openRecentShelf',
               'clearRecentShelves',
@@ -1359,6 +1364,9 @@ function buildMenu(win, state, actions) {
           enabled: avail('database.openOverview'),
           click: send('menu:openDatabaseOverview'),
         }),
+        // 4T-002355: Seite «Workflow-Läufe» (4T-002350) hinter der Übersicht der
+        // Datenbank, beide bereichsweite Auswertungen.
+        buildWorkflowRunsViewItem({ t, send, liste: state && state.workflows }),
         unless('memory.openPage', {
           // 4T-001599 (Epic 3E-000191): My Extended Memory als vierter Eintrag
           // im Block der Folge-Ansichten. Immer aktiv — die Seite zeigt die

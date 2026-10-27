@@ -59,5 +59,6 @@
   "manual.page.canvas.title": "Surface Canvas",
   "manual.page.kanban.title": "Tableau Kanban",
   "manual.page.presentation.title": "Présentation",
-  "manual.page.database.title": "Base de données"
+  "manual.page.database.title": "Base de données",
+  "manual.page.workflows.title": "Workflows"
 }

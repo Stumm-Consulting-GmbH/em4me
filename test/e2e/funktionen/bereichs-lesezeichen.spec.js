@@ -23,7 +23,8 @@ const BASIS = path.join(FIXTURES, 'basis.md');
 const PANE = '.pane-group[data-pane="0"]';
 // 4T-000372-Marker: der erste Panel-Button des source-toggles-Segments steht erst
 // nach applyPanelButtonOrder() am Ende von init(); als Bereitschafts-Signal fuer
-// ein frisch geoeffnetes zweites Fenster (Muster launchApp-Helfer).
+// ein frisch geoeffnetes zweites Fenster (Muster des früheren launchApp-Helfers,
+// dort seit 4T-002062 durch das Bereit-Zeichen ersetzt).
 const FIRST_PANEL_BUTTON_ID = PANEL_ACCESS.find(
   (p) => p.id === DEFAULT_PANEL_TOGGLE_ORDER[0],
 ).buttonId;
@@ -224,10 +225,10 @@ test.describe('BL-06: Allgemeine Lesezeichen synchronisieren zwischen Fenstern',
     const { app, page, userData } = await launchApp({ args: [BASIS] });
     try {
       await expect(page.locator(`${PANE} .tab`).first()).toBeVisible();
-      // Fenster A vollstaendig initialisiert abwarten, bevor Strg+D getippt wird:
-      // der Tastatur-Dispatch haengt wie die Statusbar-Klicks an bindUi(), das
-      // erst am Ende von init() laeuft (siehe Fenster B unten).
-      await page.waitForSelector('body[data-renderer-ready]', { timeout: 15000 });
+      // Fenster A ist vollständig initialisiert, bevor Strg+D getippt wird: Der
+      // Tastatur-Dispatch hängt wie die Statusbar-Klicks an bindUi(), das erst
+      // am Ende von init() läuft (siehe Fenster B unten); auf das Bereit-Zeichen
+      // des Startfensters wartet launchApp seit 4T-002062 selbst.
       // Zweites Fenster (neue Applikation, gemeinsamer globaler Store und eigener
       // Renderer mit registriertem Broadcast-Empfang).
       const win2Promise = app.waitForEvent('window');

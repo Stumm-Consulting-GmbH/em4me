@@ -114,6 +114,17 @@ Un dossier de fichiers Markdown peut être en même temps une base de données, 
 
 En détail : [Base de données](database.md).
 
+## Des manipulations qui se font toutes seules
+
+Certains travaux se répètent dans le même ordre : créer à partir du modèle une note pour la prochaine réunion, ajouter une entrée au journal, déplacer un fichier terminé vers l'archive. Un workflow consigne cette suite une fois pour toutes, sous forme de fichier Markdown ordinaire avec une ligne par étape, et l'application l'exécute chaque fois que vous le lancez. Comme le fichier reste du texte, il se lit, se modifie, se transmet et se conserve dans une sauvegarde comme tout autre document.
+
+- **Une étape par ligne** : créer des fichiers et des dossiers, y compris à partir de modèles, renommer, déplacer en mettant à jour tous les liens, ajouter et insérer du texte, définir des propriétés dans l'en-tête, exécuter des commandes et des macros.
+- **D'abord vérifier, puis exécuter** : avant la première étape, l'application vérifie le workflow entier et demande toutes les saisies ; une erreur s'affiche au-dessus du bloc avec la ligne et le motif, et rien ne s'exécute.
+- **Lancé comme il vous convient** : depuis le menu, la palette de commandes, par un raccourci clavier, un bouton dans la barre d'état ou au-dessus du bloc.
+- **Avec des limites fixes** : un workflow n'agit que dans la zone ouverte, n'écrase aucun fichier existant, ne supprime rien et n'accède pas au réseau.
+
+En détail : [Workflows](workflows.md).
+
 ## L'application s'adapte — et vous suit
 
 Qui travaille longtemps avec un programme finit par le façonner : couleurs, raccourcis clavier, boutons, modèles et favoris grandissent avec votre manière de travailler, et un jour la langue dans laquelle l'interface s'exprime en fait partie elle aussi. Ce travail était jusqu'ici lié à un seul ordinateur et aux langues livrées avec l'application. Les deux sont ouverts : votre configuration peut être écrite dans un fichier lisible et relue ailleurs, et qui a besoin d'une sixième langue traduit lui-même l'interface. S'y ajoute la vue d'ensemble — une page qui montre côte à côte tous vos espaces de travail, zones, livres et bibliothèques, y compris ceux qui ne sont pas raccordés en ce moment.

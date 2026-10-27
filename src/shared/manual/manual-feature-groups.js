@@ -754,6 +754,15 @@ const HELP_FEATURE_GROUPS = [
       // neben den konfigurierbaren Tastenkuerzeln (Registrierungs-Kniff:
       // jedes Makro ist ein regulaeres Kommando).
       'help.feature.macros',
+      // 4T-002353 (Epic 3E-000184): die Workflows direkt hinter den Makros —
+      // beide buendeln wiederkehrende Handgriffe, und ein Workflow ruft Makros
+      // als Schritt auf. Die Grundzeile zuerst, danach Start, Ordner samt Menue,
+      // die Seite der Laeufe und die Hilfe im Editor.
+      'help.feature.workflows',
+      'help.feature.workflowStart',
+      'help.feature.workflowFolder',
+      'help.feature.workflowRuns',
+      'help.feature.workflowEditor',
       // 4T-000296 (Epic 3E-000052): das Erweiterungs-System als app-weite
       // Eigenschaft (Schalten interner Erweiterungen).
       'help.feature.extensions',

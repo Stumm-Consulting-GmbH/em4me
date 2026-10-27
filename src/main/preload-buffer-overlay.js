@@ -37,4 +37,30 @@ function bufferOverlayBridge(ipcRenderer) {
   };
 }
 
-module.exports = { bufferOverlayBridge };
+/**
+ * Die Aufträge an das Fenster, dessen ungespeicherter Stand für eine Datei
+ * gilt (Anfrage und Auftrag), aus Erinnerungen und Aufgaben-Abfrage.
+ *
+ * 4T-002348 (Epic 3E-000184): aus `preload.js` hierher gezogen, weil sie
+ * fachlich zur Puffer-Schicht gehören und `preload.js` auf seinem
+ * eingefrorenen Größen-Budget steht; Namen und Kanäle sind unverändert. Eine
+ * eigene Funktion neben `bufferOverlayBridge`, damit deren Einträge bleiben,
+ * wie sie sind.
+ *
+ * @param {object} ipcRenderer Electron-IPC des Anzeige-Prozesses.
+ * @returns {object} Einträge für das Brücken-Objekt.
+ */
+function bufferEditBridge(ipcRenderer) {
+  return {
+    // 4T-001727 (Epic 3E-000305): Bearbeitung einer Erinnerung im Fenster,
+    // dessen ungespeicherter Stand gilt.
+    remindersEdit: (auftrag) => ipcRenderer.invoke('reminders:edit', auftrag),
+    onRemindersEdit: (cb) => ipcRenderer.on('reminders:edit', (_e, auftrag) => cb(auftrag)),
+    // 4T-001978 (Epic 3E-000330): Handgriff am Treffer der Aufgaben-Abfrage,
+    // Bauart reminders:edit.
+    taskQueryEdit: (auftrag) => ipcRenderer.invoke('taskQuery:edit', auftrag),
+    onTaskQueryEdit: (cb) => ipcRenderer.on('taskQuery:edit', (_e, auftrag) => cb(auftrag)),
+  };
+}
+
+module.exports = { bufferOverlayBridge, bufferEditBridge };

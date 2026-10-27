@@ -47,7 +47,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, oeffneDokumentImFenster } = require('../helpers/app');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 const { SEL } = require('../helpers/selectors');
 const { warteAufText } = require('../helpers/dateien');
@@ -119,28 +119,21 @@ function shelfState(page) {
 
 // Datei über denselben Kanal öffnen wie Explorer-Doppelklick und
 // Zuletzt-Liste; genau dieser Weg löst die Regal-Erkennung und seit 4T-000873
-// das strikte Buch-Routing aus (Muster buch.spec.js, gepollt gegen ein noch
-// ladendes Fenster). 4T-001813: Das Zustellen ist ein reiner Befehl und läuft
-// über hauptSenden (Begründung im Kopf des Helfers); RG-03 verlor hier beim
-// zweiten Öffnen die Rückmeldung. Wiederholt wird es weiterhin sichtbar von der
-// Wiederhol-Klammer, die auf den Reiter wartet.
+// das strikte Buch-Routing aus (Muster buch.spec.js).
+//
+// 4T-002181 (RG-03): Zugestellt wird GENAU EINMAL über oeffneDokumentImFenster
+// aus helpers/app.js, danach wird auf den aktiven Eintrag gewartet. Bisher
+// stellte ein Poll die Nachricht file:openExternal so lange erneut zu, bis der
+// Reiter erschien; ein noch fehlender Reiter galt als verlorene Zustellung.
+// Unter Last ist die erste Zustellung dann aber noch unterwegs, und die zweite
+// überlappt sie (Stabilitätsregel 12). Die Nachricht ist nicht idempotent
+// (Regel 32, dasselbe Bild an BM-01 am 2026-09-28). Am 2026-09-27 riss beim
+// zweiten Öffnen, dem der Regal-Datei, der Zugriff auf den Hauptprozess; ob die
+// überlappende Zustellung die Ursache war, ist nicht gemessen. Der Poll war für
+// ein noch ladendes Fenster gebaut; seit 4T-002062 kehrt launchApp erst nach
+// dem Bereit-Zeichen zurück, und der Helfer wartet selbst noch einmal darauf.
 async function openExternally(app, page, filePath) {
-  // 4T-001724 (Epic 3E-000304): Der Reiter traegt den Namen ohne
-  // Markdown-Endung; verglichen wird deshalb die gekuerzte Form.
-  const name = path.basename(filePath).replace(/\.(md|markdown|mdown|mkd)$/i, '');
-  await expect
-    .poll(async () => {
-      await hauptSenden(
-        app,
-        ({ BrowserWindow }, file) => {
-          const win = BrowserWindow.getAllWindows()[0];
-          if (win && !win.isDestroyed()) win.webContents.send('file:openExternal', [file]);
-        },
-        filePath,
-      );
-      return page.locator(`${SEL.tabs0} .tab-title`).allTextContents();
-    })
-    .toContain(name);
+  await oeffneDokumentImFenster(app, page, filePath);
 }
 
 // Dieselbe Zustellung, aber gezielt an EIN Fenster und ohne Erwartung an

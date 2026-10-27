@@ -212,6 +212,19 @@ test.describe('LA-04: Menüpunkt «Neues Fenster» (4T-001738)', () => {
       await expect(page.locator(SEL.tabs0)).toHaveCount(1);
       await expect.poll(() => page.title()).toContain('basis');
       await armMenuCapture(app);
+      // 4T-002181: Der Abgriff sieht erst den NÄCHSTEN Menü-Neubau. Bisher
+      // setzte der Fall darauf, dass der Neubau für das geöffnete Dokument
+      // noch aussteht; die Oberfläche meldet ihn aber unmittelbar vor dem
+      // Titel (reportMenuStateNow vor updateWindowTitle in tabs.js), und unter
+      // Last kam er vor dem Abgriff an. Danach baute niemand mehr neu, und die
+      // Erfassung blieb leer (Received array: [], 2026-09-28). Der Titel ist
+      // damit ein Vorbote, kein Zustand (Stabilitätsregel 12). Der Fall stößt
+      // den Neubau deshalb nach dem Abgriff selbst an, über den eigenen
+      // Meldeweg der Oberfläche: Das Ereignis der Panel-Reihenfolge ordnet die
+      // Knöpfe unverändert neu und meldet den unveränderten Menü-Stand.
+      await page.evaluate(() =>
+        document.dispatchEvent(new CustomEvent('scg:panel-toggle-order-changed')),
+      );
 
       // AK1/AK2: Beide Einträge stehen im Datei-Menü, «Neues Fenster» vor
       // «Neue Applikation». Gemessen an der Reihenfolge der Beschriftungen des

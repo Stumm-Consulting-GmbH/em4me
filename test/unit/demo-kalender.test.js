@@ -105,8 +105,15 @@ afterEach(() => {
 });
 
 describe('Demo-Area: Kalender-Sektion gegen die Vorlagen (4T-001735)', () => {
-  it('die Bereichsdatei trägt neben der Start-Seite genau die Kalender-Sektion', () => {
-    expect(Object.keys(container.settings).sort()).toEqual(['calendarSystems', 'startPage']);
+  // 4T-002353 (Epic 3E-000184): dazu die Sektion workflows mit dem Workflow-Ordner
+  // der Demo-Area; der Erzeuger der Kalender-Sektion laesst sie stehen.
+  it('die Bereichsdatei trägt neben Start-Seite und Workflow-Ordner genau die Kalender-Sektion', () => {
+    expect(Object.keys(container.settings).sort()).toEqual([
+      'calendarSystems',
+      'startPage',
+      'workflows',
+    ]);
+    expect(container.settings.workflows).toEqual({ folder: 'Workflows' });
     expect(container.settings.startPage).toBe('00 Welcome.md');
   });
 

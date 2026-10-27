@@ -30,7 +30,9 @@ import { runLezerPass } from './live-pass-lezer.js';
 import { runInlinePasses } from './live-pass-inline.js';
 import { runCalloutPasses } from './live-pass-callouts.js';
 import { runLateInlinePasses } from './live-pass-inline-late.js';
-import { liveBlockWidgetsField } from './live-block-field.js';
+import { liveBasePathFacet, liveBlockWidgetsField } from './live-block-field.js';
+// 4T-002351 (Epic 3E-000184): Kopfzeile mit Prüf-Anzeige über dem workflow-Block.
+import { workflowKopf } from '../workflows/workflow-kopf.js';
 import { liveTabellenZellFokus } from './live-table-zelle.js';
 import {
   liveAbbrHoverTooltip,
@@ -202,4 +204,5 @@ export const livePreviewExtensions = [
   // drei Wege hinein — Klick, Zellsprung und Pfeiltaste von ausserhalb —, weil
   // alle drei damit enden, dass die Marke im Tabellen-Quelltext steht.
   liveTabellenZellFokus,
+  workflowKopf(liveBasePathFacet),
 ];

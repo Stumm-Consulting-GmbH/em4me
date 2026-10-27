@@ -11,7 +11,6 @@ const path = require('node:path');
 const { _electron: electron, test, expect } = require('@playwright/test');
 const { SEL } = require('./selectors');
 const { hauptSenden, hauptLesen } = require('./haupt-zugriff');
-const { PANEL_ACCESS, DEFAULT_PANEL_TOGGLE_ORDER } = require('../../../src/shared/panel-access.js');
 // 4T-001101: Zustands-Anteil der Profil-Vorbelegung aus der einen Quelle.
 const { schreibeProfilVorbelegung } = require('../../../scripts/profil-vorbelegung.js');
 
@@ -58,50 +57,6 @@ function pruefeBuendelEinmal() {
   buendelGeprueft = true;
 }
 
-// 4T-000372 (Epic 3E-000069): Bereitschafts-Marker der Renderer-Init.
-// applyPanelButtonOrder() sortiert die Statusbar-Panel-Buttons ganz am Ende
-// von init() in die Modell-Reihenfolge; statisch steht in index.html ein
-// anderer Button vorn. Der erste Button des Segments ist damit das spaeteste
-// beobachtbare Init-Ergebnis und aus dem Zugangs-Modell abgeleitet (kein
-// hartkodierter Wert, der bei Reihenfolge-Aenderungen still veraltet).
-const FIRST_PANEL_BUTTON_ID = PANEL_ACCESS.find(
-  (p) => p.id === DEFAULT_PANEL_TOGGLE_ORDER[0],
-).buttonId;
-
-/**
- * Wartet, bis die asynchrone Renderer-init() durchgelaufen ist.
- *
- * Hintergrund (4T-000372): waitForLoadState('domcontentloaded') deckt nur die
- * Listener auf Modulkopf-Ebene ab. init() laeuft danach mit vielen
- * await-Schritten weiter und registriert dort unter anderem den
- * reminders:due-Listener und die Panel-Sichtbarkeiten aus dem Store. Specs,
- * die unmittelbar nach dem Start einen Bereich binden (openAreaPath), lieferten
- * deshalb ein Rennen: fire-and-forget-Events des Main-Prozesses konnten
- * eintreffen, bevor ihr Listener existierte (ipcRenderer.on puffert nicht).
- * Das Rennen ging lange knapp zugunsten der Tests aus und kippte, als das
- * Renderer-Bundle um die Uhr-Module wuchs — betroffen waren ER-08
- * (Erinnerungen) und BIC-01 (Bereichs-Index-Cache).
- *
- * Bewusst weich: ein Ausbleiben des Markers laesst den Start NICHT scheitern,
- * damit dieser Helfer keine neue Fehlerquelle fuer Specs wird, die die
- * Statusbar gar nicht aufbauen. Der Test scheitert dann wie bisher an seiner
- * eigentlichen Assertion.
- */
-async function waitForRendererInit(page) {
-  try {
-    await page.waitForFunction(
-      (expected) => {
-        const btn = document.querySelector('.statusbar .source-toggles > button');
-        return !!btn && btn.id === expected;
-      },
-      FIRST_PANEL_BUTTON_ID,
-      { timeout: 15000 },
-    );
-  } catch {
-    // Marker nicht erreicht — bewusst kein harter Fehlschlag, siehe oben.
-  }
-}
-
 /**
  * 4T-001948: Wartet, bis die Renderer-init() GENAU DIESER Seite durch ist.
  *
@@ -115,8 +70,8 @@ async function waitForRendererInit(page) {
  * Senden, und das zweite Fenster kam auch in 120 s nicht.
  *
  * Gewartet wird auf `body[data-renderer-ready]`, das die Anwendung nach
- * bindUi() und initDone setzt (app-init.js). Anders als waitForRendererInit
- * bewusst HART: Der nächste Schritt braucht genau diesen Zustand, und ein
+ * bindUi() und initDone setzt (app-init.js). Anders als das Warten in
+ * launchApp (warteAufBereitZeichenBeimStart, unten) bewusst HART: Der nächste Schritt braucht genau diesen Zustand, und ein
  * stilles Weiterlaufen ergäbe wieder das ausbleibende Fenster statt einer
  * Meldung am Ort der Ursache.
  *
@@ -125,6 +80,87 @@ async function waitForRendererInit(page) {
  */
 async function warteAufRendererBereit(page, timeout = 15000) {
   await page.waitForSelector('body[data-renderer-ready]', { state: 'attached', timeout });
+}
+
+// 4T-002062 (Epic 3E-000156): Warten des Starts auf das Bereit-Zeichen.
+//
+// **Was sich geändert hat.** Bis hierher wartete `launchApp` weich auf einen
+// älteren Marker (4T-000372): den ersten Knopf der Statusleiste in der
+// Reihenfolge des Zugangs-Modells. Die Anwendung sortiert diese Knöpfe aber
+// deutlich früher um, als `bindUi()` sie bindet (Kommentar zu 4T-000614 in
+// src/renderer/modules/app-init.js). Ein Klick oder Menü-Befehl nach dem
+// Marker und vor dem Zeichen verpuffte ohne Spur; gemessen am 2026-10-01 an
+// `LA-06`, den Schlagwort-Fällen der Tag-Umbenennung und `BIC-01`. Gewartet
+// wird deshalb auf `body[data-renderer-ready]`, das die Anwendung am Ende von
+// init() nach `bindUi()` und `initDone` setzt.
+//
+// **Bewusst noch weich (Stufe A).** Nach dem Code setzt die Anwendung das
+// Zeichen nicht, wenn init() mit einem Fehler abbricht; `startRenderer` holt
+// dann nur die Bindungen nach. Welche Start-Lage das im Voll-Lauf trifft, ist
+// noch nicht gemessen. Bleibt das Zeichen aus, läuft der Fall deshalb weiter
+// wie bisher und scheitert, wenn überhaupt, an seiner eigenen Zusicherung;
+// dafür steht eine Spur-Zeile auf der Standard-Ausgabe des Prüf-Prozesses und
+// als Anmerkung `bereit-zeichen-ausgeblieben` im Bericht. Beide beginnen mit
+// SPUR_PRAEFIX und sind im Bericht eines Voll-Laufs danach zu durchsuchen.
+// Zeigt der nächste Voll-Lauf keine, wird das Warten hart (Stufe B).
+//
+// Die Wartezeit von 20 s ist die längste der Wartestellen, die die
+// Prüfdateien vorher selbst am Startfenster hielten; ein Fall verliert durch
+// den Umzug also keine Frist.
+const BEREIT_WARTEZEIT_MS = 20000;
+const SPUR_PRAEFIX = '[launchApp] Bereit-Zeichen ausgeblieben';
+
+/**
+ * 4T-002062: Start-Lage aus den Optionen von `launchApp`, für die Spur-Zeile.
+ * Mehrere Merkmale werden zusammen genannt, etwa wiederverwendetes Profil im
+ * Auslieferungszustand.
+ *
+ * @param {object} opts Optionen von `launchApp`.
+ * @returns {string}
+ */
+function startLage(opts) {
+  const merkmale = [];
+  if (Array.isArray(opts.args) && opts.args.length > 0) merkmale.push('Datei-Argument');
+  if (opts.userData) merkmale.push('wiederverwendetes Profil');
+  if ('settings' in opts && opts.settings === null) {
+    merkmale.push('Auslieferungszustand mit Produkt-Tour');
+  }
+  return merkmale.length > 0 ? merkmale.join(' + ') : 'Standard';
+}
+
+/**
+ * 4T-002062: Weiches Warten des Starts auf das Bereit-Zeichen, mit Spur-Zeile
+ * beim Ausbleiben. Begründung im Kommentar über BEREIT_WARTEZEIT_MS.
+ *
+ * @param {import('@playwright/test').Page} page Startfenster.
+ * @param {string} lage Start-Lage aus `startLage`.
+ */
+async function warteAufBereitZeichenBeimStart(page, lage) {
+  const beginn = performance.now();
+  try {
+    await warteAufRendererBereit(page, BEREIT_WARTEZEIT_MS);
+  } catch (err) {
+    const gewartet = Math.round(performance.now() - beginn);
+    const grund =
+      err && err.name === 'TimeoutError'
+        ? 'Zeitgrenze erreicht'
+        : `Abbruch: ${String((err && err.message) || err).split('\n')[0]}`;
+    let fall = '';
+    try {
+      fall = test.info().titlePath.join(' › ');
+    } catch {
+      // Außerhalb eines laufenden Falls: die Zeile steht dann ohne Fall-Namen.
+    }
+    const zeile =
+      `${SPUR_PRAEFIX}: Start-Lage «${lage}», gewartet ${gewartet} ms ` +
+      `(Grenze ${BEREIT_WARTEZEIT_MS} ms), ${grund}${fall ? `, Fall «${fall}»` : ''}`;
+    console.log(zeile);
+    try {
+      test.info().annotations.push({ type: 'bereit-zeichen-ausgeblieben', description: zeile });
+    } catch {
+      // Außerhalb eines laufenden Falls trägt die Konsolen-Zeile allein.
+    }
+  }
 }
 
 /**
@@ -152,6 +188,9 @@ async function warteAufRendererBereit(page, timeout = 15000) {
  * die Lücke: Wer nach dem Start einen Bereich an dasselbe Fenster bindet, muss
  * das tun, bevor das Dokument als geöffnet gemeldet ist, sonst öffnet der
  * Bereich in einem neuen Fenster (src/main/area/area-apps.js, `appHasOpenFiles`).
+ * Seit `launchApp` auf das Bereit-Zeichen wartet (4T-002062), ist die Lücke
+ * noch kürzer, weil die Oberfläche das Datei-Argument unmittelbar nach dem
+ * Zeichen öffnet; auf sie darf seit der Regel 32 ohnehin kein Fall mehr setzen.
  * Dazu kommen Starts mit wiederhergestellter Sitzung und Fälle, die ausdrücklich
  * kein Dokument erwarten. Ein pauschales Warten bräche sie; deshalb ruft der
  * Fall diesen Helfer an der Stelle auf, an der er die Vorbedingung braucht —
@@ -358,13 +397,17 @@ async function setzePruefBreite(app) {
     );
   } catch {
     // Kein Fenster (oder schon geschlossen): Der Prüffall scheitert dann an
-    // seiner eigenen Zusicherung und nicht hier — wie beim Bereitschafts-
-    // Marker oben.
+    // seiner eigenen Zusicherung und nicht hier — wie beim Bereit-Zeichen
+    // oben.
   }
 }
 
 /**
- * Startet die App mit frischem Temp-Profil.
+ * Startet die App mit frischem Temp-Profil und kehrt zurück, sobald das
+ * Startfenster sein Bereit-Zeichen trägt (4T-002062, Stufe A: bleibt es aus,
+ * kehrt der Helfer nach BEREIT_WARTEZEIT_MS mit Spur-Zeile zurück). Ein
+ * Datei-Argument ist dann noch nicht geöffnet: Die Oberfläche öffnet es erst
+ * unmittelbar nach dem Zeichen (Stabilitätsregel 32, warteAufDateiArgument).
  * @param {object} [opts]
  * @param {string[]} [opts.args]      Zusaetzliche CLI-Argumente (z.B. Dateipfad).
  * @param {string}   [opts.userData]  Bestehendes Profil-Verzeichnis wiederverwenden
@@ -409,9 +452,9 @@ async function launchApp(opts = {}) {
   // nach der Modul-Ausfuehrung; type=module ist deferred und laeuft vor
   // DOMContentLoaded — danach gehen keine gesendeten Events mehr verloren.
   await page.waitForLoadState('domcontentloaded');
-  // 4T-000372 (Epic 3E-000069): zusaetzlich das Ende der asynchronen init()
-  // abwarten — Begruendung am Helfer waitForRendererInit.
-  await waitForRendererInit(page);
+  // 4T-002062: zusätzlich das Ende der asynchronen init() abwarten, am
+  // Bereit-Zeichen der Anwendung; Begründung über BEREIT_WARTEZEIT_MS.
+  await warteAufBereitZeichenBeimStart(page, startLage(opts));
   await setzePruefBreite(app);
   return { app, page, userData };
 }

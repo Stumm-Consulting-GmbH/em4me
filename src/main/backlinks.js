@@ -42,6 +42,8 @@ const lookup = require('./index/profil-lookup.js');
 // 4T-001510 (Epic 3E-000250): Index-Sicht des Datenbank-Bestands fuer den Katalog.
 const datenbank = require('./index/datenbank-bestand.js');
 const datensatzZugriff = require('./index/datensatz-zugriff.js');
+// 4T-002347 (Epic 3E-000184): die Workflow-Dateien eines Bereichs.
+const workflowDateien = require('./index/workflow-files.js');
 
 module.exports = {
   attachBroadcast: store.attachBroadcast,
@@ -123,6 +125,8 @@ module.exports = {
   werteAusAbfrage: wertevorrat.werteAusAbfrage,
   // 4T-001340 (Epic 3E-000238): Werte-Vorschlaege aus dem vorhandenen Bestand.
   eigenschaftsWerteFuerFeld: eigenschaftsWerte.eigenschaftsWerteFuerFeld,
+  // 4T-002347 (Epic 3E-000184): gekennzeichnete Workflow-Dateien aus dem Index.
+  workflowFilesFor: workflowDateien.workflowFilesFor,
   auswertungsZaehler: wertevorrat.auswertungsZaehler,
   zwischenspeicherLeeren: wertevorrat.zwischenspeicherLeeren,
   // 4T-001184 (Epic 3E-000221): Treffer eines Lookup-Feldes, auf Verlangen

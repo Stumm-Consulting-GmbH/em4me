@@ -38,6 +38,8 @@ const BEREICHS_ABSCHNITTE = [
   'attachmentsArea',
   'templatesArea',
   'areaLinks',
+  // 4T-002355 (Epic 3E-000184): Workflow-Ordner des Bereichs.
+  'workflowsArea',
   'journals',
   'calendarSystems',
   'propertyProfiles',

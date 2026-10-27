@@ -32,6 +32,10 @@ L'astuce décisive : chaque macro est elle-même enregistrée comme commande ré
 
 L'éditeur d'étapes se trouve dans la même section de paramètres : par macro, une liste d'étapes dépliable avec réordonnancement et suppression, plus un bouton d'exécution de test. L'exécution de test lance immédiatement l'état d'édition actuel — dans le contexte de l'onglet des paramètres, de sorte que les étapes liées au contexte s'y interrompent, comme attendu, avec le message.
 
+## Workflows
+
+Chaque workflow du dossier de workflows est lui aussi une commande, dans l'espace de noms des workflows ; comme une macro, il peut être placé comme bouton de barre d'état ou entrée de menu contextuel et recevoir un raccourci dans la section de paramètres « Raccourcis clavier ». Contrairement à une macro, un workflow est un fichier Markdown à commandes fixes qui créent, déplacent et modifient aussi des fichiers ; un workflow peut appeler une macro comme étape. L'identifiant de sa commande provient du chemin du fichier dans le dossier de workflows : si le workflow est renommé ou déplacé, un bouton et une entrée créés pour lui disparaissent, et un raccourci clavier doit être attribué de nouveau. Détails sur la page [Workflows](workflows.md).
+
 ## Délimitation par rapport à la palette de commandes
 
 La [palette de commandes](tools.md) et le placement des commandes travaillent sur le même registre de commandes mais servent des situations différentes : la palette est l'accès clavier éphémère — ouvrir, taper, exécuter, sans rien configurer. Le placement crée des accès durables pour les gestes récurrents : un clic dans la barre d'état, un clic droit dans l'éditeur, un raccourci sur une macro.

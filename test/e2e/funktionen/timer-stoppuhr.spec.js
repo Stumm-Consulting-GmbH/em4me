@@ -32,12 +32,29 @@ const DUE_MODAL = '#timer-due-modal';
 const SW = '.pane-group .sidebar-clock .stopwatch-view';
 
 // Panel oeffnen und in den gewuenschten Modus schalten (Muster wecker.spec).
+//
+// 4T-002181 (TS-06): Je Klick wird auf seinen Zustand gewartet statt auf eine
+// feste Pause. Bisher folgte jedem Klick eine Pause von 150 ms und ein zweiter
+// Klick, wenn die Sektion danach noch fehlte; der Knopf schaltet aber um, und
+// reichte die Pause unter Last nicht, nahm der zweite Klick den ersten zurück
+// (Stabilitätsregel 12, «Eine feste Pause ist nie die Bedingung»; Regel 13 gilt
+// für einen Umschalter nicht). Der Knopf meldet die Vorliebe der Spalte in
+// aria-pressed. Steht sie schon an, während die Sektion fehlt (gespeichert
+// sichtbar bei inaktivem Gruppen-Reiter), schaltet der erste Klick aus und der
+// zweite wieder ein, und das Einschalten aktiviert den Reiter. Die Abfrage der
+// Sichtbarkeit vor dem ersten Klick trägt, weil launchApp seit 4T-002062 erst
+// nach dem Bereit-Zeichen zurückkehrt, also nach der Wiederherstellung der
+// Panels; davor konnte sie einen Zwischenstand des Starts lesen.
 async function openMode(page, mode) {
   const section = page.locator(SECTION).first();
-  for (let i = 0; i < 2; i++) {
-    if (await section.isVisible()) break;
-    await page.click(CLOCK_BTN);
-    await page.waitForTimeout(150);
+  const knopf = page.locator(CLOCK_BTN);
+  if (!(await section.isVisible())) {
+    if ((await knopf.getAttribute('aria-pressed')) === 'true') {
+      await knopf.click();
+      await expect(knopf).toHaveAttribute('aria-pressed', 'false');
+    }
+    await knopf.click();
+    await expect(knopf).toHaveAttribute('aria-pressed', 'true');
   }
   await expect(section).toBeVisible();
   await page.click(MODE(mode));

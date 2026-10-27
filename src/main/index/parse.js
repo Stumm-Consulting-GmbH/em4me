@@ -127,7 +127,9 @@ function reduceHeadingText(s) {
 
 // 4T-000054: ATX-Heading-Erkennung (1-6 Hashes plus mind. ein Leerzeichen).
 // Optionaler Trailing-Hash (`# Heading #`) wird abgeschnitten.
-const HEADING_RE = /^#{1,6}\s+(.+?)(?:\s+#{1,6})?\s*$/;
+// 4T-002347 (Epic 3E-000184): aus der gemeinsamen Abschnitts-Heimat; der
+// Export unten bleibt für bestehende Verbraucher.
+const { HEADING_RE } = require('../../shared/markdown/heading-sections.js');
 
 // 4T-001530 (Epic 3E-000175): TAG_RE, isValidTag und die Zeilen-Maskierung
 // liegen seit diesem Vorgang in src/shared/tag-erkennung.js — dieselbe Quelle,

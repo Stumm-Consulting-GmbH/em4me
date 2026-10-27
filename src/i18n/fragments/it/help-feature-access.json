@@ -291,5 +291,10 @@
   "help.featureAccess.databaseRoleAssignment": "Frontmatter della scheda, indicazioni `users` e `defaultRole` nel contenitore `db-database`; panoramica della banca dati, riga «Ruolo proprio»",
   "help.featureAccess.databasePermissionCheck": "Agisce nel salvataggio da parte dell'applicazione e nel salvataggio di un file di tabella o della scheda",
   "help.featureAccess.databasePermissionForms": "Maschera, maschera elenco, sezione delle posizioni, pulsante «Nuovo record» sotto la tabella; panoramica della banca dati, riga «Permessi» per tabella",
-  "help.featureAccess.databaseExtension": "Impostazioni → Estensioni → Banca dati"
+  "help.featureAccess.databaseExtension": "Impostazioni → Estensioni → Banca dati",
+  "help.featureAccess.workflows": "Contrassegno `workflow: true` nell'intestazione e blocco di codice `workflow`; File → Workflow; pulsante «Avvia» sopra il blocco nella modalità live, nella vista renderizzata e nella vista divisa; File → Impostazioni… → Estensioni → Workflow",
+  "help.featureAccess.workflowStart": "File → Workflow → «nome del workflow»; palette dei comandi → «nome del workflow»; pulsante «Avvia» sopra il blocco nella modalità live, nella vista renderizzata e nella vista divisa; menu contestuale di un file di workflow nel pannello dell'area → Avvia; File → Impostazioni… → Scorciatoie da tastiera",
+  "help.featureAccess.workflowRuns": "Visualizza → Mostra esecuzioni dei workflow; File → Workflow → Mostra esecuzioni dei workflow; palette dei comandi → «Mostra esecuzioni dei workflow»",
+  "help.featureAccess.workflowEditor": "Blocco di codice `workflow`; indicazione del controllo sopra il blocco nella modalità live, nella vista renderizzata e nella vista divisa",
+  "help.featureAccess.workflowFolder": "File → Workflow; File → Workflow → Nuovo workflow… e Imposta cartella dei workflow…; File → Impostazioni… → Estensioni (interne) → Workflow e Area corrente → Workflow; palette dei comandi → «Nuovo workflow…»"
 }

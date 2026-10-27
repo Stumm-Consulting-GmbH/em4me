@@ -291,5 +291,10 @@
   "help.featureName.databaseRoleAssignment": "Zuordnung von Anmeldenamen und Vorgabe-Rolle",
   "help.featureName.databasePermissionCheck": "Prüfung der Berechtigung beim Schreiben",
   "help.featureName.databasePermissionForms": "Berechtigung in Masken und Übersicht",
-  "help.featureName.databaseExtension": "Datenbank als schaltbare Erweiterung"
+  "help.featureName.databaseExtension": "Datenbank als schaltbare Erweiterung",
+  "help.featureName.workflows": "Workflows",
+  "help.featureName.workflowStart": "Workflow von Hand starten",
+  "help.featureName.workflowRuns": "Workflow-Läufe",
+  "help.featureName.workflowEditor": "Workflow-Blöcke im Editor",
+  "help.featureName.workflowFolder": "Workflow-Ordner und Menü"
 }

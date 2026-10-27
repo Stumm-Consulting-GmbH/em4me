@@ -77,6 +77,7 @@ const { localTodayIso, renderPerspectiveEventsViewer } = require('./perspective-
 // das Nachbar-Modul; hier bleibt allein die Weiche.
 const { CANVAS_EXTENSION_ID } = require('../canvas/canvas-core.js');
 const { renderCanvasBlock } = require('./canvas-block.js');
+const { istWorkflowFence, workflowFenceHtml } = require('./workflow-block.js');
 // 4T-001548 (Epic 3E-000251): Die statische Konvertierung aller Fence-Konstrukte
 // des portablen Exports; hier bleibt allein die Klammer darum (KaTeX-Abschaltung
 // und Marker an der Datei-Spitze).
@@ -566,8 +567,10 @@ function buildPipelines(enabled) {
     const defaultFenceRenderer = md.renderer.rules.fence;
     md.renderer.rules.fence = function (tokens, idx, options, env, self) {
       const token = tokens[idx];
-      const info = (token.info || '').trim();
-      const lang = info.split(/\s+/g)[0];
+      const lang = (token.info || '').trim().split(/\s+/g)[0];
+      // 4T-002351 (Epic 3E-000184): der workflow-Block mit Hervorhebung aus dem
+      // Zeilen-Leser; aus: Rückfall auf den Code-Block. Markup im Nachbar-Modul.
+      if (istWorkflowFence(lang, enabled)) return workflowFenceHtml(token.content, token.map, env);
       // 4T-000354 (Epic 3E-000065): perspective-query rendert als statischer
       // Platzhalter-Container mit dem Query-Text im data-Attribut; die Datei-Liste
       // füllt der Renderer (4T-000355). escapeHtml maskiert auch die " der String-

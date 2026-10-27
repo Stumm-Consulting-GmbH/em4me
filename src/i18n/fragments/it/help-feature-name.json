@@ -291,5 +291,10 @@
   "help.featureName.databaseRoleAssignment": "Assegnazione dei nomi di accesso e ruolo predefinito",
   "help.featureName.databasePermissionCheck": "Controllo dei permessi alla scrittura",
   "help.featureName.databasePermissionForms": "Permessi nelle maschere e nella panoramica",
-  "help.featureName.databaseExtension": "Banca dati come estensione attivabile"
+  "help.featureName.databaseExtension": "Banca dati come estensione attivabile",
+  "help.featureName.workflows": "Workflow",
+  "help.featureName.workflowStart": "Avviare un workflow a mano",
+  "help.featureName.workflowRuns": "Esecuzioni dei workflow",
+  "help.featureName.workflowEditor": "Blocchi di workflow nell'editor",
+  "help.featureName.workflowFolder": "Cartella dei workflow e menu"
 }

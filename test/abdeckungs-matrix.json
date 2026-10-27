@@ -3429,6 +3429,82 @@
       "hinweis": "4T-000522/4T-000523 (Epic 3E-000094): Makros als dynamische Registry-Kommandos — KP-08 (platzierter Makro-Button, Abbruch-Hinweis), KP-09 (Editor-Flow, Testlauf, Palette-Findbarkeit); Runner-Kern zusaetzlich unit-getestet (macro-runner.test.js)."
     },
     {
+      "key": "help.feature.workflows",
+      "id": "F-373",
+      "testart": "unit",
+      "tests": [
+        "test/unit/workflow-core.test.js",
+        "test/unit/workflow-check.test.js",
+        "test/unit/workflow-runner.test.js",
+        "test/unit/render/extensions-aus-workflows.test.js"
+      ],
+      "sichtbarkeit": [
+        "test/e2e/funktionen/workflow-start.spec.js",
+        "test/e2e/funktionen/workflow-aus.spec.js"
+      ],
+      "hinweis": "4T-002353 und 4T-002352 (Epic 3E-000184, Story 4S-001100): Grundzeile der Workflows. Unit: Erkennung am Kennzeichen, Zeilen-Leser und Prüfen vor Laufen (workflow-core, workflow-check), Ablauf-Kern eines Laufs (workflow-runner), Registry und Aus-Zustand der Erweiterung workflows (extensions-aus-workflows). An der gestarteten Anwendung: Datei- und Inhalts-Befehle mit Ergebnis im Bereich und Lauf mit Eingabe-Dialog und Vorlage (WF-START-01 bis WF-START-04), Aus-Zustand mit gewöhnlichem Code-Block und Wiederkehr ohne Verlust (WF-AUS-01)."
+    },
+    {
+      "key": "help.feature.workflowStart",
+      "id": "F-374",
+      "testart": "unit",
+      "tests": [
+        "test/unit/renderer/workflow-start.test.js",
+        "test/unit/renderer/workflow-start-knopf.test.js",
+        "test/unit/renderer/workflow-commands.test.js",
+        "test/unit/renderer/area-panel-workflow-start.test.js"
+      ],
+      "sichtbarkeit": [
+        "test/e2e/funktionen/workflow-start.spec.js",
+        "test/e2e/funktionen/workflow-laeufe.spec.js"
+      ],
+      "hinweis": "4T-002349 und 4T-002355 (Epic 3E-000184, Story 4S-001105): Start von Hand. Unit: Lauf-Steuerung samt Dialog-Kette, Knopf «Starten», Kommandos je Workflow mit Statusleiste, Kontextmenü und Tastenkürzel, «Starten» im Kontextmenü des Bereichs-Panels. An der gestarteten Anwendung: Knopf der Kopfzeile (WF-START-01), Kommando-Palette (WF-START-02), Menü «Datei → Workflows» (WF-START-03), Knopf «Starten» auf der Seite «Workflow-Läufe» (WF-LAEUFE-01)."
+    },
+    {
+      "key": "help.feature.workflowRuns",
+      "id": "F-375",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/workflow-laeufe.spec.js",
+        "test/unit/renderer/workflow-laeufe-seite.test.js"
+      ],
+      "hinweis": "4T-002350 (Epic 3E-000184, Story 4S-001106): Seite «Workflow-Läufe». WF-LAEUFE-01 misst den Abbruch im dritten Schritt mit derselben Zeile in Statusleiste und Seite, Zähler und nie gelaufenem Workflow; die Unit-Fälle prüfen Liste, Ergebnis-Arten, Nachziehen und Aus-Zustand."
+    },
+    {
+      "key": "help.feature.workflowEditor",
+      "id": "F-376",
+      "testart": "unit",
+      "tests": [
+        "test/unit/renderer/workflow-kopf.test.js",
+        "test/unit/renderer/workflow-hervorhebung.test.js",
+        "test/unit/workflow-highlight.test.js",
+        "test/unit/render/workflow-block.test.js",
+        "test/unit/renderer/workflow-aus-zustand.test.js"
+      ],
+      "sichtbarkeit": [
+        "test/e2e/funktionen/workflow-start.spec.js",
+        "test/e2e/funktionen/workflow-aus.spec.js"
+      ],
+      "hinweis": "4T-002351 (Epic 3E-000184, Story 4S-001107): Hervorhebung und Prüf-Anzeige. Unit: Kopfzeile mit «bereit» oder Befund, Marken im Editor, Spannen der Darstellung, Aus-Zustand über den echten Schalter (workflow-aus-zustand, 4T-002352). An der gestarteten Anwendung: Kopfzeile «bereit» mit Knopf (WF-START-01), keine Kopfzeile und keine Färbung im Aus-Zustand (WF-AUS-01)."
+    },
+    {
+      "key": "help.feature.workflowFolder",
+      "id": "F-377",
+      "testart": "unit",
+      "tests": [
+        "test/unit/menu-workflows.test.js",
+        "test/unit/workflow-folder.test.js",
+        "test/unit/renderer/settings-workflows.test.js",
+        "test/unit/renderer/workflow-menue.test.js"
+      ],
+      "sichtbarkeit": [
+        "test/e2e/funktionen/einstellungen-seite.spec.js",
+        "test/e2e/funktionen/workflow-start.spec.js",
+        "test/e2e/funktionen/workflow-aus.spec.js"
+      ],
+      "hinweis": "4T-002355 (Epic 3E-000184, Story 4S-001109): Workflow-Ordner, Untermenü und Einstellungs-Abschnitte. Unit: Menü-Aufbau nach dem Mockup, wirksamer Ordner, Einstellungs-Abschnitte, «Neuer Workflow …». An der gestarteten Anwendung: bereichsgebundener Abschnitt (ES-13), «Neuer Workflow …» und Start über das Untermenü (WF-START-02, WF-START-03), Untermenü und Einstellungs-Abschnitte im Aus-Zustand und zurück (WF-AUS-01)."
+    },
+    {
       "key": "help.shortcut.saveSidebarVariant",
       "id": "S-097",
       "testart": "e2e",

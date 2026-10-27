@@ -43,12 +43,27 @@ const DUE_MODAL = '#alarm-due-modal';
 // Sichtbarkeit bereits wiederhergestellt. Zwei Versuche, weil ein sichtbar
 // gespeichertes Panel mit inaktivem Gruppen-Reiter erst aus- und dann
 // wieder eingeschaltet werden muss (das Einschalten aktiviert den Reiter).
+//
+// 4T-002181 (WE-02): Je Klick wird auf seinen Zustand gewartet statt auf eine
+// feste Pause von 150 ms. Der Knopf schaltet um; reichte die Pause unter Last
+// nicht, nahm der zweite Klick den ersten zurück (Stabilitätsregel 12, «Eine
+// feste Pause ist nie die Bedingung»; Regel 13 gilt für einen Umschalter
+// nicht). Die Vorliebe der Spalte meldet der Knopf in aria-pressed; steht sie
+// schon an, während die Sektion fehlt, ist das der Fall mit inaktivem
+// Gruppen-Reiter, und es braucht Aus und wieder Ein. Die Abfrage der
+// Sichtbarkeit vor dem ersten Klick trägt, weil launchApp seit 4T-002062 erst
+// nach dem Bereit-Zeichen zurückkehrt, also nach der Wiederherstellung der
+// Panels; davor konnte sie einen Zwischenstand des Starts lesen.
 async function openAlarms(page) {
   const section = page.locator(SECTION).first();
-  for (let i = 0; i < 2; i++) {
-    if (await section.isVisible()) break;
-    await page.click(CLOCK_BTN);
-    await page.waitForTimeout(150);
+  const knopf = page.locator(CLOCK_BTN);
+  if (!(await section.isVisible())) {
+    if ((await knopf.getAttribute('aria-pressed')) === 'true') {
+      await knopf.click();
+      await expect(knopf).toHaveAttribute('aria-pressed', 'false');
+    }
+    await knopf.click();
+    await expect(knopf).toHaveAttribute('aria-pressed', 'true');
   }
   await expect(section).toBeVisible();
   await page.click(MODE_ALARM);

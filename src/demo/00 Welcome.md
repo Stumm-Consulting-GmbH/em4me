@@ -31,6 +31,7 @@ Read in order, or jump straight to what you need:
 13. [[13 Kanban]] — the tasks of one document as a board of columns and cards
 14. [[14 Calendar Systems]] — the same day in the Gregorian and the Japanese calendar, and seven more to add
 15. [[15 Presentation]] — one document as slides, shown full screen and exported
+16. [[16 Workflows]] — recurring steps written down as fixed commands and run by hand
 
 Beside the tour, the folder `Bookshelf` holds a small **bookshelf** grouping two books — among them the `Demo Book`, a handful of chapters tied into one declared reading path. Open the shelf with **File → Open Bookshelf…** (or a single book with **File → Open Book…**); [[Bookshelf]] and [[Demo Book]] explain what to try. :books:
 

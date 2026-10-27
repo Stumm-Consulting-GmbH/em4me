@@ -291,5 +291,10 @@
   "help.featureAccess.databaseRoleAssignment": "Frontmatter de la ficha, indicaciones `users` y `defaultRole` en el contenedor `db-database`; resumen de la base de datos, línea «Rol propio»",
   "help.featureAccess.databasePermissionCheck": "Actúa en el guardado por la aplicación y al guardar un archivo de tabla o la ficha",
   "help.featureAccess.databasePermissionForms": "Formulario, formulario de lista, sección de posiciones, botón «Nuevo registro» debajo de la tabla; resumen de la base de datos, línea «Permisos» por tabla",
-  "help.featureAccess.databaseExtension": "Configuración → Extensiones → Base de datos"
+  "help.featureAccess.databaseExtension": "Configuración → Extensiones → Base de datos",
+  "help.featureAccess.workflows": "Marca `workflow: true` en la cabecera y bloque de código `workflow`; Archivo → Workflows; botón ‘Iniciar’ sobre el bloque en el modo en vivo, la vista renderizada y la vista dividida; Archivo → Configuración… → Extensiones → Workflows",
+  "help.featureAccess.workflowStart": "Archivo → Workflows → ‘nombre del workflow’; paleta de comandos → ‘nombre del workflow’; botón ‘Iniciar’ sobre el bloque en el modo en vivo, la vista renderizada y la vista dividida; menú contextual de un archivo de workflow en el panel del área → Iniciar; Archivo → Configuración… → Atajos de teclado",
+  "help.featureAccess.workflowRuns": "Ver → Mostrar ejecuciones de workflows; Archivo → Workflows → Mostrar ejecuciones de workflows; paleta de comandos → ‘Mostrar ejecuciones de workflows’",
+  "help.featureAccess.workflowEditor": "Bloque de código `workflow`; indicación de comprobación sobre el bloque en el modo en vivo, la vista renderizada y la vista dividida",
+  "help.featureAccess.workflowFolder": "Archivo → Workflows; Archivo → Workflows → Nuevo workflow… y Definir carpeta de workflows…; Archivo → Configuración… → Extensiones (internas) → Workflows y Área actual → Workflows; paleta de comandos → ‘Nuevo workflow…’"
 }

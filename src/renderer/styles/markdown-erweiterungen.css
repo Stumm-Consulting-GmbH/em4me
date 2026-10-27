@@ -493,3 +493,177 @@
 .task-states-actions {
   margin-top: 8px;
 }
+
+/* === 4T-002351 (Epic 3E-000184): workflow-Block ============================
+   Hervorhebung von Schlüsselwort, Text und Platzhalter in der Darstellung
+   (Spannen wf-*, aus src/shared/markdown/workflow-block.js) und im Editor
+   (Marken cm-wf-*, aus workflow-hervorhebung.js). Farben aus dem Farbschema
+   (Entscheidung der Sitzung vom 2026-10-23, E1), damit sie jeder Anpassung
+   des Anwenders folgen. Darunter die Kopfzeile der Live-Ansicht mit der
+   Prüf-Anzeige; Grün und Rot nach den Status-Farben des Bestands
+   (.status-ok und .perspective-script-error in frontmatter.css). */
+/* Im Editor legt CodeMirror seine eigene Färbung des Code-Blocks als innerste
+   Spanne unter die Marken (gemessen am 2026-10-23); die Farben gelten deshalb
+   auch für die Spannen darin. Ein Platzhalter liegt in seinem Text, seine Regel
+   steht zuletzt und gewinnt bei gleicher Spezifität. */
+.markdown-body code.language-workflow .wf-keyword,
+.cm-line .cm-wf-keyword,
+.cm-line .cm-wf-keyword * {
+  color: var(--syntax-keyword);
+  font-weight: 600;
+}
+.markdown-body code.language-workflow .wf-string,
+.cm-line .cm-wf-string,
+.cm-line .cm-wf-string * {
+  color: var(--syntax-string);
+}
+/* Die Schrift-Form trägt die Unterscheidung mit, weil nicht jedes
+   mitgelieferte Farbschema die drei Farben weit genug trennt (gemessen am
+   2026-10-23: in «Waldgrün» liegen Text und Listen-Marke fast gleich, in
+   «Graphit» alle drei nah beieinander): Schlüsselwort fett, Platzhalter
+   kursiv. */
+.markdown-body code.language-workflow .wf-placeholder,
+.cm-line .cm-wf-placeholder,
+.cm-line .cm-wf-placeholder * {
+  color: var(--syntax-list);
+  font-style: italic;
+}
+.cm-wf-kopf {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: 2px 0;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  line-height: 1.6;
+  background: var(--bg-alt);
+  cursor: default;
+  user-select: none;
+}
+/* Nachzug vom 2026-10-24 (Entscheidung des Product Owners vom 2026-10-23):
+   dieselbe Kopfzeile über dem Block der gerenderten Ansicht, aus
+   workflow-kopf-gerendert.js. Sie steht vor dem Block und rückt an ihn heran. */
+.markdown-body > .wf-kopf-gerendert {
+  margin: 1em 0 2px;
+}
+.markdown-body > .wf-kopf-gerendert + pre,
+.markdown-body > .wf-kopf-gerendert + .code-block-wrapper > pre {
+  margin-top: 0;
+}
+.cm-wf-pruefung {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cm-wf-pruefung-ok {
+  color: #1b5e20;
+}
+[data-theme='dark'] .cm-wf-pruefung-ok {
+  color: #a5d6a7;
+}
+.cm-wf-pruefung-befund {
+  color: var(--danger, #c0392b);
+}
+.cm-wf-aktionen {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 0.25em;
+  margin-left: auto;
+}
+/* 4T-002349: Knopf «Starten» in der Kopfzeile; inaktiv bei einem Befund,
+   ohne Speicherort oder außerhalb eines Bereichs. */
+.cm-wf-starten {
+  font: inherit;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg);
+  color: inherit;
+  cursor: pointer;
+}
+.cm-wf-starten:hover:not(:disabled):not([aria-disabled='true']) {
+  border-color: var(--accent);
+}
+.cm-wf-starten:disabled,
+.cm-wf-starten[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: default;
+}
+/* 4T-002350: Seite «Workflow-Läufe». Maße der Übersicht der Datenbank
+   (datenbank.css), eigene Klassen wie dort begründet: Zwei Seiten, die sich
+   Klassen teilen, brechen bei der nächsten Änderung an einer von beiden. */
+.wf-runs-page {
+  padding: 16px 20px;
+  max-width: 1000px;
+  font-size: 13px;
+}
+.wf-runs-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.wf-runs-heading {
+  margin: 0;
+  font-size: 16px;
+}
+.wf-runs-refresh,
+.wf-runs-start {
+  font: inherit;
+  padding: 2px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  cursor: pointer;
+}
+.wf-runs-refresh:hover:not(:disabled),
+.wf-runs-start:hover:not(:disabled) {
+  background: var(--hover);
+}
+.wf-runs-refresh:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.wf-runs-note,
+.wf-runs-never {
+  color: var(--fg-muted);
+}
+.wf-runs-note {
+  margin: 8px 0;
+}
+.wf-runs-table {
+  border-collapse: collapse;
+  width: 100%;
+}
+.wf-runs-table th,
+.wf-runs-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 3px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+.wf-runs-table th {
+  color: var(--fg-muted);
+  font-weight: 600;
+}
+.wf-runs-time,
+.wf-runs-count {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.wf-runs-count,
+.wf-runs-action {
+  text-align: right;
+}
+.wf-runs-result {
+  overflow-wrap: anywhere;
+}
+.wf-runs-result-failed {
+  color: var(--danger, #c0392b);
+}

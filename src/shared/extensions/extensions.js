@@ -1341,6 +1341,43 @@ const INTERNAL_EXTENSIONS = [
     ],
     settingsSections: ['commandPlacement'],
   },
+  // 4T-002352 (Epic 3E-000184): Workflows als schaltbare Werkzeug-Erweiterung
+  // im Arbeitsmodus «Voll», wie die Makros (Entscheidungen 1g und 2e der
+  // Konzept-Runde 4T-002330). Die Kennung ist WORKFLOWS_EXTENSION_ID aus
+  // src/shared/workflows/workflow-konstanten.js; hier steht sie als Literal,
+  // weil die Registry nichts aus App-Modulen importiert (Kopf-Kommentar).
+  // Katalog-Schlüssel aus 4T-002353: der descKey ist die Zeile «Workflows»,
+  // featureKeys nennt die vier übrigen Zeilen der Stufe 1.
+  // Im Aus-Zustand: der workflow-Block ist ein gewöhnlicher Code-Block
+  // (Fence-Weiche in workflow-block.js), keine Hervorhebung, keine Kopfzeile
+  // und kein Knopf «Starten» (Wachen in workflow-hervorhebung.js und
+  // workflow-kopf.js), kein Untermenü «Datei → Workflows» und kein Eintrag im
+  // Menü «Ansicht» (der Ordner-Dienst meldet die Liste als abgeschaltet), keine
+  // Einstellungs-Abschnitte. Die beiden Kommandos im Namensraum der
+  // Erweiterung stehen in der commands-Liste, damit Palette, Dispatcher,
+  // Tastenkürzel und Handbuch-Generatoren sie filtern; die dynamischen
+  // workflow.*-Kommandos meldet der Laufzeit-Abgleich ab (Muster der Makros
+  // an command-placement). Der Ausführungs-Kanal workflow:step verweigert
+  // (src/main/ipc/workflows.js). Bewusst OHNE Abhängigkeit auf 'templates':
+  // Ist «Vorlagen» aus, meldet das Prüfen vor Laufen den Befund
+  // templatesDisabled, ein Workflow ohne from-template läuft weiter. Workflow-
+  // Dateien, Lauf-Stände und Ordner-Festlegungen bleiben beim Abschalten
+  // unangetastet.
+  {
+    id: 'workflows',
+    category: 'tools',
+    modeLevel: 'full',
+    nameKey: 'help.featureName.workflows',
+    descKey: 'help.feature.workflows',
+    featureKeys: [
+      'help.feature.workflowStart',
+      'help.feature.workflowRuns',
+      'help.feature.workflowEditor',
+      'help.feature.workflowFolder',
+    ],
+    commands: ['ext.workflows.openRuns', 'ext.workflows.newWorkflow'],
+    settingsSections: ['workflows', 'workflowsArea'],
+  },
   // 4T-000607 (Epic 3E-000114): Format-Toolbar als schaltbare Werkzeug-
   // Erweiterung (eigenständige UI-Fläche, Erweiterungs-Prüfschritt des
   // Epics). Im Aus-Zustand verschwindet die Leiste vollständig (heutiges
@@ -1445,14 +1482,12 @@ function validateExtensionRegistry(list) {
         errors.push(`${id}: unbekannte Modus-Stufe ${String(m.modeLevel)}`);
       }
     }
-    if (m.dependencies !== undefined && !Array.isArray(m.dependencies)) {
-      errors.push(`${id}: dependencies ist keine Liste`);
-    }
-    if (m.commands !== undefined && !Array.isArray(m.commands)) {
-      errors.push(`${id}: commands ist keine Liste`);
-    }
-    if (m.settingsSections !== undefined && !Array.isArray(m.settingsSections)) {
-      errors.push(`${id}: settingsSections ist keine Liste`);
+    // Die drei Listen-Felder mit derselben Regel und derselben Meldung, je mit
+    // ihrem Feldnamen (4T-002352: zusammengefasst statt dreifach geschrieben).
+    for (const feld of ['dependencies', 'commands', 'settingsSections']) {
+      if (m[feld] !== undefined && !Array.isArray(m[feld])) {
+        errors.push(`${id}: ${feld} ist keine Liste`);
+      }
     }
   }
   // Abhängigkeiten: nur registrierte Ziele, keine Zyklen (Tiefensuche mit

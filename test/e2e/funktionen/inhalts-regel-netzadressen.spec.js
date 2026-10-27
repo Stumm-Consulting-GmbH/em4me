@@ -28,12 +28,7 @@ const os = require('node:os');
 const path = require('node:path');
 const http = require('node:http');
 const { test, expect } = require('@playwright/test');
-const {
-  launchApp,
-  closeApp,
-  warteAufRendererBereit,
-  oeffneDokumentImFenster,
-} = require('../helpers/app');
+const { launchApp, closeApp, oeffneDokumentImFenster } = require('../helpers/app');
 const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
 const { SEL } = require('../helpers/selectors');
 const { SHELF_SETTINGS_FILENAME } = require('../../../src/shared/books/shelf-core.js');
@@ -214,11 +209,11 @@ function zielAnfragen(mitschnitt, bildAbs) {
 }
 
 // Rahmen jedes Falls: Prüf-Server, Anwendung, Mitschnitt und Verstoß-Hörer.
+// Die Bereitschaft der Oberfläche wartet launchApp seit 4T-002062 selbst ab.
 async function mitFenster(ablauf) {
   const server = await starteMiniServer();
   const { app, page, userData } = await launchApp();
   try {
-    await warteAufRendererBereit(page);
     const fensterId = await fensterIdVon(app, page);
     await mitschnittSetzen(app, fensterId);
     await verstossHoererSetzen(page);

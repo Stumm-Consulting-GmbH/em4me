@@ -76,7 +76,9 @@ function haltePfad(pfad, code = 'EPERM') {
 // renameSingleFile mit den Bezügen, die es wirklich braucht. Die Beobachtung
 // kommt als ECHTES moveWatchEntry herein: Die Rücknahme läuft in seinem
 // Rückruf, und ein nachgebauter Rückruf prüfte genau diese Annahme nicht mit.
-function baueUmbenennen() {
+// 4T-002364: `extra` ergänzt oder ersetzt einzelne Bezüge (Nachzug der
+// Belegungen eines Workflows).
+function baueUmbenennen(extra = {}) {
   const meldungen = [];
   const { moveWatchEntry } = createFileWatching({ windows: () => new Map() });
   const lu = createLinkUpdate({
@@ -89,6 +91,7 @@ function baueUmbenennen() {
     broadcast: (kanal, daten) => meldungen.push({ kanal, daten }),
     books: { followChapterFileMove: async () => ({ ok: true, changed: false }) },
     followAreaStartPage: async () => {},
+    ...extra,
   });
   return { renameSingleFile: lu.renameSingleFile, meldungen };
 }
@@ -482,5 +485,78 @@ describe('Beleg-Datei an Quelle und Ziel (AK13)', () => {
     const ergebnis = await pruefeBegleitZiele(von, path.join(root, 'Merkzettel.md'));
 
     expect(ergebnis).toEqual({ ok: true });
+  });
+});
+
+// --- 4T-002364: Nachzug der Belegungen eines Workflows ----------------------
+
+describe('renameSingleFile und der Nachzug der Belegungen (4T-002364, AK5)', () => {
+  it('ruft ihn mit altem und neuem Pfad nach gelungener Bewegung', async () => {
+    const root = makeRoot();
+    const aufrufe = [];
+    const { renameSingleFile } = baueUmbenennen({
+      followWorkflowBindings: async (alt, neu) => {
+        aufrufe.push({ alt, neu, liegtNeu: liegtDa(neu), liegtAlt: liegtDa(alt) });
+      },
+    });
+    const von = schreibe(root, 'Hallo.md', '# Hallo\n');
+    const nach = path.join(root, 'Hallo umbenannt.md');
+
+    expect(await renameSingleFile(von, nach, { abstaende: KURZ })).toEqual({
+      ok: true,
+      bookDir: null,
+    });
+    // Gerufen wird, wenn die Datei schon am neuen Ort liegt.
+    expect(aufrufe).toEqual([{ alt: von, neu: nach, liegtNeu: true, liegtAlt: false }]);
+  });
+
+  it('ruft ihn nicht, wenn die Bewegung scheitert', async () => {
+    const root = makeRoot();
+    const aufrufe = [];
+    const { renameSingleFile } = baueUmbenennen({
+      followWorkflowBindings: async (alt, neu) => aufrufe.push([alt, neu]),
+    });
+    const von = schreibe(root, 'Kunden.md', '# Kunden\n');
+    schreibe(root, 'Kunden.mddl', 'beleg-neu\n');
+    schreibe(root, 'Kundschaft.mddl', 'beleg-alt\n');
+
+    const ergebnis = await renameSingleFile(von, path.join(root, 'Kundschaft.md'), {
+      abstaende: KURZ,
+    });
+
+    expect(ergebnis.ok).toBe(false);
+    expect(aufrufe).toEqual([]);
+  });
+
+  it('eine Ausnahme darin lässt das Ergebnis ok und wird gemeldet', async () => {
+    const root = makeRoot();
+    const fehler = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { renameSingleFile, meldungen } = baueUmbenennen({
+      followWorkflowBindings: async () => {
+        throw new Error('Nachzug kaputt');
+      },
+    });
+    const von = schreibe(root, 'Hallo.md', '# Hallo\n');
+    const nach = path.join(root, 'Neu.md');
+
+    expect(await renameSingleFile(von, nach, { abstaende: KURZ })).toEqual({
+      ok: true,
+      bookDir: null,
+    });
+    expect(liegtDa(nach)).toBe(true);
+    expect(meldungen.map((m) => m.kanal)).toEqual(['file:renamed']);
+    expect(fehler).toHaveBeenCalledWith(
+      '[workflow-belegung] Nachtrag der Belegungen fehlgeschlagen:',
+      'Nachzug kaputt',
+    );
+  });
+
+  it('fehlt er, bleibt die Bewegung wie bisher', async () => {
+    const root = makeRoot();
+    const { renameSingleFile } = baueUmbenennen({ followWorkflowBindings: undefined });
+    const von = schreibe(root, 'Hallo.md', '# Hallo\n');
+    expect((await renameSingleFile(von, path.join(root, 'B.md'), { abstaende: KURZ })).ok).toBe(
+      true,
+    );
   });
 });

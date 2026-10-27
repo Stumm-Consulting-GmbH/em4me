@@ -67,7 +67,10 @@ import { appendContextMenuItem, placeContextMenuAt } from './dialogs/context-men
 // --- Treffer-Aufloesung -------------------------------------------------------
 
 // Offener Tab zur Quelldatei (exakter Pfad-Vergleich wie reloadFile).
-function findOpenTab(path) {
+// 4T-002348 (Epic 3E-000184): exportiert, weil die Bearbeitung eines Puffers
+// durch einen Workflow (modules/workflows/workflow-window.js) dieselbe Suche
+// und dieselbe Übernahme braucht.
+export function findOpenTab(path) {
   for (let p = 0; p < state.panes.length; p++) {
     const idx = state.panes[p].tabs.findIndex((tab) => tab.path === path);
     if (idx >= 0) return { paneIdx: p, tabIdx: idx, tab: state.panes[p].tabs[idx] };
@@ -106,7 +109,7 @@ function conflictHint() {
 // Änderungs-Kennzeichen samt Reiter-Leiste und Fenster-Titel, automatisches
 // Speichern (nur wenn eingeschaltet, dann wie beim Tippen) und den
 // Index-Overlay, über den Abfrage und andere Fenster den neuen Stand sehen.
-function uebernimmInPuffer(open, text) {
+export function uebernimmInPuffer(open, text) {
   const tab = open.tab;
   tab.content = text;
   const wasDirty = !!tab.dirty;

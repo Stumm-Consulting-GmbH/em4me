@@ -138,4 +138,4 @@ flowchart LR
 
 **File → More File Functions → Export** writes the slides as a PDF with one slide per page, as a folder of HTML pages any browser can show, as a PowerPoint file with one picture per slide, or as a folder of PNG images. The PowerPoint file always carries your speaker notes in its notes field, and the images never do; for the PDF and the HTML pages, notes stay behind unless you switch on **Include speaker notes** under **File → Settings… → Export**.
 
-That is the whole tour — head back to [[00 Welcome]] and start editing. :tada:
+One stop left, and it turns recurring steps into a file of fixed commands: [[16 Workflows]].

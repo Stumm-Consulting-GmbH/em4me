@@ -89,6 +89,8 @@ import {
   searchHighlightField,
 } from '../live/live-marker-fields.js';
 import { liveBasePathFacet } from '../live/live-block-field.js';
+// 4T-002351 (Epic 3E-000184): Hervorhebung im workflow-Block (beide Modi).
+import { workflowHervorhebung } from '../workflows/workflow-hervorhebung.js';
 import { livePreviewExtensions } from '../live/live-widgets.js';
 // 4T-000365 (Epic 3E-000067): Block-Metadaten-Indikator im Live-Modus (StateField)
 // und Cache-Nachladen beim Tab-/Datei-Wechsel.
@@ -379,6 +381,24 @@ export function scheduleIndexOverlay(tab) {
   indexOverlayTimers.set(filePath, timer);
 }
 
+// 4T-002348 (Epic 3E-000184): Einen anstehenden Melde-Plan sofort ausfuehren
+// und abwarten. Vor einem Inhalts-Schritt eines Workflows muss der
+// Hauptprozess den ungespeicherten Stand kennen, sonst schriebe er die Platte
+// an einem Puffer vorbei, den er wegen der Verzoegerung noch nicht kennt.
+// Ohne anstehenden Plan ist nichts zu tun: Der Stand ist dann schon gemeldet.
+export async function flushIndexOverlay(tab) {
+  if (!tab || !tab.path) return;
+  const laufend = indexOverlayTimers.get(tab.path);
+  if (!laufend) return;
+  clearTimeout(laufend);
+  indexOverlayTimers.delete(tab.path);
+  try {
+    await api.setIndexOverlay(tab.path, tab.content);
+  } catch (err) {
+    console.warn('Index-Overlay konnte nicht gesetzt werden:', err);
+  }
+}
+
 // Gegenstueck: Speichern, Verwerfen und Schliessen nehmen den Overlay
 // zurueck, damit wieder der Platten-Stand gilt. Ein noch laufender
 // Melde-Timer wird dabei abgeraeumt, sonst schriebe er den verworfenen Stand
@@ -518,6 +538,7 @@ export function createEditorState(opts = {}) {
       commentMarkerField,
       // 4T-000596: Inline-Berechnungen {= … =} dezent einfaerben (beide Modi).
       inlineCalcMarkerField,
+      workflowHervorhebung,
       // 4T-000057: Autocomplete fuer Wiki-Links und Tags.
       autocompleteExtension,
       // 4T-000486: Schreib-Trigger "\\" fuer den Datums-/Uhrzeit-Picker.

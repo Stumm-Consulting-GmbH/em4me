@@ -266,6 +266,11 @@ test.describe('AM-05: die bestehende Einrichtung bleibt unberührt (4S-000992)',
     });
     const { app, page } = await launchApp({ userData, settings: null });
     try {
+      // Das Bereit-Zeichen ist der Bezugszeitpunkt der Zusicherung, dass die
+      // Tour NICHT anläuft, und bleibt deshalb hier hart, obwohl launchApp seit
+      // 4T-002062 selbst darauf wartet: Dort ist das Warten bis zu dessen
+      // Stufe B weich, und ohne Zeichen bliebe die Tour aus jedem Grund aus
+      // (Ausnahme nach dem Muster warteAufBereitschaft in produkt-tour.spec.js).
       await page.waitForSelector('body[data-renderer-ready]', { timeout: 20000 });
       // Nachfassen: Der Tour-Anlauf hinge hinter dem Bereitschafts-Signal.
       await page.waitForTimeout(1000);

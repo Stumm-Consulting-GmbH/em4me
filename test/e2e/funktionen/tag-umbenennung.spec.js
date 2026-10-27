@@ -71,11 +71,37 @@ async function bindArea(page, dir) {
   await expect.poll(() => page.title()).toContain(`(Bereich ${path.basename(dir)})`);
 }
 
+// 4T-002181 (TU-02): Ein Panel-Knopf der Statusleiste SCHALTET, er öffnet
+// nicht (Muster TU-04 unten und timer-stoppuhr.spec.js). Bisher folgten zwei
+// einzelne Klicks aufeinander, und der Fall wartete danach 30 s auf einen
+// Tag-Eintrag; der Klick galt damit als Beleg für das offene Panel, ist aber
+// nur sein Vorbote (Stabilitätsregel 12). Beide roten Läufe (2026-09-20 und
+// 2026-09-28) meldeten «element(s) not found», also keinen verdeckten, sondern
+// einen nie gezeichneten Baum, und gezeichnet wird er allein bei
+// eingeschaltetem Panel (applyTagsVisibility). Gewartet wird deshalb je Klick
+// auf den Schalter-Stand in aria-pressed und danach auf die sichtbare Sektion;
+// steht der Schalter schon an, während die Sektion fehlt, schaltet der erste
+// Klick aus und der zweite wieder ein, und das Einschalten holt den Reiter
+// nach vorn.
+async function panelOeffnen(page, knopfSel, sektionSel) {
+  const knopf = page.locator(knopfSel);
+  const sektion = page.locator(sektionSel).first();
+  if (!(await sektion.isVisible())) {
+    if ((await knopf.getAttribute('aria-pressed')) === 'true') {
+      await knopf.click();
+      await expect(knopf).toHaveAttribute('aria-pressed', 'false');
+    }
+    await knopf.click();
+    await expect(knopf).toHaveAttribute('aria-pressed', 'true');
+  }
+  await expect(sektion).toBeVisible();
+}
+
 // Das Tag-Panel öffnen und auf den Index warten. Der Umweg über das
 // Backlinks-Panel stößt den Index-Aufbau an (Muster 4t-0177.spec.js).
 async function tagPanelOeffnen(page) {
-  await page.locator('#btn-backlinks').click();
-  await page.locator('#btn-tags').click();
+  await panelOeffnen(page, '#btn-backlinks', `${PANE} .sidebar-backlinks`);
+  await panelOeffnen(page, '#btn-tags', TAGS);
   const eintrag = page.locator(`${TAGS} .tags-tree .tags-tree-item`).filter({ hasText: ALT });
   await expect(eintrag.first()).toBeVisible({ timeout: 30000 });
   return eintrag;

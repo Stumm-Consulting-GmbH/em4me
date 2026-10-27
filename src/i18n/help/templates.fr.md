@@ -26,7 +26,7 @@ Plusieurs espaces réservés de saisie et de sélection apparaissent **l'un apr�
 
 ## Référence des espaces réservés
 
-Les espaces réservés s'écrivent entre doubles accolades. `\{{` écrit un `{{` littéral dans le modèle.
+Les espaces réservés s'écrivent entre doubles accolades. `\{{` écrit un `{{` littéral dans le modèle. Les modèles et les [workflows](workflows.md) partagent le même jeu d'espaces réservés ; ceux qui valent dans une ligne de commande sont décrits sur la page des workflows.
 
 | Espace réservé | Effet |
 | --- | --- |
@@ -36,6 +36,8 @@ Les espaces réservés s'écrivent entre doubles accolades. `\{{` écrit un `{{`
 | `{{time:-30min:HH:mm:ss}}` | l'heure accepte aussi décalage et format |
 | `{{title}}` | titre du fichier cible (pour les sous-pages, la forme logique avec `/`) |
 | `{{folder}}` | dossier du fichier cible (relatif à la racine dans une zone) |
+| `{{file}}` | chemin du document actif (relatif à la racine dans une zone) ; vide sans document actif |
+| `{{area}}` | nom de la zone ouverte ; vide sans zone |
 | `{{prompt:Question}}` | dialogue de saisie ; valeur par défaut facultative : `{{prompt:Question:Défaut}}` |
 | `{{select:Question:a,b,c}}` | dialogue de sélection avec les options `a`, `b`, `c` |
 | `{{clipboard}}` | texte actuel du presse-papiers |

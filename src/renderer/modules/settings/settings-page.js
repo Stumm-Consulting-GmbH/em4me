@@ -130,6 +130,14 @@ import {
   validateTemplatesAreaSection,
   validateTemplatesSection,
 } from './settings-templates.js';
+// 4T-002355 (Epic 3E-000184): Workflow-Ordner anwendungsweit und je Bereich.
+import {
+  applyWorkflowsSection,
+  dirtyWorkflowsAreaSection,
+  dirtyWorkflowsSection,
+  renderWorkflowsAreaSection,
+  renderWorkflowsSection,
+} from './settings-workflows.js';
 // 4T-001455 (Epic 3E-000190): Bereichs-Verknuepfungen als eigene Sektion der
 // Gruppe 'Aktueller Bereich'.
 import {
@@ -363,6 +371,26 @@ const FIXED_SECTIONS = [
     validate: validateAreaLinksSection,
     dirty: dirtyAreaLinksSection,
     apply: applyAreaLinksSection,
+  },
+  // 4T-002355 (Epic 3E-000184): Workflow-Ordner nach dem Muster der Vorlagen
+  // (Entscheidung 3b der Konzept-Stufe): anwendungsweit und als Bereichs-
+  // Übersteuerung in der Gruppe «Aktueller Bereich»; beide teilen
+  // draft.workflows, persistiert wird über den Haken des anwendungsweiten.
+  // Den Erweiterungs-Anspruch (settingsSections) trägt der Registry-Eintrag
+  // `workflows` (4T-002352).
+  {
+    id: 'workflows',
+    titleKey: 'settings.workflows.title',
+    render: renderWorkflowsSection,
+    apply: applyWorkflowsSection,
+    dirty: dirtyWorkflowsSection,
+  },
+  {
+    id: 'workflowsArea',
+    titleKey: 'settings.workflows.title',
+    group: 'area',
+    render: renderWorkflowsAreaSection,
+    dirty: dirtyWorkflowsAreaSection,
   },
   // 4T-001758 (Epic 3E-000253): Datenbank des Bereichs — Auskunft zur Datenbank
   // und die Option, ihre Übersicht beim Öffnen des Bereichs zu zeigen. Sektion

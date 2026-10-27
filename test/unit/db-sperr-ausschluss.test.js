@@ -44,11 +44,14 @@ const { registerAreasIpc } = require('../../src/main/ipc/areas.js');
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '..', '..');
 
-// Bestands-Lesungen im Modulkopf, nicht im Prüffall (test/README). Die drei
+// Bestands-Lesungen im Modulkopf, nicht im Prüffall (test/README). Die
 // Stellen mit eigener Kopie der Ordner-Bedingung, am Quelltext geprüft.
 const EIGENE_KOPIEN = [
   'src/main/documents/link-update.js',
-  'src/main/ipc/rename.js',
+  // 4T-002348: Die Kopie aus ipc/rename.js liegt seither in der ausgezogenen
+  // Kaskade; der Ordner-Lauf der Workflow-Befehle trägt eine weitere.
+  'src/main/documents/rename-cascade.js',
+  'src/main/workflows/workflow-file-steps.js',
   'src/main/ipc/templates.js',
 ].map((rel) => ({ rel, quelle: fs.readFileSync(path.join(ROOT, ...rel.split('/')), 'utf8') }));
 
@@ -347,7 +350,7 @@ describe('Der Sperr-Ordner fällt unter die eine Ordner-Regel (4T-001787, AK15)'
     expect(gueltige).toBeGreaterThanOrEqual(9);
   });
 
-  it('belegt, dass die drei Stellen mit eigener Kopie Punkt-Ordner überspringen', () => {
+  it('belegt, dass die Stellen mit eigener Kopie Punkt-Ordner überspringen', () => {
     // Die Kopien lauten wörtlich «node_modules oder Name beginnt mit Punkt».
     // Damit betritt keine von ihnen den Sperr-Ordner, solange sein Name die
     // Form trägt — und genau das erzwingt die Gültigkeits-Regel.

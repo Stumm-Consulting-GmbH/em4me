@@ -426,6 +426,9 @@
           ]
         }
       ]
+    },
+    "workflows": {
+      "folder": "Workflows"
     }
   }
 }

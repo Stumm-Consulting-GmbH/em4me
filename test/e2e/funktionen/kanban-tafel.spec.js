@@ -30,7 +30,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp, warteAufRendererBereit } = require('../helpers/app');
+const { launchApp, closeApp } = require('../helpers/app');
 const { warteAufText } = require('../helpers/dateien');
 const { bedieneBis, oeffneEinstellungsSeite, EINSTELLUNGS_SEITE } = require('../helpers/eingabe');
 const { hauptSenden, hauptLesen } = require('../helpers/haupt-zugriff');
@@ -236,8 +236,8 @@ test.describe('KB-01: Tafel anlegen, Ansicht verlassen und wieder öffnen (F-314
       // Anlegen über das Kommando «Neue Kanban-Tafel»; es braucht kein
       // geöffnetes Dokument und öffnet die Tafel-Ansicht gleich mit. Es ist
       // nicht idempotent (jede Sendung legt ein Dokument an) und geht deshalb
-      // genau einmal, nach der Bereitschaft der Oberfläche (4T-001923).
-      await warteAufRendererBereit(page);
+      // genau einmal, nach der Bereitschaft der Oberfläche (4T-001923), die
+      // launchApp seit 4T-002062 selbst abwartet.
       await sendeMenuKanal(app, 'menu:kanbanNewBoard');
       await expect(page.locator(TAFEL)).toBeVisible();
 

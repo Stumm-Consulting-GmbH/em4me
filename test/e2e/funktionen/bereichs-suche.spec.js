@@ -387,9 +387,13 @@ test.describe('BS-08: Sprung rollt zur Fundstelle (4T-002099)', () => {
       `# Lang\n\n${absaetze.join('\n\n')}\n\nGanz unten steht Quittengelee.\n`,
       'utf8',
     );
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    // 4T-002402: ohne Datei-Argument starten, binden, dann öffnen (test/README.md,
+    // Regel 32). Seit die Start-Hilfe auf das Bereit-Zeichen wartet, ist ein
+    // Datei-Argument beim Binden schon offen, und der Bereich öffnet ein eigenes Fenster.
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await sucheOeffnen(page, 'Quittengelee');
       await warteAufTreffer(page, 1);
       await page.locator(`${PANEL} .search-results-item`).first().click();
@@ -431,9 +435,13 @@ test.describe('BS-09: Die erste Eingabetaste zeigt den ersten Treffer (4T-002107
         `${absaetze.slice(0, 40).join('\n\n')}\n\nZweiter ${BEGRIFF} unten.\n\nDritter ${BEGRIFF}.\n`,
       'utf8',
     );
-    const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+    // 4T-002402: ohne Datei-Argument starten, binden, dann öffnen (test/README.md,
+    // Regel 32). Seit die Start-Hilfe auf das Bereit-Zeichen wartet, ist ein
+    // Datei-Argument beim Binden schon offen, und der Bereich öffnet ein eigenes Fenster.
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
       await sucheOeffnen(page, BEGRIFF);
       await warteAufTreffer(page, 3);
       const zaehler = page.locator('#search-count');
@@ -494,9 +502,13 @@ test.describe('BS-10: Tippen bei offener Bereichs-Suche schreibt an der Schreibm
           `${fuell.slice(0, 40).join('\n\n')}\n\nNoch einmal ${BEGRIFF} ganz unten.\n`,
         'utf8',
       );
-      const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+      // 4T-002402: ohne Datei-Argument starten, binden, dann öffnen (test/README.md,
+      // Regel 32). Seit die Start-Hilfe auf das Bereit-Zeichen wartet, ist ein
+      // Datei-Argument beim Binden schon offen, und der Bereich öffnet ein eigenes Fenster.
+      const { app, page, userData } = await launchApp();
       try {
         await bindArea(page, dir);
+        await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
         await warteAufReiter(page);
         await page.locator(SEL.viewBtn(modus)).click();
         await page.locator(SEL.btnEdit).click();
@@ -621,9 +633,13 @@ test.describe('BS-11: Sprung in ein anderes Dokument zeigt den aktuellen Treffer
     test(`4T-002113: ${fall.richtung} aus «Quellcode» in ein nicht geöffnetes Dokument — Standard-Ansicht, genau ein aktueller Treffer, sichtbar und farblich abgehoben`, async () => {
       test.setTimeout(120000);
       const dir = makeDatenDir();
-      const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+      // 4T-002402: ohne Datei-Argument starten, binden, dann öffnen (test/README.md,
+      // Regel 32). Seit die Start-Hilfe auf das Bereit-Zeichen wartet, ist ein
+      // Datei-Argument beim Binden schon offen, und der Bereich öffnet ein eigenes Fenster.
+      const { app, page, userData } = await launchApp();
       try {
         await bindArea(page, dir);
+        await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
         await warteAufReiter(page);
         await sucheInQuellcode(page);
         const zaehler = page.locator('#search-count');
@@ -652,11 +668,16 @@ test.describe('BS-11: Sprung in ein anderes Dokument zeigt den aktuellen Treffer
   test('4T-002113: rückwärts in ein Dokument, das in «Quellcode» schon offen ist — es behält seine Ansicht, genau ein aktueller Treffer, sichtbar', async () => {
     test.setTimeout(120000);
     const dir = makeDatenDir();
-    const { app, page, userData } = await launchApp({
-      args: [path.join(dir, 'daten.md'), path.join(dir, 'start.md')],
-    });
+    // 4T-002402: ohne Datei-Argument starten, binden, dann öffnen (test/README.md,
+    // Regel 32). Seit die Start-Hilfe auf das Bereit-Zeichen wartet, ist ein
+    // Datei-Argument beim Binden schon offen, und der Bereich öffnet ein eigenes Fenster.
+    const { app, page, userData } = await launchApp();
     try {
       await bindArea(page, dir);
+      await oeffneDokumentImFenster(app, page, [
+        path.join(dir, 'daten.md'),
+        path.join(dir, 'start.md'),
+      ]);
       await warteAufReiter(page);
       await page.locator(SEL.tabs0, { hasText: 'daten' }).click();
       await page.locator(SEL.viewBtn('source')).click();
@@ -689,9 +710,13 @@ test.describe('BS-12: Sprung während des Suchlaufs (4T-002129)', () => {
     test(`4T-002129: neuer Begriff, sofort ${druecke}× Eingabetaste — «${druecke} / 4» in ${datei}.md, nach einer Sekunde unverändert`, async () => {
       test.setTimeout(120000);
       const dir = makeAreaDir();
-      const { app, page, userData } = await launchApp({ args: [path.join(dir, 'start.md')] });
+      // 4T-002402: ohne Datei-Argument starten, binden, dann öffnen (test/README.md,
+      // Regel 32). Seit die Start-Hilfe auf das Bereit-Zeichen wartet, ist ein
+      // Datei-Argument beim Binden schon offen, und der Bereich öffnet ein eigenes Fenster.
+      const { app, page, userData } = await launchApp();
       try {
         await bindArea(page, dir);
+        await oeffneDokumentImFenster(app, page, path.join(dir, 'start.md'));
         await warteAufReiter(page);
         await page.keyboard.press('Control+f');
         await expect(page.locator('#search-input')).toBeVisible();

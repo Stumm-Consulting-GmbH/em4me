@@ -26,7 +26,7 @@ Varios marcadores de entrada y selección aparecen **uno tras otro** en el orden
 
 ## Referencia de marcadores
 
-Los marcadores se escriben entre llaves dobles. `\{{` escribe un `{{` literal en la plantilla.
+Los marcadores se escriben entre llaves dobles. `\{{` escribe un `{{` literal en la plantilla. Las plantillas y los [workflows](workflows.md) comparten el mismo conjunto de marcadores; cuáles valen en una línea de comando se describe en la página de los workflows.
 
 | Marcador | Efecto |
 | --- | --- |
@@ -36,6 +36,8 @@ Los marcadores se escriben entre llaves dobles. `\{{` escribe un `{{` literal en
 | `{{time:-30min:HH:mm:ss}}` | la hora también acepta desplazamiento y formato |
 | `{{title}}` | título del archivo de destino (en subpáginas la forma lógica con `/`) |
 | `{{folder}}` | carpeta del archivo de destino (relativa a la raíz dentro de un área) |
+| `{{file}}` | ruta del documento activo (relativa a la raíz dentro de un área); vacía sin documento activo |
+| `{{area}}` | nombre del área abierta; vacío sin área |
 | `{{prompt:Pregunta}}` | diálogo de entrada; valor por defecto opcional: `{{prompt:Pregunta:Valor}}` |
 | `{{select:Pregunta:a,b,c}}` | diálogo de selección con las opciones `a`, `b`, `c` |
 | `{{clipboard}}` | texto actual del portapapeles |

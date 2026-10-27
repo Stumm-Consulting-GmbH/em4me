@@ -1257,3 +1257,24 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert wiki-links.md stabil 
 </table>
 "
 `;
+
+exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert workflow.md stabil 1`] = `
+"<div class="frontmatter-block" data-source-line="1"><button type="button" class="frontmatter-header" aria-expanded="false"><span class="frontmatter-chevron" aria-hidden="true"></span><span class="frontmatter-label" data-i18n="frontmatter.line.label">Frontmatter</span><span class="frontmatter-count" data-fm-count="2"></span></button><pre class="frontmatter-yaml"><code class="hljs language-yaml"><span class="hljs-attr">workflow:</span> <span class="hljs-literal">true</span>
+<span class="hljs-attr">name:</span> <span class="hljs-string">Neues</span> <span class="hljs-string">Projekt</span></code></pre></div>
+<h1 id="workflow-block" data-source-line="6">Workflow-Block</h1>
+<p data-source-line="8">Der Block färbt Schlüsselwort, Text und Platzhalter; Kommentar und fehlerhafte
+Zeilen bleiben ungefärbt, HTML im Text bleibt geschützt.</p>
+<pre data-wf-zeile="11"><code class="hljs language-workflow"># Projekt anlegen
+<span class="wf-keyword">mkdir</span> <span class="wf-string">&quot;Projekte/<span class="wf-placeholder">{{prompt:Name}}</span>&quot;</span>
+<span class="wf-keyword">create</span> <span class="wf-string">&quot;Projekte/<span class="wf-placeholder">{{prompt:Name}}</span>/Start.md&quot;</span> from-template <span class="wf-string">&quot;Vorlagen/Projekt.md&quot;</span>
+<span class="wf-keyword">append</span> <span class="wf-string">&quot;<span class="wf-placeholder">{{file}}</span>&quot;</span> from-section <span class="wf-string">&quot;Notiz&quot;</span>
+<span class="wf-keyword">set-property</span> <span class="wf-string">&quot;<span class="wf-placeholder">{{file}}</span>&quot;</span> status <span class="wf-string">&quot;aktiv&quot;</span>
+<span class="wf-keyword">notify</span> <span class="wf-string">&quot;Projekt \\&quot;<span class="wf-placeholder">{{prompt:Name}}</span>\\&quot; angelegt &lt;b&gt;fertig&lt;/b&gt;&quot;</span>
+move &quot;a.md&quot;&quot;b.md&quot;
+<span class="wf-keyword">wait</span> 2
+</code></pre>
+<p data-source-line="22">Ein gewöhnlicher Code-Block bleibt unverändert:</p>
+<pre><code class="hljs language-js"><span class="hljs-title function_">create</span>(<span class="hljs-string">&quot;x&quot;</span>);
+</code></pre>
+"
+`;

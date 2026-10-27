@@ -61,6 +61,8 @@ import { applyExtensionButtonVisibility, applyPanelButtonOrder } from './app-ext
 // 4T-001712 (Epic 3E-000300): Eine offene Zell-Eingabe zaehlt beim Schliessen
 // des Fensters als ungespeicherte Aenderung wie jede andere.
 import { uebernimmOffeneZellEingabe } from '../live/live-table-zelle.js';
+// 4T-002355 (Epic 3E-000184): Der Workflow-Ordner hängt am Bereich des Fensters.
+import { refreshWorkflowFolderList } from '../workflows/workflow-folder-list.js';
 
 // 4T-001001: Flag und Warteschlangen gehoeren app-init.js; eine Zuweisung an ein
 // importiertes Binding waere in ESM ein TypeError, deshalb kommen Lesezugriff
@@ -223,6 +225,9 @@ export function registerAppBroadcasts(deps) {
       // Navigations-Gruppe „Aktueller Bereich" und die bereichsgebundenen
       // Entwuerfe neu auf.
       refreshSettingsPageForAreaChange();
+      // 4T-002355 (Epic 3E-000184): Mit dem Bereich wechselt der wirksame
+      // Workflow-Ordner; eine bereits geholte Liste zieht nach.
+      void refreshWorkflowFolderList();
       // 4T-000625 (Epic 3E-000119): Bereichs-Varianten der Sidebar sind
       // bereichs-gebunden und ziehen beim Binding-Wechsel nach.
       void refreshAreaVariants();

@@ -291,5 +291,10 @@
   "help.featureAccess.databaseRoleAssignment": "Frontmatter de la fiche d'identité, indications `users` et `defaultRole` dans le conteneur `db-database` ; vue d'ensemble de la base de données, ligne « Rôle propre »",
   "help.featureAccess.databasePermissionCheck": "Agit lors de la sauvegarde par l'application et lors de la sauvegarde d'un fichier de table ou de la fiche d'identité",
   "help.featureAccess.databasePermissionForms": "Formulaire, formulaire de liste, section des positions, bouton « Nouvel enregistrement » sous la table ; vue d'ensemble de la base de données, ligne « Autorisations » par table",
-  "help.featureAccess.databaseExtension": "Paramètres → Extensions → Base de données"
+  "help.featureAccess.databaseExtension": "Paramètres → Extensions → Base de données",
+  "help.featureAccess.workflows": "Marque `workflow: true` dans l'en-tête et bloc de code `workflow` ; Fichier → Workflows ; bouton «Lancer» au-dessus du bloc dans le mode direct, la vue rendue et la vue partagée ; Fichier → Paramètres… → Extensions → Workflows",
+  "help.featureAccess.workflowStart": "Fichier → Workflows → «nom du workflow» ; palette de commandes → «nom du workflow» ; bouton «Lancer» au-dessus du bloc dans le mode direct, la vue rendue et la vue partagée ; menu contextuel d'un fichier de workflow dans le panneau de zone → Lancer ; Fichier → Paramètres… → Raccourcis clavier",
+  "help.featureAccess.workflowRuns": "Affichage → Afficher les exécutions des workflows ; Fichier → Workflows → Afficher les exécutions des workflows ; palette de commandes → «Afficher les exécutions des workflows»",
+  "help.featureAccess.workflowEditor": "Bloc de code `workflow` ; affichage de vérification au-dessus du bloc dans le mode direct, la vue rendue et la vue partagée",
+  "help.featureAccess.workflowFolder": "Fichier → Workflows ; Fichier → Workflows → Nouveau workflow… et Définir le dossier de workflows… ; Fichier → Paramètres… → Extensions (internes) → Workflows et Zone actuelle → Workflows ; palette de commandes → «Nouveau workflow…»"
 }

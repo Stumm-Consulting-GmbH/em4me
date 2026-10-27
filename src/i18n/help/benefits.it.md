@@ -114,6 +114,17 @@ Una cartella di file Markdown può essere al tempo stesso una banca dati, e non 
 
 In dettaglio: [Banca dati](database.md).
 
+## Operazioni che si sbrigano da sole
+
+Certi lavori si ripetono nella stessa sequenza: creare dal modello una nota per la prossima riunione, aggiungere una voce al registro, spostare in archivio un file concluso. Un workflow mette per iscritto questa sequenza una volta sola, come normale file Markdown con una riga per passo, e l'applicazione la esegue ogni volta che lo avvii. Poiché il file resta testo, si può leggere, modificare, condividere e conservare in un backup come qualsiasi altro documento.
+
+- **Un passo per riga**: creare file e cartelle, anche da modelli, rinominare, spostare aggiornando tutti i collegamenti, accodare e inserire testo, impostare proprietà nell'intestazione, eseguire comandi e macro.
+- **Prima controllare, poi eseguire**: prima del primo passo l'applicazione controlla l'intero workflow e chiede tutti i dati da inserire; un errore compare sopra il blocco con riga e motivo, e non viene eseguito nulla.
+- **Avviato come ti è più comodo**: dal menu, dalla palette dei comandi, con una scorciatoia da tastiera, un pulsante nella barra di stato o sopra il blocco.
+- **Con limiti fissi**: un workflow agisce solo nell'area aperta, non sovrascrive alcun file esistente, non elimina nulla e non accede alla rete.
+
+In dettaglio: [Workflow](workflows.md).
+
 ## L’applicazione si adatta — e ti segue
 
 Chi lavora a lungo con un programma finisce per plasmarlo: colori, scorciatoie da tastiera, pulsanti, modelli e segnalibri crescono con il tuo modo di lavorare, e a un certo punto ne fa parte anche la lingua in cui parla l’interfaccia. Finora questo lavoro era legato a un solo computer e alle lingue fornite con l’applicazione. Entrambe le cose sono aperte: la tua configurazione può essere scritta in un file leggibile e riletta altrove, e chi ha bisogno di una sesta lingua traduce da sé l’interfaccia. A questo si aggiunge lo sguardo d’insieme: una pagina che mostra affiancati tutti i tuoi spazi di lavoro, aree, libri e librerie, comprese quelle che al momento non sono collegate.

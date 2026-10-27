@@ -291,5 +291,10 @@
   "help.featureAccess.databaseRoleAssignment": "Frontmatter des Steckbriefs, Angaben `users` und `defaultRole` im Behälter `db-database`; Übersicht der Datenbank, Zeile «Eigene Rolle»",
   "help.featureAccess.databasePermissionCheck": "Wirkt beim Speichern durch die Anwendung und beim Speichern einer Tabellen-Datei oder des Steckbriefs",
   "help.featureAccess.databasePermissionForms": "Einzel-Maske, Listen-Maske, Positions-Bereich, Schaltfläche «Neuer Datensatz» unter der Tabelle; Übersicht der Datenbank, Zeile «Erlaubnisse» je Tabelle",
-  "help.featureAccess.databaseExtension": "Einstellungen → Erweiterungen → Datenbank"
+  "help.featureAccess.databaseExtension": "Einstellungen → Erweiterungen → Datenbank",
+  "help.featureAccess.workflows": "Kennzeichen `workflow: true` im Dateikopf und Code-Block `workflow`; Datei → Workflows; Knopf «Starten» über dem Block in der Live-, der gerenderten und der geteilten Ansicht; Datei → Einstellungen… → Erweiterungen → Workflows",
+  "help.featureAccess.workflowStart": "Datei → Workflows → ‚Name des Workflows‘; Kommando-Palette → ‚Name des Workflows‘; Knopf «Starten» über dem Block in der Live-, der gerenderten und der geteilten Ansicht; Kontextmenü einer Workflow-Datei im Bereichs-Panel → Starten; Datei → Einstellungen… → Tastenkürzel",
+  "help.featureAccess.workflowRuns": "Ansicht → Workflow-Läufe anzeigen; Datei → Workflows → Workflow-Läufe anzeigen; Kommando-Palette → ‚Workflow-Läufe anzeigen‘",
+  "help.featureAccess.workflowEditor": "Code-Block `workflow`; Prüf-Anzeige über dem Block in der Live-, der gerenderten und der geteilten Ansicht",
+  "help.featureAccess.workflowFolder": "Datei → Workflows; Datei → Workflows → Neuer Workflow … und Workflow-Ordner festlegen …; Datei → Einstellungen… → Erweiterungen (intern) → Workflows und Aktueller Bereich → Workflows; Kommando-Palette → ‚Neuer Workflow …‘"
 }

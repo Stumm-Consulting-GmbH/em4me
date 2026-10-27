@@ -32,6 +32,10 @@ El detalle decisivo: cada macro se registra a su vez como comando regular. Así 
 
 El editor de pasos está en la misma sección de configuración: por macro, una lista de pasos desplegable con reordenación y borrado, más un botón de ejecución de prueba. La ejecución de prueba ejecuta de inmediato el estado de edición actual — en el contexto de la pestaña de configuración, de modo que los pasos ligados al contexto se interrumpen allí, como es de esperar, con el aviso.
 
+## Workflows
+
+Cada workflow de la carpeta de workflows es también un comando, en el espacio de nombres de los workflows, y como una macro puede colocarse como botón de la barra de estado o entrada del menú contextual y recibir un atajo en la sección de configuración «Atajos de teclado». A diferencia de una macro, un workflow es un archivo Markdown con comandos fijos que también crean, mueven y modifican archivos; un workflow puede llamar a una macro como paso. El identificador de su comando procede de la ruta del archivo en la carpeta de workflows: si el workflow se renombra o se mueve, un botón y una entrada creados para él desaparecen, y hay que asignar de nuevo un atajo de teclado. Detalles en la página [Workflows](workflows.md).
+
 ## Delimitación frente a la paleta de comandos
 
 La [paleta de comandos](tools.md) y la colocación de comandos trabajan sobre el mismo registro de comandos, pero sirven a situaciones distintas: la paleta es el acceso fugaz por teclado — abrir, teclear, ejecutar, sin configurar nada. La colocación crea accesos permanentes para gestos recurrentes: un clic en la barra de estado, un clic derecho en el editor, un atajo sobre una macro.

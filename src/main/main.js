@@ -93,6 +93,8 @@ const { registerIndexViewsIpc } = require('./ipc/index-views');
 const { registerEmbedsIpc } = require('./ipc/embeds');
 const { registerRemindersIpc } = require('./ipc/reminders');
 const { registerTemplatesIpc } = require('./ipc/templates');
+// 4T-002348 (Epic 3E-000184): Ausführung der Workflow-Befehle und Lauf-Stand.
+const { registerWorkflowsIpc } = require('./ipc/workflows');
 const { registerAreaFeaturesIpc } = require('./ipc/area-features');
 const { registerProfilesIpc } = require('./ipc/profiles');
 // 4T-001510 (Epic 3E-000250): Kanaele des Datenbank-Katalogs.
@@ -449,6 +451,7 @@ function registerIpc() {
   registerEmbedsIpc(registriere, ipcDeps);
   registerRemindersIpc(registriere, ipcDeps);
   registerTemplatesIpc(registriere, ipcDeps);
+  registerWorkflowsIpc(registriere, ipcDeps);
   registerAreaFeaturesIpc(registriere, ipcDeps);
   registerProfilesIpc(registriere, ipcDeps);
   registerDatabaseIpc(registriere, ipcDeps);

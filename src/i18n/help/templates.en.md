@@ -26,7 +26,7 @@ Multiple input and selection placeholders appear **one after the other** in the 
 
 ## Placeholder reference
 
-Placeholders are written in double curly braces. `\{{` writes a literal `{{` into the template.
+Placeholders are written in double curly braces. `\{{` writes a literal `{{` into the template. Templates and [workflows](workflows.md) share the same set of placeholders; which of them apply in a command line is described on the workflows page.
 
 | Placeholder | Effect |
 | --- | --- |
@@ -36,6 +36,8 @@ Placeholders are written in double curly braces. `\{{` writes a literal `{{` int
 | `{{time:-30min:HH:mm:ss}}` | time takes offset and format as well |
 | `{{title}}` | title of the target file (for subpages the logical form with `/`) |
 | `{{folder}}` | folder of the target file (root-relative within an area) |
+| `{{file}}` | path of the active document (root-relative within an area); empty without an active document |
+| `{{area}}` | name of the open area; empty without an area |
 | `{{prompt:Question}}` | input dialog; optional default value: `{{prompt:Question:Default}}` |
 | `{{select:Question:a,b,c}}` | selection dialog with the options `a`, `b`, `c` |
 | `{{clipboard}}` | current clipboard text |

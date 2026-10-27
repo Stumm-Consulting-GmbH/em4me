@@ -51,6 +51,11 @@ privaten Arbeitsablagen gehören nicht hinein (Wächter-Befund der Auslieferung
 - **Mehrere Test-Dateien:** Unterordner `Tests/test-4t-<id>/` mit den
   zusammengehörigen Dateien. Beispiele im Bestand: `Tests/test-4t-0050/`,
   `Tests/test-4t-0054/`, `Tests/test-4t-0055/`, `Tests/test-4t-0056/`.
+- **Gemeinsamer Bereich mehrerer Tasks:** gefäß-benannter Unterordner
+  `Tests/test-<Epic-Kennung>-<kurz>/`, die Kennung vier- oder sechsstellig.
+  Beispiele im Bestand: `Tests/test-3E-000340/`, `Tests/test-3E-000341/`.
+  Er zählt als Material jedes Tasks, der in seiner Metadaten-Zeile «Epic»
+  dieses Epic nennt; ein Ordner ohne das Präfix `test-` zählt nicht.
 - Pro Code-Task entsteht die Datei oder der Unterordner **vor** der
   Test-Aufforderung an den Product Owner. Inhalt: Markdown-Beispiele, die
   die Akzeptanz-Smoke-Tests aus dem Plan abdecken. Die Prüf-Anleitung
@@ -58,6 +63,12 @@ privaten Arbeitsablagen gehören nicht hinein (Wächter-Befund der Auslieferung
   den Ordner, den er öffnet. Der Lauf `node scripts/offene-pruefungen.js
   <Gefäß-Kennung>` weist je Task mit offener manueller Prüf-Zeile auf
   fehlendes Material hin.
+- Verlangt ein Handgriff einen Bereich, ist das Material ein Ordner, und die
+  Anleitung nennt ihn als den zu öffnenden Bereich. Derselbe Lauf weist auch
+  darauf hin, sobald eine offene Prüf-Zeile im Prüf-Text oder Messort einen
+  Bereich nennt und das Material eine Einzeldatei ist (seit dem 2026-10-25;
+  Anlass war eine Anleitung, die das Öffnen «in einem Bereich» verlangte und
+  sechs lose Dateien vorlegte).
 
 **Material für Sicht-Prüfungen muss deutlich sichtbar sein.**
 Test-Material ist Teil der Prüf-Schnittstelle. Ein technisch korrektes,
@@ -281,7 +292,7 @@ EM4ME_PROGRAMMDATEI="C:\Pfad\zum\Projekt\dist\win-unpacked\EM4me.exe" npm run te
 Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll-Suite in einer Release-Strecke zweimal lief, ohne dass der zweite Lauf einen zusätzlichen Nachweis brachte.
 
 1. **Die E2E-Voll-Suite läuft pro Release genau einmal**, als Pflicht-Gate vor Build und Tag (Festlegung des Product Owners vom 2026-07-29). Sie kostet rund eine halbe Stunde; ein zweiter Lauf ohne Erkenntnisgewinn verstößt gegen den Effizienz-Maßstab des Projekts. Ein Lauf allein für die Kennzahl kommt nicht in Betracht und ist seit 4T-000831 auch nicht mehr denkbar: Die Kennzahl entsteht ohne Lauf.
-2. **Der Fortschritt eines Laufs im Hintergrund ist an seiner Ausgabe nicht ablesbar.** Wird die Ausgabe in eine Datei geleitet statt auf ein Terminal, puffert Node sie blockweise; bei der Größenordnung einer Voll-Suite bleibt die Datei bis zum Ende leer. Das gilt unabhängig vom Reporter, gemessen an je einem Lauf mit `line` und mit der Konfigurations-Voreinstellung. Wer währenddessen wissen muss, wie es steht, zählt die Unterordner in `test-results/`: Sie entstehen je fehlgeschlagenem Fall. Der Rückschluss auf die Zahl der bereits gelaufenen Fälle ist damit nicht möglich, wohl aber die Antwort auf die Frage, die in der Praxis zählt — ob der Lauf gerade reihenweise scheitert. Dasselbe gilt für den Gate-Weg: `node scripts/gate-lauf.js test` puffert vollständig, die Ausgabe-Datei bleibt bis zum Schluss bei null Byte, und genau das sieht aus wie ein entgleister Lauf. **Was stattdessen trägt, ist die Prozess-Liste:** `Get-CimInstance Win32_Process -Filter "Name='node.exe'"` zeigt den Gate-Lauf, den `npm test`-Wrapper und die Vitest-Worker mit ihrer Startzeit; laufen Worker, läuft die Suite. Und das Budget dazu: Eine volle Suite braucht auf SC-026 gut sieben Minuten, ein Budget von fünf Minuten ist zu knapp und erzeugt eine Fehl-Meldung (Befund vom 2026-08-28, aus dem Koordinations-Register hierher verankert).
+2. **Der Fortschritt eines Laufs im Hintergrund ist an seiner Ausgabe nicht ablesbar.** Wird die Ausgabe in eine Datei geleitet statt auf ein Terminal, puffert Node sie blockweise; bei der Größenordnung einer Voll-Suite bleibt die Datei bis zum Ende leer. Das gilt unabhängig vom Reporter, gemessen an je einem Lauf mit `line` und mit der Konfigurations-Voreinstellung. Wer währenddessen wissen muss, wie es steht, zählt die Unterordner in `test-results/`: Sie entstehen je fehlgeschlagenem Fall. Der Rückschluss auf die Zahl der bereits gelaufenen Fälle ist damit nicht möglich, wohl aber die Antwort auf die Frage, die in der Praxis zählt — ob der Lauf gerade reihenweise scheitert. Dasselbe gilt für den Gate-Weg: `node scripts/gate-lauf.js test` puffert vollständig, die Ausgabe-Datei bleibt bis zum Schluss bei null Byte, und genau das sieht aus wie ein entgleister Lauf. **Was stattdessen trägt, ist die Prozess-Liste:** `Get-CimInstance Win32_Process -Filter "Name='node.exe'"` zeigt den Gate-Lauf, den `npm test`-Wrapper und die Vitest-Worker mit ihrer Startzeit; laufen Worker, läuft die Suite. Für den Ablauf-Lauf in der virtuellen Maschine trägt die Prozess-Liste des Rechners nicht, weil dort allein das Werkzeug läuft; sein Protokoll meldet stattdessen alle fünf Minuten «laeuft seit N min», und nach 240 Minuten bricht es mit dem Pfad des Protokolls in der Maschine ab. Und das Budget dazu: Eine volle Suite braucht auf SC-026 gut sieben Minuten, ein Budget von fünf Minuten ist zu knapp und erzeugt eine Fehl-Meldung (Befund vom 2026-08-28, aus dem Koordinations-Register hierher verankert).
 3. **Ein laufender Suite-Lauf wird nicht per Prozess-Abbruch gestoppt.** Er läuft durch, oder der Abbruch wird verifiziert, bevor er als erledigt gemeldet wird. Ein halber Abbruch ist der schlechteste Zustand: Die volle Laufzeit fällt trotzdem an, und das Beenden der Prozesse mitten im Lauf erzeugt rote Fälle, die es ohne den Eingriff nicht gäbe. Sie sind von echten Befunden nicht zu unterscheiden und kosten die nächste Diagnose-Runde.
 
 ## Stabilitätsregeln
@@ -522,6 +533,41 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     meldet vor dem ersten Gate, wenn fremde Electron-Instanzen laufen.
     Die Meldung ist eine Warnung und keine Sperre — wer die Fremdlast
     absichtlich herstellt, tut genau das, wozu diese Regel auffordert.
+
+    **Ein Mitschnitt, der erst das nächste Ereignis sieht, braucht einen
+    Anstoß nach dem Scharfschalten** (seit dem 2026-10-25, `4T-002181`). Wer
+    einen Abgriff scharf schaltet, etwa den Menü-Abgriff über `win.setMenu`,
+    und danach auf ein Ereignis wartet, setzt darauf, dass das Ereignis noch
+    aussteht. Ein sichtbarer Zustand davor, etwa der Fenstertitel, ist dafür
+    nur ein Vorbote: Die Oberfläche meldet den Menü-Neubau unmittelbar vor
+    dem Titel, und unter Last kam er vor dem Abgriff an (`LA-04`, leere
+    Erfassung). Der Fall stößt das Ereignis deshalb nach dem Scharfschalten
+    selbst an, über einen folgenlosen Weg der Anwendung. Dieselbe Falle in
+    anderer Form ist eine feste Pause zwischen zwei Klicks auf einen
+    Umschalter: Gewartet wird je Klick auf den Schalt-Zustand, den der Knopf
+    meldet (`aria-pressed`), sonst nimmt der zweite Klick den ersten zurück
+    (`TS-06`, `WE-02`). Seit `launchApp` auf das Bereit-Zeichen wartet,
+    trägt dafür auch eine Augenblicks-Abfrage des wiederhergestellten
+    Zustands direkt nach dem Start, weil die Anwendung das Zeichen erst nach
+    der Wiederherstellung der Panels setzt.
+
+    **Auch ein Wiederholen, ein sichtbares Gefäß und eine zufällige
+    Verzögerung sind Vorboten** (`4T-002181`, Bündel 3, 2026-10-25). Drei
+    Formen standen hinter fünf beobachteten Fällen. Erstens: Ein Poll, der
+    einen nicht idempotenten Befehl erneut schickt, solange die Wirkung
+    fehlt, hält die Laufzeit der ersten Zustellung für ihren Verlust
+    (`RG-03`, `BM-01`); gesendet wird einmal, gewartet auf den Zustand
+    (`oeffneDokumentImFenster`, Regel 32). Zweitens: Ein sichtbarer Behälter
+    belegt nicht seinen Inhalt; die Bereichs-Sektion ist vor ihrem Titel da
+    (`DB-UEB-01`), das Tag-Panel ist erst nach dem eingeschalteten Schalter
+    gezeichnet (`TU-02`), eine geöffnete Statistik-Seite hat noch keine
+    Zahlen. Drittens: Ein Fall kann nur deshalb grün gewesen sein, weil ein
+    früher Befehl verpuffte und die Wiederholung dem Gegenstand Zeit
+    verschaffte; die Bereichs-Statistik kippte, sobald `launchApp` genauer
+    auf das Bereit-Zeichen wartete (`4T-002062`). Wird ein Warten am Start
+    genauer, ist deshalb jede Prüfdatei nachzulaufen, die einen Befehl im
+    Poll wiederholt.
+
 13. **Ein Tastendruck wird wiederholt, bis seine Wirkung eintritt.** Ein
     einzelner `keyboard.press` kann ins Leere gehen, weil das Fenster
     den Fokus noch nicht hat oder der Renderer seinen Listener erst
@@ -1026,12 +1072,24 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     nicht, es meldet «sichtbar», während der Streifen noch leer ist; ebenso
     wenig der erste Eintrag allein, wenn mehrere Dokumente übergeben sind.
 
-    **`launchApp` wartet bewusst nicht selbst.** Ein Teil der Fälle braucht die
-    Lücke: Wer nach dem Start einen Bereich an dasselbe Fenster bindet, muss das
-    tun, solange das Dokument noch nicht als geöffnet gemeldet ist, sonst
-    öffnet der Bereich ein eigenes Fenster. Dazu kommen Starts mit
-    wiederhergestellter Sitzung und Fälle, die ausdrücklich kein Dokument
-    erwarten.
+    **`launchApp` wartet nicht auf das Dokument, wohl aber auf die Bereitschaft
+    der Oberfläche** (seit dem 2026-10-25, `4T-002062`). Der Helfer kehrt erst
+    zurück, wenn das Startfenster das Bereit-Zeichen `body[data-renderer-ready]`
+    trägt, das die Anwendung nach dem Binden von Schaltern und Menü-Empfängern
+    setzt; eine eigene Wartestelle am Startfenster braucht ein Fall deshalb nur
+    noch, wo das Zeichen Bezugszeitpunkt einer Zusicherung ist, etwa dass die
+    Tour nicht anläuft. Bis zur Auswertung des nächsten Voll-Laufs einer
+    Release-Abnahme wartet er weich: Bleibt das Zeichen aus, läuft der Fall
+    weiter, und eine Zeile mit dem Anfang «[launchApp] Bereit-Zeichen
+    ausgeblieben» steht mit Start-Lage und Wartezeit auf der Standard-Ausgabe
+    und als Anmerkung `bereit-zeichen-ausgeblieben` im Bericht. Auf das
+    Datei-Argument wartet er weiterhin nicht: Die Oberfläche öffnet es
+    unmittelbar nach dem Zeichen, und ein Teil der Fälle prüft gerade den
+    Zustand ohne Dokument, darunter Starts mit wiederhergestellter Sitzung und
+    Fälle, die ausdrücklich kein Dokument erwarten. Die Lücke zwischen Rückkehr
+    und geöffnetem Dokument ist damit kürzer als zuvor; kein Fall darf auf sie
+    setzen, auch nicht, um einen Bereich vor dem Dokument an dasselbe Fenster
+    zu binden (nächster Absatz).
 
     **Bereich und Dokument im selben Fenster: erst binden, dann öffnen; nie
     mit Datei-Argument starten und auf den Vorsprung der Bindung setzen.** Ist
@@ -1406,8 +1464,11 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   ist der Trace eines roten Falls beim nächsten Lauf weg, und genau das ist am
   2026-08-19 passiert, als der Beleg für 4T-001086 gebraucht wurde. Wer E2E
   direkt über `npm run test:e2e` fährt, bekommt die Sicherung nicht — für die
-  Release-Abnahme ist deshalb der Zugang der vorgesehene Aufruf. Die Queue
-  fährt weiterhin **kein** E2E-Gate, und `alle` schließt es nicht ein.
+  Release-Abnahme ist deshalb der Zugang der vorgesehene Aufruf. Das gilt auch
+  in der virtuellen Maschine: Dort fällt derselbe Zugang, und der Rückweg
+  bringt Bericht und Belege des Laufs in den Arbeitsbaum; der Diagnose-Weg
+  `--nur` sichert sie wie beim Container nicht. Die Queue fährt weiterhin
+  **kein** E2E-Gate, und `alle` schließt es nicht ein.
 
 - **Null fehlgeschlagene Tests, trotzdem rot: zuerst den Rechner ansehen.**
   Meldet ein Lauf eine rote Suite, während der Bericht `numFailedTests: 0`
@@ -1415,7 +1476,19 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   fast immer ein `afterAll`, das Wegwerf-Verzeichnisse löscht. Dafür gibt es
   genau zwei Ursachen, und sie sehen gleich aus:
   1. **Fremdlast auf dem Rechner.** Ein zweiter Suite- oder Bau-Lauf, auch aus
-     einem anderen Clone. Prüfen mit
+     einem anderen Clone. Prüfen mit `node scripts/rechner-last.js`: Es gibt
+     immer genau eine von drei Antworten aus, fremde Läufe samt Clone und
+     Prozess-Kennung mit Rückgabewert 2, «keine fremden Suite- oder Bau-Läufe»
+     oder «nicht ermittelbar» mit Rückgabewert 0; Bau-Läufe, der eigene Clone
+     und die Wrapper-Prozesse von `npx` und `npm` sind dabei schon berücksichtigt.
+     Schweigen ist nie eine Antwort. Ein Windows-Ablauf-Lauf in der virtuellen
+     Maschine ist Last desselben Rechners, obwohl am Rechner keiner seiner
+     Prüfprozesse sichtbar ist; die Erkennung liest deshalb zusätzlich die
+     Belegungs-Marke `%ProgramData%\em4me-pruefstand\belegt.json`, zählt einen
+     laufenden Lauf in der Maschine als Suite-Lauf und ordnet ihn über das Feld
+     `arbeitsbereich` der Marke dem eigenen oder einem fremden Arbeitsbereich
+     zu. Für den Blick auf alle Node-Prozesse bleibt
+     als Ergänzung
      `Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -match 'vitest|playwright' }`;
      die Ausgabe nennt über `CommandLine` auch den Clone. Ist ein fremder Lauf
      aktiv: **warten, nicht wiederholen.** Ein zweiter Lauf unter derselben Last
@@ -1432,6 +1505,21 @@ Drei Eigenschaften, die beim Ändern zu erhalten sind:
   In **keinem** der beiden Fälle gehört der Lauf in die Flake-Quarantäne: Kein
   Test flackert, sondern eine Rahmenbedingung fehlt. Belegt am 2026-08-07 mit
   beiden Ursachen am selben Tag.
+
+- **Ein reiner Last-Fall wird ohne Änderung geschlossen** (4T-002181,
+  Entscheidung des Product Owners vom 2026-10-25). Läuft ein Fall der
+  Quarantäne-Liste allein unter gemessener Fremdlast in sein Zeitlimit, ohne
+  eine Erwartung zu verletzen, wird er nicht angefasst, sondern mit Status
+  `behoben` geschlossen; der Vermerk nennt den Last-Fall und verweist auf die
+  Fremdlast-Messung (`node scripts/rechner-last.js`). Vorausgesetzt ist, dass
+  die Prüfdatei dort, wo sie Prozesse startet, ein Erzeugnis baut oder den
+  Bestand liest, ihr benanntes Zeitlimit aus [zeitlimits.js](zeitlimits.js)
+  trägt; fehlt es, bekommt sie es zuerst. Ein Nachweis-Lauf entfällt, weil
+  nichts geändert ist. Tritt derselbe Fall ohne gemessene Fremdlast erneut
+  auf, eröffnet das einen neuen Eintrag, und dann ist der Fall selbst
+  anzusehen statt der Rechner. Angewandt am 2026-10-25 auf 26 Fälle, deren
+  Einträge Voll-Sicherung, Synchronisations-Dienst, fremde Suiten oder
+  parallele Agenten als Last nennen.
 
 - **Erst isoliert nachprüfen, dann bewerten.** Einzelne Fehlschläge der
   E2E-Voll-Suite sind häufig Last-Flakiness der parallelen Ausführung.
@@ -1851,7 +1939,11 @@ hinaus:** Das Unit-Gate fährt seit dem 2026-09-20 aus der Kopie im
 Container-Dateisystem (Abschnitt «Das Kommando» weiter unten), und die Werte in
 [`zeitlimits.js`](zeitlimits.js) sind unverändert geblieben. Die Zeitgrenzen
 bleiben damit plattform-einheitlich und auf der Haupt-Plattform so scharf, wie
-sie waren.
+sie waren. Das gilt auch für den Windows-Ablauf-Lauf in der virtuellen Maschine
+(seit dem 2026-10-26): Sie ist Windows und trägt dieselben Zeitgrenzen, einen
+eigenen Satz gibt es nicht (Entscheidung des Product Owners vom 2026-10-24,
+Anforderung `4S-001112`); reißt ein Fall dort eine Grenze, gilt die Antwort des
+Absatzes «Die Zeitgrenzen bleiben plattform-einheitlich».
 
 **Die Wirkung, gemessen am selben Tag und am selben Stand:** Der Lauf brauchte
 2 min 59 s Wanduhr, davon 92 s für die Kopie und 72 s für das Gate, gegen rund
@@ -2328,7 +2420,7 @@ Festgelegt am 2026-08-28 durch den Product Owner (Vorgang 4T-001251), auf der Gr
 
 ### Die vier Größen
 
-1. **Haupt-Plattform ist Windows.** Sie trägt die **vollständige** Suite ohne Ausnahme. Jede Prüfung, die irgendwo läuft, läuft hier.
+1. **Haupt-Plattform ist Windows.** Sie trägt die **vollständige** Suite ohne Ausnahme. Jede Prüfung, die irgendwo läuft, läuft hier. Am Stamm-Rechner fährt ihr Ablauf-Lauf seit dem 2026-10-26 in der virtuellen Maschine des Rechners (Unterabschnitt «Das Kommando», Anforderung `4S-001112`); dieser Lauf **ist** der Windows-Lauf der Release-Abnahme und kein zusätzlicher. Unit-Suite und manueller Test bleiben am Rechner.
 2. **Je weiterer freigegebener Plattform läuft der vollständige Ausschnitt**, also Unit-Suite **und** E2E-Suite. Die Beschränkung auf die Unit-Suite ist ausdrücklich **verworfen**: Alle drei Produkt-Befunde des ersten Linux-Laufs am 2026-08-28 lagen in der E2E-Suite, keiner in der Unit-Suite. Wer dort kürzt, prüft genau den Teil, der ohnehin plattformneutral ist.
 3. **Der manuelle Test bleibt für Windows die Regel und findet auf weiteren Plattformen nur bei Anlass statt — und was ein Anlass ist, sagt ein benannter Auslöser-Katalog, nicht das Ermessen der Release-Sitzung** (Entscheidung des Product Owners vom 2026-09-03, Weg 3 aus `4T-001382`; bis dahin stand hier ein Prosa-Urteil, dem die Release-Strecke mit «eine Strecke je ausgelieferter Bezugs-Form» widersprach, und bei `1.125.1` entschied die Anordnung des Product Owners statt des Regelwerks). Ein Anlass liegt vor, sobald **einer** der folgenden Auslöser zutrifft: **(a)** Bau-Ziele und Bau-Konfiguration (`build/**`, `scripts/build-*.js`); **(b)** Datei-Zuordnung (Dateitypen, Protokoll-Registrierung); **(c)** Desktop-Einbindung (Menü- und Start-Einträge, Icons, Autostart); **(d)** Pfad- und Dateisystem-Verhalten des Haupt-Prozesses (plattformgebundene Zweige unter `src/main/**`, Groß-/Kleinschreibung, Symlinks, Berechtigungen); **(e)** jede Änderung am `build`-Block der `package.json`; dazu **(f)** ein Befund des automatisierten Laufs auf der Plattform, der eine Sicht-Prüfung braucht. Trifft keiner zu, genügt die Windows-Strecke, und der Sammeltask hält das mit dem geprüften Katalog fest («kein Auslöser, a bis f geprüft»). Fünf der sechs Auslöser sind am Release-Diff erkennbar; eine maschinelle Stütze ist deshalb möglich und bewusst noch nicht gebaut — erst wenn sich der Katalog an zwei Releases bewährt hat, lohnt ein Werkzeug, das die Auslöser aus dem Diff vorschlägt, und (f) bleibt ohnehin ein Urteil. Grund: Der gründliche manuelle Durchgang vom 2026-08-26 fand drei Befunde und **keinen** der drei, die die automatisierte Suite zwei Tage später fand. Beide Prüf-Arten sehen Verschiedenes; die manuelle ist die teurere und gehört dorthin, wo sie allein etwas leisten kann.
 4. **Ausgelöst wird der Lauf von jedem Release mit Produkt-Code-Anteil.** Ein Release ohne ihn kann die Plattform nicht brechen und löst deshalb keinen Lauf aus.
@@ -2349,21 +2441,40 @@ Die Festlegung spricht bewusst von **freigegebenen Plattformen** und nicht von W
 
 ### Das Kommando
 
+Je Plattform gibt es ein Kommando für die Läufe außerhalb des Rechners: für Linux den Container, für den Windows-Ablauf-Lauf am Stamm-Rechner die virtuelle Maschine. Beide folgen demselben Weg: Kopie des Stands, dort derselbe Gate-Weg, Bericht und Belege zurück in den Arbeitsbaum.
+
+**Linux im Container:**
+
 ```bash
 node scripts/test-linux-docker.js e2e
 ```
 
 Gate-Namen (`format:check`, `lint`, `test`, `e2e`, `alle`, seit dem 2026-10-14 auch `ausschnitt` für das Epic-Tor oben) werden unverändert an `scripts/gate-lauf.js` im Container durchgereicht; es fällt dort dasselbe Kommando wie auf der Haupt-Plattform. `--basis <ref>` gilt allein für das Gate `ausschnitt` und geht an dessen Basis-Ermittlung; den Ablauf-Nachweis dieses Gates prüft der Container nicht. `--nur <muster>` fährt einen einzelnen Fall und ist der Diagnose-Weg, wenn ein roter Fall nach der Leiter unten isoliert nachzuprüfen ist. **Der Schalter gilt allein für das Gate `e2e`**, wo das Muster an den E2E-Lauf weitergereicht wird; zusammen mit einem anderen Gate — auch wenn `e2e` daneben steht — endet der Aufruf vor dem ersten Docker-Aufruf mit einer Meldung, statt das volle Gate zu fahren. Für das Unit-Gate gibt es diesen Weg damit nicht. Voraussetzung ist Docker; ein Kaltstart von Docker Desktop braucht mehrere Minuten, bevor der Dienst antwortet.
 
-**Woher der Lauf seine Dateien liest, ist nicht überall dasselbe** (seit dem 2026-08-31, Vorgang zum Rechner-Unterschied weiter unten):
+**Windows in der virtuellen Maschine** (seit dem 2026-10-26, Anforderung `4S-001112`):
+
+```bash
+node scripts/test-windows-vm.js e2e
+```
+
+Das Werkzeug fährt **allein das Gate `e2e`**; ein anderes Gate und ein Aufruf ohne Gate enden vor dem ersten Schritt mit einer Meldung, weil Unit-Suite und Sammel-Gate am Rechner über `node scripts/gate-lauf.js` laufen. In der Maschine fällt dasselbe Kommando wie am Rechner, `node scripts/gate-lauf.js e2e`, in einer angemeldeten Windows-Sitzung, deren Fenster auf keinem Bildschirm des Rechners erscheinen. Vor jedem Lauf räumt das Werkzeug Arbeitsspeicher frei, setzt die Maschine auf ihren Wiederherstellungspunkt «sauber» zurück und kopiert den Arbeitsbaum hinein; das Protokoll nennt Rüstzeit («Ruestzeit bis zum ersten Gate»), Dauer des Gates und Wanduhr des Laufs. `--nur <muster>` ist der Diagnose-Weg wie beim Linux-Prüfstand: In der Maschine fällt dann `npm run test:e2e -- <muster>` statt des Gate-Wegs, ohne Sicherung der Rot-Belege. `--sperr-zustand <belegt|frei|unbekannt>` erzwingt den Sperr-Zustand für einen Nachweis; ohne den Schalter liest das Werkzeug die Release-Sperre am Rechner und reicht sie als `EM4ME_RELEASE_SPERRE` in die Maschine, die den Ablage-Ort nicht erreicht, wie beim Container (Abschnitt «Linux-Prüfumgebung im Container», Absatz «Sperr-Zustand im Container»).
+
+**Voraussetzungen** sind PowerShell 7, Hyper-V-Verwaltungsrechte und die Maschine samt Wiederherstellungspunkt und Steckbrief, aufgesetzt mit `pwsh -File scripts/windows-vm-aufsetzen.ps1`. Fehlt eine davon, endet das Werkzeug vor dem ersten Schritt an der Maschine mit Rückgabewert 2, nennt je Lücke den Handgriff und startet am Rechner nichts; die Frist der Evaluierungsfassung ist keine Vorbedingung: Bleiben höchstens fünf Tage oder ist sie abgelaufen, setzt das Werkzeug die Maschine vor dem Lauf selbst neu auf (`scripts/pruefstand-windows/erneuern.ps1`, rund 20 Minuten, ohne Warnung und ohne Rückfrage, Anordnung des Product Owners vom 2026-10-25) und fährt danach den Lauf; **einen Rückfall auf einen Lauf am Bildschirm des Rechners gibt es nicht.** Wie die Release-Strecke darauf antwortet, regelt sie selbst (Release-Strecke, Kapitel 2, Schritt 6): Sie hält an und meldet.
+
+**Die Maschine gibt es einmal je Rechner, ein Lauf zur Zeit.** Die Slot-Clones eines Rechners teilen sie. Belegt wird sie über die Marke `%ProgramData%\em4me-pruefstand\belegt.json` mit Arbeitsbereich, Zweig, Beginn und Prozess-Kennung; ein zweiter Aufruf während eines Laufs endet mit der Belegt-Meldung, die den belegenden Bereich nennt, und Rückgabewert 2. Eine Marke, deren Prozess nicht mehr lebt, gilt als verwaist. Der Linux-Lauf im Container ist davon nicht berührt, beide laufen gleichzeitig.
+
+**Rückgabewert** ist der des Gates in der Maschine, unverfälscht; ohne Urteil des Gates nie 0.
+
+**Woher der Lauf seine Dateien liest, ist nicht überall dasselbe** (seit dem 2026-08-31, Vorgang zum Rechner-Unterschied weiter unten). Die Punkte gelten dem Container, der letzte Punkt dem Lauf in der Maschine:
 
 - Das **E2E-Gate** (`e2e`), das **Unit-Gate** (`test`), das **Sammel-Gate** (`alle`) und seit dem 2026-10-14 das Gate **`ausschnitt`** laufen aus einer **Kopie im Container-Dateisystem**. Sie entsteht je Lauf neu, ohne `node_modules`, `releases`, `dist`, `test-results` und `playwright-report`, mit dem Git-Verzeichnis; `node_modules` hängt als dasselbe Volume auch unter dem Pfad der Kopie. Bevor ein Gate startet, prüft der Lauf die Kopie auf die Bäume, die seine Wächter lesen, also `src`, `test`, `scripts`, `docs`, `web`, `Projektmanagement` und das Git-Verzeichnis, und bricht ab, statt gegen einen halben Baum zu prüfen. Nach dem Lauf wandert der Maschinen-Bericht jedes Gates zurück in den Arbeitsbaum, für `test`, `alle` und `ausschnitt` also `test-berichte/unit.json` und für `e2e` die Datei `test-berichte/e2e.json`, dazu die Rot-Belege, auch nach einem roten Lauf.
 - **Das Unit-Gate ist erst seit dem 2026-09-20 dabei** (`4T-001837`). Bis dahin blieb es auf dem Arbeitsbaum, weil seine Bestands-Wächter ihn samt Git-Verzeichnis nur einmal lesen und eine Kopie dort kein Gewinn gewesen wäre. Diese Rechnung hat das Wachstum des Webseiten-Baus gekippt: Seine vier Bau-Prüfdateien rissen im Container ihre Zeitgrenze, während dieselbe Suite unter Windows grün blieb. Damit war die Schwelle des Absatzes «Die Zeitgrenzen bleiben plattform-einheitlich» erreicht, und dessen Antwort darauf ist genau dieser Weg.
 - **Das Sammel-Gate steht aus einem eigenen Grund dabei.** Es fällt im Container als ein einziger Aufruf und hat deshalb genau einen Arbeitsordner; stünde es nicht in der Menge, liefe das Unit-Gate wieder über die Brücke, sobald jemand die Release-Abnahme mit `alle` fährt statt mit `test`. Format und Lint messen denselben Datei-Bestand, gleich aus welchem Baum sie ihn lesen.
 - **Einzeln gefahren bleiben `format:check` und `lint` auf dem Arbeitsbaum.** Sie lesen wenig und gewönnen nichts, und eine Kopie für sie allein wäre teurer als der Lauf.
 - `--ohne-kopie` stellt den alten Weg her, für alle Gates gleichermaßen. Er ist der schnellere, wenn **ein einzelner** Fall nachzuprüfen ist, weil die Kopie dann teurer wäre als der Fall selbst, und er ist der Ausweg, falls die Kopie einmal nicht trägt.
+- **Der Windows-Ablauf-Lauf in der Maschine liest immer aus einer Kopie** (seit dem 2026-10-26). Sie entsteht je Lauf neu auf der zurückgesetzten Maschine, ohne dieselben fünf Ordner wie beim Container (`node_modules`, `releases`, `dist`, `test-results`, `playwright-report`) und zusätzlich ohne die lokalen Zugangs-Dateien `*.lokal.json` im Wurzelverzeichnis, weil die Platte der Maschine anders als der Container bestehen bleibt; das Git-Verzeichnis kommt mit. Vor dem Gate prüft der Lauf die Kopie auf `package.json`, `playwright.config.js`, `src`, `test`, `scripts`, `docs`, `web`, `Projektmanagement` und das Git-Verzeichnis und bricht ab, statt gegen einen halben Baum zu prüfen. Nach dem Lauf kommen `test-berichte/e2e.json` und die Rot-Belege dieses Laufs zurück in den Arbeitsbaum, auch nach einem roten Lauf; das Protokoll meldet, ob der Bericht frisch angekommen ist. Einen Weg ohne Kopie gibt es hier nicht.
 
-Wer die Aufteilung ändert, ändert den Prüfstand einer Release-Abnahme; `test/unit/test-linux-docker.test.js` hält sie deshalb fest.
+Wer die Aufteilung ändert, ändert den Prüfstand einer Release-Abnahme; `test/unit/test-linux-docker.test.js` und `test/unit/test-windows-vm.test.js` halten sie deshalb fest.
 
 **Das E2E-Gate läuft in einem eigenen Prüfstand-Abbild** (seit dem 2026-09-23, `4T-001693`). Das Referenz-Abbild `electronuserland/builder:22` ist eine Bau-Umgebung und kann die Anwendung nicht starten; bis dahin beschaffte deshalb jeder Lauf des E2E-Gates die Anzeige-Bibliotheken neu über `playwright install-deps`, 337 Pakete mit rund 219 MB Download, und bei langsamer Paketquelle hing ein Lauf am 2026-09-11 über 44 Minuten darin fest. Jetzt stehen Bibliotheken, `xvfb` und der Prüf-Nutzer in einem abgeleiteten Abbild aus `scripts/pruefstand.Dockerfile`:
 
@@ -2606,7 +2717,7 @@ Virenschutz-Ausschlüsse), dazu die NTFS-Fortschreibung der letzten Zugriffszeit
 
 Gemessen am 2026-08-28 in der realen Release-Konstellation: Der Windows-Lauf bleibt bei 27,5 min, der Linux-Lauf steigt von 38,6 auf 44,5 min (+15 %). **Kein Fehlschlag war der Last zuzuschreiben** — der Linux-Lauf riss unter Last exakt dieselben drei Fälle wie lastfrei, und die vier Prüfdateien, die den am 2026-08-07 belegten Versagens-Mechanismus tragen, liefen 3 von 3 grün. Nacheinander kosten beide Läufe rund 67 Minuten, gleichzeitig 44,5.
 
-**Die Anordnung vom 2026-08-07 ist am 2026-08-31 vom Product Owner geschärft worden:** Die beiden **Plattform-Läufe eines Releases** (Windows-Suite und Linux-Container-Suite über denselben Stand) laufen **parallel** — genau die oben gemessene Konstellation, und die Zahlen sind ihre Grundlage. Alles Übrige der Anordnung gilt unverändert, insbesondere nie zwei Läufe derselben Plattform und kein Bau parallel zu einer Suite; der Wortlaut steht in den Entwicklungsrichtlinien, Kapitel 11. Anlass: Beim Release 1.123.0 verlängerte die serielle Lesart die Strecke um Stunden.
+**Die Anordnung vom 2026-08-07 ist am 2026-08-31 vom Product Owner geschärft worden:** Die beiden **Plattform-Läufe eines Releases** (Windows-Suite und Linux-Container-Suite über denselben Stand) laufen **parallel** — genau die oben gemessene Konstellation, und die Zahlen sind ihre Grundlage. Daran ändert der Lauf in der Maschine nichts (Entscheidung des Product Owners vom 2026-10-24, Anforderung `4S-001112`): Seit dem 2026-10-26 fährt der Windows-Ablauf-Lauf am Stamm-Rechner in der virtuellen Maschine, weiterhin gleichzeitig mit dem Linux-Lauf. Die Zahlen oben stammen aus Läufen am Bildschirm des Rechners. Für den Lauf in der Maschine liegen drei Mess-Läufe vom 2026-10-25 parallel zum Linux-Lauf vor, mit 1:14 h, 1:16 h und 1:10 h für das Gate (3989 grün, 1 rot); am Rechner brauchte der Windows-Ablauf-Lauf parallel zu Linux zuletzt 1,6 h (Release-Strecke 1.152.0 am 2026-10-24) und in der Messung oben vom 2026-08-28 27,5 min. Alles Übrige der Anordnung gilt unverändert, insbesondere nie zwei Läufe derselben Plattform und kein Bau parallel zu einer Suite; der Wortlaut steht in den Entwicklungsrichtlinien, Kapitel 11. Der Lauf in der Maschine und die Unit-Suite am Rechner sind zwei Windows-Läufe auf demselben Rechner und laufen deshalb nicht gleichzeitig. Anlass: Beim Release 1.123.0 verlängerte die serielle Lesart die Strecke um Stunden.
 
 ### Benannte Auslassungen
 

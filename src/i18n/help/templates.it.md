@@ -26,7 +26,7 @@ Più segnaposto di input e selezione appaiono **uno dopo l'altro** nell'ordine d
 
 ## Riferimento dei segnaposto
 
-I segnaposto si scrivono tra doppie parentesi graffe. `\{{` scrive un `{{` letterale nel modello.
+I segnaposto si scrivono tra doppie parentesi graffe. `\{{` scrive un `{{` letterale nel modello. Modelli e [workflow](workflows.md) condividono lo stesso insieme di segnaposto; quali valgono in una riga di comando è descritto nella pagina dei workflow.
 
 | Segnaposto | Effetto |
 | --- | --- |
@@ -36,6 +36,8 @@ I segnaposto si scrivono tra doppie parentesi graffe. `\{{` scrive un `{{` lette
 | `{{time:-30min:HH:mm:ss}}` | anche l'ora accetta offset e formato |
 | `{{title}}` | titolo del file di destinazione (per le sottopagine la forma logica con `/`) |
 | `{{folder}}` | cartella del file di destinazione (relativa alla radice in un'area) |
+| `{{file}}` | percorso del documento attivo (relativo alla radice in un'area); vuoto senza documento attivo |
+| `{{area}}` | nome dell'area aperta; vuoto senza area |
 | `{{prompt:Domanda}}` | dialogo di input; valore predefinito facoltativo: `{{prompt:Domanda:Valore}}` |
 | `{{select:Domanda:a,b,c}}` | dialogo di selezione con le opzioni `a`, `b`, `c` |
 | `{{clipboard}}` | testo attuale degli appunti |

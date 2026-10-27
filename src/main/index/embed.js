@@ -18,16 +18,14 @@
 'use strict';
 
 const { githubLikeSlug } = require('../../shared/markdown/slug.js');
-// 4T-001912 (Epic 3E-000360): die Zaun-Regel aus ihrer einen Heimat statt des
-// geteilten Ausdrucks `FENCE_RE`, der allein das Zeichen verglich.
-const { schliesstZaun, zaunOeffnung } = require('../../shared/markdown/fence-level.js');
 const {
   BLOCK_ANCHOR_RE,
   ankerZeileAllein,
   ankerZeileAlleinImZitat,
   extractBlockAnchors,
 } = require('../../shared/block-anchors.js');
-const { HEADING_RE } = require('./parse.js');
+// 4T-002347 (Epic 3E-000184): die Abschnitts-Regel aus ihrer gemeinsamen Heimat.
+const { findHeadingSection } = require('../../shared/markdown/heading-sections.js');
 
 // 4T-000064 (Epic 3E-000012): markdown-it fuer die AST-basierte Block-Range-
 // Erkennung bei `![[Datei#^id]]`-Embeds. Lazy-Init beim ersten Aufruf, damit
@@ -266,49 +264,13 @@ function extractEmbedSnippet(roh, anchor) {
     return zeile ? ohneAnker(lines[zeile - 1], id) : null;
   }
 
-  const wantedSlug = githubLikeSlug(anchor);
-  let startLine = -1;
-  let headingLevel = 0;
-  // 4T-001912 (Epic 3E-000360): Code-Blöcke nach der Zaun-Regel überspringen
-  // (fence-level.js): Ein Block endet allein an einer Zeile desselben Zeichens,
-  // mindestens so lang wie die öffnende, ohne Sprach-Angabe. Bis dahin endete er
-  // an jeder Zaun-Zeile desselben Zeichens, und eine Überschrift im Rest eines
-  // äußeren Blocks mit längerem Zaun wurde als Anker gefunden.
-  let offen = null;
-  for (let i = 0; i < lines.length; i++) {
-    if (offen) {
-      if (schliesstZaun(lines[i], offen)) offen = null;
-      continue;
-    }
-    offen = zaunOeffnung(lines[i]);
-    if (offen) continue;
-    const m = lines[i].match(HEADING_RE);
-    if (m && githubLikeSlug(m[1]) === wantedSlug) {
-      startLine = i;
-      headingLevel = (lines[i].match(/^(#{1,6})/) || ['', ''])[1].length;
-      break;
-    }
-  }
-  if (startLine < 0) return null;
-
-  let endLine = lines.length;
-  // Dieselbe Verfolgung für das Ende des Abschnitts: Eine Überschrift in einem
-  // Code-Block beendet ihn nicht.
-  offen = null;
-  for (let i = startLine + 1; i < lines.length; i++) {
-    if (offen) {
-      if (schliesstZaun(lines[i], offen)) offen = null;
-      continue;
-    }
-    offen = zaunOeffnung(lines[i]);
-    if (offen) continue;
-    const m = lines[i].match(/^(#{1,6})\s+/);
-    if (m && m[1].length <= headingLevel) {
-      endLine = i;
-      break;
-    }
-  }
-  return lines.slice(startLine, endLine).join('\n');
+  // 4T-002347 (Epic 3E-000184): Anfang und Ende des Abschnitts aus der
+  // gemeinsamen Heimat `heading-sections.js`, verhaltensgleich ausgezogen; die
+  // Workflow-Quelle `from-section` findet damit denselben Abschnitt. Code-Blöcke
+  // überspringt die Heimat nach der Zaun-Regel (4T-001912, Epic 3E-000360).
+  const bereich = findHeadingSection(lines, githubLikeSlug(anchor));
+  if (!bereich) return null;
+  return lines.slice(bereich.start, bereich.end).join('\n');
 }
 
 module.exports = {

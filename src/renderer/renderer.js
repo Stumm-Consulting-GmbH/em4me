@@ -55,6 +55,10 @@ import './modules/tabs/tab-group-menu.js';
 import './modules/properties/properties-tags.js';
 import './modules/editor/autocomplete-help.js';
 import './modules/search/search.js';
+// 4T-002348 (Epic 3E-000184): Fenster-Seite der Workflow-Ausführung. Ihr
+// Empfänger für Puffer-Aufträge hängt am Modul-Rumpf; ohne diesen Import
+// erreichte ein Auftrag des Hauptprozesses kein Fenster.
+import './modules/workflows/workflow-window.js';
 // 4T-000971: Der Sicherungs-Weg der Auffang-Ebene. Der Import steht am Ende der
 // Kette, weil er nur eine Funktion holt und die Seiteneffekt-Reihenfolge nicht
 // verschieben darf; das Modul ist zu diesem Zeitpunkt ohnehin ueber den

@@ -60,6 +60,8 @@ export const BEDIEN_ELEMENTE = [
   '.prc-action-head',
   // Block-Eigenschaften-Zeichen
   '.block-meta-indicator',
+  // Kopfzeile des workflow-Blocks mit Prüf-Ergebnis und Knopf «Starten»
+  '.cm-wf-kopf',
   // Ereignis-Block: Ansichts-Umschalter, Filter-Leiste und ihr Schalter,
   // Erfassungs-Zeile, Aktions-Spalte und Kalender-Blaetterknoepfe
   '.pev-switcher',

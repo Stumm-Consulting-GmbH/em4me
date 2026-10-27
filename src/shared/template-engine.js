@@ -24,6 +24,10 @@
 //   {{prompt:Frage:Default}}  zweiten Trenn-Stelle (Default darf ':' tragen).
 //   {{select:Frage:a,b,c}}    Auswahl-Liste (mindestens eine Option).
 //   {{clipboard}}             Zwischenablage (Wert liefert der Aufrufer).
+//   {{file}} / {{area}}       Pfad des aktiven Dokuments (im Bereich wurzel-
+//                             relativ mit '/') und Name des Bereichs; Werte
+//                             liefert der Aufrufer (4T-002347, Epic 3E-000184:
+//                             gemeinsamer Satz für Vorlagen und Workflows, K6).
 //   {{cursor}} / {{cursor:2}} nummerierte Cursor-Ziele; die Marker werden
 //                             entfernt, die Offsets im Ergebnis-Text geliefert.
 //
@@ -90,7 +94,9 @@ function parsePlaceholder(inner, pos) {
     }
     case 'title':
     case 'folder':
-    case 'clipboard': {
+    case 'clipboard':
+    case 'file':
+    case 'area': {
       if (params.length > 0) return makeError('invalidParams', pos, { name });
       return { ok: true, node: { type: 'context', name } };
     }
@@ -159,7 +165,9 @@ function analyzeTemplate(text) {
         segments.push({ type: 'lit', text: literal });
         literal = '';
       }
-      segments.push(parsed.node);
+      // 4T-002347: Lage des Platzhalters im Text (Anfang inklusive, Ende
+      // exklusiv), für Befund-Spalten und die Hervorhebung der Workflows.
+      segments.push({ ...parsed.node, from: i, to: close + 2 });
       if (parsed.node.type === 'input' && !seenInputs.has(parsed.node.key)) {
         seenInputs.add(parsed.node.key);
         const { key, kind, question, defaultValue, options } = parsed.node;
@@ -182,6 +190,7 @@ function analyzeTemplate(text) {
 // Füll-Phase: setzt Kontext-Werte und Dialog-Antworten in die analysierten
 // Segmente ein. context:
 //   title, folder   Strings der Zieldatei (fehlend = leer)
+//   file, area      aktives Dokument und Bereichs-Name (fehlend = leer)
 //   nowMs           Bezugszeitpunkt der Zeit-Platzhalter (fehlend = jetzt)
 //   clipboard       Zwischenablage-Text (fehlend = leer)
 //   answers         { [input.key]: string } — Antworten der Dialog-Kette
@@ -211,8 +220,8 @@ function fillTemplate(analysis, context) {
         text += formatDateMs(nowMs + seg.offsetMs, seg.format, ctx.locale);
         break;
       case 'context': {
-        const value =
-          seg.name === 'title' ? ctx.title : seg.name === 'folder' ? ctx.folder : ctx.clipboard;
+        // Der Name stammt allein aus der geschlossenen Liste in parsePlaceholder.
+        const value = ctx[seg.name];
         text += value == null ? '' : String(value);
         break;
       }

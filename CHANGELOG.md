@@ -14,6 +14,290 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.153.0.4466] - 2026-10-27 — Workflows Stufe 1: wiederkehrende Arbeitsschritte als Markdown-Datei, von Hand gestartet
+
+Zug 3E-000369
+mit einem Mitglied, auf ausdrückliche Anweisung des Product Owners vom
+2026-10-22 und damit unter der Regelgröße («der Zug fährt auf meine Anweisung
+mit dem einen Epic 3E-000184»): die Stufe 1 der Workflows
+(3E-000184). Wiederkehrende
+Handgriffe lassen sich als Workflow aufschreiben, als gewöhnliche
+Markdown-Datei mit dem Kennzeichen `workflow: true` im Dateikopf und genau
+einem Code-Block `workflow`, in dem eine Zeile je Schritt einen festen Befehl
+trägt. Ein Workflow legt Dateien und Ordner an, auch aus Vorlagen, benennt um,
+verschiebt mit Nachzug der Verweise, kopiert, öffnet und schließt, hängt Text
+an, fügt ein und ersetzt, setzt und entfernt Eigenschaften im Dateikopf, führt
+Kommandos, Makros und andere Workflows aus, wartet und gibt Hinweise. Vor dem
+ersten Schritt prüft die Anwendung den ganzen Workflow; gestartet wird von
+Hand, aus dem Untermenü «Datei → Workflows», der Kommando-Palette, über ein
+Tastenkürzel, einen Knopf über dem Block oder das Kontextmenü des
+Bereichs-Panels. Ein Workflow wirkt nur im geöffneten Bereich, löscht nichts
+und greift nicht auf das Netz zu. Alles hängt an der neuen Erweiterung
+«Workflows» im Arbeitsmodus «Voll». Zeitsteuerung, Ereignisse und
+Datenbank-Befehle folgen in eigenen Stufen und Zügen. Konzept-Runde und
+Entscheidungen in
+4T-002330,
+der Abschluss-Anteil in
+4T-002354.
+
+**Entscheidungen des Product Owners vom 2026-10-20, 2026-10-22 und
+2026-10-23.** Die
+Schritte stehen als feste Befehle in einem Code-Block und nicht als YAML im
+Dateikopf (1a, gegen die Empfehlung der Sitzung, im Wortlaut: «Das ist aus
+meiner Sicht zu kurz gedacht. Im YAML haben wir nur recht eingeschränkte
+Möglichkeiten. Deswegen bevorzuge ich den Codeblock als Definition, damit wir
+dort feste Befehle vorgeben, die dort eingetragen werden können und die dann
+umgesetzt werden.»). Die Schlüsselwörter sind englisch, Umfang und
+Stufen-Spalte des Befehls-Katalogs stehen fest, und Vorlagen und Workflows
+teilen einen Satz Platzhalter (K1 bis K3 und K6, im Wortlaut «Englisch wie
+empfohlen», «der Umfang passt», «Stufen so übernehmen» und «K6 auch
+umsetzen»). Die Stufen 2, 3 und D bekommen je eine eigene Konzept-Runde und
+einen eigenen Zug; Datensatz-Ereignisse starten keine Workflows (1c, D1 bis
+D3). Die Sicherheits-Grenzen (1f), die Erweiterung im Arbeitsmodus «Voll»
+(1g), das Verhältnis zu den Makros (1h), der Feinschnitt der Stufe 1 (Paket 2)
+und Workflow-Ordner samt Menü (Paket 3) sind Empfehlungen der Sitzung,
+pauschal übernommen («Wie empfohlen. Mach weiter.», «Das passt so für mich.»,
+«Freigegeben. Mach weiter.»). Bei vorhandenem Ziel schlägt ein Schritt fehl,
+statt zu überschreiben, und `replace` ersetzt jedes Vorkommen («Beide wie
+empfohlen.»); die sechs Randfälle E1 bis E6 der Ausführung folgen am
+2026-10-23 der Empfehlung («Alle sechs Randfälle E1 bis E6 wie empfohlen.»), ebenso `notify`
+als Hinweis in der Statusleiste («Alle drei wie empfohlen.»).
+
+### Neu
+
+- **Format-Kern der Workflows** (`4T-002347`). Ein prozess-neutraler Kern
+  unter `src/shared/workflows/` erkennt eine Workflow-Datei am Kennzeichen
+  `workflow: true` im Dateikopf (dazu `name`, `trigger` mit Vorgabe `manual`
+  und `description`) und an genau einem Code-Block `workflow`, liest dessen
+  Zeilen nach der Grammatik G2 bis G4 (eine Zeile je Befehl, Kommentare,
+  Anführungszeichen mit `\"`, benannte Optionen) und prüft sie vor dem Lauf
+  nach G6: unbekannter Befehl, fehlendes oder überzähliges Argument, Pfad
+  außerhalb des Bereichs, unbekannter Platzhalter, Befehl einer späteren Stufe
+  und Auslöser einer späteren Stufe sind je ein benannter Befund mit Zeile.
+  Der Befehls-Katalog führt alle Befehle aller Stufen als Daten, damit
+  «unbekannt» und «kommt in einer späteren Stufe» unterscheidbar sind. Die
+  Erkennung der Abschnitte unter Überschriften liegt in einer gemeinsamen
+  Heimat (`src/shared/markdown/heading-sections.js`), aus der Einbettung,
+  Index und Workflows lesen; die Workflow-Dateien eines Bereichs liefert eine
+  lesende Sicht des Index (`src/main/index/workflow-files.js`).
+- **Datei-, Ordner-, Inhalts- und Dateikopf-Befehle im Hauptprozess**
+  (`4T-002348`). `create` (auch `from-template`), `mkdir`, `rename`, `move`,
+  `copy`, `open`, `close`, `append`, `insert … under`, `replace`,
+  `set-property` und `remove-property`; Quellen eines Inhalts sind Vorlage,
+  Datei oder benannter Abschnitt des Workflow-Dokuments. Jeder Pfad wird im
+  Hauptprozess ein zweites Mal gegen die Bereichs-Wurzel geprüft, am Text und
+  am echten Ort auf der Platte, auch über Verzeichnis-Knoten hinweg. Ein
+  vorhandenes Ziel lässt den Schritt fehlschlagen, nichts wird überschrieben;
+  ein fehlender Ziel-Ordner wird innerhalb des Bereichs angelegt;
+  `replace` ersetzt jedes Vorkommen und schlägt ohne Vorkommen fehl; `move`
+  nimmt Unterseiten und Teile mit und zieht die Verweise nach wie das
+  Umbenennen; `insert … under` fügt direkt unter der Überschrift ein; `close`
+  auf ein ungespeichertes Dokument geht über die gewohnte Speicher-Rückfrage.
+  Ist die Ziel-Datei in einem Fenster ungespeichert offen, bearbeitet der
+  Schritt den Stand im Editor dieses Fensters statt der Datei, mit Antwort und
+  Frist; ungespeicherte Arbeit geht nie verloren. Der Lauf-Stand jedes
+  Workflows steht in der Sektion `workflow` seiner Begleitdatei (Zeitpunkt,
+  Ergebnis, Zeile und Grund eines Abbruchs, Zahl der Läufe); er reist beim
+  Umbenennen und Verschieben mit, nicht beim Kopieren, und der Text der
+  Workflow-Datei bleibt unberührt. Neue Kanal-Gruppe `src/main/ipc/workflows.js`
+  mit `workflow:step`, `workflow:bufferEdit`, `workflow:bufferEditDone` und
+  `workflow:recordRun`, Ausführung unter `src/main/workflows/`; die Kaskade des
+  Umbenennens ist aus dem Kanal `file:rename` in
+  `src/main/documents/rename-cascade.js` gezogen und wird von Umbenennen und
+  Workflow geteilt, Verhalten unverändert.
+- **Workflows von Hand starten, Anwendungs- und Ablauf-Befehle** (`4T-002349`).
+  Jeder Workflow des Workflow-Ordners ist ein Kommando unter seinem Namen im
+  dritten dynamischen Namensraum `workflow.` der Kommando-Registry, neben
+  `ext.` und `macro.`; es erscheint in der Kommando-Palette und lässt sich
+  über die Kommando-Platzierung auf Statusleiste und Kontextmenü legen und mit
+  einem Tastenkürzel belegen. Über dem Block startet ein Knopf «Starten» den
+  Stand im Editor. Vor dem ersten Schritt prüft der Start den ganzen
+  Aufruf-Baum samt aufgerufener Workflows und eingesetzter Vorlagen und erhebt
+  alle Eingabe-Dialoge; danach laufen die Schritte nacheinander, Datei- und
+  Inhalts-Schritte im Hauptprozess, `command`, `macro`, `workflow`, `wait`,
+  `notify` und `stop` im Fenster. Höchstens ein Lauf je Fenster, Aufruf-Tiefe
+  höchstens fünf über Workflows und Makros, ein Kreis oder ein mehrdeutiger
+  Name ist ein Befund vor dem Lauf. Ein Abbruch erscheint in der Statusleiste
+  als «Workflow ‹Name› abgebrochen in Zeile N: Grund»; `notify` zeigt seinen
+  Text dort als Hinweis. Makros sind als Schritt aufrufbar und bleiben
+  unverändert.
+- **Seite «Workflow-Läufe»** (`4T-002350`). Eine System-Seite listet alle
+  Workflows des Bereichs, auch die außerhalb des Workflow-Ordners, mit Name,
+  Ort, Zeitpunkt und Ergebnis des letzten Laufs, gegebenenfalls der
+  abgebrochenen Zeile, der Zahl der Läufe und einem Knopf «Starten» je Zeile;
+  sie zieht nach jedem Lauf und jeder Änderung im Bereich nach und zeigt
+  denselben Grund wie der Hinweis in der Statusleiste. Kanal `workflow:runs`,
+  Kommando `ext.workflows.openRuns`, Seiten-Kennung `workflow-runs`.
+- **Hervorhebung und Prüf-Anzeige im Workflow-Block** (`4T-002351`). Im
+  Code-Block `workflow` sind Schlüsselwort (fett), Text in Anführungszeichen
+  und Platzhalter (kursiv) im Editor und in der Darstellung unterscheidbar
+  hervorgehoben, aus dem Zeilen-Leser des Kerns und ohne zweiten Erkenner.
+  Die Live-Ansicht, die gerenderte Ansicht und die Vorschau der geteilten
+  Ansicht zeigen über dem Block das Ergebnis der Prüfung vor dem Laufen, grün «bereit» oder rot mit Zeile und Grund samt «(+N weitere)», dazu
+  die Hinweise auf mehrere Blöcke und auf einen noch nicht unterstützten
+  Auslöser; die Anzeige folgt jeder Änderung des Texts. Schrift-Form statt
+  Farbe allein, weil zwei der dreizehn mitgelieferten Farbschemas die Farben
+  zu nah beieinander führen. Neue Fence-Weiche `src/shared/markdown/workflow-block.js`
+  neben der Pipeline, Snapshot-Fixture `test/fixtures/render/workflow.md`.
+  Gerenderte und geteilte Ansicht kamen als Nachzug hinzu (Entscheidung des
+  Product Owners vom 2026-10-23 zur Frage P7): Kopfzeile und Knopf «Starten»
+  entstehen in beiden Ansichten aus dem gemeinsamen Baustein
+  `src/renderer/modules/workflows/workflow-kopfzeile.js`, in der gerenderten
+  Ansicht nach jedem Rendern vor jedem `workflow`-Block der obersten Ebene
+  (`workflow-kopf-gerendert.js`, Zaun-Zeile als `data-wf-zeile` aus der
+  Fence-Weiche); Druck, PDF, HTML-Export, portabler Export und eingebettete
+  Dateien bleiben ohne Kopfzeile.
+- **Workflow-Ordner, Untermenü «Datei → Workflows» und «Neuer Workflow …»**
+  (`4T-002355`). Der Workflow-Ordner wird wie der Vorlagen-Ordner anwendungsweit
+  (`workflows.folder`) oder je Bereich (`settings.workflows.folder` in
+  `Area_Settings.mdda`) festgelegt; die Festlegung des Bereichs ersetzt die
+  anwendungsweite vollständig. Das Untermenü «Workflows» steht im Menü «Datei»
+  unmittelbar nach «Bereich» und zeigt die gekennzeichneten Dateien des
+  Ordners alphabetisch nach Name, Unterordner als Untermenüs, dazu «Workflow-Läufe
+  anzeigen», «Neuer Workflow …» und «Workflow-Ordner festlegen …»; ohne
+  Ordner, bei leerem und bei nicht lesbarem Ordner steht ein eigener Hinweis.
+  Das Menü folgt jeder Änderung im Ordner. «Neuer Workflow …» legt eine Datei
+  mit Dateikopf und leerem Block an, überschreibt nie und fragt ohne Ordner
+  zuerst nach ihm. Im Menü «Ansicht» kommt «Workflow-Läufe anzeigen» hinzu, im
+  Kontextmenü einer Workflow-Datei im Bereichs-Panel «Starten». Kanäle
+  `workflow:folderList`, `workflow:getConfig`, `workflow:setAreaConfig`,
+  `workflow:setFolder`, `workflow:create` und `workflow:fileInfo`, Meldungen
+  `workflow:folderChanged` und `workflow:menuAction`; das Menü baut der
+  Hauptprozess aus dem Ordner (`src/main/menu/menu-workflows.js`).
+- **Tastenkürzel und Plätze ziehen beim Umbenennen mit** (`4T-002364`,
+  Entscheidung des Product Owners vom 2026-10-23 zur Frage P1, Empfehlung
+  pauschal übernommen). Wird ein Workflow des Workflow-Ordners in der
+  Anwendung umbenannt oder innerhalb des Ordners verschoben, schreibt der
+  Hauptprozess in `renameSingleFile` Tastenkürzel, Plätze in Statusleiste,
+  Kontextmenü und Format-Toolbar und Makro-Schritte auf die neue
+  Kommando-Kennung um (`src/main/workflows/workflow-binding-follow.js`,
+  Umschreib-Kern `src/shared/workflows/workflow-binding-rewrite.js`) und
+  verteilt nur geänderte Schlüssel über die bestehenden Kanäle; kein neuer
+  IPC-Kanal. Außerhalb der Anwendung zieht nichts nach. Ein aus dem Ordner
+  hinaus verschobener Workflow behält seine gespeicherten Belegungen, die bei
+  der Rückkehr an denselben Ort wieder wirken; die Seite «Einstellungen →
+  Tastenkürzel» lässt dafür beim Übernehmen die Kürzel nicht angemeldeter
+  Kommandos stehen und nimmt ein mitgezogenes Kürzel bei offener Seite nicht
+  zurück.
+- **Erweiterung «Workflows»** (`4T-002352`, Entscheidung 1g vom 2026-10-22).
+  Interne Erweiterung `workflows` in der Gruppe «Werkzeuge», Arbeitsmodus
+  «Voll», ohne Abhängigkeit zur Erweiterung «Vorlagen» (ist diese aus, meldet
+  die Prüfung bei `from-template` den Befund «Vorlagen sind ausgeschaltet»).
+  Im Aus-Zustand ist ein Workflow-Block ein gewöhnlicher Code-Block, und
+  Hervorhebung, Prüf-Anzeige, Knopf, Kommandos, Seite, Untermenü, Einträge in
+  «Ansicht» und Bereichs-Panel sowie beide Einstellungs-Abschnitte fehlen; der
+  Hauptprozess verweigert den Ausführungs-Kanal `workflow:step` mit dem Code
+  `extensionOff`. Workflow-Dateien, Lauf-Stände und Ordner-Festlegungen
+  bleiben beim Ausschalten unangetastet.
+
+### Geändert
+
+- **Platzhalter `{{file}}` und `{{area}}` auch in Vorlagen** (`4T-002347`,
+  Entscheidung K6 vom 2026-10-20). Die Vorlagen-Engine kennt zwei weitere
+  Platzhalter, den Pfad des aktiven Dokuments und den Namen des Bereichs; sie
+  gelten in Vorlagen, Journal-Vorlagen und Workflows gleich. In einer Vorlage
+  meinen `{{title}}` und `{{folder}}` weiterhin die Ziel-Datei, in einer
+  Workflow-Zeile das aktive Dokument.
+- **Einstellungs-Navigation** (`4T-002355`, `4T-002352`). Der Abschnitt
+  «Workflows» steht anwendungsweit im Block «Erweiterungen (intern)» und je
+  Bereich unter «Aktueller Bereich» hinter «Bereichs-Verknüpfungen», nach dem
+  Muster des Vorlagen-Ordners.
+- **Arbeitsmodus «Voll»** (`4T-002352`). Die Zahl der internen Erweiterungen
+  wächst von 65 auf 66, die des Arbeitsmodus «Voll» von 13 auf 14.
+- **Nutzen-Darstellung in Handbuch und Webseite um die Workflows**
+  (`3E-000184`, `4T-002354`, Entscheidung des Product Owners vom
+  2026-10-23, im Wortlaut «Struktur- und Nutzen-Prüfschritt sowie P1 bis P6
+  wie empfohlen.», Empfehlung pauschal übernommen). Neuer Abschnitt
+  «Handgriffe, die sich selbst erledigen» in der Nutzen-Seite des Handbuchs
+  und der Nutzen-Seite der Produkt-Webseite, hinter «Daten und Prosa in
+  denselben Dateien», in allen fünf Sprachfassungen.
+
+### i18n
+
+- **Oberflächen-Texte der Workflows** (`4T-002349`, `4T-002350`, `4T-002351`,
+  `4T-002352`, `4T-002355`), in allen fünf Sprachfassungen im neuen,
+  47. Fragment `workflows.json`: Befund-Texte der Prüfung vor dem Laufen,
+  Argument-Arten und Options-Gruppen, Prüf-Anzeige über dem Block, Knopf
+  «Starten» mit seinen Zuständen, Hinweise und Gründe eines Abbruchs, Seite
+  «Workflow-Läufe», Untermenü «Datei → Workflows» samt «Neuer Workflow …»
+  und die Einstellungs-Abschnitte. **Zählung nach Kapitel 13 der
+  Entwicklungsrichtlinien**, erhoben am 2026-10-23 über die Schlüssel aller
+  Fragmente je Sprache im Vergleich mit dem Release 1.151.0: je Sprache
+  **162 neue Schlüssel** (4647 statt 4485), davon 146 im Fragment
+  `workflows.json` (47 aus `4T-002351`, 44 aus `4T-002349`, 23 aus
+  `4T-002350`, 31 aus `4T-002355`, 1 aus `4T-002352`) und 16 aus `4T-002353`
+  (15 Katalog-Schlüssel und der Titel der Handbuch-Seite); keiner geändert,
+  keiner entfernt, in allen fünf Sprachen gleich.
+- **Funktions-Katalog und Handbuch der Workflows** (`4T-002353`, Nutzen-Seite
+  `4T-002354`, Nachzüge `4T-002351` und `4T-002364`), in allen
+  fünf Sprachfassungen: neue Handbuch-Seite «Workflows» (Aufbau einer
+  Workflow-Datei, Befehls-Zeilen, Prüfen vor dem Laufen, die Befehle der
+  Stufe 1 mit Beispielen und Randfällen, Platzhalter, sieben Start-Wege,
+  Ablauf eines Laufs, Workflow-Ordner und Menü, Lauf-Stand und Seite
+  «Workflow-Läufe», Unterstützung im Editor, Grenzen, spätere Ausbaustufen);
+  ergänzt die Seiten «Handbuch» (Überblick), «Vorlagen» (`{{file}}`,
+  `{{area}}`, gemeinsamer Platzhalter-Satz), «Kommando-Platzierung»
+  (Abschnitt «Workflows»), «Erweiterungen» (Arbeitsmodus «Voll») und «Nutzen
+  und Arbeitsweise» (Abschnitt «Handgriffe, die sich selbst erledigen»); fünf
+  neue Katalog-Zeilen in der Gruppe «Allgemein» hinter den Makros (Workflows,
+  Workflow von Hand starten, Workflow-Ordner und Menü, Workflow-Läufe,
+  Workflow-Blöcke im Editor). Die Demo-Area bekommt die Station
+  «16 Workflows» als letzte Seite der Führung mit drei Beispiel-Workflows im
+  Ordner `Workflows` (Datei aus Vorlage anlegen, Abschnitt anhängen, Kommando
+  ausführen), und ihre Bereichsdatei legt diesen Ordner als Workflow-Ordner
+  fest.
+
+### Intern
+
+- **Prüfdateien der Stufe** (`4T-002347` bis `4T-002353`, `4T-002355`, `4T-002364`):
+  Unit-Prüfdateien für Katalog, Zeilen-Leser, Dokument, Prüfer, Platzhalter,
+  Kern, Index-Sicht, Abschnitts-Heimat, Bearbeitung, Bereichs-Grenze, Datei-
+  und Inhalts-Schritte, Puffer-Weiche, Lauf-Stand, Kanäle, Ablauf-Kern,
+  Kommando-Kennung, Start, Knopf, Texte, Seite, Hervorhebung, Kopfzeile,
+  Ordner, Menü, «Neuer Workflow …», Bereichs-Panel, Kopfzeile der gerenderten
+  Ansicht, Nachzug der Belegungen beim Umbenennen und den Aus-Zustand über
+  den echten Schalter; Ablauf-Prüfdateien `workflow-start.spec.js`
+  (WF-START-01 bis 05), `workflow-aus.spec.js` (WF-AUS-01) und
+  `workflow-laeufe.spec.js` (WF-LAEUFE-01); Abdeckungs-Matrix mit F-373 bis
+  F-377; Änderungsklassen-Karte für alle neuen Dateien. Der eingefrorene Wert
+  der Erweiterungs-Registry in der Größen-Ausnahmen-Liste steigt nach der
+  benannten Ausnahme für Aufzählungs-Dateien von 823 auf 834 Code-Zeilen (nach
+  dem Nachzug auf 1.152.0 gemessen 857), der
+  von `src/main/preload.js` sinkt von 502 auf 501; der Block «Schließen
+  während der Übernahme» ist aus `settings-page.test.js` in eine eigene
+  Prüfdatei gezogen (Größen-Regel).
+- **Prüf-Kopplung über die Prozess-Grenze** (`4T-002350`): Der Lauf-Stand
+  scheiterte vor jeder Auslieferung an der Form des Zeitpunkts zwischen Fenster
+  und Hauptprozess, weil beide Seiten nur gegen eigene Attrappen geprüft
+  waren; behoben im selben Zug und seither durch eine Prüfdatei gedeckt, die
+  den echten Start gegen die echte Prüfung des Hauptprozesses fährt. Die
+  allgemeine Maßnahme, eine gekoppelte Prüfung je IPC-Kanal, ist als eigener
+  Vorgang verortet (`4T-002359`, Gefäß `3E-000156`) und nicht Teil dieses
+  Zuges.
+- **Abschluss-Anteil der Stufe** (`4T-002354`): Architektur um die Datenart
+  Workflow-Datei, die Bereichs-Grenze der Workflow-Schritte und das Glossar
+  fortgeschrieben, strategische Entscheidungen in «Erkenntnisse und
+  Entscheidungen» verankert. Epic-Abschluss-Test unter Windows und, wegen der neuen
+  Prüfdateien, im Linux-Prüfstand grün; die vier roten Ablauf-Fälle des
+  ersten Laufs waren Fehler der Prüfdateien und sind dort berichtigt, ebenso
+  eine Plattform-Annahme einer Unit-Prüfdatei zu Dateirechten; nach den drei
+  Nachzügen ein zweites Mal grün.
+- **Fundstelle außerhalb des Zuges** (`4T-002348`): Das Schreiben des
+  Dateikopfs formatiert eine Fluss-Liste wie `tags: [a, b]` beim Ändern einer
+  anderen Eigenschaft zu `tags: [ a, b ]` um; das betrifft das
+  Eigenschafts-Panel ebenso und ist Bestand. Verortet als `4T-002358` im Gefäß
+  der laufenden Fehlerbehebung (`3E-000161`), nicht Teil dieses Zuges.
+- **Mitgelieferte Webseiten-Stände seit 1.152.0** (Nachzug des Zuges auf das
+  Release 1.152.0 am 2026-10-26; Dateien der Webseite berührt, kein
+  Anwendungs-Code, kein Anwender-Text nötig). Die Verortung des Ideen-Backlogs
+  (`1P-000004`, Arbeitspakete `2A-000041` und `2A-000042`, Epics `3E-000373`
+  und `3E-000379`, Tasks `4T-002394` und `4T-002397`) bringt die öffentlichen
+  Roadmap-Einträge «Formel-Bibliothek» und «Schutz vertraulicher Daten» mit;
+  die Versions-Liste der Seite «Änderungen» steht als Raster mit drei Spalten
+  (`4T-002340`); der Nachzügler des Releases 1.152.0 (Sammeltask `4T-002144`
+  des Zuges `3E-000346`, Nachgänge `4T-002373` und `4T-002374`) hat die
+  Bildschirmfotos der Produkt-Webseite erneuert.
+
 ## [1.152.0.4368] - 2026-10-24 — Stufe 4 der Datenbank: Abfrage-Diagramm, gestaltete Masken, Listen-Maske, Berechtigungen und Datensätze in Suche und Sitzung
 
 Zug 3E-000346,

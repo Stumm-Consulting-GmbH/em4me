@@ -114,6 +114,17 @@ Una carpeta de archivos Markdown puede ser al mismo tiempo una base de datos, y 
 
 En detalle: [Base de datos](database.md).
 
+## Gestiones que se hacen solas
+
+Algunos trabajos se repiten en el mismo orden: crear a partir de la plantilla una nota para la próxima reunión, añadir una entrada al registro, mover al archivo histórico un archivo ya terminado. Un workflow deja por escrito esta secuencia una sola vez, como un archivo Markdown corriente con una línea por paso, y la aplicación la lleva a cabo cada vez que lo inicias. Como el archivo sigue siendo texto, se puede leer, modificar, compartir y guardar en una copia de seguridad como cualquier otro documento.
+
+- **Un paso por línea**: crear archivos y carpetas, también a partir de plantillas, renombrar, mover actualizando todos los enlaces, añadir e insertar texto, establecer propiedades en la cabecera, ejecutar comandos y macros.
+- **Primero comprobar, luego ejecutar**: antes del primer paso, la aplicación comprueba todo el workflow y pide todas las entradas; un error aparece sobre el bloque con la línea y el motivo, y no se ejecuta nada.
+- **Iniciado como mejor te convenga**: desde el menú, la paleta de comandos, con un atajo de teclado, un botón en la barra de estado o sobre el bloque.
+- **Con límites fijos**: un workflow solo actúa en el área abierta, no sobrescribe ningún archivo existente, no borra nada y no accede a la red.
+
+En detalle: [Workflows](workflows.md).
+
 ## La aplicación se adapta — y te acompaña
 
 Quien trabaja mucho tiempo con un programa acaba moldeándolo: colores, atajos de teclado, botones, plantillas y favoritos crecen con tu manera de trabajar, y en algún momento también el idioma en el que habla la interfaz forma parte de ello. Hasta ahora ese trabajo estaba ligado a un solo ordenador y a los idiomas que vienen con la aplicación. Ambas cosas están abiertas: tu configuración puede escribirse en un archivo legible y volver a leerse en otro sitio, y quien necesita un sexto idioma traduce la interfaz por su cuenta. A ello se suma la vista del conjunto: una página que muestra uno junto a otro todos tus espacios de trabajo, áreas, libros y estanterías, incluidos los que ahora mismo no están conectados.

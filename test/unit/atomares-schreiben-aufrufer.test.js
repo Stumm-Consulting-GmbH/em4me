@@ -216,6 +216,23 @@ describe('Schreibwege des Haupt-Prozesses: kein direktes Ersetzen', () => {
     // vorhandene ersetzen, weil sie eine gestaltete Maske sein kann. Das
     // exklusive Anlegen ist dort die Prüfung selbst, ohne Lücke zwischen einem
     // Vorab-Blick und dem Schreiben.
-    expect(anlagen).toBe(14);
+    //
+    // 4T-002348 (Epic 3E-000184): 14 auf 15. Die Frage ist beantwortet: Der
+    // Workflow-Befehl `create` (`src/main/workflows/workflow-file-steps.js`)
+    // legt eine neue Datei an und darf nach der Entscheidung des Product Owners
+    // vom 2026-10-22 **nie** eine vorhandene überschreiben; ein vorhandenes Ziel
+    // lässt den Schritt scheitern. Das exklusive Anlegen ist dort die Prüfung
+    // selbst, wie bei `area:createFile`, ohne Lücke zwischen einem Vorab-Blick
+    // und dem Schreiben. Ein Weg über `ersetzeDateiOderWirf` würde die Kollision
+    // stillschweigend gewinnen. `copy` (`COPYFILE_EXCL`) und `mkdir` schreiben
+    // keine Datei über `writeFile` und zählen nicht.
+    //
+    // 4T-002355 (Epic 3E-000184): 15 auf 16. Die Frage ist beantwortet: «Neuer
+    // Workflow …» (`src/main/workflows/workflow-new-file.js`) legt im
+    // Workflow-Ordner eine neue Datei an und darf nie eine vorhandene gleichen
+    // Namens ersetzen, die ein gestalteter Workflow sein kann; ein vorhandenes
+    // Ziel lässt die Anlage scheitern. Das exklusive Anlegen ist dort die
+    // Prüfung selbst, wie bei `area:createFile` und `templates:createFile`.
+    expect(anlagen).toBe(16);
   });
 });

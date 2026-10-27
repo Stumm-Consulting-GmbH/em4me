@@ -323,6 +323,14 @@ export function folderDisplayFor(dirPath) {
   return dirPath;
 }
 
+// 4T-002347 (Epic 3E-000184): {{file}} und {{area}} der Vorlagen (K6, AK3 von
+// 4S-001101): Pfad des aktiven Dokuments in derselben Form wie {{folder}} und
+// der Name des Bereichs, ohne aktives Dokument bzw. ohne Bereich leer.
+export function templateDocumentContext() {
+  const tab = activeTab();
+  return { file: tab && tab.path ? folderDisplayFor(tab.path) : '', area: state.areaName || '' };
+}
+
 // Vorlage lesen, analysieren, Dialog-Kette erheben und füllen. Rückgabe:
 // { text, cursorOffsets } bei Erfolg, { cancelled: true } bei Dialog-Abbruch
 // (die Aufrufer entscheiden über den Hinweis; 4T-000427 nutzt das für den
@@ -347,6 +355,7 @@ export async function resolveFilledTemplate(relPath, contextBase, sourceKey) {
   const answers = await collectAnswers(analysis.inputs);
   if (answers === null) return { cancelled: true };
   const filled = fillTemplate(analysis, {
+    ...templateDocumentContext(),
     ...contextBase,
     nowMs: Date.now(),
     // 4T-001057: Namens-Token (MMMM, EEEE …) folgen der Oberflächen-Sprache.

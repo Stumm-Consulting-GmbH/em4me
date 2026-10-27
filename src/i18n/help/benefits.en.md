@@ -114,6 +114,17 @@ A folder of Markdown files can be a database at the same time, and you do not de
 
 In detail: [Database](database.md).
 
+## Routine steps that take care of themselves
+
+Some work repeats itself in the same order: creating a note for the next meeting from the template, adding an entry to the log, moving a finished file to the archive. A workflow writes this sequence down once, as an ordinary Markdown file with one line per step, and the application carries it out whenever you run it. Because the file stays text, it can be read, changed, passed on and kept in a backup like any other document.
+
+- **One step per line**: create files and folders, also from templates, rename, move with all links updated, append and insert text, set properties in the front matter, run commands and macros.
+- **Check first, then run**: before the first step, the application checks the whole workflow and asks for all inputs; an error is shown above the block with line and reason, and nothing runs.
+- **Started the way it suits you**: from the menu, the command palette, with a keyboard shortcut, a button in the status bar or above the block.
+- **With fixed limits**: a workflow acts only in the open area, overwrites no existing file, deletes nothing and does not go onto the network.
+
+In detail: [Workflows](workflows.md).
+
 ## The application adapts — and comes along
 
 Anyone who works with a program for long enough shapes it: colours, keyboard shortcuts, buttons, templates and bookmarks grow with the way you work, and at some point the language the interface speaks belongs to that too. Until now that work was tied to one computer and to the languages that ship with the application. Both are open: your setup can be written into a readable file and read back in elsewhere, and anyone who needs a sixth language translates the interface themselves. On top of that comes the view of the whole — one page that shows all your workspaces, areas, books and bookshelves side by side, including the ones that are not attached right now.

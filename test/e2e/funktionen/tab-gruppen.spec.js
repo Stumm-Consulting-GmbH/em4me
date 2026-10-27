@@ -15,7 +15,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
-const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
+const { oeffneEinstellungsSeite, bedieneBis } = require('../helpers/eingabe');
 const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const FIX = (name) =>
@@ -37,9 +37,19 @@ async function tabMenuAction(page, tabText, menuId) {
 
 // Neue Gruppe mit dem Tab bilden; der automatisch geoeffnete Dialog wird
 // mit Name/Farbe bestaetigt (Standard-Fluss aus 4T-000461).
+//
+// 4T-002181 (TG-07): Der Rechtsklick geht über bedieneBis (Stabilitätsregel 12,
+// Absatz «Der Zustand ist die Bedienbarkeit»). Belegt am 2026-10-04 im
+// Linux-Voll-Lauf: Der Reiter war aufgelöst, wurde aber 30 s lang nicht
+// klickbereit, und der Fall blieb ohne zweiten Versuch stehen. Ein zweiter
+// Rechtsklick öffnet dasselbe Menü erneut und ist damit folgenlos; die
+// Bedingung ist der Menüpunkt, auf den der nächste Schritt klickt.
 async function createGroupWithTab(page, tabText, { name, color } = {}) {
-  await page.locator(SEL.tabs0, { hasText: tabText }).click({ button: 'right' });
-  await page.locator(MENU_ITEM('tabgroup-new')).click();
+  const eintrag = page.locator(MENU_ITEM('tabgroup-new'));
+  await bedieneBis(page.locator(SEL.tabs0, { hasText: tabText }), () => eintrag.isVisible(), {
+    zugriff: (l) => l.click({ button: 'right', timeout: 5000 }),
+  });
+  await eintrag.click();
   await expect(page.locator(MODAL)).toBeVisible();
   if (name !== undefined) await page.locator('#tab-group-name').fill(name);
   if (color) await page.locator(`.tab-group-swatch[data-color="${color}"]`).click();

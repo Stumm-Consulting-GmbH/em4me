@@ -158,6 +158,14 @@ const MANUAL_PAGES = [
   // mit Mehr-Menue, Hide-Liste der Standard-Buttons, nutzerdefinierte
   // Kontextmenue-Sektion, Makros; Abgrenzung zur Kommando-Palette).
   { id: 'command-placement', titleKey: 'manual.page.commandPlacement.title', source: 'bundled' },
+  // 4T-002353 (Epic 3E-000184): Workflows (Aufbau der Datei, Befehls-Zeilen,
+  // Pruefen vor dem Laufen, Befehls-Katalog der ersten Ausbaustufe, Quellen,
+  // Platzhalter, Start-Wege, Ablauf, Workflow-Ordner und Menue, Lauf-Stand und
+  // Seite «Workflow-Laeufe», Editor, Grenzen). Direkt hinter der Kommando-
+  // Platzierung, weil dort die Makros stehen, die ein Workflow als Schritt
+  // aufruft, und weil beide Seiten wiederkehrende Handgriffe buendeln
+  // (Struktur-Pruefschritt 4T-002353).
+  { id: 'workflows', titleKey: 'manual.page.workflows.title', source: 'bundled' },
   // 4T-000296 (Epic 3E-000052): Erweiterungs-System (Schalten, Abhaengigkeiten,
   // Wirkung des Aus-Zustands, erweiterungs-eigene Einstellungs-Bereiche).
   { id: 'extensions', titleKey: 'manual.page.extensions.title', source: 'bundled' },

@@ -32,6 +32,10 @@ Der entscheidende Kniff: Jedes Makro wird selbst als reguläres Kommando registr
 
 Der Schritt-Editor liegt im selben Einstellungs-Bereich: pro Makro eine aufklappbare Schritt-Liste mit Umordnen und Löschen, dazu ein Testlauf-Knopf. Der Testlauf führt den aktuellen Bearbeitungs-Stand sofort aus — im Kontext des Einstellungs-Tabs, sodass kontextpflichtige Schritte dort erwartungsgemäß mit dem Hinweis abbrechen.
 
+## Workflows
+
+Auch jeder Workflow des Workflow-Ordners ist ein Kommando im Namensraum der Workflows und lässt sich wie ein Makro als Statusbar-Button oder Kontextmenü-Eintrag platzieren und im Einstellungs-Bereich „Tastenkürzel" belegen. Anders als ein Makro ist ein Workflow eine Markdown-Datei mit festen Befehlen, die auch Dateien anlegen, verschieben und ändern; ein Workflow kann ein Makro als Schritt aufrufen. Die Kennung seines Kommandos entsteht aus dem Pfad der Datei im Workflow-Ordner: Wird der Workflow umbenannt oder verschoben, verschwinden ein dafür angelegter Button und Eintrag, und ein Tastenkürzel ist neu zu vergeben. Einzelheiten auf der Seite [Workflows](workflows.md).
+
 ## Abgrenzung zur Kommando-Palette
 
 Die [Kommando-Palette](tools.md) und die Kommando-Platzierung arbeiten auf derselben Kommando-Registry, bedienen aber verschiedene Situationen: Die Palette ist der flüchtige Tastatur-Zugriff — öffnen, tippen, ausführen, ohne etwas einzurichten. Die Platzierung schafft dauerhafte Zugänge für wiederkehrende Handgriffe: ein Klick in der Statusleiste, ein Rechtsklick im Editor, ein Kürzel auf einem Makro.

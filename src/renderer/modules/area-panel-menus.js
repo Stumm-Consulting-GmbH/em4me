@@ -2,7 +2,8 @@
 // Eintraege (Bereichs-Graph, Bereichs-Statistik) und das Menue einer
 // Datei-Zeile (Start-Seite, Bereichs-Lesezeichen, dazu dieselben panel-weiten
 // Eintraege). 4T-001349 (Epic 3E-000170): dazu das Menue einer Ordner-Zeile
-// (Unterordner und Markdown-Datei anlegen).
+// (Unterordner und Markdown-Datei anlegen). 4T-002355 (Epic 3E-000184): dazu
+// «Starten» im Menü einer Workflow-Datei.
 //
 // Ausgezogen aus area-panel.js, das an seinem Groessen-Budget stand: Die
 // Menues sind eine eigene Verantwortlichkeit — sie beantworten, WELCHE
@@ -40,6 +41,12 @@ import { renameFileAtPath } from './views/file-actions.js';
 import { trashFileAtPath } from './views/file-trash.js';
 // 4T-001731 (Epic 3E-000306): Kopieren im selben Ordner, ohne Dialog.
 import { copyFileAtPath } from './views/file-copy.js';
+// 4T-002355 (Epic 3E-000184): Start einer Workflow-Datei (4T-002349).
+import { api } from './app/api.js';
+import { starteWorkflow } from './workflows/workflow-start.js';
+import { WORKFLOWS_EXTENSION_ID } from '../../shared/workflows/workflow-konstanten.js';
+
+const MARKDOWN_ENDUNG = /\.(md|markdown|mdown|mkd)$/i;
 
 // Trenner-Element; seit 4T-001365 an drei Stellen gebraucht.
 function appendSeparator(menu) {
@@ -126,6 +133,37 @@ function appendAreaPanelItems(menu) {
   }
 }
 
+// 4T-002355 (Epic 3E-000184, Story 4S-001105 AK4): «Starten» an der Spitze des
+// Menüs einer Workflow-Datei. Ob die Datei das Kennzeichen trägt, weiß erst
+// der Hauptprozess (`workflow:fileInfo`); das Menü entsteht deshalb ohne den
+// Eintrag, und er kommt mit der Antwort dazu — einen Augenblick später, aber
+// nur, solange GENAU DIESES Menü noch offen ist (sein erster Eintrag hängt
+// noch daran). Anders als beim Eintrag der Datenbank-Übersicht gibt es keine
+// zuletzt bereite Antwort, die ohne Warten trüge: Die Frage gilt einer
+// einzelnen Datei, und eine Workflow-Datei soll ihren Eintrag schon beim ersten
+// Rechtsklick tragen. Der Eintrag steht zuoberst, weil er die Datei als Ganzes
+// ausführt; die Gruppen darunter zeigen oder verwalten sie nur.
+async function ergaenzeWorkflowStart(menu, absPath, x, y) {
+  if (!isExtensionActive(WORKFLOWS_EXTENSION_ID) || !MARKDOWN_ENDUNG.test(absPath)) return;
+  if (typeof api.workflowFileInfo !== 'function') return;
+  const erstes = menu.firstChild;
+  let antwort;
+  try {
+    antwort = await api.workflowFileInfo(absPath);
+  } catch {
+    return;
+  }
+  if (!antwort || antwort.isWorkflow !== true) return;
+  if (menu.hidden || !erstes || erstes.parentNode !== menu) return;
+  const gruppe = document.createDocumentFragment();
+  appendItem(gruppe, 'area-file-workflow-start', t('workflow.start.knopf'), () =>
+    starteWorkflow({ path: absPath }),
+  );
+  appendSeparator(gruppe);
+  menu.insertBefore(gruppe, erstes);
+  placeContextMenuAt(menu, x, y);
+}
+
 /**
  * Kontextmenue einer Datei-Zeile im Bereichs-Panel.
  *
@@ -150,6 +188,8 @@ function appendAreaPanelItems(menu) {
  * @param {MouseEvent} ev Ausloesendes Ereignis.
  * @param {string} absPath Absoluter Pfad der angeklickten Datei.
  * @param {() => void} aufRefresh Neuaufbau der sichtbaren Panels.
+ * @returns {Promise<void>} erfüllt, sobald «Starten» ergänzt ist oder feststeht,
+ *   dass die Datei keine Workflow-Datei ist (4T-002355).
  */
 export function showAreaFileContextMenu(ev, absPath, aufRefresh) {
   const menu = document.getElementById('context-menu');
@@ -205,6 +245,7 @@ export function showAreaFileContextMenu(ev, absPath, aufRefresh) {
     bauen();
   });
   placeContextMenuAt(menu, ev.clientX, ev.clientY);
+  return ergaenzeWorkflowStart(menu, absPath, ev.clientX, ev.clientY);
 }
 
 /**

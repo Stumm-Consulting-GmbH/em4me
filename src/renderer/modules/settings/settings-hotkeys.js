@@ -27,10 +27,18 @@ import { getDisabledExtensionIds } from '../extensions/extension-lifecycle.js';
 import { persistSetting } from '../views/views.js';
 import { jsonEqual, pageState } from './settings-shared.js';
 
+// 4T-002364: Zwei Belegungs-Stände sind gleich, wenn sie dieselben Paare tragen;
+// die Reihenfolge der Schlüssel zählt nicht (der Nachzug beim Umbenennen eines
+// Workflows schreibt den Eintrag an der Stelle des alten).
+function gleicheBelegung(a, b) {
+  const sortiert = (o) => Object.entries(o || {}).sort(([x], [y]) => (x < y ? -1 : x > y ? 1 : 0));
+  return jsonEqual(sortiert(a), sortiert(b));
+}
+
 // Spiegelt applyHotkeysSection (Overrides gegen den wirksamen Stand).
 export function dirtyHotkeysSection(draft) {
   if (!draft.hotkeys) return false;
-  return !jsonEqual(hotkeysDraftToOverrides(draft.hotkeys), state.hotkeyOverrides || {});
+  return !gleicheBelegung(hotkeysDraftToOverrides(draft.hotkeys), state.hotkeyOverrides);
 }
 
 // --- Bereich Tastenkürzel (4T-000208, Epic 3E-000015) ---------------------------------
@@ -70,6 +78,23 @@ export function buildHotkeysDraftFromState() {
     draft[cmd.id] = bindings.length > 0 ? bindings[0] : '';
   }
   return draft;
+}
+
+// 4T-002364 (Epic 3E-000184): Ein Kommando, das erst nach dem Aufbau des
+// Entwurfs angemeldet wurde, hat dort keinen Eintrag — etwa ein Workflow, der
+// bei offener Seite umbenannt wurde und dessen Kürzel der Hauptprozess unter
+// die neue Kennung gezogen hat. Es bekommt den gespeicherten Stand, nicht die
+// Vorgabe; sonst nähme ein späteres «Übernehmen» das Kürzel still zurück.
+export function ergaenzeHotkeysEntwurf(hotkeysDraft) {
+  if (!hotkeysDraft) return hotkeysDraft;
+  const fehlend = COMMANDS.filter((cmd) => hotkeysDraft[cmd.id] === undefined);
+  if (fehlend.length === 0) return hotkeysDraft;
+  const effective = mergeBindings(state.hotkeyOverrides);
+  for (const cmd of fehlend) {
+    const bindings = effective[cmd.id] || [];
+    hotkeysDraft[cmd.id] = bindings.length > 0 ? bindings[0] : '';
+  }
+  return hotkeysDraft;
 }
 
 // Bindet ein Binding als <kbd>-Folge in den Container (lokalisierte
@@ -231,7 +256,7 @@ function buildHotkeyRow(cmd, hotkeysDraft) {
 
 function renderHotkeysEditor() {
   if (!hotkeysListEl || !hotkeysListEl.isConnected || !pageState.draft) return;
-  const hotkeysDraft = pageState.draft.hotkeys;
+  const hotkeysDraft = ergaenzeHotkeysEntwurf(pageState.draft.hotkeys);
   // 4T-000294: Kommandos effektiv deaktivierter Erweiterungen ausblenden.
   const disabledCommands = disabledCommandIdSet(getDisabledExtensionIds());
   hotkeysListEl.innerHTML = '';
@@ -345,7 +370,17 @@ function handleHotkeysResetAllClick(btn, draft) {
 // Liefert das Override-Objekt fuer den Store: nur normalisierte
 // Abweichungen vom Default ('' = bewusst entbunden).
 export function hotkeysDraftToOverrides(hotkeysDraft) {
+  ergaenzeHotkeysEntwurf(hotkeysDraft);
+  // 4T-002364: Die Belegung eines gerade nicht angemeldeten Kommandos bleibt
+  // erhalten — etwa eines Workflows, der aus dem Workflow-Ordner hinaus
+  // verschoben wurde, eines Workflows aus dem Ordner eines anderen Bereichs oder
+  // bei abgeschalteter Erweiterung. Sie wirkt erst wieder, wenn das Kommando
+  // zurückkehrt (Muster der Kommando-Platzierung: die Konfiguration bleibt).
+  const angemeldet = new Set(COMMANDS.map((cmd) => cmd.id));
   const overrides = {};
+  for (const [id, wert] of Object.entries(state.hotkeyOverrides || {})) {
+    if (!angemeldet.has(id)) overrides[id] = wert;
+  }
   for (const cmd of COMMANDS) {
     const def = defaultBindingOf(cmd);
     const cur = hotkeysDraft[cmd.id] !== undefined ? hotkeysDraft[cmd.id] : def;
@@ -408,7 +443,7 @@ export async function applyHotkeysSection(draft) {
   // Fenster inkl. diesem und baut die Menues neu; der Empfangspfad in
   // app-init wendet Dispatcher-Map und Editor-Keymap idempotent an).
   const overrides = hotkeysDraftToOverrides(draft.hotkeys);
-  if (JSON.stringify(overrides) !== JSON.stringify(state.hotkeyOverrides || {})) {
+  if (!gleicheBelegung(overrides, state.hotkeyOverrides)) {
     await persistSetting('hotkeys', overrides);
   }
 }

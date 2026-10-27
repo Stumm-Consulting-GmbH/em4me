@@ -59,5 +59,6 @@
   "manual.page.canvas.title": "Canvas-Fläche",
   "manual.page.kanban.title": "Kanban-Tafel",
   "manual.page.presentation.title": "Präsentation",
-  "manual.page.database.title": "Datenbank"
+  "manual.page.database.title": "Datenbank",
+  "manual.page.workflows.title": "Workflows"
 }

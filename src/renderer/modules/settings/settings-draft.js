@@ -48,6 +48,8 @@ import {
   readPdfExportFromStore,
 } from './settings-small-sections.js';
 import { readTemplatesFromConfig } from './settings-templates.js';
+// 4T-002355 (Epic 3E-000184): Workflow-Ordner (Muster Vorlagen).
+import { loadWorkflowsIntoDraft, reloadWorkflowsAreaPart } from './settings-workflows.js';
 // 4T-001455 (Epic 3E-000190): Verknuepfungen des Bereichs.
 import { readAreaLinksFromConfig } from './settings-area-links.js';
 // 4T-001758 (Epic 3E-000253): Datenbank-Auskunft und Anzeige-Option des Bereichs.
@@ -255,6 +257,7 @@ function ladeAppearanceInDraft() {
     // 4T-000555: die Bereichs-Konfiguration lebt in der Sektion templatesArea.
     if (['templates', 'templatesArea'].includes(pageState.activeSectionId)) renderActiveSection();
   });
+  void loadWorkflowsIntoDraft(generation);
   // 4T-001455 (Epic 3E-000190): Verknuepfungen des Bereichs (Muster Vorlagen).
   readAreaLinksFromConfig().then((values) => {
     if (generation !== pageState.generation || !pageState.draft) return;
@@ -482,6 +485,7 @@ export function refreshSettingsPageForAreaChange() {
     }
     rerenderIfActive(['templatesArea']);
   });
+  void reloadWorkflowsAreaPart(generation);
   readJournalsFromConfig().then((values) => {
     if (generation !== pageState.generation || !pageState.draft) return;
     pageState.draft.journals = values.draft;

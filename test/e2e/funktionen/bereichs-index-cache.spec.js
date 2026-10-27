@@ -13,7 +13,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp, warteAufRendererBereit } = require('../helpers/app');
+const { launchApp, closeApp } = require('../helpers/app');
 
 function makeAreaTree() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'scg-md-bic-'));
@@ -67,15 +67,12 @@ test.describe('BIC-01: Bereichs-Index-Cache (4T-000348)', () => {
       await expect.poll(() => session.page.title()).toContain('(Bereich');
       const section = session.page.locator('.pane-group[data-pane="0"] .sidebar-area');
       await expect(section).toBeVisible();
-      // 4T-001755: Vor der ersten Bedienung auf die Bereitschaft der Oberfläche
-      // warten. Vorbedingung nach dem Code: Der Rückverweis-Schalter bekommt
-      // seinen Klick-Empfänger erst in bindUi() (app-bindings.js), ein Klick
-      // davor verpufft ohne Spur (für den Menü-Kanal an LA-06 gemessen,
-      // 4T-001948). Hier gemessen ist nur der knappe Abstand: Beim Klick auf die
-      // Datei-Zeile fehlte das Zeichen in 2 von 23 Durchgängen. Das rote Bild der
-      // Release-Läufe (Schalter nicht gedrückt) ist auf SC-027 nicht nachgestellt.
-      // Der Kaltstart oben bedient nichts und braucht das Warten nicht.
-      await warteAufRendererBereit(session.page);
+      // 4T-001755: Die erste Bedienung braucht die Bereitschaft der Oberfläche.
+      // Der Rückverweis-Schalter bekommt seinen Klick-Empfänger erst in bindUi()
+      // (app-bindings.js), ein Klick davor verpufft ohne Spur; beim Klick auf die
+      // Datei-Zeile fehlte das Zeichen in 2 von 23 Durchgängen. Seit 4T-002062
+      // wartet launchApp selbst auf das Bereit-Zeichen, und die Bindung des
+      // Bereichs lädt das Fenster nicht neu, das Zeichen bleibt also stehen.
       await section.locator('.area-file-row', { hasText: /^Ziel$/ }).click();
       await session.page.locator('#btn-backlinks').click();
       const bl = session.page.locator('.pane-group[data-pane="0"] .sidebar-backlinks');

@@ -177,3 +177,47 @@ describe('Fehler-Fälle der Zerlegung', () => {
     expect(fill('{{DATE}}').text).toBe('2026-07-09');
   });
 });
+
+// 4T-002347 (Epic 3E-000184): der gemeinsame Platzhalter-Satz für Vorlagen und
+// Workflows (K6) und die Lage der Platzhalter für Befund-Spalte und Hervorhebung.
+describe('{{file}} und {{area}} (4T-002347)', () => {
+  it('setzt Pfad des aktiven Dokuments und Bereichs-Namen ein', () => {
+    const result = fill('{{file}} in {{area}}', { file: 'Notizen/A.md', area: 'Mein Bereich' });
+    expect(result).toMatchObject({ ok: true, text: 'Notizen/A.md in Mein Bereich' });
+  });
+
+  it('bleibt ohne Kontext leer, wie title und folder', () => {
+    expect(fill('[{{file}}][{{area}}]').text).toBe('[][]');
+  });
+
+  it('nimmt keine Parameter', () => {
+    expect(analyzeTemplate('{{file:x}}').error).toMatchObject({
+      code: 'invalidParams',
+      name: 'file',
+    });
+    expect(analyzeTemplate('{{area:x}}').error).toMatchObject({
+      code: 'invalidParams',
+      name: 'area',
+    });
+  });
+
+  it('ist als Kontext-Platzhalter ohne Eingabe-Dialog notiert', () => {
+    const analysis = analyzeTemplate('{{FILE}} {{Area}}');
+    expect(analysis.inputs).toEqual([]);
+    expect(analysis.segments.filter((s) => s.type === 'context').map((s) => s.name)).toEqual([
+      'file',
+      'area',
+    ]);
+  });
+});
+
+describe('Lage der Platzhalter-Segmente (4T-002347)', () => {
+  it('nennt Anfang und Ende jedes Platzhalters im Text', () => {
+    const analysis = analyzeTemplate('Am {{date}}: {{prompt:Wer?}} \\{{x}}');
+    const lagen = analysis.segments.filter((s) => s.type !== 'lit').map((s) => [s.from, s.to]);
+    expect(lagen).toEqual([
+      [3, 11],
+      [13, 28],
+    ]);
+  });
+});

@@ -71,6 +71,14 @@ function createMenuApply(deps) {
   } = deps;
 
   const menuStates = new Map();
+  // 4T-002355 (Epic 3E-000184): die Liste des Workflow-Ordners je Fenster für
+  // das Untermenü «Datei → Workflows». Sie entsteht mit den Kanälen des Ordners
+  // (ipc/workflow-folder.js) und wird dort hereingereicht; bis dahin fehlt das
+  // Untermenü.
+  let workflowMenuLists = null;
+  function setWorkflowMenuLists(lists) {
+    workflowMenuLists = lists;
+  }
 
   // Verteilt an jedes registrierte Fenster seine aktuellen Anzeige-Infos. Wird
   // nach jedem Open- und Close-Event aufgerufen. Beim Open landet der Aufruf im
@@ -168,6 +176,8 @@ function createMenuApply(deps) {
       // 4T-000294: Kommandos effektiv deaktivierter Erweiterungen — die
       // Menue-Factory laesst deren Eintraege weg.
       disabledCommands: [...disabledCommandIdSet(store ? store.get('extensions.disabled') : [])],
+      // 4T-002355: Liste des Workflow-Ordners oder null, solange sie fehlt.
+      workflows: workflowMenuLists ? workflowMenuLists.listFor(id) : null,
     });
   }
 
@@ -259,6 +269,7 @@ function createMenuApply(deps) {
     applyMenuToWindow,
     applyMenuToAllWindows,
     tForWindow,
+    setWorkflowMenuLists,
   };
 }
 

@@ -32,6 +32,10 @@ The decisive trick: each macro is itself registered as a regular command. That m
 
 The step editor lives in the same settings section: per macro a collapsible step list with reordering and deletion, plus a test run button. The test run executes the current editing state immediately — in the context of the settings tab, so context-bound steps abort there with the notice, as expected.
 
+## Workflows
+
+Every workflow of the workflows folder is a command too, in the namespace of the workflows, and like a macro it can be placed as a status bar button or context menu entry and given a key in the settings section "Keyboard shortcuts". Unlike a macro, a workflow is a Markdown file with fixed commands that also create, move and change files; a workflow can call a macro as a step. The ID of its command comes from the path of the file in the workflows folder: if the workflow is renamed or moved, a button and an entry created for it disappear, and a keyboard shortcut has to be assigned again. Details on the [Workflows](workflows.md) page.
+
 ## Distinction from the command palette
 
 The [command palette](tools.md) and command placement work on the same command registry but serve different situations: the palette is the fleeting keyboard access — open, type, run, without setting anything up. Placement creates permanent access points for recurring moves: a click in the status bar, a right-click in the editor, a shortcut on a macro.

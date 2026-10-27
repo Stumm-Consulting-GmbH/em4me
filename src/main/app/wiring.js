@@ -257,6 +257,11 @@ function createMainWiring(deps) {
     broadcast: (channel, ...args) => broadcast(channel, ...args),
   });
 
+  // 4T-002364 (Epic 3E-000184): Der Nachzug der Belegungen eines Workflows
+  // entsteht mit den Kanälen des Workflow-Ordners (ipc/workflows.js), also nach
+  // dieser Fabrik; er kommt über den Setzer unten herein (Muster
+  // setWorkflowMenuLists in menu-apply.js). Bis dahin entfällt er.
+  let folgeBelegungen = null;
   const linkUpdate = createLinkUpdate({
     areaOfWindow: (win) => areaOfWindow(win),
     isMarkdownPath: (p) => isMarkdownPath(p),
@@ -300,6 +305,8 @@ function createMainWiring(deps) {
         await areaConfig.writeAreaStartPage(rootPath, relativeNeu);
       }
     },
+    followWorkflowBindings: (oldPath, newPath) =>
+      folgeBelegungen ? folgeBelegungen(oldPath, newPath) : undefined,
   });
 
   const fileWatching = createFileWatching({
@@ -608,6 +615,9 @@ function createMainWiring(deps) {
     ...mddHistory,
     ...blockData,
     ...linkUpdate,
+    setFollowWorkflowBindings: (fn) => {
+      folgeBelegungen = typeof fn === 'function' ? fn : null;
+    },
     ...fileWatching,
     ...draftCache,
     ...windowPersistence,
