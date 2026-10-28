@@ -67,12 +67,16 @@ The drop-down menu **«Insert template …»** in the detail view of a block off
 1. Gregorian calendar
 2. Julian calendar
 3. Hijri calendar (tabular)
-4. Indian National Calendar
-5. Buddhist calendar
-6. Ethiopic calendar
-7. Coptic calendar
-8. Japanese calendar
-9. Minguo calendar
+4. Hijri calendar (Umm al-Qura)
+5. Persian calendar
+6. Hebrew calendar
+7. Chinese calendar
+8. Indian National Calendar
+9. Buddhist calendar
+10. Ethiopic calendar
+11. Coptic calendar
+12. Japanese calendar
+13. Minguo calendar
 
 The selection creates the time reckoning in the open block straight away, fully filled in and without further input; afterwards the menu returns to its first entry. The time reckoning carries the name from the menu; if that name is already taken in the area, it gets an appended number, for example «Gregorian calendar 2». Like every change in this section, it is saved with **«Apply»**.
 
@@ -80,13 +84,33 @@ Every template brings the time levels second, minute and hour, a seven-day week 
 
 ### What a created template is
 
-A created template is an ordinary time reckoning of the area. Afterwards it can be edited, renamed, extended and deleted like any other; the template is the starting point, not a permanent tie. A program update therefore does not reach a time reckoning that has already been created.
+A created template is an ordinary time reckoning of the area. Afterwards it can be edited, renamed, extended and deleted like any other; the template is the starting point, not a permanent tie. A program update therefore does not reach a time reckoning that has already been created. The exception is month and year of the four templates with a structure that varies by year (next section): there the time reckoning refers to the bundled rule or table instead of copying it, and a program update with an updated table also reaches time reckonings that have already been created.
 
 The other date functions of the application remain Gregorian: task markers, journals, query comparisons and datatable types know no time reckonings of their own.
+
+### Templates with a structure that varies by year
+
+In the Hebrew, the Persian and the Chinese calendar and in the Hijri calendar according to Umm al-Qura, every year is composed differently: the number of months, the length of each month and the start of the year are determined year by year. The Hebrew calendar follows its fixed calculation rule and applies without a time limit. The other three follow a bundled, verified table and apply for a fixed period:
+
+| Template | First day | Last day |
+|---|---|---|
+| Hijri calendar (Umm al-Qura) | 30 April 1900 (1 Muharram 1318 AH) | 16 November 2077 (30 Dhuʻl-Hijjah 1500 AH) |
+| Persian calendar | 21 March 1900 (1 Farvardin 1279 AP) | 20 March 2101 (29 Esfand 1479 AP) |
+| Chinese calendar | 19 February 1901 (first day of the year 1901) | 28 January 2101 (last day of the year 2100) |
+
+Before and after that, the program says «not known» instead of showing an approximate date: in the picker, for a value in the document and in the dialog «Convert date». The tables are part of the program; no internet connection is needed for them. They are updated before their period runs out and after a correction by the responsible authority.
+
+- **Leap months** are months of their own. In a value, every month keeps its number in every year; a leap month carries the number of the month it follows and an appended `L`. Adar I of the Hebrew year 5784 thus appears in the document as `5784-05L-01`, Adar II as `5784-06-01`, and the leap month of the Chinese year 2023 as `2023-02L-01`. A stored value therefore means the same month in every year.
+- **In the settings**, month and year of these time reckonings are read-only; names, weeks and eras remain editable. They cannot be chosen as the reference of a derived time reckoning (section «Derived time reckonings»).
+- **The day** begins at midnight, as with all templates; the program does not model the start of the day at sunset in the Hebrew and the Islamic calendar.
 
 ### Readings and limits
 
 - **Hijri calendar (tabular)** — follows the tabular reading: twelve months alternating between 30 and 29 days, in a leap year the twelfth month (Dhuʻl-Hijjah) has 30 days; leap years are the years 2, 5, 7, 10, 13, 16, 18, 21, 24, 26 and 29 of every cycle of 30 years, counted from the civil epoch. This calculation applies equally to every year. The date observed in religious practice, by contrast, follows the sighting of the crescent moon and may differ by one day, rarely by two. Days begin at midnight, not at sunset.
+- **Hijri calendar (Umm al-Qura)** — the official calendar of Saudi Arabia for administrative purposes. The months begin according to the data of the Saudi authority KACST (King Abdulaziz City for Science and Technology), not according to a fixed calculation rule; each month has 29 or 30 days, the year 354 or 355. Month names and the year count «AH» are those of the tabular reading, which calculates with a fixed sequence and may differ from the official calendar by one or two days. The table has been checked month by month against the official edition of the authority; it ends with the year 1500 AH because the official edition reaches no further. Dates before 1423 AH (before 15 March 2002) are today's official back-calculation; the calendar in force in Saudi Arabia at the time followed other rules and could differ by one day.
+- **Persian calendar** — the official Iranian reading: the year begins on the day of the spring equinox if it falls before noon Tehran time, otherwise on the day after. The first six months have 31 days, the next five 30, the last one (Esfand) 29, or 30 in a leap year; years are counted «AP». The table has been checked against the leap year table of the Calendar Center of the University of Tehran.
+- **Hebrew calendar** — calculates according to the fixed rule of the calendar, even in very distant years. In 7 out of 19 years, Adar I is added as an extra month, and Adar is then called Adar II. Years are counted «AM»; before year 1, the epoch «before AM» counts backwards. From 10 November 2045 to 29 November 2046 the program follows the calculation rule; some other programs show a date shifted by one day for these days.
+- **Chinese calendar** — the traditional lunisolar calendar. The year number is the Gregorian year in which the Chinese year begins: `2025-01-01` is 29 January 2025, and the year 2026 ends on 5 February 2027. The template does not show the name of the year in the cycle of 60 years. The months are called «Month 1» to «Month 12», a leap month «Leap month» with the number of the month it follows, shown with names for example as `2023-Leap month 2-01`; as with every template, the names can be changed. The table is an astronomical calculation of the new moons and solar terms in Beijing time, checked against the official calendar files of the Hong Kong government for 2023 to 2028 and over the whole period against a second, independent calculation. The 9th month of 2057 begins on 28 September, as in the table of the Hong Kong Observatory; the authority itself marks this day as uncertain because the new moon falls only seconds before midnight. Other programs may differ on individual days, for example for the New Year 2027, which officially falls on 6 February.
 - **Buddhist calendar** — the Buddhist year count as used in Thailand: Gregorian months and leap years, with the year number 543 higher than the Gregorian one. Until 1940 the Thai year began on 1 April; the template consistently counts with the year starting on 1 January and therefore shows, before 1941, a year one higher than in the usage of the time from January to March, and the same year from April.
 - **Indian National Calendar** and **Minguo calendar** — both also count backwards before their introduction (Indian National Calendar 1957, Minguo calendar 1912). For that period the sources do not attest them as valid; before 1912 the sources often give month and day according to the lunar calendar.
 - **Japanese calendar** — Gregorian months and leap years with the eras Meiji (from 23 October 1868), Taishō (from 30 July 1912), Shōwa (from 25 December 1926), Heisei (from 8 January 1989) and Reiwa (from 1 May 2019); year 1 of an era runs from its start to 31 December. Before that, the epoch «before Meiji» counts backwards; older eras are missing because they are based on the lunar calendar. Before 1873 Japan used the lunar calendar: dates before 1873 are therefore Gregorian dates calculated backwards and differ from historical usage in month and day, sometimes also in the year. The template always writes the era (checkbox «Always write the epoch abbreviation» switched on): 30 September 2026 appears in the document as `8-09-30 Reiwa`.
@@ -118,6 +142,8 @@ If the named calendar is not defined in the area or the value is invalid, the so
 
 @{Example calendar: 500-2-09 ZZ}
 
+If a value lies outside the validity period of its time reckoning (section «Templates with a structure that varies by year»), the source text likewise stays unchanged. The value then does not count as invalid: its tooltip says «Name: not known».
+
 In code blocks and code spans the syntax stays untouched: `@{Example calendar: 500-2-09 ZZ}`.
 
 ## Inserting and editing
@@ -133,6 +159,7 @@ The picker for custom calendars works analogously to the standard date picker:
 - The **grid** arises from the level structure: with a defined week cycle as a column grid (cycle length = number of columns, position names as header, number column with a numbering rule), without a cycle as a continuous day list of the unit.
 - **Navigation:** the outer arrow buttons move the largest unit (the year), the inner ones the grid unit (the month); arrow keys navigate day by day, Enter commits, Escape cancels. **"To anchor"** jumps to the reference point in time of the calendar.
 - **Time levels** appear as individually settable segments with arrow and digit input — invalid values cannot be entered by design.
+- **Validity period:** For a time reckoning with a table, paging stops at the edge of its period. Opened on a value outside it, the picker stands on its first known day and states «Name: not known». A leap month appears in the header with name and code, for example «Leap month 2 (02L)».
 
 ### Conversion display
 
@@ -150,6 +177,7 @@ Where there is no result, a notice appears instead of a value:
 
 - A date that does not exist in the chosen calendar is reported as «Not a valid date in this calendar.»; the list is then omitted.
 - If a calendar cannot represent the point in time, its row reads «Name: outside the representable range».
+- If the point in time lies outside the validity period of a time reckoning (section «Templates with a structure that varies by year»), its row reads «Name: not known»; the other rows show their value. If the entered date itself lies outside, the dialog reports «Name: not known».
 - If the block has only one calendar, the dialog says that a second one is missing.
 
 Conversion only happens within one block; the notice line of the dialog points this out. Calendars that should be converted into one another therefore belong in the same block. A time reckoning cannot be moved to another block: create it anew in the target block or insert it there as a template. The result is as good as the anchor and scale of the calendars involved: the bundled templates lie on the same day axis by themselves; for calendars you define yourself, the group «Block axis (conversion)» in the settings sets their position.
@@ -162,7 +190,7 @@ A derived time reckoning counts from a zero point of your own: how long it is un
 
 In the settings section «Calendar systems», the button **«Add derived time reckoning»** creates a short form:
 
-- **Reference time reckoning** — a calendar of the same block or the built-in standard time reckoning. Counting down to a date therefore needs no calendar of your own.
+- **Reference time reckoning** — a calendar of the same block or the built-in standard time reckoning. Counting down to a date therefore needs no calendar of your own. Time reckonings with a structure that varies by year cannot be chosen as the reference, because their counting cannot be shifted; counting from a given day works through the Gregorian time reckoning of the same block.
 - **Zero point (day 1)** — the date in the notation of the reference, optionally chosen through the picker; it always sits on a whole day.
 - **Breakdown depth** — how finely the span is broken down, from the smallest unit alone up to years.
 - **Direction labels** — two short words for the time before and after the zero point.

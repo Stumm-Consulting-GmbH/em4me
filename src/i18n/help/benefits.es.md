@@ -202,7 +202,7 @@ Más allá de las cuatro construcciones grandes, el lenguaje aporta más de cinc
 - **Presentación** con fórmulas, diagramas y código resaltado; en la exportación portátil un diagrama viaja como imagen terminada y se ve también donde EM4me no está instalado.
 - **Referencias dentro del texto** mediante anclas, inserciones y etiquetas.
 - **Jornada de trabajo** con tareas, recordatorios, citas, plantillas y diarios.
-- **Fechas en otros calendarios**: nueve calendarios incluidos, del juliano al japonés pasando por el hijri, además de cronologías propias de libre definición; las fechas de un mismo bloque se convierten entre sí.
+- **Fechas en otros calendarios**: trece calendarios incluidos, del juliano al japonés pasando por el hijri, el hebreo y el chino, además de cronologías propias de libre definición; las fechas de un mismo bloque se convierten entre sí.
 - **Activables una a una** o agrupadas en tres modos de trabajo, además de combinaciones personales, y abierto a extensiones propias mediante una interfaz documentada.
 
 En detalle: [Funciones](functions.md), [Extensiones](extensions.md), [Crear extensiones](extensions-dev.md).

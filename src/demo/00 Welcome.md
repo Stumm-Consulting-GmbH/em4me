@@ -29,7 +29,7 @@ Read in order, or jump straight to what you need:
 11. [[11 Templates]] — reusable building blocks with placeholders
 12. [[12 Canvas]] — cards and connections on a spatial working surface
 13. [[13 Kanban]] — the tasks of one document as a board of columns and cards
-14. [[14 Calendar Systems]] — the same day in the Gregorian and the Japanese calendar, and seven more to add
+14. [[14 Calendar Systems]] — the same day in the Gregorian and the Japanese calendar, and eleven more to add
 15. [[15 Presentation]] — one document as slides, shown full screen and exported
 16. [[16 Workflows]] — recurring steps written down as fixed commands and run by hand
 

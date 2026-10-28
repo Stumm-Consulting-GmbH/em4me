@@ -14,6 +14,254 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.154.0.4556] - 2026-10-28 — Restpunkte aus Zug 4, Kalender mit jährlich wechselndem Aufbau
+
+Zug
+3E-000364,
+der fünfte Zug des Arbeitspakets «Einstellungen und Funktionsumfangs-Steuerung».
+Die Mitglieder in der Reihenfolge ihrer Umsetzung, je mit dem Task, der ihren
+Abschluss-Anteil trägt:
+
+1. 3E-000365
+   — drei Beobachtungen aus Zug 4 sind behoben: die
+   Markierung über einem Rechen-Ausdruck, die Suchtreffer in den Zellen einer
+   Tabelle der Ansicht «Live» und ein Code-Block mit Leerzeile in einem
+   Listenpunkt beim Ein- und Ausrücken und in der Nummerierung.
+   Abschluss-Anteil in
+   4T-002346.
+2. 3E-000333
+   — die zweite Stufe der mitgelieferten Kalender: vier Kalender, deren Jahr
+   sich von Jahr zu Jahr anders zusammensetzt, stehen im Aufklapp-Menü
+   «Vorlage einfügen …» der Kalender-Systeme, der hebräische nach seiner
+   Rechenregel ohne zeitliche Grenze, der chinesische, der amtliche persische
+   und Umm al-Qura aus geprüften Tafeln mit festem Geltungs-Zeitraum, außerhalb
+   dessen die Auskunft «nicht bekannt» lautet; dazu der Baustein «Jahres-Struktur
+   je Jahr» des Definitions-Modells mit dem Schaltmonat als eigenem Monat.
+   Abschluss-Anteil in
+   4T-002010.
+   Zusage nach außen: Das Projekt schreibt die Tafeln vor Ablauf ihres
+   Zeitraums fort, ebenso nach einer Korrektur der zuständigen Stelle; eine
+   fortgeschriebene Tafel erreicht jede schon angelegte Zeitrechnung.
+
+### Neu
+
+- **Vier Kalender mit jährlich wechselndem Aufbau im Aufklapp-Menü «Vorlage
+  einfügen …»** (`4T-002005`, `4T-002006`, `4T-002007`, `4T-002008`). In der
+  Detail-Ansicht eines Blocks unter Einstellungen → Kalender-Systeme bietet das
+  Menü jetzt dreizehn Kalender in der vom Product Owner festgelegten
+  Reihenfolge an: Gregorianischer Kalender, Julianischer Kalender,
+  Hidschri-Kalender (tabellarisch), **Hidschri-Kalender (Umm al-Qura)**,
+  **Persischer Kalender**, **Hebräischer Kalender**, **Chinesischer Kalender**,
+  Indischer Nationalkalender, Buddhistischer Kalender, Äthiopischer Kalender,
+  Koptischer Kalender, Japanischer Kalender, Minguo-Kalender. Wie die neun der
+  ersten Stufe legt die Auswahl eine gewöhnliche Zeitrechnung des Bereichs
+  sofort fertig ausgefüllt an, samt Woche, Uhrzeit und Namen in fünf Sprachen,
+  auf derselben Tages-Achse wie die übrigen Vorlagen, sodass sie im selben
+  Block ohne weitere Angabe ineinander umrechnen. Monat und Jahr folgen der
+  mitgelieferten Regel oder Tafel und sind in den Einstellungen
+  schreibgeschützt, mit einem Hinweis über den Ebenen; Namen, Wochen und
+  Zeitalter bleiben bearbeitbar. Die Vorlagen hängen an der Erweiterung
+  «Kalender-Systeme» und sind wie sie im Arbeitsmodus «Voll» da.
+- **Hebräischer Kalender** (`4T-002005`): nach der festen Rechenregel, ohne
+  zeitliche Grenze. In sieben von neunzehn Jahren ist Adar I ein eigener
+  Schaltmonat; im Wert trägt er die Kennung `05L` (`5784-05L-01` ist der
+  10.02.2024), Adar II die `06`. Zeitalter «AM», davor zählt «vor AM»
+  rückwärts; die Tage beginnen wie in allen Vorlagen um Mitternacht, nicht bei
+  Sonnenuntergang. Vom 10.11.2045 bis 29.11.2046 folgt EM4me der Rechenregel,
+  während manche andere Programme dort einen Tag später rechnen.
+- **Chinesischer Kalender** (`4T-002006`): das chinesische Jahr 1901 bis zum
+  chinesischen Jahr 2100, also vom 19.02.1901 bis 28.01.2101. Ein Jahr trägt
+  die Zahl des gregorianischen Jahres, in dem es beginnt (`2025-01-01` ist der
+  29.01.2025, Entscheidung des Product Owners vom 2026-10-24); die Monate heißen
+  «Monat 1» bis «Monat 12», ein Schaltmonat «Schaltmonat» mit der Zahl des
+  Monats davor und im Wert mit `L` (`2023-02L-01` ist der 22.03.2023). Die Tafel
+  folgt einer astronomischen Berechnung der Neumonde und Sonnentermine und
+  stimmt mit den amtlichen Angaben überein, auch an den zwölf Stellen, an denen
+  die eingebaute Kalender-Schnittstelle anders rechnet, etwa beim Neujahr 2027
+  am 06.02.2027.
+- **Persischer Kalender in der amtlichen Lesart** (`4T-002007`): die Jahre 1279
+  bis 1479 AP, also vom 21.03.1900 bis 20.03.2101, mit den Schaltjahren der
+  amtlichen iranischen Rechnung statt der 33-Jahres-Näherung; Zeitalter «AP»,
+  davor «vor AP».
+- **Hidschri-Kalender (Umm al-Qura)** (`4T-002008`): der amtliche Kalender
+  Saudi-Arabiens für die Jahre 1318 bis 1500 AH, also vom 30.04.1900 bis
+  16.11.2077, Monat für Monat wie die amtliche Ausgabe; er steht im Menü
+  unmittelbar unter der tabellarischen Lesart und teilt mit ihr Monatsnamen und
+  Zeitalter. Für die Jahre vor 1423 AH (2002) ist es die heutige amtliche
+  Rück-Rechnung; der damals gültige Kalender konnte abweichen.
+- **Jahres-Struktur je Jahr im Definitions-Modell** (`4T-002363`): Eine
+  Zeitrechnung kann Zahl und Länge ihrer Monate und den Jahresbeginn je Jahr aus
+  einer Regel oder Tafel des Programms beziehen; ein Schaltmonat ist dabei ein
+  zusätzlicher Monat. Außerhalb des Zeitraums einer Tafel lautet die Auskunft
+  «nicht bekannt», getrennt von «ungültig»: in der Eingabe-Hilfe, die dann auf
+  dem ersten bekannten Tag steht und das sagt, in der Umrechnung als eigene
+  Zeile und im Dokument als gedämpft und gestrichelt unterstrichener Wert mit
+  Kurzhinweis; die übrigen Zeitrechnungen des Blocks rechnen weiter. Ein Wert
+  nennt den Monat mit seiner festen Kennung, ein Schaltmonat mit nachgestelltem
+  `L`, sodass ein gespeicherter Wert in jedem Jahr denselben Monat meint; die
+  Eingabe-Hilfe zeigt beim Schaltmonat Name und Kennung. Ohne Anker beginnt
+  eine solche Zeitrechnung an ihrem ersten bekannten Tag, und die Einstellungen
+  nennen ihn unter «Anker-Zeitpunkt» und Maßstab. Die Zeitrechnung nennt ihre Regel oder Tafel nur beim
+  Namen; eine im Release fortgeschriebene Tafel erreicht damit jede schon
+  angelegte Zeitrechnung ohne Zutun, anders als die Vorlagen der ersten Stufe.
+  Als Bezug einer abgeleiteten Zeitrechnung stehen diese Zeitrechnungen nicht
+  zur Wahl, und die Einstellungen nennen den Grund; eine Zählung ab einem Tag
+  geht über die gregorianische Zeitrechnung desselben Blocks. Für alle
+  bestehenden Zeitrechnungen ändert sich nichts.
+
+### Behoben
+
+- **Die Markierung über einem Rechen-Ausdruck war kaum zu sehen**
+  (`4T-002344`). Ein markierter Rechen-Ausdruck `{= … =}` stand im Quelltext
+  und in der Ansicht «Live» als dunkler Kasten in der Markierung, weil seine
+  Einfärbung über der Markierung lag; jetzt kommt die Markierung über dem
+  Ausdruck so kräftig an wie über dem Text daneben, in hellem und dunklem
+  Erscheinungsbild. Ohne Markierung bleibt der Ausdruck dezent eingefärbt.
+- **Suchtreffer in den Zellen einer Tabelle waren in der Ansicht «Live» nicht
+  hervorgehoben** (`4T-002342`). Die Suche im Dokument sprang zwar in eine
+  gesetzte Tabelle, zeigte dort aber keinen Treffer. Jetzt sind die Treffer in
+  den Zellen hervorgehoben wie im Fließtext, der aktuelle kräftiger, und die
+  Tabelle bleibt dabei gesetzt.
+- **Eine Leerzeile im Code-Block eines Listenpunkts beendete die Liste**
+  (`4T-002343`). Stand in einem eingerückten Code-Block unter einem Listenpunkt
+  eine Leerzeile, nahm das Ein- und Ausrücken samt Unterpunkten mit der
+  Erweiterung «Listen-Struktur» den Block nur bis zu ihr mit, und die
+  selbsttätige Nummerierung begann dahinter neu, sodass Quelltext und Anzeige
+  verschiedene Nummern zeigten. Jetzt wandert der ganze Block mit, die
+  Leerzeile bleibt leer, und die Nummerierung zählt dahinter weiter; eine
+  Leerzeile außerhalb eines Code-Blocks beginnt wie bisher eine neue Liste.
+
+### Dokumentation
+
+- **Hilfe und Handbuch zur zweiten Stufe der Kalender-Vorlagen** (`4T-002009`):
+  Die Handbuch-Seite «Kalender-Systeme» nennt in fünf Sprachen die dreizehn
+  Vorlagen in der Reihenfolge des Menüs. Ein neuer Abschnitt «Vorlagen mit
+  jährlich wechselndem Aufbau» beschreibt die Geltungs-Zeiträume samt Auskunft
+  «nicht bekannt», die mitgelieferten Tabellen ohne Internet-Verbindung, ihre
+  Fortschreibung, die Monats-Kennung mit `L` und den Schreibschutz von Monat und
+  Jahr; unter «Lesarten und Grenzen» steht je ein Eintrag zu den vier Vorlagen,
+  darunter der unsichere Fall des 9. Monats 2057 und die Rück-Rechnung von Umm
+  al-Qura vor 1423 AH. Die Abschnitte zu Werten im Dokument, zur Eingabe-Hilfe,
+  zur Umrechnung und zu abgeleiteten Zeitrechnungen nennen die Auskunft «nicht
+  bekannt» und den Ausschluss als Bezug. Der Katalog-Eintrag «Kalender-Vorlagen»
+  nennt die vier neuen Kalender; eine Seite ergänzt, kein neuer Schlüssel.
+
+### Intern
+
+- **Die Fläche des Rechen-Ausdrucks liegt unter der Markierungs-Ebene**
+  (`4T-002344`): `.cm-inline-calc-marker` trägt keinen eigenen Hintergrund
+  mehr, die Fläche steht im Pseudo-Element `::before` mit `z-index: -10` unter
+  der Markierungs-Ebene von CodeMirror. Der Ablauf-Fall `IB-05` misst die
+  gezeichnete Farbe in Quelltext und Live, hell und dunkel, und der Wächter
+  `test/unit/editor-markierung-deckend.test.js` prüft die Lage der Fläche, je
+  mit Rot-Probe.
+- **Treffer der Suche im Tabellen-Widget der Live-Ansicht** (`4T-002342`): Das
+  neue Modul `src/renderer/modules/live/live-table-treffer.js` liest die Treffer
+  im Bereich einer Tabelle aus dem Feld der Suche und ordnet sie über den
+  Tabellen-Leser Zelle und Zeichen-Spanne zu; das Feld der Block-Widgets baut
+  eine Tabelle nur neu, wenn sich ihre Treffer geändert haben, und der
+  Klick-Offset in einer Zelle zählt über die Treffer-Hervorhebung hinweg. Der
+  Ablauf-Fall `SD-07`, 17 Unit-Fälle in der neuen Prüfdatei
+  `test/unit/renderer/live-tabellen-treffer.test.js` und zwei in
+  `live-tabellen-klick.test.js`, je mit Rot-Probe; die Modul-Karte der
+  Architektur ist nachgezogen.
+- **Zaun-Zustände der Listen-Bearbeitung an einer Stelle** (`4T-002343`): Das
+  neue Modul `src/shared/markdown/list-fence.js` markiert die Zeilen eines
+  eingerückten Code-Blocks von der öffnenden bis zur schließenden Zaun-Zeile;
+  Rechenkern (`list-outline.js`) und Nummerierungs-Filter
+  (`editor-list-tools.js`) lesen daraus, dass eine Leerzeile im Block keine
+  Listen-Grenze ist. Die Rand-Regeln der Zaun-Suche, bis dahin zusätzlich in
+  der Code-Block-Mitnahme ohne Erweiterung (`editor-keymaps.js`, `4T-002326`),
+  stehen seither nur dort; das Verhalten der Mitnahme ist unverändert.
+  Unit-Fälle mit Rot-Probe in `test/unit/list-outline.test.js`,
+  `listen-zeilenumbruch.test.js` und `listen-nummerierung.test.js`, dort mit
+  einem Vergleich der Nummern in Quelltext und Anzeige; die Prüfdatei der
+  Nummerierung steht im Ausschnitt der Klasse Ä3 der Änderungsklassen-Karte,
+  und die Modul-Karte der Architektur ist nachgezogen.
+- **Hilfe und Handbuch ohne Änderung** (`4T-002345`): Handbuch-Seiten,
+  Funktions-Katalog und Demo-Area sind in allen fünf Sprachen gegen die drei
+  Behebungen gelesen; keine Seite widerspricht dem behobenen Verhalten, und
+  der Satz «Eine Leerzeile beginnt eine neue Liste.» bleibt, weil er die Regel
+  außerhalb von Code-Blöcken beschreibt.
+- **Baustein «Jahres-Struktur je Jahr» im Kalender-Kern** (`4T-002363`): Das
+  neue Blatt-Modul `src/shared/calendar/calendar-yearly.js` trägt die
+  Schnittstelle zu Regeln und Tafeln (Tafel-Leser mit `L`-Kennung, Auskunft je
+  Jahr, Liste des Programms) und die Weichen, die der Kern für Einlesen,
+  Aufbau-Regeln, Datum → Achse, Achse → Datum, Gültigkeit mit dem Code
+  `unknown`, Wertebereiche und Schreibweise des Monats ruft; die Beziehungs-Arten
+  heißen `yearly` (Jahr nach Regel oder Tafel) und `byYear` (Monate je Jahr).
+  Neue Kern-Auskünfte `calendarStartPoint` und `calendarMonthLabel`; Eingabe-Hilfe,
+  Dialog «Datum umrechnen», Kalender-Wert der Markdown-Pipeline und die Pflege
+  der Einstellungen lesen daraus. Vor jeder Änderung schreibt
+  `test/unit/kalender-festschreibung.test.js` das bisherige Rechnen aller
+  Definitionen über Prüfsummen fest (zuerst 15, mit den vier Vorlagen 19); dazu
+  `kalender-jahres-struktur.test.js` und die Prüfdateien der Oberfläche und
+  der Einstellungen, je mit Rot-Proben. Die
+  Größen-Ratsche des Kerns sinkt von 966 auf 948 Code-Zeilen.
+- **Wert-Syntax und Kalender-Stile in eigenen Dateien** (`4T-002363`): Der
+  Abschnitt «Wert-Syntax im Dokument» des Kerns steht im neuen Modul
+  `src/shared/calendar/calendar-value-syntax.js`, der Kern reicht die
+  Funktionen unter denselben Namen weiter. Wert-Abzeichen, Eingabe-Hilfe und
+  Dialog «Datum umrechnen» sind unverändert aus `einstellungs-bereiche.css`
+  (800 → 666 Code-Zeilen) in die neue Stil-Scheibe
+  `src/renderer/styles/kalender.css` geschnitten, die auch die Gestaltung
+  «nicht bekannt» trägt; die Größen-Ratsche von `index.html` steigt um die
+  eine Einbindungs-Zeile auf 2495.
+- **Regel und Tafeln als versionierte Programm-Dateien, Erzeuger-Werkzeug**
+  (`4T-002005`, `4T-002006`, `4T-002007`, `4T-002008`): die hebräische
+  Rechenregel als Modul `src/shared/calendar/calendar-rule-hebrew.js`, die
+  Tafeln `persian.js` (201 Jahre), `chinese.js` (200 Jahre, 73 Schaltmonate)
+  und `islamic-umalqura.js` (183 Jahre) unter
+  `src/shared/calendar/year-tables/`, die Vorlagen in der eigenen Fabrik
+  `calendar-template-yearly.js`. Die Tafeln erzeugt
+  `scripts/kalender-tafel-erzeugen.js` einmalig als versionierte Datei, nie zur
+  Laufzeit, mit Kopf samt Fassung der Quelle und Prüfsumme, Selbst-Prüfungen,
+  `--pruefen` und einem Schutz gegen den stillen Rückfall der Schnittstelle von Umm al-Qura
+  auf die tabellarische Rechnung; das Programm ruft für diese Vorlagen weder den
+  eingebauten Kalender der Laufzeit noch das Netz. Beispiel-Sammlung
+  («Thirteen calendars») und Begrüßung sind nachgezogen.
+- **Astronomische Bibliothek nur als Entwicklungs-Abhängigkeit**
+  (`4T-002006`): `lunar-javascript` 1.7.1, exakt festgelegt unter
+  `devDependencies`, ist die Quelle der chinesischen Tafel im Erzeuger; der
+  neue Wächter `test/unit/entwicklungs-bibliotheken.test.js` prüft, dass kein
+  Modul unter `src/` sie lädt und die Fassung exakt steht. Das Anzeige-Bündel
+  enthält keinen Code der Bibliothek, `NOTICE` bleibt unverändert.
+- **Nachweis je Vorlage gegen eine zweite Quelle** (`4T-002005`, `4T-002006`,
+  `4T-002007`, `4T-002008`): hebräisch gegen die klassische Form in 600 001
+  Jahren und Tag für Tag gegen die Schnittstelle 1900 bis 2100; persisch gegen
+  die Schaltjahr-Tafel des Kalender-Zentrums der Universität Teheran
+  (`test/fixtures/kalender-persisch/`); chinesisch gegen die sechs amtlichen
+  Dateien 2023 bis 2028 des Datenportals der Regierung Hongkongs mit
+  Quellenangabe (`test/fixtures/kalender-chinesisch/`) und über den ganzen
+  Zeitraum gegen die Schnittstelle; Umm al-Qura gegen die Prüfsumme der 2196
+  am amtlichen Portal gelesenen Monatsanfänge, deren Werte selbst nicht im
+  Quellcode stehen (`test/fixtures/kalender-umm-al-qura/`, Entscheidung des
+  Product Owners vom 2026-10-24), dazu die Gegenprobe zur tabellarischen
+  Lesart. Neue Prüfdateien `kalender-vorlage-hebraeisch.test.js` (35 Fälle),
+  `kalender-vorlage-persisch.test.js` (18), `kalender-vorlage-chinesisch.test.js`
+  (21) und `kalender-vorlage-umm-al-qura.test.js` (20), je mit Rot-Proben;
+  die Bestands-Prüfungen der Vorlagen wachsen mit.
+- **Befund: Die eingebaute Kalender-Schnittstelle weicht an benannten Stellen
+  ab** (`4T-002005`, `4T-002006`). Hebräisch rechnet sie die 385 Tage vom
+  10.11.2045 bis 29.11.2046 anders als die Rechenregel; die Vorlage folgt der
+  Regel (Entscheidung des Product Owners vom 2026-10-24), der Nachweis führt
+  die Spanne als benannte Ausnahme. Chinesisch weicht sie unter ICU 74 und 77
+  an zwölf Stellen mit zusammen 447 Tagen von der amtlichen Tafel ab, darunter
+  die Neujahre 1954, 2027 und 2030; die Tafel stammt deshalb aus der
+  astronomischen Bibliothek, und der Nachweis führt die zwölf Stellen als
+  erwartete Abweichungen, jede weitere ist rot.
+- **Konzept-Anteil des Bausteins** (`4T-002004`): Plan-Vorlage mit den
+  Entscheidungen B1 bis B4 (Kennung des Schaltmonats, ganze Jahre der eigenen
+  Zählung, Verweis statt Abschrift, keine Ableitung) und den technischen
+  Festlegungen T5 bis T10; Architektur und «Erkenntnisse und Entscheidungen»
+  sind fortgeschrieben.
+- **Der Nachzügler des vorigen Releases** (Sammeltask `4T-002356` des Zuges
+  `3E-000369`; derselbe Commit legt die Befunde `4T-002410` und `4T-002411`
+  an). Nach der Auslieferung von 1.153.0 hat der Abschluss des Sammeltasks
+  zehn Bildschirmfotos der Produkt-Webseite erneuert. Der Commit liegt
+  seither auf dem Integrationsstand und steht hier, weil er Dateien der
+  Webseite berührt; kein Anwendungs-Code berührt, kein Anwender-Text nötig.
+
 ## [1.153.0.4466] - 2026-10-27 — Workflows Stufe 1: wiederkehrende Arbeitsschritte als Markdown-Datei, von Hand gestartet
 
 Zug 3E-000369

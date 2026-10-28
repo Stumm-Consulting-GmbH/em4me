@@ -5,6 +5,10 @@
 // nicht mehr, und die Eingabe-Hilfe blieb offen. Eigene Datei, weil
 // kalender-systeme.spec.js ihr Zeilen-Budget ausschöpft; Bereich, Öffnen und
 // Live-Ansicht folgen deren Muster (KS-03).
+//
+// 4T-002363 (Epic 3E-000333), Nachbesserung vom 2026-10-24: KE-02 prüft im
+// selben Aufbau den ersten Monat einer Tafel, der nicht am Anfang einer
+// Gitter-Zeile beginnt (persische Vorlage, 21.03.1900 ein Mittwoch).
 // describe-Titel tragen die Matrix-IDs (test/abdeckungs-matrix.json).
 'use strict';
 
@@ -21,8 +25,9 @@ const PICKER = '#calendar-picker-popup';
 // Bereich mit zwei mitgelieferten Vorlagen in einem Block (Entsprechungen und
 // Kalender-Auswahl) und einem zweiten Block (Block-Auswahl). Die Vorlagen
 // entstehen mit den deutschen Texten der Anwendung, damit Name und Wert im
-// Dokument ihrer Schreibweise folgen.
-function makeVorlagenArea() {
+// Dokument ihrer Schreibweise folgen. KE-02 tauscht die zweite Vorlage des
+// Blocks und den Wert im Dokument.
+function makeVorlagenArea({ zweite = 'japanese', wert = '2024-05-15 n. Chr.' } = {}) {
   const areaRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-kalender-escape-'));
   const de = require(path.join(APP_ROOT, 'src/i18n/de.json'));
   const t = (k) =>
@@ -34,7 +39,7 @@ function makeVorlagenArea() {
   const greg = vorlage('gregorian');
   const config = {
     blocks: [
-      { id: 'welt', name: 'Welt', calendars: [greg, vorlage('japanese')] },
+      { id: 'welt', name: 'Welt', calendars: [greg, vorlage(zweite)] },
       { id: 'zweit', name: 'Zweitblock', calendars: [vorlage('julian')] },
     ],
   };
@@ -46,7 +51,7 @@ function makeVorlagenArea() {
   // Der Wert steht nicht auf Zeile 1: die Zeile mit dem Cursor zeigt Roh-Text.
   fs.writeFileSync(
     path.join(areaRoot, 'werte.md'),
-    `# Werte\n\nEin Wert @{${greg.name}: 2024-05-15 n. Chr.} im Text.\n`,
+    `# Werte\n\nEin Wert @{${greg.name}: ${wert}} im Text.\n`,
     'utf8',
   );
   return areaRoot;
@@ -130,6 +135,41 @@ test.describe('KE-01: Escape schließt die Eingabe-Hilfe nach jedem Neuaufbau (4
       }
     } finally {
       // Kein Wert wird geändert; force schließt ohne Rückfrage wie in KS-03.
+      await closeApp(app, userData, { force: true });
+      try {
+        fs.rmSync(areaRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+      } catch {
+        /* Windows-Handle noch gesperrt: Temp-Rest ist unkritisch */
+      }
+    }
+  });
+});
+
+test.describe('KE-02: Der erste Monat einer Tafel zeigt seine Tage (4T-002363)', () => {
+  test('Wechsel auf die persische Vorlage vor ihrem Zeitraum: Farwardin 1279 mit allen Tagen, auch nach «Referenz»', async () => {
+    const areaRoot = makeVorlagenArea({ zweite: 'persian', wert: '1800-01-01 n. Chr.' });
+    const { app, page, userData } = await launchApp();
+    try {
+      await oeffneWerteLive(app, page, areaRoot);
+      await page.locator('.cm-live-calendar-badge').click();
+      await expect(page.locator(PICKER)).toBeVisible();
+      await auswahl('#calendar-picker-calendar', 'persian')(page);
+      const einheit = page.locator('#calendar-picker-unit-label');
+      const tage = page.locator(`${PICKER} .calendar-picker-day:not(.other-month)`);
+      // Der Tag vor dem Zeitraum ist dort nicht bekannt: Die Auswahl springt auf
+      // den ersten Tag der Tafel. Mittwoch: zwei leere Vorlauf-Zellen.
+      for (const schritt of ['nach dem Wechsel', 'nach «Referenz»']) {
+        if (schritt === 'nach «Referenz»') await page.locator('#calendar-picker-reference').click();
+        await expect(einheit, schritt).toHaveText('Farwardin 1279');
+        await expect(tage, schritt).toHaveCount(31);
+        await expect(page.locator(`${PICKER} .calendar-picker-day.selected`), schritt).toHaveText(
+          '1',
+        );
+        await expect(page.locator(`${PICKER} .calendar-picker-empty`), schritt).toHaveCount(2);
+      }
+      await page.keyboard.press('Escape');
+      await expect(page.locator(PICKER)).toBeHidden();
+    } finally {
       await closeApp(app, userData, { force: true });
       try {
         fs.rmSync(areaRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });

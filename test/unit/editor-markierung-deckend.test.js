@@ -117,6 +117,72 @@ function erhebe() {
 // Modulkopf»): Die Prüffälle bewerten nur das Ergebnis.
 const ERHEBUNG = erhebe();
 
+// 4T-002344 (Story 4S-000168, AK9): Auch eine halbdurchsichtige Fläche über der
+// Markierungs-Ebene schwächt die Markierung (mit 70 % Deckkraft kamen über dem
+// Rechen-Ausdruck 15 % statt 50 % der Markierungsfarbe an). Der Rechen-Ausdruck
+// zeichnet seine Fläche deshalb in einem Pseudo-Element UNTER der Ebene: Die
+// Ebene trägt `z-index: (above ? 150 : -1) - pos` (@codemirror/view,
+// `LayerView.setOrder`), gemessen -2; das Pseudo-Element muss darunter liegen,
+// und der Span selbst trägt keinen Hintergrund. Erhoben werden alle Regeln, deren
+// Selektor-Liste auf den Ausdruck (mit oder ohne `::before`) endet.
+const AUSWAHL_EBENE_Z = -2;
+function regelnZum(endung) {
+  const treffer = [];
+  for (const datei of stilDateien()) {
+    const roh = fs.readFileSync(datei, 'utf8');
+    for (const m of roh.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const teile = m[1]
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .split(',')
+        .map((t) => t.trim());
+      if (!teile.some((t) => t.endsWith(endung))) continue;
+      const eigenschaften = {};
+      for (const e of m[2].replace(/\/\*[\s\S]*?\*\//g, '').matchAll(/([\w-]+)\s*:\s*([^;]+)/g)) {
+        eigenschaften[e[1]] = e[2].trim();
+      }
+      const zeile = roh.slice(0, m.index).split('\n').length + 1;
+      treffer.push({
+        ort: `${path.relative(wurzel, datei).replace(/\\/g, '/')}:${zeile}`,
+        eigenschaften,
+      });
+    }
+  }
+  return treffer;
+}
+const AUSDRUCK = regelnZum('.cm-inline-calc-marker');
+const AUSDRUCK_FLAECHE = regelnZum('.cm-inline-calc-marker::before');
+
+function flaecheUnterDerEbene(span, flaeche) {
+  const befunde = [];
+  if (span.length === 0) befunde.push('keine Regel für den Rechen-Ausdruck');
+  if (!span.some((r) => r.eigenschaften.position === 'relative')) {
+    befunde.push('Rechen-Ausdruck ohne position: relative (Bezugs-Box der Fläche)');
+  }
+  for (const r of span) {
+    const bg = r.eigenschaften.background ?? r.eigenschaften['background-color'];
+    if (bg !== undefined && !/^(transparent|none)$/i.test(bg)) {
+      befunde.push(`${r.ort}: Hintergrund am Span über der Markierungs-Ebene → ${bg}`);
+    }
+  }
+  const e = Object.assign({}, ...flaeche.map((r) => r.eigenschaften));
+  if (flaeche.length === 0) befunde.push('keine Fläche im Pseudo-Element ::before');
+  else {
+    if (e.content === undefined) befunde.push('::before ohne content');
+    if (e.position !== 'absolute') befunde.push(`::before nicht absolut (${e.position})`);
+    if (e.inset !== '0' && !['top', 'right', 'bottom', 'left'].every((k) => e[k] === '0')) {
+      befunde.push('::before füllt die Box des Ausdrucks nicht aus');
+    }
+    const z = Number(e['z-index']);
+    if (!Number.isInteger(z) || z >= AUSWAHL_EBENE_Z) {
+      befunde.push(`::before liegt nicht unter der Markierungs-Ebene (z-index ${e['z-index']})`);
+    }
+    if (e.background === undefined && e['background-color'] === undefined) {
+      befunde.push('::before ohne Hintergrund');
+    }
+  }
+  return befunde;
+}
+
 describe('Editor: kein deckender Hintergrund an Text-Dekorationen (4T-002095)', () => {
   it('die abgeleiteten Mengen sind nicht leer gelaufen', () => {
     const { klassen, geprueft } = ERHEBUNG;
@@ -143,5 +209,34 @@ describe('Editor: kein deckender Hintergrund an Text-Dekorationen (4T-002095)', 
     expect(durchscheinend('rgba(255, 243, 163, 0.55)', vars)).toBe(true);
     expect(durchscheinend('color-mix(in srgb, var(--deckt) 60%, transparent)', vars)).toBe(true);
     expect(durchscheinend('transparent', vars)).toBe(true);
+  });
+  it('der Rechen-Ausdruck zeichnet seine Fläche unter der Markierungs-Ebene (4T-002344)', () => {
+    expect(flaecheUnterDerEbene(AUSDRUCK, AUSDRUCK_FLAECHE)).toEqual([]);
+  });
+
+  it('die Lage-Prüfung des Rechen-Ausdrucks kennt beide Richtungen (4T-002344)', () => {
+    const span = (e) => [{ ort: 'x.css:1', eigenschaften: e }];
+    // Stand vor 4T-002344: Fläche zu 70 % am Span, kein Pseudo-Element.
+    const alt = flaecheUnterDerEbene(
+      span({ position: 'static', background: 'color-mix(in srgb, var(--hover) 70%, transparent)' }),
+      [],
+    );
+    expect(alt.length).toBeGreaterThanOrEqual(3);
+    const flaeche = (z) =>
+      span({
+        content: "''",
+        position: 'absolute',
+        inset: '0',
+        'z-index': z,
+        background: 'var(--hover)',
+      });
+    expect(flaecheUnterDerEbene(span({ position: 'relative' }), flaeche('-10'))).toEqual([]);
+    expect(flaecheUnterDerEbene(span({ position: 'relative' }), flaeche('-2'))).toHaveLength(1);
+    expect(
+      flaecheUnterDerEbene(
+        span({ position: 'relative', background: 'var(--hover)' }),
+        flaeche('-10'),
+      ),
+    ).toHaveLength(1);
   });
 });

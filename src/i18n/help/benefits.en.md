@@ -202,7 +202,7 @@ Beyond the four large constructs, the language brings more than fifty extensions
 - **Presentation** with formulas, diagrams and highlighted code; on a portable export a diagram travels along as a finished image and is visible even where EM4me is not installed.
 - **References within the text** through anchors, embeds and tags.
 - **The working day** with tasks, reminders, events, templates and journals.
-- **Dates in other calendars**: nine bundled calendars, from the Julian through the Hijri to the Japanese, plus freely definable time reckonings of your own; dates in the same block convert into one another.
+- **Dates in other calendars**: thirteen bundled calendars, from the Julian through the Hijri, the Hebrew and the Chinese to the Japanese, plus freely definable time reckonings of your own; dates in the same block convert into one another.
 - **Individually switchable** or bundled through three working modes, plus compositions of your own, and open to your own extensions through a documented interface.
 
 In detail: [Features](functions.md), [Extensions](extensions.md), [Creating extensions](extensions-dev.md).

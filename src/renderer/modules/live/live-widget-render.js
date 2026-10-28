@@ -42,6 +42,8 @@ import {
 // (Laufzeit-Aufruf in _enhance, zyklenfest — importiert nur den geteilten
 // Tabellen-Kern und die View-Aufloesung).
 import { bindLiveTableCellClicks } from './live-table-klick.js';
+// 4T-002342 (Epic 3E-000365): Treffer der Suche in den Zellen der Tabelle.
+import { trefferSchluessel, zeichneTabellenTreffer } from './live-table-treffer.js';
 // 4T-001668 (Epic 3E-000287): Zugang und Klapp-Zustand des Canvas-Blocks im
 // Live-Widget (Entscheidung E8). Das Modul importiert selbst kein
 // Renderer-Modul und bildet deshalb keinen Ordner-Zyklus.
@@ -317,7 +319,13 @@ export class MarkdownBlockWidget extends WidgetType {
   // 4T-002055 (Epic 3E-000360): `dokLaenge` ist die Länge des ersetzten
   // Bereichs im Dokument. Bei einer Tabelle in einem Zitat ist `source` ohne
   // die Zitat-Präfixe und damit kürzer; der Klick-Pfad braucht beide.
-  constructor(source, basePath, cacheKey, docPrefix, dokumentText, dokLaenge) {
+  //
+  // 4T-002342 (Epic 3E-000365): `treffer` sind die Treffer der Suche im
+  // Block-Text einer Pipe-Tabelle ({ von, bis, aktuell }). Sie gehen in die
+  // Gleichheit ein: Ein neuer Stand der Treffer baut das Widget neu, eine
+  // veraltete Hervorhebung bleibt damit nie stehen. Gezeichnet werden sie auf
+  // dem eingehängten Baum, nie im Zwischenspeicher der Tabelle.
+  constructor(source, basePath, cacheKey, docPrefix, dokumentText, dokLaenge, treffer) {
     super();
     this.source = source;
     this.basePath = basePath || '';
@@ -325,6 +333,8 @@ export class MarkdownBlockWidget extends WidgetType {
     this.docPrefix = docPrefix || '';
     this.dokumentText = dokumentText || '';
     this.dokLaenge = dokLaenge ?? String(source).length;
+    this.treffer = treffer || [];
+    this.trefferSchluessel = trefferSchluessel(this.treffer);
   }
   eq(other) {
     return (
@@ -334,7 +344,8 @@ export class MarkdownBlockWidget extends WidgetType {
       other.cacheKey === this.cacheKey &&
       other.docPrefix === this.docPrefix &&
       other.dokumentText === this.dokumentText &&
-      other.dokLaenge === this.dokLaenge
+      other.dokLaenge === this.dokLaenge &&
+      other.trefferSchluessel === this.trefferSchluessel
     );
   }
   toDOM() {
@@ -410,6 +421,7 @@ export class MarkdownBlockWidget extends WidgetType {
       // Pipe-Tabellen — der Cache-Schluessel des Pre-Passes traegt die
       // Unterscheidung gegen Perspective-Tabellen und Fenced-Code.
       if (String(this.cacheKey || '').startsWith('table:')) {
+        zeichneTabellenTreffer(container, this.source, this.treffer);
         bindLiveTableCellClicks(container, this.source, this.dokLaenge);
       }
       // 4T-000355: perspective-query-Platzhalter im Live-Modus befüllen. Läuft

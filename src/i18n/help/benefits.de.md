@@ -202,7 +202,7 @@ Ausführlich: [Skript-Blöcke](scripts.md).
 - **Darstellung** mit Formeln, Diagrammen und hervorgehobenem Code; beim portablen Export reist ein Diagramm als fertiges Bild mit und ist auch dort zu sehen, wo EM4me nicht installiert ist.
 - **Bezug im Text** über Anker, Einbettungen und Schlagwörter.
 - **Arbeit am Tag** mit Aufgaben, Erinnerungen, Terminen, Vorlagen und Journalen.
-- **Daten in anderen Kalendern**: neun mitgelieferte Kalender vom julianischen über den Hidschri- bis zum japanischen, dazu frei definierbare eigene Zeitrechnungen; Daten im selben Block rechnen ineinander um.
+- **Daten in anderen Kalendern**: dreizehn mitgelieferte Kalender vom julianischen über den Hidschri-, den hebräischen und den chinesischen bis zum japanischen, dazu frei definierbare eigene Zeitrechnungen; Daten im selben Block rechnen ineinander um.
 - **Einzeln schaltbar** oder gebündelt über drei Arbeitsmodi, dazu eigene Zusammenstellungen, und offen für eigene Erweiterungen über eine dokumentierte Schnittstelle.
 
 Ausführlich: [Funktionen](functions.md), [Erweiterungen](extensions.md), [Eigene Erweiterungen](extensions-dev.md).

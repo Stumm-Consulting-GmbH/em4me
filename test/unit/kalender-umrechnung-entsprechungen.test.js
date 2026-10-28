@@ -2,7 +2,7 @@
 // Zeitrechnungen desselben Blocks (blockEquivalents aus
 // src/shared/calendar/calendar-convert.js), die Zusammenstellung für den Dialog
 // «Datum umrechnen». Geprüft werden die Vergleichswerte in beiden Richtungen in
-// einem Block mit allen neun Vorlagen, die Gleichheit jeder Zeile mit der
+// einem Block mit allen Vorlagen (seit 4T-002008 dreizehn), die Gleichheit jeder Zeile mit der
 // Umrechnung des Kerns, die Fälle ohne Ergebnis, die eine Abrundung bei
 // gebrochenem Maßstab und die exakte Rechnung jenseits einer Milliarde Jahre.
 //
@@ -31,19 +31,28 @@ const tDe = (key) => {
   return de[key];
 };
 
-// Block aus allen neun Vorlagen der Sammlung in Menü-Reihenfolge, mit
-// deutschem Katalog erzeugt und normalisiert.
-function neunerBlock() {
+// Block aus allen Vorlagen der Sammlung in Menü-Reihenfolge, mit deutschem
+// Katalog erzeugt und normalisiert; seit 4T-002005 zehn, seit 4T-002007 elf,
+// seit 4T-002006 zwölf, seit 4T-002008 dreizehn.
+function vorlagenBlock() {
   const config = normalizeCalendarConfig({
     blocks: [{ id: 'welt', calendars: CALENDAR_TEMPLATES.map((entry) => entry.create(tDe)) }],
   });
   const block = config.blocks[0];
   expect(block.calendars.map((c) => c.id)).toEqual(CALENDAR_TEMPLATES.map((e) => e.id));
-  expect(block.calendars).toHaveLength(9);
+  expect(block.calendars).toHaveLength(13);
   return block;
 }
 
 const kalenderIn = (block, id) => block.calendars.find((c) => c.id === id);
+// 4T-002007: Vorlagen mit Tafel und Geltungs-Zeitraum (erster und letzter
+// gregorianischer Tag als JJJJMMTT); 4T-002006: die chinesische; 4T-002008:
+// die nach Umm al-Qura.
+const TAFELN = {
+  persian: [19000321, 21010320],
+  chinese: [19010219, 21010128],
+  'islamic-umalqura': [19000430, 20771116],
+};
 const zeileVon = (ergebnis, id) => ergebnis.rows.find((r) => r.calendar.id === id);
 
 // Stichtag-Paare: eigen = [Epoche, Anzeige-Jahr, Monat, Tag] der Vorlage,
@@ -54,6 +63,10 @@ const zeileVon = (ergebnis, id) => ergebnis.rows.find((r) => r.calendar.id === i
 const ST = 'test/unit/kalender-vorlagen-stichtage.test.js';
 const ISL = 'test/unit/kalender-vorlage-islamisch.test.js';
 const JAP = 'test/unit/kalender-vorlage-japanisch.test.js';
+const HEB = 'test/unit/kalender-vorlage-hebraeisch.test.js';
+const PER = 'test/unit/kalender-vorlage-persisch.test.js';
+const CHI = 'test/unit/kalender-vorlage-chinesisch.test.js';
+const UQ = 'test/unit/kalender-vorlage-umm-al-qura.test.js';
 const VERGLEICHSWERTE = [
   { id: 'julian', eigen: [1, 1582, 10, 5], gregorianisch: [1582, 10, 15], herkunft: `${ST}:69` },
   { id: 'julian', eigen: [1, 1917, 10, 25], gregorianisch: [1917, 11, 7], herkunft: `${ST}:80` },
@@ -82,6 +95,31 @@ const VERGLEICHSWERTE = [
   { id: 'japanese', eigen: [5, 1, 5, 1], gregorianisch: [2019, 5, 1], herkunft: `${JAP}:293` },
   { id: 'minguo', eigen: [1, 1, 1, 1], gregorianisch: [1912, 1, 1], herkunft: `${ST}:361` },
   { id: 'minguo', eigen: [1, 13, 2, 29], gregorianisch: [1924, 2, 29], herkunft: `${ST}:363` },
+  // 4T-002005: Hebräisch; beide Paare in Monaten, deren Kennung gleich der
+  // Stelle im Jahr ist (Tischri, Nisan im Gemeinjahr 5785), weil die
+  // kanonische Schreibweise den Monat mit seiner Kennung nennt.
+  { id: 'hebrew', eigen: [1, 5786, 1, 1], gregorianisch: [2025, 9, 23], herkunft: `${HEB}:316` },
+  { id: 'hebrew', eigen: [1, 5785, 7, 15], gregorianisch: [2025, 4, 13], herkunft: `${HEB}:319` },
+  // 4T-002007: Persisch, Story-Stichtag und amtlicher Anker-Tag aus Teheran.
+  { id: 'persian', eigen: [1, 1404, 1, 1], gregorianisch: [2025, 3, 21], herkunft: `${PER}:266` },
+  { id: 'persian', eigen: [1, 1403, 1, 1], gregorianisch: [2024, 3, 20], herkunft: `${PER}:269` },
+  // 4T-002006: Chinesisch, Story-Stichtag und amtliches Neujahr 2027 (Portal-Datei).
+  { id: 'chinese', eigen: [1, 2025, 1, 1], gregorianisch: [2025, 1, 29], herkunft: `${CHI}:108` },
+  { id: 'chinese', eigen: [1, 2027, 1, 1], gregorianisch: [2027, 2, 6], herkunft: `${CHI}:109` },
+  // 4T-002008: Umm al-Qura, Story-Stichtag (am Portal gelesen) und erster Tag der
+  // heutigen Regel.
+  {
+    id: 'islamic-umalqura',
+    eigen: [1, 1446, 9, 1],
+    gregorianisch: [2025, 3, 1],
+    herkunft: `${UQ}:293`,
+  },
+  {
+    id: 'islamic-umalqura',
+    eigen: [1, 1423, 1, 1],
+    gregorianisch: [2002, 3, 15],
+    herkunft: `${UQ}:305`,
+  },
 ];
 
 // Uhrzeiten, mit denen jedes Paar geprüft wird: Mitternacht und eine Tageszeit,
@@ -104,7 +142,7 @@ function eigenesTupel(kalender, [epoche, jahr, monat, tag], zeit) {
 
 const text = (p) => `${p.id} ${p.eigen.join('/')} = ${p.gregorianisch.join('-')} (${p.herkunft})`;
 
-describe('Vergleichswerte in beiden Richtungen, Block mit allen neun Vorlagen (4T-001874)', () => {
+describe('Vergleichswerte in beiden Richtungen, Block mit allen Vorlagen (4T-001874)', () => {
   it('jede nicht-gregorianische Vorlage trägt mindestens ein belegtes Paar', () => {
     const mitPaar = new Set(VERGLEICHSWERTE.map((p) => p.id));
     const erwartet = CALENDAR_TEMPLATES.map((e) => e.id).filter((id) => id !== 'gregorian');
@@ -112,7 +150,7 @@ describe('Vergleichswerte in beiden Richtungen, Block mit allen neun Vorlagen (4
   });
 
   it.each(VERGLEICHSWERTE.map((p) => [text(p), p]))('AK4: hin — %s', (_name, paar) => {
-    const block = neunerBlock();
+    const block = vorlagenBlock();
     const kalender = kalenderIn(block, paar.id);
     for (const zeit of ZEITEN) {
       const ergebnis = blockEquivalents(block, 'gregorian', paar.gregorianisch.concat(zeit));
@@ -127,7 +165,7 @@ describe('Vergleichswerte in beiden Richtungen, Block mit allen neun Vorlagen (4
   });
 
   it.each(VERGLEICHSWERTE.map((p) => [text(p), p]))('AK4: zurück — %s', (_name, paar) => {
-    const block = neunerBlock();
+    const block = vorlagenBlock();
     const kalender = kalenderIn(block, paar.id);
     for (const zeit of ZEITEN) {
       const ergebnis = blockEquivalents(block, paar.id, eigenesTupel(kalender, paar.eigen, zeit));
@@ -141,7 +179,7 @@ describe('Vergleichswerte in beiden Richtungen, Block mit allen neun Vorlagen (4
   });
 });
 
-// Ausgangs-Tupel je Zeitrechnung des Neuner-Blocks: die gregorianischen Tage
+// Ausgangs-Tupel je Zeitrechnung des Vorlagen-Blocks: die gregorianischen Tage
 // der Paare und je Vorlage ihre eigenen Tage, dazu ein ferner Zeitpunkt.
 function ausgaenge(block) {
   const liste = [];
@@ -158,10 +196,10 @@ function ausgaenge(block) {
 
 describe('Gleichheit mit der Umrechnung des Kerns (4T-001874)', () => {
   it('AK4/AK2: jede Zeile ist gleich convertInBlock, Reihenfolge des Blocks ohne die Ausgangs-Zeitrechnung', () => {
-    const block = neunerBlock();
+    const block = vorlagenBlock();
     const ausgaengeListe = ausgaenge(block);
     // Jede Zeitrechnung des Blocks ist mindestens einmal Ausgangspunkt.
-    expect(new Set(ausgaengeListe.map(([id]) => id)).size).toBe(9);
+    expect(new Set(ausgaengeListe.map(([id]) => id)).size).toBe(13);
     for (const [fromId, tupel] of ausgaengeListe) {
       const ort = `${fromId} ${tupel.join('/')}`;
       const ergebnis = blockEquivalents(block, fromId, tupel);
@@ -233,7 +271,7 @@ describe('Fälle ohne Ergebnis (4T-001874)', () => {
   });
 
   it('AK5: unbekannte Ausgangs-Zeitrechnung: unknownCalendar', () => {
-    const block = neunerBlock();
+    const block = vorlagenBlock();
     expect(blockEquivalents(block, 'gibt-es-nicht', [2026, 10, 3, 0, 0, 0])).toEqual({
       ok: false,
       code: 'unknownCalendar',
@@ -241,7 +279,7 @@ describe('Fälle ohne Ergebnis (4T-001874)', () => {
   });
 
   it('AK5: ungültiges Ausgangs-Tupel: genau der Code der Gültigkeits-Prüfung des Kerns', () => {
-    const block = neunerBlock();
+    const block = vorlagenBlock();
     const greg = kalenderIn(block, 'gregorian');
     for (const [tupel, code] of [
       [[2026, 7], 'segmentCount'],
@@ -389,7 +427,7 @@ describe('Rundung und große Werte (4T-001874)', () => {
   });
 
   it('AK3: ein Zeitpunkt jenseits von einer Milliarde Jahren rechnet in allen Vorlagen exakt hin und zurück', () => {
-    const block = neunerBlock();
+    const block = vorlagenBlock();
     const greg = kalenderIn(block, 'gregorian');
     for (const tupel of [
       [1500000000, 6, 15, 12, 30, 45],
@@ -400,9 +438,14 @@ describe('Rundung und große Werte (4T-001874)', () => {
       expect(achse > 2n ** 53n || achse < -(2n ** 53n)).toBe(true);
       const hin = blockEquivalents(block, 'gregorian', tupel);
       expect(hin.ok).toBe(true);
-      expect(hin.rows).toHaveLength(8);
+      expect(hin.rows).toHaveLength(block.calendars.length - 1);
       for (const zeile of hin.rows) {
         const ort = `${tupel[0]} → ${zeile.calendar.id}`;
+        // 4T-002007: Eine Tafel kennt so ferne Zeitpunkte nicht.
+        if (zeile.calendar.id in TAFELN) {
+          expect(zeile, ort).toMatchObject({ ok: false, code: EQUIVALENT_UNKNOWN });
+          continue;
+        }
         expect(zeile.ok, ort).toBe(true);
         expect(Math.abs(zeile.tuple[0]), ort).toBeGreaterThan(1000000000);
         const zurueck = blockEquivalents(block, zeile.calendar.id, zeile.tuple);
@@ -413,18 +456,34 @@ describe('Rundung und große Werte (4T-001874)', () => {
 });
 
 describe('Vorgesehener Fall «nicht bekannt» (4T-001874)', () => {
-  it('AK5: die Konstante heißt unknown und wird heute von keiner Zeile geliefert', () => {
+  // 4T-002007: Seit der persischen Tafel liefert die Konstante allein die
+  // Zeile einer Tafel, und nur für einen Tag außerhalb ihres Zeitraums
+  // (persisch 21.03.1900 bis 20.03.2101, chinesisch seit 4T-002006 19.02.1901
+  // bis 28.01.2101); keine andere Zeile sagt «nicht bekannt».
+  it('AK5: die Konstante heißt unknown und kommt allein von einer Tafel außerhalb ihres Zeitraums', () => {
     expect(EQUIVALENT_UNKNOWN).toBe('unknown');
-    const block = neunerBlock();
+    const block = vorlagenBlock();
+    const imZeitraum = (id, g) => {
+      const tag = g[0] * 10000 + g[1] * 100 + g[2];
+      return tag >= TAFELN[id][0] && tag <= TAFELN[id][1];
+    };
     let zeilen = 0;
+    let unbekannt = 0;
     for (const [fromId, tupel] of ausgaenge(block)) {
       const ergebnis = blockEquivalents(block, fromId, tupel);
       expect(ergebnis.ok).toBe(true);
+      const gregorianisch =
+        fromId === 'gregorian' ? tupel : convertInBlock(block, fromId, tupel, 'gregorian').tuple;
       for (const zeile of ergebnis.rows) {
         zeilen++;
-        expect(zeile.code, `${fromId} → ${zeile.calendar.id}`).not.toBe(EQUIVALENT_UNKNOWN);
+        const ort = `${fromId} ${tupel.join('/')} → ${zeile.calendar.id}`;
+        if (zeile.code !== EQUIVALENT_UNKNOWN) continue;
+        unbekannt++;
+        expect(Object.keys(TAFELN), ort).toContain(zeile.calendar.id);
+        expect(imZeitraum(zeile.calendar.id, gregorianisch), ort).toBe(false);
       }
     }
     expect(zeilen).toBeGreaterThan(0);
+    expect(unbekannt).toBeGreaterThan(0);
   });
 });

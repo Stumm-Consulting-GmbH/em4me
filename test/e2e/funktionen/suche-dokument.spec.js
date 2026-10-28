@@ -493,8 +493,8 @@ test.describe('SD-04: Treffer im mittleren Drittel, am Anfang und Ende am Rand (
 
   // Ein Block, den die Live-Ansicht als Widget zeichnet, klappt beim Sprung zur
   // Quelle auf; seine Höhe ändert sich dabei. Gemessen am 2026-10-10 mit dem
-  // Treffer in der Mitte (Code-Block; eine Tabellen-Zelle trägt in der
-  // Live-Ansicht keine Treffer-Dekoration, Nebenbefund der Messung).
+  // Treffer in der Mitte (Code-Block). Eine Tabelle klappt nicht auf; ihre
+  // Treffer zeichnet das Widget selbst (4T-002342, SD-07 unten).
   test('4T-002217: Live — Treffer in einem Code-Block, der als Widget gezeichnet ist, steht nach dem Aufklappen in der Mitte', async () => {
     test.setTimeout(120000);
     const text = lageText(400, {
@@ -605,6 +605,118 @@ test.describe('SD-05: Kurzer Inhalt rollt beim Sprung nicht (4T-002217)', () => 
         await page.keyboard.press('Escape');
         await expect(page.locator(SEL.searchBar)).toBeHidden();
       }
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// 4T-002342 (Epic 3E-000365, Story 4S-001098): Treffer in den Zellen einer
+// Tabelle der Live-Ansicht. Die Tabelle steht dort als gezeichnetes Widget und
+// klappt bei Schreibmarke nicht zur Quelle auf; die Treffer-Dekoration des
+// Editors erreichte ihre Zellen deshalb nicht (Nachmessung vom 2026-10-22). Das
+// Widget zeichnet die Treffer jetzt selbst, mit den Klassen des Fließtexts.
+// Ränder: ein Treffer in der Kopfzeile und zwei Treffer in einer Zelle.
+// Rot-Probe am unveränderten Stand: rot (Kapitel «Lösung» des Tasks).
+function tabellenText() {
+  return [
+    '# Tabelle 4T-002342',
+    '',
+    `Absatz 1: hier steht ${LAGE_BEGRIFF}.`,
+    '',
+    `| Kopf ${LAGE_BEGRIFF} | Spalte B |`,
+    '| --- | --- |',
+    `| Gelee | ${LAGE_BEGRIFF} und ${LAGE_BEGRIFF} |`,
+    '| Birne | ohne |',
+    '',
+    `Absatz 2: wieder ${LAGE_BEGRIFF}.`,
+    '',
+  ].join('\n');
+}
+
+// Die Treffer-Elemente in der gezeichneten Tabelle der Live-Ansicht: je
+// Element Zelle, Kopfzeile, Reihenfolge in seiner Zelle und ob es der aktuelle
+// Treffer ist. Dazu, ob die Tabelle als Widget steht und ob ihre Quelle als
+// Editor-Zeile sichtbar ist.
+function tabellenTreffer(page) {
+  return page.evaluate((pane) => {
+    const p = document.querySelector(`${pane} .pane-source`);
+    const tabelle = p.querySelector('.cm-live-block table');
+    const treffer = tabelle
+      ? [...tabelle.querySelectorAll('.cm-search-match')].map((e) => {
+          const zelle = e.closest('th, td');
+          return {
+            text: e.textContent,
+            zelle: zelle ? zelle.textContent : null,
+            kopf: !!e.closest('thead'),
+            nr: zelle ? [...zelle.querySelectorAll('.cm-search-match')].indexOf(e) : -1,
+            aktuell: e.classList.contains('cm-search-match-current'),
+          };
+        })
+      : [];
+    return {
+      widget: !!tabelle,
+      quelleSichtbar: [...p.querySelectorAll('.cm-line')].some((l) =>
+        l.textContent.startsWith('| Kopf'),
+      ),
+      treffer,
+      aktuell: treffer.filter((t) => t.aktuell),
+    };
+  }, PANE);
+}
+
+test.describe('SD-07: Treffer in Tabellen-Zellen der Live-Ansicht (4T-002342)', () => {
+  test('4T-002342: Live — alle Treffer der Tabelle hervorgehoben, der aktuelle wandert hinein und hinaus, nach dem Schließen keiner', async () => {
+    test.setTimeout(120000);
+    const zelle = `${LAGE_BEGRIFF} und ${LAGE_BEGRIFF}`;
+    const kopf = `Kopf ${LAGE_BEGRIFF}`;
+    await lageFall(tabellenText(), async (page) => {
+      await lageAnsicht(page, 'live');
+      await lageSuche(page, 5);
+
+      // Nach dem Tippen: alle drei Treffer der Tabelle hervorgehoben (Kopfzeile
+      // und zwei in einer Zelle), keiner davon der aktuelle.
+      let stand = await tabellenTreffer(page);
+      expect(stand.widget, 'Die Tabelle steht nicht als Widget').toBe(true);
+      expect(stand.treffer.map((t) => [t.zelle, t.kopf, t.nr, t.text])).toEqual([
+        [kopf, true, 0, LAGE_BEGRIFF],
+        [zelle, false, 0, LAGE_BEGRIFF],
+        [zelle, false, 1, LAGE_BEGRIFF],
+      ]);
+      expect(stand.aktuell).toEqual([]);
+
+      // Vorwärts: Fließtext, Kopfzeile, erster und zweiter Treffer der Zelle,
+      // wieder Fließtext. Je Schritt höchstens ein aktueller Treffer in der
+      // Tabelle, und die Tabelle klappt nicht auf.
+      const schritte = [
+        ['Enter', '1 / 5', null],
+        ['Enter', '2 / 5', [kopf, 0]],
+        ['Enter', '3 / 5', [zelle, 0]],
+        ['Enter', '4 / 5', [zelle, 1]],
+        ['Enter', '5 / 5', null],
+        ['Shift+Enter', '4 / 5', [zelle, 1]],
+        ['Shift+Enter', '3 / 5', [zelle, 0]],
+        ['Shift+Enter', '2 / 5', [kopf, 0]],
+        ['Shift+Enter', '1 / 5', null],
+      ];
+      for (const [taste, zaehler, ziel] of schritte) {
+        await page.keyboard.press(taste);
+        await expect(page.locator(SEL.searchCount)).toHaveText(zaehler);
+        await expect
+          .poll(async () => (await tabellenTreffer(page)).aktuell.map((t) => [t.zelle, t.nr]), {
+            message: `${taste} -> ${zaehler}`,
+          })
+          .toEqual(ziel ? [ziel] : []);
+        stand = await tabellenTreffer(page);
+        expect(stand.treffer, `${taste} -> ${zaehler}: alle drei bleiben`).toHaveLength(3);
+        expect(stand.widget && !stand.quelleSichtbar, `${taste} -> ${zaehler}`).toBe(true);
+      }
+
+      // Schließen der Suche: keine Zelle trägt eine Hervorhebung.
+      await page.locator(SEL.searchInput).focus();
+      await page.keyboard.press('Escape');
+      await expect(page.locator(SEL.searchBar)).toBeHidden();
+      await expect.poll(async () => (await tabellenTreffer(page)).treffer).toEqual([]);
+      expect((await tabellenTreffer(page)).widget).toBe(true);
     });
   });
 });

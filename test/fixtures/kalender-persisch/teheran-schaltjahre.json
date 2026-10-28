@@ -1,0 +1,25 @@
+{
+  "quelle": "Schaltjahr-Tafel des Kalender-Zentrums der Universität Teheran, persische Jahre 1206 bis 1498; Angaben siehe QUELLE.md",
+  "abruf": "2026-10-22",
+  "erstesJahr": 1279,
+  "letztesJahr": 1479,
+  "schaltjahre": [
+    1280, 1284, 1288, 1292, 1296, 1300, 1304, 1309, 1313, 1317, 1321, 1325, 1329, 1333, 1337, 1342,
+    1346, 1350, 1354, 1358, 1362, 1366, 1370, 1375, 1379, 1383, 1387, 1391, 1395, 1399, 1403, 1408,
+    1412, 1416, 1420, 1424, 1428, 1432, 1436, 1441, 1445, 1449, 1453, 1457, 1461, 1465, 1469, 1474,
+    1478
+  ],
+  "fuenfjaehrig": [1309, 1342, 1375, 1408, 1441, 1474],
+  "anker": [
+    {
+      "gregorianisch": "1981-03-20",
+      "persisch": [1359, 12, 29],
+      "quelle": "Seite «Jahreswechsel vergangener Jahre», Jahr 1360"
+    },
+    {
+      "gregorianisch": "2024-03-20",
+      "persisch": [1403, 1, 1],
+      "quelle": "Seite «Jahreswechsel vergangener Jahre», Jahr 1403"
+    }
+  ]
+}

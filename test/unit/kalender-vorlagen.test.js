@@ -10,6 +10,7 @@ import fr from '../../src/i18n/fr.json';
 import es from '../../src/i18n/es.json';
 import it_ from '../../src/i18n/it.json';
 import { convertInBlock } from '../../src/shared/calendar/calendar-core.js';
+import { resolveYearlySource } from '../../src/shared/calendar/calendar-yearly.js';
 import { normalizeCalendarConfig } from '../../src/shared/calendar/calendar-config.js';
 import { createGregorianTemplate } from '../../src/shared/calendar/calendar-template.js';
 import {
@@ -53,11 +54,21 @@ describe('Menü-Liste der Vorlagen (4T-001997)', () => {
   it('AK1: nur gelieferte Vorlagen, aufsteigend nach ihrem Platz, gregorianisch zuoberst', () => {
     // 4T-001998 (Epic 3E-000307): die sechs Vorlagen im heutigen Modell;
     // 4T-002000: die japanische an Platz 12; 4T-002002: die tabellarische
-    // islamische an Platz 3.
+    // islamische an Platz 3. 4T-002005 (Epic 3E-000333): die hebräische an
+    // Platz 5 (Nummerierung des Epics; im Menü mit allen dreizehn Einträgen der
+    // sechste, weil Umm al-Qura an Platz 3 hinzutritt). 4T-002007: die persische
+    // an Platz 4 (im fertigen Menü der fünfte Eintrag). 4T-002006: die
+    // chinesische an Platz 6 (im fertigen Menü der siebte Eintrag). 4T-002008:
+    // Umm al-Qura an Platz 3 unmittelbar hinter der tabellarischen Lesart (U3,
+    // stabile Sortierung; gleiche Plätze sind aufsteigend sortiert).
     expect(CALENDAR_TEMPLATES.map((entry) => entry.id)).toEqual([
       'gregorian',
       'julian',
       'islamic-tabular',
+      'islamic-umalqura',
+      'persian',
+      'hebrew',
+      'chinese',
       'indian',
       'buddhist',
       'ethiopic',
@@ -65,7 +76,9 @@ describe('Menü-Liste der Vorlagen (4T-001997)', () => {
       'japanese',
       'minguo',
     ]);
-    expect(CALENDAR_TEMPLATES.map((entry) => entry.order)).toEqual([1, 2, 3, 8, 9, 10, 11, 12, 13]);
+    expect(CALENDAR_TEMPLATES.map((entry) => entry.order)).toEqual([
+      1, 2, 3, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13,
+    ]);
     const plaetze = CALENDAR_TEMPLATES.map((entry) => entry.order);
     expect(plaetze).toEqual([...plaetze].sort((a, b) => a - b));
     expect(CALENDAR_TEMPLATES[0].order).toBe(1);
@@ -183,7 +196,13 @@ describe('Namen der Vorlagen in fünf Sprachen (4T-001998)', () => {
         const def = entry.create(t);
         expect(def.name, ort).toBe(t(entry.nameKey));
         const monat = def.levels.find((lv) => lv.id === 'month');
-        const monate = monat.rel.table.length;
+        // 4T-002005: Bei einer Vorlage mit Jahres-Struktur (byYear) zählen die
+        // Namens-Stellen ihrer Quelle statt der Länge einer Tabelle.
+        const jahr = def.levels.find((lv) => lv.id === 'year');
+        const monate =
+          monat.rel.type === 'byYear'
+            ? resolveYearlySource(jahr.rel).namensStellen
+            : monat.rel.table.length;
         expect(monat.names, ort).toHaveLength(monate);
         expect(
           monat.names.every((n) => n.trim() !== ''),

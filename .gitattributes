@@ -8,3 +8,6 @@
 *.gif binary
 *.ico binary
 *.exe binary
+
+# 4T-002006: amtliche Portal-Dateien des chinesischen Kalenders byte-gleich (CRLF) halten
+test/fixtures/kalender-chinesisch/portal/*.csv -text

@@ -14,6 +14,7 @@ import {
 import { buildCalSysLeapRow, buildCalSysLeapRules } from './settings-calendar-leap.js';
 import {
   calSysBeyondNameAt,
+  calSysIsYearlyType,
   calSysNextId,
   calSysTakeOverNames,
 } from './settings-calendar-model.js';
@@ -23,6 +24,10 @@ import { renderActiveSection } from './settings-mount.js';
 export function buildCalSysLevelEditor(container, calDraft, level, levelIdx, calIdx, onChange) {
   const box = document.createElement('div');
   box.className = 'settings-calsys-level';
+  // 4T-002363 (Epic 3E-000333): Monat und Jahr einer Jahres-Struktur folgen
+  // ihrer Regel oder Tafel und sind schreibgeschützt; Name und Mehrzahl bleiben
+  // bearbeitbar. Keine Ebene wandert an ihre Stelle oder über sie hinweg.
+  const locked = (lv) => !!lv && calSysIsYearlyType(lv.relType);
   const head = document.createElement('div');
   head.className = 'settings-calsys-level-head';
   const title = document.createElement('span');
@@ -40,7 +45,11 @@ export function buildCalSysLevelEditor(container, calDraft, level, levelIdx, cal
     btn.textContent = label;
     btn.title = t(titleKey);
     const target = levelIdx + delta;
-    btn.disabled = target < 0 || target >= calDraft.levels.length;
+    btn.disabled =
+      target < 0 ||
+      target >= calDraft.levels.length ||
+      locked(level) ||
+      locked(calDraft.levels[target]);
     btn.addEventListener('click', () => {
       const tmp = calDraft.levels[levelIdx];
       calDraft.levels[levelIdx] = calDraft.levels[target];
@@ -59,6 +68,7 @@ export function buildCalSysLevelEditor(container, calDraft, level, levelIdx, cal
   removeBtn.id = `settings-calsys-level-${calIdx}-${levelIdx}-remove`;
   removeBtn.className = 'btn settings-calsys-level-remove';
   removeBtn.textContent = t('settings.calendar.levelRemove');
+  removeBtn.disabled = locked(level);
   removeBtn.addEventListener('click', () => {
     calDraft.levels.splice(levelIdx, 1);
     renderActiveSection();
@@ -116,6 +126,25 @@ export function buildCalSysLevelEditor(container, calDraft, level, levelIdx, cal
     ),
   );
   box.appendChild(grid);
+  if (locked(level)) {
+    // Bereich und Anfangswert tragen die Kennung des Monats und die Jahres-Zahl.
+    sectionInput.disabled = true;
+    const start = grid.querySelector(`#settings-calsys-level-${calIdx}-${levelIdx}-start`);
+    if (start) start.disabled = true;
+    const rel = document.createElement('p');
+    rel.className = 'settings-row-hint settings-calsys-level-yearly';
+    rel.id = `settings-calsys-level-${calIdx}-${levelIdx}-yearly`;
+    const source = level.yearlyRel || {};
+    rel.textContent =
+      level.relType === 'byYear'
+        ? t('settings.calendar.relByYear')
+        : t(
+            source.rule ? 'settings.calendar.relYearlyRule' : 'settings.calendar.relYearlyTable',
+          ).replace('{name}', String(source.rule || source.table || ''));
+    box.appendChild(rel);
+    container.appendChild(box);
+    return;
+  }
 
   if (levelIdx > 0) {
     const relRow = document.createElement('div');

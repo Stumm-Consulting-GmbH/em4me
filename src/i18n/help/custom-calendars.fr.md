@@ -67,12 +67,16 @@ Le menu déroulant **« Insérer un modèle … »** dans la vue détaillée d'u
 1. Calendrier grégorien
 2. Calendrier julien
 3. Calendrier hégirien (tabulaire)
-4. Calendrier indien
-5. Calendrier bouddhiste
-6. Calendrier éthiopien
-7. Calendrier copte
-8. Calendrier japonais
-9. Calendrier républicain chinois
+4. Calendrier hégirien (Umm al-Qura)
+5. Calendrier persan
+6. Calendrier hébraïque
+7. Calendrier chinois
+8. Calendrier indien
+9. Calendrier bouddhiste
+10. Calendrier éthiopien
+11. Calendrier copte
+12. Calendrier japonais
+13. Calendrier républicain chinois
 
 Le choix crée aussitôt la chronologie dans le bloc ouvert, entièrement remplie et sans autre saisie ; le menu revient ensuite à sa première entrée. La chronologie porte le nom du menu ; si ce nom est déjà pris dans la zone, elle reçoit un numéro ajouté, par exemple « Calendrier grégorien 2 ». Comme toute modification de cette section, elle est enregistrée avec **« Appliquer »**.
 
@@ -80,13 +84,33 @@ Chaque modèle apporte les niveaux de temps seconde, minute et heure, une semain
 
 ### Ce qu'est un modèle créé
 
-Un modèle créé est une chronologie ordinaire de la zone. Elle se modifie, se renomme, se complète et se supprime ensuite comme toute autre ; le modèle est le point de départ, pas un lien durable. Une mise à jour du programme n'atteint donc pas une chronologie déjà créée.
+Un modèle créé est une chronologie ordinaire de la zone. Elle se modifie, se renomme, se complète et se supprime ensuite comme toute autre ; le modèle est le point de départ, pas un lien durable. Une mise à jour du programme n'atteint donc pas une chronologie déjà créée. Font exception le mois et l'année des quatre modèles à structure variable d'une année à l'autre (section suivante) : la chronologie y renvoie à la règle ou à la table fournie au lieu de la recopier, et une mise à jour du programme avec une table mise à jour atteint aussi les chronologies déjà créées.
 
 Les autres fonctions de date de l'application restent grégoriennes : les marqueurs de tâche, les journaux, les comparaisons de requête et les types de tableau de données ne connaissent pas de chronologies propres.
+
+### Modèles à structure variable d'une année à l'autre
+
+Dans les calendriers hébraïque, persan et chinois et dans le calendrier hégirien selon Umm al-Qura, chaque année se compose différemment : le nombre de mois, la longueur de chaque mois et le début de l'année sont déterminés année par année. Le calendrier hébraïque suit sa règle de calcul fixe et vaut sans limite dans le temps. Les trois autres suivent une table fournie et vérifiée et valent pour une période fixe :
+
+| Modèle | Premier jour | Dernier jour |
+|---|---|---|
+| Calendrier hégirien (Umm al-Qura) | 30 avril 1900 (1er mouharram 1318 AH) | 16 novembre 2077 (30 dhou al-hijja 1500 AH) |
+| Calendrier persan | 21 mars 1900 (1er farvardin 1279 A. P.) | 20 mars 2101 (29 esfand 1479 A. P.) |
+| Calendrier chinois | 19 février 1901 (premier jour de l'année 1901) | 28 janvier 2101 (dernier jour de l'année 2100) |
+
+Avant et après, le programme indique « inconnu » au lieu d'afficher une date approchée : dans le sélecteur, pour une valeur dans le document et dans la boîte de dialogue « Convertir une date ». Les tables font partie du programme ; aucune connexion Internet n'est nécessaire pour elles. Elles sont mises à jour avant la fin de leur période et après une correction par l'autorité compétente.
+
+- **Les mois intercalaires** sont des mois à part entière. Dans une valeur, chaque mois garde son numéro chaque année ; un mois intercalaire porte le numéro du mois qu'il suit, complété d'un `L`. Adar I de l'année hébraïque 5784 figure ainsi dans le document sous la forme `5784-05L-01`, adar II sous la forme `5784-06-01`, et le mois intercalaire de l'année chinoise 2023 sous la forme `2023-02L-01`. Une valeur enregistrée désigne donc le même mois chaque année.
+- **Dans les paramètres**, le mois et l'année de ces chronologies sont en lecture seule ; les noms, les semaines et les ères restent modifiables. Elles ne peuvent pas servir de référence à un calendrier dérivé (section « Calendriers dérivés »).
+- **Le jour** commence à minuit, comme pour tous les modèles ; le programme ne reproduit pas le début du jour au coucher du soleil des calendriers hébraïque et hégirien.
 
 ### Lectures et limites
 
 - **Calendrier hégirien (tabulaire)** — reproduit la lecture tabulaire : douze mois alternant 30 et 29 jours, le douzième mois (dhou al-hijja) compte 30 jours dans une année bissextile ; les années bissextiles sont les années 2, 5, 7, 10, 13, 16, 18, 21, 24, 26 et 29 de chaque cycle de 30 ans, comptées à partir de l'époque civile. Ce calcul vaut de la même façon pour chaque année. La date vécue dans la pratique religieuse suit en revanche l'observation du croissant de lune et peut s'en écarter d'un jour, rarement de deux. Les jours commencent à minuit, non au coucher du soleil.
+- **Calendrier hégirien (Umm al-Qura)** — le calendrier officiel de l'Arabie saoudite à des fins administratives. Les mois commencent selon les données de l'autorité saoudienne KACST (King Abdulaziz City for Science and Technology), et non selon une règle de calcul fixe ; chaque mois compte 29 ou 30 jours, l'année 354 ou 355. Les noms des mois et le décompte des années « AH » sont ceux de la lecture tabulaire, qui calcule selon une suite fixe et peut s'écarter du calendrier officiel d'un ou deux jours. La table a été vérifiée mois par mois sur l'édition officielle de l'autorité ; elle s'arrête à l'année 1500 AH, car l'édition officielle ne va pas plus loin. Les dates antérieures à 1423 AH (avant le 15 mars 2002) sont le calcul rétrospectif officiel actuel ; le calendrier alors en vigueur en Arabie saoudite suivait d'autres règles et pouvait s'en écarter d'un jour.
+- **Calendrier persan** — la lecture officielle iranienne : l'année commence le jour de l'équinoxe de printemps si celui-ci a lieu avant midi, heure de Téhéran, sinon le lendemain. Les six premiers mois comptent 31 jours, les cinq suivants 30, le dernier (esfand) 29, ou 30 dans une année bissextile ; les années se comptent « A. P. ». La table a été vérifiée sur la table des années bissextiles du centre du calendrier de l'université de Téhéran.
+- **Calendrier hébraïque** — calcule selon la règle fixe du calendrier, même pour des années très lointaines. Sept années sur dix-neuf reçoivent adar I comme mois supplémentaire, et adar s'appelle alors adar II. Les années se comptent « A. M. » ; avant l'an 1, l'époque « avant A. M. » compte à rebours. Du 10 novembre 2045 au 29 novembre 2046, le programme suit la règle de calcul ; certains autres programmes affichent pour ces jours une date décalée d'un jour.
+- **Calendrier chinois** — le calendrier luni-solaire traditionnel. Le numéro de l'année est l'année grégorienne au cours de laquelle commence l'année chinoise : `2025-01-01` est le 29 janvier 2025, et l'année 2026 se termine le 5 février 2027. Le modèle n'affiche pas le nom de l'année dans le cycle de 60 ans. Les mois s'appellent « Mois 1 » à « Mois 12 », un mois intercalaire « Mois intercalaire » suivi du numéro du mois qu'il suit, affiché avec les noms par exemple sous la forme `2023-Mois intercalaire 2-01` ; comme pour tout modèle, les noms sont modifiables. La table est un calcul astronomique des nouvelles lunes et des termes solaires à l'heure de Pékin, vérifié sur les fichiers de calendrier officiels du gouvernement de Hong Kong pour 2023 à 2028 et, sur toute la période, sur un second calcul indépendant. Le 9e mois de 2057 commence le 28 septembre, comme dans la table du Hong Kong Observatory ; l'autorité elle-même signale ce jour comme incertain, car la nouvelle lune tombe quelques secondes seulement avant minuit. D'autres programmes peuvent s'en écarter certains jours, par exemple pour le Nouvel An 2027, qui tombe officiellement le 6 février.
 - **Calendrier bouddhiste** — le comptage bouddhique des années tel qu'il s'applique en Thaïlande : mois et années bissextiles grégoriens, avec un millésime supérieur de 543 au millésime grégorien. Jusqu'en 1940, l'année thaïlandaise commençait le 1er avril ; le modèle compte partout avec un début d'année au 1er janvier et affiche donc avant 1941, de janvier à mars, une année supérieure d'une unité à l'usage de l'époque, et la même année à partir d'avril.
 - **Calendrier indien** et **Calendrier républicain chinois** — tous deux comptent aussi à rebours avant leur introduction (calendrier indien 1957, calendrier républicain chinois 1912). Pour cette période, les sources ne les attestent pas comme valides ; avant 1912, les sources donnent souvent le mois et le jour selon le calendrier lunaire.
 - **Calendrier japonais** — mois et années bissextiles grégoriens avec les ères Meiji (à partir du 23 octobre 1868), Taishō (à partir du 30 juillet 1912), Shōwa (à partir du 25 décembre 1926), Heisei (à partir du 8 janvier 1989) et Reiwa (à partir du 1er mai 2019) ; l'année 1 d'une ère va de son début au 31 décembre. Auparavant, l'époque « avant Meiji » compte à rebours ; les ères plus anciennes manquent, car elles reposent sur le calendrier lunaire. Avant 1873, le Japon utilisait le calendrier lunaire : les dates antérieures à 1873 sont donc des dates grégoriennes calculées à rebours et s'écartent de l'usage historique pour le mois et le jour, parfois aussi pour l'année. Le modèle écrit toujours l'ère (case « Toujours écrire l'abréviation de l'époque » cochée) : le 30 septembre 2026 figure dans le document sous la forme `8-09-30 Reiwa`.
@@ -118,6 +142,8 @@ Si le calendrier nommé n'est pas défini dans la zone ou si la valeur est inval
 
 @{Calendrier d'exemple: 500-2-09 ZZ}
 
+Si une valeur se situe hors de la période de validité de sa chronologie (section « Modèles à structure variable d'une année à l'autre »), le texte source reste lui aussi inchangé. La valeur ne compte alors pas comme invalide : son infobulle indique « Nom : inconnu ».
+
 Dans les blocs de code et les codes en ligne, la syntaxe reste intacte : `@{Calendrier d'exemple: 500-2-09 ZZ}`.
 
 ## Insérer et modifier
@@ -133,6 +159,7 @@ Le sélecteur des calendriers personnalisés fonctionne de façon analogue au s�
 - La **grille** naît de la structure des niveaux : avec un cycle hebdomadaire défini, sous forme de grille en colonnes (longueur du cycle = nombre de colonnes, noms de position en en-tête, colonne de numéros en cas de règle de numérotation), sans cycle, sous forme de liste continue des jours de l'unité.
 - **Navigation :** les boutons fléchés extérieurs décalent la plus grande unité (l'année), les intérieurs l'unité de la grille (le mois) ; les touches fléchées naviguent jour par jour, Entrée valide, Échap annule. **« Vers l'ancre »** saute à l'instant de référence du calendrier.
 - **Les niveaux de temps** apparaissent comme des segments réglables individuellement avec saisie par flèches et par chiffres — les valeurs invalides ne peuvent structurellement pas être saisies.
+- **Période de validité :** pour une chronologie à table, le défilement s'arrête au bord de sa période. Ouvert sur une valeur située en dehors, le sélecteur se place sur son premier jour connu et indique « Nom : inconnu ». Un mois intercalaire figure dans l'en-tête avec son nom et son code, par exemple « Mois intercalaire 2 (02L) ».
 
 ### Affichage de la conversion
 
@@ -150,6 +177,7 @@ Là où il n'y a pas de résultat, une indication remplace la valeur :
 
 - Une date qui n'existe pas dans le calendrier choisi est signalée par « Ce n'est pas une date valide de ce calendrier. » ; la liste disparaît alors.
 - Si un calendrier ne peut pas représenter l'instant, sa ligne indique « Nom : hors de la plage représentable ».
+- Si l'instant se situe hors de la période de validité d'une chronologie (section « Modèles à structure variable d'une année à l'autre »), sa ligne indique « Nom : inconnu » ; les autres lignes affichent leur valeur. Si la date saisie elle-même se situe en dehors, la boîte de dialogue signale « Nom : inconnu ».
 - Si le bloc ne contient qu'un seul calendrier, la boîte de dialogue signale qu'il en manque un second.
 
 La conversion se fait uniquement au sein d'un bloc ; la ligne d'indication de la boîte de dialogue le rappelle. Les calendriers à convertir l'un dans l'autre doivent donc se trouver dans le même bloc. Une chronologie ne peut pas être déplacée vers un autre bloc : on la crée à nouveau dans le bloc cible ou on y insère le modèle. Le résultat vaut ce que valent l'ancre et l'échelle des calendriers concernés : les modèles fournis se situent d'eux-mêmes sur le même axe des jours ; pour les calendriers définis soi-même, le groupe « Axe du bloc (conversion) » des paramètres fixe leur position.
@@ -162,7 +190,7 @@ Un calendrier dérivé compte à partir d’un point zéro choisi : combien de t
 
 Dans la section de paramètres « Systèmes de calendrier », le bouton **« Ajouter un calendrier dérivé »** ouvre un formulaire court :
 
-- **Calendrier de référence** — un calendrier du même bloc ou le calendrier standard fourni. Un décompte vers une date ne demande donc aucun calendrier propre.
+- **Calendrier de référence** — un calendrier du même bloc ou le calendrier standard fourni. Un décompte vers une date ne demande donc aucun calendrier propre. Les chronologies à structure variable d'une année à l'autre ne peuvent pas servir de référence, car leur décompte ne peut pas être décalé ; un décompte à partir d'un jour passe par la chronologie grégorienne du même bloc.
 - **Point zéro (jour 1)** — la date dans la notation de la référence, au choix via le sélecteur ; il tombe toujours sur un jour entier.
 - **Niveau de détail** — la finesse de la durée, de la plus petite unité seule jusqu’aux années.
 - **Abréviations de direction** — deux mots courts pour le temps avant et après le point zéro.

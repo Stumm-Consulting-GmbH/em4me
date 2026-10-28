@@ -21,9 +21,11 @@
 //
 // Import-Richtung im Ordner (seit 4T-001998): Dieses Modul lädt die
 // gregorianische Fabrik (calendar-template.js), die Bausteine
-// (calendar-template-tools.js) und die Fabriken der weiteren Vorlagen
-// (calendar-template-systems.js); die Bausteine laden den Kern. Weder der Kern
-// noch die Fabrik noch calendar-config.js laden eines der drei Vorlagen-Module.
+// (calendar-template-tools.js), die Fabriken der weiteren Vorlagen
+// (calendar-template-systems.js) und, seit 4T-002005, die Fabriken der Vorlagen
+// mit Jahres-Struktur (calendar-template-yearly.js); die Bausteine laden den
+// Kern. Weder der Kern noch die Fabrik noch calendar-config.js laden eines der
+// vier Vorlagen-Module.
 // Der Ordner bleibt zyklenfrei, und compileSafe bleibt mit seinem
 // WeakMap-Cache eine einzige Instanz im Kern.
 'use strict';
@@ -35,6 +37,7 @@
 const { createGregorianTemplate } = require('./calendar-template.js');
 const { templateBlockAnchor, templateTimeLevels } = require('./calendar-template-tools.js');
 const { SYSTEM_TEMPLATES } = require('./calendar-template-systems.js');
+const { YEARLY_TEMPLATES } = require('./calendar-template-yearly.js');
 
 // --- Die Vorlagen ----------------------------------------------------------------------
 
@@ -105,9 +108,15 @@ const VORLAGEN = [
   // 4T-001998 (Epic 3E-000307): Julianisch, Indischer Nationalkalender,
   // Buddhistische Jahreszählung, Äthiopisch, Koptisch, Minguo.
   ...SYSTEM_TEMPLATES,
+  // 4T-002005 (Epic 3E-000333): Vorlagen mit Jahres-Struktur, zuerst Hebräisch.
+  ...YEARLY_TEMPLATES,
 ];
 
 // Menü-Reihenfolge: aufsteigend nach dem Platz auf der festgelegten Liste.
+// Gleiche Plätze behalten die Folge in VORLAGEN (Array.prototype.sort ist seit
+// ECMAScript 2019 stabil): Die tabellarische islamische Lesart (SYSTEM_TEMPLATES)
+// steht damit vor Umm al-Qura (YEARLY_TEMPLATES), beide an Platz 3 (4T-002008,
+// U3); festgehalten im Fall AK1 von test/unit/kalender-vorlagen.test.js.
 const CALENDAR_TEMPLATES = Object.freeze(
   VORLAGEN.slice()
     .sort((a, b) => a.order - b.order)

@@ -409,49 +409,6 @@
 .settings-journals-schema-warning {
   color: var(--error, #c0392b);
 }
-/* 4T-000546 (Epic 3E-000097): Kalender-Wert-Badges — Render-Pane
-   (.calendar-value), Live-Badge (.cm-live-calendar-badge) und die
-   Klick-Markierung des Quelltext-Modus (.cm-live-calendar-value).
-   Unbekannte Kalender und ungueltige Werte sind sichtbar markiert,
-   der Roh-Text bleibt erhalten. */
-.calendar-value,
-.cm-live-calendar-badge {
-  display: inline-block;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 0 0.35em;
-  background: var(--hover);
-  font-size: 0.92em;
-  line-height: 1.5;
-}
-.cm-live-calendar-badge {
-  cursor: pointer;
-}
-.calendar-value-unknown,
-.calendar-value-invalid {
-  border-style: dashed;
-  border-color: var(--error, #c0392b);
-  color: var(--error, #c0392b);
-  background: transparent;
-}
-.cm-live-calendar-value {
-  text-decoration: underline dotted;
-  text-underline-offset: 2px;
-  cursor: pointer;
-}
-
-/* 4T-000943 (Epic 3E-000197): wie bei den ISO-Datums-Werten (E2) — in der Zeile
-   mit dem Cursor bleibt der Wert dekoriert, zeigt seine Klick-Optik aber
-   erst bei gedrueckter Strg-/Cmd-Taste (Klasse aus modifier-zustand.js). */
-.cm-live-calendar-value-mod {
-  text-decoration: none;
-  cursor: text;
-}
-.cm-mod-gedrueckt .cm-live-calendar-value-mod {
-  text-decoration: underline dotted;
-  text-underline-offset: 2px;
-  cursor: pointer;
-}
 /* 4T-000595/4T-000596 (Epic 3E-000111): Inline-Berechnungen — Ergebnis-Span im
    Render-Pane (.inline-calc), Live-Widget (.cm-inline-calc) und die dezente
    Konstrukt-Einfaerbung des Quelltext-Modus (.cm-inline-calc-marker).
@@ -474,124 +431,20 @@
   background: transparent;
   border: 1px dashed var(--error, #c0392b);
 }
-/* 4T-002095: halbdurchsichtig, damit die Markierung (Ebene unter dem Text)
-   über dem Ausdruck sichtbar bleibt; Wächter test/unit/editor-markierung-deckend. */
+/* 4T-002344 (vorher 4T-002095): CodeMirror zeichnet die Markierung als Ebene unter dem
+   Text (gemessen z-index -2); jede Fläche am Span schwächte sie. Die Fläche liegt deshalb
+   im Pseudo-Element darunter (Stapel-Kontext .cm-scroller); Wächter editor-markierung-deckend, IB-05. */
 .cm-inline-calc-marker {
+  position: relative;
   color: var(--fg-muted);
-  background: color-mix(in srgb, var(--hover) 70%, transparent);
+}
+.cm-inline-calc-marker::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -10;
+  background: var(--hover);
   border-radius: 3px;
-}
-/* 4T-000545 (Epic 3E-000097): Picker fuer benutzerdefinierte Kalender — Kopf-
-   Auswahl (Block/Kalender/Epoche), generisches Gitter mit dynamischer
-   Spalten-Zahl, Zeit-Segmente und Umrechnungs-Zeilen. Basis-Look kommt aus
-   den date-picker-/calendar-Klassen. */
-.calendar-picker-popup {
-  max-width: 420px;
-}
-.calendar-picker-head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-.calendar-picker-headcell {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  min-width: 90px;
-}
-.calendar-picker-headcell > span {
-  font-size: 11px;
-  color: var(--fg-muted);
-  white-space: nowrap;
-}
-.calendar-picker-select {
-  width: 100%;
-}
-.calendar-picker-nav {
-  margin: 2px 0 4px;
-}
-.calendar-picker-grid.calendar-picker-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-}
-.calendar-picker-list .calendar-picker-day {
-  min-width: 28px;
-}
-.calendar-picker-day.selected {
-  background: var(--accent);
-  color: var(--accent-fg, #fff);
-}
-.calendar-picker-time {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin: 6px 0;
-}
-.calendar-picker-time-label {
-  font-size: 11px;
-  color: var(--fg-muted);
-  margin-right: 4px;
-}
-.calendar-picker-conv-head {
-  font-size: 11px;
-  color: var(--fg-muted);
-  margin: 8px 0 2px;
-}
-.calendar-picker-conv {
-  display: block;
-  width: 100%;
-  text-align: left;
-  margin: 0 0 2px;
-}
-/* 4T-001874 (Epic 3E-000323): Dialog «Datum umrechnen». Rahmen, Zeilen und
-   Knöpfe kommen von den festen Dialogen und der Entsprechungs-Liste der
-   Eingabe-Hilfe; hier steht allein die Zeile ohne Ergebnis, die kein Knopf ist. */
-.calendar-convert-row-text {
-  margin: 0 0 2px;
-  padding: 4px 8px;
-  color: var(--fg-muted);
-}
-/* Der Dialog bleibt auch im niedrigen Fenster ganz erreichbar. */
-.calendar-convert-content {
-  max-height: calc(100vh - 32px);
-  overflow-y: auto;
-}
-/* Die Meldung «kein gültiges Datum» ist ein Fehler, kein Hinweis. */
-.calendar-convert-content .name-input-error {
-  color: var(--linter-error, #d13438);
-}
-.calendar-convert-content input[aria-invalid='true'] {
-  border-color: var(--linter-error, #d13438);
-}
-.calendar-convert-hint {
-  margin: 12px 0 0;
-  font-size: 11px;
-  color: var(--fg-muted);
-}
-/* 4T-002097: Eine Zeile mit Ergebnis trägt rechts neben «Name: Wert» die Tasten
-   «Kopieren» und «Einfügen». Der Wert-Knopf füllt die Breite und bricht bei
-   langen Werten um, statt den Dialog zu verbreitern; die Tasten bleiben schmal. */
-.calendar-convert-item {
-  display: flex;
-  align-items: stretch;
-  gap: 4px;
-  margin: 0 0 2px;
-}
-.calendar-convert-item .calendar-convert-entry {
-  flex: 1 1 auto;
-  width: auto;
-  min-width: 0;
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-.calendar-convert-action {
-  flex: 0 0 auto;
-  padding: 3px 8px;
-  font-size: 12px;
-  white-space: nowrap;
 }
 /* 4T-000544 (Epic 3E-000097): Einstellungs-Bereich Kalender-Systeme — Block-
    Zeilen (Muster Journal-Regale), Kalender-Editoren mit Ebenen-/Epochen-/

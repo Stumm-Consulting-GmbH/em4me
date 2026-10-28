@@ -37,17 +37,21 @@ To write a value of your own, choose **Insert calendar date** from the command p
 
 ## More calendars from the templates
 
-The calendars are kept with the area, under **File → Settings… → Current area → Calendar systems**. Open the block `Demo calendars` with **Open**, pick a calendar from the menu **Insert template …** and save with **Apply** or **OK**. Nine calendars are bundled, in the order of the menu:
+The calendars are kept with the area, under **File → Settings… → Current area → Calendar systems**. Open the block `Demo calendars` with **Open**, pick a calendar from the menu **Insert template …** and save with **Apply** or **OK**. Thirteen calendars are bundled, in the order of the menu:
 
 1. Gregorian calendar
 2. Julian calendar
 3. Hijri calendar (tabular)
-4. Indian National Calendar
-5. Buddhist calendar
-6. Ethiopic calendar
-7. Coptic calendar
-8. Japanese calendar
-9. Minguo calendar
+4. Hijri calendar (Umm al-Qura)
+5. Persian calendar
+6. Hebrew calendar
+7. Chinese calendar
+8. Indian National Calendar
+9. Buddhist calendar
+10. Ethiopic calendar
+11. Coptic calendar
+12. Japanese calendar
+13. Minguo calendar
 
 Each one arrives fully filled in under its own name — the name a value then starts with — and converts into the other calendars of the same block straight away. What comes from a template is an ordinary definition of the area: rename it, change it, or build one of your own with **Add calendar**.
 

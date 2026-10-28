@@ -575,3 +575,61 @@ describe('renumberSiblings (4T-001862, 4T-001977)', () => {
     expect(renumberSiblings(['- a', '- b'], 0, 1)).toEqual([]);
   });
 });
+
+// 4T-002343 (Epic 3E-000365, Story 4S-001099): Ein eingerückter Code-Block
+// unter einem Listenpunkt bleibt ein Ganzes, auch mit Leerzeilen darin. Der
+// Struktur-Kern liest die Zaun-Zustände selbst (src/shared/markdown/
+// list-fence.js), ohne Code-Maske des Aufrufers: Eine Leerzeile im Block ist
+// keine Grenze der Liste, eine Zeile darin, die wie ein Listenpunkt aussieht,
+// ist keiner. Eine Leerzeile außerhalb eines Blocks trennt weiter (AK4).
+describe('Code-Block mit Leerzeile im Listenpunkt (4T-002343)', () => {
+  const block = (einzug, zeilen) => zeilen.map((z) => (z ? einzug + z : z));
+
+  for (const zaun of ['```', '~~~']) {
+    it(`Teilbaum und Block reichen bis zur schließenden Zaun-Zeile, Zaun «${zaun}»`, () => {
+      const lines = ['- A', '- B', ...block('  ', [zaun, 'eins', '', 'zwei', zaun]), '- C'];
+      expect(scanListBlock(lines, 1)).toEqual({ from: 0, to: 7 });
+      expect(subtreeRange(lines, 1)).toEqual({ from: 1, to: 6 });
+    });
+
+    it(`Ein- und Ausrücken nehmen den ganzen Block mit, Zaun «${zaun}»`, () => {
+      const inhalt = [zaun, 'eins', '', '', 'zwei', zaun, 'danach'];
+      const lines = ['- A', '- B', ...block('  ', inhalt), '- C'];
+      const tief = ['- A', '  - B', ...block('    ', inhalt), '- C'];
+      expect(indentSubtree(lines, 1).lines).toEqual(tief);
+      expect(outdentSubtree(tief, 1).lines).toEqual(lines);
+    });
+  }
+
+  it('eine Zeile im Block, die wie ein Listenpunkt aussieht, ist keiner', () => {
+    const inhalt = ['```', '5. kein Punkt', '', '9. auch keiner', '```'];
+    const lines = ['1. A', '2. B', ...block('   ', inhalt), '3. C'];
+    expect(indentSubtree(lines, 1).lines).toEqual([
+      '1. A',
+      '   1. B',
+      ...block('      ', inhalt),
+      '2. C',
+    ]);
+  });
+
+  it('die Neu-Nummerierung zählt über die Leerzeile im Block hinweg', () => {
+    const lines = ['1. A', '2. B', ...block('   ', ['```', 'eins', '', 'zwei', '```']), '5. C'];
+    expect(renumberOrdered(lines, 0, 7)[7]).toBe('3. C');
+  });
+
+  it('eine Leerzeile außerhalb eines Blocks trennt weiter (Schutz-Fall, AK4)', () => {
+    const lines = ['1. A', '2. B', ...block('   ', ['```', 'x', '```']), '', '5. C'];
+    expect(renumberOrdered(lines, 0, 6)[6]).toBe('5. C');
+    expect(scanListBlock(lines, 1)).toEqual({ from: 0, to: 4 });
+  });
+
+  it('Block ohne schließende Zaun-Zeile: die Leerzeile trennt wie bisher (Schutz-Fall)', () => {
+    const lines = ['- A', '- B', ...block('  ', ['```', 'eins', '', 'zwei']), '- C'];
+    expect(subtreeRange(lines, 1)).toEqual({ from: 1, to: 3 });
+  });
+
+  it('Zaun ohne Einrückung gehört zu keinem Punkt: die Leerzeile darin trennt wie bisher (Schutz-Fall)', () => {
+    const lines = ['1. A', '```', 'x', '', 'y', '```', '5. B'];
+    expect(renumberOrdered(lines, 0, 6)[6]).toBe('5. B');
+  });
+});

@@ -33,6 +33,9 @@ const {
   pluralField,
 } = require('./calendar-core.js');
 const { createGregorianTemplate } = require('./calendar-template.js');
+// 4T-002363 (Epic 3E-000333): Startpunkt, Zeitalter-Grenzen und Wochen-Anker
+// einer Zeitrechnung mit Jahres-Struktur.
+const yearlyApi = require('./calendar-yearly.js');
 
 // --- Eingebaute Standard-Zeitrechnung und Bezugs-Aufloesung ---------------------------
 // Reservierte Kennung des Bezugs auf die eingebaute Standard-Zeitrechnung.
@@ -110,7 +113,9 @@ function normalizeEpochs(cal, c, raw) {
         if (!epoch0) epoch0 = { name, abbr, start: null };
         continue;
       }
-      const start = normalizeDateSegs(cal, c, entry.start);
+      // 4T-002363 (T8): bei einer Tafel auch auf einem Jahresbeginn außerhalb.
+      const start =
+        normalizeDateSegs(cal, c, entry.start) || yearlyApi.yearlyOutsideYearStart(c, entry.start);
       if (!start) continue;
       candidates.push({
         epoch: { name, abbr, start },
@@ -145,7 +150,9 @@ function normalizeCycles(cal, c, raw) {
     if (id === '' || seen.has(id)) continue;
     const ofIdx = c.levels.findIndex((lv) => lv.id === cleanString(entry.of));
     if (ofIdx < 0 || ofIdx >= c.iIrrFirst || !isPosInt(entry.length)) continue;
-    let anchor = { tuple: zeroTuple(c).slice(0, c.dateCount), position: 0 };
+    // 4T-002363: Vorgabe-Anker bei Jahres-Struktur im Zeitraum (Startpunkt, T9).
+    const vorgabe = yearlyApi.yearlyStartSegs(c) || zeroTuple(c).slice(0, c.dateCount);
+    let anchor = { tuple: vorgabe, position: 0 };
     if (entry.anchor != null) {
       if (!entry.anchor || typeof entry.anchor !== 'object') continue;
       const tuple = normalizeDateSegs(cal, c, entry.anchor.tuple);
@@ -230,7 +237,10 @@ function normalizeCalendar(value) {
   };
   const c = compileSafe(cal);
   if (value.blockAnchor == null) {
-    cal.blockAnchor = zeroTuple(c);
+    // 4T-002363 (T6): Eine Zeitrechnung mit Jahres-Struktur liegt ohne
+    // Anker-Datum auf der Tages-Achse; das Feld entfällt (Rundlauf).
+    if (c.yearly) delete cal.blockAnchor;
+    else cal.blockAnchor = zeroTuple(c);
   } else {
     if (!Array.isArray(value.blockAnchor) || !validateTuple(cal, value.blockAnchor).ok) return null;
     cal.blockAnchor = value.blockAnchor.slice();
@@ -325,7 +335,9 @@ function normalizeCalendarConfig(value) {
 // liegt also immer auf einer vollen Tages-Grenze.
 function deriveCalendar(base, raw) {
   const c = compileSafe(base);
-  if (!c || !raw || typeof raw !== 'object') return null;
+  // 4T-002363 (B4): Eine Zeitrechnung mit Jahres-Struktur ist kein Bezug einer
+  // Ableitung; ihre Monatsfolge wechselt je Jahr und lässt sich nicht drehen.
+  if (!c || c.yearly || !raw || typeof raw !== 'object') return null;
   const id = cleanString(raw.id);
   if (id === '') return null;
   const zero = normalizeDateSegs(base, c, raw.zero);
@@ -471,6 +483,35 @@ function deriveCalendar(base, raw) {
   return draft;
 }
 
+// 4T-002363 (Epic 3E-000333): Kern-Auskunft «Startpunkt der Zeitrechnung» —
+// volles Tupel, an dem Eingabe-Hilfe, Umrechnungs-Dialog und Einstellungen
+// beginnen: das Anker-Datum, sonst (Jahres-Struktur ohne Anker-Datum, T9) der
+// erste Tag des Zeitraums einer Tafel beziehungsweise der Tag am Ursprung der
+// eigenen Achse bei einer Regel, Zeit in Minimal-Stellung. Für jede Zeitrechnung
+// ohne Jahres-Struktur ist es das Anker-Datum, also derselbe Startpunkt wie
+// bisher. null bei defekter Definition.
+function calendarStartPoint(cal) {
+  const c = compileSafe(cal);
+  if (!c) return null;
+  if (Array.isArray(cal.blockAnchor)) return cal.blockAnchor.slice();
+  const segs = yearlyApi.yearlyStartSegs(c);
+  return segs ? segs.concat(timeStartSegs(c)) : null;
+}
+
+// 4T-002363 (Schritt 8): Beschriftung des Monats eines gültigen Tupels einer
+// Zeitrechnung mit Jahres-Struktur für die Eingabe-Hilfe — der Name an der
+// Namens-Stelle, beim Schaltmonat mit seiner Kennung nach B1 («Adar I (05L)»),
+// ohne Namen die Kennung. null ohne Jahres-Struktur und für ein ungültiges oder
+// nicht bekanntes Tupel; die Eingabe-Hilfe beschriftet dann wie bisher.
+function calendarMonthLabel(cal, tuple) {
+  const c = compileSafe(cal);
+  if (!c || !c.yearly || !validateTuple(cal, tuple).ok) return null;
+  const code = yearlyApi.yearlyMonthPart(c, c.yearly.iMonth, tuple, false);
+  const name = yearlyApi.yearlyMonthPart(c, c.yearly.iMonth, tuple, true);
+  if (name === code || !code.endsWith('L')) return name;
+  return `${name} (${code})`;
+}
+
 // Persistenz-Form einer Konfiguration: wie die normalisierte, aber jede
 // abgeleitete Zeitrechnung behält ihre KURZE Roh-Form (Bezug und Nullpunkt).
 // Ohne das würde die aufgelöste Abschrift abgelegt, und eine spätere
@@ -502,4 +543,8 @@ module.exports = {
   standardCalendar,
   baseCalendarOf,
   STANDARD_CALENDAR_ID,
+  // 4T-002363: Kern-Auskunft «Startpunkt der Zeitrechnung».
+  calendarStartPoint,
+  // Schritt 8: Monats-Beschriftung der Eingabe-Hilfe nach B1.
+  calendarMonthLabel,
 };

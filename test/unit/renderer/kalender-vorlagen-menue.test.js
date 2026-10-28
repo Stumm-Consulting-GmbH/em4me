@@ -68,6 +68,15 @@ describe('Aufklapp-Menü der Vorlagen (4T-001997)', () => {
       ['julian', 'Julianischer Kalender'],
       // 4T-002002 (Epic 3E-000307): die tabellarische islamische an Platz 3.
       ['islamic-tabular', 'Hidschri-Kalender (tabellarisch)'],
+      // 4T-002008 (Epic 3E-000333): Umm al-Qura unmittelbar hinter der
+      // tabellarischen Lesart, beide an Platz 3.
+      ['islamic-umalqura', 'Hidschri-Kalender (Umm al-Qura)'],
+      // 4T-002007 (Epic 3E-000333): die persische an Platz 4.
+      ['persian', 'Persischer Kalender'],
+      // 4T-002005 (Epic 3E-000333): die hebräische an Platz 5.
+      ['hebrew', 'Hebräischer Kalender'],
+      // 4T-002006 (Epic 3E-000333): die chinesische an Platz 6.
+      ['chinese', 'Chinesischer Kalender'],
       ['indian', 'Indischer Nationalkalender'],
       ['buddhist', 'Buddhistischer Kalender'],
       ['ethiopic', 'Äthiopischer Kalender'],
@@ -155,6 +164,100 @@ describe('Aufklapp-Menü der Vorlagen (4T-001997)', () => {
     expect(kalender.epochs).toHaveLength(6);
     expect(kalender.cycles.map((c) => c.id)).toEqual(['week']);
     expect(kalender.levels.find((lv) => lv.id === 'month').table).toHaveLength(12);
+    expect(validateCalendarSection(draft)).toBeNull();
+  });
+
+  // 4T-002005 (Epic 3E-000333): Die hebräische Vorlage legt über das Menü ihre
+  // Definition mit Jahres-Struktur an: Monat und Jahr tragen den Verweis auf die
+  // Regel hebrew wörtlich, kein Anker; zweimal angelegt zwei Namen.
+  it('AK2 (4T-002005): die hebräische Vorlage legt über das Menü ihre Definition an, zweimal mit zwei Namen', () => {
+    const draft = entwurfMitOffenemBlock();
+    waehle(zeichne(draft), 'hebrew');
+    waehle(zeichne(draft), 'hebrew');
+    const kalender = draft.calendar.blocks[0].calendars;
+    expect(kalender.map((k) => k.name)).toEqual(['Hebräischer Kalender', 'Hebräischer Kalender 2']);
+    for (const k of kalender) {
+      expect(k.levels.map((lv) => lv.id)).toEqual([
+        'second',
+        'minute',
+        'hour',
+        'day',
+        'month',
+        'year',
+      ]);
+      const [monat, jahr] = k.levels.slice(4);
+      expect(monat.yearlyRel).toEqual({ type: 'byYear' });
+      expect(jahr.yearlyRel).toEqual({ type: 'yearly', rule: 'hebrew' });
+      expect(k.cycles.map((c) => c.id)).toEqual(['week']);
+      expect(k.epochs).toHaveLength(2);
+      expect(k.groups || []).toEqual([]);
+    }
+    expect(validateCalendarSection(draft)).toBeNull();
+  });
+
+  // 4T-002007 (Epic 3E-000333): Die persische Vorlage legt über das Menü ihre
+  // Definition mit dem Verweis auf die Tafel persian an, kein Anker; zweimal
+  // angelegt zwei Namen.
+  it('AK6 (4T-002007): die persische Vorlage legt über das Menü ihre Definition an, zweimal mit zwei Namen', () => {
+    const draft = entwurfMitOffenemBlock();
+    waehle(zeichne(draft), 'persian');
+    waehle(zeichne(draft), 'persian');
+    const kalender = draft.calendar.blocks[0].calendars;
+    expect(kalender.map((k) => k.name)).toEqual(['Persischer Kalender', 'Persischer Kalender 2']);
+    for (const k of kalender) {
+      const [monat, jahr] = k.levels.slice(4);
+      expect(monat.yearlyRel).toEqual({ type: 'byYear' });
+      expect(jahr.yearlyRel).toEqual({ type: 'yearly', table: 'persian' });
+      expect(k.cycles.map((c) => c.id)).toEqual(['week']);
+      expect(k.epochs).toHaveLength(2);
+      expect(k.groups || []).toEqual([]);
+    }
+    expect(validateCalendarSection(draft)).toBeNull();
+  });
+
+  // 4T-002006 (Epic 3E-000333): Die chinesische Vorlage legt über das Menü ihre
+  // Definition mit dem Verweis auf die Tafel chinese an, 24 Monatsnamen (zwölf
+  // Monate, zwölf Schaltmonate), kein Anker; zweimal angelegt zwei Namen.
+  it('AK8 (4T-002006): die chinesische Vorlage legt über das Menü ihre Definition an, zweimal mit zwei Namen', () => {
+    const draft = entwurfMitOffenemBlock();
+    waehle(zeichne(draft), 'chinese');
+    waehle(zeichne(draft), 'chinese');
+    const kalender = draft.calendar.blocks[0].calendars;
+    expect(kalender.map((k) => k.name)).toEqual([
+      'Chinesischer Kalender',
+      'Chinesischer Kalender 2',
+    ]);
+    for (const k of kalender) {
+      const [monat, jahr] = k.levels.slice(4);
+      expect(monat.yearlyRel).toEqual({ type: 'byYear' });
+      expect(jahr.yearlyRel).toEqual({ type: 'yearly', table: 'chinese' });
+      expect(k.cycles.map((c) => c.id)).toEqual(['week']);
+      expect(k.epochs).toHaveLength(2);
+      expect(k.groups || []).toEqual([]);
+    }
+    expect(validateCalendarSection(draft)).toBeNull();
+  });
+
+  // 4T-002008 (Epic 3E-000333): Die Vorlage nach Umm al-Qura legt über das Menü
+  // ihre Definition mit dem Verweis auf die Tafel islamic-umalqura an, kein
+  // Anker; zweimal angelegt zwei Namen.
+  it('AK6 (4T-002008): die Vorlage nach Umm al-Qura legt über das Menü ihre Definition an, zweimal mit zwei Namen', () => {
+    const draft = entwurfMitOffenemBlock();
+    waehle(zeichne(draft), 'islamic-umalqura');
+    waehle(zeichne(draft), 'islamic-umalqura');
+    const kalender = draft.calendar.blocks[0].calendars;
+    expect(kalender.map((k) => k.name)).toEqual([
+      'Hidschri-Kalender (Umm al-Qura)',
+      'Hidschri-Kalender (Umm al-Qura) 2',
+    ]);
+    for (const k of kalender) {
+      const [monat, jahr] = k.levels.slice(4);
+      expect(monat.yearlyRel).toEqual({ type: 'byYear' });
+      expect(jahr.yearlyRel).toEqual({ type: 'yearly', table: 'islamic-umalqura' });
+      expect(k.cycles.map((c) => c.id)).toEqual(['week']);
+      expect(k.epochs).toHaveLength(2);
+      expect(k.groups || []).toEqual([]);
+    }
     expect(validateCalendarSection(draft)).toBeNull();
   });
 

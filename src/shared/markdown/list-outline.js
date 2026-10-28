@@ -28,7 +28,15 @@
 // als Listenpunkt und zählen als Fortsetzungszeilen ihres Punktes. Intern
 // wird daraus eine Maske, die jede Umordnung mitmacht — sonst zeigte sie
 // nach dem Verschieben auf die falschen Zeilen.
+//
+// 4T-002343 (Epic 3E-000365): Eingezäunte Code-Blöcke unter einem Listenpunkt
+// erkennt der Kern seither selbst (list-fence.js, withFences unten): Ihre
+// Zeilen gelten als Code, und eine Leerzeile darin trennt nicht. Die
+// Festlegung «Eine Leerzeile trennt» gilt damit für Leerzeilen außerhalb
+// eines Code-Blocks.
 'use strict';
+
+const { zaunMaske, zaunAbfrage } = require('./list-fence.js');
 
 // Listen-Marker am Zeilenanfang: ungeordnet (`-`, `*`, `+`, inklusive
 // Aufgaben-Zeilen `- [ ]`) und geordnet (`1.`). Die Klammer-Variante `1)`
@@ -118,6 +126,40 @@ function isBlank(text) {
   return String(text == null ? '' : text).trim() === '';
 }
 
+// 4T-002343: Zeilen eingezäunter Code-Blöcke unter einem Listenpunkt, als
+// Maske über das Zeilen-Array (true von der öffnenden bis zur schließenden
+// Zaun-Zeile) und als Abfrage über einen großen Bestand mit Zugriff
+// `textAt(n)` auf die Zeilen first bis last. Regeln in list-fence.js.
+function fencedLines(lines) {
+  const textAt = (i) => String(lines[i] == null ? '' : lines[i]);
+  return zaunMaske(lines.length, textAt, parseListItemHead);
+}
+
+function fencedLineLookup(textAt, first, last) {
+  return zaunAbfrage((n) => String(textAt(n)), first, last, parseListItemHead);
+}
+
+// 4T-002343: Optionen samt Zaun-Zuständen der Zeilen `lines`. Zeilen eines
+// Code-Blocks gelten als Code (nie Listenpunkt, Fortsetzung ihres Punkts),
+// `inFence(i)` sagt, ob eine Leerzeile im Block liegt und damit nicht trennt.
+// Bereits für dieselben Zeilen erweiterte Optionen kommen unverändert zurück,
+// damit die Kern-Funktionen sich gegenseitig rufen, ohne neu zu zählen.
+const FENCES_OF = Symbol('fencesOf');
+
+function withFences(lines, opts) {
+  if (opts && opts[FENCES_OF] === lines) return opts;
+  const fenced = fencedLines(lines);
+  const own = opts && typeof opts.isCode === 'function' ? opts.isCode : undefined;
+  const isCode = fenced.includes(true) ? (i) => !!fenced[i] || (own ? !!own(i) : false) : own;
+  return { ...opts, isCode, inFence: (i) => !!fenced[i], [FENCES_OF]: lines };
+}
+
+// Trennt Zeile i die Liste? Eine Leerzeile außerhalb eines Code-Blocks
+// (Festlegung des Product Owners vom 2026-07-21, 4T-002343).
+function separates(lines, i, opts) {
+  return isBlank(lines[i]) && !(opts && opts.inFence && opts.inFence(i));
+}
+
 // Code-Maske aus dem Prädikat des Aufrufers; null, wenn keines übergeben ist.
 function buildMask(lines, opts) {
   if (!opts || typeof opts.isCode !== 'function') return null;
@@ -184,11 +226,15 @@ function setOrderedNumber(lines, index, item, value, opts) {
 // Folge nicht-leerer Zeilen aus Listenpunkten und deren eingerückten
 // Fortsetzungszeilen; eine nicht eingerückte Nicht-Listen-Zeile (etwa ein
 // vorangehender Absatz) begrenzt ihn ebenso wie eine Leerzeile. Liefert null,
-// wenn index selbst kein Listenpunkt ist.
+// wenn index selbst kein Listenpunkt ist. 4T-002343: Eine Leerzeile in einem
+// Code-Block des Punkts gehört zum Block.
 function scanListBlock(lines, index, opts) {
-  if (!Array.isArray(lines) || !itemAt(lines, index, opts)) return null;
+  if (!Array.isArray(lines)) return null;
+  opts = withFences(lines, opts);
+  if (!itemAt(lines, index, opts)) return null;
   const belongs = (i) => {
-    if (i < 0 || i >= lines.length || isBlank(lines[i])) return false;
+    if (i < 0 || i >= lines.length || separates(lines, i, opts)) return false;
+    if (isBlank(lines[i])) return true;
     if (itemAt(lines, i, opts)) return true;
     return leadingWhitespace(lines[i]).length > 0;
   };
@@ -206,6 +252,7 @@ function scanListBlock(lines, index, opts) {
 // nächsten Listenpunkt gleicher oder geringerer Einrückung. Nicht-Listen-
 // Zeilen (Fortsetzung, Code) gehören immer dazu.
 function subtreeRange(lines, index, opts) {
+  opts = withFences(lines, opts);
   const item = itemAt(lines, index, opts);
   if (!item) return null;
   const block = scanListBlock(lines, index, opts);
@@ -223,6 +270,7 @@ function subtreeRange(lines, index, opts) {
 // nächste Listenpunkt gleicher Einrückung im selben Block. Ein Punkt
 // geringerer Einrückung beendet die Geschwister-Kette und liefert null.
 function siblingRange(lines, index, direction, opts) {
+  opts = withFences(lines, opts);
   const item = itemAt(lines, index, opts);
   const block = scanListBlock(lines, index, opts);
   const own = subtreeRange(lines, index, opts);
@@ -251,6 +299,7 @@ function siblingRange(lines, index, direction, opts) {
 // eigene Nummer zur Startnummer der Liste machen (aus `2. B` an erster
 // Stelle würde eine bei 2 beginnende Liste).
 function collectStartNumbers(lines, from, to, opts) {
+  opts = withFences(lines, opts);
   const starts = new Map();
   const start = Math.max(0, from);
   const end = Math.min(lines.length - 1, to);
@@ -268,8 +317,10 @@ function collectStartNumbers(lines, from, to, opts) {
 // einen Wert für diese Ebene trägt, mit der Vorgabe (sie gilt nur für die
 // erste Teilliste der Ebene im Bereich). Eine Leerzeile, ein Wechsel des
 // Listen-Typs auf derselben Ebene oder das Verlassen der Ebene setzt den
-// Zähler zurück. Liefert immer ein neues Array.
+// Zähler zurück. Liefert immer ein neues Array. 4T-002343: Eine Leerzeile in
+// einem Code-Block eines Punkts setzt nichts zurück.
 function renumberOrdered(lines, from, to, opts) {
+  opts = withFences(lines, opts);
   const result = lines.slice();
   const counters = new Map();
   const seenLevels = new Set();
@@ -277,7 +328,7 @@ function renumberOrdered(lines, from, to, opts) {
   const start = Math.max(0, from);
   const end = Math.min(result.length - 1, to);
   for (let i = start; i <= end; i++) {
-    if (isBlank(result[i])) {
+    if (separates(result, i, opts)) {
       counters.clear();
       continue;
     }
@@ -309,12 +360,13 @@ function renumberOrdered(lines, from, to, opts) {
 
 // Bereich auf die Grenzen der berührten Listen-Blöcke ausdehnen, damit die
 // Neu-Nummerierung nicht mitten in einer Teilliste ansetzt und deren
-// Startnummer verfälscht.
-function expandToBlocks(lines, from, to) {
+// Startnummer verfälscht. 4T-002343: Grenze ist eine Leerzeile außerhalb eines
+// Code-Blocks (opts aus withFences für dieselben Zeilen).
+function expandToBlocks(lines, from, to, opts) {
   let start = Math.max(0, from);
   let end = Math.min(lines.length - 1, to);
-  while (start > 0 && !isBlank(lines[start - 1])) start--;
-  while (end < lines.length - 1 && !isBlank(lines[end + 1])) end++;
+  while (start > 0 && !separates(lines, start - 1, opts)) start--;
+  while (end < lines.length - 1 && !separates(lines, end + 1, opts)) end++;
   return { from: start, to: end };
 }
 
@@ -331,6 +383,7 @@ function spliceRange(arr, from, to, target) {
 // direction -1 = nach oben, +1 = nach unten. Liefert null, wenn es in der
 // Richtung kein Geschwister gibt; die Ebene bleibt in jedem Fall unberührt.
 function moveSubtree(lines, index, direction, opts) {
+  opts = withFences(lines, opts);
   const own = subtreeRange(lines, index, opts);
   const sibling = siblingRange(lines, index, direction, opts);
   if (!own || !sibling) return null;
@@ -342,12 +395,13 @@ function moveSubtree(lines, index, direction, opts) {
     lines,
     Math.min(own.from, sibling.from),
     Math.max(own.to, sibling.to),
+    opts,
   );
   const starts = collectStartNumbers(lines, touched.from, touched.to, opts);
   const moved = spliceRange(lines, cut.from, cut.to, target);
   const movedMask = spliceRange(mask, cut.from, cut.to, target);
   const newFrom = direction < 0 ? sibling.from : own.from + (sibling.to - sibling.from + 1);
-  const span = expandToBlocks(moved, touched.from, touched.to);
+  const span = expandToBlocks(moved, touched.from, touched.to, withFences(moved));
   const result = renumberOrdered(moved, span.from, span.to, renumberOpts(movedMask, starts));
   const cursorLine = newFrom + offset;
   return {
@@ -366,14 +420,15 @@ function moveLineRange(lines, from, to, direction, opts) {
   if (start > end) return null;
   if (direction < 0 && start === 0) return null;
   if (direction > 0 && end === lines.length - 1) return null;
+  opts = withFences(lines, opts);
   const mask = buildMask(lines, opts);
   const target = direction < 0 ? start - 1 : start + 1;
   const last = target + (end - start);
-  const touched = expandToBlocks(lines, Math.min(start, target), Math.max(end, last));
+  const touched = expandToBlocks(lines, Math.min(start, target), Math.max(end, last), opts);
   const starts = collectStartNumbers(lines, touched.from, touched.to, opts);
   const moved = spliceRange(lines, start, end, target);
   const movedMask = spliceRange(mask, start, end, target);
-  const span = expandToBlocks(moved, touched.from, touched.to);
+  const span = expandToBlocks(moved, touched.from, touched.to, withFences(moved));
   return {
     lines: renumberOrdered(moved, span.from, span.to, renumberOpts(movedMask, starts)),
     from: target,
@@ -435,6 +490,7 @@ function startFollowerAtOne(lines, index, item, opts) {
 // Nummer 1; die Neu-Nummerierung korrigiert sie anschließend auf den
 // fortlaufenden Wert, falls er auf der neuen Ebene schon ein Geschwister hat.
 function shiftSubtree(lines, index, delta, opts) {
+  opts = withFences(lines, opts);
   const item = itemAt(lines, index, opts);
   const own = subtreeRange(lines, index, opts);
   if (!item || !own) return null;
@@ -446,6 +502,9 @@ function shiftSubtree(lines, index, delta, opts) {
   if (shift === 0) return null;
   const next = lines.slice();
   for (let i = own.from; i <= own.to; i++) {
+    // 4T-002343: Eine Leerzeile im Code-Block des Teilbaums bleibt leer, wie
+    // beim zeilenweisen Einrücken (4T-002326).
+    if (isBlank(next[i])) continue;
     if (shift > 0) {
       next[i] = ' '.repeat(shift) + next[i];
     } else {
@@ -458,7 +517,7 @@ function shiftSubtree(lines, index, delta, opts) {
     if (moved) setOrderedNumber(next, index, moved, 1, opts);
   }
   if (delta < 0) startFollowerAtOne(next, own.to + 1, item, opts);
-  const span = expandToBlocks(lines, own.from, own.to);
+  const span = expandToBlocks(lines, own.from, own.to, opts);
   const starts = collectStartNumbers(lines, span.from, span.to, opts);
   const result = renumberOrdered(next, span.from, span.to, {
     isCode: opts && typeof opts.isCode === 'function' ? opts.isCode : undefined,
@@ -477,6 +536,7 @@ function shiftSubtree(lines, index, delta, opts) {
 // erste landet damit auf einer gültigen Ebene, und die relative Struktur der
 // Auswahl bleibt erhalten. Nicht-Listen-Zeilen wandern mit, Leerzeilen nicht.
 function shiftLineRange(lines, from, to, delta, opts) {
+  opts = withFences(lines, opts);
   const start = Math.max(0, from);
   const end = Math.min(lines.length - 1, to);
   let anchor = -1;
@@ -509,7 +569,7 @@ function shiftLineRange(lines, from, to, delta, opts) {
     if (moved) setOrderedNumber(next, anchor, moved, 1, opts);
   }
   if (shift < 0) startFollowerAtOne(next, end + 1, item, opts);
-  const span = expandToBlocks(lines, start, end);
+  const span = expandToBlocks(lines, start, end, opts);
   const starts = collectStartNumbers(lines, span.from, span.to, opts);
   const result = renumberOrdered(next, span.from, span.to, {
     isCode: opts && typeof opts.isCode === 'function' ? opts.isCode : undefined,
@@ -672,6 +732,9 @@ module.exports = {
   scanListBlock,
   subtreeRange,
   siblingRange,
+  // 4T-002343: Zaun-Zustände für die selbsttätige Nummerierung im Editor.
+  fencedLines,
+  fencedLineLookup,
   collectStartNumbers,
   renumberOrdered,
   moveSubtree,

@@ -67,12 +67,16 @@ Das Aufklapp-Menü **«Vorlage einfügen …»** in der Detail-Ansicht eines Blo
 1. Gregorianischer Kalender
 2. Julianischer Kalender
 3. Hidschri-Kalender (tabellarisch)
-4. Indischer Nationalkalender
-5. Buddhistischer Kalender
-6. Äthiopischer Kalender
-7. Koptischer Kalender
-8. Japanischer Kalender
-9. Minguo-Kalender
+4. Hidschri-Kalender (Umm al-Qura)
+5. Persischer Kalender
+6. Hebräischer Kalender
+7. Chinesischer Kalender
+8. Indischer Nationalkalender
+9. Buddhistischer Kalender
+10. Äthiopischer Kalender
+11. Koptischer Kalender
+12. Japanischer Kalender
+13. Minguo-Kalender
 
 Die Auswahl legt die Zeitrechnung sofort im geöffneten Block an, fertig ausgefüllt und ohne weitere Eingabe; danach steht das Menü wieder auf seinem ersten Eintrag. Die Zeitrechnung trägt den Namen aus dem Menü; ist er im Bereich schon vergeben, bekommt sie eine angehängte Zahl, etwa «Gregorianischer Kalender 2». Gespeichert wird sie wie jede Änderung dieser Sektion mit **«Anwenden»**.
 
@@ -80,13 +84,33 @@ Jede Vorlage bringt die Zeit-Ebenen Sekunde, Minute und Stunde, eine Sieben-Tage
 
 ### Was eine angelegte Vorlage ist
 
-Eine angelegte Vorlage ist eine gewöhnliche Zeitrechnung des Bereichs. Sie lässt sich danach wie jede andere bearbeiten, umbenennen, ergänzen und löschen; die Vorlage ist der Ausgangspunkt, keine dauerhafte Bindung. Eine Programm-Aktualisierung erreicht eine bereits angelegte Zeitrechnung deshalb nicht.
+Eine angelegte Vorlage ist eine gewöhnliche Zeitrechnung des Bereichs. Sie lässt sich danach wie jede andere bearbeiten, umbenennen, ergänzen und löschen; die Vorlage ist der Ausgangspunkt, keine dauerhafte Bindung. Eine Programm-Aktualisierung erreicht eine bereits angelegte Zeitrechnung deshalb nicht. Ausgenommen sind Monat und Jahr der vier Vorlagen mit jährlich wechselndem Aufbau (nächster Abschnitt): Dort verweist die Zeitrechnung auf die mitgelieferte Regel oder Tabelle, statt sie abzuschreiben, und eine Programm-Aktualisierung mit fortgeschriebener Tabelle erreicht auch bereits angelegte Zeitrechnungen.
 
 Die übrigen Datums-Funktionen der Anwendung bleiben gregorianisch: Aufgaben-Marker, Journale, Abfrage-Vergleiche und Datentabellen-Typen kennen keine eigenen Zeitrechnungen.
+
+### Vorlagen mit jährlich wechselndem Aufbau
+
+Im hebräischen, im persischen und im chinesischen Kalender und im Hidschri-Kalender nach Umm al-Qura setzt sich jedes Jahr anders zusammen: Zahl der Monate, Länge jedes Monats und Jahresbeginn werden je Jahr bestimmt. Der hebräische Kalender folgt seiner festen Rechenregel und gilt ohne zeitliche Grenze. Die drei übrigen folgen einer mitgelieferten, geprüften Tabelle und gelten für einen festen Zeitraum:
+
+| Vorlage | Erster Tag | Letzter Tag |
+|---|---|---|
+| Hidschri-Kalender (Umm al-Qura) | 30. April 1900 (1. Muharram 1318 AH) | 16. November 2077 (30. Dhu l-Hiddscha 1500 AH) |
+| Persischer Kalender | 21. März 1900 (1. Farwardin 1279 AP) | 20. März 2101 (29. Essfand 1479 AP) |
+| Chinesischer Kalender | 19. Februar 1901 (erster Tag des Jahres 1901) | 28. Januar 2101 (letzter Tag des Jahres 2100) |
+
+Davor und danach sagt das Programm «nicht bekannt», statt ein angenähertes Datum zu zeigen: in der Eingabe-Hilfe, bei einem Wert im Dokument und im Dialog «Datum umrechnen». Die Tabellen gehören zum Programm, es braucht dafür keine Internet-Verbindung. Sie werden vor Ablauf ihres Zeitraums und nach einer Korrektur durch die zuständige Behörde fortgeschrieben.
+
+- **Schaltmonate** sind eigene Monate. Im Wert behält jeder Monat in jedem Jahr seine Zahl; ein Schaltmonat trägt die Zahl des Monats, dem er folgt, und ein angehängtes `L`. So steht Adar I des hebräischen Jahres 5784 als `5784-05L-01` im Dokument, Adar II als `5784-06-01`, und der Schaltmonat des chinesischen Jahres 2023 als `2023-02L-01`. Ein gespeicherter Wert meint damit in jedem Jahr denselben Monat.
+- **In den Einstellungen** sind Monat und Jahr dieser Zeitrechnungen schreibgeschützt; Namen, Wochen und Zeitalter bleiben änderbar. Als Bezug einer abgeleiteten Zeitrechnung sind sie nicht wählbar (Abschnitt «Abgeleitete Zeitrechnungen»).
+- **Der Tag** beginnt wie bei allen Vorlagen um Mitternacht; den Tagesbeginn bei Sonnenuntergang im hebräischen und im islamischen Kalender bildet das Programm nicht ab.
 
 ### Lesarten und Grenzen
 
 - **Hidschri-Kalender (tabellarisch)** — bildet die tabellarische Lesart ab: zwölf Monate abwechselnd mit 30 und 29 Tagen, im Schaltjahr hat der zwölfte Monat (Dhu l-Hiddscha) 30 Tage; Schaltjahre sind die Jahre 2, 5, 7, 10, 13, 16, 18, 21, 24, 26 und 29 jedes Zyklus von 30 Jahren, gezählt ab der bürgerlichen Epoche. Diese Rechnung gilt für jedes Jahr gleich. Das religiös gelebte Datum richtet sich dagegen nach der Sichtung der Mondsichel und kann um einen Tag, selten um zwei abweichen. Die Tage beginnen um Mitternacht, nicht bei Sonnenuntergang.
+- **Hidschri-Kalender (Umm al-Qura)** — der amtliche Kalender Saudi-Arabiens für Verwaltungszwecke. Die Monate beginnen nach den Daten der saudischen Behörde KACST (King Abdulaziz City for Science and Technology), nicht nach einer festen Rechenregel; jeder Monat hat 29 oder 30 Tage, das Jahr 354 oder 355. Monatsnamen und Jahreszählung «AH» sind die der tabellarischen Lesart, die mit einer festen Folge rechnet und vom amtlichen Kalender um einen oder zwei Tage abweichen kann. Die Tabelle ist Monat für Monat an der amtlichen Ausgabe der Behörde geprüft; sie endet mit dem Jahr 1500 AH, weil die amtliche Ausgabe nicht weiter reicht. Die Daten vor 1423 AH (vor dem 15. März 2002) sind die heutige amtliche Rück-Rechnung; der damals in Saudi-Arabien gültige Kalender folgte anderen Regeln und konnte um einen Tag abweichen.
+- **Persischer Kalender** — die amtliche iranische Lesart: Das Jahr beginnt am Tag der Frühlings-Tagundnachtgleiche, wenn sie vor Mittag Teheraner Zeit liegt, sonst am Tag danach. Die ersten sechs Monate haben 31 Tage, die nächsten fünf 30, der letzte (Essfand) 29 oder im Schaltjahr 30; die Jahre zählen «AP». Die Tabelle ist an der Schaltjahr-Tafel des Kalender-Zentrums der Universität Teheran geprüft.
+- **Hebräischer Kalender** — rechnet nach der festen Rechenregel des Kalenders, auch in sehr fernen Jahren. In 7 von 19 Jahren kommt Adar I als zusätzlicher Monat hinzu, und Adar heißt dann Adar II. Die Jahre zählen «AM»; vor dem Jahr 1 zählt die Epoche «vor AM» rückwärts. Vom 10. November 2045 bis zum 29. November 2046 folgt das Programm der Rechenregel; manche andere Programme zeigen für diese Tage ein um einen Tag verschobenes Datum.
+- **Chinesischer Kalender** — der traditionelle Mond-Sonnen-Kalender. Die Jahreszahl ist das gregorianische Jahr, in dem das chinesische Jahr beginnt: `2025-01-01` ist der 29. Januar 2025, und das Jahr 2026 endet am 5. Februar 2027. Den Namen des Jahres im Zyklus von 60 Jahren zeigt die Vorlage nicht. Die Monate heißen «Monat 1» bis «Monat 12», ein Schaltmonat «Schaltmonat» mit der Zahl des Monats, dem er folgt, in der Anzeige mit Namen etwa `2023-Schaltmonat 2-01`; wie bei jeder Vorlage sind die Namen änderbar. Die Tabelle ist eine astronomische Rechnung der Neumonde und Sonnentermine nach Pekinger Zeit, geprüft an den amtlichen Kalender-Dateien der Regierung Hongkongs für 2023 bis 2028 und über den ganzen Zeitraum an einer zweiten, unabhängigen Rechnung. Der 9. Monat 2057 beginnt am 28. September, wie in der Tafel des Hong Kong Observatory; die Behörde kennzeichnet diesen Tag selbst als unsicher, weil der Neumond nur Sekunden vor Mitternacht liegt. Andere Programme können an einzelnen Tagen abweichen, etwa beim Neujahr 2027, das amtlich auf den 6. Februar fällt.
 - **Buddhistischer Kalender** — die buddhistische Jahreszählung, wie sie in Thailand gilt: gregorianische Monate und Schaltjahre, die Jahreszahl um 543 höher als die gregorianische. Bis 1940 begann das thailändische Jahr am 1. April; die Vorlage rechnet durchgehend mit dem Jahresbeginn am 1. Januar und zeigt deshalb vor 1941 von Januar bis März ein um eins höheres Jahr als im damaligen Gebrauch, ab April dasselbe.
 - **Indischer Nationalkalender** und **Minguo-Kalender** — beide rechnen auch vor ihrer Einführung (Indischer Nationalkalender 1957, Minguo-Kalender 1912) rückwärts weiter. Für diese Zeit sind sie in den Quellen nicht als gültig belegt; vor 1912 nennen die Quellen Monat und Tag oft nach dem Mondkalender.
 - **Japanischer Kalender** — gregorianische Monate und Schaltjahre mit den Ären Meiji (ab 23. Oktober 1868), Taishō (ab 30. Juli 1912), Shōwa (ab 25. Dezember 1926), Heisei (ab 8. Januar 1989) und Reiwa (ab 1. Mai 2019); das Jahr 1 einer Ära läuft von ihrem Beginn bis zum 31. Dezember. Davor zählt die Epoche «vor Meiji» rückwärts; ältere Ären fehlen, weil sie auf dem Mondkalender beruhen. Vor 1873 galt in Japan der Mondkalender: Daten vor 1873 sind deshalb rückgerechnet gregorianisch und weichen in Monat und Tag, mitunter auch im Jahr vom historischen Gebrauch ab. Die Vorlage schreibt die Ära immer mit (Kontrollkästchen «Kürzel der Epoche immer schreiben» eingeschaltet): Der 30. September 2026 steht als `8-09-30 Reiwa` im Dokument.
@@ -118,6 +142,8 @@ Ist der genannte Kalender im Bereich nicht definiert oder der Wert ungültig, bl
 
 @{Beispiel-Kalender: 500-2-09 ZZ}
 
+Liegt ein Wert außerhalb des Geltungs-Zeitraums seiner Zeitrechnung (Abschnitt «Vorlagen mit jährlich wechselndem Aufbau»), bleibt der Quelltext ebenfalls unverändert. Der Wert gilt dann nicht als ungültig: Sein Kurzhinweis sagt «Name: nicht bekannt».
+
 In Code-Blöcken und Code-Spans bleibt die Syntax unangetastet: `@{Beispiel-Kalender: 500-2-09 ZZ}`.
 
 ## Einfügen und Bearbeiten
@@ -133,6 +159,7 @@ Der Picker für benutzerdefinierte Kalender arbeitet analog zum Standard-Datums-
 - Das **Gitter** entsteht aus der Ebenen-Struktur: Mit definiertem Wochen-Zyklus als Spalten-Gitter (Zyklus-Länge = Spalten-Zahl, Positions-Namen als Kopf, Nummern-Spalte bei Nummerierungs-Regel), ohne Zyklus als fortlaufende Tages-Liste der Einheit.
 - **Navigation:** Die äußeren Pfeil-Knöpfe schieben die größte Einheit (das Jahr), die inneren die Gitter-Einheit (den Monat); Pfeiltasten navigieren tage-weise, Enter übernimmt, Escape bricht ab. **«Zum Anker»** springt zum Referenz-Zeitpunkt des Kalenders.
 - **Zeit-Ebenen** erscheinen als einzeln stellbare Segmente mit Pfeil- und Ziffern-Eingabe — ungültige Werte sind konstruktionsbedingt nicht eingebbar.
+- **Geltungs-Zeitraum:** Bei einer Zeitrechnung mit Tabelle bleibt das Blättern am Rand ihres Zeitraums stehen. Auf einem Wert außerhalb geöffnet, steht der Picker auf ihrem ersten bekannten Tag und nennt «Name: nicht bekannt». Ein Schaltmonat steht im Kopf mit Namen und Kennung, etwa «Schaltmonat 2 (02L)».
 
 ### Umrechnungs-Anzeige
 
@@ -150,6 +177,7 @@ Wo es kein Ergebnis gibt, steht eine Auskunft statt eines Werts:
 
 - Ein Datum, das es im gewählten Kalender nicht gibt, meldet «Kein gültiges Datum dieses Kalenders.»; die Liste entfällt dann.
 - Kann ein Kalender den Zeitpunkt nicht darstellen, lautet seine Zeile «Name: außerhalb des darstellbaren Bereichs».
+- Liegt der Zeitpunkt außerhalb des Geltungs-Zeitraums einer Zeitrechnung (Abschnitt «Vorlagen mit jährlich wechselndem Aufbau»), lautet ihre Zeile «Name: nicht bekannt»; die übrigen Zeilen zeigen ihren Wert. Liegt schon das eingegebene Datum außerhalb, meldet der Dialog «Name: nicht bekannt».
 - Hat der Block nur einen Kalender, sagt der Dialog, dass ein zweiter fehlt.
 
 Umgerechnet wird nur innerhalb eines Blocks; daran erinnert die Hinweis-Zeile des Dialogs. Kalender, die ineinander umgerechnet werden sollen, gehören deshalb in denselben Block. Eine Zeitrechnung lässt sich nicht in einen anderen Block verschieben: Sie wird im Ziel-Block neu angelegt oder dort als Vorlage eingefügt. Das Ergebnis ist so gut wie Anker und Skala der beteiligten Kalender: Die mitgelieferten Vorlagen liegen von sich aus auf derselben Tages-Achse, bei selbst angelegten Kalendern legt die Gruppe «Block-Achse (Umrechnung)» in den Einstellungen ihre Lage fest.
@@ -162,7 +190,7 @@ Eine abgeleitete Zeitrechnung zählt ab einem selbst gesetzten Nullpunkt: wie la
 
 Im Einstellungs-Bereich «Kalender-Systeme» legt der Knopf **«Abgeleitete Zeitrechnung hinzufügen»** ein kurzes Formular an:
 
-- **Bezugs-Zeitrechnung** — ein Kalender desselben Blocks oder die mitgelieferte Standard-Zeitrechnung. Wer nur einen Termin herunterzählen will, braucht damit keinen eigenen Kalender.
+- **Bezugs-Zeitrechnung** — ein Kalender desselben Blocks oder die mitgelieferte Standard-Zeitrechnung. Wer nur einen Termin herunterzählen will, braucht damit keinen eigenen Kalender. Zeitrechnungen mit jährlich wechselndem Aufbau sind als Bezug nicht wählbar, weil sich ihre Zählung nicht verschieben lässt; eine Zählung ab einem Tag geht über die gregorianische Zeitrechnung desselben Blocks.
 - **Nullpunkt (Tag 1)** — das Datum in der Notation des Bezugs, wahlweise über den Picker gewählt; es liegt immer auf einem vollen Tag.
 - **Gliederungs-Tiefe** — wie fein die Zeitspanne gegliedert wird, von der kleinsten Einheit allein bis hinauf zu den Jahren.
 - **Richtungs-Kürzel** — zwei kurze Wörter für die Zeit vor und nach dem Nullpunkt.

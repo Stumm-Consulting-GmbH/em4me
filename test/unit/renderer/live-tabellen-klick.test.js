@@ -117,6 +117,29 @@ describe('klickOffsetInZelle', () => {
     });
     expect(klickOffsetInZelle(ereignis, zelle, 'a1')).toBe(2);
   });
+
+  // 4T-002342: Die Hervorhebung der Suche zerlegt den Zell-Text in mehrere
+  // Textknoten; die Zelle bleibt einfacher Text, gezählt wird über alle.
+  it('zählt über die Hervorhebung eines Suchtreffers hinweg (4T-002342)', () => {
+    const zelle = zelleMitText('a1');
+    zelle.innerHTML = 'x <span class="cm-search-match" data-tabellen-treffer="">a1</span> y';
+    const imTreffer = zelle.childNodes[1].firstChild;
+    document.caretRangeFromPoint = () => ({ startContainer: imTreffer, startOffset: 1 });
+    expect(klickOffsetInZelle(ereignis, zelle, 'x a1 y')).toBe(3);
+    const dahinter = zelle.childNodes[2];
+    document.caretRangeFromPoint = () => ({ startContainer: dahinter, startOffset: 1 });
+    expect(klickOffsetInZelle(ereignis, zelle, 'x a1 y')).toBe(5);
+  });
+
+  it('ein anderes Element neben der Hervorhebung bleibt Auszeichnung (4T-002342)', () => {
+    const zelle = zelleMitText('a1');
+    zelle.innerHTML = '<span class="cm-search-match" data-tabellen-treffer="">a</span><em>1</em>';
+    document.caretRangeFromPoint = () => ({
+      startContainer: zelle.lastChild.firstChild,
+      startOffset: 1,
+    });
+    expect(klickOffsetInZelle(ereignis, zelle, 'a*1*')).toBe(0);
+  });
 });
 
 // 4T-001861 (Epic 3E-000300): Der Rechtsklick in die Tabelle. Die Tabelle setzt

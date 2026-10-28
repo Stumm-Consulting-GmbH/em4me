@@ -43,6 +43,8 @@ import { tabelleOhneAnkerZeilen } from './live-block-anker.js';
 // 4T-002055 (Epic 3E-000360): Block-Text ohne Zitat-Präfixe und die Rechnung
 // zurück ins Dokument, dieselbe wie im Zell-Editor der Tabelle.
 import { dokStelle, ohneZitatPraefixe, zitatPraefixeAb } from './live-table-zell-kern.js';
+// 4T-002342 (Epic 3E-000365): Treffer der Suche in den Zellen der Tabelle.
+import { sucheGeaendert, tabellenTrefferSignatur, trefferImBlock } from './live-table-treffer.js';
 
 // 4T-000084 / 4T-000088: StateField fuer Block-Widget-Decorations im Live-
 // Modus. ViewPlugins duerfen keine Replace-Decorations liefern, deren
@@ -149,6 +151,8 @@ export function buildBlockWidgetValue(state) {
   // dazu die Diagramme, deren Widgets erst nach dem Durchlauf entstehen.
   const zaeune = [];
   const diagramme = [];
+  // 4T-002342: Bereiche der gezeichneten Tabellen, für die Treffer-Signatur.
+  const tabellen = [];
   // 4T-000283 (Epic 3E-000050): Frontmatter-Block-Widget (zusammengeklappte
   // Zeile aus 4T-000282) bei aktivem Schalter. Cursor- oder Selektions-
   // Eintritt demaskiert zum Quelltext mit der bestehenden
@@ -254,12 +258,17 @@ export function buildBlockWidgetValue(state) {
       // Fence steht; leer für alle übrigen, damit deren Render-Ergebnis
       // unverändert bleibt.
       let docPrefix = '';
+      let treffer = [];
       if (name === 'Table') {
         // 4T-002048: Das Widget endet vor den Anker-Zeilen am Tabellenende; sie
         // stehen darunter mit dem Anker-Zeichen statt als Tabellenzeile.
         source = tabelleOhneAnkerZeilen(source);
         bis = dokStelle(node.from, praefixe, source, source.length);
         cacheKey = `table:${mermaidHash(source)}${zitatSchluessel}`;
+        // 4T-002342: Die Tabelle klappt nie auf, die Treffer der Suche in ihrem
+        // Bereich zeichnet deshalb das Widget selbst (live-table-treffer.js).
+        treffer = trefferImBlock(state, node.from, bis, praefixe);
+        tabellen.push({ von: node.from, bis });
       } else {
         // FencedCode: Info-String extrahieren (Sprache oder perspective-table).
         let lang = '';
@@ -351,6 +360,7 @@ export function buildBlockWidgetValue(state) {
             docPrefix,
             '',
             bis - node.from,
+            treffer,
           ),
         }).range(node.from, bis),
       );
@@ -381,6 +391,8 @@ export function buildBlockWidgetValue(state) {
     deco: Decoration.set(ranges, true),
     spans,
     sig: blockWidgetSignature(state, spans),
+    tabellen,
+    trefferSig: tabellenTrefferSignatur(state, tabellen),
     // 4T-001325 (Epic 3E-000236): der Pfad, mit dem dieser Stand gebaut wurde.
     // Das Field vergleicht ihn im update gegen den aktuellen Facet-Wert.
     basePath,
@@ -393,7 +405,14 @@ export const liveBlockWidgetsField = StateField.define({
       return buildBlockWidgetValue(state);
     } catch (err) {
       console.error('[Live] buildBlockWidgetValue (create) crashed:', err);
-      return { deco: Decoration.none, spans: [], sig: '', basePath: '' };
+      return {
+        deco: Decoration.none,
+        spans: [],
+        sig: '',
+        basePath: '',
+        tabellen: [],
+        trefferSig: '',
+      };
     }
   },
   update(value, tr) {
@@ -431,13 +450,22 @@ export const liveBlockWidgetsField = StateField.define({
     // (Tree-Identitaetsvergleich, Muster vom foldStructureField) — sonst
     // fehlen Block-Widgets in spaeten Teilen grosser Dateien.
     if (!tr.docChanged && syntaxTree(tr.state) === syntaxTree(tr.startState)) {
-      if (!tr.selection) return value;
-      // R1-05 (4T-000180): reine Selektionsaenderung — Rebuild nur, wenn
-      // sich die blockrelevante Aktiv-Zeilen-Menge tatsaechlich aendert
-      // (Cursor betritt oder verlaesst einen Kandidaten-Block; inkl.
-      // Initial-Cursor-Flanke des Frontmatter-Widgets, 4T-000283).
-      const sig = blockWidgetSignature(tr.state, value.spans);
-      if (sig === value.sig) return value;
+      // 4T-002342 (Epic 3E-000365): Setzt oder loescht die Suche ihre Treffer,
+      // wird neu gebaut, sobald sich die Treffer in einer Tabelle aendern —
+      // auch der aktuelle. Sonst blieben Zellen mit veralteter Hervorhebung
+      // stehen, oder der neue Treffer erschiene nicht.
+      const trefferNeu =
+        sucheGeaendert(tr) &&
+        tabellenTrefferSignatur(tr.state, value.tabellen) !== value.trefferSig;
+      if (!trefferNeu) {
+        if (!tr.selection) return value;
+        // R1-05 (4T-000180): reine Selektionsaenderung — Rebuild nur, wenn
+        // sich die blockrelevante Aktiv-Zeilen-Menge tatsaechlich aendert
+        // (Cursor betritt oder verlaesst einen Kandidaten-Block; inkl.
+        // Initial-Cursor-Flanke des Frontmatter-Widgets, 4T-000283).
+        const sig = blockWidgetSignature(tr.state, value.spans);
+        if (sig === value.sig) return value;
+      }
     }
     try {
       return buildBlockWidgetValue(tr.state);

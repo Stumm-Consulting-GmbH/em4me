@@ -24,7 +24,9 @@
 // zyklenfrei.
 'use strict';
 
-const { buildTemplateDefinition } = require('./calendar-template-tools.js');
+// 4T-002005 (Epic 3E-000333): tplKey und ownEpochs liegen seither in den
+// Bausteinen, weil auch die Vorlagen mit Jahres-Struktur sie brauchen.
+const { buildTemplateDefinition, ownEpochs, tplKey } = require('./calendar-template-tools.js');
 
 // Monats-Längen der gregorianischen Monate (Februar ohne Schalttag).
 const GREGORIAN_MONTH_LENGTHS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
@@ -32,18 +34,6 @@ const GREGORIAN_MONTH_LENGTHS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 const ALEXANDRIAN_MONTH_LENGTHS = [30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 5];
 // Chaitra 30 Tage (im Schaltjahr 31), Vaisakha bis Bhadra 31, danach 30.
 const SAKA_MONTH_LENGTHS = [30, 31, 31, 31, 31, 31, 30, 30, 30, 30, 30, 30];
-
-const tplKey = (id, suffix) => `settings.calendar.tpl.${id}.${suffix}`;
-
-// Zeitalter einer Vorlage mit eigenen Schlüsseln: offene Vergangenheit, dann
-// ab der Epoche, die mit start beginnt (4T-002000: Beginn je Epoche statt
-// eines gesonderten Felds epochStart).
-function ownEpochs(t, id, start) {
-  return [
-    { name: t(tplKey(id, 'epochPast')), abbr: t(tplKey(id, 'epochPastAbbr')), start: null },
-    { name: t(tplKey(id, 'epoch')), abbr: t(tplKey(id, 'epochAbbr')), start },
-  ];
-}
 
 const gregorianMonthNames = (t) => t('settings.calendar.templateMonths').split(',');
 

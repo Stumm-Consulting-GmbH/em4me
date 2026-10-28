@@ -419,9 +419,12 @@ export function setCurrentMatch(idx, scroll = true) {
       });
       if (scroll && idx >= 0 && search.matches[idx]) {
         // R5-13 (4T-000186): Selektion auf den Treffer setzen — im Live-
-        // Modus klappt das den umgebenden Block (Tabelle, Code, Math) zur
-        // Quelle auf, sonst bleibt der angesprungene Treffer unsichtbar
-        // hinter dem Widget. Die Suchleiste behaelt den Tastatur-Fokus.
+        // Modus klappt das den umgebenden Block (Code, Math) zur Quelle auf,
+        // sonst bleibt der angesprungene Treffer unsichtbar hinter dem
+        // Widget. Eine Tabelle klappt nie auf (Entscheidung E2 aus
+        // 3E-000239, blockKlapptAuf in live-deco.js); ihre Treffer zeichnet
+        // das Tabellen-Widget selbst (4T-002342, live-table-treffer.js). Die
+        // Suchleiste behaelt den Tastatur-Fokus.
         view.dispatch({
           selection: { anchor: search.matches[idx].from },
           effects: EditorView.scrollIntoView(search.matches[idx].from, { y: 'center' }),

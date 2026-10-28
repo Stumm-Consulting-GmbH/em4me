@@ -1,0 +1,30 @@
+{
+  "quelle": "Monatsanfänge des amtlichen Portals der KACST (www.ummulqura.org.sa, Seite «Annual Reference»); Angaben siehe QUELLE.md",
+  "abruf": "2026-10-24",
+  "verfahren": "Monatslängen aus den Abständen der 2196 Monatsanfänge, Länge des letzten Monats von 1500 AH aus der Kalender-Ansicht des Portals; je Jahr eine Zeile mit den zwölf Längen, durch Komma getrennt; Zeilen durch Zeilenvorschub verbunden; SHA-256 über den Text in UTF-8",
+  "erstesJahr": 1318,
+  "letztesJahr": 1500,
+  "jahre": 183,
+  "monatsanfaenge": 2196,
+  "laengeLetzterMonat": 30,
+  "tage": 64850,
+  "jahreMit355Tagen": 68,
+  "pruefsummeZeilen": "6f8e54f76a64161e9c03ce927c7537b6e9459c4c5785db116a92fe39420ba51e",
+  "stichtage": [
+    {
+      "gregorianisch": "1900-04-30",
+      "hidschri": [1318, 1, 1],
+      "herkunft": "Story 4S-001110, AK10: erster Tag"
+    },
+    {
+      "gregorianisch": "2025-03-01",
+      "hidschri": [1446, 9, 1],
+      "herkunft": "Story 4S-001110, AK14"
+    },
+    {
+      "gregorianisch": "2077-11-16",
+      "hidschri": [1500, 12, 30],
+      "herkunft": "Story 4S-001110, Geltungs-Zeitraum: letzter Tag"
+    }
+  ]
+}

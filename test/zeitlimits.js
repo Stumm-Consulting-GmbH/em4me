@@ -89,6 +89,12 @@ export const BAU_ZEITLIMIT = 30000;
 // npm-Läufe fährt und danach über 500 Dateien einliest.
 export const SCHWER_ZEITLIMIT = 60000;
 
+// Reine Rechnung über einen großen Raster ohne Prozess-Start und ohne Lesen
+// des Bestands. Belegt an `kalender-festschreibung` (4T-002363): je Definition
+// rund 80 000 Tage mit allen Auskünften des Kalender-Kerns, isoliert 1,3 bis
+// 2,9 s je Fall, unter der Last eines Voll-Laufs über 5 s. Obergrenze, kein Ziel.
+export const RECHEN_ZEITLIMIT = 60000;
+
 // Bau der gesamten Webseite einmal je Prüfdatei (Roadmap-Sichten mit allen
 // Sprachfassungen). Der Bau selbst ist der Prüf-Gegenstand, nicht sein Umfeld.
 export const VOLLBAU_ZEITLIMIT = 120000;

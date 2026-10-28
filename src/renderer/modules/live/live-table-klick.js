@@ -49,10 +49,31 @@ export function zellPosition(zeile, zelle) {
 // Anfang des Zell-Inhalts zurueck. Erkannt wird der einfache Fall daran, dass
 // die Zelle aus genau einem Textknoten besteht und dieser mit dem Quelltext der
 // Zelle uebereinstimmt.
+//
+// 4T-002342 (Epic 3E-000365): Eine Hervorhebung der Suche umhuellt Teile des
+// Zell-Textes (live-table-treffer.js); die Zelle besteht dann aus mehreren
+// Textknoten, ist aber weiter einfacher Text. Gezaehlt wird ueber alle.
+function textKnotenEinfacherZelle(zelle) {
+  const knoten = [];
+  for (const kind of zelle.childNodes) {
+    if (kind.nodeType === Node.TEXT_NODE) knoten.push(kind);
+    else if (
+      kind.nodeType === Node.ELEMENT_NODE &&
+      kind.dataset &&
+      kind.dataset.tabellenTreffer !== undefined &&
+      kind.childNodes.length === 1 &&
+      kind.firstChild.nodeType === Node.TEXT_NODE
+    )
+      knoten.push(kind.firstChild);
+    else return null;
+  }
+  return knoten.length > 0 ? knoten : null;
+}
+
 export function klickOffsetInZelle(event, zelle, quellText) {
-  const knoten = zelle.childNodes.length === 1 ? zelle.firstChild : null;
-  if (!knoten || knoten.nodeType !== Node.TEXT_NODE) return 0;
-  if (String(knoten.textContent) !== quellText) return 0;
+  const knoten = textKnotenEinfacherZelle(zelle);
+  if (!knoten) return 0;
+  if (knoten.map((k) => k.textContent).join('') !== quellText) return 0;
   let treffer = null;
   if (typeof document.caretRangeFromPoint === 'function') {
     treffer = document.caretRangeFromPoint(event.clientX, event.clientY);
@@ -60,8 +81,11 @@ export function klickOffsetInZelle(event, zelle, quellText) {
     const p = document.caretPositionFromPoint(event.clientX, event.clientY);
     if (p) treffer = { startContainer: p.offsetNode, startOffset: p.offset };
   }
-  if (!treffer || treffer.startContainer !== knoten) return 0;
-  return Math.max(0, Math.min(treffer.startOffset, quellText.length));
+  const index = treffer ? knoten.indexOf(treffer.startContainer) : -1;
+  if (index < 0) return 0;
+  let davor = 0;
+  for (let i = 0; i < index; i++) davor += knoten[i].textContent.length;
+  return Math.max(0, Math.min(davor + treffer.startOffset, quellText.length));
 }
 
 // 4T-001861: Liegt die Stelle in einer nicht leeren Auswahl? Dieselbe Regel wie

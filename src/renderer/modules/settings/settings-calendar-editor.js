@@ -9,8 +9,10 @@ import {
   calSysAxisUnsetPeer,
   calSysDateLevels,
   calSysDependents,
+  calSysHasYearly,
   calSysNextId,
   calSysNormalizedDraft,
+  calSysStartPointText,
   calSysSyncSegs,
 } from './settings-calendar-model.js';
 import {
@@ -89,7 +91,16 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
   const axisUnset = document.createElement('p');
   axisUnset.className = 'settings-row-hint';
   axisUnset.id = `settings-calsys-axis-unset-${calIdx}`;
+  // 4T-002363 (Epic 3E-000333): Ohne Anker beginnt eine Zeitrechnung mit
+  // Jahres-Struktur an ihrem ersten bekannten Tag; der Hinweis nennt ihn.
+  const startHint = document.createElement('p');
+  startHint.className = 'settings-row-hint';
+  startHint.id = `settings-calsys-start-hint-${calIdx}`;
   const refresh = () => {
+    const start = calSysStartPointText(calDraft, block);
+    startHint.hidden = start === null;
+    startHint.textContent =
+      start === null ? '' : t('settings.calendar.startPointHint').replace('{value}', start);
     const peer = calSysAxisUnsetPeer(block, calDraft);
     axisUnset.hidden = peer === null;
     axisUnset.textContent =
@@ -144,6 +155,16 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
   pluralHint.id = `settings-calsys-plural-hint-${calIdx}`;
   pluralHint.textContent = t('settings.calendar.namePluralHint');
   group.appendChild(pluralHint);
+  // 4T-002363: Monat und Jahr einer Jahres-Struktur sind schreibgeschützt; eine
+  // Ebene über dem Jahr ließe die Definition entfallen.
+  const yearly = calSysHasYearly(calDraft);
+  if (yearly) {
+    const yearlyHint = document.createElement('p');
+    yearlyHint.className = 'settings-row-hint';
+    yearlyHint.id = `settings-calsys-yearly-hint-${calIdx}`;
+    yearlyHint.textContent = t('settings.calendar.yearlyReadOnlyHint');
+    group.appendChild(yearlyHint);
+  }
   calDraft.levels.forEach((level, levelIdx) => {
     buildCalSysLevelEditor(group, calDraft, level, levelIdx, calIdx, refresh);
   });
@@ -152,6 +173,7 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
   levelAdd.id = `settings-calsys-level-add-${calIdx}`;
   levelAdd.className = 'btn settings-calsys-row-add';
   levelAdd.textContent = t('settings.calendar.levelAdd');
+  levelAdd.disabled = yearly;
   levelAdd.addEventListener('click', () => {
     const taken = new Set(calDraft.levels.map((l) => l.id));
     calDraft.levels.push({
@@ -475,6 +497,7 @@ export function buildCalendarEditor(container, block, calDraft, calIdx) {
   );
   group.appendChild(scaleRow);
   group.appendChild(axisUnset);
+  group.appendChild(startHint);
 
   // Live-Vorschau (Beispiel-Wert, kanonisch eingegeben).
   const previewHeading = document.createElement('h4');

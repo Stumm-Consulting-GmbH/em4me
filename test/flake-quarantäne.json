@@ -1569,6 +1569,16 @@
       "vermerk": "Befördert in der Sichtung von Schritt 6 der Release-Strecke 1.151.0 am 2026-10-21 als Umgebungs-Befund, nicht als Testfehler dieses Falls: drei Beobachtungen desselben Fehlerbilds (Absturz des Test-Arbeiters durch die libuv-Zusicherung «new_time >= loop->time», code=3221226505) in drei verschiedenen Prüfdateien, am 2026-09-23 in einstellungen-seite.spec.js ES-13 (Rot-Proben in 4T-001857, ohne Quarantäne-Eintrag), am 2026-10-15 in diagramme.spec.js DG-10 bis DG-13 und am 2026-10-18 hier. Ursache und Abhilfe klärt 4T-002339 im Pflege-Gefäß 3E-000156 (Laufende Pflege der Test-Infrastruktur)."
     },
     {
+      "spec": "test/e2e/funktionen/diagramme-export.spec.js",
+      "fall": "Tabelle in einem anderen Dokument, dort ungespeichert geändert (AK10) und zehn Folge-Fälle (diagramme-export.spec.js fünf weitere, diagramme-reihen.spec.js vier, frontmatter-anzeige.spec.js einer)",
+      "datum": "2026-10-22",
+      "fehlerbild": "Elf Fehlschläge aus einem einzigen Absturz im Gate «e2e» des Epic-Abschluss-Tests des Epics 3E-000365 (Zug 3E-000364) im Arbeitsbereich SC-027/B am 2026-10-22 um 12:31 UTC, volle Gates nach Rückfall (Klassen-Karte in 4T-002343 geändert), 1286 von 1297 grün in 1,0 h: «worker process exited unexpectedly (code=3221226505)», dazu zehnmal die Laufzeit-Zusicherung «Assertion failed: new_time >= loop->time» aus libuv (win/core.c, Zeile 327). Beleg: test-berichte/rot/2026-10-22T13-32-43Z-epic-3E-000365-Restpunkte-Zug-4-e2e.log und .json. Unmittelbar danach isoliert nachgeprüft (npx playwright test diagramme-export diagramme-reihen frontmatter-anzeige): 27 von 27 grün in 57 s; die Lauf-Spur kennt alle drei Dateien seither als grün am selben Produkt-Stand.",
+      "vermutung": "Vierte Beobachtung des Fehlerbilds aus 4T-002339 (Absturz des Test-Arbeiters durch die libuv-Uhr-Zusicherung unter Last, Windows), diesmal in der letzten Phase eines einstündigen Laufs mit voller Ablauf-Suite, während parallel der temporäre Bau und die Nachmess-Protokolle keine Last mehr erzeugten. BEZUG ZUM ÄNDERUNGS-UMFANG GEPRÜFT UND AUSGESCHLOSSEN: Der Epic-Zweig ändert die Markierung des Rechen-Ausdrucks (Stil), die Treffer-Hervorhebung im Tabellen-Widget der Live-Ansicht und den Listen-Rechenkern; keine der elf Prüfungen misst Diagramm-Export, Diagramm-Reihen oder den Übergang der Frontmatter-Anzeige über einen dieser Wege, und die abgestürzten Fälle liefen vor dem Absturz in derselben Datei grün. Ursache und Abhilfe klärt 4T-002339 (Ausgang «geplant» seit dem 2026-10-21); dieser Eintrag ist die vierte Beobachtung für jenen Vorgang.",
+      "status": "befoerdert",
+      "vorgang": "4T-002339",
+      "vermerk": "Vorgang 4T-002339 besteht bereits (befördert am 2026-10-21); dieser Eintrag ergänzt ihn um die vierte Beobachtung und ist im Epic-Abschluss-Test E1 von 4T-002346 festgehalten."
+    },
+    {
       "spec": "test/unit/db-record-auftrag-sperren.test.js",
       "fall": "Schreib-Schnittstelle: zwei gleichzeitige Aufträge (4T-001821, B3) › wartet ebenso auf die belegte Zähler-Sperre",
       "datum": "2026-10-23",
@@ -1577,6 +1587,15 @@
       "status": "befoerdert",
       "vorgang": "4T-002360",
       "vermerk": "Befördert am 2026-10-23 nach der Regel des Konzepts Test-Strategie und Qualitätssicherung, Kapitel 6, und nach dem Vermerk vom 2026-10-21 am Eintrag vom 2026-10-17 («beim nächsten Vorfall dieser Datei ist der eigene Vorgang im Pflege-Gefäß der Test-Infrastruktur fällig»): neuer Testfehler-Vorgang 4T-002360 im Pflege-Gefäß 3E-000156 (Laufende Pflege der Test-Infrastruktur), Einstufung als Testfehler vorläufig. Die beiden älteren Einträge dieser Prüfdatei stehen mit demselben Vorgang auf befördert."
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-suche.spec.js",
+      "fall": "BS-09: Die erste Eingabetaste zeigt den ersten Treffer (4T-002107) › 4T-002107: Tippen bewegt nichts, die erste Eingabetaste zeigt «1 / 6», die zweite «2 / 6»",
+      "datum": "2026-10-24",
+      "fehlerbild": "Einzel-Fehlschlag im Gate «e2e» des Epic-Abschluss-Tests des Epics 3E-000333 (Zug 3E-000364) im Arbeitsbereich SC-027/B am 2026-10-24 um 13:14 UTC, volle Gates nach Rückfall (Klassen-Karte und Ignore-Konfiguration geändert), 1331 von 1332 grün in 1,1 h: Zeile 460 erwartet im sichtbaren Absatz vor der ersten Eingabetaste den Text «Erster», erhalten wurde die leere Zeichenkette (expect(vorher.absatz).toContain('Erster')); die Zählung «rollen 0» und «sichtbar false» davor war erfüllt. Beleg: test-berichte/rot/2026-10-24T14-17-59Z-epic-3E-000333-Kalender-Vorlagen-2-e2e.log und .json. Unmittelbar danach isoliert nachgeprüft (npx playwright test test/e2e/funktionen/bereichs-suche.spec.js): 17 von 17 grün in 43 s.",
+      "vermutung": "Erste Beobachtung dieses Falls; die Prüfdatei trägt seit August 2026 Quarantäne-Einträge zu BS-04, BS-05 und BS-07 (Wettläufe der Bereichs-Suche unter der Last der vollen Suite). Hier las der Fall den sichtbaren Absatz, bevor die Lese-Ansicht ihn gezeichnet hatte — ein Wettlauf zwischen Suchlauf und Darstellung unter Last, keine Verletzung der Zusage. BEZUG ZUM ÄNDERUNGS-UMFANG GEPRÜFT: Der Epic-Zweig ändert die Kalender-Module, Einstellungen der Kalender und die Treffer-Hervorhebung in Live-Tabellen (search.js nur ein Kommentar); die Bereichs-Suche und ihre Lese-Ansicht sind unberührt. Mit dem Nachzug von Release 1.152.0 (Datensatz-Suche, Epic 3E-000264) kam am selben Tag fremder Such-Code herein; ob der Fall dort schon auffiel, ist nicht geprüft.",
+      "status": "beobachtet",
+      "vermerk": ""
     },
     {
       "spec": "test/e2e/funktionen/erinnerungen-alle-fenster.spec.js",
@@ -1644,6 +1663,24 @@
       "vermutung": "Offen. Die erste Zusicherung des aktuellen Treffers war erfüllt, die Nachprüfung eine halbe Sekunde später fand keinen; ob ein späterer Render-Zyklus die Markierung entfernt oder die Maschine unter Last den Zyklus verschiebt, ist nicht gemessen.",
       "status": "beobachtet",
       "vermerk": "Wiederholung der ganzen Prüfdatei in der Maschine am 2026-10-26 (Lauf 15:58 bis 16:20 Ortszeit, nach dem Absturz des Stamm-Rechners um 15:16): BS-11 in beiden Richtungen grün, 14 von 17 bestanden; rot allein BS-01 bis BS-03 am Lauf-Anfang mit «electronApplication.firstWindow: Timeout 30000ms» in der seit dem Absturz deutlich langsameren Maschine (npm ci 816 s statt 187 s), Umgebungs-Fehlschlag und kein Befund des Falls. Isoliert grün, damit kein Befund."
+    },
+    {
+      "spec": "test/e2e/funktionen/bereichs-panel.spec.js",
+      "fall": "BP-02/BP-03, BP-05, BP-10 (zwei Fälle), BP-06, BP-07, BP-08 (zwei Fälle) und BP-04: neun Fälle der Prüfdatei in Folge",
+      "datum": "2026-10-28",
+      "fehlerbild": "Rechner SC-026, Stamm-Clone, Windows-Ablauf-Lauf in der Hyper-V-Maschine (node scripts/test-windows-vm.js e2e) der Release-Strecke 1.154.0 am 2026-10-28, 11:17 bis 12:58 Ortszeit, Beleg test-berichte/rot/2026-10-28T11-58-02Z-zug-3E-000364-Zug-5-Einstellungen-e2e.log: neun Fälle der Prüfdatei in Folge rot, sieben mit «Test timeout of 60000ms exceeded» (Spec-Zeilen 127, 173, 283, 321, 390, 432, 533), die beiden letzten (Spec-Zeilen 596 und 645) mit «electronApplication.firstWindow: Timeout 30000ms exceeded» in test/e2e/helpers/app.js Zeile 449; die übrigen drei Fälle der Prüfdatei grün, dazu «1 error was not a part of any test». Im Linux-Container im selben Stand grün; im Maschinen-Lauf der Release-Strecke 1.153.0 am 2026-10-26 alle Fälle grün; seit v1.153.0 keine Änderung an der Prüfdatei, den Ablauf-Helfern oder dem Haupt-Prozess.",
+      "vermutung": "Umgebung, nicht Prüffall: Die zusammenhängende Kette aus Zeitüberschreitungen bis zum Fehlschlag des Fenster-Starts spricht für eine blockierte Anwendungs-Instanz in der Maschine unter der Last des Voll-Laufs (der Product Owner arbeitete parallel am Rechner, Linux-Ablauf-Lauf im Container gleichzeitig); der Mechanismus ist nicht gemessen. Für BP-05 und BP-02/BP-03 führt die Liste ein mit 4T-002067 beendetes Last-Muster (befördert 2026-10-11), das hier nicht nachgewiesen ist, weil der Fehlschlag die ganze Prüfdatei ab BP-02/BP-03 trifft.",
+      "status": "beobachtet",
+      "vermerk": "Isolierte Wiederholung der Prüfdatei in der Maschine (node scripts/test-windows-vm.js e2e --nur bereichs-panel) am 2026-10-28, 13:00 bis 13:12 Ortszeit: 12 von 12 grün in 1,1 min. Isoliert grün, damit kein Befund des Zuges; Register-Zeile entfällt, weil kein Vorgang entsteht."
+    },
+    {
+      "spec": "test/e2e/funktionen/datentabelle-verweise.spec.js",
+      "fall": "DV-01: Verweis in der Zelle in Lese-, geteilter und Live-Ansicht anklickbar, Klick daneben bearbeitet › der Klick auf den Verweis oeffnet das Ziel, der Klick daneben die Bearbeitung",
+      "datum": "2026-10-28",
+      "fehlerbild": "Rechner SC-026, Stamm-Clone, Windows-Ablauf-Lauf in der Hyper-V-Maschine (node scripts/test-windows-vm.js e2e) der Release-Strecke 1.154.0 am 2026-10-28, 11:17 bis 12:58 Ortszeit, Beleg test-berichte/rot/2026-10-28T11-58-02Z-zug-3E-000364-Zug-5-Einstellungen-e2e.log: rot nach 3 s mit «TypeError: Cannot read properties of null (reading 'width')» im Helfer klickDaneben (Spec-Zeile 65), weil boundingBox der Zelle null lieferte, die Zelle also im Moment des Klicks nicht sichtbar oder nicht mehr im DOM war. Im Linux-Container im selben Stand grün; im Maschinen-Lauf der Release-Strecke 1.153.0 am 2026-10-26 grün; seit v1.153.0 keine Änderung an der Prüfdatei.",
+      "vermutung": "Zeitverhalten unter Last: Der Helfer klickDaneben liest boundingBox ohne auf die Sichtbarkeit der Zelle zu warten; eine Zelle, die beim Zugriff gerade neu aufgebaut wird, liefert null. Nicht gemessen; der Lauf fiel in dieselbe Last-Phase wie die Kette der Bereichs-Panel-Prüfdatei desselben Laufs.",
+      "status": "beobachtet",
+      "vermerk": "Isolierte Wiederholung der Prüfdatei in der Maschine (node scripts/test-windows-vm.js e2e --nur datentabelle-verweise) am 2026-10-28, 13:12 bis 13:24 Ortszeit: 2 von 2 grün in 36,9 s. Isoliert grün, damit kein Befund des Zuges."
     }
   ]
 }

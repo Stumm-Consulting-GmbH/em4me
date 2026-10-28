@@ -4,7 +4,7 @@
 // EditorState.update: der Filter hängt an der Transaktion und wirkt damit
 // auch hier. Die Bedienung über die Tastatur deckt FB-12 in
 // test/e2e/funktionen/bearbeitung-und-ansicht.spec.js ab.
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import './api-stub.js';
 import { EditorState } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
@@ -12,6 +12,13 @@ import { Table as LezerTable } from '@lezer/markdown';
 import { ensureSyntaxTree } from '@codemirror/language';
 
 const listTools = await import('../../../src/renderer/modules/editor/editor-list-tools.js');
+// 4T-002343: Haupt-Editor mit den Belegungen der Anwendung, Erweiterungs-Schalter
+// und Render-Pipeline für den Gleichlauf von Quelltext und Anzeige.
+const { EditorView, runScopeHandlers } = await import('@codemirror/view');
+const { createEditorState } = await import('../../../src/renderer/modules/editor/editor.js');
+const lebenszyklus =
+  await import('../../../src/renderer/modules/extensions/extension-lifecycle.js');
+const { renderMarkdown } = await import('../../../src/shared/markdown/markdown.js');
 
 function stateFor(doc, { readOnly = false } = {}) {
   const state = EditorState.create({
@@ -132,5 +139,108 @@ describe('Nummerierungs-Invariante (4T-000655)', () => {
     const state = stateFor('5. A\n6. B\n\n1. C\n2. D\n');
     const tr = removeBlankLine(state, 3);
     expect(tr.state.doc.toString()).toBe('5. A\n6. B\n7. C\n8. D\n');
+  });
+});
+
+// 4T-002343 (Epic 3E-000365, Story 4S-001099, AK2 bis AK5): Eine Leerzeile in
+// einem eingerückten Code-Block eines nummerierten Punkts ist keine Grenze der
+// Liste. Gemessen am Tastendruck einer echten Editor-Ansicht (Bauart
+// listen-zeilenumbruch.test.js), mit und ohne «Listen-Struktur»; der Editor
+// wird beschreibbar geöffnet, sonst bliebe jeder Tastendruck wirkungslos. Der
+// Gleichlauf mit der Anzeige wird an der Render-Pipeline geprüft: Jeder
+// nummerierte Punkt zeigt dort dieselbe Nummer wie im Quelltext.
+describe('Code-Block mit Leerzeile in einer nummerierten Liste (4T-002343)', () => {
+  const offen = [];
+  afterEach(() => {
+    while (offen.length) offen.pop().destroy();
+  });
+
+  async function ansicht(doc, marke, { listenStruktur }) {
+    lebenszyklus.resetExtensionStateForTests();
+    await lebenszyklus.applyExtensionsState(listenStruktur ? [] : ['outliner'], { persist: false });
+    const view = new EditorView({
+      state: createEditorState({ content: doc, readOnly: false }),
+      parent: document.body,
+    });
+    offen.push(view);
+    view.dispatch({ selection: { anchor: view.state.doc.line(marke[0]).from + marke[1] } });
+    ensureSyntaxTree(view.state, view.state.doc.length, 5000);
+    return view;
+  }
+
+  function taste(view, shift = false) {
+    const event = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: shift, bubbles: true });
+    return runScopeHandlers(view, event, 'editor');
+  }
+
+  // Angezeigte Nummer je nummeriertem Punkt der Anzeige neben der Nummer im
+  // Quelltext derselben Zeile (Zeilen-Zuordnung über data-source-line).
+  function nummernVergleich(quelltext) {
+    const zeilen = quelltext.split('\n');
+    const dom = new DOMParser().parseFromString(renderMarkdown(quelltext, 'de'), 'text/html');
+    const paare = [];
+    for (const ol of dom.querySelectorAll('ol')) {
+      let nummer = (ol.hasAttribute('start') ? Number(ol.getAttribute('start')) : 1) - 1;
+      for (const li of ol.children) {
+        nummer = li.hasAttribute('value') ? Number(li.getAttribute('value')) : nummer + 1;
+        const zeile = zeilen[Number(li.getAttribute('data-source-line')) - 1];
+        paare.push({ anzeige: nummer, quelltext: parseInt(zeile.trim(), 10) });
+      }
+    }
+    return paare;
+  }
+
+  const block = (einzug, zeilen) => zeilen.map((z) => (z ? einzug + z : z)).join('\n');
+
+  for (const listenStruktur of [true, false]) {
+    const art = listenStruktur ? 'mit' : 'ohne';
+    for (const zaun of ['```', '~~~']) {
+      it(`${art} «Listen-Struktur», Zaun «${zaun}»: nach Tab auf «2. B» heißt die letzte Zeile «2. C», Umschalt+Tab stellt alles her`, async () => {
+        const inhalt = [zaun, 'eins', '', '', 'zwei', zaun];
+        const doc = `1. A\n2. B\n${block('   ', inhalt)}\n3. C`;
+        const view = await ansicht(doc, [2, 4], { listenStruktur });
+        expect(taste(view)).toBe(true);
+        const nachTab = view.state.doc.toString();
+        expect(nachTab).toBe(`1. A\n   1. B\n${block('      ', inhalt)}\n2. C`);
+        for (const paar of nummernVergleich(nachTab)) expect(paar.anzeige).toBe(paar.quelltext);
+        expect(taste(view, true)).toBe(true);
+        expect(view.state.doc.toString()).toBe(doc);
+        for (const paar of nummernVergleich(doc)) expect(paar.anzeige).toBe(paar.quelltext);
+      });
+    }
+
+    it(`${art} «Listen-Struktur»: Zeilen im Block, die wie nummerierte Punkte aussehen, bleiben unberührt`, async () => {
+      const inhalt = ['```', '5. kein Punkt', '', '9. auch keiner', '```'];
+      const doc = `1. A\n2. B\n${block('   ', inhalt)}\n3. C`;
+      const view = await ansicht(doc, [2, 4], { listenStruktur });
+      expect(taste(view)).toBe(true);
+      expect(view.state.doc.toString()).toBe(`1. A\n   1. B\n${block('      ', inhalt)}\n2. C`);
+    });
+
+    it(`${art} «Listen-Struktur»: eine Leerzeile außerhalb des Blocks trennt weiter (AK4)`, async () => {
+      const doc = `1. A\n2. B\n${block('   ', ['```', 'x', '```'])}\n\n1. C\n2. D`;
+      const view = await ansicht(doc, [2, 4], { listenStruktur });
+      expect(taste(view)).toBe(true);
+      const nachTab = view.state.doc.toString();
+      expect(nachTab).toBe(`1. A\n   1. B\n${block('      ', ['```', 'x', '```'])}\n\n1. C\n2. D`);
+      for (const paar of nummernVergleich(nachTab)) expect(paar.anzeige).toBe(paar.quelltext);
+    });
+  }
+
+  // Gegenprobe des Vergleichs: Der Quelltext, den die Nummerierung vor
+  // 4T-002343 hinterließ, zeigt im Quelltext «3.», in der Anzeige 2.
+  it('der Vergleich mit der Anzeige erkennt den früheren Fehl-Stand (Nicht-Vakuität)', () => {
+    const alt = `1. A\n   1. B\n${block('      ', ['```', 'eins', '', 'zwei', '```'])}\n3. C`;
+    expect(nummernVergleich(alt)).toContainEqual({ anzeige: 2, quelltext: 3 });
+  });
+
+  it('eine im Block geleerte Zeile beginnt keine neue Liste dahinter', () => {
+    const state = stateFor('1. A\n2. B\n   ```\n   eins\n   zwei\n   ```\n3. C\n4. D\n');
+    const zeile = state.doc.line(4);
+    const tr = state.update({
+      changes: { from: zeile.from, to: zeile.to },
+      userEvent: 'delete.backward',
+    });
+    expect(tr.state.doc.toString()).toBe('1. A\n2. B\n   ```\n\n   zwei\n   ```\n3. C\n4. D\n');
   });
 });

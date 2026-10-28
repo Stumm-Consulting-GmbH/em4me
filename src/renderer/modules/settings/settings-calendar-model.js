@@ -7,6 +7,7 @@
 
 import {
   STANDARD_CALENDAR_ID,
+  calendarStartPoint,
   normalizeCalendarConfig,
   standardCalendar,
 } from '../../../shared/calendar/calendar-config.js';
@@ -31,6 +32,19 @@ export function dirtyCalendarSection(draft) {
 // Journale); Text-/Zahlen-Eingaben aktualisieren nur Hinweis und Vorschau.
 // Validierung läuft ausschließlich über die Kern-Normalisierung: weich im
 // Entwurf (Hinweis-Zeile pro Kalender), hart beim Anwenden (validate).
+
+// 4T-002363 (Epic 3E-000333): Beziehungs-Arten der Jahres-Struktur — yearly an
+// der obersten Ebene, byYear an der Monats-Ebene darunter. Eine Ebene mit einer
+// von ihnen ist in der Pflege schreibgeschützt.
+export function calSysIsYearlyType(relType) {
+  return relType === 'yearly' || relType === 'byYear';
+}
+
+// Trägt der Entwurf eine Jahres-Struktur (oberste Ebene mit yearly)?
+export function calSysHasYearly(calDraft) {
+  const levels = (calDraft && !calDraft.derived && calDraft.levels) || [];
+  return levels.length > 0 && levels[levels.length - 1].relType === 'yearly';
+}
 
 // Zahlen-Eingabe streng parsen (ganze Zahl, auch negativ); null = ungültig.
 // 4T-002098 (Epic 3E-000323): Die Grenze ist dieselbe wie im Kern, der jede
@@ -305,6 +319,9 @@ export function calendarToDraft(cal) {
       // 4T-002204: Namen der Positionen jenseits der Tabellen-Zeilen, ohne
       // eigenes Feld und deshalb unverändert durchgetragen ({ from, names }).
       beyondNames: null,
+      // 4T-002363 (Epic 3E-000333): Beziehung einer Jahres-Struktur (yearly am
+      // Jahr, byYear am Monat) — ohne Eingabe-Feld, wörtlich durchgetragen.
+      yearlyRel: calSysIsYearlyType(level.rel && level.rel.type) ? { ...level.rel } : null,
     };
     if (level.rel && level.rel.type === 'factor') draft.factorCount = String(level.rel.count);
     if (level.rel && level.rel.type === 'lengths') {
@@ -376,10 +393,15 @@ export function calendarToDraft(cal) {
     // 4T-001999 (Epic 3E-000307): Kennzeichen «Epochen-Kürzel immer
     // schreiben» im Entwurf immer als Wahrheitswert (Kontrollkästchen).
     alwaysWriteEpoch: cal.alwaysWriteEpoch === true,
-    anchorSegs: cal.blockAnchor.map(String),
+    // 4T-002363 (Epic 3E-000333): Einer Zeitrechnung mit Jahres-Struktur kann
+    // das Anker-Datum fehlen; das Feld bleibt dann leer, und beim Zurückschreiben
+    // entsteht kein Anker (Rundlauf). Die Vorschau steht auf dem Startpunkt.
+    anchorSegs: Array.isArray(cal.blockAnchor)
+      ? cal.blockAnchor.map(String)
+      : cal.levels.map(() => ''),
     scaleNum: String(cal.blockScale.num),
     scaleDen: String(cal.blockScale.den),
-    previewInput: formatTuple(cal, cal.blockAnchor) || '',
+    previewInput: formatTuple(cal, calendarStartPoint(cal)) || '',
   };
 }
 
@@ -452,6 +474,9 @@ export function calendarPersistForm(calDraft) {
       out.rel = { type: 'factor', count: calSysInt(level.factorCount) };
     } else if (level.relType === 'lengths') {
       out.rel = { type: 'lengths', table: level.table.map((row) => calSysInt(row.length)) };
+    } else if (calSysIsYearlyType(level.relType) && level.yearlyRel) {
+      // 4T-002363: Die Beziehung der Jahres-Struktur geht wörtlich zurück.
+      out.rel = { ...level.yearlyRel };
     } else if (level.relType === 'leap') {
       // 4T-002204 (Epic 3E-000338): über einer Längen-Tabelle Durchläufe mal
       // Zeilen, sonst die eingegebene Zahl.
@@ -605,6 +630,17 @@ export function calSysAxisUnsetPeer(block, calDraft) {
     empty(calDraft.scaleDen);
   const peer = unset ? block.calendars.find((c) => c !== calDraft) : null;
   return peer ? String(peer.name || '').trim() || t('settings.calendar.calUntitled') : null;
+}
+
+// 4T-002363: Startpunkt eines Entwurfs mit Jahres-Struktur ohne Anker — der
+// erste bekannte Tag als benannter Wert (Hinweis unter dem Feld «Anker»); null,
+// wenn ein Anker eingetragen ist, ohne Jahres-Struktur oder bei ungültigem Entwurf.
+export function calSysStartPointText(calDraft, block) {
+  const empty = (v) => String(v == null ? '' : v).trim() === '';
+  if (!calSysHasYearly(calDraft) || !(calDraft.anchorSegs || []).every(empty)) return null;
+  const normalized = calSysNormalizedDraft(calDraft, block);
+  const start = normalized ? calendarStartPoint(normalized) : null;
+  return start ? formatTuple(normalized, start, { named: true }) || null : null;
 }
 
 export async function readCalendarFromConfig() {

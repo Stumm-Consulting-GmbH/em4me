@@ -12,7 +12,8 @@
 // Bereich.
 //
 // Kontext-Ausschnitt: Der Kern arbeitet auf einem Zeilen-Array. Übergeben
-// wird der umgebende Listen-Block (Grenze ist die Leerzeile) plus je eine
+// wird der umgebende Listen-Block (Grenze ist die Leerzeile außerhalb eines
+// Code-Blocks, 4T-002343) plus je eine
 // Zeile Puffer. Der Puffer ist nötig, damit ein markierter Bereich über die
 // Blockgrenze hinaus wandern kann; der Block selbst muss vollständig
 // enthalten sein, weil die Neu-Nummerierung sonst die Startnummer der Liste
@@ -35,6 +36,8 @@ import {
   parseListItemHead,
   renumberOrdered,
   carryContinuation,
+  fencedLines,
+  fencedLineLookup,
 } from '../../../shared/markdown/list-outline.js';
 // 4T-001002 (Epic 3E-000196): der Code-Block-Test lag seit dem Schnitt in
 // editor-keymaps.js; seit 4T-001716 liegt er im Blatt-Modul editor-code-zeile.js.
@@ -172,11 +175,17 @@ const RENUMBER_USER_EVENTS = ['input', 'delete', 'move'];
 // Anzeige dasselbe zeigt, setzt die Render-Pipeline die Nummer am ersten
 // Punkt nach einer Leerzeile zurück (4T-000660) — seit 4T-002209 wie dieser
 // Filter in jedem Arbeitsmodus, weil beide dieselbe Grenze voraussetzen.
+// 4T-002343 (Epic 3E-000365): Eine Leerzeile in einem eingezäunten Code-Block
+// unter einem Listenpunkt ist keine Grenze; die Zaun-Zustände kommen aus dem
+// Struktur-Kern (list-fence.js), damit Nummerierung und Teilbaum-Mitnahme
+// dieselbe Grenze ziehen. Gefragt wird nur an Leerzeilen.
 function blockBounds(doc, lineNumber) {
+  const inFence = fencedLineLookup((n) => doc.line(n).text, 1, doc.lines);
+  const separates = (n) => doc.line(n).text.trim() === '' && !inFence(n);
   let first = lineNumber;
-  while (first > 1 && doc.line(first - 1).text.trim() !== '') first--;
+  while (first > 1 && !separates(first - 1)) first--;
   let last = lineNumber;
-  while (last < doc.lines && doc.line(last + 1).text.trim() !== '') last++;
+  while (last < doc.lines && !separates(last + 1)) last++;
   return { first, last };
 }
 
@@ -332,10 +341,12 @@ export function listRenumberFilter(tr) {
       const carried = carryEditedNumbers(tr, back, doc, bounds.first, lines, opts.isCode, changedB);
       // Ist in diesem Bereich eben erst eine Zeile leer geworden, trennt sie
       // die Liste neu: Der Teil davor behält seine Zählung, der Teil dahinter
-      // ist eine frische Liste und beginnt wieder bei 1.
+      // ist eine frische Liste und beginnt wieder bei 1. 4T-002343: nicht in
+      // einem Code-Block, dort trennt eine Leerzeile nicht.
+      const fenced = fencedLines(lines);
       let split = -1;
       for (let i = 0; i < lines.length && split < 0; i++) {
-        if (becameBlank(tr, back, doc, bounds.first + i)) split = i;
+        if (!fenced[i] && becameBlank(tr, back, doc, bounds.first + i)) split = i;
       }
       let next;
       if (split >= 0) {

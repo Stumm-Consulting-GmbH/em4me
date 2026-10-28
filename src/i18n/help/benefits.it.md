@@ -202,7 +202,7 @@ Oltre ai quattro grandi costrutti, il linguaggio porta più di cinquanta estensi
 - **Presentazione** con formule, diagrammi e codice evidenziato; nell'esportazione portatile un diagramma viaggia come immagine finita ed è visibile anche dove EM4me non è installato.
 - **Rimandi all'interno del testo** tramite ancore, incorporamenti ed etichette.
 - **Giornata di lavoro** con attività, promemoria, appuntamenti, modelli e diari.
-- **Date in altri calendari**: nove calendari forniti, dal giuliano al giapponese passando per l'Hijri, oltre a cronologie proprie liberamente definibili; le date dello stesso blocco si convertono l'una nell'altra.
+- **Date in altri calendari**: tredici calendari forniti, dal giuliano al giapponese passando per l'Hijri, l'ebraico e il cinese, oltre a cronologie proprie liberamente definibili; le date dello stesso blocco si convertono l'una nell'altra.
 - **Attivabili una per una** o raggruppate in tre modalità di lavoro, oltre a combinazioni personali, e aperto a estensioni proprie tramite un'interfaccia documentata.
 
 In dettaglio: [Funzionalità](functions.md), [Estensioni](extensions.md), [Creare estensioni](extensions-dev.md).

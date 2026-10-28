@@ -23,6 +23,7 @@ import {
   calSysBaseDateLevels,
   calSysDateLevels,
   calSysDerivedProbe,
+  calSysHasYearly,
   calSysIdFromName,
   calSysInt,
   calSysSyncSegs,
@@ -130,6 +131,9 @@ export function buildDerivedCalendarEditor(container, block, calDraft, calIdx) {
 
   // Bezugs-Auswahl: eigenständige Kalender des Blocks plus die eingebaute
   // Standard-Zeitrechnung. Ableitungen stehen nicht zur Wahl (keine Ketten).
+  // 4T-002363 (Epic 3E-000333, B4): ebenso wenig eine Zeitrechnung mit
+  // Jahres-Struktur; der Hinweis darunter nennt sie und sagt, warum.
+  const yearlyNames = [];
   const baseSelect = document.createElement('select');
   baseSelect.id = `settings-calsys-derived-base-${calIdx}`;
   baseSelect.className = 'settings-select';
@@ -143,6 +147,10 @@ export function buildDerivedCalendarEditor(container, block, calDraft, calIdx) {
   addOption(STANDARD_CALENDAR_ID, t('settings.calendar.derivedBaseStandard'));
   block.calendars.forEach((other) => {
     if (other.derived || other === calDraft) return;
+    if (calSysHasYearly(other)) {
+      yearlyNames.push(String(other.name || '').trim() || t('settings.calendar.calUntitled'));
+      return;
+    }
     // Ein noch nicht angewendeter Kalender bekommt seine Kennung jetzt,
     // damit der Verweis stabil bleibt (beim Anwenden bleibt sie stehen).
     if (!String(other.id || '').trim()) {
@@ -163,6 +171,16 @@ export function buildDerivedCalendarEditor(container, block, calDraft, calIdx) {
     renderActiveSection();
   });
   group.appendChild(buildSettingsRow('settings.calendar.derivedBase', baseSelect));
+  if (yearlyNames.length > 0) {
+    const yearlyHint = document.createElement('p');
+    yearlyHint.className = 'settings-row-hint';
+    yearlyHint.id = `settings-calsys-derived-yearly-${calIdx}`;
+    yearlyHint.textContent = t('settings.calendar.derivedBaseYearlyHint').replace(
+      '{names}',
+      yearlyNames.join(', '),
+    );
+    group.appendChild(yearlyHint);
+  }
 
   // Nullpunkt in der Notation des Bezugs (volle Tages-Grenze).
   const baseLevels = calSysBaseDateLevels(block, calDraft.derived.fromId);

@@ -43,6 +43,9 @@ import {
   parseCanonical,
 } from '../../../shared/calendar/calendar-core.js';
 import { blockEquivalents, EQUIVALENT_UNKNOWN } from '../../../shared/calendar/calendar-convert.js';
+// 4T-002363 (Epic 3E-000333): Startpunkt einer Zeitrechnung — das Anker-Datum,
+// sonst (Jahres-Struktur ohne Anker-Datum) der erste Tag des Zeitraums.
+import { calendarStartPoint } from '../../../shared/calendar/calendar-config.js';
 import { api } from '../app/api.js';
 // Schreibweg und Dokument-Form eines Kalender-Datums kommen von der
 // Eingabe-Hilfe, damit «Einfügen» hier dasselbe schreibt wie dort.
@@ -240,19 +243,19 @@ function labelledRow(labelKey, id, ...controls) {
 }
 
 // Ausgangslage: Vorbelegung aus Name und Wert, sonst erster Block mit
-// Zeitrechnung, dessen erste Zeitrechnung und ihr Anker-Zeitpunkt.
+// Zeitrechnung, dessen erste Zeitrechnung und ihr Startpunkt.
 function initialState(blocks, config, calendarName, value) {
   const found = calendarName ? findCalendarByName(config, calendarName) : null;
   if (found) {
     const text =
       typeof value === 'string' && value.trim() !== ''
         ? value.trim()
-        : formatTuple(found.calendar, found.calendar.blockAnchor) || '';
+        : formatTuple(found.calendar, calendarStartPoint(found.calendar)) || '';
     return { block: found.block, calendar: found.calendar, text };
   }
   const block = blocks[0];
   const calendar = block.calendars[0];
-  return { block, calendar, text: formatTuple(calendar, calendar.blockAnchor) || '' };
+  return { block, calendar, text: formatTuple(calendar, calendarStartPoint(calendar)) || '' };
 }
 
 // Ein geöffneter Dialog zur Zeit; ein zweiter Aufruf schließt den ersten.
@@ -350,11 +353,12 @@ export function showCalendarConvertDialog(options = {}) {
   modal.append(backdrop, content);
 
   // Zeitrechnung wechseln und den Zeitpunkt in ihr ausdrücken; ohne
-  // Ergebnis (ungültiges Datum oder nicht darstellbar) ihr Anker.
+  // Ergebnis (ungültiges Datum, nicht darstellbar oder nicht bekannt) ihr
+  // Startpunkt.
   const switchCalendar = (next) => {
     const parsed = parseCanonical(state.calendar, dateInput.value);
     const converted = parsed.ok ? convertBetween(state.calendar, parsed.tuple, next) : null;
-    const tuple = converted && converted.ok ? converted.tuple : next.blockAnchor;
+    const tuple = converted && converted.ok ? converted.tuple : calendarStartPoint(next);
     state.calendar = next;
     dateInput.value = formatTuple(next, tuple) || '';
   };
@@ -398,7 +402,14 @@ export function showCalendarConvertDialog(options = {}) {
       ? blockEquivalents(state.block, state.calendar.id, parsed.tuple)
       : null;
     const valid = !!(result && result.ok);
-    invalid.textContent = valid ? '' : t('calendarConvert.invalid');
+    // 4T-002363: Ein Wert außerhalb des Zeitraums ist nicht ungültig, sondern
+    // «nicht bekannt» (Code unknown aus Lesen oder Gültigkeits-Prüfung).
+    const unknown = (parsed.ok ? result && result.code : parsed.code) === EQUIVALENT_UNKNOWN;
+    invalid.textContent = valid
+      ? ''
+      : unknown
+        ? t('calendarConvert.unknown').replace('{name}', state.calendar.name)
+        : t('calendarConvert.invalid');
     invalid.hidden = valid;
     // Ohne gültiges Datum gibt es nichts, was «entspricht».
     listHead.hidden = !valid;
@@ -452,7 +463,7 @@ export function showCalendarConvertDialog(options = {}) {
     state.block = next;
     state.calendar = next.calendars[0];
     fillSelect(calendarSelect, next.calendars, state.calendar.id);
-    dateInput.value = formatTuple(state.calendar, state.calendar.blockAnchor) || '';
+    dateInput.value = formatTuple(state.calendar, calendarStartPoint(state.calendar)) || '';
     refresh();
   });
   calendarSelect.addEventListener('change', () => {

@@ -202,7 +202,7 @@ Au-delà des quatre grandes constructions, le langage apporte plus de cinquante 
 - **Présentation** avec formules, diagrammes et code mis en évidence ; lors d'un export portable, un diagramme voyage sous forme d'image finie et reste visible là où EM4me n'est pas installé.
 - **Renvois à l'intérieur du texte** par ancres, inclusions et mots-clés.
 - **Journée de travail** avec tâches, rappels, rendez-vous, modèles et journaux.
-- **Dates dans d'autres calendriers** : neuf calendriers fournis, du julien au japonais en passant par l'hégirien, ainsi que des chronologies propres librement définissables ; les dates d'un même bloc se convertissent les unes dans les autres.
+- **Dates dans d'autres calendriers** : treize calendriers fournis, du julien au japonais en passant par l'hégirien, l'hébraïque et le chinois, ainsi que des chronologies propres librement définissables ; les dates d'un même bloc se convertissent les unes dans les autres.
 - **Activables une par une** ou regroupées en trois modes de travail, avec en plus des combinaisons à vous, et ouvert à vos propres extensions via une interface documentée.
 
 En détail : [Fonctionnalités](functions.md), [Extensions](extensions.md), [Créer des extensions](extensions-dev.md).

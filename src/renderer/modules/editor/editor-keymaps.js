@@ -29,7 +29,9 @@ import {
 // 4T-000599 (Epic 3E-000112): Struktur-Kern der Listen-Bearbeitung plus sein
 // Laufzeit-Backend (Nutzung nur in Funktionskörpern).
 import { LIST_INDENT_STEP, LIST_LINE_RE } from '../../../shared/markdown/list-outline.js';
-import { schliesstZaun, zaunOeffnung } from '../../../shared/markdown/fence-level.js';
+// 4T-002343: Zaun-Zustände der Listen-Bearbeitung, dieselben Rand-Regeln wie im
+// Struktur-Kern und in der selbsttätigen Nummerierung.
+import { blockEnde, oeffnenderZaun } from '../../../shared/markdown/list-fence.js';
 import {
   runListExit,
   runListIndentSubtree,
@@ -199,7 +201,7 @@ function carryContinuationLines(state, itemLine, shift, changes, seenLines) {
     const leading = leadingWidth(line.text);
     if (leading === 0 || lineInsideCodeBlock(state, line)) return;
     carry(line, leading);
-    const fence = openingFence(line.text);
+    const fence = oeffnenderZaun(line.text);
     if (fence) {
       n = carryFencedBody(state, n, fence, carry, seenLines);
       if (n < 0) return;
@@ -211,40 +213,6 @@ function leadingWidth(text) {
   return /^[ \t]*/.exec(text)[0].length;
 }
 
-// 4T-002326: Zaun-Zeile nach der Zaun-Regel aus fence-level.js, gelesen am
-// Text hinter der Einrückung der Folgezeile: Die Regel erlaubt auf der
-// obersten Ebene bis drei Leerzeichen, in einem Listenpunkt zählt die
-// Einrückung zum Punkt und nicht zum Zaun. Die Einrückung bleibt am Zaun
-// vermerkt, damit die Suche nach dem Schluss einen Listenpunkt links davon
-// erkennt.
-function openingFence(text) {
-  const indent = leadingWidth(text);
-  const oeffnung = zaunOeffnung(text.slice(indent));
-  return oeffnung ? { oeffnung, indent } : null;
-}
-
-// 4T-002326: schließende Zaun-Zeile nach derselben Regel, ebenfalls hinter der
-// Einrückung gelesen.
-function closesFence(text, fence) {
-  return schliesstZaun(text.slice(leadingWidth(text)), fence.oeffnung);
-}
-
-// 4T-002326: Zeile der schließenden Zaun-Zeile oder null. Die Suche endet an
-// einer Zeile ohne Einrückung und an einem Listenpunkt links der Zaun-Zeile,
-// weil beide den Listenpunkt und damit den Block beenden; eine Zaun-Zeile
-// dahinter gehört zu einem anderen Block. Ohne schließende Zaun-Zeile gilt der
-// Block als nicht geschlossen.
-function closingFenceLine(state, open, fence) {
-  for (let n = open + 1; n <= state.doc.lines; n++) {
-    const text = state.doc.line(n).text;
-    if (closesFence(text, fence)) return n;
-    if (text.trim() === '') continue;
-    const leading = leadingWidth(text);
-    if (leading === 0 || (leading < fence.indent && parseListItemHead(text))) return null;
-  }
-  return null;
-}
-
 // 4T-002326: nimmt den Inhalt des Blocks hinter der Zaun-Zeile `open` mit.
 // Inhalts-Zeilen folgen der Strecke wie jede Folgezeile, Leerzeilen bleiben
 // unverändert. Rückgabe: die letzte Zeile des Blocks, an der die Mitnahme
@@ -252,21 +220,22 @@ function closingFenceLine(state, open, fence) {
 // Block ohne schließende Zaun-Zeile endet am Dokument-Ende oder an der Zeile,
 // an der die Mitnahme nach den bisherigen Regeln endet (Leerzeile, nächster
 // Listenpunkt, Zeile ohne Einrückung); die Code-Sperre gilt in ihm nicht.
+// 4T-002343: Zaun-Zeile, Schluss und Ende eines Blocks ohne Schluss kommen aus
+// list-fence.js (`oeffnenderZaun`, `blockEnde`), damit die Rand-Regeln nur
+// dort stehen; das Verhalten ist unverändert.
 function carryFencedBody(state, open, fence, carry, seenLines) {
-  const close = closingFenceLine(state, open, fence);
-  for (let n = open + 1; n <= state.doc.lines; n++) {
+  const textAt = (n) => state.doc.line(n).text;
+  const ende = blockEnde(textAt, open, state.doc.lines, fence, parseListItemHead);
+  const letzte = ende.schluss >= 0 ? ende.schluss : ende.weiter - 1;
+  for (let n = open + 1; n <= letzte; n++) {
     const line = state.doc.line(n);
-    const leading = leadingWidth(line.text);
     if (line.text.trim() === '') {
-      if (close === null) return -1;
       seenLines.add(n);
       continue;
     }
-    if (close === null && (leading === 0 || parseListItemHead(line.text))) return -1;
-    carry(line, leading);
-    if (n === close) return n;
+    carry(line, leadingWidth(line.text));
   }
-  return -1;
+  return ende.schluss;
 }
 
 // 4T-002302 (Epic 3E-000334, A9): nächster vorangehender Listenpunkt, dessen

@@ -527,9 +527,9 @@ describe('Code-Block eines Listenpunkts beim zeilenweisen Einrücken (4T-002326)
     });
   }
 
-  // Ohne Leerzeile im Block: Eine Leerzeile trennt für die selbsttätige
-  // Nummerierung zwei Listen, auch im Code-Block (Beobachtung im Task); der
-  // Fall prüft allein die Mitnahme an der Inhalts-Spalte.
+  // Ohne Leerzeile im Block: Der Fall prüft allein die Mitnahme an der
+  // Inhalts-Spalte. Den Block mit Leerzeile in einer nummerierten Liste prüft
+  // seit 4T-002343 listen-nummerierung.test.js.
   it('nummerierter Punkt: Tab und Umschalt+Tab, der Block folgt der Inhalts-Spalte hin und zurück', () => {
     const doc = '1. A\n2. B\n   ```\n   eins\n   zwei\n   ```\n3. C';
     const view = ansicht(doc, { marke: [2, 4] });
@@ -588,19 +588,52 @@ describe('Code-Block eines Listenpunkts beim zeilenweisen Einrücken (4T-002326)
 });
 
 // Nicht-Vakuitäts-Probe: Mit der Erweiterung trägt die Teilbaum-Mitnahme des
-// Struktur-Kerns, nicht das zeilenweise Einrücken; ihr Ergebnis ist vor und
-// nach 4T-002326 dasselbe. Der Fall hält den Bestand dieses Wegs fest, auch
-// seine Grenze: Der Struktur-Kern beendet den Teilbaum an der Leerzeile im
-// Code-Block, Inhalt danach und schließende Zaun-Zeile bleiben beim Einrücken
-// stehen (Beobachtung im Task 4T-002326, nicht Gegenstand der Behebung).
-// Ändert eine künftige Behebung diesen Weg, wird der Fall mitgezogen.
-describe('Code-Block eines Listenpunkts mit «Listen-Struktur» bleibt wie zuvor (4T-002326)', () => {
-  it('der Teilbaum rückt über den Struktur-Kern ein und aus, unverändert zum Bestand', () => {
+// Struktur-Kerns, nicht das zeilenweise Einrücken. Bis 4T-002343 hielt der
+// Fall die Grenze dieses Wegs fest: Der Struktur-Kern beendete den Teilbaum
+// an der Leerzeile im Code-Block, Inhalt danach und schließende Zaun-Zeile
+// blieben stehen. Seit 4T-002343 (Story 4S-001099, AK1) wandert der Block als
+// Ganzes, wie ohne die Erweiterung; die Leerzeile bleibt leer.
+describe('Code-Block eines Listenpunkts mit «Listen-Struktur» (4T-002326, 4T-002343)', () => {
+  it('der Teilbaum rückt über den Struktur-Kern samt ganzem Block ein und aus', () => {
     const doc = '- A\n- B\n  ```\n  eins\n\n  zwei\n  ```\n- C';
     const view = ansicht(doc, { marke: [2, 3] });
     expect(taste(view, 'Tab')).toBe(true);
-    expect(text(view)).toBe('- A\n  - B\n    ```\n    eins\n\n  zwei\n  ```\n- C');
+    expect(text(view)).toBe('- A\n  - B\n    ```\n    eins\n\n    zwei\n    ```\n- C');
     expect(taste(view, 'Tab', { shift: true })).toBe(true);
     expect(text(view)).toBe(doc);
+  });
+});
+
+// 4T-002343 (Epic 3E-000365, Story 4S-001099, AK1 und AK3): Ränder der
+// Teilbaum-Mitnahme mit «Listen-Struktur» an einem Code-Block mit Leerzeilen.
+// Die Zaun-Zustände liest der Struktur-Kern aus src/shared/markdown/
+// list-fence.js; eine Leerzeile außerhalb eines Blocks trennt weiter.
+describe('Code-Block mit Leerzeile beim Einrücken samt Teilbaum (4T-002343)', () => {
+  const block = (einzug, zeilen) => zeilen.map((z) => (z ? einzug + z : z)).join('\n');
+  const inhalt = (zaun) => [`${zaun}js`, 'eins', '', '', '- im Code', 'zwei', zaun, 'danach'];
+
+  for (const zaun of ['```', '~~~']) {
+    it(`Tab und Umschalt+Tab, Zaun «${zaun}»: zwei Leerzeilen, Listen-Zeichen im Code, Folgezeile danach`, () => {
+      const doc = `- A\n- B\n${block('  ', inhalt(zaun))}\n- C`;
+      const view = ansicht(doc, { marke: [2, 3] });
+      expect(taste(view, 'Tab')).toBe(true);
+      expect(text(view)).toBe(`- A\n  - B\n${block('    ', inhalt(zaun))}\n- C`);
+      expect(taste(view, 'Tab', { shift: true })).toBe(true);
+      expect(text(view)).toBe(doc);
+    });
+  }
+
+  it('Umschalt+Tab vom eingerückten Punkt nimmt den ganzen Block mit', () => {
+    const doc = '- A\n  - B\n    ```\n    eins\n\n    zwei\n    ```\n- C';
+    const view = ansicht(doc, { marke: [2, 5] });
+    expect(taste(view, 'Tab', { shift: true })).toBe(true);
+    expect(text(view)).toBe('- A\n- B\n  ```\n  eins\n\n  zwei\n  ```\n- C');
+  });
+
+  it('Leerzeile außerhalb des Blocks: der Teilbaum endet dort wie bisher (Schutz-Fall)', () => {
+    const doc = '- A\n- B\n  ```\n  eins\n  ```\n\n  fern\n- C';
+    const view = ansicht(doc, { marke: [2, 3] });
+    expect(taste(view, 'Tab')).toBe(true);
+    expect(text(view)).toBe('- A\n  - B\n    ```\n    eins\n    ```\n\n  fern\n- C');
   });
 });

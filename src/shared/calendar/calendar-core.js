@@ -56,7 +56,10 @@
 //                       „Kürzel nur außerhalb der letzten Epoche"; eine
 //                       abgeleitete Zeitrechnung trägt es nie.
 //         blockAnchor Kalender-Zeitpunkt (volles Tupel), der auf Block-Achse 0
-//                       liegt (Default: Jahr 0, alle Segmente minimal)
+//                       liegt (Default: Jahr 0, alle Segmente minimal); fehlt
+//                       bei einer Zeitrechnung mit Jahres-Struktur ohne
+//                       Anker-Datum (4T-002363: Bezugspunkt ist dann der
+//                       Ursprung ihrer eigenen Achse, anchorAxisOf)
 //         blockScale  { num, den } — Dauer der kleinsten Einheit in Block-
 //                       Achsen-Einheiten (Default 1/1); affine Abbildung
 //                       Kalender-Achse → Block-Achse (Anker plus Skala)
@@ -97,13 +100,19 @@
 // Die Arithmetik-Funktionen erwarten normalisierte Kalender-Objekte.
 //
 // Fehler-Codes: validateTuple → segmentCount | segmentType | segmentRange |
-// epochUnknown | epochMismatch | calendar; parseCanonical zusätzlich
+// epochUnknown | epochMismatch | calendar | unknown (4T-002363: Jahr außerhalb
+// des Geltungs-Zeitraums einer Tafel, «nicht bekannt»); parseCanonical zusätzlich
 // malformed | yearZero; convertInBlock zusätzlich unknownCalendar | outOfRange.
 'use strict';
 
 // 4T-002001 (Epic 3E-000307): Schalt-Regel (Teilbarkeits-Kette oder Muster)
 // in einem eigenen Blatt-Modul; es lädt nichts aus diesem Ordner.
 const { normalizeLeapRule, leapRuleInfo, isLeapYear, leapsBefore } = require('./calendar-leap.js');
+// 4T-002363 (Epic 3E-000333): Jahres-Struktur je Jahr (Regel oder Tafel) als
+// Blatt-Modul; der Kern trägt an den Fundstellen nur die Weichen dorthin.
+const yearlyApi = require('./calendar-yearly.js');
+// 4T-002363: Wert-Syntax im Dokument als eigene Fachlichkeit (weitergereicht).
+const { parseCalendarValueRaw, findCalendarValues } = require('./calendar-value-syntax.js');
 
 const MAX_SAFE = Number.MAX_SAFE_INTEGER;
 
@@ -155,6 +164,7 @@ function readDigits(text) {
 
 function normalizeRel(raw) {
   if (!raw || typeof raw !== 'object') return null;
+  if (raw.type === 'yearly' || raw.type === 'byYear') return yearlyApi.normalizeYearlyRel(raw);
   if (raw.type === 'factor') {
     return isPosInt(raw.count) ? { type: 'factor', count: raw.count } : null;
   }
@@ -205,6 +215,7 @@ function normalizeNames(raw, count = null) {
 // Längen-Tabelle und eine Ebene, deren Einheit eine Schalt-Verlängerung trägt
 // (Enkel der Schalt-Ebene, Muster positionCount).
 function levelPositionCount(levels, i) {
+  if (yearlyApi.hasYearly(levels)) return yearlyApi.yearlyPositionCount(levels, i);
   const parent = levels[i + 1];
   if (!parent || !parent.rel || parent.rel.type === 'lengths') return null;
   const grand = levels[i + 2];
@@ -252,6 +263,7 @@ function normalizeLevels(raw) {
       rel,
     });
   }
+  if (!yearlyApi.checkYearlyLevels(levels)) return null;
   const top = levels.length - 1;
   let iLen = -1;
   let iLeap = -1;
@@ -301,13 +313,15 @@ function compileSafe(cal) {
   if (c) return c;
   const levels = cal.levels;
   const top = levels.length - 1;
+  const yearly = yearlyApi.compileYearly(levels);
+  if (yearly === null) return null;
   let iLen = -1;
   let iLeap = -1;
   for (let i = 1; i <= top; i++) {
     if (levels[i].rel.type === 'lengths') iLen = i;
     else if (levels[i].rel.type === 'leap') iLeap = i;
   }
-  const iIrrFirst = iLen >= 0 ? iLen : iLeap >= 0 ? iLeap : levels.length;
+  const iIrrFirst = yearly ? top - 1 : iLen >= 0 ? iLen : iLeap >= 0 ? iLeap : levels.length;
   // Konstante Einheiten-Längen (Basis-Einheiten je Instanz) unterhalb der
   // ersten unregelmäßigen Ebene.
   const unitLen = new Array(levels.length).fill(null);
@@ -320,7 +334,7 @@ function compileSafe(cal) {
   while (prefixLen < levels.length && levels[prefixLen].section === sec0) prefixLen++;
   const timeCount = prefixLen < levels.length ? prefixLen : 0;
   const dateCount = levels.length - timeCount;
-  c = { levels, top, iLen, iLeap, iIrrFirst, unitLen, timeCount, dateCount };
+  c = { levels, top, iLen, iLeap, iIrrFirst, unitLen, timeCount, dateCount, yearly };
   // „Jahres-Ebene" für Zyklus-Nummerierung: die Ebene, die die Unregelmäßig-
   // keit trägt (Schalt-Ebene, sonst Eltern der Längen-Ebene, sonst oberste).
   c.iYear = iLeap >= 0 ? iLeap : iLen >= 0 && iLen < top ? iLen + 1 : top;
@@ -365,7 +379,7 @@ function compileSafe(cal) {
   const widths = new Array(levels.length).fill(0);
   for (let i = 0; i < top; i++) {
     const parentRel = levels[i + 1].rel;
-    let n = parentRel.type === 'lengths' ? Math.max(...parentRel.table) : parentRel.count;
+    let n = yearlyApi.yearlyWidthCount(yearly, i, parentRel);
     if (i + 2 <= top && levels[i + 2].rel.type === 'leap') n += levels[i + 2].rel.extra;
     widths[i] = String(Math.abs(levels[i].start + n - 1)).length;
   }
@@ -451,6 +465,7 @@ function absAt(c, levelIdx, tuple) {
 // Kontext des Tupels (Längen-Tabelle plus Schalt-Verlängerung); defensiv
 // gegen unplausible höhere Segmente (Modulo-Klammerung).
 function positionCount(c, levelIdx, tuple) {
+  if (c.yearly) return yearlyApi.yearlyPositionCountAt(c, levelIdx, tuple);
   const parent = c.levels[levelIdx + 1];
   let n;
   if (parent.rel.type === 'lengths') {
@@ -477,6 +492,7 @@ function positionCount(c, levelIdx, tuple) {
 // --- Achsen-Arithmetik ---------------------------------------------------------------
 
 function tupleToAxisUnchecked(c, tuple) {
+  if (c.yearly) return yearlyApi.yearlyTupleToAxis(c, tuple);
   if (c.iLeap >= 0) {
     const Y = absAt(c, c.iLeap, tuple);
     const leapYear = isLeapY(c, Y);
@@ -524,6 +540,7 @@ function axisToTuple(cal, axis) {
     axis = BigInt(axis);
   }
   if (typeof axis !== 'bigint') return null;
+  if (c.yearly) return yearlyApi.yearlyAxisToTuple(c, axis);
   const segs = new Array(c.levels.length);
   const fillBelow = (fromIdx, remStart) => {
     let rem = remStart;
@@ -598,6 +615,7 @@ function validateTuple(cal, tuple, opts = {}) {
     if (!isInt(tuple[k]))
       return { ok: false, code: 'segmentType', levelId: c.levels[c.top - k].id };
   }
+  if (c.yearly && !yearlyApi.yearlyKnown(c, tuple[0])) return { ok: false, code: 'unknown' };
   for (let levelIdx = c.top - 1; levelIdx >= 0; levelIdx--) {
     const pos = posOf(c, levelIdx, tuple);
     if (pos < 0 || pos >= positionCount(c, levelIdx, tuple)) {
@@ -621,14 +639,15 @@ function validateTuple(cal, tuple, opts = {}) {
 
 // Gültige Wertebereiche der Segmente im Kontext der höheren Segmente des
 // Tupels (Baustein für Picker-Spinner und Editoren): pro Tupel-Position
-// { levelId, min, max }; oberste Ebene unbegrenzt (±2^53).
+// { levelId, min, max }; oberste Ebene unbegrenzt (±2^53), bei einer Tafel
+// der Jahres-Struktur auf ihren Zeitraum begrenzt (4T-002363).
 function segmentRanges(cal, tuple) {
   const c = compileSafe(cal);
   if (!c) return null;
   if (!Array.isArray(tuple) || tuple.length !== c.levels.length || !tuple.every(isInt)) {
     return null;
   }
-  const out = [{ levelId: c.levels[c.top].id, min: -MAX_SAFE, max: MAX_SAFE }];
+  const out = [{ levelId: c.levels[c.top].id, ...yearlyApi.yearlyYearRange(c, MAX_SAFE) }];
   for (let k = 1; k < tuple.length; k++) {
     const levelIdx = c.top - k;
     const level = c.levels[levelIdx];
@@ -811,8 +830,10 @@ function formatTuple(cal, tuple, opts = {}) {
     }
     const levelIdx = c.top - k;
     const level = c.levels[levelIdx];
+    // 4T-002363 (B1): Monat einer Zeitrechnung mit Jahres-Struktur als Kennung.
+    const yp = yearlyApi.yearlyMonthPart(c, levelIdx, tuple, opts.named);
     const name = opts.named && level.names ? level.names[tuple[k] - level.start] : null;
-    parts.push(name != null ? name : padSeg(tuple[k], c.widths[levelIdx]));
+    parts.push(yp ?? (name != null ? name : padSeg(tuple[k], c.widths[levelIdx])));
   }
   let out = parts.join('-');
   if (writesEpochLabel(cal, ep.index)) out += ` ${epochLabel(cal, ep.index)}`;
@@ -849,6 +870,8 @@ function parseCanonical(cal, text, opts = {}) {
   let rest = firstSpace < 0 ? '' : s.slice(firstSpace + 1).trim();
   const dateParts = dateTok.split('-');
   if (dateParts.length !== c.dateCount) return { ok: false, code: 'malformed' };
+  // 4T-002363 (B1): Schalt-Merkmal L am Monat einer Zeitrechnung mit Jahres-Struktur.
+  const leap = yearlyApi.yearlyTakeLeapMark(c, dateParts);
   const dateSegs = [];
   for (const p of dateParts) {
     const n = readDigits(p);
@@ -892,6 +915,8 @@ function parseCanonical(cal, text, opts = {}) {
     ...dateSegs.slice(1),
     ...timeSegs,
   ];
+  const yc = c.yearly ? yearlyApi.yearlyCodeToPosition(c, tuple, leap) : null;
+  if (yc) return yc;
   const v = validateTuple(cal, tuple, { epochIndex });
   if (!v.ok) return v;
   return opts.reportLabel
@@ -917,6 +942,14 @@ function convertInBlock(block, fromId, tuple, toId) {
 // wenn der Ziel-Kalender nicht im Block steht — der Fall einer Ableitung auf
 // die eingebaute Standard-Zeitrechnung (4T-000748). Die Block-Zugehörigkeit
 // prüft der Aufrufer; die Rechnung selbst braucht nur Anker und Skala.
+// 4T-002363 (Epic 3E-000333): Achsen-Stelle des Bezugspunkts. Ohne Anker-Datum
+// (Zeitrechnung mit Jahres-Struktur, T6) ist es der Ursprung der eigenen Achse,
+// der 01.01. des gregorianischen Jahres 0 und damit dieselbe Stelle, auf der die
+// Vorlagen der ersten Stufe ihren Anker haben.
+function anchorAxisOf(c, cal) {
+  return cal.blockAnchor ? tupleToAxisUnchecked(c, cal.blockAnchor) : 0n;
+}
+
 function convertBetween(from, tuple, to) {
   if (!from || !to) return { ok: false, code: 'unknownCalendar' };
   const v = validateTuple(from, tuple);
@@ -924,55 +957,19 @@ function convertBetween(from, tuple, to) {
   const cf = compileSafe(from);
   const ct = compileSafe(to);
   if (!cf || !ct) return { ok: false, code: 'calendar' };
-  const diff = tupleToAxisUnchecked(cf, tuple) - tupleToAxisUnchecked(cf, from.blockAnchor);
+  const diff = tupleToAxisUnchecked(cf, tuple) - anchorAxisOf(cf, from);
   const num = diff * BigInt(from.blockScale.num) * BigInt(to.blockScale.den);
   const den = BigInt(from.blockScale.den) * BigInt(to.blockScale.num);
-  const axisTo = floorDiv(num, den) + tupleToAxisUnchecked(ct, to.blockAnchor);
+  const axisTo = floorDiv(num, den) + anchorAxisOf(ct, to);
   const out = axisToTuple(to, axisTo);
-  return out ? { ok: true, tuple: out } : { ok: false, code: 'outOfRange' };
+  // 4T-002363: Ein Ziel außerhalb des Zeitraums einer Tafel ist «nicht bekannt».
+  return out ? { ok: true, tuple: out } : { ok: false, code: yearlyApi.missingDateCode(ct) };
 }
 
 // --- Wert-Syntax im Dokument (4T-000546) -------------------------------------------------
-// `@{Kalendername: Wert}` — eine Zeile, keine geschachtelten Klammern; der
-// erste Doppelpunkt trennt Name und Wert (Kalendernamen mit Doppelpunkt
-// sind nicht adressierbar, dokumentierte Grenze). Gemeinsame Erkennungs-
-// Quelle für Markdown-Pipeline, Editor-Dekoration und Portable-Export
-// (keine Regex-Kopien; Code-Kontexte schliessen die Konsumenten aus).
-
-// 4T-001902: Der Auslöser darf nicht von einem weiteren `@` eingeleitet sein.
-// `@@{14:00}` ist die Uhrzeit einer Kanban-Karte des Vorbild-Werkzeugs; ohne
-// die Sperre läse der Scanner das innere `@{14:00}` als Wert «00» eines
-// Kalenders namens «14».
-const CALENDAR_VALUE_SCAN_RE = /(?<!@)@\{[^{}\n]*\}/g;
-
-// Zerlegt ein rohes Vorkommen (inklusive `@{`/`}`) in Name und Wert;
-// null, wenn die Form nicht passt (leerer Name oder Wert).
-function parseCalendarValueRaw(raw) {
-  const s = String(raw == null ? '' : raw);
-  if (!s.startsWith('@{') || !s.endsWith('}')) return null;
-  const inner = s.slice(2, -1);
-  if (inner.includes('{') || inner.includes('}') || inner.includes('\n')) return null;
-  const colon = inner.indexOf(':');
-  if (colon < 0) return null;
-  const name = inner.slice(0, colon).trim();
-  const value = inner.slice(colon + 1).trim();
-  if (name === '' || value === '') return null;
-  return { name, value };
-}
-
-// Alle Wert-Vorkommen eines Texts: [{ from, to, name, value, raw }].
-function findCalendarValues(text) {
-  const out = [];
-  const source = String(text == null ? '' : text);
-  CALENDAR_VALUE_SCAN_RE.lastIndex = 0;
-  let m;
-  while ((m = CALENDAR_VALUE_SCAN_RE.exec(source)) !== null) {
-    const parsed = parseCalendarValueRaw(m[0]);
-    if (!parsed) continue;
-    out.push({ from: m.index, to: m.index + m[0].length, raw: m[0], ...parsed });
-  }
-  return out;
-}
+// 4T-002363 (Epic 3E-000333): Erkennung und Zerlegung der Wert-Syntax
+// `@{Kalendername: Wert}` liegen im Blatt-Modul calendar-value-syntax.js; der
+// Kern reicht parseCalendarValueRaw und findCalendarValues unverändert weiter.
 
 // Kalender-Suche für die Wert-Syntax `@{Kalendername: Wert}`: exakter Name
 // vor Groß/Klein-toleranter Übereinstimmung vor id-Rückfall, in Block-

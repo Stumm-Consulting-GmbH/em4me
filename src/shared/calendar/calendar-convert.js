@@ -13,9 +13,10 @@
 
 const { validateTuple, convertBetween } = require('./calendar-core.js');
 
-// Zeilen-Code des vorgesehenen Falls «nicht bekannt»: eine Ziel-Zeitrechnung,
-// die den Tag außerhalb ihres Geltungs-Zeitraums nicht kennt. Heute liefert
-// ihn keine Definition; die Auskunfts-Form des Dialogs sieht ihn vor.
+// Zeilen-Code des Falls «nicht bekannt»: eine Ziel-Zeitrechnung, die den Tag
+// außerhalb ihres Geltungs-Zeitraums nicht kennt. Seit 4T-002363 liefert ihn
+// eine Zeitrechnung mit Jahres-Struktur aus einer Tafel; als Code des
+// Ausgangs-Tupels steht er auch dann, wenn dessen Jahr außerhalb liegt.
 const EQUIVALENT_UNKNOWN = 'unknown';
 
 // Liefert { ok: true, rows } oder { ok: false, code }.

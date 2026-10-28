@@ -32,7 +32,16 @@ const CALENDAR_SPAN_UNIT_KEYS = {
   'half-year': ['calendar.span.halfYear', 'calendar.span.halfYears'],
 };
 
-const CALENDAR_SPAN_LABEL_KEYS = [...new Set(Object.values(CALENDAR_SPAN_UNIT_KEYS).flat())];
+// 4T-002363 (Epic 3E-000333): Kurzhinweis «{name}: nicht bekannt» eines Werts
+// außerhalb des Geltungs-Zeitraums einer Zeitrechnung mit Jahres-Struktur —
+// derselbe Text wie im Dialog «Datum umrechnen». Er reist mit den Beschriftungen
+// der Spannen, damit auch die Vorschau und der Export ihn kennen.
+const CALENDAR_UNKNOWN_KEY = 'calendarConvert.unknown';
+
+const CALENDAR_SPAN_LABEL_KEYS = [
+  ...new Set(Object.values(CALENDAR_SPAN_UNIT_KEYS).flat()),
+  CALENDAR_UNKNOWN_KEY,
+];
 // --- 4T-000546 (Epic 3E-000097): Kalender-Wert-Syntax @{Kalendername: Wert} -------------
 // Badge-Spec als gemeinsame Quelle fuer Render-Pane (Rule unten) und
 // Live-Widget (live-widgets.js) — Paritaets-Muster taskMarkerBadgeSpec.
@@ -75,6 +84,20 @@ function calendarValueBadgeSpec(name, value, config, L) {
     return { cls: 'calendar-value calendar-value-unknown', title: name, text: raw, ok: false };
   }
   const parsed = calendarCore.parseCanonical(found.calendar, value);
+  // 4T-002363: Ein Wert außerhalb des Zeitraums ist kein ungültiger Wert,
+  // sondern eine eigene Auskunft «nicht bekannt» mit dem Namen der
+  // Zeitrechnung im Kurzhinweis; der Roh-Text bleibt stehen.
+  if (parsed.code === 'unknown') {
+    const text = typeof L === 'function' ? L(CALENDAR_UNKNOWN_KEY) : null;
+    const usable = typeof text === 'string' && text !== '' && text !== CALENDAR_UNKNOWN_KEY;
+    return {
+      cls: 'calendar-value calendar-value-notknown',
+      title: usable ? text.replace('{name}', found.calendar.name) : found.calendar.name,
+      text: raw,
+      ok: false,
+      unknown: true,
+    };
+  }
   if (!parsed.ok) {
     return {
       cls: 'calendar-value calendar-value-invalid',
@@ -149,7 +172,9 @@ function calendarValuesPlugin(mdInstance, opts) {
     const L = labels ? (key) => labels[key] : null;
     const spec = calendarValueBadgeSpec(meta.name, meta.value, env && env.calendarSystems, L);
     if (isPortable) {
-      const style = spec.ok ? CALENDAR_BADGE_PORTABLE_STYLE : CALENDAR_BADGE_PORTABLE_STYLE_BAD;
+      // 4T-002363: «nicht bekannt» ist eine Auskunft, keine Fehler-Markierung.
+      const style =
+        spec.ok || spec.unknown ? CALENDAR_BADGE_PORTABLE_STYLE : CALENDAR_BADGE_PORTABLE_STYLE_BAD;
       return `<span style="${style}" title="${escapeHtml(spec.title)}">${escapeHtml(spec.text)}</span>`;
     }
     return (

@@ -1,6 +1,6 @@
 {
   "name": "em4me",
-  "version": "1.153.0",
+  "version": "1.154.0",
   "description": "Lokaler Markdown-Editor für Windows 11 mit Bereichen, Verweisen und Volltextsuche.",
   "homepage": "https://em4me.ch",
   "main": "src/main/main.js",
@@ -54,6 +54,7 @@
     "globals": "^17.7.0",
     "jsdom": "^29.1.1",
     "knip": "^6.16.1",
+    "lunar-javascript": "1.7.1",
     "mermaid": "^11.15.0",
     "prettier": "^3.9.4",
     "sharp": "^0.33.5",

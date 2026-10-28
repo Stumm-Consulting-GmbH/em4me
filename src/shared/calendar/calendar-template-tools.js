@@ -13,10 +13,11 @@
 // und vom i18n-Modul des Fensters.
 //
 // Import-Richtung im Ordner: Dieses Modul lädt den Kern und die gregorianische
-// Fabrik (calendar-template.js); geladen wird es von calendar-template-systems.js
-// und calendar-templates.js. Weder der Kern noch die Fabrik noch
-// calendar-config.js laden es. Der Ordner bleibt zyklenfrei, und compileSafe
-// bleibt mit seinem WeakMap-Cache eine einzige Instanz im Kern.
+// Fabrik (calendar-template.js); geladen wird es von calendar-template-systems.js,
+// calendar-template-yearly.js (seit 4T-002005) und calendar-templates.js. Weder
+// der Kern noch die Fabrik noch calendar-config.js laden es. Der Ordner bleibt
+// zyklenfrei, und compileSafe bleibt mit seinem WeakMap-Cache eine einzige
+// Instanz im Kern.
 'use strict';
 
 const {
@@ -29,6 +30,23 @@ const {
   cycleAt,
 } = require('./calendar-core.js');
 const { createGregorianTemplate } = require('./calendar-template.js');
+
+// --- Schlüssel und Zeitalter mit eigenen Schlüsseln (aus 4T-001998) ----------------------
+// 4T-002005 (Epic 3E-000333): aus calendar-template-systems.js hierher verschoben,
+// Wortlaut unverändert, weil auch die Vorlagen mit Jahres-Struktur
+// (calendar-template-yearly.js) sie brauchen.
+
+const tplKey = (id, suffix) => `settings.calendar.tpl.${id}.${suffix}`;
+
+// Zeitalter einer Vorlage mit eigenen Schlüsseln: offene Vergangenheit, dann
+// ab der Epoche, die mit start beginnt (4T-002000: Beginn je Epoche statt
+// eines gesonderten Felds epochStart).
+function ownEpochs(t, id, start) {
+  return [
+    { name: t(tplKey(id, 'epochPast')), abbr: t(tplKey(id, 'epochPastAbbr')), start: null },
+    { name: t(tplKey(id, 'epoch')), abbr: t(tplKey(id, 'epochAbbr')), start },
+  ];
+}
 
 // --- Zeit-Ebenen und Block-Anker (aus 4T-001997, unverändert) ---------------------------
 
@@ -265,6 +283,8 @@ function buildTemplateDefinition(t, spec) {
 }
 
 module.exports = {
+  tplKey,
+  ownEpochs,
   templateTimeLevels,
   templateBlockAnchor,
   gregorianWeekdayOf,

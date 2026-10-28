@@ -14,8 +14,9 @@
 // Alle Kalender-Mathematik kommt aus dem Kalender-Kern (calendar-core.js);
 // ungueltige Werte sind konstruktionsbedingt nicht eingebbar (Gitter und
 // Segmente kennen nur gueltige Positionen). "Referenz" springt zum
-// Block-Anker des Kalenders — einen realen Heute-Bezug hat das Modell
-// bewusst nicht (Bloecke sind in sich geschlossen).
+// Startpunkt des Kalenders (Block-Anker, bei Jahres-Struktur ohne Anker der
+// erste Tag des Zeitraums, 4T-002363) — einen realen Heute-Bezug hat das
+// Modell bewusst nicht (Bloecke sind in sich geschlossen).
 'use strict';
 
 import { Decoration, ViewPlugin } from '@codemirror/view';
@@ -37,7 +38,13 @@ import {
 // 4T-000995 (Epic 3E-000196): Die Aufloesung des Bezugs einer Ableitung haengt
 // an der eingebauten Standard-Zeitrechnung und liegt deshalb im
 // Konfigurations-Rand des Kalender-Kerns.
-import { baseCalendarOf } from '../../../shared/calendar/calendar-config.js';
+// 4T-002363 (Epic 3E-000333): Startpunkt (Anker-Datum, sonst erster Tag des
+// Zeitraums) und Monats-Beschriftung einer Zeitrechnung mit Jahres-Struktur.
+import {
+  baseCalendarOf,
+  calendarMonthLabel,
+  calendarStartPoint,
+} from '../../../shared/calendar/calendar-config.js';
 // 4T-000546 (Epic 3E-000097): Renderer-Zustand der calendarSystems-
 // Konfiguration (gesetzt von app-init; die Preload-Pipeline haelt ihren
 // eigenen Zustand — markdown.js ist im Renderer-Bundle nicht importierbar).
@@ -116,12 +123,12 @@ function setSessionCalendar(next, tupleInNext) {
       const conv = convertBetween(next, tupleInNext, base);
       if (conv.ok) tuple = conv.tuple;
     }
-    session.tuple = tuple || zeroTupleInBase(next, base) || base.blockAnchor.slice();
+    session.tuple = tuple || zeroTupleInBase(next, base) || calendarStartPoint(base);
     return;
   }
   session.target = null;
   session.cal = next;
-  session.tuple = tupleInNext || next.blockAnchor.slice();
+  session.tuple = tupleInNext || calendarStartPoint(next);
 }
 
 // Nullpunkt einer Ableitung, ausgedrueckt im Bezug (Sprungziel und Default).
@@ -238,9 +245,12 @@ function shiftUnit(cal, tuple, delta) {
 }
 
 // Auswahl um eine oberste Einheit (Jahr) verschieben.
+// 4T-002363: Am Rand des Zeitraums einer Tafel bleibt die Auswahl stehen.
 function shiftTop(cal, tuple, delta) {
   const out = tuple.slice();
   out[0] += delta;
+  const ranges = segmentRanges(cal, tuple);
+  if (ranges && (out[0] < ranges[0].min || out[0] > ranges[0].max)) return tuple;
   return clampTuple(cal, out);
 }
 
@@ -277,9 +287,14 @@ function unitLabel(cal, tuple) {
   const top = cal.levels.length - 1;
   const ep = epochOf(cal, tuple);
   const parts = [];
+  // 4T-002363: Bei Jahres-Struktur trägt der Monat den Namen seiner
+  // Namens-Stelle, ein Schaltmonat dazu seine Kennung nach B1.
+  const month = calendarMonthLabel(cal, tuple);
   // Ebenen zwischen Gitter-Ebene und oberster Ebene, klein nach gross.
   for (let i = timeCount + 1; i < top; i++) {
-    parts.push(labelFor(cal.levels[i], tuple[tuplePos(cal, i)]));
+    parts.push(
+      i === top - 1 && month !== null ? month : labelFor(cal.levels[i], tuple[tuplePos(cal, i)]),
+    );
   }
   let yearPart = ep ? String(ep.year) : String(tuple[0]);
   if (ep && writesEpochLabel(cal, ep.index)) {
@@ -374,19 +389,30 @@ function renderGrid(container) {
     const info = cycleAt(cal, base, cycle.id);
     const startAxis = baseAxis - BigInt(info.position) * unit;
     const rows = Math.ceil((info.position + dayCount) / cycle.length);
+    // 4T-002363, Nachbesserung vom 2026-10-24: Am Rand des Zeitraums einer
+    // Tafel liegen Vor- und Nachlauf-Zellen außerhalb; sie bleiben leer und
+    // halten ihre Spalte, statt die Zeile (und am Tafel-Beginn das ganze
+    // Gitter) abzubrechen. Jede Zeile enthält mindestens einen Tag der Einheit.
     for (let row = 0; row < rows; row++) {
-      const rowFirst = axisToTuple(cal, startAxis + BigInt(row * cycle.length) * unit);
-      if (!rowFirst) break;
+      const cells = [];
+      for (let col = 0; col < cycle.length; col++) {
+        cells.push(axisToTuple(cal, startAxis + BigInt(row * cycle.length + col) * unit));
+      }
       if (withNumber) {
         const numCell = document.createElement('span');
         numCell.className = 'calendar-cell calendar-week-col date-picker-week';
-        const rowInfo = cycleAt(cal, rowFirst, cycle.id);
+        const rowKnown = cells.find((c) => c);
+        const rowInfo = rowKnown ? cycleAt(cal, rowKnown, cycle.id) : null;
         numCell.textContent = rowInfo && rowInfo.number !== null ? String(rowInfo.number) : '';
         grid.appendChild(numCell);
       }
-      for (let col = 0; col < cycle.length; col++) {
-        const cellTuple = axisToTuple(cal, startAxis + BigInt(row * cycle.length + col) * unit);
-        if (!cellTuple) continue;
+      for (const cellTuple of cells) {
+        if (!cellTuple) {
+          const empty = document.createElement('span');
+          empty.className = 'calendar-cell calendar-picker-empty';
+          grid.appendChild(empty);
+          continue;
+        }
         const inUnit = cellTuple.every((v, k) => k >= kDay || v === base[k]);
         grid.appendChild(dayButton(cellTuple, inUnit));
       }
@@ -475,9 +501,13 @@ function renderConversions(container) {
     row.type = 'button';
     row.className = 'btn calendar-picker-conv';
     row.dataset.calendarId = other.id;
+    // 4T-002363: Liegt der Tag außerhalb des Zeitraums der anderen
+    // Zeitrechnung, sagt die Zeile «nicht bekannt» statt eines Strichs.
     row.textContent = result.ok
       ? `${other.name}: ${formatTuple(other, result.tuple)}`
-      : `${other.name}: —`;
+      : result.code === 'unknown'
+        ? t('calendarConvert.unknown').replace('{name}', other.name)
+        : `${other.name}: —`;
     row.disabled = !result.ok;
     row.addEventListener('click', () => {
       if (!result.ok) return;
@@ -566,6 +596,16 @@ function renderSession() {
     ),
   );
   popupEl.appendChild(headRow);
+  // 4T-002363: Auf einem Wert außerhalb des Zeitraums geöffnet, sagt die
+  // Eingabe-Hilfe «nicht bekannt», solange die Auswahl auf dem Startpunkt steht.
+  if (session.unknownTuple && session.tuple === session.unknownTuple) {
+    const notice = document.createElement('p');
+    notice.className = 'calendar-picker-unknown';
+    notice.id = 'calendar-picker-unknown';
+    notice.setAttribute('role', 'status');
+    notice.textContent = t('calendarConvert.unknown').replace('{name}', cal.name);
+    popupEl.appendChild(notice);
+  }
 
   // Navigation: oberste Einheit (doppelt) und Gitter-Einheit (einfach).
   const nav = document.createElement('div');
@@ -626,8 +666,8 @@ function renderSession() {
   refBtn.textContent = t('calendarPicker.reference');
   refBtn.addEventListener('click', () => {
     session.tuple = session.target
-      ? zeroTupleInBase(session.target, session.cal) || session.cal.blockAnchor.slice()
-      : session.cal.blockAnchor.slice();
+      ? zeroTupleInBase(session.target, session.cal) || calendarStartPoint(session.cal)
+      : calendarStartPoint(session.cal);
     renderSession();
   });
   popupEl.appendChild(refBtn);
@@ -758,9 +798,11 @@ export function showCalendarPicker(options = {}) {
   if (!cal) return Promise.resolve(null);
 
   let tuple = null;
+  let unknown = false;
   if (typeof options.value === 'string' && options.value.trim() !== '') {
     const parsed = parseCanonical(cal, options.value);
     if (parsed.ok) tuple = parsed.tuple;
+    unknown = parsed.code === 'unknown';
   }
 
   ensurePopup();
@@ -773,10 +815,11 @@ export function showCalendarPicker(options = {}) {
       config,
       block,
       cal,
-      tuple: tuple || cal.blockAnchor.slice(),
+      tuple: tuple || calendarStartPoint(cal),
       target: null,
     };
     setSessionCalendar(cal, tuple);
+    if (unknown) session.unknownTuple = session.tuple;
     renderSession();
     positionPopup(options.x, options.y);
     document.addEventListener('mousedown', onDocumentMousedown, true);

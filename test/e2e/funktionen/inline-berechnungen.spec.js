@@ -16,6 +16,7 @@ const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
+const { hauptSenden } = require('../helpers/haupt-zugriff');
 
 const FIXTURE = path.resolve(
   __dirname,
@@ -127,57 +128,172 @@ test.describe('IB-04: Erweiterung inline-calc aus lässt die Syntax Fließtext (
   });
 });
 
-// IB-05 (4T-002095, Story 4S-000168 AK8): Die Markierung bleibt über einem
-// Rechen-Ausdruck sichtbar. CodeMirror zeichnet die Markierung als Ebene UNTER
-// dem Text; ein deckender Hintergrund des Ausdrucks verdeckte sie. Geprüft
-// wird bei markiertem Text, dass die Markierungs-Ebene steht und der
-// Hintergrund des Ausdrucks durchscheint, im Quelltext- und im Live-Modus, in
-// hellem und dunklem Erscheinungsbild.
-function deckkraft(farbe) {
-  // Chromium liefert rgb(…)/rgba(…) oder für color-mix color(srgb … / a).
-  const schraeg = /\/\s*([\d.]+)\s*\)$/.exec(farbe);
-  if (schraeg) return parseFloat(schraeg[1]);
-  const rgba = /^rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)$/.exec(farbe);
-  if (rgba) return parseFloat(rgba[1]);
-  return farbe === 'transparent' ? 0 : 1;
+// IB-05 (4T-002095 und 4T-002344, Story 4S-000168 AK8 und AK9): Die Markierung
+// ist über einem Rechen-Ausdruck nicht schwächer als über dem Text daneben.
+// CodeMirror zeichnet die Markierung als Ebene UNTER dem Text; jede Fläche des
+// Ausdrucks über dieser Ebene schwächt sie (mit 70 % Deckkraft kamen 15 % statt
+// 50 % der Markierungsfarbe an). Gemessen wird deshalb die gezeichnete Farbe:
+// Bildschirmfoto mit und ohne Markierungs-Ebene im selben Zustand, daraus der
+// Anteil t der Markierungsfarbe S an der Farbe P über dem Grund G
+// (P ≈ t·S + (1−t)·G), über dem Ausdruck und rechts daneben in derselben Zeile.
+// Verlangt: über dem Ausdruck mindestens 90 % der Deckkraft der Markierungsfarbe
+// (dunkel 45 %, hell 36 %) und höchstens 5 Prozentpunkte weniger als daneben;
+// der Ausdruck bleibt ohne Markierung eingefärbt (AK6). Quelltext und Live,
+// hell und dunkel.
+async function sendMenuChannel(app, channel, ...args) {
+  await hauptSenden(
+    app,
+    ({ BrowserWindow }, payload) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      if (win && !win.isDestroyed()) win.webContents.send(payload.channel, ...payload.args);
+    },
+    { channel, args },
+  );
 }
 
-test.describe('IB-05: Markierung über dem Rechen-Ausdruck sichtbar (4T-002095)', () => {
-  test('Quelltext und Live-Modus, hell und dunkel: der Ausdruck verdeckt die Markierung nicht', async () => {
+// Häufigste Farbe je Rechteck des Bildschirmfotos (Glyphen fallen heraus),
+// dekodiert im Anzeige-Prozess über eine Leinwand.
+async function haeufigsteFarben(page, rechtecke) {
+  const b64 = (await page.screenshot({ scale: 'css' })).toString('base64');
+  return page.evaluate(
+    async ({ b64, rechtecke }) => {
+      const img = new Image();
+      img.src = 'data:image/png;base64,' + b64;
+      await img.decode();
+      const c = document.createElement('canvas');
+      c.width = img.width;
+      c.height = img.height;
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const aus = {};
+      for (const [name, r] of Object.entries(rechtecke)) {
+        const x = Math.ceil(r.left) + 2;
+        const y = Math.ceil(r.top) + 2;
+        const w = Math.max(1, Math.floor(r.right) - 2 - x);
+        const h = Math.max(1, Math.floor(r.bottom) - 2 - y);
+        const d = ctx.getImageData(x, y, w, h).data;
+        const zaehler = new Map();
+        for (let i = 0; i < d.length; i += 4) {
+          const k = `${d[i]},${d[i + 1]},${d[i + 2]}`;
+          zaehler.set(k, (zaehler.get(k) || 0) + 1);
+        }
+        aus[name] = [...zaehler.entries()]
+          .sort((a, b) => b[1] - a[1])[0][0]
+          .split(',')
+          .map(Number);
+      }
+      return aus;
+    },
+    { b64, rechtecke },
+  );
+}
+
+async function markierungsEbeneSichtbar(page, sichtbar) {
+  await page.evaluate((s) => {
+    const alt = document.getElementById('ib05-markierung-aus');
+    if (s && alt) alt.remove();
+    if (!s && !alt) {
+      const st = document.createElement('style');
+      st.id = 'ib05-markierung-aus';
+      st.textContent = '.cm-selectionLayer { visibility: hidden !important; }';
+      document.head.appendChild(st);
+    }
+  }, sichtbar);
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          getComputedStyle(document.querySelector('.cm-selectionLayer')).visibility === 'visible',
+      ),
+    )
+    .toBe(sichtbar);
+}
+
+// Anteil t der Markierungsfarbe S an P über dem Grund G (Projektion auf S−G).
+function anteil(P, G, S) {
+  const d = [0, 1, 2].map((i) => S[i] - G[i]);
+  const n = d.reduce((a, v) => a + v * v, 0);
+  return d.reduce((a, v, i) => a + v * (P[i] - G[i]), 0) / n;
+}
+
+test.describe('IB-05: Markierung über dem Rechen-Ausdruck so deutlich wie daneben (4T-002344)', () => {
+  test('Quelltext und Live-Modus, hell und dunkel: Anteil der Markierungsfarbe über dem Ausdruck', async () => {
+    test.setTimeout(120000);
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
     try {
       await waitForTab(page);
       const marker = page.locator(`${SEL.paneSource0} .cm-inline-calc-marker`).first();
-      const pruefe = async () => {
+      const befunde = [];
+      const pruefe = async (modus) => {
         await expect(marker).toBeVisible();
         await expect(
           page.locator(`${SEL.paneSource0} .cm-selectionBackground`).first(),
         ).toBeAttached();
         for (const thema of ['light', 'dark']) {
-          await page.evaluate((t) => document.documentElement.setAttribute('data-theme', t), thema);
-          const farbe = await marker.evaluate((el) => getComputedStyle(el).backgroundColor);
-          expect(deckkraft(farbe), `${thema}: ${farbe}`).toBeLessThan(1);
+          await sendMenuChannel(app, 'menu:setTheme', thema);
+          await expect
+            .poll(() => page.evaluate(() => document.documentElement.getAttribute('data-theme')))
+            .toBe(thema);
+          const lage = await marker.evaluate((el) => {
+            const r = el.getBoundingClientRect();
+            const inhalt = el.closest('.cm-content').getBoundingClientRect();
+            const auswahl = getComputedStyle(
+              el.closest('.cm-scroller').querySelector('.cm-selectionBackground'),
+            ).backgroundColor;
+            return {
+              ausdruck: { left: r.left, right: r.right, top: r.top, bottom: r.bottom },
+              daneben: {
+                left: inhalt.right - 60,
+                right: inhalt.right - 10,
+                top: r.top,
+                bottom: r.bottom,
+              },
+              auswahl,
+            };
+          });
+          const rechtecke = { ausdruck: lage.ausdruck, daneben: lage.daneben };
+          const mit = await haeufigsteFarben(page, rechtecke);
+          await markierungsEbeneSichtbar(page, false);
+          const ohne = await haeufigsteFarben(page, rechtecke);
+          await markierungsEbeneSichtbar(page, true);
+          const teile = /rgba?\(([^)]+)\)/.exec(lage.auswahl)[1].split(',').map(parseFloat);
+          const S = teile.slice(0, 3);
+          const alpha = teile.length > 3 ? teile[3] : 1;
+          const tAusdruck = anteil(mit.ausdruck, ohne.ausdruck, S);
+          const tDaneben = anteil(mit.daneben, ohne.daneben, S);
+          const z = (t) => `${Math.round(t * 1000) / 10} %`;
+          const ort =
+            `${modus}/${thema}: über dem Ausdruck ${z(tAusdruck)} ` +
+            `(${mit.ausdruck} über ${ohne.ausdruck}), daneben ${z(tDaneben)} ` +
+            `(${mit.daneben} über ${ohne.daneben}), Markierung ${lage.auswahl}`;
+          if (tDaneben < 0.9 * alpha) befunde.push(`Messung unplausibel, ${ort}`);
+          if (tAusdruck < 0.9 * alpha || tAusdruck < tDaneben - 0.05) befunde.push(ort);
+          if (String(ohne.ausdruck) === String(ohne.daneben)) {
+            befunde.push(`ohne Markierung nicht eingefärbt, ${ort}`);
+          }
         }
       };
 
-      await page.locator(SEL.viewBtn('source')).click();
-      await page.locator(SEL.editorContent0).click();
-      await page.keyboard.press('Control+a');
-      await pruefe();
+      // Zeilen 3 bis 6 markieren: Die Zeile «Summe: {= 2+3*4 =} im Satz.»
+      // ist ganz markiert, die Markierung reicht bis zum rechten Rand.
+      const markiere = async () => {
+        await page.locator(SEL.editorContent0).click();
+        await page.keyboard.press('Control+Home');
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('ArrowDown');
+        for (let i = 0; i < 3; i++) await page.keyboard.press('Shift+ArrowDown');
+      };
 
-      // Live-Modus: Markierung aufheben (sonst ist jede Zeile aktiv und zeigt
-      // den Roh-Ausdruck), Klick ins Ergebnis-Widget deckt den Ausdruck auf,
-      // dann die Zeile markieren.
-      await page.keyboard.press('Control+Home');
+      await page.locator(SEL.viewBtn('source')).click();
+      await markiere();
+      await pruefe('source');
+
+      // Live-Modus: Eine markierte Zeile ist aktiv und zeigt den Roh-Ausdruck.
       await page.locator(SEL.viewBtn('live')).click();
-      await page
-        .locator(`${SEL.paneSource0} .cm-inline-calc`)
-        .filter({ hasText: '14' })
-        .first()
-        .click();
-      await page.keyboard.press('Home');
-      await page.keyboard.press('Shift+End');
-      await pruefe();
+      await markiere();
+      await pruefe('live');
+
+      expect(befunde).toEqual([]);
     } finally {
       await closeApp(app, userData, { force: true });
     }

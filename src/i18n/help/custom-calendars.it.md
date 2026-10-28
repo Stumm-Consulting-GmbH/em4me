@@ -67,12 +67,16 @@ Il menu a tendina **«Inserisci modello …»** nella vista di dettaglio di un b
 1. Calendario gregoriano
 2. Calendario giuliano
 3. Calendario Hijri (tabulare)
-4. Calendario nazionale indiano
-5. Calendario buddista
-6. Calendario etiope
-7. Calendario copto
-8. Calendario giapponese
-9. Calendario minguo
+4. Calendario Hijri (Umm al-Qura)
+5. Calendario persiano
+6. Calendario ebraico
+7. Calendario cinese
+8. Calendario nazionale indiano
+9. Calendario buddista
+10. Calendario etiope
+11. Calendario copto
+12. Calendario giapponese
+13. Calendario minguo
 
 La scelta crea subito la cronologia nel blocco aperto, già compilata e senza ulteriori immissioni; poi il menu torna alla sua prima voce. La cronologia porta il nome del menu; se quel nome è già usato nell'area, riceve un numero aggiunto, per esempio «Calendario gregoriano 2». Come ogni modifica di questa sezione, viene salvata con **«Applica»**.
 
@@ -80,13 +84,33 @@ Ogni modello porta con sé i livelli di tempo secondo, minuto e ora, una settima
 
 ### Che cos'è un modello creato
 
-Un modello creato è una normale cronologia dell'area. In seguito si modifica, si rinomina, si integra e si elimina come qualsiasi altra; il modello è il punto di partenza, non un legame permanente. Un aggiornamento del programma non raggiunge quindi una cronologia già creata.
+Un modello creato è una normale cronologia dell'area. In seguito si modifica, si rinomina, si integra e si elimina come qualsiasi altra; il modello è il punto di partenza, non un legame permanente. Un aggiornamento del programma non raggiunge quindi una cronologia già creata. Fanno eccezione il mese e l'anno dei quattro modelli con una struttura che cambia di anno in anno (sezione seguente): lì la cronologia rimanda alla regola o alla tabella fornita invece di copiarla, e un aggiornamento del programma con una tabella aggiornata raggiunge anche le cronologie già create.
 
 Le altre funzioni di data dell'applicazione restano gregoriane: i marcatori delle attività, i diari, i confronti delle query e i tipi della tabella dati non conoscono cronologie proprie.
+
+### Modelli con una struttura che cambia di anno in anno
+
+Nei calendari ebraico, persiano e cinese e nel calendario Hijri secondo Umm al-Qura ogni anno si compone in modo diverso: il numero dei mesi, la durata di ciascun mese e l'inizio dell'anno si determinano anno per anno. Il calendario ebraico segue la sua regola di calcolo fissa e vale senza limiti di tempo. Gli altri tre seguono una tabella fornita e verificata e valgono per un periodo fisso:
+
+| Modello | Primo giorno | Ultimo giorno |
+|---|---|---|
+| Calendario Hijri (Umm al-Qura) | 30 aprile 1900 (1 Muharram 1318 AH) | 16 novembre 2077 (30 Dhuʻl-Hijjah 1500 AH) |
+| Calendario persiano | 21 marzo 1900 (1 Farvardin 1279 AP) | 20 marzo 2101 (29 Esfand 1479 AP) |
+| Calendario cinese | 19 febbraio 1901 (primo giorno dell'anno 1901) | 28 gennaio 2101 (ultimo giorno dell'anno 2100) |
+
+Prima e dopo, il programma indica «non noto» invece di mostrare una data approssimata: nel selettore, per un valore nel documento e nel dialogo «Converti data». Le tabelle fanno parte del programma; non serve alcuna connessione a Internet. Vengono aggiornate prima della scadenza del loro periodo e dopo una correzione da parte dell'autorità competente.
+
+- **I mesi intercalari** sono mesi a sé. In un valore ogni mese mantiene il suo numero in ogni anno; un mese intercalare porta il numero del mese a cui segue e una `L` aggiunta. Adar I dell'anno ebraico 5784 compare così nel documento come `5784-05L-01`, Adar II come `5784-06-01`, e il mese intercalare dell'anno cinese 2023 come `2023-02L-01`. Un valore salvato indica quindi lo stesso mese in ogni anno.
+- **Nelle impostazioni** il mese e l'anno di queste cronologie sono di sola lettura; nomi, settimane ed ere restano modificabili. Non si possono scegliere come riferimento di una cronologia derivata (sezione «Cronologie derivate»).
+- **Il giorno** inizia a mezzanotte, come in tutti i modelli; il programma non riproduce l'inizio del giorno al tramonto dei calendari ebraico e islamico.
 
 ### Letture e limiti
 
 - **Calendario Hijri (tabulare)** — riproduce la lettura tabulare: dodici mesi che alternano 30 e 29 giorni; in un anno bisestile il dodicesimo mese (Dhuʻl-Hijjah) ha 30 giorni; gli anni bisestili sono gli anni 2, 5, 7, 10, 13, 16, 18, 21, 24, 26 e 29 di ogni ciclo di 30 anni, contati dall'epoca civile. Questo calcolo vale allo stesso modo per ogni anno. La data vissuta nella pratica religiosa segue invece l'avvistamento della falce di luna e può discostarsene di un giorno, raramente di due. I giorni iniziano a mezzanotte, non al tramonto.
+- **Calendario Hijri (Umm al-Qura)** — il calendario ufficiale dell'Arabia Saudita per scopi amministrativi. I mesi iniziano secondo i dati dell'autorità saudita KACST (King Abdulaziz City for Science and Technology), non secondo una regola di calcolo fissa; ogni mese ha 29 o 30 giorni, l'anno 354 o 355. I nomi dei mesi e il conteggio degli anni «AH» sono quelli della lettura tabulare, che calcola con una sequenza fissa e può discostarsi dal calendario ufficiale di uno o due giorni. La tabella è verificata mese per mese sull'edizione ufficiale dell'autorità; termina con l'anno 1500 AH perché l'edizione ufficiale non va oltre. Le date precedenti al 1423 AH (prima del 15 marzo 2002) sono l'attuale calcolo retrospettivo ufficiale; il calendario allora in vigore in Arabia Saudita seguiva altre regole e poteva discostarsene di un giorno.
+- **Calendario persiano** — la lettura ufficiale iraniana: l'anno inizia il giorno dell'equinozio di primavera se questo cade prima di mezzogiorno, ora di Teheran, altrimenti il giorno dopo. I primi sei mesi hanno 31 giorni, i cinque successivi 30, l'ultimo (Esfand) 29, o 30 in un anno bisestile; gli anni si contano «AP». La tabella è verificata sulla tabella degli anni bisestili del Centro del calendario dell'Università di Teheran.
+- **Calendario ebraico** — calcola secondo la regola fissa del calendario, anche in anni molto lontani. In 7 anni su 19 si aggiunge Adar I come mese supplementare, e Adar si chiama allora Adar II. Gli anni si contano «AM»; prima dell'anno 1 l'epoca «prima di AM» conta all'indietro. Dal 10 novembre 2045 al 29 novembre 2046 il programma segue la regola di calcolo; alcuni altri programmi mostrano per questi giorni una data spostata di un giorno.
+- **Calendario cinese** — il calendario lunisolare tradizionale. Il numero dell'anno è l'anno gregoriano in cui inizia l'anno cinese: `2025-01-01` è il 29 gennaio 2025, e l'anno 2026 termina il 5 febbraio 2027. Il modello non mostra il nome dell'anno nel ciclo di 60 anni. I mesi si chiamano da «Mese 1» a «Mese 12», un mese intercalare «Mese intercalare» con il numero del mese a cui segue, mostrato con i nomi per esempio come `2023-Mese intercalare 2-01`; come in ogni modello, i nomi si possono cambiare. La tabella è un calcolo astronomico dei noviluni e dei termini solari secondo l'ora di Pechino, verificato sui file ufficiali del calendario del governo di Hong Kong per gli anni dal 2023 al 2028 e, sull'intero periodo, su un secondo calcolo indipendente. Il 9° mese del 2057 inizia il 28 settembre, come nella tabella dell'Hong Kong Observatory; l'autorità stessa indica questo giorno come incerto, perché il novilunio cade solo pochi secondi prima di mezzanotte. Altri programmi possono discostarsi in singoli giorni, per esempio per il Capodanno 2027, che ufficialmente cade il 6 febbraio.
 - **Calendario buddista** — il computo buddista degli anni come vale in Thailandia: mesi e anni bisestili gregoriani, con il numero dell'anno superiore di 543 a quello gregoriano. Fino al 1940 l'anno thailandese iniziava il 1° aprile; il modello conta sempre con l'inizio dell'anno al 1° gennaio e perciò prima del 1941, da gennaio a marzo, mostra un anno superiore di uno rispetto all'uso dell'epoca, e lo stesso anno da aprile.
 - **Calendario nazionale indiano** e **Calendario minguo** — entrambi continuano a contare all'indietro anche prima della loro introduzione (calendario nazionale indiano 1957, calendario minguo 1912). Per quel periodo le fonti non li attestano come validi; prima del 1912 le fonti indicano spesso mese e giorno secondo il calendario lunare.
 - **Calendario giapponese** — mesi e anni bisestili gregoriani con le ere Meiji (dal 23 ottobre 1868), Taishō (dal 30 luglio 1912), Shōwa (dal 25 dicembre 1926), Heisei (dall'8 gennaio 1989) e Reiwa (dal 1° maggio 2019); l'anno 1 di un'era va dal suo inizio al 31 dicembre. Prima di allora, l'epoca «prima di Meiji» conta all'indietro; mancano le ere più antiche, perché si basano sul calendario lunare. Prima del 1873 in Giappone valeva il calendario lunare: le date anteriori al 1873 sono quindi date gregoriane calcolate all'indietro e si discostano dall'uso storico nel mese e nel giorno, talvolta anche nell'anno. Il modello scrive sempre l'era (casella «Scrivi sempre l'abbreviazione dell'epoca» attiva): il 30 settembre 2026 compare nel documento come `8-09-30 Reiwa`.
@@ -118,6 +142,8 @@ Se il calendario indicato non è definito nell'area o il valore non è valido, i
 
 @{Calendario di esempio: 500-2-09 ZZ}
 
+Se un valore si trova fuori dal periodo di validità della sua cronologia (sezione «Modelli con una struttura che cambia di anno in anno»), anche il testo sorgente resta invariato. Il valore allora non conta come non valido: il suo suggerimento indica «Nome: non noto».
+
 Nei blocchi di codice e negli span di codice la sintassi resta intatta: `@{Calendario di esempio: 500-2-09 ZZ}`.
 
 ## Inserire e modificare
@@ -133,6 +159,7 @@ Il selettore dei calendari personalizzati funziona in modo analogo al selettore 
 - La **griglia** nasce dalla struttura dei livelli: con un ciclo settimanale definito, come griglia a colonne (lunghezza del ciclo = numero di colonne, nomi di posizione come intestazione, colonna dei numeri in caso di regola di numerazione); senza ciclo, come elenco continuo dei giorni dell'unità.
 - **Navigazione:** i pulsanti freccia esterni spostano l'unità più grande (l'anno), quelli interni l'unità della griglia (il mese); i tasti freccia navigano giorno per giorno, Invio conferma, Esc annulla. **«All'ancora»** salta all'istante di riferimento del calendario.
 - **I livelli di tempo** appaiono come segmenti regolabili singolarmente con immissione tramite frecce e cifre — i valori non validi non sono inseribili per costruzione.
+- **Periodo di validità:** per una cronologia con tabella lo scorrimento si ferma al bordo del suo periodo. Aperto su un valore che ne è fuori, il selettore si posiziona sul suo primo giorno noto e indica «Nome: non noto». Un mese intercalare compare nell'intestazione con nome e codice, per esempio «Mese intercalare 2 (02L)».
 
 ### Visualizzazione della conversione
 
@@ -150,6 +177,7 @@ Dove non c'è un risultato, compare un'indicazione al posto di un valore:
 
 - Una data che non esiste nel calendario scelto viene segnalata con «Non è una data valida di questo calendario.»; l'elenco allora scompare.
 - Se un calendario non può rappresentare l'istante, la sua riga riporta «Nome: fuori dall'intervallo rappresentabile».
+- Se l'istante si trova fuori dal periodo di validità di una cronologia (sezione «Modelli con una struttura che cambia di anno in anno»), la sua riga riporta «Nome: non noto»; le altre righe mostrano il loro valore. Se è già la data immessa a trovarsi fuori, il dialogo segnala «Nome: non noto».
 - Se il blocco ha un solo calendario, il dialogo segnala che ne manca un secondo.
 
 La conversione avviene solo all'interno di un blocco; la riga di avviso del dialogo lo ricorda. I calendari da convertire tra loro devono quindi trovarsi nello stesso blocco. Una cronologia non si può spostare in un altro blocco: va creata di nuovo nel blocco di destinazione o inserita lì come modello. Il risultato è buono quanto l'ancora e la scala dei calendari coinvolti: i modelli forniti si trovano già da sé sullo stesso asse dei giorni; per i calendari definiti in proprio, il gruppo «Asse del blocco (conversione)» delle impostazioni ne fissa la posizione.
@@ -162,7 +190,7 @@ Una cronologia derivata conta da un punto zero scelto: quanto manca a una data o
 
 Nella sezione delle impostazioni «Sistemi di calendario» il pulsante **«Aggiungi cronologia derivata»** apre un modulo breve:
 
-- **Cronologia di riferimento** — un calendario dello stesso blocco oppure la cronologia standard inclusa. Per un conto alla rovescia non serve quindi un calendario proprio.
+- **Cronologia di riferimento** — un calendario dello stesso blocco oppure la cronologia standard inclusa. Per un conto alla rovescia non serve quindi un calendario proprio. Le cronologie con una struttura che cambia di anno in anno non si possono scegliere come riferimento, perché il loro conteggio non si può spostare; un conteggio a partire da un giorno passa per la cronologia gregoriana dello stesso blocco.
 - **Punto zero (giorno 1)** — la data nella notazione del riferimento, a scelta tramite il selettore; cade sempre su un giorno intero.
 - **Livello di dettaglio** — quanto finemente viene suddivisa la durata, dalla sola unità più piccola fino agli anni.
 - **Sigle di direzione** — due parole brevi per il tempo prima e dopo il punto zero.
