@@ -188,3 +188,91 @@ describe('Ort in den Menü-Bäumen (menu.js)', () => {
     expect(dazwischen.match(/label: t\(/g) || []).toHaveLength(1);
   });
 });
+
+// 4T-002426 (Epic 3E-000366, Story 4S-001138, AK1, AK5, AK6): Workflows
+// verknüpfter Bereiche im Untermenü — je Quelle ein Block mit dem Kürzel.
+describe('Untermenü «Workflows»: Workflows verknüpfter Bereiche (4T-002426)', () => {
+  const tFremd = (k) => (k === 'workflow.verknuepft.eintrag' ? '{name} (@{prefix})' : `«${k}»`);
+  const fremd = (name, relPath) => ({
+    kind: 'workflow',
+    name,
+    relPath,
+    absPath: `D:/Zentral/Abläufe/${relPath}`,
+    sourceKey: 'zt',
+  });
+  const quelle = {
+    key: 'zt',
+    name: 'Zentral',
+    folder: 'D:/Zentral/Abläufe',
+    items: [
+      fremd('Posteingang leeren', 'Posteingang.md'),
+      {
+        kind: 'group',
+        name: 'Projekte',
+        relPath: 'Projekte',
+        items: [fremd('Start', 'Projekte/Start.md')],
+      },
+    ],
+    workflows: [],
+  };
+
+  it('setzt nach den eigenen je Quelle einen Block mit Kürzel; gleiche Namen bleiben unterscheidbar', () => {
+    gesendet.length = 0;
+    const eintrag = buildWorkflowsSubmenu({
+      t: tFremd,
+      send,
+      liste: liste({ items: [wf('Posteingang leeren', 'Posteingang.md')], linked: [quelle] }),
+    });
+    expect(labels(eintrag.submenu)).toEqual([
+      'Posteingang leeren',
+      '---',
+      'Posteingang leeren (@zt)',
+      'Projekte (@zt)',
+      '---',
+      '«workflow.seite.kommando»',
+      '«workflow.menu.new»',
+      '«workflow.menu.chooseFolder»',
+    ]);
+    expect(labels(eintrag.submenu[3].submenu)).toEqual(['Start (@zt)']);
+    eintrag.submenu[2].click();
+    eintrag.submenu[0].click();
+    expect(gesendet).toEqual([
+      [MENU_ACTION_CHANNEL, { kind: 'start', path: 'D:/Zentral/Abläufe/Posteingang.md' }],
+      [MENU_ACTION_CHANNEL, { kind: 'start', path: 'C:/Notizen/Abläufe/Posteingang.md' }],
+    ]);
+  });
+
+  it('zeigt fremde Workflows auch ohne eigenen Ordner und ohne Quelle keinen Block', () => {
+    const ohneOrdner = buildWorkflowsSubmenu({
+      t: tFremd,
+      send,
+      liste: liste({ source: 'none', folder: null, linked: [quelle] }),
+    });
+    expect(labels(ohneOrdner.submenu)).toEqual([
+      '«workflow.menu.noFolder»',
+      '---',
+      'Posteingang leeren (@zt)',
+      'Projekte (@zt)',
+      '---',
+      '«workflow.menu.chooseFolder»',
+    ]);
+    const ohneQuelle = buildWorkflowsSubmenu({
+      t: tFremd,
+      send,
+      liste: liste({ items: [wf('A', 'A.md')], linked: [] }),
+    });
+    expect(labels(ohneQuelle.submenu)).not.toContain('Posteingang leeren (@zt)');
+    expect(labels(ohneQuelle.submenu).filter((l) => l === '---')).toHaveLength(1);
+  });
+
+  it('maskiert das Und-Zeichen auch im Namen eines fremden Workflows', () => {
+    const eintrag = buildWorkflowsSubmenu({
+      t: tFremd,
+      send,
+      liste: liste({
+        linked: [{ ...quelle, items: [fremd('Hin & Her', 'H.md')] }],
+      }),
+    });
+    expect(labels(eintrag.submenu)).toContain('Hin && Her (@zt)');
+  });
+});

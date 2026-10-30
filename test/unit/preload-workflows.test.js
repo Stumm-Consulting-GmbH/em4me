@@ -59,6 +59,14 @@ describe('workflowsBridge', () => {
       'workflowFileInfo',
       // 4T-002350: Seite «Workflow-Läufe».
       'workflowRuns',
+      // 4T-002421: Lauf nach Zeitplan.
+      'onWorkflowDue',
+      'workflowScheduleClaim',
+      'workflowScheduleRelease',
+      'workflowScheduleFinished',
+      'workflowScheduleOpen',
+      'workflowSetArmed',
+      'workflowArmedState',
     ]);
     await bruecke.workflowStep('/w.md', { line: 1 });
     await bruecke.workflowBufferEditDone({ requestId: 'k', ok: true });
@@ -69,6 +77,13 @@ describe('workflowsBridge', () => {
     await bruecke.workflowSetFolder('/Abläufe');
     await bruecke.workflowCreate('Wochenrückblick');
     await bruecke.workflowFileInfo('/Notizen/w.md');
+    await bruecke.workflowScheduleClaim('k1');
+    await bruecke.workflowScheduleRelease('k1');
+    await bruecke.workflowScheduleFinished('k1');
+    await bruecke.workflowScheduleOpen();
+    // 4T-002422: Scharf-Schaltung und Scharf-Zustand einer Datei.
+    await bruecke.workflowSetArmed('/w.md', true);
+    await bruecke.workflowArmedState('/w.md');
     expect(aufrufe).toEqual([
       ['workflow:step', { workflowPath: '/w.md', step: { line: 1 } }],
       ['workflow:bufferEditDone', { requestId: 'k', ok: true }],
@@ -79,7 +94,18 @@ describe('workflowsBridge', () => {
       ['workflow:setFolder', { folder: '/Abläufe' }],
       ['workflow:create', { name: 'Wochenrückblick' }],
       ['workflow:fileInfo', '/Notizen/w.md'],
+      ['workflow:scheduleClaim', { key: 'k1' }],
+      ['workflow:scheduleRelease', { key: 'k1' }],
+      ['workflow:scheduleFinished', { key: 'k1' }],
+      ['workflow:scheduleOpen'],
+      ['workflow:setArmed', { workflowPath: '/w.md', armed: true }],
+      ['workflow:armedState', { workflowPath: '/w.md' }],
     ]);
+    // 4T-002421: Die Zustellung kommt ohne das Ereignis an.
+    const faellig = [];
+    bruecke.onWorkflowDue((nutzlast) => faellig.push(nutzlast));
+    zuhoerer.get('workflow:due')({}, { items: [] });
+    expect(faellig).toEqual([{ items: [] }]);
     const empfangen = [];
     bruecke.onWorkflowBufferEdit((auftrag) => empfangen.push(auftrag));
     zuhoerer.get('workflow:bufferEdit')({}, { requestId: 'k' });

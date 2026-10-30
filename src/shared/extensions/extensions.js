@@ -1374,6 +1374,12 @@ const INTERNAL_EXTENSIONS = [
       'help.feature.workflowRuns',
       'help.feature.workflowEditor',
       'help.feature.workflowFolder',
+      // 4T-002427 (Epic 3E-000366): die Katalog-Zeilen der Stufe 2.
+      'help.feature.workflowMaintenance',
+      'help.feature.workflowSchedule',
+      'help.feature.workflowArming',
+      'help.feature.workflowLinked',
+      'help.feature.workflowStatusbar',
     ],
     commands: ['ext.workflows.openRuns', 'ext.workflows.newWorkflow'],
     settingsSections: ['workflows', 'workflowsArea'],

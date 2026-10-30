@@ -8,6 +8,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   ENABLED_STAGES,
+  LATER_STAGE_PLACEHOLDERS,
   MAX_WAIT_SECONDS,
   OPTIONS,
   WORKFLOW_COMMANDS,
@@ -64,9 +65,9 @@ describe('Befehls-Katalog der Workflows', () => {
     expect(ist.length).toBe(38);
   });
 
-  it('gibt den Befehlen der Stufe 1 ein Schema, den späteren nur die Stufe (O6)', () => {
+  it('gibt den Befehlen der Stufen 1 und 2 ein Schema, den späteren nur die Stufe (O6)', () => {
     for (const [befehl, eintrag] of Object.entries(WORKFLOW_COMMANDS)) {
-      if (eintrag.stage === 1) {
+      if (eintrag.stage === 1 || eintrag.stage === 2) {
         expect(Array.isArray(eintrag.args), befehl).toBe(true);
         expect(eintrag.args.length, befehl).toBeGreaterThan(0);
       } else {
@@ -76,8 +77,32 @@ describe('Befehls-Katalog der Workflows', () => {
     }
   });
 
-  it('schaltet allein die Stufe 1 frei', () => {
-    expect(ENABLED_STAGES).toEqual([1]);
+  it('schaltet die Stufen 1 und 2 frei, nicht 3 und D (4T-002424)', () => {
+    expect(ENABLED_STAGES).toEqual([1, 2]);
+  });
+
+  // 4T-002424: die Argument-Schemata der fünf Pflege-Befehle (Regeln P1 bis P5).
+  it.each([
+    ['delete', ['path']],
+    ['add-tag', ['path', 'text']],
+    ['remove-tag', ['path', 'text']],
+    ['complete-task', ['path', 'text']],
+    ['confirm', ['text']],
+  ])('gibt %s das Schema der Regeln P1 bis P5', (befehl, arten) => {
+    const eintrag = lookupCommand(befehl);
+    expect(eintrag.stage).toBe(2);
+    expect(eintrag.args.map((a) => a.type)).toEqual(arten);
+    expect(eintrag.groups).toEqual({});
+    // Schlagwort, Suchtext und Frage dürfen nicht leer sein.
+    for (const a of eintrag.args.filter((x) => x.type === 'text')) expect(a.nonEmpty).toBe(true);
+  });
+
+  it('führt allein die fünf Pflege-Befehle in der Stufe 2', () => {
+    const zwei = Object.entries(WORKFLOW_COMMANDS)
+      .filter(([, e]) => e.stage === 2)
+      .map(([b]) => b)
+      .sort();
+    expect(zwei).toEqual(['add-tag', 'complete-task', 'confirm', 'delete', 'remove-tag']);
   });
 
   it('kennt geerbte Namen nicht als Befehl oder Option', () => {
@@ -130,8 +155,10 @@ describe('Befehls-Katalog der Workflows', () => {
     });
   });
 
-  it('nennt die Zwischenablage als Platzhalter der Stufe 2 (O8)', () => {
-    expect(laterStagePlaceholder('clipboard')).toBe(2);
+  it('nennt die Zwischenablage als Platzhalter der Stufe 2 und gibt sie mit ihr frei (O8, 4T-002424)', () => {
+    expect(LATER_STAGE_PLACEHOLDERS).toEqual({ clipboard: 2 });
+    expect(laterStagePlaceholder('clipboard')).toBeNull();
+    expect(laterStagePlaceholder('clipboard', [1])).toBe(2);
     expect(laterStagePlaceholder('date')).toBeNull();
   });
 });

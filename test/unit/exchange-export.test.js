@@ -355,3 +355,89 @@ describe('exchange — Beschriftungen in fünf Sprachfassungen (AK8)', () => {
     expect(new Set(SETTINGS_PATHS).size).toBe(SETTINGS_PATHS.length);
   });
 });
+
+// 4T-002425 (Story 4S-001137, Epic 3E-000366): der anwendungsweite
+// Workflow-Ordner als eigene Datenart, Muster des Vorlagen-Ordners.
+describe('4T-002425 — der Workflow-Ordner in der Einrichtungs-Datei', () => {
+  // Im Namensraum steht neben dem Ordner ein erfundener künftiger Schlüssel:
+  // Er belegt, dass allein die Festlegung mitreist und nicht der Namensraum.
+  const MIT_ORDNER = {
+    language: 'de',
+    workflows: { folder: 'D:/Workflows', kuenftigerSchluessel: 'BLEIBT-DAHEIM' },
+  };
+  // Die Sektion `workflows` der Bereichsdatei trägt den Ordner je Bereich.
+  const BEREICHS_SEKTIONEN = {
+    workflows: { folder: 'Bereichs-Workflows' },
+    calendarSystems: KALENDER,
+  };
+  const sammleMit = (inhalt, sektionen = BEREICHS_SEKTIONEN) => {
+    const store = storeDouble(inhalt);
+    return collectDataKinds({
+      readPath: (pfad) => store.get(pfad),
+      readAreaSection: (name) => sektionen[name],
+    });
+  };
+  const alsDatei = (sections) =>
+    writeExchangeFile({ kind: EXCHANGE_KIND, created: '2026-10-28T12:00:00Z', sections }).text;
+
+  it('AK1: steht als eigene Datenart mit der Festlegung als einzigem Pfad', () => {
+    const kind = DATA_KINDS.find((k) => k.id === 'workflows');
+    expect(kind).toBeTruthy();
+    expect(kind.paths).toEqual(['workflows.folder']);
+    expect(kind.areaSection).toBeUndefined();
+    expect(kind.labelKey).toBe('exchange.kind.workflows');
+    // Gleich nach dem Vorlagen-Ordner, dem Vorbild.
+    expect(DATA_KIND_IDS.indexOf('workflows')).toBe(DATA_KIND_IDS.indexOf('templates') + 1);
+  });
+
+  it('AK1: die Ausgabe enthält die Festlegung als eigenen, benannten Abschnitt', async () => {
+    const gesammelt = await sammleMit(MIT_ORDNER);
+    const zeile = gesammelt.find((k) => k.id === 'workflows');
+    expect(zeile.hasValues).toBe(true);
+    expect(zeile.count).toBe(1);
+    expect(zeile.values).toEqual({ 'workflows.folder': 'D:/Workflows' });
+
+    const gebaut = buildExchangeSections(gesammelt, ['workflows']);
+    expect(gebaut.ok).toBe(true);
+    expect(gebaut.sections).toEqual([
+      { name: 'workflows', title: undefined, value: { 'workflows.folder': 'D:/Workflows' } },
+    ]);
+    const gelesen = readExchangeFile(alsDatei(gebaut.sections), { knownSections: DATA_KIND_IDS });
+    expect(gelesen.ok).toBe(true);
+    expect(gelesen.sections).toEqual([
+      { name: 'workflows', value: { 'workflows.folder': 'D:/Workflows' } },
+    ]);
+  });
+
+  it('AK3: weder der Ordner je Bereich noch ein anderer Schlüssel des Namensraums reist mit', async () => {
+    const gesammelt = await sammleMit(MIT_ORDNER);
+    for (const zeile of gesammelt) {
+      expect(JSON.stringify(zeile.values), zeile.id).not.toContain('Bereichs-Workflows');
+      expect(JSON.stringify(zeile.values), zeile.id).not.toContain('BLEIBT-DAHEIM');
+    }
+    const alle = buildExchangeSections(
+      gesammelt,
+      gesammelt.filter((k) => k.hasValues).map((k) => k.id),
+    );
+    const text = alsDatei(alle.sections);
+    expect(text).not.toContain('Bereichs-Workflows');
+    expect(text).not.toContain('BLEIBT-DAHEIM');
+  });
+
+  it('AK4: abgewählt enthält die Datei keinen Abschnitt zum Workflow-Ordner', async () => {
+    const gesammelt = await sammleMit(MIT_ORDNER);
+    const gebaut = buildExchangeSections(gesammelt, ['settings']);
+    expect(gebaut.sections.map((s) => s.name)).toEqual(['settings']);
+    expect(alsDatei(gebaut.sections)).not.toContain('D:/Workflows');
+  });
+
+  it('bietet die Datenart ohne festgelegten Ordner nicht an', async () => {
+    const gesammelt = await sammleMit({ language: 'de' });
+    expect(gesammelt.find((k) => k.id === 'workflows').hasValues).toBe(false);
+    expect(buildExchangeSections(gesammelt, ['workflows'])).toEqual({
+      ok: false,
+      error: 'empty-kind',
+      kind: 'workflows',
+    });
+  });
+});

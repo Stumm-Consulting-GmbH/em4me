@@ -2,8 +2,13 @@
 // Datei-, Ordner-, Inhalts- und Dateikopf-Befehle im Hauptprozess, die Antwort
 // eines Fensters auf einen Puffer-Auftrag und der Lauf-Stand.
 //
+// Seit 4T-002424 dazu die Pflege-Befehle `delete`, `add-tag`, `remove-tag` und
+// `complete-task` der Stufe 2 (workflow-maintenance-steps.js, workflow-content-steps.js).
+//
 // Kanal-Gruppe: workflow:step, workflow:bufferEditDone, workflow:recordRun;
-// dazu der ausgehende Auftrag workflow:bufferEdit (workflow-buffer-requests.js).
+// dazu der ausgehende Auftrag workflow:bufferEdit (workflow-buffer-requests.js)
+// und seit 4T-002421 die Kanäle des Laufs nach Zeitplan (workflow-schedule.js),
+// seit 4T-002422 die Kanäle der Scharf-Schaltung (workflow-armed.js).
 // Im Aus-Zustand der Erweiterung «Workflows» verweigert workflow:step mit dem
 // Code extensionOff (4T-002352).
 //
@@ -34,14 +39,29 @@ const {
   createWorkflowContentSteps,
 } = require('../workflows/workflow-content-steps.js');
 const { FILE_KEYWORDS, createWorkflowFileSteps } = require('../workflows/workflow-file-steps.js');
-const { createWorkflowRunState, normalizeRun } = require('../workflows/workflow-run-state.js');
+// 4T-002424: die Pflege-Befehle `delete` und `complete-task` (Stufe 2).
+const {
+  MAINTENANCE_KEYWORDS,
+  createWorkflowMaintenanceSteps,
+} = require('../workflows/workflow-maintenance-steps.js');
+const {
+  createWorkflowRunState,
+  journalImBereich,
+  normalizeRun,
+} = require('../workflows/workflow-run-state.js');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
+// 4T-002426: Workflows zugestimmter verknüpfter Bereiche (Definition aus der Quelle).
+const { createLinkedWorkflowSources } = require('../workflows/workflow-linked-sources.js');
 const { WORKFLOWS_EXTENSION_ID } = require('../../shared/workflows/workflow-konstanten.js');
 // 4T-002355: die Kanäle des Workflow-Ordners, hier mit angemeldet, damit die
 // Verdrahtung in main.js unverändert bleibt.
 const { registerWorkflowFolderIpc } = require('./workflow-folder.js');
 // 4T-002350: der Lese-Kanal der Seite «Workflow-Läufe», ebenso mit angemeldet.
 const { registerWorkflowRunsIpc } = require('./workflow-runs.js');
+// 4T-002421: die Kanäle des Laufs nach Zeitplan, ebenso mit angemeldet.
+const { registerWorkflowScheduleIpc } = require('./workflow-schedule.js');
+// 4T-002422: die Kanäle der Scharf-Schaltung, ebenso mit angemeldet.
+const { registerWorkflowArmedIpc } = require('./workflow-armed.js');
 // 4T-002364: Nachzug der Belegungen beim Umbenennen und Verschieben, verteilt
 // über dieselbe Verteilung wie settings:set und das Einlesen.
 const { createSettingsVerteilung } = require('./settings-verteilung');
@@ -84,8 +104,8 @@ function positionGueltig(position) {
  */
 function isValidStep(step) {
   if (!istObjekt(step) || !Number.isInteger(step.line) || step.line < 1) return false;
-  const istDatei = FILE_KEYWORDS.includes(step.keyword);
-  if (!istDatei && !CONTENT_KEYWORDS.includes(step.keyword)) return false;
+  const bekannt = [...FILE_KEYWORDS, ...CONTENT_KEYWORDS, ...MAINTENANCE_KEYWORDS];
+  if (!bekannt.includes(step.keyword)) return false;
   const eintrag = lookupCommand(step.keyword);
   if (!eintrag || !Array.isArray(step.args) || step.args.length !== eintrag.args.length)
     return false;
@@ -132,6 +152,10 @@ function isValidStep(step) {
  * @param {(disabled: *) => boolean} [deps.workflowsEnabled] Schalter-Abfrage (Prüffälle).
  * @param {(fn: Function) => void} [deps.setFollowWorkflowBindings] Setzer der Verdrahtung
  *   für den Nachzug der Belegungen in renameSingleFile (app/wiring.js).
+ * @param {object} [deps.workflowScheduleChecker] Zeitplan-Prüfer (4T-002421).
+ * @param {object} [deps.workflowScheduleDelivery] Zustell-Register der Fälligkeiten (4T-002421).
+ * @param {(p: string) => Promise<void>} [deps.trashItem] Papierkorb für `delete`
+ *   (Prüffälle; Vorgabe `shell.trashItem`, 4T-002424).
  */
 function registerWorkflowsIpc(handle, deps) {
   const { senderWindow, areaOfWindow, backlinks } = deps;
@@ -139,7 +163,13 @@ function registerWorkflowsIpc(handle, deps) {
   const cascade = createRenameCascade(deps);
   const dateiSchritte = createWorkflowFileSteps({ ...deps, cascade });
   const inhaltsSchritte = createWorkflowContentSteps({ ...deps, bufferRequests });
+  const pflegeSchritte = createWorkflowMaintenanceSteps(deps);
   const laufStand = createWorkflowRunState(deps);
+  // 4T-002426 (Entscheidungen 2h und 1f): Fremd zugelassen ist allein die
+  // DEFINITION eines Workflows aus einer zugestimmten Quelle, und nur im
+  // Schritt-Kanal. Jedes Schritt-Ziel prüft resolveAreaPath weiter gegen die
+  // eigene Wurzel (ctx.root); workflow:recordRun nimmt einen fremden Pfad nie an.
+  const fremdeQuellen = deps.linkedWorkflowSources || createLinkedWorkflowSources(deps);
   // 4T-002352: Schalter der Erweiterung «Workflows», je Aufruf frisch gelesen
   // (Muster datenbankAktiv in app/wiring.js); dieselbe Abfrage-Form wie im
   // Ordner-Dienst. Ohne Speicher (Prüffälle) gilt die leere Aus-Liste.
@@ -151,7 +181,7 @@ function registerWorkflowsIpc(handle, deps) {
   };
 
   // Bereichs-Wurzel des Absenders und Ort der Workflow-Datei darin.
-  function kontext(event, workflowPath) {
+  async function kontext(event, workflowPath, { fremdeDefinition = false } = {}) {
     const owner = senderWindow(event);
     const area = owner ? areaOfWindow(owner) : null;
     if (!area || !area.rootPath) return { ok: false, code: 'noArea' };
@@ -159,7 +189,12 @@ function registerWorkflowsIpc(handle, deps) {
       return { ok: false, code: 'invalidStep' };
     }
     const workflowAbs = path.resolve(workflowPath);
-    if (!isInsideArea(area.rootPath, workflowAbs)) return { ok: false, code: 'outsideArea' };
+    if (!isInsideArea(area.rootPath, workflowAbs)) {
+      const quelle = fremdeDefinition
+        ? await fremdeQuellen.sourceFor(area.rootPath, workflowAbs)
+        : null;
+      if (!quelle) return { ok: false, code: 'outsideArea' };
+    }
     return { ok: true, ctx: { root: area.rootPath, owner, event, workflowAbs, backlinks } };
   }
 
@@ -175,11 +210,16 @@ function registerWorkflowsIpc(handle, deps) {
     // und Ordner-Festlegung wie Lauf-Stände erhalten bleiben sollen.
     if (!erweiterungAn()) return { ok: false, ...kopf, code: 'extensionOff', detail: {} };
     if (!isValidStep(step)) return { ok: false, ...kopf, code: 'invalidStep', detail: {} };
-    const lage = kontext(event, nutzlast.workflowPath);
+    const lage = await kontext(event, nutzlast.workflowPath, { fremdeDefinition: true });
     if (!lage.ok) return { ok: false, ...kopf, code: lage.code, detail: {} };
-    const ergebnis = FILE_KEYWORDS.includes(step.keyword)
-      ? await dateiSchritte.runFileStep(lage.ctx, step)
-      : await inhaltsSchritte.runContentStep(lage.ctx, step);
+    let ergebnis;
+    if (FILE_KEYWORDS.includes(step.keyword)) {
+      ergebnis = await dateiSchritte.runFileStep(lage.ctx, step);
+    } else if (MAINTENANCE_KEYWORDS.includes(step.keyword)) {
+      ergebnis = await pflegeSchritte.runMaintenanceStep(lage.ctx, step);
+    } else {
+      ergebnis = await inhaltsSchritte.runContentStep(lage.ctx, step);
+    }
     return { ...kopf, ...ergebnis };
   });
 
@@ -187,16 +227,22 @@ function registerWorkflowsIpc(handle, deps) {
     bufferRequests.answer(event, istObjekt(antwort) ? antwort : null),
   );
 
+  // 4T-002420: Herkunft und Journal kommen mit; die Pfade des Journals werden
+  // gegen die Bereichs-Wurzel des Absenders geprüft und relativ abgelegt.
   handle('workflow:recordRun', async (event, nutzlast) => {
     const run = normalizeRun(istObjekt(nutzlast) ? nutzlast.run : null);
     if (!run) return { ok: false, code: 'invalidStep' };
-    const lage = kontext(event, istObjekt(nutzlast) ? nutzlast.workflowPath : null);
+    const lage = await kontext(event, istObjekt(nutzlast) ? nutzlast.workflowPath : null);
     if (!lage.ok) return { ok: false, code: lage.code };
-    return laufStand.recordRun(lage.ctx.owner, lage.ctx.workflowAbs, run);
+    const imBereich = journalImBereich(run, lage.ctx.root);
+    if (!imBereich) return { ok: false, code: 'outsideArea' };
+    return laufStand.recordRun(lage.ctx.owner, lage.ctx.workflowAbs, imBereich);
   });
 
   const ordnerDienst = registerWorkflowFolderIpc(handle, deps);
   registerWorkflowRunsIpc(handle, deps);
+  registerWorkflowScheduleIpc(handle, deps);
+  registerWorkflowArmedIpc(handle, deps);
   // 4T-002364: Tastenkürzel und Plätze eines Workflows folgen seiner Bewegung
   // in der Anwendung; ohne Setzer (Prüffälle ohne Verdrahtung) entfällt das.
   if (typeof deps.setFollowWorkflowBindings === 'function') {

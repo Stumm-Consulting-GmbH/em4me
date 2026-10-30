@@ -17,9 +17,20 @@
 // ziehen Tastenkürzel und Plätze mit (4T-002364, `workflow-binding-rewrite.js`
 // und `src/main/workflows/workflow-binding-follow.js`); außerhalb der Anwendung
 // zeigen sie danach ins Leere.
+//
+// **Workflows verknüpfter Bereiche** (4T-002426, Epic 3E-000366, technisch
+// entschieden im Task): Zwei Quellen können denselben Pfad tragen, und ein
+// fremder Pfad darf nie mit einem eigenen zusammenfallen. Die Kennung eines
+// fremden Workflows trägt deshalb das Kürzel der Quelle in der Form des
+// Verknüpfungs-Links: `workflow.@<Kürzel>:<Pfad-Kennung>`. `@` und `:` stehen
+// dort unkodiert und kommen in einer eigenen Kennung nie vor, weil
+// `encodeURIComponent` beide kodiert; die Kennungen beider Arten sind damit
+// getrennt, auch wenn ein eigener Unterordner `@b` hieße. Das Kürzel wird in der
+// Vergleichs-Form (klein) geführt, wie die Verknüpfung es vergleicht.
 'use strict';
 
 const WORKFLOW_COMMAND_PREFIX = 'workflow.';
+const LINKED_MARKER = '@';
 
 function normalisiere(relPath) {
   return String(relPath || '')
@@ -47,6 +58,8 @@ function workflowCommandId(relPath) {
  */
 function relPathOfCommandId(id) {
   if (typeof id !== 'string' || !id.startsWith(WORKFLOW_COMMAND_PREFIX)) return null;
+  // 4T-002426: Die Kennung eines fremden Workflows hat keinen Pfad im eigenen Ordner.
+  if (isLinkedWorkflowCommandId(id)) return null;
   try {
     const pfad = decodeURIComponent(id.slice(WORKFLOW_COMMAND_PREFIX.length));
     return pfad || null;
@@ -55,4 +68,42 @@ function relPathOfCommandId(id) {
   }
 }
 
-module.exports = { WORKFLOW_COMMAND_PREFIX, relPathOfCommandId, workflowCommandId };
+/**
+ * Die Kommando-Kennung eines Workflows aus einem verknüpften Bereich (4T-002426).
+ *
+ * @param {string} sourceKey Kürzel der Verknüpfung.
+ * @param {string} relPath Pfad relativ zum Workflow-Ordner der Quelle.
+ * @returns {string|null} `workflow.@<Kürzel>:<Pfad-Kennung>` oder null.
+ */
+function linkedWorkflowCommandId(sourceKey, relPath) {
+  const kuerzel = String(sourceKey || '')
+    .trim()
+    .toLowerCase();
+  const pfad = normalisiere(relPath);
+  if (!kuerzel || !pfad) return null;
+  return (
+    WORKFLOW_COMMAND_PREFIX +
+    LINKED_MARKER +
+    encodeURIComponent(kuerzel) +
+    ':' +
+    encodeURIComponent(pfad)
+  );
+}
+
+/**
+ * Ist die Kennung die eines Workflows aus einem verknüpften Bereich?
+ *
+ * @param {*} id Kommando-Kennung.
+ * @returns {boolean}
+ */
+function isLinkedWorkflowCommandId(id) {
+  return typeof id === 'string' && id.startsWith(WORKFLOW_COMMAND_PREFIX + LINKED_MARKER);
+}
+
+module.exports = {
+  WORKFLOW_COMMAND_PREFIX,
+  isLinkedWorkflowCommandId,
+  linkedWorkflowCommandId,
+  relPathOfCommandId,
+  workflowCommandId,
+};

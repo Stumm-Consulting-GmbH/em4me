@@ -392,7 +392,13 @@ function createMainWiring(deps) {
     pendingSecondInstanceFiles,
     // 4T-000525 (Epic 3E-000095): Der Erinnerungs-Pruefer entsteht erst weiter
     // unten; spaet gebunden, weil die TDZ des const sonst zuschluege.
-    onBacklinksInvalidated: () => reminderChecker.tick(),
+    // 4T-002421 (Epic 3E-000366): Derselbe Anstoss prüft beim Zeitplan-Prüfer
+    // jeden Bereich, der noch nie geprüft wurde — das Öffnen eines Bereichs mit
+    // fertigem Index ist dort die Sofort-Prüfung samt Nachholen (2c).
+    onBacklinksInvalidated: () => {
+      reminderChecker.tick();
+      void workflowScheduleChecker.checkNewAreas();
+    },
   });
   const {
     windows,
@@ -597,11 +603,17 @@ function createMainWiring(deps) {
     reminderDelivery,
     alarmDelivery,
     timerDelivery,
+    workflowScheduleChecker,
+    workflowScheduleDelivery,
   } = createCheckers({
     appRegistry,
     getStore,
     backlinks,
     broadcast,
+    // 4T-002421: Zeitplan-Prüfer der Workflows — Fenster-Register für den
+    // Anspruch und der Schreibweg der Begleitdateien für den Lauf-Stand.
+    windows,
+    mddWege: { mddSuspendedPaths, mddKeyOf, notifyMddDefect },
   });
 
   return {
@@ -633,6 +645,8 @@ function createMainWiring(deps) {
     reminderDelivery,
     alarmDelivery,
     timerDelivery,
+    workflowScheduleChecker,
+    workflowScheduleDelivery,
     schliessRueckfall,
     anzeigeAusfall,
   };

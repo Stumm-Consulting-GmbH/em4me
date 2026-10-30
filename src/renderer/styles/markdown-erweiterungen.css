@@ -592,6 +592,32 @@
   opacity: 0.5;
   cursor: default;
 }
+/* 4T-002422: Schalter «Scharf» neben «Starten», nur bei trigger: schedule;
+   gedrückt, solange der Workflow scharf ist. Eigene Klasse, damit «Starten»
+   in der Kopfzeile eindeutig bleibt. */
+.cm-wf-scharf {
+  font: inherit;
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: var(--bg);
+  color: inherit;
+  cursor: pointer;
+}
+.cm-wf-scharf:hover:not([aria-disabled='true']) {
+  border-color: var(--accent);
+}
+.cm-wf-scharf[aria-pressed='true'] {
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.cm-wf-scharf[data-status='definitionChanged'] {
+  border-color: var(--danger, #c0392b);
+}
+.cm-wf-scharf[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: default;
+}
 /* 4T-002350: Seite «Workflow-Läufe». Maße der Übersicht der Datenbank
    (datenbank.css), eigene Klassen wie dort begründet: Zwei Seiten, die sich
    Klassen teilen, brechen bei der nächsten Änderung an einer von beiden. */
@@ -630,8 +656,10 @@
   opacity: 0.6;
   cursor: default;
 }
+/* 4T-002426: Hinweis auf die Quelle eines fremden Workflows statt des Lauf-Stands. */
 .wf-runs-note,
-.wf-runs-never {
+.wf-runs-never,
+.wf-runs-foreign {
   color: var(--fg-muted);
 }
 .wf-runs-note {
@@ -666,4 +694,46 @@
 }
 .wf-runs-result-failed {
   color: var(--danger, #c0392b);
+}
+/* 4T-002422: Spalten «Scharf» und «Nächster Lauf», Vermerke beim letzten Lauf
+   und das aufklappbare Journal. */
+.wf-runs-armed,
+.wf-runs-next {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.wf-runs-armed-changed {
+  margin-left: 6px;
+  color: var(--danger, #c0392b);
+}
+.wf-runs-origin,
+.wf-runs-skipped {
+  color: var(--fg-muted);
+}
+.wf-runs-journal-toggle {
+  font: inherit;
+  margin-left: 8px;
+  padding: 0 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-alt);
+  color: var(--fg);
+  cursor: pointer;
+}
+.wf-runs-journal-toggle:hover {
+  background: var(--hover);
+}
+.wf-runs-journal-title {
+  color: var(--fg-muted);
+  font-weight: 600;
+}
+.wf-runs-journal-list {
+  margin: 4px 0;
+  padding-left: 20px;
+  overflow-wrap: anywhere;
+}
+.wf-runs-journal-empty,
+.wf-runs-journal-truncated {
+  margin: 4px 0;
+  color: var(--fg-muted);
 }

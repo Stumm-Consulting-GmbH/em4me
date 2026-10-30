@@ -43,6 +43,19 @@ vi.mock('../../../src/renderer/modules/workflows/workflow-start-knopf.js', () =>
   registriereStartKnopf: () => {},
 }));
 
+// 4T-002423: das Statusleisten-Element «Workflows» und der Lese-Kanal mit einem
+// scharfen Workflow, damit die Positiv-Kontrolle das Element zeigt.
+document.body.insertAdjacentHTML(
+  'beforeend',
+  '<footer class="statusbar"><div class="statusbar-right">' +
+    '<button id="statusbar-wordcount" type="button" hidden></button></div></footer>',
+);
+window.api.workflowRuns = vi.fn(async () => ({
+  ok: true,
+  status: 'ready',
+  workflows: [{ name: 'Wochenrückblick', absPath: liste.workflows[0].absPath, armed: 'armed' }],
+}));
+
 const i18n = await import('../../../src/renderer/i18n.js');
 await i18n.loadTranslations('de');
 const { applyExtensionsState, isExtensionActive } =
@@ -53,8 +66,10 @@ const { workflowKopf } = await import('../../../src/renderer/modules/workflows/w
 const { liveRebuildEffect } = await import('../../../src/renderer/modules/live/live-shared.js');
 const { initWorkflowCommands } =
   await import('../../../src/renderer/modules/workflows/workflow-commands.js');
-const { oeffneWorkflowLaeufe } =
+const { WORKFLOW_LAEUFE_COMMAND_ID, oeffneWorkflowLaeufe } =
   await import('../../../src/renderer/modules/workflows/workflow-laeufe-seite.js');
+const { WORKFLOW_LAEUFE_KOMMANDO, aktualisiereWorkflowStatusleiste } =
+  await import('../../../src/renderer/modules/workflows/workflow-statusleiste.js');
 const { starteWorkflow } =
   await import('../../../src/renderer/modules/workflows/workflow-start.js');
 const { COMMANDS } = await import('../../../src/shared/commands/commands.js');
@@ -156,6 +171,57 @@ describe('Aus-Zustand der Workflows über den echten Schalter (4T-002352)', () =
     expect(await starteWorkflow({ path: 'C:/b/Workflows/Wochenrückblick.md', text: DATEI })).toBe(
       false,
     );
+  });
+
+  // 4T-002421 (Story 4S-001132, AK7 des Tasks): Der Empfänger des Laufs nach
+  // Zeitplan hängt am selben Schalter. Positiv-Kontrolle zuerst: Eingeschaltet
+  // beansprucht das Fenster seines Bereichs die Fälligkeit.
+  it('Lauf nach Zeitplan: im Aus-Zustand kein Anspruch, eingeschaltet schon', async () => {
+    const { state } = await import('../../../src/renderer/modules/app/app-state.js');
+    state.areaPath = 'C:/b';
+    const ansprueche = [];
+    window.__workflowScheduleClaim = (key) => {
+      ansprueche.push(key);
+      return { granted: false };
+    };
+    const item = (key) => ({
+      key,
+      root: 'C:/b',
+      path: 'C:/b/Workflows/Wochenrückblick.md',
+      name: 'Wochenrückblick',
+      origin: 'schedule',
+      due: '2026-10-28T08:00',
+    });
+    try {
+      expect(typeof window.__workflowDueHandler).toBe('function');
+      window.__workflowDueHandler({ catchUp: false, items: [item('an')] });
+      await vi.waitFor(() => expect(ansprueche).toEqual(['an']));
+      await schalte(['workflows']);
+      window.__workflowDueHandler({ catchUp: false, items: [item('aus')] });
+      await new Promise((r) => setTimeout(r, 0));
+      expect(ansprueche).toEqual(['an']);
+    } finally {
+      delete window.__workflowScheduleClaim;
+      state.areaPath = null;
+    }
+  });
+
+  // 4T-002423 (Story 4S-001134, AK5 des Tasks): Das Element «Workflows» hängt
+  // am selben Schalter. Positiv-Kontrolle zuerst: Eingeschaltet und mit einem
+  // scharfen Workflow steht es; ausgeschaltet verschwindet es, und das
+  // Wiedereinschalten bringt es zurück.
+  it('Statusleisten-Element: im Aus-Zustand nicht vorhanden, eingeschaltet schon', async () => {
+    const element = document.getElementById('statusbar-workflows');
+    await aktualisiereWorkflowStatusleiste();
+    expect(element.hidden).toBe(false);
+    await schalte(['workflows']);
+    await vi.waitFor(() => expect(element.hidden).toBe(true));
+    await aktualisiereWorkflowStatusleiste();
+    expect(element.hidden).toBe(true);
+    await schalte([]);
+    await vi.waitFor(() => expect(element.hidden).toBe(false));
+    // Das Element öffnet dieselbe Seite wie das Kommando der Erweiterung.
+    expect(WORKFLOW_LAEUFE_KOMMANDO).toBe(WORKFLOW_LAEUFE_COMMAND_ID);
   });
 
   it('AK5: nach dem Wiedereinschalten sind Hervorhebung und Kopfzeile wieder da', async () => {

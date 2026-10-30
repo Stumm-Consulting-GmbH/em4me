@@ -19,6 +19,7 @@
   "exchange.kind.extensionModes": "Eigene Arbeitsmodi",
   "exchange.kind.sidebar": "Anordnung der Sidebar",
   "exchange.kind.templates": "Vorlagen-Ordner und -Regeln",
+  "exchange.kind.workflows": "Workflow-Ordner",
   "exchange.kind.bookmarksTree": "Lesezeichen",
   "exchange.kind.calendarSystems": "Kalender-Systeme des Bereichs",
   "exchange.entryCountPresent": "vorhanden",

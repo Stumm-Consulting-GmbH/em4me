@@ -14,6 +14,228 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.155.0.4594] - 2026-10-30 — Workflows Stufe 2: Workflows nach Zeitplan und Pflege-Befehle
+
+Zug 3E-000380
+mit einem Mitglied, auf ausdrückliche Anweisung des Product Owners vom
+2026-10-28 und damit unter der Regelgröße («Der Zug «Workflows Stufe 2» fährt
+auf meine Anweisung mit dem einen Epic 3E-000366.»): die Stufe 2 der Workflows
+(3E-000366).
+Ein Workflow kann jetzt nach einem Zeitplan laufen: `trigger: schedule` und
+eine lesbare Zeitplan-Zeile `schedule` im Dateikopf, dazu `missed` für
+verpasste Termine. Er läuft erst, nachdem der Anwender ihn scharf geschaltet
+hat, und nur, solange sein Bereich in einem Fenster geöffnet ist; verpasste
+Termine holt er beim Öffnen des Bereichs einmal nach, und eine geänderte
+Definition hebt den Scharf-Zustand auf. Ein Lauf nach Zeitplan ist
+unbeaufsichtigt, deshalb sind Eingaben, `confirm` und `delete` dort ein Befund.
+Der Lauf-Stand hält Herkunft und Journal des letzten Laufs; die Seite
+«Workflow-Läufe» zeigt Scharf-Zustand, nächsten Lauf und Journal, ein
+Statusleisten-Element den letzten Lauf nach Zeitplan, und `notify` sowie ein
+Fehlschlag gehen bei einem Lauf nach Zeitplan zusätzlich als Benachrichtigung
+des Betriebssystems hinaus. Dazu kommen fünf Pflege-Befehle (`delete` in den
+Papierkorb, `add-tag`, `remove-tag`, `complete-task`, `confirm`) und der
+Platzhalter `{{clipboard}}`; der Workflow-Ordner reist mit der
+Einrichtungs-Datei, und Workflows verknüpfter Bereiche lassen sich nach
+Zustimmung von Hand starten. Alles hängt an der Erweiterung «Workflows» im
+Arbeitsmodus «Voll». Ereignisse, Bedingungen und Skript-Schritt (Stufe 3) und
+die Datenbank-Befehle (Stufe D) folgen in eigenen Konzept-Runden und Zügen.
+Konzept-Runde und Entscheidungen in
+4T-002418,
+der Abschluss-Anteil in
+4T-002428.
+
+**Entscheidungen des Product Owners vom 2026-10-28.** Das Entscheidungs-Paket
+2a bis 2j der Konzept-Runde ist im Wortlaut «Alle wie empfohlen» angenommen,
+die Empfehlungen pauschal übernommen: der Zeitplan als lesbare Regel in einer
+Zeile nach dem Muster der Aufgaben-Wiederholung, ohne cron-Ausdruck (2a); die
+lokale Wanduhr-Zeit wie bei Wecker und Erinnerungen, die Woche ab Montag (2b);
+ein Lauf nach Zeitplan nur bei geöffnetem Bereich, ohne unsichtbares Fenster
+(2c); das Feld `missed` mit `run-once` und `skip` (2d); die Scharf-Schaltung an
+drei Bedienorten mit einer Prüfsumme der Definition (2e); Benachrichtigung des
+Betriebssystems und Statusleisten-Element (2f); keine Rücknahme eines Laufs,
+stattdessen das Lauf-Journal, womit die Ablauf-Regel A5 endgültig entschieden
+ist (2g); Workflows verknüpfter Bereiche mit Zustimmung je Verknüpfung (2h);
+Schnitt und eigener Zug mit einem Mitglied (2i, 2j).
+
+### Neu
+
+- **Zeitplan im Dateikopf** (`4T-002419`). Neues prozess-neutrales Modul
+  `src/shared/workflows/workflow-schedule.js`: `parseSchedule` liest die
+  Zeile `every [N] (minutes | hours | day(s) | weekday | week(s) on
+  <Wochentage> | month(s) on the <Tag> | last) [at HH:MM]`, streng nach der
+  Regel des Prüfers (`at` Pflicht bei Tag, Woche und Monat, verboten bei
+  Minuten und Stunden), und `nextScheduleDue` rechnet den nächsten Termin auf
+  der lokalen Wanduhr im Format der Erinnerungen, zeitzonenfrei auf
+  Kalender-Tagen; eine beim Vorstellen der Uhr ausfallende Minute rückt auf
+  die nächste existierende, ein Zieltag, den der Monat nicht hat, wird
+  übersprungen. Die Kalender-Arithmetik teilt es mit
+  `src/shared/tasks/task-recurrence.js`. Der Dateikopf-Leser nimmt
+  `trigger: schedule` an und liest `schedule` und `missed` (Vorgabe
+  `run-once`); fehlender Zeitplan, Zeitplan ohne Auslöser, unlesbare Zeile und
+  unbekannter Wert bei `missed` sind Befunde mit Zeile, die Lauf und
+  Scharf-Schaltung verhindern. Eingabe-Platzhalter, `confirm` und `delete` in
+  einem Workflow mit Zeitplan meldet der Prüfer als Befund «nur von Hand»
+  (`manualOnly`), der den Start von Hand zulässt und die Scharf-Schaltung
+  verhindert (`armable`).
+- **Lauf-Stand der Stufe 2** (`4T-002420`). Die Sektion `workflow` der
+  Begleitdatei trägt zusätzlich den Scharf-Zustand `armed: { at, hash }`, den
+  nächsten fälligen Lauf `nextDue`, den verfallenen Lauf `skipped` und je
+  letztem Lauf die Herkunft `origin` (`manual`, `schedule`, `catch-up`) und das
+  Lauf-Journal der berührten Dateien (Zeile, Befehl, Pfad relativ zur
+  Bereichs-Wurzel, höchstens 2000 Zeilen). Ein Stand der Stufe 1 wird gelesen,
+  sein letzter Lauf gilt als von Hand. Die Prüfsumme der Definition (SHA-256
+  über Befehls-Block und die Zeitplan-Felder `trigger`, `schedule`, `missed`)
+  rechnet `src/main/workflows/workflow-definition-hash.js` im Hauptprozess;
+  eine kopierte Workflow-Datei kommt weiter ohne Lauf-Stand und damit nie
+  scharf an.
+- **Zeitplan-Prüfer und Lauf nach Zeitplan** (`4T-002421`). Ein weiterer
+  Prüfer im Hauptprozess (`src/main/checks/workflow-schedule-check.js`) prüft
+  im Takt der Erinnerungen je offenem Bereich die Workflows der Index-Sicht und
+  stellt eine Fälligkeit über ein eigenes Zustell-Register zu; der Lauf bleibt
+  im Fenster (`src/renderer/modules/workflows/workflow-zeitplan-lauf.js`), und
+  beansprucht wird nur von einem Fenster desselben Bereichs ohne laufenden
+  Workflow, sodass derselbe Termin nie zweimal läuft. Verpasste Termine laufen
+  mit `missed: run-once` beim Öffnen des Bereichs oder nach einer Lücke im Takt
+  einmal als nachgeholter Lauf, mit `missed: skip` vermerkt der Prüfer
+  «verfallen». Ohne Zuschauer beendet eine offene Eingabe, auch aus einer
+  eingesetzten Vorlage, oder ein `confirm` oder `delete` den Lauf vor dem
+  ersten Schritt. Neue Kanäle `workflow:due`, `workflow:dueHandled`,
+  `workflow:scheduleClaim`, `workflow:scheduleRelease`,
+  `workflow:scheduleFinished` und `workflow:scheduleOpen`
+  (`src/main/ipc/workflow-schedule.js`).
+- **Scharf-Schaltung und Seite «Workflow-Läufe»** (`4T-002422`). Ein Kommando
+  an drei Bedienorten: Spalte «Scharf» der Seite, Knopf «Scharf» neben
+  «Starten» über dem Block und «Scharf schalten» oder «Entschärfen» im
+  Kontextmenü des Bereichs-Panels, je nur bei `trigger: schedule` und nie bei
+  einem Workflow eines verknüpften Bereichs. Die Scharf-Schaltung fährt das
+  Prüfen vor dem Laufen im Fenster und fail-closed im Hauptprozess
+  (`src/main/ipc/workflow-armed.js`, Kanäle `workflow:setArmed` und
+  `workflow:armedState`) und schreibt Prüfsumme und ersten Termin in einer
+  Änderung. Die Seite zeigt die neuen Spalten «Scharf» und «Nächster Lauf»,
+  «nicht scharf: Definition geändert», die Herkunft «nachgeholt», einen
+  verfallenen Termin und das Journal des letzten Laufs aufklappbar unter der
+  Zeile.
+- **Benachrichtigung und Statusleisten-Element** (`4T-002423`). Bei einem
+  Lauf nach Zeitplan, auch einem nachgeholten, geht jedes `notify` und jeder
+  Fehlschlag zusätzlich als Benachrichtigung des Betriebssystems hinaus, über
+  den vorhandenen Kanal `notify:system` mit der neuen Art `workflow` und seiner
+  Fokus-Regel; beim Start von Hand bleibt es beim Hinweis in der Statusleiste.
+  Das neue Statusleisten-Element «Workflows» zeigt den jüngsten Lauf nach
+  Zeitplan des Bereichs mit Ergebnis-Zeichen, Name und Uhrzeit, steht nur bei
+  mindestens einem scharfen Workflow und öffnet mit einem Klick die Seite
+  «Workflow-Läufe».
+- **Pflege-Befehle und `{{clipboard}}`** (`4T-002424`). Die Stufe 2 des
+  Befehls-Katalogs ist freigeschaltet: `delete` legt Datei oder Ordner samt
+  Begleit-Dateien in den Papierkorb des Betriebssystems, nach einer
+  Bestätigung aller Ziele vor dem ersten Schritt und nur in einem von Hand
+  gestarteten Lauf; `add-tag` und `remove-tag` pflegen die Liste `tags` im
+  Dateikopf; `complete-task` hakt die erste offene Aufgaben-Zeile mit dem
+  Suchtext ab, nach der Regel der Aufgaben-Abfrage samt Erledigt-Datum;
+  `confirm` fragt mit «Ja» und «Nein», «Nein» beendet den Lauf ohne
+  Fehlschlag. Die Bereichs-Wurzel selbst wird nie gelöscht. `{{clipboard}}`
+  setzt den Inhalt der Zwischenablage ein, gelesen einmal zum Start des Laufs.
+  Neues Modul `src/main/workflows/workflow-maintenance-steps.js`.
+- **Workflows verknüpfter Bereiche** (`4T-002426`). Je Bereichs-Verknüpfung
+  eine eigene Zustimmung `workflows` (Vorgabe aus) neben der der Vorlagen; mit
+  ihr erscheinen die Workflows aus dem Workflow-Ordner des verknüpften
+  Bereichs im Untermenü «Datei → Workflows», in der Kommando-Palette (Kennung
+  `workflow.@<Kürzel>:<Pfad>`) und auf der Seite «Workflow-Läufe», je mit dem
+  Kürzel der Quelle. Sie starten nur von Hand, ihre Schritte wirken in der
+  eigenen Bereichs-Wurzel, über die Grenze wird allein ihre Definition gelesen
+  und nie ein Lauf-Stand geschrieben, und scharf schalten lassen sie sich
+  nicht. Neue Module `src/main/workflows/workflow-linked-sources.js` und
+  `src/renderer/modules/workflows/workflow-fremd.js`.
+
+### Geändert
+
+- **Workflow-Ordner in der Einrichtungs-Datei** (`4T-002425`, Entscheidung des
+  Product Owners vom 2026-10-23 zur Frage P2 der Stufe 1, Empfehlung pauschal
+  übernommen). Die Einrichtungs-Datei führt den anwendungsweiten
+  Workflow-Ordner als eigene Datenart `workflows` nach dem Vorbild der
+  Vorlagen; er wirkt nach dem Einlesen sofort, ohne Neustart. Der Ordner eines
+  Bereichs reist weiter mit dem Bereich.
+- **Grenzen eines Workflows** (`4T-002424`, Entscheidung D3 vom 2026-10-20).
+  Ein Workflow löscht jetzt mit `delete`, aber nur in den Papierkorb, nur von
+  Hand gestartet und nur nach Bestätigung; ein Lauf nach Zeitplan löscht nie.
+- **Bereichs-Verknüpfungen in den Einstellungen** (`4T-002426`). Neben dem
+  Schalter «Vorlagen» steht je Eintrag der Schalter «Workflows»; beide tragen
+  jetzt eine sichtbare Beschriftung.
+- **Nutzen-Darstellung** (`4T-002428`, Nutzen-Prüfschritt, Entscheidung des
+  Product Owners vom 2026-10-29, Empfehlung pauschal übernommen). Die
+  Nutzen-Seite des Handbuchs und die Nutzen-Seite der Webseite nennen im
+  Abschnitt «Handgriffe, die sich selbst erledigen» jetzt den Lauf nach
+  Zeitplan und sagen im vierten Punkt, dass ein Workflow nur in den Papierkorb
+  und nur nach Bestätigung löscht; in allen fünf Sprachfassungen.
+
+### i18n
+
+- **Oberflächen-Texte der Stufe 2** (`4T-002419`, `4T-002421`, `4T-002422`,
+  `4T-002423`, `4T-002424`, `4T-002425`, `4T-002426`), in allen fünf
+  Sprachfassungen: Befunde des Zeitplans und «nur von Hand», Hinweis
+  «nachgeholt», Scharf-Schaltung an drei Bedienorten mit ihren Gründen einer
+  Abweisung, Spalten und Journal der Seite «Workflow-Läufe», Bestätigung vor
+  dem Löschen und Frage von `confirm`, Fehlschläge der Pflege-Befehle,
+  Statusleisten-Element, Datenart der Einrichtungs-Datei, Schalter der
+  Bereichs-Verknüpfungen und Kennzeichnung fremder Workflows. **Zählung nach
+  Kapitel 13 der Entwicklungsrichtlinien**, erhoben am 2026-10-28 über die
+  Schlüssel aller Fragmente je Sprache im Vergleich mit dem Release 1.153.0:
+  je Sprache **75 neue Schlüssel** (4902 statt 4827), davon 53 im Fragment
+  `workflows.json` (7 aus `4T-002419`, 1 aus `4T-002421`, 31 aus
+  `4T-002422`, 11 aus `4T-002424`, 3 aus `4T-002426`), 3 in
+  `statusbar.json` (`4T-002423`), 3 in `area.json` (`4T-002426`), 1 in
+  `exchange.json` (`4T-002425`) und 15 Katalog-Schlüssel aus `4T-002427`
+  (je fünf in `help-feature.json`, `help-feature-name.json` und
+  `help-feature-access.json`); **5 geändert**, die Katalog-Texte
+  `help.feature.workflows`, `help.feature.workflowStart`,
+  `help.feature.workflowRuns`, `help.feature.workflowFolder` und
+  `help.feature.setupExchange` (`4T-002427`); keiner entfernt, in allen fünf
+  Sprachen gleich.
+- **Funktions-Katalog und Handbuch der Stufe 2** (`4T-002427`), in allen fünf
+  Sprachfassungen: Die Handbuch-Seite «Workflows» bekommt die Abschnitte
+  «Zeitplan und Scharf-Schaltung» (Zeitplan-Zeile, Auslegung, Voraussetzung
+  eines Laufs, verpasste Läufe, Scharf-Schaltung, Statusleisten-Element),
+  «Pflege-Befehle», «Workflows verknüpfter Bereiche» und «Was ein Lauf getan
+  hat», dazu `{{clipboard}}` bei den Platzhaltern; die Grenzen nennen das
+  Löschen nur in den Papierkorb und den Lauf nur bei geöffnetem Bereich statt
+  «nur von Hand». Ergänzt sind die Seiten «Einstellungen exportieren und
+  importieren», «Vernetzung», «Handbuch» (Überblick) und
+  «Kommando-Platzierung». Fünf neue Katalog-Zeilen in der Gruppe «Allgemein»,
+  je hinter der Zeile der Stufe 1, an die sie anschließen: «Pflege-Befehle der
+  Workflows», «Workflows nach Zeitplan», «Workflows scharf schalten»,
+  «Workflows verknüpfter Bereiche» und «Workflow-Meldungen und
+  Statusleisten-Element»; die Erweiterung `workflows` führt sie in
+  `featureKeys`. Die Demo-Area bekommt einen vierten Beispiel-Workflow «Daily
+  Note» mit Zeitplan (`every weekday at 08:00`, `missed: skip`), der nicht
+  scharf ausgeliefert wird, und die Station «16 Workflows» den Abschnitt
+  «Running on a schedule».
+
+### Intern
+
+- **Prüfdateien der Stufe** (`4T-002419` bis `4T-002426`): neue
+  Unit-Prüfdateien für Zeitplan-Grammatik, Prüfsumme, Zeitplan-Prüfer,
+  Kanäle der Scharf-Schaltung, Benachrichtigung am Kanal, Pflege-Schritte,
+  verknüpfte Quellen und Schritte aus fremder Definition, dazu im Fenster
+  Lauf nach Zeitplan, Scharf-Kommando und -Knopf, Statusleisten-Element,
+  Meldungen je Herkunft und fremde Workflows; 27 bestehende Unit-Prüfdateien
+  und der Prüf-Helfer `test/unit/renderer/api-stub.js` nachgezogen, darunter der Aus-Zustand über den echten Schalter um Lauf nach
+  Zeitplan und Statusleisten-Element; neue Ablauf-Prüfdateien
+  `workflow-zeitplan.spec.js` (WF-ZEIT-01, WF-ZEIT-02),
+  `workflow-scharf.spec.js` (WF-SCHARF-01), `workflow-statusleiste.spec.js`
+  (WF-SB-01),
+  `workflow-pflege.spec.js` (mit einer Attrappe des Papierkorbs) und
+  `workflow-verknuepft.spec.js` (WF-VERKN-01, WF-VERKN-02),
+  `bereichs-verknuepfungen.spec.js` nachgezogen. Abdeckungs-Matrix mit F-383
+  bis F-387 für die fünf neuen Katalog-Zeilen (`4T-002427`); der eingefrorene
+  Wert der Erweiterungs-Registry in der Größen-Ausnahmen-Liste steigt nach der
+  benannten Ausnahme für Aufzählungs-Dateien von 857 auf 862 Code-Zeilen.
+- **Abschluss-Anteil der Stufe** (`4T-002428`): Architektur um das
+  Zeitplan-Format im Dateikopf, die Ablage-Frage der Stufe, den Aus-Zustand der
+  neuen Teile, die Datenart der Einrichtungs-Datei, die Bereichs-Grenze der
+  Pflege-Befehle und das Glossar fortgeschrieben; die vier strategischen
+  Entscheidungen der Stufe in «Erkenntnisse und Entscheidungen» verankert.
+  **Ergebnis des Epic-Abschluss-Tests (E1, 2026-10-28):** grün unter Windows und im Linux-Prüfstand; zwei quarantänierte, isoliert grüne Flakes ohne Bezug zum Zug (Einstellungs-Abschnitt «Datenbank», Zähler-Sperre der Schreib-Schnittstelle), Einzelheiten im Abschluss-Anteil `4T-002428`.
+- **Mitgelieferte Stände seit 1.154.0** (Webseite und ihr Bau-Ablauf berührt, kein Anwendungs-Code, kein Anwender-Text nötig): Der Zug hat das Release 1.154.0 am 2026-10-29 per Zusammenführung hereingeholt (`3E-000380`); mit der Zusammenführung des Releases 1.154.0 nach `main` (`3E-000364`) kamen dessen Nachzügler mit: der Abschluss der Release-Strecke 1.154.0 (`4T-002341`, erneuerte Bildschirmfotos der Produkt-Webseite und die Befund-Triage mit ihren Ausgängen im Pflege-Gefäß `3E-000032`) und das Inhaltsverzeichnis der Web-Handbuch-Seiten rechts neben dem Text mit Hervorhebung des gelesenen Abschnitts samt Drei-Spalten-Ansicht (`4T-002437`, Stilvorlage und Bau-Skripte der Webseite). Die zuvor hier genannten Stände seit 1.153.0 (Nachzügler des Releases 1.153.0, Konzept-Runde `4T-002418`) sind Teil des Integrationsstands 1.154.0.
+
 ## [1.154.0.4556] - 2026-10-28 — Restpunkte aus Zug 4, Kalender mit jährlich wechselndem Aufbau
 
 Zug

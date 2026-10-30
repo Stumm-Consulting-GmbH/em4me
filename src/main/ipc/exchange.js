@@ -34,6 +34,19 @@ const {
   VERTEIL_SCHLUESSEL,
 } = require('./settings-verteilung');
 
+// 4T-002425 (Story 4S-001137): Pfade, die ohne Verteil-Zweig sofort wirken,
+// weil ihr Leser im Hauptprozess selbst auf die Änderung im Speicher hört
+// (`store.onDidChange`) und die Fenster danach benachrichtigt. Sie stehen
+// bewusst nicht in `VERTEIL_SCHLUESSEL`: Jene Liste nennt die Schlüssel mit
+// eigenem Zweig in `settings-verteilung.js`, und ein Wächter hält beide
+// gleich; ein Zweig, der nichts tut, wäre nur für diese Frage da.
+//
+// - `workflows.folder`: Der Dienst des Workflow-Ordners
+//   (`workflows/workflow-folder-service.js`) hört auf den Namensraum
+//   `workflows`, löst den Ordner jedes Fensters neu auf und meldet
+//   `workflow:folderChanged`; Menü und Kommando-Palette ziehen sofort nach.
+const SOFORT_UEBER_SPEICHER = ['workflows.folder'];
+
 /**
  * Registriert die Kanäle des Einrichtungs-Austauschs.
  *
@@ -195,10 +208,15 @@ function registerExchangeIpc(handle, deps) {
 
   // Wirkt ein geschriebener Pfad sofort, oder erst beim nächsten Start? Die
   // Frage hängt daran, ob der Pfad oder einer seiner Kind-Schlüssel einen
-  // Verteil-Zweig hat. Sie wird beantwortet statt verschwiegen: Der Bericht
+  // Verteil-Zweig hat oder sein Leser selbst auf den Speicher hört
+  // (`SOFORT_UEBER_SPEICHER`). Sie wird beantwortet statt verschwiegen: Der Bericht
   // sagt dem Anwender, dass ein Teil erst nach einem Neustart greift.
   function wirktSofort(pfad) {
-    return verteilSchluesselUnter(pfad).length > 0 || VERTEIL_SCHLUESSEL.includes(pfad);
+    return (
+      verteilSchluesselUnter(pfad).length > 0 ||
+      VERTEIL_SCHLUESSEL.includes(pfad) ||
+      SOFORT_UEBER_SPEICHER.includes(pfad)
+    );
   }
 
   // Vorschau: lesen, prüfen, planen — und nichts schreiben.

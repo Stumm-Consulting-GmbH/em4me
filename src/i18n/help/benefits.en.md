@@ -116,12 +116,12 @@ In detail: [Database](database.md).
 
 ## Routine steps that take care of themselves
 
-Some work repeats itself in the same order: creating a note for the next meeting from the template, adding an entry to the log, moving a finished file to the archive. A workflow writes this sequence down once, as an ordinary Markdown file with one line per step, and the application carries it out whenever you run it. Because the file stays text, it can be read, changed, passed on and kept in a backup like any other document.
+Some work repeats itself in the same order: creating a note for the next meeting from the template, adding an entry to the log, moving a finished file to the archive. A workflow writes this sequence down once, as an ordinary Markdown file with one line per step, and the application carries it out whenever you run it, or by itself on a schedule, say every morning at eight. Because the file stays text, it can be read, changed, passed on and kept in a backup like any other document.
 
 - **One step per line**: create files and folders, also from templates, rename, move with all links updated, append and insert text, set properties in the front matter, run commands and macros.
 - **Check first, then run**: before the first step, the application checks the whole workflow and asks for all inputs; an error is shown above the block with line and reason, and nothing runs.
-- **Started the way it suits you**: from the menu, the command palette, with a keyboard shortcut, a button in the status bar or above the block.
-- **With fixed limits**: a workflow acts only in the open area, overwrites no existing file, deletes nothing and does not go onto the network.
+- **Started the way it suits you**: from the menu, the command palette, with a keyboard shortcut, a button in the status bar or above the block; or by itself on a schedule, once you have armed it and as long as its area is open.
+- **With fixed limits**: a workflow acts only in the open area, overwrites no existing file, deletes only to the trash and only after your confirmation, and does not go onto the network; its journal shows what a run touched.
 
 In detail: [Workflows](workflows.md).
 

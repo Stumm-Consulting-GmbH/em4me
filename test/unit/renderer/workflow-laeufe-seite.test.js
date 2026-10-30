@@ -11,6 +11,12 @@
 // Kommando-Platzierung und der Hinweis der Statusleiste. Ob der Grund auf der
 // Seite derselbe ist wie im Hinweis, prüft workflow-lauf-stand.test.js am echten
 // Start.
+//
+// 4T-002422 (Epic 3E-000366, Story 4S-001133): dazu die Spalten «Scharf» und
+// «Nächster Lauf», «Definition geändert», «nachgeholt», «verfallen» und das
+// aufklappbare Journal (AK1, AK3, AK4 des Tasks). Der Schalter läuft über das
+// echte Kommando `schalteScharf` bis an die Brücke (Attrappe); das Melden der
+// Puffer-Stände ist eine Attrappe.
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import './api-stub.js';
 import de from '../../../src/i18n/de.json';
@@ -35,6 +41,14 @@ vi.mock('../../../src/renderer/modules/views/views.js', async (orig) => ({
   ...(await orig()),
   showStatusbarHint: (...a) => showStatusbarHint(...a),
 }));
+vi.mock('../../../src/renderer/modules/workflows/workflow-window.js', () => ({
+  flushPendingBuffers: async () => {},
+}));
+const scharfAufrufe = [];
+window.api.workflowSetArmed = async (p, an) => {
+  scharfAufrufe.push([p, an]);
+  return { ok: true, status: an ? 'armed' : 'notArmed', nextDue: an ? '2026-10-28T23:00' : null };
+};
 const listenZuhoerer = [];
 vi.mock('../../../src/renderer/modules/workflows/workflow-folder-list.js', () => ({
   onWorkflowFolderListChanged: (cb) => listenZuhoerer.push(cb),
@@ -293,5 +307,238 @@ describe('Knopf «Starten» (AK4)', () => {
     expect(knoepfe[1].title).toBe('Workflow starten: Bericht');
     knoepfe[1].click();
     expect(starteWorkflow).toHaveBeenCalledWith({ path: 'C:/b/Bericht.md' });
+  });
+});
+
+// 4T-002426 (Epic 3E-000366, Story 4S-001138, AK1, AK4): Ein Workflow eines
+// verknüpften Bereichs steht mit dem Kürzel der Quelle, ohne Lauf-Stand und mit
+// dem Hinweis auf die Quelle; er startet über denselben Knopf.
+describe('Workflows verknüpfter Bereiche (4T-002426)', () => {
+  const F = {
+    name: 'Fremd-Probe',
+    description: '',
+    relPath: 'Fremd-Probe.md',
+    absPath: 'D:/Zentral/Abläufe/Fremd-Probe.md',
+    sourceKey: 'zt',
+    sourceName: 'Zentral',
+    foreign: true,
+    runs: 0,
+    lastRun: null,
+    runStateDefect: false,
+  };
+
+  it('zeigt den fremden Workflow nach den eigenen, ohne Lauf-Stand, mit dem Hinweis', async () => {
+    antwort = liste([A, B, F]);
+    await oeffne();
+    const zeile = container().querySelector('tr[data-source="zt"]');
+    expect(zeile).not.toBeNull();
+    expect(zeile.dataset.path).toBe(F.absPath);
+    // Ohne Zeit, Ergebnis und Zahl der Läufe; an ihrer Stelle der Hinweis.
+    expect(zeile.querySelector('.wf-runs-time')).toBeNull();
+    expect(zeile.querySelector('.wf-runs-result')).toBeNull();
+    expect(zeile.querySelector('.wf-runs-count')).toBeNull();
+    const hinweis = zeile.querySelector('.wf-runs-foreign');
+    expect(hinweis.colSpan).toBe(3);
+    expect(hinweis.title).toBe('Zentral');
+    expect(zeile.querySelector('.wf-runs-location').textContent).toBe('');
+    // Kein Schalter außer «Starten» (Scharf-Schaltung gibt es für ihn nie).
+    expect([...zeile.querySelectorAll('button, input')].map((e) => e.className)).toEqual([
+      'wf-runs-start',
+    ]);
+    zeile.querySelector('.wf-runs-start').click();
+    expect(starteWorkflow).toHaveBeenCalledWith({ path: F.absPath });
+    // Die Texte aus workflow.verknuepft.eintrag und workflow.seite.ausBereich.
+    expect(zeile.querySelector('.wf-runs-name').textContent).toBe('Fremd-Probe (@zt)');
+    expect(hinweis.textContent).toBe('aus Bereich ‹zt›');
+  });
+
+  it('ohne fremde Einträge bleibt die Seite wie zuvor (AK5 der Story)', async () => {
+    antwort = liste([A, B]);
+    await oeffne();
+    expect(container().querySelector('tr[data-source]')).toBeNull();
+    expect(container().querySelector('.wf-runs-foreign')).toBeNull();
+  });
+});
+
+describe('Zeitsteuerung: Scharf, nächster Lauf, Herkunft, Verfall und Journal (4T-002422)', () => {
+  const PLAN = {
+    ...B,
+    name: 'Plan',
+    relPath: 'Plan.md',
+    absPath: 'C:/b/Plan.md',
+    scheduled: true,
+    armed: 'armed',
+    nextDue: '2026-10-28T23:00',
+    skipped: null,
+    runs: 2,
+    lastRun: {
+      at: '2026-10-28T06:00:00Z',
+      status: 'ok',
+      origin: 'catch-up',
+      journal: [
+        { line: 8, command: 'append', path: 'Notizen/Ziel.md' },
+        { line: 9, command: 'create', path: 'Neu.md' },
+      ],
+    },
+  };
+  const zeileVon = (pfad) => container().querySelector(`tr[data-path="${pfad}"]`);
+  const kopfTexte = () => [...container().querySelectorAll('thead th')].map((e) => e.textContent);
+
+  beforeEach(() => {
+    scharfAufrufe.length = 0;
+  });
+
+  it('trägt die Spalten «Scharf» und «Nächster Lauf» nach dem Ort', async () => {
+    antwort = liste([PLAN]);
+    await oeffne();
+    expect(kopfTexte()).toEqual([
+      'Workflow',
+      'Ort',
+      'Scharf',
+      'Nächster Lauf',
+      'Letzter Lauf',
+      'Ergebnis',
+      'Läufe',
+      '',
+    ]);
+  });
+
+  it('ein scharfer Workflow: Schalter an, nächster Lauf, Herkunft «nachgeholt» (AK3, AK4)', async () => {
+    antwort = liste([PLAN]);
+    await oeffne();
+    const zeile = zeileVon(PLAN.absPath);
+    const schalter = zeile.querySelector('.wf-runs-arm');
+    expect(schalter.type).toBe('checkbox');
+    expect(schalter.checked).toBe(true);
+    expect(schalter.getAttribute('aria-label')).toBe('‹Plan› scharf schalten');
+    expect(zeile.querySelector('.wf-runs-next').textContent).toContain('23:00');
+    expect(zeile.querySelector('.wf-runs-origin').textContent).toBe(' (nachgeholt)');
+  });
+
+  it('ohne Zeitplan kein Schalter und kein nächster Lauf (AK1, AK3 der Story)', async () => {
+    antwort = liste([{ ...B, scheduled: false, armed: 'notArmed', nextDue: null, skipped: null }]);
+    await oeffne();
+    const zeile = zeileVon(B.absPath);
+    expect(zeile.querySelector('.wf-runs-arm')).toBeNull();
+    expect(zeile.querySelector('.wf-runs-next').textContent).toBe('');
+  });
+
+  it('«nicht scharf: Definition geändert» mit Schalter aus und ohne nächsten Lauf (AK3)', async () => {
+    antwort = liste([{ ...PLAN, armed: 'definitionChanged', nextDue: null }]);
+    await oeffne();
+    const zeile = zeileVon(PLAN.absPath);
+    expect(zeile.querySelector('.wf-runs-arm').checked).toBe(false);
+    expect(zeile.querySelector('.wf-runs-armed-changed').textContent).toBe(
+      'nicht scharf: Definition geändert',
+    );
+    expect(zeile.querySelector('.wf-runs-next').textContent).toBe('');
+  });
+
+  it('ein nicht scharfer Workflow zeigt keinen nächsten Lauf, auch wenn einer mitkäme (AK6 der Story)', async () => {
+    antwort = liste([{ ...PLAN, armed: 'notArmed' }]);
+    await oeffne();
+    expect(zeileVon(PLAN.absPath).querySelector('.wf-runs-next').textContent).toBe('');
+  });
+
+  it('ein verfallener Termin steht mit «verfallen» beim letzten Lauf (AK4)', async () => {
+    antwort = liste([
+      {
+        ...PLAN,
+        lastRun: { ...PLAN.lastRun, origin: 'schedule' },
+        skipped: { at: '2026-10-28T07:00:00Z', due: '2026-10-28T06:30' },
+      },
+    ]);
+    await oeffne();
+    const zeile = zeileVon(PLAN.absPath);
+    expect(zeile.querySelector('.wf-runs-origin')).toBeNull();
+    expect(zeile.querySelector('.wf-runs-skipped').textContent).toMatch(/^verfallen: .*06:30/);
+  });
+
+  it('ein älterer Verfall als der letzte Lauf wird nicht mehr gezeigt', async () => {
+    antwort = liste([
+      { ...PLAN, skipped: { at: '2026-10-27T07:00:00Z', due: '2026-10-27T06:30' } },
+    ]);
+    await oeffne();
+    expect(zeileVon(PLAN.absPath).querySelector('.wf-runs-skipped')).toBeNull();
+  });
+
+  it('das Journal des letzten Laufs klappt auf: Zeile, Befehl, Pfad (AK3)', async () => {
+    antwort = liste([PLAN]);
+    await oeffne();
+    const knopf = zeileVon(PLAN.absPath).querySelector('.wf-runs-journal-toggle');
+    expect(knopf.textContent).toBe('Journal (2)');
+    // Der Knopf steht beim letzten Lauf; der Text des Ergebnisses bleibt der des Hinweises.
+    expect(knopf.closest('td').classList.contains('wf-runs-time')).toBe(true);
+    expect(zeileVon(PLAN.absPath).querySelector('.wf-runs-result').textContent).toBe('erfolgreich');
+    const journal = zeileVon(PLAN.absPath).nextElementSibling;
+    expect(journal.classList.contains('wf-runs-journal')).toBe(true);
+    expect(journal.hidden).toBe(true);
+    expect(journal.querySelector('td').colSpan).toBe(8);
+    knopf.click();
+    expect(journal.hidden).toBe(false);
+    expect(knopf.getAttribute('aria-expanded')).toBe('true');
+    expect([...journal.querySelectorAll('li')].map((e) => e.textContent)).toEqual([
+      'Zeile 8: append – Notizen/Ziel.md',
+      'Zeile 9: create – Neu.md',
+    ]);
+    knopf.click();
+    expect(journal.hidden).toBe(true);
+  });
+
+  it('ohne Journal kein Knopf, ein leeres Journal sagt «Keine Datei berührt» (AK6 der Story)', async () => {
+    antwort = liste([
+      { ...PLAN, lastRun: { at: '2026-10-28T06:00:00Z', status: 'ok' } },
+      { ...PLAN, absPath: 'C:/b/Leer.md', lastRun: { ...PLAN.lastRun, journal: [] } },
+      { ...B, scheduled: false, armed: 'notArmed', nextDue: null, skipped: null },
+    ]);
+    await oeffne();
+    expect(zeileVon(PLAN.absPath).querySelector('.wf-runs-journal-toggle')).toBeNull();
+    expect(zeileVon(B.absPath).querySelector('.wf-runs-journal-toggle')).toBeNull();
+    const leer = zeileVon('C:/b/Leer.md');
+    leer.querySelector('.wf-runs-journal-toggle').click();
+    expect(leer.nextElementSibling.querySelector('.wf-runs-journal-empty').textContent).toBe(
+      'Keine Datei berührt',
+    );
+  });
+
+  it('der Schalter ruft das Kommando und die Seite zieht danach nach (AK1, AK5)', async () => {
+    antwort = liste([{ ...PLAN, armed: 'notArmed', nextDue: null }]);
+    await oeffne();
+    const vorher = abfragen.length;
+    const schalter = zeileVon(PLAN.absPath).querySelector('.wf-runs-arm');
+    antwort = liste([PLAN]);
+    schalter.checked = true;
+    schalter.dispatchEvent(new Event('change'));
+    await ruhe();
+    await ruhe();
+    expect(scharfAufrufe).toEqual([['C:/b/Plan.md', true]]);
+    expect(abfragen.length).toBe(vorher + 1);
+    expect(zeileVon(PLAN.absPath).querySelector('.wf-runs-arm').checked).toBe(true);
+    // Entschärfen über denselben Schalter; «Starten» bleibt in der Zeile.
+    const wieder = zeileVon(PLAN.absPath).querySelector('.wf-runs-arm');
+    wieder.checked = false;
+    wieder.dispatchEvent(new Event('change'));
+    await ruhe();
+    expect(scharfAufrufe.at(-1)).toEqual(['C:/b/Plan.md', false]);
+    expect(zeileVon(PLAN.absPath).querySelector('.wf-runs-start')).not.toBeNull();
+  });
+
+  it('ein fremder Eintrag bekommt nie einen Schalter, auch mit Zeitplan (2h)', async () => {
+    antwort = liste([
+      {
+        ...PLAN,
+        absPath: 'D:/Zentral/F.md',
+        relPath: 'F.md',
+        foreign: true,
+        sourceKey: 'zt',
+        lastRun: null,
+        runs: 0,
+      },
+    ]);
+    await oeffne();
+    const zeile = zeileVon('D:/Zentral/F.md');
+    expect(zeile.querySelector('.wf-runs-arm')).toBeNull();
+    expect(zeile.querySelector('.wf-runs-next').textContent).toBe('');
+    expect(zeile.querySelector('.wf-runs-journal-toggle')).toBeNull();
   });
 });

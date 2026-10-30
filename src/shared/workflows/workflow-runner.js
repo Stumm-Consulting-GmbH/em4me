@@ -9,7 +9,8 @@
 // erst, wenn nichts mehr zu fragen ist.
 //
 // **Wo ein Schritt läuft** (A3): `command`, `macro`, `workflow`, `wait`,
-// `notify` und `stop` im startenden Fenster, alle übrigen Befehle im
+// `notify`, `stop` und seit 4T-002424 `confirm` im startenden Fenster, alle
+// übrigen Befehle im
 // Hauptprozess über `deps.step`; antwortet er mit einem Fenster-Handgriff, führt
 // ihn `deps.runWindowAction` aus.
 //
@@ -17,6 +18,11 @@
 // Schritte bleiben. `stop` beendet den ganzen Lauf, auch aus einem
 // verschachtelten Workflow heraus. Eine Ausnahme einer Abhängigkeit wird zum
 // Fehlschlag `unexpected`, nie still verschluckt.
+//
+// **`confirm`** (4T-002424, Regel P4 der Konzept-Runde 4T-002418): Die Frage
+// geht an `deps.confirm`; «Ja» setzt den Lauf fort, «Nein» beendet ihn ohne
+// Fehlschlag wie `stop`, mit der Frage als Text und dem Kennzeichen
+// `declined`, damit die Anzeige «mit Nein beantwortet» sagen kann.
 //
 // **Aufruf-Tiefe** (A4): eine Zählung über Workflows und Makros wie bei den
 // Makros. Der gestartete Workflow ist Ebene 0, ein `workflow`- oder
@@ -95,6 +101,18 @@ async function schritt(plan, step, deps, ebene) {
     case 'notify':
       deps.notify(String(step.args[0]));
       return null;
+    case 'confirm': {
+      const frage = String(step.args[0]);
+      if ((await deps.confirm(frage)) === true) return null;
+      return {
+        status: 'stopped',
+        workflow: plan.name,
+        path: plan.path,
+        line: step.line,
+        text: frage,
+        declined: true,
+      };
+    }
     case 'stop':
       return {
         status: 'stopped',
@@ -116,7 +134,8 @@ async function schritt(plan, step, deps, ebene) {
  *   `workflow`-Schritts den vorbereiteten Unter-Workflow zu.
  * @param {object} deps `step(path, step)`, `runWindowAction(antwort)`,
  *   `flushBuffers()`, `executeCommand(id)`, `runMacro(name, ebene)` →
- *   `{ ok, reason? }`, `sleep(ms)`, `notify(text)`, wahlweise
+ *   `{ ok, reason? }`, `sleep(ms)`, `notify(text)`, `confirm(frage)` → true für
+ *   «Ja», wahlweise
  *   `finish(plan, ergebnis)` am Ende jedes Workflows, auch eines verschachtelten.
  * @param {number} [ebene] Aufruf-Ebene, 0 für den gestarteten Workflow.
  * @returns {Promise<object>} `{ status: 'ok' }`, `{ status: 'stopped', workflow,
@@ -143,4 +162,25 @@ async function runWorkflow(plan, deps, ebene = 0) {
   return ergebnis;
 }
 
-module.exports = { MAX_CALL_DEPTH, RUNNER_CODES, runWorkflow };
+/**
+ * Die Ziele aller `delete`-Schritte eines vorbereiteten Laufs samt der
+ * aufgerufenen Workflows, in Lauf-Reihenfolge und ohne Doppel (4T-002424,
+ * Regel P1: eine Bestätigung nennt alle Ziele des Laufs).
+ *
+ * @param {{steps?: object[], children?: object}} plan wie bei `runWorkflow`.
+ * @returns {string[]} Pfade relativ zur Bereichs-Wurzel.
+ */
+function deleteTargets(plan) {
+  const ziele = [];
+  const besuche = (p) => {
+    for (const step of (p && p.steps) || []) {
+      const ziel = String(step.args && step.args[0]);
+      if (step.keyword === 'delete' && !ziele.includes(ziel)) ziele.push(ziel);
+      if (step.keyword === 'workflow' && p.children) besuche(p.children[step.line]);
+    }
+  };
+  besuche(plan);
+  return ziele;
+}
+
+module.exports = { MAX_CALL_DEPTH, RUNNER_CODES, deleteTargets, runWorkflow };

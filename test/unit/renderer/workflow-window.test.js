@@ -18,6 +18,8 @@ const geoeffnet = [];
 const geschlossen = [];
 const overlays = [];
 let schliessenErlaubt = true;
+// 4T-002424: Die Attrappe entfernt den Reiter auf Wunsch, wie closeTab es tut.
+let closeTabEntfernt = false;
 let auftragsEmpfaenger = null;
 const antworten = [];
 window.api.onWorkflowBufferEdit = (fn) => {
@@ -37,6 +39,10 @@ vi.mock('../../../src/renderer/modules/tabs/tabs.js', async (importOriginal) => 
   },
   closeTab: async (paneIdx, tabIdx) => {
     geschlossen.push({ paneIdx, tabIdx });
+    if (schliessenErlaubt && closeTabEntfernt) {
+      const { state: st } = await import('../../../src/renderer/modules/app/app-state.js');
+      st.panes[paneIdx].tabs.splice(tabIdx, 1);
+    }
     return schliessenErlaubt;
   },
 }));
@@ -54,7 +60,7 @@ vi.mock('../../../src/renderer/modules/views/tabbar.js', async (importOriginal) 
   renderTabbar: () => {},
 }));
 
-const { applyBufferEdit, runWindowAction, flushPendingBuffers } =
+const { applyBufferEdit, runWindowAction, flushPendingBuffers, schliesseVorDemLoeschen } =
   await import('../../../src/renderer/modules/workflows/workflow-window.js');
 const { state } = await import('../../../src/renderer/modules/app/app-state.js');
 const { paneEditors, scheduleIndexOverlay } =
@@ -101,6 +107,7 @@ beforeEach(() => {
   antworten.length = 0;
   overlays.length = 0;
   schliessenErlaubt = true;
+  closeTabEntfernt = false;
 });
 
 describe('Bearbeitung des eigenen Puffers', () => {
@@ -238,5 +245,92 @@ describe('flushPendingBuffers', () => {
     expect(overlays).toEqual([]);
     await flushPendingBuffers();
     expect(overlays).toEqual([{ p: PFAD, c: `${PLATTE}neu` }]);
+  });
+});
+
+// 4T-002424 (Story 4S-001135, Regeln P1, P3, P5): Abhaken über den Weg der
+// Aufgaben-Abfrage (`toggleTaskFromQuery`, echt) und das Schließen der Reiter
+// vor `delete`.
+describe('completeTask über den Weg der Aufgaben-Abfrage', () => {
+  const AUFGABE = '- [ ] Rückblick schreiben';
+  const handgriff = (taskText = AUFGABE, line = 4) => ({
+    ok: true,
+    line: 9,
+    keyword: 'complete-task',
+    window: { action: 'completeTask', path: PFAD, line, taskText },
+  });
+
+  it('nicht aktives, ungespeichertes Dokument: abgehakt im Puffer, Platte unberührt (AK5)', async () => {
+    const { ziel } = fenster({ aktiv: false, content: `${PLATTE}${AUFGABE}\n` });
+    window.api.applyTaskLineEdit = vi.fn(async () => ({ ok: true }));
+    const res = await runWindowAction(handgriff());
+    expect(res).toEqual({
+      ok: true,
+      line: 9,
+      keyword: 'complete-task',
+      effect: { kind: 'edited', paths: [PFAD], via: 'taskToggle' },
+    });
+    expect(ziel.content).toBe(`${PLATTE}- [x] Rückblick schreiben\n`);
+    expect(ziel.dirty).toBe(true);
+    expect(window.api.applyTaskLineEdit).not.toHaveBeenCalled();
+  });
+
+  it('aktives, ungespeichertes Dokument: eine Editor-Transaktion, die getippte Zeile bleibt', async () => {
+    const { ziel, transaktionen } = fenster({
+      aktiv: true,
+      content: `${PLATTE}${AUFGABE}\ngetippt`,
+    });
+    expect((await runWindowAction(handgriff())).ok).toBe(true);
+    expect(transaktionen).toHaveLength(1);
+    expect(ziel.content).toBe(`${PLATTE}- [x] Rückblick schreiben\ngetippt`);
+  });
+
+  it('geschlossene Datei: geschrieben über den Zeilen-Weg des Hauptprozesses', async () => {
+    state.panes = [{ tabs: [], activeIndex: -1 }];
+    window.api.applyTaskLineEdit = vi.fn(async () => ({ ok: true }));
+    expect((await runWindowAction(handgriff())).ok).toBe(true);
+    expect(window.api.applyTaskLineEdit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        filePath: PFAD,
+        line: 4,
+        expectedText: AUFGABE,
+        // Erledigt-Datum nach der Regel der Aufgaben-Abfrage (Augmenter der
+        // Erweiterung «Aufgaben», hier eingeschaltet).
+        newText: expect.stringMatching(/^- \[x\] Rückblick schreiben ✅ \d{4}-\d{2}-\d{2}$/),
+      }),
+    );
+  });
+
+  it('die Zeile ist nicht mehr da: taskConflict', async () => {
+    fenster({ aktiv: false, content: `${PLATTE}geändert\n` });
+    const res = await runWindowAction(handgriff());
+    expect(res).toMatchObject({ ok: false, code: 'taskConflict', detail: { path: PFAD } });
+  });
+});
+
+describe('schliesseVorDemLoeschen', () => {
+  beforeEach(() => {
+    state.areaPath = 'C:/Bereich';
+    window.api.relative = (von, nach) =>
+      nach.startsWith(`${von}/`) ? nach.slice(von.length + 1) : nach;
+  });
+
+  it('schließt die Reiter auf das Ziel und auf Dateien darunter, sonst keinen', async () => {
+    const tabs = [
+      reiter('C:/Bereich/Alt/a.md', 'a'),
+      reiter('C:/Bereich/Altbau.md', 'b'),
+      reiter('C:/Bereich/alt/Unter/c.md', 'c'),
+    ];
+    state.panes = [{ tabs, activeIndex: 0 }];
+    closeTabEntfernt = true;
+    expect(await schliesseVorDemLoeschen('Alt')).toBe(true);
+    expect(state.panes[0].tabs.map((t) => t.path)).toEqual(['C:/Bereich/Altbau.md']);
+  });
+
+  it('«Abbrechen» der Speicher-Rückfrage: false, nichts weiter geschlossen', async () => {
+    state.panes = [{ tabs: [reiter('C:/Bereich/x.md', 'x', 'alt')], activeIndex: 0 }];
+    schliessenErlaubt = false;
+    expect(await schliesseVorDemLoeschen('x.md')).toBe(false);
+    expect(geschlossen).toEqual([{ paneIdx: 0, tabIdx: 0 }]);
   });
 });

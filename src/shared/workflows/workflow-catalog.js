@@ -6,10 +6,17 @@
 // Der Katalog führt **alle** Befehle aller Stufen, damit der Prüfer einen
 // unbekannten Befehl von einem Befehl einer späteren Stufe unterscheidet.
 //
-// **Schema nur für die Stufe 1** (Entscheidung der Sitzung vom 2026-10-22, O6):
-// Die Befehle der Stufen 2, 3 und D tragen Schlüsselwort und Stufe, aber kein
-// Argument-Schema. Ihre Konzept-Runden sind offen; ein Schema jetzt nähme deren
-// Grammatik vorweg. Für den Befund «spätere Stufe» genügt die Stufe.
+// **Schema nur für entschiedene Stufen** (Entscheidung der Sitzung vom
+// 2026-10-22, O6): Die Befehle der Stufen 3 und D tragen Schlüsselwort und
+// Stufe, aber kein Argument-Schema. Ihre Konzept-Runden sind offen; ein Schema
+// jetzt nähme deren Grammatik vorweg. Für den Befund «spätere Stufe» genügt die
+// Stufe.
+//
+// **Stufe 2** (4T-002424, Stories 4S-001135 und 4S-001136): Die fünf
+// Pflege-Befehle `delete`, `add-tag`, `remove-tag`, `complete-task` und
+// `confirm` tragen ihr Schema nach den Regeln P1 bis P5 der Konzept-Runde
+// 4T-002418. Mit der Stufe 2 in `ENABLED_STAGES` werden allein sie und der
+// Platzhalter `{{clipboard}}` frei; die Stufen 3 und D bleiben gesperrt.
 //
 // **Nachschlagen nur über eigene Eigenschaften.** Ein Schlüsselwort kommt aus
 // dem Dokument; ein blanker Zugriff fände `constructor` und `toString` als
@@ -23,7 +30,7 @@
 const { MACRO_MAX_DELAY_SECONDS } = require('../commands/command-placement.js');
 
 /** Die Stufen, deren Befehle die ausgelieferte Fassung ausführt. */
-const ENABLED_STAGES = Object.freeze([1]);
+const ENABLED_STAGES = Object.freeze([1, 2]);
 
 /**
  * Argument-Arten einer Befehls-Zeile.
@@ -53,8 +60,16 @@ function arg(type, nonEmpty = false) {
   return Object.freeze({ type, nonEmpty });
 }
 
+function stufe(stage, args, groups = {}) {
+  return Object.freeze({ stage, args: Object.freeze(args), groups: Object.freeze(groups) });
+}
+
 function stufeEins(args, groups = {}) {
-  return Object.freeze({ stage: 1, args: Object.freeze(args), groups: Object.freeze(groups) });
+  return stufe(1, args, groups);
+}
+
+function stufeZwei(args) {
+  return stufe(2, args);
 }
 
 function spaeter(stage) {
@@ -72,23 +87,23 @@ const WORKFLOW_COMMANDS = Object.freeze({
   mkdir: stufeEins([PATH]),
   open: stufeEins([PATH]),
   close: stufeEins([PATH]),
-  delete: spaeter(2),
+  delete: stufeZwei([PATH]),
   // Inhalte und Dateikopf
   append: stufeEins([PATH], { source: 'required' }),
   insert: stufeEins([PATH], { position: 'required', source: 'required' }),
   replace: stufeEins([PATH, arg('text', true), arg('text')]),
   'set-property': stufeEins([PATH, arg('key', true), arg('value')]),
   'remove-property': stufeEins([PATH, arg('key', true)]),
-  'add-tag': spaeter(2),
-  'remove-tag': spaeter(2),
-  'complete-task': spaeter(2),
+  'add-tag': stufeZwei([PATH, arg('text', true)]),
+  'remove-tag': stufeZwei([PATH, arg('text', true)]),
+  'complete-task': stufeZwei([PATH, arg('text', true)]),
   // Anwendung
   command: stufeEins([arg('commandId')]),
   macro: stufeEins([arg('text', true)]),
   workflow: stufeEins([arg('text', true)]),
   wait: stufeEins([arg('number')]),
   notify: stufeEins([arg('text', true)]),
-  confirm: spaeter(2),
+  confirm: stufeZwei([arg('text', true)]),
   // Ablauf
   stop: stufeEins([arg('text', true)]),
   'if-exists': spaeter(3),
@@ -111,7 +126,8 @@ const WORKFLOW_COMMANDS = Object.freeze({
 
 // Platzhalter der Engine, die in einer Befehls-Zeile nicht gelten (Entscheidung
 // der Sitzung vom 2026-10-22, O8): Eine Schreibmarke hat in einer Zeile kein
-// Ziel, die Zwischenablage ist nach K3 Stufe 2.
+// Ziel. Die Zwischenablage gehört nach K3 zur Stufe 2 und gilt, sobald diese
+// Stufe in `ENABLED_STAGES` steht (4T-002424).
 const FORBIDDEN_PLACEHOLDER_TYPES = Object.freeze(['cursor']);
 const LATER_STAGE_PLACEHOLDERS = Object.freeze({ clipboard: 2 });
 
@@ -165,19 +181,23 @@ function referenceState(frage, name) {
 }
 
 /**
- * Stufe eines Platzhalters, der in einer späteren Stufe hinzukommt, sonst null.
+ * Stufe eines Platzhalters, dessen Stufe nicht freigegeben ist, sonst null.
  *
  * @param {string} name Name des Platzhalters.
+ * @param {Array} [stages] die freigegebenen Stufen, Vorgabe `ENABLED_STAGES`.
  * @returns {number|null}
  */
-function laterStagePlaceholder(name) {
-  return hat(LATER_STAGE_PLACEHOLDERS, name) ? LATER_STAGE_PLACEHOLDERS[name] : null;
+function laterStagePlaceholder(name, stages = ENABLED_STAGES) {
+  if (!hat(LATER_STAGE_PLACEHOLDERS, name)) return null;
+  const stufeDesPlatzhalters = LATER_STAGE_PLACEHOLDERS[name];
+  return stages.includes(stufeDesPlatzhalters) ? null : stufeDesPlatzhalters;
 }
 
 module.exports = {
   ARG_TYPES,
   ENABLED_STAGES,
   FORBIDDEN_PLACEHOLDER_TYPES,
+  LATER_STAGE_PLACEHOLDERS,
   MAX_WAIT_SECONDS: MACRO_MAX_DELAY_SECONDS,
   OPTIONS,
   RESERVED_COMMAND_PREFIXES,

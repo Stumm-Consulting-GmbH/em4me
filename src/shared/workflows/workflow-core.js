@@ -16,7 +16,7 @@
 // Prozess-neutral: kein Electron, kein DOM, kein Datei-Zugriff.
 'use strict';
 
-const { checkWorkflow } = require('./workflow-check.js');
+const { MANUAL_ONLY_COMMANDS, checkWorkflow } = require('./workflow-check.js');
 const { readLine } = require('./workflow-line-reader.js');
 const {
   isWorkflowFlag,
@@ -40,7 +40,9 @@ const {
  *   isKnownCommand?: Function, isKnownMacro?: Function, isKnownWorkflow?: Function}} [options]
  *   `ownName` fällt ohne Angabe auf den Namen der Datei selbst zurück.
  * @returns {{isWorkflow: boolean, meta: object|null, blockLines: number[],
- *   block: object|null, ok: boolean, steps: object[], findings: object[]}}
+ *   block: object|null, ok: boolean, armable: boolean, steps: object[],
+ *   findings: object[]}} `ok` sagt, ob der Start von Hand möglich ist,
+ *   `armable`, ob sich der Workflow scharf schalten lässt (4T-002419).
  */
 function analyzeWorkflow(text, options = {}) {
   const doc = readWorkflowDocument(text, { fileName: options.fileName });
@@ -51,6 +53,7 @@ function analyzeWorkflow(text, options = {}) {
       blockLines: [],
       block: null,
       ok: false,
+      armable: false,
       steps: [],
       findings: [],
     };
@@ -62,12 +65,14 @@ function analyzeWorkflow(text, options = {}) {
     blockLines: doc.blockLines,
     block: doc.block,
     ok: geprueft.ok,
+    armable: geprueft.armable,
     steps: geprueft.steps,
     findings: geprueft.findings,
   };
 }
 
 module.exports = {
+  MANUAL_ONLY_COMMANDS,
   WORKFLOW_FLAG_KEY,
   analyzeWorkflow,
   checkAreaPath,

@@ -19,6 +19,7 @@
   "exchange.kind.extensionModes": "Custom working modes",
   "exchange.kind.sidebar": "Sidebar arrangement",
   "exchange.kind.templates": "Template folder and rules",
+  "exchange.kind.workflows": "Workflows folder",
   "exchange.kind.bookmarksTree": "Bookmarks",
   "exchange.kind.calendarSystems": "Calendar systems of the area",
   "exchange.entryCountPresent": "present",

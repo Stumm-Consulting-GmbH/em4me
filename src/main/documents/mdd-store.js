@@ -33,6 +33,9 @@ const { diffLines, applyOps } = require('../../shared/line-diff');
 // 4T-001439: Format-Regeln der Herkunft in eigenem Modul, weil die Historie nur
 // ihr erster Nutzer ist; der Aenderungsbeleg der Datenbank braucht dieselben.
 const { herkunftsFelder, gleicheHerkunft } = require('./mdd-herkunft');
+// 4T-002420: Kalender- und Uhrzeit-Prüfung der Wanduhr-Zeit `nextDue` aus der
+// Heimat der Datums-Werte.
+const { isValidIsoDate, isValidTime } = require('../../shared/tasks/task-markers');
 
 const MDD_SCHEMA_VERSION = 1;
 // Anker-Abstand: alle N Pakete ein voller Stand. Begrenzt Rekonstruktions-
@@ -538,44 +541,181 @@ function renameBlockAnchor(container, fromId, toId, nowMs) {
 
 // --- 4T-002348 (Epic 3E-000184): Lauf-Stand eines Workflows -----------------------
 
-// Optionale `workflow`-Sektion in der Begleitdatei einer Workflow-Datei: Zähler
-// der Läufe und der letzte Lauf (Story 4S-001106, Entscheidung 2d der
-// Konzept-Stufe). Schema:
-//   workflow: { runs, lastRun: { at, status, line?, code? } }
-// `at` in UTC ISO-8601 sekundengenau wie die übrigen Zeitstempel; `line` und
-// `code` nur, wo der Status sie trägt. Fehler-Isolation nach dem
-// `notes`-Muster: `parseContainer` validiert die Sektion nicht, eine defekte
-// Sektion setzt nur den Lauf-Stand aus. Weitere Felder der Sektion (ab Stufe 2
-// der Scharf-Zustand) bleiben beim Schreiben erhalten. Beim Kopieren reist die
-// Sektion bewusst nicht mit (Auswahl in src/main/ipc/area-copy.js).
+// Optionale `workflow`-Sektion in der Begleitdatei einer Workflow-Datei (Story
+// 4S-001106, Entscheidung 2d der Konzept-Stufe; Stufe 2: Story 4S-001131,
+// 4T-002420). Schema:
+//   workflow: {
+//     runs,                                    Zahl der Läufe
+//     lastRun: { at, status, line?, code?,     der letzte Lauf
+//                origin?, journal?, journalTruncated? },
+//     armed?:   { at, hash },                  Scharf-Zustand (Stufe 2)
+//     nextDue?: 'JJJJ-MM-TTTHH:MM',            nächster fälliger Lauf (Stufe 2)
+//     skipped?: { at, due },                   jüngster verfallener Lauf (Stufe 2)
+//   }
+// `at` überall in UTC ISO-8601 sekundengenau wie die übrigen Zeitstempel; `line`
+// und `code` nur, wo der Status sie trägt.
+//
+// Stufe 2 (4T-002420):
+// - `origin` aus `manual`, `schedule`, `catch-up`; ein Lauf der Stufe 1 trägt
+//   keine Herkunft und wird als `manual` gelesen, weil die Stufe 1 nur den
+//   Start von Hand kannte.
+// - `journal` des letzten Laufs: Liste von { line, command, path }, `path`
+//   relativ zur Bereichs-Wurzel mit `/`; ein neuer Lauf ersetzt es mit dem
+//   letzten Lauf. Fehlt es, hat der Absender keines gemeldet — das ist etwas
+//   anderes als eine leere Liste (nichts berührt). `journalTruncated: true`,
+//   wenn die Liste an ihrer Grenze abgeschnitten wurde.
+// - `armed`: Zeitpunkt der Scharf-Schaltung und Prüfsumme der Definition
+//   (src/main/workflows/workflow-definition-hash.js). Fehlt das Feld, ist der
+//   Workflow nicht scharf; «nicht scharf» schreibt das Feld weg, nie `null`.
+// - `nextDue`: lokale Wanduhr-Zeit im Format der Erinnerungen, kein UTC (die
+//   Fälligkeit ist ein Fach-Wert wie ein Erinnerungs-Zeitpunkt). Fehlt das Feld,
+//   ist kein Lauf geplant.
+// - `skipped`: ein mit `missed: skip` verfallener Lauf — `at` der Zeitpunkt der
+//   Feststellung (UTC), `due` die verfallene Fälligkeit (Wanduhr). Er zählt
+//   nicht als Lauf und ersetzt `lastRun` nicht; ob er jünger ist als der letzte
+//   Lauf, sagt der Vergleich der beiden `at`.
+//
+// Fehler-Isolation nach dem `notes`-Muster: `parseContainer` validiert die
+// Sektion nicht, eine defekte Sektion setzt nur den Lauf-Stand aus, ein
+// defektes Feld nur sich selbst. Weitere, unbekannte Felder der Sektion bleiben
+// beim Schreiben erhalten. Beim Kopieren reist die Sektion bewusst nicht mit
+// (Auswahl in src/main/ipc/area-copy.js): Eine kopierte Workflow-Datei ist nie
+// scharf.
 
-// Liefert { runs, lastRun } oder null, wenn kein wohlgeformter Stand vorliegt.
-function getWorkflowRun(container) {
-  const section = container && container.workflow;
-  if (!isPlainObject(section)) return null;
-  const runs = Number.isInteger(section.runs) && section.runs >= 0 ? section.runs : 0;
-  const last = section.lastRun;
+const WALL_TIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+const HASH_RE = /^[0-9a-f]{64}$/;
+
+// Ist der Wert eine gültige lokale Wanduhr-Zeit `JJJJ-MM-TTTHH:MM`? Form und
+// Kalender, mit den Prüfungen der Aufgaben-Marker als Heimat.
+function isWorkflowWallTime(value) {
+  return (
+    typeof value === 'string' &&
+    WALL_TIME_RE.test(value) &&
+    isValidIsoDate(value.slice(0, 10)) &&
+    isValidTime(value.slice(11))
+  );
+}
+
+// Ist der Wert eine Prüfsumme der Definition (SHA-256, hexadezimal)?
+function isWorkflowDefinitionHash(value) {
+  return typeof value === 'string' && HASH_RE.test(value);
+}
+
+function leseJournal(roh) {
+  if (!Array.isArray(roh)) return null;
+  return roh
+    .filter(
+      (e) =>
+        isPlainObject(e) &&
+        Number.isInteger(e.line) &&
+        typeof e.command === 'string' &&
+        typeof e.path === 'string',
+    )
+    .map((e) => ({ line: e.line, command: e.command, path: e.path }));
+}
+
+function leseLauf(last) {
   if (!isPlainObject(last) || typeof last.at !== 'string' || typeof last.status !== 'string') {
-    return runs > 0 ? { runs, lastRun: null } : null;
+    return null;
   }
   const lastRun = { at: last.at, status: last.status };
   if (Number.isInteger(last.line)) lastRun.line = last.line;
   if (typeof last.code === 'string') lastRun.code = last.code;
-  return { runs, lastRun };
+  lastRun.origin = typeof last.origin === 'string' ? last.origin : 'manual';
+  const journal = leseJournal(last.journal);
+  if (journal) lastRun.journal = journal;
+  if (last.journalTruncated === true) lastRun.journalTruncated = true;
+  return lastRun;
 }
 
-// Zählt einen Lauf und ersetzt den letzten Lauf. `run` ist bereits geprüft
-// ({ status, line?, code?, startedAt? }); `at` ist der Beginn des Laufs, ohne
-// Angabe der Zeitpunkt des Schreibens. Gibt den Container zurück.
+function leseArmed(roh) {
+  if (!isPlainObject(roh) || typeof roh.at !== 'string' || !isWorkflowDefinitionHash(roh.hash)) {
+    return null;
+  }
+  return { at: roh.at, hash: roh.hash };
+}
+
+function leseSkipped(roh) {
+  if (!isPlainObject(roh) || typeof roh.at !== 'string' || !isWorkflowWallTime(roh.due)) {
+    return null;
+  }
+  return { at: roh.at, due: roh.due };
+}
+
+// Liefert { runs, lastRun, armed, nextDue, skipped } oder null, wenn kein
+// wohlgeformter Stand vorliegt; ein fehlendes oder defektes Feld ist `null`
+// (`runs` 0). Ein Stand der Stufe 1 ohne die Felder der Stufe 2 ist nicht scharf.
+function getWorkflowRun(container) {
+  const section = container && container.workflow;
+  if (!isPlainObject(section)) return null;
+  const runs = Number.isInteger(section.runs) && section.runs >= 0 ? section.runs : 0;
+  const stand = {
+    runs,
+    lastRun: leseLauf(section.lastRun),
+    armed: leseArmed(section.armed),
+    nextDue: isWorkflowWallTime(section.nextDue) ? section.nextDue : null,
+    skipped: leseSkipped(section.skipped),
+  };
+  const leer = runs === 0 && !stand.lastRun && !stand.armed && !stand.nextDue && !stand.skipped;
+  return leer ? null : stand;
+}
+
+function workflowSection(container) {
+  return isPlainObject(container.workflow) ? container.workflow : {};
+}
+
+// Zählt einen Lauf und ersetzt den letzten Lauf samt Journal. `run` ist bereits
+// geprüft ({ status, line?, code?, startedAt?, origin?, journal?,
+// journalTruncated? }); `at` ist der Beginn des Laufs, ohne Angabe der
+// Zeitpunkt des Schreibens. Gibt den Container zurück.
 function recordWorkflowRun(container, run, nowMs) {
   const bisher = getWorkflowRun(container);
-  const section = isPlainObject(container.workflow) ? container.workflow : {};
+  const section = workflowSection(container);
   const at = Number.isFinite(run.startedAt) ? run.startedAt : nowMs;
   const lastRun = { at: isoSeconds(at), status: run.status };
   if (Number.isInteger(run.line)) lastRun.line = run.line;
   if (typeof run.code === 'string') lastRun.code = run.code;
+  if (typeof run.origin === 'string') lastRun.origin = run.origin;
+  if (Array.isArray(run.journal)) {
+    lastRun.journal = run.journal.map((e) => ({ line: e.line, command: e.command, path: e.path }));
+  }
+  if (run.journalTruncated === true) lastRun.journalTruncated = true;
   container.workflow = { ...section, runs: (bisher ? bisher.runs : 0) + 1, lastRun };
   return container;
+}
+
+// Setzt ein Feld der Sektion oder nimmt es zurück (null: das Feld fällt weg).
+// Ein Zurücknehmen ohne vorhandenes Feld lässt den Container unberührt und legt
+// keine leere Sektion an.
+function setzeSektionsFeld(container, feld, wert) {
+  const bisher = workflowSection(container);
+  if (wert === null && !Object.prototype.hasOwnProperty.call(bisher, feld)) return container;
+  const section = { ...bisher };
+  if (wert === null) delete section[feld];
+  else section[feld] = wert;
+  container.workflow = section;
+  return container;
+}
+
+// Setzt den Scharf-Zustand ({ hash }, geprüft) mit dem Zeitpunkt des Schreibens
+// oder nimmt ihn zurück (null: das Feld fällt weg). Gibt den Container zurück.
+function setWorkflowArmed(container, armed, nowMs) {
+  const wert = armed === null ? null : { at: isoSeconds(nowMs), hash: armed.hash };
+  return setzeSektionsFeld(container, 'armed', wert);
+}
+
+// Setzt den nächsten fälligen Lauf (Wanduhr-Zeit, geprüft) oder nimmt ihn
+// zurück (null: das Feld fällt weg). Gibt den Container zurück.
+function setWorkflowNextDue(container, nextDue) {
+  return setzeSektionsFeld(container, 'nextDue', nextDue);
+}
+
+// Vermerkt einen verfallenen Lauf (`due`, geprüft) und setzt in derselben
+// Änderung den nächsten fälligen Lauf (`nextDue`, geprüft oder null). Gibt den
+// Container zurück.
+function recordWorkflowSkipped(container, { due, nextDue }, nowMs) {
+  setWorkflowNextDue(container, nextDue);
+  return setzeSektionsFeld(container, 'skipped', { at: isoSeconds(nowMs), due });
 }
 
 module.exports = {
@@ -604,6 +744,12 @@ module.exports = {
   // 4T-002348 (Epic 3E-000184): Lauf-Stand eines Workflows.
   getWorkflowRun,
   recordWorkflowRun,
+  // 4T-002420 (Epic 3E-000366): Scharf-Zustand, Fälligkeit und Verfall.
+  isWorkflowWallTime,
+  isWorkflowDefinitionHash,
+  setWorkflowArmed,
+  setWorkflowNextDue,
+  recordWorkflowSkipped,
   MDDA_FILENAME,
   LEGACY_MDDB_FILENAME,
   emptySettingsContainer,

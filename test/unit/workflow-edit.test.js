@@ -218,3 +218,60 @@ describe('ungültige Bearbeitung', () => {
     expect(applyContentEdit('x', null).code).toBe('invalidStep');
   });
 });
+
+// 4T-002424 (Story 4S-001135, Regel P2): Schlagwörter im Dateikopf.
+describe('addTag und removeTag', () => {
+  const add = (tag) => ({ op: 'addTag', tag });
+  const remove = (tag) => ({ op: 'removeTag', tag });
+  const KOPF = '---\ntitle: Plan\ntags:\n  - alt\nstatus: offen\n---\nText #alt\n';
+
+  it('nimmt ein Schlagwort auf; übrige Eigenschaften und #tag im Text bleiben', () => {
+    expect(applyContentEdit(KOPF, add('neu'))).toEqual({
+      ok: true,
+      text: '---\ntitle: Plan\ntags:\n  - alt\n  - neu\nstatus: offen\n---\nText #alt\n',
+      changed: true,
+    });
+  });
+
+  it('entfernt ein Schlagwort; #tag im Text bleibt', () => {
+    const r = applyContentEdit(KOPF, remove('alt'));
+    expect(r.text).toBe('---\ntitle: Plan\ntags: []\nstatus: offen\n---\nText #alt\n');
+  });
+
+  it('vorhandenes beziehungsweise fehlendes Schlagwort gelingt ohne Änderung', () => {
+    expect(applyContentEdit(KOPF, add('alt'))).toEqual({ ok: true, text: KOPF, changed: false });
+    expect(applyContentEdit(KOPF, add('#ALT')).changed).toBe(false);
+    expect(applyContentEdit(KOPF, remove('fehlt'))).toEqual({
+      ok: true,
+      text: KOPF,
+      changed: false,
+    });
+  });
+
+  it('ohne Dateikopf oder mit leerem tags entsteht die Liste; ein Text gilt als Liste', () => {
+    expect(applyContentEdit('Text\n', add('#neu')).text).toBe('---\ntags:\n  - neu\n---\nText\n');
+    expect(applyContentEdit('---\ntags:\n---\nT\n', add('neu')).text).toBe(
+      '---\ntags:\n  - neu\n---\nT\n',
+    );
+    expect(applyContentEdit('---\ntags: alt\n---\nT\n', add('neu')).text).toBe(
+      '---\ntags:\n  - alt\n  - neu\n---\nT\n',
+    );
+  });
+
+  it('erhält Zeilenenden und Byte-Order-Zeichen', () => {
+    const crlf = `${BOM}---\r\ntags: [alt]\r\n---\r\nT\r\n`;
+    expect(applyContentEdit(crlf, add('neu')).text).toBe(
+      `${BOM}---\r\ntags:\r\n  - alt\r\n  - neu\r\n---\r\nT\r\n`,
+    );
+  });
+
+  it('ein ungültiges Schlagwort oder ein kaputter Dateikopf ist ein Fehlschlag', () => {
+    for (const tag of ['', '#', 'zwei worte']) {
+      expect(applyContentEdit(KOPF, add(tag)), tag).toEqual({ ok: false, code: 'tagInvalid' });
+    }
+    expect(applyContentEdit('---\ntags: [a\n---\nT\n', add('x')).code).toBe('frontmatterInvalid');
+    expect(applyContentEdit('---\ntags:\n  a: 1\n---\nT\n', add('x')).code).toBe(
+      'frontmatterInvalid',
+    );
+  });
+});

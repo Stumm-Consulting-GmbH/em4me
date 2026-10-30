@@ -7,6 +7,7 @@ import { describe, it, expect } from 'vitest';
 import {
   MAX_CALL_DEPTH,
   RUNNER_CODES,
+  deleteTargets,
   runWorkflow,
 } from '../../src/shared/workflows/workflow-runner.js';
 import { MACRO_MAX_CALL_DEPTH } from '../../src/shared/commands/command-placement.js';
@@ -265,5 +266,69 @@ describe('runWorkflow (4T-002349)', () => {
         'unexpected',
       ]),
     );
+  });
+});
+
+// 4T-002424 (Story 4S-001135, Regel P4): `confirm` im Fenster und die Ziele der
+// einen Bestätigung vor `delete` (P1).
+describe('confirm und Lösch-Ziele (4T-002424)', () => {
+  it('confirm mit «Ja» läuft weiter', async () => {
+    const fragen = [];
+    const { deps, calls } = makeDeps({
+      confirm: async (frage) => {
+        fragen.push(frage);
+        return true;
+      },
+    });
+    const r = await runWorkflow(
+      plan('A', [s(5, 'confirm', 'Weiter?'), s(6, 'notify', 'danach')]),
+      deps,
+    );
+    expect(r).toEqual({ status: 'ok' });
+    expect(fragen).toEqual(['Weiter?']);
+    expect(calls).toEqual(['notify:danach', 'finish:A:ok']);
+  });
+
+  it('confirm mit «Nein» beendet den Lauf ohne Fehlschlag wie stop', async () => {
+    const { deps, calls } = makeDeps({ confirm: async () => false });
+    const r = await runWorkflow(
+      plan('A', [s(5, 'confirm', 'Weiter?'), s(6, 'notify', 'nie')]),
+      deps,
+    );
+    expect(r).toEqual({
+      status: 'stopped',
+      workflow: 'A',
+      path: 'C:/b/A.md',
+      line: 5,
+      text: 'Weiter?',
+      declined: true,
+    });
+    expect(calls).toEqual(['finish:A:stopped']);
+  });
+
+  it('nur ein wahres «Ja» setzt fort; jede andere Antwort beendet', async () => {
+    const { deps } = makeDeps({ confirm: async () => 'ja' });
+    expect((await runWorkflow(plan('A', [s(5, 'confirm', 'X')]), deps)).status).toBe('stopped');
+  });
+
+  it('confirm mit «Nein» in einem inneren Workflow beendet den ganzen Lauf', async () => {
+    const { deps } = makeDeps({ confirm: async () => false });
+    const b = plan('B', [s(8, 'confirm', 'Innen?')]);
+    const r = await runWorkflow(
+      plan('A', [s(5, 'workflow', 'B'), s(6, 'notify', 'nie')], { 5: b }),
+      deps,
+    );
+    expect(r).toMatchObject({ status: 'stopped', workflow: 'A', line: 5, declined: true });
+    expect(r.inner).toMatchObject({ workflow: 'B', line: 8, text: 'Innen?' });
+  });
+
+  it('deleteTargets sammelt die Ziele über den Aufruf-Baum, ohne Doppel', () => {
+    const b = plan('B', [s(8, 'delete', 'b.md'), s(9, 'delete', 'a.md')]);
+    const a = plan('A', [s(5, 'delete', 'a.md'), s(6, 'workflow', 'B'), s(7, 'notify', 'x')], {
+      6: b,
+    });
+    expect(deleteTargets(a)).toEqual(['a.md', 'b.md']);
+    expect(deleteTargets(plan('C', [s(5, 'notify', 'x')]))).toEqual([]);
+    expect(deleteTargets(null)).toEqual([]);
   });
 });

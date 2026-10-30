@@ -116,6 +116,8 @@ Gesucht wird zuerst am angegebenen Pfad und, falls dort nichts liegt, über den 
 
 **Vorlagen des verknüpften Bereichs** lassen sich zusätzlich zu den eigenen anbieten; dafür gibt es je Verknüpfung einen Schalter. In der Vorlagen-Auswahl erscheinen dann beide Bestände, und jeder fremde Eintrag nennt seine Herkunft. Ohne den Schalter ändert eine Verknüpfung den Vorlagen-Bestand nicht.
 
+**Workflows des verknüpften Bereichs** lassen sich ebenso anbieten, mit einem eigenen Schalter „Workflows" je Verknüpfung. Sie erscheinen im Menü, in der Kommando-Palette und auf der Seite der Workflow-Läufe mit dem Kürzel der Verknüpfung, starten nur von Hand und wirken im eigenen Bereich; in den verknüpften Bereich wird nichts geschrieben. Einzelheiten auf der Seite [Workflows](workflows.md).
+
 ### Wenn ein verknüpfter Bereich nicht auffindbar ist
 
 Beim Öffnen prüft ein Bereich seine Verknüpfungen, und ein Befund verhindert das Öffnen nie:

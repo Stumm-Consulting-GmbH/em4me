@@ -21,6 +21,16 @@
 //
 // Die Meldung trägt keine Liste: Der Empfänger fragt nach, so bleibt die eine
 // Lese-Stelle die Abfrage (Muster `area:changed`).
+//
+// **Workflows verknüpfter Bereiche** (4T-002426, Epic 3E-000366, Entscheidung 2h):
+// Die Liste trägt zusätzlich `linked`, je zugestimmter Quelle Kürzel, Name,
+// Ordner, Baum und flache Liste (`workflow-linked-sources.js`). Die eigenen
+// `items` und `workflows` bleiben unverändert, weil der Aufruf eines Workflows
+// per Name (`workflow "Name"`) und die Prüfung «mehrdeutig» allein im eigenen
+// Bereich auflösen; ein zugestimmter fremder Bereich ändert so nie, was ein
+// eigener Workflow aufruft. Die Ordner der Quellen werden mit beobachtet, damit
+// Menü und Palette einer Änderung dort folgen; ein Fenster besitzt damit mehrere
+// Ordner.
 'use strict';
 
 const path = require('node:path');
@@ -33,6 +43,7 @@ const { readAreaSettingsRaw } = require('../area/area-migration');
 const { isIgnoredDirName } = require('../index/scan');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 const { pathCompareKey } = require('../../shared/platform.js');
+const { createLinkedWorkflowSources } = require('./workflow-linked-sources.js');
 const {
   normalizeWorkflowsConfig,
   readWorkflowFolder,
@@ -75,6 +86,7 @@ function standardBeobachter(folder) {
  * @param {(folder: string) => object} [deps.watchFolder] Beobachter-Fabrik (Prüffälle).
  * @param {number} [deps.buendelMs] Bündel-Frist der Meldung (Prüffälle).
  * @param {(disabled: *) => boolean} [deps.workflowsEnabled] Schalter-Abfrage (Prüffälle).
+ * @param {object} [deps.linkedWorkflowSources] Quellen verknüpfter Bereiche (Prüffälle).
  * @returns {object} Die Zugriffe des Dienstes.
  */
 function createWorkflowFolderService(deps) {
@@ -84,7 +96,9 @@ function createWorkflowFolderService(deps) {
   const eingeschaltet =
     deps.workflowsEnabled || ((disabled) => isExtensionEnabled(EXTENSION_ID, disabled));
   const beobachter = new Map(); // Vergleichs-Schlüssel -> { folder, watcher, timer, owners }
-  const fensterOrdner = new Map(); // Fenster-Kennung -> Vergleichs-Schlüssel oder null
+  const fensterOrdner = new Map(); // Fenster-Kennung -> Set der Vergleichs-Schlüssel
+  // 4T-002426: die Workflows der zugestimmten verknüpften Bereiche.
+  const fremde = deps.linkedWorkflowSources || createLinkedWorkflowSources(deps);
   const zuhoerer = new Set();
   let speicherAbonniert = false;
 
@@ -164,13 +178,25 @@ function createWorkflowFolderService(deps) {
         missing: false,
         items: [],
         workflows: [],
+        linked: [],
       };
     }
     const liste = await readWorkflowFolder(lage.folder, {
       isMarkdownPath: deps.isMarkdownPath,
       maxBytes: deps.MAX_EMBED_BYTES,
     });
-    return { ok: true, enabled: true, source: lage.source, folder: lage.folder, ...liste };
+    const area = win ? areaOfWindow(win) : null;
+    const linked = area ? await fremde.list(area.rootPath) : [];
+    return { ok: true, enabled: true, source: lage.source, folder: lage.folder, ...liste, linked };
+  }
+
+  // 4T-002426: die beobachteten Ordner eines Fensters — der eigene und die der
+  // zugestimmten Quellen; im Aus-Zustand keiner.
+  async function ordnerFuer(win, lage) {
+    if (!lage.enabled) return [];
+    const area = win ? areaOfWindow(win) : null;
+    const quellen = area ? await fremde.sources(area.rootPath) : [];
+    return [lage.folder, ...quellen.map((q) => q.folder)].filter(Boolean);
   }
 
   function melde(fensterIds) {
@@ -224,21 +250,32 @@ function createWorkflowFolderService(deps) {
   function abmelden(fensterId) {
     const alt = fensterOrdner.get(fensterId);
     fensterOrdner.delete(fensterId);
-    if (!alt) return;
-    const eintrag = beobachter.get(alt);
-    if (!eintrag) return;
-    eintrag.owners.delete(fensterId);
-    if (eintrag.owners.size === 0) schliesse(alt);
+    for (const schluessel of alt || []) {
+      const eintrag = beobachter.get(schluessel);
+      if (!eintrag) continue;
+      eintrag.owners.delete(fensterId);
+      if (eintrag.owners.size === 0) schliesse(schluessel);
+    }
   }
 
-  function anmelden(fensterId, folder) {
-    const schluessel = folder ? pathCompareKey(path.resolve(folder)) : null;
-    if (fensterOrdner.has(fensterId) && fensterOrdner.get(fensterId) === schluessel) return;
+  function gleicheMenge(a, b) {
+    return a.size === b.size && [...a].every((x) => b.has(x));
+  }
+
+  // 4T-002426: ein Fenster besitzt den eigenen Ordner und die der Quellen.
+  function anmelden(fensterId, folders) {
+    const neu = new Map();
+    for (const folder of folders) neu.set(pathCompareKey(path.resolve(folder)), folder);
+    const schluessel = new Set(neu.keys());
+    if (fensterOrdner.has(fensterId) && gleicheMenge(fensterOrdner.get(fensterId), schluessel)) {
+      return;
+    }
     abmelden(fensterId);
     fensterOrdner.set(fensterId, schluessel);
-    if (!schluessel) return;
-    const eintrag = beobachter.get(schluessel) || starte(folder, schluessel);
-    eintrag.owners.add(fensterId);
+    for (const [key, folder] of neu) {
+      const eintrag = beobachter.get(key) || starte(folder, key);
+      eintrag.owners.add(fensterId);
+    }
   }
 
   // Ordner aller angemeldeten Fenster neu auflösen und alle benachrichtigen.
@@ -251,7 +288,7 @@ function createWorkflowFolderService(deps) {
         continue;
       }
       const lage = await resolveForWindow(win);
-      anmelden(id, lage.enabled ? lage.folder : null);
+      anmelden(id, await ordnerFuer(win, lage));
     }
     melde(new Set(fensterOrdner.keys()));
   }
@@ -271,7 +308,7 @@ function createWorkflowFolderService(deps) {
     const ergebnis = await listForWindow(win);
     const id = win.webContents.id;
     if (!fensterOrdner.has(id)) win.webContents.once('destroyed', () => abmelden(id));
-    anmelden(id, ergebnis.enabled ? ergebnis.folder : null);
+    anmelden(id, await ordnerFuer(win, ergebnis));
     return ergebnis;
   }
 
@@ -289,6 +326,8 @@ function createWorkflowFolderService(deps) {
   return {
     readAreaWorkflowsConfig,
     writeAreaWorkflowsConfig,
+    // 4T-002426: Ist ein Pfad die Definition eines zugestimmten fremden Workflows?
+    linkedSourceFor: fremde.sourceFor,
     resolveForWindow,
     listForWindow,
     folderListFor,

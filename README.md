@@ -116,8 +116,10 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   workflow is checked, and an error shows with line and reason above the
   block while nothing runs. You run it by hand from the File menu, the
   command palette, a keyboard shortcut or a button, and a page lists every
-  run. A workflow acts only within your open area, overwrites and deletes
-  nothing and never goes online.
+  run. Once armed, a workflow also runs by itself on a schedule while its
+  area is open, and can catch up on missed runs once. A workflow acts only
+  within your open area, overwrites nothing, deletes only to the trash and
+  only after you confirm, and never goes online.
 - **Areas keep projects apart, and can still talk** — bind a window to a
   folder and it becomes a closed workspace: file dialogs, recent files and
   search stay inside it. An area can designate one of its files as a start

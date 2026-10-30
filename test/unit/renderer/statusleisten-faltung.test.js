@@ -19,8 +19,14 @@
 // Die Elemente sind hier bewusst Zeichenketten und keine DOM-Knoten: Die
 // Funktion reicht sie unverändert durch, und ein Test mit echten Knoten würde
 // nur den Aufbau des Prüffalls prüfen.
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import './api-stub.js';
+
+// 4T-002423: Das Element «Workflows» wird für die Zonen-Prüfung unten angelegt;
+// die Scharf-Schaltung ist dafür ohne Belang und lädt die Oberfläche.
+vi.mock('../../../src/renderer/modules/workflows/workflow-scharf.js', () => ({
+  onScharfGeaendert: () => () => {},
+}));
 
 const {
   abbauReihenfolge,
@@ -147,5 +153,36 @@ describe('Falt-Modus der Statusleiste (4T-001580)', () => {
       window.api.setSetting = vorher;
       await setStatusbarCollapseMode(STATUSBAR_COLLAPSE_AUTO, { persist: false });
     }
+  });
+});
+
+// 4T-002423 (Epic 3E-000366, Story 4S-001134, AK7): Das Element «Workflows»
+// wandert mit der Faltung, weil es dort steht, wo die Kandidaten-Suche sucht —
+// als `button` in einer der drei Zonen, hier am Anfang der rechten; ihr Abbau
+// nimmt es in das rechte Menü auf, als letztes Element dieser Seite. Das
+// Einsetzen und das Umschalten von `hidden` sieht die Beobachtung der Leiste
+// selbst.
+describe('Zonen-Zuordnung des Elements «Workflows» (4T-002423)', () => {
+  it('steht als Schaltfläche am Anfang der rechten Zone und klappt ins rechte Menü', async () => {
+    document.body.innerHTML =
+      '<footer class="statusbar"><div class="statusbar-left"><button id="l1"></button></div>' +
+      '<div class="statusbar-center"></div><div class="statusbar-right">' +
+      '<button id="statusbar-wordcount"></button><button id="btn-theme"></button></div></footer>';
+    const { legeWorkflowStatusleisteAn } =
+      await import('../../../src/renderer/modules/workflows/workflow-statusleiste.js');
+    const element = legeWorkflowStatusleisteAn();
+    expect(element.tagName).toBe('BUTTON');
+    expect(element.parentElement.classList.contains('statusbar-right')).toBe(true);
+    // Ohne scharfen Workflow steht es nicht in der Leiste.
+    expect(element.hidden).toBe(true);
+    element.hidden = false;
+    const zone = (sel) => [...document.querySelectorAll(`${sel} button`)].filter((b) => !b.hidden);
+    const plan = abbauReihenfolge({
+      links: zone('.statusbar-left'),
+      mitte: zone('.statusbar-center'),
+      rechts: zone('.statusbar-right'),
+    });
+    const rechts = plan.filter((e) => e.ziel === 'rechts').map((e) => e.element.id);
+    expect(rechts).toEqual(['btn-theme', 'statusbar-wordcount', 'statusbar-workflows']);
   });
 });

@@ -296,5 +296,10 @@
   "help.featureAccess.workflowStart": "Archivo → Workflows → ‘nombre del workflow’; paleta de comandos → ‘nombre del workflow’; botón ‘Iniciar’ sobre el bloque en el modo en vivo, la vista renderizada y la vista dividida; menú contextual de un archivo de workflow en el panel del área → Iniciar; Archivo → Configuración… → Atajos de teclado",
   "help.featureAccess.workflowRuns": "Ver → Mostrar ejecuciones de workflows; Archivo → Workflows → Mostrar ejecuciones de workflows; paleta de comandos → ‘Mostrar ejecuciones de workflows’",
   "help.featureAccess.workflowEditor": "Bloque de código `workflow`; indicación de comprobación sobre el bloque en el modo en vivo, la vista renderizada y la vista dividida",
-  "help.featureAccess.workflowFolder": "Archivo → Workflows; Archivo → Workflows → Nuevo workflow… y Definir carpeta de workflows…; Archivo → Configuración… → Extensiones (internas) → Workflows y Área actual → Workflows; paleta de comandos → ‘Nuevo workflow…’"
+  "help.featureAccess.workflowFolder": "Archivo → Workflows; Archivo → Workflows → Nuevo workflow… y Definir carpeta de workflows…; Archivo → Configuración… → Extensiones (internas) → Workflows y Área actual → Workflows; paleta de comandos → ‘Nuevo workflow…’",
+  "help.featureAccess.workflowSchedule": "Campos de cabecera `trigger: schedule`, `schedule` y `missed`; indicación de comprobación sobre el bloque en el modo en vivo, la vista renderizada y la vista dividida",
+  "help.featureAccess.workflowArming": "Ver → Mostrar ejecuciones de workflows → columna ‘Activado’; botón ‘Activado’ sobre el bloque en el modo en vivo, la vista renderizada y la vista dividida; menú contextual de un archivo de workflow en el panel del área → Activar / Desactivar",
+  "help.featureAccess.workflowStatusbar": "Barra de estado → elemento ‘Workflows’; comando `notify` en el bloque de código `workflow`",
+  "help.featureAccess.workflowMaintenance": "Comandos `delete`, `add-tag`, `remove-tag`, `complete-task` y `confirm` en el bloque de código `workflow`",
+  "help.featureAccess.workflowLinked": "Archivo → Configuración… → Área actual → Vínculos entre áreas → Workflows; Archivo → Workflows; paleta de comandos; Ver → Mostrar ejecuciones de workflows"
 }

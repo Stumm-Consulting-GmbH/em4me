@@ -17,9 +17,30 @@
 //      Kreis über mehrere Workflows ist ein Selbstaufruf (E5), ein gleicher Name
 //      zweier Workflows ein Befund «mehrdeutig» (E1).
 //   3. Der Lauf über den Ablauf-Kern `src/shared/workflows/workflow-runner.js`.
-//   4. Lauf-Stand je gelaufener Datei über `workflow:recordRun` (4T-002348) und
+//   4. Lauf-Stand je gelaufener Datei über `workflow:recordRun` (4T-002348; ein
+//      fremder Workflow bekommt keinen, 4T-002426, workflow-fremd.js) und
 //      der Hinweis in der Statusleiste; danach die Meldung an die Seite
 //      «Workflow-Läufe» mit demselben Ergebnis (4T-002350, workflow-lauf-stand.js).
+//
+// **Lauf nach Zeitplan** (4T-002421, Story 4S-001132): Der Empfänger im Fenster
+// (workflow-zeitplan-lauf.js) startet mit der Herkunft `schedule` oder
+// `catch-up`. Ein solcher Lauf hat keinen Zuschauer: Eine offene Eingabe — auch
+// aus einer mit `from-template` eingesetzten Vorlage, die das Prüfen vor Laufen
+// nicht sieht — und die Befehle `confirm` und `delete` beenden ihn vor dem
+// ersten Schritt mit dem Befund `manualOnly`, ohne Dialog. Alle übrigen Regeln
+// gelten wie beim Start von Hand. Mit dem Lauf-Stand gehen Herkunft und Journal
+// an den Hauptprozess; das Journal sammelt die Pfade, die die Schritte als
+// berührt melden. `notify` und ein Fehlschlag gehen bei ihm zusätzlich als
+// Benachrichtigung des Betriebssystems hinaus (4T-002423,
+// workflow-benachrichtigung.js).
+//
+// **Pflege-Befehle** (4T-002424, Regeln P1 und P4): Enthält der vorbereitete
+// Lauf samt aufgerufener Workflows ein `delete`, nennt **eine** Bestätigung
+// vor dem ersten Schritt alle Ziele mit Pfad; «Nein» lässt keinen Schritt
+// laufen und verbucht `canceled`. Vor jedem `delete` schließt das Fenster seine
+// Reiter auf das Ziel. `confirm` stellt seine Frage im Lauf mit «Ja» und
+// «Nein». Beides gibt es nur beim Start von Hand; ein Lauf nach Zeitplan ist
+// schon in der Vorbereitung abgewiesen.
 //
 // **Welcher Text:** der übergebene (der Stand im Editor beim Knopf), sonst der
 // ungespeicherte Stand eines in diesem Fenster geöffneten Reiters, sonst die
@@ -38,25 +59,37 @@ import { findOpenTab } from '../task-query-actions.js';
 import { collectAnswers, folderDisplayFor, templateDocumentContext } from '../templates.js';
 import { showStatusbarHint } from '../views/views.js';
 import { getWorkflowFolderList } from './workflow-folder-list.js';
-import { abbruchText, einsetzen } from './workflow-lauf-texte.js';
-import { laufVerbucht } from './workflow-lauf-stand.js';
+import { verbucheLaufStand } from './workflow-fremd.js';
+import { ABBRUCH_MS, meldeEnde, meldeNotify } from './workflow-benachrichtigung.js';
+import { initWorkflowStatusleiste } from './workflow-statusleiste.js';
+import { einsetzen } from './workflow-lauf-texte.js';
+import { ZEITPLAN_HERKUNFT, laufVerbucht } from './workflow-lauf-stand.js';
 import { aktuelleRueckfragen, pruefeWorkflow } from './workflow-pruefung.js';
-import { flushPendingBuffers, runWindowAction } from './workflow-window.js';
+import {
+  bestaetigeLoeschZiele,
+  flushPendingBuffers,
+  frageJaNein,
+  runWindowAction,
+  schliesseVorDemLoeschen,
+} from './workflow-window.js';
 import { MD_EXT_RE } from '../../../shared/markdown/link-scan.js';
 import { toLogicalName } from '../../../shared/subpages.js';
 import {
+  MANUAL_ONLY_COMMANDS,
   prepareRun,
   templateInputs,
   templateRefs,
   workflowInputs,
 } from '../../../shared/workflows/workflow-core.js';
 import { WORKFLOWS_EXTENSION_ID } from '../../../shared/workflows/workflow-konstanten.js';
-import { MAX_CALL_DEPTH, runWorkflow } from '../../../shared/workflows/workflow-runner.js';
+import {
+  MAX_CALL_DEPTH,
+  deleteTargets,
+  runWorkflow,
+} from '../../../shared/workflows/workflow-runner.js';
 
-// Anzeige-Dauer der Hinweise: `notify` wie ein gewöhnlicher Hinweis, der
-// Abbruch länger, weil Name, Zeile und Grund zu lesen sind.
-const NOTIFY_MS = 4000;
-const ABBRUCH_MS = 6000;
+// Wirkungen, die keine Datei verändern, gehören nicht ins Journal.
+const UNBERUEHRT = Object.freeze(['unchanged', 'opened', 'closed']);
 
 let verdrahtung = {
   executeCommand: () => false,
@@ -71,6 +104,9 @@ let laufName = null;
  */
 export function initWorkflowStart(w) {
   verdrahtung = { ...verdrahtung, ...(w || {}) };
+  // 4T-002423: das Statusleisten-Element «Workflows» öffnet die Seite über
+  // dieselbe Kommando-Ausführung.
+  initWorkflowStatusleiste({ executeCommand: (id) => verdrahtung.executeCommand(id) });
 }
 
 /** @returns {boolean} läuft in diesem Fenster gerade ein Workflow? */
@@ -110,7 +146,20 @@ async function leseText(pfad) {
   }
 }
 
-// Kontext des aktiven Dokuments für die Befehls-Zeilen (S-b).
+// Text der Zwischenablage zum Start des Laufs (4T-002424, Story 4S-001136);
+// leer, wenn sie leer oder nicht lesbar ist — das ist kein Fehlschlag.
+function zwischenablage() {
+  try {
+    const text = typeof api.clipboardReadText === 'function' ? api.clipboardReadText() : '';
+    return typeof text === 'string' ? text : '';
+  } catch (err) {
+    console.warn('[Workflows] Zwischenablage nicht lesbar:', err && err.message);
+    return '';
+  }
+}
+
+// Kontext des aktiven Dokuments für die Befehls-Zeilen (S-b), mit der
+// Zwischenablage einmal je Lauf wie die Uhrzeit.
 function laufKontext() {
   const tab = activeTab();
   const pfad = tab && tab.path ? tab.path : '';
@@ -121,6 +170,7 @@ function laufKontext() {
     folder: pfad ? folderDisplayFor(api.dirname(pfad)) : '',
     nowMs: Date.now(),
     locale: intlLocale(),
+    clipboard: zwischenablage(),
   };
 }
 
@@ -139,14 +189,33 @@ async function leseVorlagen(refs) {
   return texte;
 }
 
-// Stellt die noch offenen Fragen; false bei Abbruch eines Dialogs.
-async function frage(inputs, antworten) {
+// Stellt die noch offenen Fragen; false bei Abbruch eines Dialogs. Ohne
+// Zuschauer (Lauf nach Zeitplan) wird nie gefragt: Die erste offene Eingabe
+// kommt als `{ offen }` zurück.
+async function frage(inputs, lage) {
+  const { antworten } = lage;
   const offen = inputs.filter((i) => !Object.prototype.hasOwnProperty.call(antworten, i.key));
   if (offen.length === 0) return true;
+  if (lage.unbeaufsichtigt) return { offen: offen[0] };
   const neu = await collectAnswers(offen);
   if (neu === null) return false;
   Object.assign(antworten, neu);
   return true;
+}
+
+// Zeile, an der eine Eingabe entsteht: der Schritt, der sie trägt, oder die
+// Zeile, die die Vorlage einsetzt.
+function zeileDerEingabe(key, steps, refs, vorlagen) {
+  const schritt = steps.find((s) => workflowInputs([s]).some((i) => i.key === key));
+  if (schritt) return schritt.line;
+  const ref = (refs || []).find((r) =>
+    templateInputs([r], vorlagen, {}).inputs.some((i) => i.key === key),
+  );
+  return ref ? ref.line : null;
+}
+
+function ohneZuschauer(name, pfad, line, detail) {
+  return { fehler: befundEnde(name, pfad, { line, code: 'manualOnly', detail }) };
 }
 
 function befundEnde(name, pfad, befund) {
@@ -212,13 +281,30 @@ async function bereite(pfad, text, lage) {
   }
   const { name } = analyse.meta;
   if (!analyse.ok) return { fehler: befundEnde(name, pfad, analyse.findings[0]) };
-  if (!(await frage(workflowInputs(analyse.steps), lage.antworten))) return { abbruch: true };
+  if (lage.unbeaufsichtigt) {
+    const nurVonHand = analyse.steps.find((s) => MANUAL_ONLY_COMMANDS.includes(s.keyword));
+    if (nurVonHand) {
+      return ohneZuschauer(name, pfad, nurVonHand.line, { keyword: nurVonHand.keyword });
+    }
+  }
+  const befehle = await frage(workflowInputs(analyse.steps), lage);
+  if (befehle === false) return { abbruch: true };
+  if (befehle.offen) {
+    const zeile = zeileDerEingabe(befehle.offen.key, analyse.steps, [], {});
+    return ohneZuschauer(name, pfad, zeile, { placeholder: befehle.offen.kind });
+  }
   const bezuege = templateRefs(analyse.steps, lage.kontext, lage.antworten);
   if (bezuege.findings.length > 0) return { fehler: befundEnde(name, pfad, bezuege.findings[0]) };
   const vorlagen = await leseVorlagen(bezuege.refs);
   const eingaben = templateInputs(bezuege.refs, vorlagen, lage.antworten);
   if (eingaben.findings.length > 0) return { fehler: befundEnde(name, pfad, eingaben.findings[0]) };
-  if (!(await frage(eingaben.inputs, lage.antworten))) return { abbruch: true };
+  const vorlagenFragen = await frage(eingaben.inputs, lage);
+  if (vorlagenFragen === false) return { abbruch: true };
+  if (vorlagenFragen.offen) {
+    const key = vorlagenFragen.offen.key;
+    const zeile = zeileDerEingabe(key, analyse.steps, bezuege.refs, vorlagen);
+    return ohneZuschauer(name, pfad, zeile, { placeholder: vorlagenFragen.offen.kind });
+  }
   const gefuellt = prepareRun(analyse.steps, lage.kontext, lage.antworten, vorlagen, {
     ownName: name,
     ...aktuelleRueckfragen(),
@@ -234,11 +320,15 @@ async function bereite(pfad, text, lage) {
   return { plan };
 }
 
-// Lauf-Stand in der Form von `normalizeRun` (4T-002348).
-function laufStand(ergebnis, startedAt) {
+// Lauf-Stand in der Form von `normalizeRun` (4T-002348). Die Herkunft geht
+// nur bei einem Lauf nach Zeitplan mit, weil der Hauptprozess ohne Angabe
+// `manual` setzt (4T-002420); das Journal, sobald der Lauf Schritte hatte.
+function laufStand(ergebnis, startedAt, extra = {}) {
   const run = { status: ergebnis.status, startedAt };
   if (ergebnis.status !== 'ok' && typeof ergebnis.line === 'number') run.line = ergebnis.line;
   if (ergebnis.status === 'failed') run.code = ergebnis.code;
+  if (ZEITPLAN_HERKUNFT.includes(extra.origin)) run.origin = extra.origin;
+  if (Array.isArray(extra.journal)) run.journal = extra.journal;
   return run;
 }
 
@@ -246,20 +336,8 @@ function laufStand(ergebnis, startedAt) {
 // aus dem auch der Hinweis entsteht; eine abgewiesene Antwort des Hauptprozesses
 // geht wie ein Fehler in die Konsole.
 async function merke(pfad, run, ergebnis = null) {
-  try {
-    const antwort = await api.workflowRecordRun(pfad, run);
-    if (antwort && antwort.ok === false)
-      console.warn('[Workflows] Lauf-Stand nicht gespeichert:', pfad, antwort.code);
-  } catch (err) {
-    console.warn('[Workflows] Lauf-Stand nicht gespeichert:', pfad, err && err.message);
-  }
+  await verbucheLaufStand(pfad, run); // 4T-002426: ein fremder Workflow ohne Lauf-Stand
   laufVerbucht(pfad, run, ergebnis);
-}
-
-function meldeEnde(ergebnis) {
-  const stop = ergebnis.status === 'stopped';
-  const key = stop ? 'workflow.lauf.beendet' : 'workflow.lauf.abgebrochen';
-  hinweis(key, abbruchText(ergebnis), !stop, ABBRUCH_MS);
 }
 
 async function workflowListe() {
@@ -272,72 +350,116 @@ async function workflowListe() {
   }
 }
 
-function laufDeps(startedAt) {
+// Das Journal eines Laufs (2g): je Workflow-Datei die Pfade, die ein Schritt
+// als berührt meldet, mit Zeile und Befehl. Ein Fenster-Handgriff meldet seine
+// Wirkung erst nach seiner Ausführung; er gehört zur Datei des Schritts davor.
+function neuesJournal() {
+  const jeDatei = new Map();
+  let letzteDatei = null;
+  function vermerke(pfad, antwort) {
+    const wirkung = antwort && antwort.ok ? antwort.effect : null;
+    if (!wirkung || !Array.isArray(wirkung.paths) || UNBERUEHRT.includes(wirkung.kind)) return;
+    if (!jeDatei.has(pfad)) jeDatei.set(pfad, []);
+    for (const p of wirkung.paths) {
+      if (typeof p !== 'string' || p === '') continue;
+      jeDatei.get(pfad).push({ line: antwort.line, command: antwort.keyword, path: p });
+    }
+  }
   return {
-    step: (pfad, step) => api.workflowStep(pfad, step),
-    runWindowAction,
+    async step(pfad, step) {
+      letzteDatei = pfad;
+      if (step.keyword === 'delete' && !(await schliesseVorDemLoeschen(step.args[0]))) {
+        const detail = { path: step.args[0] };
+        return { ok: false, line: step.line, keyword: step.keyword, code: 'closeCanceled', detail };
+      }
+      const antwort = await api.workflowStep(pfad, step);
+      vermerke(pfad, antwort);
+      return antwort;
+    },
+    async runWindowAction(antwort) {
+      const pfad = letzteDatei;
+      const ergebnis = await runWindowAction(antwort);
+      vermerke(pfad, ergebnis);
+      return ergebnis;
+    },
+    von: (pfad) => jeDatei.get(pfad) || [],
+  };
+}
+
+function laufDeps(startedAt, herkunft) {
+  const journal = neuesJournal();
+  return {
+    step: journal.step,
+    runWindowAction: journal.runWindowAction,
     flushBuffers: flushPendingBuffers,
     executeCommand: (id) => verdrahtung.executeCommand(id),
     runMacro: (name, ebene) => verdrahtung.runMacro(name, ebene),
     sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
-    notify: (text) =>
-      hinweis(
-        'workflow.lauf.hinweis',
-        einsetzen(t('workflow.lauf.hinweis'), { text }),
-        false,
-        NOTIFY_MS,
+    confirm: (frage) => frageJaNein(laufName, frage),
+    // 4T-002423: nach Zeitplan zusätzlich als Benachrichtigung des Betriebssystems.
+    notify: (text) => meldeNotify(text, { name: laufName, herkunft }),
+    finish: (plan, ergebnis) =>
+      merke(
+        plan.path,
+        laufStand(ergebnis, startedAt, { origin: herkunft, journal: journal.von(plan.path) }),
+        ergebnis,
       ),
-    finish: (plan, ergebnis) => merke(plan.path, laufStand(ergebnis, startedAt), ergebnis),
   };
 }
 
-async function lauf(pfad, text) {
+async function lauf(pfad, text, herkunft) {
   // Zahl in Millisekunden, wie `normalizeRun` im Hauptprozess sie verlangt (4T-002350).
   const startedAt = Date.now();
   const quelle = typeof text === 'string' ? text : await leseText(pfad);
   if (quelle === null) {
     const name = dateiName(pfad);
-    meldeEnde({
-      status: 'failed',
-      workflow: name,
-      line: null,
-      code: 'fileMissing',
-      detail: { path: name },
-    });
+    meldeEnde(
+      { status: 'failed', workflow: name, line: null, code: 'fileMissing', detail: { path: name } },
+      herkunft,
+    );
     return false;
   }
   const lage = {
     kette: [],
     ebene: 0,
     antworten: {},
+    unbeaufsichtigt: herkunft !== 'manual',
     kontext: laufKontext(),
     liste: await workflowListe(),
   };
   const vorbereitet = await bereite(pfad, quelle, lage);
   if (vorbereitet.abbruch) {
-    await merke(pfad, { status: 'canceled', startedAt });
+    await merke(pfad, laufStand({ status: 'canceled' }, startedAt, { origin: herkunft }));
     return false;
   }
   if (vorbereitet.fehler) {
-    meldeEnde(vorbereitet.fehler);
-    if (vorbereitet.fehler.code !== 'notWorkflow')
-      await merke(pfad, laufStand(vorbereitet.fehler, startedAt), vorbereitet.fehler);
+    meldeEnde(vorbereitet.fehler, herkunft);
+    if (vorbereitet.fehler.code !== 'notWorkflow') {
+      const run = laufStand(vorbereitet.fehler, startedAt, { origin: herkunft });
+      await merke(pfad, run, vorbereitet.fehler);
+    }
     return false;
   }
   laufName = vorbereitet.plan.name;
-  const ergebnis = await runWorkflow(vorbereitet.plan, laufDeps(startedAt));
-  if (ergebnis.status !== 'ok') meldeEnde(ergebnis);
+  const ziele = deleteTargets(vorbereitet.plan);
+  if (ziele.length > 0 && !(await bestaetigeLoeschZiele(laufName, ziele))) {
+    await merke(pfad, laufStand({ status: 'canceled' }, startedAt, { origin: herkunft }));
+    return false;
+  }
+  const ergebnis = await runWorkflow(vorbereitet.plan, laufDeps(startedAt, herkunft));
+  if (ergebnis.status !== 'ok') meldeEnde(ergebnis, herkunft);
   return ergebnis.status === 'ok';
 }
 
 /**
  * Startet einen Workflow in diesem Fenster.
  *
- * @param {{path: string, text?: string}} anfrage `path` absolut; `text` der
- *   Stand im Editor, sonst wird er gelesen.
+ * @param {{path: string, text?: string, origin?: string}} anfrage `path` absolut;
+ *   `text` der Stand im Editor, sonst wird er gelesen; `origin` `schedule` oder
+ *   `catch-up` für einen Lauf nach Zeitplan (4T-002421), sonst Start von Hand.
  * @returns {Promise<boolean>} true, wenn der Lauf bis zum Ende gelungen ist.
  */
-export async function starteWorkflow({ path, text } = {}) {
+export async function starteWorkflow({ path, text, origin } = {}) {
   if (!isExtensionActive(WORKFLOWS_EXTENSION_ID)) return false;
   if (laufName !== null) {
     const meldung = einsetzen(t('workflow.lauf.laeuftBereits'), { name: laufName });
@@ -346,11 +468,13 @@ export async function starteWorkflow({ path, text } = {}) {
   }
   if (typeof path !== 'string' || path === '') return false;
   laufName = dateiName(path).replace(MD_EXT_RE, '');
+  const herkunft = ZEITPLAN_HERKUNFT.includes(origin) ? origin : 'manual';
   try {
-    return await lauf(path, text);
+    return await lauf(path, text, herkunft);
   } catch (err) {
     console.error('[Workflows] Lauf fehlgeschlagen:', err);
-    meldeEnde({ status: 'failed', workflow: laufName, line: null, code: 'unexpected', detail: {} });
+    const fehler = { status: 'failed', workflow: laufName, line: null, code: 'unexpected' };
+    meldeEnde({ ...fehler, detail: {} }, herkunft);
     return false;
   } finally {
     laufName = null;

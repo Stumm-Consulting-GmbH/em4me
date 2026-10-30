@@ -23,6 +23,21 @@
 import { intlLocale, t } from '../../i18n.js';
 import { einsetzen, fehlschlagSchluessel, grundText } from './workflow-lauf-texte.js';
 
+// 4T-002423: Die Herkunft eines Laufs nach Zeitplan (Lauf-Stand, 4T-002420);
+// jede andere Angabe gilt als Start von Hand. Hier, weil Start, Meldungen und
+// Statusleisten-Element sie teilen und dieses Modul keine Oberfläche lädt.
+export const ZEITPLAN_HERKUNFT = Object.freeze(['schedule', 'catch-up']);
+
+/**
+ * Ist das ein Lauf nach Zeitplan (auch ein nachgeholter)?
+ *
+ * @param {string} herkunft
+ * @returns {boolean}
+ */
+export function istZeitplanLauf(herkunft) {
+  return ZEITPLAN_HERKUNFT.includes(herkunft);
+}
+
 const ergebnisse = new Map(); // Schlüssel des Pfads -> { startedAt, status, ergebnis }
 const zuhoerer = new Set();
 
@@ -48,7 +63,9 @@ export function laufVerbucht(pfad, run, ergebnis) {
   });
   for (const cb of zuhoerer) {
     try {
-      cb(pfad);
+      // 4T-002426: Die verbuchten Angaben gehen mit, damit die Meldung eines
+      // fremden Laufs (workflow-fremd.js) den Status kennt.
+      cb(pfad, run);
     } catch (err) {
       console.warn('[Workflows] Zuhörer des Lauf-Stands fehlgeschlagen:', err && err.message);
     }
@@ -58,7 +75,7 @@ export function laufVerbucht(pfad, run, ergebnis) {
 /**
  * Zuhörer für jeden verbuchten Lauf dieses Fensters; Rückgabe meldet ab.
  *
- * @param {(pfad: string) => void} cb
+ * @param {(pfad: string, run: object) => void} cb
  * @returns {() => void}
  */
 export function onLaufVerbucht(cb) {

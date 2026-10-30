@@ -68,9 +68,11 @@ describe('Kennzeichen und Dateikopf', () => {
     expect(r.findings).toEqual([]);
   });
 
+  // 4T-002419: `schedule` ist seit der Stufe 2 unterstützt (Story 4S-001130);
+  // seine Befunde prüft der Block «Zeitplan im Dateikopf» unten.
   it('meldet jeden anderen Auslöser als noch nicht unterstützt (AK6)', () => {
     for (const [kopf, wert] of [
-      ['trigger: schedule', 'schedule'],
+      ['trigger: Schedule', 'Schedule'],
       ['trigger: on', 'on'],
       ['trigger: Manual', 'Manual'],
       ['trigger: [manual]', '["manual"]'],
@@ -100,6 +102,78 @@ describe('Kennzeichen und Dateikopf', () => {
     const kopie = String(text);
     readWorkflowDocument(text);
     expect(text).toBe(kopie);
+  });
+});
+
+// 4T-002419 (Epic 3E-000366): `trigger: schedule`, `schedule` und `missed`
+// (Story 4S-001130, Entscheidungen 2a und 2d). Die Zeile eines Befunds ist die
+// Zeile seines Schlüssels im Dokument; Zeile 1 ist die öffnende `---`.
+describe('Zeitplan im Dateikopf', () => {
+  const lies = (kopf) => readWorkflowDocument(datei(`workflow: true\n${kopf}`, block('wait 1')));
+  const befunde = (kopf) => lies(kopf).findings.map((f) => [f.code, f.line, f.detail]);
+
+  it('liest trigger: schedule mit lesbarem Zeitplan ohne Befund (AK1)', () => {
+    const r = lies('trigger: schedule\nschedule: every 2 weeks on monday at 08:00');
+    expect(r.findings).toEqual([]);
+    expect(r.meta).toMatchObject({
+      trigger: 'schedule',
+      schedule: { unit: 'week', interval: 2, weekdays: [0], time: '08:00' },
+      scheduleText: 'every 2 weeks on monday at 08:00',
+      missed: 'run-once',
+    });
+  });
+
+  it('setzt missed ohne Angabe auf run-once und liest skip (AK4)', () => {
+    expect(lies('trigger: schedule\nschedule: every day at 08:00').meta.missed).toBe('run-once');
+    const r = lies('trigger: schedule\nschedule: every day at 08:00\nmissed: skip');
+    expect(r.meta.missed).toBe('skip');
+    expect(r.findings).toEqual([]);
+    expect(lies('missed: run-once').findings).toEqual([]);
+  });
+
+  it('meldet jede fehlerhafte Zeitplan-Zeile mit Zeile und Grund (AK2)', () => {
+    expect(befunde('trigger: schedule\nschedule: every monday')).toEqual([
+      ['scheduleAtMissing', 4, { schedule: 'every monday' }],
+    ]);
+    expect(befunde('trigger: schedule\nschedule: every 30 minutes at 08:00')).toEqual([
+      ['scheduleAtNotAllowed', 4, { schedule: 'every 30 minutes at 08:00' }],
+    ]);
+    expect(befunde('trigger: schedule\nname: X\nschedule: täglich')).toEqual([
+      ['scheduleUnreadable', 5, { schedule: 'täglich' }],
+    ]);
+    expect(befunde('trigger: schedule\nschedule: 42')).toEqual([
+      ['scheduleUnreadable', 4, { schedule: '42' }],
+    ]);
+  });
+
+  it('meldet schedule ohne trigger: schedule an der schedule-Zeile', () => {
+    expect(befunde('schedule: every day at 08:00')).toEqual([['scheduleWithoutTrigger', 3, {}]]);
+    expect(befunde('trigger: manual\nschedule: every day at 08:00')).toEqual([
+      ['scheduleWithoutTrigger', 4, {}],
+    ]);
+  });
+
+  it('meldet trigger: schedule ohne schedule an der trigger-Zeile', () => {
+    expect(befunde('name: X\ntrigger: schedule')).toEqual([['scheduleMissing', 4, {}]]);
+  });
+
+  it('meldet einen unbekannten Wert von missed an seiner Zeile', () => {
+    expect(befunde('trigger: schedule\nschedule: every day at 08:00\nmissed: later')).toEqual([
+      ['missedUnknown', 5, { value: 'later' }],
+    ]);
+    expect(befunde('missed: true')).toEqual([['missedUnknown', 3, { value: 'true' }]]);
+    expect(lies('missed: later').meta.missed).toBe('run-once');
+  });
+
+  it('zählt die Zeile auch mit CRLF und Byte-Order-Zeichen', () => {
+    const text = '﻿' + datei('workflow: true\ntrigger: schedule\nschedule: every day', '');
+    const r = readWorkflowDocument(text.replace(/\n/g, '\r\n'));
+    expect(r.findings.find((f) => f.code === 'scheduleAtMissing').line).toBe(4);
+  });
+
+  it('nimmt eine Datei mit doppelter schedule-Zeile nicht als Workflow (YAML-Leser)', () => {
+    const r = lies('trigger: schedule\nschedule: every day at 08:00\nschedule: every hour');
+    expect(r.isWorkflow).toBe(false);
   });
 });
 

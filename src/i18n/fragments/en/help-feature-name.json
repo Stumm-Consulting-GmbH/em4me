@@ -296,5 +296,10 @@
   "help.featureName.workflowStart": "Running a workflow by hand",
   "help.featureName.workflowRuns": "Workflow runs",
   "help.featureName.workflowEditor": "Workflow blocks in the editor",
-  "help.featureName.workflowFolder": "Workflows folder and menu"
+  "help.featureName.workflowFolder": "Workflows folder and menu",
+  "help.featureName.workflowSchedule": "Workflows on schedule",
+  "help.featureName.workflowArming": "Arming workflows",
+  "help.featureName.workflowStatusbar": "Workflow messages and status bar element",
+  "help.featureName.workflowMaintenance": "Workflow maintenance commands",
+  "help.featureName.workflowLinked": "Workflows of linked areas"
 }

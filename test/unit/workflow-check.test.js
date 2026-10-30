@@ -7,7 +7,12 @@
 // Existenz von Dateien und Abschnitten prüft der Prüfer nicht (Entscheidung der
 // Sitzung vom 2026-10-22, O1); das belegt der letzte Block.
 import { describe, it, expect } from 'vitest';
-import { checkPlaceholders, checkWorkflow } from '../../src/shared/workflows/workflow-check.js';
+import {
+  blocksRun,
+  checkPlaceholders,
+  checkWorkflow,
+  manualOnlyFindings,
+} from '../../src/shared/workflows/workflow-check.js';
 import { readWorkflowDocument } from '../../src/shared/workflows/workflow-document.js';
 
 const FENCE = '```';
@@ -40,12 +45,16 @@ const KATALOG_STUFE_1 = [
   'stop "Nichts zu tun"',
 ];
 
+// 4T-002424: die Katalog-Beispiele der Stufe 2, seit der Freischaltung gültig.
+const KATALOG_STUFE_2 = [
+  'delete "Entwurf.md"',
+  'add-tag "{{file}}" "#abgelegt"',
+  'remove-tag "{{file}}" "#abgelegt"',
+  'complete-task "Wochenplan.md" "Rückblick schreiben"',
+  'confirm "Archiv wirklich aufräumen?"',
+];
+
 const KATALOG_SPAETER = [
-  ['delete "Entwurf.md"', 2],
-  ['add-tag "{{file}}" "#abgelegt"', 2],
-  ['remove-tag "{{file}}" "#abgelegt"', 2],
-  ['complete-task "Wochenplan.md" "Rückblick schreiben"', 2],
-  ['confirm "Archiv wirklich aufräumen?"', 2],
   ['if-missing "Journal/{{date}}.md"', 3],
   ['if-exists "Journal/{{date}}.md"', 3],
   ['if-property "{{file}}" status "offen"', 3],
@@ -72,7 +81,29 @@ describe('Katalog-Beispiele der Konzept-Stufe', () => {
     expect(r.steps.map((s) => s.keyword)).toHaveLength(18);
   });
 
-  it('weist jedes Beispiel einer späteren Stufe mit dem Stufen-Befund ab, delete eingeschlossen', () => {
+  it('lässt jede Beispiel-Zeile der Stufe 2 gelten (4T-002424)', () => {
+    for (const zeile of KATALOG_STUFE_2) expect(eins(zeile), zeile).toEqual([]);
+    const r = pruefe(KATALOG_STUFE_2);
+    expect(r.ok).toBe(true);
+    expect(r.steps.map((s) => s.keyword)).toEqual([
+      'delete',
+      'add-tag',
+      'remove-tag',
+      'complete-task',
+      'confirm',
+    ]);
+  });
+
+  it('weist die Stufe 2 mit dem Stufen-Befund ab, wenn allein die Stufe 1 gilt', () => {
+    for (const zeile of KATALOG_STUFE_2) {
+      expect(
+        eins(zeile, { stages: [1] }).map((x) => [x.code, x.detail.stage]),
+        zeile,
+      ).toEqual([['laterStage', 2]]);
+    }
+  });
+
+  it('weist jedes Beispiel der Stufen 3 und D mit dem Stufen-Befund ab', () => {
     for (const [zeile, stufe] of KATALOG_SPAETER) {
       const f = eins(zeile);
       expect(
@@ -324,18 +355,24 @@ describe('Platzhalter (G5, O8)', () => {
     expect(eins('notify "Wörtlich \\{{date}}"')).toEqual([]);
   });
 
-  it('weist die Schreibmarke ab und die Zwischenablage als Stufe 2', () => {
+  it('weist die Schreibmarke ab und lässt die Zwischenablage mit der Stufe 2 gelten', () => {
     expect(eins('notify "{{cursor}}"')[0]).toMatchObject({
       code: 'placeholderNotAllowed',
       detail: { placeholder: 'cursor' },
     });
-    expect(eins('notify "{{clipboard}}"')[0]).toMatchObject({
+    // 4T-002424 (Story 4S-001136, AK3): kein Befund mehr, auch nicht nach Zeitplan.
+    expect(eins('notify "{{clipboard}}"')).toEqual([]);
+    expect(eins('create "{{clipboard}}.md"')).toEqual([]);
+    expect(checkPlaceholders('{{clipboard}} {{cursor}}').problems.map((p) => p.code)).toEqual([
+      'placeholderNotAllowed',
+    ]);
+    // Gilt allein die Stufe 1, bleibt der Stufen-Befund.
+    expect(eins('notify "{{clipboard}}"', { stages: [1] })[0]).toMatchObject({
       code: 'laterStage',
       detail: { placeholder: 'clipboard', stage: 2 },
     });
-    expect(checkPlaceholders('{{clipboard}} {{cursor}}').problems.map((p) => p.code)).toEqual([
+    expect(checkPlaceholders('{{clipboard}}', [1]).problems.map((p) => p.code)).toEqual([
       'laterStage',
-      'placeholderNotAllowed',
     ]);
   });
 });
@@ -352,13 +389,15 @@ describe('Datei-Ebene und Laufzeit-Fragen (O1)', () => {
   });
 
   it('prüft die Zeilen auch bei einem nicht unterstützten Auslöser', () => {
-    const r = checkWorkflow(dok(['foo'], 'trigger: schedule\n'));
+    // 4T-002419: `schedule` ist seit der Stufe 2 unterstützt; ein anderer Wert.
+    const r = checkWorkflow(dok(['foo'], 'trigger: event\n'));
     expect(r.findings.map((f) => f.code)).toEqual(['triggerUnsupported', 'unknownCommand']);
   });
 
   it('liefert für ein gewöhnliches Dokument nichts', () => {
     expect(checkWorkflow(readWorkflowDocument('# Text'))).toEqual({
       ok: false,
+      armable: false,
       steps: [],
       findings: [],
     });
@@ -371,5 +410,164 @@ describe('Datei-Ebene und Laufzeit-Fragen (O1)', () => {
         'insert "Fehlt.md" under "Fehlt" from-file "Fehlt.md"',
       ]),
     ).toEqual([]);
+  });
+});
+
+// 4T-002419 (Epic 3E-000366): Zeitplan-Befunde im Prüfen vor Laufen und der
+// Befund «nur von Hand» (Story 4S-001130; Konzept-Runde 4T-002418,
+// Management-Summary Teil 3, Punkt 3). Ein Befund «nur von Hand» trägt
+// `armOnly: true`: Er verhindert die Scharf-Schaltung (`armable`), nicht den
+// Start von Hand (`ok`).
+describe('Zeitplan und Befund «nur von Hand»', () => {
+  const ZEITPLAN = 'trigger: schedule\nschedule: every monday at 08:00\n';
+  // `confirm` und `delete` sind Befehle der Stufe 2 ohne Argument-Schema; bis
+  // 4T-002424 sie freischaltet, tragen sie zusätzlich den Stufen-Befund.
+  const plan = (zeilen, optionen) => checkWorkflow(dok(zeilen, ZEITPLAN), optionen);
+  const nurVonHand = (r) =>
+    r.findings
+      .filter((f) => f.code === 'manualOnly')
+      .map((f) => [f.line, f.column, f.detail, f.armOnly]);
+
+  it('lässt einen Workflow nach Zeitplan ohne Befund scharf schalten', () => {
+    const r = plan(['notify "{{date}}"']);
+    expect(r).toMatchObject({ ok: true, armable: true, findings: [] });
+    expect(checkWorkflow(dok(['notify "x"']))).toMatchObject({ ok: true, armable: false });
+  });
+
+  it('meldet Eingabe-Platzhalter mit Zeile und Spalte, ohne den Start zu sperren (AK3)', () => {
+    const r = plan([
+      'mkdir "P/{{prompt:Name?}}"',
+      'set-property "{{file}}" status "{{select:Status:offen,erledigt}}"',
+    ]);
+    expect(r.findings.map((f) => f.code)).toEqual(['manualOnly', 'manualOnly']);
+    expect(nurVonHand(r)).toEqual([
+      [7, 7, { placeholder: 'prompt' }, true],
+      [8, 32, { placeholder: 'select' }, true],
+    ]);
+    expect(r.ok).toBe(true);
+    expect(r.armable).toBe(false);
+    expect(r.findings.some(blocksRun)).toBe(false);
+  });
+
+  it('meldet confirm und delete als «nur von Hand» (AK3)', () => {
+    const r = plan(['confirm "Weiter?"', 'delete "Alt.md"']);
+    expect(nurVonHand(r)).toEqual([
+      [7, 1, { keyword: 'confirm' }, true],
+      [8, 1, { keyword: 'delete' }, true],
+    ]);
+    expect(r.armable).toBe(false);
+  });
+
+  it('lässt den Start von Hand zu und gibt die Schritte frei', () => {
+    const r = plan(['mkdir "P/{{prompt:Name?}}"', 'notify "fertig"']);
+    expect(r.ok).toBe(true);
+    expect(r.steps.map((s) => s.keyword)).toEqual(['mkdir', 'notify']);
+  });
+
+  it('meldet nichts davon ohne trigger: schedule', () => {
+    expect(codes(['mkdir "P/{{prompt:Name?}}"'])).toEqual([]);
+    expect(codes(['confirm "Weiter?"', 'delete "Alt.md"'])).toEqual([]);
+  });
+
+  it('lässt {{clipboard}} nach Zeitplan zu und schaltet scharf (4S-001136, AK3)', () => {
+    const r = plan(['create "{{clipboard}}.md"']);
+    expect(r).toMatchObject({ ok: true, armable: true, findings: [] });
+  });
+
+  it('meldet bei allein freigegebener Stufe 1 zusätzlich die spätere Ausbaustufe', () => {
+    const r = checkWorkflow(dok(['confirm "Weiter?"'], ZEITPLAN), { stages: [1] });
+    expect(r.findings.map((f) => f.code)).toEqual(['laterStage', 'manualOnly']);
+    expect(r.ok).toBe(false);
+  });
+
+  it('lässt confirm und delete nach Zeitplan von Hand laufen (Befund nur gegen das Scharfschalten)', () => {
+    const r = plan(['confirm "Weiter?"', 'delete "Alt.md"']);
+    expect(r.ok).toBe(true);
+    expect(r.armable).toBe(false);
+    expect(r.steps.map((s) => s.keyword)).toEqual(['confirm', 'delete']);
+  });
+
+  it('verhindert mit jedem Zeitplan-Befund Lauf und Scharf-Schaltung (AK2)', () => {
+    for (const kopf of [
+      'trigger: schedule\nschedule: every monday\n',
+      'trigger: schedule\nschedule: every 2 hours at 08:00\n',
+      'trigger: schedule\nschedule: irgendwann\n',
+      'trigger: schedule\n',
+      'schedule: every day at 08:00\n',
+      'trigger: schedule\nschedule: every day at 08:00\nmissed: never\n',
+    ]) {
+      const r = checkWorkflow(dok(['notify "x"'], kopf));
+      expect(r.ok, kopf).toBe(false);
+      expect(r.armable, kopf).toBe(false);
+      expect(r.findings.every(blocksRun), kopf).toBe(true);
+    }
+  });
+
+  it('meldet den fehlenden at-Teil mit der Zeile im Dateikopf (AK7 des Tasks)', () => {
+    const r = checkWorkflow(
+      dok(['notify "x"'], 'name: Zeitplan-Test\ntrigger: schedule\nschedule: every monday\n'),
+    );
+    expect(r.findings.map((f) => [f.code, f.line])).toEqual([['scheduleAtMissing', 5]]);
+    const behoben = checkWorkflow(
+      dok(
+        ['notify "x"'],
+        'name: Zeitplan-Test\ntrigger: schedule\nschedule: every monday at 08:00\n',
+      ),
+    );
+    expect(behoben).toMatchObject({ ok: true, armable: true, findings: [] });
+  });
+
+  it('liefert die Befunde einzeln aus manualOnlyFindings', () => {
+    const anweisung = {
+      line: 3,
+      blockLine: 1,
+      from: 0,
+      keyword: 'notify',
+      tokens: [{ type: 'string', value: '{{prompt:A?}} {{prompt:B?}}', from: 7 }],
+    };
+    expect(manualOnlyFindings(anweisung).map((f) => f.column)).toEqual([8, 8]);
+  });
+});
+
+// 4T-002424 (Story 4S-001135): Argument-Schemata der Pflege-Befehle im
+// Prüfen vor Laufen — Zahl, Art und Grenze wie bei den Befehlen der Stufe 1.
+describe('Pflege-Befehle der Stufe 2 (P1 bis P5)', () => {
+  it.each([
+    ['delete', 'missingArgument'],
+    ['add-tag "a.md"', 'missingArgument'],
+    ['remove-tag "a.md"', 'missingArgument'],
+    ['complete-task "a.md"', 'missingArgument'],
+    ['confirm', 'missingArgument'],
+  ])('%s ohne Argument meldet %s', (zeile, code) => {
+    expect(eins(zeile).map((f) => f.code)).toEqual([code]);
+  });
+
+  it.each([
+    ['add-tag "a.md" ""'],
+    ['remove-tag "a.md" " "'],
+    ['complete-task "a.md" ""'],
+    ['confirm ""'],
+  ])('%s mit leerem Text meldet textEmpty', (zeile) => {
+    expect(eins(zeile).map((f) => f.code)).toEqual(['textEmpty']);
+  });
+
+  it('weist Pfade außerhalb des Bereichs vor dem Lauf ab (P5)', () => {
+    for (const zeile of [
+      'delete "../Fremd.md"',
+      'delete "C:/Windows"',
+      'add-tag "../a.md" "x"',
+      'remove-tag "/a.md" "x"',
+      'complete-task "../a.md" "x"',
+    ]) {
+      expect(
+        eins(zeile).map((f) => f.code),
+        zeile,
+      ).toEqual(['pathOutsideArea']);
+    }
+  });
+
+  it('weist überzählige Argumente und Optionen ab', () => {
+    expect(eins('delete "a.md" "b.md"').map((f) => f.code)).toEqual(['extraArgument']);
+    expect(eins('confirm "Weiter?" at-start').map((f) => f.code)).toEqual(['unknownOption']);
   });
 });

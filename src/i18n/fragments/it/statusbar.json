@@ -44,5 +44,8 @@
   "settings.statusbar.unavailableMode": "Pulsanti non utilizzabili",
   "settings.statusbar.unavailableMode.blass": "Mostra in grigio",
   "settings.statusbar.unavailableMode.ausgeblendet": "Nascondi",
-  "settings.statusbar.unavailableMode.hint": "Alcuni pulsanti della barra di stato non possono fare nulla al momento: per esempio i selettori di vista mentre la pagina delle impostazioni è in primo piano, oppure la matita per la modifica quando non è aperto alcun documento. Con «Mostra in grigio» restano al loro posto e sono visibilmente disattivati. Con «Nascondi» scompaiono finché non possono fare nulla e poi tornano al loro posto; la barra mostra allora solo ciò che funziona. Un pulsante deselezionato nell’elenco dei pulsanti predefiniti resta assente in entrambi i casi. Il menu Vista rimane invariato. Le modifiche hanno effetto con Applica o OK."
+  "settings.statusbar.unavailableMode.hint": "Alcuni pulsanti della barra di stato non possono fare nulla al momento: per esempio i selettori di vista mentre la pagina delle impostazioni è in primo piano, oppure la matita per la modifica quando non è aperto alcun documento. Con «Mostra in grigio» restano al loro posto e sono visibilmente disattivati. Con «Nascondi» scompaiono finché non possono fare nulla e poi tornano al loro posto; la barra mostra allora solo ciò che funziona. Un pulsante deselezionato nell’elenco dei pulsanti predefiniti resta assente in entrambi i casi. Il menu Vista rimane invariato. Le modifiche hanno effetto con Applica o OK.",
+  "statusbar.workflows.label": "Workflow",
+  "statusbar.workflows.title": "Ultima esecuzione pianificata: {name}, {time}, {result}. Il clic apre la pagina «Esecuzioni dei workflow».",
+  "statusbar.workflows.titleNoRun": "Un workflow è attivato, ma non è ancora stato eseguito secondo la pianificazione. Il clic apre la pagina «Esecuzioni dei workflow»."
 }

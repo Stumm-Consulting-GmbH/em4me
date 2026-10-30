@@ -131,6 +131,11 @@ describe('listWorkflowRuns', () => {
         runs: 0,
         lastRun: null,
         runStateDefect: false,
+        // 4T-002422: ohne Zeitplan, nicht scharf, ohne Termin und Verfall.
+        scheduled: false,
+        armed: 'notArmed',
+        nextDue: null,
+        skipped: null,
       },
     ]);
   });
@@ -166,13 +171,97 @@ describe('listWorkflowRuns', () => {
   });
 });
 
+// 4T-002422 (Epic 3E-000366, Story 4S-001133): die Felder der Zeitsteuerung.
+describe('listWorkflowRuns — Scharf-Zustand, nächster Lauf, Verfall, Herkunft und Journal', () => {
+  const ZEITPLAN = ['trigger: schedule', 'schedule: every day at 23:00'];
+  const { definitionsPruefsumme } = require('../../src/main/workflows/workflow-definition-hash.js');
+
+  it('ein scharfer Workflow trägt Zustand und nächsten Lauf, sein letzter Lauf Herkunft und Journal', async () => {
+    const text = W('Plan', ...ZEITPLAN);
+    const b = bereich({ 'Plan.md': text });
+    const weg = schreibweg();
+    await weg.setArmedSchedule(null, b.abs('Plan.md'), {
+      hash: definitionsPruefsumme(text),
+      nextDue: '2026-10-28T23:00',
+    });
+    await weg.recordRun(null, b.abs('Plan.md'), {
+      status: 'ok',
+      origin: 'catch-up',
+      journal: [{ line: 8, command: 'append', path: 'Notizen/Ziel.md' }],
+    });
+    const [plan] = (await listWorkflowRuns(b.root, b.backlinks)).workflows;
+    expect(plan).toMatchObject({
+      scheduled: true,
+      armed: 'armed',
+      nextDue: '2026-10-28T23:00',
+      skipped: null,
+      lastRun: {
+        status: 'ok',
+        origin: 'catch-up',
+        journal: [{ line: 8, command: 'append', path: 'Notizen/Ziel.md' }],
+      },
+    });
+  });
+
+  it('nach einer Änderung im Block «Definition geändert» und ohne nächsten Lauf (AK5, AK6 der Story)', async () => {
+    const b = bereich(
+      { 'Plan.md': W('Plan', ...ZEITPLAN) },
+      { puffer: { 'Plan.md': W('Plan', ...ZEITPLAN).replace('notify "x"', 'notify "y"') } },
+    );
+    await schreibweg().setArmedSchedule(null, b.abs('Plan.md'), {
+      hash: definitionsPruefsumme(W('Plan', ...ZEITPLAN)),
+      nextDue: '2026-10-28T23:00',
+    });
+    const [plan] = (await listWorkflowRuns(b.root, b.backlinks)).workflows;
+    expect(plan).toMatchObject({ scheduled: true, armed: 'definitionChanged', nextDue: null });
+  });
+
+  it('meldet einen verfallenen Termin', async () => {
+    const b = bereich({ 'Plan.md': W('Plan', ...ZEITPLAN, 'missed: skip') });
+    await schreibweg().recordSkipped(null, b.abs('Plan.md'), {
+      due: '2026-10-27T23:00',
+      nextDue: '2026-10-28T23:00',
+    });
+    const [plan] = (await listWorkflowRuns(b.root, b.backlinks)).workflows;
+    expect(plan).toMatchObject({
+      armed: 'notArmed',
+      nextDue: null,
+      skipped: { at: '2026-10-23T08:15:30Z', due: '2026-10-27T23:00' },
+    });
+  });
+
+  it('ein fremder Eintrag ist nie scharf und hat keinen Zeitplan', async () => {
+    const b = bereich({});
+    const res = await listWorkflowRuns(b.root, b.backlinks, {
+      linked: [
+        { workflows: [{ name: 'F', relPath: 'F.md', absPath: '/x/F.md', sourceKey: 'zt' }] },
+      ],
+    });
+    expect(res.workflows[0]).toMatchObject({
+      foreign: true,
+      scheduled: false,
+      armed: 'notArmed',
+      nextDue: null,
+      skipped: null,
+    });
+  });
+});
+
 describe('readRunState', () => {
   it('liest den Abschnitt workflow, ohne Begleitdatei nichts', async () => {
     const b = bereich({ 'A.md': W('A') });
     expect(await readRunState(b.abs('A.md'))).toEqual({ stand: null, defekt: false });
     await schreibweg().recordRun(null, b.abs('A.md'), { status: 'stopped', line: 7 });
+    // 4T-002420: Der Stand trägt die Felder der Stufe 2; ein Lauf ohne Herkunft
+    // wird als `manual` gelesen, ohne Scharf-Schaltung ist der Workflow nicht scharf.
     expect(await readRunState(b.abs('A.md'))).toEqual({
-      stand: { runs: 1, lastRun: { at: '2026-10-23T08:15:30Z', status: 'stopped', line: 7 } },
+      stand: {
+        runs: 1,
+        lastRun: { at: '2026-10-23T08:15:30Z', status: 'stopped', line: 7, origin: 'manual' },
+        armed: null,
+        nextDue: null,
+        skipped: null,
+      },
       defekt: false,
     });
   });

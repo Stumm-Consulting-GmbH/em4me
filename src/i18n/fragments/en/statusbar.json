@@ -44,5 +44,8 @@
   "settings.statusbar.unavailableMode": "Buttons that cannot be used",
   "settings.statusbar.unavailableMode.blass": "Show dimmed",
   "settings.statusbar.unavailableMode.ausgeblendet": "Hide",
-  "settings.statusbar.unavailableMode.hint": "Some status bar buttons can do nothing at the moment — the view switches while the settings page is in front, for instance, or the pencil for editing when no document is open. With «Show dimmed» they stay in place and are visibly deactivated. With «Hide» they disappear for as long as they can do nothing and return to their place afterwards; the bar then only shows what currently works. A button deselected in the list of default buttons stays away in both cases. The View menu remains unchanged. Changes take effect on Apply or OK."
+  "settings.statusbar.unavailableMode.hint": "Some status bar buttons can do nothing at the moment — the view switches while the settings page is in front, for instance, or the pencil for editing when no document is open. With «Show dimmed» they stay in place and are visibly deactivated. With «Hide» they disappear for as long as they can do nothing and return to their place afterwards; the bar then only shows what currently works. A button deselected in the list of default buttons stays away in both cases. The View menu remains unchanged. Changes take effect on Apply or OK.",
+  "statusbar.workflows.label": "Workflows",
+  "statusbar.workflows.title": "Last scheduled run: {name}, {time}, {result}. Click to open the «Workflow runs» page.",
+  "statusbar.workflows.titleNoRun": "A workflow is armed but has not run on schedule yet. Click to open the «Workflow runs» page."
 }

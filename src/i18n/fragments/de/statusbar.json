@@ -44,5 +44,8 @@
   "settings.statusbar.unavailableMode": "Nicht aktivierbare Schaltflächen",
   "settings.statusbar.unavailableMode.blass": "Blass anzeigen",
   "settings.statusbar.unavailableMode.ausgeblendet": "Ausblenden",
-  "settings.statusbar.unavailableMode.hint": "Manche Schaltflächen der Statusleiste können im Augenblick nichts tun — etwa die Ansichts-Schalter, während die Einstellungs-Seite vorn liegt, oder der Stift zum Bearbeiten, wenn kein Dokument offen ist. Mit «Blass anzeigen» bleiben sie an ihrem Platz und sind erkennbar stillgelegt. Mit «Ausblenden» verschwinden sie, solange sie nichts tun können, und kehren danach an ihren Platz zurück; die Leiste zeigt dann nur, was gerade geht. Eine Schaltfläche, die in der Liste der Standard-Schaltflächen abgewählt ist, bleibt in beiden Fällen weg. Das Ansichtsmenü bleibt unverändert. Änderungen wirken mit Anwenden oder OK."
+  "settings.statusbar.unavailableMode.hint": "Manche Schaltflächen der Statusleiste können im Augenblick nichts tun — etwa die Ansichts-Schalter, während die Einstellungs-Seite vorn liegt, oder der Stift zum Bearbeiten, wenn kein Dokument offen ist. Mit «Blass anzeigen» bleiben sie an ihrem Platz und sind erkennbar stillgelegt. Mit «Ausblenden» verschwinden sie, solange sie nichts tun können, und kehren danach an ihren Platz zurück; die Leiste zeigt dann nur, was gerade geht. Eine Schaltfläche, die in der Liste der Standard-Schaltflächen abgewählt ist, bleibt in beiden Fällen weg. Das Ansichtsmenü bleibt unverändert. Änderungen wirken mit Anwenden oder OK.",
+  "statusbar.workflows.label": "Workflows",
+  "statusbar.workflows.title": "Letzter Lauf nach Zeitplan: {name}, {time}, {result}. Klicken öffnet die Seite «Workflow-Läufe».",
+  "statusbar.workflows.titleNoRun": "Ein Workflow ist scharf geschaltet, aber noch nicht nach Zeitplan gelaufen. Klicken öffnet die Seite «Workflow-Läufe»."
 }

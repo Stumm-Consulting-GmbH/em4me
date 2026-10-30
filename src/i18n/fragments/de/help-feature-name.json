@@ -296,5 +296,10 @@
   "help.featureName.workflowStart": "Workflow von Hand starten",
   "help.featureName.workflowRuns": "Workflow-Läufe",
   "help.featureName.workflowEditor": "Workflow-Blöcke im Editor",
-  "help.featureName.workflowFolder": "Workflow-Ordner und Menü"
+  "help.featureName.workflowFolder": "Workflow-Ordner und Menü",
+  "help.featureName.workflowSchedule": "Workflows nach Zeitplan",
+  "help.featureName.workflowArming": "Workflows scharf schalten",
+  "help.featureName.workflowStatusbar": "Workflow-Meldungen und Statusleisten-Element",
+  "help.featureName.workflowMaintenance": "Pflege-Befehle der Workflows",
+  "help.featureName.workflowLinked": "Workflows verknüpfter Bereiche"
 }

@@ -296,5 +296,10 @@
   "help.featureName.workflowStart": "Avviare un workflow a mano",
   "help.featureName.workflowRuns": "Esecuzioni dei workflow",
   "help.featureName.workflowEditor": "Blocchi di workflow nell'editor",
-  "help.featureName.workflowFolder": "Cartella dei workflow e menu"
+  "help.featureName.workflowFolder": "Cartella dei workflow e menu",
+  "help.featureName.workflowSchedule": "Workflow pianificati",
+  "help.featureName.workflowArming": "Attivare i workflow",
+  "help.featureName.workflowStatusbar": "Messaggi ed elemento della barra di stato dei workflow",
+  "help.featureName.workflowMaintenance": "Comandi di manutenzione dei workflow",
+  "help.featureName.workflowLinked": "Workflow delle aree collegate"
 }

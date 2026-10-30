@@ -34,7 +34,7 @@ Der Schritt-Editor liegt im selben Einstellungs-Bereich: pro Makro eine aufklapp
 
 ## Workflows
 
-Auch jeder Workflow des Workflow-Ordners ist ein Kommando im Namensraum der Workflows und lässt sich wie ein Makro als Statusbar-Button oder Kontextmenü-Eintrag platzieren und im Einstellungs-Bereich „Tastenkürzel" belegen. Anders als ein Makro ist ein Workflow eine Markdown-Datei mit festen Befehlen, die auch Dateien anlegen, verschieben und ändern; ein Workflow kann ein Makro als Schritt aufrufen. Die Kennung seines Kommandos entsteht aus dem Pfad der Datei im Workflow-Ordner: Wird der Workflow umbenannt oder verschoben, verschwinden ein dafür angelegter Button und Eintrag, und ein Tastenkürzel ist neu zu vergeben. Einzelheiten auf der Seite [Workflows](workflows.md).
+Auch jeder Workflow des Workflow-Ordners ist ein Kommando im Namensraum der Workflows und lässt sich wie ein Makro als Statusbar-Button oder Kontextmenü-Eintrag platzieren und im Einstellungs-Bereich „Tastenkürzel" belegen. Anders als ein Makro ist ein Workflow eine Markdown-Datei mit festen Befehlen, die auch Dateien anlegen, verschieben und ändern; ein Workflow kann ein Makro als Schritt aufrufen. Die Kennung seines Kommandos entsteht aus dem Pfad der Datei im Workflow-Ordner: Wird der Workflow in der Anwendung umbenannt oder innerhalb des Workflow-Ordners verschoben, ziehen ein dafür angelegter Button, Eintrag und ein Tastenkürzel mit; nach einer Umbenennung außerhalb der Anwendung sind sie neu zu vergeben. Einzelheiten auf der Seite [Workflows](workflows.md).
 
 ## Abgrenzung zur Kommando-Palette
 

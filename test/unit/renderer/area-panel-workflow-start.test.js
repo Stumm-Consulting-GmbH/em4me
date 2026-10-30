@@ -7,6 +7,11 @@
 // über den Start aus 4T-002349. Eine gewöhnliche Datei, eine Datei ohne
 // Markdown-Endung, die abgeschaltete Erweiterung und ein inzwischen
 // geschlossenes Menü bekommen den Eintrag nicht. Der Start ist eine Attrappe.
+//
+// 4T-002422 (Epic 3E-000366, Story 4S-001133): dazu «Scharf schalten» oder
+// «Entschärfen» unter «Starten», nur bei `trigger: schedule`. Das Kommando
+// (`schalteScharf`, eigene Prüfdatei workflow-scharf.test.js) ist eine
+// Attrappe; der Zustand kommt über den echten Abfrage-Weg `scharfZustand`.
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import './api-stub.js';
 
@@ -19,7 +24,19 @@ vi.mock('../../../src/renderer/modules/workflows/workflow-start.js', () => ({
   starteWorkflow: (...a) => starteWorkflow(...a),
 }));
 
+const schalteScharf = vi.fn(async () => ({ ok: true }));
+vi.mock('../../../src/renderer/modules/workflows/workflow-scharf.js', async (orig) => ({
+  ...(await orig()),
+  schalteScharf: (...a) => schalteScharf(...a),
+}));
+
 const workflows = new Set();
+// 4T-002422: Scharf-Zustand je Pfad; fehlt er, hat der Workflow keinen Zeitplan.
+const scharf = new Map();
+window.api.workflowArmedState = async (p) =>
+  scharf.has(p)
+    ? { ok: true, isWorkflow: true, scheduled: true, status: scharf.get(p), nextDue: null }
+    : { ok: true, isWorkflow: true, scheduled: false, status: 'notArmed', nextDue: null };
 const gefragt = [];
 window.api.workflowFileInfo = async (p) => {
   gefragt.push(p);
@@ -40,6 +57,8 @@ const ereignis = () => ({ preventDefault() {}, stopPropagation() {}, clientX: 10
 beforeEach(() => {
   aus.clear();
   workflows.clear();
+  scharf.clear();
+  schalteScharf.mockClear();
   gefragt.length = 0;
   starteWorkflow.mockClear();
   state.areaPath = 'C:/b';
@@ -104,5 +123,48 @@ describe('«Starten» im Kontextmenü einer Datei-Zeile', () => {
     const zweites = menues.showAreaFileContextMenu(ereignis(), 'C:/b/Notiz.md', () => {});
     await Promise.all([erstes, zweites]);
     expect(ids()).not.toContain('area-file-workflow-start');
+  });
+});
+
+describe('«Scharf schalten» im Kontextmenü (4T-002422)', () => {
+  const t = async (key) => (await import('../../../src/renderer/i18n.js')).t(key);
+
+  it('steht unter «Starten» bei einem Workflow mit Zeitplan und schaltet scharf', async () => {
+    workflows.add('C:/b/Plan.md');
+    scharf.set('C:/b/Plan.md', 'notArmed');
+    await menues.showAreaFileContextMenu(ereignis(), 'C:/b/Plan.md', () => {});
+    expect(ids().slice(0, 3)).toEqual([
+      'area-file-workflow-start',
+      'area-file-workflow-arm',
+      '---',
+    ]);
+    expect(menu().children[1].textContent).toBe(await t('workflow.scharf.menuAn'));
+    menu().children[1].click();
+    expect(schalteScharf).toHaveBeenCalledWith('C:/b/Plan.md', true);
+    expect(menu().hidden).toBe(true);
+  });
+
+  it('bei einem scharfen Workflow heißt er «Entschärfen» und entschärft', async () => {
+    workflows.add('C:/b/Plan.md');
+    scharf.set('C:/b/Plan.md', 'armed');
+    await menues.showAreaFileContextMenu(ereignis(), 'C:/b/Plan.md', () => {});
+    expect(menu().children[1].textContent).toBe(await t('workflow.scharf.menuAus'));
+    menu().children[1].click();
+    expect(schalteScharf).toHaveBeenCalledWith('C:/b/Plan.md', false);
+  });
+
+  it('bei geänderter Definition schaltet er erneut scharf', async () => {
+    workflows.add('C:/b/Plan.md');
+    scharf.set('C:/b/Plan.md', 'definitionChanged');
+    await menues.showAreaFileContextMenu(ereignis(), 'C:/b/Plan.md', () => {});
+    menu().children[1].click();
+    expect(schalteScharf).toHaveBeenCalledWith('C:/b/Plan.md', true);
+  });
+
+  it('fehlt bei einem Workflow ohne Zeitplan; «Starten» bleibt (AK3 der Story)', async () => {
+    workflows.add('C:/b/Hallo.md');
+    await menues.showAreaFileContextMenu(ereignis(), 'C:/b/Hallo.md', () => {});
+    expect(ids().slice(0, 2)).toEqual(['area-file-workflow-start', '---']);
+    expect(ids()).not.toContain('area-file-workflow-arm');
   });
 });

@@ -45,6 +45,13 @@ const KATALOG = [
   'help.feature.workflowRuns',
   'help.feature.workflowEditor',
   'help.feature.workflowFolder',
+  // 4T-002427 (Epic 3E-000366): die Katalog-Zeilen der Stufe 2, in der
+  // Reihenfolge des Registry-Eintrags.
+  'help.feature.workflowMaintenance',
+  'help.feature.workflowSchedule',
+  'help.feature.workflowArming',
+  'help.feature.workflowLinked',
+  'help.feature.workflowStatusbar',
 ];
 const KOMMANDOS = ['ext.workflows.openRuns', 'ext.workflows.newWorkflow'];
 const ABSCHNITTE = ['workflows', 'workflowsArea'];
@@ -91,7 +98,7 @@ describe('Erweiterung workflows: Registry und Arbeitsmodus (4T-002352)', () => {
     expect(isExtensionEnabled('workflows', ['workflows'])).toBe(false);
   });
 
-  it('AK3/AK4: die Katalog-Zeilen der Stufe 1 sind im Aus-Zustand gekennzeichnet', () => {
+  it('AK3/AK4: die Katalog-Zeilen der Stufen 1 und 2 sind im Aus-Zustand gekennzeichnet', () => {
     expect(extensionById('workflows').featureKeys).toEqual(KATALOG.slice(1));
     const aus = disabledFeatureKeySet(['workflows']);
     const an = disabledFeatureKeySet([]);

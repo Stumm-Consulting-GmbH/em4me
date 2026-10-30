@@ -30,6 +30,7 @@ const ANTWORT_CODES = new Set([
   'headingAmbiguous',
   'textNotFound',
   'frontmatterInvalid',
+  'tagInvalid',
   'bufferUnavailable',
 ]);
 

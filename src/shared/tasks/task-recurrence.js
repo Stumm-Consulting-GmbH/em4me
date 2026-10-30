@@ -356,6 +356,12 @@ function buildRecurrenceInstance(model, opts) {
 }
 
 module.exports = {
+  // 4T-002419 (Epic 3E-000366): Die Tages-Arithmetik trägt auch die
+  // Fälligkeits-Rechnung der Workflow-Zeitpläne (`workflow-schedule.js`);
+  // eine Arithmetik für beide Regel-Sprachen statt einer zweiten Kopie.
+  dayNumberFromDate,
+  dateFromDayNumber,
+  weekdayOfDayNumber,
   shiftIsoDateByDays,
   primaryDateField,
   setRecurrence,

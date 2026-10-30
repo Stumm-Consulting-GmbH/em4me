@@ -4,6 +4,8 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import {
   WORKFLOW_COMMAND_PREFIX,
+  isLinkedWorkflowCommandId,
+  linkedWorkflowCommandId,
   relPathOfCommandId,
   workflowCommandId,
 } from '../../src/shared/workflows/workflow-command-id.js';
@@ -73,5 +75,36 @@ describe('registerDynamicCommand: Namensraum workflow.', () => {
     expect(registerDynamicCommand({ id: 'fremd.a', labelKey: 'x' })).toBe(false);
     const cmd = COMMANDS.find((c) => c.id === 'workflow.a.md');
     expect(cmd).toMatchObject({ dynamic: true, menu: false, categoryKey: 'help.group.general' });
+  });
+});
+
+// 4T-002426 (Epic 3E-000366): Die Kennung eines Workflows aus einem verknüpften
+// Bereich trägt das Kürzel der Quelle und fällt nie mit einer eigenen zusammen.
+describe('linkedWorkflowCommandId (4T-002426)', () => {
+  it('bildet workflow.@<Kürzel>:<Pfad-Kennung> mit dem Kürzel in Vergleichs-Form', () => {
+    expect(linkedWorkflowCommandId('B', 'Fremd-Probe.md')).toBe('workflow.@b:Fremd-Probe.md');
+    expect(linkedWorkflowCommandId('b', 'Ordner/A b.md')).toBe('workflow.@b:Ordner%2FA%20b.md');
+    expect(linkedWorkflowCommandId('', 'x.md')).toBeNull();
+    expect(linkedWorkflowCommandId('b', '')).toBeNull();
+  });
+
+  it('unterscheidet gleiche Pfade verschiedener Quellen und der eigenen', () => {
+    const ids = new Set([
+      workflowCommandId('A.md'),
+      linkedWorkflowCommandId('b', 'A.md'),
+      linkedWorkflowCommandId('c', 'A.md'),
+      // Ein eigener Unterordner namens «@b» kollidiert nicht: `@` ist dort kodiert.
+      workflowCommandId('@b:A.md'),
+      workflowCommandId('@b/A.md'),
+    ]);
+    expect(ids.size).toBe(5);
+  });
+
+  it('erkennt fremde Kennungen; sie haben keinen Pfad im eigenen Ordner', () => {
+    const fremd = linkedWorkflowCommandId('b', 'A.md');
+    expect(isLinkedWorkflowCommandId(fremd)).toBe(true);
+    expect(isLinkedWorkflowCommandId(workflowCommandId('@b/A.md'))).toBe(false);
+    expect(relPathOfCommandId(fremd)).toBeNull();
+    expect(relPathOfCommandId(workflowCommandId('@b/A.md'))).toBe('@b/A.md');
   });
 });

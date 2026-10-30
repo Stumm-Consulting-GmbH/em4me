@@ -116,6 +116,8 @@ La cible est d'abord cherchée au chemin indiqué puis, si rien ne s'y trouve, p
 
 **Les modèles de la zone liée** peuvent être proposés à côté des vôtres ; un interrupteur existe par lien. La sélection de modèles montre alors les deux ensembles, et chaque entrée externe indique son origine. Sans cet interrupteur, un lien ne change pas l'ensemble des modèles.
 
+**Les workflows de la zone liée** peuvent être proposés de la même façon, avec un interrupteur « Workflows » propre à chaque lien. Ils apparaissent dans le menu, dans la palette de commandes et sur la page des exécutions des workflows avec le préfixe du lien, ne se lancent qu'à la main et agissent dans votre propre zone ; rien n'est écrit dans la zone liée. Détails sur la page [Workflows](workflows.md).
+
 ### Lorsqu'une zone liée est introuvable
 
 À l'ouverture, une zone vérifie ses liens, et un constat n'empêche jamais l'ouverture :

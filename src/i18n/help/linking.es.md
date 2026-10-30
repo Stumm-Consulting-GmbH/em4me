@@ -116,6 +116,8 @@ El destino se busca primero en la ruta indicada y, si allí no hay nada, por su 
 
 **Las plantillas del área vinculada** pueden ofrecerse junto a las propias; hay un interruptor por vínculo. La selección de plantillas muestra entonces ambos conjuntos, y cada entrada ajena indica su procedencia. Sin ese interruptor, un vínculo no cambia el conjunto de plantillas.
 
+**Los workflows del área vinculada** pueden ofrecerse del mismo modo, con un interruptor «Workflows» propio por vínculo. Aparecen en el menú, en la paleta de comandos y en la página de ejecuciones de workflows con el prefijo del vínculo, solo se inician a mano y actúan en el área propia; en el área vinculada no se escribe nada. Detalles en la página [Workflows](workflows.md).
+
 ### Cuando un área vinculada no se encuentra
 
 Al abrirse, un área comprueba sus vínculos, y un hallazgo nunca impide la apertura:

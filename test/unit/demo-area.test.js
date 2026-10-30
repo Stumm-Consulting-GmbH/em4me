@@ -297,7 +297,12 @@ const EXPECTED_FILES = [
   // Datei aus der Vorlage «Meeting Note» anlegen, einen Abschnitt an die
   // Workflow-Station anhaengen, ein Kommando ausfuehren. Ohne Schlagworte, damit
   // die Tag-Menge gleich bleibt.
+  // 4T-002427 (Epic 3E-000366): der vierte Beispiel-Workflow «Daily Note» mit
+  // Zeitplan, ausgeliefert nicht scharf (ohne Begleitdatei); ebenfalls ohne
+  // Schlagworte und ohne Aufgaben-Zeile, damit Tag-Menge und Abfrage-Zeilen
+  // der Demo-Area gleich bleiben.
   'Workflows/Add Log Entry.md',
+  'Workflows/Daily Note.md',
   'Workflows/New Meeting Note.md',
   'Workflows/Side by Side.md',
   'attachments/demo-document.pdf',

@@ -758,10 +758,20 @@ const HELP_FEATURE_GROUPS = [
       // beide buendeln wiederkehrende Handgriffe, und ein Workflow ruft Makros
       // als Schritt auf. Die Grundzeile zuerst, danach Start, Ordner samt Menue,
       // die Seite der Laeufe und die Hilfe im Editor.
+      // 4T-002427 (Epic 3E-000366): die Zeilen der Stufe 2 jeweils hinter der
+      // Zeile der Stufe 1, an die sie anschliessen — Pflege-Befehle hinter der
+      // Grundzeile, Zeitplan und Scharf-Schaltung hinter dem Start, verknuepfte
+      // Bereiche hinter dem Ordner, Meldungen und Statusleisten-Element hinter
+      // der Seite der Laeufe.
       'help.feature.workflows',
+      'help.feature.workflowMaintenance',
       'help.feature.workflowStart',
+      'help.feature.workflowSchedule',
+      'help.feature.workflowArming',
       'help.feature.workflowFolder',
+      'help.feature.workflowLinked',
       'help.feature.workflowRuns',
+      'help.feature.workflowStatusbar',
       'help.feature.workflowEditor',
       // 4T-000296 (Epic 3E-000052): das Erweiterungs-System als app-weite
       // Eigenschaft (Schalten interner Erweiterungen).

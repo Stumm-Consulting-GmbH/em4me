@@ -35,6 +35,8 @@ const QUELLEN = [
   'src/main/ipc/workflows.js',
   'src/main/workflows/workflow-file-steps.js',
   'src/main/workflows/workflow-content-steps.js',
+  // 4T-002424: die Pflege-Befehle delete und complete-task.
+  'src/main/workflows/workflow-maintenance-steps.js',
   'src/main/workflows/workflow-buffer-requests.js',
   'src/main/workflows/workflow-run-state.js',
   'src/shared/workflows/workflow-edit.js',
@@ -133,6 +135,21 @@ describe('Texte des Hinweises (AK7)', () => {
   it('stop mit eigenem Rahmen', () => {
     expect(abbruchText({ status: 'stopped', workflow: 'A', line: 4, text: 'Nichts zu tun' })).toBe(
       'Workflow ‹A› beendet in Zeile 4: Nichts zu tun',
+    );
+  });
+
+  it('confirm mit «Nein» endet wie stop und nennt die Frage (4T-002424, P4)', () => {
+    expect(
+      abbruchText({ status: 'stopped', workflow: 'A', line: 6, text: 'Weiter?', declined: true }),
+    ).toBe('Workflow ‹A› beendet in Zeile 6: «Weiter?» mit Nein beantwortet');
+  });
+
+  it('die neuen Fehlschläge der Pflege-Befehle haben Texte mit Pfad und Suchtext', () => {
+    expect(
+      grundText({ code: 'taskNotFound', detail: { path: 'Plan.md', text: 'Rückblick' } }),
+    ).toBe("Keine offene Aufgabe mit 'Rückblick' in 'Plan.md'");
+    expect(grundText({ code: 'trashFailed', detail: { path: 'Alt.md' } })).toBe(
+      "'Alt.md' ließ sich nicht in den Papierkorb legen",
     );
   });
 

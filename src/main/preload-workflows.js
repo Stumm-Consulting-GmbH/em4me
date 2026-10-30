@@ -1,7 +1,9 @@
 // 4T-002348 (Epic 3E-000184): Der Anteil der Preload-Brücke an der Ausführung
 // der Workflows — ein Schritt an den Hauptprozess, die Antwort auf einen
 // Puffer-Auftrag und der Lauf-Stand; seit 4T-002355 dazu die Liste des
-// Workflow-Ordners und die Konfiguration seiner Einstellungs-Abschnitte.
+// Workflow-Ordners und die Konfiguration seiner Einstellungs-Abschnitte; seit
+// 4T-002421 die Kanäle des Laufs nach Zeitplan; seit 4T-002422 die
+// Scharf-Schaltung.
 //
 // Eigenes Modul nach dem Muster `datenbankBruecke`, weil `preload.js` auf
 // seinem eingefrorenen Größen-Budget steht. Den Lese-Kanal für den Lauf-Stand
@@ -50,6 +52,21 @@ function workflowsBridge(ipcRenderer) {
     workflowFileInfo: (filePath) => ipcRenderer.invoke('workflow:fileInfo', filePath),
     // 4T-002350: alle Workflows des Bereichs mit Lauf-Stand (Seite «Workflow-Läufe»).
     workflowRuns: () => ipcRenderer.invoke('workflow:runs'),
+    // 4T-002421: Lauf nach Zeitplan — Zustellung einer Fälligkeit an alle
+    // Fenster, Anspruch, Rückgabe, Ende des Laufs und Nachholen des offenen
+    // Stands (Kanäle in src/main/ipc/workflow-schedule.js).
+    onWorkflowDue: (cb) => ipcRenderer.on('workflow:due', (_e, payload) => cb(payload)),
+    workflowScheduleClaim: (key) => ipcRenderer.invoke('workflow:scheduleClaim', { key }),
+    workflowScheduleRelease: (key) => ipcRenderer.invoke('workflow:scheduleRelease', { key }),
+    workflowScheduleFinished: (key) => ipcRenderer.invoke('workflow:scheduleFinished', { key }),
+    workflowScheduleOpen: () => ipcRenderer.invoke('workflow:scheduleOpen'),
+    // 4T-002422: Scharf-Schaltung eines Workflows nach Zeitplan (armed true)
+    // oder Entschärfen (false), und der Scharf-Zustand einer einzelnen Datei
+    // (Kanäle in src/main/ipc/workflow-armed.js).
+    workflowSetArmed: (workflowPath, armed) =>
+      ipcRenderer.invoke('workflow:setArmed', { workflowPath, armed }),
+    workflowArmedState: (workflowPath) =>
+      ipcRenderer.invoke('workflow:armedState', { workflowPath }),
   };
 }
 

@@ -116,6 +116,8 @@ La destinazione viene cercata prima al percorso indicato e, se lì non c’è nu
 
 **I modelli dell’area collegata** possono essere proposti accanto ai propri; esiste un interruttore per ciascun collegamento. La scelta dei modelli mostra allora entrambi gli insiemi, e ogni voce esterna indica la sua provenienza. Senza l’interruttore un collegamento non modifica l’insieme dei modelli.
 
+**I workflow dell’area collegata** si possono proporre allo stesso modo, con un interruttore «Workflow» proprio per ciascun collegamento. Compaiono nel menu, nella palette dei comandi e nella pagina delle esecuzioni dei workflow con il prefisso del collegamento, si avviano solo a mano e agiscono nell’area propria; nell’area collegata non viene scritto nulla. Dettagli nella pagina [Workflow](workflows.md).
+
 ### Quando un’area collegata non si trova
 
 All’apertura un’area verifica i suoi collegamenti, e un esito non impedisce mai l’apertura:

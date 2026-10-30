@@ -16,6 +16,19 @@
 // Workflow-Ordners ändert und, gebündelt, wenn der Index des Bereichs eine
 // Änderung meldet; nur solange sie offen ist.
 //
+// **Workflows verknüpfter Bereiche** (4T-002426, Epic 3E-000366, Entscheidung
+// 2h): Ein fremder Eintrag (`foreign: true`) steht nach den eigenen, mit dem
+// Kürzel seiner Quelle am Namen wie in Menü und Palette, und ohne Lauf-Stand:
+// An der Stelle von letztem Lauf, Ergebnis und Zahl der Läufe steht der Hinweis
+// «aus Bereich ‹Kürzel›». Er startet über denselben Knopf in der eigenen Wurzel;
+// einen Schalter «Scharf» bekommt er nie (Entscheidung 1f).
+//
+// **Zeitsteuerung** (4T-002422, Epic 3E-000366, Entscheidungen 2d, 2e, 2g):
+// die Spalten «Scharf» und «Nächster Lauf», die Vermerke «nachgeholt» und
+// «verfallen» beim letzten Lauf und das aufklappbare Journal entstehen in
+// workflow-laeufe-spalten.js; nach jeder Scharf-Schaltung an einem der drei
+// Bedienorte zieht die Seite nach (`onScharfGeaendert`).
+//
 // **Zugang:** das Kommando `ext.workflows.openRuns` — dynamisch registriert im
 // Namensraum der internen Erweiterung `workflows`, weil die Kommando-Registry
 // auf ihrem eingefrorenen Wert steht; der Handler liegt in der Verteiler-Tabelle
@@ -36,7 +49,17 @@ import { renderCommandButtons } from '../command-placement.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import { showStatusbarHint } from '../views/views.js';
 import { onWorkflowFolderListChanged } from './workflow-folder-list.js';
+import { fremdeBezeichnung } from './workflow-fremd.js';
+import {
+  SPALTEN,
+  ergaenzeLetztenLauf,
+  journalAufklapper,
+  naechsterLaufZelle,
+  scharfZelle,
+} from './workflow-laeufe-spalten.js';
 import { ergebnisText, onLaufVerbucht, zeitpunktText } from './workflow-lauf-stand.js';
+import { einsetzen } from './workflow-lauf-texte.js';
+import { onScharfGeaendert } from './workflow-scharf.js';
 import { starteWorkflow } from './workflow-start.js';
 import {
   registerDynamicCommand,
@@ -146,6 +169,27 @@ function ortText(relPath) {
   return teile.length > 0 ? teile.join('/') : t('workflow.seite.wurzel');
 }
 
+// 4T-002426: Ort eines fremden Workflows — der Unterordner in seiner Quelle,
+// leer, wenn er unmittelbar im Workflow-Ordner der Quelle liegt.
+function fremderOrt(relPath) {
+  const teile = String(relPath).split('/');
+  teile.pop();
+  return teile.join('/');
+}
+
+// 4T-002426: ohne Lauf-Stand; an seiner Stelle der Hinweis auf die Quelle.
+function fremdeZellen(zeile, w) {
+  const hinweisZelle = el(
+    'td',
+    'wf-runs-foreign',
+    einsetzen(t('workflow.seite.ausBereich'), { prefix: w.sourceKey }),
+  );
+  hinweisZelle.colSpan = 3;
+  if (w.sourceName) hinweisZelle.title = w.sourceName;
+  zeile.appendChild(hinweisZelle);
+}
+
+// Zeitpunkt, Ergebnis und Zahl der Läufe; liefert die Zelle «Letzter Lauf».
 function laufZellen(zeile, w) {
   const zeit = el('td', 'wf-runs-time');
   const ergebnis = el('td', 'wf-runs-result');
@@ -162,9 +206,11 @@ function laufZellen(zeile, w) {
     ergebnis.textContent = t('workflow.seite.nieGelaufen');
     ergebnis.classList.add('wf-runs-never');
   }
+  ergaenzeLetztenLauf(zeit, w);
   zeile.appendChild(zeit);
   zeile.appendChild(ergebnis);
   zeile.appendChild(el('td', 'wf-runs-count', String(w.runs || 0)));
+  return zeit;
 }
 
 function startZelle(w) {
@@ -181,7 +227,7 @@ function zeichneTabelle(wurzel, workflows) {
   const tabelle = el('table', 'wf-runs-table');
   const kopf = document.createElement('thead');
   const kopfZeile = document.createElement('tr');
-  for (const key of ['name', 'ort', 'letzterLauf', 'ergebnis', 'laeufe']) {
+  for (const key of SPALTEN) {
     kopfZeile.appendChild(el('th', null, t(`workflow.seite.spalte.${key}`)));
   }
   // Die Aktions-Spalte bleibt ohne Überschrift (Muster der Datenbank-Übersicht).
@@ -194,13 +240,28 @@ function zeichneTabelle(wurzel, workflows) {
   for (const w of workflows) {
     const zeile = document.createElement('tr');
     zeile.dataset.path = w.absPath;
-    const name = el('td', 'wf-runs-name', w.name);
+    const fremd = w.foreign === true && typeof w.sourceKey === 'string' && w.sourceKey !== '';
+    const name = el('td', 'wf-runs-name', fremd ? fremdeBezeichnung(w.name, w.sourceKey) : w.name);
     if (w.description) name.title = w.description;
     zeile.appendChild(name);
-    zeile.appendChild(el('td', 'wf-runs-location', ortText(w.relPath)));
-    laufZellen(zeile, w);
+    let letzterLauf = null;
+    if (fremd) {
+      zeile.dataset.source = w.sourceKey;
+      zeile.appendChild(el('td', 'wf-runs-location', fremderOrt(w.relPath)));
+      // 4T-002422: ein fremder Workflow wird nie scharf (2h); beide Zellen leer.
+      zeile.appendChild(scharfZelle(w));
+      zeile.appendChild(naechsterLaufZelle(w));
+      fremdeZellen(zeile, w);
+    } else {
+      zeile.appendChild(el('td', 'wf-runs-location', ortText(w.relPath)));
+      zeile.appendChild(scharfZelle(w));
+      zeile.appendChild(naechsterLaufZelle(w));
+      letzterLauf = laufZellen(zeile, w);
+    }
     zeile.appendChild(startZelle(w));
     koerper.appendChild(zeile);
+    const journal = journalAufklapper(letzterLauf, w, SPALTEN.length + 1);
+    if (journal) koerper.appendChild(journal);
   }
   tabelle.appendChild(koerper);
   wurzel.appendChild(tabelle);
@@ -298,6 +359,7 @@ export function initWorkflowLaeufe(w) {
   });
   document.addEventListener('scg:extensions-changed', syncKommando);
   onLaufVerbucht(nachziehen);
+  onScharfGeaendert(nachziehen);
   onWorkflowFolderListChanged(nachziehen);
   if (typeof api.onBacklinksInvalidated === 'function') {
     api.onBacklinksInvalidated(nachziehenGebuendelt);

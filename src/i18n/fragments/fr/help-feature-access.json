@@ -296,5 +296,10 @@
   "help.featureAccess.workflowStart": "Fichier → Workflows → «nom du workflow» ; palette de commandes → «nom du workflow» ; bouton «Lancer» au-dessus du bloc dans le mode direct, la vue rendue et la vue partagée ; menu contextuel d'un fichier de workflow dans le panneau de zone → Lancer ; Fichier → Paramètres… → Raccourcis clavier",
   "help.featureAccess.workflowRuns": "Affichage → Afficher les exécutions des workflows ; Fichier → Workflows → Afficher les exécutions des workflows ; palette de commandes → «Afficher les exécutions des workflows»",
   "help.featureAccess.workflowEditor": "Bloc de code `workflow` ; affichage de vérification au-dessus du bloc dans le mode direct, la vue rendue et la vue partagée",
-  "help.featureAccess.workflowFolder": "Fichier → Workflows ; Fichier → Workflows → Nouveau workflow… et Définir le dossier de workflows… ; Fichier → Paramètres… → Extensions (internes) → Workflows et Zone actuelle → Workflows ; palette de commandes → «Nouveau workflow…»"
+  "help.featureAccess.workflowFolder": "Fichier → Workflows ; Fichier → Workflows → Nouveau workflow… et Définir le dossier de workflows… ; Fichier → Paramètres… → Extensions (internes) → Workflows et Zone actuelle → Workflows ; palette de commandes → «Nouveau workflow…»",
+  "help.featureAccess.workflowSchedule": "Champs d'en-tête `trigger: schedule`, `schedule` et `missed` ; affichage de vérification au-dessus du bloc dans le mode direct, la vue rendue et la vue partagée",
+  "help.featureAccess.workflowArming": "Affichage → Afficher les exécutions des workflows → colonne «Armé» ; bouton «Armé» au-dessus du bloc dans le mode direct, la vue rendue et la vue partagée ; menu contextuel d'un fichier de workflow dans le panneau de zone → Armer / Désarmer",
+  "help.featureAccess.workflowStatusbar": "Barre d'état → élément «Workflows» ; commande `notify` dans le bloc de code `workflow`",
+  "help.featureAccess.workflowMaintenance": "Commandes `delete`, `add-tag`, `remove-tag`, `complete-task` et `confirm` dans le bloc de code `workflow`",
+  "help.featureAccess.workflowLinked": "Fichier → Paramètres… → Zone actuelle → Liens entre zones → Workflows ; Fichier → Workflows ; palette de commandes ; Affichage → Afficher les exécutions des workflows"
 }

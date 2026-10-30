@@ -34,7 +34,7 @@ L'éditeur d'étapes se trouve dans la même section de paramètres : par macro,
 
 ## Workflows
 
-Chaque workflow du dossier de workflows est lui aussi une commande, dans l'espace de noms des workflows ; comme une macro, il peut être placé comme bouton de barre d'état ou entrée de menu contextuel et recevoir un raccourci dans la section de paramètres « Raccourcis clavier ». Contrairement à une macro, un workflow est un fichier Markdown à commandes fixes qui créent, déplacent et modifient aussi des fichiers ; un workflow peut appeler une macro comme étape. L'identifiant de sa commande provient du chemin du fichier dans le dossier de workflows : si le workflow est renommé ou déplacé, un bouton et une entrée créés pour lui disparaissent, et un raccourci clavier doit être attribué de nouveau. Détails sur la page [Workflows](workflows.md).
+Chaque workflow du dossier de workflows est lui aussi une commande, dans l'espace de noms des workflows ; comme une macro, il peut être placé comme bouton de barre d'état ou entrée de menu contextuel et recevoir un raccourci dans la section de paramètres « Raccourcis clavier ». Contrairement à une macro, un workflow est un fichier Markdown à commandes fixes qui créent, déplacent et modifient aussi des fichiers ; un workflow peut appeler une macro comme étape. L'identifiant de sa commande provient du chemin du fichier dans le dossier de workflows : si le workflow est renommé dans l'application ou déplacé à l'intérieur du dossier de workflows, un bouton, une entrée et un raccourci clavier créés pour lui suivent ; après un changement de nom en dehors de l'application, ils doivent être attribués de nouveau. Détails sur la page [Workflows](workflows.md).
 
 ## Délimitation par rapport à la palette de commandes
 

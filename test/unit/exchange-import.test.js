@@ -717,3 +717,126 @@ describe('4T-002281 — eigene Folien-Themes', () => {
     ]);
   });
 });
+
+// 4T-002425 (Story 4S-001137, Epic 3E-000366): Einlesen des anwendungsweiten
+// Workflow-Ordners.
+describe('4T-002425 — der Workflow-Ordner beim Einlesen', () => {
+  const IST = { language: 'de', workflows: { folder: 'C:/Alt/Workflows' } };
+  const abschnitt = (value) => [{ name: 'workflows', value }];
+
+  it('AK2: ersetzt die vorhandene Festlegung durch die eingelesene', async () => {
+    const sections = abschnitt({ 'workflows.folder': 'D:/Neu/Workflows' });
+    const zeile = eintrag(planFuer(await istStand(IST), sections), 'workflows');
+    expect(zeile.action).toBe('replace');
+    expect(zeile.ersetzt).toEqual(['workflows.folder']);
+    expect(zeile.verworfen).toEqual([]);
+    expect(zeile.values).toEqual({ 'workflows.folder': 'D:/Neu/Workflows' });
+  });
+
+  it('AK5: ein auf diesem Rechner nicht vorhandener Ordner ist kein Fehler', async () => {
+    const { readWorkflowFolder, resolveWorkflowsFolder } =
+      await import('../../src/main/workflows/workflow-folder.js');
+    const fehlt = path.join(os.tmpdir(), `em4me-gibt-es-nicht-${process.pid}-${Date.now()}`);
+    expect(fs.existsSync(fehlt)).toBe(false);
+
+    // Die Festlegung wird übernommen, nicht verworfen.
+    const zeile = eintrag(
+      planFuer(await istStand(IST), abschnitt({ 'workflows.folder': fehlt })),
+      'workflows',
+    );
+    expect(zeile.action).toBe('replace');
+    expect(zeile.values).toEqual({ 'workflows.folder': fehlt });
+
+    // Und der Leser des Ordners meldet ihn danach als fehlend, ohne zu werfen.
+    const lage = resolveWorkflowsFolder({
+      areaRootPath: null,
+      areaConfig: undefined,
+      globalFolder: fehlt,
+    });
+    expect(lage).toEqual({ source: 'global', folder: path.resolve(fehlt) });
+    await expect(readWorkflowFolder(lage.folder)).resolves.toEqual({
+      missing: true,
+      items: [],
+      workflows: [],
+    });
+  });
+
+  it('AK6: eine Datei ohne diesen Abschnitt lässt die vorhandene Festlegung stehen', async () => {
+    const plan = planFuer(await istStand(IST), [
+      { name: 'hotkeys', value: { hotkeys: { 'file.save': 'Ctrl+S' } } },
+    ]);
+    // Ohne Abschnitt kein Plan-Eintrag, also auch kein Schreibzugriff.
+    expect(eintrag(plan, 'workflows')).toBeUndefined();
+    expect(plan.kinds.map((k) => k.id)).toEqual(['hotkeys']);
+  });
+
+  it('AK3: übernimmt weder den Namensraum noch einen Bereichs-Ordner', async () => {
+    // Der ganze Namensraum (etwa in der Gestalt der Bereichs-Sektion) ist kein
+    // Pfad der Datenart und wird verworfen — fail closed beim Einlesen.
+    const zeile = eintrag(
+      planFuer(await istStand(IST), abschnitt({ workflows: { folder: 'Bereich/Workflows' } })),
+      'workflows',
+    );
+    expect(zeile.action).toBe('skip');
+    expect(zeile.verworfen).toEqual(['workflows']);
+    expect(zeile.values).toEqual({});
+  });
+
+  it('verwirft eine Festlegung in fremder Gestalt, statt sie zu schreiben', async () => {
+    const zeile = eintrag(
+      planFuer(await istStand(IST), abschnitt({ 'workflows.folder': { pfad: 'D:/X' } })),
+      'workflows',
+    );
+    expect(zeile.action).toBe('skip');
+    expect(zeile.verworfen).toEqual(['workflows.folder']);
+  });
+
+  it('AK2: die Vorschau meldet den Workflow-Ordner nicht als «wirkt erst nach Neustart»', async () => {
+    const { registerExchangeIpc } = await import('../../src/main/ipc/exchange.js');
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-import-wf-'));
+    try {
+      const datei = path.join(dir, 'einrichtung.md');
+      // Der Vorlagen-Ordner daneben ist die Gegenprobe: Er hat weder einen
+      // Verteil-Zweig noch einen Leser, der auf den Speicher hört.
+      const geschrieben = writeExchangeFile({
+        kind: EXCHANGE_KIND,
+        sections: [
+          { name: 'templates', value: { templates: { folder: 'T', rules: [] } } },
+          { name: 'workflows', value: { 'workflows.folder': 'D:/Neu/Workflows' } },
+        ],
+      });
+      fs.writeFileSync(datei, geschrieben.text, 'utf8');
+
+      const handler = {};
+      registerExchangeIpc((kanal, fn) => (handler[kanal] = fn), {
+        dialog: {},
+        getStore: () => storeDouble(IST),
+        senderWindow: () => ({ id: 1 }),
+        areaOfWindow: () => null,
+        readAreaCalendarConfig: async () => undefined,
+        writeAreaCalendarConfig: async () => ({ ok: true }),
+        broadcast: () => {},
+        tForWindow: (_win, key) => key,
+        fullVersion: () => '0.0.0',
+        app: { getName: () => 'EM4me' },
+      });
+      const vorschau = await handler['exchange:plan']({}, datei);
+      expect(vorschau.ok).toBe(true);
+      expect(vorschau.kinds.find((k) => k.id === 'workflows').action).toBe('replace');
+      expect(vorschau.nurNachNeustart).toEqual(['templates']);
+    } finally {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('hält die Begründung fest: der Dienst des Workflow-Ordners hört auf den Speicher', () => {
+    const quelle = readFileSync(
+      fileURLToPath(
+        new URL('../../src/main/workflows/workflow-folder-service.js', import.meta.url),
+      ),
+      'utf8',
+    );
+    expect(quelle).toContain("GLOBAL_KEY = 'workflows.folder'");
+    expect(quelle).toContain("store.onDidChange('workflows'");
+  });
+});

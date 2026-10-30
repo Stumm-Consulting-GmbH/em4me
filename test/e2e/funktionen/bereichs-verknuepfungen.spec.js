@@ -385,7 +385,10 @@ test.describe('BV-04: Einstellungs-Oberfläche der Verknüpfungen (4T-001455)', 
         .poll(() => (fs.existsSync(mdda) ? JSON.parse(fs.readFileSync(mdda, 'utf8')) : null))
         .not.toBeNull();
       let stand = JSON.parse(fs.readFileSync(mdda, 'utf8'));
-      expect(stand.settings.areaLinks).toEqual([{ prefix: 'zt', path: ziel1, templates: false }]);
+      // 4T-002426: Seit der Zustimmung zu den Workflows trägt der Eintrag beide Opt-ins.
+      expect(stand.settings.areaLinks).toEqual([
+        { prefix: 'zt', path: ziel1, templates: false, workflows: false },
+      ]);
 
       // --- Aendern: neuer Pfad (das ist zugleich der Weg aus 4T-001453) ---
       await oeffneEinstellungen(page);

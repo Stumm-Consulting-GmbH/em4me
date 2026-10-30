@@ -54,7 +54,7 @@ function fenster(id) {
   };
 }
 
-function welt({ besitzer = null, frist = 1000 } = {}) {
+function welt({ besitzer = null, frist = 1000, schritt: eigenerSchritt = null } = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-wf-weiche-'));
   tmpDirs.push(root);
   const ziel = path.join(root, 'Ziel.md');
@@ -76,7 +76,7 @@ function welt({ besitzer = null, frist = 1000 } = {}) {
     event: { sender: { id: 1 } },
     workflowAbs: path.join(root, 'Ablauf.md'),
   };
-  const schritt = {
+  const schritt = eigenerSchritt || {
     line: 4,
     keyword: 'replace',
     args: ['Ziel.md', 'Platte', 'Neu'],
@@ -208,5 +208,60 @@ describe('Weg eines Inhalts-Schritts', () => {
       { requestId: 'k-1', ok: false, code: '<script>' },
     );
     expect((await lauf).code).toBe('bufferUnavailable');
+  });
+});
+
+// 4T-002424 (Story 4S-001135, AK5; Regel P5): `add-tag` und `remove-tag` nehmen
+// dieselbe Weiche wie `set-property`; `complete-task` geht über den
+// Fenster-Handgriff `completeTask` und die Weiche der Aufgaben-Abfrage
+// (geprüft in renderer/workflow-window.test.js).
+describe('Weg der Schlagwort-Befehle', () => {
+  const tagSchritt = (keyword, tag) => ({
+    line: 5,
+    keyword,
+    args: ['Ziel.md', tag],
+    source: null,
+    position: null,
+  });
+
+  it('kein Besitzer: add-tag schreibt den Dateikopf auf der Platte', async () => {
+    const w = welt({ schritt: tagSchritt('add-tag', 'neu') });
+    expect((await w.lauf()).effect).toMatchObject({ kind: 'edited', via: 'disk' });
+    expect(platte(w)).toBe('---\ntags:\n  - neu\n---\nPlatte\n');
+  });
+
+  it('das startende Fenster hält den Stand: add-tag als Auftrag an den eigenen Puffer', async () => {
+    const w = welt({ besitzer: 1, schritt: tagSchritt('add-tag', 'neu') });
+    expect(await w.lauf()).toEqual({
+      ok: true,
+      window: { action: 'editOwnBuffer', path: w.ziel, edit: { op: 'addTag', tag: 'neu' } },
+    });
+    expect(platte(w)).toBe('Platte\n');
+  });
+
+  it('ein anderes Fenster hält den Stand: remove-tag als Auftrag, Platte unberührt', async () => {
+    const w = welt({ besitzer: 7, schritt: tagSchritt('remove-tag', 'alt') });
+    const lauf = w.lauf();
+    await new Promise((r) => setTimeout(r, 20));
+    expect(w.andere.post).toEqual([
+      {
+        kanal: 'workflow:bufferEdit',
+        daten: { requestId: 'k-1', path: w.ziel, edit: { op: 'removeTag', tag: 'alt' } },
+      },
+    ]);
+    w.bufferRequests.answer({ sender: { id: 7 } }, { requestId: 'k-1', ok: true, changed: false });
+    expect((await lauf).effect).toMatchObject({ kind: 'unchanged', via: 'otherBuffer' });
+    expect(platte(w)).toBe('Platte\n');
+  });
+
+  it('der Code tagInvalid des anderen Fensters kommt durch', async () => {
+    const w = welt({ besitzer: 7, schritt: tagSchritt('add-tag', 'zwei worte') });
+    const lauf = w.lauf();
+    await new Promise((r) => setTimeout(r, 20));
+    w.bufferRequests.answer(
+      { sender: { id: 7 } },
+      { requestId: 'k-1', ok: false, code: 'tagInvalid' },
+    );
+    expect((await lauf).code).toBe('tagInvalid');
   });
 });

@@ -612,6 +612,39 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
+/* 4T-002423: Element «Workflows» (letzter Lauf nach Zeitplan) in der Form
+   des Word-Count-Elements; ein Fehlschlag in der Farbe des Fehler-Hinweises. */
+.statusbar-workflows {
+  height: 22px;
+  padding: 0 8px;
+  margin-right: 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--fg-muted);
+  font-family: var(--font-ui);
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.statusbar-workflows[hidden] {
+  display: none;
+}
+.statusbar-workflows:hover {
+  background: var(--hover);
+  color: var(--fg);
+  border-color: var(--border);
+}
+.statusbar-workflows:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.statusbar-workflows[data-status='failed'] {
+  color: #c0392b;
+}
+[data-theme='dark'] .statusbar-workflows[data-status='failed'] {
+  color: #ff7b72;
+}
 .statusbar-hint.visible {
   opacity: 1;
 }

@@ -75,6 +75,7 @@ function gibWartendeZweitstartDateien() {
  * @param {object} deps.reminderChecker Erinnerungs-Pruefer.
  * @param {object} deps.alarmChecker Wecker-Pruefer.
  * @param {object} deps.timerChecker Timer-Pruefer.
+ * @param {object} deps.workflowScheduleChecker Zeitplan-Prüfer der Workflows (4T-002421).
  * @param {{portabel: boolean, datenOrdner: string|null, beschreibbar: boolean|null}} deps.portablerBetrieb
  *   4T-001990: Ergebnis der Erkennung des portablen Betriebs aus main.js.
  * @returns {{starteApp: Function, zweitInstanz: Function}} Einstiege der App-Ereignisse.
@@ -106,6 +107,7 @@ function createStartup(deps) {
     reminderChecker,
     alarmChecker,
     timerChecker,
+    workflowScheduleChecker,
     portablerBetrieb,
   } = deps;
   // Der Behaelter reist als Wert; ersetzt wird er nie (4T-000998-Konvention).
@@ -260,6 +262,10 @@ function createStartup(deps) {
     // Ein beim Beenden laufender Timer wird damit direkt nach dem Start wieder
     // ueberwacht (die Restzeit rechnet sich aus dem gespeicherten Zeitstempel).
     timerChecker.start();
+    // 4T-002421 (Epic 3E-000366): Zeitplan-Takt der Workflows starten. Gates pro
+    // Lauf wie bei den Erinnerungen: Erweiterungs-Zustand und Index-Bereitschaft;
+    // die Sofort-Prüfung beim Öffnen eines Bereichs stößt die Index-Invalidierung an.
+    workflowScheduleChecker.start();
 
     // Sitzungs-Wiederherstellung ueber logische Applikationen (4T-000320).
     const restore = !!store.get('restoreSession');

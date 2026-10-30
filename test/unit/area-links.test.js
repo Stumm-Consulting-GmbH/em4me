@@ -57,7 +57,7 @@ describe('normalizeAreaLinks — Modell und Verwerfungs-Regeln', () => {
   it('nimmt einen vollstaendigen Eintrag unveraendert an', () => {
     const ziel = abs('Zentral');
     expect(normalizeAreaLinks([{ prefix: 'zt', path: ziel, templates: true }])).toEqual([
-      { prefix: 'zt', path: ziel, templates: true },
+      { prefix: 'zt', path: ziel, templates: true, workflows: false },
     ]);
   });
 
@@ -82,8 +82,8 @@ describe('normalizeAreaLinks — Modell und Verwerfungs-Regeln', () => {
       { prefix: 'ar', path: zweitesZiel },
     ]);
     expect(eintraege).toEqual([
-      { prefix: 'zt', path: ziel, templates: false },
-      { prefix: 'ar', path: zweitesZiel, templates: false },
+      { prefix: 'zt', path: ziel, templates: false, workflows: false },
+      { prefix: 'ar', path: zweitesZiel, templates: false, workflows: false },
     ]);
   });
 
@@ -109,7 +109,7 @@ describe('normalizeAreaLinks — Modell und Verwerfungs-Regeln', () => {
       { prefix: 'zt', path: erst },
       { prefix: 'ZT', path: zweit },
     ]);
-    expect(eintraege).toEqual([{ prefix: 'zt', path: erst, templates: false }]);
+    expect(eintraege).toEqual([{ prefix: 'zt', path: erst, templates: false, workflows: false }]);
   });
 
   it('verwirft die Verknuepfung eines Bereichs mit sich selbst, wenn die eigene Wurzel bekannt ist', () => {
@@ -122,10 +122,30 @@ describe('normalizeAreaLinks — Modell und Verwerfungs-Regeln', () => {
       ],
       { selfRoot: eigen },
     );
-    expect(mitWurzel).toEqual([{ prefix: 'zt', path: fremd, templates: false }]);
+    expect(mitWurzel).toEqual([{ prefix: 'zt', path: fremd, templates: false, workflows: false }]);
     // Ohne selfRoot bleibt der Eintrag stehen: Das Modul kennt die eigene
     // Wurzel dann nicht und raet sie nicht.
     expect(normalizeAreaLinks([{ prefix: 'ich', path: eigen }])).toHaveLength(1);
+  });
+
+  // 4T-002426 (Epic 3E-000366, Story 4S-001138, AK3): Die Zustimmung zu den
+  // Workflows folgt derselben Regel wie die zu den Vorlagen, unabhängig von ihr.
+  it('behandelt das Workflow-Opt-in streng boolesch, Vorgabe aus, unabhaengig von templates', () => {
+    const ziel = abs('Zentral');
+    for (const wert of [undefined, null, 0, 1, 'true', 'ja', {}]) {
+      expect(normalizeAreaLinks([{ prefix: 'zt', path: ziel, workflows: wert }])[0].workflows).toBe(
+        false,
+      );
+    }
+    expect(normalizeAreaLinks([{ prefix: 'zt', path: ziel, workflows: true }])[0]).toEqual({
+      prefix: 'zt',
+      path: ziel,
+      templates: false,
+      workflows: true,
+    });
+    expect(normalizeAreaLinks([{ prefix: 'zt', path: ziel, templates: true }])[0].workflows).toBe(
+      false,
+    );
   });
 
   it('behandelt das Vorlagen-Opt-in streng boolesch und faellt sonst auf aus', () => {
@@ -185,9 +205,21 @@ describe('Verknuepfungen: Ablage in der Bereichsdatei', () => {
 
     await cfg.writeAreaLinks(root, [{ prefix: 'zt', path: ziel, templates: true }]);
     expect(gelesen(root).settings.areaLinks).toEqual([
-      { prefix: 'zt', path: ziel, templates: true },
+      { prefix: 'zt', path: ziel, templates: true, workflows: false },
     ]);
-    expect(await cfg.readAreaLinks(root)).toEqual([{ prefix: 'zt', path: ziel, templates: true }]);
+    expect(await cfg.readAreaLinks(root)).toEqual([
+      { prefix: 'zt', path: ziel, templates: true, workflows: false },
+    ]);
+  });
+
+  // 4T-002426: Die Zustimmung zu den Workflows übersteht den Rundweg durch die Bereichsdatei.
+  it('schreibt und liest die Zustimmung zu den Workflows', async () => {
+    const root = makeRoot();
+    const cfg = makeConfig();
+    const ziel = abs('Zentral', 'Bereich');
+    await cfg.writeAreaLinks(root, [{ prefix: 'zt', path: ziel, workflows: true }]);
+    expect(gelesen(root).settings.areaLinks[0].workflows).toBe(true);
+    expect((await cfg.readAreaLinks(root))[0]).toMatchObject({ templates: false, workflows: true });
   });
 
   it('fuehrt je Richtung ein eigenes Kuerzel; beide Richtungen duerfen verschieden lauten', async () => {
@@ -199,10 +231,10 @@ describe('Verknuepfungen: Ablage in der Bereichsdatei', () => {
     await cfg.writeAreaLinks(anderer, [{ prefix: 'notizen', path: einer }]);
 
     expect(await cfg.readAreaLinks(einer)).toEqual([
-      { prefix: 'zt', path: path.normalize(anderer), templates: false },
+      { prefix: 'zt', path: path.normalize(anderer), templates: false, workflows: false },
     ]);
     expect(await cfg.readAreaLinks(anderer)).toEqual([
-      { prefix: 'notizen', path: path.normalize(einer), templates: false },
+      { prefix: 'notizen', path: path.normalize(einer), templates: false, workflows: false },
     ]);
   });
 
@@ -287,7 +319,7 @@ describe('Verknuepfungen: Ablage in der Bereichsdatei', () => {
       { prefix: 'ich', path: root }, // Verknuepfung mit sich selbst
     ]);
     expect(await cfg.readAreaLinks(root)).toEqual([
-      { prefix: 'gut', path: abs('Zentral'), templates: false },
+      { prefix: 'gut', path: abs('Zentral'), templates: false, workflows: false },
     ]);
   });
 });

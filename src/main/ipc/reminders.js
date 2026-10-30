@@ -6,7 +6,9 @@
 // Auszug aus main.js, 4T-001000 (Epic 3E-000196). Kanal-Gruppe: reminders:*,
 // notify:system, alarm:*, timer:* (letztere seit 4T-001728).
 //
-// Eigener Zustand: keiner; der Session-Zustand liegt in den beiden Pruefern
+// Eigener Zustand: allein das Gedaechtnis der gemeldeten Workflow-Meldungen
+// (4T-002423, Art `workflow` am Kanal notify:system); der Session-Zustand
+// liegt in den beiden Pruefern
 // und im Zustell-Register (checks/due-delivery.js) und kommt als Deps. Der
 // Helfer showSystemNotification bedient zwei Kanaele (reminders:systemNotify
 // und den neutralen notify:system).
@@ -33,6 +35,10 @@ const { isExtensionEnabled } = require('../../shared/extensions/extensions-core'
 // 4T-001978 (Epic 3E-000330): die mit der Aufgaben-Abfrage geteilte Regel,
 // welches Fenster einen Auftrag zum ungespeicherten Stand bekommt.
 const { uebergibAnPufferBesitzer } = require('./puffer-fenster');
+const { WORKFLOWS_EXTENSION_ID } = require('../../shared/workflows/workflow-konstanten.js');
+
+// 4T-002423: Gedächtnis der gemeldeten Workflow-Meldungen, nach oben begrenzt.
+const MAX_WORKFLOW_MELDUNGEN = 500;
 
 /**
  * Registriert die Erinnerungs- und Wecker-Kanaele.
@@ -177,8 +183,38 @@ function registerRemindersIpc(handle, deps) {
   // 4T-001728: Wecker und Timer nennen ihre Meldung (Art und Schluessel), damit
   // die Benachrichtigung je Meldung einmal erscheint und nicht je Fenster.
   const uhrRegister = { alarm: alarmDelivery, timer: timerDelivery };
+  // 4T-002423 (Epic 3E-000366, Entscheidung 2f): Ein Lauf nach Zeitplan meldet
+  // `notify` und seinen Fehlschlag mit der Art `workflow`. Es gilt dieselbe
+  // Fokus-Regel. Ein Zustell-Register gibt es dafür nicht: Den Lauf führt genau
+  // ein Fenster aus (Anspruch im Register der Fälligkeiten, 4T-002421), und
+  // jede Meldung trägt einen eigenen Schlüssel; die Einmaligkeit je Meldung
+  // sichert hier ein Gedächtnis je Fenster und Schlüssel. Im Aus-Zustand der
+  // Erweiterung erscheint nichts.
+  const workflowGemeldet = new Set();
+  function darfWorkflowMelden(event, keys) {
+    const store = typeof deps.getStore === 'function' ? deps.getStore() : null;
+    const aus = store ? store.get('extensions.disabled') : [];
+    if (!isExtensionEnabled(WORKFLOWS_EXTENSION_ID, aus)) return false;
+    if (einFensterImVordergrund()) return false;
+    const absender = event && event.sender ? event.sender.id : '';
+    const neu = keys.filter(
+      (k) => typeof k === 'string' && !workflowGemeldet.has(`${absender}:${k}`),
+    );
+    if (neu.length === 0) return false;
+    for (const k of neu) workflowGemeldet.add(`${absender}:${k}`);
+    // Begrenzt: die ältesten Einträge fallen, ein Schlüssel kehrt nie wieder.
+    while (workflowGemeldet.size > MAX_WORKFLOW_MELDUNGEN) {
+      workflowGemeldet.delete(workflowGemeldet.values().next().value);
+    }
+    return true;
+  }
   handle('notify:system', (event, payload) => {
     const meldung = payload && payload.meldung;
+    if (meldung && meldung.art === 'workflow') {
+      const keys = Array.isArray(meldung.keys) ? meldung.keys : [];
+      if (!darfWorkflowMelden(event, keys)) return false;
+      return showSystemNotification(event, payload);
+    }
     if (meldung && Array.isArray(meldung.keys)) {
       const delivery = Object.hasOwn(uhrRegister, meldung.art) ? uhrRegister[meldung.art] : null;
       if (!delivery || !darfBenachrichtigen(delivery, meldung.keys)) return false;

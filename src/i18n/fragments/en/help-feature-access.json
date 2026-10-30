@@ -296,5 +296,10 @@
   "help.featureAccess.workflowStart": "File → Workflows → ‘name of the workflow’; command palette → ‘name of the workflow’; button ‘Run’ above the block in the live, rendered and split view; context menu of a workflow file in the area panel → Run; File → Settings… → Keyboard shortcuts",
   "help.featureAccess.workflowRuns": "View → Show workflow runs; File → Workflows → Show workflow runs; command palette → ‘Show workflow runs’",
   "help.featureAccess.workflowEditor": "Code block `workflow`; check display above the block in the live, rendered and split view",
-  "help.featureAccess.workflowFolder": "File → Workflows; File → Workflows → New Workflow… and Set Workflows Folder…; File → Settings… → Extensions (internal) → Workflows and Current area → Workflows; command palette → ‘New Workflow…’"
+  "help.featureAccess.workflowFolder": "File → Workflows; File → Workflows → New Workflow… and Set Workflows Folder…; File → Settings… → Extensions (internal) → Workflows and Current area → Workflows; command palette → ‘New Workflow…’",
+  "help.featureAccess.workflowSchedule": "Front matter fields `trigger: schedule`, `schedule` and `missed`; check display above the block in the live, rendered and split view",
+  "help.featureAccess.workflowArming": "View → Show workflow runs → column ‘Armed’; button ‘Armed’ above the block in the live, rendered and split view; context menu of a workflow file in the area panel → Arm / Disarm",
+  "help.featureAccess.workflowStatusbar": "Status bar → element ‘Workflows’; command `notify` in the code block `workflow`",
+  "help.featureAccess.workflowMaintenance": "Commands `delete`, `add-tag`, `remove-tag`, `complete-task` and `confirm` in the code block `workflow`",
+  "help.featureAccess.workflowLinked": "File → Settings… → Current area → Area links → Workflows; File → Workflows; command palette; View → Show workflow runs"
 }

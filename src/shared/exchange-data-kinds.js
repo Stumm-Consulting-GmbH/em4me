@@ -403,6 +403,36 @@ const DATA_KINDS = [
     formen: { templates: 'object' },
   },
   {
+    // 4T-002425 (Story 4S-001137, Epic 3E-000366): der anwendungsweite
+    // Workflow-Ordner, Muster des Vorlagen-Ordners darüber.
+    //
+    // **Der Pfad ist `workflows.folder` und nicht der Namensraum `workflows`**:
+    // Mitgeführt wird allein die Festlegung des Ordners. Ein späterer Schlüssel
+    // im selben Namensraum reist erst mit, wenn er hier eingetragen ist — die
+    // Fail-closed-Zusicherung dieser Datei gilt auch innerhalb eines Namensraums.
+    //
+    // Der Ordner je Bereich steht nicht im globalen Speicher, sondern in der
+    // Sektion `workflows` der Bereichsdatei, und wandert mit dem Bereich; er
+    // gehört nicht in die Einrichtungs-Datei (Kriterium «global» oben). Die
+    // Workflow-Dateien selbst sind gewöhnliche Dateien und reisen ebenso wenig.
+    id: 'workflows',
+    labelKey: 'exchange.kind.workflows',
+    paths: ['workflows.folder'],
+    // Ein Ordner ist eine Festlegung und kein Bestand: eins, wenn er gesetzt ist.
+    zaehle: (werte) => {
+      const ordner = werte['workflows.folder'];
+      return typeof ordner === 'string' && ordner.trim() !== '' ? 1 : 0;
+    },
+    // Eine Einstellung: Der eingelesene Ordner tritt an die Stelle des
+    // vorhandenen. Ob es ihn auf diesem Rechner gibt, prüft das Einlesen
+    // bewusst nicht — die Liste des Workflow-Ordners meldet einen fehlenden
+    // Ordner selbst als «nicht vorhanden», und das ist kein Fehler.
+    merge: { mode: MERGE_REPLACE },
+    // Ein einfacher Wert; ein Objekt oder eine Liste an dieser Stelle stammte
+    // aus einer anderen Programm-Fassung und wird verworfen.
+    formen: { 'workflows.folder': 'wert' },
+  },
+  {
     id: 'bookmarksTree',
     labelKey: 'exchange.kind.bookmarksTree',
     paths: ['bookmarksTree'],

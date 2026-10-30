@@ -34,7 +34,7 @@ L'editor dei passaggi si trova nella stessa sezione delle impostazioni: per macr
 
 ## Workflow
 
-Anche ogni workflow della cartella dei workflow è un comando, nello spazio dei nomi dei workflow, e come una macro si può collocare come pulsante della barra di stato o voce del menu contestuale e associare a una scorciatoia nella sezione delle impostazioni «Scorciatoie da tastiera». A differenza di una macro, un workflow è un file Markdown con comandi fissi che creano, spostano e modificano anche dei file; un workflow può richiamare una macro come passo. L'identificativo del suo comando deriva dal percorso del file nella cartella dei workflow: se il workflow viene rinominato o spostato, un pulsante e una voce creati per esso scompaiono, e una scorciatoia da tastiera va assegnata di nuovo. Dettagli nella pagina [Workflow](workflows.md).
+Anche ogni workflow della cartella dei workflow è un comando, nello spazio dei nomi dei workflow, e come una macro si può collocare come pulsante della barra di stato o voce del menu contestuale e associare a una scorciatoia nella sezione delle impostazioni «Scorciatoie da tastiera». A differenza di una macro, un workflow è un file Markdown con comandi fissi che creano, spostano e modificano anche dei file; un workflow può richiamare una macro come passo. L'identificativo del suo comando deriva dal percorso del file nella cartella dei workflow: se il workflow viene rinominato nell'applicazione o spostato all'interno della cartella dei workflow, un pulsante, una voce e una scorciatoia da tastiera creati per esso lo seguono; dopo una rinomina al di fuori dell'applicazione vanno assegnati di nuovo. Dettagli nella pagina [Workflow](workflows.md).
 
 ## Distinzione dalla palette dei comandi
 

@@ -25,6 +25,13 @@
 //   - `setProperty`, `removeProperty`: über `writeFrontmatter`, das Reihenfolge
 //     und Schreibweise der übrigen Eigenschaften erhält; eine fehlende
 //     Eigenschaft zu entfernen gelingt ohne Änderung (E3).
+//   - `addTag`, `removeTag` (4T-002424, Regel P2 der Konzept-Runde 4T-002418):
+//     allein die Liste `tags` des Dateikopfs, über `writeFrontmatter`; ein
+//     vorhandenes beziehungsweise fehlendes Schlagwort gelingt ohne Änderung.
+//     Verglichen wird ohne führendes `#` und ohne Rücksicht auf Groß- und
+//     Kleinschreibung; geschrieben wird das Schlagwort ohne `#`. Ein einzelner
+//     Text als `tags` gilt als Liste mit einem Eintrag (Lesart des Index).
+//     Schlagwörter im Text (`#tag`) bleiben unberührt; dafür gibt es `replace`.
 //
 // Ergebnis ohne Sprache: `{ ok: true, text, changed }` oder `{ ok: false, code }`.
 //
@@ -39,7 +46,17 @@ const { frontmatterLineCount } = require('./workflow-document.js');
 const BOM = '\uFEFF';
 
 /** Die Bearbeitungs-Arten, die `applyContentEdit` kennt. */
-const EDIT_OPS = Object.freeze(['append', 'insert', 'replace', 'setProperty', 'removeProperty']);
+const EDIT_OPS = Object.freeze([
+  'append',
+  'insert',
+  'replace',
+  'setProperty',
+  'removeProperty',
+  'addTag',
+  'removeTag',
+]);
+// Ein Schlagwort: ohne `#` am Anfang, nicht leer, ohne Leerraum.
+const SCHLAGWORT_RE = /^[^\s#][^\s]*$/;
 
 const hat = (o, k) => o != null && Object.prototype.hasOwnProperty.call(o, k);
 
@@ -142,6 +159,45 @@ function eigenschaftEntfernen(text, edit) {
   return geschrieben.ok ? { ok: true, text: geschrieben.text } : fehlschlag('frontmatterInvalid');
 }
 
+// Das Schlagwort eines Schritts ohne führendes `#`, sonst null.
+function schlagwortAus(roh) {
+  const wort = String(roh == null ? '' : roh)
+    .trim()
+    .replace(/^#/, '');
+  return SCHLAGWORT_RE.test(wort) ? wort : null;
+}
+
+// Vergleichs-Form eines Eintrags der Liste `tags`.
+function vergleichsForm(eintrag) {
+  return String(eintrag).trim().replace(/^#/, '').toLowerCase();
+}
+
+// Die Liste `tags` des Dateikopfs: Liste, einzelner Text oder nichts.
+function schlagwortListe(wert) {
+  if (Array.isArray(wert)) return [...wert];
+  if (typeof wert === 'string' && wert.trim() !== '') return [wert];
+  if (wert === null || wert === undefined || wert === '') return [];
+  return null;
+}
+
+function schlagwortAendern(text, edit) {
+  const wort = schlagwortAus(edit.tag);
+  if (wort === null) return fehlschlag('tagInvalid');
+  const kopf = extractFrontmatter(text);
+  if (kopf.parseError) return fehlschlag('frontmatterInvalid');
+  const daten = kopf.data || {};
+  const liste = schlagwortListe(daten.tags);
+  if (liste === null) return fehlschlag('frontmatterInvalid');
+  const gesucht = wort.toLowerCase();
+  const vorhanden = liste.some((e) => vergleichsForm(e) === gesucht);
+  if (edit.op === 'addTag' && vorhanden) return { ok: true, text };
+  if (edit.op === 'removeTag' && !vorhanden) return { ok: true, text };
+  const neu =
+    edit.op === 'addTag' ? [...liste, wort] : liste.filter((e) => vergleichsForm(e) !== gesucht);
+  const geschrieben = writeFrontmatter(text, { ...daten, tags: neu }, { emptyStubKeys: ['tags'] });
+  return geschrieben.ok ? { ok: true, text: geschrieben.text } : fehlschlag('frontmatterInvalid');
+}
+
 /**
  * Wendet eine Inhalts- oder Dateikopf-Bearbeitung auf einen Text an.
  *
@@ -150,10 +206,11 @@ function eigenschaftEntfernen(text, edit) {
  * @param {{op: string, text?: string, position?: {kind: 'atStart'}|{kind: 'under', heading: string},
  *   search?: string, replacement?: string, key?: string, value?: (string|number)}} edit
  *   `append` und `insert` mit fertigem `text`; `replace` mit `search` und
- *   `replacement`; `setProperty` mit `key` und `value`; `removeProperty` mit `key`.
+ *   `replacement`; `setProperty` mit `key` und `value`; `removeProperty` mit `key`;
+ *   `addTag` und `removeTag` mit `tag`.
  * @returns {{ok: true, text: string, changed: boolean}|{ok: false, code: string}}
  *   Codes: `invalidStep`, `headingUnknown`, `headingAmbiguous`, `textNotFound`,
- *   `frontmatterInvalid`.
+ *   `frontmatterInvalid`, `tagInvalid`.
  */
 function applyContentEdit(text, edit) {
   const quelle = String(text == null ? '' : text);
@@ -168,7 +225,8 @@ function applyContentEdit(text, edit) {
   else if (edit.op === 'insert') ergebnis = einfuegen(rumpf, edit, eol);
   else if (edit.op === 'replace') ergebnis = ersetzen(rumpf, edit);
   else if (edit.op === 'setProperty') ergebnis = eigenschaftSetzen(rumpf, edit);
-  else ergebnis = eigenschaftEntfernen(rumpf, edit);
+  else if (edit.op === 'removeProperty') ergebnis = eigenschaftEntfernen(rumpf, edit);
+  else ergebnis = schlagwortAendern(rumpf, edit);
   if (!ergebnis.ok) return ergebnis;
   const neu = (mitBom ? BOM : '') + ergebnis.text;
   return { ok: true, text: neu, changed: neu !== quelle };

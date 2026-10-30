@@ -1,6 +1,8 @@
-// Aufbau der drei Pruefer des Main-Prozesses: Erinnerungen (30-Sekunden-Takt
+// Aufbau der Pruefer des Main-Prozesses: Erinnerungen (30-Sekunden-Takt
 // auf dem Bereichs-Index), Wecker (30-Sekunden-Takt auf der app-weiten
-// Wecker-Liste) und Timer (gezielter Weckruf auf den naechsten Ablauf). Die
+// Wecker-Liste), Timer (gezielter Weckruf auf den naechsten Ablauf) und seit
+// 4T-002421 der Zeitplan-Prüfer der Workflows (30-Sekunden-Takt auf den
+// Workflow-Dateien der offenen Bereiche). Die
 // Pruef-Kerne selbst liegen in den Nachbar-Modulen dieses Ordners; hier
 // entsteht ihre Umgebung — Suchraum, Gates, Zustellung und Rueckschreiben.
 //
@@ -22,17 +24,25 @@ const { createTimerChecker } = require('./timer-check.js');
 const { CLOCK_TIMERS_KEY, normalizeTimers } = require('../../shared/clock/clock-timers.js');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 const { createTaskStatusTypeResolver } = require('../../shared/markdown/plugins.js');
+const { createWorkflowScheduleChecker } = require('./workflow-schedule-check.js');
+const { createWorkflowRunState } = require('../workflows/workflow-run-state.js');
+const { readRunState, readWorkflowText } = require('../ipc/workflow-runs.js');
+const { WORKFLOWS_EXTENSION_ID } = require('../../shared/workflows/workflow-konstanten.js');
 
 /**
- * Baut die drei Pruefer auf.
+ * Baut die Pruefer auf.
  *
  * @param {object} deps Bezuege aus der Verdrahtung.
  * @param {object} deps.appRegistry Registry der logischen Applikationen.
  * @param {() => object|null} deps.getStore Einstellungs-Speicher (entsteht erst beim Start).
  * @param {object} deps.backlinks Bereichs-Index (Aufgaben-Zeilen des Suchraums).
  * @param {(channel: string, ...args: any[]) => void} deps.broadcast Meldung an alle Fenster.
- * @returns {object} Die drei Prüfer (reminderChecker, alarmChecker, timerChecker) und ihre
- *   Zustell-Register (reminderDelivery, alarmDelivery, timerDelivery).
+ * @param {Map} [deps.windows] Fenster-Register (Zeitplan-Prüfer: lebt das Fenster eines Anspruchs?).
+ * @param {object} [deps.mddWege] Schreibweg der Begleitdateien für den Lauf-Stand der Workflows
+ *   ({ mddSuspendedPaths, mddKeyOf, notifyMddDefect }).
+ * @returns {object} Die Prüfer (reminderChecker, alarmChecker, timerChecker,
+ *   workflowScheduleChecker) und ihre Zustell-Register (reminderDelivery, alarmDelivery,
+ *   timerDelivery, workflowScheduleDelivery).
  */
 function createCheckers(deps) {
   const { appRegistry, getStore, backlinks, broadcast } = deps;
@@ -192,14 +202,68 @@ function createCheckers(deps) {
     cancel: (handle) => clearTimeout(handle),
   });
 
+  const { workflowScheduleChecker, workflowScheduleDelivery } = createWorkflowSchedule(deps);
+
   return {
     reminderChecker,
     alarmChecker,
     timerChecker,
+    workflowScheduleChecker,
     reminderDelivery,
     alarmDelivery,
     timerDelivery,
+    workflowScheduleDelivery,
   };
+}
+
+// 4T-002421 (Epic 3E-000366): Zeitplan-Prüfer der Workflows mit eigenem
+// Zustell-Register (Kanäle workflow:due und workflow:dueHandled). Das Register
+// ist dasselbe wie bei Erinnerungen, Wecker und Timer und bleibt unverändert:
+// Es stellt an alle Fenster zu, der erste Anspruch gewinnt. Welches Fenster
+// beansprucht, prüft das Fenster vor dem Anspruch (gleiche Bereichs-Wurzel,
+// kein laufender Workflow) und der Prüfer im Kanal noch einmal (Wurzel).
+function createWorkflowSchedule(deps) {
+  const { appRegistry, getStore, backlinks, broadcast } = deps;
+  const workflowsAn = () =>
+    isExtensionEnabled(
+      WORKFLOWS_EXTENSION_ID,
+      getStore() ? getStore().get('extensions.disabled') : [],
+    );
+  const fenster = deps.windows instanceof Map ? deps.windows : new Map();
+  const workflowScheduleDelivery = createDueDelivery({
+    broadcast,
+    dueChannel: 'workflow:due',
+    handledChannel: 'workflow:dueHandled',
+    keyOf: (item) => item.key,
+    active: workflowsAn,
+    stillOpen: (item) => workflowScheduleChecker.isPending(item.key),
+  });
+  const workflowScheduleChecker = createWorkflowScheduleChecker({
+    areas() {
+      const roots = new Set();
+      for (const appId of appRegistry.appIds()) {
+        const area = appRegistry.getArea(appId);
+        if (area && area.rootPath) roots.add(area.rootPath);
+      }
+      return [...roots].map((root) => ({ root }));
+    },
+    workflowFiles: (root) => backlinks.workflowFilesFor(null, root),
+    readText: (absPath) => readWorkflowText(absPath, backlinks),
+    readRunState,
+    // Ohne Fenster (Aufrufer ist der Hauptprozess) gehen Defekt-Meldungen
+    // allein ins Protokoll; notifyMddDefect nimmt dafür null an.
+    runState: createWorkflowRunState({ ...(deps.mddWege || {}) }),
+    enabled: workflowsAn,
+    deliver: (payload) => workflowScheduleDelivery.deliver(payload),
+    claimDelivery: (key) => workflowScheduleDelivery.claim([key]).length === 1,
+    releaseDelivery: (key) => {
+      workflowScheduleDelivery.release(key);
+    },
+    windowAlive: (id) =>
+      [...fenster.values()].some((win) => !win.isDestroyed() && win.webContents.id === id),
+    now: () => new Date(),
+  });
+  return { workflowScheduleChecker, workflowScheduleDelivery };
 }
 
 module.exports = { createCheckers };

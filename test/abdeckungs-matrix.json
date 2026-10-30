@@ -3505,6 +3505,75 @@
       "hinweis": "4T-002355 (Epic 3E-000184, Story 4S-001109): Workflow-Ordner, Untermenü und Einstellungs-Abschnitte. Unit: Menü-Aufbau nach dem Mockup, wirksamer Ordner, Einstellungs-Abschnitte, «Neuer Workflow …». An der gestarteten Anwendung: bereichsgebundener Abschnitt (ES-13), «Neuer Workflow …» und Start über das Untermenü (WF-START-02, WF-START-03), Untermenü und Einstellungs-Abschnitte im Aus-Zustand und zurück (WF-AUS-01)."
     },
     {
+      "key": "help.feature.workflowSchedule",
+      "id": "F-383",
+      "testart": "unit",
+      "tests": [
+        "test/unit/workflow-schedule.test.js",
+        "test/unit/workflow-document.test.js",
+        "test/unit/workflow-schedule-check.test.js",
+        "test/unit/renderer/workflow-zeitplan-lauf.test.js"
+      ],
+      "sichtbarkeit": ["test/e2e/funktionen/workflow-zeitplan.spec.js"],
+      "hinweis": "4T-002419 und 4T-002421 (Epic 3E-000366, Story 4S-001132): Workflows nach Zeitplan. Unit: Zeitplan-Grammatik und Fälligkeits-Rechnung samt Zeitumstellung und Monatsende (workflow-schedule), Dateikopf-Felder trigger, schedule und missed (workflow-document), Zeitplan-Prüfer mit Nachhol-Regel und Zustellung (workflow-schedule-check), Lauf ohne Zuschauer im Fenster (workflow-zeitplan-lauf). An der gestarteten Anwendung: verpasster Termin läuft beim Öffnen des Bereichs genau einmal nach (WF-ZEIT-01), zur Fälligkeit genau ein Lauf auch bei zwei Fenstern (WF-ZEIT-02)."
+    },
+    {
+      "key": "help.feature.workflowArming",
+      "id": "F-384",
+      "testart": "unit",
+      "tests": [
+        "test/unit/workflow-armed-ipc.test.js",
+        "test/unit/renderer/workflow-scharf.test.js",
+        "test/unit/renderer/workflow-scharf-knopf.test.js",
+        "test/unit/workflow-definition-hash.test.js",
+        "test/unit/workflow-run-state.test.js",
+        "test/unit/renderer/workflow-laeufe-seite.test.js"
+      ],
+      "sichtbarkeit": ["test/e2e/funktionen/workflow-scharf.spec.js"],
+      "hinweis": "4T-002420 und 4T-002422 (Epic 3E-000366, Story 4S-001133): Scharf-Schaltung. Unit: Kanal mit Prüfen vor dem Laufen und erstem Termin (workflow-armed-ipc), gemeinsames Kommando der drei Bedienorte (workflow-scharf), Knopf über dem Block (workflow-scharf-knopf), Prüfsumme der Definition (workflow-definition-hash), Scharf-Zustand im Lauf-Stand (workflow-run-state), Spalten Scharf und Nächster Lauf, Vermerke und Journal der Seite (workflow-laeufe-seite). An der gestarteten Anwendung: scharf schalten, nächster Lauf, Definition geändert, erneut scharf, entschärfen (WF-SCHARF-01)."
+    },
+    {
+      "key": "help.feature.workflowStatusbar",
+      "id": "F-385",
+      "testart": "unit",
+      "tests": [
+        "test/unit/renderer/workflow-statusleiste.test.js",
+        "test/unit/renderer/workflow-benachrichtigung.test.js",
+        "test/unit/workflow-benachrichtigung-kanal.test.js",
+        "test/unit/renderer/statusleisten-faltung.test.js"
+      ],
+      "sichtbarkeit": ["test/e2e/funktionen/workflow-statusleiste.spec.js"],
+      "hinweis": "4T-002423 (Epic 3E-000366, Story 4S-001134): Meldungen und Statusleisten-Element. Unit: Element mit Ergebnis-Zeichen, Name und Uhrzeit, Sichtbarkeit nur bei scharfem Workflow (workflow-statusleiste), notify und Fehlschlag je Herkunft (workflow-benachrichtigung), Fokus-Regel, Einmaligkeit und Aus-Zustand am Kanal des Betriebssystems (workflow-benachrichtigung-kanal), Zusammenklappen (statusleisten-faltung). An der gestarteten Anwendung: Lauf nach Zeitplan im Element, Klick öffnet die Seite, Element verschwindet ohne scharfen Workflow (WF-SB-01). Die Benachrichtigung des Betriebssystems selbst ist Oberfläche des Betriebssystems und nur am gebauten Programm prüfbar."
+    },
+    {
+      "key": "help.feature.workflowMaintenance",
+      "id": "F-386",
+      "testart": "unit",
+      "tests": [
+        "test/unit/workflow-maintenance-steps.test.js",
+        "test/unit/workflow-edit.test.js",
+        "test/unit/workflow-runner.test.js",
+        "test/unit/renderer/workflow-window.test.js",
+        "test/unit/workflow-catalog.test.js"
+      ],
+      "sichtbarkeit": ["test/e2e/funktionen/workflow-pflege.spec.js"],
+      "hinweis": "4T-002424 (Epic 3E-000366, Story 4S-001135): Pflege-Befehle. Unit: delete in den Papierkorb und complete-task im Hauptprozess (workflow-maintenance-steps), add-tag und remove-tag (workflow-edit), confirm und Lösch-Ziele des Laufs (workflow-runner), Abhaken über die Aufgaben-Abfrage und Dialoge im Fenster (workflow-window), Argument-Schemata und Freischaltung der Stufe (workflow-catalog). An der gestarteten Anwendung: eine Bestätigung vor einem Lauf mit delete (WF-PFLEGE-01), confirm mit Ja und Nein (WF-PFLEGE-02)."
+    },
+    {
+      "key": "help.feature.workflowLinked",
+      "id": "F-387",
+      "testart": "unit",
+      "tests": [
+        "test/unit/workflow-linked-sources.test.js",
+        "test/unit/workflow-linked-step.test.js",
+        "test/unit/renderer/workflow-fremd.test.js",
+        "test/unit/menu-workflows.test.js",
+        "test/unit/renderer/settings-area-links.test.js"
+      ],
+      "sichtbarkeit": ["test/e2e/funktionen/workflow-verknuepft.spec.js"],
+      "hinweis": "4T-002426 (Epic 3E-000366, Story 4S-001138): Workflows verknüpfter Bereiche. Unit: Quellen mit Zustimmung und Liste (workflow-linked-sources), Lauf in der eigenen Wurzel (workflow-linked-step), Ergebnis in der Statusleiste ohne Lauf-Stand (workflow-fremd), Block je Quelle im Menü (menu-workflows), Kästchen Workflows je Verknüpfung (settings-area-links). An der gestarteten Anwendung: Zustimmung, Anzeige mit Kürzel und Abschalten (WF-VERKN-01), Lauf in der eigenen Wurzel ohne Schreiben in den verknüpften Bereich (WF-VERKN-02)."
+    },
+    {
       "key": "help.shortcut.saveSidebarVariant",
       "id": "S-097",
       "testart": "e2e",

@@ -14,6 +14,13 @@
 // Sie ist zugleich der Ort, an dem der Anwender nach einem Befund aus
 // `4T-001453` den **neuen Pfad** eines verschobenen Bereichs angibt — dafür
 // braucht es keinen eigenen Bedienweg, das Pfad-Feld des Eintrags ist er.
+//
+// 4T-002426 (Epic 3E-000366, Entscheidung 2h): Neben dem Vorlagen-Opt-in trägt
+// jeder Eintrag das Opt-in «Workflows», Vorgabe aus. Beide Schalter stehen mit
+// sichtbarer Beschriftung, weil zwei unbeschriftete Kästchen nebeneinander nicht
+// zu unterscheiden wären; die Kennungen der Kästchen bleiben. Nach dem
+// Speichern holt das Fenster die Liste des Workflow-Ordners neu, damit Menü,
+// Palette und die Seite «Workflow-Läufe» der neuen Zustimmung sofort folgen.
 'use strict';
 
 import { t } from '../../i18n.js';
@@ -22,7 +29,13 @@ import { showStatusbarHint } from '../views/views.js';
 import { renderActiveSection } from './settings-mount.js';
 import { kontextSchluessel } from './settings-kontext.js';
 import { buildSettingsRow, jsonEqual } from './settings-shared.js';
+import { refreshWorkflowFolderList } from '../workflows/workflow-folder-list.js';
 import { isValidAreaPrefix, normalizeAreaPrefix } from '../../../shared/area-link-syntax.js';
+
+// Eine eigene Kopie eines Eintrags in der Form des Entwurfs.
+function eintragAus(l) {
+  return { prefix: l.prefix, path: l.path, templates: !!l.templates, workflows: !!l.workflows };
+}
 
 /**
  * Liest den Verknüpfungs-Stand für den Entwurf.
@@ -42,9 +55,9 @@ export async function readAreaLinksFromConfig() {
       hasArea: !!(antwort && antwort.hasArea),
       areaName: (antwort && antwort.areaName) || null,
       // Eigene Kopien: Der Entwurf wird bearbeitet, der Schnappschuss nicht.
-      eintraege: links.map((l) => ({ prefix: l.prefix, path: l.path, templates: !!l.templates })),
+      eintraege: links.map(eintragAus),
     },
-    snapshot: links.map((l) => ({ prefix: l.prefix, path: l.path, templates: !!l.templates })),
+    snapshot: links.map(eintragAus),
   };
 }
 
@@ -56,6 +69,7 @@ function normalisierteEintraege(values) {
       prefix: String(e.prefix || '').trim(),
       path: String(e.path || '').trim(),
       templates: e.templates === true,
+      workflows: e.workflows === true,
     }))
     .filter((e) => e.prefix !== '' || e.path !== '');
 }
@@ -122,10 +136,30 @@ export async function applyAreaLinksSection(draft) {
     return;
   }
   draft.areaLinksSnapshot = raus;
+  // 4T-002426: Die Workflows einer Quelle erscheinen oder verschwinden sofort.
+  void refreshWorkflowFolderList();
 }
 
-// Eine Eintrags-Zeile: Kürzel, Ablage-Ort mit Durchsuchen-Knopf, das
-// Vorlagen-Opt-in und der Entfernen-Knopf.
+// Ein beschriftetes Opt-in-Kästchen des Eintrags (4T-002426); die Kennung sitzt
+// am Kästchen selbst, der Hinweis als Tooltip an der ganzen Beschriftung.
+function schalter({ id, labelKey, hintKey, eintrag, feld }) {
+  const label = document.createElement('label');
+  label.className = 'settings-area-links-optin';
+  label.title = t(hintKey);
+  const kaestchen = document.createElement('input');
+  kaestchen.type = 'checkbox';
+  kaestchen.id = id;
+  kaestchen.checked = eintrag[feld] === true;
+  kaestchen.title = t(hintKey);
+  kaestchen.addEventListener('change', () => {
+    eintrag[feld] = kaestchen.checked;
+  });
+  label.append(kaestchen, document.createTextNode(` ${t(labelKey)}`));
+  return label;
+}
+
+// Eine Eintrags-Zeile: Kürzel, Ablage-Ort mit Durchsuchen-Knopf, die Opt-ins
+// für Vorlagen und Workflows und der Entfernen-Knopf.
 function baueZeile(container, values, eintrag, idx) {
   const zeile = document.createElement('div');
   zeile.className = 'settings-templates-rule-row';
@@ -171,13 +205,20 @@ function baueZeile(container, values, eintrag, idx) {
     }
   });
 
-  const vorlagen = document.createElement('input');
-  vorlagen.type = 'checkbox';
-  vorlagen.id = `settings-area-links-templates-${idx}`;
-  vorlagen.checked = eintrag.templates === true;
-  vorlagen.title = t('settings.areaLinks.templatesHint');
-  vorlagen.addEventListener('change', () => {
-    eintrag.templates = vorlagen.checked;
+  const vorlagen = schalter({
+    id: `settings-area-links-templates-${idx}`,
+    labelKey: 'settings.areaLinks.templatesLabel',
+    hintKey: 'settings.areaLinks.templatesHint',
+    eintrag,
+    feld: 'templates',
+  });
+  // 4T-002426: die Zustimmung zu den Workflows des verknüpften Bereichs.
+  const workflows = schalter({
+    id: `settings-area-links-workflows-${idx}`,
+    labelKey: 'settings.areaLinks.workflowsLabel',
+    hintKey: 'settings.areaLinks.workflowsHint',
+    eintrag,
+    feld: 'workflows',
   });
 
   const entfernen = document.createElement('button');
@@ -190,7 +231,7 @@ function baueZeile(container, values, eintrag, idx) {
     renderActiveSection();
   });
 
-  zeile.append(prefixInput, pfadInput, waehlen, vorlagen, entfernen);
+  zeile.append(prefixInput, pfadInput, waehlen, vorlagen, workflows, entfernen);
   container.appendChild(zeile);
 }
 
@@ -242,7 +283,7 @@ export function renderAreaLinksSection(container, draft) {
   hinzu.className = 'settings-button';
   hinzu.textContent = t('settings.areaLinks.add');
   hinzu.addEventListener('click', () => {
-    values.eintraege.push({ prefix: '', path: '', templates: false });
+    values.eintraege.push({ prefix: '', path: '', templates: false, workflows: false });
     renderActiveSection();
   });
   container.appendChild(buildSettingsRow('settings.areaLinks.addRow', hinzu));

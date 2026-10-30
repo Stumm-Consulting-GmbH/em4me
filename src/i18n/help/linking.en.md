@@ -116,6 +116,8 @@ The target is looked up at the given path first and, if nothing is there, by nam
 
 **Templates of the linked area** can be offered alongside your own; there is a switch per link. The template picker then shows both sets, and every entry from elsewhere names its origin. Without the switch a link does not change the set of templates.
 
+**Workflows of the linked area** can be offered in the same way, with a switch "Workflows" of its own per link. They appear in the menu, in the command palette and on the Workflow runs page with the prefix of the link, start only by hand and act in your own area; nothing is written into the linked area. Details on the [Workflows](workflows.md) page.
+
 ### When a linked area cannot be found
 
 When an area is opened it checks its links, and a finding never prevents it from opening:

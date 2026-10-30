@@ -1,6 +1,8 @@
 // 4T-002348 (Epic 3E-000184): Die Inhalts- und Dateikopf-Befehle der Workflows
 // im Hauptprozess — `append`, `insert`, `replace`, `set-property`,
-// `remove-property` (Story 4S-001103) — samt dem Lesen der Quellen.
+// `remove-property` (Story 4S-001103) — samt dem Lesen der Quellen; seit
+// 4T-002424 (Story 4S-001135) dazu `add-tag` und `remove-tag`, die über
+// dieselbe Weiche zum Editor-Puffer laufen (Regeln P2 und P5).
 //
 // **Ablauf je Schritt:** Ziel auflösen und gegen die Bereichs-Wurzel prüfen,
 // Quelle lesen, die Bearbeitung vollständig bilden (fertiger Text, damit das
@@ -39,6 +41,8 @@ const CONTENT_KEYWORDS = Object.freeze([
   'replace',
   'set-property',
   'remove-property',
+  'add-tag',
+  'remove-tag',
 ]);
 
 function fehlschlag(code, detail = {}) {
@@ -104,6 +108,8 @@ async function bearbeitungFuer(ctx, step) {
   }
   if (step.keyword === 'remove-property')
     return { ok: true, edit: { op: 'removeProperty', key: a1 } };
+  if (step.keyword === 'add-tag') return { ok: true, edit: { op: 'addTag', tag: a1 } };
+  if (step.keyword === 'remove-tag') return { ok: true, edit: { op: 'removeTag', tag: a1 } };
   const quelle = await readStepSource(ctx, step.source);
   if (!quelle.ok) return quelle;
   if (step.keyword === 'append') return { ok: true, edit: { op: 'append', text: quelle.text } };

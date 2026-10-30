@@ -60,6 +60,9 @@ function normalizePrefixForCompare(value) {
  * Definition ausserhalb der eigenen Wurzel liegt) und `templates` das Opt-in,
  * ob der Vorlagen-Ordner des verknuepften Bereichs in die Vorlagen-Kette
  * dieses Bereichs aufgenommen wird (Architekturentscheidung 4 des Epics).
+ * 4T-002426 (Epic 3E-000366, Entscheidung 2h): dazu `workflows` das Opt-in,
+ * ob die Workflows des verknüpften Bereichs im eigenen Bereich von Hand
+ * startbar sind — nach demselben Muster und mit derselben Vorgabe «aus».
  *
  * Verworfen werden: Nicht-Objekte, Eintraege ohne gueltiges Kuerzel, Eintraege
  * ohne absoluten Pfad, das zweite Vorkommen eines Kuerzels (der erste Eintrag
@@ -70,7 +73,7 @@ function normalizePrefixForCompare(value) {
  * @param {object} [options] Zusaetzliche Angaben.
  * @param {string} [options.selfRoot] Wurzel des eigenen Bereichs; ein Eintrag,
  *   der darauf zeigt, entfaellt.
- * @returns {Array<{prefix: string, path: string, templates: boolean}>} Gueltige
+ * @returns {Array<{prefix: string, path: string, templates: boolean, workflows: boolean}>} Gueltige
  *   Eintraege in ihrer Reihenfolge; leer, wenn nichts gueltig ist.
  */
 function normalizeAreaLinks(value, options) {
@@ -94,7 +97,13 @@ function normalizeAreaLinks(value, options) {
     // Das Opt-in ist streng boolesch und faellt sonst auf 'aus': Eine
     // bestehende Verknuepfung darf den wirksamen Vorlagen-Satz nie von selbst
     // aendern (Architekturentscheidung 4).
-    eintraege.push({ prefix, path: normalisiert, templates: roh.templates === true });
+    // 4T-002426: dieselbe Regel für die Workflows des verknüpften Bereichs.
+    eintraege.push({
+      prefix,
+      path: normalisiert,
+      templates: roh.templates === true,
+      workflows: roh.workflows === true,
+    });
   }
   return eintraege;
 }

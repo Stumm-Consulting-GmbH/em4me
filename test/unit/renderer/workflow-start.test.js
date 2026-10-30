@@ -26,7 +26,15 @@ const showStatusbarHint = vi.fn();
 vi.mock('../../../src/renderer/modules/views/views.js', () => ({
   showStatusbarHint: (...a) => showStatusbarHint(...a),
 }));
+// 4T-002424: Bestätigung der Lösch-Ziele, Frage von `confirm` und das
+// Schließen der Reiter vor `delete` als steuerbare Attrappen.
+const bestaetigeLoeschZiele = vi.fn(async () => true);
+const frageJaNein = vi.fn(async () => true);
+const schliesseVorDemLoeschen = vi.fn(async () => true);
 vi.mock('../../../src/renderer/modules/workflows/workflow-window.js', () => ({
+  bestaetigeLoeschZiele: (...a) => bestaetigeLoeschZiele(...a),
+  frageJaNein: (...a) => frageJaNein(...a),
+  schliesseVorDemLoeschen: (...a) => schliesseVorDemLoeschen(...a),
   flushPendingBuffers: async () => {},
   runWindowAction: async (a) => ({ ok: true, line: a.line, keyword: a.keyword, effect: {} }),
 }));
@@ -96,6 +104,13 @@ beforeEach(() => {
     Object.fromEntries(inputs.map((i) => [i.key, `Antwort ${i.question}`])),
   );
   showStatusbarHint.mockReset();
+  bestaetigeLoeschZiele.mockReset();
+  bestaetigeLoeschZiele.mockResolvedValue(true);
+  frageJaNein.mockReset();
+  frageJaNein.mockResolvedValue(true);
+  schliesseVorDemLoeschen.mockReset();
+  schliesseVorDemLoeschen.mockResolvedValue(true);
+  window.api.clipboardReadText = () => '';
   makro.mockClear();
   kommando.mockClear();
   rueckfragenZuruecksetzen();
@@ -113,8 +128,10 @@ describe('starteWorkflow', () => {
     expect(schritte[0].pfad).toBe('C:/b/A.md');
     expect(makro).toHaveBeenCalledWith('M', 1);
     expect(kommando).toHaveBeenCalledWith('view.modeSplit');
+    // 4T-002421: Das Journal geht mit; die Attrappe meldet keine Pfade, und
+    // eine Herkunft schickt der Start von Hand nicht (der Hauptprozess setzt manual).
     expect(laeufe).toEqual([
-      { pfad: 'C:/b/A.md', run: { status: 'ok', startedAt: expect.any(Number) } },
+      { pfad: 'C:/b/A.md', run: { status: 'ok', startedAt: expect.any(Number), journal: [] } },
     ]);
     expect(laeuftWorkflow()).toBe(false);
   });
@@ -350,5 +367,153 @@ describe('verschachtelte Workflows (E2, E5, E1)', () => {
     showStatusbarHint.mockReset();
     expect(await starteWorkflow({ path: 'C:/b/A.md', text: W('A', 'workflow "W1"') })).toBe(true);
     expect(hinweisTexte()).toEqual(['tief']);
+  });
+});
+
+// 4T-002424 (Stories 4S-001135 und 4S-001136): Bestätigung der Lösch-Ziele vor
+// dem ersten Schritt (P1), `confirm` (P4) und `{{clipboard}}` beim Start.
+describe('Pflege-Befehle und Zwischenablage beim Start', () => {
+  const eintrag = (name) => ({ name, relPath: `${name}.md`, absPath: `C:/b/W/${name}.md` });
+
+  it('eine Bestätigung nennt alle Ziele des Laufs samt aufgerufener Workflows, vor dem ersten Schritt', async () => {
+    liste = { workflows: [eintrag('B')] };
+    dateien['C:/b/W/B.md'] = W('B', 'delete "Unter/Alt.md"', 'delete "Entwurf.md"');
+    const reihenfolge = [];
+    bestaetigeLoeschZiele.mockImplementation(async (name, ziele) => {
+      reihenfolge.push(`bestaetigung:${name}:${ziele.join(',')}`);
+      return true;
+    });
+    schrittAntwort = (step) => {
+      reihenfolge.push(`schritt:${step.keyword}:${step.args[0]}`);
+      return { ok: true, line: step.line, keyword: step.keyword, effect: {} };
+    };
+    const ok = await starteWorkflow({
+      path: 'C:/b/A.md',
+      text: W('A', 'delete "Entwurf.md"', 'workflow "B"'),
+    });
+    expect(ok).toBe(true);
+    expect(bestaetigeLoeschZiele).toHaveBeenCalledTimes(1);
+    expect(reihenfolge).toEqual([
+      'bestaetigung:A:Entwurf.md,Unter/Alt.md',
+      'schritt:delete:Entwurf.md',
+      'schritt:delete:Unter/Alt.md',
+      'schritt:delete:Entwurf.md',
+    ]);
+    expect(schliesseVorDemLoeschen).toHaveBeenCalledWith('Entwurf.md');
+  });
+
+  it('«Nein» lässt keinen Schritt laufen und verbucht canceled (AK1)', async () => {
+    bestaetigeLoeschZiele.mockResolvedValue(false);
+    const ok = await starteWorkflow({
+      path: 'C:/b/A.md',
+      text: W('A', 'create "Neu.md"', 'delete "Alt.md"'),
+    });
+    expect(ok).toBe(false);
+    expect(schritte).toEqual([]);
+    expect(showStatusbarHint).not.toHaveBeenCalled();
+    expect(laeufe).toEqual([
+      { pfad: 'C:/b/A.md', run: { status: 'canceled', startedAt: expect.any(Number) } },
+    ]);
+    expect(laeuftWorkflow()).toBe(false);
+  });
+
+  it('ohne delete fragt keine Bestätigung', async () => {
+    await starteWorkflow({ path: 'C:/b/A.md', text: W('A', 'create "Neu.md"') });
+    expect(bestaetigeLoeschZiele).not.toHaveBeenCalled();
+  });
+
+  it('«Abbrechen» beim Schließen eines Reiters vor delete beendet den Lauf mit closeCanceled', async () => {
+    schliesseVorDemLoeschen.mockResolvedValue(false);
+    const ok = await starteWorkflow({ path: 'C:/b/A.md', text: W('A', 'delete "Alt.md"') });
+    expect(ok).toBe(false);
+    expect(schritte).toEqual([]);
+    expect(laeufe[0].run).toMatchObject({ status: 'failed', line: 7, code: 'closeCanceled' });
+  });
+
+  it('confirm mit «Ja» läuft weiter', async () => {
+    const ok = await starteWorkflow({
+      path: 'C:/b/A.md',
+      text: W('A', 'confirm "Weiter?"', 'create "Neu.md"'),
+    });
+    expect(ok).toBe(true);
+    expect(frageJaNein).toHaveBeenCalledWith('A', 'Weiter?');
+    expect(schritte.map((s) => s.step.keyword)).toEqual(['create']);
+  });
+
+  it('confirm mit «Nein» beendet den Lauf ohne Fehlschlag in Zeile N (AK4)', async () => {
+    frageJaNein.mockResolvedValue(false);
+    const ok = await starteWorkflow({
+      path: 'C:/b/A.md',
+      text: W('A', 'create "Neu.md"', 'confirm "Weiter?"', 'create "Danach.md"'),
+    });
+    expect(ok).toBe(false);
+    expect(schritte.map((s) => s.step.args[0])).toEqual(['Neu.md']);
+    expect(hinweisTexte()).toEqual([
+      'Workflow ‹A› beendet in Zeile 8: «Weiter?» mit Nein beantwortet',
+    ]);
+    expect(showStatusbarHint.mock.calls[0][1].error).toBe(false);
+    expect(laeufe[0].run).toMatchObject({ status: 'stopped', line: 8 });
+    expect(laeufe[0].run.code).toBeUndefined();
+  });
+
+  it('ein Lauf nach Zeitplan weist delete und confirm vor dem ersten Schritt ab, ohne Dialog', async () => {
+    for (const zeile of ['delete "Alt.md"', 'confirm "Weiter?"']) {
+      laeufe.length = 0;
+      await starteWorkflow({ path: 'C:/b/A.md', text: W('A', zeile), origin: 'schedule' });
+      expect(laeufe[0].run, zeile).toMatchObject({ status: 'failed', code: 'manualOnly' });
+    }
+    expect(bestaetigeLoeschZiele).not.toHaveBeenCalled();
+    expect(frageJaNein).not.toHaveBeenCalled();
+    expect(schritte).toEqual([]);
+  });
+
+  it('{{clipboard}} wird zum Text der Zwischenablage, auch in einer Vorlage (4S-001136, AK1, AK5)', async () => {
+    const kopiert = 'Zeile 1\nÄrger mit "Anführungszeichen"';
+    window.api.clipboardReadText = () => kopiert;
+    dateien['Tag.md'] = 'Inhalt: {{clipboard}}';
+    await starteWorkflow({
+      path: 'C:/b/A.md',
+      text: W('A', 'replace "x.md" "HIER" "{{clipboard}}"', 'create "y.md" from-template "Tag.md"'),
+    });
+    expect(schritte[0].step.args[2]).toBe(kopiert);
+    expect(schritte[1].step.source).toMatchObject({ kind: 'template', text: `Inhalt: ${kopiert}` });
+  });
+
+  it('{{clipboard}} bleibt in from-section wörtlich (Bestand, O2)', async () => {
+    window.api.clipboardReadText = () => 'Kopie';
+    await starteWorkflow({
+      path: 'C:/b/A.md',
+      text: W('A', 'append "x.md" from-section "{{clipboard}}"'),
+    });
+    // Der Abschnitts-Name wird gefüllt, der Inhalt des Abschnitts liest der
+    // Hauptprozess erst beim Schritt und übernimmt ihn wörtlich.
+    expect(schritte[0].step.source).toEqual({ kind: 'section', name: 'Kopie' });
+  });
+
+  it('eine leere oder nicht lesbare Zwischenablage ergibt leeren Text, kein Fehlschlag (AK4)', async () => {
+    window.api.clipboardReadText = () => '';
+    expect(
+      await starteWorkflow({ path: 'C:/b/A.md', text: W('A', 'notify "[{{clipboard}}]"') }),
+    ).toBe(true);
+    window.api.clipboardReadText = () => {
+      throw new Error('gesperrt');
+    };
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(
+      await starteWorkflow({ path: 'C:/b/A.md', text: W('A', 'notify "[{{clipboard}}]"') }),
+    ).toBe(true);
+    expect(hinweisTexte()).toEqual(['[]', '[]']);
+  });
+
+  it('jeder Lauf nimmt den Inhalt zu seinem Zeitpunkt, auch nach Zeitplan (4S-001136, AK2, AK6)', async () => {
+    window.api.clipboardReadText = () => 'eins';
+    await starteWorkflow({ path: 'C:/b/A.md', text: W('A', 'notify "{{clipboard}}"') });
+    window.api.clipboardReadText = () => 'zwei';
+    await starteWorkflow({
+      path: 'C:/b/A.md',
+      text: W('A', 'notify "{{clipboard}}"'),
+      origin: 'schedule',
+    });
+    expect(hinweisTexte()).toEqual(['eins', 'zwei']);
   });
 });

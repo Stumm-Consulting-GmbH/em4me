@@ -296,5 +296,10 @@
   "help.featureAccess.workflowStart": "Datei → Workflows → ‚Name des Workflows‘; Kommando-Palette → ‚Name des Workflows‘; Knopf «Starten» über dem Block in der Live-, der gerenderten und der geteilten Ansicht; Kontextmenü einer Workflow-Datei im Bereichs-Panel → Starten; Datei → Einstellungen… → Tastenkürzel",
   "help.featureAccess.workflowRuns": "Ansicht → Workflow-Läufe anzeigen; Datei → Workflows → Workflow-Läufe anzeigen; Kommando-Palette → ‚Workflow-Läufe anzeigen‘",
   "help.featureAccess.workflowEditor": "Code-Block `workflow`; Prüf-Anzeige über dem Block in der Live-, der gerenderten und der geteilten Ansicht",
-  "help.featureAccess.workflowFolder": "Datei → Workflows; Datei → Workflows → Neuer Workflow … und Workflow-Ordner festlegen …; Datei → Einstellungen… → Erweiterungen (intern) → Workflows und Aktueller Bereich → Workflows; Kommando-Palette → ‚Neuer Workflow …‘"
+  "help.featureAccess.workflowFolder": "Datei → Workflows; Datei → Workflows → Neuer Workflow … und Workflow-Ordner festlegen …; Datei → Einstellungen… → Erweiterungen (intern) → Workflows und Aktueller Bereich → Workflows; Kommando-Palette → ‚Neuer Workflow …‘",
+  "help.featureAccess.workflowSchedule": "Dateikopf-Felder `trigger: schedule`, `schedule` und `missed`; Prüf-Anzeige über dem Block in der Live-, der gerenderten und der geteilten Ansicht",
+  "help.featureAccess.workflowArming": "Ansicht → Workflow-Läufe anzeigen → Spalte «Scharf»; Knopf «Scharf» über dem Block in der Live-, der gerenderten und der geteilten Ansicht; Kontextmenü einer Workflow-Datei im Bereichs-Panel → Scharf schalten / Entschärfen",
+  "help.featureAccess.workflowStatusbar": "Statusleiste → Element «Workflows»; Befehl `notify` im Code-Block `workflow`",
+  "help.featureAccess.workflowMaintenance": "Befehle `delete`, `add-tag`, `remove-tag`, `complete-task` und `confirm` im Code-Block `workflow`",
+  "help.featureAccess.workflowLinked": "Datei → Einstellungen… → Aktueller Bereich → Bereichs-Verknüpfungen → Workflows; Datei → Workflows; Kommando-Palette; Ansicht → Workflow-Läufe anzeigen"
 }

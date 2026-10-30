@@ -34,7 +34,7 @@ El editor de pasos está en la misma sección de configuración: por macro, una 
 
 ## Workflows
 
-Cada workflow de la carpeta de workflows es también un comando, en el espacio de nombres de los workflows, y como una macro puede colocarse como botón de la barra de estado o entrada del menú contextual y recibir un atajo en la sección de configuración «Atajos de teclado». A diferencia de una macro, un workflow es un archivo Markdown con comandos fijos que también crean, mueven y modifican archivos; un workflow puede llamar a una macro como paso. El identificador de su comando procede de la ruta del archivo en la carpeta de workflows: si el workflow se renombra o se mueve, un botón y una entrada creados para él desaparecen, y hay que asignar de nuevo un atajo de teclado. Detalles en la página [Workflows](workflows.md).
+Cada workflow de la carpeta de workflows es también un comando, en el espacio de nombres de los workflows, y como una macro puede colocarse como botón de la barra de estado o entrada del menú contextual y recibir un atajo en la sección de configuración «Atajos de teclado». A diferencia de una macro, un workflow es un archivo Markdown con comandos fijos que también crean, mueven y modifican archivos; un workflow puede llamar a una macro como paso. El identificador de su comando procede de la ruta del archivo en la carpeta de workflows: si el workflow se renombra en la aplicación o se mueve dentro de la carpeta de workflows, un botón, una entrada y un atajo de teclado creados para él se trasladan con él; tras renombrarlo fuera de la aplicación hay que asignarlos de nuevo. Detalles en la página [Workflows](workflows.md).
 
 ## Delimitación frente a la paleta de comandos
 

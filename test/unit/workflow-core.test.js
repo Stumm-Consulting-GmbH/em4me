@@ -64,6 +64,8 @@ describe('Prozess-Neutralität des Kerns (AK6)', () => {
       'workflow-placeholders.js',
       // 4T-002349: der Ablauf-Kern eines Laufs.
       'workflow-runner.js',
+      // 4T-002419: Zeitplan-Grammatik und Fälligkeits-Rechnung.
+      'workflow-schedule.js',
     ]);
   });
 
@@ -121,7 +123,12 @@ describe('analyzeWorkflow — der Gesamt-Durchlauf', () => {
       name: 'Wochenstart',
       trigger: 'manual',
       description: 'Legt die Woche an.',
+      // 4T-002419: die Zeitplan-Felder mit ihren Vorgaben.
+      schedule: null,
+      scheduleText: null,
+      missed: 'run-once',
     });
+    expect(a.armable).toBe(false);
     expect(a.steps.map((s) => s.keyword)).toEqual(['mkdir', 'create', 'append', 'open', 'notify']);
   });
 
@@ -168,6 +175,7 @@ describe('analyzeWorkflow — der Gesamt-Durchlauf', () => {
       blockLines: [],
       block: null,
       ok: false,
+      armable: false,
       steps: [],
       findings: [],
     });

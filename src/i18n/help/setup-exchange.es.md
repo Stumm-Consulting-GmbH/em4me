@@ -24,6 +24,7 @@ Estos tipos de datos están a elección:
 | Modos de trabajo propios | los estados de interruptores con nombre de las extensiones integradas que has guardado tú mismo |
 | Disposición de la barra lateral | elección de paneles, orden, grupos de pestañas y anchuras, junto con las variantes de disposición propias |
 | Carpeta y reglas de plantillas | la carpeta de plantillas y la cadena ordenada de las reglas de carpeta |
+| Carpeta de workflows | la [carpeta de workflows](workflows.md) de toda la aplicación; surte efecto en cuanto se importa |
 | Favoritos | el árbol de los marcadores generales, con carpetas y entradas |
 | Sistemas de calendario del área | los bloques de cronologías del área abierta |
 
@@ -85,7 +86,7 @@ Rige **una sola** regla para todos los tipos de datos:
 
 > Se añade lo que usted ha creado como objeto con nombre. Se reemplaza lo que es un ajuste o una disposición.
 
-Por eso se añaden los esquemas de color propios, los temas de diapositivas propios, las macros, las variantes de disposición de la barra lateral, los modos de trabajo propios, los marcadores y los bloques de calendario: se colocan **junto** a lo existente, y el fondo presente no se toca al hacerlo. Se reemplazan los ajustes, la asignación de los atajos de teclado, la barra de formato, las reglas de plantillas y el estado de las extensiones: un valor no conoce el plural, y dos disposiciones entrelazadas darían una tercera que nadie ha configurado.
+Por eso se añaden los esquemas de color propios, los temas de diapositivas propios, las macros, las variantes de disposición de la barra lateral, los modos de trabajo propios, los marcadores y los bloques de calendario: se colocan **junto** a lo existente, y el fondo presente no se toca al hacerlo. Se reemplazan los ajustes, la asignación de los atajos de teclado, la barra de formato, las reglas de plantillas, la carpeta de workflows y el estado de las extensiones: un valor no conoce el plural, y dos disposiciones entrelazadas darían una tercera que nadie ha configurado.
 
 **Con el mismo nombre, la entrada existente queda inalterada**, y la leída llega a su lado con un añadido distintivo: «Muestra» se convierte en «Muestra (2)». La vista previa nombra cada uno de esos cambios de nombre. Las referencias se ajustan con ello: una macro leída que recibe un identificador nuevo sigue siendo encontrada por su botón.
 

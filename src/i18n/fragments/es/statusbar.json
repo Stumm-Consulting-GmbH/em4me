@@ -44,5 +44,8 @@
   "settings.statusbar.unavailableMode": "Botones no utilizables",
   "settings.statusbar.unavailableMode.blass": "Mostrar atenuados",
   "settings.statusbar.unavailableMode.ausgeblendet": "Ocultar",
-  "settings.statusbar.unavailableMode.hint": "Algunos botones de la barra de estado no pueden hacer nada en este momento: por ejemplo los selectores de vista mientras la página de ajustes está delante, o el lápiz de edición cuando no hay ningún documento abierto. Con «Mostrar atenuados» permanecen en su sitio y se ven claramente desactivados. Con «Ocultar» desaparecen mientras no puedan hacer nada y después vuelven a su sitio; la barra muestra entonces solo lo que funciona. Un botón desmarcado en la lista de botones predeterminados sigue ausente en ambos casos. El menú Ver permanece sin cambios. Los cambios surten efecto con Aplicar u OK."
+  "settings.statusbar.unavailableMode.hint": "Algunos botones de la barra de estado no pueden hacer nada en este momento: por ejemplo los selectores de vista mientras la página de ajustes está delante, o el lápiz de edición cuando no hay ningún documento abierto. Con «Mostrar atenuados» permanecen en su sitio y se ven claramente desactivados. Con «Ocultar» desaparecen mientras no puedan hacer nada y después vuelven a su sitio; la barra muestra entonces solo lo que funciona. Un botón desmarcado en la lista de botones predeterminados sigue ausente en ambos casos. El menú Ver permanece sin cambios. Los cambios surten efecto con Aplicar u OK.",
+  "statusbar.workflows.label": "Workflows",
+  "statusbar.workflows.title": "Última ejecución programada: {name}, {time}, {result}. Al hacer clic se abre la página «Ejecuciones de workflows».",
+  "statusbar.workflows.titleNoRun": "Hay un workflow activado, pero aún no se ha ejecutado según la programación. Al hacer clic se abre la página «Ejecuciones de workflows»."
 }

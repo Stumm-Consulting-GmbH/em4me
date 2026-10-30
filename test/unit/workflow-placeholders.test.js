@@ -249,3 +249,42 @@ describe('prepareRun — gefüllte Schritte', () => {
     expect(JSON.parse(JSON.stringify(r))).toEqual(r);
   });
 });
+
+// 4T-002424 (Story 4S-001136): `{{clipboard}}` im Platzhalter-Satz der Workflows.
+describe('{{clipboard}} (4S-001136)', () => {
+  it('füllt Argumente und eingesetzte Vorlagen mit dem Text der Zwischenablage', () => {
+    const kopiert = 'Zeile 1\nÄrger mit "Anführungszeichen" und {{date}}';
+    const s = schritte([
+      'replace "a.md" "HIER" "{{clipboard}}"',
+      'create "{{clipboard}}.md"',
+      'create "b.md" from-template "Tag.md"',
+    ]);
+    const r = prepareRun(
+      s,
+      { ...KONTEXT, clipboard: kopiert },
+      {},
+      { 'Tag.md': '# {{clipboard}}' },
+    );
+    expect(r.findings).toEqual([]);
+    expect(r.steps[0].args[2]).toBe(kopiert);
+    expect(r.steps[1].args[0]).toBe(`${kopiert}.md`);
+    // Der eingesetzte Text wird nicht erneut als Vorlage gelesen.
+    expect(r.steps[2].source.text).toBe(`# ${kopiert}`);
+  });
+
+  it('eine leere oder fehlende Zwischenablage ergibt leeren Text, keinen Befund', () => {
+    const s = schritte(['notify "[{{clipboard}}]"']);
+    expect(prepareRun(s, { ...KONTEXT, clipboard: '' }, {}, {}).steps[0].args).toEqual(['[]']);
+    expect(prepareRun(s, KONTEXT, {}, {}).steps[0].args).toEqual(['[]']);
+  });
+
+  it('from-section und from-file bleiben wörtlich; nur der Name des Abschnitts wird gefüllt', () => {
+    const s = schritte([
+      'append "a.md" from-section "{{clipboard}}"',
+      'append "a.md" from-file "q.md"',
+    ]);
+    const r = prepareRun(s, { ...KONTEXT, clipboard: 'Teil' }, {}, {});
+    expect(r.steps[0].source).toEqual({ kind: 'section', name: 'Teil' });
+    expect(r.steps[1].source).toEqual({ kind: 'file', path: 'q.md' });
+  });
+});

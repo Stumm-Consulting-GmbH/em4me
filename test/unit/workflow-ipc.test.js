@@ -33,7 +33,7 @@ afterEach(() => {
 
 // 4T-002352: `aus` ist die gespeicherte Aus-Liste der Erweiterungen; ohne sie
 // gibt es keinen Speicher, und der Schalter gilt als eingeschaltet.
-function welt({ mitBereich = true, aus = null } = {}) {
+function welt({ mitBereich = true, aus = null, trashItem = null } = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-wf-kanal-'));
   tmpDirs.push(root);
   const kanaele = new Map();
@@ -59,6 +59,7 @@ function welt({ mitBereich = true, aus = null } = {}) {
     mddSuspendedPaths: new Set(),
     mddKeyOf: (p) => p.toLowerCase(),
     notifyMddDefect: () => {},
+    ...(trashItem ? { trashItem } : {}),
     ...(aus
       ? {
           getStore: () => ({
@@ -85,7 +86,7 @@ const schritt = (keyword, args, extra = {}) => ({
 });
 
 describe('Kanäle', () => {
-  it('registriert die drei Kanäle der Ausführung, die sechs des Workflow-Ordners und den der Läufe', () => {
+  it('registriert die drei Kanäle der Ausführung, die sechs des Workflow-Ordners, den der Läufe, die vier des Laufs nach Zeitplan und die zwei der Scharf-Schaltung', () => {
     // 4T-002355: Die Kanäle des Workflow-Ordners meldet registerWorkflowsIpc mit
     // an (ipc/workflow-folder.js); geprüft werden sie in workflow-folder-ipc.test.js.
     // Teil 2 brachte workflow:setFolder, workflow:create und workflow:fileInfo;
@@ -101,6 +102,16 @@ describe('Kanäle', () => {
       'workflow:create',
       'workflow:fileInfo',
       'workflow:runs',
+      // 4T-002421: Lauf nach Zeitplan (ipc/workflow-schedule.js), geprüft in
+      // workflow-schedule-check.test.js.
+      'workflow:scheduleClaim',
+      'workflow:scheduleRelease',
+      'workflow:scheduleFinished',
+      'workflow:scheduleOpen',
+      // 4T-002422: Scharf-Schaltung (ipc/workflow-armed.js), geprüft in
+      // workflow-armed-ipc.test.js.
+      'workflow:setArmed',
+      'workflow:armedState',
     ]);
   });
 });
@@ -110,7 +121,13 @@ describe('workflow:step prüft die Nutzlast fail-closed', () => {
     ['keine Nutzlast', null],
     ['kein Schritt', {}],
     ['Zeile fehlt', { step: { ...schritt('mkdir', ['A']), line: undefined } }],
-    ['unbekanntes Schlüsselwort', { step: schritt('delete', ['A']) }],
+    // 4T-002424: `delete` ist seit der Stufe 2 ein Befehl des Hauptprozesses;
+    // die Stufe 3 bleibt unbekannt, `confirm` läuft im Fenster.
+    ['unbekanntes Schlüsselwort', { step: schritt('if-exists', ['A']) }],
+    ['confirm ist ein Schritt der Fenster-Seite', { step: schritt('confirm', ['Weiter?']) }],
+    ['delete mit zwei Argumenten', { step: schritt('delete', ['A', 'B']) }],
+    ['add-tag mit leerem Schlagwort', { step: schritt('add-tag', ['a.md', ' ']) }],
+    ['complete-task ohne Suchtext', { step: schritt('complete-task', ['a.md']) }],
     ['Schritt der Fenster-Seite', { step: schritt('command', ['app.save']) }],
     ['zu wenige Argumente', { step: schritt('move', ['A']) }],
     ['falscher Typ', { step: schritt('mkdir', [7]) }],
@@ -229,6 +246,65 @@ describe('workflow:recordRun und workflow:bufferEditDone', () => {
     });
   });
 
+  // 4T-002420 (AK4, AK6): Ein Lauf aus drei Datei-Schritten über die echten
+  // Kanäle; das Journal entsteht aus den gemeldeten Wirkungen der Schritte, wie
+  // der Ablauf es künftig tut, und landet mit relativen Pfaden in der
+  // Begleitdatei. Die Workflow-Datei bleibt Zeichen für Zeichen.
+  it('hält Herkunft und Journal eines Laufs mit drei Datei-Schritten fest (AK4, AK6)', async () => {
+    const w = welt();
+    fs.mkdirSync(path.dirname(w.workflowPath));
+    const text = [
+      '---',
+      'workflow: true',
+      '---',
+      '```workflow',
+      'mkdir "Projekt"',
+      'create "Projekt/Notiz.md"',
+      'copy "Projekt/Notiz.md" "Projekt/Kopie.md"',
+      '```',
+      '',
+    ].join('\n');
+    fs.writeFileSync(w.workflowPath, text, 'utf8');
+    const analyse = analyzeWorkflow(text, { fileName: 'Ablauf.md' });
+    const lauf = prepareRun(analyse.steps, { nowMs: 0 }, {}, {});
+    expect(lauf.ok).toBe(true);
+    const journal = [];
+    for (const s of lauf.steps) {
+      const res = await w.rufe('workflow:step', { workflowPath: w.workflowPath, step: s });
+      expect(res.ok).toBe(true);
+      for (const p of res.effect.paths)
+        journal.push({ line: res.line, command: res.keyword, path: p });
+    }
+    const res = await w.rufe('workflow:recordRun', {
+      workflowPath: w.workflowPath,
+      run: { status: 'ok', origin: 'schedule', journal },
+    });
+    expect(res).toEqual({ ok: true });
+    const begleit = JSON.parse(
+      fs.readFileSync(path.join(w.root, 'Workflows', 'Ablauf.mdd'), 'utf8'),
+    );
+    expect(begleit.workflow.lastRun.origin).toBe('schedule');
+    expect(begleit.workflow.lastRun.journal).toEqual([
+      { line: 5, command: 'mkdir', path: 'Projekt' },
+      { line: 6, command: 'create', path: 'Projekt/Notiz.md' },
+      { line: 7, command: 'copy', path: 'Projekt/Kopie.md' },
+    ]);
+    expect(fs.readFileSync(w.workflowPath, 'utf8')).toBe(text);
+  });
+
+  it('weist ein Journal mit einem Pfad außerhalb des Bereichs ab', async () => {
+    const w = welt();
+    const res = await w.rufe('workflow:recordRun', {
+      workflowPath: w.workflowPath,
+      run: {
+        status: 'ok',
+        journal: [{ line: 5, command: 'mkdir', path: path.join(path.dirname(w.root), 'X') }],
+      },
+    });
+    expect(res).toEqual({ ok: false, code: 'outsideArea' });
+    expect(fs.existsSync(path.join(w.root, 'Workflows', 'Ablauf.mdd'))).toBe(false);
+  });
+
   it('weist einen ungültigen Lauf und einen fremden Ort ab', async () => {
     const w = welt();
     expect(
@@ -289,5 +365,60 @@ describe('Aus-Zustand der Erweiterung workflows', () => {
       run: { status: 'failed', line: 6, code: 'extensionOff' },
     });
     expect(res).toEqual({ ok: true });
+  });
+});
+
+// 4T-002424 (Story 4S-001135): Die Pflege-Befehle am echten Kanal, mit einer
+// Attrappe des Papierkorbs.
+describe('Pflege-Befehle über workflow:step', () => {
+  it('delete legt die Datei samt Begleitdatei über den Papierkorb weg', async () => {
+    const weg = [];
+    const w = welt({
+      trashItem: async (p) => {
+        weg.push(p);
+        fs.rmSync(p, { recursive: true, force: true });
+      },
+    });
+    fs.writeFileSync(path.join(w.root, 'Alt.md'), 'x', 'utf8');
+    fs.writeFileSync(path.join(w.root, 'Alt.mdd'), '{}', 'utf8');
+    const res = await w.rufe('workflow:step', {
+      workflowPath: w.workflowPath,
+      step: schritt('delete', ['Alt.md']),
+    });
+    expect(res).toMatchObject({ ok: true, line: 3, keyword: 'delete' });
+    expect(weg).toEqual([path.join(w.root, 'Alt.md'), path.join(w.root, 'Alt.mdd')]);
+    expect(fs.readdirSync(w.root)).toEqual([]);
+  });
+
+  it('add-tag schreibt das Schlagwort in den Dateikopf', async () => {
+    const w = welt();
+    const datei = path.join(w.root, 'a.md');
+    fs.writeFileSync(datei, '---\ntags: [alt]\n---\nText\n', 'utf8');
+    const res = await w.rufe('workflow:step', {
+      workflowPath: w.workflowPath,
+      step: schritt('add-tag', ['a.md', 'neu']),
+    });
+    expect(res).toMatchObject({ ok: true, keyword: 'add-tag', effect: { kind: 'edited' } });
+    expect(fs.readFileSync(datei, 'utf8')).toBe('---\ntags:\n  - alt\n  - neu\n---\nText\n');
+  });
+
+  it('complete-task antwortet mit dem Fenster-Handgriff completeTask', async () => {
+    const w = welt();
+    fs.writeFileSync(path.join(w.root, 'Plan.md'), '- [x] Rückblick\n- [ ] Rückblick schreiben\n');
+    const res = await w.rufe('workflow:step', {
+      workflowPath: w.workflowPath,
+      step: schritt('complete-task', ['Plan.md', 'Rückblick']),
+    });
+    expect(res).toEqual({
+      ok: true,
+      line: 3,
+      keyword: 'complete-task',
+      window: {
+        action: 'completeTask',
+        path: path.join(w.root, 'Plan.md'),
+        line: 2,
+        taskText: '- [ ] Rückblick schreiben',
+      },
+    });
   });
 });

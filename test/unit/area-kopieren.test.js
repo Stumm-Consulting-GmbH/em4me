@@ -320,6 +320,60 @@ describe('area:copyFile — Begleitdaten (4T-001731, E2, E3 und E9)', () => {
     expect(fs.existsSync(path.join(wurzel, 'Konzept-1.mdd'))).toBe(false);
   });
 
+  // 4T-002420 (Epic 3E-000366, AK2): Eine kopierte Workflow-Datei ist nie
+  // scharf. Der Lauf-Stand beschreibt den Betrieb der Vorlage, nicht die Sache,
+  // und bleibt zurück — mit ihm Scharf-Zustand, nächster Lauf und Journal.
+  it('lässt den Lauf-Stand einer scharfen Workflow-Datei zurück, die Notiz reist mit', async () => {
+    const { wurzel } = await bereich();
+    const copyFile = registriere(wurzel);
+    const vorlage = path.join(wurzel, 'Konzept.md');
+    const mdd = await schreibeBegleitdatei(vorlage, { mitBlockData: false, mitHistorie: false });
+    const container = mddStore.parseContainer(await fsp.readFile(mdd, 'utf8')).container;
+    mddStore.recordWorkflowRun(
+      container,
+      { status: 'ok', origin: 'schedule', journal: [{ line: 5, command: 'mkdir', path: 'A' }] },
+      Date.UTC(2026, 9, 28),
+    );
+    mddStore.setWorkflowArmed(container, { hash: 'a'.repeat(64) }, Date.UTC(2026, 9, 28));
+    mddStore.setWorkflowNextDue(container, '2026-10-29T08:00');
+    await fsp.writeFile(mdd, mddStore.serializeContainer(container), 'utf8');
+    expect(mddStore.getWorkflowRun(container).armed).not.toBe(null);
+
+    const ergebnis = await copyFile({}, vorlage);
+
+    expect(ergebnis.begleitdatei).toBe(true);
+    const kopie = mddStore.parseContainer(
+      await fsp.readFile(path.join(wurzel, 'Konzept-1.mdd'), 'utf8'),
+    ).container;
+    expect(kopie.workflow).toBeUndefined();
+    expect(mddStore.getWorkflowRun(kopie)).toBe(null);
+    expect(mddStore.getNote(kopie).text).toBe('Notiz zur Vorlage');
+    // Die Vorlage bleibt scharf.
+    const vorlageStand = mddStore.getWorkflowRun(
+      mddStore.parseContainer(await fsp.readFile(mdd, 'utf8')).container,
+    );
+    expect(vorlageStand.armed.hash).toBe('a'.repeat(64));
+  });
+
+  it('legt für eine Workflow-Datei mit nichts als dem Lauf-Stand keine Begleitdatei an', async () => {
+    const { wurzel } = await bereich();
+    const copyFile = registriere(wurzel);
+    const vorlage = path.join(wurzel, 'Konzept.md');
+    const container = mddStore.emptyContainer();
+    mddStore.setWorkflowArmed(container, { hash: 'b'.repeat(64) }, Date.UTC(2026, 9, 28));
+    await fsp.writeFile(
+      path.join(wurzel, 'Konzept.mdd'),
+      mddStore.serializeContainer(container),
+      'utf8',
+    );
+
+    const ergebnis = await copyFile({}, vorlage);
+
+    expect(ergebnis.ok).toBe(true);
+    expect(ergebnis.begleitdatei).toBe(false);
+    expect(fs.existsSync(path.join(wurzel, 'Konzept-1.mdd'))).toBe(false);
+  });
+
   it('laesst eine DEFEKTE Begleitdatei der Vorlage unberuehrt und kopiert trotzdem', async () => {
     const { wurzel } = await bereich();
     const copyFile = registriere(wurzel);

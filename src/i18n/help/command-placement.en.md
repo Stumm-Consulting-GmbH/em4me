@@ -34,7 +34,7 @@ The step editor lives in the same settings section: per macro a collapsible step
 
 ## Workflows
 
-Every workflow of the workflows folder is a command too, in the namespace of the workflows, and like a macro it can be placed as a status bar button or context menu entry and given a key in the settings section "Keyboard shortcuts". Unlike a macro, a workflow is a Markdown file with fixed commands that also create, move and change files; a workflow can call a macro as a step. The ID of its command comes from the path of the file in the workflows folder: if the workflow is renamed or moved, a button and an entry created for it disappear, and a keyboard shortcut has to be assigned again. Details on the [Workflows](workflows.md) page.
+Every workflow of the workflows folder is a command too, in the namespace of the workflows, and like a macro it can be placed as a status bar button or context menu entry and given a key in the settings section "Keyboard shortcuts". Unlike a macro, a workflow is a Markdown file with fixed commands that also create, move and change files; a workflow can call a macro as a step. The ID of its command comes from the path of the file in the workflows folder: if the workflow is renamed in the application or moved within the workflows folder, a button, an entry and a keyboard shortcut created for it move along; after renaming outside the application they have to be assigned again. Details on the [Workflows](workflows.md) page.
 
 ## Distinction from the command palette
 

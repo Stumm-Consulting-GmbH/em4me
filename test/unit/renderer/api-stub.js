@@ -85,6 +85,16 @@ window.api = {
   onTimerHandled: noop,
   timerOpen: async () => ({ catchUp: false, items: [] }),
   timerClaim: async (ids) => ({ granted: Array.isArray(ids) ? ids : [] }),
+  // 4T-002421: Lauf nach Zeitplan (workflow-zeitplan-lauf.js); die Zustellung
+  // landet in window.__workflowDueHandler, Prüffälle setzen die Antworten.
+  onWorkflowDue: (handler) => {
+    window.__workflowDueHandler = handler;
+  },
+  workflowScheduleClaim: async (key) =>
+    window.__workflowScheduleClaim ? window.__workflowScheduleClaim(key) : { granted: false },
+  workflowScheduleRelease: async () => ({ released: false }),
+  workflowScheduleFinished: async () => ({ finished: false }),
+  workflowScheduleOpen: async () => ({ catchUp: false, items: [] }),
   // 4T-001885 (Epic 3E-000189): Der Einstellungs-Abschnitt «Eigene Angaben»
   // fragt die Angaben des gebundenen Buches bzw. Regals ab. Ohne gebundenes
   // Buch fragt er gar nicht erst; die Eintraege stehen fuer die Faelle da, die

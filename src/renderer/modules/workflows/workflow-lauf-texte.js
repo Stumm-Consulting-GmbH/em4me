@@ -83,10 +83,14 @@ export function grundText(ergebnis) {
  */
 export function abbruchText(ergebnis) {
   if (ergebnis.status === 'stopped') {
+    // 4T-002424: `confirm` mit «Nein» endet wie `stop`; der Text nennt die Frage.
+    const text = ergebnis.declined
+      ? einsetzen(t('workflow.lauf.verneint'), { question: ergebnis.text })
+      : ergebnis.text;
     return einsetzen(t('workflow.lauf.beendet'), {
       name: ergebnis.workflow,
       line: ergebnis.line,
-      text: ergebnis.text,
+      text,
     });
   }
   return ortUndGrund(ergebnis, 'workflow.lauf.abgebrochen', 'workflow.lauf.abgebrochenOhneZeile');

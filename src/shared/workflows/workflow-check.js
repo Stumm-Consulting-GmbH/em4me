@@ -23,6 +23,17 @@
 // Befund-Form: `{ code, line, blockLine, column, detail }`; der Kern kennt
 // keine Sprache, die Texte entstehen in der Anzeige.
 //
+// **Befund «nur von Hand» (4T-002419, Story 4S-001130):** Ein Lauf nach
+// Zeitplan hat keinen Zuschauer. In einem Workflow mit `trigger: schedule` sind
+// deshalb Eingabe-Platzhalter (`{{prompt:…}}`, `{{select:…}}`) und die Befehle
+// `confirm` und `delete` ein Befund `manualOnly` (Management-Summary der
+// Konzept-Runde 4T-002418, Teil 3, Punkt 3). Er trägt das Kennzeichen
+// `armOnly: true`: Er verhindert die Scharf-Schaltung, nicht den Start von
+// Hand. `ok` zählt ihn deshalb nicht mit; `armable` sagt, ob sich der
+// Workflow scharf schalten lässt (Zeitplan-Auslöser und kein Befund
+// irgendeiner Art). Erkannt wird, was in den Befehls-Zeilen steht; Eingaben
+// einer mit `from-template` eingesetzten Vorlage kennt erst der Lauf.
+//
 // Prozess-neutral: kein Electron, kein DOM, kein Datei-Zugriff.
 'use strict';
 
@@ -39,20 +50,26 @@ const {
 } = require('./workflow-catalog.js');
 const { readBlock } = require('./workflow-line-reader.js');
 const { checkAreaPath, checkFileName } = require('./workflow-paths.js');
+const { SCHEDULE_TRIGGER } = require('./workflow-schedule.js');
 
 const ZAHL_RE = /^\d+(?:\.\d+)?$/;
 const KOMMANDO_RE = /^[A-Za-z][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)+$/;
 // Ersatz eines Platzhalters für die Vorab-Prüfung eines Pfads: ein harmloser
 // Name, damit allein die Literal-Anteile über die Grenze urteilen.
 const PLATZHALTER_ERSATZ = 'x';
+// Was einen Zuschauer braucht und deshalb nur von Hand läuft.
+const NUR_VON_HAND_BEFEHLE = Object.freeze(['confirm', 'delete']);
+const NUR_VON_HAND_EINGABEN = Object.freeze(['prompt', 'select']);
 
 /**
- * Prüft die Platzhalter eines Texts nach G5 und den Regeln der Stufe 1.
+ * Prüft die Platzhalter eines Texts nach G5 und den Regeln der freigegebenen
+ * Stufen; `{{clipboard}}` gilt ab der Stufe 2 (4T-002424).
  *
  * @param {string} raw Text mit Platzhaltern.
+ * @param {Array} [stages] die freigegebenen Stufen, Vorgabe `ENABLED_STAGES`.
  * @returns {{analysis: object|null, problems: {code: string, detail: object}[]}}
  */
-function checkPlaceholders(raw) {
+function checkPlaceholders(raw, stages = ENABLED_STAGES) {
   const analysis = analyzeTemplate(raw);
   if (!analysis.ok) {
     return {
@@ -64,10 +81,10 @@ function checkPlaceholders(raw) {
   for (const seg of analysis.segments) {
     if (FORBIDDEN_PLACEHOLDER_TYPES.includes(seg.type)) {
       problems.push({ code: 'placeholderNotAllowed', detail: { placeholder: seg.type } });
-    } else if (seg.type === 'context' && laterStagePlaceholder(seg.name) !== null) {
+    } else if (seg.type === 'context' && laterStagePlaceholder(seg.name, stages) !== null) {
       problems.push({
         code: 'laterStage',
-        detail: { placeholder: seg.name, stage: laterStagePlaceholder(seg.name) },
+        detail: { placeholder: seg.name, stage: laterStagePlaceholder(seg.name, stages) },
       });
     }
   }
@@ -95,8 +112,8 @@ function neuerBericht(anweisung) {
 }
 
 // Prüft einen Text-Baustein (Text, Pfad, Name, Schlüssel) samt Platzhaltern.
-function pruefeText(typ, token, melde, nonEmpty) {
-  const { analysis, problems } = checkPlaceholders(token.value);
+function pruefeText(typ, token, melde, nonEmpty, stages) {
+  const { analysis, problems } = checkPlaceholders(token.value, stages || ENABLED_STAGES);
   for (const p of problems) melde(p.code, token, p.detail);
   if (!analysis) return;
   if (typ === 'path') {
@@ -136,7 +153,9 @@ function pruefeArgument(spec, token, melde, options) {
   }
   const wortErlaubt = type === 'key' || (type === 'value' && ZAHL_RE.test(token.value));
   if (token.type === 'string' || (token.type === 'word' && wortErlaubt)) {
-    if (token.type === 'string' || type === 'key') pruefeText(type, token, melde, spec.nonEmpty);
+    if (token.type === 'string' || type === 'key') {
+      pruefeText(type, token, melde, spec.nonEmpty, options.stages);
+    }
     return true;
   }
   melde('argumentType', token, { expected: type });
@@ -211,7 +230,7 @@ function checkStatement(anweisung, options) {
       i += wert && wert.type !== 'word' ? 2 : 1;
       continue;
     }
-    if (wert) pruefeText(option.value, wert, melde, true);
+    if (wert) pruefeText(option.value, wert, melde, true, options.stages);
     if (option.kind === 'template' && options.templatesEnabled === false)
       melde('templatesDisabled', token);
     if (eintrag.groups[option.group] && !gruppen[option.group]) {
@@ -234,16 +253,54 @@ function checkStatement(anweisung, options) {
 }
 
 /**
+ * Die Befunde «nur von Hand» einer Anweisung in einem Workflow nach Zeitplan.
+ *
+ * @param {object} anweisung aus `readBlock`.
+ * @returns {object[]} Befunde `manualOnly` mit `armOnly: true`.
+ */
+function manualOnlyFindings(anweisung) {
+  const { findings, melde } = neuerBericht(anweisung);
+  if (NUR_VON_HAND_BEFEHLE.includes(anweisung.keyword)) {
+    melde('manualOnly', null, { keyword: anweisung.keyword });
+  }
+  for (const token of anweisung.tokens) {
+    if (token.type !== 'string') continue;
+    const analysis = analyzeTemplate(token.value);
+    if (!analysis.ok) continue; // schon als `placeholderInvalid` gemeldet
+    for (const seg of analysis.segments) {
+      if (seg.type === 'input' && NUR_VON_HAND_EINGABEN.includes(seg.kind)) {
+        melde('manualOnly', token, { placeholder: seg.kind });
+      }
+    }
+  }
+  return findings.map((f) => ({ ...f, armOnly: true }));
+}
+
+/**
+ * Verhindert der Befund den Lauf? Ein Befund «nur von Hand» verhindert allein
+ * die Scharf-Schaltung.
+ *
+ * @param {{armOnly?: boolean}} finding
+ * @returns {boolean}
+ */
+function blocksRun(finding) {
+  return finding.armOnly !== true;
+}
+
+/**
  * Prüft eine gelesene Workflow-Datei vor dem Lauf.
  *
  * @param {object} doc Ergebnis von `readWorkflowDocument`.
  * @param {{ownName?: string, templatesEnabled?: boolean, stages?: Array,
  *   isKnownCommand?: Function, isKnownMacro?: Function, isKnownWorkflow?: Function}} [options]
- * @returns {{ok: boolean, steps: object[], findings: object[]}} `ok` genau dann,
- *   wenn keine Befunde vorliegen; `steps` nur aus fehlerfreien Zeilen.
+ * @returns {{ok: boolean, armable: boolean, steps: object[], findings: object[]}}
+ *   `ok` genau dann, wenn kein Befund den Lauf verhindert (`blocksRun`);
+ *   `armable` genau dann, wenn der Auslöser `schedule` ist und gar kein Befund
+ *   vorliegt; `steps` nur aus fehlerfreien Zeilen.
  */
 function checkWorkflow(doc, options = {}) {
-  if (!doc || !doc.isWorkflow) return { ok: false, steps: [], findings: [] };
+  if (!doc || !doc.isWorkflow) return { ok: false, armable: false, steps: [], findings: [] };
+  const nachZeitplan = Boolean(doc.meta && doc.meta.trigger === SCHEDULE_TRIGGER);
   const findings = [...doc.findings];
   const steps = [];
   if (doc.block) {
@@ -252,11 +309,22 @@ function checkWorkflow(doc, options = {}) {
     for (const anweisung of gelesen.statements) {
       const ergebnis = checkStatement(anweisung, options);
       findings.push(...ergebnis.findings);
+      if (nachZeitplan) findings.push(...manualOnlyFindings(anweisung));
       if (ergebnis.step) steps.push(ergebnis.step);
     }
   }
   findings.sort((a, b) => (a.line || 0) - (b.line || 0) || (a.column || 0) - (b.column || 0));
-  return { ok: findings.length === 0, steps, findings };
+  const ok = findings.every((f) => !blocksRun(f));
+  return { ok, armable: ok && nachZeitplan && findings.length === 0, steps, findings };
 }
 
-module.exports = { checkPlaceholders, checkStatement, checkWorkflow };
+module.exports = {
+  // 4T-002421: ein Lauf nach Zeitplan weist diese Befehle auch in einem
+  // aufgerufenen Workflow ab, der selbst von Hand ausgelöst wird.
+  MANUAL_ONLY_COMMANDS: NUR_VON_HAND_BEFEHLE,
+  blocksRun,
+  checkPlaceholders,
+  checkStatement,
+  checkWorkflow,
+  manualOnlyFindings,
+};

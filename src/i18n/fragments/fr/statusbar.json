@@ -44,5 +44,8 @@
   "settings.statusbar.unavailableMode": "Boutons non utilisables",
   "settings.statusbar.unavailableMode.blass": "Afficher en grisé",
   "settings.statusbar.unavailableMode.ausgeblendet": "Masquer",
-  "settings.statusbar.unavailableMode.hint": "Certains boutons de la barre d'état ne peuvent rien faire sur le moment — par exemple les sélecteurs d'affichage tant que la page des réglages est au premier plan, ou le crayon d'édition lorsqu'aucun document n'est ouvert. Avec «Afficher en grisé», ils restent à leur place et sont visiblement désactivés. Avec «Masquer», ils disparaissent aussi longtemps qu'ils ne peuvent rien faire, puis reviennent à leur place ; la barre n'affiche alors que ce qui fonctionne. Un bouton décoché dans la liste des boutons par défaut reste absent dans les deux cas. Le menu Affichage reste inchangé. Les modifications prennent effet avec Appliquer ou OK."
+  "settings.statusbar.unavailableMode.hint": "Certains boutons de la barre d'état ne peuvent rien faire sur le moment — par exemple les sélecteurs d'affichage tant que la page des réglages est au premier plan, ou le crayon d'édition lorsqu'aucun document n'est ouvert. Avec «Afficher en grisé», ils restent à leur place et sont visiblement désactivés. Avec «Masquer», ils disparaissent aussi longtemps qu'ils ne peuvent rien faire, puis reviennent à leur place ; la barre n'affiche alors que ce qui fonctionne. Un bouton décoché dans la liste des boutons par défaut reste absent dans les deux cas. Le menu Affichage reste inchangé. Les modifications prennent effet avec Appliquer ou OK.",
+  "statusbar.workflows.label": "Workflows",
+  "statusbar.workflows.title": "Dernière exécution planifiée : {name}, {time}, {result}. Cliquer ouvre la page «Exécutions des workflows».",
+  "statusbar.workflows.titleNoRun": "Un workflow est armé, mais ne s’est pas encore exécuté selon la planification. Cliquer ouvre la page «Exécutions des workflows»."
 }

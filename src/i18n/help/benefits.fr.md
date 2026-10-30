@@ -116,12 +116,12 @@ En détail : [Base de données](database.md).
 
 ## Des manipulations qui se font toutes seules
 
-Certains travaux se répètent dans le même ordre : créer à partir du modèle une note pour la prochaine réunion, ajouter une entrée au journal, déplacer un fichier terminé vers l'archive. Un workflow consigne cette suite une fois pour toutes, sous forme de fichier Markdown ordinaire avec une ligne par étape, et l'application l'exécute chaque fois que vous le lancez. Comme le fichier reste du texte, il se lit, se modifie, se transmet et se conserve dans une sauvegarde comme tout autre document.
+Certains travaux se répètent dans le même ordre : créer à partir du modèle une note pour la prochaine réunion, ajouter une entrée au journal, déplacer un fichier terminé vers l'archive. Un workflow consigne cette suite une fois pour toutes, sous forme de fichier Markdown ordinaire avec une ligne par étape, et l'application l'exécute chaque fois que vous le lancez, ou d'elle-même selon une planification, par exemple chaque matin à huit heures. Comme le fichier reste du texte, il se lit, se modifie, se transmet et se conserve dans une sauvegarde comme tout autre document.
 
 - **Une étape par ligne** : créer des fichiers et des dossiers, y compris à partir de modèles, renommer, déplacer en mettant à jour tous les liens, ajouter et insérer du texte, définir des propriétés dans l'en-tête, exécuter des commandes et des macros.
 - **D'abord vérifier, puis exécuter** : avant la première étape, l'application vérifie le workflow entier et demande toutes les saisies ; une erreur s'affiche au-dessus du bloc avec la ligne et le motif, et rien ne s'exécute.
-- **Lancé comme il vous convient** : depuis le menu, la palette de commandes, par un raccourci clavier, un bouton dans la barre d'état ou au-dessus du bloc.
-- **Avec des limites fixes** : un workflow n'agit que dans la zone ouverte, n'écrase aucun fichier existant, ne supprime rien et n'accède pas au réseau.
+- **Lancé comme il vous convient** : depuis le menu, la palette de commandes, par un raccourci clavier, un bouton dans la barre d'état ou au-dessus du bloc ; ou de lui-même selon une planification, une fois armé et tant que sa zone est ouverte.
+- **Avec des limites fixes** : un workflow n'agit que dans la zone ouverte, n'écrase aucun fichier existant, ne supprime que vers la corbeille et seulement après votre confirmation, et n'accède pas au réseau ; son journal montre ce qu'une exécution a touché.
 
 En détail : [Workflows](workflows.md).
 

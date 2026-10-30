@@ -3,7 +3,8 @@
 // Datei-Zeile (Start-Seite, Bereichs-Lesezeichen, dazu dieselben panel-weiten
 // Eintraege). 4T-001349 (Epic 3E-000170): dazu das Menue einer Ordner-Zeile
 // (Unterordner und Markdown-Datei anlegen). 4T-002355 (Epic 3E-000184): dazu
-// «Starten» im Menü einer Workflow-Datei.
+// «Starten» im Menü einer Workflow-Datei. 4T-002422 (Epic 3E-000366): dazu
+// «Scharf schalten» oder «Entschärfen» bei einem Workflow mit Zeitplan.
 //
 // Ausgezogen aus area-panel.js, das an seinem Groessen-Budget stand: Die
 // Menues sind eine eigene Verantwortlichkeit — sie beantworten, WELCHE
@@ -44,6 +45,9 @@ import { copyFileAtPath } from './views/file-copy.js';
 // 4T-002355 (Epic 3E-000184): Start einer Workflow-Datei (4T-002349).
 import { api } from './app/api.js';
 import { starteWorkflow } from './workflows/workflow-start.js';
+// 4T-002422 (Epic 3E-000366): die Scharf-Schaltung, dasselbe Kommando wie
+// Spalte und Knopf über dem Block.
+import { SCHARF, scharfZustand, schalteScharf } from './workflows/workflow-scharf.js';
 import { WORKFLOWS_EXTENSION_ID } from '../../shared/workflows/workflow-konstanten.js';
 
 const MARKDOWN_ENDUNG = /\.(md|markdown|mdown|mkd)$/i;
@@ -154,11 +158,21 @@ async function ergaenzeWorkflowStart(menu, absPath, x, y) {
     return;
   }
   if (!antwort || antwort.isWorkflow !== true) return;
+  // 4T-002422: Der Schalter steht nur bei `trigger: schedule` (Entscheidung
+  // 2e); sein Zustand kommt aus dem Lauf-Stand, gefragt erst bei einer
+  // Workflow-Datei. Ein scharfer Workflow bekommt «Entschärfen», jeder andere,
+  // auch einer mit geänderter Definition, «Scharf schalten».
+  const scharf = await scharfZustand(absPath);
   if (menu.hidden || !erstes || erstes.parentNode !== menu) return;
   const gruppe = document.createDocumentFragment();
   appendItem(gruppe, 'area-file-workflow-start', t('workflow.start.knopf'), () =>
     starteWorkflow({ path: absPath }),
   );
+  if (scharf && scharf.ok && scharf.scheduled === true) {
+    const an = scharf.status === SCHARF.an;
+    const label = t(an ? 'workflow.scharf.menuAus' : 'workflow.scharf.menuAn');
+    appendItem(gruppe, 'area-file-workflow-arm', label, () => schalteScharf(absPath, !an));
+  }
   appendSeparator(gruppe);
   menu.insertBefore(gruppe, erstes);
   placeContextMenuAt(menu, x, y);

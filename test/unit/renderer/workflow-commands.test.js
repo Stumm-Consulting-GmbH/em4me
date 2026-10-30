@@ -207,3 +207,59 @@ describe('Ausführung und Platzierung', () => {
     ]);
   });
 });
+
+// 4T-002426 (Epic 3E-000366, Story 4S-001138, AK1, AK5, AK6): Die Workflows
+// verknüpfter Bereiche als Kommandos, mit dem Kürzel der Quelle.
+describe('Workflows verknüpfter Bereiche (4T-002426)', () => {
+  const fremd = (name, relPath, key = 'zt') => ({
+    kind: 'workflow',
+    name,
+    description: '',
+    relPath,
+    absPath: `D:/Zentral/Abläufe/${relPath}`,
+    sourceKey: key,
+  });
+  const mitQuelle = (workflows) => ({
+    workflows: [eintrag('Wochenrückblick anlegen', 'Wochenrückblick.md')],
+    linked: [{ key: 'zt', name: 'Zentral', items: workflows, workflows }],
+  });
+
+  it('meldet fremde Workflows mit eigener Kennung und dem Kürzel in der Bezeichnung an', () => {
+    syncWorkflowCommands(mitQuelle([fremd('Wochenrückblick anlegen', 'Wochenrückblick.md')]));
+    const ids = workflowKommandos().map((c) => c.id);
+    expect(ids).toEqual([
+      'workflow.Wochenr%C3%BCckblick.md',
+      'workflow.@zt:Wochenr%C3%BCckblick.md',
+    ]);
+    // Gleiche Namen bleiben getrennt und starten je ihre eigene Datei (AK6 der Story).
+    handler['workflow.@zt:Wochenr%C3%BCckblick.md']();
+    handler['workflow.Wochenr%C3%BCckblick.md']();
+    expect(starteWorkflow.mock.calls.map((c) => c[0].path)).toEqual([
+      'D:/Zentral/Abläufe/Wochenrückblick.md',
+      'C:/b/Workflows/Wochenrückblick.md',
+    ]);
+    // Bezeichnung «Name (@Kürzel)» aus workflow.verknuepft.eintrag.
+    const fremdes = workflowKommandos()[1];
+    expect(i18n.t(fremdes.labelKey)).toBe('Wochenrückblick anlegen (@zt)');
+  });
+
+  it('zählt fremde Workflows nicht beim Aufruf per Name', () => {
+    syncWorkflowCommands(mitQuelle([fremd('Wochenrückblick anlegen', 'W.md')]));
+    expect(zaehleWorkflows('Wochenrückblick anlegen')).toBe(1);
+  });
+
+  it('entfernt die fremden Kommandos, wenn die Quelle aus der Liste fällt (AK5 der Story)', () => {
+    syncWorkflowCommands(mitQuelle([fremd('Fremd', 'F.md')]));
+    expect(workflowKommandos()).toHaveLength(2);
+    syncWorkflowCommands({ workflows: mitQuelle([]).workflows, linked: [] });
+    expect(workflowKommandos().map((c) => c.id)).toEqual(['workflow.Wochenr%C3%BCckblick.md']);
+  });
+
+  it('meldet im Aus-Zustand der Erweiterung auch keine fremden an', () => {
+    aus.add('workflows');
+    syncWorkflowCommands(mitQuelle([fremd('Fremd', 'F.md')]));
+    expect(workflowKommandos()).toEqual([]);
+    aus.clear();
+    syncWorkflowCommands({ workflows: mitQuelle([]).workflows, linked: [] });
+  });
+});

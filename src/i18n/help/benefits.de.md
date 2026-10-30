@@ -116,12 +116,12 @@ Ausführlich: [Datenbank](database.md).
 
 ## Handgriffe, die sich selbst erledigen
 
-Manche Arbeit wiederholt sich in derselben Folge: eine Notiz für die nächste Besprechung aus der Vorlage anlegen, einen Eintrag ins Protokoll setzen, eine erledigte Datei ins Archiv schieben. Ein Workflow schreibt diese Folge einmal auf, als gewöhnliche Markdown-Datei mit einer Zeile je Schritt, und die Anwendung erledigt sie, sooft Sie ihn starten. Weil die Datei Text bleibt, lässt sie sich lesen, ändern, weitergeben und in einer Sicherung aufheben wie jedes andere Dokument.
+Manche Arbeit wiederholt sich in derselben Folge: eine Notiz für die nächste Besprechung aus der Vorlage anlegen, einen Eintrag ins Protokoll setzen, eine erledigte Datei ins Archiv schieben. Ein Workflow schreibt diese Folge einmal auf, als gewöhnliche Markdown-Datei mit einer Zeile je Schritt, und die Anwendung erledigt sie, sooft Sie ihn starten, oder von selbst nach einem Zeitplan, etwa jeden Morgen um acht. Weil die Datei Text bleibt, lässt sie sich lesen, ändern, weitergeben und in einer Sicherung aufheben wie jedes andere Dokument.
 
 - **Ein Schritt je Zeile**: Dateien und Ordner anlegen, auch aus Vorlagen, umbenennen, verschieben mit Nachzug aller Verweise, Text anhängen und einfügen, Eigenschaften im Dateikopf setzen, Kommandos und Makros ausführen.
 - **Erst prüfen, dann laufen**: Vor dem ersten Schritt prüft die Anwendung den ganzen Workflow und fragt alle Eingaben ab; ein Fehler steht mit Zeile und Grund über dem Block, und es läuft nichts.
-- **Gestartet, wie es passt**: aus dem Menü, der Kommando-Palette, über ein Tastenkürzel, einen Knopf auf der Statusleiste oder über dem Block.
-- **Mit festen Grenzen**: Ein Workflow wirkt nur im geöffneten Bereich, überschreibt keine vorhandene Datei, löscht nichts und geht nicht ins Netz.
+- **Gestartet, wie es passt**: aus dem Menü, der Kommando-Palette, über ein Tastenkürzel, einen Knopf auf der Statusleiste oder über dem Block; oder von selbst nach einem Zeitplan, sobald Sie ihn scharf geschaltet haben und solange sein Bereich geöffnet ist.
+- **Mit festen Grenzen**: Ein Workflow wirkt nur im geöffneten Bereich, überschreibt keine vorhandene Datei, löscht nur in den Papierkorb und nur nach Ihrer Bestätigung und geht nicht ins Netz; was ein Lauf berührt hat, zeigt sein Journal.
 
 Ausführlich: [Workflows](workflows.md).
 
