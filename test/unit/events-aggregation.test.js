@@ -11,7 +11,6 @@ import {
   eventsForQuery,
   releaseRoot,
   rootForActiveFile,
-  scriptDataFor,
 } from '../../src/main/backlinks.js';
 
 const openRoots = new Set();
@@ -139,6 +138,43 @@ describe('events-aggregation — Grundmenge und Verfeinerung (4T-000515)', () =>
   });
 });
 
+// 4T-002152 (Epic 3E-000371): Die Aggregation baut den Link-Graph bei Bedarf
+// selbst, wie die übrigen Leser des Index. Jede Abfrage läuft auf einem frisch
+// indizierten Bereich, damit kein vorheriger Leser den Graph gebaut hat.
+describe('events-aggregation — Verweis-Quelle ohne vorher gebauten Link-Graph (4T-002152)', () => {
+  async function makeLinkFixture() {
+    const root = makeRoot();
+    write(root, 'Projekt.md', '# Projekt\n');
+    write(
+      root,
+      'Treffen.md',
+      [
+        '---',
+        'class: Ereignis',
+        'event-date: 2026-11-01',
+        'event-text: Treffen',
+        '---',
+        'Siehe [[Projekt]].',
+        '',
+      ].join('\n'),
+    );
+    const uebersicht = write(root, 'Übersicht.md', '# Übersicht\n');
+    await indexFor(uebersicht);
+    return { root, uebersicht };
+  }
+
+  it.each(['FROM [[Projekt]]', 'WHERE length(file.outlinks) > 0'])(
+    'liefert die verweisende Datei für «%s» gleich nach dem Indizieren',
+    async (query) => {
+      const { root, uebersicht } = await makeLinkFixture();
+      const result = eventsForQuery(uebersicht, query, root, OPTS);
+      expect(result.status).toBe('ready');
+      expect(result.queryError).toBeUndefined();
+      expect(result.events.map((e) => e.name)).toEqual(['Treffen']);
+    },
+  );
+});
+
 // 4T-002126 (Epic 3E-000345): Vorlagen-Ausschluss der Ereignis-Aggregation mit
 // derselben Regel wie die Abfrage (Story 4S-000376). Der Vorlagen-Ordner liegt
 // eine Ebene tief, damit «übergeordneter Ordner» und «Wurzel» getrennte Fälle
@@ -167,9 +203,6 @@ describe('events-aggregation — Vorlagen-Ausschluss (4T-002126)', () => {
       await new Promise((resolve) => setTimeout(resolve, 10));
       result = backlinksFor(start, 'ev-tpl', root);
     }
-    // Die Aggregation baut den Link-Graph nicht selbst, sie nutzt den eines
-    // anderen Verbrauchers; der Skript-Abzug baut ihn hier für die Verweis-Quelle.
-    scriptDataFor(start, root);
     const templatesFolder = path.join(root, 'Meta', 'Vorlagen');
     const namen = (query, folder) =>
       eventsForQuery(start, query, root, { ...OPTS, templatesFolder: folder })

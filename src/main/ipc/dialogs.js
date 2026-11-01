@@ -25,6 +25,8 @@ const { austauschBericht } = require('../../shared/canvas/canvas-austausch-beric
 // dafür von denselben Stellen wie im Lösch-Kanal.
 const { isInsideArea } = require('../area/area-path');
 const { pflichtBegleitPfade } = require('../documents/companion-files');
+// 4T-002405 (Epic 3E-000266): der Name der Tabelle einer Karteikarte in der Rückfrage.
+const { tabellenName } = require('../../shared/database/auftrag-text.js');
 
 /**
  * Registriert die Dialog- und Systemdienst-Kanaele.
@@ -40,6 +42,7 @@ const { pflichtBegleitPfade } = require('../documents/companion-files');
  * @param {() => object|null} deps.getStore Einstellungs-Speicher (steht bei der Registrierung fest).
  * @param {(win: object) => object|null} deps.areaOfWindow Bereichs-Bindung eines Fensters.
  * @param {(p: string) => boolean} deps.isMarkdownPath Markdown-Erkennung am Pfad.
+ * @param {object} [deps.karteiWeichen] Weichen einer Karteikarte (4T-002405).
  * @param {object} deps.portablerBetrieb Eingefrorenes Ergebnis der Erkennung des
  *   portablen Betriebs `{ portabel, datenOrdner, beschreibbar }` (4T-001990).
  *
@@ -63,6 +66,8 @@ function registerDialogsIpc(handle, deps) {
     // die Lösch-Rückfrage, beide aus derselben Verdrahtung wie in areas.js.
     areaOfWindow,
     isMarkdownPath,
+    // 4T-002405 (Epic 3E-000266, F4 A): Erkennung einer Karteikarte für die Rückfrage.
+    karteiWeichen,
     // 4T-001991 (Epic 3E-000188): Riegel der Wörterbuch-Pflege im portablen
     // Betrieb.
     portablerBetrieb,
@@ -476,12 +481,31 @@ function registerDialogsIpc(handle, deps) {
     return (await pflichtBegleitPfade(path.resolve(filePath))).length > 0;
   }
 
+  // 4T-002405 (Epic 3E-000266, F4 A): Ist die Datei eine Karteikarte, nennt der
+  // Zusatz statt der Änderungsbelege den Weg über die Datenbank: Lösch-Schutz
+  // und Übertragung der Belege an die Tabelle. Dieselbe Erkennung wie der
+  // Lösch-Kanal, damit Rückfrage und Löschen dieselbe Datei meinen.
+  async function karteikarteImBereich(owner, filePath) {
+    if (!karteiWeichen || typeof filePath !== 'string' || !filePath) return null;
+    const area = areaOfWindow(owner);
+    if (!area || !isInsideArea(area.rootPath, filePath)) return null;
+    return karteiWeichen.karteikarteVon(filePath);
+  }
+
   handle('area:confirmTrashFile', async (event, fileName, filePath) => {
     const owner = senderWindow(event);
     const t = (k) => tForWindow(owner, k);
-    const detail = (await hatPflichtBegleitDatei(owner, filePath))
-      ? `${t('areaPanel.deleteConfirmDetail')} ${t('areaPanel.deleteConfirmCompanion')}`
-      : t('areaPanel.deleteConfirmDetail');
+    const karte = await karteikarteImBereich(owner, filePath);
+    let detail = t('areaPanel.deleteConfirmDetail');
+    if (karte) {
+      const satz = t('areaPanel.deleteConfirmCard').replace(
+        '{tabelle}',
+        tabellenName(karte.tabelle),
+      );
+      detail = `${detail} ${satz}`;
+    } else if (await hatPflichtBegleitDatei(owner, filePath)) {
+      detail = `${detail} ${t('areaPanel.deleteConfirmCompanion')}`;
+    }
     const result = await dialog.showMessageBox(owner || undefined, {
       type: 'warning',
       title: t('areaPanel.deleteConfirmTitle'),

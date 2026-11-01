@@ -68,7 +68,7 @@ Die Properties-Sidebar zeigt die Frontmatter-Felder live editierbar. Der Feld-Ty
 
 Ein Klick in ein Wert-Feld bietet die Werte an, die im Bereich für diese Eigenschaft bereits vergeben sind, alphabetisch geordnet; mit jedem getippten Zeichen verkleinert sich die Liste, und ein eigener Wert bleibt frei eingebbar. Gibt ein Eigenschafts-Profil einen Wertevorrat vor, erscheinen beide Herkünfte gemeinsam und bleiben unterscheidbar — die Werte aus dem Bestand sind als solche gekennzeichnet. Kommt die Eigenschaft im Bereich nirgends vor, erscheint keine Liste. Abschaltbar unter Datei → Einstellungen… → Erweiterungen.
 
-Beim Schreiben bleibt der Block im Round-Trip erhalten: Kommentare, Feld-Reihenfolge und Stil nicht geänderter Felder werden nicht umformatiert, auch CRLF-Zeilenenden bleiben stabil.
+Beim Schreiben bleibt der Block im Round-Trip erhalten: Kommentare, Feld-Reihenfolge und Stil nicht geänderter Felder werden nicht umformatiert, auch CRLF-Zeilenenden bleiben stabil. Einzeilige Listen in eckigen Klammern werden ohne Innen-Abstände geschrieben (`[a, b]`); eine Liste in der Schreibweise `[ a, b ]` wechselt beim ersten Speichern einmalig auf diese Form und bleibt danach unverändert.
 
 Bei einem YAML-Syntaxfehler zeigt die Sidebar die Fehlermeldung und sperrt das Hinzufügen, bis der Block im Editor repariert ist.
 
@@ -81,6 +81,6 @@ created: 2025-06-23 15:43
 updated: 2026-07-18 12:04
 ```
 
-Beide Felder sind unabhängig zuschaltbar, ihre Namen frei wählbar. Als Format steht nur Datum oder Datum und Uhrzeit zur Wahl, jeweils in lokaler Zeit. Ein bereits vorhandener Erstellungszeitpunkt wird nie überschrieben; der Änderungszeitpunkt wandert mit jedem Speichern mit.
+Beide Felder sind unabhängig zuschaltbar, ihre Namen frei wählbar. Als Format steht nur Datum oder Datum und Uhrzeit zur Wahl, jeweils in lokaler Zeit. Ein bereits vorhandener Erstellungszeitpunkt wird nie überschrieben; der Änderungszeitpunkt wandert mit jedem Speichern mit. Setzt ein Speichern den Änderungszeitpunkt neu, nimmt ein `Strg+Z` unmittelbar danach den Zeitpunkt und die letzte Änderung davor zusammen zurück, auch nach dem automatischen Speichern.
 
 Fehlende Felder werden nur angelegt, wenn die entsprechende Option aktiv ist. Sonst werden ausschließlich Felder gepflegt, die bereits im Block stehen, und das Dokument bleibt im Übrigen unverändert. Zugang und Schalter stehen in der [Funktions-Tabelle](functions.md).

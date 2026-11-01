@@ -472,24 +472,25 @@ function renderPerspectiveDatatableViewer(content, opts) {
 // 4T-002072: Trägt die Tabelle einen Namen, folgt ihr die Zeile `^Name`, damit
 // Verweise im exportierten Dokument ihr Ziel behalten. Die Leerzeile davor ist
 // eine Festlegung: Nach CommonMark endet ein HTML-Block erst an einer
-// Leerzeile; ohne sie gehörte die Zeile zum Block und bliebe Text darin. Das
-// Zeilenende dahinter ebenso: Die Fence-Ersetzung des Exports nimmt die
-// Leerzeile nach dem Zaun mit in ihren Treffer (portable-fences.js), und ohne
-// eigenes Zeilenende verschmölze die Zeile mit dem folgenden Absatz — die
-// Kennung bezeichnete dann ihn statt der Tabelle (gemessen am 2026-10-03).
+// Leerzeile; ohne sie gehörte die Zeile zum Block und bliebe Text darin. Ein
+// Zeilenende dahinter setzt der Konverter nicht: Die Fence-Ersetzung des
+// Exports lässt seit 4T-002102 das Zeilenende und eine Leerzeile nach dem Zaun
+// stehen und sichert vor direkt folgendem Text selbst eine Leerzeile
+// (portable-fences.js). Bis dahin nahm sie die Leerzeile mit in ihren Treffer,
+// und ein eigenes Zeilenende glich das aus.
 //
 // 4T-002072, Nachbesserung F5: `opts.ankerZeileFolgt` sagt, dass unter dem
 // Zaun schon eine Zeile `^Name` desselben Namens steht (die Heimat zählt sie
-// als dieselbe Kennung). Dann kommt keine zweite dazu, nur die Leerzeile, die
-// sie vom HTML-Block trennt; der Aufrufer weiß es, weil nur er den Text um den
-// Zaun sieht.
+// als dieselbe Kennung). Dann kommt keine zweite dazu; die Leerzeile, die sie
+// vom HTML-Block trennt, sichert die Fence-Ersetzung. Der Aufrufer weiß es,
+// weil nur er den Text um den Zaun sieht.
 function convertPerspectiveDatatableBlockToHtml(content, opts) {
   const model = parsePerspectiveDatatable(content);
   if (model.errors.length > 0 || model.columns.length === 0) return null;
   const { computed, aggs } = computeRenderData(model);
   const html = buildPortableDatatableHtml(model, computed, aggs, opts);
   if (!model.name) return html;
-  return opts && opts.ankerZeileFolgt ? html + '\n' : html + '\n\n^' + model.name + '\n';
+  return opts && opts.ankerZeileFolgt ? html : html + '\n\n^' + model.name;
 }
 
 module.exports = {

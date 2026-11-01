@@ -138,6 +138,8 @@ describe('database:konsistenz: Registrierung und Brücke (4T-001944, B3)', () =>
       'database:changeLog',
       'database:datensaetze',
       'database:datensatz',
+      // 4T-002406 (Epic 3E-000266): die Karteikarte eines Datensatzes.
+      'database:karteikarte',
       'database:konsistenz',
       // 4T-002249 (Epic 3E-000262): die Auskunft über eine Listen-Maske.
       'database:liste',

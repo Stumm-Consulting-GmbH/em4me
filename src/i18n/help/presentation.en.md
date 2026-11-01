@@ -421,6 +421,7 @@ Flag, control keys, separator lines, the settings per slide and the image notati
 - **In the PowerPoint file, every slide is an image.** Its text can be neither edited nor searched there. A PowerPoint file with editable text objects is not created, and PowerPoint files cannot be imported.
 - **Tested programs:** Opening the file has been tested in Microsoft PowerPoint on Windows. LibreOffice Impress is tested in the automated test setup on Linux. Other programs, such as Keynote or Google Slides, read the format according to the standard but have not been tested.
 - **Design works through the themes and their seven values.** Style rules of your own in CSS, slide layouts beyond the split layout, and animations and transitions between slides do not exist.
+- **Diagrams follow the theme of the slide.** Mermaid diagrams and charts for tables appear dark on a dark slide and light on a light one; the `accent` theme counts as dark. This applies in the view, in the slide show and in all four exports, whether the application is set to light or dark. The PDF and the HTML pages of the slides are therefore not always light like the PDF export of a document.
 - **Only list items are revealed**, no other parts of a slide.
 - **Reduction goes down to half at most.** Whatever still does not fit is cut off.
 - **Editing happens in the Markdown views**, not on the slide.

@@ -44,6 +44,8 @@ La section de paramètres « Systèmes de calendrier » montre les blocs de la z
 
 L'édition n'est volontairement jamais verrouillée : les changements de structure sur des calendriers déjà utilisés sont autorisés. Les valeurs du document qui en deviennent invalides restent conservées inchangées et sont marquées de manière visible. Seul l'enregistrement d'une définition invalide est bloqué : lors de l'application, un message apparaît et rien n'est enregistré. Si, par exemple, l'unité prolongée d'une règle intercalaire n'est pas comprise dans les unités par instance, la règle intercalaire le signale dès la saisie et indique les positions admises.
 
+**Plusieurs versions du programme dans la même zone :** si des ordinateurs dotés de versions différentes du programme travaillent dans la même zone, une version plus récente peut créer des calendriers qu'une version plus ancienne ne connaît pas, par exemple un calendrier dont la structure change d'une année à l'autre. La version plus ancienne ne les affiche pas dans la liste, mais indique leur nombre au-dessus de la liste. Lors de l'application, elle laisse ces calendriers inchangés dans le fichier de zone, de même que les indications d'un calendrier connu que seule une version plus récente écrit ; la version plus récente retrouve ensuite le tout. Supprimer un bloc supprime aussi les calendriers qu'il contient et que la liste n'affiche pas. Les versions du programme sans cette indication au-dessus de la liste suppriment encore les calendriers inconnus lors de l'application ; si un tel ordinateur participe, le mieux est d'amener tous les ordinateurs de la zone à la même version.
+
 ### Ajouter une époque après coup
 
 Une valeur de l'époque la plus récente figure sans abréviation dans le document, et une valeur sans abréviation est toujours lue comme une valeur de l'époque la plus récente. Lorsqu'une chronologie reçoit une nouvelle époque la plus récente, les valeurs enregistrées de l'ancienne désigneraient donc un autre jour ou deviendraient invalides. Si la zone contient de telles valeurs, l'application pose la question lors de l'application, avant d'enregistrer, et indique leur nombre :
@@ -145,6 +147,8 @@ Si le calendrier nommé n'est pas défini dans la zone ou si la valeur est inval
 Si une valeur se situe hors de la période de validité de sa chronologie (section « Modèles à structure variable d'une année à l'autre »), le texte source reste lui aussi inchangé. La valeur ne compte alors pas comme invalide : son infobulle indique « Nom : inconnu ».
 
 Dans les blocs de code et les codes en ligne, la syntaxe reste intacte : `@{Calendrier d'exemple: 500-2-09 ZZ}`.
+
+Si un autre `@` précède immédiatement `@{`, il ne s'agit pas d'une valeur de calendrier : `@@{14:00}`, une heure dans l'écriture de l'outil de tableaux dont provient le format du tableau Kanban, reste du texte.
 
 ## Insérer et modifier
 

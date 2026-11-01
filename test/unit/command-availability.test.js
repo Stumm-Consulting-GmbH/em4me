@@ -154,7 +154,10 @@ describe('Kontext-Vertrag (4T-001635)', () => {
       'inDatentabelle',
       'diagrammGewaehlt',
     ]);
-    expect(RENDERER_CONTEXT_FIELDS).toEqual(['inTable', 'hasCalendarConfig']);
+    // 4T-002406 (Epic 3E-000266): `karteikarteTab`, ob das aktive Dokument eine
+    // Karteikarte ist; renderer-eigen, weil der Menü-Zustand den Überblick der
+    // Datenbank nicht führt.
+    expect(RENDERER_CONTEXT_FIELDS).toEqual(['inTable', 'hasCalendarConfig', 'karteikarteTab']);
     // 4T-001541: Die Gesamt-Liste wird nicht mehr gegen die Zahl 12 gehalten,
     // sondern gegen ihre beiden Bestandteile. Die Zahl war die Summe der
     // Listen darüber und musste mit jedem neuen Feld ein zweites Mal
@@ -255,6 +258,9 @@ describe('Bedingungs-Katalog (4T-001635)', () => {
       // 4T-001874 (Epic 3E-000323): die Bedingung des Dialogs «Datum
       // umrechnen» — Bereich mit Zeitrechnung, bewusst ohne Editor-Bedingung.
       'bereichUndKalender',
+      // 4T-002406 (Epic 3E-000266): «In der Maske öffnen» an einer Karteikarte;
+      // menüfrei, weil sie das renderer-eigene Feld karteikarteTab liest.
+      'karteikarte',
     ]);
     expect(new Set(AVAILABILITY_NAMES).size).toBe(AVAILABILITY_NAMES.length);
   });

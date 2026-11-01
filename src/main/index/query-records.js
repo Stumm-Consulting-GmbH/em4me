@@ -391,6 +391,9 @@ function recordsQueryFor({ filePath, ast, root, entry, locale, templatesFolder }
     if (isTemplate(table.path)) continue;
     const fileCtx = { ...contextOf(table.path), self, locale, recordNav };
     for (const r of records) {
+      // 4T-002388: Eine Karteikarte liegt in ihrer eigenen Datei; der
+      // Vorlagen-Ausschluss gilt auch für sie (E6.7).
+      if (r.file !== table.path && isTemplate(r.file)) continue;
       const at = { headKey, heads, hulls, key: hullKey(table.path, r.id) };
       if (!sourceHit(ast.source, at)) continue;
       const ctx = { ...fileCtx, record: recordContext(table, r) };

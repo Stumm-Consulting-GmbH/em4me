@@ -42,11 +42,14 @@ const uebersetze = (k) => (k in DE ? DE[k] : k);
 
 let tabDerKlammer = null;
 const hinweise = [];
+// 4T-002323: die Optionen, mit denen die Klammer gerufen wird.
+const klammerOptionen = [];
 
 vi.mock('../../../src/renderer/modules/views/print-preparation.js', () => ({
   // Die Klammer ruft prepare und output wie die echte; ein falsy prepare
   // bricht still ab, ein Fehler im Endpunkt kommt als Fehler zurueck.
   withPrintPreparation: async (steps) => {
+    klammerOptionen.push({ hellErzwingen: steps.hellErzwingen });
     const tab = tabDerKlammer;
     const kontext = steps.prepare ? await steps.prepare(tab) : null;
     if (steps.prepare && !kontext) return { ok: false, canceled: true };
@@ -180,6 +183,7 @@ beforeEach(() => {
   aufrufe.html.length = 0;
   aufrufe.katex = 0;
   teilbaumAufrufe.length = 0;
+  klammerOptionen.length = 0;
   aufrufe.ordnerParams = null;
   waehrendDruck = null;
   pdfZiel = { ok: true, path: 'C:\\A\\Vortrag.pdf' };
@@ -330,7 +334,8 @@ describe('exportiereFoliensatzAlsPdf — Zielpfad, Druck, Rueckmeldung', () => {
     for (const [artikel, pfad, opts] of teilbaumAufrufe) {
       expect(artikel.classList.contains('praesentation-folie')).toBe(true);
       expect(pfad).toBe('C:\\A\\Vortrag.md');
-      expect(opts).toEqual({ dokumentText: DECK });
+      // 4T-002323: mit dem Theme der Folie (DECK: `theme: dark`).
+      expect(opts).toEqual({ dokumentText: DECK, theme: 'dark' });
     }
     // Danach ist die Flaeche wieder weg.
     expect(paneEls.content.querySelector('.presentation-druck')).toBeNull();
@@ -343,6 +348,11 @@ describe('exportiereFoliensatzAlsPdf — Zielpfad, Druck, Rueckmeldung', () => {
     );
     // Waehrend des Laufs meldet sich der Export in der Statusleiste.
     expect(hinweise.some((h) => h.key === 'presentation.export.laeuft')).toBe(true);
+  });
+
+  it('4T-002323 (Entscheidung F2): ruft die Druck-Vorbereitung ohne Hell-Zwang', async () => {
+    await exportiereFoliensatzAlsPdf();
+    expect(klammerOptionen).toEqual([{ hellErzwingen: false }]);
   });
 
   it('Abbruch des Dialogs: kein Druck, keine Flaeche, keine Meldung', async () => {
@@ -543,6 +553,11 @@ describe('exportiereFoliensatzAlsHtml — Ordner mit einer Seite je Folie', () =
     );
     expect(paneEls.content.querySelector('.presentation-druck')).toBeNull();
     expect(document.body.classList.contains(DRUCK_ZUSTAND)).toBe(false);
+  });
+
+  it('4T-002323 (Entscheidung F2): ruft die Druck-Vorbereitung ohne Hell-Zwang', async () => {
+    await exportiereFoliensatzAlsHtml();
+    expect(klammerOptionen).toEqual([{ hellErzwingen: false }]);
   });
 
   it('Abbruch der Ordner-Wahl schreibt nichts und meldet nichts', async () => {

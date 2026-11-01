@@ -114,6 +114,14 @@
 // Auflösungs-Ordnung in `datensatz-verweis-aufloesung.js`, aus der auch die
 // Gültigkeit des Verweises antwortet. Er liest nur und schreibt nie.
 //
+// 4T-002406 (Epic 3E-000266, F7 A): Ein fünfzehnter Kanal sagt dem Klick auf
+// einen Datensatz, ob er ein Dokument öffnet:
+//
+//   database:karteikarte  die Karteikarte EINES Datensatzes einer Kartei-Tabelle
+//
+// Er prüft wie `database:datensatz` selbst und fail-closed und fragt dieselbe
+// Auflösung wie die Beleg-Ansicht (`bezugsDateiDerBelege`), frisch gelesen.
+//
 // **Warum die Oberfläche kein Frontmatter selbst liest** (E4): Der Katalog
 // braucht den Bestand über die einzelne Datei hinaus und liegt deshalb im
 // Haupt-Prozess; Maßstab ist die Reichweite des Zugriffs und nicht die
@@ -141,6 +149,8 @@ const {
 // entsteht keine zweite Prüfung und keine zweite Lesung.
 const { isInsideArea } = require('../area/area-path.js');
 const { belegeDesDatensatzes } = require('../database/change-log.js');
+// 4T-002390: die Bezugs-Datei der Belege, in der Kartei-Form die Karteikarte.
+const { bezugsDateiDerBelege } = require('../database/record-auftrag-bestand.js');
 // 4T-001938: Die Auskunft über einen Datensatz und die wirksame Rückfall-Sprache
 // der Datenbank, aus der die Beschriftungen der erzeugten Maske aufgelöst werden.
 const { liesDatensatz } = require('../database/datensatz-auskunft.js');
@@ -168,6 +178,12 @@ const { liesPositionsListe } = require('../database/positions-auskunft.js');
 const { werteAusdrueckeAus } = require('../database/ausdruecke-auskunft.js');
 // 4T-002333: Das Ziel eines Datensatz-Verweises für den Klick in die Maske.
 const { verweisZiel } = require('../index/datensatz-verweis-aufloesung.js');
+// 4T-002387 (Epic 3E-000265, Schritt 2): Zahl der Karteikarten je Kartei-Tabelle
+// aus dem Index; der Katalog liest Dateien und kennt sie nicht.
+const { zahlDerKarteikarten } = require('../index/karteikarten-erfassung.js');
+const { pathCompareKey } = require('../../shared/platform.js');
+// 4T-002387 (Schnitt C): Profil-Felder einer Karteikarte für die Konsistenz-Prüfung.
+const { erzeugeProfilFelderZugang } = require('../documents/profil-felder.js');
 
 // 4T-002252: Höchstzahl der Ausdrücke je Anfrage; eine Maske mit mehr
 // Pfad-Stellen ist kein Anwendungsfall, sondern eine Anfrage in falscher Form.
@@ -213,6 +229,22 @@ function ohneRollen(ueberblick) {
       steckbrief.hints = steckbrief.hints.filter(keinRollenHinweis);
     ueberblick.steckbrief = steckbrief;
   }
+  return ueberblick;
+}
+
+// 4T-002387 (Epic 3E-000265, Schritt 2): Jede Kartei-Tabelle bekommt die Zahl
+// ihrer Karteikarten aus dem Index (`karteikarten`); eine Tabelle in
+// Tabellen-Form bleibt ohne das Feld. Ersetzt wird die Liste, nicht ihre
+// Einträge, weil die Einträge aus dem Zwischenspeicher des Katalogs stammen
+// können (Muster `ohneRollen`).
+function mitKarteikartenZahl(ueberblick, sicht) {
+  if (!Array.isArray(ueberblick.tabellen)) return ueberblick;
+  const zahlen = zahlDerKarteikarten(sicht);
+  ueberblick.tabellen = ueberblick.tabellen.map((eintrag) =>
+    eintrag && eintrag.storage === 'cards' && typeof eintrag.path === 'string'
+      ? { ...eintrag, karteikarten: zahlen.get(pathCompareKey(eintrag.path)) || 0 }
+      : eintrag,
+  );
   return ueberblick;
 }
 
@@ -280,6 +312,17 @@ function istObjekt(wert) {
  *   aus der Verdrahtung (4T-001938). Fehlt es, gilt die Erweiterung als aus.
  * @param {object} [deps.sperrVerwaltung] Die eine Sperr-Verwaltung des Prozesses
  *   aus der Verdrahtung (4T-001941). Fehlt sie, verweigert `database:sperre`.
+ * @param {(event: object) => object|null} [deps.senderWindow] Fenster des Absenders.
+ * @param {Function} [deps.resolveQueryTemplatesFolder] Vorlagen-Ordner des Fensters
+ *   (4T-002387): Dokumente darin sind keine Karteikarten. Fehlt er, prüft die
+ *   Konsistenz-Prüfung ohne Vorlagen-Ausschluss, wie im Aus-Zustand der
+ *   Erweiterung «Vorlagen».
+ * @param {Function} [deps.readAreaProfilesConfig] Profil-Sektion der Bereichsdatei
+ *   lesen (4T-002387, Schnitt C): Zugang zu den Profil-Feldern der Karteikarten.
+ *   Fehlt er, entfällt in der Konsistenz-Prüfung der Hinweis auf abweichende
+ *   Profil-Typen.
+ * @param {() => object|null} [deps.getStore] Einstellungs-Speicher, für den
+ *   Schalter der Erweiterung «Ereignisse» in der Profil-Auflösung.
  */
 function registerDatabaseIpc(handle, deps) {
   const {
@@ -289,7 +332,17 @@ function registerDatabaseIpc(handle, deps) {
     schreibSchnittstelle,
     datenbankAktiv,
     sperrVerwaltung,
+    senderWindow,
+    resolveQueryTemplatesFolder,
+    readAreaProfilesConfig,
+    getStore,
   } = deps;
+  // 4T-002387 (Schnitt C): derselbe Weg zu den Profil-Feldern wie der Kanal
+  // `profiles:resolve`, mit eigenem Katalog-Zwischenspeicher.
+  const profilFelderFuer =
+    typeof readAreaProfilesConfig === 'function'
+      ? erzeugeProfilFelderZugang({ readAreaProfilesConfig, getStore })
+      : null;
   // 4T-001825: Ein geprüfter Vertrag, der laut bricht (Entwicklungsrichtlinien,
   // Kapitel 3). Geprüft wird vor der ersten Registrierung, damit kein Kanal
   // halb registriert zurückbleibt; ein still fehlender Schreibweg zeigte sich
@@ -362,6 +415,7 @@ function registerDatabaseIpc(handle, deps) {
       ...(offen ? {} : { herkunft: () => ({}) }),
     });
     if (!offen) ohneRollen(ueberblick);
+    mitKarteikartenZahl(ueberblick, sicht);
     // 4T-002254: der Hinweis «fremde Maske» je Abfrage-Datei, wie ihn die Liste kennt.
     await fremdeMaskenDerAbfragen({
       abfragen: ueberblick.abfragen,
@@ -423,7 +477,13 @@ function registerDatabaseIpc(handle, deps) {
     if (!isInsideArea(bereichsWurzel, filePath)) return ohneZugriff();
     if (!isMarkdownPath(filePath)) return ohneZugriff();
 
-    const gelesen = await belegeDesDatensatzes(filePath, recordId);
+    // 4T-002390 (Epic 3E-000265, S4): Vertrag und Absperrung bleiben; für eine
+    // Kartei-Tabelle wird die Bezugs-Datei aufgelöst, wie `database:datensatz`
+    // seinen Datensatz findet. Eine gelöschte Karteikarte führt zur Beleg-Datei
+    // der Tabellen-Datei, gefiltert nach der Kennung.
+    const bezug = await bezugsDateiDerBelege(fsp, filePath, recordId);
+    if (!bezug.ok) return { status: 'error', belege: [], befunde: [], verkettung: null };
+    const gelesen = await belegeDesDatensatzes(bezug.pfad, recordId);
     // Eine fehlende Beleg-Datei meldet der Lese-Weg als Erfolg mit leerer
     // Liste; sie heißt «noch keine Änderung» und nicht «Fehler». Ein echter
     // Lesefehler dagegen wird als solcher gemeldet, statt als leere
@@ -660,6 +720,27 @@ function registerDatabaseIpc(handle, deps) {
     return verweisZiel(sicht, zielPfad, params.anker);
   });
 
+  // 4T-002406 (Epic 3E-000266, F7 A): Die Karteikarte eines Datensatzes,
+  // Parameter `{ tabelle, kennung }` mit dem Pfad der Tabellen-Datei. Antwort
+  // `{ datei }` mit dem Pfad der Karteikarte, wenn die Tabelle in Kartei-Form
+  // ablegt und eine Karteikarte die Kennung trägt; sonst `null`, und der Klick
+  // öffnet wie bisher die Einzel-Maske. Form, Tor, Bereich, Lage und Endung wie
+  // `database:datensatz`; jede nicht bestandene Stufe endet ohne Dateizugriff.
+  handle('database:karteikarte', async (event, params) => {
+    if (!istObjekt(params) || !istText(params.tabelle) || !istText(params.kennung)) return null;
+    if (!torOffen()) return null;
+    const bereichsWurzel = areaRootForEvent(event);
+    if (!bereichsWurzel) return null;
+    if (!tabelleZulaessig(bereichsWurzel, params.tabelle, isMarkdownPath)) return null;
+    const tabelle = path.resolve(bereichsWurzel, params.tabelle);
+    try {
+      const bezug = await bezugsDateiDerBelege(fsp, tabelle, params.kennung);
+      return bezug.ok && bezug.karteikarte ? { datei: bezug.pfad } : null;
+    } catch {
+      return null;
+    }
+  });
+
   // 4T-001944 (Bauplan B3): Die Konsistenz-Prüfung, Parameter `{ tabelle }` als
   // Name oder Pfad EINER Tabelle oder `null` für alle; `tabelle` muss ausdrücklich
   // dastehen. Form, Tor und Bereich wie `database:datensaetze`, danach die Sicht
@@ -681,7 +762,21 @@ function registerDatabaseIpc(handle, deps) {
         return ohneZugriff();
       }
     }
-    return pruefeKonsistenz({ fsp, wurzel: bereichsWurzel, sicht, tabelle });
+    // 4T-002387: der Vorlagen-Ordner des Fensters, wie bei den Abfragen.
+    const vorlagenOrdner =
+      typeof resolveQueryTemplatesFolder === 'function'
+        ? await resolveQueryTemplatesFolder(senderWindow(event))
+        : null;
+    // 4T-002387 (Schnitt C): die Profil-Felder der Karteikarten.
+    const profilFelder = profilFelderFuer ? await profilFelderFuer(bereichsWurzel) : null;
+    return pruefeKonsistenz({
+      fsp,
+      wurzel: bereichsWurzel,
+      sicht,
+      tabelle,
+      vorlagenOrdner,
+      profilFelder,
+    });
   });
 
   // 4T-001945 (Bauplan B2): Der Verwendungsnachweis, Parameter `{ tabelle, kennung }`

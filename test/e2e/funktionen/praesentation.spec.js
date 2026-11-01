@@ -863,3 +863,117 @@ test.describe('PR-13: ohne Dokument keine Folie (F-347)', () => {
     }
   });
 });
+
+// 4T-002323: Pfeilspitzen und Theme der Mermaid-Diagramme auf der Folie. Die
+// erste Folie traegt das Theme `light`, die zweite `dark`; eine von beiden hat
+// damit das Theme der Anwendung, und ihr Diagramm steht mit demselben Bild
+// auch in der Lese-Ansicht der Spalte. Gemessen wird je Folie: die Zahl der
+// Marker im Diagramm, ob jeder `marker-end`-Verweis eines Pfades im Dokument
+// auf einen Marker DIESES Diagramms zeigt (eine zweite, verborgene Kopie
+// derselben Kennung nimmt der Folie sonst die Spitzen), und die Farbe der
+// Knoten nach dem Theme der Folie (Mermaid `default` #ECECFF, `dark` #1f2020).
+// Dazu die Konsole auf «translate(undefined, NaN)».
+const MERMAID_FOLIEN = [
+  '---',
+  'presentation: true',
+  '---',
+  '',
+  '# Fluss hell',
+  '',
+  '```mermaid',
+  'flowchart LR',
+  '  A[Start] --> B[Mitte]',
+  '  B --> C[Ende]',
+  '```',
+  '',
+  '---',
+  '',
+  '<!-- theme: dark -->',
+  '',
+  '## Fluss dunkel',
+  '',
+  '```mermaid',
+  'flowchart LR',
+  '  X[Eins] --> Y[Zwei]',
+  '  Y --> Z[Drei]',
+  '```',
+  '',
+];
+
+// Messung am Diagramm der gezeigten Folie.
+function messeDiagramm(page) {
+  return page.locator(`${ARTIKEL} .mermaid-block svg`).evaluate((svg) => {
+    const marker = Array.from(svg.querySelectorAll('marker'));
+    const verweise = Array.from(svg.querySelectorAll('path[marker-end]')).map((p) => {
+      const treffer = /url\(#([^)]+)\)/.exec(p.getAttribute('marker-end') || '');
+      const id = treffer ? treffer[1] : '';
+      const ziel = id ? document.getElementById(id) : null;
+      return {
+        vorhanden: !!ziel && ziel.tagName.toLowerCase() === 'marker',
+        eigenes: !!ziel && svg.contains(ziel),
+        kopien: id ? document.querySelectorAll(`[id="${CSS.escape(id)}"]`).length : 0,
+      };
+    });
+    const stil = Array.from(svg.querySelectorAll('style'))
+      .map((s) => s.textContent)
+      .join('')
+      .toLowerCase();
+    const hell = stil.includes('#ececff');
+    const dunkel = stil.includes('#1f2020');
+    return {
+      marker: marker.length,
+      verweise: verweise.length,
+      ohneZiel: verweise.filter((v) => !v.vorhanden).length,
+      fremdesZiel: verweise.filter((v) => !v.eigenes).length,
+      mehrfach: verweise.filter((v) => v.kopien > 1).length,
+      theme: hell === dunkel ? 'unklar' : hell ? 'light' : 'dark',
+    };
+  });
+}
+
+test.describe('PR-31: Mermaid-Flussdiagramm auf einer Folie zeigt seine Pfeilspitzen (F-347)', () => {
+  test('Marker vorhanden, jeder Verweis trifft den eigenen Marker, Diagramm im Theme der Folie, keine NaN-Meldung', async () => {
+    const dir = machVerzeichnis();
+    const datei = schreibe(dir, 'Fluss.md', MERMAID_FOLIEN);
+    const { app, page, userData } = await launchApp({ args: [datei] });
+    const meldungen = [];
+    page.on('console', (m) => meldungen.push(m.text()));
+    try {
+      await warteAufDateiArgument(page, datei);
+      await oeffneFolien(page);
+      const messungen = {};
+      for (const [stand, folie] of [
+        ['1 / 2', 'light'],
+        ['2 / 2', 'dark'],
+      ]) {
+        if (stand !== '1 / 2') await blaettereBis(page, 'ArrowRight', stand);
+        await expect(page.locator(ZAEHLER)).toHaveText(stand);
+        await expect(page.locator(SLIDE)).toHaveAttribute('data-theme', folie);
+        await expect(page.locator(`${ARTIKEL} .mermaid-block svg`)).toBeVisible({
+          timeout: 15000,
+        });
+        await expect.poll(() => messeDiagramm(page).then((m) => m.theme)).not.toBe('unklar');
+        messungen[folie] = await messeDiagramm(page);
+      }
+      const anwendung = await page.evaluate(() =>
+        document.documentElement.getAttribute('data-theme'),
+      );
+      const bericht = JSON.stringify({ anwendung, messungen, meldungen });
+      for (const folie of ['light', 'dark']) {
+        const m = messungen[folie];
+        expect(m.marker, bericht).toBeGreaterThan(0);
+        expect(m.verweise, bericht).toBeGreaterThan(0);
+        expect(m.ohneZiel, bericht).toBe(0);
+        expect(m.fremdesZiel, bericht).toBe(0);
+        expect(m.theme, bericht).toBe(folie);
+      }
+      expect(
+        meldungen.filter((t) => t.includes('translate(undefined, NaN)')),
+        bericht,
+      ).toEqual([]);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      raeumeAuf(dir);
+    }
+  });
+});

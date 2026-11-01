@@ -12,6 +12,8 @@ const { escapeHtml } = require('../slug.js');
 // src/shared/calendar/; die Bezugs-Aufloesung einer Ableitung und die
 // Kennung der eingebauten Zeitrechnung stehen in seinem Konfigurations-Rand.
 const calendarCore = require('../../calendar/calendar-core.js');
+// 4T-001922: die Erkennung an einer Stelle aus der gemeinsamen Wert-Syntax.
+const { matchCalendarValueAt } = require('../../calendar/calendar-value-syntax.js');
 const { baseCalendarOf, STANDARD_CALENDAR_ID } = require('../../calendar/calendar-config.js');
 
 // 4T-000748 (Epic 3E-000138): Einheiten-Namen der Zeitspanne. Steht eine
@@ -144,25 +146,26 @@ const CALENDAR_BADGE_PORTABLE_STYLE_BAD =
 // Doppelpunkt trennt Name und Wert (Zerlegung im Kalender-Kern — eine
 // Erkennungs-Quelle). Kollisionsfrei gegen die Syntax-Landschaft: Code-
 // Spans/-Bloecke laufen vor den Text-Rules, Critic Markup beginnt mit `{`
-// ohne `@`, Templates mit `{{`, das attrs-Plugin bindet nur eigene
-// Schluessel-Formen und sieht das konsumierte Token nicht mehr.
+// ohne `@`, Templates mit `{{`, das attrs-Plugin sieht das konsumierte
+// Token nicht mehr. Ein nicht erkanntes `@{…}` am Absatzende (etwa
+// `@{2026-13-40}`) kürzte es bis 4T-001922 trotzdem weg; davor schützt
+// seither plugins/attributes.js.
+// 4T-001922: Erkannt wird über matchCalendarValueAt, also mit dem Ausdruck
+// des Scanners samt seiner Sperre `(?<!@)`: In `@@{14:00}`, der Uhrzeit einer
+// Kanban-Karte, liest die Regel kein `@{14:00}` mehr als Kalender-Wert. Der
+// Rückblick ist möglich, weil `state.src` der ganze Inline-Text ist.
 function calendarValuesPlugin(mdInstance, opts) {
   const isPortable = !!(opts && opts.portable);
   function tokenize(state, silent) {
-    const start = state.pos;
-    if (state.src.charCodeAt(start) !== 0x40 /* @ */) return false;
-    if (state.src.charCodeAt(start + 1) !== 0x7b /* { */) return false;
-    const end = state.src.indexOf('}', start + 2);
-    if (end < 0) return false;
-    const raw = state.src.slice(start, end + 1);
-    const parsed = calendarCore.parseCalendarValueRaw(raw);
-    if (!parsed) return false;
+    if (state.src.charCodeAt(state.pos) !== 0x40 /* @ */) return false;
+    const found = matchCalendarValueAt(state.src, state.pos);
+    if (!found) return false;
     if (!silent) {
       const token = state.push('calendar_value', '', 0);
-      token.meta = parsed;
-      token.markup = raw;
+      token.meta = { name: found.name, value: found.value };
+      token.markup = found.raw;
     }
-    state.pos = end + 1;
+    state.pos = found.to;
     return true;
   }
   mdInstance.inline.ruler.before('link', 'calendar_value', tokenize);

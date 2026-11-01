@@ -187,6 +187,8 @@ describe('database:datensatz: Registrierung und Brücke (4T-001938, B4)', () => 
       // 4T-001942 (Epic 3E-000257): die Wertehilfe der Verweis-Felder.
       'database:datensaetze',
       'database:datensatz',
+      // 4T-002406 (Epic 3E-000266): die Karteikarte eines Datensatzes.
+      'database:karteikarte',
       // 4T-001944 (Epic 3E-000257): die Konsistenz-Prüfung über den Bestand.
       'database:konsistenz',
       // 4T-002249 (Epic 3E-000262): die Auskunft über eine Listen-Maske.
@@ -796,5 +798,83 @@ describe('database:datensatz: Feld gesperrteFelder (4T-002312, AK1, AK3)', () =>
     const kunden = await lesen(ereignis(wurzel), { tabelle: 'Kunden.md', kennung: 'r-00003' });
     expect(kunden.editable.erfuellt).toBe(false);
     expect(kunden.gesperrteFelder).toEqual([]);
+  });
+});
+
+// --- 4T-002406: Karteikarte eines Datensatzes (F7 A) --------------------------------------
+
+describe('database:karteikarte und Angabe karteikarte (4T-002406, F7 A, AK2, AK4)', () => {
+  // Eine Kartei-Tabelle im Ordner «Authors» mit einer Karteikarte, daneben die
+  // geteilte Tabelle der Tabellen-Form.
+  function karteiBestand() {
+    const wurzel = neueWurzel();
+    const ordner = path.join(wurzel, 'Authors');
+    fs.mkdirSync(ordner);
+    const kopf = [
+      '---',
+      'db-table:',
+      '  storage: cards',
+      '  fields:',
+      '    - name: name',
+      '  key: name',
+      '  lastId: 3',
+      '---',
+      '',
+    ];
+    const authors = lege(ordner, 'Authors.md', kopf.join('\n'));
+    const eco = lege(ordner, 'Umberto Eco.md', '---\ndb-record: r-00003\nname: Umberto Eco\n---\n');
+    const { kopf: kunden } = tabelle(wurzel);
+    return { wurzel, authors, eco, kunden };
+  }
+  const karteikarte = (optionen) => registriere(optionen).get('database:karteikarte');
+
+  it('bindet die Brücke an ihren Kanal und reicht die Parameter unverändert', async () => {
+    const invoke = vi.fn(async (name) => ({ name }));
+    const params = { tabelle: '/raum/Authors/Authors.md', kennung: 'r-00003' };
+    const bruecke = datenbankBruecke({ invoke, on: vi.fn() });
+    expect(await bruecke.databaseKarteikarte(params)).toEqual({ name: 'database:karteikarte' });
+    expect(invoke.mock.calls[0][1]).toBe(params);
+  });
+
+  it('nennt die Karteikarte eines Datensatzes, lang und kurz geschrieben', async () => {
+    const { wurzel, authors, eco } = karteiBestand();
+    const k = karteikarte();
+    expect(await k(ereignis(wurzel), { tabelle: authors, kennung: 'r-00003' })).toEqual({
+      datei: eco,
+    });
+    expect(await k(ereignis(wurzel), { tabelle: 'Authors/Authors.md', kennung: 'r-3' })).toEqual({
+      datei: eco,
+    });
+  });
+
+  it('antwortet null für die Tabellen-Form und für eine unbekannte Kennung', async () => {
+    const { wurzel, authors, kunden } = karteiBestand();
+    const k = karteikarte();
+    expect(await k(ereignis(wurzel), { tabelle: kunden, kennung: 'r-00001' })).toBe(null);
+    expect(await k(ereignis(wurzel), { tabelle: authors, kennung: 'r-00099' })).toBe(null);
+  });
+
+  it('weist falsche Form, fremden Bereich, Aus-Zustand und fehlendes Tor ohne Zugriff ab', async () => {
+    const { wurzel, authors } = karteiBestand();
+    const gut = { tabelle: authors, kennung: 'r-00003' };
+    expect(await karteikarte()(ereignis(wurzel), { tabelle: authors })).toBe(null);
+    expect(await karteikarte()(ereignis(wurzel), { ...gut, kennung: 3 })).toBe(null);
+    expect(await karteikarte()(ereignis(null), gut)).toBe(null);
+    expect(await karteikarte()(ereignis(wurzel), { ...gut, tabelle: '/fremd/Authors.md' })).toBe(
+      null,
+    );
+    expect(await karteikarte({ datenbankAktiv: () => false })(ereignis(wurzel), gut)).toBe(null);
+    expect(await karteikarte({ ohneTor: true })(ereignis(wurzel), gut)).toBe(null);
+  });
+
+  it('database:datensatz meldet die Karteikarte und gilt mit der Standard-Einzelmaske', async () => {
+    const { wurzel, authors, eco, kunden } = karteiBestand();
+    const antwort = await kanal()(ereignis(wurzel), { tabelle: authors, kennung: 'r-00003' });
+    expect(antwort).toMatchObject({ status: 'ready', datei: eco, karteikarte: true });
+    expect(antwort.koerper.quelle).toBe('erzeugt');
+    const tabellenForm = await kanal()(ereignis(wurzel), { tabelle: kunden, kennung: 'r-00001' });
+    expect(tabellenForm.karteikarte).toBe(false);
+    const neu = await kanal()(ereignis(wurzel), { tabelle: authors, kennung: null });
+    expect(neu.karteikarte).toBe(false);
   });
 });

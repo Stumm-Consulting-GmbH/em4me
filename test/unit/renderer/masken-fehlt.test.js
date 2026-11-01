@@ -181,3 +181,44 @@ describe('Sitzungs-Eintrag der Masken-Seite (4T-002334)', () => {
     ]);
   });
 });
+
+// 4T-002406 (Epic 3E-000266, F7 A): Bei einer Karteikarte tritt «Karteikarte
+// öffnen» an die Stelle von «Im Tabellen-Dokument zeigen»; Angaben aus der
+// Antwort des Kanals (`karteikarte`, `datei`). Am gebauten Programm prüft das
+// der Ablauf-Fall DB-KAS-05.
+describe('«Karteikarte öffnen» (4T-002406)', () => {
+  const ECO = '/raum/Authors/Umberto Eco.md';
+  const karte = (el) => el.querySelector('.db-form-open-card');
+  const alsKarte = (teil = {}) =>
+    seite({ daten: { status: 'ready', karteikarte: true, datei: ECO }, ...teil });
+
+  it('ersetzt bei einer Karteikarte den Handgriff zum Tabellen-Dokument', () => {
+    const el = leiste(alsKarte());
+    expect(karte(el).textContent).toBe('Karteikarte öffnen');
+    expect(karte(el).type).toBe('button');
+    expect(knopf(el)).toBe(null);
+  });
+
+  it('öffnet das Dokument der Karteikarte in der aktiven Spalte, ohne Sprung', async () => {
+    karte(leiste(alsKarte())).click();
+    await vi.waitFor(() => expect(geoeffnet).toHaveLength(1));
+    expect(geoeffnet).toEqual([[1, [ECO]]]);
+    expect(gesprungen).toEqual([]);
+  });
+
+  it('bleibt bei der Tabellen-Form und ohne Datei beim Handgriff zum Tabellen-Dokument', () => {
+    const tabelle = leiste(
+      seite({ daten: { status: 'ready', karteikarte: false, datei: LIBRARY } }),
+    );
+    expect(karte(tabelle)).toBe(null);
+    expect(knopf(tabelle)).not.toBe(null);
+    const ohneDatei = leiste(seite({ daten: { status: 'ready', karteikarte: true, datei: null } }));
+    expect(karte(ohneDatei)).toBe(null);
+    expect(knopf(ohneDatei)).not.toBe(null);
+  });
+
+  it('nicht im Bearbeiten und nicht bei der Neuanlage', () => {
+    expect(karte(leiste(alsKarte({ modus: MODUS_BEARBEITEN })))).toBe(null);
+    expect(karte(leiste(alsKarte({ neu: true })))).toBe(null);
+  });
+});

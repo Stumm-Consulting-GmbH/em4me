@@ -44,6 +44,8 @@ Der Einstellungs-Bereich «Kalender-Systeme» zeigt die Blöcke des geöffneten 
 
 Die Bearbeitung ist bewusst nie gesperrt: Struktur-Änderungen an bereits benutzten Kalendern sind erlaubt. Werte im Dokument, die dadurch ungültig werden, bleiben unverändert erhalten und werden sichtbar markiert. Gesperrt ist allein das Speichern einer ungültigen Definition: Beim Anwenden erscheint eine Meldung, und gespeichert wird nichts. Liegt etwa die verlängerte Einheit einer Schalt-Regel nicht innerhalb der Einheiten je Instanz, meldet das die Schalt-Regel schon bei der Eingabe und nennt die zulässigen Positionen.
 
+**Mehrere Programmfassungen im selben Bereich:** Arbeiten Rechner mit verschiedenen Programmfassungen im selben Bereich, kann eine neuere Fassung Zeitrechnungen anlegen, die eine ältere nicht kennt, etwa eine mit jährlich wechselndem Aufbau. Die ältere Fassung zeigt sie nicht in der Liste, sondern nennt über der Liste ihre Zahl. Beim Anwenden lässt sie diese Zeitrechnungen unverändert in der Bereichsdatei stehen, ebenso Angaben an einer bekannten Zeitrechnung, die erst eine neuere Fassung schreibt; die neuere Fassung findet danach alles wieder vor. Wer einen Block entfernt, entfernt auch die Zeitrechnungen darin, die die Liste nicht zeigt. Programmfassungen ohne diesen Hinweis über der Liste entfernen unbekannte Zeitrechnungen beim Anwenden noch; arbeitet ein solcher Rechner mit, bringt man am besten alle Rechner des Bereichs auf dieselbe Fassung.
+
 ### Eine Epoche nachtragen
 
 Ein Wert der jüngsten Epoche steht ohne Kürzel im Dokument, und ein Wert ohne Kürzel wird immer als Wert der jüngsten Epoche gelesen. Bekommt eine Zeitrechnung eine neue jüngste Epoche, würden gespeicherte Werte der bisher jüngsten deshalb einen anderen Tag bezeichnen oder ungültig werden. Gibt es im Bereich solche Werte, fragt das Programm beim Anwenden nach, bevor es speichert, und nennt ihre Zahl:
@@ -145,6 +147,8 @@ Ist der genannte Kalender im Bereich nicht definiert oder der Wert ungültig, bl
 Liegt ein Wert außerhalb des Geltungs-Zeitraums seiner Zeitrechnung (Abschnitt «Vorlagen mit jährlich wechselndem Aufbau»), bleibt der Quelltext ebenfalls unverändert. Der Wert gilt dann nicht als ungültig: Sein Kurzhinweis sagt «Name: nicht bekannt».
 
 In Code-Blöcken und Code-Spans bleibt die Syntax unangetastet: `@{Beispiel-Kalender: 500-2-09 ZZ}`.
+
+Steht unmittelbar vor `@{` ein weiteres `@`, ist es kein Kalender-Wert: `@@{14:00}`, eine Uhrzeit in der Schreibweise des Tafel-Werkzeugs, aus dem das Format der Kanban-Tafel stammt, bleibt Text.
 
 ## Einfügen und Bearbeiten
 

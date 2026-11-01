@@ -135,6 +135,23 @@ export function istDatenbankBereichSofort() {
 }
 
 /**
+ * Die Tabellen der zuletzt BEREITEN Auskunft, ohne Warten, oder null, solange
+ * es keine gibt.
+ *
+ * 4T-002406 (Epic 3E-000266, F7 A): Für die beiden synchronen Fragen der
+ * Kartei-Form, ob ein Datensatz-Klick auf eine Tabelle in Tabellen-Form geht
+ * (dann bleibt er ohne Umweg bei der Maske) und ob das aktive Dokument eine
+ * Karteikarte ist (Verfügbarkeit von «In der Maske öffnen»). Es gilt dieselbe
+ * Linie wie bei `istDatenbankBereichSofort`: ein Augenblick alter Stand ist
+ * besser als ein Kommando, das nach jedem Speichern verschwindet.
+ *
+ * @returns {object[]|null} Die Einträge mit `path` und `storage`.
+ */
+export function tabellenSofort() {
+  return zuletztBereit ? zuletztBereit.tabellen : null;
+}
+
+/**
  * Verwirft die gehaltene Auskunft. Aufzurufen, wenn sich der Bestand unter ihr
  * geändert haben kann — der Bereichs-Wechsel und jede Index-Meldung.
  *

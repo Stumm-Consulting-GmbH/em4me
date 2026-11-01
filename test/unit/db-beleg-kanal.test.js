@@ -248,3 +248,86 @@ describe('database:changeLog: fehlende Datei, Lesefehler, Erfolg', () => {
     expect(antwort.belege[1].code).toBe('belegZellenUnvollstaendig');
   });
 });
+
+// --- 4T-002390 (Epic 3E-000265, Schritt 3): die Bezugs-Datei in der Kartei-Form ----------
+
+describe('database:changeLog: Belege einer Karteikarte (4T-002390, AK3)', () => {
+  // Eine Kartei-Tabelle «Autoren» im eigenen Ordner mit der Karteikarte «Ada».
+  function kartei() {
+    const ordner = path.join(wurzel, 'Autoren');
+    fs.mkdirSync(ordner);
+    const tab = path.join(ordner, 'Autoren.md');
+    fs.writeFileSync(
+      tab,
+      '---\ndb-table:\n  storage: cards\n  fields:\n    - name: Ort\n  lastId: 2\n---\n',
+      'utf8',
+    );
+    const ada = path.join(ordner, 'Ada.md');
+    fs.writeFileSync(ada, '---\ndb-record: r-1\nOrt: Bern\n---\n', 'utf8');
+    return { tab, ada };
+  }
+
+  const anlegen = (id, ort, vorgang) => ({
+    art: 'create',
+    id,
+    vorgang,
+    felder: [{ name: 'Ort', neu: ort }],
+  });
+
+  it('liest die Belege aus der Beleg-Datei neben der Karteikarte, aufgerufen mit der Tabellen-Datei', async () => {
+    const { tab, ada } = kartei();
+    const takte = naht(['2026-10-25T10:00:00Z', '2026-10-25T10:05:00Z']);
+    await schreibeBeleg(ada, anlegen('r-00001', 'Basel', '1'), takte);
+    await schreibeBeleg(
+      ada,
+      {
+        art: 'update',
+        id: 'r-00001',
+        vorgang: '2',
+        felder: [{ name: 'Ort', alt: 'Basel', neu: 'Bern' }],
+      },
+      takte,
+    );
+    const kanal = registriere(wurzel);
+    // Kurz- und Langform der Kennung führen zur selben Karteikarte.
+    for (const recordId of ['r-00001', 'r-1']) {
+      const antwort = await kanal({}, { filePath: tab, recordId });
+      expect(antwort.status).toBe('ready');
+      expect(antwort.belege.map((b) => b.art)).toEqual(['create', 'update']);
+      expect(antwort.verkettung.lueckenlos).toBe(true);
+    }
+    expect(Object.keys(await kanal({}, { filePath: tab, recordId: 'r-1' })).sort()).toEqual([
+      'befunde',
+      'belege',
+      'status',
+      'verkettung',
+    ]);
+  });
+
+  it('liest für eine gelöschte Karteikarte die Beleg-Datei der Tabellen-Datei, gefiltert nach der Kennung', async () => {
+    const { tab } = kartei();
+    const takte = naht(['2026-10-25T10:00:00Z']);
+    await schreibeBeleg(tab, anlegen('r-00002', 'Rom', '3'), takte);
+    await schreibeBeleg(
+      tab,
+      { art: 'delete', id: 'r-00002', vorgang: '4', felder: [{ name: 'Ort', alt: 'Rom' }] },
+      takte,
+    );
+    await schreibeBeleg(tab, anlegen('r-00005', 'Oslo', '5'), takte);
+    const kanal = registriere(wurzel);
+    const antwort = await kanal({}, { filePath: tab, recordId: 'r-00002' });
+    expect(antwort.status).toBe('ready');
+    expect(antwort.belege.map((b) => b.art)).toEqual(['create', 'delete']);
+    // Eine vorhandene Karteikarte zeigt die tabellenweite Datei nicht.
+    const ada = await kanal({}, { filePath: tab, recordId: 'r-00001' });
+    expect(ada).toMatchObject({ status: 'ready', belege: [] });
+  });
+
+  it('meldet zwei Karteikarten mit derselben Kennung als Fehler statt eine zu wählen', async () => {
+    const { tab, ada } = kartei();
+    fs.copyFileSync(ada, path.join(path.dirname(ada), 'Ada Kopie.md'));
+    const kanal = registriere(wurzel);
+    const antwort = await kanal({}, { filePath: tab, recordId: 'r-00001' });
+    expect(antwort).toEqual({ status: 'error', belege: [], befunde: [], verkettung: null });
+  });
+});

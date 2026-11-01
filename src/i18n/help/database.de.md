@@ -182,6 +182,8 @@ Die Regeln sind knapp gehalten, weil die Datei technische Ablage ist:
 
 **Es geht nie ein Zeichen verloren.** Hat ein Datensatz zu wenige Zellen, bleiben die übrigen Felder leer; hat er zu viele, bleiben die überzähligen unangetastet stehen. Beides wird gemeldet, aber nichts wird stillschweigend weggeschrieben — das ist der eine Fehler, den ein Datenspeicher nicht machen darf.
 
+Statt in diesem Block kann eine Tabelle ihre Datensätze auch je in einem eigenen Dokument ablegen, mit den Feldern im Frontmatter und freiem Text darunter. Der Abschnitt «Kartei-Form» beschreibt diese zweite Form und wann sie passt.
+
 ## Prüfregeln
 
 Eine Prüfregel legt fest, welche Werte eine Tabelle annimmt. Sie steht in der Definition, an einem von zwei Orten je nach Reichweite:
@@ -294,7 +296,7 @@ Jeder Datensatz hat eine **Maske**: eine eigene Seite, die seine Felder in der R
 
 Einen bestehenden Datensatz öffnet die Schaltfläche **«Datensatz öffnen»** am Anfang seiner Zeile, vor der Schaltfläche der Änderungsbelege, in der Lese-Ansicht wie in der Live-Ansicht. Mit der Tastatur führt die Pfeiltaste nach links von der Beleg-Schaltfläche zu ihr.
 
-Aus dem Ergebnis einer Datensatz-Abfrage öffnet ein Klick auf einen Datensatz oder auf einen Verweis die Maske ebenso (Seite [Perspective-Abfrage](frontmatter-query.md)). Sie zeigt dabei den gespeicherten Stand, auch wenn die Abfrage einen ungespeicherten anzeigt. In einer Listen-Maske öffnet der Klick die Maske, die sie nennt (Abschnitt «Listen-Maske»). Ebenso öffnen ein Verweis auf einen Datensatz im Text eines Dokuments (Abschnitt «Verweis auf einen einzelnen Datensatz») und ein Datensatz-Treffer der Suche über den Bereich (Abschnitt «Auffindbarkeit: Suche und Verweise») die Maske.
+Aus dem Ergebnis einer Datensatz-Abfrage öffnet ein Klick auf einen Datensatz oder auf einen Verweis die Maske ebenso (Seite [Perspective-Abfrage](frontmatter-query.md)). Sie zeigt dabei den gespeicherten Stand, auch wenn die Abfrage einen ungespeicherten anzeigt. In einer Listen-Maske öffnet der Klick die Maske, die sie nennt (Abschnitt «Listen-Maske»). Ebenso öffnen ein Verweis auf einen Datensatz im Text eines Dokuments (Abschnitt «Verweis auf einen einzelnen Datensatz») und ein Datensatz-Treffer der Suche über den Bereich (Abschnitt «Auffindbarkeit: Suche und Verweise») die Maske. Gehört der Datensatz zu einer Tabelle in Kartei-Form, öffnen diese Klicks statt der Maske das Dokument der Karteikarte; die Zeile einer Listen-Maske bleibt der Weg in die Maske (Abschnitt «Kartei-Form»).
 
 Einen neuen Datensatz legen drei Wege an:
 
@@ -474,7 +476,7 @@ Wer einen Datensatz über die Anwendung anlegt, ändert oder löscht, hinterläs
 
 ### Was sie sind und wo sie liegen
 
-Zur Tabellen-Datei `Kunden.md` gehört die Datei `Kunden.mddl` im selben Ordner. Die Anwendung legt sie an und schreibt sie fort; Sie brauchen dafür nichts zu tun, und Sie sollen an ihr nichts tun.
+Zur Tabellen-Datei `Kunden.md` gehört die Datei `Kunden.mddl` im selben Ordner. Die Anwendung legt sie an und schreibt sie fort; Sie brauchen dafür nichts zu tun, und Sie sollen an ihr nichts tun. Bei einer Tabelle in Kartei-Form führt jede Karteikarte ihre eigene Beleg-Datei neben sich (Abschnitt «Kartei-Form»).
 
 Fünf Eigenschaften sind zu kennen:
 
@@ -650,7 +652,7 @@ Die Rollen sind Teil der Definition und reisen mit dem Steckbrief. Die Zuordnung
 
 ## Konsistenz-Prüfung
 
-Beim Speichern durch die Anwendung wird jede Änderung geprüft. Was auf anderem Weg in die Dateien kommt, etwa von Hand im Editor, prüft dabei niemand, und manche Regeln wirken beim Lesen gar nicht. Die **Konsistenz-Prüfung** sieht deshalb den ganzen Bestand durch und sagt, wo er den Regeln der Datenbank widerspricht.
+Beim Speichern durch die Anwendung wird jede Änderung geprüft. Was auf anderem Weg in die Dateien kommt, etwa von Hand im Editor, prüft dabei niemand, und manche Regeln wirken beim Lesen gar nicht. Die **Konsistenz-Prüfung** sieht deshalb den ganzen Bestand durch und sagt, wo er den Regeln der Datenbank widerspricht. Eine Karteikarte prüft die Anwendung auch beim Speichern im Editor, weist dort aber nichts ab, sondern meldet nur (Abschnitt «Kartei-Form»).
 
 Sie steht in der Übersicht der Datenbank: **«Konsistenz prüfen»** im Kopf prüft alle Tabellen, **«Prüfen»** in der Zeile einer Tabelle nur diese. Alle Tabellen prüft auch das Kommando **«Konsistenz der Datenbank prüfen»** in der Kommando-Palette; es öffnet dazu die Übersicht.
 
@@ -666,6 +668,7 @@ Gefunden werden:
 - in einer Masken-Datei außerdem ein Pfad, der kein Verweis-Feld oder kein Feld der Ziel-Tabelle nennt, und ein Positions-Bereich, dessen Abfrage-Datei fehlt oder nicht `editable: true` trägt, dessen Positionen kein oder kein eindeutiges Verweis-Feld auf die Tabelle der Maske haben oder dessen Abfrage sich nicht um die Beziehung ergänzen lässt;
 - in einer Abfrage-Datei eine unbrauchbare Angabe im Behälter `db-query`, ein unbekannter Handgriff in `allow` und eine Angabe `form`, die keine Masken-Datei der Datenbank nennt; ein solcher Befund nennt in der Spalte «Quelle» die Datei statt einer Tabelle;
 - bei der Prüfung aller Tabellen im Steckbrief eine unbrauchbare Angabe unter `roles`, `defaultRole` oder `users`, etwa eine Rolle mit unbekannter Tabelle oder Operation oder eine Zuordnung auf eine Rolle, die es nicht gibt; den Grund nennt die Übersicht unter den Fehlerlagen;
+- in einer Tabelle in Kartei-Form ein Datensatz-Block, ein Dokument im Ordner ohne oder mit unbrauchbarer Kennung, ein Feld eines Eigenschafts-Profils, dessen Typ von der Spalte abweicht, und eine zweite Kartei-Tabelle im selben Ordner; die Karteikarten selbst prüft sie wie Datensätze (Abschnitt «Kartei-Form»);
 - als Hinweis eine Tabelle, die Datensätze trägt, aber keinen oder einen zu niedrigen Hochwasserstand `lastId`; die nächste Neuanlage zieht dann über die höchste vorhandene Kennung und hebt ihn an;
 - eine Tabelle, deren Definition sich nicht lesen lässt; ihre Datensätze bleiben dann ungeprüft, und die Prüfung geht bei den übrigen Tabellen weiter.
 
@@ -685,7 +688,7 @@ Der **Verwendungsnachweis** sagt, wer eine Tabelle oder einen Datensatz benutzt.
 
 ## Auffindbarkeit: Suche und Verweise
 
-Die Suche über den **Bereich** findet Datensätze als eigene Treffer. Im Panel «Suchergebnisse» steht hinter den Gruppen der Dokumente je Tabelle eine eigene Gruppe mit dem Namen der Tabelle und dem Zusatz «Datensätze». Jede Zeile nennt den Datensatz mit seiner Anzeige-Form und das Feld, in dem der Suchbegriff steht, und zeigt dessen Wert mit markiertem Fund. Ein Klick öffnet den Datensatz in der Standard-Maske seiner Tabelle. Durchsucht werden die Feld-Werte aller Dateien einer Tabelle, auch ihrer Folge-Dateien, und bei einer geöffneten Tabelle ihr noch nicht gespeicherter Stand. Die Zahl über der Liste zählt Dokument- und Datensatz-Treffer zusammen. Ist die Ersetzen-Zeile geöffnet, entfallen die Datensatz-Gruppen, weil das Ersetzen über den Bereich nicht in Datensätze schreibt.
+Die Suche über den **Bereich** findet Datensätze als eigene Treffer. Im Panel «Suchergebnisse» steht hinter den Gruppen der Dokumente je Tabelle eine eigene Gruppe mit dem Namen der Tabelle und dem Zusatz «Datensätze». Jede Zeile nennt den Datensatz mit seiner Anzeige-Form und das Feld, in dem der Suchbegriff steht, und zeigt dessen Wert mit markiertem Fund. Ein Klick öffnet den Datensatz in der Standard-Maske seiner Tabelle, bei einer Tabelle in Kartei-Form das Dokument der Karteikarte. Durchsucht werden die Feld-Werte aller Dateien einer Tabelle, auch ihrer Folge-Dateien, und bei einer geöffneten Tabelle ihr noch nicht gespeicherter Stand. Die Zahl über der Liste zählt Dokument- und Datensatz-Treffer zusammen. Ist die Ersetzen-Zeile geöffnet, entfallen die Datensatz-Gruppen, weil das Ersetzen über den Bereich nicht in Datensätze schreibt.
 
 Der Datensatz-Block selbst liegt dagegen nicht im Volltext-Suchraum: Ein Suchbegriff, der nur in den Datensätzen einer Tabellen-Datei steht, liefert keinen Treffer bei diesem Dokument, sondern allein die Datensatz-Treffer. Der erklärende Text über dem Datenblock bleibt als Dokument durchsuchbar, und ein Treffer dahinter führt weiterhin an die richtige Stelle. Der Grund liegt nicht in der Tabelle, sondern im Bereich: Der Suchraum hält die Texte aller Markdown-Dateien im Speicher und trägt dafür eine Obergrenze über den **ganzen** Bereich. Schon ein paar Tabellen mit einigen Megabyte reißen sie, und von da an liest jede Suche wieder von der Platte, auch die über jedes gewöhnliche Dokument. Die Datensätze im Suchraum kosteten also nicht sich selbst, sondern den ganzen Bereich seine Geschwindigkeit.
 
@@ -715,7 +718,7 @@ Geprüft wird gegen den **gespeicherten** Stand der Tabelle, wie bei jedem ander
 
 Ob ein Verweis gilt, zeigt der [Markdown-Linter](tools.md): Ein gebrochenes Ziel bekommt im Editor, also in der Quellcode-, der geteilten und der Live-Ansicht, eine gewellte Unterstreichung. Die reine Lese-Ansicht stellt Gültigkeit nicht dar; dort sehen gültige und gebrochene Verweise gleich aus.
 
-**Ein Klick öffnet die Maske des Datensatzes**, in der Standard-Maske seiner Tabelle. Zur Zeile in der Tabellen-Datei führt der Handgriff **«Im Tabellen-Dokument zeigen»** im Kopf der Maske (Abschnitt «Lesen und bearbeiten»). Trifft ein Verweis keinen Datensatz eindeutig, öffnet der Klick die Tabellen-Datei. Außerhalb eines geöffneten Bereichs öffnet der Klick die Tabellen-Datei und bringt die Zeile des Datensatzes in den Blick. Im Ergebnis einer Datensatz-Abfrage öffnet ein Klick auf einen Datensatz ebenso dessen Maske.
+**Ein Klick öffnet die Maske des Datensatzes**, in der Standard-Maske seiner Tabelle. Bei einer Tabelle in Kartei-Form öffnet er stattdessen das Dokument der Karteikarte (Abschnitt «Kartei-Form»). Zur Zeile in der Tabellen-Datei führt der Handgriff **«Im Tabellen-Dokument zeigen»** im Kopf der Maske (Abschnitt «Lesen und bearbeiten»). Trifft ein Verweis keinen Datensatz eindeutig, öffnet der Klick die Tabellen-Datei. Außerhalb eines geöffneten Bereichs öffnet der Klick die Tabellen-Datei und bringt die Zeile des Datensatzes in den Blick. Im Ergebnis einer Datensatz-Abfrage öffnet ein Klick auf einen Datensatz ebenso dessen Maske.
 
 **Ein Verweis im Text hält den Datensatz nicht fest.** Wird der Datensatz gelöscht, bricht der Verweis wie jeder andere Verweis der Anwendung, und der Linter zeigt es. Den Lösch-Schutz trägt allein die Verweis-Spalte (Abschnitt «Verwendungsnachweis»).
 
@@ -777,7 +780,7 @@ TABLE RECORDS buch, leser, ausgeliehen, frist FROM "Ausleihen" WHERE NOT erledig
 
 In jeder Ansicht, die das Ergebnis zeigt, also in der Lese-, der geteilten und der Live-Ansicht, steht das Gitter an der Stelle der Ergebnis-Tabelle: dieselben Spalten, vorn die Spalte «Datensatz», darüber eine Zähl-Zeile wie «Zeilen 1 bis 50 von 120». Eine Seite zeigt fest 50 Zeilen; bei mehr Zeilen blättern **«Vor»** und **«Zurück»**.
 
-Ein Klick auf eine Zeile öffnet ihren Datensatz in der Maske, die `form` nennt, sonst in der Standard-Maske seiner Tabelle. Nennt `form` eine Masken-Datei, die es nicht gibt oder die zu einer anderen Tabelle gehört, öffnet der Klick ebenfalls die Standard-Maske, und in der Übersicht steht ein Hinweis unter den Fehlerlagen der Abfrage-Datei. In einer Zeile, die sich bearbeiten lässt, öffnet der einfache Klick auf eine bearbeitbare Zelle die Maske nicht, weil dort der Doppelklick die Bearbeitung beginnt; die Maske öffnen dann die Spalte «Datensatz» und die lesenden Zellen. Trägt die Abfrage `WITHOUT ID`, fehlt die Spalte «Datensatz», und in einer solchen Zeile öffnet nur eine lesende Zelle die Maske. Ein Verweis in einer Zelle öffnet wie überall die Maske seines Ziels.
+Ein Klick auf eine Zeile öffnet ihren Datensatz in der Maske, die `form` nennt, sonst in der Standard-Maske seiner Tabelle. Nennt `form` eine Masken-Datei, die es nicht gibt oder die zu einer anderen Tabelle gehört, öffnet der Klick ebenfalls die Standard-Maske, und in der Übersicht steht ein Hinweis unter den Fehlerlagen der Abfrage-Datei. In einer Zeile, die sich bearbeiten lässt, öffnet der einfache Klick auf eine bearbeitbare Zelle die Maske nicht, weil dort der Doppelklick die Bearbeitung beginnt; die Maske öffnen dann die Spalte «Datensatz» und die lesenden Zellen. Trägt die Abfrage `WITHOUT ID`, fehlt die Spalte «Datensatz», und in einer solchen Zeile öffnet nur eine lesende Zelle die Maske. Ein Verweis in einer Zelle öffnet wie überall die Maske seines Ziels, bei einer Karteikarte deren Dokument.
 
 **Das Ansehen sperrt nichts.** Eine Liste mit hunderten Datensätzen sperrte sonst mit jedem Blick alle; gesperrt wird erst die Zeile, deren Bearbeitung beginnt.
 
@@ -836,6 +839,151 @@ Vier Zusagen gelten dabei, und drei davon sagen, was **nicht** geschieht:
 
 Die Mechanik dahinter ist dieselbe wie bei der [Teilung großer Dokumente](document-parts.md); für Tabellen-Dateien gelten nur eine andere Schwelle und eine andere Schnittstelle.
 
+## Kartei-Form
+
+**Die Kartei-Form ist für Datensätze mit eigener Identität gedacht, nicht für viele gleichförmige Zeilen.** Gewählt wird sie nach der Natur des Datensatzes, nicht nach der Menge: Eine Person, ein Projekt oder ein Kunde, zu dem Notizen und Anhänge gehören, bekommt eine eigene Karteikarte; Ausleihen, Buchungen oder Messwerte bleiben im Datensatz-Block. Eine Massen-Ablage ist die Kartei-Form nicht, denn jede Karteikarte ist eine eigene Datei, und die Anwendung liest und prüft jede einzeln.
+
+In der Kartei-Form steht jeder Datensatz in einem eigenen Dokument, der **Karteikarte**. Seine Felder stehen im Frontmatter, darunter ist Platz für freien Text, Bilder und Verweise auf Anhänge wie in jedem anderen Dokument. Die Tabellen-Datei trägt dann allein die Definition.
+
+### Die Tabellen-Datei der Kartei
+
+Die Angabe `storage` auf der oberen Ebene des Behälters `db-table` wählt die Form:
+
+```yaml
+---
+db-table:
+  storage: cards
+  fields:
+    - name: name
+      type: string
+      required: true
+    - name: geboren
+      type: date
+  key: name
+  display: name
+  lastId: 3
+---
+```
+
+- `table` oder keine Angabe: die Tabellen-Form mit dem Datensatz-Block, wie in den Abschnitten oben beschrieben.
+- `cards`: die Kartei-Form. Die Schreibung zählt, `Cards` gilt nicht. Ein unbekannter Wert gilt als Tabellen-Form, und die Anwendung meldet ihn mit einem Hinweis.
+
+Der Körper der Tabellen-Datei braucht keinen Datensatz-Block; was dort steht, ist freier Text, etwa eine Beschreibung der Tabelle. Steht dort doch ein Datensatz-Block, bleibt er sichtbar und trägt den Hinweis, dass seine Zeilen nicht als Datensätze gelten: Sie erscheinen in keiner Abfrage und werden nicht geprüft, und die Konsistenz-Prüfung führt den Block als Befund.
+
+Die Übersicht der Datenbank nennt in der Spalte **«Form»** «Tabelle» oder «Kartei» und bei einer Kartei-Tabelle die Zahl ihrer Karteikarten, etwa «3 Karteikarten».
+
+### Was eine Karteikarte ist
+
+Eine Karteikarte trägt im Frontmatter unter `db-record` ihre Kennung, daneben die Felder der Tabelle:
+
+```yaml
+---
+db-record: r-00001
+name: Ada Lovelace
+geboren: 1815-12-10
+---
+```
+
+Zur Tabelle gehört eine Karteikarte allein über ihren Ort: Sie liegt im **selben Ordner** wie die Tabellen-Datei. Der Name der Tabellen-Datei spielt dabei keine Rolle; wird sie umbenannt, bleiben die Karteikarten ihre. Drei Grenzen gelten:
+
+- Dokumente in **Unterordnern** gehören nicht dazu.
+- **Dateien der Datenbank** sind keine Karteikarten: die Tabellen-Datei selbst, weitere Tabellen-Dateien, Masken- und Abfrage-Dateien und der Steckbrief.
+- Ein Dokument **ohne Kennung** ist keine Karteikarte. Die Konsistenz-Prüfung meldet es, ebenso eine Angabe `db-record` ohne brauchbare Kennung; Dokumente im Vorlagen-Ordner meldet sie nicht.
+
+Liegen **zwei Kartei-Tabellen im selben Ordner**, meldet die Konsistenz-Prüfung das an beiden, und keine von beiden bekommt die Dokumente des Ordners; ein Ordner trägt deshalb höchstens eine Kartei-Tabelle. Eine Tabelle in Tabellen-Form im selben Ordner stört nicht. Tragen zwei Karteikarten dieselbe Kennung, meldet die Prüfung jede von ihnen.
+
+### Werte im Frontmatter
+
+Die Werte einer Karteikarte werden nach dem Typ ihrer Spalte gelesen, genau wie die Zellen eines Datensatz-Blocks: Ein Wert, der nicht zu seinem Typ passt, ist derselbe Fehler wie in einer Zelle. Feld-Namen gelten ohne Rücksicht auf Groß- und Kleinschreibung, ein Wahrheitswert steht als `true` oder `false`, und eine Liste wird zu einem Text, dessen Einträge Komma und Leerzeichen trennen, weil eine Spalte keine mehrwertigen Werte kennt. Ein Verweis steht in Anführungszeichen, etwa `mentor: "[[Mary Somerville]]"`; ohne sie liest das Frontmatter eine verschachtelte Liste, und der Wert entfällt. Weitere Angaben im Frontmatter, etwa Schlagwörter, bleiben gewöhnliche Eigenschaften des Dokuments.
+
+**Gleichnamige Felder eines Eigenschafts-Profils.** Eine Karteikarte ist ein Dokument und kann deshalb auch Eigenschafts-Profilen zugeordnet sein. Für die Datenbank zählt allein die Definition der Tabelle: Ein gleichnamiges Profil-Feld ist kein Datenbank-Feld und ändert nicht, wie der Wert gelesen wird. Hat es denselben Typ wie die Spalte, bleibt alles still; hat es einen anderen, nennt die Konsistenz-Prüfung Feld, Profil und beide Typen.
+
+### Abfragen und Verweise
+
+Eine Datensatz-Abfrage nennt die Kartei-Tabelle wie jede andere Tabelle als Quelle, etwa `TABLE RECORDS name, geboren FROM "Autoren"`, und liest die Karteikarten als Zeilen. Bedingung, Sortierung, Gruppierung und Pfade über Verweis-Felder gelten wie in der Tabellen-Form, und eine Kartei-Tabelle ohne Karteikarte liefert die leere Menge. Auch die Suche über den Bereich findet die Feld-Werte der Karteikarten als Datensatz-Treffer.
+
+Eine Verweis-Spalte, deren `table` eine Kartei-Tabelle nennt, trifft eine Karteikarte über ihre Kennung oder den Wert ihres einteiligen Schlüssels, wie im Abschnitt «Beziehungen zwischen Tabellen» beschrieben. Ein Verweis im Text gilt ebenso: `[[Autoren#^r-00001]]`, die Kurzform `[[Autoren#^r-1]]` und die Anzeige-Form `[[Autoren#^Ada Lovelace]]`.
+
+**Auf der Ebene der Dateien** bleibt eine Karteikarte ein gewöhnliches Dokument: Eine Abfrage über Dateien führt sie mit ihrem Frontmatter, wie es geschrieben steht, ohne Auslegung nach der Tabelle.
+
+### Anlegen, ändern und löschen
+
+**«Neue Karteikarte»** steht in der Übersicht der Datenbank in der Zeile jeder Kartei-Tabelle, sofern Ihre Rolle das Anlegen erlaubt. Die Anwendung fragt nach dem Schlüssel, der zugleich der Name der Datei wird, und legt im Ordner der Tabelle das Dokument `<Schlüssel>.md` an, mit der nächsten Kennung und einem Gerüst aus allen Feldern der Tabelle, leer bis auf den Schlüssel; der Hochwasserstand `lastId` steigt. Das Gerüst entsteht auch dann leer, wenn die Tabelle weitere Pflichtfelder führt: Die Pflicht gilt beim Ändern, und bis dahin meldet die Konsistenz-Prüfung das leere Feld. Hat die Tabelle keinen einteiligen Schlüssel, wird der Name allein der Name der Datei. Abgewiesen werden ein Name, der kein zulässiger Dateiname ist, ein Name, unter dem im Ordner schon eine Datei liegt, und ein Schlüssel, der schon vergeben ist; die Statuszeile nennt den Grund.
+
+Das Kommando **«Neue Karteikarte in der aktiven Kartei-Tabelle»** in der Kommando-Palette wirkt auf die Tabelle des aktiven Dokuments, wenn es eine Kartei-Tabelle oder ein Dokument in ihrem Ordner ist. Eine Schaltfläche **«Neuer Datensatz»** gibt es an einer Kartei-Tabelle nicht, und das Kommando «Neuer Datensatz in der aktiven Tabelle» legt in ihr nichts an; seine Meldung verweist auf «Neue Karteikarte».
+
+**«Als Karteikarte aufnehmen»** steht am Befund zu einem Dokument ohne Kennung in der Konsistenz-Prüfung, und das Kommando **«Aktives Dokument als Karteikarte aufnehmen»** wirkt auf das aktive Dokument. Die Anwendung trägt die nächste Kennung als `db-record` ein und ändert sonst nichts am Dokument; danach läuft die Prüfung erneut. Ein Dokument außerhalb des Ordners, eine Datei der Datenbank und ein Dokument, das schon eine Kennung trägt, nimmt sie nicht auf.
+
+**Ändern über die Datenbank** schreibt allein die Zeilen der geänderten Felder im Frontmatter. Freier Text, Verweise auf Anhänge und fremde Angaben bleiben Zeichen für Zeichen stehen, eine fehlende Angabe kommt als neue Zeile hinzu, und ein Wert, der ohne Anführungszeichen anders gelesen würde, steht in Anführungszeichen. Wie in der Tabellen-Form gelten alle Regeln der Tabelle und der Vergleich mit dem gelesenen Stand: Hat jemand die Karteikarte inzwischen geändert, speichert die Anwendung zunächst nicht.
+
+**Löschen über die Datenbank** verschiebt die Karteikarte samt ihrer Beleg-Datei in den Papierkorb des Betriebssystems. Der Lösch-Schutz gilt wie bei jedem Datensatz: Eine Karteikarte, auf die noch eine Verweis-Spalte zeigt, lässt sich nicht löschen. Was mit ihren Belegen geschieht, beschreibt der nächste Abschnitt.
+
+### Änderungsbelege an der Karteikarte
+
+Die Belege einer Karteikarte stehen in einer eigenen Beleg-Datei neben ihr, unter ihrem Namen mit der Endung `.mddl`: Zu `Ada Lovelace.md` gehört `Ada Lovelace.mddl`. Für sie gilt, was der Abschnitt «Änderungsbelege» beschreibt. Sie erscheint in keiner Dateiliste, wird nur fortgeschrieben und zieht mit, wenn Sie die Karteikarte in der Anwendung umbenennen oder verschieben; verdichtet wird nach den Grenzen der Tabelle, also nach ihrer Angabe `changeLog`. Die Seite «Änderungsbelege» eines Datensatzes zeigt bei einer Karteikarte die Belege aus dieser Datei.
+
+Wird eine Karteikarte über die Datenbank gelöscht, geht ihre Spur nicht mit ihr verloren: Bevor Karteikarte und Beleg-Datei in den Papierkorb gehen, hängt die Anwendung die Belege samt dem Lösch-Beleg an die Beleg-Datei der Tabellen-Datei an. Die Seite «Änderungsbelege» zeigt sie danach dort, nach der Kennung gefiltert. Eine neue Karteikarte gleichen Namens beginnt mit einer leeren Spur.
+
+### Die Karteikarte im Editor und im Bereichs-Panel
+
+**Beim Speichern prüft die Anwendung die Karteikarte**, gleich ob Sie sie im Editor oder in der Seitenleiste «Properties» geändert haben und ob Sie von Hand, mit «Speichern unter» oder über das automatische Speichern speichern. Geprüft wird wie in der Konsistenz-Prüfung: ein fehlender Pflichtwert, ein Wert, der nicht zu seinem Typ passt oder eine Feld-Regel verletzt, ein Verweis, der keinen Datensatz trifft, eine verletzte Regel unter `checks` und ein Schlüssel, den schon eine andere Karteikarte trägt. **Gespeichert wird in jedem Fall**: Die Prüfung weist nichts ab und erzeugt keinen Änderungsbeleg. Was sie findet, erscheint an drei Orten:
+
+- Die **Statuszeile** meldet nach dem Speichern die Zahl der Befunde, beim automatischen Speichern nur, wenn sich die Befunde geändert haben.
+- In der Seitenleiste **«Properties»** steht an jedem betroffenen Feld ein Hinweis, dessen Tooltip den Befund nennt.
+- In der **Lese-Ansicht** trägt die Dateikopf-Zeile rechts ein Zeichen mit der Zahl der Befunde, dessen Tooltip alle nennt.
+
+Nach dem Beheben verschwinden Hinweis und Zeichen mit dem nächsten Speichern. Die Befunde gelten bis dahin; lädt die Anwendung die Karteikarte nach einer Änderung von außen neu, verwirft sie sie, und mit dem Ende der Sitzung sind sie fort. Eine doppelte Kennung, ein Profil-Feld mit anderem Typ und eine zweite Kartei-Tabelle im Ordner meldet weiterhin allein die Konsistenz-Prüfung.
+
+**Löschen im Bereichs-Panel** geht bei einer Karteikarte den Weg der Datenbank, und die Rückfrage sagt das mit dem Namen der Tabelle. Verweist ein anderer Datensatz über eine Verweis-Spalte auf die Karteikarte, unterbleibt das Löschen: Die Datei bleibt unberührt, ihr geöffnetes Dokument bleibt offen, und die Statuszeile nennt Namen und Grund. Sonst gehen ihre Belege samt dem Lösch-Beleg an die Tabelle über, und die Karteikarte wandert mit ihrer Beleg-Datei in den Papierkorb. Ist sie geöffnet und ungespeichert, speichert die Anwendung sie zuerst und schließt ihr Dokument erst nach dem Löschen. Es gelten dieselben Regeln wie beim Löschen über die Datenbank, auch die Berechtigung.
+
+**Kopieren im Bereichs-Panel** legt bei einer Karteikarte eine neue Karteikarte über die Datenbank an. Die Kopie bekommt wie jede Kopie im Bereichs-Panel den Namen der Vorlage mit einer angehängten Nummer, etwa `Ada Lovelace-1.md`, dazu die nächste Kennung; ihr Schlüssel ist dieser Name, die übrigen Felder, fremde Angaben im Frontmatter und der freie Text stammen aus der Vorlage. Die Belege der Vorlage gehen nicht mit: Die Kopie beginnt mit ihrem Anlege-Beleg in einer eigenen Beleg-Datei. Ist der Name als Datei oder als Schlüssel schon vergeben, nimmt die Anwendung die nächste Nummer. Weist sie das Anlegen aus einem anderen Grund ab, etwa weil Ihre Rolle es nicht erlaubt, entsteht keine Kopie, und die Statuszeile nennt den Grund.
+
+**Umbenennen** ändert allein den Namen der Datei, nicht den Schlüssel. Beim Anlegen und beim Kopieren sind beide gleich, danach dürfen sie auseinanderlaufen, und die Konsistenz-Prüfung meldet das nicht. Kennung, Anzeige-Form und die Verweise der Datenbank hängen am Frontmatter, nicht am Namen der Datei, und die Beleg-Datei zieht mit. Wer den Schlüssel ändern will, ändert das Feld.
+
+### Sichten an der Karteikarte
+
+Eine Tabelle in Kartei-Form kann **Sichten** benennen: Abfrage-Dateien, die die Anwendung unter jeder Karteikarte einblendet, etwa die Bücher eines Autors. Die Liste `views` auf der oberen Ebene des Behälters `db-table` nennt sie beim Namen ohne Endung, auch mit Ordnern davor; verglichen wird wie bei der Angabe `form`.
+
+```yaml
+---
+db-table:
+  storage: cards
+  fields:
+    - name: name
+      type: string
+  key: name
+  views:
+    - Bücher dieses Autors
+---
+```
+
+Die Sicht selbst ist eine gewöhnliche Abfrage-Datei (Abschnitt «Abfrage-Dateien»). Sie darf im Ordner der Karteikarten liegen, weil eine Datei der Datenbank keine Karteikarte ist. In ihrer Abfrage meint `this.` die Karteikarte, unter der sie gerade steht:
+
+```perspective-query
+TABLE RECORDS seiten FROM "Bücher" WHERE autor = this.name SORT seiten DESC
+```
+
+In der **Lese-Ansicht** steht jede Sicht unter dem Dateikopf und vor dem freien Text, als Block mit der Marke «Sicht» und dem Namen der Abfrage-Datei in der Kopfzeile; ein Klick auf den Namen öffnet die Abfrage-Datei. Der Block ist eine Ansicht: Er lässt sich nicht bearbeiten, und in die Datei der Karteikarte wird nichts geschrieben. Die Live-Ansicht zeigt keine Sicht. Das Ergebnis frischt wie jede Abfrage auf, wenn sich die Daten ändern; eine Änderung an der Abfrage-Datei selbst erscheint, wenn die Karteikarte das nächste Mal gezeichnet wird.
+
+**Einzeln geöffnet** meint `this.` die Abfrage-Datei selbst, wie bei jeder Abfrage-Datei; die Abfrage oben findet dort nichts, weil die Datei kein Feld `name` trägt. Ebenso bei einer Einbettung: Bettet eine Karteikarte die Datei mit `![[Bücher dieses Autors]]` ein, meint `this.` die Abfrage-Datei und nicht die Karteikarte. Den Bezug auf die Karteikarte gibt allein die Angabe `views`.
+
+Die Übersicht der Datenbank nennt die Sichten jeder Tabelle in der Spalte **«Sichten»**. Gibt es zu einem Namen keine Datei oder keine Abfrage-Datei, ist er dort durchgestrichen, ein Hinweis steht unter den Fehlerlagen, und unter jeder Karteikarte erscheint an der Stelle der Sicht eine Meldung mit ihrem Namen. Solange der Bereich nach dem Öffnen noch eingelesen wird, erscheint eine Sicht erst, wenn die Karteikarte das nächste Mal gezeichnet wird.
+
+### Masken und Klick-Ziel der Karteikarte
+
+**Bei einer Karteikarte ist das Dokument die erste Ansicht.** Ein Datensatz-Treffer der Suche über den Bereich, ein Datensatz oder ein Verweis im Ergebnis einer Abfrage, in der Lese-, der geteilten und der Live-Ansicht, und ein Verweis im Text wie `[[Autoren#^r-00001]]` öffnen das Dokument der Karteikarte in der aktiven Spalte, nicht ihre Maske. Lässt sich die Karteikarte nicht ermitteln, öffnet der Klick die Maske. Bei einer Tabelle in Tabellen-Form bleibt die Maske das Ziel.
+
+Die Maske gilt für eine Kartei-Tabelle wie für jede andere: die Standard-Maske, die Listen-Maske über die Kartei-Tabelle und der Positions-Bereich einer Maske, dessen Positionen Karteikarten sind. Die Zeile einer Listen-Maske und die eines Positions-Bereichs öffnen weiterhin die Maske des Datensatzes; ein Verweis in einer ihrer Zellen öffnet bei einer Karteikarte deren Dokument. Ein Klick auf einen Datensatz in der Konsistenz-Prüfung öffnet ebenfalls die Maske.
+
+Zwei Handgriffe führen zwischen Dokument und Maske hin und her:
+
+- In der Maske einer Karteikarte steht im Kopf **«Karteikarte öffnen»** an der Stelle von «Im Tabellen-Dokument zeigen» und öffnet ihr Dokument in der aktiven Spalte. Wie der ersetzte Handgriff steht er nur beim Lesen und nicht bei einer Neuanlage.
+- Das Kommando **«In der Maske öffnen»** in der Kommando-Palette öffnet die Maske der Karteikarte, die das aktive Dokument ist. An jedem anderen Dokument ist es nicht wählbar, ebenso solange der Bereich nach dem Öffnen noch eingelesen wird.
+
+### Grenzen der Kartei-Form
+
+Speichern, Löschen, Kopieren und Umbenennen in der Anwendung kennen die Karteikarte. Andere Wege, auf denen ein Dokument geschrieben wird, kennen sie nicht: das Ersetzen über den Bereich, das Fortschreiben von Journal-Einträgen und Ereignissen, das Verschieben von Kapiteln eines Buchs, das Einlesen einer JSON-Canvas-Datei und jede Änderung außerhalb der Anwendung, etwa das Löschen im Dateimanager oder das Bearbeiten mit einem anderen Editor. Was auf diesen Wegen an einer Karteikarte geschieht, prüft niemand im Augenblick der Änderung, es erzeugt keinen Beleg, und gelöscht wird ohne Lösch-Schutz und ohne dass ihre Belege an die Tabelle gehen. Die Folgen findet die Konsistenz-Prüfung, etwa einen Wert gegen eine Regel, einen Verweis, der keinen Datensatz mehr trifft, oder ein Dokument ohne Kennung. Auch das Speichern im Editor der Anwendung meldet nur und erzeugt keinen Beleg; eine Änderung am Frontmatter bemerkt erst die nächste Änderung über die Datenbank und speichert dann zunächst nicht (Abschnitt «Änderungsbelege»).
+
 ## Steckbrief der Datenbank
 
 Eine Datenbank beschreibt sich selbst im Behälter `db-database` im Frontmatter eines eigenen Dokuments:
@@ -871,7 +1019,7 @@ Ein Datenbank-Bereich bekommt zwei Dinge, die ein gewöhnlicher Bereich nicht ha
 
 In einem Bereich ohne Datenbank wird keiner dieser Wege angeboten.
 
-In der Tabellen-Liste nennt die Spalte **«Maske»** die Masken-Datei einer Tabelle und bleibt bei der erzeugten Maske leer. Dazu trägt die Übersicht vier Aktionen: **«Konsistenz prüfen»** im Kopf für alle Tabellen und in der Zeile jeder Tabelle **«Neuer Datensatz»**, **«Prüfen»** und **«Verwendung»**. Was sie tun, beschreiben die Abschnitte «Datensätze in der Maske bearbeiten», «Konsistenz-Prüfung» und «Verwendungsnachweis». Der Abschnitt **«Abfragen»** nennt jede Abfrage-Datei mit ihrem Namen und ihrem Ort, dem Ordner relativ zur Wurzel des Bereichs, und **«Öffnen»** öffnet sie wie jedes Dokument; führt der Bereich keine, steht dort ein erklärender Satz. Unter den Fehlerlagen stehen auch die Hinweise zu Masken- und Abfrage-Dateien, benannt nach der Datei. Die Spalte **«Art»** des Abschnitts «Abfragen» unterscheidet eine gewöhnliche «Abfrage» von einer «Listen-Maske» und nennt bei dieser die erlaubten Handgriffe; erlaubt sie keinen, steht dort «Listen-Maske, nur lesen». Im Steckbrief-Block nennt die Übersicht außerdem die eigene Rolle, und trägt der Steckbrief Rollen, auch diese mit ihren Erlaubnissen und unter jeder Tabelle die Erlaubnisse der eigenen Rolle (Abschnitt «Berechtigungen»).
+In der Tabellen-Liste nennt die Spalte **«Maske»** die Masken-Datei einer Tabelle und bleibt bei der erzeugten Maske leer. Dazu trägt die Übersicht vier Aktionen: **«Konsistenz prüfen»** im Kopf für alle Tabellen und in der Zeile jeder Tabelle **«Neuer Datensatz»**, **«Prüfen»** und **«Verwendung»**. Was sie tun, beschreiben die Abschnitte «Datensätze in der Maske bearbeiten», «Konsistenz-Prüfung» und «Verwendungsnachweis». Der Abschnitt **«Abfragen»** nennt jede Abfrage-Datei mit ihrem Namen und ihrem Ort, dem Ordner relativ zur Wurzel des Bereichs, und **«Öffnen»** öffnet sie wie jedes Dokument; führt der Bereich keine, steht dort ein erklärender Satz. Unter den Fehlerlagen stehen auch die Hinweise zu Masken- und Abfrage-Dateien, benannt nach der Datei. Die Spalte **«Art»** des Abschnitts «Abfragen» unterscheidet eine gewöhnliche «Abfrage» von einer «Listen-Maske» und nennt bei dieser die erlaubten Handgriffe; erlaubt sie keinen, steht dort «Listen-Maske, nur lesen». Im Steckbrief-Block nennt die Übersicht außerdem die eigene Rolle, und trägt der Steckbrief Rollen, auch diese mit ihren Erlaubnissen und unter jeder Tabelle die Erlaubnisse der eigenen Rolle (Abschnitt «Berechtigungen»). In der Spalte **«Form»** steht «Tabelle» oder «Kartei», bei einer Kartei-Tabelle mit der Zahl ihrer Karteikarten, und in deren Zeile steht statt «Neuer Datensatz» die Schaltfläche «Neue Karteikarte» (Abschnitt «Kartei-Form»). Die Spalte **«Sichten»** nennt die Sichten einer Tabelle in Kartei-Form, und eine Sicht ohne Abfrage-Datei steht dort durchgestrichen.
 
 **Der Einstellungs-Abschnitt «Datenbank»** steht in der Navigations-Gruppe «Aktueller Bereich» (Datei → Einstellungen… → Aktueller Bereich → Datenbank; bei geöffnetem Buch heißt die Gruppe **Aktuelles Buch**, bei geöffnetem Bücherregal **Aktuelles Bücherregal**). Er zeigt dieselbe Auskunft in Kurzform, also Name und Beschreibung der Datenbank, die Zahl ihrer Tabellen und die Zahl der Fehlerlagen, und trägt eine Option: **«Übersicht beim Öffnen des Bereichs zeigen»**. Ist sie gesetzt, öffnet sich die Übersicht von selbst, sobald der Bereich gebunden wird. Die Option liegt in der Bereichsdatei und reist mit dem Bereichs-Ordner. Dazu kommt das Feld **«Name des Sperr-Ordners»**; es ist im Abschnitt «Sperren» beschrieben.
 
@@ -897,6 +1045,8 @@ Für Rollen, Vorgabe-Rolle und Zuordnung im Steckbrief gilt dieselbe weiche Lini
 
 Trägt eine Tabelle Datensätze, aber keinen oder einen zu niedrigen Hochwasserstand `lastId`, vergibt die Anwendung trotzdem keine Kennung doppelt: Eine Neuanlage zieht die nächste Nummer über der höchsten vorhandenen Kennung und schreibt danach den Hochwasserstand fort. Die Konsistenz-Prüfung nennt die Lage als Hinweis.
 
+Für die Kartei-Form gilt dieselbe weiche Linie. Ein Wert der Angabe `storage` außer `table` und `cards` gilt als `table` und wird mit einem Hinweis gemeldet. Eine Angabe `db-record` ohne brauchbare Kennung macht ein Dokument nicht zur Karteikarte, und ein Datensatz-Block in einer Kartei-Tabelle trägt keine Datensätze; beides meldet die Konsistenz-Prüfung. Für die Angabe `views` gilt dieselbe Linie: Ist sie keine Liste, entfällt sie ganz, und ein Eintrag, der kein Name ist, entfällt allein; beides steht als Hinweis unter den Fehlerlagen. Nennt ein Eintrag eine Datei, die es nicht gibt oder die keine Abfrage-Datei ist, steht ebenfalls ein Hinweis unter den Fehlerlagen, und unter jeder Karteikarte erscheint an der Stelle der Sicht eine Meldung mit ihrem Namen.
+
 ## Die Datenbank abschalten
 
 Die gesamte Datenbank ist eine [interne Erweiterung](extensions.md) mit dem Namen «Datenbank» in der Kategorie Werkzeuge und lässt sich mit einem Schalter abschalten. Sie setzt die [Eigenschafts-Profile](property-profiles.md) voraus, weil die Gestalt einer Tabellen-Definition über ein internes Profil beschrieben und geprüft wird; solange die Datenbank eingeschaltet ist, lässt sich diese Grundlage deshalb nicht abschalten.
@@ -912,6 +1062,7 @@ Im Aus-Zustand gilt:
 - Die **Suche über den Bereich liefert keine Datensatz-Treffer**. Der Datensatz-Block bleibt aus dem Volltext ausgenommen, weil diese Grenze an der Tabellen-Datei hängt und nicht am Schalter; über den Bereich sind Datensätze dann nicht auffindbar.
 - Eine beim Beenden geöffnete **Maske** kehrt beim Start nicht zurück. Ihr Eintrag in der Sitzung ruht und bringt sie nach dem Einschalten mit dem nächsten Start zurück (Abschnitt «Nach dem Neustart»).
 - **Rollen, Vorgabe-Rolle und Zuordnung** bleiben bloßes Frontmatter des Steckbriefs, ebenso eine Angabe `editable` an einem Feld: Es gibt keine Auflösung und keine Prüfung, auch nicht beim Speichern einer geänderten Definition.
+- Eine **Tabelle in Kartei-Form** liest die Anwendung nicht mehr als solche: `storage` und `db-record` bleiben bloßes Frontmatter, die Karteikarten gewöhnliche Dokumente. Mit der Übersicht entfällt «Neue Karteikarte», mit der Konsistenz-Prüfung «Als Karteikarte aufnehmen», und die Kommandos «Neue Karteikarte in der aktiven Kartei-Tabelle» und «Aktives Dokument als Karteikarte aufnehmen» verschwinden aus der Kommando-Palette. Beim Speichern einer Karteikarte prüft die Anwendung nichts, das Bereichs-Panel löscht sie mit der gewöhnlichen Rückfrage und kopiert sie wie jede Datei, Sichten erscheinen nicht, und das Kommando «In der Maske öffnen» verschwindet aus der Kommando-Palette.
 - **Geschrieben wird nicht.** Die Anwendung legt keine Datensätze an, ändert und löscht keine, nimmt keine Sperre und erzeugt keinen Änderungsbeleg; auch einen liegengebliebenen Speichervorgang schreibt sie in diesem Zustand nicht zu Ende.
 
 **Die Dateien bleiben unangetastet.** Das Abschalten nimmt die Auslegung, nicht die Daten: Kein Zeichen wird geändert, und das Einschalten bringt alles zurück. Der Bereichs-Index wird dabei einmal neu aufgebaut; in großen Beständen dauert das einen Moment.

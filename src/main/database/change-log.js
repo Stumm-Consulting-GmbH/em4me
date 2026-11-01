@@ -28,6 +28,12 @@
 // Beleg-Datei. Er wird beim Schreiben gerufen und braucht keinen Takt; die
 // Timer-Linie ist mit E9.4 ausgeschlossen.
 //
+// **Die Bezugs-Datei ist jede Datei, neben der eine Beleg-Datei liegt**
+// (4T-002390, S4): die Tabellen-Datei in der Tabellen-Form, die Karteikarte in
+// der Kartei-Form. Die Funktionen nehmen den Pfad der Bezugs-Datei; ihre
+// Parameter heißen aus der Geschichte heraus `tabellenPfad`. Dazu kommt die
+// Übertragung der Belege einer Karteikarte an ihre Tabelle vor dem Löschen.
+//
 // **Nicht hier:** ein IPC-Kanal, eine Oberfläche und die Anlässe, die einen
 // Beleg auslösen. Die lesende Beleg-Ansicht aus E10.14 ist ein eigener Vorgang;
 // dieses Modul hat in diesem Task außer seinen Prüffällen keinen Aufrufer, und
@@ -41,6 +47,7 @@ const { frischerDateizugriff } = require('../documents/frisch-lesen.js');
 
 const { MDDL_EXT, companionPathFor } = require('../../shared/markdown-data-family.js');
 const {
+  ART_DELETE,
   anfuegeText,
   baueBeleg,
   belegeZuDatensatz,
@@ -340,14 +347,132 @@ async function verdichteBeiBedarf(tabellenPfad, optionen, deps) {
   }
 }
 
+// --- Übertragung vor dem Löschen einer Karteikarte (4T-002390, F6 B) -------------------
+
+// Codes der Übertragung, getrennt von LOG_CODES, weil ihre Lagen andere sind:
+// ein unbrauchbarer Lösch-Beleg, eine Beleg-Datei mit Belegen eines anderen
+// Datensatzes und die beiden Dateizugriffe.
+const UEBERTRAGUNG_CODES = Object.freeze({
+  pfad: 'uebertragungPfadFehlt',
+  loeschBeleg: 'uebertragungLoeschBelegUngueltig',
+  fremdeKennung: 'uebertragungFremdeKennung',
+  lesen: 'uebertragungLesenFehlgeschlagen',
+  anfuegen: 'uebertragungAnfuegenFehlgeschlagen',
+});
+
+/**
+ * Bildet die Übertragung der Belege einer Karteikarte an die Beleg-Datei ihrer
+ * Tabelle, ohne zu schreiben.
+ *
+ * 4T-002390 (Epic 3E-000265, F6 B): Vor dem Löschen einer Karteikarte gehen
+ * ihre Belege in ihrer Reihenfolge, gefolgt vom Lösch-Beleg, an die Beleg-Datei
+ * der Tabellen-Datei; sonst verschwände mit dem Gegenstand sein letzter Beleg.
+ *
+ * **Übertragen wird der Text, nicht eine neue Fassung.** Die Beleg-Datei der
+ * Karteikarte ist eine Folge von Anfüge-Texten; sie wird Zeichen für Zeichen
+ * übernommen, auch ein beschädigter Beleg, der sonst verloren ginge. Jeder
+ * Beleg trägt schon Kennung, Zeitpunkt und Vorgangs-Kennung; die Kette des
+ * Datensatzes bleibt in der Tabellen-Beleg-Datei lesbar, weil der Lösch-Beleg
+ * an den letzten neuen Wert anschließt.
+ *
+ * **Gelöscht wird hier nichts.** Zurück kommen der fertige Anfüge-Text samt
+ * Ziel, damit die Klammer des Absichts-Protokolls ihn wie einen Beleg führen
+ * kann, und die Dateien, die der Aufrufer danach in den Papierkorb gibt.
+ *
+ * @param {{karteikartePfad: string, tabellenPfad: string, loeschBeleg: string}} angaben
+ *   `loeschBeleg` ist der fertige Anfüge-Text genau eines Belegs der Art `delete`.
+ * @param {{fsp?: object}} [deps]
+ * @returns {Promise<{ok: true, pfad: string, text: string, anzahl: number,
+ *   zuEntsorgen: string[]}|{ok: false, code: string, error: string}>} `anzahl`
+ *   zählt die übertragenen Belege ohne den Lösch-Beleg.
+ */
+async function baueBelegUebertragung(angaben, deps) {
+  const a = angaben && typeof angaben === 'object' ? angaben : {};
+  const { karteikartePfad, tabellenPfad, loeschBeleg } = a;
+  if (typeof karteikartePfad !== 'string' || karteikartePfad === '')
+    return fehlschlag(UEBERTRAGUNG_CODES.pfad, 'Kein Pfad der Karteikarte übergeben.');
+  if (typeof tabellenPfad !== 'string' || tabellenPfad === '')
+    return fehlschlag(UEBERTRAGUNG_CODES.pfad, 'Kein Pfad der Tabellen-Datei übergeben.');
+  // Kein Text ist ein unbrauchbarer Lösch-Beleg und wird als solcher gemeldet.
+  if (typeof loeschBeleg !== 'string')
+    return fehlschlag(UEBERTRAGUNG_CODES.loeschBeleg, 'Kein Lösch-Beleg übergeben.');
+  const loesch = leseBelege(loeschBeleg).belege;
+  if (loesch.length !== 1 || loesch[0].beschaedigt || loesch[0].art !== ART_DELETE)
+    return fehlschlag(UEBERTRAGUNG_CODES.loeschBeleg, 'Kein gültiger Lösch-Beleg übergeben.');
+
+  const { fsp } = nahtstellen(deps);
+  const quelle = belegPfadFuer(karteikartePfad);
+  let inhalt = '';
+  let vorhanden = true;
+  try {
+    inhalt = String(await fsp.readFile(quelle, 'utf8'));
+  } catch (err) {
+    if (!err || err.code !== 'ENOENT') return fehlschlag(UEBERTRAGUNG_CODES.lesen, alsText(err));
+    vorhanden = false;
+  }
+  const { belege } = leseBelege(inhalt);
+  // Belege eines anderen Datensatzes gehören nicht zu dieser Karteikarte; sie
+  // unter fremder Kennung in die Tabelle zu tragen, verfälschte deren Kette.
+  if (belege.some((b) => !b.beschaedigt && b.id !== loesch[0].id))
+    return fehlschlag(
+      UEBERTRAGUNG_CODES.fremdeKennung,
+      'Die Beleg-Datei nennt eine andere Kennung.',
+    );
+
+  // Leerzeile voran und Zeilenende am Schluss nur, wo sie fehlen: Der Marker des
+  // ersten übertragenen Belegs steht damit in Spalte 0, ohne die Ziel-Datei zu lesen.
+  const kern = inhalt.trim() === '' ? '' : inhalt;
+  const vorne = kern === '' || kern.startsWith('\n') ? '' : '\n';
+  const hinten = kern === '' || kern.endsWith('\n') ? '' : '\n';
+  const lText = loeschBeleg.startsWith('\n') ? loeschBeleg : `\n${loeschBeleg}`;
+  return {
+    ok: true,
+    pfad: belegPfadFuer(tabellenPfad),
+    text: `${vorne}${kern}${hinten}${lText}`,
+    anzahl: belege.length,
+    zuEntsorgen: vorhanden ? [karteikartePfad, quelle] : [karteikartePfad],
+  };
+}
+
+/**
+ * Überträgt die Belege einer Karteikarte samt Lösch-Beleg an die Beleg-Datei
+ * ihrer Tabelle, in einem einzigen Anfüge-Aufruf (E10.7).
+ *
+ * 4T-002390: die Mechanik für das Löschen einer Karteikarte; verdrahtet wird sie
+ * mit dem Löschen in der Klammer (4T-002389, Schritt 4). Gelöscht wird nichts.
+ *
+ * @param {object} angaben Wie bei `baueBelegUebertragung`.
+ * @param {{fsp?: object}} [deps]
+ * @returns {Promise<{ok: true, pfad: string, anzahl: number, zuEntsorgen: string[]}
+ *   |{ok: false, code: string, error: string}>}
+ */
+async function uebertrageBelegeVorLoeschung(angaben, deps) {
+  const gebaut = await baueBelegUebertragung(angaben, deps);
+  if (!gebaut.ok) return gebaut;
+  const { fsp } = nahtstellen(deps);
+  try {
+    await fsp.appendFile(gebaut.pfad, gebaut.text, 'utf8');
+  } catch (err) {
+    return fehlschlag(UEBERTRAGUNG_CODES.anfuegen, alsText(err));
+  }
+  return { ok: true, pfad: gebaut.pfad, anzahl: gebaut.anzahl, zuEntsorgen: gebaut.zuEntsorgen };
+}
+
+function fehlschlag(code, error) {
+  return { ok: false, code, error };
+}
+
 module.exports = {
   LOG_CODES,
   VERDICHTUNG_GRUENDE,
   DROSSEL_ZUWACHS,
+  UEBERTRAGUNG_CODES,
   belegPfadFuer,
   schreibeBeleg,
   leseBelegDatei,
   belegeDesDatensatzes,
   verdichteBeiBedarf,
+  baueBelegUebertragung,
+  uebertrageBelegeVorLoeschung,
   _drosselLeeren,
 };

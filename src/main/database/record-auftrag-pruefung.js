@@ -114,6 +114,31 @@ const LAGEN = Object.freeze({
   // Steckbrief nicht lesbar oder fehlerhaft). Die Lage nennt `tabelle` und den
   // Grund (`grund`); abgewiesen wird, nichts wird gezogen.
   rechteNichtBestimmbar: 'auftragRechteNichtBestimmbar',
+  // 4T-002386 (Epic 3E-000265, Schritt 4): Zwischen-Schutz der Kartei-Form. Seit
+  // 4T-002389 (Schnitt 1) schreibt die Schnittstelle Karteikarten; vergeben wird
+  // die Lage nur noch für das Löschen einer Karteikarte, das mit Schritt 4 von
+  // 4T-002389 kommt, und für das Eröffnen einer Neuanlage, weil eine Karteikarte
+  // ihre Kennung erst mit ihrer Datei bekommt. Die Lage nennt `tabelle`.
+  karteiTabelle: 'auftragKarteiTabelle',
+  // 4T-002389 (Epic 3E-000265, F4 A): Ein Anlegen in einer Kartei-Tabelle nennt
+  // weder den Namen einer neuen Karteikarte noch ein aufzunehmendes Dokument.
+  // Ohne eines von beiden gäbe es keine Datei, in die geschrieben werden könnte.
+  karteiNameFehlt: 'auftragKarteiNameFehlt',
+  // 4T-002389: Der Name der neuen Karteikarte taugt nicht als Dateiname
+  // (`sanitizeNewFileName` der Bereichs-Dateien). Die Lage nennt `tabelle` und `name`.
+  karteiNameUngueltig: 'auftragKarteiNameUngueltig',
+  // 4T-002389: Im Ordner der Tabelle liegt bereits eine Datei dieses Namens. Die
+  // Lage nennt `tabelle`, `name` und `datei`.
+  karteiDateiVorhanden: 'auftragKarteiDateiVorhanden',
+  // 4T-002389: Das Dokument lässt sich nicht als Karteikarte aufnehmen, weil es
+  // nicht im Ordner der Tabelle liegt, eine Datenbank-Datei ist, schon eine
+  // Kennung trägt oder nicht lesbar ist. Die Lage nennt `tabelle`, `datei` und `grund`.
+  karteiAufnahmeUnmoeglich: 'auftragKarteiAufnahmeUnmoeglich',
+  // 4T-002405 (Epic 3E-000266, F5 A): Die Vorlage einer Kopie ist keine lesbare
+  // Karteikarte dieser Tabelle (fehlt, unlesbar, außerhalb des Bereichs, in
+  // einem anderen Ordner oder ohne Kennung). Die Lage nennt `tabelle`, `datei`
+  // und `grund`.
+  karteiVorlageUnbrauchbar: 'auftragKarteiVorlageUnbrauchbar',
   // Ein Bruch, den keine der benannten Lagen beschreibt. Er bekommt einen
   // eigenen Code, statt als Sperr-Konflikt oder als Schreibfehler zu erscheinen:
   // Eine falsch benannte Lage führt die Fehlersuche in die falsche Richtung, und
@@ -152,6 +177,15 @@ const LAGE_TEXTE = Object.freeze({
     'Ein früherer Auftrag ist unterbrochen worden und wird beim nächsten Versuch zu Ende geschrieben; bis dahin nehmen die betroffenen Tabellen keine neuen Aufträge an.',
   [LAGEN.nichtErlaubt]: 'Die eigene Rolle darf in dieser Tabelle nichts anlegen.',
   [LAGEN.rechteNichtBestimmbar]: 'Die Erlaubnis-Menge der eigenen Rolle ist nicht bestimmbar.',
+  [LAGEN.karteiTabelle]:
+    'Die Tabelle legt in Kartei-Form ab: Eine Neuanlage eröffnet «Neue Karteikarte», und eine Karteikarte ohne Datei lässt sich auf diesem Weg weder ändern noch löschen.',
+  [LAGEN.karteiNameFehlt]:
+    'Das Anlegen in einer Kartei-Tabelle nennt weder eine neue Karteikarte noch ein aufzunehmendes Dokument.',
+  [LAGEN.karteiNameUngueltig]: 'Der Name der Karteikarte taugt nicht als Dateiname.',
+  [LAGEN.karteiDateiVorhanden]: 'Im Ordner der Tabelle liegt bereits eine Datei dieses Namens.',
+  [LAGEN.karteiAufnahmeUnmoeglich]: 'Das Dokument lässt sich nicht als Karteikarte aufnehmen.',
+  [LAGEN.karteiVorlageUnbrauchbar]:
+    'Die Vorlage der Kopie ist keine lesbare Karteikarte der Tabelle.',
   [LAGEN.unerwartet]: 'Der Auftrag ist an einer unerwarteten Stelle gescheitert.',
 });
 
@@ -220,6 +254,8 @@ function leseAnweisung(roh, position) {
 
   const erwartung = leseErwartung(roh, { ...stelle, tabelle, id });
   if (!erwartung.ok) return erwartung;
+  const karteikarte = leseKarteikarte(roh, { ...stelle, tabelle, id });
+  if (!karteikarte.ok) return karteikarte;
 
   // 4T-001822 (Epic 3E-000254, B6): Erzwingen ist eine Angabe an der einzelnen
   // Anweisung. Ein Wahrheitswert und nichts anderes, aus demselben Grund wie bei
@@ -244,8 +280,41 @@ function leseAnweisung(roh, position) {
       werte,
       erwartet: erwartung.erwartet,
       erzwingen: erzwingenRoh,
+      karteikarte: karteikarte.karteikarte,
     },
   };
+}
+
+// 4T-002389 (Epic 3E-000265, F4 A): Die Angabe einer Karteikarte beim Anlegen in
+// einer Kartei-Tabelle, genau eine von drei Formen: `{ name }` legt die Datei
+// `<name>.md` im Ordner der Tabelle an, `{ aufnehmen }` nimmt ein vorhandenes
+// Dokument (Pfad relativ zur Bereichs-Wurzel) als Karteikarte auf. Bei Ändern
+// und Löschen gibt es sie nicht: Dort ist die Kennung das Ziel.
+//
+// 4T-002405 (Epic 3E-000266, F5 A): Die dritte Form `{ name, vorlage }` ist das
+// Duplizieren einer Karteikarte: eine neue Datei `<name>.md` wie bei `{ name }`,
+// deren übrige Felder und Freitext aus der Vorlage (Pfad wie bei `aufnehmen`)
+// stammen. Die Kennung zieht die Schnittstelle, die Beleg-Kette der Vorlage geht
+// nicht mit.
+const KARTEIKARTEN_FORMEN = Object.freeze([['name'], ['aufnehmen'], ['name', 'vorlage']]);
+
+function leseKarteikarte(roh, stelle) {
+  const angabe = roh.karteikarte;
+  if (angabe === undefined || angabe === null) return { ok: true, karteikarte: null };
+  const form = { ok: false, befund: befund(LAGEN.form, { ...stelle, feld: 'karteikarte' }) };
+  if (roh.art !== ART_ANLEGEN || !istEinfachesObjekt(angabe)) return form;
+  const namen = Object.keys(angabe).sort();
+  const passend = KARTEIKARTEN_FORMEN.some(
+    (f) => f.length === namen.length && f.every((n, i) => n === namen[i]),
+  );
+  if (!passend) return form;
+  const karteikarte = {};
+  for (const name of namen) {
+    const wert = angabe[name];
+    if (typeof wert !== 'string' || wert.trim() === '') return form;
+    karteikarte[name] = wert;
+  }
+  return { ok: true, karteikarte };
 }
 
 // 4T-001822 (Epic 3E-000254, B1): Der zuletzt gelesene Stand, den der Aufrufer
@@ -424,6 +493,12 @@ function pruefeAnweisung(anweisung, felder, karte, lagen) {
   // Beim Anlegen ist der ganze Datensatz bekannt: Ein Pflicht-Feld, das die
   // Anweisung gar nicht nennt, bleibt leer und fehlt damit.
   if (anweisung.art !== ART_ANLEGEN) return;
+  // 4T-002389 (Steuer-Sitzung zu Schnitt 1, F4 A «leeres Feld-Gerüst»): «Neue
+  // Karteikarte» legt die übrigen Felder ausdrücklich leer an, auch Pflicht-Felder.
+  // Ausgesetzt ist allein diese Prüfung beim Anlegen einer neuen Karteikarte; ein
+  // ausdrücklich geleertes Pflicht-Feld (oben) weist weiter ab, beim Ändern gilt
+  // die Pflicht am Ergebnis, und die Konsistenz-Prüfung meldet die fehlende Angabe.
+  if (anweisung.karteikarte && anweisung.karteikarte.name !== undefined) return;
   const genannt = new Set(Object.keys(anweisung.werte).map((name) => name.toLowerCase()));
   for (const feld of felder) {
     if (feld.required !== true) continue;

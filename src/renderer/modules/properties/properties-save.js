@@ -24,6 +24,9 @@ import { bleibtAusDemDokument } from './properties-feld-formular.js';
 // 4T-001185 (Epic 3E-000221): Marke der abgeleiteten Felder aus dem gemeinsamen
 // Modul beider Panels — Setzen und Auswerten haben dieselbe Quelle.
 import { istAbgeleitetesFeld } from './properties-neue-typen.js';
+// 4T-002404 (Epic 3E-000266, F3 A): Hinweise je Feld aus den Befunden einer
+// Karteikarte beim letzten Speichern.
+import { zeichneKarteiFeldHinweise } from '../database/karteikarte-befunde.js';
 
 // 4T-000051: Liest die Felder aus der Sidebar-Sektion einer Spalte und baut
 // ein Plain-Objekt fuer writeFrontmatter. Read-only-Felder behalten ihren
@@ -163,6 +166,10 @@ export function savePropertiesFromPane(paneIdx, targetTab) {
   // DOM-Neuaufbau, der Fokus bleibt) und die Auflösung neu anstoßen — das
   // Zuordnungs-Feld kann sich mit diesem Save geändert haben.
   updateProfileHints(paneIdx);
+  // 4T-002404: Die Befunde der Karteikarte stammen aus dem letzten Speichern;
+  // ein umbenanntes Feld trägt danach den Hinweis seines neuen Namens. Neue
+  // Befunde zeichnet der Speicher-Weg, sobald die Datei geschrieben ist.
+  zeichneKarteiFeldHinweise(els.propertiesFields, tab.path);
   void refreshProfileResolution(paneIdx);
   // Editor und Render-Pane synchron halten. renderProperties NICHT
   // aufrufen, damit der Sidebar-Fokus erhalten bleibt.

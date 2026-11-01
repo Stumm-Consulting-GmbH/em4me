@@ -64,6 +64,10 @@ function datenbankBruecke(ipcRenderer) {
     // absoluten Pfad und dem Anker ohne `^`; Antwort `{ tabelle, kennung }` oder
     // `null` für den bisherigen Weg. Der Kanal prüft selbst und fail-closed.
     databaseVerweisZiel: (params) => ipcRenderer.invoke('database:verweisZiel', params),
+    // 4T-002406 (Epic 3E-000266, F7 A): Die Karteikarte eines Datensatzes.
+    // Parameter `{ tabelle, kennung }`; Antwort `{ datei }` bei einer Karteikarte,
+    // sonst `null`. Der Kanal prüft selbst und fail-closed.
+    databaseKarteikarte: (params) => ipcRenderer.invoke('database:karteikarte', params),
     // 4T-001943 (Epic 3E-000257, B1): Die erzeugte Maske EINER Tabelle als
     // Datei neben die Tabelle schreiben. Parameter `{ tabelle, sprache }`; der
     // Kanal prüft selbst und fail-closed und überschreibt nie eine vorhandene
@@ -92,6 +96,11 @@ function datenbankBruecke(ipcRenderer) {
     // (Muster der Start-Seite: ein Lese- und ein Schreib-Kanal).
     getAreaDatabaseConfig: () => ipcRenderer.invoke('area:getDatabaseConfig'),
     setAreaDatabaseConfig: (config) => ipcRenderer.invoke('area:setDatabaseConfig', config),
+    // 4T-002405 (Epic 3E-000266): Ist eine Datei des Bereichs eine Karteikarte?
+    // Der Lösch-Weg des Bereichs-Panels schließt ihre Reiter erst nach dem
+    // angenommenen Lösch-Auftrag. Hier und nicht in preload.js, weil jene
+    // Datei auf ihrem eingefrorenen Größen-Wert steht.
+    areaIstKarteikarte: (filePath) => ipcRenderer.invoke('area:istKarteikarte', filePath),
     // 4T-001759 (Epic 3E-000253): Der Menue-Weg zur Uebersichts-Seite. Er steht
     // hier und nicht bei den uebrigen Menue-Kanaelen in preload.js, weil jene
     // Datei exakt auf ihrem Groessen-Budget steht; die Datenbank-Naht ist

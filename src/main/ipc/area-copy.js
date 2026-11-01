@@ -181,9 +181,10 @@ async function raeumeAuf(ziel) {
  * @param {(event: object) => object|null} deps.senderWindow Fenster des Absenders.
  * @param {(win: object) => object|null} deps.areaOfWindow Bereichs-Bindung eines Fensters.
  * @param {(p: string) => boolean} deps.isMarkdownPath Markdown-Erkennung am Pfad.
+ * @param {object} [deps.karteiWeichen] Weichen einer Karteikarte (4T-002405).
  */
 function registerAreaCopyIpc(handle, deps) {
-  const { senderWindow, areaOfWindow, isMarkdownPath } = deps;
+  const { senderWindow, areaOfWindow, isMarkdownPath, karteiWeichen } = deps;
 
   // 4T-001731 (Epic 3E-000306): "Kopieren" — legt eine Kopie der Datei im
   // selben Ordner an, benannt nach der ersten freien Nummer.
@@ -233,15 +234,28 @@ function registerAreaCopyIpc(handle, deps) {
     }
     if (readPartLine(inhalt)) return { ok: false, error: 'split-document' };
 
+    // 4T-002405 (Epic 3E-000266, F5 A): Eine Karteikarte entsteht als
+    // Anlege-Auftrag der Schnittstelle (`kartei-weichen.js`), unter dem Namen
+    // derselben Namensfindung; jede andere Datei wird kopiert wie bisher.
+    const kartei = karteiWeichen ? await karteiWeichen.kopierHandlung(quelle, area.rootPath) : null;
     const ergebnis = await kopiereMitFreierNummer({
       dateiName: path.basename(quelle),
       ordner: path.dirname(quelle),
       istImBereich: (ziel) => isInsideArea(area.rootPath, ziel),
-      kopiere: (ziel) => fs.copyFile(quelle, ziel, fs.constants.COPYFILE_EXCL),
+      kopiere: kartei
+        ? kartei.kopiere
+        : (ziel) => fs.copyFile(quelle, ziel, fs.constants.COPYFILE_EXCL),
     });
-    if (!ergebnis.ok) return ergebnis;
+    if (!ergebnis.ok) return (kartei && kartei.abweisung()) || ergebnis;
 
     const begleit = await kopiereBegleitdatei(quelle, ergebnis.ziel);
+    // 4T-002405: Die Karteikarte ist ein angelegter Datensatz mit Anlege-Beleg
+    // und wird nicht am Datenbank-Weg vorbei zurückgenommen; es fehlen allein
+    // die Block-Eigenschaften und die Notiz der Vorlage.
+    if (!begleit.ok && kartei) {
+      console.warn('[area:copyFile] Begleitdatei der Karteikarte nicht angelegt:', begleit.error);
+      return { ok: true, path: ergebnis.ziel, name: ergebnis.name, begleitdatei: false };
+    }
     if (!begleit.ok) {
       await raeumeAuf(ergebnis.ziel);
       return { ok: false, error: begleit.error };

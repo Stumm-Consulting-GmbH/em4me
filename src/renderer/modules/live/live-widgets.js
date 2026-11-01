@@ -33,11 +33,12 @@ import { runLateInlinePasses } from './live-pass-inline-late.js';
 import { liveBasePathFacet, liveBlockWidgetsField } from './live-block-field.js';
 // 4T-002351 (Epic 3E-000184): Kopfzeile mit Prüf-Anzeige über dem workflow-Block.
 import { workflowKopf } from '../workflows/workflow-kopf.js';
-import { liveTabellenZellFokus } from './live-table-zelle.js';
+import { liveTabellenScroll, liveTabellenZellFokus } from './live-table-zelle.js';
 import {
   liveAbbrHoverTooltip,
   liveFootnoteHoverTooltip,
   livePreviewClickHandler,
+  liveWidgetAuswahlFilter,
 } from './live-interaction.js';
 
 // 4T-000084: Helper zum Auflesen des basePath fuer einen EditorView ueber
@@ -199,10 +200,14 @@ export const livePreviewExtensions = [
   liveFootnoteHoverTooltip,
   liveAbbrHoverTooltip,
   liveBlockWidgetsField,
+  // 4T-002258: Eine Browser-Auswahl im Block-Widget wird nie zur Schreibmarke.
+  liveWidgetAuswahlFilter,
   // 4T-001346 (Epic 3E-000239): Steht die Schreibmarke in einer gerenderten
   // Tabelle, oeffnet dieser Beobachter deren Zelle zur Eingabe. Er bedient alle
   // drei Wege hinein — Klick, Zellsprung und Pfeiltaste von ausserhalb —, weil
   // alle drei damit enden, dass die Marke im Tabellen-Quelltext steht.
   liveTabellenZellFokus,
+  // 4T-001812: Eine Stelle in der Tabelle scrollt nur senkrecht ins Bild.
+  liveTabellenScroll,
   workflowKopf(liveBasePathFacet),
 ];

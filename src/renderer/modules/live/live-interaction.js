@@ -8,6 +8,7 @@
 // des Live-Modus still aus.
 'use strict';
 
+import { EditorState } from '@codemirror/state';
 import { EditorView, hoverTooltip } from '@codemirror/view';
 
 import { state } from '../app/app-state.js';
@@ -165,6 +166,31 @@ export function bindDatentabellenVerweisKlicks(container) {
     activateLink(paneIdx, link.getAttribute('href'), link.classList.contains('wikilink'));
   });
 }
+
+// 4T-002258: Eine Auswahl des Browsers INNERHALB eines Block-Widgets wird nie
+// zur Schreibmarke. `ignoreEvent()` der Widgets hält den Editor nur von ihren
+// Ereignissen fern, nicht von seinem Mutations-Beobachter: Ändert ein Widget
+// sein DOM (die Datentabelle beim Sortieren), liest der Editor eine Auswahl,
+// die ein Klick in das Widget hinterlassen hat (Zelle mit Fokus), als neue
+// Schreibmarke, setzt sie auf den Rand des Blocks (Nutzer-Ereignis `select`)
+// und der Block klappt zum Quelltext auf. Verworfen wird genau diese aus dem
+// DOM gelesene Marke: Sie liegt dort, wohin die Browser-Auswahl im Widget
+// abgebildet wird. Befehle, Pfeiltasten und eigene Klick-Wege bleiben
+// unberührt, weil sie ihr Ziel selbst setzen. Die leere Ersatz-Transaktion
+// lässt den Editor seine eigene Auswahl ins DOM zurückschreiben.
+export const liveWidgetAuswahlFilter = EditorState.transactionFilter.of((tr) => {
+  if (!tr.selection || tr.docChanged || !tr.isUserEvent('select')) return tr;
+  if (tr.isUserEvent('select.pointer')) return tr;
+  const sel = document.getSelection();
+  const knoten = sel && sel.rangeCount ? sel.anchorNode : null;
+  const el = knoten && (knoten.nodeType === 1 ? knoten : knoten.parentElement);
+  const block = el && el.closest('.cm-live-block');
+  const editorEl = block && block.closest('.cm-editor');
+  const view = editorEl ? EditorView.findFromDOM(editorEl) : null;
+  if (!view || view.state !== tr.startState) return tr;
+  const stelle = view.posAtDOM(knoten, sel.anchorOffset);
+  return tr.newSelection.main.head === stelle ? {} : tr;
+});
 
 // 4T-000082: Klick-Handler fuer Live-Modus-Links und Footnote-Verweise.
 // Aktiv nur wenn das Live-Compartment den Plugin-Stack enthaelt; wird mit

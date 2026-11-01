@@ -68,7 +68,13 @@ import { EditorView } from '@codemirror/view';
 import { getLanguage, t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { liveRebuildEffect } from '../live/live-shared.js';
-import { BASE_DEFAULTS, COLOR_SLOTS } from '../../../shared/color-schemes.js';
+import {
+  BASE_DEFAULTS,
+  COLOR_SLOTS,
+  getActiveScheme,
+  resolveSchemeColors,
+} from '../../../shared/color-schemes.js';
+import { getColorSchemeState } from '../color-schemes.js';
 import { chartDescriptionTexts } from '../../../shared/charts/chart-call-options.js';
 import { baueAuslassZeile, baueHinweis, baueHinweisNichtRechtzeitig } from './chart-hint.js';
 // 4T-002048: das Zeichen der Block-Eigenschaften überdauert das Neu-Zeichnen.
@@ -166,19 +172,28 @@ function wirksameSchrift(stil) {
  *   Wurzel-Element.
  * @param {string} idPrefix Präfix der Kennungen in der Grafik, eindeutig im
  *   Dokument.
+ * @param {string|null} [hellDunkel] 4T-002323: Hell-Dunkel-Angabe von außen
+ *   (die Folie). Die Reihen-Farben kommen dann aus dem aktiven Farbschema
+ *   DIESES Modus statt aus dem der Anwendung — weiter allein aus einem
+ *   Farbschema (Entscheidung vom 2026-09-29); Text und gedämpfte Farbe liest
+ *   die Grafik an ihrem Ort, auf der Folie also aus deren Theme.
  * @returns {{colors: object, fontFamily: (string|undefined), idPrefix: string,
  *   descriptionTexts: object}}
  */
-export function zeichenAngabenDerAnsicht(element, idPrefix) {
-  const basis = BASE_DEFAULTS[modus()];
+export function zeichenAngabenDerAnsicht(element, idPrefix, hellDunkel = null) {
+  const fest = hellDunkel === 'light' || hellDunkel === 'dark' ? hellDunkel : null;
+  const basis = BASE_DEFAULTS[fest || modus()];
   const ort = element && element.isConnected ? element : document.documentElement;
   const stil = getComputedStyle(ort);
+  const schema = fest ? resolveSchemeColors(getActiveScheme(getColorSchemeState(), fest)) : null;
+  const reihe = (slot) =>
+    (schema ? schema[slot.id] : variable(stil, slot.vars[0])) || basis[slot.id];
   return {
     colors: {
       text: variable(stil, '--fg') || basis.text,
       muted: variable(stil, '--fg-muted') || basis.textMuted,
       background: 'transparent',
-      palette: REIHEN_PLAETZE.map((slot) => variable(stil, slot.vars[0]) || basis[slot.id]),
+      palette: REIHEN_PLAETZE.map(reihe),
     },
     fontFamily: wirksameSchrift(stil),
     idPrefix,
@@ -186,8 +201,9 @@ export function zeichenAngabenDerAnsicht(element, idPrefix) {
   };
 }
 
-function angabenDerAnsicht(block, kennung) {
-  return zeichenAngabenDerAnsicht(block, `ch-${kennung}-${Number(block.dataset.chartIndex) || 0}`);
+function angabenDerAnsicht(block, lauf) {
+  const prefix = `ch-${lauf.kennung}-${Number(block.dataset.chartIndex) || 0}`;
+  return zeichenAngabenDerAnsicht(block, prefix, lauf.theme);
 }
 
 // 4T-002048: Trägt der Block die Kennung einer Anker-Zeile darunter, hängt an
@@ -212,12 +228,7 @@ function zeigeQuelltext(block, body) {
 
 function frageBruecke(block, lauf, body, tabellenDokument) {
   try {
-    return api.buildChart(
-      lauf.text(),
-      body,
-      angabenDerAnsicht(block, lauf.kennung),
-      tabellenDokument,
-    );
+    return api.buildChart(lauf.text(), body, angabenDerAnsicht(block, lauf), tabellenDokument);
   } catch (err) {
     // Ein Fehler in einem Diagramm darf die Ansicht nicht abbrechen.
     console.warn('perspective-chart: Zeichnen fehlgeschlagen:', err);
@@ -361,6 +372,8 @@ function zeigeErgebnis(block, lauf, erg, body) {
  * @param {string} [kontext.kennung] Kennzeichen der Ansicht für eindeutige
  *   Kennungen in der Grafik (Vollansicht: Spalte); ohne Angabe fortlaufend.
  * @param {string} [kontext.art] 'live' für ein Live-Widget.
+ * @param {string|null} [kontext.theme] Hell-Dunkel-Angabe von außen
+ *   (4T-002323: die Folie); sie gilt auch für jedes Neu-Zeichnen des Laufs.
  */
 export function applyPerspectiveChartsIfPresent(container, basePath, kontext = {}) {
   if (!container || typeof container.querySelectorAll !== 'function') return;
@@ -375,6 +388,7 @@ export function applyPerspectiveChartsIfPresent(container, basePath, kontext = {
     kennung: kontext.kennung || `${kontext.art === 'live' ? 'l' : 't'}${folge}`,
     basePath: basePath || '',
     art: kontext.art === 'live' ? 'live' : 'ansicht',
+    theme: kontext.theme || null,
   };
   for (const block of bloecke) {
     LAEUFE.set(block, lauf);

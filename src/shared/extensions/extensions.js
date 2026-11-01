@@ -1232,6 +1232,20 @@ const INTERNAL_EXTENSIONS = [
       'help.feature.databasePermissionCheck',
       'help.feature.databasePermissionForms',
       'help.feature.databaseFieldEditable',
+      // 4T-002391 (Epic 3E-000265, F7 A): Siebenundvierzig mit den fünf Zeilen
+      // der Kartei-Form, ohne eigenen Schalter; im Aus-Zustand bleiben storage
+      // und db-record bloßes Frontmatter.
+      'help.feature.databaseCardForm',
+      'help.feature.databaseCardAssignment',
+      'help.feature.databaseCardQuery',
+      'help.feature.databaseCardWrite',
+      'help.feature.databaseCardChangeLog',
+      // 4T-002408 (Epic 3E-000266, F8 A): Einundfünfzig mit Schreibwegen,
+      // Sichten und Masken der Kartei-Form, ohne eigenen Schalter.
+      'help.feature.databaseCardEditCheck',
+      'help.feature.databaseCardDocumentPaths',
+      'help.feature.databaseCardViews',
+      'help.feature.databaseCardMasks',
     ],
     dependencies: ['property-profiles'],
     // 4T-001759 (Epic 3E-000253): die Übersichts-Seite des Datenbank-Bereichs;
@@ -1239,7 +1253,16 @@ const INTERNAL_EXTENSIONS = [
     // Bereichs-Panels, Kommando-Palette und die erzeugte Tastenkürzel-Seite.
     // 4T-001939 (Epic 3E-000257): das Kommando der Neuanlage aus der Maske.
     // 4T-001944: das Kommando der Konsistenz-Prüfung.
-    commands: ['database.openOverview', 'database.newRecord', 'database.checkConsistency'],
+    // 4T-002389: die beiden Kommandos der Kartei-Form.
+    // 4T-002406: «In der Maske öffnen» am Dokument einer Karteikarte.
+    commands: [
+      'database.openOverview',
+      'database.newRecord',
+      'database.checkConsistency',
+      'database.newCard',
+      'database.adoptCard',
+      'database.openInForm',
+    ],
     // 4T-001758 (Epic 3E-000253): der Einstellungs-Bereich «Datenbank» der
     // Gruppe „Aktueller Bereich"; seine abgelegten Werte bleiben beim
     // Abschalten erhalten.

@@ -425,9 +425,18 @@ describe('area:confirmTrashFile mit dem Pfad der Datei (4T-001800)', () => {
 // Wächter liest den Quelltext, weil ein Verhaltens-Test einen kuenftig
 // eingebauten Rueckfall nur in genau der Konstellation faende, die er
 // zufaellig spielt.
+const LOESCH_WEG = [
+  ['src', 'main', 'ipc', 'areas.js'],
+  ['src', 'main', 'documents', 'papierkorb.js'],
+];
+
 describe('Bauart des Lösch-Wegs (4T-001351)', () => {
   it('src/main/ipc/areas.js kennt keinen endgueltigen Loesch-Aufruf', () => {
-    const roh = fs.readFileSync(path.join(process.cwd(), 'src', 'main', 'ipc', 'areas.js'), 'utf8');
+    // 4T-002389: Der Weg in den Papierkorb steht seither im geteilten Modul
+    // `papierkorb.js`; der Wächter misst beide Dateien zusammen.
+    const roh = LOESCH_WEG.map((teile) =>
+      fs.readFileSync(path.join(process.cwd(), ...teile), 'utf8'),
+    ).join('\n');
     // Kommentare heraus, bevor gemessen wird: Der Kopf des Handlers ERKLAERT,
     // dass es keinen fs.unlink-Zweig gibt, und eine Suche ueber den rohen Text
     // fände genau diese Erklärung. Geprüft wird der Code, nicht die Prosa.
@@ -452,7 +461,11 @@ describe('Bauart des Lösch-Wegs (4T-001351)', () => {
   // die nächste Pflicht-Art an einem von zwei Orten an, und der vergessene Ort
   // meldet sich nicht, er verhält sich nur anders.
   it('src/main/ipc/areas.js nennt keine Begleit-Endung, sondern fragt die Liste', () => {
-    const roh = fs.readFileSync(path.join(process.cwd(), 'src', 'main', 'ipc', 'areas.js'), 'utf8');
+    // 4T-002389: Der Weg in den Papierkorb steht seither im geteilten Modul
+    // `papierkorb.js`; der Wächter misst beide Dateien zusammen.
+    const roh = LOESCH_WEG.map((teile) =>
+      fs.readFileSync(path.join(process.cwd(), ...teile), 'utf8'),
+    ).join('\n');
     const quelle = roh
       .replace(/\/\*[\s\S]*?\*\//g, '')
       .split('\n')

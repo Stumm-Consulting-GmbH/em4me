@@ -47,4 +47,24 @@ function findCalendarValues(text) {
   return out;
 }
 
-module.exports = { parseCalendarValueRaw, findCalendarValues };
+// 4T-001922: Erkennung an einer festen Stelle, für die Inline-Regel der
+// Lese-Ansicht und der portablen Ansicht (plugins/calendar.js). Der Ausdruck
+// ist derselbe wie der des Scanners, nur haftend (`y`); sein Rückblick liest
+// das Zeichen vor `pos` im ganzen Text. Damit tragen der Scanner (Live-Ansicht,
+// Epochen-Sicherung, Dialoge) sowie Lese-Ansicht und portable Ansicht eine
+// Regel, und jede künftige Schärfung erreicht alle.
+const CALENDAR_VALUE_AT_RE = new RegExp(CALENDAR_VALUE_SCAN_RE.source, 'y');
+
+// Wert-Vorkommen, das genau bei `pos` beginnt: { from, to, name, value, raw }
+// in der Form von findCalendarValues, sonst null.
+function matchCalendarValueAt(text, pos) {
+  const source = String(text == null ? '' : text);
+  CALENDAR_VALUE_AT_RE.lastIndex = pos;
+  const m = CALENDAR_VALUE_AT_RE.exec(source);
+  if (!m) return null;
+  const parsed = parseCalendarValueRaw(m[0]);
+  if (!parsed) return null;
+  return { from: pos, to: pos + m[0].length, raw: m[0], ...parsed };
+}
+
+module.exports = { parseCalendarValueRaw, findCalendarValues, matchCalendarValueAt };

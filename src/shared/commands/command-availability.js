@@ -106,7 +106,11 @@ const SHARED_CONTEXT_FIELDS = [
   'inDatentabelle',
   'diagrammGewaehlt',
 ];
-const RENDERER_CONTEXT_FIELDS = ['inTable', 'hasCalendarConfig'];
+// 4T-002406 (Epic 3E-000266, F7 A): `karteikarteTab` — ist das aktive Dokument
+// eine Karteikarte? Renderer-eigen wie die beiden anderen, weil die Antwort aus
+// dem Überblick der Datenbank und dem Dateikopf des Reiters kommt, die der
+// gemeldete Menü-Zustand nicht führt; sie trägt nur ein menüfreies Kommando.
+const RENDERER_CONTEXT_FIELDS = ['inTable', 'hasCalendarConfig', 'karteikarteTab'];
 const AVAILABILITY_CONTEXT_FIELDS = [...SHARED_CONTEXT_FIELDS, ...RENDERER_CONTEXT_FIELDS];
 
 // viewMode ist das einzige nicht-boolsche Feld: 'source' | 'split' | 'live' |
@@ -430,6 +434,11 @@ const AVAILABILITY_CATALOG = [
     felder: ['hasArea', 'hasCalendarConfig'],
     pruefe: (c) => !!c.hasArea && !!c.hasCalendarConfig,
   },
+  // 4T-002406 (Epic 3E-000266, F7 A): Die Bedingung von «In der Maske öffnen»:
+  // das aktive Dokument ist eine Karteikarte. Das Feld setzt einen Dokument-
+  // Reiter voraus und ist im Aus-Zustand der Erweiterung «Datenbank» falsch; es
+  // ist renderer-eigen, die Bedingung deshalb menüfrei.
+  { name: 'karteikarte', felder: ['karteikarteTab'], pruefe: (c) => !!c.karteikarteTab },
 ];
 
 const AVAILABILITY_NAMES = AVAILABILITY_CATALOG.map((b) => b.name);
@@ -444,11 +453,14 @@ const AVAILABILITY_BY_NAME = new Map(AVAILABILITY_CATALOG.map((b) => [b.name, b]
 // 4T-001874 (Epic 3E-000323): `bereichUndKalender` als vierte, aus demselben
 // Grund — sie liest das renderer-eigene Feld `hasCalendarConfig`, das der Main
 // nicht kennt.
+// 4T-002406: `karteikarte` als fünfte, weil sie das renderer-eigene Feld
+// `karteikarteTab` liest.
 const AVAILABILITY_NAMES_OHNE_MENUE = [
   'editor',
   'tabelle',
   'editorUndKalender',
   'bereichUndKalender',
+  'karteikarte',
 ];
 
 function isAvailabilityName(name) {

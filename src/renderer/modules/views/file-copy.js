@@ -22,6 +22,8 @@ import { api } from '../app/api.js';
 
 import { sichereOffeneReiter } from './file-actions.js';
 import { showStatusbarHint } from './views.js';
+// 4T-002405 (Epic 3E-000266): der Grund einer Abweisung durch die Datenbank.
+import { grundDerDatenbank } from './datenbank-abweisung.js';
 
 // Fehler-Code des Kanals -> Kurzhinweis. Was hier nicht steht, laeuft auf den
 // allgemeinen Hinweis; die Codes sind bewusst nicht erschoepfend aufgezaehlt,
@@ -66,6 +68,17 @@ export async function copyFileAtPath(absPath, aufRefresh) {
     ergebnis = null;
   }
   if (!ergebnis || !ergebnis.ok) {
+    // 4T-002405 (F5 A): Die Datenbank hat die Kopie einer Karteikarte
+    // abgewiesen (etwa ohne Erlaubnis «anlegen»); die Meldung nennt den Grund.
+    const grund = grundDerDatenbank(ergebnis);
+    if (grund !== null) {
+      showStatusbarHint('areaPanel.copyRefused', {
+        duration: 8000,
+        error: true,
+        text: t('areaPanel.copyRefused').replace('{grund}', grund),
+      });
+      return;
+    }
     const schluessel = (ergebnis && FEHLER_HINWEISE[ergebnis.error]) || 'areaPanel.copyFailed';
     showStatusbarHint(schluessel, { duration: 5000, error: true });
     return;

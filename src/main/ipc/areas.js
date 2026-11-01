@@ -30,8 +30,9 @@ const { pathCompareKey } = require('../../shared/platform');
 const { isPartBasename } = require('../../shared/document-parts');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 // 4T-001800 (Epic 3E-000255): Welche Datei neben einer Datei mitgeht, sagt die
-// Liste der Begleit-Datei-Arten, nicht dieser Kanal.
-const { pflichtBegleitPfade } = require('../documents/companion-files');
+// Liste der Begleit-Datei-Arten, nicht dieser Kanal. 4T-002389: Der Weg in den
+// Papierkorb samt dieser Liste steht im geteilten Modul.
+const { verschiebeInPapierkorb } = require('../documents/papierkorb');
 // 4T-001452 (Epic 3E-000190): Aufloesung eines Verknuepfungs-Links ueber die
 // Bereichs-Grenze.
 const {
@@ -73,6 +74,7 @@ const { setzeSperrOrdnerName } = require('../database/lock-folder-rename');
  *   den Namen des Sperr-Ordners neu beziehen lassen.
  * @param {object} deps.sperrVerwaltung Sperr-Verwaltung des Prozesses; hier gebraucht fuer
  *   die Frage, ob im Sperr-Ordner gerade jemand arbeitet.
+ * @param {object} [deps.karteiWeichen] Weichen einer Karteikarte (4T-002405).
  */
 function registerAreasIpc(handle, deps) {
   const {
@@ -109,6 +111,8 @@ function registerAreasIpc(handle, deps) {
     sperrOrdnerNeuBeziehen,
     // 4T-001795 (Epic 3E-000255, E9): die eine Sperr-Verwaltung des Prozesses.
     sperrVerwaltung,
+    // 4T-002405 (Epic 3E-000266, F4 A): Löschen einer Karteikarte über die Datenbank.
+    karteiWeichen,
   } = deps;
 
   // 4T-001787: Der wirksame Name des Sperr-Ordners, bei jedem Aufruf frisch
@@ -429,33 +433,38 @@ function registerAreasIpc(handle, deps) {
       return { ok: false, error: 'outside-area' };
     }
     if (!isMarkdownPath(filePath)) return { ok: false, error: 'not a document' };
-    const absolut = path.resolve(filePath);
-    try {
-      await shell.trashItem(absolut);
-    } catch (err) {
-      return { ok: false, error: err && err.message ? err.message : String(err) };
+    // 4T-002405 (Epic 3E-000266, F4 A): Eine Karteikarte geht als Lösch-Auftrag an
+    // die Schnittstelle (`kartei-weichen.js`); eine Abweisung lässt sie unberührt.
+    const karte = karteiWeichen ? await karteiWeichen.karteikarteVon(filePath) : null;
+    if (karte) return karteiWeichen.loescheKarteikarte(karte, area.rootPath);
+    // 4T-002389 (Epic 3E-000265): Reihenfolge, Begleit-Dateien und Meldung
+    // stehen in `verschiebeInPapierkorb`, den auch das Löschen einer
+    // Karteikarte über die Datenbank nutzt; der Papierkorb bleibt
+    // `shell.trashItem` und der einzige Lösch-Aufruf.
+    return verschiebeInPapierkorb(filePath, {
+      trashItem: (pfad) => shell.trashItem(pfad),
+      // Abgefederte Degradation und kein Fehlschlag des Ganzen: Die Datei ist
+      // weg, die Begleit-Datei nicht. Gemeldet wird beides, hier ins Protokoll
+      // und über den Rückgabewert an die Oberfläche.
+      warnen: (begleit, grund) =>
+        console.warn('[area:trashFile] Begleit-Datei nicht mitgenommen:', begleit, '—', grund),
+    });
+  });
+
+  // 4T-002405 (Epic 3E-000266, F4 A): Ist die Datei des Bereichs eine
+  // Karteikarte, die das Löschen über die Datenbank nimmt? Der Lösch-Weg des
+  // Anzeige-Prozesses (`views/file-trash.js`) fragt vor dem Schließen der
+  // Reiter, weil eine Karteikarte erst nach angenommenem Lösch-Auftrag
+  // geschlossen werden darf. Dieselbe Erkennung wie `area:trashFile`; im
+  // Aus-Zustand der Erweiterung, außerhalb des Bereichs und ohne Weichen false.
+  handle('area:istKarteikarte', async (event, filePath) => {
+    const area = areaOfWindow(senderWindow(event));
+    if (!area || !karteiWeichen) return false;
+    if (typeof filePath !== 'string' || !filePath || !isInsideArea(area.rootPath, filePath)) {
+      return false;
     }
-    const liegenGeblieben = [];
-    for (const begleit of await pflichtBegleitPfade(absolut)) {
-      try {
-        await shell.trashItem(begleit);
-      } catch (err) {
-        // Abgefederte Degradation und kein Fehlschlag des Ganzen: Die Datei
-        // ist weg, die Begleit-Datei nicht. Gemeldet wird beides, hier ins
-        // Protokoll und über den Rückgabewert an die Oberfläche.
-        console.warn(
-          '[area:trashFile] Begleit-Datei nicht mitgenommen:',
-          begleit,
-          '—',
-          err && err.message ? err.message : err,
-        );
-        liegenGeblieben.push(begleit);
-      }
-    }
-    if (liegenGeblieben.length > 0) {
-      return { ok: true, path: filePath, companionLeft: liegenGeblieben };
-    }
-    return { ok: true, path: filePath };
+    if (!isMarkdownPath(filePath)) return false;
+    return (await karteiWeichen.karteikarteVon(filePath)) !== null;
   });
 
   // "Bereich schliessen": alle Fenster der Bereichs-App des Absenders.

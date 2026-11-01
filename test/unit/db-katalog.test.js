@@ -334,6 +334,20 @@ describe('Katalog: Aktualität ohne Neustart (AK5)', () => {
     expect(d.fields.map((f) => f.name)).toEqual(['firma', 'ungespeichert']);
   });
 
+  // 4T-002386 (Epic 3E-000265, F2 A; AK3): Jeder Eintrag des Überblicks führt
+  // die Ablage-Form aus der Definition, mit denselben Werten wie sie: ohne
+  // Angabe `table`, mit `storage: cards` `cards`. Der Zwischenspeicher hält den
+  // gelesenen Kopf, nicht die Auslegung; der zweite Aufruf belegt, dass eine
+  // geänderte Angabe ankommt. Ein Fall für alle drei Aussagen, weil die
+  // Prüfdatei an ihrem Größen-Budget steht.
+  it('führt die Ablage-Form je Tabelle und sieht ihre Änderung (4T-002386)', async () => {
+    const { fsp, aendere } = fakeFs(DATEIEN);
+    const u = () => katalogUeberblick({ sicht: SICHT, status: 'ready', fsp, cache });
+    expect((await u()).tabellen.map((t) => t.storage)).toEqual(['table', 'table']);
+    aendere(FIRMEN, tabellenDatei([{ name: 'firma', type: 'string' }], '  storage: cards\n'));
+    expect((await u()).tabellen.map((t) => t.storage)).toEqual(['cards', 'table']);
+  });
+
   it('reicht einen nicht bereiten Index durch, statt eine leere Datenbank zu melden', async () => {
     // «Noch nicht bereit» und «keine Tabellen» sind zwei Aussagen; der Katalog
     // bekommt in diesem Fall gar keine Sicht (der Kanal reicht den Status durch).

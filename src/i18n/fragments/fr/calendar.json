@@ -21,6 +21,8 @@
   "settings.calendar.intro": "Blocs de chronologie de la zone '{name}'. Les calendriers d'un même bloc peuvent être mis en correspondance ; les blocs sont indépendants.",
   "settings.calendar.introBook": "Blocs de chronologie du livre '{name}'. Les calendriers d'un même bloc peuvent être mis en correspondance ; les blocs sont indépendants.",
   "settings.calendar.introShelf": "Blocs de chronologie de la bibliothèque '{name}'. Les calendriers d'un même bloc peuvent être mis en correspondance ; les blocs sont indépendants.",
+  "settings.calendar.hiddenCalendars": "Cette zone contient {count} calendriers que cette version du programme ne peut pas afficher. Ils sont conservés dans le fichier de zone.",
+  "settings.calendar.hiddenCalendarsOne": "Cette zone contient un calendrier que cette version du programme ne peut pas afficher. Il est conservé dans le fichier de zone.",
   "settings.calendar.blocksGroup": "Blocs",
   "settings.calendar.blockPlaceholder": "Nom du bloc",
   "settings.calendar.blockAdd": "Ajouter un bloc",

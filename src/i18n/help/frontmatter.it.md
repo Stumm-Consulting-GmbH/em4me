@@ -68,7 +68,7 @@ La barra Proprietà mostra i campi del frontmatter modificabili dal vivo. Il tip
 
 Un clic su un campo valore propone i valori già assegnati a quella proprietà nell'area, in ordine alfabetico; ogni carattere digitato riduce l'elenco e un valore proprio resta liberamente digitabile. Se un profilo di proprietà definisce un insieme di valori, entrambe le origini compaiono insieme e restano distinguibili: i valori provenienti dall'esistente sono contrassegnati come tali. Se la proprietà non compare da nessuna parte nell'area, non viene mostrato alcun elenco. Disattivabile in File → Impostazioni… → Estensioni.
 
-In scrittura il blocco resta stabile nel round-trip: commenti, ordine dei campi e stile dei campi non modificati non vengono riformattati, e i fine riga CRLF restano stabili.
+In scrittura il blocco resta stabile nel round-trip: commenti, ordine dei campi e stile dei campi non modificati non vengono riformattati, e i fine riga CRLF restano stabili. Gli elenchi su una riga tra parentesi quadre vengono scritti senza spazi interni (`[a, b]`); un elenco scritto come `[ a, b ]` passa una sola volta a questa forma al primo salvataggio e poi resta invariato.
 
 Con un errore di sintassi YAML la barra mostra il messaggio di errore e blocca l'aggiunta finché il blocco non è riparato nell'editor.
 
@@ -81,6 +81,6 @@ created: 2025-06-23 15:43
 updated: 2026-07-18 12:04
 ```
 
-Entrambi i campi si attivano in modo indipendente e i loro nomi sono liberamente selezionabili. Il formato è a scelta solo data oppure data e ora, sempre in ora locale. Una data di creazione esistente non viene mai sovrascritta; la data di modifica segue ogni salvataggio.
+Entrambi i campi si attivano in modo indipendente e i loro nomi sono liberamente selezionabili. Il formato è a scelta solo data oppure data e ora, sempre in ora locale. Una data di creazione esistente non viene mai sovrascritta; la data di modifica segue ogni salvataggio. Se un salvataggio scrive una nuova data di modifica, un `Ctrl+Z` subito dopo annulla questa data insieme all'ultima modifica precedente, anche dopo il salvataggio automatico.
 
 I campi mancanti vengono creati solo se la relativa opzione è attiva. Altrimenti vengono aggiornati soltanto i campi già presenti nel blocco e il documento resta per il resto invariato. L’accesso e l’interruttore sono riportati nella [tabella delle funzioni](functions.md).

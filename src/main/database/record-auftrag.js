@@ -57,6 +57,7 @@ const {
   wirksamerHochwasserstand,
 } = require('../../shared/database/record-identity.js');
 const { schreibeHochwasserstand } = require('../../shared/database/record-write.js');
+const { istKarteiForm } = require('../../shared/database/table-definition.js');
 const { ART_DATENSATZ, ART_CHANGE_LOG, loeseGegenstand } = require('./lock-store.js');
 const { belegPfadFuer, verdichteBeiBedarf } = require('./change-log.js');
 const { zieheVorgang } = require('./vorgangs-kennung.js');
@@ -87,6 +88,12 @@ const { teileWachsendeTabellen } = require('./record-auftrag-teilung.js');
 const { wendeErsetzungenAn, leseRechteAntwort } = require('./record-regeln.js');
 // 4T-002309 (Epic 3E-000263): dieselbe Antwort auf «erlaubt?» wie die Regel der Naht.
 const { istErlaubt, nameDerAngabe } = require('./record-regel-berechtigung.js');
+// 4T-002389 (Epic 3E-000265): das zweite Schreib-Ziel, die Datei einer Karteikarte.
+const {
+  ergaenzeKarteiWerte,
+  loeseKarteiZiele,
+  bindeKarteiLoeschungen,
+} = require('./record-auftrag-kartei.js');
 
 // 4T-001821 (Entscheidung des Product Owners vom 2026-09-20, nach dem
 // Zweirechner-Lauf desselben Tages): Die Warte-Auslegung für eine belegte
@@ -388,7 +395,10 @@ function erzeugeSchreibSchnittstelle(deps) {
         tabelle.pfad,
         { grenzen: tabelle.grenzen },
         {
-          mitSperre: sperrVerwaltung.belegSperreFuer(bereichsWurzel, tabelle.pfad),
+          mitSperre: sperrVerwaltung.belegSperreFuer(
+            bereichsWurzel,
+            tabelle.sperrPfad || tabelle.pfad,
+          ),
           fsp,
           ersetzen,
         },
@@ -524,6 +534,9 @@ function erzeugeSchreibSchnittstelle(deps) {
     const aufgeloest = loeseSchritte(anweisungen, bestaende);
     if (!aufgeloest.ok) return abgewiesen(aufgeloest.lagen);
     const { schritte, staende } = aufgeloest;
+    // 4T-002389: die Ziel-Dateien der Schritte in Kartei-Tabellen.
+    const karteiZiele = await loeseKarteiZiele(schritte, bereichsWurzel, fsp);
+    if (karteiZiele.length > 0) return abgewiesen(karteiZiele);
 
     // 4T-001822 (Epic 3E-000254, Nachschärfung): Der vorgefundene Stand wird
     // VOR der Pflicht-Angabe am Ergebnis geprüft. Hat jemand ein Pflicht-Feld
@@ -597,14 +610,23 @@ function erzeugeSchreibSchnittstelle(deps) {
     const geteilt = teileWachsendeTabellen(geplant.plan, bestaende);
     if (!geteilt.ok) return abgewiesen(geteilt.lagen);
     const plan = geteilt.plan;
+    // 4T-002389 (Schritt 4): Belege vor dem Löschen an die Tabelle, Karteikarte in den Papierkorb.
+    const geloescht = await bindeKarteiLoeschungen(plan, fsp);
+    if (geloescht.length > 0) return abgewiesen(geloescht);
 
     // Die Tabellen, deren Beleg-Datei dieser Auftrag anfassen wird; allein sie
     // kommen für eine Verdichtung in Frage.
+    //
+    // 4T-002390 (S4): Geführt wird je Bezugs-Datei, in der Kartei-Form also je
+    // Karteikarte; Grenzen und Sperre bleiben die der Tabelle (`sperrPfad`),
+    // weil alle Schreiber ihrer Karteikarten unter dieser einen Sperre laufen.
     const beruehrt = new Map();
     for (const eintrag of plan.belege) {
-      if (beruehrt.has(eintrag.tabellenPfad)) continue;
-      beruehrt.set(eintrag.tabellenPfad, {
-        pfad: eintrag.tabellenPfad,
+      const bezug = eintrag.bezugsPfad || eintrag.tabellenPfad;
+      if (beruehrt.has(bezug)) continue;
+      beruehrt.set(bezug, {
+        pfad: bezug,
+        sperrPfad: eintrag.tabellenPfad,
         grenzen: bestaende.get(eintrag.tabelle).grenzen,
       });
     }
@@ -652,6 +674,14 @@ function erzeugeSchreibSchnittstelle(deps) {
 
     const definitionen = await leseDefinitionen(bereichsWurzel, anweisungen);
     if (definitionen.lagen.length > 0) return abgewiesen(definitionen.lagen);
+    // 4T-002389: die Werte eines Anlegens in einer Kartei-Tabelle, vor Typ und Pflicht.
+    const kartei = await ergaenzeKarteiWerte(
+      anweisungen,
+      definitionen.definitionen,
+      bereichsWurzel,
+      fsp,
+    );
+    if (kartei.length > 0) return abgewiesen(kartei);
 
     // Hart und vollständig (E22.3, AK3): Bei irgendeinem Befund wird nichts
     // geschrieben, und keine Sperre ist bis hierher genommen.
@@ -779,6 +809,10 @@ function erzeugeSchreibSchnittstelle(deps) {
           // Datensätzen, vergäbe sonst eine vorhandene Kennung ein zweites Mal.
           const gelesen = await leseTabellenBestand(fsp, aufgeloest.pfad, tabelle.trim());
           if (!gelesen.ok) return abgewiesen([gelesen.lage]);
+          // 4T-002386, 4T-002389: Eine Karteikarte bekommt ihre Kennung mit ihrer
+          // Datei («Neue Karteikarte»); eine Kennung ohne Datei bliebe ungenutzt.
+          if (istKarteiForm(gelesen.definition))
+            return abgewiesenMit(LAGEN.karteiTabelle, { tabelle: tabelle.trim() });
           const kopfText = gelesen.dateien[0].text;
           const kennungen = gelesen.dateien.flatMap((datei) => [...datei.records.keys()]);
           const gezogen = naechsteKennung(wirksamerHochwasserstand(gelesen.lastId, kennungen));

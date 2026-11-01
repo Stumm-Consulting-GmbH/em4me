@@ -21,6 +21,8 @@
   "settings.calendar.intro": "Zeitrechnungs-Blöcke des Bereichs '{name}'. Kalender desselben Blocks sind einander zuordenbar; Blöcke sind unabhängig.",
   "settings.calendar.introBook": "Zeitrechnungs-Blöcke des Buches '{name}'. Kalender desselben Blocks sind einander zuordenbar; Blöcke sind unabhängig.",
   "settings.calendar.introShelf": "Zeitrechnungs-Blöcke des Bücherregals '{name}'. Kalender desselben Blocks sind einander zuordenbar; Blöcke sind unabhängig.",
+  "settings.calendar.hiddenCalendars": "Dieser Bereich enthält {count} Zeitrechnungen, die diese Programmfassung nicht darstellen kann. Sie bleiben in der Bereichsdatei erhalten.",
+  "settings.calendar.hiddenCalendarsOne": "Dieser Bereich enthält eine Zeitrechnung, die diese Programmfassung nicht darstellen kann. Sie bleibt in der Bereichsdatei erhalten.",
   "settings.calendar.blocksGroup": "Blöcke",
   "settings.calendar.blockPlaceholder": "Block-Name",
   "settings.calendar.blockAdd": "Block hinzufügen",

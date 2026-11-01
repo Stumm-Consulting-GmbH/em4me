@@ -44,6 +44,8 @@ La sezione delle impostazioni «Sistemi di calendario» mostra i blocchi dell'ar
 
 La modifica non è volutamente mai bloccata: le modifiche di struttura su calendari già utilizzati sono consentite. I valori del documento che così diventano non validi restano conservati invariati e vengono contrassegnati in modo visibile. È bloccato soltanto il salvataggio di una definizione non valida: applicando compare un messaggio e non viene salvato nulla. Se, ad esempio, l'unità prolungata di una regola intercalare non rientra nelle unità per istanza, la regola intercalare lo segnala già durante l'immissione e indica le posizioni ammesse.
 
+**Più versioni del programma nella stessa area:** se nella stessa area lavorano computer con versioni diverse del programma, una versione più recente può creare cronologie che una più vecchia non conosce, per esempio una la cui struttura cambia di anno in anno. La versione più vecchia non le mostra nell'elenco, ma ne indica il numero sopra l'elenco. All'applicazione lascia queste cronologie invariate nel file dell'area, così come i dati di una cronologia nota che solo una versione più recente scrive; la versione più recente ritrova poi tutto. Chi rimuove un blocco rimuove anche le cronologie in esso che l'elenco non mostra. Le versioni del programma senza questa indicazione sopra l'elenco rimuovono ancora le cronologie sconosciute all'applicazione; se partecipa un computer di questo tipo, conviene portare tutti i computer dell'area alla stessa versione.
+
 ### Aggiungere un'epoca in seguito
 
 Un valore dell'epoca più recente sta nel documento senza abbreviazione, e un valore senza abbreviazione viene sempre letto come valore dell'epoca più recente. Quando una cronologia riceve una nuova epoca più recente, i valori salvati di quella precedente indicherebbero perciò un altro giorno o diventerebbero non validi. Se l'area contiene tali valori, l'applicazione chiede conferma all'applicazione delle modifiche, prima di salvare, e ne indica il numero:
@@ -145,6 +147,8 @@ Se il calendario indicato non è definito nell'area o il valore non è valido, i
 Se un valore si trova fuori dal periodo di validità della sua cronologia (sezione «Modelli con una struttura che cambia di anno in anno»), anche il testo sorgente resta invariato. Il valore allora non conta come non valido: il suo suggerimento indica «Nome: non noto».
 
 Nei blocchi di codice e negli span di codice la sintassi resta intatta: `@{Calendario di esempio: 500-2-09 ZZ}`.
+
+Se un altro `@` precede direttamente `@{`, non si tratta di un valore di calendario: `@@{14:00}`, un'ora nella notazione dello strumento di bacheche da cui proviene il formato della bacheca Kanban, resta testo.
 
 ## Inserire e modificare
 

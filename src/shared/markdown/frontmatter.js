@@ -79,6 +79,14 @@ function extractFrontmatter(text) {
 // Kommentare und Schluesselreihenfolge bestehender Felder bleiben erhalten,
 // nur tatsaechlich geaenderte Felder werden neu serialisiert.
 //
+// 4T-002358 (Epic 3E-000371): Schreibweise der Fluss-Listen. Die yaml-Library
+// setzt beim Ausgeben Innen-Abstände in einzeilige Fluss-Listen
+// (`flowCollectionPadding`, Vorgabe true), unabhängig von der Quelle; keine
+// Ausgabe-Option erhält die Quell-Schreibweise in beide Richtungen. Vorgabe ist
+// deshalb `[a, b]` ohne Innen-Abstände: Eine Quelle mit `[a, b]` bleibt
+// unverändert, eine Quelle mit `[ a, b ]` wechselt beim ersten Schreiben
+// einmalig auf `[a, b]` und bleibt danach stabil. Block-Listen behalten ihre Form.
+//
 // Parameter:
 //   originalText - aktueller Datei-Inhalt (Frontmatter + Body, oder nur Body)
 //   newData      - Plain-JS-Objekt mit der Ziel-Map. null/undefined wird zu {}
@@ -199,7 +207,12 @@ function writeFrontmatter(originalText, newData, options = {}) {
     // 4T-000491 (Epic 3E-000093): bei Komplett-Uebernahme leere Stub-Felder als
     // bare Schluessel ausgeben (nullStr ''); bestehende null-/bare-Knoten
     // bleiben erhalten, weil unveraenderte Knoten ihre Quelle behalten.
-    const serialized = emptyStubKeys.size > 0 ? doc.toString({ nullStr: '' }) : doc.toString();
+    // 4T-002358: Fluss-Listen ohne Innen-Abstände ausgeben (`[a, b]`), an beiden
+    // Ausgabe-Wegen; Begründung im Kopf-Kommentar von writeFrontmatter.
+    const serialized =
+      emptyStubKeys.size > 0
+        ? doc.toString({ nullStr: '', flowCollectionPadding: false })
+        : doc.toString({ flowCollectionPadding: false });
     const yamlSerialized = serialized.trimEnd().replace(/\n/g, eol);
     const newFrontmatter = `---${eol}${yamlSerialized}${eol}---${eol}`;
     // 4T-000069: Anzahl der Leerzeilen zwischen Frontmatter-Ende und Body

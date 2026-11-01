@@ -34,6 +34,9 @@ const {
   normalizeCalendarConfig,
   configForPersist,
 } = require('../../shared/calendar/calendar-config');
+// 4T-002361 (Epic 3E-000371): Unbekannte Inhalte der Kalender-Sektion beim
+// Schreiben durchreichen. Blatt in shared/ ohne Rueckimport — kein Zyklus.
+const { unbekannteDurchreichen } = require('../../shared/calendar/calendar-passthrough');
 // 4T-001457 (Epic 3E-000190): Aus-Zustand der Erweiterung area-links.
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 // 4T-001787 (Epic 3E-000255, E9): Vorgabe und Gültigkeits-Regel des
@@ -248,7 +251,13 @@ function createAreaConfig(deps) {
         container = parsed.container;
       }
       const normalized = normalizeCalendarConfig(config);
-      const persistable = configForPersist(config, normalized);
+      // 4T-002361: Was diese Fassung im alten Stand nicht darstellt (Zeitrechnung
+      // oder Feld einer neueren Fassung), hat die Oberfläche nie gesehen; es
+      // bleibt deshalb stehen, statt mit der Sektion still ersetzt zu werden.
+      const persistable = unbekannteDurchreichen(
+        container.settings.calendarSystems,
+        configForPersist(config, normalized),
+      );
       if (persistable) container.settings.calendarSystems = persistable;
       else delete container.settings.calendarSystems;
       if (raw === null && !normalized) {

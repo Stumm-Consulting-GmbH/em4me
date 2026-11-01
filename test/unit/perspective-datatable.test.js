@@ -658,6 +658,21 @@ describe('perspective-datatable — Berechnete Spalten (4T-000421)', () => {
     );
   });
 
+  // 4T-002128 (Weg B, Entscheidung des Product Owners vom 2026-10-30): Die
+  // Formel count(x) zählt eine leere Text-Zelle nicht, wie die Aggregat-Zeile.
+  it('count(x) in einer Formel zählt eine leere Text-Zelle wie die Aggregat-Zeile', () => {
+    const model = parseOk(
+      'columns: Name:text, Telefon:text, Hat:number = count(Telefon)\n' +
+        'aggregate: Telefon:count, Hat:sum\n| Anna | 0611 |\n| Bert |  |',
+    );
+    const computed = computeComputedCells(model);
+    expect(computed.get(model.rows[0])[2]).toEqual({ value: 1, error: null });
+    expect(computed.get(model.rows[1])[2]).toEqual({ value: 0, error: null });
+    const aggs = computeAggregates(model, model.rows, makeCellValueResolver(model, computed));
+    expect(aggs[1]).toEqual([{ func: 'count', value: 1 }]);
+    expect(aggs[2]).toEqual([{ func: 'sum', value: 1 }]);
+  });
+
   it('Viewer rendert berechnete Werte read-only, Fehler mit Tooltip', () => {
     const html = renderPerspectiveDatatableViewer(
       'columns: A:number(2), D:number(2) = A * 2, T:time = A + 1\n| 12.5 |',
@@ -862,8 +877,10 @@ describe('perspective-datatable — Name in der Kopf-Angabe table (4T-002072)', 
 
   it('portabler Konverter hängt ^Name nach einer Leerzeile an', () => {
     const mit = convertPerspectiveDatatableBlockToHtml('table: Umsatz\ncolumns: A:number\n| 1 |');
-    // Leerzeile davor, Zeilenende dahinter: die Zeile ist ein eigener Block.
-    expect(mit.endsWith('</table>\n\n^Umsatz\n')).toBe(true);
+    // Leerzeile davor: die Zeile ist ein eigener Block. Ein Zeilenende dahinter
+    // setzt der Konverter seit 4T-002102 nicht mehr; die Leerzeile vor dem
+    // folgenden Text sichert die Fence-Ersetzung des Exports.
+    expect(mit.endsWith('</table>\n\n^Umsatz')).toBe(true);
     const ohne = convertPerspectiveDatatableBlockToHtml('columns: A:number\n| 1 |');
     expect(ohne.endsWith('</table>')).toBe(true);
     expect(ohne).not.toContain('^');

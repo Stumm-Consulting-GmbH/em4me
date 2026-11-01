@@ -186,6 +186,17 @@ describe('replace, set-property, remove-property', () => {
     expect(w.lies('Ziel.md')).toBe('---\na: zwei\nstatus: erledigt\n---\nText\n');
   });
 
+  // 4T-002358 (Epic 3E-000371): Eine Fluss-Liste `[a, b]` bleibt auf dem
+  // Workflow-Weg über die Platte `[a, b]`.
+  it('eine Fluss-Liste `[a, b]` bleibt bei set-property und remove-property', async () => {
+    const w = welt();
+    w.schreibe('Ziel.md', '---\ntags: [a, b]\nb: 1\n---\nText\n');
+    await w.lauf('set-property', ['Ziel.md', 'status', 'erledigt']);
+    expect(w.lies('Ziel.md')).toBe('---\ntags: [a, b]\nb: 1\nstatus: erledigt\n---\nText\n');
+    await w.lauf('remove-property', ['Ziel.md', 'b']);
+    expect(w.lies('Ziel.md')).toBe('---\ntags: [a, b]\nstatus: erledigt\n---\nText\n');
+  });
+
   it('eine fehlende Eigenschaft zu entfernen gelingt ohne Änderung (E3)', async () => {
     const w = welt();
     w.schreibe('Ziel.md', '---\na: 1\n---\n');

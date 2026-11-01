@@ -28,6 +28,13 @@
 // Er steht hier und nicht in der Seite, weil die Seite an ihrem Größen-Budget
 // steht und nur den Aufruf trägt.
 //
+// **«Karteikarte öffnen»** (4T-002406, Epic 3E-000266, F7 A): Liegt der
+// Datensatz als Karteikarte vor (`karteikarte` in der Antwort des Kanals), tritt
+// dieser Handgriff an die Stelle von «Im Tabellen-Dokument zeigen», weil die
+// Tabellen-Datei der Kartei-Form keine Datensatz-Zeilen trägt. Er öffnet das
+// Dokument der Karteikarte (`datei` der Antwort); der Gegen-Handgriff «In der
+// Maske öffnen» am Dokument steht in `karteikarte-ansichten.js`.
+//
 // Ohne Fenster-Zustand: Öffnen, Sprung und Zustand kommen herein, damit das
 // Modul in jsdom prüfbar bleibt und keine Import-Kante zu den Reitern oder zur
 // Ansicht bekommt (Muster `masken-verwendung.js`).
@@ -96,9 +103,20 @@ export function erzeugeDokumentHandgriff({ openInPane, scrollToAnchorAfterOpen, 
     scrollToAnchorAfterOpen(Number.isInteger(ziel) ? ziel : spalte, kennung);
   }
 
+  // 4T-002406: der Knopf «Karteikarte öffnen».
+  function karteikartenKnopf(datei) {
+    const knopf = document.createElement('button');
+    knopf.className = 'db-form-btn db-form-open-card';
+    knopf.type = 'button';
+    knopf.textContent = t('database.form.action.openCard');
+    knopf.addEventListener('click', () => void openInPane(state.activePaneIndex, [datei]));
+    return knopf;
+  }
+
   /**
    * Hängt den Knopf an die Aktions-Leiste: nur im Lesen und nur für einen
-   * gespeicherten Datensatz mit Kennung und Tabelle.
+   * gespeicherten Datensatz mit Kennung und Tabelle. Bei einer Karteikarte ist
+   * es «Karteikarte öffnen» (4T-002406).
    *
    * @param {HTMLElement} leiste Die Aktions-Leiste des Kopfs.
    * @param {object} seite Der Zustand der Masken-Seite.
@@ -108,6 +126,12 @@ export function erzeugeDokumentHandgriff({ openInPane, scrollToAnchorAfterOpen, 
     const { tabellenPfad, kennung } = seite;
     if (typeof tabellenPfad !== 'string' || !tabellenPfad) return;
     if (typeof kennung !== 'string' || !kennung) return;
+    // 4T-002406: bei einer Karteikarte deren Dokument statt der Tabellen-Zeile.
+    const daten = seite.daten;
+    if (daten && daten.karteikarte === true && typeof daten.datei === 'string' && daten.datei) {
+      leiste.appendChild(karteikartenKnopf(daten.datei));
+      return;
+    }
     const knopf = document.createElement('button');
     knopf.className = 'db-form-btn db-form-show-in-document';
     knopf.type = 'button';

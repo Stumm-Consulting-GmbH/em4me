@@ -423,6 +423,7 @@ Indicatore, chiavi di controllo, righe di separazione, le indicazioni per singol
 - **Nel file PowerPoint ogni diapositiva è un'immagine.** Il suo testo lì non si può né modificare né cercare. Non nasce alcun file PowerPoint con oggetti di testo modificabili, e i file PowerPoint non si possono importare.
 - **Programmi verificati:** l'apertura del file è verificata in Microsoft PowerPoint su Windows. LibreOffice Impress viene verificato nel banco di prova automatico su Linux. Altri programmi, come Keynote o Google Slides, leggono il formato secondo lo standard, ma non sono verificati.
 - **L'aspetto passa per i temi e i loro sette valori.** Regole di stile proprie in CSS, impaginazioni delle diapositive oltre la divisione in due, animazioni e transizioni tra le diapositive non esistono.
+- **I diagrammi seguono il tema della diapositiva.** I diagrammi Mermaid e i grafici di tabelle appaiono scuri su una diapositiva scura e chiari su una chiara; il tema `accent` conta come scuro. Questo vale nella vista, nella proiezione e in tutte e quattro le esportazioni, sia che l'applicazione sia impostata su chiaro sia su scuro. Per questo il PDF e le pagine HTML delle diapositive non sono sempre chiari come l'esportazione PDF di un documento.
 - **Si scoprono solo voci di elenco**, nessun'altra parte di una diapositiva.
 - **La riduzione arriva al massimo alla metà.** Ciò che ancora non ci sta viene tagliato.
 - **Si modifica nelle viste Markdown**, non sulla diapositiva.

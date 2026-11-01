@@ -157,7 +157,29 @@ function pruefeVorbereitet(vorbereitet) {
     ) {
       throw new TypeError('fuehreAuftragDurch: ein Beleg des Plans trägt keinen Pfad oder Text');
     }
+    // 4T-002390: Die Bezugs-Datei ist freigestellt; fehlt sie, ist es die Tabelle.
+    if (eintrag.bezugsPfad !== undefined && typeof eintrag.bezugsPfad !== 'string') {
+      throw new TypeError('fuehreAuftragDurch: die Bezugs-Datei eines Belegs ist kein Pfad');
+    }
   }
+  // 4T-002389 (Schritt 4): Die Dateien für den Papierkorb sind freigestellt;
+  // jede trägt ihren Pfad und ihren gelesenen Stand oder `null` (ohne Prüfung).
+  if (plan.entsorgen !== undefined) {
+    const gut =
+      Array.isArray(plan.entsorgen) &&
+      plan.entsorgen.every(
+        (e) =>
+          !!e &&
+          typeof e.pfad === 'string' &&
+          (e.gelesen === null || typeof e.gelesen === 'string'),
+      );
+    if (!gut) throw new TypeError('fuehreAuftragDurch: entsorgen ist keine Liste von Dateien');
+  }
+}
+
+// 4T-002389 (Schritt 4): die Dateien eines Plans für den Papierkorb, leer ohne Angabe.
+function entsorgenDes(plan) {
+  return Array.isArray(plan.entsorgen) ? plan.entsorgen : [];
 }
 
 /**
@@ -181,6 +203,10 @@ function pruefeVorbereitet(vorbereitet) {
  *   Wiederhol-Schleife des gemeinsamen Schreibwegs (AK13).
  * @param {number[]} [deps.abstaende] Wiederhol-Fenster des Umbenennens; ohne
  *   Angabe gilt das gemessene des Schreibwegs.
+ * @param {(pfad: string) => Promise<object>} [deps.papierkorb] 4T-002389: eine
+ *   Datei samt Pflicht-Begleit-Dateien in den Papierkorb (`verschiebeInPapierkorb`
+ *   aus `src/main/documents/papierkorb.js`). Ohne sie wird ein Plan mit Dateien
+ *   für den Papierkorb vor der Marke abgewiesen, nie auf Löschen ausgewichen.
  * @returns {{fuehreAuftragDurch: Function, laeuft: Function}} `laeuft` seit
  *   4T-001824 (Register der laufenden Vorgänge).
  */
@@ -202,7 +228,7 @@ function erzeugeAbsichtsProtokoll(deps) {
   if (typeof d.leseKonfig !== 'function') {
     throw new TypeError('erzeugeAbsichtsProtokoll: leseKonfig ist Pflicht');
   }
-  for (const naht of ['durchschreiben', 'benenneUm', 'jetzt', 'herkunft']) {
+  for (const naht of ['durchschreiben', 'benenneUm', 'jetzt', 'herkunft', 'papierkorb']) {
     if (d[naht] !== undefined && typeof d[naht] !== 'function') {
       throw new TypeError(`erzeugeAbsichtsProtokoll: ${naht} ist kein Rückruf`);
     }
@@ -217,6 +243,7 @@ function erzeugeAbsichtsProtokoll(deps) {
   const durchschreiben = d.durchschreiben || durchschreibeDatei;
   const benenneUm = d.benenneUm || benenneUmMitWiederholung;
   const abstaende = d.abstaende;
+  const papierkorb = d.papierkorb || null;
 
   // 4T-001824 (Nachschärfung, Befund 2): Die Vorgänge, die DIESE Klammer gerade
   // fährt. Eingetragen wird, sobald die Vorgangs-Kennung feststeht, also schon
@@ -307,6 +334,14 @@ function erzeugeAbsichtsProtokoll(deps) {
       if (!stand.ok)
         return { tabelle: eintrag.tabelle, datei: eintrag.pfad, grund: grundVon(stand) };
     }
+    // 4T-002389 (Schritt 4): Eine Karteikarte, die in den Papierkorb geht, trägt
+    // noch den gelesenen Stand; eine zwischendurch von Hand geänderte ginge sonst
+    // mit einem Lösch-Beleg, der ihren letzten Stand nicht kennt.
+    for (const eintrag of entsorgenDes(plan)) {
+      if (eintrag.gelesen === null) continue;
+      const stand = await pruefeVorgefundenenStand(eintrag.pfad, eintrag.gelesen);
+      if (!stand.ok) return { datei: eintrag.pfad, grund: grundVon(stand) };
+    }
     return null;
   }
 
@@ -340,6 +375,10 @@ function erzeugeAbsichtsProtokoll(deps) {
 
     let belege;
     let inhalt;
+    // 4T-002389 (Schritt 4): ohne Papierkorb kein Löschen einer Karteikarte, und
+    // kein Ausweichen auf endgültiges Entfernen; entschieden vor der Marke.
+    if (entsorgenDes(plan).length > 0 && papierkorb === null)
+      return scheitern({ grund: 'papierkorbFehlt' }, LAGEN.unerwartet);
     try {
       const fehlschlag = await schreibeSchattenkopien(plan, umbenennungen);
       if (fehlschlag !== null) return scheitern(fehlschlag);
@@ -347,8 +386,14 @@ function erzeugeAbsichtsProtokoll(deps) {
       // Das Protokoll. Die Belege tragen den fertigen Anfüge-Text, weil ein
       // Wiederanlauf ihn sonst aus Angaben neu bauen müsste, die mit dem
       // abgestürzten Prozess verloren sind (B4).
+      //
+      // 4T-002390 (Epic 3E-000265, S4): Der Pfad ist der der Beleg-Datei neben
+      // ihrer Bezugs-Datei, in der Kartei-Form also neben der Karteikarte. Das
+      // Protokoll führt ihn je Beleg ausdrücklich; der Wiederanlauf liest und
+      // ergänzt deshalb ohne eigene Regel genau diese Datei, und ein zweiter
+      // Protokoll-Eintrag für die Karteikarte entsteht nicht.
       belege = plan.belege.map((eintrag) => ({
-        pfad: belegPfadFuer(eintrag.tabellenPfad),
+        pfad: belegPfadFuer(eintrag.bezugsPfad || eintrag.tabellenPfad),
         text: eintrag.text,
         tx: eintrag.angaben.vorgang,
         id: eintrag.angaben.id,
@@ -362,6 +407,11 @@ function erzeugeAbsichtsProtokoll(deps) {
         halter: { ...herkunftsFelder(wer), pid: process.pid },
         umbenennungen: umbenennungen.map(({ von, nach }) => ({ von, nach })),
         belege: belege.map(({ pfad, text, tx, id }) => ({ pfad, text, tx, id })),
+        // 4T-002389 (Schritt 4): freigestellt, damit ein Protokoll ohne Löschen
+        // einer Karteikarte unverändert aussieht wie bisher (Schema-Version 1).
+        ...(entsorgenDes(plan).length > 0
+          ? { entsorgen: entsorgenDes(plan).map((e) => e.pfad) }
+          : {}),
         sperren: genommen,
       };
     } catch (err) {
@@ -397,7 +447,7 @@ function erzeugeAbsichtsProtokoll(deps) {
       }
       return scheitern({ datei: protokoll, grund: grundVon(err) });
     }
-    return { ok: true, protokoll, umbenennungen, belege };
+    return { ok: true, protokoll, umbenennungen, belege, entsorgen: inhalt.entsorgen || [] };
   }
 
   // Ein Protokoll, das sich nach einem Fehlschlag nicht zurückziehen ließ, kann
@@ -425,6 +475,7 @@ function erzeugeAbsichtsProtokoll(deps) {
   async function vollende(bereichsWurzel, genommen, vorbereitet, marke) {
     const dateien = [];
     const angefuegt = [];
+    const entsorgt = [];
     const steht = (grundCode, mehr) =>
       abgewiesen(
         befund(LAGEN.teilweiseGeschrieben, {
@@ -456,6 +507,16 @@ function erzeugeAbsichtsProtokoll(deps) {
       }
       angefuegt.push(pfad);
     }
+    // 4T-002389 (Schritt 4, F6 B): nach dem Anfügen der Belege die Dateien in den
+    // Papierkorb, in der Reihenfolge des Plans (Karteikarte, dann ihre
+    // Beleg-Datei). Eine schon fortgegangene Datei ist erledigt; eine
+    // liegengebliebene Begleit-Datei ist hier ein Fehlschlag, weil eine neue
+    // Karteikarte gleichen Namens sonst die alte Kette fortsetzte.
+    for (const pfad of marke.entsorgen) {
+      const fort = await entsorgeDatei(papierkorb, fsp, pfad);
+      if (!fort.ok) return steht(LAGEN.schreibenFehlgeschlagen, { datei: pfad, grund: fort.grund });
+      entsorgt.push(pfad);
+    }
 
     // Schritt 5: Ein Protokoll, das nicht fort ist, ist weiterhin eine Marke;
     // dann bleiben auch die Sperren, damit der Wiederanlauf weiß, was er
@@ -476,6 +537,8 @@ function erzeugeAbsichtsProtokoll(deps) {
       vorgang: vorbereitet.vorgang,
       dateien,
       belege: angefuegt,
+      // 4T-002389: die Dateien, die in den Papierkorb gegangen sind.
+      entsorgt,
       protokoll: null,
       ergebnis: vorbereitet.ergebnis,
     };
@@ -598,9 +661,42 @@ function erzeugeAbsichtsProtokoll(deps) {
   return { fuehreAuftragDurch, laeuft };
 }
 
+/**
+ * 4T-002389 (Schritt 4): Eine Datei in den Papierkorb, wenn sie noch da ist.
+ *
+ * Geteilt mit dem Wiederanlauf (`intent-recovery.js`), damit beide denselben
+ * Maßstab für «erledigt» haben: Eine fehlende Datei ist fortgegangen.
+ *
+ * @param {(pfad: string) => Promise<object>} papierkorb Die Naht des Papierkorbs.
+ * @param {object} fsp Dateizugriff mit `lstat`.
+ * @param {string} pfad Die Datei.
+ * @returns {Promise<{ok: true, uebersprungen: boolean}|{ok: false, grund: string}>}
+ */
+async function entsorgeDatei(papierkorb, fsp, pfad) {
+  try {
+    await fsp.lstat(pfad);
+  } catch (err) {
+    if (err && err.code === 'ENOENT') return { ok: true, uebersprungen: true };
+    return { ok: false, grund: grundVon(err) };
+  }
+  if (typeof papierkorb !== 'function') return { ok: false, grund: 'papierkorbFehlt' };
+  let ergebnis;
+  try {
+    ergebnis = await papierkorb(pfad);
+  } catch (err) {
+    return { ok: false, grund: grundVon(err) };
+  }
+  if (!ergebnis || ergebnis.ok !== true)
+    return { ok: false, grund: (ergebnis && ergebnis.error) || 'papierkorb' };
+  if (Array.isArray(ergebnis.companionLeft) && ergebnis.companionLeft.length > 0)
+    return { ok: false, grund: 'companionLeft' };
+  return { ok: true, uebersprungen: false };
+}
+
 module.exports = {
   ABSICHT_SCHEMA_VERSION,
   ABSICHT_PRAEFIX,
   protokollName,
+  entsorgeDatei,
   erzeugeAbsichtsProtokoll,
 };

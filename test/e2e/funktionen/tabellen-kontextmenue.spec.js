@@ -9,7 +9,10 @@
 // und dimmt sie außerhalb von Tabellen; TK-06: dasselbe Untermenü wirkt im
 // perspective-table-Fence (Zeile verschieben, Ein-Schritt-Undo); TK-07:
 // Spalten-Operationen werden bei colspan mit Statusbar-Hinweis abgelehnt;
-// TK-08: Spalte einfügen setzt in einer Kopfzeile eine Kopfzelle (4T-002093).
+// TK-08: Spalte einfügen setzt in einer Kopfzeile eine Kopfzelle (4T-002093);
+// TK-09/TK-10: Spalte einfügen in der Live-Ansicht, Abstecher nach Gerendert
+// und zurück, danach nimmt ein Strg+Z die Operation zurück, ohne und mit
+// Zeitstempel-Erweiterung beim automatischen Speichern (4T-002121).
 // Die Operations-Semantik selbst ist unit-getestet
 // (test/unit/table-edit.test.js, test/unit/perspective-table-edit.test.js).
 'use strict';
@@ -352,5 +355,119 @@ test.describe('TK-08: Spalte einfügen setzt in der Kopfzeile eine Kopfzelle (4T
     } finally {
       await closeApp(app, userData, { force: true });
     }
+  });
+});
+
+// TK-09/TK-10 (4T-002121, Stories 4S-000161 AK10 und 4S-000051 AK6): Befund
+// vom 2026-10-03 im Handgriff des Anwenders. Pipe-Tabelle in der Live-Ansicht
+// mit eingeschaltetem Bearbeiten, Kontextmenü › Tabelle › Spalte einfügen,
+// Ansicht Gerendert, zurück nach Live, Strg+Z. Erwartet: Der Text steht wieder
+// auf dem Stand vor der Operation; mit Erweiterung nimmt das eine Strg+Z den
+// Stempel-Schritt mit zurück (editor-historie.js). Das automatische Speichern
+// ist an, damit zwischen Operation und Strg+Z gespeichert wird; die beiden Fälle
+// unterscheiden sich allein in der Erweiterung «Zeitstempel im Dateikopf», die
+// beim Speichern das Feld updated setzt. Gearbeitet wird an einer Kopie im
+// Temp-Ordner, weil das Speichern die Datei schreibt.
+const RUECKGAENGIG_DOKUMENT = [
+  '---',
+  'titel: Rückgängig',
+  'updated:',
+  '---',
+  '',
+  'Absatz vor der Tabelle.',
+  '',
+  '| A | B | C |',
+  '| --- | --- | --- |',
+  '| a1 | b1 | c1 |',
+  '| a2 | b2 | c2 |',
+  '',
+  'Absatz nach der Tabelle.',
+  '',
+].join('\n');
+
+// Ganzer Text des Editors der linken Spalte aus dem Zustand von CodeMirror.
+async function dokumentText(page) {
+  return await page.evaluate((P) => {
+    let tile = document.querySelector(P).cmTile;
+    while (tile.parent) tile = tile.parent;
+    return tile.view.state.doc.toString();
+  }, SEL.editorContent0);
+}
+
+async function rueckgaengigNachAnsichtsWechsel(erweiterungAn) {
+  const settings = {
+    autoSave: true,
+    frontmatter: { updatedEnabled: true, timestampFormat: 'datetime' },
+  };
+  if (!erweiterungAn) settings.extensions = { disabled: ['frontmatter-timestamps'] };
+  const userDataSeed = seedProfile(settings);
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-tabellen-undo-'));
+  const file = path.join(dir, 'rueckgaengig.md');
+  fs.writeFileSync(file, RUECKGAENGIG_DOKUMENT, 'utf8');
+  const { app, page, userData } = await launchApp({ args: [file], userData: userDataSeed });
+  try {
+    await waitForTab(page);
+    await sendMenuChannel(app, 'menu:viewChange', 'live');
+    await expect(page.locator(SEL.editorContent0)).toBeVisible();
+    await page.locator(SEL.btnEdit).click();
+    const huelle = page.locator('.pane-group[data-pane="0"] .pane-source-editor');
+    await expect(huelle).not.toHaveClass(/read-only/);
+    const vorher = await dokumentText(page);
+    expect(vorher).toBe(RUECKGAENGIG_DOKUMENT);
+
+    // Rechtsklick in die Zelle a1 der gerenderten Tabelle, Spalte einfügen.
+    const tabelle = page.locator(`${SEL.editorContent0} .cm-live-block table`).first();
+    await tabelle.locator('th, td').nth(3).click({ button: 'right' });
+    await expect(page.locator(MENU)).toBeVisible();
+    await page.locator(item('table')).hover();
+    await page.locator(item('table-col-insert')).click();
+    await expect(tabelle.locator('thead th')).toHaveCount(4);
+    const nachOperation = await dokumentText(page);
+    expect(nachOperation).not.toBe(vorher);
+
+    // Das automatische Speichern hat den Stand geschrieben (mit Erweiterung
+    // samt gesetztem Zeitstempel), bevor die Ansicht wechselt.
+    await expect.poll(() => fs.readFileSync(file, 'utf8'), { timeout: 10_000 }).not.toBe(vorher);
+    await expect(page.locator(SEL.dirtyTab0)).toHaveCount(0);
+    const gespeichert = fs.readFileSync(file, 'utf8');
+    expect(await dokumentText(page)).toBe(gespeichert);
+    if (erweiterungAn) expect(gespeichert).toMatch(/updated: \d{4}-\d{2}-\d{2}/);
+    else expect(gespeichert).toContain('updated:\n');
+
+    // Abstecher in die Lese-Ansicht und zurück; Bearbeiten ist danach wieder an.
+    await sendMenuChannel(app, 'menu:viewChange', 'rendered');
+    await expect(page.locator(`${SEL.markdownBody0} table`).first()).toBeVisible();
+    await sendMenuChannel(app, 'menu:viewChange', 'live');
+    await expect(huelle).not.toHaveClass(/read-only/);
+
+    // Schreibmarke in einen Absatz (ein Klick in die Tabelle öffnete eine
+    // Zelle), dann ein einziges Strg+Z.
+    await page
+      .locator(`${SEL.editorContent0} .cm-line`, { hasText: 'Absatz vor der Tabelle.' })
+      .click();
+    await page.keyboard.press('Control+z');
+    // Mit Erweiterung nimmt dasselbe Strg+Z den Stempel-Schritt und die
+    // Operation zusammen zurück. Der Text ist danach wieder geändert, und das
+    // automatische Speichern stempelt ihn zwei Sekunden später neu; verglichen
+    // wird deshalb ohne den Wert der Zeile updated, die Tabelle zeichengenau.
+    const ohneStempel = (text) => text.replace(/^updated:.*$/m, 'updated:');
+    await expect.poll(async () => ohneStempel(await dokumentText(page))).toBe(vorher);
+    await expect(tabelle.locator('thead th')).toHaveCount(3);
+  } finally {
+    await closeApp(app, userData, { force: true });
+    fs.rmSync(dir, { recursive: true, force: true });
+    fs.rmSync(userDataSeed, { recursive: true, force: true });
+  }
+}
+
+test.describe('TK-09: Strg+Z nach Abstecher in die Lese-Ansicht, Zeitstempel aus (4T-002121)', () => {
+  test('Spalte einfügen in Live, Gerendert und zurück, ein Strg+Z stellt den Text wieder her', async () => {
+    await rueckgaengigNachAnsichtsWechsel(false);
+  });
+});
+
+test.describe('TK-10: Strg+Z nach Abstecher in die Lese-Ansicht, Zeitstempel an (4T-002121)', () => {
+  test('Spalte einfügen in Live, gespeichert mit Zeitstempel, ein Strg+Z stellt den Text wieder her', async () => {
+    await rueckgaengigNachAnsichtsWechsel(true);
   });
 });

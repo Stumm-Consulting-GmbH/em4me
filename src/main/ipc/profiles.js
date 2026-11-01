@@ -21,10 +21,8 @@ const {
 } = require('../../shared/property-profiles');
 const { injectEventProfile } = require('../../shared/events/events-core.js');
 const { extractFrontmatter } = require('../../shared/markdown/frontmatter');
-// 4T-001159 (Epic 3E-000219, E13): Schlagwort-Erkennung aus DERSELBEN Quelle wie
-// der Bereichs-Index — sonst liefen Index und Zuordnung auseinander.
-const { TAG_RE, isValidTag } = require('../index/parse');
 const { createProfileCatalogCache, loadProfileCatalog } = require('../documents/profile-catalog');
+const { schlagworteAus, ordnerVon } = require('../documents/profil-felder');
 const selbstSchreib = require('../documents/self-write');
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
 // 4T-002080 (Epic 3E-000259): dieselbe Aufgaben-Umgebung wie der Abfrage-Kanal
@@ -39,53 +37,10 @@ const profileCatalogCache = createProfileCatalogCache();
 // Require-Cache).
 const markSelfWriting = selbstSchreib.merke;
 
-// 4T-001159 (Epic 3E-000219, E13): Schlagworte eines Dokuments aus seinem Text.
-//
-// **Frontmatter- UND Inline-Schlagworte** (PO-Entscheidung vom 2026-08-23):
-// Der Bereichs-Index führt beide in einem Satz, und für den Anwender ist ein
-// Schlagwort ein Schlagwort — eine Trennung im Profil-Modell wäre eine
-// Sonderregel, die man erklären müsste.
-//
-// Gelesen wird aus dem **Live-Inhalt** des Tabs, so wie das Zuordnungs-Feld:
-// Das hält die bestehende Zusage, dass auch eine ungespeicherte Änderung
-// sofort wirkt. Der Index käme hier zu spät.
-function schlagworteAus(text, frontmatterDaten) {
-  const treffer = new Set();
-  // Frontmatter: der Schlüssel `tags`, Skalar oder Liste.
-  if (frontmatterDaten && typeof frontmatterDaten === 'object') {
-    for (const key of Object.keys(frontmatterDaten)) {
-      if (key.toLowerCase() !== 'tags') continue;
-      const wert = frontmatterDaten[key];
-      for (const eintrag of Array.isArray(wert) ? wert : [wert]) {
-        if (typeof eintrag !== 'string') continue;
-        const tag = eintrag.trim().replace(/^#/, '');
-        if (tag !== '') treffer.add(tag);
-      }
-    }
-  }
-  // Inline: dasselbe Muster und dieselbe Gültigkeits-Prüfung wie im Index.
-  if (typeof text === 'string' && text !== '') {
-    const body = extractFrontmatter(text).body;
-    TAG_RE.lastIndex = 0;
-    let m;
-    while ((m = TAG_RE.exec(body)) !== null) {
-      if (isValidTag(m[1])) treffer.add(m[1]);
-    }
-  }
-  return [...treffer];
-}
-
-// 4T-001159: Bereichs-relativer Ordner eines Dokuments, mit "/" normalisiert;
-// "" für eine Datei direkt in der Bereichs-Wurzel. null, wenn der Pfad
-// fehlt oder ausserhalb des Bereichs liegt (harte Grenze wie überall).
-function ordnerVon(areaRoot, filePath) {
-  if (typeof filePath !== 'string' || filePath === '') return null;
-  const abs = path.resolve(filePath);
-  if (!isInsideArea(areaRoot, abs)) return null;
-  const rel = path.relative(areaRoot, path.dirname(abs));
-  if (rel === '' || rel === '.') return '';
-  return rel.split(path.sep).join('/');
-}
+// 4T-001159 (Epic 3E-000219, E13): `schlagworteAus` (Schlagworte eines
+// Dokuments aus Frontmatter und Inline-Text) und `ordnerVon` (bereichs-relativer
+// Ordner) stehen seit 4T-002387 in `src/main/documents/profil-felder.js`, weil
+// die Konsistenz-Prüfung der Datenbank dieselbe Auflösung braucht.
 
 /**
  * Registriert die Profil-Kanaele.

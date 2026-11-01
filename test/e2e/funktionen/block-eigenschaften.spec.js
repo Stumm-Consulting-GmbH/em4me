@@ -10,6 +10,8 @@
 // Eigenschafts-Zeichen und Umbenennen samt Diagramm-Angaben (BP-07); Anker
 // anlegen in einem Code-Block und über einer Datentabelle lässt den Zaun
 // geschlossen (BP-08, Nachbesserung F1).
+// 4T-002101: Umbenennen zieht nur Verweise auf das eigene Dokument mit (BP-09).
+// 4T-002100: Umbenennen laesst Schreibmarke und Panel-Auswahl am Block (BP-10).
 'use strict';
 
 const fs = require('node:fs');
@@ -20,7 +22,7 @@ const { launchApp, closeApp } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { hauptSenden } = require('../helpers/haupt-zugriff');
 // 4T-002072: Text des Editors der linken Spalte (Muster block-anker-eigene-zeile.spec.js).
-const { text } = require('../helpers/diagramme-dialog');
+const { text, marke } = require('../helpers/diagramme-dialog');
 const { erwarteDateiUnveraendert } = require('../helpers/dateien');
 
 async function sendMenuChannel(app, channel, ...args) {
@@ -386,10 +388,9 @@ test.describe('BP-07: Name einer Datentabelle im Panel (4T-002072)', () => {
             .replace('table: ^alt\n', 'table: ^neu\n'),
         );
       // Die Kennungs-Liste des Panels kennt den neuen Namen, der alte ist weg.
-      // Welcher Eintrag gewählt ist, prüft der Fall bewusst nicht: Die
-      // Ganz-Dokument-Ersetzung des Umbenennens setzt die Schreibmarke an den
-      // Dokument-Anfang, und das Panel folgt ihr — gemessen am 2026-10-03 ebenso
-      // bei einem Anker an einem gewöhnlichen Absatz (Bestand, nicht 4T-002072).
+      // 4T-002100: Die Schreibmarke bleibt in der Tabelle, das Panel zeigt den
+      // neuen Namen gewählt (vorher sprang sie an den Dokument-Anfang).
+      await expect(page.locator(ANCHOR_SELECT)).toHaveValue('neu');
       await expect(page.locator(`${ANCHOR_SELECT} option[value="neu"]`)).toHaveCount(1);
       await expect(page.locator(`${ANCHOR_SELECT} option[value="alt"]`)).toHaveCount(0);
       // 4T-002026: Umbenannt im Puffer, nicht auf der Platte.
@@ -470,6 +471,107 @@ test.describe('BP-08: Anker anlegen lässt Code-Blöcke geschlossen (4T-002072)'
       await expect(page.locator(`${lese} .perspective-datatable .pdt-grid`)).toHaveCount(1);
       // 4T-002026: Beide Kennungen stehen im Puffer, nicht auf der Platte.
       erwarteDateiUnveraendert(workFile, inhalt.join('\n'));
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanup(workDir);
+    }
+  });
+});
+
+// Umbenennen über den Stift-Knopf des Panels: Eingabe, Eingabetaste.
+async function umbenennen(page, neu) {
+  await page.locator(`${SEC} .block-props-rename-btn`).click();
+  const eingabe = page.locator(`${SEC} .block-props-rename-input`);
+  await expect(eingabe).toBeFocused();
+  await eingabe.fill(neu);
+  await eingabe.press('Enter');
+}
+
+// 4T-002101 (Story 4S-000228 AK5 und AK6): Umbenennen zog jeden Verweis
+// `[[Datei#^alt]]` mit, auch auf den gleichnamigen Block eines anderen
+// Dokuments, der danach ins Leere zeigte.
+test.describe('BP-09: Umbenennen zieht nur Verweise auf das eigene Dokument mit (4T-002101)', () => {
+  test('[[#^alt]] und [[arbeit#^alt]] ziehen mit, [[Fremd#^alt]] bleibt, auch mit Beschriftung und als Einbettung', async () => {
+    const fremd = 'Dorthin: [[Fremd#^alt]], [[Fremd#^alt|dort]] und ![[Fremd#^alt]]';
+    const zeilen = [
+      'Ein Absatz. ^alt',
+      '',
+      'Hierher: [[#^alt]] und [[arbeit#^alt]]',
+      '',
+      fremd,
+      '',
+    ];
+    const { workDir, workFile } = makeWorkFile('pmpp-blockprops-bp09-', zeilen.join('\n'));
+    fs.writeFileSync(path.join(workDir, 'Fremd.md'), 'Ein Absatz im fremden Dokument. ^alt\n');
+    const { app, page, userData } = await launchApp({
+      args: [workFile],
+      userData: viewModeProfile('source'),
+    });
+    try {
+      await waitForTab(page);
+      await sendMenuChannel(app, 'menu:toggleBlockProps');
+      await page.locator(SEL.editorContent0).getByText('Ein Absatz.').click();
+      await expect(page.locator(ANCHOR_SELECT)).toHaveValue('alt');
+      await umbenennen(page, 'neu');
+      await expect
+        .poll(() => text(page))
+        .toBe(
+          ['Ein Absatz. ^neu', '', 'Hierher: [[#^neu]] und [[arbeit#^neu]]', '', fremd, ''].join(
+            '\n',
+          ),
+        );
+    } finally {
+      await closeApp(app, userData, { force: true });
+      cleanup(workDir);
+    }
+  });
+});
+
+// 4T-002100 (Story 4S-000228 AK3): Das Umbenennen ersetzte das ganze Dokument;
+// die Schreibmarke sprang an den Anfang, und das Panel verlor den Block.
+test.describe('BP-10: Umbenennen lässt Schreibmarke und Auswahl am Block (4T-002100)', () => {
+  test('Schreibmarke bleibt in der Zeile, das Panel zeigt den neuen Namen; Strg+Z nimmt genau das Umbenennen zurück', async () => {
+    const inhalt = [
+      '# Umbenennen',
+      '',
+      'Erster Absatz ohne Anker.',
+      '',
+      'Ein Absatz. ^alt',
+      '',
+      'Verweis auf den Absatz: [[#^alt]]',
+      '',
+    ].join('\n');
+    const { workDir, workFile } = makeWorkFile('pmpp-blockprops-bp10-', inhalt);
+    const { app, page, userData } = await launchApp({
+      args: [workFile],
+      userData: viewModeProfile('source'),
+    });
+    try {
+      await waitForTab(page);
+      // Bearbeiten einschalten: Ohne ihn ist der Editor schreibgeschützt, und
+      // Strg+Z nimmt nichts zurück (Muster enterEditSource).
+      await page.locator(SEL.btnEdit).click();
+      await expect(page.locator(`${PANE0} .pane-source-editor`)).not.toHaveClass(/read-only/);
+      await sendMenuChannel(app, 'menu:toggleBlockProps');
+      // Ein Schritt des Anwenders vor dem Umbenennen: Strg+Z darf ihn nicht
+      // mitnehmen.
+      await page.locator(SEL.editorContent0).getByText('Erster Absatz ohne Anker.').click();
+      await page.keyboard.press('End');
+      await page.keyboard.type('!');
+      const getippt = inhalt.replace('ohne Anker.', 'ohne Anker.!');
+      await expect.poll(() => text(page)).toBe(getippt);
+      await page.locator(SEL.editorContent0).getByText('Ein Absatz.').click();
+      await expect(page.locator(ANCHOR_SELECT)).toHaveValue('alt');
+      expect(await marke(page)).toBe(5);
+      await umbenennen(page, 'neu');
+      await expect.poll(() => text(page)).toBe(getippt.replace(/\^alt/g, '^neu'));
+      expect(await marke(page)).toBe(5);
+      await expect(page.locator(ANCHOR_SELECT)).toHaveValue('neu');
+      // Zurück in den Absatz (der Fokus liegt nach der Eingabetaste im Panel).
+      await page.locator(SEL.editorContent0).getByText('Ein Absatz.').click();
+      await page.keyboard.press('Control+z');
+      await expect.poll(() => text(page)).toBe(getippt);
+      expect(await marke(page)).toBe(5);
     } finally {
       await closeApp(app, userData, { force: true });
       cleanup(workDir);

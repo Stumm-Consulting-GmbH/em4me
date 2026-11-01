@@ -118,7 +118,12 @@ function baueZuordnung(sicht) {
   const tabellen = new Map();
   for (const [absPath, records] of sicht.recordsPerFile) {
     if (!Array.isArray(records) || records.length === 0) continue;
-    const name = tabellenNameVon(absPath).toLowerCase();
+    // 4T-002387/4T-002388 (Epic 3E-000265): Eine Karteikarte trägt ihre
+    // Tabelle in `kartei` und nicht im Datei-Namen; sie wird der Tabelle
+    // zugeschlagen, deren Kopf-Datei dort steht. Der Fundort bleibt die Datei
+    // der Karteikarte mit Zeile 0. Damit treffen Kennung, Kurzform und
+    // Anzeige-Form eines Verweises die Karteikarte ohne eigene Regel.
+    const name = tabellenNameVon(records[0].kartei || absPath).toLowerCase();
     let tabelle = tabellen.get(name);
     if (!tabelle) {
       tabelle = { nachKennung: new Map(), nachSchluessel: new Map(), nachAnzeige: new Map() };

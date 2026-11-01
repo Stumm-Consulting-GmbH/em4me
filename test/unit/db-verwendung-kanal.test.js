@@ -150,6 +150,8 @@ describe('database:verwendung: Registrierung und Brücke (4T-001945, B2)', () =>
       'database:changeLog',
       'database:datensaetze',
       'database:datensatz',
+      // 4T-002406 (Epic 3E-000266): die Karteikarte eines Datensatzes.
+      'database:karteikarte',
       'database:konsistenz',
       // 4T-002249 (Epic 3E-000262): die Auskunft über eine Listen-Maske.
       'database:liste',

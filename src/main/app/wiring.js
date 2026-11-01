@@ -14,7 +14,7 @@
 // Lade-Zeit-Seiteneffekte; alles entsteht erst beim Aufruf.
 'use strict';
 
-const { app, dialog } = require('electron');
+const { app, dialog, shell } = require('electron');
 const backlinks = require('../backlinks');
 const mddStore = require('../documents/mdd-store');
 const attachmentPath = require('../documents/attachment-path');
@@ -37,6 +37,8 @@ const { createAreaConfig } = require('../area/area-config');
 const { erzeugeSperrVerwaltung } = require('../database/lock-lifecycle');
 // 4T-001821 (Epic 3E-000254, E12.6, E15.2): Schreib-Schnittstelle der Datenbank.
 const { erzeugeSchreibSchnittstelle } = require('../database/record-auftrag');
+// 4T-002389 (Epic 3E-000265): derselbe Weg in den Papierkorb wie im Bereichs-Panel.
+const { verschiebeInPapierkorb } = require('../documents/papierkorb');
 // 4T-001823 (Epic 3E-000254, E11.3): die Klammer des Absichts-Protokolls.
 const { erzeugeAbsichtsProtokoll } = require('../database/intent-log');
 // 4T-001824 (Epic 3E-000254, E11.3): der Wiederanlauf liegengebliebener Aufträge.
@@ -54,6 +56,10 @@ const { bearbeitbarRegel } = require('../database/record-regel-bearbeitbar');
 const { berechtigungRegel, erzeugeRechteFuer } = require('../database/record-regel-berechtigung');
 // 4T-002310 (Epic 3E-000263): der Schutz der Definition für Speichern und Ersetzen.
 const { erzeugeDefinitionsSchutz } = require('../database/definitions-schutz');
+// 4T-002404 (Epic 3E-000266): die Prüfung einer Karteikarte beim Speichern.
+const { erzeugeSpeicherPruefung } = require('../database/speicher-pruefung');
+// 4T-002405 (Epic 3E-000266): Löschen und Kopieren einer Karteikarte im Bereichs-Panel.
+const { erzeugeKarteiWeichen } = require('../database/kartei-weichen');
 const { frischerDateizugriff } = require('../documents/frisch-lesen');
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 const { createBookApps } = require('../books/book-apps');
@@ -146,9 +152,14 @@ function createMainWiring(deps) {
   // ebenfalls genau einmal, mit DERSELBEN Sperr-Verwaltung und demselben Leser
   // der Bereichs-Konfiguration; durch sie schreibt die Schnittstelle jeden
   // Auftrag. Ein zweiter Sperr-Speicher entsteht damit nicht.
+  // 4T-002389 (Epic 3E-000265, Schritt 4): Das Löschen einer Karteikarte gibt
+  // sie samt Beleg-Datei in den Papierkorb, über den Weg des Bereichs-Panels.
+  const papierkorb = (pfad) =>
+    verschiebeInPapierkorb(pfad, { trashItem: (ziel) => shell.trashItem(ziel) });
   const absichtsProtokoll = erzeugeAbsichtsProtokoll({
     sperrVerwaltung,
     leseKonfig: (rootPath) => areaConfig.readAreaDatabaseConfig(rootPath),
+    papierkorb,
   });
   // 4T-001824 (Epic 3E-000254): Das Tor der Erweiterung als EINE Funktion, weil
   // es zwei Verbraucher hat: die Schnittstelle und den Wiederanlauf, der beim
@@ -169,6 +180,7 @@ function createMainWiring(deps) {
     // Prozesses gerade fährt; die Sperren eines anderen eigenen Protokolls sind
     // die Hinterlassenschaft eines gescheiterten Laufs.
     laeuft: (vorgang) => absichtsProtokoll.laeuft(vorgang),
+    papierkorb,
   });
   // 4T-001926 (Epic 3E-000256, E12.6): Die Prüf-Naht des Regel-Werks entsteht
   // genau EINMAL und wird der Schnittstelle hereingereicht; durch sie läuft
@@ -229,6 +241,22 @@ function createMainWiring(deps) {
     tabellenSicht: gespeicherteSicht,
     rechteFuer,
     erweiterungAktiv: datenbankAktiv,
+  });
+  // 4T-002404 (Epic 3E-000266, S3): Die Prüfung einer Karteikarte für
+  // `file:save` und `file:saveAs`, an derselben Sicht des gespeicherten Stands;
+  // sie meldet Befunde und weist nie ab.
+  const speicherPruefung = erzeugeSpeicherPruefung({
+    tabellenSicht: gespeicherteSicht,
+    erweiterungAktiv: datenbankAktiv,
+    vorlagenOrdner: (fenster) => areaConfig.resolveQueryTemplatesFolder(fenster),
+    fsp: frischerDateizugriff,
+  });
+  // 4T-002405 (Epic 3E-000266, F4 A, F5 A): Löschen und Kopieren einer
+  // Karteikarte im Bereichs-Panel als Auftrag an DIESELBE Schnittstelle.
+  const karteiWeichen = erzeugeKarteiWeichen({
+    schreibSchnittstelle,
+    erweiterungAktiv: datenbankAktiv,
+    fsp: frischerDateizugriff,
   });
 
   const mddHistory = createMddHistory({
@@ -623,6 +651,8 @@ function createMainWiring(deps) {
     // lesenden Datensatz-Kanal; EINE Funktion, damit kein Kanal es nachbaut.
     datenbankAktiv,
     definitionsSchutz,
+    speicherPruefung,
+    karteiWeichen,
     ...areaConfig,
     ...mddHistory,
     ...blockData,

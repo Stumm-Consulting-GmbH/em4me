@@ -82,10 +82,13 @@ function numericList(v) {
 // Elemente, ein Einzelwert 1, ein fehlender Wert 0. Über der Gruppe zählt
 // `count(x)` die Zeilen, in denen diese Zahl größer als null ist
 // (query-aggregate.js); beide Bedeutungen hängen damit an derselben Regel.
+// Leerer Text zählt wie ein fehlender Wert, als Einzelwert und als
+// Listen-Element; falsch und 0 bleiben Werte (Entscheidung des Product Owners
+// vom 2026-10-30, 4T-002128, wie die Aggregat-Zeile der Datentabelle).
+const isPresent = (x) => x !== null && x !== undefined && x !== '';
 function presentCount(v) {
-  if (v === null || v === undefined) return 0;
-  if (Array.isArray(v)) return v.filter((x) => x !== null && x !== undefined).length;
-  return 1;
+  if (Array.isArray(v)) return v.filter(isPresent).length;
+  return isPresent(v) ? 1 : 0;
 }
 
 // 4T-001073 (Epic 3E-000211): Vorbereitung für infolder — Liste -> Link-Werte.

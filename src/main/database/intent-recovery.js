@@ -53,7 +53,13 @@ const { ermittleHerkunft } = require('../herkunft.js');
 const { ART_SWEEP, sperrDateiName, sperrOrdnerPfad } = require('./lock-store.js');
 const { SPERR_FRIST_MS, VORGABE_PROZESS } = require('./lock-lifecycle.js');
 const { belegPfadFuer, leseBelegDatei } = require('./change-log.js');
-const { ABSICHT_PRAEFIX, ABSICHT_SCHEMA_VERSION, protokollName } = require('./intent-log.js');
+const { leseBelege } = require('../../shared/database/change-record.js');
+const {
+  ABSICHT_PRAEFIX,
+  ABSICHT_SCHEMA_VERSION,
+  entsorgeDatei,
+  protokollName,
+} = require('./intent-log.js');
 
 // Die Endung des Protokolls, abgeleitet aus seiner Namensbildung und nicht ein
 // zweites Mal hingeschrieben.
@@ -142,7 +148,10 @@ function istVollstaendig(wert, vorgangAusName) {
       'belege',
       (b) => istObjekt(b) && typeof b.pfad === 'string' && typeof b.text === 'string',
     ) &&
-    liste('sperren', istObjekt)
+    liste('sperren', istObjekt) &&
+    // 4T-002389 (Schritt 4): freigestellt; ein Protokoll ohne Löschen einer
+    // Karteikarte trägt das Feld nicht.
+    (wert.entsorgen === undefined || liste('entsorgen', (e) => typeof e === 'string'))
   );
 }
 
@@ -167,6 +176,14 @@ function belegSchluessel(vorgang, id) {
   const nummer = typeof id === 'string' ? nummerAus(id) : null;
   const kennung = nummer !== null ? String(nummer) : id == null ? '' : String(id);
   return `${String(vorgang)}/${kennung}`;
+}
+
+// 4T-002389 (Schritt 4): Wie viele intakte Belege mit diesem Schlüssel trägt der
+// Anfüge-Text eines Protokoll-Eintrags?
+function belegeImText(text, schluessel) {
+  return leseBelege(text).belege.filter(
+    (b) => !b.beschaedigt && belegSchluessel(b.vorgang, b.id) === schluessel,
+  ).length;
 }
 
 /**
@@ -195,6 +212,9 @@ function belegSchluessel(vorgang, id) {
  *   wie in der Sperr-Verwaltung.
  * @param {(vorgang: number|string) => boolean} [deps.laeuft] Fährt die Klammer
  *   dieses Prozesses den Vorgang gerade (4T-001824, Befund 2)? Vorgabe: nie.
+ * @param {(pfad: string) => Promise<object>} [deps.papierkorb] 4T-002389: dieselbe
+ *   Naht wie in der Klammer. Ohne sie bleibt ein Protokoll mit Dateien für den
+ *   Papierkorb stehen (Lage «abgebrochen»).
  * @returns {{findeProtokolle: Function, raeumeAuf: Function,
  *   entsorgeVerwaisteSchattenkopien: Function}}
  */
@@ -219,6 +239,7 @@ function erzeugeWiederanlauf(deps) {
     'herkunft',
     'prozessLebt',
     'laeuft',
+    'papierkorb',
   ]) {
     if (d[naht] !== undefined && typeof d[naht] !== 'function') {
       throw new TypeError(`erzeugeWiederanlauf: ${naht} ist kein Rückruf`);
@@ -236,6 +257,7 @@ function erzeugeWiederanlauf(deps) {
   const herkunft = d.herkunft || ermittleHerkunft;
   const prozessLebt = d.prozessLebt || VORGABE_PROZESS.lebt;
   const laeuft = d.laeuft || (() => false);
+  const papierkorb = d.papierkorb || null;
 
   // Bei jedem Aufruf frisch gefragt, wie in der Schreib-Schnittstelle.
   function torZu() {
@@ -390,6 +412,10 @@ function erzeugeWiederanlauf(deps) {
       // `leseBelegDatei` genau sie.
       if (!drinnen(pfad) || belegPfadFuer(pfad) !== pfad) return pfad;
     }
+    // 4T-002389 (Schritt 4): In den Papierkorb geht nur, was im Bereich liegt.
+    for (const pfad of inhalt.entsorgen || []) {
+      if (!drinnen(pfad)) return pfad;
+    }
     return null;
   }
 
@@ -433,6 +459,14 @@ function erzeugeWiederanlauf(deps) {
   // diesen Kennungen. Gezählt statt bloß gesucht wird, weil ein Auftrag unter
   // einer Kennung zwei Belege desselben Datensatzes tragen kann: den Beleg einer
   // Fremd-Änderung und den gewöhnlichen danach (4T-001822).
+  //
+  // 4T-002389 (Schritt 4): Ein Eintrag kann mehrere Belege tragen, die
+  // Übertragung der Kette einer gelöschten Karteikarte an ihre Tabelle. Er gilt
+  // als angefügt, wenn so viele intakte Belege mit seinen Kennungen in der Datei
+  // stehen, wie sein Text trägt: der Lösch-Beleg am Schluss, nach einem
+  // Erzwingen davor der Beleg der Fremd-Änderung. Die übertragenen älteren
+  // Belege tragen andere Vorgangs-Kennungen und zählen nicht mit. Ein
+  // gewöhnlicher Eintrag trägt genau einen Beleg; für ihn bleibt es beim Bisherigen.
   async function fuegeRestAn(belege) {
     const zahlen = { angefuegt: 0, uebersprungen: 0 };
     const vorhanden = new Map();
@@ -441,8 +475,9 @@ function erzeugeWiederanlauf(deps) {
       const zahl = vorhanden.get(pfad);
       const schluessel = belegSchluessel(tx, id);
       const rest = zahl.get(schluessel) || 0;
-      if (rest > 0) {
-        zahl.set(schluessel, rest - 1);
+      const bedarf = Math.max(1, belegeImText(text, schluessel));
+      if (rest >= bedarf) {
+        zahl.set(schluessel, rest - bedarf);
         zahlen.uebersprungen += 1;
         continue;
       }
@@ -451,6 +486,19 @@ function erzeugeWiederanlauf(deps) {
       zahlen.angefuegt += 1;
     }
     return zahlen;
+  }
+
+  // 4T-002389 (Schritt 4): nach den Belegen die Dateien in den Papierkorb, über
+  // dieselbe Prüfung wie die Klammer. Eine fehlende Datei ist fortgegangen.
+  async function entsorgeRest(entsorgen) {
+    const zahlen = { entsorgt: 0, uebersprungen: 0 };
+    for (const pfad of entsorgen || []) {
+      const fort = await entsorgeDatei(papierkorb, fsp, pfad);
+      if (!fort.ok) return { ok: false, pfad, grund: fort.grund };
+      if (fort.uebersprungen) zahlen.uebersprungen += 1;
+      else zahlen.entsorgt += 1;
+    }
+    return { ok: true, zahlen };
   }
 
   async function schreibeZuEnde(bereichsWurzel, gefunden, inhalt, gehalten, ergebnis) {
@@ -478,11 +526,19 @@ function erzeugeWiederanlauf(deps) {
     const umbenannt = await benenneRestUm(jetzt.inhalt.umbenennungen);
     if (!umbenannt.ok) return ergebnis(L.unvollstaendig, { tabellen, pfad: umbenannt.pfad });
     const angefuegt = await fuegeRestAn(jetzt.inhalt.belege);
+    const entsorgt = await entsorgeRest(jetzt.inhalt.entsorgen);
+    // Ohne Papierkorb bleibt das Protokoll stehen; der nächste Lauf versucht es
+    // erneut, und die schon angefügten Belege erkennt er an ihren Kennungen.
+    if (!entsorgt.ok)
+      return ergebnis(L.abgebrochen, { tabellen, pfad: entsorgt.pfad, grund: entsorgt.grund });
     await entferne(gefunden.pfad);
     return ergebnis(L.fertiggeschrieben, {
       tabellen,
       umbenennungen: umbenannt.zahlen,
       belege: angefuegt,
+      ...(entsorgt.zahlen.entsorgt + entsorgt.zahlen.uebersprungen > 0
+        ? { entsorgt: entsorgt.zahlen }
+        : {}),
     });
   }
 

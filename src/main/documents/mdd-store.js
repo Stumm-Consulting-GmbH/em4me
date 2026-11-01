@@ -166,12 +166,17 @@ const MDDA_CACHE_FILENAME = 'Area_Cache.mdda';
 // defekt. Am Zug-Zweig als Versionen 6 und 7 vergeben; beim Nachzug auf den
 // Integrationsstand nach 1.145.0 zu Version 8 zusammengefasst, nach der Regel
 // unten (höchster Wert beider Seiten plus eins).
+// Version 9 (4T-002387, Epic 3E-000265): die fünfte Marke der Datenbank,
+// `record` für die Karteikarte (`db-record`), in `dbKinds` des parsed-Objekts.
+// Ein Alt-Cache führt sie für unveränderte Dateien nicht, und der Warmstart
+// übernähme dessen Marken; eine vorhandene Karteikarte trüge ihre Marke erst
+// nach der nächsten Änderung der Datei.
 // **Beim Rebase** auf einen Stand, der die Version unabhängig angehoben hat
 // (der Diagramme-Zweig hebt sie für seine Zell-Verweise ebenfalls an), ist der
 // Wert auf den höchsten beider Seiten plus eins zu setzen und hier ein Absatz
 // je Seite zu führen; Git meldet dabei keinen Konflikt, wenn beide Seiten
 // dieselbe Zahl gesetzt haben.
-const MDDA_CACHE_SCHEMA_VERSION = 8;
+const MDDA_CACHE_SCHEMA_VERSION = 9;
 
 // Format: { schemaVersion, linkIndex: { files: { <relPath>: { mtimeMs, size,
 // hash, parsed } } } }. `parsed` traegt das Datei-Parse-Ergebnis (hits,

@@ -32,10 +32,15 @@ import { collectMarkdownFiles } from '../../src/main/index/scan.js';
 // Prüfer des Format-Vertrags, für die Datensatz-Abfragen von „08 Queries.md".
 import {
   backlinksFor,
+  datenbankSicht,
   frontmatterQueryFor,
   releaseRoot,
   rootForActiveFile,
 } from '../../src/main/backlinks.js';
+// 4T-002391 (Epic 3E-000265): die Konsistenz-Prüfung der Übersicht und die
+// Leser der Kartei-Form, für die Tabelle «Authors» und ihre Karteikarten.
+import { pruefeKonsistenz } from '../../src/main/database/konsistenz-pruefung.js';
+import { karteikartenKennung } from '../../src/shared/database/karteikarte.js';
 import { validateResultSet } from '../../src/shared/query/result-set.js';
 // 4T-002083 (Epic 3E-000259): Marke und Block-Zählung der Abfrage-Datei, über
 // dieselben Leser wie der Katalog der Übersicht.
@@ -45,8 +50,11 @@ import {
   zaehleAbfrageBloecke,
   trifftMaskenAngabe,
   waehleStandardMaske,
+  // 4T-002408 (Epic 3E-000266): der Katalog der Übersicht, für die Sicht der Demo.
+  createDatabaseCatalogCache,
+  katalogUeberblick,
 } from '../../src/main/database/table-catalog.js';
-import { parseTableDefinition } from '../../src/shared/database/table-definition.js';
+import { istKarteiForm, parseTableDefinition } from '../../src/shared/database/table-definition.js';
 import { zerlegeMaskenKoerper, felderDesKoerpers } from '../../src/shared/database/form-body.js';
 import { parseListAngaben } from '../../src/shared/database/list-angaben.js';
 // 4T-002313 (Epic 3E-000263): Prüfung und Auflösung der Rollen, über dieselben
@@ -263,6 +271,32 @@ const EXPECTED_FILES = [
   // sind, hält der Block «Listen-Maske der Ausleihen» am Ende dieser Datei fest.
   'Loans List.md',
   'Loans Form.md',
+  // 4T-002391 (Epic 3E-000265, Demo-Area-Prüfschritt): die Tabelle «Authors» in
+  // Kartei-Form mit drei Karteikarten, in einem eigenen Unterordner, weil die
+  // Konsistenz-Prüfung jedes andere Dokument im Ordner einer Kartei-Tabelle als
+  // Dokument ohne Kennung meldete; Vorbild für den Unterordner ist «Bookshelf».
+  // Ohne Schlagwörter, weil die Abfrage über #demo in DA-04 nur die Seiten im
+  // Wurzelverzeichnis zählt. «Readings» verweist mit zwei Verweis-Spalten auf
+  // «Authors» und «Library»; eine eigene kleine Tabelle statt einer Spalte in
+  // «Library», weil deren sechzehn Autoren drei Karteikarten nicht treffen und
+  // der Beleg-Erzeuger «Library.md» Zeichen für Zeichen nachbaut. Wie die
+  // übrigen Tabellen mit den Schlagwörtern demo und data. Dass die
+  // Konsistenz-Prüfung der Demo ohne Befund bleibt, hält der Block
+  // «Kartei-Form der Autoren» am Ende dieser Datei fest.
+  // 4T-002408 (Epic 3E-000266, Demo-Area-Prüfschritt): die Sicht «Books by this
+  // author», die «Authors.md» unter `views` nennt, und die Listen-Maske
+  // «Authors List» über die Kartei-Tabelle, beide im Ordner der Karteikarten,
+  // weil Abfrage-Dateien dort keine Karteikarten sind und nicht gemeldet
+  // werden. Ohne Schlagwörter aus demselben Grund wie die Karteikarten. Dass
+  // beide wohlgeformt sind und die Konsistenz-Prüfung ohne Befund bleibt, hält
+  // der Block «Kartei-Form der Autoren» fest.
+  'Authors/Authors List.md',
+  'Authors/Authors.md',
+  'Authors/Books by this author.md',
+  'Authors/Stanisław Lem.md',
+  'Authors/Umberto Eco.md',
+  'Authors/Ursula K. Le Guin.md',
+  'Readings.md',
   'Light Speed.md',
   'Milky Way.md',
   'Milky Way∕Proxima Centauri.md',
@@ -957,5 +991,117 @@ describe('Demo-Area: Rollen und Feld-Sperre der Bibliothek (4T-002313)', () => {
     expect(LOANS.hints).toEqual([]);
     const gesperrt = LOANS.fields.filter((f) => f.editable);
     expect(gesperrt.map((f) => [f.name, f.editable.art])).toEqual([['book', 'fest']]);
+  });
+});
+
+// 4T-002391 (Epic 3E-000265, Demo-Area-Prüfschritt): Die Tabelle «Authors» legt
+// in Kartei-Form ab, ihre drei Karteikarten liegen mit ihr im Unterordner
+// «Authors», und «Readings» verweist auf beide Ablage-Formen. Die
+// Konsistenz-Prüfung läuft über die ganze Demo, mit derselben Sicht des Index
+// wie der Kanal der Übersicht; ein Dokument ohne Kennung im Ordner der
+// Kartei-Tabelle, ein Verweis ins Leere oder ein zu niedriger Hochwasserstand
+// fiele hier auf. Profil-Felder gehen nicht ein: Die Demo führt keinen
+// Profil-Ordner, und die Karteikarten tragen weder Schlagwort noch Klasse.
+describe('Demo-Area: Kartei-Form der Autoren (4T-002391)', () => {
+  const temps = [];
+  let wurzel = null;
+  const lies = (name) => fs.readFileSync(path.join(DEMO_DIR, name), 'utf8');
+
+  afterEach(async () => {
+    if (wurzel) {
+      vi.useFakeTimers();
+      releaseRoot(wurzel);
+      vi.advanceTimersByTime(61_000);
+      vi.useRealTimers();
+      wurzel = null;
+    }
+    while (temps.length) {
+      const dir = temps.pop();
+      await fsp
+        .rm(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
+        .catch(() => {});
+    }
+  });
+
+  it('Authors legt in Kartei-Form ab, und jede Karteikarte trägt ihre Kennung und beide Felder', () => {
+    const AUTHORS = parseTableDefinition(extractFrontmatter(lies('Authors/Authors.md')).data);
+    expect(AUTHORS.hints).toEqual([]);
+    expect(istKarteiForm(AUTHORS)).toBe(true);
+    expect(AUTHORS.fields.map((f) => [f.name, f.type])).toEqual([
+      ['name', 'string'],
+      ['born', 'date'],
+    ]);
+    const karten = {
+      'Ursula K. Le Guin': 'r-00001',
+      'Stanisław Lem': 'r-00002',
+      'Umberto Eco': 'r-00003',
+    };
+    for (const [name, kennung] of Object.entries(karten)) {
+      const kopf = extractFrontmatter(lies(`Authors/${name}.md`)).data;
+      expect(karteikartenKennung(kopf)).toEqual({ kennung, hinweis: null });
+      expect(kopf.name).toBe(name);
+      expect(typeof kopf.born).toBe('string');
+      expect(kopf.tags).toBeUndefined();
+    }
+  });
+
+  // 4T-002408 (Epic 3E-000266): die Sicht an der Definition und die Listen-Maske
+  // über die Kartei-Tabelle, gelesen über dieselben Leser wie Katalog und Gitter.
+  it('Authors nennt die Sicht «Books by this author», und beide Abfrage-Dateien sind wohlgeformt', () => {
+    const AUTHORS = parseTableDefinition(extractFrontmatter(lies('Authors/Authors.md')).data);
+    expect(AUTHORS.hints).toEqual([]);
+    expect(AUTHORS.views).toEqual(['Books by this author']);
+    const sicht = extractFrontmatter(lies('Authors/Books by this author.md'));
+    expect(datenbankMarken(sicht.data)).toEqual(['query']);
+    expect(zaehleAbfrageBloecke(sicht.body)).toBe(1);
+    expect(sicht.body).toContain('WHERE author = this.name');
+    expect(parseListAngaben(sicht.data).istListe).toBe(false);
+    expect(sicht.data.tags).toBeUndefined();
+    const liste = extractFrontmatter(lies('Authors/Authors List.md'));
+    expect(datenbankMarken(liste.data)).toEqual(['query']);
+    expect(zaehleAbfrageBloecke(liste.body)).toBe(1);
+    expect(liste.body).toContain('FROM "Authors"');
+    const angaben = parseListAngaben(liste.data);
+    expect(angaben.hints).toEqual([]);
+    expect(angaben.istListe).toBe(true);
+    // Allein das Ändern: Eine Kartei-Tabelle legt über «Neue Karteikarte» an.
+    expect(angaben.allow).toEqual(['update']);
+    expect(liste.data.tags).toBeUndefined();
+  });
+
+  it('die Konsistenz-Prüfung der ganzen Demo bleibt ohne Befund und zählt drei Karteikarten', async () => {
+    const dest = fs.mkdtempSync(path.join(os.tmpdir(), 'pmpp-demo-kartei-'));
+    temps.push(dest);
+    expect(await createDemoAreaAt(dest)).toEqual({ ok: true });
+    const datei = path.join(dest, 'Library Database.md');
+    let stand = backlinksFor(datei);
+    wurzel = rootForActiveFile(datei);
+    for (let i = 0; i < 500 && stand.status === 'indexing'; i++) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      stand = backlinksFor(datei);
+    }
+    expect(stand.status).toBe('ready');
+    const { sicht } = datenbankSicht(null, dest);
+    expect(sicht).not.toBeNull();
+    const ergebnis = await pruefeKonsistenz({ fsp, wurzel: dest, sicht });
+    expect(ergebnis.status).toBe('ready');
+    expect(ergebnis.befunde).toEqual([]);
+    const zeile = (name) => ergebnis.tabellen.find((t) => t.name === name);
+    expect(zeile('Authors')).toMatchObject({ datensaetze: 3, befunde: 0 });
+    expect(zeile('Readings')).toMatchObject({ datensaetze: 3, befunde: 0 });
+    // 4T-002408: Der Katalog ordnet die Sicht ihrer Abfrage-Datei im Ordner der
+    // Karteikarten zu, ohne Hinweis; die Listen-Maske steht unter den Abfragen.
+    const ueberblick = await katalogUeberblick({
+      sicht,
+      status: 'ready',
+      fsp,
+      cache: createDatabaseCatalogCache(),
+    });
+    const authors = ueberblick.tabellen.find((tabelle) => tabelle.name === 'Authors');
+    expect(authors.hints).toEqual([]);
+    expect(authors.sichten).toEqual([
+      { name: 'Books by this author', path: path.join(dest, 'Authors', 'Books by this author.md') },
+    ]);
+    expect(ueberblick.hints).toEqual([]);
   });
 });

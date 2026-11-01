@@ -11,15 +11,16 @@
 // derselben Render-Pipeline, und der Schritt-Satz des erzeugten Teilbaums
 // laeuft wie fuer die gezeigte Folie (Diagramme, Formeln, Tabellen-Diagramme).
 // Die Flaeche haengt im Inhalts-Bereich der aktiven Spalte, damit die
-// Barrieren der Vorbereitung (Mermaid hell neu zeichnen, Diagramme zu Tabellen
+// Barrieren der Vorbereitung (Mermaid abwarten, Diagramme zu Tabellen
 // abwarten) sie mit erfassen; ausserhalb des Druck-Zustands liegt sie
 // ausserhalb des Fensters statt verborgen, weil Mermaid Textbreiten misst und
 // in einem verborgenen Knoten Breite 0 bekaeme. Im Druck-Zustand
 // (body.printing.printing-folien) ist sie das Einzige, was die Spalte zeigt.
 //
 // **Warum die gemeinsame Vorbereitung und kein eigener Lauf:** Sie bringt den
-// Reentranz-Schutz, das helle Farbschema, die Barrieren und die vollstaendige
-// Ruecknahme mit; ein eigener Lauf haette genau diese Strecke ein zweites Mal
+// Reentranz-Schutz, die Barrieren und die vollstaendige Ruecknahme mit (seit
+// 4T-002323 ohne Hell-Zwang: Die Folie traegt ihr Theme, ihre Diagramme
+// folgen ihm); ein eigener Lauf haette genau diese Strecke ein zweites Mal
 // gebaut. Was sie zusaetzlich tut — die Spalte fuer die Dauer in die
 // Lese-Ansicht zu schalten und das Dokument dort neu zu zeichnen —, ist fuer
 // den Foliensatz ueberzaehlig, aber folgenlos (verdeckt und zurueckgenommen).
@@ -65,6 +66,7 @@ import {
   SLIDE_KLASSE,
   UEBERLAUF_KLASSE,
   baueFolie,
+  helligkeitDerFolie,
   zeichneFolie,
 } from '../presentation/presentation-folie.js';
 // Der Schritt-Satz des erzeugten Teilbaums. Der Ordner views/ darf ihn
@@ -268,8 +270,12 @@ export function haengeDruckFlaecheAn(paneIdx, tab, modell, notizen) {
     // Klasse «erzeugter Teilbaum» (Waechter render-teilbaum-schritte.test.js):
     // derselbe Schritt-Satz wie fuer die gezeigte Folie in presentation-pane.js
     // — Darstellung und Befuellung ohne Bearbeitbarkeit, das ganze Dokument
-    // als Quelle der Diagramm-Tabellen.
-    schritte: (artikel) => applyTeilbaumSchritte(artikel, tab.path, { dokumentText: tab.content }),
+    // als Quelle der Diagramm-Tabellen; 4T-002323: Diagramme im Theme der Folie.
+    schritte: (artikel) =>
+      applyTeilbaumSchritte(artikel, tab.path, {
+        dokumentText: tab.content,
+        theme: helligkeitDerFolie(artikel),
+      }),
     notizen,
   });
   document.body.classList.add(DRUCK_ZUSTAND);
@@ -371,6 +377,9 @@ export async function exportiereFoliensatzAlsPdf() {
   let mitNotizen = false;
   try {
     const outcome = await withPrintPreparation({
+      // 4T-002323 (Entscheidung F2): ohne Hell-Zwang wie PowerPoint und Bilder;
+      // die Folie traegt ihr Theme selbst, ihre Diagramme folgen ihm.
+      hellErzwingen: false,
       prepare: async (tab) => {
         modell = leseFoliensatz(tab);
         if (!modell) {
@@ -566,6 +575,9 @@ export async function exportiereFoliensatzAlsHtml() {
   let mitNotizen = false;
   try {
     const outcome = await withPrintPreparation({
+      // 4T-002323 (Entscheidung F2): ohne Hell-Zwang wie PowerPoint und Bilder;
+      // die Folie traegt ihr Theme selbst, ihre Diagramme folgen ihm.
+      hellErzwingen: false,
       prepare: async (tab) => {
         modell = leseFoliensatz(tab);
         if (!modell) {

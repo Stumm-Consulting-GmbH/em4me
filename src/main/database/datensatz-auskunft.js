@@ -215,7 +215,7 @@ async function koerperDer({ fsp, maske, fields, erzeugt }) {
  *   Standard-Maske. Ist sie keine Masken-Datei dieser Tabelle, lautet die Antwort
  *   `{status: 'error', code: 'formMaskeNichtDerTabelle'}`.
  * @param {Function} [p.herkunft] Naht für den Anmeldenamen (4T-002308).
- * @returns {Promise<object>} `{status: 'ready', tabelle, pfad, kennung, datei, zeile,
+ * @returns {Promise<object>} `{status: 'ready', tabelle, pfad, kennung, datei, karteikarte, zeile,
  *   fields, key, display, anzeigeSpalte, anzeige, editable, gesperrteFelder, zellen,
  *   erwartet, koerper, rechte, rolle}` bzw. `{status: 'error', code}` mit einem Code aus `LAGEN`. `koerper` ist
  *   `{quelle: 'erzeugt'|'datei', pfad, text, segmente, hints}` (4T-001943); `rechte`
@@ -288,6 +288,7 @@ async function liesDatensatz({
         ...allgemein,
         kennung: null,
         datei: null,
+        karteikarte: false,
         zeile: null,
         anzeige: null,
         editable: null,
@@ -309,6 +310,9 @@ async function liesDatensatz({
       ...allgemein,
       kennung: id,
       datei: datei.pfad,
+      // 4T-002406 (F7 A): Liegt der Datensatz als Karteikarte vor, ist `datei`
+      // ihr Dokument; die Maske bietet dann «Karteikarte öffnen».
+      karteikarte: datei.karteikarte === true,
       zeile: zeileIn(datei, record),
       anzeige: anzeigeVon(fields, spalte, texte, id),
       editable: bearbeitbarkeit(definition, fields, texte),

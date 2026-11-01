@@ -35,7 +35,8 @@ Alle manuell verwendeten Test-Markdown-Dateien liegen im Top-Level-Ordner
 `Tests/`. Er ist per `.gitignore` ausgeschlossen, das Material gehört
 nicht ins Repositorium und ist clone-lokal. Zur Abgrenzung gegen die
 übrigen Top-Level-Ordner ausserhalb der Versionskontrolle: `dist/` und
-`releases/` gehören zum Bau und tragen ihre Regeln in der
+`releases/` (seit dem 2026-10-31 Wegwerf-Output; das Versions-Archiv liegt am
+gemeinsamen Ablage-Ort) gehören zum Bau und tragen ihre Regeln in der
 Release-Strecke,
 Kapitel 4; die Regeln der übrigen ignorierten Ordner stehen im
 PM-README.
@@ -1163,7 +1164,11 @@ Sie hängen zusammen und sind aus einem Vorfall entstanden, bei dem die E2E-Voll
     `setzeUhrVersatzAus('<welche zweite Uhr>')` aus
     [uhr-versatz.js](uhr-versatz.js). Das ist keine Ausnahme für einen festen
     Termin; ein solcher Fall stellt die Uhr. Stand am 2026-10-02: drei
-    Prüfdateien der Datensatz-Sperren und des Wiederanlaufs.
+    Prüfdateien der Datensatz-Sperren und des Wiederanlaufs; seit dem
+    2026-10-31 dazu `test/unit/lock-heartbeat.test.js`, weil der Herzschlag
+    der Integrations-Sperre als Kindprozess die echte Uhr schreibt, während
+    die Queue im Prüfprozess das Sperr-Alter mit der verschobenen Uhr
+    rechnet (Anlass: Fall H1 im Gate `test:uhr` rot, 4T-002443).
 
     Aufrufe:
 
@@ -1852,6 +1857,47 @@ Release-Commit selbst und Commits, deren Produkt-Anteil allein
 (`test/unit/merge-queue.test.js`, `test/unit/release-vorbereitung.test.js`),
 jeweils samt nachgestelltem 0.103.0-Fall.
 
+**Anwesenheit des Review-Protokolls in der Queue** (seit dem
+2026-10-31, Schattenbetrieb; Regel und Protokoll-Form im Konzept
+Test-Strategie und Qualitätssicherung,
+Kapitel 12). Direkt nach dem Produkt-Code-Wächter und vor der
+Gate-Auswahl prüft die Queue für jeden Zweig, dessen Diff einen Pfad im
+Geltungsbereich des Review-Schritts berührt, **dass** das
+Vorgangs-Objekt ein Kapitel «Review-Protokoll» in Form trägt: jede
+Befund-Zeile mit Ausgang, bei Programm-Code im Diff je eine Runde des
+Zweitblicks und des Sicherheits-Reviews, und die Dateien im Geltungsbereich am
+geprüften Stand der letzten Runde (bei Programm-Code je Weg) und am
+abgelieferten Stand inhaltsgleich. Geprüft wird der abgelieferte Stand **vor** dem Rebase,
+weil das Protokoll dessen Commit-Kennungen nennt. Bei einer
+Release-Integration (`--release`) prüft sie stattdessen je
+Mitglieds-Epic des Zuges mit Programm-Code, ob dessen Epic-Objekt eine
+Runde des Zweitblicks und eine des Sicherheits-Reviews trägt.
+**Im Schattenbetrieb hält die Prüfung nie an:** Jede Lücke erscheint
+als Zeile
+`merge-queue: Review-Protokoll — <Meldung> (Schattenbetrieb, hält nicht an)`
+im Protokoll der Queue, ein vollständiges Protokoll als
+`… vorhanden (<Kennung>, <Zahl> Runden)`, ein Zweig außerhalb des
+Geltungsbereichs als `… nicht verlangt`. Auch ein Fehler des Wächters
+selbst wird nur als Zeile `… nicht prüfbar …` geschrieben (fail-open),
+bewusst anders als beim Produkt-Code-Wächter. **Not-Aus:**
+`EM4ME_REVIEW_PRUEFUNG=aus` überspringt die Prüfung mit der Zeile
+`merge-queue: Review-Protokoll übersprungen (Not-Aus)`. **Vorab-Lauf**
+vor dem Abliefern:
+`node scripts/lint-review-protocol.js [<zweig>] [--bezug <stand>] [--release] [--sperrend] [--arbeitsbaum]`,
+Vorgaben ausgecheckter Zweig und `origin/main`; Rückgabe 0 auch bei Meldungen,
+1 bei Meldungen nur mit `--sperrend`, 2 bei Aufruf-Fehler oder nicht
+prüfbarem Stand. Der pre-commit-Hook prüft das Protokoll nicht. Die
+Prüffälle sind `test/unit/review-protocol.test.js` (Leser und
+Geltungsbereich), `test/unit/lint-review-protocol.test.js` (Wächter,
+Kommandozeile gegen Wegwerf-Repositorien, Einbindung) und
+`test/unit/review-metrics.test.js` (Auswertung); alle drei stehen in
+der Karte `scripts/aenderungsklassen.json` im Ausschnitt der Klasse Ä6
+und laufen damit bei jeder Änderung der Klasse Ä6 (Werkzeuge und Webseite). Dass eine Meldung
+die Integration nicht anhält und der Not-Aus seine Zeile schreibt,
+halten zwei Fälle im Abschnitt «Review-Protokoll im Schattenbetrieb»
+von `test/unit/merge-queue.test.js` fest. Die Agenten-Definitionen
+unter `.claude/agents/` fallen unter Ä1 (Tabelle unten).
+
 Die E2E-Suite bleibt außerhalb beider Gates (Laufzeit); welche Specs pro
 Task laufen, bestimmt ebenfalls die Änderungsklasse, im Release-Sammeltask
 die Voll-Suite.
@@ -2054,7 +2100,7 @@ steuern: Ein mechanischer Vorgang kann Ä7 auslösen (Umbenennung in einem
 
 | Klasse | Datei-Muster | Ausschnitt der Unit-Suite | E2E |
 |---|---|---|---|
-| **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md`, `web/roadmap-zuordnung.json`, `.github/**` (Issue-Vorlagen und Steuer-Dateien der Plattform, seit dem 2026-10-10) | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`, `dashboard-sicht`) plus `quellcode-export` und `doku-pfade`; kein Format, kein Lint | keine |
+| **Ä1 Dokumentation** | `Projektmanagement/**`, `docs/**`, `*.md` in der Wurzel außer `CHANGELOG.md`, `test/README.md`, `web/roadmap-zuordnung.json`, `.github/**` (Issue-Vorlagen und Steuer-Dateien der Plattform, seit dem 2026-10-10), `.claude/agents/**` (Agenten-Definitionen des Review-Schritts, seit dem 2026-10-31; die übrige Arbeitsumgebung unter `.claude/` fährt weiter die vollen Gates) | PM-Wächter (`pm-dokumente`, `ueberblick-aggregate`, `roadmap-zuordnung`, `dashboard-sicht`) plus `quellcode-export` und `doku-pfade`; kein Format, kein Lint | keine |
 | **Ä2 Auslieferungs-Texte** | `CHANGELOG.md`, `docs/öffentlich/**`, `web/inhalte/versionen/**` | Ä1 plus `web-inhalte` | keine |
 | **Ä3 Sprachdateien und Katalog** | `src/i18n/**`, `test/abdeckungs-matrix.json` | Katalog-Gruppe: `i18n`, `abdeckungs-matrix`, `manual-pages`, `manual-generated`, `hilfetext-stil`, `rueckverweis-webseite`, `bildmarke`, `panel-access`, `command-placement`, `commands`, `menu-accelerator`, `register-paare`, `color-schemes`, `web-handbuch`, `web-handbuch-funktionen`, `web-mermaid`, dazu die drei Renderer-Wächter `frontmatter-query-view`, `graph-view`, `perspective-script-view`, dazu `doku-pfade`; Format wegen JSON | Smoke plus `regression/4t-0185.spec.js`; bei `src/i18n/help/**` zusätzlich `funktionen/handbuch.spec.js` |
 | **Ä4 Renderer-Modul** | `src/renderer/**` ohne `index.html` | Import-Graph-Ausschnitt des geänderten Moduls plus `test/unit/renderer/**`, `spellcheck`, `save-guard-aufrufer`, `panel-access`, `script-sandbox-runtime`, `color-schemes`, `doku-pfade`, `datei-groessen`, `plattform-erosion`; Format und Lint | Smoke plus die Funktions-Specs des berührten Bereichs; dazu die Regressions-Specs, die die Karte nennt (Canvas-Karten, Statusleisten-Knopf der Karten-Liste, Datei-Zeile des Bildschirmfoto-Werkzeugs) |

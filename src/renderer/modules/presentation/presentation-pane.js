@@ -45,6 +45,7 @@ import {
   baueFolie,
   beobachteBuehne,
   beschrifteUeberlauf,
+  helligkeitDerFolie,
   passeFolieEin,
   pruefeUeberlauf,
   zeichneFolie,
@@ -494,7 +495,8 @@ export function renderPresentation(paneIdx, { anSchreibmarke = false } = {}) {
   // Die Folie ist ein erzeugter Teilbaum: Darstellung und Befüllung ohne
   // Bearbeitbarkeit (Wächter 4T-001130). Das Dokument ihrer Diagramme ist das
   // ganze Dokument, weil eine Folie auf eine Tabelle einer anderen zeigen darf.
-  if (teilbaumSchritte) teilbaumSchritte(folieEl, tab.path, { dokumentText: tab.content });
+  // 4T-002323: Die Diagramme folgen dem Theme der Folie.
+  schritteDerFolie(folieEl, tab);
   const kopfBefunde = (modell && Array.isArray(modell.befunde) ? modell.befunde : [])
     .filter((b) => b.code === 'themeUngueltig' || b.code === 'unbekannteGroesse')
     .map((b) => ({ code: b.code, detail: kopfWert(kopf, b.code) }));
@@ -609,11 +611,16 @@ export function zeichneWeitereFolie(paneIdx, huelle, index) {
     kopf: (modell && modell.kopf) || {},
     render: (markdown) => api.renderMarkdown(markdown, tab.path, { frontmatterBlock: false }),
   });
-  const artikel = huelle.querySelector(`.${FOLIE_KLASSE}`);
-  if (teilbaumSchritte && artikel) {
-    teilbaumSchritte(artikel, tab.path, { dokumentText: tab.content });
-  }
+  schritteDerFolie(huelle.querySelector(`.${FOLIE_KLASSE}`), tab);
   return true;
+}
+
+// Der Schritt-Satz für den Inhalts-Bereich einer gezeichneten Folie, mit dem
+// Theme der Folie für ihre Diagramme (4T-002323).
+function schritteDerFolie(artikel, tab) {
+  if (!teilbaumSchritte || !artikel) return;
+  const theme = helligkeitDerFolie(artikel);
+  teilbaumSchritte(artikel, tab.path, { dokumentText: tab.content, theme });
 }
 
 /** Container der Präsentations-Ansicht der Spalte oder null. */

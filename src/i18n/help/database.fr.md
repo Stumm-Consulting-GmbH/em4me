@@ -182,6 +182,8 @@ Les règles sont volontairement brèves, car le fichier est un stockage techniqu
 
 **Aucun caractère n'est jamais perdu.** Si un enregistrement a trop peu de cellules, les champs restants demeurent vides ; s'il en a trop, les cellules excédentaires restent intactes. Les deux cas sont signalés, mais rien n'est écrit en silence — c'est la seule faute qu'un magasin de données ne doit pas commettre.
 
+Au lieu de ce bloc, une table peut aussi ranger chacun de ses enregistrements dans un document propre, avec les champs dans le frontmatter et du texte libre en dessous. La section « Forme en fichier de fiches » décrit cette seconde forme et quand elle convient.
+
 ## Règles de contrôle
 
 Une règle de contrôle fixe les valeurs qu'une table accepte. Elle figure dans la définition, à l'un de deux endroits selon sa portée :
@@ -294,7 +296,7 @@ Chaque enregistrement a un **formulaire** : une page propre qui montre ses champ
 
 Un enregistrement existant s'ouvre par le bouton **« Ouvrir l’enregistrement »** au début de sa ligne, devant le bouton des justificatifs de modification, en mode lecture comme en mode Direct. Au clavier, la flèche gauche y mène depuis le bouton des justificatifs.
 
-Depuis le résultat d'une requête d'enregistrements, un clic sur un enregistrement ou sur un lien ouvre de même le formulaire (page [Requête Perspective](frontmatter-query.md)). Celui-ci montre alors l'état enregistré, même si la requête affiche un état non enregistré. Dans un formulaire de liste, le clic ouvre le formulaire que la liste nomme (section « Formulaire de liste »). Un lien vers un enregistrement dans le texte d'un document (section « Lien vers un enregistrement isolé ») et un résultat d'enregistrement de la recherche portant sur la zone (section « Trouvabilité : recherche et liens ») ouvrent de même le formulaire.
+Depuis le résultat d'une requête d'enregistrements, un clic sur un enregistrement ou sur un lien ouvre de même le formulaire (page [Requête Perspective](frontmatter-query.md)). Celui-ci montre alors l'état enregistré, même si la requête affiche un état non enregistré. Dans un formulaire de liste, le clic ouvre le formulaire que la liste nomme (section « Formulaire de liste »). Un lien vers un enregistrement dans le texte d'un document (section « Lien vers un enregistrement isolé ») et un résultat d'enregistrement de la recherche portant sur la zone (section « Trouvabilité : recherche et liens ») ouvrent de même le formulaire. Si l'enregistrement appartient à une table en fichier de fiches, ces clics ouvrent le document de la fiche au lieu du formulaire ; la ligne d'un formulaire de liste reste le chemin vers le formulaire (section « Forme en fichier de fiches »).
 
 Trois chemins créent un nouvel enregistrement :
 
@@ -474,7 +476,7 @@ Qui crée, modifie ou supprime un enregistrement par l'application laisse une tr
 
 ### Ce qu'ils sont et où ils se trouvent
 
-Au fichier de table `Clients.md` correspond le fichier `Clients.mddl` dans le même dossier. L'application le crée et le complète ; vous n'avez rien à faire pour cela, et vous ne devez rien y faire.
+Au fichier de table `Clients.md` correspond le fichier `Clients.mddl` dans le même dossier. L'application le crée et le complète ; vous n'avez rien à faire pour cela, et vous ne devez rien y faire. Pour une table en fichier de fiches, chaque fiche tient son propre fichier de justificatifs à côté d'elle (section « Forme en fichier de fiches »).
 
 Cinq propriétés sont à connaître :
 
@@ -650,7 +652,7 @@ Les rôles font partie de la définition et voyagent avec la fiche d'identité. 
 
 ## Contrôle de cohérence
 
-Lors de la sauvegarde par l'application, chaque modification est vérifiée. Ce qui parvient aux fichiers par un autre chemin, par exemple à la main dans un éditeur, personne ne le vérifie au passage, et certaines règles n'agissent pas du tout à la lecture. Le **contrôle de cohérence** parcourt donc l'ensemble des données et indique où elles contredisent les règles de la base de données.
+Lors de la sauvegarde par l'application, chaque modification est vérifiée. Ce qui parvient aux fichiers par un autre chemin, par exemple à la main dans un éditeur, personne ne le vérifie au passage, et certaines règles n'agissent pas du tout à la lecture. Le **contrôle de cohérence** parcourt donc l'ensemble des données et indique où elles contredisent les règles de la base de données. Une fiche est contrôlée par l'application aussi lors de l'enregistrement dans l'éditeur, mais rien n'y est refusé ; les constats sont seulement signalés (section « Forme en fichier de fiches »).
 
 Il se trouve dans la vue d'ensemble de la base de données : **« Contrôler la cohérence »** dans l'en-tête contrôle toutes les tables, **« Contrôler »** dans la ligne d'une table seulement celle-ci. La commande **« Contrôler la cohérence de la base de données »** de la palette de commandes contrôle elle aussi toutes les tables ; elle ouvre pour cela la vue d'ensemble.
 
@@ -666,6 +668,7 @@ Sont trouvés :
 - dans un fichier de formulaire, en outre, un chemin qui ne nomme aucun champ de référence ou aucun champ de la table cible, et une section des positions dont le fichier de requête manque ou ne porte pas `editable: true`, dont les positions n'ont aucun champ de référence ou aucun champ univoque vers la table du formulaire, ou dont la requête ne peut pas être complétée par la relation ;
 - dans un fichier de requête, une indication inutilisable dans le conteneur `db-query`, une action inconnue dans `allow` et une indication `form` qui ne nomme aucun fichier de formulaire de la base de données ; un tel constat nomme le fichier au lieu d'une table dans la colonne « Source » ;
 - lors du contrôle de toutes les tables, une indication inutilisable dans la fiche d'identité sous `roles`, `defaultRole` ou `users`, par exemple un rôle avec une table ou une opération inconnue ou une attribution à un rôle qui n'existe pas ; la vue d'ensemble en nomme la raison parmi les anomalies ;
+- dans une table en fichier de fiches, un bloc d'enregistrements, un document du dossier sans identifiant ou avec un identifiant inutilisable, un champ d'un profil de propriétés dont le type diffère de la colonne et une seconde table en fichier de fiches dans le même dossier ; les fiches elles-mêmes, il les contrôle comme des enregistrements (section « Forme en fichier de fiches ») ;
 - comme remarque, une table qui porte des enregistrements mais aucun niveau de crue `lastId` ou un niveau trop bas ; la prochaine création se place alors au-dessus du plus grand identifiant existant et le relève ;
 - une table dont la définition est illisible ; ses enregistrements restent alors non contrôlés, et le contrôle se poursuit avec les autres tables.
 
@@ -685,7 +688,7 @@ L'**utilisation** indique qui se sert d'une table ou d'un enregistrement. Elle n
 
 ## Trouvabilité : recherche et liens
 
-Une recherche portant sur la **zone** trouve les enregistrements comme résultats propres. Dans le panneau « Résultats de recherche », après les groupes des documents, chaque table a son propre groupe, avec le nom de la table et la mention « Enregistrements ». Chaque ligne nomme l'enregistrement par sa forme d'affichage et le champ qui contient le terme cherché, et montre sa valeur avec l'occurrence mise en évidence. Un clic ouvre l'enregistrement dans le formulaire par défaut de sa table. La recherche porte sur les valeurs des champs dans tous les fichiers d'une table, y compris ses fichiers suivants, et, pour une table ouverte, sur son état non enregistré. Le décompte au-dessus de la liste compte ensemble les occurrences des documents et des enregistrements. Lorsque la ligne de remplacement est ouverte, les groupes d'enregistrements sont omis, car le remplacement dans la zone n'écrit pas dans les enregistrements.
+Une recherche portant sur la **zone** trouve les enregistrements comme résultats propres. Dans le panneau « Résultats de recherche », après les groupes des documents, chaque table a son propre groupe, avec le nom de la table et la mention « Enregistrements ». Chaque ligne nomme l'enregistrement par sa forme d'affichage et le champ qui contient le terme cherché, et montre sa valeur avec l'occurrence mise en évidence. Un clic ouvre l'enregistrement dans le formulaire par défaut de sa table, et pour une table en fichier de fiches le document de la fiche. La recherche porte sur les valeurs des champs dans tous les fichiers d'une table, y compris ses fichiers suivants, et, pour une table ouverte, sur son état non enregistré. Le décompte au-dessus de la liste compte ensemble les occurrences des documents et des enregistrements. Lorsque la ligne de remplacement est ouverte, les groupes d'enregistrements sont omis, car le remplacement dans la zone n'écrit pas dans les enregistrements.
 
 Le bloc d'enregistrements lui-même ne fait en revanche pas partie de l'espace de recherche en texte intégral : un terme qui ne figure que dans les enregistrements d'un fichier de table ne donne aucune occurrence pour ce document, mais seulement les résultats d'enregistrement. Le texte explicatif situé au-dessus du bloc de données reste consultable comme document, et une occurrence située après lui mène toujours au bon endroit. La raison tient à la zone et non à la table : l'espace de recherche conserve en mémoire les textes de tous les fichiers Markdown et porte pour cela un plafond sur la zone **entière**. Quelques tables de quelques mégaoctets suffisent à le faire sauter, et dès lors chaque recherche relit le disque, y compris celle qui porte sur un document ordinaire. Les enregistrements dans l'espace de recherche coûteraient donc sa vitesse non pas à eux-mêmes, mais à la zone entière.
 
@@ -715,7 +718,7 @@ La vérification porte sur l'état **enregistré** de la table, comme pour toute
 
 Le [linter Markdown](tools.md) montre si un lien vaut : une cible rompue reçoit un soulignement ondulé dans l'éditeur, c'est-à-dire dans les vues Source, Scindée et Direct. La vue lecture seule ne représente pas la validité ; les liens valides et rompus y ont la même apparence.
 
-**Un clic ouvre le formulaire de l'enregistrement**, dans le formulaire par défaut de sa table. L'action **« Afficher dans le document de table »** dans l'en-tête du formulaire mène à la ligne dans le fichier de table (section « Consulter et modifier »). Si un lien ne correspond à aucun enregistrement de façon univoque, le clic ouvre le fichier de table. En dehors d'une zone ouverte, le clic ouvre le fichier de table et amène la ligne de l'enregistrement sous vos yeux. Dans le résultat d'une requête d'enregistrements, un clic sur un enregistrement ouvre de même son formulaire.
+**Un clic ouvre le formulaire de l'enregistrement**, dans le formulaire par défaut de sa table. Pour une table en fichier de fiches, il ouvre à la place le document de la fiche (section « Forme en fichier de fiches »). L'action **« Afficher dans le document de table »** dans l'en-tête du formulaire mène à la ligne dans le fichier de table (section « Consulter et modifier »). Si un lien ne correspond à aucun enregistrement de façon univoque, le clic ouvre le fichier de table. En dehors d'une zone ouverte, le clic ouvre le fichier de table et amène la ligne de l'enregistrement sous vos yeux. Dans le résultat d'une requête d'enregistrements, un clic sur un enregistrement ouvre de même son formulaire.
 
 **Un lien dans le texte ne retient pas l'enregistrement.** Si l'enregistrement est supprimé, le lien se rompt comme tout autre lien de l'application, et le linter le montre. La protection contre la suppression repose sur la seule colonne de lien (section « Utilisation des tables et des enregistrements »).
 
@@ -777,7 +780,7 @@ TABLE RECORDS livre, lecteur, sortie, retour FROM "Prêts" WHERE NOT rendu SORT 
 
 Dans chaque vue qui montre le résultat, c'est-à-dire dans les vues Rendu, Partagé et Direct, la grille se trouve à la place du tableau de résultats : les mêmes colonnes, devant la colonne « Enregistrement », au-dessus une ligne de décompte comme « Lignes 1 à 50 sur 120 ». Une page montre 50 lignes fixes ; s'il y a plus de lignes, **« Suivant »** et **« Précédent »** tournent les pages.
 
-Un clic sur une ligne ouvre son enregistrement dans le formulaire que nomme `form`, sinon dans le formulaire par défaut de sa table. Si `form` nomme un fichier de formulaire qui n'existe pas ou qui appartient à une autre table, le clic ouvre lui aussi le formulaire par défaut, et la vue d'ensemble affiche une remarque parmi les anomalies du fichier de requête. Dans une ligne modifiable, un simple clic sur une cellule modifiable n'ouvre pas le formulaire, car le double-clic y commence la modification ; le formulaire s'ouvre alors par la colonne « Enregistrement » et par les cellules en lecture. Si la requête porte `WITHOUT ID`, la colonne « Enregistrement » manque, et dans une telle ligne seule une cellule en lecture ouvre le formulaire. Un lien dans une cellule ouvre, comme partout, le formulaire de sa cible.
+Un clic sur une ligne ouvre son enregistrement dans le formulaire que nomme `form`, sinon dans le formulaire par défaut de sa table. Si `form` nomme un fichier de formulaire qui n'existe pas ou qui appartient à une autre table, le clic ouvre lui aussi le formulaire par défaut, et la vue d'ensemble affiche une remarque parmi les anomalies du fichier de requête. Dans une ligne modifiable, un simple clic sur une cellule modifiable n'ouvre pas le formulaire, car le double-clic y commence la modification ; le formulaire s'ouvre alors par la colonne « Enregistrement » et par les cellules en lecture. Si la requête porte `WITHOUT ID`, la colonne « Enregistrement » manque, et dans une telle ligne seule une cellule en lecture ouvre le formulaire. Un lien dans une cellule ouvre, comme partout, le formulaire de sa cible, et pour une fiche son document.
 
 **Consulter ne verrouille rien.** Sinon, une liste de centaines d'enregistrements les verrouillerait tous à chaque coup d'œil ; seule est verrouillée la ligne dont la modification commence.
 
@@ -836,6 +839,151 @@ Quatre garanties s'appliquent, et trois d'entre elles disent ce qui **n'arrive p
 
 Le mécanisme sous-jacent est le même que pour la [division des grands documents](document-parts.md) ; pour les fichiers de table, seuls le seuil et le point de coupure diffèrent.
 
+## Forme en fichier de fiches
+
+**La forme en fichier de fiches est destinée aux enregistrements dotés d'une identité propre, non à de nombreuses lignes uniformes.** On la choisit selon la nature de l'enregistrement, non selon la quantité : une personne, un projet ou un client auquel se rattachent des notes et des pièces jointes reçoit sa propre fiche ; les prêts, les écritures ou les mesures restent dans le bloc d'enregistrements. Ce n'est pas un stockage de masse, car chaque fiche est un fichier propre, et l'application lit et contrôle chacune séparément.
+
+Dans cette forme, chaque enregistrement figure dans un document propre, la **fiche**. Ses champs se trouvent dans le frontmatter, et en dessous il y a de la place pour du texte libre, des images et des liens vers des pièces jointes comme dans tout autre document. Le fichier de table ne porte alors que la définition.
+
+### Le fichier de table d'un fichier de fiches
+
+L'indication `storage` au niveau supérieur du conteneur `db-table` choisit la forme :
+
+```yaml
+---
+db-table:
+  storage: cards
+  fields:
+    - name: nom
+      type: string
+      required: true
+    - name: naissance
+      type: date
+  key: nom
+  display: nom
+  lastId: 3
+---
+```
+
+- `table` ou aucune indication : la forme de table avec le bloc d'enregistrements, comme décrit dans les sections ci-dessus.
+- `cards` : la forme en fichier de fiches. L'écriture compte, `Cards` n'est pas valable. Une valeur inconnue vaut forme de table, et l'application la signale par une remarque.
+
+Le corps du fichier de table n'a besoin d'aucun bloc d'enregistrements ; ce qui s'y trouve est du texte libre, par exemple une description de la table. Si un bloc d'enregistrements s'y trouve malgré tout, il reste visible et porte la remarque que ses lignes ne comptent pas comme enregistrements : elles n'apparaissent dans aucune requête et ne sont pas contrôlées, et le contrôle de cohérence mentionne le bloc comme constat.
+
+La vue d'ensemble de la base de données indique dans la colonne **« Stockage »** « Table » ou « Fichier de fiches » et, pour une table en fichier de fiches, le nombre de ses fiches, par exemple « 3 fiches ».
+
+### Ce qu'est une fiche
+
+Une fiche porte son identifiant sous `db-record` dans son frontmatter, et à côté les champs de la table :
+
+```yaml
+---
+db-record: r-00001
+nom: Ada Lovelace
+naissance: 1815-12-10
+---
+```
+
+Une fiche appartient à la table par son seul emplacement : elle se trouve dans le **même dossier** que le fichier de table. Le nom du fichier de table ne joue aucun rôle ; s'il est renommé, les fiches restent les siennes. Trois limites s'appliquent :
+
+- Les documents des **sous-dossiers** n'en font pas partie.
+- Les **fichiers de la base de données** ne sont pas des fiches : le fichier de table lui-même, d'autres fichiers de table, les fichiers de formulaire et de requête et la fiche d'identité.
+- Un document **sans identifiant** n'est pas une fiche. Le contrôle de cohérence le signale, de même qu'une indication `db-record` sans identifiant utilisable ; il ne signale pas les documents du dossier de modèles.
+
+Si **deux tables en fichier de fiches se trouvent dans le même dossier**, le contrôle de cohérence le signale aux deux, et aucune des deux ne reçoit les documents du dossier ; un dossier porte donc au plus une table en fichier de fiches. Une table en forme de table dans le même dossier ne gêne pas. Si deux fiches portent le même identifiant, le contrôle signale chacune d'elles.
+
+### Valeurs dans le frontmatter
+
+Les valeurs d'une fiche sont lues selon le type de leur colonne, exactement comme les cellules d'un bloc d'enregistrements : une valeur qui ne correspond pas à son type est la même erreur que dans une cellule. Les noms de champ valent sans égard aux majuscules et minuscules, une valeur booléenne s'écrit `true` ou `false`, et une liste devient un texte dont les entrées sont séparées par une virgule et une espace, parce qu'une colonne ne connaît pas de valeurs multiples. Une référence s'écrit entre guillemets, par exemple `mentor: "[[Mary Somerville]]"` ; sans eux, le frontmatter lit une liste imbriquée, et la valeur disparaît. Les autres indications du frontmatter, comme les tags, restent des propriétés ordinaires du document.
+
+**Champs homonymes d'un profil de propriétés.** Une fiche est un document et peut donc aussi être rattachée à des profils de propriétés. Pour la base de données, seule la définition de la table compte : un champ de profil homonyme n'est pas un champ de la base de données et ne change pas la manière dont la valeur est lue. S'il a le même type que la colonne, tout reste silencieux ; s'il en a un autre, le contrôle de cohérence nomme le champ, le profil et les deux types.
+
+### Requêtes et références
+
+Une requête sur les enregistrements nomme la table en fichier de fiches comme source, comme toute autre table, par exemple `TABLE RECORDS nom, naissance FROM "Auteurs"`, et lit les fiches comme des lignes. Condition, tri, regroupement et chemins par des champs de référence s'appliquent comme dans la forme de table, et une table en fichier de fiches sans fiche donne l'ensemble vide. La recherche dans la zone trouve elle aussi les valeurs des champs des fiches comme résultats d'enregistrement.
+
+Une colonne de référence dont `table` nomme une table en fichier de fiches atteint une fiche par son identifiant ou par la valeur de sa clé à une seule partie, comme décrit dans la section « Relations entre tables ». Une référence dans le texte vaut de même : `[[Auteurs#^r-00001]]`, la forme courte `[[Auteurs#^r-1]]` et la forme d'affichage `[[Auteurs#^Ada Lovelace]]`.
+
+**Au niveau des fichiers**, une fiche reste un document ordinaire : une requête sur les fichiers la mentionne avec son frontmatter tel qu'il est écrit, sans interprétation selon la table.
+
+### Créer, modifier et supprimer
+
+**« Nouvelle fiche »** figure dans la vue d'ensemble de la base de données dans la ligne de chaque table en fichier de fiches, pour autant que votre rôle permette la création. L'application demande la clé, qui devient aussi le nom du fichier, et crée dans le dossier de la table le document `<clé>.md`, avec l'identifiant suivant et une ossature de tous les champs de la table, vides sauf la clé ; le niveau de crue `lastId` monte. L'ossature est créée vide même si la table a d'autres champs obligatoires : l'obligation s'applique à la modification, et jusque-là le contrôle de cohérence signale le champ vide. Si la table n'a pas de clé à une seule partie, le nom devient seulement le nom du fichier. Sont refusés un nom qui n'est pas un nom de fichier valable, un nom sous lequel un fichier existe déjà dans le dossier et une clé déjà attribuée ; la barre d'état en indique la raison.
+
+La commande **« Nouvelle fiche dans la table active en fichier de fiches »** de la palette de commandes agit sur la table du document actif si celui-ci est une table en fichier de fiches ou un document de son dossier. Un bouton **« Nouvel enregistrement »** n'existe pas pour une table en fichier de fiches, et la commande « Nouvel enregistrement dans la table active » n'y crée rien ; son message renvoie à « Nouvelle fiche ».
+
+**« Reprendre comme fiche »** figure au constat sur un document sans identifiant dans le contrôle de cohérence, et la commande **« Reprendre le document actif comme fiche »** agit sur le document actif. L'application inscrit l'identifiant suivant comme `db-record` et ne change rien d'autre au document ; ensuite le contrôle s'exécute à nouveau. Un document hors du dossier, un fichier de la base de données et un document qui porte déjà un identifiant ne sont pas repris.
+
+**La modification par la base de données** ne réécrit que les lignes des champs modifiés dans le frontmatter. Le texte libre, les liens vers des pièces jointes et les autres indications restent caractère pour caractère, une indication manquante s'ajoute comme nouvelle ligne, et une valeur qui serait lue autrement sans guillemets s'écrit entre guillemets. Comme dans la forme de table, toutes les règles de la table s'appliquent, ainsi que la comparaison avec l'état lu : si quelqu'un a modifié la fiche entre-temps, l'application n'enregistre pas pour l'instant.
+
+**La suppression par la base de données** déplace la fiche avec son fichier de justificatifs dans la corbeille du système d'exploitation. La protection contre la suppression s'applique comme pour tout enregistrement : une fiche vers laquelle pointe encore une colonne de référence ne peut pas être supprimée. Ce qu'il advient de ses justificatifs est décrit dans la section suivante.
+
+### Justificatifs de modification d'une fiche
+
+Les justificatifs d'une fiche figurent dans un fichier de justificatifs propre à côté d'elle, sous son nom avec l'extension `.mddl` : à `Ada Lovelace.md` correspond `Ada Lovelace.mddl`. Ce que décrit la section « Justificatifs de modification » s'y applique. Il n'apparaît dans aucune liste de fichiers, n'est que complété et suit la fiche lorsque vous la renommez ou la déplacez dans l'application ; la condensation suit les limites de la table, c'est-à-dire son indication `changeLog`. La page « Justificatifs de modification » d'un enregistrement montre, pour une fiche, les justificatifs de ce fichier.
+
+Lorsqu'une fiche est supprimée par la base de données, sa trace ne se perd pas avec elle : avant que la fiche et son fichier de justificatifs partent à la corbeille, l'application ajoute les justificatifs, avec le justificatif de suppression, au fichier de justificatifs du fichier de table. La page « Justificatifs de modification » les montre ensuite à cet endroit, filtrés selon l'identifiant. Une nouvelle fiche du même nom commence avec une trace vide.
+
+### La fiche dans l'éditeur et dans le panneau de zone
+
+**À l'enregistrement, l'application contrôle la fiche**, que vous l'ayez modifiée dans l'éditeur ou dans la barre « Propriétés », et que vous enregistriez à la main, avec « Enregistrer sous » ou par l'enregistrement automatique. Le contrôle est le même que dans le contrôle de cohérence : une valeur obligatoire manquante, une valeur qui ne correspond pas à son type ou viole une règle de champ, une référence qui n'atteint aucun enregistrement, une règle violée sous `checks` et une clé que porte déjà une autre fiche. **L'enregistrement a lieu dans tous les cas** : le contrôle ne refuse rien et ne produit aucun justificatif. Ce qu'il trouve apparaît à trois endroits :
+
+- La **barre d'état** indique après l'enregistrement le nombre de constats, avec l'enregistrement automatique seulement lorsque les constats ont changé.
+- Dans la barre **« Propriétés »**, chaque champ concerné porte une indication dont l'infobulle nomme le constat.
+- En **mode lecture**, la ligne d'en-tête porte à droite une marque avec le nombre de constats, dont l'infobulle les nomme tous.
+
+Après la correction, indication et marque disparaissent au prochain enregistrement. Jusque-là, les constats restent valables ; si l'application recharge la fiche après une modification venue de l'extérieur, elle les écarte, et à la fin de la session ils disparaissent. Un identifiant en double, un champ de profil d'un autre type et une seconde table en fichier de fiches dans le dossier restent signalés par le seul contrôle de cohérence.
+
+**La suppression dans le panneau de zone** suit pour une fiche la voie de la base de données, et la demande de confirmation le dit, avec le nom de la table. Si un autre enregistrement renvoie à la fiche par une colonne de référence, la suppression n'a pas lieu : le fichier reste intact, son document ouvert reste ouvert, et la barre d'état nomme la fiche et la raison. Sinon ses justificatifs passent à la table avec le justificatif de suppression, et la fiche part à la corbeille avec son fichier de justificatifs. Si elle est ouverte et non enregistrée, l'application l'enregistre d'abord et ne ferme son document qu'après la suppression. Les mêmes règles s'appliquent que pour la suppression par la base de données, y compris les autorisations.
+
+**La copie dans le panneau de zone** crée une nouvelle fiche par la base de données. Comme toute copie du panneau de zone, la copie reçoit le nom du modèle suivi d'un numéro, par exemple `Ada Lovelace-1.md`, et l'identifiant suivant ; sa clé est ce nom, et les autres champs, les autres indications du frontmatter et le texte libre viennent du modèle. Les justificatifs du modèle ne suivent pas : la copie commence avec son justificatif de création dans un fichier de justificatifs propre. Si le nom est déjà pris comme fichier ou comme clé, l'application prend le numéro suivant. Si elle refuse la création pour une autre raison, par exemple parce que votre rôle ne la permet pas, aucune copie n'est créée, et la barre d'état en indique la raison.
+
+**Renommer** ne change que le nom du fichier, pas la clé. À la création et à la copie, les deux sont identiques ; ensuite ils peuvent diverger, et le contrôle de cohérence ne le signale pas. Identifiant, forme d'affichage et références de la base de données dépendent du frontmatter, non du nom du fichier, et le fichier de justificatifs suit. Pour changer la clé, on change le champ.
+
+### Vues sur une fiche
+
+Une table en fichier de fiches peut nommer des **vues** : des fichiers de requête que l'application affiche sous chaque fiche, par exemple les livres d'un auteur. La liste `views` au niveau supérieur du conteneur `db-table` les nomme par leur nom sans extension, aussi avec des dossiers devant ; la comparaison se fait comme pour l'indication `form`.
+
+```yaml
+---
+db-table:
+  storage: cards
+  fields:
+    - name: nom
+      type: string
+  key: nom
+  views:
+    - Livres de cet auteur
+---
+```
+
+La vue elle-même est un fichier de requête ordinaire (section « Fichiers de requête »). Elle peut se trouver dans le dossier des fiches, parce qu'un fichier de la base de données n'est pas une fiche. Dans sa requête, `this.` désigne la fiche sous laquelle elle est affichée :
+
+```perspective-query
+TABLE RECORDS pages FROM "Livres" WHERE auteur = this.nom SORT pages DESC
+```
+
+En **mode lecture**, chaque vue figure sous l'en-tête et avant le texte libre, comme bloc avec la marque « Vue » et le nom du fichier de requête dans sa ligne de titre ; un clic sur le nom ouvre le fichier de requête. Le bloc est une vue : il ne se modifie pas, et rien n'est écrit dans le fichier de la fiche. Le mode Direct ne montre aucune vue. Le résultat s'actualise comme toute requête lorsque les données changent ; une modification du fichier de requête lui-même apparaît la prochaine fois que la fiche est dessinée.
+
+**Ouvert seul**, `this.` désigne le fichier de requête lui-même, comme dans tout fichier de requête ; la requête ci-dessus n'y trouve rien, parce que le fichier ne porte pas de champ `nom`. Il en va de même pour une intégration : si une fiche intègre le fichier avec `![[Livres de cet auteur]]`, `this.` désigne le fichier de requête et non la fiche. Seule l'indication `views` fait de la fiche la référence.
+
+La vue d'ensemble de la base de données nomme les vues de chaque table dans la colonne **« Vues »**. S'il n'existe pour un nom aucun fichier ou aucun fichier de requête, il y figure barré, une indication figure parmi les anomalies, et sous chaque fiche un message avec son nom apparaît à la place de la vue. Tant que la zone est encore lue après son ouverture, une vue n'apparaît que la prochaine fois que la fiche est dessinée.
+
+### Formulaires et cible du clic d'une fiche
+
+**Pour une fiche, le document est la première vue.** Un résultat d'enregistrement de la recherche portant sur la zone, un enregistrement ou une référence dans le résultat d'une requête, dans les vues Rendu, Partagé et Direct, et un lien dans le texte comme `[[Auteurs#^r-00001]]` ouvrent le document de la fiche dans la colonne active, non son formulaire. Si la fiche ne peut pas être déterminée, le clic ouvre le formulaire. Pour une table en forme de table, le formulaire reste la cible.
+
+Le formulaire vaut pour une table en fichier de fiches comme pour toute autre : le formulaire par défaut, le formulaire de liste sur la table en fichier de fiches et la section des positions d'un formulaire dont les positions sont des fiches. La ligne d'un formulaire de liste et celle d'une section des positions ouvrent toujours le formulaire de l'enregistrement ; un lien dans l'une de leurs cellules ouvre pour une fiche son document. Un clic sur un enregistrement dans le contrôle de cohérence ouvre lui aussi le formulaire.
+
+Deux actions mènent du document au formulaire et retour :
+
+- Dans le formulaire d'une fiche, **« Ouvrir la fiche »** figure dans l'en-tête à la place de « Afficher dans le document de table » et ouvre son document dans la colonne active. Comme l'action qu'elle remplace, elle n'est proposée qu'en lecture et pas pour un nouvel enregistrement.
+- La commande **« Ouvrir dans le formulaire »** de la palette de commandes ouvre le formulaire de la fiche qui est le document actif. Sur tout autre document, elle ne peut pas être choisie, pas plus que tant que la zone est encore lue après son ouverture.
+
+### Limites de la forme en fichier de fiches
+
+L'enregistrement, la suppression, la copie et le renommage dans l'application connaissent la fiche. D'autres voies par lesquelles un document est écrit ne la connaissent pas : le remplacement dans la zone, l'ajout d'entrées de journal et d'événements, le déplacement des chapitres d'un livre, l'importation d'un fichier JSON Canvas et toute modification hors de l'application, comme la suppression dans le gestionnaire de fichiers ou l'édition avec un autre éditeur. Ce qui arrive à une fiche par ces voies, personne ne le contrôle au moment de la modification, cela ne produit aucun justificatif, et la suppression a lieu sans protection contre la suppression et sans que ses justificatifs aillent à la table. Le contrôle de cohérence en trouve les conséquences, par exemple une valeur contraire à une règle, une référence qui n'atteint plus d'enregistrement ou un document sans identifiant. L'enregistrement dans l'éditeur de l'application, lui aussi, ne fait que signaler et ne produit aucun justificatif ; une modification du frontmatter n'est remarquée que par la prochaine modification par la base de données, qui n'enregistre alors pas pour l'instant (section « Justificatifs de modification »).
+
 ## La fiche d'identité de la base de données
 
 Une base de données se décrit elle-même dans le conteneur `db-database`, dans le frontmatter d'un document qui lui est propre :
@@ -871,7 +1019,7 @@ Une zone de base de données reçoit deux choses qu'une zone ordinaire n'a pas.
 
 Dans une zone sans base de données, aucun de ces chemins n'est proposé.
 
-Dans la liste des tables, la colonne **« Formulaire »** nomme le fichier de formulaire d'une table et reste vide pour le formulaire généré. La vue d'ensemble porte en outre quatre actions : **« Contrôler la cohérence »** dans l'en-tête pour toutes les tables, et dans la ligne de chaque table **« Nouvel enregistrement »**, **« Contrôler »** et **« Utilisation »**. Ce qu'elles font est décrit dans les sections « Modifier les enregistrements dans le formulaire », « Contrôle de cohérence » et « Utilisation des tables et des enregistrements ». La section **« Requêtes »** nomme chaque fichier de requête avec son nom et son emplacement, le dossier relatif à la racine de la zone, et **« Ouvrir »** l'ouvre comme tout document ; si la zone n'en contient aucun, une phrase explicative y figure. Parmi les anomalies figurent aussi les remarques sur les fichiers de formulaire et de requête, nommées d'après le fichier. La colonne **« Type »** de la section « Requêtes » distingue une « Requête » ordinaire d'un « Formulaire de liste » et nomme pour celui-ci les actions permises ; s'il n'en permet aucune, on y lit « Formulaire de liste, lecture seule ». Dans le bloc de la fiche d'identité, la vue d'ensemble nomme en outre le rôle propre et, si la fiche d'identité porte des rôles, ceux-ci avec leurs autorisations, et sous chaque table les autorisations du rôle propre (section « Autorisations »).
+Dans la liste des tables, la colonne **« Formulaire »** nomme le fichier de formulaire d'une table et reste vide pour le formulaire généré. La vue d'ensemble porte en outre quatre actions : **« Contrôler la cohérence »** dans l'en-tête pour toutes les tables, et dans la ligne de chaque table **« Nouvel enregistrement »**, **« Contrôler »** et **« Utilisation »**. Ce qu'elles font est décrit dans les sections « Modifier les enregistrements dans le formulaire », « Contrôle de cohérence » et « Utilisation des tables et des enregistrements ». La section **« Requêtes »** nomme chaque fichier de requête avec son nom et son emplacement, le dossier relatif à la racine de la zone, et **« Ouvrir »** l'ouvre comme tout document ; si la zone n'en contient aucun, une phrase explicative y figure. Parmi les anomalies figurent aussi les remarques sur les fichiers de formulaire et de requête, nommées d'après le fichier. La colonne **« Type »** de la section « Requêtes » distingue une « Requête » ordinaire d'un « Formulaire de liste » et nomme pour celui-ci les actions permises ; s'il n'en permet aucune, on y lit « Formulaire de liste, lecture seule ». Dans le bloc de la fiche d'identité, la vue d'ensemble nomme en outre le rôle propre et, si la fiche d'identité porte des rôles, ceux-ci avec leurs autorisations, et sous chaque table les autorisations du rôle propre (section « Autorisations »). La colonne **« Stockage »** indique « Table » ou « Fichier de fiches », pour une table en fichier de fiches avec le nombre de ses fiches, et dans sa ligne figure le bouton « Nouvelle fiche » au lieu de « Nouvel enregistrement » (section « Forme en fichier de fiches »). La colonne **« Vues »** nomme les vues d'une table en fichier de fiches, et une vue sans fichier de requête y figure barrée.
 
 **La section de paramètres « Base de données »** se trouve dans le groupe de navigation « Zone actuelle » (Fichier → Paramètres… → Zone actuelle → Base de données ; lorsqu'un livre est ouvert, le groupe s'appelle **Livre actuel**, lorsqu'une bibliothèque est ouverte **Bibliothèque actuelle**). Elle montre la même information sous forme brève, à savoir le nom et la description de la base de données, le nombre de ses tables et le nombre d'anomalies, et porte une option : **« Afficher la vue d'ensemble à l'ouverture de la zone »**. Si elle est cochée, la vue d'ensemble s'ouvre d'elle-même dès que la zone est liée. L'option réside dans le fichier de la zone et voyage avec le dossier de la zone. Vient s'y ajouter le champ **« Nom du dossier de verrous »** ; il est décrit dans la section « Verrous ».
 
@@ -897,6 +1045,8 @@ La même ligne souple vaut pour les rôles, le rôle par défaut et l'attributio
 
 Si une table porte des enregistrements mais aucun niveau de crue `lastId` ou un niveau trop bas, l'application n'attribue pourtant aucun identifiant deux fois : une création prend le numéro suivant au-dessus du plus grand identifiant existant et met ensuite à jour le niveau de crue. Le contrôle de cohérence signale le cas comme remarque.
 
+La même ligne souple vaut pour la forme en fichier de fiches. Une valeur de l'indication `storage` autre que `table` et `cards` vaut `table` et est signalée par une remarque. Une indication `db-record` sans identifiant utilisable ne fait pas d'un document une fiche, et un bloc d'enregistrements dans une table en fichier de fiches ne porte aucun enregistrement ; le contrôle de cohérence signale les deux cas. L'indication `views` suit la même ligne : si elle n'est pas une liste, elle disparaît entièrement, et une entrée qui n'est pas un nom disparaît seule ; les deux cas figurent comme indication parmi les anomalies. Si une entrée nomme un fichier qui n'existe pas ou qui n'est pas un fichier de requête, une indication figure aussi parmi les anomalies, et sous chaque fiche un message avec son nom apparaît à la place de la vue.
+
 ## Désactiver la base de données
 
 L'ensemble de la base de données est une [extension interne](extensions.md) nommée « Base de données », dans la catégorie Outils, et se désactive d'un seul interrupteur. Elle nécessite les [Profils de propriétés](property-profiles.md), car la forme d'une définition de table est décrite et vérifiée au moyen d'un profil interne ; tant que la base de données est activée, ce prérequis ne peut donc pas être désactivé.
@@ -912,6 +1062,7 @@ L'ensemble de la base de données est une [extension interne](extensions.md) nom
 - La **recherche portant sur la zone ne donne aucun résultat d'enregistrement**. Les enregistrements restent exclus du texte intégral, car cette limite tient au fichier de table et non à l'interrupteur ; par la zone, les enregistrements sont alors introuvables.
 - Un **formulaire** ouvert à la fermeture ne revient pas au démarrage. Son entrée dans la session reste en attente et le ramène au démarrage suivant après la réactivation (section « Après le redémarrage »).
 - **Rôles, rôle par défaut et attribution** restent un simple frontmatter de la fiche d'identité, de même qu'une indication `editable` sur un champ : il n'y a ni résolution ni contrôle, pas même à la sauvegarde d'une définition modifiée.
+- Une **table en fichier de fiches** n'est plus lue comme telle : `storage` et `db-record` restent un simple frontmatter, et les fiches des documents ordinaires. Avec la vue d'ensemble disparaît « Nouvelle fiche », avec le contrôle de cohérence « Reprendre comme fiche », et les commandes « Nouvelle fiche dans la table active en fichier de fiches » et « Reprendre le document actif comme fiche » quittent la palette de commandes. À l'enregistrement d'une fiche, l'application ne contrôle rien, le panneau de zone la supprime avec la demande de confirmation habituelle et la copie comme tout fichier, aucune vue n'apparaît, et la commande « Ouvrir dans le formulaire » quitte la palette de commandes.
 - **Rien n'est écrit.** L'application ne crée, ne modifie ni ne supprime aucun enregistrement, ne prend aucun verrou et ne produit aucun justificatif de modification ; elle ne mène pas non plus à son terme une sauvegarde restée inachevée tant qu'elle est désactivée.
 
 **Les fichiers demeurent intacts.** La désactivation retire l'interprétation, non les données : pas un caractère n'est modifié, et la réactivation ramène tout. L'index de la zone est alors reconstruit une fois ; dans un grand fonds, cela prend un instant.

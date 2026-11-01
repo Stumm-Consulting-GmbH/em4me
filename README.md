@@ -89,8 +89,13 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   that it is a table: which fields it has, of what type, with labels in
   several languages and a key of your choosing. The records live in the body
   of that same file, one line per record, and are shown as a typed table while
-  you read and while you write. A link can point at a single record and opens
-  its form; an action in the form's header, Show in table document, takes you
+  you read and while you write. Alternatively a table can keep each record as
+  a document of its own, a card next to the table file: its fields sit in the
+  file header, with room below for notes, images and attachments. A card is
+  checked against the table's rules whenever you save it, and the table can
+  name views, such as all books by an author, that appear under each card.
+  A link can point at a single record and opens
+  its form, or the card itself; an action in the form's header, Show in table document, takes you
   to its row,
   and a table that grows large is spread over several files at
   the record boundary,

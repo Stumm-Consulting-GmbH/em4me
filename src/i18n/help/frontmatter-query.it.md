@@ -128,7 +128,7 @@ SORT autore
 - **Tabelle**: `TABLE RECORDS …` mostra il risultato nella prima colonna «Record»; `WITHOUT ID` viene dopo `RECORDS`. Il titolo di una colonna è l'alias, altrimenti l'etichetta del campo nella lingua del programma impostata secondo la catena di ripiego della pagina [Banca dati](database.md), altrimenti l'espressione stessa, ad esempio per un percorso.
 - **Valori di collegamento**: un campo di riferimento mostra la forma di visualizzazione del record di destinazione, in mancanza il suo identificatore, e un clic apre la maschera del record di destinazione. Un collegamento vuoto e uno che non porta da nessuna parte restano una cella vuota.
 - **Ordine**: senza `SORT` i risultati seguono la loro forma di visualizzazione senza distinzione tra maiuscole e minuscole, a parità di forma di visualizzazione l'identificatore, e i record senza forma di visualizzazione vanno in fondo.
-- **Una sola destinazione del clic**: un record nel risultato di una query apre la maschera, come pure un collegamento nel testo corrente come `[[Libri#^r-00042]]`; alla riga porta l'azione «Mostra nel documento di tabella» della maschera. La maschera mostra lo stato salvato.
+- **Una sola destinazione del clic**: un record nel risultato di una query apre la maschera, come pure un collegamento nel testo corrente come `[[Libri#^r-00042]]`; alla riga porta l'azione «Mostra nel documento di tabella» della maschera. La maschera mostra lo stato salvato. Se il record appartiene a una tabella a schedario, entrambi i clic aprono il documento della scheda (pagina [Banca dati](database.md), sezione «Forma a schedario»).
 - **Maschera elenco**: se un file di query porta l'indicazione `editable: true` nel suo contenitore `db-query`, il suo risultato compare come griglia in cui i record si aprono, si modificano, si creano e si eliminano, 50 righe per pagina; la pagina [Banca dati](database.md) la descrive nella sezione «Maschera elenco».
 - **Stato non salvato**: le modifiche di una tabella aperta entrano subito nel risultato, senza salvare.
 - **Non a questo livello**: `bold()` in una colonna o in un'espressione di `GROUP BY` produce un messaggio di errore, perché un valore della banca dati non porta formattazione; nella condizione e nell'ordinamento resta consentito. `HIDE`, `SHOW` e `SHORT` valgono solo per `LIST TASKS` e si segnalano qui come ai livelli di file e di blocco.
@@ -250,6 +250,7 @@ LIST WHERE ambito = this.ambito AND file.path != this.file.path
 - **Stesso significato a ogni livello**: anche nelle query `BLOCKS`, `TASKS` e `RECORDS`, `this.` indica il file portante del blocco, mai il singolo blocco, la riga di attività né il record.
 - **Precedenza**: la regola `this.` prevale su una proprietà del frontmatter con lo stesso nome, esattamente come lo spazio dei nomi `file.`.
 - **Senza file portante**: se non è risolvibile, ogni accesso `this.` dà un valore vuoto; un `this` nudo senza punto resta vuoto come ogni nome di campo sconosciuto.
+- **Vista mostrata su una scheda**: in una vista che una tabella a schedario mostra sotto ogni scheda, `this.` indica la scheda e non il file di query della vista (pagina [Banca dati](database.md), sezione «Forma a schedario»). Con un incorporamento tramite `![[…]]` resta il file incorporato.
 
 Come **fonte**, il link wiki vuoto indica lo stesso file: `FROM [[]]` raccoglie i file che puntano ad esso, `FROM outgoing([[]])` la direzione opposta. Il file portante non è mai risultato di se stesso; senza un file portante risolvibile l'insieme resta vuoto invece di comprendere tutti i file.
 
@@ -287,7 +288,7 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `currencyformat(x[, v])` | `currencyformat(importo, "CHF")` | presentare un importo localizzato: in euro senza indicazione, e il numero non formattato per un codice di valuta sconosciuto |
 | `infolder(l, "Cartella")` | `length(infolder(file.inlinks, "Progetti")) = 0` | il sottoelenco dei valori di link la cui destinazione si trova nella cartella o sotto di essa |
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(valori) = 6` | aggregati su elenchi di numeri; su un gruppo riuniscono i valori di tutti i suoi risultati (sezione «Raggruppamento e aggregazione») |
-| `count(x)` | `count(tags) > 2` | numero dei valori presenti: per un elenco i suoi elementi, per un valore singolo 1, senza valore 0; `count()` senza campo conta i risultati di un gruppo |
+| `count(x)` | `count(tags) > 2` | numero dei valori presenti: per un elenco i suoi elementi, per un valore singolo 1, senza valore 0, e un testo vuoto, anche come elemento di un elenco, vale come «senza valore»; `count()` senza campo conta i risultati di un gruppo |
 | `bold(x)` | `bold(stato)` | presentare un valore evidenziato (sezione «Evidenziazione») |
 
 Una funzione sconosciuta o un numero errato di argomenti mostra un avviso di errore sul blocco.

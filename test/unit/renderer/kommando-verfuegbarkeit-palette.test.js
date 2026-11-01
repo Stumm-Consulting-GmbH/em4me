@@ -188,6 +188,12 @@ const NACH_DER_MESSUNG = new Set([
   'database.openOverview',
   'database.newRecord',
   'database.checkConsistency',
+  // 4T-002389 (Epic 3E-000265): die beiden Kommandos der Kartei-Form, aus
+  // demselben Grund; es gibt sie erst seit dem Schreibweg der Karteikarten.
+  'database.newCard',
+  'database.adoptCard',
+  // 4T-002406 (Epic 3E-000266): «In der Maske öffnen», aus demselben Grund.
+  'database.openInForm',
   'view.modeCanvas',
   'canvas.addCard',
   'canvas.addShape',

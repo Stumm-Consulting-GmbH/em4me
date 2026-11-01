@@ -31,6 +31,11 @@ import {
 } from '../../src/main/documents/companion-files.js';
 import { createLinkUpdate } from '../../src/main/documents/link-update.js';
 import { createFileWatching } from '../../src/main/documents/file-watching.js';
+import {
+  belegPfadFuer,
+  belegeDesDatensatzes,
+  schreibeBeleg,
+} from '../../src/main/database/change-log.js';
 
 // Kurzes Wiederhol-Fenster für die Prüffälle: Der Ausschöpfungs-Fall soll
 // nicht drei Sekunden echte Zeit verwarten (dieselbe Begründung wie in
@@ -485,6 +490,73 @@ describe('Beleg-Datei an Quelle und Ziel (AK13)', () => {
     const ergebnis = await pruefeBegleitZiele(von, path.join(root, 'Merkzettel.md'));
 
     expect(ergebnis).toEqual({ ok: true });
+  });
+});
+
+// --- 4T-002390 (Epic 3E-000265, Schritt 4): die Beleg-Datei einer Karteikarte ------------
+
+describe('Mitziehen der Beleg-Datei einer Karteikarte (4T-002390, AK2)', () => {
+  // Eine Kartei-Tabelle mit der Karteikarte «Ada Lovelace» und zwei echten
+  // Belegen in deren Beleg-Datei; geprüft wird ohne Code-Änderung am Mitziehen.
+  async function karteikarte(root) {
+    schreibe(
+      root,
+      'Autoren/Autoren.md',
+      '---\ndb-table:\n  storage: cards\n  fields:\n    - name: Ort\n---\n',
+    );
+    const ada = schreibe(
+      root,
+      'Autoren/Ada Lovelace.md',
+      '---\ndb-record: r-00001\nOrt: Paris\n---\n',
+    );
+    const uhr = ['2026-10-25T09:00:00Z', '2026-10-25T09:05:00Z'];
+    for (const [i, feld] of [
+      { name: 'Ort', neu: 'London' },
+      { name: 'Ort', alt: 'London', neu: 'Paris' },
+    ].entries()) {
+      const erg = await schreibeBeleg(
+        ada,
+        {
+          art: i === 0 ? 'create' : 'update',
+          id: 'r-00001',
+          vorgang: String(i + 1),
+          felder: [feld],
+        },
+        { jetzt: () => uhr[i], herkunft: () => ({ benutzer: 'anna', rechner: 'SC-026' }) },
+      );
+      expect(erg.ok).toBe(true);
+    }
+    return { ada, kette: inhalt(belegPfadFuer(ada)) };
+  }
+
+  it('zieht sie beim Umbenennen mit, Kette unverändert', async () => {
+    const root = makeRoot();
+    const { renameSingleFile } = baueUmbenennen();
+    const { ada, kette } = await karteikarte(root);
+    const nach = path.join(root, 'Autoren', 'Ada King.md');
+
+    const ergebnis = await renameSingleFile(ada, nach, { abstaende: KURZ });
+
+    expect(ergebnis.ok).toBe(true);
+    expect(liegtDa(belegPfadFuer(ada))).toBe(false);
+    expect(inhalt(belegPfadFuer(nach))).toBe(kette);
+    const gelesen = await belegeDesDatensatzes(nach, 'r-00001');
+    expect(gelesen.belege.map((b) => b.art)).toEqual(['create', 'update']);
+    expect(gelesen.verkettung.lueckenlos).toBe(true);
+  });
+
+  it('zieht sie beim Verschieben in einen anderen Ordner mit, Kette unverändert', async () => {
+    const root = makeRoot();
+    const { renameSingleFile } = baueUmbenennen();
+    const { ada, kette } = await karteikarte(root);
+    fsSync.mkdirSync(path.join(root, 'Archiv'));
+    const nach = path.join(root, 'Archiv', 'Ada Lovelace.md');
+
+    const ergebnis = await renameSingleFile(ada, nach, { abstaende: KURZ });
+
+    expect(ergebnis.ok).toBe(true);
+    expect(liegtDa(belegPfadFuer(ada))).toBe(false);
+    expect(inhalt(belegPfadFuer(nach))).toBe(kette);
   });
 });
 

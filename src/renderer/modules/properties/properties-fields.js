@@ -37,6 +37,7 @@ import {
 // der Zeilen-Bau kommt von hier als Parameter herein (Begruendung dort).
 import { baueAbgeleiteteFelder } from './properties-abgeleitet.js';
 import { flushPendingPropertiesSave, scheduleSavePropertiesFromPane } from './properties-save.js';
+import { zeichneKarteiFeldHinweise } from '../database/karteikarte-befunde.js';
 import {
   onTypeChange,
   renderValueEditor,
@@ -217,6 +218,9 @@ function zeichneProperties(paneIdx) {
         buildPropertyFieldDom(paneIdx, def.name, emptyValueForDefinition(def), def.type, def),
     });
   }
+  // 4T-002404 (Epic 3E-000266, F3 A): die Befunde einer Karteikarte aus dem
+  // letzten Speichern, als Hinweis an ihren Feldern.
+  zeichneKarteiFeldHinweise(els.propertiesFields, tab.path);
 }
 
 // 4T-000051: Baut die DOM-Komponente fuer ein Property-Feld in der Sidebar-

@@ -81,7 +81,15 @@ function eventsForQuery(filePath, queryText, areaRoot, opts) {
   }
   const now = Date.now();
   const resolveLinkTarget = createTargetResolver(entry);
-  const linkGraph = ast && queryUsesLinks(ast) ? entry.linkGraph : null;
+  // 4T-002152 (Epic 3E-000371): Link-Graph bei Bedarf bauen wie die übrigen
+  // Leser (frontmatterQueryFor), statt nur einen vorhandenen zu lesen; der
+  // Index-Aufbau setzt ihn bei jedem Neubau und jeder Aktualisierung zurück.
+  // Vor der überlagerten Sicht unten, damit der Cache am Original-Eintrag landet.
+  let linkGraph = null;
+  if (ast && queryUsesLinks(ast)) {
+    if (!entry.linkGraph) entry.linkGraph = buildLinkGraph(entry);
+    linkGraph = entry.linkGraph;
+  }
   const profileName = String((opts && opts.profileName) || '').toLowerCase();
   const events = [];
   // 4T-002126: einmal je Lauf über die Quelle der Abfrage gebildet; ohne

@@ -63,6 +63,17 @@
 .markdown-body .frontmatter-count {
   color: var(--fg-muted);
 }
+/* 4T-002404 (Epic 3E-000266, F3 A): Befunde einer Karteikarte nach dem
+   Speichern, rechts in der Zeile; Farbe wie der weiche Hinweis der
+   Eigenschafts-Felder (.properties-field-hint). */
+.markdown-body .frontmatter-kartei-befunde {
+  margin-left: auto;
+  color: #b8860b;
+  cursor: help;
+}
+[data-theme='dark'] .markdown-body .frontmatter-kartei-befunde {
+  color: #e0b341;
+}
 /* 4T-000470 (Epic 3E-000087): Nummern-Praefix der Gliederungs-Nummerierung.
    Dezent gedaempft, gleichbreite Ziffern fuer saubere Ausrichtung; das
    Gewicht erbt von der Ueberschrift. */

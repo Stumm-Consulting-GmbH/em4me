@@ -14,6 +14,566 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.156.0.4838] - 2026-11-01 — Stufe 5 der Datenbank: die Kartei-Form, dazu dreizehn Fehlerbehebungen
+
+Zug 3E-000370,
+die fünfte Ausbaustufe der Datenbank-Funktionalität aus drei Mitglieds-Epics:
+3E-000265,
+3E-000266
+und
+3E-000371.
+Mitglied 1:
+3E-000265,
+die Kartei-Form als zweite Ablage-Form einer Tabelle: je Datensatz ein eigenes
+Dokument im Ordner der Tabelle mit den Feldern im Dateikopf, die Tabellen-Datei
+als Träger der Definition ohne Datensatz-Körper, die Erkennung und Zuordnung der
+Karteikarten samt Befunden, Abfrage und Verweis, Anlegen, Ändern, Aufnehmen und
+Löschen über die Datenbank und die Änderungsbelege neben der Karteikarte
+(Abschluss-Anteil in
+4T-002376).
+Mitglied 2:
+3E-000266,
+die Schreibwege, Sichten und Masken der Kartei-Form: die Prüfung einer
+Karteikarte beim Speichern ohne Abweisung, Löschen und Kopieren im
+Bereichs-Panel als Aufträge an die geprüfte Schnittstelle, die an der
+Tabellen-Definition benannten Sichten, die die Lese-Ansicht jeder Karteikarte
+einblendet, und das Dokument als Klick-Ziel eines Kartei-Datensatzes mit je
+einem Handgriff zwischen Dokument und Maske (Abschluss-Anteil in
+4T-002377).
+Mitglied 3:
+3E-000371,
+das Bündel der Anwendungs-Fehler vom Oktober 2026: dreizehn Fehlerbehebungen
+quer durch die Anwendung, vom Umbenennen eines Ankers über die Live-Tabelle,
+den portablen Export, Rückgängig, das Zählen leerer Text-Zellen, die
+Datentabelle im Live-Modus, Ereignis-Abfragen, Diagramme auf Folien, die
+Kalender-Werte der Lese-Ansicht und das Schreiben des Dateikopfs bis zum Schutz
+unbekannter Zeitrechnungen vor älteren Programmfassungen, dazu der berichtigte
+Text der Roadmap-Kachel «Version 1» der Webseite (Abschluss-Anteil in
+4T-002378).
+
+**Was der Zug als Ganzes zeigt:** Eine Tabelle kann ihre Datensätze als Kartei führen, je
+Datensatz ein Dokument mit den Feldern im Dateikopf, gewählt nach der Natur des Datensatzes und
+nicht nach der Menge. Die Karteikarte wird wie jedes Dokument bearbeitet und beim Speichern
+geprüft, Löschen und Kopieren im Bereichs-Panel gehen den Weg der Datenbank, und an der Tabelle
+benannte Sichten erscheinen unter ihr; was über das Ersetzen im Bereich oder außerhalb der
+Anwendung geschieht, findet weiter allein die Konsistenz-Prüfung. Das Bündel stellt an dreizehn
+Stellen zugesagtes Verhalten her, jede mit gemessener Ursache und eigenem Regressionstest; vier
+davon sind unter «Behoben» als **Verhaltensänderung** gekennzeichnet. Die neue Schreibweise
+einzeiliger Listen ist der im Vorgang vorgesehene Rückfall, und der Schutz unbekannter
+Zeitrechnungen wirkt erst ab dieser Fassung.
+
+### Neu
+
+- **Tabelle in Kartei-Form** (`4T-002386`; F2 A, Empfehlung vom
+  Product Owner am 2026-10-24 pauschal übernommen). Die Angabe `storage` auf der oberen Ebene des Behälters
+  `db-table` wählt die Ablage-Form: ohne Angabe `table` (Tabellen-Form wie
+  bisher), mit `cards` die Kartei-Form. Leerraum am Rand zählt nicht, die
+  Schreibung zählt; jeder andere Wert gilt als Tabellen-Form und erzeugt den
+  Hinweis `storage` mit den zulässigen Werten. Die Tabellen-Datei einer
+  Kartei-Tabelle trägt allein die Definition; ein Körper aus freiem Text ist
+  zulässig. Steht dort dennoch ein Datensatz-Block, bleibt er sichtbar, trägt den
+  Hinweis, dass seine Zeilen nicht als Datensätze gelten, und erscheint in keiner
+  Abfrage; die Konsistenz-Prüfung meldet ihn mit Datei und Zeile, und Index,
+  Datensatz-Lesen und Schreibweg übergehen ihn.
+- **Karteikarten erkennen und zuordnen** (`4T-002387`; F3 A und F5 A, Empfehlungen
+  pauschal übernommen am 2026-10-24). Eine Karteikarte ist ein Markdown-Dokument im selben
+  Ordner wie die Tabellen-Datei, keine andere Datenbank-Datei, keine Vorlage und
+  kein Folgeteil, mit der Kennung in der Angabe `db-record` (`r-42` wird als
+  `r-00042` gelesen, wie am Datensatz-Marker der Tabellen-Form). Unterordner
+  zählen nicht, der Name der Tabellen-Datei geht in die Zuordnung nicht ein. Die
+  Konsistenz-Prüfung meldet ein Dokument im Ordner ohne Kennung, eine
+  unbrauchbare Kennung, eine zweite Kartei-Tabelle im selben Ordner (an beiden,
+  keine bekommt dann die Dokumente) und eine doppelte Kennung je Karteikarte. Der
+  Index erfasst jede Karteikarte mit Kennung, Schlüssel und Anzeige-Form, ohne
+  Zellwerte, und zieht nach jeder Änderung der Tabellen-Datei oder einer
+  Karteikarte nach; die Übersicht der Datenbank zählt die Karteikarten je
+  Kartei-Tabelle.
+- **Werte einer Karteikarte nach dem Typ der Spalte** (`4T-002387`). Die Werte im
+  Dateikopf werden wie die Zellen eines Datensatz-Blocks ausgelegt, über dieselbe
+  Funktion: Datum, Zahl, Wahrheitswert, Uhrzeit und Verweis ergeben dieselben
+  Werte und Fehler wie dieselbe Zelle. Feld-Namen gelten ohne Rücksicht auf die
+  Schreibung, Text zeichengenau; eine Liste wird ein Text mit Komma, ein Verweis
+  steht in Anführungszeichen. **Kollisions-Regel:** In der Datenbank-Sicht
+  gewinnt die Tabellen-Definition; führt ein Eigenschafts-Profil an der
+  Karteikarte ein gleichnamiges Feld mit anderem Typ, meldet die
+  Konsistenz-Prüfung Feld, Profil und beide Typen, gleicher Typ bleibt still.
+- **Karteikarten abfragen und auf sie verweisen** (`4T-002388`; F1 A, Empfehlung
+  pauschal übernommen am 2026-10-24). Eine Kartei-Tabelle ist Quelle der Datensatz-Ebene wie jede
+  Tabelle, beim Namen oder beim Pfad, mit Bedingung, Sortierung, Gruppierung und
+  Pfaden; ohne Karteikarte liefert sie die leere Menge ohne Fehler. Ein Verweis
+  auf einen Datensatz trifft eine Karteikarte mit langer Kennung, Kurzform und
+  Anzeige-Form, eine Verweis-Spalte auf eine Kartei-Tabelle über Kennung oder
+  einteiligen Schlüssel; die Datensatz-Suche des Bereichs findet Karteikarten.
+  Auf der Datei-Ebene bleibt eine Karteikarte ein gewöhnliches Dokument mit
+  rohem Dateikopf. Liegt eine Kartei-Tabelle im Vorlagen-Ordner, gibt der Pfad der
+  Tabelle ihre Karteikarten nicht frei, die Nennung des Ordners schon.
+- **Neue Karteikarte und Als Karteikarte aufnehmen** (`4T-002389`; F4 A, Empfehlung
+  pauschal übernommen am 2026-10-24). Die Übersicht der Datenbank trägt je Kartei-Tabelle die
+  Schaltfläche «Neue Karteikarte» (nur mit der Erlaubnis `create`): Der Name
+  wird über den Namens-Dialog erfragt, die Datei `<Name>.md` entsteht im Ordner
+  der Tabelle mit der nächsten Kennung, dem leeren Gerüst aller Felder und dem
+  Namen im Feld des einteiligen Schlüssels, und der Hochwasserstand steigt; ein
+  unzulässiger Name, eine vorhandene Datei und ein doppelter Schlüssel werden mit
+  Grund in der Statuszeile abgewiesen. Weitere Pflichtfelder bleiben im Gerüst
+  leer und werden beim Ändern verlangt. «Als Karteikarte aufnehmen» am Befund
+  «Dokument ohne Kennung» der Konsistenz-Prüfung trägt allein die Kennung ein.
+  Beide Handgriffe sind auch als Kommandos ohne Menü-Eintrag und ohne
+  vorbelegtes Kürzel da (`database.newCard`, `database.adoptCard`).
+- **Karteikarten über die Datenbank ändern und löschen** (`4T-002389`;
+  F6 B, Empfehlung pauschal übernommen am 2026-10-24). Der Schreibweg der Datenbank prüft eine
+  Karteikarte wie einen Datensatz (Pflicht, Typ, Verweise, Regeln, Schlüssel,
+  Berechtigung, vorgefundener Stand) und schreibt im Dateikopf allein die Zeilen
+  der geänderten Felder; Freitext, fremde Angaben, Fluss-Listen und mehrzeilige
+  Werte bleiben zeichengleich, ein Wert, der ohne Anführungszeichen anders
+  gelesen würde, bekommt sie. Gelöscht wird über die Datenbank mit dem
+  Lösch-Schutz jedes Datensatzes: Die Karteikarte und ihre Beleg-Datei gehen in
+  den Papierkorb, ihre Belege samt Lösch-Beleg gehen vorher an die Beleg-Datei
+  der Tabelle. Ein nach der Marke abgebrochenes Anlegen oder Löschen schreibt der
+  Wiederanlauf zu Ende.
+- **Änderungsbelege an der Karteikarte** (`4T-002390`; F6 B, Empfehlung pauschal
+  übernommen am 2026-10-24). Die Belege einer Karteikarte liegen in der Beleg-Datei
+  `<Name>.mddl` neben ihr, nicht an der Tabelle; Umbenennen und Verschieben
+  nehmen sie mit, verdichtet wird nach den Grenzen der Tabelle, und die
+  Beleg-Ansicht zeigt sie über Tabelle und Kennung. Eine neue Karteikarte
+  gleichen Namens beginnt mit leerer Spur.
+- **Prüfung der Karteikarte beim Speichern** (`4T-002404`; F3 A, Empfehlung
+  vom Product Owner am 2026-10-27 pauschal übernommen). Wird eine Karteikarte
+  im Editor oder in der Seitenleiste «Properties» geändert und gespeichert, von
+  Hand, im Hintergrund oder mit «Speichern unter», prüft die Anwendung sie nach
+  dem Schreiben gegen die Regeln ihrer Tabelle: Pflicht-Angabe, Typ, Prüfregel
+  des Feldes, Verweis auf einen fehlenden Datensatz, die Regeln des Datensatzes
+  und die Schlüssel-Dublette. Gespeichert wird in jedem Fall, ein Beleg entsteht
+  nicht. Die Befunde erscheinen an drei Orten: als Meldung in der Statuszeile
+  (beim Speichern von Hand immer, im Hintergrund nur bei geänderten Befunden),
+  als Hinweis am betroffenen Feld unter «Properties» und als Zeichen mit Zahl in
+  der Dateikopf-Zeile der Lese-Ansicht; nach dem Beheben entfallen sie mit dem
+  nächsten Speichern. Doppelte Kennung, abweichender Profil-Typ und eine zweite
+  Kartei-Tabelle im Ordner meldet weiterhin allein die Konsistenz-Prüfung, die
+  für dieselbe Karteikarte dieselben Befunde liefert; ein Dokument ohne Kennung
+  und eine Vorlage werden beim Speichern nicht geprüft.
+- **Sichten an der Karteikarte** (`4T-002407`; F6 A, Empfehlung vom Product
+  Owner am 2026-10-27 pauschal übernommen). Die Angabe `views` auf der oberen
+  Ebene des Behälters `db-table` nennt als Liste Abfrage-Dateien beim Namen ohne
+  Endung oder mit Ordnern davor, verglichen wie bei `form`. Die Lese-Ansicht
+  blendet jede Sicht unter dem Dateikopf jeder Karteikarte der Tabelle und vor
+  ihrem freien Text ein, als Block mit der Marke «Sicht» und dem Namen der
+  Abfrage-Datei als Link. Darin meint `this.` die Karteikarte, sodass etwa
+  `WHERE author = this.name` die Bücher dieses Autors zeigt; einzeln geöffnet
+  oder eingebettet meint `this.` weiter die Abfrage-Datei. Der Block ist nicht
+  bearbeitbar, in die Datei wird nichts geschrieben, und die Live-Ansicht zeigt
+  keine Sicht. Fehlt die Abfrage-Datei, steht an der Stelle eine Meldung mit
+  dem Namen; eine Angabe, die keine Liste ist, und ein unbrauchbarer Eintrag
+  werden als Hinweis der Definition gemeldet.
+- **«Karteikarte öffnen» und «In der Maske öffnen»** (`4T-002406`; F7 A,
+  Empfehlung vom Product Owner am 2026-10-27 pauschal übernommen). Die
+  Einzel-Maske einer Karteikarte trägt im Kopf «Karteikarte öffnen» an der
+  Stelle von «Im Tabellen-Dokument zeigen» und öffnet ihr Dokument in der
+  aktiven Spalte, nur im Lesen und nicht bei einer Neuanlage. Das Kommando «In
+  der Maske öffnen» (`database.openInForm`, ohne Menü-Eintrag und ohne
+  vorbelegtes Kürzel) öffnet am Dokument einer Karteikarte deren Einzel-Maske;
+  an jedem anderen Dokument ist es in der Befehlspalette nicht wählbar.
+
+### Geändert
+
+- **Spalte «Form» in der Übersicht der Datenbank** (`4T-002386`, `4T-002387`).
+  Zwischen «Tabelle» und «Felder» steht je Tabelle «Tabelle» oder «Kartei», bei
+  einer Kartei-Tabelle mit der Zahl ihrer Karteikarten; der Katalog-Eintrag
+  jeder Tabelle trägt dafür das Feld `storage`.
+- **Kein «Neuer Datensatz» an einer Kartei-Tabelle** (`4T-002389`). Die
+  Übersicht zeigt dort allein «Neue Karteikarte»; das Kommando «Neuer Datensatz
+  in der aktiven Tabelle» legt an einer Kartei-Tabelle nichts an und verweist
+  auf «Neue Karteikarte».
+- **Löschen einer Karteikarte im Bereichs-Panel über die Datenbank**
+  (`4T-002405`; F1 A und F4 A, Empfehlungen vom Product Owner am 2026-10-27
+  pauschal übernommen). «Löschen…» im Kontextmenü des Bereichs-Panels gibt eine
+  Karteikarte als Lösch-Auftrag an die geprüfte Schnittstelle, statt sie samt
+  Beleg-Datei unmittelbar in den Papierkorb zu legen: Die Rückfrage nennt die
+  Tabelle und den Weg über die Datenbank, Lösch-Schutz und Berechtigung gelten,
+  die Belege gehen samt Lösch-Beleg an die Tabelle, und erst dann wandern
+  Karteikarte und Beleg-Datei in den Papierkorb. Eine verwiesene Karteikarte
+  bleibt unberührt, die Statuszeile nennt Namen und Grund, und ihr geöffnetes
+  Dokument bleibt offen; ungesicherte Änderungen werden vor dem Auftrag
+  gesichert, geschlossen wird erst nach dem angenommenen Löschen. Ein Dokument
+  ohne Kennung im Kartei-Ordner und jede andere Datei werden gelöscht wie
+  bisher.
+- **Kopieren und Umbenennen einer Karteikarte** (`4T-002405`; F5 A und F2 A,
+  Empfehlungen vom Product Owner am 2026-10-27 pauschal übernommen).
+  «Kopieren» legt bei einer Karteikarte über einen Anlege-Auftrag der
+  Schnittstelle eine neue Karteikarte an, statt den Text samt Kennung zu
+  verdoppeln: nächste Kennung, Schlüssel gleich dem Namen der Kopie, übrige
+  Felder, fremde Angaben und Freitext aus der Vorlage, deren Belege nicht, dazu
+  ein Anlege-Beleg. Ist der Name als Datei oder als Schlüssel vergeben, nimmt
+  die Kopie die nächste Nummer; jede andere Abweisung legt nichts an und nennt
+  den Grund in der Statuszeile. Umbenennen ändert allein den Dateinamen, nicht
+  den Schlüssel: Dateiname und Schlüssel sind zwei Werte, die auseinanderlaufen
+  dürfen, ohne Befund.
+- **Ein Klick auf einen Kartei-Datensatz öffnet sein Dokument** (`4T-002406`;
+  F7 A, Empfehlung vom Product Owner am 2026-10-27 pauschal übernommen). Ein
+  Datensatz-Treffer der Suche, ein Datensatz oder Verweis im Ergebnis einer
+  Abfrage und ein Verweis `[[Tabelle#^…]]` im Text öffnen bei einer Karteikarte
+  deren Dokument in der aktiven Spalte statt der Einzel-Maske; ohne Karteikarte
+  im Bestand oder bei einem Fehler bleibt die Maske das Ziel, und die
+  Tabellen-Form ist unverändert. Die Zeile einer Listen-Maske und des
+  Positions-Bereichs bleibt der Weg in die Maske, ein Verweis in einer ihrer
+  Zellen öffnet das Dokument. Listen-Maske, Positions-Bereich und
+  Standard-Einzelmaske tragen über eine Kartei-Tabelle dieselben Angaben,
+  Handgriffe und Sperren wie über eine Tabellen-Datei; das ist nachgewiesen und
+  brauchte keine Code-Änderung.
+- **Spalte «Sichten» in der Übersicht der Datenbank** (`4T-002407`). Hinter
+  «Maske» nennt sie je Tabelle die Sichten aus `views`; eine Sicht ohne
+  Abfrage-Datei ist durchgestrichen, und ihr Befund steht unter den Fehlerlagen.
+- **Roadmap-Kachel «Version 1» der Webseite** (`4T-002012`; Variante A,
+  Empfehlung vom Product Owner am 2026-10-03 pauschal übernommen; kein
+  Produkt-Code, fortlaufend über einen Arbeits-Zweig integriert). Der Text der
+  Kachel im Ausgeliefert-Bereich versprach in fünf Sprachen, die Dateien seien
+  «beim gemeinsamen Arbeiten geschützt», was Version 1 nicht trägt; er lautet
+  jetzt «Ihre Dateien bleiben dabei unter Ihrer Kontrolle» (Schlüssel
+  `rmVersionEinsText` in `web/inhalte/roadmap.<code>.json`, Titel unverändert).
+- **Neue Roadmap-Kachel «Einbetten aus verknüpften Bereichen» der Webseite** (`4T-002031`;
+  Entscheidung des Product Owners vom 2026-10-30 im Wortlaut; kein Produkt-Code, fortlaufend über
+  einen Arbeits-Zweig integriert). Die Aufgabe hat das Bündel mit der Entscheidung F4 A verlassen
+  (Empfehlung pauschal übernommen am 2026-10-30); ihr verbleibender Gegenstand, das Einbetten aus
+  einem verknüpften Bereich, ist als eigenes Vorhaben
+  3E-000382
+  im dafür wiedereröffneten Arbeitspaket «Bereichs-Navigation und Struktur-Sicht» (`2A-000029`)
+  verortet und steht als eigene Kachel auf der Stufe «geplant» der Roadmap, mit Titel und Text in
+  fünf Sprachen (Eintrag `einbettenVerknuepfteBereiche` in `scripts/build-web.js`).
+
+### Behoben
+
+- **Live-Tabelle sprang beim Öffnen einer Zelle waagerecht** (`4T-001812`). War
+  irgendeine Tabelle des Dokuments breiter als das Fenster, verschob ein Klick,
+  ein Zellsprung mit dem Tabulator oder ein Pfeil in eine Zelle einer Tabelle
+  der Ansicht «Live» den Editor um rund 60 bis 80 Pixel nach links. Ursache: Die
+  Bitte, die Schreibmarke sichtbar zu machen, zielte auf den rechten Rand des
+  Tabellen-Widgets. Jetzt scrollt der Editor an einer Stelle in einer Tabelle
+  nur noch senkrecht; eine waagerecht verdeckte Zelle holt das Eingabefeld wie
+  bisher ins Bild.
+- **Code-Block mit Leerzeile brach die Tabelle im portablen Dokument ab**
+  (`4T-001919`). Stand in einer Zelle einer Perspective-Tabelle ein Code-Block
+  mit Leerzeile, endete die Tabelle im portablen Markdown an dieser Leerzeile,
+  und der Rest erschien als Text darunter. Jetzt steht das Zeilenende einer
+  leeren Code-Zeile im Zell-HTML als Zeichen-Referenz `&#10;`; die Tabelle
+  bleibt ein Block, der Code-Text Zeichen für Zeichen derselbe. Ein Formel-Block
+  `$$` und rohes `<pre>` mit Leerzeile brechen die Tabelle weiterhin; der
+  Nebenbefund steht im Befund-Eingang der laufenden Fehlerbehebung.
+- **Kalender-Werte und Klammer-Paare am Absatzende in der Lese-Ansicht**
+  (`4T-001922`). Die Lese-Ansicht las in der Karten-Uhrzeit `@@{14:00}` das
+  innere `@{14:00}` als Kalender-Wert eines unbekannten Kalenders «14», und ein
+  `{…}` am Ende eines Absatzes ohne erlaubtes Attribut, etwa ein vertippter
+  Kalender-Wert `@{2026-13-40}` oder `Menge {foo}`, verschwand still aus der
+  Anzeige. Jetzt folgt die Lese-Ansicht dem gemeinsamen Ausdruck des
+  Kalender-Kerns (kein `@` davor), und ein Klammer-Paar ohne `#id` oder
+  `.klasse` bleibt als Text stehen; gültige Attribute wirken wie bisher. Die
+  Datei selbst war nie betroffen.
+- **Umbenennen eines Ankers setzte die Schreibmarke an den Dokument-Anfang**
+  (`4T-002100`). Nach dem Umbenennen im Panel «Block-Eigenschaften» sprang die
+  Schreibmarke auf Zeile 1, und das Panel verlor die Auswahl des Blocks. Jetzt
+  ändert das Umbenennen nur noch den Namen an seinen Stellen; die Schreibmarke
+  bleibt in Zeile und Spalte, das Panel behält die Auswahl, und Rückgängig nimmt
+  das Umbenennen weiter in einem Schritt zurück.
+- **Umbenennen eines Ankers schrieb Verweise auf andere Dokumente um**
+  (`4T-002101`). Aus `[[Fremd#^alt]]` wurde `[[Fremd#^neu]]`, obwohl der Anker
+  im anderen Dokument unverändert hieß. Jetzt ziehen `[[#^alt]]` und Verweise,
+  deren Dateiname das eigene Dokument nennt, mit; Verweise auf andere Dokumente
+  bleiben stehen, ebenso jeder Verweis mit Dateinamen in einem noch nicht
+  gespeicherten Dokument. Dieselbe Grenze gilt für die Angabe `table:` im
+  Diagramm-Block.
+- **Portabler Export verschluckte die Leerzeile nach einem umgewandelten Block**
+  (`4T-002102`). Nach einer Perspective-Tabelle, einer Datentabelle, einer
+  Ereignis-Aufstellung oder einem Datensatz-Block fehlte im portablen Markdown
+  die Leerzeile vor dem folgenden Text, sodass er beim erneuten Öffnen kein
+  eigener Absatz war. Jetzt bleibt sie stehen; folgt Text direkt unter dem
+  Block oder endet dort das Dokument, setzt der Export selbst eine Leerzeile
+  oder ein Zeilenende.
+- **Rückgängig nahm eine Änderung mit Zeitstempel und automatischem Speichern
+  nicht zurück** (`4T-002121`). Mit der Erweiterung «Erstellungs- und
+  Änderungszeitpunkt» und automatischem Speichern nahm `Strg+Z` nur den beim
+  Speichern gesetzten Zeitstempel zurück, und das folgende automatische
+  Speichern setzte ihn neu; die Änderung davor war so nicht erreichbar. Gemeldet
+  war der Fehler für eine Tabellen-Operation nach einem Wechsel in die
+  Lese-Ansicht und zurück; dieser Weg, ein schreibgeschützter Editor nach der
+  Rückkehr, ist seit 1.151.0 behoben (`4T-002193`), die verbliebene Ursache war
+  der Zeitstempel und traf jede Änderung. Jetzt nimmt ein Rückgängig den
+  Zeitstempel und den Schritt davor zusammen zurück.
+- **`count(x)` zählte eine leere Text-Zelle mit** (`4T-002128`; F1 B,
+  Entscheidung des Product Owners vom 2026-10-30, Empfehlung pauschal
+  übernommen). In der Datentabelle ergab `count(Telefon)` in einer Formel für
+  eine leere Text-Zelle 1, die Aggregat-Zeile derselben Spalte 0.
+  **Verhaltensänderung:** Leerer Text gilt beim Zählen als «ohne Wert», auch als
+  Element einer Liste, überall, wo `count(x)` rechnet: Formeln der
+  Datentabelle, Abfragen an Zeilen- und Gruppen-Stelle samt `HAVING`, Rechnungen
+  im Text und Formel-Felder der Eigenschafts-Profile. Formeln und Abfragen über
+  Text-Spalten oder Eigenschaften mit leerem Text können deshalb ein kleineres
+  Ergebnis zeigen als bisher. Vergleiche, Verkettungen, `default(…)` und
+  `length(…)` über leeren Text bleiben unverändert.
+- **Ereignis-Abfrage über Verweise lieferte gleich nach dem Start nichts**
+  (`4T-002152`). Ein Ereignis-Block mit `FROM [[Name]]` oder einem Verweis-Feld
+  wie `file.outlinks` las den Verweis-Graphen nur, wenn eine andere Ansicht ihn
+  schon gebaut hatte, und war nach jeder Datei-Änderung im Bereich wieder leer.
+  Jetzt baut er ihn bei Bedarf selbst, wie die übrigen Leser des Index.
+- **Klick auf einen Spaltenkopf der Datentabelle verließ im Live-Modus das
+  Raster** (`4T-002258`). Wer in der Ansicht «Live» erst in eine Zelle und dann
+  auf einen Spaltenkopf klickte, sah statt der sortierten Tabelle ihren
+  Quelltext. Ursache: Die Auswahl des Browsers in der Zelle erreichte den Editor
+  beim Umbau der Tabelle als neue Schreibmarke am Anfang des Blocks. Jetzt
+  übergeht die Live-Einbettung eine solche Auswahl innerhalb eines Widgets, für
+  jede Block-Art; der Kopf sortiert auch nach einem Zell-Klick.
+- **Pfeilspitzen fehlten in Mermaid-Diagrammen der Folien, und Diagramme folgten
+  dem Theme der Anwendung statt der Folie** (`4T-002323`; F2 Weg 1, Entscheidung
+  des Product Owners vom 2026-10-30, Empfehlung pauschal übernommen). In der
+  Folien-Ansicht verwiesen die Pfeile auf die Spitzen einer verborgenen Kopie
+  desselben Diagramms; jetzt trägt jede Kopie eigene Kennungen.
+  **Verhaltensänderung:** Mermaid-Diagramme und Diagramme zu Tabellen auf einer
+  Folie folgen dem Theme der Folie, dunkel auf dunkler, hell auf heller Folie
+  (`accent` zählt als dunkel), in der Ansicht, der Vorführung und allen vier
+  Ausgaben, unabhängig vom Theme der Anwendung; PDF und HTML-Seiten eines
+  Foliensatzes werden nicht mehr stets hell gezeichnet, das PDF eines dunklen
+  Foliensatzes ist also dunkel. Außerhalb der Folien bleibt das Theme der
+  Anwendung maßgeblich.
+- **Schreiben des Dateikopfs formatierte einzeilige Listen um** (`4T-002358`).
+  Setzte oder entfernte die Anwendung eine Eigenschaft, etwa im
+  Eigenschafts-Panel, beim Ersetzen im Bereich, bei den Angaben eines Buchs oder
+  in einem Workflow-Schritt, wurde aus einer anderen Eigenschaft `tags: [a, b]`
+  ungefragt `tags: [ a, b ]`. Jetzt schreibt sie einzeilige Listen ohne
+  Innen-Abstände. **Verhaltensänderung:** Eine Liste, die im Dateikopf als
+  `[ a, b ]` steht, wechselt beim ersten Schreiben des Dateikopfs einmalig auf
+  `[a, b]` und bleibt danach stabil; Listen in Block-Form behalten ihre Form.
+- **Ältere Programmfassung entfernte unbekannte Zeitrechnungen aus der
+  Bereichsdatei** (`4T-002361`; F3 ja, Entscheidung des Product Owners vom
+  2026-10-30, Empfehlung pauschal übernommen). Arbeiteten zwei Rechner mit
+  verschiedenen Fassungen im selben Bereich, schrieb die ältere beim Anwenden
+  einer Änderung unter «Kalender-Systeme» die Kalender-Sektion ohne die
+  Zeitrechnungen, die sie nicht kannte, etwa eine aus der hebräischen Vorlage
+  seit 1.154.0; sie waren danach auch für die neuere Fassung verloren. Jetzt
+  reicht die Anwendung unbekannte Zeitrechnungen, Blöcke und Felder beim
+  Schreiben unverändert durch. **Verhaltensänderung:** Enthält der Bereich
+  Zeitrechnungen, die diese Fassung nicht darstellen kann, nennt der
+  Einstellungs-Bereich «Kalender-Systeme» über der Liste ihre Zahl und dass sie
+  in der Bereichsdatei erhalten bleiben. Der Schutz wirkt ab dieser Fassung; eine
+  ältere Fassung entfernt sie weiterhin.
+
+### Dokumentation
+
+- **Handbuch, Funktions-Katalog und Demo zur Kartei-Form** (`4T-002391`). Die
+  Seite «Datenbank» trägt in allen fünf Sprachen den neuen Abschnitt
+  «Kartei-Form» zwischen «Aufteilung großer Datenbestände» und «Steckbrief der
+  Datenbank» mit sieben Unterabschnitten, eingeleitet mit dem Wahl-Kriterium;
+  gegengelesen und ergänzt sind die Abschnitte zu Datensätzen, Belegen,
+  Konsistenz-Prüfung, Bereich, fehlerhaften Angaben und Aus-Zustand, und die
+  Überblicks-Seite nennt die Kartei-Form. Die Funktions-Übersicht hat fünf neue
+  Zeilen in der Gruppe «Datenbank». Die Demo führt im Unterordner `Authors` die
+  Kartei-Tabelle «Authors» mit drei Karteikarten und die Tabelle «Readings» mit
+  Verweisen auf beide Ablage-Formen; ihre Konsistenz-Prüfung bleibt ohne Befund.
+- **Handbuch, Funktions-Katalog und Demo zu Schreibwegen, Sichten und Masken**
+  (`4T-002408`; F8 A, Empfehlung vom Product Owner am 2026-10-27 pauschal
+  übernommen). Die Seite «Datenbank» trägt im Abschnitt «Kartei-Form» in allen
+  fünf Sprachen drei neue Unterabschnitte: «Die Karteikarte im Editor und im
+  Bereichs-Panel», «Sichten an der Karteikarte» und «Masken und Klick-Ziel der
+  Karteikarte»; «Grenzen der Kartei-Form» nennt jetzt die ungeprüften Wege
+  (Ersetzen über den Bereich, Journal-Einträge und Ereignisse, Verschieben von
+  Buch-Kapiteln, Einlesen einer JSON-Canvas-Datei, Änderungen außerhalb der
+  Anwendung), und acht weitere Stellen sind gegengelesen und ergänzt. Die Seite
+  «Perspective-Abfrage» nennt das Klick-Ziel bei Kartei-Form und die
+  eingeblendete Sicht beim Selbstbezug. Die Funktions-Übersicht hat vier neue
+  Zeilen in der Gruppe «Datenbank». Die Demo führt im Ordner `Authors` die Sicht
+  «Books by this author» an der Kartei-Tabelle «Authors» und die Listen-Maske
+  «Authors List» über sie; ihre Konsistenz-Prüfung bleibt ohne Befund.
+- **Handbuch zu den Fehlerbehebungen** (`4T-002383`). Die Seite «Frontmatter und Properties» sagt
+  im Abschnitt «Erstellungs- und Änderungszeitpunkt» in allen fünf Sprachen, dass ein `Strg+Z`
+  unmittelbar nach einem Speichern, das den Änderungszeitpunkt neu setzt, den Zeitpunkt und die
+  letzte Änderung davor zusammen zurücknimmt, auch nach dem automatischen Speichern. Die übrigen
+  Handbuch-Sätze sind mit ihren Behebungen entstanden, je in fünf Sprachen: «Präsentation»
+  (Diagramme folgen dem Theme der Folie, `4T-002323`), «Perspective Datatable» und
+  «Perspective-Abfrage» (leerer Text beim Zählen, `4T-002128`), «Kalender-Systeme» (kein `@` vor
+  einem Kalender-Wert, `4T-001922`; mehrere Programmfassungen im selben Bereich, `4T-002361`) und
+  «Frontmatter und Properties» (Schreibweise einzeiliger Listen, `4T-002358`). Funktions-Katalog
+  und Demo bleiben unverändert.
+- **Nutzen-Darstellung um die Kartei-Form ergänzt** (`4T-002375`,
+  Nutzen-Prüfschritt des Zuges, Entscheidung des Product Owners vom
+  2026-10-31, Empfehlung pauschal übernommen). Die Nutzen-Seite des Handbuchs
+  und die Nutzen-Seite der Webseite nennen im Abschnitt «Daten und Prosa in
+  denselben Dateien» jetzt die Kartei-Form, mit einem eigenen Punkt «Oder ein
+  Dokument je Datensatz» hinter «Die Tabelle steht in ihrer Datei», und sagen
+  im einleitenden Absatz, dass eine Tabelle ihre Datensätze wahlweise als
+  eigene Dokumente führt; in allen fünf Sprachfassungen.
+
+### i18n
+
+- Sechsundvierzig neue Schlüssel je Sprache in allen fünf Sprachfassungen für
+  die Kartei-Form (`4T-002386` bis `4T-002391`): im Fragment `database`
+  siebenundzwanzig (Spalte und Werte der Übersicht `database.overview.col.storage`,
+  `database.overview.storage.*`, `database.overview.cardCount*`, die Handgriffe
+  `database.card.*`, die Hinweise `database.hint.storage`, `…recordStorageCards`
+  und `…cardId`, fünf Lagen der Schreib-Schnittstelle
+  `database.auftrag.auftragKartei*` und fünf Befunde
+  `database.konsistenz.konsistenzKartei*`); die beiden Kommandos
+  `command.database.newCard` und `…adoptCard` samt ihren Zeilen
+  `help.shortcut.*`; im Funktions-Katalog die fünf Zeilen mit je drei
+  Schlüsseln. Die Fremdsprachen nennen die Kartei-Form «card index», «fichier de
+  fiches», «fichero» und «schedario».
+- Einunddreißig neue Schlüssel je Sprache in allen fünf Sprachfassungen für
+  Schreibwege, Sichten und Masken (`4T-002404` bis `4T-002408`, gezählt am
+  Unterschied der deutschen Fragmente gegen den nachgezogenen Zug-Zweig; kein
+  geänderter Schlüssel): im Fragment `database` vierzehn (die Meldungen beim
+  Speichern `database.card.savedFindingsOne`, `…savedFindings` und
+  `…findingsTitle`, die Sicht `database.card.viewLabel`, `…viewTitle` und
+  `…viewMissing`, `database.card.noCardActive`, die Spalte
+  `database.overview.col.views`, vier Hinweise `database.hint.view*`, der
+  Handgriff `database.form.action.openCard` und die Lage
+  `database.auftrag.auftragKarteiVorlageUnbrauchbar`); im Bereichs-Panel
+  `areaPanel.deleteConfirmCard`, `…deleteRefused` und `…copyRefused`; das
+  Kommando `command.database.openInForm` samt `help.shortcut.databaseOpenInForm`;
+  im Funktions-Katalog vier Zeilen mit je drei Schlüsseln.
+- Zwei neue Schlüssel je Sprache in allen fünf Sprachfassungen für die
+  Fehlerbehebungen (`4T-002361`, gezählt am Unterschied der deutschen Fragmente
+  des Epic-Zweigs gegen seinen Abzweig vom Zug-Zweig `7305ea904`; kein
+  geänderter Schlüssel): im Fragment `calendar` die Hinweis-Zeile
+  `settings.calendar.hiddenCalendars` (Mehrzahl mit `{count}`) und
+  `…hiddenCalendarsOne`. Die Fremdsprachen nennen die Zeitrechnung «time
+  reckoning», «calendrier», «cronología» und «cronologia».
+
+### Intern
+
+- **Konsistenz-Prüfung in Module geteilt** (`4T-002386`, ohne
+  Verhaltensänderung). Befund-Katalog und Befund-Bau stehen in
+  `src/main/database/konsistenz-befunde.js`, die Prüfung der Masken-, Listen- und
+  Abfrage-Dateien in `konsistenz-pruefung-dateien.js`, die Befunde der
+  Kartei-Form in `konsistenz-pruefung-kartei.js`; die Exporte von
+  `konsistenz-pruefung.js` sind unverändert. Der Katalog führt
+  siebenunddreißig Codes.
+- **Fünfte Marke und Zwischenspeicher-Version 9** (`4T-002387`). Der Schlüssel
+  `db-record` steht in `src/shared/database/behaelter.js`, der Index führt die
+  Marke `record`; weil er die Marken im Bereichs-Zwischenspeicher hält, steigt
+  dessen Version von 8 auf 9. Neues prozess-neutrales Modul
+  `src/shared/database/karteikarte.js` (Kennung, Ordner-Regel, Art und Werte
+  einer Karteikarte), Erfassung im Index in `src/main/index/karteikarten-erfassung.js`
+  als Nachlauf des Aufbaus und in eigenen Beobachter-Schritten, Profil-Zugang der
+  Konsistenz-Prüfung in `src/main/documents/profil-felder.js`.
+- **Zweiter Lese-Weg und zweites Schreib-Ziel** (`4T-002388`, `4T-002389`). Die
+  Weiche in der Grund-Stufe des Tabellen-Lesers baut die Datensätze einer
+  Kartei-Tabelle in `src/main/index/record-kartei-read.js` aus den Karteikarten,
+  in derselben Gestalt wie die Zeilen eines Blocks; welche es gibt, sagt der
+  Index, ihren Inhalt die Datei. Die Schreib-Schnittstelle liest für eine
+  Kartei-Tabelle den Ordner frisch unter der Sperre und schreibt über
+  `src/main/database/record-auftrag-kartei.js` und
+  `src/shared/database/karteikarte-schreiben.js`; die Handgriffe der Oberfläche
+  stehen in `src/renderer/modules/database/karteikarte-anlegen.js`.
+- **Geteilter Weg in den Papierkorb und Absichts-Protokoll mit Entsorgung**
+  (`4T-002389`, `4T-002390`). `src/main/documents/papierkorb.js` trägt die Logik
+  des Bereichs-Panels unverändert und dient dem Löschen einer Karteikarte als
+  Naht `papierkorb`; das Absichts-Protokoll führt die Pfade im freigestellten Feld
+  `entsorgen` bei unveränderter Schema-Version, und der Wiederanlauf erkennt den
+  Eintrag mit übertragenen Belegen. Der Plan trägt je Beleg die Bezugs-Datei, die
+  Übertragung der Belege steht in `change-log.js`.
+- **Prüffälle**: neue Prüfdateien `db-kartei-form`, `db-karteikarte`,
+  `db-kartei-index`, `db-kartei-abfrage`, `db-kartei-schreibweg` und
+  `kartei-aus-zustand` (Aus-Zustand je Zusage: ruhender Index, leere Abfrage,
+  unberührte Dateien, Rückkehr, entfallene Kommandos), der Ablauf
+  `datenbank-kartei.spec.js` mit den Fällen DB-KAR-01 bis DB-KAR-06, die
+  Matrix-Einträge F-378 bis F-382, S-172 und S-173. Nebenbefunde verortet als
+  eigene Vorgänge: die Neu-Zuordnung der Folge-Segmente einer geteilten Tabelle
+  im Beobachter-Pfad (`4T-002399`) und ein fehlender Beleg bei Änderung der
+  Tabellen-Definition (`4T-002400`).
+- **Eine Prüf-Funktion, drei Folgen** (`4T-002404`). Die Datensatz-Prüfung der
+  Konsistenz-Prüfung steht zeichengleich in
+  `src/main/database/datensatz-pruefung.js`; `pruefeKarteikarte` wendet sie auf
+  eine Karteikarte an und verlangt die Herkunft des Aufrufs, die Folge bestimmt
+  der Aufrufer (Konsistenz-Prüfung listet, Speichern meldet, Schnittstelle weist
+  ab). Der Anschluss `src/main/database/speicher-pruefung.js` läuft nach dem
+  Schreiben in `file:save` und `file:saveAs` und liefert die Angabe
+  `karteiBefunde` im Ergebnis, ohne den Ausgang zu ändern. Im Anzeige-Prozess
+  hält `src/renderer/modules/database/karteikarte-befunde.js` die Befunde je
+  Pfad; `applyFrontmatterLine` ist nach `frontmatter-line.js` gezogen und der
+  Satz eines Befunds nach `konsistenz-befund-text.js`, beide ohne
+  Verhaltensänderung.
+- **Weichen der Dokument-Kanäle** (`4T-002405`). `src/main/database/kartei-weichen.js`
+  erkennt eine Karteikarte nach derselben Regel wie der Bestand der
+  Schnittstelle und leitet `area:trashFile` in einen Lösch-Auftrag und die
+  Kopier-Handlung von `area:copyFile` in einen Anlege-Auftrag um; der neue
+  Kanal `area:istKarteikarte` (Brücke in `preload-datenbank.js`) lässt den
+  Anzeige-Prozess vor dem Löschen die Reihenfolge wählen. Die Angabe
+  `karteikarte` der Schnittstelle kennt die dritte Form `{ name, vorlage }` mit
+  der Lage `karteiVorlageUnbrauchbar`.
+- **Klick-Ziel und Handgriffe** (`4T-002406`). Der neue Kanal
+  `database:karteikarte` löst Tabelle und Kennung zur Datei einer Karteikarte
+  auf; `src/renderer/modules/database/karteikarte-ansichten.js` hängt die Weiche
+  an `openRecordHit` und trägt die Handlung von `database.openInForm`,
+  `karteikarte-erkennung.js` die Erkennung als Blatt-Modul. `database:datensatz`
+  meldet die Kartei-Form mit der Angabe `karteikarte`, und die Verfügbarkeit
+  kennt die menüfreie Bedingung `karteikarte`.
+- **Sichten** (`4T-002407`). `leseSichten` in
+  `src/shared/database/table-definition.js` liest `views` mit vier neuen
+  Hinweis-Codes, `src/main/database/sichten-zuordnung.js` ordnet die Sichten im
+  Katalog den Abfrage-Dateien zu, und
+  `src/renderer/modules/database/karteikarte-sichten.js` blendet sie aus der
+  Dateikopf-Zeile heraus ein, registriert in `views/pane-render.js`. Bezug der
+  Abfrage ist die Karteikarte, weil der Teilbaum mit ihrem Pfad durch den
+  Schritt-Satz der erzeugten Teilbäume läuft; die Abfrage-Sprache bleibt
+  unberührt. Die Abfrage-Datei geht relativ zum Ordner der Karteikarte in den
+  Lese-Kanal der Einbettungen (`zielZurKarte`, `4T-002499`), weil dieser ein
+  mit «/» beginnendes Ziel als Unterseite des Dokuments deutet; mit dem
+  absoluten Pfad galt die Sicht unter Linux und macOS als fehlend, gefunden im
+  Linux-Ablauf-Lauf der Release-Strecke.
+- **Prüffälle**: neue Prüfdateien `db-kartei-speicher-pruefung`,
+  `renderer/kartei-befunde-anzeige`, `db-kartei-weichen`,
+  `renderer/karteikarte-ansichten`, `db-sichten` und
+  `renderer/karteikarte-sichten`, ergänzt unter anderem `db-kartei-form`,
+  `db-datensatz-kanal`, `db-liste-kanal`, `db-positionsliste-kanal`,
+  `renderer/masken-fehlt` und `demo-area`; der Ablauf
+  `datenbank-kartei-schreibwege.spec.js` mit den Fällen DB-KAS-01 bis DB-KAS-06,
+  die Matrix-Einträge F-388 bis F-391 und S-174. Angehoben sind die
+  eingefrorenen Größen-Werte von `commands.js`, `extensions.js`,
+  `app-commands.js` und `command-availability.test.js` um je wenige Zeilen.
+  Nebenbefund verortet als eigener Vorgang: Pflicht-Angabe und Prüfregel werden
+  beim Lesen in beiden Ablage-Formen nicht geprüft (`4T-002409`); die übrigen
+  Nebenbefunde stehen im Befund-Eingang der Pflege-Gefäße.
+- **Unbekannte Kalender-Inhalte durchreichen** (`4T-002361`). Neues Blatt-Modul
+  `src/shared/calendar/calendar-passthrough.js` (`unbekannteDurchreichen`,
+  `verborgeneEintraege`), angewandt im Schreiber der Bereichsdatei
+  `src/main/area/area-config.js` gegen den Stand der Datei im Augenblick des
+  Schreibens, damit für beide Schreibwege, Einstellungen und Einlesen einer
+  Austausch-Datei; der Lese-Kanal `calendar:getConfig` liefert die Zahl
+  `hiddenCalendars`. Kalender-Kern und Normalisierung sind unverändert. Am Code
+  gelesen verlieren neun weitere Sektionen der Bereichsdatei beim Schreiben
+  Unbekanntes; das steht als Nebenbefund im Befund-Eingang.
+- **Kern-Regel vor der Attribut-Bibliothek** (`4T-001922`). Neues Plugin
+  `src/shared/markdown/plugins/attributes.js` vor und nach `markdown-it-attrs`:
+  Ein Klammer-Paar am Absatzende ohne erlaubtes Attribut bleibt Text, weil die
+  Bibliothek dafür keine Einstellung kennt. Die Inline-Regel der Kalender-Werte
+  erkennt über `matchCalendarValueAt` und den neuen Ausdruck
+  `CALENDAR_VALUE_AT_RE` in `src/shared/calendar/calendar-value-syntax.js`,
+  gebildet aus dem gemeinsamen Ausdruck `CALENDAR_VALUE_SCAN_RE`.
+- **Weitere Stellen der Behebungen.** Scroll-Behandler `liveTabellenScroll` in
+  `live-table-zelle.js` (`4T-001812`); Zeichen-Referenz im Zell-Export
+  `perspective-table.js` (`4T-001919`); `ankerUmbenennenStellen` und
+  `zielIstEigenesDokument` in `src/shared/block-anchors.js` (`4T-002100`,
+  `4T-002101`; der Code von `4T-002100` liegt im Commit von `4T-002101`, weil
+  beide dieselbe Funktion ändern); Ausklang und `trennerNachBlock` in
+  `portable-fences.js` (`4T-002102`); Stempel-Schritt in `editor-historie.js` und
+  `save-export.js` (`4T-002121`); `presentCount` in `query-functions.js`
+  (`4T-002128`); Graph bei Bedarf in `eventsForQuery` (`4T-002152`);
+  Transaktions-Filter `liveWidgetAuswahlFilter` in `live-interaction.js`
+  (`4T-002258`); eigene SVG-Kennungen je Kopie und Theme von außen in
+  `render-mermaid.js`, `chart-view.js`, `presentation-folie.js`,
+  `presentation-pane.js` und `folien-export.js` (`4T-002323`); Ausgabe-Option
+  `flowCollectionPadding: false` in `frontmatter.js` (`4T-002358`).
+- **Prüffälle**: neue Prüfdateien `calendar-value-syntax`,
+  `kalender-unbekannte-durchreichen`, `renderer/folien-diagramm-theme`,
+  `renderer/kalender-nicht-darstellbar-hinweis`, `renderer/live-widget-auswahl`
+  und `renderer/save-export-stempel`, ergänzt unter anderem `block-anchors`,
+  `events-aggregation`, `export-portable`, `markdown-pipeline`,
+  `perspective-datatable`, `perspective-query-aggregate`,
+  `renderer/live-tabellen-zelle`, `renderer/presentation-export`,
+  `renderer/presentation-pane`, die beiden Workflow-Prüfdateien und die
+  Schnappschüsse; der neue Ablauf `datentabelle-live-kopf.spec.js` mit KZ-01 bis
+  KZ-04, die neuen Ablauf-Fälle BP-09, BP-10, PR-31, TK-09 und TK-10, TZ-02 über
+  eine Reihe von Fensterbreiten, TR-06 gehärtet und DT-18 in natürlicher
+  Reihenfolge. Je Behebung eine Zeile im Fehlerklassen-Register, bei `4T-001922`
+  zwei; die Wiederholungs-Signale der Klasse L10 wertet `4T-002457` aus. Die
+  Nebenbefunde stehen im Befund-Eingang der Pflege-Gefäße.
+- **Mitgelieferte Stände seit 1.155.0** (Webseite und ihr Bau-Ablauf berührt, kein Anwendungs-Code, kein Anwender-Text nötig): Der Zug hat den Integrationsstand nach dem Release 1.155.0 dreimal per Zusammenführung hereingeholt (`3E-000370`): am 2026-10-31 im Zug-Clone und abends im Stamm-Clone vor der Voll-Suite, am 2026-11-01 erneut vor dem Bau. Mit der ersten kamen die Zusammenführung des Releases 1.155.0 nach `main` (`3E-000380`) und die Konzept-Runde Workflows Stufe 3 (`4T-002458` unter `3E-000367`: Stories, Umsetzungs-Aufgaben und Zug-Epic der Stufe 3, dazu in der Roadmap-Zuordnung `web/roadmap-zuordnung.json` die Zuordnung eines Epics zu einer anderen Kachel und ein neuer Eintrag ohne Kachel; die Datei lesen allein die Wächter, auf den erzeugten Seiten erscheint nichts davon). Mit der zweiten kamen der Abschluss der Release-Strecke 1.155.0 (`4T-002429`, sechs erneuerte Bildschirmfotos der Produkt-Webseite und die Befund-Triage mit den Pflege-Vorgängen `4T-002473` bis `4T-002475` und einer Triage-Zeile an `4T-002444`), das Versions-Archiv am gemeinsamen Ablage-Ort samt angepasstem Bau der Versions-Seite der Webseite und angepasstem Quellcode-Export (`4T-002486`) und sieben neue Kacheln «geplant» in der öffentlichen Roadmap der Webseite in fünf Sprachen (`4T-002493`). Mit der dritten kam die Kachel «Dashboards aus Markdown», ebenfalls «geplant» und in fünf Sprachen (`3E-000402`, angelegt mit den Begleit-Epics `3E-000403` und `3E-000404`, berichtigt in `4T-002500`). Die beiden Webseiten-Vorgänge des Bündels (`4T-002012`, `4T-002031`) sind zusätzlich über einen Arbeits-Zweig integriert und stehen unter «Geändert».
+
 ## [1.155.0.4594] - 2026-10-30 — Workflows Stufe 2: Workflows nach Zeitplan und Pflege-Befehle
 
 Zug 3E-000380

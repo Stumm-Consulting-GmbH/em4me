@@ -30,7 +30,10 @@
 // (F6), und ein Aufrufer ohne Frontmatter sagt das (F7).
 'use strict';
 
-const { frontmatterBodyStart } = require('./markdown/link-scan.js');
+const { frontmatterBodyStart, MD_EXT_RE, normalizeNameKey } = require('./markdown/link-scan.js');
+// 4T-002101: Unterseiten-Trennzeichen der Datei-Basenamen, für die Frage, ob ein
+// Verweis-Ziel das eigene Dokument nennt (subpages.js lädt nur link-scan.js).
+const { toFileBasename } = require('./subpages.js');
 // 4T-002024 (Epic 3E-000192), Durchsicht vom 2026-09-30: Ob eine Zeile in einem
 // Code-Block steht, entscheidet die Zaun-Regel der Anwendung, nicht mehr das
 // Umschalten an jeder Zeile, die mit drei Backticks beginnt. Das Blatt ohne
@@ -356,26 +359,36 @@ function datentabelleAnZeile(datentabellen, line, zeilenzahl) {
 // `table: ^oldId` eines Diagramm-Blocks nennt die Tabelle im selben Dokument
 // und zieht nach wie ein Verweis. Nur die wirksame, also die erste Angabe der
 // Fence; ersetzt wird allein der Name, die Zeile bleibt sonst Byte fuer Byte.
-// `table: [[Datei#^oldId]]` bleibt unberuehrt, auch wenn `Datei` das eigene
-// Dokument ist: Ob sie es ist, weiss dieses Modul nicht, und ein Verweis aus
-// einem anderen Dokument zieht beim Umbenennen des Ankers ebenso nicht nach.
+// `table: [[Datei#^oldId]]` zieht nach derselben Grenze wie ein Verweis im Text
+// mit (4T-002101, unten).
 //
 // 4T-002072: Zwei weitere Stellen im Fenced-Code. Im Kopf einer Datentabelle
 // der obersten Ebene ersetzt die Funktion den Wert der ersten Angabe `table:`,
 // wenn er `oldId` ist — Schreibweise des Schlüssels, Leerraum und Einrückung
 // bleiben. Und im Diagramm-Block zieht `table: oldId` ohne Dach-Zeichen mit,
 // weil die Erkennung der Angabe sie als Form «selbes Dokument» liefert.
-function rewriteAnchorReferences(text, oldId, newId) {
+//
+// 4T-002101 (Story 4S-000228 AK5 und AK6): Mitgezogen werden nur Verweise auf
+// DIESES Dokument, `[[#^oldId]]` immer und `[[Datei#^oldId]]` nur, wenn `Datei`
+// das eigene Dokument nennt. Dafür reicht der Aufrufer dessen Pfad als
+// `optionen.eigenerPfad` herein; fehlt er (ungespeichertes Dokument), bleibt
+// jeder Verweis mit Dateinamen stehen. Ein Verweis auf einen gleichnamigen
+// Block eines anderen Dokuments zeigte nach dem Umschreiben ins Leere.
+function rewriteAnchorReferences(text, oldId, newId, optionen = {}) {
   const src = String(text ?? '');
   if (!isValidBlockAnchorId(oldId) || !isValidBlockAnchorId(newId) || oldId === newId) {
     return src;
   }
+  const eigenerPfad = optionen && optionen.eigenerPfad;
   const esc = oldId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   // Anker-Definition: `^oldId` als letztes Zeilenelement (mit fuehrendem
   // Zeilenanfang oder Whitespace, optionalem Trailing-Whitespace).
   const defRe = new RegExp('(^|\\s)\\^' + esc + '(\\s*)$', 'u');
-  // Verweise: `#^oldId` unmittelbar vor `]` (Ziel-Ende) oder `|` (Label-Trenner).
-  const linkRe = new RegExp('#\\^' + esc + '(?=[\\]|])', 'gu');
+  // Verweise: `[[Ziel#^oldId` unmittelbar vor `]` (Ziel-Ende) oder `|`
+  // (Label-Trenner); das Ziel entscheidet, ob der Verweis mitzieht.
+  const linkRe = new RegExp('\\[\\[([^\\[\\]|]*?)#\\^' + esc + '(?=[\\]|])', 'gu');
+  const verweis = (ganz, ziel) =>
+    zielIstEigenesDokument(ziel, eigenerPfad) ? '[[' + ziel + '#^' + newId : ganz;
   const lines = src.split(/\r?\n/);
   const start = frontmatterBodyStart(lines);
   // Die offene Fence nach der Zaun-Regel (Durchsicht vom 2026-09-30, wie in
@@ -418,16 +431,85 @@ function rewriteAnchorReferences(text, oldId, newId) {
       const angabe = scanneTabellenAngabe(line);
       if (!angabe) continue;
       tabelleGesehen = true;
-      if (angabe.form === 'same' && angabe.name === oldId) {
+      const eigen =
+        angabe.form === 'same' ||
+        (angabe.form === 'other' && zielIstEigenesDokument(angabe.datei, eigenerPfad));
+      if (eigen && angabe.name === oldId) {
         lines[i] =
           line.slice(0, angabe.nameStart) + newId + line.slice(angabe.nameStart + angabe.nameLen);
       }
       continue;
     }
-    lines[i] = line.replace(defRe, '$1^' + newId + '$2').replace(linkRe, '#^' + newId);
+    lines[i] = line.replace(defRe, '$1^' + newId + '$2').replace(linkRe, verweis);
   }
   zitatDiagrammeNachziehen(lines, start, oldId, newId);
   return lines.join('\n');
+}
+
+// 4T-002101: Nennt das Ziel eines Wiki-Verweises das eigene Dokument? Leeres
+// Ziel (`[[#^id]]`) immer; sonst nur mit bekanntem eigenen Pfad und nach der
+// Namens-Regel der Ziel-Auflösung des Index (src/main/index/resolve.js,
+// `resolveWikiLinkDetailed`): Markdown-Endung ab, `normalizeNameKey` für
+// Unicode-Form und Groß- und Kleinschreibung, Backslash als Schrägstrich. Ohne
+// Schrägstrich vergleicht der Name mit dem Basenamen, mit Schrägstrich die
+// Pfad-Form mit dem Ende des eigenen Pfads und die Unterseiten-Form mit dem
+// Basenamen in U+2215-Schreibweise. Eine relative Form (`/Kind`, `..`) und ein
+// Verweis in einen verknüpften Bereich nennen das eigene Dokument nie sicher
+// und bleiben stehen; ebenso ein Zweitname (`aliases`), den nur der Index kennt.
+function zielIstEigenesDokument(ziel, eigenerPfad) {
+  const roh = String(ziel ?? '').trim();
+  if (roh === '') return true;
+  if (!eigenerPfad) return false;
+  const schluessel = (s) => normalizeNameKey(s.replace(MD_EXT_RE, '')).replace(/\\/g, '/');
+  const gesucht = schluessel(roh);
+  const pfad = schluessel(String(eigenerPfad).trim());
+  const basis = pfad.slice(pfad.lastIndexOf('/') + 1);
+  if (!gesucht.includes('/')) return gesucht === basis;
+  return pfad === gesucht || pfad.endsWith('/' + gesucht) || toFileBasename(gesucht) === basis;
+}
+
+// 4T-002100: Das Umbenennen als Liste einzelner Stellen `{ from, to, insert }`
+// (Zeichen-Versatz im übergebenen Text) statt als Ersatz des ganzen Dokuments.
+// Je geänderter Zeile genau eine Stelle, zugeschnitten auf den Teil zwischen
+// gemeinsamem Anfang und gemeinsamem Ende von alter und neuer Zeile; der Editor
+// bildet die Schreibmarke dann durch die Stellen ab, und sie behält Zeile und,
+// außerhalb des Namens, Spalte. Grundlage ist `rewriteAnchorReferences`, das
+// die Zahl der Zeilen nie ändert; die Versätze zählen die Zeilenenden des
+// übergebenen Texts (LF oder CRLF), die nie Teil einer Stelle sind. Wiche die
+// Zeilenzahl doch einmal ab, bleibt als sicherer Rückfall eine Stelle über den
+// ganzen Text.
+function ankerUmbenennenStellen(text, oldId, newId, optionen) {
+  const src = String(text ?? '');
+  const neu = rewriteAnchorReferences(src, oldId, newId, optionen);
+  if (neu === src) return [];
+  const alteZeilen = src.split(/\r?\n/);
+  const neueZeilen = neu.split('\n');
+  if (alteZeilen.length !== neueZeilen.length) return [{ from: 0, to: src.length, insert: neu }];
+  const stellen = [];
+  const ende = /\r?\n/g;
+  let versatz = 0;
+  for (let i = 0; i < alteZeilen.length; i++) {
+    const a = alteZeilen[i];
+    const b = neueZeilen[i];
+    if (a !== b) {
+      let vorn = 0;
+      while (vorn < a.length && vorn < b.length && a[vorn] === b[vorn]) vorn++;
+      let hinten = 0;
+      const rest = Math.min(a.length, b.length) - vorn;
+      while (hinten < rest && a[a.length - 1 - hinten] === b[b.length - 1 - hinten]) hinten++;
+      // Kein Schnitt durch ein Ersatzzeichen-Paar (Zeichen außerhalb der BMP).
+      if (vorn > 0 && /[\uD800-\uDBFF]/.test(a[vorn - 1])) vorn--;
+      if (hinten > 0 && /[\uDC00-\uDFFF]/.test(a[a.length - hinten])) hinten--;
+      stellen.push({
+        from: versatz + vorn,
+        to: versatz + a.length - hinten,
+        insert: b.slice(vorn, b.length - hinten),
+      });
+    }
+    const m = ende.exec(src);
+    versatz = m ? m.index + m[0].length : src.length;
+  }
+  return stellen;
 }
 
 // 4T-002072, Nachbesserung F6: Ein Diagramm-Block in einem Zitat oder tief
@@ -660,5 +742,6 @@ module.exports = {
   blockAnchorForLine,
   ankerZielFuerZeile,
   rewriteAnchorReferences,
+  ankerUmbenennenStellen,
   generateBlockAnchorId,
 };

@@ -32,7 +32,11 @@ import {
   zellTextAn,
 } from '../../../src/renderer/modules/live/live-table-zell-kern.js';
 import { parsePipeTable } from '../../../src/shared/markdown/table-edit.js';
-import { tabellenQuelleAm } from '../../../src/renderer/modules/live/live-table-zelle.js';
+import {
+  scrolleTabellenStelleSenkrecht,
+  senkrechteVerschiebung,
+  tabellenQuelleAm,
+} from '../../../src/renderer/modules/live/live-table-zelle.js';
 
 const TABELLE = ['| A | B | C |', '| --- | --- | --- |', '| a1 | b1 | c1 |'];
 const QUELLE = TABELLE.join('\n');
@@ -451,5 +455,59 @@ describe('tabellenQuelleAm und Zurückschreiben im Zitat (4T-002055)', () => {
 
   it('ein Block-Text, der die Präfixe noch trägt, wird nicht bestätigt', () => {
     expect(blockAmAnker(state.doc, von, imZitat.slice(2))).toBeNull();
+  });
+});
+
+// 4T-001812: Eine Stelle in einer Tabelle scrollt der Editor nur senkrecht. Bis
+// dahin bat er CodeMirror, den rechten Rand des Tabellen-Widgets sichtbar zu
+// machen, und verschob den ganzen Inhalt waagerecht (gemessen 81,2 px bei 1400
+// px Inhaltsbreite), sobald er breiter war als das Fenster.
+describe('scrolleTabellenStelleSenkrecht (4T-001812)', () => {
+  // Rechteck der Tabelle relativ zum Scroll-Bereich, der bei 0 beginnt und
+  // 500 px hoch ist; die Tabelle steht 40 px weit im waagerecht verschobenen Teil.
+  function baueEditor(tabelle) {
+    const dom = document.createElement('div');
+    const kasten = document.createElement('div');
+    kasten.className = 'cm-live-block';
+    kasten.dataset.tabellenLaenge = '20';
+    kasten.getBoundingClientRect = () => ({ left: 40, right: 1475, ...tabelle });
+    dom.appendChild(kasten);
+    const scrollDOM = {
+      scrollTop: 100,
+      scrollLeft: 0,
+      clientHeight: 500,
+      getBoundingClientRect: () => ({ top: 0 }),
+    };
+    return { dom, scrollDOM, posAtDOM: (el) => (el === kasten ? 10 : 0) };
+  }
+  const ziel = { y: 'nearest', yMargin: 5, x: 'nearest', xMargin: 5 };
+
+  it('lässt die waagerechte Lage stehen, wenn die Tabelle sichtbar ist', () => {
+    const view = baueEditor({ top: 200, bottom: 300 });
+    expect(scrolleTabellenStelleSenkrecht(view, { head: 15, anchor: 15 }, ziel)).toBe(true);
+    expect(view.scrollDOM.scrollLeft).toBe(0);
+    expect(view.scrollDOM.scrollTop).toBe(100);
+  });
+
+  it('scrollt eine verdeckte Tabelle nur senkrecht ins Bild', () => {
+    const view = baueEditor({ top: 560, bottom: 600 });
+    expect(scrolleTabellenStelleSenkrecht(view, { head: 30, anchor: 30 }, ziel)).toBe(true);
+    expect(view.scrollDOM.scrollTop).toBe(100 + 600 - 500 + 5);
+    expect(view.scrollDOM.scrollLeft).toBe(0);
+  });
+
+  it('überlässt eine Stelle außerhalb jeder Tabelle CodeMirror', () => {
+    const view = baueEditor({ top: 560, bottom: 600 });
+    expect(scrolleTabellenStelleSenkrecht(view, { head: 31, anchor: 31 }, ziel)).toBe(false);
+    expect(scrolleTabellenStelleSenkrecht(view, { head: 9, anchor: 9 }, ziel)).toBe(false);
+    expect(view.scrollDOM.scrollTop).toBe(100);
+  });
+
+  it('folgt den senkrechten Regeln von CodeMirror', () => {
+    const rect = { top: 600, bottom: 700 };
+    expect(senkrechteVerschiebung(rect, 0, 500, 'start', 5, 1)).toBe(595);
+    expect(senkrechteVerschiebung(rect, 0, 500, 'end', 5, 1)).toBe(205);
+    expect(senkrechteVerschiebung(rect, 0, 500, 'center', 5, 1)).toBe(400);
+    expect(senkrechteVerschiebung({ top: -50, bottom: 20 }, 0, 500, 'nearest', 5, -1)).toBe(-55);
   });
 });

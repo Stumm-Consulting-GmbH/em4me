@@ -9,8 +9,10 @@ import { EditorView, WidgetType } from '@codemirror/view';
 
 import { t, applyTranslations } from '../../i18n.js';
 import { api } from '../app/api.js';
+// 4T-002404: Die Dateikopf-Zeile hat ein eigenes Modul (Größen-Budget von
+// render-mermaid.js); das Widget ruft sie ohne Pfad, also ohne Markierung.
+import { applyFrontmatterLine } from '../frontmatter-line.js';
 import {
-  applyFrontmatterLine,
   cleanupMermaidLeftovers,
   ensureMermaidConfigured,
   loadMermaid,

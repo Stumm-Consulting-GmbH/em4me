@@ -142,6 +142,55 @@ describe('writeFrontmatter emptyStubKeys (4T-000491, Epic 3E-000093)', () => {
   });
 });
 
+// 4T-002358 (Epic 3E-000371): Schreibweise der Fluss-Listen im Dateikopf.
+// Vorgabe ist `[a, b]` ohne Innen-Abstände; eine Quelle mit `[ a, b ]`
+// wechselt beim ersten Schreiben einmalig auf `[a, b]` und bleibt danach
+// stabil. Block-Listen behalten ihre Form.
+describe('writeFrontmatter Fluss-Listen (4T-002358, Epic 3E-000371)', () => {
+  it('`[a, b]` bleibt beim Ändern einer anderen Eigenschaft `[a, b]`', () => {
+    const src = '---\ntags: [a, b]\ntitel: Alt\n---\nText\n';
+    const res = writeFrontmatter(src, { tags: ['a', 'b'], titel: 'Neu' });
+    expect(res.ok).toBe(true);
+    expect(res.text).toBe('---\ntags: [a, b]\ntitel: Neu\n---\nText\n');
+  });
+
+  it('`[ a, b ]` wird beim Schreiben einmalig `[a, b]` und bleibt danach stabil', () => {
+    const src = '---\ntags: [ a, b ]\ntitel: Alt\n---\nText\n';
+    const erst = writeFrontmatter(src, { tags: ['a', 'b'], titel: 'Neu' });
+    expect(erst.ok).toBe(true);
+    expect(erst.text).toBe('---\ntags: [a, b]\ntitel: Neu\n---\nText\n');
+    const zweit = writeFrontmatter(erst.text, { tags: ['a', 'b'], titel: 'Neuer' });
+    expect(zweit.text).toBe('---\ntags: [a, b]\ntitel: Neuer\n---\nText\n');
+  });
+
+  it('eine Liste in Block-Form bleibt Block-Form', () => {
+    const src = '---\ntags:\n  - a\n  - b\ntitel: Alt\n---\nText\n';
+    const res = writeFrontmatter(src, { tags: ['a', 'b'], titel: 'Neu' });
+    expect(res.ok).toBe(true);
+    expect(res.text).toBe('---\ntags:\n  - a\n  - b\ntitel: Neu\n---\nText\n');
+  });
+
+  it('Entfernen eines anderen Feldes lässt die Fluss-Liste unverändert', () => {
+    const src = '---\ntags: [a, b]\ntitel: Alt\n---\nText\n';
+    const res = writeFrontmatter(src, { tags: ['a', 'b'] });
+    expect(res.ok).toBe(true);
+    expect(res.text).toBe('---\ntags: [a, b]\n---\nText\n');
+  });
+
+  it('auch der Weg mit emptyStubKeys schreibt `[a, b]`', () => {
+    const src = '---\ntags: [a, b]\ntitel: Alt\n---\nText\n';
+    const res = writeFrontmatter(
+      src,
+      { tags: ['a', 'b'], titel: 'Alt', ort: '' },
+      {
+        emptyStubKeys: ['ort'],
+      },
+    );
+    expect(res.ok).toBe(true);
+    expect(res.text).toBe('---\ntags: [a, b]\ntitel: Alt\nort:\n---\nText\n');
+  });
+});
+
 // 4T-000382 (Epic 3E-000072): Mehrspalten-Container `::: columns <n>` mit
 // Umbruch-Marker `+++` und Rueckfall bei ungueltiger Spaltenzahl.
 describe('Mehrspalten-Container (4T-000382, Epic 3E-000072)', () => {

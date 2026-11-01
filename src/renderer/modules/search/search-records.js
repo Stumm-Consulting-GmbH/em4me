@@ -150,6 +150,10 @@ export function sichtbareGruppenUndTreffer(bestand, ersetzenModus) {
  * Ein Markier-Weg entfällt: Markier-Wege hängen am Suchraum (search.scope), und
  * der Raum der Datensatz-Treffer ist der Bereich, dessen Weg bereits steht.
  *
+ * 4T-002406 (Epic 3E-000266, F7 A): Bei einer Karteikarte öffnet derselbe Weg
+ * ihr Dokument statt der Maske; die Weiche hängt an `openRecordHit`
+ * (`database/karteikarte-ansichten.js`).
+ *
  * @param {object} treffer
  * @returns {boolean} true, wenn die Maske angefordert wurde.
  */

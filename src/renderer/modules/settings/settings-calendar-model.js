@@ -662,6 +662,10 @@ export async function readCalendarFromConfig() {
     // Ansichts-Zustand der zweistufigen Navigation: null = Block-Übersicht,
     // sonst der Index des geöffneten Blocks (flüchtig, Muster openShelf).
     openBlock: null,
+    // 4T-002361 (Epic 3E-000371): Zeitrechnungen, die diese Fassung nicht
+    // darstellt (Hinweis-Zeile), und ihre Kennungen (Kennungs-Vergabe).
+    hiddenCount: (config && Number(config.hiddenCalendars)) || 0,
+    reservedIds: (config && config.reservedIds) || { blocks: [], calendars: {} },
   };
   return { draft, snapshot: calendarConfigPersistForm(draft) };
 }

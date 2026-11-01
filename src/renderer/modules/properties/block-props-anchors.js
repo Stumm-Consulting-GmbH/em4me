@@ -3,14 +3,14 @@
 // 4T-000979 (Epic 3E-000196): Auszug aus block-props-panel.js.
 // 4T-002072 (Epic 3E-000192): Das Anlegen fragt den Schreibort der Heimat
 // (`ankerZielFuerZeile`); in einer Datentabelle entsteht die Kennung als
-// Kopf-Angabe `table:` im Block. Das Umbenennen wirkt unverändert über
+// Kopf-Angabe `table:` im Block. Das Umbenennen wirkt über
 // `rewriteAnchorReferences`, das die Kopf-Angabe und die Diagramm-Angaben beider
-// Schreibweisen mitzieht. Nachbesserung F1: In einem anderen Code-Block (auch im
-// Zitat oder eingerückt) entsteht die Kennung als eigene Zeile unter dem Zaun.
+// Schreibweisen mitzieht (seit 4T-002100 als Stellen-Liste aus
+// `ankerUmbenennenStellen`). Nachbesserung F1: In einem anderen Code-Block (auch
+// im Zitat oder eingerückt) entsteht die Kennung als eigene Zeile unter dem Zaun.
 'use strict';
 
-// 4T-000484 (Epic 3E-000088): Undo-Isolation der Ganz-Dokument-Ersetzung beim
-// Anker-Umbenennen (Muster handleLinkUpdateApplied in views.js).
+// 4T-000484 (Epic 3E-000088): Undo-Isolation der Änderung beim Anker-Umbenennen.
 import { isolateHistory } from '@codemirror/commands';
 import { t } from '../../i18n.js';
 import { api, getDocText } from '../app/api.js';
@@ -19,7 +19,7 @@ import { paneEditors } from '../editor/editor.js';
 import {
   ankerZielFuerZeile,
   extractBlockAnchors,
-  rewriteAnchorReferences,
+  ankerUmbenennenStellen,
   generateBlockAnchorId,
   isValidBlockAnchorId,
 } from '../../../shared/block-anchors.js';
@@ -226,17 +226,20 @@ async function applyRename(paneIdx, oldId, newId) {
   }
   flushPendingSave(paneIdx);
   if (view) {
-    const oldText = getDocText(view.state.doc);
-    const newText = rewriteAnchorReferences(oldText, oldId, newId);
-    if (newText !== oldText) {
-      // 4T-000484 (Epic 3E-000088): Ganz-Dokument-Ersetzung aus dem Panel-Pfad als
-      // eigene Undo-Einheit isolieren (Muster handleLinkUpdateApplied,
-      // views.js) — sonst verschmilzt sie mit dem vorherigen Historien-
-      // Ereignis und ein Undo nimmt zu viel zurück.
-      view.dispatch({
-        changes: { from: 0, to: view.state.doc.length, insert: newText },
-        annotations: isolateHistory.of('full'),
-      });
+    // 4T-002101: Der eigene Pfad entscheidet, welche Verweise mit Dateinamen
+    // dieses Dokument meinen und mitziehen; ohne Pfad zieht nur `[[#^id]]` mit.
+    // 4T-002100: Nur die geänderten Teile der Zeilen werden geschrieben, nach
+    // dem Vorbild performStatusToggle (task-states.js). Die Ersetzung des ganzen
+    // Dokuments setzte die Schreibmarke an den Anfang, und das Panel verlor den
+    // Block, weil es dem Anker unter der Schreibmarke folgt.
+    const changes = ankerUmbenennenStellen(getDocText(view.state.doc), oldId, newId, {
+      eigenerPfad: path,
+    });
+    if (changes.length > 0) {
+      // 4T-000484 (Epic 3E-000088): Die Änderung aus dem Panel-Pfad als eigene
+      // Undo-Einheit isolieren — sonst verschmilzt sie mit dem vorherigen
+      // Historien-Ereignis und ein Undo nimmt zu viel zurück.
+      view.dispatch({ changes, annotations: isolateHistory.of('full') });
     }
   }
   if (path) {

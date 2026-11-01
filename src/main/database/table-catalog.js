@@ -75,6 +75,8 @@ const { baueHinweis } = require('../../shared/database/table-hinweise.js');
 // 4T-002248 (Epic 3E-000262, F1 A): die Angaben der Listen-Maske im Behälter
 // der Abfrage-Datei.
 const { parseListAngaben } = require('../../shared/database/list-angaben.js');
+// 4T-002407 (Epic 3E-000266, F6 A): die Sichten der Tabelle, ihren Abfrage-Dateien zugeordnet.
+const { ordneSichtenZu } = require('./sichten-zuordnung.js');
 // 4T-002307 (Epic 3E-000263): die Rollen des Steckbriefs gegen die Tabellen;
 // seit 4T-002308 samt Zuordnung geprüft und zur eigenen Rolle aufgelöst.
 const {
@@ -490,7 +492,10 @@ async function abfrageDateien({ sicht, fsp, cache, bufferTextFor = null, zugeord
  *   Tabellen geprüften `rollen`, sofern die Datei `roles` trägt. Seit 4T-002308
  *   trägt die Antwort `eigeneRolle` ({ rolle, anmeldename, quelle }) und jede
  *   Tabelle `rechte` ({ create, update, delete, define }); `p.herkunft` ist die
- *   Naht für den Anmeldenamen.
+ *   Naht für den Anmeldenamen. Seit 4T-002386 trägt jede Tabelle `storage`
+ *   (`'table'` oder `'cards'`, die Ablage-Form aus der Definition). Seit 4T-002407
+ *   trägt eine Tabelle mit der Angabe `views` die Liste `sichten` ({ name, path },
+ *   `path` null ohne Abfrage-Datei; der Befund steht in ihren `hints`).
  */
 async function katalogUeberblick({
   sicht,
@@ -506,8 +511,9 @@ async function katalogUeberblick({
   const tabellen = [];
   const gesehen = new Map();
   // 4T-002184: die Angabe `form` je Tabellen-Eintrag, aufgelöst erst, wenn alle
-  // Masken-Dateien gelesen sind.
-  const formJeEintrag = new Map();
+  // Masken-Dateien gelesen sind; seit 4T-002407 die ganze Definition, weil auch
+  // die Sichten erst nach den Abfrage-Dateien aufgelöst werden.
+  const definitionJeEintrag = new Map();
   for (const absPath of pfade) {
     const gelesen = await leseDatei({ absPath, fsp, cache, bufferTextFor });
     const definition = parseTableDefinition(gelesen.data);
@@ -522,9 +528,19 @@ async function katalogUeberblick({
       if (!erste.hints.some((h) => h.code === 'duplicateTable'))
         erste.hints.push(baueHinweis('duplicateTable', -1, name));
     }
-    const eintrag = { name, path: absPath, felder: definition.fields.length, hints: eigene };
+    // 4T-002386 (Epic 3E-000265, F2 A): die Ablage-Form der Tabelle, `'table'`
+    // oder `'cards'`, wie sie die Definition liefert. Der Zwischenspeicher hält
+    // den gelesenen Kopf und nicht die Auslegung; das Feld folgt damit jeder
+    // Änderung der Angabe, die der stat-Abgleich oder der Puffer erkennt.
+    const eintrag = {
+      name,
+      path: absPath,
+      felder: definition.fields.length,
+      storage: definition.storage,
+      hints: eigene,
+    };
     gesehen.set(name.toLowerCase(), eintrag);
-    formJeEintrag.set(eintrag, definition.form);
+    definitionJeEintrag.set(eintrag, definition);
     tabellen.push(eintrag);
   }
 
@@ -571,7 +587,8 @@ async function katalogUeberblick({
   });
   for (const eintrag of tabellen) {
     const eigene = jeKopf.get(pathCompareKey(eintrag.path)) || [];
-    const wahl = waehleStandardMaske({ eigene, zugeordnet, angabe: formJeEintrag.get(eintrag) });
+    const angabe = definitionJeEintrag.get(eintrag).form;
+    const wahl = waehleStandardMaske({ eigene, zugeordnet, angabe });
     eintrag.maske = wahl.pfad;
     eintrag.maskenPfade = eigene;
     if (wahl.hinweis) eintrag.hints.push(wahl.hinweis);
@@ -580,6 +597,17 @@ async function katalogUeberblick({
   // 4T-002081: die Abfrage-Dateien mit ihren Hinweisen für den Abschnitt «Abfragen».
   // 4T-002248: mit den schon gelesenen Masken-Dateien für die Angabe `form`.
   const abfragen = await abfrageDateien({ sicht, fsp, cache, bufferTextFor, zugeordnet });
+  // 4T-002407 (F6 A): die Sichten je Tabelle, erst hier, weil sie die
+  // Abfrage-Dateien nennen; nur an einer Tabelle, deren Definition sie trägt.
+  for (const eintrag of tabellen) {
+    const { views } = definitionJeEintrag.get(eintrag);
+    if (!views) continue;
+    const dateien =
+      sicht.files && typeof sicht.files.keys === 'function' ? sicht.files.keys() : null;
+    const zuordnung = ordneSichtenZu({ views, abfragen, dateien, trifft: trifftMaskenAngabe });
+    eintrag.sichten = zuordnung.sichten;
+    eintrag.hints.push(...zuordnung.hints);
+  }
 
   // 4T-002308 (S4): die eigene Rolle und je Tabelle die Erlaubnis-Menge, aus
   // derselben Auflösung, die die übrigen Lese-Kanäle über `rechteDerSicht` fragen.

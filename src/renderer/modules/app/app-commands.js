@@ -134,6 +134,12 @@ import {
 } from '../database/datenbank-uebersicht-seite.js';
 // 4T-001939 (Epic 3E-000257): Neuer Datensatz in der Tabelle des aktiven Reiters.
 import { neuerDatensatzFuerAktivenReiter } from '../database/masken-seite.js';
+import {
+  aktivesDokumentAufnehmen,
+  neueKarteikarteFuerAktivenReiter,
+} from '../database/karteikarte-anlegen.js';
+// 4T-002406 (Epic 3E-000266, F7 A): Klick-Ziel der Kartei-Form und «In der Maske öffnen».
+import { aktiveKarteikarteInMaske } from '../database/karteikarte-ansichten.js';
 import { showCommandPalette } from '../command-palette.js';
 import { zeigeDateiOeffnen } from '../datei-oeffnen.js';
 import {
@@ -861,10 +867,23 @@ export const commandHandlers = {
   'database.newRecord': () => {
     void neuerDatensatzFuerAktivenReiter();
   },
+  // 4T-002389 (Epic 3E-000265, F4 A): Neue Karteikarte und Aufnehmen des aktiven
+  // Dokuments; Ausfuehrungs-Pfad fuer Kommando-Palette und belegtes Kuerzel.
+  'database.newCard': () => {
+    void neueKarteikarteFuerAktivenReiter();
+  },
+  'database.adoptCard': () => {
+    void aktivesDokumentAufnehmen();
+  },
   // 4T-001944 (Epic 3E-000257, Bauplan B4): Konsistenz-Prüfung aller Tabellen;
   // Ausfuehrungs-Pfad fuer Kommando-Palette und belegtes Kuerzel.
   'database.checkConsistency': () => {
     pruefeKonsistenzAllerTabellen();
+  },
+  // 4T-002406 (Epic 3E-000266, F7 A): die Einzel-Maske der Karteikarte im aktiven
+  // Dokument; Ausfuehrungs-Pfad fuer Kommando-Palette und belegtes Kuerzel.
+  'database.openInForm': () => {
+    void aktiveKarteikarteInMaske();
   },
   // 4T-001599 (Epic 3E-000191): My Extended Memory. Ausfuehrungs-Pfad fuer
   // Kommando-Palette, belegtes Kuerzel und Statusbar-Platzierung; der

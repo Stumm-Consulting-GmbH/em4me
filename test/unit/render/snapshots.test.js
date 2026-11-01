@@ -341,3 +341,49 @@ describe('Frontmatter-API (extractFrontmatter / writeFrontmatter)', () => {
     expect(result.text).toContain('Body');
   });
 });
+
+// 4T-001922 (Epic 3E-000371): Fremde Uhrzeit und Klammer-Paar am Absatzende,
+// je in der Lese-Ansicht und der portablen Ansicht. Die Inline-Regel der
+// Kalender-Werte folgt dem gemeinsamen Ausdruck samt Sperre `(?<!@)`, und ein
+// Klammer-Paar ohne erlaubtes Attribut am Absatzende bleibt Text. Rot-Probe:
+// Vor der Behebung zeigte `Karte @@{14:00}` ein Abzeichen «@{14: 00}» mit dem
+// Kalendernamen «14», und `Menge {foo}` erschien als «Menge».
+describe('Fremde Schreibweisen in beiden Ansichten (4T-001922)', () => {
+  const ansichten = [
+    ['Lese-Ansicht', (src) => renderMarkdown(src, 'de')],
+    ['portable Ansicht', (src) => renderMarkdown(`<!-- perspective-portable -->\n\n${src}`, 'de')],
+  ];
+  for (const [ansicht, render] of ansichten) {
+    it(`liest @@{14:00} nicht als Kalender-Wert (${ansicht}, AK1)`, () => {
+      const html = render('Karte @@{14:00}\n');
+      expect(html).toContain('Karte @@{14:00}</p>');
+      expect(html).not.toContain('title="14"');
+    });
+
+    it(`lässt einen Kalender-Wert neben der Uhrzeit stehen (${ansicht}, AK2)`, () => {
+      const html = render('Termin @{Dreimond: 1-2-13} @@{14:00}\n');
+      expect(html).toMatch(
+        /<span [^>]*title="Dreimond: 1-2-13"[^>]*>1-Mittmond-13<\/span> @@\{14:00\}<\/p>/,
+      );
+      expect(html.match(/<span /g)).toHaveLength(1);
+    });
+
+    it(`lässt ein Klammer-Paar ohne erlaubtes Attribut am Absatzende stehen (${ansicht}, AK3)`, () => {
+      expect(render('Kaputt @{2026-13-40}\n')).toContain('Kaputt @{2026-13-40}</p>');
+      expect(render('Menge {foo}\n')).toContain('Menge {foo}</p>');
+      expect(render('Menge {x=1}\n')).toContain('Menge {x=1}</p>');
+      expect(render('- Punkt {foo}\n')).toContain('Punkt {foo}</li>');
+      expect(render('- a\n\n{foo}\n')).toContain('{foo}</p>');
+    });
+
+    it(`wendet gültige Attribute unverändert an (${ansicht}, AK4)`, () => {
+      expect(render('Klasse {.rot}\n')).toMatch(/<p class="rot"[^>]*>Klasse<\/p>/);
+      expect(render('Gemischt {#a .b foo}\n')).toMatch(/<p id="a" class="b"[^>]*>Gemischt<\/p>/);
+      expect(render('# Titel {#anker}\n')).toMatch(/<h1 id="anker"[^>]*>Titel<\/h1>/);
+      expect(render('[Spanne]{.rot}\n')).toContain('<span class="rot">Spanne</span>');
+      // Überschriften behalten das Verhalten der Bibliothek, weil Gliederung
+      // und Live-Ansicht das Abschneiden dort spiegeln.
+      expect(render('# Titel {foo}\n')).toMatch(/<h1 id="titel"[^>]*>Titel<\/h1>/);
+    });
+  }
+});

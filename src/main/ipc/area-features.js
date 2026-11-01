@@ -18,6 +18,9 @@ const { registerJournalIpc } = require('./area-journals');
 // 4T-001588: `configForPersist` ist mit dem Schreiber nach area-config.js
 // gewandert; hier bleibt allein die Normalisierung fuer den Lese-Kanal.
 const { normalizeCalendarConfig } = require('../../shared/calendar/calendar-config');
+// 4T-002361 (Epic 3E-000371): Zahl und Kennungen der Zeitrechnungen, die
+// diese Fassung nicht darstellt (Hinweis-Zeile und Kennungs-Vergabe).
+const { verborgeneEintraege } = require('../../shared/calendar/calendar-passthrough');
 const { normalizeSidebarVariantList } = require('../../shared/sidebar-variants');
 const { normalizeBookmarksTree, collectBookmarkFilePaths } = require('../../shared/bookmark-tree');
 const selbstSchreib = require('../documents/self-write');
@@ -74,12 +77,18 @@ function registerAreaFeaturesIpc(handle, deps) {
   handle('calendar:getConfig', async (event) => {
     const area = areaOfWindow(senderWindow(event));
     const raw = area ? await readAreaCalendarConfig(area.rootPath) : undefined;
+    // 4T-002361: Roh- gegen normalisierte Sektion — was diese Fassung nicht
+    // darstellen kann, meldet die Einstellung als Zahl; die Kennungen braucht
+    // die Oberfläche, damit eine neue Zeitrechnung keine belegte bekommt.
+    const verborgen = verborgeneEintraege(raw);
     return {
       ok: true,
       hasArea: !!area,
       areaName: area ? area.name : null,
       rootPath: area ? area.rootPath : null,
       config: normalizeCalendarConfig(raw),
+      hiddenCalendars: verborgen.anzahl,
+      reservedIds: { blocks: verborgen.bloecke, calendars: verborgen.kalender },
     };
   });
 

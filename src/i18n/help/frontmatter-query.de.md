@@ -128,7 +128,7 @@ SORT autor
 - **Tabellen**: `TABLE RECORDS …` zeigt den Treffer in der ersten Spalte «Datensatz»; `WITHOUT ID` steht nach `RECORDS`. Spalten-Titel ist der Alias, sonst die Beschriftung des Feldes in der eingestellten Programmsprache nach der Rückfall-Kette der Seite [Datenbank](database.md), sonst der Ausdruck selbst, etwa bei einem Pfad.
 - **Verweis-Werte**: Ein Verweis-Feld zeigt die Anzeige-Form seines Ziels, ohne sie dessen Kennung, und ein Klick öffnet die Maske des Ziels. Ein leerer Verweis und einer ins Leere bleiben eine leere Zelle.
 - **Ordnung**: Ohne `SORT` stehen die Treffer nach ihrer Anzeige-Form ohne Rücksicht auf die Schreibung, bei gleicher Anzeige-Form nach der Kennung und Datensätze ohne Anzeige-Form am Ende.
-- **Ein Klick-Ziel**: Ein Datensatz im Ergebnis einer Abfrage öffnet die Maske, ebenso ein Verweis im Fließtext wie `[[Bücher#^r-00042]]`; zur Zeile führt der Handgriff «Im Tabellen-Dokument zeigen» der Maske. Die Maske zeigt den gespeicherten Stand.
+- **Ein Klick-Ziel**: Ein Datensatz im Ergebnis einer Abfrage öffnet die Maske, ebenso ein Verweis im Fließtext wie `[[Bücher#^r-00042]]`; zur Zeile führt der Handgriff «Im Tabellen-Dokument zeigen» der Maske. Die Maske zeigt den gespeicherten Stand. Gehört der Datensatz zu einer Tabelle in Kartei-Form, öffnen beide Klicks das Dokument der Karteikarte (Seite [Datenbank](database.md), Abschnitt «Kartei-Form»).
 - **Listen-Maske**: Trägt eine Abfrage-Datei im Behälter `db-query` die Angabe `editable: true`, erscheint ihr Ergebnis als Gitter, in dem sich die Datensätze öffnen, ändern, anlegen und löschen lassen, 50 Zeilen je Seite; die Seite [Datenbank](database.md) beschreibt sie im Abschnitt «Listen-Maske».
 - **Ungespeicherter Stand**: Änderungen an einer geöffneten Tabelle gehen sofort in das Ergebnis ein, ohne Speichern.
 - **Nicht auf dieser Ebene**: `bold()` in einer Spalte oder in einem Ausdruck von `GROUP BY` ergibt eine Fehlermeldung, weil ein Datenbank-Wert keine Auszeichnung trägt; in Bedingung und Sortierung bleibt es erlaubt. `HIDE`, `SHOW` und `SHORT` gelten nur für `LIST TASKS` und melden sich hier wie auf der Datei- und der Block-Ebene.
@@ -250,6 +250,7 @@ LIST WHERE bereich = this.bereich AND file.path != this.file.path
 - **Gleiche Bedeutung in allen Ebenen**: Auch in `BLOCKS`-, `TASKS`- und `RECORDS`-Abfragen meint `this.` die Träger-Datei des Blocks, nie den einzelnen Block, die Task-Zeile oder den Datensatz.
 - **Vorrang**: Die `this.`-Regel greift vor einer gleichnamigen Frontmatter-Eigenschaft, genau wie der Namensraum `file.`.
 - **Ohne Träger-Datei**: Lässt sie sich nicht auflösen, ergibt jeder `this.`-Zugriff einen leeren Wert; ein nacktes `this` ohne Punkt bleibt wie jeder unbekannte Feldname leer.
+- **Eingeblendete Sicht**: In einer Sicht, die eine Tabelle in Kartei-Form unter jeder Karteikarte einblendet, meint `this.` die Karteikarte und nicht die Abfrage-Datei der Sicht (Seite [Datenbank](database.md), Abschnitt «Kartei-Form»). Bei einer Einbettung mit `![[…]]` bleibt es die eingebettete Datei.
 
 Als **Quelle** meint der leere Wiki-Link dieselbe Datei: `FROM [[]]` sammelt die Dateien, die auf sie verlinken, `FROM outgoing([[]])` die Gegenrichtung. Die Träger-Datei ist dabei nie ihr eigener Treffer; ohne auflösbare Träger-Datei bleibt die Menge leer, statt zu allen Dateien zu werden.
 
@@ -287,7 +288,7 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `currencyformat(x[, w])` | `currencyformat(betrag, "CHF")` | Betrag lokalisiert darstellen: ohne Angabe in Euro, bei unbekanntem Währungs-Code die unformatierte Zahl |
 | `infolder(l, "Ordner")` | `length(infolder(file.inlinks, "Projekte")) = 0` | Teilliste der Link-Werte, deren Ziel im Ordner oder darunter liegt |
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(werte) = 6` | Aggregate über Zahlen-Listen; über einer Gruppe fassen sie die Werte aller ihrer Treffer zusammen (Abschnitt «Gruppierung und Aggregation») |
-| `count(x)` | `count(tags) > 2` | Zahl der vorhandenen Werte: bei einer Liste ihre Elemente, bei einem Einzelwert 1, ohne Wert 0; `count()` ohne Feld zählt die Treffer einer Gruppe |
+| `count(x)` | `count(tags) > 2` | Zahl der vorhandenen Werte: bei einer Liste ihre Elemente, bei einem Einzelwert 1, ohne Wert 0, wobei ein leerer Text, auch als Element einer Liste, als «ohne Wert» gilt; `count()` ohne Feld zählt die Treffer einer Gruppe |
 | `bold(x)` | `bold(status)` | Wert hervorgehoben darstellen (Abschnitt «Hervorhebung») |
 
 Eine unbekannte Funktion oder eine falsche Argument-Anzahl zeigt einen Fehlerhinweis am Block.

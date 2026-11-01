@@ -54,6 +54,10 @@
 // mit `targetOf`), über dem gespeicherten Datensatz als Grundlage. Eine eigene
 // Auslegung im Haupt-Prozess der Maske rechnete sonst anders als die Abfrage.
 // Der Entwurf geht in keinen Zwischenspeicher ein.
+//
+// **Die Kartei-Form** (4T-002388): Trägt die Kopf-Datei eine Tabelle in
+// Kartei-Form, baut `record-kartei-read.js` die Datensätze der Grund-Stufe aus
+// den Karteikarten, in derselben Gestalt; die Weiche steht in `baseFor`.
 'use strict';
 
 const fs = require('node:fs');
@@ -63,7 +67,10 @@ const { MD_EXT_RE, createWikiLinkRegex } = require('../../shared/markdown/link-s
 const { pathCompareKey } = require('../../shared/platform.js');
 const { readPartLine, FIRST_PART_INDEX } = require('../../shared/document-parts.js');
 const { orderPartFiles, assembleParts } = require('../../shared/document-assembly.js');
-const { parseTableDefinition } = require('../../shared/database/table-definition.js');
+const {
+  parseTableDefinition,
+  istKarteiForm,
+} = require('../../shared/database/table-definition.js');
 const { parseRecordBlock } = require('../../shared/database/record-block.js');
 const { ROLLE_KOPF, datensatzRumpf } = require('../../shared/database/record-segment.js');
 const { zellTexte } = require('../../shared/database/record-write.js');
@@ -84,6 +91,8 @@ const { bufferTextFor, entryWithOverlay, overlaysUnder, overlayStand } = require
 const { resolveWikiLink, filesByAlias } = require('./resolve.js');
 const { logicalNameFor } = require('./link-graph.js');
 const { datensatzErfassungAktiv } = require('./index-schalter.js');
+// 4T-002388: der zweite Lese-Weg für Kartei-Tabellen; er lädt dieses Modul nicht.
+const { leseKarteikarten, karteiUnveraendert } = require('./record-kartei-read.js');
 
 const LINK_TYPE = 'link';
 
@@ -238,7 +247,11 @@ function parseDocument(text, head) {
   const definition = parseTableDefinition(extractFrontmatter(text).data);
   if (!definition.istTabelle) return null;
   const fields = definition.fields;
-  const block = datensatzRumpf(text);
+  // 4T-002386 (Schritt 4, Story AK4): Eine Kartei-Tabelle liefert hier keine
+  // Datensätze aus einem Block, die Definition bleibt unverändert. Das Dokument
+  // ist bereits mit seinen Folge-Segmenten zusammengesetzt; die Regel gilt
+  // damit für alle Teile.
+  const block = istKarteiForm(definition) ? null : datensatzRumpf(text);
   // Ohne `fields`: Pflicht und Feld-Regeln wirken beim Lesen nicht auf den Wert
   // einer Abfrage, und ihre Auswertung kostete hier nur Zeit.
   const parsed = block && block.rolle === ROLLE_KOPF ? parseRecordBlock(block.rumpf, null) : null;
@@ -302,16 +315,16 @@ function baseFor(root, head, currentIndexStand) {
   const key = cacheKey(root, head);
   const known = baseCache.get(key);
   const buffer = bufferTextFor(head);
-  if (buffer !== null) {
-    if (known && known.source === 'buffer' && known.text === buffer) return known;
-  } else if (
+  const headValid =
     known &&
-    known.source === 'disk' &&
-    known.indexStand === currentIndexStand &&
-    stampsUnchanged(known.stamps)
-  ) {
+    (buffer !== null
+      ? known.source === 'buffer' && known.text === buffer
+      : known.source === 'disk' &&
+        known.indexStand === currentIndexStand &&
+        stampsUnchanged(known.stamps));
+  // 4T-002388: Bei einer Kartei-Tabelle zählen auch ihre Karteikarten.
+  if (headValid && (!known.kartei || karteiUnveraendert(root, head, known.kartei, stampsUnchanged)))
     return known;
-  }
 
   const document =
     buffer !== null ? { text: buffer, stamps: [], missingParts: [] } : readDiskDocument(head);
@@ -325,8 +338,16 @@ function baseFor(root, head, currentIndexStand) {
     baseCache.delete(key);
     return null;
   }
+  // 4T-002388 (Schritt 1): die Weiche. Eine Kartei-Tabelle bekommt ihre
+  // Datensätze aus den Karteikarten (`record-kartei-read.js`), in derselben
+  // Gestalt wie die Zeilen eines Blocks; alles darüber bleibt ein Weg.
+  const kartei = istKarteiForm(parsed.definition)
+    ? leseKarteikarten({ root, head, parsed, helfer: { readText, typedValue } })
+    : null;
   const base = {
     ...parsed,
+    ...(kartei ? kartei.bestand : null),
+    kartei: kartei ? kartei.kartei : null,
     head,
     source: buffer !== null ? 'buffer' : 'disk',
     // Nur beim Puffer gehalten: Er ist dort der Vergleichs-Stand und liegt

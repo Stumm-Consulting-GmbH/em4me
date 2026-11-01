@@ -59,6 +59,9 @@ import { istPraesentationsModusVerfuegbar } from './presentation/presentation-mo
 // 4T-002024 (Epic 3E-000192): Lage des aktiven Editors für die beiden
 // Diagramm-Kommandos, aus derselben Quelle wie der gemeldete Menü-Zustand.
 import { lageFuer } from './charts/chart-lage.js';
+// 4T-002406 (Epic 3E-000266, F7 A): Ist das aktive Dokument eine Karteikarte?
+// Aus dem Blatt-Modul der Erkennung, das weder Reiter noch Ansichten importiert.
+import { karteikarteImReiterSofort } from './database/karteikarte-erkennung.js';
 
 function $(sel) {
   return document.querySelector(sel);
@@ -150,6 +153,8 @@ export function rendererAvailabilityContext() {
     // und vierzehntes Feld des gemeinsamen Vertrags.
     inDatentabelle: lage.inDatentabelle,
     diagrammGewaehlt: lage.diagrammGewaehlt,
+    // 4T-002406 (Epic 3E-000266): renderer-eigenes Feld, trägt «In der Maske öffnen».
+    karteikarteTab: karteikarteImReiterSofort(tab) !== null,
   });
 }
 

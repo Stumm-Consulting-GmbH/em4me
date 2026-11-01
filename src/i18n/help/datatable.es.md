@@ -90,7 +90,7 @@ Funciones disponibles según el tipo de columna:
 | `sum` | suma | `number` |
 | `avg` | promedio (redondeado al formato de la columna) | `number` |
 | `min` / `max` | valor mínimo/máximo | `number`, `date`, `time` |
-| `count` | número de celdas no vacías (en `boolean`: número de verdaderas) | todos los tipos |
+| `count` | número de celdas no vacías (una celda de texto vacía no cuenta; en `boolean`: número de verdaderas) | todos los tipos |
 
 Las celdas vacías o con error quedan excluidas. La fila de agregados aparece bajo los datos y recalcula con cada cambio; con vista filtrada calcula sobre las filas visibles.
 
@@ -105,7 +105,7 @@ aggregate: Total:sum
 | Bloc | 3.50 | 4 |
 ```
 
-- El lenguaje de expresiones es el mismo que en la [Consulta Perspective](frontmatter-query.md): aritmética, comparaciones, `choice(…)`, `default(…)`, funciones de texto y más. Incluye `count(x)`; en una fórmula cuenta los valores del campo nombrado en la fila en cuestión y no es la función de agregado `count` de la fila de agregados, que cuenta sobre todas las filas.
+- El lenguaje de expresiones es el mismo que en la [Consulta Perspective](frontmatter-query.md): aritmética, comparaciones, `choice(…)`, `default(…)`, funciones de texto y más. Incluye `count(x)`; en una fórmula cuenta los valores del campo nombrado en la fila en cuestión y no es la función de agregado `count` de la fila de agregados, que cuenta sobre todas las filas; una celda de texto vacía no cuenta en ninguna de las dos.
 - Los nombres de columna en la expresión se refieren a los valores de la fila correspondiente; también pueden usarse otras columnas calculadas en cualquier orden de declaración (la evaluación resuelve las dependencias). Las referencias circulares se notifican como errores de estructura.
 - El resultado debe coincidir con el tipo de columna declarado; de lo contrario, la celda muestra un error.
 - Los valores calculados **nunca se guardan en el código fuente**: siempre se calculan de nuevo y por eso no tienen celda de datos en las filas de barras. Los agregados sobre columnas calculadas calculan sobre los valores calculados.

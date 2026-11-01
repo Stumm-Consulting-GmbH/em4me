@@ -156,11 +156,13 @@ describe('Listen-Maske: Angaben des Klicks an der Zeile (4T-002249, AK4)', () =>
     expect(zeile.dataset.fmRecordId).toBe('r-00002');
     expect(zeile.dataset.fmRecordMaske).toBe(MASKE);
     expect(zeile.title).toBe('Loans#^r-00002');
-    // Ein Klick in eine lesende Zelle trifft die Zeile samt Maske.
+    // Ein Klick in eine lesende Zelle trifft die Zeile samt Maske; seit
+    // 4T-002406 mit dem Ziel «Maske», auch bei einer Karteikarte.
     expect(recordHitOf(zeile.querySelectorAll('td')[0])).toEqual({
       path: LOANS,
       id: 'r-00002',
       maske: MASKE,
+      ziel: 'maske',
     });
     // Der Datensatz-Verweis in einer Zelle bleibt sein eigener Treffer.
     const verweis = zeile.querySelector('td:nth-child(3) a.perspective-query-item');

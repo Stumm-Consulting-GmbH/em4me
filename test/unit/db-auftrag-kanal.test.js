@@ -117,6 +117,8 @@ describe('database:auftrag und database:neuanlage: Registrierung und Brücke (4T
       'database:datensaetze',
       // 4T-001938 (Epic 3E-000257): der lesende Kanal der Einzel-Maske.
       'database:datensatz',
+      // 4T-002406 (Epic 3E-000266): die Karteikarte eines Datensatzes.
+      'database:karteikarte',
       // 4T-001944 (Epic 3E-000257): die Konsistenz-Prüfung über den Bestand.
       'database:konsistenz',
       // 4T-002249 (Epic 3E-000262): die Auskunft über eine Listen-Maske.
@@ -562,6 +564,7 @@ function pruefeLageSchluessel(codes, fragmente) {
 // Bedienort setzt sie bei mehreren Anweisungen selbst voran
 // (`src/shared/database/auftrag-text.js`).
 // 4T-002309: `operation` und `rolle` für die Neuanlage ohne `create`.
+// 4T-002389: `name` für den Namen einer neuen Karteikarte.
 const PLATZHALTER = new Set([
   'tabelle',
   'id',
@@ -571,6 +574,7 @@ const PLATZHALTER = new Set([
   'grund',
   'operation',
   'rolle',
+  'name',
 ]);
 
 // 4T-001926 (Epic 3E-000256, B6): Ein Text einer Regel-Lage setzt die Angaben

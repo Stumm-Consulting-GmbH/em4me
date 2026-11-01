@@ -90,7 +90,7 @@ Available functions per column type:
 | `sum` | sum | `number` |
 | `avg` | average (rounded to the column format) | `number` |
 | `min` / `max` | smallest/largest value | `number`, `date`, `time` |
-| `count` | number of non-empty cells (for `boolean`: number of true ones) | all types |
+| `count` | number of non-empty cells (an empty text cell does not count; for `boolean`: number of true ones) | all types |
 
 Empty and erroneous cells are excluded. The aggregate row appears below the data and recalculates on every change; with a filtered view it calculates over the visible rows.
 
@@ -105,7 +105,7 @@ aggregate: Total:sum
 | Pad | 3.50 | 4 |
 ```
 
-- The expression language is the same as in the [Perspective Query](frontmatter-query.md): arithmetic, comparisons, `choice(…)`, `default(…)`, text functions, and more. This includes `count(x)`; in a formula it counts the values of the named field in the one row and is not the aggregate function `count` of the aggregate row, which counts across all rows.
+- The expression language is the same as in the [Perspective Query](frontmatter-query.md): arithmetic, comparisons, `choice(…)`, `default(…)`, text functions, and more. This includes `count(x)`; in a formula it counts the values of the named field in the one row and is not the aggregate function `count` of the aggregate row, which counts across all rows; an empty text cell counts in neither.
 - Column names in the expression refer to the values of the respective row; other computed columns can be used in any declaration order (evaluation resolves the dependencies). Circular references are reported as structural errors.
 - The result must match the declared column type, otherwise the cell shows an error.
 - Computed values are **never stored in the source** — they are always calculated fresh and therefore have no data cell in the pipe rows. Aggregates over computed columns calculate on the computed values.

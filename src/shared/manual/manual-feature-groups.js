@@ -464,6 +464,26 @@ const HELP_FEATURE_GROUPS = [
       'help.feature.databaseRoleAssignment',
       'help.feature.databasePermissionCheck',
       'help.feature.databasePermissionForms',
+      // 4T-002391 (Epic 3E-000265): die fünf Zeilen der Kartei-Form hinter den
+      // bestehenden Zeilen und vor dem Schalter, weil sie die zweite Ablage-Form
+      // einer Tabelle beschreiben und dabei Abfrage, Verweis, Schreibweg und
+      // Belege voraussetzen, die oben stehen: erst die Form selbst, dann die
+      // Zuordnung der Karteikarten, ihre Auswertung, ihr Schreibweg und zuletzt
+      // ihre Belege.
+      'help.feature.databaseCardForm',
+      'help.feature.databaseCardAssignment',
+      'help.feature.databaseCardQuery',
+      'help.feature.databaseCardWrite',
+      'help.feature.databaseCardChangeLog',
+      // 4T-002408 (Epic 3E-000266): die vier Zeilen der Schreibwege, Sichten und
+      // Masken hinter den Zeilen der Kartei-Form und vor dem Schalter, weil sie
+      // deren Schreibweg und Auswertung fortsetzen: erst die Prüfung beim
+      // Speichern, dann die Wege des Bereichs-Panels, die Sichten und zuletzt
+      // Masken und Klick-Ziel.
+      'help.feature.databaseCardEditCheck',
+      'help.feature.databaseCardDocumentPaths',
+      'help.feature.databaseCardViews',
+      'help.feature.databaseCardMasks',
       'help.feature.databaseExtension',
     ],
   },

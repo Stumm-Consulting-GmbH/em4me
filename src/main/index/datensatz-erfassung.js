@@ -53,7 +53,10 @@
 
 const fs = require('node:fs');
 const { extractFrontmatter } = require('../../shared/markdown/frontmatter.js');
-const { parseTableDefinition } = require('../../shared/database/table-definition.js');
+const {
+  parseTableDefinition,
+  istKarteiForm,
+} = require('../../shared/database/table-definition.js');
 const { anzeigeSpalte } = require('../../shared/database/record-identity.js');
 const { parseRecordBlock } = require('../../shared/database/record-block.js');
 const { zellTexte } = require('../../shared/database/record-write.js');
@@ -94,12 +97,20 @@ const definitionen = new Map();
  * Eingang finden allein die Angaben, die das Ergebnis der Zuordnung bestimmen:
  * die Reihenfolge der Feld-Namen, der fachliche Schlüssel und die Anzeige-Form.
  * Ein geänderter Feld-TYP verschiebt keine Spalte und bleibt deshalb draußen.
+ *
+ * 4T-002386 (Schritt 4): Die Kartei-Form gehört dazu, weil sie die Zuordnung
+ * aufhebt: Ein Folge-Segment erbt sie von der Kopf-Datei, und ohne sie in der
+ * Signatur behielte es nach dem Umstellen seinen Bestand aus der Tabellen-Form.
+ * Sie wird nur angehängt, wenn sie gilt, damit die Signatur jeder Tabelle in
+ * Tabellen-Form unverändert bleibt und kein Zwischenspeicher veraltet.
  */
 function definitionsSignatur(definition) {
   if (!definition || !Array.isArray(definition.fields)) return '';
   const felder = definition.fields.map((f) => String((f && f.name) || '')).join(TRENNER);
   const schluessel = Array.isArray(definition.key) ? definition.key.join(TRENNER) : '';
-  return [felder, schluessel, definition.display || ''].join(TRENNER);
+  const teile = [felder, schluessel, definition.display || ''];
+  if (istKarteiForm(definition)) teile.push(definition.storage);
+  return teile.join(TRENNER);
 }
 
 // Position eines Feld-Namens in der Feld-Liste; -1, wenn er keine hat. Der
@@ -281,6 +292,11 @@ function erfasseDatensaetze(text, segmentDefinition) {
 
   const eigene = block.rolle === ROLLE_FOLGE ? segmentDefinition : definitionAusText(s);
   const definition = eigene && eigene.definition;
+  // 4T-002386 (Schritt 4, Story AK4): Der Block einer Kartei-Tabelle trägt keine
+  // Datensätze, auch nicht in einem Folge-Segment, das die Form von seiner
+  // Kopf-Datei erbt. Gemeldet wird er von der Konsistenz-Prüfung und in der
+  // Anzeige des Blocks, nicht hier.
+  if (istKarteiForm(definition)) return null;
   const fields = (definition && Array.isArray(definition.fields) && definition.fields) || [];
 
   // Ohne Definition bleiben Kennung und Fundort; Schlüssel und Anzeige-Form
@@ -350,6 +366,8 @@ module.exports = {
   definitionAusText,
   // 4T-002042: Die Hülle `descendants` liest damit die Definitionen der Tabellen.
   leseKopfSync,
+  // 4T-002387: Der Nachlauf der Karteikarten liest damit die Köpfe der Tabellen.
+  leseKopfAsync,
   merkeDefinition,
   vergissDefinition,
   vergissAlleDefinitionen,

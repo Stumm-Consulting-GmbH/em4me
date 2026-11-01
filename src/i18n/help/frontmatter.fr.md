@@ -68,7 +68,7 @@ La barre Propriétés affiche les champs du frontmatter en édition directe. Le 
 
 Un clic dans un champ de valeur propose les valeurs déjà attribuées à cette propriété dans la zone, par ordre alphabétique ; chaque caractère saisi réduit la liste, et une valeur propre reste librement saisissable. Lorsqu'un profil de propriétés définit un ensemble de valeurs, les deux origines apparaissent ensemble et restent distinguables — les valeurs issues de l'existant sont signalées comme telles. Si la propriété n'apparaît nulle part dans la zone, aucune liste ne s'affiche. Désactivable sous Fichier → Paramètres… → Extensions.
 
-À l'écriture, le bloc reste stable en aller-retour : commentaires, ordre des champs et style des champs non modifiés ne sont pas reformatés, et les fins de ligne CRLF restent stables.
+À l'écriture, le bloc reste stable en aller-retour : commentaires, ordre des champs et style des champs non modifiés ne sont pas reformatés, et les fins de ligne CRLF restent stables. Les listes sur une ligne entre crochets sont écrites sans espaces intérieurs (`[a, b]`) ; une liste écrite `[ a, b ]` passe une seule fois à cette forme lors du premier enregistrement et reste ensuite inchangée.
 
 En cas d'erreur de syntaxe YAML, la barre affiche le message d'erreur et bloque l'ajout jusqu'à réparation du bloc dans l'éditeur.
 
@@ -81,6 +81,6 @@ created: 2025-06-23 15:43
 updated: 2026-07-18 12:04
 ```
 
-Les deux champs s'activent indépendamment et leurs noms sont librement modifiables. Le format est au choix date seule ou date et heure, toujours en heure locale. Une date de création existante n'est jamais écrasée ; la date de modification suit chaque enregistrement.
+Les deux champs s'activent indépendamment et leurs noms sont librement modifiables. Le format est au choix date seule ou date et heure, toujours en heure locale. Une date de création existante n'est jamais écrasée ; la date de modification suit chaque enregistrement. Si un enregistrement inscrit une nouvelle date de modification, un `Ctrl+Z` juste après annule cette date avec la dernière modification qui la précède, y compris après l'enregistrement automatique.
 
 Les champs manquants ne sont créés que si l'option correspondante est active. Sinon, seuls les champs déjà présents dans le bloc sont mis à jour et le document reste inchangé pour le reste. L'accès et l'interrupteur figurent dans le [tableau des fonctions](functions.md).

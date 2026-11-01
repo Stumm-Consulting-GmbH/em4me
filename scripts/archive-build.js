@@ -4,7 +4,8 @@
 //   (X-10, 4T-000182; auf die gebaute Version begrenzt seit 4T-000683).
 // dist/ bleibt damit reiner Build-Output von electron-builder mit nur dem
 // aktuellen Build; releases/ sammelt die Setup- und Portable-EXEs ueber alle
-// Releases hinweg. Beide Ordner sind gitignored.
+// Releases hinweg. Beide Ordner sind gitignored. Intern liegt das Archiv seit
+// 4T-002486 am gemeinsamen Ablage-Ort statt in releases/ (archivOrdner unten).
 //
 // X-01 (4T-000182): Tag-Guard. Existiert fuer die Version im EXE-Namen bereits
 // ein lokaler Release-Tag v<version>, wird NICHT ueberschrieben (Exit 1):
@@ -22,7 +23,26 @@ const { buildNumberGuardError } = require('../src/shared/build-version');
 
 const ROOT = path.join(__dirname, '..');
 const DIST = path.join(ROOT, 'dist');
-const RELEASES = path.join(ROOT, 'releases');
+// 4T-002486: Ziel-Ordner des Versions-Archivs. Intern liegt das Archiv am
+// gemeinsamen Ablage-Ort; die geführte Release-Vorbereitung gibt den Ort über
+// EM4ME_VERSIONS_ARCHIV an den Bau weiter (ein relativer Wert gilt gegen die
+// Wurzel). Ohne die Variable archiviert der öffentliche Stand wie bisher nach
+// releases/. Der interne Stand erkennt sich am Modul versions-archiv.js, das
+// nicht exportiert wird, und bricht dann ab, statt lokal ein zweites Archiv
+// anzulegen; geladen wird das Modul hier nicht, weil diese Datei exportiert ist.
+const ARCHIV_UMGEBUNG = 'EM4ME_VERSIONS_ARCHIV';
+function archivOrdner() {
+  const ersatz = process.env[ARCHIV_UMGEBUNG];
+  if (ersatz) return path.resolve(ROOT, ersatz);
+  if (fs.existsSync(path.join(__dirname, 'versions-archiv.js'))) {
+    throw new Error(
+      'Interner Stand: Ein Release-Bau archiviert in das Versions-Archiv am Ablage-Ort. ' +
+        'Den Bau über die geführte Release-Vorbereitung starten (node scripts/release-vorbereitung.js) ' +
+        `oder ${ARCHIV_UMGEBUNG} auf den Ort setzen, den node scripts/versions-archiv.js ausgibt.`,
+    );
+  }
+  return path.join(ROOT, 'releases');
+}
 
 // 4T-001223: Die Artefakt-Namensmuster sind in scripts/artefakt-muster.js
 // herausgeschnitten (Datei-Groessen-Budget); die Re-Exporte unten bleiben, weil
@@ -89,7 +109,7 @@ function defaultGuardBuildNumber() {
 // hart abzubrechen.
 function moveFile(name, _opts) {
   const from = path.join(DIST, name);
-  const to = path.join(RELEASES, name);
+  const to = path.join(archivOrdner(), name);
   if (!fs.existsSync(from)) return true;
   try {
     // K-05 (4T-000309): copy-then-delete statt delete-then-rename. Schlaegt der
@@ -98,7 +118,7 @@ function moveFile(name, _opts) {
     // copyFileSync ueberschreibt ein vorhandenes Ziel.
     fs.copyFileSync(from, to);
     fs.rmSync(from);
-    console.log(`archive-build: ${name} -> releases/`);
+    console.log(`archive-build: ${name} -> Versions-Archiv`);
     return true;
   } catch (err) {
     console.error(
@@ -114,7 +134,7 @@ function moveFile(name, _opts) {
 // Datei mit sich selbst identisch ist. Fehlende Datei liefert null (wie
 // moveFile ist eine nicht vorhandene Datei kein Fehler).
 function sha256OfArchived(name) {
-  const file = path.join(RELEASES, name);
+  const file = path.join(archivOrdner(), name);
   if (!fs.existsSync(file)) return null;
   return crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 }
@@ -151,7 +171,7 @@ function writeChecksumFiles(names, deps = {}) {
     // Varianten-Zusatz (AppImage/DMG) direkt nach der Version enden; fuer die
     // Windows-Namen ist die Schnittstelle identisch.
     const prefix = files[0].slice(0, files[0].indexOf(`-${version}`));
-    const target = path.join(RELEASES, `${prefix}-${version}-SHA256SUMS.txt`);
+    const target = path.join(archivOrdner(), `${prefix}-${version}-SHA256SUMS.txt`);
     const zeilen = new Map();
     try {
       const bestand = read(target);
@@ -181,7 +201,7 @@ function writeChecksumFiles(names, deps = {}) {
     const lines = [...zeilen.keys()].sort().map((name) => `${zeilen.get(name)}  ${name}`);
     try {
       write(target, `${lines.join('\n')}\n`);
-      console.log(`archive-build: ${path.basename(target)} -> releases/`);
+      console.log(`archive-build: ${path.basename(target)} -> Versions-Archiv`);
     } catch (err) {
       console.error(
         `archive-build: Pruefsummen-Datei fuer ${version} fehlgeschlagen: ${err.message}`,
@@ -209,7 +229,9 @@ function meldeTemporaere(namen, log = console.log) {
   const frisch = namen.filter((name) => stempelVon(name) === juengster).sort();
   const aeltere = namen.length - frisch.length;
 
-  log('archive-build: TEMPORAERER BAU — nicht archiviert, weil in releases/ nur Releases stehen.');
+  log(
+    'archive-build: TEMPORAERER BAU — nicht archiviert, weil im Versions-Archiv nur Releases stehen.',
+  );
   log('archive-build: Zuletzt gebaut, zu finden im Ordner dist/:');
   for (const name of frisch) log(`archive-build:   dist\\${name}`);
   if (aeltere > 0) {
@@ -346,8 +368,8 @@ function archiveBuild(entries, deps = {}) {
     deps.copyNotes ||
     ((name) => {
       try {
-        fs.copyFileSync(path.join(DIST, name), path.join(RELEASES, name));
-        console.log(`archive-build: ${name} -> releases/ (Kopie)`);
+        fs.copyFileSync(path.join(DIST, name), path.join(archivOrdner(), name));
+        console.log(`archive-build: ${name} -> Versions-Archiv (Kopie)`);
         return true;
       } catch (err) {
         console.error(`archive-build: Notes-Kopie ${name} fehlgeschlagen: ${err.message}`);
@@ -421,7 +443,7 @@ function archiveBuild(entries, deps = {}) {
     if (tagExists(version)) {
       console.error(
         `archive-build: ABBRUCH — fuer Version ${version} existiert bereits der ` +
-          `Release-Tag v${version}. Die offiziellen EXEs in releases/ werden nicht ` +
+          `Release-Tag v${version}. Die offiziellen EXEs im Versions-Archiv werden nicht ` +
           'ueberschrieben. Vermutlich fehlt der Versions-Bump in package.json.',
       );
       return 1;
@@ -439,7 +461,7 @@ function archiveBuild(entries, deps = {}) {
     }
   }
 
-  fs.mkdirSync(RELEASES, { recursive: true });
+  fs.mkdirSync(archivOrdner(), { recursive: true });
   let ok = true;
   // 4T-000658: nur tatsächlich archivierte EXEs bekommen eine Prüfsumme. Eine
   // fehlgeschlagene Verschiebung darf keinen Nachweis über eine Datei
@@ -465,7 +487,13 @@ function main() {
     return;
   }
   const entries = fs.readdirSync(DIST);
-  const code = archiveBuild(entries);
+  let code;
+  try {
+    code = archiveBuild(entries);
+  } catch (err) {
+    console.error(`archive-build: ABBRUCH — ${err.message}`); // 4T-002486
+    code = 1;
+  }
   if (code !== 0) process.exit(code);
 }
 

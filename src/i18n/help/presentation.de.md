@@ -421,6 +421,7 @@ Kennzeichen, Steuer-Schlüssel, Trennzeilen, die Angaben je Folie und die Bild-S
 - **In der PowerPoint-Datei ist jede Folie ein Bild.** Ihr Text ist dort weder bearbeitbar noch durchsuchbar. Eine PowerPoint-Datei mit bearbeitbaren Text-Objekten entsteht nicht, und PowerPoint-Dateien lassen sich nicht einlesen.
 - **Geprüfte Programme:** Geprüft ist das Öffnen der Datei in Microsoft PowerPoint unter Windows. LibreOffice Impress wird im automatischen Prüfstand unter Linux geprüft. Andere Programme, etwa Keynote oder Google Slides, lesen das Format nach dem Standard, sind aber nicht geprüft.
 - **Gestaltet wird über die Themes und ihre sieben Werte.** Eigene Stilangaben in CSS, Folien-Layouts über die Zweiteilung hinaus sowie Animationen und Übergänge zwischen den Folien gibt es nicht.
+- **Diagramme folgen dem Theme der Folie.** Mermaid-Diagramme und Diagramme zu Tabellen erscheinen auf einer dunklen Folie dunkel und auf einer hellen hell; das Theme `accent` zählt als dunkel. Das gilt in der Ansicht, in der Vorführung und in allen vier Ausgaben, gleich ob die Anwendung hell oder dunkel eingestellt ist. PDF und HTML-Seiten der Folien sind deshalb nicht wie der PDF-Export eines Dokuments stets hell.
 - **Aufgedeckt werden nur Listen-Punkte**, keine anderen Teile einer Folie.
 - **Verkleinert wird höchstens auf die Hälfte.** Was dann noch nicht passt, wird abgeschnitten.
 - **Bearbeitet wird in den Markdown-Ansichten**, nicht auf der Folie.

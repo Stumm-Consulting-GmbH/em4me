@@ -68,7 +68,7 @@ La barra Propiedades muestra los campos del frontmatter editables en vivo. El ti
 
 Un clic en un campo de valor ofrece los valores ya asignados a esa propiedad en el área, en orden alfabético; cada carácter escrito reduce la lista y un valor propio sigue siendo libremente escribible. Si un perfil de propiedades define un conjunto de valores, ambos orígenes aparecen juntos y siguen siendo distinguibles: los valores procedentes de lo existente están marcados como tales. Si la propiedad no aparece en ninguna parte del área, no se muestra ninguna lista. Se puede desactivar en Archivo → Ajustes… → Extensiones.
 
-Al escribir, el bloque se conserva en el viaje de ida y vuelta: comentarios, orden de campos y estilo de los campos no modificados no se reformatean, y los finales de línea CRLF permanecen estables.
+Al escribir, el bloque se conserva en el viaje de ida y vuelta: comentarios, orden de campos y estilo de los campos no modificados no se reformatean, y los finales de línea CRLF permanecen estables. Las listas de una sola línea entre corchetes se escriben sin espacios interiores (`[a, b]`); una lista escrita como `[ a, b ]` cambia una sola vez a esta forma al guardar por primera vez y después permanece sin cambios.
 
 Con un error de sintaxis YAML, la barra muestra el mensaje de error y bloquea el añadir hasta reparar el bloque en el editor.
 
@@ -81,6 +81,6 @@ created: 2025-06-23 15:43
 updated: 2026-07-18 12:04
 ```
 
-Ambos campos se activan de forma independiente y sus nombres son libremente seleccionables. El formato es a elección solo fecha o fecha y hora, siempre en hora local. Una fecha de creación existente nunca se sobrescribe; la fecha de modificación acompaña cada guardado.
+Ambos campos se activan de forma independiente y sus nombres son libremente seleccionables. El formato es a elección solo fecha o fecha y hora, siempre en hora local. Una fecha de creación existente nunca se sobrescribe; la fecha de modificación acompaña cada guardado. Si un guardado escribe una nueva fecha de modificación, un `Ctrl+Z` justo después deshace esa fecha junto con el último cambio anterior, también tras el guardado automático.
 
 Los campos que faltan solo se crean si la opción correspondiente está activa. De lo contrario solo se mantienen los campos que ya están en el bloque y el documento permanece por lo demás sin cambios. El acceso y el interruptor figuran en la [tabla de funciones](functions.md).

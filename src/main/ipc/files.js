@@ -88,6 +88,7 @@ const DATEI_ARTEN = Object.freeze({
  * @param {Function} deps.readAreaLinks Leser der Verknuepfungen eines Bereichs.
  * @param {() => object|null} deps.getStore Einstellungs-Speicher (Schalter der Erweiterungen).
  * @param {Function} [deps.definitionsSchutz] Schutz der Definition (4T-002310).
+ * @param {Function} [deps.speicherPruefung] Prüfung einer Karteikarte (4T-002404).
  */
 function registerFilesIpc(handle, deps) {
   const {
@@ -111,6 +112,7 @@ function registerFilesIpc(handle, deps) {
     // 4T-002069: Einstellungs-Speicher fuer den Schalter der Erweiterung.
     getStore,
     definitionsSchutz,
+    speicherPruefung,
   } = deps;
 
   // 4T-002069: Die Ausnahme der verknuepften Bereiche gilt nur bei
@@ -416,10 +418,14 @@ function registerFilesIpc(handle, deps) {
       // auf die Historie wahr; bei unveraenderter Datei waere er eine
       // Behauptung ohne Gegenstand.
       const gesichert = force && previousText !== null && previousText !== normalized;
+      // 4T-002404 (Epic 3E-000266): die Befunde einer Karteikarte, gemeldet und
+      // nie abgewiesen; geschrieben ist an dieser Stelle bereits.
+      const karteiBefunde = await pruefeKarteikarte(owner, zielPfad, geschriebenerText);
       return {
         ok: true,
         path: zielPfad,
         gesichert,
+        karteiBefunde,
         geteilt: !!plan.geteilt,
         // Der tatsaechlich geschriebene Gesamt-Stand, wenn er vom Puffer
         // abweicht; sonst nichts, damit der Regelfall nichts uebertraegt.
@@ -491,6 +497,29 @@ function registerFilesIpc(handle, deps) {
     if (!urteil.abgewiesen) return null;
     const text = abweisungsText(urteil, (k) => tForWindow(owner, k));
     return { ok: false, error: text, code: urteil.code };
+  }
+
+  // 4T-002404 (Epic 3E-000266, S3): Die Prüfung einer Karteikarte nach dem
+  // Schreiben, für beide Schreibwege dieser Gruppe wie der Schutz der
+  // Definition. Sie ändert den Ausgang nie: Ihr Ergebnis ist eine Angabe im
+  // Erfolgs-Ergebnis, `undefined` für jede Datei, die keine Karteikarte ist.
+  async function pruefeKarteikarte(owner, pfad, text) {
+    if (typeof speicherPruefung !== 'function') return undefined;
+    try {
+      const bereich = areaOfWindow(owner);
+      const befunde = await speicherPruefung({
+        pfad,
+        text,
+        fenster: owner,
+        bereichsWurzel: bereich ? bereich.rootPath : null,
+      });
+      return Array.isArray(befunde) ? befunde : undefined;
+    } catch (err) {
+      // Die Datei ist geschrieben; ein Fehler der Prüfung macht daraus keinen
+      // Fehlschlag des Speicherns.
+      console.warn('Prüfung der Karteikarte nicht möglich:', pfad, err);
+      return undefined;
+    }
   }
 
   // Ankuendigung des ersten Teilens (4T-001291, Auflage aus dem Epic).
@@ -591,7 +620,9 @@ function registerFilesIpc(handle, deps) {
           await recordMddOnSave(owner, absolute, previousText, normalized);
         }
         if (art.zuletzt) pushRecent(absolute);
-        return { ok: true, path: absolute };
+        // 4T-002404: dieselbe Meldung wie beim Speichern (Begründung dort).
+        const karteiBefunde = await pruefeKarteikarte(owner, absolute, normalized);
+        return { ok: true, path: absolute, karteiBefunde };
       } catch (err) {
         return { ok: false, error: err && err.message ? err.message : String(err) };
       }

@@ -109,9 +109,9 @@ describe('Auflösung des Kopf-Namens (4T-002072)', () => {
 });
 
 describe('Portabler Export des Kopf-Namens (4T-002072)', () => {
-  // Gemessen am 2026-10-03: Die Fence-Ersetzung des Exports nimmt die Leerzeile
-  // nach dem Zaun mit in ihren Treffer. Ohne Zeilenende hinter `^Name` stünde
-  // die Zeile direkt vor dem folgenden Absatz, und die Kennung bezeichnete ihn.
+  // Steht `^Name` direkt vor dem folgenden Absatz, bezeichnet die Kennung ihn
+  // statt der Tabelle. Seit 4T-002102 lässt die Fence-Ersetzung die Leerzeile
+  // nach dem Zaun stehen und sichert vor direkt folgendem Text selbst eine.
   it('die Zeile ^Name bleibt ein eigener Block vor einem folgenden Absatz', () => {
     for (const abstand of ['\n\n', '\n']) {
       const quelle = `${DT}\ntable: U\ncolumns: A:text\n| x |\n${Z}${abstand}Danach`;

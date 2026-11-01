@@ -232,6 +232,39 @@ describe('Positions-Regel: Zeile gegen Gruppe (AK2)', () => {
     expect(z.rows.map((r) => r.values[0])).toEqual([2, 1, 1, 0]);
   });
 
+  // 4T-002128 (Weg B, Entscheidung des Product Owners vom 2026-10-30): Leerer
+  // Text zählt beim Zählen wie ein fehlender Wert; falsch (`1 > 2`) und 0
+  // bleiben Werte. Träger ist die leere Text-Zelle des Buchs «Ohne Autor».
+  it('count(x) an der Zeilen-Stelle zählt leeren Text nicht', async () => {
+    const b = await bereich({ 'Library.md': LIBRARY });
+    const z = menge(b, 'TABLE RECORDS count(author), count(1 > 2), count(0) FROM "Library"');
+    const werte = z.rows.map((r) => r.values);
+    expect(werte.filter((w) => w[0] === 0)).toEqual([[0, 1, 1]]);
+    expect(werte.filter((w) => w[0] === 1)).toHaveLength(7);
+  });
+
+  it('count(x) über der Gruppe zählt eine Zeile mit leerem Text nicht', async () => {
+    const b = await bereich({ 'Library.md': LIBRARY });
+    // pages < 100 trifft allein «Ohne Autor» (50 Seiten).
+    const g = menge(b, 'TABLE RECORDS count(), count(author) FROM "Library" GROUP BY pages < 100');
+    expect(zeilen(g).map((r) => r.slice(1))).toEqual([
+      [7, 7],
+      [1, 0],
+    ]);
+  });
+
+  // Gemessen am 2026-10-30: Der Index liest den YAML-Wert "" und ein leeres
+  // Listen-Element als fehlend; die Eigenschaft zählt schon vor 4T-002128 nicht.
+  it('count(x) über eine Eigenschaft mit dem YAML-Wert "" ergibt 0', async () => {
+    const b = await bereich({
+      'A.md': '---\ntelefon: "0611"\n---\n# A\n',
+      'B.md': '---\ntelefon: ""\n---\n# B\n',
+      'C.md': '---\ntelefon: ["", "0711"]\n---\n# C\n',
+    });
+    const z = menge(b, 'LIST count(telefon) WHERE file.name != "Abfragen"');
+    expect(z.rows.map((r) => r.values[0])).toEqual([1, 0, 1]);
+  });
+
   it('sum, average, min und max fassen alle Werte zusammen, Listen elementweise', async () => {
     const b = await bereich(DATEIEN);
     const rs = menge(

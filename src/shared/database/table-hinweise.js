@@ -104,6 +104,13 @@ const HINWEIS_META = {
   // beginnt und als Inhalt gelesen wird. Ebenso weich: Die Zeile bleibt Inhalt,
   // der nächste Schreibvorgang maskiert sie.
   recordFenceLine: { key: null, expected: null },
+  // 4T-002386 (Epic 3E-000265, Schritt 4): Ein Datensatz-Block im Körper einer
+  // Tabelle in Kartei-Form. Er hängt am ganzen Block (`record` null) und an
+  // keinem Schlüssel, weil sein Gegenstand der Körper ist. Die Anzeige des
+  // Blocks stellt ihn, weil sie als einzige Stelle Definition und Körper
+  // derselben Datei zugleich sieht; der Katalog liest allein den Dateikopf.
+  // Seine Zeilen bleiben sichtbar und gelten nicht als Datensätze.
+  recordStorageCards: { key: null, expected: null },
   // 4T-001546 (E3.5, E5.1): Die Angabe der Kennung am Datensatz-Marker. Sie
   // trägt ausnahmsweise einen Schlüssel, obwohl der Befund im Körper der Datei
   // liegt: `id` ist der Name der Angabe, und eine Meldung ohne ihn führte den
@@ -195,6 +202,29 @@ const HINWEIS_META = {
   form: { key: 'form', expected: 'form-file-name' },
   formDateiUnbekannt: { key: 'form', expected: null }, // name: die Angabe
   formDateiFremd: { key: 'form', expected: null }, // name: die Angabe, expected: deren Tabelle
+  // 4T-002386 (Epic 3E-000265, F2 A): Die Ablage-Art `storage` der
+  // Tabellen-Definition, am Behälter (`index` -1). Der Code trägt den Namen
+  // seiner Angabe wie `form`; `name` ist der geschriebene Wert, `expected` die
+  // zulässigen Arten. Die Folge ist benannt: Die Tabelle gilt als Tabellen-Form.
+  storage: { key: 'storage', expected: null }, // name: der Wert, expected: die Ablage-Arten
+  // 4T-002407 (Epic 3E-000266, F6 A): Die Sichten `views` der
+  // Tabellen-Definition, am Behälter (`index` -1) mit dem Schlüssel ihrer
+  // Angabe. `views` und `viewsEntry` entstehen beim Lesen der Definition, die
+  // beiden übrigen erst im Katalog, weil nur er die Dateien der Datenbank
+  // kennt; `name` ist dort die geschriebene Angabe. Die Folge ist benannt: Eine
+  // genannte Sicht ohne Abfrage-Datei erscheint unter jeder Karteikarte als
+  // Meldung an ihrer Stelle.
+  views: { key: 'views', expected: 'list-of-query-files' },
+  viewsEntry: { key: 'views', expected: 'query-file-name' }, // name: der geschriebene Eintrag
+  viewDateiUnbekannt: { key: 'views', expected: null }, // name: die Angabe
+  viewKeineAbfrage: { key: 'views', expected: null }, // name: die Angabe
+  // 4T-002387 (Epic 3E-000265, F3 A): Die Angabe `db-record` im Dateikopf einer
+  // Karteikarte trägt keine Kennung in der Schreibweise der Tabellen-Form
+  // (`karteikarte.js`). Er hängt an der Angabe selbst (`index` -1), `name` ist
+  // der geschriebene Wert. Der Code heißt nicht `record…`, weil diese Familie
+  // die Befunde am Datensatz-Block trägt. Die Folge ist benannt: Das Dokument
+  // gilt nicht als Karteikarte.
+  cardId: { key: 'db-record', expected: 'record-id' },
   // 4T-002081 (Epic 3E-000259, Festlegungen 13 und 14): Befunde des Katalogs an
   // Abfrage-Dateien. Ihr Gegenstand ist der Text der Datei, nicht der Behälter
   // `db-query`, der nichts trägt; sie hängen deshalb an keinem Schlüssel. Die

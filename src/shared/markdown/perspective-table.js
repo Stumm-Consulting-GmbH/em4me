@@ -433,7 +433,24 @@ function renderPerspectiveTableCellForPortable(content) {
   }
   // 4T-001918 (B4): Aufgaben-Kästchen schreibt die portable Pipeline selbst
   // als Zeichen (kaestchenAlsZeichenPlugin in plugins/tasks.js).
-  return getMdPortable().render(withInnerHtml);
+  return ohneLeerzeileImCode(getMdPortable().render(withInnerHtml));
+}
+
+// 4T-001919: Die Tabelle steht im portablen Dokument als HTML-Block, und der
+// endet nach CommonMark an der ersten Leerzeile. markdown-it schreibt eine
+// Leerzeile eines Code-Blocks wörtlich in sein `<pre><code>`; die Tabelle
+// brach dort mitten in der Zelle ab. Deshalb wird in jedem `<pre><code>` das
+// Zeilenende einer leeren Zeile (nur Leerzeichen und Tabulatoren) als
+// Zeichen-Referenz `&#10;` geschrieben. Die Zeile ist damit nicht mehr leer,
+// der Code-Text bleibt Zeichen für Zeichen derselbe, weil jedes HTML-Programm
+// die Referenz als Zeilenumbruch liest. Zeilen außerhalb von `<pre><code>`
+// bleiben unberührt; ein `</code></pre>` kann im Code-Text nicht stehen, weil
+// markdown-it dort `<` maskiert.
+const PRE_CODE = /<pre\b[^>]*><code\b[^>]*>[\s\S]*?<\/code><\/pre>/g;
+const ENDE_LEERER_ZEILE = /(?<=\n[ \t]*)\n/g;
+
+function ohneLeerzeileImCode(html) {
+  return html.replace(PRE_CODE, (block) => block.replace(ENDE_LEERER_ZEILE, '&#10;'));
 }
 
 module.exports = {

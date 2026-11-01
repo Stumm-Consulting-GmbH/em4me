@@ -20,7 +20,7 @@ import {
   syncEditorForPane,
   updateWindowTitle,
 } from '../editor/editor.js';
-import { applyRenderPipeline } from '../render-mermaid.js';
+import { applyRenderPipeline, applyTeilbaumSchritte } from '../render-mermaid.js';
 // 4T-000277 (Epic 3E-000049): System-Seiten (Einstellungen) montieren ihr DOM
 // statt Editor/Render-Pane; Zyklus laufzeit-unkritisch (Muster manual.js).
 import { renderSystemPane } from '../app/system-pages.js';
@@ -28,10 +28,18 @@ import { refreshSearchIfVisible } from '../search/search.js';
 // 4T-000531 (Epic 3E-000088): Panel-Registry fuer die generische Sichtbarkeits-
 // Anwendung in applyAllLayouts (statt hartkodierter apply-Liste).
 import { sidebarPanels } from '../sidebar-layout.js';
-import { syncToolbarToActiveTab, updateActivePaneClasses } from '../tabs/tabs.js';
+import { openInPane, syncToolbarToActiveTab, updateActivePaneClasses } from '../tabs/tabs.js';
 // 4T-000991 (Epic 3E-000196): Existenz-Hinweis des Lesezeichen-Baums.
 import { noteBookmarkFileExistence } from '../bookmarks/bookmarks-tree.js';
 import { renderProperties } from '../properties/properties-fields.js';
+// 4T-002404 (Epic 3E-000266): Befunde einer Karteikarte gelten für den Stand,
+// den die Sitzung gespeichert hat; ein Neuladen verwirft sie.
+import { verwirfKarteiBefunde } from '../database/karteikarte-befunde.js';
+// 4T-002407 (Epic 3E-000266, S4): Die Sichten einer Karteikarte bekommen ihre
+// Umgebung von hier (Registrierung am Modul-Ende), weil das Modul selbst weder
+// die Pipeline noch den Zustand importieren darf (Begründung dort).
+import { initKarteikartenSichten } from '../database/karteikarte-sichten.js';
+import { activeTabOfPane } from './pane-lookup.js';
 import { renderTags } from '../editor/autocomplete-help.js';
 // 4T-002251: Freigabe verwaister Sperren der Listen-Maske beim Neuzeichnen.
 import { raeumeListenAuf } from '../query/frontmatter-query-view.js';
@@ -268,6 +276,7 @@ export async function reloadFile(filePath, opts = {}) {
       // frueher getroffene Vorentscheidung ist gegenstandslos.
       tab.saveConflict = false;
       tab.foreignOverride = null;
+      verwirfKarteiBefunde(filePath);
       // 4T-001292 (Epic 3E-000224): Der Nur-Lese-Zustand eines geteilten Dokuments
       // haengt am Bestand auf der Platte und wird mit jedem Neuladen neu
       // ermittelt — ein zurueckgelegter Teil macht den Reiter damit ohne
@@ -327,3 +336,14 @@ export function markFileMissing(filePath) {
   invalidatePaneRenderCache();
   noteBookmarkFileExistence(filePath, false);
 }
+
+// 4T-002407 (Epic 3E-000266, F6 A, S4): Der Schritt-Satz des erzeugten
+// Teilbaums, das Dokument einer Spalte und das Öffnen der Abfrage-Datei aus der
+// Kopfzeile einer Sicht. Die Registrierung steht hier, weil dieses Modul die
+// Lese-Ansicht zeichnet und die Pipeline schon lädt; `render-mermaid.js` ist im
+// Größen-Budget eingefroren.
+initKarteikartenSichten({
+  schritte: applyTeilbaumSchritte,
+  aktivesDokument: (paneIdx) => activeTabOfPane(state.panes, paneIdx),
+  oeffne: (pfad) => openInPane(state.activePaneIndex, [pfad], { inheritGroup: true }),
+});

@@ -36,10 +36,36 @@
 // Die Masken-Seite hört dagegen seit 4T-001939 auf `scg:open-form` und ruft dort
 // `oeffneMaske`, mit dem Tor des Aus-Zustands der Erweiterung «Datenbank» an
 // seiner einen Stelle. Dieses Modul importiert deshalb nichts.
+//
+// 4T-002406 (Epic 3E-000266, F7 A): **Die Weiche der Kartei-Form.** Bei einer
+// Karteikarte öffnet ein Klick auf den Datensatz das Dokument statt der
+// Einzel-Maske. Ob ein Datensatz eine Karteikarte ist, weiß dieses Modul nicht;
+// die Weiche meldet sich aus `database/karteikarte-ansichten.js` an
+// (`setzeDatensatzWeiche`), aus demselben Grund wie das Dokument-Ereignis: kein
+// Import von hier in die Datenbank-Module. Nicht über die Weiche gehen die
+// Zeile einer Listen-Maske und des Positions-Bereichs: Beide sind der Weg in die
+// Einzel-Maske und tragen dafür `data-fm-record-ziel="maske"` (`listen-maske.js`);
+// ebenso ein Treffer, der eine bestimmte Maske nennt.
 'use strict';
 
 const RECORD_HIT = '[data-fm-record-id]';
 const FILE_HIT = '[data-fm-path]';
+// 4T-002406: Ziel-Angabe eines Treffers, der immer die Einzel-Maske öffnet.
+export const ZIEL_MASKE = 'maske';
+
+// 4T-002406: die angemeldete Weiche oder null. Sie bekommt den Treffer und
+// liefert true, wenn sie den Klick übernommen hat.
+let datensatzWeiche = null;
+
+/**
+ * Meldet die Weiche der Kartei-Form an (4T-002406). Ohne Funktion wird sie
+ * abgemeldet.
+ *
+ * @param {((hit: object) => boolean)|null} weiche
+ */
+export function setzeDatensatzWeiche(weiche) {
+  datensatzWeiche = typeof weiche === 'function' ? weiche : null;
+}
 
 /**
  * Der Datensatz unter dem Ziel eines Klicks, oder null, wenn der Klick keinen
@@ -57,11 +83,14 @@ export function recordHitOf(target) {
   // 4T-002249: Ein Datei-Link innerhalb des Treffers ist ein eigener Treffer.
   const datei = target.closest(FILE_HIT);
   if (datei && datei !== el && el.contains(datei)) return null;
-  return {
+  const hit = {
     path: el.dataset.fmRecordTable || '',
     id: el.dataset.fmRecordId || '',
     maske: el.dataset.fmRecordMaske || null,
   };
+  // 4T-002406: nur an der Zeile einer Listen-Maske gesetzt.
+  if (el.dataset.fmRecordZiel === ZIEL_MASKE) hit.ziel = ZIEL_MASKE;
+  return hit;
 }
 
 /**
@@ -73,12 +102,20 @@ export function recordHitOf(target) {
  * Masken-Seite nimmt Pfad oder Namen einer Masken-Datei der Tabelle. Ohne sie
  * bleibt das Ereignis, wie es war.
  *
+ * 4T-002406: Vorher fragt die angemeldete Weiche der Kartei-Form; übernimmt
+ * sie, öffnet sie das Dokument der Karteikarte oder fällt selbst auf die Maske
+ * zurück.
+ *
  * @param {{ path: string, id: string, maske?: string|null }|null} hit Ergebnis von
  *   `recordHitOf`.
  * @returns {boolean} true, wenn die Maske angefordert wurde.
  */
 export function openRecordHit(hit) {
   if (!hit || !hit.path || !hit.id) return false;
+  // 4T-002406 (F7 A): Die Weiche entscheidet zwischen Dokument und Maske; eine
+  // Zeile der Listen-Maske und ein Treffer mit genannter Maske gehen nie dorthin.
+  const zurMaske = hit.ziel === ZIEL_MASKE || (typeof hit.maske === 'string' && hit.maske);
+  if (!zurMaske && datensatzWeiche && datensatzWeiche(hit) === true) return true;
   const detail = { filePath: hit.path, recordId: hit.id };
   if (typeof hit.maske === 'string' && hit.maske) detail.maske = hit.maske;
   document.dispatchEvent(new CustomEvent('scg:open-form', { detail }));

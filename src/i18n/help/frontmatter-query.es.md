@@ -128,7 +128,7 @@ SORT autor
 - **Tablas**: `TABLE RECORDS …` muestra el resultado en la primera columna «Registro»; `WITHOUT ID` va tras `RECORDS`. El título de una columna es el alias, si no la etiqueta del campo en el idioma del programa elegido según la cadena de respaldo de la página [Base de datos](database.md), y si no la propia expresión, por ejemplo en una ruta.
 - **Valores de enlace**: un campo de referencia muestra la forma de visualización de su destino, si no la tiene su identificador, y un clic abre el formulario del destino. Un enlace vacío y uno que no lleva a ninguna parte quedan como celda vacía.
 - **Orden**: sin `SORT`, los resultados siguen su forma de visualización sin distinguir mayúsculas y minúsculas, con igual forma de visualización el identificador, y los registros sin forma de visualización van al final.
-- **Un solo destino de clic**: un registro en el resultado de una consulta abre el formulario, igual que un enlace en el texto corrido como `[[Libros#^r-00042]]`; a la fila lleva la acción «Mostrar en el documento de tabla» del formulario. El formulario muestra el estado guardado.
+- **Un solo destino de clic**: un registro en el resultado de una consulta abre el formulario, igual que un enlace en el texto corrido como `[[Libros#^r-00042]]`; a la fila lleva la acción «Mostrar en el documento de tabla» del formulario. El formulario muestra el estado guardado. Si el registro pertenece a una tabla en forma de fichero, ambos clics abren el documento de la ficha (página [Base de datos](database.md), sección «Forma de fichero»).
 - **Formulario de lista**: si un archivo de consulta lleva la indicación `editable: true` en su contenedor `db-query`, su resultado aparece como cuadrícula en la que los registros se abren, modifican, crean y eliminan, 50 filas por página; la página [Base de datos](database.md) lo describe en la sección «Formulario de lista».
 - **Estado sin guardar**: los cambios de una tabla abierta se incluyen de inmediato en el resultado, sin guardar.
 - **No en este nivel**: `bold()` en una columna o en una expresión de `GROUP BY` produce un mensaje de error, porque un valor de base de datos no lleva formato; en la condición y la ordenación sigue estando permitido. `HIDE`, `SHOW` y `SHORT` solo valen para `LIST TASKS` y se señalan aquí como en los niveles de archivo y de bloque.
@@ -250,6 +250,7 @@ LIST WHERE area = this.area AND file.path != this.file.path
 - **El mismo sentido en todos los niveles**: también en las consultas `BLOCKS`, `TASKS` y `RECORDS`, `this.` designa el archivo portador del bloque, nunca el bloque suelto, la línea de tarea ni el registro.
 - **Precedencia**: la regla `this.` se impone a una propiedad del frontmatter del mismo nombre, igual que el espacio de nombres `file.`.
 - **Sin archivo portador**: si no puede resolverse, todo acceso `this.` da un valor vacío; un `this` a secas, sin punto, queda vacío como cualquier nombre de campo desconocido.
+- **Vista mostrada en una ficha**: en una vista que una tabla en forma de fichero muestra debajo de cada ficha, `this.` designa la ficha y no el archivo de consulta de la vista (página [Base de datos](database.md), sección «Forma de fichero»). Con una incrustación mediante `![[…]]` sigue siendo el archivo incrustado.
 
 Como **fuente**, el enlace wiki vacío designa ese mismo archivo: `FROM [[]]` reúne los archivos que enlazan a él, `FROM outgoing([[]])` la dirección contraria. El archivo portador nunca es resultado de sí mismo; sin archivo portador resoluble el conjunto queda vacío en lugar de abarcar todos los archivos.
 
@@ -287,7 +288,7 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `currencyformat(x[, m])` | `currencyformat(importe, "CHF")` | presentar un importe localizado: en euros sin indicación, y el número sin formato ante un código de moneda desconocido |
 | `infolder(l, "Carpeta")` | `length(infolder(file.inlinks, "Proyectos")) = 0` | la sublista de valores de enlace cuyo destino está en la carpeta o por debajo |
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(valores) = 6` | agregados sobre listas de números; sobre un grupo reúnen los valores de todos sus resultados (sección «Agrupación y agregación») |
-| `count(x)` | `count(tags) > 2` | número de valores presentes: en una lista sus elementos, en un valor simple 1, sin valor 0; `count()` sin campo cuenta los resultados de un grupo |
+| `count(x)` | `count(tags) > 2` | número de valores presentes: en una lista sus elementos, en un valor simple 1, sin valor 0, y un texto vacío, también como elemento de una lista, se considera «sin valor»; `count()` sin campo cuenta los resultados de un grupo |
 | `bold(x)` | `bold(estado)` | presentar un valor resaltado (sección «Resalte») |
 
 Una función desconocida o un número de argumentos incorrecto muestra un aviso de error en el bloque.

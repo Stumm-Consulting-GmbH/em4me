@@ -291,11 +291,43 @@
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-/* 4T-002184: die Zahl der weiteren Masken hinter der Standard-Maske. */
-.db-overview-form-more {
+/* 4T-002184: die Zahl der weiteren Masken hinter der Standard-Maske.
+   4T-002386: ebenso die Zahl der Karteikarten hinter der Ablage-Form. */
+.db-overview-form-more,
+.db-overview-card-count {
   color: var(--fg-muted);
   margin-left: 0.5em;
   white-space: nowrap;
+}
+/* 4T-002407 (F6 A, S4): die eingeblendeten Sichten einer Karteikarte unter dem
+   Dateikopf, in der Gestalt einer Einbettung (Kopfzeile und Körper übernehmen
+   deren Klassen), mit eigener Hülle, damit das Auffrischen der Einbettungen
+   sie nicht erfasst. */
+.markdown-body .db-card-view {
+  display: block;
+  margin: 12px 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+}
+.markdown-body .db-card-view-label {
+  color: var(--fg-muted);
+  text-transform: uppercase;
+  font-size: 0.85em;
+  letter-spacing: 0.04em;
+}
+.markdown-body .db-card-view.db-card-view-missing {
+  padding: 6px 12px;
+  border-color: rgba(220, 53, 69, 0.25);
+  background: rgba(220, 53, 69, 0.08);
+  color: var(--fg-muted);
+  font-size: 0.9em;
+  font-style: italic;
+}
+/* 4T-002407: eine Sicht ohne Abfrage-Datei in der Übersicht; ihr Befund steht unter den Fehlerlagen. */
+.db-overview-view-missing {
+  color: var(--fg-muted);
+  text-decoration: line-through;
 }
 /* 4T-001939 (Bauplan B8): die Aktion «Neuer Datensatz» je Tabelle. */
 .db-overview-table-action {

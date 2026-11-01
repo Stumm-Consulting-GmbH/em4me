@@ -1589,6 +1589,20 @@
       "vermerk": "Befördert am 2026-10-23 nach der Regel des Konzepts Test-Strategie und Qualitätssicherung, Kapitel 6, und nach dem Vermerk vom 2026-10-21 am Eintrag vom 2026-10-17 («beim nächsten Vorfall dieser Datei ist der eigene Vorgang im Pflege-Gefäß der Test-Infrastruktur fällig»): neuer Testfehler-Vorgang 4T-002360 im Pflege-Gefäß 3E-000156 (Laufende Pflege der Test-Infrastruktur), Einstufung als Testfehler vorläufig. Die beiden älteren Einträge dieser Prüfdatei stehen mit demselben Vorgang auf befördert."
     },
     {
+      "spec": "test/unit/renderer/live-tabelle-im-zitat.test.js",
+      "fall": "Rückrechnung und Zurückschreiben im Zitat (AK3) › der Quelltext aus dem Syntax-Baum ist ohne Präfixe, wie das Widget ihn zeigt",
+      "datum": "2026-10-25",
+      "status": "beobachtet",
+      "fehlerbild": "Erste Beobachtung. Aufgetreten im Gate-Lauf test auf epic/3E-000265-Kartei-Ablage am 2026-10-25 um 13:42 UTC (Schnitt 1 von 4T-002389, Tree mit drei neuen Datenbank-Modulen, keine Änderung an Tabellen- oder Zitat-Code): erwartet den Quelltext der Tabelle als Text, erhalten null (Spec-Zeile 235), 1 von 16 2xx Fällen rot; derselbe Lauf trug zwei echte Befunde (Matrix-Eintrag, Erosions-Wächter). Einzel-Lauf unmittelbar danach 18 von 18 grün, Wiederholung des Gate-Laufs um 14:4x UTC grün. Einordnung: Wettlauf unter Last, nicht am Gegenstand des Zuges."
+    },
+    {
+      "spec": "test/unit/web-llms.test.js",
+      "fall": "Hook-Zeitlimit (10000 ms) im Aufbau der Prüfdatei",
+      "datum": "2026-10-25",
+      "status": "beobachtet",
+      "fehlerbild": "Zweite Beobachtung desselben Falls (erste am 2026-10-07). Aufgetreten im Gate-Lauf test auf epic/3E-000265-Kartei-Ablage am 2026-10-25 um 18:17 UTC (Abschluss-Vorbereitung von 4T-002376: neue Versions-Datei web/inhalte/versionen/zug.json unter dem Arbeitsnamen und der Änderungsprotokoll-Block des Zuges): die ganze Suite scheiterte am Hook-Zeitlimit von 10000 ms, kein Einzelfall rot, 0 von 16 3xx Fällen. Einzel-Lauf unmittelbar danach 10 von 10 grün bei 10,19 s Gesamtdauer, also am Rand des Limits auch ohne Last; der Aufbau liest die Webseiten-Inhalte, die mit jeder Versions-Datei wachsen. Einordnung: Wettlauf unter Last mit Tendenz zum echten Kosten-Problem des Aufbaus; bei einer dritten Beobachtung zum Testfehler-Vorgang befördern (Kosten des Hooks senken oder sein Zeitlimit begründet setzen)."
+    },
+    {
       "spec": "test/e2e/funktionen/bereichs-suche.spec.js",
       "fall": "BS-09: Die erste Eingabetaste zeigt den ersten Treffer (4T-002107) › 4T-002107: Tippen bewegt nichts, die erste Eingabetaste zeigt «1 / 6», die zweite «2 / 6»",
       "datum": "2026-10-24",
@@ -1792,6 +1806,46 @@
       "vermutung": "Umgebung, nicht Prüffall: Die roten Fälle gehören zu einer gehäuften Folge aus Zeitüberschreitungen und Fehlschlägen des Fenster-Starts in den Lauf-Positionen 2 bis 244 (Blöcke 2 bis 3, 65 bis 68, 97 bis 110, 217 bis 222 und 244), zeitgleich mit der Linux-Unit-Suite und dem Linux-Ablauf-Lauf im Container auf demselben Rechner (09:22 bis 10:52 Ortszeit; die Kopie des Arbeitsbaums in den Container lief von 09:37 bis 09:42). Speicher-Druck ist belegt: Das Werkzeug musste vor dem Lauf Arbeitsspeicher freimachen (frei 1937 MB vorher, 5908 MB nachher bei einem Bedarf von 5120 MB, 393 Prozesse verkleinert); der Median der grünen Fälle lag in den ersten 150 Positionen bei 3,5 s, danach bei 2,3 s, und das Gate dauerte 2:08:12 gegenüber 1:40:57 bei 1.154.0. Der Mechanismus ist nicht gemessen. Kein Zusammenhang mit dem Änderungs-Umfang des Zuges (belegt): Prüfdatei und Ablauf-Helfer sind gegenüber v1.154.0 unverändert, und die Workflow-Teile des Zuges samt dem Start des Zeitplan-Prüfers im Hauptprozess (src/main/app/startup.js, src/main/app/wiring.js) sind seit dem Stand f0b785ad7 unverändert, an dem die Ablauf-Suite unter Windows im Epic-Abschluss-Test des Epics 3E-000366 am 2026-10-28 bis auf DB-BER-01 grün lief. BU-09 gehört zur Folge: Das zweite Fenster erschien unter derselben Last nicht binnen der Frist von 10 s, wie in den Nachbar-Fällen der Fenster-Start nicht binnen 30 s; das Buch-Modul ist gegenüber v1.154.0 unverändert.",
       "status": "beobachtet",
       "vermerk": "Isolierte Wiederholung aller 28 Prüfdateien mit Anfangsbuchstabe a oder b in der Maschine (node scripts/test-windows-vm.js e2e --nur funktionen.[ab], Zeichenklasse, weil das Werkzeug kein Pipe-Zeichen im Muster annimmt) am 2026-10-30: Isolierte Wiederholung in der Maschine mit node scripts/test-windows-vm.js e2e --nur «funktionen.[ab]» (alle 28 Prüfdateien mit Anfangsbuchstabe a oder b in einem Lauf) am 2026-10-30, 11:45 bis 12:16 Ortszeit (Lauf-Beginn in der Maschine 11:47:00, Rüstzeit 542 s mit Kopie 233 s, Gate 0:24:35): 223 von 225 grün; rot blieben allein BM-02 der Prüfdatei bereich-mehrfach.spec.js (Zeitüberschreitung 60 s, zum zweiten Mal) und BIC-01 der Prüfdatei bereichs-index-cache.spec.js (Zeitüberschreitung 60 s; im Voll-Lauf grün, bekannter Fall des Vorgangs 4T-001755). Der Diagnose-Weg sichert keine Belege; Quelle ist das Starter-Protokoll lauf.log der Maschine.. Isoliert grün, damit kein Befund des Zuges; Register-Zeile entfällt, weil kein Vorgang entsteht. Das gleichzeitige Fahren beider Plattform-Läufe auf demselben Rechner steht als Zeile vom 2026-10-30 im Befund-Eingang des Gefäßes 3E-000156. Eingetragen in Schritt 6 des Abschluss-Sammeltasks 4T-002429 (Zug 3E-000380, Release 1.155.0)."
+    },
+    {
+      "spec": "test/e2e/funktionen/aufgaben-abfrage.spec.js",
+      "fall": "TQ-01 bis TQ-08 (acht Fälle): alle Fälle der Prüfdatei in Folge",
+      "datum": "2026-11-01",
+      "fehlerbild": "Rechner SC-026, Stamm-Clone Bereich A, Windows-Ablauf-Lauf in der Hyper-V-Maschine em4me-pruefstand-win (node scripts/test-windows-vm.js e2e) in Schritt 6 der Release-Strecke des Zuges 3E-000370 am 2026-11-01, Stand 2b115d442 samt der Zusammenführung a8c6b324c und 6ce2ac9c3 des Zug-Zweigs zug/3E-000370-Stufe-5-Datenbank, Ablauf-Prüfungen 08:18 bis 10:06 Ortszeit (Gate 1:49:30, npm ci in der Maschine 1732 s statt sonst rund 250 s): 1357 grün, 13 rot, 0 übersprungen. Beleg: test-berichte/rot/2026-11-01T09-06-40Z-zug-3E-000370-Stufe-5-Datenbank-e2e.log samt .json und -artefakte. Gleichzeitig lief auf demselben Rechner bis 08:53 der Linux-Ablauf-Lauf im Container, danach bis 08:59 ein Diagnose-Lauf im Container. Rot von 08:22 bis 08:42 Ortszeit: TQ-01, TQ-02, TQ-04 bis TQ-07 «Test timeout of 60000ms exceeded», TQ-03 «electronApplication.firstWindow: Timeout 30000ms exceeded» nach 57,3 s, TQ-08 «page.waitForLoadState: Timeout 30000ms exceeded» nach 55,9 s. Isoliert in der Maschine am 2026-11-01 grün (node scripts/test-windows-vm.js e2e --nur \"aufgaben bearbeitung-und-ansicht datenbank-bereich datenbank-kartei-schreibwege smoke\", 10:08 bis 10:22, 70 von 70).",
+      "vermutung": "Lastbedingte Folge aus Zeitüberschreitungen und Fenster-Start-Fehlschlägen bei gleichzeitigen Plattform-Läufen auf einem Rechner, wie bei 1.154.0 und 1.155.0; Maßnahme verortet als 4T-002474 «Plattform-Läufe der Release-Strecke nicht mehr gleichzeitig auf einem Rechner fahren».",
+      "status": "beobachtet",
+      "vermerk": "Erstbeobachtung dieser Prüfdatei; Teil derselben Folge wie AU-08 und FB-01 bis FB-03 desselben Laufs.",
+      "vorgang": "4T-002474"
+    },
+    {
+      "spec": "test/e2e/funktionen/aufgaben.spec.js",
+      "fall": "AU-08: Roll-Lage und Aus-Zustand beim Abhaken in «Gerendert» (4T-002194) › im Aus-Zustand der Erweiterung «Aufgaben» bleiben die Marker Text",
+      "datum": "2026-11-01",
+      "fehlerbild": "Rechner SC-026, Stamm-Clone Bereich A, Windows-Ablauf-Lauf in der Hyper-V-Maschine em4me-pruefstand-win (node scripts/test-windows-vm.js e2e) in Schritt 6 der Release-Strecke des Zuges 3E-000370 am 2026-11-01, Stand 2b115d442 samt der Zusammenführung a8c6b324c und 6ce2ac9c3 des Zug-Zweigs zug/3E-000370-Stufe-5-Datenbank, Ablauf-Prüfungen 08:18 bis 10:06 Ortszeit (Gate 1:49:30, npm ci in der Maschine 1732 s statt sonst rund 250 s): 1357 grün, 13 rot, 0 übersprungen. Beleg: test-berichte/rot/2026-11-01T09-06-40Z-zug-3E-000370-Stufe-5-Datenbank-e2e.log samt .json und -artefakte. Gleichzeitig lief auf demselben Rechner bis 08:53 der Linux-Ablauf-Lauf im Container, danach bis 08:59 ein Diagnose-Lauf im Container. Rot um 08:46 Ortszeit, Spec-Zeile 248: «Test timeout of 60000ms exceeded» nach 60,3 s. Isoliert in der Maschine am 2026-11-01 grün (node scripts/test-windows-vm.js e2e --nur \"aufgaben bearbeitung-und-ansicht datenbank-bereich datenbank-kartei-schreibwege smoke\", 10:08 bis 10:22, 70 von 70).",
+      "vermutung": "Lastbedingte Folge aus Zeitüberschreitungen und Fenster-Start-Fehlschlägen bei gleichzeitigen Plattform-Läufen auf einem Rechner, wie bei 1.154.0 und 1.155.0; Maßnahme verortet als 4T-002474 «Plattform-Läufe der Release-Strecke nicht mehr gleichzeitig auf einem Rechner fahren».",
+      "status": "beobachtet",
+      "vermerk": "Zweite Beobachtung nach dem Eintrag vom 2026-10-30 (AU-07 und AU-08); dieselbe verortete Ursache, deshalb keine Beförderung zu einem eigenen Testfehler-Vorgang.",
+      "vorgang": "4T-002474"
+    },
+    {
+      "spec": "test/e2e/funktionen/bearbeitung-und-ansicht.spec.js",
+      "fall": "FB-01 bis FB-03 (drei Fälle): Edit-Modus-Toggle, Listen-Indent, Tabellen-Editor-Komfort",
+      "datum": "2026-11-01",
+      "fehlerbild": "Rechner SC-026, Stamm-Clone Bereich A, Windows-Ablauf-Lauf in der Hyper-V-Maschine em4me-pruefstand-win (node scripts/test-windows-vm.js e2e) in Schritt 6 der Release-Strecke des Zuges 3E-000370 am 2026-11-01, Stand 2b115d442 samt der Zusammenführung a8c6b324c und 6ce2ac9c3 des Zug-Zweigs zug/3E-000370-Stufe-5-Datenbank, Ablauf-Prüfungen 08:18 bis 10:06 Ortszeit (Gate 1:49:30, npm ci in der Maschine 1732 s statt sonst rund 250 s): 1357 grün, 13 rot, 0 übersprungen. Beleg: test-berichte/rot/2026-11-01T09-06-40Z-zug-3E-000370-Stufe-5-Datenbank-e2e.log samt .json und -artefakte. Gleichzeitig lief auf demselben Rechner bis 08:53 der Linux-Ablauf-Lauf im Container, danach bis 08:59 ein Diagnose-Lauf im Container. Rot von 08:49 bis 08:53 Ortszeit, Spec-Zeilen 104, 124 und 157: je «Test timeout of 60000ms exceeded» nach 60 s. Isoliert in der Maschine am 2026-11-01 grün (node scripts/test-windows-vm.js e2e --nur \"aufgaben bearbeitung-und-ansicht datenbank-bereich datenbank-kartei-schreibwege smoke\", 10:08 bis 10:22, 70 von 70).",
+      "vermutung": "Lastbedingte Folge aus Zeitüberschreitungen und Fenster-Start-Fehlschlägen bei gleichzeitigen Plattform-Läufen auf einem Rechner, wie bei 1.154.0 und 1.155.0; Maßnahme verortet als 4T-002474 «Plattform-Läufe der Release-Strecke nicht mehr gleichzeitig auf einem Rechner fahren».",
+      "status": "beobachtet",
+      "vermerk": "FB-01 zum zweiten Mal nach dem Eintrag vom 2026-10-30, FB-02 und FB-03 erstmals; dieselbe verortete Ursache, deshalb keine Beförderung zu einem eigenen Testfehler-Vorgang.",
+      "vorgang": "4T-002474"
+    },
+    {
+      "spec": "test/e2e/funktionen/datenbank-bereich.spec.js",
+      "fall": "DB-BER-01: Einstellungs-Bereich «Datenbank» (4T-001758) › erscheint in einem Bereich mit Datenbank und zeigt die Auskunft",
+      "datum": "2026-11-01",
+      "fehlerbild": "Rechner SC-026, Stamm-Clone Bereich A, Windows-Ablauf-Lauf in der Hyper-V-Maschine em4me-pruefstand-win (node scripts/test-windows-vm.js e2e) in Schritt 6 der Release-Strecke des Zuges 3E-000370 am 2026-11-01, Stand 2b115d442 samt der Zusammenführung a8c6b324c und 6ce2ac9c3 des Zug-Zweigs zug/3E-000370-Stufe-5-Datenbank, Ablauf-Prüfungen 08:18 bis 10:06 Ortszeit (Gate 1:49:30, npm ci in der Maschine 1732 s statt sonst rund 250 s): 1357 grün, 13 rot, 0 übersprungen. Beleg: test-berichte/rot/2026-11-01T09-06-40Z-zug-3E-000370-Stufe-5-Datenbank-e2e.log samt .json und -artefakte. Gleichzeitig lief auf demselben Rechner bis 08:53 der Linux-Ablauf-Lauf im Container, danach bis 08:59 ein Diagnose-Lauf im Container. Rot um 09:03 Ortszeit, Spec-Zeile 113: «expect(locator).toBeVisible() failed» nach 16,6 s, nach dem Ende der Container-Läufe. Isoliert in der Maschine am 2026-11-01 grün (node scripts/test-windows-vm.js e2e --nur \"aufgaben bearbeitung-und-ansicht datenbank-bereich datenbank-kartei-schreibwege smoke\", 10:08 bis 10:22, 70 von 70).",
+      "vermutung": "Fünfte Beobachtung des beförderten Produktfehlers 4T-002441 «Einstellungs-Seite zeigt den Abschnitt Datenbank nach dem Index-Aufbau nicht»; anders als bei 1.155.0 isoliert grün.",
+      "status": "befoerdert",
+      "vermerk": "Beobachtung zum Vorgang 4T-002441; kein neuer Befund.",
+      "vorgang": "4T-002441"
     }
   ]
 }

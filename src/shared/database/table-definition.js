@@ -353,7 +353,7 @@ function istTabellenDokument(data) {
 // Liest den Definitions-Behälter aus dem Frontmatter-Objekt eines Dokuments.
 //
 // Liefert { istTabelle, fields, hints } plus — nur wenn die Datei sie trägt —
-// { lastId, key, display, changeLog, checks, editable, form }: `fields` sind die gültigen,
+// { lastId, key, display, changeLog, checks, editable, form, views }: `fields` sind die gültigen,
 // normalisierten Definitionen { name, type } samt ihren optionalen Angaben (seit
 // 4T-001930 auch `checks`, die gültigen Feld-Regeln, seit 4T-002312 `editable`,
 // die gültige Bearbeitbarkeits-Bedingung des Feldes), `hints` die gesammelten
@@ -361,7 +361,8 @@ function istTabellenDokument(data) {
 // 'expr' | 'name', quelle, regex?, ast?, name?, message } (`table-checks.js`);
 // `checks` am Ergebnis sind die gültigen Datensatz-Regeln, `editable` die gültige
 // Bearbeitbarkeits-Bedingung als eine solche Regel (4T-001932), `form` der Name
-// der Standard-Maske ohne Endung (4T-002184). Fehler-Codes:
+// der Standard-Maske ohne Endung (4T-002184), `views` die Namen der Sichten ohne
+// Endung in der geschriebenen Reihenfolge (4T-002407). Fehler-Codes:
 //   container            Behälter ist kein einfaches Objekt (keine Definitionen)
 //   fieldsNotList        `fields` im Behälter ist keine Liste
 //   entry                Definitions-Eintrag ist kein Objekt
@@ -409,7 +410,12 @@ function istTabellenDokument(data) {
 //   fieldEditableUnknownField Feld-Bedingung nennt ein unbekanntes Feld (entfällt, Feld bearbeitbar)
 //   fieldEditableMessage Meldung der Feld-Bedingung nicht auslegbar (entfällt, Bedingung bleibt)
 //   form                Standard-Maske ist kein brauchbarer Datei-Name (entfällt)
+//   storage             Ablage-Art weder table noch cards (gilt als table; 4T-002386)
+//   views               Sichten sind keine Liste (alle entfallen; 4T-002407)
+//   viewsEntry          ein Eintrag der Sichten ist kein Name (entfällt einzeln)
 //
+// Seit 4T-002386 trägt das Ergebnis jeder Tabelle (`istTabelle: true`) die
+// Ablage-Art `storage`, immer gesetzt: `'table'` oder `'cards'`.
 // Angaben, die dieses Modul (noch) nicht beschreibt, bleiben unangetastet und
 // hinweisfrei — dieselbe Zusage, die das Feld-Format der Eigenschafts-Profile
 // über alle seine Stufen gehalten hat: Eine Datei, die für eine spätere Stufe
@@ -422,10 +428,11 @@ function parseTableDefinition(data) {
   const behaelter = data[DB_TABLE_KEY];
   // Ein leerer Behälter ist eine Tabelle, die ihre Felder noch nicht kennt —
   // kein Fehler, sondern der Zustand unmittelbar nach dem Anlegen.
-  if (behaelter === null) return { istTabelle: true, fields: [], hints };
+  if (behaelter === null)
+    return { istTabelle: true, fields: [], hints, storage: DB_STORAGE_VORGABE };
   if (!istEinfachesObjekt(behaelter)) {
     hints.push(baueHinweis('container', -1, null));
-    return { istTabelle: true, fields: [], hints };
+    return { istTabelle: true, fields: [], hints, storage: DB_STORAGE_VORGABE };
   }
 
   const roh = behaelter[DB_FIELDS_KEY];
@@ -439,12 +446,79 @@ function parseTableDefinition(data) {
     }
   }
 
-  const ergebnis = { istTabelle: true, fields, hints };
+  const ergebnis = { istTabelle: true, fields, hints, storage: leseAblageArt(behaelter, hints) };
   leseIdentitaet(behaelter, fields, ergebnis, hints);
   leseBelegGrenzen(behaelter, ergebnis, hints);
   leseRegeln(behaelter, fields, ergebnis, hints);
   leseStandardMaske(behaelter, ergebnis, hints);
+  leseSichten(behaelter, ergebnis, hints);
   return ergebnis;
+}
+
+// 4T-002407 (Epic 3E-000266, F6 A): Die Sichten der Tabelle, eine Liste von
+// Namen oder Pfaden von Abfrage-Dateien, so wie `form` eine Masken-Datei nennt
+// (`views: [Books by this author]`). Sie stehen auf der oberen Ebene des
+// Behälters, weil sie die Tabelle als Ganzes betreffen, und erscheinen am
+// Ergebnis nur, wenn mindestens ein brauchbarer Eintrag dasteht. **Ohne Angabe
+// ändert sich nichts.** Eine Angabe, die keine Liste ist, entfällt ganz mit dem
+// Hinweis `views`; ein Eintrag, der kein Name ist, entfällt einzeln mit
+// `viewsEntry`, die übrigen bleiben. Ob eine genannte Datei existiert und eine
+// Abfrage-Datei ist, weiß allein der Katalog (`sichten-zuordnung.js`).
+const DB_VIEWS_ANGABE = 'views';
+
+function leseSichten(behaelter, ergebnis, hints) {
+  const roh = behaelter[DB_VIEWS_ANGABE];
+  if (roh === undefined || roh === null) return;
+  if (!Array.isArray(roh)) {
+    hints.push(baueHinweis('views', -1, null));
+    return;
+  }
+  const views = [];
+  for (const eintrag of roh) {
+    const name = normalisiereMaskenName(eintrag);
+    if (name !== null) views.push(name);
+    else hints.push(baueHinweis('viewsEntry', -1, alsAngabe(eintrag)));
+  }
+  if (views.length > 0) ergebnis.views = views;
+}
+
+// Der geschriebene Wert eines unbrauchbaren Eintrags als Text für den Hinweis.
+function alsAngabe(wert) {
+  if (typeof wert === 'string') return wert;
+  return wert === undefined ? '' : JSON.stringify(wert);
+}
+
+// 4T-002386 (Epic 3E-000265, F2 A): Die Ablage-Art der Tabelle. `table` ist
+// die Tabellen-Form mit Datensatz-Block, `cards` die Kartei-Form, in der jedes
+// Dokument des Ordners eine Karteikarte ist. Die Angabe betrifft die Tabelle als
+// Ganzes und steht deshalb auf der oberen Ebene des Behälters. Verglichen wird
+// wie bei den übrigen Wort-Angaben des Behälters (`type`): Leerraum am Rand
+// zählt nicht, die Schreibung zählt. **Ohne Angabe gilt `table`**, damit jede
+// bestehende Tabelle unverändert bleibt; **ein unbekannter Wert gilt ebenfalls
+// als `table`** und wird gemeldet, weil ein Tippfehler nicht still alle
+// Dokumente des Ordners zu Datensätzen machen darf.
+const DB_STORAGE_ANGABE = 'storage';
+const DB_STORAGE_ARTEN = Object.freeze(['table', 'cards']);
+const DB_STORAGE_VORGABE = 'table';
+
+function leseAblageArt(behaelter, hints) {
+  const roh = behaelter[DB_STORAGE_ANGABE];
+  if (roh === undefined || roh === null) return DB_STORAGE_VORGABE;
+  const wort = alsText(roh);
+  if (wort !== null && DB_STORAGE_ARTEN.includes(wort)) return wort;
+  const geschrieben = typeof roh === 'string' ? roh : JSON.stringify(roh);
+  hints.push(baueHinweis('storage', -1, geschrieben, [...DB_STORAGE_ARTEN]));
+  return DB_STORAGE_VORGABE;
+}
+
+// 4T-002386 (Schritt 4): Legt die Tabelle in Kartei-Form ab? Die eine Stelle,
+// an der Index, Datensatz-Lesen, Bestand, Konsistenz-Prüfung, Schreibweg und
+// Anzeige des Datensatz-Blocks diese Frage stellen; eine fehlende oder
+// unbrauchbare Definition gilt als Tabellen-Form wie ohne Angabe.
+const DB_STORAGE_KARTEI = 'cards';
+
+function istKarteiForm(definition) {
+  return !!definition && definition.storage === DB_STORAGE_KARTEI;
 }
 
 // 4T-002184 (Epic 3E-000261, F1 A): Die Standard-Maske der Tabelle, der Name
@@ -629,6 +703,7 @@ module.exports = {
   dbFieldProfileFields,
   dbFieldProfile,
   istTabellenDokument,
+  istKarteiForm,
   parseTableDefinition,
   parseFormDefinition,
 };

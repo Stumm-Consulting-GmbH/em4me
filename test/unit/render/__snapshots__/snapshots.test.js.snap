@@ -36,6 +36,7 @@ Die Spalten stehen in der Definition im Frontmatter dieser Datei, nicht im
 Block: Der Block trägt allein die Datensätze.
 
 <table><thead><tr><th scope="col">Kunde</th><th scope="col" style="text-align: right;">menge</th><th scope="col" style="text-align: center;">geliefert</th><th scope="col">termin</th><th scope="col">bemerkung</th></tr></thead><tbody><tr><td>Anna Beispiel</td><td style="text-align: right;">12.50</td><td style="text-align: center;">✓</td><td>2026-03-01</td><td>Erste Lieferung,<br>zweite Zeile derselben Zelle.</td></tr><tr><td>Bert Muster</td><td style="text-align: right;">3.00</td><td style="text-align: center;"></td><td>2026-04-15</td><td>Eine Zelle, deren zweite Zeile mit einem maskierten Marker beginnt:<br>| das bleibt Inhalt.</td></tr></tbody></table>
+
 Text nach dem Block bleibt gewöhnlicher Fließtext.
 "
 `;
@@ -48,6 +49,7 @@ exports[`Portable-Export-Snapshots > konvertiert Ereignis-Blöcke zu statischen 
 Eingebettete Verwaltung (Art 1) mit Direktiven, Kategorien, Notizen und Wiederkehr:
 
 <table><thead><tr><th scope="col" style="text-align: left;">Zeitpunkt</th><th scope="col" style="text-align: left;">Ende</th><th scope="col" style="text-align: left;">Kategorie</th><th scope="col" style="text-align: left;">Ereignis</th><th scope="col" style="text-align: left;">Zeitdifferenz</th></tr></thead><tbody><tr><td>2020-01-01</td><td></td><td><span style="background-color: #fff3e0; color: #e65100; border-radius: 0.7em; padding: 0.1em 0.6em; font-size: 0.85em; white-space: nowrap;">Projekt</span></td><td>Projektstart Alpha<br><span style="opacity: 0.7; font-size: 0.85em;">Kickoff-Notiz</span></td><td><span style="font-size: 0.85em; white-space: nowrap;"><span style="opacity: 0.7;">vergangen</span><br>2387 Tage<br>341 Wochen, 0 Tage<br>78 Monate, 2 Wochen, 0 Tage<br>6 Jahre, 6 Monate, 2 Wochen, 0 Tage</span></td></tr><tr><td>1990-03-10</td><td></td><td><span style="background-color: #e8f5e9; color: #1b5e20; border-radius: 0.7em; padding: 0.1em 0.6em; font-size: 0.85em; white-space: nowrap;">Geburtstag</span></td><td>Geburtstag Anna</td><td><span style="font-size: 0.85em; white-space: nowrap;"><span style="opacity: 0.7;">vergangen</span><br>13276 Tage<br>1896 Wochen, 4 Tage<br>436 Monate, 0 Wochen, 5 Tage<br>36 Jahre, 4 Monate, 0 Wochen, 5 Tage<br><span style="opacity: 0.7;">Wiederkehr: 2027-03-10 · in 238 Tagen · 37. Jahr</span></span></td></tr><tr><td>2024-02-29</td><td>2024-06-30<br><span style="opacity: 0.7; font-size: 0.85em;">Dauer: 4 Monate, 1 Tag</span></td><td><span style="background-color: #e0f2f1; color: #00695c; border-radius: 0.7em; padding: 0.1em 0.6em; font-size: 0.85em; white-space: nowrap;">Termin</span></td><td>Schaltjahres-Spanne<br><span style="opacity: 0.7; font-size: 0.85em;">Zeile1<br>Zeile2</span></td><td><span style="font-size: 0.85em; white-space: nowrap;"><span style="opacity: 0.7;">vergangen</span><br>867 Tage<br>123 Wochen, 6 Tage<br>28 Monate, 2 Wochen, 2 Tage<br>2 Jahre, 4 Monate, 2 Wochen, 2 Tage</span></td></tr><tr><td>2026-03-01</td><td>2026-02-01</td><td>fantasie</td><td>Ende vor Beginn</td><td><span style="font-size: 0.85em; white-space: nowrap;"><span style="opacity: 0.7;">vergangen</span><br>136 Tage<br>19 Wochen, 3 Tage<br>4 Monate, 2 Wochen, 0 Tage</span></td></tr></tbody></table>
+
 Struktur-Fehler bleiben Fehler-Liste:
 
 \`\`\`perspective-events
@@ -70,9 +72,11 @@ exports[`Portable-Export-Snapshots > konvertiert Perspective-Datatables zu stati
 Voll ausgebaute Tabelle mit allen Typen, Format, berechneter Spalte und Aggregaten:
 
 <table><thead><tr><th scope="col">Name</th><th scope="col">Datum</th><th scope="col">Start</th><th scope="col" style="text-align: right;">Betrag</th><th scope="col" style="text-align: center;">Erledigt</th><th scope="col" style="text-align: right;">Doppelt</th></tr></thead><tbody><tr><td>Anna</td><td>2026-07-08</td><td>09:30</td><td style="text-align: right;">12.50</td><td style="text-align: center;">x</td><td style="text-align: right;">25</td></tr><tr><td>Bert</td><td>2025-12-31</td><td>23:10</td><td style="text-align: right;">-3.00</td><td style="text-align: center;"></td><td style="text-align: right;">-6</td></tr><tr><td>P|pe</td><td></td><td></td><td style="text-align: right;"></td><td style="text-align: center;">x</td><td style="text-align: right;"></td></tr></tbody><tfoot><tr><td style="font-style: italic;"></td><td style="font-style: italic;"><span style="opacity: 0.7;">min</span> 2025-12-31<br><span style="opacity: 0.7;">max</span> 2026-07-08</td><td style="font-style: italic;"></td><td style="font-style: italic; text-align: right;"><span style="opacity: 0.7;">sum</span> 9.50<br><span style="opacity: 0.7;">avg</span> 4.75</td><td style="font-style: italic; text-align: center;"><span style="opacity: 0.7;">count</span> 2</td><td style="font-style: italic; text-align: right;"></td></tr></tfoot></table>
+
 Zweite Tabelle im selben Dokument (Fence-Index 1) mit Fehler-Zellen:
 
 <table><thead><tr><th scope="col" style="text-align: right;">N</th><th scope="col">D</th></tr></thead><tbody><tr><td style="text-align: right; background-color: #ffebee; color: #b71c1c;">kaputt</td><td style="background-color: #ffebee; color: #b71c1c;">2026-02-30</td></tr></tbody></table>
+
 Struktur-Fehler (unbekannter Typ, doppelte Spalte):
 
 \`\`\`perspective-datatable
@@ -95,10 +99,13 @@ titel: Export
 <!-- perspective-portable -->
 
 <table><caption>Beschriftung</caption><thead><tr><th scope="col">Kopf 1 !! Kopf 2 !! Kopf 3</th></tr></thead><tbody><tr><td>a1 || a2 || a3</td></tr><tr><td colspan="2">breit || c3</td></tr></tbody></table>
+
 <table><thead><tr><th scope="col">Name !! Wert</th></tr></thead><tbody><tr><td style="text-align: right">rechts || {status:ok} gut</td></tr><tr><td><strong>Markdown</strong> in Zelle || <a href="Ziel.md" class="wikilink">Ziel</a> und $x^2$</td></tr></tbody></table>
+
 <table><tbody><tr><td><p>Aussen ||
 {| class=“perspective-table”</p>
-</td></tr><tr><td>Innen</td></tr></tbody></table>"
+</td></tr><tr><td>Innen</td></tr></tbody></table>
+"
 `;
 
 exports[`Portable-Export-Snapshots > konvertiert Task-Marker zu Badges mit Inline-Styles (4T-000498) 1`] = `
@@ -174,6 +181,9 @@ exports[`Render-Pipeline-Snapshots (Viewer-Pfad) > rendert attributes-spans.md s
 <p data-source-line="16">Fußnote<sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup> bleibt Fußnote.</p>
 <p data-source-line="20">Markdown-Link <a href="ziel.md">Text</a> bleibt Link; [Text] ohne Block bleibt Klartext.</p>
 <p data-source-line="22">Fließtext mit { geschweiften Klammern } bleibt unangetastet.</p>
+<p data-source-line="24">Klammer-Paar ohne erlaubtes Attribut am Absatzende bleibt Text: Menge {foo}</p>
+<p data-source-line="26">Ebenso mit Gleichheitszeichen: Menge {x=1}</p>
+<p class="rot" data-source-line="28">Gültige Klasse am Absatzende wirkt: Klasse</p>
 <hr class="footnotes-sep">
 <section class="footnotes">
 <ol class="footnotes-list">
@@ -839,6 +849,10 @@ Gregorianischer Kalender: 2026-01-01" data-calendar-name="Projekt" data-calendar
 <p data-source-line="22">Auf einem Fantasie-Kalender: <span class="calendar-value" title="Mondzählung: 0-1-12
 Dreimond: 1-3-21" data-calendar-name="Mondzählung" data-calendar-value="0-1-12">1 Monat, 12 Tag</span> und <span class="calendar-value" title="Mondzählung: 1-0-3 davor
 Dreimond: 499-2-07 ZZ" data-calendar-name="Mondzählung" data-calendar-value="1-0-3 davor">1 Jahr, 3 Tag davor</span>.</p>
+<h2 id="fremde-schreibweisen" data-source-line="24">Fremde Schreibweisen</h2>
+<p data-source-line="26">Karte @@{14:00}</p>
+<p data-source-line="28">Termin <span class="calendar-value" title="Dreimond: 1-2-13" data-calendar-name="Dreimond" data-calendar-value="1-2-13">1-Mittmond-13</span> @@{14:00}</p>
+<p data-source-line="30">Kaputt @{2026-13-40}</p>
 "
 `;
 

@@ -68,7 +68,7 @@ The properties sidebar shows the frontmatter fields live-editable. The field typ
 
 Clicking a value field offers the values already used for that property in the area, in alphabetical order; each character typed narrows the list, and a value of your own remains freely typable. Where a property profile defines a set of values, both origins appear together and stay distinguishable — the values from existing entries are marked as such. If the property occurs nowhere in the area, no list appears. Can be switched off under File → Settings… → Extensions.
 
-When writing, the block round-trips cleanly: comments, field order and the style of unchanged fields are not reformatted, and CRLF line endings stay stable.
+When writing, the block round-trips cleanly: comments, field order and the style of unchanged fields are not reformatted, and CRLF line endings stay stable. Single-line lists in square brackets are written without inner spaces (`[a, b]`); a list written as `[ a, b ]` switches to this form once on the first save and stays unchanged afterwards.
 
 On a YAML syntax error the sidebar shows the error message and locks adding until the block is fixed in the editor.
 
@@ -81,6 +81,6 @@ created: 2025-06-23 15:43
 updated: 2026-07-18 12:04
 ```
 
-Both fields can be switched on independently and their names are freely selectable. The format is either date only or date and time, always in local time. An existing creation time is never overwritten; the modification time moves along with every save.
+Both fields can be switched on independently and their names are freely selectable. The format is either date only or date and time, always in local time. An existing creation time is never overwritten; the modification time moves along with every save. If a save sets a new modification time, a `Ctrl+Z` right afterwards takes back the time together with the last change before it, also after automatic saving.
 
 Missing fields are only created when the corresponding option is active. Otherwise only fields that are already present in the block are maintained, and the document stays unchanged apart from that. Access and switch are listed in the [functions table](functions.md).

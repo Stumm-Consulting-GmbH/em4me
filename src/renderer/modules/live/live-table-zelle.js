@@ -588,10 +588,9 @@ export function uebernimmOffeneZellEingabe({ bleibOffen = false } = {}) {
 // Der Aufschub in den naechsten Frame ist noetig, weil die Auswahl-Aenderung die
 // Live-Dekorationen neu bauen kann und der Zell-Knoten dabei ausgetauscht wird.
 
-// Oeffnet die Zelle, in der die Stelle `kopf` des Dokuments liegt — falls sie in
-// einem Tabellen-Widget liegt und dort geschrieben werden darf.
-export function oeffneZelleFuerDokumentStelle(view, kopf) {
-  if (!view || !view.dom || view.state.readOnly) return;
+// Das Tabellen-Widget, in dem die Stelle `kopf` des Dokuments liegt, samt
+// seiner Dokument-Stelle und Länge; `null`, wenn sie in keinem liegt.
+function tabellenKastenAn(view, kopf) {
   const kaesten = view.dom.querySelectorAll('.cm-live-block[data-tabellen-laenge]');
   for (const container of kaesten) {
     const laenge = Number(container.dataset.tabellenLaenge);
@@ -603,39 +602,105 @@ export function oeffneZelleFuerDokumentStelle(view, kopf) {
       continue;
     }
     if (typeof von !== 'number' || kopf < von || kopf > von + laenge) continue;
-    // 4T-002055: `laenge` zählt im Dokument, samt der Zitat-Präfixe; der
-    // Block-Text ist ohne sie, und die Stelle der Schreibmarke rechnet hinein.
-    const dokText = view.state.doc.sliceString(von, von + laenge);
-    const praefixe = zitatPraefixeAb(view.state.doc, von, dokText.split('\n').length);
-    const source = ohneZitatPraefixe(dokText, praefixe);
-    const zeilen = source.split('\n');
-    const modell = parsePipeTable(zeilen);
-    if (!modell) return;
-    const relativ = blockStelle(praefixe, dokText, kopf - von);
-    const treffer = zellePosZuDokumentStelle(zeilen, modell, relativ);
-    if (!treffer) return;
-    if (offeneBearbeitung && offeneBearbeitung.container === container) {
-      const offen = offeneBearbeitung.pos;
-      if (
-        offen.rowKind === treffer.pos.rowKind &&
-        offen.rowIndex === treffer.pos.rowIndex &&
-        offen.col === treffer.pos.col
-      )
-        return;
-    }
-    const zelle = findeZelle(container, treffer.pos);
-    if (!zelle) return;
-    oeffneZellBearbeitung({
-      view,
-      container,
-      source,
-      zelle,
-      pos: treffer.pos,
-      offset: treffer.offset,
-    });
-    return;
+    return { container, von, laenge };
   }
+  return null;
 }
+
+// Oeffnet die Zelle, in der die Stelle `kopf` des Dokuments liegt — falls sie in
+// einem Tabellen-Widget liegt und dort geschrieben werden darf.
+export function oeffneZelleFuerDokumentStelle(view, kopf) {
+  if (!view || !view.dom || view.state.readOnly) return;
+  const kasten = tabellenKastenAn(view, kopf);
+  if (!kasten) return;
+  const { container, von, laenge } = kasten;
+  // 4T-002055: `laenge` zählt im Dokument, samt der Zitat-Präfixe; der
+  // Block-Text ist ohne sie, und die Stelle der Schreibmarke rechnet hinein.
+  const dokText = view.state.doc.sliceString(von, von + laenge);
+  const praefixe = zitatPraefixeAb(view.state.doc, von, dokText.split('\n').length);
+  const source = ohneZitatPraefixe(dokText, praefixe);
+  const zeilen = source.split('\n');
+  const modell = parsePipeTable(zeilen);
+  if (!modell) return;
+  const relativ = blockStelle(praefixe, dokText, kopf - von);
+  const treffer = zellePosZuDokumentStelle(zeilen, modell, relativ);
+  if (!treffer) return;
+  if (offeneBearbeitung && offeneBearbeitung.container === container) {
+    const offen = offeneBearbeitung.pos;
+    if (
+      offen.rowKind === treffer.pos.rowKind &&
+      offen.rowIndex === treffer.pos.rowIndex &&
+      offen.col === treffer.pos.col
+    )
+      return;
+  }
+  const zelle = findeZelle(container, treffer.pos);
+  if (!zelle) return;
+  oeffneZellBearbeitung({
+    view,
+    container,
+    source,
+    zelle,
+    pos: treffer.pos,
+    offset: treffer.offset,
+  });
+}
+
+// --- Scrollen zu einer Stelle in der Tabelle (4T-001812) ---------------------
+//
+// **Gemessen am 2026-10-30** bei 1400 px Inhaltsbreite: Ein Klick in die erste
+// Zelle verschob die Tabelle um 59,2 px nach links. Der Klick-Pfad bittet
+// CodeMirror, die neue Schreibmarke sichtbar zu machen (`scrollIntoView`,
+// ebenso Zellsprung, neue Zeile und Pfeiltaste). Für eine Stelle in einem
+// ersetzenden Block-Widget nimmt CodeMirror dafür den rechten Rand des Widgets,
+// und das Widget ist so breit wie der Inhalt des Editors. Ist der Inhalt
+// breiter als das Fenster — im Prüffall wegen einer zweiten, dreißig Spalten
+// breiten Tabelle —, setzte CodeMirror `scrollLeft` auf 81,2 px, und der Fokus
+// des Eingabefelds zog es auf 59,2 px zurück. Deshalb hing der Fehler an
+// Fensterbreite und Schriftmetrik. Die gemeinte Zelle kennt nur das Widget; ihr
+// Eingabefeld holt sie beim Fokussieren selbst ins Bild, wenn sie verdeckt ist.
+// Für eine Stelle in einer Tabelle scrollt der Editor deshalb nur senkrecht,
+// nach derselben Regel wie CodeMirror, und lässt die waagerechte Lage stehen.
+export function senkrechteVerschiebung(rect, oben, unten, y, rand, seite) {
+  if (y === 'nearest') {
+    if (rect.top < oben + rand) {
+      const m = rect.top - (oben + rand);
+      return seite > 0 && rect.bottom > unten + m ? rect.bottom - unten + rand : m;
+    }
+    if (rect.bottom > unten - rand) {
+      const m = rect.bottom - unten + rand;
+      return seite < 0 && rect.top - m < oben ? rect.top - (oben + rand) : m;
+    }
+    return 0;
+  }
+  const hoehe = unten - oben;
+  const rechteckHoehe = rect.bottom - rect.top;
+  if (y === 'center' && rechteckHoehe <= hoehe)
+    return rect.top + rechteckHoehe / 2 - hoehe / 2 - oben;
+  if (y === 'start' || (y === 'center' && seite < 0)) return rect.top - rand - oben;
+  return rect.bottom - hoehe + rand - oben;
+}
+
+export function scrolleTabellenStelleSenkrecht(view, range, { y, yMargin }) {
+  const kasten = view && view.dom ? tabellenKastenAn(view, range.head) : null;
+  if (!kasten) return false;
+  const scroller = view.scrollDOM;
+  const oben = scroller.getBoundingClientRect().top;
+  const seite = range.head < range.anchor ? -1 : 1;
+  const rect = kasten.container.getBoundingClientRect();
+  const verschiebung = senkrechteVerschiebung(
+    rect,
+    oben,
+    oben + scroller.clientHeight,
+    y,
+    yMargin,
+    seite,
+  );
+  if (verschiebung) scroller.scrollTop += verschiebung;
+  return true;
+}
+
+export const liveTabellenScroll = EditorView.scrollHandler.of(scrolleTabellenStelleSenkrecht);
 
 // Beobachter der Auswahl. Bei einer Doc-Aenderung bleibt er still: Die
 // Uebernahme einer Zelle aendert das Dokument und wuerde sich sonst selbst

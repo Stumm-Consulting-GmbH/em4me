@@ -67,6 +67,8 @@ const {
   zellenAus,
 } = require('./record-auftrag-pruefung.js');
 const { dateiFuerKennung, kennungVorhanden } = require('./record-auftrag-bestand.js');
+// 4T-002389 (Epic 3E-000265): der Text einer Karteikarte.
+const { schreibeKarteikarte } = require('../../shared/database/karteikarte-schreiben.js');
 
 // Die Art des Belegs zur Art der Anweisung. Beide Vokabulare tragen dieselben
 // drei Wörter; die Zuordnung steht trotzdem ausgeschrieben da, weil sie ein
@@ -232,9 +234,16 @@ function beruehrteFelder(schritt) {
   return { zellen, felder: beruehrt };
 }
 
+// Die Datei eines Schrittes. 4T-002389: Die Datei einer neuen oder
+// aufzunehmenden Karteikarte steht nicht im Bestand, sondern am Schritt
+// (`loeseKarteiZiele`).
+function dateiVon(schritt) {
+  return schritt.bestand.dateien.find((d) => d.pfad === schritt.pfad) || schritt.datei || null;
+}
+
 // Der gelesene Datensatz eines Schrittes, oder null beim Anlegen.
 function datensatzVon(schritt) {
-  const datei = schritt.bestand.dateien.find((d) => d.pfad === schritt.pfad);
+  const datei = dateiVon(schritt);
   return datei ? datei.records.get(schritt.id) || null : null;
 }
 
@@ -386,6 +395,9 @@ function planFehler(code, mehr) {
 // fortschreiben, oder beides. Der Hochwasserstand steht allein in der
 // Kopf-Datei; ein Folge-Segment trägt die Definition nicht (E26.3).
 function neuerText(datei, felder, operationen, stand) {
+  // 4T-002389: Eine Karteikarte trägt ihre Werte im Dateikopf und keinen
+  // Hochwasserstand; ihren Text bildet der zweite Schreibweg.
+  if (datei.karteikarte === true) return schreibeKarteikarte(datei, felder, operationen);
   if (operationen.length === 0) {
     if (stand === null) return null;
     return schreibeHochwasserstand(datei.text, stand);
@@ -433,17 +445,29 @@ function baueSchreibPlan({
     const stelle = { position: anweisung.position, tabelle: anweisung.tabelle, id: schritt.id };
     const abweichung = abweichungenJeSchritt.get(schritt) || null;
     const geplant = planeSchritt(schritt, abweichung);
+    const datei = dateiVon(schritt);
+    // 4T-002389 (Schritt 4, F6 B): Eine Karteikarte wird nicht umgeschrieben,
+    // sondern geht samt Beleg-Datei in den Papierkorb; ihre Belege gehen davor an
+    // die Tabelle. Beides bindet `bindeKarteiLoeschungen` an den Plan.
+    const loeschtKarteikarte =
+      !!datei && datei.karteikarte === true && anweisung.art === ART_LOESCHEN;
 
     // Eine Änderung ohne geändertes Feld schreibt keine Datei (AK9); sie steht
     // trotzdem mit ihrem Ergebnis im Plan, und nach einem Erzwingen mit ihrem
     // Fremd-Beleg (4T-001822).
-    if (geplant.operation !== null) {
+    if (geplant.operation !== null && !loeschtKarteikarte) {
       if (!jeDatei.has(schritt.pfad)) {
-        const datei = bestand.dateien.find((d) => d.pfad === schritt.pfad);
-        jeDatei.set(schritt.pfad, { datei, bestand, operationen: [] });
+        jeDatei.set(schritt.pfad, { datei: dateiVon(schritt), bestand, operationen: [] });
       }
       jeDatei.get(schritt.pfad).operationen.push(geplant.operation);
     }
+
+    // 4T-002390 (Epic 3E-000265, S4): Die Bezugs-Datei des Belegs. In der
+    // Kartei-Form ist es die Karteikarte, deren Beleg-Datei neben ihr liegt; in
+    // der Tabellen-Form bleibt es die Kopf-Datei, auch für einen Datensatz in
+    // einem Folge-Segment. `tabellenPfad` nennt weiterhin die Tabelle, weil
+    // Sperre und Grenzen der Verdichtung an ihr hängen.
+    const bezugsPfad = datei && datei.karteikarte === true ? schritt.pfad : bestand.pfad;
 
     // 4T-001822 (B6): Die Reihenfolge der Belege ist die des Plans, und der
     // Fremd-Beleg steht darin vor dem gewöhnlichen; `fuehreSchreibPlanAus`
@@ -459,7 +483,15 @@ function baueSchreibPlan({
           grund: err && err.message ? err.message : String(err),
         });
       }
-      belege.push({ tabellenPfad: bestand.pfad, tabelle: anweisung.tabelle, angaben, text });
+      belege.push({
+        tabellenPfad: bestand.pfad,
+        bezugsPfad,
+        tabelle: anweisung.tabelle,
+        angaben,
+        text,
+        // 4T-002389: Kennzeichen und gelesener Stand der zu löschenden Karteikarte.
+        ...(loeschtKarteikarte ? { loeschtKarteikarte: true, karteikarteGelesen: datei.text } : {}),
+      });
     }
 
     ergebnisse.push({
@@ -500,7 +532,16 @@ function baueSchreibPlan({
     // Ein Text, der sich nicht geändert hat, wird nicht geschrieben: Das spart
     // eine Ersetzung und hält den Datei-Beobachter des Bereichs ruhig.
     if (gebaut.text === datei.text) continue;
-    dateien.push({ pfad, tabelle: bestand.tabelle, gelesen: datei.text, neu: gebaut.text });
+    // 4T-002389: Eine neue Karteikarte hat keinen gelesenen Stand; sie wird
+    // angelegt wie ein neues Segment der Teilung (`anlegen: true`).
+    const anlegen = datei.text === null ? { anlegen: true } : {};
+    dateien.push({
+      pfad,
+      tabelle: bestand.tabelle,
+      gelesen: datei.text,
+      neu: gebaut.text,
+      ...anlegen,
+    });
   }
 
   return { ok: true, plan: { dateien, belege, ergebnisse } };

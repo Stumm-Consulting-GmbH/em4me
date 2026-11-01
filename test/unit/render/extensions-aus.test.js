@@ -824,6 +824,19 @@ describe('Erweiterung database: Registry und Aus-Zustand (4T-001760)', () => {
       'help.feature.databasePermissionCheck',
       'help.feature.databasePermissionForms',
       'help.feature.databaseFieldEditable',
+      // 4T-002391 (Epic 3E-000265, F7 A): Siebenundvierzig mit den fünf Zeilen der
+      // Kartei-Form; ohne eigenen Schalter.
+      'help.feature.databaseCardForm',
+      'help.feature.databaseCardAssignment',
+      'help.feature.databaseCardQuery',
+      'help.feature.databaseCardWrite',
+      'help.feature.databaseCardChangeLog',
+      // 4T-002408 (Epic 3E-000266, F8 A): Einundfünfzig mit Schreibwegen, Sichten
+      // und Masken der Kartei-Form; ohne eigenen Schalter.
+      'help.feature.databaseCardEditCheck',
+      'help.feature.databaseCardDocumentPaths',
+      'help.feature.databaseCardViews',
+      'help.feature.databaseCardMasks',
     ]);
     expect(manifest.featureKeys).not.toContain('help.feature.databaseSearchScope');
     expect(manifest.featureKeys).not.toContain('help.feature.databaseExtension');
@@ -842,10 +855,15 @@ describe('Erweiterung database: Registry und Aus-Zustand (4T-001760)', () => {
     // 4T-001939 (Epic 3E-000257, AK6): dazu das Kommando der Neuanlage aus der
     // Einzel-Maske; im Aus-Zustand entfällt es mit der Maske.
     // 4T-001944 (Epic 3E-000257, AK7): dazu das Kommando der Konsistenz-Prüfung.
+    // 4T-002389: dazu die beiden Kommandos der Kartei-Form; im Aus-Zustand entfallen sie.
+    // 4T-002406: dazu «In der Maske öffnen» am Dokument einer Karteikarte.
     expect(manifest.commands).toEqual([
       'database.openOverview',
       'database.newRecord',
       'database.checkConsistency',
+      'database.newCard',
+      'database.adoptCard',
+      'database.openInForm',
     ]);
     const registrierte = new Set(COMMANDS.map((c) => c.id));
     expect(registrierte.has('database.openOverview')).toBe(true);

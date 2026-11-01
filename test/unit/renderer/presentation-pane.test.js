@@ -54,7 +54,10 @@ const {
   richtungAusRad,
   richtungAusTaste,
   schedulePresentationRender,
+  zeichneWeitereFolie,
 } = await import('../../../src/renderer/modules/presentation/presentation-pane.js');
+const { baueFolie } =
+  await import('../../../src/renderer/modules/presentation/presentation-folie.js');
 
 // Ein echtes Präsentations-Dokument — die Verfügbarkeit fragt den echten Kern.
 const DREI = [
@@ -209,7 +212,24 @@ describe('Präsentations-Fläche: Folie und Zähler (4S-001049, AK1/AK2/AK9)', (
     const [knoten, pfad, optionen] = schritte.mock.calls[0];
     expect(knoten.classList).toContain('praesentation-folie');
     expect(pfad).toBe('C:/Notizen/Vortrag.md');
-    expect(optionen).toEqual({ dokumentText: DREI });
+    // 4T-002323: ohne Theme im Kopf gilt `light`, und die Diagramme bekommen es.
+    expect(optionen).toEqual({ dokumentText: DREI, theme: 'light' });
+  });
+
+  it('4T-002323: die Diagramme bekommen das Theme der Folie, auch auf einer weiteren Folie', () => {
+    window.api.lesePraesentation = vi.fn(() => ({ ...MODELL_DREI, kopf: { theme: 'dark' } }));
+    const schritte = vi.fn();
+    registrierePraesentationsTeilbaumSchritte(schritte);
+    renderPresentation(0);
+    expect(schritte.mock.calls[0][2]).toEqual({ dokumentText: DREI, theme: 'dark' });
+    // Die naechste Folie der Referenten-Ansicht und die Kacheln der Uebersicht.
+    const huelle = baueFolie();
+    document.body.appendChild(huelle);
+    expect(zeichneWeitereFolie(0, huelle, 1)).toBe(true);
+    expect(schritte).toHaveBeenCalledTimes(2);
+    expect(schritte.mock.calls[1][0].closest('.presentation-slide')).toBeTruthy();
+    expect(schritte.mock.calls[1][2]).toEqual({ dokumentText: DREI, theme: 'dark' });
+    huelle.remove();
   });
 
   it('greift nur im eigenen Modus', () => {

@@ -29,10 +29,14 @@
 const path = require('node:path');
 
 const { extractFrontmatter } = require('../../shared/markdown/frontmatter.js');
-const { parseTableDefinition } = require('../../shared/database/table-definition.js');
+const {
+  parseTableDefinition,
+  istKarteiForm,
+} = require('../../shared/database/table-definition.js');
 const { parseRecordBlock } = require('../../shared/database/record-block.js');
 const { datensatzRumpf } = require('../../shared/database/record-segment.js');
 const { readPartLine } = require('../../shared/document-parts.js');
+const { kennungFuer, nummerAus } = require('../../shared/database/record-identity.js');
 // Die harte Bereichs-Grenze der Anwendung. Sie liegt an einer Stelle, und
 // `area/` importiert seinerseits nichts aus `database/` — kein Ordner-Zyklus.
 const { isInsideArea } = require('../area/area-path.js');
@@ -41,6 +45,8 @@ const { isInsideArea } = require('../area/area-path.js');
 // ein zweiter Verzeichnis-Durchlauf entstehen hier nicht.
 const { MD_EXTENSION_RE, scanOwnParts } = require('../documents/document-parts-io.js');
 const { LAGEN, befund, feldKarte } = require('./record-auftrag-pruefung.js');
+// 4T-002389 (Epic 3E-000265): die Karteikarten einer Kartei-Tabelle.
+const { leseKarteikarten } = require('./record-auftrag-kartei.js');
 
 /**
  * Löst die Tabellen-Angabe einer Anweisung auf den Pfad ihrer Kopf-Datei auf.
@@ -153,10 +159,16 @@ function leseDatensaetze(text, fields) {
 async function leseTabellenBestand(fsp, pfad, tabelle) {
   const kopf = await leseDefinition(fsp, pfad, tabelle);
   if (!kopf.ok) return kopf;
+  // 4T-002386 (Schritt 4, Story AK4): Die Zeilen eines Datensatz-Blocks in einer
+  // Kartei-Tabelle sind keine Datensätze. Der Text bleibt im Bestand, damit die
+  // Konsistenz-Prüfung den Block melden kann. Ihre Datensätze sind seit
+  // 4T-002389 die Karteikarten (unten).
+  const kartei = istKarteiForm(kopf.definition);
+  const lese = kartei
+    ? () => ({ records: new Map(), doppelt: new Set() })
+    : (text) => leseDatensaetze(text, kopf.fields);
 
-  const dateien = [
-    { pfad, text: kopf.text, kopf: true, ...leseDatensaetze(kopf.text, kopf.fields) },
-  ];
+  const dateien = [{ pfad, text: kopf.text, kopf: true, ...lese(kopf.text) }];
   // Der Regelfall ist die ungeteilte Tabelle, und er kostet nichts: Ohne
   // Zuordnungs-Zeile wird kein Verzeichnis gelesen.
   if (readPartLine(kopf.text) !== null) {
@@ -184,9 +196,23 @@ async function leseTabellenBestand(fsp, pfad, tabelle) {
         pfad: teilPfad,
         text: gelesen.text,
         kopf: false,
-        ...leseDatensaetze(gelesen.text, kopf.fields),
+        ...lese(gelesen.text),
       });
     }
+  }
+
+  // 4T-002389 (Schritt 1): Für eine Kartei-Tabelle folgen die Karteikarten des
+  // Ordners, je eine Datei mit ihrem einen Datensatz (`karteikarte: true`).
+  // Damit sehen Wertehilfe, Verweis-Regel, Lösch-Schutz, Stand-Vergleich und
+  // Schreibweg sie ohne eigenen Anschluss.
+  if (kartei) {
+    const karten = await leseKarteikarten(fsp, pfad, kopf.definition);
+    if (!karten.ok)
+      return {
+        ok: false,
+        lage: befund(LAGEN.lesenFehlgeschlagen, { tabelle, grund: karten.grund }),
+      };
+    dateien.push(...karten.dateien);
   }
 
   return {
@@ -202,8 +228,9 @@ async function leseTabellenBestand(fsp, pfad, tabelle) {
     // Angelegt wird im LETZTEN Segment beziehungsweise in der ungeteilten
     // Kopf-Datei (B6). Das ist die Stelle, an der die Teilung ohnehin wächst;
     // ein neuer Datensatz mitten in einem früheren Segment verschöbe die
-    // Grenzen aller folgenden.
-    ziel: dateien[dateien.length - 1].pfad,
+    // Grenzen aller folgenden. 4T-002389: Eine Kartei-Tabelle hat keine solche
+    // Datei; die Datei einer neuen Karteikarte bestimmt `loeseKarteiZiele`.
+    ziel: kartei ? null : dateien[dateien.length - 1].pfad,
   };
 }
 
@@ -223,6 +250,38 @@ function dateiFuerKennung(bestand, id) {
   return { ok: true, pfad: treffer[0].pfad };
 }
 
+/**
+ * Die Bezugs-Datei der Belege eines Datensatzes, für die Beleg-Ansicht.
+ *
+ * 4T-002390 (Epic 3E-000265, S4, F6 B): In der Tabellen-Form ist es die
+ * Tabellen-Datei. In der Kartei-Form ist es die Karteikarte mit dieser Kennung,
+ * frisch aus dem Ordner gelesen wie in `database:datensatz`; trägt keine
+ * Karteikarte die Kennung mehr, ist die Karteikarte gelöscht, und ihre Belege
+ * stehen in der Beleg-Datei der Tabellen-Datei. Eine Datei, die keine Tabelle
+ * ist, bleibt ihre eigene Bezugs-Datei, wie vor der Kartei-Form.
+ *
+ * Gelesen wird allein die Kopf-Datei und, in der Kartei-Form, der Ordner; die
+ * Segmente einer geteilten Tabelle braucht die Antwort nicht.
+ *
+ * @param {object} fsp Dateizugriff (`readFile`).
+ * @param {string} tabellenPfad Pfad der Tabellen-Datei.
+ * @param {string} kennung Interne Kennung, lang oder kurz.
+ * @returns {Promise<{ok: true, pfad: string, karteikarte: boolean}|{ok: false, code: string}>}
+ *   `ok: false`, wenn der Ordner unlesbar ist oder zwei Karteikarten die Kennung tragen.
+ */
+async function bezugsDateiDerBelege(fsp, tabellenPfad, kennung) {
+  const tabelle = { ok: true, pfad: tabellenPfad, karteikarte: false };
+  const kopf = await leseDefinition(fsp, tabellenPfad, tabellenPfad);
+  if (!kopf.ok || !istKarteiForm(kopf.definition)) return tabelle;
+  const id = kennungFuer(nummerAus(kennung));
+  if (id === null) return tabelle;
+  const karten = await leseKarteikarten(fsp, tabellenPfad, kopf.definition);
+  if (!karten.ok) return { ok: false, code: LAGEN.lesenFehlgeschlagen };
+  const fundort = dateiFuerKennung({ dateien: karten.dateien }, id);
+  if (fundort.ok) return { ok: true, pfad: fundort.pfad, karteikarte: true };
+  return fundort.code === LAGEN.datensatzUnbekannt ? tabelle : { ok: false, code: fundort.code };
+}
+
 /** @returns {boolean} Trägt irgendeine Datei der Tabelle diese Kennung? */
 function kennungVorhanden(bestand, id) {
   return bestand.dateien.some((datei) => datei.records.has(id));
@@ -233,5 +292,6 @@ module.exports = {
   leseDefinition,
   leseTabellenBestand,
   dateiFuerKennung,
+  bezugsDateiDerBelege,
   kennungVorhanden,
 };

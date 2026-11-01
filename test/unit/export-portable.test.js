@@ -7,10 +7,14 @@
 //       Ergebnis-Spans eingebrannt; Fehler/Code/Escape bleiben roh.
 // 4T-002072 (Epic 3E-000192): Name der Datentabelle aus der Kopf-Angabe
 //       `table:` als Zeile `^Name` hinter der gewöhnlichen Tabelle.
-import { describe, it, expect, afterEach } from 'vitest';
+// 4T-001919 (Epic 3E-000371): Code-Block mit Leerzeile in einer Tabellenzelle
+//       hält die Tabelle als einen HTML-Block zusammen.
+import { describe, it, expect, afterEach, beforeAll, afterAll } from 'vitest';
+import { JSDOM } from 'jsdom';
 import {
   convertMarkdownPortable,
   renderMarkdown,
+  mdPortable,
   configureExtensions,
   PERSPECTIVE_PORTABLE_MARKER,
 } from '../../src/shared/markdown/markdown.js';
@@ -42,15 +46,15 @@ describe('Portable-Export: Frontmatter (K-01)', () => {
   });
 
   it('Render-Weiche erkennt Neu-Export (Marker nach Frontmatter) als portable', () => {
-    const out = convertMarkdownPortable(src, true);
+    // Der Text steht direkt unter dem Schluss-Zaun; der Export trennt ihn mit
+    // einer Leerzeile vom HTML-Block der Tabelle (4T-002102).
+    const out = convertMarkdownPortable(src + 'Dazu ==wichtig== markiert.\n', true);
     // Eindeutiger Portable-Indikator in Node: mdPortable rendert ==X== mit
     // Inline-Style ('<mark style='), der Viewer-Renderer ohne. (KaTeX und
     // Marker-Escaping unterscheiden die Renderer in Node NICHT — beide
     // haben KaTeX, und der P-02-Sanitizer faellt ohne DOMParser auf
     // Escaping zurueck.)
-    // Leerzeile vor dem Anhang — sonst zieht markdown-it den Text mit in
-    // den vorausgehenden HTML-Tabellen-Block.
-    const html = renderMarkdown(out + '\n\nDazu ==wichtig== markiert.\n', 'de');
+    const html = renderMarkdown(out, 'de');
     expect(html).toContain('<mark style');
   });
 
@@ -495,6 +499,146 @@ describe('Portable-Export: Zaun-Formen aller Ersetzungen (4T-002037)', () => {
       configureExtensions([SCHALTER[art.name]]);
       const doc = dokument(art, '~~~' + art.name, '~~~');
       expect(convertMarkdownPortable(doc, true, 'de'), art.name).toContain('~~~' + art.name);
+    }
+  });
+});
+
+// 4T-002102: Ein umgewandelter Block ist ein HTML-Block, und der endet nach
+// CommonMark erst an einer Leerzeile. Bis dahin nahm die Ersetzung die
+// Leerzeile nach dem Schluss-Zaun mit in ihren Treffer; der folgende Absatz
+// stand direkt unter `</table>` und wurde Teil der Tabelle (gemessen am
+// 2026-10-30 für alle vier Arten: `"</table>\nNach dem Block.\n"`).
+describe('Portable-Export: Leerzeile nach einem umgewandelten Block (4T-002102)', () => {
+  const KOPF_DATENSATZ = ['---', 'db-table:', '  fields:', '    - name: name', '---', ''];
+  const ARTEN = [
+    ['perspective-table', [], ['{|', '! Kopf', '|-', '| Wert', '|}']],
+    ['perspective-datatable', [], ['columns: Posten:text, Betrag:number', '| Miete | 800 |']],
+    ['perspective-events', [], ['| 2020-01-01 | | Projektstart | projekt | | | | | |']],
+    ['perspective-records', KOPF_DATENSATZ, ['|- id="r-00001"', '| Anna']],
+  ];
+  const ABSATZ = /<p[^>]*>Nach dem Block\.<\/p>/;
+
+  function dokument(kopf, name, rumpf, danach) {
+    return [...kopf, '# Kopf', '', '```' + name, ...rumpf, '```'].join('\n') + danach;
+  }
+
+  for (const [name, kopf, rumpf] of ARTEN) {
+    it(`${name}: Leerzeile nach dem Block bleibt erhalten, der Folgetext ist ein eigener Absatz`, () => {
+      const out = convertMarkdownPortable(
+        dokument(kopf, name, rumpf, '\n\nNach dem Block.\n'),
+        true,
+        'de',
+      );
+      expect(out, out).toContain('</table>\n\nNach dem Block.\n');
+      expect(renderMarkdown(out, 'de')).toMatch(ABSATZ);
+    });
+
+    it(`${name}: Text direkt unter dem Zaun wird durch eine Leerzeile getrennt`, () => {
+      const out = convertMarkdownPortable(
+        dokument(kopf, name, rumpf, '\nNach dem Block.\n'),
+        true,
+        'de',
+      );
+      expect(out, out).toContain('</table>\n\nNach dem Block.\n');
+      expect(renderMarkdown(out, 'de')).toMatch(ABSATZ);
+    });
+
+    it(`${name}: am Dokument-Ende folgt der Tabelle genau ein Zeilenende`, () => {
+      for (const ende of ['', '\n']) {
+        const out = convertMarkdownPortable(dokument(kopf, name, rumpf, ende), true, 'de');
+        expect(out.endsWith('</table>\n'), JSON.stringify(ende)).toBe(true);
+      }
+    });
+  }
+
+  it('Zeilenenden CRLF: die Trenn-Leerzeile folgt der Form des Dokuments', () => {
+    const [name, kopf, rumpf] = ARTEN[1];
+    const quelle = dokument(kopf, name, rumpf, '\nNach dem Block.\n').replace(/\n/g, '\r\n');
+    const out = convertMarkdownPortable(quelle, true, 'de');
+    expect(out).toContain('</table>\r\n\r\nNach dem Block.');
+  });
+});
+
+// 4T-001919: Die Tabelle steht im portablen Dokument als HTML-Block, und der
+// endet nach CommonMark an der ersten Leerzeile. Eine Leerzeile eines
+// Code-Blocks in einer Zelle stand wörtlich im erzeugten `<pre><code>`; die
+// Tabelle brach dort ab, der Rest erschien als Absatz mit sichtbarem
+// `</code></pre>` (gemessen am 2026-10-30: Block-Token `html_block, html_block,
+// paragraph_open, paragraph_close, html_block`). Geprüft am Token-Strom des
+// portablen Parsers und am Lese-Ende, der Anzeige mit echtem DOMParser.
+describe('Portable-Export: Code-Block mit Leerzeile in einer Tabellenzelle (4T-001919)', () => {
+  beforeAll(() => {
+    globalThis.DOMParser = new JSDOM('').window.DOMParser;
+  });
+  afterAll(() => {
+    delete globalThis.DOMParser;
+  });
+
+  const F3 = '```';
+  const HEIL = ['html_block', 'html_block', 'paragraph_open', 'paragraph_close'];
+
+  function exportiere(zelle) {
+    const quelle = ['````perspective-table', '{|', '! Kopf', '|-', '| ' + zelle, '|}', '````'];
+    return convertMarkdownPortable(quelle.join('\n') + '\nNach der Tabelle.\n', true, 'de');
+  }
+
+  // Block-Token der obersten Ebene: Marker, Tabelle, der Absatz danach.
+  function blockToken(datei) {
+    return mdPortable
+      .parse(datei, {})
+      .filter((t) => t.level === 0)
+      .map((t) => t.type);
+  }
+
+  function anzeige(datei) {
+    const html = renderMarkdown(datei, 'de');
+    const doc = new JSDOM(`<body>${html}</body>`).window.document;
+    const absaetze = [...doc.querySelectorAll('body > p')].map((p) => p.textContent);
+    const code = [...doc.querySelectorAll('table pre code')].map((c) => c.textContent);
+    return { html, tabellen: doc.querySelectorAll('table').length, absaetze, code };
+  }
+
+  function pruefeHeil(zelle, codeText) {
+    const datei = exportiere(zelle);
+    expect(blockToken(datei), datei).toEqual(HEIL);
+    const a = anzeige(datei);
+    expect(a.tabellen).toBe(1);
+    expect(a.absaetze).toEqual(['Nach der Tabelle.']);
+    expect(a.code).toEqual([codeText]);
+    expect(a.html).not.toContain('&lt;/code&gt;');
+    return datei;
+  }
+
+  it('eingezäunter Code mit Sprache und Leerzeile bleibt in seiner Zelle', () => {
+    const datei = pruefeHeil(
+      `Code:\n\n${F3}bash\nmkdir src\n\nnpm init -y\n${F3}`,
+      'mkdir src\n\nnpm init -y\n',
+    );
+    expect(datei).toContain('src\n&#10;npm init -y\n</code></pre>');
+  });
+
+  it('Code ohne Sprache mit mehreren und mit Leerzeichen gefüllten Leerzeilen', () => {
+    pruefeHeil(`${F3}\na\n\n\n  \nb\n${F3}`, 'a\n\n\n  \nb\n');
+  });
+
+  it('eingerückter Code mit Leerzeile bleibt in seiner Zelle', () => {
+    pruefeHeil('Text:\n\n    a\n\n    b', 'a\n\nb\n');
+  });
+
+  it('Leerzeile in einem hervorgehobenen Kommentar über zwei Zeilen', () => {
+    pruefeHeil(`${F3}js\n/* a\n\nb */\nlet x;\n${F3}`, '/* a\n\nb */\nlet x;\n');
+  });
+
+  it('Absatz und lockere Liste bleiben wie bisher', () => {
+    for (const [zelle, stueck] of [
+      ['Absatz eins.\n\nAbsatz zwei.', '<p>Absatz eins.</p>\n<p>Absatz zwei.</p>'],
+      ['- Punkt eins\n\n- Punkt zwei', '<li>\n<p>Punkt eins</p>\n</li>\n<li>\n<p>Punkt zwei</p>'],
+    ]) {
+      const datei = exportiere(zelle);
+      expect(blockToken(datei), datei).toEqual(HEIL);
+      expect(datei).toContain(stueck);
+      expect(datei).not.toContain('&#10;');
+      expect(anzeige(datei).tabellen).toBe(1);
     }
   });
 });

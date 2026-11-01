@@ -69,8 +69,11 @@ async function sucheBisDatensaetze(page, taste) {
       async () => {
         await eingabe.fill('');
         await eingabe.fill(BEGRIFF);
-        return expect(gruppe)
-          .toHaveCount(1, { timeout: 5000 })
+        // 4T-002391 (Epic 3E-000265): Seit die Demo die Kartei «Authors» und die
+        // Tabelle «Readings» trägt, trifft «Umberto» drei Datensatz-Gruppen;
+        // gewartet wird auf die erste, geprüft wird je Fall die gemeinte.
+        return expect(gruppe.first())
+          .toBeVisible({ timeout: 5000 })
           .then(
             () => true,
             () => false,
@@ -96,15 +99,20 @@ test.describe('DB-SUC-01: Datensätze als Gruppe hinter den Dokumenten (4T-00233
         els.map((el) => el.classList.contains('search-results-group-records')),
       );
       expect(arten[arten.length - 1]).toBe(true);
-      expect(arten.indexOf(true)).toBe(arten.length - 1);
+      // Alle Datensatz-Gruppen bilden den Schluss der Liste, ohne Dokument-Gruppe
+      // dazwischen (4T-002391: drei Gruppen, Library, Authors und Readings).
+      expect(arten.indexOf(true)).toBe(arten.length - arten.filter(Boolean).length);
 
-      const gruppe = page.locator(DATENSATZ_GRUPPE);
+      const gruppe = page.locator(DATENSATZ_GRUPPE, { hasText: 'Library' });
       await expect(gruppe.locator('.search-results-group-title')).toHaveText('Library');
       await expect(gruppe.locator('.search-results-group-count')).toHaveText('2');
       await expect(gruppe.locator('.search-results-group-kind')).toHaveCount(1);
 
       // Zwei Zeilen, je «Anzeige-Form · Feld: » vor dem Ausschnitt.
-      const zeilen = page.locator(DATENSATZ_ZEILE);
+      // Die Zeilen stehen als Geschwister hinter dem Gruppen-Kopf; die beiden der
+      // Bibliothek sind an ihrer Anzeige-Form erkennbar (4T-002391: daneben die
+      // Zeilen der Kartei «Authors» und der Tabelle «Readings»).
+      const zeilen = page.locator(DATENSATZ_ZEILE, { hasText: /Pendulum|Name of the Rose/ });
       await expect(zeilen).toHaveCount(2);
       const metas = await zeilen
         .locator('.search-results-record-meta')
@@ -128,6 +136,15 @@ test.describe('DB-SUC-01: Datensätze als Gruppe hinter den Dokumenten (4T-00233
         )
         .allTextContents();
       expect(dokumentTitel).not.toContain('Library');
+
+      // 4T-002388 (Epic 3E-000265): Die Datensatz-Suche erreicht Karteikarten über
+      // den zweiten Lese-Weg; die Kartei «Authors» ist eine eigene Gruppe mit der
+      // Karteikarte «Umberto Eco» als Zeile.
+      const kartei = page.locator(DATENSATZ_GRUPPE, { hasText: 'Authors' });
+      await expect(kartei).toHaveCount(1);
+      await expect(kartei.locator('.search-results-group-count')).toHaveText('1');
+      const karteiZeile = page.locator(DATENSATZ_ZEILE, { hasText: /Umberto Eco · name:/ });
+      await expect(karteiZeile).toHaveCount(1);
     } finally {
       await closeApp(app, userData);
       if (ziel) removeDir(ziel);
@@ -173,9 +190,11 @@ test.describe('DB-SUC-03: im Ersetzen-Modus keine Datensatz-Gruppe (4T-002332)',
       await expect(page.locator(`${PANEL} .search-results-list`)).toHaveClass(/auswahl-modus/);
       await expect(page.locator(DATENSATZ_GRUPPE)).toHaveCount(0);
       await expect(page.locator(DATENSATZ_ZEILE)).toHaveCount(0);
-      // Kein Ankreuzfeld steht für einen Datensatz: Der Begriff steht nur in
-      // Datensätzen, also gibt es keines.
-      await expect(page.locator(`${PANEL} .search-results-check`)).toHaveCount(0);
+      // Kein Ankreuzfeld steht für einen Datensatz. Seit 4T-002391 trifft der
+      // Begriff auch Dokumente der Demo (Karteikarte «Umberto Eco», «Readings»);
+      // deren Ankreuzfelder gehören zum Ersetzen und bleiben.
+      await expect(page.locator(`${DATENSATZ_ZEILE} .search-results-check`)).toHaveCount(0);
+      await expect(page.locator(`${PANEL} .search-results-check`).first()).toBeVisible();
     } finally {
       await closeApp(app, userData, { force: true });
       if (ziel) removeDir(ziel);

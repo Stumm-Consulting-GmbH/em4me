@@ -57,6 +57,15 @@ const DB_FORM_KEY = 'db-form';
 // der Katalog beim Lesen.
 const DB_QUERY_KEY = 'db-query';
 
+// 4T-002387 (Epic 3E-000265, F3 A): Diese Datei IST eine Karteikarte, sofern sie
+// im Ordner einer Kartei-Tabelle liegt. Anders als die vier Behälter darüber
+// trägt der Schlüssel keinen Behälter, sondern einen einzelnen Wert, die
+// Kennung des Datensatzes in der Schreibweise der Tabellen-Form
+// (`db-record: r-00042`). Welcher Tabelle die Karteikarte gehört, sagt allein
+// der Ordner (`karteikarte.js`); die Marke sagt dem Index nur, dass die Datei
+// eine Kennung erklärt.
+const DB_RECORD_KEY = 'db-record';
+
 // Welche Behälter erklärt dieses Frontmatter-Objekt?
 //
 // **Nur die Marke, nie der Inhalt.** Der Index führt, DASS eine Datei sich als
@@ -76,7 +85,11 @@ const DB_QUERY_KEY = 'db-query';
 // sehen die dritte deshalb nicht, solange sie nicht nach ihr fragen. Seit
 // 4T-002081 kommt als vierte `query` hinzu, nach demselben Muster. Erkannt wird
 // an der bloßen Anwesenheit des Schlüssels, also auch `db-query:` ohne Wert,
-// weil der Behälter heute nichts trägt.
+// weil der Behälter heute nichts trägt. Seit 4T-002387 kommt als fünfte
+// `record` hinzu, ebenfalls an der bloßen Anwesenheit erkannt: Auch eine
+// unbrauchbare Kennung soll die Datei für die Konsistenz-Prüfung kenntlich
+// machen. Kein Verbraucher liest «irgendeine Marke» als Tabelle; alle fragen
+// nach ihrer Marke.
 function datenbankMarken(fm) {
   if (!fm || typeof fm !== 'object' || Array.isArray(fm)) return [];
   const marken = [];
@@ -84,6 +97,7 @@ function datenbankMarken(fm) {
   if (fm[DB_DATABASE_KEY] !== undefined) marken.push('database');
   if (fm[DB_FORM_KEY] !== undefined) marken.push('form');
   if (fm[DB_QUERY_KEY] !== undefined) marken.push('query');
+  if (fm[DB_RECORD_KEY] !== undefined) marken.push('record');
   return marken;
 }
 
@@ -151,6 +165,7 @@ module.exports = {
   DB_DATABASE_KEY,
   DB_FORM_KEY,
   DB_QUERY_KEY,
+  DB_RECORD_KEY,
   DB_SEGMENT_FIELDS_KEY,
   SEGMENT_FIELDS_SEP,
   datenbankMarken,

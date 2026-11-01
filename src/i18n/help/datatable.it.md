@@ -90,7 +90,7 @@ Funzioni disponibili per tipo di colonna:
 | `sum` | somma | `number` |
 | `avg` | media (arrotondata al formato della colonna) | `number` |
 | `min` / `max` | valore minimo/massimo | `number`, `date`, `time` |
-| `count` | numero di celle non vuote (per `boolean`: numero di quelle vere) | tutti i tipi |
+| `count` | numero di celle non vuote (una cella di testo vuota non conta; per `boolean`: numero di quelle vere) | tutti i tipi |
 
 Le celle vuote o in errore sono escluse. La riga di aggregati appare sotto i dati e ricalcola a ogni modifica; con vista filtrata calcola sulle righe visibili.
 
@@ -105,7 +105,7 @@ aggregate: Totale:sum
 | Blocco | 3.50 | 4 |
 ```
 
-- Il linguaggio delle espressioni è lo stesso della [Query Perspective](frontmatter-query.md): aritmetica, confronti, `choice(…)`, `default(…)`, funzioni di testo e altro. Ne fa parte `count(x)`; in una formula conta i valori del campo indicato nella sola riga in questione e non è la funzione di aggregazione `count` della riga degli aggregati, che conta su tutte le righe.
+- Il linguaggio delle espressioni è lo stesso della [Query Perspective](frontmatter-query.md): aritmetica, confronti, `choice(…)`, `default(…)`, funzioni di testo e altro. Ne fa parte `count(x)`; in una formula conta i valori del campo indicato nella sola riga in questione e non è la funzione di aggregazione `count` della riga degli aggregati, che conta su tutte le righe; una cella di testo vuota non conta in nessuna delle due.
 - I nomi di colonna nell'espressione si riferiscono ai valori della riga corrispondente; anche altre colonne calcolate sono utilizzabili in qualsiasi ordine di dichiarazione (la valutazione risolve le dipendenze). I riferimenti circolari vengono segnalati come errori di struttura.
 - Il risultato deve corrispondere al tipo di colonna dichiarato, altrimenti la cella mostra un errore.
 - I valori calcolati **non vengono mai salvati nel sorgente**: sono sempre ricalcolati e quindi non hanno una cella di dati nelle righe a barre. Gli aggregati sulle colonne calcolate calcolano sui valori calcolati.

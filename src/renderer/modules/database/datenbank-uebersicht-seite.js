@@ -44,6 +44,8 @@ import { wirksameRueckfallSprache } from '../../../shared/database/database-stec
 // 4T-001939 (Epic 3E-000257, Bauplan B8): Die Neuanlage je Tabelle öffnet die
 // Einzel-Maske mit der gezogenen Kennung.
 import { neuerDatensatz } from './masken-seite.js';
+// 4T-002389 (Epic 3E-000265, F4 A): «Neue Karteikarte» je Kartei-Tabelle.
+import { neueKarteikarte } from './karteikarte-anlegen.js';
 import { dateiName } from './masken-datei.js';
 // 4T-001944 (Epic 3E-000257, Bauplan B4): Der Abschnitt der Konsistenz-Prüfung
 // mit eigenem Zustand; die Seite reicht ihm allein ihr Neu-Zeichnen.
@@ -471,10 +473,14 @@ function zeichneTabellen(block, liste, mitRechten = false) {
   const kopf = document.createElement('thead');
   const kopfZeile = document.createElement('tr');
   kopfZeile.appendChild(el('th', null, t('database.overview.col.table')));
+  // 4T-002386 (Epic 3E-000265, F2 A): die Ablage-Form, vor der Zahl der Felder.
+  kopfZeile.appendChild(el('th', null, t('database.overview.col.storage')));
   kopfZeile.appendChild(el('th', null, t('database.overview.col.fields')));
   // 4T-001943 (Bauplan B2): die geltende Masken-Datei der Tabelle, leer bei der
   // erzeugten Maske. Seit 4T-002184 die Standard-Maske und die Zahl der weiteren.
   kopfZeile.appendChild(el('th', null, t('database.overview.col.form')));
+  // 4T-002407 (Epic 3E-000266, F6 A): die Sichten der Tabelle.
+  kopfZeile.appendChild(el('th', null, t('database.overview.col.views')));
   // 4T-001939 (Bauplan B8): Die Spalte der Aktion bleibt ohne Überschrift, wie
   // die Aktions-Spalte des Datensatz-Blocks; ein erfundenes Wort wäre Lärm.
   const aktionKopf = el('th', 'db-overview-table-action-head');
@@ -489,13 +495,42 @@ function zeichneTabellen(block, liste, mitRechten = false) {
     // 4T-002311: die Erlaubnisse der eigenen Rolle, nur bei einer Datenbank mit Rollen.
     const rechteText = mitRechten ? tabellenRechteText(eintrag.rechte) : null;
     if (rechteText) name.appendChild(el('div', 'db-overview-table-rights', rechteText));
+    zeile.appendChild(ablageZelle(eintrag));
     zeile.appendChild(el('td', 'db-overview-table-fields', String(eintrag.felder || 0)));
     zeile.appendChild(maskenZelle(eintrag));
+    zeile.appendChild(sichtenZelle(eintrag));
     zeile.appendChild(neuZelle(eintrag));
     koerper.appendChild(zeile);
   }
   tabelle.appendChild(koerper);
   block.appendChild(tabelle);
+}
+
+// 4T-002386 (Epic 3E-000265, F2 A; AK3): Die Ablage-Form der Tabelle in Worten,
+// als eigene Spalte nach dem Muster der übrigen, weil die Übersicht eine
+// Tabelle mit Spaltenköpfen ist. Gelesen wird das Feld `storage` des
+// Katalog-Eintrags; jeder andere Wert als `'cards'`, auch ein fehlendes Feld,
+// ist die Tabellen-Form, wie in der Definition. Eine Kartei-Tabelle trägt
+// hinter dem Wort die Zahl ihrer Karteikarten, als Zusatz in der Gestalt der
+// Zahl weiterer Masken; eine Tabelle in Tabellen-Form bekommt keine Zahl, weil
+// die Übersicht ihre Datensätze nicht zählt.
+//
+// 4T-002387 (Schritt 2): Die Zahl kommt als Feld `karteikarten` aus dem Kanal
+// der Übersicht, der sie im Index zählt; ein fehlendes Feld ergibt 0. Ein
+// Datensatz-Block im Körper einer Kartei-Tabelle zählt nie mit, denn seine
+// Zeilen sind keine Datensätze (4T-002386, Schritt 4).
+function ablageZelle(eintrag) {
+  const kartei = eintrag.storage === 'cards';
+  const wort = kartei ? 'database.overview.storage.cards' : 'database.overview.storage.table';
+  const zelle = el('td', 'db-overview-table-storage', t(wort));
+  if (!kartei) return zelle;
+  const zahl = Number.isInteger(eintrag.karteikarten) ? eintrag.karteikarten : 0;
+  const text =
+    zahl === 1
+      ? t('database.overview.cardCountOne')
+      : t('database.overview.cardCount').replace('{count}', String(zahl));
+  zelle.appendChild(el('span', 'db-overview-card-count', text));
+  return zelle;
 }
 
 // 4T-002184 (Epic 3E-000261, Story-AK4): Die Standard-Maske der Tabelle beim
@@ -513,6 +548,24 @@ function maskenZelle(eintrag) {
   return zelle;
 }
 
+// 4T-002407 (Epic 3E-000266, F6 A; AK2): Die Sichten der Tabelle in der
+// Reihenfolge der Angabe `views`, eine zugeordnete beim Datei-Namen ihrer
+// Abfrage-Datei, eine ohne Abfrage-Datei mit der geschriebenen Angabe und
+// eigener Klasse; ihr Befund steht unter den Fehlerlagen. Leer ohne Angabe.
+function sichtenZelle(eintrag) {
+  const zelle = el('td', 'db-overview-table-views');
+  const sichten = Array.isArray(eintrag.sichten) ? eintrag.sichten : [];
+  sichten.forEach((sicht, i) => {
+    if (i > 0) zelle.appendChild(document.createTextNode(', '));
+    const fehlt = typeof sicht.path !== 'string';
+    const name = fehlt ? sicht.name : dateiName(sicht.path);
+    zelle.appendChild(
+      el('span', fehlt ? 'db-overview-view db-overview-view-missing' : 'db-overview-view', name),
+    );
+  });
+  return zelle;
+}
+
 // 4T-001939 (Epic 3E-000257, Bauplan B8): Die Aktion «Neuer Datensatz» je
 // Tabelle. Eine Tabelle ohne Pfad bekommt die leere Zelle; sie wäre ein Knopf,
 // der nichts eröffnen kann.
@@ -522,10 +575,23 @@ function neuZelle(eintrag) {
   // 4T-002311 (E12.4): ohne `create` der eigenen Rolle kein «Neuer Datensatz»;
   // ohne Erlaubnis-Menge wie ohne Rollen.
   if (!(eintrag.rechte && eintrag.rechte.create === false)) {
-    const knopf = el('button', 'db-overview-new-record', t('records.newButton'));
-    knopf.type = 'button';
-    knopf.addEventListener('click', () => void neuerDatensatz(eintrag.path));
-    zelle.appendChild(knopf);
+    // 4T-002389 (Steuer-Sitzung zu Schnitt 1): Eine Kartei-Tabelle legt ihre
+    // Datensätze als Karteikarten an; dort steht allein «Neue Karteikarte», und
+    // «Neuer Datensatz» wird nicht gezeichnet statt mit einer Meldung zu enden.
+    if (eintrag.storage !== 'cards') {
+      const knopf = el('button', 'db-overview-new-record', t('records.newButton'));
+      knopf.type = 'button';
+      knopf.addEventListener('click', () => void neuerDatensatz(eintrag.path));
+      zelle.appendChild(knopf);
+    } else {
+      const karte = el('button', 'db-overview-new-card', t('database.card.new'));
+      karte.type = 'button';
+      karte.addEventListener(
+        'click',
+        () => void neueKarteikarte(eintrag.path, { nachher: zeichne }),
+      );
+      zelle.appendChild(karte);
+    }
   }
   // 4T-001944 (Bauplan B4): die Prüfung dieser einen Tabelle.
   zelle.appendChild(

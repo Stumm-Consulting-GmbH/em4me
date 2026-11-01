@@ -21,6 +21,8 @@
   "settings.calendar.intro": "Blocchi di cronologia dell'area '{name}'. I calendari dello stesso blocco possono essere messi in corrispondenza; i blocchi sono indipendenti.",
   "settings.calendar.introBook": "Blocchi di cronologia del libro '{name}'. I calendari dello stesso blocco possono essere messi in corrispondenza; i blocchi sono indipendenti.",
   "settings.calendar.introShelf": "Blocchi di cronologia della libreria '{name}'. I calendari dello stesso blocco possono essere messi in corrispondenza; i blocchi sono indipendenti.",
+  "settings.calendar.hiddenCalendars": "Quest'area contiene {count} cronologie che questa versione del programma non può visualizzare. Restano conservate nel file dell'area.",
+  "settings.calendar.hiddenCalendarsOne": "Quest'area contiene una cronologia che questa versione del programma non può visualizzare. Resta conservata nel file dell'area.",
   "settings.calendar.blocksGroup": "Blocchi",
   "settings.calendar.blockPlaceholder": "Nome del blocco",
   "settings.calendar.blockAdd": "Aggiungi blocco",

@@ -51,6 +51,8 @@ import { applyCanvasBlocks } from './canvas/canvas-block-zustand.js';
 // 4T-001792 (Epic 3E-000255): Zugang von der Datensatz-Zeile zu den
 // Änderungsbelegen; das Modul bekommt seine Umgebung von app-init.js.
 import { applyRecordRowAccess } from './database/datensatz-zeilen-zugang.js';
+// 4T-002404: die Dateikopf-Zeile samt Markierung der Karteikarten-Befunde.
+import { applyFrontmatterLine } from './frontmatter-line.js';
 // 4T-001747 (Epic 3E-000289): Auffrischung der Verweis-Karten einer Flaeche.
 // Dieselbe Richtung wie die beiden Importe darueber (modules -> modules/canvas);
 // der Canvas-Ordner importiert nichts zurueck.
@@ -104,6 +106,12 @@ export function loadMermaid() {
   return mermaidPromise;
 }
 
+// Nur fuer Tests (4T-002323): eine Attrappe statt des Buendels, das der
+// Test-Lauf ueber die Adresse des Moduls nicht laden kann.
+export function setzeMermaidFuerTests(mermaid) {
+  mermaidPromise = Promise.resolve(mermaid);
+}
+
 export let mermaidConfiguredTheme = null;
 // 4T-000179: Setter fuer Modul-Grenzen (ESM-Imports sind read-only; der
 // Theme-Wechsel-Handler im Init-Modul setzt hierueber zurueck).
@@ -112,6 +120,12 @@ export function resetMermaidConfiguredTheme() {
 }
 export function currentMermaidTheme() {
   return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default';
+}
+// 4T-002323: Ein Theme von aussen, als Hell-Dunkel-Angabe (`light`/`dark`) —
+// auf einer Folie die ihres Themes. Ohne gueltige Angabe null, dann gilt das
+// Theme der Anwendung.
+export function mermaidThemeAus(hellDunkel) {
+  return { light: 'default', dark: 'dark' }[hellDunkel] || null;
 }
 export function ensureMermaidConfigured(mermaid, theme) {
   if (mermaidConfiguredTheme === theme) return;
@@ -129,6 +143,20 @@ export const mermaidRenderCache = new Map();
 
 export function mermaidCacheKey(theme, source) {
   return `${theme}:${source.length}:${mermaidHash(source)}`;
+}
+
+// 4T-002323: Jede eingesetzte Kopie eines Diagramms bekommt eigene Kennungen.
+// Mermaid leitet alle Kennungen im Bild (Marker der Pfeilspitzen, Stil-Regeln)
+// von der Kennung des <svg> ab; zwei gleiche Kopien in einem Dokument — die
+// Lese-Ansicht und die Folie aus demselben Zwischenspeicher — teilen sie
+// sonst, und `marker-end` der Folie zeigt auf den Marker der verborgenen
+// Lese-Ansicht: Die Pfeilspitzen fehlen (am laufenden Programm gemessen).
+let kopien = 0;
+export function eigeneSvgKennungen(svgHtml) {
+  const id = /^\s*<svg\b[^>]*?\sid="([^"]+)"/.exec(svgHtml);
+  if (!id) return svgHtml;
+  kopien += 1;
+  return svgHtml.split(id[1]).join(`${id[1]}-k${kopien}`);
 }
 
 export function mermaidCacheSet(key, svgHtml) {
@@ -504,7 +532,10 @@ export function applyCodeCopyButtons(container) {
   }
 }
 
-export async function applyMermaidIfPresent(container) {
+// 4T-002323: `theme` ist eine Hell-Dunkel-Angabe von aussen (die Folie);
+// der Block merkt sie sich, damit ein Theme-Wechsel der Anwendung ihn nicht
+// umfaerbt (rerenderAllMermaidBlocks).
+export async function applyMermaidIfPresent(container, { theme: hellDunkel } = {}) {
   if (!container) return;
   // 4T-000293: deaktivierte Mermaid-Erweiterung — Bloecke bleiben Code.
   if (!isExtensionActive('mermaid')) return;
@@ -517,8 +548,8 @@ export async function applyMermaidIfPresent(container) {
     console.warn('Mermaid konnte nicht geladen werden:', err);
     return;
   }
-  const theme = currentMermaidTheme();
-  ensureMermaidConfigured(mermaid, theme);
+  const fest = mermaidThemeAus(hellDunkel);
+  const theme = fest || currentMermaidTheme();
 
   // Mermaid v11: <pre><code class="language-mermaid"> wird zunaechst durch
   // unseren Wrapper-Container ersetzt, der entweder den Cache-Treffer enthaelt
@@ -533,12 +564,13 @@ export async function applyMermaidIfPresent(container) {
     const block = document.createElement('div');
     block.className = 'mermaid-block';
     block.dataset.source = source;
+    if (fest) block.dataset.mermaidTheme = fest;
     // 4T-002048: Kennung einer Anker-Zeile darunter und Eigenschaften-Zeichen.
     uebernimmAnker(preEl, block);
     const cacheKey = mermaidCacheKey(theme, source);
     const cached = mermaidRenderCache.get(cacheKey);
     if (cached) {
-      setzeInhalt(block, cached);
+      setzeInhalt(block, eigeneSvgKennungen(cached));
       preEl.replaceWith(block);
       continue;
     }
@@ -547,18 +579,30 @@ export async function applyMermaidIfPresent(container) {
     inner.textContent = source;
     block.appendChild(inner);
     preEl.replaceWith(block);
-    pending.push({ block, inner, source, cacheKey });
+    pending.push({ block, inner, source, cacheKey, theme });
   }
+  await zeichneOffeneBloecke(mermaid, pending, 'mermaid.run() schlug fehl:');
+}
+
+// R1-03/R2-04 (4T-000174): ueber die gemeinsame Queue serialisieren. Auch
+// die Nachbearbeitung (Cache-Fuellung, Leftover-Cleanup) laeuft im
+// Queue-Glied, damit kein paralleler Lauf die Arbeits-DOM-Knoten
+// wegraeumt oder defekte SVGs in den Cache hebt.
+// 4T-002323: Anzeige und Theme-Wechsel teilen diese Strecke. Je Theme ein
+// Lauf, konfiguriert erst im Queue-Glied: Folie und Lese-Ansicht koennen
+// verschiedene Themes haben, und eine Konfiguration vor dem Einreihen gaelte
+// beim Lauf nicht mehr, wenn dazwischen ein anderer Aufruf konfiguriert hat.
+async function zeichneOffeneBloecke(mermaid, pending, warnung) {
   if (pending.length === 0) return;
-  // R1-03/R2-04 (4T-000174): ueber die gemeinsame Queue serialisieren. Auch
-  // die Nachbearbeitung (Cache-Fuellung, Leftover-Cleanup) laeuft im
-  // Queue-Glied, damit kein paralleler Lauf die Arbeits-DOM-Knoten
-  // wegraeumt oder defekte SVGs in den Cache hebt.
   await enqueueMermaidRun(async () => {
-    try {
-      await mermaid.run({ nodes: pending.map((p) => p.inner), suppressErrors: true });
-    } catch (err) {
-      console.warn('mermaid.run() schlug fehl:', err);
+    for (const theme of new Set(pending.map((p) => p.theme))) {
+      ensureMermaidConfigured(mermaid, theme);
+      const nodes = pending.filter((p) => p.theme === theme).map((p) => p.inner);
+      try {
+        await mermaid.run({ nodes, suppressErrors: true });
+      } catch (err) {
+        console.warn(warnung, err);
+      }
     }
     // Nachbearbeitung: Bomb-SVG durch eigene Fehlerdarstellung ersetzen, sonst
     // SVG aus dem inneren <div class="mermaid"> auf den Wrapper-Block heben und
@@ -569,7 +613,7 @@ export async function applyMermaidIfPresent(container) {
       if (isError) {
         renderMermaidErrorBlock(item.block, item.source, t('mermaid.syntaxError'));
       } else {
-        setzeInhalt(item.block, svgHtml);
+        setzeInhalt(item.block, eigeneSvgKennungen(svgHtml));
         item.block.classList.remove('mermaid-error');
         mermaidCacheSet(item.cacheKey, svgHtml);
       }
@@ -1134,20 +1178,21 @@ export async function rerenderAllMermaidBlocks() {
     console.warn('rerenderAllMermaidBlocks: Mermaid-Laden fehlgeschlagen:', err);
     return;
   }
-  const theme = currentMermaidTheme();
+  const anwendung = currentMermaidTheme();
   // Bei Theme-Wechsel muss mermaid mit dem neuen Theme neu initialisiert
   // werden, damit nachfolgende Renderings die neue Palette nutzen.
   mermaidConfiguredTheme = null;
-  ensureMermaidConfigured(mermaid, theme);
 
   const pending = [];
   for (const block of blocks) {
     const source = block.dataset.source || '';
     if (!source) continue;
+    // 4T-002323: Ein Block mit Theme von aussen (Folie) behaelt es.
+    const theme = block.dataset.mermaidTheme || anwendung;
     const cacheKey = mermaidCacheKey(theme, source);
     const cached = mermaidRenderCache.get(cacheKey);
     if (cached) {
-      setzeInhalt(block, cached);
+      setzeInhalt(block, eigeneSvgKennungen(cached));
       block.classList.remove('mermaid-error');
       continue;
     }
@@ -1159,28 +1204,10 @@ export async function rerenderAllMermaidBlocks() {
     inner.className = 'mermaid';
     inner.textContent = source;
     block.appendChild(inner);
-    pending.push({ block, inner, source, cacheKey });
+    pending.push({ block, inner, source, cacheKey, theme });
   }
-  if (pending.length === 0) return;
   // R1-03 (4T-000174): ebenfalls ueber die gemeinsame Queue serialisieren.
-  await enqueueMermaidRun(async () => {
-    try {
-      await mermaid.run({ nodes: pending.map((p) => p.inner), suppressErrors: true });
-    } catch (err) {
-      console.warn('mermaid.run() schlug bei Theme-Wechsel fehl:', err);
-    }
-    for (const item of pending) {
-      const svgHtml = item.inner.innerHTML;
-      const isError = !svgHtml || /aria-roledescription="error"/.test(svgHtml);
-      if (isError) {
-        renderMermaidErrorBlock(item.block, item.source, t('mermaid.syntaxError'));
-      } else {
-        setzeInhalt(item.block, svgHtml);
-        mermaidCacheSet(item.cacheKey, svgHtml);
-      }
-    }
-    cleanupMermaidLeftovers();
-  });
+  await zeichneOffeneBloecke(mermaid, pending, 'mermaid.run() schlug bei Theme-Wechsel fehl:');
 }
 
 // R2-13/R5-07 (4T-000179): EINE Render-Nachverarbeitung fuer alle drei
@@ -1201,42 +1228,14 @@ export function enableTaskCheckboxes(container) {
   }
 }
 
-// 4T-000282 (Epic 3E-000050): Interaktion der Frontmatter-Zeile. Das Markup
-// kommt aus der Pipeline (renderFrontmatterBlockHtml in markdown.js); hier
-// werden pro Block einmalig (data-fm-bound) der Klick-Pin gebunden und die
-// lokalisierte Feldanzahl gesetzt. Aufklappen/Zuklappen laeuft rein ueber
-// CSS (:hover mit Schliess-Verzoegerung gegen Hover-Flattern, .is-pinned
-// haelt offen). Enter/Leertaste bedienen den Pin ueber den nativen
-// <button>-Klick; aria-expanded spiegelt den Pin-Zustand.
-export function applyFrontmatterLine(container) {
-  if (!container) return;
-  for (const header of container.querySelectorAll('.frontmatter-header')) {
-    if (header.dataset.fmBound) continue;
-    header.dataset.fmBound = '1';
-    const countEl = header.querySelector('.frontmatter-count');
-    if (countEl) {
-      const n = parseInt(countEl.dataset.fmCount, 10);
-      if (Number.isFinite(n)) {
-        const key = n === 1 ? 'frontmatter.line.fieldCountOne' : 'frontmatter.line.fieldCount';
-        countEl.textContent = t(key).replace('{count}', String(n));
-      }
-    }
-    header.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const block = header.closest('.frontmatter-block');
-      if (!block) return;
-      const pinned = block.classList.toggle('is-pinned');
-      header.setAttribute('aria-expanded', pinned ? 'true' : 'false');
-    });
-  }
-}
-
 // 4T-002021: Das Dokument, auf das sich die Diagramme beziehen. Ein Teilbaum
 // bringt seinen Text mit; die Vollansicht liest zu jedem Zeichnen den Puffer
 // des geöffneten Dokuments ihrer Spalte, damit auch ein Neu-Zeichnen nach
 // einem Farbwechsel den geschriebenen Stand zeigt.
 function diagrammKontext(container, lage) {
-  if (typeof lage.dokumentText === 'string') return { dokumentText: lage.dokumentText };
+  if (typeof lage.dokumentText === 'string') {
+    return { dokumentText: lage.dokumentText, theme: lage.theme };
+  }
   const spalte = renderedPaneIndex(container);
   const dokumentText = () => {
     const tab = activeTabOfPane(state.panes, spalte);
@@ -1279,9 +1278,9 @@ function diagrammKontext(container, lage) {
 function wendeSchritteAn(container, basePath, lage) {
   const { bearbeitbar, dynamischeBloecke, frontmatterZeile, einbettungen, suchLauf } = lage;
   applyCodeCopyButtons(container);
-  if (frontmatterZeile) applyFrontmatterLine(container);
+  if (frontmatterZeile) applyFrontmatterLine(container, basePath);
   applyTranslations(container);
-  applyMermaidIfPresent(container);
+  applyMermaidIfPresent(container, { theme: lage.theme });
   enhancePerspectiveTableSorting(container);
   if (bearbeitbar) enableTaskCheckboxes(container);
   if (dynamischeBloecke) applyFrontmatterQueriesIfPresent(container, basePath);
@@ -1337,9 +1336,12 @@ function wendeSchritteAn(container, basePath, lage) {
  * @param {string} [opts.dokumentText] Der Text, aus dem der Teilbaum gerendert
  *   wurde (4T-002021); bei einem eingebetteten Ausschnitt der ganze Text der
  *   eingebetteten Datei. Die Diagramme lösen ihre Tabelle darin auf.
+ * @param {string|null} [opts.theme] Hell-Dunkel-Angabe von aussen (4T-002323:
+ *   die Folie); Mermaid und Diagramme zu Tabellen folgen ihr statt dem Theme
+ *   der Anwendung.
  */
 export function applyTeilbaumSchritte(container, basePath, opts = {}) {
-  const { dynamischeBloecke = true, dokumentText = '' } = opts;
+  const { dynamischeBloecke = true, dokumentText = '', theme = null } = opts;
   wendeSchritteAn(container, basePath, {
     bearbeitbar: false,
     dynamischeBloecke,
@@ -1347,6 +1349,7 @@ export function applyTeilbaumSchritte(container, basePath, opts = {}) {
     einbettungen: false,
     suchLauf: false,
     dokumentText: typeof dokumentText === 'string' ? dokumentText : '',
+    theme,
   });
 }
 

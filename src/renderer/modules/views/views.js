@@ -78,6 +78,7 @@ import {
   reiheSpeichern,
   speichernVonHandOffen,
   stampTabTimestamps,
+  zeigeKarteiBefunde,
 } from './save-export.js';
 import { renderTabbar } from './tabbar.js';
 import {
@@ -423,6 +424,9 @@ async function speichereImHintergrund(tab, pfad) {
   tab.foreignOverride = null;
   const jetzt = findeReiterOrt(tab);
   if (jetzt) renderTabbar(jetzt.paneIdx);
+  // 4T-002404 (Epic 3E-000266): die Befunde einer Karteikarte, im Hintergrund
+  // nur bei geänderten Befunden in der Statusleiste.
+  zeigeKarteiBefunde(pfad, res.karteiBefunde, { vonHand: false });
   return 'gespeichert';
 }
 

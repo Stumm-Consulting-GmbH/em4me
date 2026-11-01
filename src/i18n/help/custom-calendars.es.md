@@ -44,6 +44,8 @@ La sección de configuración «Sistemas de calendario» muestra los bloques del
 
 La edición deliberadamente nunca está bloqueada: se permiten los cambios de estructura en calendarios ya utilizados. Los valores del documento que por ello quedan no válidos se conservan sin cambios y se marcan de forma visible. Solo se bloquea el guardado de una definición no válida: al aplicar aparece un mensaje y no se guarda nada. Si, por ejemplo, la unidad prolongada de una regla intercalar no está dentro de las unidades por instancia, la regla intercalar lo indica ya al escribir y nombra las posiciones admitidas.
 
+**Varias versiones del programa en la misma área:** si trabajan en la misma área ordenadores con distintas versiones del programa, una versión más reciente puede crear cronologías que una más antigua no conoce, por ejemplo una cuya estructura cambia de un año a otro. La versión más antigua no las muestra en la lista, sino que indica su número encima de la lista. Al aplicar, deja estas cronologías sin cambios en el archivo del área, así como los datos de una cronología conocida que solo escribe una versión más reciente; después, la versión más reciente lo encuentra todo de nuevo. Quien quita un bloque quita también las cronologías que contiene y que la lista no muestra. Las versiones del programa sin esta indicación encima de la lista todavía quitan las cronologías desconocidas al aplicar; si participa un ordenador así, lo mejor es llevar todos los ordenadores del área a la misma versión.
+
 ### Añadir una época más tarde
 
 Un valor de la época más reciente figura en el documento sin abreviatura, y un valor sin abreviatura se lee siempre como valor de la época más reciente. Cuando una cronología recibe una nueva época más reciente, los valores guardados de la anterior designarían por ello otro día o dejarían de ser válidos. Si el área contiene tales valores, la aplicación pregunta al aplicar, antes de guardar, e indica cuántos son:
@@ -145,6 +147,8 @@ Si el calendario indicado no está definido en el área o el valor no es válido
 Si un valor queda fuera del periodo de validez de su cronología (sección «Plantillas cuya estructura cambia de un año a otro»), el texto fuente también queda sin cambios. El valor no cuenta entonces como no válido: su descripción emergente dice «Nombre: desconocido».
 
 En los bloques de código y los fragmentos de código, la sintaxis queda intacta: `@{Calendario de ejemplo: 500-2-09 ZZ}`.
+
+Si otra `@` precede directamente a `@{`, no es un valor de calendario: `@@{14:00}`, una hora en la notación de la herramienta de tableros de la que procede el formato del tablero Kanban, queda como texto.
 
 ## Insertar y editar
 

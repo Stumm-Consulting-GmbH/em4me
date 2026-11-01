@@ -6,6 +6,8 @@
 
 // 4T-000604 (Epic 3E-000113): History-Isolation fuer den Zeitstempel-Dispatch.
 import { isolateHistory } from '@codemirror/commands';
+// 4T-002121: Kennzeichen des Stempels für das Rückgängig der Anwendung.
+import { stempelEffekte, stempelSchritt } from '../editor/editor-historie.js';
 // 4T-001594 (Epic 3E-000129): currentDictionary reicht den Katalog einer
 // eigenen Sprache an den dritten Leser weiter (siehe unten am Aufruf).
 import { currentDictionary, getLanguage, t } from '../../i18n.js';
@@ -32,7 +34,20 @@ import {
   replaceChartFencesForExport,
 } from '../charts/chart-export.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
-import { EDITOR_VIEW_FM_KEYS, getEditorViewDefaults, state, withDialog } from '../app/app-state.js';
+import {
+  EDITOR_VIEW_FM_KEYS,
+  getEditorViewDefaults,
+  getPaneEls,
+  state,
+  withDialog,
+} from '../app/app-state.js';
+// 4T-002404 (Epic 3E-000266, F3 A): die Befunde einer Karteikarte nach dem Speichern.
+import {
+  karteiBefundMeldung,
+  markiereKarteiDateikopf,
+  uebernimmKarteiBefunde,
+  zeichneKarteiFeldHinweise,
+} from '../database/karteikarte-befunde.js';
 // 4T-000572 (Epic 3E-000105): Frontmatter-Lesen der dokument-gebundenen Editor-
 // Ansicht-Schalter. Direkter Import aus dem Electron-freien Shared-Modul
 // (Muster live-widgets.js), damit die Content-Transformation ohne Preload-
@@ -102,9 +117,13 @@ function stampFrontmatterInPaneView(paneIdx, tabIdx, nextContent) {
   const afterEnd = extractFrontmatter(nextContent).endOffset || 0;
   view.dispatch({
     changes: { from: 0, to: beforeEnd, insert: nextContent.slice(0, afterEnd) },
-    // Eigene Undo-Einheit: ein Strg+Z nimmt den Stempel zurück, ohne die
-    // vorherige Nutzer-Eingabe mit aufzurollen.
-    annotations: isolateHistory.of('full'),
+    // Eigene Undo-Einheit, damit die Historie die Nutzer-Schritte sicher über
+    // den Stempel hinweg abbildet. 4T-002121: Gekennzeichnet, damit das
+    // Rückgängig der Anwendung den Stempel und den Schritt davor zusammen
+    // zurücknimmt (editor-historie.js); allein genommen setzte ihn das
+    // automatische Speichern zwei Sekunden später neu.
+    annotations: [isolateHistory.of('full'), stempelSchritt.of(true)],
+    effects: stempelEffekte(view.state),
   });
   tab.content = getDocText(view.state.doc);
 }
@@ -338,10 +357,43 @@ async function schreibeReiter(paneIdx, tabIdx, tab) {
     // der Puffer-Overlay des Index wird zurueckgenommen. Der Index selbst
     // zieht ueber den Datei-Beobachter nach.
     void clearIndexOverlayFor(tab.path);
+    zeigeKarteiBefunde(tab.path, res.karteiBefunde, { vonHand: true });
     return true;
   } catch (err) {
     await api.showSaveError(`${tab.path}\n${(err && err.message) || String(err)}`);
     return false;
+  }
+}
+
+/**
+ * 4T-002404 (Epic 3E-000266, F3 A): Die Befunde einer Karteikarte aus dem
+ * Ergebnis des Speicherns übernehmen und zeigen — in der Statusleiste und in
+ * jeder Spalte, die das Dokument gerade zeigt, am Eigenschafts-Bereich und an
+ * der Dateikopf-Zeile. Das Speichern selbst ist an dieser Stelle gelungen; die
+ * Befunde ändern daran nichts. Die Statusleiste meldet beim Speichern von Hand
+ * immer, im Hintergrund nur, wenn sich die Befunde geändert haben, damit nicht
+ * jedes automatische Speichern dieselbe Meldung wiederholt.
+ *
+ * @param {string} pfad Pfad des gespeicherten Dokuments.
+ * @param {Array<object>|undefined} befunde Angabe `karteiBefunde` des Ergebnisses.
+ * @param {{vonHand: boolean}} optionen
+ */
+export function zeigeKarteiBefunde(pfad, befunde, { vonHand }) {
+  const { anzahl, geaendert } = uebernimmKarteiBefunde(pfad, befunde);
+  if (anzahl > 0 && (vonHand || geaendert)) {
+    showStatusbarHint('database.card.savedFindings', {
+      text: karteiBefundMeldung(anzahl),
+      duration: 6000,
+    });
+  }
+  for (let p = 0; p < state.panes.length; p++) {
+    const pane = state.panes[p];
+    const tab = pane && pane.activeIndex >= 0 ? pane.tabs[pane.activeIndex] : null;
+    if (!tab || tab.path !== pfad) continue;
+    const els = getPaneEls(p);
+    if (!els) continue;
+    zeichneKarteiFeldHinweise(els.propertiesFields, pfad);
+    markiereKarteiDateikopf(els.renderedHtml, pfad);
   }
 }
 
@@ -429,6 +481,8 @@ async function speichereReiterUnter(paneIdx, tabIdx, tab, opts) {
     tab.dirty = tab.content !== contentToSave;
     // R4-12 (4T-000180): wie in saveTab — Embed-Frische anderer Panes.
     invalidatePaneRenderCache();
+    // 4T-002404: vor dem Neu-Zeichnen unten, das die Markierung mitzeichnet.
+    zeigeKarteiBefunde(result.path, result.karteiBefunde, { vonHand: true });
     if (oldPath && oldPath !== result.path) {
       // M-14 (4T-000170): Nur entwatchen, wenn kein anderer Tab denselben
       // alten Pfad noch offen hat (Check analog closeTab). Der eigene Tab

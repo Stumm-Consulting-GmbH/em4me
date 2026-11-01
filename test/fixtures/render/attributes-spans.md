@@ -20,3 +20,9 @@ Fußnote[^fx] bleibt Fußnote.
 Markdown-Link [Text](ziel.md) bleibt Link; [Text] ohne Block bleibt Klartext.
 
 Fließtext mit { geschweiften Klammern } bleibt unangetastet.
+
+Klammer-Paar ohne erlaubtes Attribut am Absatzende bleibt Text: Menge {foo}
+
+Ebenso mit Gleichheitszeichen: Menge {x=1}
+
+Gültige Klasse am Absatzende wirkt: Klasse {.rot}

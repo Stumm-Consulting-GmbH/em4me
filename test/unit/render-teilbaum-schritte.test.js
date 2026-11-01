@@ -83,6 +83,12 @@ const TEILBAUM = [
   // Zeichnen des Körpers ist ohne Verhaltensänderung aus der Masken-Seite in
   // `masken-koerper.js` gezogen; die Fundstelle folgt ihm.
   'modules/database/masken-koerper.js',
+  // 4T-002407 (Epic 3E-000266, F6 A, S4): Die eingeblendeten Sichten einer
+  // Karteikarte — der Körper einer Abfrage-Datei, per innerHTML unter den
+  // Dateikopf der Lese-Ansicht gesetzt, mit der Karteikarte als Bezug. Den
+  // Schritt-Satz bekommt das Modul hereingereicht (aus `views/pane-render.js`),
+  // weil ein Import der Pipeline es in den eingefrorenen Datei-Zyklus zöge.
+  'modules/database/karteikarte-sichten.js',
 ];
 
 // Klasse 3: Widget-Extraktion im Editor. Rendert ein EINZELNES Konstrukt in

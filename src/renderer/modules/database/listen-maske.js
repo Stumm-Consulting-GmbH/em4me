@@ -64,7 +64,7 @@
 import { t } from '../../i18n.js';
 import { columnHeader, cellSegments, displayName } from '../../../shared/query/result-display.js';
 import { appendSegments } from '../query/display-list-table.js';
-import { markRecordHit } from '../query/record-hit-click.js';
+import { markRecordHit, ZIEL_MASKE } from '../query/record-hit-click.js';
 
 /** Zeilen je Seite (F3 A): fest, ohne Angabe in der Datei und ohne Einstellung. */
 export const LIST_SEITE = 50;
@@ -225,6 +225,9 @@ function gitter(rs, liste, zeilen, translate, zeile, rechte) {
     tr.className = 'db-list-row';
     markRecordHit(tr, { path: origin.path, table: origin.table, id: origin.id });
     if (maske) tr.dataset.fmRecordMaske = maske;
+    // 4T-002406 (F7 A): Die Zeile ist der Weg in die Einzel-Maske, auch bei
+    // einer Karteikarte (`record-hit-click.js`).
+    tr.dataset.fmRecordZiel = ZIEL_MASKE;
     if (!ohneKennung) {
       const td = document.createElement('td');
       td.className = 'db-list-col-record db-list-col-readonly';

@@ -56,30 +56,44 @@ const { extractBlockAnchors } = require('../block-anchors.js');
 // Zeile, die nach der Regel schließt — dasselbe Zeichen, mindestens so lang,
 // ohne Infostring. Ein Block ohne Schluss bleibt wie bisher stehen.
 //
-// **Der Ausklang hinter dem Schluss-Zaun ist der bisherige** und je Konstrukt
-// verschieden, damit die Ausgabe um den Block zeichengleich bleibt: Die vier
-// HTML-Konstrukte nehmen wie bisher Leerraum bis vor die letzte
-// Leerzeilen-Grenze mit (`\s*$`), weil sich ein HTML-Block vom folgenden Absatz
-// von selbst trennt; die Fläche setzt Markdown ein und nimmt allein Leerzeichen
-// und Tabulatoren der Schluss-Zeile mit (`[ \t]*$`, Begründung in markdown.js).
-const AUSKLANG = Object.freeze({
-  leerraum: /\s*$/my,
-  zeile: /[ \t]*$/my,
-});
+// **Der Ausklang hinter dem Schluss-Zaun ist der Rest der Schluss-Zeile**
+// (Leerzeichen und Tabulatoren, `[ \t]*$`), für alle fünf Ersetzungen. Was
+// danach folgt, Zeilenende, Leerzeile und Folgetext, bleibt stehen.
+// 4T-002102: Bis dahin nahmen die vier HTML-Konstrukte Leerraum bis vor die
+// letzte Leerzeilen-Grenze mit (`\s*$`), in der Annahme, ein HTML-Block trenne
+// sich vom folgenden Absatz von selbst. Nach CommonMark endet ein HTML-Block
+// aber erst an einer Leerzeile; die verschluckte Leerzeile zog den folgenden
+// Absatz in die Tabelle hinein, in der Anwendung wie in fremden Programmen.
+//
+// Die beiden Ausklänge unterscheiden sich allein danach: `block` (Vorgabe, die
+// vier HTML-Konstrukte) sichert hinter dem eingesetzten HTML eine Leerzeile,
+// wenn der Text dahinter nicht ohnehin mit einer beginnt, am Dokument-Ende ein
+// Zeilenende; `zeile` (die Fläche, die Markdown einsetzt) setzt nichts dazu
+// (Begründung in markdown.js).
+const SCHLUSS_REST = /[ \t]*$/my;
+const LEERZEILE_FOLGT = /\r?\n[ \t]*(?:\r?\n|$)/y;
 
-// Ende des Treffers: hinter der Schluss-Sequenz der Ausklang, gemessen wie im
-// bisherigen Ausdruck an derselben Stelle. Trägt er nicht (ein Leerraum-Zeichen,
-// das der Ausklang `zeile` nicht kennt), endet der Treffer am Zeilenende vor
-// einem `\r`.
-function trefferEnde(src, zeilenStart, zeilenEnde, zeile, ausklang) {
+// Ende des Treffers: hinter der Schluss-Sequenz der Rest der Schluss-Zeile.
+// Trägt er nicht (ein Leerraum-Zeichen außer Leerzeichen und Tabulator), endet
+// der Treffer am Zeilenende vor einem `\r`.
+function trefferEnde(src, zeilenStart, zeilenEnde, zeile) {
   const eigene = zaunOeffnung(zeile);
   const einrueckung = zeile.length - zeile.trimStart().length;
   const sequenzEnde = zeilenStart + einrueckung + eigene.laenge;
-  const re = AUSKLANG[ausklang] || AUSKLANG.leerraum;
-  re.lastIndex = sequenzEnde;
-  const m = re.exec(src);
+  SCHLUSS_REST.lastIndex = sequenzEnde;
+  const m = SCHLUSS_REST.exec(src);
   if (m) return sequenzEnde + m[0].length;
   return src.charAt(zeilenEnde - 1) === '\r' ? zeilenEnde - 1 : zeilenEnde;
+}
+
+// 4T-002102: Was hinter einem eingesetzten HTML-Block steht, damit der Text ab
+// `ab` nicht zum Block gehört. Beginnt er mit einer Leerzeile oder endet das
+// Dokument nach dem Zeilenende, nichts; sonst ein Zeilenende in der Form des
+// folgenden (Folgetext direkt unter dem Zaun, Dokument-Ende ohne Zeilenende).
+function trennerNachBlock(src, ab) {
+  LEERZEILE_FOLGT.lastIndex = ab;
+  if (LEERZEILE_FOLGT.test(src)) return '';
+  return src.startsWith('\r\n', ab) ? '\r\n' : '\n';
 }
 
 // Ersetzt alle Blöcke der Sprache `sprache`, die auf der obersten Ebene stehen.
@@ -91,12 +105,12 @@ function trefferEnde(src, zeilenStart, zeilenEnde, zeile, ausklang) {
 // den Zeilenumbruch vor dem Schluss) und den Offset der Öffner-Zeile; liefert
 // er `null`, bleibt der Rohtext stehen (4T-002072, Nachbesserung F5: der
 // Offset, damit ein Konverter die Umgebung des Blocks befragen kann).
-// `optionen.ausklang` ist `leerraum` (Vorgabe) oder `zeile` (Kopf-Kommentar).
+// `optionen.ausklang` ist `block` (Vorgabe) oder `zeile` (Kopf-Kommentar).
 // Ein Block, dessen Schluss unmittelbar auf den Öffner folgt, hat keinen Rumpf
 // und bleibt wie bisher stehen.
 function ersetzeObersteEbene(text, sprache, konverter, optionen = {}) {
   const src = String(text == null ? '' : text);
-  const ausklang = optionen.ausklang === 'zeile' ? 'zeile' : 'leerraum';
+  const trennen = optionen.ausklang !== 'zeile';
   let getroffen = false;
   let aus = '';
   let kopiertBis = 0;
@@ -111,8 +125,10 @@ function ersetzeObersteEbene(text, sprache, konverter, optionen = {}) {
         if (offen.passt && pos > offen.rumpfStart && offen.start >= kopiertBis) {
           const html = konverter(src.slice(offen.rumpfStart, pos - 1), offen.start);
           if (html !== null) {
-            aus += src.slice(kopiertBis, offen.start) + html;
-            kopiertBis = trefferEnde(src, pos, ende, zeile, ausklang);
+            const bis = trefferEnde(src, pos, ende, zeile);
+            const trenner = trennen ? trennerNachBlock(src, bis) : '';
+            aus += src.slice(kopiertBis, offen.start) + html + trenner;
+            kopiertBis = bis;
             getroffen = true;
           }
         }

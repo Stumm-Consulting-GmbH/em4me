@@ -128,7 +128,7 @@ SORT auteur
 - **Tableaux** : `TABLE RECORDS …` affiche le résultat dans la première colonne « Enregistrement » ; `WITHOUT ID` vient après `RECORDS`. Le titre d'une colonne est l'alias, sinon l'étiquette du champ dans la langue du programme choisie, selon la chaîne de repli de la page [Base de données](database.md), sinon l'expression elle-même, par exemple pour un chemin.
 - **Valeurs de lien** : un champ de référence affiche la forme d'affichage de sa cible, à défaut son identifiant, et un clic ouvre le formulaire de la cible. Un lien vide et un lien qui ne mène nulle part restent une cellule vide.
 - **Ordre** : sans `SORT`, les résultats suivent leur forme d'affichage sans tenir compte de la casse, à forme d'affichage égale l'identifiant, et les enregistrements sans forme d'affichage viennent à la fin.
-- **Une seule cible de clic** : un enregistrement dans le résultat d'une requête ouvre le formulaire, de même qu'un lien dans le texte courant comme `[[Livres#^r-00042]]` ; l'action « Afficher dans le document de table » du formulaire mène à la ligne. Le formulaire montre l'état enregistré.
+- **Une seule cible de clic** : un enregistrement dans le résultat d'une requête ouvre le formulaire, de même qu'un lien dans le texte courant comme `[[Livres#^r-00042]]` ; l'action « Afficher dans le document de table » du formulaire mène à la ligne. Le formulaire montre l'état enregistré. Si l'enregistrement appartient à une table en fichier de fiches, les deux clics ouvrent le document de la fiche (page [Base de données](database.md), section « Forme en fichier de fiches »).
 - **Formulaire de liste** : si un fichier de requête porte l'indication `editable: true` dans son conteneur `db-query`, son résultat apparaît sous forme de grille dans laquelle les enregistrements s'ouvrent, se modifient, se créent et se suppriment, 50 lignes par page ; la page [Base de données](database.md) le décrit dans la section « Formulaire de liste ».
 - **État non enregistré** : les modifications d'une table ouverte sont prises en compte immédiatement dans le résultat, sans enregistrer.
 - **Pas à ce niveau** : `bold()` dans une colonne ou dans une expression de `GROUP BY` produit un message d'erreur, car une valeur de base de données ne porte aucune mise en forme ; dans la condition et le tri, il reste permis. `HIDE`, `SHOW` et `SHORT` ne valent que pour `LIST TASKS` et se signalent ici comme aux niveaux fichier et bloc.
@@ -250,6 +250,7 @@ LIST WHERE domaine = this.domaine AND file.path != this.file.path
 - **Même sens à tous les niveaux** : dans les requêtes `BLOCKS`, `TASKS` et `RECORDS` aussi, `this.` désigne le fichier porteur du bloc, jamais le bloc isolé, la ligne de tâche ni l'enregistrement.
 - **Précédence** : la règle `this.` l'emporte sur une propriété de frontmatter du même nom, exactement comme l'espace de noms `file.`.
 - **Sans fichier porteur** : s'il ne peut être résolu, tout accès `this.` donne une valeur vide ; un `this` nu sans point reste vide comme tout nom de champ inconnu.
+- **Vue affichée sur une fiche** : dans une vue qu'une table en fichier de fiches affiche sous chaque fiche, `this.` désigne la fiche et non le fichier de requête de la vue (page [Base de données](database.md), section « Forme en fichier de fiches »). Avec une intégration par `![[…]]`, cela reste le fichier intégré.
 
 Comme **source**, le lien wiki vide désigne ce même fichier : `FROM [[]]` rassemble les fichiers qui pointent vers lui, `FROM outgoing([[]])` la direction inverse. Le fichier porteur n'est jamais son propre résultat ; sans fichier porteur résoluble, l'ensemble reste vide au lieu de couvrir tous les fichiers.
 
@@ -287,7 +288,7 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `currencyformat(x[, d])` | `currencyformat(montant, "CHF")` | présenter un montant localisé : en euros sans indication, et le nombre non formaté pour un code de devise inconnu |
 | `infolder(l, "Dossier")` | `length(infolder(file.inlinks, "Projets")) = 0` | la sous-liste des valeurs de lien dont la cible se trouve dans le dossier ou en dessous |
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(valeurs) = 6` | agrégats sur des listes de nombres ; sur un groupe, ils réunissent les valeurs de tous ses résultats (section « Regroupement et agrégation ») |
-| `count(x)` | `count(tags) > 2` | nombre de valeurs présentes : pour une liste ses éléments, pour une valeur simple 1, sans valeur 0 ; `count()` sans champ compte les résultats d'un groupe |
+| `count(x)` | `count(tags) > 2` | nombre de valeurs présentes : pour une liste ses éléments, pour une valeur simple 1, sans valeur 0, un texte vide, y compris comme élément d'une liste, valant « sans valeur » ; `count()` sans champ compte les résultats d'un groupe |
 | `bold(x)` | `bold(statut)` | présenter une valeur en évidence (section « Mise en évidence ») |
 
 Une fonction inconnue ou un nombre d'arguments incorrect affiche un avis d'erreur au bloc.

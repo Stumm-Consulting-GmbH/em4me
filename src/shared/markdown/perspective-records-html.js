@@ -21,7 +21,7 @@
 
 const { escapeHtml } = require('./slug.js');
 const { parseRecordBlock } = require('../database/record-block.js');
-const { hinweisSatz } = require('../database/table-hinweise.js');
+const { baueHinweis, hinweisSatz } = require('../database/table-hinweise.js');
 
 // Obergrenze der gerenderten Datensätze.
 //
@@ -284,6 +284,14 @@ function hinweisHtml(hints, L) {
 function renderRecordsFence(model, fields, opts) {
   const o = opts || {};
   const rumpf = String(o.body == null ? '' : o.body);
+  // 4T-002386 (Schritt 4): In einer Tabelle in Kartei-Form (`o.karteiForm`,
+  // gesetzt von der Pipeline aus der Definition im Dateikopf) gelten die Zeilen
+  // des Blocks nicht als Datensätze. Der Block bleibt sichtbar und trägt den
+  // Hinweis vor seinen übrigen Befunden.
+  if (o.karteiForm === true && model) {
+    const hinweis = { ...baueHinweis('recordStorageCards', -1, null), record: null };
+    model = { ...model, hints: [hinweis, ...(model.hints || [])] };
+  }
   return (
     `<div class="perspective-records" data-rec-index="${Number(o.index) || 0}" ` +
     `data-rec-line-start="${Number(o.lineStart) || 0}" ` +
@@ -450,6 +458,8 @@ const RECORD_LABEL_KEYS = [
   // außerhalb jeder Zelle, meldet der Parser ohnehin `recordStrayContent`.
   'database.hint.recordFenceLine',
   'database.hint.recordFenceLine.ohneOrt',
+  // 4T-002386 (Schritt 4): der Datensatz-Block in einer Tabelle in Kartei-Form.
+  'database.hint.recordStorageCards',
 ];
 
 module.exports = {

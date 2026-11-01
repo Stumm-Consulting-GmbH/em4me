@@ -31,7 +31,7 @@ const { extractFrontmatter } = require('./frontmatter.js');
 // Definition im Frontmatter derselben Datei (E3.2). Die Pipeline liest sie
 // deshalb einmal je Render-Lauf und reicht sie über env durch, nach dem Muster
 // von env.headingNumbering.
-const { parseTableDefinition } = require('../database/table-definition.js');
+const { parseTableDefinition, istKarteiForm } = require('../database/table-definition.js');
 const { parseRecordBlock, RECORD_FENCE } = require('../database/record-block.js');
 const { renderRecordsFence } = require('./perspective-records-html.js');
 const { effectiveDisabledSet } = require('../extensions/extensions-core.js');
@@ -205,7 +205,10 @@ const markdownItDeflist = require('markdown-it-deflist');
 const markdownItSub = require('markdown-it-sub');
 const markdownItIns = require('markdown-it-ins');
 const markdownItBracketedSpans = require('markdown-it-bracketed-spans');
-const markdownItAttrs = require('markdown-it-attrs');
+// 4T-001922: markdown-it-attrs wird über das eigene Plugin-Modul registriert,
+// das um die Regel der Bibliothek den Text-Schutz für ein Klammer-Paar ohne
+// erlaubtes Attribut am Absatzende legt (Begründung dort).
+const { attributesPlugin } = require('./plugins/attributes.js');
 // 4T-000595 (Epic 3E-000111): Inline-Berechnungen {= Ausdruck =} über die
 // Query-Ausdrucks-Engine; 4T-000596: Export-Konverter (Ergebnis-Spans).
 const { inlineCalcPlugin, convertInlineCalc } = require('./inline-calc.js');
@@ -285,7 +288,7 @@ function registerMarkdownExtensions(mdInstance, opts = {}) {
   // haengen am selben attrs-Plugin und sind nicht unabhaengig schaltbar).
   if (enabled('attributes')) {
     mdInstance.use(markdownItBracketedSpans);
-    mdInstance.use(markdownItAttrs, { allowedAttributes: ['id', 'class'] });
+    mdInstance.use(attributesPlugin, { allowedAttributes: ['id', 'class'] });
   }
   // 4T-000203: Spoiler `||Text||` (Hover-Reveal, CSS-only) und Critic
   // Markup ({++/--/~~…~>…~~/==/>>…<<}) als eigene Plugins; Critic
@@ -681,6 +684,7 @@ function buildPipelines(enabled) {
           lineStart: token.map ? token.map[0] + 1 + offset : 0,
           lineEnd: token.map ? token.map[1] + offset : 0,
           labels: portableLabels((env && env.lang) || 'de'),
+          karteiForm: istKarteiForm(env && env.dbTable),
         });
       }
       // 4T-000435 (Epic 3E-000081): perspective-journal-nav rendert als leerer
@@ -1010,10 +1014,10 @@ function convertMarkdownPortable(markdownText, addMarker = true, lang = 'de', la
   // Portable-Marker noch die mdPortable-Ansicht. Ersetzt wird allein ein Zaun der
   // **obersten Ebene**: Ein Zaun in einem äußeren Zaun ist zitierter Text.
   //
-  // **Der Zaun-Ausklang ist `[ \t]*` und nicht `\s*` wie bei den drei bestehenden
-  // Ersetzungen**: Jene setzen einen HTML-Block ein, der sich vom folgenden Absatz
-  // von selbst trennt. Hier steht Markdown, und eine mit verschluckte Leerzeile
-  // zöge den nächsten Absatz in die Verbindungs-Liste hinein.
+  // **Der Zaun-Ausklang ist `zeile` und nicht die Vorgabe `block`** (4T-002102):
+  // Jene sichert hinter einem HTML-Block die Leerzeile, an der er nach CommonMark
+  // erst endet. Hier steht Markdown; es bleibt allein der Rest der Schluss-Zeile,
+  // und die Leerzeile danach trennt den nächsten Absatz von der Verbindungs-Liste.
   //
   // 4T-002037 (Epic 3E-000360): Die Fläche wird nach der Zaun-Regel der
   // Anwendung erkannt wie die übrigen Ersetzungen (`ersetzeObersteEbene` in

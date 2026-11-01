@@ -183,7 +183,14 @@ test.describe('TR-06: Kontextmenue an der Klick-Stelle, Schliessen ohne Auswahl'
     const { app, page, userData } = await launchApp({ args: [FIXTURE] });
     try {
       await liveBearbeiten(app, page);
-      await zeile(page, 'Absatz vor der Tabelle.').click();
+      // 4T-001812: Die Maus klickt an den sichtbaren Anfang der Zeile, statt
+      // die Zeile als Ganzes anzuklicken. Ist der Inhalt des Editors breiter als
+      // das Fenster, ist es jede Zeile auch, und das Prüf-Werkzeug scrollte sie
+      // vor dem Klick ins Bild: gemessen 44 px bei 1400 px Inhaltsbreite, so
+      // dass die erste Spalte der Tabelle unter der Leiste der Zeilennummern
+      // lag und der Rechtsklick die Leiste traf statt die Zelle.
+      const absatz = await zeile(page, 'Absatz vor der Tabelle.').boundingBox();
+      await page.mouse.click(absatz.x + 4, absatz.y + absatz.height / 2);
       const box = await zelle(page, 3).boundingBox();
       const x = box.x + box.width / 2;
       const y = box.y + box.height / 2;

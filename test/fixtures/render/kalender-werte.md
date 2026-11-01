@@ -20,3 +20,11 @@ Zaehlung ab dem Nullpunkt: @{Projekt: 0-1-18} und rueckwaerts
 @{Projekt: 0-0-15 vor Start}; der Nullpunkt selbst ist @{Projekt: 0-0-1}.
 
 Auf einem Fantasie-Kalender: @{Mondzählung: 0-1-12} und @{Mondzählung: 1-0-3 davor}.
+
+## Fremde Schreibweisen
+
+Karte @@{14:00}
+
+Termin @{Dreimond: 1-2-13} @@{14:00}
+
+Kaputt @{2026-13-40}

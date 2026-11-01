@@ -70,10 +70,12 @@ describe('Tabellen-Definition: der Behälter (AK1)', () => {
 
   it('ein leerer Behälter ist eine Tabelle ohne Felder und kein Fehler', () => {
     for (const behaelter of [null, {}, { [DB_FIELDS_KEY]: null }]) {
+      // 4T-002386: Auch der leere Behälter trägt die Ablage-Art, die Vorgabe.
       expect(parseTableDefinition({ [DB_TABLE_KEY]: behaelter })).toEqual({
         istTabelle: true,
         fields: [],
         hints: [],
+        storage: 'table',
       });
     }
   });
@@ -455,8 +457,10 @@ describe('Tabellen-Definition: Prüfregeln (4T-001930)', () => {
         ],
       },
     };
+    // 4T-002386: Seither trägt jede Tabelle die Ablage-Art, ohne Angabe die
+    // Vorgabe `table`; sonst ist der Stand unverändert.
     const vorher =
-      '{"istTabelle":true,"fields":[{"name":"kuerzel","type":"string","label":{"de":"Kürzel","en":"Code"},"required":true},{"name":"name","type":"string"},{"name":"menge","type":"number","default":1,"options":{"decimals":2}},{"name":"status","type":"string","values":["offen","zu"],"default":"offen"},{"name":"kunde","type":"record","options":{"table":"Kunden"}},{"name":"tag","type":"string"}],"hints":[{"code":"typeStructured","index":5,"name":"bad","key":"type","expected":["string","multiline","number","boolean","date","time","link","record"]},{"code":"label","index":6,"name":"tag","key":"label","expected":"text-or-locale-map"}],"lastId":7,"key":["kuerzel"],"display":"name","changeLog":{"maxBytes":1000}}';
+      '{"istTabelle":true,"fields":[{"name":"kuerzel","type":"string","label":{"de":"Kürzel","en":"Code"},"required":true},{"name":"name","type":"string"},{"name":"menge","type":"number","default":1,"options":{"decimals":2}},{"name":"status","type":"string","values":["offen","zu"],"default":"offen"},{"name":"kunde","type":"record","options":{"table":"Kunden"}},{"name":"tag","type":"string"}],"hints":[{"code":"typeStructured","index":5,"name":"bad","key":"type","expected":["string","multiline","number","boolean","date","time","link","record"]},{"code":"label","index":6,"name":"tag","key":"label","expected":"text-or-locale-map"}],"storage":"table","lastId":7,"key":["kuerzel"],"display":"name","changeLog":{"maxBytes":1000}}';
     expect(JSON.stringify(parseTableDefinition(definition))).toBe(vorher);
   });
 });
@@ -606,5 +610,61 @@ describe('Tabellen-Definition: Standard-Maske (4T-002184)', () => {
     for (const code of ['form', 'formDateiUnbekannt', 'formDateiFremd'])
       expect(HINWEIS_META[code].key, code).toBe('form');
     expect(HINWEIS_META.formMehrereDateien).toBeUndefined();
+  });
+});
+
+// 4T-002386 (Epic 3E-000265, F2 A): Die Ablage-Art der Tabelle im Behälter.
+describe('Tabellen-Definition: Ablage-Art (4T-002386)', () => {
+  function behaelter(storage) {
+    return { [DB_TABLE_KEY]: { [DB_FIELDS_KEY]: [{ name: 'Ort' }], storage } };
+  }
+
+  it('ohne Angabe gilt die Tabellen-Form, ohne Hinweis (AK2)', () => {
+    const ohne = parseTableDefinition({ [DB_TABLE_KEY]: { [DB_FIELDS_KEY]: [{ name: 'Ort' }] } });
+    expect(ohne.storage).toBe('table');
+    expect(ohne.hints).toEqual([]);
+    const leer = parseTableDefinition(behaelter(null));
+    expect(leer.storage).toBe('table');
+    expect(leer.hints).toEqual([]);
+    expect(parseTableDefinition(behaelter('table')).storage).toBe('table');
+  });
+
+  it('storage: cards macht die Tabelle zur Kartei-Tabelle, Leerraum am Rand zählt nicht (AK2)', () => {
+    for (const wert of ['cards', '  cards ']) {
+      const ergebnis = parseTableDefinition(behaelter(wert));
+      expect(ergebnis.storage, JSON.stringify(wert)).toBe('cards');
+      expect(ergebnis.hints, JSON.stringify(wert)).toEqual([]);
+      // Die übrige Definition bleibt wirksam.
+      expect(ergebnis.fields.map((f) => f.name)).toEqual(['Ort']);
+    }
+  });
+
+  it('ein unbekannter Wert gilt als Tabellen-Form und wird gemeldet (AK2)', () => {
+    const faelle = [
+      ['Cards', 'Cards'],
+      ['card', 'card'],
+      ['', ''],
+      [42, '42'],
+      [true, 'true'],
+      [['cards'], '["cards"]'],
+    ];
+    for (const [wert, name] of faelle) {
+      const ergebnis = parseTableDefinition(behaelter(wert));
+      expect(ergebnis.storage, JSON.stringify(wert)).toBe('table');
+      expect(ergebnis.hints, JSON.stringify(wert)).toEqual([
+        {
+          code: 'storage',
+          index: -1,
+          name: name || null,
+          key: 'storage',
+          expected: ['table', 'cards'],
+        },
+      ]);
+      expect(ergebnis.fields.map((f) => f.name)).toEqual(['Ort']);
+    }
+  });
+
+  it('führt den Code der Angabe im Hinweis-Katalog mit ihrem Schlüssel', () => {
+    expect(HINWEIS_META.storage.key).toBe('storage');
   });
 });

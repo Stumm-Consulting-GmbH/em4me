@@ -182,6 +182,8 @@ Le regole sono volutamente brevi, perché il file è un archivio tecnico:
 
 **Non si perde mai un carattere.** Se un record ha troppe poche celle, i campi restanti rimangono vuoti; se ne ha troppe, quelle in eccesso restano intatte. Entrambi i casi vengono segnalati, ma nulla viene scritto via in silenzio — è l'unico errore che un archivio di dati non deve commettere.
 
+Invece che in questo blocco, una tabella può anche conservare ciascuno dei suoi record in un documento proprio, con i campi nel frontmatter e testo libero sotto. La sezione «Forma a schedario» descrive questa seconda forma e quando è adatta.
+
 ## Regole di verifica
 
 Una regola di verifica stabilisce quali valori una tabella accetta. Si trova nella definizione, in uno di due punti a seconda della sua portata:
@@ -294,7 +296,7 @@ Ogni record ha una **maschera**: una pagina propria che mostra i suoi campi uno 
 
 Un record esistente si apre con il pulsante **«Apri record»** all'inizio della sua riga, prima del pulsante dei giustificativi di modifica, sia nella vista di lettura sia nella modalità Live. Da tastiera vi porta il tasto freccia sinistra a partire dal pulsante dei giustificativi.
 
-Dal risultato di una query sui record, un clic su un record o su un collegamento apre ugualmente la maschera (pagina [Query Perspective](frontmatter-query.md)). Essa mostra lo stato salvato, anche se la query ne mostra uno non salvato. In una maschera elenco il clic apre la maschera che l'elenco indica (sezione «Maschera elenco»). Allo stesso modo aprono la maschera un collegamento a un record nel testo di un documento (sezione «Collegamento a un singolo record») e un risultato di record della ricerca sull'area (sezione «Reperibilità: ricerca e collegamenti»).
+Dal risultato di una query sui record, un clic su un record o su un collegamento apre ugualmente la maschera (pagina [Query Perspective](frontmatter-query.md)). Essa mostra lo stato salvato, anche se la query ne mostra uno non salvato. In una maschera elenco il clic apre la maschera che l'elenco indica (sezione «Maschera elenco»). Allo stesso modo aprono la maschera un collegamento a un record nel testo di un documento (sezione «Collegamento a un singolo record») e un risultato di record della ricerca sull'area (sezione «Reperibilità: ricerca e collegamenti»). Se il record appartiene a una tabella a schedario, questi clic aprono il documento della scheda invece della maschera; la riga di una maschera elenco resta la via verso la maschera (sezione «Forma a schedario»).
 
 Tre vie creano un nuovo record:
 
@@ -474,7 +476,7 @@ Chi crea, modifica o elimina un record attraverso l'applicazione lascia una trac
 
 ### Che cosa sono e dove si trovano
 
-Al file di tabella `Clienti.md` corrisponde il file `Clienti.mddl` nella stessa cartella. L'applicazione lo crea e lo estende; non occorre fare nulla per questo, e su di esso non va fatto nulla.
+Al file di tabella `Clienti.md` corrisponde il file `Clienti.mddl` nella stessa cartella. L'applicazione lo crea e lo estende; non occorre fare nulla per questo, e su di esso non va fatto nulla. In una tabella a schedario, ogni scheda tiene accanto a sé il proprio file di giustificativi (sezione «Forma a schedario»).
 
 Cinque proprietà sono da conoscere:
 
@@ -650,7 +652,7 @@ I ruoli fanno parte della definizione e viaggiano con la scheda. L'assegnazione 
 
 ## Verifica di coerenza
 
-Nel salvataggio da parte dell'applicazione ogni modifica viene verificata. Ciò che arriva nei file per un'altra via, per esempio a mano in un editor, nessuno lo verifica strada facendo, e alcune regole in lettura non agiscono affatto. La **verifica di coerenza** percorre quindi l'intero insieme dei dati e indica dove esso contraddice le regole della banca dati.
+Nel salvataggio da parte dell'applicazione ogni modifica viene verificata. Ciò che arriva nei file per un'altra via, per esempio a mano in un editor, nessuno lo verifica strada facendo, e alcune regole in lettura non agiscono affatto. La **verifica di coerenza** percorre quindi l'intero insieme dei dati e indica dove esso contraddice le regole della banca dati. Una scheda viene verificata dall'applicazione anche al salvataggio nell'editor, ma lì non viene respinto nulla; i rilievi vengono solo segnalati (sezione «Forma a schedario»).
 
 Si trova nella panoramica della banca dati: **«Verifica coerenza»** nell'intestazione verifica tutte le tabelle, **«Verifica»** nella riga di una tabella solo quella. Anche il comando **«Verifica la coerenza del database»** nella palette dei comandi verifica tutte le tabelle; per farlo apre la panoramica.
 
@@ -666,6 +668,7 @@ Vengono trovati:
 - in un file di maschera, inoltre, un percorso che non indica nessun campo di riferimento o nessun campo della tabella di destinazione, e una sezione delle posizioni il cui file di query manca o non porta `editable: true`, le cui posizioni non hanno nessun campo di riferimento o nessuno univoco verso la tabella della maschera, o la cui query non si può completare con la relazione;
 - in un file di query, un'indicazione inutilizzabile nel contenitore `db-query`, un'azione sconosciuta in `allow` e un'indicazione `form` che non indica alcun file di maschera della banca dati; un tale rilievo indica nella colonna «Origine» il file invece di una tabella;
 - nella verifica di tutte le tabelle, un'indicazione inservibile nella scheda sotto `roles`, `defaultRole` o `users`, per esempio un ruolo con una tabella o un'operazione sconosciuta o un'assegnazione a un ruolo che non esiste; la panoramica ne indica il motivo tra le anomalie;
+- in una tabella a schedario, un blocco di record, un documento della cartella senza identificatore o con uno inutilizzabile, un campo di un profilo di proprietà il cui tipo differisce dalla colonna e una seconda tabella a schedario nella stessa cartella; le schede stesse le verifica come record (sezione «Forma a schedario»);
 - come avviso, una tabella che porta record ma nessun livello di piena `lastId` o uno troppo basso; la prossima creazione si colloca allora sopra l'identificatore più alto esistente e lo innalza;
 - una tabella la cui definizione non si può leggere; i suoi record restano allora non verificati, e la verifica prosegue con le altre tabelle.
 
@@ -685,7 +688,7 @@ L'**utilizzo** indica chi usa una tabella o un record. Viene letto solo quando l
 
 ## Reperibilità: ricerca e collegamenti
 
-La ricerca sull'**area** trova i record come risultati propri. Nel pannello «Risultati della ricerca», dopo i gruppi dei documenti, ogni tabella ha un gruppo proprio con il nome della tabella e l'aggiunta «Record». Ogni riga indica il record con la sua forma di visualizzazione e il campo che contiene il termine cercato, e ne mostra il valore con la corrispondenza evidenziata. Un clic apre il record nella maschera predefinita della sua tabella. Vengono cercati i valori dei campi in tutti i file di una tabella, compresi i suoi file successivi, e, per una tabella aperta, il suo stato non salvato. Il conteggio sopra l'elenco conta insieme le corrispondenze dei documenti e dei record. Con la riga di sostituzione aperta i gruppi di record vengono omessi, perché la sostituzione nell'area non scrive nei record.
+La ricerca sull'**area** trova i record come risultati propri. Nel pannello «Risultati della ricerca», dopo i gruppi dei documenti, ogni tabella ha un gruppo proprio con il nome della tabella e l'aggiunta «Record». Ogni riga indica il record con la sua forma di visualizzazione e il campo che contiene il termine cercato, e ne mostra il valore con la corrispondenza evidenziata. Un clic apre il record nella maschera predefinita della sua tabella, e per una tabella a schedario il documento della scheda. Vengono cercati i valori dei campi in tutti i file di una tabella, compresi i suoi file successivi, e, per una tabella aperta, il suo stato non salvato. Il conteggio sopra l'elenco conta insieme le corrispondenze dei documenti e dei record. Con la riga di sostituzione aperta i gruppi di record vengono omessi, perché la sostituzione nell'area non scrive nei record.
 
 Il blocco di record stesso, invece, non fa parte dello spazio di ricerca del testo completo: un termine che compare solo nei record di un file di tabella non dà alcuna corrispondenza per quel documento, ma soltanto i risultati di record. Il testo esplicativo che precede il blocco di dati resta consultabile come documento, e una corrispondenza che segue il blocco porta ancora al punto giusto. Il motivo sta nell'area e non nella tabella: lo spazio di ricerca tiene in memoria i testi di tutti i file Markdown e porta per questo un tetto sull'**intera** area. Bastano poche tabelle di qualche megabyte a romperlo, e da quel momento ogni ricerca torna a leggere dal disco, anche quella su un documento ordinario. I record nello spazio di ricerca costerebbero dunque la velocità non a se stessi, ma all'intera area.
 
@@ -715,7 +718,7 @@ La verifica avviene sullo stato **salvato** della tabella, come per ogni altra a
 
 Se un collegamento vale lo mostra il [linter Markdown](tools.md): una destinazione rotta riceve una sottolineatura ondulata nell'editor, cioè nelle viste Sorgente, Divisa e Live. La sola vista di lettura non rappresenta la validità; lì i collegamenti validi e quelli rotti appaiono uguali.
 
-**Un clic apre la maschera del record**, nella maschera predefinita della sua tabella. L'azione **«Mostra nel documento di tabella»** nell'intestazione della maschera porta alla riga nel file di tabella (sezione «Leggere e modificare»). Se un collegamento non corrisponde ad alcun record in modo univoco, il clic apre il file di tabella. Al di fuori di un'area aperta, il clic apre il file di tabella e porta in vista la riga del record. Nel risultato di una query sui record, un clic su un record apre ugualmente la sua maschera.
+**Un clic apre la maschera del record**, nella maschera predefinita della sua tabella. Per una tabella a schedario apre invece il documento della scheda (sezione «Forma a schedario»). L'azione **«Mostra nel documento di tabella»** nell'intestazione della maschera porta alla riga nel file di tabella (sezione «Leggere e modificare»). Se un collegamento non corrisponde ad alcun record in modo univoco, il clic apre il file di tabella. Al di fuori di un'area aperta, il clic apre il file di tabella e porta in vista la riga del record. Nel risultato di una query sui record, un clic su un record apre ugualmente la sua maschera.
 
 **Un collegamento nel testo non trattiene il record.** Se il record viene eliminato, il collegamento si rompe come ogni altro collegamento dell'applicazione, e il linter lo mostra. La protezione dall'eliminazione la porta soltanto la colonna di collegamento (sezione «Utilizzo di tabelle e record»).
 
@@ -777,7 +780,7 @@ TABLE RECORDS libro, lettore, uscita, scadenza FROM "Prestiti" WHERE NOT restitu
 
 In ogni vista che mostra il risultato, cioè nelle viste Renderizzato, Diviso e Live, la griglia sta al posto della tabella dei risultati: le stesse colonne, davanti la colonna «Record», sopra una riga di conteggio come «Righe da 1 a 50 di 120». Una pagina mostra 50 righe fisse; se le righe sono di più, **«Avanti»** e **«Indietro»** sfogliano le pagine.
 
-Un clic su una riga apre il suo record nella maschera indicata da `form`, altrimenti nella maschera predefinita della sua tabella. Se `form` indica un file di maschera che non esiste o che appartiene a un'altra tabella, il clic apre ugualmente la maschera predefinita, e la panoramica mostra un avviso tra le anomalie del file di query. In una riga modificabile, un clic semplice su una cella modificabile non apre la maschera, perché lì il doppio clic avvia la modifica; la maschera la aprono allora la colonna «Record» e le celle in sola lettura. Se la query porta `WITHOUT ID`, la colonna «Record» manca, e in una tale riga solo una cella in sola lettura apre la maschera. Un collegamento in una cella apre, come ovunque, la maschera della sua destinazione.
+Un clic su una riga apre il suo record nella maschera indicata da `form`, altrimenti nella maschera predefinita della sua tabella. Se `form` indica un file di maschera che non esiste o che appartiene a un'altra tabella, il clic apre ugualmente la maschera predefinita, e la panoramica mostra un avviso tra le anomalie del file di query. In una riga modificabile, un clic semplice su una cella modificabile non apre la maschera, perché lì il doppio clic avvia la modifica; la maschera la aprono allora la colonna «Record» e le celle in sola lettura. Se la query porta `WITHOUT ID`, la colonna «Record» manca, e in una tale riga solo una cella in sola lettura apre la maschera. Un collegamento in una cella apre, come ovunque, la maschera della sua destinazione, e per una scheda il suo documento.
 
 **Guardare non blocca nulla.** Altrimenti un elenco con centinaia di record li bloccherebbe tutti a ogni occhiata; viene bloccata solo la riga di cui inizia la modifica.
 
@@ -836,6 +839,151 @@ Valgono quattro garanzie, e tre di esse dicono che cosa **non** accade:
 
 Il meccanismo alla base è lo stesso della [suddivisione di documenti grandi](document-parts.md); per i file di tabella cambiano solo la soglia e il punto di taglio.
 
+## Forma a schedario
+
+**La forma a schedario è pensata per record con un'identità propria, non per molte righe uniformi.** Si sceglie secondo la natura del record, non secondo la quantità: una persona, un progetto o un cliente a cui appartengono note e allegati riceve una propria scheda; prestiti, registrazioni o misurazioni restano nel blocco di record. Non è un archivio di massa, perché ogni scheda è un file proprio, e l'applicazione legge e verifica ciascuna separatamente.
+
+In questa forma ogni record sta in un documento proprio, la **scheda**. I suoi campi stanno nel frontmatter, e sotto c'è spazio per testo libero, immagini e collegamenti ad allegati come in ogni altro documento. Il file di tabella porta allora solo la definizione.
+
+### Il file di tabella di uno schedario
+
+L'indicazione `storage` al livello superiore del contenitore `db-table` sceglie la forma:
+
+```yaml
+---
+db-table:
+  storage: cards
+  fields:
+    - name: nome
+      type: string
+      required: true
+    - name: nascita
+      type: date
+  key: nome
+  display: nome
+  lastId: 3
+---
+```
+
+- `table` o nessuna indicazione: la forma di tabella con il blocco di record, come descritto nelle sezioni precedenti.
+- `cards`: la forma a schedario. La grafia conta, `Cards` non vale. Un valore sconosciuto vale come forma di tabella, e l'applicazione lo segnala con un avviso.
+
+Il corpo del file di tabella non ha bisogno di un blocco di record; ciò che vi si trova è testo libero, per esempio una descrizione della tabella. Se vi si trova comunque un blocco di record, resta visibile e porta l'avviso che le sue righe non valgono come record: non compaiono in nessuna query e non vengono verificate, e la verifica di coerenza riporta il blocco come rilievo.
+
+La panoramica della banca dati indica nella colonna **«Archiviazione»** «Tabella» o «Schedario» e, per una tabella a schedario, il numero delle sue schede, per esempio «3 schede».
+
+### Che cos'è una scheda
+
+Una scheda porta il suo identificatore in `db-record` nel frontmatter, e accanto i campi della tabella:
+
+```yaml
+---
+db-record: r-00001
+nome: Ada Lovelace
+nascita: 1815-12-10
+---
+```
+
+Una scheda appartiene alla tabella solo per la sua posizione: sta nella **stessa cartella** del file di tabella. Il nome del file di tabella non ha alcun ruolo; se viene rinominato, le schede restano sue. Valgono tre limiti:
+
+- I documenti nelle **sottocartelle** non ne fanno parte.
+- I **file della banca dati** non sono schede: il file di tabella stesso, altri file di tabella, i file di maschera e di query e la scheda della banca dati.
+- Un documento **senza identificatore** non è una scheda. La verifica di coerenza lo segnala, come pure un'indicazione `db-record` senza identificatore utilizzabile; non segnala i documenti nella cartella dei modelli.
+
+Se **due tabelle a schedario stanno nella stessa cartella**, la verifica di coerenza lo segnala per entrambe, e nessuna delle due riceve i documenti della cartella; una cartella porta quindi al massimo una tabella a schedario. Una tabella in forma di tabella nella stessa cartella non disturba. Se due schede portano lo stesso identificatore, la verifica segnala ciascuna di esse.
+
+### Valori nel frontmatter
+
+I valori di una scheda vengono letti secondo il tipo della loro colonna, esattamente come le celle di un blocco di record: un valore che non corrisponde al suo tipo è lo stesso errore che in una cella. I nomi dei campi valgono senza distinzione tra maiuscole e minuscole, un valore booleano si scrive `true` o `false`, e un elenco diventa un testo le cui voci sono separate da una virgola e uno spazio, perché una colonna non conosce valori multipli. Un riferimento sta tra virgolette, per esempio `mentor: "[[Mary Somerville]]"`; senza di esse il frontmatter legge un elenco annidato, e il valore va perso. Le altre indicazioni del frontmatter, come i tag, restano proprietà ordinarie del documento.
+
+**Campi omonimi di un profilo di proprietà.** Una scheda è un documento e può quindi anche essere assegnata a profili di proprietà. Per la banca dati conta solo la definizione della tabella: un campo di profilo omonimo non è un campo della banca dati e non cambia il modo in cui il valore viene letto. Se ha lo stesso tipo della colonna, tutto resta silenzioso; se ne ha un altro, la verifica di coerenza nomina il campo, il profilo ed entrambi i tipi.
+
+### Query e riferimenti
+
+Una query sui record nomina la tabella a schedario come fonte come qualsiasi altra tabella, per esempio `TABLE RECORDS nome, nascita FROM "Autori"`, e legge le schede come righe. Condizione, ordinamento, raggruppamento e percorsi attraverso campi di riferimento valgono come nella forma di tabella, e una tabella a schedario senza schede dà l'insieme vuoto. Anche la ricerca nell'area trova i valori dei campi delle schede come risultati di record.
+
+Una colonna di riferimento la cui `table` nomina una tabella a schedario raggiunge una scheda tramite il suo identificatore o il valore della sua chiave a una sola parte, come descritto nella sezione «Relazioni tra tabelle». Un riferimento nel testo vale allo stesso modo: `[[Autori#^r-00001]]`, la forma breve `[[Autori#^r-1]]` e la forma di visualizzazione `[[Autori#^Ada Lovelace]]`.
+
+**A livello dei file** una scheda resta un documento ordinario: una query sui file la riporta con il suo frontmatter così come è scritto, senza interpretazione secondo la tabella.
+
+### Creare, modificare ed eliminare
+
+**«Nuova scheda»** sta nella panoramica della banca dati nella riga di ogni tabella a schedario, purché il proprio ruolo consenta la creazione. L'applicazione chiede la chiave, che diventa anche il nome del file, e crea nella cartella della tabella il documento `<chiave>.md`, con l'identificatore successivo e uno scheletro di tutti i campi della tabella, vuoti tranne la chiave; il livello di piena `lastId` sale. Lo scheletro viene creato vuoto anche se la tabella ha altri campi obbligatori: l'obbligo vale alla modifica, e fino ad allora la verifica di coerenza segnala il campo vuoto. Se la tabella non ha una chiave a una sola parte, il nome diventa solo il nome del file. Vengono respinti un nome che non è un nome di file valido, un nome con cui nella cartella esiste già un file e una chiave già assegnata; la barra di stato ne indica il motivo.
+
+Il comando **«Nuova scheda nella tabella attiva a schedario»** nella palette dei comandi agisce sulla tabella del documento attivo se questo è una tabella a schedario o un documento della sua cartella. Un pulsante **«Nuovo record»** non esiste per una tabella a schedario, e il comando «Nuovo record nella tabella attiva» non vi crea nulla; il suo messaggio rimanda a «Nuova scheda».
+
+**«Acquisisci come scheda»** sta presso il rilievo su un documento senza identificatore nella verifica di coerenza, e il comando **«Acquisire il documento attivo come scheda»** agisce sul documento attivo. L'applicazione inserisce l'identificatore successivo come `db-record` e non cambia nient'altro nel documento; dopo la verifica viene eseguita di nuovo. Un documento fuori dalla cartella, un file della banca dati e un documento che porta già un identificatore non vengono acquisiti.
+
+**La modifica tramite la banca dati** riscrive solo le righe dei campi modificati nel frontmatter. Il testo libero, i collegamenti ad allegati e le altre indicazioni restano carattere per carattere, un'indicazione mancante si aggiunge come nuova riga, e un valore che senza virgolette verrebbe letto in altro modo sta tra virgolette. Come nella forma di tabella valgono tutte le regole della tabella e il confronto con lo stato letto: se nel frattempo qualcuno ha modificato la scheda, l'applicazione per ora non salva.
+
+**L'eliminazione tramite la banca dati** sposta la scheda insieme al suo file di giustificativi nel cestino del sistema operativo. La protezione dall'eliminazione vale come per ogni record: una scheda a cui punta ancora una colonna di riferimento non si può eliminare. Che cosa succede ai suoi giustificativi lo descrive la sezione successiva.
+
+### Giustificativi di modifica di una scheda
+
+I giustificativi di una scheda stanno in un proprio file di giustificativi accanto a essa, con il suo nome e l'estensione `.mddl`: a `Ada Lovelace.md` corrisponde `Ada Lovelace.mddl`. Per esso vale ciò che descrive la sezione «Giustificativi di modifica». Non compare in nessun elenco di file, viene solo esteso e segue la scheda quando la si rinomina o la si sposta dentro l'applicazione; la condensazione segue i limiti della tabella, cioè la sua indicazione `changeLog`. La pagina «Giustificativi di modifica» di un record mostra, per una scheda, i giustificativi di questo file.
+
+Quando una scheda viene eliminata tramite la banca dati, la sua traccia non va persa con essa: prima che la scheda e il suo file di giustificativi finiscano nel cestino, l'applicazione aggiunge i giustificativi, insieme al giustificativo di eliminazione, al file di giustificativi del file di tabella. La pagina «Giustificativi di modifica» li mostra poi lì, filtrati per identificatore. Una nuova scheda con lo stesso nome comincia con una traccia vuota.
+
+### La scheda nell'editor e nel pannello dell'area
+
+**Al salvataggio l'applicazione verifica la scheda**, sia che la si sia modificata nell'editor sia nella barra «Proprietà», e sia che si salvi a mano, con «Salva con nome» o tramite il salvataggio automatico. La verifica è la stessa della verifica di coerenza: un valore obbligatorio mancante, un valore che non corrisponde al suo tipo o viola una regola di campo, un riferimento che non raggiunge alcun record, una regola violata sotto `checks` e una chiave che porta già un'altra scheda. **Il salvataggio avviene in ogni caso**: la verifica non respinge nulla e non produce alcun giustificativo. Ciò che trova compare in tre punti:
+
+- La **barra di stato** indica dopo il salvataggio il numero dei rilievi, con il salvataggio automatico solo quando i rilievi sono cambiati.
+- Nella barra **«Proprietà»** ogni campo interessato porta un'indicazione il cui suggerimento nomina il rilievo.
+- Nella **vista di lettura** la riga dell'intestazione porta a destra un segno con il numero dei rilievi, il cui suggerimento li nomina tutti.
+
+Dopo la correzione, indicazione e segno scompaiono con il salvataggio successivo. Fino ad allora i rilievi restano validi; se l'applicazione ricarica la scheda dopo una modifica dall'esterno, li scarta, e con la fine della sessione scompaiono. Un identificatore doppio, un campo di profilo di un altro tipo e una seconda tabella a schedario nella cartella continua a segnalarli solo la verifica di coerenza.
+
+**Eliminare nel pannello dell'area** segue per una scheda la via della banca dati, e la richiesta di conferma lo dice, con il nome della tabella. Se un altro record rimanda alla scheda tramite una colonna di riferimento, l'eliminazione non avviene: il file resta intatto, il suo documento aperto resta aperto, e la barra di stato nomina la scheda e il motivo. Altrimenti i suoi giustificativi passano alla tabella insieme al giustificativo di eliminazione, e la scheda finisce nel cestino con il suo file di giustificativi. Se è aperta e non salvata, l'applicazione la salva prima e chiude il suo documento solo dopo l'eliminazione. Valgono le stesse regole dell'eliminazione tramite la banca dati, compresi i permessi.
+
+**Copiare nel pannello dell'area** crea una nuova scheda tramite la banca dati. Come ogni copia del pannello dell'area, la copia riceve il nome dell'originale con un numero aggiunto, per esempio `Ada Lovelace-1.md`, e l'identificatore successivo; la sua chiave è questo nome, e gli altri campi, le altre indicazioni del frontmatter e il testo libero provengono dall'originale. I giustificativi dell'originale non la seguono: la copia comincia con il suo giustificativo di creazione in un proprio file di giustificativi. Se il nome è già occupato come file o come chiave, l'applicazione prende il numero successivo. Se respinge la creazione per un altro motivo, per esempio perché il proprio ruolo non la consente, non viene creata alcuna copia, e la barra di stato ne indica il motivo.
+
+**Rinominare** cambia solo il nome del file, non la chiave. Alla creazione e alla copia i due coincidono; in seguito possono divergere, e la verifica di coerenza non lo segnala. Identificatore, forma di visualizzazione e riferimenti della banca dati dipendono dal frontmatter, non dal nome del file, e il file di giustificativi segue. Per cambiare la chiave si cambia il campo.
+
+### Viste su una scheda
+
+Una tabella a schedario può nominare **viste**: file di query che l'applicazione mostra sotto ogni scheda, per esempio i libri di un autore. L'elenco `views` al livello superiore del contenitore `db-table` li nomina con il loro nome senza estensione, anche con cartelle davanti; il confronto avviene come per l'indicazione `form`.
+
+```yaml
+---
+db-table:
+  storage: cards
+  fields:
+    - name: nome
+      type: string
+  key: nome
+  views:
+    - Libri di questo autore
+---
+```
+
+La vista stessa è un normale file di query (sezione «File di query»). Può trovarsi nella cartella delle schede, perché un file della banca dati non è una scheda. Nella sua query `this.` indica la scheda sotto la quale viene mostrata:
+
+```perspective-query
+TABLE RECORDS pagine FROM "Libri" WHERE autore = this.nome SORT pagine DESC
+```
+
+Nella **vista di lettura** ogni vista sta sotto l'intestazione e prima del testo libero, come blocco con la marca «Vista» e il nome del file di query nella sua riga di titolo; un clic sul nome apre il file di query. Il blocco è una vista: non si può modificare, e nel file della scheda non viene scritto nulla. La modalità Live non mostra alcuna vista. Il risultato si aggiorna come ogni query quando cambiano i dati; una modifica al file di query stesso compare la prossima volta che la scheda viene disegnata.
+
+**Aperto da solo**, `this.` indica il file di query stesso, come in ogni file di query; la query qui sopra lì non trova nulla, perché il file non porta alcun campo `nome`. Lo stesso vale per un incorporamento: se una scheda incorpora il file con `![[Libri di questo autore]]`, `this.` indica il file di query e non la scheda. Solo l'indicazione `views` fa della scheda il riferimento.
+
+La panoramica della banca dati indica le viste di ogni tabella nella colonna **«Viste»**. Se per un nome non esiste alcun file o alcun file di query, vi compare barrato, un avviso compare tra le anomalie, e sotto ogni scheda compare al posto della vista un messaggio con il suo nome. Finché l'area viene ancora letta dopo l'apertura, una vista compare solo la prossima volta che la scheda viene disegnata.
+
+### Maschere e destinazione del clic di una scheda
+
+**Per una scheda il documento è la prima vista.** Un risultato di record della ricerca sull'area, un record o un riferimento nel risultato di una query, nelle viste Renderizzato, Diviso e Live, e un collegamento nel testo come `[[Autori#^r-00001]]` aprono il documento della scheda nella colonna attiva, non la sua maschera. Se la scheda non si può determinare, il clic apre la maschera. Per una tabella in forma di tabella la maschera resta la destinazione.
+
+La maschera vale per una tabella a schedario come per ogni altra: la maschera predefinita, la maschera elenco sulla tabella a schedario e la sezione delle posizioni di una maschera le cui posizioni sono schede. La riga di una maschera elenco e quella di una sezione delle posizioni continuano ad aprire la maschera del record; un collegamento in una delle loro celle apre per una scheda il suo documento. Anche un clic su un record nella verifica di coerenza apre la maschera.
+
+Due azioni portano dal documento alla maschera e ritorno:
+
+- Nella maschera di una scheda compare nell'intestazione **«Apri la scheda»** al posto di «Mostra nel documento di tabella» e apre il suo documento nella colonna attiva. Come l'azione che sostituisce, è offerta solo in lettura e non per un nuovo record.
+- Il comando **«Apri nella maschera»** della palette dei comandi apre la maschera della scheda che è il documento attivo. Su ogni altro documento non è selezionabile, e nemmeno finché l'area viene ancora letta dopo l'apertura.
+
+### Limiti della forma a schedario
+
+Salvare, eliminare, copiare e rinominare nell'applicazione conoscono la scheda. Altre vie per cui un documento viene scritto non la conoscono: la sostituzione nell'area, l'aggiunta di voci di diario e di eventi, lo spostamento di capitoli di un libro, l'importazione di un file JSON Canvas e ogni modifica fuori dall'applicazione, come l'eliminazione nel gestore file o la modifica con un altro editor. Ciò che accade a una scheda per queste vie non lo verifica nessuno al momento della modifica, non produce alcun giustificativo, e l'eliminazione avviene senza protezione dall'eliminazione e senza che i suoi giustificativi passino alla tabella. La verifica di coerenza ne trova le conseguenze, per esempio un valore contrario a una regola, un riferimento che non raggiunge più alcun record o un documento senza identificatore. Anche il salvataggio nell'editor dell'applicazione si limita a segnalare e non produce alcun giustificativo; una modifica al frontmatter la nota solo la modifica successiva tramite la banca dati, che allora per ora non salva (sezione «Giustificativi di modifica»).
+
 ## La scheda della banca dati
 
 Una banca dati si descrive da sé nel contenitore `db-database`, nel frontmatter di un documento proprio:
@@ -871,7 +1019,7 @@ Un'area di banca dati riceve due cose che un'area ordinaria non ha.
 
 In un'area senza banca dati nessuna di queste vie viene offerta.
 
-Nell'elenco delle tabelle la colonna **«Maschera»** indica il file di maschera di una tabella e resta vuota per la maschera generata. La panoramica porta inoltre quattro azioni: **«Verifica coerenza»** nell'intestazione per tutte le tabelle e, nella riga di ogni tabella, **«Nuovo record»**, **«Verifica»** e **«Utilizzo»**. Ciò che fanno lo descrivono le sezioni «Modificare i record nella maschera», «Verifica di coerenza» e «Utilizzo di tabelle e record». La sezione **«Query»** indica ogni file di query con il suo nome e la sua posizione, la cartella relativa alla radice dell'area, e **«Apri»** lo apre come ogni documento; se l'area non ne contiene, vi compare una frase esplicativa. Tra le anomalie compaiono anche gli avvisi sui file di maschera e di query, indicati con il nome del file. La colonna **«Tipo»** della sezione «Query» distingue una normale «Query» da una «Maschera elenco» e per questa indica le azioni consentite; se non ne consente nessuna, vi si legge «Maschera elenco, sola lettura». Nel blocco della scheda la panoramica indica inoltre il ruolo proprio e, se la scheda porta dei ruoli, anche questi con i loro permessi, e sotto ogni tabella i permessi del ruolo proprio (sezione «Permessi»).
+Nell'elenco delle tabelle la colonna **«Maschera»** indica il file di maschera di una tabella e resta vuota per la maschera generata. La panoramica porta inoltre quattro azioni: **«Verifica coerenza»** nell'intestazione per tutte le tabelle e, nella riga di ogni tabella, **«Nuovo record»**, **«Verifica»** e **«Utilizzo»**. Ciò che fanno lo descrivono le sezioni «Modificare i record nella maschera», «Verifica di coerenza» e «Utilizzo di tabelle e record». La sezione **«Query»** indica ogni file di query con il suo nome e la sua posizione, la cartella relativa alla radice dell'area, e **«Apri»** lo apre come ogni documento; se l'area non ne contiene, vi compare una frase esplicativa. Tra le anomalie compaiono anche gli avvisi sui file di maschera e di query, indicati con il nome del file. La colonna **«Tipo»** della sezione «Query» distingue una normale «Query» da una «Maschera elenco» e per questa indica le azioni consentite; se non ne consente nessuna, vi si legge «Maschera elenco, sola lettura». Nel blocco della scheda la panoramica indica inoltre il ruolo proprio e, se la scheda porta dei ruoli, anche questi con i loro permessi, e sotto ogni tabella i permessi del ruolo proprio (sezione «Permessi»). La colonna **«Archiviazione»** indica «Tabella» o «Schedario», per una tabella a schedario con il numero delle sue schede, e nella sua riga sta il pulsante «Nuova scheda» invece di «Nuovo record» (sezione «Forma a schedario»). La colonna **«Viste»** indica le viste di una tabella a schedario, e una vista senza file di query vi compare barrata.
 
 **La sezione delle impostazioni «Banca dati»** si trova nel gruppo di navigazione «Area corrente» (File → Impostazioni… → Area corrente → Banca dati; con un libro aperto il gruppo si chiama **Libro corrente**, con una libreria aperta **Libreria corrente**). Mostra la stessa informazione in forma breve, cioè nome e descrizione della banca dati, il numero delle sue tabelle e il numero delle anomalie, e porta un'opzione: **«Mostrare il riepilogo all'apertura dell'area»**. Se è attiva, la panoramica si apre da sé non appena l'area viene collegata. L'opzione risiede nel file dell'area e viaggia con la cartella dell'area. Vi si aggiunge il campo **«Nome della cartella dei blocchi»**; è descritto nella sezione «Blocchi».
 
@@ -897,6 +1045,8 @@ La stessa linea morbida vale per i ruoli, il ruolo predefinito e l'assegnazione 
 
 Se una tabella porta record ma nessun livello di piena `lastId` o uno troppo basso, l'applicazione non assegna comunque nessun identificatore due volte: una creazione prende il numero successivo sopra l'identificatore più alto esistente e poi aggiorna il livello di piena. La verifica di coerenza segnala il caso come avviso.
 
+La stessa linea morbida vale per la forma a schedario. Un valore dell'indicazione `storage` diverso da `table` e `cards` vale come `table` e viene segnalato con un avviso. Un'indicazione `db-record` senza identificatore utilizzabile non fa di un documento una scheda, e un blocco di record in una tabella a schedario non porta record; la verifica di coerenza segnala entrambi i casi. L'indicazione `views` segue la stessa linea: se non è un elenco, decade per intero, e una voce che non è un nome decade da sola; entrambi i casi compaiono come avviso tra le anomalie. Se una voce nomina un file che non esiste o che non è un file di query, compare ugualmente un avviso tra le anomalie, e sotto ogni scheda compare al posto della vista un messaggio con il suo nome.
+
 ## Disattivare la banca dati
 
 L'intera banca dati è un'[estensione interna](extensions.md) denominata «Banca dati», della categoria Strumenti, e si disattiva con un unico interruttore. Richiede i [Profili di proprietà](property-profiles.md), perché la forma di una definizione di tabella viene descritta e verificata tramite un profilo interno; finché la banca dati è attiva, questo prerequisito non può quindi essere disattivato.
@@ -912,6 +1062,7 @@ Da disattivata vale quanto segue:
 - La **ricerca sull'area non dà risultati di record**. I record restano esclusi dal testo integrale, perché quel limite appartiene al file di tabella e non all'interruttore; tramite l'area i record non sono allora reperibili.
 - Una **maschera** aperta alla chiusura non torna all'avvio. La sua voce nella sessione resta in sospeso e la riporta al successivo avvio dopo l'attivazione (sezione «Dopo il riavvio»).
 - **Ruoli, ruolo predefinito e assegnazione** restano semplice frontmatter della scheda, come un'indicazione `editable` su un campo: non c'è né risoluzione né controllo, nemmeno al salvataggio di una definizione modificata.
+- Una **tabella a schedario** non viene più letta come tale: `storage` e `db-record` restano semplice frontmatter, e le schede documenti ordinari. Con la panoramica decade «Nuova scheda», con la verifica di coerenza «Acquisisci come scheda», e i comandi «Nuova scheda nella tabella attiva a schedario» e «Acquisire il documento attivo come scheda» spariscono dalla palette dei comandi. Al salvataggio di una scheda l'applicazione non verifica nulla, il pannello dell'area la elimina con la consueta richiesta di conferma e la copia come ogni file, non compare alcuna vista, e il comando «Apri nella maschera» sparisce dalla palette dei comandi.
 - **Non si scrive nulla.** L'applicazione non crea, non modifica e non elimina record, non prende alcun blocco e non produce alcun giustificativo di modifica; finché è disattivata non porta a termine nemmeno un salvataggio rimasto incompiuto.
 
 **I file restano intatti.** La disattivazione toglie l'interpretazione, non i dati: non viene cambiato un solo carattere, e la riattivazione riporta tutto. L'indice dell'area viene allora ricostruito una volta; in fondi estesi ciò richiede un istante.

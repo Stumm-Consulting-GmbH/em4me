@@ -20,11 +20,15 @@ import { fileURLToPath } from 'node:url';
 
 import {
   LOG_CODES,
+  UEBERTRAGUNG_CODES,
+  baueBelegUebertragung,
   belegPfadFuer,
   belegeDesDatensatzes,
   leseBelegDatei,
   schreibeBeleg,
+  uebertrageBelegeVorLoeschung,
 } from '../../src/main/database/change-log.js';
+import { anfuegeText, baueBeleg } from '../../src/shared/database/change-record.js';
 import { MDDL_EXT } from '../../src/shared/markdown-data-family.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -352,5 +356,160 @@ describe('Beleg-Datei: Herkunft über das bestehende Modul (4T-001790, AK10)', (
     expect(gelesen.belege[0].vorgang).toBe('4711');
     for (const wort of ['hochwasserstand', 'naechsteKennung'])
       expect(QUELLE.toLowerCase().includes(wort.toLowerCase()), wort).toBe(false);
+  });
+});
+
+// --- 4T-002390 (Epic 3E-000265, F6 B): Übertragung vor dem Löschen -------------------
+
+describe('Beleg-Übertragung einer Karteikarte an ihre Tabelle (4T-002390, AK4)', () => {
+  // Eine Kartei-Tabelle mit der Karteikarte «Ada» im selben Ordner; die
+  // Tabellen-Beleg-Datei trägt vorab den Beleg eines anderen Datensatzes.
+  async function kartei() {
+    const tab = tabelle();
+    const ada = path.join(path.dirname(tab), 'Ada.md');
+    fs.writeFileSync(ada, '---\ndb-record: r-00001\nOrt: Paris\n---\n', 'utf8');
+    const fremd = await schreibeBeleg(
+      tab,
+      angaben({ art: 'create', id: 'r-00007', felder: [{ name: 'Ort', neu: 'Rom' }] }),
+      { jetzt: uhr('2026-10-25T08:00:00Z'), herkunft: HERKUNFT },
+    );
+    expect(fremd.ok).toBe(true);
+    return { tab, ada };
+  }
+
+  async function dreiBelege(ada) {
+    const kette = [
+      ['create', null, 'London'],
+      ['update', 'London', 'Ockham'],
+      ['update', 'Ockham', 'Paris'],
+    ];
+    for (const [i, [art, alt, neu]] of kette.entries()) {
+      const feld = alt === null ? { name: 'Ort', neu } : { name: 'Ort', alt, neu };
+      const erg = await schreibeBeleg(
+        ada,
+        { art, id: 'r-00001', vorgang: String(10 + i), felder: [feld] },
+        { jetzt: uhr(`2026-10-25T09:0${i}:00Z`), herkunft: HERKUNFT },
+      );
+      expect(erg.ok).toBe(true);
+    }
+  }
+
+  // Der Lösch-Beleg als fertiger Anfüge-Text, wie der Plan ihn bildet.
+  function loeschBeleg(alt = 'Paris') {
+    return anfuegeText(
+      baueBeleg({
+        art: 'delete',
+        id: 'r-00001',
+        vorgang: '20',
+        felder: [{ name: 'Ort', alt }],
+        zeitpunkt: '2026-10-25T10:00:00Z',
+        herkunft: { benutzer: 'anna', rechner: 'SC-026' },
+      }),
+    );
+  }
+
+  it('fügt drei Belege und den Lösch-Beleg in einem Aufruf an, ohne zu löschen und mit gültiger Kette', async () => {
+    const { tab, ada } = await kartei();
+    await dreiBelege(ada);
+    const quelle = belegPfadFuer(ada);
+    const vorher = fs.readFileSync(belegPfadFuer(tab), 'utf8');
+    const quelleVorher = fs.readFileSync(quelle, 'utf8');
+    const b = beobachtet();
+
+    const erg = await uebertrageBelegeVorLoeschung(
+      { karteikartePfad: ada, tabellenPfad: tab, loeschBeleg: loeschBeleg() },
+      { fsp: b.fsp },
+    );
+
+    expect(erg).toEqual({
+      ok: true,
+      pfad: belegPfadFuer(tab),
+      anzahl: 3,
+      zuEntsorgen: [ada, quelle],
+    });
+    expect(b.anfuegen).toHaveBeenCalledTimes(1);
+    expect(b.schreiben).not.toHaveBeenCalled();
+    expect(b.kuerzen).not.toHaveBeenCalled();
+    // Der vorhandene Anteil bleibt Byte für Byte; Karteikarte und Quelle bleiben stehen.
+    const nachher = fs.readFileSync(belegPfadFuer(tab), 'utf8');
+    expect(nachher.startsWith(vorher)).toBe(true);
+    expect(fs.existsSync(ada)).toBe(true);
+    expect(fs.readFileSync(quelle, 'utf8')).toBe(quelleVorher);
+
+    const gelesen = await belegeDesDatensatzes(tab, 'r-00001');
+    expect(gelesen.belege.map((x) => [x.art, x.zeitpunkt, x.vorgang])).toEqual([
+      ['create', '2026-10-25T09:00:00Z', '10'],
+      ['update', '2026-10-25T09:01:00Z', '11'],
+      ['update', '2026-10-25T09:02:00Z', '12'],
+      ['delete', '2026-10-25T10:00:00Z', '20'],
+    ]);
+    expect(gelesen.befunde).toEqual([]);
+    expect(gelesen.verkettung).toEqual({ lueckenlos: true, luecken: [] });
+    expect((await belegeDesDatensatzes(tab, 'r-00007')).belege).toHaveLength(1);
+  });
+
+  it('überträgt bei leerer Beleg-Datei allein den Lösch-Beleg', async () => {
+    const { tab, ada } = await kartei();
+    fs.writeFileSync(belegPfadFuer(ada), '', 'utf8');
+    const erg = await uebertrageBelegeVorLoeschung({
+      karteikartePfad: ada,
+      tabellenPfad: tab,
+      loeschBeleg: loeschBeleg(),
+    });
+    expect(erg).toMatchObject({ ok: true, anzahl: 0, zuEntsorgen: [ada, belegPfadFuer(ada)] });
+    const gelesen = await belegeDesDatensatzes(tab, 'r-00001');
+    expect(gelesen.belege.map((x) => x.art)).toEqual(['delete']);
+  });
+
+  it('überträgt ohne Beleg-Datei allein den Lösch-Beleg und nennt nur die Karteikarte', async () => {
+    const { tab, ada } = await kartei();
+    const gebaut = await baueBelegUebertragung({
+      karteikartePfad: ada,
+      tabellenPfad: tab,
+      loeschBeleg: loeschBeleg(),
+    });
+    expect(gebaut).toEqual({
+      ok: true,
+      pfad: belegPfadFuer(tab),
+      text: loeschBeleg(),
+      anzahl: 0,
+      zuEntsorgen: [ada],
+    });
+    // Gebaut wird ohne Schreiben.
+    expect((await belegeDesDatensatzes(tab, 'r-00001')).belege).toEqual([]);
+  });
+
+  it('weist einen unbrauchbaren Lösch-Beleg und eine Beleg-Datei mit fremder Kennung ab, ohne anzufügen', async () => {
+    const { tab, ada } = await kartei();
+    await dreiBelege(ada);
+    const vorher = fs.readFileSync(belegPfadFuer(tab), 'utf8');
+    const aenderung = anfuegeText(
+      baueBeleg({ ...angaben({ id: 'r-00001' }), zeitpunkt: '2026-10-25T10:00:00Z', herkunft: {} }),
+    );
+    for (const falsch of [undefined, '', 'kein Beleg', aenderung, loeschBeleg() + loeschBeleg()]) {
+      const erg = await uebertrageBelegeVorLoeschung({
+        karteikartePfad: ada,
+        tabellenPfad: tab,
+        loeschBeleg: falsch,
+      });
+      expect(erg.code, String(falsch)).toBe(UEBERTRAGUNG_CODES.loeschBeleg);
+    }
+    const fremd = anfuegeText(
+      baueBeleg({
+        art: 'delete',
+        id: 'r-00009',
+        vorgang: '20',
+        felder: [{ name: 'Ort', alt: 'x' }],
+        zeitpunkt: '2026-10-25T10:00:00Z',
+        herkunft: {},
+      }),
+    );
+    const erg = await uebertrageBelegeVorLoeschung({
+      karteikartePfad: ada,
+      tabellenPfad: tab,
+      loeschBeleg: fremd,
+    });
+    expect(erg.code).toBe(UEBERTRAGUNG_CODES.fremdeKennung);
+    expect(fs.readFileSync(belegPfadFuer(tab), 'utf8')).toBe(vorher);
   });
 });

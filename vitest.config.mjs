@@ -51,6 +51,17 @@ export default defineConfig({
       },
     ],
     environment: 'node',
+    // 4T-002486: Das Versions-Archiv liegt intern am gemeinsamen Ablage-Ort.
+    // Die Prüffälle legen ihr Archiv dagegen im Ordner releases/ ihres
+    // (Wegwerf-)Klons an; der Wert gilt relativ zu dessen Wurzel und hält jeden
+    // Prüffall vom Ablage-Ort fern. Im öffentlichen Stand ohne Wirkung.
+    // 4T-002487: ebenso der Rechner-Ordner der Einstellungen im Benutzerprofil;
+    // der Wert zeigt auf einen nicht vorhandenen Ordner, damit kein Prüffall die
+    // echten Zugangsdaten des Rechners liest.
+    env: {
+      EM4ME_VERSIONS_ARCHIV: 'releases',
+      EM4ME_RECHNER_ORDNER: '.rechner-ordner-der-pruefung',
+    },
     // 4T-001191: Der Pflicht-Zugang ist der einzige Weg fuer einen Voll-Lauf.
     // Ein Aufruf mit Datei- oder Muster-Argument gilt als freie
     // Entwicklungs-Iteration und laeuft unveraendert durch; Begruendung und

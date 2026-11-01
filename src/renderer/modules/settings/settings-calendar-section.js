@@ -282,6 +282,19 @@ export function renderCalendarSection(container, draft) {
     }),
   ).replace('{name}', values.areaName);
   container.appendChild(intro);
+  // 4T-002361 (Epic 3E-000371): Zeitrechnungen einer neueren Fassung zeigt
+  // die Liste nicht; die Zeile sagt, dass es sie gibt und dass sie bleiben.
+  if (values.hiddenCount > 0) {
+    const hidden = document.createElement('p');
+    hidden.className = 'settings-row-hint';
+    hidden.id = 'settings-calsys-hidden';
+    const key =
+      values.hiddenCount === 1
+        ? 'settings.calendar.hiddenCalendarsOne'
+        : 'settings.calendar.hiddenCalendars';
+    hidden.textContent = t(key).replace('{count}', String(values.hiddenCount));
+    container.appendChild(hidden);
+  }
   if (values.openBlock === null || values.openBlock === undefined) {
     renderCalendarBlocksOverview(container, values);
   } else {
@@ -387,13 +400,27 @@ export async function applyCalendarSection(draft) {
   if (!values || !values.hasArea) return;
   // Neue Blöcke/Kalender erhalten ihre stabile id erst jetzt (Slug aus dem
   // Namen, Muster Journale).
-  const takenBlocks = new Set(values.blocks.map((b) => b.id).filter(Boolean));
+  // 4T-002361: auch die Kennungen der Einträge, die diese Fassung nicht
+  // darstellt — sie bleiben in der Bereichsdatei und sind damit belegt.
+  const reserved = values.reservedIds || { blocks: [], calendars: {} };
+  const takenBlocks = new Set(
+    values.blocks
+      .map((b) => b.id)
+      .concat(reserved.blocks || [])
+      .filter(Boolean),
+  );
   for (const block of values.blocks) {
     if (!String(block.id || '').trim()) {
       block.id = calSysIdFromName(block.name, 'block', takenBlocks);
       takenBlocks.add(block.id);
     }
-    const takenCals = new Set(block.calendars.map((c) => c.id).filter(Boolean));
+    const reservedCals = (reserved.calendars && reserved.calendars[block.id]) || [];
+    const takenCals = new Set(
+      block.calendars
+        .map((c) => c.id)
+        .concat(reservedCals)
+        .filter(Boolean),
+    );
     for (const calDraft of block.calendars) {
       if (!String(calDraft.id || '').trim()) {
         calDraft.id = calSysIdFromName(calDraft.name, 'kalender', takenCals);

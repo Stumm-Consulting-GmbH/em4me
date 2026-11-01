@@ -287,3 +287,65 @@ describe('database:positionsliste: Feld rechte (4T-002308, AK3)', () => {
     });
   });
 });
+
+// 4T-002406 (Epic 3E-000266, AK1): Der Positions-Bereich über Kartei-Tabellen.
+// Kopf- und Positions-Tabelle stehen in Kartei-Form, je in ihrem Ordner mit
+// einer Karteikarte; die Auskunft muss dieselbe sein wie über Tabellen-Dateien.
+describe('database:positionsliste: über Kartei-Tabellen (4T-002406, AK1)', () => {
+  function karteiTabelle(wurzel, name, felder, karten) {
+    const ordner = path.join(wurzel, name);
+    fs.mkdirSync(ordner);
+    const kopf = ['---', 'db-table:', '  storage: cards', '  fields:', ...felder, '---', ''];
+    const tabelle = lege(ordner, `${name}.md`, kopf);
+    for (const [datei, zeilen] of karten) lege(ordner, datei, ['---', ...zeilen, '---', '']);
+    return tabelle;
+  }
+
+  function karteiBestand() {
+    const wurzel = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-positionsliste-kartei-'));
+    tmpDirs.push(wurzel);
+    const library = karteiTabelle(
+      wurzel,
+      'Library',
+      ['    - name: title'],
+      [['Solaris.md', ['db-record: r-00002', 'title: Solaris']]],
+    );
+    const loans = karteiTabelle(
+      wurzel,
+      'Loans',
+      [...VERWEIS('book'), '    - name: borrower'],
+      [['Ada.md', ['db-record: r-00001', 'book: r-00002', 'borrower: Ada']]],
+    );
+    const ausleihen = lege(wurzel, 'Ausleihen.md', abfrageDatei('Loans'));
+    const sicht = {
+      dbKindsPerFile: new Map([
+        [library, ['table']],
+        [loans, ['table']],
+        [ausleihen, ['query']],
+      ]),
+    };
+    return { wurzel, sicht, library, loans, ausleihen };
+  }
+
+  it('ergänzt die Abfrage um das Verweis-Feld wie über Tabellen-Dateien', async () => {
+    const t = bestand();
+    const k = karteiBestand();
+    const frage = (b) => ({
+      datei: 'Ausleihen',
+      by: null,
+      kopf: { tabelle: b.library, kennung: 'r-00002' },
+    });
+    const ueberTabelle = await kanal({ sicht: t.sicht })(ereignis(t.wurzel), frage(t));
+    const ueberKartei = await kanal({ sicht: k.sicht })(ereignis(k.wurzel), frage(k));
+    expect(ueberKartei).toEqual({
+      ...ueberTabelle,
+      pfad: k.ausleihen,
+      tabelle: k.loans,
+    });
+    expect(ueberKartei.istListe).toBe(true);
+    expect(ueberKartei.query).toBe(
+      'TABLE RECORDS borrower FROM "Loans" WHERE book = "r-00002" SORT borrower',
+    );
+    expect(ueberKartei.beziehung).toEqual({ feld: 'book' });
+  });
+});

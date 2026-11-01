@@ -17,11 +17,15 @@
 // in Anführung, Platzhalter ohne Angabe samt Leerraum entfernt.
 'use strict';
 
-import { currentDictionary, t } from '../../i18n.js';
+import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
-import { setzeTextEin } from '../../../shared/database/auftrag-text.js';
+// 4T-002404 (Epic 3E-000266): Der Satz zu einem Befund steht in einem eigenen
+// Blatt-Modul, weil auch die Anzeige der Befunde beim Speichern ihn bildet.
+import { befundText } from './konsistenz-befund-text.js';
 import { oeffneMaske } from './masken-seite.js';
 import { dateiName } from './masken-datei.js';
+// 4T-002389 (Epic 3E-000265, F4 A): «Als Karteikarte aufnehmen» am Befund.
+import { nimmAlsKarteikarteAuf } from './karteikarte-anlegen.js';
 
 // Höchstens so viele Befunde stehen in der Liste; darüber sagt ein Hinweis,
 // wie viele es sind (Muster der Beleg-Ansicht). Kein stilles Abschneiden.
@@ -35,7 +39,15 @@ const zustand = {
   ergebnis: null,
   laeuft: false,
   anfrage: 0,
+  // 4T-002389: Tabelle und Neu-Zeichnen des letzten Laufs, damit ein Handgriff
+  // am Befund die Prüfung danach wiederholen kann.
+  tabelle: null,
+  zeichneNeu: null,
 };
+
+// 4T-002389: Der Befund «Dokument ohne Kennung» einer Kartei-Tabelle; an ihm
+// steht der Handgriff «Als Karteikarte aufnehmen».
+const OHNE_KENNUNG = 'konsistenzKarteiOhneKennung';
 
 /** Verwirft Ergebnis und laufende Anfrage (Neu-Öffnen der Seite). */
 export function verwirfKonsistenz() {
@@ -62,6 +74,8 @@ export async function starteKonsistenzPruefung(tabelle, zeichneNeu) {
   const nummer = zustand.anfrage;
   zustand.laeuft = true;
   zustand.ergebnis = null;
+  zustand.tabelle = tabelle || null;
+  zustand.zeichneNeu = zeichneNeu;
   zeichneNeu();
   let antwort;
   try {
@@ -96,30 +110,6 @@ export function konsistenzKnopf({ tabelle, textKey, className, zeichneNeu }) {
   knopf.disabled = zustand.laeuft;
   knopf.addEventListener('click', () => void starteKonsistenzPruefung(tabelle, zeichneNeu));
   return knopf;
-}
-
-function hatSchluessel(key) {
-  const dict = currentDictionary();
-  return !!dict && Object.prototype.hasOwnProperty.call(dict, key);
-}
-
-/**
- * Der Satz zu einem Befund in der Sprache der Oberfläche.
- *
- * @param {object} befund Ein Befund aus `konsistenz-pruefung.js`.
- * @param {{sprache?: string|null, rueckfallSprache?: string|null}} [umgebung]
- * @returns {string}
- */
-export function befundText(befund, umgebung = {}) {
-  const b = befund && typeof befund === 'object' ? befund : {};
-  // Die zweite Fassung für den Verweis ohne Ziel-Angabe, wie beim Regel-Werk.
-  const code =
-    b.code === 'konsistenzVerweisTabelleUnbekannt' && b.zieltabelle === null
-      ? 'konsistenzVerweisTabelleFehlt'
-      : b.code;
-  const key = `${PRAEFIX}${code}`;
-  if (typeof code !== 'string' || !hatSchluessel(key)) return String(b.code || '');
-  return setzeTextEin(t(key), b, { t, hat: hatSchluessel, ...umgebung });
 }
 
 /**
@@ -164,6 +154,7 @@ function zaehlerTabelle(tabellen) {
 // Maske, sonst Text.
 function datensatzZelle(befund) {
   const zelle = el('td', 'db-consistency-record');
+  if (befund && befund.code === OHNE_KENNUNG) return aufnahmeZelle(zelle, befund);
   const text = datensatzText(befund);
   if (text === '' || typeof befund.pfad !== 'string' || befund.pfad === '') {
     zelle.textContent = text;
@@ -173,6 +164,26 @@ function datensatzZelle(befund) {
   knopf.type = 'button';
   knopf.title = t(PRAEFIX + 'open');
   knopf.addEventListener('click', () => oeffneMaske(befund.pfad, befund.id));
+  zelle.appendChild(knopf);
+  return zelle;
+}
+
+// 4T-002389 (Epic 3E-000265, F4 A): Am Dokument ohne Kennung der Knopf «Als
+// Karteikarte aufnehmen»; danach läuft die Prüfung erneut, und der Befund
+// entfällt. Geschrieben wird erst mit dem Klick, nie beim Prüfen.
+function aufnahmeZelle(zelle, befund) {
+  if (typeof befund.pfad !== 'string' || typeof befund.datei !== 'string') return zelle;
+  const knopf = el('button', 'db-consistency-adopt', t('database.card.adopt'));
+  knopf.type = 'button';
+  knopf.addEventListener('click', async () => {
+    knopf.disabled = true;
+    const nachher = () => {
+      if (typeof zustand.zeichneNeu === 'function')
+        void starteKonsistenzPruefung(zustand.tabelle, zustand.zeichneNeu);
+    };
+    if (!(await nimmAlsKarteikarteAuf(befund.pfad, befund.datei, { nachher })))
+      knopf.disabled = false;
+  });
   zelle.appendChild(knopf);
   return zelle;
 }

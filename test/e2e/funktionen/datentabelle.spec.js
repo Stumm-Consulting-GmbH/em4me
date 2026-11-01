@@ -947,12 +947,21 @@ test.describe('DT-18: Bearbeiten aus, Raster nur ansehbar (4T-002053)', () => {
       const pruefe = async (grid) => {
         await expect(grid.locator('.pdt-grid')).toBeVisible({ timeout: 15000 });
         await expect(page.locator(QUELL_EDITOR)).toHaveClass(/read-only/);
+        await grid.locator('tr[data-dt-row="0"] td[data-dt-col="1"]').click();
+        await expect(grid.locator('input.pdt-cell-input')).toHaveCount(0);
+        const zelle = grid.locator('tr[data-dt-row="1"] td[data-dt-col="1"]');
+        await zelle.focus();
+        await zelle.press('Enter');
+        await expect(grid.locator('input.pdt-cell-input')).toHaveCount(0);
+        await grid.locator('tr[data-dt-row="1"] td[data-dt-col="2"]').click();
+        await expect(
+          grid.locator('tr[data-dt-row="1"] td[data-dt-col="2"] input'),
+        ).not.toBeChecked();
         // Sortieren bleibt verfügbar (4S-000165): Der Klick auf den Kopf
         // «Betrag» ordnet die Zeilen um; der Zustand gilt je Reiter, deshalb
-        // wird nur die Änderung gegen den Stand davor geprüft. Vor den
-        // Zell-Klicks, weil im Live-Modus ein Kopf-Klick nach einem Zell-Klick
-        // das Widget verlässt — auch bei eingeschaltetem Bearbeiten gemessen,
-        // Bestand und nicht Gegenstand dieses Falls.
+        // wird nur die Änderung gegen den Stand davor geprüft. Nach den
+        // Zell-Klicks: Seit 4T-002258 verlässt ein Kopf-Klick nach einem
+        // Zell-Klick im Live-Modus das Widget nicht mehr.
         const reihenfolge = () =>
           grid.locator('tbody tr').evaluateAll((z) => z.map((tr) => tr.dataset.dtRow).join(','));
         // Je Klick eine Stufe (aufsteigend, absteigend, ohne); eine davon
@@ -967,16 +976,6 @@ test.describe('DT-18: Bearbeiten aus, Raster nur ansehbar (4T-002053)', () => {
             { intervals: [300], timeout: 5000 },
           )
           .not.toBe(vorher);
-        await grid.locator('tr[data-dt-row="0"] td[data-dt-col="1"]').click();
-        await expect(grid.locator('input.pdt-cell-input')).toHaveCount(0);
-        const zelle = grid.locator('tr[data-dt-row="1"] td[data-dt-col="1"]');
-        await zelle.focus();
-        await zelle.press('Enter');
-        await expect(grid.locator('input.pdt-cell-input')).toHaveCount(0);
-        await grid.locator('tr[data-dt-row="1"] td[data-dt-col="2"]').click();
-        await expect(
-          grid.locator('tr[data-dt-row="1"] td[data-dt-col="2"] input'),
-        ).not.toBeChecked();
         await expect(grid.locator('.pdt-add-btn')).toBeHidden();
         await expect(grid.locator('.pdt-del-btn').first()).toBeHidden();
         await expect(page.locator(SEL.dirtyTab0)).toHaveCount(0);

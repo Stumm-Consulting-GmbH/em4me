@@ -193,6 +193,39 @@ const SCHNITTSTELLE = [
     { tabelle: TAB, grund: 'indexing' },
     'Die Berechtigungen der Datenbank ließen sich nicht feststellen, weil die Tabellen des Bereichs noch nicht vollständig eingelesen sind oder der Steckbrief nicht lesbar ist; ein neuer Datensatz in der Tabelle «Kunden» lässt sich deshalb nicht beginnen. Bitte gleich noch einmal versuchen oder den Steckbrief prüfen.',
   ],
+  // 4T-002386 (Schritt 4): der Zwischen-Schutz der Kartei-Form; seit 4T-002389
+  // nur noch für das Löschen und das Eröffnen einer Neuanlage.
+  [
+    LAGEN.karteiTabelle,
+    { tabelle: TAB },
+    'Die Tabelle «Kunden» legt in Kartei-Form ab: Eine neue Karteikarte entsteht über «Neue Karteikarte», und eine Karteikarte, deren Datei fehlt, lässt sich auf diesem Weg weder ändern noch löschen. Es wurde nichts gespeichert.',
+  ],
+  // 4T-002389 (Schritt 3): Anlegen und Aufnehmen von Karteikarten.
+  [
+    LAGEN.karteiNameFehlt,
+    { position: 0, tabelle: TAB },
+    'Eine neue Karteikarte in der Tabelle «Kunden» braucht einen Namen; bitte «Neue Karteikarte» wählen und den Schlüssel eingeben.',
+  ],
+  [
+    LAGEN.karteiNameUngueltig,
+    { position: 0, tabelle: TAB, name: 'a/b' },
+    '«a/b» taugt nicht als Name einer Karteikarte, weil daraus kein zulässiger Dateiname wird: Schräg- und Rückstriche, die Zeichen < > : | ? *, Anführungszeichen und Leerraum am Anfang oder Ende sind nicht erlaubt. Es wurde nichts angelegt.',
+  ],
+  [
+    LAGEN.karteiDateiVorhanden,
+    { position: 0, tabelle: TAB, name: 'Ada', datei: 'C:/Bereich/Daten/Ada.md' },
+    'Im Ordner der Tabelle «Kunden» liegt bereits ein Dokument «Ada»; es wurde nichts angelegt.',
+  ],
+  [
+    LAGEN.karteiAufnahmeUnmoeglich,
+    { position: 0, tabelle: TAB, datei: 'Daten/Notiz.md', grund: 'karteikarte' },
+    'Das Dokument lässt sich nicht als Karteikarte der Tabelle «Kunden» aufnehmen: Es liegt nicht in ihrem Ordner, ist selbst eine Datei der Datenbank, trägt schon eine Kennung oder ist nicht lesbar. Es wurde nichts geändert.',
+  ],
+  [
+    LAGEN.karteiVorlageUnbrauchbar,
+    { position: 0, tabelle: TAB, datei: 'Daten/Ada.md', grund: 'ohneKennung' },
+    'Die Vorlage der Kopie ist keine lesbare Karteikarte der Tabelle «Kunden»; es wurde nichts angelegt.',
+  ],
   [
     LAGEN.unerwartet,
     { grund: 'boom' },

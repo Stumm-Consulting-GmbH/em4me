@@ -182,6 +182,8 @@ Las reglas son breves a propósito, porque el archivo es almacenamiento técnico
 
 **Nunca se pierde un carácter.** Si un registro tiene demasiadas pocas celdas, los campos restantes quedan vacíos; si tiene demasiadas, las sobrantes permanecen intactas. Ambos casos se informan, pero nada se escribe en silencio — ese es el único fallo que un almacén de datos no debe cometer.
 
+En lugar de en este bloque, una tabla también puede guardar cada uno de sus registros en un documento propio, con los campos en el frontmatter y texto libre debajo. La sección «Forma de fichero» describe esta segunda forma y cuándo conviene.
+
 ## Reglas de comprobación
 
 Una regla de comprobación fija qué valores acepta una tabla. Figura en la definición, en uno de dos lugares según su alcance:
@@ -294,7 +296,7 @@ Cada registro tiene un **formulario**: una página propia que muestra sus campos
 
 Un registro existente se abre con el botón **«Abrir registro»** al comienzo de su fila, delante del botón de los justificantes de cambio, tanto en la vista de lectura como en el modo En vivo. Con el teclado, la flecha izquierda lleva a él desde el botón de los justificantes.
 
-Desde el resultado de una consulta de registros, un clic en un registro o en un enlace abre igualmente el formulario (página [Consulta Perspective](frontmatter-query.md)). Este muestra el estado guardado, aunque la consulta muestre uno sin guardar. En un formulario de lista, el clic abre el formulario que nombra la lista (sección «Formulario de lista»). Un enlace a un registro en el texto de un documento (sección «Enlace a un registro concreto») y un resultado de registro de la búsqueda sobre el área (sección «Localizabilidad: búsqueda y enlaces») abren igualmente el formulario.
+Desde el resultado de una consulta de registros, un clic en un registro o en un enlace abre igualmente el formulario (página [Consulta Perspective](frontmatter-query.md)). Este muestra el estado guardado, aunque la consulta muestre uno sin guardar. En un formulario de lista, el clic abre el formulario que nombra la lista (sección «Formulario de lista»). Un enlace a un registro en el texto de un documento (sección «Enlace a un registro concreto») y un resultado de registro de la búsqueda sobre el área (sección «Localizabilidad: búsqueda y enlaces») abren igualmente el formulario. Si el registro pertenece a una tabla en forma de fichero, estos clics abren el documento de la ficha en lugar del formulario; la fila de un formulario de lista sigue siendo el camino al formulario (sección «Forma de fichero»).
 
 Tres caminos crean un registro nuevo:
 
@@ -474,7 +476,7 @@ Quien crea, modifica o elimina un registro a través de la aplicación deja un r
 
 ### Qué son y dónde están
 
-Al archivo de tabla `Clientes.md` le corresponde el archivo `Clientes.mddl` en la misma carpeta. La aplicación lo crea y lo va ampliando; usted no tiene que hacer nada para ello, y no debe hacer nada en él.
+Al archivo de tabla `Clientes.md` le corresponde el archivo `Clientes.mddl` en la misma carpeta. La aplicación lo crea y lo va ampliando; usted no tiene que hacer nada para ello, y no debe hacer nada en él. En una tabla en forma de fichero, cada ficha lleva su propio archivo de justificantes junto a ella (sección «Forma de fichero»).
 
 Conviene conocer cinco propiedades:
 
@@ -650,7 +652,7 @@ Los roles forman parte de la definición y viajan con la ficha. La asignación b
 
 ## Comprobación de coherencia
 
-En el guardado por la aplicación se comprueba cada cambio. Lo que llega a los archivos por otro camino, por ejemplo a mano en un editor, nadie lo comprueba por el camino, y algunas reglas no actúan en absoluto al leer. La **comprobación de coherencia** recorre por eso todos los datos e indica dónde contradicen las reglas de la base de datos.
+En el guardado por la aplicación se comprueba cada cambio. Lo que llega a los archivos por otro camino, por ejemplo a mano en un editor, nadie lo comprueba por el camino, y algunas reglas no actúan en absoluto al leer. La **comprobación de coherencia** recorre por eso todos los datos e indica dónde contradicen las reglas de la base de datos. Una ficha la comprueba la aplicación también al guardarla en el editor, pero allí no rechaza nada; los hallazgos solo se informan (sección «Forma de fichero»).
 
 Está en el resumen de la base de datos: **«Comprobar coherencia»** en la cabecera comprueba todas las tablas, **«Comprobar»** en la fila de una tabla solo esa. El comando **«Comprobar la coherencia de la base de datos»** de la paleta de comandos también comprueba todas las tablas; para ello abre el resumen.
 
@@ -666,6 +668,7 @@ Se detectan:
 - en un archivo de formulario, además, una ruta que no nombra ningún campo de referencia o ningún campo de la tabla de destino, y una sección de posiciones cuyo archivo de consulta falta o no lleva `editable: true`, cuyas posiciones no tienen ningún campo de referencia o ninguno inequívoco hacia la tabla del formulario, o cuya consulta no puede completarse con la relación;
 - en un archivo de consulta, una indicación inservible en el contenedor `db-query`, una acción desconocida en `allow` y una indicación `form` que no nombra ningún archivo de formulario de la base de datos; un hallazgo así nombra en la columna «Origen» el archivo en lugar de una tabla;
 - al comprobar todas las tablas, una indicación inservible en la ficha bajo `roles`, `defaultRole` o `users`, por ejemplo un rol con una tabla o una operación desconocida o una asignación a un rol que no existe; el resumen nombra el motivo entre las incidencias;
+- en una tabla en forma de fichero, un bloque de registros, un documento de la carpeta sin identificador o con uno inservible, un campo de un perfil de propiedades cuyo tipo difiere de la columna y una segunda tabla en forma de fichero en la misma carpeta; las fichas mismas las comprueba como registros (sección «Forma de fichero»);
 - como aviso, una tabla que lleva registros pero ningún nivel de crecida `lastId` o uno demasiado bajo; el siguiente alta se sitúa entonces por encima del identificador más alto existente y lo eleva;
 - una tabla cuya definición no se puede leer; sus registros quedan entonces sin comprobar, y la comprobación continúa con las demás tablas.
 
@@ -685,7 +688,7 @@ El **uso** indica quién utiliza una tabla o un registro. Solo se lee cuando ust
 
 ## Localizabilidad: búsqueda y enlaces
 
-La búsqueda sobre el **área** encuentra registros como resultados propios. En el panel «Resultados de búsqueda», detrás de los grupos de los documentos, cada tabla tiene un grupo propio con el nombre de la tabla y el añadido «Registros». Cada fila nombra el registro con su forma de visualización y el campo que contiene el término buscado, y muestra su valor con la coincidencia resaltada. Un clic abre el registro en el formulario predeterminado de su tabla. Se buscan los valores de los campos en todos los archivos de una tabla, también en sus archivos siguientes, y, en una tabla abierta, su estado sin guardar. El recuento sobre la lista cuenta juntas las coincidencias de documentos y de registros. Con la fila de reemplazo abierta se omiten los grupos de registros, porque el reemplazo en el área no escribe en los registros.
+La búsqueda sobre el **área** encuentra registros como resultados propios. En el panel «Resultados de búsqueda», detrás de los grupos de los documentos, cada tabla tiene un grupo propio con el nombre de la tabla y el añadido «Registros». Cada fila nombra el registro con su forma de visualización y el campo que contiene el término buscado, y muestra su valor con la coincidencia resaltada. Un clic abre el registro en el formulario predeterminado de su tabla, y en una tabla en forma de fichero el documento de la ficha. Se buscan los valores de los campos en todos los archivos de una tabla, también en sus archivos siguientes, y, en una tabla abierta, su estado sin guardar. El recuento sobre la lista cuenta juntas las coincidencias de documentos y de registros. Con la fila de reemplazo abierta se omiten los grupos de registros, porque el reemplazo en el área no escribe en los registros.
 
 El bloque de registros mismo, en cambio, no forma parte del espacio de búsqueda de texto completo: un término que solo figura en los registros de un archivo de tabla no da ninguna coincidencia para ese documento, sino solo los resultados de registro. El texto explicativo situado encima del bloque de datos sigue siendo consultable como documento, y una coincidencia posterior a él sigue llevando al lugar correcto. El motivo está en el área y no en la tabla: el espacio de búsqueda mantiene en memoria los textos de todos los archivos Markdown y lleva para ello un tope sobre el área **entera**. Unas pocas tablas de algunos megabytes bastan para romperlo, y a partir de ahí cada búsqueda vuelve a leer del disco, también la que recorre un documento corriente. Los registros en el espacio de búsqueda no costarían, pues, su velocidad a sí mismos, sino al área entera.
 
@@ -715,7 +718,7 @@ La comprobación se hace contra el estado **guardado** de la tabla, como con cua
 
 Si un enlace vale lo muestra el [linter de Markdown](tools.md): un destino roto recibe un subrayado ondulado en el editor, es decir en las vistas Código, Dividida y En vivo. La vista de lectura pura no representa la validez; allí los enlaces válidos y los rotos se ven igual.
 
-**Un clic abre el formulario del registro**, en el formulario predeterminado de su tabla. La acción **«Mostrar en el documento de tabla»** en la cabecera del formulario lleva a la fila en el archivo de tabla (sección «Leer y editar»). Si un enlace no coincide con ningún registro de forma unívoca, el clic abre el archivo de tabla. Fuera de un área abierta, el clic abre el archivo de tabla y pone a la vista la fila del registro. En el resultado de una consulta de registros, un clic en un registro abre igualmente su formulario.
+**Un clic abre el formulario del registro**, en el formulario predeterminado de su tabla. En una tabla en forma de fichero abre en su lugar el documento de la ficha (sección «Forma de fichero»). La acción **«Mostrar en el documento de tabla»** en la cabecera del formulario lleva a la fila en el archivo de tabla (sección «Leer y editar»). Si un enlace no coincide con ningún registro de forma unívoca, el clic abre el archivo de tabla. Fuera de un área abierta, el clic abre el archivo de tabla y pone a la vista la fila del registro. En el resultado de una consulta de registros, un clic en un registro abre igualmente su formulario.
 
 **Un enlace en el texto no retiene el registro.** Si el registro se elimina, el enlace se rompe como cualquier otro enlace de la aplicación, y el linter lo muestra. La protección contra la eliminación la lleva solo la columna de enlace (sección «Uso de tablas y registros»).
 
@@ -777,7 +780,7 @@ TABLE RECORDS libro, lector, salida, vence FROM "Préstamos" WHERE NOT devuelto 
 
 En cada vista que muestra el resultado, es decir, en las vistas Renderizado, Dividido y En vivo, la cuadrícula ocupa el lugar de la tabla de resultados: las mismas columnas, delante la columna «Registro» y encima una línea de recuento como «Filas 1 a 50 de 120». Una página muestra 50 filas fijas; si hay más filas, **«Siguiente»** y **«Atrás»** pasan las páginas.
 
-Un clic en una fila abre su registro en el formulario que nombra `form`, si no en el formulario predeterminado de su tabla. Si `form` nombra un archivo de formulario que no existe o que pertenece a otra tabla, el clic abre igualmente el formulario predeterminado, y el resumen muestra un aviso entre las incidencias del archivo de consulta. En una fila que se puede editar, un clic simple en una celda editable no abre el formulario, porque allí el doble clic inicia la edición; el formulario lo abren entonces la columna «Registro» y las celdas de solo lectura. Si la consulta lleva `WITHOUT ID`, falta la columna «Registro», y en una fila así solo una celda de solo lectura abre el formulario. Un enlace en una celda abre, como en todas partes, el formulario de su destino.
+Un clic en una fila abre su registro en el formulario que nombra `form`, si no en el formulario predeterminado de su tabla. Si `form` nombra un archivo de formulario que no existe o que pertenece a otra tabla, el clic abre igualmente el formulario predeterminado, y el resumen muestra un aviso entre las incidencias del archivo de consulta. En una fila que se puede editar, un clic simple en una celda editable no abre el formulario, porque allí el doble clic inicia la edición; el formulario lo abren entonces la columna «Registro» y las celdas de solo lectura. Si la consulta lleva `WITHOUT ID`, falta la columna «Registro», y en una fila así solo una celda de solo lectura abre el formulario. Un enlace en una celda abre, como en todas partes, el formulario de su destino, y en una ficha su documento.
 
 **Mirar no bloquea nada.** De lo contrario, una lista con cientos de registros los bloquearía todos con cada vistazo; solo se bloquea la fila cuya edición comienza.
 
@@ -836,6 +839,151 @@ Se aplican cuatro garantías, y tres de ellas dicen lo que **no** ocurre:
 
 El mecanismo subyacente es el mismo que en la [división de documentos grandes](document-parts.md); para los archivos de tabla solo difieren el umbral y el punto de corte.
 
+## Forma de fichero
+
+**La forma de fichero está pensada para registros con identidad propia, no para muchas filas uniformes.** Se elige según la naturaleza del registro, no según la cantidad: una persona, un proyecto o un cliente al que pertenecen notas y adjuntos recibe su propia ficha; los préstamos, los asientos o las mediciones se quedan en el bloque de registros. No es un almacenamiento masivo, porque cada ficha es un archivo propio, y la aplicación lee y comprueba cada una por separado.
+
+En esta forma, cada registro está en un documento propio, la **ficha**. Sus campos están en el frontmatter, y debajo hay sitio para texto libre, imágenes y enlaces a adjuntos como en cualquier otro documento. El archivo de tabla lleva entonces solo la definición.
+
+### El archivo de tabla de un fichero
+
+La indicación `storage` en el nivel superior del contenedor `db-table` elige la forma:
+
+```yaml
+---
+db-table:
+  storage: cards
+  fields:
+    - name: nombre
+      type: string
+      required: true
+    - name: nacimiento
+      type: date
+  key: nombre
+  display: nombre
+  lastId: 3
+---
+```
+
+- `table` o ninguna indicación: la forma de tabla con el bloque de registros, como se describe en las secciones anteriores.
+- `cards`: la forma de fichero. La escritura cuenta, `Cards` no vale. Un valor desconocido vale como forma de tabla, y la aplicación lo informa con un aviso.
+
+El cuerpo del archivo de tabla no necesita bloque de registros; lo que hay allí es texto libre, por ejemplo una descripción de la tabla. Si aun así hay allí un bloque de registros, sigue visible y lleva el aviso de que sus filas no cuentan como registros: no aparecen en ninguna consulta y no se comprueban, y la comprobación de coherencia indica el bloque como hallazgo.
+
+El resumen de la base de datos indica en la columna **«Almacenamiento»** «Tabla» o «Fichero» y, en una tabla en forma de fichero, el número de sus fichas, por ejemplo «3 fichas».
+
+### Qué es una ficha
+
+Una ficha lleva su identificador en `db-record` en su frontmatter, y junto a él los campos de la tabla:
+
+```yaml
+---
+db-record: r-00001
+nombre: Ada Lovelace
+nacimiento: 1815-12-10
+---
+```
+
+Una ficha pertenece a la tabla solo por su ubicación: está en la **misma carpeta** que el archivo de tabla. El nombre del archivo de tabla no tiene importancia; si se le cambia el nombre, las fichas siguen siendo suyas. Rigen tres límites:
+
+- Los documentos de **subcarpetas** no forman parte de ella.
+- Los **archivos de la base de datos** no son fichas: el propio archivo de tabla, otros archivos de tabla, los archivos de formulario y de consulta y la ficha de la base de datos.
+- Un documento **sin identificador** no es una ficha. La comprobación de coherencia lo informa, igual que una indicación `db-record` sin identificador utilizable; no informa los documentos de la carpeta de plantillas.
+
+Si **dos tablas en forma de fichero están en la misma carpeta**, la comprobación de coherencia lo informa en ambas, y ninguna de las dos recibe los documentos de la carpeta; una carpeta lleva por tanto como mucho una tabla en forma de fichero. Una tabla en forma de tabla en la misma carpeta no estorba. Si dos fichas llevan el mismo identificador, la comprobación informa cada una de ellas.
+
+### Valores en el frontmatter
+
+Los valores de una ficha se leen según el tipo de su columna, exactamente como las celdas de un bloque de registros: un valor que no encaja con su tipo es el mismo error que en una celda. Los nombres de campo valen sin distinguir mayúsculas y minúsculas, un valor lógico se escribe `true` o `false`, y una lista se convierte en un texto cuyas entradas separan una coma y un espacio, porque una columna no conoce valores múltiples. Una referencia va entre comillas, por ejemplo `mentor: "[[Mary Somerville]]"`; sin ellas el frontmatter lee una lista anidada, y el valor se pierde. Las demás indicaciones del frontmatter, como las etiquetas, siguen siendo propiedades normales del documento.
+
+**Campos homónimos de un perfil de propiedades.** Una ficha es un documento y por eso también puede estar asignada a perfiles de propiedades. Para la base de datos solo cuenta la definición de la tabla: un campo de perfil homónimo no es un campo de la base de datos y no cambia cómo se lee el valor. Si tiene el mismo tipo que la columna, todo queda en silencio; si tiene otro, la comprobación de coherencia nombra el campo, el perfil y ambos tipos.
+
+### Consultas y referencias
+
+Una consulta de registros nombra la tabla en forma de fichero como fuente igual que cualquier otra tabla, por ejemplo `TABLE RECORDS nombre, nacimiento FROM "Autores"`, y lee las fichas como filas. Condición, ordenación, agrupación y rutas a través de campos de referencia rigen como en la forma de tabla, y una tabla en forma de fichero sin fichas da el conjunto vacío. También la búsqueda en el área encuentra los valores de los campos de las fichas como resultados de registro.
+
+Una columna de referencia cuya `table` nombra una tabla en forma de fichero alcanza una ficha por su identificador o por el valor de su clave de una sola parte, como se describe en la sección «Relaciones entre tablas». Una referencia en el texto vale igualmente: `[[Autores#^r-00001]]`, la forma corta `[[Autores#^r-1]]` y la forma de visualización `[[Autores#^Ada Lovelace]]`.
+
+**En el nivel de los archivos**, una ficha sigue siendo un documento normal: una consulta sobre archivos la incluye con su frontmatter tal como está escrito, sin interpretación según la tabla.
+
+### Crear, cambiar y eliminar
+
+**«Nueva ficha»** figura en el resumen de la base de datos en la fila de cada tabla en forma de fichero, siempre que su rol permita crear. La aplicación pide la clave, que pasa a ser también el nombre del archivo, y crea en la carpeta de la tabla el documento `<clave>.md`, con el identificador siguiente y un esqueleto de todos los campos de la tabla, vacíos salvo la clave; el nivel de crecida `lastId` sube. El esqueleto se crea vacío aunque la tabla tenga otros campos obligatorios: la obligación rige al cambiar, y hasta entonces la comprobación de coherencia informa el campo vacío. Si la tabla no tiene clave de una sola parte, el nombre pasa a ser solo el nombre del archivo. Se rechazan un nombre que no es un nombre de archivo válido, un nombre bajo el cual ya hay un archivo en la carpeta y una clave ya asignada; la barra de estado indica el motivo.
+
+El comando **«Nueva ficha en la tabla activa en forma de fichero»** de la paleta de comandos actúa sobre la tabla del documento activo si este es una tabla en forma de fichero o un documento de su carpeta. Un botón **«Nuevo registro»** no existe en una tabla en forma de fichero, y el comando «Nuevo registro en la tabla activa» no crea nada en ella; su mensaje remite a «Nueva ficha».
+
+**«Incorporar como ficha»** figura en el hallazgo sobre un documento sin identificador de la comprobación de coherencia, y el comando **«Incorporar el documento activo como ficha»** actúa sobre el documento activo. La aplicación inscribe el identificador siguiente como `db-record` y no cambia nada más en el documento; después la comprobación vuelve a ejecutarse. Un documento fuera de la carpeta, un archivo de la base de datos y un documento que ya lleva un identificador no se incorporan.
+
+**El cambio a través de la base de datos** reescribe solo las líneas de los campos cambiados en el frontmatter. El texto libre, los enlaces a adjuntos y las demás indicaciones se mantienen carácter por carácter, una indicación que falta se añade como línea nueva, y un valor que sin comillas se leería de otro modo va entre comillas. Como en la forma de tabla, rigen todas las reglas de la tabla y la comparación con el estado leído: si alguien ha cambiado la ficha entretanto, la aplicación no guarda de momento.
+
+**La eliminación a través de la base de datos** mueve la ficha junto con su archivo de justificantes a la papelera del sistema operativo. La protección contra la eliminación rige como en cualquier registro: una ficha a la que todavía apunta una columna de referencia no se puede eliminar. Qué pasa con sus justificantes lo describe la sección siguiente.
+
+### Justificantes de cambio de una ficha
+
+Los justificantes de una ficha están en un archivo de justificantes propio junto a ella, con su nombre y la extensión `.mddl`: a `Ada Lovelace.md` le corresponde `Ada Lovelace.mddl`. Para él rige lo que describe la sección «Justificantes de cambio». No aparece en ninguna lista de archivos, solo se amplía y acompaña a la ficha cuando usted le cambia el nombre o la mueve dentro de la aplicación; la condensación sigue los límites de la tabla, es decir, su indicación `changeLog`. La página «Justificantes de cambio» de un registro muestra, en una ficha, los justificantes de este archivo.
+
+Cuando una ficha se elimina a través de la base de datos, su rastro no se pierde con ella: antes de que la ficha y su archivo de justificantes vayan a la papelera, la aplicación añade los justificantes, junto con el justificante de eliminación, al archivo de justificantes del archivo de tabla. La página «Justificantes de cambio» los muestra después allí, filtrados por el identificador. Una ficha nueva con el mismo nombre empieza con un rastro vacío.
+
+### La ficha en el editor y en el panel del área
+
+**Al guardar, la aplicación comprueba la ficha**, tanto si la ha cambiado en el editor como en la barra «Propiedades», y tanto si guarda a mano, con «Guardar como» o mediante el guardado automático. La comprobación es la misma que en la comprobación de coherencia: un valor obligatorio que falta, un valor que no encaja con su tipo o infringe una regla de campo, una referencia que no alcanza ningún registro, una regla infringida bajo `checks` y una clave que ya lleva otra ficha. **Se guarda en todos los casos**: la comprobación no rechaza nada y no genera ningún justificante. Lo que encuentra aparece en tres lugares:
+
+- La **barra de estado** indica tras guardar el número de hallazgos, con el guardado automático solo cuando los hallazgos han cambiado.
+- En la barra **«Propiedades»**, cada campo afectado lleva una indicación cuya información emergente nombra el hallazgo.
+- En la **vista de lectura**, la línea de cabecera lleva a la derecha una marca con el número de hallazgos, cuya información emergente los nombra todos.
+
+Tras la corrección, indicación y marca desaparecen con el siguiente guardado. Hasta entonces los hallazgos siguen vigentes; si la aplicación vuelve a cargar la ficha tras un cambio desde fuera, los descarta, y con el fin de la sesión desaparecen. Un identificador duplicado, un campo de perfil de otro tipo y una segunda tabla en forma de fichero en la carpeta los sigue informando solo la comprobación de coherencia.
+
+**Eliminar en el panel del área** sigue en una ficha la vía de la base de datos, y la pregunta de confirmación lo dice, con el nombre de la tabla. Si otro registro remite a la ficha mediante una columna de referencia, la eliminación no se produce: el archivo queda intacto, su documento abierto sigue abierto, y la barra de estado nombra la ficha y el motivo. En caso contrario sus justificantes pasan a la tabla junto con el justificante de eliminación, y la ficha va a la papelera con su archivo de justificantes. Si está abierta y sin guardar, la aplicación la guarda primero y cierra su documento solo después de la eliminación. Rigen las mismas reglas que al eliminar a través de la base de datos, también los permisos.
+
+**Copiar en el panel del área** crea una ficha nueva a través de la base de datos. Como cualquier copia del panel del área, la copia recibe el nombre de la original con un número añadido, por ejemplo `Ada Lovelace-1.md`, y el identificador siguiente; su clave es ese nombre, y los demás campos, las demás indicaciones del frontmatter y el texto libre proceden de la original. Los justificantes de la original no la acompañan: la copia empieza con su justificante de creación en un archivo de justificantes propio. Si el nombre ya está ocupado como archivo o como clave, la aplicación toma el número siguiente. Si rechaza la creación por otro motivo, por ejemplo porque su rol no la permite, no se crea ninguna copia, y la barra de estado indica el motivo.
+
+**Cambiar el nombre** cambia solo el nombre del archivo, no la clave. Al crear y al copiar, ambos son iguales; después pueden divergir, y la comprobación de coherencia no lo informa. Identificador, forma de visualización y referencias de la base de datos dependen del frontmatter, no del nombre del archivo, y el archivo de justificantes lo acompaña. Para cambiar la clave, se cambia el campo.
+
+### Vistas en una ficha
+
+Una tabla en forma de fichero puede nombrar **vistas**: archivos de consulta que la aplicación muestra debajo de cada ficha, por ejemplo los libros de un autor. La lista `views` en el nivel superior del contenedor `db-table` los nombra por su nombre sin extensión, también con carpetas delante; se comparan como en la indicación `form`.
+
+```yaml
+---
+db-table:
+  storage: cards
+  fields:
+    - name: nombre
+      type: string
+  key: nombre
+  views:
+    - Libros de este autor
+---
+```
+
+La vista misma es un archivo de consulta corriente (sección «Archivos de consulta»). Puede estar en la carpeta de las fichas, porque un archivo de la base de datos no es una ficha. En su consulta, `this.` designa la ficha debajo de la cual se muestra:
+
+```perspective-query
+TABLE RECORDS paginas FROM "Libros" WHERE autor = this.nombre SORT paginas DESC
+```
+
+En la **vista de lectura**, cada vista figura bajo la cabecera y antes del texto libre, como bloque con la marca «Vista» y el nombre del archivo de consulta en su línea de título; un clic en el nombre abre el archivo de consulta. El bloque es una vista: no se puede editar, y no se escribe nada en el archivo de la ficha. El modo En vivo no muestra ninguna vista. El resultado se actualiza como cualquier consulta cuando cambian los datos; un cambio en el propio archivo de consulta aparece la próxima vez que se dibuja la ficha.
+
+**Abierto por sí solo**, `this.` designa el propio archivo de consulta, como en cualquier archivo de consulta; la consulta de arriba no encuentra nada allí, porque el archivo no lleva ningún campo `nombre`. Lo mismo ocurre con una incrustación: si una ficha incrusta el archivo con `![[Libros de este autor]]`, `this.` designa el archivo de consulta y no la ficha. Solo la indicación `views` hace de la ficha la referencia.
+
+El resumen de la base de datos nombra las vistas de cada tabla en la columna **«Vistas»**. Si para un nombre no existe ningún archivo o ningún archivo de consulta, aparece allí tachado, figura un aviso entre las incidencias, y debajo de cada ficha aparece en el lugar de la vista un mensaje con su nombre. Mientras el área todavía se está leyendo tras abrirla, una vista solo aparece la próxima vez que se dibuja la ficha.
+
+### Formularios y destino del clic de una ficha
+
+**En una ficha, el documento es la primera vista.** Un resultado de registro de la búsqueda sobre el área, un registro o una referencia en el resultado de una consulta, en las vistas Renderizado, Dividido y En vivo, y un enlace en el texto como `[[Autores#^r-00001]]` abren el documento de la ficha en la columna activa, no su formulario. Si no se puede determinar la ficha, el clic abre el formulario. En una tabla en forma de tabla, el formulario sigue siendo el destino.
+
+El formulario rige para una tabla en forma de fichero como para cualquier otra: el formulario predeterminado, el formulario de lista sobre la tabla en forma de fichero y la sección de posiciones de un formulario cuyas posiciones son fichas. La fila de un formulario de lista y la de una sección de posiciones siguen abriendo el formulario del registro; un enlace en una de sus celdas abre en una ficha su documento. Un clic en un registro de la comprobación de coherencia abre también el formulario.
+
+Dos acciones llevan del documento al formulario y de vuelta:
+
+- En el formulario de una ficha figura en la cabecera **«Abrir la ficha»** en lugar de «Mostrar en el documento de tabla» y abre su documento en la columna activa. Como la acción a la que sustituye, solo se ofrece al leer y no en un registro nuevo.
+- El comando **«Abrir en el formulario»** de la paleta de comandos abre el formulario de la ficha que es el documento activo. En cualquier otro documento no se puede elegir, como tampoco mientras el área todavía se está leyendo tras abrirla.
+
+### Límites de la forma de fichero
+
+Guardar, eliminar, copiar y cambiar el nombre en la aplicación conocen la ficha. Otras vías por las que se escribe un documento no la conocen: el reemplazo en el área, la ampliación de entradas de diario y de eventos, el traslado de capítulos de un libro, la importación de un archivo JSON Canvas y cualquier cambio fuera de la aplicación, como eliminar en el gestor de archivos o editar con otro editor. Lo que le ocurre a una ficha por estas vías no lo comprueba nadie en el momento del cambio, no genera ningún justificante, y la eliminación se produce sin protección contra la eliminación y sin que sus justificantes pasen a la tabla. La comprobación de coherencia encuentra las consecuencias, por ejemplo un valor contrario a una regla, una referencia que ya no alcanza ningún registro o un documento sin identificador. También el guardado en el editor de la aplicación solo informa y no genera ningún justificante; un cambio en el frontmatter solo lo nota el siguiente cambio a través de la base de datos, que entonces no guarda de momento (sección «Justificantes de cambio»).
+
 ## La ficha de la base de datos
 
 Una base de datos se describe a sí misma en el contenedor `db-database`, en el frontmatter de un documento propio:
@@ -871,7 +1019,7 @@ Un área de base de datos recibe dos cosas que un área corriente no tiene.
 
 En un área sin base de datos no se ofrece ninguno de estos caminos.
 
-En la lista de tablas, la columna **«Formulario»** nombra el archivo de formulario de una tabla y queda vacía para el formulario generado. Además, el resumen lleva cuatro acciones: **«Comprobar coherencia»** en la cabecera para todas las tablas, y en la fila de cada tabla **«Nuevo registro»**, **«Comprobar»** y **«Uso»**. Lo que hacen lo describen las secciones «Editar registros en el formulario», «Comprobación de coherencia» y «Uso de tablas y registros». La sección **«Consultas»** nombra cada archivo de consulta con su nombre y su ubicación, la carpeta relativa a la raíz del área, y **«Abrir»** lo abre como cualquier documento; si el área no tiene ninguno, figura allí una frase explicativa. Entre las incidencias figuran también los avisos sobre archivos de formulario y de consulta, nombrados según el archivo. La columna **«Tipo»** de la sección «Consultas» distingue una «Consulta» corriente de un «Formulario de lista» y nombra para este las acciones permitidas; si no permite ninguna, allí figura «Formulario de lista, solo lectura». En el bloque de la ficha el resumen nombra además el rol propio y, si la ficha lleva roles, también estos con sus permisos, y debajo de cada tabla los permisos del rol propio (sección «Permisos»).
+En la lista de tablas, la columna **«Formulario»** nombra el archivo de formulario de una tabla y queda vacía para el formulario generado. Además, el resumen lleva cuatro acciones: **«Comprobar coherencia»** en la cabecera para todas las tablas, y en la fila de cada tabla **«Nuevo registro»**, **«Comprobar»** y **«Uso»**. Lo que hacen lo describen las secciones «Editar registros en el formulario», «Comprobación de coherencia» y «Uso de tablas y registros». La sección **«Consultas»** nombra cada archivo de consulta con su nombre y su ubicación, la carpeta relativa a la raíz del área, y **«Abrir»** lo abre como cualquier documento; si el área no tiene ninguno, figura allí una frase explicativa. Entre las incidencias figuran también los avisos sobre archivos de formulario y de consulta, nombrados según el archivo. La columna **«Tipo»** de la sección «Consultas» distingue una «Consulta» corriente de un «Formulario de lista» y nombra para este las acciones permitidas; si no permite ninguna, allí figura «Formulario de lista, solo lectura». En el bloque de la ficha el resumen nombra además el rol propio y, si la ficha lleva roles, también estos con sus permisos, y debajo de cada tabla los permisos del rol propio (sección «Permisos»). La columna **«Almacenamiento»** indica «Tabla» o «Fichero», en una tabla en forma de fichero con el número de sus fichas, y en su fila figura el botón «Nueva ficha» en lugar de «Nuevo registro» (sección «Forma de fichero»). La columna **«Vistas»** nombra las vistas de una tabla en forma de fichero, y una vista sin archivo de consulta aparece allí tachada.
 
 **La sección de ajustes «Base de datos»** está en el grupo de navegación «Área actual» (Archivo → Configuración… → Área actual → Base de datos; con un libro abierto el grupo se llama **Libro actual**, con una estantería abierta **Estantería actual**). Muestra la misma información en forma breve, es decir, el nombre y la descripción de la base de datos, el número de sus tablas y el número de incidencias, y lleva una opción: **«Mostrar el resumen al abrir el área»**. Si está marcada, el resumen se abre por sí mismo en cuanto el área queda vinculada. La opción reside en el archivo del área y viaja con la carpeta del área. A ello se suma el campo **«Nombre de la carpeta de bloqueos»**; está descrito en la sección «Bloqueos».
 
@@ -897,6 +1045,8 @@ La misma línea suave vale para los roles, el rol por defecto y la asignación e
 
 Si una tabla lleva registros pero ningún nivel de crecida `lastId` o uno demasiado bajo, la aplicación no asigna aun así ningún identificador dos veces: un alta toma el número siguiente por encima del identificador más alto existente y después actualiza el nivel de crecida. La comprobación de coherencia señala el caso como aviso.
 
+La misma línea suave vale para la forma de fichero. Un valor de la indicación `storage` distinto de `table` y `cards` vale como `table` y se informa con un aviso. Una indicación `db-record` sin identificador utilizable no convierte un documento en ficha, y un bloque de registros en una tabla en forma de fichero no lleva registros; la comprobación de coherencia informa ambos casos. La indicación `views` sigue la misma línea: si no es una lista, se descarta entera, y una entrada que no es un nombre se descarta sola; ambos casos figuran como aviso entre las incidencias. Si una entrada nombra un archivo que no existe o que no es un archivo de consulta, también figura un aviso entre las incidencias, y debajo de cada ficha aparece en el lugar de la vista un mensaje con su nombre.
+
 ## Desactivar la base de datos
 
 Toda la base de datos es una [extensión interna](extensions.md) llamada «Base de datos», de la categoría Herramientas, y se desactiva con un único interruptor. Requiere los [Perfiles de propiedades](property-profiles.md), porque la forma de una definición de tabla se describe y se comprueba mediante un perfil interno; mientras la base de datos esté activada, ese requisito no se puede desactivar.
@@ -912,6 +1062,7 @@ Estando desactivada:
 - La **búsqueda sobre el área no da resultados de registro**. Los registros siguen excluidos del texto completo, porque ese límite pertenece al archivo de tabla y no al interruptor; a través del área, los registros no son entonces localizables.
 - Un **formulario** abierto al salir no vuelve al iniciar. Su entrada en la sesión queda en reposo y lo trae de vuelta en el siguiente inicio después de activarla (sección «Tras el reinicio»).
 - **Roles, rol por defecto y asignación** quedan como simple frontmatter de la ficha, igual que una indicación `editable` en un campo: no hay resolución ni comprobación, ni siquiera al guardar una definición modificada.
+- Una **tabla en forma de fichero** ya no se lee como tal: `storage` y `db-record` quedan como simple frontmatter, y las fichas como documentos normales. Con el resumen desaparece «Nueva ficha», con la comprobación de coherencia «Incorporar como ficha», y los comandos «Nueva ficha en la tabla activa en forma de fichero» e «Incorporar el documento activo como ficha» desaparecen de la paleta de comandos. Al guardar una ficha, la aplicación no comprueba nada, el panel del área la elimina con la pregunta de confirmación habitual y la copia como cualquier archivo, no aparece ninguna vista, y el comando «Abrir en el formulario» desaparece de la paleta de comandos.
 - **No se escribe nada.** La aplicación no crea, modifica ni elimina registros, no toma ningún bloqueo y no genera ningún justificante de cambio; tampoco termina un guardado que quedó a medias mientras esté desactivada.
 
 **Los archivos quedan intactos.** Desactivar retira la interpretación, no los datos: no se cambia ni un carácter, y al volver a activarla todo regresa. El índice del área se reconstruye una vez en ese momento; en fondos grandes eso tarda un instante.

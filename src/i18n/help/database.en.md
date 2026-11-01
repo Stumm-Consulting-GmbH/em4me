@@ -182,6 +182,8 @@ The rules are kept short, because the file is technical storage:
 
 **No character is ever lost.** If a record has too few cells, the remaining fields stay empty; if it has too many, the surplus ones are left untouched. Both are reported, but nothing is silently written away — that is the one mistake a data store must not make.
 
+Instead of in this block, a table can also keep each of its records in a document of its own, with the fields in the frontmatter and free text below. The section «Card form» describes this second form and when it fits.
+
 ## Validation rules
 
 A validation rule determines which values a table accepts. It stands in the definition, in one of two places depending on its reach:
@@ -294,7 +296,7 @@ Every record has a **form**: a page of its own that shows its fields one below t
 
 An existing record is opened by the button **«Open record»** at the start of its row, in front of the button for the change records, in reading view as well as in Live mode. With the keyboard, the left arrow key leads to it from the change-record button.
 
-From the result of a record query, a click on a record or on a reference opens the form as well (page [Perspective Query](frontmatter-query.md)). It shows the saved state, even if the query displays an unsaved one. In a list form, the click opens the form the list names (section «List form»). A reference to a record in the text of a document (section «Reference to a single record») and a record match of the search across the area (section «Findability: search and links») open the form as well.
+From the result of a record query, a click on a record or on a reference opens the form as well (page [Perspective Query](frontmatter-query.md)). It shows the saved state, even if the query displays an unsaved one. In a list form, the click opens the form the list names (section «List form»). A reference to a record in the text of a document (section «Reference to a single record») and a record match of the search across the area (section «Findability: search and links») open the form as well. If the record belongs to a table in card form, these clicks open the document of the card instead of the form; the row of a list form remains the way into the form (section «Card form»).
 
 Three ways create a new record:
 
@@ -474,7 +476,7 @@ Whoever creates, changes or deletes a record through the application leaves a tr
 
 ### What they are and where they live
 
-The table file `Customers.md` has the file `Customers.mddl` beside it, in the same folder. The application creates it and keeps writing to it; you need to do nothing for that, and you should do nothing to it.
+The table file `Customers.md` has the file `Customers.mddl` beside it, in the same folder. The application creates it and keeps writing to it; you need to do nothing for that, and you should do nothing to it. With a table in card form, every card keeps its own change record file beside it (section «Card form»).
 
 Five properties are worth knowing:
 
@@ -650,7 +652,7 @@ The roles are part of the definition and travel with the fact sheet. The assignm
 
 ## Consistency check
 
-When the application saves, every change is checked. Whatever reaches the files by another route, for instance by hand in an editor, nobody checks along the way, and some rules do not act on reading at all. The **consistency check** therefore goes through the whole stock and says where it contradicts the rules of the database.
+When the application saves, every change is checked. Whatever reaches the files by another route, for instance by hand in an editor, nobody checks along the way, and some rules do not act on reading at all. The **consistency check** therefore goes through the whole stock and says where it contradicts the rules of the database. A card is checked by the application also when it is saved in the editor, but there nothing is rejected; the findings are only reported (section «Card form»).
 
 It sits in the database overview: **«Check consistency»** in the header checks all tables, **«Check»** in the row of a table only that one. The command **«Check database consistency»** in the command palette also checks all tables; it opens the overview for that.
 
@@ -666,6 +668,7 @@ What is found:
 - in a form file, in addition, a path that names no reference field or no field of the target table, and a line items section whose query file is missing or does not carry `editable: true`, whose line items have no reference field or no unambiguous one to the table of the form, or whose query cannot be extended by the relation;
 - in a query file, an unusable setting in the container `db-query`, an unknown action in `allow` and a setting `form` that names no form file of the database; such a finding names the file instead of a table in the column «Source»;
 - when all tables are checked, an unusable setting in the fact sheet under `roles`, `defaultRole` or `users`, for instance a role with an unknown table or operation or an assignment to a role that does not exist; the overview names the reason among the issues;
+- in a table in card form, a record block, a document in the folder without or with an unusable identifier, a field of a property profile whose type differs from the column, and a second card index table in the same folder; the cards themselves it checks like records (section «Card form»);
 - as a hint, a table that holds records but no high-water mark `lastId` or one that is too low; the next new record then draws above the highest existing identifier and raises it;
 - a table whose definition cannot be read; its records then stay unchecked, and the check goes on with the remaining tables.
 
@@ -685,7 +688,7 @@ The **usage** says who uses a table or a record. It is read only when you ask fo
 
 ## Findability: search and links
 
-A search across the **area** finds records as matches of their own. In the «Search results» panel, behind the groups of the documents, each table has a group of its own with the name of the table and the addition «Records». Each row names the record with its display form and the field in which the search term stands, and shows its value with the match highlighted. A click opens the record in the default form of its table. The search covers the field values in all files of a table, including its follow-up files, and for an open table its unsaved state. The count above the list counts document and record matches together. While the replace row is open, the record groups are left out, because replacing across the area does not write into records.
+A search across the **area** finds records as matches of their own. In the «Search results» panel, behind the groups of the documents, each table has a group of its own with the name of the table and the addition «Records». Each row names the record with its display form and the field in which the search term stands, and shows its value with the match highlighted. A click opens the record in the default form of its table, and for a table in card form the document of the card. The search covers the field values in all files of a table, including its follow-up files, and for an open table its unsaved state. The count above the list counts document and record matches together. While the replace row is open, the record groups are left out, because replacing across the area does not write into records.
 
 The record block itself, by contrast, is not part of the full-text search space: a search term that stands only in the records of a table file yields no match for that document, only the record matches. The explanatory text above the data block stays searchable as a document, and a match behind it still leads to the right place. The reason lies with the area and not with the table: the search space keeps the texts of all Markdown files in memory and carries an upper limit across the **whole** area for that. Even a few tables of a few megabytes break it, and from then on every search reads from disk again, including every search across an ordinary document. The records in the search space would therefore cost not themselves but the whole area its speed.
 
@@ -715,7 +718,7 @@ Checking is done against the **saved** state of the table, as with every other a
 
 Whether a reference holds is shown by the [Markdown linter](tools.md): a broken target gets a wavy underline in the editor, that is in the Source, Split and Live view. The plain reading view does not depict validity; there, valid and broken references look alike.
 
-**A click opens the form of the record**, in the default form of its table. The action **«Show in table document»** in the header of the form leads to the row in the table file (section «Reading and editing»). If a reference matches no record unambiguously, the click opens the table file. Outside an open area, the click opens the table file and brings the row of the record into view. In the result of a record query, a click on a record likewise opens its form.
+**A click opens the form of the record**, in the default form of its table. For a table in card form it opens the document of the card instead (section «Card form»). The action **«Show in table document»** in the header of the form leads to the row in the table file (section «Reading and editing»). If a reference matches no record unambiguously, the click opens the table file. Outside an open area, the click opens the table file and brings the row of the record into view. In the result of a record query, a click on a record likewise opens its form.
 
 **A reference in the text does not hold on to the record.** If the record is deleted, the reference breaks like every other reference in the application, and the linter shows it. The deletion protection is carried by the reference column alone (section «Usage of tables and records»).
 
@@ -777,7 +780,7 @@ TABLE RECORDS book, borrower, lent, due FROM "Loans" WHERE NOT returned SORT due
 
 In every view that shows the result, that is in the Rendered, Split and Live views, the grid stands in place of the result table: the same columns, the column «Record» in front, above it a count line such as «Rows 1 to 50 of 120». A page shows a fixed 50 rows; with more rows, **«Next»** and **«Back»** turn the pages.
 
-A click on a row opens its record in the form that `form` names, otherwise in the default form of its table. If `form` names a form file that does not exist or that belongs to another table, the click also opens the default form, and the overview shows a hint among the issues of the query file. In a row that can be edited, a single click on an editable cell does not open the form, because there the double click begins the editing; the form is then opened by the column «Record» and by the read-only cells. If the query carries `WITHOUT ID`, the column «Record» is missing, and in such a row only a read-only cell opens the form. A reference in a cell opens the form of its target, as everywhere.
+A click on a row opens its record in the form that `form` names, otherwise in the default form of its table. If `form` names a form file that does not exist or that belongs to another table, the click also opens the default form, and the overview shows a hint among the issues of the query file. In a row that can be edited, a single click on an editable cell does not open the form, because there the double click begins the editing; the form is then opened by the column «Record» and by the read-only cells. If the query carries `WITHOUT ID`, the column «Record» is missing, and in such a row only a read-only cell opens the form. A reference in a cell opens the form of its target, as everywhere, and for a card its document.
 
 **Viewing locks nothing.** Otherwise a list with hundreds of records would lock them all with every glance; only the row whose editing begins is locked.
 
@@ -836,6 +839,151 @@ Four promises apply, and three of them say what does **not** happen:
 
 The mechanism behind this is the same as for [splitting large documents](document-parts.md); for table files only the threshold and the cutting point differ.
 
+## Card form
+
+**The card form is meant for records with an identity of their own, not for many uniform rows.** It is chosen by the nature of the record, not by the quantity: a person, a project or a customer with notes and attachments of its own gets a card of its own; loans, bookings or measurements stay in the record block. The card form is no mass storage, because every card is a file of its own, and the application reads and checks each one separately.
+
+In the card form every record stands in a document of its own, the **card**. Its fields stand in the frontmatter, and below them there is room for free text, images and links to attachments as in any other document. The table file then carries only the definition.
+
+### The table file of a card index
+
+The setting `storage` on the top level of the container `db-table` chooses the form:
+
+```yaml
+---
+db-table:
+  storage: cards
+  fields:
+    - name: name
+      type: string
+      required: true
+    - name: born
+      type: date
+  key: name
+  display: name
+  lastId: 3
+---
+```
+
+- `table` or no setting: the table form with the record block, as described in the sections above.
+- `cards`: the card form. The spelling counts, `Cards` is not valid. An unknown value counts as the table form, and the application reports it with a hint.
+
+The body of the table file needs no record block; what stands there is free text, for instance a description of the table. If a record block stands there nevertheless, it stays visible and carries the hint that its rows do not count as records: they appear in no query and are not checked, and the consistency check lists the block as a finding.
+
+The database overview names «Table» or «Card index» in the column **«Storage»** and, for a card index table, the number of its cards, for instance «3 cards».
+
+### What a card is
+
+A card carries its identifier under `db-record` in its frontmatter, and next to it the fields of the table:
+
+```yaml
+---
+db-record: r-00001
+name: Ada Lovelace
+born: 1815-12-10
+---
+```
+
+A card belongs to the table through its location alone: it lies in the **same folder** as the table file. The name of the table file plays no part; if the file is renamed, the cards remain its own. Three limits apply:
+
+- Documents in **subfolders** do not belong to it.
+- **Files of the database** are not cards: the table file itself, further table files, form and query files and the fact sheet.
+- A document **without identifier** is not a card. The consistency check reports it, as well as a setting `db-record` without a usable identifier; documents in the templates folder it does not report.
+
+If **two card index tables lie in the same folder**, the consistency check reports this at both, and neither of them receives the documents of the folder; a folder therefore carries at most one card index table. A table in table form in the same folder does no harm. If two cards carry the same identifier, the check reports each of them.
+
+### Values in the frontmatter
+
+The values of a card are read by the type of their column, exactly like the cells of a record block: a value that does not match its type is the same error as in a cell. Field names apply regardless of upper and lower case, a boolean stands as `true` or `false`, and a list becomes a text whose entries are separated by a comma and a space, because a column knows no multi-valued values. A reference stands in quotation marks, for instance `mentor: "[[Mary Somerville]]"`; without them the frontmatter reads a nested list, and the value is dropped. Further settings in the frontmatter, such as tags, remain ordinary properties of the document.
+
+**Fields of the same name in a property profile.** A card is a document and can therefore also be assigned to property profiles. For the database only the definition of the table counts: a profile field of the same name is no database field and does not change how the value is read. If it has the same type as the column, everything stays quiet; if it has a different one, the consistency check names the field, the profile and both types.
+
+### Queries and references
+
+A record query names the card index table as its source like any other table, for instance `TABLE RECORDS name, born FROM "Authors"`, and reads the cards as rows. Condition, sorting, grouping and paths through reference fields apply as in the table form, and a card index table without cards yields the empty set. The search across the area also finds the field values of the cards as record matches.
+
+A reference column whose `table` names a card index table reaches a card through its identifier or the value of its single-part key, as described in the section «Relationships between tables». A reference in the text holds likewise: `[[Authors#^r-00001]]`, the short form `[[Authors#^r-1]]` and the display form `[[Authors#^Ada Lovelace]]`.
+
+**On the level of files** a card remains an ordinary document: a query over files lists it with its frontmatter as written, without interpretation by the table.
+
+### Creating, changing and deleting
+
+**«New card»** stands in the database overview in the row of every card index table, provided your role permits creating. The application asks for the key, which also becomes the name of the file, and creates the document `<key>.md` in the folder of the table, with the next identifier and a skeleton of all fields of the table, empty except for the key; the high-water mark `lastId` rises. The skeleton is created empty even if the table has further required fields: the requirement applies when changing, and until then the consistency check reports the empty field. If the table has no single-part key, the name becomes only the name of the file. Rejected are a name that is not a valid file name, a name under which a file already lies in the folder, and a key that is already taken; the status bar names the reason.
+
+The command **«New card in the active card index table»** in the command palette acts on the table of the active document if that is a card index table or a document in its folder. A button **«New record»** does not exist at a card index table, and the command «New record in the active table» creates nothing in it; its message points to «New card».
+
+**«Add as card»** stands at the finding about a document without identifier in the consistency check, and the command **«Add active document as a card»** acts on the active document. The application enters the next identifier as `db-record` and changes nothing else in the document; afterwards the check runs again. A document outside the folder, a file of the database and a document that already carries an identifier are not taken on.
+
+**Changing through the database** rewrites only the lines of the changed fields in the frontmatter. Free text, links to attachments and other settings stay character for character, a missing setting is added as a new line, and a value that would be read differently without quotation marks stands in quotation marks. As in the table form, all rules of the table apply, and so does the comparison with the state read: if someone has changed the card in the meantime, the application does not save for the time being.
+
+**Deleting through the database** moves the card together with its change record file to the trash of the operating system. The deletion protection applies as for every record: a card that a reference column still points to cannot be deleted. What happens to its change records is described in the next section.
+
+### Change records of a card
+
+The change records of a card stand in a change record file of its own beside it, under its name with the extension `.mddl`: `Ada Lovelace.md` has `Ada Lovelace.mddl`. What the section «Change records» describes applies to it. It appears in no file list, is only appended to and moves along when you rename or move the card inside the application; merging follows the limits of the table, that is its setting `changeLog`. The page «Change records» of a record shows, for a card, the records from this file.
+
+If a card is deleted through the database, its trail is not lost with it: before card and change record file go to the trash, the application appends the change records together with the deletion record to the change record file of the table file. The page «Change records» then shows them there, filtered by the identifier. A new card of the same name starts with an empty trail.
+
+### The card in the editor and in the area panel
+
+**When saving, the application checks the card**, whether you changed it in the editor or in the «Properties» sidebar and whether you save by hand, with «Save As» or through automatic saving. The check is the same as in the consistency check: a missing required value, a value that does not match its type or violates a field rule, a reference that hits no record, a violated rule under `checks` and a key that another card already carries. **The card is saved in every case**: the check rejects nothing and produces no change record. What it finds appears in three places:
+
+- The **status bar** reports the number of findings after saving, with automatic saving only when the findings have changed.
+- In the **«Properties»** sidebar, every affected field carries a hint whose tooltip names the finding.
+- In **reading view**, the frontmatter line carries a mark with the number of findings on its right, whose tooltip names them all.
+
+After the fix, hint and mark disappear with the next save. Until then the findings stand; if the application reloads the card after a change from outside, it discards them, and with the end of the session they are gone. A duplicate identifier, a profile field with a different type and a second card index table in the folder are still reported by the consistency check alone.
+
+**Deleting in the area panel** takes the route of the database for a card, and the confirmation says so, with the name of the table. If another record refers to the card through a reference column, the deletion does not take place: the file stays untouched, its open document stays open, and the status bar names the card and the reason. Otherwise its change records pass to the table together with the deletion record, and the card goes to the trash with its change record file. If it is open and unsaved, the application saves it first and closes its document only after the deletion. The same rules apply as when deleting through the database, including the permissions.
+
+**Copying in the area panel** creates a new card through the database. Like every copy in the area panel, the copy gets the name of the original with a number appended, for instance `Ada Lovelace-1.md`, and the next identifier; its key is this name, and the other fields, other settings in the frontmatter and the free text come from the original. The change records of the original do not come along: the copy starts with its creation record in a change record file of its own. If the name is already taken as a file or as a key, the application takes the next number. If it rejects the creation for another reason, for instance because your role does not permit it, no copy is created, and the status bar names the reason.
+
+**Renaming** changes only the name of the file, not the key. When a card is created or copied the two are the same; afterwards they may differ, and the consistency check does not report that. Identifier, display form and the references of the database depend on the frontmatter, not on the name of the file, and the change record file moves along. To change the key, change the field.
+
+### Views on a card
+
+A table in card form can name **views**: query files that the application shows below every card, for instance the books of an author. The list `views` on the top level of the container `db-table` names them by their name without extension, also with folders in front; they are compared as with the setting `form`.
+
+```yaml
+---
+db-table:
+  storage: cards
+  fields:
+    - name: name
+      type: string
+  key: name
+  views:
+    - Books by this author
+---
+```
+
+The view itself is an ordinary query file (section «Query files»). It may lie in the folder of the cards, because a file of the database is not a card. In its query `this.` means the card below which it is shown:
+
+```perspective-query
+TABLE RECORDS pages FROM "Books" WHERE author = this.name SORT pages DESC
+```
+
+In **reading view**, every view stands below the frontmatter and before the free text, as a block with the label «View» and the name of the query file in its header line; a click on the name opens the query file. The block is a view: it cannot be edited, and nothing is written to the file of the card. The Live view shows no view. The result refreshes like any query when the data change; a change to the query file itself appears the next time the card is drawn.
+
+**Opened on its own**, `this.` means the query file itself, as in every query file; the query above finds nothing there, because the file has no field `name`. The same holds for an embedding: if a card embeds the file with `![[Books by this author]]`, `this.` means the query file and not the card. Only the setting `views` makes the card the reference.
+
+The database overview names the views of every table in the column **«Views»**. If there is no file or no query file for a name, it is struck through there, a hint appears among the issues, and below every card a message with its name appears in place of the view. While the area is still being read after it was opened, a view appears only the next time the card is drawn.
+
+### Forms and click target of a card
+
+**For a card, the document is the first view.** A record match of the search across the area, a record or a reference in the result of a query, in the Rendered, Split and Live views, and a reference in the text such as `[[Authors#^r-00001]]` open the document of the card in the active column, not its form. If the card cannot be determined, the click opens the form. For a table in table form, the form remains the target.
+
+The form applies to a card index table as to any other: the default form, the list form over the card index table and the line items section of a form whose line items are cards. The row of a list form and that of a line items section still open the form of the record; a reference in one of their cells opens the document for a card. A click on a record in the consistency check also opens the form.
+
+Two actions lead back and forth between document and form:
+
+- In the form of a card, **«Open card»** stands in the header in place of «Show in table document» and opens its document in the active column. Like the action it replaces, it is offered only while reading and not for a new record.
+- The command **«Open in form»** in the command palette opens the form of the card that is the active document. On any other document it cannot be chosen, nor while the area is still being read after it was opened.
+
+### Limits of the card form
+
+Saving, deleting, copying and renaming in the application know the card. Other routes on which a document is written do not know it: replacing across the area, appending journal entries and events, moving the chapters of a book, importing a JSON Canvas file and every change outside the application, such as deleting in the file manager or editing with another editor. What happens to a card on these routes is checked by nobody at the moment of the change, it produces no change record, and deleting happens without deletion protection and without its change records going to the table. The consistency check finds the consequences, for instance a value against a rule, a reference that no longer hits a record, or a document without identifier. Saving in the editor of the application also only reports and produces no change record; a change to the frontmatter is noticed only by the next change through the database, which then does not save for the time being (section «Change records»).
+
 ## The fact sheet of the database
 
 A database describes itself in the container `db-database` in the frontmatter of a document of its own:
@@ -871,7 +1019,7 @@ A database area gets two things an ordinary area does not have.
 
 In an area without a database none of these ways is offered.
 
-In the list of tables, the column **«Form»** names the form file of a table and stays empty for the generated form. In addition the overview carries four actions: **«Check consistency»** in the header for all tables, and in the row of every table **«New record»**, **«Check»** and **«Usage»**. What they do is described in the sections «Editing records in the form», «Consistency check» and «Usage of tables and records». The section **«Queries»** names every query file with its name and its location, the folder relative to the root of the area, and **«Open»** opens it like any document; if the area holds none, an explanatory sentence stands there. The issues also include the hints on form and query files, named after the file. The column **«Kind»** of the section «Queries» tells an ordinary «Query» from a «List form» and names the permitted actions for the latter; if it permits none, it reads «List form, read only». In the fact sheet block the overview also names the own role and, if the fact sheet carries roles, these too with their permissions, and below each table the permissions of the own role (section «Permissions»).
+In the list of tables, the column **«Form»** names the form file of a table and stays empty for the generated form. In addition the overview carries four actions: **«Check consistency»** in the header for all tables, and in the row of every table **«New record»**, **«Check»** and **«Usage»**. What they do is described in the sections «Editing records in the form», «Consistency check» and «Usage of tables and records». The section **«Queries»** names every query file with its name and its location, the folder relative to the root of the area, and **«Open»** opens it like any document; if the area holds none, an explanatory sentence stands there. The issues also include the hints on form and query files, named after the file. The column **«Kind»** of the section «Queries» tells an ordinary «Query» from a «List form» and names the permitted actions for the latter; if it permits none, it reads «List form, read only». In the fact sheet block the overview also names the own role and, if the fact sheet carries roles, these too with their permissions, and below each table the permissions of the own role (section «Permissions»). The column **«Storage»** reads «Table» or «Card index», for a card index table with the number of its cards, and in its row the button «New card» stands instead of «New record» (section «Card form»). The column **«Views»** names the views of a table in card form, and a view without a query file is struck through there.
 
 **The settings section «Database»** sits in the navigation group «Current area» (File → Settings… → Current area → Database; with a book open the group is called **Current book**, with a bookshelf open **Current bookshelf**). It shows the same information in short form, that is name and description of the database, the number of its tables and the number of issues, and it carries one option: **«Show the overview when the area is opened»**. If it is set, the overview opens by itself as soon as the area is bound. The option lives in the area file and travels with the area folder. In addition there is the field **«Name of the lock folder»**; it is described in the section «Locks».
 
@@ -897,6 +1045,8 @@ The same soft line applies to roles, default role and assignment in the fact she
 
 If a table holds records but no high-water mark `lastId` or one that is too low, the application still issues no identifier twice: a new record draws the next number above the highest existing identifier and then updates the high-water mark. The consistency check names the case as a hint.
 
+The same soft line applies to the card form. A value of the setting `storage` other than `table` and `cards` counts as `table` and is reported with a hint. A setting `db-record` without a usable identifier does not make a document a card, and a record block in a card index table holds no records; the consistency check reports both. The setting `views` follows the same line: if it is not a list, it is dropped entirely, and an entry that is not a name is dropped on its own; both appear as a hint among the issues. If an entry names a file that does not exist or that is not a query file, a hint also appears among the issues, and below every card a message with its name appears in place of the view.
+
 ## Switching the database off
 
 The entire database is an [internal extension](extensions.md) named «Database» in the category Tools and can be switched off with a single switch. It requires the [Property Profiles](property-profiles.md), because the shape of a table definition is described and checked through an internal profile; as long as the database is switched on, that basis therefore cannot be switched off.
@@ -912,6 +1062,7 @@ When switched off, the following applies:
 - The **search across the area yields no record matches**. Records stay excluded from the full text, because that boundary belongs to the table file and not to the switch; across the area, records then cannot be found.
 - A **form** that was open on exit does not return at start. Its entry in the session rests and brings it back with the next start after switching on (section «After a restart»).
 - **Roles, default role and assignment** stay mere frontmatter of the fact sheet, as does a setting `editable` on a field: there is no resolution and no check, not even when a changed definition is saved.
+- A **table in card form** is no longer read as such: `storage` and `db-record` stay mere frontmatter, and the cards ordinary documents. With the overview «New card» is dropped, with the consistency check «Add as card», and the commands «New card in the active card index table» and «Add active document as a card» disappear from the command palette. When a card is saved, the application checks nothing, the area panel deletes it with the usual confirmation and copies it like any file, no views appear, and the command «Open in form» disappears from the command palette.
 - **Nothing is written.** The application creates, changes and deletes no records, takes no lock and produces no change record; nor does it complete a save operation left unfinished while it is switched off.
 
 **The files remain untouched.** Switching off takes away the interpretation, not the data: not a single character is changed, and switching it on brings everything back. The area index is rebuilt once in the process; in large holdings that takes a moment.

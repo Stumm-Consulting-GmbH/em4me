@@ -162,6 +162,22 @@ export function setzeGestaltung(slide, kopf, gestaltung = null) {
   return { name: theme.name, befunde: theme.befunde };
 }
 
+/**
+ * Die Hell-Dunkel-Angabe der Folie, in der ein Element steht (4T-002323):
+ * `light` oder `dark`, wie `setzeGestaltung` sie nach dem Farbsatz des Themes
+ * an die Folie schreibt; ausserhalb einer Folie null. Die Zeichner der Folie
+ * reichen sie den Diagrammen herein, damit Mermaid und Diagramme zu Tabellen
+ * dem Theme der Folie folgen und nicht dem der Anwendung.
+ *
+ * @param {Element|null} element
+ * @returns {'light'|'dark'|null}
+ */
+export function helligkeitDerFolie(element) {
+  const slide = element && element.closest ? element.closest(`.${SLIDE_KLASSE}`) : null;
+  const satz = slide ? slide.dataset.theme : null;
+  return SYNTAX_SAETZE.includes(satz) ? satz : null;
+}
+
 // Ein Schnipsel ueber die Pipeline; ein Fehler darin laesst ihn leer, die
 // Folie erscheint ohne ihn.
 function sicherGerendert(render, markdown) {

@@ -4224,6 +4224,27 @@
       "hinweis": "4T-001939 (Epic 3E-000257): Kommando ohne Default-Kuerzel, ohne Menue-Eintrag (Paletten-Weg, belegbar): eroeffnet in der Tabelle des aktiven Reiters eine Neuanlage und oeffnet die Einzel-Maske mit der gezogenen Kennung. DB-MAS-01 zeigt die Neuanlage aus der Uebersicht mit der gezogenen Kennung und dem nachgezogenen Hochwasserstand; der Paletten-Weg selbst laeuft ueber denselben Einstieg (neuerDatensatzFuerAktivenReiter), gedeckt durch den Paletten-Waechter der Kommando-Verfuegbarkeit. Die Katalog-Zeile der Funktion (help.feature.*) entsteht mit ihrem Matrix-Eintrag im Hilfe- und Handbuch-Task 4T-001946."
     },
     {
+      "key": "help.shortcut.databaseNewCard",
+      "id": "S-172",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/datenbank-kartei.spec.js"],
+      "hinweis": "4T-002389 (Epic 3E-000265): Kommando ohne Default-Kuerzel, ohne Menue-Eintrag (Paletten-Weg und Knopf in der Uebersicht der Datenbank): legt im Ordner einer Kartei-Tabelle eine neue Karteikarte mit Kennung und leerem Feld-Geruest an; belegt durch DB-KAR-04."
+    },
+    {
+      "key": "help.shortcut.databaseAdoptCard",
+      "id": "S-173",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/datenbank-kartei.spec.js"],
+      "hinweis": "4T-002389 (Epic 3E-000265): Kommando ohne Default-Kuerzel, ohne Menue-Eintrag (Paletten-Weg und Knopf am Befund der Konsistenz-Pruefung): traegt die Kennung in den Dateikopf eines Dokuments ohne Kennung im Ordner einer Kartei-Tabelle ein; Ablauf-Nachweis folgt mit DB-KAR-05."
+    },
+    {
+      "key": "help.shortcut.databaseOpenInForm",
+      "id": "S-174",
+      "testart": "e2e",
+      "tests": ["test/e2e/funktionen/datenbank-kartei-schreibwege.spec.js"],
+      "hinweis": "4T-002406 (Epic 3E-000266, F7 A): Kommando ohne Default-Kuerzel, ohne Menue-Eintrag (Paletten-Weg, belegbar): oeffnet die Einzel-Maske des Datensatzes, den das aktive Dokument als Karteikarte traegt; an einem Dokument, das keine Karteikarte ist, nicht verfuegbar (menuefreie Bedingung karteikarte). Belegt durch DB-KAS-05; die Verfuegbarkeit zusaetzlich durch den Paletten-Waechter der Kommando-Verfuegbarkeit."
+    },
+    {
       "key": "help.shortcut.databaseCheckConsistency",
       "id": "S-156",
       "testart": "e2e",
@@ -4557,6 +4578,123 @@
       ],
       "sichtbarkeit": "sichtbar nach dem Neustart als Masken-Dokument an seiner Stelle unter den geöffneten Dokumenten der Spalte, bei fehlendem Datensatz mit Hinweis und Handgriff «Tabelle öffnen»; bei abgeschalteter Datenbank ohne Masken-Dokument, nach dem Einschalten mit dem nächsten Start zurück",
       "hinweis": "4T-002334 (Epic 3E-000264): Sicherung und Wiederherstellung des Masken-Dokuments mit der Sitzung. DB-SIT-01 zeigt dasselbe Buch an derselben Stelle nach dem Neustart, DB-SIT-02 den Hinweis und «Tabelle öffnen» bei gelöschtem Datensatz, DB-SIT-03 den ruhenden Eintrag bei abgeschalteter Datenbank und seine Rückkehr; sitzungs-maske.test.js trägt Eintrag, Position, aktiven Reiter, Neuanlage, ruhenden Eintrag und Übergabe beim Zusammenlegen. Testart e2e, weil die Wiederherstellung erst über einen echten Neustart sichtbar wird. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002336 entstanden."
+    },
+    {
+      "key": "help.feature.databaseCardForm",
+      "id": "F-378",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-kartei.spec.js",
+        "test/unit/db-table-definition.test.js",
+        "test/unit/db-kartei-form.test.js",
+        "test/unit/db-katalog.test.js",
+        "test/unit/renderer/datenbank-uebersicht-seite.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in der Übersicht der Datenbank als Spalte «Form» mit «Tabelle» oder «Kartei» und bei einer Kartei-Tabelle der Zahl ihrer Karteikarten, in der Lese-Ansicht als Hinweis an einem Datensatz-Block einer Kartei-Tabelle und in der Konsistenz-Prüfung als Befund zu diesem Block",
+      "hinweis": "4T-002386 (Epic 3E-000265): die Angabe storage mit den Werten table und cards, die Tabellen-Datei ohne Datensatz-Körper und der Datensatz-Block einer Kartei-Tabelle als Hinweis und Befund. DB-KAR-01 zeigt zwei Kartei-Tabellen in der Übersicht mit der Form «Kartei» und genau einen Befund an der Tabelle mit Datensatz-Block; db-table-definition.test.js trägt die Auslegung der Angabe samt Hinweis bei unbekanntem Wert, db-kartei-form.test.js Hinweis, Befund, Index und Datensatz-Lesen, db-katalog.test.js das Feld storage im Überblick, datenbank-uebersicht-seite.test.js die Spalte «Form». Testart e2e, weil Übersicht und Prüfung erst mit dem laufenden Bereich zusammenwirken. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002391 entstanden."
+    },
+    {
+      "key": "help.feature.databaseCardAssignment",
+      "id": "F-379",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-kartei.spec.js",
+        "test/unit/db-karteikarte.test.js",
+        "test/unit/db-kartei-index.test.js",
+        "test/unit/db-kartei-form.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in der Übersicht der Datenbank als Zahl der Karteikarten einer Kartei-Tabelle und in der Konsistenz-Prüfung als Befund zu einem Dokument ohne oder mit unbrauchbarer Kennung, zu einer doppelten Kennung, zu einem Profil-Feld mit anderem Typ und zu zwei Kartei-Tabellen in einem Ordner",
+      "hinweis": "4T-002387 (Epic 3E-000265): Erkennung der Karteikarte über db-record im selben Ordner, Erfassung im Index, Auslegung der Werte nach dem Typ der Spalte und Kollisions-Regel zu den Eigenschafts-Profilen. DB-KAR-02 zeigt zwei Karteikarten in der Übersicht und genau einen Befund zum Dokument ohne Kennung; db-karteikarte.test.js trägt Erkennung, Ausschlüsse, Werte und Typ-Vergleich, db-kartei-index.test.js Erfassung, Neu-Erfassung und Zählung, db-kartei-form.test.js die Befunde samt Profil-Feld mit anderem Typ. Testart e2e, weil Erfassung und Zählung erst mit dem laufenden Index sichtbar werden. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002391 entstanden."
+    },
+    {
+      "key": "help.feature.databaseCardQuery",
+      "id": "F-380",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-kartei.spec.js",
+        "test/unit/db-kartei-abfrage.test.js"
+      ],
+      "sichtbarkeit": "sichtbar im Ergebnis einer Datensatz-Abfrage mit der Kartei-Tabelle als Quelle, eine Zeile je Karteikarte, in einer Verweis-Spalte einer anderen Tabelle als aufgelöster Verweis auf eine Karteikarte und in der Suche über den Bereich als Datensatz-Treffer",
+      "hinweis": "4T-002388 (Epic 3E-000265): die Kartei-Tabelle als Quelle der Datensatz-Ebene, Verweis-Spalte und Verweis im Text auf eine Karteikarte, die Datei-Ebene unverändert. DB-KAR-03 zeigt einen Abfrage-Block über die Kartei-Tabelle mit zwei Zeilen und eine Verweis-Spalte mit Kennung, Kurzform und Ziel ins Leere; db-kartei-abfrage.test.js trägt typisierte Werte, Bedingung, Sortierung, Gruppierung, Pfade über Verweis-Felder, Vorlagen-Ausschluss, Zwischenspeicher, Kennung, Kurzform und Anzeige-Form im Index, Datei-Ebene und Datensatz-Suche. Testart e2e, weil die Zeilen erst mit dem echten Index und dem Abfrage-Block zusammenkommen. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002391 entstanden."
+    },
+    {
+      "key": "help.feature.databaseCardWrite",
+      "id": "F-381",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-kartei.spec.js",
+        "test/unit/db-kartei-schreibweg.test.js",
+        "test/unit/db-karteikarte.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in der Übersicht der Datenbank als Schaltfläche «Neue Karteikarte» je Kartei-Tabelle mit Namens-Dialog, in der Konsistenz-Prüfung als Schaltfläche «Als Karteikarte aufnehmen» am Befund zum Dokument ohne Kennung, als neue oder geänderte Datei im Ordner der Tabelle und als Meldung in der Statuszeile",
+      "hinweis": "4T-002389 (Epic 3E-000265): das zweite Schreib-Ziel der Schreib-Schnittstelle für Karteikarten mit Anlegen, Aufnehmen, Ändern allein der geänderten Zeilen des Dateikopfs und Löschen in den Papierkorb. DB-KAR-04 legt über «Neue Karteikarte» eine Karteikarte an, ändert eine bestehende über die Kanäle der Maske, wobei allein ihre Feld-Zeile sich ändert, und weist eine Schlüssel-Dublette ab; DB-KAR-05 löscht eine Karteikarte über die Datenbank (Schnitt 2 von 4T-002389); db-kartei-schreibweg.test.js trägt Bestand, Wertehilfe, Verweis-Regel, Stand-Vergleich, zeichengleiches Ändern, Anlegen samt Abweisungen, Aufnehmen und Wiederanlauf, db-karteikarte.test.js das Ersetzen der Zeilen des Dateikopfs. Testart e2e, weil Handgriff, Datei und Übersicht erst in der laufenden Anwendung zusammenwirken. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002391 entstanden."
+    },
+    {
+      "key": "help.feature.databaseCardChangeLog",
+      "id": "F-382",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-kartei.spec.js",
+        "test/unit/db-kartei-schreibweg.test.js",
+        "test/unit/db-change-log.test.js",
+        "test/unit/db-beleg-kanal.test.js",
+        "test/unit/begleit-dateien-mitziehen.test.js"
+      ],
+      "sichtbarkeit": "sichtbar als Datei <Name>.mddl neben der Karteikarte, die beim Umbenennen und Verschieben mitzieht, und auf der Seite «Änderungsbelege» des Datensatzes, auch nach dem Löschen der Karteikarte über die Datenbank",
+      "hinweis": "4T-002390 (Epic 3E-000265): die Beleg-Datei neben der Karteikarte, die Übertragung der Belege an die Beleg-Datei der Tabelle vor einer Löschung, die Auflösung der Beleg-Ansicht und das Mitziehen. DB-KAR-06 zeigt die Beleg-Datei neben der Karteikarte nach einer Änderung, die Beleg-Ansicht über Tabelle und Kennung und das Mitziehen beim Umbenennen; db-kartei-schreibweg.test.js trägt den Ort der Belege, Kette, Verdichtung und Wiederanlauf, db-change-log.test.js die Übertragung, db-beleg-kanal.test.js die Ansicht samt gelöschter Karteikarte, begleit-dateien-mitziehen.test.js Umbenennen und Verschieben. Testart e2e, weil Beleg-Datei, Ansicht und Mitziehen erst in der laufenden Anwendung zusammenwirken. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002391 entstanden."
+    },
+    {
+      "key": "help.feature.databaseCardEditCheck",
+      "id": "F-388",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-kartei-schreibwege.spec.js",
+        "test/unit/db-kartei-speicher-pruefung.test.js",
+        "test/unit/renderer/kartei-befunde-anzeige.test.js"
+      ],
+      "sichtbarkeit": "sichtbar nach dem Speichern einer Karteikarte als Meldung in der Statuszeile mit der Zahl der Befunde, als Hinweis am betroffenen Feld der Seitenleiste «Properties» und als Zeichen mit Zahl in der Dateikopf-Zeile der Lese-Ansicht; nach dem Beheben und erneuten Speichern entfallen Hinweis und Zeichen",
+      "hinweis": "4T-002404 (Epic 3E-000266): die Prüfung einer Karteikarte nach dem Schreiben in file:save und file:saveAs mit denselben Funktionen wie die Konsistenz-Prüfung, ohne den Ausgang des Speicherns zu ändern, und die Anzeige an drei Orten. DB-KAS-01 setzt im Demo-Bereich das Datums-Feld born von «Umberto Eco» auf einen Text, speichert und prüft Datei, Statuszeile, Hinweis am Feld und Zeichen der Dateikopf-Zeile, danach das Beheben; db-kartei-speicher-pruefung.test.js trägt Umfang, Ausschlüsse, Gleichheit mit der Konsistenz-Prüfung, Fehler-Abschirmung, Speichern unter und Aus-Zustand, kartei-befunde-anzeige.test.js die drei Anzeige-Orte samt Rücknahme. Testart e2e, weil die Befunde im Haupt-Prozess entstehen und erst in der laufenden Anwendung an drei Orte des Anzeige-Prozesses reisen. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002408 entstanden."
+    },
+    {
+      "key": "help.feature.databaseCardDocumentPaths",
+      "id": "F-389",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-kartei-schreibwege.spec.js",
+        "test/unit/db-kartei-weichen.test.js",
+        "test/unit/renderer/datei-loeschen-hinweis.test.js",
+        "test/unit/db-kartei-form.test.js"
+      ],
+      "sichtbarkeit": "sichtbar im Kontextmenü des Bereichs-Panels an einer Karteikarte: die Rückfrage vor dem Löschen nennt den Weg über die Datenbank, eine Abweisung steht mit Name und Grund in der Statuszeile, eine angenommene Löschung entfernt Karteikarte und Beleg-Datei, und eine Kopie erscheint als neue Karteikarte mit eigener Kennung",
+      "hinweis": "4T-002405 (Epic 3E-000266): Löschen und Kopieren einer Karteikarte im Bereichs-Panel als Auftrag an die Schreib-Schnittstelle, Umbenennen ohne Kopplung an den Schlüssel. DB-KAS-02 weist das Löschen der verwiesenen Karteikarte «Umberto Eco» mit Grund ab, lässt ihr geöffnetes Dokument stehen und löscht eine nicht verwiesene samt Beleg-Datei, deren Belege an die Tabelle gehen; DB-KAS-03 kopiert «Stanisław Lem» zu einer Karteikarte mit neuer Kennung, eigenem Schlüssel und Anlege-Beleg; db-kartei-weichen.test.js trägt beide Weichen an den echten Kanälen samt Rückfrage, Namensfindung, Abweisung und Aus-Zustand, datei-loeschen-hinweis.test.js Meldungen und Reihenfolge im Anzeige-Prozess, db-kartei-form.test.js das erlaubte Auseinanderlaufen von Dateiname und Schlüssel. Testart e2e, weil Kontextmenü, Rückfrage, Papierkorb und Statuszeile erst in der laufenden Anwendung zusammenwirken. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002408 entstanden."
+    },
+    {
+      "key": "help.feature.databaseCardViews",
+      "id": "F-390",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-kartei-schreibwege.spec.js",
+        "test/unit/db-sichten.test.js",
+        "test/unit/renderer/karteikarte-sichten.test.js",
+        "test/unit/demo-area.test.js"
+      ],
+      "sichtbarkeit": "sichtbar in der Lese-Ansicht einer Karteikarte als Block mit der Marke «Sicht» und dem Namen der Abfrage-Datei unter dem Dateikopf und vor dem freien Text, in der Übersicht der Datenbank als Spalte «Sichten» und bei einer fehlenden Abfrage-Datei als Meldung an der Stelle der Sicht und als Hinweis unter den Fehlerlagen",
+      "hinweis": "4T-002407 (Epic 3E-000266): die Angabe views der Tabellen-Definition, ihre Zuordnung im Katalog, die Spalte der Übersicht und die Einblendung mit der Karteikarte als Bezug von this. DB-KAS-06 zeigt unter «Umberto Eco» genau einen Block mit seinen beiden Büchern aus «Library», nichts Bearbeitbares, eine zeichengleiche Datei und keinen Block in der Live-Ansicht; db-sichten.test.js trägt Auslegung, Hinweise und Zuordnung, karteikarte-sichten.test.js Lage, Bezug, Meldung, Ränder und Aus-Zustand, demo-area.test.js die Sicht der Demo. Testart e2e, weil der Block die eingebettete Abfrage erst in der laufenden Anwendung mit dem Index füllt (zugleich die Laufzeit-Prüfung einer eingebetteten Abfrage). Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002408 entstanden."
+    },
+    {
+      "key": "help.feature.databaseCardMasks",
+      "id": "F-391",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/datenbank-kartei-schreibwege.spec.js",
+        "test/unit/renderer/karteikarte-ansichten.test.js",
+        "test/unit/renderer/masken-fehlt.test.js",
+        "test/unit/db-datensatz-kanal.test.js",
+        "test/unit/db-liste-kanal.test.js",
+        "test/unit/db-positionsliste-kanal.test.js"
+      ],
+      "sichtbarkeit": "sichtbar als geöffnetes Dokument der Karteikarte nach dem Klick auf einen Datensatz-Treffer, einen Datensatz oder einen Verweis, im Kopf der Maske als Handgriff «Karteikarte öffnen» statt «Im Tabellen-Dokument zeigen», in der Kommando-Palette als «In der Maske öffnen» und als Gitter einer Listen-Maske über eine Kartei-Tabelle",
+      "hinweis": "4T-002406 (Epic 3E-000266): der Nachweis von Listen-Maske, Positions-Bereich und Standard-Maske über Kartei-Tabellen, das Klick-Ziel und die beiden Handgriffe. DB-KAS-04 zeigt eine Listen-Maske über «Authors» mit Zähl-Zeile, Aktions-Spalte und drei Zeilen, deren Zeile die Maske öffnet; DB-KAS-05 öffnet über einen Treffer der Suche das Dokument, über «In der Maske öffnen» die Maske und über «Karteikarte öffnen» wieder das Dokument; karteikarte-ansichten.test.js trägt die Weiche auf allen Klick-Wegen und das Kommando, masken-fehlt.test.js den Handgriff, db-datensatz-kanal.test.js den Kanal database:karteikarte, db-liste-kanal.test.js und db-positionsliste-kanal.test.js die Gleichheit der Auskünfte über beide Ablage-Formen. Testart e2e, weil Klick, Kanal und geöffnetes Dokument erst in der laufenden Anwendung zusammenkommen. Die Katalog-Zeile ist im Hilfe- und Handbuch-Task 4T-002408 entstanden und ergänzt die Kürzel-Zeile S-174 (help.shortcut.databaseOpenInForm)."
     },
     {
       "key": "help.feature.databaseConsistency",

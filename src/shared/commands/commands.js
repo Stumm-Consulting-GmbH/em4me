@@ -781,6 +781,37 @@ const COMMANDS = [
     availability: 'area',
   },
   {
+    // 4T-002389 (Epic 3E-000265, F4 A): Neue Karteikarte in der Kartei-Tabelle
+    // des aktiven Dokuments (die Tabellen-Datei selbst oder ein Dokument in ihrem
+    // Ordner), im Zuschnitt der Neuanlage: ohne Menue-Eintrag und ohne
+    // Default-Binding; gehoert das aktive Dokument zu keiner Kartei-Tabelle,
+    // meldet die Statuszeile es. Die Antwort darauf kommt aus dem Ueberblick der
+    // Datenbank, den der Menue-Zustand nicht fuehrt; deshalb die Bedingung 'area'.
+    id: 'database.newCard',
+    defaultBindings: [],
+    labelKey: 'command.database.newCard',
+    descKey: 'help.shortcut.databaseNewCard',
+    categoryKey: 'help.group.editing',
+    menu: false,
+    editorScoped: false,
+    availability: 'area',
+  },
+  {
+    // 4T-002389 (Epic 3E-000265, F4 A): Das aktive Dokument als Karteikarte
+    // aufnehmen, wie der Knopf am Befund der Konsistenz-Pruefung; Zuschnitt und
+    // Bedingung wie bei der neuen Karteikarte. Ob das Dokument im Ordner einer
+    // Kartei-Tabelle liegt und noch keine Kennung traegt, pruefen Handgriff und
+    // Schreib-Schnittstelle und melden es.
+    id: 'database.adoptCard',
+    defaultBindings: [],
+    labelKey: 'command.database.adoptCard',
+    descKey: 'help.shortcut.databaseAdoptCard',
+    categoryKey: 'help.group.editing',
+    menu: false,
+    editorScoped: false,
+    availability: 'area',
+  },
+  {
     // 4T-001944 (Epic 3E-000257): Konsistenz-Pruefung aller Tabellen des
     // Bereichs, Ergebnis in der Uebersicht; ohne Menue-Eintrag und ohne
     // Default-Binding (Palette, Kuerzel belegbar), wie die Neuanlage.
@@ -792,6 +823,21 @@ const COMMANDS = [
     menu: false,
     editorScoped: false,
     availability: 'area',
+  },
+  {
+    // 4T-002406 (Epic 3E-000266, F7 A): Die Einzel-Maske der Karteikarte im
+    // aktiven Dokument, ohne Menue-Eintrag und ohne Default-Binding (Palette,
+    // Kuerzel belegbar). Verfuegbar nur an einer Karteikarte; die Antwort kommt
+    // aus dem Ueberblick der Datenbank und dem Dateikopf des Reiters, die der
+    // Menue-Zustand nicht fuehrt, deshalb die menuefreie Bedingung 'karteikarte'.
+    id: 'database.openInForm',
+    defaultBindings: [],
+    labelKey: 'command.database.openInForm',
+    descKey: 'help.shortcut.databaseOpenInForm',
+    categoryKey: 'help.group.view',
+    menu: false,
+    editorScoped: false,
+    availability: 'karteikarte',
   },
   {
     // 4T-001599 (Epic 3E-000191): My Extended Memory als System-Seite; ohne

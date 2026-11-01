@@ -77,6 +77,8 @@ import {
 // 4T-002333 (Epic 3E-000264, F2 A, T3): Ein Wiki-Verweis mit Anker auf einen
 // Datensatz öffnet die Maske des Datensatzes statt der Tabellen-Datei; die
 // Zeile erreicht der Handgriff der Maske (`database/masken-fehlt.js`).
+// 4T-002406 (Epic 3E-000266, F7 A): Bei einer Karteikarte öffnet er über die
+// Weiche hinter `openRecordHit` ihr Dokument (`database/karteikarte-ansichten.js`).
 export async function activateLink(paneIdx, href, isWikilink, baseOverride, optionen = {}) {
   if (!href) return;
   const abfangen = optionen && typeof optionen.abfangen === 'function' ? optionen.abfangen : null;

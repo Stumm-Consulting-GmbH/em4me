@@ -3,12 +3,14 @@
 // Frontmatter und Fenced-Code, Duplikat-Erkennung, ID-Validierung und die
 // kollisionsfreie ID-Generierung.
 import { describe, it, expect } from 'vitest';
+import { EditorSelection, EditorState } from '@codemirror/state';
 import {
   BLOCK_ANCHOR_RE,
   isValidBlockAnchorId,
   extractBlockAnchors,
   blockAnchorForLine,
   rewriteAnchorReferences,
+  ankerUmbenennenStellen,
   generateBlockAnchorId,
   ankerZeileAllein,
   ankerZeileAlleinImZitat,
@@ -175,12 +177,51 @@ describe('rewriteAnchorReferences (4T-000364)', () => {
       '',
       'Verweis: [[#^alt]] und [[Datei#^alt]] und [[Datei#^alt|Text]].',
     ].join('\n');
+    // 4T-002101: Ohne Angabe des eigenen Dokuments bleibt ein Verweis mit
+    // Dateinamen stehen, weil er nicht sicher dieses Dokument meint.
     const out = rewriteAnchorReferences(text, 'alt', 'neu');
-    expect(out).toContain('^neu');
-    expect(out).not.toContain('^alt');
-    expect(out).toContain('[[#^neu]]');
-    expect(out).toContain('[[Datei#^neu]]');
-    expect(out).toContain('[[Datei#^neu|Text]]');
+    expect(out).toBe(text.replace('Daten. ^alt', 'Daten. ^neu').replace('[[#^alt]]', '[[#^neu]]'));
+    const eigen = rewriteAnchorReferences(text, 'alt', 'neu', {
+      eigenerPfad: 'C:\\Ablage\\Datei.md',
+    });
+    expect(eigen).not.toContain('^alt');
+    expect(eigen).toContain('[[#^neu]] und [[Datei#^neu]] und [[Datei#^neu|Text]]');
+  });
+
+  // 4T-002101 (Story 4S-000228 AK5 und AK6): Mitgezogen werden nur Verweise auf
+  // dieses Dokument. Ein gleichnamiger Block eines anderen Dokuments behält
+  // seinen Anker, der Verweis auf ihn zeigte sonst ins Leere.
+  it('4T-002101: ein Verweis auf ein anderes Dokument bleibt, mit Beschriftung und als Einbettung', () => {
+    const fremd = '[[Fremd#^alt]] [[Fremd#^alt|Text]] ![[Fremd#^alt]] [[Ordner/Fremd#^alt]]';
+    const text = ['Absatz ^alt', '', `[[#^alt]] ![[#^alt]] ${fremd}`].join('\n');
+    for (const eigenerPfad of [undefined, '/ablage/Projekt.md', 'Projekt']) {
+      const out = rewriteAnchorReferences(text, 'alt', 'neu', { eigenerPfad });
+      expect(out, String(eigenerPfad)).toBe(
+        ['Absatz ^neu', '', `[[#^neu]] ![[#^neu]] ${fremd}`].join('\n'),
+      );
+    }
+  });
+
+  it('4T-002101: ein Verweis, der das eigene Dokument nennt, zieht mit (Name, Endung, Pfad, Schreibweise)', () => {
+    const eigenerPfad = 'C:\\Ablage\\Ordner\\Projekt∕Teil.md';
+    for (const ziel of [
+      'Projekt∕Teil',
+      'projekt∕teil.MD',
+      ' Projekt∕Teil ',
+      'Ordner/Projekt∕Teil',
+      'Projekt/Teil',
+    ]) {
+      const out = rewriteAnchorReferences(`X ^alt\n[[${ziel}#^alt|T]]`, 'alt', 'neu', {
+        eigenerPfad,
+      });
+      expect(out, ziel).toBe(`X ^neu\n[[${ziel}#^neu|T]]`);
+    }
+    for (const ziel of ['Teil', 'Anderer/Projekt∕Teil', '/Teil', 'Projekt∕Teil2']) {
+      const out = rewriteAnchorReferences(`X ^alt\n[[${ziel}#^alt]]`, 'alt', 'neu', {
+        eigenerPfad,
+      });
+      expect(out, ziel).toBe(`X ^neu\n[[${ziel}#^alt]]`);
+    }
   });
 
   it('lässt Fenced-Code und ungültige/gleiche IDs unberührt', () => {
@@ -228,15 +269,27 @@ describe('rewriteAnchorReferences: Angabe table: im Diagramm-Block (4S-001023 AK
     expect(rewriteAnchorReferences(vorher, 'alt', 'neu')).toContain('\n  Table :   ^neu\n');
   });
 
-  it('AK12: [[Datei#^alt]] im Diagramm-Block bleibt stehen, auch für die eigene Datei', () => {
-    // Bekannte Folge (Umsetzungsplan, R7): Ob `Datei` das eigene Dokument ist,
-    // weiß der Nachzug nicht; ein Bezug aus einem anderen Dokument zieht beim
-    // Umbenennen des Namens ebenso nicht nach.
-    for (const angabe of ['table: [[Andere#^alt]]', 'table: [[Eigene#^alt]]']) {
-      const vorher = dok('```perspective-chart', angabe, '```');
-      const out = rewriteAnchorReferences(vorher, 'alt', 'neu');
-      expect(out).toContain(`\n${angabe}\n`);
-      expect(out).toContain('```\n^neu');
+  it('AK12: [[Datei#^alt]] im Diagramm-Block zieht nur für das genannte eigene Dokument mit', () => {
+    // 4T-002101: Dieselbe Grenze wie beim Verweis im Text. Ohne Angabe des
+    // eigenen Dokuments bleibt jede Angabe mit Dateinamen stehen; mit ihr zieht
+    // allein die Angabe auf das eigene Dokument nach, im Zitat ebenso.
+    const zaun = (praefix, angabe) =>
+      ['```perspective-chart', angabe, '```'].map((z) => praefix + z);
+    for (const [eigenerPfad, eigene] of [
+      [undefined, 'table: [[Eigene#^alt]]'],
+      ['/ablage/Eigene.md', 'table: [[Eigene#^neu]]'],
+    ]) {
+      for (const praefix of ['', '> ']) {
+        const vorher = dok(
+          ...zaun(praefix, 'table: [[Eigene#^alt]]'),
+          '',
+          ...zaun(praefix, 'table: [[Andere#^alt]]'),
+        );
+        const out = rewriteAnchorReferences(vorher, 'alt', 'neu', { eigenerPfad });
+        expect(out).toContain(`\n${praefix}${eigene}\n`);
+        expect(out).toContain(`\n${praefix}table: [[Andere#^alt]]\n`);
+        expect(out).toContain('```\n^neu');
+      }
     }
   });
 
@@ -795,5 +848,60 @@ describe('Nachbesserung 4T-002072: Schreibort, Cursor-Folge, gleiche Kennung, Zi
     expect(extractBlockAnchors(koerper).order).toEqual([]);
     expect(extractBlockAnchors(koerper, { frontmatter: false }).order).toEqual(['A']);
     expect(extractBlockAnchors(koerper, {}).order).toEqual([]);
+  });
+});
+
+// 4T-002100 (Story 4S-000228 AK3): Das Umbenennen aus dem Panel ersetzte das
+// ganze Dokument, und die Schreibmarke sprang an den Anfang (Messung m-002100:
+// Zeile 5 vorher, Zeile 1 nachher). Geprüft am CodeMirror-Zustand wie im Panel.
+describe('ankerUmbenennenStellen (4T-002100)', () => {
+  const doc = [
+    '# Umbenennen',
+    '',
+    'Erster Absatz ohne Anker.',
+    '',
+    'Ein Absatz. ^alt',
+    '',
+    'Verweis auf den Absatz: [[#^alt]]',
+  ].join('\n');
+  const umbenennen = (pos, neu) => {
+    const st = EditorState.create({ doc, selection: EditorSelection.cursor(pos) });
+    const tr = st.update({ changes: ankerUmbenennenStellen(doc, 'alt', neu) });
+    const kopf = tr.state.selection.main.head;
+    const zeile = tr.state.doc.lineAt(kopf);
+    return { text: tr.state.doc.toString(), zeile: zeile.number, spalte: kopf - zeile.from };
+  };
+
+  it('je geänderter Zeile eine Stelle, nur der geänderte Teil', () => {
+    const def = doc.indexOf('^alt') + 1;
+    const ref = doc.indexOf('#^alt') + 2;
+    expect(ankerUmbenennenStellen(doc, 'alt', 'neu')).toEqual([
+      { from: def, to: def + 3, insert: 'neu' },
+      { from: ref, to: ref + 3, insert: 'neu' },
+    ]);
+    expect(ankerUmbenennenStellen(doc, 'alt', 'alt')).toEqual([]);
+    expect(ankerUmbenennenStellen(doc, 'fehlt', 'neu')).toEqual([]);
+  });
+
+  it('die Schreibmarke bleibt in Zeile 5 und behält ihre Spalte, auch hinter dem Namen', () => {
+    for (const [pos, neu, spalte] of [
+      [doc.indexOf('Ein Absatz.') + 4, 'neu', 4],
+      [doc.indexOf('^alt') + 4, 'neu', 16],
+      [doc.indexOf('^alt') + 4, 'viel-laenger', 25],
+      [doc.indexOf('^alt') + 4, 'k', 14],
+    ]) {
+      const nach = umbenennen(pos, neu);
+      expect(nach.text).toBe(rewriteAnchorReferences(doc, 'alt', neu));
+      expect([nach.zeile, nach.spalte], neu).toEqual([5, spalte]);
+    }
+  });
+
+  it('Versätze zählen CRLF-Zeilenenden, die Zeilenenden bleiben', () => {
+    const crlf = 'A ^alt\r\n\r\nB [[#^alt]] und ![[#^alt|x]]';
+    let ergebnis = crlf;
+    for (const s of ankerUmbenennenStellen(crlf, 'alt', 'neu').reverse()) {
+      ergebnis = ergebnis.slice(0, s.from) + s.insert + ergebnis.slice(s.to);
+    }
+    expect(ergebnis).toBe('A ^neu\r\n\r\nB [[#^neu]] und ![[#^neu|x]]');
   });
 });

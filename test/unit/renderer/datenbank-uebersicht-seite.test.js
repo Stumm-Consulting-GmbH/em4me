@@ -200,6 +200,44 @@ describe('Übersichts-Seite der Datenbank: Steckbrief und Tabellen (4T-001759)',
   });
 });
 
+// 4T-002386 (Epic 3E-000265, F2 A; AK3): Die Ablage-Form je Tabelle als
+// eigene Spalte vor der Zahl der Felder; eine Kartei-Tabelle nennt dahinter die
+// Zahl ihrer Karteikarten aus dem Feld `karteikarten` (4T-002387). Der dritte Eintrag hat kein
+// Feld `storage`, wie ihn ein älterer Stand liefert, und gilt als Tabellen-Form.
+describe('Übersichts-Seite der Datenbank: Ablage-Form (4T-002386)', () => {
+  beforeEach(() => {
+    antwort = auskunft({
+      tabellen: [
+        { name: 'Personen', felder: 4, storage: 'table', path: 'P.md', hints: [] },
+        { name: 'Autoren', felder: 1, storage: 'cards', karteikarten: 2, path: 'A.md', hints: [] },
+        { name: 'Firmen', felder: 2, hints: [] },
+      ],
+    });
+  });
+
+  it('zeigt «Form» vor «Felder», bei einer Kartei-Tabelle mit 2 Karteikarten', async () => {
+    const container = await baue();
+    const koepfe = [
+      ...container.querySelectorAll('.db-overview-table:not(.db-overview-queries) th'),
+    ];
+    // 4T-002407: die Sichten als Spalte hinter der Maske.
+    const kopfTexte = koepfe.map((e) => e.textContent);
+    expect(kopfTexte).toEqual(['Tabelle', 'Form', 'Felder', 'Maske', 'Sichten', '']);
+    const zellen = [...container.querySelectorAll('.db-overview-table-storage')];
+    expect(zellen.map((e) => e.textContent)).toEqual([
+      'Tabelle',
+      'Kartei2 Karteikarten',
+      'Tabelle',
+    ]);
+    expect(zellen[0].querySelector('.db-overview-card-count')).toBeNull();
+    // 4T-002389 (Schnitt 2): «Neuer Datensatz» nur bei «Personen», «Neue Karteikarte» bei «Autoren».
+    expect(container.querySelectorAll('.db-overview-new-record')).toHaveLength(1);
+    expect(container.querySelectorAll('.db-overview-new-card')).toHaveLength(1);
+    const felder = [...container.querySelectorAll('.db-overview-table-fields')];
+    expect(felder.map((e) => e.textContent)).toEqual(['4', '1', '2']);
+  });
+});
+
 // 4T-002307 (Epic 3E-000263, Story-AK1, AK3): Die Rollen des Steckbriefs, eine
 // Zeile je Rolle unter Name und Beschreibung; ohne Rollen kein Abschnitt; eine
 // Rolle mit Hinweis steht nicht dort, sondern unter den Fehlerlagen.

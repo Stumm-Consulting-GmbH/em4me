@@ -90,7 +90,7 @@ Verfügbare Funktionen je Spalten-Typ:
 | `sum` | Summe | `number` |
 | `avg` | Durchschnitt (gerundet auf das Spalten-Format) | `number` |
 | `min` / `max` | kleinster/größter Wert | `number`, `date`, `time` |
-| `count` | Anzahl nicht-leerer Zellen (bei `boolean`: Anzahl der wahren) | alle Typen |
+| `count` | Anzahl nicht-leerer Zellen (eine leere Text-Zelle zählt nicht; bei `boolean`: Anzahl der wahren) | alle Typen |
 
 Leere und fehlerhafte Zellen fließen nicht ein. Die Aggregat-Zeile erscheint unter den Daten und rechnet bei jeder Änderung neu; bei gefilterter Ansicht rechnet sie über die sichtbaren Zeilen.
 
@@ -105,7 +105,7 @@ aggregate: Gesamt:sum
 | Block | 3.50 | 4 |
 ```
 
-- Die Ausdrucks-Sprache ist dieselbe wie in der [Perspective-Abfrage](frontmatter-query.md): Arithmetik, Vergleiche, `choice(…)`, `default(…)`, Text-Funktionen und mehr. Dazu gehört `count(x)`; in einer Formel zählt es die Werte des genannten Feldes in der einen Zeile und ist nicht die Aggregat-Funktion `count` der Aggregat-Zeile, die über alle Zeilen zählt.
+- Die Ausdrucks-Sprache ist dieselbe wie in der [Perspective-Abfrage](frontmatter-query.md): Arithmetik, Vergleiche, `choice(…)`, `default(…)`, Text-Funktionen und mehr. Dazu gehört `count(x)`; in einer Formel zählt es die Werte des genannten Feldes in der einen Zeile und ist nicht die Aggregat-Funktion `count` der Aggregat-Zeile, die über alle Zeilen zählt; eine leere Text-Zelle zählt in keiner der beiden.
 - Spaltennamen im Ausdruck verweisen auf die Werte der jeweiligen Zeile; auch andere berechnete Spalten sind in beliebiger Deklarations-Reihenfolge nutzbar (die Auswertung löst die Abhängigkeiten auf). Kreis-Bezüge werden als Struktur-Fehler gemeldet.
 - Das Ergebnis muss zum deklarierten Spalten-Typ passen, sonst zeigt die Zelle einen Fehler.
 - Berechnete Werte stehen **nie im Quelltext** — sie werden immer frisch gerechnet und haben deshalb keine Datenzelle in den Pipe-Zeilen. Aggregate über berechnete Spalten rechnen auf den berechneten Werten.

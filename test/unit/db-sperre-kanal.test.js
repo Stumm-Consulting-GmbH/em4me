@@ -177,6 +177,8 @@ describe('database:sperre: Registrierung und Brücke (4T-001941, B1)', () => {
       // 4T-001942 (Epic 3E-000257): die Wertehilfe der Verweis-Felder.
       'database:datensaetze',
       'database:datensatz',
+      // 4T-002406 (Epic 3E-000266): die Karteikarte eines Datensatzes.
+      'database:karteikarte',
       // 4T-001944 (Epic 3E-000257): die Konsistenz-Prüfung über den Bestand.
       'database:konsistenz',
       // 4T-002249 (Epic 3E-000262): die Auskunft über eine Listen-Maske.

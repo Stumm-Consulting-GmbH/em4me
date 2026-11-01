@@ -44,6 +44,8 @@ The settings section "Calendar systems" shows the blocks of the open area in two
 
 Editing is deliberately never locked: structural changes to calendars already in use are allowed. Values in the document that become invalid as a result are preserved unchanged and are visibly marked. Only saving an invalid definition is blocked: when applying, a message appears and nothing is saved. If, for example, the extended unit of a leap rule is not within the units per instance, the leap rule reports this while you type and names the permitted positions.
 
+**Several program versions in the same area:** If computers with different program versions work in the same area, a newer version can create time reckonings that an older one does not know, for example one whose structure changes from year to year. The older version does not show them in the list but states their number above the list. When applying, it leaves these time reckonings unchanged in the area file, as well as details of a known time reckoning that only a newer version writes; the newer version then finds everything again. Removing a block also removes the time reckonings in it that the list does not show. Program versions without this note above the list still remove unknown time reckonings when applying; if such a computer is involved, it is best to bring all computers of the area to the same version.
+
 ### Adding an epoch later
 
 A value of the latest epoch stands in the document without an abbreviation, and a value without an abbreviation is always read as a value of the latest epoch. When a time reckoning gets a new latest epoch, saved values of the previously latest one would therefore denote a different day or become invalid. If the area contains such values, the application asks on applying, before it saves, and states their number:
@@ -145,6 +147,8 @@ If the named calendar is not defined in the area or the value is invalid, the so
 If a value lies outside the validity period of its time reckoning (section «Templates with a structure that varies by year»), the source text likewise stays unchanged. The value then does not count as invalid: its tooltip says «Name: not known».
 
 In code blocks and code spans the syntax stays untouched: `@{Example calendar: 500-2-09 ZZ}`.
+
+If another `@` stands directly before `@{`, it is not a calendar value: `@@{14:00}`, a time in the notation of the board tool the Kanban board format comes from, stays text.
 
 ## Inserting and editing
 

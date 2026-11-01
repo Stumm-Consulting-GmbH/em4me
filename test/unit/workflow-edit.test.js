@@ -186,6 +186,18 @@ describe('setProperty und removeProperty', () => {
     );
   });
 
+  // 4T-002358 (Epic 3E-000371): Eine Fluss-Liste `[a, b]` bleibt beim Setzen,
+  // Setzen eines leeren Werts und Entfernen einer anderen Eigenschaft `[a, b]`.
+  it('eine Fluss-Liste `[a, b]` bleibt beim Setzen und Entfernen anderer Eigenschaften', () => {
+    const fluss = '---\ntags: [a, b]\ntitel: Alt\n---\nText\n';
+    const gesetzt = applyContentEdit(fluss, { op: 'setProperty', key: 'titel', value: 'Neu' });
+    expect(gesetzt.text).toBe('---\ntags: [a, b]\ntitel: Neu\n---\nText\n');
+    const leer = applyContentEdit(fluss, { op: 'setProperty', key: 'ort', value: '' });
+    expect(leer.text).toBe('---\ntags: [a, b]\ntitel: Alt\nort:\n---\nText\n');
+    const entfernt = applyContentEdit(fluss, { op: 'removeProperty', key: 'titel' });
+    expect(entfernt.text).toBe('---\ntags: [a, b]\n---\nText\n');
+  });
+
   it('eine fehlende Eigenschaft zu entfernen gelingt ohne Änderung (E3)', () => {
     expect(applyContentEdit(kopf, { op: 'removeProperty', key: 'fehlt' })).toEqual({
       ok: true,

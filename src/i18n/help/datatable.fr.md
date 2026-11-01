@@ -90,7 +90,7 @@ Fonctions disponibles selon le type de colonne :
 | `sum` | somme | `number` |
 | `avg` | moyenne (arrondie au format de la colonne) | `number` |
 | `min` / `max` | valeur minimale/maximale | `number`, `date`, `time` |
-| `count` | nombre de cellules non vides (pour `boolean` : nombre de vraies) | tous les types |
+| `count` | nombre de cellules non vides (une cellule de texte vide ne compte pas ; pour `boolean` : nombre de vraies) | tous les types |
 
 Les cellules vides ou en erreur sont exclues. La ligne d'agrégats apparaît sous les données et recalcule à chaque modification ; en vue filtrée, elle calcule sur les lignes visibles.
 
@@ -105,7 +105,7 @@ aggregate: Total:sum
 | Bloc | 3.50 | 4 |
 ```
 
-- Le langage d'expression est le même que dans la [Requête Perspective](frontmatter-query.md) : arithmétique, comparaisons, `choice(…)`, `default(…)`, fonctions de texte et plus. Il comprend `count(x)` ; dans une formule, il compte les valeurs du champ nommé dans la seule ligne concernée et n'est pas la fonction d'agrégat `count` de la ligne d'agrégats, qui compte sur toutes les lignes.
+- Le langage d'expression est le même que dans la [Requête Perspective](frontmatter-query.md) : arithmétique, comparaisons, `choice(…)`, `default(…)`, fonctions de texte et plus. Il comprend `count(x)` ; dans une formule, il compte les valeurs du champ nommé dans la seule ligne concernée et n'est pas la fonction d'agrégat `count` de la ligne d'agrégats, qui compte sur toutes les lignes ; une cellule de texte vide ne compte dans aucune des deux.
 - Les noms de colonnes dans l'expression désignent les valeurs de la ligne concernée ; d'autres colonnes calculées sont utilisables dans n'importe quel ordre de déclaration (l'évaluation résout les dépendances). Les références circulaires sont signalées comme erreurs de structure.
 - Le résultat doit correspondre au type de colonne déclaré, sinon la cellule affiche une erreur.
 - Les valeurs calculées ne sont **jamais stockées dans la source** — elles sont toujours recalculées et n'ont donc pas de cellule de données dans les lignes à barres. Les agrégats sur colonnes calculées se calculent sur les valeurs calculées.

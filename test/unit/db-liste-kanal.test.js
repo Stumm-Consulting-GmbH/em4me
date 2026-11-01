@@ -662,3 +662,110 @@ describe('database:liste: gesperrte Felder je Zeile (4T-002312, AK1)', () => {
     expect(ohne.gesperrteFelder).toEqual({});
   });
 });
+
+// --- 4T-002406: Listen-Maske über eine Kartei-Tabelle -------------------------------------
+
+describe('database:liste: Listen-Maske über eine Kartei-Tabelle (4T-002406, AK1, AK4)', () => {
+  // Dieselbe Tabelle zweimal: als Tabellen-Datei mit Datensatz-Block und in
+  // Kartei-Form mit je einer Karteikarte im Ordner der Tabellen-Datei. Felder,
+  // Bedingungen und Werte sind gleich; eine Listen-Maske darüber muss dieselbe
+  // Auskunft geben (Ergänzung des Epics 3E-000266 vom 2026-10-11).
+  const FELDER = [
+    'db-table:',
+    '  fields:',
+    '    - name: titel',
+    '      editable: false',
+    '    - name: status',
+    '    - name: betrag',
+    '      type: number',
+    '      editable: status != "gebucht"',
+    '  editable: status != "zu"',
+    '  key: titel',
+    '  lastId: 3',
+  ];
+  const WERTE = [
+    ['r-00001', 'Miete', 'offen', '10'],
+    ['r-00002', 'Strom', 'gebucht', '20'],
+    ['r-00003', 'Wasser', 'zu', '30'],
+  ];
+
+  function tabellenForm(wurzel) {
+    const zeilen = WERTE.flatMap(([id, ...werte]) => [
+      `|- id="${id}"`,
+      ...werte.map((w) => `| ${w}`),
+    ]);
+    const text = ['---', ...FELDER, '---', '', '```perspective-records', ...zeilen, '```', ''];
+    return lege(wurzel, 'Belege.md', text.join('\n'));
+  }
+
+  function karteiForm(wurzel) {
+    const ordner = path.join(wurzel, 'Belege');
+    fs.mkdirSync(ordner);
+    const kopf = ['---', ...FELDER.slice(0, 1), '  storage: cards', ...FELDER.slice(1), '---', ''];
+    const belege = lege(ordner, 'Belege.md', kopf.join('\n'));
+    for (const [id, titel, status, betrag] of WERTE) {
+      const karte = ['---', `db-record: ${id}`, `titel: ${titel}`, `status: ${status}`];
+      lege(
+        ordner,
+        `${titel}.md`,
+        [...karte, `betrag: ${betrag}`, '---', '', `# ${titel}`, ''].join('\n'),
+      );
+    }
+    return belege;
+  }
+
+  async function auskunft(bauen) {
+    const wurzel = neueWurzel();
+    const belege = bauen(wurzel);
+    const maske = lege(path.dirname(belege), 'Belege Form.md', maskenDatei('Belege', 'Kurz'));
+    const liste = lege(
+      wurzel,
+      'Liste.md',
+      abfrageDatei(
+        ['editable: true', 'form: Belege Form', 'allow: [create, update, delete]'],
+        'TABLE RECORDS titel, betrag FROM "Belege"',
+      ),
+    );
+    const sicht = {
+      dbKindsPerFile: new Map([
+        [belege, ['table']],
+        [maske, ['form']],
+      ]),
+    };
+    const antwort = await kanal({ sicht })(ereignis(wurzel), {
+      pfad: liste,
+      query: 'TABLE RECORDS titel, betrag FROM "Belege"',
+      spalten: ['titel', 'betrag', 'status'],
+      tabelle: null,
+      kennungen: ['r-00001', 'r-00002', 'r-00003'],
+    });
+    return { antwort, belege, maske };
+  }
+
+  it('trägt über eine Kartei-Tabelle dieselben Angaben, Handgriffe und Sperren wie über eine Tabellen-Datei', async () => {
+    const tabelle = await auskunft(tabellenForm);
+    const kartei = await auskunft(karteiForm);
+    expect(kartei.antwort.istListe).toBe(true);
+    // Pfade der Tabelle und der Maske sind je Aufbau andere; der Rest ist gleich.
+    expect(kartei.antwort.tabelle).toEqual({ path: kartei.belege, name: 'Belege' });
+    expect(kartei.antwort.maske).toBe(kartei.maske);
+    const ohnePfade = (a) => ({ ...a, tabelle: a.tabelle.name, maske: path.basename(a.maske) });
+    expect(ohnePfade(kartei.antwort)).toEqual(ohnePfade(tabelle.antwort));
+    expect(kartei.antwort.angaben).toEqual({
+      editable: true,
+      form: 'Belege Form',
+      allow: ['create', 'update', 'delete'],
+    });
+    expect(kartei.antwort.spalten).toEqual([
+      { index: 0, feld: 'titel' },
+      { index: 1, feld: 'betrag' },
+      { index: 2, feld: 'status' },
+    ]);
+    // Die Sperren je Zeile lesen den Bestand der Karteikarten.
+    expect(kartei.antwort.nichtAenderbar).toEqual(['r-00003']);
+    expect(kartei.antwort.gesperrteFelder).toEqual({
+      'r-00001': ['titel'],
+      'r-00002': ['titel', 'betrag'],
+    });
+  });
+});

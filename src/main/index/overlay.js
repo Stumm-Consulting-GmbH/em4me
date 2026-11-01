@@ -45,6 +45,9 @@ const { definitionFuerSegment } = require('./datensatz-erfassung.js');
 // 4T-002047: Der Puffer einer Kopf-Datei ist das ganze geteilte Dokument; die
 // Regel dazu gilt für jeden Bestand der Sicht (Begründung im Modul).
 const { ohneVerdeckteFolgeteile } = require('./part-files.js');
+// 4T-002387 (Epic 3E-000265): Eine offene Karteikarte trägt ihren Datensatz im
+// Dateikopf; der Parser kennt die Kartei-Tabellen nicht und ergänzt ihn nicht.
+const { mitKarteikarte } = require('./karteikarten-erfassung.js');
 
 // 4T-000952 (Epic 3E-000198): Aenderungs-Stand der Overlay-Schicht, nach dem
 // Muster von indexStand in store.js. Eine Zahl, die bei jeder Aenderung der
@@ -71,7 +74,10 @@ function overlayStand() {
 function setBufferOverlay(filePath, content, besitzer = null) {
   if (typeof filePath !== 'string' || !filePath) return false;
   if (typeof content !== 'string') return false;
-  const parsed = parseContent(filePath, content, definitionFuerSegment(filePath));
+  const parsed = mitKarteikarte(
+    filePath,
+    parseContent(filePath, content, definitionFuerSegment(filePath)),
+  );
   bufferOverlays.set(filePath, { parsed, text: content, besitzer: besitzer ?? null });
   overlayZaehler += 1;
   return true;

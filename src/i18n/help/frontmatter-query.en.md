@@ -128,7 +128,7 @@ SORT author
 - **Tables**: `TABLE RECORDS …` shows the hit in the first column «Record»; `WITHOUT ID` comes after `RECORDS`. A column title is the alias, otherwise the label of the field in the selected program language following the fallback chain of the [Database](database.md) page, otherwise the expression itself, for instance with a path.
 - **Reference values**: A reference field shows the display form of its target, without one its identifier, and a click opens the form of the target. An empty reference and one pointing nowhere remain an empty cell.
 - **Order**: Without `SORT` the hits are ordered by their display form regardless of case, with equal display forms by identifier, and records without a display form come last.
-- **One click target**: A record in the result of a query opens the form, as does a reference in running text such as `[[Books#^r-00042]]`; the action «Show in table document» of the form leads to the row. The form shows the saved state.
+- **One click target**: A record in the result of a query opens the form, as does a reference in running text such as `[[Books#^r-00042]]`; the action «Show in table document» of the form leads to the row. The form shows the saved state. If the record belongs to a table in card form, both clicks open the document of the card (page [Database](database.md), section «Card form»).
 - **List form**: If a query file carries the setting `editable: true` in its container `db-query`, its result appears as a grid in which the records can be opened, changed, created and deleted, 50 rows per page; the page [Database](database.md) describes it in the section «List form».
 - **Unsaved state**: Changes to an open table are included in the result right away, without saving.
 - **Not at this level**: `bold()` in a column or in an expression of `GROUP BY` produces an error message, because a database value carries no markup; in condition and sorting it remains allowed. `HIDE`, `SHOW` and `SHORT` apply only to `LIST TASKS` and report themselves here as on the file and block level.
@@ -250,6 +250,7 @@ LIST WHERE area = this.area AND file.path != this.file.path
 - **Same meaning on every level**: in `BLOCKS`, `TASKS` and `RECORDS` queries too, `this.` means the host file of the block, never the individual block, task line or record.
 - **Precedence**: the `this.` rule wins over a frontmatter property of the same name, just as the `file.` namespace does.
 - **Without a host file**: if it cannot be resolved, every `this.` access yields an empty value; a bare `this` without a dot stays empty like any unknown field name.
+- **View shown on a card**: in a view that a table in card form shows below every card, `this.` means the card and not the query file of the view (page [Database](database.md), section «Card form»). With an embedding through `![[…]]` it remains the embedded file.
 
 As a **source**, the empty wiki link means that same file: `FROM [[]]` collects the files linking to it, `FROM outgoing([[]])` the opposite direction. The host file is never a hit of its own; without a resolvable host file the set stays empty instead of growing to every file.
 
@@ -287,7 +288,7 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `currencyformat(x[, c])` | `currencyformat(amount, "CHF")` | render an amount localised: in euros without a code, and as the unformatted number for an unknown currency code |
 | `infolder(l, "Folder")` | `length(infolder(file.inlinks, "Projects")) = 0` | the sublist of link values whose target lies in the folder or below it |
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(values) = 6` | aggregates over number lists; over a group they combine the values of all its hits (section «Grouping and aggregation») |
-| `count(x)` | `count(tags) > 2` | number of present values: for a list its elements, for a single value 1, without a value 0; `count()` without a field counts the hits of a group |
+| `count(x)` | `count(tags) > 2` | number of present values: for a list its elements, for a single value 1, without a value 0, where an empty text, also as an element of a list, counts as «without a value»; `count()` without a field counts the hits of a group |
 | `bold(x)` | `bold(status)` | render a value highlighted (section «Highlighting») |
 
 An unknown function or a wrong number of arguments shows an error notice at the block.

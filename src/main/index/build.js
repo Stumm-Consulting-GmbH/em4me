@@ -39,6 +39,15 @@ const {
 } = require('./datensatz-erfassung.js');
 // 4T-002047: Zuordnung eines Folgeteils zu seiner Kopf-Datei, für jedes geteilte Dokument.
 const { kopfDateiFuer } = require('./part-files.js');
+// 4T-002387 (Epic 3E-000265, Schritt 2): Erfassung der Karteikarten. Sie
+// laeuft als Nachlauf, weil eine Karteikarte ihre Tabelle nicht nennt
+// (Begruendung im Erfassungs-Modul), und im Beobachter-Pfad je Datei.
+const {
+  mitKarteikarte,
+  erfasseKarteikartenNachAufbau,
+  karteiNachAenderung,
+  karteiNachLoeschung,
+} = require('./karteikarten-erfassung.js');
 
 // B-21 (4T-000187): Wartezeit nach einem Watcher-Fehler, bevor ein neuer
 // Bedarf den Index wieder aufbauen darf.
@@ -164,6 +173,10 @@ async function buildIndexAsync(rootPath, entry) {
       if (!stillCurrent()) return;
     }
   }
+  // 4T-002387 (Epic 3E-000265): Nachlauf der Karteikarten. Erst jetzt sind
+  // die Tabellen-Dateien jedes Ordners bekannt.
+  if (!(await erfasseKarteikartenNachAufbau(entry, stillCurrent))) return;
+  if (!stillCurrent()) return;
   // 4T-001494 (Epic 3E-000199): Namens-Zuordnung der Nicht-Markdown-Dateien
   // aufbauen. Kein Parsen, kein Lesen — nur Name auf Pfad, mit Yielding wie
   // die Markdown-Schleife darueber.
@@ -407,6 +420,9 @@ function onWatcherChange(entry, filePath, kind) {
   if (kind === 'unlink') {
     if (entry.files.has(filePath)) {
       removeFileFromIndex(entry, filePath);
+      // 4T-002387: War sie eine Kartei-Tabelle, verlieren ihre Karteikarten
+      // die Zuordnung, oder eine verbliebene Tabelle des Ordners bekommt sie.
+      karteiNachLoeschung(entry, filePath);
       // 4T-000348 (Epic 3E-000062): Cache-Eintrag mit entfernen.
       if (entry.isArea) {
         entry.cacheFiles.delete(filePath);
@@ -445,7 +461,8 @@ function onWatcherChange(entry, filePath, kind) {
     markOversized(entry);
     return;
   }
-  const parsed = parseFile(filePath, definitionFuerSegment(filePath));
+  // 4T-002387: Eine Karteikarte bekommt ihren Datensatz aus dem Dateikopf.
+  const parsed = mitKarteikarte(filePath, parseFile(filePath, definitionFuerSegment(filePath)));
   // B-11 (4T-000175): Lesefehler (Datei kurz gesperrt/gerade geloescht)
   // ueberschreibt die bestehenden Index-Daten nicht mit einem Leer-
   // Ergebnis; der naechste Event bzw. unlink raeumt regulaer auf.
@@ -472,6 +489,10 @@ function onWatcherChange(entry, filePath, kind) {
       ordneSegmenteNeuZu(entry, filePath);
     }
   }
+  // 4T-002387 (Epic 3E-000265, Schritt 2): Ist die Datei eine Tabellen-Datei
+  // oder war sie eine Kartei-Tabelle, werden bei geaenderter Definition oder
+  // Ablage-Art die Karteikarten ihres Ordners neu erfasst.
+  karteiNachAenderung(entry, filePath, parsed.dbKinds);
   // 4T-000408 (Epic 3E-000077): Block-Daten der .mdd nachziehen (removeFileFromIndex
   // hat den alten Stand mit ausgetragen); sync wie parseFile in diesem Pfad.
   const blocks = readBlockDataSync(filePath);

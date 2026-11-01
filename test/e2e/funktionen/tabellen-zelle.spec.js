@@ -115,49 +115,96 @@ test.describe('TZ-01: Tabelle bleibt bei stehender Schreibmarke', () => {
   });
 });
 
+// 4T-001812: TZ-02 misst über eine Breiten-Reihe statt bei einer Breite. Der
+// Sprung trat nur auf, wenn der Inhalt des Editors breiter ist als das Fenster
+// (hier wegen der dreißig Spalten breiten zweiten Tabelle der Fixture); ab
+// welcher Fensterbreite das gilt, hängt an der Schriftmetrik der Plattform —
+// gemessen am 2026-09-19 Windows rot bei 1400 px und grün bei 1600 px, der
+// Linux-Container rot bei 1600 px. Die schmale Breite liegt auf beiden Seiten
+// im Überlauf, und der Fall stellt das fest, statt es anzunehmen; die breite
+// liegt auf Windows ohne Überlauf.
+const TZ02_BREITEN = [
+  { breite: 1400, ueberlauf: true },
+  { breite: 2200, ueberlauf: false },
+];
+
 test.describe('TZ-02: Kennzeichnung der bearbeiteten Zelle', () => {
-  test('die Zelle ist erkennbar, und die Tabelle springt beim Zellwechsel nicht (AK3)', async () => {
-    const { app, page, userData } = await launchApp({ args: [FIXTURE] });
-    try {
-      await liveBearbeiten(app, page);
-      const tabelle = ersteTabelle(page);
-      await expect(tabelle).toBeVisible();
-      // Gemessen wird die Tabelle als Ganzes: Ein Sprung beim Oeffnen oder
-      // Wechseln einer Zelle zeigte sich an ihrer Breite oder Hoehe. Die
-      // Toleranz von einem Pixel ist die Rundung der Feld-Breite auf ganze
-      // Pixel; ohne die Festlegung der Breite lag der Unterschied bei 142 px
-      // (gemessen am 2026-09-04), also beim Doppelten der Tabellen-Breite.
-      const masse = async () =>
-        await tabelle.evaluate((t) => {
-          const r = t.getBoundingClientRect();
-          return { breite: r.width, hoehe: r.height, links: r.left, oben: r.top };
-        });
-      const nah = (ist, soll) => {
-        for (const feld of Object.keys(soll)) {
-          expect(Math.abs(ist[feld] - soll[feld]), `${feld} weicht ab`).toBeLessThanOrEqual(1);
+  for (const { breite, ueberlauf } of TZ02_BREITEN) {
+    test(`die Zelle ist erkennbar, und die Tabelle springt beim Zellwechsel nicht (AK3), ${breite} px`, async () => {
+      const { app, page, userData } = await launchApp({ args: [FIXTURE] });
+      try {
+        await hauptSenden(
+          app,
+          ({ BrowserWindow }, b) => {
+            const win = BrowserWindow.getAllWindows()[0];
+            if (win && !win.isDestroyed()) win.setContentSize(b, 800);
+          },
+          breite,
+        );
+        await liveBearbeiten(app, page);
+        const tabelle = ersteTabelle(page);
+        await expect(tabelle).toBeVisible();
+        if (ueberlauf) {
+          // Vorbedingung: Der Editor ist waagerecht verschiebbar. Ohne sie
+          // prüfte die schmale Breite dasselbe wie die breite.
+          await expect
+            .poll(() =>
+              tabelle.evaluate((t) => {
+                const scroller = t.closest('.cm-scroller');
+                return scroller.scrollWidth - scroller.clientWidth;
+              }),
+            )
+            .toBeGreaterThan(20);
         }
-      };
-      const vorher = await masse();
+        // Gemessen wird die Tabelle als Ganzes: Ein Sprung beim Oeffnen oder
+        // Wechseln einer Zelle zeigte sich an ihrer Breite oder Hoehe. Die
+        // Toleranz von einem Pixel ist die Rundung der Feld-Breite auf ganze
+        // Pixel; ohne die Festlegung der Breite lag der Unterschied bei 142 px
+        // (gemessen am 2026-09-04), also beim Doppelten der Tabellen-Breite.
+        // 4T-001812: Der waagerechte Sprung zeigte sich an ihrem linken Rand.
+        const masse = async () =>
+          await tabelle.evaluate((t) => {
+            const r = t.getBoundingClientRect();
+            return { breite: r.width, hoehe: r.height, links: r.left, oben: r.top };
+          });
+        const nah = (ist, soll, schritt) => {
+          for (const feld of Object.keys(soll)) {
+            expect(
+              Math.abs(ist[feld] - soll[feld]),
+              `${schritt}: ${feld} weicht ab (${ist[feld]} statt ${soll[feld]})`,
+            ).toBeLessThanOrEqual(1);
+          }
+        };
+        const vorher = await masse();
 
-      const ersteZelle = tabelle.locator('tbody tr').first().locator('td').nth(0);
-      await ersteZelle.click();
-      await expect(eingabe(page)).toBeVisible();
-      await expect(ersteZelle).toHaveClass(/cm-live-tabelle-bearbeitet/);
-      const inErsterZelle = await masse();
+        const ersteZelle = tabelle.locator('tbody tr').first().locator('td').nth(0);
+        await ersteZelle.click();
+        await expect(eingabe(page)).toBeVisible();
+        await expect(ersteZelle).toHaveClass(/cm-live-tabelle-bearbeitet/);
+        const inErsterZelle = await masse();
 
-      // Zellwechsel: zweite Zelle derselben Zeile.
-      const zweiteZelle = tabelle.locator('tbody tr').first().locator('td').nth(1);
-      await zweiteZelle.click();
-      await expect(zweiteZelle).toHaveClass(/cm-live-tabelle-bearbeitet/);
-      await expect(ersteZelle).not.toHaveClass(/cm-live-tabelle-bearbeitet/);
-      const inZweiterZelle = await masse();
+        // Zellwechsel: zweite Zelle derselben Zeile.
+        const zweiteZelle = tabelle.locator('tbody tr').first().locator('td').nth(1);
+        await zweiteZelle.click();
+        await expect(zweiteZelle).toHaveClass(/cm-live-tabelle-bearbeitet/);
+        await expect(ersteZelle).not.toHaveClass(/cm-live-tabelle-bearbeitet/);
+        const inZweiterZelle = await masse();
 
-      nah(inErsterZelle, vorher);
-      nah(inZweiterZelle, vorher);
-    } finally {
-      await closeApp(app, userData, { force: true });
-    }
-  });
+        // 4T-001812: Zellwechsel über die Tastatur, der eigene Weg des
+        // Zellsprungs (gemessen vor der Behebung: 80,8 px bei 1400 px).
+        const dritteZelle = tabelle.locator('tbody tr').first().locator('td').nth(2);
+        await page.keyboard.press('Tab');
+        await expect(dritteZelle).toHaveClass(/cm-live-tabelle-bearbeitet/);
+        const inDritterZelle = await masse();
+
+        nah(inErsterZelle, vorher, 'erste Zelle');
+        nah(inZweiterZelle, vorher, 'zweite Zelle');
+        nah(inDritterZelle, vorher, 'dritte Zelle');
+      } finally {
+        await closeApp(app, userData, { force: true });
+      }
+    });
+  }
 });
 
 test.describe('TZ-03: Getippter Text im Quelltext', () => {
