@@ -290,8 +290,22 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(values) = 6` | aggregates over number lists; over a group they combine the values of all its hits (section «Grouping and aggregation») |
 | `count(x)` | `count(tags) > 2` | number of present values: for a list its elements, for a single value 1, without a value 0, where an empty text, also as an element of a list, counts as «without a value»; `count()` without a field counts the hits of a group |
 | `bold(x)` | `bold(status)` | render a value highlighted (section «Highlighting») |
+| `exp(x)` | `exp(0)` yields 1 | exponential function, e to the power of x |
+| `ln(x)` | `ln(e())` yields 1 | natural logarithm of a number above 0 |
+| `log10(x)` | `log10(1000)` yields 3 | logarithm to base 10 of a number above 0 |
+| `pow(x, y)` | `pow(2, 10)` yields 1024 | power: base x to the power of exponent y |
+| `sqrt(x)` | `sqrt(16)` yields 4 | square root of a number from 0 |
+| `round(x[, n])` | `round(pi() * 2, 2)` yields 6.28 | round to n decimals (default 0); a value exactly halfway rounds away from zero (`round(-2.5)` yields −3), a negative n rounds to the left of the decimal point |
+| `abs(x)` | `abs(-3)` yields 3 | absolute value of a number |
+| `floor(x)` | `floor(-1.5)` yields −2 | round down to the next smaller whole number |
+| `ceil(x)` | `ceil(-1.5)` yields −1 | round up to the next larger whole number |
+| `mod(a, b)` | `mod(-3, 2)` yields 1 | remainder of the division by a divisor other than 0; it carries the sign of the divisor |
+| `pi()` | `round(pi(), 4)` yields 3.1416 | the circle constant π; constants take no argument but need the parentheses |
+| `e()` | `ln(e())` yields 1 | Euler's number e |
+| `phi()` | `round(phi(), 3)` yields 1.618 | golden ratio (1 + √5) / 2 |
+| `sqrt2()` | `round(sqrt2(), 4)` yields 1.4142 | square root of 2 |
 
-An unknown function or a wrong number of arguments shows an error notice at the block.
+An unknown function or a wrong number of arguments shows an error notice at the block. The basic functions and constants belong to the core and calculate in every working mode; an argument outside their domain, such as `sqrt(-1)`, leaves the cell empty like a division by zero. A formula of the [formula library](formula-library.md), such as `humidity.dewpoint(t, rh)` or `finance.pmt(rate, nper, pv)`, does not count as an unknown function: if the extension «Formula library» is switched off, the block shows the notice «Formula library switched off» instead of its result, and an argument outside the valid range of a formula shows the warning sign ⚠︎ in its cell with the message on hover. That page describes the formulas, sources and valid ranges.
 
 **Language of the formatters:** `dateformat`, `numberformat` and `currencyformat` follow the program language chosen in the settings, not the language of the operating system. Where no document stands behind them, such as in computed datatable columns and in inline calculations, the language of the environment still applies.
 

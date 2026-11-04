@@ -671,10 +671,11 @@ describe('9) Anlegen wie das Aufklapp-Menü (4T-002006, Story AK2, AK9)', () => 
     });
   });
 
-  it('AK9: nicht als Bezug einer Ableitung angeboten (B4)', () => {
+  it('AK9: als Bezug einer Ableitung angenommen (4T-002445, vorher B4)', () => {
     const { kalender } = blockMitChinesisch();
     const ableitung = { id: 'abl', name: 'abl', derivedFrom: ID, zero: [2025, 1, 1] };
-    expect(deriveCalendar(kalender, ableitung)).toBe(null);
+    // Die Jahrestags-Regeln selbst prüft kalender-jahrestags-regeln.test.js.
+    expect(deriveCalendar(kalender, ableitung)).not.toBe(null);
     const config = normalizeCalendarConfig({
       blocks: [
         {
@@ -683,6 +684,9 @@ describe('9) Anlegen wie das Aufklapp-Menü (4T-002006, Story AK2, AK9)', () => 
         },
       ],
     });
-    expect(config.blocks[0].calendars.map((c) => c.id)).toEqual([ID]);
+    expect(config.blocks[0].calendars.map((c) => c.id)).toEqual([ID, 'abl']);
+    const abl = config.blocks[0].calendars[1];
+    expect(abl.derived.zero).toEqual([2025, 1, 1]);
+    expect(formatTuple(abl, [2025, 1, 1, 0, 0, 0])).toBe('0-0-1');
   });
 });

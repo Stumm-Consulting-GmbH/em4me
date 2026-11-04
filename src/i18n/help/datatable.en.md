@@ -106,6 +106,7 @@ aggregate: Total:sum
 ```
 
 - The expression language is the same as in the [Perspective Query](frontmatter-query.md): arithmetic, comparisons, `choice(…)`, `default(…)`, text functions, and more. This includes `count(x)`; in a formula it counts the values of the named field in the one row and is not the aggregate function `count` of the aggregate row, which counts across all rows; an empty text cell counts in neither.
+- The available functions also include the basic mathematical functions such as `round`, `pow` and `sqrt`, the constants such as `pi()` and the formulas of the [formula library](formula-library.md), such as `BMI:number(1) = health.bmi(Mass, Height)`. With the extension «Formula library» switched off, every cell of a column with such a formula shows a dash «—» with the notice «Formula library switched off» on hover; an argument outside the valid range of a formula shows the dash with the message of the formula in its cell. Neither is a structural error: the other columns keep calculating, and the table stays editable.
 - Column names in the expression refer to the values of the respective row; other computed columns can be used in any declaration order (evaluation resolves the dependencies). Circular references are reported as structural errors.
 - The result must match the declared column type, otherwise the cell shows an error.
 - Computed values are **never stored in the source** — they are always calculated fresh and therefore have no data cell in the pipe rows. Aggregates over computed columns calculate on the computed values.

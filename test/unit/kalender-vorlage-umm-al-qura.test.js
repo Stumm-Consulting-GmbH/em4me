@@ -465,10 +465,11 @@ describe('8) Anlegen wie das Aufklapp-Menü (4T-002008, Story AK2, AK4, AK9)', (
     });
   });
 
-  it('AK6: nicht als Bezug einer Ableitung angeboten (A16)', () => {
+  it('AK6: als Bezug einer Ableitung angenommen (4T-002445, vorher A16)', () => {
     const { kalender } = blockMitUmmAlQura();
     const ableitung = { id: 'abl', name: 'abl', derivedFrom: ID, zero: [1446, 1, 1] };
-    expect(deriveCalendar(kalender, ableitung)).toBe(null);
+    // Die Jahrestags-Regeln selbst prüft kalender-jahrestags-regeln.test.js.
+    expect(deriveCalendar(kalender, ableitung)).not.toBe(null);
     const config = normalizeCalendarConfig({
       blocks: [
         {
@@ -477,6 +478,9 @@ describe('8) Anlegen wie das Aufklapp-Menü (4T-002008, Story AK2, AK4, AK9)', (
         },
       ],
     });
-    expect(config.blocks[0].calendars.map((c) => c.id)).toEqual([ID]);
+    expect(config.blocks[0].calendars.map((c) => c.id)).toEqual([ID, 'abl']);
+    const abl = config.blocks[0].calendars[1];
+    expect(abl.derived.zero).toEqual([1446, 1, 1]);
+    expect(formatTuple(abl, [1446, 1, 1, 0, 0, 0])).toBe('0-0-1');
   });
 });

@@ -202,6 +202,15 @@ const MANUAL_PAGES = [
   // 4T-000422 (Epic 3E-000079): Perspective Datatable (typisierte Datentabelle
   // mit Aggregaten, berechneten Spalten, Grid-Bearbeitung, Ansichts-Filter).
   { id: 'datatable', titleKey: 'manual.page.datatable.title', source: 'bundled' },
+  // 4T-002455 (Epic 3E-000378): Formel-Bibliothek (Aufruf und Angaben,
+  // Erweiterung mit Modus-Stufe Voll und Aus-Zustand je Rechen-Ort,
+  // Grundfunktionen und Konstanten des Kerns, die Formeln je Kategorie mit
+  // Zweck, Angaben, Beispiel, Quelle und Gueltigkeitsbereich, Meldungen,
+  // Grenzen). Steht unmittelbar hinter der Datentabelle, wie ihre Zeile im
+  // Handbuch-Ueberblick: Die Formeln rechnen an allen Rechen-Orten, und die
+  // berechneten Spalten sind der haeufigste davon (Struktur-Pruefschritt
+  // 4T-002455, Entscheidung des Product Owners vom 2026-10-31).
+  { id: 'formula-library', titleKey: 'manual.page.formulaLibrary.title', source: 'bundled' },
   // 4T-002027 (Epic 3E-000192): Diagramme zu Tabellen — Block perspective-chart
   // mit Name der Tabelle, Arten, Datenreihen, anderem Dokument, Hinweisen,
   // Farben, Druck und Export. Steht unmittelbar hinter der Datentabelle, weil

@@ -65,6 +65,8 @@ Le sous-menu Affichage → Affichage de l'éditeur regroupe les cinq interrupteu
 
 Les trois premiers interrupteurs sont **liés au document** : leur valeur passe dans le frontmatter du fichier (`fold-gutter`, `line-numbers`, `word-wrap`) et voyage avec lui. La bascule y écrit la nouvelle valeur et marque le fichier comme modifié ; un document sans indication propre suit le réglage par défaut sous Fichier → Paramètres… → Apparence. L'ordre de résolution est décrit sur la page [Frontmatter et propriétés](frontmatter.md).
 
+L'emplacement des voies des listes se règle sous Fichier → Paramètres… → Apparence → Voies de hiérarchie des listes. Avec « au bord gauche », la valeur par défaut, les marqueurs de pliage et les lignes de liaison d'une liste à puces ou numérotée se trouvent dans la gouttière de pliage, comme ceux des titres. Avec « dans la structure de la liste », ils se placent en retrait au niveau de la liste, juste devant la puce ou le numéro de l'élément qu'ils plient ; la ligne qui relie les sous-éléments d'un même élément suit le même retrait. Les titres et les autres blocs pliables gardent leur voie au bord gauche dans les deux cas, et ce qui peut être plié reste inchangé. Le choix vaut partout où la voie apparaît, c'est-à-dire dans la vue source, la vue scindée et la vue directe, et s'applique aussitôt dans toutes les fenêtres sans déplier aucune zone repliée. C'est un réglage de l'application et non une propriété du fichier ; si le pliage est masqué pour un document, aucune voie n'apparaît non plus dans la structure de la liste.
+
 ## Apparence
 
 ### Clair, sombre et système

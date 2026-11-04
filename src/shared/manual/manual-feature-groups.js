@@ -273,6 +273,17 @@ const HELP_FEATURE_GROUPS = [
       // 4T-000595 (Epic 3E-000111): Inline-Berechnungen direkt hinter dem
       // Abfrage-Cluster (gleiche Ausdrucks-Sprache der Perspective-Abfrage).
       'help.feature.inlineCalc',
+      // 4T-002449 (Epic 3E-000378): Formel-Bibliothek direkt hinter den
+      // Inline-Berechnungen, weil sie dieselbe Ausdrucks-Sprache erweitert.
+      'help.feature.formulaLibrary',
+      // 4T-002451, 4T-002452, 4T-002453, 4T-002454: die Formel-Gruppen
+      // unmittelbar hinter der Bibliothek.
+      'help.feature.formulaHumidity',
+      'help.feature.formulaFinance',
+      'help.feature.formulaPercent',
+      'help.feature.formulaUnit',
+      'help.feature.formulaHealth',
+      'help.feature.formulaConst',
       // 4T-000058 (Epic 3E-000011): Block-Anker schreiben und Autocomplete fuer [[ und #.
       'help.feature.blockAnchors',
       // 4T-001447 (Epic 3E-000176): Die Live-Darstellung des Ankers unmittelbar
@@ -626,8 +637,14 @@ const HELP_FEATURE_GROUPS = [
       // "Statusleiste".
       'help.feature.nichtAktivierbareSchalter',
       'help.feature.foldGutter',
+      // 4T-002435 (Epic 3E-000375): Lage der Gliederungsspuren bei Listen
+      // direkt hinter dem Gliederungs-Folding, dessen Spur sie verlegt. Die
+      // Einstellungs-Zeile steht im Abschnitt "Darstellung" unmittelbar nach
+      // der Gliederungs-Vorgabe.
+      'help.feature.listFoldTrack',
       // 4T-000573 (Epic 3E-000105): dokument-gebundene Editor-Ansicht-Schalter
-      // direkt hinter dem Gliederungs-Folding (gleiche Schalter-Familie).
+      // direkt hinter dem Gliederungs-Folding (gleiche Schalter-Familie); seit
+      // 4T-002435 steht dazwischen allein die Lage seiner Spuren bei Listen.
       'help.feature.editorViewSettings',
       // 4T-000579 (Epic 3E-000106): Hervorhebung der Cursor-Zeile, direkt hinter
       // den uebrigen Editor-Ansicht-Schaltern.

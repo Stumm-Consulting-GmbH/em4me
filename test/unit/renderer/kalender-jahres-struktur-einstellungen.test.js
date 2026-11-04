@@ -5,14 +5,17 @@
 // Rundlauf-Wege — Entwurf und Anwenden, die Bereichsdatei, die Austausch-Datei —
 // Zeichen für Zeichen. Monat und Jahr sind schreibgeschützt, Namen, Wochen und
 // Zeitalter bearbeitbar; das Feld «Anker» bleibt ohne Anker-Datum leer, ein
-// Hinweis nennt den Startpunkt; als Bezug einer Ableitung steht eine solche
-// Zeitrechnung nicht zur Wahl, ein Hinweis sagt, warum (B4).
+// Hinweis nennt den Startpunkt. 4T-002446 (Epic 3E-000377): Als Bezug einer
+// Ableitung steht eine solche Zeitrechnung zur Wahl (bis dahin B4 mit einem
+// Hinweis, warum nicht); bei hebräischem Bezug erscheint die Wahl der
+// Jahrestags-Regel, bei jedem Bezug mit Jahres-Struktur der Satz seiner Regel.
 //
 // Geprüft wird mit Probe-Tafel und Probe-Regel aus
 // test/fixtures/kalender-jahres-struktur/ über den Prüf-Zugang der Schnittstelle,
 // geholt über den CommonJS-Lader (Begründung in
-// kalender-jahres-struktur-oberflaeche.test.js). Die Übersetzung ist eine
-// Attrappe: Schlüssel, bei Platzhaltern samt Platzhalter.
+// kalender-jahres-struktur-oberflaeche.test.js); die Fälle der Regel-Wahl
+// nutzen die Regel und Tafeln des Programms mit den vier Vorlagen. Die
+// Übersetzung ist eine Attrappe: Schlüssel, bei Platzhaltern samt Platzhalter.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createRequire } from 'node:module';
 import './api-stub.js';
@@ -23,7 +26,7 @@ const PLATZHALTER = {
   'settings.calendar.relYearlyRule': '{name}',
   'settings.calendar.relYearlyTable': '{name}',
   'settings.calendar.startPointHint': '{value}',
-  'settings.calendar.derivedBaseYearlyHint': '{names}',
+  'settings.calendar.derivedPreviewBase': '{name}: {value}',
 };
 vi.mock('../../../src/renderer/i18n.js', async (importOriginal) => ({
   ...(await importOriginal()),
@@ -38,6 +41,7 @@ const { calendarStartPoint, configForPersist, normalizeCalendarConfig } =
 const { formatTuple } = await import('../../../src/shared/calendar/calendar-core.js');
 const { createGregorianTemplate } =
   await import('../../../src/shared/calendar/calendar-template.js');
+const { findCalendarTemplate } = await import('../../../src/shared/calendar/calendar-templates.js');
 const { istVollstaendigerKalenderBlock } =
   await import('../../../src/shared/exchange-data-kinds.js');
 const { collectDataKinds, buildExchangeSections } =
@@ -280,32 +284,197 @@ describe('Pflege einer Zeitrechnung mit Jahres-Struktur (4T-002363, Schritt 9, A
   });
 });
 
-describe('Ableitung: keine Zeitrechnung mit Jahres-Struktur als Bezug (4T-002363, B4, AK14)', () => {
+// Formular einer Ableitung bauen; liefert die Werte der Bezugs-Auswahl und
+// die Elemente der Regel-Wahl.
+function ableitungsFormular(block) {
+  document.body.innerHTML = '';
+  const idx = block.calendars.findIndex((c) => c.derived);
+  buildDerivedCalendarEditor(document.body, block, block.calendars[idx], idx);
+  const el = (s) => document.getElementById(`settings-calsys-${s}-${idx}`);
+  return {
+    idx,
+    el,
+    werte: [...el('derived-base').options].map((o) => o.value),
+    regel: el('derived-rule'),
+    satz: el('derived-rule-hint'),
+  };
+}
+
+describe('Ableitung: Zeitrechnungen mit Jahres-Struktur als Bezug (4T-002446, B4 aufgehoben)', () => {
   function bezugsAuswahl(sektion) {
     const config = normalisiert(sektion);
-    const block = {
+    return ableitungsFormular({
       id: 'b',
       name: 'Block',
       calendars: config.blocks[0].calendars.map(calendarToDraft),
-    };
-    const idx = block.calendars.findIndex((c) => c.derived);
-    buildDerivedCalendarEditor(document.body, block, block.calendars[idx], idx);
-    const optionen = [...document.getElementById(`settings-calsys-derived-base-${idx}`).options];
-    const hinweis = document.getElementById(`settings-calsys-derived-yearly-${idx}`);
-    return { werte: optionen.map((o) => o.value), hinweis };
+    });
   }
 
-  it('Tafel und Regel stehen nicht zur Wahl, der Hinweis nennt beide', () => {
-    const { werte, hinweis } = bezugsAuswahl(rohSektion());
-    expect(werte).toEqual(['', '@standard', 'greg']);
-    expect(hinweis.textContent).toBe('settings.calendar.derivedBaseYearlyHint tafel, regel');
+  it('AK1: Tafel und Regel stehen zur Wahl, der Hinweis «Nicht als Bezug wählbar» fehlt', () => {
+    const { werte, el } = bezugsAuswahl(rohSektion());
+    expect(werte).toEqual(['', '@standard', 'greg', 'tafel', 'regel']);
+    expect(el('derived-yearly')).toBeNull();
   });
 
-  it('Schutz-Fall: ohne Jahres-Struktur im Block kein Hinweis, alle eigenständigen zur Wahl', () => {
+  it('Schutz-Fall: ohne Jahres-Struktur alle eigenständigen zur Wahl, weder Regel-Wahl noch Satz', () => {
     const sektion = rohSektion();
     sektion.blocks[0].calendars.splice(1, 2);
-    const { werte, hinweis } = bezugsAuswahl(sektion);
+    const { werte, el, regel, satz } = bezugsAuswahl(sektion);
     expect(werte).toEqual(['', '@standard', 'greg']);
-    expect(hinweis).toBeNull();
+    expect(el('derived-yearly')).toBeNull();
+    expect(regel).toBeNull();
+    expect(satz).toBeNull();
+  });
+});
+
+describe('Ableitung: Regel-Wahl und Satz der Regel je Bezug (4T-002446, AK1 bis AK3)', () => {
+  const VORLAGEN = ['hebrew', 'chinese', 'persian', 'islamic-umalqura'];
+  // Nullpunkt je Bezug; hebräisch der 10. Adar 5783 (Gemeinjahr).
+  const NULLPUNKT = {
+    hebrew: [5783, 6, 10],
+    chinese: [2025, 1, 1],
+    persian: [1403, 1, 1],
+    'islamic-umalqura': [1446, 1, 1],
+    greg: [2023, 3, 1],
+    '@standard': [2023, 3, 1],
+  };
+  const SATZ = {
+    hebrew: 'settings.calendar.derivedRuleText.hebrewAnniversary',
+    chinese: 'settings.calendar.derivedRuleText.chinese',
+    persian: 'settings.calendar.derivedRuleText.persian',
+    'islamic-umalqura': 'settings.calendar.derivedRuleText.umalqura',
+  };
+
+  // Block wie nach «Vorlage einfügen»: gregorianisch und die vier Vorlagen mit
+  // Jahres-Struktur, dazu die Ableitung als Entwurf (Muster «hinzufügen»).
+  function vorlagenBlock(fromId, rule) {
+    const roh = {
+      blocks: [
+        {
+          id: 'b',
+          name: 'Block',
+          calendars: [
+            { ...createGregorianTemplate({}), id: 'greg', name: 'greg' },
+            ...VORLAGEN.map((id) => ({
+              ...findCalendarTemplate(id).create((k) => k),
+              id,
+              name: id,
+            })),
+          ],
+        },
+      ],
+    };
+    const block = { ...roh.blocks[0], calendars: normalisiert(roh).blocks[0].calendars };
+    block.calendars = block.calendars.map(calendarToDraft);
+    block.calendars.push({
+      id: 'abl',
+      name: 'abl',
+      derived: {
+        fromId,
+        zeroSegs: NULLPUNKT[fromId].map(String),
+        depth: '',
+        labelBefore: 'v',
+        labelAfter: 'n',
+        ...(rule === undefined ? {} : { anniversaryRule: rule }),
+      },
+      previewInput: '1-0-1',
+    });
+    return block;
+  }
+
+  // Die Regel und Tafeln des Programms statt der Proben.
+  beforeEach(() => setYearlySourcesForTests(null));
+
+  it('AK1: die vier Vorlagen stehen in der Reihenfolge des Blocks zur Wahl', () => {
+    const { werte } = ableitungsFormular(vorlagenBlock('hebrew'));
+    expect(werte).toEqual(['', '@standard', 'greg', ...VORLAGEN]);
+  });
+
+  it.each(VORLAGEN)('AK2/AK3: Bezug %s — Satz der Regel, Regel-Wahl nur bei hebräisch', (id) => {
+    const block = vorlagenBlock(id);
+    const { regel, satz } = ableitungsFormular(block);
+    expect(satz.textContent).toBe(SATZ[id]);
+    expect(satz.className).toBe('settings-row-hint');
+    const abl = block.calendars[block.calendars.length - 1];
+    if (id !== 'hebrew') {
+      expect(regel).toBeNull();
+      expect(abl.derived.anniversaryRule).toBe('');
+      return;
+    }
+    expect([...regel.options].map((o) => [o.value, o.textContent])).toEqual([
+      ['anniversary', 'settings.calendar.derivedRuleAnniversary'],
+      ['yahrzeit', 'settings.calendar.derivedRuleYahrzeit'],
+    ]);
+    expect(regel.value).toBe('anniversary');
+    expect(abl.derived.anniversaryRule).toBe('anniversary');
+    // Die Regel-Wahl steht unmittelbar unter der Bezugs-Auswahl, der Satz darunter.
+    const zeilen = [...document.querySelectorAll('select, p.settings-row-hint')];
+    const bezug = zeilen.findIndex((n) => n.id.startsWith('settings-calsys-derived-base-'));
+    expect(zeilen[bezug + 1]).toBe(regel);
+    expect(zeilen[bezug + 2]).toBe(satz);
+  });
+
+  it.each(['greg', '@standard'])('AK3: fester Bezug %s — weder Regel-Wahl noch Satz', (id) => {
+    const { regel, satz } = ableitungsFormular(vorlagenBlock(id));
+    expect(regel).toBeNull();
+    expect(satz).toBeNull();
+  });
+
+  it('AK2: Wechsel auf «Jahrzeit» zeigt deren Satz und Jahrestag, Nullpunkt und Tiefe bleiben', () => {
+    const block = vorlagenBlock('hebrew');
+    const abl = block.calendars[block.calendars.length - 1];
+    abl.derived.depth = '2';
+    const { regel, satz, el } = ableitungsFormular(block);
+    expect(el('preview').textContent).toContain('hebrew: 5784-06-10');
+    regel.value = 'yahrzeit';
+    regel.dispatchEvent(new Event('change'));
+    expect(abl.derived.anniversaryRule).toBe('yahrzeit');
+    expect(satz.textContent).toBe('settings.calendar.derivedRuleText.hebrewYahrzeit');
+    expect(el('preview').textContent).toContain('hebrew: 5784-05L-10');
+    expect(abl.derived.zeroSegs).toEqual(['5783', '6', '10']);
+    expect(abl.derived.depth).toBe('2');
+  });
+
+  it('AK2: Bezugs-Wechsel — hebräisch mit Vorgabe «Jahrestag», jeder andere ohne Regel', () => {
+    const block = vorlagenBlock('hebrew', 'yahrzeit');
+    const abl = block.calendars[block.calendars.length - 1];
+    const wechsel = (id) => {
+      const auswahl = ableitungsFormular(block).el('derived-base');
+      auswahl.value = id;
+      auswahl.dispatchEvent(new Event('change'));
+    };
+    wechsel('persian');
+    expect(abl.derived.anniversaryRule).toBe('');
+    expect(calendarPersistForm(abl)).not.toHaveProperty('anniversaryRule');
+    wechsel('hebrew');
+    expect(abl.derived.anniversaryRule).toBe('anniversary');
+    expect(ableitungsFormular(block).regel.value).toBe('anniversary');
+  });
+
+  it('AK2: Rundlauf Entwurf → Definition → Entwurf hält die Regel; ohne hebräischen Bezug kein Feld', () => {
+    const rundlauf = (block) => {
+      const abl = block.calendars[block.calendars.length - 1];
+      const ablage = calendarConfigPersistForm({ blocks: [block] });
+      const geladen = kalender(normalisiert(ablage), 'abl');
+      expect(geladen).toBeTruthy();
+      const zurueck = calendarToDraft(geladen);
+      return { abl, ablage: calendarPersistForm(abl), geladen, zurueck };
+    };
+    const jahrzeit = vorlagenBlock('hebrew', 'yahrzeit');
+    const h = rundlauf(jahrzeit);
+    expect(h.ablage.anniversaryRule).toBe('yahrzeit');
+    expect(h.geladen.derived.anniversaryRule).toBe('yahrzeit');
+    expect(h.zurueck.derived.anniversaryRule).toBe('yahrzeit');
+    expect(calendarPersistForm(h.zurueck)).toStrictEqual(h.ablage);
+    // Eine Ablage ohne Feld lädt mit der Vorgabe «Jahrestag».
+    const ohne = rundlauf(vorlagenBlock('hebrew', ''));
+    expect(ohne.ablage).not.toHaveProperty('anniversaryRule');
+    expect(ohne.zurueck.derived.anniversaryRule).toBe('anniversary');
+    for (const id of ['persian', 'greg']) {
+      const r = rundlauf(vorlagenBlock(id));
+      expect(r.ablage).not.toHaveProperty('anniversaryRule');
+      expect(r.geladen.derived).not.toHaveProperty('anniversaryRule');
+      expect(r.zurueck.derived.anniversaryRule).toBe('');
+    }
   });
 });

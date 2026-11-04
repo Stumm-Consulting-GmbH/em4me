@@ -329,6 +329,10 @@ contextBridge.exposeInMainWorld('api', {
   // aktivierbarer Schalter.
   onStatusbarUnavailableModeChanged: (cb) =>
     ipcRenderer.on('statusbarUnavailableMode:changed', (_e, value) => cb(value)),
+  // 4T-002433 (Epic 3E-000375): Multi-Window-Broadcast der Lage der
+  // Gliederungsspuren bei Listen.
+  onListFoldTrackPositionChanged: (cb) =>
+    ipcRenderer.on('listFoldTrackPosition:changed', (_e, value) => cb(value)),
 
   onTimerDue: (cb) => ipcRenderer.on('timer:due', (_e, payload) => cb(payload)),
   // 4T-001728: Raeumen, Anspruch und Nachholen der Timer-Meldung.

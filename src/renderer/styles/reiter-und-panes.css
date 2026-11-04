@@ -707,6 +707,62 @@
   opacity: 1;
   color: var(--fg);
 }
+/* 4T-002434 (Epic 3E-000375): Gliederungsspur der Listenpunkte in der Zeile
+   (Lage «in der Struktur der Liste», list-fold-track-zeile.js). Anzeiger und
+   Linie sind absolut positioniert ohne left und stehen damit waagerecht an
+   der Text-Stelle ihres Widgets vor dem Aufzählungszeichen, ohne Platz zu
+   nehmen. Der Anzeiger rückt um eine Spur-Breite (10px wie im Rand) davor,
+   die Linie steht auf seiner Mitte; ihre Lage in der Senkrechten (top,
+   height) setzt das Widget aus der Höhen-Karte des Editors. Bezugsrahmen ist
+   die Zeile. text-indent setzt der Rücksetzer des hängenden Einzugs
+   (footnotes.css) für Nachkommen ohnehin auf null. */
+.cm-editor .cm-line.scg-list-track-line {
+  position: relative;
+}
+.scg-list-fold,
+.scg-list-guide {
+  user-select: none;
+}
+.scg-list-fold-marker {
+  position: absolute;
+  width: 10px;
+  margin-left: -10px;
+  text-align: center;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: normal;
+  color: var(--fg-muted);
+  cursor: pointer;
+  opacity: 0.65;
+  transition:
+    opacity 0.1s ease,
+    color 0.1s ease;
+}
+.scg-list-fold-marker::before {
+  content: '\2304';
+}
+.scg-list-fold-marker[data-folded='true']::before {
+  content: '\203A';
+}
+.scg-list-fold-marker:hover {
+  opacity: 1;
+  color: var(--fg);
+}
+.scg-list-guide {
+  pointer-events: none;
+}
+.scg-list-guide-filler::before {
+  content: attr(data-filler);
+  visibility: hidden;
+  white-space: pre;
+}
+.scg-list-guide-line {
+  position: absolute;
+  width: 1px;
+  margin-left: -5.5px;
+  background: var(--border-strong);
+  pointer-events: none;
+}
 /* Aus-Zustand der Zeilen-Hervorhebung. !important wie bei der Selection-Regel
    weiter unten: CodeMirror bringt fuer .cm-activeLine eine eigene Theme-Farbe
    mit, die bei gleicher Spezifitaet gewinnen wuerde (4T-000577). */

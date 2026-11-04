@@ -683,6 +683,37 @@ describe('perspective-datatable — Berechnete Spalten (4T-000421)', () => {
     expect(html).toContain('data-i18n-title="datatable.cellError.computedTypeMismatch"');
   });
 
+  // 4T-002450 (Epic 3E-000378): Parität der Grundfunktionen und Konstanten mit
+  // der Abfrage (Story 4S-001124, AK2 und AK8); ein Rand bleibt eine leere
+  // Zelle wie eine Division durch null, eine falsche Stelligkeit ist badExpr.
+  it('Grundfunktionen und Konstanten rechnen wie in der Abfrage (4T-002450)', () => {
+    const model = parseOk(
+      'columns: D:number, U:number = round(pi() * D, 2), P:number = pow(2, D), W:number = sqrt(D * 8)\n' +
+        '| 2 |\n| -1 |',
+    );
+    const computed = computeComputedCells(model);
+    const [r0, r1] = model.rows.map((row) => computed.get(row));
+    expect([r0[1].value, r0[2].value, r0[3].value]).toEqual([6.28, 4, 4]);
+    expect([r1[1].value, r1[2].value]).toEqual([-3.14, 0.5]);
+    expect(r1[3]).toEqual({ value: null, error: null });
+    const falsch = parsePerspectiveDatatable('columns: D:number, X:number = pi(2)');
+    expect(falsch.errors.map((e) => e.code)).toContain('badExpr');
+  });
+
+  // 4T-002454 (Epic 3E-000378, Story 4S-001140 AK3): sehr große und sehr kleine
+  // Werte der Naturkonstanten überstehen die Rundung auf zwölf signifikante
+  // Stellen unverändert und erscheinen in der Zelle wie in der Abfrage.
+  it('Naturkonstanten const.na() und const.h() mit allen Stellen in Wert und Zelle (4T-002454)', () => {
+    const quelle = 'columns: A:number, N:number = const.na(), H:number = const.h()\n| 1 |';
+    const model = parseOk(quelle);
+    const computed = computeComputedCells(model);
+    const [zeile] = model.rows.map((row) => computed.get(row));
+    expect([zeile[1].value, zeile[2].value]).toEqual([6.02214076e23, 6.62607015e-34]);
+    const html = renderPerspectiveDatatableViewer(quelle);
+    expect(html).toContain('data-dt-col="1">6.02214076e+23</td>');
+    expect(html).toContain('data-dt-col="2">6.62607015e-34</td>');
+  });
+
   it('Sortierung und Filter arbeiten auf berechneten Werten', () => {
     const model = parseOk('columns: A:number, D:number = A * 2\n| 3 |\n| 1 |\n| 2 |');
     const computed = computeComputedCells(model);

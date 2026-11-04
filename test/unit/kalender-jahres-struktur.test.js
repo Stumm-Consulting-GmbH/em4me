@@ -240,16 +240,24 @@ describe('Jahres-Struktur: keine Laufzeit-Kalender und kein Netz (4T-002363, Sto
     const quelle = ohneKommentare(MODUL);
     expect(quelle).not.toMatch(/\bIntl\b/);
     const aufrufe = quelle.match(/\brequire\s*\([^)]*\)/g) || [];
+    // 4T-002445: dazu das Blatt-Modul der Jahrestags-Regeln (Ableitungen).
     expect(aufrufe).toEqual([
+      "require('./calendar-anniversary.js')",
       "require('./calendar-rule-hebrew.js')",
       "require('./year-tables/persian.js')",
       "require('./year-tables/chinese.js')",
       "require('./year-tables/islamic-umalqura.js')",
     ]);
     for (const aufruf of aufrufe) {
-      expect(aufruf).toMatch(/^require\('\.\/(calendar-rule-|year-tables\/)[a-z-]+\.js'\)$/);
+      expect(aufruf).toMatch(
+        /^require\('\.\/(calendar-rule-[a-z-]+|year-tables\/[a-z-]+|calendar-anniversary)\.js'\)$/,
+      );
     }
     expect(quelle).not.toMatch(/\b(fetch|XMLHttpRequest|WebSocket|https?:)/);
+    const jahrestage = ohneKommentare(path.join(path.dirname(MODUL), 'calendar-anniversary.js'));
+    expect(jahrestage).not.toMatch(/\bIntl\b/);
+    expect(jahrestage).not.toMatch(/\brequire\s*\(/);
+    expect(jahrestage).not.toMatch(/\b(fetch|XMLHttpRequest|WebSocket|https?:)/);
     const regel = ohneKommentare(REGEL_HEBRAEISCH);
     expect(regel).not.toMatch(/\bIntl\b/);
     expect(regel).not.toMatch(/\brequire\s*\(/);
@@ -667,12 +675,18 @@ describe('Jahres-Struktur: Startpunkt, Zeitalter, Wochen, Umrechnung (4T-002363,
     expect(cycleAt(t, tag(4699, 1, 1))).toBe(null);
   });
 
-  it('eine Ableitung auf einer Zeitrechnung mit Jahres-Struktur wird abgewiesen (B4)', () => {
+  // 4T-002445 (Epic 3E-000377): bis dahin abgewiesen (B4); seither angenommen,
+  // die Jahrestags-Regeln selbst prüft kalender-jahrestags-regeln.test.js.
+  it('eine Ableitung auf einer Zeitrechnung mit Jahres-Struktur wird angenommen (4T-002445)', () => {
     setYearlySourcesForTests(PROBEN);
     const abl = { id: 'abl', name: 'abl', derivedFrom: 't', zero: [4701, 1, 1] };
     const norm = blockMit(rohMitJahresStruktur('t', TAFEL), abl);
-    expect(norm.blocks[0].calendars.map((c) => c.id)).toEqual(['greg', 't']);
-    expect(deriveCalendar(norm.blocks[0].calendars[1], abl)).toBe(null);
+    expect(norm.blocks[0].calendars.map((c) => c.id)).toEqual(['greg', 't', 'abl']);
+    expect(deriveCalendar(norm.blocks[0].calendars[1], abl)).not.toBe(null);
+    const r = convertInBlock(norm.blocks[0], 'abl', tag(4701, 1, 1), 't');
+    expect(r).toEqual({ ok: true, tuple: tag(4701, 1, 1) });
+    // Ein Nullpunkt außerhalb des Zeitraums der Tafel bleibt ungültig.
+    expect(deriveCalendar(norm.blocks[0].calendars[1], { ...abl, zero: [4704, 1, 1] })).toBe(null);
   });
 
   it('unbekannter Name und unlesbare Tafel lassen nur die eigene Zeitrechnung entfallen (AK12)', () => {

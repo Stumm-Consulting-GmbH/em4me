@@ -12,6 +12,8 @@ import { Table as LezerTable } from '@lezer/markdown';
 import { ensureSyntaxTree } from '@codemirror/language';
 
 const folding = await import('../../../src/renderer/modules/editor/folding.js');
+// 4T-002434 (Epic 3E-000375): Spur der Listenpunkte in der Zeile.
+const zeile = await import('../../../src/renderer/modules/editor/list-fold-track-zeile.js');
 const panelOutgoing = await import('../../../src/renderer/modules/panels/panel-outgoing.js');
 const panelOutline = await import('../../../src/renderer/modules/panels/panel-outline.js');
 // 4T-000989 (Epic 3E-000196): views.js ist in den Feature-Ordner views/ geteilt;
@@ -87,6 +89,97 @@ describe('Fold-Struktur (folding.js)', () => {
       expect(s.headings[i].toLine).toBe(s.headings[i + 1].fromLine - 1);
     }
     expect(ms).toBeLessThan(1000);
+  });
+
+  // 4T-002434 (Epic 3E-000375): Lage der Listenpunkte für die Spur in der
+  // Struktur der Liste — Knotenart, Listenart, Marker-Stelle und Einrück-Spalte.
+  describe('Listenpunkte tragen Lage und Art (4T-002434)', () => {
+    const listItem = (s, line) =>
+      s.blocks.find((b) => b.nodeType === 'ListItem' && b.fromLine === line);
+
+    it('Aufzählung und nummerierte Liste: Einrück-Spalte je Ebene, Listenart (AK2, AK3)', () => {
+      const s = folding.computeFoldStructure(
+        mdState('- a\n  - b\n    - c\n      - d\n\n1. e\n   1. f\n   2. g\n'),
+      );
+      expect(listItem(s, 1)).toMatchObject({
+        listType: 'bullet',
+        markerOffset: 0,
+        indentColumn: 0,
+      });
+      expect(listItem(s, 2)).toMatchObject({
+        listType: 'bullet',
+        markerOffset: 2,
+        indentColumn: 2,
+      });
+      expect(listItem(s, 3)).toMatchObject({ markerOffset: 4, indentColumn: 4 });
+      expect(listItem(s, 6)).toMatchObject({
+        listType: 'ordered',
+        markerOffset: 0,
+        indentColumn: 0,
+      });
+      // Einzeilige Punkte bleiben wie bisher ohne Region.
+      expect(listItem(s, 4)).toBeUndefined();
+    });
+
+    it('Zitat-Präfix zählt mit, Tabulator springt auf die Tab-Marke (AK4)', () => {
+      const zitat = folding.computeFoldStructure(mdState('> - a\n>   - b\n>     - c\n'));
+      expect(listItem(zitat, 1)).toMatchObject({ markerOffset: 2, indentColumn: 2 });
+      expect(listItem(zitat, 2)).toMatchObject({ markerOffset: 4, indentColumn: 4 });
+      const tab = folding.computeFoldStructure(mdState('- a\n\t- b\n\t\t- c\n'));
+      expect(listItem(tab, 2)).toMatchObject({ markerOffset: 1, indentColumn: 4 });
+    });
+
+    it('Überschriften und übrige Blöcke bleiben unverändert; der Rand ohne Listen (AK3)', () => {
+      const s = folding.computeFoldStructure(
+        mdState('# A\n\n- a\n  - b\n\n> zitat\n> zwei\n\n```js\nx\n```\n'),
+      );
+      expect(s.headings[0]).toEqual({
+        kind: 'heading',
+        level: 1,
+        fromLine: 1,
+        toLine: 12,
+        track: 1,
+      });
+      const zitat = s.blocks.find((b) => b.fromLine === 6);
+      expect(zitat.nodeType).toBeUndefined();
+      expect(zitat.listType).toBeUndefined();
+      // links außen: bisheriger Stand, Listenpunkt auf Spur 2, Zitat auf Spur 2.
+      expect(s.layouts.aussen.regionsByTrack).toBe(s.regionsByTrack);
+      expect(s.layouts.aussen.totalTracks).toBe(s.totalTracks);
+      expect(listItem(s, 3).track).toBe(2);
+      // in der Struktur: keine Listenpunkte im Rand, Breite nur aus dem Rest.
+      const imRand = [...s.layouts.struktur.regionsByTrack.values()].flat();
+      expect(imRand.some((r) => r.nodeType === 'ListItem')).toBe(false);
+      expect(imRand).toContain(zitat);
+      expect(s.layouts.struktur.totalTracks).toBe(2);
+    });
+
+    it('Code-Block im Listenpunkt rückt im Rand ohne Listen auf die erste Block-Spur', () => {
+      const s = folding.computeFoldStructure(mdState('- a\n\n  ```js\n  x\n  ```\n'));
+      const code = s.blocks.find((b) => b.nodeType !== 'ListItem');
+      expect(code.track).toBe(2);
+      expect(code.trackWithoutLists).toBe(1);
+      expect(s.layouts.struktur.totalTracks).toBe(1);
+    });
+  });
+});
+
+// 4T-002434 (Epic 3E-000375): Stelle der Fortsetzungs-Linie in einer Zeile.
+describe('Spur in der Zeile: guidePosition (list-fold-track-zeile.js)', () => {
+  it('Leerzeichen und Zitat-Präfix bis zur Spalte; Text davor bekommt keine Linie', () => {
+    expect(zeile.guidePosition('    - c', 2, 4)).toEqual({ offset: 2, filler: '' });
+    expect(zeile.guidePosition('>   - b', 2, 4)).toEqual({ offset: 2, filler: '' });
+    expect(zeile.guidePosition('Fortsetzung', 2, 4)).toBeNull();
+  });
+
+  it('kein Element mitten in einer Tabulator-Einrückung, wohl aber am Zeilenanfang', () => {
+    expect(zeile.guidePosition('\t\t- c', 4, 4)).toBeNull();
+    expect(zeile.guidePosition('\t\t- c', 0, 4)).toEqual({ offset: 0, filler: '' });
+  });
+
+  it('kurze Zeile wird mit dem Präfix der Start-Zeile aufgefüllt', () => {
+    expect(zeile.guidePosition('', 2, 4, '> ')).toEqual({ offset: 0, filler: '> ' });
+    expect(zeile.guidePosition('', 3, 4, '  ')).toEqual({ offset: 0, filler: '   ' });
   });
 });
 

@@ -40,6 +40,8 @@ import {
   walkGroups,
 } from '../../../shared/query/result-display.js';
 import { markRecordHit } from './record-hit-click.js';
+// 4T-002451: dasselbe Warnzeichen wie die Berechnung im Fließtext.
+import { INLINE_CALC_ERROR_GLYPH } from '../../../shared/markdown/inline-calc.js';
 
 // Klickbarer Treffer-Link aus der Herkunft einer Zeile: absoluter Index-Pfad
 // als Klick-Ziel, beim Block der Anker mit ^-Präfix, bei der Aufgabe die
@@ -76,6 +78,12 @@ function hitLink(origin) {
 // und Verweis gleichermaßen, und der Verweis bleibt klickbar.
 // 4T-002040 (Epic 3E-000258): { record } wird ein Link mit den Angaben des
 // Datensatz-Klicks, wie der Datensatz-Treffer selbst.
+// 4T-002451 (Epic 3E-000378): { message } ist die Meldung einer Formel. Sie
+// wird das Warnzeichen in der Form der Berechnung im Fließtext (Klassen
+// `inline-calc inline-calc-error`, Schlüssel der Meldung in
+// `data-i18n-title`); den Text beim Darüberfahren setzt der Einstieg der
+// Befüllung mit seiner Übersetzung (`titelDerMeldungen` in
+// frontmatter-query-view.js), ein Sprachwechsel über applyTranslations.
 export function appendSegments(el, segments) {
   for (const seg of segments || []) {
     const ziel = seg && seg.bold ? document.createElement('strong') : el;
@@ -94,6 +102,12 @@ export function appendSegments(el, segments) {
       a.textContent = seg.record.name || seg.record.id;
       markRecordHit(a, seg.record);
       ziel.appendChild(a);
+    } else if (seg && typeof seg.message === 'string') {
+      const zeichen = document.createElement('span');
+      zeichen.className = 'inline-calc inline-calc-error';
+      zeichen.setAttribute('data-i18n-title', seg.message);
+      zeichen.textContent = INLINE_CALC_ERROR_GLYPH;
+      ziel.appendChild(zeichen);
     } else if (seg && typeof seg.text === 'string') {
       ziel.appendChild(document.createTextNode(seg.text));
     }

@@ -159,7 +159,9 @@ Für Zahlen statt Text gibt es die zweite Tabellen-Art. Die Perspective Datatabl
 - **Rechnen auch im Fließtext:** Inline-Berechnungen nutzen dieselbe Ausdrucks-Sprache mitten im Satz.
 - **Klartext bleibt Klartext:** Die Daten stehen unverändert in der Markdown-Datei.
 
-Ausführlich: [Perspective Datatable](datatable.md).
+Was als Ausdruck aus Grundrechenarten lang und fehleranfällig wäre, steht als fertige Formel bereit: Taupunkt und Luftfeuchtigkeit, Rate, Barwert und Zins einer Annuität, Prozentrechnung, die Umrechnung von Temperatur und Länge, der Body-Mass-Index und die Naturkonstanten. Jede Formel nennt ihre Quelle, eine Norm oder Fachliteratur, und ihren Gültigkeitsbereich; eine Angabe außerhalb dieses Bereichs zeigt eine Meldung statt eines falschen Werts. Dieselbe Formel rechnet in der berechneten Spalte, im Fließtext, in der Abfrage und im Formel-Feld eines Profils mit demselben Ergebnis.
+
+Ausführlich: [Perspective Datatable](datatable.md) und [Formel-Bibliothek](formula-library.md).
 
 ## Dokument-Arten, die sich aufeinander stützen
 

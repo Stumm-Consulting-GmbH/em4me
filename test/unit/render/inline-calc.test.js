@@ -129,6 +129,31 @@ describe('evaluateInlineCalc: kontext-freie Auswertung', () => {
     expect(evaluateInlineCalc('default(1/0, 99)')).toMatchObject({ ok: true, text: '99' });
   });
 
+  // 4T-002450 (Epic 3E-000378): Parität der Grundfunktionen und Konstanten mit
+  // der Abfrage (Story 4S-001124, AK2 und AK8); Werte, die ungerundet und auf
+  // zwölf Stellen gleich erscheinen.
+  it('Grundfunktionen und Konstanten wie in der Abfrage, Ränder als Fehler-Zeichen', () => {
+    expect(evaluateInlineCalc('round(pi() * 2, 2)')).toMatchObject({ ok: true, text: '6.28' });
+    expect(evaluateInlineCalc('pow(2, 10)')).toMatchObject({ ok: true, text: '1024' });
+    expect(evaluateInlineCalc('mod(-3, 2) + round(-2.5)')).toMatchObject({ ok: true, text: '-2' });
+    expect(evaluateInlineCalc('sqrt(-1)')).toEqual({ ok: false, code: 'value' });
+    expect(evaluateInlineCalc('pi(2)')).toEqual({ ok: false, code: 'function' });
+    expect(renderMarkdown('A {= round(pi() * 2, 2) =} B', 'de')).toContain('>6.28</span>');
+  });
+
+  // 4T-002454 (Epic 3E-000378, Story 4S-001140 AK3): sehr große und sehr kleine
+  // Werte der Naturkonstanten erscheinen wie in der Abfrage (String der Zahl),
+  // mit allen Stellen der Quelle und in Exponent-Schreibweise.
+  it('Naturkonstanten const.na() und const.h() mit allen Stellen, wie in der Abfrage', () => {
+    expect(evaluateInlineCalc('const.na()')).toMatchObject({ ok: true, text: '6.02214076e+23' });
+    expect(evaluateInlineCalc('const.h()')).toMatchObject({ ok: true, text: '6.62607015e-34' });
+    expect(evaluateInlineCalc('const.c()')).toMatchObject({ ok: true, text: '299792458' });
+    const html = renderMarkdown('N {= const.na() =} H {= const.h() =}', 'de');
+    expect(html).toContain('title="const.na()">6.02214076e+23</span>');
+    expect(html).toContain('title="const.h()">6.62607015e-34</span>');
+    expect(evaluateInlineCalc('const.c(1)')).toEqual({ ok: false, code: 'function' });
+  });
+
   it('Fehler-Codes: syntax, field, function, value', () => {
     expect(evaluateInlineCalc('2+')).toEqual({ ok: false, code: 'syntax' });
     expect(evaluateInlineCalc('2 + 3 rest')).toEqual({ ok: false, code: 'syntax' });

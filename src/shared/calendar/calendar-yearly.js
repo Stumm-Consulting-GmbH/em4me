@@ -47,7 +47,17 @@
 //
 // Keine Internet-Zugriffe und kein eingebauter Kalender der Laufzeit (Intl):
 // Die Rechnung stützt sich allein auf Regel und Tafel (Story 4S-001111, AK6).
+//
+// 4T-002445 (Epic 3E-000377): Eine abgeleitete Zeitrechnung auf einem solchen
+// Bezug nennt an ihrer Jahres-Ebene dieselbe Quelle und zusätzlich den
+// Nullpunkt als Tag der Rata-Die-Zählung (derivedZero) samt der hebräischen
+// Regel (anniversaryRule); die Quelle dazu baut das Blatt-Modul
+// calendar-anniversary.js aus der aufbereiteten Bezugs-Quelle. Jede Quelle
+// kennt dafür die Zahl der Monate vor einem Jahr (monthsBefore), eine Regel
+// über die optionale Funktion monateVor(jahr) in geschlossener Form.
 'use strict';
+
+const { ANNIVERSARY_RULES, prepareDerivedSource } = require('./calendar-anniversary.js');
 
 // Rata Die des 1. Januar des gregorianischen Jahres 0: Ursprung der eigenen
 // Achse jeder Zeitrechnung mit Jahres-Struktur (Achse = Tag − Ursprung).
@@ -181,6 +191,15 @@ function prepareTable(table) {
     }
     return BigInt(table.firstYear + lo);
   };
+  // 4T-002445: Monate vor einem Jahr, gezählt ab dem ersten Jahr der Tafel.
+  const monthCounts = [0n];
+  for (const months of table.years) {
+    monthCounts.push(monthCounts[monthCounts.length - 1] + BigInt(months.length));
+  }
+  const monthsBefore = (year) => {
+    const i = (typeof year === 'bigint' ? year : BigInt(year)) - BigInt(table.firstYear);
+    return i < 0n || i > BigInt(n) ? null : monthCounts[Number(i)];
+  };
   return {
     kind: 'table',
     name: table.name,
@@ -193,6 +212,7 @@ function prepareTable(table) {
     },
     yearInfo,
     yearOfDay,
+    monthsBefore,
     maxMonths,
     maxLength,
   };
@@ -260,6 +280,17 @@ function prepareRule(rule) {
     }
     return lo;
   };
+  // 4T-002445: Monate vor einem Jahr — in geschlossener Form, wenn die Regel
+  // monateVor kennt (hebrew), sonst gezählt ab dem Jahr 0 (nur Proben-Regeln
+  // der Prüfungen; Aufwand linear im Abstand).
+  const monthsBefore = (year) => {
+    const y = typeof year === 'bigint' ? year : BigInt(year);
+    if (typeof rule.monateVor === 'function') return rule.monateVor(y);
+    let total = 0n;
+    for (let k = 0n; k < y; k++) total += BigInt(yearInfo(k).months.length);
+    for (let k = -1n; k >= y; k--) total -= BigInt(yearInfo(k).months.length);
+    return total;
+  };
   return {
     kind: 'rule',
     name: rule.name,
@@ -267,6 +298,7 @@ function prepareRule(rule) {
     range: null,
     yearInfo,
     yearOfDay,
+    monthsBefore,
     maxMonths: isPosInt(rule.hoechstMonate) ? rule.hoechstMonate : rule.namensStellen,
     maxLength: isPosInt(rule.hoechstLaenge) ? rule.hoechstLaenge : 99,
   };
@@ -279,10 +311,18 @@ function isKnownSourceName(kind, name) {
   return typeof name === 'string' && Object.prototype.hasOwnProperty.call(list, name);
 }
 
+// Abgeleitete Quellen je Bezugs-Quelle (4T-002445): Eine ausgetauschte Tafel ist
+// eine neue Bezugs-Quelle, und ihre Ableitungen entstehen neu (Verweis statt
+// Abschrift).
+const DERIVED = new WeakMap();
+
 // Quelle zu einer normalisierten Jahres-Beziehung { type: 'yearly', rule } bzw.
 // { type: 'yearly', table }; null bei unbekanntem Namen oder unlesbarer Quelle.
+// Mit derivedZero die abgeleitete Quelle einer Ableitung auf dieser Quelle
+// (4T-002445); null, wenn der Nullpunkt außerhalb ihres Zeitraums liegt.
 function resolveYearlySource(rel) {
   if (!rel || rel.type !== 'yearly') return null;
+  if (rel.derivedZero !== undefined) return resolveDerivedSource(rel);
   const kind = typeof rel.rule === 'string' ? 'rule' : 'table';
   const name = kind === 'rule' ? rel.rule : rel.table;
   if (!isKnownSourceName(kind, name)) return null;
@@ -303,6 +343,31 @@ function resolveYearlySource(rel) {
   return prepared;
 }
 
+function resolveDerivedSource(rel) {
+  const baseRel = typeof rel.rule === 'string' ? { type: 'yearly', rule: rel.rule } : null;
+  const base = resolveYearlySource(baseRel || { type: 'yearly', table: rel.table });
+  if (!base || !isInt(rel.derivedZero)) return null;
+  let perBase = DERIVED.get(base);
+  if (!perBase) {
+    perBase = new Map();
+    DERIVED.set(base, perBase);
+  }
+  const key = `${rel.derivedZero}|${rel.anniversaryRule || ''}`;
+  if (!perBase.has(key)) {
+    // Deckel: Die Pflege prüft jeden Entwurf eines Nullpunkts als Probe.
+    if (perBase.size > 256) perBase.clear();
+    perBase.set(
+      key,
+      prepareDerivedSource(base, {
+        zeroDay: BigInt(rel.derivedZero),
+        rule: rel.anniversaryRule,
+        hebrew: Boolean(baseRel) && rel.rule === 'hebrew',
+      }),
+    );
+  }
+  return perBase.get(key);
+}
+
 // --- Einlesen und Aufbau (Schritt 3; Weichen im Kern) ----------------------------------
 
 // Normalisiert eine Beziehung der beiden neuen Arten; undefined für jede andere
@@ -317,6 +382,15 @@ function normalizeYearlyRel(raw) {
   const hasTable = typeof raw.table === 'string' && raw.table !== '';
   if (hasRule === hasTable) return null;
   const rel = hasRule ? { type: 'yearly', rule: raw.rule } : { type: 'yearly', table: raw.table };
+  // 4T-002445: Nullpunkt und Regel einer Ableitung (deriveCalendar), wörtlich.
+  if (raw.derivedZero !== undefined) {
+    if (!isInt(raw.derivedZero)) return null;
+    rel.derivedZero = raw.derivedZero;
+    if (raw.anniversaryRule !== undefined) {
+      if (!ANNIVERSARY_RULES.includes(raw.anniversaryRule)) return null;
+      rel.anniversaryRule = raw.anniversaryRule;
+    }
+  }
   return resolveYearlySource(rel) ? rel : null;
 }
 
@@ -498,8 +572,11 @@ function yearlyOutsideYearStart(c, raw) {
 
 // Fehler-Code der Umrechnung, wenn das Ziel keinen Tag liefert: «nicht
 // bekannt» (unknown) bei einer Tafel, sonst wie bisher outOfRange (±2^53).
-function missingDateCode(c) {
-  return c.yearly && c.yearly.source.range ? 'unknown' : 'outOfRange';
+// 4T-002445: Ohne Jahres-Struktur gilt der Code des Aufrufers, wenn er einen
+// nennt (Eingabe einer Ableitung: unverändert segmentRange).
+function missingDateCode(c, otherwise = 'outOfRange') {
+  if (!c.yearly) return otherwise;
+  return c.yearly.source.range ? 'unknown' : 'outOfRange';
 }
 
 // --- Schreibweise des Monats nach B1 (Schritt 7; Weichen im Kern) -----------------------

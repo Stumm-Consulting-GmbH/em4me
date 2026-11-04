@@ -208,6 +208,39 @@ describe('Auswertung der Formel-Felder (4T-001183)', () => {
     expect(r.start).toEqual({ value: '2026-09-01', hint: null });
   });
 
+  // 4T-002450 (Epic 3E-000378): Parität der Grundfunktionen und Konstanten mit
+  // der Abfrage (Story 4S-001124, AK2 und AK8); ein Rand bleibt leer wie eine
+  // Division durch null, eine falsche Stelligkeit trägt den Hinweis.
+  it('Grundfunktionen und Konstanten rechnen wie in der Abfrage (4T-002450)', () => {
+    const r = werteAbgeleiteteFelder(
+      [
+        formel('umfang', 'round(pi() * d, 2)'),
+        formel('potenz', 'pow(2, 10)'),
+        formel('wurzel', 'sqrt(d - 3)'),
+        formel('falsch', 'pi(2)'),
+      ],
+      { d: 2 },
+    );
+    expect(r.umfang).toEqual({ value: 6.28, hint: null });
+    expect(r.potenz).toEqual({ value: 1024, hint: null });
+    expect(r.wurzel).toEqual({ value: null, hint: null });
+    expect(r.falsch).toEqual({ value: null, hint: 'derivedBadExpr' });
+  });
+
+  // 4T-002454 (Epic 3E-000378, Story 4S-001140 AK3): sehr große und sehr kleine
+  // Werte der Naturkonstanten überstehen die Rundung auf zwölf signifikante
+  // Stellen unverändert; die Anzeige ist der String der Zahl wie in der Abfrage.
+  it('Naturkonstanten const.na() und const.h() mit allen Stellen (4T-002454)', () => {
+    const r = werteAbgeleiteteFelder(
+      [formel('na', 'const.na()'), formel('h', 'const.h()'), formel('falsch', 'const.c(1)')],
+      {},
+    );
+    expect(r.na).toEqual({ value: 6.02214076e23, hint: null });
+    expect(r.h).toEqual({ value: 6.62607015e-34, hint: null });
+    expect([String(r.na.value), String(r.h.value)]).toEqual(['6.02214076e+23', '6.62607015e-34']);
+    expect(r.falsch).toEqual({ value: null, hint: 'derivedBadExpr' });
+  });
+
   it('eine Formel darf auf eine andere Formel verweisen', () => {
     const r = werteAbgeleiteteFelder([formel('a', 'budget * 2'), formel('b', 'a + 1')], {
       budget: 10,

@@ -30,7 +30,14 @@
 // es nicht. Prozess-neutral, ohne DOM und ohne Electron.
 
 const { evaluateExpression, orderForSort } = require('./perspective-query-eval.js');
-const { formatExprSource, isDate, coerceDateMs, truthy } = require('./query-format.js');
+const {
+  formatExprSource,
+  isDate,
+  coerceDateMs,
+  truthy,
+  // 4T-002456: Meldungs-Wert einer Formel beim Sortieren der Gruppen.
+  isMessage,
+} = require('./query-format.js');
 const {
   FUNCTIONS,
   AGGREGATE_FUNCTIONS,
@@ -301,8 +308,12 @@ function sortGroups(groups, sortKeys) {
       for (let i = 0; i < sortKeys.length; i++) {
         const av = a.g.sortValues[i];
         const bv = b.g.sortValues[i];
-        const aNull = av === null || av === undefined;
-        const bNull = bv === null || bv === undefined;
+        // 4T-002456 (Zweitblick-Befund der Runde 2): Ein Meldungs-Wert gilt wie
+        // ein fehlender Wert und steht am Ende, wie bei der Zeilen-Sortierung
+        // in perspective-query-eval.js; sonst verlöre der Vergleich seine
+        // Transitivität.
+        const aNull = av === null || av === undefined || isMessage(av);
+        const bNull = bv === null || bv === undefined || isMessage(bv);
         if (aNull && bNull) continue;
         if (aNull) return 1;
         if (bNull) return -1;

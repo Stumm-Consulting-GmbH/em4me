@@ -995,3 +995,25 @@ test.describe('DT-18: Bearbeiten aus, Raster nur ansehbar (4T-002053)', () => {
     }
   });
 });
+
+// DT-19 (4T-002450, Epic 3E-000378): Grundfunktion und Konstante in der
+// berechneten Spalte nach dem Abnahme-Handgriff der Story 4S-001124 (AK11).
+test.describe('DT-19: Grundfunktionen in der berechneten Spalte (4T-002450)', () => {
+  test('Umfang:number(2) = round(pi() * Durchmesser, 2) zeigt 6.28', async () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-dt19-'));
+    const datei = path.join(dir, 'Kreis.md');
+    const spalten = 'columns: Durchmesser:number, Umfang:number(2) = round(pi() * Durchmesser, 2)';
+    fs.writeFileSync(datei, `# Kreis\n\n\`\`\`perspective-datatable\n${spalten}\n| 2 |\n\`\`\`\n`);
+    const { app, page, userData } = await launchApp({ args: [datei] });
+    try {
+      await waitForTab(page);
+      const grid = page.locator(SEL.markdownBody0).locator('.pdt-grid');
+      const umfang = grid.locator('tr[data-dt-row="0"] td[data-dt-col="1"]');
+      await expect(umfang).toHaveText('6.28');
+      await expect(umfang).toHaveClass(/pdt-computed/);
+    } finally {
+      await closeApp(app, userData, { force: true });
+      entferneOrdner(dir);
+    }
+  });
+});

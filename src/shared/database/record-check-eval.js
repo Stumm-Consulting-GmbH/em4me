@@ -26,6 +26,8 @@
 // **Fail-closed** (AK3). Ein Ergebnis ohne Wert (`null`), ein Wurf und eine Regel
 // ohne Auswertungs-Weg gelten als verletzt mit dem Grund `nichtAuswertbar`. Ein
 // stilles Durchlassen bräche die Zusicherung, gegen die die Regel antritt.
+// Seit 4T-002449 gilt das auch für eine Regel mit einer Formel der
+// ausgeschalteten Formel-Bibliothek (`pruefeAusdruck`).
 //
 // Prozess-neutral (kein Electron, kein Dateizugriff, kein DOM).
 'use strict';
@@ -34,7 +36,9 @@ const { zellWert } = require('./record-values.js');
 const { DB_DEFAULT_COLUMN_TYPE } = require('./table-columns.js');
 const { collectFieldRefs } = require('../query/perspective-query.js');
 const { evaluateExpression } = require('../query/perspective-query-eval.js');
-const { truthy } = require('../query/query-format.js');
+const { truthy, isMessage } = require('../query/query-format.js');
+// 4T-002449 (Epic 3E-000378): Prüfung gegen den Schalter-Stand des Katalogs.
+const { validateQuery } = require('../query/query-functions.js');
 
 // Die Gründe einer Verletzung. `regex` und `ausdruck` sagen, dass die Regel
 // ausgewertet wurde und nicht erfüllt ist; `nichtAuswertbar`, dass sie sich
@@ -117,10 +121,20 @@ function pruefeRegex(regel, text) {
 // Ausdruck der Abfrage-Sprache. Liefert true, false oder null (nicht
 // auswertbar). Eine Feld-Regel sieht ihren eigenen Wert als `value`, eine
 // Datensatz-Regel nicht.
+//
+// 4T-002449 (Epic 3E-000378, Entscheidung E1 Option B): Ein Ausdruck, den der
+// Funktions-Katalog JETZT nicht annimmt, ist nicht auswertbar, bevor er
+// gerechnet wird; vor allem einer mit einer Formel der ausgeschalteten
+// Formel-Bibliothek. Geprüft wird bei jeder Auswertung und nicht allein beim
+// Lesen, weil eine gelesene Definition das Umschalten überdauern kann; ohne die
+// Prüfung ergäbe `NOT bibliothek.formel(value)` über dem Rückgabewert `null`
+// der ausgeschalteten Formel ein «erfüllt». Ein Meldungs-Wert ist ebenso
+// nicht auswertbar.
 function pruefeAusdruck(regel, kontext, mitWert, wert) {
+  if (validateQuery(regel.ast)) return null;
   const props = mitWert ? { ...kontext, [WERT_BEZUG]: wert } : { ...kontext };
   const roh = evaluateExpression(regel.ast, { props });
-  if (roh === null || roh === undefined) return null;
+  if (roh === null || roh === undefined || isMessage(roh)) return null;
   return truthy(roh);
 }
 

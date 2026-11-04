@@ -83,7 +83,13 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   its own draws a line, bar, pie or donut chart from a data table, which it
   refers to by name, even in another document; it holds no numbers of its
   own and follows the table as you type, on screen, in print and in the
-  portable export. All of it
+  portable export. Wherever EM4me calculates — in the text, in a data
+  table, in a query or in a property form — ten basic mathematical
+  functions and four constants are always at hand, and the switchable
+  extension «Formula library» adds 45 checked formulas and natural
+  constants in six categories, each with a named source and a stated
+  range of validity; a value outside that range gives a notice instead
+  of a silent number. All of it
   stays plain text inside your file.
 - **A database made of Markdown files** — a file can state in its own head
   that it is a table: which fields it has, of what type, with labels in

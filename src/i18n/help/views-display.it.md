@@ -65,6 +65,8 @@ Il sottomenu Visualizza → Visualizzazione editor raccoglie i cinque interrutto
 
 I primi tre interruttori sono **legati al documento**: il loro valore finisce nel frontmatter del file (`fold-gutter`, `line-numbers`, `word-wrap`) e viaggia con esso. Il cambio vi scrive il nuovo valore e segna il file come modificato; un documento senza indicazione propria segue l'impostazione predefinita sotto File → Impostazioni… → Aspetto. L'ordine di risoluzione è descritto nella pagina [Frontmatter e proprietà](frontmatter.md).
 
+Dove compaiono le tracce degli elenchi si imposta in File → Impostazioni… → Aspetto → Tracce di gerarchia degli elenchi. Con «sul bordo sinistro», il valore predefinito, gli indicatori di piegatura e le linee di collegamento di un elenco puntato o numerato stanno nella barra di piegatura, come quelli dei titoli. Con «all'interno della struttura dell'elenco» rientrano all'altezza del livello dell'elenco e stanno subito prima del punto elenco o del numero della voce che piegano; la linea che unisce le sottovoci di una stessa voce segue lo stesso rientro. I titoli e gli altri blocchi piegabili mantengono la loro traccia sul bordo sinistro in entrambi i casi, e ciò che si può piegare resta invariato. La scelta vale ovunque compaia la traccia, cioè nella vista sorgente, in quella divisa e in quella live, e ha effetto subito in tutte le finestre senza riaprire alcuna zona piegata. È un'impostazione dell'applicazione e non una proprietà del file; se la piegatura è nascosta in un documento, nemmeno nella struttura dell'elenco compare alcuna traccia.
+
 ## Aspetto
 
 ### Chiaro, scuro e sistema

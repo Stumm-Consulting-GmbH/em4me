@@ -111,6 +111,8 @@ const { normalizeLeapRule, leapRuleInfo, isLeapYear, leapsBefore } = require('./
 // 4T-002363 (Epic 3E-000333): Jahres-Struktur je Jahr (Regel oder Tafel) als
 // Blatt-Modul; der Kern trägt an den Fundstellen nur die Weichen dorthin.
 const yearlyApi = require('./calendar-yearly.js');
+// 4T-002445 (Epic 3E-000377): Zählung einer Ableitung auf Jahres-Struktur (Blatt-Modul).
+const anniversaryApi = require('./calendar-anniversary.js');
 // 4T-002363: Wert-Syntax im Dokument als eigene Fachlichkeit (weitergereicht).
 const { parseCalendarValueRaw, findCalendarValues } = require('./calendar-value-syntax.js');
 
@@ -453,7 +455,9 @@ function posOf(c, levelIdx, tuple) {
 // Absoluter Instanz-Index der Ebene levelIdx seit dem Kalender-Nullpunkt;
 // nur gültig, wenn alle Ebenen darüber count-basiert sind (Faktor/Schalt) —
 // die Aufrufer steigen höchstens bis zur Längen-/Schalt-Ebene ab.
+// 4T-002445: Bei Jahres-Struktur zählt die Quelle die Monate (Weiche).
 function absAt(c, levelIdx, tuple) {
+  if (c.yearly) return anniversaryApi.yearlyAbsAt(c, levelIdx, tuple);
   let v = BigInt(tuple[0]);
   for (let li = c.top - 1; li >= levelIdx; li--) {
     v = v * BigInt(c.levels[li + 1].rel.count) + BigInt(posOf(c, li, tuple));
@@ -1012,16 +1016,12 @@ function floorAtLevel(c, tuple, levelIdx) {
 }
 
 // Beginn der NÄCHSTEN Instanz der Ebene levelIdx nach der des Tupels.
+// 4T-002445: über den absoluten Index statt über einen eigenen Übertrag —
+// für jede Ebene ab der ersten unregelmäßigen (die einzigen Aufrufer in
+// spanParts) dasselbe Ergebnis, und bei Jahres-Struktur trägt die Weiche in
+// absAt und tupleFromAbs die wechselnde Zahl der Monate.
 function nextAtLevel(c, tuple, levelIdx) {
-  const out = floorAtLevel(c, tuple, levelIdx);
-  for (let li = levelIdx; li < c.top; li++) {
-    const k = c.top - li;
-    out[k] += 1;
-    if (out[k] - c.levels[li].start < childCountOf(c, li + 1)) return out;
-    out[k] = c.levels[li].start;
-  }
-  out[0] += 1;
-  return out;
+  return tupleFromAbs(c, levelIdx, absAt(c, levelIdx, tuple) + 1n);
 }
 // --- Zeitspannen-Staffelung (4T-000746) --------------------------------------------------
 
@@ -1116,12 +1116,14 @@ function spanParts(cal, tuple) {
     counts,
     ord: Number(rest) + (forward ? 1 : 0),
     totalOrd: Number(total) + (forward ? 1 : 0),
+    zeroYear: zeroFull[0],
   };
 }
 
 // Tupel aus einem absoluten Instanz-Index der Ebene levelIdx (untere
 // Segmente in Start-Stellung); Gegenstück zu absAt.
 function tupleFromAbs(c, levelIdx, abs) {
+  if (c.yearly) return anniversaryApi.yearlyTupleFromAbs(c, levelIdx, abs);
   const segs = new Array(c.levels.length);
   for (let i = 0; i < levelIdx; i++) segs[c.top - i] = c.levels[i].start;
   let above = abs;
@@ -1222,11 +1224,12 @@ function parseDerived(cal, c, text) {
   for (let k = 0; k < nums.length - 1; k++) {
     const level = c.top - k;
     axis = stepAxisAtLevel(cal, c, axis, level, before ? -nums[k] : nums[k]);
-    if (axis === null) return { ok: false, code: 'segmentRange' };
+    if (axis === null) return { ok: false, code: yearlyApi.missingDateCode(c, 'segmentRange') };
   }
   axis += BigInt(before ? -ord : ord - 1) * c.unitLen[c.timeCount];
   const dateTuple = axisToTuple(cal, axis);
-  if (!dateTuple) return { ok: false, code: 'segmentRange' };
+  // 4T-002445: jenseits der Tafel einer Jahres-Struktur «nicht bekannt».
+  if (!dateTuple) return { ok: false, code: yearlyApi.missingDateCode(c, 'segmentRange') };
   const tuple = dateTuple.slice(0, c.dateCount).concat(timeSegs);
   const v = validateTuple(cal, tuple);
   if (!v.ok) return v;
@@ -1235,12 +1238,15 @@ function parseDerived(cal, c, text) {
 
 // Betrag der Ebene levelIdx in ihren eigenen Einheiten, also die Anzahl
 // vollständiger Einheiten dieser Ebene samt der aufgelösten gröberen.
-function totalAtLevel(c, counts, levelIdx) {
+// 4T-002445: aus der ganzen Zerlegung, weil bei Jahres-Struktur die Zahl der
+// Monate je Jahr wechselt und die Weiche Richtung und Nullpunkt braucht.
+function totalAtLevel(c, parts, levelIdx) {
+  if (c.yearly) return anniversaryApi.yearlyTotalAt(c, parts, levelIdx);
   let total = 0;
   for (let L = c.top; L > levelIdx; L--) {
-    total = (total + (counts.get(L) || 0)) * childCountOf(c, L);
+    total = (total + (parts.counts.get(L) || 0)) * childCountOf(c, L);
   }
-  return total + (counts.get(levelIdx) || 0);
+  return total + (parts.counts.get(levelIdx) || 0);
 }
 
 // Gestaffelte Zeitspanne eines Werts: je Gliederungs-Tiefe eine Liste von
@@ -1258,7 +1264,7 @@ function spanTiers(cal, tuple) {
   for (let i = 0; i < units.length; i++) {
     const used = units.slice(0, i + 1);
     const top = used[used.length - 1];
-    let amount = top.levelIdx === d0 ? parts.totalOrd : totalAtLevel(c, parts.counts, top.levelIdx);
+    let amount = top.levelIdx === d0 ? parts.totalOrd : totalAtLevel(c, parts, top.levelIdx);
     const items = [];
     for (let j = used.length - 1; j >= 0; j--) {
       const u = used[j];

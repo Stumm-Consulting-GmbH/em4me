@@ -290,8 +290,22 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(valori) = 6` | aggregati su elenchi di numeri; su un gruppo riuniscono i valori di tutti i suoi risultati (sezione «Raggruppamento e aggregazione») |
 | `count(x)` | `count(tags) > 2` | numero dei valori presenti: per un elenco i suoi elementi, per un valore singolo 1, senza valore 0, e un testo vuoto, anche come elemento di un elenco, vale come «senza valore»; `count()` senza campo conta i risultati di un gruppo |
 | `bold(x)` | `bold(stato)` | presentare un valore evidenziato (sezione «Evidenziazione») |
+| `exp(x)` | `exp(0)` dà 1 | funzione esponenziale, e elevato a x |
+| `ln(x)` | `ln(e())` dà 1 | logaritmo naturale di un numero maggiore di 0 |
+| `log10(x)` | `log10(1000)` dà 3 | logaritmo in base 10 di un numero maggiore di 0 |
+| `pow(x, y)` | `pow(2, 10)` dà 1024 | potenza: base x elevata all'esponente y |
+| `sqrt(x)` | `sqrt(16)` dà 4 | radice quadrata di un numero da 0 |
+| `round(x[, n])` | `round(pi() * 2, 2)` dà 6.28 | arrotondare a n decimali (predefinito 0); un valore esattamente a metà si arrotonda allontanandosi dallo zero (`round(-2.5)` dà −3), un n negativo arrotonda a sinistra della virgola |
+| `abs(x)` | `abs(-3)` dà 3 | valore assoluto di un numero |
+| `floor(x)` | `floor(-1.5)` dà −2 | arrotondare al numero intero inferiore |
+| `ceil(x)` | `ceil(-1.5)` dà −1 | arrotondare al numero intero superiore |
+| `mod(a, b)` | `mod(-3, 2)` dà 1 | resto della divisione per un divisore diverso da 0; porta il segno del divisore |
+| `pi()` | `round(pi(), 4)` dà 3.1416 | pi greco π; le costanti non hanno dati ma richiedono le parentesi |
+| `e()` | `ln(e())` dà 1 | numero di Eulero e |
+| `phi()` | `round(phi(), 3)` dà 1.618 | sezione aurea (1 + √5) / 2 |
+| `sqrt2()` | `round(sqrt2(), 4)` dà 1.4142 | radice quadrata di 2 |
 
-Una funzione sconosciuta o un numero errato di argomenti mostra un avviso di errore sul blocco.
+Una funzione sconosciuta o un numero errato di argomenti mostra un avviso di errore sul blocco. Le funzioni di base e le costanti fanno parte del nucleo e calcolano in ogni modalità di lavoro; un dato fuori dal loro dominio di definizione, per esempio `sqrt(-1)`, lascia la cella vuota come una divisione per zero. Una formula della [libreria di formule](formula-library.md), per esempio `humidity.dewpoint(t, rh)` o `finance.pmt(rate, nper, pv)`, non vale come funzione sconosciuta: se l'estensione «Libreria di formule» è disattivata, il blocco mostra l'avviso «Libreria di formule disattivata» al posto del suo risultato, e un dato fuori dall'intervallo di validità di una formula mostra nella sua cella il segno di avvertimento ⚠︎ con il messaggio al passaggio del mouse. Quella pagina descrive le formule, le fonti e gli intervalli di validità.
 
 **Lingua dei formattatori:** `dateformat`, `numberformat` e `currencyformat` seguono la lingua del programma scelta nelle impostazioni, non quella del sistema operativo. Dove non c'è alcun documento dietro, come nelle colonne calcolate delle tabelle di dati e nei calcoli in linea, continua a valere la lingua dell'ambiente.
 

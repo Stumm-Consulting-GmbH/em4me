@@ -159,7 +159,9 @@ For numbers rather than text there is the second kind of table. The Perspective 
 - **Calculating in running text too:** inline calculations use the same expression language mid-sentence.
 - **Plain text stays plain text:** the data sits unchanged in the Markdown file.
 
-In detail: [Perspective Datatable](datatable.md).
+What would be long and error-prone as an expression of basic arithmetic is available as a ready-made formula: dew point and humidity, payment, present value and interest rate of an annuity, percentages, the conversion of temperature and length, the body mass index and the physical constants. Every formula names its source, a standard or the technical literature, and its valid range; an argument outside that range shows a message instead of a wrong value. The same formula calculates in the computed column, in running text, in the query and in the formula field of a profile with the same result.
+
+In detail: [Perspective Datatable](datatable.md) and [Formula library](formula-library.md).
 
 ## Document kinds that build on each other
 

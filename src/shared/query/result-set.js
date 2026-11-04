@@ -35,17 +35,23 @@
 // ohne DOM und ohne Electron, damit Haupt- und Anzeige-Prozess es gleichermaßen
 // laden.
 
-const { isDate, isDur, isLink, isRich } = require('./query-format.js');
+const { isDate, isDur, isLink, isRich, isMessage } = require('./query-format.js');
 
 // --- Typen -----------------------------------------------------------------------
 
 /**
  * Ein Wert des Werte-Raums (E8.2). `null` steht für «fehlend».
- * @typedef {null|string|number|boolean|DateValue|DurValue|LinkValue|RichValue|RecordRef|Value[]} Value
+ * @typedef {null|string|number|boolean|DateValue|DurValue|LinkValue|RichValue|RecordRef|MessageValue|Value[]} Value
  */
 /** @typedef {{ kind: 'date', ms: number }} DateValue  Zeitpunkt in Epoch-Millisekunden. */
 /** @typedef {{ kind: 'dur', ms: number }} DurValue  Dauer in Millisekunden. */
 /** @typedef {{ kind: 'link', path: string, name: string }} LinkValue  Datei-Verweis. */
+/**
+ * 4T-002451 (Epic 3E-000378): Meldung einer Formel der Formel-Bibliothek an der
+ * Stelle ihres Ergebnisses, `key` ist ein i18n-Schlüssel. Additiv nach E8.5;
+ * für die Werte-Art einer Spalte zählt sie wie ein fehlender Wert.
+ * @typedef {{ kind: 'message', key: string }} MessageValue
+ */
 /**
  * Hervorgehobener Anzeige-Wert aus `bold()`; nur auf den drei bestehenden Ebenen.
  * @typedef {{ kind: 'rich', segs: Array<{ text?: string, link?: { path: string, name: string }, bold?: boolean }> }} RichValue
@@ -259,6 +265,9 @@ function valueTypeOf(v) {
   if (isLink(v)) return 'link';
   if (isRich(v)) return 'rich';
   if (isRecordRef(v)) return 'record';
+  // 4T-002451: Eine Meldung ist keine Werte-Art einer Spalte; sie zählt wie
+  // ein fehlender Wert, damit eine Spalte mit Zahlen und Meldungen eine
+  // Zahlen-Spalte bleibt (Diagramm, Ausrichtung).
   return null;
 }
 
@@ -497,6 +506,11 @@ function checkValue(v, path, out, inRecordRow) {
   }
   if (isRecordRef(v)) {
     if (!isValidRecordRef(v)) out.push({ path, code: 'valueInvalid' });
+    return;
+  }
+  // 4T-002451: Meldungs-Wert einer Formel, der Schlüssel ist Pflicht.
+  if (isMessage(v)) {
+    if (v.key === '') out.push({ path, code: 'valueInvalid' });
     return;
   }
   // Eine benannte, aber unbekannte Art ist ein eigener Befund, weil sie auf

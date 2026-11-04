@@ -91,7 +91,12 @@
 'use strict';
 
 const { loeseBeschriftung } = require('./beschriftung.js');
-const { liesWertAusdruck, nenntVerweisPfad, unbekanntePfade } = require('./form-wert.js');
+const {
+  liesWertAusdruck,
+  wertAusdruckAus,
+  nenntVerweisPfad,
+  unbekanntePfade,
+} = require('./form-wert.js');
 
 // Die Codes der Hinweise. Sie stehen zusätzlich im Katalog
 // `table-hinweise.js`, damit der Wächter über die Sprachfassungen sie sieht;
@@ -108,6 +113,10 @@ const FORM_HINWEISE = Object.freeze({
   // 4T-002252: ein Punkt-Name in Wert oder Bedingung, dessen Kopf kein Feld der
   // Definition ist.
   pfadUnbekannt: 'formPfadUnbekannt',
+  // 4T-002449 (Epic 3E-000378): Wert und Bedingung mit einer Formel der
+  // ausgeschalteten Formel-Bibliothek, statt der beiden Codes «ungültig».
+  ausdruckAus: 'formAusdruckAus',
+  bedingungAus: 'formBedingungAus',
 });
 
 // Der Feld-Platzhalter: `field`, ein Doppelpunkt und der Name, mit optionalem
@@ -198,11 +207,18 @@ function pfadDes(ast, felder, zeile, hints) {
 // 4T-002186: `imSatz` sagt, ob der Platzhalter innerhalb einer Textzeile steht.
 // 4T-002252: `pfad: true` sagt, dass der Haupt-Prozess ihn auswertet; ohne
 // Pfad fehlt die Angabe, damit ein Körper ohne Pfad dieselbe Gestalt behält.
+// 4T-002449: Ein Ausdruck mit einer Formel der ausgeschalteten Bibliothek bleibt
+// ebenso ohne Baum stehen, trägt aber `aus: true` und einen eigenen Hinweis.
 function wertSegment(geschrieben, zeile, imSatz, felder, hints) {
   const ausdruck = geschrieben.trim();
   const ast = liesWertAusdruck(ausdruck);
-  if (ast === null) hints.push({ code: FORM_HINWEISE.ausdruckUngueltig, name: ausdruck, zeile });
+  const aus = ast === null && wertAusdruckAus(ausdruck);
+  if (ast === null) {
+    const code = aus ? FORM_HINWEISE.ausdruckAus : FORM_HINWEISE.ausdruckUngueltig;
+    hints.push({ code, name: ausdruck, zeile });
+  }
   const segment = { art: 'wert', ausdruck, ast, zeile, imSatz };
+  if (aus) segment.aus = true;
   if (pfadDes(ast, felder, zeile, hints)) segment.pfad = true;
   return segment;
 }
@@ -213,7 +229,11 @@ function wertSegment(geschrieben, zeile, imSatz, felder, hints) {
 function bereichSegment(geschrieben, zeile, felder, hints) {
   const bedingung = geschrieben.trim();
   const ast = liesWertAusdruck(bedingung);
-  if (ast === null) hints.push({ code: FORM_HINWEISE.bedingungUngueltig, name: bedingung, zeile });
+  if (ast === null) {
+    const aus = wertAusdruckAus(bedingung);
+    const code = aus ? FORM_HINWEISE.bedingungAus : FORM_HINWEISE.bedingungUngueltig;
+    hints.push({ code, name: bedingung, zeile });
+  }
   const segment = { art: 'bereich', bedingung, ast, zeile, kinder: [] };
   if (pfadDes(ast, felder, zeile, hints)) segment.pfad = true;
   return segment;

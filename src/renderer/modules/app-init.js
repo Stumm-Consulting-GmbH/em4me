@@ -53,6 +53,7 @@ import { hideContextMenu, showContextMenuItems } from './dialogs/context-menu-ut
 import { EDIT_VIEW_MODES } from './views/view-modes.js';
 import { paneEditors, updateWindowTitle } from './editor/editor.js';
 import { ladeEingabeSchalter } from './editor/editor-eingabe-schalter.js';
+import { initListFoldTrackPositionFromStore } from './editor/list-fold-track-setting.js';
 // 4T-000581 (Epic 3E-000107): Store-Schluessel und Normalisierung des Schalters.
 import { SPELLCHECK_KEY, normalizeSpellcheckSetting } from '../../shared/spellcheck.js';
 import { loadOutlineSettings } from './panels/panel-outline.js';
@@ -524,6 +525,9 @@ async function init() {
     showLineNumbers: await api.getSetting('editor.defaultLineNumbers'),
     showFoldGutter: await api.getSetting('editor.defaultFoldGutter'),
   });
+  // 4T-002433 (Epic 3E-000375): Lage der Gliederungsspuren bei Listen laden,
+  // ebenfalls vor restorePanes, damit die ersten Editoren sie schon kennen.
+  await initListFoldTrackPositionFromStore();
   // 4T-000572: einmalige Start-Bereinigung der abgeloesten Per-Datei-Persistenz
   // 'app.fileSettings' (PO-Entscheidung: loeschen, nicht konvertieren —
   // die pfad-basierte Ablage war genau die nicht-portable Loesung, die das

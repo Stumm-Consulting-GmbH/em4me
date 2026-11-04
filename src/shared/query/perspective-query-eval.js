@@ -16,6 +16,8 @@
 //   query-record-fields.js  Feld-Katalog des RECORDS-Scopes (4T-002039)
 //   query-sources.js      Quellen-Ebene (FROM: Ordner, Tag, Link, Selbstbezug)
 //                         samt der Ordner-Normalisierung; Blatt (4T-001070)
+//   formula-library.js    Liste der Formel-Bibliothek, vom Funktions-Katalog
+//                         geladen; Blatt (4T-002449)
 // Der Import-Graph läuft ausschließlich von hier nach unten; kein
 // Schwester-Modul lädt den Kern. Ausnahme ist query-aggregate.js (4T-002078),
 // das ÜBER dem Kern steht: Es wertet über einer Gruppe aus und ruft dafür den
@@ -81,8 +83,11 @@ const {
   plainValue,
   concatRich,
   isRecordRef,
+  // 4T-002449 (Epic 3E-000378): Meldungs-Wert einer Formel.
+  isMessage,
 } = require('./query-format.js');
-const { FUNCTIONS } = require('./query-functions.js');
+// 4T-002449: Nachschlagen über Kern-Liste und schaltbare Funktions-Gruppen.
+const { lookupFunction } = require('./query-functions.js');
 const { resolveTaskField } = require('./query-task-fields.js');
 // 4T-002039 (Epic 3E-000258): Feld-Katalog der Datensatz-Ebene; seit 4T-002041
 // mit Pfad-Navigation und dem Vergleich eines Verweises mit Text.
@@ -346,14 +351,19 @@ function evaluateExpression(node, ctx) {
     // Aggregats oder Gruppen-Ausdrucks; der Parser erzeugt ihn nie.
     case 'const':
       return node.value;
+    // 4T-002449 (Epic 3E-000378): Eine Funktion einer ausgeschalteten Gruppe
+    // rechnet nicht (Schutz für jeden Aufrufer, der vorher nicht prüft), und
+    // ein Meldungs-Wert unter den Angaben ist das Ergebnis des Aufrufs.
     case 'call': {
-      const def = FUNCTIONS.get(node.name);
-      if (!def) return null;
+      const { def, lage } = lookupFunction(node.name);
+      if (!def || lage === 'aus') return null;
       const args = node.args.map((a) => evaluateExpression(a, ctx));
-      return def.fn(args, ctx);
+      const meldung = args.find(isMessage);
+      return meldung === undefined ? def.fn(args, ctx) : meldung;
     }
     case 'neg': {
       const v = evaluateExpression(node.operand, ctx);
+      if (isMessage(v)) return v;
       const n = coerceNumber(v);
       if (n !== null && !isDur(v)) return -n;
       if (isDur(v)) return { kind: 'dur', ms: -v.ms };
@@ -362,21 +372,34 @@ function evaluateExpression(node, ctx) {
     case 'arith': {
       const a = evaluateExpression(node.left, ctx);
       const b = evaluateExpression(node.right, ctx);
+      if (isMessage(a)) return a;
+      if (isMessage(b)) return b;
       return evaluateArith(node.op, a, b);
     }
+    // 4T-002451 (Epic 3E-000378): Ein Meldungs-Wert geht auch durch
+    // Verknüpfung, Verneinung, Vergleich und IN unverändert durch, damit eine
+    // Bedingung über einer Formel mit Bereichs-Meldung nicht still erfüllt ist
+    // (`NOT formel(x) = 1`). Wo eine Bedingung gefragt ist, gilt die Meldung als
+    // nicht erfüllt (`truthy`): Eine Abfrage-Zeile fällt heraus, eine Regel der
+    // Datenbank ist nicht auswertbar (`record-check-eval.js`). Beide Seiten
+    // werden gerechnet, damit `wahr OR Meldung` die Meldung nicht verdeckt.
     case 'or':
-      return (
-        truthy(evaluateExpression(node.left, ctx)) || truthy(evaluateExpression(node.right, ctx))
-      );
-    case 'and':
-      return (
-        truthy(evaluateExpression(node.left, ctx)) && truthy(evaluateExpression(node.right, ctx))
-      );
-    case 'not':
-      return !truthy(evaluateExpression(node.operand, ctx));
+    case 'and': {
+      const a = evaluateExpression(node.left, ctx);
+      if (isMessage(a)) return a;
+      const b = evaluateExpression(node.right, ctx);
+      if (isMessage(b)) return b;
+      return node.type === 'or' ? truthy(a) || truthy(b) : truthy(a) && truthy(b);
+    }
+    case 'not': {
+      const v = evaluateExpression(node.operand, ctx);
+      return isMessage(v) ? v : !truthy(v);
+    }
     case 'cmp': {
       const a = evaluateExpression(node.left, ctx);
       const b = evaluateExpression(node.right, ctx);
+      if (isMessage(a)) return a;
+      if (isMessage(b)) return b;
       if (node.op === 'eq') return equalsIn(a, b, ctx);
       if (node.op === 'neq') return !equalsIn(a, b, ctx);
       const ord = orderValues(a, b);
@@ -389,7 +412,11 @@ function evaluateExpression(node, ctx) {
     }
     case 'inlist': {
       const left = evaluateExpression(node.left, ctx);
-      const hit = node.values.some((v) => equalsIn(left, evaluateExpression(v, ctx), ctx));
+      if (isMessage(left)) return left;
+      const values = node.values.map((v) => evaluateExpression(v, ctx));
+      const meldung = values.find(isMessage);
+      if (meldung !== undefined) return meldung;
+      const hit = values.some((v) => equalsIn(left, v, ctx));
       return node.op === 'in' ? hit : !hit;
     }
     default:
@@ -497,8 +524,13 @@ function applyResultPipeline(rows, queryAst) {
       for (let i = 0; i < sortSpec.length; i++) {
         const av = a.keys[i];
         const bv = b.keys[i];
-        const aNull = av === null || av === undefined;
-        const bNull = bv === null || bv === undefined;
+        // 4T-002456 (Zweitblick-Befund 1): Ein Meldungs-Wert gilt beim Sortieren
+        // wie ein fehlender Wert und steht am Ende. Sonst ginge er in den
+        // Wert-Vergleich, wäre dort «gleich» jeder Zahl, und der Vergleich verlöre
+        // seine Transitivität; die Reihenfolge der übrigen Zeilen wäre dann nicht
+        // festgelegt.
+        const aNull = av === null || av === undefined || isMessage(av);
+        const bNull = bv === null || bv === undefined || isMessage(bv);
         if (aNull && bNull) continue;
         if (aNull) return 1; // fehlende Werte immer ans Ende
         if (bNull) return -1;

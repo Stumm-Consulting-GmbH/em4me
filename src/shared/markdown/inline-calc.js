@@ -31,8 +31,10 @@
 // 4T-000987 (Epic 3E-000196): Abfrage-Sprache im Feature-Ordner src/shared/query/.
 const { parseExpression } = require('../query/perspective-query.js');
 const { evaluateExpression } = require('../query/perspective-query-eval.js');
-const { validateQuery } = require('../query/query-functions.js');
-const { formatValue } = require('../query/query-format.js');
+const { validateQuery, FUNCTION_OFF_CODE } = require('../query/query-functions.js');
+const { formatValue, isMessage } = require('../query/query-format.js');
+// 4T-002449 (Epic 3E-000378): Hinweis der ausgeschalteten Formel-Bibliothek.
+const { FORMULA_LIBRARY_OFF_KEY } = require('../query/formula-library.js');
 const { escapeHtml } = require('./slug.js');
 
 // Fehler-Zeichen in Text-Präsentation (U+FE0E verhindert Emoji-Darstellung).
@@ -222,12 +224,20 @@ function hasFieldRef(node) {
 //   'function' — unbekannte Funktion oder falsche Argument-Anzahl
 //   'value'    — Auswertung ergibt null (Typ-Fehler, Division durch 0,
 //                ungültiges Datum); die Engine wirft nie.
+// 4T-002449 (Epic 3E-000378): Ein Fehler kann zusätzlich `messageKey` tragen,
+// einen fertigen i18n-Schlüssel, der den Text des Codes ersetzt: den Hinweis
+// der ausgeschalteten Formel-Bibliothek (Prüf-Code `functionOff`) oder die
+// Meldung, die eine Formel als Meldungs-Wert liefert.
 function evaluateInlineCalc(exprSource) {
   const parsed = parseExpression(String(exprSource == null ? '' : exprSource));
   if (!parsed.ok) return { ok: false, code: 'syntax' };
   if (hasFieldRef(parsed.ast)) return { ok: false, code: 'field' };
-  if (validateQuery(parsed.ast)) return { ok: false, code: 'function' };
+  const fehler = validateQuery(parsed.ast);
+  if (fehler && fehler.code === FUNCTION_OFF_CODE)
+    return { ok: false, code: 'function', messageKey: FORMULA_LIBRARY_OFF_KEY };
+  if (fehler) return { ok: false, code: 'function' };
   const value = evaluateExpression(parsed.ast, { now: Date.now() });
+  if (isMessage(value)) return { ok: false, code: 'value', messageKey: value.key };
   if (value === null || value === undefined) return { ok: false, code: 'value' };
   return { ok: true, value, text: formatValue(value) };
 }
@@ -235,11 +245,21 @@ function evaluateInlineCalc(exprSource) {
 // Gemeinsame Anzeige-Spezifikation für Render-Pipeline und Live-Widget
 // (Paritäts-Muster calendarValueBadgeSpec): ok → Ergebnis-Text mit dem
 // getrimmten Roh-Ausdruck als Tooltip; Fehler → Fehler-Zeichen plus Code.
+// 4T-002449: Ein `messageKey` der Auswertung reist mit, nur wenn er gesetzt
+// ist; den Schlüssel des Hinweises bestimmt `inlineCalcTitleKey` für beide
+// Anzeige-Wege an einer Stelle.
 function inlineCalcSpec(expr) {
   const trimmed = String(expr == null ? '' : expr).trim();
   const res = evaluateInlineCalc(trimmed);
   if (res.ok) return { ok: true, text: res.text, title: trimmed };
-  return { ok: false, text: INLINE_CALC_ERROR_GLYPH, title: trimmed, errorCode: res.code };
+  const spec = { ok: false, text: INLINE_CALC_ERROR_GLYPH, title: trimmed, errorCode: res.code };
+  if (res.messageKey) spec.messageKey = res.messageKey;
+  return spec;
+}
+
+// i18n-Schlüssel des Hinweises beim Darüberfahren einer Fehler-Spezifikation.
+function inlineCalcTitleKey(spec) {
+  return spec.messageKey || `inlineCalc.error.${spec.errorCode}`;
 }
 
 // markdown-it-Plugin: Inline-Regel (Anker ist das `=` hinter `{`, das `{`
@@ -274,7 +294,7 @@ function inlineCalcPlugin(mdInstance, options) {
     const style = isPortable ? ` style="${INLINE_CALC_PORTABLE_STYLE_ERROR}"` : '';
     return (
       `<span class="inline-calc inline-calc-error"${style} title="${escapeHtml(spec.title)}"` +
-      ` data-i18n-title="inlineCalc.error.${spec.errorCode}">${escapeHtml(spec.text)}</span>`
+      ` data-i18n-title="${escapeHtml(inlineCalcTitleKey(spec))}">${escapeHtml(spec.text)}</span>`
     );
   };
 }
@@ -285,6 +305,7 @@ module.exports = {
   findInlineCalcSpans,
   evaluateInlineCalc,
   inlineCalcSpec,
+  inlineCalcTitleKey,
   inlineCalcPlugin,
   convertInlineCalc,
 };

@@ -85,7 +85,10 @@ function buildComputedCellHtml(col, colIdx, comp) {
   let inner;
   if (comp && comp.error) {
     cls.push('pdt-cell-error');
-    attrs.push(`data-i18n-title="datatable.cellError.${escapeHtml(comp.error)}"`);
+    // 4T-002449: Eine Meldung trägt ihren fertigen Schlüssel (Formel-Bibliothek
+    // ausgeschaltet, Meldung einer Formel); sonst der Schlüssel des Codes.
+    const key = comp.messageKey || `datatable.cellError.${comp.error}`;
+    attrs.push(`data-i18n-title="${escapeHtml(key)}"`);
     inner = '—';
   } else if (col.type === 'boolean') {
     inner =

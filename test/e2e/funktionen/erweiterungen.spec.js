@@ -4,8 +4,11 @@
 // erweiterungs-eigenen Bereiche (Task-Status verschwindet und kehrt
 // zurueck, Rueckfall auf den Bereich Erweiterungen) und die UI-Konsistenz
 // beim Abschalten (Panel, Statusbar-Button, gefiltertes Kommando) ab.
+// EW-04 und EW-05 prüfen den Abhängigkeits-Schutz, EW-06 (4T-002449) die
+// Erweiterung «Formel-Bibliothek» mit Modus-Wechsel und Neustart.
 'use strict';
 
+const fs = require('node:fs');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
 const { launchApp, closeApp } = require('../helpers/app');
@@ -230,6 +233,67 @@ test.describe('EW-05: mitgebrachter Stand mit abgeschalteter Grundlage (4T-00187
       await expect(baseToggle).toBeDisabled();
     } finally {
       await closeApp(app, userData);
+    }
+  });
+});
+
+// 4T-002449 (Epic 3E-000378, Story 4S-001124 AK7, AK10): die Erweiterung
+// «Formel-Bibliothek». Ihre Zeile steht mit Name und Kurzbeschreibung im
+// Bereich Erweiterungen, der Modus-Wechsel schaltet sie nach ihrer Stufe
+// «Voll», und der gewählte Zustand überdauert den Neustart. Die Wirkung in
+// einem Dokument zeigen erst die Ablauf-Fälle mit einer echten Formel (Stufe 2
+// des Epics); die Unit-Fälle beider Prozess-Seiten belegen sie bis dahin.
+test.describe('EW-06: Formel-Bibliothek in Zeile, Modus-Wechsel und Neustart (4T-002449)', () => {
+  test('Zeile mit Name und Beschreibung, an in Voll, aus in Fortgeschritten, Stand hält', async () => {
+    const de = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, '..', '..', '..', 'src', 'i18n', 'de.json'), 'utf8'),
+    );
+    const zeile = '.settings-extension-row[data-extension-id="formula-library"]';
+    const schalter = '#settings-extension-formula-library';
+    const modus = (stufe) => `#settings-extension-mode-${stufe}`;
+    const first = await launchApp();
+    const userData = first.userData;
+    try {
+      const { page } = first;
+      await openExtensionsSection(page);
+      await expect(page.locator(zeile)).toContainText(de['help.featureName.formulaLibrary']);
+      await expect(page.locator(zeile)).toContainText(
+        de['help.feature.formulaLibrary'].slice(0, 40),
+      );
+      // Ausgangslage eines frischen Profils: alles an, also «Voll».
+      await expect(page.locator(modus('full'))).toHaveAttribute('aria-pressed', 'true');
+      await expect(page.locator(schalter)).toBeChecked();
+
+      await page.locator(modus('advanced')).click();
+      await expect(page.locator(schalter)).not.toBeChecked();
+      await page.locator(modus('full')).click();
+      await expect(page.locator(schalter)).toBeChecked();
+
+      // Fortgeschritten anwenden: der Speicher führt die Bibliothek als aus.
+      await page.locator(modus('advanced')).click();
+      await confirmSettings(page);
+    } finally {
+      await closeApp(first.app, null, { force: true });
+    }
+
+    // Neustart mit demselben Profil: die Bibliothek bleibt aus; Voll schaltet
+    // sie wieder ein, ebenfalls über den Neustart hinweg.
+    const second = await launchApp({ userData });
+    try {
+      await openExtensionsSection(second.page);
+      await expect(second.page.locator(schalter)).not.toBeChecked();
+      await second.page.locator(modus('full')).click();
+      await expect(second.page.locator(schalter)).toBeChecked();
+      await confirmSettings(second.page);
+    } finally {
+      await closeApp(second.app, null, { force: true });
+    }
+    const third = await launchApp({ userData });
+    try {
+      await openExtensionsSection(third.page);
+      await expect(third.page.locator(schalter)).toBeChecked();
+    } finally {
+      await closeApp(third.app, userData, { force: true });
     }
   });
 });

@@ -18,7 +18,7 @@ Jede Zeile zeigt Name und Kurzbeschreibung. Änderungen wirken bei Anwenden oder
 
 - **Einsteiger** — Schreiben und Verlinken. Enthalten sind das gängige Markdown-Repertoire (unter anderem Callouts, Fußnoten, Hervorhebungen, Typografie, Emoji, Bilder mit Größenangabe, Perspective-Tabellen und Syntax-Hervorhebung), die Vernetzung über Wiki-Links, Schlagworte und Autocomplete sowie die Werkzeuge des täglichen Schreibens: Aufgaben-Listen, Vorlagen, Lesezeichen, Rechtschreibprüfung, Format-Toolbar, Tabellen-Editor, Titelzeile, Datums-Auswahl, Wort-Statistik, Fokus-Modus und der Demo-Bereich.
 - **Fortgeschritten** — alles daraus und zusätzlich das Organisieren und Planen: Bücher, Journale, Eigenschafts-Profile, Erinnerungen, Ereignisse, Graphenansicht, Mindmap, Listen-Struktur, Arbeitsbereiche, Tab-Gruppen, Uhr, Formeln und Diagramme, das Diagramm einer Abfrage, dazu die selteneren Markdown-Konstrukte wie Custom Containers, Definitionslisten, Abkürzungen, Spoiler, Kommentare, Überschriften-Nummerierung und erweiterte Aufgaben-Status.
-- **Voll** — alle internen Erweiterungen, also zusätzlich Canvas-Flächen, Datenbank, Perspective Datatable, Diagramme zu Tabellen, Inline-Rechnen, Critic Markup, Line Blocks, Überschriften-Attribute, eigene Kalender-Systeme, eigene Oberflächen-Sprache, My Extended Memory, eigene Statusleisten-Schaltflächen, die [Workflows](workflows.md) und den Austausch der eigenen Einrichtung.
+- **Voll** — alle internen Erweiterungen, also zusätzlich Canvas-Flächen, Datenbank, Perspective Datatable, Diagramme zu Tabellen, Inline-Rechnen, die [Formel-Bibliothek](formula-library.md), Critic Markup, Line Blocks, Überschriften-Attribute, eigene Kalender-Systeme, eigene Oberflächen-Sprache, My Extended Memory, eigene Statusleisten-Schaltflächen, die [Workflows](workflows.md) und den Austausch der eigenen Einrichtung.
 
 Die Wahl wirkt wie jede andere Änderung dieser Seite mit Anwenden oder OK — dann sofort, ohne Neustart und in allen offenen Fenstern.
 
@@ -47,6 +47,7 @@ Eigene Modi gelten in allen Bereichen und wandern mit der eigenen Einrichtung �
 ## Wirkung des Aus-Zustands
 
 - **Render-Erweiterungen:** die Syntax erscheint als normaler Text bzw. Standard-Markdown. `==markiert==` bleibt zum Beispiel sichtbarer Klartext, ein Mermaid-Block wird zum gewöhnlichen Code-Block.
+- **Formel-Bibliothek:** Ein Aufruf einer Formel wie `humidity.dewpoint(20, 50)` bleibt im Quelltext stehen und zeigt an der Stelle des Ergebnisses den Hinweis «Formel-Bibliothek ausgeschaltet», in der Form, in der der Rechen-Ort Meldungen zeigt; die mathematischen Grundfunktionen und Konstanten wie `round` und `pi()` gehören zum Kern und rechnen weiter. Einzelheiten je Rechen-Ort auf der Seite [Formel-Bibliothek](formula-library.md).
 - **Panels und Zugänge:** zugehörige Sidebar-Panels, Statusbar-Buttons, Menü-Einträge und Tastenkürzel verschwinden; es bleiben keine toten Bedienelemente zurück.
 - **Einstellungs-Bereiche:** bringt eine Erweiterung einen eigenen Einstellungs-Bereich mit (zum Beispiel Task-Status), erscheint dieser nur bei aktiver Erweiterung in der Bereichsnavigation.
 

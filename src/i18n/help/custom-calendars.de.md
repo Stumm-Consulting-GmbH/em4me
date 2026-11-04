@@ -103,7 +103,7 @@ Im hebräischen, im persischen und im chinesischen Kalender und im Hidschri-Kale
 Davor und danach sagt das Programm «nicht bekannt», statt ein angenähertes Datum zu zeigen: in der Eingabe-Hilfe, bei einem Wert im Dokument und im Dialog «Datum umrechnen». Die Tabellen gehören zum Programm, es braucht dafür keine Internet-Verbindung. Sie werden vor Ablauf ihres Zeitraums und nach einer Korrektur durch die zuständige Behörde fortgeschrieben.
 
 - **Schaltmonate** sind eigene Monate. Im Wert behält jeder Monat in jedem Jahr seine Zahl; ein Schaltmonat trägt die Zahl des Monats, dem er folgt, und ein angehängtes `L`. So steht Adar I des hebräischen Jahres 5784 als `5784-05L-01` im Dokument, Adar II als `5784-06-01`, und der Schaltmonat des chinesischen Jahres 2023 als `2023-02L-01`. Ein gespeicherter Wert meint damit in jedem Jahr denselben Monat.
-- **In den Einstellungen** sind Monat und Jahr dieser Zeitrechnungen schreibgeschützt; Namen, Wochen und Zeitalter bleiben änderbar. Als Bezug einer abgeleiteten Zeitrechnung sind sie nicht wählbar (Abschnitt «Abgeleitete Zeitrechnungen»).
+- **In den Einstellungen** sind Monat und Jahr dieser Zeitrechnungen schreibgeschützt; Namen, Wochen und Zeitalter bleiben änderbar. Als Bezug einer abgeleiteten Zeitrechnung sind sie wählbar; dafür gilt je Kalender eine Jahrestags-Regel (Abschnitt «Jahrestags-Regeln» unter «Abgeleitete Zeitrechnungen»).
 - **Der Tag** beginnt wie bei allen Vorlagen um Mitternacht; den Tagesbeginn bei Sonnenuntergang im hebräischen und im islamischen Kalender bildet das Programm nicht ab.
 
 ### Lesarten und Grenzen
@@ -194,7 +194,8 @@ Eine abgeleitete Zeitrechnung zählt ab einem selbst gesetzten Nullpunkt: wie la
 
 Im Einstellungs-Bereich «Kalender-Systeme» legt der Knopf **«Abgeleitete Zeitrechnung hinzufügen»** ein kurzes Formular an:
 
-- **Bezugs-Zeitrechnung** — ein Kalender desselben Blocks oder die mitgelieferte Standard-Zeitrechnung. Wer nur einen Termin herunterzählen will, braucht damit keinen eigenen Kalender. Zeitrechnungen mit jährlich wechselndem Aufbau sind als Bezug nicht wählbar, weil sich ihre Zählung nicht verschieben lässt; eine Zählung ab einem Tag geht über die gregorianische Zeitrechnung desselben Blocks.
+- **Bezugs-Zeitrechnung** — ein Kalender desselben Blocks oder die mitgelieferte Standard-Zeitrechnung. Wer nur einen Termin herunterzählen will, braucht damit keinen eigenen Kalender. Auch die Zeitrechnungen mit jährlich wechselndem Aufbau stehen zur Wahl, also der hebräische, der persische und der chinesische Kalender und der Hidschri-Kalender nach Umm al-Qura; unter der Auswahl steht dann der Satz ihrer Jahrestags-Regel (Abschnitt «Jahrestags-Regeln»).
+- **Jahrestags-Regel** — nur bei einem hebräischen Bezug, unmittelbar unter der Bezugs-Zeitrechnung: «Jahrestag» (Vorgabe) oder «Jahrzeit (aschkenasisch)». Die gewählte Regel ist Teil der Definition der Ableitung.
 - **Nullpunkt (Tag 1)** — das Datum in der Notation des Bezugs, wahlweise über den Picker gewählt; es liegt immer auf einem vollen Tag.
 - **Gliederungs-Tiefe** — wie fein die Zeitspanne gegliedert wird, von der kleinsten Einheit allein bis hinauf zu den Jahren.
 - **Richtungs-Kürzel** — zwei kurze Wörter für die Zeit vor und nach dem Nullpunkt.
@@ -203,7 +204,21 @@ Editoren für Ebenen, Zyklen, Gruppierungen und Epochen gibt es hier nicht, weil
 
 ### Was geerbt wird
 
-Die Ableitung übernimmt die Einheiten ihres Bezugs und verschiebt deren Grenzen auf den Nullpunkt. Liegt dieser auf einem 23., beginnt jeder abgeleitete Monat am 23. und jedes abgeleitete Jahr am selben Tag; die Wochen beginnen am Wochentag des Nullpunkts. Jede Einheit behält damit die Länge, die sie im Bezug hat, und ein Schalttag fällt von selbst in das richtige Jahr. Die Namen wandern mit: Beginnt die Zählung im Juli, heißt der erste Monat weiterhin Juli. Liegt der Nullpunkt auf einem Tag, den nicht jeder Monat hat, rückt die Grenze auf den letzten vorhandenen Tag.
+Die Ableitung übernimmt die Einheiten ihres Bezugs und verschiebt deren Grenzen auf den Nullpunkt. Liegt dieser auf einem 23., beginnt jeder abgeleitete Monat am 23. und jedes abgeleitete Jahr am selben Tag; die Wochen beginnen am Wochentag des Nullpunkts. Jede Einheit behält damit die Länge, die sie im Bezug hat, und ein Schalttag fällt von selbst in das richtige Jahr. Die Namen wandern mit: Beginnt die Zählung im Juli, heißt der erste Monat weiterhin Juli. Liegt der Nullpunkt auf einem Tag, den nicht jeder Monat hat, rückt die Grenze bei einem Bezug mit festem Aufbau auf den letzten vorhandenen Tag; bei den Zeitrechnungen mit jährlich wechselndem Aufbau bestimmt das die Jahrestags-Regel (nächster Abschnitt).
+
+### Jahrestags-Regeln
+
+Im hebräischen, im persischen und im chinesischen Kalender und im Hidschri-Kalender nach Umm al-Qura wechseln Zahl und Länge der Monate von Jahr zu Jahr: Einen Schaltmonat oder den 30. eines Monats gibt es nicht in jedem Jahr. Die Jahrestags-Regel des Kalenders legt fest, auf welchen Tag der Jahrestag eines Nullpunkts dann fällt. Sie gilt nicht nur am Jahrestag, sondern an jeder Monatsgrenze der Zählung: Jeder gezählte Monat beginnt an dem Tag, den die Regel für den Tag des Nullpunkts im jeweiligen Monat des Bezugs nennt. In den Einstellungen steht der Satz der geltenden Regel unter der Bezugs-Auswahl, bei einem hebräischen Bezug unter der Jahrestags-Regel.
+
+- **Hebräischer Kalender, «Jahrestag»** (Vorgabe) — Jahrestag nach dem Geburtstags-Brauch: Ein Tag im Adar fällt im Schaltjahr in den Adar II, ein Tag im Adar I im Gemeinjahr in den Adar; fehlt der 30. eines Monats, gilt der 1. des Folgemonats.
+- **Hebräischer Kalender, «Jahrzeit (aschkenasisch)»** — Jahrestag nach dem aschkenasischen Jahrzeit-Brauch: Ein Tag im Adar fällt im Schaltjahr in den Adar I, der 30. Adar I im Gemeinjahr auf den 30. Schevat; fehlte der 30. Cheschwan oder Kislew schon im ersten Jahr nach dem Ausgangs-Tag, gilt in jedem Jahr der letzte Tag dieses Monats, sonst fällt ein fehlender 30. auf den 1. des Folgemonats. Der Ausgangs-Tag ist der Nullpunkt; beim 30. Cheschwan und beim 30. Kislew entscheidet also der Aufbau des Jahres, das auf das Jahr des Nullpunkts folgt.
+- **Chinesischer Kalender** — Ein Tag im Schaltmonat fällt in Jahren ohne diesen Schaltmonat in den Monat gleicher Zahl; fehlt der 30. eines Monats, gilt der 29.
+- **Persischer Kalender** — Der 30. Essfand fällt in Jahren ohne diesen Tag auf den 29. Essfand.
+- **Hidschri-Kalender (Umm al-Qura)** — Fehlt der 30. eines Monats, gilt der 29.
+
+Ein Beispiel: Ein Nullpunkt am 10. Adar 5783, einem Gemeinjahr, hat seinen ersten Jahrestag mit «Jahrestag» am 10. Adar II 5784 (`5784-06-10`) und mit «Jahrzeit (aschkenasisch)» am 10. Adar I 5784 (`5784-05L-10`). Die gestaffelte Zeitspanne zählt volle Jahre nach der Regel und darunter Monate und Tage; in einem Schaltjahr des hebräischen oder des chinesischen Kalenders kann ein gezähltes Jahr dreizehn Monate haben.
+
+Außerhalb des Geltungs-Zeitraums einer Tabelle (Abschnitt «Vorlagen mit jährlich wechselndem Aufbau») sagt auch die Ableitung «nicht bekannt», etwa für einen Jahrestag hinter dem Ende des Zeitraums; ebenso für einen Tag am Beginn des Zeitraums, dessen gezählter Monat schon vor dem ersten Tag der Tabelle begänne.
 
 ### Werte im Dokument
 

@@ -26,7 +26,7 @@
 'use strict';
 
 const { evaluateExpression } = require('../../shared/query/perspective-query-eval.js');
-const { truthy } = require('../../shared/query/query-format.js');
+const { truthy, isMessage } = require('../../shared/query/query-format.js');
 const { feldNamen, liesWertAusdruck } = require('../../shared/database/form-wert.js');
 const { entwurfAlsDatensatz } = require('../index/record-table-read.js');
 const { recordNavigator } = require('../index/query-records.js');
@@ -42,8 +42,10 @@ function istVerweis(wert) {
 }
 
 // Ein Wert für die Antwort: ein Verweis als Anzeige-Text, eine Liste je Eintrag.
+// 4T-002451: Ein Meldungs-Wert einer Formel ist hier kein Wert, wie im
+// Wert-Platzhalter der Maske (`form-wert.js`); eine Bedingung ist nicht erfüllt.
 function alsAntwort(wert) {
-  if (wert === undefined || wert === null) return null;
+  if (wert === undefined || wert === null || isMessage(wert)) return null;
   if (Array.isArray(wert)) return wert.map(alsAntwort);
   if (istVerweis(wert)) return wert.display || wert.id || null;
   return wert;

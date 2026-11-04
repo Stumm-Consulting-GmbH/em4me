@@ -18,7 +18,7 @@ Sopra l'elenco degli interruttori si trova la sezione Modalità di lavoro. Una m
 
 - **Principiante** — scrivere e collegare. Sono compresi il repertorio Markdown consueto (tra l'altro callout, note a piè di pagina, evidenziazione, tipografia, emoji, immagini con dimensione, tabelle Perspective ed evidenziazione della sintassi), i collegamenti tramite link wiki, etichette e completamento automatico, oltre agli strumenti della scrittura quotidiana: elenchi di attività, modelli, segnalibri, controllo ortografico, barra di formato, editor di tabelle, riga del titolo, selettore di data, statistiche delle parole, modalità focus e l'area dimostrativa.
 - **Avanzata** — tutto questo e in più organizzare e pianificare: libri, diari, profili di proprietà, promemoria, eventi, vista a grafo, mappa mentale, struttura degli elenchi, spazi di lavoro, gruppi di schede, orologio, formule e diagrammi, il grafico di una query, insieme ai costrutti Markdown meno frequenti come contenitori personalizzati, elenchi di definizioni, abbreviazioni, spoiler, commenti, numerazione dei titoli e stati di attività estesi.
-- **Completa** — tutte le estensioni integrate, quindi in più le superfici canvas, il database, Perspective Datatable, i grafici di tabelle, il calcolo in linea, Critic Markup, i blocchi di righe, gli attributi dei titoli, i sistemi di calendario personalizzati, la lingua dell'interfaccia personale, My Extended Memory, i pulsanti personali della barra di stato, i [workflow](workflows.md) e lo scambio della propria configurazione.
+- **Completa** — tutte le estensioni integrate, quindi in più le superfici canvas, il database, Perspective Datatable, i grafici di tabelle, il calcolo in linea, la [libreria di formule](formula-library.md), Critic Markup, i blocchi di righe, gli attributi dei titoli, i sistemi di calendario personalizzati, la lingua dell'interfaccia personale, My Extended Memory, i pulsanti personali della barra di stato, i [workflow](workflows.md) e lo scambio della propria configurazione.
 
 Come ogni altra modifica di questa pagina, la scelta ha effetto con Applica oppure OK — da quel momento subito, senza riavvio e in tutte le finestre aperte.
 
@@ -47,6 +47,7 @@ Le modalità personalizzate valgono in tutte le aree e viaggiano con la propria 
 ## Effetto dello stato disattivato
 
 - **Estensioni di rendering:** la sintassi appare come testo semplice o Markdown standard. `==evidenziato==` resta ad esempio testo visibile, e un blocco Mermaid diventa un normale blocco di codice.
+- **Libreria di formule:** la chiamata di una formula come `humidity.dewpoint(20, 50)` resta nel sorgente e mostra al posto del risultato l'avviso «Libreria di formule disattivata», nella forma in cui il luogo di calcolo mostra i messaggi; le funzioni matematiche di base e le costanti come `round` e `pi()` fanno parte del nucleo e continuano a calcolare. Dettagli per ogni luogo nella pagina [Libreria di formule](formula-library.md).
 - **Pannelli e accessi:** i pannelli laterali, i pulsanti della barra di stato, le voci di menu e le scorciatoie associati scompaiono; non restano controlli morti.
 - **Sezioni delle impostazioni:** se un'estensione porta una propria sezione di impostazioni (ad esempio gli stati delle attività), questa appare nella navigazione solo quando l'estensione è attiva.
 

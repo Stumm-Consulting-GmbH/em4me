@@ -290,8 +290,22 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(werte) = 6` | Aggregate über Zahlen-Listen; über einer Gruppe fassen sie die Werte aller ihrer Treffer zusammen (Abschnitt «Gruppierung und Aggregation») |
 | `count(x)` | `count(tags) > 2` | Zahl der vorhandenen Werte: bei einer Liste ihre Elemente, bei einem Einzelwert 1, ohne Wert 0, wobei ein leerer Text, auch als Element einer Liste, als «ohne Wert» gilt; `count()` ohne Feld zählt die Treffer einer Gruppe |
 | `bold(x)` | `bold(status)` | Wert hervorgehoben darstellen (Abschnitt «Hervorhebung») |
+| `exp(x)` | `exp(0)` ergibt 1 | Exponentialfunktion, e hoch x |
+| `ln(x)` | `ln(e())` ergibt 1 | natürlicher Logarithmus einer Zahl über 0 |
+| `log10(x)` | `log10(1000)` ergibt 3 | Logarithmus zur Basis 10 einer Zahl über 0 |
+| `pow(x, y)` | `pow(2, 10)` ergibt 1024 | Potenz: Basis x hoch Exponent y |
+| `sqrt(x)` | `sqrt(16)` ergibt 4 | Quadratwurzel einer Zahl ab 0 |
+| `round(x[, n])` | `round(pi() * 2, 2)` ergibt 6.28 | Runden auf n Nachkommastellen (Vorgabe 0); ein Wert genau in der Mitte rundet von null weg (`round(-2.5)` ergibt −3), ein negatives n rundet links vom Komma |
+| `abs(x)` | `abs(-3)` ergibt 3 | Betrag einer Zahl |
+| `floor(x)` | `floor(-1.5)` ergibt −2 | Abrunden auf die nächste kleinere ganze Zahl |
+| `ceil(x)` | `ceil(-1.5)` ergibt −1 | Aufrunden auf die nächste größere ganze Zahl |
+| `mod(a, b)` | `mod(-3, 2)` ergibt 1 | Rest der Division durch einen Teiler ungleich 0; er trägt das Vorzeichen des Teilers |
+| `pi()` | `round(pi(), 4)` ergibt 3.1416 | Kreiszahl π; Konstanten stehen ohne Angabe, aber mit Klammern |
+| `e()` | `ln(e())` ergibt 1 | Eulersche Zahl e |
+| `phi()` | `round(phi(), 3)` ergibt 1.618 | Goldener Schnitt (1 + √5) / 2 |
+| `sqrt2()` | `round(sqrt2(), 4)` ergibt 1.4142 | Wurzel aus 2 |
 
-Eine unbekannte Funktion oder eine falsche Argument-Anzahl zeigt einen Fehlerhinweis am Block.
+Eine unbekannte Funktion oder eine falsche Argument-Anzahl zeigt einen Fehlerhinweis am Block. Die Grundfunktionen und Konstanten gehören zum Kern und rechnen in jedem Arbeitsmodus; eine Angabe außerhalb ihres Definitionsbereichs, etwa `sqrt(-1)`, lässt die Zelle leer wie eine Division durch null. Eine Formel der [Formel-Bibliothek](formula-library.md), etwa `humidity.dewpoint(t, rh)` oder `finance.pmt(rate, nper, pv)`, gilt nicht als unbekannte Funktion: Ist die Erweiterung «Formel-Bibliothek» ausgeschaltet, zeigt der Block statt seines Ergebnisses den Hinweis «Formel-Bibliothek ausgeschaltet», und eine Angabe außerhalb des Gültigkeitsbereichs einer Formel zeigt in ihrer Zelle das Warnzeichen ⚠︎ mit der Meldung beim Darüberfahren. Formeln, Quellen und Gültigkeitsbereiche beschreibt jene Seite.
 
 **Sprache der Formatierer:** `dateformat`, `numberformat` und `currencyformat` folgen der in den Einstellungen gewählten Programmsprache, nicht der Sprache des Betriebssystems. Wo kein Dokument dahintersteht, etwa in berechneten Datentabellen-Spalten und in Inline-Berechnungen, bleibt es bei der Sprache der Umgebung.
 

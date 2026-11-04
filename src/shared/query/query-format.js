@@ -39,6 +39,15 @@
 //                         Vergleich mit Text regelt die Pfad-Navigation
 //                         (`query-record-fields.js`, Festlegung 8 des Epics
 //                         3E-000258), weil er die Ziel-Tabelle braucht
+//   { kind: 'message', key }  Meldungs-Wert (4T-002449, Epic 3E-000378): eine
+//                         Formel der Bibliothek liefert ihn statt einer Zahl,
+//                         wenn sie nicht rechnen kann (etwa eine Angabe außerhalb
+//                         ihres Gültigkeitsbereichs); `key` ist ein i18n-Schlüssel.
+//                         Der Auswerter reicht ihn durch Rechen-Operatoren und
+//                         umschließende Funktionen unverändert durch, damit der
+//                         Rechen-Ort die Meldung an der Stelle des Ergebnisses
+//                         zeigt. Sonst gilt er wie ein fehlender Wert: nicht
+//                         wahr, keinem Wert gleich, Anzeige-Form leer.
 //   Array                 Liste von Werten
 
 // 4T-000344 (Epic 3E-000062): dieselbe Namens-Normalisierung wie Wiki-Aufloesung
@@ -72,6 +81,14 @@ function richText(v) {
 // einen Wert VERGLEICHT statt ihn darzustellen, läuft darüber.
 function plainValue(v) {
   return isRich(v) ? richText(v) : v;
+}
+
+// 4T-002449: Meldungs-Wert einer Formel (Werte-Modell oben).
+function isMessage(v) {
+  return !!v && typeof v === 'object' && v.kind === 'message' && typeof v.key === 'string';
+}
+function messageValue(key) {
+  return { kind: 'message', key: String(key) };
 }
 
 function isLink(v) {
@@ -147,7 +164,7 @@ function truthy(vRaw) {
   // 4T-001074: Ein Rich-Wert ist ein Anzeige-Wert; sein Wahrheitswert ist der
   // seiner Text-Form, damit bold(x) in einer Bedingung wie x wirkt.
   const v = plainValue(vRaw);
-  if (v === null || v === undefined) return false;
+  if (v === null || v === undefined || isMessage(v)) return false;
   if (typeof v === 'boolean') return v;
   if (typeof v === 'number') return v !== 0;
   if (typeof v === 'string') {
@@ -172,6 +189,7 @@ function equalsValue(aRaw, bRaw) {
   if (bList && !aList) return b.some((x) => equalsValue(x, a));
   if (aList && bList) return a.length === b.length && a.every((x, i) => equalsValue(x, b[i]));
   if (a === null || a === undefined || b === null || b === undefined) return false;
+  if (isMessage(a) || isMessage(b)) return false;
   // 4T-002041 (Epic 3E-000258): Zwei Datensatz-Verweise sind gleich, wenn sie
   // denselben Datensatz derselben Tabelle meinen; ohne diese Regel fielen beide
   // auf dieselbe Objekt-Form zurück und wären immer gleich.
@@ -383,7 +401,7 @@ function durToString(ms) {
 // Wert -> Anzeige-String (string()-Funktion; 4T-000404 nutzt dieselbe Form für
 // Tabellen-Zellen). null -> leerer String.
 function formatValue(v) {
-  if (v === null || v === undefined) return '';
+  if (v === null || v === undefined || isMessage(v)) return '';
   if (typeof v === 'string') return v;
   if (typeof v === 'number') return String(v);
   if (typeof v === 'boolean') return v ? 'true' : 'false';
@@ -411,6 +429,10 @@ function formatValueSegments(v) {
   // 4T-001074: Rich-Werte tragen ihre Segmente bereits; sie werden flach kopiert,
   // damit kein Aufrufer die Segmente eines Werts nachträglich verändert.
   if (isRich(v)) return v.segs.map((s) => ({ ...s }));
+  // 4T-002451 (Epic 3E-000378): Die Meldung einer Formel wird ein eigenes
+  // Stück; die Anzeige zeichnet daraus das Warnzeichen mit dem Text der
+  // Meldung, wie die Berechnung im Fließtext.
+  if (isMessage(v)) return [{ message: v.key }];
   if (isLink(v)) return [{ link: { path: v.path, name: v.name } }];
   if (isRecordRef(v) && typeof v.path === 'string' && v.path && v.id) {
     return [{ record: { path: v.path, table: v.table, id: v.id, name: recordRefText(v) } }];
@@ -500,6 +522,9 @@ module.exports = {
   isRich,
   plainValue,
   boldValue,
+  // 4T-002449 (Epic 3E-000378): Meldungs-Wert einer Formel.
+  isMessage,
+  messageValue,
   concatRich,
   parseIsoLocalMs,
   coerceDateMs,

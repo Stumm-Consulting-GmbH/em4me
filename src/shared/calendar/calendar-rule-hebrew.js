@@ -53,10 +53,17 @@ function istSchaltjahr(jahr) {
   return floorMod(7n * jahr + 1n, 19n) < 7n;
 }
 
+// Monate von der Epoche bis zum 1. Tischri des Jahres (Zyklus von 235 Monaten
+// in 19 Jahren); die Differenz zweier Jahre ist ihre Zahl der Monate, 12 im
+// Gemein- und 13 im Schaltjahr. 4T-002445: Auskunft monateVor der Schnittstelle.
+function monateVor(jahr) {
+  return floorDiv(235n * jahr - 234n, 19n);
+}
+
 // Tage von der Epoche bis zum Molad Tischri des Jahres, samt der ersten
 // Verschiebung (Molad nach Mittag, «lo ADU Rosch»).
 function vergangeneTage(jahr) {
-  const monate = floorDiv(235n * jahr - 234n, 19n);
+  const monate = monateVor(jahr);
   const teile = 12084n + 13753n * monate;
   const tage = 29n * monate + floorDiv(teile, 25920n);
   return floorMod(3n * (tage + 1n), 7n) < 3n ? tage + 1n : tage;
@@ -113,4 +120,5 @@ module.exports = Object.freeze({
   hoechstLaenge: 30,
   jahresBeginn,
   monate,
+  monateVor,
 });

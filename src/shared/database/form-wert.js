@@ -44,9 +44,9 @@
 'use strict';
 
 const { parseExpression } = require('../query/perspective-query.js');
-const { validateQuery } = require('../query/query-functions.js');
+const { validateQuery, FUNCTION_OFF_CODE } = require('../query/query-functions.js');
 const { evaluateExpression } = require('../query/perspective-query-eval.js');
-const { parseIsoLocalMs, truthy } = require('../query/query-format.js');
+const { parseIsoLocalMs, truthy, isMessage } = require('../query/query-format.js');
 const { baueRegelKontext } = require('./record-check-eval.js');
 
 /**
@@ -61,6 +61,20 @@ function liesWertAusdruck(quelle) {
   const geparst = parseExpression(typeof quelle === 'string' ? quelle : '');
   if (!geparst.ok || validateQuery(geparst.ast)) return null;
   return geparst.ast;
+}
+
+/**
+ * Ist ein Ausdruck allein deshalb nicht lesbar, weil er eine Formel der
+ * ausgeschalteten Formel-Bibliothek nutzt (4T-002449, Epic 3E-000378)? Die
+ * Maske zeigt ihn dann wie einen ungültigen, ihr Hinweis nennt aber den Grund.
+ *
+ * @param {string} quelle Der Ausdruck, wie er in den Klammern steht.
+ * @returns {boolean}
+ */
+function wertAusdruckAus(quelle) {
+  const geparst = parseExpression(typeof quelle === 'string' ? quelle : '');
+  const fehler = geparst.ok ? validateQuery(geparst.ast) : null;
+  return fehler !== null && fehler.code === FUNCTION_OFF_CODE;
 }
 
 /**
@@ -111,11 +125,15 @@ function texteDesStands(fields, zellen, entwurf) {
  * @returns {*} Der Wert im Werte-Modell der Abfrage-Sprache; `null` ohne Wert,
  *   bei einem ungelesenen Ausdruck und bei einem Wurf der Auswertung.
  */
+// 4T-002449: Ein gelesener Baum wird vor dem Rechnen erneut gegen den Katalog
+// gehalten, weil das Lesen im Haupt-Prozess vor einem Umschalten der
+// Formel-Bibliothek liegen kann; ohne das zeigte `NOT bibliothek.formel(…)`
+// einen verborgenen Bereich. Ein Meldungs-Wert ist hier kein Wert.
 function werteWertAus(ast, kontext) {
-  if (!ast) return null;
+  if (!ast || validateQuery(ast)) return null;
   try {
     const wert = evaluateExpression(ast, { props: kontext || {} });
-    return wert === undefined ? null : wert;
+    return wert === undefined || isMessage(wert) ? null : wert;
   } catch {
     return null;
   }
@@ -226,6 +244,8 @@ module.exports = {
   unbekanntePfade,
   wertAlsAusdruck,
   liesWertAusdruck,
+  // 4T-002449 (Epic 3E-000378): Grund «Formel-Bibliothek ausgeschaltet».
+  wertAusdruckAus,
   baueWertKontext,
   texteDesStands,
   werteWertAus,

@@ -26,8 +26,17 @@ const { SPELLCHECK_KEY } = require('../../shared/spellcheck');
 // 4T-001761 (Epic 3E-000253): Der Umfang des Datensatz-Bestands im Index haengt
 // am Schalter der Erweiterung «Datenbank»; wird er umgelegt, ist jeder stehende
 // Index nach der alten Regel gebaut.
-const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
+const {
+  isExtensionEnabled,
+  effectiveDisabledSet,
+} = require('../../shared/extensions/extensions-core');
 const { setzeDatensatzErfassung } = require('../index/index-schalter.js');
+// 4T-002449 (Epic 3E-000378): Schalter-Stand des Funktions-Katalogs im
+// Haupt-Prozess (Abfragen rechnen hier).
+const { setDisabledFunctionExtensions } = require('../../shared/query/query-functions.js');
+// 4T-002456 (Zweitblick-Befund 4): Modul-Objekt statt Destrukturierung, damit
+// die Prüfdatei den Aufruf beobachten kann.
+const tabellenLeser = require('../index/record-table-read.js');
 const { alleIndizesNeuAufbauen } = require('../backlinks.js');
 const { CLOCK_ALARMS_KEY } = require('../../shared/clock/clock-alarms.js');
 const { CLOCK_TIMERS_KEY } = require('../../shared/clock/clock-timers.js');
@@ -72,6 +81,8 @@ const VERTEIL_SCHLUESSEL = [
   'sidebar.heightMode',
   'statusbar.collapseMode',
   'statusbar.unavailableMode',
+  // 4T-002433 (Epic 3E-000375): Lage der Gliederungsspuren bei Listen.
+  'editor.listFoldTrackPosition',
   'input.cursorSprung',
   'hotkeys',
   'colorSchemes',
@@ -225,6 +236,15 @@ function createSettingsVerteilung(deps) {
     // Menues neu bauen, damit Eintraege deaktivierter Erweiterungen
     // verschwinden (Filterung ueber die Kommando-Registry).
     if (key === 'extensions.disabled') {
+      // 4T-002449: Der Funktions-Katalog des Haupt-Prozesses bekommt den
+      // wirksamen Stand VOR der Rundsendung, damit eine dadurch ausgelöste
+      // Abfrage schon nach der neuen Regel rechnet.
+      setDisabledFunctionExtensions(effectiveDisabledSet(value));
+      // 4T-002456 (Zweitblick-Befund 4): Die gelesenen Tabellen-Definitionen
+      // tragen die Hinweise der ausgeschalteten Bibliothek; der Zwischenspeicher
+      // wird geleert, damit Maske und Konsistenz-Prüfung nach dem Umschalten
+      // keinen veralteten Hinweis zeigen.
+      tabellenLeser.clearCaches();
       for (const w of BrowserWindow.getAllWindows()) {
         if (!w.isDestroyed()) w.webContents.send('extensions:changed', value);
       }
@@ -361,6 +381,17 @@ function createSettingsVerteilung(deps) {
       for (const w of BrowserWindow.getAllWindows()) {
         if (!w.isDestroyed() && w.webContents !== senderContents) {
           w.webContents.send('statusbarUnavailableMode:changed', value);
+        }
+      }
+    }
+    // 4T-002433 (Epic 3E-000375): Lage der Gliederungsspuren bei Listen
+    // («links außen» oder «in der Struktur der Liste») — an alle Fenster
+    // außer dem Auslöser, Muster statusbar.unavailableMode darüber; das
+    // auslösende Fenster hat seine Editoren beim Anwenden bereits nachgezogen.
+    if (key === 'editor.listFoldTrackPosition') {
+      for (const w of BrowserWindow.getAllWindows()) {
+        if (!w.isDestroyed() && w.webContents !== senderContents) {
+          w.webContents.send('listFoldTrackPosition:changed', value);
         }
       }
     }

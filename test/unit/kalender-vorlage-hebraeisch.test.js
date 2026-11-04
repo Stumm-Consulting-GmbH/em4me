@@ -577,10 +577,11 @@ describe('h) Anlegen wie das Aufklapp-Menü (4T-002005, Story AK2, AK9)', () => 
     expect(gregorianischAus(block, start)).toEqual([0, 1, 1, 0, 0, 0]);
   });
 
-  it('AK8: nicht als Bezug einer Ableitung angeboten (B4)', () => {
+  it('AK8: als Bezug einer Ableitung angenommen (4T-002445, vorher B4)', () => {
     const { kalender } = blockMitHebraeisch();
     const ableitung = { id: 'abl', name: 'abl', derivedFrom: ID, zero: [5784, 1, 1] };
-    expect(deriveCalendar(kalender, ableitung)).toBe(null);
+    // Die Jahrestags-Regeln selbst prüft kalender-jahrestags-regeln.test.js.
+    expect(deriveCalendar(kalender, ableitung)).not.toBe(null);
     const config = normalizeCalendarConfig({
       blocks: [
         {
@@ -589,6 +590,9 @@ describe('h) Anlegen wie das Aufklapp-Menü (4T-002005, Story AK2, AK9)', () => 
         },
       ],
     });
-    expect(config.blocks[0].calendars.map((c) => c.id)).toEqual([ID]);
+    expect(config.blocks[0].calendars.map((c) => c.id)).toEqual([ID, 'abl']);
+    const abl = config.blocks[0].calendars[1];
+    expect(abl.derived.zero).toEqual([5784, 1, 1]);
+    expect(formatTuple(abl, [5784, 1, 1, 0, 0, 0])).toBe('0-0-1');
   });
 });

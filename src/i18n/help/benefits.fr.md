@@ -159,7 +159,9 @@ Pour les chiffres plutôt que le texte, il existe le second type de tableau. La 
 - **Calculer aussi dans le texte courant :** les calculs en ligne utilisent le même langage d'expressions au milieu d'une phrase.
 - **Le texte clair reste du texte clair :** les données figurent telles quelles dans le fichier Markdown.
 
-En détail : [Perspective Datatable](datatable.md).
+Ce qui serait long et source d'erreurs comme expression faite d'opérations élémentaires est disponible sous forme de formule prête : point de rosée et humidité, versement, valeur actuelle et taux d'une annuité, pourcentages, conversion de température et de longueur, indice de masse corporelle et constantes physiques. Chaque formule nomme sa source, une norme ou la littérature spécialisée, et son domaine de validité ; une valeur hors de ce domaine affiche un message au lieu d'une valeur fausse. La même formule calcule dans la colonne calculée, dans le texte courant, dans la requête et dans le champ formule d'un profil, avec le même résultat.
+
+En détail : [Perspective Datatable](datatable.md) et [Bibliothèque de formules](formula-library.md).
 
 ## Des types de documents qui s'appuient les uns sur les autres
 

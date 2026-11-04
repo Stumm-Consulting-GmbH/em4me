@@ -290,8 +290,22 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(valores) = 6` | agregados sobre listas de números; sobre un grupo reúnen los valores de todos sus resultados (sección «Agrupación y agregación») |
 | `count(x)` | `count(tags) > 2` | número de valores presentes: en una lista sus elementos, en un valor simple 1, sin valor 0, y un texto vacío, también como elemento de una lista, se considera «sin valor»; `count()` sin campo cuenta los resultados de un grupo |
 | `bold(x)` | `bold(estado)` | presentar un valor resaltado (sección «Resalte») |
+| `exp(x)` | `exp(0)` da 1 | función exponencial, e elevado a x |
+| `ln(x)` | `ln(e())` da 1 | logaritmo natural de un número mayor que 0 |
+| `log10(x)` | `log10(1000)` da 3 | logaritmo en base 10 de un número mayor que 0 |
+| `pow(x, y)` | `pow(2, 10)` da 1024 | potencia: base x elevada al exponente y |
+| `sqrt(x)` | `sqrt(16)` da 4 | raíz cuadrada de un número desde 0 |
+| `round(x[, n])` | `round(pi() * 2, 2)` da 6.28 | redondear a n decimales (por defecto 0); un valor exactamente en el medio se redondea alejándose de cero (`round(-2.5)` da −3), un n negativo redondea a la izquierda de la coma |
+| `abs(x)` | `abs(-3)` da 3 | valor absoluto de un número |
+| `floor(x)` | `floor(-1.5)` da −2 | redondear al número entero inferior |
+| `ceil(x)` | `ceil(-1.5)` da −1 | redondear al número entero superior |
+| `mod(a, b)` | `mod(-3, 2)` da 1 | resto de la división por un divisor distinto de 0; lleva el signo del divisor |
+| `pi()` | `round(pi(), 4)` da 3.1416 | número π; las constantes no llevan datos, pero sí paréntesis |
+| `e()` | `ln(e())` da 1 | número de Euler e |
+| `phi()` | `round(phi(), 3)` da 1.618 | número áureo (1 + √5) / 2 |
+| `sqrt2()` | `round(sqrt2(), 4)` da 1.4142 | raíz cuadrada de 2 |
 
-Una función desconocida o un número de argumentos incorrecto muestra un aviso de error en el bloque.
+Una función desconocida o un número de argumentos incorrecto muestra un aviso de error en el bloque. Las funciones básicas y las constantes forman parte del núcleo y calculan en cada modo de trabajo; un dato fuera de su dominio de definición, por ejemplo `sqrt(-1)`, deja la celda vacía como una división por cero. Una fórmula de la [biblioteca de fórmulas](formula-library.md), por ejemplo `humidity.dewpoint(t, rh)` o `finance.pmt(rate, nper, pv)`, no cuenta como función desconocida: si la extensión «Biblioteca de fórmulas» está desactivada, el bloque muestra el aviso «Biblioteca de fórmulas desactivada» en lugar de su resultado, y un dato fuera del rango de validez de una fórmula muestra en su celda el signo de advertencia ⚠︎ con el mensaje al pasar el ratón. Esa página describe las fórmulas, las fuentes y los rangos de validez.
 
 **Idioma de los formateadores:** `dateformat`, `numberformat` y `currencyformat` siguen el idioma del programa elegido en los ajustes, no el del sistema operativo. Donde no hay ningún documento detrás, como en las columnas calculadas de las tablas de datos y en los cálculos en línea, sigue rigiendo el idioma del entorno.
 

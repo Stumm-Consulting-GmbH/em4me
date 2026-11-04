@@ -159,7 +159,9 @@ Para números en lugar de texto está el segundo tipo de tabla. La Perspective D
 - **Calcular también en el texto corrido:** los cálculos en línea usan el mismo lenguaje de expresiones en mitad de la frase.
 - **El texto plano sigue siendo texto plano:** los datos están sin cambios en el archivo Markdown.
 
-En detalle: [Perspective Datatable](datatable.md).
+Lo que como expresión de operaciones básicas sería largo y propenso a errores está disponible como fórmula lista: punto de rocío y humedad, cuota, valor actual y tipo de interés de una anualidad, porcentajes, la conversión de temperatura y longitud, el índice de masa corporal y las constantes físicas. Cada fórmula nombra su fuente, una norma o la literatura especializada, y su rango de validez; un dato fuera de ese rango muestra un mensaje en lugar de un valor erróneo. La misma fórmula calcula en la columna calculada, en el texto corrido, en la consulta y en el campo de fórmula de un perfil con el mismo resultado.
+
+En detalle: [Perspective Datatable](datatable.md) y [Biblioteca de fórmulas](formula-library.md).
 
 ## Tipos de documentos que se apoyan unos en otros
 

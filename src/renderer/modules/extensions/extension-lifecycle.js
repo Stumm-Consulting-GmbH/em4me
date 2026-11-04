@@ -26,6 +26,10 @@ import {
   effectiveDisabledSet,
   normalizeDisabledIds,
 } from '../../../shared/extensions/extensions-core.js';
+// 4T-002449 (Epic 3E-000378): Der Funktions-Katalog des Renderer-Bündels
+// (Live-Ansicht, Grid-Editor, Formel-Felder) bekommt den Schalter-Stand hier;
+// das Modul ist prozess-neutral und lädt nichts aus der App.
+import { setDisabledFunctionExtensions } from '../../../shared/query/query-functions.js';
 
 let persistFn = async (key, value) => {
   try {
@@ -122,6 +126,7 @@ export async function applyExtensionsState(ids, { persist = true } = {}) {
   const prevEffective = effectiveDisabled;
   rawDisabled = nextRaw;
   effectiveDisabled = nextEffective;
+  setDisabledFunctionExtensions(nextEffective);
   // Preload-Pipeline dem Schalt-Zustand nachführen (beide markdown-it-
   // Instanzen; idempotent, unveränderter Satz ist dort ein No-op).
   try {
@@ -153,6 +158,7 @@ export async function initExtensionsFromStore() {
   }
   rawDisabled = normalizeDisabledIds(stored);
   effectiveDisabled = effectiveDisabledSet(rawDisabled);
+  setDisabledFunctionExtensions(effectiveDisabled);
   try {
     api.configureExtensions(rawDisabled);
   } catch (err) {
@@ -165,5 +171,6 @@ export async function initExtensionsFromStore() {
 export function resetExtensionStateForTests() {
   rawDisabled = [];
   effectiveDisabled = new Set();
+  setDisabledFunctionExtensions([]);
   runtimeHooks.clear();
 }

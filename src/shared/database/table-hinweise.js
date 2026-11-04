@@ -163,6 +163,14 @@ const HINWEIS_META = {
   fieldEditableExpr: { key: 'editable', expected: 'expression' },
   fieldEditableUnknownField: { key: 'editable', expected: null }, // expected: die vorhandenen Feld-Namen
   fieldEditableMessage: { key: 'message', expected: 'text-or-locale-map' },
+  // 4T-002449 (Epic 3E-000378, Entscheidung E1 Option B): Eine Regel oder
+  // Bedingung mit einer Formel der ausgeschalteten Formel-Bibliothek bleibt
+  // stehen und gilt als nicht auswertbar; je Gegenstand ein eigener Satz, der
+  // die Folge nennt, damit der Autor nicht nach einem Tippfehler sucht.
+  checkExprOff: { key: 'check', expected: null },
+  checksExprOff: { key: 'checks', expected: null },
+  editableExprOff: { key: 'editable', expected: null },
+  fieldEditableExprOff: { key: 'editable', expected: null },
   // 4T-001938 (Epic 3E-000257, B5): Die Einzel-Maske. `formTable` hängt am
   // Behälter der Masken-Datei und trägt den Schlüssel seiner einen Angabe. Die
   // beiden Befunde am Körper hängen an keinem Frontmatter-Schlüssel, weil ihr
@@ -175,6 +183,10 @@ const HINWEIS_META = {
   // 4T-002183 (Epic 3E-000261, S5): ein Wert-Platzhalter, dessen Ausdruck sich
   // nicht lesen lässt. Ortsbezug wie bei den beiden Befunden darüber die Zeile.
   formAusdruckUngueltig: { key: null, expected: null }, // name: der Ausdruck
+  // 4T-002449: Wert und Bedingung mit einer Formel der ausgeschalteten
+  // Formel-Bibliothek; sie wirken wie ungültige, der Satz nennt den Grund.
+  formAusdruckAus: { key: null, expected: null }, // name: der Ausdruck
+  formBedingungAus: { key: null, expected: null }, // name: die Bedingung
   // 4T-002186 (Epic 3E-000261, E7.8, S5): die drei Fehlerbilder der bedingten
   // Bereiche, Ortsbezug wie oben die Zeile im Körper; `name` ist beim offenen
   // Bereich und bei der ungültigen Bedingung der Text der Bedingung, beim `end`

@@ -34,6 +34,7 @@ const {
   formatValue,
   formatExprSource,
   isRecordRef,
+  isMessage,
 } = require('../../shared/query/query-format.js');
 const { resolveRecordField } = require('../../shared/query/query-record-fields.js');
 // 4T-002078 (Epic 3E-000259): Werte über der Gruppe und Reihenfolge der
@@ -66,10 +67,22 @@ const {
 // Index teilt (Frontmatter-, Block- und Tag-Listen kommen als Referenz aus dem
 // Index). Die Anzeige-Stücke eines fehlenden Werts sind in beiden Fällen leer,
 // die abgeleitete alte Form bleibt dadurch gleich.
+// 4T-002451 (Epic 3E-000378): Ein Meldungs-Wert einer Formel bleibt in der
+// Zelle stehen; die Anzeige zeigt an seiner Stelle das Warnzeichen mit dem Text
+// der Meldung, wie die Berechnung im Fließtext (Entscheidung der steuernden
+// Sitzung vom 2026-10-31, löst das Verhalten «wie fehlend» aus 4T-002449 ab).
 function toFormatValue(v) {
   if (v === undefined) return null;
   if (Array.isArray(v)) return v.map(toFormatValue);
   return v;
+}
+
+// Ein Gruppen-Wert ohne Meldung: Eine Meldung ist kein Wert, nach dem sich
+// Zeilen ordnen ließen; die Zeilen einer Formel mit Meldung stehen in der
+// Gruppe ohne Wert.
+function toGroupValue(v) {
+  const wert = toFormatValue(v);
+  return isMessage(wert) ? null : wert;
 }
 
 // Herkunft je Ebene aus dem Treffer-Kontext (heute toHit): der absolute
@@ -141,7 +154,7 @@ function buildGroups(finalRows, keyExprs, level, indices) {
   const groups = [];
   const byLabel = new Map();
   for (const i of indices) {
-    const value = toFormatValue(evaluateExpression(keyExprs[level], finalRows[i]));
+    const value = toGroupValue(evaluateExpression(keyExprs[level], finalRows[i]));
     const label = value === null ? null : formatValue(value);
     const mapKey = label === null ? ' none' : groupKey(value);
     let group = byLabel.get(mapKey);

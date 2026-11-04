@@ -64,6 +64,16 @@ const EDITOR_VIEW_FIXTURE = path.resolve(
   'funktionen',
   'editor-ansicht-frontmatter.md',
 );
+// 4T-002434 (Epic 3E-000375): Aufzählung über sieben Ebenen, nummerierte
+// Liste, Liste im Zitat, mit Tabulatoren eingerückte Liste und ein Code-Block.
+const GLIEDERUNG_LISTEN = path.resolve(
+  __dirname,
+  '..',
+  '..',
+  'fixtures',
+  'funktionen',
+  'gliederungsspur-listen.md',
+);
 
 async function sendMenuChannel(app, channel, ...args) {
   await hauptSenden(
@@ -410,6 +420,110 @@ test.describe('FA-02: Quellcode-Toggles (Wrap, Zeilennummern, Gliederungsspur)',
       await expect(page.locator(SEL.dirtyTab0)).toHaveCount(0);
     } finally {
       await closeApp(app, userData);
+    }
+  });
+});
+
+// 4T-002434 (Epic 3E-000375): Gliederungsspuren in der Struktur der Liste
+// (Story 4S-001121). Die Lage wird über die Fenster-Verteilung umgeschaltet,
+// denselben Weg, den die Einstellungs-Seite nimmt (ES-18 prüft die Seite).
+const PANE0 = '.pane-group[data-pane="0"]';
+const ANZEIGER_ZEILEN = [3, 4, 5, 6, 7, 8, 10, 13, 16, 19, 20, 23, 24];
+
+// Je Anzeiger: Zeile, rechte Kante und linke Kante des folgenden Zeichens.
+async function listenAnzeiger(page) {
+  return page.locator(`${PANE0} .scg-list-fold-marker`).evaluateAll((els) =>
+    els.map((m) => {
+      const walker = document.createTreeWalker(m.closest('.cm-line'), NodeFilter.SHOW_TEXT);
+      let t = walker.nextNode();
+      while (t && !(m.parentElement.compareDocumentPosition(t) & 4)) t = walker.nextNode();
+      const r = document.createRange();
+      r.setStart(t, 0);
+      r.setEnd(t, 1);
+      const rechts = m.getBoundingClientRect().right;
+      return { zeile: +m.dataset.foldLine, rechts, marker: r.getBoundingClientRect().left };
+    }),
+  );
+}
+
+const randBloecke = (page) =>
+  page
+    .locator(`${PANE0} .cm-headingGutter [data-fold-kind="block"]`)
+    .evaluateAll((els) => els.map((e) => +e.dataset.foldLine));
+
+const zeileSichtbar = (page, text) =>
+  page
+    .locator(`${PANE0} .cm-line`)
+    .evaluateAll((els, t) => els.some((l) => l.textContent.startsWith(t)), text);
+
+// Umschalten auf «in der Struktur der Liste»: Anzeiger vor jedem Marker, Rand
+// ohne Listenpunkte, Klick faltet nur die Unterpunkte (AK1 bis AK3, AK7).
+async function pruefeStruktur(app, page) {
+  await sendMenuChannel(app, 'listFoldTrackPosition:changed', 'struktur');
+  await expect(page.locator(`${PANE0} .scg-list-fold-marker`)).toHaveCount(13);
+  const lage = await listenAnzeiger(page);
+  expect(lage.map((a) => a.zeile)).toEqual(ANZEIGER_ZEILEN);
+  for (const a of lage) expect(Math.abs(a.marker - a.rechts)).toBeLessThan(1);
+  const x = Object.fromEntries(lage.map((a) => [a.zeile, a.rechts]));
+  for (const z of [10, 13, 16, 23]) expect(Math.abs(x[z] - x[3])).toBeLessThan(1);
+  for (const z of [4, 5, 6, 7, 8]) expect(x[z]).toBeGreaterThan(x[z - 1] + 1);
+  expect(x[24]).toBeGreaterThan(x[23] + 1);
+  await expect.poll(() => randBloecke(page)).toEqual([19, 27]);
+  await page.locator(`${PANE0} .scg-list-fold-marker[data-fold-line="4"]`).click();
+  await expect.poll(() => zeileSichtbar(page, '    - Ebene 3')).toBe(false);
+  expect(await zeileSichtbar(page, '- Zweiter Punkt')).toBe(true);
+  expect(await zeileSichtbar(page, '  - Ebene 2')).toBe(true);
+}
+
+test.describe('FA-07: Gliederungsspuren in der Struktur der Liste (4T-002434)', () => {
+  test('Umschalten, Falten, Zurückschalten und ausgeblendete Gliederung im Quellcode', async () => {
+    const { app, page, userData } = await launchApp({ args: [GLIEDERUNG_LISTEN] });
+    try {
+      await waitForTab(page);
+      await sendMenuChannel(app, 'menu:viewChange', 'source');
+      await expect(page.locator(SEL.editorContent0)).toBeVisible();
+      // AK4 der Story: Vorgabe «links außen», alle Listenpunkte im Rand (Zitat
+      // und Listenpunkt ab Zeile 19 sind zeilengleich und teilen eine Spur).
+      const vorher = [3, 4, 5, 6, 7, 8, 10, 13, 16, 19, 20, 23, 24, 27];
+      await expect.poll(() => randBloecke(page)).toEqual(vorher);
+      await expect(page.locator(`${PANE0} .scg-list-fold-marker`)).toHaveCount(0);
+      await pruefeStruktur(app, page);
+      // Zurück auf «links außen»: der gefaltete Punkt bleibt zu (AK6), der
+      // Rand trägt wieder dieselben Marker.
+      await sendMenuChannel(app, 'listFoldTrackPosition:changed', 'aussen');
+      await expect(page.locator(`${PANE0} .scg-list-fold-marker`)).toHaveCount(0);
+      await expect.poll(() => randBloecke(page)).toEqual(vorher.filter((z) => z < 5 || z > 8));
+      expect(await zeileSichtbar(page, '    - Ebene 3')).toBe(false);
+      // Gliederung ausgeblendet: auch «in der Struktur der Liste» zeigt keine
+      // Spur (AK8); eingeblendet kehrt sie zurück.
+      await page.locator('#btn-fold-gutter').click();
+      await sendMenuChannel(app, 'listFoldTrackPosition:changed', 'struktur');
+      await expect(page.locator(`${PANE0} .cm-headingGutter`)).toBeHidden();
+      await expect(page.locator(`${PANE0} .scg-list-fold-marker`)).toHaveCount(0);
+      await page.locator('#btn-fold-gutter').click();
+      await expect(page.locator(`${PANE0} .scg-list-fold-marker`).first()).toBeVisible();
+    } finally {
+      // Der Gliederungs-Schalter schreibt in das Frontmatter (dirty Buffer).
+      await closeApp(app, userData, { force: true });
+    }
+  });
+
+  test('dasselbe in der Live-Ansicht', async () => {
+    const { app, page, userData } = await launchApp({ args: [GLIEDERUNG_LISTEN] });
+    try {
+      await waitForTab(page);
+      await sendMenuChannel(app, 'menu:viewChange', 'live');
+      await expect(page.locator(SEL.editorContent0)).toBeVisible();
+      await pruefeStruktur(app, page);
+      // AK5: Cursor-Sprung hinter den Marker unverändert neben dem Anzeiger.
+      await page.locator(SEL.btnEdit).click();
+      await page.locator(`${PANE0} .cm-line`, { hasText: 'Zweiter Punkt' }).first().click();
+      await page.keyboard.press('End');
+      await page.keyboard.press('ArrowRight');
+      await page.keyboard.type('Z');
+      await expect.poll(() => zeileSichtbar(page, '  - ZUnterpunkt')).toBe(true);
+    } finally {
+      await closeApp(app, userData, { force: true });
     }
   });
 });

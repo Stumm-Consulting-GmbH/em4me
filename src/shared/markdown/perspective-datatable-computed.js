@@ -17,8 +17,14 @@
 // 4T-000987 (Epic 3E-000196): Abfrage-Sprache im Feature-Ordner src/shared/query/.
 const { parseExpression, collectFieldRefs } = require('../query/perspective-query.js');
 const { evaluateExpression } = require('../query/perspective-query-eval.js');
-const { validateQuery } = require('../query/query-functions.js');
-const { formatValue } = require('../query/query-format.js');
+const { validateQuery, FUNCTION_OFF_CODE } = require('../query/query-functions.js');
+const { formatValue, isMessage } = require('../query/query-format.js');
+// 4T-002449 (Epic 3E-000378): Hinweis der ausgeschalteten Formel-Bibliothek.
+const { FORMULA_LIBRARY_OFF_KEY } = require('../query/formula-library.js');
+
+// 4T-002449: Zell-Fehler einer Spalte, deren Zellen eine Meldung tragen statt
+// eines Werts; den Text liefert der Schlüssel `messageKey` der Zelle.
+const MESSAGE_CELL_ERROR = 'computedMessage';
 
 // --- Geteilte Grund-Helfer ------------------------------------------------------
 
@@ -81,7 +87,11 @@ function validateComputedColumns(columns, line, errors) {
     if (col.expr === null) continue;
     const parsed = parseExpression(col.expr);
     const fnError = parsed.ok ? validateQuery(parsed.ast) : null;
-    if (!parsed.ok || fnError) {
+    // 4T-002449: Eine Formel der ausgeschalteten Bibliothek ist kein
+    // Tabellen-Fehler; ein Eintrag im Fehlerkasten nähme der ganzen Tabelle die
+    // Bearbeitung. Die Spalte rechnet nicht, ihre Zellen tragen den Hinweis.
+    const aus = fnError !== null && fnError.code === FUNCTION_OFF_CODE;
+    if (!parsed.ok || (fnError && !aus)) {
       errors.push({ code: 'badExpr', line, detail: col.name });
       continue;
     }
@@ -90,6 +100,10 @@ function validateComputedColumns(columns, line, errors) {
     const bad = refs.find((r) => !known.has(r));
     if (bad !== undefined) {
       errors.push({ code: 'computedBadRef', line, detail: `${col.name}: ${bad}` });
+      continue;
+    }
+    if (aus) {
+      col.messageKey = FORMULA_LIBRARY_OFF_KEY;
       continue;
     }
     const name = col.name.toLowerCase();
@@ -172,6 +186,13 @@ function toComputedCell(col, v) {
   return { value: formatValue(v), error: null };
 }
 
+// 4T-002449: Zelle mit Meldung statt Wert (Formel-Bibliothek ausgeschaltet
+// oder Meldungs-Wert einer Formel); ohne Schlüssel die leere Zelle.
+function messageCell(messageKey) {
+  if (!messageKey) return { value: null, error: null };
+  return { value: null, error: MESSAGE_CELL_ERROR, messageKey };
+}
+
 // Auswertungs-Reihenfolge der gültigen Formeln: eine Formel folgt allen
 // berechneten Spalten, auf die sie verweist (Deklarations-Reihenfolge ist
 // frei; Kreise hat validateComputedColumns bereits aussortiert — deren
@@ -227,11 +248,15 @@ function computeComputedCells(model) {
         di == null ? null : row[di] && !row[di].error ? row[di].value : null;
     });
     const perCol = {};
-    for (const e of entries) perCol[e.i] = { value: null, error: null };
+    for (const e of entries) perCol[e.i] = messageCell(e.col.messageKey);
     for (const { col, i } of order) {
-      const result = toComputedCell(col, evaluateExpression(col.exprAst, { props }));
+      const roh = evaluateExpression(col.exprAst, { props });
+      const result = isMessage(roh) ? messageCell(roh.key) : toComputedCell(col, roh);
       perCol[i] = result;
-      props[col.name.toLowerCase()] = result.error ? null : result.value;
+      // 4T-002456 (Zweitblick-Befund 3): Eine Meldung wandert in abhängige
+      // Spalten weiter, wie in den Formel-Feldern der Eigenschafts-Profile;
+      // sonst rechnete die abhängige Spalte mit null und bliebe stumm leer.
+      props[col.name.toLowerCase()] = isMessage(roh) ? roh : result.error ? null : result.value;
     }
     map.set(row, perCol);
   }

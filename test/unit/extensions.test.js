@@ -503,21 +503,23 @@ describe('Abhaengigkeits-Schutz: Sperre der Grundlage (4T-001877)', () => {
 // Product Owners vom 2026-10-07); beide seit dem Nachzug des Zuges 3E-000346
 // auf das Release 1.148.0 am 2026-10-14 nebeneinander in der Registry. Mit
 // 4T-002352 kommen die Workflows als siebenundsechzigste hinzu, auf «Voll»
-// (Entscheidung 1g der Konzept-Runde 4T-002330 vom 2026-10-22).
-const STUFEN_ZAHLEN = { beginner: 24, advanced: 29, full: 14 };
+// (Entscheidung 1g der Konzept-Runde 4T-002330 vom 2026-10-22). Mit 4T-002449
+// kommt die Formel-Bibliothek als achtundsechzigste hinzu, auf «Voll» (Story
+// 4S-001124, Konzept-Stufe 4T-002431).
+const STUFEN_ZAHLEN = { beginner: 24, advanced: 29, full: 15 };
 
 describe('Arbeitsmodi: Modus-Stufe der Registry (4T-001880)', () => {
   it('AK1: jede interne Erweiterung traegt eine gueltige Stufe', () => {
     const intern = internalExtensions();
-    expect(intern).toHaveLength(67);
+    expect(intern).toHaveLength(68);
     const gezaehlt = { beginner: 0, advanced: 0, full: 0 };
     for (const m of intern) {
       expect(EXTENSION_MODE_LEVELS, `${m.id} ohne gueltige Stufe`).toContain(m.modeLevel);
       gezaehlt[m.modeLevel] += 1;
     }
     // Die Zahlen der entschiedenen Tabelle samt Kanban-Tafel, beiden Diagrammen,
-    // Praesentation und Workflows: Einsteiger 24 von 67, Fortgeschritten 53 von
-    // 67 (24 + 29), Voll 67 von 67.
+    // Praesentation, Workflows und Formel-Bibliothek: Einsteiger 24 von 68,
+    // Fortgeschritten 53 von 68 (24 + 29), Voll 68 von 68.
     expect(gezaehlt).toEqual(STUFEN_ZAHLEN);
   });
 

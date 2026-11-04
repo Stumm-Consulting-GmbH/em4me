@@ -15,7 +15,11 @@ import { syntaxTree } from '@codemirror/language';
 import emojiDefs from 'markdown-it-emoji/lib/data/full.mjs';
 
 import { findCalendarValues } from '../../../shared/calendar/calendar-core.js';
-import { findInlineCalcSpans, inlineCalcSpec } from '../../../shared/markdown/inline-calc.js';
+import {
+  findInlineCalcSpans,
+  inlineCalcSpec,
+  inlineCalcTitleKey,
+} from '../../../shared/markdown/inline-calc.js';
 import { calendarValueBadgeSpec } from '../../../shared/markdown/plugins.js';
 import { t } from '../../i18n.js';
 import { getAreaCalendarConfig } from '../calendar/calendar-config.js';
@@ -197,7 +201,9 @@ export function runLateInlinePasses(ctx) {
       if (docPos + (s.to - s.from) > line.to) continue;
       const spec = inlineCalcSpec(s.expr);
       const cls = spec.ok ? 'cm-inline-calc' : 'cm-inline-calc cm-inline-calc-error';
-      const title = spec.ok ? spec.title : t('inlineCalc.error.' + spec.errorCode);
+      // 4T-002449: Schlüssel über dieselbe Ableitung wie die Render-Regel, damit
+      // der Hinweis der Formel-Bibliothek hier wie in der Ansicht erscheint.
+      const title = spec.ok ? spec.title : t(inlineCalcTitleKey(spec));
       ranges.push(
         Decoration.replace({
           widget: new InlineCalcWidget(cls, title, spec.text),

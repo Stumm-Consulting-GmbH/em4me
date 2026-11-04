@@ -103,7 +103,7 @@ En los calendarios hebreo, persa y chino y en el calendario hijri según Umm al-
 Antes y después, el programa indica «desconocido» en lugar de mostrar una fecha aproximada: en el selector, en un valor del documento y en el diálogo «Convertir fecha». Las tablas forman parte del programa; no hace falta conexión a Internet. Se actualizan antes de que venza su periodo y después de una corrección de la autoridad competente.
 
 - **Los meses intercalares** son meses propios. En un valor, cada mes conserva su número en todos los años; un mes intercalar lleva el número del mes al que sigue y una `L` añadida. Así, adar I del año hebreo 5784 figura en el documento como `5784-05L-01`, adar II como `5784-06-01`, y el mes intercalar del año chino 2023 como `2023-02L-01`. Un valor guardado designa así el mismo mes en todos los años.
-- **En la configuración**, el mes y el año de estas cronologías son de solo lectura; los nombres, las semanas y las eras siguen siendo editables. No se pueden elegir como referencia de una cronología derivada (sección «Cronologías derivadas»).
+- **En la configuración**, el mes y el año de estas cronologías son de solo lectura; los nombres, las semanas y las eras siguen siendo editables. Se pueden elegir como referencia de una cronología derivada; en ese caso rige una regla de aniversario propia de cada calendario (sección «Reglas de aniversario» dentro de «Cronologías derivadas»).
 - **El día** empieza a medianoche, como en todas las plantillas; el programa no reproduce el comienzo del día a la puesta del sol de los calendarios hebreo e islámico.
 
 ### Lecturas y límites
@@ -194,7 +194,8 @@ Una cronología derivada cuenta desde un punto cero propio: cuánto falta para u
 
 En la sección de ajustes «Sistemas de calendario», el botón **«Añadir cronología derivada»** abre un formulario breve:
 
-- **Cronología de referencia** — un calendario del mismo bloque o la cronología estándar incluida. Para una cuenta atrás no hace falta, por tanto, un calendario propio. Las cronologías cuya estructura cambia de un año a otro no se pueden elegir como referencia, porque su cómputo no se puede desplazar; una cuenta a partir de un día se hace mediante la cronología gregoriana del mismo bloque.
+- **Cronología de referencia** — un calendario del mismo bloque o la cronología estándar incluida. Para una cuenta atrás no hace falta, por tanto, un calendario propio. También se ofrecen las cronologías cuya estructura cambia de un año a otro, es decir, los calendarios hebreo, persa y chino y el calendario hijri según Umm al-Qura; debajo de la selección aparece entonces la frase de su regla de aniversario (sección «Reglas de aniversario»).
+- **Regla de aniversario** — solo con una referencia hebrea, justo debajo de la cronología de referencia: «Aniversario» (predeterminado) o «Yahrzeit (asquenazí)». La regla elegida forma parte de la definición de la cronología derivada.
 - **Punto cero (día 1)** — la fecha en la notación de la referencia, opcionalmente mediante el selector; siempre cae en un día completo.
 - **Nivel de detalle** — cómo de fina es la división de la duración, desde la unidad más pequeña sola hasta los años.
 - **Abreviaturas de dirección** — dos palabras breves para el tiempo antes y después del punto cero.
@@ -203,7 +204,21 @@ Aquí no aparecen editores de niveles, ciclos, agrupaciones ni épocas, porque n
 
 ### Qué se hereda
 
-La cronología derivada asume las unidades de su referencia y desplaza sus límites al punto cero. Si este cae en un día 23, cada mes derivado empieza el 23 y cada año derivado el mismo día; las semanas empiezan en el día de la semana del punto cero. Así, cada unidad conserva la longitud que tiene en la referencia y un día bisiesto cae por sí solo en el año correcto. Los nombres acompañan: si el recuento empieza en julio, el primer mes se sigue llamando julio. Si el punto cero cae en un día que no todos los meses tienen, el límite retrocede al último día disponible.
+La cronología derivada asume las unidades de su referencia y desplaza sus límites al punto cero. Si este cae en un día 23, cada mes derivado empieza el 23 y cada año derivado el mismo día; las semanas empiezan en el día de la semana del punto cero. Así, cada unidad conserva la longitud que tiene en la referencia y un día bisiesto cae por sí solo en el año correcto. Los nombres acompañan: si el recuento empieza en julio, el primer mes se sigue llamando julio. Si el punto cero cae en un día que no todos los meses tienen, el límite retrocede al último día disponible cuando la referencia tiene una estructura fija; en las cronologías cuya estructura cambia de un año a otro decide la regla de aniversario (sección siguiente).
+
+### Reglas de aniversario
+
+En los calendarios hebreo, persa y chino y en el calendario hijri según Umm al-Qura, el número y la duración de los meses cambian de un año a otro: un mes intercalar o el día 30 de un mes no existen todos los años. La regla de aniversario del calendario fija en qué día cae entonces el aniversario de un punto cero. No rige solo en el aniversario, sino en cada límite de mes del recuento: cada mes contado empieza el día que la regla indica para el día del punto cero en el mes correspondiente de la referencia. En la configuración, la frase de la regla vigente aparece debajo de la selección de la referencia y, con una referencia hebrea, debajo de la regla de aniversario.
+
+- **Calendario hebreo, «Aniversario»** (predeterminado) — Aniversario según la costumbre de los cumpleaños: un día de adar cae en adar II en los años bisiestos, un día de adar I cae en adar en los años comunes; si un mes no tiene día 30, se aplica el día 1 del mes siguiente.
+- **Calendario hebreo, «Yahrzeit (asquenazí)»** — Aniversario según la costumbre asquenazí del yahrzeit: un día de adar cae en adar I en los años bisiestos, el 30 de adar I cae el 30 de shevat en los años comunes; si el 30 de heshvan o de kislev ya faltaba en el primer año después del día de origen, se aplica cada año el último día de ese mes; si no, un día 30 que falte cae el día 1 del mes siguiente. El día de origen es el punto cero; para el 30 de heshvan y el 30 de kislev decide, por tanto, la estructura del año que sigue al año del punto cero.
+- **Calendario chino** — En los años sin ese mes intercalar, un día de un mes intercalar cae en el mes del mismo número; si un mes no tiene día 30, se aplica el 29.
+- **Calendario persa** — En los años sin ese día, el 30 de esfand cae el 29 de esfand.
+- **Calendario hijri Umm al-Qura** — Si un mes no tiene día 30, se aplica el 29.
+
+Un ejemplo: un punto cero el 10 de adar de 5783, un año común, tiene su primer aniversario con «Aniversario» el 10 de adar II de 5784 (`5784-06-10`) y con «Yahrzeit (asquenazí)» el 10 de adar I de 5784 (`5784-05L-10`). La duración escalonada cuenta los años completos según la regla y, por debajo, los meses y los días; en un año bisiesto del calendario hebreo o del chino, un año contado puede tener trece meses.
+
+Fuera del periodo de validez de una tabla (sección «Plantillas cuya estructura cambia de un año a otro»), también la cronología derivada indica «desconocido», por ejemplo para un aniversario posterior al final del periodo; lo mismo vale para un día al comienzo del periodo cuyo mes contado empezaría antes del primer día de la tabla.
 
 ### Valores en el documento
 

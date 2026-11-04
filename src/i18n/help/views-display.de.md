@@ -65,6 +65,8 @@ Das Untermenü Ansicht → Editor-Darstellung bündelt die fünf Schalter, die d
 
 Die ersten drei Schalter sind **dokument-gebunden**: Ihr Wert wandert in das Frontmatter der Datei (`fold-gutter`, `line-numbers`, `word-wrap`) und reist mit ihr. Das Umschalten schreibt den neuen Wert dort hinein und macht die Datei änderungsbedürftig; ein Dokument ohne eigene Angabe folgt der Voreinstellung unter Datei → Einstellungen… → Darstellung. Die Auflösungs-Reihenfolge beschreibt die Seite [Frontmatter und Properties](frontmatter.md).
 
+Wo die Spuren von Listen stehen, bestimmt die Einstellung Datei → Einstellungen… → Darstellung → Gliederungsspuren bei Listen. Bei „links außen“, der Vorgabe, stehen Falt-Anzeiger und Verbindungs-Linien einer Aufzählung oder nummerierten Liste im Gliederungs-Rand, wie die der Überschriften. Bei „in der Struktur der Liste“ rücken sie auf die Höhe der Listenebene ein und stehen unmittelbar vor dem Aufzählungszeichen oder der Nummer des Punkts, den sie falten; die Linie, die zusammengehörige Unterpunkte verbindet, läuft auf derselben Einrückung. Überschriften und die übrigen faltbaren Blöcke behalten ihre Spur in beiden Fällen links außen, und was sich falten lässt, bleibt gleich. Die Wahl gilt überall, wo die Spur erscheint, also in der Quellcode-, der geteilten und der Live-Ansicht, und wirkt sofort in allen Fenstern, ohne dass ein gefalteter Bereich aufgeht. Sie ist eine Einstellung der Anwendung und keine Eigenschaft der Datei; ist die Gliederung eines Dokuments ausgeblendet, zeigt es auch in der Struktur der Liste keine Spur.
+
 ## Erscheinungsbild
 
 ### Hell, dunkel und System

@@ -14,6 +14,371 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.157.0.4914] - 2026-11-04 — Gliederungsspuren wahlweise in der Struktur der Liste, Jahrestags-Regeln für Kalender mit jährlich wechselndem Aufbau, Formel-Bibliothek für alle Berechnungs-Orte
+
+Zug
+3E-000381,
+der sechste Zug des Arbeitspakets «Einstellungen und Funktionsumfangs-Steuerung».
+Die Mitglieder in der Reihenfolge ihrer Umsetzung, je mit dem Task, der ihren
+Abschluss-Anteil trägt:
+
+1. 3E-000375
+   — die Lage der Gliederungsspuren von Aufzählungen und nummerierten Listen
+   ist wählbar: links außen im Gliederungs-Rand oder in der Struktur der Liste,
+   eingerückt auf Höhe der Listenebene unmittelbar vor dem Aufzählungszeichen
+   oder der Nummer.
+   Abschluss-Anteil in
+   4T-002436.
+2. 3E-000377
+   — eine abgeleitete Zeitrechnung lässt sich auch auf den vier Kalendern mit
+   jährlich wechselndem Aufbau anlegen, dem hebräischen, dem chinesischen, dem
+   amtlichen persischen und dem Hidschri-Kalender nach Umm al-Qura; je Kalender
+   legt eine benannte Jahrestags-Regel fest, auf welchen Tag Jahrestag und
+   Monatsgrenzen in einem Jahr anderen Aufbaus fallen, beim hebräischen
+   Kalender wahlweise «Jahrestag» oder «Jahrzeit (aschkenasisch)».
+   Abschluss-Anteil in
+   4T-002448.
+3. 3E-000378
+   — an allen vier Orten, an denen die Anwendung rechnet, stehen zehn
+   mathematische Grundfunktionen und vier Konstanten als Kern bereit und
+   dazu die schaltbare Erweiterung «Formel-Bibliothek» mit 45 geprüften
+   Formeln und Naturkonstanten in sechs Kategorien, jede mit benannter Quelle
+   und benanntem Gültigkeitsbereich.
+   Abschluss-Anteil in
+   4T-002456.
+
+### Neu
+
+- **Gliederungsspuren bei Listen wahlweise in der Struktur der Liste**
+  (`4T-002433`, `4T-002434`). Unter Datei → Einstellungen… → Darstellung →
+  Gliederungsspuren bei Listen steht eine Auswahl mit zwei Werten. Bei «links
+  außen», der Vorgabe, stehen Falt-Anzeiger und Verbindungs-Linien von
+  Aufzählungen und nummerierten Listen im Gliederungs-Rand, wie sie es bisher
+  taten. Bei «in der Struktur der Liste» rücken sie auf die Höhe der
+  Listenebene ein und stehen unmittelbar vor dem Aufzählungszeichen oder der
+  Nummer des Punkts, den sie falten; Punkte derselben Ebene haben ihren
+  Anzeiger auf derselben Einrückung, die Linie zu den Unterpunkten läuft dort
+  mit, und ein Klick auf den Anzeiger faltet und entfaltet den Punkt samt
+  Unterpunkten. Die Wahl wirkt sofort in allen Fenstern und in den Ansichten
+  «Quellcode», «Geteilt» und «Live», ein gefalteter Punkt bleibt beim Wechsel
+  gefaltet, und nach einem Neustart gilt die zuletzt gewählte Lage. Überschriften
+  und die übrigen faltbaren Blöcke behalten ihre Spur links außen, und was sich
+  falten lässt, bleibt gleich. Ist die Gliederung eines Dokuments ausgeblendet,
+  zeigt es in keiner der beiden Lagen eine Spur. Die Wahl ist eine Einstellung
+  der Anwendung und keine Eigenschaft der Datei. Bekannte Grenze: In der
+  Ansicht «Quellcode» steht der Anzeiger bei einer mit Tabulatoren eingerückten
+  Liste in einem Zitat-Block in der Tabulator-Lücke, einige Pixel links vom
+  Marker statt unmittelbar davor; der Text bleibt an seinem Platz, und in
+  «Live» steht der Anzeiger genau vor dem Marker.
+- **Abgeleitete Zeitrechnungen auf den vier Kalendern mit jährlich wechselndem
+  Aufbau** (`4T-002445`, `4T-002446`). Unter Datei → Einstellungen… →
+  Kalender-Systeme bietet die Auswahl «Bezugs-Zeitrechnung» im Formular einer
+  abgeleiteten Zeitrechnung (Knopf «Abgeleitete Zeitrechnung hinzufügen») jetzt
+  auch den Hebräischen Kalender, den Chinesischen Kalender, den Persischen
+  Kalender und den Hidschri-Kalender (Umm al-Qura) an, sobald sie im Block
+  stehen; eine Zählung ab einem Tag läuft damit in den eigenen Jahren dieser
+  Kalender statt über die gregorianische Zeitrechnung. Weil Zahl und Länge der
+  Monate dort von Jahr zu Jahr wechseln, gilt je Kalender eine benannte
+  Jahrestags-Regel, und zwar an jeder Monatsgrenze der Zählung, nicht allein am
+  Jahrestag: Im chinesischen Kalender fällt ein Tag im Schaltmonat in Jahren
+  ohne diesen Schaltmonat in den Monat gleicher Zahl, ein fehlender 30. auf den
+  29.; im persischen Kalender fällt der 30. Essfand in Jahren ohne diesen Tag
+  auf den 29. Essfand; im Kalender nach Umm al-Qura fällt ein fehlender 30. auf
+  den 29. Beim hebräischen Kalender steht unter der Bezugs-Auswahl zusätzlich
+  die Auswahl «Jahrestags-Regel» mit zwei Regeln nach dem Referenzwerk
+  «Calendrical Calculations»: «Jahrestag» (Vorgabe, nach dem
+  Geburtstags-Brauch: ein Tag im Adar fällt im Schaltjahr in den Adar II, ein
+  fehlender 30. auf den 1. des Folgemonats) und «Jahrzeit (aschkenasisch)»
+  (ein Tag im Adar fällt im Schaltjahr in den Adar I, der 30. Adar I im
+  Gemeinjahr auf den 30. Schevat, und fehlte der 30. Cheschwan oder Kislew
+  schon im ersten Jahr nach dem Nullpunkt, gilt in jedem Jahr der letzte Tag
+  dieses Monats). Ein Nullpunkt am 10. Adar 5783 hat seinen ersten Jahrestag
+  mit «Jahrestag» am 10. Adar II 5784 (20.03.2024) und mit «Jahrzeit
+  (aschkenasisch)» am 10. Adar I 5784 (19.02.2024). Die gewählte Regel ist
+  Teil der Definition, wird mit dem Bereich gespeichert und gilt nach einem
+  Neustart weiter. Unter der Bezugs-Auswahl steht der Satz der geltenden
+  Regel; der bisherige Hinweis, dass diese vier Kalender nicht als Bezug
+  wählbar sind, entfällt. Die gestaffelte Zeitspanne zählt volle Jahre nach der
+  Regel, in einem Schaltjahr kann ein gezähltes Jahr dreizehn Monate haben.
+  Außerhalb des Geltungs-Zeitraums einer Tafel lautet auch die Auskunft der
+  Ableitung «nicht bekannt», ebenso für einen Tag am Beginn des Zeitraums,
+  dessen gezählter Monat vor der Tafel begänne. Ableitungen auf Kalendern mit
+  festem Aufbau und auf der Standard-Zeitrechnung rechnen unverändert.
+- **Mathematische Grundfunktionen und Konstanten an allen Rechen-Orten**
+  (`4T-002450`). In der Berechnung im Fließtext `{= … =}`, in den berechneten
+  Spalten der Perspective Datatable, in der Perspective-Abfrage und in den
+  Formel-Feldern der Eigenschafts-Profile stehen die zehn Grundfunktionen
+  `exp`, `ln`, `log10`, `pow`, `sqrt`, `round`, `abs`, `floor`, `ceil` und
+  `mod` und die vier Konstanten `pi()`, `e()`, `phi()` (Goldener Schnitt) und
+  `sqrt2()` bereit, in jedem Arbeitsmodus und ohne Schalter. `round` rundet
+  einen Wert genau in der Mitte von null weg und nimmt als zweite Angabe die
+  Zahl der Nachkommastellen, auch negativ; der Rest von `mod` trägt das
+  Vorzeichen des Teilers, beides nach der Norm OpenFormula wie in den
+  Tabellenkalkulationen. Eine Konstante braucht die Klammern; ein Wort ohne
+  Klammern bleibt der Name eines Feldes. Ein Ergebnis ohne Zahl, etwa
+  `sqrt(-1)` oder `ln(0)`, erscheint wie eine Division durch null und nie als
+  «NaN» oder «Infinity».
+- **Formel-Bibliothek als schaltbare Erweiterung** (`4T-002449`). Unter
+  Datei → Einstellungen… → Erweiterungen steht der neue Eintrag
+  «Formel-Bibliothek», eingeschaltet im Arbeitsmodus «Voll». Ihre Formeln
+  werden mit dem Namen ihrer Kategorie aufgerufen, etwa
+  `humidity.dewpoint(20, 50)` oder `finance.pmt(0.08/12, 10, 10000)`, gleich in
+  jeder Sprache der Anwendung, und rechnen an allen vier Orten mit derselben
+  Antwort. Angaben und Ergebnisse sind reine Zahlen in der Einheit, die das
+  Handbuch je Formel nennt; das Ergebnis erscheint mit Punkt als
+  Dezimaltrennzeichen, sprachgerecht über `numberformat`. Ist die Bibliothek
+  ausgeschaltet, steht an der Stelle jedes Ergebnisses der Hinweis
+  «Formel-Bibliothek ausgeschaltet», der Text des Dokuments bleibt
+  unverändert, und die Grundfunktionen rechnen weiter. Eine Prüfregel oder
+  eine Bedingung der Bearbeitbarkeit einer Datenbank-Tabelle, die eine Formel
+  der ausgeschalteten Bibliothek nutzt, gilt als nicht auswertbar: Ein
+  Schreibvorgang auf das Feld wird abgewiesen, ein gesperrter Datensatz bleibt
+  gesperrt, und ein Hinweis in der Tabellen-Definition nennt den Grund; in
+  einer Maske erscheint ein Wert-Platzhalter oder eine Bedingung mit einer
+  solchen Formel als markierte Stelle mit dem Grund. Nach dem Wiedereinschalten
+  rechnet alles wie zuvor.
+- **Meldung statt Wert bei Angaben außerhalb des Gültigkeitsbereichs**
+  (`4T-002451`). Liegt eine Angabe außerhalb des Bereichs, für den die Quelle
+  einer Formel ihr Ergebnis zusagt, oder ist sie keine Zahl, liefert die Formel
+  eine Meldung, die Angabe und Bereich nennt, und nie einen stillen falschen
+  Wert. Im Fließtext und in einer Zelle der Perspective-Abfrage steht das
+  Warnzeichen mit dem Text der Meldung beim Darüberfahren, in einer
+  berechneten Spalte ein Strich mit der Meldung, im Formel-Feld ein leeres
+  Feld mit der Meldung. Eine Prüfregel der Datenbank, deren Formel eine
+  Meldung liefert, gilt wie bei ausgeschalteter Bibliothek als nicht
+  auswertbar.
+- **Formeln für Feuchte und Taupunkt** (`4T-002451`). Sieben Formeln im
+  Namensraum `humidity.`: Sättigungsdampfdruck über Wasser und über Eis,
+  Dampfdruck, absolute Feuchte aus relativer, relative aus absoluter, Taupunkt
+  und relative Feuchte aus dem Taupunkt. Gerechnet wird mit der
+  Magnus-Formel und den Konstanten nach Sonntag, wie sie der Leitfaden der
+  Weltorganisation für Meteorologie nennt, über Wasser für −45 bis 60 °C, über
+  Eis für −65 bis 0,01 °C; die relative Feuchte bezieht sich auch unter 0 °C
+  auf Wasser. Temperatur in °C, relative Feuchte in Prozent, absolute Feuchte
+  in g/m³, Druck in hPa; `humidity.dewpoint(20, 50)` ergibt rund 9,3 °C.
+- **Formeln der Finanzmathematik** (`4T-002452`). Neun Formeln im Namensraum
+  `finance.` mit Namen und Reihenfolge der Angaben wie in den
+  Tabellenkalkulationen: Rate, Barwert, Endwert, Kapitalwert, interner
+  Zinsfuß, Zins und Laufzeit einer Annuität, Effektiv- und Nominalzins, nach
+  der Norm OpenFormula. Der Zinssatz gilt je Periode (0.08/12 für 8 Prozent im
+  Jahr bei Monatsraten), ausgezahltes Geld ist negativ, und der Zahlungs-
+  Zeitpunkt ist 0 für das Periodenende und 1 für den Periodenanfang;
+  `finance.pmt(0.08/12, 10, 10000)` ergibt rund −1037,03. Der interne Zinsfuß
+  nimmt seine Zahlungen aus einem Listen-Feld, in der Perspective-Abfrage, im
+  Formel-Feld und in den Regeln der Datenbank; im Fließtext und in einer
+  berechneten Spalte gibt es kein Listen-Feld, dort meldet er «ohne
+  Vorzeichenwechsel». Konvergiert die schrittweise Rechnung von internem
+  Zinsfuß oder Zins nicht, steht dort eine Meldung statt eines Werts.
+- **Formeln für Prozent, Einheiten und Body-Mass-Index** (`4T-002453`). Fünf
+  Formeln der Prozentrechnung im Namensraum `percent.` (Anteil, Änderung,
+  erhöhen und vermindern um Prozent, Grundwert), sechzehn Umrechnungen im
+  Namensraum `unit.` zwischen Celsius, Kelvin und Fahrenheit und zwischen
+  Meter und Zoll, Fuß, Yard, Meile und Seemeile mit den exakten Faktoren der
+  NIST-Richtlinie SP 811, und `health.bmi` für den Body-Mass-Index nach der
+  Weltgesundheitsorganisation, allein als Zahl ohne Einordnung, die nur für
+  Erwachsene gilt. `percent.increase(200, 50)` ergibt 300,
+  `unit.celsiustofahrenheit(37)` ergibt 98,6 und `health.bmi(70, 1.75)`
+  ergibt rund 22,9.
+- **Naturkonstanten** (`4T-002454`). Sieben Werte im Namensraum `const.` nach
+  CODATA 2018 und der SI-Broschüre: Lichtgeschwindigkeit `const.c()`,
+  Normfallbeschleunigung `const.g()`, Nullpunkt der Celsius-Skala in Kelvin
+  `const.t0()`, Avogadro-Konstante `const.na()`, allgemeine Gaskonstante
+  `const.r()`, Planck-Konstante `const.h()` und Normdruck `const.p0()`, je in
+  der Einheit, die das Handbuch nennt. Sehr große und sehr kleine Werte
+  erscheinen an allen vier Orten gleich in Exponent-Schreibweise, etwa
+  6.02214076e+23.
+
+### Dokumentation
+
+- **Hilfe und Handbuch zu den Gliederungsspuren bei Listen** (`4T-002435`): Der
+  Funktions-Katalog führt in fünf Sprachen den Eintrag «Lage der
+  Gliederungsspuren bei Listen» mit dem Zugang Datei → Einstellungen… →
+  Darstellung → Gliederungsspuren bei Listen, in der Gruppe «Ansicht» hinter
+  dem Gliederungs-Folding (Schlüssel `help.feature.listFoldTrack`,
+  `help.featureName.listFoldTrack`, `help.featureAccess.listFoldTrack`; Zeile
+  `F-392` der Abdeckungs-Matrix). Die Handbuch-Seite «Ansichten und
+  Darstellung» trägt in fünf Sprachen einen Absatz mit Menüweg, beiden Werten
+  samt Vorgabe, den Spuren der Überschriften und Blöcke links außen, der
+  Wirkung in Quellcode-, geteilter und Live-Ansicht und in allen Fenstern und
+  der Abgrenzung zur Datei-Eigenschaft. Die übrigen Handbuch-Seiten sind in
+  allen Sprachen gegen die neue Wahl gelesen und bleiben unverändert; die
+  Demo-Area ebenso, weil kein neues Konstrukt entsteht.
+- **Hilfe und Handbuch zu den Jahrestags-Regeln** (`4T-002447`): Der Eintrag
+  «Abgeleitete Zeitrechnungen» des Funktions-Katalogs nennt in fünf Sprachen
+  die vier Kalender als Bezug und die Jahrestags-Regel je Kalender, der Zugang
+  die Auswahl «Jahrestags-Regel» bei hebräischem Bezug; kein neuer Schlüssel,
+  fortgeschrieben ist `help.feature.derivedCalendars` samt Zugang. Die
+  Handbuch-Seite «Kalender-Systeme» trägt in fünf Sprachen den neuen
+  Unter-Abschnitt «Jahrestags-Regeln» mit dem Satz der Regel je Kalender, beim
+  hebräischen Kalender für beide Regeln, einem Beispiel im Adar, der
+  gestaffelten Zeitspanne und der Auskunft «nicht bekannt» außerhalb einer
+  Tafel; die Punkte «Bezugs-Zeitrechnung», «Jahrestags-Regel» und «Was geerbt
+  wird» und der Abschnitt «Vorlagen mit jährlich wechselndem Aufbau» sind
+  nachgezogen. Die Funktionsbeschreibung im `README.md` nennt die vier Bezüge
+  und beschränkt das Kürzen eines fehlenden Tags auf Bezüge mit festem Aufbau.
+  Die übrigen Handbuch-Seiten und die Demo-Area bleiben unverändert, weil kein
+  neues Konstrukt entsteht.
+- **Hilfe und Handbuch zur Formel-Bibliothek** (`4T-002455`):
+  Eine eigene Handbuch-Seite «Formel-Bibliothek» in fünf Sprachen, gegliedert
+  nach Kategorien, mit Zweck, Angaben samt Einheiten, Ergebnis, Beispiel,
+  Quelle und Gültigkeitsbereich je Formel und Wert, Einheit und Quelle je
+  Naturkonstante; eine neue Zeile im Block «Metadaten, Daten und Abfragen» der
+  Überblicksseite unmittelbar nach «Perspective Datatable», verlinkt aus den
+  Seiten der Abfrage, der Inline-Konstrukte, der Datentabelle, der
+  Eigenschafts-Profile und der Erweiterungen. Die Grundfunktionen und
+  Konstanten stehen auf den Seiten der Abfrage und der Inline-Berechnungen.
+  Die Demo-Datei der Berechnungen trägt je Stufe ein kurzes Beispiel, die
+  Nutzen-Seite des Handbuchs und der Webseite einen Absatz zur
+  Formel-Bibliothek. Die sieben Einträge des Funktions-Katalogs der Erweiterung
+  und ihrer Kategorien sind mit den Umsetzungs-Vorgängen entstanden (Schlüssel
+  `help.feature.formulaLibrary`, `formulaHumidity`, `formulaFinance`,
+  `formulaPercent`, `formulaUnit`, `formulaHealth` und `formulaConst`, je mit
+  Name und Zugang; Zeilen `F-394` bis `F-398`, `F-403` und `F-404` der
+  Abdeckungs-Matrix).
+
+### Intern
+
+- **Einstellung und Verteilung an alle Fenster** (`4T-002433`): Das neue Modul
+  `src/renderer/modules/editor/list-fold-track-setting.js` trägt den Schlüssel
+  `editor.listFoldTrackPosition` mit den Werten `aussen` (Vorgabe) und
+  `struktur`; jeder andere oder fehlende Wert fällt auf `aussen` zurück. Ein
+  Wechsel geht als Ereignis `scg:listfoldtrackchange` an den Editor und über
+  `VERTEIL_SCHLUESSEL` in `src/main/ipc/settings-verteilung.js` mit dem Kanal
+  `listFoldTrackPosition:changed` an die übrigen Fenster; der Gliederungs-Rand
+  baut seine Marker beim Effekt `listFoldTrackEffect` neu, ohne den
+  Falt-Zustand zu berühren. Die Zeilen-Grenze von `src/main/preload.js` in
+  `scripts/datei-groessen-ausnahmen.json` steigt von 501 auf 503. Neue
+  Unit-Prüfdatei `test/unit/renderer/gliederungsspur-listen-einstellung.test.js`
+  mit zehn Fällen und Ablauf-Fall `ES-18`, je mit Rot-Probe; Eintrag `F-006`
+  der Abdeckungs-Matrix um die Prüfdateien ergänzt.
+- **Zeichnen in der Struktur der Liste** (`4T-002434`): In
+  `src/renderer/modules/editor/folding.js` trägt jede Region eines
+  Listenpunkts zusätzlich Knotenart, Listenart, Lage des Markers und
+  Einrück-Spalte, gezählt mit der Tab-Breite des Editors und samt
+  Zitat-Präfix; `list-outline.js` ist unverändert. Der Rand kennt die Lagen
+  `aussen` und `struktur`, mit `aussen` bildgleich zum bisherigen Stand. Das
+  neue Modul `src/renderer/modules/editor/list-fold-track-zeile.js` zeichnet
+  Anzeiger und Verbindungs-Linie als ein Widget unmittelbar vor dem Marker,
+  die Linie als zweites Kind desselben Widgets mit der Höhe aus der
+  Höhen-Karte des Editors, sodass kein Element in fremden Zeilen steht und eine
+  mit Tabulatoren eingerückte Zeile ihren Text nicht verschiebt;
+  `toggleBlockRegion` ist der gemeinsame Falt-Weg von Rand und Anzeiger.
+  Gewählt nach einer Messung beider Wege an einer Liste über sieben Ebenen, bei
+  fester und proportionaler Schrift, in «Quellcode» und «Live»: Ein Rand-Marker
+  mit Versatz in Zeichenbreiten lag bei proportionaler Schrift auf der siebten
+  Ebene rund 45 px neben dem Marker, das Widget in allen Fällen auf 0 px.
+  Regeln `scg-list-*` in `src/renderer/styles/reiter-und-panes.css`. Sieben
+  Unit-Fälle in `test/unit/renderer/struktur-und-state.test.js`, Ablauf-Fälle
+  `FA-07` in `test/e2e/funktionen/bearbeitung-und-ansicht.spec.js` mit dem
+  Fixture `test/fixtures/funktionen/gliederungsspur-listen.md`, Eintrag `F-006`
+  der Abdeckungs-Matrix ergänzt, je mit Rot-Probe.
+- **Jahrestags-Regeln im Rechen-Kern der Ableitung** (`4T-002445`): Das neue
+  Blatt-Modul `src/shared/calendar/calendar-anniversary.js` lädt nichts und
+  trägt die Regeln je Quelle (`hebrew` mit «Jahrestag» und «Jahrzeit», jede
+  andere Quelle nach der Regel des JavaScript-Standards «Intl era and
+  monthCode»: Monat gleicher Kennung, ohne den Schaltmonat der Monat gleicher
+  Zahl, ohne den Tag der letzte des Monats), den Bau der abgeleiteten Quelle
+  (`prepareDerivedSource`) und die drei Weichen der Zählung. Eine Ableitung auf
+  einem Bezug mit Jahres-Struktur dreht keine Längen-Tabelle, sondern nennt an
+  ihrer Jahres-Ebene dieselbe Regel oder Tafel mit dem Nullpunkt
+  (`derivedZero`) und bei hebräischem Bezug dem neuen Feld `anniversaryRule`
+  der Kurzform (`anniversary`, die Vorgabe auch bei fehlendem oder unbekanntem
+  Wert, oder `yahrzeit`); `calendar-yearly.js` baut daraus je gezähltem Jahr
+  eine Monatsfolge in der Form jeder Regel oder Tafel, sodass Umrechnung,
+  Gültigkeit, Eingabe-Hilfe und «nicht bekannt» ohne Sonderweg laufen.
+  `deriveCalendar` in `calendar-config.js` weist eine Jahres-Struktur nicht
+  mehr ab, Ketten bleiben ausgeschlossen; `calendar-core.js` trägt die Weichen
+  in `absAt`, `tupleFromAbs` und `totalAtLevel`, und seine Größen-Ratsche sinkt
+  von 948 auf 945 Code-Zeilen; die hebräische Regel nennt die Zahl der Monate
+  vor einem Jahr in geschlossener Form (`monateVor`). Die Jahrzeit am 30.
+  Cheschwan und 30. Kislew folgt dem Referenzwerk: Fehlte der 30. im ersten
+  Jahr nach dem Nullpunkt, gilt im Zieljahr dessen letzter Tag. Neue
+  Prüfdatei `test/unit/kalender-jahrestags-regeln.test.js` mit 65 Fällen, im
+  Ausschnitt der Klasse Ä3 der Änderungsklassen-Karte, mit Rot-Probe; die
+  Prüfdateien der vier Vorlagen und der Jahres-Struktur nehmen die Ableitung
+  jetzt an; Eintrag `F-240` der Abdeckungs-Matrix ergänzt.
+- **Bezugs-Auswahl und Regel-Wahl in den Einstellungen** (`4T-002446`):
+  `settings-calendar-derived.js` überspringt die Zeitrechnungen mit
+  Jahres-Struktur nicht mehr und baut bei hebräischem Bezug die Auswahl der
+  Regel samt Satz unter der Bezugs-Auswahl; `settings-calendar-model.js` trägt
+  die Regel im Entwurf als `derived.anniversaryRule` und schreibt das Feld nur,
+  wenn es gesetzt ist (`calSysBaseYearlySource`, `calSysSyncAnniversaryRule`).
+  Acht neue Schlüssel `settings.calendar.derivedRule*` in den Fragmenten
+  `calendar.json` aller fünf Sprachen, entfernt ist
+  `settings.calendar.derivedBaseYearlyHint`. Die Regel reist als Feld der
+  Kurzform über den bestehenden Weg an alle Fenster. Prüfdatei
+  `test/unit/renderer/kalender-jahres-struktur-einstellungen.test.js` mit 20
+  Fällen und neue Ablauf-Prüfdatei
+  `test/e2e/funktionen/kalender-jahrestage.spec.js` mit dem Fall `KJ-01`, je
+  mit Rot-Probe.
+- **Entscheidungs-Vorlage zu den Jahrestags-Regeln** (`4T-002432`):
+  Recherche-Protokoll mit den Quellen je Kalender und Vorlage J0 bis J6 samt
+  Management-Summary, entschieden vom Product Owner am 2026-10-29; die
+  Jahrzeit-Zeile wurde am 2026-10-30 als J1a auf die Lesart des Referenzwerks
+  berichtigt, mit Fehler-Retrospektive im selben Vorgang.
+- **Registrier-Weg für schaltbare Funktions-Gruppen** (`4T-002449`): Der
+  Funktions-Katalog `src/shared/query/query-functions.js` nimmt neben den
+  Kern-Einträgen Gruppen mit eigenem Namensraum auf (`registerFunctionGroup`,
+  geprüft auf Kleinschreibung, Form `<namensraum>.<name>`, Kollision mit Kern
+  und anderen Gruppen; `file` und `this` sind als Namensraum ausgeschlossen),
+  jede an die Kennung einer Erweiterung gebunden; `lookupFunction` nennt die
+  Lage `kern`, `an`, `aus` oder `unbekannt`, und eine ausgeschaltete Funktion
+  meldet den Prüf-Code `functionOff` (Konstante `FUNCTION_OFF_CODE`), bevor
+  sie rechnet. Das neue Modul `src/shared/query/formula-library.js` trägt die
+  Kennung `formula-library`, den Hinweis-Schlüssel `query.formulaLibraryOff`
+  und die Liste der Gruppen. Den Schalter-Stand hält der Katalog als
+  Modul-Zustand; gesetzt wird er im Vorlade-Skript, im Fenster und im
+  Haupt-Prozess (`setDisabledFunctionExtensions`). Das Werte-Modell
+  (`query-format.js`) kennt den Meldungs-Wert `{ kind: 'message', key }`, den
+  die Auswertung durch Funktionen, Rechen-Operatoren, Vergleiche, `IN`, `NOT`,
+  `AND` und `OR` durchreicht; die Ergebnismenge trägt ihn additiv als
+  Werte-Art. Datenbank nach der Entscheidung des Product Owners (Option B):
+  vier Hinweis-Codes der Definition (`checkExprOff`, `checksExprOff`,
+  `editableExprOff`, `fieldEditableExprOff`), zwei der Maske
+  (`formAusdruckAus`, `formBedingungAus`), erneute Prüfung des Ausdrucks vor
+  jeder Auswertung und Grund `nichtAuswertbar`. Registry-Eintrag
+  `formula-library` mit `modeLevel: 'full'`. Neue Prüfdateien
+  `test/unit/formel-bibliothek-aus-zustand.test.js`,
+  `test/unit/render/extensions-aus-formel-bibliothek.test.js` und
+  `test/unit/renderer/extensions-aus-formel-bibliothek.test.js`, Ablauf-Fall
+  `EW-06`, je mit Rot-Probe.
+- **Grundfunktionen und Konstanten im Katalog** (`4T-002450`): vierzehn
+  Kern-Einträge in `src/shared/query/query-functions.js` mit gemeinsamer
+  Rand-Regel (jedes nicht endliche Ergebnis ergibt `null`, −0 wird 0);
+  Rundung über die Exponent-Schreibweise, damit `round(1.005, 2)` 1.01 ergibt.
+  Prüffälle in vier Unit-Prüfdateien und die Ablauf-Fälle `IB-06` und `DT-19`,
+  je mit Rot-Probe.
+- **Formel-Module der Kategorien** (`4T-002451`, `4T-002452`, `4T-002453`,
+  `4T-002454`): je Kategorie ein prozess-neutrales Modul unter
+  `src/shared/query/` mit der Gruppe als Daten `{ namespace, functions }` und
+  den Konstanten der Quelle an einer Stelle: `formula-humidity.js`,
+  `formula-finance.js` (Newton-Verfahren mit Rückfall auf Bisektion und
+  Annahme nur mit Probe für internen Zinsfuß und Zins), `formula-percent.js`,
+  `formula-unit.js` (Temperatur über den Bruch 9/5 statt 1,8),
+  `formula-health.js` und `formula-const.js` (Gaskonstante als exaktes Produkt
+  8,31446261815324). Die Bereichs-Meldungen liegen im Fragment `query` unter
+  `query.formula.*` in fünf Sprachen. Neue Prüfdateien
+  `test/unit/formel-bibliothek-feuchte.test.js`,
+  `test/unit/formel-bibliothek-finanz.test.js`,
+  `test/unit/formel-bibliothek-alltag.test.js` und
+  `test/unit/formel-bibliothek-konstanten.test.js`, die neue Ablauf-Prüfdatei
+  `test/e2e/funktionen/datentabelle-formeln.spec.js` (Fälle `DT-20` bis
+  `DT-22`, eigene Datei, weil `datentabelle.spec.js` an seinem Zeilen-Budget
+  steht), dazu die Ablauf-Fälle `IB-07` bis `IB-10`, `FQ-11` und `PP-14`, je
+  mit Rot-Probe.
+- **Konzept-Stufe der Formel-Bibliothek** (`4T-002431`): Bestand der
+  Berechnungs-Orte, Vergleich mit verbreiteten Werkzeugen und Vorlage F0 bis
+  F8 samt Management-Summary, entschieden vom Product Owner am 2026-10-29.
+- **Mitgelieferte Stände seit 1.156.0** (Webseite berührt, kein
+  Anwendungs-Code, kein Anwender-Text nötig): Der Zug hat den
+  Integrationsstand nach dem Release 1.156.0 am 2026-11-03 im Stamm-Clone per
+  Zusammenführung hereingeholt (`3E-000381`); mit ihm kam der Nachzügler des
+  Releases 1.156.0 (`4T-002375`, Zug-Epic `3E-000370`: sechs erneuerte
+  Bildschirmfotos der Produkt-Webseite, mit 1.156.0 bereits veröffentlicht).
+  Die zuvor hier genannten Stände seit 1.155.0 (Nachzügler des Releases
+  1.155.0, Roadmap-Kacheln der Webseite, Versions-Archiv im Bau-Skript der
+  Webseiten-Versionen) sind Teil des Integrationsstands 1.156.0.
+
 ## [1.156.0.4838] - 2026-11-01 — Stufe 5 der Datenbank: die Kartei-Form, dazu dreizehn Fehlerbehebungen
 
 Zug 3E-000370,

@@ -3,7 +3,7 @@
 'use strict';
 
 import { ViewPlugin, GutterMarker, gutter } from '@codemirror/view';
-import { StateField } from '@codemirror/state';
+import { StateEffect, StateField, countColumn } from '@codemirror/state';
 import {
   syntaxTree,
   foldedRanges,
@@ -19,6 +19,13 @@ import {
   paneEditors,
   unfoldHeadingRegion,
 } from './editor.js';
+import {
+  LIST_FOLD_TRACK_EVENT,
+  LIST_FOLD_TRACK_STRUKTUR,
+  getListFoldTrackPosition,
+} from './list-fold-track-setting.js';
+import { parseListItemHead } from '../../../shared/markdown/list-outline.js';
+import { createListFoldTrackLine } from './list-fold-track-zeile.js';
 
 // 4T-000013: Folding-Struktur-Cache. Wird bei jeder Doc-Aenderung aus dem
 // CodeMirror-syntaxTree neu aufgebaut. Enthaelt:
@@ -29,8 +36,19 @@ import {
 //   HTMLBlock, Table) {kind:'block', fromLine, toLine, from, to, track}.
 //   track liegt rechts der Heading-Spuren: maxHeadingLevel + Verschachtelungs-
 //   tiefe innerhalb anderer Blocks (Top-Level-Block => maxHeadingLevel + 1).
+//   4T-002434 (Epic 3E-000375): Ein ListItem trägt zusätzlich nodeType
+//   'ListItem', listType ('bullet' oder 'ordered'), markerOffset (Zeichen-
+//   Index des Aufzählungszeichens oder der Nummer in seiner Zeile) und
+//   indentColumn (Einrück-Spalte in Zeichenbreiten: Zitat-Präfixe zählen mit,
+//   Tabulatoren springen auf die nächste Tab-Marke von state.tabSize) sowie
+//   trackWithoutLists: null. Jeder übrige Block trägt trackWithoutLists, die
+//   Spur im Rand bei der Lage «in der Struktur der Liste», in der die
+//   Listenpunkte nicht mitzählen.
 // - allRegions: vereinte Liste, sortiert nach fromLine fuer schnelle Iteration.
 // - totalTracks: Spurenanzahl insgesamt (maxHeadingLevel + maxBlockDepth).
+// - layouts: 4T-002434 — je Lage der Listen-Spuren (`aussen`, `struktur`) die
+//   Spuren des Rands als {regionsByTrack, totalTracks}; `aussen` ist der
+//   bisherige Stand, `struktur` lässt die Listenpunkte aus dem Rand.
 // Die Spurenanzahl ist dynamisch: nur die in der Datei vorkommenden Heading-
 // Ebenen und Block-Verschachtelungstiefen bekommen Platz. Beim Einfuegen
 // neuer Ebenen waechst der Gutter ueber den Spacer-Mechanismus mit.
@@ -64,14 +82,17 @@ export function computeFoldStructure(state) {
         const startLine = state.doc.lineAt(node.from);
         const endLine = state.doc.lineAt(node.to);
         if (endLine.number <= startLine.number) return; // einzeilig -> nicht faltbar
-        blocks.push({
+        const region = {
           kind: 'block',
           fromLine: startLine.number,
           toLine: endLine.number,
           from: startLine.to,
           to: node.to,
           track: 0,
-        });
+          trackWithoutLists: 0,
+        };
+        if (node.name === 'ListItem') Object.assign(region, listItemFacts(state, node, startLine));
+        blocks.push(region);
       }
     },
   });
@@ -96,59 +117,108 @@ export function computeFoldStructure(state) {
   for (const h of headings) {
     if (h.level > maxHeadingLevel) maxHeadingLevel = h.level;
   }
-  // R1-07 (4T-000180): Block-Verschachtelungstiefe per Containment-Stack in
-  // O(n) statt O(n^2). blocks kommt aus syntaxTree.iterate in Pre-Order
-  // (Eltern vor Kindern, Dokument-Reihenfolge); der Stack haelt die
-  // aktuell umschliessenden Bloecke. Zeilen-identische Bloecke (z.B.
-  // ListItem und gleichlanger innerer Blockquote) zaehlen wie zuvor nicht
-  // zur Tiefe des jeweils anderen (keine ECHTE Umschliessung), bleiben
-  // aber im Stack, damit tiefere Kinder beide zaehlen.
-  {
-    const stack = [];
-    for (const b of blocks) {
-      while (stack.length > 0) {
-        const top = stack[stack.length - 1];
-        if (top.fromLine <= b.fromLine && top.toLine >= b.toLine) break;
-        stack.pop();
-      }
-      let equalTop = 0;
-      for (let k = stack.length - 1; k >= 0; k--) {
-        const s = stack[k];
-        if (s.fromLine === b.fromLine && s.toLine === b.toLine) equalTop++;
-        else break;
-      }
-      b.track = maxHeadingLevel + (stack.length - equalTop) + 1;
-      stack.push(b);
-    }
-  }
-  let maxBlockDepth = 0;
-  for (const b of blocks) {
-    const d = b.track - maxHeadingLevel;
-    if (d > maxBlockDepth) maxBlockDepth = d;
-  }
+  // R1-07 (4T-000180): Block-Verschachtelungstiefe per Containment-Stack
+  // (Begründung bei assignBlockTracks).
+  assignBlockTracks(blocks, maxHeadingLevel, 'track');
+  // 4T-002434: dieselbe Tiefen-Rechnung ohne die Listenpunkte — die Spuren,
+  // die bei der Lage «in der Struktur der Liste» im Rand bleiben.
+  const nonListBlocks = blocks.filter((b) => b.nodeType !== 'ListItem');
+  assignBlockTracks(nonListBlocks, maxHeadingLevel, 'trackWithoutLists');
   const allRegions = headings.concat(blocks).sort((a, b) => a.fromLine - b.fromLine);
-  // R1-08 (4T-000180): Regionen pro Spur, sortiert nach fromLine. Innerhalb
-  // einer Spur sind Regionen disjunkt (gleiches Heading-Level bzw. gleiche
-  // Block-Tiefe ueberlappen hoechstens an einer Randzeile) — der Gutter
-  // kann damit pro Zeile und Spur binaer suchen statt alle Regionen linear
-  // zu durchlaufen.
-  const regionsByTrack = new Map();
-  for (const r of allRegions) {
-    let list = regionsByTrack.get(r.track);
-    if (!list) {
-      list = [];
-      regionsByTrack.set(r.track, list);
-    }
-    list.push(r);
-  }
+  const aussen = trackLayout(allRegions, maxHeadingLevel, 'track');
+  const struktur = trackLayout(
+    allRegions.filter((r) => r.nodeType !== 'ListItem'),
+    maxHeadingLevel,
+    'trackWithoutLists',
+  );
   return {
     headings,
     blocks,
     allRegions,
-    regionsByTrack,
+    regionsByTrack: aussen.regionsByTrack,
     maxHeadingLevel,
-    totalTracks: maxHeadingLevel + maxBlockDepth,
+    totalTracks: aussen.totalTracks,
+    layouts: { aussen, struktur },
   };
+}
+
+// R1-07 (4T-000180): Block-Verschachtelungstiefe per Containment-Stack in
+// O(n) statt O(n^2). blocks kommt aus syntaxTree.iterate in Pre-Order
+// (Eltern vor Kindern, Dokument-Reihenfolge); der Stack haelt die aktuell
+// umschliessenden Bloecke. Zeilen-identische Bloecke (z.B. ListItem und
+// gleichlanger innerer Blockquote) zaehlen wie zuvor nicht zur Tiefe des
+// jeweils anderen (keine ECHTE Umschliessung), bleiben aber im Stack, damit
+// tiefere Kinder beide zaehlen. 4T-002434: als Funktion herausgezogen, weil
+// sie zweimal läuft — über alle Blöcke (`track`) und über die Blöcke ohne
+// Listenpunkte (`trackWithoutLists`).
+function assignBlockTracks(blocks, maxHeadingLevel, field) {
+  const stack = [];
+  for (const b of blocks) {
+    while (stack.length > 0) {
+      const top = stack[stack.length - 1];
+      if (top.fromLine <= b.fromLine && top.toLine >= b.toLine) break;
+      stack.pop();
+    }
+    let equalTop = 0;
+    for (let k = stack.length - 1; k >= 0; k--) {
+      const s = stack[k];
+      if (s.fromLine === b.fromLine && s.toLine === b.toLine) equalTop++;
+      else break;
+    }
+    b[field] = maxHeadingLevel + (stack.length - equalTop) + 1;
+    stack.push(b);
+  }
+}
+
+// R1-08 (4T-000180): Regionen pro Spur, sortiert nach fromLine. Innerhalb
+// einer Spur sind Regionen disjunkt (gleiches Heading-Level bzw. gleiche
+// Block-Tiefe ueberlappen hoechstens an einer Randzeile) — der Gutter kann
+// damit pro Zeile und Spur binaer suchen statt alle Regionen linear zu
+// durchlaufen. 4T-002434: je Lage eine Aufteilung; Überschriften tragen ihre
+// Ebene in beiden Feldern (`track`).
+function trackLayout(regions, maxHeadingLevel, field) {
+  const regionsByTrack = new Map();
+  let totalTracks = maxHeadingLevel;
+  for (const r of regions) {
+    const track = r.kind === 'heading' ? r.track : r[field];
+    if (track > totalTracks) totalTracks = track;
+    let list = regionsByTrack.get(track);
+    if (!list) {
+      list = [];
+      regionsByTrack.set(track, list);
+    }
+    list.push(r);
+  }
+  return { regionsByTrack, totalTracks };
+}
+
+// 4T-002434 (Epic 3E-000375): Lage eines Listenpunkts in seiner Zeile. Der
+// Knoten beginnt im Syntaxbaum am Aufzählungszeichen oder an der Nummer, also
+// hinter Einrückung und Zitat-Präfix; `markerOffset` ist dieser Zeichen-Index,
+// `indentColumn` dieselbe Stelle in Zeichenbreiten. Die Listenart liest die
+// gemeinsame Erkennung des Listenpunkt-Kopfs (`parseListItemHead`); ein Punkt
+// ohne Text hinter dem Marker, den sie nicht erkennt, nimmt die Art der Liste
+// aus dem Syntaxbaum.
+function listItemFacts(state, node, startLine) {
+  const markerOffset = node.from - startLine.from;
+  const head = parseListItemHead(startLine.text.slice(markerOffset));
+  const parentName = node.node && node.node.parent ? node.node.parent.name : '';
+  const ordered = head ? head.ordered : parentName === 'OrderedList';
+  return {
+    nodeType: 'ListItem',
+    listType: ordered ? 'ordered' : 'bullet',
+    markerOffset,
+    indentColumn: countColumn(startLine.text.slice(0, markerOffset), state.tabSize),
+    trackWithoutLists: null,
+  };
+}
+
+// 4T-002434: Spuren des Rands für die wirksame Lage der Listen-Spuren.
+export function activeTrackLayout(struct) {
+  if (!struct) return null;
+  return getListFoldTrackPosition() === LIST_FOLD_TRACK_STRUKTUR
+    ? struct.layouts.struktur
+    : struct.layouts.aussen;
 }
 
 // R1-08 (4T-000180): Binaere Suche nach der letzten Region einer Spur mit
@@ -219,6 +289,19 @@ export function getFoldRangeForRegion(state, region) {
 // propagiert. CodeMirrors Spacer-Element bekommt visibility:hidden, der
 // Layout-Platz haengt allein an dieser Breite.
 export const FOLD_TRACK_PX = 10;
+
+// 4T-002433 (Epic 3E-000375): Signal an den Gliederungs-Rand, dass die Lage
+// der Gliederungsspuren bei Listen gewechselt hat; Wert ist die neue Lage
+// (`aussen` oder `struktur`). Der Effekt trägt keinen Zustand und berührt
+// weder `foldState` noch `foldStructureField` — gefaltete Bereiche bleiben
+// gefaltet. Ausgelöst vom Hörer am Datei-Ende; 4T-002434 wertet ihn beim
+// Zeichnen der Spur aus.
+export const listFoldTrackEffect = StateEffect.define();
+
+// 4T-002434: Trägt eine Aktualisierung den Wechsel der Lage?
+export function hasListFoldTrackEffect(update) {
+  return update.transactions.some((tr) => tr.effects.some((e) => e.is(listFoldTrackEffect)));
+}
 
 export function applyTrackWidth(root, totalTracks) {
   const w = totalTracks * FOLD_TRACK_PX + 'px';
@@ -297,33 +380,36 @@ export class FoldGutterSpacer extends GutterMarker {
 export const headingFoldGutter = gutter({
   class: 'cm-headingGutter',
   lineMarker(view, line) {
-    const struct = view.state.field(foldStructureField, false);
-    if (!struct || struct.totalTracks === 0) return null;
+    // 4T-002434 (Epic 3E-000375): Spuren der wirksamen Lage — bei «in der
+    // Struktur der Liste» ohne die Listenpunkte, die dann die Zeile zeichnet
+    // (list-fold-track-zeile.js); bei «links außen» der bisherige Stand.
+    const layout = activeTrackLayout(view.state.field(foldStructureField, false));
+    if (!layout || layout.totalTracks === 0) return null;
     const lineNumber = view.state.doc.lineAt(line.from).number;
     const trackInfo = {};
     let hasContent = false;
     // R1-08 (4T-000180): pro Spur binaere Suche statt Linear-Scan ueber alle
     // Regionen pro sichtbarer Zeile. Pro Spur ist hoechstens eine Region
     // an einer Zeile relevant (Start dominiert "inside", wie zuvor).
-    for (const list of struct.regionsByTrack.values()) {
+    for (const [track, list] of layout.regionsByTrack) {
       const r = findTrackRegionAtLine(list, lineNumber);
       if (!r) continue;
       if (r.fromLine === lineNumber) {
         const range = getFoldRangeForRegion(view.state, r);
         const folded = range ? isRegionFolded(view.state, range) : false;
-        trackInfo[r.track] = {
+        trackInfo[track] = {
           regionKind: r.kind,
           folded,
           fromLine: r.fromLine,
         };
         hasContent = true;
       } else if (r.toLine >= lineNumber) {
-        trackInfo[r.track] = 'inside';
+        trackInfo[track] = 'inside';
         hasContent = true;
       }
     }
     if (!hasContent) return null;
-    return new FoldGutterMarker(struct.totalTracks, trackInfo);
+    return new FoldGutterMarker(layout.totalTracks, trackInfo);
   },
   // Bei Folding-Aenderungen muss der Gutter neu gerendert werden, damit der
   // Pfeil von ⌄ auf › (oder umgekehrt) wechselt. CodeMirror redraws nur bei
@@ -333,19 +419,22 @@ export const headingFoldGutter = gutter({
     if (update.startState.field(foldState, false) !== update.state.field(foldState, false)) {
       return true;
     }
+    // 4T-002433 (Epic 3E-000375): Wechsel der Einstellung «Gliederungsspuren
+    // bei Listen» — die Marker neu bauen, ohne den Falt-Zustand anzufassen.
+    if (hasListFoldTrackEffect(update)) return true;
     return (
       update.startState.field(foldStructureField, false) !==
       update.state.field(foldStructureField, false)
     );
   },
   initialSpacer(view) {
-    const struct = view.state.field(foldStructureField, false);
-    const tracks = (struct && struct.totalTracks) || 0;
+    const layout = activeTrackLayout(view.state.field(foldStructureField, false));
+    const tracks = (layout && layout.totalTracks) || 0;
     return new FoldGutterSpacer(tracks);
   },
   updateSpacer(spacer, update) {
-    const struct = update.state.field(foldStructureField, false);
-    const need = (struct && struct.totalTracks) || 0;
+    const layout = activeTrackLayout(update.state.field(foldStructureField, false));
+    const need = (layout && layout.totalTracks) || 0;
     if (!(spacer instanceof FoldGutterSpacer) || spacer.totalTracks !== need) {
       return new FoldGutterSpacer(need);
     }
@@ -368,21 +457,32 @@ export const headingFoldGutter = gutter({
         return true;
       }
       if (kind === 'block') {
-        const struct = view.state.field(foldStructureField, false);
-        const region = struct ? struct.blocks.find((b) => b.fromLine === lineNumber) : null;
-        if (!region) return false;
-        const range = { from: region.from, to: region.to };
-        if (isRegionFolded(view.state, range)) {
-          view.dispatch({ effects: unfoldEffect.of(range) });
-        } else {
-          view.dispatch({ effects: foldEffect.of(range) });
-        }
-        return true;
+        // 4T-002434: Bei «in der Struktur der Liste» trägt der Rand keine
+        // Listenpunkte mehr; beginnt ein anderer Block auf derselben Zeile
+        // (Code-Block direkt hinter dem Marker), gilt der Klick ihm.
+        const ohneListen = getListFoldTrackPosition() === LIST_FOLD_TRACK_STRUKTUR;
+        return toggleBlockRegion(view, lineNumber, (b) => !ohneListen || b.nodeType !== 'ListItem');
       }
       return false;
     },
   },
 });
+
+// 4T-002434 (Epic 3E-000375): Falten und Entfalten eines Blocks über seine
+// Start-Zeile — die eine Stelle für den Rand-Marker und den Anzeiger in der
+// Zeile. `accept` wählt unter mehreren Blöcken derselben Start-Zeile.
+export function toggleBlockRegion(view, lineNumber, accept = () => true) {
+  const struct = view.state.field(foldStructureField, false);
+  const region = struct ? struct.blocks.find((b) => b.fromLine === lineNumber && accept(b)) : null;
+  if (!region) return false;
+  const range = { from: region.from, to: region.to };
+  if (isRegionFolded(view.state, range)) {
+    view.dispatch({ effects: unfoldEffect.of(range) });
+  } else {
+    view.dispatch({ effects: foldEffect.of(range) });
+  }
+  return true;
+}
 
 // 4T-000013: Setzt die Gutter-Breite direkt am .cm-headingGutter-DOM, basierend
 // auf der aktuellen Spurenanzahl im foldStructureField. Drittes Sicherheits-
@@ -397,11 +497,12 @@ export const foldGutterWidthSync = ViewPlugin.fromClass(
     update(update) {
       const prev = update.startState.field(foldStructureField, false);
       const curr = update.state.field(foldStructureField, false);
-      if (prev !== curr) this.apply(update.view);
+      if (prev !== curr || hasListFoldTrackEffect(update)) this.apply(update.view);
     }
     apply(view) {
-      const struct = view.state.field(foldStructureField, false);
-      const tracks = (struct && struct.totalTracks) || 0;
+      // 4T-002434: Breite allein aus den Spuren, die im Rand bleiben.
+      const layout = activeTrackLayout(view.state.field(foldStructureField, false));
+      const tracks = (layout && layout.totalTracks) || 0;
       const gutterEl = view.dom.querySelector('.cm-headingGutter');
       if (gutterEl) {
         const px = tracks * FOLD_TRACK_PX + 'px';
@@ -447,4 +548,29 @@ export const foldChangeNotifier = ViewPlugin.fromClass(
 // ein-/ausgeschaltet (aus editor.js hierher verschoben: die Werte muessen
 // beim Einbetten initialisiert sein; foldStructureField bleibt bewusst
 // AUSSERHALB, weil das Outline-Panel seine Heading-Liste daraus liest).
-export const foldGutterExtensions = [headingFoldGutter, foldGutterWidthSync];
+// 4T-002434 (Epic 3E-000375): Die Listen-Spur in der Zeile gehört mit ins
+// Bündel, damit sie bei ausgeblendeter Gliederung in beiden Lagen fehlt
+// (Story 4S-001121, AK8).
+export const listFoldTrackLine = createListFoldTrackLine({
+  structureField: foldStructureField,
+  isFolded: isRegionFolded,
+  toggle: (view, lineNumber) =>
+    toggleBlockRegion(view, lineNumber, (b) => b.nodeType === 'ListItem'),
+  isTrackChange: hasListFoldTrackEffect,
+});
+export const foldGutterExtensions = [headingFoldGutter, foldGutterWidthSync, listFoldTrackLine];
+
+// 4T-002433 (Epic 3E-000375): Hörer der Einstellung «Gliederungsspuren bei
+// Listen». Ein Wechsel (auf der Einstellungs-Seite dieses Fensters oder über
+// die Verteilung aus einem anderen) stößt in jedem offenen Editor des Fensters
+// das Neuzeichnen des Gliederungs-Rands an; dieselbe Instanz bedient
+// «Quellcode», «Geteilt» und «Live». Die Wache auf `document` hält den Import
+// in Umgebungen ohne DOM folgenlos.
+if (typeof document !== 'undefined') {
+  document.addEventListener(LIST_FOLD_TRACK_EVENT, (event) => {
+    const position = event.detail ? event.detail.position : undefined;
+    for (const view of paneEditors) {
+      if (view) view.dispatch({ effects: listFoldTrackEffect.of(position) });
+    }
+  });
+}

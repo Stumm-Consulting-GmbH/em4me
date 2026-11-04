@@ -94,6 +94,8 @@ import {
 } from '../../../shared/database/form-wert.js';
 import { FORM_HINWEISE } from '../../../shared/database/form-body.js';
 import { cellSegments } from '../../../shared/query/result-display.js';
+// 4T-002449 (Epic 3E-000378): Hinweis der ausgeschalteten Formel-Bibliothek.
+import { FORMULA_LIBRARY_OFF_KEY } from '../../../shared/query/formula-library.js';
 import { appendSegments } from '../query/display-list-table.js';
 import { baueFeldElement } from './masken-felder.js';
 import { markiereFeld } from './masken-speichern.js';
@@ -224,7 +226,10 @@ export function fuelleWert(knoten, segment, kontext) {
   const leer = stuecke.length === 0;
   knoten.classList.toggle('db-form-computed-empty', leer);
   if (leer) {
-    knoten.title = t(segment.ast ? 'database.form.computedEmpty' : 'database.form.computedInvalid');
+    // 4T-002449: Ein Ausdruck mit einer Formel der ausgeschalteten
+    // Formel-Bibliothek nennt diesen Grund statt «ungültiger Ausdruck».
+    const ungelesen = segment.aus ? FORMULA_LIBRARY_OFF_KEY : 'database.form.computedInvalid';
+    knoten.title = t(segment.ast ? 'database.form.computedEmpty' : ungelesen);
   } else {
     knoten.removeAttribute('title');
     appendSegments(knoten, stuecke);

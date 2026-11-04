@@ -738,3 +738,61 @@ test.describe('FQ-10: Perspective-Abfrage — Diagramm in Druck und PDF hell bei
     }
   });
 });
+
+// FQ-11 (4T-002451, Epic 3E-000378, Story 4S-001139 AK3, AK4): eine Formel der
+// Formel-Bibliothek in einer Abfrage. An: die Zeile mit 20 °C und 50 % zeigt den
+// Taupunkt 9.3, die Zeile mit 120 % das Warnzeichen mit der Bereichs-Meldung
+// beim Darüberfahren (Entscheidung der steuernden Sitzung vom 2026-10-31). Aus
+// (Erweiterung im Profil ausgeschaltet): die Abfrage zeigt statt des Ergebnisses
+// «Formel-Bibliothek ausgeschaltet», wie bei jedem Fehler einer Abfrage.
+test.describe('FQ-11: Perspective-Abfrage — Formel der Formel-Bibliothek, an und aus', () => {
+  test('an: 9.3 und das Warnzeichen mit Meldung; aus: der Hinweis der Bibliothek', async () => {
+    const de = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, '..', '..', '..', 'src', 'i18n', 'de.json'), 'utf8'),
+    );
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-fq11-'));
+    const fence = [
+      '```perspective-query',
+      'TABLE round(humidity.dewpoint(temp, feuchte), 1) AS "Taupunkt" WHERE temp > 0 SORT file.name',
+      '```',
+    ].join('\n');
+    fs.writeFileSync(path.join(dir, 'Uebersicht.md'), `# Uebersicht\n\n${fence}\n`, 'utf8');
+    fs.writeFileSync(path.join(dir, 'Bad.md'), '---\ntemp: 20\nfeuchte: 120\n---\n# Bad\n');
+    fs.writeFileSync(path.join(dir, 'Wohnen.md'), '---\ntemp: 20\nfeuchte: 50\n---\n# Wohnen\n');
+    const uebersicht = path.join(dir, 'Uebersicht.md');
+    const tabelle = (page) => page.locator(`${SEL.markdownBody0} table.perspective-query-table`);
+
+    const an = await launchApp({ args: [uebersicht] });
+    try {
+      await expect(tabelle(an.page)).toBeVisible({ timeout: 15000 });
+      const zeilen = tabelle(an.page).locator('tbody tr');
+      await expect(zeilen).toHaveCount(2);
+      await expect(zeilen.nth(0).locator('td').nth(0)).toHaveText('Bad');
+      const zeichen = zeilen.nth(0).locator('td').nth(1).locator('.inline-calc-error');
+      await expect(zeichen).toHaveText('⚠︎');
+      await expect(zeichen).toHaveAttribute(
+        'title',
+        de['query.formula.humidity.relativeRangeDewpoint'],
+      );
+      await expect(zeilen.nth(1).locator('td').nth(1)).toHaveText('9.3');
+    } finally {
+      await closeApp(an.app, an.userData, { force: true });
+    }
+
+    const seed = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-fq11-seed-'));
+    fs.writeFileSync(
+      path.join(seed, 'config.json'),
+      JSON.stringify({ extensions: { disabled: ['formula-library'] } }),
+      'utf8',
+    );
+    const aus = await launchApp({ args: [uebersicht], userData: seed });
+    try {
+      const fehler = aus.page.locator(`${SEL.markdownBody0} .perspective-query-error`);
+      await expect(fehler).toHaveText(de['query.formulaLibraryOff'], { timeout: 15000 });
+      await expect(tabelle(aus.page)).toHaveCount(0);
+    } finally {
+      await closeApp(aus.app, aus.userData, { force: true });
+      cleanupDir(dir);
+    }
+  });
+});

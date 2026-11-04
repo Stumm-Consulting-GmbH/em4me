@@ -18,7 +18,7 @@ Above the switch list sits the Working mode section. A working mode sets the swi
 
 - **Beginner** — writing and linking. Included are the common Markdown repertoire (among others callouts, footnotes, highlight, typography, emoji, images with size, Perspective tables and syntax highlighting), the linking through wiki links, tags and autocomplete, plus the tools of everyday writing: task lists, templates, bookmarks, spell checking, format toolbar, table editor, title line, date picker, word statistics, focus mode and the demo area.
 - **Advanced** — all of that and, in addition, organising and planning: books, journals, property profiles, reminders, events, graph view, mindmap, list structure, workspaces, tab groups, clock, formulas and diagrams, the chart of a query, plus the rarer Markdown constructs such as custom containers, definition lists, abbreviations, spoilers, comments, heading numbering and extended task states.
-- **Full** — all built-in extensions, that is additionally canvas areas, database, Perspective Datatable, charts for tables, inline calculation, Critic Markup, line blocks, heading attributes, custom calendar systems, custom interface language, My Extended Memory, custom status bar buttons, [workflows](workflows.md) and the exchange of your own setup.
+- **Full** — all built-in extensions, that is additionally canvas areas, database, Perspective Datatable, charts for tables, inline calculation, the [formula library](formula-library.md), Critic Markup, line blocks, heading attributes, custom calendar systems, custom interface language, My Extended Memory, custom status bar buttons, [workflows](workflows.md) and the exchange of your own setup.
 
 Like every other change on this page, the choice takes effect on Apply or OK — then immediately, without restart and in all open windows.
 
@@ -47,6 +47,7 @@ Custom modes apply in all areas and travel with your own setup — see [Exportin
 ## Effect of the disabled state
 
 - **Rendering extensions:** the syntax renders as plain text or standard Markdown. `==highlighted==` stays visible plain text, for example, and a Mermaid block becomes an ordinary code block.
+- **Formula library:** a call of a formula such as `humidity.dewpoint(20, 50)` stays in the source and shows the notice «Formula library switched off» in place of the result, in the form in which the calculating place shows messages; the basic mathematical functions and constants such as `round` and `pi()` belong to the core and keep calculating. Details for each place on the page [Formula library](formula-library.md).
 - **Panels and access points:** related sidebar panels, status bar buttons, menu entries and shortcuts disappear; no dead controls remain.
 - **Settings sections:** if an extension brings its own settings section (for example task states), it only appears in the section navigation while the extension is active.
 

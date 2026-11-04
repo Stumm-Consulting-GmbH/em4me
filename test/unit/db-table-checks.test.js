@@ -12,7 +12,8 @@
 //
 // Lese-Ort-Regel (4T-001632): Die Fragmente werden im Modulkopf gelesen, in den
 // Prüffällen wird nur noch verglichen.
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
+import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -818,5 +819,116 @@ describe('Bearbeitbarkeit am Feld: Auslegung (4T-002312, AK1, AK4)', () => {
         '{expected}',
       );
     expect(fehlend).toEqual([]);
+  });
+});
+
+// --- Formel-Bibliothek ausgeschaltet (4T-002449, Entscheidung E1 Option B) ------------
+
+// Eine Regel oder Bedingung mit einer Formel der ausgeschalteten Bibliothek
+// bleibt stehen und gilt als nicht auswertbar: Ein Schreibvorgang auf das Feld
+// wird abgewiesen, ein gesperrter Datensatz bleibt gesperrt, und ein eigener
+// Hinweis nennt den Grund. Die Prüf-Gruppe registriert nur dieser Block; Katalog
+// und Auswertung kommen über createRequire, damit Gruppe und Schalter in der
+// Modul-Instanz stehen, die die Definition intern lädt.
+describe('Formel-Bibliothek ausgeschaltet: Regeln bleiben und sind nicht auswertbar (4T-002449)', () => {
+  const req = createRequire(import.meta.url);
+  const katalog = req('../../src/shared/query/query-functions.js');
+  const { messageValue } = req('../../src/shared/query/query-format.js');
+  const { wertePruefregel, feldSperren, baueRegelKontext } = req(
+    '../../src/shared/database/record-check-eval.js',
+  );
+  const AUS_CODES = ['checkExprOff', 'checksExprOff', 'editableExprOff', 'fieldEditableExprOff'];
+  const registriere = () =>
+    katalog.registerFunctionGroup({
+      namespace: 'probe',
+      extension: 'formula-library',
+      functions: {
+        'probe.doppelt': { arity: [1, 1], fn: ([v]) => (typeof v === 'number' ? v * 2 : null) },
+        'probe.meldung': { arity: [0, 0], fn: () => messageValue('test.meldung') },
+      },
+    });
+  const definition = () =>
+    parseTableDefinition({
+      [DB_TABLE_KEY]: {
+        [DB_FIELDS_KEY]: [
+          { name: 'menge', type: 'number', check: 'probe.doppelt(value) < 100' },
+          { name: 'notiz', editable: 'probe.doppelt(menge) < 10' },
+        ],
+        [DB_CHECKS_KEY]: ['probe.doppelt(menge) > 0'],
+        [DB_EDITABLE_KEY]: 'NOT probe.doppelt(menge) > 10',
+      },
+    });
+
+  afterEach(() => katalog.resetFunctionGroupsForTests());
+
+  it('Lesen: aus bleiben alle vier Regeln mit eigenem Hinweis stehen, an ohne Hinweis', () => {
+    registriere();
+    expect(definition().hints).toEqual([]);
+    katalog.setDisabledFunctionExtensions(['formula-library']);
+    const aus = definition();
+    // Reihenfolge der Definition: Feld-Regeln, Feld-Bedingungen, dann der Behälter.
+    expect(aus.hints.map((h) => [h.code, h.index, h.name])).toEqual([
+      ['checkExprOff', 0, 'menge'],
+      ['fieldEditableExprOff', 1, 'notiz'],
+      ['checksExprOff', -1, 'probe.doppelt(menge) > 0'],
+      ['editableExprOff', -1, 'NOT probe.doppelt(menge) > 10'],
+    ]);
+    expect(aus.fields[0].checks.map(gestalt)).toEqual([
+      { art: 'expr', quelle: 'probe.doppelt(value) < 100', message: null, hatAst: true },
+    ]);
+    expect(aus.checks).toHaveLength(1);
+    expect(aus.editable.ast).toBeTruthy();
+    expect(aus.fields[1].editable.ast).toBeTruthy();
+  });
+
+  it('Auswerten: aus nicht auswertbar, auch verneint und nach dem Lesen im An-Zustand', () => {
+    registriere();
+    const { fields, checks, editable } = definition();
+    const kontext = baueRegelKontext(fields, ['3', '']);
+    const feldRegel = fields[0].checks[0];
+    expect(wertePruefregel(feldRegel, { kontext, text: '3', wert: 3 }).erfuellt).toBe(true);
+    expect(wertePruefregel(editable, { kontext }).erfuellt).toBe(true);
+    expect(feldSperren(fields, kontext)).toEqual([]);
+
+    katalog.setDisabledFunctionExtensions(['formula-library']);
+    for (const [regel, eingabe] of [
+      [feldRegel, { kontext, text: '3', wert: 3 }],
+      [checks[0], { kontext }],
+      [editable, { kontext }],
+    ])
+      expect(wertePruefregel(regel, eingabe)).toMatchObject({
+        erfuellt: false,
+        grund: 'nichtAuswertbar',
+      });
+    expect(feldSperren(fields, kontext).map((s) => [s.feld, s.grund])).toEqual([
+      ['notiz', 'nichtAuswertbar'],
+    ]);
+    // Eine Regel ohne Formel der Bibliothek rechnet unverändert weiter.
+    const ohne = leseFeldRegeln('value > 0').checks[0];
+    expect(wertePruefregel(ohne, { kontext, text: '3', wert: 3 }).erfuellt).toBe(true);
+  });
+
+  // In einem Vergleich gilt eine Meldung wie ein fehlender Wert (Werte-Modell);
+  // steht sie als Ergebnis der ganzen Regel da, ist die Regel nicht auswertbar.
+  it('ein Meldungs-Wert als Ergebnis einer Regel ist nicht auswertbar, nie erfüllt', () => {
+    registriere();
+    const regel = leseFeldRegeln('default(probe.meldung(), value)').checks[0];
+    expect(wertePruefregel(regel, { kontext: { wert: 1 }, text: '1', wert: 1 })).toMatchObject({
+      erfuellt: false,
+      grund: 'nichtAuswertbar',
+    });
+  });
+
+  it('Katalog und Sätze der vier Codes in allen fünf Fragmenten, Ort genau am Feld', () => {
+    for (const code of AUS_CODES) {
+      expect(HINWEIS_META[code], code).toBeTruthy();
+      for (const sprache of SPRACHEN) {
+        const text = DATENBANK_TEXTE[sprache][`database.hint.${code}`];
+        expect(typeof text === 'string' && text.trim() !== '', `${sprache}: ${code}`).toBe(true);
+        const mitOrt = code === 'checkExprOff' || code === 'fieldEditableExprOff';
+        expect(text.includes('{ort}'), `${sprache}: ${code}`).toBe(mitOrt);
+        expect(text.includes('{name}'), `${sprache}: ${code}`).toBe(!mitOrt);
+      }
+    }
   });
 });

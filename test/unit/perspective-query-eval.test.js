@@ -405,11 +405,245 @@ describe('perspective-query-eval — Funktions-Katalog', () => {
     expect(matchWith('length(infolder(file.inlinks, "GTD")) = 0', over)).toBe(false);
   });
 
+  // 4T-002450 (Epic 3E-000378): Mathe-Grundfunktionen und Konstanten, Werte und
+  // Ränder nach AK3 und AK8 der Story 4S-001124. Derselbe Auswerter rechnet in
+  // der Abfrage; die übrigen Orte prüfen ihre eigenen Prüfdateien.
+  const rechne = (s, props = {}) => evaluateExpression(exprOf(s), ctxFor({ props }));
+
+  it('Grundfunktionen liefern die Beispielwerte der Story (4T-002450)', () => {
+    expect(rechne('pow(2, 10)')).toBe(1024);
+    expect(rechne('log10(1000)')).toBe(3);
+    expect(rechne('ln(e())')).toBe(1);
+    expect(rechne('exp(0)')).toBe(1);
+    expect(rechne('sqrt(16)')).toBe(4);
+    expect(rechne('abs(-3)')).toBe(3);
+    expect(rechne('floor(-1.5)')).toBe(-2);
+    expect(rechne('ceil(-1.5)')).toBe(-1);
+    expect(rechne('mod(7, 3)')).toBe(1);
+    // Zahl-Zeichenketten aus dem Frontmatter laufen über coerceNumber mit.
+    expect(rechne('sqrt(wert)', { wert: '16' })).toBe(4);
+  });
+
+  it('round rundet halbe Werte von null weg, mod trägt das Vorzeichen des Teilers', () => {
+    expect(rechne('round(2.5)')).toBe(3);
+    expect(rechne('round(-2.5)')).toBe(-3);
+    // Zweite Angabe: Zahl der Nachkommastellen; negativ rundet links vom Komma.
+    expect(rechne('round(pi() * 2, 2)')).toBe(6.28);
+    expect(rechne('round(1234, -2)')).toBe(1200);
+    // 1.005 * 100 ist in Gleitkomma 100.49999…; die Rundung sieht die Dezimal-Form.
+    expect(rechne('round(1.005, 2)')).toBe(1.01);
+    expect(rechne('round(-0.4)')).toBe(0);
+    expect(rechne('mod(-3, 2)')).toBe(1);
+    expect(rechne('mod(3, -2)')).toBe(-1);
+  });
+
+  it('Konstanten in voller Genauigkeit; ein Wort ohne Klammern bleibt ein Feld', () => {
+    expect(rechne('pi()')).toBe(Math.PI);
+    expect(rechne('e()')).toBe(Math.E);
+    expect(rechne('phi()')).toBe((1 + Math.sqrt(5)) / 2);
+    expect(rechne('sqrt2()')).toBe(Math.SQRT2);
+    expect(rechne('PI()')).toBe(Math.PI);
+    expect(rechne('pi * 2', { pi: 7 })).toBe(14);
+  });
+
+  it('Ränder ergeben null wie eine Division durch null, nie NaN oder Infinity', () => {
+    const raender = [
+      'sqrt(-1)',
+      'ln(0)',
+      'ln(-1)',
+      'log10(0)',
+      'log10(-5)',
+      'mod(5, 0)',
+      'pow(-8, 0.5)',
+      'pow(10, 400)',
+      'exp(1000)',
+      'sqrt("abc")',
+      'abs(fehlt)',
+      'round(2.5, "x")',
+    ];
+    for (const s of raender) {
+      // Die Funktion ist bekannt und richtig aufgerufen; null kommt aus der Rechnung.
+      expect(validateQuery(exprOf(s)), s).toBeNull();
+      expect(rechne(s), s).toBe(null);
+    }
+  });
+
   it('formatValue: Datum ISO, Dauer kompakt, Liste kommagetrennt', () => {
     expect(formatValue({ kind: 'date', ms: new Date(2026, 6, 8).getTime() })).toBe('2026-07-08');
     expect(formatValue({ kind: 'dur', ms: DAY + 2 * 60 * 60 * 1000 })).toBe('1d 2h');
     expect(formatValue(['a', 'b'])).toBe('a, b');
     expect(formatValue(null)).toBe('');
+  });
+});
+
+// 4T-002449 (Epic 3E-000378, Story 4S-001124): schaltbare Funktions-Gruppen im
+// Katalog. Geprüft wird mit einer Prüf-Gruppe, die nur dieser Block registriert
+// und wieder entfernt; seit 4T-002451 bis 4T-002454 stehen daneben die Gruppen
+// `humidity`, `finance`, `percent`, `unit`, `health` und `const` der
+// Bibliothek, die das Rücksetzen stehen lässt.
+// Katalog, Auswerter und Werte-Modell kommen über createRequire, damit Gruppe
+// und Schalter in DERSELBEN Modul-Instanz stehen, die der Auswerter benutzt.
+describe('perspective-query-eval — Funktions-Katalog: schaltbare Gruppen (4T-002449)', () => {
+  const req = createRequire(import.meta.url);
+  const katalog = req('../../src/shared/query/query-functions.js');
+  const { evaluateExpression: rechne } = req('../../src/shared/query/perspective-query-eval.js');
+  const werte = req('../../src/shared/query/query-format.js');
+  const MELDUNG = 'test.meldung.bereich';
+  const pruefGruppe = (extra = {}) => ({
+    namespace: 'probe',
+    extension: 'formula-library',
+    functions: {
+      'probe.doppelt': { arity: [1, 1], fn: ([v]) => (typeof v === 'number' ? v * 2 : null) },
+      'probe.meldung': { arity: [0, 0], fn: () => werte.messageValue(MELDUNG) },
+    },
+    ...extra,
+  });
+  const pruefe = (src) => katalog.validateQuery(exprOf(src));
+  const wert = (src) => rechne(exprOf(src), ctxFor());
+
+  afterEach(() => katalog.resetFunctionGroupsForTests());
+
+  // 4T-002456, Zweitblick-Befunde 1 und 2 des Epic-Abschlusses: Beim Sortieren
+  // steht ein Meldungs-Wert wie ein fehlender Wert am Ende, in beiden
+  // Richtungen, und die übrigen Zeilen behalten ihre Zahlen-Reihenfolge; beim
+  // Zählen zählt er nicht, einzeln und als Listen-Element.
+  it('Meldungs-Wert beim Sortieren am Ende und beim Zählen wie fehlend', () => {
+    katalog.registerFunctionGroup(
+      pruefGruppe({
+        functions: {
+          'probe.meldung': { arity: [0, 0], fn: () => werte.messageValue(MELDUNG) },
+          'probe.bereich': {
+            arity: [1, 1],
+            fn: ([v]) => (typeof v === 'number' && v > 100 ? werte.messageValue(MELDUNG) : v),
+          },
+        },
+      }),
+    );
+    const { applyResultPipeline: pipeline } = req(
+      '../../src/shared/query/perspective-query-eval.js',
+    );
+    const zeile = (name, prio) =>
+      ctxFor({ props: { prio }, file: { name, path: `${name}.md`, absPath: `C:/w/${name}.md` } });
+    const zeilen = [zeile('A', 3), zeile('B', 200), zeile('C', 1), zeile('D', 2)];
+    const namen = (q) => pipeline(zeilen, parseOk(q)).map((c) => c.file.name);
+    expect(namen('LIST SORT probe.bereich(prio)')).toEqual(['C', 'D', 'A', 'B']);
+    expect(namen('LIST SORT probe.bereich(prio) DESC')).toEqual(['A', 'D', 'C', 'B']);
+    expect(katalog.presentCount(werte.messageValue(MELDUNG))).toBe(0);
+    expect(katalog.presentCount([1, werte.messageValue(MELDUNG), null, 2])).toBe(2);
+    // An der Zeilen-Stelle reicht der Aufruf die Meldung nach der Durchreich-Regel
+    // weiter; über der Gruppe zählt query-aggregate.js mit presentCount, also 0.
+    expect(werte.isMessage(wert('count(probe.meldung())'))).toBe(true);
+    expect(wert('count(probe.bereich(2))')).toBe(1);
+  });
+
+  it('registriert eine Gruppe mit Namensraum; die Kern-Liste bleibt unverändert (AK1)', () => {
+    const kern = [...katalog.FUNCTIONS.keys()];
+    expect(pruefe('probe.doppelt(21)').code).toBe('unknownFunction');
+    katalog.registerFunctionGroup(pruefGruppe());
+    expect(pruefe('probe.doppelt(21)')).toBeNull();
+    expect(wert('probe.doppelt(21)')).toBe(42);
+    // Ohne Unterschied der Groß- und Kleinschreibung, wie jeder Funktions-Name.
+    expect(wert('PROBE.Doppelt(2)')).toBe(4);
+    expect(katalog.lookupFunction('probe.doppelt').lage).toBe('an');
+    expect(katalog.lookupFunction('round').lage).toBe('kern');
+    expect(katalog.functionGroups()).toEqual([
+      expect.objectContaining({ namespace: 'humidity', extension: 'formula-library' }),
+      expect.objectContaining({ namespace: 'finance', extension: 'formula-library' }),
+      expect.objectContaining({ namespace: 'percent', extension: 'formula-library' }),
+      expect.objectContaining({ namespace: 'unit', extension: 'formula-library' }),
+      expect.objectContaining({ namespace: 'health', extension: 'formula-library' }),
+      expect.objectContaining({ namespace: 'const', extension: 'formula-library' }),
+      {
+        namespace: 'probe',
+        extension: 'formula-library',
+        names: ['probe.doppelt', 'probe.meldung'],
+      },
+    ]);
+    expect([...katalog.FUNCTIONS.keys()]).toEqual(kern);
+    expect(kern.some((name) => name.includes('.'))).toBe(false);
+  });
+
+  it('weist vergebene, namensraum-fremde und großgeschriebene Namen beim Laden ab (AK1, AK9)', () => {
+    katalog.registerFunctionGroup(pruefGruppe());
+    const fn = { arity: [1, 1], fn: () => 1 };
+    const versuche = [
+      [pruefGruppe(), /Namensraum 'probe' ist schon vergeben/],
+      [{ namespace: 'file', extension: 'x', functions: { 'file.a': fn } }, /schon vergeben/],
+      [{ namespace: 'zwei', extension: 'x', functions: { round: fn } }, /nicht im Namensraum/],
+      [{ namespace: 'zwei', extension: 'x', functions: { 'probe.doppelt': fn } }, /nicht im/],
+      [{ namespace: 'zwei', extension: 'x', functions: { 'zwei.Gross': fn } }, /Kleinschreibung/],
+      [{ namespace: 'Zwei', extension: 'x', functions: { 'zwei.a': fn } }, /nicht klein/],
+      [{ namespace: 'zwei', extension: 'x', functions: { 'zwei.a': { fn: () => 1 } } }, /arity/],
+      [{ namespace: 'zwei', functions: { 'zwei.a': fn } }, /keine Erweiterung/],
+    ];
+    for (const [gruppe, meldung] of versuche) {
+      expect(() => katalog.registerFunctionGroup(gruppe)).toThrow(meldung);
+    }
+    // Eine abgewiesene Gruppe hinterlässt nichts, auch nicht ihren gültigen Teil.
+    const teilweise = { 'zwei.gut': fn, 'zwei.Schlecht': fn };
+    expect(() =>
+      katalog.registerFunctionGroup({ namespace: 'zwei', extension: 'x', functions: teilweise }),
+    ).toThrow(/Kleinschreibung/);
+    expect(katalog.lookupFunction('zwei.gut').lage).toBe('unbekannt');
+    expect(katalog.functionGroups().map((g) => g.namespace)).toEqual([
+      'humidity',
+      'finance',
+      'percent',
+      'unit',
+      'health',
+      'const',
+      'probe',
+    ]);
+  });
+
+  it('aus: eigener Code vor der Stelligkeit, keine Rechnung; Kern rechnet weiter (AK3, AK6)', () => {
+    katalog.registerFunctionGroup(pruefGruppe());
+    expect(katalog.setDisabledFunctionExtensions(new Set(['formula-library']))).toBe(true);
+    expect(katalog.lookupFunction('probe.doppelt').lage).toBe('aus');
+    expect(pruefe('1 + probe.doppelt(21)')).toMatchObject({
+      code: 'functionOff',
+      name: 'probe.doppelt',
+      extension: 'formula-library',
+    });
+    // Falsche Angabe-Zahl im Aus-Zustand bleibt «ausgeschaltet», kein Tippfehler.
+    expect(pruefe('probe.doppelt(1, 2)').code).toBe('functionOff');
+    expect(pruefe('probe.gibtsnicht(1)').code).toBe('unknownFunction');
+    expect(wert('probe.doppelt(21)')).toBeNull();
+    expect(pruefe('round(pi() * 2, 2) + pow(2, 10)')).toBeNull();
+    expect(wert('round(pi() * 2, 2)')).toBe(6.28);
+    // Wieder an: Stelligkeit wie jede Kern-Funktion, Rechnung wie vorher.
+    expect(katalog.setDisabledFunctionExtensions([])).toBe(true);
+    expect(katalog.setDisabledFunctionExtensions([])).toBe(false);
+    expect(pruefe('probe.doppelt(1, 2)').code).toBe('functionArity');
+    expect(wert('probe.doppelt(21)')).toBe(42);
+  });
+
+  // 4T-002451: auch durch Vergleich, IN, NOT, AND und OR (Entscheidung der
+  // steuernden Sitzung vom 2026-10-31); erst wo eine Bedingung gefragt ist,
+  // gilt die Meldung als nicht erfüllt.
+  it('Meldungs-Wert: durch Operatoren, Funktionen und Bedingungen durchgereicht, als Bedingung nicht erfüllt', () => {
+    katalog.registerFunctionGroup(pruefGruppe());
+    const meldung = { kind: 'message', key: MELDUNG };
+    expect(wert('probe.meldung()')).toEqual(meldung);
+    expect(wert('round(probe.meldung(), 1)')).toEqual(meldung);
+    expect(wert('probe.meldung() * 2 + 1')).toEqual(meldung);
+    expect(wert('1 - -probe.meldung()')).toEqual(meldung);
+    expect(wert('default(probe.meldung(), 3)')).toEqual(meldung);
+    expect(wert('probe.meldung() > 1')).toEqual(meldung);
+    expect(wert('1 = probe.meldung()')).toEqual(meldung);
+    expect(wert('NOT probe.meldung() = 1')).toEqual(meldung);
+    expect(wert('probe.meldung() IN (1, 2)')).toEqual(meldung);
+    expect(wert('1 NOT IN (probe.meldung())')).toEqual(meldung);
+    expect(wert('probe.meldung() OR 1 = 1')).toEqual(meldung);
+    expect(wert('1 = 1 OR probe.meldung()')).toEqual(meldung);
+    expect(wert('1 = 2 AND probe.meldung()')).toEqual(meldung);
+    // Ohne Meldung bleiben Verknüpfung und Verneinung, was sie waren.
+    expect(wert('NOT 1 = 2 AND (1 = 1 OR 1 = 2)')).toBe(true);
+    expect(wert('2 IN (1, 2)')).toBe(true);
+    expect(werte.truthy(meldung)).toBe(false);
+    expect(werte.formatValue(meldung)).toBe('');
+    expect(werte.isMessage(meldung)).toBe(true);
+    expect(werte.isMessage({ kind: 'message' })).toBe(false);
   });
 });
 
@@ -568,6 +802,18 @@ describe('perspective-query-eval — Validierung und Link-Bedarf', () => {
     // Auch in Spalten- und SORT-Ausdrücken.
     expect(validateQuery(parseOk('TABLE foo(1)'))).toMatchObject({ code: 'unknownFunction' });
     expect(validateQuery(parseOk('LIST SORT foo(1)'))).toMatchObject({ code: 'unknownFunction' });
+  });
+
+  // 4T-002450 (Epic 3E-000378): fehlende und überzählige Angaben der
+  // Grundfunktionen und Konstanten, auch `pi(2)` (Story 4S-001124, AK8).
+  it('meldet die Stelligkeit der Grundfunktionen und Konstanten', () => {
+    const falsch = ['pi(2)', 'e(1)', 'sqrt()', 'sqrt(1, 2)', 'pow(2)', 'mod(1, 2, 3)'];
+    for (const s of [...falsch, 'round()', 'round(1, 2, 3)']) {
+      expect(validateQuery(parseOk(`WHERE ${s} > 0`)), s).toMatchObject({ code: 'functionArity' });
+    }
+    for (const s of ['pi()', 'round(1)', 'round(1, 2)', 'pow(2, 3)', 'log10(1)', 'sqrt2()']) {
+      expect(validateQuery(parseOk(`WHERE ${s} > 0`)), s).toBeNull();
+    }
   });
 
   it('queryUsesLinks erkennt Link-Felder und Link-Quellen', () => {

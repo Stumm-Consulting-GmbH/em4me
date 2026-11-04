@@ -46,6 +46,29 @@ export function calSysHasYearly(calDraft) {
   return levels.length > 0 && levels[levels.length - 1].relType === 'yearly';
 }
 
+// 4T-002446 (Epic 3E-000377): Quelle der Jahres-Struktur eines Bezugs — der
+// Name der Regel oder Tafel an der obersten Ebene ('hebrew', 'chinese',
+// 'persian', 'islamic-umalqura'), sonst null (fester Aufbau, Standard-
+// Zeitrechnung, Ableitung oder kein Bezug).
+export function calSysBaseYearlySource(block, fromId) {
+  const base = (block ? block.calendars : []).find((c) => !c.derived && c.id === fromId);
+  if (!base || !calSysHasYearly(base)) return null;
+  const rel = base.levels[base.levels.length - 1].yearlyRel || {};
+  return rel.rule || rel.table || null;
+}
+
+// 4T-002446: Die Jahrestags-Regel gehört allein zu einem hebräischen Bezug —
+// dort mit «Jahrestag» als Vorgabe, bei jedem anderen Bezug leer, damit die
+// kurze Form das Feld nicht schreibt.
+export function calSysSyncAnniversaryRule(block, calDraft) {
+  const hebrew = calSysBaseYearlySource(block, calDraft.derived.fromId) === 'hebrew';
+  const rule = calDraft.derived.anniversaryRule;
+  if (!hebrew) calDraft.derived.anniversaryRule = '';
+  else if (rule !== 'anniversary' && rule !== 'yahrzeit') {
+    calDraft.derived.anniversaryRule = 'anniversary';
+  }
+}
+
 // Zahlen-Eingabe streng parsen (ganze Zahl, auch negativ); null = ungültig.
 // 4T-002098 (Epic 3E-000323): Die Grenze ist dieselbe wie im Kern, der jede
 // Zahl beim Einlesen über isInt/isPosInt prüft — eine sichere ganze Zahl
@@ -280,6 +303,8 @@ export function calendarToDraft(cal) {
         depth: cal.derived.depth == null ? '' : String(cal.derived.depth),
         labelBefore: cal.epochs[0].abbr || cal.epochs[0].name || '',
         labelAfter: cal.epochs[1] ? cal.epochs[1].abbr || cal.epochs[1].name || '' : '',
+        // 4T-002446: Regel des hebräischen Bezugs, sonst leer.
+        anniversaryRule: cal.derived.anniversaryRule || '',
       },
       previewInput: calSysZeroValue(calSysDateLevels(cal.levels).length),
     };
@@ -437,6 +462,10 @@ export function calendarPersistForm(calDraft) {
       depth: depth === '' ? null : calSysInt(depth),
       labelBefore: String(calDraft.derived.labelBefore || '').trim(),
       labelAfter: String(calDraft.derived.labelAfter || '').trim(),
+      // 4T-002446: nur bei hebräischem Bezug (calSysSyncAnniversaryRule).
+      ...(calDraft.derived.anniversaryRule
+        ? { anniversaryRule: calDraft.derived.anniversaryRule }
+        : {}),
     };
   }
   const levels = calDraft.levels.map((level, i) => {

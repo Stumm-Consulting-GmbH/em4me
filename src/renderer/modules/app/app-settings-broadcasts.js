@@ -22,6 +22,7 @@ import {
 } from '../sidebar-layout.js';
 import { setStatusbarCollapseMode } from '../statusbar-overflow.js';
 import { setStatusbarUnavailableMode } from '../statusbar-availability.js';
+import { setListFoldTrackPosition } from '../editor/list-fold-track-setting.js';
 import { refreshAreaVariants, setGlobalVariantsFromBroadcast } from '../sidebar-variants.js';
 import { reloadGeneralBookmarksTree } from '../bookmarks/bookmarks.js';
 import { invalidatePaneRenderCache, renderAllPanes } from '../views/pane-render.js';
@@ -185,6 +186,17 @@ export function registerSettingsBroadcasts(deps) {
     api.onStatusbarUnavailableModeChanged((value) => {
       if (!initDone()) return;
       void setStatusbarUnavailableMode(value, { persist: false });
+    });
+  }
+
+  // 4T-002433 (Epic 3E-000375): Broadcast der Lage der Gliederungsspuren bei
+  // Listen, Muster der Zeile darüber. Der Setter meldet den Wechsel an die
+  // Editoren des Fensters, die ihren Gliederungs-Rand neu zeichnen, ohne
+  // gefaltete Bereiche zu öffnen; ein unveränderter Wert ist ein No-op.
+  if (typeof api.onListFoldTrackPositionChanged === 'function') {
+    api.onListFoldTrackPositionChanged((value) => {
+      if (!initDone()) return;
+      void setListFoldTrackPosition(value, { persist: false });
     });
   }
 

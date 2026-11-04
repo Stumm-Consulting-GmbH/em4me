@@ -430,7 +430,9 @@ export function setzeAbgeleitetenWert(el, wert, hinweis) {
   el.classList.toggle('is-leer', text === '');
   if (hinweis) {
     el.dataset.hinweis = hinweis;
-    el.title = t('properties.derivedHint.' + hinweis);
+    // 4T-002449: Ein Hinweis mit Punkt ist ein fertiger i18n-Schlüssel
+    // (Formel-Bibliothek ausgeschaltet, Meldung einer Formel).
+    el.title = t(hinweis.includes('.') ? hinweis : 'properties.derivedHint.' + hinweis);
   } else {
     delete el.dataset.hinweis;
     el.title = t('properties.derivedComputed');

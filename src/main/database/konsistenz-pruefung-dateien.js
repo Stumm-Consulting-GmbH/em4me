@@ -84,13 +84,8 @@ async function pruefeMaske({ lauf, sicht, fsp, pfad, nurKopf, wurzel, cache }) {
     const zeile = hint.zeile + versatz;
     if (hint.code === FORM_HINWEISE.feldUnbekannt)
       return befund(KONSISTENZ_BEFUNDE.maskeFeldUnbekannt, { ...stelle, zeile, feld: hint.name });
-    if (hint.code === FORM_HINWEISE.ausdruckUngueltig)
-      return befund(KONSISTENZ_BEFUNDE.maskeAusdruckUngueltig, {
-        ...stelle,
-        zeile,
-        wert: hint.name,
-      });
-    // 4T-002186: die Fehlerbilder der bedingten Bereiche, je ein eigener Befund.
+    // 4T-002186: die Fehlerbilder der bedingten Bereiche, je ein eigener Befund;
+    // seit 4T-002449 steht der ungültige Wert-Ausdruck in derselben Tafel.
     const bereich = BEREICHS_BEFUNDE[hint.code];
     if (bereich) return befund(bereich, { ...stelle, zeile, wert: hint.name });
     return befund(KONSISTENZ_BEFUNDE.maskePlatzhalterUnbekannt, {
@@ -132,10 +127,18 @@ const LISTEN_BEFUNDE = Object.freeze({
 
 // 4T-002186 (Epic 3E-000261, E7.8, S5): Hinweis-Code des Körpers auf den
 // Befund-Code der bedingten Bereiche; der Text der Bedingung reist in `wert`.
+// 4T-002449 (Epic 3E-000378): dazu der ungültige Wert-Ausdruck (4T-002183, vorher
+// ein eigener Zweig mit derselben Gestalt) und Wert und Bedingung mit einer
+// Formel der ausgeschalteten Formel-Bibliothek. Sie ergeben denselben Befund wie
+// ein ungültiger Ausdruck, wie sie in der Maske auch erscheinen; der Hinweis der
+// Maske nennt den Grund.
 const BEREICHS_BEFUNDE = Object.freeze({
+  [FORM_HINWEISE.ausdruckUngueltig]: KONSISTENZ_BEFUNDE.maskeAusdruckUngueltig,
+  [FORM_HINWEISE.ausdruckAus]: KONSISTENZ_BEFUNDE.maskeAusdruckUngueltig,
   [FORM_HINWEISE.endOhneWhen]: KONSISTENZ_BEFUNDE.maskeEndOhneWhen,
   [FORM_HINWEISE.whenOhneEnd]: KONSISTENZ_BEFUNDE.maskeWhenOhneEnd,
   [FORM_HINWEISE.bedingungUngueltig]: KONSISTENZ_BEFUNDE.maskeBedingungUngueltig,
+  [FORM_HINWEISE.bedingungAus]: KONSISTENZ_BEFUNDE.maskeBedingungUngueltig,
   // 4T-002252: der Pfad reist ebenso in `wert`.
   [FORM_HINWEISE.pfadUnbekannt]: KONSISTENZ_BEFUNDE.maskePfadUnbekannt,
 });

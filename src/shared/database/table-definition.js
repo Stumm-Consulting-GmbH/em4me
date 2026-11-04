@@ -409,6 +409,9 @@ function istTabellenDokument(data) {
 //   fieldEditableExpr    Feld-Bedingung: Ausdruck ungültig (entfällt, Feld bearbeitbar)
 //   fieldEditableUnknownField Feld-Bedingung nennt ein unbekanntes Feld (entfällt, Feld bearbeitbar)
 //   fieldEditableMessage Meldung der Feld-Bedingung nicht auslegbar (entfällt, Bedingung bleibt)
+//   checkExprOff, checksExprOff, editableExprOff, fieldEditableExprOff
+//                        Regel oder Bedingung nutzt eine Formel der ausgeschalteten
+//                        Formel-Bibliothek (bleibt, gilt als nicht auswertbar; 4T-002449)
 //   form                Standard-Maske ist kein brauchbarer Datei-Name (entfällt)
 //   storage             Ablage-Art weder table noch cards (gilt als table; 4T-002386)
 //   views               Sichten sind keine Liste (alle entfallen; 4T-002407)

@@ -214,3 +214,96 @@ test.describe('PP-13: Abgeleitete Felder im Block-Panel (F-106)', () => {
     }
   });
 });
+
+// PP-14 (4T-002451, Epic 3E-000378, Story 4S-001139 AK3, AK4): eine Formel der
+// Formel-Bibliothek im Formel-Feld eines Eigenschafts-Profils. An: der Taupunkt
+// 9.3 aus 20 °C und 50 %, bei 120 % ein leeres Feld mit der Bereichs-Meldung
+// beim Darüberfahren. Aus (Erweiterung im Profil ausgeschaltet): das Feld bleibt
+// leer und nennt «Formel-Bibliothek ausgeschaltet». Eigene Wurzel, damit das
+// geteilte Profil der übrigen Fälle nicht wächst.
+function makeAreaKlima() {
+  const areaRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-pp14-area-'));
+  fs.mkdirSync(path.join(areaRoot, 'Profile'));
+  fs.writeFileSync(
+    path.join(areaRoot, 'Profile', 'Klima.md'),
+    [
+      '---',
+      'fields:',
+      '  - name: temp',
+      '    type: number',
+      '  - name: feuchte',
+      '    type: number',
+      '  - name: taupunkt',
+      '    type: formula',
+      '    options:',
+      '      expression: round(humidity.dewpoint(temp, feuchte), 1)',
+      '---',
+      'Profil mit einer Formel der Formel-Bibliothek.',
+      '',
+    ].join('\n'),
+    'utf8',
+  );
+  fs.writeFileSync(
+    path.join(areaRoot, 'Area_Settings.mdda'),
+    JSON.stringify({
+      schemaVersion: 1,
+      settings: {
+        propertyProfiles: { folder: 'Profile', assignField: 'class', defaultProfile: null },
+      },
+    }),
+    'utf8',
+  );
+  return areaRoot;
+}
+
+test.describe('PP-14: Formel der Formel-Bibliothek im Formel-Feld, an und aus (4T-002451)', () => {
+  test('an: 9.3 und die Bereichs-Meldung; aus: leer mit dem Hinweis der Bibliothek', async () => {
+    const de = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, '..', '..', '..', 'src', 'i18n', 'de.json'), 'utf8'),
+    );
+    const areaRoot = makeAreaKlima();
+    const wohnen = writeDoc(areaRoot, 'wohnen.md', ['class: Klima', 'temp: 20', 'feuchte: 50']);
+    const bad = writeDoc(areaRoot, 'bad.md', ['class: Klima', 'temp: 20', 'feuchte: 120']);
+    const feld = (page) => abgeleiteteZeile(page, FIELDS, 'taupunkt').locator(ABGELEITET);
+
+    const an = await launchApp();
+    try {
+      await bindAreaAndOpen(an.app, an.page, areaRoot, wohnen);
+      await openPropertiesPanel(an.page);
+      await expect(feld(an.page)).toHaveText('9.3');
+      await hauptSenden(
+        an.app,
+        ({ BrowserWindow }, p) => {
+          BrowserWindow.getAllWindows()[0].webContents.send('file:openExternal', [p]);
+        },
+        bad,
+      );
+      await expect(an.page.locator(SEL.activeTab0)).toContainText('bad');
+      await expect(feld(an.page)).toHaveText('');
+      await expect(feld(an.page)).toHaveAttribute(
+        'title',
+        de['query.formula.humidity.relativeRangeDewpoint'],
+      );
+    } finally {
+      await closeApp(an.app, an.userData, { force: true });
+    }
+
+    const seed = fs.mkdtempSync(path.join(os.tmpdir(), 'em4me-pp14-seed-'));
+    fs.writeFileSync(
+      path.join(seed, 'config.json'),
+      JSON.stringify({ extensions: { disabled: ['formula-library'] } }),
+      'utf8',
+    );
+    const aus = await launchApp({ userData: seed });
+    try {
+      await bindAreaAndOpen(aus.app, aus.page, areaRoot, wohnen);
+      await openPropertiesPanel(aus.page);
+      await expect(feld(aus.page)).toHaveText('');
+      await expect(feld(aus.page)).toHaveAttribute('title', de['query.formulaLibraryOff']);
+    } finally {
+      await closeApp(aus.app, aus.userData, { force: true });
+      cleanupDir(areaRoot);
+      cleanupDir(seed);
+    }
+  });
+});

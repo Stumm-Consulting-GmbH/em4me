@@ -290,8 +290,22 @@ WHERE file.mtime >= date(today) - dur(7 days)
 | `sum(l)`, `min(l)`, `max(l)`, `average(l)` | `sum(valeurs) = 6` | agrégats sur des listes de nombres ; sur un groupe, ils réunissent les valeurs de tous ses résultats (section « Regroupement et agrégation ») |
 | `count(x)` | `count(tags) > 2` | nombre de valeurs présentes : pour une liste ses éléments, pour une valeur simple 1, sans valeur 0, un texte vide, y compris comme élément d'une liste, valant « sans valeur » ; `count()` sans champ compte les résultats d'un groupe |
 | `bold(x)` | `bold(statut)` | présenter une valeur en évidence (section « Mise en évidence ») |
+| `exp(x)` | `exp(0)` donne 1 | fonction exponentielle, e puissance x |
+| `ln(x)` | `ln(e())` donne 1 | logarithme naturel d'un nombre supérieur à 0 |
+| `log10(x)` | `log10(1000)` donne 3 | logarithme de base 10 d'un nombre supérieur à 0 |
+| `pow(x, y)` | `pow(2, 10)` donne 1024 | puissance : base x puissance exposant y |
+| `sqrt(x)` | `sqrt(16)` donne 4 | racine carrée d'un nombre à partir de 0 |
+| `round(x[, n])` | `round(pi() * 2, 2)` donne 6.28 | arrondir à n décimales (par défaut 0) ; une valeur exactement au milieu s'arrondit en s'éloignant de zéro (`round(-2.5)` donne −3), un n négatif arrondit à gauche de la virgule |
+| `abs(x)` | `abs(-3)` donne 3 | valeur absolue d'un nombre |
+| `floor(x)` | `floor(-1.5)` donne −2 | arrondir au nombre entier inférieur |
+| `ceil(x)` | `ceil(-1.5)` donne −1 | arrondir au nombre entier supérieur |
+| `mod(a, b)` | `mod(-3, 2)` donne 1 | reste de la division par un diviseur différent de 0 ; il porte le signe du diviseur |
+| `pi()` | `round(pi(), 4)` donne 3.1416 | nombre π ; les constantes ne prennent aucune valeur mais exigent les parenthèses |
+| `e()` | `ln(e())` donne 1 | nombre d'Euler e |
+| `phi()` | `round(phi(), 3)` donne 1.618 | nombre d'or (1 + √5) / 2 |
+| `sqrt2()` | `round(sqrt2(), 4)` donne 1.4142 | racine carrée de 2 |
 
-Une fonction inconnue ou un nombre d'arguments incorrect affiche un avis d'erreur au bloc.
+Une fonction inconnue ou un nombre d'arguments incorrect affiche un avis d'erreur au bloc. Les fonctions de base et les constantes font partie du noyau et calculent dans chaque mode de travail ; une valeur hors de leur domaine de définition, par exemple `sqrt(-1)`, laisse la cellule vide comme une division par zéro. Une formule de la [bibliothèque de formules](formula-library.md), par exemple `humidity.dewpoint(t, rh)` ou `finance.pmt(rate, nper, pv)`, ne compte pas comme fonction inconnue : si l'extension « Bibliothèque de formules » est désactivée, le bloc affiche l'avis « Bibliothèque de formules désactivée » au lieu de son résultat, et une valeur hors du domaine de validité d'une formule affiche dans sa cellule le signe d'avertissement ⚠︎ avec le message au survol. Cette page décrit les formules, les sources et les domaines de validité.
 
 **Langue des formateurs :** `dateformat`, `numberformat` et `currencyformat` suivent la langue du programme choisie dans les paramètres, et non celle du système d'exploitation. Là où aucun document ne se trouve derrière, comme dans les colonnes calculées des tableaux de données et dans les calculs en ligne, la langue de l'environnement continue de s'appliquer.
 

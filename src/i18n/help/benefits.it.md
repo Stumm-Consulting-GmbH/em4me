@@ -159,7 +159,9 @@ Per i numeri invece del testo c'è il secondo tipo di tabella. La Perspective Da
 - **Calcolare anche nel testo corrente:** i calcoli in linea usano lo stesso linguaggio di espressioni a metà frase.
 - **Il testo in chiaro resta in chiaro:** i dati stanno immutati nel file Markdown.
 
-In dettaglio: [Perspective Datatable](datatable.md).
+Ciò che come espressione di operazioni elementari sarebbe lungo e soggetto a errori è disponibile come formula pronta: punto di rugiada e umidità, rata, valore attuale e tasso di una rendita, percentuali, la conversione di temperatura e lunghezza, l'indice di massa corporea e le costanti fisiche. Ogni formula indica la sua fonte, una norma o la letteratura specialistica, e il suo intervallo di validità; un dato fuori da questo intervallo mostra un messaggio invece di un valore errato. La stessa formula calcola nella colonna calcolata, nel testo corrente, nella query e nel campo formula di un profilo con lo stesso risultato.
+
+In dettaglio: [Perspective Datatable](datatable.md) e [Libreria di formule](formula-library.md).
 
 ## Tipi di documenti che si appoggiano l'uno all'altro
 

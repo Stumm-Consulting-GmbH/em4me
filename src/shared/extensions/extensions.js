@@ -328,6 +328,27 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.inlineCalc',
     descKey: 'help.feature.inlineCalc',
   },
+  // 4T-002449 (Epic 3E-000378, Story 4S-001124): Formel-Bibliothek, schaltbare
+  // Funktions-Gruppen im Katalog der Ausdrucks-Sprache (formula-library.js).
+  // Ohne harte Abhängigkeit, weil die Abfrage Kern ist und in jedem Modus
+  // rechnet. Aus-Zustand: ein Aufruf zeigt an jedem Rechen-Ort den Hinweis
+  // «Formel-Bibliothek ausgeschaltet», Grundfunktionen rechnen weiter.
+  {
+    id: 'formula-library',
+    category: 'render',
+    modeLevel: 'full',
+    nameKey: 'help.featureName.formulaLibrary',
+    descKey: 'help.feature.formulaLibrary',
+    // 4T-002451 bis 4T-002454: die Katalog-Zeilen der Formel-Gruppen.
+    featureKeys: [
+      'help.feature.formulaHumidity',
+      'help.feature.formulaFinance',
+      'help.feature.formulaPercent',
+      'help.feature.formulaUnit',
+      'help.feature.formulaHealth',
+      'help.feature.formulaConst',
+    ],
+  },
   // 4T-002019 (Epic 3E-000192): Diagramm zu einer Datentabelle, Zaun
   // `perspective-chart` — neues Markdown-Konstrukt ohne abhängigen Kern-Teil,
   // damit schaltbar. Aus-Zustand: der Block bleibt gewöhnlicher Code-Block.

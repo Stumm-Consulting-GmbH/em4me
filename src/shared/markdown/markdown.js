@@ -35,6 +35,8 @@ const { parseTableDefinition, istKarteiForm } = require('../database/table-defin
 const { parseRecordBlock, RECORD_FENCE } = require('../database/record-block.js');
 const { renderRecordsFence } = require('./perspective-records-html.js');
 const { effectiveDisabledSet } = require('../extensions/extensions-core.js');
+// 4T-002449 (Epic 3E-000378): Schalter-Stand des Funktions-Katalogs im Vorlade-Skript.
+const { setDisabledFunctionExtensions } = require('../query/query-functions.js');
 // 4T-001777: Die Auflösung der Beschriftungen, die Ausgabe-Wege selbst
 // beisteuern, liegt als eigener Gegenstand in `portable-labels.js`.
 const { portableLabels } = require('./portable-labels.js');
@@ -806,8 +808,11 @@ function rebuildPipelines() {
 // effectiveDisabledSet mit). Unveraenderter effektiver Zustand ist ein
 // No-op (false); sonst true. Render-Cache-Invalidierung und Re-Render
 // verantwortet der Aufrufer (Renderer-Lebenszyklus).
+// 4T-002449: Der Funktions-Katalog bekommt den wirksamen Stand vor dem No-op,
+// damit Fließtext, Datentabelle und Diagramme der Pipeline schalten.
 function configureExtensions(disabledIds) {
   const effective = effectiveDisabledSet(disabledIds);
+  setDisabledFunctionExtensions(effective);
   const key = [...effective].sort().join(',');
   if (key === activeDisabledKey) return false;
   activeDisabledKey = key;

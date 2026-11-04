@@ -30,9 +30,11 @@
 
 const { parseExpression, collectFieldRefs } = require('./query/perspective-query.js');
 const { evaluateExpression } = require('./query/perspective-query-eval.js');
-const { validateQuery } = require('./query/query-functions.js');
-const { formatValue } = require('./query/query-format.js');
+const { validateQuery, FUNCTION_OFF_CODE } = require('./query/query-functions.js');
+const { formatValue, isMessage } = require('./query/query-format.js');
 const { DERIVED_TYPES } = require('./property-profiles-format.js');
+// 4T-002449 (Epic 3E-000378): Hinweis der ausgeschalteten Formel-Bibliothek.
+const { FORMULA_LIBRARY_OFF_KEY } = require('./query/formula-library.js');
 
 // Hinweis-Codes der Auswertung. Sie sind die Anzeige-Ebene und liegen deshalb
 // nicht im Katalog der Definitions-Diagnose: Dieselbe Definition kann in einem
@@ -41,6 +43,10 @@ const { DERIVED_TYPES } = require('./property-profiles-format.js');
 //   derivedBadExpr   Syntax-Fehler oder unbekannte Funktion
 //   derivedBadRef    Bezug auf ein Feld, das es hier nicht gibt
 //   derivedCycle     Kreis-Bezug (Selbst-Bezug eingeschlossen)
+// 4T-002449 (Epic 3E-000378): Daneben kann ein Hinweis ein fertiger
+// i18n-Schlüssel sein, erkennbar am Punkt: der Hinweis der ausgeschalteten
+// Formel-Bibliothek oder die Meldung, die eine Formel als Meldungs-Wert
+// liefert. Die Anzeige nimmt ihn, wie er ist (`setzeAbgeleitetenWert`).
 const DERIVED_HINTS = ['derivedNoRule', 'derivedBadExpr', 'derivedBadRef', 'derivedCycle'];
 
 function istAbgeleitet(def) {
@@ -102,7 +108,8 @@ function alsFeldWert(v) {
  * @param {object} [ctxExtra] Weitere Auswertungs-Angaben der Abfrage-Sprache
  *   (etwa `file` und `now`); sie werden unverändert durchgereicht.
  * @returns {object} Map lowercase-Feldname -> { value, hint } für jedes
- *   abgeleitete Feld. `hint` ist null oder einer der DERIVED_HINTS; bei einem
+ *   abgeleitete Feld. `hint` ist null, einer der DERIVED_HINTS oder ein fertiger
+ *   i18n-Schlüssel (4T-002449, Kopf-Kommentar der Codes); bei einem
  *   Hinweis ist `value` immer null (leer mit Hinweis, nie halb gerechnet).
  */
 function werteAbgeleiteteFelder(fields, props, ctxExtra) {
@@ -137,7 +144,9 @@ function werteAbgeleiteteFelder(fields, props, ctxExtra) {
       continue;
     }
     const geparst = parseExpression(quelle);
-    if (!geparst.ok || validateQuery(geparst.ast)) {
+    const fehler = geparst.ok ? validateQuery(geparst.ast) : null;
+    const aus = fehler !== null && fehler.code === FUNCTION_OFF_CODE;
+    if (!geparst.ok || (fehler && !aus)) {
       ergebnis[n].hint = 'derivedBadExpr';
       continue;
     }
@@ -151,6 +160,12 @@ function werteAbgeleiteteFelder(fields, props, ctxExtra) {
     );
     if (unbekannt !== undefined) {
       ergebnis[n].hint = 'derivedBadRef';
+      continue;
+    }
+    // 4T-002449: Eine Formel der ausgeschalteten Bibliothek rechnet nicht; das
+    // Feld bleibt leer mit dem Hinweis der Bibliothek statt «nicht auswertbar».
+    if (aus) {
+      ergebnis[n].hint = FORMULA_LIBRARY_OFF_KEY;
       continue;
     }
     rechenbar.set(n, { def, ast: geparst.ast, refs });
@@ -191,7 +206,8 @@ function werteAbgeleiteteFelder(fields, props, ctxExtra) {
     const { ast } = rechenbar.get(n);
     const roh = evaluateExpression(ast, { ...(ctxExtra || {}), props: kontext });
     kontext[n] = roh;
-    ergebnis[n].value = alsFeldWert(roh);
+    if (isMessage(roh)) ergebnis[n].hint = roh.key;
+    else ergebnis[n].value = alsFeldWert(roh);
   }
 
   return ergebnis;

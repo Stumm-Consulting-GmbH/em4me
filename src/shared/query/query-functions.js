@@ -26,6 +26,8 @@ const {
   formatCurrencyValue,
   // 4T-001074 (Epic 3E-000211): Hervorhebung als Anzeige-Wert.
   boldValue,
+  // 4T-002449 (Epic 3E-000378): Meldungs-Wert einer Formel.
+  isMessage,
 } = require('./query-format.js');
 // 4T-001073 (Epic 3E-000211): Die Ordner-Normalisierung der FROM-Quellen-Ebene ist
 // der EINE Ordner-Begriff der Sprache; `infolder` benutzt sie, statt einen
@@ -36,6 +38,8 @@ const { normFolder } = require('./query-sources.js');
 // 4T-002079 (Epic 3E-000259): der Abfrage-Fehler «HAVING ohne GROUP BY». Das
 // Modul lädt nichts; der Bezug bleibt kreisfrei.
 const { havingError } = require('./query-having.js');
+// 4T-002449 (Epic 3E-000378): die Liste der Formel-Bibliothek; sie lädt nichts.
+const { FORMULA_LIBRARY_EXTENSION_ID, FORMULA_LIBRARY_GROUPS } = require('./formula-library.js');
 
 // --- Funktions-Katalog ---------------------------------------------------------
 
@@ -85,7 +89,10 @@ function numericList(v) {
 // Leerer Text zählt wie ein fehlender Wert, als Einzelwert und als
 // Listen-Element; falsch und 0 bleiben Werte (Entscheidung des Product Owners
 // vom 2026-10-30, 4T-002128, wie die Aggregat-Zeile der Datentabelle).
-const isPresent = (x) => x !== null && x !== undefined && x !== '';
+// 4T-002456 (Zweitblick-Befund 2): Ein Meldungs-Wert zählt ebenso wie ein
+// fehlender Wert, einzeln und als Listen-Element; sonst zählte `count(x)` eine
+// Angabe außerhalb des Gültigkeitsbereichs als vorhanden.
+const isPresent = (x) => x !== null && x !== undefined && x !== '' && !isMessage(x);
 function presentCount(v) {
   if (Array.isArray(v)) return v.filter(isPresent).length;
   return isPresent(v) ? 1 : 0;
@@ -141,6 +148,72 @@ function inFolderImpl([liste, ordner], ctx) {
     return folder === wanted || folder.startsWith(wanted + '/');
   });
 }
+
+// --- Mathe-Grundfunktionen und Konstanten (4T-002450, Epic 3E-000378) ---------
+//
+// Kern-Funktionen ohne Schalter (Story 4S-001124). Gemeinsame Rand-Regel: Eine
+// Angabe, die keine Zahl ist (Umwandlung über coerceNumber), und ein Ergebnis,
+// das keine endliche Zahl ist (Wurzel einer negativen Zahl, Logarithmus von
+// null, Überlauf), ergeben null wie eine Division durch null. «NaN» oder
+// «Infinity» erreichen damit keinen Rechen-Ort.
+
+// Endliches Ergebnis oder null; -0 wird zu 0, damit Vergleich und Anzeige
+// keine zweite Null kennen.
+function finiteOrNull(n) {
+  if (!Number.isFinite(n)) return null;
+  return n === 0 ? 0 : n;
+}
+
+// Funktion einer Zahl: Angabe umwandeln, rechnen, Rand-Regel anwenden.
+function mathUnary(op) {
+  return ([v]) => {
+    const n = coerceNumber(v);
+    return n === null ? null : finiteOrNull(op(n));
+  };
+}
+
+// Funktion zweier Zahlen nach demselben Muster.
+function mathBinary(op) {
+  return ([a, b]) => {
+    const x = coerceNumber(a);
+    const y = coerceNumber(b);
+    return x === null || y === null ? null : finiteOrNull(op(x, y));
+  };
+}
+
+// Verschiebt das Komma einer Zahl um `stellen` Dezimalstellen über die
+// Exponent-Schreibweise statt über eine Multiplikation. Die kürzeste
+// Dezimal-Form der Zahl bleibt dabei erhalten: 1.005 wird zu 100.5 und nicht
+// zu 100.49999999999999, wie es 1.005 * 100 liefert.
+function shiftDecimal(n, stellen) {
+  const [mantisse, exponent] = String(n).split('e');
+  return Number(`${mantisse}e${Number(exponent || 0) + stellen}`);
+}
+
+// ROUND nach OpenFormula (ISO/IEC 26300, Abschnitt 6.17.5): auf das nächste
+// Vielfache von 10^-Stellen, ein halber Wert rundet von null weg
+// (round(2.5) = 3, round(-2.5) = -3). Eine negative Stellen-Zahl rundet links
+// vom Komma; eine Stellen-Zahl mit Nachkommateil wird zur Null hin gekürzt.
+function roundHalfAwayFromZero(x, digits) {
+  const stellen = Math.trunc(digits);
+  const betrag = Math.abs(x);
+  const verschoben = shiftDecimal(betrag, stellen);
+  // Über dem darstellbaren Bereich gibt es bei dieser Genauigkeit nichts zu
+  // runden; die Zahl bleibt, wie sie ist.
+  if (!Number.isFinite(verschoben)) return x;
+  const gerundet = shiftDecimal(Math.round(verschoben), -stellen);
+  return x < 0 ? -gerundet : gerundet;
+}
+
+// MOD nach OpenFormula (ISO/IEC 26300, Abschnitt 6.16.42): der Rest trägt das
+// Vorzeichen des Teilers (mod(-3, 2) = 1); Teiler null ergibt null.
+function modWithDivisorSign(a, b) {
+  if (b === 0) return NaN;
+  const rest = a % b;
+  return rest !== 0 && rest < 0 !== b < 0 ? rest + b : rest;
+}
+
+const PHI = (1 + Math.sqrt(5)) / 2;
 
 // Kuratierter Katalog: name -> { arity: [min, max], fn(args, ctx) }. Alle
 // Funktionen sind rein (keine Seiteneffekte); Typ-Fehler ergeben null.
@@ -268,6 +341,30 @@ const FUNCTIONS = new Map([
   // vorhandenen Werte; `count()` ohne Argument gibt es nur an einer
   // Aggregat-Stelle (Prüfung in validateQuery, Bedeutung in query-aggregate.js).
   ['count', { arity: [0, 1], fn: (args) => (args.length === 0 ? null : presentCount(args[0])) }],
+  // 4T-002450 (Epic 3E-000378): Mathe-Grundfunktionen, Kern ohne Schalter.
+  ['exp', { arity: [1, 1], fn: mathUnary(Math.exp) }],
+  ['ln', { arity: [1, 1], fn: mathUnary(Math.log) }],
+  ['log10', { arity: [1, 1], fn: mathUnary(Math.log10) }],
+  ['sqrt', { arity: [1, 1], fn: mathUnary(Math.sqrt) }],
+  ['abs', { arity: [1, 1], fn: mathUnary(Math.abs) }],
+  ['floor', { arity: [1, 1], fn: mathUnary(Math.floor) }],
+  ['ceil', { arity: [1, 1], fn: mathUnary(Math.ceil) }],
+  ['pow', { arity: [2, 2], fn: mathBinary(Math.pow) }],
+  ['mod', { arity: [2, 2], fn: mathBinary(modWithDivisorSign) }],
+  [
+    'round',
+    {
+      arity: [1, 2],
+      fn: ([v, digits]) =>
+        mathBinary(roundHalfAwayFromZero)([v, digits === undefined ? 0 : digits]),
+    },
+  ],
+  // 4T-002450: mathematische Konstanten, aufgerufen wie eine Funktion ohne
+  // Angaben; ein Wort ohne Klammern bleibt ein Feld.
+  ['pi', { arity: [0, 0], fn: () => Math.PI }],
+  ['e', { arity: [0, 0], fn: () => Math.E }],
+  ['phi', { arity: [0, 0], fn: () => PHI }],
+  ['sqrt2', { arity: [0, 0], fn: () => Math.SQRT2 }],
 ]);
 
 // 4T-002078 (Epic 3E-000259, Festlegung 4): die Aggregat-Funktionen. An einer
@@ -286,6 +383,140 @@ function isGroupedTable(queryAst) {
     Array.isArray(queryAst.groupBy) &&
     queryAst.groupBy.length > 0
   );
+}
+
+// --- Schaltbare Funktions-Gruppen (4T-002449, Epic 3E-000378) -------------------
+//
+// Neben der Kern-Liste FUNCTIONS stehen Gruppen von Funktionen, die an einer
+// Erweiterung hängen (Story 4S-001124). Eine Gruppe trägt ihren Namensraum,
+// die Kennung ihrer Erweiterung und Funktionen in der Form der Kern-Einträge;
+// jeder Name lautet `<namensraum>.<name>`. FUNCTIONS bleibt die Quelle der
+// Kern-Funktionen und kennt die Gruppen nicht.
+//
+// **Geprüft wird beim Registrieren, nicht beim Aufruf**, damit eine Kollision
+// auffällt, bevor ein Anwender sie sieht: Namensraum und Namen in
+// Kleinschreibung (der Leser macht jeden Aufruf-Namen klein, ein
+// großgeschriebener Eintrag wäre nie erreichbar), jeder Name im Namensraum der
+// Gruppe, kein Name im Kern oder in einer anderen Gruppe vergeben, kein
+// Namensraum doppelt. `file` und `this` sind als Namensraum ausgeschlossen,
+// weil sie in der Sprache schon Felder ansprechen.
+//
+// **Der Schalter-Stand ist ein Modul-Zustand, von außen gesetzt** (Muster
+// `src/main/index/index-schalter.js`): die Menge der wirksam ausgeschalteten
+// Erweiterungen. Ab Werk ist sie leer, also alles an; wer sie nie setzt, etwa
+// eine Prüfdatei, sieht das Verhalten von vorher. Der Katalog lebt in drei
+// Exemplaren (Haupt-Prozess, Vorlade-Skript, Renderer-Bündel), und jedes
+// bekommt den Stand an der Stelle, an der er dort schon ankommt:
+// `configureExtensions` der Pipeline (markdown.js), `applyExtensionsState` und
+// `initExtensionsFromStore` im Fenster (extension-lifecycle.js), Registrierung
+// der Index-Kanäle und Verteilung der Einstellungs-Änderung im Haupt-Prozess.
+
+const NAME_FORM = /^[a-z][a-z0-9_]*$/;
+const RESERVED_NAMESPACES = new Set(['file', 'this']);
+// Der Prüf-Code einer Funktion aus einer ausgeschalteten Gruppe; die Orte
+// vergleichen gegen diese eine Konstante statt gegen ein eigenes Wort.
+const FUNCTION_OFF_CODE = 'functionOff';
+
+const GROUPS = new Map(); // namespace -> { namespace, extension, names }
+const GROUP_FUNCTIONS = new Map(); // name -> { def, extension }
+let disabledExtensions = new Set();
+
+function groupError(text) {
+  return new Error(`Funktions-Gruppe: ${text}`);
+}
+
+function checkGroupEntry(prefix, name, def, seen) {
+  if (typeof name !== 'string' || !name.startsWith(prefix))
+    throw groupError(`'${name}' liegt nicht im Namensraum '${prefix.slice(0, -1)}'`);
+  if (!NAME_FORM.test(name.slice(prefix.length)))
+    throw groupError(
+      `'${name}' ist nicht in Kleinschreibung oder hat keine Form <namensraum>.<name>`,
+    );
+  if (FUNCTIONS.has(name) || GROUP_FUNCTIONS.has(name) || seen.has(name))
+    throw groupError(`'${name}' ist schon vergeben`);
+  const arity = def && def.arity;
+  const arityOk = Array.isArray(arity) && arity.length === 2 && arity[0] <= arity[1];
+  if (!arityOk || typeof def.fn !== 'function')
+    throw groupError(`'${name}' braucht arity [min, max] und eine Funktion fn`);
+}
+
+/**
+ * Registriert eine Funktions-Gruppe. Wirft beim ersten Verstoß; eine
+ * abgewiesene Gruppe hinterlässt nichts im Katalog.
+ *
+ * @param {{namespace: string, extension: string,
+ *   functions: Object<string, {arity: number[], fn: Function}>|Map}} group
+ */
+function registerFunctionGroup(group) {
+  const { namespace, extension, functions } = group || {};
+  if (typeof namespace !== 'string' || !NAME_FORM.test(namespace))
+    throw groupError(
+      `Namensraum '${namespace}' ist leer, nicht klein geschrieben oder enthält einen Punkt`,
+    );
+  if (RESERVED_NAMESPACES.has(namespace) || GROUPS.has(namespace))
+    throw groupError(`Namensraum '${namespace}' ist schon vergeben`);
+  if (typeof extension !== 'string' || extension === '')
+    throw groupError(`Namensraum '${namespace}' nennt keine Erweiterung`);
+  const entries = functions instanceof Map ? [...functions] : Object.entries(functions || {});
+  if (entries.length === 0) throw groupError(`Namensraum '${namespace}' trägt keine Funktion`);
+  const seen = new Map();
+  for (const [name, def] of entries) {
+    checkGroupEntry(`${namespace}.`, name, def, seen);
+    seen.set(name, def);
+  }
+  GROUPS.set(namespace, { namespace, extension, names: [...seen.keys()] });
+  for (const [name, def] of seen) GROUP_FUNCTIONS.set(name, { def, extension });
+}
+
+/**
+ * Schlägt einen Funktions-Namen nach. `lage` ist `kern` (Kern-Liste), `an`
+ * oder `aus` (Gruppe mit ein- oder ausgeschalteter Erweiterung) oder
+ * `unbekannt`; `def` fehlt nur bei `unbekannt`.
+ */
+function lookupFunction(name) {
+  const core = FUNCTIONS.get(name);
+  if (core) return { def: core, lage: 'kern' };
+  const entry = GROUP_FUNCTIONS.get(name);
+  if (!entry) return { def: null, lage: 'unbekannt' };
+  const lage = disabledExtensions.has(entry.extension) ? 'aus' : 'an';
+  return { def: entry.def, lage, extension: entry.extension };
+}
+
+/**
+ * Setzt die Menge der wirksam ausgeschalteten Erweiterungen (bereits um die
+ * Abhängigkeiten erweitert, wie sie `effectiveDisabledSet` liefert).
+ *
+ * @param {Iterable<string>} ids
+ * @returns {boolean} true, wenn sich die Menge geändert hat.
+ */
+function setDisabledFunctionExtensions(ids) {
+  const next = new Set([...(ids || [])].filter((id) => typeof id === 'string'));
+  const changed =
+    next.size !== disabledExtensions.size || [...next].some((id) => !disabledExtensions.has(id));
+  disabledExtensions = next;
+  return changed;
+}
+
+/** Die registrierten Gruppen, je `{ namespace, extension, names }` als Kopie. */
+function functionGroups() {
+  return [...GROUPS.values()].map((g) => ({ ...g, names: [...g.names] }));
+}
+
+// Die Gruppen der Formel-Bibliothek, beim Laden des Katalogs registriert.
+for (const group of FORMULA_LIBRARY_GROUPS) {
+  registerFunctionGroup({ ...group, extension: FORMULA_LIBRARY_EXTENSION_ID });
+}
+const LIBRARY_NAMESPACES = new Set(GROUPS.keys());
+
+// Nur für Prüfdateien: entfernt jede nach dem Laden registrierte Gruppe und
+// schaltet alles wieder ein; die Gruppen der Bibliothek bleiben.
+function resetFunctionGroupsForTests() {
+  for (const [namespace, group] of [...GROUPS]) {
+    if (LIBRARY_NAMESPACES.has(namespace)) continue;
+    for (const name of group.names) GROUP_FUNCTIONS.delete(name);
+    GROUPS.delete(namespace);
+  }
+  disabledExtensions = new Set();
 }
 
 // --- Validierung (Funktions-Namen und Stelligkeit) -----------------------------
@@ -321,13 +552,26 @@ function validateQuery(queryAst) {
         for (const v of node.values) walkExpr(v, aggregate);
         return;
       case 'call': {
-        const def = FUNCTIONS.get(node.name);
+        const { def, lage, extension } = lookupFunction(node.name);
         if (!def) {
           err = {
             code: 'unknownFunction',
             message: `Unbekannte Funktion '${node.name}'`,
             pos: typeof node.pos === 'number' ? node.pos : -1,
             name: node.name,
+          };
+          return;
+        }
+        // 4T-002449: Eine Funktion einer ausgeschalteten Gruppe hat einen
+        // eigenen Code, VOR der Stelligkeit, damit ein solcher Aufruf mit
+        // falscher Angabe-Zahl nicht als Tippfehler erscheint.
+        if (lage === 'aus') {
+          err = {
+            code: FUNCTION_OFF_CODE,
+            message: `Funktion '${node.name}' gehört zur ausgeschalteten Erweiterung '${extension}'`,
+            pos: typeof node.pos === 'number' ? node.pos : -1,
+            name: node.name,
+            extension,
           };
           return;
         }
@@ -418,4 +662,11 @@ module.exports = {
   presentCount,
   validateQuery,
   queryUsesLinks,
+  // 4T-002449 (Epic 3E-000378): schaltbare Funktions-Gruppen.
+  FUNCTION_OFF_CODE,
+  registerFunctionGroup,
+  lookupFunction,
+  setDisabledFunctionExtensions,
+  functionGroups,
+  resetFunctionGroupsForTests,
 };

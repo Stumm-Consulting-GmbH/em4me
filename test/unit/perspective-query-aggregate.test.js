@@ -219,6 +219,28 @@ describe('Positions-Regel: Zeile gegen Gruppe (AK2)', () => {
     ]);
   });
 
+  // 4T-002456, Zweitblick-Befund der Runde 2 des Epic-Abschlusses: Auch beim
+  // Sortieren der gruppierten Tabelle steht ein Meldungs-Wert wie ein fehlender
+  // Wert am Ende, in beiden Richtungen, und die übrigen Gruppen behalten ihre
+  // Zahlen-Reihenfolge; die Gruppe ohne Wert (Abfragen.md) folgt ihr.
+  it('Meldungs-Wert in SORT der gruppierten Tabelle steht am Ende', async () => {
+    const b = await bereich({
+      'X.md': '---\nkategorie: x\nt: 20\nrh: 50\n---\n# X\n',
+      'Y.md': '---\nkategorie: y\nt: 20\nrh: 120\n---\n# Y\n',
+      'Z.md': '---\nkategorie: z\nt: 20\nrh: 30\n---\n# Z\n',
+    });
+    const auf = menge(
+      b,
+      'TABLE count() GROUP BY kategorie SORT humidity.dewpoint(average(t), average(rh))',
+    );
+    expect(zeilen(auf).map((z) => z[0])).toEqual(['z', 'x', 'y', null]);
+    const ab = menge(
+      b,
+      'TABLE count() GROUP BY kategorie SORT humidity.dewpoint(average(t), average(rh)) DESC',
+    );
+    expect(zeilen(ab).map((z) => z[0])).toEqual(['x', 'z', 'y', null]);
+  });
+
   it('count() zählt die Zeilen, count(x) die Zeilen mit Wert in x', async () => {
     const b = await bereich(DATEIEN);
     const rs = menge(b, 'TABLE count(), count(punkte), count(datum) GROUP BY kategorie');

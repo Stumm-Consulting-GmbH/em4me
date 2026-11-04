@@ -65,6 +65,8 @@ The submenu View → Editor Display bundles the five switches that concern the e
 
 The first three switches are **document-bound**: their value goes into the frontmatter of the file (`fold-gutter`, `line-numbers`, `word-wrap`) and travels with it. Toggling writes the new value there and marks the file as changed; a document without its own entry follows the default under File → Settings… → Appearance. The resolution order is described on the page [Frontmatter and properties](frontmatter.md).
 
+Where the tracks of lists appear is set under File → Settings… → Appearance → Outline tracks for lists. With “at the left edge”, the default, the fold markers and connecting lines of a bulleted or numbered list sit in the fold gutter, like those of headings. With “within the list structure” they are indented to the level of the list and sit directly in front of the bullet or number of the item they fold; the line connecting related sub-items runs at the same indent. Headings and the other foldable blocks keep their track at the left edge in both cases, and what can be folded stays the same. The choice applies wherever the track appears, that is in the source, the split and the live view, and takes effect immediately in all windows without opening any folded range. It is a setting of the application, not a property of the file; if folding is hidden for a document, no track appears within the list structure either.
+
 ## Appearance
 
 ### Light, dark and system

@@ -103,7 +103,7 @@ In the Hebrew, the Persian and the Chinese calendar and in the Hijri calendar ac
 Before and after that, the program says «not known» instead of showing an approximate date: in the picker, for a value in the document and in the dialog «Convert date». The tables are part of the program; no internet connection is needed for them. They are updated before their period runs out and after a correction by the responsible authority.
 
 - **Leap months** are months of their own. In a value, every month keeps its number in every year; a leap month carries the number of the month it follows and an appended `L`. Adar I of the Hebrew year 5784 thus appears in the document as `5784-05L-01`, Adar II as `5784-06-01`, and the leap month of the Chinese year 2023 as `2023-02L-01`. A stored value therefore means the same month in every year.
-- **In the settings**, month and year of these time reckonings are read-only; names, weeks and eras remain editable. They cannot be chosen as the reference of a derived time reckoning (section «Derived time reckonings»).
+- **In the settings**, month and year of these time reckonings are read-only; names, weeks and eras remain editable. They can be chosen as the reference of a derived time reckoning; an anniversary rule per calendar then applies (section «Anniversary rules» under «Derived time reckonings»).
 - **The day** begins at midnight, as with all templates; the program does not model the start of the day at sunset in the Hebrew and the Islamic calendar.
 
 ### Readings and limits
@@ -194,7 +194,8 @@ A derived time reckoning counts from a zero point of your own: how long it is un
 
 In the settings section «Calendar systems», the button **«Add derived time reckoning»** creates a short form:
 
-- **Reference time reckoning** — a calendar of the same block or the built-in standard time reckoning. Counting down to a date therefore needs no calendar of your own. Time reckonings with a structure that varies by year cannot be chosen as the reference, because their counting cannot be shifted; counting from a given day works through the Gregorian time reckoning of the same block.
+- **Reference time reckoning** — a calendar of the same block or the built-in standard time reckoning. Counting down to a date therefore needs no calendar of your own. The time reckonings with a structure that varies by year are available too, that is the Hebrew, the Persian and the Chinese calendar and the Hijri calendar according to Umm al-Qura; the sentence of their anniversary rule then appears below the selection (section «Anniversary rules»).
+- **Anniversary rule** — only with a Hebrew reference, directly below the reference time reckoning: «Anniversary» (default) or «Yahrzeit (Ashkenazi)». The chosen rule is part of the definition of the derived time reckoning.
 - **Zero point (day 1)** — the date in the notation of the reference, optionally chosen through the picker; it always sits on a whole day.
 - **Breakdown depth** — how finely the span is broken down, from the smallest unit alone up to years.
 - **Direction labels** — two short words for the time before and after the zero point.
@@ -203,7 +204,21 @@ Editors for levels, cycles, groupings and epochs do not appear here, because non
 
 ### What is inherited
 
-The derived reckoning takes over the units of its reference and shifts their boundaries onto the zero point. If that falls on a 23rd, every derived month starts on the 23rd and every derived year on the same day; weeks start on the weekday of the zero point. Each unit therefore keeps the length it has in the reference, and a leap day falls into the right year by itself. The names move along: if counting starts in July, the first month is still called July. If the zero point falls on a day that not every month has, the boundary moves to the last day available.
+The derived reckoning takes over the units of its reference and shifts their boundaries onto the zero point. If that falls on a 23rd, every derived month starts on the 23rd and every derived year on the same day; weeks start on the weekday of the zero point. Each unit therefore keeps the length it has in the reference, and a leap day falls into the right year by itself. The names move along: if counting starts in July, the first month is still called July. If the zero point falls on a day that not every month has, the boundary moves to the last day available when the reference has a fixed structure; for the time reckonings with a structure that varies by year, the anniversary rule decides (next section).
+
+### Anniversary rules
+
+In the Hebrew, the Persian and the Chinese calendar and in the Hijri calendar according to Umm al-Qura, the number and length of the months vary from year to year: a leap month or the 30th day of a month does not exist in every year. The anniversary rule of the calendar determines on which day the anniversary of a zero point then falls. It applies not only on the anniversary but at every month boundary of the count: each counted month starts on the day that the rule names for the day of the zero point in the respective month of the reference. In the settings, the sentence of the rule in force appears below the reference selection, with a Hebrew reference below the anniversary rule.
+
+- **Hebrew calendar, «Anniversary»** (default) — Anniversary following the birthday custom: a day in Adar falls in Adar II in a leap year, a day in Adar I falls in Adar in a common year; if a month has no 30th day, the 1st of the following month applies.
+- **Hebrew calendar, «Yahrzeit (Ashkenazi)»** — Anniversary following the Ashkenazi yahrzeit custom: a day in Adar falls in Adar I in a leap year, 30 Adar I falls on 30 Shevat in a common year; if 30 Heshvan or 30 Kislev was already missing in the first year after the original day, the last day of that month applies in every year, otherwise a missing 30th falls on the 1st of the following month. The original day is the zero point; for 30 Heshvan and 30 Kislev, the structure of the year following the year of the zero point therefore decides.
+- **Chinese calendar** — In years without that leap month, a day in a leap month falls in the month with the same number; if a month has no 30th day, the 29th applies.
+- **Persian calendar** — In years without that day, 30 Esfand falls on 29 Esfand.
+- **Hijri calendar (Umm al-Qura)** — If a month has no 30th day, the 29th applies.
+
+An example: a zero point on 10 Adar 5783, a common year, has its first anniversary with «Anniversary» on 10 Adar II 5784 (`5784-06-10`) and with «Yahrzeit (Ashkenazi)» on 10 Adar I 5784 (`5784-05L-10`). The graded span counts full years according to the rule and months and days below them; in a leap year of the Hebrew or the Chinese calendar, a counted year can have thirteen months.
+
+Outside the validity period of a table (section «Templates with a structure that varies by year»), the derived time reckoning says «not known» as well, for example for an anniversary beyond the end of the period; the same applies to a day at the start of the period whose counted month would begin before the first day of the table.
 
 ### Values in the document
 

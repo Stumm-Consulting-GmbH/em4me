@@ -36,6 +36,8 @@ const { createGregorianTemplate } = require('./calendar-template.js');
 // 4T-002363 (Epic 3E-000333): Startpunkt, Zeitalter-Grenzen und Wochen-Anker
 // einer Zeitrechnung mit Jahres-Struktur.
 const yearlyApi = require('./calendar-yearly.js');
+// 4T-002445 (Epic 3E-000377): Regel-Namen der Jahrestags-Regel (Blatt-Modul).
+const { normalizeAnniversaryRule } = require('./calendar-anniversary.js');
 
 // --- Eingebaute Standard-Zeitrechnung und Bezugs-Aufloesung ---------------------------
 // Reservierte Kennung des Bezugs auf die eingebaute Standard-Zeitrechnung.
@@ -268,6 +270,10 @@ function normalizeCalendar(value) {
         zero: Array.isArray(value.derived.zero) ? value.derived.zero.slice() : null,
         depth: isInt(value.derived.depth) && value.derived.depth >= 0 ? value.derived.depth : null,
       };
+      // 4T-002445: Regel des hebräischen Bezugs, nur dort vorhanden.
+      if (value.derived.anniversaryRule !== undefined) {
+        cal.derived.anniversaryRule = normalizeAnniversaryRule(value.derived.anniversaryRule);
+      }
     }
   }
   return cal;
@@ -329,15 +335,25 @@ function normalizeCalendarConfig(value) {
 }
 
 // Erzeugt aus einer normalisierten Bezugs-Definition und einer Roh-Angabe
-// { id, name, derivedFrom, zero, depth, labelBefore, labelAfter } die
-// vollständige Definition der abgeleiteten Zeitrechnung; null, wenn der
-// Nullpunkt im Bezug ungültig ist. Der Nullpunkt trägt nur Datums-Segmente,
-// liegt also immer auf einer vollen Tages-Grenze.
+// { id, name, derivedFrom, zero, depth, labelBefore, labelAfter,
+// anniversaryRule } die vollständige Definition der abgeleiteten
+// Zeitrechnung; null, wenn der Nullpunkt im Bezug ungültig ist. Der Nullpunkt
+// trägt nur Datums-Segmente, liegt also immer auf einer vollen Tages-Grenze.
+// anniversaryRule ('anniversary' als Vorgabe oder 'yahrzeit', 4T-002445) gilt
+// allein bei einem Bezug mit der hebräischen Regel und wird sonst nicht
+// geschrieben.
+//
+// 4T-002445 (Epic 3E-000377): Eine Zeitrechnung mit Jahres-Struktur (B4 bis
+// dahin ausgeschlossen) wird nicht gedreht, weil ihre Monatsfolge je Jahr
+// wechselt. Die Ableitung behält ihre Ebenen samt Monats-Namen nach
+// Namens-Stelle und nennt an der Jahres-Ebene dieselbe Quelle mit dem
+// Nullpunkt als Tag der Rata-Die-Zählung und der Regel; die Monatsfolge je
+// gezähltem Jahr baut calendar-anniversary.js (Weg (b) des Tasks). Das
+// gezählte Jahr trägt die Nummer des Bezugs-Jahrs, in dem sein Jahrestag
+// liegt; die Tages-Achse ist die des Bezugs, ein Anker-Datum entfällt.
 function deriveCalendar(base, raw) {
   const c = compileSafe(base);
-  // 4T-002363 (B4): Eine Zeitrechnung mit Jahres-Struktur ist kein Bezug einer
-  // Ableitung; ihre Monatsfolge wechselt je Jahr und lässt sich nicht drehen.
-  if (!c || c.yearly || !raw || typeof raw !== 'object') return null;
+  if (!c || !raw || typeof raw !== 'object') return null;
   const id = cleanString(raw.id);
   if (id === '') return null;
   const zero = normalizeDateSegs(base, c, raw.zero);
@@ -359,13 +375,22 @@ function deriveCalendar(base, raw) {
     };
     if (lv.names) {
       out.names =
-        i < c.top
+        i < c.top && !c.yearly
           ? rotateList(lv.names, posAt(i), levelPositionCount(c.levels, i))
           : lv.names.slice();
     }
     if (lv.rel) out.rel = { ...lv.rel };
     return out;
   });
+  const hebrew = Boolean(c.yearly) && c.levels[c.top].rel.rule === 'hebrew';
+  const anniversaryRule = hebrew
+    ? { anniversaryRule: normalizeAnniversaryRule(raw.anniversaryRule) }
+    : {};
+  if (c.yearly) {
+    const zeroDay =
+      yearlyApi.YEARLY_AXIS_ORIGIN + tupleToAxisUnchecked(c, zeroFull) / c.unitLen[c.yearly.iDay];
+    levels[c.top].rel = { ...levels[c.top].rel, derivedZero: Number(zeroDay), ...anniversaryRule };
+  }
 
   // Längen-Tabelle: Die abgeleitete Einheit k beginnt am Tag min(D, Länge)
   // ihrer Bezugs-Einheit (Klemmung auf den letzten vorhandenen Tag), ihre
@@ -433,13 +458,18 @@ function deriveCalendar(base, raw) {
   const groups = (base.groups || []).map((g) => {
     const idx = c.levels.findIndex((lv) => lv.id === g.of);
     const at = idx >= 0 ? Math.floor(posAt(idx) / g.size) : 0;
+    // 4T-002445: Bei Jahres-Struktur zählt die Gruppierung die gezählten
+    // Monate ab dem Nullpunkt; ihre Namen bleiben deshalb in der Reihenfolge.
+    const names = c.yearly
+      ? g.names
+      : g.names && rotateList(g.names, at, groupPositionCount(c.levels, idx, g.size));
     return {
       id: g.id,
       name: g.name,
       ...pluralField(g.namePlural),
       of: g.of,
       size: g.size,
-      names: g.names ? rotateList(g.names, at, groupPositionCount(c.levels, idx, g.size)) : null,
+      names: names ? names.slice() : null,
     };
   });
 
@@ -464,22 +494,27 @@ function deriveCalendar(base, raw) {
     blockScale: base.blockScale ? { ...base.blockScale } : { num: 1, den: 1 },
   };
 
-  // Block-Anker so setzen, dass der eigene Tag 1 auf dem Nullpunkt des
-  // Bezugs liegt (gleiche Skala, also reine Verschiebung der Achse).
+  const derived = {
+    fromId: base.id,
+    fromName: base.name,
+    zero: zero.slice(),
+    depth: isInt(raw.depth) && raw.depth >= 0 ? raw.depth : null,
+    ...anniversaryRule,
+  };
   const dc = compileSafe(draft);
   if (!dc) return null;
+  // 4T-002445: Bei Jahres-Struktur liegt die Ableitung auf der Tages-Achse des
+  // Bezugs, ohne Anker-Datum (T6); die Quelle muss den Nullpunkt kennen.
+  if (c.yearly) return dc.yearly ? { ...draft, derived } : null;
+  // Block-Anker so setzen, dass der eigene Tag 1 auf dem Nullpunkt des
+  // Bezugs liegt (gleiche Skala, also reine Verschiebung der Achse).
   const shift =
     tupleToAxisUnchecked(dc, zeroDate.concat(timeStartSegs(dc))) -
     (tupleToAxisUnchecked(c, zeroFull) - tupleToAxisUnchecked(c, base.blockAnchor));
   const anchor = axisToTuple(draft, shift);
   if (!anchor) return null;
   draft.blockAnchor = anchor;
-  draft.derived = {
-    fromId: base.id,
-    fromName: base.name,
-    zero: zero.slice(),
-    depth: isInt(raw.depth) && raw.depth >= 0 ? raw.depth : null,
-  };
+  draft.derived = derived;
   return draft;
 }
 

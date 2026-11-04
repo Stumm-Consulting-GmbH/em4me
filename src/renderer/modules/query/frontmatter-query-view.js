@@ -92,6 +92,9 @@ const SYNTAX_ERROR_KEYS = {
   // queryError-Pfad wie die Parser-Codes.
   unknownFunction: 'query.syntax.unknownFunction',
   functionArity: 'query.syntax.functionArity',
+  // 4T-002449 (Epic 3E-000378): Funktion einer ausgeschalteten Gruppe; der eine
+  // Hinweis der Formel-Bibliothek, wie an den übrigen Rechen-Orten.
+  functionOff: 'query.formulaLibraryOff',
   // 4T-000502 (Epic 3E-000096): TASKS-Scope bei deaktivierter Erweiterung
   // "Aufgaben" (Gate im Main-Query-Pfad, kein Parser-Fehler).
   tasksScopeDisabled: 'query.syntax.tasksScopeDisabled',
@@ -199,6 +202,20 @@ function syntaxErrorText(err, translate) {
 // (`listen-zeile.js`); ohne sie bleibt die Liste lesend.
 export function buildQueryListDom(payload, tFn, kontext) {
   const translate = typeof tFn === 'function' ? tFn : t;
+  return titelDerMeldungen(baueAusgabe(payload, translate, kontext), translate);
+}
+
+// 4T-002451 (Epic 3E-000378): Die Meldung einer Formel in einer Zelle trägt
+// ihren Schlüssel (`appendSegments`); hier bekommt sie den übersetzten Text
+// beim Darüberfahren, für jede Darstellung an einer Stelle.
+function titelDerMeldungen(frag, translate) {
+  for (const el of frag.querySelectorAll('.inline-calc-error[data-i18n-title]')) {
+    el.title = translate(el.getAttribute('data-i18n-title'));
+  }
+  return frag;
+}
+
+function baueAusgabe(payload, translate, kontext) {
   const frag = document.createDocumentFragment();
   const rs = resultSetOf(payload);
   const status = rs ? rs.state.status : payload && payload.status;

@@ -5,6 +5,7 @@
 // die CSS-Variablen; dazu der Bereich selbst mit Live-Vorschau.
 'use strict';
 
+import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { getEditorViewDefaults, setEditorViewDefaults } from '../app/app-state.js';
 import {
@@ -14,8 +15,15 @@ import {
   isFrontmatterExpanded,
 } from '../frontmatter-display.js';
 import { isNotesPreviewByDefault, setNotesPreviewByDefault } from '../panels/notes-panel.js';
+import {
+  LIST_FOLD_TRACK_EVENT,
+  LIST_FOLD_TRACK_POSITIONS,
+  getListFoldTrackPosition,
+  normalisiereListFoldTrackPosition,
+  setListFoldTrackPosition,
+} from '../editor/list-fold-track-setting.js';
 import { persistSetting } from '../views/views.js';
-import { buildSettingsRow, jsonEqual } from './settings-shared.js';
+import { buildSettingsRow, jsonEqual, pageState } from './settings-shared.js';
 
 // --- Darstellung: Konstanten und Helfer (4T-000018) -------------------------------
 // Konfigurierbare Schriftart und -groesse fuer Editor und Render-Pane.
@@ -159,8 +167,61 @@ export function dirtyAppearanceSection(draft) {
   if (draft.editorViewDefaults && !jsonEqual(draft.editorViewDefaults, getEditorViewDefaults())) {
     return true;
   }
+  // 4T-002433: Lage der Gliederungsspuren bei Listen, normalisierter Entwurf
+  // gegen den wirksamen Stand (Muster dirtyStatusbarSection).
+  if (
+    typeof draft.listFoldTrackPosition === 'string' &&
+    normalisiereListFoldTrackPosition(draft.listFoldTrackPosition) !== getListFoldTrackPosition()
+  ) {
+    return true;
+  }
   return (draft.notesPreviewByDefault !== false) !== isNotesPreviewByDefault();
 }
+
+// --- Gliederungsspuren bei Listen (4T-002433, Epic 3E-000375) --------------------
+// Auswahl mit zwei Werten nach dem Muster `baueAuswahl` in statusbar-settings.js
+// (Werte-Liste aus dem zuständigen Modul, Beschriftung je Wert aus den
+// Sprachdateien), ohne Kurz-Erläuterung darunter. Der Entwurf entsteht lazy
+// beim ersten Aufbau (Muster `entwurf` dort), damit der gemeinsame
+// Entwurfs-Aufbau in settings-draft.js unberührt bleibt; Wirkung erst bei
+// Anwenden/OK. Die Kennung des Feldes trägt der Ablauf-Fall.
+const LIST_FOLD_TRACK_FELD_ID = 'settings-editor-list-fold-track';
+const LIST_FOLD_TRACK_LABEL_KEYS = {
+  aussen: 'settings.editorListFoldTrackAussen',
+  struktur: 'settings.editorListFoldTrackStruktur',
+};
+
+function buildListFoldTrackRow(container, draft) {
+  if (typeof draft.listFoldTrackPosition !== 'string') {
+    draft.listFoldTrackPosition = getListFoldTrackPosition();
+  }
+  const auswahl = document.createElement('select');
+  auswahl.id = LIST_FOLD_TRACK_FELD_ID;
+  auswahl.className = 'settings-input';
+  for (const wert of LIST_FOLD_TRACK_POSITIONS) {
+    const option = document.createElement('option');
+    option.value = wert;
+    option.textContent = t(LIST_FOLD_TRACK_LABEL_KEYS[wert]);
+    auswahl.appendChild(option);
+  }
+  auswahl.value = draft.listFoldTrackPosition;
+  auswahl.addEventListener('change', () => {
+    draft.listFoldTrackPosition = normalisiereListFoldTrackPosition(auswahl.value);
+  });
+  container.appendChild(buildSettingsRow('settings.editorListFoldTrack', auswahl));
+}
+
+// Ein Wechsel aus einem anderen Fenster (Verteilung) zieht den offenen
+// Entwurf auf den neuen Ist-Stand nach; eine noch nicht angewendete Wahl wird
+// dabei bewusst verworfen (Muster `zieheEntwurfNach` in statusbar-settings.js,
+// Bezug ist der Seiten-Entwurf selbst).
+document.addEventListener(LIST_FOLD_TRACK_EVENT, () => {
+  const draft = pageState.draft;
+  if (!draft || typeof draft.listFoldTrackPosition !== 'string') return;
+  draft.listFoldTrackPosition = getListFoldTrackPosition();
+  const feld = document.getElementById(LIST_FOLD_TRACK_FELD_ID);
+  if (feld) feld.value = draft.listFoldTrackPosition;
+});
 
 // --- Bereich Darstellung (4T-000018) ---------------------------------------------
 // Vier Font-Controls mit Live-Vorschau über CSS-Variablen; Datalists
@@ -374,6 +435,9 @@ export function renderAppearanceSection(container, draft) {
       if (draft.editorViewDefaults) draft.editorViewDefaults[field] = box.checked;
     });
     container.appendChild(buildSettingsRow(labelKey, box));
+    // 4T-002433 (Epic 3E-000375): die Lage der Gliederungsspuren bei Listen
+    // unmittelbar nach der Gliederungs-Vorgabe, weil sie dieselbe Spur betrifft.
+    if (field === 'showFoldGutter') buildListFoldTrackRow(container, draft);
   }
 }
 
@@ -443,5 +507,12 @@ export async function applyAppearanceSection(draft) {
         await persistSetting(storeKey, value);
       }
     }
+  }
+  // 4T-002433 (Epic 3E-000375): Lage der Gliederungsspuren bei Listen — der
+  // Setter normalisiert, meldet den Wechsel an die Editoren dieses Fensters
+  // und persistiert; die Verteilung erreicht danach alle übrigen Fenster.
+  if (typeof draft.listFoldTrackPosition === 'string') {
+    await setListFoldTrackPosition(draft.listFoldTrackPosition);
+    draft.listFoldTrackPosition = getListFoldTrackPosition();
   }
 }

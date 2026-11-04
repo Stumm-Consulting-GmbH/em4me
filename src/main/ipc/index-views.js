@@ -17,7 +17,12 @@
 
 const fs = require('node:fs/promises');
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
-const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
+const {
+  isExtensionEnabled,
+  effectiveDisabledSet,
+} = require('../../shared/extensions/extensions-core');
+// 4T-002449 (Epic 3E-000378): Schalter-Stand des Funktions-Katalogs.
+const { setDisabledFunctionExtensions } = require('../../shared/query/query-functions.js');
 // 4T-001761 (Epic 3E-000253): Der Schalter, mit dem der Datensatz-Bestand des
 // Index ruht. Er wird von aussen gesetzt, weil das Index-Subsystem den
 // Einstellungs-Speicher nicht liest (Begruendung im Kopf des Moduls).
@@ -100,6 +105,12 @@ function registerIndexViewsIpc(handle, deps) {
   // Verteilung der Einstellungs-Aenderung (settings-verteilung.js).
   setzeDatensatzErfassung(
     isExtensionEnabled('database', store ? store.get('extensions.disabled') : []),
+  );
+  // 4T-002449 (Epic 3E-000378): Start-Stand des Funktions-Katalogs im
+  // Haupt-Prozess an derselben frühesten Stelle; das Umschalten fährt über die
+  // Verteilung der Einstellungs-Änderung.
+  setDisabledFunctionExtensions(
+    effectiveDisabledSet(store ? store.get('extensions.disabled') : []),
   );
 
   // 4T-001524 (Epic 3E-000169): Die Ersetzen-Strecke braucht die Historie und

@@ -62,9 +62,24 @@
       "testart": "e2e",
       "tests": [
         "test/e2e/funktionen/bearbeitung-und-ansicht.spec.js",
-        "test/e2e/perf/4t-0180.spec.js"
+        "test/e2e/perf/4t-0180.spec.js",
+        "test/e2e/funktionen/einstellungen-seite.spec.js",
+        "test/unit/renderer/gliederungsspur-listen-einstellung.test.js",
+        "test/unit/renderer/struktur-und-state.test.js"
       ],
-      "hinweis": "FA-02, P-04."
+      "hinweis": "FA-02, FA-07, P-04. 4T-002433 (Epic 3E-000375): Einstellung «Gliederungsspuren bei Listen» — ES-18 prüft die Zeile im Bereich «Darstellung» unmittelbar nach der Gliederungs-Vorgabe (genau zwei Werte, Vorgabe «links außen»), den Wechsel bis in ein zweites offenes Fenster und den Wert über den Neustart; Werte-Bereich, Rückfall unbekannter Werte, Setter samt Ereignis und das Neuzeichnen des Gliederungs-Rands ohne Falt-Änderung liegen in gliederungsspur-listen-einstellung.test.js. 4T-002434: FA-07 prüft das Zeichnen in der Struktur der Liste in «Quellcode» und «Live» — Anzeiger unmittelbar vor jedem Aufzählungszeichen und jeder Nummer, gleiche Ebene auf gleicher Einrückung, Rand ohne Listenpunkte, Klick faltet nur die Unterpunkte, Zurückschalten stellt den Rand her und lässt den gefalteten Punkt zu, ausgeblendete Gliederung zeigt keine Spur, Cursor-Sprung hinter den Marker unverändert; Einrück-Spalte, Listenart, Zitat und Tabulator je Region sowie die Spuren des Rands ohne Listen liegen in struktur-und-state.test.js."
+    },
+    {
+      "key": "help.feature.listFoldTrack",
+      "id": "F-392",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/einstellungen-seite.spec.js",
+        "test/e2e/funktionen/bearbeitung-und-ansicht.spec.js",
+        "test/unit/renderer/gliederungsspur-listen-einstellung.test.js",
+        "test/unit/renderer/struktur-und-state.test.js"
+      ],
+      "hinweis": "4T-002433, 4T-002434 und 4T-002435 (Epic 3E-000375): Lage der Gliederungsspuren bei Listen — ES-18 prüft die Zeile im Bereich «Darstellung» (zwei Werte, Vorgabe «links außen», Wechsel bis ins zweite Fenster, Wert über den Neustart); FA-07 prüft die Anzeiger vor den Markern in «Quellcode» und «Live», das Falten über den Anzeiger, das Zurückschalten und die ausgeblendete Gliederung; Werte-Bereich, Rückfall und Neuzeichnen ohne Falt-Änderung in gliederungsspur-listen-einstellung.test.js, Einrück-Spalte und Listenart je Region in struktur-und-state.test.js."
     },
     {
       "key": "help.feature.outline",
@@ -972,8 +987,11 @@
       "key": "help.feature.derivedCalendars",
       "id": "F-240",
       "testart": "e2e",
-      "tests": ["test/e2e/funktionen/kalender-systeme.spec.js"],
-      "hinweis": "4T-000747/4T-000748 (Epic 3E-000138): abgeleitete Zeitrechnungen — Anlage, Schutz der Abhaengigen (KS-05) sowie Zeitspanne im Dokument, Kurzhinweis und Picker in Bezugs-Notation (KS-06); Ableitung, Klemmung, kanonische Form und Staffelung zusaetzlich unit-getestet (calendar-core.test.js, Snapshot kalender-werte)."
+      "tests": [
+        "test/e2e/funktionen/kalender-systeme.spec.js",
+        "test/e2e/funktionen/kalender-jahrestage.spec.js"
+      ],
+      "hinweis": "4T-000747/4T-000748 (Epic 3E-000138): abgeleitete Zeitrechnungen — Anlage, Schutz der Abhaengigen (KS-05) sowie Zeitspanne im Dokument, Kurzhinweis und Picker in Bezugs-Notation (KS-06); Ableitung, Klemmung, kanonische Form und Staffelung zusaetzlich unit-getestet (calendar-core.test.js, Snapshot kalender-werte); 4T-002445 (Epic 3E-000377): Ableitungen auf den Zeitrechnungen mit Jahres-Struktur (hebräisch mit «Jahrestag» und «Jahrzeit (aschkenasisch)», traditionell chinesisch, persisch amtlich, Umm al-Qura) — Jahrestag und Monats-Anfänge nach der Regel je System, Zeitspanne, «nicht bekannt» außerhalb der Tafel, Ränder und Ablage der Regel unit-getestet (kalender-jahrestags-regeln.test.js); 4T-002446: Bezugs-Auswahl in den Einstellungen — die Zeitrechnungen mit Jahres-Struktur als Bezug, ohne den früheren Hinweis «Nicht als Bezug wählbar», Regel-Wahl nur bei hebräischem Bezug, Satz der geltenden Regel und Rundlauf der gespeicherten Regel nach dem Nachladen (KJ-01 in kalender-jahrestage.spec.js); Satz je Quelle, Bezugs-Wechsel und Rundlauf Entwurf → Definition → Entwurf zusätzlich unit-getestet (renderer/kalender-jahres-struktur-einstellungen.test.js)."
     },
     {
       "key": "help.feature.calendarTemplates",
@@ -3749,6 +3767,107 @@
         "test/unit/export-portable.test.js"
       ],
       "hinweis": "4T-000595/4T-000596 (Epic 3E-000111): Inline-Berechnungen {= Ausdruck =} — IB-01 (Render-Ergebnis mit Tooltip und Fehlerbild), IB-02 (Quelltext-Einfärbung), IB-03 (Live-Widget mit Cursor-Aufdecken und Klick ins Konstrukt), IB-04 (Erweiterung aus); Marker-Grammatik, kontext-freie Auswertung über die Query-Engine, Fehler-Codes und attrs-/Critic-Abgrenzung unit-getestet (inline-calc.test.js), Render-HTML und Portable-Einbrennen über Snapshot-Fixture und Export-Tests abgesichert."
+    },
+    {
+      "key": "help.feature.formulaLibrary",
+      "id": "F-394",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/erweiterungen.spec.js",
+        "test/unit/perspective-query-eval.test.js",
+        "test/unit/render/extensions-aus-formel-bibliothek.test.js",
+        "test/unit/renderer/extensions-aus-formel-bibliothek.test.js",
+        "test/unit/formel-bibliothek-aus-zustand.test.js",
+        "test/unit/db-table-checks.test.js"
+      ],
+      "hinweis": "4T-002449 (Epic 3E-000378): Erweiterung «Formel-Bibliothek» mit schaltbaren Funktions-Gruppen im Katalog der Ausdrucks-Sprache — EW-06 (Zeile mit Name und Beschreibung, Modus-Wechsel Voll und Fortgeschritten, Stand über den Neustart); Registrier-Weg mit Abweisung vergebener, namensraum-fremder und großgeschriebener Namen, eigener Prüf-Code im Aus-Zustand und Meldungs-Wert unit-getestet (perspective-query-eval.test.js); Hinweis «Formel-Bibliothek ausgeschaltet» im Fließtext, in der berechneten Spalte, im Formel-Feld und in den Masken (render/extensions-aus-formel-bibliothek.test.js), Schalter-Stand des Fensters und Anzeige der Abfrage (renderer/extensions-aus-formel-bibliothek.test.js), Schalter-Stand des Haupt-Prozesses beim Start und beim Umschalten, Abfrage und Schreib-Schnittstelle der Datenbank nach Entscheidung E1 Option B (formel-bibliothek-aus-zustand.test.js), Definitions-Hinweise und fail-closed-Auswertung der Regeln (db-table-checks.test.js). Die Ablauf-Fälle des Hinweises an den vier Orten mit einer echten Formel kommen mit der ersten Formel-Kategorie."
+    },
+    {
+      "key": "help.feature.formulaHumidity",
+      "id": "F-395",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/inline-berechnungen.spec.js",
+        "test/e2e/funktionen/datentabelle-formeln.spec.js",
+        "test/e2e/funktionen/frontmatter-abfrage.spec.js",
+        "test/e2e/funktionen/eigenschafts-abgeleitete-felder.spec.js",
+        "test/unit/formel-bibliothek-feuchte.test.js",
+        "test/unit/formel-bibliothek-aus-zustand.test.js",
+        "test/unit/renderer/extensions-aus-formel-bibliothek.test.js",
+        "test/unit/perspective-query-eval.test.js"
+      ],
+      "hinweis": "4T-002451 (Epic 3E-000378): Formel-Gruppe «Feuchte und Taupunkt» der Formel-Bibliothek (Namensraum humidity, sieben Formeln nach der Magnus-Formel mit den Konstanten nach Sonntag) — Ablauf-Fälle an den vier Orten mit humidity.dewpoint, je an mit dem Wert 9.3 und der Bereichs-Meldung und aus mit dem Hinweis «Formel-Bibliothek ausgeschaltet»: IB-07 (Fließtext), DT-20 (berechnete Spalte), FQ-11 (Abfrage, Meldung als Warnzeichen in der Zelle), PP-14 (Formel-Feld); Beispielwerte der Quellen, beide Seiten jeder Bereichs-Grenze, Angaben ohne Zahl, Aus-Zustand und dieselbe Antwort an den prozess-neutralen Orten (formel-bibliothek-feuchte.test.js); Meldung in der Abfrage-Zelle und Regeln der Datenbank mit Bereichs-Meldung als nicht auswertbar (formel-bibliothek-aus-zustand.test.js), Anzeige der Meldung in der Abfrage (renderer/extensions-aus-formel-bibliothek.test.js), Durchreichung durch Vergleich, IN, NOT, AND und OR (perspective-query-eval.test.js)."
+    },
+    {
+      "key": "help.feature.formulaFinance",
+      "id": "F-396",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/inline-berechnungen.spec.js",
+        "test/e2e/funktionen/datentabelle-formeln.spec.js",
+        "test/unit/formel-bibliothek-finanz.test.js",
+        "test/unit/formel-bibliothek-aus-zustand.test.js",
+        "test/unit/perspective-query-eval.test.js",
+        "test/unit/render/extensions-aus-formel-bibliothek.test.js"
+      ],
+      "hinweis": "4T-002452 (Epic 3E-000378): Formel-Gruppe «Finanzmathematik» der Formel-Bibliothek (Namensraum finance, neun Formeln nach OpenFormula, ISO/IEC 26300, Abschnitt 6.12: pmt, pv, fv, npv, irr, rate, nper, effect, nominal) — Ablauf-Fälle mit dem Ausdruck des Abnahme-Handgriffs round(finance.pmt(0.08/12, 10, 10000), 2), je an mit der Rate -1037.03 und der Bereichs-Meldung bei Laufzeit 0 und aus mit dem Hinweis «Formel-Bibliothek ausgeschaltet»: IB-08 (Fließtext), DT-21 (zwei berechnete Spalten); Referenzwerte der Story und Beispielwerte der Quellen, Zins 0, beide Zahlungs-Zeitpunkte, beide Seiten jeder Bereichs-Grenze, fehlende Konvergenz von irr und rate, Angaben ohne Zahl, Zahlungen als einzelne Angaben und als Listen-Feld, Aus-Zustand und dieselbe Antwort im Fließtext, in der berechneten Spalte und im Formel-Feld (formel-bibliothek-finanz.test.js); Abfrage mit Rate, internem Zinsfuß aus einem Listen-Feld des Frontmatters und Bereichs-Meldung in der Zelle (formel-bibliothek-aus-zustand.test.js); Gruppen-Liste der Bibliothek (perspective-query-eval.test.js, render/extensions-aus-formel-bibliothek.test.js)."
+    },
+    {
+      "key": "help.feature.formulaPercent",
+      "id": "F-397",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/inline-berechnungen.spec.js",
+        "test/e2e/funktionen/datentabelle-formeln.spec.js",
+        "test/unit/formel-bibliothek-alltag.test.js",
+        "test/unit/formel-bibliothek-aus-zustand.test.js",
+        "test/unit/perspective-query-eval.test.js",
+        "test/unit/render/extensions-aus-formel-bibliothek.test.js"
+      ],
+      "hinweis": "4T-002453 (Epic 3E-000378): Formel-Gruppe «Prozentrechnung» der Formel-Bibliothek (Namensraum percent, fünf Formeln nach der Rechen-Regel: share, change, increase, decrease, base) — Ablauf-Fälle mit den Ausdrücken des Abnahme-Handgriffs der Story 4S-001140, je an mit den Werten und der Bereichs-Meldung und aus mit dem Hinweis «Formel-Bibliothek ausgeschaltet»: IB-09 (Fließtext: percent.increase(200, 50) = 300, round(unit.celsiustofahrenheit(37), 1) = 98.6, round(health.bmi(70, 1.75), 1) = 22.9, percent.share(5, 0) mit der Meldung zum Ganzen), DT-22 (berechnete Spalten mit Body-Mass-Index 22.9, Prozent 105 und Zoll 68.9, Meldung bei Größe 0); Beispielwerte, beide Seiten der Grenzen Ganzes, alter Wert und Prozent ungleich 0, Zahlenbereich, Stelligkeit, Angaben ohne Zahl, Aus-Zustand je Namensraum und dieselbe Antwort im Fließtext, in der berechneten Spalte und im Formel-Feld (formel-bibliothek-alltag.test.js); Abfrage mit 300 und der Meldung zum Ganzen in der Zelle (formel-bibliothek-aus-zustand.test.js); Gruppen-Liste der Bibliothek (perspective-query-eval.test.js, render/extensions-aus-formel-bibliothek.test.js)."
+    },
+    {
+      "key": "help.feature.formulaUnit",
+      "id": "F-398",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/inline-berechnungen.spec.js",
+        "test/e2e/funktionen/datentabelle-formeln.spec.js",
+        "test/unit/formel-bibliothek-alltag.test.js",
+        "test/unit/formel-bibliothek-aus-zustand.test.js",
+        "test/unit/perspective-query-eval.test.js",
+        "test/unit/render/extensions-aus-formel-bibliothek.test.js"
+      ],
+      "hinweis": "4T-002453 (Epic 3E-000378): Formel-Gruppe «Einheiten-Umrechnung» der Formel-Bibliothek (Namensraum unit, sechzehn feste Umrechnungen für Temperatur und Länge mit den exakten Faktoren nach NIST SP 811, Anhang B.8) — Ablauf-Fälle mit den Ausdrücken des Abnahme-Handgriffs der Story 4S-001140, je an mit den Werten und der Bereichs-Meldung und aus mit dem Hinweis «Formel-Bibliothek ausgeschaltet»: IB-09 (Fließtext: percent.increase(200, 50) = 300, round(unit.celsiustofahrenheit(37), 1) = 98.6, round(health.bmi(70, 1.75), 1) = 22.9, percent.share(5, 0) mit der Meldung zum Ganzen), DT-22 (berechnete Spalten mit Body-Mass-Index 22.9, Prozent 105 und Zoll 68.9, Meldung bei Größe 0); die drei Werte der Story und weitere Beispielwerte, Hin- und Rückumrechnung je Paar, Zahlenbereich, Stelligkeit, Angaben ohne Zahl, Aus-Zustand je Namensraum und dieselbe Antwort an den Orten (formel-bibliothek-alltag.test.js); Abfrage mit 98.6 (formel-bibliothek-aus-zustand.test.js); Gruppen-Liste der Bibliothek (perspective-query-eval.test.js, render/extensions-aus-formel-bibliothek.test.js)."
+    },
+    {
+      "key": "help.feature.formulaHealth",
+      "id": "F-403",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/inline-berechnungen.spec.js",
+        "test/e2e/funktionen/datentabelle-formeln.spec.js",
+        "test/unit/formel-bibliothek-alltag.test.js",
+        "test/unit/formel-bibliothek-aus-zustand.test.js",
+        "test/unit/perspective-query-eval.test.js",
+        "test/unit/render/extensions-aus-formel-bibliothek.test.js"
+      ],
+      "hinweis": "4T-002453 (Epic 3E-000378): Formel-Gruppe «Gesundheit» der Formel-Bibliothek (Namensraum health, health.bmi nach der Definition der WHO) — Ablauf-Fälle mit den Ausdrücken des Abnahme-Handgriffs der Story 4S-001140, je an mit den Werten und der Bereichs-Meldung und aus mit dem Hinweis «Formel-Bibliothek ausgeschaltet»: IB-09 (Fließtext: percent.increase(200, 50) = 300, round(unit.celsiustofahrenheit(37), 1) = 98.6, round(health.bmi(70, 1.75), 1) = 22.9, percent.share(5, 0) mit der Meldung zum Ganzen), DT-22 (berechnete Spalten mit Body-Mass-Index 22.9, Prozent 105 und Zoll 68.9, Meldung bei Größe 0); Beispielwert der WHO 70 kg und 1.75 m = 22.9, beide Seiten der Grenzen Masse und Größe über 0, Zahlenbereich, Stelligkeit, Angaben ohne Zahl, Aus-Zustand und dieselbe Antwort an den Orten (formel-bibliothek-alltag.test.js); Abfrage mit 22.9 (formel-bibliothek-aus-zustand.test.js); Gruppen-Liste der Bibliothek (perspective-query-eval.test.js, render/extensions-aus-formel-bibliothek.test.js)."
+    },
+    {
+      "key": "help.feature.formulaConst",
+      "id": "F-404",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/inline-berechnungen.spec.js",
+        "test/unit/formel-bibliothek-konstanten.test.js",
+        "test/unit/render/inline-calc.test.js",
+        "test/unit/perspective-datatable.test.js",
+        "test/unit/property-profiles-abgeleitet.test.js",
+        "test/unit/perspective-query-eval.test.js",
+        "test/unit/render/extensions-aus-formel-bibliothek.test.js"
+      ],
+      "hinweis": "4T-002454 (Epic 3E-000378): Formel-Gruppe «Naturkonstanten» der Formel-Bibliothek (Namensraum const, sieben Konstanten ohne Angaben: c, g, t0, na, r, h, p0 nach CODATA 2018 und SI-Broschüre) — Ablauf-Fall IB-10 mit dem Ausdruck des Abnahme-Handgriffs der Story 4S-001140, an {= const.c() =} = 299792458 sowie const.na() = 6.02214076e+23 und const.h() = 6.62607015e-34, aus der Hinweis «Formel-Bibliothek ausgeschaltet», pi rechnet; Wert je Konstante gegen die Story-Tabelle, Gaskonstante als Produkt aus Avogadro- und Boltzmann-Konstante, überzählige Angabe const.c(1) als Stelligkeits-Fehler, Anzeige in der Abfrage-Zelle, Aus-Zustand je Konstante mit weiter rechnenden Kern-Konstanten pi, e, phi, sqrt2, Katalog-Schlüssel in fünf Sprachen und Gruppen-Eintrag (formel-bibliothek-konstanten.test.js); dieselbe Anzeige von const.na() und const.h() mit allen Stellen im Fließtext (render/inline-calc.test.js), in der berechneten Spalte (perspective-datatable.test.js) und im Formel-Feld (property-profiles-abgeleitet.test.js); Gruppen-Liste der Bibliothek (perspective-query-eval.test.js, render/extensions-aus-formel-bibliothek.test.js)."
     },
     {
       "key": "help.feature.frontmatterTimestamps",

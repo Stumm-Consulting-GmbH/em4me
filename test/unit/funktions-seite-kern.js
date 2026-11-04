@@ -190,6 +190,12 @@ const KERN_ZEILEN = [
   // Einstellung «Nicht aktivierbare Schaltflaechen».
   'help.feature.nichtAktivierbareSchalter',
   'help.feature.foldGutter',
+  // 4T-002435 (Epic 3E-000375): Lage der Gliederungsspuren bei Listen. Kern
+  // und nicht schaltbar (Erweiterungs-Frage des Epics): eine Darstellungs-Wahl
+  // an der Gliederungsspur, die selbst an keiner Erweiterung haengt — ein
+  // Schalter dafuer waere ein Schalter ueber einen Schalter. Die Wahlfreiheit
+  // traegt die Einstellung «Gliederungsspuren bei Listen».
+  'help.feature.listFoldTrack',
   'help.feature.editorViewSettings',
   'help.feature.activeLine',
   'help.feature.zoom',

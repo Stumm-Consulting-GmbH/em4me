@@ -10,7 +10,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { test, expect } = require('@playwright/test');
-const { launchApp, closeApp } = require('../helpers/app');
+const { launchApp, closeApp, warteAufRendererBereit } = require('../helpers/app');
 const { SEL } = require('../helpers/selectors');
 const { oeffneEinstellungsSeite } = require('../helpers/eingabe');
 const { internalExtensions } = require('../../../src/shared/extensions/extensions.js');
@@ -949,6 +949,76 @@ test.describe('ES-16: Schalter des Cursor-Sprungs (Verhalten)', () => {
       await expect(page.locator('#settings-cursor-sprung')).not.toBeChecked();
     } finally {
       await closeApp(app, userData);
+    }
+  });
+});
+
+// 4T-002433 (Epic 3E-000375): Einstellung «Gliederungsspuren bei Listen» im
+// Bereich Darstellung — AK1 (Zeile unmittelbar nach der Gliederungs-Vorgabe,
+// genau zwei Werte, Vorgabe «links außen», deutsche Beschriftung aus den
+// Sprachdateien) und AK2 (ein Wechsel erreicht ein zweites offenes Fenster
+// sofort, belegt am Ereignis an seine Editoren; der Wert übersteht den
+// Neustart, Muster ES-11). Das Zeichnen der Spur in der Struktur der Liste
+// gehört nicht hierher, sondern zum Fall des Zeichnens selbst.
+test.describe('ES-18: Gliederungsspuren bei Listen (Darstellung)', () => {
+  test('Zeile mit zwei Werten, Wechsel erreicht das zweite Fenster, Wert übersteht den Neustart', async () => {
+    const first = await launchApp();
+    const userData = first.userData;
+    try {
+      const { app, page } = first;
+      // Zweites Fenster derselben Anwendung (Muster oeffneFenster in
+      // erinnerungen-alle-fenster.spec.js); es horcht erst nach dem
+      // Bereit-Zeichen, weil der Empfang der Verteilung vorher bewusst schweigt.
+      const neu = app.waitForEvent('window');
+      await page.evaluate(() => window.api.openNewWindow([], null));
+      const zweites = await neu;
+      await warteAufRendererBereit(zweites);
+      await zweites.evaluate(() => {
+        window.__listenSpurLagen = [];
+        document.addEventListener('scg:listfoldtrackchange', (e) =>
+          window.__listenSpurLagen.push(e.detail.position),
+        );
+      });
+
+      await openSettingsPageViaKeyboard(page);
+      const auswahl = page.locator('#settings-editor-list-fold-track');
+      await expect(auswahl).toBeVisible();
+      const row = page.locator(
+        `${SETTINGS_PAGE} .settings-row:has(#settings-editor-list-fold-track)`,
+      );
+      await expect(row.locator('label')).toHaveText('Gliederungsspuren bei Listen');
+      await expect(auswahl.locator('option')).toHaveText([
+        'links außen',
+        'in der Struktur der Liste',
+      ]);
+      // Vorgabe im frischen Profil: Der Speicher trägt den Schlüssel nicht.
+      await expect(auswahl).toHaveValue('aussen');
+      // Unmittelbar nach der Gliederungs-Vorgabe.
+      await expect(
+        row
+          .locator('xpath=preceding-sibling::div[1]')
+          .locator('#settings-editor-default-fold-gutter'),
+      ).toHaveCount(1);
+
+      await auswahl.selectOption('struktur');
+      await page.locator('#btn-settings-ok').click();
+      // Erst das Schließen abwarten: OK schließt die Seite, wenn alle Bereiche
+      // angewandt und persistiert sind (Begründung bei ES-09).
+      await expect(page.locator(SETTINGS_PAGE)).toBeHidden();
+      await expect
+        .poll(() => zweites.evaluate(() => window.__listenSpurLagen))
+        .toEqual(['struktur']);
+    } finally {
+      // Profil behalten (kein userData-Cleanup) für den zweiten Start.
+      await closeApp(first.app, null, { force: true });
+    }
+    // Neustart mit demselben Profil: Der gewählte Wert bleibt.
+    const second = await launchApp({ userData });
+    try {
+      await openSettingsPageViaKeyboard(second.page);
+      await expect(second.page.locator('#settings-editor-list-fold-track')).toHaveValue('struktur');
+    } finally {
+      await closeApp(second.app, userData, { force: true });
     }
   });
 });

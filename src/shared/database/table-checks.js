@@ -49,7 +49,7 @@
 'use strict';
 
 const { parseExpression, collectFieldRefs } = require('../query/perspective-query.js');
-const { validateQuery } = require('../query/query-functions.js');
+const { validateQuery, FUNCTION_OFF_CODE } = require('../query/query-functions.js');
 const { istEinfachesObjekt, alsText, normalisiereBeschriftung } = require('./beschriftung.js');
 
 // Schlüssel am Definitions-Eintrag und am Behälter. Zwei Namen für zwei
@@ -122,14 +122,23 @@ function alsRegex(quelle) {
 }
 
 // Ausdruck der Abfrage-Sprache parsen und gegen den Funktions-Katalog prüfen.
-// Liefert { ast, refs } oder null. Dieselbe Folge wie bei den abgeleiteten
+// Liefert { ast, refs, aus } oder null. Dieselbe Folge wie bei den abgeleiteten
 // Feldern der Eigenschafts-Profile (parse, validate, Bezüge einsammeln).
+//
+// 4T-002449 (Epic 3E-000378, Entscheidung E1 Option B des Product Owners vom
+// 2026-10-31): Nutzt der Ausdruck eine Formel der ausgeschalteten
+// Formel-Bibliothek, entfällt er NICHT wie ein Tippfehler, sondern bleibt mit
+// `aus: true` stehen; der Aufrufer meldet den eigenen Hinweis, und die
+// Auswertung (`record-check-eval.js`) behandelt ihn fail-closed als nicht
+// auswertbar. Sonst höbe das Ausschalten einer Rechen-Erweiterung eine Sperre auf.
 function alsAusdruck(quelle) {
   const geparst = parseExpression(quelle);
-  if (!geparst.ok || validateQuery(geparst.ast)) return null;
+  if (!geparst.ok) return null;
+  const fehler = validateQuery(geparst.ast);
+  if (fehler && fehler.code !== FUNCTION_OFF_CODE) return null;
   const refs = [];
   collectFieldRefs(geparst.ast, refs);
-  return { ast: geparst.ast, refs };
+  return { ast: geparst.ast, refs, aus: fehler !== null };
 }
 
 // Einen Namen im Katalog nachschlagen, ohne Rücksicht auf Groß- und
@@ -165,7 +174,8 @@ function zerlegeEintrag(eintrag) {
 
 // --- Feld-Regeln ---------------------------------------------------------------------
 
-// Eine Feld-Regel aus ihrem Text. Liefert { regel } oder { code }.
+// Eine Feld-Regel aus ihrem Text. Liefert { regel, hinweis? } oder { code };
+// `hinweis` meldet eine Regel, die stehen bleibt (4T-002449: Formel-Bibliothek aus).
 function feldRegel(quelle) {
   const form = formVon(quelle);
   if (form === 'regex') {
@@ -182,7 +192,8 @@ function feldRegel(quelle) {
   // an und nicht den Wert, und eine Regel über die Datei ist keine Regel über
   // dieses Feld.
   if (ausdruck.refs.some((ref) => ref !== WERT_BEZUG)) return { code: 'checkFieldRef' };
-  return { regel: { art: 'expr', quelle, ast: ausdruck.ast } };
+  const regel = { art: 'expr', quelle, ast: ausdruck.ast };
+  return ausdruck.aus ? { regel, hinweis: 'checkExprOff' } : { regel };
 }
 
 /**
@@ -217,6 +228,7 @@ function leseFeldRegeln(roh) {
       else hints.push({ code: gelesen.code });
       continue;
     }
+    if (gelesen.hinweis) hints.push({ code: gelesen.hinweis });
     const meldung = leseMeldung(teile.meldung);
     if (meldung.unbrauchbar) hints.push({ code: 'checkMessage' });
     checks.push({ ...gelesen.regel, message: meldung.message });
@@ -230,12 +242,19 @@ function leseFeldRegeln(roh) {
 // Bearbeitbarkeits-Bedingung (4T-001932) wird genauso gelesen, trägt aber eigene
 // Codes: Zwei Gegenstände teilen sich im Katalog keinen Code, sonst führte der
 // Satz einer Datensatz-Regel den Autor an die falsche Angabe seiner Datei.
-const DATENSATZ_CODES = Object.freeze({ expr: 'checksExpr', unbekannt: 'checkUnknownField' });
+// 4T-002449: `aus` ist der Hinweis einer Regel, die eine Formel der
+// ausgeschalteten Formel-Bibliothek nutzt und deshalb stehen bleibt.
+const DATENSATZ_CODES = Object.freeze({
+  expr: 'checksExpr',
+  unbekannt: 'checkUnknownField',
+  aus: 'checksExprOff',
+});
 const BEARBEITBAR_CODES = Object.freeze({
   form: 'editable',
   expr: 'editableExpr',
   unbekannt: 'editableUnknownField',
   meldung: 'editableMessage',
+  aus: 'editableExprOff',
 });
 // 4T-002312 (Epic 3E-000263, F4 A): dieselbe Bedingung am Feld, mit eigenen
 // Codes nach derselben Regel: Der Satz nennt die Stelle des Feldes und die
@@ -245,6 +264,7 @@ const FELD_BEARBEITBAR_CODES = Object.freeze({
   expr: 'fieldEditableExpr',
   unbekannt: 'fieldEditableUnknownField',
   meldung: 'fieldEditableMessage',
+  aus: 'fieldEditableExprOff',
 });
 
 // 4T-002312: Die feste Sperre am Feld (`editable: false`). Kein Ausdruck, weil
@@ -255,7 +275,7 @@ const FESTE_SPERRE = Object.freeze({ art: 'fest', quelle: 'false', message: null
 
 // Eine Datensatz-Regel aus ihrem Text. `bekannt` sind die kleingeschriebenen
 // Namen der gültigen Felder, `codes` die Codes ihres Gegenstands. Liefert
-// { regel } oder { code, expected? }.
+// { regel, hinweis? } oder { code, expected? }.
 //
 // Eine Datensatz-Regel ist immer ein Ausdruck (E22, dritte Auflage): Ein
 // regulärer Ausdruck prüft genau einen Wert und gehört ans Feld, ein Regel-Name
@@ -266,7 +286,8 @@ function datensatzRegel(quelle, bekannt, feldNamen, codes) {
   if (ausdruck === null) return { code: codes.expr };
   if (ausdruck.refs.some((ref) => !bekannt.has(ref)))
     return { code: codes.unbekannt, expected: feldNamen };
-  return { regel: { art: 'expr', quelle, ast: ausdruck.ast } };
+  const regel = { art: 'expr', quelle, ast: ausdruck.ast };
+  return ausdruck.aus ? { regel, hinweis: codes.aus } : { regel };
 }
 
 // Die Namen der gültigen Felder und ihre kleingeschriebene Menge für den
@@ -309,6 +330,7 @@ function leseDatensatzRegeln(roh, fields) {
       hints.push({ code: gelesen.code, name: teile.quelle, expected: gelesen.expected });
       continue;
     }
+    if (gelesen.hinweis) hints.push({ code: gelesen.hinweis, name: teile.quelle });
     const meldung = leseMeldung(teile.meldung);
     if (meldung.unbrauchbar) hints.push({ code: 'checksMessage', name: teile.quelle });
     checks.push({ ...gelesen.regel, message: meldung.message });
@@ -361,6 +383,7 @@ function leseBearbeitbarkeit(roh, fields, codes = BEARBEITBAR_CODES) {
     hints.push({ code: gelesen.code, name: teile.quelle, expected: gelesen.expected });
     return { editable: null, hints };
   }
+  if (gelesen.hinweis) hints.push({ code: gelesen.hinweis, name: teile.quelle });
   const meldung = leseMeldung(teile.meldung);
   if (meldung.unbrauchbar) hints.push({ code: codes.meldung, name: teile.quelle });
   return { editable: { ...gelesen.regel, message: meldung.message }, hints };

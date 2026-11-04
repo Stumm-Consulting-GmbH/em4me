@@ -21,11 +21,12 @@ import { t } from '../../i18n.js';
 import { showCalendarPicker } from '../calendar/calendar-picker.js';
 import {
   calSysBaseDateLevels,
+  calSysBaseYearlySource,
   calSysDateLevels,
   calSysDerivedProbe,
-  calSysHasYearly,
   calSysIdFromName,
   calSysInt,
+  calSysSyncAnniversaryRule,
   calSysSyncSegs,
   calSysZeroValue,
   calendarPersistForm,
@@ -39,6 +40,7 @@ import { buildSettingsRow } from './settings-shared.js';
 // 4T-000747 (Epic 3E-000138): Kurz-Editor einer abgeleiteten Zeitrechnung.
 // Bearbeitbar sind nur Name, Bezug, Nullpunkt, Gliederungs-Tiefe und die
 // beiden Richtungs-Kürzel; alles Übrige erbt sie phasenverschoben vom Bezug.
+// 4T-002446 (Epic 3E-000377): bei hebräischem Bezug dazu die Jahrestags-Regel.
 export function buildDerivedCalendarEditor(container, block, calDraft, calIdx) {
   const group = document.createElement('div');
   group.className = 'settings-calsys-cal';
@@ -131,9 +133,11 @@ export function buildDerivedCalendarEditor(container, block, calDraft, calIdx) {
 
   // Bezugs-Auswahl: eigenständige Kalender des Blocks plus die eingebaute
   // Standard-Zeitrechnung. Ableitungen stehen nicht zur Wahl (keine Ketten).
-  // 4T-002363 (Epic 3E-000333, B4): ebenso wenig eine Zeitrechnung mit
-  // Jahres-Struktur; der Hinweis darunter nennt sie und sagt, warum.
-  const yearlyNames = [];
+  // 4T-002446 (Epic 3E-000377): Zeitrechnungen mit Jahres-Struktur stehen
+  // seit den Jahrestags-Regeln wie jede andere zur Wahl (bis dahin B4 aus
+  // 4T-002363 mit einem Hinweis, warum nicht); unter der Auswahl stehen bei
+  // hebräischem Bezug die Regel-Wahl und bei jedem dieser Bezüge der Satz der
+  // geltenden Regel.
   const baseSelect = document.createElement('select');
   baseSelect.id = `settings-calsys-derived-base-${calIdx}`;
   baseSelect.className = 'settings-select';
@@ -147,10 +151,6 @@ export function buildDerivedCalendarEditor(container, block, calDraft, calIdx) {
   addOption(STANDARD_CALENDAR_ID, t('settings.calendar.derivedBaseStandard'));
   block.calendars.forEach((other) => {
     if (other.derived || other === calDraft) return;
-    if (calSysHasYearly(other)) {
-      yearlyNames.push(String(other.name || '').trim() || t('settings.calendar.calUntitled'));
-      return;
-    }
     // Ein noch nicht angewendeter Kalender bekommt seine Kennung jetzt,
     // damit der Verweis stabil bleibt (beim Anwenden bleibt sie stehen).
     if (!String(other.id || '').trim()) {
@@ -165,22 +165,14 @@ export function buildDerivedCalendarEditor(container, block, calDraft, calIdx) {
     const levels = calSysBaseDateLevels(block, baseSelect.value);
     calDraft.derived.zeroSegs = calSysSyncSegs(calDraft.derived.zeroSegs, levels.length);
     calDraft.derived.depth = '';
+    calSysSyncAnniversaryRule(block, calDraft);
     // Beispiel-Wert auf den Nullpunkt setzen: die Vorschau startet gueltig
     // statt mit einer roten Meldung.
     calDraft.previewInput = calSysZeroValue(levels.length);
     renderActiveSection();
   });
   group.appendChild(buildSettingsRow('settings.calendar.derivedBase', baseSelect));
-  if (yearlyNames.length > 0) {
-    const yearlyHint = document.createElement('p');
-    yearlyHint.className = 'settings-row-hint';
-    yearlyHint.id = `settings-calsys-derived-yearly-${calIdx}`;
-    yearlyHint.textContent = t('settings.calendar.derivedBaseYearlyHint').replace(
-      '{names}',
-      yearlyNames.join(', '),
-    );
-    group.appendChild(yearlyHint);
-  }
+  buildDerivedRuleRows(group, block, calDraft, calIdx, refresh);
 
   // Nullpunkt in der Notation des Bezugs (volle Tages-Grenze).
   const baseLevels = calSysBaseDateLevels(block, calDraft.derived.fromId);
@@ -282,6 +274,62 @@ export function buildDerivedCalendarEditor(container, block, calDraft, calIdx) {
 
   refresh();
   container.appendChild(group);
+}
+
+// 4T-002446 (Epic 3E-000377): Schlüssel des Satzes der geltenden
+// Jahrestags-Regel je Quelle der Jahres-Struktur (Vorlage J5 aus 4T-002432).
+const RULE_TEXT_KEYS = {
+  chinese: 'settings.calendar.derivedRuleText.chinese',
+  persian: 'settings.calendar.derivedRuleText.persian',
+  'islamic-umalqura': 'settings.calendar.derivedRuleText.umalqura',
+};
+
+function derivedRuleTextKey(source, rule) {
+  if (source === 'hebrew') {
+    return rule === 'yahrzeit'
+      ? 'settings.calendar.derivedRuleText.hebrewYahrzeit'
+      : 'settings.calendar.derivedRuleText.hebrewAnniversary';
+  }
+  return RULE_TEXT_KEYS[source] || null;
+}
+
+// Regel-Wahl (nur bei hebräischem Bezug) und Satz der geltenden Regel (bei
+// jedem Bezug mit Jahres-Struktur) unter der Bezugs-Auswahl. Ein Wechsel der
+// Regel zeichnet Satz und Vorschau neu, Nullpunkt und Tiefe bleiben stehen.
+function buildDerivedRuleRows(group, block, calDraft, calIdx, refresh) {
+  const source = calSysBaseYearlySource(block, calDraft.derived.fromId);
+  calSysSyncAnniversaryRule(block, calDraft);
+  const ruleHint = document.createElement('p');
+  ruleHint.className = 'settings-row-hint';
+  ruleHint.id = `settings-calsys-derived-rule-hint-${calIdx}`;
+  const showText = () => {
+    const key = derivedRuleTextKey(source, calDraft.derived.anniversaryRule);
+    ruleHint.textContent = key ? t(key) : '';
+  };
+  if (source === 'hebrew') {
+    const ruleSelect = document.createElement('select');
+    ruleSelect.id = `settings-calsys-derived-rule-${calIdx}`;
+    ruleSelect.className = 'settings-select';
+    [
+      ['anniversary', 'settings.calendar.derivedRuleAnniversary'],
+      ['yahrzeit', 'settings.calendar.derivedRuleYahrzeit'],
+    ].forEach(([value, key]) => {
+      const opt = document.createElement('option');
+      opt.value = value;
+      opt.textContent = t(key);
+      ruleSelect.appendChild(opt);
+    });
+    ruleSelect.value = calDraft.derived.anniversaryRule;
+    ruleSelect.addEventListener('change', () => {
+      calDraft.derived.anniversaryRule = ruleSelect.value;
+      showText();
+      refresh();
+    });
+    group.appendChild(buildSettingsRow('settings.calendar.derivedRule', ruleSelect));
+  }
+  if (!derivedRuleTextKey(source, calDraft.derived.anniversaryRule)) return;
+  showText();
+  group.appendChild(ruleHint);
 }
 
 // Nullpunkt über den vorhandenen Picker wählen: Er läuft auf einer Probe-

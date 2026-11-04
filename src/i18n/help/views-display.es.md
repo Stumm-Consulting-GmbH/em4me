@@ -65,6 +65,8 @@ El submenú Ver → Presentación del editor agrupa los cinco interruptores que 
 
 Los tres primeros interruptores están **ligados al documento**: su valor pasa al frontmatter del archivo (`fold-gutter`, `line-numbers`, `word-wrap`) y viaja con él. El cambio escribe allí el nuevo valor y marca el archivo como modificado; un documento sin indicación propia sigue el ajuste predeterminado en Archivo → Configuración… → Apariencia. El orden de resolución se describe en la página [Frontmatter y propiedades](frontmatter.md).
 
+Dónde aparecen las líneas de las listas se ajusta en Archivo → Configuración… → Apariencia → Líneas de jerarquía de las listas. Con «en el borde izquierdo», el valor por defecto, los indicadores de plegado y las líneas de conexión de una lista con viñetas o numerada están en el margen de plegado, como los de los encabezados. Con «dentro de la estructura de la lista» se sangran a la altura del nivel de la lista y quedan justo delante de la viñeta o del número del elemento que pliegan; la línea que une los subelementos de un mismo elemento sigue la misma sangría. Los encabezados y los demás bloques plegables conservan su línea en el borde izquierdo en ambos casos, y lo que se puede plegar no cambia. La elección vale allí donde aparece la línea, es decir, en la vista de código, la dividida y la de en vivo, y surte efecto al instante en todas las ventanas sin desplegar ninguna zona plegada. Es un ajuste de la aplicación y no una propiedad del archivo; si el plegado está oculto en un documento, tampoco aparece ninguna línea dentro de la estructura de la lista.
+
 ## Apariencia
 
 ### Claro, oscuro y sistema

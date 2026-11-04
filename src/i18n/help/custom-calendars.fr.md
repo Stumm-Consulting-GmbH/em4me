@@ -103,7 +103,7 @@ Dans les calendriers hébraïque, persan et chinois et dans le calendrier hégir
 Avant et après, le programme indique « inconnu » au lieu d'afficher une date approchée : dans le sélecteur, pour une valeur dans le document et dans la boîte de dialogue « Convertir une date ». Les tables font partie du programme ; aucune connexion Internet n'est nécessaire pour elles. Elles sont mises à jour avant la fin de leur période et après une correction par l'autorité compétente.
 
 - **Les mois intercalaires** sont des mois à part entière. Dans une valeur, chaque mois garde son numéro chaque année ; un mois intercalaire porte le numéro du mois qu'il suit, complété d'un `L`. Adar I de l'année hébraïque 5784 figure ainsi dans le document sous la forme `5784-05L-01`, adar II sous la forme `5784-06-01`, et le mois intercalaire de l'année chinoise 2023 sous la forme `2023-02L-01`. Une valeur enregistrée désigne donc le même mois chaque année.
-- **Dans les paramètres**, le mois et l'année de ces chronologies sont en lecture seule ; les noms, les semaines et les ères restent modifiables. Elles ne peuvent pas servir de référence à un calendrier dérivé (section « Calendriers dérivés »).
+- **Dans les paramètres**, le mois et l'année de ces chronologies sont en lecture seule ; les noms, les semaines et les ères restent modifiables. Elles peuvent servir de référence à un calendrier dérivé ; une règle d'anniversaire propre à chaque calendrier s'applique alors (section « Règles d'anniversaire » sous « Calendriers dérivés »).
 - **Le jour** commence à minuit, comme pour tous les modèles ; le programme ne reproduit pas le début du jour au coucher du soleil des calendriers hébraïque et hégirien.
 
 ### Lectures et limites
@@ -194,7 +194,8 @@ Un calendrier dérivé compte à partir d’un point zéro choisi : combien de t
 
 Dans la section de paramètres « Systèmes de calendrier », le bouton **« Ajouter un calendrier dérivé »** ouvre un formulaire court :
 
-- **Calendrier de référence** — un calendrier du même bloc ou le calendrier standard fourni. Un décompte vers une date ne demande donc aucun calendrier propre. Les chronologies à structure variable d'une année à l'autre ne peuvent pas servir de référence, car leur décompte ne peut pas être décalé ; un décompte à partir d'un jour passe par la chronologie grégorienne du même bloc.
+- **Calendrier de référence** — un calendrier du même bloc ou le calendrier standard fourni. Un décompte vers une date ne demande donc aucun calendrier propre. Les chronologies à structure variable d'une année à l'autre sont elles aussi proposées, c'est-à-dire les calendriers hébraïque, persan et chinois et le calendrier hégirien selon Umm al-Qura ; la phrase de leur règle d'anniversaire figure alors sous la sélection (section « Règles d'anniversaire »).
+- **Règle d'anniversaire** — uniquement avec une référence hébraïque, juste sous le calendrier de référence : « Anniversaire » (par défaut) ou « Yahrzeit (ashkénaze) ». La règle choisie fait partie de la définition du calendrier dérivé.
 - **Point zéro (jour 1)** — la date dans la notation de la référence, au choix via le sélecteur ; il tombe toujours sur un jour entier.
 - **Niveau de détail** — la finesse de la durée, de la plus petite unité seule jusqu’aux années.
 - **Abréviations de direction** — deux mots courts pour le temps avant et après le point zéro.
@@ -203,7 +204,21 @@ Les éditeurs de niveaux, cycles, regroupements et époques n’apparaissent pas
 
 ### Ce qui est hérité
 
-Le calendrier dérivé reprend les unités de sa référence et déplace leurs limites sur le point zéro. Si celui-ci tombe un 23, chaque mois dérivé commence le 23 et chaque année dérivée le même jour ; les semaines commencent le jour de la semaine du point zéro. Chaque unité conserve donc la longueur qu’elle a dans la référence, et un jour bissextile tombe de lui-même dans la bonne année. Les noms suivent : si le décompte commence en juillet, le premier mois s’appelle toujours juillet. Si le point zéro tombe un jour que tous les mois n’ont pas, la limite recule au dernier jour disponible.
+Le calendrier dérivé reprend les unités de sa référence et déplace leurs limites sur le point zéro. Si celui-ci tombe un 23, chaque mois dérivé commence le 23 et chaque année dérivée le même jour ; les semaines commencent le jour de la semaine du point zéro. Chaque unité conserve donc la longueur qu’elle a dans la référence, et un jour bissextile tombe de lui-même dans la bonne année. Les noms suivent : si le décompte commence en juillet, le premier mois s’appelle toujours juillet. Si le point zéro tombe un jour que tous les mois n’ont pas, la limite recule au dernier jour disponible lorsque la référence a une structure fixe ; pour les chronologies à structure variable d’une année à l’autre, c’est la règle d’anniversaire qui décide (section suivante).
+
+### Règles d'anniversaire
+
+Dans les calendriers hébraïque, persan et chinois et dans le calendrier hégirien selon Umm al-Qura, le nombre et la longueur des mois varient d'une année à l'autre : un mois intercalaire ou le 30 d'un mois n'existe pas chaque année. La règle d'anniversaire du calendrier fixe le jour où tombe alors l'anniversaire d'un point zéro. Elle vaut non seulement à l'anniversaire, mais à chaque limite de mois du décompte : chaque mois compté commence le jour que la règle indique pour le jour du point zéro dans le mois correspondant de la référence. Dans les paramètres, la phrase de la règle en vigueur figure sous la sélection de la référence, et avec une référence hébraïque sous la règle d'anniversaire.
+
+- **Calendrier hébraïque, « Anniversaire »** (par défaut) — Anniversaire selon l’usage des anniversaires de naissance : un jour d’adar tombe en adar II les années bissextiles, un jour d’adar I tombe en adar les années communes ; si un mois n’a pas de 30, le 1er du mois suivant s’applique.
+- **Calendrier hébraïque, « Yahrzeit (ashkénaze) »** — Anniversaire selon l’usage ashkénaze du yahrzeit : un jour d’adar tombe en adar I les années bissextiles, le 30 adar I tombe le 30 chevat les années communes ; si le 30 hèchvan ou le 30 kislev manquait déjà la première année après le jour d’origine, le dernier jour de ce mois s’applique chaque année, sinon un 30 manquant tombe le 1er du mois suivant. Le jour d’origine est le point zéro ; pour le 30 hèchvan et le 30 kislev, c’est donc la structure de l’année qui suit celle du point zéro qui décide.
+- **Calendrier chinois** — Les années sans ce mois intercalaire, un jour d’un mois intercalaire tombe dans le mois de même numéro ; si un mois n’a pas de 30, le 29 s’applique.
+- **Calendrier persan** — Les années sans ce jour, le 30 esfand tombe le 29 esfand.
+- **Calendrier hégirien (Umm al-Qura)** — Si un mois n’a pas de 30, le 29 s’applique.
+
+Un exemple : un point zéro le 10 adar 5783, une année commune, a son premier anniversaire avec « Anniversaire » le 10 adar II 5784 (`5784-06-10`) et avec « Yahrzeit (ashkénaze) » le 10 adar I 5784 (`5784-05L-10`). La durée graduée compte les années pleines selon la règle, puis les mois et les jours ; dans une année bissextile du calendrier hébraïque ou chinois, une année comptée peut avoir treize mois.
+
+Hors de la période de validité d'une table (section « Modèles à structure variable d'une année à l'autre »), le calendrier dérivé indique lui aussi « inconnu », par exemple pour un anniversaire au-delà de la fin de la période ; il en va de même pour un jour au début de la période dont le mois compté commencerait avant le premier jour de la table.
 
 ### Valeurs dans le document
 
