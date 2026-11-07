@@ -10,6 +10,9 @@ import { describe, it, expect } from 'vitest';
 import { checkWorkflow } from '../../src/shared/workflows/workflow-check.js';
 import { readWorkflowDocument } from '../../src/shared/workflows/workflow-document.js';
 import {
+  PROBE_ITEM,
+  fillLoopStep,
+  loopItemContext,
   prepareRun,
   templateInputs,
   templateRefs,
@@ -286,5 +289,121 @@ describe('{{clipboard}} (4S-001136)', () => {
     const r = prepareRun(s, { ...KONTEXT, clipboard: 'Teil' }, {}, {});
     expect(r.steps[0].source).toEqual({ kind: 'section', name: 'Teil' });
     expect(r.steps[1].source).toEqual({ kind: 'file', path: 'q.md' });
+  });
+});
+
+// 4T-002459 (Epic 3E-000367): die Platzhalter eines Ereignis-Laufs (3l). Den
+// Kontext mit `file`, `from` und `task` gibt der Ereignis-Lauf mit (4T-002460).
+describe('{{from}} und {{task}} (4S-001142)', () => {
+  it('füllt alten Pfad und Aufgaben-Text aus dem Kontext, auch in einer Vorlage', () => {
+    const s = schritte([
+      'notify "{{from}} -> {{file}}"',
+      'append "Journal.md" from-template "Eintrag.md"',
+    ]);
+    const kontext = { ...KONTEXT, file: 'Archiv/A.md', from: 'Eingang/A.md', task: 'Rückblick' };
+    const r = prepareRun(s, kontext, {}, { 'Eintrag.md': '- erledigt: {{task}}' });
+    expect(r.findings).toEqual([]);
+    expect(r.steps[0].args).toEqual(['Eingang/A.md -> Archiv/A.md']);
+    expect(r.steps[1].source.text).toBe('- erledigt: Rückblick');
+  });
+
+  it('bleibt ohne Wert leer, etwa bei einem Start von Hand', () => {
+    const s = schritte(['notify "[{{from}}][{{task}}]"']);
+    expect(prepareRun(s, KONTEXT, {}, {}).steps[0].args).toEqual(['[][]']);
+  });
+});
+
+// 4T-002464 (Story 4S-001148, Entscheidung 3g): die Platzhalter der Schleife.
+describe('{{item}} und {{item:name}} in der Schleife (4S-001148)', () => {
+  it('belegt Pfad und Namen ohne Endung', () => {
+    expect(loopItemContext('Eingang/Rechnung 12.md')).toEqual({
+      item: 'Eingang/Rechnung 12.md',
+      'item:name': 'Rechnung 12',
+    });
+    expect(loopItemContext('a\\b\\c.tar.gz')).toEqual({
+      item: 'a/b/c.tar.gz',
+      'item:name': 'c.tar',
+    });
+    expect(loopItemContext('Ordner/.hidden')['item:name']).toBe('.hidden');
+  });
+
+  it('füllt Schritte ohne {{item}} vorab, die mit {{item}} je Datei', () => {
+    const s = schritte([
+      'for-each "{{folder}}/*.md"',
+      '  notify "{{date}}"',
+      '  move "{{item}}" "Archiv/{{item:name}}"',
+      'end',
+    ]);
+    const r = prepareRun(s, KONTEXT, {}, {});
+    expect(r.findings).toEqual([]);
+    expect(r.steps.map((x) => x.keyword)).toEqual(['for-each', 'notify', 'move', 'end']);
+    expect(r.steps[0].args).toEqual(['Notizen/*.md']);
+    expect(r.steps[1].args).toEqual(['2026-10-22']);
+    expect(r.steps[1].deferred).toBeUndefined();
+    expect(r.steps[2]).toMatchObject({ keyword: 'move', args: [], line: 7 });
+    expect(r.steps[2].deferred.step.keyword).toBe('move');
+    // Übertragbar wie alles, was an den Hauptprozess geht.
+    expect(JSON.parse(JSON.stringify(r.steps))).toEqual(r.steps);
+    const gefuellt = fillLoopStep(r.steps[2], 'Notizen/Rechnung.md');
+    expect(gefuellt).toEqual({
+      ok: true,
+      findings: [],
+      step: {
+        line: 7,
+        blockLine: 3,
+        keyword: 'move',
+        args: ['Notizen/Rechnung.md', 'Archiv/Rechnung'],
+        source: null,
+        position: null,
+      },
+    });
+  });
+
+  it('erhebt eine Eingabe in der Schleife einmal und nutzt sie je Datei', () => {
+    const s = schritte(['for-each "E/*.md"', 'add-tag "{{item}}" "{{prompt:Schlagwort?}}"', 'end']);
+    expect(workflowInputs(s).map((i) => i.key)).toEqual([P('Schlagwort?')]);
+    const r = prepareRun(s, KONTEXT, { [P('Schlagwort?')]: 'neu' }, {});
+    expect(fillLoopStep(r.steps[1], 'E/a.md').step.args).toEqual(['E/a.md', 'neu']);
+    expect(fillLoopStep(r.steps[1], 'E/b.md').step.args).toEqual(['E/b.md', 'neu']);
+  });
+
+  it('füllt eine Vorlage je Datei mit {{item}} und dem Ziel der Datei', () => {
+    const s = schritte([
+      'for-each "E/*.md"',
+      'create "Notiz/{{item:name}}.md" from-template "V.md"',
+      'end',
+    ]);
+    const r = prepareRun(s, KONTEXT, {}, { 'V.md': 'Quelle {{item}}, Titel {{title}}' });
+    expect(r.findings).toEqual([]);
+    expect(r.steps[1].deferred.templates).toEqual({ 'V.md': 'Quelle {{item}}, Titel {{title}}' });
+    expect(fillLoopStep(r.steps[1], 'E/Brief.md').step.source).toEqual({
+      kind: 'template',
+      path: 'V.md',
+      text: 'Quelle E/Brief.md, Titel Brief',
+    });
+  });
+
+  it('prüft die übrigen Teile eines Schritts in der Schleife vorab mit einem Ersatz-Pfad', () => {
+    expect(PROBE_ITEM).toBe('x.md');
+    const s = schritte(['for-each "E/*.md"', 'rename "{{item}}" "{{prompt:Name?}}"', 'end']);
+    const r = prepareRun(s, KONTEXT, { [P('Name?')]: 'a/b' }, {});
+    expect(r.ok).toBe(false);
+    expect(r.findings.map((x) => [x.code, x.line])).toEqual([['nameInvalid', 6]]);
+  });
+
+  it('prüft das Muster der Schleife nach dem Füllen erneut', () => {
+    const s = schritte(['for-each "{{prompt:Ordner?}}/*.md"', 'end']);
+    const r = prepareRun(s, KONTEXT, { [P('Ordner?')]: 'a*' }, {});
+    expect(r.findings.map((x) => x.code)).toEqual(['loopPatternInvalid']);
+    const draussen = prepareRun(s, KONTEXT, { [P('Ordner?')]: '..' }, {});
+    expect(draussen.findings.map((x) => x.code)).toEqual(['pathOutsideArea']);
+  });
+
+  it('meldet einen Schritt ohne zurückgestellten Inhalt als unerwartet', () => {
+    expect(fillLoopStep({ line: 3, blockLine: 1 }, 'a.md')).toMatchObject({
+      ok: false,
+      step: null,
+      findings: [{ code: 'unexpected', line: 3 }],
+    });
   });
 });

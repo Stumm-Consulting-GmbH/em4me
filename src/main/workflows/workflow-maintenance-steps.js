@@ -33,6 +33,13 @@
 // Hauptprozess antwortet deshalb mit dem Fenster-Handgriff `completeTask`.
 // Kein Treffer ist ein Fehlschlag des Schritts (A1).
 //
+// **Lauf-Marke** (4T-002461, Story 4S-001144): Vor der Antwort `completeTask`
+// merkt der Hauptprozess die Einmal-Marke der Datei mit ihrem Inhalt davor und
+// der Beschreibung der Aufgabe (`documents/self-write.js`, Abschnitt
+// «Lauf-Marke», Form 3), denn abgehakt wird im Fenster: Weder das Speichern
+// noch das Ereignis `task-done` dieses Abhakens löst etwas aus. `delete` legt
+// in den Papierkorb und erzeugt kein Ereignis.
+//
 // Eigener Zustand: keiner.
 'use strict';
 
@@ -43,6 +50,7 @@ const { pflichtBegleitPfade } = require('../documents/companion-files');
 const { buildTaskEnv } = require('../index/task-env');
 const { parseContent } = require('../index/parse');
 const { MDD_EXT, companionPathFor } = require('../../shared/markdown-data-family');
+const { merkeLaufAufgabe } = require('../documents/self-write');
 const { modelMatchesGlobalFilter, parseTaskLine } = require('../../shared/tasks/task-markers.js');
 const { resolveAreaPath } = require('./workflow-area-path.js');
 const { readCurrentText } = require('./workflow-content-steps.js');
@@ -182,6 +190,8 @@ function createWorkflowMaintenanceSteps(deps) {
     if (!gelesen.ok) return fehlschlag('targetMissing', { path: relPfad, fsCode: gelesen.fsCode });
     const treffer = findOpenTask(ziel.abs, gelesen.text, suche, aufgabenUmgebung());
     if (!treffer) return fehlschlag('taskNotFound', { path: relPfad, text: suche });
+    const model = parseTaskLine(treffer.taskText);
+    await merkeLaufAufgabe(ziel.abs, model ? model.description : suche);
     return {
       ok: true,
       window: {

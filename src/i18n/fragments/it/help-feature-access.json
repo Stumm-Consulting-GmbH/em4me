@@ -319,5 +319,9 @@
   "help.featureAccess.workflowArming": "Visualizza → Mostra esecuzioni dei workflow → colonna «Attivato»; pulsante «Attivato» sopra il blocco nella modalità live, nella vista renderizzata e nella vista divisa; menu contestuale di un file di workflow nel pannello dell'area → Attiva / Disattiva",
   "help.featureAccess.workflowStatusbar": "Barra di stato → elemento «Workflow»; comando `notify` nel blocco di codice `workflow`",
   "help.featureAccess.workflowMaintenance": "Comandi `delete`, `add-tag`, `remove-tag`, `complete-task` e `confirm` nel blocco di codice `workflow`",
-  "help.featureAccess.workflowLinked": "File → Impostazioni… → Area corrente → Collegamenti tra aree → Workflow; File → Workflow; palette dei comandi; Visualizza → Mostra esecuzioni dei workflow"
+  "help.featureAccess.workflowLinked": "File → Impostazioni… → Area corrente → Collegamenti tra aree → Workflow; File → Workflow; palette dei comandi; Visualizza → Mostra esecuzioni dei workflow",
+  "help.featureAccess.workflowEvents": "Campi d’intestazione `trigger: event` ed `event` con `file-created`, `file-changed`, `file-moved`, `task-done`, `area-opened` o `reminder-due`, a scelta `in` e `matching`; indicazione del controllo sopra il blocco nella modalità live, nella vista renderizzata e nella vista divisa; Visualizza → Mostra esecuzioni dei workflow → colonna «Attivato»",
+  "help.featureAccess.workflowConditions": "Comandi `if-exists`, `if-missing`, `if-property`, `if-script`, `else` ed `end` nel blocco di codice `workflow`",
+  "help.featureAccess.workflowLoop": "Comando `for-each` con `end` nel blocco di codice `workflow`; segnaposto `{{item}}` e `{{item:name}}`",
+  "help.featureAccess.workflowScript": "Comandi `script` con `as` e `if-script` nel blocco di codice `workflow`; segnaposto `{{script:name}}`; File → Impostazioni… → Comportamento → Esegui blocchi di script"
 }

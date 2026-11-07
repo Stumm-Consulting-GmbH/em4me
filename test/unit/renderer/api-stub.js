@@ -95,6 +95,16 @@ window.api = {
   workflowScheduleRelease: async () => ({ released: false }),
   workflowScheduleFinished: async () => ({ finished: false }),
   workflowScheduleOpen: async () => ({ catchUp: false, items: [] }),
+  // 4T-002460: Lauf nach Ereignis; die Zustellung landet in
+  // window.__workflowEventDueHandler, Prüffälle setzen die Antworten.
+  onWorkflowEventDue: (handler) => {
+    window.__workflowEventDueHandler = handler;
+  },
+  workflowEventClaim: async (key) =>
+    window.__workflowEventClaim ? window.__workflowEventClaim(key) : { granted: false },
+  workflowEventRelease: async () => ({ released: false }),
+  workflowEventFinished: async () => ({ finished: false }),
+  workflowEventOpen: async () => ({ catchUp: false, items: [] }),
   // 4T-001885 (Epic 3E-000189): Der Einstellungs-Abschnitt «Eigene Angaben»
   // fragt die Angaben des gebundenen Buches bzw. Regals ab. Ohne gebundenes
   // Buch fragt er gar nicht erst; die Eintraege stehen fuer die Faelle da, die

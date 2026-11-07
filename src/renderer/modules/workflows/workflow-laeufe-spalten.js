@@ -16,13 +16,31 @@
 // ohne Journal (Stand der Stufe 1) zeigt keines, ein leeres Journal sagt
 // «Keine Datei berührt».
 //
+// **Stufe 3** (4T-002463, Epic 3E-000367, Story 4S-001146, Entscheidung 3c):
+// Der Schalter steht auch bei `trigger: event` (`istSchaltbar` über das Feld
+// `trigger`). «Nächster Lauf» nennt bei einem scharfen Ereignis-Workflow das
+// Ereignis in Worten (Feld `event`), «Letzter Lauf» bei der Herkunft `event`
+// das auslösende Ereignis mit Datei (`lastRun.event`). Hat die Not-Bremse
+// den Workflow entschärft (letzter Lauf mit dem Code `eventBrake`, 3d), steht
+// unter dem Schalter «nicht scharf: Not-Bremse»; den Grund im Wortlaut zeigt
+// die Spalte «Ergebnis».
+//
 // Eigener Zustand: keiner.
 'use strict';
 
 import { t } from '../../i18n.js';
 import { zeitpunktText } from './workflow-lauf-stand.js';
-import { einsetzen } from './workflow-lauf-texte.js';
-import { SCHARF, scharfTitel, schalteScharf, wanduhrText } from './workflow-scharf.js';
+import { einsetzen, ereignisHerkunft, ereignisInWorten } from './workflow-lauf-texte.js';
+import {
+  SCHARF,
+  istSchaltbar,
+  scharfTitel,
+  schalteScharf,
+  wanduhrText,
+} from './workflow-scharf.js';
+
+/** Code des letzten Laufs nach einem Eingriff der Not-Bremse (workflow-run-state.js). */
+export const NOT_BREMSE_CODE = 'eventBrake';
 
 /** Die Spalten-Schlüssel der Tabelle, in ihrer Reihenfolge. */
 export const SPALTEN = Object.freeze([
@@ -51,7 +69,7 @@ function el(tag, className, text) {
  */
 export function scharfZelle(w) {
   const zelle = el('td', 'wf-runs-armed');
-  if (w.foreign === true || w.scheduled !== true) return zelle;
+  if (w.foreign === true || !istSchaltbar(w.trigger)) return zelle;
   const status = w.armed || SCHARF.aus;
   zelle.dataset.status = status;
   const schalter = el('input', 'wf-runs-arm');
@@ -61,7 +79,7 @@ export function scharfZelle(w) {
     'aria-label',
     einsetzen(t('workflow.seite.scharfSchalter'), { name: w.name }),
   );
-  schalter.title = scharfTitel(status, w.nextDue);
+  schalter.title = scharfTitel(status, w.nextDue, w.event || null);
   schalter.addEventListener('change', () => {
     schalter.disabled = true;
     void schalteScharf(w.absPath, schalter.checked, { name: w.name }).finally(() => {
@@ -71,21 +89,24 @@ export function scharfZelle(w) {
   zelle.appendChild(schalter);
   if (status === SCHARF.geaendert) {
     zelle.appendChild(el('span', 'wf-runs-armed-changed', t('workflow.seite.definitionGeaendert')));
+  } else if (status === SCHARF.aus && w.lastRun && w.lastRun.code === NOT_BREMSE_CODE) {
+    zelle.appendChild(el('span', 'wf-runs-armed-changed', t('workflow.seite.notBremse')));
   }
   return zelle;
 }
 
 /**
- * Zelle «Nächster Lauf»: nur bei einem scharfen Workflow.
+ * Zelle «Nächster Lauf»: nur bei einem scharfen Workflow — der Termin beim
+ * Zeitplan, das Ereignis in Worten bei einem Ereignis-Workflow.
  *
  * @param {object} w Eintrag aus `workflow:runs`.
  * @returns {HTMLTableCellElement}
  */
 export function naechsterLaufZelle(w) {
   const zelle = el('td', 'wf-runs-next');
-  if (w.foreign !== true && w.armed === SCHARF.an && w.nextDue) {
-    zelle.textContent = wanduhrText(w.nextDue);
-  }
+  if (w.foreign === true || w.armed !== SCHARF.an) return zelle;
+  if (w.event) zelle.textContent = ereignisInWorten(w.event);
+  else if (w.nextDue) zelle.textContent = wanduhrText(w.nextDue);
   return zelle;
 }
 
@@ -97,8 +118,9 @@ function verfallJuenger(w) {
 }
 
 /**
- * Ergänzt die Zelle «Letzter Lauf» um die Herkunft «nachgeholt» (2d) und den
- * Vermerk «verfallen» mit dem verfallenen Termin.
+ * Ergänzt die Zelle «Letzter Lauf» um die Herkunft «nachgeholt» (2d) oder
+ * «Ereignis» mit Ereignis und Datei (3c) und den Vermerk «verfallen» mit dem
+ * verfallenen Termin.
  *
  * @param {HTMLTableCellElement} zelle Zelle mit dem Zeitpunkt des letzten Laufs.
  * @param {object} w Eintrag aus `workflow:runs`.
@@ -106,6 +128,10 @@ function verfallJuenger(w) {
 export function ergaenzeLetztenLauf(zelle, w) {
   if (w.lastRun && w.lastRun.origin === 'catch-up') {
     zelle.appendChild(el('span', 'wf-runs-origin', ` (${t('workflow.seite.nachgeholt')})`));
+  } else if (w.lastRun && w.lastRun.origin === 'event') {
+    const herkunft = el('span', 'wf-runs-origin', ` (${ereignisHerkunft(w.lastRun.event)})`);
+    herkunft.dataset.origin = 'event';
+    zelle.appendChild(herkunft);
   }
   if (verfallJuenger(w)) {
     const vermerk = einsetzen(t('workflow.seite.verfallen'), { due: wanduhrText(w.skipped.due) });

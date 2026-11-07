@@ -1,12 +1,12 @@
 # Workflows
 
-A **workflow** writes down recurring steps as a fixed sequence: create, rename, move, copy and move to the trash files and folders, append or insert text, set properties and tags in the front matter, tick off tasks, run commands, macros and other workflows. A workflow is an **ordinary Markdown file**; what it does is written in a block of fixed commands, one line per step. The file therefore stays readable without the app, can be passed on and can be edited like any other document.
+A **workflow** writes down recurring steps as a fixed sequence: create, rename, move, copy and move to the trash files and folders, append or insert text, set properties and tags in the front matter, tick off tasks, run commands, macros and other workflows. Conditions and repetitions decide which steps run and for which files; a script step works out a value without writing anything. A workflow is an **ordinary Markdown file**; what it does is written in a block of fixed commands, one line per step. The file therefore stays readable without the app, can be passed on and can be edited like any other document.
 
-A workflow is started **by hand**: from the menu, the command palette, with a keyboard shortcut, a button above the block or the context menu of the area panel. A workflow with a schedule also runs **on schedule** once it is armed. **Before the first step runs, the app checks the whole workflow**; an error is shown above the block with line and reason, and nothing runs.
+A workflow is started **by hand**: from the menu, the command palette, with a keyboard shortcut, a button above the block or the context menu of the area panel. A workflow with a schedule also runs **on schedule**, a workflow with an event **on an event** in the area, such as a new file in a folder, in both cases once it is armed. **Before the first step runs, the app checks the whole workflow**; an error is shown above the block with line and reason, and nothing runs.
 
 ## The extension "Workflows"
 
-The feature belongs to the [built-in extensions](extensions.md) ("Workflows", group **Tools**) and is switched on in the working mode **Full**, off in the modes **Beginner** and **Advanced**. When it is switched off, a `workflow` block is an ordinary code block without highlighting, check display and buttons; there are no workflow commands, no **Workflows** submenu, no **Workflow runs** page, no **Workflows** status bar element, no **Workflows** settings sections and no run on schedule. A workflow file is then an ordinary document. Nothing is lost: files, run states including the armed state and the workflows folder setting are unchanged once the extension is switched on again.
+The feature belongs to the [built-in extensions](extensions.md) ("Workflows", group **Tools**) and is switched on in the working mode **Full**, off in the modes **Beginner** and **Advanced**. When it is switched off, a `workflow` block is an ordinary code block without highlighting, check display and buttons; there are no workflow commands, no **Workflows** submenu, no **Workflow runs** page, no **Workflows** status bar element, no **Workflows** settings sections, no run on schedule and no run on events. A workflow file is then an ordinary document. Nothing is lost: files, run states including the armed state and the workflows folder setting are unchanged once the extension is switched on again.
 
 ## Structure of a workflow file
 
@@ -34,18 +34,19 @@ notify "Review created"
 - Weekly review created.
 ````
 
-The front matter carries marker, name, trigger, description and, for a run on schedule, the schedule:
+The front matter carries marker, name, trigger, description and, depending on the trigger, the schedule or the event:
 
 | Key | Required | Meaning |
 | --- | --- | --- |
 | `workflow` | yes | `true` marks the file as a workflow. |
 | `name` | no | Name of the workflow in menu, command palette and notices; without it, the file name without extension applies. |
-| `trigger` | no | Trigger: `manual` for the start by hand, `schedule` for the run on schedule; without it, `manual` applies. |
+| `trigger` | no | Trigger: `manual` for the start by hand, `schedule` for the run on schedule, `event` for the run on an event; without it, `manual` applies. |
 | `schedule` | with `trigger: schedule` | Schedule in one line, such as `every weekday at 08:00` (section "Schedule and arming"). |
 | `missed` | no | Handling of missed runs: `run-once` catches up once, `skip` lets them lapse; without it, `run-once` applies. |
+| `event` | with `trigger: event` | Event in one line, such as `file-created in "Inbox"` (section "Events"). |
 | `description` | no | Short description; the **Workflow runs** page shows it as a tooltip on the name. |
 
-A trigger other than `manual` or `schedule` is shown as "not yet supported", and the workflow does not run; the file stays unchanged. A file with two or more `workflow` blocks, or none, does not run either. A block that contains only comments is valid and does nothing.
+A trigger other than `manual`, `schedule` or `event` is shown as "not yet supported", and the workflow does not run; the file stays unchanged. A file with two or more `workflow` blocks, or none, does not run either. A block that contains only comments is valid and does nothing.
 
 ## Command lines
 
@@ -76,9 +77,12 @@ Before the first step, the app checks the whole file, together with every workfl
 - unknown commands, macros and workflows, and names carried by several macros or workflows,
 - a workflow that calls itself, also by way of another one, and nesting deeper than five levels,
 - faulty placeholders, unreadable templates and templates switched off,
-- an unreadable schedule, a missing or disallowed time, `schedule` without `trigger: schedule` and the other way round, and an unknown value for `missed`.
+- an unreadable schedule, a missing or disallowed time, `schedule` without `trigger: schedule` and the other way round, and an unknown value for `missed`,
+- an unreadable event line, an unknown event, a folder outside the area, an invalid pattern, `event` without `trigger: event` and the other way round, more than one `event` line and a placeholder the event does not provide,
+- a missing or surplus `end`, an `else` without a condition or a second `else`, blocks deeper than three levels, a loop inside a loop, an invalid pattern for `for-each` and `{{item}}` outside a loop,
+- for the script step, a section that is missing, occurs more than once or holds no script, an invalid or duplicate name, a result that only a later line provides, and script blocks that are turned off.
 
-A finding stops the run **before the first step**; a faulty workflow file thus does not run at all instead of running in part. The check reports all findings at once; the line given is the line in the document as the editor counts it, front matter included. The one exception is the finding "Manual only" (section "Schedule and arming"): it only prevents arming, the start by hand stays possible.
+A finding stops the run **before the first step**; a faulty workflow file thus does not run at all instead of running in part. The check reports all findings at once; the line given is the line in the document as the editor counts it, front matter included. The one exception is the finding "Manual only" (sections "Schedule and arming" and "Events"): it only prevents arming, the start by hand stays possible.
 
 What only an earlier step can bring about is checked by the app at the step itself: whether a file, a section or a heading exists. If it is missing then, the step fails.
 
@@ -131,7 +135,7 @@ The commands, ordered by what they act on. Paths are relative to the area root.
 
 - `command` takes the fixed ID of a command, such as `view.modeSplit`, `view.modeLive` or `file.save`, and runs it in the starting window. If it cannot be run at the moment, the step fails. Macros and workflows do not run through `command` but through their own commands.
 - `macro` and `workflow` may be nested at most five levels deep. A called workflow returns after its last step; if a step fails in it, the whole run ends.
-- `notify` shows its text in the status bar, for a run on schedule also as a notification of the operating system (section "Course of a run").
+- `notify` shows its text in the status bar, for a run on schedule or on an event also as a notification of the operating system (section "Course of a run").
 - `stop` ends the whole run, also from a called workflow; the status bar shows "Workflow ‹Name› stopped at line N: text".
 
 ### Maintenance commands
@@ -150,7 +154,22 @@ The commands, ordered by what they act on. Paths are relative to the area root.
 - **`complete-task`** looks among the open tasks of the file, the same ones the [task query](tasks.md) shows, for the first one whose text contains the search text, case-sensitively. It ticks it off like a click in the task query, including the completion date according to the task settings. If it finds none, the step fails.
 - **`confirm`** shows the question with "Yes" and "No". "Yes" continues the run; "No" ends it without a failure, and the status bar shows "Workflow ‹Name› stopped at line N: «question» answered with No".
 - **Open files:** on a file that is open and unsaved in a window, `add-tag`, `remove-tag` and `complete-task` act through that window, like the content commands.
-- `delete` and `confirm` need someone watching: in a workflow with `trigger: schedule` they are the finding "Manual only".
+- `delete` and `confirm` need someone watching: in a workflow with `trigger: schedule` or `trigger: event` they are the finding "Manual only".
+
+### Conditions, repetitions and scripts
+
+These commands open a **block** that a line `end` closes; the steps in between run only if the condition holds, or once per file. `script` is a single step. Details in the sections "Conditions and repetitions" and "Script step".
+
+| Command | Meaning | Arguments | Example |
+| --- | --- | --- | --- |
+| `if-exists` | if present: block only if the file or folder exists | path | `if-exists "Log.md"` |
+| `if-missing` | if missing: block only if the file or folder is missing | path | `if-missing "Journal/{{date}}.md"` |
+| `if-property` | if property: block only if the property in the front matter has the value or, without a value, is set | path, name, optionally value | `if-property "{{file}}" status "open"` |
+| `if-script` | if script: block only if the script of a section holds | heading | `if-script "Count"` |
+| `else` | otherwise: starts the part that applies if the condition does not hold | none | `else` |
+| `end` | end: closes the block of a condition or loop | none | `end` |
+| `for-each` | for each: block once per file that matches the pattern | folder with file pattern | `for-each "Inbox/*.md"` |
+| `script` | script: run the script block of a section and name its result | heading, `as "name"` | `script "Count" as "number"` |
 
 ### Sources of a content
 
@@ -171,18 +190,23 @@ Placeholders work in every argument of a command line. Templates and workflows s
 | Placeholder | Value in a command line |
 | --- | --- |
 | `{{date}}`, `{{time}}` | date and time of the start, also with offset and format: `{{date:+7d:dd.MM.yyyy}}` |
-| `{{file}}` | path of the document active at the start, relative to the area root, such as `Projects/Plan.md` |
+| `{{file}}` | path of the document active at the start, relative to the area root, such as `Projects/Plan.md`; for a run on an event, the file of the event (section "Events") |
 | `{{title}}` | title of the document active at the start |
 | `{{folder}}` | folder of the document active at the start, relative to the area root |
 | `{{area}}` | name of the area |
-| `{{clipboard}}` | text of the clipboard at the start; for a run on schedule, whatever is in the clipboard at that moment |
+| `{{clipboard}}` | text of the clipboard at the start; for a run on schedule or on an event, whatever is in the clipboard at that moment |
 | `{{prompt:Question}}`, `{{prompt:Question:Default}}` | input dialog |
 | `{{select:Question:a,b,c}}` | choice dialog |
+| `{{from}}` | with `file-moved`, the previous path of the file |
+| `{{task}}` | with `task-done`, the text of the completed task |
+| `{{item}}`, `{{item:name}}` | in a `for-each` loop, the path of the current file and its name without extension |
+| `{{script:name}}` | the result of the script step `script … as "name"` |
 
 - **All dialogs before the first step:** the input and choice dialogs of the whole run appear one after the other before anything happens, including those of the templates used and of the called workflows. The same question is asked once and applies everywhere. Cancelling a dialog cancels the run, and no step runs.
 - **One point in time per run:** `{{date}}` and `{{time}}` have the same value in all lines, also across midnight. Likewise the clipboard is read once at the start, and `{{clipboard}}` has the same content in all lines.
 - **In a template used by a workflow**, `{{title}}` and `{{folder}}` mean the new file as usual, while `{{file}}` and `{{area}}` mean the active document and the area.
-- **On schedule** nobody is there to answer a dialog: input and choice placeholders are the finding "Manual only" in a workflow with `trigger: schedule`.
+- **On schedule and on events** nobody is there to answer a dialog: input and choice placeholders are the finding "Manual only" in a workflow with `trigger: schedule` or `trigger: event`.
+- `{{item}}`, `{{item:name}}` and `{{script:name}}` only get their value during the run; in the name of a workflow or macro, the path of a template and the target of `delete` they are therefore a finding.
 - `{{cursor}}` is not allowed in a command line. `\{{` writes a literal `{{`.
 - If `{{folder}}` is empty in the root folder, `"{{folder}}/New.md"` becomes the path `New.md`. Without an active document, `{{file}}` is empty, and a path made from it is a finding.
 
@@ -200,7 +224,7 @@ A workflow starts only in an open area, and its paths apply in that area, even i
 | **"Run" in the area panel** | at the top of the context menu of every workflow file of the area |
 | **"Workflow runs" page** | "Run" button in the row of every workflow |
 
-The button above the block is disabled while the check reports a finding. For a document that has never been saved it shows "Save first", outside an area "Can only run inside an open area". An armed workflow additionally runs by itself on its schedule; the start by hand remains possible at any time alongside.
+The button above the block is disabled while the check reports a finding. For a document that has never been saved it shows "Save first", outside an area "Can only run inside an open area". An armed workflow additionally runs by itself on its schedule or on its event; the start by hand remains possible at any time alongside.
 
 The command of a workflow gets its ID from the path of the file in the workflows folder; two workflows of the same name in different subfolders thus stay distinguishable. **Renaming a workflow in the application or moving it within the workflows folder keeps its assignments:** a keyboard shortcut, a place in the status bar, context menu or format toolbar and a macro step that calls it move along. **Outside the application**, for example in the file manager, the application does not notice the renaming; the assignments then lose their target and have to be set again. A workflow moved out of the workflows folder is no longer a command; its assignments stay saved and work again as soon as it returns to the same place.
 
@@ -208,12 +232,88 @@ The command of a workflow gets its ID from the path of the file in the workflows
 
 1. The app checks the workflow together with the workflows it calls.
 2. The dialogs of all placeholders appear one after the other; if the run contains `delete`, the one confirmation of the targets to delete follows.
-3. The steps run strictly one after the other; each waits for the previous one.
+3. The steps run strictly one after the other; each waits for the previous one. Conditions and loops decide which steps run and how often.
 4. The first failure ends the run. The status bar shows "Workflow ‹Name› aborted at line N: reason".
 
 Steps carried out stay carried out; there is no undo of a run (section "What a run has done"). **At most one workflow runs per window**; a second start during a run is turned down with a notice.
 
-**Messages:** for a start by hand, `notify` shows its text in the status bar. For a run on schedule, also a caught-up one, the text additionally goes out as a **notification of the operating system**, with the name of the workflow as its title; so does the abort of such a run with line and reason, even if the workflow contains no `notify`. The notification appears only when no window of the app is in the foreground, and once per message; otherwise the notice in the status bar suffices. Whether and how the operating system shows it is governed by its own notification settings.
+**Messages:** for a start by hand, `notify` shows its text in the status bar. For a run on schedule, also a caught-up one, and for a run on an event, the text additionally goes out as a **notification of the operating system**, with the name of the workflow as its title; so does the abort of such a run with line and reason, even if the workflow contains no `notify`. The notification appears only when no window of the app is in the foreground, and once per message; otherwise the notice in the status bar suffices. Whether and how the operating system shows it is governed by its own notification settings.
+
+## Conditions and repetitions
+
+A **condition** lets steps run only if something holds; a **loop** repeats steps for every file of a folder. Both open a block that a line `end` closes:
+
+```workflow
+# Create the daily note only if it is missing
+if-missing "Journal/{{date}}.md"
+  create "Journal/{{date}}.md"
+else
+  notify "The daily note already exists"
+end
+open "Journal/{{date}}.md"
+```
+
+### Conditions
+
+- `if-exists "path"` holds if the file or folder exists, `if-missing "path"` if it is missing.
+- `if-property "path" name "value"` holds if the property in the front matter has exactly this value; numbers and truth values compare by how they are written. For a **list** such as `tags`, it holds if the list contains the value. Without a value (`if-property "path" name`), it holds if the property is set and not empty, for a list if the list is not empty. A file without front matter does not hold; if the file is missing, the step fails.
+- `if-script "section"` holds if the script of the section holds (section "Script step").
+- The check happens when the line is reached, with the state the previous steps have left; an open, unsaved file counts with its state in the editor.
+
+### The block form
+
+- `else` optionally starts the part that applies if the condition does not hold; each condition has at most one `else`, a loop has none.
+- `end` closes the block opened last. `else` and `end` each stand on a line of their own.
+- **Indentation** is allowed and recommended so that the block stays readable; it carries no meaning.
+- Blocks can be nested up to **three levels** deep, the loop included.
+- A missing or surplus `end`, an `else` without a condition and nesting that is too deep are reported by the check before the first step, with line.
+
+### Loop over the files of a folder
+
+`for-each "folder/pattern"` repeats the steps up to `end` for every file that matches the pattern. `{{item}}` is the path of the current file, relative to the area root, `{{item:name}}` its name without extension:
+
+```workflow
+# Move completed notes from the inbox to the archive
+for-each "Inbox/*.md"
+  if-property "{{item}}" status "done"
+    add-tag "{{item}}" "archive"
+    move "{{item}}" "Archive"
+  end
+end
+```
+
+- **Pattern:** first the folder, then a pattern of the file name with `*` for any number of characters and `?` for exactly one, such as `Inbox/*.md`. A `**` before the file pattern adds the subfolders (`Projects/**/*.md`), a `**` at the end means all files including subfolders (`Inbox/**`). Upper and lower case do not matter; wildcard characters in the folder part are a finding.
+- **Fixed list:** the files are determined when the loop is entered and processed in alphabetical order, numbers as in the file manager (`2` before `10`). Files the run creates inside the loop are not added. Files and folders whose name starts with a dot do not count.
+- **Limit:** at most **500 files**. With more, the step fails before the first repetition, with "More than 500 files; no file was processed". A missing folder is a failure as well.
+- Loops cannot be nested inside each other; a condition inside the loop is allowed.
+- `{{item}}` and `{{item:name}}` apply only inside a loop. Input dialogs in the loop appear once before the first step, and the answer applies to every file.
+
+## Script step
+
+A **script step** runs a [script block](scripts.md) of the workflow file and uses its result in the following lines or as a condition. The script calculates and checks; it cannot write. The example counts the files in the folder "Tasks" with `status: open`:
+
+````markdown
+```workflow
+script "Count" as "open"
+if-script "Count"
+  notify "Open files in the folder Tasks: {{script:open}}"
+else
+  notify "Nothing open"
+end
+```
+
+## Count
+
+```perspective-script
+return pq.pages('Tasks').filter(function (p) { return p.status === 'open'; }).length;
+```
+````
+
+- **`script "section" as "name"`** runs the first script block (`perspective-script`) under the heading "section" of the workflow file; the section is found as with `from-section`. Its **result** is then available as `{{script:name}}` in every following line: the return value of the script (a text, a number or a truth value), otherwise the text of its output without surrounding white space. The name consists of letters, digits, `_` and `-`; upper and lower case do not matter, and each name is given only once.
+- **`if-script "section"`** opens a block like the other conditions. It holds if the script returns `true`, a non-empty text or a number other than zero; `false`, an empty text, `0` and no value do not hold.
+- **The same sandbox as script blocks:** the script reads the data of the area through the pq interface, with the workflow file as its own document (`pq.current()`), and has no access to files, network or the app. It is **read-only**. It is stopped after **5 seconds**. An error or a stop is a failure of the step and ends the run with "Script failed" or "Script stopped after 5 seconds".
+- **Setting "Run script blocks":** the script step follows the same setting as script blocks (**Settings → Behavior**, off by default). If it is off, the check reports "Script blocks are turned off" with line; the workflow does not run and cannot be armed. Right before every script, the app asks for the setting again.
+- The check looks for the section before the first step: if it is missing, occurs more than once or holds no script block, that is a finding. A `{{script:name}}` before the step that provides it is a finding as well; if the providing step did not run in a branch, the line fails.
 
 ## Schedule and arming
 
@@ -272,7 +372,7 @@ A time is missed if it fell while the app or the area was closed or the computer
 
 ### Arming
 
-A workflow with `trigger: schedule` is **not armed** after being created, copied or received; it runs on schedule only once the user arms it. The armed state lies in the run state of the companion file and does not travel along when the file is copied. Arming is done in three places, all of which appear only with `trigger: schedule`:
+A workflow with `trigger: schedule` or `trigger: event` is **not armed** after being created, copied or received; it runs by itself only once the user arms it. The armed state lies in the run state of the companion file and does not travel along when the file is copied. Arming is done in three places, all of which appear only with `trigger: schedule` and `trigger: event`:
 
 - **"Workflow runs" page**: the checkbox in the column **Armed**,
 - **above the block**: the button "Armed" next to "Run", pressed "✓ Armed",
@@ -280,11 +380,72 @@ A workflow with `trigger: schedule` is **not armed** after being created, copied
 
 Arming checks the workflow as before running. If there is a finding, arming is turned down, and the status bar shows "Not armed:" with reason and line; otherwise it reports "Workflow ‹Name› armed, next run" with the time. Disarming is possible at any time, even with a finding.
 
-**Changed definition:** if, after arming, the `workflow` block or one of the lines `trigger`, `schedule` and `missed` changes, even unsaved in the editor, the workflow counts as "not armed: definition changed" and no longer runs on schedule until it is armed again. Changing name and description has no effect. This way, changed content that nobody has approved never runs without anyone watching.
+**Changed definition:** if, after arming, the `workflow` block, one of the lines `trigger`, `schedule`, `missed` and `event` or a script block run by a script step changes, even unsaved in the editor, the workflow counts as "not armed: definition changed" and no longer runs by itself until it is armed again. Changing name and description has no effect. This way, changed content that nobody has approved never runs without anyone watching.
 
 ### The status bar element "Workflows"
 
-While at least one workflow of the area is armed, the element **Workflows** sits in the right part of the status bar. It shows the latest run on schedule with result sign, name and time, such as "✓ Daily note 08:00"; a run from an earlier day also carries day and month. The signs are `✓` for completed, `✗` for aborted, `■` for stopped and `–` for cancelled input; an abort appears in the colour of the error notice. Without a run on schedule so far, it reads "Workflows". The tooltip gives date, time and result, a click opens the **Workflow runs** page. In a narrow status bar the element collapses together with the other elements.
+While at least one workflow of the area is armed, the element **Workflows** sits in the right part of the status bar. It shows the latest run on schedule or on an event with result sign, name and time, such as "✓ Daily note 08:00"; a run from an earlier day also carries day and month. The signs are `✓` for completed, `✗` for aborted, `■` for stopped and `–` for cancelled input; an abort appears in the colour of the error notice. Without such a run so far, it reads "Workflows". The tooltip gives date, time and result, a click opens the **Workflow runs** page. In a narrow status bar the element collapses together with the other elements.
+
+## Events
+
+A workflow with `trigger: event` and an `event` line runs by itself when its **event** occurs in the area, once it is armed. This gives, for example, a **folder rule**: every note that arrives in the folder "Inbox" gets a tag, whether it was created in the app, dropped in with the file manager or brought by a synchronisation.
+
+````markdown
+---
+workflow: true
+name: Tag the inbox
+trigger: event
+event: file-created in "Inbox" matching "*.md"
+---
+
+```workflow
+add-tag "{{file}}" "inbox"
+notify "New in the inbox: {{file}}"
+```
+````
+
+### The event line
+
+The line has the form `event: <event> [in "<folder or file>"] [matching "<pattern>"]`:
+
+| Event | occurs when … | `{{file}}` is … | Example |
+| --- | --- | --- | --- |
+| `file-created` | a file is created in the area, also from outside | the new file | `event: file-created in "Inbox"` |
+| `file-changed` | a file is changed, also from outside; saving in the app included | the changed file | `event: file-changed in "Projects" matching "*.md"` |
+| `file-moved` | a file is renamed or moved in the app | the new path; the previous one is `{{from}}` | `event: file-moved in "Archive"` |
+| `task-done` | a task is set to done | the file of the task; its text is `{{task}}` | `event: task-done in "Weekly plan.md"` |
+| `area-opened` | the area is opened and read in | (no file) | `event: area-opened` |
+| `reminder-due` | a reminder of the area becomes due | the file of the reminder | `event: reminder-due` |
+
+- **`in`** narrows down to a folder including its subfolders or to a single file, relative to the area root; a folder `Inbox` never matches a folder whose name merely starts with that name, such as `Inbox tray`. **`matching`** narrows down to a pattern of the file name, with `*` and `?`, without a folder. Both are optional; `in` comes before `matching`, the values stand in straight quotation marks, and upper and lower case do not matter. With `file-moved`, the new location applies.
+- With `area-opened` and `reminder-due`, `in` and `matching` are not allowed.
+- **Exactly one `event` line per file.** Whoever wants to respond to several events writes one small workflow per event that calls a shared one with `workflow "Name"`.
+- **Moving:** moving a file in the file manager shows up as `file-created` at the new location; only the app knows `file-moved`, because only it knows where a file came from.
+- **Task done** means: a task line changes to a status of the kind "done", whether by a click on the checkbox, in the [task query](tasks.md), by a typed `x` or by a change from outside. A click or a typed `x` triggers shortly afterwards, even before saving; saving afterwards does not trigger a second time. A cancelled task is not done. `{{task}}` is the text of the task without checkbox, dates and priority.
+
+### What a run on an event may do
+
+- A run on an event runs **without anyone watching**, like a run on schedule: input and choice placeholders, `confirm` and `delete` are the finding "Manual only". **Nothing is ever deleted on events.**
+- `{{file}}`, `{{from}}` and `{{task}}` carry the values of the event (table above). The check reports a placeholder the event does not provide: `{{file}}` with `area-opened`, `{{from}}` except with `file-moved`, `{{task}}` except with `task-done`.
+
+### When events take effect
+
+**Events take effect while the app and the area are open in a window, and they are not caught up.** What happened while the area was closed triggers nothing when it is opened; whoever wants to tidy up on opening writes a workflow with `area-opened` and `for-each`.
+
+- **Debouncing:** messages about the same file within **2 seconds** make one event; a save that produces several messages thus starts a workflow only once. A file that is written continuously triggers after 10 seconds at the latest.
+- **What never triggers:** companion files (`.mdd`, `.mddl`), the lock folder, and files and folders whose name starts with a dot.
+- **Order:** if an event matches several armed workflows, each runs once, one after the other in the order of their paths. Per area, one run on an event follows the other, in the order of the events and in exactly one window; if a workflow is running there, the event waits. When the area is closed, waiting events lapse.
+- `area-opened` occurs once per opening, also for an area the app reopens at start-up. `reminder-due` occurs when the reminder becomes due at its time; reminders handed over late when the area is opened trigger nothing.
+
+### No chains
+
+**A workflow responds to what you or other programs do, never to what a workflow does.** What a run creates, changes, moves or ticks off triggers no event; a workflow that creates a file in "Inbox" itself on a new file in "Inbox" therefore does not run in circles. Whoever wants a sequence calls the second workflow explicitly with `workflow "Name"`. If a step writes into an open, unsaved document, only your saving is a change of the file and triggers `file-changed`; a task that such a step ticks off in the document triggers `task-done`.
+
+**Emergency brake:** if the same workflow runs on events more than **20 times in 5 minutes**, for example because another program responds to its changes, the 21st run no longer starts. The workflow is disarmed, waiting events for it lapse, and the status bar reports "Workflow ‹Name› disarmed: more than 20 runs triggered by events in 5 minutes", with no window in the foreground also as a notification of the operating system. The **Workflow runs** page shows "not armed: emergency brake" below the checkbox and the reason in the column **Result**. After arming it again, the brake counts from the start.
+
+### Arming and display
+
+A workflow with `trigger: event` is armed in the same three places as one on schedule (section "Arming"); the `event` line is part of the definition. After arming, the status bar reports, for example, "Workflow ‹Name› armed, runs on new file in ‹Inbox›". On the **Workflow runs** page, the column **Next run** shows the event in words, such as "on new file in ‹Inbox›", and the column **Last run** the origin, such as "event: new file ‹Inbox/Scan.md›". `notify` and an abort also go out as a notification of the operating system, as with the schedule, and the status bar element **Workflows** also shows the latest run on an event.
 
 ## Workflows folder and menu
 
@@ -314,16 +475,16 @@ Like the templates, the workflows of a [linked area](linking.md) can be offered 
 
 ## Run state and the "Workflow runs" page
 
-After every run, the app records in the **companion file** of the workflow (`.mdd`, section `workflow`) the point in time, the result, if applicable the aborted line, the number of runs, the origin of the run and the journal of the last run, for a workflow on schedule also the armed state and the next time; the text of the workflow file stays untouched. The run state travels along when the file is renamed or moved, not when it is copied.
+After every run, the app records in the **companion file** of the workflow (`.mdd`, section `workflow`) the point in time, the result, if applicable the aborted line, the number of runs, the origin of the run and the journal of the last run, for a workflow on schedule or on an event also the armed state, for the schedule the next time and for a run on an event the triggering event with its file; the text of the workflow file stays untouched. The run state travels along when the file is renamed or moved, not when it is copied.
 
 The **Workflow runs** page opens through "View → Show workflow runs", through "File → Workflows → Show workflow runs", through the command palette and with a click on the status bar element **Workflows**. It lists **all workflows of the area**, also those outside the workflows folder, followed by the workflows of linked areas with consent, with these columns and a "Run" button per row:
 
 | Column | Content |
 | --- | --- |
 | **Workflow**, **Location** | name with the description as a tooltip, folder of the file |
-| **Armed** | checkbox for arming, only with `trigger: schedule`; with a changed definition also "not armed: definition changed" |
-| **Next run** | time of the next run on schedule, while the workflow is armed |
-| **Last run** | point in time of the last run, for a caught-up one with "(caught up)", below it if applicable "skipped:" with the time; plus the button "Journal (N)" |
+| **Armed** | checkbox for arming, only with `trigger: schedule` and `trigger: event`; with a changed definition also "not armed: definition changed", after the emergency brake intervened "not armed: emergency brake" |
+| **Next run** | time of the next run on schedule, for a workflow with an event the event in words, in both cases while the workflow is armed |
+| **Last run** | point in time of the last run, for a caught-up one with "(caught up)", for a run on an event with event and file, below it if applicable "skipped:" with the time; plus the button "Journal (N)" |
 | **Result** | result of the last run, table below |
 | **Runs** | number of runs |
 
@@ -346,9 +507,9 @@ There is no undo of a whole run. Undoing is done selectively, with the means tha
 
 ## Support in the editor
 
-- **Highlighting:** in the command lines, the keyword is bold, text in quotes coloured and placeholders italic, in the editor as in the reading view.
+- **Highlighting:** in the command lines, the keyword is bold, text in quotes coloured and placeholders italic, in the editor as in the reading view. The block words of conditions and loops, `else` and `end` are additionally underlined with dots in the editor.
 - **Check display:** the live view, the rendered view and the split view show the result of the check above the block: green "ready" or red "Line N: reason", with "(+N more)" for several findings. The notices about several blocks and about a trigger not yet supported appear there too, as do the findings of the schedule with their line in the front matter. The display follows the text shortly after every change and shows the same finding the start reports. In printing, in an export and for an embedded file the header line does not appear.
-- **"Armed" button:** with `trigger: schedule`, the header line carries the button for arming next to "Run" (section "Schedule and arming").
+- **"Armed" button:** with `trigger: schedule` and `trigger: event`, the header line carries the button for arming next to "Run" (section "Schedule and arming").
 
 Highlighting and display do not change the text of the file.
 
@@ -356,10 +517,12 @@ Highlighting and display do not change the text of the file.
 
 - **Only in the area:** no command reads or writes outside the root of the area in which the workflow was started, not even through a placeholder; this also applies to a workflow from a linked area.
 - **No network, no external programs.** Deleting happens only with `delete`, only for a start by hand, after a confirmation and into the trash.
-- **No run without an open area:** a workflow on schedule runs only while the app and its area are open; it catches up on missed times according to the rules of `missed`.
+- **No run without an open area:** a workflow on schedule runs only while the app and its area are open; it catches up on missed times according to the rules of `missed`. Events likewise take effect only while the area is open and are not caught up.
+- **No chains:** a workflow responds to what you or other programs do, never to what a workflow does. Whoever wants a sequence calls the next workflow with `workflow "Name"`; against a loop through other programs, the emergency brake stops a workflow after more than 20 runs on events in 5 minutes (section "Events").
+- **Limits of blocks:** at most three levels of nesting, no loop inside a loop and at most 500 files per loop.
 - **No undo of a run:** steps carried out stay carried out; the journal shows what the last run has touched, and undoing is done selectively.
-- **Macros** stay as they are and can be called as a step; a macro is a sequence of commands in the settings, a workflow a procedure as a document. **[Script blocks](scripts.md)** remain read-only; a workflow is not a general scripting language but a fixed catalogue of commands.
+- **Macros** stay as they are and can be called as a step; a macro is a sequence of commands in the settings, a workflow a procedure as a document. **[Script blocks](scripts.md)** remain read-only, also as a script step; a workflow is not a general scripting language but a fixed catalogue of commands.
 
 ## Later stages
 
-Further stages are planned, with scope and timing not yet fixed: a start on events in the area, conditions and repetitions, and commands for the [database](database.md). The check already knows the keywords of these commands and reports them as "only available in a later stage", so that such a file does not run in part.
+One further stage is planned, with scope and timing not yet fixed: commands for the [database](database.md). The check already knows the keywords of these commands and reports them as "only available in a later stage", so that such a file does not run in part.

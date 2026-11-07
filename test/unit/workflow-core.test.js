@@ -56,6 +56,8 @@ describe('Prozess-Neutralität des Kerns (AK6)', () => {
       'workflow-document.js',
       // 4T-002348: die eine Bearbeitungs-Regel für Datei und Puffer.
       'workflow-edit.js',
+      // 4T-002459: Ereignis-Grammatik und Abgleich.
+      'workflow-event.js',
       // 4T-002351: Hervorhebung der Block-Zeilen und ihre gemeinsamen Konstanten.
       'workflow-highlight.js',
       'workflow-konstanten.js',
@@ -127,6 +129,9 @@ describe('analyzeWorkflow — der Gesamt-Durchlauf', () => {
       schedule: null,
       scheduleText: null,
       missed: 'run-once',
+      // 4T-002459: die Ereignis-Felder ohne Angabe.
+      event: null,
+      eventText: null,
     });
     expect(a.armable).toBe(false);
     expect(a.steps.map((s) => s.keyword)).toEqual(['mkdir', 'create', 'append', 'open', 'notify']);

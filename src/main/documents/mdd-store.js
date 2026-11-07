@@ -564,7 +564,8 @@ function renameBlockAnchor(container, fromId, toId, nowMs) {
 //   workflow: {
 //     runs,                                    Zahl der Läufe
 //     lastRun: { at, status, line?, code?,     der letzte Lauf
-//                origin?, journal?, journalTruncated? },
+//                origin?, journal?, journalTruncated?,
+//                event? },
 //     armed?:   { at, hash },                  Scharf-Zustand (Stufe 2)
 //     nextDue?: 'JJJJ-MM-TTTHH:MM',            nächster fälliger Lauf (Stufe 2)
 //     skipped?: { at, due },                   jüngster verfallener Lauf (Stufe 2)
@@ -591,6 +592,11 @@ function renameBlockAnchor(container, fromId, toId, nowMs) {
 //   Feststellung (UTC), `due` die verfallene Fälligkeit (Wanduhr). Er zählt
 //   nicht als Lauf und ersetzt `lastRun` nicht; ob er jünger ist als der letzte
 //   Lauf, sagt der Vergleich der beiden `at`.
+//
+// Stufe 3 (4T-002460):
+// - `origin` dazu `event`; ein Lauf nach Ereignis trägt `event`:
+//   { type, file?, from?, task? } mit `file` und `from` relativ zur
+//   Bereichs-Wurzel mit `/` (wie das Journal) und dem Aufgaben-Text `task`.
 //
 // Fehler-Isolation nach dem `notes`-Muster: `parseContainer` validiert die
 // Sektion nicht, eine defekte Sektion setzt nur den Lauf-Stand aus, ein
@@ -631,6 +637,15 @@ function leseJournal(roh) {
     .map((e) => ({ line: e.line, command: e.command, path: e.path }));
 }
 
+function leseEreignis(roh) {
+  if (!isPlainObject(roh) || typeof roh.type !== 'string') return null;
+  const ereignis = { type: roh.type };
+  for (const feld of ['file', 'from', 'task']) {
+    if (typeof roh[feld] === 'string') ereignis[feld] = roh[feld];
+  }
+  return ereignis;
+}
+
 function leseLauf(last) {
   if (!isPlainObject(last) || typeof last.at !== 'string' || typeof last.status !== 'string') {
     return null;
@@ -642,6 +657,8 @@ function leseLauf(last) {
   const journal = leseJournal(last.journal);
   if (journal) lastRun.journal = journal;
   if (last.journalTruncated === true) lastRun.journalTruncated = true;
+  const ereignis = leseEreignis(last.event);
+  if (ereignis) lastRun.event = ereignis;
   return lastRun;
 }
 
@@ -697,6 +714,8 @@ function recordWorkflowRun(container, run, nowMs) {
     lastRun.journal = run.journal.map((e) => ({ line: e.line, command: e.command, path: e.path }));
   }
   if (run.journalTruncated === true) lastRun.journalTruncated = true;
+  const ereignis = leseEreignis(run.event);
+  if (ereignis) lastRun.event = ereignis;
   container.workflow = { ...section, runs: (bisher ? bisher.runs : 0) + 1, lastRun };
   return container;
 }

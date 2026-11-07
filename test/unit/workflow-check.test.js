@@ -11,6 +11,7 @@ import {
   blocksRun,
   checkPlaceholders,
   checkWorkflow,
+  eventPlaceholderFindings,
   manualOnlyFindings,
 } from '../../src/shared/workflows/workflow-check.js';
 import { readWorkflowDocument } from '../../src/shared/workflows/workflow-document.js';
@@ -54,12 +55,17 @@ const KATALOG_STUFE_2 = [
   'confirm "Archiv wirklich aufräumen?"',
 ];
 
+// 4T-002464: die Katalog-Beispiele der Bedingungen und der Schleife, seit der
+// Block-Form (3f, 3g) je mit `end` geschlossen.
+const KATALOG_STUFE_3 = [
+  'if-missing "Journal/{{date}}.md"',
+  'if-exists "Journal/{{date}}.md"',
+  'if-property "{{file}}" status "offen"',
+  'if-property "{{file}}" status',
+  'for-each "Eingang/*.md"',
+];
+
 const KATALOG_SPAETER = [
-  ['if-missing "Journal/{{date}}.md"', 3],
-  ['if-exists "Journal/{{date}}.md"', 3],
-  ['if-property "{{file}}" status "offen"', 3],
-  ['for-each "Eingang/*.md"', 3],
-  ['script "Zähle offene Aufgaben"', 3],
   ['db-create "Personen" name="{{prompt:Name?}}" status="aktiv"', 'D'],
   ['db-update "Personen" key="Müller" status="inaktiv"', 'D'],
   ['db-delete "Personen" r-00042', 'D'],
@@ -103,7 +109,23 @@ describe('Katalog-Beispiele der Konzept-Stufe', () => {
     }
   });
 
-  it('weist jedes Beispiel der Stufen 3 und D mit dem Stufen-Befund ab', () => {
+  it('lässt jede Bedingung und die Schleife der Stufe 3 als Block mit end gelten (4T-002464)', () => {
+    for (const zeile of KATALOG_STUFE_3) expect(codes([zeile, 'end']), zeile).toEqual([]);
+    expect(pruefe(['if-property "{{file}}" status', 'end']).steps[0].args).toEqual([
+      { type: 'path', raw: '{{file}}', form: 'string' },
+      { type: 'key', raw: 'status', form: 'word' },
+    ]);
+  });
+
+  it('weist die Block-Wörter mit dem Stufen-Befund ab, wenn allein die Stufen 1 und 2 gelten', () => {
+    const f = pruefe(['if-exists "a.md"', 'end'], { stages: [1, 2] }).findings;
+    expect(f.map((x) => [x.code, x.detail.stage])).toEqual([
+      ['laterStage', 3],
+      ['laterStage', 3],
+    ]);
+  });
+
+  it('weist jedes Beispiel der späteren Stufen mit dem Stufen-Befund ab', () => {
     for (const [zeile, stufe] of KATALOG_SPAETER) {
       const f = eins(zeile);
       expect(
@@ -389,8 +411,9 @@ describe('Datei-Ebene und Laufzeit-Fragen (O1)', () => {
   });
 
   it('prüft die Zeilen auch bei einem nicht unterstützten Auslöser', () => {
-    // 4T-002419: `schedule` ist seit der Stufe 2 unterstützt; ein anderer Wert.
-    const r = checkWorkflow(dok(['foo'], 'trigger: event\n'));
+    // 4T-002419: `schedule` ist seit der Stufe 2 unterstützt, `event` seit der
+    // Stufe 3 (4T-002459); ein anderer Wert.
+    const r = checkWorkflow(dok(['foo'], 'trigger: on\n'));
     expect(r.findings.map((f) => f.code)).toEqual(['triggerUnsupported', 'unknownCommand']);
   });
 
@@ -526,6 +549,153 @@ describe('Zeitplan und Befund «nur von Hand»', () => {
       tokens: [{ type: 'string', value: '{{prompt:A?}} {{prompt:B?}}', from: 7 }],
     };
     expect(manualOnlyFindings(anweisung).map((f) => f.column)).toEqual([8, 8]);
+  });
+});
+
+// 4T-002459 (Epic 3E-000367): Ereignis-Befunde im Prüfen vor Laufen, der Befund
+// «nur von Hand» bei `trigger: event` (Story 4S-001142; Konzept-Runde
+// 4T-002458, Management-Summary Teil 3, Punkt 4) und die Platzhalter, die das
+// Ereignis nicht liefert (3l). Allein «nur von Hand» trägt `armOnly: true`; ein
+// Platzhalter, den das Ereignis nicht liefert, verhindert nach der Story wie
+// jeder Ereignis-Befund Lauf und Scharf-Schaltung.
+describe('Ereignis, Befund «nur von Hand» und Platzhalter je Ereignis', () => {
+  const ereignis = (zeile) => `trigger: event\nevent: ${zeile}\n`;
+  const EINGANG = ereignis('file-created in "Eingang"');
+  const lauf = (zeilen, kopf = EINGANG, optionen) => checkWorkflow(dok(zeilen, kopf), optionen);
+  const armOnly = (r, code) =>
+    r.findings.filter((f) => f.code === code).map((f) => [f.line, f.column, f.detail, f.armOnly]);
+
+  it('lässt einen Workflow nach Ereignis ohne Befund scharf schalten', () => {
+    const r = lauf(['move "{{file}}" "Archiv/{{date}}"']);
+    expect(r).toMatchObject({ ok: true, armable: true, findings: [] });
+  });
+
+  it('meldet Eingabe-Platzhalter, confirm und delete als «nur von Hand» (AK3)', () => {
+    const r = lauf([
+      'mkdir "P/{{prompt:Name?}}"',
+      'set-property "{{file}}" status "{{select:Status:offen,erledigt}}"',
+      'confirm "Weiter?"',
+      'delete "Alt.md"',
+    ]);
+    expect(r.findings.map((f) => f.code)).toEqual([
+      'manualOnly',
+      'manualOnly',
+      'manualOnly',
+      'manualOnly',
+    ]);
+    expect(armOnly(r, 'manualOnly')).toEqual([
+      [7, 7, { placeholder: 'prompt' }, true],
+      [8, 32, { placeholder: 'select' }, true],
+      [9, 1, { keyword: 'confirm' }, true],
+      [10, 1, { keyword: 'delete' }, true],
+    ]);
+  });
+
+  it('verhindert mit «nur von Hand» die Scharf-Schaltung, nicht den Start von Hand (AK3)', () => {
+    const r = lauf(['confirm "Weiter?"', 'delete "Alt.md"', 'notify "{{prompt:Text?}}"']);
+    expect(r.ok).toBe(true);
+    expect(r.armable).toBe(false);
+    expect(r.findings.some(blocksRun)).toBe(false);
+    expect(r.steps.map((s) => s.keyword)).toEqual(['confirm', 'delete', 'notify']);
+  });
+
+  it('verhindert mit jedem Ereignis-Befund Lauf und Scharf-Schaltung (AK2)', () => {
+    for (const kopf of [
+      ereignis('file-deleted in "Eingang"'),
+      ereignis('file-created in "../Fremd"'),
+      ereignis('file-created in Eingang'),
+      ereignis('area-opened in "Eingang"'),
+      ereignis('file-changed matching ""'),
+      'trigger: event\n',
+      'event: file-created\n',
+      'trigger: event\nevent: file-created\nevent: file-changed\n',
+    ]) {
+      const r = checkWorkflow(dok(['notify "x"'], kopf));
+      expect(r.ok, kopf).toBe(false);
+      expect(r.armable, kopf).toBe(false);
+      expect(r.findings.every(blocksRun), kopf).toBe(true);
+    }
+  });
+
+  it('meldet {{file}} bei area-opened mit Zeile und Spalte und sperrt den Lauf (AK4)', () => {
+    const r = lauf(
+      ['notify "Geöffnet: {{area}}"', 'append "{{file}}" from-section "X"'],
+      ereignis('area-opened'),
+    );
+    expect(armOnly(r, 'placeholderNotProvided')).toEqual([
+      [8, 8, { placeholder: 'file', event: 'area-opened' }, undefined],
+    ]);
+    expect(r.ok).toBe(false);
+    expect(r.armable).toBe(false);
+    expect(r.findings.every(blocksRun)).toBe(true);
+  });
+
+  it('meldet {{from}} außer bei file-moved und {{task}} außer bei task-done (AK4)', () => {
+    const zeilen = ['notify "{{from}} {{task}}"'];
+    const gemeldet = (zeile) =>
+      lauf(zeilen, ereignis(zeile))
+        .findings.filter((f) => f.code === 'placeholderNotProvided')
+        .map((f) => f.detail.placeholder);
+    expect(gemeldet('file-created')).toEqual(['from', 'task']);
+    expect(gemeldet('file-changed in "Projekte"')).toEqual(['from', 'task']);
+    expect(gemeldet('file-moved in "Archiv"')).toEqual(['task']);
+    expect(gemeldet('task-done in "Wochenplan.md"')).toEqual(['from']);
+    expect(gemeldet('area-opened')).toEqual(['from', 'task']);
+    expect(gemeldet('reminder-due')).toEqual(['from', 'task']);
+  });
+
+  it('meldet nichts für Platzhalter, die das Ereignis liefert', () => {
+    expect(
+      lauf(['move "{{file}}" "Archiv"', 'notify "von {{from}}"'], ereignis('file-moved')),
+    ).toMatchObject({ ok: true, armable: true, findings: [] });
+    expect(
+      lauf(['append "Journal.md" from-section "{{task}}"'], ereignis('task-done')).findings,
+    ).toEqual([]);
+    expect(lauf(['notify "{{file}}"'], ereignis('reminder-due')).findings).toEqual([]);
+  });
+
+  it('prüft die Platzhalter je Ereignis nicht ohne lesbare Ereignis-Zeile und nicht von Hand', () => {
+    expect(
+      checkWorkflow(dok(['notify "{{from}}"'], ereignis('file-deleted'))).findings.map(
+        (f) => f.code,
+      ),
+    ).toEqual(['eventUnknown']);
+    expect(codes(['notify "{{from}} {{task}}"'])).toEqual([]);
+    const plan = 'trigger: schedule\nschedule: every monday at 08:00\n';
+    expect(checkWorkflow(dok(['notify "{{task}}"'], plan)).findings).toEqual([]);
+  });
+
+  it('meldet den unbekannten Ereignis-Namen mit der Zeile im Dateikopf (AK6 des Tasks)', () => {
+    const r = checkWorkflow(
+      dok(
+        ['notify "x"'],
+        'name: Ereignis-Test\ntrigger: event\nevent: file-deleted in "Eingang"\n',
+      ),
+    );
+    expect(r.findings.map((f) => [f.code, f.line])).toEqual([['eventUnknown', 5]]);
+    const behoben = checkWorkflow(
+      dok(
+        ['notify "x"'],
+        'name: Ereignis-Test\ntrigger: event\nevent: file-created in "Eingang"\n',
+      ),
+    );
+    expect(behoben).toMatchObject({ ok: true, armable: true, findings: [] });
+  });
+
+  it('liefert die Befunde einzeln aus eventPlaceholderFindings', () => {
+    const anweisung = {
+      line: 3,
+      blockLine: 1,
+      from: 0,
+      keyword: 'notify',
+      tokens: [{ type: 'string', value: '{{file}} {{from}} {{', from: 7 }],
+    };
+    expect(eventPlaceholderFindings(anweisung, 'area-opened')).toEqual([]);
+    anweisung.tokens[0].value = '{{file}} {{from}}';
+    expect(eventPlaceholderFindings(anweisung, 'area-opened').map((f) => f.detail)).toEqual([
+      { placeholder: 'file', event: 'area-opened' },
+      { placeholder: 'from', event: 'area-opened' },
+    ]);
   });
 });
 

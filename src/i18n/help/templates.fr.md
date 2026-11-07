@@ -26,7 +26,7 @@ Plusieurs espaces réservés de saisie et de sélection apparaissent **l'un apr�
 
 ## Référence des espaces réservés
 
-Les espaces réservés s'écrivent entre doubles accolades. `\{{` écrit un `{{` littéral dans le modèle. Les modèles et les [workflows](workflows.md) partagent le même jeu d'espaces réservés ; ceux qui valent dans une ligne de commande sont décrits sur la page des workflows.
+Les espaces réservés s'écrivent entre doubles accolades. `\{{` écrit un `{{` littéral dans le modèle. Les modèles et les [workflows](workflows.md) partagent le même jeu d'espaces réservés ; ceux qui valent dans une ligne de commande sont décrits sur la page des workflows. `{{from}}`, `{{task}}`, `{{item}}` et `{{script:name}}` ne reçoivent une valeur que lors de l'exécution d'un workflow ; lors de l'application d'un modèle, ils restent vides.
 
 | Espace réservé | Effet |
 | --- | --- |
@@ -69,4 +69,4 @@ Les règles de dossier remplissent automatiquement les nouveaux fichiers : chaqu
 - Le **dossier de modèles lui-même est exclu** — les nouveaux modèles restent vides.
 - Si l'on choisit explicitement « Nouveau fichier à partir d'un modèle », le modèle choisi a la priorité ; la règle ne s'applique pas en plus.
 - L'annulation d'un dialogue crée le fichier **vide** (la création elle-même était voulue) et affiche un indice.
-- Les fichiers créés en dehors de l'application (par exemple dans le gestionnaire de fichiers) ne passent pas par les règles.
+- Les fichiers créés en dehors de l'application (par exemple dans le gestionnaire de fichiers) ne passent pas par les règles. Pour eux, il existe la règle de dossier des [workflows](workflows.md) : un workflow avec `event: file-created in "Dossier"` (section « Événements »).

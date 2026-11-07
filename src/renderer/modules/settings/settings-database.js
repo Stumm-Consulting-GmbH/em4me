@@ -72,6 +72,11 @@ export async function readDatabaseFromConfig() {
     draft: {
       hasArea: !!(konfig && konfig.hasArea),
       istDatenbankBereich: auskunft.istDatenbankBereich,
+      // 4T-002441: Aus welchem Stand des Index die Auskunft stammt. Nur eine
+      // Auskunft aus dem fertigen Index sagt etwas über die Bereichs-Art; eine
+      // aus dem laufenden Aufbau lautet immer «keine Datenbank» (siehe
+      // `wartetAufIndexDatabaseSection` unten).
+      auskunftStatus: auskunft.status,
       steckbrief: auskunft.steckbrief,
       tabellenZahl: auskunft.tabellen.length,
       // Fehlerlagen der ganzen Datenbank: die am Steckbrief plus die je
@@ -92,12 +97,38 @@ export async function readDatabaseFromConfig() {
  * Datenbank führt, und ein Abschnitt, der erst erscheint und dann verschwindet,
  * wäre die schlechtere Auskunft als einer, der später dazukommt.
  *
+ * 4T-002441: Dieses «später» tritt auch ein, wenn die Seite während des
+ * Index-Aufbaus geöffnet wurde. Die erste Auskunft lautet dann «keine
+ * Datenbank», und die Seite holt sie mit der Fertig-Meldung des Index nach
+ * (`ladeDatenbankInDraft` in settings-draft.js).
+ *
  * @param {object} draft Entwurf der Einstellungs-Seite.
  * @returns {boolean} true, wenn die Sektion erscheinen soll.
  */
 export function sichtbarDatabaseSection(draft) {
   const values = draft && draft.database;
   return !!(values && values.hasArea && values.istDatenbankBereich);
+}
+
+/**
+ * Wartet die Auskunft des Entwurfs noch auf den fertigen Index?
+ *
+ * 4T-002441: Wahr, solange ein Bereich gebunden ist und die Auskunft nicht aus
+ * einem bereiten Index stammt. Dann ist «keine Datenbank» keine Aussage über
+ * den Bereich, sondern nur über den Aufbau, und die Seite fragt nach der
+ * nächsten Index-Meldung neu. Ein bereiter Stand beendet das Warten; danach
+ * zieht nicht jedes Speichern im Bereich eine Anfrage nach sich.
+ *
+ * Ein bereits sichtbarer Abschnitt wartet nie: Er kann Eingaben des Anwenders
+ * tragen, und ein Nachladen tauschte den Entwurf unter ihnen aus.
+ *
+ * @param {object} draft Entwurf der Einstellungs-Seite.
+ * @returns {boolean} true, wenn die Auskunft nachzuholen ist.
+ */
+export function wartetAufIndexDatabaseSection(draft) {
+  const values = draft && draft.database;
+  if (!values || !values.hasArea || sichtbarDatabaseSection(draft)) return false;
+  return values.auskunftStatus !== 'ready';
 }
 
 /**

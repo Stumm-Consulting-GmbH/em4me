@@ -26,8 +26,15 @@ vi.mock('../../../src/renderer/modules/extensions/extension-lifecycle.js', () =>
 
 const i18n = await import('../../../src/renderer/i18n.js');
 await i18n.loadTranslations('de');
-const { abbruchText, einsetzen, fehlschlagSchluessel, grundText } =
-  await import('../../../src/renderer/modules/workflows/workflow-lauf-texte.js');
+const {
+  abbruchText,
+  einsetzen,
+  ereignisHerkunft,
+  ereignisInWorten,
+  fehlschlagSchluessel,
+  grundText,
+} = await import('../../../src/renderer/modules/workflows/workflow-lauf-texte.js');
+const { EVENT_TYPES } = await import('../../../src/shared/workflows/workflow-event.js');
 const { RUNNER_CODES } = await import('../../../src/shared/workflows/workflow-runner.js');
 const { BEGLEIT_CODES } = await import('../../../src/main/documents/companion-files.js');
 
@@ -162,5 +169,59 @@ describe('Texte des Hinweises (AK7)', () => {
 
   it('einsetzen lässt fehlende Werte leer', () => {
     expect(einsetzen('{a}-{b}', { a: 1 })).toBe('1-');
+  });
+});
+
+// 4T-002463 (Epic 3E-000367, Story 4S-001146, Entscheidung 3c).
+describe('Ereignis in Worten und Herkunft «Ereignis»', () => {
+  it.each([
+    ['de', de],
+    ['en', en],
+    ['fr', fr],
+    ['es', es],
+    ['it', it_],
+  ])('jedes Ereignis des Katalogs hat beide Texte in der Sprachfassung %s', (_, katalog) => {
+    const fehlend = EVENT_TYPES.flatMap((e) => [
+      `workflow.ereignis.bei.${e}`,
+      `workflow.ereignis.name.${e}`,
+    ]).filter((k) => typeof katalog[k] !== 'string' || katalog[k] === '');
+    expect(fehlend).toEqual([]);
+  });
+
+  it.each([
+    [{ event: 'file-created', in: 'Eingang', matching: null }, 'bei neuer Datei in ‹Eingang›'],
+    [
+      { event: 'file-changed', in: null, matching: '*.md' },
+      'bei geänderter Datei, Name passend zu ‹*.md›',
+    ],
+    [
+      { event: 'file-moved', in: 'Archiv/2026', matching: 'Rechnung-*' },
+      'bei verschobener Datei in ‹Archiv/2026›, Name passend zu ‹Rechnung-*›',
+    ],
+    [{ event: 'task-done', in: null, matching: null }, 'bei erledigter Aufgabe'],
+    [{ event: 'area-opened', in: null, matching: null }, 'beim Öffnen des Bereichs'],
+    [{ event: 'reminder-due', in: null, matching: null }, 'bei fälliger Erinnerung'],
+  ])('ereignisInWorten(%o)', (regel, text) => {
+    expect(ereignisInWorten(regel)).toBe(text);
+  });
+
+  it('ohne Regel leer, ein unbekanntes Ereignis erscheint als Name und meldet sich', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      expect(ereignisInWorten(null)).toBe('');
+      expect(ereignisInWorten({ event: 'webhook', in: 'X' })).toBe('webhook in ‹X›');
+      expect(warn).toHaveBeenCalled();
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it('die Herkunft nennt Ereignis und Datei, ohne Datei nur das Ereignis', () => {
+    expect(ereignisHerkunft({ type: 'file-created', file: 'Eingang/Brief.md' })).toBe(
+      'Ereignis: neue Datei ‹Eingang/Brief.md›',
+    );
+    expect(ereignisHerkunft({ type: 'area-opened' })).toBe('Ereignis: Bereich geöffnet');
+    expect(ereignisHerkunft(null)).toBe('Ereignis');
+    expect(ereignisHerkunft({ type: 'unbekannt', file: 'a.md' })).toBe('Ereignis');
   });
 });

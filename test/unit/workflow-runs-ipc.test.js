@@ -133,6 +133,9 @@ describe('listWorkflowRuns', () => {
         runStateDefect: false,
         // 4T-002422: ohne Zeitplan, nicht scharf, ohne Termin und Verfall.
         scheduled: false,
+        // 4T-002463: Auslöser von Hand, keine Ereignis-Regel.
+        trigger: 'manual',
+        event: null,
         armed: 'notArmed',
         nextDue: null,
         skipped: null,
@@ -240,10 +243,48 @@ describe('listWorkflowRuns — Scharf-Zustand, nächster Lauf, Verfall, Herkunft
     expect(res.workflows[0]).toMatchObject({
       foreign: true,
       scheduled: false,
+      trigger: null,
+      event: null,
       armed: 'notArmed',
       nextDue: null,
       skipped: null,
     });
+  });
+});
+
+// 4T-002463 (Epic 3E-000367, Story 4S-001146): Ereignis-Workflows.
+describe('listWorkflowRuns — Ereignis-Workflows', () => {
+  const EREIGNIS = ['trigger: event', 'event: file-created in "Eingang" matching "*.md"'];
+  const { definitionsPruefsumme } = require('../../src/main/workflows/workflow-definition-hash.js');
+
+  it('trägt Auslöser, Ereignis-Regel und den Scharf-Zustand ohne Termin; der letzte Lauf das Ereignis', async () => {
+    const text = W('Eingang', ...EREIGNIS);
+    const b = bereich({ 'E.md': text });
+    const weg = schreibweg();
+    await weg.setArmedSchedule(null, b.abs('E.md'), {
+      hash: definitionsPruefsumme(text),
+      nextDue: null,
+    });
+    await weg.recordRun(null, b.abs('E.md'), {
+      status: 'ok',
+      origin: 'event',
+      event: { type: 'file-created', file: 'Eingang/Brief.md' },
+    });
+    const [e] = (await listWorkflowRuns(b.root, b.backlinks)).workflows;
+    expect(e).toMatchObject({
+      scheduled: false,
+      trigger: 'event',
+      event: { event: 'file-created', in: 'Eingang', matching: '*.md' },
+      armed: 'armed',
+      nextDue: null,
+      lastRun: { origin: 'event', event: { type: 'file-created', file: 'Eingang/Brief.md' } },
+    });
+  });
+
+  it('eine Ereignis-Zeile mit Befund liefert keine Regel', async () => {
+    const b = bereich({ 'E.md': W('E', 'trigger: event', 'event: file-vanished') });
+    const [e] = (await listWorkflowRuns(b.root, b.backlinks)).workflows;
+    expect(e).toMatchObject({ trigger: 'event', event: null, armed: 'notArmed' });
   });
 });
 

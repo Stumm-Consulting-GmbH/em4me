@@ -21,6 +21,8 @@ const { pruefeBegleitZiele, bewegeMitBegleitDateien } = require('./companion-fil
 const { computeLinkRewrites } = require('../../shared/link-rewrite');
 const { isInsideArea } = require('../area/area-path');
 const selbstSchreib = require('./self-write');
+// 4T-002460 (Epic 3E-000367): Sammelstelle des Ereignis-Prüfers der Workflows.
+const { meldeWorkflowEreignis } = require('../checks/workflow-event-check');
 
 // 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
 // Require-Cache).
@@ -272,6 +274,18 @@ function createLinkUpdate(deps) {
       }
     }
     broadcast('file:renamed', { oldPath: absolute, newPath });
+    // 4T-002460 (Epic 3E-000367, 3a): Quelle des Ereignisses `file-moved`. Jede
+    // Bewegung der Anwendung läuft hier durch (Umbenennen samt Kaskade,
+    // Verschieben eines Kapitels, Befehle `rename` und `move` eines Workflows);
+    // was ein Workflow-Lauf bewegt, filtert der Ketten-Schutz aus 4T-002461:
+    // Im Lauf-Zusammenhang eines Schritts trägt die Meldung das Kennzeichen
+    // `lauf` (documents/self-write.js, Abschnitt «Lauf-Marke», Form 2).
+    meldeWorkflowEreignis({
+      type: 'file-moved',
+      path: newPath,
+      from: absolute,
+      ...(selbstSchreib.istImWorkflowLauf() ? { lauf: true } : {}),
+    });
     // 4T-000847 (Epic 3E-000147, Story 4S-000756): Ist die bewegte Datei Kapitel
     // eines Buches, fährt ihr Eintrag im Kapitel-Baum mit — beim Umbenennen
     // wie beim Verschieben, und unabhängig davon, ob das Buch gerade

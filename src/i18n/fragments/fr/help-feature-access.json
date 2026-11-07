@@ -319,5 +319,9 @@
   "help.featureAccess.workflowArming": "Affichage → Afficher les exécutions des workflows → colonne «Armé» ; bouton «Armé» au-dessus du bloc dans le mode direct, la vue rendue et la vue partagée ; menu contextuel d'un fichier de workflow dans le panneau de zone → Armer / Désarmer",
   "help.featureAccess.workflowStatusbar": "Barre d'état → élément «Workflows» ; commande `notify` dans le bloc de code `workflow`",
   "help.featureAccess.workflowMaintenance": "Commandes `delete`, `add-tag`, `remove-tag`, `complete-task` et `confirm` dans le bloc de code `workflow`",
-  "help.featureAccess.workflowLinked": "Fichier → Paramètres… → Zone actuelle → Liens entre zones → Workflows ; Fichier → Workflows ; palette de commandes ; Affichage → Afficher les exécutions des workflows"
+  "help.featureAccess.workflowLinked": "Fichier → Paramètres… → Zone actuelle → Liens entre zones → Workflows ; Fichier → Workflows ; palette de commandes ; Affichage → Afficher les exécutions des workflows",
+  "help.featureAccess.workflowEvents": "Champs d’en-tête `trigger: event` et `event` avec `file-created`, `file-changed`, `file-moved`, `task-done`, `area-opened` ou `reminder-due`, au choix `in` et `matching` ; affichage de vérification au-dessus du bloc dans le mode direct, la vue rendue et la vue partagée ; Affichage → Afficher les exécutions des workflows → colonne «Armé»",
+  "help.featureAccess.workflowConditions": "Commandes `if-exists`, `if-missing`, `if-property`, `if-script`, `else` et `end` dans le bloc de code `workflow`",
+  "help.featureAccess.workflowLoop": "Commande `for-each` avec `end` dans le bloc de code `workflow` ; espaces réservés `{{item}}` et `{{item:name}}`",
+  "help.featureAccess.workflowScript": "Commandes `script` avec `as` et `if-script` dans le bloc de code `workflow` ; espace réservé `{{script:name}}` ; Fichier → Paramètres… → Comportement → Exécuter les blocs de script"
 }

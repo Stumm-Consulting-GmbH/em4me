@@ -26,7 +26,7 @@ Varios marcadores de entrada y selección aparecen **uno tras otro** en el orden
 
 ## Referencia de marcadores
 
-Los marcadores se escriben entre llaves dobles. `\{{` escribe un `{{` literal en la plantilla. Las plantillas y los [workflows](workflows.md) comparten el mismo conjunto de marcadores; cuáles valen en una línea de comando se describe en la página de los workflows.
+Los marcadores se escriben entre llaves dobles. `\{{` escribe un `{{` literal en la plantilla. Las plantillas y los [workflows](workflows.md) comparten el mismo conjunto de marcadores; cuáles valen en una línea de comando se describe en la página de los workflows. `{{from}}`, `{{task}}`, `{{item}}` y `{{script:name}}` solo reciben un valor en una ejecución de un workflow; al aplicar una plantilla quedan vacíos.
 
 | Marcador | Efecto |
 | --- | --- |
@@ -69,4 +69,4 @@ Las reglas de carpeta rellenan los archivos nuevos automáticamente: cada regla 
 - La **propia carpeta de plantillas queda excluida**: las plantillas nuevas permanecen vacías.
 - Si se elige explícitamente «Nuevo archivo desde plantilla», la plantilla elegida tiene prioridad; la regla no se aplica adicionalmente.
 - Cancelar un diálogo crea el archivo **vacío** (la creación en sí era deseada) y muestra un aviso.
-- Los archivos creados fuera de la aplicación (por ejemplo en el gestor de archivos) no pasan por las reglas.
+- Los archivos creados fuera de la aplicación (por ejemplo en el gestor de archivos) no pasan por las reglas. Para ellos existe la regla de carpeta de los [workflows](workflows.md): un workflow con `event: file-created in "Carpeta"` (sección «Eventos»).

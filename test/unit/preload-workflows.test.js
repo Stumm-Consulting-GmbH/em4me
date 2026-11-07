@@ -65,6 +65,12 @@ describe('workflowsBridge', () => {
       'workflowScheduleRelease',
       'workflowScheduleFinished',
       'workflowScheduleOpen',
+      // 4T-002460: Lauf nach Ereignis.
+      'onWorkflowEventDue',
+      'workflowEventClaim',
+      'workflowEventRelease',
+      'workflowEventFinished',
+      'workflowEventOpen',
       'workflowSetArmed',
       'workflowArmedState',
     ]);
@@ -81,6 +87,10 @@ describe('workflowsBridge', () => {
     await bruecke.workflowScheduleRelease('k1');
     await bruecke.workflowScheduleFinished('k1');
     await bruecke.workflowScheduleOpen();
+    await bruecke.workflowEventClaim('e1');
+    await bruecke.workflowEventRelease('e1');
+    await bruecke.workflowEventFinished('e1');
+    await bruecke.workflowEventOpen();
     // 4T-002422: Scharf-Schaltung und Scharf-Zustand einer Datei.
     await bruecke.workflowSetArmed('/w.md', true);
     await bruecke.workflowArmedState('/w.md');
@@ -98,6 +108,10 @@ describe('workflowsBridge', () => {
       ['workflow:scheduleRelease', { key: 'k1' }],
       ['workflow:scheduleFinished', { key: 'k1' }],
       ['workflow:scheduleOpen'],
+      ['workflow:eventClaim', { key: 'e1' }],
+      ['workflow:eventRelease', { key: 'e1' }],
+      ['workflow:eventFinished', { key: 'e1' }],
+      ['workflow:eventOpen'],
       ['workflow:setArmed', { workflowPath: '/w.md', armed: true }],
       ['workflow:armedState', { workflowPath: '/w.md' }],
     ]);
@@ -106,6 +120,11 @@ describe('workflowsBridge', () => {
     bruecke.onWorkflowDue((nutzlast) => faellig.push(nutzlast));
     zuhoerer.get('workflow:due')({}, { items: [] });
     expect(faellig).toEqual([{ items: [] }]);
+    // 4T-002460: ebenso die Zustellung einer Ereignis-Fälligkeit.
+    const ereignisse = [];
+    bruecke.onWorkflowEventDue((nutzlast) => ereignisse.push(nutzlast));
+    zuhoerer.get('workflow:eventDue')({}, { items: [] });
+    expect(ereignisse).toEqual([{ items: [] }]);
     const empfangen = [];
     bruecke.onWorkflowBufferEdit((auftrag) => empfangen.push(auftrag));
     zuhoerer.get('workflow:bufferEdit')({}, { requestId: 'k' });

@@ -7,6 +7,11 @@
 // und Live-Ansicht, im Live-Modus im aufgeklappten Block; der zugeklappte Block
 // ist ein Widget und wird über die Pipeline gefärbt.
 //
+// **Block-Wörter (4T-002464):** `if-exists`, `if-missing`, `if-property`,
+// `for-each`, `else` und `end` tragen neben `cm-wf-keyword` die Marke
+// `cm-wf-block`, damit Bedingungen und Schleifen im Ablauf hervortreten; die
+// Spanne meldet der Kern mit `block: true`.
+//
 // **Warum ein ViewPlugin über die sichtbaren Bereiche** statt eines StateField
 // über das ganze Dokument (Muster der Marker-Felder in live-marker-fields.js):
 // Das ist der Standard-Weg von CodeMirror für Hervorhebungen und erfüllt die
@@ -39,7 +44,13 @@ const MARKE = {
   keyword: Decoration.mark({ class: 'cm-wf-keyword' }),
   string: Decoration.mark({ class: 'cm-wf-string' }),
   placeholder: Decoration.mark({ class: 'cm-wf-placeholder' }),
+  block: Decoration.mark({ class: 'cm-wf-keyword cm-wf-block' }),
 };
+
+// Die Marke einer Spanne; ein Block-Wort trägt die Block-Marke.
+function markeFuer(spanne) {
+  return spanne.block ? MARKE.block : MARKE[spanne.kind];
+}
 
 function kindKnoten(knoten, name) {
   for (let k = knoten.firstChild; k; k = k.nextSibling) if (k.name === name) return k;
@@ -52,7 +63,7 @@ function blockMarken(doc, code, marken) {
   for (let nr = doc.lineAt(code.from).number; nr <= letzte; nr++) {
     const zeile = doc.line(nr);
     for (const s of workflowHighlightRanges(zeile.text)) {
-      if (s.to > s.from) marken.push(MARKE[s.kind].range(zeile.from + s.from, zeile.from + s.to));
+      if (s.to > s.from) marken.push(markeFuer(s).range(zeile.from + s.from, zeile.from + s.to));
     }
   }
 }

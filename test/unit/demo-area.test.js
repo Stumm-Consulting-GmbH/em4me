@@ -343,8 +343,12 @@ const EXPECTED_FILES = [
   // Zeitplan, ausgeliefert nicht scharf (ohne Begleitdatei); ebenfalls ohne
   // Schlagworte und ohne Aufgaben-Zeile, damit Tag-Menge und Abfrage-Zeilen
   // der Demo-Area gleich bleiben.
+  // 4T-002466 (Epic 3E-000367): der fuenfte Beispiel-Workflow «Inbox Rule» mit
+  // Ereignis und Bedingung, ausgeliefert nicht scharf; ohne Schlagworte und
+  // ohne Aufgaben-Zeile in der Datei selbst.
   'Workflows/Add Log Entry.md',
   'Workflows/Daily Note.md',
+  'Workflows/Inbox Rule.md',
   'Workflows/New Meeting Note.md',
   'Workflows/Side by Side.md',
   'attachments/demo-document.pdf',

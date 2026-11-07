@@ -53,7 +53,9 @@ import { loadWorkflowsIntoDraft, reloadWorkflowsAreaPart } from './settings-work
 // 4T-001455 (Epic 3E-000190): Verknuepfungen des Bereichs.
 import { readAreaLinksFromConfig } from './settings-area-links.js';
 // 4T-001758 (Epic 3E-000253): Datenbank-Auskunft und Anzeige-Option des Bereichs.
-import { readDatabaseFromConfig } from './settings-database.js';
+// 4T-002441: dazu der Nachzug nach dem Ende des Index-Aufbaus.
+import { readDatabaseFromConfig, wartetAufIndexDatabaseSection } from './settings-database.js';
+import { verwirfDatenbankAuskunft } from '../database/datenbank-bereich.js';
 // 4T-001885 (Epic 3E-000189): Die eigenen Angaben des Buches bzw. Regals.
 import { readBookInfoFromConfig } from './settings-buch-angaben.js';
 import { einstellungsKontext } from './settings-kontext.js';
@@ -284,14 +286,8 @@ function ladeAppearanceInDraft() {
   // 4T-001758 (Epic 3E-000253): Datenbank des Bereichs. Anders als die uebrigen
   // Nachzuege baut dieser die NAVIGATION neu auf und nicht nur den aktiven
   // Bereich: Von dieser Antwort haengt ab, ob die Sektion ueberhaupt erscheint.
-  readDatabaseFromConfig().then((values) => {
-    if (generation !== pageState.generation || !pageState.draft) return;
-    pageState.draft.database = values.draft;
-    pageState.draft.databaseSnapshot = values.snapshot;
-    const els = settingsPageEls();
-    if (els && els.nav && els.nav.isConnected) buildSettingsNavEntries(els.nav);
-    if (pageState.activeSectionId === 'database') renderActiveSection();
-  });
+  // 4T-002441: samt Nachzug nach dem Ende des Index-Aufbaus (Helfer unten).
+  ladeDatenbankInDraft(generation);
   // 4T-001885 (Epic 3E-000189): Die eigenen Angaben des Buches bzw. Regals. Der
   // Kontext steht schon im frischen Entwurf, deshalb genügt hier das Nachreichen
   // der Werte und ein Neu-Zeichnen des Abschnitts — ein Navigations-Neubau ist
@@ -395,6 +391,61 @@ function ladeAppearanceInDraft() {
     pageState.draft.timestamps = ts;
     pageState.draft.timestampsSnapshot = { ...ts };
     if (pageState.activeSectionId === 'frontmatterTimestamps') renderActiveSection();
+  });
+}
+
+// 4T-002441: Die Datenbank-Auskunft der Seite und ihr Nachzug nach dem Ende des
+// Index-Aufbaus.
+//
+// **Die Ursache.** Die Seite fragte die Bereichs-Art genau einmal, beim Öffnen
+// und beim Bereichs-Wechsel. Lief der Index-Aufbau da noch, lautete die Antwort
+// «keine Datenbank», und der Abschnitt «Datenbank» fehlte, bis die Seite neu
+// geöffnet wurde: Gemessen öffnet die Seite 60 bis 115 ms nach dem Binden, der
+// Index ist 100 bis 220 ms danach bereit, die Reihenfolge war Zufall.
+//
+// **Der Nachzug.** Der Index meldet sein Fertigwerden über dieselbe Meldung wie
+// jede Bestands-Änderung (`backlinks:invalidated`, Muster der Übersichts-Seite
+// in datenbank-uebersicht-seite.js). Wartet die Auskunft des Entwurfs noch auf
+// den Index, holt die Meldung sie neu, und die Navigation baut sich danach neu
+// auf. Ein bereiter Stand beendet das Warten, ein sichtbarer Abschnitt wird nie
+// ausgetauscht (`wartetAufIndexDatabaseSection`); die übrigen Abschnitte und
+// ihre Eingaben berührt der Nachzug nicht, weil er allein `draft.database`
+// ersetzt.
+//
+// **Der Zähler.** Die Auskunft braucht zwei Anfragen an den Haupt-Prozess
+// (Bereichs-Art und Bereichsdatei). Fällt die Fertig-Meldung zwischen die
+// Antwort auf die erste und die auf die zweite, steht noch kein Entwurf, an dem
+// die Meldung das Warten erkennen könnte. Jede Ladung merkt sich deshalb den
+// Zählerstand der Meldungen bei ihrem Start und fragt bei ihrer Ankunft selbst
+// noch einmal, wenn inzwischen eine Meldung kam und sie noch wartet.
+let indexMeldungen = 0;
+
+function ladeDatenbankInDraft(generation) {
+  const meldungenBeimStart = indexMeldungen;
+  readDatabaseFromConfig().then((values) => {
+    if (generation !== pageState.generation || !pageState.draft) return;
+    pageState.draft.database = values.draft;
+    pageState.draft.databaseSnapshot = values.snapshot;
+    const els = settingsPageEls();
+    if (els && els.nav && els.nav.isConnected) buildSettingsNavEntries(els.nav);
+    if (pageState.activeSectionId === 'database') renderActiveSection();
+    if (indexMeldungen !== meldungenBeimStart && wartetAufIndexDatabaseSection(pageState.draft)) {
+      ladeDatenbankInDraft(generation);
+    }
+  });
+}
+
+// Der Zuhörer des Hilfs-Moduls datenbank-bereich.js verwirft die gehaltene
+// Auskunft auf dieselbe Meldung; er ist früher angemeldet, weil das Modul über
+// settings-database.js vor diesem geladen wird. Das Verwerfen hier macht den
+// Nachzug davon unabhängig: Eine noch laufende Anfrage aus dem Aufbau darf er
+// nicht teilen, sonst bekäme er deren Antwort «noch nicht bereit» zurück.
+if (typeof api.onBacklinksInvalidated === 'function') {
+  api.onBacklinksInvalidated(() => {
+    indexMeldungen += 1;
+    if (!wartetAufIndexDatabaseSection(pageState.draft)) return;
+    verwirfDatenbankAuskunft();
+    ladeDatenbankInDraft(pageState.generation);
   });
 }
 
@@ -507,14 +558,9 @@ export function refreshSettingsPageForAreaChange() {
   // 4T-001758 (Epic 3E-000253): Die Datenbank-Auskunft gehoert zum alten
   // Bereich und wird vollstaendig neu geholt; mit ihr entscheidet sich, ob die
   // Sektion im neuen Bereich ueberhaupt erscheint, deshalb der Navigations-Neubau.
-  readDatabaseFromConfig().then((values) => {
-    if (generation !== pageState.generation || !pageState.draft) return;
-    pageState.draft.database = values.draft;
-    pageState.draft.databaseSnapshot = values.snapshot;
-    const nav = settingsPageEls();
-    if (nav && nav.nav && nav.nav.isConnected) buildSettingsNavEntries(nav.nav);
-    rerenderIfActive(['database']);
-  });
+  // 4T-002441: Gerade hier wird der Index des neuen Bereichs meist noch
+  // aufgebaut; der Helfer holt die Auskunft nach dessen Fertig-Meldung nach.
+  ladeDatenbankInDraft(generation);
   // 4T-001885 (Epic 3E-000189): Die eigenen Angaben gehoeren zum alten
   // Gegenstand und werden vollstaendig neu geholt — mit ihnen wechselt auch der
   // Kontext, also Block-Titel und Sichtbarkeit des Abschnitts. Der

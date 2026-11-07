@@ -8,7 +8,7 @@ Los ejemplos de esta página están puestos deliberadamente como bloques de cód
 
 La ejecución de scripts está **desactivada por defecto**. Sin activación, un bloque de script muestra su código fuente con un aviso; no se crea ningún entorno de ejecución.
 
-Se activa en **Ajustes → Comportamiento → Ejecutar bloques de script**. La activación es una decisión de confianza deliberada: los scripts provienen de los documentos abiertos. Actívela solo si sus propios documentos son de confianza. El cambio surte efecto de inmediato en todas las ventanas, sin reiniciar.
+Se activa en **Ajustes → Comportamiento → Ejecutar bloques de script**. La activación es una decisión de confianza deliberada: los scripts provienen de los documentos abiertos. Actívela solo si sus propios documentos son de confianza. El cambio surte efecto de inmediato en todas las ventanas, sin reiniciar. El mismo ajuste vale para el paso de script de los [workflows](workflows.md), que ejecuta un bloque de script del archivo de workflow en el mismo entorno aislado, de solo lectura y con el mismo límite de tiempo.
 
 ## Límites de ejecución
 

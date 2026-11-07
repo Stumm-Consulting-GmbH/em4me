@@ -211,6 +211,54 @@ describe('{{file}} und {{area}} (4T-002347)', () => {
   });
 });
 
+// 4T-002459 (Epic 3E-000367): die Platzhalter eines Ereignis-Laufs (3l).
+describe('{{from}} und {{task}} (4T-002459)', () => {
+  it('setzt alten Pfad und Aufgaben-Text aus dem Kontext ein, sonst leer', () => {
+    const result = fill('{{from}} | {{task}}', { from: 'Eingang/A.md', task: 'Rückblick' });
+    expect(result).toMatchObject({ ok: true, text: 'Eingang/A.md | Rückblick' });
+    expect(fill('[{{from}}][{{task}}]').text).toBe('[][]');
+  });
+
+  it('ist als Kontext-Platzhalter ohne Parameter und ohne Eingabe-Dialog notiert', () => {
+    const analysis = analyzeTemplate('{{From}} {{TASK}}');
+    expect(analysis.inputs).toEqual([]);
+    expect(analysis.segments.filter((s) => s.type === 'context').map((s) => s.name)).toEqual([
+      'from',
+      'task',
+    ]);
+    expect(analyzeTemplate('{{task:x}}').error).toMatchObject({
+      code: 'invalidParams',
+      name: 'task',
+    });
+  });
+});
+
+// 4T-002464 (Epic 3E-000367): die Platzhalter der Workflow-Schleife (3g).
+describe('{{item}} und {{item:name}} (4T-002464)', () => {
+  it('setzt Pfad und Namen der Datei aus dem Kontext ein, sonst leer', () => {
+    const result = fill('{{item}} | {{item:name}}', {
+      item: 'Eingang/A.md',
+      'item:name': 'A',
+    });
+    expect(result).toMatchObject({ ok: true, text: 'Eingang/A.md | A' });
+    expect(fill('[{{item}}][{{item:name}}]').text).toBe('[][]');
+  });
+
+  it('kennt allein den Parameter name, ohne Eingabe-Dialog', () => {
+    const analysis = analyzeTemplate('{{Item}} {{ITEM: Name }}');
+    expect(analysis.inputs).toEqual([]);
+    expect(analysis.segments.filter((s) => s.type === 'context').map((s) => s.name)).toEqual([
+      'item',
+      'item:name',
+    ]);
+    expect(analyzeTemplate('{{item:pfad}}').error).toMatchObject({
+      code: 'invalidParams',
+      name: 'item',
+    });
+    expect(analyzeTemplate('{{item:name:x}}').error).toMatchObject({ code: 'invalidParams' });
+  });
+});
+
 describe('Lage der Platzhalter-Segmente (4T-002347)', () => {
   it('nennt Anfang und Ende jedes Platzhalters im Text', () => {
     const analysis = analyzeTemplate('Am {{date}}: {{prompt:Wer?}} \\{{x}}');

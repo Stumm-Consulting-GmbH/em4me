@@ -68,8 +68,10 @@ const i18n = await import('../../../src/renderer/i18n.js');
 await i18n.loadTranslations('de');
 const { starteWorkflow } =
   await import('../../../src/renderer/modules/workflows/workflow-start.js');
-const { istZeitplanLauf, ZEITPLAN_HERKUNFT } =
+const { istZeitplanLauf, istLaufOhneZuschauer, OHNE_ZUSCHAUER_HERKUNFT, ZEITPLAN_HERKUNFT } =
   await import('../../../src/renderer/modules/workflows/workflow-lauf-stand.js');
+const { meldeEnde, meldeNotify } =
+  await import('../../../src/renderer/modules/workflows/workflow-benachrichtigung.js');
 
 const W = (name, ...zeilen) =>
   ['---', 'workflow: true', `name: ${name}`, '---', '', '```workflow', ...zeilen, '```', ''].join(
@@ -102,6 +104,41 @@ describe('Herkunft eines Laufs', () => {
     expect(istZeitplanLauf('schedule')).toBe(true);
     expect(istZeitplanLauf('catch-up')).toBe(true);
     for (const h of ['manual', undefined, '', 'fremd']) expect(istZeitplanLauf(h)).toBe(false);
+  });
+
+  // 4T-002463: Ein Lauf durch ein Ereignis ist ein Lauf ohne Zuschauer.
+  it('schedule, catch-up und event sind Läufe ohne Zuschauer', () => {
+    expect(OHNE_ZUSCHAUER_HERKUNFT).toEqual(['schedule', 'catch-up', 'event']);
+    for (const h of OHNE_ZUSCHAUER_HERKUNFT) expect(istLaufOhneZuschauer(h)).toBe(true);
+    for (const h of ['manual', undefined, '', 'fremd']) expect(istLaufOhneZuschauer(h)).toBe(false);
+    expect(istZeitplanLauf('event')).toBe(false);
+  });
+});
+
+// 4T-002463 (Epic 3E-000367, Story 4S-001146): wie beim Zeitplan, ohne eigene Regel.
+describe('Lauf durch ein Ereignis (4T-002463)', () => {
+  it('notify: Hinweis und zusätzlich die Benachrichtigung des Betriebssystems', () => {
+    meldeNotify('Neue Datei', { name: 'Eingang', herkunft: 'event' });
+    expect(hinweisTexte()).toEqual(['Neue Datei']);
+    expect(meldungen.map((m) => [m.title, m.body, m.meldung.art])).toEqual([
+      ['Eingang', 'Neue Datei', 'workflow'],
+    ]);
+  });
+
+  it('Fehlschlag: Hinweis aus A1 und die Benachrichtigung; stop bleibt beim Hinweis', () => {
+    meldeEnde(
+      {
+        status: 'failed',
+        workflow: 'A',
+        line: 8,
+        code: 'targetExists',
+        detail: { path: 'a.md' },
+      },
+      'event',
+    );
+    expect(meldungen.map((m) => [m.title, m.body])).toEqual([['A', A1]]);
+    meldeEnde({ status: 'stopped', workflow: 'A', line: 9, text: 'Halt' }, 'event');
+    expect(meldungen).toHaveLength(1);
   });
 });
 

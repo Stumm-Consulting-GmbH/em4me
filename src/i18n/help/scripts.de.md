@@ -8,7 +8,7 @@ Die Beispiele dieser Seite sind bewusst als Code-Blöcke gesetzt; die Handbuch-S
 
 Die Skript-Ausführung ist standardmäßig **ausgeschaltet**. Ohne Aktivierung zeigt ein Skript-Block seinen Quelltext mit einem Hinweis-Banner; es entsteht keine Ausführungs-Umgebung.
 
-Eingeschaltet wird sie unter **Einstellungen → Verhalten → Skript-Blöcke ausführen**. Die Aktivierung ist eine bewusste Vertrauens-Entscheidung: Skripte stammen aus den geöffneten Dokumenten. Nur aktivieren, wenn die eigenen Dokumente vertrauenswürdig sind. Das Umschalten wirkt sofort in allen Fenstern, ohne Neustart.
+Eingeschaltet wird sie unter **Einstellungen → Verhalten → Skript-Blöcke ausführen**. Die Aktivierung ist eine bewusste Vertrauens-Entscheidung: Skripte stammen aus den geöffneten Dokumenten. Nur aktivieren, wenn die eigenen Dokumente vertrauenswürdig sind. Das Umschalten wirkt sofort in allen Fenstern, ohne Neustart. Dieselbe Einstellung gilt für den Skript-Schritt der [Workflows](workflows.md), der einen Skript-Block der Workflow-Datei in derselben Sandbox ausführt, rein lesend und mit derselben Zeitgrenze.
 
 ## Laufzeit-Grenzen
 

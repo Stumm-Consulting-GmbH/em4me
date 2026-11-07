@@ -25,6 +25,13 @@
 // Datenbank); sie bleiben am alten Ort, und der Quell-Ordner bleibt dann
 // stehen. Leere Quell-Ordner werden nicht-rekursiv entfernt.
 //
+// **Lauf-Marke** (4T-002461, Story 4S-001144): Jeder Schreibweg dieses Moduls
+// merkt VOR dem Schreiben, was er schreibt (`documents/self-write.js`, Abschnitt
+// «Lauf-Marke»): `create` den Inhalt, `copy` die Bytes der Quelle, `rename` und
+// `move` je bewegter Datei Größe und Änderungszeit der Quelle am Ziel. So löst
+// nichts davon ein Ereignis aus; die Meldung `file-moved` trägt zusätzlich das
+// Kennzeichen aus dem Lauf-Zusammenhang des Schritt-Kanals.
+//
 // Eigener Zustand: keiner.
 'use strict';
 
@@ -35,6 +42,7 @@ const { readPartLine } = require('../../shared/document-parts');
 const { checkFileName } = require('../../shared/workflows/workflow-paths.js');
 const { isInsideArea, isSamePath } = require('../area/area-path');
 const { BEGLEIT_CODES } = require('../documents/companion-files');
+const { merkeLaufBewegung, merkeLaufStand } = require('../documents/self-write');
 const { resolveAreaPath } = require('./workflow-area-path.js');
 const { readStepSource } = require('./workflow-content-steps.js');
 
@@ -115,6 +123,7 @@ function createWorkflowFileSteps(deps) {
     if (!quelle.ok) return quelle;
     try {
       await fs.mkdir(path.dirname(ziel.abs), { recursive: true });
+      merkeLaufStand(ziel.abs, quelle.text);
       await fs.writeFile(ziel.abs, quelle.text, { encoding: 'utf8', flag: 'wx' });
     } catch (err) {
       if (err && err.code === 'EEXIST') return fehlschlag('targetExists', { path: step.args[0] });
@@ -158,6 +167,7 @@ function createWorkflowFileSteps(deps) {
     for (const datei of reihe) {
       // Eine Begleitdatei ist mit ihrem Dokument schon gewandert.
       if (!(await statOderNull(datei))) continue;
+      await merkeLaufBewegung(datei, ziel(datei));
       const res = await renameSingleFile(datei, ziel(datei));
       if (!res.ok) {
         await sendBookStateForDirs(bookDirs);
@@ -208,6 +218,7 @@ function createWorkflowFileSteps(deps) {
 
   async function dateiBewegen(ctx, von, nach, kind) {
     const paare = await cascade.cascadePairs(von, nach);
+    for (const paar of paare) await merkeLaufBewegung(paar.from, paar.to);
     const res = await cascade.runCascade(ctx.owner, paare, { anchorNew: nach, ensureDirs: true });
     if (!res.ok) return kaskadenFehlschlag(res);
     return {
@@ -272,6 +283,7 @@ function createWorkflowFileSteps(deps) {
     }
     try {
       await fs.mkdir(path.dirname(ziel.abs), { recursive: true });
+      merkeLaufStand(ziel.abs, await fs.readFile(quelle.abs));
       await fs.copyFile(quelle.abs, ziel.abs, fs.constants.COPYFILE_EXCL);
     } catch (err) {
       if (err && err.code === 'EEXIST') return fehlschlag('targetExists', { path: step.args[1] });

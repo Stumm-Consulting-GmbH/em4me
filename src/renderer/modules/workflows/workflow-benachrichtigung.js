@@ -19,13 +19,18 @@
 // Inhalt von `notify` bzw. der Abbruch-Hinweis. Ein `stop` ist kein
 // Fehlschlag und bleibt beim Hinweis.
 //
+// **Lauf durch ein Ereignis** (4T-002463, Epic 3E-000367, Story 4S-001146):
+// genau wie ein Lauf nach Zeitplan, ohne eigene Regel (Ausführungs-
+// Entscheidung 4 «unbeaufsichtigt wie der Zeitplan»); entschieden wird über
+// `istLaufOhneZuschauer`.
+//
 // Eigener Zustand: der Zähler für die Schlüssel der Meldungen.
 'use strict';
 
 import { t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { showStatusbarHint } from '../views/views.js';
-import { istZeitplanLauf } from './workflow-lauf-stand.js';
+import { istLaufOhneZuschauer } from './workflow-lauf-stand.js';
 import { abbruchText, einsetzen } from './workflow-lauf-texte.js';
 
 // Anzeige-Dauer der Hinweise: `notify` wie ein gewöhnlicher Hinweis, der
@@ -64,7 +69,7 @@ function anBetriebssystem(titel, text) {
 export function meldeNotify(text, { name, herkunft }) {
   const hinweis = einsetzen(t('workflow.lauf.hinweis'), { text });
   showStatusbarHint('workflow.lauf.hinweis', { text: hinweis, error: false, duration: NOTIFY_MS });
-  if (istZeitplanLauf(herkunft)) anBetriebssystem(name, text);
+  if (istLaufOhneZuschauer(herkunft)) anBetriebssystem(name, text);
 }
 
 /**
@@ -78,7 +83,7 @@ export function meldeEnde(ergebnis, herkunft) {
   const key = stop ? 'workflow.lauf.beendet' : 'workflow.lauf.abgebrochen';
   const text = abbruchText(ergebnis);
   showStatusbarHint(key, { text, error: !stop, duration: ABBRUCH_MS });
-  if (ergebnis.status === 'failed' && istZeitplanLauf(herkunft)) {
+  if (ergebnis.status === 'failed' && istLaufOhneZuschauer(herkunft)) {
     anBetriebssystem(ergebnis.workflow, text);
   }
 }

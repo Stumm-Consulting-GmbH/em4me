@@ -1,12 +1,12 @@
 # Workflows
 
-Un **workflow** deja por escrito gestiones recurrentes como una secuencia fija de pasos: crear, renombrar, mover, copiar y mover a la papelera archivos y carpetas, añadir o insertar texto, establecer propiedades y etiquetas en la cabecera, marcar tareas como hechas, ejecutar comandos, macros y otros workflows. Un workflow es un **archivo Markdown corriente**; lo que hace figura en un bloque de comandos fijos, una línea por paso. Así el archivo sigue siendo legible sin la aplicación, se puede compartir y se edita como cualquier otro documento.
+Un **workflow** deja por escrito gestiones recurrentes como una secuencia fija de pasos: crear, renombrar, mover, copiar y mover a la papelera archivos y carpetas, añadir o insertar texto, establecer propiedades y etiquetas en la cabecera, marcar tareas como hechas, ejecutar comandos, macros y otros workflows. Las condiciones y las repeticiones deciden qué pasos se ejecutan y para qué archivos; un paso de script calcula un valor sin escribir nada. Un workflow es un **archivo Markdown corriente**; lo que hace figura en un bloque de comandos fijos, una línea por paso. Así el archivo sigue siendo legible sin la aplicación, se puede compartir y se edita como cualquier otro documento.
 
-Un workflow se inicia **a mano**: desde el menú, la paleta de comandos, con un atajo de teclado, un botón sobre el bloque o el menú contextual del panel del área. Un workflow con programación se ejecuta además **según su programación** en cuanto está activado. **Antes de que se ejecute el primer paso, la aplicación comprueba todo el workflow**; un error aparece sobre el bloque con la línea y el motivo, y no se ejecuta nada.
+Un workflow se inicia **a mano**: desde el menú, la paleta de comandos, con un atajo de teclado, un botón sobre el bloque o el menú contextual del panel del área. Un workflow con programación se ejecuta además **según su programación**, y un workflow con evento **ante un evento** del área, por ejemplo un archivo nuevo en una carpeta, en ambos casos en cuanto está activado. **Antes de que se ejecute el primer paso, la aplicación comprueba todo el workflow**; un error aparece sobre el bloque con la línea y el motivo, y no se ejecuta nada.
 
 ## La extensión «Workflows»
 
-La función forma parte de las [extensiones integradas](extensions.md) («Workflows», grupo **Herramientas**) y está activada en el modo de trabajo **Completo** y desactivada en los modos **Principiante** y **Avanzado**. Desactivada, un bloque `workflow` es un bloque de código corriente sin resaltado, sin indicación de comprobación y sin botones; no hay comandos de los workflows, ni submenú **Workflows**, ni página **Ejecuciones de workflows**, ni elemento **Workflows** en la barra de estado, ni secciones de configuración **Workflows**, ni ejecución según la programación. Un archivo de workflow es entonces un documento corriente. No se pierde nada: los archivos, los estados de ejecución con su estado de activación y la carpeta de workflows definida siguen intactos al volver a activarla.
+La función forma parte de las [extensiones integradas](extensions.md) («Workflows», grupo **Herramientas**) y está activada en el modo de trabajo **Completo** y desactivada en los modos **Principiante** y **Avanzado**. Desactivada, un bloque `workflow` es un bloque de código corriente sin resaltado, sin indicación de comprobación y sin botones; no hay comandos de los workflows, ni submenú **Workflows**, ni página **Ejecuciones de workflows**, ni elemento **Workflows** en la barra de estado, ni secciones de configuración **Workflows**, ni ejecución según la programación, ni ejecución ante eventos. Un archivo de workflow es entonces un documento corriente. No se pierde nada: los archivos, los estados de ejecución con su estado de activación y la carpeta de workflows definida siguen intactos al volver a activarla.
 
 ## Estructura de un archivo de workflow
 
@@ -34,18 +34,19 @@ notify "Repaso creado"
 - Repaso semanal creado.
 ````
 
-La cabecera lleva marca, nombre, disparador, descripción y, para una ejecución programada, la programación:
+La cabecera lleva marca, nombre, disparador, descripción y, según el disparador, la programación o el evento:
 
 | Clave | Obligatoria | Significado |
 | --- | --- | --- |
 | `workflow` | sí | `true` marca el archivo como workflow. |
 | `name` | no | Nombre del workflow en el menú, la paleta de comandos y los avisos; sin indicación vale el nombre del archivo sin extensión. |
-| `trigger` | no | Disparador: `manual` para el inicio a mano, `schedule` para la ejecución según la programación; sin indicación vale `manual`. |
+| `trigger` | no | Disparador: `manual` para el inicio a mano, `schedule` para la ejecución según la programación, `event` para la ejecución ante un evento; sin indicación vale `manual`. |
 | `schedule` | con `trigger: schedule` | Programación en una línea, por ejemplo `every weekday at 08:00` (sección «Programación y activación»). |
 | `missed` | no | Tratamiento de las ejecuciones perdidas: `run-once` recupera una vez, `skip` las deja caducar; sin indicación vale `run-once`. |
+| `event` | con `trigger: event` | Evento en una línea, por ejemplo `file-created in "Entrada"` (sección «Eventos»). |
 | `description` | no | Descripción breve; la página **Ejecuciones de workflows** la muestra como información emergente en el nombre. |
 
-Un disparador distinto de `manual` o `schedule` se muestra como «todavía no compatible», y el workflow no se ejecuta; el archivo queda sin cambios. Un archivo con dos o más bloques `workflow`, o con ninguno, tampoco se ejecuta. Un bloque que solo contiene comentarios es válido y no hace nada.
+Un disparador distinto de `manual`, `schedule` o `event` se muestra como «todavía no compatible», y el workflow no se ejecuta; el archivo queda sin cambios. Un archivo con dos o más bloques `workflow`, o con ninguno, tampoco se ejecuta. Un bloque que solo contiene comentarios es válido y no hace nada.
 
 ## Líneas de comando
 
@@ -76,9 +77,12 @@ Antes del primer paso, la aplicación comprueba todo el archivo, junto con cada 
 - comandos, macros y workflows desconocidos, así como nombres que llevan varias macros o varios workflows,
 - un workflow que se llama a sí mismo, también a través de otro, y un anidamiento de más de cinco niveles,
 - marcadores de posición erróneos, plantillas ilegibles y plantillas desactivadas,
-- una programación ilegible, una hora que falta o no está permitida, `schedule` sin `trigger: schedule` y a la inversa, así como un valor desconocido en `missed`.
+- una programación ilegible, una hora que falta o no está permitida, `schedule` sin `trigger: schedule` y a la inversa, así como un valor desconocido en `missed`,
+- una línea de evento ilegible, un evento desconocido, una carpeta fuera del área, un patrón no válido, `event` sin `trigger: event` y a la inversa, más de una línea `event` y un marcador que el evento no proporciona,
+- un `end` que falta o sobra, un `else` sin condición o un segundo `else`, bloques de más de tres niveles, un bucle dentro de un bucle, un patrón no válido en `for-each` y `{{item}}` fuera de un bucle,
+- en el paso de script, una sección que falta, aparece varias veces o no contiene script, un nombre no válido o repetido, un resultado que solo proporciona una línea posterior, y bloques de script desactivados.
 
-Un hallazgo detiene la ejecución **antes del primer paso**; un archivo de workflow erróneo no se ejecuta en absoluto en lugar de ejecutarse en parte. La comprobación señala todos los hallazgos a la vez; la línea indicada es la línea en el documento tal como la cuenta el editor, cabecera incluida. La única excepción es el hallazgo «Solo manual» (sección «Programación y activación»): impide únicamente la activación, y el inicio a mano sigue siendo posible.
+Un hallazgo detiene la ejecución **antes del primer paso**; un archivo de workflow erróneo no se ejecuta en absoluto en lugar de ejecutarse en parte. La comprobación señala todos los hallazgos a la vez; la línea indicada es la línea en el documento tal como la cuenta el editor, cabecera incluida. La única excepción es el hallazgo «Solo manual» (secciones «Programación y activación» y «Eventos»): impide únicamente la activación, y el inicio a mano sigue siendo posible.
 
 Lo que solo un paso anterior puede producir lo comprueba la aplicación en el propio paso: si existe un archivo, una sección o un encabezado. Si falta en ese momento, el paso falla.
 
@@ -131,7 +135,7 @@ Los comandos, ordenados según su objeto. Las rutas son relativas a la raíz del
 
 - `command` toma el identificador fijo de un comando, como `view.modeSplit`, `view.modeLive` o `file.save`, y lo ejecuta en la ventana de inicio. Si en ese momento no se puede ejecutar, el paso falla. Las macros y los workflows no se ejecutan con `command`, sino con sus propios comandos.
 - `macro` y `workflow` pueden anidarse como máximo cinco niveles. Un workflow llamado vuelve tras su último paso; si en él falla un paso, termina toda la ejecución.
-- `notify` muestra su texto en la barra de estado y, en una ejecución programada, además como notificación del sistema operativo (sección «Desarrollo de una ejecución»).
+- `notify` muestra su texto en la barra de estado y, en una ejecución programada o por un evento, además como notificación del sistema operativo (sección «Desarrollo de una ejecución»).
 - `stop` termina toda la ejecución, también desde un workflow llamado; la barra de estado muestra «Workflow ‹Nombre› detenido en la línea N: texto».
 
 ### Comandos de mantenimiento
@@ -150,7 +154,22 @@ Los comandos, ordenados según su objeto. Las rutas son relativas a la raíz del
 - **`complete-task`** busca entre las tareas abiertas del archivo, las mismas que muestra la [consulta de tareas](tasks.md), la primera cuyo texto contiene el texto buscado, distinguiendo mayúsculas y minúsculas. La marca como hecha igual que un clic en la consulta de tareas, con la fecha de finalización según la configuración de las tareas. Si no encuentra ninguna, el paso falla.
 - **`confirm`** muestra la pregunta con «Sí» y «No». «Sí» continúa la ejecución; «No» la termina sin fallo, y la barra de estado muestra «Workflow ‹Nombre› detenido en la línea N: «pregunta» respondida con No».
 - **Archivos abiertos:** sobre un archivo abierto y sin guardar en una ventana, `add-tag`, `remove-tag` y `complete-task` actúan a través de esa ventana, como los comandos de contenido.
-- `delete` y `confirm` necesitan a alguien presente: en un workflow con `trigger: schedule` son el hallazgo «Solo manual».
+- `delete` y `confirm` necesitan a alguien presente: en un workflow con `trigger: schedule` o `trigger: event` son el hallazgo «Solo manual».
+
+### Condiciones, repeticiones y scripts
+
+Estos comandos abren un **bloque** que cierra una línea `end`; los pasos intermedios solo se ejecutan si la condición se cumple, o una vez por archivo. `script` es un paso suelto. Detalles en las secciones «Condiciones y repeticiones» y «Paso de script».
+
+| Comando | Significado | Datos | Ejemplo |
+| --- | --- | --- | --- |
+| `if-exists` | si existe: bloque solo si el archivo o la carpeta existe | ruta | `if-exists "Registro.md"` |
+| `if-missing` | si falta: bloque solo si el archivo o la carpeta falta | ruta | `if-missing "Diario/{{date}}.md"` |
+| `if-property` | si propiedad: bloque solo si la propiedad de la cabecera tiene el valor o, sin valor, está establecida | ruta, nombre, valor opcional | `if-property "{{file}}" status "abierto"` |
+| `if-script` | si script: bloque solo si el script de una sección se cumple | título | `if-script "Recuento"` |
+| `else` | si no: inicia la parte que vale si la condición no se cumple | ninguno | `else` |
+| `end` | fin: cierra el bloque de una condición o de un bucle | ninguno | `end` |
+| `for-each` | para cada: bloque una vez por archivo que coincide con el patrón | carpeta con patrón de archivo | `for-each "Entrada/*.md"` |
+| `script` | script: ejecutar el bloque de script de una sección y nombrar su resultado | título, `as "nombre"` | `script "Recuento" as "cantidad"` |
 
 ### Fuentes de un contenido
 
@@ -171,18 +190,23 @@ Los marcadores de posición valen en cada dato de una línea de comando. Plantil
 | Marcador | Valor en una línea de comando |
 | --- | --- |
 | `{{date}}`, `{{time}}` | fecha y hora del inicio, también con desplazamiento y formato: `{{date:+7d:dd.MM.yyyy}}` |
-| `{{file}}` | ruta del documento activo al iniciar, relativa a la raíz del área, por ejemplo `Proyectos/Plan.md` |
+| `{{file}}` | ruta del documento activo al iniciar, relativa a la raíz del área, por ejemplo `Proyectos/Plan.md`; en una ejecución por un evento, el archivo del evento (sección «Eventos») |
 | `{{title}}` | título del documento activo al iniciar |
 | `{{folder}}` | carpeta del documento activo al iniciar, relativa a la raíz del área |
 | `{{area}}` | nombre del área |
-| `{{clipboard}}` | texto del portapapeles al iniciar; en una ejecución programada, lo que haya en ese momento en el portapapeles |
+| `{{clipboard}}` | texto del portapapeles al iniciar; en una ejecución programada o por un evento, lo que haya en ese momento en el portapapeles |
 | `{{prompt:Pregunta}}`, `{{prompt:Pregunta:Valor}}` | diálogo de entrada |
 | `{{select:Pregunta:a,b,c}}` | diálogo de selección |
+| `{{from}}` | con `file-moved`, la ruta anterior del archivo |
+| `{{task}}` | con `task-done`, el texto de la tarea completada |
+| `{{item}}`, `{{item:name}}` | en un bucle `for-each`, la ruta del archivo de cada vuelta y su nombre sin extensión |
+| `{{script:name}}` | el resultado del paso de script `script … as "name"` |
 
 - **Todos los diálogos antes del primer paso:** los diálogos de entrada y de selección de toda la ejecución aparecen uno tras otro antes de que ocurra nada, incluidos los de las plantillas usadas y los de los workflows llamados. Una misma pregunta se hace una vez y vale en todas partes. Cancelar un diálogo cancela la ejecución, y no se ejecuta ningún paso.
 - **Un instante por ejecución:** `{{date}}` y `{{time}}` tienen el mismo valor en todas las líneas, también al pasar la medianoche. Del mismo modo, el portapapeles se lee una sola vez al iniciar, y `{{clipboard}}` tiene el mismo contenido en todas las líneas.
 - **En una plantilla usada por un workflow**, `{{title}}` y `{{folder}}` designan como siempre el archivo nuevo, mientras que `{{file}}` y `{{area}}` designan el documento activo y el área.
-- **Según la programación** no hay nadie que responda a un diálogo: en un workflow con `trigger: schedule`, los marcadores de entrada y de selección son el hallazgo «Solo manual».
+- **Según la programación y ante eventos** no hay nadie que responda a un diálogo: en un workflow con `trigger: schedule` o `trigger: event`, los marcadores de entrada y de selección son el hallazgo «Solo manual».
+- `{{item}}`, `{{item:name}}` y `{{script:name}}` solo reciben su valor durante la ejecución; en el nombre de un workflow o de una macro, en la ruta de una plantilla y en el destino de `delete` son por eso un hallazgo.
 - `{{cursor}}` no se permite en una línea de comando. `\{{` escribe un `{{` literal.
 - Si `{{folder}}` queda vacío en la carpeta raíz, `"{{folder}}/Nuevo.md"` da la ruta `Nuevo.md`. Sin documento activo, `{{file}}` está vacío, y una ruta formada con él es un hallazgo.
 
@@ -200,7 +224,7 @@ Un workflow solo se inicia en un área abierta, y sus rutas valen en esa área, 
 | **«Iniciar» en el panel del área** | en lo más alto del menú contextual de cada archivo de workflow del área |
 | **Página «Ejecuciones de workflows»** | botón «Iniciar» en la fila de cada workflow |
 
-El botón sobre el bloque está desactivado mientras la comprobación señale un hallazgo. En un documento que nunca se ha guardado muestra «Guarde primero», fuera de un área «Solo se puede iniciar dentro de un área abierta». Un workflow activado se ejecuta además por sí solo según su programación; el inicio a mano sigue siendo posible en cualquier momento.
+El botón sobre el bloque está desactivado mientras la comprobación señale un hallazgo. En un documento que nunca se ha guardado muestra «Guarde primero», fuera de un área «Solo se puede iniciar dentro de un área abierta». Un workflow activado se ejecuta además por sí solo según su programación o ante su evento; el inicio a mano sigue siendo posible en cualquier momento.
 
 El comando de un workflow recibe su identificador de la ruta del archivo en la carpeta de workflows; así, dos workflows del mismo nombre en subcarpetas distintas siguen distinguiéndose. **Renombrar un workflow en la aplicación o moverlo dentro de la carpeta de workflows conserva sus asignaciones:** un atajo de teclado, un sitio en la barra de estado, el menú contextual o la barra de formato y un paso de macro que lo llama se trasladan con él. **Fuera de la aplicación**, por ejemplo en el gestor de archivos, la aplicación no advierte el cambio de nombre; las asignaciones pierden entonces su destino y deben asignarse de nuevo. Un workflow movido fuera de la carpeta de workflows deja de ser un comando; sus asignaciones quedan guardadas y vuelven a funcionar en cuanto regresa al mismo lugar.
 
@@ -208,12 +232,88 @@ El comando de un workflow recibe su identificador de la ruta del archivo en la c
 
 1. La aplicación comprueba el workflow junto con los workflows a los que llama.
 2. Los diálogos de todos los marcadores aparecen uno tras otro; si la ejecución contiene `delete`, sigue la confirmación única de los destinos que se borrarán.
-3. Los pasos se ejecutan estrictamente uno tras otro; cada uno espera al anterior.
+3. Los pasos se ejecutan estrictamente uno tras otro; cada uno espera al anterior. Las condiciones y los bucles deciden qué pasos se ejecutan y cuántas veces.
 4. El primer fallo termina la ejecución. La barra de estado muestra «Workflow ‹Nombre› cancelado en la línea N: motivo».
 
 Los pasos ejecutados quedan ejecutados; no hay forma de deshacer una ejecución (sección «Lo que ha hecho una ejecución»). **En cada ventana se ejecuta como máximo un workflow**; un segundo inicio durante una ejecución se rechaza con un aviso.
 
-**Mensajes:** en un inicio a mano, `notify` muestra su texto en la barra de estado. En una ejecución programada, también si es recuperada, el texto sale además como **notificación del sistema operativo**, con el nombre del workflow como título; lo mismo la cancelación de una ejecución así con línea y motivo, aunque el workflow no contenga `notify`. La notificación solo aparece si ninguna ventana de la aplicación está en primer plano, y una vez por mensaje; si no, basta el aviso de la barra de estado. Si el sistema operativo la muestra y cómo lo hace depende de sus propios ajustes de notificaciones.
+**Mensajes:** en un inicio a mano, `notify` muestra su texto en la barra de estado. En una ejecución programada, también si es recuperada, y en una ejecución por un evento, el texto sale además como **notificación del sistema operativo**, con el nombre del workflow como título; lo mismo la cancelación de una ejecución así con línea y motivo, aunque el workflow no contenga `notify`. La notificación solo aparece si ninguna ventana de la aplicación está en primer plano, y una vez por mensaje; si no, basta el aviso de la barra de estado. Si el sistema operativo la muestra y cómo lo hace depende de sus propios ajustes de notificaciones.
+
+## Condiciones y repeticiones
+
+Una **condición** solo deja ejecutar pasos si algo se cumple; un **bucle** repite pasos para cada archivo de una carpeta. Ambos abren un bloque que cierra una línea `end`:
+
+```workflow
+# Crear la nota del día solo si falta
+if-missing "Diario/{{date}}.md"
+  create "Diario/{{date}}.md"
+else
+  notify "La nota del día ya existe"
+end
+open "Diario/{{date}}.md"
+```
+
+### Condiciones
+
+- `if-exists "ruta"` se cumple si el archivo o la carpeta existe, `if-missing "ruta"` si falta.
+- `if-property "ruta" nombre "valor"` se cumple si la propiedad de la cabecera tiene exactamente ese valor; los números y los valores lógicos se comparan por su escritura. En una **lista** como `tags`, se cumple si la lista contiene el valor. Sin valor (`if-property "ruta" nombre`), se cumple si la propiedad está establecida y no está vacía, en una lista si la lista no está vacía. Un archivo sin cabecera no la cumple; si el archivo falta, el paso falla.
+- `if-script "sección"` se cumple si el script de la sección se cumple (sección «Paso de script»).
+- La comprobación se hace al llegar a la línea, con el estado que han dejado los pasos anteriores; un archivo abierto y sin guardar cuenta con su estado en el editor.
+
+### La forma de bloque
+
+- `else` inicia opcionalmente la parte que vale si la condición no se cumple; cada condición tiene como máximo un `else`, un bucle ninguno.
+- `end` cierra el último bloque abierto. `else` y `end` van cada uno en su propia línea.
+- **La sangría** está permitida y se recomienda para que el bloque siga siendo legible; no tiene ningún significado.
+- Los bloques se pueden anidar hasta **tres niveles**, incluido el bucle.
+- Un `end` que falta o sobra, un `else` sin condición y un anidamiento demasiado profundo los señala la comprobación antes del primer paso, con la línea.
+
+### Bucle sobre los archivos de una carpeta
+
+`for-each "carpeta/patrón"` repite los pasos hasta `end` para cada archivo que coincide con el patrón. `{{item}}` es la ruta del archivo de cada vuelta, relativa a la raíz del área, y `{{item:name}}` su nombre sin extensión:
+
+```workflow
+# Llevar al archivo las notas terminadas de la entrada
+for-each "Entrada/*.md"
+  if-property "{{item}}" status "terminado"
+    add-tag "{{item}}" "archivo"
+    move "{{item}}" "Archivo"
+  end
+end
+```
+
+- **Patrón:** primero la carpeta, luego un patrón del nombre de archivo con `*` para cualquier número de caracteres y `?` para exactamente uno, por ejemplo `Entrada/*.md`. Un `**` antes del patrón de archivo añade las subcarpetas (`Proyectos/**/*.md`), un `**` al final significa todos los archivos con sus subcarpetas (`Entrada/**`). Las mayúsculas y minúsculas no cuentan; los comodines en la parte de la carpeta son un hallazgo.
+- **Lista fija:** los archivos se determinan al entrar en el bucle y se procesan en orden alfabético, los números como en el gestor de archivos (`2` antes de `10`). Los archivos que la ejecución crea dentro del bucle no se añaden. Los archivos y carpetas cuyo nombre empieza por un punto no cuentan.
+- **Límite:** como máximo **500 archivos**. Con más, el paso falla antes de la primera vuelta, con «Más de 500 archivos; no se procesó ningún archivo». Una carpeta que falta también es un fallo.
+- Los bucles no se pueden anidar unos dentro de otros; una condición dentro del bucle está permitida.
+- `{{item}}` y `{{item:name}}` solo valen dentro de un bucle. Los diálogos de entrada del bucle aparecen una vez antes del primer paso, y la respuesta vale para cada archivo.
+
+## Paso de script
+
+Un **paso de script** ejecuta un [bloque de script](scripts.md) del archivo de workflow y usa su resultado en las líneas siguientes o como condición. El script calcula y comprueba; no puede escribir. El ejemplo cuenta los archivos de la carpeta «Tareas» con `status: abierto`:
+
+````markdown
+```workflow
+script "Recuento" as "abiertos"
+if-script "Recuento"
+  notify "Archivos abiertos en la carpeta Tareas: {{script:abiertos}}"
+else
+  notify "Nada abierto"
+end
+```
+
+## Recuento
+
+```perspective-script
+return pq.pages('Tareas').filter(function (p) { return p.status === 'abierto'; }).length;
+```
+````
+
+- **`script "sección" as "nombre"`** ejecuta el primer bloque de script (`perspective-script`) bajo el título «sección» del archivo de workflow; la sección se encuentra como con `from-section`. Su **resultado** queda después disponible como `{{script:nombre}}` en cada línea siguiente: el valor de retorno del script (un texto, un número o un valor lógico), si no el texto de su salida sin espacios en los bordes. El nombre consta de letras, cifras, `_` y `-`; las mayúsculas y minúsculas no cuentan, y cada nombre se asigna una sola vez.
+- **`if-script "sección"`** abre un bloque como las demás condiciones. Se cumple si el script devuelve `true`, un texto no vacío o un número distinto de cero; `false`, un texto vacío, `0` y la falta de valor no la cumplen.
+- **El mismo entorno aislado que los bloques de script:** el script lee los datos del área a través de la interfaz pq, con el archivo de workflow como documento propio (`pq.current()`), y no tiene acceso a archivos, red ni a la aplicación. Es **de solo lectura**. Se interrumpe a los **5 segundos**. Un error o una interrupción es un fallo del paso y termina la ejecución con «El script ha fallado» o «Script interrumpido tras 5 segundos».
+- **Ajuste «Ejecutar bloques de script»:** el paso de script sigue el mismo ajuste que los bloques de script (**Ajustes → Comportamiento**, desactivado de forma predeterminada). Si está desactivado, la comprobación señala «Los bloques de script están desactivados» con la línea; el workflow no se ejecuta y no se puede activar. Justo antes de cada script, la aplicación vuelve a consultar el ajuste.
+- La comprobación busca la sección antes del primer paso: si falta, aparece varias veces o no contiene ningún bloque de script, es un hallazgo. Un `{{script:nombre}}` antes del paso que lo proporciona también es un hallazgo; si el paso que lo proporciona no se ha ejecutado en una rama, la línea falla.
 
 ## Programación y activación
 
@@ -272,7 +372,7 @@ Una fecha se pierde si llegó mientras la aplicación o el área estaban cerrada
 
 ### Activar
 
-Un workflow con `trigger: schedule` **no está activado** después de crearlo, copiarlo o recibirlo; solo se ejecuta según la programación cuando el usuario lo activa. El estado de activación está en el estado de ejecución del archivo acompañante y no viaja al copiar. Se activa en tres lugares, que solo aparecen con `trigger: schedule`:
+Un workflow con `trigger: schedule` o `trigger: event` **no está activado** después de crearlo, copiarlo o recibirlo; solo se ejecuta por sí solo cuando el usuario lo activa. El estado de activación está en el estado de ejecución del archivo acompañante y no viaja al copiar. Se activa en tres lugares, que solo aparecen con `trigger: schedule` y `trigger: event`:
 
 - **página «Ejecuciones de workflows»**: la casilla de la columna **Activado**,
 - **sobre el bloque**: el botón «Activado» junto a «Iniciar», pulsado «✓ Activado»,
@@ -280,11 +380,72 @@ Un workflow con `trigger: schedule` **no está activado** después de crearlo, c
 
 La activación comprueba el workflow como antes de ejecutarlo. Si hay un hallazgo, se rechaza, y la barra de estado muestra «No activado:» con motivo y línea; si no, informa «Workflow ‹Nombre› activado, próxima ejecución» con la fecha. Desactivar es posible en cualquier momento, también con un hallazgo.
 
-**Definición modificada:** si, tras la activación, cambia el bloque `workflow` o una de las líneas `trigger`, `schedule` y `missed`, aunque sea sin guardar en el editor, el workflow cuenta como «no activado: definición modificada» y deja de ejecutarse según la programación hasta que se active de nuevo. Cambiar el nombre y la descripción no tiene efecto. Así nunca se ejecuta sin nadie presente un contenido modificado que nadie ha aprobado.
+**Definición modificada:** si, tras la activación, cambia el bloque `workflow`, una de las líneas `trigger`, `schedule`, `missed` y `event` o un bloque de script que ejecuta un paso de script, aunque sea sin guardar en el editor, el workflow cuenta como «no activado: definición modificada» y deja de ejecutarse por sí solo hasta que se active de nuevo. Cambiar el nombre y la descripción no tiene efecto. Así nunca se ejecuta sin nadie presente un contenido modificado que nadie ha aprobado.
 
 ### El elemento «Workflows» de la barra de estado
 
-Mientras al menos un workflow del área esté activado, el elemento **Workflows** figura en la parte derecha de la barra de estado. Muestra la última ejecución programada con el signo del resultado, el nombre y la hora, por ejemplo «✓ Nota del día 08:00»; una ejecución de un día anterior lleva además el día y el mes. Los signos son `✓` para completado, `✗` para cancelado, `■` para detenido y `–` para una entrada cancelada; una cancelación aparece en el color del aviso de error. Sin ejecución programada hasta ahora, muestra «Workflows». La información emergente indica fecha, hora y resultado, y un clic abre la página **Ejecuciones de workflows**. En una barra de estado estrecha, el elemento se pliega junto con los demás elementos.
+Mientras al menos un workflow del área esté activado, el elemento **Workflows** figura en la parte derecha de la barra de estado. Muestra la última ejecución programada o por un evento con el signo del resultado, el nombre y la hora, por ejemplo «✓ Nota del día 08:00»; una ejecución de un día anterior lleva además el día y el mes. Los signos son `✓` para completado, `✗` para cancelado, `■` para detenido y `–` para una entrada cancelada; una cancelación aparece en el color del aviso de error. Sin una ejecución así hasta ahora, muestra «Workflows». La información emergente indica fecha, hora y resultado, y un clic abre la página **Ejecuciones de workflows**. En una barra de estado estrecha, el elemento se pliega junto con los demás elementos.
+
+## Eventos
+
+Un workflow con `trigger: event` y una línea `event` se ejecuta por sí solo cuando su **evento** ocurre en el área, en cuanto está activado. Así surge, por ejemplo, una **regla de carpeta**: cada nota que llega a la carpeta «Entrada» recibe una etiqueta, tanto si se creó en la aplicación como si se dejó con el gestor de archivos o la trajo una sincronización.
+
+````markdown
+---
+workflow: true
+name: Etiquetar la entrada
+trigger: event
+event: file-created in "Entrada" matching "*.md"
+---
+
+```workflow
+add-tag "{{file}}" "entrada"
+notify "Nuevo en la entrada: {{file}}"
+```
+````
+
+### La línea de evento
+
+La línea tiene la forma `event: <evento> [in "<carpeta o archivo>"] [matching "<patrón>"]`:
+
+| Evento | ocurre cuando … | `{{file}}` es … | Ejemplo |
+| --- | --- | --- | --- |
+| `file-created` | se crea un archivo en el área, también desde fuera | el archivo nuevo | `event: file-created in "Entrada"` |
+| `file-changed` | se modifica un archivo, también desde fuera; incluido el guardado en la aplicación | el archivo modificado | `event: file-changed in "Proyectos" matching "*.md"` |
+| `file-moved` | se renombra o se mueve un archivo en la aplicación | la ruta nueva; la anterior es `{{from}}` | `event: file-moved in "Archivo"` |
+| `task-done` | una tarea pasa a hecha | el archivo de la tarea; su texto es `{{task}}` | `event: task-done in "Plan semanal.md"` |
+| `area-opened` | el área se abre y se lee | (ningún archivo) | `event: area-opened` |
+| `reminder-due` | vence un recordatorio del área | el archivo del recordatorio | `event: reminder-due` |
+
+- **`in`** limita a una carpeta con sus subcarpetas o a un solo archivo, relativo a la raíz del área; una carpeta `Entrada` nunca coincide con una carpeta cuyo nombre solo empieza por ese nombre, como `Entradas viejas`. **`matching`** limita a un patrón del nombre de archivo, con `*` y `?`, sin carpeta. Ambos son opcionales; `in` va antes de `matching`, los valores van entre comillas rectas, y las mayúsculas y minúsculas no cuentan. Con `file-moved` vale la ubicación nueva.
+- Con `area-opened` y `reminder-due`, `in` y `matching` no están permitidos.
+- **Exactamente una línea `event` por archivo.** Quien quiera responder a varios eventos escribe por cada evento un workflow pequeño que llama a uno común con `workflow "Nombre"`.
+- **Mover:** mover un archivo en el gestor de archivos aparece como `file-created` en la ubicación nueva; solo la aplicación conoce `file-moved`, porque solo ella sabe de dónde vino un archivo.
+- **Tarea hecha** significa: una línea de tarea cambia a un estado del tipo «hecha», ya sea con un clic en la casilla, en la [consulta de tareas](tasks.md), con una `x` tecleada o con un cambio desde fuera. Un clic o una `x` tecleada disparan poco después, incluso antes de guardar; el guardado posterior no dispara una segunda vez. Una tarea cancelada no está hecha. `{{task}}` es el texto de la tarea sin casilla, fechas ni prioridad.
+
+### Qué puede hacer una ejecución ante un evento
+
+- Una ejecución por un evento se ejecuta **sin nadie presente**, como una ejecución programada: los marcadores de entrada y de selección, `confirm` y `delete` son el hallazgo «Solo manual». **Ante eventos nunca se elimina nada.**
+- `{{file}}`, `{{from}}` y `{{task}}` llevan los valores del evento (tabla anterior). La comprobación señala un marcador que el evento no proporciona: `{{file}}` con `area-opened`, `{{from}}` salvo con `file-moved`, `{{task}}` salvo con `task-done`.
+
+### Cuándo actúan los eventos
+
+**Los eventos actúan mientras la aplicación y el área están abiertas en una ventana, y no se recuperan.** Lo que ocurrió mientras el área estaba cerrada no dispara nada al abrirla; quien quiera ordenar al abrir escribe un workflow con `area-opened` y `for-each`.
+
+- **Antirrebote:** los avisos del mismo archivo en **2 segundos** dan un solo evento; un guardado que produce varios avisos inicia así un workflow una sola vez. Un archivo que se escribe sin parar dispara como muy tarde a los 10 segundos.
+- **Lo que nunca dispara:** los archivos acompañantes (`.mdd`, `.mddl`), la carpeta de bloqueos y los archivos y carpetas cuyo nombre empieza por un punto.
+- **Orden:** si un evento coincide con varios workflows activados, cada uno se ejecuta una vez, uno tras otro en el orden de sus rutas. Por área, las ejecuciones por eventos van una tras otra, en el orden de los eventos y en exactamente una ventana; si allí se está ejecutando un workflow, el evento espera. Al cerrar el área, los eventos en espera caducan.
+- `area-opened` ocurre una vez por apertura, también para un área que la aplicación vuelve a abrir al iniciarse. `reminder-due` ocurre cuando el recordatorio vence a su hora; los recordatorios entregados con retraso al abrir el área no disparan nada.
+
+### Sin cadenas
+
+**Un workflow reacciona a lo que usted u otros programas hacen, nunca a lo que hace un workflow.** Lo que una ejecución crea, modifica, mueve o marca como hecho no dispara ningún evento; un workflow que, ante un archivo nuevo en «Entrada», crea él mismo un archivo en «Entrada» no entra por eso en un círculo. Quien quiera una secuencia llama expresamente al segundo workflow con `workflow "Nombre"`. Si un paso escribe en un documento abierto y sin guardar, solo su guardado es un cambio del archivo y dispara `file-changed`; una tarea que un paso así marca como hecha en el documento dispara `task-done`.
+
+**Freno de emergencia:** si el mismo workflow se ejecuta por eventos más de **20 veces en 5 minutos**, por ejemplo porque otro programa responde a sus cambios, la ejecución 21 ya no se inicia. El workflow se desactiva, los eventos en espera para él caducan, y la barra de estado avisa «Workflow ‹Nombre› desactivado: más de 20 ejecuciones activadas por eventos en 5 minutos», sin ventana en primer plano también como notificación del sistema operativo. La página **Ejecuciones de workflows** muestra «no activado: freno de emergencia» bajo la casilla y el motivo en la columna **Resultado**. Tras activarlo de nuevo, el freno vuelve a contar desde cero.
+
+### Activación e indicación
+
+Un workflow con `trigger: event` se activa en los mismos tres lugares que uno programado (sección «Activar»); la línea `event` forma parte de la definición. Tras activarlo, la barra de estado avisa, por ejemplo, «Workflow ‹Nombre› activado, se ejecuta al crear un archivo en ‹Entrada›». En la página **Ejecuciones de workflows**, la columna **Próxima ejecución** muestra el evento en palabras, por ejemplo «al crear un archivo en ‹Entrada›», y la columna **Última ejecución** el origen, por ejemplo «evento: archivo nuevo ‹Entrada/Scan.md›». `notify` y una cancelación salen también como notificación del sistema operativo, como en la programación, y el elemento **Workflows** de la barra de estado muestra también la última ejecución por un evento.
 
 ## Carpeta de workflows y menú
 
@@ -314,16 +475,16 @@ Como las plantillas, los workflows de un [área vinculada](linking.md) pueden of
 
 ## Estado de ejecución y la página «Ejecuciones de workflows»
 
-Tras cada ejecución, la aplicación anota en el **archivo acompañante** del workflow (`.mdd`, sección `workflow`) el momento, el resultado, en su caso la línea cancelada, el número de ejecuciones, el origen de la ejecución y el registro de la última ejecución, y en un workflow programado además el estado de activación y la fecha siguiente; el texto del archivo de workflow no se toca. El estado de ejecución acompaña al archivo cuando se renombra o se mueve, no cuando se copia.
+Tras cada ejecución, la aplicación anota en el **archivo acompañante** del workflow (`.mdd`, sección `workflow`) el momento, el resultado, en su caso la línea cancelada, el número de ejecuciones, el origen de la ejecución y el registro de la última ejecución, y en un workflow programado o con evento además el estado de activación, en la programación la fecha siguiente y en una ejecución por un evento el evento que la disparó con su archivo; el texto del archivo de workflow no se toca. El estado de ejecución acompaña al archivo cuando se renombra o se mueve, no cuando se copia.
 
 La página **Ejecuciones de workflows** se abre con «Ver → Mostrar ejecuciones de workflows», con «Archivo → Workflows → Mostrar ejecuciones de workflows», desde la paleta de comandos y con un clic en el elemento **Workflows** de la barra de estado. Enumera **todos los workflows del área**, también los que están fuera de la carpeta de workflows, y a continuación los workflows de las áreas vinculadas con consentimiento, con estas columnas y un botón «Iniciar» por fila:
 
 | Columna | Contenido |
 | --- | --- |
 | **Workflow**, **Ubicación** | nombre con la descripción como información emergente, carpeta del archivo |
-| **Activado** | casilla para activar, solo con `trigger: schedule`; con una definición modificada, además «no activado: definición modificada» |
-| **Próxima ejecución** | fecha de la próxima ejecución programada, mientras el workflow esté activado |
-| **Última ejecución** | momento de la última ejecución, con «(recuperado)» en una ejecución recuperada, debajo en su caso «omitido:» con la fecha; además el botón «Registro (N)» |
+| **Activado** | casilla para activar, solo con `trigger: schedule` y `trigger: event`; con una definición modificada, además «no activado: definición modificada», tras intervenir el freno de emergencia «no activado: freno de emergencia» |
+| **Próxima ejecución** | fecha de la próxima ejecución programada, en un workflow con evento el evento en palabras, en ambos casos mientras el workflow esté activado |
+| **Última ejecución** | momento de la última ejecución, con «(recuperado)» en una ejecución recuperada, con evento y archivo en una ejecución por un evento, debajo en su caso «omitido:» con la fecha; además el botón «Registro (N)» |
 | **Resultado** | resultado de la última ejecución, tabla siguiente |
 | **Ejecuciones** | número de ejecuciones |
 
@@ -346,9 +507,9 @@ No hay forma de deshacer una ejecución entera. Se deshace de forma selectiva, c
 
 ## Ayuda en el editor
 
-- **Resaltado:** en las líneas de comando, la palabra clave aparece en negrita, el texto entre comillas en color y los marcadores en cursiva, tanto en el editor como en la vista de lectura.
+- **Resaltado:** en las líneas de comando, la palabra clave aparece en negrita, el texto entre comillas en color y los marcadores en cursiva, tanto en el editor como en la vista de lectura. Las palabras de bloque de las condiciones y los bucles, `else` y `end` aparecen además subrayadas con puntos en el editor.
 - **Indicación de comprobación:** el modo en vivo, la vista renderizada y la vista dividida muestran sobre el bloque el resultado de la comprobación: en verde «listo» o en rojo «Línea N: motivo», con «(+N más)» si hay varios hallazgos. Allí aparecen también los avisos sobre varios bloques y sobre un disparador todavía no compatible, así como los hallazgos de la programación con su línea en la cabecera. La indicación sigue al texto poco después de cada cambio y muestra el mismo hallazgo que señala el inicio. Al imprimir, en una exportación y en un archivo incrustado, la línea de cabecera no aparece.
-- **Botón «Activado»:** con `trigger: schedule`, la línea de cabecera lleva junto a «Iniciar» el botón para activar (sección «Programación y activación»).
+- **Botón «Activado»:** con `trigger: schedule` y `trigger: event`, la línea de cabecera lleva junto a «Iniciar» el botón para activar (sección «Programación y activación»).
 
 El resaltado y la indicación no cambian el texto del archivo.
 
@@ -356,10 +517,12 @@ El resaltado y la indicación no cambian el texto del archivo.
 
 - **Solo dentro del área:** ningún comando lee ni escribe fuera de la raíz del área en la que se inició el workflow, tampoco mediante un marcador de posición; esto vale también para un workflow de un área vinculada.
 - **Sin red, sin programas externos.** Solo se borra con `delete`, solo en un inicio a mano, tras una confirmación y hacia la papelera.
-- **Ninguna ejecución sin área abierta:** un workflow programado solo se ejecuta mientras la aplicación y su área están abiertas; recupera las fechas perdidas según las reglas de `missed`.
+- **Ninguna ejecución sin área abierta:** un workflow programado solo se ejecuta mientras la aplicación y su área están abiertas; recupera las fechas perdidas según las reglas de `missed`. Los eventos también actúan solo con el área abierta y no se recuperan.
+- **Sin cadenas:** un workflow reacciona a lo que usted u otros programas hacen, nunca a lo que hace un workflow. Quien quiera una secuencia llama al siguiente workflow con `workflow "Nombre"`; contra un bucle a través de otros programas, el freno de emergencia detiene un workflow tras más de 20 ejecuciones por eventos en 5 minutos (sección «Eventos»).
+- **Límites de los bloques:** como máximo tres niveles de anidamiento, ningún bucle dentro de un bucle y como máximo 500 archivos por bucle.
 - **No se deshace una ejecución:** los pasos ejecutados quedan ejecutados; el registro muestra lo que ha tocado la última ejecución, y se deshace de forma selectiva.
-- **Las macros** siguen como están y pueden llamarse como paso; una macro es una secuencia de comandos en la configuración, un workflow un procedimiento como documento. **Los [bloques de script](scripts.md)** siguen siendo de solo lectura; un workflow no es un lenguaje de script general, sino un catálogo fijo de comandos.
+- **Las macros** siguen como están y pueden llamarse como paso; una macro es una secuencia de comandos en la configuración, un workflow un procedimiento como documento. **Los [bloques de script](scripts.md)** siguen siendo de solo lectura, también como paso de script; un workflow no es un lenguaje de script general, sino un catálogo fijo de comandos.
 
 ## Etapas posteriores
 
-Hay previstas otras etapas, sin que su alcance ni su fecha estén fijados: un inicio ante sucesos del área, condiciones y repeticiones, así como comandos para la [base de datos](database.md). La comprobación ya conoce las palabras clave de estos comandos y las señala como «solo estará disponible en una etapa posterior», para que un archivo así no se ejecute en parte.
+Hay prevista otra etapa, sin que su alcance ni su fecha estén fijados: comandos para la [base de datos](database.md). La comprobación ya conoce las palabras clave de estos comandos y las señala como «solo estará disponible en una etapa posterior», para que un archivo así no se ejecute en parte.

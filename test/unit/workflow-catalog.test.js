@@ -5,9 +5,18 @@
 // und Ordner», «Inhalte und Dateikopf», «Anwendung», «Ablauf», «Datenbank»),
 // entschieden am 2026-10-20 (K1 bis K3). Die Obergrenze der Wartezeit ist die
 // der Makros (`MACRO_MAX_DELAY_SECONDS`, `src/shared/commands/command-placement.js`).
+// Seit 4T-002464 (Entscheidungen 3f und 3g der Konzept-Runde 4T-002458) dazu
+// die Block-Wörter `else` und `end` und die Schemata der Bedingungen und der
+// Schleife der Stufe 3.
 import { describe, it, expect } from 'vitest';
 import {
+  BLOCK_KEYWORDS,
+  CONDITION_KEYWORDS,
   ENABLED_STAGES,
+  LOOP_KEYWORD,
+  MAX_BLOCK_DEPTH,
+  MAX_LOOP_FILES,
+  hasSchema,
   LATER_STAGE_PLACEHOLDERS,
   MAX_WAIT_SECONDS,
   OPTIONS,
@@ -40,7 +49,7 @@ const STUFEN = {
     'stop',
   ],
   2: ['delete', 'add-tag', 'remove-tag', 'complete-task', 'confirm'],
-  3: ['if-exists', 'if-missing', 'if-property', 'for-each', 'script'],
+  3: ['if-exists', 'if-missing', 'if-property', 'if-script', 'for-each', 'else', 'end', 'script'],
   D: [
     'db-create',
     'db-update',
@@ -62,23 +71,76 @@ describe('Befehls-Katalog der Workflows', () => {
     );
     const ist = Object.entries(WORKFLOW_COMMANDS).map(([b, e]) => [b, e.stage]);
     expect(ist.sort()).toEqual(erwartet.sort());
-    expect(ist.length).toBe(38);
+    expect(ist.length).toBe(41);
   });
 
-  it('gibt den Befehlen der Stufen 1 und 2 ein Schema, den späteren nur die Stufe (O6)', () => {
+  it('gibt den Befehlen der Stufen 1 bis 3 ein Schema, denen der Stufe D nur die Stufe (O6)', () => {
     for (const [befehl, eintrag] of Object.entries(WORKFLOW_COMMANDS)) {
-      if (eintrag.stage === 1 || eintrag.stage === 2) {
+      if (eintrag.stage === 1 || eintrag.stage === 2 || befehl === 'script') {
         expect(Array.isArray(eintrag.args), befehl).toBe(true);
         expect(eintrag.args.length, befehl).toBeGreaterThan(0);
+        expect(hasSchema(eintrag), befehl).toBe(true);
+      } else if (BLOCK_KEYWORDS.includes(befehl)) {
+        expect(eintrag.stage, befehl).toBe(3);
+        expect(hasSchema(eintrag), befehl).toBe(true);
       } else {
+        expect(hasSchema(eintrag), befehl).toBe(false);
         expect(eintrag.args, befehl).toBeNull();
         expect(eintrag.groups, befehl).toBeNull();
       }
     }
   });
 
-  it('schaltet die Stufen 1 und 2 frei, nicht 3 und D (4T-002424)', () => {
-    expect(ENABLED_STAGES).toEqual([1, 2]);
+  it('schaltet die Stufen 1 bis 3 frei, nicht D (4T-002464)', () => {
+    expect(ENABLED_STAGES).toEqual([1, 2, 3]);
+  });
+
+  // 4T-002464: Bedingungen und Schleife in Block-Form (3f, 3g).
+  it.each([
+    ['if-exists', ['path'], []],
+    ['if-missing', ['path'], []],
+    ['if-property', ['path', 'key', 'value'], [2]],
+    ['for-each', ['pattern'], []],
+    ['else', [], []],
+    ['end', [], []],
+  ])('gibt %s das Schema der Block-Form', (befehl, arten, optional) => {
+    const eintrag = lookupCommand(befehl);
+    expect(eintrag.stage).toBe(3);
+    expect(eintrag.args.map((a) => a.type)).toEqual(arten);
+    expect(eintrag.groups).toEqual({});
+    expect(eintrag.args.map((a, i) => (a.optional ? i : null)).filter((i) => i !== null)).toEqual(
+      optional,
+    );
+  });
+
+  it('nennt die Block-Wörter und die Grenzen der Block-Form', () => {
+    expect(CONDITION_KEYWORDS).toEqual(['if-exists', 'if-missing', 'if-property', 'if-script']);
+    expect(LOOP_KEYWORD).toBe('for-each');
+    expect(BLOCK_KEYWORDS).toEqual([
+      'if-exists',
+      'if-missing',
+      'if-property',
+      'if-script',
+      'for-each',
+      'else',
+      'end',
+    ]);
+    expect(MAX_BLOCK_DEPTH).toBe(3);
+    expect(MAX_LOOP_FILES).toBe(500);
+    // Ein Name aus dem Eigenschafts-Namen verlangt einen nicht leeren Text.
+    expect(lookupCommand('if-property').args[1].nonEmpty).toBe(true);
+  });
+
+  it('gibt dem Skript-Schritt sein Schema mit der Pflicht-Option as (4T-002465)', () => {
+    const eintrag = lookupCommand('script');
+    expect(eintrag.stage).toBe(3);
+    expect(eintrag.args.map((a) => [a.type, a.nonEmpty])).toEqual([['text', true]]);
+    expect(eintrag.groups).toEqual({ result: 'required' });
+    expect(lookupCommand('if-script').args.map((a) => a.type)).toEqual(['text']);
+    expect(lookupCommand('if-script').groups).toEqual({});
+    expect(lookupOption('as')).toEqual({ group: 'result', kind: 'result', value: 'text' });
+    expect(hasSchema(eintrag)).toBe(true);
+    expect(hasSchema(null)).toBe(false);
   });
 
   // 4T-002424: die Argument-Schemata der fünf Pflege-Befehle (Regeln P1 bis P5).

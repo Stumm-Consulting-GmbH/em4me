@@ -96,4 +96,37 @@ describe('workflowHighlightRanges', () => {
   it('färbt ein unbekanntes Schlüsselwort wie ein bekanntes; das Urteil fällt in der Prüfung', () => {
     expect(zeige('fliege "Mond.md"')).toEqual(['keyword:fliege', 'string:"Mond.md"']);
   });
+
+  // 4T-002464: Block-Wörter tragen zusätzlich die Kennung «block».
+  it('kennzeichnet die Block-Wörter der Bedingungen und der Schleife (AK6)', () => {
+    const block = (zeile) =>
+      workflowHighlightRanges(zeile)
+        .filter((sp) => sp.block === true)
+        .map((sp) => `${sp.kind}:${zeile.slice(sp.from, sp.to)}`);
+    for (const wort of [
+      'if-exists "a"',
+      'if-missing "a"',
+      'if-property "a" typ',
+      'for-each "E/*.md"',
+    ]) {
+      expect(block(`  ${wort}`), wort).toEqual([`keyword:${wort.split(' ')[0]}`]);
+    }
+    expect(block('else')).toEqual(['keyword:else']);
+    expect(block('	end')).toEqual(['keyword:end']);
+    expect(block('notify "end"')).toEqual([]);
+    expect(workflowHighlightRanges('create "a.md"')[0]).toEqual({
+      from: 0,
+      to: 6,
+      kind: 'keyword',
+    });
+  });
+
+  it('färbt {{item}} in der Schleife als Platzhalter', () => {
+    expect(zeige('  add-tag "{{item}}" "x"')).toEqual([
+      'keyword:add-tag',
+      'string:"{{item}}"',
+      'placeholder:{{item}}',
+      'string:"x"',
+    ]);
+  });
 });

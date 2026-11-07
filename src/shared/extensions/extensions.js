@@ -1443,6 +1443,11 @@ const INTERNAL_EXTENSIONS = [
       'help.feature.workflowArming',
       'help.feature.workflowLinked',
       'help.feature.workflowStatusbar',
+      // 4T-002466 (Epic 3E-000367): die Katalog-Zeilen der Stufe 3.
+      'help.feature.workflowEvents',
+      'help.feature.workflowConditions',
+      'help.feature.workflowLoop',
+      'help.feature.workflowScript',
     ],
     commands: ['ext.workflows.openRuns', 'ext.workflows.newWorkflow'],
     settingsSections: ['workflows', 'workflowsArea'],

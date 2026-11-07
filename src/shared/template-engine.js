@@ -28,6 +28,24 @@
 //                             relativ mit '/') und Name des Bereichs; Werte
 //                             liefert der Aufrufer (4T-002347, Epic 3E-000184:
 //                             gemeinsamer Satz für Vorlagen und Workflows, K6).
+//   {{from}} / {{task}}       alter Pfad bei `file-moved` und Aufgaben-Text bei
+//                             `task-done` in einem Workflow-Lauf nach Ereignis;
+//                             Werte liefert der Aufrufer (4T-002459, Epic
+//                             3E-000367, Entscheidung 3l), sonst leer.
+//   {{item}} / {{item:name}}  Pfad der jeweiligen Datei einer Workflow-Schleife
+//                             `for-each` und ihr Name ohne Endung; Werte
+//                             liefert der Ablauf-Kern je Wiederholung
+//                             (4T-002464, Entscheidung 3g), sonst leer. Der
+//                             Knoten heißt `item` bzw. `item:name`, so wie
+//                             der Anwender ihn schreibt.
+//   {{script:name}}           Ergebnis des Skript-Schritts `script … as "name"`
+//                             eines Workflows (4T-002465, Entscheidung 3h);
+//                             Wert liefert der Ablauf-Kern nach dem Schritt,
+//                             sonst leer. Der Knoten heißt `script:<name>`, der
+//                             Name in Kleinschreibung, damit Schritt und
+//                             Platzhalter ohne Rücksicht auf die Schreibung
+//                             zusammenfinden; erlaubt sind Buchstaben, Ziffern,
+//                             `_` und `-`.
 //   {{cursor}} / {{cursor:2}} nummerierte Cursor-Ziele; die Marker werden
 //                             entfernt, die Offsets im Ergebnis-Text geliefert.
 //
@@ -41,6 +59,7 @@
 // 4T-000987 (Epic 3E-000196): Abfrage-Sprache im Feature-Ordner src/shared/query/.
 const { parseDurationContent } = require('./query/perspective-query.js');
 const { formatDateMs } = require('./query/query-format.js');
+const { isValidBlockAnchorId } = require('./block-anchors.js');
 
 // Default-Formate der Zeit-Platzhalter (dateformat-Token).
 const DEFAULT_DATE_FORMAT = 'yyyy-MM-dd';
@@ -59,6 +78,19 @@ function parseOffsetMs(text) {
   const body = t[0] === '+' || t[0] === '-' ? t.slice(1) : t;
   const ms = parseDurationContent(body);
   return ms === null ? null : sign * ms;
+}
+
+// 4T-002465: Name eines Skript-Ergebnisses (`{{script:name}}` und
+// `script … as "name"`), getrimmt, NFC und klein geschrieben; null, wenn er
+// leer ist oder andere Zeichen als Buchstaben, Ziffern, `_` und `-` trägt.
+// Die Zeichenklasse ist die der Block-Kennungen und wird von dort gelesen
+// statt kopiert (Ratsche `test/unit/anker-kopien.test.js`).
+function normalizeScriptName(raw) {
+  const name = String(raw == null ? '' : raw)
+    .trim()
+    .normalize('NFC')
+    .toLowerCase();
+  return isValidBlockAnchorId(name) ? name : null;
 }
 
 // Zerlegt den Inhalt eines Platzhalters in Name und Parameter-Teile.
@@ -96,7 +128,9 @@ function parsePlaceholder(inner, pos) {
     case 'folder':
     case 'clipboard':
     case 'file':
-    case 'area': {
+    case 'area':
+    case 'from':
+    case 'task': {
       if (params.length > 0) return makeError('invalidParams', pos, { name });
       return { ok: true, node: { type: 'context', name } };
     }
@@ -120,6 +154,18 @@ function parsePlaceholder(inner, pos) {
       }
       const key = `select:${question}:${options.join(',')}`;
       return { ok: true, node: { type: 'input', kind: 'select', question, options, key } };
+    }
+    case 'item': {
+      if (params.length === 0) return { ok: true, node: { type: 'context', name: 'item' } };
+      if (params.length === 1 && params[0].trim().toLowerCase() === 'name') {
+        return { ok: true, node: { type: 'context', name: 'item:name' } };
+      }
+      return makeError('invalidParams', pos, { name });
+    }
+    case 'script': {
+      const scriptName = params.length === 1 ? normalizeScriptName(params[0]) : null;
+      if (scriptName === null) return makeError('invalidParams', pos, { name });
+      return { ok: true, node: { type: 'context', name: `script:${scriptName}` } };
     }
     case 'cursor': {
       let number = 1;
@@ -191,6 +237,9 @@ function analyzeTemplate(text) {
 // Segmente ein. context:
 //   title, folder   Strings der Zieldatei (fehlend = leer)
 //   file, area      aktives Dokument und Bereichs-Name (fehlend = leer)
+//   from, task      alter Pfad und Aufgaben-Text eines Ereignis-Laufs (fehlend = leer)
+//   item, item:name Pfad und Name ohne Endung der Datei einer Workflow-Schleife (fehlend = leer)
+//   script:<name>   Ergebnis eines Skript-Schritts eines Workflows (fehlend = leer)
 //   nowMs           Bezugszeitpunkt der Zeit-Platzhalter (fehlend = jetzt)
 //   clipboard       Zwischenablage-Text (fehlend = leer)
 //   answers         { [input.key]: string } — Antworten der Dialog-Kette
@@ -254,6 +303,7 @@ function renderTemplate(text, context) {
 
 module.exports = {
   analyzeTemplate,
+  normalizeScriptName,
   fillTemplate,
   renderTemplate,
   DEFAULT_DATE_FORMAT,

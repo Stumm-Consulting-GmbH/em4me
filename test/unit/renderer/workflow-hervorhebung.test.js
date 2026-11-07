@@ -55,6 +55,19 @@ describe('Hervorhebung im Editor', () => {
     expect(texte.join('')).toContain('/a.md"');
   });
 
+  // 4T-002464: Block-Wörter mit eigener Marke neben der des Schlüsselworts.
+  it('hebt die Block-Wörter mit der Marke cm-wf-block hervor (AK6)', () => {
+    const view = sicht(
+      '```workflow\nfor-each "E/*.md"\n  if-exists "{{item}}"\n    notify "x"\n  else\n  end\nend\n```\n',
+    );
+    const block = [...view.dom.querySelectorAll('.cm-wf-block')].map((el) => el.textContent);
+    expect(block).toEqual(['for-each', 'if-exists', 'else', 'end', 'end']);
+    for (const el of view.dom.querySelectorAll('.cm-wf-block')) {
+      expect(el.classList.contains('cm-wf-keyword')).toBe(true);
+    }
+    expect(marken(view)).toContain('keyword:notify');
+  });
+
   it('lässt andere Code-Blöcke, Fließtext und Inline-Code unberührt', () => {
     const view = sicht('create "x"\n\n`create "y"`\n\n```js\ncreate "z"\n```\n');
     expect(marken(view)).toEqual([]);

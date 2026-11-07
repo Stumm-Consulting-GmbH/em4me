@@ -45,6 +45,10 @@ const { definitionFuerSegment } = require('./datensatz-erfassung.js');
 // 4T-002047: Der Puffer einer Kopf-Datei ist das ganze geteilte Dokument; die
 // Regel dazu gilt für jeden Bestand der Sicht (Begründung im Modul).
 const { ohneVerdeckteFolgeteile } = require('./part-files.js');
+// 4T-002462 (Epic 3E-000367): Der Puffer-Stand ist eine der beiden Schichten,
+// aus denen das Ereignis «Aufgabe erledigt» entsteht (Klick auf das Kästchen
+// ändert nur den Puffer); Setzen und Rücknahme melden sich dort.
+const { meldePuffer, meldePufferEnde } = require('./aufgaben-erledigt.js');
 // 4T-002387 (Epic 3E-000265): Eine offene Karteikarte trägt ihren Datensatz im
 // Dateikopf; der Parser kennt die Kartei-Tabellen nicht und ergänzt ihn nicht.
 const { mitKarteikarte } = require('./karteikarten-erfassung.js');
@@ -80,12 +84,22 @@ function setBufferOverlay(filePath, content, besitzer = null) {
   );
   bufferOverlays.set(filePath, { parsed, text: content, besitzer: besitzer ?? null });
   overlayZaehler += 1;
+  meldePuffer(filePath, parsed.tasks);
   return true;
+}
+
+// 4T-002462: Rücknahme an die Erkennung «Aufgabe erledigt»; sie liest danach
+// die Platte und meldet nie einen Fehler zurück.
+function pufferEndeMelden(filePath) {
+  meldePufferEnde(filePath).catch((err) =>
+    console.warn('Aufgabe erledigt: Rücknahme nicht ausgewertet:', err),
+  );
 }
 
 function clearBufferOverlay(filePath) {
   const entfernt = bufferOverlays.delete(filePath);
   if (entfernt) overlayZaehler += 1;
+  pufferEndeMelden(filePath);
   return entfernt;
 }
 
@@ -106,14 +120,19 @@ function clearBufferOverlaysOfOwner(besitzer) {
   for (const [pfad, eintrag] of bufferOverlays) {
     if (eintrag.besitzer === besitzer) pfade.push(pfad);
   }
-  for (const pfad of pfade) bufferOverlays.delete(pfad);
+  for (const pfad of pfade) {
+    bufferOverlays.delete(pfad);
+    pufferEndeMelden(pfad);
+  }
   if (pfade.length > 0) overlayZaehler += 1;
   return pfade;
 }
 
 function clearAllBufferOverlays() {
   if (bufferOverlays.size > 0) overlayZaehler += 1;
+  const pfade = [...bufferOverlays.keys()];
   bufferOverlays.clear();
+  for (const pfad of pfade) pufferEndeMelden(pfad);
 }
 
 // 4T-002023 (Epic 3E-000192): Meldung an ALLE Fenster, dass sich der

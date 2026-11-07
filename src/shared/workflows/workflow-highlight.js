@@ -19,10 +19,19 @@
 // ein Zeichen, in der Zeile zwei; die Lage wird deshalb Zeichen für Zeichen
 // zurückgerechnet.
 //
+// **Block-Wörter (4T-002464):** Die Schlüsselwörter, die einen Block öffnen,
+// teilen oder schließen (`if-exists`, `if-missing`, `if-property`,
+// `for-each`, `else`, `end`; Liste `BLOCK_KEYWORDS` des Katalogs), bleiben
+// von der Art `keyword` und tragen zusätzlich `block: true`. So färbt die
+// Darstellung sie unverändert als Schlüsselwort, und der Editor hebt sie mit
+// einer eigenen Marke hervor, damit die Struktur eines Ablaufs auf einen Blick
+// zu sehen ist.
+//
 // Prozess-neutral: kein Electron, kein DOM, kein Datei-Zugriff.
 'use strict';
 
 const { analyzeTemplate } = require('../template-engine.js');
+const { BLOCK_KEYWORDS } = require('./workflow-catalog.js');
 const { readLine } = require('./workflow-line-reader.js');
 
 // Lagen des Werts in der Zeile: Eintrag i ist die Zeilen-Lage des i-ten
@@ -51,16 +60,19 @@ function platzhalterSpannen(zeile, token, oeffnung) {
  * Die Spannen der Hervorhebung einer Befehls-Zeile.
  *
  * @param {string} text die Zeile ohne Zeilenende (ein `\r` am Ende fällt weg).
- * @returns {{from: number, to: number, kind: 'keyword'|'string'|'placeholder'}[]}
- *   Offsets in der Zeile (Anfang inklusive, Ende exklusiv), aufsteigend nach
- *   Anfang; ein Platzhalter folgt dem Text, in dem er steht.
+ * @returns {{from: number, to: number, kind: 'keyword'|'string'|'placeholder',
+ *   block?: true}[]} Offsets in der Zeile (Anfang inklusive, Ende exklusiv),
+ *   aufsteigend nach Anfang; ein Platzhalter folgt dem Text, in dem er steht;
+ *   `block` nur am Schlüsselwort eines Block-Worts.
  */
 function workflowHighlightRanges(text) {
   const zeile = String(text == null ? '' : text).replace(/\r$/, '');
   const gelesen = readLine(zeile);
   if (!gelesen.ok || !gelesen.statement) return [];
   const { statement } = gelesen;
-  const spannen = [{ from: statement.from, to: statement.to, kind: 'keyword' }];
+  const wort = { from: statement.from, to: statement.to, kind: 'keyword' };
+  if (BLOCK_KEYWORDS.includes(statement.keyword)) wort.block = true;
+  const spannen = [wort];
   for (const token of statement.tokens) {
     if (token.type !== 'string' && token.type !== 'pair') continue;
     const oeffnung = token.type === 'pair' ? token.from + token.key.length + 1 : token.from;

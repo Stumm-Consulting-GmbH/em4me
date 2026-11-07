@@ -319,5 +319,9 @@
   "help.featureName.workflowArming": "Armer des workflows",
   "help.featureName.workflowStatusbar": "Messages et élément de barre d'état des workflows",
   "help.featureName.workflowMaintenance": "Commandes d'entretien des workflows",
-  "help.featureName.workflowLinked": "Workflows des zones liées"
+  "help.featureName.workflowLinked": "Workflows des zones liées",
+  "help.featureName.workflowEvents": "Workflows lors d’événements",
+  "help.featureName.workflowConditions": "Conditions dans les workflows",
+  "help.featureName.workflowLoop": "Boucles dans les workflows",
+  "help.featureName.workflowScript": "Étape de script dans les workflows"
 }

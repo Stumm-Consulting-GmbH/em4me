@@ -14,6 +14,245 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.159.0.5063] - 2026-11-07 — Workflows Stufe 3: Ereignisse, Bedingungen und Skript-Schritt
+
+Zug 3E-000383
+mit einem Mitglied, nach Punkt 3k der Konzept-Runde (am 2026-10-30 mit «Alle wie
+empfohlen.» pauschal übernommen) und gestartet auf die Anweisung des Product
+Owners vom 2026-10-31 («Mach weiter.», nach der Zusage vom 2026-10-30 «Ja,
+morgen starten»): die Stufe 3 der Workflows
+(3E-000367).
+Ein Workflow kann jetzt bei einem Ereignis im Bereich laufen: `trigger: event`
+und eine lesbare Zeile `event` im Dateikopf mit sechs Ereignissen (Datei
+angelegt, geändert oder in der Anwendung verschoben, Aufgabe erledigt, Bereich
+geöffnet, Erinnerung fällig), eingrenzbar mit `in` und `matching`; Änderungen
+von außen lösen ebenso aus, nur bei geöffnetem Bereich und ohne Nachholen. Er
+läuft erst nach der Scharf-Schaltung, wie ein Workflow nach Zeitplan, und
+unbeaufsichtigt wie dieser. Was ein Workflow schreibt, löst nie ein Ereignis
+aus; eine Not-Bremse entschärft einen Workflow nach mehr als 20 Ereignis-Läufen
+in 5 Minuten. Dazu kommen Bedingungen und eine Schleife in Block-Form mit `else`
+und `end` (`if-exists`, `if-missing`, `if-property`, `for-each` über die Dateien
+eines Ordners) und der Skript-Schritt (`script … as`, `if-script`) in der
+vorhandenen Sandbox der Skript-Blöcke, rein lesend und an die Einstellung
+«Skript-Blöcke ausführen» gebunden. Alles hängt an der Erweiterung «Workflows»
+im Arbeitsmodus «Voll». Die Datenbank-Befehle (Stufe D) folgen in eigener
+Konzept-Runde und eigenem Zug. Konzept-Runde und Entscheidungen in
+4T-002458,
+der Abschluss-Anteil in
+4T-002467.
+
+**Entscheidungen des Product Owners vom 2026-10-30 und 2026-10-31.** Das
+Entscheidungs-Paket 3a bis 3n der Konzept-Runde ist am 2026-10-30 im Wortlaut
+«Alle wie empfohlen.» angenommen, die Empfehlungen pauschal übernommen: sechs
+Ereignisse der Stufe (3a); die Ereignis-Zeile im Dateikopf (3b); die
+Scharf-Schaltung auch für Ereignisse mit der Zeile `event` in der Prüfsumme
+(3c); keine Ereignis-Ketten, Tiefe 0 nach dem Vorbild von GitHub Actions, mit
+Not-Bremse (3d); der Beobachter des Bereichs als Quelle samt Änderungen von
+außen, Entprellung, nur geöffnete Bereiche, kein Nachholen (3e); Bedingungen als
+Block mit ausdrücklichem `end` statt eines Präfixes für die folgende Zeile (3f);
+`for-each` über eine feste Liste mit `{{item}}` und höchstens 500 Dateien (3g);
+der Skript-Schritt in der vorhandenen Sandbox mit `{{script:…}}` und `if-script`
+(3h); die Stufe D wechselt von der Roadmap-Kachel «Workflows» zur offenen
+Datenbank-Kachel (3i); `{{file}}` meint im Ereignis-Lauf die Datei des
+Ereignisses, dazu `{{from}}` und `{{task}}` (3l); der Skript-Schritt folgt der
+Einstellung «Skript-Blöcke ausführen» (3n); Zug und Schnitt (3k, 3m). Fünf
+Fragen aus der Umsetzung hat der Product Owner am 2026-10-31 im Wortlaut «Bei
+den 5 Fragen folge ich Deiner Empfehlung.» beantwortet (Empfehlung pauschal
+übernommen): Ein getipptes `[x]` löst «Aufgabe erledigt» ohne Speichern aus;
+`delete "{{item}}"` in einer Schleife bleibt ein Befund; `if-property` trifft
+bei einer Liste im Dateikopf zu, wenn ein Eintrag dem Wert gleicht; `if-script`
+behandelt eine Zahl ungleich 0 als wahr; das Abnahme-Beispiel des
+Skript-Schritts zählt Dateien mit `status: offen`.
+
+### Neu
+
+- **Ereignis-Zeile im Dateikopf** (`4T-002459`). Neues prozess-neutrales Modul
+  `src/shared/workflows/workflow-event.js`: `parseEvent` liest die Zeile
+  `<Ereignis> [in "<Ordner oder Datei>"] [matching "<Muster>"]` mit den sechs
+  Ereignissen `file-created`, `file-changed`, `file-moved`, `task-done`,
+  `area-opened` und `reminder-due`, `eventMatches` gleicht ein Ereignis gegen
+  die Regel ab (Schreibweise gefaltet über die Plattform-Auskunft
+  `pathCompareKey`), `eventProvides` sagt, welche der Platzhalter `{{file}}`,
+  `{{from}}` und `{{task}}` ein Ereignis liefert. Der Dateikopf-Leser nimmt
+  `trigger: event` an; fehlende, doppelte, unlesbare oder unbekannte
+  Ereignis-Zeile, ein Ort außerhalb des Bereichs, ein ungültiges Muster, `in`
+  oder `matching` bei `area-opened` und `reminder-due` und ein Platzhalter, den
+  das Ereignis nicht liefert, sind Befunde mit Zeile, die Lauf und
+  Scharf-Schaltung verhindern. Der Befund «nur von Hand» gilt bei `trigger:
+  event` wie beim Zeitplan. `{{from}}` und `{{task}}` stehen im gemeinsamen
+  Platzhalter-Satz `src/shared/template-engine.js` und bleiben in Vorlagen leer.
+- **Ereignis-Prüfer und Lauf bei einem Ereignis** (`4T-002460`). Ein weiterer
+  Prüfer im Hauptprozess (`src/main/checks/workflow-event-check.js`) nimmt über
+  die Sammelstelle `meldeWorkflowEreignis` die Meldungen seiner Quellen an: den
+  Beobachter jeder Bereichs-Wurzel (`src/main/index/build.js`, Änderungen von
+  außen eingeschlossen), `renameSingleFile` in
+  `src/main/documents/link-update.js` als einzigen Weg, auf dem die Anwendung
+  eine Datei bewegt, die pünktlich zugestellten Erinnerungen und das Öffnen
+  eines Bereichs. Er siebt Begleitdateien, Punkt-Namen und den Sperr-Ordner aus,
+  entprellt Datei-Meldungen je Datei (2 Sekunden Ruhe, höchstens 10 Sekunden),
+  gleicht gegen die scharfen Workflows mit passender Prüfsumme ab und stellt die
+  Fälligkeiten je Bereich in einer Warteschlange strikt nacheinander an genau
+  ein Fenster zu (eigenes Zustell-Register, Kanäle `workflow:eventDue`,
+  `workflow:eventDueHandled`, `workflow:eventClaim`, `workflow:eventRelease`,
+  `workflow:eventFinished` und `workflow:eventOpen`). Schließen des Bereichs und
+  Ausschalten der Erweiterung verwerfen Wartendes. Der Lauf bleibt im Fenster
+  (`nimmEreignisAn` in `workflow-zeitplan-lauf.js`, `workflow-start.js` mit
+  Herkunft und Ereignis); der Lauf-Stand kennt die vierte Herkunft `event` mit
+  dem auslösenden Ereignis, Pfade relativ zur Bereichs-Wurzel
+  (`workflow-run-state.js`, `src/main/documents/mdd-store.js`).
+- **Lauf-Marke und Not-Bremse** (`4T-002461`). Was ein Workflow-Lauf schreibt,
+  löst kein Ereignis aus: ein eigenes Register neben der Selbst-Schreib-Marke in
+  `src/main/documents/self-write.js` (Inhalt je Pfad, beim Bewegen Größe und
+  Änderungszeit, Kennzeichen an der Bewegungs-Meldung über den Lauf-Zusammenhang
+  `AsyncLocalStorage`, den der Schritt-Kanal `workflow:step` um jeden Schritt
+  legt, und eine Einmal-Marke mit Frist für `complete-task`). Die Not-Bremse im
+  Ereignis-Prüfer entschärft einen Workflow, sobald er in 5 Minuten zum 21. Mal
+  durch ein Ereignis fällig würde, vermerkt den Grund als letzten Lauf (Code
+  `eventBrake`) und meldet ihn über ein Fenster in der Statusleiste und als
+  Benachrichtigung des Betriebssystems. Pfad-Schlüssel des Lauf-Registers über
+  `pathCompareKey`.
+- **Ereignis «Aufgabe erledigt»** (`4T-002462`). Neues Modul
+  `src/main/index/aufgaben-erledigt.js`: ein Spiegel des wirksamen
+  Aufgaben-Stands je Datei aus Platte und Puffer-Overlay des Index ergibt genau
+  eine Meldung `task-done` je Wechsel auf erledigt, gleich ob über einen Klick,
+  ein getipptes `x`, das Abhaken in einer Aufgaben-Abfrage oder eine Änderung
+  von außen; `{{task}}` ist die Beschreibung der Aufgabe. Angebunden in
+  `overlay.js`, `build.js`, `lifecycle.js` und `src/main/app/wiring.js`.
+- **Scharf-Schaltung für Ereignisse** (`4T-002463`). Die drei Bedienorte der Stufe
+  2 gelten auch bei `trigger: event`; der Hauptprozess prüft fail-closed
+  (`src/main/ipc/workflow-armed.js`, Abweisung jedes anderen Auslösers mit
+  `noArmableTrigger` statt `noSchedule`), ein Ereignis-Workflow wird ohne Termin
+  scharf, und die Prüfsumme der Definition umfasst die Zeile `event`, wenn sie
+  steht. Die Seite «Workflow-Läufe» zeigt beim scharfen Ereignis-Workflow das
+  Ereignis in Worten, beim letzten Lauf die Herkunft «Ereignis» mit Datei und
+  nach einem Eingriff der Not-Bremse «nicht scharf: Not-Bremse»;
+  Benachrichtigung und Statusleisten-Element behandeln einen Ereignis-Lauf wie
+  einen Lauf nach Zeitplan (`istLaufOhneZuschauer` in `workflow-lauf-stand.js`).
+  Neue Ablauf-Prüfung `test/e2e/funktionen/workflow-ereignis.spec.js`
+  (WF-EREIGNIS-01).
+- **Bedingungen und Schleife** (`4T-002464`). Die Stufe 3 des Befehls-Katalogs ist
+  freigeschaltet: `if-exists`, `if-missing` und `if-property "Pfad" name
+  ["Wert"]` öffnen einen Block, `else` ist optional, `end` schließt; `for-each
+  "Ordner/Muster"` wiederholt seinen Block je Datei einer beim Eintritt
+  festgestellten, alphabetisch geordneten Liste, mit `{{item}}` und
+  `{{item:name}}`, höchstens 500 Dateien. Tiefe höchstens 3, keine Schleife in
+  einer Schleife; neun Befunde der Block-Struktur und der Schleifen-Platzhalter.
+  Bedingungen und Datei-Liste fragt der Ablauf-Kern nur lesend beim Hauptprozess
+  an (neues Modul `src/main/workflows/workflow-block-queries.js`,
+  ungespeicherter Stand vor der Platte); `if-property` trifft bei einer Liste im
+  Dateikopf zu, wenn ein Eintrag dem Wert gleicht. Neue Fehlschläge
+  `tooManyFiles` und `folderMissing`. Der Editor hebt die Block-Wörter gepunktet
+  unterstrichen hervor.
+- **Skript-Schritt** (`4T-002465`). `script "Abschnitt" as "name"` führt den
+  Skript-Block unter der Überschrift der Workflow-Datei aus und legt sein
+  Ergebnis als `{{script:name}}` ab; `if-script "Abschnitt"` ist die vierte
+  Bedingung. Ausgeführt wird in derselben Sandbox wie die Skript-Blöcke, über
+  den aus der Ansicht herausgelösten Baustein
+  `src/renderer/modules/query/script-sandbox-lauf.js` mit zwei Aufrufern; die
+  Sandbox liefert zusätzlich den Rückgabe-Wert als Einzelwert
+  (`src/renderer/script-sandbox.html`). Die Einstellung «Skript-Blöcke
+  ausführen» wird dreifach fail-closed geprüft: im Prüfen vor Laufen, bei der
+  Scharf-Schaltung im Hauptprozess und vor jedem Skript. Acht neue Befunde und
+  vier Fehlschläge (`scriptFailed`, `scriptTimeout`, `scriptsDisabled`,
+  `scriptResultMissing`).
+
+### Geändert
+
+- **Nutzen-Seite** des Handbuchs und der Webseite nennt den Start eines Workflows bei einem Ereignis im Bereich als neue Arbeits-Form, in fünf Sprachen (`4T-002467`, Nutzen-Prüfschritt; Entscheidung des Product Owners vom 2026-10-31).
+- **Prüfsumme der Scharf-Schaltung** (`4T-002463`, `4T-002465`). Sie umfasst
+  zusätzlich die Zeile `event`, wenn sie im Dateikopf steht, und die Abschnitte
+  der Skript-Blöcke, auf die ein `script`- oder `if-script`-Schritt verweist;
+  ein geändertes Skript entschärft den Workflow. Ohne diese Teile bleibt die
+  Prüfsumme byte-gleich mit der der Stufe 2, sodass scharfe Workflows nach dem
+  Update scharf bleiben.
+- **Befund «nur von Hand»** (`4T-002459`). Der Text nennt jetzt Zeitplan und
+  Ereignis.
+- **Statusleisten-Element «Workflows»** (`4T-002463`). Die beiden Tooltips
+  sprechen von Läufen «nach Zeitplan oder Ereignis».
+
+### Behoben
+
+- **Der Abschnitt «Datenbank» fehlte in den Einstellungen manchmal**
+  (`4T-002441`). Wer die Einstellungen kurz nach dem Öffnen eines Bereichs mit
+  Datenbank aufrief, fand in der Gruppe «Aktueller Bereich» keinen Abschnitt
+  «Datenbank», bis er die Einstellungen schloss und neu öffnete: Der Bereich
+  war noch nicht vollständig eingelesen, und die Seite fragte nur einmal nach.
+  Jetzt erscheint der Abschnitt von selbst, sobald das Einlesen fertig ist;
+  Eingaben in anderen Abschnitten bleiben dabei erhalten.
+
+### i18n
+
+- **Oberflächen-Texte der Stufe 3** (`4T-002459`, `4T-002461`, `4T-002463`,
+  `4T-002464`, `4T-002465`), in allen fünf Sprachfassungen: Befunde der
+  Ereignis-Zeile, der Block-Struktur, der Schleife und des Skript-Schritts,
+  Fehlschläge der Schleife und des Skripts, Ereignisse in Worten samt Ordner und
+  Muster, Herkunft «Ereignis», Not-Bremse in Statusleiste, Benachrichtigung und
+  auf der Seite «Workflow-Läufe», Hinweis und Tooltip der Scharf-Schaltung bei
+  einem Ereignis. **Zählung nach Kapitel 13 der Entwicklungsrichtlinien**,
+  erhoben am 2026-10-31 über die Schlüssel aller Fragmente je Sprache im
+  Vergleich mit dem Release 1.155.0: je Sprache **69 neue Schlüssel** (4992
+  statt 4924), davon 57 im Fragment `workflows.json` (9 aus `4T-002459`, 2 aus
+  `4T-002461`, 22 aus `4T-002463`, 12 aus `4T-002464`, 12 aus `4T-002465`) und
+  12 Katalog-Schlüssel aus `4T-002466` (je vier in `help-feature.json`,
+  `help-feature-name.json` und `help-feature-access.json`); **8 geändert**,
+  `workflow.befund.manualOnly` (`4T-002459`), `statusbar.workflows.title` und
+  `statusbar.workflows.titleNoRun` (`4T-002463`) und die Katalog-Texte
+  `help.feature.workflows`, `help.feature.workflowRuns`,
+  `help.feature.workflowEditor`, `help.feature.workflowArming` und
+  `help.feature.workflowStatusbar` (`4T-002466`); **1 entfernt**,
+  `workflow.scharf.fehler.noSchedule`, ersetzt durch
+  `workflow.scharf.fehler.noArmableTrigger` (`4T-002463`); in allen fünf
+  Sprachen gleich.
+- **Funktions-Katalog und Handbuch der Stufe 3** (`4T-002466`), in allen fünf
+  Sprachfassungen: Die Handbuch-Seite «Workflows» bekommt die Abschnitte
+  «Bedingungen und Wiederholungen», «Skript-Schritt» und «Ereignisse»
+  (Ereignis-Zeile mit Tafel der sechs Ereignisse, was ein Lauf bei einem
+  Ereignis darf, wann Ereignisse wirken, keine Ketten samt Not-Bremse,
+  Scharf-Schaltung und Anzeige) und im Abschnitt «Befehle» den Unter-Abschnitt
+  «Bedingungen, Wiederholungen und Skript»; Dateikopf- und Platzhalter-Tafel,
+  Prüfen vor dem Laufen, Scharf-Schaltung, Lauf-Stand, Unterstützung im Editor
+  und Grenzen sind nachgezogen, «Spätere Ausbaustufen» nennt nur noch die
+  Datenbank-Befehle. Ergänzt sind die Seiten «Vorlagen», «Skript-Blöcke» und
+  «Handbuch» (Überblick). Vier neue Katalog-Zeilen in der Gruppe «Allgemein»:
+  «Workflows bei Ereignissen», «Bedingungen in Workflows», «Schleifen in
+  Workflows» und «Skript-Schritt in Workflows»; die Erweiterung `workflows`
+  führt sie in `featureKeys`. Die Demo-Area bekommt einen fünften
+  Beispiel-Workflow «Inbox Rule» mit Ereignis und Bedingung, der nicht scharf
+  ausgeliefert wird, und die Station «16 Workflows» den Abschnitt «Running on an
+  event».
+
+### Intern
+
+- **Prüfdateien der Stufe** (`4T-002459` bis `4T-002465`): neue Unit-Prüfdateien
+  für Ereignis-Zeile, Ereignis-Prüfer, Lauf-Marke, Ereignis «Aufgabe erledigt»,
+  Block-Abfragen, Prüfer der Blöcke und des Skript-Schritts, Prüfsumme mit
+  Skript und Kanal der Scharf-Schaltung mit Skript, dazu im Fenster
+  Ereignis-Lauf, Skript-Schritt und Baustein der Sandbox; 26 bestehende
+  Unit-Prüfdateien und der Prüf-Helfer `test/unit/renderer/api-stub.js`
+  nachgezogen, darunter der Aus-Zustand über den echten Schalter um den
+  Empfänger der Ereignisse; neue Ablauf-Prüfdatei `workflow-ereignis.spec.js`
+  (WF-EREIGNIS-01). Abdeckungs-Matrix mit F-399 bis F-402 für die vier neuen
+  Katalog-Zeilen (`4T-002466`); der eingefrorene Wert der Erweiterungs-Registry
+  in der Größen-Ausnahmen-Liste steigt nach der benannten Ausnahme für
+  Aufzählungs-Dateien von 862 auf 866 Code-Zeilen.
+- **Abschluss-Anteil der Stufe** (`4T-002467`): Architektur um Ereignis-Zeile,
+  Ereignis-Prüfer und Lauf-Stand der Stufe 3, Block-Form, Skript-Schritt,
+  Aus-Zustand, Ablage-Frage, Sicherheit und Glossar fortgeschrieben; die
+  strategischen Entscheidungen der Stufe in «Erkenntnisse und Entscheidungen»
+  verankert. **Ergebnis des Epic-Abschluss-Tests (E1, 2026-10-31):** grün unter Windows (Format, Lint, Unit-Suite und Uhr-Lauf; Ablauf-Voll-Lauf 1350 grün, 1 rot: der quarantänierte, in der Wiederholung grüne Flake des Einstellungs-Abschnitts «Datenbank» ohne Bezug zum Zug, Ursache `4T-002441`) und im Linux-Prüfstand (Epic-Tor; der erste Lauf fand eine Windows-Annahme in einem Prüffall der Ereignis-Grammatik, berichtigt, zweiter Lauf grün); Einzelheiten im Abschluss-Anteil `4T-002467`.
+- **Mitgelieferte Stände seit 1.158.0** (Webseite und Prüf-Register berührt, kein
+  Anwendungs-Code, kein Anwender-Text nötig), mit der Zusammenführung des
+  Integrationsstands in den Zug-Zweig am 2026-11-07 hereingeholt (`3E-000383`):
+  der Nachzügler des Releases 1.158.0 (`4T-002501`, Zug-Epic `3E-000405`: zehn
+  erneuerte Bildschirmfotos der Produkt-Webseite, mit der Auslieferung von
+  1.158.0 bereits veröffentlicht, dazu zwei Quarantäne-Einträge und eine
+  Befund-Zeile der Test-Infrastruktur `3E-000156`) und die Neubewertung des
+  Stabilitäts-Vorgangs zur Tastatur-Führung der Trefferliste (`4T-002289`, ein
+  Quarantäne-Eintrag auf verworfen). Die zuvor hier genannten Stände seit
+  1.155.0 (Roadmap-Kacheln «Version 1» und «Einbetten aus verknüpften
+  Bereichen», Roadmap-Zuordnung der Konzept-Runde) sind Teil des
+  Integrationsstands 1.156.0.
+
 ## [1.158.0.4996] - 2026-11-06 — Dashboards als Markdown-Konstrukt, Verweise im Frontmatter zählen mit
 
 Zug

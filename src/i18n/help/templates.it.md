@@ -26,7 +26,7 @@ Più segnaposto di input e selezione appaiono **uno dopo l'altro** nell'ordine d
 
 ## Riferimento dei segnaposto
 
-I segnaposto si scrivono tra doppie parentesi graffe. `\{{` scrive un `{{` letterale nel modello. Modelli e [workflow](workflows.md) condividono lo stesso insieme di segnaposto; quali valgono in una riga di comando è descritto nella pagina dei workflow.
+I segnaposto si scrivono tra doppie parentesi graffe. `\{{` scrive un `{{` letterale nel modello. Modelli e [workflow](workflows.md) condividono lo stesso insieme di segnaposto; quali valgono in una riga di comando è descritto nella pagina dei workflow. `{{from}}`, `{{task}}`, `{{item}}` e `{{script:name}}` ricevono un valore solo nell'esecuzione di un workflow; quando si applica un modello restano vuoti.
 
 | Segnaposto | Effetto |
 | --- | --- |
@@ -69,4 +69,4 @@ Le regole di cartella riempiono automaticamente i nuovi file: ogni regola assegn
 - La **cartella dei modelli stessa è esclusa** — i nuovi modelli restano vuoti.
 - Scegliendo esplicitamente «Nuovo file da modello», il modello scelto ha la precedenza; la regola non si applica in aggiunta.
 - L'annullamento di un dialogo crea il file **vuoto** (la creazione stessa era voluta) e mostra un avviso.
-- I file creati fuori dall'app (per esempio nel gestore file) non passano per le regole.
+- I file creati fuori dall'app (per esempio nel gestore file) non passano per le regole. Per loro esiste la regola di cartella dei [workflow](workflows.md): un workflow con `event: file-created in "Cartella"` (sezione «Eventi»).

@@ -70,6 +70,8 @@ const { createDraftCache } = require('../documents/draft-cache');
 const { createFileWatching } = require('../documents/file-watching');
 const { createLinkUpdate } = require('../documents/link-update');
 const { createBlockData } = require('../documents/block-data');
+const { buildTaskEnv } = require('../index/task-env');
+const { attachAufgabenUmgebung } = require('../index/aufgaben-erledigt');
 
 /**
  * Baut die Logik- und Fenster-Module des Main-Prozesses auf und verbindet sie.
@@ -423,9 +425,12 @@ function createMainWiring(deps) {
     // 4T-002421 (Epic 3E-000366): Derselbe Anstoss prüft beim Zeitplan-Prüfer
     // jeden Bereich, der noch nie geprüft wurde — das Öffnen eines Bereichs mit
     // fertigem Index ist dort die Sofort-Prüfung samt Nachholen (2c).
+    // 4T-002460 (Epic 3E-000367): Ebenso prüft der Ereignis-Prüfer jeden neu
+    // geöffneten Bereich mit fertigem Index (Ereignis `area-opened`).
     onBacklinksInvalidated: () => {
       reminderChecker.tick();
       void workflowScheduleChecker.checkNewAreas();
+      void workflowEventChecker.checkNewAreas();
     },
   });
   const {
@@ -619,6 +624,18 @@ function createMainWiring(deps) {
   // 4T-000348 (Epic 3E-000062): markSelfWriting an den Bereichs-Index-Cache reichen,
   // damit das Schreiben von Area_Cache.mdda nicht als Fremd-Aenderung zaehlt.
   backlinks.attachSelfWriter(markSelfWriting);
+  // 4T-002462 (Epic 3E-000367): Die Erkennung «Aufgabe erledigt» liest die
+  // Aufgaben-Umgebung (Status-Typen, Global Filter) je Meldung frisch, dieselbe
+  // wie der Befehl `complete-task`.
+  attachAufgabenUmgebung(() => {
+    const store = getStore();
+    if (!store) return buildTaskEnv({});
+    return buildTaskEnv({
+      disabledExtensions: store.get('extensions.disabled'),
+      tasksConfig: store.get('tasksConfig'),
+      taskStates: store.get('taskStates'),
+    });
+  });
 
   // 4T-001000 (Epic 3E-000196): die drei Pruefer liegen in checks/checkers.js;
   // ihre Umgebung kommt von hier. Der Aufbau steht an derselben Stelle des
@@ -633,6 +650,8 @@ function createMainWiring(deps) {
     timerDelivery,
     workflowScheduleChecker,
     workflowScheduleDelivery,
+    workflowEventChecker,
+    workflowEventDelivery,
   } = createCheckers({
     appRegistry,
     getStore,
@@ -642,6 +661,11 @@ function createMainWiring(deps) {
     // Anspruch und der Schreibweg der Begleitdateien für den Lauf-Stand.
     windows,
     mddWege: { mddSuspendedPaths, mddKeyOf, notifyMddDefect },
+    // 4T-002460: der wirksame Name des Sperr-Ordners für den Ereignis-Prüfer,
+    // aus derselben Normalisierung wie beim Bereichs-Watcher.
+    sperrOrdnerName: async (rootPath) =>
+      areaConfig.normalisiereDatenbankKonfig(await areaConfig.readAreaDatabaseConfig(rootPath))
+        .lockFolderName,
   });
 
   return {
@@ -677,6 +701,8 @@ function createMainWiring(deps) {
     timerDelivery,
     workflowScheduleChecker,
     workflowScheduleDelivery,
+    workflowEventChecker,
+    workflowEventDelivery,
     schliessRueckfall,
     anzeigeAusfall,
   };

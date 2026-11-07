@@ -34,6 +34,16 @@
 // Benachrichtigung des Betriebssystems hinaus (4T-002423,
 // workflow-benachrichtigung.js).
 //
+// **Lauf nach Ereignis** (4T-002460, Epic 3E-000367, Story 4S-001143): Der
+// Empfänger (workflow-zeitplan-lauf.js) startet mit der Herkunft `event` und
+// dem auslösenden Ereignis `{ type, file, from, task }`. Unbeaufsichtigt wie
+// ein Lauf nach Zeitplan (Ausführungs-Entscheidung 4); die Platzhalter nach 3l:
+// `{{file}}` ist die Datei des Ereignisses (bei `file-moved` der neue Pfad,
+// bei `area-opened` leer), `{{from}}` der alte Pfad bei `file-moved`,
+// `{{task}}` der Aufgaben-Text bei `task-done`, die Pfade wurzel-relativ wie
+// `{{file}}` beim Start von Hand. Herkunft und Ereignis gehen mit dem
+// Lauf-Stand an den Hauptprozess, auch für aufgerufene Workflows.
+//
 // **Pflege-Befehle** (4T-002424, Regeln P1 und P4): Enthält der vorbereitete
 // Lauf samt aufgerufener Workflows ein `delete`, nennt **eine** Bestätigung
 // vor dem ersten Schritt alle Ziele mit Pfad; «Nein» lässt keinen Schritt
@@ -41,6 +51,17 @@
 // Reiter auf das Ziel. `confirm` stellt seine Frage im Lauf mit «Ja» und
 // «Nein». Beides gibt es nur beim Start von Hand; ein Lauf nach Zeitplan ist
 // schon in der Vorbereitung abgewiesen.
+//
+// **Skript-Schritt** (4T-002465, Story 4S-001149, Entscheidungen 3h und 3n):
+// `script` und `if-script` laufen über `skriptLauf` in der Sandbox der
+// Skript-Blöcke (`query/script-sandbox-lauf.js`), mit derselben Abschottung,
+// Lese-Schnittstelle, Zeitgrenze und Warteschlange wie ein Skript-Block in der
+// Ansicht. Den Daten-Abzug liefert derselbe Kanal wie dort, mit der
+// Workflow-Datei als aktuellem Dokument. Unmittelbar vor jedem Skript fragt der
+// Lauf die Einstellung «Skript-Blöcke ausführen» erneut ab (fail-closed, AK7
+// der Story): Wurde sie seit dem Prüfen ausgeschaltet, schlägt der Schritt mit
+// `scriptsDisabled` fehl. Das Ergebnis ist der Rückgabe-Wert des Skripts, gibt
+// es keinen, der Text seiner Ausgabe über `pq.out`.
 //
 // **Welcher Text:** der übergebene (der Stand im Editor beim Knopf), sonst der
 // ungespeicherte Stand eines in diesem Fenster geöffneten Reiters, sonst die
@@ -60,6 +81,12 @@ import { collectAnswers, folderDisplayFor, templateDocumentContext } from '../te
 import { showStatusbarHint } from '../views/views.js';
 import { getWorkflowFolderList } from './workflow-folder-list.js';
 import { verbucheLaufStand } from './workflow-fremd.js';
+import { isPerspectiveScriptsEnabled } from '../query/perspective-script-view.js';
+import {
+  SCRIPT_RUN_TIMEOUT_MS,
+  runInScriptSandbox,
+  scriptOutputText,
+} from '../query/script-sandbox-lauf.js';
 import { ABBRUCH_MS, meldeEnde, meldeNotify } from './workflow-benachrichtigung.js';
 import { initWorkflowStatusleiste } from './workflow-statusleiste.js';
 import { einsetzen } from './workflow-lauf-texte.js';
@@ -90,6 +117,10 @@ import {
 
 // Wirkungen, die keine Datei verändern, gehören nicht ins Journal.
 const UNBERUEHRT = Object.freeze(['unchanged', 'opened', 'closed']);
+/** Die Herkunft eines Laufs nach Ereignis (4T-002460). */
+const EREIGNIS_HERKUNFT = 'event';
+/** Herkünfte ohne Zuschauer; sie gehen mit dem Lauf-Stand mit. */
+const UNBEAUFSICHTIGTE_HERKUNFT = Object.freeze([...ZEITPLAN_HERKUNFT, EREIGNIS_HERKUNFT]);
 
 let verdrahtung = {
   executeCommand: () => false,
@@ -159,12 +190,13 @@ function zwischenablage() {
 }
 
 // Kontext des aktiven Dokuments für die Befehls-Zeilen (S-b), mit der
-// Zwischenablage einmal je Lauf wie die Uhrzeit.
-function laufKontext() {
+// Zwischenablage einmal je Lauf wie die Uhrzeit. Bei einem Lauf nach Ereignis
+// tragen `file`, `from` und `task` die Werte des Ereignisses (3l).
+function laufKontext(ereignis = null) {
   const tab = activeTab();
   const pfad = tab && tab.path ? tab.path : '';
   const basis = pfad ? dateiName(pfad).replace(MD_EXT_RE, '') : '';
-  return {
+  const kontext = {
     ...templateDocumentContext(),
     title: basis ? toLogicalName(basis) : '',
     folder: pfad ? folderDisplayFor(api.dirname(pfad)) : '',
@@ -172,6 +204,23 @@ function laufKontext() {
     locale: intlLocale(),
     clipboard: zwischenablage(),
   };
+  if (!ereignis) return kontext;
+  return {
+    ...kontext,
+    file: ereignis.file ? folderDisplayFor(ereignis.file) : '',
+    from: ereignis.from ? folderDisplayFor(ereignis.from) : '',
+    task: typeof ereignis.task === 'string' ? ereignis.task : '',
+  };
+}
+
+// Das auslösende Ereignis in der Form von `normalizeRun`, mit absoluten
+// Pfaden; der Hauptprozess legt sie relativ ab.
+function laufEreignis(ereignis) {
+  const e = { type: ereignis.type };
+  if (ereignis.file) e.file = ereignis.file;
+  if (ereignis.from) e.from = ereignis.from;
+  if (typeof ereignis.task === 'string') e.task = ereignis.task;
+  return e;
 }
 
 async function leseVorlagen(refs) {
@@ -321,13 +370,17 @@ async function bereite(pfad, text, lage) {
 }
 
 // Lauf-Stand in der Form von `normalizeRun` (4T-002348). Die Herkunft geht
-// nur bei einem Lauf nach Zeitplan mit, weil der Hauptprozess ohne Angabe
-// `manual` setzt (4T-002420); das Journal, sobald der Lauf Schritte hatte.
+// nur bei einem unbeaufsichtigten Lauf mit, weil der Hauptprozess ohne Angabe
+// `manual` setzt (4T-002420), bei einem Lauf nach Ereignis dazu das Ereignis
+// (4T-002460); das Journal, sobald der Lauf Schritte hatte.
 function laufStand(ergebnis, startedAt, extra = {}) {
   const run = { status: ergebnis.status, startedAt };
   if (ergebnis.status !== 'ok' && typeof ergebnis.line === 'number') run.line = ergebnis.line;
   if (ergebnis.status === 'failed') run.code = ergebnis.code;
-  if (ZEITPLAN_HERKUNFT.includes(extra.origin)) run.origin = extra.origin;
+  if (UNBEAUFSICHTIGTE_HERKUNFT.includes(extra.origin)) run.origin = extra.origin;
+  if (extra.origin === EREIGNIS_HERKUNFT && extra.ereignis) {
+    run.event = laufEreignis(extra.ereignis);
+  }
   if (Array.isArray(extra.journal)) run.journal = extra.journal;
   return run;
 }
@@ -386,7 +439,51 @@ function neuesJournal() {
   };
 }
 
-function laufDeps(startedAt, herkunft) {
+// Der Text zu einem nicht nutzbaren Index, wie ihn der Skript-Block zeigt.
+function indexHinweis(abzug) {
+  const status = abzug && abzug.status;
+  if (status === 'indexing') return t('script.indexing');
+  if (status === 'oversized') {
+    const meta = (abzug && abzug.meta) || {};
+    return t('script.indexOversized').replace('{files}', String(meta.fileCount || 0));
+  }
+  return t('script.indexError');
+}
+
+/**
+ * Führt das Skript eines Schritts in der Sandbox der Skript-Blöcke aus
+ * (4T-002465); `deps.runScript` des Ablauf-Kerns.
+ *
+ * @param {string} source geprüfter Quelltext des Skript-Blocks.
+ * @param {{path: string, line: number}} ort Workflow-Datei (absolut) und Zeile.
+ * @returns {Promise<{ok: true, value: *}|{ok: false, code: string, detail: object}>}
+ */
+export async function skriptLauf(source, ort) {
+  if (!isPerspectiveScriptsEnabled()) return { ok: false, code: 'scriptsDisabled', detail: {} };
+  let abzug = null;
+  try {
+    abzug = await api.getPerspectiveScriptData(ort && ort.path);
+  } catch (err) {
+    console.warn('[Workflows] Daten-Abzug für das Skript nicht lesbar:', err && err.message);
+  }
+  if (!abzug || abzug.status !== 'ready') {
+    return { ok: false, code: 'scriptFailed', detail: { message: indexHinweis(abzug) } };
+  }
+  const antwort = await runInScriptSandbox({ source, data: abzug });
+  if (antwort.type === 'result') {
+    const value = antwort.value !== null ? antwort.value : scriptOutputText(antwort.output);
+    return { ok: true, value };
+  }
+  if (antwort.type === 'timeout') {
+    const seconds = Math.round(SCRIPT_RUN_TIMEOUT_MS / 1000);
+    return { ok: false, code: 'scriptTimeout', detail: { seconds } };
+  }
+  const detail = { message: antwort.message || '' };
+  if (typeof antwort.line === 'number') detail.line = antwort.line;
+  return { ok: false, code: 'scriptFailed', detail };
+}
+
+function laufDeps(startedAt, herkunft, ereignis) {
   const journal = neuesJournal();
   return {
     step: journal.step,
@@ -396,18 +493,23 @@ function laufDeps(startedAt, herkunft) {
     runMacro: (name, ebene) => verdrahtung.runMacro(name, ebene),
     sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
     confirm: (frage) => frageJaNein(laufName, frage),
+    runScript: skriptLauf,
     // 4T-002423: nach Zeitplan zusätzlich als Benachrichtigung des Betriebssystems.
     notify: (text) => meldeNotify(text, { name: laufName, herkunft }),
     finish: (plan, ergebnis) =>
       merke(
         plan.path,
-        laufStand(ergebnis, startedAt, { origin: herkunft, journal: journal.von(plan.path) }),
+        laufStand(ergebnis, startedAt, {
+          origin: herkunft,
+          ereignis,
+          journal: journal.von(plan.path),
+        }),
         ergebnis,
       ),
   };
 }
 
-async function lauf(pfad, text, herkunft) {
+async function lauf(pfad, text, herkunft, ereignis) {
   // Zahl in Millisekunden, wie `normalizeRun` im Hauptprozess sie verlangt (4T-002350).
   const startedAt = Date.now();
   const quelle = typeof text === 'string' ? text : await leseText(pfad);
@@ -424,18 +526,18 @@ async function lauf(pfad, text, herkunft) {
     ebene: 0,
     antworten: {},
     unbeaufsichtigt: herkunft !== 'manual',
-    kontext: laufKontext(),
+    kontext: laufKontext(ereignis),
     liste: await workflowListe(),
   };
   const vorbereitet = await bereite(pfad, quelle, lage);
   if (vorbereitet.abbruch) {
-    await merke(pfad, laufStand({ status: 'canceled' }, startedAt, { origin: herkunft }));
+    await merke(pfad, laufStand({ status: 'canceled' }, startedAt, { origin: herkunft, ereignis }));
     return false;
   }
   if (vorbereitet.fehler) {
     meldeEnde(vorbereitet.fehler, herkunft);
     if (vorbereitet.fehler.code !== 'notWorkflow') {
-      const run = laufStand(vorbereitet.fehler, startedAt, { origin: herkunft });
+      const run = laufStand(vorbereitet.fehler, startedAt, { origin: herkunft, ereignis });
       await merke(pfad, run, vorbereitet.fehler);
     }
     return false;
@@ -443,10 +545,10 @@ async function lauf(pfad, text, herkunft) {
   laufName = vorbereitet.plan.name;
   const ziele = deleteTargets(vorbereitet.plan);
   if (ziele.length > 0 && !(await bestaetigeLoeschZiele(laufName, ziele))) {
-    await merke(pfad, laufStand({ status: 'canceled' }, startedAt, { origin: herkunft }));
+    await merke(pfad, laufStand({ status: 'canceled' }, startedAt, { origin: herkunft, ereignis }));
     return false;
   }
-  const ergebnis = await runWorkflow(vorbereitet.plan, laufDeps(startedAt, herkunft));
+  const ergebnis = await runWorkflow(vorbereitet.plan, laufDeps(startedAt, herkunft, ereignis));
   if (ergebnis.status !== 'ok') meldeEnde(ergebnis, herkunft);
   return ergebnis.status === 'ok';
 }
@@ -454,12 +556,14 @@ async function lauf(pfad, text, herkunft) {
 /**
  * Startet einen Workflow in diesem Fenster.
  *
- * @param {{path: string, text?: string, origin?: string}} anfrage `path` absolut;
- *   `text` der Stand im Editor, sonst wird er gelesen; `origin` `schedule` oder
- *   `catch-up` für einen Lauf nach Zeitplan (4T-002421), sonst Start von Hand.
+ * @param {{path: string, text?: string, origin?: string, ereignis?: object}} anfrage
+ *   `path` absolut; `text` der Stand im Editor, sonst wird er gelesen; `origin`
+ *   `schedule` oder `catch-up` für einen Lauf nach Zeitplan (4T-002421), `event`
+ *   mit `ereignis` `{ type, file, from, task }` für einen Lauf nach Ereignis
+ *   (4T-002460), sonst Start von Hand.
  * @returns {Promise<boolean>} true, wenn der Lauf bis zum Ende gelungen ist.
  */
-export async function starteWorkflow({ path, text, origin } = {}) {
+export async function starteWorkflow({ path, text, origin, ereignis } = {}) {
   if (!isExtensionActive(WORKFLOWS_EXTENSION_ID)) return false;
   if (laufName !== null) {
     const meldung = einsetzen(t('workflow.lauf.laeuftBereits'), { name: laufName });
@@ -468,9 +572,11 @@ export async function starteWorkflow({ path, text, origin } = {}) {
   }
   if (typeof path !== 'string' || path === '') return false;
   laufName = dateiName(path).replace(MD_EXT_RE, '');
-  const herkunft = ZEITPLAN_HERKUNFT.includes(origin) ? origin : 'manual';
+  // Ein Lauf nach Ereignis ohne Ereignis gälte als Start von Hand.
+  const mitEreignis = origin === EREIGNIS_HERKUNFT && !!ereignis && typeof ereignis === 'object';
+  const herkunft = ZEITPLAN_HERKUNFT.includes(origin) || mitEreignis ? origin : 'manual';
   try {
-    return await lauf(path, text, herkunft);
+    return await lauf(path, text, herkunft, mitEreignis ? ereignis : null);
   } catch (err) {
     console.error('[Workflows] Lauf fehlgeschlagen:', err);
     const fehler = { status: 'failed', workflow: laufName, line: null, code: 'unexpected' };

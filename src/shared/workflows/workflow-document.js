@@ -35,6 +35,27 @@
 // schon der YAML-Leser ab; eine solche Datei gilt wie jeder kaputte Dateikopf
 // nicht als Workflow.
 //
+// **Ereignis (4T-002459, Story 4S-001142):** `trigger: event` ist der dritte
+// unterstützte Auslöser; gelesen wird dazu die Zeile `event` (Grammatik in
+// `workflow-event.js`), nach dem Muster von `schedule`: `event` ohne
+// `trigger: event` ist ein Befund an der `event`-Zeile, `trigger: event`
+// ohne `event` einer an der `trigger`-Zeile. **Genau eine `event`-Zeile je
+// Datei (3b):** Eine Liste ist der Befund `eventDuplicate`, und eine zweite
+// `event`-Zeile ebenso. Weil der YAML-Leser doppelte Schlüssel abweist, liest
+// `kopfLesen` einen solchen Kopf ein zweites Mal ohne die weiteren
+// `event`-Zeilen; trägt er dann das Kennzeichen, ist die Datei ein Workflow mit
+// dem Befund an der zweiten Zeile, statt still keiner zu sein. Jeder andere
+// doppelte Schlüssel bleibt ein kaputter Dateikopf.
+//
+// **Skript-Abschnitte (4T-002465, Story 4S-001149, Entscheidung 3h):**
+// `scriptBlock` liefert den Quelltext des ersten Skript-Blocks
+// (`perspective-script`, oberste Ebene des Abschnitts nach der Zaun-Regel)
+// unter einer Überschrift, gefunden wie bei `sectionBody`. Anders als der Rumpf
+// von `from-section` steht er **vor dem ersten Schritt** fest: Das Prüfen vor
+// Laufen meldet einen fehlenden Abschnitt oder einen Abschnitt ohne
+// Skript-Block, und der Lauf führt den Stand aus, der geprüft wurde. Dafür
+// trägt das gelesene Dokument seinen Text in `source`.
+//
 // Prozess-neutral: kein Electron, kein DOM, kein Datei-Zugriff.
 'use strict';
 
@@ -48,10 +69,15 @@ const {
   SCHEDULE_TRIGGER,
   parseSchedule,
 } = require('./workflow-schedule.js');
+const { EVENT_TRIGGER, parseEvent } = require('./workflow-event.js');
 
 const WORKFLOW_FLAG_KEY = 'workflow';
 const WORKFLOW_FENCE = 'workflow';
+/** Sprache des Skript-Blocks (Kern-Konstrukt `perspective-script`, 4T-000412). */
+const SCRIPT_FENCE = 'perspective-script';
 const MANUAL_TRIGGER = 'manual';
+const EVENT_KEY = 'event';
+const SUPPORTED_TRIGGERS = Object.freeze([MANUAL_TRIGGER, SCHEDULE_TRIGGER, EVENT_TRIGGER]);
 
 /**
  * Trägt der Wert das Kennzeichen einer Workflow-Datei?
@@ -115,13 +141,37 @@ function befund(code, line, detail = {}) {
   return { code, line, blockLine: null, column: null, detail };
 }
 
-// Zeile eines Schlüssels der obersten Ebene im Dateikopf (Zeile 1 ist `---`),
-// null, wenn er nicht in der einfachen Form `schlüssel:` am Zeilenanfang steht.
-function kopfZeileVon(raw, schluessel) {
+// Alle Zeilen eines Schlüssels der obersten Ebene im Dateikopf (Zeile 1 ist
+// `---`), in der einfachen Form `schlüssel:` am Zeilenanfang.
+function kopfZeilenVon(raw, schluessel) {
   const zeilen = String(raw || '').split(/\r?\n/);
   const muster = new RegExp(`^${schluessel}\\s*:`);
-  for (let i = 1; i < zeilen.length; i++) if (muster.test(zeilen[i])) return i + 1;
-  return null;
+  const treffer = [];
+  for (let i = 1; i < zeilen.length; i++) if (muster.test(zeilen[i])) treffer.push(i + 1);
+  return treffer;
+}
+
+// Die erste Zeile eines Schlüssels; null, wenn er nicht in der einfachen Form
+// `schlüssel:` am Zeilenanfang steht.
+function kopfZeileVon(raw, schluessel) {
+  const [erste] = kopfZeilenVon(raw, schluessel);
+  return erste === undefined ? null : erste;
+}
+
+// Der Dateikopf; bei einem Kopf, den allein weitere `event`-Zeilen kaputt
+// machen, die Daten ohne diese Zeilen und die Zeile der zweiten.
+function kopfLesen(quelle) {
+  const kopf = extractFrontmatter(quelle);
+  if (kopf.data || kopf.raw === null) return { kopf, daten: kopf.data, zweiteEvent: null };
+  const ereignisZeilen = kopfZeilenVon(kopf.raw, EVENT_KEY);
+  if (ereignisZeilen.length < 2) return { kopf, daten: null, zweiteEvent: null };
+  const weg = new Set(ereignisZeilen.slice(1));
+  const ohne = kopf.raw
+    .split(/\r?\n/)
+    .filter((_, i) => !weg.has(i + 1))
+    .join('\n');
+  const daten = extractFrontmatter(ohne).data;
+  return { kopf, daten, zweiteEvent: daten ? ereignisZeilen[1] : null };
 }
 
 const alsText = (wert) => (typeof wert === 'string' ? wert : JSON.stringify(wert));
@@ -162,6 +212,35 @@ function zeitplanFelder(daten, ausloeser, raw, findings) {
   };
 }
 
+// Liest `event` und meldet seine Befunde; die Regel nur bei `trigger: event`,
+// genau einer lesbaren Zeile und ohne zweite `event`-Zeile.
+function ereignisFelder(daten, ausloeser, raw, zweiteEvent, findings) {
+  let event = null;
+  const hatEreignis = daten.event != null;
+  const zeile = kopfZeileVon(raw, EVENT_KEY);
+  if (zweiteEvent !== null) {
+    findings.push(befund('eventDuplicate', zweiteEvent));
+  } else if (ausloeser === EVENT_TRIGGER && !hatEreignis) {
+    findings.push(befund('eventMissing', kopfZeileVon(raw, 'trigger')));
+  } else if (hatEreignis && ausloeser !== EVENT_TRIGGER) {
+    findings.push(befund('eventWithoutTrigger', zeile));
+  } else if (Array.isArray(daten.event)) {
+    findings.push(befund('eventDuplicate', zeile));
+  } else if (hatEreignis) {
+    const gelesen = parseEvent(daten.event);
+    if (gelesen.ok) event = gelesen.rule;
+    else {
+      const detail =
+        gelesen.code === 'eventUnreadable' ? { event: alsText(daten.event) } : gelesen.detail;
+      findings.push(befund(gelesen.code, zeile, detail));
+    }
+  }
+  return {
+    event,
+    eventText: typeof daten.event === 'string' ? daten.event.trim() : null,
+  };
+}
+
 /**
  * Liest eine Workflow-Datei.
  *
@@ -169,21 +248,21 @@ function zeitplanFelder(daten, ausloeser, raw, findings) {
  * @param {{fileName?: string}} [options] Dateiname für den Rückfall des Namens.
  * @returns {{isWorkflow: boolean,
  *   meta: {name: string, trigger: string, description: string,
- *     schedule: object|null, scheduleText: string|null, missed: string}|null,
+ *     schedule: object|null, scheduleText: string|null, missed: string,
+ *     event: object|null, eventText: string|null}|null,
  *   block: {line: number, contentLine: number, endLine: number, lines: string[]}|null,
  *   blockLines: number[], findings: object[]}}
  *   Zeilen ab 1 im Dokument; `block` nur bei genau einem Block.
  */
 function readWorkflowDocument(text, options = {}) {
   const quelle = String(text == null ? '' : text).replace(/^\uFEFF/, '');
-  const kopf = extractFrontmatter(quelle);
-  const daten = kopf.data;
+  const { kopf, daten, zweiteEvent } = kopfLesen(quelle);
   if (!daten || !isWorkflowFlag(daten[WORKFLOW_FLAG_KEY])) {
     return { isWorkflow: false, meta: null, block: null, blockLines: [], findings: [] };
   }
   const findings = [];
   const ausloeser = daten.trigger == null ? MANUAL_TRIGGER : daten.trigger;
-  if (ausloeser !== MANUAL_TRIGGER && ausloeser !== SCHEDULE_TRIGGER) {
+  if (!SUPPORTED_TRIGGERS.includes(ausloeser)) {
     findings.push(befund('triggerUnsupported', null, { trigger: alsText(ausloeser) }));
   }
   const meta = {
@@ -191,6 +270,7 @@ function readWorkflowDocument(text, options = {}) {
     trigger: typeof ausloeser === 'string' ? ausloeser : String(ausloeser),
     description: typeof daten.description === 'string' ? daten.description.trim() : '',
     ...zeitplanFelder(daten, ausloeser, kopf.raw, findings),
+    ...ereignisFelder(daten, ausloeser, kopf.raw, zweiteEvent, findings),
   };
   const lines = quelle.split(/\r?\n/);
   const bloecke = workflowBloecke(lines, kopfZeilen(kopf.raw));
@@ -205,6 +285,7 @@ function readWorkflowDocument(text, options = {}) {
     block: bloecke.length === 1 ? bloecke[0] : null,
     blockLines: bloecke.map((b) => b.line),
     findings,
+    source: quelle,
   };
 }
 
@@ -242,7 +323,48 @@ function sectionBody(text, name) {
   };
 }
 
+/**
+ * Der Quelltext des ersten Skript-Blocks unter einer Überschrift des
+ * Workflow-Dokuments (4T-002465).
+ *
+ * @param {string} text Inhalt des Workflow-Dokuments.
+ * @param {string} name Name des Abschnitts aus der Befehls-Zeile.
+ * @returns {{ok: true, source: string, line: number}|{ok: false, code:
+ *   'sectionUnknown'|'sectionAmbiguous'|'noScript'}} `line` ist die Zeile des
+ *   Zauns im Dokument, ab 1.
+ */
+function scriptBlock(text, name) {
+  const quelle = String(text == null ? '' : text).replace(/^\uFEFF/, '');
+  const lines = quelle.split(/\r?\n/);
+  const gesucht = githubLikeSlug(name);
+  const treffer = headingSections(lines, kopfZeilen(extractFrontmatter(quelle).raw)).filter(
+    (s) => s.slug === gesucht,
+  );
+  if (treffer.length === 0) return { ok: false, code: 'sectionUnknown' };
+  if (treffer.length > 1) return { ok: false, code: 'sectionAmbiguous' };
+  const [abschnitt] = treffer;
+  let offen = null;
+  let skript = null;
+  for (let i = abschnitt.start + 1; i < abschnitt.end; i++) {
+    if (offen) {
+      if (schliesstZaun(lines[i], offen)) {
+        if (skript) return { ok: true, source: skript.zeilen.join('\n'), line: skript.line };
+        offen = null;
+      } else if (skript) {
+        skript.zeilen.push(lines[i]);
+      }
+      continue;
+    }
+    offen = zaunOeffnung(lines[i]);
+    if (offen && offen.sprache === SCRIPT_FENCE) skript = { line: i + 1, zeilen: [] };
+  }
+  // Ein nicht geschlossener Skript-Block reicht bis zum Ende des Abschnitts.
+  if (skript) return { ok: true, source: skript.zeilen.join('\n'), line: skript.line };
+  return { ok: false, code: 'noScript' };
+}
+
 module.exports = {
+  EVENT_TRIGGER,
   MANUAL_TRIGGER,
   SCHEDULE_TRIGGER,
   // 4T-002348: dieselbe Zählung für die Einfüge-Stelle von `insert … under`.
@@ -251,5 +373,7 @@ module.exports = {
   WORKFLOW_FLAG_KEY,
   isWorkflowFlag,
   readWorkflowDocument,
+  SCRIPT_FENCE,
+  scriptBlock,
   sectionBody,
 };

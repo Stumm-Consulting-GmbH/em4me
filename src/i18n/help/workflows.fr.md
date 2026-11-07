@@ -1,12 +1,12 @@
 # Workflows
 
-Un **workflow** consigne des manipulations récurrentes sous forme de suite fixe d'étapes : créer, renommer, déplacer, copier et placer dans la corbeille des fichiers et des dossiers, ajouter ou insérer du texte, définir des propriétés et des étiquettes dans l'en-tête, cocher des tâches, exécuter des commandes, des macros et d'autres workflows. Un workflow est un **fichier Markdown ordinaire** ; ce qu'il fait figure dans un bloc de commandes fixes, une ligne par étape. Le fichier reste ainsi lisible sans l'application, se transmet et se modifie comme tout autre document.
+Un **workflow** consigne des manipulations récurrentes sous forme de suite fixe d'étapes : créer, renommer, déplacer, copier et placer dans la corbeille des fichiers et des dossiers, ajouter ou insérer du texte, définir des propriétés et des étiquettes dans l'en-tête, cocher des tâches, exécuter des commandes, des macros et d'autres workflows. Des conditions et des répétitions décident des étapes qui s'exécutent et pour quels fichiers ; une étape de script calcule une valeur sans rien écrire. Un workflow est un **fichier Markdown ordinaire** ; ce qu'il fait figure dans un bloc de commandes fixes, une ligne par étape. Le fichier reste ainsi lisible sans l'application, se transmet et se modifie comme tout autre document.
 
-Un workflow se lance **à la main** : depuis le menu, la palette de commandes, par un raccourci clavier, un bouton au-dessus du bloc ou le menu contextuel du panneau de zone. Un workflow avec une planification s'exécute en outre **selon sa planification** dès qu'il est armé. **Avant que la première étape ne s'exécute, l'application vérifie le workflow entier** ; une erreur s'affiche au-dessus du bloc avec la ligne et le motif, et rien ne s'exécute.
+Un workflow se lance **à la main** : depuis le menu, la palette de commandes, par un raccourci clavier, un bouton au-dessus du bloc ou le menu contextuel du panneau de zone. Un workflow avec une planification s'exécute en outre **selon sa planification**, un workflow avec un événement **lors d'un événement** de la zone, par exemple un nouveau fichier dans un dossier, dans les deux cas dès qu'il est armé. **Avant que la première étape ne s'exécute, l'application vérifie le workflow entier** ; une erreur s'affiche au-dessus du bloc avec la ligne et le motif, et rien ne s'exécute.
 
 ## L'extension « Workflows »
 
-La fonction fait partie des [extensions intégrées](extensions.md) (« Workflows », groupe **Outils**) ; elle est activée dans le mode de travail **Complet** et désactivée dans les modes **Débutant** et **Avancé**. Désactivée, un bloc `workflow` est un bloc de code ordinaire sans mise en évidence, sans affichage de vérification et sans boutons ; il n'y a ni commandes des workflows, ni sous-menu **Workflows**, ni page **Exécutions des workflows**, ni élément **Workflows** dans la barre d'état, ni sections de paramètres **Workflows**, ni exécution selon la planification. Un fichier de workflow est alors un document ordinaire. Rien n'est perdu : les fichiers, les états d'exécution avec l'état armé et le dossier de workflows défini sont inchangés après la réactivation.
+La fonction fait partie des [extensions intégrées](extensions.md) (« Workflows », groupe **Outils**) ; elle est activée dans le mode de travail **Complet** et désactivée dans les modes **Débutant** et **Avancé**. Désactivée, un bloc `workflow` est un bloc de code ordinaire sans mise en évidence, sans affichage de vérification et sans boutons ; il n'y a ni commandes des workflows, ni sous-menu **Workflows**, ni page **Exécutions des workflows**, ni élément **Workflows** dans la barre d'état, ni sections de paramètres **Workflows**, ni exécution selon la planification, ni exécution lors d'événements. Un fichier de workflow est alors un document ordinaire. Rien n'est perdu : les fichiers, les états d'exécution avec l'état armé et le dossier de workflows défini sont inchangés après la réactivation.
 
 ## Structure d'un fichier de workflow
 
@@ -34,18 +34,19 @@ notify "Bilan créé"
 - Bilan hebdomadaire créé.
 ````
 
-L'en-tête porte la marque, le nom, le déclencheur, la description et, pour une exécution planifiée, la planification :
+L'en-tête porte la marque, le nom, le déclencheur, la description et, selon le déclencheur, la planification ou l'événement :
 
 | Clé | Obligatoire | Signification |
 | --- | --- | --- |
 | `workflow` | oui | `true` marque le fichier comme workflow. |
 | `name` | non | Nom du workflow dans le menu, la palette de commandes et les messages ; sans indication, le nom du fichier sans extension s'applique. |
-| `trigger` | non | Déclencheur : `manual` pour le lancement à la main, `schedule` pour l'exécution selon la planification ; sans indication, `manual` s'applique. |
+| `trigger` | non | Déclencheur : `manual` pour le lancement à la main, `schedule` pour l'exécution selon la planification, `event` pour l'exécution lors d'un événement ; sans indication, `manual` s'applique. |
 | `schedule` | avec `trigger: schedule` | Planification sur une ligne, par exemple `every weekday at 08:00` (section « Planification et armement »). |
 | `missed` | non | Traitement des exécutions manquées : `run-once` rattrape une fois, `skip` les laisse expirer ; sans indication, `run-once` s'applique. |
+| `event` | avec `trigger: event` | Événement sur une ligne, par exemple `file-created in "Entrée"` (section « Événements »). |
 | `description` | non | Description courte ; la page **Exécutions des workflows** l'affiche en infobulle sur le nom. |
 
-Un autre déclencheur que `manual` ou `schedule` est signalé comme « pas encore pris en charge », et le workflow ne s'exécute pas ; le fichier reste inchangé. Un fichier portant deux blocs `workflow` ou plus, ou aucun, ne s'exécute pas non plus. Un bloc ne contenant que des commentaires est valide et ne fait rien.
+Un autre déclencheur que `manual`, `schedule` ou `event` est signalé comme « pas encore pris en charge », et le workflow ne s'exécute pas ; le fichier reste inchangé. Un fichier portant deux blocs `workflow` ou plus, ou aucun, ne s'exécute pas non plus. Un bloc ne contenant que des commentaires est valide et ne fait rien.
 
 ## Lignes de commande
 
@@ -76,9 +77,12 @@ Avant la première étape, l'application vérifie le fichier entier ainsi que ch
 - les commandes, macros et workflows inconnus, ainsi que les noms portés par plusieurs macros ou workflows,
 - un workflow qui s'appelle lui-même, y compris par le détour d'un autre, et une imbrication de plus de cinq niveaux,
 - les espaces réservés erronés, les modèles illisibles et les modèles désactivés,
-- une planification illisible, une heure manquante ou non autorisée, `schedule` sans `trigger: schedule` et inversement, ainsi qu'une valeur inconnue pour `missed`.
+- une planification illisible, une heure manquante ou non autorisée, `schedule` sans `trigger: schedule` et inversement, ainsi qu'une valeur inconnue pour `missed`,
+- une ligne d'événement illisible, un événement inconnu, un dossier hors de la zone, un motif invalide, `event` sans `trigger: event` et inversement, plus d'une ligne `event` et un espace réservé que l'événement ne fournit pas,
+- un `end` manquant ou en trop, un `else` sans condition ou un second `else`, des blocs sur plus de trois niveaux, une boucle dans une boucle, un motif invalide pour `for-each` et `{{item}}` hors d'une boucle,
+- pour l'étape de script, une section manquante, multiple ou sans script, un nom invalide ou en double, un résultat que seule une ligne ultérieure fournit, et des blocs de script désactivés.
 
-Une anomalie arrête l'exécution **avant la première étape** ; un fichier de workflow erroné ne s'exécute donc pas du tout au lieu de s'exécuter en partie. La vérification signale toutes les anomalies à la fois ; la ligne indiquée est la ligne dans le document telle que l'éditeur la compte, en-tête compris. Seule exception, l'anomalie « Manuel uniquement » (section « Planification et armement ») : elle empêche uniquement l'armement, le lancement à la main reste possible.
+Une anomalie arrête l'exécution **avant la première étape** ; un fichier de workflow erroné ne s'exécute donc pas du tout au lieu de s'exécuter en partie. La vérification signale toutes les anomalies à la fois ; la ligne indiquée est la ligne dans le document telle que l'éditeur la compte, en-tête compris. Seule exception, l'anomalie « Manuel uniquement » (sections « Planification et armement » et « Événements ») : elle empêche uniquement l'armement, le lancement à la main reste possible.
 
 Ce que seule une étape antérieure peut produire est vérifié par l'application à l'étape même : l'existence d'un fichier, d'une section ou d'un titre. S'il manque à ce moment, l'étape échoue.
 
@@ -131,7 +135,7 @@ Les commandes, classées selon leur objet. Les chemins sont relatifs à la racin
 
 - `command` prend l'identifiant fixe d'une commande, comme `view.modeSplit`, `view.modeLive` ou `file.save`, et l'exécute dans la fenêtre de lancement. Si elle n'est pas exécutable sur le moment, l'étape échoue. Macros et workflows ne passent pas par `command`, mais par leurs propres commandes.
 - `macro` et `workflow` peuvent être imbriqués sur cinq niveaux au plus. Un workflow appelé revient après sa dernière étape ; si une étape y échoue, toute l'exécution prend fin.
-- `notify` affiche son texte dans la barre d'état et, lors d'une exécution planifiée, aussi comme notification du système d'exploitation (section « Déroulement d'une exécution »).
+- `notify` affiche son texte dans la barre d'état et, lors d'une exécution planifiée ou déclenchée par un événement, aussi comme notification du système d'exploitation (section « Déroulement d'une exécution »).
 - `stop` met fin à toute l'exécution, même depuis un workflow appelé ; la barre d'état affiche « Workflow ‹Nom› arrêté à la ligne N : texte ».
 
 ### Commandes d'entretien
@@ -150,7 +154,22 @@ Les commandes, classées selon leur objet. Les chemins sont relatifs à la racin
 - **`complete-task`** cherche parmi les tâches ouvertes du fichier, celles-là mêmes que montre la [requête de tâches](tasks.md), la première dont le texte contient le texte cherché, en respectant la casse. Elle la coche comme un clic dans la requête de tâches, avec la date d'achèvement selon les paramètres des tâches. Si elle n'en trouve aucune, l'étape échoue.
 - **`confirm`** affiche la question avec « Oui » et « Non ». « Oui » poursuit l'exécution ; « Non » y met fin sans échec, et la barre d'état affiche « Workflow ‹Nom› arrêté à la ligne N : Réponse « Non » à «question» ».
 - **Fichiers ouverts :** sur un fichier ouvert et non enregistré dans une fenêtre, `add-tag`, `remove-tag` et `complete-task` agissent par cette fenêtre, comme les commandes de contenu.
-- `delete` et `confirm` exigent une personne présente : dans un workflow avec `trigger: schedule`, ils constituent l'anomalie « Manuel uniquement ».
+- `delete` et `confirm` exigent une personne présente : dans un workflow avec `trigger: schedule` ou `trigger: event`, ils constituent l'anomalie « Manuel uniquement ».
+
+### Conditions, répétitions et scripts
+
+Ces commandes ouvrent un **bloc** que ferme une ligne `end` ; les étapes intermédiaires ne s'exécutent que si la condition est remplie, ou une fois par fichier. `script` est une étape unique. Détails dans les sections « Conditions et répétitions » et « Étape de script ».
+
+| Commande | Signification | Indications | Exemple |
+| --- | --- | --- | --- |
+| `if-exists` | si présent : bloc seulement si le fichier ou le dossier existe | chemin | `if-exists "Journal.md"` |
+| `if-missing` | si absent : bloc seulement si le fichier ou le dossier manque | chemin | `if-missing "Journal/{{date}}.md"` |
+| `if-property` | si propriété : bloc seulement si la propriété de l'en-tête a la valeur ou, sans valeur, est définie | chemin, nom, valeur facultative | `if-property "{{file}}" status "ouvert"` |
+| `if-script` | si script : bloc seulement si le script d'une section est rempli | titre | `if-script "Comptage"` |
+| `else` | sinon : introduit la partie qui vaut si la condition n'est pas remplie | aucune | `else` |
+| `end` | fin : ferme le bloc d'une condition ou d'une boucle | aucune | `end` |
+| `for-each` | pour chaque : bloc une fois par fichier correspondant au motif | dossier avec motif de fichier | `for-each "Entrée/*.md"` |
+| `script` | script : exécuter le bloc de script d'une section et nommer son résultat | titre, `as "nom"` | `script "Comptage" as "nombre"` |
 
 ### Sources d'un contenu
 
@@ -171,18 +190,23 @@ Les espaces réservés valent dans chaque indication d'une ligne de commande. Mo
 | Espace réservé | Valeur dans une ligne de commande |
 | --- | --- |
 | `{{date}}`, `{{time}}` | date et heure du lancement, aussi avec décalage et format : `{{date:+7d:dd.MM.yyyy}}` |
-| `{{file}}` | chemin du document actif au lancement, relatif à la racine de la zone, par exemple `Projets/Plan.md` |
+| `{{file}}` | chemin du document actif au lancement, relatif à la racine de la zone, par exemple `Projets/Plan.md` ; lors d'une exécution déclenchée par un événement, le fichier de l'événement (section « Événements ») |
 | `{{title}}` | titre du document actif au lancement |
 | `{{folder}}` | dossier du document actif au lancement, relatif à la racine de la zone |
 | `{{area}}` | nom de la zone |
-| `{{clipboard}}` | texte du presse-papiers au lancement ; lors d'une exécution planifiée, ce qui se trouve à ce moment dans le presse-papiers |
+| `{{clipboard}}` | texte du presse-papiers au lancement ; lors d'une exécution planifiée ou déclenchée par un événement, ce qui se trouve à ce moment dans le presse-papiers |
 | `{{prompt:Question}}`, `{{prompt:Question:Défaut}}` | dialogue de saisie |
 | `{{select:Question:a,b,c}}` | dialogue de choix |
+| `{{from}}` | avec `file-moved`, l'ancien chemin du fichier |
+| `{{task}}` | avec `task-done`, le texte de la tâche terminée |
+| `{{item}}`, `{{item:name}}` | dans une boucle `for-each`, le chemin du fichier en cours et son nom sans extension |
+| `{{script:name}}` | le résultat de l'étape de script `script … as "name"` |
 
 - **Tous les dialogues avant la première étape :** les dialogues de saisie et de choix de toute l'exécution apparaissent l'un après l'autre avant que quoi que ce soit ne se produise, y compris ceux des modèles utilisés et des workflows appelés. Une même question n'est posée qu'une fois et vaut partout. Annuler un dialogue annule l'exécution, et aucune étape ne s'exécute.
 - **Un instant par exécution :** `{{date}}` et `{{time}}` ont la même valeur dans toutes les lignes, même au passage de minuit. De même, le presse-papiers est lu une seule fois au lancement, et `{{clipboard}}` a le même contenu dans toutes les lignes.
 - **Dans un modèle utilisé par un workflow**, `{{title}}` et `{{folder}}` désignent comme d'habitude le nouveau fichier, tandis que `{{file}}` et `{{area}}` désignent le document actif et la zone.
-- **Selon la planification**, personne n'est là pour répondre à un dialogue : dans un workflow avec `trigger: schedule`, les espaces réservés de saisie et de choix constituent l'anomalie « Manuel uniquement ».
+- **Selon la planification et lors d'événements**, personne n'est là pour répondre à un dialogue : dans un workflow avec `trigger: schedule` ou `trigger: event`, les espaces réservés de saisie et de choix constituent l'anomalie « Manuel uniquement ».
+- `{{item}}`, `{{item:name}}` et `{{script:name}}` ne reçoivent leur valeur qu'en cours d'exécution ; dans le nom d'un workflow ou d'une macro, le chemin d'un modèle et la cible de `delete`, ils constituent donc une anomalie.
 - `{{cursor}}` n'est pas autorisé dans une ligne de commande. `\{{` écrit un `{{` littéral.
 - Si `{{folder}}` reste vide dans le dossier racine, `"{{folder}}/Nouveau.md"` donne le chemin `Nouveau.md`. Sans document actif, `{{file}}` est vide, et un chemin qui en découle est une anomalie.
 
@@ -200,7 +224,7 @@ Un workflow ne se lance que dans une zone ouverte, et ses chemins valent dans ce
 | **« Lancer » dans le panneau de zone** | tout en haut du menu contextuel de chaque fichier de workflow de la zone |
 | **Page « Exécutions des workflows »** | bouton « Lancer » dans la ligne de chaque workflow |
 
-Le bouton au-dessus du bloc est désactivé tant que la vérification signale une anomalie. Pour un document jamais enregistré, il affiche « Enregistrez d'abord », hors d'une zone « Ne peut être lancé que dans une zone ouverte ». Un workflow armé s'exécute en plus de lui-même selon sa planification ; le lancement à la main reste possible à tout moment.
+Le bouton au-dessus du bloc est désactivé tant que la vérification signale une anomalie. Pour un document jamais enregistré, il affiche « Enregistrez d'abord », hors d'une zone « Ne peut être lancé que dans une zone ouverte ». Un workflow armé s'exécute en plus de lui-même selon sa planification ou lors de son événement ; le lancement à la main reste possible à tout moment.
 
 La commande d'un workflow reçoit son identifiant du chemin du fichier dans le dossier de workflows ; deux workflows de même nom dans des sous-dossiers différents restent ainsi distincts. **Renommer un workflow dans l'application ou le déplacer à l'intérieur du dossier de workflows conserve ses attributions :** un raccourci clavier, une place dans la barre d'état, le menu contextuel ou la barre de format et une étape de macro qui l'appelle suivent. **En dehors de l'application**, par exemple dans le gestionnaire de fichiers, l'application ne remarque pas le changement de nom ; les attributions perdent alors leur cible et doivent être redéfinies. Un workflow déplacé hors du dossier de workflows n'est plus une commande ; ses attributions restent enregistrées et agissent de nouveau dès qu'il revient au même endroit.
 
@@ -208,12 +232,88 @@ La commande d'un workflow reçoit son identifiant du chemin du fichier dans le d
 
 1. L'application vérifie le workflow ainsi que les workflows qu'il appelle.
 2. Les dialogues de tous les espaces réservés apparaissent l'un après l'autre ; si l'exécution contient `delete`, la confirmation unique des cibles à supprimer suit.
-3. Les étapes s'exécutent strictement l'une après l'autre ; chacune attend la précédente.
+3. Les étapes s'exécutent strictement l'une après l'autre ; chacune attend la précédente. Les conditions et les boucles décident des étapes qui s'exécutent et du nombre de fois.
 4. Le premier échec met fin à l'exécution. La barre d'état affiche « Workflow ‹Nom› interrompu à la ligne N : motif ».
 
 Les étapes exécutées le restent ; il n'y a pas d'annulation d'une exécution (section « Ce qu'une exécution a fait »). **Au plus un workflow s'exécute par fenêtre** ; un second lancement pendant une exécution est refusé avec un message.
 
-**Messages :** lors d'un lancement à la main, `notify` affiche son texte dans la barre d'état. Lors d'une exécution planifiée, même rattrapée, le texte part en outre comme **notification du système d'exploitation**, avec le nom du workflow pour titre ; de même l'interruption d'une telle exécution avec la ligne et le motif, même si le workflow ne contient pas de `notify`. La notification n'apparaît que si aucune fenêtre de l'application n'est au premier plan, et une seule fois par message ; sinon, le message dans la barre d'état suffit. Si et comment le système d'exploitation l'affiche relève de ses propres réglages de notification.
+**Messages :** lors d'un lancement à la main, `notify` affiche son texte dans la barre d'état. Lors d'une exécution planifiée, même rattrapée, et lors d'une exécution déclenchée par un événement, le texte part en outre comme **notification du système d'exploitation**, avec le nom du workflow pour titre ; de même l'interruption d'une telle exécution avec la ligne et le motif, même si le workflow ne contient pas de `notify`. La notification n'apparaît que si aucune fenêtre de l'application n'est au premier plan, et une seule fois par message ; sinon, le message dans la barre d'état suffit. Si et comment le système d'exploitation l'affiche relève de ses propres réglages de notification.
+
+## Conditions et répétitions
+
+Une **condition** ne laisse s'exécuter des étapes que si quelque chose est vrai ; une **boucle** répète des étapes pour chaque fichier d'un dossier. Toutes deux ouvrent un bloc que ferme une ligne `end` :
+
+```workflow
+# Créer la note du jour seulement si elle manque
+if-missing "Journal/{{date}}.md"
+  create "Journal/{{date}}.md"
+else
+  notify "La note du jour existe déjà"
+end
+open "Journal/{{date}}.md"
+```
+
+### Conditions
+
+- `if-exists "chemin"` est remplie si le fichier ou le dossier existe, `if-missing "chemin"` s'il manque.
+- `if-property "chemin" nom "valeur"` est remplie si la propriété de l'en-tête a exactement cette valeur ; nombres et valeurs booléennes se comparent selon leur écriture. Pour une **liste** comme `tags`, elle est remplie si la liste contient la valeur. Sans valeur (`if-property "chemin" nom`), elle est remplie si la propriété est définie et non vide, pour une liste si la liste n'est pas vide. Un fichier sans en-tête ne la remplit pas ; si le fichier manque, l'étape échoue.
+- `if-script "section"` est remplie si le script de la section est rempli (section « Étape de script »).
+- La vérification a lieu quand la ligne est atteinte, avec l'état laissé par les étapes précédentes ; un fichier ouvert et non enregistré compte avec son état dans l'éditeur.
+
+### La forme en bloc
+
+- `else` introduit au choix la partie qui vaut si la condition n'est pas remplie ; chaque condition a au plus un `else`, une boucle n'en a aucun.
+- `end` ferme le dernier bloc ouvert. `else` et `end` figurent chacun sur une ligne propre.
+- **L'indentation** est autorisée et recommandée pour que le bloc reste lisible ; elle n'a aucune signification.
+- Les blocs s'imbriquent jusqu'à **trois niveaux**, boucle comprise.
+- Un `end` manquant ou en trop, un `else` sans condition et une imbrication trop profonde sont signalés par la vérification avant la première étape, avec la ligne.
+
+### Boucle sur les fichiers d'un dossier
+
+`for-each "dossier/motif"` répète les étapes jusqu'à `end` pour chaque fichier correspondant au motif. `{{item}}` est alors le chemin du fichier en cours, relatif à la racine de la zone, `{{item:name}}` son nom sans extension :
+
+```workflow
+# Archiver les notes terminées de l'entrée
+for-each "Entrée/*.md"
+  if-property "{{item}}" status "terminé"
+    add-tag "{{item}}" "archive"
+    move "{{item}}" "Archive"
+  end
+end
+```
+
+- **Motif :** d'abord le dossier, puis un motif du nom de fichier avec `*` pour un nombre quelconque de caractères et `?` pour exactement un, par exemple `Entrée/*.md`. Un `**` avant le motif de fichier ajoute les sous-dossiers (`Projets/**/*.md`), un `**` à la fin désigne tous les fichiers, sous-dossiers compris (`Entrée/**`). La casse ne compte pas ; des caractères génériques dans la partie dossier constituent une anomalie.
+- **Liste fixe :** les fichiers sont déterminés à l'entrée dans la boucle et traités par ordre alphabétique, les nombres comme dans le gestionnaire de fichiers (`2` avant `10`). Les fichiers que l'exécution crée dans la boucle ne s'y ajoutent pas. Les fichiers et dossiers dont le nom commence par un point ne comptent pas.
+- **Limite :** au plus **500 fichiers**. Au-delà, l'étape échoue avant la première répétition, avec « Plus de 500 fichiers ; aucun fichier n'a été traité ». Un dossier manquant est également un échec.
+- Les boucles ne s'imbriquent pas les unes dans les autres ; une condition dans la boucle est autorisée.
+- `{{item}}` et `{{item:name}}` ne valent qu'à l'intérieur d'une boucle. Les dialogues de saisie dans la boucle apparaissent une fois avant la première étape, et la réponse vaut pour chaque fichier.
+
+## Étape de script
+
+Une **étape de script** exécute un [bloc de script](scripts.md) du fichier de workflow et utilise son résultat dans les lignes suivantes ou comme condition. Le script calcule et vérifie ; il ne peut pas écrire. L'exemple compte les fichiers du dossier « Tâches » avec `status: ouvert` :
+
+````markdown
+```workflow
+script "Comptage" as "ouverts"
+if-script "Comptage"
+  notify "Fichiers ouverts dans le dossier Tâches : {{script:ouverts}}"
+else
+  notify "Rien d'ouvert"
+end
+```
+
+## Comptage
+
+```perspective-script
+return pq.pages('Tâches').filter(function (p) { return p.status === 'ouvert'; }).length;
+```
+````
+
+- **`script "section" as "nom"`** exécute le premier bloc de script (`perspective-script`) sous le titre « section » du fichier de workflow ; la section se trouve comme avec `from-section`. Son **résultat** est ensuite disponible comme `{{script:nom}}` dans chaque ligne suivante : la valeur de retour du script (un texte, un nombre ou une valeur booléenne), sinon le texte de sa sortie sans espaces en bordure. Le nom se compose de lettres, de chiffres, de `_` et de `-` ; la casse ne compte pas, et chaque nom n'est attribué qu'une fois.
+- **`if-script "section"`** ouvre un bloc comme les autres conditions. Elle est remplie si le script renvoie `true`, un texte non vide ou un nombre différent de zéro ; `false`, un texte vide, `0` et l'absence de valeur ne la remplissent pas.
+- **Le même bac à sable que les blocs de script :** le script lit les données de la zone par l'interface pq, avec le fichier de workflow comme document propre (`pq.current()`), et n'a accès ni aux fichiers, ni au réseau, ni à l'application. Il est **en lecture seule**. Il est interrompu après **5 secondes**. Une erreur ou une interruption est un échec de l'étape et termine l'exécution avec « Échec du script » ou « Script interrompu après 5 secondes ».
+- **Paramètre « Exécuter les blocs de script » :** l'étape de script suit le même paramètre que les blocs de script (**Paramètres → Comportement**, désactivé par défaut). S'il est désactivé, la vérification signale « Les blocs de script sont désactivés » avec la ligne ; le workflow ne s'exécute pas et ne peut pas être armé. Juste avant chaque script, l'application interroge de nouveau le paramètre.
+- La vérification cherche la section avant la première étape : si elle manque, existe plusieurs fois ou ne contient aucun bloc de script, c'est une anomalie. Un `{{script:nom}}` placé avant l'étape qui le fournit est aussi une anomalie ; si l'étape qui le fournit ne s'est pas exécutée dans une branche, la ligne échoue.
 
 ## Planification et armement
 
@@ -272,7 +372,7 @@ Une échéance est manquée si elle est tombée alors que l'application ou la zo
 
 ### Armer
 
-Un workflow avec `trigger: schedule` n'est **pas armé** après sa création, sa copie ou sa réception ; il ne s'exécute selon la planification qu'une fois que l'utilisateur l'a armé. L'état armé se trouve dans l'état d'exécution du fichier compagnon et ne suit pas lors d'une copie. L'armement se fait à trois endroits, qui n'apparaissent tous qu'avec `trigger: schedule` :
+Un workflow avec `trigger: schedule` ou `trigger: event` n'est **pas armé** après sa création, sa copie ou sa réception ; il ne s'exécute de lui-même qu'une fois que l'utilisateur l'a armé. L'état armé se trouve dans l'état d'exécution du fichier compagnon et ne suit pas lors d'une copie. L'armement se fait à trois endroits, qui n'apparaissent tous qu'avec `trigger: schedule` et `trigger: event` :
 
 - **page « Exécutions des workflows »** : la case de la colonne **Armé**,
 - **au-dessus du bloc** : le bouton « Armé » à côté de « Lancer », enfoncé « ✓ Armé »,
@@ -280,11 +380,72 @@ Un workflow avec `trigger: schedule` n'est **pas armé** après sa création, sa
 
 L'armement vérifie le workflow comme avant une exécution. En cas d'anomalie, il est refusé, et la barre d'état affiche « Non armé : » avec motif et ligne ; sinon, elle signale « Workflow ‹Nom› armé, prochaine exécution » avec l'échéance. Le désarmement est possible à tout moment, même en cas d'anomalie.
 
-**Définition modifiée :** si, après l'armement, le bloc `workflow` ou l'une des lignes `trigger`, `schedule` et `missed` change, même sans enregistrement dans l'éditeur, le workflow compte comme « non armé : définition modifiée » et ne s'exécute plus selon la planification tant qu'il n'est pas armé de nouveau. Modifier le nom et la description reste sans effet. Ainsi, un contenu modifié que personne n'a approuvé ne s'exécute jamais sans personne présente.
+**Définition modifiée :** si, après l'armement, le bloc `workflow`, l'une des lignes `trigger`, `schedule`, `missed` et `event` ou un bloc de script qu'exécute une étape de script change, même sans enregistrement dans l'éditeur, le workflow compte comme « non armé : définition modifiée » et ne s'exécute plus de lui-même tant qu'il n'est pas armé de nouveau. Modifier le nom et la description reste sans effet. Ainsi, un contenu modifié que personne n'a approuvé ne s'exécute jamais sans personne présente.
 
 ### L'élément « Workflows » de la barre d'état
 
-Tant qu'au moins un workflow de la zone est armé, l'élément **Workflows** se trouve dans la partie droite de la barre d'état. Il montre la dernière exécution planifiée avec le signe du résultat, le nom et l'heure, par exemple « ✓ Note du jour 08:00 » ; une exécution d'un jour antérieur porte en plus le jour et le mois. Les signes sont `✓` pour réussi, `✗` pour interrompu, `■` pour arrêté et `–` pour une saisie annulée ; une interruption apparaît dans la couleur du message d'erreur. Sans exécution planifiée jusqu'ici, il affiche « Workflows ». L'infobulle indique date, heure et résultat, un clic ouvre la page **Exécutions des workflows**. Dans une barre d'état étroite, l'élément se replie avec les autres éléments.
+Tant qu'au moins un workflow de la zone est armé, l'élément **Workflows** se trouve dans la partie droite de la barre d'état. Il montre la dernière exécution planifiée ou déclenchée par un événement avec le signe du résultat, le nom et l'heure, par exemple « ✓ Note du jour 08:00 » ; une exécution d'un jour antérieur porte en plus le jour et le mois. Les signes sont `✓` pour réussi, `✗` pour interrompu, `■` pour arrêté et `–` pour une saisie annulée ; une interruption apparaît dans la couleur du message d'erreur. Sans une telle exécution jusqu'ici, il affiche « Workflows ». L'infobulle indique date, heure et résultat, un clic ouvre la page **Exécutions des workflows**. Dans une barre d'état étroite, l'élément se replie avec les autres éléments.
+
+## Événements
+
+Un workflow avec `trigger: event` et une ligne `event` s'exécute de lui-même quand son **événement** se produit dans la zone, dès qu'il est armé. On obtient ainsi par exemple une **règle de dossier** : chaque note qui arrive dans le dossier « Entrée » reçoit une étiquette, qu'elle ait été créée dans l'application, déposée avec le gestionnaire de fichiers ou apportée par une synchronisation.
+
+````markdown
+---
+workflow: true
+name: Étiqueter l'entrée
+trigger: event
+event: file-created in "Entrée" matching "*.md"
+---
+
+```workflow
+add-tag "{{file}}" "entrée"
+notify "Nouveau dans l'entrée : {{file}}"
+```
+````
+
+### La ligne d'événement
+
+La ligne a la forme `event: <événement> [in "<dossier ou fichier>"] [matching "<motif>"]` :
+
+| Événement | se produit quand … | `{{file}}` est … | Exemple |
+| --- | --- | --- | --- |
+| `file-created` | un fichier est créé dans la zone, aussi de l'extérieur | le nouveau fichier | `event: file-created in "Entrée"` |
+| `file-changed` | un fichier est modifié, aussi de l'extérieur ; l'enregistrement dans l'application compris | le fichier modifié | `event: file-changed in "Projets" matching "*.md"` |
+| `file-moved` | un fichier est renommé ou déplacé dans l'application | le nouveau chemin ; l'ancien est `{{from}}` | `event: file-moved in "Archive"` |
+| `task-done` | une tâche passe à l'état terminé | le fichier de la tâche ; son texte est `{{task}}` | `event: task-done in "Plan de la semaine.md"` |
+| `area-opened` | la zone est ouverte et lue | (aucun fichier) | `event: area-opened` |
+| `reminder-due` | un rappel de la zone arrive à échéance | le fichier du rappel | `event: reminder-due` |
+
+- **`in`** restreint à un dossier avec ses sous-dossiers ou à un seul fichier, relatif à la racine de la zone ; un dossier `Entrée` ne désigne jamais un dossier dont le nom commence seulement par ce nom, comme `Entrées anciennes`. **`matching`** restreint à un motif du nom de fichier, avec `*` et `?`, sans dossier. Les deux sont facultatifs ; `in` précède `matching`, les valeurs figurent entre guillemets droits, et la casse ne compte pas. Avec `file-moved`, le nouvel emplacement s'applique.
+- Avec `area-opened` et `reminder-due`, `in` et `matching` ne sont pas autorisés.
+- **Exactement une ligne `event` par fichier.** Qui veut répondre à plusieurs événements écrit par événement un petit workflow qui en appelle un commun avec `workflow "Nom"`.
+- **Déplacer :** un déplacement dans le gestionnaire de fichiers apparaît comme `file-created` au nouvel emplacement ; seule l'application connaît `file-moved`, car elle seule sait d'où vient un fichier.
+- **Tâche terminée** signifie : une ligne de tâche passe à un statut du type « terminé », que ce soit par un clic sur la case, dans la [requête de tâches](tasks.md), par un `x` tapé ou par une modification de l'extérieur. Un clic ou un `x` tapé déclenche peu après, même avant l'enregistrement ; l'enregistrement qui suit ne déclenche pas une seconde fois. Une tâche annulée n'est pas terminée. `{{task}}` est le texte de la tâche sans case, dates ni priorité.
+
+### Ce qu'une exécution lors d'un événement peut faire
+
+- Une exécution déclenchée par un événement s'exécute **sans personne présente**, comme une exécution planifiée : les espaces réservés de saisie et de choix, `confirm` et `delete` constituent l'anomalie « Manuel uniquement ». **Lors d'événements, rien n'est jamais supprimé.**
+- `{{file}}`, `{{from}}` et `{{task}}` portent les valeurs de l'événement (tableau ci-dessus). La vérification signale un espace réservé que l'événement ne fournit pas : `{{file}}` avec `area-opened`, `{{from}}` sauf avec `file-moved`, `{{task}}` sauf avec `task-done`.
+
+### Quand les événements agissent
+
+**Les événements agissent tant que l'application et la zone sont ouvertes dans une fenêtre, et ils ne sont pas rattrapés.** Ce qui s'est passé pendant que la zone était fermée ne déclenche rien à l'ouverture ; qui veut ranger à l'ouverture écrit un workflow avec `area-opened` et `for-each`.
+
+- **Anti-rebond :** les signalements d'un même fichier dans un intervalle de **2 secondes** donnent un seul événement ; un enregistrement qui produit plusieurs signalements ne lance ainsi un workflow qu'une fois. Un fichier écrit en continu déclenche au plus tard après 10 secondes.
+- **Ce qui ne déclenche jamais :** les fichiers compagnons (`.mdd`, `.mddl`), le dossier de verrous ainsi que les fichiers et dossiers dont le nom commence par un point.
+- **Ordre :** si un événement correspond à plusieurs workflows armés, chacun s'exécute une fois, l'un après l'autre dans l'ordre de leurs chemins. Par zone, les exécutions déclenchées par des événements se suivent une à une, dans l'ordre des événements et dans exactement une fenêtre ; si un workflow s'y exécute, l'événement attend. À la fermeture de la zone, les événements en attente expirent.
+- `area-opened` se produit une fois par ouverture, y compris pour une zone que l'application rouvre au démarrage. `reminder-due` se produit quand le rappel arrive à échéance à son heure ; les rappels remis après coup à l'ouverture de la zone ne déclenchent rien.
+
+### Pas de chaînes
+
+**Un workflow réagit à ce que vous ou d'autres programmes faites, jamais à ce que fait un workflow.** Ce qu'une exécution crée, modifie, déplace ou coche ne déclenche aucun événement ; un workflow qui, lors d'un nouveau fichier dans « Entrée », crée lui-même un fichier dans « Entrée » ne tourne donc pas en rond. Qui veut un enchaînement appelle explicitement le second workflow avec `workflow "Nom"`. Si une étape écrit dans un document ouvert et non enregistré, seul votre enregistrement est une modification du fichier et déclenche `file-changed` ; une tâche qu'une telle étape coche dans le document déclenche `task-done`.
+
+**Frein d'urgence :** si le même workflow s'exécute par des événements plus de **20 fois en 5 minutes**, par exemple parce qu'un autre programme répond à ses modifications, la 21e exécution ne démarre plus. Le workflow est désarmé, les événements en attente pour lui expirent, et la barre d'état signale « Workflow ‹Nom› désarmé : plus de 20 exécutions déclenchées par des événements en 5 minutes », sans fenêtre au premier plan également comme notification du système d'exploitation. La page **Exécutions des workflows** affiche « non armé : frein d'urgence » sous la case et le motif dans la colonne **Résultat**. Après un nouvel armement, le frein recommence à compter.
+
+### Armement et affichage
+
+Un workflow avec `trigger: event` s'arme aux trois mêmes endroits qu'un workflow planifié (section « Armer ») ; la ligne `event` fait partie de la définition. Après l'armement, la barre d'état signale par exemple « Workflow ‹Nom› armé, s'exécute à la création d'un fichier dans ‹Entrée› ». Sur la page **Exécutions des workflows**, la colonne **Prochaine exécution** montre l'événement en mots, par exemple « à la création d'un fichier dans ‹Entrée› », et la colonne **Dernière exécution** l'origine, par exemple « événement : nouveau fichier ‹Entrée/Scan.md› ». `notify` et une interruption partent aussi comme notification du système d'exploitation, comme pour la planification, et l'élément **Workflows** de la barre d'état montre aussi la dernière exécution déclenchée par un événement.
 
 ## Dossier de workflows et menu
 
@@ -314,16 +475,16 @@ Comme les modèles, les workflows d'une [zone liée](linking.md) peuvent être p
 
 ## État d'exécution et la page « Exécutions des workflows »
 
-Après chaque exécution, l'application consigne dans le **fichier compagnon** du workflow (`.mdd`, section `workflow`) l'instant, le résultat, le cas échéant la ligne interrompue, le nombre d'exécutions, l'origine de l'exécution et le journal de la dernière exécution, pour un workflow planifié en outre l'état armé et l'échéance suivante ; le texte du fichier de workflow reste intact. L'état d'exécution suit le fichier quand il est renommé ou déplacé, pas quand il est copié.
+Après chaque exécution, l'application consigne dans le **fichier compagnon** du workflow (`.mdd`, section `workflow`) l'instant, le résultat, le cas échéant la ligne interrompue, le nombre d'exécutions, l'origine de l'exécution et le journal de la dernière exécution, pour un workflow planifié ou déclenché par un événement en outre l'état armé, pour la planification l'échéance suivante et pour une exécution déclenchée par un événement l'événement déclencheur avec son fichier ; le texte du fichier de workflow reste intact. L'état d'exécution suit le fichier quand il est renommé ou déplacé, pas quand il est copié.
 
 La page **Exécutions des workflows** s'ouvre par « Affichage → Afficher les exécutions des workflows », par « Fichier → Workflows → Afficher les exécutions des workflows », par la palette de commandes et par un clic sur l'élément **Workflows** de la barre d'état. Elle liste **tous les workflows de la zone**, y compris ceux hors du dossier de workflows, puis les workflows des zones liées avec consentement, avec ces colonnes et un bouton « Lancer » par ligne :
 
 | Colonne | Contenu |
 | --- | --- |
 | **Workflow**, **Emplacement** | nom avec la description en infobulle, dossier du fichier |
-| **Armé** | case pour armer, seulement avec `trigger: schedule` ; en cas de définition modifiée, en plus « non armé : définition modifiée » |
-| **Prochaine exécution** | échéance de la prochaine exécution planifiée, tant que le workflow est armé |
-| **Dernière exécution** | instant de la dernière exécution, avec « (rattrapé) » pour une exécution rattrapée, en dessous le cas échéant « expiré : » avec l'échéance ; en plus le bouton « Journal (N) » |
+| **Armé** | case pour armer, seulement avec `trigger: schedule` et `trigger: event` ; en cas de définition modifiée, en plus « non armé : définition modifiée », après une intervention du frein d'urgence « non armé : frein d'urgence » |
+| **Prochaine exécution** | échéance de la prochaine exécution planifiée, pour un workflow avec événement l'événement en mots, dans les deux cas tant que le workflow est armé |
+| **Dernière exécution** | instant de la dernière exécution, avec « (rattrapé) » pour une exécution rattrapée, avec l'événement et le fichier pour une exécution déclenchée par un événement, en dessous le cas échéant « expiré : » avec l'échéance ; en plus le bouton « Journal (N) » |
 | **Résultat** | résultat de la dernière exécution, tableau ci-dessous |
 | **Exécutions** | nombre d'exécutions |
 
@@ -346,9 +507,9 @@ Il n'y a pas d'annulation d'une exécution entière. On annule de façon ciblée
 
 ## Aide dans l'éditeur
 
-- **Mise en évidence :** dans les lignes de commande, le mot-clé apparaît en gras, le texte entre guillemets en couleur et les espaces réservés en italique, dans l'éditeur comme dans le rendu.
+- **Mise en évidence :** dans les lignes de commande, le mot-clé apparaît en gras, le texte entre guillemets en couleur et les espaces réservés en italique, dans l'éditeur comme dans le rendu. Les mots de bloc des conditions et des boucles, `else` et `end` sont en outre soulignés en pointillé dans l'éditeur.
 - **Affichage de vérification :** le mode direct, la vue rendue et la vue partagée affichent au-dessus du bloc le résultat de la vérification : en vert « prêt » ou en rouge « Ligne N : motif », avec « (+N autres) » en cas de plusieurs anomalies. Les messages sur plusieurs blocs et sur un déclencheur pas encore pris en charge y figurent aussi, de même que les anomalies de la planification avec leur ligne dans l'en-tête. L'affichage suit le texte peu après chaque modification et montre la même anomalie que celle signalée au lancement. À l'impression, dans un export et pour un fichier intégré, la ligne d'en-tête n'apparaît pas.
-- **Bouton « Armé » :** avec `trigger: schedule`, la ligne d'en-tête porte à côté de « Lancer » le bouton d'armement (section « Planification et armement »).
+- **Bouton « Armé » :** avec `trigger: schedule` et `trigger: event`, la ligne d'en-tête porte à côté de « Lancer » le bouton d'armement (section « Planification et armement »).
 
 La mise en évidence et l'affichage ne modifient pas le texte du fichier.
 
@@ -356,10 +517,12 @@ La mise en évidence et l'affichage ne modifient pas le texte du fichier.
 
 - **Seulement dans la zone :** aucune commande ne lit ni n'écrit hors de la racine de la zone dans laquelle le workflow a été lancé, pas même par un espace réservé ; cela vaut aussi pour un workflow d'une zone liée.
 - **Pas de réseau, pas de programmes externes.** La suppression se fait uniquement avec `delete`, uniquement lors d'un lancement à la main, après une confirmation et vers la corbeille.
-- **Pas d'exécution sans zone ouverte :** un workflow planifié ne s'exécute que tant que l'application et sa zone sont ouvertes ; il rattrape les échéances manquées selon les règles de `missed`.
+- **Pas d'exécution sans zone ouverte :** un workflow planifié ne s'exécute que tant que l'application et sa zone sont ouvertes ; il rattrape les échéances manquées selon les règles de `missed`. Les événements n'agissent de même que zone ouverte et ne sont pas rattrapés.
+- **Pas de chaînes :** un workflow réagit à ce que vous ou d'autres programmes faites, jamais à ce que fait un workflow. Qui veut un enchaînement appelle le workflow suivant avec `workflow "Nom"` ; contre une boucle passant par d'autres programmes, le frein d'urgence arrête un workflow après plus de 20 exécutions par des événements en 5 minutes (section « Événements »).
+- **Limites des blocs :** au plus trois niveaux d'imbrication, pas de boucle dans une boucle et au plus 500 fichiers par boucle.
 - **Pas d'annulation d'une exécution :** les étapes exécutées le restent ; le journal montre ce que la dernière exécution a touché, et l'annulation se fait de façon ciblée.
-- **Les macros** restent telles quelles et peuvent être appelées comme étape ; une macro est une suite de commandes dans les paramètres, un workflow une procédure sous forme de document. **Les [blocs de script](scripts.md)** restent en lecture seule ; un workflow n'est pas un langage de script général, mais un catalogue fixe de commandes.
+- **Les macros** restent telles quelles et peuvent être appelées comme étape ; une macro est une suite de commandes dans les paramètres, un workflow une procédure sous forme de document. **Les [blocs de script](scripts.md)** restent en lecture seule, y compris comme étape de script ; un workflow n'est pas un langage de script général, mais un catalogue fixe de commandes.
 
 ## Étapes ultérieures
 
-D'autres étapes sont prévues, sans que leur portée ni leur date soient fixées : un lancement sur des événements de la zone, des conditions et des répétitions, ainsi que des commandes pour la [base de données](database.md). La vérification connaît déjà les mots-clés de ces commandes et les signale comme « n'est disponible qu'à une étape ultérieure », afin qu'un tel fichier ne s'exécute pas en partie.
+Une autre étape est prévue, sans que sa portée ni sa date soient fixées : des commandes pour la [base de données](database.md). La vérification connaît déjà les mots-clés de ces commandes et les signale comme « n'est disponible qu'à une étape ultérieure », afin qu'un tel fichier ne s'exécute pas en partie.

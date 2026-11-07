@@ -2,6 +2,9 @@
 // (src/main/ipc/workflow-armed.js), AK2 und AK5 des Tasks, AK1, AK3, AK4 der
 // Story.
 //
+// 4T-002463 (Epic 3E-000367, Story 4S-001146): dieselbe Mechanik für
+// `trigger: event` (Block am Ende), AK1 und AK2 des Tasks.
+//
 // Geprüft am echten Lauf-Stand: Workflow-Dateien und Begleitdateien im
 // Temp-Verzeichnis, gelesen über `readRunState` und den Schreibweg
 // `createWorkflowRunState`, Prüfsumme über `definitionsPruefsumme`. Attrappen
@@ -86,6 +89,8 @@ describe('workflow:setArmed — scharf schalten', () => {
       ok: true,
       status: 'armed',
       nextDue: '2026-10-28T23:00',
+      trigger: 'schedule',
+      event: null,
     });
     const { stand } = await readRunState(w.abs('Abläufe/Probe.md'));
     expect(stand.armed).toEqual({ at: expect.any(String), hash: definitionsPruefsumme(text) });
@@ -95,6 +100,8 @@ describe('workflow:setArmed — scharf schalten', () => {
       ok: true,
       isWorkflow: true,
       scheduled: true,
+      trigger: 'schedule',
+      event: null,
       status: 'armed',
       nextDue: '2026-10-28T23:00',
     });
@@ -128,10 +135,15 @@ describe('workflow:setArmed — scharf schalten', () => {
     expect((await w.zustand('P.md')).status).toBe('notArmed');
   });
 
-  it('weist einen Workflow ohne trigger: schedule ab (AK3)', async () => {
+  it('weist einen Workflow ohne trigger: schedule oder trigger: event ab (AK3)', async () => {
     const w = welt({ 'P.md': W([]) });
-    expect(await w.setArmed('P.md', true)).toEqual({ ok: false, code: 'noSchedule' });
-    expect(await w.zustand('P.md')).toMatchObject({ scheduled: false, status: 'notArmed' });
+    expect(await w.setArmed('P.md', true)).toEqual({ ok: false, code: 'noArmableTrigger' });
+    expect(await w.zustand('P.md')).toMatchObject({
+      scheduled: false,
+      trigger: 'manual',
+      event: null,
+      status: 'notArmed',
+    });
     expect(await readRunState(w.abs('P.md'))).toEqual({ stand: null, defekt: false });
   });
 
@@ -216,6 +228,8 @@ describe('workflow:armedState', () => {
       ok: true,
       isWorkflow: true,
       scheduled: true,
+      trigger: 'schedule',
+      event: null,
       status: 'definitionChanged',
       nextDue: null,
     });
@@ -237,5 +251,91 @@ describe('workflow:armedState', () => {
     expect(
       await w.kanaele.get('workflow:armedState')({}, { workflowPath: fremd.abs('F.md') }),
     ).toEqual({ ok: false, code: 'outsideArea' });
+  });
+});
+
+// 4T-002463 (Epic 3E-000367, Story 4S-001146, Entscheidung 3c): Ereignis-Workflows.
+describe('Scharf-Schaltung bei trigger: event', () => {
+  const EREIGNIS = ['trigger: event', 'event: file-created in "Eingang"'];
+  const REGEL = { event: 'file-created', in: 'Eingang', matching: null };
+
+  it('schaltet scharf mit Prüfsumme samt Zeile event und ohne Termin (AK1)', async () => {
+    const text = W(EREIGNIS);
+    const w = welt({ 'E.md': text });
+    expect(await w.setArmed('E.md', true)).toEqual({
+      ok: true,
+      status: 'armed',
+      nextDue: null,
+      trigger: 'event',
+      event: REGEL,
+    });
+    const { stand } = await readRunState(w.abs('E.md'));
+    expect(stand.armed).toEqual({ at: expect.any(String), hash: definitionsPruefsumme(text) });
+    expect(stand.nextDue ?? null).toBeNull();
+    expect(await w.zustand('E.md')).toEqual({
+      ok: true,
+      isWorkflow: true,
+      scheduled: false,
+      trigger: 'event',
+      event: REGEL,
+      status: 'armed',
+      nextDue: null,
+    });
+  });
+
+  it('nimmt einen Termin aus einer früheren Zeitplan-Fassung zurück', async () => {
+    const w = welt({ 'E.md': W(ZEITPLAN) });
+    await w.setArmed('E.md', true);
+    fs.writeFileSync(w.abs('E.md'), W(EREIGNIS), 'utf8');
+    await w.setArmed('E.md', true);
+    const { stand } = await readRunState(w.abs('E.md'));
+    expect(stand.nextDue ?? null).toBeNull();
+    expect((await w.zustand('E.md')).status).toBe('armed');
+  });
+
+  it('weist bei einem Befund der Ereignis-Zeile ab und schreibt nichts (AK1)', async () => {
+    const w = welt({ 'E.md': W(['trigger: event', 'event: file-vanished']) });
+    const res = await w.setArmed('E.md', true);
+    expect(res).toMatchObject({ ok: false, code: 'findings' });
+    expect(res.findings.map((f) => f.code)).toEqual(['eventUnknown']);
+    expect(await readRunState(w.abs('E.md'))).toEqual({ stand: null, defekt: false });
+  });
+
+  it('weist «nur von Hand» auch bei einem Ereignis-Workflow ab (Ausführungs-Entscheidung 4)', async () => {
+    const w = welt({ 'E.md': W(EREIGNIS, ['delete "Alt.md"']) });
+    const res = await w.setArmed('E.md', true);
+    expect(res).toMatchObject({ ok: false, code: 'findings' });
+    expect(res.findings.map((f) => f.code)).toEqual(['manualOnly']);
+    expect((await w.zustand('E.md')).status).toBe('notArmed');
+  });
+
+  it('weist trigger: event ohne Ereignis-Zeile ab', async () => {
+    const w = welt({ 'E.md': W(['trigger: event']) });
+    const res = await w.setArmed('E.md', true);
+    expect(res).toMatchObject({ ok: false, code: 'findings' });
+    expect(res.findings.map((f) => f.code)).toEqual(['eventMissing']);
+  });
+
+  it('eine Änderung der Zeile event setzt «Definition geändert», name nicht (AK2)', async () => {
+    const w = welt({ 'E.md': W(EREIGNIS) });
+    await w.setArmed('E.md', true);
+    fs.writeFileSync(w.abs('E.md'), W(EREIGNIS).replace('name: Probe', 'name: Anders'), 'utf8');
+    expect((await w.zustand('E.md')).status).toBe('armed');
+    fs.writeFileSync(w.abs('E.md'), W(['trigger: event', 'event: file-created in "Ablage"']));
+    expect((await w.zustand('E.md')).status).toBe('definitionChanged');
+    await w.setArmed('E.md', true);
+    expect((await w.zustand('E.md')).status).toBe('armed');
+  });
+
+  it('auch eine ungespeicherte Änderung der Zeile event im Editor setzt zurück (AK2)', async () => {
+    const w = welt({ 'E.md': W(EREIGNIS) });
+    await w.setArmed('E.md', true);
+    const w2 = welt(
+      { 'E.md': W(EREIGNIS) },
+      { puffer: { 'E.md': W(['trigger: event', 'event: file-created in "Posteingang"']) } },
+    );
+    // Derselbe Lauf-Stand in der zweiten Welt: Begleitdatei hinüberkopieren.
+    fs.copyFileSync(w.abs('E.mdd'), w2.abs('E.mdd'));
+    expect((await w2.zustand('E.md')).status).toBe('definitionChanged');
   });
 });

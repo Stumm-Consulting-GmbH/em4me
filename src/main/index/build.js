@@ -39,6 +39,10 @@ const {
 } = require('./datensatz-erfassung.js');
 // 4T-002047: Zuordnung eines Folgeteils zu seiner Kopf-Datei, für jedes geteilte Dokument.
 const { kopfDateiFuer } = require('./part-files.js');
+// 4T-002460 (Epic 3E-000367): Sammelstelle des Ereignis-Prüfers der Workflows.
+const { meldeWorkflowEreignis } = require('../checks/workflow-event-check.js');
+// 4T-002462 (Epic 3E-000367): Erkennung des Ereignisses «Aufgabe erledigt».
+const { meldePlatte, vergissAufgaben } = require('./aufgaben-erledigt.js');
 // 4T-002387 (Epic 3E-000265, Schritt 2): Erfassung der Karteikarten. Sie
 // laeuft als Nachlauf, weil eine Karteikarte ihre Tabelle nicht nennt
 // (Begruendung im Erfassungs-Modul), und im Beobachter-Pfad je Datei.
@@ -222,9 +226,9 @@ async function buildIndexAsync(rootPath, entry) {
       return false;
     },
   });
-  entry.watcher.on('add', (p) => onWatcherChange(entry, p, 'add'));
-  entry.watcher.on('change', (p) => onWatcherChange(entry, p, 'change'));
-  entry.watcher.on('unlink', (p) => onWatcherChange(entry, p, 'unlink'));
+  entry.watcher.on('add', (p) => beobachtet(rootPath, entry, p, 'add'));
+  entry.watcher.on('change', (p) => beobachtet(rootPath, entry, p, 'change'));
+  entry.watcher.on('unlink', (p) => beobachtet(rootPath, entry, p, 'unlink'));
   entry.watcher.on('error', (err) => {
     // B-21 (4T-000187): Fehler-Status mit Backoff statt Force-Teardown mit
     // Sofort-Rebuild — ein dauerhaft kaputter Watcher (z.B. geloeschtes
@@ -407,6 +411,24 @@ function removeFileFromIndex(entry, filePath) {
   entry.fileCount = entry.files.size;
 }
 
+// 4T-002460 (Epic 3E-000367): Jede Meldung des Beobachters einer
+// Bereichs-Wurzel geht zusätzlich an den Ereignis-Prüfer der Workflows, als
+// `file-created` (add), `file-changed` (change) oder `unlink`, das ein noch
+// entprelltes Ereignis derselben Datei aufhebt. Markdown wie Nicht-Markdown;
+// was nie auslösen darf (Begleitdateien, Sperr-Ordner, Punkt-Ordner), siebt
+// der Prüfer. Danach die Index-Pflege wie bisher.
+const EREIGNIS_ART = Object.freeze({
+  add: 'file-created',
+  change: 'file-changed',
+  unlink: 'unlink',
+});
+
+function beobachtet(rootPath, entry, filePath, kind) {
+  if (entry.isArea)
+    meldeWorkflowEreignis({ type: EREIGNIS_ART[kind], path: filePath, root: rootPath });
+  onWatcherChange(entry, filePath, kind);
+}
+
 function onWatcherChange(entry, filePath, kind) {
   // 4T-001494 (Epic 3E-000199): Nicht-Markdown fuehrt nur die Namens-
   // Zuordnung nach. 'change' ist dabei bedeutungslos — der NAME aendert sich
@@ -418,6 +440,7 @@ function onWatcherChange(entry, filePath, kind) {
     return;
   }
   if (kind === 'unlink') {
+    vergissAufgaben(filePath);
     if (entry.files.has(filePath)) {
       removeFileFromIndex(entry, filePath);
       // 4T-002387: War sie eine Kartei-Tabelle, verlieren ihre Karteikarten
@@ -467,6 +490,8 @@ function onWatcherChange(entry, filePath, kind) {
   // ueberschreibt die bestehenden Index-Daten nicht mit einem Leer-
   // Ergebnis; der naechste Event bzw. unlink raeumt regulaer auf.
   if (!parsed) return;
+  // 4T-002462: Die Aufgaben-Zeilen davor, nur hier noch bekannt.
+  const aufgabenVorher = entry.tasksPerFile.get(filePath);
   // Alte Eintraege der Datei austragen, dann den neuen Stand eintragen
   // (gemeinsamer applyParsedFile-Pfad mit dem Initial-Aufbau).
   if (entry.files.has(filePath)) removeFileFromIndex(entry, filePath);
@@ -475,6 +500,8 @@ function onWatcherChange(entry, filePath, kind) {
   entry.fileStats.set(filePath, { ctimeMs, mtimeMs });
   entry.byteSize += size;
   applyParsedFile(entry, filePath, parsed);
+  // 4T-002462: Wechsel von Aufgaben-Zeilen auf erledigt (nur Bereiche).
+  if (entry.isArea) void meldePlatte(entry.wurzel, filePath, aufgabenVorher, parsed.tasks);
   // 4T-001610 (Epic 3E-000252): Hat sich die Definition einer Kopf-Datei
   // geaendert, ist die Zuordnung ihrer Folge-Segmente ueberholt — deren
   // Dateien selbst haben sich nicht bewegt und melden sich nie. Erkannt wird

@@ -10,6 +10,14 @@
 //
 // Ein Code ohne Text meldet sich in der Konsole und erscheint als Code
 // (lauter Nachschlage-Vorgang, Entwicklungsrichtlinien, Kapitel 1).
+//
+// 4T-002463 (Epic 3E-000367, Story 4S-001146, Entscheidung 3c): dazu das
+// Ereignis eines Workflows in Worten (`ereignisInWorten`, für die Spalte
+// «Nächster Lauf», den Hinweis beim Scharf-Schalten und den Tooltip des
+// Schalters) und die Herkunft eines Laufs durch ein Ereignis
+// (`ereignisHerkunft`, für die Spalte «Letzter Lauf»). Je Ereignis ein Text;
+// Ordner und Muster setzen eigene Vorlagen um ihn herum, damit jede Sprache
+// die Reihenfolge selbst wählt.
 'use strict';
 
 import { t } from '../../i18n.js';
@@ -32,6 +40,50 @@ export function einsetzen(vorlage, werte) {
   return vorlage.replace(/\{(\w+)\}/g, (_, name) =>
     werte[name] === undefined || werte[name] === null ? '' : String(werte[name]),
   );
+}
+
+/**
+ * Das Ereignis einer Regel in Worten, etwa «bei neuer Datei in ‹Eingang›».
+ *
+ * @param {{event: string, in?: (string|null), matching?: (string|null)}|null} regel
+ *   gelesene Ereignis-Regel (`meta.event` des Format-Kerns).
+ * @returns {string} leer ohne Regel; ein Ereignis ohne Text erscheint als Name.
+ */
+export function ereignisInWorten(regel) {
+  if (!regel || typeof regel.event !== 'string') return '';
+  let satz = text(`workflow.ereignis.bei.${regel.event}`);
+  if (satz === null) {
+    console.warn(`[Workflows] Kein Text für das Ereignis '${regel.event}'.`);
+    satz = regel.event;
+  }
+  if (typeof regel.in === 'string' && regel.in !== '') {
+    satz = einsetzen(t('workflow.ereignis.mitOrt'), { ereignis: satz, ort: regel.in });
+  }
+  if (typeof regel.matching === 'string' && regel.matching !== '') {
+    satz = einsetzen(t('workflow.ereignis.mitMuster'), { ereignis: satz, muster: regel.matching });
+  }
+  return satz;
+}
+
+/**
+ * Die Herkunft eines Laufs durch ein Ereignis, etwa «Ereignis: neue Datei
+ * ‹Eingang/Brief.md›».
+ *
+ * @param {{type?: string, file?: string}|null} ereignis `lastRun.event` aus dem
+ *   Lauf-Stand; Pfade relativ zur Bereichs-Wurzel.
+ * @returns {string}
+ */
+export function ereignisHerkunft(ereignis) {
+  const art =
+    ereignis && typeof ereignis.type === 'string'
+      ? text(`workflow.ereignis.name.${ereignis.type}`)
+      : null;
+  if (art === null) return t('workflow.seite.herkunftEreignis');
+  const mitDatei = typeof ereignis.file === 'string' && ereignis.file !== '';
+  const key = mitDatei
+    ? 'workflow.seite.herkunftEreignisDatei'
+    : 'workflow.seite.herkunftEreignisArt';
+  return einsetzen(t(key), { ereignis: art, datei: ereignis.file });
 }
 
 /**

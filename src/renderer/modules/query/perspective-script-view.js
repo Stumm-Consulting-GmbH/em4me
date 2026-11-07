@@ -16,6 +16,14 @@
 
 import { api } from '../app/api.js';
 import { t } from '../../i18n.js';
+import { SCRIPT_RUN_TIMEOUT_MS, runInScriptSandbox } from './script-sandbox-lauf.js';
+
+// 4T-002465 (Epic 3E-000367): Aufbau von Sandbox, Kanal, Zeitgrenze und
+// Warteschlange liegen seit dem Skript-Schritt der Workflows in
+// script-sandbox-lauf.js, damit beide Aufrufer dieselbe Abschottung nutzen.
+// Diese Ansicht ruft ihn mit dem Container als Ort des iframes und dem
+// Generations-Token als Frage «noch gebraucht?»; ihr Verhalten ist unverändert.
+export { SCRIPT_RUN_TIMEOUT_MS };
 
 // 4T-001130 (Epic 3E-000272): Der Schritt-Satz des erzeugten Teilbaums wohnt in
 // render-mermaid.js, und jenes Modul importiert dieses hier (Skript-Bloecke sind
@@ -30,9 +38,8 @@ export function registriereTeilbaumSchritte(fn) {
 }
 
 // Zeit-Limit pro Lauf (Design-Punkt des Epics): bei Überschreitung wird das
-// iframe entsorgt und der Block zeigt den lokalisierten Timeout-Hinweis.
-// Konfigurierbarer Default auf Modul-Ebene (bewusst ohne UI in v1).
-export const SCRIPT_RUN_TIMEOUT_MS = 5000;
+// iframe entsorgt und der Block zeigt den lokalisierten Timeout-Hinweis
+// (Wert in script-sandbox-lauf.js, oben weitergereicht).
 
 // --- Schalt-Zustand -----------------------------------------------------------
 // 4T-000412: internes Flag hinter dem Store-Key scripts.run (Default aus, nur
@@ -498,92 +505,25 @@ function renderIndexStatus(el, snapshot) {
 }
 
 // 4T-000416-Befund (PO-Test-Iteration 0.53.0): Skript-Läufe pro Fenster
-// SERIALISIEREN. Die Sandbox-iframes eines Fensters teilen sich einen
-// Renderer-Prozess; ein Endlos-Skript blockiert dessen Event-Loop und ließe
-// parallel gestartete Geschwister-Blöcke in deren Zeit-Limit laufen, obwohl
-// ihre Skripte harmlos sind. Die Warteschlange gibt jedem Block sein volles
-// Zeit-Budget ab Ausführungs-Beginn; ein Langläufer verzögert Nachfolger nur
-// bis zu seinem Abbruch (sein iframe wird entsorgt, der Prozess ist wieder
-// frei). Die Kette resolved über finish() immer (Ergebnis, Fehler, Timeout)
-// und kann nicht reißen; veraltete Einträge (Token) werden übersprungen.
-let sandboxQueue = Promise.resolve();
-
-function enqueueSandboxRun(el, token, source, snapshot, basePath) {
-  sandboxQueue = sandboxQueue.then(
-    () =>
-      new Promise((resolve) => {
-        if (runTokens.get(el) !== token) {
-          runFinished();
-          resolve();
-          return;
-        }
-        executeInSandbox(el, token, source, snapshot, basePath, resolve);
-      }),
-  );
-}
-
-// Führt den Skript-Block in einer frischen Sandbox aus (iframe pro Lauf).
-// Das iframe hängt IM Container: verschwindet der Container (Tab-Wechsel,
+// SERIALISIEREN — die Warteschlange liegt seit 4T-002465 in
+// script-sandbox-lauf.js und gilt für Ansicht und Workflows gemeinsam. Das
+// iframe hängt IM Container: verschwindet der Container (Tab-Wechsel,
 // Re-Render), reißt der Browsing-Kontext ab und der Lauf endet mit dem
-// Timeout-Pfad ins Leere (Token-Prüfung). Der laufende runStarted()-Zähler
-// aus runOneScriptContainer wird hier über finish() abgeschlossen; onDone
-// gibt die Warteschlange für den nächsten Block frei.
-function executeInSandbox(el, token, source, snapshot, basePath, onDone) {
-  const iframe = document.createElement('iframe');
-  iframe.className = 'perspective-script-frame';
-  iframe.setAttribute('sandbox', 'allow-scripts');
-  iframe.setAttribute('aria-hidden', 'true');
-  iframe.src = 'script-sandbox.html';
-
-  const channel = new MessageChannel();
-  let finished = false;
-
-  const finish = (msg) => {
-    if (finished) return;
-    finished = true;
-    clearTimeout(timer);
-    channel.port1.onmessage = null;
-    iframe.remove();
-    if (runTokens.get(el) === token) renderScriptResult(el, msg, basePath, t);
+// Timeout-Pfad ins Leere (Token-Prüfung). Ein veralteter Eintrag (Token) wird
+// vor dem Start übersprungen; der laufende runStarted()-Zähler aus
+// runOneScriptContainer wird hier in jedem Fall abgeschlossen.
+function enqueueSandboxRun(el, token, source, snapshot, basePath) {
+  runInScriptSandbox({
+    source,
+    data: snapshot,
+    mount: el,
+    isCurrent: () => runTokens.get(el) === token,
+  }).then((msg) => {
+    if (msg.type !== 'stale' && runTokens.get(el) === token) {
+      renderScriptResult(el, msg, basePath, t);
+    }
     runFinished();
-    if (typeof onDone === 'function') onDone();
-  };
-
-  const timer = setTimeout(() => finish({ type: 'timeout' }), SCRIPT_RUN_TIMEOUT_MS);
-
-  channel.port1.onmessage = (event) => {
-    const msg = event.data;
-    // Protokoll-Validierung der Sandbox-Antwort: nur die erwarteten Formen.
-    if (msg && msg.type === 'result' && Array.isArray(msg.output)) {
-      finish({ type: 'result', output: msg.output });
-    } else if (msg && msg.type === 'error') {
-      finish({
-        type: 'error',
-        message: typeof msg.message === 'string' ? msg.message : '',
-        line: typeof msg.line === 'number' ? msg.line : null,
-      });
-    } else {
-      finish({ type: 'error', message: '', line: null });
-    }
-  };
-
-  iframe.addEventListener('load', () => {
-    if (finished) return;
-    try {
-      // targetOrigin '*': die Sandbox läuft mit opaker Origin und ist über
-      // ein benanntes targetOrigin nicht adressierbar; der Kanal bleibt
-      // trotzdem privat, weil die Antwort-Seite der übertragene Port ist.
-      iframe.contentWindow.postMessage(
-        { type: 'pm-script-run', script: source, data: snapshot || null },
-        '*',
-        [channel.port2],
-      );
-    } catch (err) {
-      finish({ type: 'error', message: String((err && err.message) || err), line: null });
-    }
   });
-
-  el.appendChild(iframe);
 }
 
 // Findet alle perspective-script-Platzhalter im Container und führt sie aus.

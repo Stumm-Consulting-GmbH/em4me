@@ -38,6 +38,13 @@
   ist eine serialisierte Knoten-Beschreibung, die der Renderer über eine
   Element-Whitelist in DOM übersetzt — Skripte schreiben nie direkt in das
   Dokument-DOM.
+
+  4T-002465 (Epic 3E-000367, Skript-Schritt der Workflows): Die Antwort
+  'result' trägt zusätzlich den Rückgabe-Wert des Skripts in 'value', auf
+  übertragbare Einzelwerte beschränkt (Text, endliche Zahl, Wahrheitswert,
+  sonst null). Der Skript-Block in der Ansicht nutzt ihn nicht; der
+  Skript-Schritt eines Workflows liest daraus sein Ergebnis. Die pq-API bleibt
+  unverändert rein lesend: Sie hat keine Funktion, die schreibt.
 -->
 <html>
   <head>
@@ -538,6 +545,14 @@
             return { message: message, line: line };
           }
 
+          // 4T-002465: Rückgabe-Wert als übertragbarer Einzelwert; alles andere
+          // (undefined, Objekte, Funktionen, NaN) wird null.
+          function resultValue(value) {
+            if (typeof value === 'string' || typeof value === 'boolean') return value;
+            if (typeof value === 'number' && isFinite(value)) return value;
+            return null;
+          }
+
           // --- Ausführung ---------------------------------------------------------
           self.onmessage = function (event) {
             var data = event.data;
@@ -562,9 +577,9 @@
               .then(function () {
                 return fn(pq);
               })
-              .then(function () {
+              .then(function (value) {
                 try {
-                  self.postMessage({ type: 'result', output: output });
+                  self.postMessage({ type: 'result', output: output, value: resultValue(value) });
                 } catch (err) {
                   // Nicht serialisierbare Ausgabe (sollte durch die
                   // Normalisierung nicht vorkommen): als Fehler melden.

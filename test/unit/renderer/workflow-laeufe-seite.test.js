@@ -367,6 +367,8 @@ describe('Zeitsteuerung: Scharf, nächster Lauf, Herkunft, Verfall und Journal (
     relPath: 'Plan.md',
     absPath: 'C:/b/Plan.md',
     scheduled: true,
+    trigger: 'schedule',
+    event: null,
     armed: 'armed',
     nextDue: '2026-10-28T23:00',
     skipped: null,
@@ -540,5 +542,130 @@ describe('Zeitsteuerung: Scharf, nächster Lauf, Herkunft, Verfall und Journal (
     expect(zeile.querySelector('.wf-runs-arm')).toBeNull();
     expect(zeile.querySelector('.wf-runs-next').textContent).toBe('');
     expect(zeile.querySelector('.wf-runs-journal-toggle')).toBeNull();
+  });
+});
+
+// 4T-002463 (Epic 3E-000367, Story 4S-001146, Entscheidung 3c): Ereignis-Workflows.
+describe('Ereignis-Workflows: Schalter, Ereignis in Worten, Herkunft und Not-Bremse (4T-002463)', () => {
+  const EINGANG = {
+    ...B,
+    name: 'Eingang',
+    relPath: 'Eingang.md',
+    absPath: 'C:/b/Eingang.md',
+    scheduled: false,
+    trigger: 'event',
+    event: { event: 'file-created', in: 'Eingang', matching: null },
+    armed: 'armed',
+    nextDue: null,
+    skipped: null,
+    runs: 1,
+    lastRun: {
+      at: '2026-10-31T08:00:00Z',
+      status: 'ok',
+      origin: 'event',
+      event: { type: 'file-created', file: 'Eingang/Brief.md' },
+    },
+  };
+  const zeileVon = (pfad) => container().querySelector(`tr[data-path="${pfad}"]`);
+
+  beforeEach(() => {
+    scharfAufrufe.length = 0;
+  });
+
+  it('ein scharfer Ereignis-Workflow: Schalter an, Ereignis in Worten, Herkunft «Ereignis» mit Datei (AK1, AK3)', async () => {
+    antwort = liste([EINGANG]);
+    await oeffne();
+    const zeile = zeileVon(EINGANG.absPath);
+    const schalter = zeile.querySelector('.wf-runs-arm');
+    expect(schalter.checked).toBe(true);
+    expect(schalter.title).toBe(
+      'Scharf, läuft bei neuer Datei in ‹Eingang›; klicken zum Entschärfen',
+    );
+    expect(zeile.querySelector('.wf-runs-next').textContent).toBe('bei neuer Datei in ‹Eingang›');
+    const herkunft = zeile.querySelector('.wf-runs-origin');
+    expect(herkunft.textContent).toBe(' (Ereignis: neue Datei ‹Eingang/Brief.md›)');
+    expect(herkunft.dataset.origin).toBe('event');
+  });
+
+  it('Ordner und Muster stehen beide in Worten', async () => {
+    antwort = liste([
+      { ...EINGANG, event: { event: 'file-changed', in: 'Notizen', matching: '*.md' } },
+    ]);
+    await oeffne();
+    expect(zeileVon(EINGANG.absPath).querySelector('.wf-runs-next').textContent).toBe(
+      'bei geänderter Datei in ‹Notizen›, Name passend zu ‹*.md›',
+    );
+  });
+
+  it('ein Ereignis ohne Datei nennt nur das Ereignis', async () => {
+    antwort = liste([
+      {
+        ...EINGANG,
+        event: { event: 'area-opened', in: null, matching: null },
+        lastRun: { ...EINGANG.lastRun, event: { type: 'area-opened' } },
+      },
+    ]);
+    await oeffne();
+    const zeile = zeileVon(EINGANG.absPath);
+    expect(zeile.querySelector('.wf-runs-next').textContent).toBe('beim Öffnen des Bereichs');
+    expect(zeile.querySelector('.wf-runs-origin').textContent).toBe(
+      ' (Ereignis: Bereich geöffnet)',
+    );
+  });
+
+  it('nicht scharf: kein Ereignis in «Nächster Lauf», der Tooltip nennt es (AK3 der Story)', async () => {
+    antwort = liste([{ ...EINGANG, armed: 'notArmed', lastRun: null, runs: 0 }]);
+    await oeffne();
+    const zeile = zeileVon(EINGANG.absPath);
+    expect(zeile.querySelector('.wf-runs-arm').checked).toBe(false);
+    expect(zeile.querySelector('.wf-runs-arm').title).toBe(
+      'Scharf schalten: Der Workflow läuft dann bei neuer Datei in ‹Eingang›',
+    );
+    expect(zeile.querySelector('.wf-runs-next').textContent).toBe('');
+    // Noch nie gelaufen: kein Journal (AK5 der Story).
+    expect(zeile.querySelector('.wf-runs-journal-toggle')).toBeNull();
+  });
+
+  it('«nicht scharf: Definition geändert» auch beim Ereignis-Workflow (AK2)', async () => {
+    antwort = liste([{ ...EINGANG, armed: 'definitionChanged' }]);
+    await oeffne();
+    const zeile = zeileVon(EINGANG.absPath);
+    expect(zeile.querySelector('.wf-runs-armed-changed').textContent).toBe(
+      'nicht scharf: Definition geändert',
+    );
+    expect(zeile.querySelector('.wf-runs-next').textContent).toBe('');
+  });
+
+  it('von der Not-Bremse entschärft: nicht scharf mit Grund (AK3)', async () => {
+    antwort = liste([
+      {
+        ...EINGANG,
+        armed: 'notArmed',
+        lastRun: { ...EINGANG.lastRun, status: 'failed', code: 'eventBrake' },
+      },
+    ]);
+    await oeffne();
+    const zeile = zeileVon(EINGANG.absPath);
+    expect(zeile.querySelector('.wf-runs-arm').checked).toBe(false);
+    expect(zeile.querySelector('.wf-runs-armed-changed').textContent).toBe(
+      'nicht scharf: Not-Bremse',
+    );
+    expect(zeile.querySelector('.wf-runs-result').textContent).toContain('Not-Bremse');
+  });
+
+  it('der Schalter eines Ereignis-Workflows ruft dasselbe Kommando (AK1)', async () => {
+    antwort = liste([{ ...EINGANG, armed: 'notArmed' }]);
+    await oeffne();
+    const schalter = zeileVon(EINGANG.absPath).querySelector('.wf-runs-arm');
+    schalter.checked = true;
+    schalter.dispatchEvent(new Event('change'));
+    await ruhe();
+    expect(scharfAufrufe).toEqual([['C:/b/Eingang.md', true]]);
+  });
+
+  it('kein Schalter bei einem anderen Auslöser (AK3 der Story)', async () => {
+    antwort = liste([{ ...EINGANG, trigger: 'manual', event: null, armed: 'notArmed' }]);
+    await oeffne();
+    expect(zeileVon(EINGANG.absPath).querySelector('.wf-runs-arm')).toBeNull();
   });
 });

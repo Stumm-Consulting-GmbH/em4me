@@ -206,6 +206,38 @@ describe('Aus-Zustand der Workflows über den echten Schalter (4T-002352)', () =
     }
   });
 
+  // 4T-002460 (Story 4S-001143, AK6 des Tasks): Der Empfänger des Laufs nach
+  // Ereignis hängt am selben Schalter. Positiv-Kontrolle zuerst.
+  it('Lauf nach Ereignis: im Aus-Zustand kein Anspruch, eingeschaltet schon', async () => {
+    const { state } = await import('../../../src/renderer/modules/app/app-state.js');
+    state.areaPath = 'C:/b';
+    const ansprueche = [];
+    window.__workflowEventClaim = (key) => {
+      ansprueche.push(key);
+      return { granted: false };
+    };
+    const item = (key) => ({
+      key,
+      root: 'C:/b',
+      path: 'C:/b/Workflows/Eingang.md',
+      name: 'Eingang',
+      origin: 'event',
+      event: { type: 'file-created', file: 'C:/b/Eingang/a.txt', from: null, task: null },
+    });
+    try {
+      expect(typeof window.__workflowEventDueHandler).toBe('function');
+      window.__workflowEventDueHandler({ catchUp: false, items: [item('an')] });
+      await vi.waitFor(() => expect(ansprueche).toEqual(['an']));
+      await schalte(['workflows']);
+      window.__workflowEventDueHandler({ catchUp: false, items: [item('aus')] });
+      await new Promise((r) => setTimeout(r, 0));
+      expect(ansprueche).toEqual(['an']);
+    } finally {
+      delete window.__workflowEventClaim;
+      state.areaPath = null;
+    }
+  });
+
   // 4T-002423 (Story 4S-001134, AK5 des Tasks): Das Element «Workflows» hängt
   // am selben Schalter. Positiv-Kontrolle zuerst: Eingeschaltet und mit einem
   // scharfen Workflow steht es; ausgeschaltet verschwindet es, und das

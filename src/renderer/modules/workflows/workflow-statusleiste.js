@@ -37,6 +37,11 @@
 // Größen-Ratsche ohne Wachstum (scripts/lint-datei-groessen.js), und das
 // Element gehört ohnehin allein dieser Erweiterung.
 //
+// **Stufe 3** (4T-002463, Epic 3E-000367, Story 4S-001146): Es zeigt den
+// jüngsten Lauf ohne Zuschauer, nach Zeitplan oder durch ein Ereignis
+// (`istLaufOhneZuschauer`), und steht bei einem scharfen Workflow gleich mit
+// welchem Auslöser.
+//
 // Eigener Zustand: die Verdrahtung, der gemerkte Lauf und die laufende Anfrage.
 'use strict';
 
@@ -45,7 +50,7 @@ import { api } from '../app/api.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import {
   ergebnisText,
-  istZeitplanLauf,
+  istLaufOhneZuschauer,
   onLaufVerbucht,
   zeitpunktText,
 } from './workflow-lauf-stand.js';
@@ -95,15 +100,16 @@ function zeitpunkt(lastRun) {
 }
 
 /**
- * Der jüngste Lauf nach Zeitplan unter den Workflows.
+ * Der jüngste Lauf ohne Zuschauer (nach Zeitplan oder durch ein Ereignis)
+ * unter den Workflows.
  *
  * @param {object[]} workflows Einträge des Kanals `workflow:runs`.
  * @returns {{name: string, absPath: string, lastRun: object}|null}
  */
-export function letzterZeitplanLauf(workflows) {
+export function letzterLaufOhneZuschauer(workflows) {
   let bester = null;
   for (const w of workflows || []) {
-    if (!w || w.foreign || !w.lastRun || !istZeitplanLauf(w.lastRun.origin)) continue;
+    if (!w || w.foreign || !w.lastRun || !istLaufOhneZuschauer(w.lastRun.origin)) continue;
     const ms = zeitpunkt(w.lastRun);
     if (ms === null) continue;
     if (!bester || ms > zeitpunkt(bester.lastRun)) {
@@ -221,7 +227,7 @@ export async function aktualisiereWorkflowStatusleiste() {
   // Während der Index aufgebaut wird, bleibt der bisherige Stand stehen.
   if (antwort.status !== 'ready') return;
   const workflows = Array.isArray(antwort.workflows) ? antwort.workflows : [];
-  gemerkt = juengerer(letzterZeitplanLauf(workflows), workflows);
+  gemerkt = juengerer(letzterLaufOhneZuschauer(workflows), workflows);
   zeichneWorkflowStatusleiste(el, { sichtbar: hatScharfenWorkflow(workflows), letzter: gemerkt });
 }
 

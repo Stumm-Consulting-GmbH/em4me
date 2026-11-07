@@ -18,6 +18,28 @@
 // 4T-002418. Mit der Stufe 2 in `ENABLED_STAGES` werden allein sie und der
 // Platzhalter `{{clipboard}}` frei; die Stufen 3 und D bleiben gesperrt.
 //
+// **Stufe 3, Bedingungen und Schleife** (4T-002464, Stories 4S-001147 und
+// 4S-001148, Entscheidungen 3f und 3g der Konzept-Runde 4T-002458): Die
+// Bedingungen `if-exists "Pfad"`, `if-missing "Pfad"` und
+// `if-property "Pfad" name ["Wert"]` und die Schleife `for-each "Ordner/Muster"`
+// tragen ihr Schema. Sie bedingen nicht mehr, wie die Konzept-Stufe sie
+// beschrieb, «die folgende Zeile», sondern öffnen einen **Block**: `else`
+// leitet wahlweise den Teil ein, der gilt, wenn die Bedingung nicht zutrifft,
+// `end` schließt den Block. Beide Block-Wörter sind eigene Schlüsselwörter
+// ohne Argument und stehen je auf einer eigenen Zeile (G2 bleibt). Mit der
+// Stufe 3 in `ENABLED_STAGES` gilt: **Ein Befehl ohne Schema bleibt gesperrt**
+// (`script` bis 4T-002465), der Prüfer meldet ihn weiter als spätere Stufe.
+//
+// **Stufe 3, Skript-Schritt** (4T-002465, Story 4S-001149, Entscheidungen 3h
+// und 3n): `script "Abschnitt" as "name"` führt den Skript-Block unter der
+// Überschrift «Abschnitt» der Workflow-Datei in der Sandbox der Skript-Blöcke
+// aus; das Wortpaar `as "name"` ist eine benannte Option der Gruppe
+// `result` und für `script` Pflicht, bei jedem anderen Befehl ein Befund
+// «unbekannte Option». Das Ergebnis steht danach als `{{script:name}}` in
+// jedem folgenden Argument. `if-script "Abschnitt"` ist die vierte Bedingung
+// der Block-Form; sie trifft zu, wenn das Skript `true` oder einen nicht
+// leeren Text liefert. Beide laufen im Fenster, nie im Hauptprozess.
+//
 // **Nachschlagen nur über eigene Eigenschaften.** Ein Schlüsselwort kommt aus
 // dem Dokument; ein blanker Zugriff fände `constructor` und `toString` als
 // geerbte Einträge (Entwicklungsrichtlinien, Kapitel 11).
@@ -30,7 +52,30 @@
 const { MACRO_MAX_DELAY_SECONDS } = require('../commands/command-placement.js');
 
 /** Die Stufen, deren Befehle die ausgelieferte Fassung ausführt. */
-const ENABLED_STAGES = Object.freeze([1, 2]);
+const ENABLED_STAGES = Object.freeze([1, 2, 3]);
+
+/** Die Bedingungen, die einen Block öffnen (3f). */
+const CONDITION_KEYWORDS = Object.freeze(['if-exists', 'if-missing', 'if-property', 'if-script']);
+/** Der Skript-Schritt und die Bedingung über ein Skript (3h). */
+const SCRIPT_KEYWORD = 'script';
+const SCRIPT_CONDITION_KEYWORD = 'if-script';
+const SCRIPT_KEYWORDS = Object.freeze([SCRIPT_KEYWORD, SCRIPT_CONDITION_KEYWORD]);
+/** Die Schleife, die einen Block öffnet (3g). */
+const LOOP_KEYWORD = 'for-each';
+/** Die Wörter, die einen Block teilen oder schließen. */
+const ELSE_KEYWORD = 'else';
+const END_KEYWORD = 'end';
+/** Alle Block-Wörter, in der Reihenfolge des Katalogs (Hervorhebung, 4T-002464). */
+const BLOCK_KEYWORDS = Object.freeze([
+  ...CONDITION_KEYWORDS,
+  LOOP_KEYWORD,
+  ELSE_KEYWORD,
+  END_KEYWORD,
+]);
+/** Größte Tiefe verschachtelter Blöcke, Schleife mitgezählt (3f). */
+const MAX_BLOCK_DEPTH = 3;
+/** Größte Zahl der Dateien einer Schleife (3g). */
+const MAX_LOOP_FILES = 500;
 
 /**
  * Argument-Arten einer Befehls-Zeile.
@@ -41,8 +86,19 @@ const ENABLED_STAGES = Object.freeze([1, 2]);
  * value: Wert in Anführungszeichen oder als Zahl.
  * number: Zahl ohne Anführungszeichen.
  * commandId: Kommando-Kennung ohne Anführungszeichen.
+ * pattern: Ordner und Datei-Muster in Anführungszeichen, relativ zur
+ *   Bereichs-Wurzel (`for-each`, 4T-002464).
  */
-const ARG_TYPES = Object.freeze(['path', 'name', 'text', 'key', 'value', 'number', 'commandId']);
+const ARG_TYPES = Object.freeze([
+  'path',
+  'name',
+  'text',
+  'key',
+  'value',
+  'number',
+  'commandId',
+  'pattern',
+]);
 
 // Benannte Optionen (G4): Wortpaar `option "Wert"` oder ein einzelnes Wort.
 // `group` ordnet sie einer Options-Gruppe des Befehls zu, `value` ist die Art
@@ -53,11 +109,14 @@ const OPTIONS = Object.freeze({
   'from-section': Object.freeze({ group: 'source', kind: 'section', value: 'text' }),
   under: Object.freeze({ group: 'position', kind: 'under', value: 'text' }),
   'at-start': Object.freeze({ group: 'position', kind: 'atStart', value: null }),
+  // 4T-002465: Name des Ergebnisses eines Skript-Schritts (3h).
+  as: Object.freeze({ group: 'result', kind: 'result', value: 'text' }),
 });
 
-// Positions-Argument; `nonEmpty` verlangt einen nicht leeren Text.
-function arg(type, nonEmpty = false) {
-  return Object.freeze({ type, nonEmpty });
+// Positions-Argument; `nonEmpty` verlangt einen nicht leeren Text, `optional`
+// erlaubt das Fehlen am Ende der Zeile (der Wert von `if-property`).
+function arg(type, nonEmpty = false, optional = false) {
+  return Object.freeze({ type, nonEmpty, optional });
 }
 
 function stufe(stage, args, groups = {}) {
@@ -70,6 +129,10 @@ function stufeEins(args, groups = {}) {
 
 function stufeZwei(args) {
   return stufe(2, args);
+}
+
+function stufeDrei(args, groups = {}) {
+  return stufe(3, args, groups);
 }
 
 function spaeter(stage) {
@@ -106,11 +169,15 @@ const WORKFLOW_COMMANDS = Object.freeze({
   confirm: stufeZwei([arg('text', true)]),
   // Ablauf
   stop: stufeEins([arg('text', true)]),
-  'if-exists': spaeter(3),
-  'if-missing': spaeter(3),
-  'if-property': spaeter(3),
-  'for-each': spaeter(3),
-  script: spaeter(3),
+  // Block-Form (3f, 3g): öffnet einen Block bis `end`, Bedingungen mit `else`.
+  'if-exists': stufeDrei([PATH]),
+  'if-missing': stufeDrei([PATH]),
+  'if-property': stufeDrei([PATH, arg('key', true), arg('value', false, true)]),
+  'for-each': stufeDrei([arg('pattern', true)]),
+  'if-script': stufeDrei([arg('text', true)]),
+  else: stufeDrei([]),
+  end: stufeDrei([]),
+  script: stufeDrei([arg('text', true)], { result: 'required' }),
   // Datenbank (Stufe D)
   'db-create': spaeter('D'),
   'db-update': spaeter('D'),
@@ -193,15 +260,37 @@ function laterStagePlaceholder(name, stages = ENABLED_STAGES) {
   return stages.includes(stufeDesPlatzhalters) ? null : stufeDesPlatzhalters;
 }
 
+/**
+ * Hat der Befehl ein Argument-Schema? Ein Befehl ohne Schema gilt als spätere
+ * Stufe, auch wenn seine Stufe freigegeben ist (4T-002464).
+ *
+ * @param {{args: object[]|null}|null} eintrag aus `lookupCommand`.
+ * @returns {boolean}
+ */
+function hasSchema(eintrag) {
+  return !!eintrag && Array.isArray(eintrag.args);
+}
+
 module.exports = {
   ARG_TYPES,
+  BLOCK_KEYWORDS,
+  CONDITION_KEYWORDS,
+  ELSE_KEYWORD,
   ENABLED_STAGES,
+  END_KEYWORD,
+  LOOP_KEYWORD,
+  MAX_BLOCK_DEPTH,
+  MAX_LOOP_FILES,
   FORBIDDEN_PLACEHOLDER_TYPES,
   LATER_STAGE_PLACEHOLDERS,
   MAX_WAIT_SECONDS: MACRO_MAX_DELAY_SECONDS,
   OPTIONS,
   RESERVED_COMMAND_PREFIXES,
+  SCRIPT_CONDITION_KEYWORD,
+  SCRIPT_KEYWORD,
+  SCRIPT_KEYWORDS,
   WORKFLOW_COMMANDS,
+  hasSchema,
   laterStagePlaceholder,
   lookupCommand,
   lookupOption,

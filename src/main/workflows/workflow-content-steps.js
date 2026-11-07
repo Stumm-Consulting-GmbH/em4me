@@ -22,11 +22,20 @@
 // verwendet. `from-template` kommt als fertig gefüllter Text aus dem Fenster
 // (S-d); der Hauptprozess liest und füllt keine Vorlage.
 //
+// **Lauf-Marke** (4T-002461, Story 4S-001144): Der Weg auf die Platte merkt den
+// neuen Inhalt vor dem Schreiben als Lauf-Stand (`documents/self-write.js`,
+// Abschnitt «Lauf-Marke»), damit er kein Ereignis `file-changed` auslöst; die
+// Selbst-Schreib-Marke bleibt weiter aus. Die beiden Wege über einen
+// Editor-Puffer schreiben keine Datei und lösen deshalb selbst nichts aus;
+// speichert der Anwender den Stand später, ist das seine Handlung und löst
+// `file-changed` aus wie jedes Speichern.
+//
 // Eigener Zustand: keiner.
 'use strict';
 
 const fs = require('node:fs/promises');
 const { ersetzeDateiOderWirf } = require('../documents/atomic-write');
+const { merkeLaufStand } = require('../documents/self-write');
 const { applyContentEdit } = require('../../shared/workflows/workflow-edit.js');
 const { sectionBody } = require('../../shared/workflows/workflow-core.js');
 const { pufferBesitzer } = require('../ipc/puffer-fenster.js');
@@ -146,6 +155,7 @@ function createWorkflowContentSteps(deps) {
     try {
       const recordHistory = (await resolveHistoryFor(ctx.owner, abs, ergebnis.text)).effective;
       const previousText = recordHistory ? await readPreviousTextFor(abs) : null;
+      merkeLaufStand(abs, ergebnis.text);
       await ersetzeDateiOderWirf(abs, ergebnis.text);
       if (recordHistory) {
         const neu = ergebnis.text.replace(BOM_RE, '').replace(/\r\n/g, '\n');

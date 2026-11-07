@@ -512,6 +512,15 @@
   color: var(--syntax-keyword);
   font-weight: 600;
 }
+/* 4T-002464: Die Block-Wörter (if-exists, if-missing, if-property, for-each,
+   else, end) tragen im Editor zusätzlich die Marke cm-wf-block. Unterschieden
+   wird über die Form, nicht über eine weitere Farbe, aus demselben Grund wie
+   bei Schlüsselwort und Platzhalter unten: gepunktet unterstrichen. */
+.cm-line .cm-wf-block,
+.cm-line .cm-wf-block * {
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
+}
 .markdown-body code.language-workflow .wf-string,
 .cm-line .cm-wf-string,
 .cm-line .cm-wf-string * {

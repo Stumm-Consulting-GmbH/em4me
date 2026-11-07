@@ -319,5 +319,9 @@
   "help.featureAccess.workflowArming": "Ansicht → Workflow-Läufe anzeigen → Spalte «Scharf»; Knopf «Scharf» über dem Block in der Live-, der gerenderten und der geteilten Ansicht; Kontextmenü einer Workflow-Datei im Bereichs-Panel → Scharf schalten / Entschärfen",
   "help.featureAccess.workflowStatusbar": "Statusleiste → Element «Workflows»; Befehl `notify` im Code-Block `workflow`",
   "help.featureAccess.workflowMaintenance": "Befehle `delete`, `add-tag`, `remove-tag`, `complete-task` und `confirm` im Code-Block `workflow`",
-  "help.featureAccess.workflowLinked": "Datei → Einstellungen… → Aktueller Bereich → Bereichs-Verknüpfungen → Workflows; Datei → Workflows; Kommando-Palette; Ansicht → Workflow-Läufe anzeigen"
+  "help.featureAccess.workflowLinked": "Datei → Einstellungen… → Aktueller Bereich → Bereichs-Verknüpfungen → Workflows; Datei → Workflows; Kommando-Palette; Ansicht → Workflow-Läufe anzeigen",
+  "help.featureAccess.workflowEvents": "Dateikopf-Felder `trigger: event` und `event` mit `file-created`, `file-changed`, `file-moved`, `task-done`, `area-opened` oder `reminder-due`, wahlweise `in` und `matching`; Prüf-Anzeige über dem Block in der Live-, der gerenderten und der geteilten Ansicht; Ansicht → Workflow-Läufe anzeigen → Spalte «Scharf»",
+  "help.featureAccess.workflowConditions": "Befehle `if-exists`, `if-missing`, `if-property`, `if-script`, `else` und `end` im Code-Block `workflow`",
+  "help.featureAccess.workflowLoop": "Befehl `for-each` mit `end` im Code-Block `workflow`; Platzhalter `{{item}}` und `{{item:name}}`",
+  "help.featureAccess.workflowScript": "Befehle `script` mit `as` und `if-script` im Code-Block `workflow`; Platzhalter `{{script:name}}`; Datei → Einstellungen… → Verhalten → Skript-Blöcke ausführen"
 }

@@ -8,7 +8,7 @@ The examples on this page are deliberately set as code blocks; the manual page i
 
 Script execution is **off by default**. Without activation, a script block shows its source with a notice banner; no execution environment is created.
 
-It is enabled under **Settings → Behavior → Run script blocks**. Activation is a deliberate trust decision: scripts come from the opened documents. Only enable it if your own documents are trustworthy. Toggling takes effect immediately in all windows, without a restart.
+It is enabled under **Settings → Behavior → Run script blocks**. Activation is a deliberate trust decision: scripts come from the opened documents. Only enable it if your own documents are trustworthy. Toggling takes effect immediately in all windows, without a restart. The same setting applies to the script step of [workflows](workflows.md), which runs a script block of the workflow file in the same sandbox, read-only and with the same time limit.
 
 ## Runtime limits
 

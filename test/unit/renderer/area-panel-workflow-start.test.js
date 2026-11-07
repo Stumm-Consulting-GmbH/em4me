@@ -32,11 +32,24 @@ vi.mock('../../../src/renderer/modules/workflows/workflow-scharf.js', async (ori
 
 const workflows = new Set();
 // 4T-002422: Scharf-Zustand je Pfad; fehlt er, hat der Workflow keinen Zeitplan.
+// 4T-002463: `ereignis` enthält die Pfade mit `trigger: event`.
 const scharf = new Map();
-window.api.workflowArmedState = async (p) =>
-  scharf.has(p)
-    ? { ok: true, isWorkflow: true, scheduled: true, status: scharf.get(p), nextDue: null }
-    : { ok: true, isWorkflow: true, scheduled: false, status: 'notArmed', nextDue: null };
+const ereignisPfade = new Set();
+window.api.workflowArmedState = async (p) => {
+  if (!scharf.has(p)) {
+    return { ok: true, isWorkflow: true, scheduled: false, trigger: 'manual', status: 'notArmed' };
+  }
+  const trigger = ereignisPfade.has(p) ? 'event' : 'schedule';
+  return {
+    ok: true,
+    isWorkflow: true,
+    scheduled: trigger === 'schedule',
+    trigger,
+    event: trigger === 'event' ? { event: 'file-created', in: 'Eingang', matching: null } : null,
+    status: scharf.get(p),
+    nextDue: null,
+  };
+};
 const gefragt = [];
 window.api.workflowFileInfo = async (p) => {
   gefragt.push(p);
@@ -58,6 +71,7 @@ beforeEach(() => {
   aus.clear();
   workflows.clear();
   scharf.clear();
+  ereignisPfade.clear();
   schalteScharf.mockClear();
   gefragt.length = 0;
   starteWorkflow.mockClear();
@@ -159,6 +173,16 @@ describe('«Scharf schalten» im Kontextmenü (4T-002422)', () => {
     await menues.showAreaFileContextMenu(ereignis(), 'C:/b/Plan.md', () => {});
     menu().children[1].click();
     expect(schalteScharf).toHaveBeenCalledWith('C:/b/Plan.md', true);
+  });
+
+  it('steht auch bei einem Workflow mit trigger: event (4T-002463, AK1)', async () => {
+    workflows.add('C:/b/Eingang.md');
+    scharf.set('C:/b/Eingang.md', 'notArmed');
+    ereignisPfade.add('C:/b/Eingang.md');
+    await menues.showAreaFileContextMenu(ereignis(), 'C:/b/Eingang.md', () => {});
+    expect(ids().slice(0, 2)).toEqual(['area-file-workflow-start', 'area-file-workflow-arm']);
+    menu().children[1].click();
+    expect(schalteScharf).toHaveBeenCalledWith('C:/b/Eingang.md', true);
   });
 
   it('fehlt bei einem Workflow ohne Zeitplan; «Starten» bleibt (AK3 der Story)', async () => {

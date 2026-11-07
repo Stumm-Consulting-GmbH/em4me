@@ -8,7 +8,7 @@ Les exemples de cette page sont volontairement présentés comme blocs de code ;
 
 L'exécution des scripts est **désactivée par défaut**. Sans activation, un bloc de script affiche son code source avec un bandeau d'information ; aucun environnement d'exécution n'est créé.
 
-Elle s'active sous **Paramètres → Comportement → Exécuter les blocs de script**. L'activation est une décision de confiance délibérée : les scripts proviennent des documents ouverts. N'activez cette option que si vos propres documents sont dignes de confiance. Le basculement agit immédiatement dans toutes les fenêtres, sans redémarrage.
+Elle s'active sous **Paramètres → Comportement → Exécuter les blocs de script**. L'activation est une décision de confiance délibérée : les scripts proviennent des documents ouverts. N'activez cette option que si vos propres documents sont dignes de confiance. Le basculement agit immédiatement dans toutes les fenêtres, sans redémarrage. Le même paramètre vaut pour l'étape de script des [workflows](workflows.md), qui exécute un bloc de script du fichier de workflow dans le même bac à sable, en lecture seule et avec la même limite de temps.
 
 ## Limites d'exécution
 

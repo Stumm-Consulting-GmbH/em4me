@@ -14,13 +14,20 @@
 // als Hinweis in die Statusleiste und an die Zuhörer (`onScharfGeaendert`), an
 // denen die Seite «Workflow-Läufe» und der Knopf über dem Block nachziehen.
 //
+// **Stufe 3** (4T-002463, Epic 3E-000367, Story 4S-001146, Entscheidung 3c):
+// Der Schalter erscheint an allen drei Orten bei den `SCHALTBARE_AUSLOESER`n
+// `schedule` und `event` (`istSchaltbar`), bei keinem anderen. Bei einem
+// Ereignis-Workflow nennen Hinweis und Tooltip statt des nächsten Termins das
+// Ereignis in Worten (`ereignisInWorten`); eine zusätzliche Bestätigung gibt
+// es nicht.
+//
 // Eigener Zustand: die Zuhörer.
 'use strict';
 
 import { intlLocale, t } from '../../i18n.js';
 import { api } from '../app/api.js';
 import { showStatusbarHint } from '../views/views.js';
-import { einsetzen } from './workflow-lauf-texte.js';
+import { einsetzen, ereignisInWorten } from './workflow-lauf-texte.js';
 import { befundZeile, pruefeWorkflow } from './workflow-pruefung.js';
 import { flushPendingBuffers } from './workflow-window.js';
 
@@ -30,6 +37,19 @@ export const SCHARF = Object.freeze({
   aus: 'notArmed',
   geaendert: 'definitionChanged',
 });
+
+/** Die Auslöser, bei denen der Schalter «Scharf» erscheint (2e, 3c). */
+export const SCHALTBARE_AUSLOESER = Object.freeze(['schedule', 'event']);
+
+/**
+ * Erscheint der Schalter «Scharf» bei diesem Auslöser?
+ *
+ * @param {string|null|undefined} trigger Auslöser aus dem Dateikopf.
+ * @returns {boolean}
+ */
+export function istSchaltbar(trigger) {
+  return SCHALTBARE_AUSLOESER.includes(trigger);
+}
 
 const zuhoerer = new Set();
 
@@ -79,7 +99,8 @@ export function wanduhrText(wand) {
  *
  * @param {string} pfad absoluter Pfad.
  * @returns {Promise<{ok: boolean, isWorkflow?: boolean, scheduled?: boolean,
- *   status?: string, nextDue?: string|null, code?: string}>}
+ *   trigger?: string, event?: object|null, status?: string, nextDue?: string|null,
+ *   code?: string}>}
  */
 export async function scharfZustand(pfad) {
   if (typeof api.workflowArmedState !== 'function') return { ok: false, code: 'unexpected' };
@@ -148,9 +169,13 @@ export async function schalteScharf(pfad, an, opts = {}) {
   }
   if (!antwort || !antwort.ok) return abgewiesen(pfad, antwort || { ok: false });
   const name = nameAus(pfad, opts.name);
-  const text = an
-    ? einsetzen(t('workflow.scharf.geschaltet'), { name, due: wanduhrText(antwort.nextDue) })
-    : einsetzen(t('workflow.scharf.entschaerft'), { name });
+  let text = einsetzen(t('workflow.scharf.entschaerft'), { name });
+  if (an && antwort.event) {
+    const ereignis = ereignisInWorten(antwort.event);
+    text = einsetzen(t('workflow.scharf.geschaltetEreignis'), { name, ereignis });
+  } else if (an) {
+    text = einsetzen(t('workflow.scharf.geschaltet'), { name, due: wanduhrText(antwort.nextDue) });
+  }
   showStatusbarHint(null, { text, duration: 4000 });
   melde(pfad, antwort);
   return antwort;
@@ -161,12 +186,17 @@ export async function schalteScharf(pfad, an, opts = {}) {
  *
  * @param {string} status Zustand aus `SCHARF`.
  * @param {string|null} nextDue nächster Lauf.
+ * @param {object|null} [ereignis] Ereignis-Regel eines Ereignis-Workflows; dann
+ *   nennt der Text das Ereignis statt des Termins.
  * @returns {string}
  */
-export function scharfTitel(status, nextDue) {
-  if (status === SCHARF.an) {
-    return einsetzen(t('workflow.scharf.titelAn'), { due: wanduhrText(nextDue) });
-  }
+export function scharfTitel(status, nextDue, ereignis = null) {
   if (status === SCHARF.geaendert) return t('workflow.scharf.titelGeaendert');
+  const an = status === SCHARF.an;
+  if (ereignis) {
+    const key = an ? 'workflow.scharf.titelAnEreignis' : 'workflow.scharf.titelAusEreignis';
+    return einsetzen(t(key), { ereignis: ereignisInWorten(ereignis) });
+  }
+  if (an) return einsetzen(t('workflow.scharf.titelAn'), { due: wanduhrText(nextDue) });
   return t('workflow.scharf.titelAus');
 }

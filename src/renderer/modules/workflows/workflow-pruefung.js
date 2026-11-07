@@ -26,6 +26,7 @@ import { COMMANDS } from '../../../shared/commands/commands.js';
 import { analyzeWorkflow } from '../../../shared/workflows/workflow-core.js';
 import { t } from '../../i18n.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
+import { isPerspectiveScriptsEnabled } from '../query/perspective-script-view.js';
 
 const RUECKFRAGEN = ['isKnownCommand', 'isKnownMacro', 'isKnownWorkflow'];
 // Die Kommando-Kennungen liest die Prüfung selbst aus der Registry (ein
@@ -73,6 +74,8 @@ export function pruefeWorkflow(text, opts = {}) {
   return analyzeWorkflow(text, {
     fileName: opts.fileName,
     templatesEnabled: isExtensionActive('templates'),
+    // 4T-002465 (3n): die Einstellung «Skript-Blöcke ausführen» des Fensters.
+    scriptsEnabled: isPerspectiveScriptsEnabled(),
     ...rueckfragen,
   });
 }

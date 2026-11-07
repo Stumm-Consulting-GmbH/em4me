@@ -3614,6 +3614,63 @@
       "hinweis": "4T-002426 (Epic 3E-000366, Story 4S-001138): Workflows verknüpfter Bereiche. Unit: Quellen mit Zustimmung und Liste (workflow-linked-sources), Lauf in der eigenen Wurzel (workflow-linked-step), Ergebnis in der Statusleiste ohne Lauf-Stand (workflow-fremd), Block je Quelle im Menü (menu-workflows), Kästchen Workflows je Verknüpfung (settings-area-links). An der gestarteten Anwendung: Zustimmung, Anzeige mit Kürzel und Abschalten (WF-VERKN-01), Lauf in der eigenen Wurzel ohne Schreiben in den verknüpften Bereich (WF-VERKN-02)."
     },
     {
+      "key": "help.feature.workflowEvents",
+      "id": "F-399",
+      "testart": "unit",
+      "tests": [
+        "test/unit/workflow-event.test.js",
+        "test/unit/workflow-document.test.js",
+        "test/unit/workflow-event-check.test.js",
+        "test/unit/renderer/workflow-ereignis-lauf.test.js",
+        "test/unit/workflow-lauf-marke.test.js",
+        "test/unit/workflow-task-done.test.js",
+        "test/unit/workflow-armed-ipc.test.js"
+      ],
+      "sichtbarkeit": ["test/e2e/funktionen/workflow-ereignis.spec.js"],
+      "hinweis": "4T-002459 bis 4T-002463 (Epic 3E-000367, Stories 4S-001142 bis 4S-001146): Workflows bei Ereignissen. Unit: Grammatik der Ereignis-Zeile mit in und matching und Abgleich (workflow-event), Dateikopf-Felder trigger: event und event samt Befunden (workflow-document), Ereignis-Prüfer mit Entprellung, Reichweite, Warteschlange und Not-Bremse (workflow-event-check), Lauf im Fenster mit Platzhaltern je Ereignis (workflow-ereignis-lauf), Lauf-Marke gegen Ketten (workflow-lauf-marke), Aufgabe erledigt über Puffer und Platte (workflow-task-done), Scharf-Schaltung für Ereignisse im Hauptprozess (workflow-armed-ipc). An der gestarteten Anwendung: scharf schalten, Ereignis in Worten, Lauf durch eine Datei von außen, Definition geändert (WF-EREIGNIS-01)."
+    },
+    {
+      "key": "help.feature.workflowConditions",
+      "id": "F-400",
+      "testart": "unit",
+      "tests": [
+        "test/unit/workflow-check-bloecke.test.js",
+        "test/unit/workflow-block-queries.test.js",
+        "test/unit/workflow-runner.test.js",
+        "test/unit/workflow-highlight.test.js",
+        "test/unit/renderer/workflow-hervorhebung.test.js"
+      ],
+      "sichtbarkeit": "entfällt: kein eigenes Bedienelement; die Bedingungen sind Befehle im Code-Block workflow, deren Prüf-Anzeige und Hervorhebung die Einträge der Workflow-Blöcke im Editor belegen",
+      "hinweis": "4T-002464 (Epic 3E-000367, Story 4S-001147): Bedingungen if-exists, if-missing, if-property und if-script mit else und end. Unit: Paarung der Block-Wörter und Befunde mit Zeile (workflow-check-bloecke), Abfragen des Hauptprozesses über den ungespeicherten Stand vor der Platte, Listen-Eigenschaften (workflow-block-queries), Ausführung der Blöcke im Ablauf-Kern (workflow-runner), Hervorhebung der Block-Wörter (workflow-highlight, workflow-hervorhebung)."
+    },
+    {
+      "key": "help.feature.workflowLoop",
+      "id": "F-401",
+      "testart": "unit",
+      "tests": [
+        "test/unit/workflow-check-bloecke.test.js",
+        "test/unit/workflow-placeholders.test.js",
+        "test/unit/workflow-block-queries.test.js",
+        "test/unit/workflow-runner.test.js"
+      ],
+      "sichtbarkeit": "entfällt: kein eigenes Bedienelement; die Schleife ist ein Befehl im Code-Block workflow, deren Prüf-Anzeige und Hervorhebung die Einträge der Workflow-Blöcke im Editor belegen",
+      "hinweis": "4T-002464 (Epic 3E-000367, Story 4S-001148): Schleife for-each über die Dateien eines Ordners. Unit: Muster, Verschachtelung und Platzhalter item außerhalb der Schleife (workflow-check-bloecke), zurückgestellte Schritte je Datei (workflow-placeholders), Datei-Liste mit Grenze von 500 Dateien und fehlendem Ordner (workflow-block-queries), feste Liste und Wiederholung im Ablauf-Kern (workflow-runner)."
+    },
+    {
+      "key": "help.feature.workflowScript",
+      "id": "F-402",
+      "testart": "unit",
+      "tests": [
+        "test/unit/workflow-check-skript.test.js",
+        "test/unit/renderer/workflow-skript-schritt.test.js",
+        "test/unit/renderer/script-sandbox-lauf.test.js",
+        "test/unit/script-sandbox-runtime.test.js",
+        "test/unit/workflow-armed-skript.test.js"
+      ],
+      "sichtbarkeit": "entfällt: kein eigenes Bedienelement; der Skript-Schritt ist ein Befehl im Code-Block workflow, und die Abschottung der Sandbox belegt die Ablauf-Prüfung der Skript-Blöcke (skript-bloecke.spec.js)",
+      "hinweis": "4T-002465 (Epic 3E-000367, Story 4S-001149): Skript-Schritt script mit as, if-script und Platzhalter script. Unit: Befunde zu Abschnitt, Name, Ergebnis und Einstellung (workflow-check-skript), Lauf mit Ergebnis, Bedingung, Fehler und Zeitgrenze (workflow-skript-schritt), ein gemeinsamer Baustein der Sandbox (script-sandbox-lauf), lesende Laufzeit ohne Schreibweg (script-sandbox-runtime), Scharf-Schaltung nur bei eingeschalteter Einstellung (workflow-armed-skript)."
+    },
+    {
       "key": "help.shortcut.saveSidebarVariant",
       "id": "S-097",
       "testart": "e2e",

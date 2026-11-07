@@ -15,6 +15,16 @@
 // 4T-002422 dazu `setArmedSchedule`, die Scharf-Schaltung samt erstem Termin in
 // einer Änderung.
 //
+// **Stufe 3** (4T-002460, Epic 3E-000367, Story 4S-001143, Ausführungs-
+// Entscheidung 3 der Konzept-Runde 4T-002458): die Herkunft `event` als
+// vierter Wert der geschlossenen Liste und je Lauf nach Ereignis das
+// auslösende Ereignis `{ type, file?, from?, task? }`; die Pfade werden wie
+// das Journal relativ zur Bereichs-Wurzel abgelegt. Seit 4T-002461 (Story
+// 4S-001144) dazu `recordEventBrake`: Die Not-Bremse der Ereignis-Läufe nimmt
+// den Scharf-Zustand zurück und vermerkt in DERSELBEN Änderung den Grund als
+// letzten Lauf (`failed` mit dem Code `eventBrake`, Herkunft `event`, das
+// Ereignis, an dem sie griff), damit die Seite «Workflow-Läufe» ihn zeigt.
+//
 // **Schreibweg nach `writeBlockDataMutation`** (documents/block-data.js):
 // Begleitdatei lesen oder leer anlegen, eine defekte nie überschreiben (der
 // Pfad kommt in die Menge der ausgesetzten Dokumente, das Fenster bekommt die
@@ -36,6 +46,7 @@ const { mddPathFor } = require('../documents/document-parts-io');
 const selbstSchreib = require('../documents/self-write');
 const { isInsideArea } = require('../area/area-path');
 const { lookupCommand } = require('../../shared/workflows/workflow-catalog.js');
+const { EVENT_TYPES } = require('../../shared/workflows/workflow-event.js');
 const { definitionsPruefsumme } = require('./workflow-definition-hash.js');
 
 // 4T-000947: dieselbe Instanz wie in der Verdrahtung (Modul-Singleton ueber den
@@ -44,8 +55,12 @@ const markSelfWriting = selbstSchreib.merke;
 
 /** Die geschlossene Liste der Lauf-Ergebnisse. */
 const RUN_STATUS = Object.freeze(['ok', 'failed', 'stopped', 'canceled']);
-/** Die geschlossene Liste der Herkunft eines Laufs (Stufe 2, 2d). */
-const RUN_ORIGINS = Object.freeze(['manual', 'schedule', 'catch-up']);
+/** Die geschlossene Liste der Herkunft eines Laufs (Stufe 2, 2d; Stufe 3: `event`). */
+const RUN_ORIGINS = Object.freeze(['manual', 'schedule', 'catch-up', 'event']);
+/** Code des letzten Laufs, wenn die Not-Bremse den Workflow entschärft hat (3d). */
+const EVENT_BRAKE_CODE = 'eventBrake';
+/** Höchstlänge des Aufgaben-Texts eines Ereignisses `task-done`. */
+const MAX_AUFGABE = 4096;
 /** Die Zustände der Scharf-Schaltung (2e). */
 const ARMED_STATUS = Object.freeze({
   armed: 'armed',
@@ -71,19 +86,49 @@ function journalZeile(e) {
   return { line: e.line, command: e.command, path: e.path };
 }
 
+// Ein Pfad des Ereignisses: fehlt (null/undefined) oder ist ein Text in der
+// Grenze; sonst ungültig.
+function ereignisPfad(p) {
+  if (p === undefined || p === null) return { ok: true, wert: null };
+  if (typeof p !== 'string' || p === '' || p.length > MAX_PFAD) return { ok: false };
+  return { ok: true, wert: p };
+}
+
+// Das auslösende Ereignis eines Laufs nach Ereignis (Stufe 3) oder null.
+function ereignisAus(e) {
+  if (!istObjekt(e) || !EVENT_TYPES.includes(e.type)) return null;
+  const file = ereignisPfad(e.file);
+  const from = ereignisPfad(e.from);
+  if (!file.ok || !from.ok) return null;
+  // Das Öffnen eines Bereichs hat keine Datei (3l).
+  if (e.type === 'area-opened' && (file.wert !== null || from.wert !== null)) return null;
+  const sauber = { type: e.type };
+  if (file.wert !== null) sauber.file = file.wert;
+  if (from.wert !== null) sauber.from = from.wert;
+  if (e.task !== undefined && e.task !== null) {
+    if (typeof e.task !== 'string' || e.task.length > MAX_AUFGABE) return null;
+    sauber.task = e.task;
+  }
+  return sauber;
+}
+
 /**
  * Prüft die Angaben eines Laufs aus dem Fenster (fail-closed).
  *
- * **Herkunft** (Stufe 2): `manual`, `schedule` oder `catch-up`; fehlt sie, gilt
- * `manual`, weil der Start von Hand der einzige Absender ist, der sie nicht
- * mitschickt (der Start der Stufe 1). Ein anderer Wert weist den Lauf ab.
+ * **Herkunft** (Stufe 2): `manual`, `schedule` oder `catch-up`, seit Stufe 3
+ * auch `event`; fehlt sie, gilt `manual`, weil der Start von Hand der einzige
+ * Absender ist, der sie nicht mitschickt (der Start der Stufe 1). Ein anderer
+ * Wert weist den Lauf ab.
+ * **Ereignis** (Stufe 3): Pflicht bei der Herkunft `event` und nur dort
+ * erlaubt; `{ type, file?, from?, task? }` mit einem Ereignis des Katalogs.
  * **Journal** (Stufe 2): optional; jede Zeile `{ line, command, path }` mit
  * einem Befehl des Katalogs, sonst wird der Lauf abgewiesen. Über `MAX_JOURNAL`
  * Zeilen wird abgeschnitten und `journalTruncated` gesetzt.
  *
- * @param {*} run Nutzlast `{ status, line?, code?, startedAt?, origin?, journal? }`.
+ * @param {*} run Nutzlast `{ status, line?, code?, startedAt?, origin?, journal?, event? }`.
  * @returns {{status: string, origin: string, line?: number, code?: string,
- *   startedAt?: number, journal?: object[], journalTruncated?: true}|null}
+ *   startedAt?: number, journal?: object[], journalTruncated?: true,
+ *   event?: object}|null}
  *   die bereinigten Angaben oder null bei ungültiger Form.
  */
 function normalizeRun(run) {
@@ -110,6 +155,13 @@ function normalizeRun(run) {
   const origin = run.origin === undefined ? 'manual' : run.origin;
   if (!RUN_ORIGINS.includes(origin)) return null;
   sauber.origin = origin;
+  if (origin === 'event') {
+    const ereignis = ereignisAus(run.event);
+    if (!ereignis) return null;
+    sauber.event = ereignis;
+  } else if (run.event !== undefined) {
+    return null;
+  }
   if (run.journal !== undefined) {
     if (!Array.isArray(run.journal)) return null;
     const zeilen = run.journal.slice(0, MAX_JOURNAL).map(journalZeile);
@@ -120,25 +172,46 @@ function normalizeRun(run) {
   return sauber;
 }
 
+// Ein absoluter Pfad im Bereich relativ zur Wurzel mit `/`, sonst null.
+function imBereichRelativ(root, p) {
+  if (!path.isAbsolute(p) || !isInsideArea(root, p)) return null;
+  const relativ = path.relative(path.resolve(root), path.resolve(p));
+  return relativ === '' ? '.' : relativ.split(path.sep).join('/');
+}
+
 /**
- * Bringt die Pfade des Journals in die Form der Begleitdatei: relativ zur
- * Bereichs-Wurzel mit `/`, damit das Journal mit dem Bereich umziehen kann.
- * Gemeldet werden absolute Pfade (die Wirkungen der Schritte); ein Pfad
- * außerhalb des Bereichs oder ein relativer weist den Lauf ab (fail-closed).
+ * Bringt die Pfade des Journals und des auslösenden Ereignisses (Stufe 3) in
+ * die Form der Begleitdatei: relativ zur Bereichs-Wurzel mit `/`, damit der
+ * Lauf-Stand mit dem Bereich umziehen kann. Gemeldet werden absolute Pfade
+ * (die Wirkungen der Schritte, die Datei des Ereignisses); ein Pfad außerhalb
+ * des Bereichs oder ein relativer weist den Lauf ab (fail-closed).
  *
  * @param {object} run bereinigte Angaben aus `normalizeRun`.
  * @param {string} root Bereichs-Wurzel des sendenden Fensters.
- * @returns {object|null} die Angaben mit relativen Journal-Pfaden oder null.
+ * @returns {object|null} die Angaben mit relativen Pfaden oder null.
  */
 function journalImBereich(run, root) {
-  if (!Array.isArray(run.journal)) return run;
-  const journal = [];
-  for (const e of run.journal) {
-    if (!path.isAbsolute(e.path) || !isInsideArea(root, e.path)) return null;
-    const relativ = path.relative(path.resolve(root), path.resolve(e.path));
-    journal.push({ ...e, path: relativ === '' ? '.' : relativ.split(path.sep).join('/') });
+  let ergebnis = run;
+  if (Array.isArray(run.journal)) {
+    const journal = [];
+    for (const e of run.journal) {
+      const relativ = imBereichRelativ(root, e.path);
+      if (relativ === null) return null;
+      journal.push({ ...e, path: relativ });
+    }
+    ergebnis = { ...ergebnis, journal };
   }
-  return { ...run, journal };
+  if (run.event) {
+    const event = { ...run.event };
+    for (const feld of ['file', 'from']) {
+      if (event[feld] === undefined) continue;
+      const relativ = imBereichRelativ(root, event[feld]);
+      if (relativ === null) return null;
+      event[feld] = relativ;
+    }
+    ergebnis = { ...ergebnis, event };
+  }
+  return ergebnis;
 }
 
 /**
@@ -164,7 +237,7 @@ function armedStatus(armed, text) {
  * @param {Function} deps.notifyMddDefect Defekt-Meldung an das auslösende Fenster.
  * @param {() => number} [deps.now] Uhr (für Prüffälle).
  * @returns {{recordRun: Function, setArmed: Function, setArmedSchedule: Function,
- *   setNextDue: Function, recordSkipped: Function}}
+ *   setNextDue: Function, recordSkipped: Function, recordEventBrake: Function}}
  */
 function createWorkflowRunState(deps) {
   const { mddSuspendedPaths, mddKeyOf, notifyMddDefect } = deps;
@@ -250,10 +323,14 @@ function createWorkflowRunState(deps) {
    * nie einen scharfen Stand ohne Termin oder einen Termin ohne Scharf-Zustand
    * zwischen zwei Schreibvorgängen liest.
    *
+   * Seit 4T-002463 (Stufe 3) auch für `trigger: event`: `{ hash, nextDue: null }`
+   * setzt den Scharf-Zustand ohne Termin und nimmt einen Termin aus einer
+   * früheren Zeitplan-Fassung derselben Datei in derselben Änderung zurück.
+   *
    * @param {object|null} owner Fenster (Empfänger einer Defekt-Meldung).
    * @param {string} workflowAbs absoluter Pfad der Workflow-Datei.
-   * @param {{hash: string, nextDue: string}|null} schaltung Prüfsumme und erster
-   *   Termin als Wanduhr-Zeit, oder null.
+   * @param {{hash: string, nextDue: (string|null)}|null} schaltung Prüfsumme und
+   *   erster Termin als Wanduhr-Zeit (null bei einem Ereignis-Workflow), oder null.
    * @returns {Promise<{ok: true}|{ok: false, code: 'runStateNotSaved'}>}
    */
   function setArmedSchedule(owner, workflowAbs, schaltung) {
@@ -261,7 +338,7 @@ function createWorkflowRunState(deps) {
       schaltung === null ||
       (istObjekt(schaltung) &&
         mddStore.isWorkflowDefinitionHash(schaltung.hash) &&
-        mddStore.isWorkflowWallTime(schaltung.nextDue));
+        (schaltung.nextDue === null || mddStore.isWorkflowWallTime(schaltung.nextDue)));
     if (!gueltig) {
       throw new TypeError('setArmedSchedule: { hash, nextDue } oder null erwartet');
     }
@@ -311,11 +388,35 @@ function createWorkflowRunState(deps) {
     );
   }
 
-  return { recordRun, setArmed, setArmedSchedule, setNextDue, recordSkipped };
+  /**
+   * Not-Bremse (4T-002461, 3d): nimmt den Scharf-Zustand zurück und vermerkt den
+   * Grund als letzten Lauf, in einer Änderung. Der gebremste Lauf zählt als
+   * fehlgeschlagener Lauf mit; er ist angestoßen und vor seinem ersten Schritt
+   * angehalten worden.
+   *
+   * @param {object|null} owner Fenster (Empfänger einer Defekt-Meldung) oder null.
+   * @param {string} root Bereichs-Wurzel des Ereignisses.
+   * @param {string} workflowAbs absoluter Pfad der Workflow-Datei.
+   * @param {{type: string, file?: string|null, from?: string|null, task?: string|null}} event
+   *   das Ereignis, an dem die Bremse griff, mit absoluten Pfaden.
+   * @returns {Promise<{ok: true}|{ok: false, code: 'runStateNotSaved'}>}
+   */
+  function recordEventBrake(owner, root, workflowAbs, event) {
+    const run = normalizeRun({ status: 'failed', code: EVENT_BRAKE_CODE, origin: 'event', event });
+    const imBereich = run ? journalImBereich(run, root) : null;
+    if (!imBereich) throw new TypeError('recordEventBrake: Ereignis im Bereich erwartet');
+    return aendere(owner, workflowAbs, (container, nowMs) => {
+      mddStore.setWorkflowArmed(container, null, nowMs);
+      mddStore.recordWorkflowRun(container, imBereich, nowMs);
+    });
+  }
+
+  return { recordRun, setArmed, setArmedSchedule, setNextDue, recordSkipped, recordEventBrake };
 }
 
 module.exports = {
   ARMED_STATUS,
+  EVENT_BRAKE_CODE,
   MAX_JOURNAL,
   RUN_ORIGINS,
   RUN_STATUS,

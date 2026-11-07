@@ -60,6 +60,13 @@ function workflowsBridge(ipcRenderer) {
     workflowScheduleRelease: (key) => ipcRenderer.invoke('workflow:scheduleRelease', { key }),
     workflowScheduleFinished: (key) => ipcRenderer.invoke('workflow:scheduleFinished', { key }),
     workflowScheduleOpen: () => ipcRenderer.invoke('workflow:scheduleOpen'),
+    // 4T-002460: Lauf nach Ereignis — dieselben vier Handgriffe für den
+    // Ereignis-Prüfer (Kanäle in src/main/ipc/workflow-schedule.js).
+    onWorkflowEventDue: (cb) => ipcRenderer.on('workflow:eventDue', (_e, payload) => cb(payload)),
+    workflowEventClaim: (key) => ipcRenderer.invoke('workflow:eventClaim', { key }),
+    workflowEventRelease: (key) => ipcRenderer.invoke('workflow:eventRelease', { key }),
+    workflowEventFinished: (key) => ipcRenderer.invoke('workflow:eventFinished', { key }),
+    workflowEventOpen: () => ipcRenderer.invoke('workflow:eventOpen'),
     // 4T-002422: Scharf-Schaltung eines Workflows nach Zeitplan (armed true)
     // oder Entschärfen (false), und der Scharf-Zustand einer einzelnen Datei
     // (Kanäle in src/main/ipc/workflow-armed.js).

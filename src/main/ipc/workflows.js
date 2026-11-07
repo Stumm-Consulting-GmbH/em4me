@@ -2,6 +2,11 @@
 // Datei-, Ordner-, Inhalts- und Dateikopf-Befehle im Hauptprozess, die Antwort
 // eines Fensters auf einen Puffer-Auftrag und der Lauf-Stand.
 //
+// Seit 4T-002464 dazu die Fragen der Bedingungen und der Schleife
+// `if-exists`, `if-missing`, `if-property` und `for-each` der Stufe 3
+// (workflow-block-queries.js); sie lesen nur und antworten mit `value` bzw.
+// `files`, Block und Wiederholung führt der Ablauf-Kern im Fenster aus.
+//
 // Seit 4T-002424 dazu die Pflege-Befehle `delete`, `add-tag`, `remove-tag` und
 // `complete-task` der Stufe 2 (workflow-maintenance-steps.js, workflow-content-steps.js).
 //
@@ -23,6 +28,8 @@
 //   { ok: true, line, keyword, effect }    — im Hauptprozess ausgeführt;
 //   { ok: true, line, keyword, window }    — Fenster-Handgriff (open, close,
 //                                            Bearbeitung des eigenen Puffers);
+//   { ok: true, line, keyword, value }     — Antwort einer Bedingung (4T-002464);
+//   { ok: true, line, keyword, files }     — Liste einer Schleife (4T-002464);
 //   { ok: false, line, keyword, code, detail }.
 // Texte zu den Codes entstehen in der Anzeige (4T-002350); hier gibt es keine.
 //
@@ -33,12 +40,18 @@ const path = require('node:path');
 const { isInsideArea } = require('../area/area-path');
 const { lookupCommand } = require('../../shared/workflows/workflow-catalog.js');
 const { createRenameCascade } = require('../documents/rename-cascade');
+const { imWorkflowLauf } = require('../documents/self-write');
 const { createBufferRequests } = require('../workflows/workflow-buffer-requests.js');
 const {
   CONTENT_KEYWORDS,
   createWorkflowContentSteps,
 } = require('../workflows/workflow-content-steps.js');
 const { FILE_KEYWORDS, createWorkflowFileSteps } = require('../workflows/workflow-file-steps.js');
+// 4T-002464: die Fragen der Bedingungen und der Schleife (Stufe 3).
+const {
+  QUERY_KEYWORDS,
+  createWorkflowBlockQueries,
+} = require('../workflows/workflow-block-queries.js');
 // 4T-002424: die Pflege-Befehle `delete` und `complete-task` (Stufe 2).
 const {
   MAINTENANCE_KEYWORDS,
@@ -104,15 +117,23 @@ function positionGueltig(position) {
  */
 function isValidStep(step) {
   if (!istObjekt(step) || !Number.isInteger(step.line) || step.line < 1) return false;
-  const bekannt = [...FILE_KEYWORDS, ...CONTENT_KEYWORDS, ...MAINTENANCE_KEYWORDS];
+  const bekannt = [
+    ...FILE_KEYWORDS,
+    ...CONTENT_KEYWORDS,
+    ...MAINTENANCE_KEYWORDS,
+    ...QUERY_KEYWORDS,
+  ];
   if (!bekannt.includes(step.keyword)) return false;
   const eintrag = lookupCommand(step.keyword);
-  if (!eintrag || !Array.isArray(step.args) || step.args.length !== eintrag.args.length)
-    return false;
-  const argsGueltig = eintrag.args.every((spec, i) => {
-    const wert = step.args[i];
+  if (!eintrag || !Array.isArray(eintrag.args) || !Array.isArray(step.args)) return false;
+  // 4T-002464: ein optionales Argument darf am Ende fehlen (Wert von if-property).
+  const pflicht = eintrag.args.filter((spec) => !spec.optional).length;
+  if (step.args.length < pflicht || step.args.length > eintrag.args.length) return false;
+  const argsGueltig = step.args.every((wert, i) => {
+    const spec = eintrag.args[i];
     if (spec.type === 'value') return istText(wert, MAX_TEXT) || Number.isFinite(wert);
-    const max = spec.type === 'path' || spec.type === 'name' ? MAX_PFAD : MAX_TEXT;
+    const pfadArtig = ['path', 'name', 'pattern'].includes(spec.type);
+    const max = pfadArtig ? MAX_PFAD : MAX_TEXT;
     return istText(wert, max) && !(spec.nonEmpty && wert.trim() === '');
   });
   if (!argsGueltig) return false;
@@ -164,6 +185,7 @@ function registerWorkflowsIpc(handle, deps) {
   const dateiSchritte = createWorkflowFileSteps({ ...deps, cascade });
   const inhaltsSchritte = createWorkflowContentSteps({ ...deps, bufferRequests });
   const pflegeSchritte = createWorkflowMaintenanceSteps(deps);
+  const blockFragen = createWorkflowBlockQueries(deps);
   const laufStand = createWorkflowRunState(deps);
   // 4T-002426 (Entscheidungen 2h und 1f): Fremd zugelassen ist allein die
   // DEFINITION eines Workflows aus einer zugestimmten Quelle, und nur im
@@ -212,14 +234,18 @@ function registerWorkflowsIpc(handle, deps) {
     if (!isValidStep(step)) return { ok: false, ...kopf, code: 'invalidStep', detail: {} };
     const lage = await kontext(event, nutzlast.workflowPath, { fremdeDefinition: true });
     if (!lage.ok) return { ok: false, ...kopf, code: lage.code, detail: {} };
-    let ergebnis;
-    if (FILE_KEYWORDS.includes(step.keyword)) {
-      ergebnis = await dateiSchritte.runFileStep(lage.ctx, step);
-    } else if (MAINTENANCE_KEYWORDS.includes(step.keyword)) {
-      ergebnis = await pflegeSchritte.runMaintenanceStep(lage.ctx, step);
-    } else {
-      ergebnis = await inhaltsSchritte.runContentStep(lage.ctx, step);
-    }
+    // 4T-002461 (Story 4S-001144): Jeder Schritt läuft im Lauf-Zusammenhang
+    // (documents/self-write.js, Abschnitt «Lauf-Marke»): Was er schreibt oder
+    // bewegt, löst kein Ereignis aus, auch der Verweis-Nachzug einer Bewegung.
+    const ergebnis = await imWorkflowLauf(() => {
+      if (FILE_KEYWORDS.includes(step.keyword)) return dateiSchritte.runFileStep(lage.ctx, step);
+      if (MAINTENANCE_KEYWORDS.includes(step.keyword)) {
+        return pflegeSchritte.runMaintenanceStep(lage.ctx, step);
+      }
+      // 4T-002464: Fragen der Bedingungen und der Schleife, nur lesend.
+      if (QUERY_KEYWORDS.includes(step.keyword)) return blockFragen.runQueryStep(lage.ctx, step);
+      return inhaltsSchritte.runContentStep(lage.ctx, step);
+    });
     return { ...kopf, ...ergebnis };
   });
 

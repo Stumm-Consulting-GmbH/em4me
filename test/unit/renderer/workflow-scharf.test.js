@@ -127,4 +127,58 @@ describe('scharfTitel', () => {
     expect(scharf.scharfTitel('notArmed', null)).toBe(t('workflow.scharf.titelAus'));
     expect(scharf.scharfTitel('definitionChanged', null)).toBe(t('workflow.scharf.titelGeaendert'));
   });
+
+  // 4T-002463: bei einem Ereignis-Workflow das Ereignis statt des Termins.
+  it('nennt bei einem Ereignis-Workflow das Ereignis in Worten', () => {
+    const regel = { event: 'task-done', in: 'Projekte', matching: null };
+    expect(scharf.scharfTitel('armed', null, regel)).toBe(
+      'Scharf, läuft bei erledigter Aufgabe in ‹Projekte›; klicken zum Entschärfen',
+    );
+    expect(scharf.scharfTitel('notArmed', null, regel)).toBe(
+      'Scharf schalten: Der Workflow läuft dann bei erledigter Aufgabe in ‹Projekte›',
+    );
+    expect(scharf.scharfTitel('definitionChanged', null, regel)).toBe(
+      t('workflow.scharf.titelGeaendert'),
+    );
+  });
+});
+
+// 4T-002463 (Epic 3E-000367, Story 4S-001146, Entscheidung 3c).
+describe('Ereignis-Workflows', () => {
+  it('der Schalter erscheint bei schedule und event, bei keinem anderen Auslöser', () => {
+    expect(scharf.SCHALTBARE_AUSLOESER).toEqual(['schedule', 'event']);
+    expect(scharf.istSchaltbar('schedule')).toBe(true);
+    expect(scharf.istSchaltbar('event')).toBe(true);
+    for (const a of ['manual', 'webhook', '', null, undefined]) {
+      expect(scharf.istSchaltbar(a)).toBe(false);
+    }
+  });
+
+  it('der Hinweis beim Scharf-Schalten nennt das Ereignis statt eines Termins', async () => {
+    antwort = {
+      ok: true,
+      status: 'armed',
+      nextDue: null,
+      trigger: 'event',
+      event: { event: 'file-created', in: 'Eingang', matching: null },
+    };
+    await scharf.schalteScharf('C:/b/Eingang.md', true, { name: 'Eingang' });
+    expect(letzterHinweis().text).toBe(
+      'Workflow ‹Eingang› scharf, läuft bei neuer Datei in ‹Eingang›',
+    );
+  });
+
+  it('weist einen Befund der Ereignis-Zeile schon im Fenster ab, ohne zusätzliche Bestätigung', async () => {
+    const text = W(['trigger: event', 'event: file-vanished'], 'notify "x"');
+    const res = await scharf.schalteScharf('C:/b/Eingang.md', true, { text });
+    expect(res).toMatchObject({ ok: false, code: 'findings' });
+    expect(aufrufe).toEqual([]);
+    expect(letzterHinweis().error).toBe(true);
+  });
+
+  it('nennt den Grund, wenn der Auslöser keinen Schalter kennt', async () => {
+    antwort = { ok: false, code: 'noArmableTrigger' };
+    await scharf.schalteScharf('C:/b/Hand.md', true);
+    expect(letzterHinweis().text).toContain(t('workflow.scharf.fehler.noArmableTrigger'));
+  });
 });

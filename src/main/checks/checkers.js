@@ -2,7 +2,9 @@
 // auf dem Bereichs-Index), Wecker (30-Sekunden-Takt auf der app-weiten
 // Wecker-Liste), Timer (gezielter Weckruf auf den naechsten Ablauf) und seit
 // 4T-002421 der Zeitplan-Prüfer der Workflows (30-Sekunden-Takt auf den
-// Workflow-Dateien der offenen Bereiche). Die
+// Workflow-Dateien der offenen Bereiche) und seit 4T-002460 der
+// Ereignis-Prüfer der Workflows (Meldungen der Quellen, Warteschlange je
+// Bereich). Die
 // Pruef-Kerne selbst liegen in den Nachbar-Modulen dieses Ordners; hier
 // entsteht ihre Umgebung — Suchraum, Gates, Zustellung und Rueckschreiben.
 //
@@ -25,7 +27,13 @@ const { CLOCK_TIMERS_KEY, normalizeTimers } = require('../../shared/clock/clock-
 const { isExtensionEnabled } = require('../../shared/extensions/extensions-core');
 const { createTaskStatusTypeResolver } = require('../../shared/markdown/plugins.js');
 const { createWorkflowScheduleChecker } = require('./workflow-schedule-check.js');
+const {
+  abonniereWorkflowEreignisse,
+  createEventBrake,
+  createWorkflowEventChecker,
+} = require('./workflow-event-check.js');
 const { createWorkflowRunState } = require('../workflows/workflow-run-state.js');
+const { istLaufSchreibvorgang } = require('../documents/self-write');
 const { readRunState, readWorkflowText } = require('../ipc/workflow-runs.js');
 const { WORKFLOWS_EXTENSION_ID } = require('../../shared/workflows/workflow-konstanten.js');
 
@@ -40,9 +48,12 @@ const { WORKFLOWS_EXTENSION_ID } = require('../../shared/workflows/workflow-kons
  * @param {Map} [deps.windows] Fenster-Register (Zeitplan-Prüfer: lebt das Fenster eines Anspruchs?).
  * @param {object} [deps.mddWege] Schreibweg der Begleitdateien für den Lauf-Stand der Workflows
  *   ({ mddSuspendedPaths, mddKeyOf, notifyMddDefect }).
+ * @param {(root: string) => Promise<string>} [deps.sperrOrdnerName] wirksamer Name des
+ *   Sperr-Ordners eines Bereichs (Ereignis-Prüfer, 4T-002460).
  * @returns {object} Die Prüfer (reminderChecker, alarmChecker, timerChecker,
- *   workflowScheduleChecker) und ihre Zustell-Register (reminderDelivery, alarmDelivery,
- *   timerDelivery, workflowScheduleDelivery).
+ *   workflowScheduleChecker, workflowEventChecker) und ihre Zustell-Register
+ *   (reminderDelivery, alarmDelivery, timerDelivery, workflowScheduleDelivery,
+ *   workflowEventDelivery).
  */
 function createCheckers(deps) {
   const { appRegistry, getStore, backlinks, broadcast } = deps;
@@ -91,6 +102,14 @@ function createCheckers(deps) {
         ...payload,
         items: payload.items.map((item) => ({ ...item, root, origin })),
       });
+      // 4T-002460 (Epic 3E-000367): Quelle «Erinnerung fällig» des
+      // Ereignis-Prüfers. Die Nachhol-Lieferung beim Öffnen löst nichts aus
+      // (kein Nachholen, 3e).
+      if (!payload.catchUp) {
+        for (const item of payload.items) {
+          workflowEventChecker.report({ type: 'reminder-due', path: item.path, root });
+        }
+      }
     },
     now: () => new Date(),
   });
@@ -203,16 +222,19 @@ function createCheckers(deps) {
   });
 
   const { workflowScheduleChecker, workflowScheduleDelivery } = createWorkflowSchedule(deps);
+  const { workflowEventChecker, workflowEventDelivery } = createWorkflowEvents(deps);
 
   return {
     reminderChecker,
     alarmChecker,
     timerChecker,
     workflowScheduleChecker,
+    workflowEventChecker,
     reminderDelivery,
     alarmDelivery,
     timerDelivery,
     workflowScheduleDelivery,
+    workflowEventDelivery,
   };
 }
 
@@ -239,14 +261,7 @@ function createWorkflowSchedule(deps) {
     stillOpen: (item) => workflowScheduleChecker.isPending(item.key),
   });
   const workflowScheduleChecker = createWorkflowScheduleChecker({
-    areas() {
-      const roots = new Set();
-      for (const appId of appRegistry.appIds()) {
-        const area = appRegistry.getArea(appId);
-        if (area && area.rootPath) roots.add(area.rootPath);
-      }
-      return [...roots].map((root) => ({ root }));
-    },
+    areas: () => offeneBereiche(appRegistry),
     workflowFiles: (root) => backlinks.workflowFilesFor(null, root),
     readText: (absPath) => readWorkflowText(absPath, backlinks),
     readRunState,
@@ -264,6 +279,72 @@ function createWorkflowSchedule(deps) {
     now: () => new Date(),
   });
   return { workflowScheduleChecker, workflowScheduleDelivery };
+}
+
+// Offene Bereiche aus der Registry der Bereichs-Apps (Zeitplan- und Ereignis-Prüfer).
+function offeneBereiche(appRegistry) {
+  const roots = new Set();
+  for (const appId of appRegistry.appIds()) {
+    const area = appRegistry.getArea(appId);
+    if (area && area.rootPath) roots.add(area.rootPath);
+  }
+  return [...roots].map((root) => ({ root }));
+}
+
+// 4T-002460 (Epic 3E-000367): Ereignis-Prüfer der Workflows mit eigenem
+// Zustell-Register (Kanäle workflow:eventDue und workflow:eventDueHandled),
+// nach dem Muster des Zeitplan-Prüfers. Er hört über die Sammelstelle
+// `meldeWorkflowEreignis` (workflow-event-check.js) auf seine Quellen; die
+// fälligen Erinnerungen meldet der Aufbau oben selbst.
+function createWorkflowEvents(deps) {
+  const { appRegistry, getStore, backlinks, broadcast } = deps;
+  const workflowsAn = () =>
+    isExtensionEnabled(
+      WORKFLOWS_EXTENSION_ID,
+      getStore() ? getStore().get('extensions.disabled') : [],
+    );
+  const fenster = deps.windows instanceof Map ? deps.windows : new Map();
+  const workflowEventDelivery = createDueDelivery({
+    broadcast,
+    dueChannel: 'workflow:eventDue',
+    handledChannel: 'workflow:eventDueHandled',
+    keyOf: (item) => item.key,
+    active: workflowsAn,
+    stillOpen: (item) => workflowEventChecker.isPending(item.key),
+  });
+  // 4T-002461 (Story 4S-001144, 3d): Ketten-Schutz. Die Lauf-Marke erkennt, was
+  // ein Workflow-Lauf geschrieben hat; die Not-Bremse entschärft einen Workflow
+  // nach mehr als 20 Ereignis-Läufen in 5 Minuten und vermerkt den Grund im
+  // Lauf-Stand, die Benachrichtigung leistet das Fenster, das die Brems-Meldung
+  // annimmt (workflow-zeitplan-lauf.js).
+  const laufStand = createWorkflowRunState({ ...(deps.mddWege || {}) });
+  const bremse = createEventBrake({
+    entschaerfe: (item) => laufStand.recordEventBrake(null, item.root, item.path, item.event),
+  });
+  const workflowEventChecker = createWorkflowEventChecker({
+    areas: () => offeneBereiche(appRegistry),
+    workflowFiles: (root) => backlinks.workflowFilesFor(null, root),
+    readText: (absPath) => readWorkflowText(absPath, backlinks),
+    readRunState,
+    enabled: workflowsAn,
+    deliver: (payload) => workflowEventDelivery.deliver(payload),
+    claimDelivery: (key) => workflowEventDelivery.claim([key]).length === 1,
+    releaseDelivery: (key) => {
+      workflowEventDelivery.release(key);
+    },
+    windowAlive: (id) =>
+      [...fenster.values()].some((win) => !win.isDestroyed() && win.webContents.id === id),
+    sperrOrdnerName: deps.sperrOrdnerName,
+    istLaufSchreibvorgang,
+    darfEinreihen: bremse.darfEinreihen,
+  });
+  const abmelden = abonniereWorkflowEreignisse((meldung) => workflowEventChecker.report(meldung));
+  const anhalten = workflowEventChecker.stop;
+  workflowEventChecker.stop = () => {
+    abmelden();
+    anhalten();
+  };
+  return { workflowEventChecker, workflowEventDelivery };
 }
 
 module.exports = { createCheckers };

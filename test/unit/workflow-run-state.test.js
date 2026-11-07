@@ -19,6 +19,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const {
   ARMED_STATUS,
+  EVENT_BRAKE_CODE,
   MAX_JOURNAL,
   RUN_ORIGINS,
   armedStatus,
@@ -226,11 +227,91 @@ describe('normalizeRun', () => {
   });
 
   // 4T-002420: Herkunft und Journal (Stufe 2).
-  it('nimmt die drei Herkünfte an; ohne Angabe gilt manual (Absender der Stufe 1)', () => {
+  it('nimmt die vier Herkünfte an; ohne Angabe gilt manual (Absender der Stufe 1)', () => {
+    // 4T-002460: `event` ist der vierte Wert und verlangt das Ereignis.
+    expect(RUN_ORIGINS).toEqual(['manual', 'schedule', 'catch-up', 'event']);
     for (const origin of RUN_ORIGINS) {
-      expect(normalizeRun({ status: 'ok', origin }).origin).toBe(origin);
+      const extra = origin === 'event' ? { event: { type: 'area-opened' } } : {};
+      expect(normalizeRun({ status: 'ok', origin, ...extra }).origin).toBe(origin);
     }
     expect(normalizeRun({ status: 'ok' }).origin).toBe('manual');
+  });
+
+  // 4T-002460 (Story 4S-001143): das auslösende Ereignis eines Laufs nach Ereignis.
+  it('nimmt bei der Herkunft event das Ereignis mit Datei, altem Pfad und Aufgaben-Text an', () => {
+    const datei = path.resolve('/b/Eingang/Probe.txt');
+    const alt = path.resolve('/b/Alt.md');
+    expect(
+      normalizeRun({
+        status: 'ok',
+        origin: 'event',
+        event: { type: 'file-moved', file: datei, from: alt },
+      }),
+    ).toEqual({
+      status: 'ok',
+      origin: 'event',
+      event: { type: 'file-moved', file: datei, from: alt },
+    });
+    expect(
+      normalizeRun({
+        status: 'ok',
+        origin: 'event',
+        event: { type: 'task-done', file: datei, from: null, task: 'Bericht schreiben' },
+      }).event,
+    ).toEqual({ type: 'task-done', file: datei, task: 'Bericht schreiben' });
+  });
+
+  it.each([
+    ['ohne Ereignis', { origin: 'event' }],
+    ['unbekanntes Ereignis', { origin: 'event', event: { type: 'file-deleted' } }],
+    ['Datei bei area-opened', { origin: 'event', event: { type: 'area-opened', file: '/b/x.md' } }],
+    ['leerer Pfad', { origin: 'event', event: { type: 'file-created', file: '' } }],
+    [
+      'Aufgaben-Text keine Zeichenkette',
+      { origin: 'event', event: { type: 'task-done', task: 3 } },
+    ],
+    ['Ereignis ohne Herkunft event', { origin: 'schedule', event: { type: 'area-opened' } }],
+  ])('weist ab: %s', (_name, extra) => {
+    expect(normalizeRun({ status: 'ok', ...extra })).toBeNull();
+  });
+
+  it('schreibt das Ereignis eines Laufs nach Ereignis in die Begleitdatei und liest es zurück', () => {
+    const run = normalizeRun({
+      status: 'ok',
+      origin: 'event',
+      event: { type: 'task-done', file: path.resolve('/b/Plan.md'), task: 'Bericht' },
+    });
+    const container = mddStore.emptyContainer();
+    mddStore.recordWorkflowRun(container, journalImBereich(run, path.resolve('/b')), 0);
+    const roh = mddStore.parseContainer(mddStore.serializeContainer(container));
+    expect(mddStore.getWorkflowRun(roh.container).lastRun).toMatchObject({
+      origin: 'event',
+      event: { type: 'task-done', file: 'Plan.md', task: 'Bericht' },
+    });
+  });
+
+  it('legt Datei und alten Pfad des Ereignisses relativ zur Wurzel ab und weist einen Pfad außerhalb ab', () => {
+    const root = path.resolve('/b');
+    const run = normalizeRun({
+      status: 'ok',
+      origin: 'event',
+      event: {
+        type: 'file-moved',
+        file: path.join(root, 'Archiv', 'Neu.md'),
+        from: path.join(root, 'Alt.md'),
+      },
+    });
+    expect(journalImBereich(run, root).event).toEqual({
+      type: 'file-moved',
+      file: 'Archiv/Neu.md',
+      from: 'Alt.md',
+    });
+    const draussen = normalizeRun({
+      status: 'ok',
+      origin: 'event',
+      event: { type: 'file-created', file: path.resolve('/anders/x.md') },
+    });
+    expect(journalImBereich(draussen, root)).toBeNull();
   });
 
   it('nimmt ein Journal mit Zeile, Befehl des Katalogs und Pfad an', () => {
@@ -564,5 +645,51 @@ describe('armedStatus: Schutz bei geänderter Definition (AK3)', () => {
     expect(armedStatus(scharf, datei({ zeilen: [] }).replace(/```workflow\n```\n/, ''))).toBe(
       ARMED_STATUS.definitionChanged,
     );
+  });
+});
+
+describe('Not-Bremse: recordEventBrake (4T-002461, 3d, AK4)', () => {
+  function welt3() {
+    const w = welt();
+    const stand = createWorkflowRunState({
+      mddSuspendedPaths: new Set(),
+      mddKeyOf: (p) => p.toLowerCase(),
+      notifyMddDefect: () => {},
+      now: () => JETZT,
+    });
+    return { ...w, root: path.dirname(w.workflow), stand };
+  }
+
+  it('nimmt den Scharf-Zustand zurück und vermerkt den Grund als letzten Lauf, in einer Änderung', async () => {
+    const w = welt3();
+    await w.stand.setArmed({}, w.workflow, { hash: definitionsPruefsumme(WORKFLOW_TEXT) });
+    const datei = path.join(w.root, 'Eingang', 'x.txt');
+    const schreiben = vi.spyOn(fsp, 'rename');
+    expect(
+      await w.stand.recordEventBrake(null, w.root, w.workflow, {
+        type: 'file-created',
+        file: datei,
+        from: null,
+        task: null,
+      }),
+    ).toEqual({ ok: true });
+    expect(schreiben).toHaveBeenCalledTimes(1);
+    const gelesen = mddStore.getWorkflowRun(w.lies());
+    expect(gelesen.armed).toBeNull();
+    expect(gelesen.lastRun).toMatchObject({
+      status: 'failed',
+      code: EVENT_BRAKE_CODE,
+      origin: 'event',
+      event: { type: 'file-created', file: 'Eingang/x.txt' },
+    });
+    expect(EVENT_BRAKE_CODE).toBe('eventBrake');
+  });
+
+  it('weist ein Ereignis außerhalb des Bereichs ab (fail-closed)', () => {
+    const w = welt3();
+    const fremd = path.join(os.tmpdir(), 'ganz-woanders', 'x.txt');
+    expect(() =>
+      w.stand.recordEventBrake(null, w.root, w.workflow, { type: 'file-created', file: fremd }),
+    ).toThrow(TypeError);
   });
 });

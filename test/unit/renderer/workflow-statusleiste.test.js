@@ -50,7 +50,7 @@ const {
   hatScharfenWorkflow,
   initWorkflowStatusleiste,
   legeWorkflowStatusleisteAn,
-  letzterZeitplanLauf,
+  letzterLaufOhneZuschauer,
   uhrzeitText,
   workflowStatusleisteZuruecksetzen,
 } = modul;
@@ -112,15 +112,24 @@ describe('reine Teile', () => {
     expect(hatScharfenWorkflow([])).toBe(false);
   });
 
-  it('der letzte Lauf nach Zeitplan ist der jüngste mit Herkunft schedule oder catch-up', () => {
+  it('der letzte Lauf ohne Zuschauer ist der jüngste mit Herkunft schedule, catch-up oder event', () => {
     const liste = [
       eintrag('A', 'armed', lauf('2026-10-28T06:00:00Z')),
       eintrag('B', 'armed', lauf('2026-10-28T07:00:00Z', 'failed', 'catch-up')),
       eintrag('C', 'armed', lauf('2026-10-28T09:00:00Z', 'ok', 'manual')),
     ];
-    expect(letzterZeitplanLauf(liste)).toMatchObject({ name: 'B' });
+    expect(letzterLaufOhneZuschauer(liste)).toMatchObject({ name: 'B' });
+    // 4T-002463: ein jüngerer Lauf durch ein Ereignis gewinnt.
     expect(
-      letzterZeitplanLauf([eintrag('C', 'armed', lauf('2026-10-28T09:00:00Z', 'ok', 'manual'))]),
+      letzterLaufOhneZuschauer([
+        ...liste,
+        eintrag('E', 'armed', lauf('2026-10-28T08:00:00Z', 'ok', 'event')),
+      ]),
+    ).toMatchObject({ name: 'E' });
+    expect(
+      letzterLaufOhneZuschauer([
+        eintrag('C', 'armed', lauf('2026-10-28T09:00:00Z', 'ok', 'manual')),
+      ]),
     ).toBe(null);
   });
 
@@ -157,7 +166,7 @@ describe('Element «Workflows» (AK3, AK4 des Tasks; AK2, AK5, AK6 der Story)', 
     await aktualisiereWorkflowStatusleiste();
     expect(el().hidden).toBe(false);
     expect(el().textContent).toBe('✓ Wochenrückblick 08:00');
-    expect(el().title).toContain('Letzter Lauf nach Zeitplan: Wochenrückblick');
+    expect(el().title).toContain('Letzter Lauf nach Zeitplan oder Ereignis: Wochenrückblick');
     expect(el().title).toContain('erfolgreich');
     expect(el().dataset.status).toBe('ok');
   });
@@ -176,7 +185,7 @@ describe('Element «Workflows» (AK3, AK4 des Tasks; AK2, AK5, AK6 der Story)', 
     await aktualisiereWorkflowStatusleiste();
     expect(el().hidden).toBe(false);
     expect(el().textContent).toBe('Workflows');
-    expect(el().title).toContain('noch nicht nach Zeitplan gelaufen');
+    expect(el().title).toContain('noch nicht nach Zeitplan oder durch ein Ereignis gelaufen');
     expect(el().dataset.status).toBeUndefined();
   });
 
@@ -194,6 +203,15 @@ describe('Element «Workflows» (AK3, AK4 des Tasks; AK2, AK5, AK6 der Story)', 
     antwort.workflows = [eintrag('A', 'notArmed'), eintrag('B', 'notArmed')];
     await aktualisiereWorkflowStatusleiste();
     expect(el().hidden).toBe(true);
+  });
+
+  it('zeigt einen Lauf durch ein Ereignis, auch wenn nur ein Ereignis-Workflow scharf ist (4T-002463, AK4)', async () => {
+    antwort.workflows = [
+      eintrag('Eingang', 'armed', lauf(heute(9, 15), 'ok', 'event'), { trigger: 'event' }),
+    ];
+    await aktualisiereWorkflowStatusleiste();
+    expect(el().hidden).toBe(false);
+    expect(el().textContent).toMatch(/^✓ Eingang 09:15$/);
   });
 
   it('ein späterer Lauf von Hand verdrängt den gemerkten Lauf nach Zeitplan nicht', async () => {

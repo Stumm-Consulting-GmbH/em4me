@@ -8,7 +8,7 @@ Gli esempi di questa pagina sono volutamente impostati come blocchi di codice; l
 
 L'esecuzione degli script è **disattivata per impostazione predefinita**. Senza attivazione, un blocco di script mostra il suo codice sorgente con un banner informativo; non viene creato alcun ambiente di esecuzione.
 
-Si attiva in **Impostazioni → Comportamento → Esegui blocchi di script**. L'attivazione è una decisione di fiducia consapevole: gli script provengono dai documenti aperti. Attivare solo se i propri documenti sono affidabili. Il cambio ha effetto immediato in tutte le finestre, senza riavvio.
+Si attiva in **Impostazioni → Comportamento → Esegui blocchi di script**. L'attivazione è una decisione di fiducia consapevole: gli script provengono dai documenti aperti. Attivare solo se i propri documenti sono affidabili. Il cambio ha effetto immediato in tutte le finestre, senza riavvio. La stessa impostazione vale per il passo di script dei [workflow](workflows.md), che esegue un blocco di script del file di workflow nella stessa sandbox, in sola lettura e con lo stesso limite di tempo.
 
 ## Limiti di esecuzione
 

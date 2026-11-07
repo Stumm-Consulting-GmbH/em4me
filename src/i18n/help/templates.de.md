@@ -26,7 +26,7 @@ Mehrere Eingabe- und Auswahl-Platzhalter erscheinen **nacheinander** in der Reih
 
 ## Platzhalter-Referenz
 
-Platzhalter stehen in doppelten geschweiften Klammern. `\{{` schreibt ein literales `{{` in die Vorlage. Vorlagen und [Workflows](workflows.md) teilen denselben Satz von Platzhaltern; welche davon in einer Befehls-Zeile gelten, beschreibt die Seite der Workflows.
+Platzhalter stehen in doppelten geschweiften Klammern. `\{{` schreibt ein literales `{{` in die Vorlage. Vorlagen und [Workflows](workflows.md) teilen denselben Satz von Platzhaltern; welche davon in einer Befehls-Zeile gelten, beschreibt die Seite der Workflows. `{{from}}`, `{{task}}`, `{{item}}` und `{{script:name}}` erhalten ihren Wert nur in einem Workflow-Lauf; beim Anwenden einer Vorlage bleiben sie leer.
 
 | Platzhalter | Wirkung |
 | --- | --- |
@@ -69,4 +69,4 @@ Ordner-Regeln füllen neue Dateien automatisch: Jede Regel ordnet einem **Zielor
 - Der **Vorlagen-Ordner selbst ist ausgenommen** — neue Vorlagen bleiben leer.
 - Wählt man explizit «Neue Datei aus Vorlage», hat die gewählte Vorlage Vorrang; die Regel greift nicht zusätzlich.
 - Ein Dialog-Abbruch legt die Datei **leer** an (die Anlage selbst war gewollt) und meldet einen Hinweis.
-- Dateien, die außerhalb der App entstehen (etwa im Dateimanager), durchlaufen die Regeln nicht.
+- Dateien, die außerhalb der App entstehen (etwa im Dateimanager), durchlaufen die Regeln nicht. Für sie gibt es die Ordner-Regel der [Workflows](workflows.md): einen Workflow mit `event: file-created in "Ordner"` (Abschnitt «Ereignisse»).

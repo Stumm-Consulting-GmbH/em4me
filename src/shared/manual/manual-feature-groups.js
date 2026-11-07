@@ -804,10 +804,17 @@ const HELP_FEATURE_GROUPS = [
       // Grundzeile, Zeitplan und Scharf-Schaltung hinter dem Start, verknuepfte
       // Bereiche hinter dem Ordner, Meldungen und Statusleisten-Element hinter
       // der Seite der Laeufe.
+      // 4T-002466 (Epic 3E-000367): die Zeilen der Stufe 3 — Bedingungen,
+      // Schleife und Skript-Schritt hinter den Pflege-Befehlen (Befehle des
+      // Blocks), die Ereignisse hinter dem Zeitplan (Start-Art ohne Zuschauer).
       'help.feature.workflows',
       'help.feature.workflowMaintenance',
+      'help.feature.workflowConditions',
+      'help.feature.workflowLoop',
+      'help.feature.workflowScript',
       'help.feature.workflowStart',
       'help.feature.workflowSchedule',
+      'help.feature.workflowEvents',
       'help.feature.workflowArming',
       'help.feature.workflowFolder',
       'help.feature.workflowLinked',

@@ -86,7 +86,7 @@ const schritt = (keyword, args, extra = {}) => ({
 });
 
 describe('Kanäle', () => {
-  it('registriert die drei Kanäle der Ausführung, die sechs des Workflow-Ordners, den der Läufe, die vier des Laufs nach Zeitplan und die zwei der Scharf-Schaltung', () => {
+  it('registriert die drei Kanäle der Ausführung, die sechs des Workflow-Ordners, den der Läufe, die vier des Laufs nach Zeitplan, die vier des Laufs nach Ereignis und die zwei der Scharf-Schaltung', () => {
     // 4T-002355: Die Kanäle des Workflow-Ordners meldet registerWorkflowsIpc mit
     // an (ipc/workflow-folder.js); geprüft werden sie in workflow-folder-ipc.test.js.
     // Teil 2 brachte workflow:setFolder, workflow:create und workflow:fileInfo;
@@ -108,6 +108,12 @@ describe('Kanäle', () => {
       'workflow:scheduleRelease',
       'workflow:scheduleFinished',
       'workflow:scheduleOpen',
+      // 4T-002460: Lauf nach Ereignis (ebenfalls ipc/workflow-schedule.js),
+      // geprüft in workflow-event-check.test.js.
+      'workflow:eventClaim',
+      'workflow:eventRelease',
+      'workflow:eventFinished',
+      'workflow:eventOpen',
       // 4T-002422: Scharf-Schaltung (ipc/workflow-armed.js), geprüft in
       // workflow-armed-ipc.test.js.
       'workflow:setArmed',
@@ -122,8 +128,15 @@ describe('workflow:step prüft die Nutzlast fail-closed', () => {
     ['kein Schritt', {}],
     ['Zeile fehlt', { step: { ...schritt('mkdir', ['A']), line: undefined } }],
     // 4T-002424: `delete` ist seit der Stufe 2 ein Befehl des Hauptprozesses;
-    // die Stufe 3 bleibt unbekannt, `confirm` läuft im Fenster.
-    ['unbekanntes Schlüsselwort', { step: schritt('if-exists', ['A']) }],
+    // `confirm` läuft im Fenster. 4T-002464: die Block-Wörter `else` und
+    // `end` führt der Ablauf-Kern im Fenster aus, `script` hat kein Schema.
+    ['unbekanntes Schlüsselwort', { step: schritt('fliege', ['A']) }],
+    ['else ist ein Schritt der Fenster-Seite', { step: schritt('else', []) }],
+    ['end ist ein Schritt der Fenster-Seite', { step: schritt('end', []) }],
+    ['script ohne Schema', { step: schritt('script', ['A']) }],
+    ['if-exists ohne Pfad', { step: schritt('if-exists', []) }],
+    ['if-property mit vier Argumenten', { step: schritt('if-property', ['a', 'b', 'c', 'd']) }],
+    ['for-each mit leerem Muster', { step: schritt('for-each', ['']) }],
     ['confirm ist ein Schritt der Fenster-Seite', { step: schritt('confirm', ['Weiter?']) }],
     ['delete mit zwei Argumenten', { step: schritt('delete', ['A', 'B']) }],
     ['add-tag mit leerem Schlagwort', { step: schritt('add-tag', ['a.md', ' ']) }],

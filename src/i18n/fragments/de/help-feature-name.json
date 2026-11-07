@@ -319,5 +319,9 @@
   "help.featureName.workflowArming": "Workflows scharf schalten",
   "help.featureName.workflowStatusbar": "Workflow-Meldungen und Statusleisten-Element",
   "help.featureName.workflowMaintenance": "Pflege-Befehle der Workflows",
-  "help.featureName.workflowLinked": "Workflows verknüpfter Bereiche"
+  "help.featureName.workflowLinked": "Workflows verknüpfter Bereiche",
+  "help.featureName.workflowEvents": "Workflows bei Ereignissen",
+  "help.featureName.workflowConditions": "Bedingungen in Workflows",
+  "help.featureName.workflowLoop": "Schleifen in Workflows",
+  "help.featureName.workflowScript": "Skript-Schritt in Workflows"
 }

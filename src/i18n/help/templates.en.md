@@ -26,7 +26,7 @@ Multiple input and selection placeholders appear **one after the other** in the 
 
 ## Placeholder reference
 
-Placeholders are written in double curly braces. `\{{` writes a literal `{{` into the template. Templates and [workflows](workflows.md) share the same set of placeholders; which of them apply in a command line is described on the workflows page.
+Placeholders are written in double curly braces. `\{{` writes a literal `{{` into the template. Templates and [workflows](workflows.md) share the same set of placeholders; which of them apply in a command line is described on the workflows page. `{{from}}`, `{{task}}`, `{{item}}` and `{{script:name}}` only get a value in a workflow run; when a template is applied, they stay empty.
 
 | Placeholder | Effect |
 | --- | --- |
@@ -69,4 +69,4 @@ Folder rules fill new files automatically: each rule maps a **target folder** to
 - The **templates folder itself is excluded** — new templates stay empty.
 - If you explicitly choose "New File from Template", the chosen template takes precedence; the rule does not apply additionally.
 - Cancelling a dialog creates the file **empty** (the creation itself was intended) and shows a hint.
-- Files created outside the app (for example in the file manager) do not pass through the rules.
+- Files created outside the app (for example in the file manager) do not pass through the rules. For them there is the folder rule of [workflows](workflows.md): a workflow with `event: file-created in "Folder"` (section "Events").

@@ -38,6 +38,22 @@ export function istZeitplanLauf(herkunft) {
   return ZEITPLAN_HERKUNFT.includes(herkunft);
 }
 
+// 4T-002463 (Epic 3E-000367, Story 4S-001146, Ausführungs-Entscheidung 4 der
+// Konzept-Runde 4T-002458): Ein Lauf durch ein Ereignis ist wie ein Lauf nach
+// Zeitplan ein Lauf ohne Zuschauer — gleich bei Benachrichtigung und
+// Statusleisten-Element, ohne eigene Regel.
+export const OHNE_ZUSCHAUER_HERKUNFT = Object.freeze([...ZEITPLAN_HERKUNFT, 'event']);
+
+/**
+ * Ist das ein Lauf ohne Zuschauer (nach Zeitplan, nachgeholt oder durch ein Ereignis)?
+ *
+ * @param {string} herkunft
+ * @returns {boolean}
+ */
+export function istLaufOhneZuschauer(herkunft) {
+  return OHNE_ZUSCHAUER_HERKUNFT.includes(herkunft);
+}
+
 const ergebnisse = new Map(); // Schlüssel des Pfads -> { startedAt, status, ergebnis }
 const zuhoerer = new Set();
 

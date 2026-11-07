@@ -1,12 +1,12 @@
 # Workflows
 
-Ein **Workflow** schreibt wiederkehrende Handgriffe als feste Folge von Schritten auf: Dateien und Ordner anlegen, umbenennen, verschieben, kopieren und in den Papierkorb legen, Text anhängen oder einfügen, Eigenschaften und Schlagwörter im Dateikopf setzen, Aufgaben abhaken, Kommandos, Makros und andere Workflows ausführen. Ein Workflow ist eine **gewöhnliche Markdown-Datei**; was er tut, steht in einem Block fester Befehle, eine Zeile je Schritt. Die Datei bleibt damit ohne die Anwendung lesbar, lässt sich weitergeben und wie jedes andere Dokument bearbeiten.
+Ein **Workflow** schreibt wiederkehrende Handgriffe als feste Folge von Schritten auf: Dateien und Ordner anlegen, umbenennen, verschieben, kopieren und in den Papierkorb legen, Text anhängen oder einfügen, Eigenschaften und Schlagwörter im Dateikopf setzen, Aufgaben abhaken, Kommandos, Makros und andere Workflows ausführen. Bedingungen und Wiederholungen bestimmen, welche Schritte laufen und für welche Dateien; ein Skript-Schritt rechnet einen Wert aus, ohne etwas zu schreiben. Ein Workflow ist eine **gewöhnliche Markdown-Datei**; was er tut, steht in einem Block fester Befehle, eine Zeile je Schritt. Die Datei bleibt damit ohne die Anwendung lesbar, lässt sich weitergeben und wie jedes andere Dokument bearbeiten.
 
-Gestartet wird ein Workflow **von Hand**: aus dem Menü, der Kommando-Palette, über ein Tastenkürzel, einen Knopf über dem Block oder das Kontextmenü des Bereichs-Panels. Ein Workflow mit Zeitplan läuft außerdem **nach Zeitplan**, sobald er scharf geschaltet ist. **Bevor der erste Schritt läuft, prüft die Anwendung den ganzen Workflow**; ein Fehler steht mit Zeile und Grund über dem Block, und es läuft nichts.
+Gestartet wird ein Workflow **von Hand**: aus dem Menü, der Kommando-Palette, über ein Tastenkürzel, einen Knopf über dem Block oder das Kontextmenü des Bereichs-Panels. Ein Workflow mit Zeitplan läuft außerdem **nach Zeitplan**, ein Workflow mit Ereignis **bei einem Ereignis** im Bereich, etwa einer neuen Datei in einem Ordner, jeweils sobald er scharf geschaltet ist. **Bevor der erste Schritt läuft, prüft die Anwendung den ganzen Workflow**; ein Fehler steht mit Zeile und Grund über dem Block, und es läuft nichts.
 
 ## Die Erweiterung „Workflows"
 
-Die Funktion gehört zu den [internen Erweiterungen](extensions.md) („Workflows", Gruppe **Werkzeuge**) und ist im Arbeitsmodus **Voll** eingeschaltet, in den Modi **Einsteiger** und **Fortgeschritten** aus. Ist sie abgeschaltet, ist ein `workflow`-Block ein gewöhnlicher Code-Block ohne Hervorhebung, Prüf-Anzeige und Knöpfe; es gibt keine Kommandos der Workflows, kein Untermenü **Workflows**, keine Seite **Workflow-Läufe**, kein Statusleisten-Element **Workflows**, keine Einstellungs-Abschnitte **Workflows** und keinen Lauf nach Zeitplan. Eine Workflow-Datei ist dann ein gewöhnliches Dokument. Verloren geht nichts: Dateien, Lauf-Stände samt Scharf-Zustand und die Festlegung des Workflow-Ordners sind nach dem Einschalten unverändert da.
+Die Funktion gehört zu den [internen Erweiterungen](extensions.md) („Workflows", Gruppe **Werkzeuge**) und ist im Arbeitsmodus **Voll** eingeschaltet, in den Modi **Einsteiger** und **Fortgeschritten** aus. Ist sie abgeschaltet, ist ein `workflow`-Block ein gewöhnlicher Code-Block ohne Hervorhebung, Prüf-Anzeige und Knöpfe; es gibt keine Kommandos der Workflows, kein Untermenü **Workflows**, keine Seite **Workflow-Läufe**, kein Statusleisten-Element **Workflows**, keine Einstellungs-Abschnitte **Workflows**, keinen Lauf nach Zeitplan und keinen Lauf bei Ereignissen. Eine Workflow-Datei ist dann ein gewöhnliches Dokument. Verloren geht nichts: Dateien, Lauf-Stände samt Scharf-Zustand und die Festlegung des Workflow-Ordners sind nach dem Einschalten unverändert da.
 
 ## Aufbau einer Workflow-Datei
 
@@ -34,18 +34,19 @@ notify "Rückblick angelegt"
 - Wochenrückblick angelegt.
 ````
 
-Der Dateikopf trägt Kennzeichen, Namen, Auslöser, Beschreibung und, bei einem Lauf nach Zeitplan, den Zeitplan:
+Der Dateikopf trägt Kennzeichen, Namen, Auslöser, Beschreibung und, je nach Auslöser, den Zeitplan oder das Ereignis:
 
 | Schlüssel | Pflicht | Bedeutung |
 | --- | --- | --- |
 | `workflow` | ja | `true` kennzeichnet die Datei als Workflow. |
 | `name` | nein | Name des Workflows in Menü, Kommando-Palette und Hinweisen; ohne Angabe gilt der Dateiname ohne Endung. |
-| `trigger` | nein | Auslöser: `manual` für den Start von Hand, `schedule` für den Lauf nach Zeitplan; ohne Angabe gilt `manual`. |
+| `trigger` | nein | Auslöser: `manual` für den Start von Hand, `schedule` für den Lauf nach Zeitplan, `event` für den Lauf bei einem Ereignis; ohne Angabe gilt `manual`. |
 | `schedule` | bei `trigger: schedule` | Zeitplan in einer Zeile, etwa `every weekday at 08:00` (Abschnitt „Zeitplan und Scharf-Schaltung"). |
 | `missed` | nein | Umgang mit verpassten Läufen: `run-once` holt einmal nach, `skip` lässt verfallen; ohne Angabe gilt `run-once`. |
+| `event` | bei `trigger: event` | Ereignis in einer Zeile, etwa `file-created in "Eingang"` (Abschnitt „Ereignisse"). |
 | `description` | nein | Kurzbeschreibung; die Seite **Workflow-Läufe** zeigt sie als Tooltip am Namen. |
 
-Ein anderer Auslöser als `manual` oder `schedule` wird als „noch nicht unterstützt" angezeigt, und der Workflow läuft nicht; die Datei bleibt dabei unverändert. Trägt eine Datei zwei oder mehr `workflow`-Blöcke oder keinen, läuft sie ebenfalls nicht. Ein Block, der nur Kommentare enthält, ist gültig und tut nichts.
+Ein anderer Auslöser als `manual`, `schedule` oder `event` wird als „noch nicht unterstützt" angezeigt, und der Workflow läuft nicht; die Datei bleibt dabei unverändert. Trägt eine Datei zwei oder mehr `workflow`-Blöcke oder keinen, läuft sie ebenfalls nicht. Ein Block, der nur Kommentare enthält, ist gültig und tut nichts.
 
 ## Befehls-Zeilen
 
@@ -76,9 +77,12 @@ Vor dem ersten Schritt prüft die Anwendung die ganze Datei, dazu jeden Workflow
 - unbekannte Kommandos, Makros und Workflows sowie Namen, die mehrere Makros oder Workflows tragen,
 - ein Workflow, der sich selbst aufruft, auch auf dem Umweg über einen anderen, und eine Verschachtelung über fünf Ebenen,
 - fehlerhafte Platzhalter, nicht lesbare Vorlagen und ausgeschaltete Vorlagen,
-- ein nicht lesbarer Zeitplan, eine fehlende oder unerlaubte Uhrzeit, `schedule` ohne `trigger: schedule` und umgekehrt sowie ein unbekannter Wert bei `missed`.
+- ein nicht lesbarer Zeitplan, eine fehlende oder unerlaubte Uhrzeit, `schedule` ohne `trigger: schedule` und umgekehrt sowie ein unbekannter Wert bei `missed`,
+- eine nicht lesbare Ereignis-Zeile, ein unbekanntes Ereignis, ein Ordner außerhalb des Bereichs, ein ungültiges Muster, `event` ohne `trigger: event` und umgekehrt, mehr als eine Zeile `event` und ein Platzhalter, den das Ereignis nicht liefert,
+- ein fehlendes oder überzähliges `end`, ein `else` ohne Bedingung oder ein zweites `else`, Blöcke über drei Ebenen, eine Schleife in einer Schleife, ein ungültiges Muster bei `for-each` und `{{item}}` außerhalb einer Schleife,
+- beim Skript-Schritt ein fehlender, mehrfacher oder skriptloser Abschnitt, ein ungültiger oder doppelter Name, ein Ergebnis, das erst eine spätere Zeile liefert, und ausgeschaltete Skript-Blöcke.
 
-Ein Befund hält den Lauf **vor dem ersten Schritt** an; eine fehlerhafte Workflow-Datei läuft damit gar nicht statt teilweise. Die Prüfung meldet alle Befunde zugleich; die Zeilen-Angabe ist die Zeile im Dokument, wie sie der Editor zählt, mit dem Dateikopf. Eine Ausnahme bildet der Befund „Nur von Hand" (Abschnitt „Zeitplan und Scharf-Schaltung"): Er verhindert allein die Scharf-Schaltung, der Start von Hand bleibt möglich.
+Ein Befund hält den Lauf **vor dem ersten Schritt** an; eine fehlerhafte Workflow-Datei läuft damit gar nicht statt teilweise. Die Prüfung meldet alle Befunde zugleich; die Zeilen-Angabe ist die Zeile im Dokument, wie sie der Editor zählt, mit dem Dateikopf. Eine Ausnahme bildet der Befund „Nur von Hand" (Abschnitte „Zeitplan und Scharf-Schaltung" und „Ereignisse"): Er verhindert allein die Scharf-Schaltung, der Start von Hand bleibt möglich.
 
 Was erst ein früherer Schritt herstellen kann, prüft die Anwendung beim Schritt selbst: ob eine Datei, ein Abschnitt oder eine Überschrift vorhanden ist. Fehlt sie dann, schlägt der Schritt fehl.
 
@@ -131,7 +135,7 @@ Die Befehle, nach ihrem Gegenstand geordnet. Die Pfade sind relativ zur Bereichs
 
 - `command` nimmt die feste Kennung eines Kommandos, etwa `view.modeSplit`, `view.modeLive` oder `file.save`, und führt es im startenden Fenster aus. Ist es im Augenblick nicht ausführbar, schlägt der Schritt fehl. Makros und Workflows laufen nicht über `command`, sondern über ihre eigenen Befehle.
 - `macro` und `workflow` dürfen höchstens fünf Ebenen tief verschachtelt sein. Ein aufgerufener Workflow kehrt nach seinem letzten Schritt zurück; schlägt in ihm ein Schritt fehl, endet der ganze Lauf.
-- `notify` zeigt seinen Text in der Statusleiste, bei einem Lauf nach Zeitplan zusätzlich als Benachrichtigung des Betriebssystems (Abschnitt „Ablauf eines Laufs").
+- `notify` zeigt seinen Text in der Statusleiste, bei einem Lauf nach Zeitplan oder durch ein Ereignis zusätzlich als Benachrichtigung des Betriebssystems (Abschnitt „Ablauf eines Laufs").
 - `stop` beendet den ganzen Lauf, auch aus einem aufgerufenen Workflow; die Statusleiste zeigt „Workflow ‹Name› beendet in Zeile N: Text".
 
 ### Pflege-Befehle
@@ -150,7 +154,22 @@ Die Befehle, nach ihrem Gegenstand geordnet. Die Pfade sind relativ zur Bereichs
 - **`complete-task`** sucht unter den offenen Aufgaben der Datei, denselben, die die [Aufgaben-Abfrage](tasks.md) zeigt, die erste, deren Text den Suchtext enthält, mit Groß- und Kleinschreibung. Er hakt sie ab wie ein Klick in der Aufgaben-Abfrage, samt Erledigt-Datum nach den Einstellungen der Aufgaben. Findet er keine, schlägt der Schritt fehl.
 - **`confirm`** zeigt die Frage mit „Ja" und „Nein". „Ja" setzt den Lauf fort; „Nein" beendet ihn ohne Fehlschlag, und die Statusleiste zeigt „Workflow ‹Name› beendet in Zeile N: «Frage» mit Nein beantwortet".
 - **Geöffnete Dateien:** Auf eine in einem Fenster geöffnete, ungespeicherte Datei wirken `add-tag`, `remove-tag` und `complete-task` wie die Befehle für Inhalt über dieses Fenster.
-- `delete` und `confirm` brauchen jemanden, der zusieht: In einem Workflow mit `trigger: schedule` sind sie der Befund „Nur von Hand".
+- `delete` und `confirm` brauchen jemanden, der zusieht: In einem Workflow mit `trigger: schedule` oder `trigger: event` sind sie der Befund „Nur von Hand".
+
+### Bedingungen, Wiederholungen und Skript
+
+Diese Befehle öffnen einen **Block**, den eine Zeile `end` schließt; die Schritte dazwischen laufen nur, wenn die Bedingung zutrifft, oder einmal je Datei. `script` ist ein einzelner Schritt. Einzelheiten in den Abschnitten „Bedingungen und Wiederholungen" und „Skript-Schritt".
+
+| Befehl | Bedeutung | Angaben | Beispiel |
+| --- | --- | --- | --- |
+| `if-exists` | wenn vorhanden: Block nur, wenn die Datei oder der Ordner vorhanden ist | Pfad | `if-exists "Protokoll.md"` |
+| `if-missing` | wenn fehlend: Block nur, wenn die Datei oder der Ordner fehlt | Pfad | `if-missing "Journal/{{date}}.md"` |
+| `if-property` | wenn Eigenschaft: Block nur, wenn die Eigenschaft im Dateikopf den Wert hat oder, ohne Wert, gesetzt ist | Pfad, Name, wahlweise Wert | `if-property "{{file}}" status "offen"` |
+| `if-script` | wenn Skript: Block nur, wenn das Skript eines Abschnitts zutrifft | Überschrift | `if-script "Zählung"` |
+| `else` | sonst: leitet den Teil ein, der gilt, wenn die Bedingung nicht zutrifft | keine | `else` |
+| `end` | Ende: schließt den Block einer Bedingung oder Schleife | keine | `end` |
+| `for-each` | für jede: Block einmal je Datei, die zum Muster passt | Ordner mit Datei-Muster | `for-each "Eingang/*.md"` |
+| `script` | Skript: den Skript-Block eines Abschnitts ausführen und sein Ergebnis benennen | Überschrift, `as "Name"` | `script "Zählung" as "anzahl"` |
 
 ### Quellen eines Inhalts
 
@@ -171,18 +190,23 @@ Platzhalter gelten in jeder Angabe einer Befehls-Zeile. Vorlagen und Workflows t
 | Platzhalter | Wert in einer Befehls-Zeile |
 | --- | --- |
 | `{{date}}`, `{{time}}` | Datum und Uhrzeit des Starts, auch mit Offset und Format: `{{date:+7d:dd.MM.yyyy}}` |
-| `{{file}}` | Pfad des beim Start aktiven Dokuments, relativ zur Bereichs-Wurzel, etwa `Projekte/Plan.md` |
+| `{{file}}` | Pfad des beim Start aktiven Dokuments, relativ zur Bereichs-Wurzel, etwa `Projekte/Plan.md`; bei einem Lauf durch ein Ereignis die Datei des Ereignisses (Abschnitt „Ereignisse") |
 | `{{title}}` | Titel des beim Start aktiven Dokuments |
 | `{{folder}}` | Ordner des beim Start aktiven Dokuments, relativ zur Bereichs-Wurzel |
 | `{{area}}` | Name des Bereichs |
-| `{{clipboard}}` | Text der Zwischenablage beim Start; bei einem Lauf nach Zeitplan der Inhalt, der gerade in der Zwischenablage liegt |
+| `{{clipboard}}` | Text der Zwischenablage beim Start; bei einem Lauf nach Zeitplan oder durch ein Ereignis der Inhalt, der gerade in der Zwischenablage liegt |
 | `{{prompt:Frage}}`, `{{prompt:Frage:Vorgabe}}` | Eingabe-Dialog |
 | `{{select:Frage:a,b,c}}` | Auswahl-Dialog |
+| `{{from}}` | bei `file-moved` der bisherige Pfad der Datei |
+| `{{task}}` | bei `task-done` der Text der erledigten Aufgabe |
+| `{{item}}`, `{{item:name}}` | in einer Schleife `for-each` der Pfad der jeweiligen Datei und ihr Name ohne Endung |
+| `{{script:name}}` | das Ergebnis des Skript-Schritts `script … as "name"` |
 
 - **Alle Dialoge vor dem ersten Schritt:** Die Eingabe- und Auswahl-Dialoge des ganzen Laufs erscheinen nacheinander, bevor etwas geschieht, die der eingesetzten Vorlagen und der aufgerufenen Workflows eingeschlossen. Eine gleiche Frage wird einmal gestellt und gilt überall. Wer einen Dialog abbricht, bricht den Lauf ab, und kein Schritt läuft.
 - **Ein Zeitpunkt je Lauf:** `{{date}}` und `{{time}}` haben in allen Zeilen denselben Wert, auch über Mitternacht. Ebenso wird die Zwischenablage einmal zum Start gelesen, und `{{clipboard}}` hat in allen Zeilen denselben Inhalt.
 - **In einer eingesetzten Vorlage** meinen `{{title}}` und `{{folder}}` wie gewohnt die neue Datei, `{{file}}` und `{{area}}` dagegen das aktive Dokument und den Bereich.
-- **Nach Zeitplan** gibt es niemanden, der einen Dialog beantwortet: Eingabe- und Auswahl-Platzhalter sind in einem Workflow mit `trigger: schedule` der Befund „Nur von Hand".
+- **Nach Zeitplan und bei Ereignissen** gibt es niemanden, der einen Dialog beantwortet: Eingabe- und Auswahl-Platzhalter sind in einem Workflow mit `trigger: schedule` oder `trigger: event` der Befund „Nur von Hand".
+- `{{item}}`, `{{item:name}}` und `{{script:name}}` erhalten ihren Wert erst im Lauf; im Namen eines Workflows oder Makros, im Pfad einer Vorlage und im Ziel von `delete` sind sie deshalb ein Befund.
 - `{{cursor}}` ist in einer Befehls-Zeile nicht erlaubt. `\{{` schreibt ein wörtliches `{{`.
 - Bleibt `{{folder}}` im Wurzel-Ordner leer, entsteht aus `"{{folder}}/Neu.md"` der Pfad `Neu.md`. Ohne aktives Dokument ist `{{file}}` leer, und ein Pfad daraus ist ein Befund.
 
@@ -200,7 +224,7 @@ Ein Workflow startet nur in einem geöffneten Bereich, und seine Pfade gelten in
 | **„Starten" im Bereichs-Panel** | zuoberst im Kontextmenü jeder Workflow-Datei des Bereichs |
 | **Seite „Workflow-Läufe"** | Knopf „Starten" in der Zeile jedes Workflows |
 
-Der Knopf über dem Block ist gesperrt, solange die Prüfung einen Befund meldet. Bei einem noch nie gespeicherten Dokument zeigt er „Zuerst speichern", außerhalb eines Bereichs „Nur in einem geöffneten Bereich startbar". Ein scharf geschalteter Workflow läuft zusätzlich von selbst nach seinem Zeitplan; der Start von Hand bleibt daneben jederzeit möglich.
+Der Knopf über dem Block ist gesperrt, solange die Prüfung einen Befund meldet. Bei einem noch nie gespeicherten Dokument zeigt er „Zuerst speichern", außerhalb eines Bereichs „Nur in einem geöffneten Bereich startbar". Ein scharf geschalteter Workflow läuft zusätzlich von selbst nach seinem Zeitplan oder bei seinem Ereignis; der Start von Hand bleibt daneben jederzeit möglich.
 
 Das Kommando eines Workflows erhält seine Kennung aus dem Pfad der Datei im Workflow-Ordner; zwei gleichnamige Workflows in verschiedenen Unterordnern bleiben so unterscheidbar. **Wer einen Workflow in der Anwendung umbenennt oder innerhalb des Workflow-Ordners verschiebt, behält seine Belegungen:** Ein Tastenkürzel, ein Platz in Statusleiste, Kontextmenü oder Format-Toolbar und ein Makro-Schritt, der ihn aufruft, ziehen mit. **Außerhalb der Anwendung**, etwa im Dateimanager, bemerkt die Anwendung die Umbenennung nicht; die Belegungen verlieren dann ihr Ziel und sind neu zu vergeben. Wird ein Workflow aus dem Workflow-Ordner hinaus verschoben, ist er kein Kommando mehr; seine Belegungen bleiben gespeichert und wirken wieder, sobald er an denselben Ort zurückkehrt.
 
@@ -208,12 +232,88 @@ Das Kommando eines Workflows erhält seine Kennung aus dem Pfad der Datei im Wor
 
 1. Die Anwendung prüft den Workflow samt den Workflows, die er aufruft.
 2. Die Dialoge aller Platzhalter erscheinen nacheinander; enthält der Lauf `delete`, folgt die eine Bestätigung der Lösch-Ziele.
-3. Die Schritte laufen strikt nacheinander; jeder wartet auf den vorigen.
+3. Die Schritte laufen strikt nacheinander; jeder wartet auf den vorigen. Bedingungen und Schleifen bestimmen, welche Schritte laufen und wie oft.
 4. Der erste Fehlschlag beendet den Lauf. Die Statusleiste zeigt „Workflow ‹Name› abgebrochen in Zeile N: Grund".
 
 Ausgeführte Schritte bleiben ausgeführt; eine Rücknahme eines Laufs gibt es nicht (Abschnitt „Was ein Lauf getan hat"). **Je Fenster läuft höchstens ein Workflow**; ein zweiter Start während eines Laufs wird mit einem Hinweis abgewiesen.
 
-**Meldungen:** Bei einem Start von Hand zeigt `notify` seinen Text in der Statusleiste. Bei einem Lauf nach Zeitplan, auch einem nachgeholten, geht der Text zusätzlich als **Benachrichtigung des Betriebssystems** hinaus, mit dem Namen des Workflows als Titel; ebenso der Abbruch eines solchen Laufs mit Zeile und Grund, auch wenn der Workflow kein `notify` enthält. Die Benachrichtigung erscheint nur, wenn kein Fenster der Anwendung im Vordergrund ist, und je Meldung einmal; sonst genügt der Hinweis in der Statusleiste. Ob und wie das Betriebssystem sie zeigt, regeln seine eigenen Mitteilungs-Einstellungen.
+**Meldungen:** Bei einem Start von Hand zeigt `notify` seinen Text in der Statusleiste. Bei einem Lauf nach Zeitplan, auch einem nachgeholten, und bei einem Lauf durch ein Ereignis geht der Text zusätzlich als **Benachrichtigung des Betriebssystems** hinaus, mit dem Namen des Workflows als Titel; ebenso der Abbruch eines solchen Laufs mit Zeile und Grund, auch wenn der Workflow kein `notify` enthält. Die Benachrichtigung erscheint nur, wenn kein Fenster der Anwendung im Vordergrund ist, und je Meldung einmal; sonst genügt der Hinweis in der Statusleiste. Ob und wie das Betriebssystem sie zeigt, regeln seine eigenen Mitteilungs-Einstellungen.
+
+## Bedingungen und Wiederholungen
+
+Eine **Bedingung** lässt Schritte nur laufen, wenn etwas zutrifft; eine **Schleife** wiederholt Schritte für jede Datei eines Ordners. Beide öffnen einen Block, den eine Zeile `end` schließt:
+
+```workflow
+# Tagesnotiz nur anlegen, wenn sie fehlt
+if-missing "Journal/{{date}}.md"
+  create "Journal/{{date}}.md"
+else
+  notify "Die Tagesnotiz gibt es schon"
+end
+open "Journal/{{date}}.md"
+```
+
+### Bedingungen
+
+- `if-exists "Pfad"` trifft zu, wenn die Datei oder der Ordner vorhanden ist, `if-missing "Pfad"`, wenn sie fehlen.
+- `if-property "Pfad" name "Wert"` trifft zu, wenn die Eigenschaft im Dateikopf genau diesen Wert hat; Zahlen und Wahrheitswerte vergleichen mit ihrer Schreibweise. Bei einer **Liste** wie `tags` trifft sie zu, wenn die Liste den Wert enthält. Ohne Wert (`if-property "Pfad" name`) trifft sie zu, wenn die Eigenschaft gesetzt und nicht leer ist, bei einer Liste, wenn sie nicht leer ist. Eine Datei ohne Dateikopf trifft nicht zu; fehlt die Datei, schlägt der Schritt fehl.
+- `if-script "Abschnitt"` trifft zu, wenn das Skript des Abschnitts zutrifft (Abschnitt „Skript-Schritt").
+- Geprüft wird beim Erreichen der Zeile, mit dem Stand, den die vorigen Schritte hinterlassen haben; eine geöffnete, ungespeicherte Datei zählt mit ihrem Stand im Editor.
+
+### Die Block-Form
+
+- `else` leitet wahlweise den Teil ein, der gilt, wenn die Bedingung nicht zutrifft; je Bedingung gibt es höchstens ein `else`, eine Schleife kennt keines.
+- `end` schließt den zuletzt geöffneten Block. `else` und `end` stehen je auf einer eigenen Zeile.
+- **Einrückung** ist erlaubt und wird empfohlen, damit der Block lesbar bleibt; eine Bedeutung trägt sie nicht.
+- Blöcke lassen sich bis zu **drei Ebenen** tief verschachteln, die Schleife mitgezählt.
+- Ein fehlendes oder überzähliges `end`, ein `else` ohne Bedingung und eine zu tiefe Verschachtelung meldet die Prüfung vor dem ersten Schritt mit Zeile.
+
+### Schleife über die Dateien eines Ordners
+
+`for-each "Ordner/Muster"` wiederholt die Schritte bis `end` für jede Datei, die zum Muster passt. `{{item}}` ist dabei der Pfad der jeweiligen Datei, relativ zur Bereichs-Wurzel, `{{item:name}}` ihr Name ohne Endung:
+
+```workflow
+# Erledigte Notizen aus dem Eingang ins Archiv legen
+for-each "Eingang/*.md"
+  if-property "{{item}}" status "erledigt"
+    add-tag "{{item}}" "archiv"
+    move "{{item}}" "Archiv"
+  end
+end
+```
+
+- **Muster:** zuerst der Ordner, dann ein Muster des Datei-Namens mit `*` für beliebig viele und `?` für genau ein Zeichen, etwa `Eingang/*.md`. Ein `**` vor dem Datei-Muster nimmt die Unterordner hinzu (`Projekte/**/*.md`), ein `**` am Ende meint alle Dateien samt Unterordnern (`Eingang/**`). Groß- und Kleinschreibung zählt nicht; Platzhalter-Zeichen im Ordner-Teil sind ein Befund.
+- **Feste Liste:** Die Dateien werden beim Eintritt in die Schleife festgestellt und alphabetisch abgearbeitet, Zahlen wie im Dateimanager (`2` vor `10`). Dateien, die der Lauf in der Schleife anlegt, kommen nicht hinzu. Dateien und Ordner, deren Name mit einem Punkt beginnt, zählen nicht mit.
+- **Grenze:** höchstens **500 Dateien**. Bei mehr schlägt der Schritt vor der ersten Wiederholung fehl, mit „Mehr als 500 Dateien; keine Datei wurde bearbeitet". Ein fehlender Ordner ist ebenfalls ein Fehlschlag.
+- Schleifen lassen sich nicht ineinander verschachteln; eine Bedingung in der Schleife ist erlaubt.
+- `{{item}}` und `{{item:name}}` gelten nur innerhalb einer Schleife. Eingabe-Dialoge in der Schleife erscheinen einmal vor dem ersten Schritt, und die Antwort gilt für jede Datei.
+
+## Skript-Schritt
+
+Ein **Skript-Schritt** führt einen [Skript-Block](scripts.md) der Workflow-Datei aus und nutzt sein Ergebnis in den folgenden Zeilen oder als Bedingung. Das Skript rechnet und prüft; schreiben kann es nicht. Das Beispiel zählt die Dateien im Ordner „Aufgaben" mit `status: offen`:
+
+````markdown
+```workflow
+script "Zählung" as "offen"
+if-script "Zählung"
+  notify "Offene Dateien im Ordner Aufgaben: {{script:offen}}"
+else
+  notify "Nichts offen"
+end
+```
+
+## Zählung
+
+```perspective-script
+return pq.pages('Aufgaben').filter(function (p) { return p.status === 'offen'; }).length;
+```
+````
+
+- **`script "Abschnitt" as "name"`** führt den ersten Skript-Block (`perspective-script`) unter der Überschrift „Abschnitt" der Workflow-Datei aus; gefunden wird der Abschnitt wie bei `from-section`. Sein **Ergebnis** steht danach als `{{script:name}}` in jeder folgenden Zeile: der Rückgabe-Wert des Skripts (ein Text, eine Zahl oder ein Wahrheitswert), sonst der Text seiner Ausgabe ohne Leerraum am Rand. Der Name besteht aus Buchstaben, Ziffern, `_` und `-`; Groß- und Kleinschreibung zählt nicht, und jeder Name wird nur einmal vergeben.
+- **`if-script "Abschnitt"`** öffnet einen Block wie die übrigen Bedingungen. Er trifft zu, wenn das Skript `true`, einen nicht leeren Text oder eine Zahl ungleich null liefert; `false`, ein leerer Text, `0` und kein Wert treffen nicht zu.
+- **Dieselbe Sandbox wie die Skript-Blöcke:** Das Skript liest die Daten des Bereichs über die pq-Schnittstelle, mit der Workflow-Datei als eigenem Dokument (`pq.current()`), und hat keinen Zugriff auf Dateien, Netz und Anwendung. Es ist **rein lesend**. Nach **5 Sekunden** wird es abgebrochen. Ein Fehler oder ein Abbruch ist ein Fehlschlag des Schritts und beendet den Lauf mit „Skript fehlgeschlagen" oder „Skript nach 5 Sekunden abgebrochen".
+- **Einstellung „Skript-Blöcke ausführen":** Der Skript-Schritt folgt derselben Einstellung wie die Skript-Blöcke (**Einstellungen → Verhalten**, Vorgabe aus). Ist sie aus, meldet die Prüfung „Skript-Blöcke sind ausgeschaltet" mit Zeile; der Workflow läuft nicht und lässt sich nicht scharf schalten. Unmittelbar vor jedem Skript fragt die Anwendung die Einstellung erneut ab.
+- Den Abschnitt sucht die Prüfung vor dem ersten Schritt: Fehlt er, gibt es ihn mehrfach oder enthält er keinen Skript-Block, ist das ein Befund. Ein `{{script:name}}` vor dem Schritt, der es liefert, ist ebenfalls ein Befund; ist der liefernde Schritt in einem Zweig nicht gelaufen, schlägt die Zeile fehl.
 
 ## Zeitplan und Scharf-Schaltung
 
@@ -272,7 +372,7 @@ Verpasst ist ein Termin, der fiel, während die Anwendung oder der Bereich gesch
 
 ### Scharf schalten
 
-Ein Workflow mit `trigger: schedule` ist nach dem Anlegen, Kopieren oder Hereinkommen **nicht scharf**; er läuft nach Zeitplan erst, wenn der Anwender ihn scharf schaltet. Der Scharf-Zustand liegt im Lauf-Stand der Begleitdatei und reist beim Kopieren nicht mit. Geschaltet wird an drei Orten, die alle nur bei `trigger: schedule` erscheinen:
+Ein Workflow mit `trigger: schedule` oder `trigger: event` ist nach dem Anlegen, Kopieren oder Hereinkommen **nicht scharf**; er läuft von selbst erst, wenn der Anwender ihn scharf schaltet. Der Scharf-Zustand liegt im Lauf-Stand der Begleitdatei und reist beim Kopieren nicht mit. Geschaltet wird an drei Orten, die alle nur bei `trigger: schedule` und `trigger: event` erscheinen:
 
 - **Seite „Workflow-Läufe"**: das Kästchen in der Spalte **Scharf**,
 - **über dem Block**: der Knopf „Scharf" neben „Starten", gedrückt „✓ Scharf",
@@ -280,11 +380,72 @@ Ein Workflow mit `trigger: schedule` ist nach dem Anlegen, Kopieren oder Hereink
 
 Das Scharf-Schalten prüft den Workflow wie vor dem Laufen. Bei einem Befund wird es abgewiesen, und die Statusleiste zeigt „Nicht scharf geschaltet:" mit Grund und Zeile; sonst meldet sie „Workflow ‹Name› scharf, nächster Lauf" mit dem Termin. Entschärfen ist jederzeit möglich, auch bei einem Befund.
 
-**Geänderte Definition:** Ändert sich nach der Scharf-Schaltung der `workflow`-Block oder eine der Zeilen `trigger`, `schedule` und `missed`, auch ungespeichert im Editor, gilt der Workflow als „nicht scharf: Definition geändert" und läuft nicht mehr nach Zeitplan, bis er erneut scharf geschaltet ist. Name und Beschreibung zu ändern hat keine Wirkung. So läuft nie ein geänderter Inhalt ohne Zuschauer, den niemand freigegeben hat.
+**Geänderte Definition:** Ändert sich nach der Scharf-Schaltung der `workflow`-Block, eine der Zeilen `trigger`, `schedule`, `missed` und `event` oder ein Skript-Block, den ein Skript-Schritt ausführt, auch ungespeichert im Editor, gilt der Workflow als „nicht scharf: Definition geändert" und läuft nicht mehr von selbst, bis er erneut scharf geschaltet ist. Name und Beschreibung zu ändern hat keine Wirkung. So läuft nie ein geänderter Inhalt ohne Zuschauer, den niemand freigegeben hat.
 
 ### Das Statusleisten-Element „Workflows"
 
-Solange mindestens ein Workflow des Bereichs scharf ist, steht im rechten Teil der Statusleiste das Element **Workflows**. Es zeigt den jüngsten Lauf nach Zeitplan mit Ergebnis-Zeichen, Name und Uhrzeit, etwa „✓ Tagesnotiz 08:00"; ein Lauf eines früheren Tages trägt dazu Tag und Monat. Die Zeichen sind `✓` für erfolgreich, `✗` für abgebrochen, `■` für beendet und `–` für eine abgebrochene Eingabe; ein Abbruch erscheint in der Farbe des Fehler-Hinweises. Ohne bisherigen Lauf nach Zeitplan steht dort „Workflows". Der Tooltip nennt Datum, Uhrzeit und Ergebnis, ein Klick öffnet die Seite **Workflow-Läufe**. Bei schmaler Statusleiste klappt das Element mit den übrigen Elementen ein.
+Solange mindestens ein Workflow des Bereichs scharf ist, steht im rechten Teil der Statusleiste das Element **Workflows**. Es zeigt den jüngsten Lauf nach Zeitplan oder durch ein Ereignis mit Ergebnis-Zeichen, Name und Uhrzeit, etwa „✓ Tagesnotiz 08:00"; ein Lauf eines früheren Tages trägt dazu Tag und Monat. Die Zeichen sind `✓` für erfolgreich, `✗` für abgebrochen, `■` für beendet und `–` für eine abgebrochene Eingabe; ein Abbruch erscheint in der Farbe des Fehler-Hinweises. Ohne einen solchen Lauf steht dort „Workflows". Der Tooltip nennt Datum, Uhrzeit und Ergebnis, ein Klick öffnet die Seite **Workflow-Läufe**. Bei schmaler Statusleiste klappt das Element mit den übrigen Elementen ein.
+
+## Ereignisse
+
+Ein Workflow mit `trigger: event` und einer Zeile `event` läuft von selbst, wenn im Bereich sein **Ereignis** eintritt, sobald er scharf geschaltet ist. So entsteht etwa eine **Ordner-Regel**: Jede Notiz, die im Ordner „Eingang" ankommt, bekommt ein Schlagwort, gleich ob sie in der Anwendung angelegt, im Dateimanager hineingelegt oder von einer Synchronisation gebracht wird.
+
+````markdown
+---
+workflow: true
+name: Eingang verschlagworten
+trigger: event
+event: file-created in "Eingang" matching "*.md"
+---
+
+```workflow
+add-tag "{{file}}" "eingang"
+notify "Neu im Eingang: {{file}}"
+```
+````
+
+### Die Ereignis-Zeile
+
+Die Zeile hat die Form `event: <Ereignis> [in "<Ordner oder Datei>"] [matching "<Muster>"]`:
+
+| Ereignis | tritt ein, wenn … | `{{file}}` ist … | Beispiel |
+| --- | --- | --- | --- |
+| `file-created` | eine Datei im Bereich angelegt wird, auch von außen | die neue Datei | `event: file-created in "Eingang"` |
+| `file-changed` | eine Datei geändert wird, auch von außen; das Speichern in der Anwendung eingeschlossen | die geänderte Datei | `event: file-changed in "Projekte" matching "*.md"` |
+| `file-moved` | eine Datei in der Anwendung umbenannt oder verschoben wird | der neue Pfad; der bisherige ist `{{from}}` | `event: file-moved in "Archiv"` |
+| `task-done` | eine Aufgabe auf erledigt gesetzt wird | die Datei der Aufgabe; ihr Text ist `{{task}}` | `event: task-done in "Wochenplan.md"` |
+| `area-opened` | der Bereich geöffnet und eingelesen ist | (keine Datei) | `event: area-opened` |
+| `reminder-due` | eine Erinnerung des Bereichs fällig wird | die Datei der Erinnerung | `event: reminder-due` |
+
+- **`in`** grenzt auf einen Ordner samt Unterordnern oder auf eine einzelne Datei ein, relativ zur Bereichs-Wurzel; ein Ordner `Eingang` trifft nie einen Ordner, dessen Name nur mit diesem Namen beginnt, wie `Eingangskorb`. **`matching`** grenzt auf ein Muster des Datei-Namens ein, mit `*` und `?`, ohne Ordner. Beides ist wahlweise; `in` steht vor `matching`, die Werte stehen in geraden Anführungszeichen, und Groß- und Kleinschreibung zählt nicht. Bei `file-moved` gilt der neue Ort.
+- Bei `area-opened` und `reminder-due` sind `in` und `matching` nicht erlaubt.
+- **Genau eine Zeile `event` je Datei.** Wer auf mehrere Ereignisse antworten will, schreibt je Ereignis einen kleinen Workflow, der einen gemeinsamen mit `workflow "Name"` aufruft.
+- **Verschieben:** Ein Verschieben im Dateimanager erscheint als `file-created` am neuen Ort; `file-moved` kennt allein die Anwendung, weil nur sie weiß, woher eine Datei kam.
+- **Aufgabe erledigt** heißt: Eine Aufgaben-Zeile wechselt auf einen Status der Art „erledigt", gleich ob per Klick auf das Kästchen, in der [Aufgaben-Abfrage](tasks.md), durch ein getipptes `x` oder durch eine Änderung von außen. Ein Klick oder ein getipptes `x` löst kurz danach aus, auch vor dem Speichern; das Speichern danach löst nicht ein zweites Mal aus. Eine abgebrochene Aufgabe ist nicht erledigt. `{{task}}` ist der Text der Aufgabe ohne Kästchen, Datumsangaben und Priorität.
+
+### Was ein Lauf bei einem Ereignis darf
+
+- Ein Lauf durch ein Ereignis läuft wie ein Lauf nach Zeitplan **ohne Zuschauer**: Eingabe- und Auswahl-Platzhalter, `confirm` und `delete` sind der Befund „Nur von Hand". **Gelöscht wird bei Ereignissen nie.**
+- `{{file}}`, `{{from}}` und `{{task}}` tragen die Werte des Ereignisses (Tafel oben). Einen Platzhalter, den das Ereignis nicht liefert, meldet die Prüfung: `{{file}}` bei `area-opened`, `{{from}}` außer bei `file-moved`, `{{task}}` außer bei `task-done`.
+
+### Wann Ereignisse wirken
+
+**Ereignisse wirken, solange die Anwendung und der Bereich in einem Fenster geöffnet sind, und werden nicht nachgeholt.** Was geschah, während der Bereich geschlossen war, löst beim Öffnen nichts aus; wer beim Öffnen aufräumen will, schreibt einen Workflow mit `area-opened` und `for-each`.
+
+- **Entprellung:** Meldungen derselben Datei innerhalb von **2 Sekunden** ergeben ein Ereignis; ein Speichern, das mehrere Meldungen erzeugt, startet einen Workflow so nur einmal. Eine Datei, die fortlaufend beschrieben wird, löst spätestens nach 10 Sekunden aus.
+- **Was nie auslöst:** Begleitdateien (`.mdd`, `.mddl`), der Sperr-Ordner sowie Dateien und Ordner, deren Name mit einem Punkt beginnt.
+- **Reihenfolge:** Passt ein Ereignis auf mehrere scharfe Workflows, läuft jeder einmal, nacheinander in der Reihenfolge ihrer Pfade. Je Bereich läuft ein Lauf durch ein Ereignis nach dem anderen, in der Reihenfolge der Ereignisse und in genau einem Fenster; läuft dort gerade ein Workflow, wartet das Ereignis. Beim Schließen des Bereichs verfallen wartende Ereignisse.
+- `area-opened` tritt je Öffnen einmal ein, auch für einen Bereich, den die Anwendung beim Start wieder öffnet. `reminder-due` tritt ein, wenn die Erinnerung zu ihrer Zeit fällig wird; Erinnerungen, die beim Öffnen des Bereichs nachgereicht werden, lösen nichts aus.
+
+### Keine Ketten
+
+**Ein Workflow reagiert auf das, was Sie oder andere Programme tun, nie auf das, was ein Workflow tut.** Was ein Lauf anlegt, ändert, verschiebt oder abhakt, löst kein Ereignis aus; ein Workflow, der bei einer neuen Datei in „Eingang" selbst eine Datei in „Eingang" anlegt, läuft deshalb nicht im Kreis. Wer eine Folge will, ruft den zweiten Workflow ausdrücklich mit `workflow "Name"` auf. Schreibt ein Schritt in ein geöffnetes, ungespeichertes Dokument, ist erst Ihr Speichern eine Änderung der Datei und löst `file-changed` aus; eine Aufgabe, die ein solcher Schritt im Dokument abhakt, löst `task-done` aus.
+
+**Not-Bremse:** Läuft derselbe Workflow durch Ereignisse mehr als **20-mal in 5 Minuten**, etwa weil ein anderes Programm auf seine Änderungen antwortet, startet der 21. Lauf nicht mehr. Der Workflow wird entschärft, wartende Ereignisse für ihn verfallen, und die Statusleiste meldet „Workflow ‹Name› entschärft: mehr als 20 Läufe durch Ereignisse in 5 Minuten", ohne Fenster im Vordergrund zusätzlich als Benachrichtigung des Betriebssystems. Die Seite **Workflow-Läufe** zeigt unter dem Kästchen „nicht scharf: Not-Bremse" und den Grund in der Spalte **Ergebnis**. Nach erneutem Scharf-Schalten zählt die Bremse von vorn.
+
+### Scharf schalten und Anzeige
+
+Ein Workflow mit `trigger: event` wird an denselben drei Orten scharf geschaltet wie einer nach Zeitplan (Abschnitt „Scharf schalten"); zur Definition gehört dabei die Zeile `event`. Nach dem Scharf-Schalten meldet die Statusleiste etwa „Workflow ‹Name› scharf, läuft bei neuer Datei in ‹Eingang›". Auf der Seite **Workflow-Läufe** zeigt die Spalte **Nächster Lauf** das Ereignis in Worten, etwa „bei neuer Datei in ‹Eingang›", und die Spalte **Letzter Lauf** die Herkunft, etwa „Ereignis: neue Datei ‹Eingang/Scan.md›". `notify` und ein Abbruch gehen wie beim Zeitplan auch als Benachrichtigung des Betriebssystems hinaus, und das Statusleisten-Element **Workflows** zeigt auch den jüngsten Lauf durch ein Ereignis.
 
 ## Workflow-Ordner und Menü
 
@@ -314,16 +475,16 @@ Wie die Vorlagen lassen sich die Workflows eines [verknüpften Bereichs](linking
 
 ## Lauf-Stand und die Seite „Workflow-Läufe"
 
-Nach jedem Lauf hält die Anwendung in der **Begleitdatei** des Workflows (`.mdd`, Abschnitt `workflow`) den Zeitpunkt, das Ergebnis, gegebenenfalls die abgebrochene Zeile, die Zahl der Läufe, die Herkunft des Laufs und das Journal des letzten Laufs fest, bei einem Workflow nach Zeitplan dazu den Scharf-Zustand und den nächsten Termin; der Text der Workflow-Datei bleibt unberührt. Der Lauf-Stand reist beim Umbenennen und Verschieben mit, beim Kopieren nicht.
+Nach jedem Lauf hält die Anwendung in der **Begleitdatei** des Workflows (`.mdd`, Abschnitt `workflow`) den Zeitpunkt, das Ergebnis, gegebenenfalls die abgebrochene Zeile, die Zahl der Läufe, die Herkunft des Laufs und das Journal des letzten Laufs fest, bei einem Workflow nach Zeitplan oder Ereignis dazu den Scharf-Zustand, beim Zeitplan den nächsten Termin und bei einem Lauf durch ein Ereignis das auslösende Ereignis mit seiner Datei; der Text der Workflow-Datei bleibt unberührt. Der Lauf-Stand reist beim Umbenennen und Verschieben mit, beim Kopieren nicht.
 
 Die Seite **Workflow-Läufe** öffnet über „Ansicht → Workflow-Läufe anzeigen", über „Datei → Workflows → Workflow-Läufe anzeigen", über die Kommando-Palette und über einen Klick auf das Statusleisten-Element **Workflows**. Sie listet **alle Workflows des Bereichs**, auch die außerhalb des Workflow-Ordners, und danach die Workflows verknüpfter Bereiche mit Zustimmung, mit diesen Spalten und einem Knopf „Starten" je Zeile:
 
 | Spalte | Inhalt |
 | --- | --- |
 | **Workflow**, **Ort** | Name mit der Beschreibung als Tooltip, Ordner der Datei |
-| **Scharf** | Kästchen zum Scharf-Schalten, nur bei `trigger: schedule`; bei geänderter Definition dazu „nicht scharf: Definition geändert" |
-| **Nächster Lauf** | Termin des nächsten Laufs nach Zeitplan, solange der Workflow scharf ist |
-| **Letzter Lauf** | Zeitpunkt des letzten Laufs, bei einem nachgeholten mit „(nachgeholt)", darunter gegebenenfalls „verfallen:" mit Termin; dazu der Knopf „Journal (N)" |
+| **Scharf** | Kästchen zum Scharf-Schalten, nur bei `trigger: schedule` und `trigger: event`; bei geänderter Definition dazu „nicht scharf: Definition geändert", nach einem Eingriff der Not-Bremse „nicht scharf: Not-Bremse" |
+| **Nächster Lauf** | Termin des nächsten Laufs nach Zeitplan, bei einem Workflow mit Ereignis das Ereignis in Worten, jeweils solange der Workflow scharf ist |
+| **Letzter Lauf** | Zeitpunkt des letzten Laufs, bei einem nachgeholten mit „(nachgeholt)", bei einem Lauf durch ein Ereignis mit Ereignis und Datei, darunter gegebenenfalls „verfallen:" mit Termin; dazu der Knopf „Journal (N)" |
 | **Ergebnis** | Ergebnis des letzten Laufs, Tafel unten |
 | **Läufe** | Zahl der Läufe |
 
@@ -346,9 +507,9 @@ Eine Rücknahme eines ganzen Laufs gibt es nicht. Zurückgenommen wird gezielt, 
 
 ## Unterstützung im Editor
 
-- **Hervorhebung:** In den Befehls-Zeilen sind das Schlüsselwort fett, Text in Anführungszeichen farbig und Platzhalter kursiv hervorgehoben, im Editor wie in der Darstellung.
+- **Hervorhebung:** In den Befehls-Zeilen sind das Schlüsselwort fett, Text in Anführungszeichen farbig und Platzhalter kursiv hervorgehoben, im Editor wie in der Darstellung. Die Block-Wörter der Bedingungen und Schleifen, `else` und `end` sind im Editor zusätzlich gepunktet unterstrichen.
 - **Prüf-Anzeige:** Die Live-Ansicht, die gerenderte Ansicht und die geteilte Ansicht zeigen über dem Block das Ergebnis der Prüfung: grün „bereit" oder rot „Zeile N: Grund", bei mehreren Befunden mit „(+N weitere)". Dort stehen auch die Hinweise auf mehrere Blöcke und auf einen noch nicht unterstützten Auslöser sowie die Befunde des Zeitplans mit ihrer Zeile im Dateikopf. Die Anzeige folgt dem Text kurz nach jeder Änderung und zeigt denselben Befund, den der Start meldet. Im Druck, im Export und bei einer eingebetteten Datei erscheint die Kopfzeile nicht.
-- **Knopf „Scharf":** Bei `trigger: schedule` steht in der Kopfzeile neben „Starten" der Knopf zum Scharf-Schalten (Abschnitt „Zeitplan und Scharf-Schaltung").
+- **Knopf „Scharf":** Bei `trigger: schedule` und `trigger: event` steht in der Kopfzeile neben „Starten" der Knopf zum Scharf-Schalten (Abschnitt „Zeitplan und Scharf-Schaltung").
 
 Hervorhebung und Anzeige ändern den Text der Datei nicht.
 
@@ -356,10 +517,12 @@ Hervorhebung und Anzeige ändern den Text der Datei nicht.
 
 - **Nur im Bereich:** Kein Befehl liest oder schreibt außerhalb der Wurzel des Bereichs, in dem der Workflow gestartet wurde, auch nicht über einen Platzhalter; das gilt auch für einen Workflow aus einem verknüpften Bereich.
 - **Kein Netz, keine Fremdprogramme.** Gelöscht wird nur mit `delete`, nur bei einem Start von Hand, nach einer Bestätigung und in den Papierkorb.
-- **Kein Lauf ohne geöffneten Bereich:** Ein Workflow nach Zeitplan läuft nur, solange die Anwendung und sein Bereich geöffnet sind; verpasste Termine holt er nach den Regeln von `missed` nach.
+- **Kein Lauf ohne geöffneten Bereich:** Ein Workflow nach Zeitplan läuft nur, solange die Anwendung und sein Bereich geöffnet sind; verpasste Termine holt er nach den Regeln von `missed` nach. Ereignisse wirken ebenso nur bei geöffnetem Bereich und werden nicht nachgeholt.
+- **Keine Ketten:** Ein Workflow reagiert auf das, was Sie oder andere Programme tun, nie auf das, was ein Workflow tut. Wer eine Folge will, ruft den nächsten Workflow mit `workflow "Name"` auf; gegen eine Schleife über andere Programme hält die Not-Bremse einen Workflow nach mehr als 20 Läufen durch Ereignisse in 5 Minuten an (Abschnitt „Ereignisse").
+- **Grenzen der Blöcke:** höchstens drei Ebenen Verschachtelung, keine Schleife in einer Schleife und höchstens 500 Dateien je Schleife.
 - **Keine Rücknahme eines Laufs:** Ausgeführte Schritte bleiben ausgeführt; das Journal zeigt, was der letzte Lauf berührt hat, und zurückgenommen wird gezielt.
-- **Makros** bleiben, wie sie sind, und sind als Schritt aufrufbar; ein Makro ist eine Folge von Kommandos in den Einstellungen, ein Workflow ein Ablauf als Dokument. **[Skript-Blöcke](scripts.md)** bleiben rein lesend; ein Workflow ist keine allgemeine Skript-Sprache, sondern ein fester Katalog von Befehlen.
+- **Makros** bleiben, wie sie sind, und sind als Schritt aufrufbar; ein Makro ist eine Folge von Kommandos in den Einstellungen, ein Workflow ein Ablauf als Dokument. **[Skript-Blöcke](scripts.md)** bleiben rein lesend, auch als Skript-Schritt; ein Workflow ist keine allgemeine Skript-Sprache, sondern ein fester Katalog von Befehlen.
 
 ## Spätere Ausbaustufen
 
-Weitere Ausbaustufen sind vorgesehen, ohne dass Umfang und Zeitpunkt feststehen: ein Start bei Ereignissen im Bereich, Bedingungen und Wiederholungen sowie Befehle für die [Datenbank](database.md). Die Prüfung kennt die Schlüsselwörter dieser Befehle schon und meldet sie als „gibt es erst in einer späteren Ausbaustufe", damit eine solche Datei nicht teilweise läuft.
+Eine weitere Ausbaustufe ist vorgesehen, ohne dass Umfang und Zeitpunkt feststehen: Befehle für die [Datenbank](database.md). Die Prüfung kennt die Schlüsselwörter dieser Befehle schon und meldet sie als „gibt es erst in einer späteren Ausbaustufe", damit eine solche Datei nicht teilweise läuft.

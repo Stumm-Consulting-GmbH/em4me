@@ -19,6 +19,37 @@
 // Vorlage die Ziel-Datei des Schritts wie im Bestand der Vorlagen; `{{file}}`
 // und `{{area}}` bleiben in beiden das aktive Dokument und der Bereich.
 //
+// **Ereignis-Lauf (4T-002459, Entscheidung 3l der Konzept-Runde 4T-002458):**
+// Bei einem Lauf nach Ereignis ist `{{file}}` die Datei des Ereignisses, und
+// zwei weitere Platzhalter des gemeinsamen Satzes tragen einen Wert: `{{from}}`
+// den alten Pfad bei `file-moved`, `{{task}}` den Aufgaben-Text bei
+// `task-done`. Der Aufrufer gibt sie im Kontext mit (`file`, `from`, `task`,
+// 4T-002460); dieses Modul füllt sie wie jeden anderen Kontext-Platzhalter,
+// ohne Wert bleiben sie leer. Welches Ereignis welchen Platzhalter liefert,
+// steht in `workflow-event.js`, den Befund dazu meldet der Prüfer.
+//
+// **Schleife (4T-002464, Entscheidung 3g der Konzept-Runde 4T-002458):** In
+// einem Block `for-each` sind `{{item}}` (Pfad der jeweiligen Datei,
+// wurzel-relativ mit `/` wie `{{file}}`) und `{{item:name}}` (ihr Name ohne
+// Endung) belegt. Ihr Wert steht erst je Wiederholung fest. `prepareRun`
+// füllt einen Schritt in der Schleife, der sie trägt, deshalb nur zur Probe
+// (mit dem Ersatz-Pfad `PROBE_ITEM`, damit die übrigen Fehler vor dem ersten
+// Schritt auffallen) und liefert ihn **zurückgestellt**: `deferred` trägt den
+// geprüften Schritt samt Kontext, Antworten und den Vorlagen dieses Schritts,
+// übertragbar wie alles hier. Der Ablauf-Kern füllt ihn je Datei mit
+// `fillLoopStep`. Alle übrigen Schritte, auch in der Schleife, werden wie
+// bisher einmal vor dem ersten Schritt gefüllt; eine Eingabe in der Schleife
+// wird damit einmal erhoben und gilt für jede Wiederholung.
+//
+// **Skript-Ergebnis (4T-002465, Entscheidung 3h):** `{{script:name}}` trägt
+// das Ergebnis des Schritts `script … as "name"` und steht damit ebenfalls erst
+// im Lauf fest. Ein Schritt mit diesem Platzhalter wird wie ein Schritt der
+// Schleife nur zur Probe gefüllt und zurückgestellt; `deferred.item` sagt, ob
+// er zudem eine Datei der Schleife braucht. Der Ablauf-Kern füllt ihn mit
+// `fillLoopStep` und den bis dahin gelieferten Ergebnissen. Der Schritt
+// `script` und `if-script` behält beim Füllen den geprüften Quelltext
+// (`script`) und den Namen des Ergebnisses (`result`).
+//
 // **Wörtliche Quellen** (Entscheidung der Sitzung vom 2026-10-22, O2): Allein
 // `from-template` füllt Platzhalter, das ist der Sinn einer Vorlage.
 // `from-section` und `from-file` übernehmen ihren Inhalt wörtlich und werden
@@ -42,8 +73,16 @@ const { MD_EXT_RE } = require('../markdown/link-scan.js');
 const { toLogicalName } = require('../subpages.js');
 const { checkAreaPath, checkFileName } = require('./workflow-paths.js');
 const { referenceState } = require('./workflow-catalog.js');
+const {
+  blockStructure,
+  hasLoopPlaceholder,
+  hasScriptPlaceholder,
+  parseLoopPattern,
+} = require('./workflow-check.js');
 
-const TEXT_ARTEN = new Set(['path', 'name', 'text', 'key', 'value']);
+const TEXT_ARTEN = new Set(['path', 'name', 'text', 'key', 'value', 'pattern']);
+/** Ersatz-Pfad für die Probe-Füllung eines Schritts in der Schleife. */
+const PROBE_ITEM = 'x.md';
 
 function befund(step, code, detail = {}) {
   return { code, line: step.line, blockLine: step.blockLine, column: null, detail };
@@ -141,7 +180,7 @@ function pfadWert(step, raw, kontext, answers, findings) {
  *
  * @param {object[]} steps geprüfte Schritte.
  * @param {object} context Kontext des aktiven Dokuments (`file`, `title`,
- *   `folder`, `area`, `nowMs`, `locale`).
+ *   `folder`, `area`, `nowMs`, `locale`; im Ereignis-Lauf dazu `from`, `task`).
  * @param {object} answers Antworten der Dialog-Kette.
  * @returns {{refs: {line: number, blockLine: number, path: string}[], findings: object[]}}
  */
@@ -205,6 +244,15 @@ function argumentWert(step, arg, context, answers, findings) {
   if (arg.type === 'commandId') return arg.raw;
   if (arg.form === 'word') return arg.type === 'value' ? Number(arg.raw) : arg.raw;
   if (arg.type === 'path') return pfadWert(step, arg.raw, context, answers, findings);
+  if (arg.type === 'pattern') {
+    const muster = pfadWert(step, arg.raw, context, answers, findings);
+    if (muster === null) return null;
+    if (!parseLoopPattern(muster).ok) {
+      findings.push(befund(step, 'loopPatternInvalid', { pattern: muster }));
+      return null;
+    }
+    return muster;
+  }
   const gefuellt = fuelle(arg.raw, context, answers);
   if (!gefuellt.ok) {
     findings.push(befund(step, 'placeholderInvalid', { engine: gefuellt.engine }));
@@ -259,6 +307,116 @@ function bezugPruefen(step, args, options, findings) {
   else if (lage === 'ambiguous') findings.push(befund(step, `${keyword}Ambiguous`, { name }));
 }
 
+// Füllt einen Schritt; Befunde gehen in `findings`.
+function fuelleSchritt(step, context, answers, templates, options, findings) {
+  const args = step.args.map((a) => argumentWert(step, a, context, answers, findings));
+  bezugPruefen(step, args, options, findings);
+  const source = quelleWert(step, args, context, answers, templates, findings);
+  let position = null;
+  if (step.position && step.position.kind === 'atStart') position = { kind: 'atStart' };
+  else if (step.position) {
+    const ueberschrift = fuelle(step.position.raw, context, answers);
+    if (ueberschrift.ok) position = { kind: 'under', heading: ueberschrift.text };
+    else findings.push(befund(step, 'placeholderInvalid', { engine: ueberschrift.engine }));
+  }
+  const gefuellt = {
+    line: step.line,
+    blockLine: step.blockLine,
+    keyword: step.keyword,
+    args,
+    source,
+    position,
+  };
+  if (typeof step.script === 'string') gefuellt.script = step.script;
+  if (typeof step.result === 'string') gefuellt.result = step.result;
+  return gefuellt;
+}
+
+/**
+ * Die Belegung der Skript-Platzhalter aus den gelieferten Ergebnissen.
+ *
+ * @param {Object<string, string>} [ergebnisse] Name (klein) → Ergebnis als Text.
+ * @returns {Object<string, string>} `script:<name>` → Text.
+ */
+function scriptResultContext(ergebnisse) {
+  const kontext = {};
+  for (const [name, wert] of Object.entries(ergebnisse || {})) kontext[`script:${name}`] = wert;
+  return kontext;
+}
+
+/**
+ * Die Belegung der Schleifen-Platzhalter für eine Datei (3g).
+ *
+ * @param {string} pfad wurzel-relativ mit `/`.
+ * @returns {{item: string, 'item:name': string}} Pfad und Name ohne Endung.
+ */
+function loopItemContext(pfad) {
+  const text = String(pfad == null ? '' : pfad).replace(/\\/g, '/');
+  const name = text.slice(text.lastIndexOf('/') + 1);
+  const punkt = name.lastIndexOf('.');
+  return { item: text, 'item:name': punkt > 0 ? name.slice(0, punkt) : name };
+}
+
+// Trägt ein Schritt einen Schleifen-Platzhalter?
+function traegtItem(step) {
+  return texteDes(step).some((raw) => hasLoopPlaceholder(raw));
+}
+
+// Trägt ein Schritt einen Platzhalter eines Skript-Ergebnisses?
+function traegtSkript(step) {
+  return texteDes(step).some((raw) => hasScriptPlaceholder(raw));
+}
+
+// Ersatz-Werte der Skript-Platzhalter eines Schritts für die Probe-Füllung: ein
+// harmloser Name wie beim Ersatz im Prüfer, damit ein Pfad aus einem
+// Skript-Ergebnis nicht schon als leer auffällt.
+function skriptProbe(step) {
+  const probe = {};
+  for (const raw of texteDes(step)) {
+    const analysis = analyzeTemplate(raw);
+    if (!analysis.ok) continue;
+    for (const seg of analysis.segments) {
+      if (seg.type === 'context' && seg.name.startsWith('script:')) probe[seg.name] = 'x';
+    }
+  }
+  return probe;
+}
+
+// Die Vorlagen, die ein Schritt liest (sein Pfad trägt kein `{{item}}`).
+function vorlagenDes(step, context, answers, templates) {
+  if (!step.source || step.source.kind !== 'template') return {};
+  const pfad = fuellePfad(step.source.raw, context, answers);
+  if (!pfad.ok || !hat(templates, pfad.text)) return {};
+  return { [pfad.text]: templates[pfad.text] };
+}
+
+/**
+ * Füllt einen zurückgestellten Schritt für eine Datei der Schleife und mit den
+ * bis dahin gelieferten Skript-Ergebnissen.
+ *
+ * @param {{line: number, blockLine: number, deferred: {step: object,
+ *   context: object, answers: object, templates: object, item?: boolean}}}
+ *   deferredStep aus `prepareRun`.
+ * @param {string|null} itemPath Pfad der Datei, wurzel-relativ mit `/`; null
+ *   außerhalb einer Schleife.
+ * @param {Object<string, string>} [scriptResults] Name (klein) → Ergebnis.
+ * @returns {{ok: boolean, step: object|null, findings: object[]}}
+ */
+function fillLoopStep(deferredStep, itemPath, scriptResults) {
+  const findings = [];
+  const d = deferredStep && deferredStep.deferred;
+  if (!d || !d.step) {
+    return { ok: false, step: null, findings: [befund(deferredStep || {}, 'unexpected')] };
+  }
+  const kontext = {
+    ...d.context,
+    ...(itemPath == null ? {} : loopItemContext(itemPath)),
+    ...scriptResultContext(scriptResults),
+  };
+  const step = fuelleSchritt(d.step, kontext, d.answers, d.templates || {}, {}, findings);
+  return { ok: findings.length === 0, step: findings.length === 0 ? step : null, findings };
+}
+
 /**
  * Füllt alle Schritte und prüft sie erneut, vor dem ersten Schritt.
  *
@@ -273,27 +431,44 @@ function bezugPruefen(step, args, options, findings) {
 function prepareRun(steps, context, answers, templates, options = {}) {
   const findings = [];
   const fertig = [];
-  for (const step of steps || []) {
-    const args = step.args.map((a) => argumentWert(step, a, context, answers, findings));
-    bezugPruefen(step, args, options, findings);
-    const source = quelleWert(step, args, context, answers, templates, findings);
-    let position = null;
-    if (step.position && step.position.kind === 'atStart') position = { kind: 'atStart' };
-    else if (step.position) {
-      const ueberschrift = fuelle(step.position.raw, context, answers);
-      if (ueberschrift.ok) position = { kind: 'under', heading: ueberschrift.text };
-      else findings.push(befund(step, 'placeholderInvalid', { engine: ueberschrift.engine }));
+  const { inLoop } = blockStructure(steps || []);
+  (steps || []).forEach((step, index) => {
+    const item = inLoop[index] === true && traegtItem(step);
+    if (item || traegtSkript(step)) {
+      // Probe mit Ersatz-Pfad und leeren Skript-Ergebnissen; die Füllung im
+      // Lauf leistet `fillLoopStep`.
+      const probe = { ...context, ...skriptProbe(step) };
+      if (item) Object.assign(probe, loopItemContext(PROBE_ITEM));
+      fuelleSchritt(step, probe, answers, templates, options, findings);
+      fertig.push({
+        line: step.line,
+        blockLine: step.blockLine,
+        keyword: step.keyword,
+        args: [],
+        source: null,
+        position: null,
+        deferred: {
+          step,
+          context,
+          answers: answers || {},
+          templates: vorlagenDes(step, context, answers, templates),
+          item,
+        },
+      });
+      return;
     }
-    fertig.push({
-      line: step.line,
-      blockLine: step.blockLine,
-      keyword: step.keyword,
-      args,
-      source,
-      position,
-    });
-  }
+    fertig.push(fuelleSchritt(step, context, answers, templates, options, findings));
+  });
   return { ok: findings.length === 0, steps: findings.length === 0 ? fertig : [], findings };
 }
 
-module.exports = { prepareRun, templateInputs, templateRefs, workflowInputs };
+module.exports = {
+  PROBE_ITEM,
+  fillLoopStep,
+  loopItemContext,
+  prepareRun,
+  scriptResultContext,
+  templateInputs,
+  templateRefs,
+  workflowInputs,
+};

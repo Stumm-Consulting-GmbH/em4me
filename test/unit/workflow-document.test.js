@@ -177,6 +177,95 @@ describe('Zeitplan im Dateikopf', () => {
   });
 });
 
+// 4T-002459 (Epic 3E-000367): `trigger: event` und `event` (Story 4S-001142,
+// Entscheidung 3b). Die Zeile eines Befunds ist die Zeile seines Schlüssels im
+// Dokument; Zeile 1 ist die öffnende `---`.
+describe('Ereignis im Dateikopf', () => {
+  const lies = (kopf) => readWorkflowDocument(datei(`workflow: true\n${kopf}`, block('wait 1')));
+  const befunde = (kopf) => lies(kopf).findings.map((f) => [f.code, f.line, f.detail]);
+
+  it('liest trigger: event mit lesbarer Ereignis-Zeile ohne Befund (AK1)', () => {
+    const r = lies('trigger: event\nevent: file-changed in "Projekte" matching "*.md"');
+    expect(r.findings).toEqual([]);
+    expect(r.meta).toMatchObject({
+      trigger: 'event',
+      event: { event: 'file-changed', in: 'Projekte', matching: '*.md' },
+      eventText: 'file-changed in "Projekte" matching "*.md"',
+      schedule: null,
+    });
+    expect(lies('trigger: event\nevent: area-opened').meta.event).toEqual({
+      event: 'area-opened',
+      in: null,
+      matching: null,
+    });
+  });
+
+  it('liest die Zeile auch ganz in Anführungszeichen', () => {
+    const r = lies(`trigger: event\nevent: 'file-created in "Eingang"'`);
+    expect(r.meta.event).toEqual({ event: 'file-created', in: 'Eingang', matching: null });
+  });
+
+  it('meldet jede fehlerhafte Ereignis-Zeile mit Zeile und Grund (AK2)', () => {
+    expect(befunde('trigger: event\nevent: file-deleted in "Eingang"')).toEqual([
+      ['eventUnknown', 4, { event: 'file-deleted' }],
+    ]);
+    expect(befunde('trigger: event\nname: X\nevent: file-created in "../Fremd"')).toEqual([
+      ['eventOutsideArea', 5, { path: '../Fremd', kind: 'parent' }],
+    ]);
+    expect(befunde('trigger: event\nevent: file-created in Eingang')).toEqual([
+      ['eventUnreadable', 4, { event: 'file-created in Eingang' }],
+    ]);
+    expect(befunde('trigger: event\nevent: 42')).toEqual([['eventUnreadable', 4, { event: '42' }]]);
+    expect(befunde('trigger: event\nevent: file-changed matching "A/*.md"')).toEqual([
+      ['eventPatternInvalid', 4, { pattern: 'A/*.md' }],
+    ]);
+    expect(befunde('trigger: event\nevent: area-opened in "Eingang"')).toEqual([
+      ['eventFilterNotAllowed', 4, { event: 'area-opened' }],
+    ]);
+    expect(lies('trigger: event\nevent: file-deleted').meta.event).toBeNull();
+  });
+
+  it('meldet event ohne trigger: event an der event-Zeile', () => {
+    expect(befunde('event: file-created')).toEqual([['eventWithoutTrigger', 3, {}]]);
+    expect(befunde('trigger: schedule\nschedule: every day at 08:00\nevent: area-opened')).toEqual([
+      ['eventWithoutTrigger', 5, {}],
+    ]);
+    expect(lies('event: file-created').meta.event).toBeNull();
+  });
+
+  it('meldet trigger: event ohne event an der trigger-Zeile', () => {
+    expect(befunde('name: X\ntrigger: event')).toEqual([['eventMissing', 4, {}]]);
+  });
+
+  it('meldet eine zweite event-Zeile an ihrer Zeile, statt die Datei zu verwerfen', () => {
+    const r = lies('trigger: event\nevent: file-created\nname: X\nevent: file-changed');
+    expect(r.isWorkflow).toBe(true);
+    expect(r.meta).toMatchObject({ name: 'X', trigger: 'event', event: null });
+    expect(r.findings.map((f) => [f.code, f.line])).toEqual([['eventDuplicate', 6]]);
+    expect(r.block).not.toBeNull();
+  });
+
+  it('meldet eine Liste von Ereignissen als mehr als eine event-Zeile', () => {
+    expect(befunde('trigger: event\nevent: [file-created, file-changed]')).toEqual([
+      ['eventDuplicate', 4, {}],
+    ]);
+    expect(befunde('trigger: event\nevent:\n  - file-created\n  - file-changed')).toEqual([
+      ['eventDuplicate', 4, {}],
+    ]);
+  });
+
+  it('bleibt bei jedem anderen kaputten Dateikopf ohne Workflow', () => {
+    expect(lies('trigger: event\nevent: a\nevent: b\nname: X\nname: Y').isWorkflow).toBe(false);
+    expect(lies('event: a\nevent: b\nworkflow: false').isWorkflow).toBe(false);
+  });
+
+  it('zählt die Zeile auch mit CRLF und Byte-Order-Zeichen', () => {
+    const text = '﻿' + datei('workflow: true\ntrigger: event\nevent: a\nevent: b', '');
+    const r = readWorkflowDocument(text.replace(/\n/g, '\r\n'));
+    expect(r.findings.find((f) => f.code === 'eventDuplicate').line).toBe(5);
+  });
+});
+
 describe('Der Block (G1)', () => {
   it('findet genau einen Block mit Lage im Dokument, auch mit CRLF', () => {
     const text = datei('workflow: true', '# Titel\n\n' + block('wait 1\nnotify "x"')).replace(

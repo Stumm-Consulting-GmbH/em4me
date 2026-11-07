@@ -152,6 +152,47 @@ describe('Knopf «Scharf»', () => {
     expect(schalteScharf.mock.calls[1].slice(0, 2)).toEqual(['C:/b/Probe.md', true]);
   });
 
+  // 4T-002463 (Epic 3E-000367, Story 4S-001146): auch bei trigger: event.
+  it('steht auch bei trigger: event und nennt das Ereignis im Hinweis (AK1)', async () => {
+    const EREIGNIS = ['trigger: event', 'event: file-created in "Eingang"'];
+    const view = sicht(W(EREIGNIS, 'notify "x"'));
+    expect(knopf(view)).not.toBeNull();
+    expect(knopf(view).title).toBe(
+      'Scharf schalten: Der Workflow läuft dann bei neuer Datei in ‹Eingang›',
+    );
+    zustand = {
+      ...zustand,
+      scheduled: false,
+      trigger: 'event',
+      event: { event: 'file-created', in: 'Posteingang', matching: null },
+      status: 'armed',
+    };
+    knopf(view).click();
+    await ruhe();
+    expect(schalteScharf.mock.calls[0].slice(0, 2)).toEqual(['C:/b/Probe.md', false]);
+  });
+
+  it('nach einer Scharf-Schaltung zeigt er das Ereignis aus der Antwort des Hauptprozesses', async () => {
+    zustand = {
+      ...zustand,
+      scheduled: false,
+      trigger: 'event',
+      event: { event: 'file-moved', in: null, matching: '*.md' },
+      status: 'armed',
+    };
+    const view = sicht(W(['trigger: event', 'event: file-moved matching "*.md"'], 'notify "x"'));
+    await ruhe();
+    expect(knopf(view).getAttribute('aria-pressed')).toBe('true');
+    expect(knopf(view).title).toBe(
+      'Scharf, läuft bei verschobener Datei, Name passend zu ‹*.md›; klicken zum Entschärfen',
+    );
+  });
+
+  it('fehlt bei einem unbekannten Auslöser', () => {
+    const view = sicht(W(['trigger: webhook'], 'notify "x"'));
+    expect(knopf(view)).toBeNull();
+  });
+
   it('ohne Speicherort und ohne Bereich meldet er den Grund und schaltet nicht', async () => {
     const ohne = sicht(W(ZEITPLAN, 'notify "x"'), '');
     expect(knopf(ohne).getAttribute('aria-disabled')).toBe('true');

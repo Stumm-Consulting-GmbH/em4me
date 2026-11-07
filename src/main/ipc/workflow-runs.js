@@ -6,8 +6,8 @@
 //                  { ok: true, status, workflows } oder { ok: false, code }.
 //                  `status` wie bei der Index-Sicht: `ready`, `indexing` oder
 //                  `unavailable`; je Workflow { name, description, relPath,
-//                  absPath, runs, lastRun, runStateDefect, scheduled, armed,
-//                  nextDue, skipped }.
+//                  absPath, runs, lastRun, runStateDefect, scheduled, trigger,
+//                  event, armed, nextDue, skipped }.
 //
 // **Welche Workflows:** alle gekennzeichneten Dateien des Bereichs aus dem
 // Bereichs-Index (`workflowFilesFor`, 4T-002347), nicht nur die des
@@ -41,6 +41,14 @@
 // Eintrag hat `scheduled: false` und `armed: 'notArmed'`: Er wird nie scharf
 // (2h).
 //
+// **Stufe 3** (4T-002463, Epic 3E-000367, Story 4S-001146, Entscheidung 3c):
+// je Eintrag dazu `trigger` (der gelesene Auslöser; der Schalter erscheint bei
+// `schedule` und `event`) und `event`, die gelesene Ereignis-Regel
+// `{ event, in, matching }` eines Workflows mit `trigger: event`, sonst null;
+// aus ihr nennt die Seite das Ereignis in Worten. `lastRun.event` (Herkunft
+// `event`, 4T-002460) reist unverändert aus der Begleitdatei mit. Ein fremder
+// Eintrag hat `trigger: null` und `event: null`.
+//
 // Die Bereichs-Wurzel ist immer die des sendenden Fensters. Eigener Zustand: keiner.
 'use strict';
 
@@ -52,6 +60,7 @@ const { readWorkflowDocument } = require('../../shared/workflows/workflow-docume
 const { MAX_WORKFLOW_BYTES } = require('../workflows/workflow-folder.js');
 const { createLinkedWorkflowSources } = require('../workflows/workflow-linked-sources.js');
 const { SCHEDULE_TRIGGER } = require('../../shared/workflows/workflow-schedule.js');
+const { EVENT_TRIGGER } = require('../../shared/workflows/workflow-event.js');
 const { ARMED_STATUS, armedStatus } = require('../workflows/workflow-run-state.js');
 
 /**
@@ -121,6 +130,8 @@ async function eintrag(datei, backlinks) {
     lastRun: stand ? stand.lastRun : null,
     runStateDefect: defekt,
     scheduled: Boolean(doc && doc.meta.trigger === SCHEDULE_TRIGGER),
+    trigger: doc ? doc.meta.trigger : null,
+    event: doc && doc.meta.trigger === EVENT_TRIGGER && doc.meta.event ? doc.meta.event : null,
     armed: status,
     nextDue: status === ARMED_STATUS.armed && stand ? stand.nextDue : null,
     skipped: stand ? stand.skipped : null,
@@ -141,6 +152,8 @@ function fremderEintrag(w) {
     lastRun: null,
     runStateDefect: false,
     scheduled: false,
+    trigger: null,
+    event: null,
     armed: ARMED_STATUS.notArmed,
     nextDue: null,
     skipped: null,

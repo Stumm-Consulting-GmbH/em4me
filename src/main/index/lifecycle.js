@@ -13,6 +13,8 @@ const { buildIndexAsync } = require('./build.js');
 // 4T-002023 (Epic 3E-000192): geschriebene Stände eines geschlossenen Fensters.
 const { clearBufferOverlaysOfOwner, meldeOverlayAenderung } = require('./overlay.js');
 const { writeAreaCache } = require('./cache.js');
+// 4T-002462 (Epic 3E-000367): Vergleichs-Stände «Aufgabe erledigt» der Wurzel.
+const { vergissAufgaben } = require('./aufgaben-erledigt.js');
 const { normalizeBlockEntries } = require('./block-data.js');
 // 4T-001761 (Epic 3E-000253): Die abgeleiteten Zuordnungen des Datensatz-
 // Zugriffs hängen am Bestand und nicht an der Wurzel; ein Neuaufbau, der den
@@ -329,6 +331,9 @@ function teardownIndex(rootPath, opts = {}) {
     }
   }
   indexes.delete(rootPath);
+  // 4T-002462: Kein Vergleichs-Stand überdauert den Abbau, sonst holte die
+  // nächste Änderung nach dem Wieder-Öffnen nach, was in der Schließung geschah.
+  vergissAufgaben(rootPath, { unter: true });
 }
 
 // B-18 (4T-000187): Index-Lebenszyklus von der Panel-Sichtbarkeit entkoppelt.

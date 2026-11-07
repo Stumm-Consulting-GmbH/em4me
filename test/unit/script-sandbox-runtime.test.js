@@ -86,7 +86,9 @@ describe('script-sandbox Laufzeit — Protokoll-Validierung (4T-000412)', () => 
     const { deliver, port, received } = createRuntime();
     deliver({ type: 'pm-script-run', script: 'pq.out("Hallo " + (1 + 2));', data: null }, [port]);
     await settle();
-    expect(received).toEqual([{ type: 'result', output: [{ kind: 'text', text: 'Hallo 3' }] }]);
+    expect(received).toEqual([
+      { type: 'result', output: [{ kind: 'text', text: 'Hallo 3' }], value: null },
+    ]);
   });
 
   it('ignoriert Nachrichten ohne erwartetes Schema (Typ, Skript-String, Port)', async () => {
@@ -149,7 +151,91 @@ describe('script-sandbox Laufzeit — Protokoll-Validierung (4T-000412)', () => 
     const script = 'return Promise.resolve().then(function () { pq.out("später"); });';
     deliver({ type: 'pm-script-run', script, data: null }, [port]);
     await settle();
-    expect(received).toEqual([{ type: 'result', output: [{ kind: 'text', text: 'später' }] }]);
+    expect(received).toEqual([
+      { type: 'result', output: [{ kind: 'text', text: 'später' }], value: null },
+    ]);
+  });
+});
+
+// 4T-002465 (Epic 3E-000367, Story 4S-001149): Der Skript-Schritt eines
+// Workflows liest den Rückgabe-Wert; die Lese-Schnittstelle hat keinen
+// Schreibweg (Sicherheits-Zusicherung des Tasks, AK3).
+describe('script-sandbox Laufzeit — Rückgabe-Wert und kein Schreibweg (4T-002465)', () => {
+  async function run(script, data = null) {
+    const { deliver, port, received } = createRuntime();
+    deliver({ type: 'pm-script-run', script, data }, [port]);
+    await settle();
+    expect(received.length).toBe(1);
+    return received[0];
+  }
+
+  it('liefert Text, Zahl und Wahrheitswert als value, auch aus einem Promise', async () => {
+    expect((await run('return "drei";')).value).toBe('drei');
+    expect((await run('return 1 + 2;')).value).toBe(3);
+    expect((await run('return false;')).value).toBe(false);
+    expect((await run('return Promise.resolve(true);')).value).toBe(true);
+  });
+
+  it('macht undefined, Objekte, Funktionen und NaN zu null', async () => {
+    for (const script of [
+      'pq.out(1);',
+      'return {a: 1};',
+      'return function () {};',
+      'return 0/0;',
+    ]) {
+      const antwort = await run(script);
+      expect(antwort.type).toBe('result');
+      expect(antwort.value).toBeNull();
+    }
+  });
+
+  it('die Lese-Schnittstelle besteht aus genau den lesenden und ausgebenden Bausteinen', async () => {
+    const antwort = await run('return Object.keys(pq).sort().join(",");');
+    expect(antwort.value).toBe(
+      [
+        'blocks',
+        'current',
+        'date',
+        'dur',
+        'el',
+        'file',
+        'indexStatus',
+        'link',
+        'list',
+        'md',
+        'out',
+        'pages',
+        'sort',
+        'table',
+        'version',
+      ].join(','),
+    );
+  });
+
+  it('jeder Schreibversuch scheitert als Fehler des Skripts', async () => {
+    const versuche = [
+      'pq.write("Liste.md", "x");',
+      'pq.setProperty("Liste.md", "status", "x");',
+      'window.api.writeFile("Liste.md", "x");',
+      'api.writeFile("Liste.md", "x");',
+      'document.body.textContent = "x";',
+    ];
+    for (const script of versuche) {
+      const antwort = await run(script);
+      expect(antwort.type).toBe('error');
+      expect(antwort.message.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('Änderungen an den gelesenen Seiten bleiben in der Sandbox (Kopie)', async () => {
+    const data = {
+      status: 'ready',
+      pages: [{ props: { status: 'offen' }, file: { name: 'Liste', path: 'Liste.md' } }],
+      blocks: [],
+    };
+    const antwort = await run('pq.pages()[0].status = "erledigt"; return "ok";', data);
+    expect(antwort.value).toBe('ok');
+    expect(data.pages[0].props.status).toBe('offen');
   });
 });
 

@@ -47,7 +47,7 @@ import { api } from './app/api.js';
 import { starteWorkflow } from './workflows/workflow-start.js';
 // 4T-002422 (Epic 3E-000366): die Scharf-Schaltung, dasselbe Kommando wie
 // Spalte und Knopf über dem Block.
-import { SCHARF, scharfZustand, schalteScharf } from './workflows/workflow-scharf.js';
+import { SCHARF, istSchaltbar, scharfZustand, schalteScharf } from './workflows/workflow-scharf.js';
 import { WORKFLOWS_EXTENSION_ID } from '../../shared/workflows/workflow-konstanten.js';
 
 const MARKDOWN_ENDUNG = /\.(md|markdown|mdown|mkd)$/i;
@@ -159,7 +159,8 @@ async function ergaenzeWorkflowStart(menu, absPath, x, y) {
   }
   if (!antwort || antwort.isWorkflow !== true) return;
   // 4T-002422: Der Schalter steht nur bei `trigger: schedule` (Entscheidung
-  // 2e); sein Zustand kommt aus dem Lauf-Stand, gefragt erst bei einer
+  // 2e), seit 4T-002463 auch bei `trigger: event` (3c, `istSchaltbar`); sein
+  // Zustand kommt aus dem Lauf-Stand, gefragt erst bei einer
   // Workflow-Datei. Ein scharfer Workflow bekommt «Entschärfen», jeder andere,
   // auch einer mit geänderter Definition, «Scharf schalten».
   const scharf = await scharfZustand(absPath);
@@ -168,7 +169,7 @@ async function ergaenzeWorkflowStart(menu, absPath, x, y) {
   appendItem(gruppe, 'area-file-workflow-start', t('workflow.start.knopf'), () =>
     starteWorkflow({ path: absPath }),
   );
-  if (scharf && scharf.ok && scharf.scheduled === true) {
+  if (scharf && scharf.ok && istSchaltbar(scharf.trigger)) {
     const an = scharf.status === SCHARF.an;
     const label = t(an ? 'workflow.scharf.menuAus' : 'workflow.scharf.menuAn');
     appendItem(gruppe, 'area-file-workflow-arm', label, () => schalteScharf(absPath, !an));

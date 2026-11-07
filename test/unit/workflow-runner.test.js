@@ -3,13 +3,20 @@
 // Fehlschlag (A1), Fenster- und Hauptprozess-Schritte (A3), Aufruf-Tiefe über
 // Workflows und Makros (A4), `wait`, `notify` und `stop` (Story 4S-001104).
 // Alle Wirkungen sind Attrappen; Muster test/unit/macro-runner.test.js.
+// Seit 4T-002464 (Stories 4S-001147 und 4S-001148) dazu Bedingungen und
+// Schleife als Block: Die Schritte kommen dort wie im Lauf aus Prüfer und
+// `prepareRun`, damit die zurückgestellten Schritte echt gefüllt werden.
 import { describe, it, expect } from 'vitest';
 import {
   MAX_CALL_DEPTH,
   RUNNER_CODES,
+  compareLoopPaths,
   deleteTargets,
   runWorkflow,
 } from '../../src/shared/workflows/workflow-runner.js';
+import { checkWorkflow } from '../../src/shared/workflows/workflow-check.js';
+import { readWorkflowDocument } from '../../src/shared/workflows/workflow-document.js';
+import { prepareRun } from '../../src/shared/workflows/workflow-placeholders.js';
 import { MACRO_MAX_CALL_DEPTH } from '../../src/shared/commands/command-placement.js';
 
 const s = (line, keyword, ...args) => ({
@@ -330,5 +337,261 @@ describe('confirm und Lösch-Ziele (4T-002424)', () => {
     expect(deleteTargets(a)).toEqual(['a.md', 'b.md']);
     expect(deleteTargets(plan('C', [s(5, 'notify', 'x')]))).toEqual([]);
     expect(deleteTargets(null)).toEqual([]);
+  });
+});
+
+// 4T-002464: Bedingungen und Schleife (3f, 3g).
+describe('Block-Form im Ablauf-Kern (4T-002464)', () => {
+  const ZAUN = '```';
+  // Prüfen und Füllen wie im Lauf; der Kontext nennt das aktive Dokument.
+  function vorbereitet(zeilen, kontext = { file: 'Aktiv.md', area: 'B', nowMs: 0 }) {
+    const doc = readWorkflowDocument(
+      `---\nworkflow: true\n---\n${ZAUN}workflow\n${zeilen.join('\n')}\n${ZAUN}\n`,
+    );
+    const geprueft = checkWorkflow(doc);
+    expect(geprueft.findings).toEqual([]);
+    const gefuellt = prepareRun(geprueft.steps, kontext, {}, {});
+    expect(gefuellt.findings).toEqual([]);
+    return plan('W', gefuellt.steps);
+  }
+
+  // Der Hauptprozess als Attrappe: vorhandene Dateien, Eigenschaften, Listen.
+  function bereich({ da = [], eigenschaften = {}, listen = {}, fehlschlag = null } = {}) {
+    const vorhanden = new Set(da);
+    const ergebnis = makeDeps();
+    ergebnis.deps.step = async (pfad, step) => {
+      ergebnis.calls.push(`step:${step.keyword}:${step.args[0]}`);
+      const [ziel, name, wert] = step.args;
+      const kopf = { line: step.line, keyword: step.keyword };
+      if (fehlschlag && fehlschlag(step)) return { ok: false, ...kopf, code: 'fileMissing' };
+      if (step.keyword === 'if-exists') return { ok: true, ...kopf, value: vorhanden.has(ziel) };
+      if (step.keyword === 'if-missing') return { ok: true, ...kopf, value: !vorhanden.has(ziel) };
+      if (step.keyword === 'if-property') {
+        const ist = (eigenschaften[ziel] || {})[name];
+        const value = wert === undefined ? !!ist : ist === wert;
+        return { ok: true, ...kopf, value };
+      }
+      if (step.keyword === 'for-each') return { ok: true, ...kopf, files: listen[ziel] || [] };
+      if (step.keyword === 'create') vorhanden.add(ziel);
+      return { ok: true, ...kopf, effect: { kind: 'edited' } };
+    };
+    return ergebnis;
+  }
+  const schritte = (calls) => calls.filter((c) => c.startsWith('step:') || c.startsWith('notify:'));
+
+  it('führt den Block nur im zutreffenden Fall aus, else im anderen (4S-001147, AK1)', async () => {
+    const zeilen = [
+      'if-exists "a.md"',
+      '  notify "da"',
+      'else',
+      '  notify "fehlt"',
+      'end',
+      'notify "danach"',
+    ];
+    const mit = bereich({ da: ['a.md'] });
+    expect(await runWorkflow(vorbereitet(zeilen), mit.deps)).toEqual({ status: 'ok' });
+    expect(schritte(mit.calls)).toEqual(['step:if-exists:a.md', 'notify:da', 'notify:danach']);
+    const ohne = bereich();
+    await runWorkflow(vorbereitet(zeilen), ohne.deps);
+    expect(schritte(ohne.calls)).toEqual(['step:if-exists:a.md', 'notify:fehlt', 'notify:danach']);
+  });
+
+  it('überspringt ohne else alle Schritte bis end und läuft danach weiter (AK2)', async () => {
+    const { deps, calls } = bereich({ da: ['Journal/x.md'] });
+    const p = vorbereitet([
+      'if-missing "Journal/x.md"',
+      'create "Journal/x.md"',
+      'notify "angelegt"',
+      'end',
+      'notify "weiter"',
+    ]);
+    expect(await runWorkflow(p, deps)).toEqual({ status: 'ok' });
+    expect(schritte(calls)).toEqual(['step:if-missing:Journal/x.md', 'notify:weiter']);
+  });
+
+  it('prüft if-property mit Wert auf Gleichheit, ohne Wert auf «gesetzt»', async () => {
+    const eigenschaften = { 'a.md': { typ: 'Rechnung' }, 'b.md': { typ: 'Brief' } };
+    const zeilen = (ziel, rest) => [`if-property "${ziel}" ${rest}`, 'notify "ja"', 'end'];
+    const lauf = async (z) => {
+      const { deps, calls } = bereich({ eigenschaften });
+      await runWorkflow(vorbereitet(z), deps);
+      return calls.includes('notify:ja');
+    };
+    expect(await lauf(zeilen('a.md', 'typ "Rechnung"'))).toBe(true);
+    expect(await lauf(zeilen('b.md', 'typ "Rechnung"'))).toBe(false);
+    expect(await lauf(zeilen('b.md', 'typ'))).toBe(true);
+    expect(await lauf(zeilen('c.md', 'typ'))).toBe(false);
+  });
+
+  it('läuft eine Verschachtelung der Tiefe 3 (AK4)', async () => {
+    const { deps, calls } = bereich({ da: ['a', 'b'] });
+    const p = vorbereitet([
+      'if-exists "a"',
+      'if-exists "b"',
+      'if-missing "c"',
+      'notify "innen"',
+      'else',
+      'notify "nie"',
+      'end',
+      'end',
+      'end',
+    ]);
+    expect(await runWorkflow(p, deps)).toEqual({ status: 'ok' });
+    expect(calls.filter((c) => c.startsWith('notify:'))).toEqual(['notify:innen']);
+  });
+
+  it('wiederholt den Block je Datei alphabetisch mit {{item}} und {{item:name}} (4S-001148, AK1)', async () => {
+    const { deps, calls } = bereich({
+      listen: { 'Eingang/*.md': ['Eingang/c.md', 'Eingang/A.md', 'Eingang/b.md'] },
+    });
+    const p = vorbereitet([
+      'for-each "Eingang/*.md"',
+      '  add-tag "{{item}}" "gesichtet"',
+      '  notify "{{item:name}} in {{file}}"',
+      'end',
+    ]);
+    expect(await runWorkflow(p, deps)).toEqual({ status: 'ok' });
+    expect(schritte(calls)).toEqual([
+      'step:for-each:Eingang/*.md',
+      'step:add-tag:Eingang/A.md',
+      'notify:A in Aktiv.md',
+      'step:add-tag:Eingang/b.md',
+      'notify:b in Aktiv.md',
+      'step:add-tag:Eingang/c.md',
+      'notify:c in Aktiv.md',
+    ]);
+  });
+
+  it('wirkt eine Bedingung in der Schleife je Datei (AK2, AK7 des Tasks)', async () => {
+    const { deps, calls } = bereich({
+      listen: { 'Sichten/*.md': ['Sichten/A.md', 'Sichten/B.md', 'Sichten/C.md'] },
+      eigenschaften: { 'Sichten/A.md': { typ: 'Rechnung' }, 'Sichten/B.md': { typ: 'Brief' } },
+    });
+    const p = vorbereitet([
+      'for-each "Sichten/*.md"',
+      '  if-property "{{item}}" typ "Rechnung"',
+      '    add-tag "{{item}}" "rechnung"',
+      '  end',
+      'end',
+    ]);
+    expect(await runWorkflow(p, deps)).toEqual({ status: 'ok' });
+    expect(calls.filter((c) => c.startsWith('step:add-tag'))).toEqual([
+      'step:add-tag:Sichten/A.md',
+    ]);
+  });
+
+  it('nimmt eine im Lauf angelegte Datei nicht in die Liste auf (AK5)', async () => {
+    const listen = { 'E/*.md': ['E/a.md'] };
+    const { deps, calls } = bereich({ listen });
+    const p = vorbereitet(['for-each "E/*.md"', 'create "E/{{item:name}}-Kopie.md"', 'end']);
+    // Die Attrappe änderte die Liste nach der ersten Frage; der Kern fragt nur einmal.
+    const frage = deps.step;
+    deps.step = async (pfad, step) => {
+      const antwort = await frage(pfad, step);
+      if (step.keyword === 'create') listen['E/*.md'].push(step.args[0]);
+      return antwort;
+    };
+    expect(await runWorkflow(p, deps)).toEqual({ status: 'ok' });
+    expect(calls.filter((c) => c.startsWith('step:'))).toEqual([
+      'step:for-each:E/*.md',
+      'step:create:E/a-Kopie.md',
+    ]);
+  });
+
+  it('läuft bei einer leeren Liste keine Wiederholung und ohne Fehlschlag (AK4)', async () => {
+    const { deps, calls } = bereich();
+    const p = vorbereitet(['for-each "E/*.md"', 'notify "{{item}}"', 'end', 'notify "fertig"']);
+    expect(await runWorkflow(p, deps)).toEqual({ status: 'ok' });
+    expect(schritte(calls)).toEqual(['step:for-each:E/*.md', 'notify:fertig']);
+  });
+
+  it('schlägt bei mehr als 500 Dateien vor der ersten Wiederholung fehl, bei 500 nicht (AK4)', async () => {
+    const liste = (n) => Array.from({ length: n }, (_, i) => `E/${i}.md`);
+    const zeilen = ['for-each "E/*.md"', 'add-tag "{{item}}" "x"', 'end'];
+    const zuViel = bereich({ listen: { 'E/*.md': liste(501) } });
+    expect(await runWorkflow(vorbereitet(zeilen), zuViel.deps)).toEqual({
+      status: 'failed',
+      workflow: 'W',
+      path: 'C:/b/W.md',
+      line: 5,
+      code: 'tooManyFiles',
+      detail: { max: 500, count: 501 },
+    });
+    expect(zuViel.calls.filter((c) => c.startsWith('step:add-tag'))).toEqual([]);
+    const genau = bereich({ listen: { 'E/*.md': liste(500) } });
+    expect(await runWorkflow(vorbereitet(zeilen), genau.deps)).toEqual({ status: 'ok' });
+    expect(genau.calls.filter((c) => c.startsWith('step:add-tag'))).toHaveLength(500);
+  });
+
+  it('beendet den Lauf beim Fehlschlag in der dritten Datei, die ersten bleiben bearbeitet (AK6)', async () => {
+    const { deps, calls } = bereich({
+      listen: { 'E/*.md': ['E/1.md', 'E/2.md', 'E/3.md', 'E/4.md'] },
+      fehlschlag: (step) => step.keyword === 'add-tag' && step.args[0] === 'E/3.md',
+    });
+    const p = vorbereitet(['for-each "E/*.md"', 'add-tag "{{item}}" "x"', 'end', 'notify "nie"']);
+    expect(await runWorkflow(p, deps)).toMatchObject({
+      status: 'failed',
+      line: 6,
+      code: 'fileMissing',
+    });
+    expect(calls.filter((c) => c.startsWith('step:add-tag'))).toEqual([
+      'step:add-tag:E/1.md',
+      'step:add-tag:E/2.md',
+      'step:add-tag:E/3.md',
+    ]);
+    expect(calls).not.toContain('notify:nie');
+    expect(calls[calls.length - 1]).toBe('finish:W:failed');
+  });
+
+  it('prüft den je Datei gefüllten Schritt erneut und meldet einen Befund mit seinem Text', async () => {
+    const { deps, calls } = bereich({ listen: { 'E/*.md': ['../fremd.md'] } });
+    const p = vorbereitet(['for-each "E/*.md"', 'move "{{item}}" "Archiv"', 'end']);
+    expect(await runWorkflow(p, deps)).toMatchObject({
+      status: 'failed',
+      line: 6,
+      code: 'pathOutsideArea',
+      detail: { kind: 'parent' },
+      befund: true,
+    });
+    expect(calls.filter((c) => c.startsWith('step:move'))).toEqual([]);
+  });
+
+  it('macht einen Fehlschlag der Bedingung zum Fehlschlag des Laufs (A1)', async () => {
+    const { deps } = bereich({ fehlschlag: (step) => step.keyword === 'if-property' });
+    const p = vorbereitet(['if-property "a.md" typ', 'notify "x"', 'end']);
+    expect(await runWorkflow(p, deps)).toMatchObject({
+      status: 'failed',
+      line: 5,
+      code: 'fileMissing',
+    });
+  });
+
+  it('beendet den Lauf mit stop auch aus einem Block heraus', async () => {
+    const { deps, calls } = bereich({ listen: { 'E/*.md': ['E/a.md', 'E/b.md'] } });
+    const p = vorbereitet(['for-each "E/*.md"', 'stop "genug"', 'end', 'notify "nie"']);
+    expect(await runWorkflow(p, deps)).toMatchObject({ status: 'stopped', line: 6, text: 'genug' });
+    expect(calls).not.toContain('notify:nie');
+  });
+
+  it('gleicht vor jeder Frage an den Hauptprozess die Puffer ab', async () => {
+    const { deps, calls } = bereich({ da: ['a.md'] });
+    await runWorkflow(vorbereitet(['if-exists "a.md"', 'end']), deps);
+    expect(calls.slice(0, 2)).toEqual(['flush', 'step:if-exists:a.md']);
+  });
+
+  it('ordnet die Liste alphabetisch, Ziffern als Zahl, Umlaut beim Grundbuchstaben', () => {
+    const liste = ['E/b.md', 'E/10.md', 'E/Ä.md', 'E/a.md', 'E/2.md', 'E/A.md'];
+    expect([...liste].sort(compareLoopPaths)).toEqual([
+      'E/2.md',
+      'E/10.md',
+      'E/A.md',
+      'E/a.md',
+      'E/Ä.md',
+      'E/b.md',
+    ]);
+  });
+
+  it('nennt den Fehlschlag tooManyFiles unter den Codes des Kerns', () => {
+    expect(RUNNER_CODES).toContain('tooManyFiles');
   });
 });

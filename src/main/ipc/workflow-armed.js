@@ -1,14 +1,23 @@
 // 4T-002422 (Epic 3E-000366, Story 4S-001133): Die Kanäle der Scharf-Schaltung
 // eines Workflows nach Zeitplan (Entscheidung 2e der Konzept-Runde 4T-002418).
 //
+// **Stufe 3** (4T-002463, Epic 3E-000367, Story 4S-001146, Entscheidung 3c der
+// Konzept-Runde 4T-002458): dieselbe Mechanik für `trigger: event`. Scharf
+// schalten lässt sich ein Workflow mit einem der `SCHALTBARE_AUSLOESER`; ein
+// Ereignis-Workflow bekommt Prüfsumme (samt Zeile `event`) und keinen Termin.
+// Beide Antworten tragen dazu `trigger` und `event` (die gelesene
+// Ereignis-Regel oder null), damit die drei Bedienorte das Ereignis in Worten
+// nennen; `scheduled` bleibt mit seiner Bedeutung «Auslöser Zeitplan».
+//
 // Kanäle (Namensraum workflow:*, wie Ausführung, Ordner und Seite):
 //   workflow:setArmed     Fenster -> Hauptprozess (invoke), Nutzlast
 //                         { workflowPath, armed: boolean }; Antwort
-//                         { ok: true, status, nextDue } oder
+//                         { ok: true, status, nextDue, trigger, event } oder
 //                         { ok: false, code, findings? }.
 //   workflow:armedState   Fenster -> Hauptprozess (invoke), Nutzlast
 //                         { workflowPath }; Antwort { ok: true, isWorkflow,
-//                         scheduled, status, nextDue } oder { ok: false, code }.
+//                         scheduled, trigger, event, status, nextDue } oder
+//                         { ok: false, code }.
 //                         Für den Knopf über dem Block und das Kontextmenü des
 //                         Bereichs-Panels, die nur eine Datei kennen.
 //
@@ -24,8 +33,9 @@
 // **Grenzen** (fail-closed, der Kanal ist eine Vertrauens-Grenze): nur Pfade in
 // der Bereichs-Wurzel des SENDENDEN Fensters — ein Workflow eines verknüpften
 // Bereichs wird abgewiesen (2h, 4T-002426, wie `workflow:recordRun`); nur
-// Workflows mit `trigger: schedule`; scharf schalten nur bei eingeschalteter
-// Erweiterung «Workflows».
+// Workflows mit `trigger: schedule` oder `trigger: event` (sonst
+// `noArmableTrigger`); scharf schalten nur bei eingeschalteter Erweiterung
+// «Workflows».
 //
 // **Prüfung im Hauptprozess ohne die Rückfragen des Fensters:** Ob ein
 // Kommando, Makro oder Workflow bekannt ist, weiß allein das Fenster
@@ -33,7 +43,8 @@
 // Registry des Hauptprozesses. Der Kern lässt diese Prüfungen ohne Rückfrage
 // aus. Das Fenster prüft deshalb vor dem Aufruf mit allen Rückfragen
 // (workflow-scharf.js), der Hauptprozess dahinter fail-closed mit allem, was er
-// selbst weiß: Form, Zeitplan, «nur von Hand», Pfade, Vorlagen-Schalter.
+// selbst weiß: Form, Zeitplan, Ereignis-Zeile, «nur von Hand», Pfade,
+// Vorlagen-Schalter.
 //
 // Eigener Zustand: keiner.
 'use strict';
@@ -48,6 +59,7 @@ const {
   SCHEDULE_TRIGGER,
   nextScheduleDue,
 } = require('../../shared/workflows/workflow-schedule.js');
+const { EVENT_TRIGGER } = require('../../shared/workflows/workflow-event.js');
 const { definitionsPruefsumme } = require('../workflows/workflow-definition-hash.js');
 const {
   ARMED_STATUS,
@@ -57,6 +69,8 @@ const {
 const { readRunState, readWorkflowText } = require('./workflow-runs.js');
 
 const MAX_PFAD = 4096;
+/** Die Auslöser, bei denen der Schalter «Scharf» erscheint (2e, 3c). */
+const SCHALTBARE_AUSLOESER = Object.freeze([SCHEDULE_TRIGGER, EVENT_TRIGGER]);
 const istObjekt = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
 // Ein Befund in übertragbarer Form: Code, Zeile, Angaben.
@@ -110,9 +124,24 @@ function registerWorkflowArmedIpc(handle, deps) {
     const analyse = analyzeWorkflow(text, {
       fileName: path.basename(abs),
       templatesEnabled: isExtensionEnabled('templates', ausListe()),
+      // 4T-002465 (3n): gespeicherte Einstellung «Skript-Blöcke ausführen»;
+      // ohne Speicher oder ohne ausdrückliches true gilt sie als aus.
+      scriptsEnabled:
+        typeof deps.getStore === 'function' && deps.getStore()
+          ? deps.getStore().get('scripts.run') === true
+          : false,
     });
     if (!analyse.isWorkflow) return { ok: false, code: 'notWorkflow' };
     return { ok: true, text, analyse };
+  }
+
+  // Auslöser und Ereignis-Regel für die Anzeige an den Bedienorten.
+  function ausloeserAngaben(analyse) {
+    const { trigger, event } = analyse.meta;
+    return {
+      trigger,
+      event: trigger === EVENT_TRIGGER && istObjekt(event) ? { ...event } : null,
+    };
   }
 
   async function schalteScharf(ort) {
@@ -122,16 +151,22 @@ function registerWorkflowArmedIpc(handle, deps) {
     const datei = await lies(ort.abs);
     if (!datei.ok) return datei;
     const { analyse, text } = datei;
-    if (analyse.meta.trigger !== SCHEDULE_TRIGGER) return { ok: false, code: 'noSchedule' };
+    const { trigger } = analyse.meta;
+    if (!SCHALTBARE_AUSLOESER.includes(trigger)) return { ok: false, code: 'noArmableTrigger' };
     const hash = definitionsPruefsumme(text);
     if (!analyse.armable || hash === null) {
       return { ok: false, code: 'findings', findings: analyse.findings.map(befundAus) };
     }
-    const nextDue = nextScheduleDue(analyse.meta.schedule, localNowString(new Date(jetztMs())));
-    if (nextDue === null) return { ok: false, code: 'noNextDue' };
+    // 4T-002463: Ein Ereignis-Workflow hat keinen Termin; die Fälligkeit
+    // entsteht beim Ereignis (checks/workflow-event-check.js).
+    let nextDue = null;
+    if (trigger === SCHEDULE_TRIGGER) {
+      nextDue = nextScheduleDue(analyse.meta.schedule, localNowString(new Date(jetztMs())));
+      if (nextDue === null) return { ok: false, code: 'noNextDue' };
+    }
     const res = await laufStand.setArmedSchedule(ort.owner, ort.abs, { hash, nextDue });
     if (!res.ok) return res;
-    return { ok: true, status: ARMED_STATUS.armed, nextDue };
+    return { ok: true, status: ARMED_STATUS.armed, nextDue, ...ausloeserAngaben(analyse) };
   }
 
   handle('workflow:setArmed', async (event, nutzlast) => {
@@ -164,6 +199,7 @@ function registerWorkflowArmedIpc(handle, deps) {
         ok: true,
         isWorkflow: true,
         scheduled: datei.analyse.meta.trigger === SCHEDULE_TRIGGER,
+        ...ausloeserAngaben(datei.analyse),
         status,
         nextDue: status === ARMED_STATUS.armed && stand ? stand.nextDue : null,
       };
@@ -174,4 +210,4 @@ function registerWorkflowArmedIpc(handle, deps) {
   });
 }
 
-module.exports = { registerWorkflowArmedIpc };
+module.exports = { SCHALTBARE_AUSLOESER, registerWorkflowArmedIpc };
