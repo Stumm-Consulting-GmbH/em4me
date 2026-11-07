@@ -207,6 +207,7 @@
   "help.featureName.queryHighlight": "Hervorhebung in Abfrage-Ergebnissen",
   "help.featureName.queryDisplayForm": "Darstellungsform einer Abfrage",
   "help.featureName.queryChart": "Diagramm einer Abfrage",
+  "help.featureName.dashboard": "Dashboard",
   "help.featureName.scriptBlocks": "Skript-Blöcke",
   "help.featureName.inlineCalc": "Inline-Berechnungen",
   "help.featureName.formulaLibrary": "Formel-Bibliothek",

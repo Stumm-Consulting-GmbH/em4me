@@ -15,6 +15,19 @@ Los enlaces wiki, las anclas, las incrustaciones y las etiquetas conectan los ar
 
 Si el nombre no acierta directamente con un archivo, se aplican dos alternativas: el acierto del índice sobre el ámbito de búsqueda y la [resolución de alias](frontmatter.md) mediante el campo de frontmatter `aliases:`; con varios candidatos pregunta un diálogo de selección. En celdas de tablas pipe, escapar la barra del texto mostrado como `\|`.
 
+**Los enlaces del frontmatter también cuentan.** Un enlace wiki que figura como valor de una propiedad en el [frontmatter](frontmatter.md), solo o como elemento de una lista, cuenta igual que un enlace en el texto: aparece en los retroenlaces del destino, en la [vista de grafo](graph.md) y en los campos de enlace `file.inlinks` y `file.outlinks` de la [consulta Perspective](frontmatter-query.md), y al renombrar el archivo de destino, la actualización de enlaces lo ajusta. El valor va entre comillas porque, sin ellas, los dobles corchetes se leerían como una lista anidada:
+
+```markdown
+---
+proyecto: "[[Proyecto A]]"
+participantes:
+  - "[[Anna]]"
+  - "[[Ben Krause|Ben]]"
+---
+```
+
+Solo se evalúan las propiedades del nivel superior y las listas que dependen directamente de ellas; los enlaces wiki dentro de propiedades anidadas no se tienen en cuenta.
+
 ## Anclas de encabezado y de bloque
 
 Los enlaces pueden apuntar a un encabezado o a un bloque dentro del archivo de destino:

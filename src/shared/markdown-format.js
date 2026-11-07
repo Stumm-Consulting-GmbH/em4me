@@ -16,6 +16,9 @@
 // (AK3). Der Bezug bleibt prozessneutral — canvas-core.js ist wie diese
 // Datei reines CJS ohne DOM und ohne Electron.
 const { canvasFenceBlock } = require('./canvas/canvas-core.js');
+// 4T-002513 (Epic 3E-000402): das Gerüst des Dashboards aus dem Dashboard-Kern,
+// aus demselben Grund und ebenso prozessneutral.
+const { dashboardGeruest } = require('./dashboard/dashboard-core.js');
 
 // Die sieben Zeichen-Formate mit ihren Markern. open/close getrennt wegen des
 // asymmetrischen Critic-Kommentars ({>>…<<}). `avoid` markiert 1-Zeichen-
@@ -491,6 +494,17 @@ function insertCanvas(text, pos) {
   return insertBlock(text, pos, block, block.indexOf('\n') + 1);
 }
 
+// 4T-002513 (Epic 3E-000402): Gerüst eines Dashboards an der Schreibmarke —
+// eine Zeile mit einer Kennzahl-Kachel über alle Treffer, deren Titel der
+// Aufrufer in der Oberflächen-Sprache liefert. Die Abfrage der Kachel ist
+// ausgewählt, denn wer ein Dashboard einfügt, ersetzt als Nächstes sie (Muster
+// insertCallout); die Stelle wird aus dem Block gerechnet (Muster insertCanvas).
+function insertDashboard(text, pos, titel) {
+  const block = dashboardGeruest(titel);
+  const r = insertBlock(text, pos, block, block.lastIndexOf('\nLIST\n') + 1);
+  return { ...r, selTo: r.selFrom + 'LIST'.length };
+}
+
 module.exports = {
   INLINE_FORMATS,
   wordRangeAt,
@@ -517,4 +531,5 @@ module.exports = {
   insertHorizontalRule,
   insertCodeBlock,
   insertCanvas,
+  insertDashboard,
 };

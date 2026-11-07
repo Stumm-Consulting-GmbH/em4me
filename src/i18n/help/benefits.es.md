@@ -180,12 +180,15 @@ En detalle: [Perfiles de propiedades](property-profiles.md).
 
 Quien lleva muchos archivos mantiene si no las vistas de conjunto a mano, y envejecen el mismo día. Una consulta Perspective describe en cambio **qué** se busca, y el resultado aparece allí mismo en el documento: una lista o tabla en la que se puede hacer clic sobre todo el conjunto, filtrada por propiedades, etiquetas y campos de archivo, hasta los bloques de texto y las tareas. Si lo deseas, la consulta reúne los resultados en grupos, con una fila por grupo que indica el número, la suma o la media. Si lo deseas, muestra también el resultado como gráfico de barras o de líneas, que cambia con el conjunto. Si cambia el conjunto, cambia la salida, sin que nadie actualice nada.
 
+Quien quiere ver lado a lado cifras clave, listas y gráficos de varias consultas crea un **panel**: mosaicos en filas, cada uno con su consulta, y en la cabecera campos de selección que acotan a la vez todos los mosaicos, por ejemplo por estado o por proyecto, sin modificar los documentos. El panel es a su vez un documento Markdown del área; la impresión y la exportación a PDF muestran los valores elegidos; la exportación portátil, los valores predefinidos.
+
 - **Páginas temáticas** que listan por sí solas sus archivos asociados.
 - **Filtros y grupos** por propiedades del frontmatter, etiquetas y campos de archivo, con el número y las sumas por grupo.
 - **Nivel de bloque, de tarea y de registro**, no solo archivos enteros.
 - **Cada resultado con enlace** que lleva directo a su destino.
+- **Paneles** que muestran lado a lado cifras clave, listas y gráficos de varias consultas y se acotan en la cabecera con campos de selección.
 
-En detalle: [Consulta Perspective](frontmatter-query.md).
+En detalle: [Consulta Perspective](frontmatter-query.md) y [Paneles](dashboards.md).
 
 ## Cuando la consulta no basta: los scripts
 

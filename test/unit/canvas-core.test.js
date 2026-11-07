@@ -389,7 +389,9 @@ describe('canvas-core — Prozess-Neutralität (AK6)', () => {
       'utf8',
     );
     const importe = [...quelle.matchAll(/require\(\s*['"]([^'"]+)['"]\s*\)/g)].map((m) => m[1]);
-    expect(importe).toEqual(['../bild-endungen.js']);
+    // 4T-002509: dazu die lexikalische Hülle aus ihrem eigenen Blatt, selbst
+    // abhängigkeitsfrei und prozessneutral.
+    expect(importe).toEqual(['../bild-endungen.js', './marker-grammatik.js']);
   });
 });
 

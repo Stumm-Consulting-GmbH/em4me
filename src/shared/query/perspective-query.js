@@ -323,6 +323,13 @@ function tokenize(input) {
       i = close + 2;
       continue;
     }
+    // 4T-002511: Platzhalter `$name` (query-platzhalter.js); `$` ohne Namen bleibt unexpectedChar.
+    const param = c === '$' ? platzhalterToken(src, i) : null;
+    if (param) {
+      tokens.push(param);
+      i = param.ende;
+      continue;
+    }
     // Wort: Feldname, Keyword oder (nach Klassifikation) Zahl.
     WORD_RE.lastIndex = i;
     const wm = WORD_RE.exec(src);
@@ -430,10 +437,18 @@ function isWord(t, upper) {
 // wieder nach demselben Muster und mit derselben Einschraenkung fuer den nackten
 // Namen 'records'. Die Ebene bestimmt die Deutung von FROM (E6.1); der Parser
 // liest die Quelle unveraendert, die Deutung liegt in der Auswertung der Ebene.
+//
+// 4T-002511 (Epic 3E-000402): Am einen Ausgang prüft query-platzhalter.js die
+// Stellen der Platzhalter, nach allen Klauseln samt DISPLAY und vor der Rückgabe
+// des Baums; der rekursive Abstieg steht deshalb in parseTokens.
 function parseQuery(input, opts) {
   const tk = tokenize(input);
   if (!tk.ok) return tk;
-  const tokens = tk.tokens;
+  const ausdruck = !!(opts && opts.expression);
+  return pruefePlatzhalter(parseTokens(tk.tokens, opts), tk.tokens, ausdruck, clauseKeywordOf);
+}
+
+function parseTokens(tokens, opts) {
   if (tokens.length === 0) {
     return { ok: false, error: { code: 'empty', message: 'Leere Abfrage', pos: 0 } };
   }
@@ -582,6 +597,8 @@ function parseQuery(input, opts) {
       next();
       return { type: 'num', value: t.value };
     }
+    // 4T-002511: der Platzhalter; seine Stelle prüft pruefePlatzhalter.
+    if (t.type === 'param') return { type: 'param', name: next().name, pos: t.pos };
     if (t.type === 'datelit') {
       next();
       return parseDateLiteral(t);
@@ -1023,6 +1040,8 @@ const readDisplay = require('./query-display.js').displayReader(clauseKeywordOf)
 // 4T-002079 (Epic 3E-000259): die Bedingung HAVING im eigenen Modul; der Parser
 // reicht ihm seinen Ausdrucks-Leser herein.
 const { readHaving } = require('./query-having.js');
+// 4T-002511 (Epic 3E-000402): Platzhalter `$name`, Token und Stellen-Prüfung.
+const { platzhalterToken, pruefePlatzhalter } = require('./query-platzhalter.js');
 
 // 4T-000421 (Epic 3E-000079): Ausdrucks-Einstieg für die Spalten-Formeln der
 // Perspective Datatable (ein Wert-Ausdruck, kein Klausel-Parsing).

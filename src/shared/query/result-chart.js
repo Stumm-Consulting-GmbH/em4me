@@ -36,6 +36,19 @@
 //   `single-column` die Tabelle hat neben der Beschriftung keine Spalte
 //   `no-numbers`    keine Spalte neben der Beschriftung trägt eine Zahl
 //
+// **Der Kreis** (4T-002514, Epic 3E-000402; Konzept-Stufe 4T-002506, Abschnitt
+// 1.6): Er zeigt genau eine Reihe, die erste Zahlen-Spalte, als Anteile je
+// Rubrik; eine einzige Rubrik ergibt einen vollen Kreis. Weitere Zahlen-Spalten
+// werden übergangen und in `pieSkippedColumns` genannt, getrennt von den
+// Spalten ohne Zahl. Nach den Grund-Codes oben prüft er zwei eigene, wie der
+// Format-Kern des Diagramm-Blocks (Grund 8 in perspective-chart-series.js):
+//   `negative`      die erste Zahlen-Spalte trägt einen negativen Wert
+//   `zeros`         alle Zahlen der ersten Zahlen-Spalte sind 0
+// Ein Kreis aus solchen Werten hätte keine Fläche oder eine falsche. Die Tabelle
+// des Gesamt-Werts ohne Treffer (4T-002511, V9: keine Zeile, eine Gruppe mit
+// `count()` 0 und fehlenden übrigen Aggregaten) fällt damit auf die Tabelle
+// zurück, ohne Bild und ohne Abbruch.
+//
 // Prozess-neutral und ohne Zeichen-Bibliothek: Der Anzeige-Prozess lädt das
 // Modul für die Eignungs-Prüfung, und ein Bezug auf den Zeichner zöge die
 // Bibliothek in sein Bündel (Wächter in test/unit/renderer/diagramm-ansicht.test.js).
@@ -47,11 +60,15 @@ const { valueTypeOf } = require('./result-set.js');
 const { columnHeader, displayName, walkGroups } = require('./result-display.js');
 const { coerceNumber, formatValue } = require('./query-format.js');
 
-// Balken und Linie; Kreis und Donut bleiben in der ersten Fassung draußen
-// (F1 Option A im Plan von 3E-000260).
-const QUERY_CHART_TYPES = Object.freeze(['bar', 'line']);
+// Balken und Linie; Kreis und Donut blieben in der ersten Fassung draußen
+// (F1 Option A im Plan von 3E-000260). Seit 4T-002514 der Kreis; der Donut
+// bleibt draußen.
+const QUERY_CHART_TYPES = Object.freeze(['bar', 'line', 'pie']);
 
 const QUERY_CHART_REASONS = Object.freeze(['not-table', 'empty', 'single-column', 'no-numbers']);
+
+// 4T-002514: die beiden Grund-Codes allein des Kreises, geprüft nach denen oben.
+const QUERY_PIE_REASONS = Object.freeze(['negative', 'zeros']);
 
 const GROUP_LEVEL_SEPARATOR = ' › ';
 
@@ -98,9 +115,19 @@ function valueAt(entry, j) {
   return v === undefined ? null : v;
 }
 
+// 4T-002514: Taugt die erste Zahlen-Spalte für einen Kreis? Grund oder null.
+function pieProblem(entries, j) {
+  const zahlen = entries.map((e) => numberOf(valueAt(e, j))).filter((v) => v !== null);
+  if (zahlen.some((v) => v < 0)) return 'negative';
+  if (zahlen.every((v) => v === 0)) return 'zeros';
+  return null;
+}
+
 // Die gemeinsame Regel für Eignung und Bild: Grund oder die geordneten Rubriken
-// samt den Spalten-Indizes der Reihen und der übergangenen Spalten.
-function analyse(rs) {
+// samt den Spalten-Indizes der Reihen und der übergangenen Spalten. Beim Kreis
+// (4T-002514) ist allein die erste Zahlen-Spalte eine Reihe; die weiteren stehen
+// in `pieSkippedIdx`.
+function analyse(rs, type) {
   if (!rs || typeof rs !== 'object' || !Array.isArray(rs.rows) || !Array.isArray(rs.columns)) {
     throw new TypeError('result-chart: keine Ergebnismenge mit rows und columns');
   }
@@ -118,33 +145,48 @@ function analyse(rs) {
     (entries.some((e) => isNumber(valueAt(e, j))) ? seriesIdx : skippedIdx).push(j);
   }
   if (seriesIdx.length === 0) return { reason: 'no-numbers' };
-  return { reason: null, withoutId, entries, seriesIdx, skippedIdx };
+  if (type !== 'pie') return { reason: null, withoutId, entries, seriesIdx, skippedIdx };
+  const problem = pieProblem(entries, seriesIdx[0]);
+  if (problem) return { reason: problem };
+  return {
+    reason: null,
+    withoutId,
+    entries,
+    seriesIdx: seriesIdx.slice(0, 1),
+    skippedIdx,
+    pieSkippedIdx: seriesIdx.slice(1),
+  };
 }
 
 /**
  * Trägt die Ergebnismenge ein Diagramm? Dieselbe Regel wie `buildQueryChartInput`.
  * @param {import('./result-set.js').ResultSet} resultSet
+ * @param {'bar'|'line'|'pie'} [type]  Art des Diagramms; nur der Kreis hat
+ *   eigene Gründe (4T-002514), ohne Angabe gilt die Regel von Balken und Linie
  * @returns {{ suitable: boolean, reason: string|null }}  `reason` einer der
- *   Grund-Codes aus `QUERY_CHART_REASONS`, bei Eignung null
+ *   Grund-Codes aus `QUERY_CHART_REASONS`, beim Kreis auch aus
+ *   `QUERY_PIE_REASONS`, bei Eignung null
  * @throws {TypeError} wenn die Menge keine Zeilen- und Spalten-Liste trägt
  */
-function queryChartSuitability(resultSet) {
-  const { reason } = analyse(resultSet);
+function queryChartSuitability(resultSet, type) {
+  const { reason } = analyse(resultSet, type);
   return { suitable: reason === null, reason };
 }
 
 /**
  * Bildet aus der Ergebnismenge die zeichenbare Form des gemeinsamen Zeichners.
  * @param {import('./result-set.js').ResultSet} resultSet
- * @param {{ type: 'bar'|'line', title?: string|null, noneLabel: string }} options
+ * @param {{ type: 'bar'|'line'|'pie', title?: string|null, noneLabel: string }} options
  *   `noneLabel` ist der Text der Gruppe ohne Wert (in der Anzeige
  *   `query.group.none`), damit Tabelle und Diagramm dieselbe Beschriftung zeigen.
  * @returns {{ drawable: true, type: string, title: string|null, categories: string[],
  *     series: Array<{ name: string, values: Array<number|null> }>, omitted: number,
- *     skippedColumns: string[] }
+ *     skippedColumns: string[], pieSkippedColumns?: string[] }
  *   | { drawable: false, reason: string }}
  *   `omitted` zählt die Lücken aller Reihen, `skippedColumns` nennt die
- *   übergangenen Spalten mit ihrer Überschrift in Spalten-Reihenfolge.
+ *   übergangenen Spalten mit ihrer Überschrift in Spalten-Reihenfolge. Allein
+ *   beim Kreis trägt `pieSkippedColumns` die weiteren Zahlen-Spalten, die er
+ *   übergeht (4T-002514); Balken und Linie bleiben ohne das Feld.
  * @throws {TypeError} bei fehlenden Angaben, unbekannter Art, unbrauchbarem
  *   Titel oder fehlendem `noneLabel` — Programmier-Fehler des Aufrufers, kein
  *   Anwender-Fall
@@ -164,7 +206,7 @@ function buildQueryChartInput(resultSet, options) {
   if (typeof opts.noneLabel !== 'string') {
     throw new TypeError('result-chart: noneLabel fehlt');
   }
-  const a = analyse(resultSet);
+  const a = analyse(resultSet, opts.type);
   if (a.reason !== null) return { drawable: false, reason: a.reason };
 
   const label = (entry) => {
@@ -183,7 +225,7 @@ function buildQueryChartInput(resultSet, options) {
       return numberOf(valueAt(e, j));
     }),
   }));
-  return {
+  const input = {
     drawable: true,
     type: opts.type,
     title,
@@ -192,11 +234,16 @@ function buildQueryChartInput(resultSet, options) {
     omitted: series.reduce((n, s) => n + s.values.filter((v) => v === null).length, 0),
     skippedColumns: a.skippedIdx.map((j) => columnHeader(resultSet.columns[j])),
   };
+  if (a.pieSkippedIdx) {
+    input.pieSkippedColumns = a.pieSkippedIdx.map((j) => columnHeader(resultSet.columns[j]));
+  }
+  return input;
 }
 
 module.exports = {
   QUERY_CHART_TYPES,
   QUERY_CHART_REASONS,
+  QUERY_PIE_REASONS,
   GROUP_LEVEL_SEPARATOR,
   queryChartSuitability,
   buildQueryChartInput,

@@ -48,6 +48,10 @@ const { writeFrontmatter, extractFrontmatter } = require('../../shared/markdown/
 // 4T-001261 (Epic 3E-000272): Der Fremd-Aenderungs-Schutz hat eine Heimat, und
 // zwar dieselbe wie der des Speicher-Wegs.
 const { istFeldKonflikt } = require('../documents/save-guard.js');
+// 4T-002510 (Epic 3E-000402): Prüfung der Filter-Werte am Abfrage-Kanal und die
+// Antwort-Form eines abgewiesenen Laufs.
+const { pruefeAbfrageParams } = require('./dashboard.js');
+const { stateResponse } = require('../index/query-result-set.js');
 
 /**
  * Registriert die Kanaele der Index-Sichten, der Bereichs-Suche und der Embeds.
@@ -192,6 +196,11 @@ function registerIndexViewsIpc(handle, deps) {
   handle('frontmatterQuery:run', async (event, params) => {
     const filePath = params && params.filePath;
     const query = params && typeof params.query === 'string' ? params.query : '';
+    // 4T-002510 (Epic 3E-000402): die Werte der Filter eines Dashboards. Der
+    // Hauptprozess prüft sie selbst (dashboard.js) und reicht gültige unverändert
+    // weiter; ungültige weist er ohne Lauf ab. Die Bindung ist Sache von query.js.
+    const werte = params ? params.params : undefined;
+    if (!pruefeAbfrageParams(werte)) return stateResponse('error');
     const areaRoot = areaRootForEvent(event);
     backlinks.ensureIndexForDemand(filePath, `${event.sender.id}:demand`, areaRoot);
     // 4T-000502 (Epic 3E-000096): Task-Umgebung fuer den TASKS-Scope aus dem
@@ -214,6 +223,7 @@ function registerIndexViewsIpc(handle, deps) {
       taskEnv,
       params && params.lang,
       templatesFolder,
+      werte,
     );
   });
 

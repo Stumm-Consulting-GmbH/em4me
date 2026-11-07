@@ -63,6 +63,22 @@ const { recordsQueryFor } = require('./query-records.js');
 const { hullScopeError } = require('../../shared/query/query-record-sources.js');
 // 4T-002082 (Epic 3E-000259): Vorlagen-Ausschluss je Kandidat.
 const { createTemplateExclusion } = require('./query-templates.js');
+// 4T-002511 (Epic 3E-000402): Bindung der Platzhalter im Hauptprozess.
+const { bindePlatzhalter } = require('../../shared/query/query-platzhalter.js');
+
+// 4T-002511: Der Hinweis der Platzhalter (außerhalb eines Dashboards, unbekannter
+// Name) an einer ausgewerteten Antwort ohne Abfrage-Fehler. Ein Hinweis der Ebene
+// geht vor, weil der Zustand nur einen trägt; den Namen trägt `hintName`, eine
+// Zusatz-Angabe der Ergebnismenge, die die Anzeige in den Hinweis setzt.
+function mitPlatzhalterHinweis(response, hinweis) {
+  const state = response && response.resultSet && response.resultSet.state;
+  if (!hinweis || !state || state.status !== 'ready' || state.queryError || state.hint) {
+    return response;
+  }
+  state.hint = hinweis.code;
+  if (hinweis.name) state.hintName = hinweis.name;
+  return response;
+}
 
 // 4T-000354 (Epic 3E-000065): Perspective-Abfrage. Prueft jede Index-Datei ueber
 // ihren Kontext (Frontmatter-Properties plus implizite file.*-Felder) gegen
@@ -93,7 +109,12 @@ const { createTemplateExclusion } = require('./query-templates.js');
 // und ohne gewählten Ordner). Er kommt wie taskEnv vom Aufrufer, einmal je Lauf
 // aufgelöst; was darin liegt, ist auf keiner Ebene ein Kandidat, außer die
 // Quelle nennt den Ordner ausdrücklich (query-templates.js).
-function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale, templatesFolder) {
+// 4T-002511 (Epic 3E-000402): werte sind die Werte der Filter eines Dashboards,
+// ein Wert je Name, null für «alle»; der Kanal hat sie geprüft. Sie werden nach
+// dem Parsen als Literale in den Baum gesetzt, nie in den Text der Abfrage.
+// Ohne Werte (jeder Aufrufer außer dem Dashboard) gilt jeder Platzhalter als
+// «alle», und die Antwort trägt den Hinweis placeholderOutside.
+function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale, templatesFolder, werte) {
   if (!filePath) return stateResponse('unavailable');
   const { root } = resolveRootInfo(filePath, areaRoot);
   if (!root) return stateResponse('unavailable');
@@ -109,8 +130,12 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale, templat
   // Abfrage-Fehler: Zustand «bereit» mit leerer Zeilen-Liste.
   const queryFailed = (queryError) => stateResponse('ready', { area: { root }, queryError });
 
-  const parsedQuery = parseQuery(query);
-  if (!parsedQuery.ok) return queryFailed(parsedQuery.error);
+  const parsed = parseQuery(query);
+  if (!parsed.ok) return queryFailed(parsed.error);
+  // 4T-002511: Platzhalter vor jeder Prüfung binden; alles danach sieht Literale
+  // und den Knoten «erfüllt».
+  const bindung = bindePlatzhalter(parsed.ast, werte);
+  const parsedQuery = { ok: true, ast: bindung.ast };
   // 4T-000402 (Epic 3E-000076): unbekannte Funktionen und falsche Stelligkeit
   // laufen ueber denselben queryError-Pfad wie Syntaxfehler.
   const fnError = validateQuery(parsedQuery.ast);
@@ -140,7 +165,7 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale, templat
   }
   // 4T-002039 (Epic 3E-000258): Datensatz-Ebene im eigenen Modul.
   if (parsedQuery.ast.scope === 'records') {
-    return recordsQueryFor({
+    const antwort = recordsQueryFor({
       filePath,
       ast: parsedQuery.ast,
       root,
@@ -148,6 +173,7 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale, templat
       locale,
       templatesFolder,
     });
+    return mitPlatzhalterHinweis(antwort, bindung.hinweis);
   }
   const now = Date.now();
   const resolveLinkTarget = createTargetResolver(entry);
@@ -357,7 +383,8 @@ function frontmatterQueryFor(filePath, query, areaRoot, taskEnv, locale, templat
   // innerhalb der Gruppen, LIMIT schneidet vor der Gruppen-Bildung. Seit
   // 4T-002076 gilt das für jede Ebene bei der Liste, seit 4T-002078 nicht mehr
   // für die Tabelle.
-  return resultResponse(finalRows, parsedQuery.ast, { root, fileCount: entry.fileCount });
+  const antwort = resultResponse(finalRows, parsedQuery.ast, { root, fileCount: entry.fileCount });
+  return mitPlatzhalterHinweis(antwort, bindung.hinweis);
 }
 
 module.exports = {

@@ -23,9 +23,10 @@
 
 const path = require('node:path');
 const fs = require('node:fs/promises');
-const { resolveContainedEmbedPath, containmentWurzel } = require('../documents/embed-path');
-// 4T-001485 (Epic 3E-000199): dieselbe Grenz-Semantik wie das Containment.
-const { isInsideArea } = require('../area/area-path.js');
+const { containmentWurzel } = require('../documents/embed-path');
+// 4T-002517 (Epic 3E-000402): die drei Stufen der Ziel-Auflösung, gemeinsam mit
+// der Kachel mit Abfrage-Datei.
+const { loeseZielDreistufig, mitMarkdownEndung } = require('../index/ziel-aufloesung.js');
 // 4T-001957 (Epic 3E-000319): Kopf-Leser mit Puffer-Vorrang und die Auswahl
 // der Angaben einer verlinkten Notiz.
 const { leseFrontmatterKopf } = require('../database/frontmatter-kopf.js');
@@ -33,10 +34,7 @@ const { angabenAusKopf } = require('../../shared/kanban/kanban-angaben.js');
 // 4T-002023 (Epic 3E-000192): Ein Ziel in einem verknüpften Bereich löst der
 // Diagramm-Kanal nicht auf, wie die Einbettung auch nicht.
 // 4T-002092: Erkennung der Verknüpfungs-Form und der Grund für den Hinweis.
-const {
-  isAreaLinkTarget,
-  EMBED_GRUND_VERKNUEPFTER_BEREICH,
-} = require('../../shared/area-link-syntax.js');
+const { isAreaLinkTarget } = require('../../shared/area-link-syntax.js');
 
 // 4T-001957: Obergrenzen der gebündelten Anfrage einer Tafel. Der Anzeige-Prozess
 // schickt je Ziel genau einen Eintrag; die Grenzen fangen allein einen
@@ -70,118 +68,33 @@ function registerEmbedsIpc(handle, deps) {
   const { areaRootForEvent, backlinks, subpages, embedInhalt, MAX_EMBED_BYTES } = deps;
   /**
    * 4T-001486 (Epic 3E-000199, Entscheidung E3): Der dreistufige Weg zum Ziel
-   * einer Einbettung, fuer JEDE Art.
+   * einer Einbettung, fuer JEDE Art (dokument-relativ mit Grenze,
+   * Unterseiten-Schreibweise, Namens-Suche im Bereichs-Index).
    *
-   * Bis dahin lief er allein fuer Markdown, eingebaut im Handler embed:read;
-   * PDF- und sonstige Ziele gingen ueber file:resolveLink — eine Stufe,
-   * pfad-relativ, ohne Index und **ohne Containment**. Herausgeloest, damit
-   * alle Arten dieselben Stufen und dieselbe Grenze bekommen.
-   *
-   * Die drei Stufen:
-   *   1. dokument-relativ, mit Containment auf die Bereichs-Wurzel
-   *   2. Unterseiten-Schreibweise ('/' -> U+2215) im selben Ordner
-   *   3. Namens-Suche im Bereichs-Index (seit 4T-001494 auch fuer
-   *      Nicht-Markdown-Dateien)
+   * 4T-002517 (Epic 3E-000402): Die Stufen stehen seither in
+   * src/main/index/ziel-aufloesung.js, gemeinsam mit der Kachel mit
+   * Abfrage-Datei; hier bleibt die Anbindung an Fenster und Index, mit
+   * unveraendertem Verhalten.
    *
    * @returns {Promise<{ok: true, abs: string}|{ok: false, error: string}>}
    */
   async function loeseEmbedZiel(event, basePath, embedPathRoh, kind) {
-    // 4T-002092: Ein Ziel in einem verknüpften Bereich ('@kürzel:Datei') löst
-    // die Einbettung nicht auf; das Einbetten über die Bereichs-Grenze ist ein
-    // eigenes Vorhaben. Der Grund reist bis zum Hinweis, statt als «nicht
-    // gefunden» samt Systemmeldung zu enden. Ohne Pfad (abs), damit kein Kanal
-    // danach noch zu lesen versucht.
-    if (isAreaLinkTarget(embedPathRoh))
-      return { ok: false, error: EMBED_GRUND_VERKNUEPFTER_BEREICH };
-    let embedPath = embedPathRoh;
-    // 4T-000337 (Epic 3E-000061): relative Unterseiten-Embeds ('![[/Name]]',
-    // '![[..]]') gegen den Basename der Basis-Datei expandieren; Ergebnis
-    // ist die U+2215-Form im selben Ordner.
-    if (typeof embedPath === 'string' && subpages.isRelativeTarget(embedPath)) {
-      const extMatch = embedPath.match(/\.[a-z0-9]{1,8}$/i);
-      const ext = extMatch ? extMatch[0] : '';
-      const noExt = ext ? embedPath.slice(0, -ext.length) : embedPath;
-      const ownBase = path
-        .basename(String(basePath || ''))
-        .replace(/\.(md|markdown|mdown|mkd)$/i, '');
-      const expanded = subpages.expandRelativeTarget(ownBase, noExt);
-      if (!expanded) return { ok: false, error: 'not found' };
-      embedPath = expanded + (ext || '.md');
-    }
-    // B-02 (4T-000307): Containment plus Endungs-Whitelist, bevor gelesen
-    // wird — fremder Embed-Pfad gilt als nicht vertrauenswuerdig
-    // (Entwicklungsrichtlinien §6). 4T-001485: Die Grenze ist die
-    // Bereichs-Wurzel; enthaelt der gebundene Bereich den Dokument-Ordner
-    // nicht, faellt sie auf den Dokument-Ordner zurueck.
     const areaRoot = areaRootForEvent(event);
-    const guard = resolveContainedEmbedPath(basePath, embedPath, areaRoot, kind);
-    if (!guard.ok) return { ok: false, error: guard.error };
-    const abs = guard.abs;
-
-    try {
-      await fs.access(abs);
-      return { ok: true, abs };
-    } catch {
-      /* Stufe 2 und 3 folgen */
-    }
-
-    // Stufe 2 — deterministisch ohne Index: Unterseiten liegen konventionell
-    // im Ordner des Dokuments, '/' wird zu U+2215.
-    if (/[/\\]/.test(String(embedPath))) {
-      const translated = subpages.toFileBasename(String(embedPath).replace(/\\/g, '/'));
-      const g2 = resolveContainedEmbedPath(basePath, translated, areaRoot, kind);
-      if (g2.ok) {
-        try {
-          await fs.access(g2.abs);
-          return { ok: true, abs: g2.abs };
-        } catch {
-          /* weiter zur Namens-Suche */
-        }
-      }
-    }
-
-    // Stufe 3 — Namens-Suche im Index (B-13). Der Kandidat muss dieselbe
-    // Grenze einhalten wie Stufe 1; ohne diese Pruefung waere die Namens-
-    // Suche das Loch in der Wand daneben.
-    backlinks.ensureIndexForDemand(basePath, `${event.sender.id}:demand`, areaRoot);
-    const logical = String(embedPath)
-      .replace(/\.(md|markdown|mdown|mkd)$/i, '')
-      .replace(/\\/g, '/')
-      .replace(/^(\.\.?\/)+/, '');
-    const idx = backlinks.resolveWikiTargetInIndex(basePath, logical, areaRoot);
-    if (idx && idx.status === 'ready' && idx.candidates.length > 0) {
-      const wurzel = containmentWurzel(path.dirname(path.resolve(basePath)), areaRoot);
-      const contained = idx.candidates.find((c) => isInsideArea(wurzel, c));
-      // Die Endungs-Regel der Art gilt auch fuer einen Index-Treffer: Sonst
-      // brachte '![[bild]]' ueber die Namens-Suche eine beliebige Datei ins
-      // Bild-Element.
-      if (contained) {
-        const g3 = resolveContainedEmbedPath(
-          basePath,
-          path.relative(path.dirname(basePath), contained),
-          areaRoot,
-          kind,
-        );
-        if (g3.ok) return { ok: true, abs: contained };
-        return { ok: false, error: g3.error };
-      }
-    }
-    // Nichts gefunden: den dokument-relativen Pfad melden, damit der
-    // Fehl-Hinweis das Ziel nennt, das der Anwender geschrieben hat.
-    // 4T-002023 (Epic 3E-000192): Dazu, ob die Namens-Suche schon greifen
-    // konnte. Ein nur über den Namen erreichbares Ziel gilt vor dem Aufbau des
-    // Verzeichnisses als nicht gefunden; der Anzeige-Prozess zeichnet es nach,
-    // sobald das Verzeichnis bereit ist. Additiv, die übrigen Aufrufer lesen
-    // das Feld nicht.
-    return { ok: false, error: 'not found', abs, indexBereit: !!(idx && idx.status === 'ready') };
+    return loeseZielDreistufig({
+      basePath,
+      ziel: embedPathRoh,
+      areaRoot,
+      kind,
+      subpages,
+      resolveWikiTargetInIndex: (...args) => backlinks.resolveWikiTargetInIndex(...args),
+      vorNamensSuche: () =>
+        backlinks.ensureIndexForDemand(basePath, `${event.sender.id}:demand`, areaRoot),
+    });
   }
 
-  // 4T-002023: Wie das Render-Plugin — ohne Endung ist `.md` gemeint; der
-  // Eltern-Verweis `..` bleibt, wie er ist, der Auflöser expandiert ihn. Eine
-  // Stelle für beide Kanäle, die ein Dokument über seinen Namen erreichen.
-  function mitMarkdownEndung(ziel) {
-    return /\.[a-z0-9]{1,8}$/i.test(ziel) || /^\.\.\/?$/.test(ziel) ? ziel : `${ziel}.md`;
-  }
+  // 4T-002023: Ohne Endung ist `.md` gemeint (`mitMarkdownEndung`); die Regel
+  // steht seit der Review-Runde 1 von 3E-000402 in ziel-aufloesung.js, eine
+  // Stelle für beide Kanäle hier und für die Kachel mit Abfrage-Datei.
 
   // 4T-001486 (Epic 3E-000199): Ziel-Pfad einer Nicht-Markdown-Einbettung.
   // Loest PDF- und sonstige Ziele ueber dieselben drei Stufen auf wie eine

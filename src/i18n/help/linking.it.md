@@ -15,6 +15,19 @@ Wiki link, ancore, incorporamenti e tag collegano i file Markdown in una rete. G
 
 Se il nome non trova direttamente un file, si applicano due ripieghi: il riscontro dell'indice sull'ambito di ricerca e la [risoluzione degli alias](frontmatter.md) tramite il campo frontmatter `aliases:`; con più candidati chiede una finestra di selezione. Nelle celle delle tabelle pipe, escapare la barra del testo visualizzato come `\|`.
 
+**Anche i collegamenti nel frontmatter contano.** Un wiki link inserito come valore di una proprietà nel [frontmatter](frontmatter.md), da solo o come elemento di una lista, vale come un collegamento nel testo: compare nei backlink della destinazione, nella [vista a grafo](graph.md) e nei campi di collegamento `file.inlinks` e `file.outlinks` della [query Perspective](frontmatter-query.md), e quando il file di destinazione viene rinominato, l'aggiornamento dei collegamenti lo adegua. Il valore va tra virgolette perché senza di esse le doppie parentesi quadre verrebbero lette come una lista annidata:
+
+```markdown
+---
+progetto: "[[Progetto A]]"
+partecipanti:
+  - "[[Anna]]"
+  - "[[Ben Krause|Ben]]"
+---
+```
+
+Vengono valutate solo le proprietà di primo livello e le liste direttamente sottostanti; i wiki link all'interno di proprietà annidate non vengono considerati.
+
 ## Ancore di intestazione e di blocco
 
 I collegamenti possono puntare a un'intestazione o a un blocco nel file di destinazione:

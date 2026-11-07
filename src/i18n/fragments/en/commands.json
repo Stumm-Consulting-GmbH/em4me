@@ -139,6 +139,8 @@
   "command.database.openInForm": "Open in form",
   "command.canvas.addCard": "Add card to canvas",
   "command.insert.canvas": "Canvas",
+  "command.insert.dashboard": "Insert dashboard",
+  "command.insert.dashboardKachelTitel": "Count",
   "command.canvas.addShape": "Add shape to canvas",
   "command.canvas.stackFront": "Bring to front",
   "command.canvas.stackForward": "Bring forward",

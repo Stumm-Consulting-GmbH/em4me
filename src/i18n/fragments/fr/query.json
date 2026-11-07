@@ -76,9 +76,10 @@
   "query.syntax.displayBy": "Requête invalide : champ attendu après BY dans DISPLAY",
   "query.syntax.groupedColumn": "Requête invalide : dans un tableau groupé, '{name}' ne figure ni dans GROUP BY ni dans une fonction d'agrégation ; utilisez LIST pour afficher les résultats individuels",
   "query.syntax.aggregateNested": "Requête invalide : '{name}' contient une fonction d'agrégation dans une autre",
-  "query.syntax.countWithoutField": "Requête invalide : count() sans champ compte les résultats d'un groupe et n'est autorisé que dans HAVING ainsi que dans les colonnes et SORT d'un tableau groupé ; sinon utilisez count(champ)",
+  "query.syntax.countWithoutField": "Requête invalide : count() sans champ compte les résultats d'un groupe et n'est autorisé que dans HAVING, dans les colonnes et SORT d'un tableau groupé ainsi que dans un tableau WITHOUT ID dont les colonnes ne contiennent que des totaux ; sinon utilisez count(champ)",
   "query.syntax.havingWithoutGroupBy": "Requête invalide : HAVING teste des groupes et n'est autorisé qu'avec GROUP BY ; utilisez WHERE pour filtrer les résultats individuels",
   "query.syntax.havingUngrouped": "Requête invalide : dans HAVING, '{name}' ne figure ni dans GROUP BY ni dans une fonction d'agrégation ; utilisez WHERE pour filtrer les résultats individuels",
+  "query.syntax.placeholderPosition": "Requête invalide : un espace réservé ($name) ne peut figurer que dans WHERE ou HAVING (position {pos})",
   "query.group.none": "(sans valeur)",
   "query.tasks.count.one": "1 tâche",
   "query.tasks.count.other": "{n} tâches",
@@ -94,8 +95,13 @@
   "query.hint.displayFormChartNotTable": "Remarque : la forme de présentation '{name}' exige une requête en tableau (TABLE) ; le résultat s'affiche donc sans elle",
   "query.hint.displayFormChartSingleColumn": "Remarque : la forme de présentation '{name}' exige au moins une autre colonne en plus du libellé ; le résultat s'affiche donc sans elle",
   "query.hint.displayFormChartNoNumbers": "Remarque : la forme de présentation '{name}' exige une colonne de nombres, et cette requête n'en a aucune ; le résultat s'affiche donc sans elle",
+  "query.hint.displayFormChartNegative": "Remarque : la forme de présentation '{name}' exige des parts sans nombre négatif, et cette requête en a un ; le résultat s'affiche donc sans elle",
+  "query.hint.displayFormChartZeros": "Remarque : la forme de présentation '{name}' exige au moins une part supérieure à 0, et cette requête n'a que des zéros ; le résultat s'affiche donc sans elle",
+  "query.hint.placeholderOutside": "Remarque : la requête contient des espaces réservés ; en dehors d'un tableau de bord, ils valent 'tous'",
+  "query.hint.placeholderUnknown": "Remarque : le tableau de bord n'a pas de filtre '{name}' ; l'espace réservé vaut donc 'tous'",
   "query.chart.skipped.one": "Ignorée : colonne {columns}, car elle ne contient aucun nombre.",
   "query.chart.skipped.other": "Ignorées : colonnes {columns}, car elles ne contiennent aucun nombre.",
   "query.chart.omitted.one": "1 valeur a été omise, car elle manque ou n'est pas un nombre.",
-  "query.chart.omitted.other": "{n} valeurs ont été omises, car elles manquent ou ne sont pas des nombres."
+  "query.chart.omitted.other": "{n} valeurs ont été omises, car elles manquent ou ne sont pas des nombres.",
+  "query.chart.pieSeriesSkipped": "Le diagramme circulaire n'affiche que la première colonne de nombres, pas {columns}."
 }

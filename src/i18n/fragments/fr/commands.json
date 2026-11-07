@@ -139,6 +139,8 @@
   "command.database.openInForm": "Ouvrir dans le formulaire",
   "command.canvas.addCard": "Ajouter une carte au canevas",
   "command.insert.canvas": "Canevas",
+  "command.insert.dashboard": "Insérer un tableau de bord",
+  "command.insert.dashboardKachelTitel": "Nombre",
   "command.canvas.addShape": "Ajouter une forme au canevas",
   "command.canvas.stackFront": "Mettre au premier plan",
   "command.canvas.stackForward": "Avancer d’un niveau",

@@ -180,12 +180,15 @@ En détail : [Profils de propriétés](property-profiles.md).
 
 Qui gère beaucoup de fichiers entretient sinon des vues d'ensemble à la main, et elles vieillissent le jour même. Une requête Perspective décrit au contraire **ce qui** est cherché, et le résultat apparaît sur place dans le document : une liste ou un tableau cliquable sur l'ensemble, filtré par propriétés, mots-clés et champs de fichier, jusqu'aux blocs de texte et aux tâches. Si vous le souhaitez, la requête réunit les résultats en groupes, avec une ligne par groupe indiquant le nombre, la somme ou la moyenne. Si vous le souhaitez, elle montre aussi le résultat sous forme de graphique en barres ou en courbes, qui change avec l'ensemble. Si l'ensemble change, la sortie change, sans que personne ne mette à jour.
 
+Qui veut voir côte à côte des chiffres clés, des listes et des graphiques issus de plusieurs requêtes crée un **tableau de bord** : des tuiles en rangées, chacune avec sa requête, et en tête des champs de sélection qui restreignent toutes les tuiles à la fois, par exemple par statut ou par projet, sans modifier les documents. Le tableau de bord est lui-même un document Markdown de la zone ; l'impression et l'export PDF montrent les valeurs choisies, l'export portable les valeurs prédéfinies.
+
 - **Pages thématiques** qui listent d'elles-mêmes les fichiers associés.
 - **Filtres et groupes** sur les propriétés du frontmatter, les mots-clés et les champs de fichier, avec le nombre et les sommes par groupe.
 - **Niveau bloc, tâche et enregistrement**, pas seulement des fichiers entiers.
 - **Chaque résultat cliquable**, menant directement à sa cible.
+- **Tableaux de bord** qui montrent côte à côte les chiffres clés, listes et graphiques de plusieurs requêtes et se restreignent en tête par des champs de sélection.
 
-En détail : [Requête Perspective](frontmatter-query.md).
+En détail : [Requête Perspective](frontmatter-query.md) et [Tableaux de bord](dashboards.md).
 
 ## Quand la requête ne suffit pas : les scripts
 

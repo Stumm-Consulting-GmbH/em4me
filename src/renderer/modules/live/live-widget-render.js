@@ -54,6 +54,9 @@ import { applyRecordRowAccess } from '../database/datensatz-zeilen-zugang.js';
 // 4T-002021 (Epic 3E-000192): Der eine Schritt der Diagramme im Live-Widget
 // (Laufzeit-Aufruf in _enhance; das Modul importiert keins der Live-Module).
 import { applyPerspectiveChartsIfPresent } from '../charts/chart-view.js';
+// 4T-002518 (Epic 3E-000402): Dashboard im Widget, nach dem Einhängen eingerichtet.
+import { richteDashboardWidgetEin } from '../dashboard/dashboard-live.js';
+import { state } from '../app/app-state.js';
 import { bildDoppelklickDurchlassen, liveBlockCacheGet, liveBlockCacheSet } from './live-shared.js';
 // 4T-002023 (Epic 3E-000192): Höhen-Meldung der Widgets, die nach dem Einhängen
 // asynchron nachladen (Diagramm zu einem anderen Dokument, Einbettung).
@@ -392,7 +395,7 @@ export class MarkdownBlockWidget extends WidgetType {
       // trägt den Block-Inhalt im Attribut und ist leer, bis er gezeichnet ist.
       const child =
         tmp.querySelector(
-          '.perspective-chart, .perspective-events, .perspective-datatable, ' +
+          '.perspective-dashboard, .perspective-chart, .perspective-events, .perspective-datatable, ' +
             '.perspective-canvas, .perspective-records, table, pre, .katex-display, .katex',
         ) || tmp.firstElementChild;
       if (child) {
@@ -427,6 +430,9 @@ export class MarkdownBlockWidget extends WidgetType {
       // 4T-000355: perspective-query-Platzhalter im Live-Modus befüllen. Läuft
       // bei jedem Einhängen (auch Cache-Klon), sodass die Liste aktuell ist;
       // No-op bei anderen Block-Widgets. basePath aus dem Widget.
+      // 4T-002518: Dashboards (Befüllungs-Schritt, Filter, Ordnungszahl aus der
+      // Stelle des Widgets); ihre Kacheln befüllt der Schritt selbst.
+      richteDashboardWidgetEin(container, this.basePath, state);
       applyFrontmatterQueriesIfPresent(container, this.basePath);
       // 4T-000435 (Epic 3E-000081): Journal-Navigation im Live-Widget befüllen
       // (Listener pro Mount frisch; ignoreEvent hält die CM-Handler fern).

@@ -31,6 +31,8 @@ import {
 // 4T-000355 (Epic 3E-000065): Idle-Barriere, damit die Ausgabe die befuellten
 // Abfrage-Listen druckt statt des leeren Platzhalters.
 import { waitForFrontmatterQueriesIdle } from '../query/frontmatter-query-view.js';
+// 4T-002518 (Epic 3E-000402): Kacheln mit Abfrage-Datei vor der Schranke auflösen.
+import { warteAufDashboardQuellen } from '../dashboard/dashboard-quelle.js';
 // 4T-000435 (Epic 3E-000081): Idle-Barriere des Journal-Navigations-Blocks.
 import { waitForJournalNavIdle } from '../calendar/journal-nav-view.js';
 // 4T-001066 (Epic 3E-000212): Idle-Barriere des Journal-Timeline-Blocks.
@@ -205,6 +207,9 @@ export async function withPrintPreparation(steps) {
     if (!sourceMode) {
       await waitForMermaidIdle();
       if (hellErzwingen) await rerenderAllMermaidBlocks();
+      // 4T-002518: Eine Kachel mit Abfrage-Datei wird erst nach der Auflösung ihres
+      // Ziels zum Abfrage-Container; die Schranke darunter sieht sie erst dann.
+      await warteAufDashboardQuellen();
       // 4T-000355: Abfrage-Listen fertig befüllen lassen, sonst druckt die
       // Ausgabe den leeren Platzhalter statt der Datei-Liste.
       await waitForFrontmatterQueriesIdle();

@@ -79,11 +79,26 @@
 // beim nächsten Speichern verschwinden.
 'use strict';
 
-// 4T-001746: Die einzige Abhängigkeit des Kerns — der geteilte Satz der
+// 4T-001746: Die erste Abhängigkeit des Kerns — der geteilte Satz der
 // Bild-Endungen für G8. Er ist reine Daten und damit prozess-neutral wie der
 // Kern selbst; ein Renderer-Modul lädt er ausdrücklich nicht, und eine vierte
 // Kopie des Satzes hätte er sonst selbst eröffnet.
 const { istBildDatei } = require('../bild-endungen.js');
+
+// 4T-002509 (Epic 3E-000402): Die lexikalische Hülle — Zeilen-Trennung,
+// Marker-Zeile, Rückstrich-Schutz, Tokenisierung, Werte packen und entpacken —
+// steht seither in einem eigenen Blatt, weil der Dashboard-Block dieselbe Hülle
+// liest. Sie ist abhängigkeitsfrei und prozessneutral wie der Kern selbst.
+const {
+  MARKER_ZEILE_RE,
+  trenneZeilen,
+  ohneCr,
+  ermittleZeilenende,
+  entschuetze,
+  schuetze,
+  packeWert,
+  leseAngaben,
+} = require('./marker-grammatik.js');
 
 // Kennung der Erweiterung. Sie steht hier und nicht im Renderer, weil sie seit
 // 4T-001668 auf **beiden** Prozess-Seiten gebraucht wird: `canvas-modus.js`
@@ -200,102 +215,6 @@ const PFEIL_ZU_RICHTUNG = { '->': 'vor', '<->': 'beide', '--': 'keine' };
 // Kreis dieselbe Folge nimmt wie die Grammatik sie aufzählt.
 const LINIEN_RICHTUNGEN = ['vor', 'beide', 'keine'];
 
-// Eine Marker-Zeile beginnt in Spalte 0 mit `!`, gefolgt von einem Wort.
-const MARKER_ZEILE_RE = /^!([A-Za-z][A-Za-z0-9_-]*)(?:\s+(.*))?$/;
-
-// --- Zeilen-Werkzeug ----------------------------------------------------------
-//
-// Zeilen werden ausschließlich an `\n` getrennt und ein etwaiges `\r` bleibt
-// **am Zeilenende stehen**. Der bequeme Weg über /\r?\n/ mit späterem Join
-// auf '\n' würde eine Datei mit CRLF beim ersten Speichern vollständig
-// umschreiben — und genau das verbietet AK3.
-function trenneZeilen(text) {
-  return String(text == null ? '' : text).split('\n');
-}
-
-// Zeilen-Inhalt ohne das Trenn-Artefakt, für alles Parsende.
-function ohneCr(zeile) {
-  return zeile.endsWith('\r') ? zeile.slice(0, -1) : zeile;
-}
-
-// Vorherrschendes Zeilenende, damit neu erzeugte Zeilen zum Bestand passen.
-function ermittleZeilenende(zeilen) {
-  const mitCr = zeilen.filter((z) => z.endsWith('\r')).length;
-  return mitCr > 0 && mitCr * 2 >= zeilen.length ? '\r\n' : '\n';
-}
-
-// --- Notausgang für zeilenführende Marker -------------------------------------
-//
-// Gelesen: `\!…` wird zu `!…`, `\\!…` zu `\!…`. Geschrieben: eine
-// Inhalts-Zeile, die auf `\`* + `!` passt, bekommt genau einen Rückstrich
-// davor. Der Entwurf des Konzepts nannte allein `\!`; damit wäre eine
-// Inhalts-Zeile, die literal `\!` lauten soll, nicht ablegbar gewesen. Die
-// Verallgemeinerung schließt die Lücke und bleibt umkehrbar.
-const ESCAPE_RE = /^\\+!/;
-
-function entschuetze(zeile) {
-  return ESCAPE_RE.test(zeile) ? zeile.slice(1) : zeile;
-}
-
-function schuetze(zeile) {
-  return /^\\*!/.test(zeile) ? '\\' + zeile : zeile;
-}
-
-// --- Attribut-Grammatik --------------------------------------------------------
-//
-// Ein Wert ist entweder ein Wort ohne Leerraum oder eine Zeichenkette in
-// doppelten Anführungszeichen mit `\"` und `\\` als Escapes.
-function tokenisiere(text) {
-  const tokens = [];
-  let i = 0;
-  while (i < text.length) {
-    while (i < text.length && /\s/.test(text[i])) i++;
-    if (i >= text.length) break;
-    let tok = '';
-    let inQuote = false;
-    while (i < text.length) {
-      const ch = text[i];
-      if (inQuote) {
-        if (ch === '\\' && i + 1 < text.length) {
-          tok += ch + text[i + 1];
-          i += 2;
-          continue;
-        }
-        if (ch === '"') inQuote = false;
-        tok += ch;
-        i++;
-        continue;
-      }
-      if (/\s/.test(ch)) break;
-      if (ch === '"') inQuote = true;
-      tok += ch;
-      i++;
-    }
-    tokens.push(tok);
-  }
-  return tokens;
-}
-
-function entpackeWert(roh) {
-  if (roh.length >= 2 && roh.startsWith('"') && roh.endsWith('"')) {
-    return roh.slice(1, -1).replace(/\\(["\\])/g, '$1');
-  }
-  return roh;
-}
-
-// 4T-001746: `immerQuoten` erzwingt die Anführungszeichen auch dort, wo der
-// Wert sie technisch nicht bräuchte. Die beiden Verweis-Angaben der Karte (G7,
-// G8) stehen **immer** in doppelten Anführungszeichen — so schreibt sie das
-// Konzept-Dokument, so liest sich ein Ziel als Ziel und nicht als Wort, und ein
-// Ziel mit Leerzeichen sieht in der Datei nicht anders aus als eines ohne.
-// Gelesen wird beides unverändert; die Zusage berührt allein die kanonische
-// Form und damit nur geänderte und neue Elemente (G2).
-function packeWert(wert, { immerQuoten = false } = {}) {
-  const text = String(wert == null ? '' : wert);
-  if (!immerQuoten && text !== '' && !/[\s"\\=]/.test(text)) return text;
-  return '"' + text.replace(/([\\"])/g, '\\$1') + '"';
-}
-
 // Ganze Zahl mit optionalem Vorzeichen; alles andere ist ein Befund.
 function alsGanzzahl(text) {
   return /^-?\d+$/.test(text) ? Number(text) : null;
@@ -319,17 +238,7 @@ function neuesElement(art, zeile) {
 // Zerlegt die Marker-Zeile eines bekannten Elements in Stellungs-Operanden und
 // Attribute. Unbekannte Attribute landen mit in `attrs` — das ist AK4.
 function lesMarkerAngaben(el, rest, zeilenNr, errors) {
-  const operanden = [];
-  for (const tok of tokenisiere(rest || '')) {
-    const gleich = tok.indexOf('=');
-    if (gleich > 0 && !tok.slice(0, gleich).includes('"')) {
-      const name = tok.slice(0, gleich);
-      if (!el.attrFolge.includes(name)) el.attrFolge.push(name);
-      el.attrs[name] = entpackeWert(tok.slice(gleich + 1));
-      continue;
-    }
-    operanden.push(tok);
-  }
+  const operanden = leseAngaben(el, rest);
   el.id = operanden.shift() || null;
   if (!el.id || !ID_RE.test(el.id)) {
     errors.push({ code: 'fehlendeKennung', zeile: zeilenNr, detail: el.art });

@@ -372,16 +372,53 @@ const FUNCTIONS = new Map([
 // einer Aggregat-Stelle über alle Zeilen der Gruppe (query-aggregate.js).
 const AGGREGATE_FUNCTIONS = new Set(['count', 'sum', 'average', 'min', 'max']);
 
+// 4T-002511 (Epic 3E-000402, V9): Art eines Spalten-Ausdrucks ohne GROUP BY.
+// 'aggregat': mindestens ein Aggregat und kein Feld außerhalb eines Aggregats
+// (Aggregate, Literale und Rechnung über ihnen); 'zeile': ein Feld außerhalb
+// eines Aggregats; 'literal': weder Feld noch Aggregat.
+function columnKind(node) {
+  if (!node || typeof node !== 'object' || node.type === 'param') return 'literal';
+  if (node.type === 'field') return 'zeile';
+  if (node.type === 'call' && AGGREGATE_FUNCTIONS.has(node.name)) return 'aggregat';
+  let kind = 'literal';
+  const children = [node.left, node.right, node.operand, ...(node.args || [])];
+  for (const child of [...children, ...(node.values || [])]) {
+    const k = columnKind(child);
+    if (k === 'zeile') return 'zeile';
+    if (k === 'aggregat') kind = 'aggregat';
+  }
+  return kind;
+}
+
+// 4T-002511 (Epic 3E-000402, V9, Entscheidung des Product Owners vom 2026-11-01):
+// Eine Tabelle `WITHOUT ID` ohne `GROUP BY`, deren Spalten ausschließlich
+// Aggregat-Spalten sind, ist eine Gruppe über alle Treffer (Gesamt-Wert). Die
+// Treffer-Spalte einer Tabelle ohne `WITHOUT ID` ist eine Zeilen-Spalte; dort
+// bleibt die Zeilen-Bedeutung, und `TABLE sum(werte)` rechnet je Datei.
+function isTotalTable(queryAst) {
+  return (
+    !!queryAst &&
+    queryAst.type === 'table' &&
+    queryAst.withoutId === true &&
+    Array.isArray(queryAst.groupBy) &&
+    queryAst.groupBy.length === 0 &&
+    Array.isArray(queryAst.fields) &&
+    queryAst.fields.length > 0 &&
+    queryAst.fields.every((f) => columnKind(f.expr) === 'aggregat')
+  );
+}
+
 // 4T-002078 (Festlegung 3, F5 Option A): Aggregat-Stellen sind allein die
 // Spalten und die Sortierung einer gruppierten Tabelle, dazu seit 4T-002079
 // `HAVING` jeder gruppierten Abfrage (in validateQuery). Jede andere Stelle ist
-// eine Zeilen-Stelle.
+// eine Zeilen-Stelle. Seit 4T-002511 zählt die Tabelle des Gesamt-Werts als
+// gruppierte Tabelle mit einer Gruppe (isTotalTable).
 function isGroupedTable(queryAst) {
   return (
     !!queryAst &&
     queryAst.type === 'table' &&
     Array.isArray(queryAst.groupBy) &&
-    queryAst.groupBy.length > 0
+    (queryAst.groupBy.length > 0 || isTotalTable(queryAst))
   );
 }
 
@@ -659,6 +696,8 @@ module.exports = {
   // 4T-002078 (Epic 3E-000259): Aggregat-Funktionen und Aggregat-Stellen.
   AGGREGATE_FUNCTIONS,
   isGroupedTable,
+  // 4T-002511 (Epic 3E-000402, V9): die Tabelle des Gesamt-Werts.
+  isTotalTable,
   presentCount,
   validateQuery,
   queryUsesLinks,

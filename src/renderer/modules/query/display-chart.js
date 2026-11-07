@@ -1,10 +1,17 @@
 'use strict';
 
 // 4T-002173 (Epic 3E-000337): Diagramm-Darstellung einer Tabellen-Abfrage,
-// `DISPLAY bar` und `DISPLAY line`. Das Modul beantwortet eine Frage: wie aus
-// der Ergebnismenge das Bild einer Form des Verzeichnisses `display-forms.js`
-// wird, das beide Formen unter ihrem Namen einträgt; dieses Modul kennt das
-// Verzeichnis nicht.
+// `DISPLAY bar` und `DISPLAY line`, seit 4T-002514 (Epic 3E-000402) auch
+// `DISPLAY pie`. Das Modul beantwortet eine Frage: wie aus der Ergebnismenge
+// das Bild einer Form des Verzeichnisses `display-forms.js` wird, das die
+// Formen unter ihrem Namen einträgt; dieses Modul kennt das Verzeichnis nicht.
+//
+// **Der Kreis** folgt demselben Weg wie Balken und Linie: dieselbe Datenregel
+// mit der Art `pie` (eine Reihe, die erste Zahlen-Spalte; eigene Gründe
+// `negative` und `zeros`), dieselbe Zeichen-Funktion, dieselbe Klasse des Bilds
+// und damit dasselbe Neu-Zeichnen bei Farbwechsel, Druck und PDF. Weitere
+// Zahlen-Spalten nennt eine eigene Zeile unter dem Bild
+// (`query.chart.pieSeriesSkipped`).
 //
 // **Eignung und Bild aus einer Regel** (Entscheidung S1): Beide lesen die
 // Datenregel in src/shared/query/result-chart.js. Passt die Abfrage nicht,
@@ -29,7 +36,7 @@
 // **Ein Bild ohne Bedienung** (Entscheidung F3 Option A): Die Form setzt kein
 // Klick-Ziel; der Klick-Weg der Treffer (`data-fm-path`) findet nichts.
 //
-// **Schalter** (Entscheidungen F1 und F2, jeweils Option A): Beide Formen
+// **Schalter** (Entscheidungen F1 und F2, jeweils Option A): Alle drei Formen
 // gehören zur Erweiterung `query-chart` (src/shared/extensions/extensions.js).
 // Ist sie aus, zeichnet der Verteiler nicht und nennt den eigenen Hinweis-Code
 // `displayFormOff` (Entscheidung S3).
@@ -91,6 +98,22 @@ export function omittedLine(anzahl, translate) {
   return zeile('perspective-query-chart-gaps', fuelle(translate(key), { n: String(n) }));
 }
 
+/**
+ * 4T-002514: Die Zeile der Zahlen-Spalten, die der Kreis übergeht, weil er nur
+ * die erste zeigt; ohne solche Spalte keine Zeile.
+ * @param {string[]} spalten  Überschriften der übergangenen Zahlen-Spalten
+ * @param {(key: string) => string} translate
+ * @returns {HTMLElement|null}
+ */
+export function pieSkippedLine(spalten, translate) {
+  if (!Array.isArray(spalten) || spalten.length === 0) return null;
+  const liste = spalten.map((s) => `'${s}'`).join(', ');
+  return zeile(
+    'perspective-query-chart-pie-skipped',
+    fuelle(translate('query.chart.pieSeriesSkipped'), { columns: liste }),
+  );
+}
+
 function renderChart(type, resultSet, context) {
   const ctx = context || {};
   if (typeof ctx.drawChart !== 'function') {
@@ -114,6 +137,8 @@ function renderChart(type, resultSet, context) {
   bild.innerHTML = erg.svg;
   const uebergangen = skippedLine(input.skippedColumns, translate);
   if (uebergangen) bild.appendChild(uebergangen);
+  const nurErste = pieSkippedLine(input.pieSkippedColumns, translate);
+  if (nurErste) bild.appendChild(nurErste);
   const luecken = omittedLine(input.omitted, translate);
   if (luecken) bild.appendChild(luecken);
   return bild;
@@ -122,8 +147,8 @@ function renderChart(type, resultSet, context) {
 function chartForm(type) {
   return {
     extension: QUERY_CHART_EXTENSION_ID,
-    isSuitable: (resultSet) => queryChartSuitability(resultSet).suitable,
-    unsuitableReason: (resultSet) => queryChartSuitability(resultSet).reason,
+    isSuitable: (resultSet) => queryChartSuitability(resultSet, type).suitable,
+    unsuitableReason: (resultSet) => queryChartSuitability(resultSet, type).reason,
     render: (resultSet, context) => renderChart(type, resultSet, context),
   };
 }
@@ -133,3 +158,6 @@ export const barForm = chartForm('bar');
 
 /** Form `line` des Verzeichnisses: Linien-Diagramm. */
 export const lineForm = chartForm('line');
+
+/** Form `pie` des Verzeichnisses: Kreis-Diagramm (4T-002514). */
+export const pieForm = chartForm('pie');

@@ -218,6 +218,10 @@ function buildInsertItems(view) {
   // verschwindet aus dem Kontextmenue — genauso wie aus Palette, Menue und
   // Tastenkuerzel-Seite.
   if (!aus.has('insert.canvas')) submenu.push(ins('canvas', 'insert-canvas'));
+  // 4T-002513 (Epic 3E-000402): das Gerüst eines Dashboards, aus demselben Grund
+  // erweiterungs-gebunden: Ist `dashboard` abgeschaltet, entfällt der Eintrag
+  // hier wie in Palette und Tastenkürzel-Seite.
+  if (!aus.has('insert.dashboard')) submenu.push(ins('dashboard', 'insert-dashboard'));
   // 4T-001309 (Epic 3E-000235): Das Geruest der Perspective-Tabelle steht neben der
   // einfachen Tabelle, erscheint aber nur bei aktiver Erweiterung — deshalb
   // nicht in der festen Liste oben, sondern wie die uebrigen gegateten

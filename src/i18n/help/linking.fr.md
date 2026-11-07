@@ -15,6 +15,19 @@ Liens wiki, ancres, incorporations et tags relient les fichiers Markdown en rés
 
 Si le nom ne touche pas directement un fichier, deux replis s'appliquent : le résultat de l'index sur la portée de recherche et la [résolution d'alias](frontmatter.md) via le champ de frontmatter `aliases:` ; avec plusieurs candidats, un dialogue de sélection demande. Dans les cellules de tableaux pipe, échapper la barre du texte affiché avec `\|`.
 
+**Les liens du frontmatter comptent aussi.** Un lien wiki placé comme valeur d'une propriété dans le [frontmatter](frontmatter.md), seul ou comme élément d'une liste, compte comme un lien dans le texte : il apparaît dans les rétroliens de la cible, dans la [vue en graphe](graph.md) et dans les champs de lien `file.inlinks` et `file.outlinks` de la [requête Perspective](frontmatter-query.md), et lors du renommage du fichier cible, la mise à jour des liens le réécrit. La valeur est placée entre guillemets, car sans eux les doubles crochets seraient lus comme une liste imbriquée :
+
+```markdown
+---
+projet: "[[Projet A]]"
+participants:
+  - "[[Anna]]"
+  - "[[Ben Krause|Ben]]"
+---
+```
+
+Seules les propriétés de premier niveau et les listes situées directement en dessous sont évaluées ; les liens wiki dans des propriétés imbriquées ne sont pas pris en compte.
+
 ## Ancres de titre et de bloc
 
 Les liens peuvent pointer vers un titre ou un bloc du fichier cible :

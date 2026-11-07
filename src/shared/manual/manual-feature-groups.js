@@ -257,6 +257,10 @@ const HELP_FEATURE_GROUPS = [
       // Darstellungsform, am Ende des Abfrage-Clusters, weil sie zur
       // Abfrage-Sprache gehört und auf jeder Ebene gilt.
       'help.feature.queryGroupBy',
+      // 4T-002513 (Epic 3E-000402): das Dashboard als Abschluss des
+      // Abfrage-Clusters, weil jede seiner Kacheln eine Abfrage ist und es alle
+      // Formen davor zusammenführt.
+      'help.feature.dashboard',
       // 4T-000422 (Epic 3E-000079): Perspective Datatable — Konstrukt, Grid-
       // Bearbeitung und Ansichts-Funktionen direkt hinter dem Abfrage-
       // Cluster (nutzt dessen Ausdrucks-Sprache).

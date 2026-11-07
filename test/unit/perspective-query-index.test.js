@@ -614,6 +614,103 @@ describe('perspective-query — infolder gegen den echten Link-Graphen (4T-00107
   });
 });
 
+// --- 4T-002502 (Epic 3E-000403): Verweise im Kopf-Block ---------------------------
+
+// Story 4S-001180, AK1, AK3 und AK4 gegen den echten Index: Ein Wiki-Verweis als
+// Eigenschaft im Kopf-Block zählt in den ausgehenden Verweisen der Abfrage, in
+// den eingehenden des Ziels und in seinen Rückverweisen — ohne eigene Änderung
+// an Abfrage oder Rückverweisen, weil beide denselben Index lesen. Eigener
+// Suchraum, damit die Fixture oben unverändert bleibt.
+describe('perspective-query — Verweise im Kopf-Block (4T-002502)', () => {
+  let wurzel;
+  let einstieg;
+  let vorhaben;
+  let notiz;
+
+  beforeEach(async () => {
+    wurzel = makeRoot();
+    einstieg = write(wurzel, 'Start.md', '# Start\n');
+    vorhaben = write(wurzel, 'Vorhaben A.md', '# Vorhaben A\n');
+    write(wurzel, 'Ziel B.md', '# Ziel B\n');
+    // Verweis als Einzel-Wert und in einer Liste, einer davon mit Anzeige-Text,
+    // dazu ein Ziel, das es nicht gibt.
+    notiz = write(
+      wurzel,
+      'Notizen/Notiz.md',
+      [
+        '---',
+        'projekt: "[[Vorhaben A]]"',
+        'bezug:',
+        '  - "[[Ziel B|Anzeige]]"',
+        '  - "[[Gibt es nicht]]"',
+        '---',
+        '# Notiz',
+        '',
+      ].join('\n'),
+    );
+    // Gegenstück: derselbe offene Verweis im Körper.
+    write(wurzel, 'Notizen/Körper.md', '# Körper\nSiehe [[Gibt es nicht]].\n');
+    await indexFor(einstieg);
+  });
+
+  const treffer = (abfrage) => names(frontmatterQueryFor(einstieg, abfrage, wurzel)).sort();
+
+  it('file.outlinks und file.inlinks tragen die Kopf-Block-Verweise', async () => {
+    expect(treffer('WHERE contains(file.outlinks, "Vorhaben A")')).toEqual(['Notiz']);
+    // Anzeige-Text ist nicht das Ziel.
+    expect(treffer('WHERE contains(file.outlinks, "Ziel B")')).toEqual(['Notiz']);
+    expect(treffer('WHERE contains(file.outlinks, "Anzeige")')).toEqual([]);
+    expect(treffer('WHERE contains(file.inlinks, "Notiz")')).toEqual(['Vorhaben A', 'Ziel B']);
+    expect(treffer('FROM outgoing([[Notiz]])')).toEqual(['Vorhaben A', 'Ziel B']);
+    expect(treffer('FROM [[Vorhaben A]]')).toEqual(['Notiz']);
+  });
+
+  it('die ausgehenden Verweise als Spalte zeigen die Kopf-Block-Ziele', async () => {
+    const res = frontmatterQueryFor(
+      einstieg,
+      'TABLE file.outlinks AS "Verweise" WHERE file.name = "Notiz"',
+      wurzel,
+    );
+    expect(zustand(res).queryError).toBeNull();
+    expect(zeilen(res)).toHaveLength(1);
+    const verweise = zellen(zeilen(res)[0])[0]
+      .filter((stueck) => stueck.link)
+      .map((stueck) => stueck.link.name)
+      .sort();
+    expect(verweise).toEqual(['Vorhaben A', 'Ziel B']);
+  });
+
+  it('ein Kopf-Block-Verweis ohne Ziel wird geführt wie derselbe im Körper', async () => {
+    // Beide Dateien tragen genau einen offenen Verweis; die Abfrage sieht ihn in
+    // beiden gleich (Notiz: zwei aufgelöste Ziele, Körper: keines).
+    const anzahl = (name) =>
+      zellen(
+        zeilen(
+          frontmatterQueryFor(
+            einstieg,
+            `TABLE length(file.outlinks) AS "Anzahl" WHERE file.name = "${name}"`,
+            wurzel,
+          ),
+        )[0],
+      )[0];
+    expect(anzahl('Körper')).toEqual([{ text: '0' }]);
+    expect(anzahl('Notiz')).toEqual([{ text: '2' }]);
+    // Keine Datei angelegt.
+    expect(fs.existsSync(path.join(wurzel, 'Gibt es nicht.md'))).toBe(false);
+    expect(fs.existsSync(path.join(wurzel, 'Notizen', 'Gibt es nicht.md'))).toBe(false);
+  });
+
+  it('die Rückverweise des Ziels nennen die Datei mit der Kopf-Block-Zeile', async () => {
+    const res = await indexFor(vorhaben);
+    expect(res.status).toBe('ready');
+    const gruppe = res.results.find((g) => g.quelldatei === path.resolve(notiz));
+    expect(gruppe).toBeDefined();
+    expect(gruppe.hits).toEqual([
+      expect.objectContaining({ zeile: 2, linkTyp: 'wiki', snippet: 'projekt: "[[Vorhaben A]]"' }),
+    ]);
+  });
+});
+
 // --- 4T-002033 (Epic 3E-000260): Ergebnismenge der Datei- und Block-Ebene ---------
 
 // Jede Antwort trägt die Ergebnismenge im Feld resultSet. Zusagen je Fall: Der

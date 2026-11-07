@@ -130,6 +130,8 @@ const SYNTAX_ERROR_KEYS = {
   // 4T-002079: HAVING ohne GROUP BY und ein Feld ohne Gruppen-Bezug in HAVING ({name}).
   havingWithoutGroupBy: 'query.syntax.havingWithoutGroupBy',
   havingUngrouped: 'query.syntax.havingUngrouped',
+  // 4T-002511 (Epic 3E-000402): ein Platzhalter außerhalb von WHERE und HAVING.
+  placeholderPosition: 'query.syntax.placeholderPosition',
 };
 
 // 4T-000405 (Epic 3E-000076): Hinweis-Codes des Zustands (seit 4T-002034 aus
@@ -152,6 +154,11 @@ const HINT_KEYS = {
   // 4T-002173 (Epic 3E-000337, S3): Die Form hängt an einer ausgeschalteten
   // Erweiterung; heute tun das allein die Diagramme.
   displayFormOff: 'query.hint.displayFormOff',
+  // 4T-002511 (Epic 3E-000402): Platzhalter außerhalb eines Dashboards und ein
+  // Name, den das Dashboard nicht kennt ({name} aus state.hintName); beide gelten
+  // als «alle» und erscheinen auch über einer leeren Menge.
+  placeholderOutside: 'query.hint.placeholderOutside',
+  placeholderUnknown: 'query.hint.placeholderUnknown',
 };
 
 // 4T-002173 (F5 Option A): Grund-Codes einer unpassenden Form (heute die der
@@ -159,10 +166,16 @@ const HINT_KEYS = {
 // die den Grund nennen. Ein Code ohne Eintrag zeigt den allgemeinen Hinweis
 // «passt nicht»; `empty` erreicht den Verteiler nicht, weil der Leer-Fall davor
 // seinen eigenen Text zeigt.
+// 4T-002515 (Epic 3E-000402): dazu die beiden Gründe allein des Kreises
+// (`QUERY_PIE_REASONS` in result-chart.js) und der Grund der Kennzahl-Kachel
+// (`dashboard-formen.js`), der den Text des Dashboard-Katalogs trägt.
 const UNSUITABLE_REASON_KEYS = {
   'not-table': 'query.hint.displayFormChartNotTable',
   'single-column': 'query.hint.displayFormChartSingleColumn',
   'no-numbers': 'query.hint.displayFormChartNoNumbers',
+  negative: 'query.hint.displayFormChartNegative',
+  zeros: 'query.hint.displayFormChartZeros',
+  kennzahlOhneZahl: 'dashboard.hint.kennzahlOhneZahl',
 };
 
 function syntaxErrorText(err, translate) {
@@ -245,7 +258,10 @@ function baueAusgabe(payload, translate, kontext) {
   // Hinweis des Zustands ihr Gitter, auch bei leerer Menge mit eigener
   // Zähl-Zeile. Bleibt sie lesend, steht ihr Hinweis über der Ausgabe wie
   // bisher, und alles darunter läuft unverändert.
-  const liste = listeOf(payload);
+  // 4T-002515: Eine interne Vorgabe-Form kann die Listen-Maske abbestellen und
+  // auch ohne Treffer zeichnen (die Kennzahl zeigt dann 0).
+  const intern = interneVorgabe(kontext);
+  const liste = intern && intern.listenMaske === false ? null : listeOf(payload);
   if (rs && liste) {
     const seite = kontext && Number.isInteger(kontext.listenSeite) ? kontext.listenSeite : 0;
     const zeile = kontext && kontext.zeile ? kontext.zeile : null;
@@ -256,11 +272,18 @@ function baueAusgabe(payload, translate, kontext) {
     }
     frag.appendChild(node);
   }
-  if (!rs || rs.rows.length === 0) {
+  // 4T-002511 (V9): Die Tabelle des Gesamt-Werts zeigt ihre eine Zeile auch ohne
+  // Treffer (count() ist dann 0); ihre Gruppe trägt die Werte.
+  const gesamtZeile =
+    !!rs && rs.type === 'table' && Array.isArray(rs.groups) && rs.groups.length > 0;
+  const auchLeer = !!intern && intern.auchOhneTreffer === true;
+  if (!rs || (rs.rows.length === 0 && !gesamtZeile && !auchLeer)) {
     // 4T-002039 (Epic 3E-000258): Auf der Datensatz-Ebene erklärt ein Hinweis die
     // leere Menge (Aus-Zustand), deshalb steht er dort vor «keine Treffer». Die
     // drei bestehenden Ebenen zeigen im Leer-Fall wie bisher keinen Hinweis.
-    if (rs && rs.scope === 'records') appendHint(frag, rs, translate);
+    if (rs && (rs.scope === 'records' || PLATZHALTER_HINWEISE.has(rs.state.hint))) {
+      appendHint(frag, rs, translate);
+    }
     // 4T-002040: Die Datensatz-Ebene hat einen eigenen Leer-Text; die drei
     // bestehenden Ebenen behalten «Keine Datei entspricht dieser Abfrage».
     const emptyKey = rs && rs.scope === 'records' ? 'query.emptyRecords' : 'query.empty';
@@ -272,7 +295,9 @@ function baueAusgabe(payload, translate, kontext) {
   // bisher. Eine gezeichnete Form trägt den Hinweis des Zustands über sich; eine
   // unbekannte oder unpassende fällt auf die Ausgabe ohne Angabe zurück und sagt
   // das im Hinweis, der hinter denen des Zustands kommt.
-  const display = drawDisplayForm(rs, formKontext(translate, kontext));
+  // 4T-002511: Eine Vorgabe-Form des Containers (data-fm-form) tritt an die Stelle
+  // des Wunsches DISPLAY, ohne Hinweis (zeichneForm).
+  const display = zeichneForm(rs, formKontext(translate, kontext), kontext && kontext.vorgabeForm);
   if (display.node) {
     appendHint(frag, rs, translate);
     return append(frag, display.node);
@@ -335,8 +360,75 @@ function appendHint(frag, rs, translate, display) {
       ? UNSUITABLE_REASON_KEYS[display.reason]
       : null;
   const text = translate(reasonKey || HINT_KEYS[hintCode]);
-  hint.textContent = stateCode ? text : text.replace('{name}', String(display.name || ''));
+  const name = stateCode ? rs.state.hintName : display.name;
+  hint.textContent = text.replace('{name}', String(name || ''));
   frag.appendChild(hint);
+}
+
+// 4T-002511: die Hinweise der Platzhalter (Codes aus query.js im Hauptprozess).
+const PLATZHALTER_HINWEISE = new Set(['placeholderOutside', 'placeholderUnknown']);
+
+// --- Vorgabe-Form des Containers (4T-002511) -----------------------------------
+// Interne Formen, die allein über die Vorgabe-Naht erreichbar sind, nicht über
+// DISPLAY (etwa die Kachel-Formen eines Dashboards). Name klein -> Form in der
+// Gestalt der Darstellungsformen (isSuitable, render, wahlfrei unsuitableReason).
+const VORGABE_FORMEN = new Map();
+
+/**
+ * Meldet eine interne Form an, die ein Container über `data-fm-form` wählen kann.
+ * Ein Name gilt einmal; ein zweiter Eintrag ist ein Programmierfehler.
+ * @param {string} name
+ * @param {{ isSuitable: Function, render: Function, unsuitableReason?: Function }} form
+ * @returns {() => void}  Nimmt den Eintrag wieder heraus (für Prüffälle).
+ */
+export function registriereVorgabeForm(name, form) {
+  const key = typeof name === 'string' ? name.trim().toLowerCase() : '';
+  if (!key || !form || typeof form.isSuitable !== 'function' || typeof form.render !== 'function') {
+    throw new TypeError(`frontmatter-query-view: Vorgabe-Form '${key}' unvollständig`);
+  }
+  if (VORGABE_FORMEN.has(key)) throw new Error(`Vorgabe-Form '${key}' ist schon angemeldet`);
+  VORGABE_FORMEN.set(key, form);
+  return () => {
+    if (VORGABE_FORMEN.get(key) === form) VORGABE_FORMEN.delete(key);
+  };
+}
+
+// 4T-002515: Die interne Form der Vorgabe des Containers, sonst null. Zwei
+// wahlfreie Angaben einer internen Form wirken vor dem Verteiler:
+// `listenMaske: false` lässt die Listen-Maske einer Datensatz-Abfrage weg, und
+// `auchOhneTreffer: true` reicht auch eine Menge ohne Zeile an die Form.
+function interneVorgabe(kontext) {
+  const vorgabe = kontext && kontext.vorgabeForm;
+  const name = typeof vorgabe === 'string' ? vorgabe.trim().toLowerCase() : '';
+  return (name && VORGABE_FORMEN.get(name)) || null;
+}
+
+// Zeichnet die Form der Menge: ohne Vorgabe den Wunsch DISPLAY (Verteiler
+// display-forms.js); mit Vorgabe diese statt des Wunsches, eine interne Form
+// direkt, eine öffentliche über den Verteiler. Das Ergebnis hat die Gestalt des
+// Verteilers, ein Scheitern fällt wie dort auf die Ausgabe ohne Angabe zurück.
+function zeichneForm(rs, formKontext, vorgabe) {
+  const name = typeof vorgabe === 'string' ? vorgabe.trim().toLowerCase() : '';
+  if (!name) return drawDisplayForm(rs, formKontext);
+  const menge = { ...rs, wishes: { ...rs.wishes, display: { form: name, by: null } } };
+  const intern = VORGABE_FORMEN.get(name);
+  if (!intern) return drawDisplayForm(menge, formKontext);
+  const passtNicht = (reason) =>
+    typeof reason === 'string' && reason !== ''
+      ? { node: null, hint: 'displayFormUnsuitable', name, reason }
+      : { node: null, hint: 'displayFormUnsuitable', name };
+  try {
+    if (!intern.isSuitable(menge)) {
+      const fn = intern.unsuitableReason;
+      return passtNicht(typeof fn === 'function' ? fn(menge) : null);
+    }
+    const node = intern.render(menge, formKontext);
+    if (!node || typeof node.nodeType !== 'number') throw new TypeError('kein DOM-Knoten');
+    return { node, hint: null, name };
+  } catch (err) {
+    console.warn(`Vorgabe-Form '${name}' gescheitert, Rückfall ohne Angabe`, err);
+    return passtNicht(null);
+  }
 }
 
 function append(frag, node) {
@@ -370,6 +462,8 @@ function formKontext(translate, kontext) {
     isExtensionActive:
       typeof k.isExtensionActive === 'function' ? k.isExtensionActive : isExtensionActive,
     drawChart: typeof k.drawChart === 'function' ? k.drawChart : bridgeDrawChart(null),
+    // 4T-002515: die Oberflächen-Sprache für Zahl, Datum und Dauer einer Form.
+    locale: typeof k.locale === 'string' && k.locale ? k.locale : intlLocale(),
   };
 }
 
@@ -504,7 +598,13 @@ function renderPayload(el, payload) {
   const zeile = payload && payload.liste ? zeilenBearbeitungFuer(el) : null;
   el.textContent = '';
   el.appendChild(
-    buildQueryListDom(payload, t, { drawChart: bridgeDrawChart(el), listenSeite: seite, zeile }),
+    buildQueryListDom(payload, t, {
+      drawChart: bridgeDrawChart(el),
+      listenSeite: seite,
+      zeile,
+      // 4T-002511: die Vorgabe-Form des Containers (Kachel eines Dashboards).
+      vorgabeForm: el.dataset.fmForm || null,
+    }),
   );
   if (el.querySelector(`.${QUERY_CHART_CLASS}`)) {
     DIAGRAMM_ANTWORTEN.set(el, payload);
@@ -561,7 +661,9 @@ function fillOneQueryContainer(el, basePath, showLoading) {
     // Formatierer der Abfrage folgen ihr statt der Betriebssystem-Sprache.
     // 4T-001594: als BCP-47-Form, weil der Wert im Hauptprozess als ctx.locale
     // in Intl.DateTimeFormat und Intl.NumberFormat landet (query-format.js).
-    .runFrontmatterQuery(basePath, query, intlLocale())
+    // 4T-002511 (Epic 3E-000402): dazu die Werte der Filter eines Dashboards aus
+    // data-fm-params; ohne die Angabe bleibt der Aufruf, wie er war.
+    .runFrontmatterQuery(basePath, query, intlLocale(), werteDes(el))
     // 4T-002249: Auskunft über eine Listen-Maske, nur solange die Antwort noch gilt.
     .then((payload) => (aktuell() ? mitListe(payload, basePath, query) : payload))
     .then((payload) => {
@@ -615,6 +717,37 @@ function gemeinsameKopfDatei(rows) {
 // Findet alle perspective-query-Platzhalter im Container und befüllt sie.
 // Aufgerufen aus der Render-Pipeline (Render-Pane/Reading) und aus dem
 // Live-Block-Widget. basePath kann leer sein (pfadloser Tab).
+// 4T-002511 (Epic 3E-000402): Die Werte der Platzhalter am Container, als JSON
+// in data-fm-params (ein Wert je Name, null für «alle»). Fehlt die Angabe, kommt
+// undefined zurück, und die Abfrage gilt als außerhalb eines Dashboards; ist sie
+// kein Objekt, gilt der Container als Dashboard ohne Werte (jeder Name unbekannt).
+// Prüfung und Bindung liegen im Hauptprozess.
+function werteDes(el) {
+  const roh = el.dataset.fmParams;
+  if (roh === undefined) return undefined;
+  try {
+    const werte = JSON.parse(roh);
+    return werte && typeof werte === 'object' && !Array.isArray(werte) ? werte : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * 4T-002511 (Epic 3E-000402): Befüllt einen einzelnen Abfrage-Container, etwa eine
+ * Kachel eines Dashboards, die ihr Befüllungs-Schritt zum Abfrage-Container
+ * gemacht hat (Klasse `perspective-query`, `data-fm-query`, wahlfrei
+ * `data-fm-params` und `data-fm-form`). Er erbt damit Live-Nachzug, die
+ * Leerlauf-Schranke vor Druck und PDF, das Neu-Zeichnen der Diagramme, den
+ * Klick-Pfad und die Listen-Maske.
+ * @param {HTMLElement} el
+ * @param {string} basePath  Pfad des Dokuments; leer bei einem pfadlosen Reiter
+ */
+export function befuelleAbfrageContainer(el, basePath) {
+  if (!el || !el.dataset) return;
+  fillOneQueryContainer(el, basePath, true);
+}
+
 export function applyFrontmatterQueriesIfPresent(container, basePath) {
   if (!container || typeof container.querySelectorAll !== 'function') return;
   const els = container.querySelectorAll('.perspective-query[data-fm-query]');

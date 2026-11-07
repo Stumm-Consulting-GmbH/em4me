@@ -32,6 +32,7 @@ Read in order, or jump straight to what you need:
 14. [[14 Calendar Systems]] — the same day in the Gregorian and the Japanese calendar, and eleven more to add
 15. [[15 Presentation]] — one document as slides, shown full screen and exported
 16. [[16 Workflows]] — recurring steps written down as fixed commands and run by hand
+17. [[17 Dashboards]] — tiles of live queries side by side, narrowed by selection fields at the top
 
 Beside the tour, the folder `Bookshelf` holds a small **bookshelf** grouping two books — among them the `Demo Book`, a handful of chapters tied into one declared reading path. Open the shelf with **File → Open Bookshelf…** (or a single book with **File → Open Book…**); [[Bookshelf]] and [[Demo Book]] explain what to try. :books:
 

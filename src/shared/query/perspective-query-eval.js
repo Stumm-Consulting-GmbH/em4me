@@ -16,6 +16,8 @@
 //   query-record-fields.js  Feld-Katalog des RECORDS-Scopes (4T-002039)
 //   query-sources.js      Quellen-Ebene (FROM: Ordner, Tag, Link, Selbstbezug)
 //                         samt der Ordner-Normalisierung; Blatt (4T-001070)
+//   query-platzhalter.js  Platzhalter `$name`: Stellen-Prüfung und Bindung;
+//                         Blatt, hier allein als Rückfall «alle» (4T-002511)
 //   formula-library.js    Liste der Formel-Bibliothek, vom Funktions-Katalog
 //                         geladen; Blatt (4T-002449)
 // Der Import-Graph läuft ausschließlich von hier nach unten; kein
@@ -94,6 +96,9 @@ const { resolveTaskField } = require('./query-task-fields.js');
 const { resolveRecordField, recordRefEquals } = require('./query-record-fields.js');
 // 4T-001070 (Epic 3E-000211): Quellen-Ebene (FROM) im eigenen Schwester-Modul.
 const { matchesSource } = require('./query-sources.js');
+// 4T-002511 (Epic 3E-000402): Rückfall für Aufrufer, die eine Abfrage ohne
+// Bindung der Platzhalter auswerten; das Modul lädt den Kern nicht.
+const { ohnePlatzhalter } = require('./query-platzhalter.js');
 
 // --- Werte-Ordnung ------------------------------------------------------------
 
@@ -351,6 +356,11 @@ function evaluateExpression(node, ctx) {
     // Aggregats oder Gruppen-Ausdrucks; der Parser erzeugt ihn nie.
     case 'const':
       return node.value;
+    // 4T-002511 (Epic 3E-000402): der Knoten «erfüllt». Ihn setzt allein die
+    // Bindung eines Platzhalters auf «alle» (query-platzhalter.js) an die Stelle
+    // der kleinsten Bedingung mit dem Platzhalter; der Parser erzeugt ihn nie.
+    case 'always':
+      return true;
     // 4T-002449 (Epic 3E-000378): Eine Funktion einer ausgeschalteten Gruppe
     // rechnet nicht (Schutz für jeden Aufrufer, der vorher nicht prüft), und
     // ein Meldungs-Wert unter den Angaben ist das Ergebnis des Aufrufs.
@@ -469,8 +479,10 @@ function evaluateArith(op, a, b) {
 // Prüft eine Datei (über ihren Kontext) gegen den Abfrage-AST: FROM-Quelle und
 // WHERE-Bedingung müssen beide zutreffen. Sortierung, Limit und Spalten-
 // Auswertung sind Sache der Ergebnis-Pipeline (4T-000403/4T-000404).
-function matchesQuery(queryAst, ctx) {
-  if (!queryAst) return false;
+// 4T-002511: Ein Platzhalter, den kein Aufrufer gebunden hat, gilt als «alle».
+function matchesQuery(abfrage, ctx) {
+  if (!abfrage) return false;
+  const queryAst = ohnePlatzhalter(abfrage);
   if (queryAst.type !== 'list' && queryAst.type !== 'table') {
     return truthy(evaluateExpression(queryAst, ctx));
   }
@@ -556,8 +568,9 @@ function applyResultPipeline(rows, queryAst) {
 // Bestands-Tests und einfachen Aufrufern genutzt): wertet nur die WHERE-
 // Bedingung gegen eine reine Properties-Map aus; file.*-Felder sind ohne
 // Datei-Kontext null, eine FROM-Quelle wird hier bewusst ignoriert.
-function evaluateQuery(ast, propsMap) {
-  if (!ast) return false;
+function evaluateQuery(abfrage, propsMap) {
+  if (!abfrage) return false;
+  const ast = ohnePlatzhalter(abfrage);
   const ctx = { props: propsMap || {}, file: null, now: Date.now() };
   if (ast.type === 'list' || ast.type === 'table') {
     return ast.where ? truthy(evaluateExpression(ast.where, ctx)) : true;

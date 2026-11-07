@@ -326,6 +326,92 @@ describe('Outgoing-Links und Snippets (panels/panel-outgoing.js)', () => {
     expect(panelOutline.extractHeadingText(doc, 2)).toBe('Setext-Text');
     expect(panelOutline.extractHeadingText(doc, 5)).toBe('');
   });
+
+  // 4T-002503 (Epic 3E-000403, Befund B4 des Reviews): Im Kopf-Block gilt im
+  // Bedienfeld dieselbe Regel wie im Bereichs-Index — Zeichenketten-Werte der
+  // obersten Ebene und Listen-Einträge darunter, keine Kommentare, keine
+  // verschachtelten Werte; die Zeilen-Nummer ist die Wert-Zeile.
+  describe('Verweise im Kopf-Block (4T-002503)', () => {
+    // Schutz gegen eine falsche Umsetzung: Ohne die Kopf-Block-Regel bleibt der
+    // Fall grün, weil der frühere Zeilen-Scan dieselben Einträge fand. Er fängt
+    // eine Umsetzung, die Kopf-Block-Verweise verliert, falsch nummeriert oder
+    // hinter die Körper-Verweise sortiert.
+    it('erscheinen mit Ziel, Anker und Wert-Zeile, vor den Körper-Verweisen', () => {
+      const links = panelOutgoing.extractOutgoingLinks(
+        [
+          '---',
+          'projekt: "[[Vorhaben A]]"',
+          'bezug:',
+          '  - "[[Ziel B#Kapitel|Anzeige]]"',
+          '---',
+          'Siehe [[Körper]].',
+          '',
+        ].join('\n'),
+      );
+      expect(links.map((l) => [l.type, l.target, l.anchor, l.line])).toEqual([
+        ['wikiLink', 'Vorhaben A', '', 2],
+        ['wikiLink', 'Ziel B', 'Kapitel', 4],
+        ['wikiLink', 'Körper', '', 6],
+      ]);
+      expect(links[0].snippet).toBe('projekt: "[[Vorhaben A]]"');
+    });
+
+    it('Kommentare, auskommentierte und verschachtelte Einträge erscheinen nicht', () => {
+      const links = panelOutgoing.extractOutgoingLinks(
+        [
+          '---',
+          '# [[Kommentar]]',
+          'bezug: # vorher [[NachSchlüssel]]',
+          '  # - "[[Auskommentiert]]"',
+          '  - ziel: "[[Verschachtelt]]"',
+          '  - "[[Echt]]"',
+          'gruppe:',
+          '  kind: "[[AuchVerschachtelt]]"',
+          'link: "[Text](notiz.md)"',
+          '---',
+          '',
+        ].join('\n'),
+      );
+      expect(links.map((l) => [l.target, l.line])).toEqual([['Echt', 6]]);
+    });
+
+    it('ungültiger Kopf-Block: keine Kopf-Block-Verweise, der Körper zählt', () => {
+      const links = panelOutgoing.extractOutgoingLinks(
+        ['---', 'projekt: "[[Kaputt]]', 'x: : :', '---', '[[Körper]]', ''].join('\n'),
+      );
+      expect(links.map((l) => l.target)).toEqual(['Körper']);
+    });
+
+    it('Trennlinie ohne Schluss-Zeile ist kein Kopf-Block: ihre Zeilen sind Körper', () => {
+      const links = panelOutgoing.extractOutgoingLinks(
+        ['---', '# [[ImKörper]]', 'Text.', ''].join('\n'),
+      );
+      expect(links.map((l) => [l.target, l.line])).toEqual([['ImKörper', 2]]);
+    });
+
+    // 4T-002503 (Befund C1 des Reviews): Flow-Liste über mehrere Zeilen und
+    // Block-Skalar als Listen-Eintrag erscheinen mit ihrer Wert-Zeile, wie im
+    // Bereichs-Index.
+    it('Flow-Liste über mehrere Zeilen und Block-Skalar als Listen-Eintrag', () => {
+      const links = panelOutgoing.extractOutgoingLinks(
+        [
+          '---',
+          'bezug: [',
+          '  "[[Eins]]", # [[Kommentar]]',
+          ']',
+          'notizen:',
+          '  - |',
+          '    Siehe [[Zwei]].',
+          '---',
+          '',
+        ].join('\n'),
+      );
+      expect(links.map((l) => [l.target, l.line])).toEqual([
+        ['Eins', 3],
+        ['Zwei', 7],
+      ]);
+    });
+  });
 });
 
 describe('Navigation und Persistenz-Logik (views/)', () => {

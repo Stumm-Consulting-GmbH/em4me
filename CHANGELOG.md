@@ -14,6 +14,348 @@ Commit-Anzahl zum Release-Commit und macht den Stand eindeutig einordenbar; die
 dreiteilige Version (Git-Tag, EXE-Dateinamen, `package.json`) bleibt
 maßgeblich.
 
+## [1.158.0.4996] - 2026-11-06 — Dashboards als Markdown-Konstrukt, Verweise im Frontmatter zählen mit
+
+Zug
+3E-000405
+mit zwei Mitgliedern und damit unter der Regelgröße von drei bis neun; der
+Product Owner hat Zuschnitt und Reihenfolge am 2026-11-01 im Wortlaut
+«Freigegeben. Setz es so um.» freigegeben und einen Zug mit beiden Epics zwei
+kleineren Zügen vorgezogen. Die Mitglieder in der Reihenfolge ihrer Umsetzung,
+je mit dem Task, der ihren Abschluss-Anteil trägt:
+
+1. 3E-000403
+   — ein Wiki-Verweis als Wert einer Eigenschaft im Kopf-Block zählt als
+   Verweis der Datei: in den Backlinks des Ziels, in der Graphenansicht, im
+   Bereichs-Index und in den Link-Feldern der Perspective-Abfrage, und beim
+   Umbenennen des Ziels zieht er nach. Erfasst werden Werte der obersten Ebene
+   und Listen direkt darunter; verschachtelte Strukturen bleiben außen vor.
+   Abschluss-Anteil in
+   4T-002505.
+2. 3E-000402
+   — Dashboards als Markdown-Konstrukt im Dokument: Ein Code-Block
+   `perspective-dashboard` ordnet Kacheln in Zeilen an, jede Kachel zeigt das
+   Ergebnis einer Perspective-Abfrage als Kennzahl, Liste, Tabelle, Balken- oder
+   Kreis-Diagramm oder trägt Text, und Auswahlfelder am Kopf grenzen über
+   Platzhalter in den Abfragen alle Kacheln zugleich ein, ohne die Datei zu
+   ändern. Dazu kommen die Kachel mit Abfrage-Datei, Druck und portabler Export
+   mit der Vorbelegung, die Darstellungsform Kreis für jede Abfrage und der
+   Gesamt-Wert einer Tabelle aus Aggregat-Spalten ohne Gruppierung. Interne
+   Erweiterung «Dashboard», eingeschaltet ab dem Arbeitsmodus Fortgeschritten.
+   Abschluss-Anteil in
+   4T-002520.
+
+### Neu
+
+- **Wiki-Links im Frontmatter zählen als Verweise der Datei** (`4T-002502`).
+  Wer eine Zugehörigkeit als Eigenschaft im Frontmatter führt, etwa
+  `projekt: "[[Vorhaben A]]"`, sieht die Datei jetzt in den Backlinks des Ziels,
+  in der Graphenansicht und in den Link-Feldern der Perspective-Abfrage, ohne
+  den Verweis zusätzlich in den Text schreiben zu müssen. Der Index-Parser
+  (`src/main/index/parse.js`) liest Zeichenketten-Werte der obersten Ebene und
+  Zeichenketten-Einträge von Listen der obersten Ebene mit derselben
+  Verweis-Erkennung und Inline-Code-Maskierung wie den Körper; die Aufnahme
+  eines Treffers teilen Körper und Kopf-Block in einer gemeinsamen Funktion.
+  Fundstelle ist die Zeile im Kopf-Block, damit der Klick aus dem Panel
+  «Backlinks» dorthin springt. Ein Verweis ohne Ziel wird wie im Körper als
+  offener Verweis geführt; ein Wert ohne Anführungszeichen ergibt nach YAML
+  eine verschachtelte Liste und damit keinen Verweis, ohne Absturz. Die
+  Link-Felder `file.outlinks`, `file.inlinks`, `outgoing()` und `FROM [[…]]`
+  folgen ohne eigene Änderung, weil sie den Index lesen.
+- **Dashboard-Block mit eigener Grammatik** (`4T-002509`, `4T-002512`). Ein
+  Code-Block `perspective-dashboard` beschreibt ein Dashboard mit drei
+  Elementen, je eingeleitet von einer Marker-Zeile in Spalte 0: `!filter` für
+  ein Auswahlfeld am Kopf, `!zeile` für eine neue Zeile und `!kachel` mit Art,
+  Titel, Breite und Datenquelle. Die Breite folgt einem Raster aus Zwölfteln
+  (`ganz`, `halb`, `drittel`, `viertel` oder `n/12`), Kacheln ohne Angabe teilen
+  sich den Rest der Zeile, und ein Block, der schmaler als 480 Pixel ist, stellt
+  die Kacheln untereinander, auch in einer Spalte der geteilten Ansicht. Ein
+  Fehler wirft nie etwas weg: Eine Kachel mit unbekannter Art oder ohne gültige
+  Quelle erscheint als Fehler-Kachel an ihrem Platz, Hinweise stehen über der
+  Kachel oder gesammelt am Fuß des Dashboards, jeweils mit der Zeile, und
+  unbekannte Marker und Angaben bleiben mit ihrem Text im Block. Den
+  Format-Kern (Lesen, Zurückschreiben mit Erhalt des Rohtexts, abgeleitete Sicht
+  samt Breiten) tragen `src/shared/dashboard/dashboard-core.js` und
+  `dashboard-breite.js`, das Markup in der Pipeline
+  `src/shared/markdown/dashboard-block.js` mit dem Stil
+  `src/renderer/styles/dashboard.css`. Überschriften in einer Text-Kachel
+  bleiben aus Gliederung und Sprungzielen des Dokuments heraus.
+- **Sechs Kachel-Arten, befüllt aus der Abfrage** (`4T-002515`). `kennzahl`
+  zeigt eine große Zahl oder eine Zahl je Gruppe: den Gesamt-Wert einer Tabelle
+  aus Aggregat-Spalten, sonst die Zahl der Treffer, bei einer gruppierten
+  Tabelle den Wert der ersten Zahlen-Spalte je Gruppe; ohne Treffer steht `0`,
+  und auch ein Datum oder eine Dauer zählt als Wert. `liste` und `tabelle`
+  zeigen das Ergebnis wie im Fließtext, `balken` und `kreis` als Diagramm, und
+  `text` trägt Markdown. Passt eine Abfrage nicht zur Art, erscheint die Liste
+  oder Tabelle mit einem Hinweis. Die Befüllung ist ein Schritt der Lese-Ansicht
+  vor der gewöhnlichen Abfrage-Befüllung
+  (`src/renderer/modules/dashboard/dashboard-view.js`); Kennzahl, Liste und
+  Tabelle sind interne Formen der Abfrage-Anzeige
+  (`dashboard/dashboard-formen.js`), Balken und Kreis nutzen die
+  Darstellungsformen `bar` und `pie`.
+- **Filter am Kopf mit Platzhaltern in den Abfragen** (`4T-002511`,
+  `4T-002516`). Jeder `!filter` wird zu einem Auswahlfeld, das mit «alle»
+  beginnt; seine Werte sind im Block aufgezählt oder kommen aus den im Bereich
+  vergebenen Werten einer Frontmatter-Eigenschaft und ziehen nach, wenn sich der
+  Bestand ändert. In der Abfrage einer Kachel steht `$name` für die Wahl des
+  Filters, in `WHERE` und `HAVING` an jeder Stelle eines Ausdrucks; steht der
+  Filter auf «alle», entfällt die kleinste Bedingung mit dem Platzhalter. Nach
+  einer neuen Wahl laden allein die Kacheln neu, deren Abfrage den Platzhalter
+  trägt. Die Wahl gilt, solange das Dokument geöffnet ist, je Spalte der
+  geteilten Ansicht eigens, und wird nie in die Datei geschrieben; das Dokument
+  bekommt kein Änderungs-Zeichen. Ein Platzhalter an falscher Stelle ist ein
+  Abfrage-Fehler, ein Name ohne Filter und eine Abfrage außerhalb eines
+  Dashboards gelten als «alle» mit Hinweis. Abfrage-Sprache in
+  `src/shared/query/query-platzhalter.js` mit Parser und Auswerter, Auswahlfelder
+  und Zustand in `src/renderer/modules/dashboard/dashboard-filter.js` und
+  `dashboard-zustand.js`.
+- **Kachel mit Abfrage-Datei** (`4T-002517`). Statt einer eigenen Abfrage nennt
+  eine Kachel mit `abfrage="…"` eine Abfrage-Datei der Datenbank; mehrere
+  Dashboards teilen sich so eine Abfrage. Gefunden wird die Datei wie das Ziel
+  einer Einbettung, ausgewertet wird sie mit ihrem eigenen Ort als Grundpfad.
+  Fehlt sie, ist sie nicht lesbar (zu groß oder gesperrt), trägt sie keine Marke der Abfrage-Datei oder nicht genau einen
+  Abfrage-Block, steht an der Kachel ein Hinweis mit dem genannten Namen. Die
+  Angabe zählt als Verweis der Datei: Das Dashboard erscheint in den Backlinks
+  der Abfrage-Datei und in den ausgehenden Verweisen, und beim Umbenennen der
+  Abfrage-Datei zieht die Angabe mit, samt Vorschau. Erkennung in
+  `src/shared/markdown/link-scan-dashboard.js` über den Format-Kern, Anzeige in
+  `src/renderer/modules/dashboard/dashboard-quelle.js`.
+- **Darstellungsform Kreis für jede Abfrage** (`4T-002514`). `DISPLAY pie` zeigt
+  das Ergebnis einer Tabellen-Abfrage als Kreis-Diagramm, im Fließtext wie in
+  einer Kachel: die erste Spalte mit Zahlen als Anteile, je Treffer oder Gruppe
+  ein Stück. Weitere Zahlen-Spalten nennt eine Zeile unter dem Bild; negative
+  Werte oder lauter Nullen ergeben die Tabelle mit einem eigenen Hinweis. Der
+  Kreis hängt an der Erweiterung «Diagramm einer Abfrage» wie Balken und Linie
+  und teilt mit ihnen Zeichner, Druck, PDF und Farbwechsel
+  (`src/shared/query/result-chart.js`,
+  `src/renderer/modules/query/display-chart.js`).
+- **Erweiterung «Dashboard» und Kommando «Dashboard einfügen»** (`4T-002513`).
+  Das Dashboard ist eine interne Erweiterung, ab dem Arbeitsmodus Fortgeschritten
+  eingeschaltet und von keiner anderen abhängig; im Einstellungs-Bereich
+  «Erweiterungen» steht sie neben dem Diagramm einer Abfrage. Ist sie aus,
+  erscheint der Block als Quelltext mit einem Hinweis, und das Kommando
+  entfällt; das Dokument bleibt unverändert. Das Kommando «Dashboard einfügen»
+  steht in der Kommando-Palette und im Kontextmenü des Editors unter Einfügen,
+  ohne vorbelegtes Tastenkürzel, und setzt ein Gerüst aus einer Zeile mit einer
+  Kennzahl ein, deren Abfrage ausgewählt ist. Registry
+  `src/shared/extensions/extensions.js`, Kommando
+  `src/shared/commands/commands.js`, Einfügen in `src/shared/markdown-format.js`.
+- **Ansichten, Druck und portabler Export des Dashboards** (`4T-002518`).
+  Gerenderte, geteilte und Live-Ansicht zeigen dieselben Kacheln mit derselben
+  Auswahl; im Live-Modus klappt der Block unter der Schreibmarke zum Quelltext
+  auf, und ein Dashboard in einer Einbettung bleibt bedienbar. Drucken und PDF
+  zeigen die aktuelle Auswahl ohne Auswahlfelder, Diagramme hell. Der portable
+  Export ersetzt jeden Block durch statischen Text mit der Vorbelegung: eine
+  Zeile mit den Filtern, je Kachel ihr Titel als Überschrift, die Kennzahl als
+  Text, die Liste als Aufzählung, die Tabelle als Markdown-Tabelle, Balken und
+  Kreis als helles, in die Datei eingebettetes Bild; eine Kachel, die nach zehn
+  Sekunden nicht ausgewertet ist, trägt einen Hinweis, und der Export läuft
+  weiter. Kern des Exports in `src/shared/dashboard/dashboard-portabel.js`,
+  Auswertung in `src/renderer/modules/dashboard/dashboard-export.js`, Live-Modus
+  in `dashboard/dashboard-live.js`.
+
+### Geändert
+
+- **Das Link-Update beim Umbenennen zieht Verweise im Frontmatter nach**
+  (`4T-002503`).
+  Benennt der Anwender eine Datei um, zeigen die Wiki-Links im Frontmatter der
+  verweisenden Dateien auf den neuen Namen, mit Anzeige-Text, Anker und
+  Anführungszeichen, und der übrige Frontmatter bleibt Zeichen für Zeichen, wie
+  er war. Der Kopf-Block-Anteil des gemeinsamen Umschreibe-Kerns
+  (`src/shared/link-rewrite-kopf.js`, gerufen aus `src/shared/link-rewrite.js`)
+  baut für den Kopf-Block gleich lange Scan-Zeilen, die nur an den
+  Verweis-Stellen Text tragen, führt sie durch dieselbe Ersetzung wie den
+  Körper, maskiert den neuen Namen nach der Anführungszeichen-Art des Werts und
+  fasst einen Wert ohne Anführungszeichen nur dann in doppelte ein, wenn der neue
+  Name es verlangt; damit gilt das für gespeicherte Dateien im Hauptprozess und
+  für offene Dokumente mit ungespeicherten Änderungen gleichermaßen. Welche Kopf-Block-Stelle
+  zählt, entscheidet eine einzige Regel in `src/shared/markdown/link-scan.js`,
+  die Index und Umschreiber teilen. Ein ungültiger Kopf-Block wird nicht
+  umgeschrieben.
+- **Der Bereichs-Index wird beim ersten Start nach dem Update einmal neu
+  aufgebaut** (`4T-002502`). Der Zwischenspeicher des Index steht auf Version 10
+  (`src/main/documents/mdd-store.js`; am Zug-Zweig Version 9, beim Nachzug auf 1.156.0 um eins erhöht, weil das Release dieselbe Nummer vergeben hatte), weil ein älterer die Verweise im
+  Kopf-Block nicht trägt und der Warmstart das Ergebnis unveränderter Dateien
+  sonst ohne sie übernähme.
+- **Gesamt-Werte ohne Gruppierung in der Abfrage-Sprache** (`4T-002511`). Eine
+  Tabelle mit `WITHOUT ID`, deren Spalten ausschließlich Aggregate sind, liefert
+  ohne `GROUP BY` genau eine Zeile über alle Treffer, etwa
+  `TABLE WITHOUT ID count() AS "Anzahl", sum(betrag) AS "Summe" FROM "Rechnungen"`;
+  ohne Treffer zeigt sie `0`. Damit entfällt für diesen Fall die Grenze «keine
+  Gesamt-Aggregate ohne Gruppierung» der Datenbank-Stufe (Entscheidung des
+  Product Owners vom 2026-11-01). Bewusste Bedeutungs-Änderung: Eine solche
+  Abfrage lieferte bisher je Treffer eine Zeile; die Prüfung des Bestands fand
+  keine. Jede andere Tabelle ohne `GROUP BY`, auch `TABLE sum(…)` ohne
+  `WITHOUT ID`, rechnet unverändert je Treffer. Positions-Regel in
+  `src/shared/query/query-functions.js` (`isTotalTable`), Bildung der einen
+  Gruppe in `query-aggregate.js`; die Handbuch-Seite der Abfrage nennt den
+  Gesamt-Wert in einem eigenen Absatz.
+- **Hauptprozess-Dienste und Brücke des Dashboards** (`4T-002510`). Zwei neue
+  Kanäle liefern die Werte einer Eigenschaft für ein Auswahlfeld, mit denselben
+  Regeln wie die Abfrage samt Vorlagen-Ausschluss und ungespeicherten Ständen
+  (`dashboard:filterWerte`), und lösen eine Abfrage-Datei auf
+  (`dashboard:abfrageDatei`); der Abfrage-Kanal nimmt die Werte der Filter an.
+  Jeder Kanal prüft Schalter, Pfad, Bereichs-Grenze und Größe der Werte und
+  weist sonst ohne Pfad und Inhalt ab. Dienste in
+  `src/main/index/dashboard-quellen.js`, Kanäle in `src/main/ipc/dashboard.js`,
+  Brücke in `src/main/preload-dashboard.js`; das Bedrohungsmodell der
+  Architektur nennt die neuen Endpunkte in der Zeile der Prozess-Verbindungen.
+  Der dreistufige Weg vom geschriebenen Ziel zur Datei steht seit `4T-002517`
+  einmal in `src/main/index/ziel-aufloesung.js`, gemeinsam für Einbettung und
+  Kachel mit Abfrage-Datei, mit unverändertem Verhalten der Einbettung.
+- **Zwischenspeicher des Index auf Version 11** (`4T-002517`). Der
+  Zwischenspeicher des Bereichs-Index (`src/main/documents/mdd-store.js`) steht
+  nach diesem Mitglied auf Version 11 statt 10, weil ein älterer die Angabe
+  `abfrage=` einer Kachel nicht als Verweis trägt. Für den Anwender bleibt es bei
+  dem einen Neuaufbau beim ersten Start nach dem Update (Eintrag oben); er deckt
+  beide Gründe.
+- **Marker-Grammatik aus dem Canvas herausgelöst** (`4T-002509`). Die
+  lexikalische Hülle der Marker-Zeilen (Zeilen-Trennung, Marker in Spalte 0,
+  Schutz `\!`, Angaben `name=wert` mit Anführungszeichen) steht jetzt im
+  eigenen Blatt `src/shared/canvas/marker-grammatik.js`, das Canvas-Fläche und
+  Dashboard teilen. Reine Strukturänderung, byte-gleich verschoben; an allen
+  Canvas-Flächen des Bestands keine Abweichung.
+
+### i18n
+
+- **Handbuch-Seite «Vernetzung»** (`4T-002504`), in allen fünf
+  Sprachfassungen: Der Abschnitt «Wiki-Links» bekommt den Absatz «Verweise im
+  Frontmatter zählen mit» mit einem Beispiel (Einzel-Wert und Liste mit zwei
+  Verweisen, einer mit Anzeige-Text), dem Hinweis auf die Anführungszeichen und
+  der Grenze der obersten Ebene. Aus diesem Mitglied keine neuen, geänderten
+  oder entfernten Schlüssel; der Funktions-Katalog bleibt unverändert, weil
+  keine seiner Beschreibungen den Kopf-Block ausschließt.
+- Achtunddreißig neue Schlüssel je Sprache in allen fünf Sprachfassungen für
+  die Dashboards (`4T-002511` bis `4T-002519`): das neue Fragment `dashboard`
+  mit sechsundzwanzig (die Befunde des Blocks samt der nicht lesbaren Abfrage-Datei, Zeile, Sammel-Hinweis, «alle»,
+  Hinweis des Aus-Zustands, Vorbelegungs-Zeile und Hinweis der nicht
+  ausgewerteten Kachel im Export), im Manifest hinter `canvas` eingetragen; im
+  Fragment `query` sechs (Stellen-Fehler und zwei Hinweise der Platzhalter
+  `query.syntax.placeholderPosition`, `query.hint.placeholderOutside` und
+  `…placeholderUnknown`, die Zeile der übergangenen Spalten des Kreises
+  `query.chart.pieSeriesSkipped`, die beiden Kreis-Gründe
+  `query.hint.displayFormChartNegative` und `…displayFormChartZeros`); das
+  Kommando `command.insert.dashboard` samt dem Titel der Gerüst-Kachel
+  `command.insert.dashboardKachelTitel`; die drei Katalog-Schlüssel
+  `help.featureName.dashboard`, `help.feature.dashboard` und
+  `help.featureAccess.dashboard` in der Gruppe der Abfrage; der Seitentitel
+  `manual.page.dashboards.title`. Geändert sind `help.feature.queryChart` und
+  `help.featureAccess.queryChart`, die den Kreis mit `DISPLAY pie` nennen.
+- **Handbuch-Seite «Dashboards»** (`4T-002519`), neu in allen fünf
+  Sprachfassungen, in der Navigation unmittelbar hinter der Seite der Abfrage:
+  Abgrenzung zur Ansicht «Dashboard» der Ereignisse, Erweiterung und
+  Arbeitsmodus, Kommando, Aufbau des Blocks, Filter, Platzhalter, Zeilen, Breite,
+  die sechs Kachel-Arten samt Kennzahl-Regeln, Text-Kacheln, Kachel mit
+  Abfrage-Datei, Hinweise und Fehler-Kacheln, Ansichten, Druck und Export,
+  Suchraum, ein vollständiges Beispiel und die Grenzen. Die Wörter des Blocks
+  bleiben in jeder Sprache deutsch und werden in den Übersetzungen beim ersten
+  Vorkommen erklärt.
+- **Handbuch-Seite «Perspective-Abfrage»** (`4T-002511`, `4T-002519`), in allen
+  fünf Sprachfassungen: neuer Abschnitt «Platzhalter (`$name`)», Absatz
+  «Gesamt-Wert» mit Beispiel und berichtigter Satz im Absatz «Grenzen», Absatz
+  «Zeile oder Gruppe» und Fehler-Punkt zu `count()` um die Tabelle des
+  Gesamt-Werts ergänzt, im Abschnitt «Darstellungsform» drei statt zwei
+  Diagramme mit eigenem Absatz zum Kreis.
+- **Überblicksseite und Seite der Erweiterungen** (`4T-002519`), in allen fünf
+  Sprachfassungen: eine Zeile «Dashboards» im Block «Metadaten, Daten und
+  Abfragen» unter der Zeile der Abfrage, kein neuer Block; in der Zeile des
+  Arbeitsmodus Fortgeschritten das Dashboard hinter dem Diagramm einer Abfrage
+  (`4T-002513`).
+- **Demo-Station «17 Dashboards»** (`4T-002519`), englisch wie die Nachbarn:
+  ein lauffähiges Dashboard über die Demo-Dateien mit zwei Filtern, Kennzahlen,
+  Kreis, Tabelle, Text-Kachel und einer Kachel über die Abfrage-Datei «Long
+  Books», darunter die Erklärung jeder Zeile; die Führung in `00 Welcome.md`
+  nennt sie als Station 17, `16 Workflows.md` verweist auf sie.
+- **Nutzen-Darstellung um die Dashboards ergänzt** (`4T-002501`,
+  Nutzen-Prüfschritt des Zuges, Entscheidung des Product Owners vom
+  2026-11-05, Empfehlung pauschal übernommen). Die Nutzen-Seite des Handbuchs
+  und die Nutzen-Seite der Webseite nennen im Abschnitt «Listen, die sich
+  selbst aktuell halten» jetzt die Dashboards, mit einem Absatz und einem
+  Aufzählungspunkt zu Kacheln mit Kennzahlen, Listen und Diagrammen mehrerer
+  Abfragen und den Auswahlfeldern am Kopf; die Handbuch-Seite verweist
+  zusätzlich auf die Seite «Dashboards». In allen fünf Sprachfassungen.
+
+### Intern
+
+- **Prüfdateien der Verweis-Erfassung** (`4T-002502`, `4T-002503`): neu
+  `test/unit/index-parse-frontmatter-links.test.js` (Erfassung, Fundstelle aus
+  der Struktur samt Rückfall, Anführungszeichen), `test/unit/link-rewrite-kopf.test.js`
+  (Kopf-Block-Anteil des Umschreibers, darunter der Gleichlauf-Wächter zwischen
+  Umschreiber und Index-Parser) und `test/unit/link-update-frontmatter.test.js`
+  (acht Fälle an echten Temp-Verzeichnissen); erweitert
+  `test/unit/perspective-query-index.test.js` (Block «Verweise im Kopf-Block»),
+  `test/unit/renderer/struktur-und-state.test.js` (Bedienfeld der ausgehenden
+  Verweise) und `test/unit/link-index-cache.test.js` (Zwischenspeicher
+  mindestens Version 9); in `test/unit/backlinks.test.js` ist der Fall, der das
+  abgelöste Verhalten «Links im Frontmatter werden nicht indexiert» zusicherte,
+  umgekehrt statt gelöscht. Die neuen Prüfdateien stehen in der
+  Änderungsklassen-Karte.
+- **Abschluss-Anteil der Verweis-Erfassung** (`4T-002505`): Architektur um die
+  eine Regel für Verweise im Kopf-Block (`link-scan.js` für Index, Umschreiber
+  und Bedienfeld der ausgehenden Verweise) und den Glossar-Eintrag «Backlinks»
+  fortgeschrieben; Prüfdateien in der Änderungsklassen-Karte zugeordnet; vierte
+  Beobachtung des bekannten Einstellungs-Wettlaufs DB-BER-01 in der
+  Flake-Quarantäne eingetragen (Vorgang `4T-002441`, kein Befund dieses Epics).
+  **Ergebnis des Epic-Abschluss-Tests (E1, 2026-11-01):** grün unter Windows
+  (volle Gates, 1348 Ablauf-Fälle ohne roten Fall); im Linux-Prüfstand alle
+  Prüfdateien des Epics grün, ein roter Fremd-Fall der Stamm-Bereitschaft vom
+  Integrationsstand, auf `main` bereits behoben (`4T-002498`), erreicht den Zug
+  mit dem nächsten Zug-Nachzug.
+- **Prüfdateien der Dashboards** (`4T-002509` bis `4T-002518`), neu, 279 Fälle (Stand nach der Review-Runde 1):
+  `test/unit/marker-grammatik.test.js` (16, die herausgelöste Hülle der
+  Marker-Zeilen), `test/unit/dashboard-core.test.js` (66, Grammatik, Befunde,
+  Rundlauf, Breiten und Gerüst), `test/unit/dashboard-quellen.test.js` (21,
+  Dienste und Kanäle des Hauptprozesses samt Schalter und Grenzen),
+  `test/unit/perspective-query-platzhalter.test.js` (17, Platzhalter an Stelle,
+  Bindung und Rückfall), `test/unit/render/extensions-aus-dashboard.test.js`
+  (12, Erweiterung, Modus-Stufe, Aus-Zustand und Kommando),
+  `test/unit/query-chart-kreis.test.js` (27, Darstellungsform Kreis),
+  `test/unit/renderer/dashboard-formen.test.js` (39, Kennzahl, Liste, Tabelle,
+  Balken und Kreis der Kacheln), `test/unit/renderer/dashboard-zustand.test.js`
+  (26, Auswahlfelder und Zustand der Filter),
+  `test/unit/link-rewrite-dashboard.test.js` (25, Kachel mit Abfrage-Datei in
+  Index, Umbenennen, gemeinsamem Auflöser und Anzeige) und
+  `test/unit/dashboard-portabel.test.js` (30, portabler Export). Erweitert
+  `test/unit/perspective-query-aggregate.test.js` (sechs Fälle zum Gesamt-Wert
+  samt Gegenprobe), `test/unit/link-index-cache.test.js` (Version 11, Version 10
+  verworfen), `test/unit/render/snapshots.test.js` mit der Fixture
+  `test/fixtures/render/dashboard.md` (Markup und Aus-Zustand) und die zählenden
+  Wächter `extensions.test.js`, `commands.test.js` und `demo-area.test.js`; in
+  `test/unit/ergebnis-diagramm.test.js` steht `donut` statt `pie` als Beispiel
+  einer unbekannten Art. Eine Prüfung von 67 Bestands-Abfragen vor und nach dem
+  Gesamt-Wert zeigte keine Abweichung.
+- **Ablauf-Prüfungen der Dashboards** (`4T-002516`, `4T-002518`):
+  `test/e2e/funktionen/dashboard-filter.spec.js` mit DF-01 (Auswahlfelder aus
+  Bestand und Aufzählung, Wirkung auf die Kacheln mit Platzhalter, keine
+  Bearbeitung) und DF-02 (Vorbelegung nach Schließen und erneutem Öffnen);
+  `test/e2e/funktionen/dashboard-ansichten.spec.js` mit DN-01 (dieselben Werte
+  in gerenderter, geteilter und Live-Ansicht), DN-02 (Druck mit der aktuellen
+  Auswahl), DN-03 (portabler Export mit der Vorbelegung), DN-04 (Dashboard in
+  einer Einbettung) und DN-05 (Ordnungszahl im Live-Modus); das Kürzel DN, weil
+  DA die Ablauf-Prüfung des Demo-Bereichs trägt.
+- **Karten und Matrix nachgezogen** (`4T-002509` bis `4T-002520`): die neuen
+  Prüfdateien in der Änderungsklassen-Karte zugeordnet (Unit-Dateien in den
+  Ausschnitten der Klassen Ä3 und Ä7 und in der Ausnahme der Modul-Tests, die
+  beiden Ablauf-Prüfungen in Ä4, Ä5 und Ä7;
+  `renderer/dashboard-zustand.test.js` erfasst das Muster der Anzeige-Tests ohne
+  eigenen Eintrag); die Modul-Karte der Architektur je Task
+  um die neuen Module unter `src/shared/dashboard/`,
+  `src/renderer/modules/dashboard/`, `src/shared/markdown/`, `src/main/` und
+  `src/shared/query/` fortgeschrieben, dazu Stil-Scheibe, Sprach-Fragment,
+  Handbuch- und Demo-Dateien; das Bedrohungsmodell nennt die neuen Endpunkte.
+  In der Abdeckungs-Matrix trägt die Zeile des Dashboards (F-405) die beiden
+  Ablauf-Prüfungen als Sichtbarkeits-Nachweis und alle Unit-Prüfdateien, die
+  Zeile des Abfrage-Diagramms (F-346) nennt den Kreis.
+- **Mitgelieferte Stände seit 1.157.0** (Webseite berührt, kein
+  Anwendungs-Code, kein Anwender-Text nötig): Der Zug hat den
+  Integrationsstand nach dem Release 1.157.0 am 2026-11-05 per Zusammenführung
+  hereingeholt (`3E-000405`); mit ihm kam der Nachzügler des Releases 1.157.0
+  (`4T-002430`, Zug-Epic `3E-000381`: sechs erneuerte Bildschirmfotos der
+  Produkt-Webseite, mit der Auslieferung von 1.157.0 bereits veröffentlicht).
+  Die zuvor hier genannten Stände seit 1.155.0 (Nachzügler der Releases
+  1.155.0 und 1.156.0, Objekt-Anlagen und Roadmap-Zuordnung der Webseite) sind
+  Teil der Integrationsstände 1.156.0 und 1.157.0.
+
 ## [1.157.0.4914] - 2026-11-04 — Gliederungsspuren wahlweise in der Struktur der Liste, Jahrestags-Regeln für Kalender mit jährlich wechselndem Aufbau, Formel-Bibliothek für alle Berechnungs-Orte
 
 Zug

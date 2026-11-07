@@ -12,7 +12,10 @@
 // dort sonst keine Bedingung über die Gruppe gäbe; jede andere Stelle ist eine
 // Zeilen-Stelle mit der Bedeutung des
 // Funktions-Katalogs (query-functions.js). Eine Tabelle ohne `GROUP BY` bleibt
-// damit in der Zeilen-Bedeutung, eine Gesamtsumme ohne Gruppierung gibt es nicht.
+// damit in der Zeilen-Bedeutung, mit einer Ausnahme seit 4T-002511 (V9): Eine
+// Tabelle `WITHOUT ID`, deren Spalten ausschließlich Aggregate sind, ist eine
+// Gruppe über alle Treffer und liefert eine Zeile, den Gesamt-Wert
+// (`isTotalTable` in query-functions.js); ohne Treffer ist `count()` dort 0.
 //
 // **Erlaubt an einer Aggregat-Stelle** (Festlegung 6): ein Ausdruck gleich einem
 // Ausdruck von `GROUP BY` (Vergleich über den normalisierten Quelltext),
@@ -42,6 +45,7 @@ const {
   FUNCTIONS,
   AGGREGATE_FUNCTIONS,
   isGroupedTable,
+  isTotalTable,
   presentCount,
 } = require('./query-functions.js');
 
@@ -139,7 +143,10 @@ function checkHaving(ast, keys) {
  * @returns {{ code: string, message: string, pos: number, name: string }|null}
  */
 function checkGroupedTable(ast) {
-  if (!ast || !Array.isArray(ast.groupBy) || ast.groupBy.length === 0) return null;
+  if (!ast || !Array.isArray(ast.groupBy)) return null;
+  // 4T-002511 (V9): Die Tabelle des Gesamt-Werts prüft wie eine gruppierte ohne
+  // Gruppen-Ausdruck; eine Sortierung nach einem Feld ist dort ein Fehler.
+  if (ast.groupBy.length === 0 && !isTotalTable(ast)) return null;
   const keys = new Set(ast.groupBy.map(exprKey));
   const havingErr = checkHaving(ast, keys);
   if (havingErr || !isGroupedTable(ast)) return havingErr;
@@ -366,12 +373,19 @@ function strip(groups) {
  * Zeilen (Festlegung 9); eine Eltern-Gruppe rechnet dabei über die Zeilen, die
  * ihr nach `HAVING` bleiben.
  * @param {Array<{ value: unknown, rows: number[], groups: Array|null }>} groups
- *   Gruppen aus dem Zeilen-Bau, geordnet nach dem Gruppen-Wert
+ *   Gruppen aus dem Zeilen-Bau, geordnet nach dem Gruppen-Wert; null bei der
+ *   Tabelle des Gesamt-Werts (4T-002511)
  * @param {object[]} ctxs  Treffer-Kontexte, auf die die Zeilen-Indizes zeigen
  * @param {object} ast  Abfrage-AST einer gruppierten Tabelle
  * @returns {Array<{ value: unknown, rows: number[], groups: Array|null, values: unknown[] }>}
  */
 function aggregateGroups(groups, ctxs, ast) {
+  // 4T-002511 (V9): Die Tabelle des Gesamt-Werts bringt aus dem Zeilen-Bau keine
+  // Gruppen mit; sie ist eine Gruppe ohne Gruppen-Wert über alle Treffer, auch
+  // über keinen.
+  if (groups === null && isTotalTable(ast)) {
+    return aggregateGroups([{ value: null, rows: ctxs.map((_, i) => i), groups: null }], ctxs, ast);
+  }
   const keyLevel = keyLevelsOf(ast);
   const columns = ast.fields.map((f) => compile(f.expr, keyLevel));
   const sortKeys = ast.sort.map((s) => ({ fn: compile(s.key, keyLevel), dir: s.dir }));

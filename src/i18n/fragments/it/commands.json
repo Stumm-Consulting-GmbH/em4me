@@ -139,6 +139,8 @@
   "command.database.openInForm": "Apri nella maschera",
   "command.canvas.addCard": "Aggiungi scheda alla tela",
   "command.insert.canvas": "Tela",
+  "command.insert.dashboard": "Inserisci dashboard",
+  "command.insert.dashboardKachelTitel": "Conteggio",
   "command.canvas.addShape": "Aggiungi forma alla tela",
   "command.canvas.stackFront": "Porta in primo piano",
   "command.canvas.stackForward": "Porta avanti",

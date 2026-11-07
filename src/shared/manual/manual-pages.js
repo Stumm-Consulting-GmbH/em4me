@@ -74,6 +74,13 @@ const MANUAL_PAGES = [
   // 4T-000356 (Epic 3E-000065): Frontmatter-Abfrage (perspective-query-Fence,
   // boolesche Filter-Grammatik, dynamische klickbare Datei-Liste).
   { id: 'frontmatter-query', titleKey: 'manual.page.frontmatterQuery.title', source: 'bundled' },
+  // 4T-002519 (Epic 3E-000402): Dashboards (Block perspective-dashboard mit
+  // Filtern, Zeilen und Kacheln, Platzhalter, Kachel-Arten, Abfrage-Datei,
+  // Hinweise, Ansichten, Druck und Export, Abgrenzung zur Ansicht «Dashboard»
+  // der Ereignisse). Direkt hinter der Abfrage, weil jede Kachel eine Abfrage
+  // ist und die Platzhalter dort beschrieben sind (Einordnungs-Vorschlag für
+  // den Struktur-Prüfschritt, Entscheidung der Sitzung vom 2026-11-03).
+  { id: 'dashboards', titleKey: 'manual.page.dashboards.title', source: 'bundled' },
   // 4T-000415 (Epic 3E-000078): Skript-Bloecke (perspective-script-Fence,
   // Sandbox, Vertrauensmodell, pq-API-Referenz mit Beispielen).
   { id: 'scripts', titleKey: 'manual.page.scripts.title', source: 'bundled' },

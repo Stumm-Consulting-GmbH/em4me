@@ -49,12 +49,18 @@ const {
   mdLinkTargetFromMatch,
   maskInlineCode,
   frontmatterBodyStart,
+  // 4T-002503 (Epic 3E-000403): die eine Regel fuer Verweise im Kopf-Block,
+  // geteilt mit dem Umschreibe-Kern beim Umbenennen.
+  kopfVerweisFunde,
   // 4T-001749 (Epic 3E-000289): Die Verweis-Angaben einer Canvas-Karte werden
   // an derselben Stelle erkannt wie Wiki- und Markdown-Links — eine Quelle fuer
   // Index, ausgehende Verweise und Umbenennungs-Nachzug.
   istCanvasFenceInfo,
   scanneKartenVerweise,
   kartenBeschriftung,
+  // 4T-002517 (Epic 3E-000402): die Angabe `abfrage=` einer Dashboard-Kachel,
+  // dieselbe Regel wie im Umschreibe-Kern und in den ausgehenden Verweisen.
+  dashboardVerweisFunde,
 } = require('../../shared/markdown/link-scan.js');
 // 4T-001912 (Epic 3E-000360): die Zaun-Regel aus ihrer einen Heimat statt des
 // geteilten Ausdrucks `FENCE_RE`, der allein das Zeichen verglich.
@@ -188,6 +194,10 @@ function kartenZiel(filePath, wert) {
 // `aliases:`, Liste oder einzelner String). Wiki-Link- und Markdown-Link-
 // Scan ueberspringt Frontmatter-Zeilen, damit YAML-Inhalte nicht als
 // ausgehende Links indexiert werden.
+// 4T-002502 (Epic 3E-000403): Ausnahme sind Wiki-Verweise als Werte der
+// obersten Ebene und in Listen darunter; sie liest parseContent aus dem
+// gelesenen YAML (kopfVerweisFunde aus link-scan.js, seit 4T-002503 dieselbe
+// Regel wie im Umschreibe-Kern), nicht aus dem Zeilen-Scan.
 function parseFile(filePath, segmentDefinition) {
   let content;
   try {
@@ -251,6 +261,9 @@ function parseContent(filePath, content, segmentDefinition) {
   let aliases = [];
   let properties = {};
   let dbKinds = [];
+  // 4T-002502 (Epic 3E-000403): das gelesene Frontmatter-Objekt, fuer die
+  // Verweis-Erfassung im Kopf-Block weiter unten (null ohne gueltigen Block).
+  let kopfDaten = null;
   const tagsSet = new Set(); // Sammelt Inline- und Frontmatter-Tags (case-preserving)
   if (fmBodyStartLine > 0) {
     // YAML-Block ist lines[1 .. fmBodyStartLine-2] (Schluss-Zeile ausgeschlossen).
@@ -258,6 +271,7 @@ function parseContent(filePath, content, segmentDefinition) {
     try {
       const parsed = yaml.load(yamlText, { schema: yaml.JSON_SCHEMA });
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        kopfDaten = parsed;
         aliases = normalizeAliases(parsed.aliases);
         // 4T-000354 (Epic 3E-000065): abfragbare Frontmatter-Properties mitnehmen.
         properties = extractProperties(parsed);
@@ -323,6 +337,53 @@ function parseContent(filePath, content, segmentDefinition) {
     headings.push(n === 0 ? slug : `${slug}-${n}`);
   };
 
+  // 4T-002502 (Epic 3E-000403): Aufnahme eines Wiki-Link-Treffers
+  // (WIKI_LINK_RE-Match), geteilt zwischen dem Zeilen-Scan des Koerpers und
+  // den Verweisen im Kopf-Block — eine Regel fuer Anzeige-Text, Anker und
+  // Ziel-Normalisierung, zwei Aufrufer. Die Regeln selbst sind unveraendert aus
+  // dem Zeilen-Scan herausgezogen.
+  const nimmWikiTreffer = (m, lineNum, snippetZeile) => {
+    // B-09 (4T-000175): escapte Pipe in Tabellen-Zellen ([[Ziel\|Label]])
+    // laesst das Capture mit '\' enden — abschneiden wie im preload.
+    const target = m[1].trim().replace(/\\$/, '');
+    if (!target) return;
+    // 4T-001451 (Epic 3E-000190): Ein Verknuepfungs-Link [[@kuerzel:Ziel]]
+    // zeigt in einen anderen Bereich. Der Index kennt genau eine Wurzel je
+    // Eintrag (resolveRootInfo), und die eingehende Richtung bleibt in Stufe 1
+    // ausdruecklich draussen (E3) — als lokales Ziel gedeutet entstuende hier
+    // ein Verweis auf eine Datei namens @kuerzel:Ziel, die es nie gibt.
+    if (isAreaLinkTarget(target)) return;
+    // Anker im Wiki-Link: [[Foo#anker]] -> ziel=Foo, anker=anker.
+    // Auch [[#Anker]] (reiner Anker im selben Doc) wird erkannt, aber
+    // als ausgehender Backlink uebersprungen — ein interner Anker ist
+    // kein Verweis auf eine andere Datei.
+    let anker = null;
+    let ziel = target;
+    const hashIdx = target.indexOf('#');
+    if (hashIdx >= 0) {
+      anker = target.slice(hashIdx + 1).trim() || null;
+      ziel = target.slice(0, hashIdx).trim();
+    }
+    if (!ziel) return; // 4T-000054: reiner Anker — kein externer Backlink
+    // 4T-000336 (Epic 3E-000061): relative Unterseiten-Ziele ('/Name', '..')
+    // gegen den eigenen Basename expandieren — der Index traegt dann die
+    // aufgeloeste U+2215-Form, damit Backlinks auf Unterseiten entstehen.
+    if (isRelativeTarget(ziel)) {
+      const ownBase = path.basename(filePath).replace(MD_EXT_RE, '');
+      const expanded = expandRelativeTarget(ownBase, ziel);
+      if (!expanded) return; // '..' auf Top-Level — kein aufloesbares Ziel
+      ziel = expanded;
+    }
+    out.push({
+      zeile: lineNum,
+      linkTyp: 'wiki',
+      zielBasename: ziel,
+      zielAbsolut: null,
+      anker,
+      snippet: shortSnippet(snippetZeile),
+    });
+  };
+
   // 4T-002013 (Epic 3E-000332): Der Scan-Rumpf für Verweise und Schlagworte
   // einer Zeile, geteilt zwischen Fließtext und Text-Zellen der Datentabelle
   // statt kopiert. `line` ist die zu durchsuchende Zeile (im Fließtext die
@@ -366,45 +427,7 @@ function parseContent(filePath, content, segmentDefinition) {
     WIKI_LINK_RE.lastIndex = 0;
     let m;
     while ((m = WIKI_LINK_RE.exec(lineForLinks)) !== null) {
-      // B-09 (4T-000175): escapte Pipe in Tabellen-Zellen ([[Ziel\|Label]])
-      // laesst das Capture mit '\' enden — abschneiden wie im preload.
-      const target = m[1].trim().replace(/\\$/, '');
-      if (!target) continue;
-      // 4T-001451 (Epic 3E-000190): Ein Verknuepfungs-Link [[@kuerzel:Ziel]]
-      // zeigt in einen anderen Bereich. Der Index kennt genau eine Wurzel je
-      // Eintrag (resolveRootInfo), und die eingehende Richtung bleibt in Stufe 1
-      // ausdruecklich draussen (E3) — als lokales Ziel gedeutet entstuende hier
-      // ein Verweis auf eine Datei namens @kuerzel:Ziel, die es nie gibt.
-      if (isAreaLinkTarget(target)) continue;
-      // Anker im Wiki-Link: [[Foo#anker]] -> ziel=Foo, anker=anker.
-      // Auch [[#Anker]] (reiner Anker im selben Doc) wird erkannt, aber
-      // als ausgehender Backlink uebersprungen — ein interner Anker ist
-      // kein Verweis auf eine andere Datei.
-      let anker = null;
-      let ziel = target;
-      const hashIdx = target.indexOf('#');
-      if (hashIdx >= 0) {
-        anker = target.slice(hashIdx + 1).trim() || null;
-        ziel = target.slice(0, hashIdx).trim();
-      }
-      if (!ziel) continue; // 4T-000054: reiner Anker — kein externer Backlink
-      // 4T-000336 (Epic 3E-000061): relative Unterseiten-Ziele ('/Name', '..')
-      // gegen den eigenen Basename expandieren — der Index traegt dann die
-      // aufgeloeste U+2215-Form, damit Backlinks auf Unterseiten entstehen.
-      if (isRelativeTarget(ziel)) {
-        const ownBase = path.basename(filePath).replace(MD_EXT_RE, '');
-        const expanded = expandRelativeTarget(ownBase, ziel);
-        if (!expanded) continue; // '..' auf Top-Level — kein aufloesbares Ziel
-        ziel = expanded;
-      }
-      out.push({
-        zeile: lineNum,
-        linkTyp: 'wiki',
-        zielBasename: ziel,
-        zielAbsolut: null,
-        anker,
-        snippet: shortSnippet(snippetZeile),
-      });
+      nimmWikiTreffer(m, lineNum, snippetZeile);
     }
     // Markdown-Links
     MD_LINK_RE.lastIndex = 0;
@@ -439,6 +462,31 @@ function parseContent(filePath, content, segmentDefinition) {
       });
     }
   };
+
+  // 4T-002502 (Epic 3E-000403): Wiki-Verweise im Kopf-Block zaehlen wie
+  // Verweise im Koerper (Rueckverweise, Graph, Verweis-Index, Verweis-Felder
+  // der Abfrage). Gelesen werden Zeichenketten-Werte der obersten Ebene und
+  // Zeichenketten-Eintraege von Listen der obersten Ebene — derselbe Schnitt
+  // wie bei den abfragbaren Properties; verschachtelte Objekte bleiben draussen.
+  // Ein nackter Wert `[[Ziel]]` ist in YAML eine verschachtelte Liste und
+  // traegt deshalb, wie yaml.load ihn liefert, keinen Verweis bei.
+  // Fundstelle ist die Roh-Zeile des Kopf-Blocks, in der der Verweis steht.
+  if (kopfDaten) {
+    for (const fund of kopfVerweisFunde(kopfDaten, lines, fmBodyStartLine)) {
+      nimmWikiTreffer(fund.match, fund.zeilenIndex + 1, lines[fund.zeilenIndex]);
+    }
+  }
+
+  // 4T-002517 (Epic 3E-000402): Die Angabe `abfrage=` einer Dashboard-Kachel
+  // nennt eine Abfrage-Datei und zaehlt als Verweis dorthin, mit der Marker-Zeile
+  // der Kachel als Fundstelle. Erkannt ueber den Format-Kern (link-scan-dashboard.js);
+  // die Ziel-Formen sind die von `doc=` einer Canvas-Karte (kartenZiel), der Typ
+  // ist 'wiki' wie bei der Angabe `table:` eines Diagramm-Blocks. Ein Ziel, das
+  // sich nicht aufloesen laesst, bleibt ein offener Verweis wie im Koerper. Wie bei
+  // der Canvas ohne Kopplung an den Schalter der Erweiterung.
+  const dashboardFunde = new Map(
+    dashboardVerweisFunde(lines, fmBodyStartLine).map((f) => [f.zeilenIndex, f]),
+  );
 
   for (let i = fmBodyStartLine; i < lines.length; i++) {
     const line = lines[i];
@@ -476,6 +524,21 @@ function parseContent(filePath, content, segmentDefinition) {
       continue;
     }
     if (offen) {
+      const kachel = dashboardFunde.get(i);
+      if (kachel) {
+        const ziel = kartenZiel(filePath, kachel.wert);
+        if (ziel) {
+          out.push({
+            zeile: lineNum,
+            linkTyp: 'wiki',
+            zielBasename: ziel.ziel,
+            zielAbsolut: null,
+            anker: ziel.anker,
+            snippet: shortSnippet(line),
+          });
+        }
+        continue;
+      }
       // 4T-001749 (Epic 3E-000289): Innerhalb einer Fence `perspective-canvas`
       // traegt die Marker-Zeile einer Karte mit `doc="…"` einen Verweis auf ein
       // Dokument. Er wird gelesen wie ein Wiki-Link und geht als gewoehnlicher

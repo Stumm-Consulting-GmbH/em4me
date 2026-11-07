@@ -28,6 +28,12 @@ const MD_EXT_RE = /\.(md|markdown|mdown|mkd)$/i;
 // eingerückten Code einleiten. Alle Verfolger lesen die Regel seither aus
 // fence-level.js.
 const { zaunOeffnung } = require('./fence-level.js');
+// 4T-002503 (Epic 3E-000403): die Zeilen-Arbeit der Verweise im Kopf-Block
+// (Wert-Zeilen, Rueckfall), aus Budget-Gruenden nach Fachlichkeit ausgelagert.
+const { kopfWertPlan, findeImWert, rueckfallFund } = require('./link-scan-kopf.js');
+// 4T-002517 (Epic 3E-000402): die Angabe `abfrage=` einer Dashboard-Kachel als
+// Verweis, erkannt ueber den Format-Kern des Dashboards (Begruendung dort).
+const { dashboardVerweisFunde } = require('./link-scan-dashboard.js');
 
 // Frontmatter-Schluss-Zeile: '---' oder '...' am exakten Zeilenanfang. Zusammen
 // mit einem '---' in Zeile 1 grenzt das den YAML-Block ab. Halt-Heuristik
@@ -109,6 +115,207 @@ function frontmatterBodyStart(lines) {
     }
   }
   return 0;
+}
+
+// --- Verweise im Kopf-Block (4T-002502 und 4T-002503, Epic 3E-000403) ---------
+//
+// Ein Wiki-Verweis als Zeichenketten-Wert der obersten Ebene oder als
+// Zeichenketten-Eintrag einer Liste der obersten Ebene zaehlt wie ein Verweis im
+// Koerper. Drei Stellen muessen dieselben Stellen finden: der Verweis-Parser des
+// Bereichs-Index (src/main/index/parse.js), der Umschreibe-Kern beim Umbenennen
+// (src/shared/link-rewrite.js) und das Bedienfeld der ausgehenden Verweise der
+// offenen Datei (src/renderer/modules/panels/panel-outgoing.js). Alle drei lesen
+// deshalb allein hieraus. Das YAML selbst lesen die Aufrufer (der Index liest es
+// ohnehin); hier kommt das gelesene Objekt herein, damit dieses Modul ohne
+// YAML-Abhaengigkeit bleibt.
+
+// Die Verweis-Treffer im Kopf-Block. `daten` ist das gelesene Frontmatter-Objekt,
+// `lines` der ganze Text in Zeilen (ohne Zeilenende-Zeichen), der Kopf-Block
+// liegt in lines[1 .. fmBodyStartLine-2]. Ergebnis je Treffer:
+//   - `match`: der Wiki-Link-Match auf dem Wert, nach derselben
+//     Inline-Code-Maskierung wie im Koerper,
+//   - `zeilenIndex`: 0-basierter Index der Roh-Zeile in `lines`,
+//   - `spalte`: Spalte des woertlichen Verweis-Textes in dieser Zeile, oder -1,
+//     wenn er dort nicht woertlich steht,
+//   - `text`: der Verweis-Text, wie er im Wert steht (`[[…]]`),
+//   - `quote`: die Anfuehrungszeichen des umgebenden YAML-Skalars an dieser
+//     Stelle (`"`, `'` oder null fuer einen Skalar ohne Anfuehrungszeichen),
+//   - `block`: ob die Stelle Inhalt eines Block-Skalars (`|`, `>`) ist,
+//   - `flow`: ob sie in einer Flow-Liste (`[…]`) steht,
+//   - `skalar`: bei einem einzeiligen Skalar ohne Anfuehrungszeichen seine
+//     Spanne { von, bis } in der Zeile, sonst null (fuer das Einfassen in
+//     Anfuehrungszeichen beim Umschreiben, link-rewrite.js).
+//
+// 4T-002503 (Befund B1 des Reviews): Die Zeile des Werts wird zuerst aus der
+// Struktur bestimmt, nicht im Bereich des Schluessels gesucht — sonst traf das
+// erste woertliche Vorkommen einen Kommentar, einen auskommentierten oder einen
+// verschachtelten Eintrag, der vor dem Wert steht.
+//   - Skalar: die Schluessel-Zeile ab dem Doppelpunkt; steht dort nichts (oder
+//     nur ein Kommentar), die erste Folgezeile, die weder leer noch Kommentar ist;
+//     bei einem Block-Skalar (`|`, `>`) seine Folgezeilen.
+//   - Flow-Liste (`[…]` auf der Schluessel-Zeile): die Schluessel-Zeile, nur auf
+//     der ersten Klammer-Ebene.
+//   - Block-Liste: fuer den Eintrag mit Index n die n-te Zeile `- …` auf der
+//     Einzugs-Ebene der Liste; Kommentar- und Leerzeilen zaehlen nicht.
+// 4T-002503 (Befund C1 des Reviews): Findet die Struktur-Regel den Verweis nicht
+// (Flow-Liste ueber mehrere Zeilen, `[` erst auf der Folgezeile, Block-Skalar
+// als Listen-Eintrag `- |`), wird als Rueckfall der Zeilen-Bereich des
+// Schluessels durchsucht (rueckfallFund): ohne Kommentar-Zeilen, ohne
+// Kommentar-Enden, ohne verschachtelte Eintraege samt ihren Folgezeilen
+// (`schluessel: …`, `- [`, `- {`, `- - …`; Befund D1), mit denselben
+// Regeln fuer Anfuehrungszeichen; Stellen, die die Struktur-Regel schon
+// vergeben hat, sind belegt, und mehrere Treffer werden der Reihe nach vergeben.
+// Gesucht wird nur innerhalb des Werts: Ein Kommentar hinter dem Wert (`# …`
+// ausserhalb von Anfuehrungszeichen) und eine Kommentar-Zeile werden nie
+// getroffen. Findet sich der Text auch so nicht (etwa hinter einer
+// YAML-Escape-Folge), ist die Spalte -1 und die Zeile die bestimmte Wert-Zeile,
+// ersatzweise die Schluessel-Zeile oder die erste Zeile des Kopf-Blocks. Der
+// Index hat damit fuer jeden Treffer eine Fundstelle; der Umschreiber fasst nur
+// Treffer mit Spalte an, weil nur dort der Name byte-genau ersetzbar ist.
+function kopfVerweisFunde(daten, lines, fmBodyStartLine) {
+  const funde = [];
+  if (!daten || typeof daten !== 'object' || Array.isArray(daten)) return funde;
+  const erste = 1;
+  const ende = fmBodyStartLine - 1; // exklusiv: Schluss-Zeile
+  if (ende <= erste) return funde;
+  const bereiche = kopfSchluesselBereiche(lines, erste, ende);
+  const re = createWikiLinkRegex();
+  for (const key of Object.keys(daten)) {
+    const raw = daten[key];
+    let eintraege;
+    if (typeof raw === 'string') eintraege = [{ wert: raw, index: null }];
+    else if (Array.isArray(raw)) {
+      eintraege = raw
+        .map((wert, index) => ({ wert, index }))
+        .filter((e) => typeof e.wert === 'string');
+    } else continue; // Zahlen, Wahrheitswerte, null, verschachtelte Objekte
+    const bereich = bereiche.get(key) || null;
+    const plan = bereich ? kopfWertPlan(lines, bereich, Array.isArray(raw)) : null;
+    // Erster Durchgang: die Struktur-Regel. Such-Zeiger ueber die geteilten
+    // Abschnitte (Skalar, Flow-Liste): Abschnitt und Spalte hinter dem letzten
+    // Fund, damit mehrere Verweise eines Werts und mehrere Eintraege einer
+    // Flow-Liste nacheinander getroffen werden.
+    const ergebnisse = [];
+    let zeigerAbschnitt = 0;
+    let zeigerSpalte = -1;
+    for (const eintrag of eintraege) {
+      let abschnitte;
+      if (!plan) abschnitte = [];
+      else if (plan.art === 'block-liste') {
+        const zeile = plan.eintragsZeilen[eintrag.index];
+        abschnitte = zeile ? [zeile] : [];
+        zeigerAbschnitt = 0;
+        zeigerSpalte = -1;
+      } else abschnitte = plan.abschnitte;
+      let ersatzZeile = erste;
+      if (abschnitte.length) ersatzZeile = abschnitte[0].z;
+      else if (bereich) ersatzZeile = bereich.von;
+      const maskiert = maskInlineCode(eintrag.wert);
+      re.lastIndex = 0;
+      let m;
+      while ((m = re.exec(maskiert)) !== null) {
+        const text = eintrag.wert.slice(m.index, m.index + m[0].length);
+        let fund = null;
+        for (let a = zeigerAbschnitt; a < abschnitte.length && !fund; a++) {
+          const abschnitt = abschnitte[a];
+          const ab = a === zeigerAbschnitt ? zeigerSpalte : -1;
+          const treffer = findeImWert(lines[abschnitt.z], text, abschnitt, ab);
+          if (treffer) {
+            fund = { zeilenIndex: abschnitt.z, ...treffer };
+            zeigerAbschnitt = a;
+            zeigerSpalte = treffer.spalte + text.length;
+          }
+        }
+        ergebnisse.push({ match: m, text, fund, ersatzZeile });
+      }
+    }
+    // Zweiter Durchgang (C1): der Rueckfall fuer alles, was die Struktur-Regel
+    // nicht gefunden hat, der Reihe nach und ohne bereits vergebene Stellen.
+    if (bereich) {
+      const belegt = new Set();
+      for (const e of ergebnisse) {
+        if (e.fund) belegt.add(`${e.fund.zeilenIndex}:${e.fund.spalte}`);
+      }
+      let zeiger = { z: bereich.von, spalte: 0 };
+      for (const e of ergebnisse) {
+        if (e.fund) continue;
+        const fund = rueckfallFund(lines, bereich, e.text, zeiger, belegt);
+        if (!fund) continue;
+        e.fund = fund;
+        belegt.add(`${fund.zeilenIndex}:${fund.spalte}`);
+        zeiger = { z: fund.zeilenIndex, spalte: fund.spalte + e.text.length };
+      }
+    }
+    for (const e of ergebnisse) {
+      funde.push(
+        e.fund
+          ? { match: e.match, text: e.text, ...e.fund }
+          : {
+              match: e.match,
+              zeilenIndex: e.ersatzZeile,
+              spalte: -1,
+              text: e.text,
+              quote: null,
+              block: false,
+              flow: false,
+              skalar: null,
+            },
+      );
+    }
+  }
+  return funde;
+}
+
+// Zeilen-Bereiche der Schluessel der obersten Ebene im Kopf-Block, als Map
+// Schluessel -> { von, bis, wertAb } (0-basierte Indizes in `lines`, `bis`
+// exklusiv; `wertAb` ist die Spalte hinter dem Doppelpunkt der Schluessel-Zeile).
+// Eine Zeile beginnt einen Schluessel, wenn sie nicht eingerueckt ist, nicht mit
+// '-' (Listen-Eintrag) oder '#' (Kommentar) beginnt und die Form `schluessel:`
+// traegt — unquotiert oder in einfachen bzw. doppelten Anfuehrungszeichen. Alles
+// bis zur naechsten solchen Zeile gehoert zum Wert.
+function kopfSchluesselBereiche(lines, erste, ende) {
+  const starts = [];
+  for (let z = erste; z < ende; z++) {
+    const s = schluesselMitWertAnfang(lines[z]);
+    if (s !== null) starts.push({ ...s, z });
+  }
+  const bereiche = new Map();
+  for (let k = 0; k < starts.length; k++) {
+    const bis = k + 1 < starts.length ? starts[k + 1].z : ende;
+    // Doppelte Schluessel lehnt yaml.load ab; der erste Treffer gewinnt dennoch.
+    if (!bereiche.has(starts[k].key)) {
+      bereiche.set(starts[k].key, { von: starts[k].z, bis, wertAb: starts[k].wertAb });
+    }
+  }
+  return bereiche;
+}
+
+// Der Schluessel der obersten Ebene, den eine Kopf-Block-Zeile beginnt, sonst null.
+function kopfSchluesselDerZeile(line) {
+  const s = schluesselMitWertAnfang(line);
+  return s ? s.key : null;
+}
+
+// Schluessel und Spalte hinter seinem Doppelpunkt, oder null.
+function schluesselMitWertAnfang(line) {
+  if (!line || /^[\s#-]/.test(line)) return null;
+  let m = line.match(/^"((?:[^"\\]|\\.)*)"\s*:(?=\s|$)/);
+  if (m) {
+    let key;
+    try {
+      key = JSON.parse(`"${m[1]}"`);
+    } catch {
+      // YAML-Escapes, die JSON nicht kennt: der Roh-Text als Schluessel. Trifft
+      // er nicht, gibt es fuer seine Verweise nur die Ersatz-Fundstelle
+      // (kopfVerweisFunde).
+      key = m[1];
+    }
+    return { key, wertAb: m[0].length };
+  }
+  m = line.match(/^'((?:[^']|'')*)'\s*:(?=\s|$)/);
+  if (m) return { key: m[1].replace(/''/g, "'"), wertAb: m[0].length };
+  m = line.match(/^([^:]+?)\s*:(?=\s|$)/);
+  return m ? { key: m[1], wertAb: m[0].length } : null;
 }
 
 // --- Verweis-Angaben der Canvas-Karten (4T-001749, Epic 3E-000289) ------------
@@ -307,6 +514,14 @@ module.exports = {
   normalizeNameKey,
   maskInlineCode,
   frontmatterBodyStart,
+  // 4T-002502 und 4T-002503 (Epic 3E-000403): die eine Regel fuer Verweise im
+  // Kopf-Block, gelesen von Index und Umschreibe-Kern.
+  kopfVerweisFunde,
+  kopfSchluesselBereiche,
+  kopfSchluesselDerZeile,
+  // 4T-002517 (Epic 3E-000402): die eine Regel fuer die Angabe `abfrage=` einer
+  // Dashboard-Kachel, gelesen von Index, Umschreibe-Kern und ausgehenden Verweisen.
+  dashboardVerweisFunde,
   // 4T-001749 (Epic 3E-000289): die geteilte Erkennung der Verweis-Angaben
   // einer Canvas-Karte. Index, ausgehende Verweise und Umbenennungs-Nachzug
   // lesen ausschliesslich hieraus.

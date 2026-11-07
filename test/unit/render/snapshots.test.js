@@ -130,6 +130,42 @@ describe('Render-Pipeline-Snapshots (Viewer-Pfad)', () => {
     }
   });
 
+  // 4T-002512 (Epic 3E-000402): Aus-Zustand des Dashboard-Blocks (Story
+  // 4S-001188, AK2): der Hinweis der ausgeschalteten Erweiterung über dem
+  // gewöhnlichen Code-Block. Seit 4T-002513 steht die Kennung `dashboard` in der
+  // Erweiterungs-Registry, und der Fall schaltet sie über
+  // configureExtensions(['dashboard']) ab, wie beim Diagramm. Eingefroren wird
+  // wie zuvor nur, was das Dashboard beiträgt: je Block der Hinweis, der
+  // gewöhnliche Code-Block steht als Platzhalter; dass es ein Code-Block der
+  // Fence ist, prüft der Fall selbst. Der Snapshot bleibt so derselbe wie vor
+  // der Registrierung.
+  it('rendert dashboard.md bei ausgeschalteter Erweiterung als Quelltext mit Hinweis (4T-002512)', () => {
+    const src = fs.readFileSync(path.join(FIXTURE_DIR, 'dashboard.md'), 'utf8');
+    let seite;
+    try {
+      configureExtensions(['dashboard']);
+      seite = renderMarkdown(src, 'de');
+    } finally {
+      configureExtensions([]);
+    }
+    expect(seite).not.toContain('class="perspective-dashboard"');
+    const bloecke = [
+      ...seite.matchAll(
+        /(<div class="dashboard-aus-hinweis"[^>]*>[^<]*<\/div>\n)(<pre[^]*?<\/pre>\n)/g,
+      ),
+    ];
+    expect(bloecke).toHaveLength(3);
+    expect(seite.match(/class="dashboard-aus-hinweis"/g)).toHaveLength(3);
+    for (const [, , codeBlock] of bloecke) {
+      expect(codeBlock).toContain('language-perspective-dashboard');
+    }
+    const html = bloecke
+      .map(([, hinweis], i) => `${hinweis}<pre data-code-block="${i}"></pre>\n`)
+      .join('');
+    expect(html).toContain('Die Erweiterung «Dashboard» ist ausgeschaltet');
+    expect(html).toMatchSnapshot();
+  });
+
   it('Determinismus: drei Laeufe identisch (Stichprobe)', () => {
     const src = fs.readFileSync(path.join(FIXTURE_DIR, 'commonmark-basis.md'), 'utf8');
     const a = renderMarkdown(src, 'de');

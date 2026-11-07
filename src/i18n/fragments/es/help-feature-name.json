@@ -207,6 +207,7 @@
   "help.featureName.queryHighlight": "Resalte en los resultados de la consulta",
   "help.featureName.queryDisplayForm": "Forma de presentación de una consulta",
   "help.featureName.queryChart": "Gráfico de una consulta",
+  "help.featureName.dashboard": "Panel",
   "help.featureName.scriptBlocks": "Bloques de script",
   "help.featureName.inlineCalc": "Cálculos en línea",
   "help.featureName.formulaLibrary": "Biblioteca de fórmulas",

@@ -105,6 +105,28 @@ describe('mdd-store — Area_Cache-Container', () => {
       parseCacheContainer(JSON.stringify({ schemaVersion: 7, linkIndex: { files: {} } })).ok,
     ).toBe(false);
   });
+
+  // 4T-002502 (Epic 3E-000403): `hits` tragen seither die Wiki-Verweise aus dem
+  // Kopf-Block. Ein Cache der Version 8 kennt sie nicht; der Warmstart aus ihm
+  // liesse Rückverweise, Graph und Verweis-Felder der Abfrage für unveränderte
+  // Dateien ohne sie.
+  it('Cache-schemaVersion ist mindestens 9, ein Cache der Version 8 wird verworfen', () => {
+    expect(MDDA_CACHE_SCHEMA_VERSION).toBeGreaterThanOrEqual(9);
+    expect(
+      parseCacheContainer(JSON.stringify({ schemaVersion: 8, linkIndex: { files: {} } })).ok,
+    ).toBe(false);
+  });
+
+  // 4T-002517 (Epic 3E-000402): `hits` tragen seither die Angabe `abfrage=`
+  // einer Dashboard-Kachel. Ein Cache der Version 10 kennt sie nicht; der
+  // Warmstart aus ihm liesse den Rückverweis aus dem Dashboard für unveränderte
+  // Dateien fehlen.
+  it('Cache-schemaVersion ist mindestens 11, ein Cache der Version 10 wird verworfen', () => {
+    expect(MDDA_CACHE_SCHEMA_VERSION).toBeGreaterThanOrEqual(11);
+    expect(
+      parseCacheContainer(JSON.stringify({ schemaVersion: 10, linkIndex: { files: {} } })).ok,
+    ).toBe(false);
+  });
 });
 
 // --- Teil 2: Warmstart-Abgleich (backlinks-API) ------------------------------

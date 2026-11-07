@@ -221,6 +221,23 @@ FROM ("Projekte" OR #wichtig) AND -#archiv
 
 Werte-Semantik: Ein skalares Feld wird direkt verglichen; bei einem **Listen-Feld** (z.B. `tags`) prüft `=` die Mitgliedschaft und `IN` eine nicht-leere Schnittmenge. Bei **fehlendem Feld** sind `=` und `IN` falsch, `!=` und `NOT IN` wahr. Nur Felder der obersten Frontmatter-Ebene sind abfragbar; Zahlen-Werte werden bei Ordnungs-Vergleichen numerisch verglichen (`10` liegt über `5`).
 
+## Platzhalter (`$name`)
+
+Ein **Platzhalter** `$name` steht für die Wahl eines Filters am Kopf eines [Dashboards](dashboards.md). Der Name besteht aus Buchstaben, Ziffern und Unterstrich und beginnt nicht mit einer Ziffer; Groß- und Kleinschreibung zählen nicht.
+
+````markdown
+```perspective-query
+LIST FROM "Aufgaben" WHERE prioritaet = "hoch" OR status = $status
+```
+````
+
+- **Stellen:** Ein Platzhalter steht nur in `WHERE` und `HAVING`, dort aber an jeder Stelle eines Ausdrucks: als Seite eines Vergleichs, als Element einer `IN`-Liste oder als Argument einer Funktion wie `contains(tags, $tag)`. An jeder anderen Stelle, etwa in `FROM`, in einer Spalte, in `SORT` oder `LIMIT`, ist die Abfrage ungültig, und die Meldung nennt die Position.
+- **Ein gewählter Wert** wird wie eine Zeichenkette verglichen: `status = $status` verhält sich wie `status = "offen"`, ohne Rücksicht auf die Schreibung und bei einem Listen-Feld als Mitgliedschaft. Der Wert wird nie als Abfrage-Text gelesen.
+- **«alle»:** Steht der Filter auf «alle», entfällt die kleinste Bedingung mit dem Platzhalter und gilt als erfüllt; ein `NOT` direkt davor entfällt mit. Bedingung ist ein Vergleich, eine `IN`-Liste oder ein Funktions-Aufruf. `AND` und `OR` darüber rechnen gewöhnlich weiter, sodass `a = 1 OR status = $s` bei «alle» **alle** Treffer liefert, weil die rechte Seite erfüllt ist. Ein Wert, der wörtlich «alle» heißt, gerät damit nicht in Konflikt.
+- **Ein Name ohne Filter** im Dashboard gilt als «alle»; über dem Ergebnis steht ein Hinweis mit dem Namen.
+- **Außerhalb eines Dashboards** gibt es keine Wahl: Jeder Platzhalter gilt als «alle», und über dem Ergebnis steht ein Hinweis darauf. Das gilt für jede Abfrage, die nicht in einer Kachel läuft, etwa die Abfrage im Fließtext, die allein geöffnete [Abfrage-Datei](database.md) und den Wertevorrat der [Eigenschafts-Profile](property-profiles.md); der Hinweis erscheint dort, wo ein Ergebnis angezeigt wird.
+- Ein `$` in einer Zeichenkette (`"$x"`), in einem Verweis und in `date(…)` oder `dur(…)` bleibt gewöhnlicher Text.
+
 ## Felder
 
 Neben den Frontmatter-Eigenschaften (nackter Name, z.B. `status`) stehen implizite Datei-Felder unter dem Namensraum `file.` bereit:
@@ -358,7 +375,7 @@ SORT count() DESC, autor
 ```
 ````
 
-**Zeile oder Gruppe.** Eine Aggregat-Funktion bekommt ihre Bedeutung aus der Stelle, an der sie steht. **Aggregat-Stellen** sind die Spalten und `SORT` einer gruppierten Tabelle sowie `HAVING`; dort rechnet sie über alle Treffer der Gruppe. Überall sonst rechnet sie über den Wert des einzelnen Treffers, also in `WHERE`, in den Ausdrücken von `GROUP BY`, in den Spalten einer Tabelle ohne `GROUP BY`, im Zusatzfeld der Liste und in `SORT` einer gruppierten Liste. Drei Beispiele:
+**Zeile oder Gruppe.** Eine Aggregat-Funktion bekommt ihre Bedeutung aus der Stelle, an der sie steht. **Aggregat-Stellen** sind die Spalten und `SORT` einer gruppierten Tabelle und der Tabelle des Gesamt-Werts (unten) sowie `HAVING`; dort rechnet sie über alle Treffer der Gruppe, beim Gesamt-Wert über alle Treffer. Überall sonst rechnet sie über den Wert des einzelnen Treffers, also in `WHERE`, in den Ausdrücken von `GROUP BY`, in den Spalten einer Tabelle ohne `GROUP BY`, die keine Tabelle des Gesamt-Werts ist, im Zusatzfeld der Liste und in `SORT` einer gruppierten Liste. Drei Beispiele:
 
 | Abfrage | Bedeutung |
 |---|---|
@@ -373,14 +390,16 @@ SORT count() DESC, autor
 - ein anderes Feld in einer Spalte oder in `SORT` einer gruppierten Tabelle, auch ein Selbstbezug mit `this.`; die Meldung nennt die Spalte und verweist auf `LIST`, das die einzelnen Treffer zeigt;
 - ein anderes Feld in `HAVING`; die Meldung nennt das Feld und verweist auf `WHERE`, das die einzelnen Treffer filtert;
 - ein Aggregat in einem Aggregat, etwa `sum(count(x))`;
-- `count()` ohne Feld an einer Zeilen-Stelle, etwa in `WHERE` oder in einer Tabelle ohne `GROUP BY`;
+- `count()` ohne Feld an einer Zeilen-Stelle, etwa in `WHERE` oder in einer Tabelle ohne `GROUP BY`, die keine Tabelle des Gesamt-Werts ist;
 - `HAVING` ohne `GROUP BY`.
 
 **Bedingung über die Gruppe (`HAVING`).** `HAVING` prüft die Gruppen wie `WHERE` die Treffer: Es ist ein Wahrheits-Ausdruck wie nach `WHERE`, steht nur zusammen mit `GROUP BY` an beliebiger Stelle der Klauseln und wirkt in Liste und Tabelle. Bei mehreren Stufen prüft es die Gruppen der untersten Stufe. Eine Gruppe darüber, unter der keine Untergruppe bleibt, entfällt, und die übrigen behalten nur die Treffer ihrer verbliebenen Untergruppen.
 
 **Reihenfolge.** In der gruppierten Tabelle filtert `WHERE` die Treffer, danach entstehen die Gruppen, `HAVING` prüft sie, `SORT` ordnet sie (ohne `SORT` nach ihrem Wert), und `LIMIT` begrenzt die Zahl der Zeilen. Bei mehreren Stufen ordnet `SORT` die Gruppen jeder Stufe untereinander. In der gruppierten Liste ordnen und begrenzen `SORT` und `LIMIT` dagegen die Treffer, bevor die Gruppen entstehen, und `HAVING` wirkt danach; die Gruppen selbst stehen dort nach ihrem Wert geordnet.
 
-**Grenzen.** Eine Tabelle ohne `GROUP BY` rechnet je Treffer; eine Gesamtsumme über alle Treffer ohne Gruppierung gibt es nicht. `HIDE`, `SHOW` und `SHORT` bleiben der Aufgaben-Liste vorbehalten. Der Baum (`DISPLAY tree`) passt zu keiner gruppierten Abfrage. Als Quelle eines Wertevorrats oder Sammel-Feldes liefert eine gruppierte Abfrage dieselben Treffer wie ohne Gruppierung (Seite [Eigenschafts-Profile](property-profiles.md)).
+**Gesamt-Wert.** `TABLE WITHOUT ID count() AS "Anzahl", sum(betrag) AS "Summe" FROM "Rechnungen"` liefert eine einzige Zeile mit der Zahl aller Treffer und der Summe ihrer Beträge; ohne Treffer zeigt sie 0 und keine Summe.
+
+**Grenzen.** Eine Tabelle ohne `GROUP BY` rechnet je Treffer; eine Gesamtsumme über alle Treffer liefert allein eine Tabelle mit `WITHOUT ID`, deren Spalten ausschließlich Aggregate sind (Gesamt-Wert oben). `HIDE`, `SHOW` und `SHORT` bleiben der Aufgaben-Liste vorbehalten. Der Baum (`DISPLAY tree`) passt zu keiner gruppierten Abfrage. Als Quelle eines Wertevorrats oder Sammel-Feldes liefert eine gruppierte Abfrage dieselben Treffer wie ohne Gruppierung (Seite [Eigenschafts-Profile](property-profiles.md)).
 
 ## Mehrspaltige Listen
 
@@ -402,7 +421,7 @@ LIST RECORDS FROM "Team" DISPLAY tree BY chef
 ```
 ````
 
-Wählbar sind der **Baum** und zwei **Diagramme**. Der Baum (`DISPLAY tree BY feld`) zeigt die Datensätze einer Datensatz-Abfrage eingerückt entlang des genannten Verweis-Feldes:
+Wählbar sind der **Baum** und drei **Diagramme**. Der Baum (`DISPLAY tree BY feld`) zeigt die Datensätze einer Datensatz-Abfrage eingerückt entlang des genannten Verweis-Feldes:
 
 - Ein Datensatz hängt unter dem Datensatz, auf den sein Feld zeigt, wenn dieser im Ergebnis steht. Sonst ist er eine **Wurzel** und steht ganz links: ohne Verweis, mit einem Verweis ins Leere oder auf einen Datensatz, den die Bedingung herausfiltert. Bei `descendants(…)` sind deshalb die dem Ziel direkt unterstellten Datensätze die Wurzeln, weil das Ziel selbst nicht zum Ergebnis gehört.
 - Wurzeln und Geschwister stehen in der Reihenfolge des Ergebnisses, die `SORT` bestimmt.
@@ -411,7 +430,7 @@ Wählbar sind der **Baum** und zwei **Diagramme**. Der Baum (`DISPLAY tree BY fe
 - Ein Knoten zeigt die Anzeige-Form wie ein Listen-Eintrag, bei `LIST` mit dem Zusatzfeld dahinter; bei `TABLE` zeigt der Baum keine Spalten. Ein Klick öffnet die Maske.
 - Tiefer als 32 Ebenen wird nicht weiter eingerückt; tiefere Knoten stehen vollständig auf der 32. Ebene.
 
-Die **Diagramme** `DISPLAY bar` und `DISPLAY line` zeigen das Ergebnis einer Tabellen-Abfrage als Balken- beziehungsweise Linien-Diagramm. Sie lesen die Tabelle so, wie sie ohne `DISPLAY` erschiene:
+Die **Diagramme** `DISPLAY bar`, `DISPLAY line` und `DISPLAY pie` zeigen das Ergebnis einer Tabellen-Abfrage als Balken-, Linien- beziehungsweise Kreis-Diagramm. Sie lesen die Tabelle so, wie sie ohne `DISPLAY` erschiene; was beim Kreis abweicht, steht im Anschluss an diese Liste:
 
 ````markdown
 ```perspective-query
@@ -429,7 +448,22 @@ DISPLAY bar
 - **Bild**: Das Diagramm ist eine Grafik ohne Bedienung; ein Klick öffnet keinen Treffer. Die Reihen tragen die Diagramm-Farben des aktiven [Farbschemas](color-schemes.md) wie die [Diagramme zu Tabellen](charts.md) und folgen einem Wechsel des Farbschemas oder zwischen Hell und Dunkel sofort.
 - **Erweiterung**: Die Diagramme hängen an der [internen Erweiterung](extensions.md) «Diagramm einer Abfrage», die ab dem Arbeitsmodus **Fortgeschritten** eingeschaltet ist und von keiner anderen Erweiterung abhängt. Ist sie aus, erscheint die Tabelle mit dem Hinweis, dass die Diagramm-Darstellung ausgeschaltet ist; das Dokument bleibt unverändert, und nach dem Einschalten erscheint das Diagramm wieder.
 
-**Rückfall**: Ist eine Form unbekannt oder passt sie nicht zur Abfrage, erscheint das Ergebnis ohne sie, also als Liste oder Tabelle, darüber ein Hinweis mit dem Namen der Form und keine Fehlermeldung. Der Baum passt nur auf der Datensatz-Ebene und nur mit einem Feld nach `BY`, das bei mindestens einer Tabelle des Ergebnisses ein Verweis-Feld ist. Zu einer gruppierten Abfrage passt er nie; dann erscheint die gruppierte Ausgabe mit dem Hinweis. Die Diagramme passen nur zu einer Tabelle (`TABLE`, nicht `LIST`) mit mindestens einer Spalte neben der Beschriftung, von denen eine Zahlen enthält; sonst nennt der Hinweis den Grund. Ein leeres Ergebnis zeigt seinen Leer-Hinweis und keine Form. Fehlt nach `DISPLAY` der Name der Form oder nach `BY` das Feld, ist die Abfrage ungültig.
+Der **Kreis** `DISPLAY pie` zeigt die Anteile einer einzigen Reihe:
+
+````markdown
+```perspective-query
+TABLE count() AS "Anzahl"
+FROM "Aufgaben"
+GROUP BY status
+DISPLAY pie
+```
+````
+
+- **Anteile**: Die erste Spalte mit mindestens einer Zahl gibt die Anteile, ein Stück je Rubrik, also je Gruppe oder je Treffer; die Beschriftung folgt derselben Regel wie bei Balken und Linie. Eine einzige Rubrik ergibt einen vollen Kreis.
+- **Weitere Zahlen-Spalten** werden übergangen; eine Zeile unter dem Diagramm nennt sie.
+- **Negative Werte oder lauter Nullen** ergeben keinen Kreis: Dann erscheint die Tabelle, darüber ein Hinweis mit dem Grund. Balken und Linie zeichnen solche Werte dagegen.
+
+**Rückfall**: Ist eine Form unbekannt oder passt sie nicht zur Abfrage, erscheint das Ergebnis ohne sie, also als Liste oder Tabelle, darüber ein Hinweis mit dem Namen der Form und keine Fehlermeldung. Der Baum passt nur auf der Datensatz-Ebene und nur mit einem Feld nach `BY`, das bei mindestens einer Tabelle des Ergebnisses ein Verweis-Feld ist. Zu einer gruppierten Abfrage passt er nie; dann erscheint die gruppierte Ausgabe mit dem Hinweis. Die Diagramme passen nur zu einer Tabelle (`TABLE`, nicht `LIST`) mit mindestens einer Spalte neben der Beschriftung, von denen eine Zahlen enthält, der Kreis zudem nur ohne negative Anteile und mit mindestens einem Anteil über 0; sonst nennt der Hinweis den Grund. Ein leeres Ergebnis zeigt seinen Leer-Hinweis und keine Form. Fehlt nach `DISPLAY` der Name der Form oder nach `BY` das Feld, ist die Abfrage ungültig.
 
 ## Anzeige und Interaktion
 
@@ -452,6 +486,6 @@ Dateien außerhalb des Suchraums erscheinen nicht im Ergebnis, ebenso wenig, was
 ## Export
 
 - **PDF-Export**: Das Ergebnis wird als statischer Stand des Render-Zeitpunkts gedruckt, einschließlich Tabellen- und Spalten-Layout. Die Einträge erscheinen als Text; anklickbar sind sie im PDF nicht. Ein Diagramm der Abfrage erscheint beim Drucken und im PDF-Export hell, mit den Diagramm-Farben des hellen Farbschemas, auch wenn die Anwendung dunkel läuft.
-- **Portables Markdown**: Der Export lässt den `perspective-query`-Block unverändert als Quelltext stehen. Beim erneuten Öffnen in diesem Programm wird er wieder dynamisch ausgewertet; andere Markdown-Programme zeigen ihn als Code-Block. Das gilt auch mit `DISPLAY bar` oder `DISPLAY line`: Anders als ein [Diagramm zu einer Tabelle](charts.md) wird das Diagramm einer Abfrage nicht als Bild exportiert.
+- **Portables Markdown**: Der Export lässt den `perspective-query`-Block unverändert als Quelltext stehen. Beim erneuten Öffnen in diesem Programm wird er wieder dynamisch ausgewertet; andere Markdown-Programme zeigen ihn als Code-Block. Das gilt auch mit `DISPLAY bar`, `DISPLAY line` oder `DISPLAY pie`: Anders als ein [Diagramm zu einer Tabelle](charts.md) wird das Diagramm einer Abfrage nicht als Bild exportiert.
 
 Für freie Auswertungen jenseits der Klausel-Sprache — etwa rekursive Strukturen oder berechnete Übersichten — stehen die [Skript-Blöcke](scripts.md) bereit; ihre pq-API nutzt dasselbe Feld- und Block-Modell wie die Abfrage.

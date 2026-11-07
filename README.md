@@ -16,7 +16,9 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   appears as you type and only the current line shows its Markdown.
 - **Links that lead somewhere** — wiki links, headline and block anchors,
   embedded documents, tags and backlinks turn your notes into a connected
-  set instead of a folder of loose files. Read that net from two sides: as
+  set instead of a folder of loose files; a wiki link kept as a property in
+  the head of a file counts as a link of that file, in backlinks, graph and
+  queries alike. Read that net from two sides: as
   a graph that shows it as a surface, or as a tree from a document you
   pick, which lays the same links out in order. A file can also be found by
   typing its name, and the area statistics list the files nothing points to.
@@ -79,7 +81,11 @@ Downloads, screenshots, manual and roadmap: **[em4me.ch](https://em4me.ch)**
   calculate live, and links and tags in their text cells work as anywhere
   else; queries embed file lists that keep themselves current, filtered by
   properties, tags or tasks, grouped with counts and totals per group, and
-  a query you need often can be kept as a document of its own. A block of
+  a query you need often can be kept as a document of its own. A dashboard
+  block arranges key figures, lists, tables and charts from several queries
+  as tiles in rows inside a document, with selection fields at the top that
+  narrow all tiles at once, and a tile may point to a shared query document
+  instead of carrying its own query. A block of
   its own draws a line, bar, pie or donut chart from a data table, which it
   refers to by name, even in another document; it holds no numbers of its
   own and follows the table as you type, on screen, in print and in the

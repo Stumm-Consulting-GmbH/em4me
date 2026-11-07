@@ -34,7 +34,8 @@
 //
 // **Wer einträgt:** Die eingebauten Formen trägt dieses Modul unten selbst ein,
 // damit keine Lade-Reihenfolge entscheidet, ob es sie gibt; seit 4T-002044 der
-// Baum, seit 4T-002173 die Diagramme `bar` und `line`. Jede andere Angabe zeigt
+// Baum, seit 4T-002173 die Diagramme `bar` und `line`, seit 4T-002514 der Kreis
+// `pie`. Jede andere Angabe zeigt
 // den Rückfall mit Hinweis. Formen aus Add-ons sind nicht vorgesehen, bevor die
 // Add-on-Paketierung sie zusagt.
 //
@@ -45,7 +46,8 @@
 // 4T-002044: der Baum, eingetragen unten im Abschnitt «Eingebaute Formen».
 import { treeForm } from './display-tree.js';
 // 4T-002173: die Diagramme, eingetragen unten im Abschnitt «Eingebaute Formen».
-import { barForm, lineForm } from './display-chart.js';
+// 4T-002514: der Kreis aus demselben Modul.
+import { barForm, lineForm, pieForm } from './display-chart.js';
 
 /**
  * @typedef {object} DisplayContext
@@ -90,7 +92,10 @@ export function registerDisplayForm(name, form) {
 
 /**
  * Verteiler: zeichnet die gewählte Form oder nennt den Grund des Rückfalls.
- * @param {object} resultSet  Ergebnismenge im Zustand `ready` mit mindestens einer Zeile
+ * @param {object} resultSet  Ergebnismenge im Zustand `ready` mit mindestens einer
+ *   Zeile; 4T-002514: oder die Tabelle des Gesamt-Werts ohne Treffer (4T-002511,
+ *   V9), die keine Zeile, aber ihre eine Gruppe trägt. Jede Form verträgt sie: Sie
+ *   zeichnet oder fällt zurück, ein Abbruch bleibt im Rückfall gefangen.
  * @param {DisplayContext} context
  * @returns {{ node: Node|null,
  *     hint: 'displayFormUnknown'|'displayFormUnsuitable'|'displayFormOff'|null,
@@ -137,7 +142,9 @@ export function drawDisplayForm(resultSet, context) {
 
 // --- Eingebaute Formen ---------------------------------------------------------
 // Der Baum aus 4T-002044 (`DISPLAY tree BY <Verweis-Feld>`); seit 4T-002173 die
-// Diagramme `bar` und `line` (Epic 3E-000337).
+// Diagramme `bar` und `line` (Epic 3E-000337); seit 4T-002514 der Kreis `pie`
+// (Epic 3E-000402).
 registerDisplayForm('tree', treeForm);
 registerDisplayForm('bar', barForm);
 registerDisplayForm('line', lineForm);
+registerDisplayForm('pie', pieForm);

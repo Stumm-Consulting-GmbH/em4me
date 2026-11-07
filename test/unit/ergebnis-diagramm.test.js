@@ -323,7 +323,7 @@ describe('Eignung: Grund-Codes in fester Reihenfolge', () => {
 
 describe('Vertrag gegenüber dem Aufrufer', () => {
   it('unbekannte Art, fehlender Text der Gruppe ohne Wert oder fehlende Menge werfen', () => {
-    expect(() => buildQueryChartInput(BUECHER, { ...OPT, type: 'pie' })).toThrow(TypeError);
+    expect(() => buildQueryChartInput(BUECHER, { ...OPT, type: 'donut' })).toThrow(TypeError);
     expect(() => buildQueryChartInput(BUECHER, { type: 'bar' })).toThrow(TypeError);
     expect(() => buildQueryChartInput(BUECHER)).toThrow(TypeError);
     expect(() => buildQueryChartInput(BUECHER, { ...OPT, title: 3 })).toThrow(TypeError);

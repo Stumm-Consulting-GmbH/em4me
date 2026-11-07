@@ -221,6 +221,23 @@ FROM ("Proyectos" OR #importante) AND -#archivo-muerto
 
 Semántica de valores: un campo escalar se compara directamente; en un **campo de lista** (p. ej. `tags`), `=` comprueba la pertenencia e `IN` una intersección no vacía. Con un **campo ausente**, `=` e `IN` son falsos, `!=` y `NOT IN` son verdaderos. Solo los campos del nivel superior del frontmatter son consultables; los valores numéricos se comparan numéricamente en las comparaciones de orden (`10` está por encima de `5`).
 
+## Marcadores de posición (`$nombre`)
+
+Un **marcador de posición** `$nombre` representa la elección de un filtro en la cabecera de un [panel](dashboards.md). El nombre consta de letras, cifras y guion bajo y no empieza por una cifra; mayúsculas y minúsculas no cuentan.
+
+````markdown
+```perspective-query
+LIST FROM "Tareas" WHERE prioridad = "alta" OR estado = $estado
+```
+````
+
+- **Lugares:** Un marcador de posición solo está en `WHERE` y `HAVING`, pero allí en cualquier lugar de una expresión: como lado de una comparación, como elemento de una lista `IN` o como argumento de una función como `contains(tags, $tag)`. En cualquier otro lugar, por ejemplo en `FROM`, en una columna, en `SORT` o `LIMIT`, la consulta no es válida, y el mensaje indica la posición.
+- **Un valor elegido** se compara como una cadena: `estado = $estado` se comporta como `estado = "abierto"`, sin distinguir mayúsculas y, en un campo de lista, como pertenencia. El valor nunca se lee como texto de consulta.
+- **«todos»:** Si el filtro está en «todos», la condición más pequeña con el marcador de posición desaparece y cuenta como cumplida; un `NOT` justo delante desaparece con ella. Una condición es una comparación, una lista `IN` o una llamada a función. `AND` y `OR` por encima calculan con normalidad, de modo que `a = 1 OR estado = $s` entrega con «todos» **todos** los resultados, porque el lado derecho se cumple. Un valor que se llame literalmente «todos» no entra en conflicto con esto.
+- **Un nombre sin filtro** en el panel cuenta como «todos»; encima del resultado figura una nota con el nombre.
+- **Fuera de un panel** no hay elección: cada marcador de posición cuenta como «todos», y encima del resultado figura una nota al respecto. Esto vale para toda consulta que no se ejecute en un mosaico, por ejemplo la consulta en el texto corrido, el [archivo de consulta](database.md) abierto por sí solo y el repertorio de valores de los [perfiles de propiedades](property-profiles.md); la nota aparece donde se muestra un resultado.
+- Un `$` en una cadena (`"$x"`), en un enlace y en `date(…)` o `dur(…)` sigue siendo texto corriente.
+
 ## Campos
 
 Además de las propiedades del frontmatter (nombre solo, p. ej. `estado`), hay campos de archivo implícitos bajo el espacio de nombres `file.`:
@@ -358,7 +375,7 @@ SORT count() DESC, autor
 ```
 ````
 
-**Fila o grupo.** Una función de agregación toma su significado del lugar en que está. Los **lugares de agregación** son las columnas y el `SORT` de una tabla agrupada, así como `HAVING`; allí calcula sobre todos los resultados del grupo. En cualquier otro lugar calcula sobre el valor del resultado individual, es decir, en `WHERE`, en las expresiones de `GROUP BY`, en las columnas de una tabla sin `GROUP BY`, en el complemento de la lista y en el `SORT` de una lista agrupada. Tres ejemplos:
+**Fila o grupo.** Una función de agregación toma su significado del lugar en que está. Los **lugares de agregación** son las columnas y el `SORT` de una tabla agrupada y de la tabla del total general (abajo), así como `HAVING`; allí calcula sobre todos los resultados del grupo, en el total general sobre todos los resultados. En cualquier otro lugar calcula sobre el valor del resultado individual, es decir, en `WHERE`, en las expresiones de `GROUP BY`, en las columnas de una tabla sin `GROUP BY` que no sea una tabla del total general, en el complemento de la lista y en el `SORT` de una lista agrupada. Tres ejemplos:
 
 | Consulta | Significado |
 |---|---|
@@ -373,14 +390,16 @@ SORT count() DESC, autor
 - otro campo en una columna o en el `SORT` de una tabla agrupada, también una autorreferencia con `this.`; el mensaje nombra la columna y remite a `LIST`, que muestra los resultados individuales;
 - otro campo en `HAVING`; el mensaje nombra el campo y remite a `WHERE`, que filtra los resultados individuales;
 - un agregado dentro de un agregado, por ejemplo `sum(count(x))`;
-- `count()` sin campo en un lugar de fila, por ejemplo en `WHERE` o en una tabla sin `GROUP BY`;
+- `count()` sin campo en un lugar de fila, por ejemplo en `WHERE` o en una tabla sin `GROUP BY` que no sea una tabla del total general;
 - `HAVING` sin `GROUP BY`.
 
 **Condición sobre el grupo (`HAVING`).** `HAVING` comprueba los grupos como `WHERE` comprueba los resultados: es una expresión de verdad como tras `WHERE`, solo aparece junto con `GROUP BY` en cualquier posición entre las cláusulas y actúa en la lista y en la tabla. Con varios escalones comprueba los grupos del escalón más bajo. Un grupo superior bajo el que no queda ningún subgrupo desaparece, y los demás conservan solo los resultados de sus subgrupos restantes.
 
 **Orden.** En la tabla agrupada, `WHERE` filtra los resultados, después se forman los grupos, `HAVING` los comprueba, `SORT` los ordena (sin `SORT`, por su valor) y `LIMIT` recorta el número de filas. Con varios escalones, `SORT` ordena los grupos de cada escalón entre sí. En la lista agrupada, en cambio, `SORT` y `LIMIT` ordenan y recortan los resultados antes de que se formen los grupos, y `HAVING` actúa después; los grupos mismos se ordenan allí por su valor.
 
-**Límites.** Una tabla sin `GROUP BY` calcula por resultado; no existe un total general sobre todos los resultados sin agrupación. `HIDE`, `SHOW` y `SHORT` siguen reservados a la lista de tareas. El árbol (`DISPLAY tree`) no se ajusta a ninguna consulta agrupada. Como fuente de un repertorio de valores o de un campo de recopilación, una consulta agrupada entrega los mismos resultados que sin agrupación (página [Perfiles de propiedades](property-profiles.md)).
+**Total general.** `TABLE WITHOUT ID count() AS "Número", sum(importe) AS "Total" FROM "Facturas"` entrega una sola fila con el número de todos los resultados y la suma de sus importes; sin resultados muestra 0 y ninguna suma.
+
+**Límites.** Una tabla sin `GROUP BY` calcula por resultado; un total general sobre todos los resultados solo lo entrega una tabla con `WITHOUT ID` cuyas columnas son exclusivamente agregados (total general arriba). `HIDE`, `SHOW` y `SHORT` siguen reservados a la lista de tareas. El árbol (`DISPLAY tree`) no se ajusta a ninguna consulta agrupada. Como fuente de un repertorio de valores o de un campo de recopilación, una consulta agrupada entrega los mismos resultados que sin agrupación (página [Perfiles de propiedades](property-profiles.md)).
 
 ## Listas multicolumna
 
@@ -402,7 +421,7 @@ LIST RECORDS FROM "Equipo" DISPLAY tree BY jefe
 ```
 ````
 
-Las formas disponibles son el **árbol** y dos **gráficos**. El árbol (`DISPLAY tree BY campo`) muestra los registros de una consulta de registros sangrados a lo largo del campo de referencia nombrado:
+Las formas disponibles son el **árbol** y tres **gráficos**. El árbol (`DISPLAY tree BY campo`) muestra los registros de una consulta de registros sangrados a lo largo del campo de referencia nombrado:
 
 - Un registro cuelga del registro al que apunta su campo, si este está en el resultado. Si no, es una **raíz** y queda en el extremo izquierdo: sin enlace, con un enlace que no lleva a ninguna parte o a un registro que la condición filtra. Con `descendants(…)` las raíces son por tanto los registros situados directamente bajo el destino, porque el destino mismo no forma parte del resultado.
 - Las raíces y los hermanos siguen el orden del resultado, que determina `SORT`.
@@ -411,7 +430,7 @@ Las formas disponibles son el **árbol** y dos **gráficos**. El árbol (`DISPLA
 - Un nodo muestra la forma de visualización como una entrada de lista, con `LIST` seguida del campo adicional; con `TABLE` el árbol no muestra columnas. Un clic abre el formulario.
 - Más allá de 32 niveles ya no se sangra más; los nodos más profundos aparecen completos en el nivel 32.
 
-Los **gráficos** `DISPLAY bar` y `DISPLAY line` muestran el resultado de una consulta de tabla como gráfico de barras o de líneas. Leen la tabla tal como aparecería sin `DISPLAY`:
+Los **gráficos** `DISPLAY bar`, `DISPLAY line` y `DISPLAY pie` muestran el resultado de una consulta de tabla como gráfico de barras, de líneas o circular. Leen la tabla tal como aparecería sin `DISPLAY`; lo que cambia en el gráfico circular sigue a esta lista:
 
 ````markdown
 ```perspective-query
@@ -429,7 +448,22 @@ DISPLAY bar
 - **Imagen**: el gráfico es una imagen sin controles; un clic no abre ningún resultado. Las series llevan los colores de gráfico del [esquema de color](color-schemes.md) activo, como los [gráficos de tablas](charts.md), y siguen de inmediato un cambio del esquema de color o entre claro y oscuro.
 - **Extensión**: los gráficos dependen de la [extensión interna](extensions.md) «Gráfico de una consulta», que está activada a partir del modo de trabajo **Avanzado** y no depende de ninguna otra extensión. Si está desactivada, aparece la tabla con la nota de que la visualización en gráfico está desactivada; el documento no cambia, y al volver a activarla el gráfico reaparece.
 
-**Respaldo**: si una forma es desconocida o no se ajusta a la consulta, el resultado aparece sin ella, es decir, como lista o tabla, con encima una nota que nombra la forma y sin mensaje de error. El árbol solo se ajusta en el nivel de registro y solo con un campo tras `BY` que sea un campo de referencia en al menos una tabla del resultado. Nunca se ajusta a una consulta agrupada; aparece entonces la salida agrupada con la nota. Los gráficos solo se ajustan a una tabla (`TABLE`, no `LIST`) con al menos una columna además de la etiqueta, de las que una contenga números; si no, la nota indica el motivo. Un resultado vacío muestra su nota de resultado vacío y ninguna forma. Si falta el nombre de la forma tras `DISPLAY` o el campo tras `BY`, la consulta no es válida.
+El **gráfico circular** `DISPLAY pie` muestra las proporciones de una sola serie:
+
+````markdown
+```perspective-query
+TABLE count() AS "Número"
+FROM "Tareas"
+GROUP BY estado
+DISPLAY pie
+```
+````
+
+- **Proporciones**: La primera columna con al menos un número da las proporciones, un sector por categoría, es decir, por grupo o por resultado; la etiqueta sigue la misma regla que en barras y líneas. Una sola categoría da un círculo completo.
+- **Las demás columnas de números** se omiten; una línea debajo del gráfico las nombra.
+- **Valores negativos o solo ceros** no dan gráfico circular: aparece entonces la tabla, con una nota encima que indica el motivo. Las barras y las líneas, en cambio, dibujan tales valores.
+
+**Respaldo**: si una forma es desconocida o no se ajusta a la consulta, el resultado aparece sin ella, es decir, como lista o tabla, con encima una nota que nombra la forma y sin mensaje de error. El árbol solo se ajusta en el nivel de registro y solo con un campo tras `BY` que sea un campo de referencia en al menos una tabla del resultado. Nunca se ajusta a una consulta agrupada; aparece entonces la salida agrupada con la nota. Los gráficos solo se ajustan a una tabla (`TABLE`, no `LIST`) con al menos una columna además de la etiqueta, de las que una contenga números, el gráfico circular además solo sin proporciones negativas y con al menos una proporción mayor que 0; si no, la nota indica el motivo. Un resultado vacío muestra su nota de resultado vacío y ninguna forma. Si falta el nombre de la forma tras `DISPLAY` o el campo tras `BY`, la consulta no es válida.
 
 ## Visualización e interacción
 
@@ -452,6 +486,6 @@ Los archivos fuera del ámbito de búsqueda no aparecen en el resultado, como ta
 ## Exportación
 
 - **Exportación a PDF**: el resultado se imprime como estado estático del momento del renderizado, incluida la disposición en tabla y columnas. Las entradas aparecen como texto; en el PDF no son cliqueables. Un gráfico de la consulta aparece claro al imprimir y en la exportación a PDF, con los colores de gráfico del esquema de color claro, aunque la aplicación funcione en modo oscuro.
-- **Markdown portable**: la exportación deja el bloque `perspective-query` sin cambios como código fuente. Al reabrirlo en este programa se evalúa de nuevo dinámicamente; otros programas de Markdown lo muestran como bloque de código. Esto vale también con `DISPLAY bar` o `DISPLAY line`: a diferencia de un [gráfico de tabla](charts.md), el gráfico de una consulta no se exporta como imagen.
+- **Markdown portable**: la exportación deja el bloque `perspective-query` sin cambios como código fuente. Al reabrirlo en este programa se evalúa de nuevo dinámicamente; otros programas de Markdown lo muestran como bloque de código. Esto vale también con `DISPLAY bar`, `DISPLAY line` o `DISPLAY pie`: a diferencia de un [gráfico de tabla](charts.md), el gráfico de una consulta no se exporta como imagen.
 
 Para evaluaciones libres más allá del lenguaje de cláusulas — por ejemplo estructuras recursivas o resúmenes calculados — están disponibles los [bloques de script](scripts.md); su API pq usa el mismo modelo de campos y bloques que la consulta.

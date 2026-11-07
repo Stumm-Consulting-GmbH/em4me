@@ -15,6 +15,19 @@ Wiki links, anchors, embeds and tags connect Markdown files into a network. The 
 
 If the name does not hit a file directly, two fallbacks apply: the index hit across the search scope and the [alias resolution](frontmatter.md) via the frontmatter field `aliases:`; with several candidates a picker dialog asks. In pipe table cells escape the display-text pipe as `\|`.
 
+**Links in the frontmatter count too.** A wiki link that is the value of a property in the [frontmatter](frontmatter.md), on its own or as an item of a list, counts like a link in the text: it appears in the target's backlinks, in the [graph view](graph.md) and in the link fields `file.inlinks` and `file.outlinks` of the [Perspective query](frontmatter-query.md), and when the target file is renamed, the link update rewrites it. The value is enclosed in quotation marks because without them the double square brackets would be read as a nested list:
+
+```markdown
+---
+project: "[[Project A]]"
+involved:
+  - "[[Anna]]"
+  - "[[Ben Krause|Ben]]"
+---
+```
+
+Only top-level properties and lists directly beneath them are evaluated; wiki links in nested properties are not taken into account.
+
 ## Heading and block anchors
 
 Links can point to a heading or a block inside the target file:

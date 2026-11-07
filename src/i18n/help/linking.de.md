@@ -15,6 +15,19 @@ Wiki-Links, Anker, Embeds und Tags verbinden Markdown-Dateien zu einem Netz. Die
 
 Trifft der Name keine Datei direkt, greifen zwei Fallbacks: der Index-Treffer über den Suchraum und die [Alias-Auflösung](frontmatter.md) über das Frontmatter-Feld `aliases:`; bei mehreren Kandidaten fragt ein Auswahl-Dialog nach. In Pipe-Tabellen-Zellen das Pipe des Anzeigetexts als `\|` escapen.
 
+**Verweise im Frontmatter zählen mit.** Steht ein Wiki-Link als Wert einer Eigenschaft im [Frontmatter](frontmatter.md), allein oder als Eintrag einer Liste, gilt er wie ein Link im Text: Er erscheint in den Backlinks des Ziels, in der [Graphenansicht](graph.md) und in den Link-Feldern `file.inlinks` und `file.outlinks` der [Perspective-Abfrage](frontmatter-query.md), und beim Umbenennen der Ziel-Datei zieht ihn das Link-Update nach. Der Wert steht in Anführungszeichen, weil die doppelten eckigen Klammern ohne sie als verschachtelte Liste gelesen würden:
+
+```markdown
+---
+projekt: "[[Vorhaben A]]"
+beteiligt:
+  - "[[Anna]]"
+  - "[[Ben Krause|Ben]]"
+---
+```
+
+Ausgewertet werden die Eigenschaften der obersten Ebene und Listen direkt darunter; Wiki-Links in verschachtelten Eigenschaften bleiben unberücksichtigt.
+
 ## Heading- und Block-Anker
 
 Links können auf eine Überschrift oder einen Block innerhalb der Ziel-Datei zeigen:

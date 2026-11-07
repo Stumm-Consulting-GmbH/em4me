@@ -1,0 +1,303 @@
+/* 4T-002512 (Epic 3E-000402): Dashboard-Block in der gerenderten Ansicht.
+   Das Markup baut src/shared/markdown/dashboard-block.js; hier stehen Raster,
+   Kacheln, Fehler-Kacheln, Hinweise und der Druck-Stil.
+
+   Anordnung nach Abschnitt 1.4 der Konzept-Stufe (4T-002506): Jede Zeile ist
+   eine Flex-Zeile mit Umbruch. Eine Breiten-Angabe wird zur festen Basis von
+   n Zwölfteln; ohne Angabe wächst die Kachel gleichmäßig ab einer
+   Mindestbreite und teilt sich so den Rest mit den übrigen Kacheln ohne
+   Angabe. Eine Summe über zwölf bricht ohne Hinweis um. Wird der Block
+   schmal, stehen die Kacheln untereinander; gemessen wird die Breite des
+   Blocks selbst und nicht die des Fensters, weil die geteilte Ansicht den
+   Block auch in einem breiten Fenster schmal macht. Farben ausschließlich
+   aus den Theme-Variablen. */
+
+.perspective-dashboard {
+  --dashboard-abstand: 12px;
+  --dashboard-mindestbreite: 180px;
+  container-type: inline-size;
+  margin: 0.8em 0;
+}
+
+.dashboard-kopf {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: var(--dashboard-abstand);
+}
+
+.dashboard-kopf:empty {
+  display: none;
+}
+
+/* Filter am Kopf (4T-002516): je Filter eine Beschriftung, die ihr natives
+   Auswahlfeld umschließt; die Felder baut dashboard-filter.js. Gestaltet nach
+   den Auswahlfeldern der Werkzeugleisten (graphenansicht.css) und mit dem
+   Fokus-Umriss der Dialoge (abfragen-und-ereignisse.css). Der Kopf ist eine
+   Flex-Zeile mit Umbruch; bei schmalem Block stehen die Felder untereinander. */
+.dashboard-filter {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dashboard-filter-feld {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+}
+
+.dashboard-filter-titel {
+  font-weight: 600;
+  color: var(--fg);
+}
+
+.dashboard-filter-auswahl {
+  min-width: 0;
+  max-width: 100%;
+  padding: 2px 4px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+}
+
+.dashboard-filter-auswahl:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.dashboard-zeile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dashboard-abstand);
+  margin-bottom: var(--dashboard-abstand);
+}
+
+.dashboard-kachel {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-alt);
+  overflow: auto;
+}
+
+/* Ohne Angabe: gleich wachsende Basis mit Mindestbreite. */
+.dashboard-breite-frei {
+  flex: 1 1 var(--dashboard-mindestbreite);
+}
+
+/* Mit Angabe: feste Basis von n Zwölfteln eines Rasters mit elf Abständen,
+   sodass zwei Hälften samt Abstand genau eine Zeile füllen. */
+.dashboard-kachel:not(.dashboard-breite-frei) {
+  flex: 0 0
+    calc(
+      (100% - 11 * var(--dashboard-abstand)) * var(--dashboard-n) / 12 + (var(--dashboard-n) - 1) *
+        var(--dashboard-abstand)
+    );
+}
+
+.dashboard-breite-1 {
+  --dashboard-n: 1;
+}
+.dashboard-breite-2 {
+  --dashboard-n: 2;
+}
+.dashboard-breite-3 {
+  --dashboard-n: 3;
+}
+.dashboard-breite-4 {
+  --dashboard-n: 4;
+}
+.dashboard-breite-5 {
+  --dashboard-n: 5;
+}
+.dashboard-breite-6 {
+  --dashboard-n: 6;
+}
+.dashboard-breite-7 {
+  --dashboard-n: 7;
+}
+.dashboard-breite-8 {
+  --dashboard-n: 8;
+}
+.dashboard-breite-9 {
+  --dashboard-n: 9;
+}
+.dashboard-breite-10 {
+  --dashboard-n: 10;
+}
+.dashboard-breite-11 {
+  --dashboard-n: 11;
+}
+.dashboard-breite-12 {
+  --dashboard-n: 12;
+}
+
+/* Schmaler Block: die Kacheln untereinander, jede in voller Breite. */
+@container (max-width: 480px) {
+  .dashboard-zeile {
+    flex-direction: column;
+  }
+  .dashboard-zeile > .dashboard-kachel {
+    flex: 0 0 auto;
+    width: 100%;
+  }
+  .dashboard-kopf {
+    flex-direction: column;
+  }
+  .dashboard-filter,
+  .dashboard-filter-feld {
+    display: flex;
+    width: 100%;
+  }
+  .dashboard-filter-auswahl {
+    flex: 1 1 auto;
+  }
+}
+
+.dashboard-kachel-titel {
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: var(--fg);
+}
+
+/* Text-Kachel: Absätze ohne Außenabstand am Rand der Kachel. */
+.dashboard-text > :first-child {
+  margin-top: 0;
+}
+.dashboard-text > :last-child {
+  margin-bottom: 0;
+}
+
+/* Kennzahl (D7, 4T-002515): eine Gruppe ergibt die große Zahl, mehrere Gruppen
+   je Zahl und Beschriftung nebeneinander; die Klassen setzt dashboard-formen.js. */
+.dashboard-kennzahl-einzeln .dashboard-kennzahl-wert {
+  display: block;
+  font-size: 2.4em;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+.dashboard-kennzahl-gruppen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+}
+.dashboard-kennzahl-gruppe {
+  display: flex;
+  flex-direction: column;
+  min-width: 72px;
+}
+.dashboard-kennzahl-gruppe .dashboard-kennzahl-wert {
+  font-size: 1.6em;
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.dashboard-kennzahl-beschriftung {
+  font-size: 0.85em;
+  color: var(--fg-muted, var(--fg));
+}
+
+/* Überschriften einer Text-Kachel sind Abschnitts-Titel mit der Rolle einer
+   Überschrift (keine h1 bis h6, damit Gliederung und Sprungziele des
+   Dokuments unberührt bleiben); ihre Größe folgt der Ebene. */
+.dashboard-ueberschrift {
+  margin: 0.6em 0 0.4em;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.dashboard-ueberschrift-1 {
+  font-size: 1.5em;
+}
+.dashboard-ueberschrift-2 {
+  font-size: 1.3em;
+}
+.dashboard-ueberschrift-3 {
+  font-size: 1.15em;
+}
+
+/* Fehler-Kachel: an ihrem Platz, mit Titel, Hinweis und Zeilen-Nummer. */
+.dashboard-kachel-fehler {
+  border-color: var(--linter-warn);
+  border-style: dashed;
+}
+
+.dashboard-hinweise {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+  color: var(--fg-muted);
+}
+
+.dashboard-hinweis + .dashboard-hinweis {
+  margin-top: 2px;
+}
+
+.dashboard-hinweis-zeile {
+  font-weight: 600;
+}
+
+.dashboard-kachel:not(.dashboard-kachel-fehler) > .dashboard-hinweise {
+  margin-bottom: 6px;
+}
+
+/* Sammel-Hinweis am Fuß und Hinweis-Fläche des leeren Blocks. */
+.dashboard-sammel,
+.dashboard-leer,
+.dashboard-aus-hinweis {
+  padding: 8px 12px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 6px;
+  color: var(--fg-muted);
+  font-size: 12px;
+}
+
+.dashboard-sammel-titel {
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.dashboard-leer {
+  margin-bottom: var(--dashboard-abstand);
+  font-size: inherit;
+}
+
+/* Aus-Zustand: der Hinweis steht unmittelbar über dem Quelltext. */
+.dashboard-aus-hinweis {
+  margin: 0.8em 0 4px;
+}
+
+/* Druck und PDF (Klassen-Hook .printing, siehe export-historie-und-statistik.css):
+   Kacheln brechen nicht über eine Seite, und die Hinweise bleiben stehen,
+   weil sie Teil der Auskunft sind. */
+.printing .dashboard-kachel {
+  break-inside: avoid;
+  background: transparent;
+}
+
+.printing .dashboard-zeile {
+  break-inside: avoid-page;
+}
+
+/* 4T-002518: Druck und PDF zeigen den Stand der aktuellen Auswahl ohne
+   Auswahlfelder (Story 4S-001187, AK2). Ausgeblendet werden die Felder; ein
+   Befund eines Filters bleibt als Teil der Auskunft stehen, und ein Kopf ohne
+   Befund verschwindet samt seinem Abstand. */
+.printing .dashboard-filter-feld {
+  display: none;
+}
+
+.printing .dashboard-kopf:not(:has(.dashboard-hinweis)) {
+  display: none;
+}

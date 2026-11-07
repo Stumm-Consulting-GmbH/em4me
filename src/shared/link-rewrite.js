@@ -24,6 +24,14 @@
 // Frontmatter-Ausschluss, Fence-Tracking, NFC-/Case-Normalisierung) sind
 // deckungsgleich mit dem Backlinks-Index, weil beide aus link-scan.js lesen,
 // das Fence-Tracking seit 4T-001912 aus fence-level.js.
+//
+// 4T-002503 (Epic 3E-000403): Der Frontmatter-Ausschluss hat seither eine
+// benannte Ausnahme, deckungsgleich mit dem Index (4T-002502): Wiki-Verweise in
+// Zeichenketten-Werten der obersten Ebene und in Zeichenketten-Eintraegen von
+// Listen der obersten Ebene ziehen nach. Welche Stellen das sind, sagt
+// `kopfVerweisFunde` aus link-scan.js; den Kopf-Block-Anteil (YAML lesen,
+// Scan-Zeilen, Maskierung und Einfassen des neuen Namens) traegt das Modul
+// link-rewrite-kopf.js.
 'use strict';
 
 const {
@@ -50,7 +58,13 @@ const {
   istCanvasFenceInfo,
   scanneKartenVerweise,
   packeKartenVerweisWert,
+  // 4T-002517 (Epic 3E-000402): die Angabe `abfrage=` einer Dashboard-Kachel —
+  // dieselbe Erkennung wie im Bereichs-Index und in den ausgehenden Verweisen.
+  dashboardVerweisFunde,
 } = require('./markdown/link-scan.js');
+// 4T-002503 (Epic 3E-000403): der Kopf-Block-Anteil, aus Budget-Gruenden nach
+// Fachlichkeit in ein eigenes Modul geschnitten.
+const { kopfScanZeilen, kopfErsetzungen } = require('./link-rewrite-kopf.js');
 // 4T-002013 (Epic 3E-000332): Lage der Text-Zellen einer Datentabelle, dieselbe
 // Quelle, aus der auch der Bereichs-Index liest.
 const {
@@ -545,6 +559,31 @@ function collectTabellenRewrites(line, angabe, ctx) {
   ];
 }
 
+// --- Angabe `abfrage=` einer Dashboard-Kachel (4T-002517, Epic 3E-000402) ---
+//
+// **Die vierte Stelle in einer Fence, aus demselben Grund wie die erste:** Die
+// Angabe nennt eine Abfrage-Datei mit denselben Formen wie `doc=` einer
+// Canvas-Karte (Dokumentname oder Pfad relativ zum eigenen Dokument) und zieht
+// deshalb ueber denselben Weg `neuerDocWert` nach. Ersetzt wird genau die
+// Spanne des Werts, in der Schreibform des Bestands; der uebrige Block bleibt
+// Byte fuer Byte. Die Vorschau nennt die ganze Kachel-Zeile, damit die Kachel an
+// ihrem Titel erkennbar ist (Entscheidung der Sitzung vom 2026-11-03).
+function collectDashboardRewrites(line, fund, ctx) {
+  if (!fund || fund.rohStart < 0) return [];
+  const neu = neuerDocWert(fund.wert, ctx);
+  if (neu === null || neu === fund.wert) return [];
+  return [
+    {
+      spanStart: fund.rohStart,
+      spanLen: fund.rohLen,
+      replacement: packeKartenVerweisWert(neu, { quotiert: fund.quotiert }),
+      typ: 'dashboard-abfrage',
+      fullText: line,
+      fullStart: 0,
+    },
+  ];
+}
+
 // --- Oeffentliche API -------------------------------------------------------
 
 // computeLinkRewrites(content, { renames, contextPath })
@@ -595,9 +634,31 @@ function computeLinkRewrites(content, options) {
   }
 
   const lines = splitLinesWithOffsets(body);
-  const fmStart = frontmatterBodyStart(lines.map((l) => l.text));
+  const zeilenTexte = lines.map((l) => l.text);
+  const fmStart = frontmatterBodyStart(zeilenTexte);
+  // 4T-002503 (Epic 3E-000403): die Scan-Zeilen der Verweise im Kopf-Block.
+  const kopfScan = kopfScanZeilen(zeilenTexte, fmStart);
+  // 4T-002517 (Epic 3E-000402): die Kacheln mit Abfrage-Datei, je Marker-Zeile.
+  const dashboardFunde = new Map(
+    dashboardVerweisFunde(zeilenTexte, fmStart).map((f) => [f.zeilenIndex, f]),
+  );
   const reps = [];
   const hits = [];
+  // Uebernimmt die Ersetzungen einer Zeile in `reps` und `hits` — geteilt
+  // zwischen Kopf-Block und Koerper (4T-002503), die Form ist unveraendert.
+  const uebernimm = (found, lineStart, lineNum) => {
+    for (const f of found) {
+      reps.push({
+        start: lineStart + f.spanStart,
+        end: lineStart + f.spanStart + f.spanLen,
+        replacement: f.replacement,
+      });
+      const coreInFull = f.spanStart - f.fullStart;
+      const neu =
+        f.fullText.slice(0, coreInFull) + f.replacement + f.fullText.slice(coreInFull + f.spanLen);
+      hits.push({ zeile: lineNum, alt: f.fullText, neu, typ: f.typ });
+    }
+  };
 
   // 4T-001912 (Epic 3E-000360): die Öffnung des offenen Code-Blocks (Zeichen und
   // Länge, aus fence-level.js), sonst null.
@@ -612,9 +673,22 @@ function computeLinkRewrites(content, options) {
   let inChartFence = false;
   let tabelleGesehen = false;
   for (let i = 0; i < lines.length; i++) {
-    if (i < fmStart) continue; // Frontmatter ausklammern
     const { text: line, start: lineStart } = lines[i];
     const lineNum = i + 1;
+    if (i < fmStart) {
+      // Frontmatter ausklammern — 4T-002503 (Epic 3E-000403): ausser den
+      // Wiki-Verweisen in Werten der obersten Ebene (kopfScanZeilen). Bis dahin
+      // stand hier ein bedingungsloses `continue`.
+      const kopf = kopfScan.get(i);
+      if (kopf !== undefined) {
+        uebernimm(
+          kopfErsetzungen(line, kopf, collectWikiRewrites(line, kopf.zeile, ctx)),
+          lineStart,
+          lineNum,
+        );
+      }
+      continue;
+    }
 
     // Fenced-Code-Tracking (gleiche Maschine wie der Backlinks-Parser).
     // 4T-001912 (Epic 3E-000360): nach der Zaun-Regel aus fence-level.js — ein
@@ -675,6 +749,9 @@ function computeLinkRewrites(content, options) {
         if (zellZeile === null) continue;
         const masked = maskInlineCode(zellZeile);
         found = collectWikiRewrites(line, masked, ctx).concat(collectMdRewrites(line, masked, ctx));
+      } else if (dashboardFunde.has(i)) {
+        // 4T-002517: die Angabe `abfrage=` einer Dashboard-Kachel.
+        found = collectDashboardRewrites(line, dashboardFunde.get(i), ctx);
       } else {
         continue;
       }
@@ -682,17 +759,7 @@ function computeLinkRewrites(content, options) {
       const masked = maskInlineCode(line);
       found = collectWikiRewrites(line, masked, ctx).concat(collectMdRewrites(line, masked, ctx));
     }
-    for (const f of found) {
-      reps.push({
-        start: lineStart + f.spanStart,
-        end: lineStart + f.spanStart + f.spanLen,
-        replacement: f.replacement,
-      });
-      const coreInFull = f.spanStart - f.fullStart;
-      const neu =
-        f.fullText.slice(0, coreInFull) + f.replacement + f.fullText.slice(coreInFull + f.spanLen);
-      hits.push({ zeile: lineNum, alt: f.fullText, neu, typ: f.typ });
-    }
+    uebernimm(found, lineStart, lineNum);
   }
 
   if (reps.length === 0) {

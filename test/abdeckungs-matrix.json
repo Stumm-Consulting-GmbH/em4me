@@ -2276,10 +2276,32 @@
         "test/unit/ergebnis-diagramm.test.js",
         "test/unit/preload-diagramme.test.js",
         "test/unit/extensions.test.js",
-        "test/unit/demo-area.test.js"
+        "test/unit/demo-area.test.js",
+        "test/unit/query-chart-kreis.test.js"
       ],
-      "sichtbarkeit": "sichtbar als Balken- oder Linien-Diagramm statt der Tabelle eines Abfrage-Blocks mit DISPLAY bar oder DISPLAY line, als Hinweis über der Tabelle bei Rückfall oder ausgeschalteter Erweiterung und als Zeile unter Einstellungen → Erweiterungen",
-      "hinweis": "4T-002173 (Epic 3E-000337): Diagramm einer Abfrage. FQ-07 zeigt Balken und Linie in Lese-, geteilter und Live-Ansicht samt Umstellung ohne Speichern, FQ-08 das gruppierte Diagramm, die Zeilen unter dem Bild und den Rückfall mit Grund, FQ-09 den Schalter unter Einstellungen → Erweiterungen, FQ-10 Druck und PDF hell bei dunklem Farbschema; renderer/display-chart.test.js trägt Form, Hinweis-Zeilen, Rückfall und Neu-Zeichnen, renderer/display-forms.test.js Grund und Schalter am Verteiler, renderer/extensions-aus-abfrage-diagramm.test.js den Aus-Zustand, ergebnis-diagramm.test.js die Datenregel samt Zahl-Text aus dem Kopf einer Datei, preload-diagramme.test.js die Brücke, extensions.test.js Eintrag und Modus-Stufe. Testart e2e, weil das Diagramm ein sichtbares Element der Abfrage-Ausgabe ist. Die Katalog-Zeile ist in 4T-002173 vorgezogen entstanden, weil die Einstellungs-Zeile der Erweiterung ihren Namen braucht; Handbuch und Demo hat 4T-002174 nachgezogen; demo-area.test.js wertet die beiden Diagramm-Blöcke des Demo-Dokuments «08 Queries» über die echte Abfrage und dieselbe Datenregel aus (Beschriftungen, Reihen, Art)."
+      "sichtbarkeit": "sichtbar als Balken-, Linien- oder Kreis-Diagramm statt der Tabelle eines Abfrage-Blocks mit DISPLAY bar, DISPLAY line oder DISPLAY pie, als Hinweis über der Tabelle bei Rückfall oder ausgeschalteter Erweiterung und als Zeile unter Einstellungen → Erweiterungen; den Kreis tragen die Unit-Fälle in test/unit/query-chart-kreis.test.js (Form, übergangene Zahlen-Spalten unter dem Bild, Rückfall bei negativen Werten und lauter Nullen, Neu-Zeichnen für Druck und PDF), eine eigene Ablauf-Prüfung des Kreises gibt es nicht",
+      "hinweis": "4T-002173 (Epic 3E-000337): Diagramm einer Abfrage. FQ-07 zeigt Balken und Linie in Lese-, geteilter und Live-Ansicht samt Umstellung ohne Speichern, FQ-08 das gruppierte Diagramm, die Zeilen unter dem Bild und den Rückfall mit Grund, FQ-09 den Schalter unter Einstellungen → Erweiterungen, FQ-10 Druck und PDF hell bei dunklem Farbschema; renderer/display-chart.test.js trägt Form, Hinweis-Zeilen, Rückfall und Neu-Zeichnen, renderer/display-forms.test.js Grund und Schalter am Verteiler, renderer/extensions-aus-abfrage-diagramm.test.js den Aus-Zustand, ergebnis-diagramm.test.js die Datenregel samt Zahl-Text aus dem Kopf einer Datei, preload-diagramme.test.js die Brücke, extensions.test.js Eintrag und Modus-Stufe. Testart e2e, weil das Diagramm ein sichtbares Element der Abfrage-Ausgabe ist. Die Katalog-Zeile ist in 4T-002173 vorgezogen entstanden, weil die Einstellungs-Zeile der Erweiterung ihren Namen braucht; Handbuch und Demo hat 4T-002174 nachgezogen; demo-area.test.js wertet die beiden Diagramm-Blöcke des Demo-Dokuments «08 Queries» über die echte Abfrage und dieselbe Datenregel aus (Beschriftungen, Reihen, Art). 4T-002514 (Epic 3E-000402): dritte Diagramm-Art Kreis mit DISPLAY pie; query-chart-kreis.test.js trägt das Verzeichnis, die erste Zahlen-Spalte als Anteile samt Zeile der übergangenen Spalten, die beiden Gründe nur des Kreises (negativer Wert, lauter Nullen), die Tabelle des Gesamt-Werts ohne Treffer und das Neu-Zeichnen für Druck und PDF (27 Fälle)."
+    },
+    {
+      "key": "help.feature.dashboard",
+      "id": "F-405",
+      "testart": "e2e",
+      "tests": [
+        "test/e2e/funktionen/dashboard-ansichten.spec.js",
+        "test/e2e/funktionen/dashboard-filter.spec.js",
+        "test/unit/render/extensions-aus-dashboard.test.js",
+        "test/unit/render/snapshots.test.js",
+        "test/unit/dashboard-core.test.js",
+        "test/unit/dashboard-quellen.test.js",
+        "test/unit/extensions.test.js",
+        "test/unit/marker-grammatik.test.js",
+        "test/unit/perspective-query-platzhalter.test.js",
+        "test/unit/renderer/dashboard-formen.test.js",
+        "test/unit/renderer/dashboard-zustand.test.js",
+        "test/unit/link-rewrite-dashboard.test.js",
+        "test/unit/dashboard-portabel.test.js"
+      ],
+      "hinweis": "4T-002513 (Epic 3E-000402): Dashboard als schaltbare Erweiterung. render/extensions-aus-dashboard.test.js trägt Registry-Eintrag, Modus-Stufe, Unabhängigkeit vom Abfrage-Diagramm, An- und Aus-Zustand, Umschalten ohne Neustart, Filterung und Verdrahtung des Kommandos samt eingefügtem Gerüst und zweiter Kachel; render/snapshots.test.js friert Markup und Aus-Zustand der Fixture ein; dashboard-core.test.js Grammatik und Gerüst; dashboard-quellen.test.js die Kanäle samt Schalter; extensions.test.js die Zahlen der Modus-Stufen. Die Katalog-Zeile ist in 4T-002513 vorgezogen entstanden, weil die Einstellungs-Zeile der Erweiterung ihren Namen braucht (Muster F-346); Handbuch und Demo zieht der Hilfe- und Handbuch-Task des Epics nach. Seit dem Abschluss-Anteil 4T-002520 nennt die Zeile alle Unit-Prüfdateien des Dashboards: marker-grammatik.test.js die aus dem Canvas herausgelöste Marker-Grammatik (4T-002509), perspective-query-platzhalter.test.js Platzhalter und Gesamt-Wert der Abfrage-Sprache (4T-002511), renderer/dashboard-formen.test.js Kennzahl, Liste, Tabelle, Balken und Kreis der Kacheln (4T-002515), renderer/dashboard-zustand.test.js Auswahlfelder und Zustand der Filter (4T-002516), link-rewrite-dashboard.test.js die Kachel mit Abfrage-Datei in Index, Umbenennen und Anzeige (4T-002517), dashboard-portabel.test.js den portablen Export (4T-002518). Testart e2e wie F-346, weil das Dashboard ein sichtbares Element mit eigenen Ablauf-Prüfungen ist (Review-Runde 1 von 3E-000402, Befund B3-4): DF-01 und DF-02 in dashboard-filter.spec.js (Auswahlfelder, Wirkung auf die Kacheln, Nachzug, keine Bearbeitung, Vorbelegung nach erneutem Öffnen) und DN-01 bis DN-05 in dashboard-ansichten.spec.js (gerenderte, geteilte und Live-Ansicht mit derselben Auswahl, Druck, portabler Export, Einbettung, Ordnungszahl im Live-Modus)."
     },
     {
       "key": "help.feature.scriptBlocks",

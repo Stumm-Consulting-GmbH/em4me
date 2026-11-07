@@ -9,6 +9,9 @@ import { getDocText } from '../app/api.js';
 // 4T-000498 (Epic 3E-000090): Erstellt-Automatik der Erweiterung "Aufgaben"
 // beim Umwandeln einer Zeile in eine Task-Zeile.
 import { withCreatedDate } from '../tasks.js';
+// 4T-002513 (Epic 3E-000402): Titel der Gerüst-Kachel des Dashboards in der
+// Oberflächen-Sprache.
+import { t } from '../../i18n.js';
 import {
   applyInlineFormat,
   clearInlineFormats,
@@ -27,6 +30,7 @@ import {
   insertHorizontalRule,
   insertCodeBlock,
   insertCanvas,
+  insertDashboard,
 } from '../../../shared/markdown-format.js';
 
 // Wendet ein reines Transformations-Ergebnis (Zeichen-Format oder Link) auf die
@@ -189,4 +193,12 @@ export const FORMAT_COMMANDS = {
   'insert.codeBlock': (view) => dispatchInsert(view, insertCodeBlock),
   // 4T-001682 (Epic 3E-000287): leere Canvas-Fläche an der Schreibmarke.
   'insert.canvas': insertCanvasCommand,
+  // 4T-002513 (Epic 3E-000402): Gerüst eines Dashboards an der Schreibmarke,
+  // die Kennzahl-Kachel mit dem Titel aus der Oberflächen-Sprache. Das Kommando
+  // hängt an der Erweiterung `dashboard`; im Aus-Zustand nimmt es der Filter der
+  // Erweiterungs-Registry aus Palette, Tastenbelegung und Kontextmenü.
+  'insert.dashboard': (view) =>
+    dispatchInsert(view, (text, pos) =>
+      insertDashboard(text, pos, t('command.insert.dashboardKachelTitel')),
+    ),
 };

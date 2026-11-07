@@ -98,7 +98,8 @@ describe('Registry-Invarianten', () => {
   // ein Einfüge-Kommando wie seine Nachbarn und deshalb ebenfalls an die
   // CodeMirror-View gebunden.
   // 4T-001716 (Epic 3E-000301): plus list.lineBreak, der Zeilenumbruch im
-  // Listenpunkt.
+  // Listenpunkt. 4T-002513 (Epic 3E-000402): plus insert.dashboard, das Gerüst
+  // eines Dashboards, aus demselben Grund wie insert.canvas.
   it('editorScoped-Kommandos sind Fold, Format/Link, Absatz, Einfügen, Tabelle und Liste', () => {
     const scoped = COMMANDS.filter((c) => c.editorScoped)
       .map((c) => c.id)
@@ -119,6 +120,7 @@ describe('Registry-Invarianten', () => {
       'insert.callout',
       'insert.canvas',
       'insert.codeBlock',
+      'insert.dashboard',
       'insert.footnote',
       'insert.horizontalRule',
       'insert.perspectiveTable',

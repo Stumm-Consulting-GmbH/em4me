@@ -382,6 +382,25 @@ const INTERNAL_EXTENSIONS = [
     nameKey: 'help.featureName.queryChart',
     descKey: 'help.feature.queryChart',
   },
+  // 4T-002513 (Epic 3E-000402): Dashboard aus Abfrage-Kacheln, Block
+  // `perspective-dashboard` (Entscheidung V7 des Epics). Kennung wie
+  // `DASHBOARD_EXTENSION_ID` im Dashboard-Kern; hier als Wort, weil die Registry
+  // nichts aus App-Modulen lädt. Direkt hinter dem Diagramm einer Abfrage, weil
+  // jede Kachel eine Abfrage ist. Keine harte Abhängigkeit, auch nicht von
+  // 'query-chart': Ist jenes aus, zeigen Balken und Kreis die Tabelle mit dem
+  // Hinweis `displayFormOff` (Regel E3, Verarmung statt Bruch). Aus-Zustand: Der
+  // Block erscheint als Quelltext mit dem Hinweis der ausgeschalteten
+  // Erweiterung (dashboard-block.js), das Einfüge-Kommando entfällt aus
+  // Palette, Kontextmenü und Tastenkürzel-Seite, und die Kanäle des
+  // Hauptprozesses weisen ab.
+  {
+    id: 'dashboard',
+    category: 'render',
+    modeLevel: 'advanced',
+    nameKey: 'help.featureName.dashboard',
+    descKey: 'help.feature.dashboard',
+    commands: ['insert.dashboard'],
+  },
   {
     id: 'katex',
     category: 'render',

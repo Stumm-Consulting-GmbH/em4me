@@ -76,9 +76,10 @@
   "query.syntax.displayBy": "Query non valida: atteso un campo dopo BY in DISPLAY",
   "query.syntax.groupedColumn": "Query non valida: in una tabella raggruppata '{name}' non è né in GROUP BY né in una funzione di aggregazione; usare LIST per mostrare i singoli risultati",
   "query.syntax.aggregateNested": "Query non valida: '{name}' contiene una funzione di aggregazione dentro un'altra",
-  "query.syntax.countWithoutField": "Query non valida: count() senza campo conta i risultati di un gruppo ed è ammesso solo in HAVING e nelle colonne e in SORT di una tabella raggruppata; altrimenti usare count(campo)",
+  "query.syntax.countWithoutField": "Query non valida: count() senza campo conta i risultati di un gruppo ed è ammesso solo in HAVING, nelle colonne e in SORT di una tabella raggruppata e in una tabella WITHOUT ID le cui colonne sono soltanto totali; altrimenti usare count(campo)",
   "query.syntax.havingWithoutGroupBy": "Query non valida: HAVING verifica gruppi ed è ammesso solo insieme a GROUP BY; usare WHERE per filtrare i singoli risultati",
   "query.syntax.havingUngrouped": "Query non valida: in HAVING '{name}' non è né in GROUP BY né in una funzione di aggregazione; usare WHERE per filtrare i singoli risultati",
+  "query.syntax.placeholderPosition": "Query non valida: un segnaposto ($name) può comparire solo in WHERE o HAVING (posizione {pos})",
   "query.group.none": "(senza valore)",
   "query.tasks.count.one": "1 attività",
   "query.tasks.count.other": "{n} attività",
@@ -94,8 +95,13 @@
   "query.hint.displayFormChartNotTable": "Nota: la forma di presentazione '{name}' richiede una query a tabella (TABLE), quindi il risultato viene mostrato senza di essa",
   "query.hint.displayFormChartSingleColumn": "Nota: la forma di presentazione '{name}' richiede almeno un'altra colonna oltre all'etichetta, quindi il risultato viene mostrato senza di essa",
   "query.hint.displayFormChartNoNumbers": "Nota: la forma di presentazione '{name}' richiede una colonna con numeri e questa query non ne ha, quindi il risultato viene mostrato senza di essa",
+  "query.hint.displayFormChartNegative": "Nota: la forma di presentazione '{name}' richiede quote senza numeri negativi e questa query ne ha uno, quindi il risultato viene mostrato senza di essa",
+  "query.hint.displayFormChartZeros": "Nota: la forma di presentazione '{name}' richiede almeno una quota maggiore di 0 e questa query ha solo zeri, quindi il risultato viene mostrato senza di essa",
+  "query.hint.placeholderOutside": "Nota: la query contiene segnaposto; al di fuori di una dashboard valgono come 'tutti'",
+  "query.hint.placeholderUnknown": "Nota: la dashboard non ha alcun filtro '{name}', quindi il segnaposto vale come 'tutti'",
   "query.chart.skipped.one": "Ignorata: colonna {columns}, perché non contiene alcun numero.",
   "query.chart.skipped.other": "Ignorate: colonne {columns}, perché non contengono alcun numero.",
   "query.chart.omitted.one": "1 valore è stato omesso perché manca o non è un numero.",
-  "query.chart.omitted.other": "{n} valori sono stati omessi perché mancano o non sono numeri."
+  "query.chart.omitted.other": "{n} valori sono stati omessi perché mancano o non sono numeri.",
+  "query.chart.pieSeriesSkipped": "Il grafico a torta mostra solo la prima colonna di numeri, non {columns}."
 }

@@ -25,6 +25,9 @@ import { openInPane } from './tabs/tabs.js';
 // 4T-000355 (Epic 3E-000065): Befüllung der perspective-query-Platzhalter mit der
 // dynamischen Datei-Liste (Render-Pane und Reading über diese Pipeline).
 import { applyFrontmatterQueriesIfPresent } from './query/frontmatter-query-view.js';
+// 4T-002515 (Epic 3E-000402): Kacheln eines Dashboards zu Abfrage-Containern machen.
+import { bereiteDashboardKachelnVor } from './dashboard/dashboard-view.js';
+import { richteDashboardFilterEin } from './dashboard/dashboard-filter.js';
 // 4T-000435 / 4T-001064: Journal-Blöcke (Navigation, Zeitleiste) aus dem Datei-Pfad befüllen.
 import { applyJournalNavIfPresent } from './calendar/journal-nav-view.js';
 import { applyJournalTimelineIfPresent } from './calendar/journal-timeline-view.js';
@@ -1283,6 +1286,8 @@ function wendeSchritteAn(container, basePath, lage) {
   applyMermaidIfPresent(container, { theme: lage.theme });
   enhancePerspectiveTableSorting(container);
   if (bearbeitbar) enableTaskCheckboxes(container);
+  if (dynamischeBloecke) bereiteDashboardKachelnVor(container, basePath);
+  if (dynamischeBloecke) richteDashboardFilterEin(container, basePath, state);
   if (dynamischeBloecke) applyFrontmatterQueriesIfPresent(container, basePath);
   applyJournalNavIfPresent(container, basePath);
   applyJournalTimelineIfPresent(container, basePath);

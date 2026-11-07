@@ -143,6 +143,7 @@
     { "name": "attachments", "praefixe": ["attachments", "settings.attachments"] },
     { "name": "graph", "praefixe": ["graph", "mindmap", "settings.mindmap"] },
     { "name": "canvas", "praefixe": ["canvas"] },
+    { "name": "dashboard", "praefixe": ["dashboard"] },
     { "name": "kanban", "praefixe": ["kanban", "settings.kanban"] },
     { "name": "presentation", "praefixe": ["presentation", "settings.presentation"] },
     { "name": "stats", "praefixe": ["stats", "wordCount"] },

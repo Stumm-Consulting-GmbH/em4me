@@ -194,9 +194,14 @@ function sammleDiagrammQuellen(text) {
  * Zauns bleibt vor dem Ersatz stehen; ein offener Block wird bis zum
  * Textende ersetzt.
  *
+ * Als zweites Argument bekommt `build` den Block selbst (Form wie bei
+ * `findeDiagrammBloecke`), damit ein Aufrufer ihn über seine Stelle zuordnen
+ * kann statt über einen eigenen Zähler (Review-Runde 1 von 3E-000402,
+ * Befund A6).
+ *
  * @param {string} text Markdown-Text.
- * @param {function(string): (string|null|undefined)} build Bauer des Ersatzes
- *   je Block-Inhalt.
+ * @param {function(string, object): (string|null|undefined)} build Bauer des
+ *   Ersatzes je Block-Inhalt.
  * @param {string} [sprache] wie bei `findeDiagrammBloecke`.
  * @returns {string}
  */
@@ -205,7 +210,7 @@ function ersetzeDiagrammBloecke(text, build, sprache = CHART_FENCE_INFO) {
   const teile = [];
   let bisher = 0;
   for (const block of findeDiagrammBloecke(src, sprache)) {
-    const ersatz = build(block.body);
+    const ersatz = build(block.body, block);
     if (ersatz == null) continue;
     teile.push(
       src.slice(bisher, block.start + block.einzug),

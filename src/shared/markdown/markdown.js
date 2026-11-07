@@ -80,6 +80,9 @@ const { localTodayIso, renderPerspectiveEventsViewer } = require('./perspective-
 const { CANVAS_EXTENSION_ID } = require('../canvas/canvas-core.js');
 const { renderCanvasBlock } = require('./canvas-block.js');
 const { istWorkflowFence, workflowFenceHtml } = require('./workflow-block.js');
+// 4T-002512 (Epic 3E-000402): der Dashboard-Block; Markup, Aus-Zustand mit
+// Hinweis und Text-Kacheln im Nachbar-Modul, hier allein die Weiche.
+const { istDashboardFence, dashboardFenceHtml } = require('./dashboard-block.js');
 // 4T-001548 (Epic 3E-000251): Die statische Konvertierung aller Fence-Konstrukte
 // des portablen Exports; hier bleibt allein die Klammer darum (KaTeX-Abschaltung
 // und Marker an der Datei-Spitze).
@@ -337,6 +340,15 @@ function registerMarkdownExtensions(mdInstance, opts = {}) {
   mdInstance.use(listRestartPlugin);
 }
 
+// 4T-002512: Zeilen-Bereich eines Zauns im Gesamt-Dokument, aus der Token-Zeile
+// und dem Frontmatter-Versatz wie beim sourceLineMapper. Fünf Weichen der
+// Fence-Regel lesen ihn; er stand dort bis dahin je Weiche ausgeschrieben.
+function zaunBereich(token, env) {
+  const offset = (env && env.sourceLineOffset) || 0;
+  if (!token.map) return { lineStart: 0, lineEnd: 0 };
+  return { lineStart: token.map[0] + 1 + offset, lineEnd: token.map[1] + offset };
+}
+
 // --- Pipeline-Aufbau (4T-000292) -----------------------------------------------------
 // Baut beide markdown-it-Instanzen mit dem aktiven Plugin-Satz auf.
 // enabled(id) -> bool entscheidet pro Erweiterungs-ID; die Registrierungs-
@@ -573,6 +585,11 @@ function buildPipelines(enabled) {
     md.renderer.rules.fence = function (tokens, idx, options, env, self) {
       const token = tokens[idx];
       const lang = (token.info || '').trim().split(/\s+/g)[0];
+      const bereich = zaunBereich(token, env);
+      const standard = () =>
+        defaultFenceRenderer
+          ? defaultFenceRenderer.call(this, tokens, idx, options, env, self)
+          : self.renderToken(tokens, idx, options);
       // 4T-002351 (Epic 3E-000184): der workflow-Block mit Hervorhebung aus dem
       // Zeilen-Leser; aus: Rückfall auf den Code-Block. Markup im Nachbar-Modul.
       if (istWorkflowFence(lang, enabled)) return workflowFenceHtml(token.content, token.map, env);
@@ -609,9 +626,7 @@ function buildPipelines(enabled) {
           env && typeof env === 'object'
             ? (env.__perspectiveDatatableCount = (env.__perspectiveDatatableCount || 0) + 1) - 1
             : 0;
-        const offset = (env && env.sourceLineOffset) || 0;
-        const lineStart = token.map ? token.map[0] + 1 + offset : 0;
-        const lineEnd = token.map ? token.map[1] + offset : 0;
+        const { lineStart, lineEnd } = bereich;
         const body = String(token.content || '');
         return (
           `<div class="perspective-datatable" data-dt-index="${dtIndex}" ` +
@@ -625,14 +640,12 @@ function buildPipelines(enabled) {
       // löst hier nicht auf; wo aufgelöst und gezeichnet wird, entscheidet der Task
       // zur Darstellung in den Ansichten. Aus: Rückfall auf den Code-Block.
       if (lang === CHART_FENCE && enabled(CHART_EXTENSION_ID)) {
-        const offset = (env && env.sourceLineOffset) || 0;
         return renderChartContainer(String(token.content || ''), {
           index:
             env && typeof env === 'object'
               ? (env.__perspectiveChartCount = (env.__perspectiveChartCount || 0) + 1) - 1
               : 0,
-          lineStart: token.map ? token.map[0] + 1 + offset : 0,
-          lineEnd: token.map ? token.map[1] + offset : 0,
+          ...bereich,
         });
       }
       // 4T-000512 (Epic 3E-000092): perspective-events rendert als Container
@@ -647,9 +660,7 @@ function buildPipelines(enabled) {
           env && typeof env === 'object'
             ? (env.__perspectiveEventsCount = (env.__perspectiveEventsCount || 0) + 1) - 1
             : 0;
-        const offset = (env && env.sourceLineOffset) || 0;
-        const lineStart = token.map ? token.map[0] + 1 + offset : 0;
-        const lineEnd = token.map ? token.map[1] + offset : 0;
+        const { lineStart, lineEnd } = bereich;
         const body = String(token.content || '');
         // 4T-000514: Stichtag, Sprache und aufgeloeste Labels fuer die
         // Zusatz-Ansichten (die Tabelle lokalisiert weiter der Renderer
@@ -674,7 +685,6 @@ function buildPipelines(enabled) {
       // die Pipeline hat sie in env.dbTable. Container und Tabelle baut
       // perspective-records-html.js, samt der Begründung für beides.
       if (lang === RECORD_FENCE && enabled('database')) {
-        const offset = (env && env.sourceLineOffset) || 0;
         const body = String(token.content || '');
         const felder = (env && env.dbTable && env.dbTable.fields) || [];
         return renderRecordsFence(parseRecordBlock(body, felder), felder, {
@@ -683,8 +693,7 @@ function buildPipelines(enabled) {
             env && typeof env === 'object'
               ? (env.__perspectiveRecordsCount = (env.__perspectiveRecordsCount || 0) + 1) - 1
               : 0,
-          lineStart: token.map ? token.map[0] + 1 + offset : 0,
-          lineEnd: token.map ? token.map[1] + offset : 0,
+          ...bereich,
           labels: portableLabels((env && env.lang) || 'de'),
           karteiForm: istKarteiForm(env && env.dbTable),
         });
@@ -722,22 +731,23 @@ function buildPipelines(enabled) {
       // den echten Schalter-Stand statt der Kern-Antwort für unbekannte
       // Kennungen.
       if (lang === 'perspective-canvas' && enabled(CANVAS_EXTENSION_ID)) {
-        const offset = (env && env.sourceLineOffset) || 0;
         return renderCanvasBlock(String(token.content || ''), {
-          lineStart: token.map ? token.map[0] + 1 + offset : 0,
-          lineEnd: token.map ? token.map[1] + offset : 0,
+          ...bereich,
           labels: portableLabels((env && env.lang) || 'de'),
         });
       }
+      // 4T-002512 (Epic 3E-000402): perspective-dashboard rendert als Gerüst aus
+      // Kopf, Zeilen und Kacheln; ist die Erweiterung aus, steht der Hinweis über
+      // dem gewöhnlichen Code-Block (Story 4S-001188, AK2). Ein Weg für alle
+      // Ansichten wie beim Canvas-Block; das Markup baut das Nachbar-Modul.
+      if (istDashboardFence(lang)) return dashboardFenceHtml(token, env, enabled, standard);
       if (lang === 'perspective-table' && enabled('perspective-table')) {
         const html = renderPerspectiveTable(token.content);
         if (html) return html;
         // Fallback: perspective-table-Syntax nicht erkennbar (kein '{|'). Block wird als
         // regulaerer Code-Block gerendert, damit der Inhalt sichtbar bleibt.
       }
-      return defaultFenceRenderer
-        ? defaultFenceRenderer.call(this, tokens, idx, options, env, self)
-        : self.renderToken(tokens, idx, options);
+      return standard();
     };
     // 4T-002048: Die Kennung einer Anker-Zeile unter dem Block an sein erstes Tag.
     md.renderer.rules.fence = blockAnkerAmZaun(md.renderer.rules.fence);

@@ -33,6 +33,8 @@ import {
   markiereKartenDiagrammeFuerExport,
   replaceChartFencesForExport,
 } from '../charts/chart-export.js';
+// 4T-002518 (Epic 3E-000402): Dashboards werden vor der Umwandlung statisch.
+import { replaceDashboardFencesForExport } from '../dashboard/dashboard-export.js';
 import { isExtensionActive } from '../extensions/extension-lifecycle.js';
 import {
   EDITOR_VIEW_FM_KEYS,
@@ -593,7 +595,10 @@ export async function exportCurrentTabAsPortable() {
     // und der mitgelieferte Weg greift ohne Sonderfall.
     // 4T-002025: Diagramme in Karten einer Canvas-Fläche vor der Umwandlung
     // markieren; sie werden unten gegen ihren Karten-Text aufgelöst.
-    const kartenDiagramme = markiereKartenDiagrammeFuerExport(tab.content);
+    // 4T-002518: Dashboards mit der Vorbelegung als statischer Text und helles
+    // Bild, VOR der Umwandlung, damit ihr Markdown dieselben Regeln durchläuft.
+    const mitDashboards = await replaceDashboardFencesForExport(tab.content, tab.path || '');
+    const kartenDiagramme = markiereKartenDiagrammeFuerExport(mitDashboards);
     let portableText = api.convertMarkdownPortable(
       kartenDiagramme.text,
       getLanguage(),

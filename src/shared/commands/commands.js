@@ -2281,6 +2281,22 @@ const COMMANDS = [
     // 4T-001697: wie jedes editorScoped-Kommando die Editor-Bedingung.
     availability: 'editor',
   },
+  // 4T-002513 (Epic 3E-000402): Gerüst eines Dashboards an der Schreibmarke,
+  // eine Zeile mit einer Kennzahl-Kachel (Story 4S-001182, AK7). Der einzige
+  // Weg zum Block in der ersten Stufe; Muster insert.canvas: ohne Vorgabe-Kürzel
+  // und ohne Menü-Eintrag (Wege sind Palette und Kontextmenü, die Anwendung
+  // führt kein Menü «Einfügen»), Beschreibung aus dem Katalog-Eintrag. Hängt
+  // an der Erweiterung `dashboard`.
+  {
+    id: 'insert.dashboard',
+    defaultBindings: [],
+    labelKey: 'command.insert.dashboard',
+    descKey: 'help.feature.dashboard',
+    categoryKey: 'help.group.editing',
+    menu: false,
+    editorScoped: true,
+    availability: 'editor',
+  },
   // 4T-002024 (Epic 3E-000192): Diagramm zu der Datentabelle einfügen, in der
   // die Schreibmarke steht oder die angeklickt ist, und das ausgewählte
   // Diagramm bearbeiten. Beide öffnen denselben Dialog. Global statt

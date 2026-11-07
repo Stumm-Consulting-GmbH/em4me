@@ -198,6 +198,14 @@ const EXPECTED_FILES = [
   // Workflow «Add Log Entry» anhaengt. Sie traegt die vorhandenen Schlagworte
   // #demo und #authoring, damit die Tag-Menge der Demo-Area gleich bleibt.
   '16 Workflows.md',
+  // 4T-002519 (Epic 3E-000402): die Dashboard-Station der Fuehrung, jetzt ihre
+  // letzte Seite — ein lauffaehiges Dashboard ueber die Demo-Dateien mit zwei
+  // Filtern (aus dem Bestand und aufgezaehlt mit Vorbelegung), Kennzahl, Kreis,
+  // Tabelle, Text-Kachel und einer Kachel mit der Abfrage-Datei «Long Books».
+  // Nummer 17, weil 10 belegt ist (Entscheidung der Sitzung vom 2026-11-03). Sie
+  // traegt die vorhandenen Schlagwoerter #demo und #data, damit die Tag-Menge
+  // der Demo-Area gleich bleibt.
+  '17 Dashboards.md',
   // 4T-000645 (Epic 3E-000127): astronomischer Themenbereich als vierstufige
   // Unterseiten-Hierarchie (Galaxie, Stern, Planet, Mond) plus drei
   // ergaenzende Themenseiten. Traeger der Hierarchie ist der Dateiname mit

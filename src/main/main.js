@@ -91,6 +91,8 @@ const { registerShelvesIpc } = require('./ipc/shelves');
 const { registerIndexViewsIpc } = require('./ipc/index-views');
 // 4T-001486 (Epic 3E-000199): Einbettungen als eigene Kanal-Gruppe.
 const { registerEmbedsIpc } = require('./ipc/embeds');
+// 4T-002510 (Epic 3E-000402): Kanäle des Dashboards.
+const { registerDashboardIpc } = require('./ipc/dashboard');
 const { registerRemindersIpc } = require('./ipc/reminders');
 const { registerTemplatesIpc } = require('./ipc/templates');
 // 4T-002348 (Epic 3E-000184): Ausführung der Workflow-Befehle und Lauf-Stand.
@@ -449,6 +451,7 @@ function registerIpc() {
   registerShelvesIpc(registriere, ipcDeps);
   registerIndexViewsIpc(registriere, ipcDeps);
   registerEmbedsIpc(registriere, ipcDeps);
+  registerDashboardIpc(registriere, ipcDeps);
   registerRemindersIpc(registriere, ipcDeps);
   registerTemplatesIpc(registriere, ipcDeps);
   registerWorkflowsIpc(registriere, ipcDeps);

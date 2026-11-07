@@ -27,6 +27,8 @@ const { CANVAS_PORTABEL_LABEL_KEYS } = require('../canvas/canvas-portabel.js');
 // 1.137.0 aus `markdown.js` hierher übernommen — jenes Release hat die Gruppe
 // dort hinzugefügt, während dieser Vorgang die Auflösung herausgelöst hat.
 const { RECORD_LABEL_KEYS } = require('./perspective-records-html.js');
+// 4T-002512 (Epic 3E-000402): die Hinweise des Dashboard-Blocks.
+const { DASHBOARD_BLOCK_LABEL_KEYS } = require('./dashboard-block.js');
 
 const portableLabelCache = new Map();
 // 4T-001595 (Epic 3E-000129): Die gelesenen Kataloge selbst, getrennt von den
@@ -113,6 +115,7 @@ function labelsAus(dict, rueckfall) {
     ...CANVAS_BLOCK_LABEL_KEYS,
     ...CANVAS_PORTABEL_LABEL_KEYS,
     ...RECORD_LABEL_KEYS,
+    ...DASHBOARD_BLOCK_LABEL_KEYS,
   ]) {
     if (typeof dict[key] === 'string') labels[key] = dict[key];
     else if (rueckfall && typeof rueckfall[key] === 'string') labels[key] = rueckfall[key];

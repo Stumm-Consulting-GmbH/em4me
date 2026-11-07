@@ -76,9 +76,10 @@
   "query.syntax.displayBy": "Consulta no válida: se esperaba un campo después de BY en DISPLAY",
   "query.syntax.groupedColumn": "Consulta no válida: en una tabla agrupada, '{name}' no está en GROUP BY ni dentro de una función de agregación; use LIST para mostrar los resultados individuales",
   "query.syntax.aggregateNested": "Consulta no válida: '{name}' contiene una función de agregación dentro de otra",
-  "query.syntax.countWithoutField": "Consulta no válida: count() sin campo cuenta los resultados de un grupo y solo se admite en HAVING y en las columnas y en SORT de una tabla agrupada; en otro caso use count(campo)",
+  "query.syntax.countWithoutField": "Consulta no válida: count() sin campo cuenta los resultados de un grupo y solo se admite en HAVING, en las columnas y en SORT de una tabla agrupada y en una tabla WITHOUT ID cuyas columnas sean solo totales; en otro caso use count(campo)",
   "query.syntax.havingWithoutGroupBy": "Consulta no válida: HAVING comprueba grupos y solo se admite junto con GROUP BY; use WHERE para filtrar los resultados individuales",
   "query.syntax.havingUngrouped": "Consulta no válida: en HAVING, '{name}' no está en GROUP BY ni dentro de una función de agregación; use WHERE para filtrar los resultados individuales",
+  "query.syntax.placeholderPosition": "Consulta no válida: un marcador de posición ($name) solo puede aparecer en WHERE o HAVING (posición {pos})",
   "query.group.none": "(sin valor)",
   "query.tasks.count.one": "1 tarea",
   "query.tasks.count.other": "{n} tareas",
@@ -94,8 +95,13 @@
   "query.hint.displayFormChartNotTable": "Nota: la forma de presentación '{name}' requiere una consulta de tabla (TABLE), por lo que el resultado se muestra sin ella",
   "query.hint.displayFormChartSingleColumn": "Nota: la forma de presentación '{name}' requiere al menos otra columna además de la etiqueta, por lo que el resultado se muestra sin ella",
   "query.hint.displayFormChartNoNumbers": "Nota: la forma de presentación '{name}' requiere una columna con números y esta consulta no tiene ninguna, por lo que el resultado se muestra sin ella",
+  "query.hint.displayFormChartNegative": "Nota: la forma de presentación '{name}' requiere partes sin números negativos y esta consulta tiene uno, por lo que el resultado se muestra sin ella",
+  "query.hint.displayFormChartZeros": "Nota: la forma de presentación '{name}' requiere al menos una parte mayor que 0 y esta consulta solo tiene ceros, por lo que el resultado se muestra sin ella",
+  "query.hint.placeholderOutside": "Nota: la consulta contiene marcadores de posición; fuera de un panel cuentan como 'todos'",
+  "query.hint.placeholderUnknown": "Nota: el panel no tiene ningún filtro '{name}', por lo que el marcador de posición cuenta como 'todos'",
   "query.chart.skipped.one": "Omitida: columna {columns}, porque no contiene ningún número.",
   "query.chart.skipped.other": "Omitidas: columnas {columns}, porque no contienen ningún número.",
   "query.chart.omitted.one": "Se omitió 1 valor porque falta o no es un número.",
-  "query.chart.omitted.other": "Se omitieron {n} valores porque faltan o no son números."
+  "query.chart.omitted.other": "Se omitieron {n} valores porque faltan o no son números.",
+  "query.chart.pieSeriesSkipped": "El gráfico circular solo muestra la primera columna de números, no {columns}."
 }

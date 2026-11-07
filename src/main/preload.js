@@ -47,6 +47,8 @@ const { datenbankBruecke } = require('./preload-datenbank.js');
 const { buecherBruecke } = require('./preload-buecher.js');
 // 4T-002021 (Epic 3E-000192): Aufloesen und Zeichnen der Diagramme.
 const { diagrammeBruecke } = require('./preload-diagramme.js');
+// 4T-002510 (Epic 3E-000402): Kanäle des Dashboards und der Abfrage-Aufruf.
+const { dashboardBruecke } = require('./preload-dashboard.js');
 // 4T-002023 (Epic 3E-000192): Puffer-Overlay samt Meldung an alle Fenster; seit
 // 4T-002348 dort auch die Aufträge an das Fenster des ungespeicherten Stands.
 const { bufferOverlayBridge, bufferEditBridge } = require('./preload-buffer-overlay.js');
@@ -550,10 +552,10 @@ contextBridge.exposeInMainWorld('api', {
   // Haeufigkeit) und optional Datei-Liste fuer einen Filter-Tag.
   requestTags: (filePath, filterTag) =>
     ipcRenderer.invoke('tags:request', { filePath, filterTag: filterTag || null }),
-  // 4T-000354 (Epic 3E-000065): Frontmatter-Abfrage (perspective-query). Auswertung
-  // im Main; lang ist die Programmsprache der Formatierer (4T-001072).
-  runFrontmatterQuery: (filePath, query, lang) =>
-    ipcRenderer.invoke('frontmatterQuery:run', { filePath, query: query || '', lang }),
+  // 4T-000354 (Epic 3E-000065): Frontmatter-Abfrage (perspective-query). Seit
+  // 4T-002510 samt den Werten der Filter im Dashboard-Anteil der Brücke, dazu
+  // die beiden Kanäle des Dashboards.
+  ...dashboardBruecke(ipcRenderer),
   // 4T-000935 (Befund B-08): Puffer-Overlay des Index — Melden, Zuruecknehmen
   // und seit 4T-002023 die Meldung an alle Fenster (eigenes Modul).
   ...bufferOverlayBridge(ipcRenderer),

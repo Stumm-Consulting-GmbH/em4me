@@ -50,7 +50,7 @@ notify "Log entry added to 16 Workflows"
 
 Paths are relative to the area root and never leave it; texts and paths stand in straight double quotes. Placeholders such as `{{date}}`, `{{file}}` or `{{prompt:Question}}` work in every line, and all questions are asked before the first step. The manual page **Workflows** lists every command.
 
-That is the whole tour — head back to [[00 Welcome]] and start editing. :tada:
+Dashboards come next in [[17 Dashboards]].
 
 ## Log
 

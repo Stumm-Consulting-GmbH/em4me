@@ -151,7 +151,17 @@ describe('Geteilte Erkennung der Verweis-Angaben (link-scan.js, 4T-001749)', () 
     // Die Abhängigkeit des Bestands — der Canvas-Kern ist bewusst NICHT
     // hinzugekommen (Entscheidung 4T-001749). 4T-001912 (Epic 3E-000360): dazu
     // die Heimat der Zaun-Regel, selbst abhängigkeitsfrei und prozessneutral.
-    expect(importe).toEqual(['../area-link-syntax.js', './fence-level.js']);
+    // 4T-002503 (Epic 3E-000403): dazu das Geschwister-Modul der Kopf-Block-
+    // Zeilenarbeit, ebenfalls ohne Electron, DOM und Datei-Zugriff.
+    // 4T-002517 (Epic 3E-000402): dazu das Blatt der Angabe `abfrage=` einer
+    // Dashboard-Kachel; es liest den Format-Kern des Dashboards (Entscheidung der
+    // Sitzung vom 2026-11-03), der ebenso prozessneutral ist.
+    expect(importe).toEqual([
+      '../area-link-syntax.js',
+      './fence-level.js',
+      './link-scan-kopf.js',
+      './link-scan-dashboard.js',
+    ]);
     expect(typeof window).toBe('undefined');
     expect(typeof document).toBe('undefined');
   });

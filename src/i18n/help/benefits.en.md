@@ -180,12 +180,15 @@ In detail: [Property Profiles](property-profiles.md).
 
 Anyone keeping many files otherwise maintains overviews by hand, and they go stale the day they are written. A Perspective Query instead describes **what** is wanted, and the result appears right there in the document: a clickable list or table across the collection, filtered by properties, tags and file fields, down to individual text blocks and tasks. If you wish, the query gathers the hits into groups, with one row per group and its count, sum or average. If you wish, it also shows the result as a bar or line chart that changes with the collection. When the collection changes, the output changes, with nobody updating anything.
 
+Anyone who wants to see key figures, lists and charts from several queries side by side creates a **dashboard**: tiles in rows, each with its own query, and at the top selection fields that narrow all tiles at once, for instance by status or project, without changing the documents. The dashboard is itself a Markdown document in the area; printing and the PDF export show the chosen values, the portable export the preset values.
+
 - **Topic pages** that list their related files themselves.
 - **Filters and groups** across frontmatter properties, tags and file fields, with counts and sums per group.
 - **Block, task and record level**, not just whole files.
 - **Every hit clickable**, leading straight to its target.
+- **Dashboards** that show key figures, lists and charts from several queries side by side and can be narrowed at the top with selection fields.
 
-In detail: [Perspective Query](frontmatter-query.md).
+In detail: [Perspective Query](frontmatter-query.md) and [Dashboards](dashboards.md).
 
 ## When a query is not enough: scripts
 

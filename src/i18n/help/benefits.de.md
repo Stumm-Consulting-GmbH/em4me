@@ -180,12 +180,15 @@ Ausführlich: [Eigenschafts-Profile](property-profiles.md).
 
 Wer viele Dateien führt, pflegt sonst Übersichten von Hand, und sie veralten am Tag ihrer Erstellung. Eine Perspective-Abfrage beschreibt stattdessen, **was** gesucht ist, und das Ergebnis erscheint an Ort und Stelle im Dokument: eine klickbare Liste oder Tabelle über den Bestand, gefiltert nach Eigenschaften, Schlagwörtern, Datei-Feldern, bis hinunter auf einzelne Textblöcke und Aufgaben. Auf Wunsch fasst sie die Treffer zusammen, mit einer Zeile je Gruppe und deren Anzahl, Summe oder Durchschnitt. Auf Wunsch zeigt sie das Ergebnis auch als Balken- oder Linien-Diagramm, das sich mit dem Bestand ändert. Ändert sich der Bestand, ändert sich die Ausgabe, ohne dass jemand nachträgt.
 
+Wer Kennzahlen, Listen und Diagramme aus mehreren Abfragen nebeneinander sehen will, legt ein **Dashboard** an: Kacheln in Zeilen, jede mit ihrer Abfrage, und am Kopf Auswahlfelder, die alle Kacheln zugleich eingrenzen, etwa nach Status oder Projekt, ohne die Dokumente zu ändern. Das Dashboard ist selbst ein Markdown-Dokument im Bereich; Druck und PDF-Export zeigen die gewählten Werte, der portable Export die Vorbelegung.
+
 - **Themen-Seiten**, die ihre zugehörigen Dateien selbst auflisten.
 - **Filter und Gruppen** über Frontmatter-Eigenschaften, Schlagwörter und Datei-Felder, mit Anzahl und Summen je Gruppe.
 - **Block-, Aufgaben- und Datensatz-Ebene**, nicht nur ganze Dateien.
 - **Jeder Treffer klickbar** und führt direkt zum Ziel.
+- **Dashboards**, die Kennzahlen, Listen und Diagramme mehrerer Abfragen nebeneinander zeigen und sich am Kopf mit Auswahlfeldern eingrenzen lassen.
 
-Ausführlich: [Perspective-Abfrage](frontmatter-query.md).
+Ausführlich: [Perspective-Abfrage](frontmatter-query.md) und [Dashboards](dashboards.md).
 
 ## Wenn die Abfrage nicht reicht: Skripte
 

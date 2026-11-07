@@ -1,6 +1,8 @@
 // 4T-002078 (Epic 3E-000259): Aggregat-Funktionen nach Position und die
 // gruppierte Tabelle (Konzept-Entscheidung E6.4, Festlegungen 3 bis 7, 9 und 10,
-// F1 Option A, F3a, F5 Option A, Grenze aus F7).
+// F1 Option A, F3a, F5 Option A, Grenze aus F7). Die Grenze aus F7 («keine
+// Gesamt-Aggregate ohne Gruppierung») hat 4T-002511 (Epic 3E-000402, V9) für die
+// Tabelle `WITHOUT ID` aus Aggregat-Spalten aufgehoben; Abschnitt «Gesamt-Wert» unten.
 //
 // Geprüft wird über den echten Erzeuger aller Ebenen (`frontmatterQueryFor`) auf
 // Wegwerf-Bereichen, damit Parser, Funktions-Prüfung, Prüfung der
@@ -24,8 +26,8 @@ import {
   releaseRoot,
   rootForActiveFile,
 } from '../../src/main/backlinks.js';
-import { parseExpression } from '../../src/shared/query/perspective-query.js';
-import { validateQuery } from '../../src/shared/query/query-functions.js';
+import { parseExpression, parseQuery } from '../../src/shared/query/perspective-query.js';
+import { isTotalTable, validateQuery } from '../../src/shared/query/query-functions.js';
 import { validateResultSet } from '../../src/shared/query/result-set.js';
 // Statisch importiert, damit das Modul samt seinen Importen in der Import-Kette
 // dieser Prüfdatei steht (Auswahl des Prüf-Ausschnitts).
@@ -701,6 +703,142 @@ describe('HAVING: Bedingung über die Gruppe (4T-002079, AK1 bis AK3)', () => {
     const groups = [{ value: 'a', rows: [0], groups: null }];
     const ast = { groupBy: [{ type: 'field', name: 'k' }] };
     expect(havingGroups(groups, [{}], ast)).toBe(groups);
+  });
+});
+
+// --- Gesamt-Wert ohne Gruppierung (4T-002511, V9) ---------------------------------------
+
+// 4T-002511 (Epic 3E-000402, V9, Entscheidung des Product Owners vom 2026-11-01): Eine
+// Tabelle `WITHOUT ID`, deren Spalten ausschließlich Aggregat-Spalten sind (Aggregate,
+// Literale und Rechnung über ihnen, je Spalte mindestens ein Aggregat), ist ohne
+// `GROUP BY` eine Gruppe über alle Treffer. Jede andere ungruppierte Tabelle behält
+// die Zeilen-Bedeutung (Gegenprobe). Der Vorher-nachher-Vergleich über den Satz der
+// Bestands-Abfragen steht in perspective-query-platzhalter.test.js.
+
+// Block-Daten einer Datei (Muster ergebnismenge-vorher-nachher.test.js).
+const mdd = (blockData) =>
+  JSON.stringify({ schemaVersion: 1, history: { anchors: [], packets: [] }, blockData });
+
+// Die vier Dateien mit `status`; `Abfragen` trägt keinen.
+const VIER = 'WHERE status IN ("offen", "zu")';
+
+describe('Gesamt-Wert ohne Gruppierung (4T-002511, V9; Story 4S-001038, AK6 und AK9)', () => {
+  it('eine Zeile über alle Treffer auf allen vier Ebenen, auch mit Rechnung über Aggregaten', async () => {
+    const b = await bereich({
+      ...DATEIEN,
+      'Library.md': LIBRARY,
+      'Aufgaben.md': '## Alpha\n\n- [ ] A-eins #x\n- [x] A-zwei\n\n## Beta\n\n- [ ] B-eins\n',
+      'Projekt.md': '# Projekt\n\nEins. ^b1\n\nZwei. ^b2\n',
+      'Projekt.mdd': mdd({
+        b1: { values: { prio: 2 }, updated: '2026-07-01T10:00:00Z' },
+        b2: { values: { prio: 5 }, updated: '2026-07-02T10:00:00Z' },
+      }),
+    });
+    const dateien = menge(
+      b,
+      `TABLE WITHOUT ID count() AS "Anzahl", sum(punkte), average(punkte), max(punkte) ${VIER}`,
+    );
+    expect(zeilen(dateien)).toEqual([[null, 4, 17, 4.25, 10]]);
+    // Die Treffer bleiben Zeilen der Menge; ihre Aggregat-Spalten sind fehlend.
+    expect(dateien.rows.map((r) => r.values)).toEqual(Array(4).fill([null, null, null, null]));
+    expect(dateien.groupColumns).toEqual([]);
+    expect(dateien.columns.map((c) => c.label)).toEqual([
+      'Anzahl',
+      'sum(punkte)',
+      'average(punkte)',
+      'max(punkte)',
+    ]);
+    expect(zeilen(menge(b, 'TABLE BLOCKS WITHOUT ID count(), sum(prio)'))).toEqual([[null, 2, 7]]);
+    expect(zeilen(menge(b, 'TABLE TASKS WITHOUT ID count(), count(tags)'))).toEqual([[null, 3, 1]]);
+    const buecher = menge(
+      b,
+      'TABLE RECORDS WITHOUT ID count() AS "Books", sum(pages) AS "Pages" FROM "Library"',
+    );
+    expect(zeilen(buecher)).toEqual([[null, 8, 2964]]);
+    // Rechnung über Aggregaten und Literale in einer Aggregat-Spalte.
+    const rechnung = menge(b, `TABLE WITHOUT ID sum(punkte) / count(), "n=" + count() ${VIER}`);
+    expect(zeilen(rechnung)).toEqual([[null, 4.25, 'n=4']]);
+  });
+
+  it('ohne Treffer eine Zeile: count() ist 0, die übrigen Aggregate haben keinen Wert', async () => {
+    const b = await bereich({ ...DATEIEN, 'Library.md': LIBRARY });
+    const leer = menge(b, 'TABLE WITHOUT ID count(), sum(punkte), average(punkte) WHERE prio > 9');
+    expect(leer.rows).toEqual([]);
+    expect(leer.groups).toEqual([{ value: null, rows: [], groups: null, values: [0, null, null] }]);
+    const buecher = menge(b, 'TABLE RECORDS WITHOUT ID count() FROM "Library" WHERE pages > 5000');
+    expect(zeilen(buecher)).toEqual([[null, 0]]);
+  });
+
+  it('ohne Treffer rechnet eine Rechnung über Aggregaten ohne Zeilen-Kontext (Befund A7)', async () => {
+    const b = await bereich({ ...DATEIEN, 'Library.md': LIBRARY });
+    const rechnung = menge(
+      b,
+      'TABLE WITHOUT ID sum(punkte) / count(), "n=" + count(), count() + 1 WHERE prio > 9',
+    );
+    expect(rechnung.rows).toEqual([]);
+    // sum ohne Wert bleibt fehlend, auch geteilt durch count() = 0; count() ist 0.
+    expect(zeilen(rechnung)).toEqual([[null, null, 'n=0', 1]]);
+  });
+
+  it('SORT ist eine Aggregat-Stelle, ein Feld dort und ein Aggregat im Aggregat sind Fehler', async () => {
+    const b = await bereich(DATEIEN);
+    expect(fehler(b, 'TABLE WITHOUT ID count() SORT file.name')).toMatchObject({
+      code: 'groupedColumn',
+      name: 'file.name',
+    });
+    expect(fehler(b, 'TABLE WITHOUT ID sum(count(punkte))').code).toBe('aggregateNested');
+    expect(fehler(b, 'TABLE WITHOUT ID count() HAVING count() > 1').code).toBe(
+      'havingWithoutGroupBy',
+    );
+    expect(zeilen(menge(b, `TABLE WITHOUT ID count() ${VIER} SORT count() DESC LIMIT 3`))).toEqual([
+      [null, 4],
+    ]);
+    // Mit GROUP BY bleibt es die gruppierte Tabelle wie bisher.
+    expect(zeilen(menge(b, 'TABLE WITHOUT ID count() GROUP BY kategorie'))).toEqual([
+      ['x', 2],
+      ['y', 2],
+      [null, 1],
+    ]);
+  });
+});
+
+describe('Gegenprobe: die Zeilen-Bedeutung bleibt ohne WITHOUT ID oder mit Zeilen-Spalte (V9, AK7)', () => {
+  it('Treffer-Spalte, Zeilen-Spalte und reine Literal-Spalte verhindern die Gesamt-Zeile', async () => {
+    const b = await bereich(DATEIEN);
+    // Das Handbuch-Beispiel `TABLE sum(werte)`: je Datei die Summe ihrer Liste.
+    const jeDatei = menge(b, `TABLE sum(punkte), count(punkte) ${VIER}`);
+    expect(jeDatei.groups).toBeNull();
+    expect(jeDatei.rows.map((r) => [r.origin.name, ...r.values])).toEqual([
+      ['A', 3, 2],
+      ['B', 4, 1],
+      ['C', 10, 1],
+      ['D', null, 0],
+    ]);
+    const zeilenSpalte = menge(b, `TABLE WITHOUT ID file.name, sum(punkte) ${VIER}`);
+    expect(zeilenSpalte.groups).toBeNull();
+    expect(zeilenSpalte.rows.map((r) => r.values)).toEqual([
+      ['A', 3],
+      ['B', 4],
+      ['C', 10],
+      ['D', null],
+    ]);
+    // count() ohne Feld bleibt an der Zeilen-Stelle ein Fehler, auch neben einer
+    // reinen Literal-Spalte, die keine Aggregat-Spalte ist.
+    for (const abfrage of ['TABLE count()', 'TABLE WITHOUT ID "x", count()', 'LIST count()']) {
+      expect(fehler(b, abfrage).code, abfrage).toBe('countWithoutField');
+    }
+  });
+
+  it('isTotalTable trennt Gesamt-Tabelle und Zeilen-Bedeutung am Baum', () => {
+    const gesamt = (q) => isTotalTable(parseQuery(q).ast);
+    expect(gesamt('TABLE WITHOUT ID count()')).toBe(true);
+    expect(gesamt('TABLE WITHOUT ID round(average(x), 1), max(d) - min(d)')).toBe(true);
+    expect(gesamt('TABLE count()')).toBe(false);
+    expect(gesamt('TABLE WITHOUT ID count() GROUP BY k')).toBe(false);
+    expect(gesamt('TABLE WITHOUT ID count(), x')).toBe(false);
+    expect(gesamt('TABLE WITHOUT ID sum(x) + y')).toBe(false);
+    expect(gesamt('TABLE WITHOUT ID')).toBe(false);
+    expect(gesamt('LIST WITHOUT ID count()')).toBe(false);
   });
 });
 

@@ -221,6 +221,23 @@ FROM ("Projets" OR #important) AND -#archives
 
 Sémantique des valeurs : un champ scalaire se compare directement ; pour un **champ de liste** (p. ex. `tags`), `=` vérifie l'appartenance et `IN` une intersection non vide. Pour un **champ absent**, `=` et `IN` sont faux, `!=` et `NOT IN` sont vrais. Seuls les champs de premier niveau du frontmatter sont interrogeables ; les valeurs numériques se comparent numériquement dans les comparaisons d'ordre (`10` est au-dessus de `5`).
 
+## Espaces réservés (`$nom`)
+
+Un **espace réservé** `$nom` représente le choix d'un filtre en tête d'un [tableau de bord](dashboards.md). Le nom se compose de lettres, de chiffres et du trait de soulignement et ne commence pas par un chiffre ; majuscules et minuscules ne comptent pas.
+
+````markdown
+```perspective-query
+LIST FROM "Tâches" WHERE priorite = "haute" OR statut = $statut
+```
+````
+
+- **Places :** Un espace réservé ne figure que dans `WHERE` et `HAVING`, mais là à n'importe quelle place d'une expression : comme côté d'une comparaison, comme élément d'une liste `IN` ou comme argument d'une fonction telle que `contains(tags, $tag)`. À toute autre place, par exemple dans `FROM`, dans une colonne, dans `SORT` ou `LIMIT`, la requête est invalide, et le message en indique la position.
+- **Une valeur choisie** se compare comme une chaîne : `statut = $statut` se comporte comme `statut = "ouvert"`, sans égard à la casse et, pour un champ de liste, comme appartenance. La valeur n'est jamais lue comme texte de requête.
+- **« tous » :** Si le filtre est sur « tous », la plus petite condition portant l'espace réservé disparaît et compte comme remplie ; un `NOT` placé juste devant disparaît avec elle. Une condition est une comparaison, une liste `IN` ou un appel de fonction. `AND` et `OR` au-dessus calculent normalement, de sorte que `a = 1 OR statut = $s` fournit avec « tous » **tous** les résultats, parce que le côté droit est rempli. Une valeur qui s'appelle littéralement « tous » n'entre pas en conflit avec cela.
+- **Un nom sans filtre** dans le tableau de bord compte comme « tous » ; une remarque avec le nom figure au-dessus du résultat.
+- **En dehors d'un tableau de bord**, il n'y a pas de choix : chaque espace réservé compte comme « tous », et une remarque à ce sujet figure au-dessus du résultat. Cela vaut pour toute requête qui ne s'exécute pas dans une tuile, par exemple la requête au fil du texte, le [fichier de requête](database.md) ouvert seul et le réservoir de valeurs des [profils de propriétés](property-profiles.md) ; la remarque apparaît là où un résultat est affiché.
+- Un `$` dans une chaîne (`"$x"`), dans un lien et dans `date(…)` ou `dur(…)` reste du texte ordinaire.
+
 ## Champs
 
 Outre les propriétés de frontmatter (nom nu, p. ex. `statut`), des champs de fichier implicites sont disponibles sous l'espace de noms `file.` :
@@ -358,7 +375,7 @@ SORT count() DESC, auteur
 ```
 ````
 
-**Ligne ou groupe.** Une fonction d'agrégation tient son sens de l'endroit où elle se trouve. Les **places d'agrégation** sont les colonnes et le `SORT` d'un tableau regroupé ainsi que `HAVING` ; elle y calcule sur tous les résultats du groupe. Partout ailleurs, elle calcule sur la valeur du résultat individuel, c'est-à-dire dans `WHERE`, dans les expressions de `GROUP BY`, dans les colonnes d'un tableau sans `GROUP BY`, dans le complément de la liste et dans le `SORT` d'une liste regroupée. Trois exemples :
+**Ligne ou groupe.** Une fonction d'agrégation tient son sens de l'endroit où elle se trouve. Les **places d'agrégation** sont les colonnes et le `SORT` d'un tableau regroupé et du tableau du total général (ci-dessous) ainsi que `HAVING` ; elle y calcule sur tous les résultats du groupe, pour le total général sur tous les résultats. Partout ailleurs, elle calcule sur la valeur du résultat individuel, c'est-à-dire dans `WHERE`, dans les expressions de `GROUP BY`, dans les colonnes d'un tableau sans `GROUP BY` qui n'est pas un tableau du total général, dans le complément de la liste et dans le `SORT` d'une liste regroupée. Trois exemples :
 
 | Requête | Signification |
 |---|---|
@@ -373,14 +390,16 @@ SORT count() DESC, auteur
 - un autre champ dans une colonne ou dans le `SORT` d'un tableau regroupé, y compris une auto-référence avec `this.` ; le message nomme la colonne et renvoie à `LIST`, qui montre les résultats individuels ;
 - un autre champ dans `HAVING` ; le message nomme le champ et renvoie à `WHERE`, qui filtre les résultats individuels ;
 - un agrégat dans un agrégat, par exemple `sum(count(x))` ;
-- `count()` sans champ à une place de ligne, par exemple dans `WHERE` ou dans un tableau sans `GROUP BY` ;
+- `count()` sans champ à une place de ligne, par exemple dans `WHERE` ou dans un tableau sans `GROUP BY` qui n'est pas un tableau du total général ;
 - `HAVING` sans `GROUP BY`.
 
 **Condition sur le groupe (`HAVING`).** `HAVING` teste les groupes comme `WHERE` teste les résultats : c'est une expression de vérité comme après `WHERE`, elle ne figure qu'avec `GROUP BY`, à n'importe quelle place parmi les clauses, et agit dans la liste comme dans le tableau. Avec plusieurs paliers, elle teste les groupes du palier le plus bas. Un groupe supérieur sous lequel il ne reste aucun sous-groupe disparaît, et les autres ne gardent que les résultats de leurs sous-groupes restants.
 
 **Ordre.** Dans le tableau regroupé, `WHERE` filtre les résultats, puis les groupes se forment, `HAVING` les teste, `SORT` les trie (sans `SORT` selon leur valeur) et `LIMIT` plafonne le nombre de lignes. Avec plusieurs paliers, `SORT` trie les groupes de chaque palier entre eux. Dans la liste regroupée en revanche, `SORT` et `LIMIT` trient et plafonnent les résultats avant que les groupes ne se forment, et `HAVING` agit ensuite ; les groupes eux-mêmes y sont classés selon leur valeur.
 
-**Limites.** Un tableau sans `GROUP BY` calcule par résultat ; il n'existe pas de total général sur tous les résultats sans regroupement. `HIDE`, `SHOW` et `SHORT` restent réservés à la liste de tâches. L'arbre (`DISPLAY tree`) ne convient à aucune requête regroupée. Comme source d'un réservoir de valeurs ou d'un champ collecte, une requête regroupée fournit les mêmes résultats que sans regroupement (page [Profils de propriétés](property-profiles.md)).
+**Total général.** `TABLE WITHOUT ID count() AS "Nombre", sum(montant) AS "Total" FROM "Factures"` fournit une seule ligne avec le nombre de tous les résultats et la somme de leurs montants ; sans résultat, elle affiche 0 et aucune somme.
+
+**Limites.** Un tableau sans `GROUP BY` calcule par résultat ; un total général sur tous les résultats ne s'obtient qu'avec un tableau `WITHOUT ID` dont les colonnes sont exclusivement des agrégats (total général ci-dessus). `HIDE`, `SHOW` et `SHORT` restent réservés à la liste de tâches. L'arbre (`DISPLAY tree`) ne convient à aucune requête regroupée. Comme source d'un réservoir de valeurs ou d'un champ collecte, une requête regroupée fournit les mêmes résultats que sans regroupement (page [Profils de propriétés](property-profiles.md)).
 
 ## Listes multi-colonnes
 
@@ -402,7 +421,7 @@ LIST RECORDS FROM "Équipe" DISPLAY tree BY chef
 ```
 ````
 
-Les formes disponibles sont l'**arbre** et deux **graphiques**. L'arbre (`DISPLAY tree BY champ`) affiche les enregistrements d'une requête d'enregistrements en retrait le long du champ de référence nommé :
+Les formes disponibles sont l'**arbre** et trois **graphiques**. L'arbre (`DISPLAY tree BY champ`) affiche les enregistrements d'une requête d'enregistrements en retrait le long du champ de référence nommé :
 
 - Un enregistrement se place sous l'enregistrement vers lequel pointe son champ, si celui-ci figure dans le résultat. Sinon, c'est une **racine**, tout à gauche : sans lien, avec un lien qui ne mène nulle part ou vers un enregistrement que la condition écarte. Avec `descendants(…)`, les racines sont donc les enregistrements placés directement sous la cible, car la cible elle-même ne fait pas partie du résultat.
 - Les racines et les éléments frères suivent l'ordre du résultat, que `SORT` détermine.
@@ -411,7 +430,7 @@ Les formes disponibles sont l'**arbre** et deux **graphiques**. L'arbre (`DISPLA
 - Un nœud affiche la forme d'affichage comme une entrée de liste, avec `LIST` suivie du champ supplémentaire ; avec `TABLE`, l'arbre n'affiche pas de colonnes. Un clic ouvre le formulaire.
 - Au-delà de 32 niveaux, le retrait n'augmente plus ; les nœuds plus profonds figurent au complet au 32e niveau.
 
-Les **graphiques** `DISPLAY bar` et `DISPLAY line` affichent le résultat d'une requête en tableau sous forme de graphique en barres ou en courbes. Ils lisent le tableau tel qu'il apparaîtrait sans `DISPLAY` :
+Les **graphiques** `DISPLAY bar`, `DISPLAY line` et `DISPLAY pie` affichent le résultat d'une requête en tableau sous forme de graphique en barres, en courbes ou en secteurs. Ils lisent le tableau tel qu'il apparaîtrait sans `DISPLAY` ; ce qui diffère pour le graphique en secteurs suit cette liste :
 
 ````markdown
 ```perspective-query
@@ -429,7 +448,22 @@ DISPLAY bar
 - **Image** : le graphique est une image sans commande ; un clic n'ouvre aucun résultat. Les séries portent les couleurs de graphique du [jeu de couleurs](color-schemes.md) actif, comme les [graphiques de tables](charts.md), et suivent immédiatement un changement de jeu de couleurs ou entre clair et sombre.
 - **Extension** : les graphiques dépendent de l'[extension interne](extensions.md) « Graphique d'une requête », activée à partir du mode de travail **Avancé** et indépendante de toute autre extension. Si elle est désactivée, le tableau apparaît avec la remarque que l'affichage en graphique est désactivé ; le document reste inchangé, et après la réactivation le graphique réapparaît.
 
-**Repli** : si une forme est inconnue ou ne convient pas à la requête, le résultat apparaît sans elle, donc comme liste ou tableau, avec au-dessus une remarque nommant la forme et sans message d'erreur. L'arbre ne convient qu'au niveau enregistrement et seulement avec un champ après `BY` qui est un champ de référence dans au moins une table du résultat. Il ne convient jamais à une requête regroupée ; la sortie regroupée apparaît alors avec la remarque. Les graphiques ne conviennent qu'à un tableau (`TABLE`, non `LIST`) ayant au moins une colonne en plus du libellé, dont une contient des nombres ; sinon, la remarque en indique la raison. Un résultat vide affiche son avis de résultat vide et aucune forme. S'il manque le nom de la forme après `DISPLAY` ou le champ après `BY`, la requête est invalide.
+Le **graphique en secteurs** `DISPLAY pie` montre les parts d'une seule série :
+
+````markdown
+```perspective-query
+TABLE count() AS "Nombre"
+FROM "Tâches"
+GROUP BY statut
+DISPLAY pie
+```
+````
+
+- **Parts** : La première colonne contenant au moins un nombre donne les parts, un secteur par catégorie, c'est-à-dire par groupe ou par résultat ; le libellé suit la même règle que pour les barres et les courbes. Une seule catégorie donne un cercle plein.
+- **Les autres colonnes de nombres** sont ignorées ; une ligne sous le graphique les nomme.
+- **Des valeurs négatives ou uniquement des zéros** ne donnent pas de graphique en secteurs : le tableau apparaît alors, avec au-dessus une remarque indiquant la raison. Les barres et les courbes dessinent en revanche de telles valeurs.
+
+**Repli** : si une forme est inconnue ou ne convient pas à la requête, le résultat apparaît sans elle, donc comme liste ou tableau, avec au-dessus une remarque nommant la forme et sans message d'erreur. L'arbre ne convient qu'au niveau enregistrement et seulement avec un champ après `BY` qui est un champ de référence dans au moins une table du résultat. Il ne convient jamais à une requête regroupée ; la sortie regroupée apparaît alors avec la remarque. Les graphiques ne conviennent qu'à un tableau (`TABLE`, non `LIST`) ayant au moins une colonne en plus du libellé, dont une contient des nombres, le graphique en secteurs en outre seulement sans part négative et avec au moins une part supérieure à 0 ; sinon, la remarque en indique la raison. Un résultat vide affiche son avis de résultat vide et aucune forme. S'il manque le nom de la forme après `DISPLAY` ou le champ après `BY`, la requête est invalide.
 
 ## Affichage et interaction
 
@@ -452,6 +486,6 @@ Les fichiers hors du périmètre n'apparaissent pas dans le résultat, pas plus 
 ## Export
 
 - **Export PDF** : le résultat est imprimé comme un état statique du moment du rendu, y compris la disposition en tableau et en colonnes. Les entrées apparaissent comme du texte ; elles ne sont pas cliquables dans le PDF. Un graphique de la requête apparaît en clair à l'impression et dans l'export PDF, avec les couleurs de graphique du jeu de couleurs clair, même si l'application fonctionne en mode sombre.
-- **Markdown portable** : l'export laisse le bloc `perspective-query` inchangé comme source. À la réouverture dans ce programme, il est de nouveau évalué dynamiquement ; les autres programmes Markdown l'affichent comme bloc de code. Cela vaut aussi avec `DISPLAY bar` ou `DISPLAY line` : contrairement à un [graphique de table](charts.md), le graphique d'une requête n'est pas exporté comme image.
+- **Markdown portable** : l'export laisse le bloc `perspective-query` inchangé comme source. À la réouverture dans ce programme, il est de nouveau évalué dynamiquement ; les autres programmes Markdown l'affichent comme bloc de code. Cela vaut aussi avec `DISPLAY bar`, `DISPLAY line` ou `DISPLAY pie` : contrairement à un [graphique de table](charts.md), le graphique d'une requête n'est pas exporté comme image.
 
 Pour des évaluations libres au-delà du langage à clauses — par exemple des structures récursives ou des synthèses calculées — les [blocs de script](scripts.md) sont disponibles ; leur API pq utilise le même modèle de champs et de blocs que la requête.

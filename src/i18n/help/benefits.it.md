@@ -180,12 +180,15 @@ In dettaglio: [Profili di proprietà](property-profiles.md).
 
 Chi gestisce molti file mantiene altrimenti le panoramiche a mano, e invecchiano il giorno stesso. Una query Perspective descrive invece **che cosa** si cerca, e il risultato compare lì nel documento: un elenco o una tabella cliccabile sull'intero insieme, filtrata per proprietà, etichette e campi del file, fino ai singoli blocchi di testo e alle attività. Se lo desideri, la query riunisce i risultati in gruppi, con una riga per gruppo che ne indica il numero, la somma o la media. Se lo desideri, mostra il risultato anche come grafico a barre o a linee, che cambia con l'insieme. Se l'insieme cambia, cambia l'output, senza che nessuno aggiorni nulla.
 
+Chi vuole vedere affiancati indicatori, elenchi e grafici di più query crea una **dashboard**: riquadri in righe, ciascuno con la sua query, e in testa campi di selezione che restringono contemporaneamente tutti i riquadri, per esempio per stato o per progetto, senza modificare i documenti. La dashboard è essa stessa un documento Markdown dell'area; la stampa e l'esportazione PDF mostrano i valori scelti, l'esportazione portatile i valori preimpostati.
+
 - **Pagine tematiche** che elencano da sé i file collegati.
 - **Filtri e gruppi** su proprietà del frontmatter, etichette e campi del file, con il numero e le somme per gruppo.
 - **Livello di blocco, di attività e di record**, non solo file interi.
 - **Ogni risultato cliccabile**, che porta dritto alla sua destinazione.
+- **Dashboard** che mostrano affiancati indicatori, elenchi e grafici di più query e si restringono in testa con campi di selezione.
 
-In dettaglio: [Query Perspective](frontmatter-query.md).
+In dettaglio: [Query Perspective](frontmatter-query.md) e [Dashboard](dashboards.md).
 
 ## Quando la query non basta: gli script
 

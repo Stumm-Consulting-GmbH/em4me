@@ -139,6 +139,8 @@
   "command.database.openInForm": "In der Maske öffnen",
   "command.canvas.addCard": "Karte auf der Fläche anlegen",
   "command.insert.canvas": "Canvas-Fläche",
+  "command.insert.dashboard": "Dashboard einfügen",
+  "command.insert.dashboardKachelTitel": "Anzahl",
   "command.canvas.addShape": "Form auf der Fläche anlegen",
   "command.canvas.stackFront": "Ganz nach vorn",
   "command.canvas.stackForward": "Eine Stufe vor",

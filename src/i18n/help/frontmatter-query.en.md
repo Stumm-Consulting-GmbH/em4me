@@ -221,6 +221,23 @@ FROM ("Projects" OR #important) AND -#archive
 
 Value semantics: a scalar field is compared directly; for a **list field** (e.g. `tags`), `=` checks membership and `IN` checks a non-empty intersection. For a **missing field**, `=` and `IN` are false, `!=` and `NOT IN` are true. Only top-level frontmatter fields are queryable; numeric values compare numerically in ordering comparisons (`10` is above `5`).
 
+## Placeholders (`$name`)
+
+A **placeholder** `$name` stands for the choice of a filter at the top of a [dashboard](dashboards.md). The name consists of letters, digits and underscore and does not begin with a digit; upper and lower case do not matter.
+
+````markdown
+```perspective-query
+LIST FROM "Tasks" WHERE priority = "high" OR status = $status
+```
+````
+
+- **Places:** A placeholder stands only in `WHERE` and `HAVING`, but there at any place of an expression: as one side of a comparison, as an element of an `IN` list or as the argument of a function such as `contains(tags, $tag)`. At any other place, for instance in `FROM`, in a column, in `SORT` or `LIMIT`, the query is invalid, and the message names the position.
+- **A chosen value** is compared like a string: `status = $status` behaves like `status = "open"`, regardless of case and, for a list field, as membership. The value is never read as query text.
+- **"all":** If the filter stands at "all", the smallest condition with the placeholder drops out and counts as fulfilled; a `NOT` directly in front of it drops out with it. A condition is a comparison, an `IN` list or a function call. `AND` and `OR` above it compute as usual, so that `a = 1 OR status = $s` yields **all** hits with "all", because the right-hand side is fulfilled. A value that is literally called "all" does not get into conflict with this.
+- **A name without a filter** in the dashboard counts as "all"; a note with the name stands above the result.
+- **Outside a dashboard** there is no choice: every placeholder counts as "all", and a note saying so stands above the result. This holds for every query that does not run in a tile, for instance the query in running text, the [query file](database.md) opened on its own and the value set of the [property profiles](property-profiles.md); the note appears where a result is shown.
+- A `$` in a string (`"$x"`), in a link and in `date(…)` or `dur(…)` remains ordinary text.
+
 ## Fields
 
 Besides frontmatter properties (bare name, e.g. `status`), implicit file fields are available under the `file.` namespace:
@@ -358,7 +375,7 @@ SORT count() DESC, author
 ```
 ````
 
-**Row or group.** An aggregate function takes its meaning from the place where it stands. **Aggregate places** are the columns and `SORT` of a grouped table as well as `HAVING`; there it computes over all hits of the group. Everywhere else it computes over the value of the single hit, that is in `WHERE`, in the expressions of `GROUP BY`, in the columns of a table without `GROUP BY`, in the extra field of the list and in `SORT` of a grouped list. Three examples:
+**Row or group.** An aggregate function takes its meaning from the place where it stands. **Aggregate places** are the columns and `SORT` of a grouped table and of the grand-total table (below) as well as `HAVING`; there it computes over all hits of the group, for the grand total over all hits. Everywhere else it computes over the value of the single hit, that is in `WHERE`, in the expressions of `GROUP BY`, in the columns of a table without `GROUP BY` that is not a grand-total table, in the extra field of the list and in `SORT` of a grouped list. Three examples:
 
 | Query | Meaning |
 |---|---|
@@ -373,14 +390,16 @@ SORT count() DESC, author
 - another field in a column or in `SORT` of a grouped table, a self-reference with `this.` included; the message names the column and points to `LIST`, which shows the individual hits;
 - another field in `HAVING`; the message names the field and points to `WHERE`, which filters the individual hits;
 - an aggregate inside an aggregate, for instance `sum(count(x))`;
-- `count()` without a field at a row place, for instance in `WHERE` or in a table without `GROUP BY`;
+- `count()` without a field at a row place, for instance in `WHERE` or in a table without `GROUP BY` that is not a grand-total table;
 - `HAVING` without `GROUP BY`.
 
 **Condition on the group (`HAVING`).** `HAVING` tests the groups as `WHERE` tests the hits: it is a truth expression as after `WHERE`, stands only together with `GROUP BY` at any position among the clauses, and works in list and table. With several levels it tests the groups of the lowest level. A group above that keeps no subgroup is dropped, and the remaining ones keep only the hits of their remaining subgroups.
 
 **Order.** In the grouped table, `WHERE` filters the hits, then the groups are formed, `HAVING` tests them, `SORT` orders them (without `SORT` by their value), and `LIMIT` caps the number of rows. With several levels, `SORT` orders the groups of each level among themselves. In the grouped list, by contrast, `SORT` and `LIMIT` order and cap the hits before the groups are formed, and `HAVING` works afterwards; the groups themselves are ordered by their value there.
 
-**Limits.** A table without `GROUP BY` computes per hit; there is no grand total over all hits without grouping. `HIDE`, `SHOW` and `SHORT` remain reserved for the task list. The tree (`DISPLAY tree`) fits no grouped query. As the source of a value set or a collection field, a grouped query yields the same hits as without grouping (page [Property Profiles](property-profiles.md)).
+**Grand total.** `TABLE WITHOUT ID count() AS "Count", sum(amount) AS "Total" FROM "Invoices"` yields a single row with the number of all hits and the sum of their amounts; without hits it shows 0 and no total.
+
+**Limits.** A table without `GROUP BY` computes per hit; a grand total over all hits comes only from a table with `WITHOUT ID` whose columns are exclusively aggregates (grand total above). `HIDE`, `SHOW` and `SHORT` remain reserved for the task list. The tree (`DISPLAY tree`) fits no grouped query. As the source of a value set or a collection field, a grouped query yields the same hits as without grouping (page [Property Profiles](property-profiles.md)).
 
 ## Multi-column lists
 
@@ -402,7 +421,7 @@ LIST RECORDS FROM "Team" DISPLAY tree BY manager
 ```
 ````
 
-The forms to choose are the **tree** and two **charts**. The tree (`DISPLAY tree BY field`) shows the records of a record query indented along the named reference field:
+The forms to choose are the **tree** and three **charts**. The tree (`DISPLAY tree BY field`) shows the records of a record query indented along the named reference field:
 
 - A record hangs below the record its field points at if that one is in the result. Otherwise it is a **root** and stands on the far left: without a reference, with a reference pointing nowhere or at a record the condition filters out. With `descendants(…)` the records directly below the target are therefore the roots, because the target itself is not part of the result.
 - Roots and siblings stand in the order of the result, which `SORT` determines.
@@ -411,7 +430,7 @@ The forms to choose are the **tree** and two **charts**. The tree (`DISPLAY tree
 - A node shows the display form like a list entry, with `LIST` followed by the additional field; with `TABLE` the tree shows no columns. A click opens the form.
 - Nothing is indented deeper than 32 levels; deeper nodes stand in full on the 32nd level.
 
-The **charts** `DISPLAY bar` and `DISPLAY line` show the result of a table query as a bar or a line chart. They read the table as it would appear without `DISPLAY`:
+The **charts** `DISPLAY bar`, `DISPLAY line` and `DISPLAY pie` show the result of a table query as a bar, a line or a pie chart. They read the table as it would appear without `DISPLAY`; what differs for the pie follows after this list:
 
 ````markdown
 ```perspective-query
@@ -429,7 +448,22 @@ DISPLAY bar
 - **Image**: the chart is a graphic without controls; a click opens no hit. The series carry the chart colors of the active [color scheme](color-schemes.md), like the [charts for tables](charts.md), and follow a change of the color scheme or between light and dark immediately.
 - **Extension**: the charts depend on the [internal extension](extensions.md) «Chart of a query», which is switched on from the working mode **Advanced** and depends on no other extension. When it is off, the table appears with the note that chart display is turned off; the document stays unchanged, and after switching it back on the chart appears again.
 
-**Fallback**: If a form is unknown or does not fit the query, the result appears without it, that is, as a list or a table, with a note naming the form above it and no error message. The tree fits only at the record level and only with a field after `BY` that is a reference field in at least one table of the result. It never fits a grouped query; the grouped output then appears with the note. The charts fit only a table (`TABLE`, not `LIST`) with at least one column besides the label, one of which contains numbers; otherwise the note names the reason. An empty result shows its empty notice and no form. If the name of the form is missing after `DISPLAY` or the field after `BY`, the query is invalid.
+The **pie** `DISPLAY pie` shows the shares of a single series:
+
+````markdown
+```perspective-query
+TABLE count() AS "Count"
+FROM "Tasks"
+GROUP BY status
+DISPLAY pie
+```
+````
+
+- **Shares**: The first column with at least one number gives the shares, one slice per category, that is per group or per hit; the label follows the same rule as for bars and lines. A single category yields a full circle.
+- **Further number columns** are skipped; a line below the chart names them.
+- **Negative values or nothing but zeros** yield no pie: the table then appears, with a note giving the reason above it. Bars and lines, by contrast, draw such values.
+
+**Fallback**: If a form is unknown or does not fit the query, the result appears without it, that is, as a list or a table, with a note naming the form above it and no error message. The tree fits only at the record level and only with a field after `BY` that is a reference field in at least one table of the result. It never fits a grouped query; the grouped output then appears with the note. The charts fit only a table (`TABLE`, not `LIST`) with at least one column besides the label, one of which contains numbers, the pie moreover only without negative shares and with at least one share above 0; otherwise the note names the reason. An empty result shows its empty notice and no form. If the name of the form is missing after `DISPLAY` or the field after `BY`, the query is invalid.
 
 ## Display and interaction
 
@@ -452,6 +486,6 @@ Files outside the search scope do not appear in the result, nor does whatever li
 ## Export
 
 - **PDF export**: the result is printed as a static snapshot of render time, including table and column layout. Entries appear as text; they are not clickable in the PDF. A chart of the query appears light in printing and in the PDF export, with the chart colors of the light color scheme, even when the application runs dark.
-- **Portable Markdown**: the export leaves the `perspective-query` block unchanged as source. When reopened in this program it is evaluated dynamically again; other Markdown programs show it as a code block. This also holds with `DISPLAY bar` or `DISPLAY line`: unlike a [chart for a table](charts.md), the chart of a query is not exported as an image.
+- **Portable Markdown**: the export leaves the `perspective-query` block unchanged as source. When reopened in this program it is evaluated dynamically again; other Markdown programs show it as a code block. This also holds with `DISPLAY bar`, `DISPLAY line` or `DISPLAY pie`: unlike a [chart for a table](charts.md), the chart of a query is not exported as an image.
 
 For free evaluations beyond the clause language — such as recursive structures or computed overviews — the [script blocks](scripts.md) are available; their pq API uses the same field and block model as the query.

@@ -12,6 +12,9 @@
 //
 // 4T-002023 (Epic 3E-000192): ebenso die erste Angabe `table: [[Datei#^name]]`
 // eines Diagramm-Blocks, als Einbettung desselben Ziels.
+//
+// 4T-002517 (Epic 3E-000402): ebenso die Angabe `abfrage=` einer
+// Dashboard-Kachel, als Einbettung der Abfrage-Datei.
 'use strict';
 
 import { t } from '../../i18n.js';
@@ -40,11 +43,19 @@ import {
 // den ausgehenden Verweisen. Die Erkennung der Angabe kommt aus derselben
 // geteilten Quelle, aus der auch der Bereichs-Index und der Umbenennungs-Nachzug
 // lesen — dreimal dieselbe Regel an drei Orten liefe unweigerlich auseinander.
+// 4T-002503 (Epic 3E-000403, Befund B4 des Reviews): dazu die Kopf-Block-Grenze
+// und die eine Regel fuer Verweise im Kopf-Block, dieselbe wie im Bereichs-Index
+// und im Umbenennungs-Nachzug.
 import {
+  frontmatterBodyStart,
   istCanvasFenceInfo,
   kartenBeschriftung,
+  kopfVerweisFunde,
   scanneKartenVerweise,
+  // 4T-002517 (Epic 3E-000402): die eine Regel fuer `abfrage=` einer Kachel.
+  dashboardVerweisFunde,
 } from '../../../shared/markdown/link-scan.js';
+import yaml from 'js-yaml';
 // 4T-002013 (Epic 3E-000332): Verweise in Text-Zellen einer Datentabelle
 // erscheinen hier wie im Fließtext. Die Lage der Text-Zellen kommt aus derselben
 // Quelle, aus der Bereichs-Index und Umbenennungs-Nachzug lesen; sonst nennte
@@ -102,8 +113,23 @@ export function extractOutgoingLinks(text) {
   // und ist ihre wirksame Angabe `table:` schon vorbei?
   let inChartFence = false;
   let tabelleGesehen = false;
-  for (let i = 0; i < lines.length; i++) {
+  // 4T-002503 (Epic 3E-000403, Befund B4 des Reviews): Bis hierher lief die
+  // Schleife ab Zeile 0 und las den Kopf-Block wie Fliesstext, also auch
+  // Kommentare und verschachtelte Werte. Seither gilt im Kopf-Block die Regel
+  // des Bereichs-Index (kopfVerweisFunde), und die Schleife beginnt am Koerper.
+  const koerperStart = frontmatterBodyStart(lines);
+  scanneKopfBlock(links, lines, koerperStart);
+  const dashboardFunde = new Map(
+    dashboardVerweisFunde(lines, koerperStart).map((f) => [f.zeilenIndex, f]),
+  );
+  for (let i = koerperStart; i < lines.length; i++) {
     const original = lines[i];
+    // 4T-002517 (Epic 3E-000402): Die Kachel mit Abfrage-Datei erscheint als
+    // Einbettung ihrer Abfrage-Datei, so wie sie im Bereichs-Index zaehlt. Die
+    // Marker-Zeile ist keine Zaun-Zeile; die Schleife laeuft danach weiter wie
+    // fuer jede Zeile der Fence.
+    const kachel = dashboardFunde.get(i);
+    if (kachel) nimmDashboardFund(links, kachel, original, i);
     // Fenced-Code-Wechsel erkennen (am Anfang der Zeile, optional eingerueckt).
     const fenceMatch = original.match(/^\s*(`{3,}|~{3,})/);
     if (fenceMatch) {
@@ -188,6 +214,55 @@ export function extractOutgoingLinks(text) {
     scanneZeile(links, original, original, i);
   }
   return links;
+}
+
+// 4T-002517 (Epic 3E-000402): Ziel und Anker wie bei `doc=` einer Karte.
+function nimmDashboardFund(links, fund, original, i) {
+  const roh = fund.wert.trim();
+  const hashIdx = roh.indexOf('#');
+  const target = (hashIdx >= 0 ? roh.slice(0, hashIdx) : roh).trim();
+  if (!target) return;
+  links.push({
+    type: 'embed',
+    target,
+    anchor: hashIdx >= 0 ? roh.slice(hashIdx + 1).trim() : '',
+    line: i + 1,
+    snippet: snippetAroundIndex(original, Math.max(0, fund.rohStart)),
+  });
+}
+
+// 4T-002503 (Epic 3E-000403, Befund B4 des Reviews): die Wiki-Verweise im
+// Kopf-Block, nach derselben Regel wie im Bereichs-Index und im
+// Umbenennungs-Nachzug: Zeichenketten-Werte der obersten Ebene und
+// Zeichenketten-Eintraege von Listen der obersten Ebene, Kommentare und
+// verschachtelte Werte nicht. Das YAML wird gelesen wie im Umschreibe-Kern
+// (src/shared/link-rewrite.js); ein ungueltiger Kopf-Block traegt keinen
+// Verweis bei, wie im Index. Gelesen wird je Treffer eine Scan-Zeile, die nur
+// den Verweis-Text an seiner Stelle traegt — Markdown-Links im Kopf-Block
+// zaehlen damit ebenso wenig wie im Index. Ein Verweis ohne woertliche Stelle
+// (hinter einer YAML-Escape-Folge) zaehlt im Index mit der Wert-Zeile und
+// erscheint deshalb auch hier, mit dem Match-Text als Scan-Zeile.
+function scanneKopfBlock(links, lines, koerperStart) {
+  if (koerperStart <= 2) return; // kein Kopf-Block oder ein leerer
+  let daten;
+  try {
+    daten = yaml.load(lines.slice(1, koerperStart - 1).join('\n'), { schema: yaml.JSON_SCHEMA });
+  } catch {
+    return; // ungueltiges YAML: keine Kopf-Block-Verweise, wie im Index
+  }
+  const funde = kopfVerweisFunde(daten, lines, koerperStart).sort(
+    (a, b) => a.zeilenIndex - b.zeilenIndex || a.spalte - b.spalte,
+  );
+  for (const fund of funde) {
+    const original = lines[fund.zeilenIndex];
+    const scanZeile =
+      fund.spalte >= 0
+        ? ' '.repeat(fund.spalte) +
+          fund.match[0] +
+          ' '.repeat(original.length - fund.spalte - fund.text.length)
+        : fund.match[0];
+    scanneZeile(links, original, scanZeile, fund.zeilenIndex);
+  }
 }
 
 // 4T-002013 (Epic 3E-000332): Wiki-, Einbettungs- und Markdown-Verweise einer

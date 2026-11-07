@@ -139,6 +139,8 @@
   "command.database.openInForm": "Abrir en el formulario",
   "command.canvas.addCard": "Añadir tarjeta al lienzo",
   "command.insert.canvas": "Lienzo",
+  "command.insert.dashboard": "Insertar panel",
+  "command.insert.dashboardKachelTitel": "Recuento",
   "command.canvas.addShape": "Añadir forma al lienzo",
   "command.canvas.stackFront": "Traer al frente",
   "command.canvas.stackForward": "Traer adelante",

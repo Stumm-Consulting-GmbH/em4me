@@ -122,14 +122,21 @@ describe('backlinks.js — Index-Aufbau und Link-Varianten', () => {
     expect(hits[0].viaAlias).toBeNull();
   });
 
-  it('indexiert Links im Frontmatter nicht', async () => {
+  // 4T-002502 (Epic 3E-000403): Bis dahin sicherte dieser Fall das Gegenteil zu
+  // (Verweise im Frontmatter zählten nicht). Story 4S-001180 löst das ab: Ein
+  // Wiki-Verweis als Wert im Kopf-Block zählt wie einer im Körper, mit seiner
+  // Kopf-Block-Zeile als Fundstelle.
+  it('indexiert Wiki-Verweise im Kopf-Block als Rückverweis (4T-002502)', async () => {
     const root = makeRoot();
     const ziel = write(root, 'Ziel.md', '# Ziel\n');
     write(root, 'nurfm.md', '---\nnotiz: "[[Ziel]]"\n---\nBody ohne Link.\n');
 
     const res = await indexFor(ziel);
     expect(res.status).toBe('ready');
-    expect(res.results).toHaveLength(0);
+    expect(res.results).toHaveLength(1);
+    expect(path.basename(res.results[0].quelldatei)).toBe('nurfm.md');
+    expect(res.results[0].hits).toHaveLength(1);
+    expect(res.results[0].hits[0].zeile).toBe(2);
   });
 });
 

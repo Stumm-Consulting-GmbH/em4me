@@ -171,12 +171,24 @@ const MDDA_CACHE_FILENAME = 'Area_Cache.mdda';
 // Ein Alt-Cache führt sie für unveränderte Dateien nicht, und der Warmstart
 // übernähme dessen Marken; eine vorhandene Karteikarte trüge ihre Marke erst
 // nach der nächsten Änderung der Datei.
+// Version 10 (4T-002502, Epic 3E-000403; am Zug-Zweig als Version 9 vergeben, beim Nachzug auf 1.156.0 nach der Regel unten zu 10): Wiki-Verweise aus dem Kopf-Block
+// (Zeichenketten-Werte der obersten Ebene und Listen darunter) im hits-Feld,
+// mit ihrer Kopf-Block-Zeile als Fundstelle. Die Form ist unverändert, aber ein
+// Alt-Cache trägt sie nicht, und der Warmstart übernähme für unveränderte
+// Dateien das Ergebnis ohne sie; Rückverweise, Graph und die Verweis-Felder der
+// Abfrage fehlten dann bis zur nächsten Änderung der Datei.
+// Version 11 (4T-002517, Epic 3E-000402): Verweise aus der Angabe `abfrage=`
+// einer Dashboard-Kachel im hits-Feld, mit der Marker-Zeile der Kachel als
+// Fundstelle. Die Form ist unverändert, aber ein Alt-Cache trägt sie nicht, und
+// der Warmstart übernähme für unveränderte Dateien das Ergebnis ohne sie; der
+// Rückverweis aus dem Dashboard auf seine Abfrage-Datei fehlte dann bis zur
+// nächsten Änderung der Datei.
 // **Beim Rebase** auf einen Stand, der die Version unabhängig angehoben hat
 // (der Diagramme-Zweig hebt sie für seine Zell-Verweise ebenfalls an), ist der
 // Wert auf den höchsten beider Seiten plus eins zu setzen und hier ein Absatz
 // je Seite zu führen; Git meldet dabei keinen Konflikt, wenn beide Seiten
 // dieselbe Zahl gesetzt haben.
-const MDDA_CACHE_SCHEMA_VERSION = 9;
+const MDDA_CACHE_SCHEMA_VERSION = 11;
 
 // Format: { schemaVersion, linkIndex: { files: { <relPath>: { mtimeMs, size,
 // hash, parsed } } } }. `parsed` traegt das Datei-Parse-Ergebnis (hits,

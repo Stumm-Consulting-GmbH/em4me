@@ -76,9 +76,10 @@
   "query.syntax.displayBy": "Ungültige Abfrage: Feld nach BY in DISPLAY erwartet",
   "query.syntax.groupedColumn": "Ungültige Abfrage: '{name}' steht in einer gruppierten Tabelle weder in GROUP BY noch in einer Aggregat-Funktion; einzelne Treffer zeigt LIST",
   "query.syntax.aggregateNested": "Ungültige Abfrage: In '{name}' steht eine Aggregat-Funktion in einer anderen",
-  "query.syntax.countWithoutField": "Ungültige Abfrage: count() ohne Feld zählt die Treffer einer Gruppe und steht nur in HAVING sowie in Spalten und SORT einer gruppierten Tabelle; sonst count(feld) verwenden",
+  "query.syntax.countWithoutField": "Ungültige Abfrage: count() ohne Feld zählt die Treffer einer Gruppe und steht nur in HAVING, in Spalten und SORT einer gruppierten Tabelle sowie in einer Tabelle WITHOUT ID, deren Spalten nur Gesamt-Werte sind; sonst count(feld) verwenden",
   "query.syntax.havingWithoutGroupBy": "Ungültige Abfrage: HAVING prüft Gruppen und steht nur zusammen mit GROUP BY; einzelne Treffer filtert WHERE",
   "query.syntax.havingUngrouped": "Ungültige Abfrage: '{name}' steht in HAVING weder in GROUP BY noch in einer Aggregat-Funktion; einzelne Treffer filtert WHERE",
+  "query.syntax.placeholderPosition": "Ungültige Abfrage: Ein Platzhalter ($name) steht nur in WHERE oder HAVING (Position {pos})",
   "query.group.none": "(ohne Wert)",
   "query.tasks.count.one": "1 Aufgabe",
   "query.tasks.count.other": "{n} Aufgaben",
@@ -94,8 +95,13 @@
   "query.hint.displayFormChartNotTable": "Hinweis: Die Darstellungsform '{name}' braucht eine Tabellen-Abfrage (TABLE); das Ergebnis erscheint deshalb ohne sie",
   "query.hint.displayFormChartSingleColumn": "Hinweis: Die Darstellungsform '{name}' braucht neben der Beschriftung mindestens eine weitere Spalte; das Ergebnis erscheint deshalb ohne sie",
   "query.hint.displayFormChartNoNumbers": "Hinweis: Die Darstellungsform '{name}' braucht eine Spalte mit Zahlen, und diese Abfrage hat keine; das Ergebnis erscheint deshalb ohne sie",
+  "query.hint.displayFormChartNegative": "Hinweis: Die Darstellungsform '{name}' braucht Anteile ohne negative Zahl, und diese Abfrage hat eine; das Ergebnis erscheint deshalb ohne sie",
+  "query.hint.displayFormChartZeros": "Hinweis: Die Darstellungsform '{name}' braucht mindestens einen Anteil größer als 0, und diese Abfrage hat nur Nullen; das Ergebnis erscheint deshalb ohne sie",
+  "query.hint.placeholderOutside": "Hinweis: Die Abfrage enthält Platzhalter; außerhalb eines Dashboards gelten sie als 'alle'",
+  "query.hint.placeholderUnknown": "Hinweis: Das Dashboard hat keinen Filter '{name}'; der Platzhalter gilt deshalb als 'alle'",
   "query.chart.skipped.one": "Übergangen: Spalte {columns}, weil sie keine Zahl enthält.",
   "query.chart.skipped.other": "Übergangen: Spalten {columns}, weil sie keine Zahl enthalten.",
   "query.chart.omitted.one": "1 Wert wurde ausgelassen, weil er fehlt oder keine Zahl ist.",
-  "query.chart.omitted.other": "{n} Werte wurden ausgelassen, weil sie fehlen oder keine Zahl sind."
+  "query.chart.omitted.other": "{n} Werte wurden ausgelassen, weil sie fehlen oder keine Zahl sind.",
+  "query.chart.pieSeriesSkipped": "Das Kreisdiagramm zeigt nur die erste Zahlen-Spalte, nicht {columns}."
 }

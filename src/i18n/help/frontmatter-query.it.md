@@ -221,6 +221,23 @@ FROM ("Progetti" OR #importante) AND -#archivio
 
 Semantica dei valori: un campo scalare si confronta direttamente; in un **campo elenco** (ad es. `tags`), `=` verifica l'appartenenza e `IN` un'intersezione non vuota. Con un **campo mancante**, `=` e `IN` sono falsi, `!=` e `NOT IN` sono veri. Solo i campi del livello superiore del frontmatter sono interrogabili; i valori numerici si confrontano numericamente nei confronti di ordine (`10` sta sopra `5`).
 
+## Segnaposto (`$nome`)
+
+Un **segnaposto** `$nome` sta per la scelta di un filtro in testa a una [dashboard](dashboards.md). Il nome è fatto di lettere, cifre e trattino basso e non inizia con una cifra; maiuscole e minuscole non contano.
+
+````markdown
+```perspective-query
+LIST FROM "Attività" WHERE priorita = "alta" OR stato = $stato
+```
+````
+
+- **Punti:** Un segnaposto sta solo in `WHERE` e `HAVING`, ma lì in qualsiasi punto di un'espressione: come lato di un confronto, come elemento di un elenco `IN` o come argomento di una funzione come `contains(tags, $tag)`. In qualsiasi altro punto, per esempio in `FROM`, in una colonna, in `SORT` o `LIMIT`, la query non è valida, e il messaggio ne indica la posizione.
+- **Un valore scelto** si confronta come una stringa: `stato = $stato` si comporta come `stato = "aperto"`, senza badare a maiuscole e minuscole e, per un campo elenco, come appartenenza. Il valore non viene mai letto come testo di query.
+- **«tutti»:** Se il filtro è su «tutti», la condizione più piccola con il segnaposto viene meno e conta come soddisfatta; un `NOT` subito prima viene meno con essa. Una condizione è un confronto, un elenco `IN` o una chiamata di funzione. `AND` e `OR` sopra calcolano normalmente, così che `a = 1 OR stato = $s` con «tutti» restituisce **tutti** i risultati, perché il lato destro è soddisfatto. Un valore che si chiama letteralmente «tutti» non entra in conflitto con questo.
+- **Un nome senza filtro** nella dashboard vale come «tutti»; sopra il risultato compare una nota con il nome.
+- **Al di fuori di una dashboard** non c'è scelta: ogni segnaposto vale come «tutti», e sopra il risultato compare una nota in merito. Questo vale per ogni query che non viene eseguita in un riquadro, per esempio la query nel testo corrente, il [file di query](database.md) aperto da solo e il repertorio di valori dei [profili di proprietà](property-profiles.md); la nota compare dove viene mostrato un risultato.
+- Un `$` in una stringa (`"$x"`), in un collegamento e in `date(…)` o `dur(…)` resta testo ordinario.
+
 ## Campi
 
 Oltre alle proprietà del frontmatter (nome nudo, ad es. `stato`), sono disponibili campi di file impliciti nello spazio dei nomi `file.`:
@@ -358,7 +375,7 @@ SORT count() DESC, autore
 ```
 ````
 
-**Riga o gruppo.** Una funzione di aggregazione prende il suo significato dal punto in cui si trova. I **punti di aggregazione** sono le colonne e il `SORT` di una tabella raggruppata, nonché `HAVING`; lì calcola su tutti i risultati del gruppo. Ovunque altrove calcola sul valore del singolo risultato, cioè in `WHERE`, nelle espressioni di `GROUP BY`, nelle colonne di una tabella senza `GROUP BY`, nel complemento dell'elenco e nel `SORT` di un elenco raggruppato. Tre esempi:
+**Riga o gruppo.** Una funzione di aggregazione prende il suo significato dal punto in cui si trova. I **punti di aggregazione** sono le colonne e il `SORT` di una tabella raggruppata e della tabella del totale generale (sotto), nonché `HAVING`; lì calcola su tutti i risultati del gruppo, per il totale generale su tutti i risultati. Ovunque altrove calcola sul valore del singolo risultato, cioè in `WHERE`, nelle espressioni di `GROUP BY`, nelle colonne di una tabella senza `GROUP BY` che non sia una tabella del totale generale, nel complemento dell'elenco e nel `SORT` di un elenco raggruppato. Tre esempi:
 
 | Query | Significato |
 |---|---|
@@ -373,14 +390,16 @@ SORT count() DESC, autore
 - un altro campo in una colonna o nel `SORT` di una tabella raggruppata, anche un autoriferimento con `this.`; il messaggio indica la colonna e rimanda a `LIST`, che mostra i singoli risultati;
 - un altro campo in `HAVING`; il messaggio indica il campo e rimanda a `WHERE`, che filtra i singoli risultati;
 - un aggregato dentro un aggregato, ad esempio `sum(count(x))`;
-- `count()` senza campo in un punto di riga, ad esempio in `WHERE` o in una tabella senza `GROUP BY`;
+- `count()` senza campo in un punto di riga, ad esempio in `WHERE` o in una tabella senza `GROUP BY` che non sia una tabella del totale generale;
 - `HAVING` senza `GROUP BY`.
 
 **Condizione sul gruppo (`HAVING`).** `HAVING` verifica i gruppi come `WHERE` verifica i risultati: è un'espressione di verità come dopo `WHERE`, sta solo insieme a `GROUP BY` in qualsiasi posizione tra le clausole e agisce nell'elenco come nella tabella. Con più gradini verifica i gruppi del gradino più basso. Un gruppo superiore sotto cui non resta alcun sottogruppo decade, e gli altri conservano solo i risultati dei loro sottogruppi rimasti.
 
 **Ordine.** Nella tabella raggruppata `WHERE` filtra i risultati, poi si formano i gruppi, `HAVING` li verifica, `SORT` li ordina (senza `SORT` secondo il loro valore) e `LIMIT` limita il numero delle righe. Con più gradini `SORT` ordina i gruppi di ogni gradino tra loro. Nell'elenco raggruppato invece `SORT` e `LIMIT` ordinano e tagliano i risultati prima che si formino i gruppi, e `HAVING` agisce dopo; i gruppi stessi vi sono ordinati secondo il loro valore.
 
-**Limiti.** Una tabella senza `GROUP BY` calcola per risultato; non esiste un totale generale su tutti i risultati senza raggruppamento. `HIDE`, `SHOW` e `SHORT` restano riservati all'elenco delle attività. L'albero (`DISPLAY tree`) non è adatto ad alcuna query raggruppata. Come fonte di un repertorio di valori o di un campo raccolta, una query raggruppata fornisce gli stessi risultati che senza raggruppamento (pagina [Profili di proprietà](property-profiles.md)).
+**Totale generale.** `TABLE WITHOUT ID count() AS "Numero", sum(importo) AS "Totale" FROM "Fatture"` fornisce una sola riga con il numero di tutti i risultati e la somma dei loro importi; senza risultati mostra 0 e nessuna somma.
+
+**Limiti.** Una tabella senza `GROUP BY` calcola per risultato; un totale generale su tutti i risultati lo fornisce solo una tabella con `WITHOUT ID` le cui colonne sono esclusivamente aggregati (totale generale sopra). `HIDE`, `SHOW` e `SHORT` restano riservati all'elenco delle attività. L'albero (`DISPLAY tree`) non è adatto ad alcuna query raggruppata. Come fonte di un repertorio di valori o di un campo raccolta, una query raggruppata fornisce gli stessi risultati che senza raggruppamento (pagina [Profili di proprietà](property-profiles.md)).
 
 ## Elenchi multicolonna
 
@@ -402,7 +421,7 @@ LIST RECORDS FROM "Team" DISPLAY tree BY capo
 ```
 ````
 
-Le forme disponibili sono l'**albero** e due **grafici**. L'albero (`DISPLAY tree BY campo`) mostra i record di una query sui record rientrati lungo il campo di riferimento indicato:
+Le forme disponibili sono l'**albero** e tre **grafici**. L'albero (`DISPLAY tree BY campo`) mostra i record di una query sui record rientrati lungo il campo di riferimento indicato:
 
 - Un record sta sotto il record a cui punta il suo campo, se questo è nel risultato. Altrimenti è una **radice** e sta all'estrema sinistra: senza collegamento, con un collegamento che non porta da nessuna parte o a un record che la condizione esclude. Con `descendants(…)` le radici sono quindi i record posti direttamente sotto la destinazione, perché la destinazione stessa non fa parte del risultato.
 - Radici e fratelli seguono l'ordine del risultato, che `SORT` determina.
@@ -411,7 +430,7 @@ Le forme disponibili sono l'**albero** e due **grafici**. L'albero (`DISPLAY tre
 - Un nodo mostra la forma di visualizzazione come una voce di elenco, con `LIST` seguita dal campo aggiuntivo; con `TABLE` l'albero non mostra colonne. Un clic apre la maschera.
 - Oltre i 32 livelli il rientro non aumenta più; i nodi più profondi stanno al completo al 32° livello.
 
-I **grafici** `DISPLAY bar` e `DISPLAY line` mostrano il risultato di una query a tabella come grafico a barre o a linee. Leggono la tabella così come apparirebbe senza `DISPLAY`:
+I **grafici** `DISPLAY bar`, `DISPLAY line` e `DISPLAY pie` mostrano il risultato di una query a tabella come grafico a barre, a linee o a torta. Leggono la tabella così come apparirebbe senza `DISPLAY`; ciò che cambia per la torta segue dopo questo elenco:
 
 ````markdown
 ```perspective-query
@@ -429,7 +448,22 @@ DISPLAY bar
 - **Immagine**: il grafico è un'immagine senza comandi; un clic non apre alcun risultato. Le serie portano i colori dei grafici della [combinazione di colori](color-schemes.md) attiva, come i [grafici di tabelle](charts.md), e seguono subito un cambio della combinazione di colori o tra chiaro e scuro.
 - **Estensione**: i grafici dipendono dall'[estensione interna](extensions.md) «Grafico di una query», attiva a partire dalla modalità di lavoro **Avanzata** e indipendente da ogni altra estensione. Se è disattivata, appare la tabella con la nota che la visualizzazione a grafico è disattivata; il documento resta invariato e, dopo la riattivazione, il grafico ricompare.
 
-**Ripiego**: se una forma è sconosciuta o non adatta alla query, il risultato appare senza di essa, cioè come elenco o tabella, con sopra una nota che indica la forma e senza messaggio di errore. L'albero è adatto solo al livello di record e solo con un campo dopo `BY` che sia un campo di riferimento in almeno una tabella del risultato. Non è mai adatto a una query raggruppata; appare allora l'output raggruppato con la nota. I grafici sono adatti solo a una tabella (`TABLE`, non `LIST`) con almeno una colonna oltre all'etichetta, di cui una contenga numeri; altrimenti la nota ne indica il motivo. Un risultato vuoto mostra la sua nota di risultato vuoto e nessuna forma. Se manca il nome della forma dopo `DISPLAY` o il campo dopo `BY`, la query non è valida.
+La **torta** `DISPLAY pie` mostra le quote di una sola serie:
+
+````markdown
+```perspective-query
+TABLE count() AS "Numero"
+FROM "Attività"
+GROUP BY stato
+DISPLAY pie
+```
+````
+
+- **Quote**: La prima colonna con almeno un numero fornisce le quote, una fetta per categoria, cioè per gruppo o per risultato; l'etichetta segue la stessa regola di barre e linee. Una sola categoria dà un cerchio pieno.
+- **Le altre colonne di numeri** vengono ignorate; una riga sotto il grafico le nomina.
+- **Valori negativi o soltanto zeri** non danno una torta: compare allora la tabella, con sopra una nota che indica il motivo. Barre e linee invece disegnano tali valori.
+
+**Ripiego**: se una forma è sconosciuta o non adatta alla query, il risultato appare senza di essa, cioè come elenco o tabella, con sopra una nota che indica la forma e senza messaggio di errore. L'albero è adatto solo al livello di record e solo con un campo dopo `BY` che sia un campo di riferimento in almeno una tabella del risultato. Non è mai adatto a una query raggruppata; appare allora l'output raggruppato con la nota. I grafici sono adatti solo a una tabella (`TABLE`, non `LIST`) con almeno una colonna oltre all'etichetta, di cui una contenga numeri, la torta inoltre solo senza quote negative e con almeno una quota maggiore di 0; altrimenti la nota ne indica il motivo. Un risultato vuoto mostra la sua nota di risultato vuoto e nessuna forma. Se manca il nome della forma dopo `DISPLAY` o il campo dopo `BY`, la query non è valida.
 
 ## Visualizzazione e interazione
 
@@ -452,6 +486,6 @@ I file fuori dall'ambito di ricerca non compaiono nel risultato, e nemmeno ciò 
 ## Esportazione
 
 - **Esportazione PDF**: il risultato viene stampato come stato statico del momento del rendering, compresa la disposizione a tabella e a colonne. Le voci appaiono come testo; nel PDF non sono cliccabili. Un grafico della query appare chiaro nella stampa e nell'esportazione PDF, con i colori dei grafici della combinazione di colori chiara, anche se l'applicazione funziona in modalità scura.
-- **Markdown portabile**: l'esportazione lascia il blocco `perspective-query` invariato come sorgente. Alla riapertura in questo programma viene di nuovo valutato dinamicamente; altri programmi Markdown lo mostrano come blocco di codice. Questo vale anche con `DISPLAY bar` o `DISPLAY line`: a differenza di un [grafico di tabella](charts.md), il grafico di una query non viene esportato come immagine.
+- **Markdown portabile**: l'esportazione lascia il blocco `perspective-query` invariato come sorgente. Alla riapertura in questo programma viene di nuovo valutato dinamicamente; altri programmi Markdown lo mostrano come blocco di codice. Questo vale anche con `DISPLAY bar`, `DISPLAY line` o `DISPLAY pie`: a differenza di un [grafico di tabella](charts.md), il grafico di una query non viene esportato come immagine.
 
 Per valutazioni libere oltre il linguaggio a clausole — ad esempio strutture ricorsive o riepiloghi calcolati — sono disponibili i [blocchi di script](scripts.md); la loro API pq usa lo stesso modello di campi e blocchi della query.
